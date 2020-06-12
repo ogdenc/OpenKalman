@@ -42,7 +42,7 @@ namespace OpenKalman
   strict_matrix(Arg&& arg) noexcept
   {
     using C = typename MatrixTraits<Arg>::RowCoefficients;
-    return strict_matrix(base_matrix(wrap_angles(std::forward<Arg>(arg))));
+    return strict_matrix(base_matrix(std::forward<Arg>(arg)));
   }
 
 
@@ -58,7 +58,7 @@ namespace OpenKalman
     else
     {
       using C = typename MatrixTraits<Arg>::RowCoefficients;
-      return MatrixTraits<Arg>::make(strict(base_matrix(wrap_angles(std::forward<Arg>(arg)))));
+      return MatrixTraits<Arg>::make(strict(base_matrix(std::forward<Arg>(arg))));
     }
   }
 
@@ -106,7 +106,7 @@ namespace OpenKalman
     static_assert(is_equivalent_v<typename MatrixTraits<Arg>::ColumnCoefficients, Axis>);
     static_assert(not is_Euclidean_transformed_v<Arg>);
     using C = typename MatrixTraits<Arg>::RowCoefficients;
-    auto b = to_diagonal(base_matrix(wrap_angles(std::forward<Arg>(arg))));
+    auto b = to_diagonal(base_matrix(std::forward<Arg>(arg)));
     return Covariance<C, decltype(b)>(std::move(b));
   }
 
@@ -121,7 +121,7 @@ namespace OpenKalman
     if constexpr(is_Euclidean_transformed_v<Arg>)
       return make_Matrix<CCols, CRows>(transpose(base_matrix(from_Euclidean(std::forward<Arg>(arg)))));
     else
-      return make_Matrix<CCols, CRows>(transpose(base_matrix(wrap_angles(std::forward<Arg>(arg)))));
+      return make_Matrix<CCols, CRows>(transpose(base_matrix(std::forward<Arg>(arg))));
   }
 
 
@@ -135,7 +135,7 @@ namespace OpenKalman
     if constexpr(is_Euclidean_transformed_v<Arg>)
       return make_Matrix<CCols, CRows>(adjoint(base_matrix(from_Euclidean(std::forward<Arg>(arg)))));
     else
-      return make_Matrix<CCols, CRows>(adjoint(base_matrix(wrap_angles(std::forward<Arg>(arg)))));
+      return make_Matrix<CCols, CRows>(adjoint(base_matrix(std::forward<Arg>(arg))));
   }
 
 
@@ -144,7 +144,7 @@ namespace OpenKalman
   determinant(Arg&& arg) noexcept
   {
     static_assert(MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns);
-    return determinant(base_matrix(wrap_angles(std::forward<Arg>(arg))));
+    return determinant(base_matrix(std::forward<Arg>(arg)));
   }
 
 
@@ -153,7 +153,7 @@ namespace OpenKalman
   trace(Arg&& arg) noexcept
   {
     static_assert(MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns);
-    return trace(base_matrix(wrap_angles(std::forward<Arg>(arg))));
+    return trace(base_matrix(std::forward<Arg>(arg)));
   }
 
 
@@ -169,7 +169,7 @@ namespace OpenKalman
     using C = typename MatrixTraits<A>::RowCoefficients;
     static_assert(OpenKalman::is_equivalent_v<C, typename MatrixTraits<B>::RowCoefficients>);
     static_assert(OpenKalman::is_equivalent_v<C, typename MatrixTraits<A>::ColumnCoefficients>);
-    auto x = solve(base_matrix(wrap_angles(std::forward<A>(a))), base_matrix(wrap_angles(std::forward<B>(b))));
+    auto x = solve(base_matrix(std::forward<A>(a)), base_matrix(std::forward<B>(b)));
     return wrap_angles(MatrixTraits<B>::make(std::move(x)));
   }
 
@@ -181,7 +181,7 @@ namespace OpenKalman
   {
     if constexpr(MatrixTraits<Arg>::columns == 1)
     {
-      return wrap_angles(std::forward<Arg>(arg));
+      return std::forward<Arg>(arg);
     }
     else
     {
@@ -215,7 +215,7 @@ namespace OpenKalman
     static_assert(is_column_vector_v<A>);
     static_assert(not is_Euclidean_transformed_v<A>);
     using C = typename MatrixTraits<A>::RowCoefficients;
-    auto sm = LQ_decomposition(base_matrix(wrap_angles(std::forward<A>(a))));
+    auto sm = LQ_decomposition(base_matrix(std::forward<A>(a)));
     return SquareRootCovariance<C, decltype(sm)>(std::move(sm));
   }
 
@@ -247,14 +247,11 @@ namespace OpenKalman
         typename MatrixTraits<Vs>::ColumnCoefficients> and ...));
       using RC = Concatenate<typename MatrixTraits<V>::RowCoefficients, typename MatrixTraits<Vs>::RowCoefficients...>;
       decltype(auto) cat = concatenate_vertical(base_matrix(std::forward<V>(v)), base_matrix(std::forward<Vs>(vs))...);
-      if constexpr(is_wrapped_v<V>)
-        return MatrixTraits<V>::template make<RC>(wrap_angles<RC>(std::move(cat)));
-      else
-        return MatrixTraits<V>::template make<RC>(std::move(cat));
+      return MatrixTraits<V>::template make<RC>(std::move(cat));
     }
     else
     {
-      return wrap_angles(std::forward<V>(v));
+      return std::forward<V>(v);
     }
   };
 
@@ -284,17 +281,14 @@ namespace OpenKalman
       decltype(auto) cat = concatenate_horizontal(base_matrix(std::forward<V>(v)), base_matrix(std::forward<Vs>(vs))...);
       if constexpr(CC::axes_only)
       {
-        if constexpr(is_wrapped_v<V>)
-          return MatrixTraits<V>::template make<RC, CC>(wrap_angles<RC>(std::move(cat)));
-        else
-          return MatrixTraits<V>::template make<RC, CC>(std::move(cat));
+        return MatrixTraits<V>::template make<RC, CC>(std::move(cat));
       }
       else
         return make_Matrix<RC, CC>(std::move(cat));
     }
     else
     {
-      return wrap_angles(std::forward<V>(v));
+      return std::forward<V>(v);
     }
   };
 
@@ -312,13 +306,13 @@ namespace OpenKalman
         Concatenate<Cs...>::dimension : Concatenate<Cs...>::size;
       auto[top, bottom] = split_vertical<dim1, dim2>(base_matrix(std::forward<V>(v)));
       return std::tuple_cat(
-        std::tuple(wrap_angles(MatrixTraits<V>::template make<C>(std::move(top)))),
+        std::tuple(MatrixTraits<V>::template make<C>(std::move(top))),
         split_vertical<Cs...> (MatrixTraits<V>::template make<Concatenate<Cs...>>(std::move(bottom)))
       );
     }
     else
     {
-      return std::tuple(wrap_angles(std::forward<V>(v)));
+      return std::tuple(std::forward<V>(v));
     }
   }
 
@@ -346,13 +340,13 @@ namespace OpenKalman
       auto[left, right] = split_horizontal<dim1, dim2>(base_matrix(std::forward<V>(v)));
       using RC = typename MatrixTraits<V>::RowCoefficients;
       return std::tuple_cat(
-        std::tuple(wrap_angles(MatrixTraits<V>::template make<RC, Axes<dim1>>(std::move(left)))),
+        std::tuple(MatrixTraits<V>::template make<RC, Axes<dim1>>(std::move(left))),
         split_horizontal<cuts...>(MatrixTraits<V>::template make<RC, Axes<dim2>>(std::move(right)))
       );
     }
     else
     {
-      return std::tuple(wrap_angles(std::forward<V>(v)));
+      return std::tuple(std::forward<V>(v));
     }
   }
 
@@ -371,19 +365,19 @@ namespace OpenKalman
       using RC = typename MatrixTraits<V>::RowCoefficients;
       using CC = Concatenate<Cs...>;
       return std::tuple_cat(
-        std::tuple(wrap_angles(MatrixTraits<V>::template make<RC, C>(std::move(left)))),
+        std::tuple(MatrixTraits<V>::template make<RC, C>(std::move(left))),
         split_horizontal<Cs...>(MatrixTraits<V>::template make<RC, CC>(std::move(right)))
       );
     }
     else
     {
-      return std::tuple(wrap_angles(std::forward<V>(v)));
+      return std::tuple(std::forward<V>(v));
     }
   }
 
 
   template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg>, int> = 0>
-  inline decltype(auto)
+  inline auto
   column(Arg&& arg, const std::size_t index)
   {
     static_assert(is_column_vector_v<Arg>,
@@ -391,23 +385,17 @@ namespace OpenKalman
     /// @TODO Make it so this function can accept any typed matrix with identically-typed columns.
     using RC = typename MatrixTraits<Arg>::RowCoefficients;
     using CC = Axis;
-    if constexpr(is_wrapped_v<Arg>)
-      return MatrixTraits<Arg>::template make<RC, CC>(column(wrap_angles<RC>(base_matrix(std::forward<Arg>(arg))), index));
-    else
-      return MatrixTraits<Arg>::template make<RC, CC>(column(base_matrix(std::forward<Arg>(arg)), index));
+    return MatrixTraits<Arg>::template make<RC, CC>(column(base_matrix(std::forward<Arg>(arg)), index));
   }
 
 
   template<size_t index, typename Arg, std::enable_if_t<is_typed_matrix_v<Arg>, int> = 0>
-  inline decltype(auto)
+  inline auto
   column(Arg&& arg)
   {
     using RC = typename MatrixTraits<Arg>::RowCoefficients;
     using CC = typename MatrixTraits<Arg>::ColumnCoefficients::template Coefficient<index>;
-    if constexpr(is_wrapped_v<Arg>)
-      return MatrixTraits<Arg>::template make<RC, CC>(column<index>(wrap_angles<RC>(base_matrix(std::forward<Arg>(arg)))));
-    else
-      return MatrixTraits<Arg>::template make<RC, CC>(column<index>(base_matrix(std::forward<Arg>(arg))));
+    return MatrixTraits<Arg>::template make<RC, CC>(column<index>(base_matrix(std::forward<Arg>(arg))));
   }
 
 
@@ -426,11 +414,13 @@ namespace OpenKalman
     using RC = typename MatrixTraits<Arg>::RowCoefficients;
     const auto f_base = [&f](auto& col)
     {
-      auto mc = wrap_angles(MatrixTraits<Arg>::template make<RC, Axis>(col));
+      auto mc = MatrixTraits<Arg>::template make<RC, Axis>(col);
       f(mc);
     };
     auto& c = base_matrix(arg);
     apply_columnwise(c, f_base);
+    if constexpr(is_wrapped_v<Arg>)
+      c = wrap_angles<RC>(c);
     return arg;
   }
 
@@ -447,11 +437,13 @@ namespace OpenKalman
     using RC = typename MatrixTraits<Arg>::RowCoefficients;
     const auto f_base = [&f](auto& col, std::size_t i)
     {
-      auto mc = wrap_angles(MatrixTraits<Arg>::template make<RC, Axis>(col));
+      auto mc = MatrixTraits<Arg>::template make<RC, Axis>(col);
       f(mc, i);
     };
     auto& c = base_matrix(arg);
     apply_columnwise(c, f_base);
+    if constexpr(is_wrapped_v<Arg>)
+      c = wrap_angles<RC>(c);
     return arg;
   }
 
@@ -472,7 +464,7 @@ namespace OpenKalman
     using ResCC = Replicate<ResCC0, MatrixTraits<Arg>::columns>;
     using RC = typename MatrixTraits<Arg>::RowCoefficients;
     const auto f_base = [&f](const auto& col) {
-      return base_matrix(f(wrap_angles(MatrixTraits<Arg>::template make<RC, Axis>(col))));
+      return base_matrix(f(MatrixTraits<Arg>::template make<RC, Axis>(col)));
     };
     return wrap_angles(MatrixTraits<ResultType>::template make<ResRC, ResCC>(apply_columnwise(base_matrix(arg), f_base)));
   }
@@ -494,7 +486,7 @@ namespace OpenKalman
     using ResCC = Replicate<ResCC0, MatrixTraits<Arg>::columns>;
     const auto f_base = [&f](const auto& col, std::size_t i) {
       using RC = typename MatrixTraits<Arg>::RowCoefficients;
-      return base_matrix(f(wrap_angles(MatrixTraits<Arg>::template make<RC, Axis>(col)), i));
+      return base_matrix(f(MatrixTraits<Arg>::template make<RC, Axis>(col), i));
     };
     return wrap_angles(MatrixTraits<ResultType>::template make<ResRC, ResCC>(apply_columnwise(base_matrix(arg), f_base)));
   }
@@ -541,6 +533,9 @@ namespace OpenKalman
   apply_coefficientwise(Arg& arg, const Function& f)
   {
     apply_coefficientwise(base_matrix(arg), f);
+    using RC = typename MatrixTraits<Arg>::RowCoefficients;
+    if constexpr(is_wrapped_v<Arg>)
+      base_matrix(arg) = wrap_angles<RC>(base_matrix(arg));
     return arg;
   }
 
@@ -552,6 +547,9 @@ namespace OpenKalman
   apply_coefficientwise(Arg& arg, const Function& f)
   {
     apply_coefficientwise(base_matrix(arg), f);
+    using RC = typename MatrixTraits<Arg>::RowCoefficients;
+    if constexpr(is_wrapped_v<Arg>)
+      base_matrix(arg) = wrap_angles<RC>(base_matrix(arg));
     return arg;
   }
 
@@ -702,7 +700,7 @@ namespace OpenKalman
   inline auto operator*(V&& v, S scale)
   {
     using Sc = typename MatrixTraits<V>::Scalar;
-    return wrap_angles(MatrixTraits<V>::make(base_matrix(wrap_angles(std::forward<V>(v))) * static_cast<Sc>(scale)));
+    return wrap_angles(MatrixTraits<V>::make(base_matrix(std::forward<V>(v)) * static_cast<Sc>(scale)));
   }
 
 
@@ -715,7 +713,7 @@ namespace OpenKalman
   inline auto operator*(S scale, V&& v)
   {
     using Sc = const typename MatrixTraits<V>::Scalar;
-    return wrap_angles(MatrixTraits<V>::make(static_cast<Sc>(scale) * base_matrix(wrap_angles(std::forward<V>(v)))));
+    return wrap_angles(MatrixTraits<V>::make(static_cast<Sc>(scale) * base_matrix(std::forward<V>(v))));
   }
 
 
@@ -728,7 +726,7 @@ namespace OpenKalman
   inline auto operator/(V&& v, S scale)
   {
     using Sc = typename MatrixTraits<V>::Scalar;
-    return wrap_angles(MatrixTraits<V>::make(base_matrix(wrap_angles(std::forward<V>(v))) / static_cast<Sc>(scale)));
+    return wrap_angles(MatrixTraits<V>::make(base_matrix(std::forward<V>(v)) / static_cast<Sc>(scale)));
   }
 
 
@@ -750,7 +748,7 @@ namespace OpenKalman
       V2,
       V1>>;
     return wrap_angles(MatrixTraits<CommonV>::template make<RC, CC>(
-      base_matrix(wrap_angles(std::forward<V1>(v1))) * base_matrix(wrap_angles(std::forward<V2>(v2)))));
+      base_matrix(std::forward<V1>(v1)) * base_matrix(std::forward<V2>(v2))));
   }
 
 

@@ -18,6 +18,11 @@ namespace Eigen::internal
   {
     using XprType = OpenKalman::Mean<Coefficients, ArgType>;
     using Base = evaluator<std::decay_t<ArgType>>;
+    enum
+    {
+      Flags = (Coefficients::axes_only ? Base::Flags : Base::Flags & ~LvalueBit),
+    };
+
     explicit evaluator(const XprType& m) : Base(m.base_matrix()) {}
   };
 
@@ -534,7 +539,7 @@ namespace Eigen::internal
 
 
   /// Specialized evaluator for FromEuclideanExpr that has a nested ToEuclideanExpr.
-  /// This amounts to wrapping angles, and as a shortcut, it uses the "wrap_array" function of Coefficients.
+  /// This amounts to wrapping angles.
   /// @tparam Coefficients Coefficient types
   /// @tparam Nested Type of the nested expression
   template<typename Coefficients, typename ArgType>
@@ -551,7 +556,7 @@ namespace Eigen::internal
     enum
     {
       CoeffReadCost = NestedEvaluator::CoeffReadCost,
-      Flags = Coefficients::axes_only ? NestedEvaluator::Flags : ColMajor | (count == 1 ? LinearAccessBit & NestedEvaluator::Flags : 0),
+      Flags = (count == 1 ? LinearAccessBit : 0) | (Coefficients::axes_only ? NestedEvaluator::Flags : (unsigned int) ColMajor),
       Alignment = NestedEvaluator::Alignment
     };
 

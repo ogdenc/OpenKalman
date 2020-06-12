@@ -15,7 +15,14 @@ namespace Eigen::internal
 {
   template<typename Coefficients, typename ArgType>
   struct traits<OpenKalman::Mean<Coefficients, ArgType>>
-    : traits<std::decay_t<ArgType>> {};
+    : traits<std::decay_t<ArgType>>
+  {
+    using Base = traits<std::decay_t<ArgType>>;
+    enum
+    {
+      Flags = (Coefficients::axes_only ? Base::Flags : Base::Flags & ~LvalueBit),
+    };
+  };
 
   template<typename RowCoefficients, typename ColumnCoefficients, typename ArgType>
   struct traits<OpenKalman::TypedMatrix<RowCoefficients, ColumnCoefficients, ArgType>>
@@ -122,6 +129,28 @@ namespace Eigen::internal
       Flags = Coefficients::axes_only ?
         NestedTraits::Flags :
         ColMajor | (Nested::ColsAtCompileTime == 1 ? LinearAccessBit : 0),
+      RowsAtCompileTime = Coefficients::size,
+      MaxRowsAtCompileTime = Coefficients::size,
+      ColsAtCompileTime = Nested::ColsAtCompileTime,
+      MaxColsAtCompileTime = Nested::MaxColsAtCompileTime,
+      InnerStrideAtCompileTime = Nested::InnerStrideAtCompileTime,
+      OuterStrideAtCompileTime = Nested::OuterStrideAtCompileTime,
+    };
+  };
+
+  template<typename Coefficients, typename ArgType>
+  struct traits<OpenKalman::FromEuclideanExpr<Coefficients, OpenKalman::ToEuclideanExpr<Coefficients, ArgType>>>
+  {
+    using Nested = std::decay_t<ArgType>;
+    using NestedTraits = traits<Nested>;
+    using StorageKind = Dense;
+    using XprKind = MatrixXpr;
+    using StorageIndex = typename Nested::StorageIndex;
+    using Scalar = typename Nested::Scalar;
+    static constexpr auto count = Nested::ColsAtCompileTime;
+    enum
+    {
+      Flags = (count == 1 ? LinearAccessBit : 0) | (Coefficients::axes_only ? NestedTraits::Flags : (unsigned int) ColMajor),
       RowsAtCompileTime = Coefficients::size,
       MaxRowsAtCompileTime = Coefficients::size,
       ColsAtCompileTime = Nested::ColsAtCompileTime,

@@ -263,13 +263,13 @@ TEST_F(typed_matrix_tests, EuclideanMean_overloads)
   EXPECT_TRUE(is_near(square(QR_decomposition(EuclideanMean<Axes<3>, M32> {1, 4, 2, 5, 3, 6})), TM22 {14., 32, 32, 77}));
 
   Mat23 m = Mat23::zero();
-  Mat23 offset = {1, 1, 1, 1, 1, 1, 1, 1, 1};
   for (int i=0; i<100; i++)
   {
-    m = (m * i + offset + randomize<Mat23>(0.3)) / (i + 1);
+    m = (m * i + randomize<Mat23>(0.3)) / (i + 1);
   }
-  EXPECT_TRUE(is_near(m, offset, 0.1));
-  EXPECT_FALSE(is_near(m, offset, 1e-6));
+  Mat23 offset = {1, 1, 1, 1, 1, 1, 1, 1, 1};
+  EXPECT_TRUE(is_near(m + offset, offset, 0.1));
+  EXPECT_FALSE(is_near(m + offset, offset, 1e-6));
 }
 
 

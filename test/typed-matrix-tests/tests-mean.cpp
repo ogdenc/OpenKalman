@@ -30,7 +30,10 @@ using Mat22 = Mean<C2, M22>;
 using Mat23 = Mean<C2, M23>;
 using Mat32 = Mean<C3, M32>;
 using Mat33 = Mean<C3, M33>;
+using TMat22 = TypedMatrix<Axes<2>, Axes<2>, M22>;
 using TMat23 = TypedMatrix<Axes<2>, Axes<3>, M23>;
+using TMat32 = TypedMatrix<Axes<3>, Axes<2>, M32>;
+using EMat23 = EuclideanMean<C2, M33>;
 
 using SA2l = EigenSelfAdjointMatrix<M22, TriangleType::lower>;
 using SA2u = EigenSelfAdjointMatrix<M22, TriangleType::upper>;
@@ -50,15 +53,15 @@ TEST_F(typed_matrix_tests, Mean_class)
   // Default constructor and Eigen3 construction
   Mat23 mat23a;
   mat23a << 1, 2, 3, 4, 5, 6;
-  EXPECT_TRUE(is_near(mat23a, Mat23 {1, 2, 3, 4, 5, 6}));
+  EXPECT_TRUE(is_near(mat23a, TMat23 {1, 2, 3, 4-2*M_PI, 5-2*M_PI, 6-2*M_PI}));
 
   // Copy constructor
   Mat23 mat23b = const_cast<const Mat23&>(mat23a);
-  EXPECT_TRUE(is_near(mat23b, Mat23 {1, 2, 3, 4, 5, 6}));
+  EXPECT_TRUE(is_near(mat23b, TMat23 {1, 2, 3, 4-2*M_PI, 5-2*M_PI, 6-2*M_PI}));
 
   // Move constructor
   Mat23 mat23c(std::move(Mat23 {6, 5, 4, 3, 2, 1}));
-  EXPECT_TRUE(is_near(mat23c, Mat23 {6, 5, 4, 3, 2, 1}));
+  EXPECT_TRUE(is_near(mat23c, TMat23 {6, 5, 4, 3, 2, 1}));
 
   // Convert from different covariance types
   Mat23 mat23_x1(TypedMatrix<C2, Axes<3>, M23> {1, 2, 3, 4, 5, 6});
@@ -73,19 +76,19 @@ TEST_F(typed_matrix_tests, Mean_class)
 
   // Construct from a typed matrix base
   Mat23 mat23d((M23() << 1, 2, 3, 4, 5, 6).finished());
-  EXPECT_TRUE(is_near(mat23d, Mat23 {1, 2, 3, 4, 5, 6}));
+  EXPECT_TRUE(is_near(mat23d, TMat23 {1, 2, 3, 4-2*M_PI, 5-2*M_PI, 6-2*M_PI}));
 
   // Construct from a list of coefficients
   Mat23 mat23e {1, 2, 3, 4, 5, 6};
-  EXPECT_TRUE(is_near(mat23e, Mat23 {1, 2, 3, 4, 5, 6}));
+  EXPECT_TRUE(is_near(mat23e, TMat23 {1, 2, 3, 4-2*M_PI, 5-2*M_PI, 6-2*M_PI}));
 
   // Copy assignment
   mat23c = mat23b;
-  EXPECT_TRUE(is_near(mat23c, Mat23 {1, 2, 3, 4, 5, 6}));
+  EXPECT_TRUE(is_near(mat23c, TMat23 {1, 2, 3, 4-2*M_PI, 5-2*M_PI, 6-2*M_PI}));
 
   // Move assignment
   mat23c = std::move(Mat23 {3, 4, 5, 6, 7, 8});
-  EXPECT_TRUE(is_near(mat23c, Mat23 {3, 4, 5, 6, 7, 8}));
+  EXPECT_TRUE(is_near(mat23c, TMat23 {3, 4, 5, 6-2*M_PI, 7-2*M_PI, 8-2*M_PI}));
 
   // assign from different covariance types
   mat23_x1 = TypedMatrix<C2, Axes<3>, M23> {6, 5, 4, 3, 2, 1};
@@ -106,10 +109,10 @@ TEST_F(typed_matrix_tests, Mean_class)
   EXPECT_TRUE(is_near(mat23e, Mat23 {6, 5, 4, 3, 2, 1}));
 
   // Increment
-  mat23_x2 += Mean<Axes<2>, M23> {1, 2, 3, 4, 5, 6};
-  EXPECT_TRUE(is_near(mat23_x2, Mean<Axes<2>, M23> {7, 7, 7, 7, 7, 7}));
+  mat23_x2 += TMat23 {1, 2, 3, 4, 5, 6};
+  EXPECT_TRUE(is_near(mat23_x2, TMat23 {7, 7, 7, 7, 7, 7}));
   mat23a += Mat23 {1, 2, 3, 4, 5, 6};
-  EXPECT_TRUE(is_near(mat23a, Mat23 {2, 4, 6, 8-2*M_PI, 10-4*M_PI, 12-4*M_PI}));
+  EXPECT_TRUE(is_near(mat23a, TMat23 {2, 4, 6, 8-2*M_PI, 10-4*M_PI, 12-4*M_PI}));
 
   // Increment with a stochastic value
   mat23b = {1, 1, 1, 1, 1, 1};
@@ -117,14 +120,14 @@ TEST_F(typed_matrix_tests, Mean_class)
   {
     mat23b += GaussianDistribution {Mat21 {0, 0}, sqcovi22 * 0.01};
   }
-  EXPECT_TRUE(is_near(mat23b, Mat23 {1, 1, 1, 1, 1, 1}, 0.1));
-  EXPECT_FALSE(is_near(mat23b, Mat23 {1, 1, 1, 1, 1, 1}, 1e-6));
+  EXPECT_TRUE(is_near(mat23b, TMat23 {1, 1, 1, 1, 1, 1}, 0.1));
+  EXPECT_FALSE(is_near(mat23b, TMat23 {1, 1, 1, 1, 1, 1}, 1e-6));
 
   // Decrement
-  mat23_x2 -= Mean<Axes<2>, M23> {1, 2, 3, 4, 5, 6};
-  EXPECT_TRUE(is_near(mat23_x2, Mean<Axes<2>, M23> {6, 5, 4, 3, 2, 1}));
+  mat23_x2 -= TMat23 {1, 2, 3, 4, 5, 6};
+  EXPECT_TRUE(is_near(mat23_x2, TMat23 {6, 5, 4, 3, 2, 1}));
   mat23a -= Mat23 {1, 2, 3, 4, 5, 6};
-  EXPECT_TRUE(is_near(mat23a, Mat23 {1, 2, 3, 4-2*M_PI, 5-2*M_PI, 6-2*M_PI}));
+  EXPECT_TRUE(is_near(mat23a, TMat23 {1, 2, 3, 4-2*M_PI, 5-2*M_PI, 6-2*M_PI}));
 
   // Decrement with a stochastic value
   mat23b = {1, 1, 1, 1, 1, 1};
@@ -132,16 +135,16 @@ TEST_F(typed_matrix_tests, Mean_class)
   {
     mat23b -= GaussianDistribution {Mat21 {0, 0}, sqcovi22 * 0.01};
   }
-  EXPECT_TRUE(is_near(mat23b, Mat23 {1, 1, 1, 1, 1, 1}, 0.1));
-  EXPECT_FALSE(is_near(mat23b, Mat23 {1, 1, 1, 1, 1, 1}, 1e-6));
+  EXPECT_TRUE(is_near(mat23b, TMat23 {1, 1, 1, 1, 1, 1}, 0.1));
+  EXPECT_FALSE(is_near(mat23b, TMat23 {1, 1, 1, 1, 1, 1}, 1e-6));
 
   // Scalar multiplication
   mat23a *= 2;
-  EXPECT_TRUE(is_near(mat23a, Mat23 {2, 4, 6, 8, 10, 12}));
+  EXPECT_TRUE(is_near(mat23a, TMat23 {2, 4, 6, 8-2*M_PI, 10-4*M_PI, 12-4*M_PI}));
 
   // Scalar division
   mat23a /= 2;
-  EXPECT_TRUE(is_near(mat23a, Mat23 {1, 2, 3, 4-M_PI, 5, 6}));
+  EXPECT_TRUE(is_near(mat23a, TMat23 {1, 2, 3, 4-M_PI, 5-2*M_PI, 6-2*M_PI}));
 
   // Scalar multiplication, zero
   mat23a *= 0;
@@ -157,9 +160,9 @@ TEST_F(typed_matrix_tests, Mean_class)
   EXPECT_NEAR((Mat23 {1, 2, 3, 4, 5, 6})(0, 0), 1, 1e-6);
   EXPECT_NEAR((Mat23 {1, 2, 3, 4, 5, 6})(0, 1), 2, 1e-6);
   EXPECT_NEAR((Mat23 {1, 2, 3, 4, 5, 6})(0, 2), 3, 1e-6);
-  EXPECT_NEAR((Mat23 {1, 2, 3, 4, 5, 6})(1, 0), 4, 1e-6);
-  EXPECT_NEAR((Mat23 {1, 2, 3, 4, 5, 6})(1, 1), 5, 1e-6);
-  EXPECT_NEAR((Mat23 {1, 2, 3, 4, 5, 6})(1, 2), 6, 1e-6);
+  EXPECT_NEAR((Mat23 {1, 2, 3, 4, 5, 6})(1, 0), 4-2*M_PI, 1e-6);
+  EXPECT_NEAR((Mat23 {1, 2, 3, 4, 5, 6})(1, 1), 5-2*M_PI, 1e-6);
+  EXPECT_NEAR((Mat23 {1, 2, 3, 4, 5, 6})(1, 2), 6-2*M_PI, 1e-6);
 }
 
 
@@ -217,8 +220,9 @@ TEST_F(typed_matrix_tests, Mean_traits)
   static_assert(is_zero_v<Mean<C2, Z22>>);
   static_assert(is_zero_v<Mean<C2, EigenZero<M23>>>);
 
-  EXPECT_TRUE(is_near(MatrixTraits<Mat23>::make(
-    (Eigen::Matrix<double, 2, 3>() << 1, 2, 3, 4, 5, 6).finished()).base_matrix(), Mean<Axes<2>, M23> {1, 2, 3, 4, 5, 6}));
+  EXPECT_TRUE(is_near(
+    MatrixTraits<Mat23>::make((Eigen::Matrix<double, 2, 3>() << 1, 2, 3, 4, 5, 6).finished()).base_matrix(),
+    Mean<Axes<2>, M23> {1, 2, 3, 4-2*M_PI, 5-2*M_PI, 6-2*M_PI}));
   EXPECT_TRUE(is_near(MatrixTraits<Mat23>::zero(), Eigen::Matrix<double, 2, 3>::Zero()));
   EXPECT_TRUE(is_near(MatrixTraits<Mat22>::identity(), Eigen::Matrix<double, 2, 2>::Identity()));
 }
@@ -226,12 +230,15 @@ TEST_F(typed_matrix_tests, Mean_traits)
 
 TEST_F(typed_matrix_tests, Mean_overloads)
 {
+  auto w_4 = 4 - 2*M_PI;
+  auto w_5 = 5 - 2*M_PI;
+  auto w_6 = 6 - 2*M_PI;
   EXPECT_TRUE(is_near(wrap_angles(Mean<C2, M23> {1, 2, 3, M_PI*7/3, M_PI*13/6, -M_PI*7/4}),
     Mat23 {1, 2, 3, M_PI/3, M_PI/6, M_PI/4}));
 
-  EXPECT_TRUE(is_near(base_matrix(Mat23 {1, 2, 3, 4, 5, 6}), TMat23 {1, 2, 3, 4, 5, 6}));
+  EXPECT_TRUE(is_near(base_matrix(Mat23 {1, 2, 3, 4, 5, 6}), TMat23 {1, 2, 3, w_4, w_5, w_6}));
 
-  EXPECT_TRUE(is_near(strict_matrix(Mat23 {1, 2, 3, 4, 5, 6}), Mat23 {1, 2, 3, 4-2*M_PI, 5-2*M_PI, 6-2*M_PI}));
+  EXPECT_TRUE(is_near(strict_matrix(Mat23 {1, 2, 3, 4, 5, 6}), Mat23 {1, 2, 3, w_4, w_5, w_6}));
 
   EXPECT_TRUE(is_near(strict(Mat23 {1, 2, 3, 4, 5, 6} * 2), Mat23 {2, 4, 6, 8-2*M_PI, 10-4*M_PI, 12-4*M_PI}));
   static_assert(std::is_same_v<std::decay_t<decltype(strict(Mat23 {1, 2, 3, 4, 5, 6} * 2))>,
@@ -255,39 +262,41 @@ TEST_F(typed_matrix_tests, Mean_overloads)
   static_assert(is_diagonal_v<decltype(to_diagonal(Mat21 {2, 3}))>);
   static_assert(is_covariance_v<decltype(to_diagonal(Mat21 {2, 3}))>);
 
-  EXPECT_TRUE(is_near(to_diagonal(Mat21 {5, 6}).base_matrix(), Mat22 {5-2*M_PI, 0, 0, 6-2*M_PI}));
+  EXPECT_TRUE(is_near(to_diagonal(Mat21 {5, 6}).base_matrix(), Mat22 {5, 0, 0, w_6}));
   static_assert(is_diagonal_v<decltype(to_diagonal(Mat21 {5, 6}))>);
   static_assert(is_covariance_v<decltype(to_diagonal(Mat21 {5, 6}))>);
 
-  EXPECT_TRUE(is_near(transpose(Mat23 {1, 2, 3, 4, 5, 6}).base_matrix(), Mat32 {1, 4, 2, 5, 3, 6}));
+  EXPECT_TRUE(is_near(transpose(Mat23 {1, 2, 3, 4, 5, 6}).base_matrix(), TMat32 {1, w_4, 2, w_5, 3, w_6}));
   static_assert(std::is_same_v<std::decay_t<decltype(strict(transpose(Mat23 {1, 2, 3, 4, 5, 6})))>,
     TypedMatrix<Axes<3>, C2, M32>>);
 
-  EXPECT_TRUE(is_near(adjoint(Mat23 {1, 2, 3, 4, 5, 6}).base_matrix(), Mat32 {1, 4, 2, 5, 3, 6}));
+  EXPECT_TRUE(is_near(adjoint(Mat23 {1, 2, 3, 4, 5, 6}).base_matrix(), TMat32 {1, w_4, 2, w_5, 3, w_6}));
   static_assert(std::is_same_v<std::decay_t<decltype(strict(adjoint(Mat23 {1, 2, 3, 4, 5, 6})))>,
     TypedMatrix<Axes<3>, C2, M32>>);
 
-  EXPECT_NEAR(determinant(Mat22 {1, 2, 3, 4}), -2, 1e-6);
+  EXPECT_NEAR(determinant(Mat22 {1, 2, 3, 4}), w_4 - 6, 1e-6);
 
-  EXPECT_NEAR(trace(Mat22 {1, 2, 3, 4}), 5, 1e-6);
+  EXPECT_NEAR(trace(Mat22 {1, 2, 3, 4}), 1 + w_4, 1e-6);
 
   EXPECT_TRUE(is_near(solve(Mean<Axes<2>, M22> {9., 3, 3, 10}, Mean<Axes<2>, M21> {15, 23}), Mean<Axes<2>, M21> {1, 2}));
 
   EXPECT_TRUE(is_near(reduce_columns(Mat23 {1, 2, 3, M_PI/3, M_PI/4, M_PI/6}), Mat21 {2, M_PI/4}));
-  EXPECT_TRUE(is_near(reduce_columns(Mat23 {1, 2, 3, 4, 5, 6}), Mat21 {2, 5-2*M_PI}));
+  EXPECT_TRUE(is_near(reduce_columns(Mat23 {1, 2, 3, 4, 5, 6}), Mat21 {2, w_5}));
 
-  EXPECT_TRUE(is_near(square(LQ_decomposition(Mat23 {1, 2, 3, 4, 5, 6})), Mat22 {14, 32, 32, 77}));
+  EXPECT_TRUE(is_near(square(LQ_decomposition(Mat23 {1, 2, 3, 4, 5, 6})),
+    TMat22 {14, w_4 + 2*w_5 + 3*w_6, w_4 + 2*w_5 + 3*w_6, w_4*w_4 + w_5*w_5 + w_6*w_6}));
 
-  EXPECT_TRUE(is_near(square(QR_decomposition(Mean<Axes<3>, M32> {1, 4, 2, 5, 3, 6})), Mat22 {14, 32, 32, 77}));
+  EXPECT_TRUE(is_near(square(QR_decomposition(Mean<Axes<3>, M32> {1, 4, 2, 5, 3, 6})), TMat22 {14, 32, 32, 77}));
 
-  Mat23 m = Mat23::zero();
-  Mat23 offset = {1, 1, 1, 1, 1, 1};
+  EMat23 m = EMat23::zero();
   for (int i=0; i<100; i++)
   {
-    m = (m * i + offset + randomize<Mat23>(0.7)) / (i + 1);
+    m = (m * i + to_Euclidean(randomize<Mat23>(0.3))) / (i + 1);
   }
-  EXPECT_TRUE(is_near(m, offset, 0.1));
-  EXPECT_FALSE(is_near(m, offset, 1e-6));
+  Mat23 offset = {1, 1, 1, 1, 1, 1};
+  EXPECT_TRUE(is_near(from_Euclidean(m) + offset, offset, 0.1));
+  EXPECT_FALSE(is_near(from_Euclidean(m) + offset, offset, 1e-6));
+
 }
 
 
@@ -302,7 +311,7 @@ TEST_F(typed_matrix_tests, Mean_blocks)
   static_assert(is_equivalent_v<typename MatrixTraits<decltype(concatenate_horizontal(Mat22 {1, 2, 4, 5}, Mat21 {3, 6}))>::RowCoefficients, C2>);
 
   EXPECT_TRUE(is_near(concatenate_horizontal(Mat22 {1, 2, 4, 5}, TypedMatrix<C2, Angle, M21> {3, 6}),
-    TypedMatrix<C2, Coefficients<Axis, Axis, Angle>, M23> {1, 2, 3, 4, 5, 6}));
+    TypedMatrix<C2, Coefficients<Axis, Axis, Angle>, M23> {1, 2, 3, 4-2*M_PI, 5-2*M_PI, 6}));
   static_assert(not is_mean_v<decltype(concatenate_horizontal(Mat22 {1, 2, 4, 5}, TypedMatrix<C2, Angle, M21> {3, 6}))>);
   static_assert(is_equivalent_v<typename MatrixTraits<decltype(concatenate_horizontal(Mat22 {1, 2, 4, 5}, TypedMatrix<C2, Angle, M21> {3, 6}))>::RowCoefficients, C2>);
   static_assert(is_equivalent_v<typename MatrixTraits<decltype(concatenate_horizontal(Mat22 {1, 2, 4, 5}, TypedMatrix<C2, Angle, M21> {3, 6}))>::ColumnCoefficients, Coefficients<Axis, Axis, Angle>>);
@@ -413,21 +422,22 @@ TEST_F(typed_matrix_tests, Mean_arithmetic)
 
 TEST_F(typed_matrix_tests, Mean_references_axis)
 {
-  Mat33 v1 {1., 2, 3,
-        2, 4, -6,
-        3, 6, -3};
-  Mean<C3, M33&> v2 = v1;
+  Mean<Axes<3>, M33> v1 {1., 2, 3,
+                         2, 4, -6,
+                         3, 6, -3};
+  Mean<Axes<3>, M33&> v2 = v1;
   EXPECT_TRUE(is_near(v1, v2));
   v1(1,0) = 4.1;
   EXPECT_EQ(v2(1,0), 4.1);
-  v2(0, 1) = 5.2;
+  v2(0,1) = 5.2;
   EXPECT_EQ(v1(0,1), 5.2);
-  Mean<C3, M33&&> v3 = std::move(v2);
+  Mean<Axes<3>, M33&&> v3 = std::move(v2);
   EXPECT_EQ(v3(1,0), 4.1);
-  Mean<C3, const M33&> v4 = v3;
+  Mean<Axes<3>, const M33&> v4 = v3;
   v3(2,1) = 7.3;
+  EXPECT_EQ(v3(2,1), 7.3);
   EXPECT_EQ(v4(2,1), 7.3);
-  Mean<C3, M33> v5 = v3;
+  Mean<Axes<3>, M33> v5 = v3;
   v3(1,1) = 8.4;
   EXPECT_EQ(v3(1,1), 8.4);
   EXPECT_EQ(v5(1,1), 4);
@@ -441,26 +451,34 @@ TEST_F(typed_matrix_tests, Mean_references_angle)
         2, 5, 8,
         3, 6, 9};
   Mean<Coefficients<Axis, Angle, Axis>, Eigen::Matrix<double, 3, 3>&> v2 = v1;
+  //v1(0,1) = 4.05; ///< This should not compile, because mean subscripts containing angles are not lvalues.
+  //EXPECT_EQ(v2(0,1), 4.05);
+  //v2(1,0) = 2.05; ///< This should not compile, because mean subscripts containing angles are not lvalues.
+  //EXPECT_EQ(v2(1,0), 2.05);
   EXPECT_TRUE(is_near(v1, v2));
   v1 = {1.1, 4.1, 7.1,
         2.1, 5.1, 8.1,
         3.1, 6.1, 9.1};
   EXPECT_NEAR(v2(1,0), 2.1, 1e-6);
-  v2(0, 1) = 4.2;
-  EXPECT_NEAR(v1(0,1), 4.2, 1e-6);
+  EXPECT_NEAR(v2(1,1), 5.1-2*M_PI, 1e-6);
+  //v2(0,1) = 4.2; ///< This should not compile, because mean subscripts containing angles are not lvalues.
+  //EXPECT_NEAR(v1(0,1), 4.2, 1e-6);
+  //v2(1,1) = 5.2; ///< This should not compile, because mean subscripts containing angles are not lvalues.
+  //EXPECT_NEAR(v1(1,1), 5.2, 1e-6);
   Mean<Coefficients<Axis, Angle, Axis>, Eigen::Matrix<double, 3, 3>&&> v3 = std::move(v2);
-  EXPECT_NEAR(v3(0,1), 4.2, 1e-6);
-  Mean<Coefficients<Axis, Angle, Axis>, const Eigen::Matrix<double, 3, 3>&> v4 = v3;
+  EXPECT_NEAR(v3(0,1), 4.1, 1e-6);
+  Mean<Coefficients<Axis, Angle, Axis>, const Eigen::Matrix<double, 3, 3>&> v4 = v3; // Should copy v3.
   v3 = {1.3, 4.3, 7.3,
         2.3, 5.3, 8.3,
         3.3, 6.3, 9.3};
-  EXPECT_NEAR(v4(2,1), 6.3, 1e-6);
+  EXPECT_NEAR(v3(2,1), 6.3, 1e-6);
+  EXPECT_NEAR(v4(2,1), 6.1, 1e-6);
   Mean<Coefficients<Axis, Angle, Axis>, Eigen::Matrix<double, 3, 3>> v5 = v3;
   v3 = {1.4, 4.4, 7.4,
         2.4, 5.4, 8.4,
         3.4, 6.4, 9.4};
-  EXPECT_NEAR(v3(1,1), 5.4, 1e-6);
-  EXPECT_NEAR(v5(1,1), 5.3, 1e-6);
+  EXPECT_NEAR(v3(1,1), 5.4-2*M_PI, 1e-6);
+  EXPECT_NEAR(v5(1,1), 5.3-2*M_PI, 1e-6);
 }
 
 
@@ -471,16 +489,13 @@ TEST_F(typed_matrix_tests, Mean_angles_construct_coefficients)
   EXPECT_EQ(v0[1], 2);
   const auto v1 = make_Mean<Coefficients<Axis, Angle>>(6, 7);
   EXPECT_EQ(v1[0], 6);
-  EXPECT_EQ(v1[1], 7);
+  EXPECT_EQ(v1[1], 7-2*M_PI);
   const auto v2 = make_Mean<Coefficients<Angle, Axis, Angle>>(7, 8, 9);
-  EXPECT_EQ(v2[0], 7);
+  EXPECT_EQ(v2[0], 7-2*M_PI);
   EXPECT_EQ(v2[1], 8);
-  EXPECT_EQ(v2[2], 9);
-  Eigen::Matrix<double, 3, 3> m3, m3_strict;
+  EXPECT_EQ(v2[2], 9-2*M_PI);
+  Eigen::Matrix<double, 3, 3> m3;
   m3 << 9, 3, 1,
-    3, 8, 2,
-    7, 1, 8;
-  m3_strict << 9, 3, 1,
     3, 8 - M_PI*2, 2,
     7, 1, 8;
   auto v3 = make_Mean<double, Coefficients<Axis, Angle, Axis>, 3>();
@@ -488,16 +503,14 @@ TEST_F(typed_matrix_tests, Mean_angles_construct_coefficients)
     3, 8, 2,
     7, 1, 8;
   EXPECT_TRUE(is_near(base_matrix(v3), m3));
-  Eigen::Matrix<double, 3, 3> m3_1 = v3;
-  EXPECT_TRUE(is_near(m3_1, m3_strict));
   auto v3_1 = make_Mean<Coefficients<Axis, Angle, Axis>>(9, 3, 1, 3, 8, 2, 7, 1, 8);
-  EXPECT_TRUE(is_near(v3_1, m3_strict));
+  EXPECT_TRUE(is_near(v3_1, m3));
   auto v3_2 = v3;
-  EXPECT_TRUE(is_near(v3_2, m3_strict));
+  EXPECT_TRUE(is_near(v3_2, m3));
   static_assert(std::is_same_v<decltype(v3)::BaseMatrix, decltype(m3)>);
   auto v3_3 = make_Mean<double, Coefficients<Axis, Angle, Axis>, 3>();
   v3_3 << v3;
-  EXPECT_TRUE(is_near(v3_3, m3_strict));
+  EXPECT_TRUE(is_near(v3_3, m3));
 }
 
 
@@ -512,7 +525,7 @@ TEST_F(typed_matrix_tests, Mean_angle_concatenate_split)
   auto x4 = Mean<Concatenate<C3, C3, C3>> {5., 7, 9, 3, 2, 1, 5, 7, 9};
   EXPECT_TRUE(is_near(concatenate(x1, x2, x1), x4));
   auto [x5, x6] = split<C3, C3>(x3);
-  EXPECT_TRUE(is_near(base_matrix(x5), base_matrix(x1)));
+  EXPECT_TRUE(is_near(base_matrix(x5), base_matrix(wrap_angles(x1))));
   EXPECT_TRUE(is_near(x5, wrap_angles(x1)));
   EXPECT_TRUE(is_near(x6, x2));
   const Var3 y1 {M_PI / 6, 2, M_PI / 3};

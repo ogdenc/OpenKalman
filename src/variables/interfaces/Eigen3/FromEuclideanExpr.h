@@ -46,9 +46,7 @@ namespace OpenKalman
     }
 
     /// Construct from compatible matrix object.
-    template<typename Arg,
-      std::enable_if_t<is_Eigen_matrix_v<Arg> and
-      not is_FromEuclideanExpr_v<Arg> and not is_ToEuclideanExpr_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg>, int> = 0>
     FromEuclideanExpr(Arg&& arg) noexcept : Base(std::forward<Arg>(arg))
     {
       static_assert(MatrixTraits<Arg>::dimension == Coefficients::dimension);

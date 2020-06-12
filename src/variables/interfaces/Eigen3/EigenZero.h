@@ -24,9 +24,8 @@ namespace OpenKalman
 
     EigenZero() : Base(BaseMatrix::Zero()) {};
 
-    EigenZero(const Base& z) : Base(z) {};
-
-    EigenZero(Base&& z) : Base(std::move(z)) {};
+    template<typename Arg>
+    EigenZero(const Arg&) : EigenZero() {};
   };
 
 

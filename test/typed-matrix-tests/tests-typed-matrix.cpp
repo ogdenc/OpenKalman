@@ -54,7 +54,7 @@ TEST_F(typed_matrix_tests, TypedMatrix_class)
 
   // Convert from different covariance types
   TypedMatrix<C2, Axes<3>, M23> mat23_x1(Mean<C2, M23> {1, 2, 3, 4, 5, 6});
-  EXPECT_TRUE(is_near(mat23_x1, Mat23 {1, 2, 3, 4, 5, 6}));
+  EXPECT_TRUE(is_near(mat23_x1, Mat23 {1, 2, 3, 4-2*M_PI, 5-2*M_PI, 6-2*M_PI}));
   TypedMatrix<Axes<2>, Axes<3>, M23> mat23_x2(EuclideanMean<Axes<2>, M23> {1, 2, 3, 4, 5, 6});
   EXPECT_TRUE(is_near(mat23_x2, Mat23 {1, 2, 3, 4, 5, 6}));
   TypedMatrix<C2, Axes<3>, M23> mat23_x3(EuclideanMean<C2, M33> {
@@ -178,7 +178,7 @@ TEST_F(typed_matrix_tests, TypedMatrix_deduction_guides)
   static_assert(is_equivalent_v<typename MatrixTraits<decltype(TypedMatrix(b1))>::ColumnCoefficients, C3>);
 
   auto b2 = Mean<C2, M23> {1, 2, 3, 4, 5, 6};
-  EXPECT_TRUE(is_near(TypedMatrix(b2), a));
+  EXPECT_TRUE(is_near(TypedMatrix(b2), (M23() << 1, 2, 3, 4-2*M_PI, 5-2*M_PI, 6-2*M_PI).finished()));
   static_assert(is_equivalent_v<typename MatrixTraits<decltype(TypedMatrix(b2))>::RowCoefficients, C2>);
   static_assert(is_equivalent_v<typename MatrixTraits<decltype(TypedMatrix(b2))>::ColumnCoefficients, Axes<3>>);
 
@@ -287,13 +287,13 @@ TEST_F(typed_matrix_tests, TypedMatrix_overloads)
   EXPECT_TRUE(is_near(square(QR_decomposition(TypedMatrix<Axes<3>, C2, M32> {1, 4, 2, 5, 3, 6})), Mat22 {14, 32, 32, 77}));
 
   Mat23 m = Mat23::zero();
-  Mat23 offset = {1, 1, 1, 1, 1, 1};
   for (int i=0; i<100; i++)
   {
-    m = (m * i + offset + randomize<Mat23>(0.7)) / (i + 1);
+    m = (m * i + randomize<Mat23>(0.7)) / (i + 1);
   }
-  EXPECT_TRUE(is_near(m, offset, 0.1));
-  EXPECT_FALSE(is_near(m, offset, 1e-6));
+  Mat23 offset = {1, 1, 1, 1, 1, 1};
+  EXPECT_TRUE(is_near(m + offset, offset, 0.1));
+  EXPECT_FALSE(is_near(m + offset, offset, 1e-6));
 }
 
 

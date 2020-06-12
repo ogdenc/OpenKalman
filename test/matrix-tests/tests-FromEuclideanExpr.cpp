@@ -229,6 +229,17 @@ TEST_F(matrix_tests, FromEuclideanExpr_blocks)
       4, 5, 6}),
     std::tuple{(Eigen::Matrix<double, 2, 3>() << 1., 2, 3, M_PI/6, M_PI/3, M_PI/4).finished(),
                (Eigen::Matrix<double, 2, 3>() << M_PI/4, M_PI/3, M_PI/6, 4, 5, 6).finished()}));
+  EXPECT_TRUE(is_near(
+    split_vertical<Coefficients<Axis, Angle>, Coefficients<Angle, Axis>>(
+      from_Euclidean<Coefficients<Axis, Angle, Angle, Axis>>(
+        to_Euclidean<Coefficients<Axis, Angle, Angle, Axis>>(
+          (Eigen::Matrix<double, 4, 3>() << 1., 2, 3, M_PI/6, M_PI/3, M_PI/4, M_PI/4, M_PI/3, M_PI/6, 4, 5, 6).finished()
+      ))),
+    std::tuple{
+      (Eigen::Matrix<double, 2, 3>() << 1., 2, 3, M_PI/6, M_PI/3, M_PI/4).finished(),
+      (Eigen::Matrix<double, 2, 3>() << M_PI/4, M_PI/3, M_PI/6, 4, 5, 6).finished()
+      }
+    ));
   EXPECT_TRUE(is_near(split_vertical<Coefficients<Axis, Angle>, Coefficients<Angle>>(
     FromEuclideanExpr<Coefficients<Axis, Angle, Angle, Axis>, Eigen::Matrix<double, 6, 3>> {
       1, 2, 3,

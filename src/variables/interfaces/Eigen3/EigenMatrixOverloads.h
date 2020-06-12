@@ -12,6 +12,7 @@
 #define OPENKALMAN_EIGENMATRIXOVERLOADS_H
 
 #include <type_traits>
+#include <random>
 
 namespace OpenKalman
 {
@@ -93,6 +94,7 @@ namespace OpenKalman
   {
     if constexpr(Coefficients::axes_only)
     {
+      /// @TODO: Add functionality to bypass wrapping for zero and identity, as appropriate based on wrap min and max.
       return std::forward<Arg>(arg);
     }
     else

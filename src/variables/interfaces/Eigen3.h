@@ -20,11 +20,12 @@
 
 #include "variables/interfaces/Eigen3/EigenForwardDeclarations.h"
 
+#include "variables/interfaces/Eigen3/EigenMatrixOverloads.h"
+
 #include "variables/interfaces/Eigen3/EigenMatrixBase.h"
 #include "variables/interfaces/Eigen3/EigenCovarianceBase.h"
-
 #include "variables/interfaces/Eigen3/EigenMatrixTraits.h"
-#include "variables/interfaces/Eigen3/EigenMatrixOverloads.h"
+
 #include "variables/interfaces/Eigen3/EigenZero.h"
 
 #include "variables/interfaces/Eigen3/EigenSelfAdjointMatrix.h"

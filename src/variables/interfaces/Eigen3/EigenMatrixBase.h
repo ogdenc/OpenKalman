@@ -11,6 +11,12 @@
 #ifndef OPENKALMAN_EIGENMATRIXBASE_H
 #define OPENKALMAN_EIGENMATRIXBASE_H
 
+namespace Eigen
+{
+  template<typename Derived, typename XprType>
+  struct MeanCommaInitializer;
+}
+
 namespace OpenKalman::internal
 {
   /*
@@ -53,14 +59,22 @@ namespace OpenKalman::internal
     constexpr auto operator<<(const S& s)
     {
       auto& xpr = get_ultimate_base_matrix(static_cast<Derived&>(*this));
-      return Eigen::CommaInitializer(xpr, static_cast<const Scalar&>(s));
+      using Xpr = std::decay_t<decltype(xpr)>;
+      if constexpr(is_mean_v<Derived>)
+        return Eigen::MeanCommaInitializer<Derived, Xpr>(xpr, static_cast<const Scalar&>(s));
+      else
+        return Eigen::CommaInitializer(xpr, static_cast<const Scalar&>(s));
     }
 
     template<typename OtherDerived>
     constexpr auto operator<<(const Eigen::DenseBase<OtherDerived>& other)
     {
       auto& xpr = get_ultimate_base_matrix(static_cast<Derived&>(*this));
-      return Eigen::CommaInitializer(xpr, static_cast<const OtherDerived&>(other));
+      using Xpr = std::decay_t<decltype(xpr)>;
+      if constexpr(is_mean_v<Derived>)
+        return Eigen::MeanCommaInitializer<Derived, Xpr>(xpr, static_cast<const OtherDerived&>(other));
+      else
+        return Eigen::CommaInitializer(xpr, static_cast<const OtherDerived&>(other));
     }
 
     /// Refined to avoid confusion with zero().
@@ -68,7 +82,36 @@ namespace OpenKalman::internal
 
     /// Redefined to avoid confusion with identity().
     static decltype(auto) Identity() { return Derived::identity(); }
+  };
 
+}
+
+namespace Eigen
+{
+  template<typename Derived, typename XprType>
+  struct MeanCommaInitializer : CommaInitializer<XprType>
+  {
+    using Base = CommaInitializer<XprType>;
+    using Scalar = typename XprType::Scalar;
+    using Coefficients = typename OpenKalman::MatrixTraits<Derived>::RowCoefficients;
+    using Base::Base;
+
+    template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
+    MeanCommaInitializer(XprType& xpr, const S& s) : Base(xpr, static_cast<const Scalar&>(s)) {}
+
+    template<typename OtherDerived>
+    MeanCommaInitializer(XprType& xpr, const DenseBase <OtherDerived>& other) : Base(xpr, other) {}
+
+    ~MeanCommaInitializer()
+    {
+      finished();
+    }
+
+    auto& finished()
+    {
+      this->m_xpr = OpenKalman::wrap_angles<Coefficients>(Base::finished());
+      return this->m_xpr;
+    }
   };
 
 }

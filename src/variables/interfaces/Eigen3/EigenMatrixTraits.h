@@ -11,7 +11,6 @@
 #ifndef OPENKALMAN_EIGENMATRIXTRAITS_H
 #define OPENKALMAN_EIGENMATRIXTRAITS_H
 
-#include <random>
 #include <type_traits>
 
 namespace OpenKalman

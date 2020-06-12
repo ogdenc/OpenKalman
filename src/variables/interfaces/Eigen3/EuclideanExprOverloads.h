@@ -242,7 +242,7 @@ namespace OpenKalman
 
 
   /**
-   * Split into one or more FromEuclideanExp objects vertically. Preserves FromEuclideanExpr struture.
+   * Split into one or more FromEuclideanExp objects vertically. Preserves FromEuclideanExpr structure.
    */
   template<std::size_t cut, std::size_t ... cuts, typename Arg, std::enable_if_t<is_FromEuclideanExpr_v<Arg>, int> = 0>
   inline auto
@@ -253,14 +253,14 @@ namespace OpenKalman
     if constexpr(sizeof...(cuts) > 0)
     {
       using Cs = typename MatrixTraits<Arg>::Coefficients::template Discard<cut>;
-      auto [top, bottom] = OpenKalman::split_vertical<C::dimension, Cs::dimension>(base_matrix(std::forward<Arg>(arg)));
+      auto [top, bottom] = split_vertical<C::dimension, Cs::dimension>(base_matrix(std::forward<Arg>(arg)));
       return std::tuple_cat(
         std::tuple {MatrixTraits<Arg>::template make<C>(std::move(top))},
-        OpenKalman::split_vertical<cuts...>(MatrixTraits<Arg>::template make<Cs>(std::move(bottom))));
+        split_vertical<cuts...>(MatrixTraits<Arg>::template make<Cs>(std::move(bottom))));
     }
     else if constexpr(C::size < MatrixTraits<Arg>::dimension)
     {
-      auto [top] = OpenKalman::split_vertical<C::dimension>(base_matrix(std::forward<Arg>(arg)));
+      auto [top] = split_vertical<C::dimension>(base_matrix(std::forward<Arg>(arg)));
       return std::tuple {MatrixTraits<Arg>::template make<C>(std::move(top))};
     }
     else
@@ -270,7 +270,7 @@ namespace OpenKalman
   }
 
 
-  /// Split into one or more ToEuclideanExpr objects vertically. Does not preserve ToEuclideanExpr struture.
+  /// Split into one or more ToEuclideanExpr objects vertically. Does not preserve ToEuclideanExpr structure.
   template<std::size_t cut, std::size_t ... cuts, typename Arg, std::enable_if_t<is_ToEuclideanExpr_v<Arg>, int> = 0>
   inline auto
   split_vertical(Arg&& arg)
