@@ -162,23 +162,22 @@ namespace OpenKalman
   template<
     typename Dist1,
     typename Dist2,
-    std::enable_if_t<is_Gaussian_distribution_v<Dist1>, int> = 0,
-    std::enable_if_t<is_Gaussian_distribution_v<Dist2>, int> = 0,
-    std::enable_if_t<OpenKalman::is_equivalent_v<typename DistributionTraits<Dist1>::Coefficients,
-      typename DistributionTraits<Dist2>::Coefficients>, int> = 0>
+    std::enable_if_t<is_Gaussian_distribution_v<Dist1> and is_Gaussian_distribution_v<Dist2> and
+      is_equivalent_v<typename DistributionTraits<Dist1>::Coefficients,
+        typename DistributionTraits<Dist2>::Coefficients>, int> = 0>
   inline auto
-  operator+(Dist1&& d1, Dist2&& d2)
+  operator+(const Dist1& d1, const Dist2& d2)
   {
-    auto m1 = mean(std::forward<Dist1>(d1)) + mean(std::forward<Dist2>(d2));
-    auto m2 = covariance(std::forward<Dist1>(d1)) + covariance(std::forward<Dist2>(d2));
+    auto m1 = mean(d1) + mean(d2);
+    auto m2 = covariance(d1) + covariance(d2);
     return DistributionTraits<Dist1>::make(std::move(m1), std::move(m2));
   };
 
 
   /// Add, to a mean vector, stochastic noise from a distribution.
   template<typename M, typename D,
-    std::enable_if_t<is_column_vector_v<M> and MatrixTraits<M>::columns == 1, int> = 0,
-    std::enable_if_t<is_Gaussian_distribution_v<D>, int> = 0>
+    std::enable_if_t<is_column_vector_v<M> and MatrixTraits<M>::columns == 1 and
+      is_Gaussian_distribution_v<D>, int> = 0>
   inline auto operator+(M&& m, D&& d)
   {
     static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<M>::RowCoefficients, typename DistributionTraits<D>::Coefficients>);
@@ -189,37 +188,36 @@ namespace OpenKalman
   template<
     typename Dist1,
     typename Dist2,
-    std::enable_if_t<is_Gaussian_distribution_v<Dist1>, int> = 0,
-    std::enable_if_t<is_Gaussian_distribution_v<Dist2>, int> = 0,
-    std::enable_if_t<OpenKalman::is_equivalent_v<typename DistributionTraits<Dist1>::Coefficients,
-      typename DistributionTraits<Dist2>::Coefficients>, int> = 0>
+    std::enable_if_t<is_Gaussian_distribution_v<Dist1> and is_Gaussian_distribution_v<Dist2> and
+      is_equivalent_v<typename DistributionTraits<Dist1>::Coefficients,
+        typename DistributionTraits<Dist2>::Coefficients>, int> = 0>
   inline auto
-  operator-(Dist1&& d1, Dist2&& d2)
+  operator-(const Dist1& d1, const Dist2& d2)
   {
-    auto m1 = mean(std::forward<Dist1>(d1)) - mean(std::forward<Dist2>(d2));
-    auto m2 = covariance(std::forward<Dist1>(d1)) - covariance(std::forward<Dist2>(d2));
+    auto m1 = mean(d1) - mean(d2);
+    auto m2 = covariance(d1) - covariance(d2);
     return DistributionTraits<Dist1>::make(std::move(m1), std::move(m2));
   };
 
 
   template<
     typename A, typename D,
-    std::enable_if_t<is_typed_matrix_v<A>, int> = 0, std::enable_if_t<is_Gaussian_distribution_v<D>, int> = 0>
+    std::enable_if_t<is_typed_matrix_v<A> and is_Gaussian_distribution_v<D>, int> = 0>
   inline auto
   operator*(A&& a, D&& d)
   {
     static_assert(not is_Euclidean_transformed_v<A>);
     static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<A>::ColumnCoefficients, typename DistributionTraits<D>::Coefficients>);
     auto m = a * mean(d);
-    auto c = scale(a, covariance(d));
+    auto c = scale(covariance(d), a);
     return DistributionTraits<D>::make(std::move(m), std::move(c));
   }
 
 
   template<
     typename Dist, typename S,
-    std::enable_if_t<is_Gaussian_distribution_v<Dist>, int> = 0,
-    std::enable_if_t<std::is_convertible_v<S, typename DistributionTraits<Dist>::Scalar>, int> = 0>
+    std::enable_if_t<is_Gaussian_distribution_v<Dist> and
+      std::is_convertible_v<S, typename DistributionTraits<Dist>::Scalar>, int> = 0>
   inline auto
   operator*(Dist&& d, const S s)
   {
@@ -231,8 +229,8 @@ namespace OpenKalman
 
   template<
     typename Dist, typename S,
-    std::enable_if_t<is_Gaussian_distribution_v<Dist>, int> = 0,
-    std::enable_if_t<std::is_convertible_v<S, typename DistributionTraits<Dist>::Scalar>, int> = 0>
+    std::enable_if_t<is_Gaussian_distribution_v<Dist> and
+      std::is_convertible_v<S, typename DistributionTraits<Dist>::Scalar>, int> = 0>
   inline auto
   operator*(const S s, Dist&& d)
   {
@@ -244,8 +242,8 @@ namespace OpenKalman
 
   template<
     typename Dist, typename S,
-    std::enable_if_t<is_Gaussian_distribution_v<Dist>, int> = 0,
-    std::enable_if_t<std::is_convertible_v<S, typename DistributionTraits<Dist>::Scalar>, int> = 0>
+    std::enable_if_t<is_Gaussian_distribution_v<Dist> and
+      std::is_convertible_v<S, typename DistributionTraits<Dist>::Scalar>, int> = 0>
   inline auto
   operator/(Dist&& d, const S s)
   {

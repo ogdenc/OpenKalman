@@ -23,7 +23,7 @@ TEST_F(covariance_tests, Distribution_construction_angle)
   c << 9, 6, 3,
        6, 29, 4.5,
        3, 4.5, 65.25;
-  auto c_chol = make_Covariance<TriangleType::lower>(c);
+  auto c_chol = make_Covariance<C, TriangleType::lower>(Cholesky_factor(base_matrix(c)));
   GaussianDistribution dist {x_mean, c};
   GaussianDistribution dist_chol {x_mean, c_chol};
   auto x = strict_matrix(x_mean);
@@ -48,7 +48,7 @@ TEST_F(covariance_tests, Distribution_scale_angle)
   auto f_vector = make_Mean<Coefficients<Axis, Angle, Angle>>(f_mat);
   auto f_matrix = make_Matrix<Coefficients<Axis, Angle, Angle>, C>(f_mat);
   Eigen::Matrix<double, 3, 1> fa_mean; fa_mean << 80, 180, 280;
-  Eigen::Matrix<double, 3, 1> fa_mean_wrapped; fa_mean_wrapped << 80, 180 - M_PI*58, 280 - M_PI*90;
+  Eigen::Matrix<double, 3, 1> fa_mean_wrapped; fa_mean_wrapped << 20-6*M_PI + 60, 180 - M_PI*58, 280 - M_PI*90;
   Eigen::Matrix<double, 3, 3> faf_cov; faf_cov << 40, 92, 144, 92, 216, 340, 144, 340, 536;
   auto a_scaled3 = f_matrix * a;
   static_assert(std::is_same_v<typename decltype(a_scaled3)::Coefficients, typename decltype(f_matrix)::RowCoefficients>);
@@ -116,12 +116,12 @@ Mean<C2> x_mean {20, 30};
 Covariance<C2> x_cov;
 x_cov << 9, 3, 3, 8;
 GaussianDistribution distx {x_mean, x_cov};
-GaussianDistribution distx_sqrt {x_mean, x_cov.to_Cholesky()};
+GaussianDistribution distx_sqrt {x_mean, to_Cholesky(x_cov)};
 Mean<C2> y_mean {11, 23};
 Covariance<C2> y_cov;
 y_cov << 7, 1, 1, 3;
 GaussianDistribution disty {y_mean, y_cov};
-GaussianDistribution disty_sqrt {y_mean, y_cov.to_Cholesky()};
+GaussianDistribution disty_sqrt {y_mean, to_Cholesky(y_cov)};
 Mean<Coefficients<Axis, Axis, Axis, Axis>> z_mean {20, 30, 11, 23};
 Eigen::Matrix<double, 4, 4> z_cov;
 z_cov <<
@@ -130,7 +130,7 @@ z_cov <<
 0, 0, 7, 1,
 0, 0, 1, 3;
 GaussianDistribution distz {z_mean, Covariance(z_cov)};
-GaussianDistribution distz_sqrt {z_mean, Covariance(z_cov).to_Cholesky()};
+GaussianDistribution distz_sqrt {z_mean, to_Cholesky(Covariance(z_cov))};
 EXPECT_TRUE(is_near(concatenate(distx, disty), distz));
 EXPECT_TRUE(is_near(concatenate(distx_sqrt, disty_sqrt), distz_sqrt));
 EXPECT_TRUE(is_near(split<C2, C2>(distz), std::tuple(distx, disty)));
@@ -146,30 +146,29 @@ d << 3, 0,
 1, 3;
 d2 << 9, 3,
 3, 10;
-GaussianDistribution dist {x_mean, d2};
+GaussianDistribution dist {x_mean, EigenSelfAdjointMatrix(d2)};
 EXPECT_TRUE(is_near(mean(dist), x_mean));
 EXPECT_TRUE(is_near(covariance(dist), d2));
-EXPECT_TRUE(is_near(covariance(dist).square_root(), d));
+EXPECT_TRUE(is_near(square_root(covariance(dist)), d));
 GaussianDistribution dist_chol {x_mean, EigenTriangularMatrix(d)};
 EXPECT_TRUE(is_near(mean(dist_chol), x_mean));
 EXPECT_TRUE(is_near(covariance(dist_chol), d2));
-EXPECT_TRUE(is_near(covariance(dist_chol).square_root(), d));
+EXPECT_TRUE(is_near(square_root(covariance(dist_chol)), d));
 }
 
 
 TEST_F(covariance_tests, Distribution_addition_subtraction_axis)
 {
-using Mat = Mean<Coefficients<Axis, Axis>>;
-Mat x_mean {20, 30};
+Mean<Coefficients<Axis, Axis>> x_mean {20, 30};
 Mat2 d;
 d << 9, 3,
 3, 8;
-GaussianDistribution dist1 {x_mean, d};
-Mat y_mean {11, 23};
+GaussianDistribution dist1 {x_mean, EigenSelfAdjointMatrix(d)};
+Mean<Coefficients<Axis, Axis>> y_mean {11, 23};
 Mat2 e;
 e << 7, 1,
 1, 3;
-GaussianDistribution dist2 {y_mean, e};
+GaussianDistribution dist2 {y_mean, EigenSelfAdjointMatrix(e)};
 auto sum1 = dist1 + dist2;
 EXPECT_TRUE(is_near(mean(sum1), Mean {31., 53}));
 EXPECT_TRUE(is_near(covariance(sum1), Covariance {16., 4, 4, 11}));
@@ -202,7 +201,7 @@ EXPECT_TRUE(is_near(covariance(diff4), Covariance {2., 2, 2, 5}));
 TEST_F(covariance_tests, Distribution_scale_axis)
 {
 auto a = GaussianDistribution(Mean{20., 30}, Covariance{8., 2, 2, 6});
-auto a_chol = GaussianDistribution(Mean{20., 30}, covariance(a).to_Cholesky());
+auto a_chol = GaussianDistribution(Mean{20., 30}, to_Cholesky(covariance(a)));
 Eigen::Matrix<double, 2, 1> mean_mat {20, 30};
 Eigen::Matrix<double, 2, 2> cov_mat; cov_mat << 8, 2, 2, 6;
 decltype(a) a_scaled = a * 2;

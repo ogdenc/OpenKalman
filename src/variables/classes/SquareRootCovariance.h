@@ -162,9 +162,9 @@ namespace OpenKalman
       }
       else
       {
-        const auto sum = internal::convert_base_matrix<TBaseType>(*this) -
+        const auto diff = internal::convert_base_matrix<TBaseType>(*this) -
           internal::convert_base_matrix<TBaseType>(std::forward<Arg>(arg));
-        base_matrix() = Cholesky_square(sum);
+        base_matrix() = Cholesky_square(diff);
       }
       return *this;
     }

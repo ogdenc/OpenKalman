@@ -66,110 +66,50 @@ namespace OpenKalman
 
     /// Construct from related distribution.
     template<typename Arg, std::enable_if_t<is_Gaussian_distribution_v<Arg>, int> = 0>
-    GaussianDistribution(Arg&& other) noexcept : mu {std::forward<Arg>(other).mean()}, sigma {std::forward<Arg>(other).covariance()}
+    GaussianDistribution(Arg&& other) noexcept
+      : mu {std::forward<Arg>(other).mean()}, sigma {std::forward<Arg>(other).covariance()}
     {
       static_assert(OpenKalman::is_equivalent_v<typename DistributionTraits<Arg>::Coefficients, Coefficients>);
     }
 
-    /// Construct from a mean and a covariance.
+    /// Construct from a typed matrix (or typed matrix base) and a covariance (or covariance base).
     template<typename M, typename Cov,
-      std::enable_if_t<is_column_vector_v<M>, int> = 0, std::enable_if_t<is_covariance_v<Cov>, int> = 0>
+      std::enable_if_t<(is_typed_matrix_v<M> or is_typed_matrix_base_v<M>) and
+        (is_covariance_v<Cov> or is_covariance_base_v<Cov>), int> = 0>
     GaussianDistribution(M&& mean, Cov&& cov) : mu {std::forward<M>(mean)}, sigma {std::forward<Cov>(cov)}
     {
       static_assert(MatrixTraits<M>::columns == 1);
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<M>::RowCoefficients, Coefficients>);
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Cov>::Coefficients, Coefficients>);
+      if constexpr(is_typed_matrix_v<M>)
+      {
+        static_assert(MatrixTraits<M>::ColumnCoefficients::axes_only);
+        static_assert(is_equivalent_v<typename MatrixTraits<M>::RowCoefficients, Coefficients>);
+      }
+      else
+      {
+        static_assert(MatrixTraits<M>::dimension == dimension);
+      }
+      if constexpr(is_covariance_v<Cov>)
+      {
+        static_assert(is_equivalent_v<typename MatrixTraits<Cov>::Coefficients, Coefficients>);
+      }
+      else
+      {
+        static_assert(MatrixTraits<Cov>::dimension == dimension);
+      }
     }
 
-    /// Construct from a mean and a covariance.
-    template<typename M, typename Cov,
-      std::enable_if_t<is_column_vector_v<M>, int> = 0, std::enable_if_t<is_typed_matrix_v<Cov>, int> = 0>
-    GaussianDistribution(M&& mean, Cov&& cov) : mu {std::forward<M>(mean)}, sigma {std::forward<Cov>(cov)}
-    {
-      static_assert(MatrixTraits<M>::columns == 1);
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<M>::RowCoefficients, Coefficients>);
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Cov>::RowCoefficients, Coefficients>);
-    }
-
-    /// Construct from a mean and a covariance.
-    template<typename M, typename Cov,
-      std::enable_if_t<is_column_vector_v<M> and is_covariance_base_v<Cov>, int> = 0>
-    GaussianDistribution(M&& mean, Cov&& cov) : mu {std::forward<M>(mean)}, sigma {std::forward<Cov>(cov)}
-    {
-      static_assert(MatrixTraits<M>::columns == 1);
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<M>::RowCoefficients, Coefficients>);
-      static_assert(MatrixTraits<Cov>::dimension == dimension);
-    }
-
-    /// Construct from a mean and a covariance.
-    template<typename M, typename Cov,
-      std::enable_if_t<is_column_vector_v<M>, int> = 0, std::enable_if_t<is_typed_matrix_base_v<Cov>, int> = 0>
-    GaussianDistribution(M&& mean, Cov&& cov) : mu {std::forward<M>(mean)}, sigma {std::forward<Cov>(cov)}
-    {
-      static_assert(MatrixTraits<M>::columns == 1);
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<M>::RowCoefficients, Coefficients>);
-      static_assert(MatrixTraits<Cov>::dimension == dimension);
-      static_assert(MatrixTraits<Cov>::columns == dimension);
-    }
-
-    /// Construct from a mean and a covariance.
-    template<typename M, typename Cov,
-      std::enable_if_t<is_typed_matrix_base_v<M>, int> = 0, std::enable_if_t<is_covariance_v<Cov>, int> = 0>
-    GaussianDistribution(M&& mean, Cov&& cov) : mu {std::forward<M>(mean)}, sigma {std::forward<Cov>(cov)}
-    {
-      static_assert(MatrixTraits<Cov>::dimension == dimension);
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Cov>::Coefficients, Coefficients>);
-    }
-
-    /// Construct from a mean and a covariance.
-    template<typename M, typename Cov,
-      std::enable_if_t<is_typed_matrix_base_v<M>, int> = 0, std::enable_if_t<is_typed_matrix_v<Cov>, int> = 0>
-    GaussianDistribution(M&& mean, Cov&& cov) : mu {std::forward<M>(mean)}, sigma {std::forward<Cov>(cov)}
-    {
-      static_assert(MatrixTraits<Cov>::dimension == dimension);
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Cov>::RowCoefficients, Coefficients>);
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Cov>::ColumnCoefficients, Coefficients>);
-    }
-
-    /// Construct from a mean and a covariance.
-    template<typename M, typename Cov,
-      std::enable_if_t<is_typed_matrix_base_v<M>, int> = 0, std::enable_if_t<is_covariance_base_v<Cov>, int> = 0>
-    GaussianDistribution(M&& mean, Cov&& cov) : mu {std::forward<M>(mean)}, sigma {std::forward<Cov>(cov)}
-    {
-      static_assert(MatrixTraits<M>::dimension == dimension);
-      static_assert(MatrixTraits<Cov>::dimension == dimension);
-    }
-
-    /// Construct from a mean and a covariance.
-    template<typename M, typename Cov,
-      std::enable_if_t<is_typed_matrix_base_v<M>, int> = 0, std::enable_if_t<is_typed_matrix_base_v<Cov>, int> = 0>
-    GaussianDistribution(M&& mean, Cov&& cov) : mu {std::forward<M>(mean)}, sigma {std::forward<Cov>(cov)}
-    {
-      static_assert(MatrixTraits<M>::dimension == dimension);
-      static_assert(MatrixTraits<Cov>::dimension == dimension);
-      static_assert(MatrixTraits<Cov>::columns == dimension);
-    }
-
-    /// Construct using only a covariance (the mean is set to zero).
-    template<typename Cov, std::enable_if_t<is_covariance_v<Cov>, int> = 0>
+    /// Construct using only a covariance or covariance base (the mean is set to zero).
+    template<typename Cov, std::enable_if_t<is_covariance_v<Cov> or is_covariance_base_v<Cov>, int> = 0>
     explicit GaussianDistribution(Cov&& cov) : mu {Mean::zero()}, sigma {std::forward<Cov>(cov)}
     {
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Cov>::Coefficients, Coefficients>);
-    }
-
-    /// Construct using only a covariance (the mean is set to zero).
-    template<typename Cov, std::enable_if_t<is_covariance_base_v<Cov>, int> = 0>
-    explicit GaussianDistribution(Cov&& cov) : mu {Mean::zero()}, sigma {std::forward<Cov>(cov)}
-    {
-      static_assert(MatrixTraits<Cov>::dimension == dimension);
-    }
-
-    /// Construct using only a covariance (the mean is set to zero).
-    template<typename Cov, std::enable_if_t<is_typed_matrix_base_v<Cov>, int> = 0>
-    explicit GaussianDistribution(Cov&& cov) : mu {Mean::zero()}, sigma {std::forward<Cov>(cov)}
-    {
-      static_assert(MatrixTraits<Cov>::dimension == dimension);
-      static_assert(MatrixTraits<Cov>::columns == dimension);
+      if constexpr(is_covariance_v<Cov>)
+      {
+        static_assert(is_equivalent_v<typename MatrixTraits<Cov>::Coefficients, Coefficients>);
+      }
+      else
+      {
+        static_assert(MatrixTraits<Cov>::dimension == dimension);
+      }
     }
 
     /**********************
@@ -376,25 +316,11 @@ namespace OpenKalman
     typename MatrixTraits<C>::BaseMatrix>;
 
   template<typename M, typename C,
-    std::enable_if_t<is_typed_matrix_v<M> and is_typed_matrix_v<C>, int> = 0>
-  GaussianDistribution(M&&, C&&) -> GaussianDistribution<
-    typename MatrixTraits<M>::RowCoefficients,
-    typename MatrixTraits<M>::BaseMatrix,
-    typename MatrixTraits<typename MatrixTraits<C>::BaseMatrix>::template SelfAdjointBaseType<>>;
-
-  template<typename M, typename C,
     std::enable_if_t<is_typed_matrix_v<M> and is_covariance_base_v<C>, int> = 0>
   GaussianDistribution(M&&, C&&) -> GaussianDistribution<
   typename MatrixTraits<M>::RowCoefficients,
   typename MatrixTraits<M>::BaseMatrix,
   std::decay_t<C>>;
-
-  template<typename M, typename C,
-    std::enable_if_t<is_typed_matrix_v<M> and is_typed_matrix_base_v<C>, int> = 0>
-  GaussianDistribution(M&&, C&&) -> GaussianDistribution<
-  typename MatrixTraits<M>::RowCoefficients,
-  typename MatrixTraits<M>::BaseMatrix,
-  typename MatrixTraits<C>::template SelfAdjointBaseType<>>;
 
   template<typename M, typename C,
     std::enable_if_t<is_typed_matrix_base_v<M>, int> = 0, std::enable_if_t<is_covariance_v<C>, int> = 0>
@@ -404,26 +330,11 @@ namespace OpenKalman
     typename MatrixTraits<C>::BaseMatrix>;
 
   template<typename M, typename C,
-    std::enable_if_t<is_typed_matrix_base_v<M>, int> = 0, std::enable_if_t<is_typed_matrix_v<C>, int> = 0>
-  GaussianDistribution(M&&, C&&) -> GaussianDistribution<
-    typename MatrixTraits<C>::RowCoefficients,
-    typename std::decay_t<M>,
-    typename MatrixTraits<typename MatrixTraits<C>::BaseMatrix>::template SelfAdjointBaseType<>>;
-
-  template<typename M, typename C,
     std::enable_if_t<is_typed_matrix_base_v<M>, int> = 0, std::enable_if_t<is_covariance_base_v<C>, int> = 0>
   GaussianDistribution(M&&, C&&) -> GaussianDistribution<
     Axes<MatrixTraits<M>::dimension>,
     std::decay_t<M>,
     std::decay_t<C>>;
-
-  template<typename M, typename C,
-    std::enable_if_t<is_typed_matrix_base_v<M>, int> = 0, std::enable_if_t<is_typed_matrix_base_v<C>, int> = 0,
-    std::enable_if_t<is_typed_matrix_base_v<C>, int> = 0>
-  GaussianDistribution(M&&, C&&) -> GaussianDistribution<
-    Axes<MatrixTraits<M>::dimension>,
-    std::decay_t<M>,
-    typename MatrixTraits<C>::template SelfAdjointBaseType<>>;
 
 
   //////////////////////////////////

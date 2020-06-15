@@ -240,22 +240,24 @@ namespace OpenKalman
 
     auto Cholesky_square() const
     {
-      static_assert(is_diagonal_v<BaseMatrix>);
-      if constexpr(OpenKalman::is_identity_v<BaseMatrix>)
+      static_assert(is_diagonal_v<BaseMatrix> or storage_triangle == TriangleType::diagonal);
+      if constexpr(is_identity_v<BaseMatrix>)
       {
-        // If base matrix is the identity, return identity.
         return MatrixTraits<BaseMatrix>::identity();
       }
-      else if constexpr (OpenKalman::is_zero_v<BaseMatrix>)
+      else if constexpr (is_zero_v<BaseMatrix>)
       {
-        // If base matrix is zero, return zero.
         return MatrixTraits<BaseMatrix>::zero();
       }
-      else
+      else if constexpr(is_EigenDiagonal_v<BaseMatrix>)
       {
-        static_assert(OpenKalman::is_EigenDiagonal_v<BaseMatrix>);
-        // If base matrix is a diagonal, return its square.
         return this->base_matrix().square();
+      }
+      else // if constexpr (not is_diagonal_v<BaseMatrix> and storage_triangle == TriangleType::diagonal)
+      {
+        using M = Eigen::Matrix<Scalar, dimension, 1>;
+        M b = this->base_matrix().diagonal(), ret = (b.array() * b.array()).matrix();
+        return EigenDiagonal(std::move(ret));
       }
     }
 
@@ -264,20 +266,23 @@ namespace OpenKalman
     auto Cholesky_factor() const
     {
       using M = Eigen::Matrix<Scalar, dimension, dimension>;
-      if constexpr(OpenKalman::is_identity_v<BaseMatrix>)
+      if constexpr(is_identity_v<BaseMatrix>)
       {
-        // If base matrix is the identity, return identity.
         return MatrixTraits<BaseMatrix>::identity();
       }
-      else if constexpr (OpenKalman::is_zero_v<BaseMatrix>)
+      else if constexpr (is_zero_v<BaseMatrix>)
       {
-        // If base matrix is zero, return zero.
         return MatrixTraits<BaseMatrix>::zero();
       }
-      else if constexpr (OpenKalman::is_EigenDiagonal_v<BaseMatrix>)
+      else if constexpr (is_EigenDiagonal_v<BaseMatrix>)
       {
-        // If base matrix is a diagonal, return its square root.
         return this->base_matrix().square_root();
+      }
+      else if constexpr (storage_triangle == TriangleType::diagonal)
+      {
+        using M = Eigen::Matrix<Scalar, dimension, 1>;
+        M b = this->base_matrix().diagonal(), ret = (b.array().sqrt()).matrix();
+        return EigenDiagonal(std::move(ret));
       }
       else if constexpr (std::is_same_v<const std::decay_t<BaseMatrix>, const typename Eigen::MatrixBase<std::decay_t<BaseMatrix>>::ConstantReturnType>)
       {

@@ -238,64 +238,63 @@ namespace OpenKalman
       }
     }
 
-
     auto Cholesky_square() const
     {
       if constexpr(is_identity_v<BaseMatrix>)
       {
-        auto b = MatrixTraits<BaseMatrix>::identity();
-        return EigenSelfAdjointMatrix<decltype(b), TriangleType::diagonal>(std::move(b));
+        return MatrixTraits<BaseMatrix>::identity();
       }
       else if constexpr (is_zero_v<BaseMatrix>)
       {
-        auto b = MatrixTraits<BaseMatrix>::zero();
-        return EigenSelfAdjointMatrix<decltype(b), TriangleType::diagonal>(std::move(b));
+        return MatrixTraits<BaseMatrix>::zero();
       }
-      else if constexpr (is_diagonal_v<BaseMatrix>)
+      else if constexpr (is_EigenDiagonal_v<BaseMatrix>)
       {
-        auto b = this->base_matrix() * this->base_matrix();
-        return EigenSelfAdjointMatrix<decltype(b), TriangleType::diagonal>(std::move(b));
+        return this->base_matrix().square();
       }
-      else
+      else if constexpr (triangle_type == TriangleType::diagonal)
       {
-        Eigen::Matrix<Scalar, dimension, dimension> ret;
-        if constexpr (triangle_type == TriangleType::diagonal)
-          ret.diagonal() = (this->base_matrix().diagonal().array() * this->base_matrix().diagonal().array()).matrix();
-        else if constexpr(triangle_type == TriangleType::upper)
-          ret.template triangularView<Eigen::Upper>() = this->base_view().adjoint() * this->base_view().toDenseMatrix();
-        else
-          ret.template triangularView<Eigen::Lower>() = this->base_view() * this->base_view().toDenseMatrix().adjoint();
-        return EigenSelfAdjointMatrix<decltype(ret), triangle_type>(std::move(ret));
+        using M = Eigen::Matrix<Scalar, dimension, 1>;
+        M b = this->base_matrix().diagonal();
+        M ret = (b.array() * b.array()).matrix();
+        return EigenDiagonal(std::move(ret));
+      }
+      else if constexpr (triangle_type == TriangleType::upper)
+      {
+        using M = Eigen::Matrix<Scalar, dimension, dimension>;
+        M b = base_view(), ret = this->base_matrix().adjoint().template triangularView<Eigen::Lower>() * b;
+        return EigenSelfAdjointMatrix<M, triangle_type>(std::move(ret));
+      }
+      else // if constexpr (triangle_type == TriangleType::lower)
+      {
+        using M = Eigen::Matrix<Scalar, dimension, dimension>;
+        M b = base_view().adjoint(), ret = base_view() * b;
+        return EigenSelfAdjointMatrix<M, triangle_type>(std::move(ret));
       }
     }
-
 
     auto Cholesky_factor() const
     {
       static_assert(is_diagonal_v<BaseMatrix> or triangle_type == TriangleType::diagonal);
-      if constexpr(OpenKalman::is_identity_v<BaseMatrix>)
+      if constexpr(is_identity_v<BaseMatrix>)
       {
-        // If base matrix is the identity, return identity.
         return MatrixTraits<BaseMatrix>::identity();
       }
-      else if constexpr (OpenKalman::is_zero_v<BaseMatrix>)
+      else if constexpr (is_zero_v<BaseMatrix>)
       {
-        // If base matrix is zero, return zero.
         return MatrixTraits<BaseMatrix>::zero();
       }
-      else if constexpr (OpenKalman::is_EigenDiagonal_v<BaseMatrix>)
+      else if constexpr (is_EigenDiagonal_v<BaseMatrix>)
       {
-        // If base matrix is a diagonal, return its square root.
         return this->base_matrix().square_root();
       }
-      else // if constexpr (triangle_type == TriangleType::diagonal)
+      else // if constexpr (not is_diagonal_v<BaseMatrix> and triangle_type == TriangleType::diagonal)
       {
-        Eigen::Matrix<Scalar, dimension, dimension> ret;
-        ret.diagonal() = this->base_matrix().diagonal() * this->base_matrix().diagonal();
-        return EigenSelfAdjointMatrix<decltype(ret), TriangleType::diagonal>(std::move(ret));
+        using M = Eigen::Matrix<Scalar, dimension, 1>;
+        M b = this->base_matrix().diagonal(), ret = (b.array().sqrt()).matrix();
+        return EigenDiagonal(std::move(ret));
       }
     }
-
 
     template<typename B, std::enable_if_t<is_Eigen_matrix_v<B>, int> = 0>
     auto solve(const B& b) const
