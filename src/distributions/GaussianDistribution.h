@@ -38,8 +38,6 @@ namespace OpenKalman
     static_assert(MatrixTraits<MatrixBase>::columns == 1);
     static_assert(std::is_same_v<Scalar, typename MatrixTraits<Covariance>::Scalar>);
 
-
-
   protected:
     template<typename Arg1, typename Arg2>
     static auto
@@ -89,12 +87,37 @@ namespace OpenKalman
         static_assert(MatrixTraits<M>::dimension == dimension);
       }
       if constexpr(is_covariance_v<Cov>)
-      {
         static_assert(is_equivalent_v<typename MatrixTraits<Cov>::Coefficients, Coefficients>);
+      else
+        static_assert(MatrixTraits<Cov>::dimension == dimension);
+    }
+
+    /// Construct from rvalues of a mean and a covariance.
+    GaussianDistribution(Mean&& mean, Covariance&& cov) : mu {std::move(mean)}, sigma {std::move(cov)} {}
+
+    /// Construct from an rvalue of a mean and a covariance or covariance base.
+    template<typename Cov, std::enable_if_t<is_covariance_v<Cov> or is_covariance_base_v<Cov>, int> = 0>
+    GaussianDistribution(Mean&& mean, Cov&& cov) : mu {std::move(mean)}, sigma {std::forward<Cov>(cov)}
+    {
+      if constexpr(is_covariance_v<Cov>)
+        static_assert(is_equivalent_v<typename MatrixTraits<Cov>::Coefficients, Coefficients>);
+      else
+        static_assert(MatrixTraits<Cov>::dimension == dimension);
+    }
+
+    /// Construct from a mean or typed matrix base and an rvalue of a covariance.
+    template<typename M, std::enable_if_t<is_typed_matrix_v<M> or is_typed_matrix_base_v<M>, int> = 0>
+    GaussianDistribution(M&& mean, Covariance&& cov) : mu {std::forward<M>(mean)}, sigma {std::move(cov)}
+    {
+      static_assert(MatrixTraits<M>::columns == 1);
+      if constexpr(is_typed_matrix_v<M>)
+      {
+        static_assert(MatrixTraits<M>::ColumnCoefficients::axes_only);
+        static_assert(is_equivalent_v<typename MatrixTraits<M>::RowCoefficients, Coefficients>);
       }
       else
       {
-        static_assert(MatrixTraits<Cov>::dimension == dimension);
+        static_assert(MatrixTraits<M>::dimension == dimension);
       }
     }
 
@@ -119,7 +142,7 @@ namespace OpenKalman
     /// Copy assignment operator.
     GaussianDistribution& operator=(const GaussianDistribution& other)
     {
-      mu = other.x;
+      mu = other.mu;
       sigma = other.sigma;
       return *this;
     }
@@ -129,10 +152,10 @@ namespace OpenKalman
     {
       if (this != &other)
       {
-        mu = std::move(other).x;
+        mu = std::move(other).mu;
         sigma = std::move(other).sigma;
-        return *this;
       }
+      return *this;
     }
 
     /// Assign from another compatible distribution.
@@ -140,27 +163,54 @@ namespace OpenKalman
     GaussianDistribution& operator=(Arg&& other) noexcept
     {
       static_assert(OpenKalman::is_equivalent_v<typename DistributionTraits<Arg>::Coefficients, Coefficients>);
+      if constexpr (std::is_same_v<std::decay_t<Arg>, GaussianDistribution>) if (this == &other) return *this;
       mu = std::forward<Arg>(other).mean();
       sigma = std::forward<Arg>(other).covariance();
       return *this;
     }
 
-    template<typename Arg, std::enable_if_t<is_Gaussian_distribution_v<Arg>, int> = 0>
-    auto& operator+=(Arg&& v)
+  protected:
+    template<typename M, typename C>
+    auto& increment(M&& m, C&& c)
     {
-      static_assert(OpenKalman::is_equivalent_v<typename DistributionTraits<Arg>::Coefficients, Coefficients>);
-      mu += std::forward<Arg>(v).mean();
-      sigma += std::forward<Arg>(v).covariance();
+      mu += std::forward<M>(m);
+      sigma += std::forward<C>(c);
       return *this;
     };
 
+  public:
+    auto& operator+=(GaussianDistribution&& arg)
+    {
+      return increment(std::move(arg).mean(), std::move(arg).covariance());
+    };
+
     template<typename Arg, std::enable_if_t<is_Gaussian_distribution_v<Arg>, int> = 0>
-    auto& operator-=(Arg&& v)
+    auto& operator+=(Arg&& arg)
     {
       static_assert(OpenKalman::is_equivalent_v<typename DistributionTraits<Arg>::Coefficients, Coefficients>);
-      mu -= std::forward<Arg>(v).mean();
-      sigma += std::forward<Arg>(v).covariance();
+      return increment(std::forward<Arg>(arg).mean(), std::forward<Arg>(arg).covariance());
+    };
+
+  protected:
+    template<typename M, typename C>
+    auto& decrement(M&& m, C&& c)
+    {
+      mu -= std::forward<M>(m);
+      sigma -= std::forward<C>(c);
       return *this;
+    };
+
+  public:
+    auto& operator-=(GaussianDistribution&& arg)
+    {
+      return decrement(std::move(arg).mean(), std::move(arg).covariance());
+    };
+
+    template<typename Arg, std::enable_if_t<is_Gaussian_distribution_v<Arg>, int> = 0>
+    auto& operator-=(Arg&& arg)
+    {
+      static_assert(OpenKalman::is_equivalent_v<typename DistributionTraits<Arg>::Coefficients, Coefficients>);
+      return decrement(std::forward<Arg>(arg).mean(), std::forward<Arg>(arg).covariance());
     };
 
     template<typename S, std::enable_if_t<std::is_convertible_v<S, const Scalar>, int> = 0>
@@ -215,22 +265,24 @@ namespace OpenKalman
         return strict(make_Matrix(mu) + s * norm);
     }
 
-    /// @brief Log likelihood function for a single observation z.
-    /// @param z Location in the same multivariate space as the mean.
-    template<typename Z>
-    auto log_probability(Z&& z) const
+    /// @brief Log-likelihood function for a set of i.i.d. observations z.
+    /// @param z One or more i.i.d. observations in the same multivariate space as the mean of the distribution.
+    template<typename...Z>
+    auto log_likelihood(const Z&...z) const
     {
-      static_assert(is_column_vector_v<Z>);
-      static_assert(MatrixTraits<Z>::columns == 1);
-      static_assert(MatrixTraits<Z>::dimension == dimension);
-      const auto diff = std::forward<Z>(z) - mu;
-      return -0.5 * dimension * std::log(2 * M_PI) - std::log(determinant(sigma)) - transpose(diff) * solve(sigma, diff);
+      static_assert(std::conjunction_v<is_column_vector<Z>...>);
+      static_assert(((MatrixTraits<Z>::columns == 1) and ...));
+      static_assert(((MatrixTraits<Z>::dimension == dimension) and ...));
+      static constexpr auto n = sizeof...(Z);
+      static_assert(n >= 1);
+      auto sum = (trace(transpose(z - mu) * solve(sigma, z - mu)) + ...);
+      return -0.5 * (n * (dimension * std::log(2 * M_PI) + std::log(determinant(sigma))) + sum);
     }
 
-    template<typename Z>
+    /// Entropy of the distribution, in bits.
     auto entropy() const
     {
-      return -std::log(determinant(2 * M_PI * sigma)) - dimension / 2;
+      return 0.5 * (dimension * (1 + std::log2(M_PI) + M_LOG2E) + std::log2(determinant(sigma)));
     }
 
   protected:
@@ -249,49 +301,36 @@ namespace OpenKalman
     friend
     struct KalmanFilter;
 
-    template<
-      typename DY, typename PxyType, typename Z,
-      std::enable_if_t<is_covariance_v<typename DistributionTraits<DY>::Covariance> and not is_Cholesky_v<DY>, int> = 0,
-      std::enable_if_t<is_typed_matrix_v<PxyType>, int> = 0,
-      std::enable_if_t<is_mean_v<Z>, int> = 0>
+    template<typename DY, typename PxyType, typename Z>
     auto&
     kalmanUpdate(DY&& Dist_y, PxyType&& P_xy, Z&& z)
     {
-      static_assert(MatrixTraits<Z>::columns == 1);
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<PxyType>::RowCoefficients, Coefficients>);
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<PxyType>::ColumnCoefficients, typename DistributionTraits<DY>::Coefficients>);
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Z>::RowCoefficients, typename DistributionTraits<DY>::Coefficients>);
-      // Effectively, P_xx -= P_xy * adjoint(inverse(P_yy)) * adjoint(P_xy)
-      using CoeffsM = typename DistributionTraits<DY>::Coefficients;
-      auto y = mean(std::forward<DY>(Dist_y));
-      auto P_yy = covariance(std::forward<DY>(Dist_y));
-      auto K = make_Matrix<Coefficients, CoeffsM>(adjoint(solve(adjoint(std::move(P_yy)), adjoint(P_xy))));
-      // Note: K == P_xy * inverse(P_yy)
-      mu += K * (std::forward<Z>(z) - std::move(y)); // == K(z - y)
-      sigma -= std::move(P_xy) * adjoint(std::move(K)); // == K * P_yy * adjoint(K)
-      return *this;
-    }
-
-    /// @TODO Need to adapt this
-    template<
-      typename DY, typename PxyType, typename Z,
-      std::enable_if_t<is_covariance_v<typename DistributionTraits<DY>::Covariance> and is_Cholesky_v<DY>, int> = 0,
-      std::enable_if_t<is_typed_matrix_v<PxyType>, int> = 0,
-      std::enable_if_t<is_mean_v<Z>, int> = 0>
-    auto&
-    kalmanUpdate(DY&& Dist_y, PxyType&& P_xy, Z&& z)
-    {
+      static_assert(is_covariance_v<typename DistributionTraits<DY>::Covariance>);
+      static_assert(is_typed_matrix_v<PxyType>);
+      static_assert(is_mean_v<Z>);
       static_assert(MatrixTraits<Z>::columns == 1);
       static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<PxyType>::RowCoefficients, Coefficients>);
       static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<PxyType>::ColumnCoefficients, typename DistributionTraits<DY>::Coefficients>);
       static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Z>::RowCoefficients, typename DistributionTraits<DY>::Coefficients>);
       using CoeffsM = typename DistributionTraits<DY>::Coefficients;
       auto y = mean(std::forward<DY>(Dist_y));
-      auto S_yy = sqrt_covariance(std::forward<DY>(Dist_y));
-      auto K = make_Matrix<Coefficients, CoeffsM>(adjoint(solve(adjoint(S_yy), adjoint(std::forward<PxyType>(P_xy)))));
-      mu += K * (std::forward<Z>(z) - std::move(y));
-      sigma -= std::move(K) * std::move(S_yy);
-      // Note: this is equivalent to P_xx -= K * P_yy * K.adjoint() == K * S_yy * (K * S_yy).adjoint();
+      if constexpr (is_Cholesky_v<DY>)
+      {
+        auto S_yy = sqrt_covariance(std::forward<DY>(Dist_y));
+        auto K = make_Matrix<Coefficients, CoeffsM>(adjoint(solve(adjoint(S_yy), adjoint(std::forward<PxyType>(P_xy)))));
+        mu += K * (std::forward<Z>(z) - std::move(y));
+        sigma -= std::move(K) * std::move(S_yy);
+        // Note: this is equivalent to P_xx -= K * P_yy * K.adjoint() == K * S_yy * (K * S_yy).adjoint();
+      }
+      else
+      {
+        // Effectively, P_xx -= P_xy * adjoint(inverse(P_yy)) * adjoint(P_xy)
+        auto P_yy = covariance(std::forward<DY>(Dist_y));
+        auto K = make_Matrix<Coefficients, CoeffsM>(adjoint(solve(adjoint(std::move(P_yy)), adjoint(P_xy))));
+        // Note: K == P_xy * inverse(P_yy)
+        mu += K * (std::forward<Z>(z) - std::move(y)); // == K(z - y)
+        sigma -= std::move(P_xy) * adjoint(std::move(K)); // == K * P_yy * adjoint(K)
+      }
       return *this;
     }
 
@@ -337,9 +376,9 @@ namespace OpenKalman
     std::decay_t<C>>;
 
 
-  //////////////////////////////////
-  //        Make Function         //
-  //////////////////////////////////
+  ///////////////////////////////////
+  //        Make functions         //
+  ///////////////////////////////////
 
   template<typename M, typename Cov,
     std::enable_if_t<is_column_vector_v<M>, int> = 0,

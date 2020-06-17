@@ -184,11 +184,11 @@ namespace OpenKalman
 
   template<typename Coefficients, typename BaseMatrix>
   struct is_diagonal<SquareRootCovariance<Coefficients, BaseMatrix>,
-  std::enable_if_t<not OpenKalman::is_zero_v<BaseMatrix> and not OpenKalman::is_identity_v<BaseMatrix>>>
+  std::enable_if_t<not is_zero_v<BaseMatrix> and not is_identity_v<BaseMatrix>>>
   : is_diagonal<BaseMatrix> {};
 
   template<typename Coefficients, typename BaseMatrix>
-  struct is_identity<SquareRootCovariance<Coefficients, BaseMatrix>, std::enable_if_t<not OpenKalman::is_zero_v<BaseMatrix>>>
+  struct is_identity<SquareRootCovariance<Coefficients, BaseMatrix>, std::enable_if_t<not is_zero_v<BaseMatrix>>>
   : is_identity<BaseMatrix> {};
 
   template<typename Coefficients, typename BaseMatrix>
@@ -219,24 +219,32 @@ namespace OpenKalman
     : is_Cholesky<CovarianceMatrix> {};
 
   template<typename Coefficients, typename MeanMatrix, typename CovarianceMatrix>
-  struct is_self_adjoint<GaussianDistribution<Coefficients, MeanMatrix, CovarianceMatrix>>
+  struct is_self_adjoint<GaussianDistribution<Coefficients, MeanMatrix, CovarianceMatrix>,
+    std::enable_if_t<not is_diagonal_v<CovarianceMatrix>>>
     : is_self_adjoint<CovarianceMatrix> {};
 
   template<typename Coefficients, typename MeanMatrix, typename CovarianceMatrix>
-  struct is_lower_triangular<GaussianDistribution<Coefficients, MeanMatrix, CovarianceMatrix>>
+  struct is_lower_triangular<GaussianDistribution<Coefficients, MeanMatrix, CovarianceMatrix>,
+    std::enable_if_t<not is_diagonal_v<CovarianceMatrix>>>
     : is_lower_triangular<CovarianceMatrix> {};
 
   template<typename Coefficients, typename MeanMatrix, typename CovarianceMatrix>
-  struct is_upper_triangular<GaussianDistribution<Coefficients, MeanMatrix, CovarianceMatrix>>
+  struct is_upper_triangular<GaussianDistribution<Coefficients, MeanMatrix, CovarianceMatrix>,
+    std::enable_if_t<not is_diagonal_v<CovarianceMatrix>>>
     : is_upper_triangular<CovarianceMatrix> {};
 
   template<typename Coefficients, typename MeanMatrix, typename CovarianceMatrix>
-  struct is_diagonal<GaussianDistribution<Coefficients, MeanMatrix, CovarianceMatrix>>
+  struct is_diagonal<GaussianDistribution<Coefficients, MeanMatrix, CovarianceMatrix>,
+    std::enable_if_t<not is_zero_v<MeanMatrix> or not is_zero_v<CovarianceMatrix>>>
     : is_diagonal<CovarianceMatrix> {};
 
   template<typename Coefficients, typename MeanMatrix, typename CovarianceMatrix>
-  struct is_strict<GaussianDistribution<Coefficients, MeanMatrix, CovarianceMatrix>> :
-    std::integral_constant<bool, is_strict_v<MeanMatrix> and is_strict_v<CovarianceMatrix>> {};
+  struct is_zero<GaussianDistribution<Coefficients, MeanMatrix, CovarianceMatrix>>
+    : std::integral_constant<bool, is_zero_v<MeanMatrix> and is_zero_v<CovarianceMatrix>> {};
+
+  template<typename Coefficients, typename MeanMatrix, typename CovarianceMatrix>
+  struct is_strict<GaussianDistribution<Coefficients, MeanMatrix, CovarianceMatrix>>
+    : std::integral_constant<bool, is_strict_v<MeanMatrix> and is_strict_v<CovarianceMatrix>> {};
 
 
 }

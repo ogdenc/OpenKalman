@@ -74,6 +74,7 @@ namespace OpenKalman
     auto& operator=(Arg&& arg)
     {
       static_assert(is_upper_triangular_v<Arg> == is_upper_triangular_v<EigenTriangularMatrix>);
+      if constexpr (std::is_same_v<std::decay_t<Arg>, EigenTriangularMatrix>) if (this == &arg) return *this;
       if constexpr(std::is_lvalue_reference_v<Arg>)
       {
         this->base_matrix().template triangularView<uplo>() = base_matrix(arg);

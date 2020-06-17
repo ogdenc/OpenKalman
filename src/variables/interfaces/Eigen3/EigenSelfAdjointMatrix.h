@@ -74,6 +74,7 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<is_EigenSelfAdjointMatrix_v<Arg>, int> = 0>
     auto& operator=(Arg&& arg)
     {
+      if constexpr (std::is_same_v<std::decay_t<Arg>, EigenSelfAdjointMatrix>) if (this == &arg) return *this;
       if constexpr(std::is_lvalue_reference_v<Arg>)
       {
         if constexpr(is_Eigen_upper_storage_triangle_v<Arg> == is_Eigen_upper_storage_triangle_v<EigenSelfAdjointMatrix>)

@@ -134,7 +134,10 @@ namespace OpenKalman
   determinant(Arg&& arg) noexcept
   {
     static_assert(MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns);
-    return std::forward<Arg>(arg).determinant();
+    if constexpr(MatrixTraits<Arg>::dimension == 1)
+      return std::forward<Arg>(arg)(0, 0);
+    else
+      return std::forward<Arg>(arg).determinant();
   }
 
 
@@ -143,7 +146,10 @@ namespace OpenKalman
   trace(Arg&& arg) noexcept
   {
     static_assert(MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns);
-    return std::forward<Arg>(arg).trace();
+    if constexpr(MatrixTraits<Arg>::dimension == 1)
+      return std::forward<Arg>(arg)(0, 0);
+    else
+      return std::forward<Arg>(arg).trace();
   }
 
 
@@ -158,9 +164,15 @@ namespace OpenKalman
   {
     static_assert(MatrixTraits<A>::dimension == MatrixTraits<A>::columns);
     static_assert(MatrixTraits<A>::dimension == MatrixTraits<B>::dimension);
-    Eigen::Matrix<typename MatrixTraits<B>::Scalar, MatrixTraits<A>::dimension, MatrixTraits<B>::columns> x;
-    x = a.lu().solve(b);
-    return x;
+    using M = Eigen::Matrix<typename MatrixTraits<B>::Scalar, MatrixTraits<A>::dimension, MatrixTraits<B>::columns>;
+    if constexpr(MatrixTraits<A>::dimension == 1)
+    {
+      return M(b(0, 0)/a(0, 0));
+    }
+    else
+    {
+      return M(a.lu().solve(b));
+    }
   }
 
 

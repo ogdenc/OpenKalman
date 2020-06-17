@@ -124,7 +124,8 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<is_covariance_v<Arg>, int> = 0>
     auto& operator=(Arg&& other) noexcept
     {
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::Coefficients, Coefficients>);
+      static_assert(is_equivalent_v<typename MatrixTraits<Arg>::Coefficients, Coefficients>);
+      if constexpr (std::is_same_v<std::decay_t<Arg>, Covariance>) if (this == &other) return *this;
       base_matrix() = internal::convert_base_matrix<BaseMatrix>(std::forward<Arg>(other));
       return *this;
     }
@@ -132,9 +133,9 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<is_covariance_v<Arg>, int> = 0>
     auto& operator+=(Arg&& arg)
     {
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::Coefficients, Coefficients>);
-      static_assert(not OpenKalman::is_square_root_v<Arg>);
-      if constexpr(OpenKalman::is_self_adjoint_v<BaseMatrix>)
+      static_assert(is_equivalent_v<typename MatrixTraits<Arg>::Coefficients, Coefficients>);
+      static_assert(not is_square_root_v<Arg>);
+      if constexpr(is_self_adjoint_v<BaseMatrix>)
       {
         base_matrix() += internal::convert_base_matrix<BaseMatrix>(std::forward<Arg>(arg));
       }
@@ -142,7 +143,7 @@ namespace OpenKalman
       {
         decltype(auto) E1 = base_matrix();
         decltype(auto) E2 = internal::convert_base_matrix<BaseMatrix>(std::forward<Arg>(arg));
-        if constexpr(OpenKalman::is_upper_triangular_v<BaseMatrix>)
+        if constexpr(is_upper_triangular_v<BaseMatrix>)
           base_matrix() = QR_decomposition(concatenate_vertical(E1, E2));
         else
           base_matrix() = LQ_decomposition(concatenate_horizontal(E1, E2));
@@ -153,9 +154,9 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<is_covariance_v<Arg>, int> = 0>
     auto& operator-=(Arg&& arg)
     {
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::Coefficients, Coefficients>);
-      static_assert(not OpenKalman::is_square_root_v<Arg>);
-      if constexpr(OpenKalman::is_self_adjoint_v<BaseMatrix>)
+      static_assert(is_equivalent_v<typename MatrixTraits<Arg>::Coefficients, Coefficients>);
+      static_assert(not is_square_root_v<Arg>);
+      if constexpr(is_self_adjoint_v<BaseMatrix>)
       {
         base_matrix() -= internal::convert_base_matrix<BaseMatrix>(std::forward<Arg>(arg));
       }
@@ -171,7 +172,7 @@ namespace OpenKalman
     template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
     auto& operator*=(const S s)
     {
-      if constexpr(OpenKalman::is_self_adjoint_v<BaseMatrix>)
+      if constexpr(is_self_adjoint_v<BaseMatrix>)
       {
         base_matrix() *= s;
       }
@@ -223,6 +224,31 @@ namespace OpenKalman
       }
       return *this;
     }
+
+    /// Scale by a factor. Equivalent to multiplication by the square of a scalar.
+    template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
+    auto&
+    scale(const S s)
+    {
+      if constexpr(is_triangular_v<BaseMatrix>)
+        base_matrix() *= s;
+      else
+        base_matrix() *= static_cast<Scalar>(s) * s;
+      return *this;
+    }
+
+    /// Scale by the inverse of a scalar factor. Equivalent by division by the square of a scalar.
+    template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
+    auto&
+    inverse_scale(const S s)
+    {
+      if constexpr(is_triangular_v<BaseMatrix>)
+        base_matrix() /= s;
+      else
+        base_matrix() /= static_cast<Scalar>(s) * s;
+      return *this;
+    }
+
 
     /*********
      * Other

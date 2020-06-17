@@ -125,6 +125,7 @@ namespace OpenKalman
         is_upper_triangular_v<BaseMatrix> == is_upper_triangular_v<ArgBase>,
           "An upper-triangle Cholesky-form covariance cannot be assigned a lower-triangle Cholesky-form "
           "covariance, and vice versa. To convert, use adjoint().");
+      if constexpr (std::is_same_v<std::decay_t<Arg>, SquareRootCovariance>) if (this == &other) return *this;
       base_matrix() = internal::convert_base_matrix<BaseMatrix>(std::forward<Arg>(other));
       return *this;
     }

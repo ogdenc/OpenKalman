@@ -453,6 +453,29 @@ TEST_F(covariance_tests, Covariance_class)
   cd2 /= 2;
   EXPECT_TRUE(is_near(cd2, Mat2 {1, 0, 0, 2}));
 
+  // .scale()
+  clsa2.scale(2);
+  EXPECT_TRUE(is_near(clsa2, Mat2 {36, 12, 12, 40}));
+  cusa2.scale(2);
+  EXPECT_TRUE(is_near(cusa2, Mat2 {16, 8, 8, 20}));
+  clt2.scale(2);
+  EXPECT_TRUE(is_near(clt2, Mat2 {36, 12, 12, 40}));
+  cut2.scale(2);
+  EXPECT_TRUE(is_near(cut2, Mat2 {16, 8, 8, 20}));
+  cd2.scale(2);
+  EXPECT_TRUE(is_near(cd2, Mat2 {4, 0, 0, 8}));
+
+  // .inverse_scale()
+  clsa2.inverse_scale(2);
+  EXPECT_TRUE(is_near(clsa2, Mat2 {9, 3, 3, 10}));
+  cusa2.inverse_scale(2);
+  EXPECT_TRUE(is_near(cusa2, Mat2 {4, 2, 2, 5}));
+  clt2.inverse_scale(2);
+  EXPECT_TRUE(is_near(clt2, Mat2 {9, 3, 3, 10}));
+  cut2.inverse_scale(2);
+  EXPECT_TRUE(is_near(cut2, Mat2 {4, 2, 2, 5}));
+  cd2.inverse_scale(2);
+  EXPECT_TRUE(is_near(cd2, Mat2 {1, 0, 0, 2}));
 
   // Scalar multiplication, zero
   clsa2 *= 0;

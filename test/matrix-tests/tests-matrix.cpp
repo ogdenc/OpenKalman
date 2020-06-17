@@ -36,10 +36,15 @@ TEST_F(matrix_tests, Eigen_Matrix_overloads)
   EXPECT_TRUE(is_near(adjoint((Eigen::Matrix<double, 2, 3>() << 1, 2, 3, 4, 5, 6).finished()),
     (Eigen::Matrix<double, 3, 2>() << 1, 4, 2, 5, 3, 6).finished()));
   EXPECT_NEAR(determinant((Eigen::Matrix<double, 2, 2>() << 1, 2, 3, 4).finished()), -2, 1e-6);
+  EXPECT_NEAR(determinant((Eigen::Matrix<double, 1, 1>() << 2).finished()), 2, 1e-6);
   EXPECT_NEAR(trace((Eigen::Matrix<double, 2, 2>() << 1, 2, 3, 4).finished()), 5, 1e-6);
+  EXPECT_NEAR(trace((Eigen::Matrix<double, 1, 1>() << 3).finished()), 3, 1e-6);
   EXPECT_TRUE(is_near(solve((Eigen::Matrix<double, 2, 2>() << 1, 2, 3, 4).finished(),
     (Eigen::Matrix<double, 2, 1>() << 5, 6).finished()),
     (Eigen::Matrix<double, 2, 1>() << -4, 4.5).finished()));
+  EXPECT_TRUE(is_near(solve((Eigen::Matrix<double, 1, 1>() << 2).finished(),
+    (Eigen::Matrix<double, 1, 1>() << 6).finished()),
+    (Eigen::Matrix<double, 1, 1>() << 3).finished()));
   EXPECT_TRUE(is_near(reduce_columns((Eigen::Matrix<double, 2, 3>() << 1, 2, 3, 4, 5, 6).finished()),
     (Eigen::Matrix<double, 2, 1>() << 2, 5).finished()));
   EXPECT_TRUE(is_near(LQ_decomposition((Eigen::Matrix<double, 2, 2>() << 0.06, 0.08, 0.36, -1.640).finished()),

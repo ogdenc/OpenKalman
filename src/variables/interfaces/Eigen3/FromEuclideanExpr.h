@@ -65,6 +65,7 @@ namespace OpenKalman
     {
       static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::Coefficients, Coefficients>);
       static_assert(MatrixTraits<Arg>::columns == columns);
+      if constexpr (std::is_same_v<std::decay_t<Arg>, FromEuclideanExpr>) if (this == &other) return *this;
       this->base_matrix() = std::forward<Arg>(other).base_matrix();
       return *this;
     }

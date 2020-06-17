@@ -88,6 +88,7 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<is_EigenDiagonal_v<Arg>, int> = 0>
     auto& operator=(Arg& other)
     {
+      if constexpr (std::is_same_v<std::decay_t<Arg>, EigenDiagonal>) if (this == &other) return *this;
       this->base_matrix() = std::forward<Arg>(other).base_matrix();
       return *this;
     }
@@ -283,9 +284,9 @@ namespace OpenKalman
       return make(strict(MatrixTraits<StrictMatrix<>>::make(args...).diagonal()));
     }
 
-    static auto zero() { return make(MatrixTraits<BaseMatrix>::zero()); }
+    static auto zero() { return MatrixTraits<StrictMatrix<>>::zero(); }
 
-    static auto identity() { return make(BaseMatrix::Constant(1)); }
+    static auto identity() { return MatrixTraits<StrictMatrix<>>::identity(); }
 
   };
 

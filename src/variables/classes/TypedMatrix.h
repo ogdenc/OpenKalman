@@ -93,6 +93,7 @@ namespace OpenKalman
     {
       static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients>);
       static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::ColumnCoefficients, ColumnCoefficients>);
+      if constexpr (std::is_same_v<std::decay_t<Arg>, TypedMatrix>) if (this == &other) return *this;
       if constexpr(is_Euclidean_transformed_v<Arg>)
         this->base_matrix() = from_Euclidean<RowCoefficients>(std::forward<Arg>(other).base_matrix());
       else
