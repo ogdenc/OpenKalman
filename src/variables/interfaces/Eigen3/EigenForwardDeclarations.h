@@ -106,17 +106,17 @@ namespace OpenKalman
   struct is_typed_matrix_base<EigenSelfAdjointMatrix<BaseMatrix, storage_triangle>> : std::true_type {};
 
   template<typename BaseMatrix, TriangleType storage_triangle>
-  struct is_zero<EigenSelfAdjointMatrix<BaseMatrix, storage_triangle>, std::enable_if_t<OpenKalman::is_zero_v<BaseMatrix>>>
+  struct is_zero<EigenSelfAdjointMatrix<BaseMatrix, storage_triangle>, std::enable_if_t<is_zero_v<BaseMatrix>>>
     : std::true_type {};
 
   template<typename BaseMatrix, TriangleType storage_triangle>
   struct is_diagonal<EigenSelfAdjointMatrix<BaseMatrix, storage_triangle>,
-    std::enable_if_t<OpenKalman::is_diagonal_v<BaseMatrix> and not OpenKalman::is_zero_v<BaseMatrix>>>
+    std::enable_if_t<is_diagonal_v<BaseMatrix> and not is_zero_v<BaseMatrix> and not is_1by1_v<BaseMatrix>>>
     : std::true_type {};
 
   template<typename BaseMatrix>
   struct is_diagonal<EigenSelfAdjointMatrix<BaseMatrix, TriangleType::diagonal>,
-    std::enable_if_t<not OpenKalman::is_diagonal_v<BaseMatrix>>>
+    std::enable_if_t<not is_diagonal_v<BaseMatrix>>>
     : std::true_type {};
 
   template<typename BaseMatrix, TriangleType storage_triangle>
@@ -169,26 +169,26 @@ namespace OpenKalman
   struct is_typed_matrix_base<EigenTriangularMatrix<BaseMatrix, triangle_type>> : std::true_type {};
 
   template<typename BaseMatrix, TriangleType triangle_type>
-  struct is_zero<EigenTriangularMatrix<BaseMatrix, triangle_type>, std::enable_if_t<OpenKalman::is_zero_v<BaseMatrix>>>
+  struct is_zero<EigenTriangularMatrix<BaseMatrix, triangle_type>, std::enable_if_t<is_zero_v<BaseMatrix>>>
     : std::true_type {};
 
   template<typename BaseMatrix, TriangleType triangle_type>
   struct is_diagonal<EigenTriangularMatrix<BaseMatrix, triangle_type>,
-    std::enable_if_t<OpenKalman::is_diagonal_v<BaseMatrix> and not OpenKalman::is_zero_v<BaseMatrix>>>
+    std::enable_if_t<is_diagonal_v<BaseMatrix> and not is_zero_v<BaseMatrix> and not is_1by1_v<BaseMatrix>>>
     : std::true_type {};
 
   template<typename BaseMatrix>
   struct is_diagonal<EigenTriangularMatrix<BaseMatrix, TriangleType::diagonal>,
-    std::enable_if_t<not OpenKalman::is_diagonal_v<BaseMatrix>>>
+    std::enable_if_t<not is_diagonal_v<BaseMatrix>>>
   : std::true_type {};
 
   template<typename BaseMatrix>
   struct is_lower_triangular<EigenTriangularMatrix<BaseMatrix, TriangleType::lower>,
-    std::enable_if_t<not OpenKalman::is_diagonal_v<BaseMatrix>>> : std::true_type {};
+    std::enable_if_t<not is_diagonal_v<BaseMatrix>>> : std::true_type {};
 
   template<typename BaseMatrix>
   struct is_upper_triangular<EigenTriangularMatrix<BaseMatrix, TriangleType::upper>,
-    std::enable_if_t<not OpenKalman::is_diagonal_v<BaseMatrix>>> : std::true_type {};
+    std::enable_if_t<not is_diagonal_v<BaseMatrix>>> : std::true_type {};
 
   template<typename BaseMatrix, TriangleType triangle_type>
   struct is_strict<EigenTriangularMatrix<BaseMatrix, triangle_type>> : is_strict<BaseMatrix> {};
@@ -298,42 +298,51 @@ namespace OpenKalman
   struct is_identity<EigenIdentity<Arg>>
     : std::integral_constant<bool, Arg::RowsAtCompileTime == Arg::ColsAtCompileTime> {};
 
+  /// Product of two identity matrices is also identity.
   template<typename Arg1, typename Arg2>
   struct is_identity<Eigen::Product<Arg1, Arg2>>
     : std::integral_constant<bool, is_identity_v<Arg1> and is_identity_v<Arg2>> {};
 
+  /// Product of two diagonal matrices is also diagonal.
   template<typename Arg1, typename Arg2>
   struct is_diagonal<Eigen::Product<Arg1, Arg2>,
     std::enable_if_t<(not is_zero_v<Arg1> or not is_zero_v<Arg2>) and (not is_identity_v<Arg1> or not is_identity_v<Arg2>)>>
     : std::integral_constant<bool, is_diagonal_v<Arg1> and is_diagonal_v<Arg2>> {};
 
+  /// Diagonal matrix times a scalar is also diagonal.
   template<typename Arg1, typename Arg2>
   struct is_diagonal<Eigen::CwiseBinaryOp<
     Eigen::internal::scalar_product_op<typename Arg1::Scalar, typename Arg2::Scalar>, Arg1, Arg2>,
     std::enable_if_t<not is_zero_v<Arg1> and not is_zero_v<Arg2>>>
     : std::integral_constant<bool, is_diagonal_v<Arg1> or is_diagonal_v<Arg2>> {};
 
+  /// Diagonal matrix divided by a scalar is also diagonal.
   template<typename Arg1, typename Arg2>
   struct is_diagonal<Eigen::CwiseBinaryOp<
     Eigen::internal::scalar_quotient_op<typename Arg1::Scalar, typename Arg2::Scalar>, Arg1, Arg2>,
     std::enable_if_t<not is_zero_v<Arg1>>>
     : std::integral_constant<bool, is_diagonal_v<Arg1>> {};
 
+  /// Sum of two diagonal matrices is also diagonal.
   template<typename Arg1, typename Arg2>
   struct is_diagonal<Eigen::CwiseBinaryOp<
     Eigen::internal::scalar_sum_op<typename Arg1::Scalar, typename Arg2::Scalar>, Arg1, Arg2>,
     std::enable_if_t<not is_zero_v<Arg1> or not is_zero_v<Arg2>>>
     : std::integral_constant<bool, is_diagonal_v<Arg1> and is_diagonal_v<Arg2>> {};
 
+  /// Difference of two diagonal matrices is also diagonal.
   template<typename Arg1, typename Arg2>
   struct is_diagonal<Eigen::CwiseBinaryOp<
     Eigen::internal::scalar_difference_op<typename Arg1::Scalar, typename Arg2::Scalar>, Arg1, Arg2>,
-    std::enable_if_t<(not is_zero_v<Arg1> or not is_zero_v<Arg1>) and (not is_identity_v<Arg1> or not is_identity_v<Arg2>)>>
+    std::enable_if_t<(not is_zero_v<Arg1> or not is_zero_v<Arg2>) and
+      (not is_identity_v<Arg1> or not is_identity_v<Arg2>) and
+      (not is_1by1_v<Arg1> and not is_1by1_v<Arg2>)>>
     : std::integral_constant<bool, is_diagonal_v<Arg1> and is_diagonal_v<Arg2>> {};
 
+  /// The negation of an identity matrix is diagonal.
   template<typename Arg>
   struct is_diagonal<Eigen::CwiseUnaryOp<Eigen::internal::scalar_opposite_op<typename Arg::Scalar>, Arg>,
-    std::enable_if_t<not is_zero_v<Arg>>>
+    std::enable_if_t<not is_zero_v<Arg> and not is_1by1_v<Arg>>>
     : std::integral_constant<bool, is_diagonal_v<Arg>> {};
 
 
@@ -624,16 +633,6 @@ namespace OpenKalman
     using B = EigenTriangularMatrix<Mat, triangle_type...>;
     return SquareRootCovariance<Coefficients, B>();
   }
-
-  ////////////////////////////////
-  //    GaussianDistribution    //
-  ////////////////////////////////
-
-  template<
-    typename Coefficients,
-    typename MeanMatrix = typename Mean<Coefficients>::BaseMatrix,
-    typename CovarianceMatrix = typename Covariance<Coefficients>::BaseMatrix>
-  struct GaussianDistribution;
 
 
   /////////////////

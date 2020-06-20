@@ -481,11 +481,13 @@ namespace OpenKalman
 
 
   /**
-   * Fill a matrix of to-Euclidean- or from_Euclidean-transformed values selected from a Gaussian distribution.
+   * Fill a matrix of to-Euclidean- or from_Euclidean-transformed values selected from a random distribution.
    * The Gaussian distribution has zero mean and standard deviation sigma (1, if not specified).
    **/
   template<
     typename ReturnType,
+    template<typename Scalar> typename distribution_type = std::normal_distribution,
+    typename random_number_engine = std::mt19937,
     typename...S,
     std::enable_if_t<(OpenKalman::is_ToEuclideanExpr_v<ReturnType> or OpenKalman::is_FromEuclideanExpr_v<ReturnType>) and
       sizeof...(S) <= 1 and
@@ -494,7 +496,7 @@ namespace OpenKalman
   randomize(S...sigma)
   {
     using B = typename MatrixTraits<ReturnType>::BaseMatrix;
-    return MatrixTraits<ReturnType>::make(randomize<B>(sigma...));
+    return MatrixTraits<ReturnType>::make(randomize<B, distribution_type, random_number_engine>(sigma...));
   }
 
 

@@ -22,7 +22,7 @@ namespace OpenKalman
 
   template<typename Matrix>
   struct MatrixTraits<Matrix,
-    std::enable_if_t<std::is_same_v<Matrix, std::decay_t<Matrix>> and OpenKalman::is_native_Eigen_type_v<Matrix>>>
+    std::enable_if_t<std::is_same_v<Matrix, std::decay_t<Matrix>> and is_native_Eigen_type_v<Matrix>>>
   {
     using BaseMatrix = Matrix;
     using Scalar = typename Matrix::Scalar;

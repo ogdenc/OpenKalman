@@ -11,10 +11,7 @@
 #ifndef OPENKALMAN_OPENKALMAN_TRANSFORMS_H
 #define OPENKALMAN_OPENKALMAN_TRANSFORMS_H
 
-#include "variables/OpenKalman-variables.h"
-#include "distributions/GaussianDistribution.h"
-#include "distributions/DistributionTraits.h"
-
+#include "OpenKalman.h"
 #include "transforms/transformations/Transformation.h"
 #include "transforms/transformations/LinearTransformation.h"
 

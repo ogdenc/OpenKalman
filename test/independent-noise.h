@@ -17,11 +17,7 @@
 #include <Eigen/Dense>
 #include <gtest/gtest.h>
 #include "variables/interfaces/Eigen3.h"
-#include "variables/support/ForwardDeclarations.h"
-#include "variables/support/Traits.h"
-#include <distributions/GaussianDistribution.h>
-#include "variables/support/CovarianceOverloads.h"
-#include "distributions/DistributionTraits.h"
+#include "OpenKalman.h"
 
 using namespace OpenKalman;
 

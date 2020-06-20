@@ -283,10 +283,12 @@ TEST_F(typed_matrix_tests, EuclideanMean_blocks)
   static_assert(is_Euclidean_mean_v<decltype(concatenate_horizontal(Mat22 {1, 2, 4, 5, 7, 8}, Mat21 {3, 6, 9}))>);
   static_assert(is_equivalent_v<typename MatrixTraits<decltype(concatenate_horizontal(Mat22 {1, 2, 4, 5, 7, 8}, Mat21 {3, 6, 9}))>::RowCoefficients, C2>);
 
-  EXPECT_TRUE(is_near(split_vertical<C2, Axis>(Mat32 {1, 2, 3, 4, 5, 6, 7, 8}),
-    std::tuple {Mat22 {1, 2, 3, 4, 5, 6}, Mat12 {7, 8}}));
-  EXPECT_TRUE(is_near(split_horizontal<Axes<2>, Axis>(Mat23 {1, 2, 3, 4, 5, 6, 7, 8, 9}),
-    std::tuple {Mat22 {1, 2, 4, 5, 7, 8}, Mat21 {3, 6, 9}}));
+  EXPECT_TRUE(is_near(split_vertical(Mat32 {1, 2, 3, 4, 5, 6, 7, 8}), std::tuple {}));
+  EXPECT_TRUE(is_near(split_horizontal(Mat23 {1, 2, 3, 4, 5, 6, 7, 8, 9}), std::tuple {}));
+  EXPECT_TRUE(is_near(split_vertical<C2, Axis>(Mat32 {1, 2, 3, 4, 5, 6, 7, 8}), std::tuple {Mat22 {1, 2, 3, 4, 5, 6}, Mat12 {7, 8}}));
+  EXPECT_TRUE(is_near(split_horizontal<Axes<2>, Axis>(Mat23 {1, 2, 3, 4, 5, 6, 7, 8, 9}), std::tuple {Mat22 {1, 2, 4, 5, 7, 8}, Mat21 {3, 6, 9}}));
+  EXPECT_TRUE(is_near(split_vertical<Axis, Angle>(Mat32 {1, 2, 3, 4, 5, 6, 7, 8}), std::tuple {Mat12 {1, 2},  EuclideanMean<Angle, M22> {3, 4, 5, 6}}));
+  EXPECT_TRUE(is_near(split_horizontal<Axis, Axis>(Mat23 {1, 2, 3, 4, 5, 6, 7, 8, 9}), std::tuple {Mat21 {1, 4, 7}, Mat21 {2, 5, 8}}));
 
   EXPECT_TRUE(is_near(column(Mat22 {1, 2, 3, 4, 5, 6}, 0), Mean{1., 3, 5}));
   EXPECT_TRUE(is_near(column(Mat22 {1, 2, 3, 4, 5, 6}, 1), Mean{2., 4, 6}));

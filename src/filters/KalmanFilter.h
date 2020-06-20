@@ -46,6 +46,41 @@ namespace OpenKalman
     using MeasurementDist = Dist<Scalar, MeasurementCoeffs>;
     using Measurement = Mean<Scalar, MeasurementCoeffs>;
 
+
+    template<typename DY, typename PxyType, typename Z>
+    auto&
+    kalmanUpdate(StateDist&& Dist_x, DY&& Dist_y, PxyType&& P_xy, Z&& z)
+    {
+      static_assert(is_covariance_v<typename DistributionTraits<DY>::Covariance>);
+      static_assert(is_typed_matrix_v<PxyType>);
+      static_assert(is_mean_v<Z>);
+      static_assert(MatrixTraits<Z>::columns == 1);
+      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<PxyType>::RowCoefficients, Coefficients>);
+      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<PxyType>::ColumnCoefficients, typename DistributionTraits<DY>::Coefficients>);
+      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Z>::RowCoefficients, typename DistributionTraits<DY>::Coefficients>);
+      using CoeffsM = typename DistributionTraits<DY>::Coefficients;
+      auto y = mean(std::forward<DY>(Dist_y));
+      if constexpr (is_Cholesky_v<DY>)
+      {
+        auto S_yy = sqrt_covariance(std::forward<DY>(Dist_y));
+        auto K = make_Matrix<Coefficients, CoeffsM>(adjoint(solve(adjoint(S_yy), adjoint(std::forward<PxyType>(P_xy)))));
+        mean(Dist_x) += K * (std::forward<Z>(z) - std::move(y));
+        covariance(Dist_x) -= std::move(K) * std::move(S_yy);
+        // Note: this is equivalent to P_xx -= K * P_yy * K.adjoint() == K * S_yy * (K * S_yy).adjoint();
+      }
+      else
+      {
+        // Effectively, P_xx -= P_xy * adjoint(inverse(P_yy)) * adjoint(P_xy)
+        auto P_yy = covariance(std::forward<DY>(Dist_y));
+        auto K = make_Matrix<Coefficients, CoeffsM>(adjoint(solve(adjoint(std::move(P_yy)), adjoint(P_xy))));
+        // Note: K == P_xy * inverse(P_yy)
+        mean(Dist_x) += K * (std::forward<Z>(z) - std::move(y)); // == K(z - y)
+        covariance(Dist_x) -= std::move(P_xy) * adjoint(std::move(K)); // == K * P_yy * adjoint(K)
+      }
+      return *this;
+    }
+
+
     /**
      * @brief Construct Kalman filter, using separate process and measurement transforms
      * @param state_transform the transform to be used for the state prediction
@@ -83,7 +118,7 @@ namespace OpenKalman
                 {
                   const auto[y, P_xy] = measurement_transform(x, u ...);
                   StateDist ret {x};
-                  return ret.kalmanUpdate(y, P_xy, z);
+                  return kalmanUpdate(ret, y, P_xy, z);
                 }
             },
         predict_update

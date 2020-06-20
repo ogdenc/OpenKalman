@@ -271,6 +271,9 @@ TEST_F(matrix_tests, TriangularMatrix_overloads)
   static_assert(std::is_same_v<std::decay_t<decltype(strict(Lower {9, 3, 3, 10} * 2))>, Lower>);
   static_assert(std::is_same_v<std::decay_t<decltype(strict(Upper {9, 3, 3, 10} * 2))>, Upper>);
   //
+  EXPECT_TRUE(is_near(Cholesky_square(EigenTriangularMatrix<Eigen::Matrix<double, 1, 1>, TriangleType::lower>(Eigen::Matrix<double, 1, 1>(4))), Eigen::Matrix<double, 1, 1>(16)));
+  static_assert(is_1by1_v<decltype(Cholesky_square(EigenTriangularMatrix<Eigen::Matrix<double, 1, 1>, TriangleType::lower>(Eigen::Matrix<double, 1, 1>(4))))>);
+  //
   EXPECT_TRUE(is_near(Cholesky_square(EigenTriangularMatrix<decltype(M2::Identity()), TriangleType::lower>(M2::Identity())), M2::Identity()));
   EXPECT_TRUE(is_near(Cholesky_square(EigenTriangularMatrix<decltype(M2::Identity()), TriangleType::upper>(M2::Identity())), M2::Identity()));
   static_assert(is_identity_v<decltype(Cholesky_square(EigenTriangularMatrix<decltype(M2::Identity()), TriangleType::lower>(M2::Identity())))>);
@@ -293,6 +296,9 @@ TEST_F(matrix_tests, TriangularMatrix_overloads)
   EXPECT_TRUE(is_near(Cholesky_square(Upper {3., 1, 0, 3}), Mat {9., 3, 3, 10}));
   static_assert(is_Eigen_lower_storage_triangle_v<decltype(Cholesky_square(Lower {3, 0, 1, 3}))>);
   static_assert(is_Eigen_upper_storage_triangle_v<decltype(Cholesky_square(Upper {3, 1, 0, 3}))>);
+  //
+  EXPECT_TRUE(is_near(Cholesky_factor(EigenTriangularMatrix<Eigen::Matrix<double, 1, 1>, TriangleType::lower>(Eigen::Matrix<double, 1, 1>(4))), Eigen::Matrix<double, 1, 1>(2)));
+  static_assert(is_1by1_v<decltype(Cholesky_factor(EigenTriangularMatrix<Eigen::Matrix<double, 1, 1>, TriangleType::lower>(Eigen::Matrix<double, 1, 1>(4))))>);
   //
   EXPECT_TRUE(is_near(Cholesky_factor(EigenTriangularMatrix<decltype(M2::Identity()), TriangleType::lower>(M2::Identity())), M2::Identity()));
   EXPECT_TRUE(is_near(Cholesky_factor(EigenTriangularMatrix<decltype(M2::Identity()), TriangleType::upper>(M2::Identity())), M2::Identity()));

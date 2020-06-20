@@ -109,7 +109,10 @@ namespace OpenKalman
   to_diagonal(Arg&& arg) noexcept
   {
     static_assert(MatrixTraits<Arg>::columns == 1);
-    return EigenDiagonal(std::forward<Arg>(arg));
+    if constexpr(is_1by1_v<Arg>)
+      return std::forward<Arg>(arg);
+    else
+      return EigenDiagonal(std::forward<Arg>(arg));
   }
 
 
@@ -117,7 +120,10 @@ namespace OpenKalman
   constexpr decltype(auto)
   transpose(Arg&& arg) noexcept
   {
-    return std::forward<Arg>(arg).transpose();
+    if constexpr(is_1by1_v<Arg>)
+      return std::forward<Arg>(arg);
+    else
+      return std::forward<Arg>(arg).transpose();
   }
 
 
@@ -125,7 +131,10 @@ namespace OpenKalman
   constexpr decltype(auto)
   adjoint(Arg&& arg) noexcept
   {
-    return std::forward<Arg>(arg).adjoint();
+    if constexpr(is_1by1_v<Arg>)
+      return std::forward<Arg>(arg);
+    else
+      return std::forward<Arg>(arg).adjoint();
   }
 
 
@@ -134,7 +143,7 @@ namespace OpenKalman
   determinant(Arg&& arg) noexcept
   {
     static_assert(MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns);
-    if constexpr(MatrixTraits<Arg>::dimension == 1)
+    if constexpr(is_1by1_v<Arg>)
       return std::forward<Arg>(arg)(0, 0);
     else
       return std::forward<Arg>(arg).determinant();
@@ -146,7 +155,7 @@ namespace OpenKalman
   trace(Arg&& arg) noexcept
   {
     static_assert(MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns);
-    if constexpr(MatrixTraits<Arg>::dimension == 1)
+    if constexpr(is_1by1_v<Arg>)
       return std::forward<Arg>(arg)(0, 0);
     else
       return std::forward<Arg>(arg).trace();
@@ -165,7 +174,7 @@ namespace OpenKalman
     static_assert(MatrixTraits<A>::dimension == MatrixTraits<A>::columns);
     static_assert(MatrixTraits<A>::dimension == MatrixTraits<B>::dimension);
     using M = Eigen::Matrix<typename MatrixTraits<B>::Scalar, MatrixTraits<A>::dimension, MatrixTraits<B>::columns>;
-    if constexpr(MatrixTraits<A>::dimension == 1)
+    if constexpr(is_1by1_v<A>)
     {
       return M(b(0, 0)/a(0, 0));
     }
@@ -204,6 +213,7 @@ namespace OpenKalman
     constexpr auto dim = MatrixTraits<A>::dimension, col = MatrixTraits<A>::columns;
     using MatrixType = Eigen::Matrix<Scalar, col, dim>;
     using ResultType = Eigen::Matrix<Scalar, dim, dim>;
+    if constexpr(is_1by1_v<A>) return std::forward<A>(a);
     Eigen::HouseholderQR<MatrixType> QR(std::forward<A>(a).adjoint());
     ResultType ret;
     if constexpr(col < dim)
@@ -231,6 +241,7 @@ namespace OpenKalman
     constexpr auto dim = MatrixTraits<A>::dimension, col = MatrixTraits<A>::columns;
     using MatrixType = Eigen::Matrix<Scalar, dim, col>;
     using ResultType = Eigen::Matrix<Scalar, col, col>;
+    if constexpr(is_1by1_v<A>) return std::forward<A>(a);
     Eigen::HouseholderQR<MatrixType> QR(std::forward<A>(a));
     ResultType ret;
     if constexpr(dim < col)
@@ -679,24 +690,38 @@ namespace OpenKalman
   }
 
 
+  namespace detail
+  {
+    template<typename Scalar, template<typename> typename distribution_type, typename random_number_engine>
+    static auto
+    get_rnd()
+    {
+      static std::random_device rd;
+      static random_number_engine rng {rd()};
+      static distribution_type<Scalar> dist;
+      return dist(rng);
+    }
+  }
+
+
   /**
-   * Fill an Eigen matrix with random values selected from a Gaussian distribution.
+   * Fill an Eigen matrix with random values selected from a random distribution.
    * The Gaussian distribution has mean zero and a scalar standard deviation sigma (== 1, if not specified).
    **/
   template<
     typename ReturnType,
+    template<typename> typename distribution_type = std::normal_distribution,
+    typename random_number_engine = std::mt19937,
     typename...S,
-    std::enable_if_t<
-      OpenKalman::is_native_Eigen_type_v<ReturnType> and
-      sizeof...(S) <= 1 and
+    std::enable_if_t<is_native_Eigen_type_v<ReturnType> and sizeof...(S) <= 1 and
       std::conjunction_v<std::is_convertible<S, const typename MatrixTraits<ReturnType>::Scalar>...>, int> = 0>
-  static auto
+  inline auto
   randomize(S...sigma)
   {
     using Scalar = typename MatrixTraits<ReturnType>::Scalar;
-    static std::mt19937 rng {std::random_device {}()};
-    static std::normal_distribution<Scalar> dist;
-    return strict(ReturnType::NullaryExpr([&](auto) { return (dist(rng) * ... * sigma); }));
+    return strict(ReturnType::NullaryExpr([&](auto) {
+      return (detail::get_rnd<Scalar, distribution_type, random_number_engine>() * ... * sigma);
+    }));
   }
 
 

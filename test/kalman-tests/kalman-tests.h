@@ -19,10 +19,9 @@
 #include "../tests.h"
 #include "../independent-noise.h"
 #include "../transformations.h"
+#include "OpenKalman.h"
+#include "transforms/OpenKalman-transforms"
 #include "filters/KalmanFilter.h"
-#include "transforms/classes/RecursiveLeastSquaresTransform.h"
-#include "distributions/GaussianDistribution.h"
-//#include "transformations/LinearizedTransformation.h"
 
 using namespace OpenKalman;
 

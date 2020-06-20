@@ -15,7 +15,7 @@
 #include <iostream>
 #include <gtest/gtest.h>
 #include "variables/interfaces/Eigen3.h"
-#include "variables/OpenKalman-variables.h"
+#include "OpenKalman.h"
 
 using namespace OpenKalman;
 

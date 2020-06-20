@@ -253,6 +253,10 @@ namespace OpenKalman
       {
         return this->base_matrix().square();
       }
+      else if constexpr (is_1by1_v<BaseMatrix>)
+      {
+        return this->base_matrix().array().square().matrix();
+      }
       else if constexpr (triangle_type == TriangleType::diagonal)
       {
         using M = Eigen::Matrix<Scalar, dimension, 1>;
@@ -288,6 +292,10 @@ namespace OpenKalman
       else if constexpr (is_EigenDiagonal_v<BaseMatrix>)
       {
         return this->base_matrix().square_root();
+      }
+      else if constexpr (is_1by1_v<BaseMatrix>)
+      {
+        return this->base_matrix().cwiseSqrt();
       }
       else // if constexpr (not is_diagonal_v<BaseMatrix> and triangle_type == TriangleType::diagonal)
       {

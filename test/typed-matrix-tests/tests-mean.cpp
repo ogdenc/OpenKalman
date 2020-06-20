@@ -9,8 +9,6 @@
  */
 
 #include "typed_matrix_tests.h"
-#include "distributions/GaussianDistribution.h"
-#include "distributions/DistributionTraits.h"
 
 using namespace OpenKalman;
 
@@ -30,9 +28,9 @@ using Mat22 = Mean<C2, M22>;
 using Mat23 = Mean<C2, M23>;
 using Mat32 = Mean<C3, M32>;
 using Mat33 = Mean<C3, M33>;
-using TMat22 = TypedMatrix<Axes<2>, Axes<2>, M22>;
-using TMat23 = TypedMatrix<Axes<2>, Axes<3>, M23>;
-using TMat32 = TypedMatrix<Axes<3>, Axes<2>, M32>;
+using TMat22 = TypedMatrix<C2, Axes<2>, M22>;
+using TMat23 = TypedMatrix<C2, Axes<3>, M23>;
+using TMat32 = TypedMatrix<C3, Axes<2>, M32>;
 using EMat23 = EuclideanMean<C2, M33>;
 
 using SA2l = EigenSelfAdjointMatrix<M22, TriangleType::lower>;
@@ -109,34 +107,41 @@ TEST_F(typed_matrix_tests, Mean_class)
   EXPECT_TRUE(is_near(mat23e, Mat23 {6, 5, 4, 3, 2, 1}));
 
   // Increment
-  mat23_x2 += TMat23 {1, 2, 3, 4, 5, 6};
-  EXPECT_TRUE(is_near(mat23_x2, TMat23 {7, 7, 7, 7, 7, 7}));
+  mat23_x1 += TMat23 {1, 2, 3, 4, 5, 6};
+  EXPECT_TRUE(is_near(mat23_x1, TMat23 {7, 7, 7, 7-2*M_PI, 7-2*M_PI, 7-2*M_PI}));
   mat23a += Mat23 {1, 2, 3, 4, 5, 6};
   EXPECT_TRUE(is_near(mat23a, TMat23 {2, 4, 6, 8-2*M_PI, 10-4*M_PI, 12-4*M_PI}));
 
   // Increment with a stochastic value
-  mat23b = {1, 1, 1, 1, 1, 1};
+  mat23b = {1, 1, 1, M_PI, M_PI, M_PI};
+  GaussianDistribution g = {Mat21 {0, 0}, sqcovi22 * 0.1};
+  TMat23 diff = {1, 1, 1, 1, 1, 1};
   for (int i=0; i<100; i++)
   {
-    mat23b += GaussianDistribution {Mat21 {0, 0}, sqcovi22 * 0.01};
+    Mat23 oldmat23b = mat23b;
+    mat23b += g;
+    diff += (mat23b - oldmat23b) / 100;
   }
-  EXPECT_TRUE(is_near(mat23b, TMat23 {1, 1, 1, 1, 1, 1}, 0.1));
-  EXPECT_FALSE(is_near(mat23b, TMat23 {1, 1, 1, 1, 1, 1}, 1e-6));
+  EXPECT_TRUE(is_near(diff, TMat23 {1, 1, 1, 1, 1, 1}, 0.1));
+  EXPECT_FALSE(is_near(diff, TMat23 {1, 1, 1, 1, 1, 1}, 1e-6));
 
   // Decrement
-  mat23_x2 -= TMat23 {1, 2, 3, 4, 5, 6};
-  EXPECT_TRUE(is_near(mat23_x2, TMat23 {6, 5, 4, 3, 2, 1}));
+  mat23_x1 -= TMat23 {1, 2, 3, 4, 5, 6};
+  EXPECT_TRUE(is_near(mat23_x1, TMat23 {6, 5, 4, 3, 2, 1}));
   mat23a -= Mat23 {1, 2, 3, 4, 5, 6};
   EXPECT_TRUE(is_near(mat23a, TMat23 {1, 2, 3, 4-2*M_PI, 5-2*M_PI, 6-2*M_PI}));
 
   // Decrement with a stochastic value
-  mat23b = {1, 1, 1, 1, 1, 1};
+  mat23b = {1, 1, 1, M_PI, M_PI, M_PI};
+  diff = {1, 1, 1, 1, 1, 1};
   for (int i=0; i<100; i++)
   {
-    mat23b -= GaussianDistribution {Mat21 {0, 0}, sqcovi22 * 0.01};
+    Mat23 oldmat23b = mat23b;
+    mat23b -= g;
+    diff += (mat23b - oldmat23b) / 100;
   }
-  EXPECT_TRUE(is_near(mat23b, TMat23 {1, 1, 1, 1, 1, 1}, 0.1));
-  EXPECT_FALSE(is_near(mat23b, TMat23 {1, 1, 1, 1, 1, 1}, 1e-6));
+  EXPECT_TRUE(is_near(diff, TMat23 {1, 1, 1, 1, 1, 1}, 0.1));
+  EXPECT_FALSE(is_near(diff, TMat23 {1, 1, 1, 1, 1, 1}, 1e-6));
 
   // Scalar multiplication
   mat23a *= 2;
@@ -316,10 +321,12 @@ TEST_F(typed_matrix_tests, Mean_blocks)
   static_assert(is_equivalent_v<typename MatrixTraits<decltype(concatenate_horizontal(Mat22 {1, 2, 4, 5}, TypedMatrix<C2, Angle, M21> {3, 6}))>::RowCoefficients, C2>);
   static_assert(is_equivalent_v<typename MatrixTraits<decltype(concatenate_horizontal(Mat22 {1, 2, 4, 5}, TypedMatrix<C2, Angle, M21> {3, 6}))>::ColumnCoefficients, Coefficients<Axis, Axis, Angle>>);
 
-  EXPECT_TRUE(is_near(split_vertical<C2, Axis>(Mat32 {1, 2, 3, 4, 5, 6}),
-    std::tuple {Mat22 {1, 2, 3, 4}, Mat12 {5, 6}}));
-  EXPECT_TRUE(is_near(split_horizontal<Axes<2>, Axis>(Mat23 {1, 2, 3, 4, 5, 6}),
-    std::tuple {Mat22 {1, 2, 4, 5}, Mat21 {3, 6}}));
+  EXPECT_TRUE(is_near(split_vertical(Mat32 {1, 2, 3, 4, 5, 6}), std::tuple {}));
+  EXPECT_TRUE(is_near(split_horizontal(Mat23 {1, 2, 3, 4, 5, 6}), std::tuple {}));
+  EXPECT_TRUE(is_near(split_vertical<C2, Axis>(Mat32 {1, 2, 3, 4, 5, 6}), std::tuple {Mat22 {1, 2, 3, 4}, Mat12 {5, 6}}));
+  EXPECT_TRUE(is_near(split_horizontal<Axes<2>, Axis>(Mat23 {1, 2, 3, 4, 5, 6}), std::tuple {Mat22 {1, 2, 4, 5}, Mat21 {3, 6}}));
+  EXPECT_TRUE(is_near(split_vertical<Axis, Angle>(Mat32 {1, 2, 3, 4, 5, 6}), std::tuple {Mat12 {1, 2}, Mat12 {3, 4-2*M_PI}}));
+  EXPECT_TRUE(is_near(split_horizontal<Axis, Axis>(Mat23 {1, 2, 3, 4, 5, 6}), std::tuple {Mat21 {1, 4}, Mat21 {2, 5}}));
 
   EXPECT_TRUE(is_near(column(Mat22 {1, 2, 3, 4}, 0), Mean{1., 3}));
   EXPECT_TRUE(is_near(column(Mat22 {1, 2, 3, 4}, 1), Mean{2., 4-2*M_PI}));

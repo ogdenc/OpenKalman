@@ -7,8 +7,6 @@
 #define COVARIANCE_TESTS_H
 
 #include "../tests.h"
-#include "distributions/GaussianDistribution.h"
-#include "distributions/DistributionTraits.h"
 
 struct covariance_tests : public ::testing::Test
 {

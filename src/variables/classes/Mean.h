@@ -62,16 +62,16 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg> and not is_Euclidean_transformed_v<Arg>, int> = 0>
     Mean(Arg&& other) noexcept : Mean(std::forward<Arg>(other).base_matrix())
     {
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>);
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::ColumnCoefficients, typename Base::ColumnCoefficients>);
+      static_assert(is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>);
+      static_assert(is_equivalent_v<typename MatrixTraits<Arg>::ColumnCoefficients, typename Base::ColumnCoefficients>);
     }
 
     /// Construct from a compatible Euclidean-transformed typed matrix.
     template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg> and is_Euclidean_transformed_v<Arg>, int> = 0>
     Mean(Arg&& other) noexcept : Base(OpenKalman::from_Euclidean<Coefficients>(std::forward<Arg>(other).base_matrix()))
     {
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>);
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::ColumnCoefficients, typename Base::ColumnCoefficients>);
+      static_assert(is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>);
+      static_assert(is_equivalent_v<typename MatrixTraits<Arg>::ColumnCoefficients, typename Base::ColumnCoefficients>);
     }
 
     /// Construct from a list of coefficients.
@@ -96,8 +96,8 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg>, int> = 0>
     auto& operator=(Arg&& other) noexcept
     {
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>);
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::ColumnCoefficients, typename Base::ColumnCoefficients>);
+      static_assert(is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>);
+      static_assert(is_equivalent_v<typename MatrixTraits<Arg>::ColumnCoefficients, typename Base::ColumnCoefficients>);
       if constexpr (std::is_same_v<std::decay_t<Arg>, Mean>) if (this == &other) return *this;
       if constexpr(is_mean_v<Arg>)
         this->base_matrix() = std::forward<Arg>(other).base_matrix();
@@ -112,8 +112,8 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg>, int> = 0>
     auto& operator+=(Arg&& other) noexcept
     {
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>);
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::ColumnCoefficients, typename Base::ColumnCoefficients>);
+      static_assert(is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>);
+      static_assert(is_equivalent_v<typename MatrixTraits<Arg>::ColumnCoefficients, typename Base::ColumnCoefficients>);
       static_assert(not is_Euclidean_transformed_v<Arg>);
       if constexpr(Coefficients::axes_only)
         this->base_matrix() += std::forward<Arg>(other).base_matrix();
@@ -123,15 +123,16 @@ namespace OpenKalman
     }
 
     /// Add a stochastic value to each column of the mean, based on a distribution.
-    template<typename Arg, std::enable_if_t<is_Gaussian_distribution_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<is_distribution_v<Arg>, int> = 0>
     auto& operator+=(const Arg& arg) noexcept
     {
-      static_assert(OpenKalman::is_equivalent_v<typename DistributionTraits<Arg>::Coefficients, Coefficients>);
-      if constexpr(Coefficients::axes_only)
-        this->base_matrix() += apply_columnwise<Base::columns>([&arg] {return arg().base_matrix(); });
-      else
-        this->base_matrix() = OpenKalman::wrap_angles<Coefficients>(this->base_matrix() +
-          apply_columnwise<Base::columns>([&arg] {return arg().base_matrix(); }));
+      static_assert(is_equivalent_v<typename DistributionTraits<Arg>::Coefficients, Coefficients>);
+      apply_columnwise(this->base_matrix(), [&arg](auto& col){
+        if constexpr(Coefficients::axes_only)
+          col += arg().base_matrix();
+        else
+          col = OpenKalman::wrap_angles<Coefficients>(col + arg().base_matrix());
+      });
       return *this;
     }
 
@@ -139,8 +140,8 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg>, int> = 0>
     auto& operator-=(Arg&& other) noexcept
     {
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>);
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::ColumnCoefficients, typename Base::ColumnCoefficients>);
+      static_assert(is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>);
+      static_assert(is_equivalent_v<typename MatrixTraits<Arg>::ColumnCoefficients, typename Base::ColumnCoefficients>);
       static_assert(not is_Euclidean_transformed_v<Arg>);
       if constexpr(Coefficients::axes_only)
         this->base_matrix() -= std::forward<Arg>(other).base_matrix();
@@ -153,12 +154,13 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<is_Gaussian_distribution_v<Arg>, int> = 0>
     auto& operator-=(const Arg& arg) noexcept
     {
-      static_assert(OpenKalman::is_equivalent_v<typename DistributionTraits<Arg>::Coefficients, Coefficients>);
-      if constexpr(Coefficients::axes_only)
-        this->base_matrix() -= apply_columnwise<Base::columns>([&arg] {return arg().base_matrix(); });
-      else
-        this->base_matrix() = OpenKalman::wrap_angles<Coefficients>(this->base_matrix() -
-          apply_columnwise<Base::columns>([&arg] {return arg().base_matrix(); }));
+      static_assert(is_equivalent_v<typename DistributionTraits<Arg>::Coefficients, Coefficients>);
+      apply_columnwise(this->base_matrix(), [&arg](auto& col){
+        if constexpr(Coefficients::axes_only)
+          col -= arg().base_matrix();
+        else
+          col = OpenKalman::wrap_angles<Coefficients>(col - arg().base_matrix());
+      });
       return *this;
     }
 

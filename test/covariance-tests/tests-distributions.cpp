@@ -17,21 +17,33 @@ using M2 = Eigen::Matrix<double, 2, 2>;
 using M2col = Eigen::Matrix<double, 2, 1>;
 using M3 = Eigen::Matrix<double, 3, 3>;
 using M3col = Eigen::Matrix<double, 3, 1>;
+using M4 = Eigen::Matrix<double, 4, 4>;
+using M4col = Eigen::Matrix<double, 4, 1>;
 using C2 = Coefficients<Angle, Axis>;
 using C3 = Coefficients<Angle, Axis, Axis>;
+using C4 = Concatenate<C2, C2>;
+using Mean1 = Mean<Angle, M1>;
 using Mean2 = Mean<C2, M2col>;
 using Mean3 = Mean<C3, M3col>;
+using Mean4 = Mean<C4, M4col>;
 using Mat2 = TypedMatrix<C2, C2, M2>;
 using Mat3 = TypedMatrix<C3, C3, M3>;
+using Mat4 = TypedMatrix<C4, C4, M4>;
 using SA1l = EigenSelfAdjointMatrix<M1, TriangleType::lower>;
+using SA1u = EigenSelfAdjointMatrix<M1, TriangleType::upper>;
+using T1l = EigenTriangularMatrix<M1, TriangleType::lower>;
+using T1u = EigenTriangularMatrix<M1, TriangleType::upper>;
 using SA2l = EigenSelfAdjointMatrix<M2, TriangleType::lower>;
 using SA2u = EigenSelfAdjointMatrix<M2, TriangleType::upper>;
-using T1l = EigenTriangularMatrix<M1, TriangleType::lower>;
 using T2l = EigenTriangularMatrix<M2, TriangleType::lower>;
 using T2u = EigenTriangularMatrix<M2, TriangleType::upper>;
 using D2 = EigenDiagonal<M2col>;
 using I2 = EigenIdentity<M2>;
 using Z2 = EigenZero<M2>;
+using SA4l = EigenSelfAdjointMatrix<M4, TriangleType::lower>;
+using SA4u = EigenSelfAdjointMatrix<M4, TriangleType::upper>;
+using T4l = EigenTriangularMatrix<M4, TriangleType::lower>;
+using T4u = EigenTriangularMatrix<M4, TriangleType::upper>;
 using CovSA2l = Covariance<C2, SA2l>;
 using CovSA2u = Covariance<C2, SA2u>;
 using CovT2l = Covariance<C2, T2l>;
@@ -39,6 +51,10 @@ using CovT2u = Covariance<C2, T2u>;
 using CovD2 = Covariance<C2, D2>;
 using CovI2 = Covariance<C2, I2>;
 using CovZ2 = Covariance<C2, Z2>;
+using CovSA4l = Covariance<C4, SA4l>;
+using CovSA4u = Covariance<C4, SA4u>;
+using CovT4l = Covariance<C4, T4l>;
+using CovT4u = Covariance<C4, T4u>;
 using DistSA2l = GaussianDistribution<C2, M2col, SA2l>;
 using DistSA2u = GaussianDistribution<C2, M2col, SA2u>;
 using DistT2l = GaussianDistribution<C2, M2col, T2l>;
@@ -46,6 +62,10 @@ using DistT2u = GaussianDistribution<C2, M2col, T2u>;
 using DistD2 = GaussianDistribution<C2, M2col, D2>;
 using DistI2 = GaussianDistribution<C2, EigenZero<M2col>, I2>;
 using DistZ2 = GaussianDistribution<C2, EigenZero<M2col>, Z2>;
+using DistSA4l = GaussianDistribution<C4, M4col, SA4l>;
+using DistSA4u = GaussianDistribution<C4, M4col, SA4u>;
+using DistT4l = GaussianDistribution<C4, M4col, T4l>;
+using DistT4u = GaussianDistribution<C4, M4col, T4u>;
 
 inline I2 i2 = M2::Identity();
 inline Z2 z2 = EigenZero<M2>();
@@ -357,32 +377,17 @@ TEST_F(covariance_tests, GaussianDistribution_class)
 
   // Zero
   EXPECT_TRUE(is_near(DistSA2l::zero(), distz2));
-  static_assert(is_zero_v<decltype(DistSA2l::zero())>);
   EXPECT_TRUE(is_near(DistSA2u::zero(), distz2));
-  static_assert(is_zero_v<decltype(DistSA2u::zero())>);
   EXPECT_TRUE(is_near(DistT2l::zero(), distz2));
-  static_assert(is_zero_v<decltype(DistT2l::zero())>);
   EXPECT_TRUE(is_near(DistT2u::zero(), distz2));
-  static_assert(is_zero_v<decltype(DistT2u::zero())>);
   EXPECT_TRUE(is_near(DistD2::zero(), distz2));
-  static_assert(is_zero_v<decltype(DistD2::zero())>);
 
   // Normal
   EXPECT_TRUE(is_near(DistSA2l::normal(), disti2));
-  static_assert(is_zero_v<decltype(mean(DistSA2l::normal()))>);
-  static_assert(is_identity_v<decltype(covariance(DistSA2l::normal()))>);
   EXPECT_TRUE(is_near(DistSA2u::normal(), disti2));
-  static_assert(is_zero_v<decltype(mean(DistSA2u::normal()))>);
-  static_assert(is_identity_v<decltype(covariance(DistSA2u::normal()))>);
   EXPECT_TRUE(is_near(DistT2l::normal(), disti2));
-  static_assert(is_zero_v<decltype(mean(DistT2l::normal()))>);
-  static_assert(is_identity_v<decltype(covariance(DistT2l::normal()))>);
   EXPECT_TRUE(is_near(DistT2u::normal(), disti2));
-  static_assert(is_zero_v<decltype(mean(DistT2u::normal()))>);
-  static_assert(is_identity_v<decltype(covariance(DistT2u::normal()))>);
   EXPECT_TRUE(is_near(DistD2::normal(), disti2));
-  static_assert(is_zero_v<decltype(mean(DistD2::normal()))>);
-  static_assert(is_identity_v<decltype(covariance(DistD2::normal()))>);
 }
 
 
@@ -410,6 +415,26 @@ TEST_F(covariance_tests, GaussianDistribution_class_random)
 }
 
 
+TEST_F(covariance_tests, GaussianDistribution_class_random_axis)
+{
+  using Mat = Mean<Coefficients<Axis, Axis>>;
+  const Mat true_x {20, 30};
+  GaussianDistribution dist {true_x, Covariance(9., 3, 3, 10)};
+  const Mat x1 {dist()};
+  const Mat x2 {dist()};
+  EXPECT_NE(x1, x2);
+  using EMat = EuclideanMean<Coefficients<Axis, Axis>>;
+  EMat mean_x = EMat::zero();
+  for (int i = 0; i < 100; i++)
+  {
+    Mat x {dist()};
+    mean_x = (mean_x * i + to_Euclidean(x)) / (i + 1);
+  }
+  EXPECT_NE(from_Euclidean(mean_x), true_x);
+  EXPECT_TRUE(is_near(from_Euclidean(mean_x), true_x, MatrixTraits<Mat>::BaseMatrix::Constant(0.5)));
+}
+
+
 TEST_F(covariance_tests, GaussianDistribution_class_Cholesky_random)
 {
   using V = Mean<C3>;
@@ -434,9 +459,32 @@ TEST_F(covariance_tests, GaussianDistribution_class_Cholesky_random)
 }
 
 
+TEST_F(covariance_tests, GaussianDistribution_class_Cholesky_random_axis)
+{
+  using Mat = Mean<Coefficients<Axis, Axis>>;
+  M2 d;
+  d << 3, 0,
+  1, 3;
+  const Mat true_x {20, 30};
+  GaussianDistribution dist {true_x, EigenTriangularMatrix(d)};
+  const Mat x1 {dist()};
+  const Mat x2 {dist()};
+  EXPECT_NE(x1, x2);
+  using EMat = EuclideanMean<Coefficients<Axis, Axis>>;
+  EMat mean_x = EMat::zero();
+  for (int i = 0; i < 100; i++)
+  {
+    Mat x {dist()};
+    mean_x = (mean_x * i + to_Euclidean(x)) / (i + 1);
+  }
+  EXPECT_NE(from_Euclidean(mean_x), true_x);
+  EXPECT_TRUE(is_near(from_Euclidean(mean_x), true_x, MatrixTraits<Mat>::BaseMatrix::Constant(0.5)));
+}
+
+
 TEST_F(covariance_tests, GaussianDistribution_class_statistics)
 {
-  GaussianDistribution<Axis, M1, T1l> x1 = {M1(2), T1l(M1(3))};
+  GaussianDistribution<Axis, M1, SA1l> x1 = {M1(2), SA1l(M1(9))};
   EXPECT_NEAR(x1.log_likelihood(Mean{M1(1)}), -2.07310637743, 1e-6);
   EXPECT_NEAR(x1.log_likelihood(Mean{M1(0)}), -2.2397730441, 1e-6);
   EXPECT_NEAR(x1.log_likelihood(Mean{M1(1)}, Mean{M1(0)}), -2.07310637743 - 2.2397730441, 1e-6);
@@ -449,212 +497,281 @@ TEST_F(covariance_tests, GaussianDistribution_class_statistics)
   EXPECT_NEAR(x3.log_likelihood(Mean {1.5, 0.9}), -2.5770514426433544, 1e-6);
   EXPECT_NEAR(x3.log_likelihood(Mean {2, 0.7}, Mean {1.5, 0.9}), -4.45205144264 - 2.5770514426433544, 1e-6);
 
-  GaussianDistribution<Axis, M1, T1l> x4 = {M1(0), T1l(M1(1))};
+  GaussianDistribution<Axis, M1, T1l> x4 = {M1(0), M1(1)};
   EXPECT_NEAR(x4.entropy(), 2.04709558518, 1e-6);
 
-  GaussianDistribution<Axis, M1, T1l> x5 = {M1(0), T1l(M1(0.5))};
+  GaussianDistribution<Axis, M1, M1> x5 = {M1(0), M1(0.25)};
   EXPECT_NEAR(x5.entropy(), 1.04709558518, 1e-6);
 }
 
 
-TEST_F(covariance_tests, Distribution_construction_angle)
+TEST_F(covariance_tests, GaussianDistribution_deduction_guides)
 {
-  Mean<C3> x_mean {M_PI / 3, 10, 5};
-  Covariance<C3> c;
-  c << 9, 6, 3,
-       6, 29, 4.5,
-       3, 4.5, 65.25;
-  auto c_chol = make_Covariance<C3, TriangleType::lower>(Cholesky_factor(base_matrix(c)));
-  GaussianDistribution dist {x_mean, c};
-  GaussianDistribution dist_chol {x_mean, c_chol};
-  auto x = strict_matrix(x_mean);
-  auto m = strict_matrix(c);
-  auto m_sqrt = strict_matrix(square_root(c_chol));
-  EXPECT_TRUE(is_near(dist, dist_chol));
-  EXPECT_TRUE(is_near(mean(dist), x));
-  EXPECT_TRUE(is_near(M3 {covariance(dist)}, m));
-  EXPECT_TRUE(is_near(M3 {covariance(dist_chol)}, m));
-  EXPECT_TRUE(is_near(M3 {square_root(covariance(dist))}, m_sqrt));
-  EXPECT_TRUE(is_near(M3 {square_root(covariance(dist_chol))}, m_sqrt));
-  EXPECT_TRUE(is_near(M3 {to_Cholesky(covariance(dist))}, m));
-  EXPECT_TRUE(is_near(M3 {from_Cholesky(covariance(dist_chol))}, m));
+  EXPECT_TRUE(is_near(GaussianDistribution(DistSA2l {{1, 2}, {9, 3, 3, 10}}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
+  static_assert(is_equivalent_v<typename DistributionTraits<decltype(GaussianDistribution(DistSA2l {{1, 2}, {9, 3, 3, 10}}))>::Coefficients, C2>);
+  static_assert(is_self_adjoint_v<decltype(GaussianDistribution(DistSA2l {{1, 2}, {9, 3, 3, 10}}))>);
+
+  EXPECT_TRUE(is_near(GaussianDistribution(Mean2 {1, 2}, CovSA2l {9, 3, 3, 10}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
+  static_assert(is_equivalent_v<typename DistributionTraits<decltype(GaussianDistribution(Mean2 {1, 2}, CovSA2l {9, 3, 3, 10}))>::Coefficients, C2>);
+  static_assert(is_self_adjoint_v<decltype(GaussianDistribution(Mean2 {1, 2}, CovSA2l {9, 3, 3, 10}))>);
+
+  EXPECT_TRUE(is_near(GaussianDistribution(Mean2 {1, 2}, SA2l {9, 3, 3, 10}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
+  static_assert(is_equivalent_v<typename DistributionTraits<decltype(GaussianDistribution(Mean2 {1, 2}, SA2l {9, 3, 3, 10}))>::Coefficients, C2>);
+  static_assert(is_self_adjoint_v<decltype(GaussianDistribution(Mean2 {1, 2}, SA2l {9, 3, 3, 10}))>);
+
+  EXPECT_TRUE(is_near(GaussianDistribution((M2col() << 1, 2).finished(), CovSA2l {9, 3, 3, 10}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
+  static_assert(is_equivalent_v<typename DistributionTraits<decltype(GaussianDistribution((M2col() << 1, 2).finished(), CovSA2l {9, 3, 3, 10}))>::Coefficients, C2>);
+  static_assert(is_self_adjoint_v<decltype(GaussianDistribution((M2col() << 1, 2).finished(), CovSA2l {9, 3, 3, 10}))>);
+
+  EXPECT_TRUE(is_near(GaussianDistribution((M2col() << 1, 2).finished(), SA2l {9, 3, 3, 10}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
+  static_assert(is_equivalent_v<typename DistributionTraits<decltype(GaussianDistribution((M2col() << 1, 2).finished(), SA2l {9, 3, 3, 10}))>::Coefficients, Axes<2>>);
+  static_assert(is_self_adjoint_v<decltype(GaussianDistribution((M2col() << 1, 2).finished(), SA2l {9, 3, 3, 10}))>);
 }
 
-TEST_F(covariance_tests, Distribution_scale_angle)
+
+TEST_F(covariance_tests, GaussianDistribution_make)
 {
-  auto a = GaussianDistribution(make_Mean<C2>(20., 30), make_Covariance<C2>(8., 2, 2, 6));
-  auto a_chol = GaussianDistribution(make_Mean<C2>(20., 30), make_Covariance<C2, TriangleType::lower>(8., 2, 2, 6));
-  Eigen::Matrix<double, 3, 2> f_mat; f_mat << 1, 2, 3, 4, 5, 6;
-  auto f_vector = make_Mean<Coefficients<Axis, Angle, Angle>>(f_mat);
-  auto f_matrix = make_Matrix<Coefficients<Axis, Angle, Angle>, C2>(f_mat);
-  Eigen::Matrix<double, 3, 1> fa_mean; fa_mean << 80, 180, 280;
-  Eigen::Matrix<double, 3, 1> fa_mean_wrapped; fa_mean_wrapped << 20-6*M_PI + 60, 180 - M_PI*58, 280 - M_PI*90;
-  Eigen::Matrix<double, 3, 3> faf_cov; faf_cov << 40, 92, 144, 92, 216, 340, 144, 340, 536;
+  EXPECT_TRUE(is_near(make_GaussianDistribution(DistSA2l {{1, 2}, {9, 3, 3, 10}}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
+  static_assert(is_equivalent_v<typename DistributionTraits<decltype(make_GaussianDistribution(DistSA2l {{1, 2}, {9, 3, 3, 10}}))>::Coefficients, C2>);
+  static_assert(is_self_adjoint_v<decltype(make_GaussianDistribution(DistSA2l {{1, 2}, {9, 3, 3, 10}}))>);
+
+  EXPECT_TRUE(is_near(make_GaussianDistribution(Mean2 {1, 2}, CovSA2l {9, 3, 3, 10}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
+  static_assert(is_equivalent_v<typename DistributionTraits<decltype(make_GaussianDistribution(Mean2 {1, 2}, CovSA2l {9, 3, 3, 10}))>::Coefficients, C2>);
+  static_assert(is_self_adjoint_v<decltype(make_GaussianDistribution(Mean2 {1, 2}, CovSA2l {9, 3, 3, 10}))>);
+
+  EXPECT_TRUE(is_near(make_GaussianDistribution(Mean2 {1, 2}, SA2l {9, 3, 3, 10}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
+  static_assert(is_equivalent_v<typename DistributionTraits<decltype(make_GaussianDistribution(Mean2 {1, 2}, SA2l {9, 3, 3, 10}))>::Coefficients, C2>);
+  static_assert(is_self_adjoint_v<decltype(make_GaussianDistribution(Mean2 {1, 2}, SA2l {9, 3, 3, 10}))>);
+
+  EXPECT_TRUE(is_near(make_GaussianDistribution(Mean2 {1, 2}, (M2() << 9, 3, 3, 10).finished()), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
+  static_assert(is_equivalent_v<typename DistributionTraits<decltype(make_GaussianDistribution(Mean2 {1, 2}, (M2() << 9, 3, 3, 10).finished()))>::Coefficients, C2>);
+  static_assert(is_self_adjoint_v<decltype(make_GaussianDistribution(Mean2 {1, 2}, (M2() << 9, 3, 3, 10).finished()))>);
+
+  EXPECT_TRUE(is_near(make_GaussianDistribution((M2col() << 1, 2).finished(), CovSA2l {9, 3, 3, 10}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
+  static_assert(is_equivalent_v<typename DistributionTraits<decltype(make_GaussianDistribution((M2col() << 1, 2).finished(), CovSA2l {9, 3, 3, 10}))>::Coefficients, C2>);
+  static_assert(is_self_adjoint_v<decltype(make_GaussianDistribution((M2col() << 1, 2).finished(), CovSA2l {9, 3, 3, 10}))>);
+
+  EXPECT_TRUE(is_near(make_GaussianDistribution<C2>((M2col() << 1, 2).finished(), SA2l {9, 3, 3, 10}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
+  static_assert(is_equivalent_v<typename DistributionTraits<decltype(make_GaussianDistribution<C2>((M2col() << 1, 2).finished(), SA2l {9, 3, 3, 10}))>::Coefficients, C2>);
+  static_assert(is_self_adjoint_v<decltype(make_GaussianDistribution<C2>((M2col() << 1, 2).finished(), SA2l {9, 3, 3, 10}))>);
+
+  EXPECT_TRUE(is_near(make_GaussianDistribution((M2col() << 1, 2).finished(), SA2l {9, 3, 3, 10}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
+  static_assert(is_equivalent_v<typename DistributionTraits<decltype(make_GaussianDistribution((M2col() << 1, 2).finished(), SA2l {9, 3, 3, 10}))>::Coefficients, Axes<2>>);
+  static_assert(is_self_adjoint_v<decltype(make_GaussianDistribution((M2col() << 1, 2).finished(), SA2l {9, 3, 3, 10}))>);
+
+  EXPECT_TRUE(is_near(make_GaussianDistribution<C2>((M2col() << 1, 2).finished(), (M2() << 9, 3, 3, 10).finished()), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
+  static_assert(is_equivalent_v<typename DistributionTraits<decltype(make_GaussianDistribution<C2>((M2col() << 1, 2).finished(), (M2() << 9, 3, 3, 10).finished()))>::Coefficients, C2>);
+  static_assert(is_self_adjoint_v<decltype(make_GaussianDistribution<C2>((M2col() << 1, 2).finished(), (M2() << 9, 3, 3, 10).finished()))>);
+
+  EXPECT_TRUE(is_near(make_GaussianDistribution((M2col() << 1, 2).finished(), (M2() << 9, 3, 3, 10).finished()), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
+  static_assert(is_equivalent_v<typename DistributionTraits<decltype(make_GaussianDistribution((M2col() << 1, 2).finished(), (M2() << 9, 3, 3, 10).finished()))>::Coefficients, Axes<2>>);
+  static_assert(is_self_adjoint_v<decltype(make_GaussianDistribution((M2col() << 1, 2).finished(), (M2() << 9, 3, 3, 10).finished()))>);
+
+  // Defaults
+  static_assert(is_equivalent_v<typename DistributionTraits<decltype(make_GaussianDistribution<Mean2, CovSA2l>())>::Coefficients, C2>);
+  static_assert(is_self_adjoint_v<decltype(make_GaussianDistribution<Mean2, CovSA2l>())>);
+
+  static_assert(is_equivalent_v<typename DistributionTraits<decltype(make_GaussianDistribution<Mean2, SA2l>())>::Coefficients, C2>);
+  static_assert(is_self_adjoint_v<decltype(make_GaussianDistribution<Mean2, SA2l>())>);
+
+  static_assert(is_equivalent_v<typename DistributionTraits<decltype(make_GaussianDistribution<M2col, CovSA2l>())>::Coefficients, C2>);
+  static_assert(is_self_adjoint_v<decltype(make_GaussianDistribution<M2col, CovSA2l>())>);
+
+  static_assert(is_equivalent_v<typename DistributionTraits<decltype(make_GaussianDistribution<C2, M2col, SA2l>())>::Coefficients, C2>);
+  static_assert(is_self_adjoint_v<decltype(make_GaussianDistribution<C2, M2col, SA2l>())>);
+
+  static_assert(is_equivalent_v<typename DistributionTraits<decltype(make_GaussianDistribution<M2col, SA2l>())>::Coefficients, Axes<2>>);
+  static_assert(is_self_adjoint_v<decltype(make_GaussianDistribution<M2col, SA2l>())>);
+}
+
+
+TEST_F(covariance_tests, GaussianDistribution_traits)
+{
+  static_assert(not is_square_root_v<DistSA2l>);
+  static_assert(not is_diagonal_v<DistSA2l>);
+  static_assert(is_self_adjoint_v<DistSA2l>);
+  static_assert(not is_Cholesky_v<DistSA2l>);
+  static_assert(not is_triangular_v<DistSA2l>);
+  static_assert(not is_lower_triangular_v<DistSA2l>);
+  static_assert(not is_upper_triangular_v<DistSA2l>);
+  static_assert(not is_zero_v<DistSA2l>);
+
+  static_assert(not is_square_root_v<DistT2l>);
+  static_assert(not is_diagonal_v<DistT2l>);
+  static_assert(is_self_adjoint_v<DistT2l>);
+  static_assert(is_Cholesky_v<DistT2l>);
+  static_assert(not is_triangular_v<DistT2l>);
+  static_assert(not is_lower_triangular_v<DistT2l>);
+  static_assert(not is_upper_triangular_v<DistT2l>);
+  static_assert(not is_upper_triangular_v<DistT2l>);
+  static_assert(not is_zero_v<DistT2l>);
+
+  static_assert(not is_square_root_v<DistD2>);
+  static_assert(is_diagonal_v<DistD2>);
+  static_assert(is_self_adjoint_v<DistD2>);
+  static_assert(not is_Cholesky_v<DistD2>);
+  static_assert(is_triangular_v<DistD2>);
+  static_assert(is_lower_triangular_v<DistD2>);
+  static_assert(is_upper_triangular_v<DistD2>);
+  static_assert(is_upper_triangular_v<DistD2>);
+  static_assert(not is_zero_v<DistD2>);
+
+  static_assert(not is_square_root_v<DistI2>);
+  static_assert(is_diagonal_v<DistI2>);
+  static_assert(is_self_adjoint_v<DistI2>);
+  static_assert(not is_Cholesky_v<DistI2>);
+  static_assert(is_triangular_v<DistI2>);
+  static_assert(is_lower_triangular_v<DistI2>);
+  static_assert(is_upper_triangular_v<DistI2>);
+  static_assert(is_upper_triangular_v<DistI2>);
+  static_assert(not is_zero_v<DistI2>);
+
+  static_assert(not is_square_root_v<DistZ2>);
+  static_assert(is_diagonal_v<DistZ2>);
+  static_assert(is_self_adjoint_v<DistZ2>);
+  static_assert(not is_Cholesky_v<DistZ2>);
+  static_assert(is_triangular_v<DistZ2>);
+  static_assert(is_lower_triangular_v<DistZ2>);
+  static_assert(is_upper_triangular_v<DistZ2>);
+  static_assert(is_upper_triangular_v<DistZ2>);
+  static_assert(is_zero_v<DistZ2>);
+
+  // DistributionTraits
+  EXPECT_TRUE(is_near(DistributionTraits<DistSA2l>::make(Mean2 {1, 2}, CovSA2l {9, 3, 3, 10}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
+  EXPECT_TRUE(is_near(DistributionTraits<DistSA2l>::make(Mean2 {1, 2}, SA2l {9, 3, 3, 10}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
+  EXPECT_TRUE(is_near(DistributionTraits<DistSA2l>::zero(), distz2));
+  EXPECT_TRUE(is_near(DistributionTraits<DistSA2l>::identity(), disti2));
+}
+
+
+TEST_F(covariance_tests, GaussianDistribution_overloads)
+{
+  // mean
+  EXPECT_TRUE(is_near(mean(DistSA2l {{1, 2}, {9, 3, 3, 10}}), Mean2 {1, 2}));
+  EXPECT_TRUE(is_near(mean(DistSA2u {{1, 2}, {9, 3, 3, 10}}), Mean2 {1, 2}));
+  EXPECT_TRUE(is_near(mean(DistT2l {{1, 2}, {9, 3, 3, 10}}), Mean2 {1, 2}));
+  EXPECT_TRUE(is_near(mean(DistT2u {{1, 2}, {9, 3, 3, 10}}), Mean2 {1, 2}));
+
+  // covariance
+  EXPECT_TRUE(is_near(covariance(DistSA2l {{1, 2}, {9, 3, 3, 10}}), Mat2 { 9, 3, 3, 10}));
+  EXPECT_TRUE(is_near(covariance(DistSA2u {{1, 2}, {9, 3, 3, 10}}), Mat2 { 9, 3, 3, 10}));
+  EXPECT_TRUE(is_near(base_matrix(covariance(DistT2l {{1, 2}, {9, 3, 3, 10}})), Mat2 { 3, 0, 1, 3}));
+  EXPECT_TRUE(is_near(base_matrix(covariance(DistT2u {{1, 2}, {9, 3, 3, 10}})), Mat2 { 3, 1, 0, 3}));
+
+  EXPECT_TRUE(is_near(base_matrix(covariance(to_Cholesky(DistSA2l {{1, 2}, {9, 3, 3, 10}}))), Mat2 {3, 0, 1, 3}));
+  EXPECT_TRUE(is_near(base_matrix(covariance(to_Cholesky(DistSA2u {{1, 2}, {9, 3, 3, 10}}))), Mat2 {3, 1, 0, 3}));
+  EXPECT_TRUE(is_near(base_matrix(covariance(from_Cholesky(DistT2l {{1, 2}, {9, 3, 3, 10}}))), Mat2 {9, 3, 3, 10}));
+  EXPECT_TRUE(is_near(base_matrix(covariance(from_Cholesky(DistT2u {{1, 2}, {9, 3, 3, 10}}))), Mat2 {9, 3, 3, 10}));
+  EXPECT_TRUE(is_near(base_matrix(covariance(to_Cholesky(DistD2 {{1, 2}, {4, 9}}))), Mat2 {2, 0, 0, 3}));
+  EXPECT_TRUE(is_near(base_matrix(covariance(to_Cholesky(disti2))), Mat2 {1, 0, 0, 1}));
+  EXPECT_TRUE(is_near(base_matrix(covariance(to_Cholesky(distz2))), Mat2 {0, 0, 0, 0}));
+
+  static_assert(std::is_same_v<std::decay_t<decltype(strict(DistSA2l {Mean2 {1, 2} * 2, CovSA2l{9, 3, 3, 10} * 2}))>, DistSA2l>);
+  static_assert(std::is_same_v<std::decay_t<decltype(strict(DistSA2u {Mean2 {1, 2} * 2, CovSA2u{9, 3, 3, 10} * 2}))>, DistSA2u>);
+  static_assert(std::is_same_v<std::decay_t<decltype(strict(DistT2l {Mean2 {1, 2} * 2, CovT2l{9, 3, 3, 10} * 2}))>, DistT2l>);
+  static_assert(std::is_same_v<std::decay_t<decltype(strict(DistT2u {Mean2 {1, 2} * 2, CovT2u{9, 3, 3, 10} * 2}))>, DistT2u>);
+}
+
+
+TEST_F(covariance_tests, GaussianDistribution_blocks)
+{
+  Mean2 a1 {1, 2}, a2 {3, 4};
+  Mean4 b {1, 2, 3, 4};
+  Mat2 m1 {9, 3, 3, 10}, m2 {4, 2, 2, 5};
+  Mat4 n {9, 3, 0, 0,
+          3, 10, 0, 0,
+          0, 0, 4, 2,
+          0, 0, 2, 5};
+  EXPECT_TRUE(is_near(concatenate(DistSA2l(a1, m1), DistSA2l(a2, m2)), DistSA4l(b, n)));
+  EXPECT_TRUE(is_near(concatenate(DistSA2u(a1, m1), DistSA2u(a2, m2)), DistSA4u(b, n)));
+  EXPECT_TRUE(is_near(concatenate(DistT2l(a1, m1), DistT2l(a2, m2)), DistT4l(b, n)));
+  EXPECT_TRUE(is_near(concatenate(DistT2u(a1, m1), DistT2u(a2, m2)), DistT4u(b, n)));
+
+  EXPECT_TRUE(is_near(split(DistSA4l(b, n)), std::tuple {}));
+  EXPECT_TRUE(is_near(split<C2, C2>(DistSA4l(b, n)), std::tuple {DistSA2l(a1, m1), DistSA2l(a2, m2)}));
+  EXPECT_TRUE(is_near(split<C2, C2>(DistSA4u(b, n)), std::tuple {DistSA2u(a1, m1), DistSA2u(a2, m2)}));
+  EXPECT_TRUE(is_near(split<C2, C2>(DistT4l(b, n)), std::tuple {DistT2l(a1, m1), DistT2l(a2, m2)}));
+  EXPECT_TRUE(is_near(split<C2, C2>(DistT4u(b, n)), std::tuple {DistT2u(a1, m1), DistT2u(a2, m2)}));
+  EXPECT_TRUE(is_near(split<C2, C2::Take<1>>(DistSA4l(b, n)), std::tuple {DistSA2l(a1, m1), GaussianDistribution {Mean1 {3}, SA1l {4}}}));
+  EXPECT_TRUE(is_near(split<C2, C2::Take<1>>(DistSA4u(b, n)), std::tuple {DistSA2u(a1, m1), GaussianDistribution {Mean1 {3}, SA1u {4}}}));
+  EXPECT_TRUE(is_near(split<C2, C2::Take<1>>(DistT4l(b, n)), std::tuple {DistT2l(a1, m1), GaussianDistribution {Mean1 {3}, SA1l {4}}}));
+  EXPECT_TRUE(is_near(split<C2, C2::Take<1>>(DistT4u(b, n)), std::tuple {DistT2u(a1, m1), GaussianDistribution {Mean1 {3}, SA1u {4}}}));
+}
+
+
+TEST_F(covariance_tests, GaussianDistribution_addition_subtraction)
+{
+  Mean<Axes<2>> x_mean {20, 30};
+  M2 d;
+  d << 9, 3,
+  3, 8;
+  GaussianDistribution dist1 {x_mean, EigenSelfAdjointMatrix(d)};
+  Mean<Axes<2>> y_mean {11, 23};
+  M2 e;
+  e << 7, 1,
+  1, 3;
+  GaussianDistribution dist2 {y_mean, EigenSelfAdjointMatrix(e)};
+  auto sum1 = dist1 + dist2;
+  EXPECT_TRUE(is_near(mean(sum1), Mean {31., 53}));
+  EXPECT_TRUE(is_near(covariance(sum1), Covariance {16., 4, 4, 11}));
+  auto diff1 = dist1 - dist2;
+  EXPECT_TRUE(is_near(mean(diff1), Mean {9., 7.}));
+  EXPECT_TRUE(is_near(covariance(diff1), Covariance {2., 2, 2, 5}));
+  GaussianDistribution dist1_chol {x_mean, EigenTriangularMatrix(EigenSelfAdjointMatrix(d))};
+  GaussianDistribution dist2_chol {y_mean, EigenTriangularMatrix(EigenSelfAdjointMatrix(e))};
+  auto sum2 = dist1_chol + dist2_chol;
+  EXPECT_TRUE(is_near(mean(sum2), Mean {31., 53}));
+  EXPECT_TRUE(is_near(covariance(sum2), Covariance {16., 4, 4, 11}));
+  auto diff2 = dist1_chol - dist2_chol;
+  EXPECT_TRUE(is_near(mean(diff2), Mean {9., 7.}));
+  EXPECT_TRUE(is_near(covariance(diff2), Covariance {2., 2, 2, 5}));
+  auto sum3 = dist1 + dist2_chol;
+  EXPECT_TRUE(is_near(mean(sum3), Mean {31., 53}));
+  EXPECT_TRUE(is_near(covariance(sum3), Covariance {16., 4, 4, 11}));
+  auto diff3 = dist1 - dist2_chol;
+  EXPECT_TRUE(is_near(mean(diff3), Mean {9., 7.}));
+  EXPECT_TRUE(is_near(covariance(diff3), Covariance {2., 2, 2, 5}));
+  auto sum4 = dist1_chol + dist2;
+  EXPECT_TRUE(is_near(mean(sum4), Mean {31., 53}));
+  EXPECT_TRUE(is_near(covariance(sum4), Covariance {16., 4, 4, 11}));
+  auto diff4 = dist1_chol - dist2;
+  EXPECT_TRUE(is_near(mean(diff4), Mean {9., 7.}));
+  EXPECT_TRUE(is_near(covariance(diff4), Covariance {2., 2, 2, 5}));
+}
+
+
+TEST_F(covariance_tests, GaussianDistribution_mult_div)
+{
+  auto a = GaussianDistribution(make_Mean<C2>(2., 30), make_Covariance<C2>(8., 2, 2, 6));
+  auto a_chol = GaussianDistribution(make_Mean<C2>(2., 30), make_Covariance<C2, TriangleType::lower>(8., 2, 2, 6));
+  auto f_matrix = make_Matrix<C3, C2>(1, 2, 3, 4, 5, 6);
   auto a_scaled3 = f_matrix * a;
-  static_assert(std::is_same_v<typename decltype(a_scaled3)::Coefficients, typename decltype(f_matrix)::RowCoefficients>);
-  EXPECT_TRUE(is_near(mean(a_scaled3), fa_mean_wrapped));
-  EXPECT_TRUE(is_near(covariance(a_scaled3), faf_cov));
+  EXPECT_TRUE(is_near(mean(a_scaled3), make_Mean<C3>(62., 126, 190)));
+  EXPECT_TRUE(is_near(covariance(a_scaled3), make_Matrix<C3, C3>(40, 92, 144, 92, 216, 340, 144, 340, 536)));
+  static_assert(is_equivalent_v<typename decltype(a_scaled3)::Coefficients, C3>);
   auto a_chol_scaled3 = f_matrix * a_chol;
-  static_assert(std::is_same_v<typename decltype(a_chol_scaled3)::Coefficients, typename decltype(f_matrix)::RowCoefficients>);
-  EXPECT_TRUE(is_near(mean(a_chol_scaled3), fa_mean_wrapped));
-  EXPECT_TRUE(is_near(covariance(a_chol_scaled3), faf_cov));
+  EXPECT_TRUE(is_near(mean(a_chol_scaled3), make_Mean<C3>(62., 126, 190)));
+  EXPECT_TRUE(is_near(covariance(a_chol_scaled3), make_Matrix<C3, C3>(40, 92, 144, 92, 216, 340, 144, 340, 536)));
+  static_assert(is_equivalent_v<typename decltype(a_chol_scaled3)::Coefficients, C3>);
+
+  Eigen::Matrix<double, 2, 2> cov_mat; cov_mat << 8, 2, 2, 6;
+  decltype(a) a_scaled = a * 2;
+  EXPECT_TRUE(is_near(mean(a_scaled), mean(a) * 2));
+  EXPECT_TRUE(is_near(covariance(a_scaled), covariance(a) * 4));
+  decltype(a_chol) a_chol_scaled = a_chol * 2;
+  EXPECT_TRUE(is_near(mean(a_chol_scaled), mean(a) * 2));
+  EXPECT_TRUE(is_near(covariance(a_chol_scaled), covariance(a) * 4));
+  a_scaled = 2 * a;
+  EXPECT_TRUE(is_near(mean(a_scaled), 2 * mean(a)));
+  EXPECT_TRUE(is_near(covariance(a_scaled), 4 * covariance(a)));
+  a_chol_scaled = 2 * a_chol;
+  EXPECT_TRUE(is_near(mean(a_chol_scaled), 2 * mean(a)));
+  EXPECT_TRUE(is_near(covariance(a_chol_scaled), 4 * covariance(a)));
+  a_scaled = a / 2;
+  EXPECT_TRUE(is_near(mean(a_scaled), mean(a) / 2));
+  EXPECT_TRUE(is_near(covariance(a_scaled), covariance(a) / 4));
+  a_chol_scaled = a_chol / 2;
+  EXPECT_TRUE(is_near(mean(a_chol_scaled), mean(a) / 2));
+  EXPECT_TRUE(is_near(covariance(a_chol_scaled), covariance(a) / 4));
 }
 
-
-TEST_F(covariance_tests, Distribution_concatenate_axis)
-{
-using C2a = Coefficients<Axis, Axis>;
-Mean<C2a> x_mean {20, 30};
-Covariance<C2a> x_cov;
-x_cov << 9, 3, 3, 8;
-GaussianDistribution distx {x_mean, x_cov};
-GaussianDistribution distx_sqrt {x_mean, to_Cholesky(x_cov)};
-Mean<C2a> y_mean {11, 23};
-Covariance<C2a> y_cov;
-y_cov << 7, 1, 1, 3;
-GaussianDistribution disty {y_mean, y_cov};
-GaussianDistribution disty_sqrt {y_mean, to_Cholesky(y_cov)};
-Mean<Axes<4>> z_mean {20, 30, 11, 23};
-Eigen::Matrix<double, 4, 4> z_cov;
-z_cov <<
-9, 3, 0, 0,
-3, 8, 0, 0,
-0, 0, 7, 1,
-0, 0, 1, 3;
-GaussianDistribution distz {z_mean, Covariance(z_cov)};
-GaussianDistribution distz_sqrt {z_mean, to_Cholesky(Covariance(z_cov))};
-EXPECT_TRUE(is_near(concatenate(distx, disty), distz));
-EXPECT_TRUE(is_near(concatenate(distx_sqrt, disty_sqrt), distz_sqrt));
-EXPECT_TRUE(is_near(split<C2a, C2a>(distz), std::tuple(distx, disty)));
-EXPECT_TRUE(is_near(split<C2a, C2a>(distz_sqrt), std::tuple(distx_sqrt, disty_sqrt)));
-}
-
-
-TEST_F(covariance_tests, Distribution_construction_axis)
-{
-Mean<Axes<2>> x_mean {20, 30};
-M2 d, d2;
-d << 3, 0,
-1, 3;
-d2 << 9, 3,
-3, 10;
-GaussianDistribution dist {x_mean, EigenSelfAdjointMatrix(d2)};
-EXPECT_TRUE(is_near(mean(dist), x_mean));
-EXPECT_TRUE(is_near(covariance(dist), d2));
-EXPECT_TRUE(is_near(square_root(covariance(dist)), d));
-GaussianDistribution dist_chol {x_mean, EigenTriangularMatrix(d)};
-EXPECT_TRUE(is_near(mean(dist_chol), x_mean));
-EXPECT_TRUE(is_near(covariance(dist_chol), d2));
-EXPECT_TRUE(is_near(square_root(covariance(dist_chol)), d));
-}
-
-
-TEST_F(covariance_tests, Distribution_addition_subtraction_axis)
-{
-Mean<Axes<2>> x_mean {20, 30};
-M2 d;
-d << 9, 3,
-3, 8;
-GaussianDistribution dist1 {x_mean, EigenSelfAdjointMatrix(d)};
-Mean<Axes<2>> y_mean {11, 23};
-M2 e;
-e << 7, 1,
-1, 3;
-GaussianDistribution dist2 {y_mean, EigenSelfAdjointMatrix(e)};
-auto sum1 = dist1 + dist2;
-EXPECT_TRUE(is_near(mean(sum1), Mean {31., 53}));
-EXPECT_TRUE(is_near(covariance(sum1), Covariance {16., 4, 4, 11}));
-auto diff1 = dist1 - dist2;
-EXPECT_TRUE(is_near(mean(diff1), Mean {9., 7.}));
-EXPECT_TRUE(is_near(covariance(diff1), Covariance {2., 2, 2, 5}));
-GaussianDistribution dist1_chol {x_mean, EigenTriangularMatrix(EigenSelfAdjointMatrix(d))};
-GaussianDistribution dist2_chol {y_mean, EigenTriangularMatrix(EigenSelfAdjointMatrix(e))};
-auto sum2 = dist1_chol + dist2_chol;
-EXPECT_TRUE(is_near(mean(sum2), Mean {31., 53}));
-EXPECT_TRUE(is_near(covariance(sum2), Covariance {16., 4, 4, 11}));
-auto diff2 = dist1_chol - dist2_chol;
-EXPECT_TRUE(is_near(mean(diff2), Mean {9., 7.}));
-EXPECT_TRUE(is_near(covariance(diff2), Covariance {2., 2, 2, 5}));
-auto sum3 = dist1 + dist2_chol;
-EXPECT_TRUE(is_near(mean(sum3), Mean {31., 53}));
-EXPECT_TRUE(is_near(covariance(sum3), Covariance {16., 4, 4, 11}));
-auto diff3 = dist1 - dist2_chol;
-EXPECT_TRUE(is_near(mean(diff3), Mean {9., 7.}));
-EXPECT_TRUE(is_near(covariance(diff3), Covariance {2., 2, 2, 5}));
-auto sum4 = dist1_chol + dist2;
-EXPECT_TRUE(is_near(mean(sum4), Mean {31., 53}));
-EXPECT_TRUE(is_near(covariance(sum4), Covariance {16., 4, 4, 11}));
-auto diff4 = dist1_chol - dist2;
-EXPECT_TRUE(is_near(mean(diff4), Mean {9., 7.}));
-EXPECT_TRUE(is_near(covariance(diff4), Covariance {2., 2, 2, 5}));
-}
-
-
-TEST_F(covariance_tests, Distribution_scale_axis)
-{
-auto a = GaussianDistribution(Mean{20., 30}, Covariance{8., 2, 2, 6});
-auto a_chol = GaussianDistribution(Mean{20., 30}, to_Cholesky(covariance(a)));
-Eigen::Matrix<double, 2, 1> mean_mat {20, 30};
-Eigen::Matrix<double, 2, 2> cov_mat; cov_mat << 8, 2, 2, 6;
-decltype(a) a_scaled = a * 2;
-EXPECT_TRUE(is_near(mean(a_scaled), mean_mat * 2));
-EXPECT_TRUE(is_near(covariance(a_scaled), cov_mat * 4));
-decltype(a_chol) a_chol_scaled = a_chol * 2;
-EXPECT_TRUE(is_near(mean(a_chol_scaled), mean_mat * 2));
-EXPECT_TRUE(is_near(covariance(a_chol_scaled), cov_mat * 4));
-a_scaled = 2 * a;
-EXPECT_TRUE(is_near(mean(a_scaled), 2 * mean_mat));
-EXPECT_TRUE(is_near(covariance(a_scaled), 4 * cov_mat));
-a_chol_scaled = 2 * a_chol;
-EXPECT_TRUE(is_near(mean(a_chol_scaled), 2 * mean_mat));
-EXPECT_TRUE(is_near(covariance(a_chol_scaled), 4 * cov_mat));
-a_scaled = a / 2;
-EXPECT_TRUE(is_near(mean(a_scaled), mean_mat / 2));
-EXPECT_TRUE(is_near(covariance(a_scaled), cov_mat / 4));
-a_chol_scaled = a_chol / 2;
-EXPECT_TRUE(is_near(mean(a_chol_scaled), mean_mat / 2));
-EXPECT_TRUE(is_near(covariance(a_chol_scaled), cov_mat / 4));
-}
-
-
-TEST_F(covariance_tests, Distribution_Gaussian_random_axis)
-{
-using Mat = Mean<Coefficients<Axis, Axis>>;
-const Mat true_x {20, 30};
-GaussianDistribution dist {true_x, Covariance(9., 3, 3, 10)};
-const Mat x1 {dist()};
-const Mat x2 {dist()};
-EXPECT_NE(x1, x2);
-using EMat = EuclideanMean<Coefficients<Axis, Axis>>;
-EMat mean_x = EMat::zero();
-for (int i = 0; i < 100; i++)
-{
-Mat x {dist()};
-mean_x = (mean_x * i + to_Euclidean(x)) / (i + 1);
-}
-EXPECT_NE(from_Euclidean(mean_x), true_x);
-EXPECT_TRUE(is_near(from_Euclidean(mean_x), true_x, MatrixTraits<Mat>::BaseMatrix::Constant(0.5)));
-}
-
-
-TEST_F(covariance_tests, Distribution_Gaussian_Cholesky_random_axis)
-{
-using Mat = Mean<Coefficients<Axis, Axis>>;
-M2 d;
-d << 3, 0,
-1, 3;
-const Mat true_x {20, 30};
-GaussianDistribution dist {true_x, EigenTriangularMatrix(d)};
-const Mat x1 {dist()};
-const Mat x2 {dist()};
-EXPECT_NE(x1, x2);
-using EMat = EuclideanMean<Coefficients<Axis, Axis>>;
-EMat mean_x = EMat::zero();
-for (int i = 0; i < 100; i++)
-{
-Mat x {dist()};
-mean_x = (mean_x * i + to_Euclidean(x)) / (i + 1);
-}
-EXPECT_NE(from_Euclidean(mean_x), true_x);
-EXPECT_TRUE(is_near(from_Euclidean(mean_x), true_x, MatrixTraits<Mat>::BaseMatrix::Constant(0.5)));
-}

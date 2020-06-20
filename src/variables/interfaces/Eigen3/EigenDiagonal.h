@@ -248,6 +248,7 @@ namespace OpenKalman
     template<std::size_t rows = dimension, std::size_t cols = columns, typename S = Scalar>
     using StrictMatrix = typename MatrixTraits<std::decay_t<BaseMatrix>>::template StrictMatrix<rows, cols, S>;
 
+    /// @TODO: Can we change to EigenDiagonal, since it is both self-adjoint and triangular?
     template<TriangleType storage_triangle = TriangleType::diagonal, std::size_t dim = dimension, typename S = Scalar>
     using SelfAdjointBaseType = EigenSelfAdjointMatrix<StrictMatrix<dim, dim, S>, storage_triangle>;
 
@@ -458,20 +459,21 @@ namespace OpenKalman
 
 
   /**
-   * Fill the diagonal of a square matrix with random values selected from a Gaussian distribution.
+   * Fill the diagonal of a square matrix with random values selected from a random distribution.
    * The Gaussian distribution has zero mean and standard deviation sigma (1, if not specified).
    **/
   template<
     typename ReturnType,
+    template<typename Scalar> typename distribution_type = std::normal_distribution,
+    typename random_number_engine = std::mt19937,
     typename...S,
-    std::enable_if_t<OpenKalman::is_EigenDiagonal_v<ReturnType> and
-      sizeof...(S) <= 1 and
+    std::enable_if_t<OpenKalman::is_EigenDiagonal_v<ReturnType> and sizeof...(S) <= 1 and
       std::conjunction_v<std::is_convertible<S, const typename MatrixTraits<ReturnType>::Scalar>...>, int> = 0>
   static auto
   randomize(S...sigma)
   {
     using B = typename MatrixTraits<ReturnType>::BaseMatrix;
-    return MatrixTraits<ReturnType>::make(randomize<B>(sigma...));
+    return MatrixTraits<ReturnType>::make(randomize<B, distribution_type, random_number_engine>(sigma...));
   }
 
 

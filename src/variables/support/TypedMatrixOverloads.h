@@ -294,84 +294,74 @@ namespace OpenKalman
 
 
   /// Split typed matrix into one or more typed matrices vertically.
-  template<typename C, typename ... Cs, typename V, std::enable_if_t<is_typed_matrix_v<V>, int> = 0>
+  template<typename ... Cs, typename V, std::enable_if_t<is_typed_matrix_v<V>, int> = 0>
   inline auto
   split_vertical(V&& v) noexcept
   {
-    static_assert(is_equivalent_v<Concatenate<C, Cs...>, typename MatrixTraits<V>::RowCoefficients>);
-    if constexpr(sizeof...(Cs) > 0)
+    using Coeffs = typename MatrixTraits<V>::RowCoefficients;
+    static_assert(is_prefix_v<Concatenate<Cs...>, Coeffs>);
+    if constexpr(sizeof...(Cs) == 1 and is_equivalent_v<Concatenate<Cs...>, Coeffs>)
     {
-      constexpr std::size_t dim1 = is_Euclidean_transformed_v<V> ? C::dimension : C::size;
-      constexpr std::size_t dim2 = is_Euclidean_transformed_v<V> ?
-        Concatenate<Cs...>::dimension : Concatenate<Cs...>::size;
-      auto[top, bottom] = split_vertical<dim1, dim2>(base_matrix(std::forward<V>(v)));
-      return std::tuple_cat(
-        std::tuple(MatrixTraits<V>::template make<C>(std::move(top))),
-        split_vertical<Cs...> (MatrixTraits<V>::template make<Concatenate<Cs...>>(std::move(bottom)))
-      );
+      return std::tuple(std::forward<V>(v));
     }
     else
     {
-      return std::tuple(std::forward<V>(v));
+      return std::apply(
+        [](const auto& ...args) { return std::tuple {MatrixTraits<V>::template make<Cs>(args)...}; },
+        split_vertical<(is_Euclidean_transformed_v<V> ? Cs::dimension : Cs::size)...>(base_matrix(std::forward<V>(v))));
     }
   }
 
 
   /// Split typed matrix into one or more typed matrices vertically. Synonym for split_vertical.
-  template<typename C, typename ... Cs, typename V, std::enable_if_t<is_typed_matrix_v<V>, int> = 0>
+  template<typename ... Cs, typename V, std::enable_if_t<is_typed_matrix_v<V>, int> = 0>
   inline auto
   split(V&& v) noexcept
   {
-    static_assert(is_equivalent_v<Concatenate<C, Cs...>, typename MatrixTraits<V>::RowCoefficients>);
-    return split_vertical<C, Cs...>(std::forward<V>(v));
+    static_assert(is_prefix_v<Concatenate<Cs...>, typename MatrixTraits<V>::RowCoefficients>);
+    return split_vertical<Cs...>(std::forward<V>(v));
   };
 
 
   /// Split typed matrix into one or more typed matrices horizontally. Column coefficients must all be Axis.
-  template<std::size_t cut, std::size_t ... cuts, typename V,
-    std::enable_if_t<is_typed_matrix_v<V> and is_column_vector_v<V>, int> = 0>
+  template<std::size_t ... cuts, typename V,
+    std::enable_if_t<is_typed_matrix_v<V> and is_column_vector_v<V> and (sizeof...(cuts) > 0), int> = 0>
   inline auto
   split_horizontal(V&& v) noexcept
   {
-    static_assert((cut + ... + cuts) == MatrixTraits<V>::columns);
-    if constexpr(sizeof...(cuts) > 0)
+    constexpr auto cols = MatrixTraits<V>::columns;
+    static_assert((... + cuts) <= cols);
+    if constexpr(sizeof...(cuts) == 1 and (... + cuts) == cols)
     {
-      constexpr std::size_t dim1 = cut, dim2 = (... + cuts);
-      auto[left, right] = split_horizontal<dim1, dim2>(base_matrix(std::forward<V>(v)));
-      using RC = typename MatrixTraits<V>::RowCoefficients;
-      return std::tuple_cat(
-        std::tuple(MatrixTraits<V>::template make<RC, Axes<dim1>>(std::move(left))),
-        split_horizontal<cuts...>(MatrixTraits<V>::template make<RC, Axes<dim2>>(std::move(right)))
-      );
+      return std::tuple(std::forward<V>(v));
     }
     else
     {
-      return std::tuple(std::forward<V>(v));
+      using RC = typename MatrixTraits<V>::RowCoefficients;
+      return std::apply(
+        [](const auto& ...args) { return std::tuple {MatrixTraits<V>::template make<RC, Axes<cuts>>(args)...}; },
+        split_horizontal<cuts...>(base_matrix(std::forward<V>(v))));
     }
   }
 
 
   /// Split typed matrix into one or more typed matrices horizontally.
-  template<typename C, typename ... Cs, typename V, std::enable_if_t<is_typed_matrix_v<V>, int> = 0>
+  template<typename ... Cs, typename V, std::enable_if_t<is_typed_matrix_v<V>, int> = 0>
   inline auto
   split_horizontal(V&& v) noexcept
   {
-    static_assert(is_equivalent_v<Concatenate<C, Cs...>, typename MatrixTraits<V>::ColumnCoefficients>);
-    if constexpr(sizeof...(Cs) > 0)
+    using Coeffs = typename MatrixTraits<V>::ColumnCoefficients;
+    static_assert(is_prefix_v<OpenKalman::Concatenate<Cs...>, Coeffs>);
+    if constexpr(sizeof...(Cs) == 1 and is_equivalent_v<Concatenate<Cs...>, Coeffs>)
     {
-      constexpr std::size_t dim1 = C::size;
-      constexpr std::size_t dim2 = Concatenate<Cs...>::size;
-      auto[left, right] = split_horizontal<dim1, dim2>(base_matrix(std::forward<V>(v)));
-      using RC = typename MatrixTraits<V>::RowCoefficients;
-      using CC = Concatenate<Cs...>;
-      return std::tuple_cat(
-        std::tuple(MatrixTraits<V>::template make<RC, C>(std::move(left))),
-        split_horizontal<Cs...>(MatrixTraits<V>::template make<RC, CC>(std::move(right)))
-      );
+      return std::tuple(std::forward<V>(v));
     }
     else
     {
-      return std::tuple(std::forward<V>(v));
+      using RC = typename MatrixTraits<V>::RowCoefficients;
+      return std::apply(
+        [](const auto& ...args) { return std::tuple {MatrixTraits<V>::template make<RC, Cs>(args)...}; },
+        split_horizontal<Cs::size...>(base_matrix(std::forward<V>(v))));
     }
   }
 
@@ -623,11 +613,13 @@ namespace OpenKalman
 
 
   /**
-   * Fill a typed  matrix with random values selected from a Gaussian distribution.
+   * Fill a typed  matrix with random values selected from a random distribution.
    * The Gaussian distribution has zero mean and standard deviation sigma (1, if not specified).
    **/
   template<
     typename ReturnType,
+    template<typename Scalar> typename distribution_type = std::normal_distribution,
+    typename random_number_engine = std::mt19937,
     typename...S,
     std::enable_if_t<OpenKalman::is_typed_matrix_v<ReturnType> and
       sizeof...(S) <= 1 and
@@ -636,7 +628,7 @@ namespace OpenKalman
   randomize(S...sigma)
   {
     using B = typename MatrixTraits<ReturnType>::BaseMatrix;
-    return wrap_angles(MatrixTraits<ReturnType>::template make(randomize<B>(sigma...)));
+    return wrap_angles(MatrixTraits<ReturnType>::template make(randomize<B, distribution_type, random_number_engine>(sigma...)));
   }
 
 

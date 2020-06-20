@@ -83,13 +83,26 @@ namespace OpenKalman
   template<typename T>
   inline constexpr bool is_identity_v = is_identity<T>::value;
 
+  /// Whether an object is a 1-by-1 matrix.
+  template<typename T, typename Enable = void>
+  struct is_1by1 : class_trait<is_1by1, T, Enable> {};
+
+  /// Defining a 1-by-1 matrix.
+  template<typename T>
+  struct is_1by1<T, std::enable_if_t<MatrixTraits<T>::dimension == 1 and MatrixTraits<T>::columns == 1>>
+    : std::true_type {};
+
+  /// Helper template for is_1by1.
+  template<typename T>
+  inline constexpr bool is_1by1_v = is_1by1<T>::value;
+
   /// Whether an object is a diagonal matrix.
   template<typename T, typename Enable = void>
   struct is_diagonal : class_trait<is_diagonal, T, Enable> {};
 
   /// Zero and identity matrices are diagonal.
   template<typename T>
-  struct is_diagonal<T, std::enable_if_t<is_zero_v<T> or is_identity_v<T>>> : std::true_type {};
+  struct is_diagonal<T, std::enable_if_t<is_zero_v<T> or is_identity_v<T> or is_1by1_v<T>>> : std::true_type {};
 
   /// Helper template for is_diagonal.
   template<typename T>
@@ -293,7 +306,6 @@ namespace OpenKalman
   //  Other traits  //
   ////////////////////
 
-
   /// Whether an expression is strict.
   template<typename T, typename Enable = void>
   struct is_strict : class_trait<is_strict, T> {};
@@ -311,6 +323,18 @@ namespace OpenKalman
   inline constexpr bool is_strict_matrix_v = is_strict_matrix<T>::value;
 
 
+  /////////////////////
+  //  Distributions  //
+  /////////////////////
+
+  /// Whether an object is a distribution.
+  template<typename T, typename Enable = void>
+  struct is_distribution : class_trait<is_distribution, T, Enable> {};
+
+  /// Helper template for is_distribution.
+  template<typename T>
+  inline constexpr bool is_distribution_v = is_distribution<T>::value;
+
 
   /// Whether an object is a Gaussian distribution.
   template<typename T>
@@ -320,15 +344,18 @@ namespace OpenKalman
   template<typename T>
   inline constexpr bool is_Gaussian_distribution_v = is_Gaussian_distribution<T>::value;
 
+
+  template<typename T>
+  struct is_distribution<T, std::enable_if_t<is_Gaussian_distribution_v<T>>>
+    : std::true_type {};
+
+
   /**
    * @brief Traits of a distribution.
    * @tparam Dist Distribution.
    */
   template<typename Dist, typename T = void>
-  struct DistributionTraits
-  {
-    using no_type = T; ///< This type is defined only if Dist is not a distribution.
-  };
+  struct DistributionTraits {};
 
   template<typename D, typename T>
   struct DistributionTraits<D&, T> : DistributionTraits<D, T> {};

@@ -127,6 +127,8 @@ TEST_F(matrix_tests, Diagonal_overloads)
     0, 0, 3).finished()));
   EXPECT_TRUE(is_near(Cholesky_square(EigenDiagonal {1., 2, 3}), EigenDiagonal {1., 4, 9}));
   EXPECT_TRUE(is_near(Cholesky_factor(EigenDiagonal {1., 4, 9}), EigenDiagonal {1., 2, 3}));
+  EXPECT_TRUE(is_near(Cholesky_square(Eigen::Matrix<double, 1, 1>(4)), Eigen::Matrix<double, 1, 1>(16)));
+  EXPECT_TRUE(is_near(Cholesky_factor(Eigen::Matrix<double, 1, 1>(4)), Eigen::Matrix<double, 1, 1>(2)));
   EXPECT_TRUE(is_near(transpose(EigenDiagonal {1., 2, 3}), EigenDiagonal {1., 2, 3}));
   EXPECT_TRUE(is_near(adjoint(EigenDiagonal {1., 2, 3}), EigenDiagonal {1., 2, 3}));
   EXPECT_NEAR(determinant(EigenDiagonal {2., 3, 4}), 24, 1e-6);

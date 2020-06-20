@@ -40,7 +40,7 @@ namespace OpenKalman
 
   template<typename Coefficients, typename BaseMatrix>
   struct is_diagonal<TypedMatrix<Coefficients, Coefficients, BaseMatrix>,
-    std::enable_if_t<not is_zero_v<BaseMatrix> and not is_identity_v<BaseMatrix>>>
+    std::enable_if_t<not is_zero_v<BaseMatrix> and not is_identity_v<BaseMatrix> and not is_1by1_v<BaseMatrix>>>
     : OpenKalman::is_diagonal<BaseMatrix> {};
 
   template<typename RowCoefficients, typename ColumnCoefficients, typename BaseMatrix>
@@ -206,44 +206,35 @@ namespace OpenKalman
    */
   template<
     typename Coefficients,
-    typename MeanMatrix,
-    typename CovarianceMatrix>
+    typename MeanBase,
+    typename CovarianceBase,
+    typename random_number_engine>
   struct GaussianDistribution;
 
-  template<typename Coefficients, typename MeanMatrix, typename CovarianceMatrix>
-  struct is_Gaussian_distribution<GaussianDistribution<Coefficients, MeanMatrix, CovarianceMatrix>>
+  template<typename Coefficients, typename MeanMatrix, typename CovarianceMatrix, typename re>
+  struct is_Gaussian_distribution<GaussianDistribution<Coefficients, MeanMatrix, CovarianceMatrix, re>>
     : std::true_type {};
 
-  template<typename Coefficients, typename MeanMatrix, typename CovarianceMatrix>
-  struct is_Cholesky<GaussianDistribution<Coefficients, MeanMatrix, CovarianceMatrix>>
-    : is_Cholesky<CovarianceMatrix> {};
+  template<typename Coefficients, typename MeanMatrix, typename CovarianceMatrix, typename re>
+  struct is_Cholesky<GaussianDistribution<Coefficients, MeanMatrix, CovarianceMatrix, re>>
+    : std::integral_constant<bool, not is_self_adjoint_v<CovarianceMatrix>> {};
 
-  template<typename Coefficients, typename MeanMatrix, typename CovarianceMatrix>
-  struct is_self_adjoint<GaussianDistribution<Coefficients, MeanMatrix, CovarianceMatrix>,
+  template<typename Coefficients, typename MeanMatrix, typename CovarianceMatrix, typename re>
+  struct is_self_adjoint<GaussianDistribution<Coefficients, MeanMatrix, CovarianceMatrix, re>,
     std::enable_if_t<not is_diagonal_v<CovarianceMatrix>>>
-    : is_self_adjoint<CovarianceMatrix> {};
+    : std::true_type {};
 
-  template<typename Coefficients, typename MeanMatrix, typename CovarianceMatrix>
-  struct is_lower_triangular<GaussianDistribution<Coefficients, MeanMatrix, CovarianceMatrix>,
-    std::enable_if_t<not is_diagonal_v<CovarianceMatrix>>>
-    : is_lower_triangular<CovarianceMatrix> {};
-
-  template<typename Coefficients, typename MeanMatrix, typename CovarianceMatrix>
-  struct is_upper_triangular<GaussianDistribution<Coefficients, MeanMatrix, CovarianceMatrix>,
-    std::enable_if_t<not is_diagonal_v<CovarianceMatrix>>>
-    : is_upper_triangular<CovarianceMatrix> {};
-
-  template<typename Coefficients, typename MeanMatrix, typename CovarianceMatrix>
-  struct is_diagonal<GaussianDistribution<Coefficients, MeanMatrix, CovarianceMatrix>,
+  template<typename Coefficients, typename MeanMatrix, typename CovarianceMatrix, typename re>
+  struct is_diagonal<GaussianDistribution<Coefficients, MeanMatrix, CovarianceMatrix, re>,
     std::enable_if_t<not is_zero_v<MeanMatrix> or not is_zero_v<CovarianceMatrix>>>
     : is_diagonal<CovarianceMatrix> {};
 
-  template<typename Coefficients, typename MeanMatrix, typename CovarianceMatrix>
-  struct is_zero<GaussianDistribution<Coefficients, MeanMatrix, CovarianceMatrix>>
+  template<typename Coefficients, typename MeanMatrix, typename CovarianceMatrix, typename re>
+  struct is_zero<GaussianDistribution<Coefficients, MeanMatrix, CovarianceMatrix, re>>
     : std::integral_constant<bool, is_zero_v<MeanMatrix> and is_zero_v<CovarianceMatrix>> {};
 
-  template<typename Coefficients, typename MeanMatrix, typename CovarianceMatrix>
-  struct is_strict<GaussianDistribution<Coefficients, MeanMatrix, CovarianceMatrix>>
+  template<typename Coefficients, typename MeanMatrix, typename CovarianceMatrix, typename re>
+  struct is_strict<GaussianDistribution<Coefficients, MeanMatrix, CovarianceMatrix, re>>
     : std::integral_constant<bool, is_strict_v<MeanMatrix> and is_strict_v<CovarianceMatrix>> {};
 
 

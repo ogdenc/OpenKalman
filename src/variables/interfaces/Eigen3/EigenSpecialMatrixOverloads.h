@@ -36,7 +36,7 @@ namespace OpenKalman
   }
 
 
-  template<typename Arg, std::enable_if_t<OpenKalman::is_Eigen_matrix_v<Arg> and OpenKalman::is_identity_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg> and is_identity_v<Arg>, int> = 0>
   constexpr decltype(auto)
   Cholesky_square(Arg&& arg)
   {
@@ -44,11 +44,27 @@ namespace OpenKalman
   }
 
 
-  template<typename Arg, std::enable_if_t<OpenKalman::is_Eigen_matrix_v<Arg> and OpenKalman::is_identity_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg> and is_1by1_v<Arg>, int> = 0>
+  constexpr decltype(auto)
+  Cholesky_square(Arg&& arg)
+  {
+    return std::forward<Arg>(arg).array().square().matrix();
+  }
+
+
+  template<typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg> and is_identity_v<Arg>, int> = 0>
   constexpr decltype(auto)
   Cholesky_factor(Arg&& arg)
   {
     return std::forward<Arg>(arg);
+  }
+
+
+  template<typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg> and is_1by1_v<Arg>, int> = 0>
+  constexpr decltype(auto)
+  Cholesky_factor(Arg&& arg)
+  {
+    return std::forward<Arg>(arg).cwiseSqrt();
   }
 
 
