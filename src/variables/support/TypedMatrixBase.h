@@ -65,6 +65,17 @@ namespace OpenKalman::internal
       return *this;
     }
 
+    /// Add a stochastic value to each column of the matrix, based on a distribution.
+    template<typename Arg, std::enable_if_t<is_distribution_v<Arg>, int> = 0>
+    auto& operator+=(const Arg& arg) noexcept
+    {
+      static_assert(is_equivalent_v<typename DistributionTraits<Arg>::Coefficients, RowCoefficients>);
+      static_assert(ColumnCoefficients::axes_only);
+      static_assert(not is_Euclidean_transformed_v<Derived>);
+      apply_columnwise(this->base_matrix(), [&arg](auto& col){ col += arg().base_matrix(); });
+      return *this;
+    }
+
     /// Decrement from another vector.
     template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg>, int> = 0>
     auto& operator-=(Arg&& other) noexcept
@@ -72,6 +83,17 @@ namespace OpenKalman::internal
       static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients>);
       static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::ColumnCoefficients, ColumnCoefficients>);
       this->base_matrix() -= std::forward<Arg>(other).base_matrix();
+      return *this;
+    }
+
+    /// Subtract a stochastic value to each column of the matrix, based on a distribution.
+    template<typename Arg, std::enable_if_t<is_distribution_v<Arg>, int> = 0>
+    auto& operator-=(const Arg& arg) noexcept
+    {
+      static_assert(is_equivalent_v<typename DistributionTraits<Arg>::Coefficients, RowCoefficients>);
+      static_assert(ColumnCoefficients::axes_only);
+      static_assert(not is_Euclidean_transformed_v<Derived>);
+      apply_columnwise(this->base_matrix(), [&arg](auto& col){ col -= arg().base_matrix(); });
       return *this;
     }
 

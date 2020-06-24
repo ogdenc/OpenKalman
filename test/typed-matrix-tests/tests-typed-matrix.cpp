@@ -133,9 +133,34 @@ TEST_F(typed_matrix_tests, TypedMatrix_class)
   mat23a += Mat23 {1, 2, 3, 4, 5, 6};
   EXPECT_TRUE(is_near(mat23a, Mat23 {2, 4, 6, 8, 10, 12}));
 
+  // Increment with a stochastic value
+  mat23_x1 = {1, 1, 1, M_PI, M_PI, M_PI};
+  GaussianDistribution g = {Mat21 {0, 0}, sqcovi22 * 0.1};
+  TypedMatrix<C2, Axes<3>, M23> diff = {1, 1, 1, 1, 1, 1};
+  for (int i=0; i<100; i++)
+  {
+    auto oldmat23_x1 = mat23_x1;
+    mat23_x1 += g;
+    diff += (mat23_x1 - oldmat23_x1) / 100;
+  }
+  EXPECT_TRUE(is_near(diff, Mat23 {1, 1, 1, 1, 1, 1}, 0.1));
+  EXPECT_FALSE(is_near(diff, Mat23 {1, 1, 1, 1, 1, 1}, 1e-6));
+
   // Decrement
   mat23a -= Mat23 {1, 2, 3, 4, 5, 6};
   EXPECT_TRUE(is_near(mat23a, Mat23 {1, 2, 3, 4, 5, 6}));
+
+  // Decrement with a stochastic value
+  mat23_x1 = {1, 1, 1, M_PI, M_PI, M_PI};
+  diff = {1, 1, 1, 1, 1, 1};
+  for (int i=0; i<100; i++)
+  {
+    auto oldmat23_x1 = mat23_x1;
+    mat23_x1 -= g;
+    diff += (mat23_x1 - oldmat23_x1) / 100;
+  }
+  EXPECT_TRUE(is_near(diff, Mat23 {1, 1, 1, 1, 1, 1}, 0.1));
+  EXPECT_FALSE(is_near(diff, Mat23 {1, 1, 1, 1, 1, 1}, 1e-6));
 
   // Scalar multiplication
   mat23a *= 2;

@@ -646,38 +646,46 @@ namespace OpenKalman
   ///////////////////////////////
 
   /// Add two typed matrices. Angles in the result may be wrapped if the result is a mean.
-  template<
-    typename V1,
-    typename V2,
-    std::enable_if_t<is_typed_matrix_v<V1>, int> = 0,
-    std::enable_if_t<is_typed_matrix_v<V2>, int> = 0>
+  template<typename V1, typename V2, std::enable_if_t<is_typed_matrix_v<V1> and is_typed_matrix_v<V2>, int> = 0>
   inline auto operator+(V1&& v1, V2&& v2)
   {
-    static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<V2>::RowCoefficients, typename MatrixTraits<V1>::RowCoefficients>);
-    static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<V2>::ColumnCoefficients, typename MatrixTraits<V1>::ColumnCoefficients>);
+    static_assert(is_equivalent_v<typename MatrixTraits<V2>::RowCoefficients, typename MatrixTraits<V1>::RowCoefficients>);
+    static_assert(is_equivalent_v<typename MatrixTraits<V2>::ColumnCoefficients, typename MatrixTraits<V1>::ColumnCoefficients>);
     static_assert(is_Euclidean_transformed_v<V1> == is_Euclidean_transformed_v<V2>);
     using CommonV = std::decay_t<std::conditional_t<
-      (OpenKalman::is_Euclidean_mean_v<V1> and OpenKalman::is_mean_v<V2>) or
-      (not OpenKalman::is_mean_v<V2> and not OpenKalman::is_Euclidean_mean_v<V2>),
+      (is_Euclidean_mean_v<V1> and is_mean_v<V2>) or
+      (not is_mean_v<V2> and not is_Euclidean_mean_v<V2>),
       V1, V2>>;
     return wrap_angles(MatrixTraits<CommonV>::make(base_matrix(std::forward<V1>(v1)) + base_matrix(std::forward<V2>(v2))));
   }
 
 
+  /// Add a stochastic value to each column of a typed matrix, based on a distribution.
+  template<typename M, typename Arg, std::enable_if_t<is_typed_matrix_v<M> and is_distribution_v<Arg>, int> = 0>
+  inline auto operator+(const M& m, const Arg& arg)
+  {
+    using Coefficients = typename MatrixTraits<M>::RowCoefficients;
+    static_assert(is_equivalent_v<typename DistributionTraits<Arg>::Coefficients, Coefficients>);
+    static_assert(is_column_vector_v<M>);
+    return apply_columnwise(m, [&arg](const auto& col){
+      if constexpr(Coefficients::axes_only)
+        return strict(col + arg());
+      else
+        return wrap_angles(strict(col + arg()));
+    });
+  }
+
+
   /// Subtract two typed matrices. Angles in the result may be wrapped if the result is a mean.
-  template<
-    typename V1,
-    typename V2,
-    std::enable_if_t<is_typed_matrix_v<V1>, int> = 0,
-    std::enable_if_t<is_typed_matrix_v<V2>, int> = 0>
+  template<typename V1, typename V2, std::enable_if_t<is_typed_matrix_v<V1> and is_typed_matrix_v<V2>, int> = 0>
   inline auto operator-(V1&& v1, V2&& v2)
   {
-    static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<V2>::RowCoefficients, typename MatrixTraits<V1>::RowCoefficients>);
-    static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<V2>::ColumnCoefficients, typename MatrixTraits<V1>::ColumnCoefficients>);
+    static_assert(is_equivalent_v<typename MatrixTraits<V2>::RowCoefficients, typename MatrixTraits<V1>::RowCoefficients>);
+    static_assert(is_equivalent_v<typename MatrixTraits<V2>::ColumnCoefficients, typename MatrixTraits<V1>::ColumnCoefficients>);
     static_assert(is_Euclidean_transformed_v<V1> == is_Euclidean_transformed_v<V2>);
     using CommonV = std::decay_t<std::conditional_t<
-      (OpenKalman::is_Euclidean_mean_v<V1> and OpenKalman::is_mean_v<V2>) or
-      (not OpenKalman::is_mean_v<V2> and not OpenKalman::is_Euclidean_mean_v<V2>),
+      (is_Euclidean_mean_v<V1> and is_mean_v<V2>) or
+      (not is_mean_v<V2> and not is_Euclidean_mean_v<V2>),
       V1, V2>>;
     return wrap_angles(MatrixTraits<CommonV>::make(base_matrix(std::forward<V1>(v1)) - base_matrix(std::forward<V2>(v2))));
   }
