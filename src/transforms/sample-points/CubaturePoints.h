@@ -11,8 +11,6 @@
 #ifndef OPENKALMAN_CUBATUREPOINTS_H
 #define OPENKALMAN_CUBATUREPOINTS_H
 
-#include "distributions/DistributionTraits.h"
-#include "variables/classes/tests-mean.h"
 
 namespace OpenKalman
 {

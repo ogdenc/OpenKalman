@@ -9,7 +9,6 @@
  */
 
 #include "transformation-tests.h"
-#include "transforms/transformations/Transformation.h"
 
 using namespace OpenKalman;
 
@@ -44,6 +43,7 @@ TEST_F(transformation_tests, Scale_additive)
   Transformation<Axes<2>, Axes<2>, Scale<7>> t;
   EXPECT_EQ(t(M_int2 {2, 3}), (M_int2 {14, 21}));
   EXPECT_EQ(t(M_int2(2, 3)) + M_int2(1, 1), M_int2(15, 22));
+  static_assert(std::is_same_v<decltype(strict(t(M_int2(2, 3)) + M_int2(1, 1))), decltype(M_int2(15, 22))>);
   EXPECT_EQ(t(M_int2(2, 3)) + M_int2(3, 3), M_int2(17, 24));
 }
 
@@ -58,10 +58,7 @@ TEST_F(transformation_tests, Mult_additive_axis)
 {
   using M = Mean<Axes<2>>;
   using A = TypedMatrix<Axes<2>, Axes<2>>;
-  A a;
-  a << 1, 2,
-      3, 4;
-  const auto f = [a](const M& x) -> M { return a * x; };
+  const auto f = [](const M& x) -> M { return A {1, 2, 3, 4} * x; };
   auto t = make_Transformation(f);
   EXPECT_TRUE(is_near(t(M(1, 0.5)) + M(0.1, 0.1), M(2.1, 5.1)));
 }
@@ -71,10 +68,7 @@ TEST_F(transformation_tests, Mult_additive_angle)
   using C = Coefficients<Axis, Angle>;
   using M = Mean<C>;
   using A = TypedMatrix<C, C>;
-  A a;
-  a << 1, 2,
-      3, 4;
-  const auto f = [a](const M& x) -> M { return a * x; };
+  const auto f = [](const M& x) -> M { return A {1, 2, 3, 4} * x; };
   auto t = make_Transformation<C, C>(f);
   EXPECT_TRUE(is_near(t(M(1, 0.5)), M(2, 5 - M_PI*2)));
   EXPECT_TRUE(is_near(t(M(1, 0.5)) + M(0.1, 0.1), M(2.1, 5.1 - M_PI*2)));
@@ -87,7 +81,7 @@ TEST_F(transformation_tests, Mult_augmented_axis)
     4, 3;
   an << 3, 4,
     2, 1;
-  const auto f = [&](const auto& in, const auto& ... n) { return ((a * in) + ... + (an * n)); };
+  const auto f = [&](const auto& in, const auto& ... n) { return strict(((a * in) + ... + (an * n))); };
   auto t = make_Transformation<Axes<2>, Axes<2>>(f);
   EXPECT_EQ(t(M_int2(2, 3), M_int2(1, 1)), M_int2(15, 20));
   EXPECT_EQ(t(M_int2(2, 3), M_int2(3, 3)), M_int2(29, 26));
@@ -103,7 +97,7 @@ TEST_F(transformation_tests, Mult_augmented_angle)
     4, 3;
   an << 3, 4,
     2, 1;
-  const auto f = [&](const auto& in, const auto& ... n) { return ((a * in) + ... + (an * n)); };
+  const auto f = [&](const auto& in, const auto& ... n) { return strict(((a * in) + ... + (an * n))); };
   auto t = make_Transformation<C, C>(f);
   EXPECT_TRUE(is_near(M(t(M(1, 0.5), M(0.1, 0.1))), M(2.7, 5.8 - M_PI*2)));
 }

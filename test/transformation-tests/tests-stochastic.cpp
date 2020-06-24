@@ -9,9 +9,6 @@
  */
 
 #include "transformation-tests.h"
-#include "distributions/GaussianDistribution.h"
-#include "distributions/DistributionTraits.h"
-#include "transforms/transformations/LinearTransformation.h"
 
 using namespace OpenKalman;
 
@@ -20,17 +17,15 @@ using A = TypedMatrix<Axes<2>, Axes<2>>;
 
 TEST_F(transformation_tests, stochastic_additive)
 {
-  A a;
-  a << 1, 2, 3, 4;
-  auto f = [a](const auto& x) -> M { return strict(a * x); };
-  GaussianDistribution dist {M::zero(), base_matrix(A::identity())};
-  Transformation<Axes<2>, Axes<2>, decltype(f)> t {f};
+  auto f = [](const auto& x) -> M { return A {1, 2, 3, 4} * x; };
+  auto dist = GaussianDistribution {M::zero(), base_matrix(A::identity())};
+  auto t = Transformation<Axes<2>, Axes<2>, decltype(f)> {f};
   M x {2, 3};
   M true_y {f(x)};
   M mean_y {M::zero()};
   for (int i = 0; i < 100; i++)
   {
-    const M y {t(x) + dist};
+    const M y {t(x) + dist()};
     mean_y = (mean_y * i + y) / (i + 1);
   }
   EXPECT_NE(mean_y, true_y);
@@ -40,17 +35,9 @@ TEST_F(transformation_tests, stochastic_additive)
 
 TEST_F(transformation_tests, stochastic_augmented)
 {
-  A a, an;
-  a << 1, 2,
-       4, 3;
-  an << 3, 4,
-        2, 1;
-  auto f = [a, an](const auto& x, const auto&...n) { return strict(((a * x) + ... + (an * n))); };
-  Eigen::Matrix<double, 2, 2> d;
-  d << 1, 0,
-      0, 1;
-  GaussianDistribution dist {M::zero(), d};
-  Transformation<Axes<2>, Axes<2>, decltype(f)> t {f};
+  auto f = [](const auto& x, const auto&...n) { return strict(((A {1, 2, 4, 3} * x) + ... + (A {3, 4, 2, 1} * n))); };
+  auto dist = GaussianDistribution {M::zero(), base_matrix(A::identity())};
+  auto t = Transformation<Axes<2>, Axes<2>, decltype(f)> {f};
   M x {2, 3}, n {0, 0};
   M true_y {f(x, n)};
   M mean_y {M::zero()};

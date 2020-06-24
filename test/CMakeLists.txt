@@ -66,9 +66,9 @@ add_test(covariance-tests 0)
 
 add_executable(transformation-tests
         transformation-tests/transformation-tests.main.cpp
-        transformation-tests/transformation-tests.general.cpp
-        transformation-tests/transformation-tests.linear.cpp
-        transformation-tests/transformation-tests.stochastic.cpp
+        transformation-tests/tests-general.cpp
+        transformation-tests/tests-linear.cpp
+        transformation-tests/tests-stochastic.cpp
         )
 target_link_libraries(transformation-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)
 add_test(transformation-tests 0)

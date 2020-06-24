@@ -15,7 +15,6 @@
 #include <tuple>
 #include <optional>
 #include <Eigen/Dense>
-#include "distributions/DistributionTraits.h"
 
 namespace OpenKalman::internal
 {

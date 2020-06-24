@@ -281,6 +281,14 @@ namespace OpenKalman
   template<typename T>
   inline constexpr bool is_coefficient_v = is_coefficient<T>::value;
 
+  /// Whether an object is a composite coefficient.
+  template<typename T>
+  struct is_composite_coefficient : std::false_type {};
+
+  /// Helper template for is_composite_coefficient.
+  template<typename T>
+  inline constexpr bool is_composite_coefficient_v = is_composite_coefficient<T>::value;
+
 
   /// Whether coefficients are equivalent.
   template<typename T, typename U, typename Enable = void>

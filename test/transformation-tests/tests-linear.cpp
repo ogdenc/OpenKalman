@@ -9,7 +9,6 @@
  */
 
 #include "transformation-tests.h"
-#include "transforms/transformations/LinearTransformation.h"
 
 using namespace OpenKalman;
 

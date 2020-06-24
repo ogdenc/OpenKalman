@@ -11,9 +11,6 @@
 #ifndef OPENKALMAN_POLAR_H
 #define OPENKALMAN_POLAR_H
 
-#include "variables/coefficients/Distance.h"
-#include "variables/coefficients/Angle.h"
-#include "variables/support/ArrayUtils.h"
 
 namespace OpenKalman
 {

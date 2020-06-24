@@ -52,6 +52,8 @@ TEST_F(matrix_tests, Coefficients_static) {
   static_assert(std::is_same_v<Replicate<Angle, 0>, Coefficients<>>);
   static_assert(!std::is_same_v<Replicate<Angle, 0>, Coefficients<Angle>>);
   static_assert(std::is_same_v<Replicate<Angle, 1>, Coefficients<Angle>>);
+  static_assert(std::is_same_v<Replicate<Angle, 2>, Coefficients<Angle, Angle>>);
+  static_assert(std::is_same_v<Replicate<Coefficients<Angle, Axis>, 2>, Coefficients<Angle, Axis, Angle, Axis>>);
   static_assert(std::is_same_v<Axes<3>, Coefficients<Axis,Axis,Axis>>);
 
   // Concatenate
@@ -73,29 +75,30 @@ TEST_F(matrix_tests, Coefficients_static) {
     Coefficients<Polar<Distance, Angle>, Spherical<Distance, Angle, InclinationAngle>, Polar<Distance, Angle>>>);
 
   // is_equivalent
-  static_assert(OpenKalman::is_equivalent_v<Coefficients<>, Coefficients<>>);
-  static_assert(OpenKalman::is_equivalent_v<Axis, Axis>);
-  static_assert(not OpenKalman::is_equivalent_v<Axis, Angle>);
-  static_assert(not OpenKalman::is_equivalent_v<Axis, Polar<>>);
-  static_assert(OpenKalman::is_equivalent_v<Axis, Coefficients<Axis>>);
-  static_assert(OpenKalman::is_equivalent_v<Coefficients<Axis>, Axis>);
-  static_assert(OpenKalman::is_equivalent_v<Coefficients<Axis>, Coefficients<Axis>>);
-  static_assert(OpenKalman::is_equivalent_v<Coefficients<Axis, Angle, Axis>, Coefficients<Axis, Angle, Axis>>);
-  static_assert(OpenKalman::is_equivalent_v<Polar<Distance, Coefficients<Angle>>, Polar<Distance, Angle>>);
-  static_assert(OpenKalman::is_equivalent_v<Spherical<Distance, Coefficients<Angle>, InclinationAngle>, Spherical<Distance, Angle, InclinationAngle>>);
-  static_assert(not OpenKalman::is_equivalent_v<Coefficients<Axis, Angle, Angle>, Coefficients<Axis, Angle, Axis>>);
-  static_assert(not OpenKalman::is_equivalent_v<Coefficients<Axis, Angle>, Polar<Axis, Angle>>);
+  static_assert(is_equivalent_v<Coefficients<>, Coefficients<>>);
+  static_assert(is_equivalent_v<Axis, Axis>);
+  static_assert(not is_equivalent_v<Axis, Angle>);
+  static_assert(not is_equivalent_v<Axis, Polar<>>);
+  static_assert(is_equivalent_v<Axis, Coefficients<Axis>>);
+  static_assert(is_equivalent_v<Coefficients<Axis>, Axis>);
+  static_assert(is_equivalent_v<Coefficients<Axis>, Coefficients<Axis>>);
+  static_assert(is_equivalent_v<Coefficients<Axis, Angle, Axis>, Coefficients<Axis, Angle, Axis>>);
+  static_assert(is_equivalent_v<Coefficients<Coefficients<Axis>, Angle, Coefficients<Axis>>, Coefficients<Axis, Angle, Axis>>);
+  static_assert(is_equivalent_v<Polar<Distance, Coefficients<Angle>>, Polar<Distance, Angle>>);
+  static_assert(is_equivalent_v<Spherical<Distance, Coefficients<Angle>, InclinationAngle>, Spherical<Distance, Angle, InclinationAngle>>);
+  static_assert(not is_equivalent_v<Coefficients<Axis, Angle, Angle>, Coefficients<Axis, Angle, Axis>>);
+  static_assert(not is_equivalent_v<Coefficients<Axis, Angle>, Polar<Axis, Angle>>);
 
   // is_prefix
-  static_assert(OpenKalman::is_prefix_v<Coefficients<>, Axis>);
-  static_assert(OpenKalman::is_prefix_v<Coefficients<>, Coefficients<Axis>>);
-  static_assert(OpenKalman::is_prefix_v<Coefficients<>, Coefficients<Axis, Angle>>);
-  static_assert(OpenKalman::is_prefix_v<Coefficients<Axis>, Coefficients<Axis, Angle>>);
-  static_assert(OpenKalman::is_prefix_v<Axis, Coefficients<Axis, Angle>>);
-  static_assert(not OpenKalman::is_prefix_v<Angle, Coefficients<Axis, Angle>>);
-  static_assert(not OpenKalman::is_prefix_v<Coefficients<Angle>, Coefficients<Axis, Angle>>);
-  static_assert(OpenKalman::is_prefix_v<Coefficients<Axis, Angle>, Coefficients<Axis, Angle, Axis>>);
-  static_assert(OpenKalman::is_prefix_v<Coefficients<Axis, Angle, Axis>, Coefficients<Axis, Angle, Axis>>);
-  static_assert(not OpenKalman::is_prefix_v<Coefficients<Axis, Angle, Angle>, Coefficients<Axis, Angle, Axis>>);
+  static_assert(is_prefix_v<Coefficients<>, Axis>);
+  static_assert(is_prefix_v<Coefficients<>, Coefficients<Axis>>);
+  static_assert(is_prefix_v<Coefficients<>, Coefficients<Axis, Angle>>);
+  static_assert(is_prefix_v<Coefficients<Axis>, Coefficients<Axis, Angle>>);
+  static_assert(is_prefix_v<Axis, Coefficients<Axis, Angle>>);
+  static_assert(not is_prefix_v<Angle, Coefficients<Axis, Angle>>);
+  static_assert(not is_prefix_v<Coefficients<Angle>, Coefficients<Axis, Angle>>);
+  static_assert(is_prefix_v<Coefficients<Axis, Angle>, Coefficients<Axis, Angle, Axis>>);
+  static_assert(is_prefix_v<Coefficients<Axis, Angle, Axis>, Coefficients<Axis, Angle, Axis>>);
+  static_assert(not is_prefix_v<Coefficients<Axis, Angle, Angle>, Coefficients<Axis, Angle, Axis>>);
 }
 

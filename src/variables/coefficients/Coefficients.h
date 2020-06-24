@@ -15,8 +15,6 @@
 #include <functional>
 #include <numeric>
 
-#include "variables/support/ArrayUtils.h"
-
 namespace OpenKalman
 {
 
@@ -129,15 +127,22 @@ namespace OpenKalman
   template<typename...C>
   struct is_coefficient<Coefficients<C...>> : std::true_type {};
 
+  template<typename...C>
+  struct is_composite_coefficient<Coefficients<C...>> : std::true_type {};
+
+
   template<typename...C1, typename...C2>
   struct is_equivalent<Coefficients<C1...>, Coefficients<C2...>,
-    std::enable_if_t<std::conjunction_v<is_equivalent<C1, C2>...>>> : std::true_type {};
+    std::enable_if_t<std::conjunction_v<is_equivalent<C1, C2>...> and (sizeof...(C1) != 1)>> : std::true_type {};
 
-  template<typename T>
-  struct is_equivalent<T, Coefficients<T>> : std::true_type {};
+  template<typename T, typename U>
+  struct is_equivalent<Coefficients<T>, Coefficients<U>> : is_equivalent<T, U> {};
 
-  template<typename T>
-  struct is_equivalent<Coefficients<T>, T> : std::true_type {};
+  template<typename T, typename U>
+  struct is_equivalent<T, Coefficients<U>> : is_equivalent<T, U> {};
+
+  template<typename T, typename U>
+  struct is_equivalent<Coefficients<T>, U> : is_equivalent<T, U> {};
 
   template<typename Ca, typename Cb, typename...C1, typename...C2>
   struct is_prefix<Coefficients<Ca, C1...>, Coefficients<Cb, C2...>,
@@ -178,16 +183,22 @@ namespace OpenKalman
     template<typename C, std::size_t N, typename Enable = void>
     struct ReplicateImpl {};
 
+    template<typename C>
+    struct ReplicateImpl<C, 0, std::enable_if_t<is_coefficient_v<C>>>
+    {
+      using type = Coefficients<>;
+    };
+
     template<typename C, std::size_t N>
-    struct ReplicateImpl<C, N, std::enable_if_t<OpenKalman::is_coefficient_v<C>>>
+    struct ReplicateImpl<C, N, std::enable_if_t<is_coefficient_v<C> and not is_composite_coefficient_v<C> and (N > 0)>>
     {
       using type = typename ReplicateImpl<C, N - 1>::type::template Append<C>;
     };
 
-    template<typename C>
-    struct ReplicateImpl<C, 0, std::enable_if_t<OpenKalman::is_coefficient_v<C>>>
+    template<typename...Cs, std::size_t N>
+    struct ReplicateImpl<Coefficients<Cs...>, N, std::enable_if_t<(N > 0)>>
     {
-      using type = Coefficients<>;
+      using type = typename ReplicateImpl<Coefficients<Cs...>, N - 1>::type::template Append<Cs...>;
     };
   }
 

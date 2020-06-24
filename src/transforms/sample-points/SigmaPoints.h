@@ -12,9 +12,6 @@
 #define OPENKALMAN_SIGMAPOINTS_H
 
 #include <stdexcept>
-#include "distributions/DistributionTraits.h"
-#include "transforms/sample-points/SigmaPointsTypes/Unscented.h"
-#include "transforms/sample-points/SigmaPointsTypes/SphericalSimplex.h"
 
 namespace OpenKalman
 {

@@ -12,17 +12,15 @@
 #define OPENKALMAN_TRANSFORMATION_H
 
 #include <type_traits>
-#include "variables/support/TypedMatrixOverloads.h"
-#include "distributions/DistributionTraits.h"
 
 namespace OpenKalman
 {
   /**
-   * @brief A transformation from one Mean to another, optionally incorporating noise terms.
+   * @brief A transformation from one single-column vector to another, optionally incorporating noise terms.
    *
-   * Models a transformation (linear or nonlinear) between two Mean vectors.
+   * Models a transformation (linear or nonlinear) between two typed, single-column vectors.
    * The transformation can incorporate noise terms. These terms can either be constant in the form
-   * of a mean vector, or stochastic in the form of a distribution.
+   * of a typed matrix or mean, or stochastic in the form of a distribution.
    * @tparam InputCoefficients Coefficients of the input.
    * @tparam OutputCoefficients Coefficients of the output.
    * @tparam Function The transformation function, in the following form:
@@ -36,41 +34,41 @@ namespace OpenKalman
   struct Transformation;
 
 
-  ///////////////////
-  //  NoiseTraits  //
-  ///////////////////
+  ////////////////////
+  //  Noise Traits  //
+  ////////////////////
 
-  template<typename Noise, typename T = void, typename Enable = void>
-  struct NoiseTraits;
+  template<typename T>
+  struct is_noise : std::integral_constant<bool, is_Gaussian_distribution_v<T> or
+    (is_typed_matrix_v<T> and is_column_vector_v<T> and not is_Euclidean_transformed_v<T>)> {};
 
-  template<typename Noise, typename T>
-  struct NoiseTraits<Noise, T, std::enable_if_t<is_Gaussian_distribution_v<Noise>>>
-    : MatrixTraits<typename DistributionTraits<Noise>::Mean>
+  /// Helper template for is_noise.
+  template<typename T>
+  inline constexpr bool is_noise_v = is_noise<T>::value;
+
+
+  namespace internal
   {
-    using stochastic_type = T;
-  };
+    template<typename Noise, typename T = void, typename Enable = void>
+    struct NoiseTraits;
 
-  template<typename Noise, typename T>
-  struct NoiseTraits<Noise, T, std::enable_if_t<is_typed_matrix_v<Noise>>>
-    : MatrixTraits<Noise>
-  {
-    static_assert(is_column_vector_v<Noise>);
-    static_assert(not is_Euclidean_transformed_v<Noise>);
-    using constant_type = T;
-  };
+    template<typename Noise, typename T>
+    struct NoiseTraits<Noise, T, std::enable_if_t<is_Gaussian_distribution_v<Noise>>>
+      : MatrixTraits<typename DistributionTraits<Noise>::Mean> {};
 
-  template<typename Arg, typename NoiseTraits<Arg, int>::stochastic_type = 0>
-  inline auto
-  get_noise(Arg&& arg) noexcept
-  {
-    return std::forward<Arg>(arg)();
-  }
+    template<typename Noise, typename T>
+    struct NoiseTraits<Noise, T, std::enable_if_t<is_typed_matrix_v<Noise>>>
+      : MatrixTraits<Noise> {};
 
-  template<typename Arg, typename NoiseTraits<Arg, int>::constant_type = 0>
-  constexpr decltype(auto)
-  get_noise(Arg&& arg) noexcept
-  {
-    return std::forward<Arg>(arg);
+    template<typename Arg, std::enable_if_t<is_noise_v<Arg>, int> = 0>
+    inline auto
+    get_noise(Arg&& arg) noexcept
+    {
+      if constexpr(is_Gaussian_distribution_v<Arg>)
+        return std::forward<Arg>(arg)();
+      else
+        return std::forward<Arg>(arg);
+    }
   }
 
 
@@ -98,14 +96,15 @@ namespace OpenKalman
 
     template<
       typename M, typename ... Noise,
-      std::enable_if_t<is_typed_matrix_v<M>, int> = 0,
-      typename = std::void_t<typename NoiseTraits<Noise>::type...>>
+      std::enable_if_t<is_typed_matrix_v<M> and std::conjunction_v<is_noise<Noise>...>, int> = 0>
     auto operator()(M&& in, Noise&& ... noise) const
     {
       static_assert(is_column_vector_v<M>);
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<M>::RowCoefficients, InputCoefficients>);
-      static_assert(std::conjunction_v<OpenKalman::is_equivalent_v<typename NoiseTraits<Noise>::RowCoefficients, OutputCoefficients>...>);
-      return function(std::forward<M>(in), get_noise(std::forward<Noise>(noise))...);
+      static_assert(MatrixTraits<M>::columns == 1);
+      static_assert(((internal::NoiseTraits<Noise>::columns == 1) and ...));
+      static_assert(is_equivalent_v<typename MatrixTraits<M>::RowCoefficients, InputCoefficients>);
+      static_assert(std::conjunction_v<is_equivalent<typename internal::NoiseTraits<Noise>::RowCoefficients, OutputCoefficients>...>);
+      return function(std::forward<M>(in), internal::get_noise(std::forward<Noise>(noise))...);
     }
   };
 
@@ -133,9 +132,12 @@ namespace OpenKalman
       using type = T;
       using InputCoefficients = typename MatrixTraits<In>::RowCoefficients;
       using OutputCoefficients = typename MatrixTraits<Out>::RowCoefficients;
-      static_assert(std::conjunction_v<std::is_same<typename NoiseTraits<Noise>::RowCoefficients, OutputCoefficients>...>);
+      static_assert(std::conjunction_v<is_equivalent<typename internal::NoiseTraits<Noise>::RowCoefficients, OutputCoefficients>...>);
       static_assert(is_column_vector_v<In>);
       static_assert(is_column_vector_v<Out>);
+      static_assert(MatrixTraits<In>::columns == 1);
+      static_assert(MatrixTraits<Out>::columns == 1);
+      static_assert(((internal::NoiseTraits<Noise>::columns == 1) and ...));
     };
   }
 

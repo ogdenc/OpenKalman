@@ -11,10 +11,6 @@
 #ifndef OPENKALMAN_SPHERICAL_H
 #define OPENKALMAN_SPHERICAL_H
 
-#include "variables/coefficients/Distance.h"
-#include "variables/coefficients/Angle.h"
-#include "variables/coefficients/Inclination.h"
-#include "variables/support/ArrayUtils.h"
 
 namespace OpenKalman
 {

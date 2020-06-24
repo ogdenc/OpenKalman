@@ -713,7 +713,7 @@ namespace OpenKalman
     template<typename> typename distribution_type = std::normal_distribution,
     typename random_number_engine = std::mt19937,
     typename...S,
-    std::enable_if_t<is_native_Eigen_type_v<ReturnType> and sizeof...(S) <= 1 and
+    std::enable_if_t<is_Eigen_matrix_v<ReturnType> and sizeof...(S) <= 1 and
       std::conjunction_v<std::is_convertible<S, const typename MatrixTraits<ReturnType>::Scalar>...>, int> = 0>
   inline auto
   randomize(S...sigma)

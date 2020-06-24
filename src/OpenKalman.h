@@ -13,5 +13,6 @@
 
 #include "variables/OpenKalman-variables.h"
 #include "distributions/GaussianDistribution.h"
+#include "transforms/OpenKalman-transforms.h"
 
 #endif //OPENKALMAN_OPENKALMAN_H

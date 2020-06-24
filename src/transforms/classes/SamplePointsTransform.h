@@ -14,10 +14,6 @@
 #include <functional>
 #include <tuple>
 #include <Eigen/Dense>
-#include "distributions/DistributionTraits.h"
-#include "variables/classes/tests-mean.h"
-#include "transforms/sample-points/CubaturePoints.h"
-#include "transforms/sample-points/SigmaPoints.h"
 
 namespace OpenKalman
 {

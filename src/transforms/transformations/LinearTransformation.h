@@ -11,10 +11,6 @@
 #ifndef OPENKALMAN_LINEARTRANSFORMATION_H
 #define OPENKALMAN_LINEARTRANSFORMATION_H
 
-#include "Transformation.h"
-#include "variables/classes/tests-typedmatrix.h"
-#include "variables/support/ArrayUtils.h"
-
 
 namespace OpenKalman
 {
@@ -99,10 +95,10 @@ namespace OpenKalman
     LinearTransformation(const T& mat, const Ns& ... noise_mat)
       : transformation_matrices(mat, noise_mat...)
     {
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<T>::RowCoefficients, OutputCoefficients>);
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<T>::ColumnCoefficients, InputCoefficients>);
-      static_assert(((OpenKalman::is_equivalent_v<typename MatrixTraits<Ns>::RowCoefficients, OutputCoefficients>) and ...));
-      static_assert(((OpenKalman::is_equivalent_v<typename MatrixTraits<Ns>::ColumnCoefficients, OutputCoefficients>) and ...));
+      static_assert(is_equivalent_v<typename MatrixTraits<T>::RowCoefficients, OutputCoefficients>);
+      static_assert(is_equivalent_v<typename MatrixTraits<T>::ColumnCoefficients, InputCoefficients>);
+      static_assert(((is_equivalent_v<typename MatrixTraits<Ns>::RowCoefficients, OutputCoefficients>) and ...));
+      static_assert(((is_equivalent_v<typename MatrixTraits<Ns>::ColumnCoefficients, OutputCoefficients>) and ...));
     }
 
     template<typename T, typename ... Ns,
@@ -131,30 +127,30 @@ namespace OpenKalman
   public:
     template<
       typename In, typename ... Noise,
-      std::enable_if_t<std::conjunction_v<is_typed_matrix<In>, is_typed_matrix<Noise>...>, int> = 0>
+      std::enable_if_t<std::conjunction_v<is_typed_matrix<In>, is_noise<Noise>...>, int> = 0>
     auto operator()(In&& in, Noise&& ... noise) const
     {
       static_assert(is_column_vector_v<In>);
       static_assert(sizeof...(Noise) <= sizeof...(NoiseTransformationMatrices));
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<In>::RowCoefficients, InputCoefficients>);
-      static_assert(std::conjunction_v<std::is_same<typename NoiseTraits<Noise>::RowCoefficients, OutputCoefficients>...>);
+      static_assert(is_equivalent_v<typename MatrixTraits<In>::RowCoefficients, InputCoefficients>);
+      static_assert(std::conjunction_v<is_equivalent<typename internal::NoiseTraits<Noise>::RowCoefficients, OutputCoefficients>...>);
       auto ret = sumprod(
-        std::forward_as_tuple(std::forward<In>(in), get_noise(std::forward<Noise>(noise))...),
+        std::forward_as_tuple(std::forward<In>(in), internal::get_noise(std::forward<Noise>(noise))...),
         std::make_index_sequence<std::min(sizeof...(NoiseTransformationMatrices), sizeof...(Noise)) + 1>{});
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<decltype(ret)>::RowCoefficients, OutputCoefficients>);
+      static_assert(is_equivalent_v<typename MatrixTraits<decltype(ret)>::RowCoefficients, OutputCoefficients>);
       return ret;
     }
 
     /// The Jacobians corresponding to the input and all noise matrices.
     /// Returns a tuple of the transformation matrices.
     template<typename In, typename ... Noise,
-      std::enable_if_t<is_typed_matrix_v<In>, int> = 0, typename = std::void_t<typename NoiseTraits<Noise>::type...>>
+      std::enable_if_t<std::conjunction_v<is_typed_matrix<In>, is_noise<Noise>...>, int> = 0>
     auto jacobian(In&&, Noise&&...) const
     {
       static_assert(is_column_vector_v<In>);
       static_assert(sizeof...(Noise) <= sizeof...(NoiseTransformationMatrices));
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<In>::RowCoefficients, InputCoefficients>);
-      static_assert(std::conjunction_v<std::is_same<typename NoiseTraits<Noise>::RowCoefficients, OutputCoefficients>...>);
+      static_assert(is_equivalent_v<typename MatrixTraits<In>::RowCoefficients, InputCoefficients>);
+      static_assert(std::conjunction_v<is_equivalent<typename internal::NoiseTraits<Noise>::RowCoefficients, OutputCoefficients>...>);
       return internal::tuple_slice<0, sizeof...(Noise) + 1>(transformation_matrices);
     }
 
@@ -166,8 +162,8 @@ namespace OpenKalman
     {
       static_assert(is_column_vector_v<In>);
       static_assert(sizeof...(Noise) <= sizeof...(NoiseTransformationMatrices));
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<In>::RowCoefficients, InputCoefficients>);
-      static_assert(std::conjunction_v<std::is_same<typename NoiseTraits<Noise>::RowCoefficients, OutputCoefficients>...>);
+      static_assert(is_equivalent_v<typename MatrixTraits<In>::RowCoefficients, InputCoefficients>);
+      static_assert(std::conjunction_v<is_equivalent<typename internal::NoiseTraits<Noise>::RowCoefficients, OutputCoefficients>...>);
       constexpr std::size_t input_size = MatrixTraits<In>::columns;
       constexpr std::size_t output_size = MatrixTraits<In>::dimension;
       using HessianMatrixIn = decltype(make_Matrix<InputCoefficients, InputCoefficients, typename MatrixTraits<In>::BaseMatrix>());
@@ -195,13 +191,13 @@ namespace OpenKalman
    */
 
   template<typename T, typename ... Noise,
-    std::enable_if_t<std::conjunction_v<is_typed_matrix<T>, is_typed_matrix<Noise>...>, int> = 0>
+    std::enable_if_t<std::conjunction_v<is_typed_matrix<T>, is_noise<Noise>...>, int> = 0>
   LinearTransformation(T&&, Noise&& ...)
   -> LinearTransformation<
     typename MatrixTraits<T>::RowCoefficients,
     typename MatrixTraits<T>::ColumnCoefficients,
     typename MatrixTraits<T>::BaseMatrix,
-    typename MatrixTraits<Noise>::BaseMatrix...>;
+    typename internal::NoiseTraits<Noise>::BaseMatrix...>;
 
   template<typename T, typename ... Noise,
     std::enable_if_t<std::conjunction_v<is_typed_matrix_base<T>, is_typed_matrix_base<Noise>...>, int> = 0>
