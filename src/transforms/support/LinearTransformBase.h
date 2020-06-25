@@ -49,58 +49,40 @@ namespace OpenKalman::internal
     LinearTransformBase(TransformFunction&& f) noexcept : function {std::move(f)} {}
 
   private:
-    template<typename J, typename C, typename T0, std::size_t...ints>
-    static auto sum_noise_terms(const J& j, const C& cov, T0 term0, std::index_sequence<ints...>)
+    template<typename J, typename Dist, std::size_t...ints>
+    static auto sum_noise_terms(const J& j, const Dist& dist, std::index_sequence<ints...>)
     {
-      return make_Covariance(strict((term0 + ... + (std::get<ints>(j) * (std::get<ints>(cov) * adjoint(std::get<ints>(j)))))));
-    }
-
-    template<typename J, typename SqC, typename T0, std::size_t...ints>
-    static auto sum_sqrt_noise_terms(const J& j, const SqC& cov, T0 term0, std::index_sequence<ints...>)
-    {
-      return LQ_decomposition(concatenate_horizontal(term0, (std::get<ints>(j) * (std::get<ints>(cov)))...));
+      using InputDist = std::tuple_element<0, Dist>;
+      if constexpr(is_Cholesky_v<InputDist>)
+      {
+        const auto sqrt_c0 =square_root(covariance(std::get<0>(dist)));
+        const auto term0 = std::get<0>(j) * sqrt_c0;
+        return std::tuple {
+          strict(sqrt_c0 * adjoint(term0)),
+          LQ_decomposition(concatenate_horizontal(term0, TypedMatrix(
+            (std::get<ints+1>(j) * (square_root(covariance(std::get<ints+1>(dist))))))...))};
+      }
+      else
+      {
+        const auto cross = strict(covariance(std::get<0>(dist)) * adjoint(std::get<0>(j)));
+        return std::tuple {
+          cross,
+          make_Covariance(strict((
+          (std::get<0>(j) * cross) +
+            ... + (std::get<ints+1>(j) * (covariance(std::get<ints+1>(dist)) * adjoint(std::get<ints+1>(j)))))))};
+      }
     }
 
   public:
     template<typename InputDist, typename ... NoiseDist,
-      std::enable_if_t<not std::disjunction_v<
-        is_Cholesky<typename DistributionTraits<InputDist>::Covariance>,
-        is_Cholesky<typename DistributionTraits<NoiseDist>::Covariance>...>, int> = 0>
+      std::enable_if_t<std::conjunction_v<is_distribution<InputDist>, is_distribution<NoiseDist>...>, int> = 0>
     auto operator()(const InputDist& in, const NoiseDist& ...n) const
     {
       const auto[mean_output, jacobians] = function(mean(in), mean(n)...);
       const auto j0 = std::get<0>(jacobians);
-      const auto c0 = covariance(in);
-      const auto cross_covariance = strict(c0 * adjoint(j0));
-      const auto cov_out = sum_noise_terms(
-        jacobians,
-        std::tuple(0, covariance(n)...), // The 0 is a dummy value.
-        j0 * cross_covariance,
-        std::make_index_sequence<std::min(sizeof...(NoiseDist) + 1, std::tuple_size_v<decltype(jacobians)>)>{});
+      auto [cross_covariance, cov_out] = sum_noise_terms(jacobians, std::tuple {in, n...},
+        std::make_index_sequence<std::min(sizeof...(NoiseDist), std::tuple_size_v<decltype(jacobians)> - 1)>{});
       const auto out = make_GaussianDistribution(mean_output, cov_out);
-      if constexpr(TransformFunction::correction)
-        return std::tuple {strict(out + function.add_correction(in, n...)), cross_covariance};
-      else
-        return std::tuple {std::move(out), cross_covariance};
-    }
-
-    template<typename InputDist, typename ... NoiseDist,
-      std::enable_if_t<std::conjunction_v<
-        is_Cholesky<typename DistributionTraits<InputDist>::Covariance>,
-        is_Cholesky<typename DistributionTraits<NoiseDist>::Covariance>...>, int> = 0>
-    auto operator()(const InputDist& in, const NoiseDist& ...n) const
-    {
-      const auto[mean_output, jacobians] = function(mean(in), mean(n)...);
-      const auto j0 = std::get<0>(jacobians);
-      const auto sqrt_c0 = square_root(covariance(in));
-      const auto j0_sqrt_c0 = j0 * sqrt_c0;
-      const auto cov_out = sum_sqrt_noise_terms(
-        jacobians,
-        std::tuple(0, square_root(covariance(n))...), // The 0 is a dummy value.
-        j0_sqrt_c0,
-        std::make_index_sequence<std::min(sizeof...(NoiseDist) + 1, std::tuple_size_v<decltype(jacobians)>)>{});
-      const auto out = make_GaussianDistribution(mean_output, cov_out);
-      const auto cross_covariance = strict(sqrt_c0 * adjoint(j0_sqrt_c0));
       if constexpr(TransformFunction::correction)
         return std::tuple {strict(out + function.add_correction(in, n...)), cross_covariance};
       else

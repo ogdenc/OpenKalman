@@ -425,11 +425,11 @@ namespace OpenKalman
   }
 
 
-  template<typename Arg, std::enable_if_t<OpenKalman::is_EigenTriangularMatrix_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<is_EigenTriangularMatrix_v<Arg>, int> = 0>
   inline auto
   Cholesky_factor(Arg&& arg)
   {
-    static_assert(OpenKalman::is_diagonal_v<Arg>);
+    static_assert(is_diagonal_v<Arg>);
     return std::forward<Arg>(arg).Cholesky_factor();
   }
 

@@ -211,7 +211,6 @@ namespace OpenKalman
   inline auto
   LQ_decomposition(A&& a)
   {
-    static_assert(is_column_vector_v<A>);
     static_assert(not is_Euclidean_transformed_v<A>);
     using C = typename MatrixTraits<A>::RowCoefficients;
     auto sm = LQ_decomposition(base_matrix(std::forward<A>(a)));
@@ -225,7 +224,6 @@ namespace OpenKalman
   inline auto
   QR_decomposition(A&& a)
   {
-    static_assert(MatrixTraits<A>::RowCoefficients::axes_only);
     using Coefficients = typename MatrixTraits<A>::ColumnCoefficients;
     auto sm = QR_decomposition(base_matrix(std::forward<A>(a)));
     return SquareRootCovariance<Coefficients, decltype(sm)>(std::move(sm));

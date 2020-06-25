@@ -36,35 +36,29 @@ namespace OpenKalman
   }
 
 
-  template<typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg> and is_identity_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<is_native_Eigen_type_v<Arg> and is_diagonal_v<Arg>, int> = 0>
   constexpr decltype(auto)
   Cholesky_square(Arg&& arg)
   {
-    return std::forward<Arg>(arg);
+    if constexpr(is_identity_v<Arg>)
+      return std::forward<Arg>(arg);
+    else if constexpr(is_1by1_v<Arg>)
+      return std::forward<Arg>(arg).array().square().matrix();
+    else
+      return EigenDiagonal(std::forward<Arg>(arg).diagonal().array().square().matrix());;
   }
 
 
-  template<typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg> and is_1by1_v<Arg>, int> = 0>
-  constexpr decltype(auto)
-  Cholesky_square(Arg&& arg)
-  {
-    return std::forward<Arg>(arg).array().square().matrix();
-  }
-
-
-  template<typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg> and is_identity_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<is_native_Eigen_type_v<Arg> and is_diagonal_v<Arg>, int> = 0>
   constexpr decltype(auto)
   Cholesky_factor(Arg&& arg)
   {
-    return std::forward<Arg>(arg);
-  }
-
-
-  template<typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg> and is_1by1_v<Arg>, int> = 0>
-  constexpr decltype(auto)
-  Cholesky_factor(Arg&& arg)
-  {
-    return std::forward<Arg>(arg).cwiseSqrt();
+    if constexpr(is_identity_v<Arg>)
+      return std::forward<Arg>(arg);
+    else if constexpr(is_1by1_v<Arg>)
+      return std::forward<Arg>(arg).cwiseSqrt();
+    else
+      return EigenDiagonal(std::forward<Arg>(arg).diagonal().cwiseSqrt());;
   }
 
 

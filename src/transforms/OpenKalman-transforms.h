@@ -15,16 +15,16 @@
 #include "transforms/transformations/Transformation.h"
 #include "transforms/transformations/LinearTransformation.h"
 
-/*#include "transforms/sample-points/CubaturePoints.h"
-#include "transforms/sample-points/SigmaPointsTypes/Unscented.h"
-#include "transforms/sample-points/SigmaPointsTypes/SphericalSimplex.h"
-#include "transforms/sample-points/SigmaPoints.h"
+//#include "transforms/sample-points/CubaturePoints.h"
+//#include "transforms/sample-points/SigmaPointsTypes/Unscented.h"
+//#include "transforms/sample-points/SigmaPointsTypes/SphericalSimplex.h"
+//#include "transforms/sample-points/SigmaPoints.h"
 
 #include "transforms/classes/LinearTransform.h"
 #include "transforms/classes/LinearizedTransform.h"
-#include "transforms/classes/SamplePointsTransform.h"
+//#include "transforms/classes/SamplePointsTransform.h"
 //#include "transforms/classes/IdentityTransform.h"
 //#include "transforms/classes/MonteCarloTransform.h"
 //#include "transforms/classes/RecursiveLeastSquaresTransform.h"
-*/
+
 #endif //OPENKALMAN_OPENKALMAN_TRANSFORMS_H

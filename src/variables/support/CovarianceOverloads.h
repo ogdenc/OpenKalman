@@ -23,8 +23,7 @@ namespace OpenKalman
   }
 
 
-  template<
-    typename Arg, std::enable_if_t<is_covariance_v<Arg> and not is_square_root_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<is_covariance_v<Arg> and not is_square_root_v<Arg>, int> = 0>
   inline auto
   square_root(Arg&& arg) noexcept
   {
@@ -40,8 +39,7 @@ namespace OpenKalman
   }
 
 
-  template<
-    typename Arg, std::enable_if_t<is_covariance_v<Arg> and is_square_root_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<is_covariance_v<Arg> and is_square_root_v<Arg>, int> = 0>
   inline auto
   square(Arg&& arg) noexcept
   {
@@ -393,7 +391,7 @@ namespace OpenKalman
       (is_covariance_v<Arg1> and is_covariance_v<Arg2>) or
       (is_covariance_v<Arg1> and is_typed_matrix_v<Arg2>) or
       (is_typed_matrix_v<Arg1> and is_covariance_v<Arg2>), int> = 0>
-  constexpr decltype(auto) operator+(Arg1&& arg1, Arg2&& arg2) noexcept
+  constexpr decltype(auto) operator+(Arg1&& arg1, Arg2&& arg2)
   {
     using Cov = std::conditional_t<is_covariance_v<Arg1>, Arg1, Arg2>;
     using Other = std::conditional_t<is_covariance_v<Arg1>, Arg2, Arg1>;
@@ -402,32 +400,32 @@ namespace OpenKalman
     if constexpr(is_typed_matrix_v<Other>)
     {
       static_assert(
-        OpenKalman::is_equivalent_v<C, typename MatrixTraits<Other>::RowCoefficients> and
-        OpenKalman::is_equivalent_v<C, typename MatrixTraits<Other>::ColumnCoefficients>);
+        is_equivalent_v<C, typename MatrixTraits<Other>::RowCoefficients> and
+        is_equivalent_v<C, typename MatrixTraits<Other>::ColumnCoefficients>);
     }
     else
     {
-      static_assert(OpenKalman::is_equivalent_v<C, typename MatrixTraits<Arg2>::Coefficients>);
+      static_assert(is_equivalent_v<C, typename MatrixTraits<Arg2>::Coefficients>);
     }
 
-    if constexpr(OpenKalman::is_zero_v<Arg1>)
+    if constexpr(is_zero_v<Arg1>)
     {
       return std::forward<Arg2>(arg2);
     }
-    else if constexpr(OpenKalman::is_zero_v<Arg2>)
+    else if constexpr(is_zero_v<Arg2>)
     {
       return std::forward<Arg1>(arg1);
     }
-    else if constexpr(OpenKalman::is_Cholesky_v<Arg1> and OpenKalman::is_Cholesky_v<Arg2> and
-      not OpenKalman::is_square_root_v<Arg1> and not OpenKalman::is_square_root_v<Arg2>)
+    else if constexpr(is_Cholesky_v<Arg1> and is_Cholesky_v<Arg2> and
+      not is_square_root_v<Arg1> and not is_square_root_v<Arg2>)
     {
       decltype(auto) E1 = base_matrix(std::forward<Arg1>(arg1));
       decltype(auto) E2 = base_matrix(std::forward<Arg2>(arg2));
-      if constexpr(OpenKalman::is_upper_triangular_v<decltype(E1)> and OpenKalman::is_upper_triangular_v<decltype(E2)>)
+      if constexpr(is_upper_triangular_v<decltype(E1)> and is_upper_triangular_v<decltype(E2)>)
         return make_Covariance<C>(QR_decomposition(concatenate_vertical(E1, E2)));
-      else if constexpr(OpenKalman::is_upper_triangular_v<decltype(E1)> and OpenKalman::is_lower_triangular_v<decltype(E2)>)
+      else if constexpr(is_upper_triangular_v<decltype(E1)> and is_lower_triangular_v<decltype(E2)>)
         return make_Covariance<C>(QR_decomposition(concatenate_vertical(E1, adjoint(E2))));
-      else if constexpr(OpenKalman::is_lower_triangular_v<decltype(E1)> and OpenKalman::is_upper_triangular_v<decltype(E2)>)
+      else if constexpr(is_lower_triangular_v<decltype(E1)> and is_upper_triangular_v<decltype(E2)>)
         return make_Covariance<C>(LQ_decomposition(concatenate_horizontal(E1, adjoint(E2))));
       else
         return make_Covariance<C>(LQ_decomposition(concatenate_horizontal(E1, E2)));
@@ -438,16 +436,16 @@ namespace OpenKalman
       decltype(auto) b2 = internal::convert_base_matrix(std::forward<Arg2>(arg2));
 
       constexpr auto conversion2 =
-        ((OpenKalman::is_square_root_v<Arg1> == not OpenKalman::is_Cholesky_v<Arg1>) and not OpenKalman::is_diagonal_v<Arg1>) or
-        ((OpenKalman::is_square_root_v<Arg2> == not OpenKalman::is_Cholesky_v<Arg2>) and not OpenKalman::is_diagonal_v<Arg2>);
+        ((is_square_root_v<Arg1> == not is_Cholesky_v<Arg1>) and not is_diagonal_v<Arg1>) or
+        ((is_square_root_v<Arg2> == not is_Cholesky_v<Arg2>) and not is_diagonal_v<Arg2>);
 
       constexpr auto conversion = not std::is_reference_v<decltype(b1)> or not std::is_reference_v<decltype(b2)>;
       static_assert(conversion == conversion2);
 
       const auto sum = [&b1, &b2] { if constexpr(conversion) return strict(b1 + b2); else return b1 + b2; }();
-      if constexpr(OpenKalman::is_self_adjoint_v<decltype(sum)>)
+      if constexpr(is_self_adjoint_v<decltype(sum)>)
         return make_Covariance<C>(sum);
-      else if constexpr(OpenKalman::is_triangular_v<decltype(sum)>)
+      else if constexpr(is_triangular_v<decltype(sum)>)
         return make_SquareRootCovariance<C>(sum);
       else
         return make_Matrix<C, C>(sum);
@@ -461,7 +459,7 @@ namespace OpenKalman
       (is_covariance_v<Arg1> and is_covariance_v<Arg2>) or
       (is_covariance_v<Arg1> and is_typed_matrix_v<Arg2>) or
       (is_typed_matrix_v<Arg1> and is_covariance_v<Arg2>), int> = 0>
-  constexpr decltype(auto) operator-(Arg1&& arg1, Arg2&& arg2) noexcept
+  constexpr decltype(auto) operator-(Arg1&& arg1, Arg2&& arg2)
   {
     using Cov = std::conditional_t<is_covariance_v<Arg1>, Arg1, Arg2>;
     using Other = std::conditional_t<is_covariance_v<Arg1>, Arg2, Arg1>;
@@ -470,27 +468,27 @@ namespace OpenKalman
     if constexpr(is_typed_matrix_v<Other>)
     {
       static_assert(
-        OpenKalman::is_equivalent_v<C, typename MatrixTraits<Other>::RowCoefficients> and
-          OpenKalman::is_equivalent_v<C, typename MatrixTraits<Other>::ColumnCoefficients>);
+        is_equivalent_v<C, typename MatrixTraits<Other>::RowCoefficients> and
+          is_equivalent_v<C, typename MatrixTraits<Other>::ColumnCoefficients>);
     }
     else
     {
-      static_assert(OpenKalman::is_equivalent_v<C, typename MatrixTraits<Arg2>::Coefficients>);
+      static_assert(is_equivalent_v<C, typename MatrixTraits<Arg2>::Coefficients>);
     }
 
-    if constexpr(OpenKalman::is_zero_v<Arg2>)
+    if constexpr(is_zero_v<Arg2>)
     {
       return std::forward<Arg1>(arg1);
     }
-    else if constexpr(OpenKalman::is_Cholesky_v<Arg1> and OpenKalman::is_Cholesky_v<Arg2> and
-      not OpenKalman::is_square_root_v<Arg1> and not OpenKalman::is_square_root_v<Arg2>)
+    else if constexpr(is_Cholesky_v<Arg1> and is_Cholesky_v<Arg2> and
+      not is_square_root_v<Arg1> and not is_square_root_v<Arg2>)
     {
       using Scalar = typename MatrixTraits<Arg1>::Scalar;
       using A = typename MatrixTraits<Arg1>::BaseMatrix;
       using B = typename MatrixTraits<Arg2>::BaseMatrix;
 
       decltype(auto) a = base_matrix(std::forward<Arg1>(arg1));
-      const auto b = OpenKalman::is_upper_triangular_v<B> ?
+      const auto b = is_upper_triangular_v<B> ?
         strict_matrix(adjoint(base_matrix(std::forward<Arg2>(arg2)))) :
         strict_matrix(base_matrix(std::forward<Arg2>(arg2)));
 
@@ -502,16 +500,16 @@ namespace OpenKalman
       decltype(auto) b2 = internal::convert_base_matrix(std::forward<Arg2>(arg2));
 
       constexpr auto conversion2 =
-        ((OpenKalman::is_square_root_v<Arg1> == not OpenKalman::is_Cholesky_v<Arg1>) and not OpenKalman::is_diagonal_v<Arg1>) or
-        ((OpenKalman::is_square_root_v<Arg2> == not OpenKalman::is_Cholesky_v<Arg2>) and not OpenKalman::is_diagonal_v<Arg2>);
+        ((is_square_root_v<Arg1> == not is_Cholesky_v<Arg1>) and not is_diagonal_v<Arg1>) or
+        ((is_square_root_v<Arg2> == not is_Cholesky_v<Arg2>) and not is_diagonal_v<Arg2>);
 
       constexpr auto conversion = not std::is_reference_v<decltype(b1)> or not std::is_reference_v<decltype(b2)>;
       static_assert(conversion == conversion2);
 
       const auto diff = [&b1, &b2] { if constexpr(conversion) return strict(b1 - b2); else return b1 - b2; }();
-      if constexpr(OpenKalman::is_self_adjoint_v<decltype(diff)>)
+      if constexpr(is_self_adjoint_v<decltype(diff)>)
         return make_Covariance<C>(diff);
-      else if constexpr(OpenKalman::is_triangular_v<decltype(diff)>)
+      else if constexpr(is_triangular_v<decltype(diff)>)
         return make_SquareRootCovariance<C>(diff);
       else
         return make_Matrix<C, C>(diff);

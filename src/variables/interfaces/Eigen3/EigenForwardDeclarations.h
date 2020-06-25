@@ -397,15 +397,16 @@ namespace OpenKalman
   struct Mean;
 
   /// If the arguments are a sequence of scalars, deduce a single-column Euclidean mean.
-  template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
-  Mean(Args ...) -> Mean<OpenKalman::Axes<sizeof...(Args)>,
+  template<typename ... Args,
+    std::enable_if_t<(sizeof...(Args) > 0) and std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
+  Mean(Args ...) -> Mean<Axes<sizeof...(Args)>,
     Eigen::Matrix<std::decay_t<std::common_type_t<Args...>>, sizeof...(Args), 1>>;
 
   /// Make Mean from a list of coefficients, if Coefficients types are known.
   template<
     typename Coefficients, typename ... Args,
-    std::enable_if_t<not std::is_arithmetic_v<Coefficients>, int> = 0,
-    std::enable_if_t<std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
+    std::enable_if_t<not std::is_arithmetic_v<Coefficients> and (sizeof...(Args) > 0) and
+      std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
   auto make_Mean(Args ... args)
   {
     using Scalar = std::common_type_t<Args...>;
@@ -417,7 +418,8 @@ namespace OpenKalman
   }
 
   /// Make Mean from a list of coefficients, assuming that Coefficients types are all Axis.
-  template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
+  template<typename ... Args,
+    std::enable_if_t<(sizeof...(Args) > 0) and std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
   auto make_Mean(Args ... args)
   {
     return make_Mean<OpenKalman::Axes<sizeof...(Args)>>(args...);
@@ -446,7 +448,7 @@ namespace OpenKalman
   /// Make Mean from a list of coefficients.
   template<
     typename RowCoefficients, typename ColumnCoefficients = RowCoefficients, typename ... Args,
-    std::enable_if_t<std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
+    std::enable_if_t<(sizeof...(Args) > 0) and std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
   auto make_Matrix(Args ... args)
   {
     using Scalar = std::common_type_t<Args...>;
@@ -458,7 +460,8 @@ namespace OpenKalman
   }
 
   /// Make Mean from a list of coefficients.
-  template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
+  template<typename ... Args,
+    std::enable_if_t<(sizeof...(Args) > 0) and std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
   auto make_Matrix(Args ... args)
   {
     using Coefficients = OpenKalman::Axes<sizeof...(Args)>;
@@ -488,14 +491,16 @@ namespace OpenKalman
   struct EuclideanMean;
 
   /// If the arguments are a sequence of scalars, construct a single-column Euclidean mean.
-  template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
+  template<typename ... Args,
+    std::enable_if_t<(sizeof...(Args) > 0) and std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
   EuclideanMean(Args ...) -> EuclideanMean<OpenKalman::Axes<sizeof...(Args)>,
     Eigen::Matrix<std::decay_t<std::common_type_t<Args...>>, sizeof...(Args), 1>>;
 
   /// Make Euclidean mean from a list of coefficients.
   template<
     typename Coefficients,
-    typename ... Args, std::enable_if_t<std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
+    typename ... Args,
+    std::enable_if_t<(sizeof...(Args) > 0) and std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
   auto make_EuclideanMean(Args ... args) noexcept
   {
     using Scalar = std::common_type_t<Args...>;
@@ -507,7 +512,8 @@ namespace OpenKalman
   }
 
   /// Make Mean from a list of coefficients.
-  template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
+  template<typename ... Args,
+    std::enable_if_t<(sizeof...(Args) > 0) and std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
   auto make_EuclideanMean(Args ... args) noexcept
   {
     using Coefficients = OpenKalman::Axes<sizeof...(Args)>;
@@ -536,14 +542,15 @@ namespace OpenKalman
   struct Covariance;
 
   /// If the arguments are a sequence of scalars, derive a square, self-adjoint matrix.
-  template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
+  template<typename ... Args,
+    std::enable_if_t<(sizeof...(Args) > 0) and std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
   Covariance(Args ...) -> Covariance<Axes<internal::constexpr_sqrt(sizeof...(Args))>,
     EigenSelfAdjointMatrix<Eigen::Matrix<std::decay_t<std::common_type_t<Args...>>,
       internal::constexpr_sqrt(sizeof...(Args)), internal::constexpr_sqrt(sizeof...(Args))>>>;
 
   /// Make a Covariance, based on a list of coefficients in row-major order.
   template<typename Coefficients, TriangleType ... triangle_type, typename ... Args,
-    std::enable_if_t<sizeof...(triangle_type) <= 1 and is_coefficient_v<Coefficients> and
+    std::enable_if_t<(sizeof...(Args) > 0) and sizeof...(triangle_type) <= 1 and is_coefficient_v<Coefficients> and
       std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
   auto make_Covariance(Args ... args)
   {
@@ -559,7 +566,8 @@ namespace OpenKalman
 
   /// Make an axes-only covariance, based on a list of coefficients in row-major order.
   template<TriangleType ... triangle_type, typename ... Args,
-    std::enable_if_t<sizeof...(triangle_type) <= 1 and std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
+    std::enable_if_t<(sizeof...(Args) > 0) and sizeof...(triangle_type) <= 1 and
+      std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
   auto make_Covariance(Args ... args) noexcept
   {
     constexpr auto dim = internal::constexpr_sqrt(sizeof...(Args));
@@ -591,7 +599,8 @@ namespace OpenKalman
   struct SquareRootCovariance;
 
   /// If the arguments are a sequence of scalars, derive a square, lower triangular matrix.
-  template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
+  template<typename ... Args,
+    std::enable_if_t<(sizeof...(Args) > 0) and std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
   SquareRootCovariance(Args ...) -> SquareRootCovariance<Axes<internal::constexpr_sqrt(sizeof...(Args))>,
     EigenTriangularMatrix<Eigen::Matrix<std::decay_t<std::common_type_t<Args...>>,
       internal::constexpr_sqrt(sizeof...(Args)), internal::constexpr_sqrt(sizeof...(Args))>>>;
@@ -599,7 +608,7 @@ namespace OpenKalman
   /// Make SquareRootCovariance matrix using a list of coefficients in row-major order representing a triangular matrix.
   /// Only the coefficients in the lower-left corner are significant.
   template<typename Coefficients, TriangleType ... triangle_type, typename ... Args,
-    std::enable_if_t<sizeof...(triangle_type) <= 1 and is_coefficient_v<Coefficients> and
+    std::enable_if_t<(sizeof...(Args) > 0) and sizeof...(triangle_type) <= 1 and is_coefficient_v<Coefficients> and
       std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
   auto make_SquareRootCovariance(Args ... args)
   {
@@ -615,7 +624,8 @@ namespace OpenKalman
 
   /// Make an axes-only covariance, based on a list of coefficients in row-major order.
   template<TriangleType ... triangle_type, typename ... Args,
-    std::enable_if_t<sizeof...(triangle_type) <= 1 and std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
+    std::enable_if_t<(sizeof...(Args) > 0) and sizeof...(triangle_type) <= 1 and
+      std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
   auto make_SquareRootCovariance(Args ... args) noexcept
   {
     constexpr auto dim = internal::constexpr_sqrt(sizeof...(Args));

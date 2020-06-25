@@ -76,10 +76,10 @@ add_test(transformation-tests 0)
 
 add_executable(transform-linear-tests
         transform-linear-tests/transform-linear-tests.main.cpp
-        transform-linear-tests/transform-linear-tests.linear.cpp
-        transform-linear-tests/transform-linear-tests.linear.angle.cpp
-        transform-linear-tests/transform-linear-tests.linearized.add.cpp
-        transform-linear-tests/transform-linear-tests.linearized.aug.cpp
+        transform-linear-tests/tests-linear-axis.cpp
+        transform-linear-tests/tests-linear-angle.cpp
+        transform-linear-tests/tests-linearized-add.cpp
+        transform-linear-tests/tests-linearized-aug.cpp
         )
 target_link_libraries(transform-linear-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)
 add_test(transform-linear-tests 0)

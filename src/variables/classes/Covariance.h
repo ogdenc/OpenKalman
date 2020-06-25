@@ -418,7 +418,10 @@ namespace OpenKalman
   {
     static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, typename MatrixTraits<Arg>::ColumnCoefficients>);
     using C = typename MatrixTraits<Arg>::RowCoefficients;
-    return make_Covariance<C, triangle_type...>(base_matrix(std::forward<Arg>(arg)));
+    if constexpr(is_covariance_base_v<typename MatrixTraits<Arg>::BaseMatrix>)
+      return make_Covariance<C>(base_matrix(std::forward<Arg>(arg)));
+    else
+      return make_Covariance<C, triangle_type...>(base_matrix(std::forward<Arg>(arg)));
   }
 
 

@@ -20,10 +20,8 @@ namespace OpenKalman
    * @brief A linearized transform, using a 1st or 2nd order Taylor approximation of a linear transformation.
    */
   template<
-    /// The transformation on which the transform is based.
-    typename Transformation,
-    /// Order of the Taylor approximation (1 or 2).
-    int order = 1>
+    typename Transformation, ///< The transformation on which the transform is based.
+    int order = 1> ///< Order of the Taylor approximation (1 or 2).
   struct LinearizedTransform;
 
 
@@ -40,6 +38,26 @@ namespace OpenKalman
 
       LinearizedTransformFunction(LinearizedTransformation&& trans) noexcept : transformation(std::move(trans)) {}
 
+    private:
+      template<typename OutputCoeffs, typename MeanOut, typename Hessian, typename Cov, std::size_t...ints>
+      static auto make_mean(const Hessian& hessian, const Cov& P, std::index_sequence<ints...>)
+      {
+        return Mean<OutputCoeffs, MeanOut>(0.5 * trace(P * hessian[ints])...);
+      }
+
+      template<std::size_t i, std::size_t...js, typename Hessian, typename Cov>
+      static constexpr auto make_cov_row(const Hessian& hessian, const Cov& P)
+      {
+        return std::tuple {0.5 * trace(P * hessian[i] * P * hessian[js])...};
+      }
+
+      template<typename OutputCoeffs, typename CovOut, typename Hessian, typename Cov, std::size_t...is, std::size_t...js>
+      static auto make_cov(const Hessian& hessian, const Cov& P, std::index_sequence<is...>, std::index_sequence<js...>)
+      {
+        auto mat = std::tuple_cat(make_cov_row<is, js...>(hessian, P)...);
+        return std::make_from_tuple<Covariance<OutputCoeffs, CovOut>>(std::move(mat));
+      }
+
     protected:
       /**
        * Add second-order moment terms, based on Hessian matrices.
@@ -55,22 +73,13 @@ namespace OpenKalman
         //
         // Convert input distribution type to output distribution types, and initialize mean and covariance:
         using CovIn = typename MatrixTraits<typename DistributionTraits<Dist>::Covariance>::BaseMatrix;
-        using CovOut = typename MatrixTraits<CovIn>::template SelfAdjointBaseType<triangle_type_of_v<CovIn>, output_dim>;
         using MeanOut = typename MatrixTraits<CovIn>::template StrictMatrix<output_dim, 1>;
-        auto mean_terms = make_Mean<OutputCoeffs, MeanOut>();
-        auto covariance_terms = make_Covariance<OutputCoeffs, CovOut>();
-        //
+        using CovOut = typename MatrixTraits<CovIn>::template SelfAdjointBaseType<triangle_type_of_v<CovIn>, output_dim>;
         const auto P = covariance(x);
-        for (std::size_t i = 0; i < output_dim; i++)
-        {
-          const auto P_hessian_i = P * hessian[i];
-          mean_terms(i) = 0.5 * trace(P_hessian_i);
-          for (int j = 0; j <= i; j++) // only need to fill out lower triangle of covariance:
-          {
-            covariance_terms(i, j) = 0.5 * trace(P_hessian_i * (P * hessian[j]));
-          }
-        }
-        return GaussianDistribution<OutputCoeffs>(mean_terms, covariance_terms);
+        const std::make_index_sequence<output_dim> ints;
+        auto mean_terms = make_mean<OutputCoeffs, MeanOut>(hessian, P, ints);
+        auto cov_terms = make_cov<OutputCoeffs, CovOut>(hessian, P, ints, ints);
+        return GaussianDistribution(mean_terms, cov_terms);
       }
 
       template<typename T1, typename T2, std::size_t...I>

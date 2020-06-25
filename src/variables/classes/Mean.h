@@ -219,7 +219,7 @@ namespace OpenKalman
     decltype(from_Euclidean<typename MatrixTraits<V>::RowCoefficients>(std::forward<V>(std::declval<V>()).base_matrix()))>;
 
 
-///////////////////////////////////
+  ///////////////////////////////////
   //        Make functions         //
   ///////////////////////////////////
 

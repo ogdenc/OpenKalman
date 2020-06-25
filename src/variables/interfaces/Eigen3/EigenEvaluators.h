@@ -304,7 +304,7 @@ namespace Eigen::internal
     };
 
     template<typename ArgType>
-    struct CovarianceEvaluatorBase<ArgType, std::enable_if_t<OpenKalman::is_triangular_v<ArgType>>>
+    struct CovarianceEvaluatorBase<ArgType, std::enable_if_t<not OpenKalman::is_self_adjoint_v<ArgType>>>
       : evaluator<typename OpenKalman::MatrixTraits<ArgType>::template SelfAdjointBaseType<>>
     {
       using Nested = typename OpenKalman::MatrixTraits<ArgType>::template SelfAdjointBaseType<>;
@@ -341,7 +341,7 @@ namespace Eigen::internal
     };
 
     template<typename ArgType>
-    struct SquareRootCovarianceEvaluatorBase<ArgType, std::enable_if_t<OpenKalman::is_self_adjoint_v<ArgType>>>
+    struct SquareRootCovarianceEvaluatorBase<ArgType, std::enable_if_t<not OpenKalman::is_triangular_v<ArgType>>>
       : evaluator<typename OpenKalman::MatrixTraits<ArgType>::template TriangularBaseType<>>
     {
       using Nested = typename OpenKalman::MatrixTraits<ArgType>::template TriangularBaseType<>;

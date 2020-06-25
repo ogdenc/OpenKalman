@@ -11,10 +11,6 @@
 #include <Eigen/Dense>
 #include <gtest/gtest.h>
 #include "../tests.h"
-#include "distributions/GaussianDistribution.h"
-#include "distributions/DistributionTraits.h"
-#include "transforms/transformations/LinearTransformation.h"
-#include "transforms/classes/LinearTransform.h"
 
 using namespace Eigen;
 

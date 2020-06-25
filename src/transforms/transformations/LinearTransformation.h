@@ -164,15 +164,17 @@ namespace OpenKalman
       static_assert(sizeof...(Noise) <= sizeof...(NoiseTransformationMatrices));
       static_assert(is_equivalent_v<typename MatrixTraits<In>::RowCoefficients, InputCoefficients>);
       static_assert(std::conjunction_v<is_equivalent<typename internal::NoiseTraits<Noise>::RowCoefficients, OutputCoefficients>...>);
-      constexpr std::size_t input_size = MatrixTraits<In>::columns;
-      constexpr std::size_t output_size = MatrixTraits<In>::dimension;
-      using HessianMatrixIn = decltype(make_Matrix<InputCoefficients, InputCoefficients, typename MatrixTraits<In>::BaseMatrix>());
+      constexpr std::size_t input_size = InputCoefficients::size;
+      constexpr std::size_t output_size = OutputCoefficients::size;
+      using HessianMatrixInBase = typename MatrixTraits<In>::template StrictMatrix<input_size, input_size>;
+      using HessianMatrixIn = TypedMatrix<InputCoefficients, InputCoefficients, HessianMatrixInBase>;
       using HessianArrayIn = std::array<HessianMatrixIn, output_size>;
       HessianArrayIn a;
       a.fill(HessianMatrixIn::zero());
       if constexpr (sizeof...(Noise) >= 1)
       {
-        using HessianMatrixNoise = decltype(make_Matrix<OutputCoefficients, InputCoefficients, typename MatrixTraits<In>::BaseMatrix>());
+        using HessianMatrixNoiseBase = typename MatrixTraits<In>::template StrictMatrix<output_size, output_size>;
+        using HessianMatrixNoise = TypedMatrix<OutputCoefficients, OutputCoefficients, HessianMatrixNoiseBase>;
         using HessianArrayNoise = std::array<HessianMatrixNoise, output_size>;
         HessianArrayNoise an;
         an.fill(HessianMatrixNoise::zero());
