@@ -8,15 +8,14 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#ifndef TRANSFORM_TESTS_H
-#define TRANSFORM_TESTS_H
+#ifndef TRANSFORM_NONLINEAR_TESTS_H
+#define TRANSFORM_NONLINEAR_TESTS_H
 
 #include <iostream>
 #include <random>
 #include <Eigen/Dense>
 #include <gtest/gtest.h>
 #include "../tests.h"
-#include "transforms/OpenKalman-transforms.h"
 
 struct transform_tests : public ::testing::Test
 {
@@ -88,4 +87,4 @@ const GaussianDistribution angle_noise {Mean<P2>::zero(), Covariance<P2>(0.01, 0
 const GaussianDistribution cart_noise {Mean<C2>::zero(), Covariance<C2>(0.01, 0, 0, 0.01)};
 
 
-#endif //TRANSFORM_TESTS_H
+#endif //TRANSFORM_NONLINEAR_TESTS_H

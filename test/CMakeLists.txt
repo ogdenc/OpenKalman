@@ -75,7 +75,7 @@ add_test(transformation-tests 0)
 
 
 add_executable(transform-linear-tests
-        transform-linear-tests/transform-linear-tests.main.cpp
+        transform-linear-tests/transform-linear-tests.cpp
         transform-linear-tests/tests-linear-axis.cpp
         transform-linear-tests/tests-linear-angle.cpp
         transform-linear-tests/tests-linearized-add.cpp
@@ -86,11 +86,11 @@ add_test(transform-linear-tests 0)
 
 
 add_executable(transform-nonlinear-tests
-        transform-nonlinear-tests/transform-nonlinear-tests.main.cpp
-        transform-nonlinear-tests/transform-nonlinear-tests.sample.cpp
-        transform-nonlinear-tests/transform-nonlinear-tests.sample.angle.cpp
-        transform-nonlinear-tests/transform-nonlinear-tests.sample.aug.cpp
-        transform-nonlinear-tests/transform-nonlinear-tests.sample.aug.angle.cpp
+        transform-nonlinear-tests/transform-nonlinear-tests.cpp
+        transform-nonlinear-tests/tests-sample.cpp
+        transform-nonlinear-tests/tests-sample-angle.cpp
+        transform-nonlinear-tests/tests-sample-aug.cpp
+        transform-nonlinear-tests/tests-sample-aug-angle.cpp
         )
 target_link_libraries(transform-nonlinear-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)
 add_test(transform-nonlinear-tests 0)

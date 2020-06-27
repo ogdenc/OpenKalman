@@ -73,36 +73,43 @@ namespace OpenKalman
       using Scalar = typename DistributionTraits<D>::Scalar;
       using Coeffs = typename DistributionTraits<D>::Coefficients;
       const auto d = std::get<i>(dtuple);
+      constexpr auto dim_i = MatrixTraits<typename DistributionTraits<D>::Mean>::dimension;
       constexpr auto count = sigma_point_count<dim>();
       constexpr auto size = sigma_point_count<DistributionTraits<D>::dimension>();
       constexpr auto dsize = std::tuple_size_v<DTuple>;
       constexpr Scalar alpha = Parameters::alpha;
       constexpr Scalar kappa = Parameters::template kappa<dim>;
       constexpr Scalar gamma2 = alpha * alpha * (kappa + dim);
-      const auto delta = make_Mean<Coeffs>(strict_matrix(OpenKalman::square_root(OpenKalman::covariance(d) * gamma2)));
-      const auto delta_p = apply_columnwise(delta, [&d](const auto& col) { return col + mean(d); });
-      const auto delta_m = apply_columnwise(delta, [&d](const auto& col) { return col - mean(d); });
+      const auto delta = make_Mean<Coeffs>(strict_matrix(square_root(OpenKalman::covariance(d) * gamma2)));
+      using M0base = typename MatrixTraits<typename DistributionTraits<D>::Mean>::template StrictMatrix<dim_i, 1>;
+      const auto m0 = Mean<Coeffs, M0base>::zero();
       if constexpr(dsize == 1)
       {
-        return std::tuple {concatenate_horizontal(mean(d), delta_p, delta_m)};
+        return std::tuple {concatenate_horizontal(m0, delta, -delta)};
       }
       else if constexpr (i == 0)
       {
-        const auto mright = apply_columnwise<count - (pos + size)>([&d] { return mean(d); });
-        const auto ret = concatenate_horizontal(mean(d), delta_p, delta_m, mright);
+        constexpr auto width = count - (pos + size);
+        using MRbase = typename MatrixTraits<typename DistributionTraits<D>::Mean>::template StrictMatrix<dim_i, width>;
+        const auto mright = Mean<Coeffs, MRbase>::zero();
+        const auto ret = concatenate_horizontal(m0, delta, -delta, mright);
         return std::tuple_cat(std::tuple {ret}, sigma_points_impl<i + 1, pos + size, dim>(dtuple));
       }
       else if constexpr (i < dsize - 1)
       {
-        const auto mleft = apply_columnwise<pos>([&d] { return mean(d); });
-        const auto mright = apply_columnwise<count - (pos + size)>([&d] { return mean(d); });
-        const auto ret = concatenate_horizontal(mleft, mean(d), delta_p, delta_m, mright);
+        using MLbase = typename MatrixTraits<typename DistributionTraits<D>::Mean>::template StrictMatrix<dim_i, pos>;
+        const auto mleft = Mean<Coeffs, MLbase>::zero();
+        constexpr auto width = count - (pos + size);
+        using MRbase = typename MatrixTraits<typename DistributionTraits<D>::Mean>::template StrictMatrix<dim_i, width>;
+        const auto mright = Mean<Coeffs, MRbase>::zero();
+        const auto ret = concatenate_horizontal(mleft, m0, delta, -delta, mright);
         return std::tuple_cat(std::tuple {ret}, sigma_points_impl<i + 1, pos + size, dim>(dtuple));
       }
       else
       {
-        const auto mleft = apply_columnwise<pos>([&d] { return mean(d); });
-        return std::tuple {concatenate_horizontal(mleft, mean(d), delta_p, delta_m)};
+        using MLbase = typename MatrixTraits<typename DistributionTraits<D>::Mean>::template StrictMatrix<dim_i, pos>;
+        const auto mleft = Mean<Coeffs, MLbase>::zero();
+        return std::tuple {concatenate_horizontal(mleft, m0, delta, -delta)};
       }
     }
 

@@ -3,8 +3,8 @@
  * https://creativecommons.org/publicdomain/zero/1.0/
  */
 
-#ifndef TRANSFORM_TESTS_H
-#define TRANSFORM_TESTS_H
+#ifndef TRANSFORM_LINEAR_TESTS_H
+#define TRANSFORM_LINEAR_TESTS_H
 
 #include <iostream>
 #include <random>
@@ -25,4 +25,4 @@ struct transform_tests : public ::testing::Test
   ~transform_tests() override {}
 };
 
-#endif //TRANSFORM_TESTS_H
+#endif //TRANSFORM_LINEAR_TESTS_H

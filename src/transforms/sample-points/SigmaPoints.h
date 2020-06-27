@@ -41,18 +41,20 @@ namespace OpenKalman
   struct SigmaPoints
   {
   private:
-    template<std::size_t i, typename Scalar>
+    template<std::size_t, typename Scalar>
     static constexpr auto cat_dummy_function(const Scalar w) { return w; };
 
     template<std::size_t dim, typename Weights, typename Scalar, std::size_t ... ints>
-    static auto cat_weights(const Scalar W0, std::index_sequence<ints...>)
+    static auto cat_weights(const Scalar w0, std::index_sequence<ints...>)
     {
-      constexpr Scalar W = SigmaPointsType::template W<dim, Scalar>();
-      return MatrixTraits<Weights>::make(W0, cat_dummy_function<ints>(W)...);
+      constexpr Scalar w = SigmaPointsType::template W<dim, Scalar>();
+      constexpr auto count = sizeof...(ints) + 1;
+      using B = typename MatrixTraits<Weights>::BaseMatrix;
+      return TypedMatrix<Axes<count>, Axis, B> {w0, cat_dummy_function<ints>(w)...};
     };
 
   protected:
-    SigmaPoints() {} // Disallow instantiation.
+    SigmaPoints() {} ///< Instantiation is disallowed.
 
     template<std::size_t dim, typename Weights>
     static auto mean_weights()
@@ -96,61 +98,46 @@ namespace OpenKalman
       return strict(y_means * mean_weights<dim, Weights>());
     }
 
-    template<std::size_t dim, typename X, typename Y,
-      std::enable_if_t<is_typed_matrix_v<X>, int>, std::enable_if_t<is_typed_matrix_v<Y>, int> = 0>
+    template<typename InputDist, typename ... NoiseDist, typename X, typename Y>
     static auto
     covariance(const X& x_deviations, const Y& y_deviations)
     {
-      using CoefficientsIn = typename MatrixTraits<X>::RowCoefficients;
-      using CoefficientsOut = typename MatrixTraits<Y>::RowCoefficients;
-      constexpr auto count = MatrixTraits<X>::columns;
-      static_assert(count == MatrixTraits<Y>::columns);
-      using Weights = Mean<Axes<count>, typename MatrixTraits<X>::template StrictMatrix<count, 1>>;
-      const auto w_yT = to_diagonal(covariance_weights<dim, Weights>()) * adjoint(y_deviations);
-      const auto cross_covariance = strict(x_deviations * w_yT);
-      const auto out_covariance = strict(make_Covariance(y_deviations * w_yT));
-      return std::tuple{out_covariance, cross_covariance};
-    }
-
-    template<std::size_t dim, typename X, typename Y,
-      std::enable_if_t<is_typed_matrix_v<X>, int> = 0, std::enable_if_t<is_typed_matrix_v<Y>, int> = 0>
-    static auto
-    sqrt_covariance(const X& x_deviations, const Y& y_deviations)
-    {
+      static_assert(is_typed_matrix_v<X> and is_typed_matrix_v<Y>);
+      constexpr auto dim = (DistributionTraits<InputDist>::dimension + ... + DistributionTraits<NoiseDist>::dimension);
       constexpr auto count = MatrixTraits<X>::columns;
       static_assert(count == MatrixTraits<Y>::columns);
       using Weights = Mean<Axes<count>, typename MatrixTraits<X>::template StrictMatrix<count, 1>>;
       auto weights = covariance_weights<dim, Weights>();
-      //
-      constexpr auto W_c0 = SigmaPointsType::template W_c0<dim, Scalar>();
-      if constexpr (W_c0 < 0)
+      if constexpr(is_Cholesky_v<InputDist>)
       {
-        // Discard first weight and first y-deviation column for now, since square root of weight would be negative.
-        const auto [y_deviations_head, y_deviations_tail] = split_horizontal<1, count - 1>(y_deviations);
-        const auto [weights_head, weights_tail] = split_vertical<1, count - 1>(weights);
-        const auto sqrt_weights_tail = to_diagonal(apply_coefficientwise(weights_tail, [](const auto x){ return std::sqrt(x); }));
-        auto out_covariance = LQ_decomposition(sqrt_weights_tail * y_deviations_tail); // This covariance is in Cholesky form.
-        static_assert(is_covariance_v<decltype(out_covariance)>);
+        using Scalar = typename MatrixTraits<X>::Scalar;
         //
-        // Factor back in the first weight, using a rank update.
-        if (Eigen::internal::llt_inplace<Scalar, Eigen::Lower>::rankUpdate(out_covariance, y_deviations_head, W_c0) >= 0)
+        constexpr auto W_c0 = SigmaPointsType::template W_c0<dim, Scalar>();
+        if constexpr (W_c0 < 0)
         {
-          throw (std::runtime_error("Posterior covariance is not positive definite."));
+          // Discard first weight and first y-deviation column for now, since square root of weight would be negative.
+          const auto [y_deviations_head, y_deviations_tail] = split_horizontal<1, count - 1>(y_deviations);
+          const auto [weights_head, weights_tail] = split_vertical<1, count - 1>(weights);
+          const auto sqrt_weights_tail = apply_coefficientwise(weights_tail, [](const auto x){ return std::sqrt(x); });
+          auto out_covariance = LQ_decomposition(y_deviations_tail * to_diagonal(sqrt_weights_tail));
+          rankUpdate(out_covariance, y_deviations_head, W_c0); ///< Factor back in the first weight, using a rank update.
+          auto cross_covariance = strict(x_deviations * to_diagonal(weights) * adjoint(y_deviations));
+          return std::tuple{std::move(out_covariance), std::move(cross_covariance)};
         }
-        const auto cross_covariance = strict(x_deviations * to_diagonal(weights) * adjoint(y_deviations));
-        return std::tuple{out_covariance, cross_covariance};
+        else
+        {
+          const auto sqrt_weights = apply_coefficientwise(weights, [](const auto x){ return std::sqrt(x); });
+          auto out_covariance = LQ_decomposition(y_deviations * to_diagonal(sqrt_weights));
+          auto cross_covariance = strict(x_deviations * to_diagonal(weights) * adjoint(y_deviations));
+          return std::tuple{std::move(out_covariance), std::move(cross_covariance)};
+        }
       }
       else
       {
-        static_assert(is_typed_matrix_v<decltype(weights)>);
-        const auto sqrt_weights = apply_coefficientwise(weights, [](const auto x){ return std::sqrt(x); });
-        static_assert(is_typed_matrix_v<decltype(sqrt_weights)>);
-        static_assert(is_typed_matrix_v<decltype(y_deviations)>);
-        static_assert(is_typed_matrix_v<decltype(to_diagonal(sqrt_weights) * y_deviations)>);
-        const auto out_covariance = LQ_decomposition(to_diagonal(sqrt_weights) * y_deviations); // This covariance is in Cholesky form.
-        static_assert(is_covariance_v<decltype(out_covariance)>);
-        const auto cross_covariance = strict(x_deviations * to_diagonal(weights) * adjoint(y_deviations));
-        return std::tuple{out_covariance, cross_covariance};
+        const auto w_yT = to_diagonal(weights) * adjoint(y_deviations);
+        auto out_covariance = strict(make_Covariance(y_deviations * w_yT));
+        auto cross_covariance = strict(x_deviations * w_yT);
+        return std::tuple{std::move(out_covariance), std::move(cross_covariance)};
       }
     }
 

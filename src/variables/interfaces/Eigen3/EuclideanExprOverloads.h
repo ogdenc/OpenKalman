@@ -200,8 +200,9 @@ namespace OpenKalman
 
   /// Concatenate one or more EuclideanExpr objects vertically.
   template<typename V, typename ... Vs,
-    std::enable_if_t<std::conjunction_v<is_ToEuclideanExpr<V>, is_ToEuclideanExpr<Vs>...> or
-    std::conjunction_v<is_FromEuclideanExpr<V>, is_FromEuclideanExpr<Vs>...>, int> = 0>
+    std::enable_if_t<
+      std::conjunction_v<is_ToEuclideanExpr<V>, is_ToEuclideanExpr<Vs>...> or
+      std::conjunction_v<is_FromEuclideanExpr<V>, is_FromEuclideanExpr<Vs>...>, int> = 0>
   constexpr decltype(auto)
   concatenate_vertical(V&& v, Vs&& ... vs) noexcept
   {
@@ -222,8 +223,9 @@ namespace OpenKalman
 
   /// Concatenate one or more EuclideanExpr objects horizontally.
   template<typename V, typename ... Vs,
-    std::enable_if_t<std::conjunction_v<is_ToEuclideanExpr<V>, is_ToEuclideanExpr<Vs>...> or
-    std::conjunction_v<is_FromEuclideanExpr<V>, is_FromEuclideanExpr<Vs>...>, int> = 0>
+    std::enable_if_t<
+      std::conjunction_v<is_ToEuclideanExpr<V>, is_ToEuclideanExpr<Vs>...> or
+      std::conjunction_v<is_FromEuclideanExpr<V>, is_FromEuclideanExpr<Vs>...>, int> = 0>
   constexpr decltype(auto)
   concatenate_horizontal(V&& v, Vs&& ... vs) noexcept
   {

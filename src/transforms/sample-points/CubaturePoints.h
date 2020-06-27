@@ -34,34 +34,39 @@ namespace OpenKalman
       using D = std::tuple_element_t<i, DTuple>;
       using Scalar = typename DistributionTraits<D>::Scalar;
       using Coeffs = typename DistributionTraits<D>::Coefficients;
+      constexpr auto dim_i = MatrixTraits<typename DistributionTraits<D>::Mean>::dimension;
       constexpr auto count = dim * 2;
       constexpr auto size = DistributionTraits<D>::dimension * 2;
       constexpr auto dsize = std::tuple_size_v<DTuple>;
       const auto d = std::get<i>(dtuple);
-      const auto delta = make_Mean<Coeffs>(strict_matrix(OpenKalman::square_root(OpenKalman::covariance(d) * static_cast<Scalar>(dim))));
-      const auto delta_p = apply_columnwise(delta, [&d](const auto& col) { return col + mean(d); });
-      const auto delta_m = apply_columnwise(delta, [&d](const auto& col) { return col - mean(d); });
+      const auto delta = make_Mean<Coeffs>(strict_matrix(square_root(OpenKalman::covariance(d) * static_cast<Scalar>(dim))));
       if constexpr(dsize == 1)
       {
-        return std::tuple {concatenate_horizontal(delta_p, delta_m)};
+        return std::tuple {concatenate_horizontal(delta, -delta)};
       }
       else if constexpr (i == 0)
       {
-        const auto mright = apply_columnwise<count - (pos + size)>([&d] { return mean(d); });
-        const auto ret = concatenate_horizontal(delta_p, delta_m, mright);
+        constexpr auto width = count - (pos + size);
+        using MRbase = typename MatrixTraits<typename DistributionTraits<D>::Mean>::template StrictMatrix<dim_i, width>;
+        const auto mright = Mean<Coeffs, MRbase>::zero();
+        const auto ret = concatenate_horizontal(delta, -delta, mright);
         return std::tuple_cat(std::tuple {ret}, sample_points_impl<i + 1, pos + size, dim>(dtuple));
       }
       else if constexpr (i < dsize - 1)
       {
-        const auto mleft = apply_columnwise<pos>([&d] { return mean(d); });
-        const auto mright = apply_columnwise<count - (pos + size)>([&d] { return mean(d); });
-        const auto ret = concatenate_horizontal(mleft, delta_p, delta_m, mright);
+        using MLbase = typename MatrixTraits<typename DistributionTraits<D>::Mean>::template StrictMatrix<dim_i, pos>;
+        const auto mleft = Mean<Coeffs, MLbase>::zero();
+        constexpr auto width = count - (pos + size);
+        using MRbase = typename MatrixTraits<typename DistributionTraits<D>::Mean>::template StrictMatrix<dim_i, width>;
+        const auto mright = Mean<Coeffs, MRbase>::zero();
+        const auto ret = concatenate_horizontal(mleft, delta, -delta, mright);
         return std::tuple_cat(std::tuple {ret}, sample_points_impl<i + 1, pos + size, dim>(dtuple));
       }
       else
       {
-        const auto mleft = apply_columnwise<pos>([&d] { return mean(d); });
-        return std::tuple {concatenate_horizontal(mleft, delta_p, delta_m)};
+        using MLbase = typename MatrixTraits<typename DistributionTraits<D>::Mean>::template StrictMatrix<dim_i, pos>;
+        const auto mleft = Mean<Coeffs, MLbase>::zero();
+        return std::tuple {concatenate_horizontal(mleft, delta, -delta)};
       }
     }
 
@@ -88,35 +93,32 @@ namespace OpenKalman
       return reduce_columns(y_means); ///@TODO: does this need to be strict?
     };
 
-    template<std::size_t dim, typename X, typename Y,
-      std::enable_if_t<is_typed_matrix_v<X>, int> = 0, std::enable_if_t<is_typed_matrix_v<Y>, int> = 0>
+    template<typename InputDist, typename ... NoiseDist, typename X, typename Y>
     static auto
     covariance(const X& x_deviations, const Y& y_deviations)
     {
+      static_assert(is_typed_matrix_v<X> and is_typed_matrix_v<Y>);
+      constexpr auto dim = (DistributionTraits<InputDist>::dimension + ... + DistributionTraits<NoiseDist>::dimension);
       using Scalar = typename MatrixTraits<X>::Scalar;
       constexpr auto count = MatrixTraits<X>::columns;
       static_assert(count == MatrixTraits<Y>::columns);
       static_assert(count == dim * 2, "Wrong number of cubature points.");
-      const Scalar inv_weight = count;
-      const auto w_yT = adjoint(y_deviations) / inv_weight;
-      const auto cross_covariance = strict(x_deviations * w_yT);
-      const auto out_covariance = strict(y_deviations * w_yT);
-      return std::tuple{out_covariance, cross_covariance};
-    }
-
-    template<std::size_t dim, typename X, typename Y,
-      std::enable_if_t<is_typed_matrix_v<X>, int>, std::enable_if_t<is_typed_matrix_v<Y>, int> = 0>
-    static auto
-    sqrt_covariance(const X& x_deviations, const Y& y_deviations)
-    {
-      using Scalar = typename MatrixTraits<X>::Scalar;
-      constexpr auto count = MatrixTraits<X>::count;
-      static_assert(count == dim * 2, "Wrong number of cubature points.");
-      const auto inv_sqrt_weight = std::sqrt(Scalar(count));
-      const auto y_sqw = y_deviations / inv_sqrt_weight;
-      const auto out_covariance = LQ_decomposition(y_sqw); // This covariance is in Cholesky form.
-      const auto cross_covariance = strict(x_deviations / inv_sqrt_weight * adjoint(y_sqw));
-      return std::tuple{out_covariance, cross_covariance};
+      if constexpr(is_Cholesky_v<InputDist>)
+      {
+        const auto inv_sqrt_weight = std::sqrt(Scalar(count));
+        const auto y_sqw = y_deviations / inv_sqrt_weight;
+        auto cross_covariance = strict(x_deviations / inv_sqrt_weight * adjoint(y_sqw));
+        auto out_covariance = LQ_decomposition(y_sqw);
+        return std::tuple{std::move(out_covariance), std::move(cross_covariance)};
+      }
+      else
+      {
+        const Scalar inv_weight = count;
+        const auto w_yT = adjoint(y_deviations) / inv_weight;
+        auto cross_covariance = strict(x_deviations * w_yT);
+        auto out_covariance = strict(y_deviations * w_yT);
+        return std::tuple{std::move(out_covariance), std::move(cross_covariance)};
+      }
     }
 
   };

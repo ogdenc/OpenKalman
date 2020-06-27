@@ -661,7 +661,7 @@ namespace OpenKalman
       not is_identity_v<Arg1> and not is_identity_v<Arg2> and not is_zero_v<Arg1> and not is_zero_v<Arg2>, int> = 0>
   inline auto operator*(Arg1&& arg1, Arg2&& arg2)
   {
-    static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
+    static_assert(MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::dimension);
     if constexpr(is_EigenDiagonal_v<Arg1>)
     {
       return std::forward<Arg1>(arg1).base_matrix().asDiagonal() * std::forward<Arg2>(arg2);

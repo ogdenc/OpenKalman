@@ -56,31 +56,30 @@ namespace OpenKalman
       using Coefficients = typename DistributionTraits<D>::Coefficients;
       constexpr auto row_size = DistributionTraits<D>::dimension;
       constexpr auto count = sigma_point_count<dim>();
-      const auto m = apply_columnwise<count>([&d] { return mean(d); });
       // Unscaled sigma points:
-      typename MatrixTraits<typename DistributionTraits<D>::Mean>::template StrictMatrix<row_size, count> X;
+      using Xbase = typename MatrixTraits<typename DistributionTraits<D>::Mean>::template StrictMatrix<row_size, count>;
+      TypedMatrix<Coefficients, Axes<count>, Xbase> X;
       for (std::size_t j = row_start; j < row_start + row_size; j++)
       {
-        X(j, 0) = 0;
+        const auto row = j - row_start;
         const auto denom = 1 / std::sqrt((j + 1) * (j + 2) * unscaled_W<dim, Scalar>());
+        X(row, 0) = 0;
         for (std::size_t i = 1; i < j + 2; i++)
         {
-          X(j, i) = -denom;
+          X(row, i) = -denom;
         }
-        X(j, j + 2) = (j + 1) * denom;
-        for (std::size_t i = j + 2; i < count; i++)
+        X(row, j + 2) = (j + 1) * denom;
+        for (std::size_t i = j + 3; i < count; i++)
         {
-          X(j, i) = 0;
+          X(row, i) = 0;
         }
       }
       // Scaling:
-      constexpr Scalar alpha = Parameters::alpha;
-      const auto scaled_sigma_points = alpha * X;
-      auto ret = strict(m + square_root(covariance(d)) * scaled_sigma_points);
+      auto ret = strict(square_root(covariance(d)) * Parameters::alpha * X);
       if constexpr(sizeof...(ds) > 0)
-        return std::tuple_cat(std::tuple {ret}, sigma_points_impl<row_start + row_size, dim>(ds...));
+        return std::tuple_cat(std::tuple {std::move(ret)}, sigma_points_impl<row_start + row_size, dim>(ds...));
       else
-        return std::tuple {ret};
+        return std::tuple {std::move(ret)};
     }
 
   public:

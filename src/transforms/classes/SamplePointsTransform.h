@@ -54,6 +54,19 @@ namespace OpenKalman
 
     const TransformationType transformation;
 
+  private:
+    template<typename...XDevs, typename...Dists, std::size_t...ints>
+    constexpr auto y_means_impl(
+      const std::tuple<XDevs...>& x_devs,
+      const std::tuple<Dists...>& dists,
+      std::index_sequence<ints...>) const
+    {
+      constexpr auto count = MatrixTraits<decltype(std::get<0>(x_devs))>::columns;
+      return apply_columnwise<count>([&x_devs, &dists, this](size_t i) {
+        return transformation((column(std::get<ints>(x_devs), i) + mean(std::get<ints>(dists)))...);
+      });
+    }
+
   protected:
     /**
      * Underlying transform function that takes an input distribution and an optional set of
@@ -67,48 +80,26 @@ namespace OpenKalman
     auto trans(const Dist& x, const Noise& ... n) const
     {
       // The sample points, divided into tuples for the input and each noise term:
-      const auto x_means_tuple = SamplePointsType::sample_points(x, n...);
+      const auto sample_points_tuple = SamplePointsType::sample_points(x, n...);
       constexpr auto dim = (DistributionTraits<Dist>::dimension + ... + DistributionTraits<Noise>::dimension);
-      constexpr auto sample_points_count = MatrixTraits<std::tuple_element_t<0, decltype(x_means_tuple)>>::columns;
       //
-      const auto x_deviations = apply_columnwise(std::get<0>(x_means_tuple), [&x](const auto& col) { return col - mean(x); }); ///@TODO: We can eliminate this subtraction
-      const auto y_means = apply_columnwise<sample_points_count>([&x_means_tuple, this](size_t i) {
-        return std::apply([i, this](const auto&...input_terms) { return transformation(column(input_terms, i)...); },
-        x_means_tuple);
-      });
+      const auto x_deviations = std::get<0>(sample_points_tuple);
+      const auto y_means = y_means_impl(sample_points_tuple, std::tuple{x, n...}, std::make_index_sequence<sizeof...(n) + 1>());
       //
       const auto mean_output = strict(SamplePointsType::template weighted_means<dim>(y_means));
       // Each column is a deviation from y mean for each transformed sigma point:
-      const auto y_deviations = apply_columnwise(y_means, [&mean_output](const auto& col) {
-        return col - mean_output; });
+      const auto y_deviations = apply_columnwise(y_means, [&mean_output](const auto& col) { return col - mean_output; });
       //
       return std::tuple {mean_output, x_deviations, y_deviations};
     }
 
   public:
-    template<typename InputDist, typename ... NoiseDist,
-      std::enable_if_t<not std::disjunction_v<
-        is_Cholesky<typename DistributionTraits<InputDist>::Covariance>,
-        is_Cholesky<typename DistributionTraits<NoiseDist>::Covariance>...>, int> = 0>
+    template<typename InputDist, typename ... NoiseDist>
     auto operator()(const InputDist& in, const NoiseDist& ...n) const
     {
       const auto [mean_output, x_deviations, y_deviations] = trans(in, n...);
-      constexpr auto dim = (DistributionTraits<InputDist>::dimension + ... + DistributionTraits<NoiseDist>::dimension);
-      const auto [out_covariance, cross_covariance] = SamplePointsType::template covariance<dim>(x_deviations, y_deviations);
-      const auto out = DistributionTraits<InputDist>::make(mean_output, out_covariance);
-      return std::tuple {out, cross_covariance};
-    }
-
-    template<typename InputDist, typename ... NoiseDist,
-      std::enable_if_t<std::conjunction_v<
-        is_Cholesky<typename DistributionTraits<InputDist>::Covariance>,
-        is_Cholesky<typename DistributionTraits<NoiseDist>::Covariance>...>, int> = 0>
-    auto operator()(const InputDist& in, const NoiseDist& ...n) const
-    {
-      const auto [mean_output, x_deviations, y_deviations] = trans(in, n...);
-      constexpr auto dim = (DistributionTraits<InputDist>::dimension + ... + DistributionTraits<NoiseDist>::dimension);
-      const auto [out_covariance, cross_covariance] = SamplePointsType::template sqrt_covariance<dim>(x_deviations, y_deviations);
-      const auto out = DistributionTraits<InputDist>::make(mean_output, out_covariance);
+      const auto [out_covariance, cross_covariance] = SamplePointsType::template covariance<InputDist, NoiseDist...>(x_deviations, y_deviations);
+      const auto out = GaussianDistribution {mean_output, out_covariance};
       return std::tuple {out, cross_covariance};
     }
 

@@ -261,8 +261,11 @@ namespace OpenKalman
   template<
     typename V, typename ... Vs,
     std::enable_if_t<std::conjunction_v<
-      std::disjunction<is_Eigen_matrix<V>, is_EigenSelfAdjointMatrix<V>, is_EigenTriangularMatrix<V>, is_EigenDiagonal<V>>,
-      std::disjunction<is_Eigen_matrix<Vs>, is_EigenSelfAdjointMatrix<Vs>, is_EigenTriangularMatrix<Vs>, is_EigenDiagonal<Vs>>...>, int> = 0>
+      std::disjunction<is_Eigen_matrix<V>, is_EigenSelfAdjointMatrix<V>, is_EigenTriangularMatrix<V>,
+        is_EigenDiagonal<V>, is_FromEuclideanExpr<V>>,
+      std::disjunction<is_Eigen_matrix<Vs>, is_EigenSelfAdjointMatrix<Vs>, is_EigenTriangularMatrix<Vs>,
+        is_EigenDiagonal<Vs>, is_FromEuclideanExpr<V>>...> and
+      not std::conjunction_v<is_FromEuclideanExpr<V>, is_FromEuclideanExpr<Vs>...>, int> = 0>
   constexpr decltype(auto)
   concatenate_vertical(V&& v, Vs&& ... vs) noexcept
   {
@@ -286,8 +289,11 @@ namespace OpenKalman
   template<
     typename V, typename ... Vs,
     std::enable_if_t<std::conjunction_v<
-      std::disjunction<is_Eigen_matrix<V>, is_EigenSelfAdjointMatrix<V>, is_EigenTriangularMatrix<V>, is_EigenDiagonal<V>>,
-      std::disjunction<is_Eigen_matrix<Vs>, is_EigenSelfAdjointMatrix<Vs>, is_EigenTriangularMatrix<Vs>, is_EigenDiagonal<Vs>>...>, int> = 0>
+      std::disjunction<is_Eigen_matrix<V>, is_EigenSelfAdjointMatrix<V>, is_EigenTriangularMatrix<V>,
+        is_EigenDiagonal<V>, is_FromEuclideanExpr<V>>,
+      std::disjunction<is_Eigen_matrix<Vs>, is_EigenSelfAdjointMatrix<Vs>, is_EigenTriangularMatrix<Vs>,
+        is_EigenDiagonal<Vs>, is_FromEuclideanExpr<Vs>>...> and
+      not std::conjunction_v<is_FromEuclideanExpr<V>, is_FromEuclideanExpr<Vs>...>, int> = 0>
   constexpr decltype(auto)
   concatenate_horizontal(V&& v, Vs&& ... vs) noexcept
   {
@@ -330,7 +336,12 @@ namespace OpenKalman
   /// Concatenate one or more Eigen::MatrixBase objects diagonally.
   template<
     typename V, typename ... Vs,
-    std::enable_if_t<std::conjunction_v<is_Eigen_matrix<V>, is_Eigen_matrix<Vs>...>, int> = 0>
+    std::enable_if_t<std::conjunction_v<
+      std::disjunction<is_Eigen_matrix<V>, is_EigenSelfAdjointMatrix<V>, is_EigenTriangularMatrix<V>,
+        is_EigenDiagonal<V>, is_FromEuclideanExpr<V>>,
+      std::disjunction<is_Eigen_matrix<Vs>, is_EigenSelfAdjointMatrix<Vs>, is_EigenTriangularMatrix<Vs>,
+        is_EigenDiagonal<Vs>, is_FromEuclideanExpr<Vs>>...> and
+      not std::conjunction_v<is_FromEuclideanExpr<V>, is_FromEuclideanExpr<Vs>...>, int> = 0>
   constexpr decltype(auto)
   concatenate_diagonal(V&& v, Vs&& ... vs) noexcept
   {

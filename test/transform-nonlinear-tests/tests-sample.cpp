@@ -45,7 +45,7 @@ TEST_F(transform_tests, Transform_Cholesky_none)
                 3, 4};
   const LinearTransformation g {a};
   const GaussianDistribution input {M2(1, 2), make_Covariance<TriangleType::lower>(Mat2::identity())};
-  const Covariance<C2> P_output = EigenTriangularMatrix {5, 11,
+  const Covariance<C2> P_output = EigenTriangularMatrix {5., 11,
                                                          11, 25};
   const Mat2 cross_output {1, 3,
                            2, 4};
