@@ -150,7 +150,7 @@ namespace OpenKalman
       return ret;
     }
 
-    /// The Jacobians corresponding to the input and all noise matrices.
+    /// The Jacobians corresponding to the input and all perturbation matrices.
     /// Returns a tuple of the transformation matrices.
     template<typename In, typename ... Perturbations,
       std::enable_if_t<std::conjunction_v<is_typed_matrix<In>, is_perturbation<Perturbations>...>, int> = 0>
@@ -176,7 +176,7 @@ namespace OpenKalman
       }
     }
 
-    /// The Hessian matrices corresponding to the input and all noise matrices.
+    /// The Hessian matrices corresponding to the input and all perturbation matrices.
     /// Returns a tuple of arrays of Hessian matrices. In this case, they are all zero.
     template<typename In, typename ... Perturbations,
       std::enable_if_t<std::conjunction_v<is_typed_matrix<In>, is_typed_matrix<Perturbations>...>, int> = 0>

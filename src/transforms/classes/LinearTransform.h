@@ -11,9 +11,6 @@
 #ifndef OPENKALMAN_LINEARTRANSFORM_H
 #define OPENKALMAN_LINEARTRANSFORM_H
 
-#include "transforms/transformations/LinearTransformation.h"
-#include "distributions/GaussianDistribution.h"
-#include "transforms/support/LinearTransformBase.h"
 
 namespace OpenKalman
 {

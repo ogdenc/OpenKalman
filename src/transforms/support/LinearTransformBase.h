@@ -13,8 +13,7 @@
 
 #include <functional>
 #include <tuple>
-#include <optional>
-#include <Eigen/Dense>
+
 
 namespace OpenKalman::internal
 {
@@ -91,32 +90,6 @@ namespace OpenKalman::internal
 
   };
 
-
-  /// Composition of two Transform objects.
-  template<typename Transform1, typename Transform2>
-  struct Composition
-  {
-    Composition(const Transform1& t1, const Transform2& t2) : transform1(t1), transform2(t2) {}
-
-    Transform1 transform1;
-    Transform2 transform2;
-
-    template<
-      typename InputDist,
-      typename ... NonlinearNoise1, typename ... LinearNoise1,
-      typename ... NonlinearNoise2, typename ... LinearNoise2>
-    constexpr auto operator()(
-      const InputDist& in,
-      const std::tuple<NonlinearNoise1...>& n1,
-      const std::tuple<LinearNoise1& ...>& l1,
-      const std::tuple<NonlinearNoise2...>& n2,
-      const std::tuple<LinearNoise2& ...>& l2)
-    {
-      auto[out1, cross1] = std::apply(transform1, std::tuple_cat(std::tuple(std::tuple_cat(std::tuple(in), n1)), l1));
-      return std::apply(transform2, std::tuple_cat(std::tuple(std::tuple_cat(std::tuple(out1), n2)), l2));
-    }
-
-  };
 
 }
 

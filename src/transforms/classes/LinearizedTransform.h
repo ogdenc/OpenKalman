@@ -11,8 +11,6 @@
 #ifndef OPENKALMAN_LINEARIZEDTRANSFORM_H
 #define OPENKALMAN_LINEARIZEDTRANSFORM_H
 
-#include "transforms/support/LinearTransformBase.h"
-#include "transforms/transformations/LinearTransformation.h"
 
 namespace OpenKalman
 {
@@ -91,6 +89,7 @@ namespace OpenKalman
       template<typename T1, typename T2>
       static constexpr auto zip_tuples(const T1& t1, const T2& t2)
       {
+        static_assert(std::tuple_size_v<T1> == std::tuple_size_v<T2>);
         return zip_tuples_impl(t1, t2, std::make_index_sequence<std::tuple_size_v<T1>>());
       }
 
@@ -107,7 +106,6 @@ namespace OpenKalman
       auto add_correction(const Dist& x, const Noise& ... n) const
       {
         const auto hessians = transformation.hessian(mean(x), mean(n)...);
-        static_assert(std::tuple_size_v<decltype(hessians)> == sizeof...(Noise) + 1, "Function must return one Hessian matrix for each input.");
         return zip_tuples(hessians, std::tuple {x, n...});
       }
     };

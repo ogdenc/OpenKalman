@@ -20,6 +20,7 @@
 #include "transforms/sample-points/SigmaPointsTypes/SphericalSimplex.h"
 #include "transforms/sample-points/SigmaPoints.h"
 
+#include "transforms/support/LinearTransformBase.h"
 #include "transforms/classes/LinearTransform.h"
 #include "transforms/classes/LinearizedTransform.h"
 #include "transforms/classes/SamplePointsTransform.h"
