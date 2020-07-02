@@ -265,11 +265,13 @@ TEST_F(typed_matrix_tests, Mean_overloads)
 
   EXPECT_TRUE(is_near(to_diagonal(Mat21 {2, 3}).base_matrix(), Mat22 {2, 0, 0, 3}));
   static_assert(is_diagonal_v<decltype(to_diagonal(Mat21 {2, 3}))>);
-  static_assert(is_covariance_v<decltype(to_diagonal(Mat21 {2, 3}))>);
+  static_assert(is_typed_matrix_v<decltype(to_diagonal(Mat21 {2, 3}))>);
+  static_assert(is_equivalent_v<typename MatrixTraits<decltype(to_diagonal(Mat21 {2, 3}))>::ColumnCoefficients, C2>);
 
   EXPECT_TRUE(is_near(to_diagonal(Mat21 {5, 6}).base_matrix(), Mat22 {5, 0, 0, w_6}));
   static_assert(is_diagonal_v<decltype(to_diagonal(Mat21 {5, 6}))>);
-  static_assert(is_covariance_v<decltype(to_diagonal(Mat21 {5, 6}))>);
+  static_assert(is_typed_matrix_v<decltype(to_diagonal(Mat21 {5, 6}))>);
+  static_assert(is_equivalent_v<typename MatrixTraits<decltype(to_diagonal(Mat21 {5, 6}))>::ColumnCoefficients, C2>);
 
   EXPECT_TRUE(is_near(transpose(Mat23 {1, 2, 3, 4, 5, 6}).base_matrix(), TMat32 {1, w_4, 2, w_5, 3, w_6}));
   static_assert(std::is_same_v<std::decay_t<decltype(strict(transpose(Mat23 {1, 2, 3, 4, 5, 6})))>,

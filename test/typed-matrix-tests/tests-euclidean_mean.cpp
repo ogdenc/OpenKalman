@@ -240,7 +240,8 @@ TEST_F(typed_matrix_tests, EuclideanMean_overloads)
 
   EXPECT_TRUE(is_near(to_diagonal(EuclideanMean<Axes<2>, M21> {2, 3}).base_matrix(), TM22 {2, 0, 0, 3}));
   static_assert(is_diagonal_v<decltype(to_diagonal(EuclideanMean<Axes<2>, M21> {2, 3}))>);
-  static_assert(is_covariance_v<decltype(to_diagonal(EuclideanMean<Axes<2>, M21> {2, 3}))>);
+  static_assert(is_typed_matrix_v<decltype(to_diagonal(EuclideanMean<Axes<2>, M21> {2, 3}))>);
+  static_assert(is_equivalent_v<typename MatrixTraits<decltype(to_diagonal(EuclideanMean<Axes<2>, M21> {2, 3}))>::ColumnCoefficients, Axes<2>>);
 
   EXPECT_TRUE(is_near(transpose(EuclideanMean<Axes<2>, M23> {1, 2, 3, 4, 5, 6}).base_matrix(), TM32 {1, 4, 2, 5, 3, 6}));
   static_assert(is_equivalent_v<typename MatrixTraits<decltype(transpose(EuclideanMean<Axes<2>, M23> {1, 2, 3, 4, 5, 6}))>::RowCoefficients, Axes<3>>);

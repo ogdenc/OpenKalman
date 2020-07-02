@@ -49,9 +49,7 @@ namespace OpenKalman
     explicit SamplePointsTransform(const TransformationType& transformation)
       : transformation(transformation) {}
 
-    explicit SamplePointsTransform(TransformationType&& transformation)
-      : transformation(std::move(transformation)) {}
-
+  protected:
     const TransformationType transformation;
 
   private:
@@ -63,7 +61,7 @@ namespace OpenKalman
     {
       constexpr auto count = MatrixTraits<decltype(std::get<0>(x_devs))>::columns;
       return apply_columnwise<count>([&x_devs, &dists, this](size_t i) {
-        return transformation((column(std::get<ints>(x_devs), i) + mean(std::get<ints>(dists)))...);
+        return to_Euclidean(transformation((column(std::get<ints>(x_devs), i) + make_Matrix(mean(std::get<ints>(dists))))...));
       });
     }
 
@@ -83,24 +81,27 @@ namespace OpenKalman
       const auto sample_points_tuple = SamplePointsType::sample_points(x, n...);
       constexpr auto dim = (DistributionTraits<Dist>::dimension + ... + DistributionTraits<Noise>::dimension);
       //
-      const auto x_deviations = std::get<0>(sample_points_tuple);
-      const auto y_means = y_means_impl(sample_points_tuple, std::tuple{x, n...}, std::make_index_sequence<sizeof...(n) + 1>());
+      auto x_deviations = std::get<0>(sample_points_tuple);
+      auto y_means = y_means_impl(sample_points_tuple, std::tuple{x, n...}, std::make_index_sequence<sizeof...(Noise) + 1>());
+      std::cout << "y_means" << std::endl << y_means << std::endl << std::flush;
       //
-      const auto mean_output = strict(SamplePointsType::template weighted_means<dim>(y_means));
+      auto mean_output = strict(SamplePointsType::template weighted_means<dim>(y_means));
       // Each column is a deviation from y mean for each transformed sigma point:
-      const auto y_deviations = apply_columnwise(y_means, [&mean_output](const auto& col) { return col - mean_output; });
+      auto y_deviations = apply_columnwise(y_means, [&mean_output](const auto& col) { return col - mean_output; });
+      std::cout << "y_deviations" << std::endl << y_deviations << std::endl << std::flush;
       //
-      return std::tuple {mean_output, x_deviations, y_deviations};
+      return std::tuple {std::move(mean_output), std::move(x_deviations), std::move(y_deviations)};
     }
 
   public:
     template<typename InputDist, typename ... NoiseDist>
     auto operator()(const InputDist& in, const NoiseDist& ...n) const
     {
-      const auto [mean_output, x_deviations, y_deviations] = trans(in, n...);
-      const auto [out_covariance, cross_covariance] = SamplePointsType::template covariance<InputDist, NoiseDist...>(x_deviations, y_deviations);
-      const auto out = GaussianDistribution {mean_output, out_covariance};
-      return std::tuple {out, cross_covariance};
+      std::cout << "------------------------------------------------------------------------" << std::endl;
+      auto [mean_output, x_deviations, y_deviations] = trans(in, n...);
+      auto [out_covariance, cross_covariance] = SamplePointsType::template covariance<InputDist, NoiseDist...>(x_deviations, y_deviations);
+      auto out = GaussianDistribution {mean_output, out_covariance};
+      return std::tuple {std::move(out), std::move(cross_covariance)};
     }
 
   };

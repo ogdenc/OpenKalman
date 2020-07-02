@@ -12,52 +12,68 @@
 
 using namespace OpenKalman;
 
-using C2 = Coefficients<Axis, Axis>;
-using M2 = Mean<C2>;
-using Mat2 = TypedMatrix<C2,C2>;
-
-TEST_F(transform_tests, Transform_none)
+namespace test_sample_const
 {
+  using C2 = Coefficients<Axis, Axis>;
+  using M2 = Mean<C2>;
+  using Mat2 = TypedMatrix<C2,C2>;
   Mat2 a {1, 2,
           3, 4};
-  const LinearTransformation g {a};
-  const GaussianDistribution input {M2(1, 2), Mat2::Identity()};
-  const Covariance<C2> P_output = {5, 11,
-                                   11, 25};
-  const TypedMatrix<C2, C2> cross_output {1, 3,
-                                          2, 4};
-  const GaussianDistribution output {M2(5, 11), P_output};
-  const auto full_output = std::tuple {output, cross_output};
+  LinearTransformation g {a};
+  GaussianDistribution input {M2(1, 2), Mat2 {1, 0.1, 0.1, 1}};
+  GaussianDistribution input_chol {M2(1, 2), make_Covariance<TriangleType::lower>(Mat2 {1, 0.1, 0.1, 1})};
+  Covariance<C2> P_output = {5.4, 12,
+                             12, 27.4};
+  Mat2 cross_output {1.2, 3.4,
+                     2.1, 4.3};
+  GaussianDistribution output {M2(5, 11), P_output};
+  auto full_output = std::tuple {output, cross_output};
 
-  const SamplePointsTransform<UnscentedSigmaPoints, decltype(g)> t {g};
-  EXPECT_TRUE(is_near(t(input), full_output));
+  /// Unscented with alpha==1 and kappa = 0 (to avoid negative first weight).
+  struct Params
+  {
+    static constexpr double alpha = 1;
+    static constexpr double beta = 2.0;
+    template<int dim> static constexpr double kappa = 3 - dim;
+  };
 
-  const SamplePointsTransform<CubaturePoints, decltype(g)> t2 {g};
-  EXPECT_TRUE(is_near(t2(input), full_output));
-
-  const SamplePointsTransform<SphericalSimplexSigmaPoints, decltype(g)> t3 {g};
-  EXPECT_TRUE(is_near(t3(input), full_output));
+  using UnscentedSigmaPoints2 = SigmaPoints<Unscented<Params>>;
 }
 
-TEST_F(transform_tests, Transform_Cholesky_none)
+using namespace test_sample_const;
+
+TEST_F(transform_tests, Basic_linear_unscented)
 {
-  const Mat2 a {1, 2,
-                3, 4};
-  const LinearTransformation g {a};
-  const GaussianDistribution input {M2(1, 2), make_Covariance<TriangleType::lower>(Mat2::identity())};
-  const Covariance<C2> P_output = EigenTriangularMatrix {5., 11,
-                                                         11, 25};
-  const Mat2 cross_output {1, 3,
-                           2, 4};
-  const GaussianDistribution output {GaussianDistribution {M2(5, 11), P_output}};
-  const auto full_output = std::tuple {output, cross_output};
+  auto unscented = make_SamplePointsTransform<UnscentedSigmaPoints>(g);
+  EXPECT_TRUE(is_near(unscented(input), full_output));
+  EXPECT_TRUE(is_near(unscented(input_chol), full_output));
+  static_assert(not is_Cholesky_v<decltype(std::get<0>(unscented(input)))>);
+  static_assert(is_Cholesky_v<decltype(std::get<0>(unscented(input_chol)))>);
+}
 
-  const auto t1 = make_SamplePointsTransform<UnscentedSigmaPoints>(g);
-  EXPECT_TRUE(is_near(t1(input), full_output));
+TEST_F(transform_tests, Basic_linear_unscented2)
+{
+  auto unscented2 = make_SamplePointsTransform<UnscentedSigmaPoints2>(g);
+  EXPECT_TRUE(is_near(unscented2(input), full_output));
+  EXPECT_TRUE(is_near(unscented2(input_chol), full_output));
+  static_assert(not is_Cholesky_v<decltype(std::get<0>(unscented2(input)))>);
+  static_assert(is_Cholesky_v<decltype(std::get<0>(unscented2(input_chol)))>);
+}
 
-  const SamplePointsTransform<CubaturePoints, decltype(g)> t2 {g};
-  EXPECT_TRUE(is_near(t2(input), full_output));
+TEST_F(transform_tests, Basic_linear_spherical_simplex)
+{
+  auto spherical_simplex = make_SamplePointsTransform<SphericalSimplexSigmaPoints>(g);
+  EXPECT_TRUE(is_near(spherical_simplex(input), full_output));
+  EXPECT_TRUE(is_near(spherical_simplex(input_chol), full_output));
+  static_assert(not is_Cholesky_v<decltype(std::get<0>(spherical_simplex(input)))>);
+  static_assert(is_Cholesky_v<decltype(std::get<0>(spherical_simplex(input_chol)))>);
+}
 
-  const SamplePointsTransform<SphericalSimplexSigmaPoints, decltype(g)> t3 {g};
-  EXPECT_TRUE(is_near(t3(input), full_output));
+TEST_F(transform_tests, Basic_linear_cubature)
+{
+  auto cubature = make_SamplePointsTransform<CubaturePoints>(g);
+  EXPECT_TRUE(is_near(cubature(input), full_output));
+  EXPECT_TRUE(is_near(cubature(input_chol), full_output));
+  static_assert(not is_Cholesky_v<decltype(std::get<0>(cubature(input)))>);
+  static_assert(is_Cholesky_v<decltype(std::get<0>(cubature(input_chol)))>);
 }

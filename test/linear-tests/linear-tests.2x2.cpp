@@ -9,8 +9,6 @@
  */
 
 #include "linear-tests.h"
-#include <transforms/classes/LinearTransform.h>
-#include <transforms/classes/LinearizedTransform.h>
 
 using C2 = Coefficients<Axis, Axis>;
 using Scalar = double;

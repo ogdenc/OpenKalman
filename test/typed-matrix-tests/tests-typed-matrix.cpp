@@ -291,7 +291,8 @@ TEST_F(typed_matrix_tests, TypedMatrix_overloads)
 
   EXPECT_TRUE(is_near(to_diagonal(Mat21 {2, 3}).base_matrix(), Mat22 {2, 0, 0, 3}));
   static_assert(is_diagonal_v<decltype(to_diagonal(Mat21 {2, 3}))>);
-  static_assert(is_covariance_v<decltype(to_diagonal(Mat21 {2, 3}))>);
+  static_assert(is_typed_matrix_v<decltype(to_diagonal(Mat21 {2, 3}))>);
+  static_assert(is_equivalent_v<typename MatrixTraits<decltype(to_diagonal(Mat21 {2, 3}))>::ColumnCoefficients, C2>);
 
   EXPECT_TRUE(is_near(transpose(Mat23 {1, 2, 3, 4, 5, 6}).base_matrix(), Mat32 {1, 4, 2, 5, 3, 6}));
   static_assert(std::is_same_v<std::decay_t<decltype(strict(transpose(Mat23 {1, 2, 3, 4, 5, 6})))>, Mat32>);

@@ -39,34 +39,40 @@ namespace OpenKalman
       constexpr auto size = DistributionTraits<D>::dimension * 2;
       constexpr auto dsize = std::tuple_size_v<DTuple>;
       const auto d = std::get<i>(dtuple);
-      const auto delta = make_Mean<Coeffs>(strict_matrix(square_root(OpenKalman::covariance(d) * static_cast<Scalar>(dim))));
+      const auto delta = make_Matrix<Coeffs, Axes<dim_i>>(strict_matrix(square_root(OpenKalman::covariance(d) * static_cast<Scalar>(dim))));
       if constexpr(dsize == 1)
       {
-        return std::tuple {concatenate_horizontal(delta, -delta)};
+        auto ret = concatenate_horizontal(delta, -delta);
+        static_assert(MatrixTraits<decltype(ret)>::columns == count);
+        return std::tuple {std::move(ret)};
       }
       else if constexpr (i == 0)
       {
         constexpr auto width = count - (pos + size);
         using MRbase = typename MatrixTraits<typename DistributionTraits<D>::Mean>::template StrictMatrix<dim_i, width>;
-        const auto mright = Mean<Coeffs, MRbase>::zero();
-        const auto ret = concatenate_horizontal(delta, -delta, mright);
-        return std::tuple_cat(std::tuple {ret}, sample_points_impl<i + 1, pos + size, dim>(dtuple));
+        const auto mright = TypedMatrix<Coeffs, Axes<width>, MRbase>::zero();
+        auto ret = concatenate_horizontal(delta, -delta, mright);
+        static_assert(MatrixTraits<decltype(ret)>::columns == count);
+        return std::tuple_cat(std::tuple {std::move(ret)}, sample_points_impl<i + 1, pos + size, dim>(dtuple));
       }
       else if constexpr (i < dsize - 1)
       {
         using MLbase = typename MatrixTraits<typename DistributionTraits<D>::Mean>::template StrictMatrix<dim_i, pos>;
-        const auto mleft = Mean<Coeffs, MLbase>::zero();
+        const auto mleft = TypedMatrix<Coeffs, Axes<pos>, MLbase>::zero();
         constexpr auto width = count - (pos + size);
         using MRbase = typename MatrixTraits<typename DistributionTraits<D>::Mean>::template StrictMatrix<dim_i, width>;
-        const auto mright = Mean<Coeffs, MRbase>::zero();
-        const auto ret = concatenate_horizontal(mleft, delta, -delta, mright);
-        return std::tuple_cat(std::tuple {ret}, sample_points_impl<i + 1, pos + size, dim>(dtuple));
+        const auto mright = TypedMatrix<Coeffs, Axes<width>, MRbase>::zero();
+        auto ret = concatenate_horizontal(mleft, delta, -delta, mright);
+        static_assert(MatrixTraits<decltype(ret)>::columns == count);
+        return std::tuple_cat(std::tuple {std::move(ret)}, sample_points_impl<i + 1, pos + size, dim>(dtuple));
       }
       else
       {
         using MLbase = typename MatrixTraits<typename DistributionTraits<D>::Mean>::template StrictMatrix<dim_i, pos>;
-        const auto mleft = Mean<Coeffs, MLbase>::zero();
-        return std::tuple {concatenate_horizontal(mleft, delta, -delta)};
+        const auto mleft = TypedMatrix<Coeffs, Axes<pos>, MLbase>::zero();
+        auto ret = concatenate_horizontal(mleft, delta, -delta);
+        static_assert(MatrixTraits<decltype(ret)>::columns == count);
+        return std::tuple {std::move(ret)};
       }
     }
 
@@ -83,14 +89,14 @@ namespace OpenKalman
       return sample_points_impl<0, 0, dim>(std::tuple {ds...});
     }
 
-    template<size_t dim, typename Arg, std::enable_if_t<is_typed_matrix_v<Arg>, int> = 0>
+    template<size_t dim, typename Arg, std::enable_if_t<is_Euclidean_mean_v<Arg>, int> = 0>
     static auto
     weighted_means(const Arg& y_means)
     {
       static_assert(is_column_vector_v<Arg>);
       static_assert(not is_Euclidean_transformed_v<Arg>);
       static_assert(MatrixTraits<Arg>::columns == dim * 2, "Wrong number of cubature points.");
-      return reduce_columns(y_means); ///@TODO: does this need to be strict?
+      return from_Euclidean(reduce_columns(make_Mean(y_means))); ///@TODO: does this need to be strict?
     };
 
     template<typename InputDist, typename ... NoiseDist, typename X, typename Y>

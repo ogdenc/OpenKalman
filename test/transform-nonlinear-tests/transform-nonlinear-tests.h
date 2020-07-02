@@ -45,9 +45,9 @@ struct transform_tests : public ::testing::Test
     const auto[output, cross] = t(angle_input, noise...);
     const auto[output_rot, cross_rot] = t(angle_input_rot, noise...);
     const auto res1 = is_near(f2(mean(output)), f2(mean(output_rot)) +
-      make_Mean<typename DistributionTraits<AngleRotDist>::Mean::Coefficients>(0, M_PI));
-    const auto res2 = is_near(covariance(output), covariance(output_rot));
-    const auto res3 = is_near(cross, -cross_rot);
+      make_Mean<typename DistributionTraits<AngleRotDist>::Mean::Coefficients>(0, M_PI), 1e-4);
+    const auto res2 = is_near(covariance(output), covariance(output_rot), 1e-3);
+    const auto res3 = is_near(cross, -cross_rot, 1e-4);
     if (res1 and res2 and res3) return ::testing::AssertionSuccess();
     else
       return ::testing::AssertionFailure() <<
@@ -57,34 +57,6 @@ struct transform_tests : public ::testing::Test
   }
 
 };
-
-using namespace OpenKalman;
-
-using C2 = Coefficients<Axis, Axis>;
-using P2 = Coefficients<Polar<>>;
-
-static auto polar2Cartesian = make_Transformation<P2, C2>(
-  [](const Mean<P2>& x, const auto&...noise) -> Mean<C2>
-    {
-      return {((x(0)*cos(x(1))) + ... + noise(0)), ((x(0)*sin(x(1))) + ... + noise(1))};
-    });
-
-static auto Cartesian2polar = make_Transformation<C2, P2>(
-  [](const Mean<C2>& a, const auto&...noise) -> Mean<P2>
-    {
-      return {((std::hypot(a(1), a(0))) + ... + noise(0)), ((std::atan2(a(1), a(0))) + ... + noise(1))};
-    });
-
-static auto polar2polar = make_Transformation<P2, P2>(
-  [](const Mean<P2> a, const auto&...noise) -> Mean<P2>
-    {
-      return ((a + Mean<P2>(0, M_PI)) + ... + noise);
-    });
-
-const GaussianDistribution angle_input {Mean<P2>(1, 0.95 * M_PI), Covariance<P2>(0.01, 0, 0, M_PI * M_PI / 9)};
-const GaussianDistribution angle_input_rot {Mean<P2>(1, 0.95 * M_PI - M_PI), Covariance<P2>(0.01, 0, 0, M_PI * M_PI / 9)};
-const GaussianDistribution angle_noise {Mean<P2>::zero(), Covariance<P2>(0.01, 0, 0, M_PI * M_PI / 81)};
-const GaussianDistribution cart_noise {Mean<C2>::zero(), Covariance<C2>(0.01, 0, 0, 0.01)};
 
 
 #endif //TRANSFORM_NONLINEAR_TESTS_H

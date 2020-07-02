@@ -434,13 +434,7 @@ namespace OpenKalman
     {
       decltype(auto) b1 = internal::convert_base_matrix(std::forward<Arg1>(arg1));
       decltype(auto) b2 = internal::convert_base_matrix(std::forward<Arg2>(arg2));
-
-      constexpr auto conversion2 =
-        ((is_square_root_v<Arg1> == not is_Cholesky_v<Arg1>) and not is_diagonal_v<Arg1>) or
-        ((is_square_root_v<Arg2> == not is_Cholesky_v<Arg2>) and not is_diagonal_v<Arg2>);
-
       constexpr auto conversion = not std::is_reference_v<decltype(b1)> or not std::is_reference_v<decltype(b2)>;
-      static_assert(conversion == conversion2);
 
       const auto sum = [&b1, &b2] { if constexpr(conversion) return strict(b1 + b2); else return b1 + b2; }();
       if constexpr(is_self_adjoint_v<decltype(sum)>)
@@ -498,13 +492,7 @@ namespace OpenKalman
     {
       decltype(auto) b1 = internal::convert_base_matrix(std::forward<Arg1>(arg1));
       decltype(auto) b2 = internal::convert_base_matrix(std::forward<Arg2>(arg2));
-
-      constexpr auto conversion2 =
-        ((is_square_root_v<Arg1> == not is_Cholesky_v<Arg1>) and not is_diagonal_v<Arg1>) or
-        ((is_square_root_v<Arg2> == not is_Cholesky_v<Arg2>) and not is_diagonal_v<Arg2>);
-
       constexpr auto conversion = not std::is_reference_v<decltype(b1)> or not std::is_reference_v<decltype(b2)>;
-      static_assert(conversion == conversion2);
 
       const auto diff = [&b1, &b2] { if constexpr(conversion) return strict(b1 - b2); else return b1 - b2; }();
       if constexpr(is_self_adjoint_v<decltype(diff)>)
@@ -542,13 +530,7 @@ namespace OpenKalman
     {
       decltype(auto) b1 = internal::convert_base_matrix(std::forward<Arg1>(arg1));
       decltype(auto) b2 = internal::convert_base_matrix(std::forward<Arg2>(arg2));
-
-      constexpr auto conversion =
-        ((OpenKalman::is_square_root_v<Arg1> == not OpenKalman::is_Cholesky_v<Arg1>) and not OpenKalman::is_diagonal_v<Arg1>) or
-          ((OpenKalman::is_square_root_v<Arg2> == not OpenKalman::is_Cholesky_v<Arg2>) and not OpenKalman::is_diagonal_v<Arg2>);
-
-      constexpr auto conversion2 = not std::is_reference_v<decltype(b1)> or not std::is_reference_v<decltype(b2)>;
-      static_assert(conversion == conversion2);
+      constexpr auto conversion = not std::is_reference_v<decltype(b1)> or not std::is_reference_v<decltype(b2)>;
 
       const auto prod = [&b1, &b2] { if constexpr(conversion) return strict(b1 * b2); else return b1 * b2; }();
       if constexpr(is_self_adjoint_v<decltype(prod)>)
@@ -593,13 +575,7 @@ namespace OpenKalman
       decltype(auto) mb = base_matrix(std::forward<M>(m));
       decltype(auto) cb = internal::convert_base_matrix(std::forward<Cov>(cov));
 
-      constexpr auto conversion =
-        (OpenKalman::is_square_root_v<Cov> == not OpenKalman::is_Cholesky_v<Cov>) and not is_diagonal_v<Cov>;
-
-      constexpr auto conversion2 = not std::is_reference_v<decltype(cb)>;
-      static_assert(conversion == conversion2);
-
-      if constexpr(conversion)
+      if constexpr(not std::is_reference_v<decltype(cb)>)
         return make_Matrix<RC, CC>(strict(mb * cb));
       else
         return make_Matrix<RC, CC>(mb * cb);
@@ -639,12 +615,7 @@ namespace OpenKalman
       decltype(auto) cb = internal::convert_base_matrix(std::forward<Cov>(cov));
       decltype(auto) mb = base_matrix(std::forward<M>(m));
 
-      constexpr auto conversion = (is_square_root_v<Cov> == not is_Cholesky_v<Cov>) and not is_diagonal_v<Cov>;
-
-      constexpr auto conversion2 = not std::is_reference_v<decltype(cb)>;
-      static_assert(conversion == conversion2);
-
-      if constexpr(conversion)
+      if constexpr(not std::is_reference_v<decltype(cb)>)
         return make_Matrix<RC, CC>(strict(cb * mb));
       else
         return make_Matrix<RC, CC>(cb * mb);

@@ -44,8 +44,8 @@ namespace OpenKalman
     static constexpr double alpha = 0.001;
     /// Factor to compensate for the distribution (beta==2 is optimal for Gaussian distributions).
     static constexpr double beta = 2.0;
-    /// Secondary scaling parameter. Usually 0 for state estimation and 3-dim for parameter estimation.
-    /// This makes it possible to match some of the fourth-order terms when the distribution is Gaussian.
+    /// Secondary scaling parameter. Usually 0 for state estimation and kurtosis-dim for parameter estimation.
+    /// This makes it possible to match some of the fourth-order terms. (For Gaussian, kurtosis = 3).
     template<int dim> static constexpr double kappa = 3 - dim;
   };
 
@@ -79,37 +79,44 @@ namespace OpenKalman
       constexpr auto dsize = std::tuple_size_v<DTuple>;
       constexpr Scalar alpha = Parameters::alpha;
       constexpr Scalar kappa = Parameters::template kappa<dim>;
-      constexpr Scalar gamma2 = alpha * alpha * (kappa + dim);
-      const auto delta = make_Mean<Coeffs>(strict_matrix(square_root(OpenKalman::covariance(d) * gamma2)));
+      constexpr Scalar gamma_L = alpha * alpha * (kappa + dim);
+      const auto delta = make_Matrix<Coeffs, Axes<dim_i>>(strict_matrix(square_root(gamma_L * covariance(d))));
+      //
       using M0base = typename MatrixTraits<typename DistributionTraits<D>::Mean>::template StrictMatrix<dim_i, 1>;
-      const auto m0 = Mean<Coeffs, M0base>::zero();
+      const auto m0 = TypedMatrix<Coeffs, Axis, M0base>::zero();
       if constexpr(dsize == 1)
       {
-        return std::tuple {concatenate_horizontal(m0, delta, -delta)};
+        auto ret = concatenate_horizontal(m0, delta, -delta);
+        static_assert(MatrixTraits<decltype(ret)>::columns == count);
+        return std::tuple {std::move(ret)};
       }
       else if constexpr (i == 0)
       {
         constexpr auto width = count - (pos + size);
         using MRbase = typename MatrixTraits<typename DistributionTraits<D>::Mean>::template StrictMatrix<dim_i, width>;
-        const auto mright = Mean<Coeffs, MRbase>::zero();
-        const auto ret = concatenate_horizontal(m0, delta, -delta, mright);
-        return std::tuple_cat(std::tuple {ret}, sigma_points_impl<i + 1, pos + size, dim>(dtuple));
+        const auto mright = TypedMatrix<Coeffs, Axes<width>, MRbase>::zero();
+        auto ret = concatenate_horizontal(m0, delta, -delta, mright);
+        static_assert(MatrixTraits<decltype(ret)>::columns == count);
+        return std::tuple_cat(std::tuple {std::move(ret)}, sigma_points_impl<i + 1, pos + size, dim>(dtuple));
       }
       else if constexpr (i < dsize - 1)
       {
         using MLbase = typename MatrixTraits<typename DistributionTraits<D>::Mean>::template StrictMatrix<dim_i, pos>;
-        const auto mleft = Mean<Coeffs, MLbase>::zero();
-        constexpr auto width = count - (pos + size);
+        const auto mleft = TypedMatrix<Coeffs, Axes<pos>, MLbase>::zero();
+        constexpr auto width = count - (pos + 2*dim_i);
         using MRbase = typename MatrixTraits<typename DistributionTraits<D>::Mean>::template StrictMatrix<dim_i, width>;
-        const auto mright = Mean<Coeffs, MRbase>::zero();
-        const auto ret = concatenate_horizontal(mleft, m0, delta, -delta, mright);
-        return std::tuple_cat(std::tuple {ret}, sigma_points_impl<i + 1, pos + size, dim>(dtuple));
+        const auto mright = TypedMatrix<Coeffs, Axes<width>, MRbase>::zero();
+        auto ret = concatenate_horizontal(mleft, delta, -delta, mright);
+        static_assert(MatrixTraits<decltype(ret)>::columns == count);
+        return std::tuple_cat(std::tuple {std::move(ret)}, sigma_points_impl<i + 1, pos + 2*dim_i, dim>(dtuple));
       }
       else
       {
         using MLbase = typename MatrixTraits<typename DistributionTraits<D>::Mean>::template StrictMatrix<dim_i, pos>;
-        const auto mleft = Mean<Coeffs, MLbase>::zero();
-        return std::tuple {concatenate_horizontal(mleft, m0, delta, -delta)};
+        const auto mleft = TypedMatrix<Coeffs, Axes<pos>, MLbase>::zero();
+        auto ret = concatenate_horizontal(mleft, delta, -delta);
+        static_assert(MatrixTraits<decltype(ret)>::columns == count);
+        return std::tuple {std::move(ret)};
       }
     }
 
@@ -125,7 +132,11 @@ namespace OpenKalman
     sigma_points(const Dist& ...ds)
     {
       constexpr auto dim = (DistributionTraits<Dist>::dimension + ...);
-      return sigma_points_impl<0, 0, dim>(std::tuple {ds...});
+      auto temp = sigma_points_impl<0, 0, dim>(std::tuple {ds...});
+      std::cout << "Unscented sample points0" << std::endl << std::get<0>(temp) << std::endl;
+      if constexpr(sizeof...(Dist) > 1)
+        std::cout << "Unscented sample points1" << std::endl << std::get<1>(temp) << std::endl;
+      return temp;
     }
 
   protected:
@@ -138,7 +149,7 @@ namespace OpenKalman
     unscaled_W0()
     {
       constexpr Scalar kappa = Parameters::template kappa<dim>;
-      return kappa / (kappa + dim);
+      return kappa / (dim + kappa);
     }
 
     template<std::size_t dim, typename Scalar = double>
@@ -146,7 +157,7 @@ namespace OpenKalman
     unscaled_W()
     {
       constexpr Scalar kappa = Parameters::template kappa<dim>;
-      return 0.5 / (kappa + dim);
+      return 0.5 / (dim + kappa);
     }
 
   };

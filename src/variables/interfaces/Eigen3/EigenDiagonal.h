@@ -645,10 +645,10 @@ namespace OpenKalman
   constexpr decltype(auto) operator*(Arg1&& arg1, Arg2&& arg2)
   {
     static_assert(MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::dimension);
-    constexpr auto rows = MatrixTraits<Arg1>::dimension;
-    constexpr auto cols = MatrixTraits<Arg2>::columns;
-    using B = typename MatrixTraits<Arg1>::template StrictMatrix<rows, cols>;
-    return EigenZero<B>();
+    if constexpr(is_zero_v<Arg1>)
+      return std::forward<Arg1>(arg1);
+    else
+      return std::forward<Arg2>(arg2);
   }
 
 
@@ -664,11 +664,11 @@ namespace OpenKalman
     static_assert(MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::dimension);
     if constexpr(is_EigenDiagonal_v<Arg1>)
     {
-      return std::forward<Arg1>(arg1).base_matrix().asDiagonal() * std::forward<Arg2>(arg2);
+      return strict(std::forward<Arg1>(arg1).base_matrix().asDiagonal() * std::forward<Arg2>(arg2));
     }
     else
     {
-      return std::forward<Arg1>(arg1) * std::forward<Arg2>(arg2).base_matrix().asDiagonal();
+      return strict(std::forward<Arg1>(arg1) * std::forward<Arg2>(arg2).base_matrix().asDiagonal());
     }
   }
 

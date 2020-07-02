@@ -22,7 +22,6 @@ namespace Eigen::internal
     {
       Flags = (Coefficients::axes_only ? Base::Flags : Base::Flags & ~LvalueBit),
     };
-
     explicit evaluator(const XprType& m) : Base(m.base_matrix()) {}
   };
 

@@ -416,7 +416,7 @@ namespace OpenKalman
   inline auto
   make_Covariance(Arg&& arg) noexcept
   {
-    static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, typename MatrixTraits<Arg>::ColumnCoefficients>);
+    static_assert(is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, typename MatrixTraits<Arg>::ColumnCoefficients>);
     using C = typename MatrixTraits<Arg>::RowCoefficients;
     if constexpr(is_covariance_base_v<typename MatrixTraits<Arg>::BaseMatrix>)
       return make_Covariance<C>(base_matrix(std::forward<Arg>(arg)));

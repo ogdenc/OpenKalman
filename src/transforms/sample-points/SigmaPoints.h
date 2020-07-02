@@ -41,7 +41,7 @@ namespace OpenKalman
   struct SigmaPoints
   {
   private:
-    template<std::size_t, typename Scalar>
+    template<std::size_t i, typename Scalar>
     static constexpr auto cat_dummy_function(const Scalar w) { return w; };
 
     template<std::size_t dim, typename Weights, typename Scalar, std::size_t ... ints>
@@ -49,8 +49,7 @@ namespace OpenKalman
     {
       constexpr Scalar w = SigmaPointsType::template W<dim, Scalar>();
       constexpr auto count = sizeof...(ints) + 1;
-      using B = typename MatrixTraits<Weights>::BaseMatrix;
-      return TypedMatrix<Axes<count>, Axis, B> {w0, cat_dummy_function<ints>(w)...};
+      return Weights {w0, cat_dummy_function<ints>(w)...};
     };
 
   protected:
@@ -61,8 +60,8 @@ namespace OpenKalman
     {
       using Scalar = typename MatrixTraits<Weights>::Scalar;
       constexpr auto count = SigmaPointsType::template sigma_point_count<dim>() - 1;
-      constexpr auto W0 = SigmaPointsType::template W_m0<dim, Scalar>();
-      return cat_weights<dim, Weights>(W0, std::make_index_sequence<count>());
+      constexpr auto w0 = SigmaPointsType::template W_m0<dim, Scalar>();
+      return cat_weights<dim, Weights>(w0, std::make_index_sequence<count>());
     };
 
     template<std::size_t dim, typename Weights>
@@ -70,14 +69,14 @@ namespace OpenKalman
     {
       using Scalar = typename MatrixTraits<Weights>::Scalar;
       constexpr auto count = SigmaPointsType::template sigma_point_count<dim>() - 1;
-      constexpr auto W0 = SigmaPointsType::template W_c0<dim, Scalar>();
-      return cat_weights<dim, Weights>(W0, std::make_index_sequence<count>());
+      constexpr auto w0 = SigmaPointsType::template W_c0<dim, Scalar>();
+      return cat_weights<dim, Weights>(w0, std::make_index_sequence<count>());
     };
 
   public:
     /**
      * @brief Scale and translate normalized sample points based on mean and (square root) covariance.
-     * @return A matrix of sample points (each sample point in a column).
+     * @return A tuple of matrices of sample points (each sample point in a column).
      */
     template<typename...Dist, std::enable_if_t<std::conjunction_v<is_Gaussian_distribution<Dist>...>, int> = 0>
     static auto
@@ -86,7 +85,7 @@ namespace OpenKalman
       return SigmaPointsType::template sigma_points(ds...);
     }
 
-    template<size_t dim, typename Arg, std::enable_if_t<is_typed_matrix_v<Arg>, int> = 0>
+    template<size_t dim, typename Arg, std::enable_if_t<is_Euclidean_mean_v<Arg>, int> = 0>
     static auto
     weighted_means(const Arg& y_means)
     {
@@ -94,8 +93,8 @@ namespace OpenKalman
       static_assert(not is_Euclidean_transformed_v<Arg>);
       constexpr auto count = MatrixTraits<Arg>::columns;
       static_assert(count == SigmaPointsType::template sigma_point_count<dim>(), "Wrong number of sigma points.");
-      using Weights = Mean<Axes<count>, typename MatrixTraits<Arg>::template StrictMatrix<count, 1>>;
-      return strict(y_means * mean_weights<dim, Weights>());
+      using Weights = TypedMatrix<Axes<count>, Axis, typename MatrixTraits<Arg>::template StrictMatrix<count, 1>>;
+      return strict(from_Euclidean(y_means * mean_weights<dim, Weights>()));
     }
 
     template<typename InputDist, typename ... NoiseDist, typename X, typename Y>
@@ -103,10 +102,12 @@ namespace OpenKalman
     covariance(const X& x_deviations, const Y& y_deviations)
     {
       static_assert(is_typed_matrix_v<X> and is_typed_matrix_v<Y>);
+      static_assert(is_equivalent_v<typename MatrixTraits<X>::RowCoefficients,
+        typename DistributionTraits<InputDist>::Coefficients>);
       constexpr auto dim = (DistributionTraits<InputDist>::dimension + ... + DistributionTraits<NoiseDist>::dimension);
       constexpr auto count = MatrixTraits<X>::columns;
       static_assert(count == MatrixTraits<Y>::columns);
-      using Weights = Mean<Axes<count>, typename MatrixTraits<X>::template StrictMatrix<count, 1>>;
+      using Weights = TypedMatrix<Axes<count>, Axis, typename MatrixTraits<X>::template StrictMatrix<count, 1>>;
       auto weights = covariance_weights<dim, Weights>();
       if constexpr(is_Cholesky_v<InputDist>)
       {
@@ -117,10 +118,10 @@ namespace OpenKalman
         {
           // Discard first weight and first y-deviation column for now, since square root of weight would be negative.
           const auto [y_deviations_head, y_deviations_tail] = split_horizontal<1, count - 1>(y_deviations);
-          const auto [weights_head, weights_tail] = split_vertical<1, count - 1>(weights);
+          const auto [weights_head, weights_tail] = split_vertical<Axis, Axes<count - 1>>(weights);
           const auto sqrt_weights_tail = apply_coefficientwise(weights_tail, [](const auto x){ return std::sqrt(x); });
           auto out_covariance = LQ_decomposition(y_deviations_tail * to_diagonal(sqrt_weights_tail));
-          rankUpdate(out_covariance, y_deviations_head, W_c0); ///< Factor back in the first weight, using a rank update.
+          rank_update(out_covariance, y_deviations_head, W_c0); ///< Factor back in the first weight, using a rank update.
           auto cross_covariance = strict(x_deviations * to_diagonal(weights) * adjoint(y_deviations));
           return std::tuple{std::move(out_covariance), std::move(cross_covariance)};
         }

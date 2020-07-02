@@ -106,7 +106,7 @@ namespace OpenKalman
     static_assert(not is_Euclidean_transformed_v<Arg>);
     using C = typename MatrixTraits<Arg>::RowCoefficients;
     auto b = to_diagonal(base_matrix(std::forward<Arg>(arg)));
-    return Covariance<C, decltype(b)>(std::move(b));
+    return TypedMatrix<C, C, decltype(b)>(std::move(b));
   }
 
 

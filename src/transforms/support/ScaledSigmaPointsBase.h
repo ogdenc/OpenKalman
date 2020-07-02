@@ -28,22 +28,6 @@ namespace OpenKalman::internal
   struct ScaledSigmaPointsBase
   {
     /**
-     * Weight for each sigma point other than the first one, when calculating posterior mean and covariance.
-     * See Julier Eq. 15 (not Eq. 24, which appears to be wrong), Eq. 27.
-     * @tparam dim Number of dimensions of the input variables (including noise).
-     * @tparam Scalar Scalar type (e.g., double).
-     * @return Weights for each sigma point.
-     */
-    template<std::size_t dim, typename Scalar = double>
-    static constexpr Scalar
-    W()
-    {
-      constexpr Scalar alpha = Parameters::alpha;
-      constexpr Scalar W0 = Derived::template unscaled_W0<dim, Scalar>();
-      return W0 / (alpha * alpha);
-    };
-
-    /**
      * Weight for the first sigma point when calculating the posterior mean.
      * See Julier Eq. 15 (not Eq. 24, which appears to be wrong).
      * @tparam dim Number of dimensions of the input variables (including noise).
@@ -72,9 +56,24 @@ namespace OpenKalman::internal
     {
       constexpr Scalar alpha = Parameters::alpha;
       constexpr Scalar beta = Parameters::beta;
-      return 1 + beta - alpha * alpha;
+      return W_m0<dim, Scalar>() + 1 - alpha * alpha + beta;
     };
 
+    /**
+     * Weight for each sigma point other than the first one, when calculating posterior mean and covariance.
+     * See Julier Eq. 15 (not Eq. 24, which appears to be wrong), Eq. 27.
+     * @tparam dim Number of dimensions of the input variables (including noise).
+     * @tparam Scalar Scalar type (e.g., double).
+     * @return Weights for each sigma point.
+     */
+    template<std::size_t dim, typename Scalar = double>
+    static constexpr Scalar
+    W()
+    {
+      constexpr Scalar alpha = Parameters::alpha;
+      constexpr Scalar W0 = Derived::template unscaled_W<dim, Scalar>();
+      return W0 / (alpha * alpha);
+    };
 
   };
 

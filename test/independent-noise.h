@@ -21,15 +21,11 @@
 
 using namespace OpenKalman;
 
-template<
-    template<typename, typename, typename> typename Dist,
-    typename Coeffs,
-    typename Arg1,
-    typename Arg2>
-struct IndependentNoise : public std::function<const Dist<Coeffs, Arg1, Arg2>()>
+template<typename Dist>
+struct IndependentNoise : public std::function<const Dist()>
 {
-  using Scalar = typename Arg1::Scalar;
-  using D = Dist<Coeffs, Arg1, Arg2>;
+  using Scalar = typename DistributionTraits<Dist>::Scalar;
+  using Coeffs = typename DistributionTraits<Dist>::Coefficients;
   using M = typename MatrixTraits<Arg1>::template StrictMatrix<>;
   using Cov = typename MatrixTraits<Arg2>::template StrictMatrix<>;
 
@@ -38,7 +34,7 @@ struct IndependentNoise : public std::function<const Dist<Coeffs, Arg1, Arg2>()>
         {
           const Mean<Coeffs, M> x {Eigen::Matrix<Scalar, Coeffs::size, 1>::Random().cwiseAbs()};
           const auto L = EigenTriangularMatrix(Eigen::Matrix<Scalar, Coeffs::size, Coeffs::size>::Random().cwiseAbs());
-          return D {GaussianDistribution(x, L) * std::sqrt(factor)};
+          return Dist {GaussianDistribution(x, L) * std::sqrt(factor)};
         }} {}
 
 };

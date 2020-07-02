@@ -11,17 +11,8 @@
 #ifndef LINEAR_TESTS_H
 #define LINEAR_TESTS_H
 
-#include <iostream>
-#include <random>
-
-#include <Eigen/Dense>
-
-#include <gtest/gtest.h>
-
 #include "../tests.h"
 #include "../independent-noise.h"
-#include "distributions/GaussianDistribution.h"
-#include "transforms/classes/SamplePointsTransform.h"
 
 using namespace OpenKalman;
 

@@ -88,9 +88,8 @@ add_test(transform-linear-tests 0)
 add_executable(transform-nonlinear-tests
         transform-nonlinear-tests/transform-nonlinear-tests.cpp
         transform-nonlinear-tests/tests-sample.cpp
-        transform-nonlinear-tests/tests-sample-angle.cpp
         transform-nonlinear-tests/tests-sample-aug.cpp
-        transform-nonlinear-tests/tests-sample-aug-angle.cpp
+        transform-nonlinear-tests/tests-sample-angle.cpp
         )
 target_link_libraries(transform-nonlinear-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)
 add_test(transform-nonlinear-tests 0)
