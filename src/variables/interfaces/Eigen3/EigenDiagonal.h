@@ -466,14 +466,14 @@ namespace OpenKalman
     typename ReturnType,
     template<typename Scalar> typename distribution_type = std::normal_distribution,
     typename random_number_engine = std::mt19937,
-    typename...S,
-    std::enable_if_t<OpenKalman::is_EigenDiagonal_v<ReturnType> and sizeof...(S) <= 1 and
-      std::conjunction_v<std::is_convertible<S, const typename MatrixTraits<ReturnType>::Scalar>...>, int> = 0>
+    typename...Params,
+    std::enable_if_t<is_EigenDiagonal_v<ReturnType>, int> = 0>
   static auto
-  randomize(S...sigma)
+  randomize(Params...params)
   {
+    using Scalar = typename MatrixTraits<ReturnType>::Scalar;
     using B = typename MatrixTraits<ReturnType>::BaseMatrix;
-    return MatrixTraits<ReturnType>::make(randomize<B, distribution_type, random_number_engine>(sigma...));
+    return MatrixTraits<ReturnType>::make(randomize<B, distribution_type, random_number_engine>(params...));
   }
 
 

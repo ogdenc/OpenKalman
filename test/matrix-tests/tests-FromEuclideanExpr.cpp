@@ -166,7 +166,7 @@ TEST_F(matrix_tests, FromEuclideanExpr_overloads)
   auto offset = Eigen::Matrix<double, 4, 2>::Constant(1);
   for (int i=0; i<100; i++)
   {
-    m = (m * i + offset + to_Euclidean(randomize<From4>(0.7))) / (i + 1);
+    m = (m * i + offset + to_Euclidean(randomize<From4>(0.0, 0.7))) / (i + 1);
   }
   EXPECT_TRUE(is_near(m, offset, 0.1));
   EXPECT_FALSE(is_near(m, offset, 1e-6));

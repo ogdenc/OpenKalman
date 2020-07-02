@@ -266,7 +266,7 @@ TEST_F(typed_matrix_tests, EuclideanMean_overloads)
   Mat23 m = Mat23::zero();
   for (int i=0; i<100; i++)
   {
-    m = (m * i + randomize<Mat23>(0.3)) / (i + 1);
+    m = (m * i + randomize<Mat23>(0.0, 0.3)) / (i + 1);
   }
   Mat23 offset = {1, 1, 1, 1, 1, 1, 1, 1, 1};
   EXPECT_TRUE(is_near(m + offset, offset, 0.1));

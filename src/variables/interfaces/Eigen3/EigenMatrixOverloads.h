@@ -703,13 +703,14 @@ namespace OpenKalman
 
   namespace detail
   {
-    template<typename Scalar, template<typename> typename distribution_type, typename random_number_engine>
+    template<typename Scalar, template<typename> typename distribution_type, typename random_number_engine,
+      typename...Params>
     static auto
-    get_rnd()
+    get_rnd(Params...params)
     {
       static std::random_device rd;
       static random_number_engine rng {rd()};
-      static distribution_type<Scalar> dist;
+      static distribution_type<Scalar> dist(params...);
       return dist(rng);
     }
   }
@@ -721,17 +722,16 @@ namespace OpenKalman
    **/
   template<
     typename ReturnType,
-    template<typename> typename distribution_type = std::normal_distribution,
+    template<typename Scalar> typename distribution_type = std::normal_distribution,
     typename random_number_engine = std::mt19937,
-    typename...S,
-    std::enable_if_t<is_Eigen_matrix_v<ReturnType> and sizeof...(S) <= 1 and
-      std::conjunction_v<std::is_convertible<S, const typename MatrixTraits<ReturnType>::Scalar>...>, int> = 0>
+    typename...Params,
+    std::enable_if_t<is_Eigen_matrix_v<ReturnType>, int> = 0>
   inline auto
-  randomize(S...sigma)
+  randomize(Params...params)
   {
     using Scalar = typename MatrixTraits<ReturnType>::Scalar;
     return strict(ReturnType::NullaryExpr([&](auto) {
-      return (detail::get_rnd<Scalar, distribution_type, random_number_engine>() * ... * sigma);
+      return detail::get_rnd<Scalar, distribution_type, random_number_engine>(params...);
     }));
   }
 
