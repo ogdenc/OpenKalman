@@ -26,32 +26,19 @@ struct linear_tests : public ::testing::Test
 
   ~linear_tests() override {}
 
-  template<
-    template<typename, typename, typename, NoiseType, typename...> typename Transformation,
-    template<template<typename, typename> typename, typename, typename, typename, NoiseType, typename...> typename Transform,
-    template<typename, typename> typename Dist,
-    typename Scalar,
-    typename InCoeff,
-    typename OutCoeff,
-    NoiseType noise_type,
-    typename ... order,
-    typename ... Noise>
+  template<typename TransformationMatrix, typename Transform, typename InputDist, typename ... Noise>
   void run_linear_tests(
-    const Transform<Dist, Scalar, InCoeff, OutCoeff, noise_type, Noise...>& t,
-    const Transformation<Scalar, InCoeff, OutCoeff, noise_type, order...>& g,
-    const Dist<Scalar, InCoeff>& in,
-    const Mean<Scalar, OutCoeff, InCoeff::size>& A,
+    const TransformationMatrix& a,
+    const Transform& t,
+    const InputDist& in,
     const Noise& ... noise)
   {
-    const auto X = mean(in);
-    const auto P = covariance(in);
-    const auto Y = g(X, mean(noise)...);
-    const Eigen::Matrix<Scalar, InCoeff::size, OutCoeff::size> XY = P*A.adjoint();
-    const Covariance YY_ {A*XY};
-    const auto YY = (YY_ + ... + covariance(noise));
-    const auto out_d_true = Dist<Scalar, OutCoeff> {GaussianDistribution<Scalar, OutCoeff> {Y, YY}};
-    const std::tuple out_true {out_d_true, XY};
-
+    const auto x = mean(in);
+    const auto p = covariance(in);
+    const auto y = g(x, mean(noise)...);
+    const auto cross_cov = p*adjoint(a);
+    const auto cov = (Covariance {a*cross_cov} + ... + covariance(noise));
+    const std::tuple out_true {GaussianDistribution {y, cov}, cross_cov};
     EXPECT_TRUE(is_near(t(in, noise...), out_true));
   }
 

@@ -48,7 +48,9 @@ TEST_F(transformation_tests, linear)
   a << 1, 2, 3, 4;
   LinearTransformation t {a};
   EXPECT_TRUE(is_near(t(M2(1, 2)), M2(5, 11)));
+  EXPECT_TRUE(is_near(t(M2(1, 2), M2(1, 1)), M2(6, 12)));
   EXPECT_TRUE(is_near(std::get<0>(t.jacobian(M2(1, 2))), a));
+  EXPECT_TRUE(is_near(std::get<1>(t.jacobian(M2(1, 2), M2(1, 1))), M2::identity()));
 }
 
 TEST_F(transformation_tests, linearized)
@@ -65,7 +67,7 @@ TEST_F(transformation_tests, linear_additive)
 {
   A_int a;
   a << 1, 2,
-      3, 4;
+       3, 4;
   LinearTransformation t {a};
   EXPECT_TRUE(is_near(t(M2(2, 3)) + M2(2, 4), M2(10, 22)));
   EXPECT_TRUE(is_near(t(M2(2, 3)), M2(8, 18)));
@@ -78,12 +80,12 @@ TEST_F(transformation_tests, linear_additive)
 TEST_F(transformation_tests, linear_augmented)
 {
   A_int a, an;
-  a << 1, 2,
-    4, 3;
-  an << 3, 4,
-    2, 1;
+  a << 1, 2, 4, 3;
+  an << 3, 4, 2, 1;
   LinearTransformation t1 {a, an};
+  EXPECT_TRUE(is_near(t1(M2(2, 3)), M2(8, 17)));
   EXPECT_TRUE(is_near(t1(M2(2, 3), M2(3, 3)), M2(29, 26)));
+  EXPECT_TRUE(is_near(t1(M2(2, 3), M2(3, 3), M2(1, 1)), M2(30, 27)));
   Transformation<Axes<2>, Axes<2>, decltype(t1)> t2 {t1};
   EXPECT_TRUE(is_near(t2(M2(2, 3), M2(3, 3)), M2(29, 26)));
   EXPECT_TRUE(is_near(std::get<0>(t1.jacobian(M2(2, 3), M2(3, 3))), a));
