@@ -40,6 +40,7 @@ add_executable(matrix-tests
         matrix-tests/tests-ToEuclideanExpr.cpp
         matrix-tests/tests-FromEuclideanExpr.cpp
         )
+set_target_properties(matrix-tests PROPERTIES CXX_STANDARD_REQUIRED ON CXX_STANDARD 17)
 target_link_libraries(matrix-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)
 add_test(matrix-tests 0)
 
@@ -50,6 +51,7 @@ add_executable(typed-matrix-tests
         typed-matrix-tests/tests-mean.cpp
         typed-matrix-tests/tests-euclidean_mean.cpp
         )
+set_target_properties(typed-matrix-tests PROPERTIES CXX_STANDARD_REQUIRED ON CXX_STANDARD 17)
 target_link_libraries(typed-matrix-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)
 add_test(typed-matrix-tests 0)
 
@@ -98,14 +100,13 @@ add_test(transform-nonlinear-tests 0)
 add_executable(linear-tests
         linear-tests/linear-tests.main.cpp
         linear-tests/linear-tests.2x2.cpp
-        linear-tests/linear-tests.2x2.sqrt.cpp
-        linear-tests/linear-tests.2x2.UT.cpp
-        linear-tests/linear-tests.4x2.cubature.cpp
-        linear-tests/linear-tests.4x2.spherical.cpp
-        linear-tests/linear-tests.4x2.symmetric.cpp
-        linear-tests/linear-tests.8x3.cubature.cpp
-        linear-tests/linear-tests.8x3.spherical.cpp
-        linear-tests/linear-tests.8x3.symmetric.cpp
+        #inear-tests/linear-tests.2x2.UT.cpp
+        #linear-tests/linear-tests.4x2.cubature.cpp
+        #linear-tests/linear-tests.4x2.spherical.cpp
+        #linear-tests/linear-tests.4x2.symmetric.cpp
+        #linear-tests/linear-tests.8x3.cubature.cpp
+        #linear-tests/linear-tests.8x3.spherical.cpp
+        #linear-tests/linear-tests.8x3.symmetric.cpp
         )
 target_link_libraries(linear-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)
 add_test(linear-tests 0)

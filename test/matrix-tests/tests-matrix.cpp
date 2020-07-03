@@ -54,16 +54,16 @@ TEST_F(matrix_tests, Eigen_Matrix_overloads)
   //
   using Mat = Eigen::Matrix<double, 3, 1>;
   Mat m;
-  auto offset = Mat::Constant(1);
-  m = randomize<Mat>(0.0);
+  m = randomize<Mat>(0.0, 1.0);
   m = randomize<Mat>(0.0, 0.7);
   m = Mat::Zero();
   for (int i=0; i<100; i++)
   {
-    m = (m * i + offset + randomize<Mat>(0.0, 0.7)) / (i + 1);
+    m = (m * i + randomize<Mat>(1.0, 0.3)) / (i + 1);
   }
+  auto offset = Mat::Constant(1);
   EXPECT_TRUE(is_near(m, offset, 0.1));
-  EXPECT_FALSE(is_near(m, offset, 1e-6));
+  EXPECT_FALSE(is_near(m, offset, 1e-8));
 }
 
 TEST_F(matrix_tests, EigenZero)

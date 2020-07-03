@@ -255,7 +255,8 @@ namespace OpenKalman
     /// @return A random, single-column typed matrix with probability based on the distribution
     auto operator()() const
     {
-      auto norm = randomize<TypedMatrix<Coefficients, Axis, MatrixBase>, std::normal_distribution, random_number_engine>(0.0, 1.0);
+      auto norm = randomize<
+        TypedMatrix<Coefficients, Axis, MatrixBase>, std::normal_distribution, random_number_engine>(0.0, 1.0);
       auto s = SquareRootCovariance {sigma};
       if constexpr(not is_lower_triangular_v<CovarianceBase>)
         return strict(make_Matrix(mu) + transpose(s) * norm);

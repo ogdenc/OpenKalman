@@ -188,11 +188,11 @@ TEST_F(matrix_tests, ToEuclideanExpr_overloads)
       0.5, std::sqrt(3)/2, std::sqrt(2)/2).finished())));
 
   auto m = strict_matrix(MatrixTraits<Eigen::Matrix<double, 3, 2>>::zero());
-  auto offset = Eigen::Matrix<double, 3, 2>::Constant(1);
   for (int i=0; i<100; i++)
   {
-    m = (m * i + offset + from_Euclidean(randomize<To3>(0.0, 0.7))) / (i + 1);
+    m = (m * i + from_Euclidean(randomize<To3>(1.0, 0.3))) / (i + 1);
   }
+  auto offset = Eigen::Matrix<double, 3, 2>::Constant(1);
   EXPECT_TRUE(is_near(m, offset, 0.1));
   EXPECT_FALSE(is_near(m, offset, 1e-6));
 }

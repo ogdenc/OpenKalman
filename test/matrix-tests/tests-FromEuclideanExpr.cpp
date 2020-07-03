@@ -163,11 +163,11 @@ TEST_F(matrix_tests, FromEuclideanExpr_overloads)
     QR_decomposition((Eigen::Matrix<double, 2, 2>() << 1, 2, M_PI/6, M_PI/3).finished())));
 
   auto m = strict_matrix(MatrixTraits<Eigen::Matrix<double, 4, 2>>::zero());
-  auto offset = Eigen::Matrix<double, 4, 2>::Constant(1);
   for (int i=0; i<100; i++)
   {
-    m = (m * i + offset + to_Euclidean(randomize<From4>(0.0, 0.7))) / (i + 1);
+    m = (m * i + to_Euclidean(randomize<From4>(1.0, 0.3))) / (i + 1);
   }
+  auto offset = Eigen::Matrix<double, 4, 2>::Constant(1);
   EXPECT_TRUE(is_near(m, offset, 0.1));
   EXPECT_FALSE(is_near(m, offset, 1e-6));
 }

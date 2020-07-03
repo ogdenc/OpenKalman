@@ -144,11 +144,11 @@ TEST_F(matrix_tests, Diagonal_overloads)
 
   using Mat = EigenDiagonal<Eigen::Matrix<double, 2, 1>>;
   Mat m = MatrixTraits<Mat>::zero();
-  Mat offset = {1, 1};
   for (int i=0; i<100; i++)
   {
-    m = (m * i + offset + randomize<Mat>(0.0, 0.7)) / (i + 1);
+    m = (m * i + randomize<Mat>(1.0, 0.3)) / (i + 1);
   }
+  Mat offset = {1, 1};
   EXPECT_TRUE(is_near(m, offset, 0.1));
   EXPECT_FALSE(is_near(m, offset, 1e-6));
 }

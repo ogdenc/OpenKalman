@@ -496,8 +496,12 @@ namespace OpenKalman
   randomize(Params...params)
   {
     using Scalar = typename MatrixTraits<ReturnType>::Scalar;
+    using Ps = typename distribution_type<Scalar>::param_type;
+    static_assert(std::is_constructible_v<Ps, Params...>,
+      "Parameters params... must be constructor arguments of distribution_type<RealType>::param_type.");
+    auto ps = Ps {params...};
     using B = typename MatrixTraits<ReturnType>::BaseMatrix;
-    return MatrixTraits<ReturnType>::make(randomize<B, distribution_type, random_number_engine>(params...));
+    return MatrixTraits<ReturnType>::make(randomize<B, distribution_type, random_number_engine>(ps));
   }
 
 

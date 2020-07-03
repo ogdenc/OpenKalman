@@ -703,15 +703,14 @@ namespace OpenKalman
 
   namespace detail
   {
-    template<typename Scalar, template<typename> typename distribution_type, typename random_number_engine,
-      typename...Params>
+    template<typename Scalar, template<typename> typename distribution_type, typename random_number_engine>
     static auto
-    get_rnd(Params...params)
+    get_rnd(const typename distribution_type<Scalar>::param_type params)
     {
       static std::random_device rd;
       static random_number_engine rng {rd()};
-      static distribution_type<Scalar> dist(params...);
-      return dist(rng);
+      static distribution_type<Scalar> dist;
+      return dist(rng, params);
     }
   }
 
@@ -722,7 +721,7 @@ namespace OpenKalman
    **/
   template<
     typename ReturnType,
-    template<typename Scalar> typename distribution_type = std::normal_distribution,
+    template<typename> typename distribution_type = std::normal_distribution,
     typename random_number_engine = std::mt19937,
     typename...Params,
     std::enable_if_t<is_Eigen_matrix_v<ReturnType>, int> = 0>
@@ -730,8 +729,12 @@ namespace OpenKalman
   randomize(Params...params)
   {
     using Scalar = typename MatrixTraits<ReturnType>::Scalar;
+    using Ps = typename distribution_type<Scalar>::param_type;
+    static_assert(std::is_constructible_v<Ps, Params...>,
+      "Parameters params... must be constructor arguments of distribution_type<RealType>::param_type.");
+    auto ps = Ps {params...};
     return strict(ReturnType::NullaryExpr([&](auto) {
-      return detail::get_rnd<Scalar, distribution_type, random_number_engine>(params...);
+      return detail::get_rnd<Scalar, distribution_type, random_number_engine>(ps);
     }));
   }
 
