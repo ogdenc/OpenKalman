@@ -1815,8 +1815,8 @@ TEST_F(covariance_tests, Covariance_other_operations)
 {
   EXPECT_TRUE(is_near(-CovSA2l {9, 3, 3, 10}, Mat2 {-9, -3, -3, -10}));
   EXPECT_TRUE(is_near(-CovSA2u {9, 3, 3, 10}, Mat2 {-9, -3, -3, -10}));
-  EXPECT_TRUE(is_near(-CovT2l {9, 3, 3, 10}, Mat2 {-9, -3, -3, -10}));
-  EXPECT_TRUE(is_near(-CovT2u {9, 3, 3, 10}, Mat2 {-9, -3, -3, -10}));
+  //EXPECT_TRUE(is_near(-CovT2l {9, 3, 3, 10}, Mat2 {-9, -3, -3, -10})); // Should not compile.
+  //EXPECT_TRUE(is_near(-CovT2u {9, 3, 3, 10}, Mat2 {-9, -3, -3, -10})); // Should not compile.
   EXPECT_TRUE(is_near(-CovD2 {9, 10}, Mat2 {-9, 0, 0, -10}));
   EXPECT_TRUE(is_near(-covi2, Mat2 {-1, 0, 0, -1}));
   EXPECT_TRUE(is_near(-covz2, Mat2 {0, 0, 0, 0}));

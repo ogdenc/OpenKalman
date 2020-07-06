@@ -46,7 +46,7 @@ namespace OpenKalman
     /// Construct from a compatible triangular matrix object
     template<typename Arg, std::enable_if_t<is_EigenTriangularMatrix_v<Arg>, int> = 0>
     EigenSelfAdjointMatrix(Arg&& arg) noexcept
-      : EigenSelfAdjointMatrix(std::forward<Arg>(arg).Cholesky_square()) {}
+      : EigenSelfAdjointMatrix(Cholesky_square(std::forward<Arg>(arg))) {}
 
     /// Construct from a regular or diagonal matrix object.
     template<typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg> or is_EigenDiagonal_v<Arg>, int> = 0>
@@ -93,7 +93,7 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<is_EigenTriangularMatrix_v<Arg>, int> = 0>
     auto& operator=(Arg&& arg)
     {
-      return operator=(std::forward<Arg>(arg).Cholesky_square());
+      return operator=(Cholesky_square(std::forward<Arg>(arg)));
     }
 
     /// Assign from a regular Eigen matrix. (Uses only the storage triangular part.)
@@ -238,129 +238,6 @@ namespace OpenKalman
       }
     }
 
-
-    auto Cholesky_square() const
-    {
-      static_assert(is_diagonal_v<BaseMatrix> or storage_triangle == TriangleType::diagonal);
-      if constexpr(is_identity_v<BaseMatrix>)
-      {
-        return MatrixTraits<BaseMatrix>::identity();
-      }
-      else if constexpr (is_zero_v<BaseMatrix>)
-      {
-        return MatrixTraits<BaseMatrix>::zero();
-      }
-      else if constexpr(is_EigenDiagonal_v<BaseMatrix>)
-      {
-        return this->base_matrix().square();
-      }
-      else if constexpr (is_1by1_v<BaseMatrix>)
-      {
-        return this->base_matrix().array().square().matrix();
-      }
-      else // if constexpr (not is_diagonal_v<BaseMatrix> and storage_triangle == TriangleType::diagonal)
-      {
-        using M = Eigen::Matrix<Scalar, dimension, 1>;
-        M b = this->base_matrix().diagonal(), ret = (b.array() * b.array()).matrix();
-        return EigenDiagonal(std::move(ret));
-      }
-    }
-
-
-    template<TriangleType triangle_type = storage_triangle>
-    auto Cholesky_factor() const
-    {
-      using M = Eigen::Matrix<Scalar, dimension, dimension>;
-      if constexpr(is_identity_v<BaseMatrix>)
-      {
-        return MatrixTraits<BaseMatrix>::identity();
-      }
-      else if constexpr (is_zero_v<BaseMatrix>)
-      {
-        return MatrixTraits<BaseMatrix>::zero();
-      }
-      else if constexpr (is_EigenDiagonal_v<BaseMatrix>)
-      {
-        return this->base_matrix().square_root();
-      }
-      else if constexpr (is_1by1_v<BaseMatrix>)
-      {
-        return this->base_matrix().cwiseSqrt();
-      }
-      else if constexpr (storage_triangle == TriangleType::diagonal)
-      {
-        using M = Eigen::Matrix<Scalar, dimension, 1>;
-        M b = this->base_matrix().diagonal(), ret = (b.array().sqrt()).matrix();
-        return EigenDiagonal(std::move(ret));
-      }
-      else if constexpr (std::is_same_v<const std::decay_t<BaseMatrix>, const typename Eigen::MatrixBase<std::decay_t<BaseMatrix>>::ConstantReturnType>)
-      {
-        // If base matrix is a positive constant matrix, construct the Cholesky factor using a shortcut.
-        auto s = this->base_matrix().functor()();
-        if (s < Scalar(0))
-        {
-          // Cholesky factors are complex, so throw an exception.
-          throw (std::runtime_error("Cholesky_factor: covariance is indefinite"));
-        }
-        M b;
-        if constexpr(triangle_type == TriangleType::lower)
-        {
-          using Mat = Eigen::Matrix<Scalar, 1, dimension>;
-          Mat mat = Mat::Zero();
-          mat(0, 0) = std::sqrt(s);
-          b.template triangularView<Eigen::Lower>() = mat.template replicate<dimension, 1>();
-        }
-        else
-        {
-          using Mat = Eigen::Matrix<Scalar, dimension, 1>;
-          Mat mat = Mat::Zero();
-          mat(0, 0) = std::sqrt(s);
-          b.template triangularView<Eigen::Upper>() = mat.template replicate<1, dimension>();
-        }
-        return EigenTriangularMatrix<decltype(b), triangle_type>(std::move(b));
-      }
-      else
-      {
-        // For the general case, perform an LLT Cholesky decomposition.
-        M b;
-        auto LL_x = this->base_view().llt();
-        if (LL_x.info() == Eigen::Success)
-        {
-          if constexpr(triangle_type == storage_triangle)
-          {
-            b = std::move(LL_x.matrixLLT());
-          }
-          else
-          {
-            constexpr unsigned int uplo = triangle_type == TriangleType::upper ? Eigen::Upper : Eigen::Lower;
-            b.template triangularView<uplo>() = LL_x.matrixLLT().adjoint();
-          }
-        }
-        else //[[unlikely]] // C++20
-        {
-          // If covariance is not positive definite, use the more robust LDLT decomposition.
-          auto LDL_x = this->base_view().ldlt();
-          if ((not LDL_x.isPositive() and not LDL_x.isNegative()) or LDL_x.info() != Eigen::Success) //[[unlikely]] // C++20
-          {
-            // Covariance is indefinite, so throw an exception.
-            throw (std::runtime_error("Cholesky_factor: covariance is indefinite"));
-          }
-          if constexpr(triangle_type == TriangleType::lower)
-          {
-            b.template triangularView<Eigen::Lower>() =
-              LDL_x.matrixL().toDenseMatrix() * LDL_x.vectorD().cwiseSqrt().asDiagonal();
-          }
-          else
-          {
-            b.template triangularView<Eigen::Upper>() =
-              LDL_x.vectorD().cwiseSqrt().asDiagonal() * LDL_x.matrixU().toDenseMatrix();
-          }
-        }
-        return EigenTriangularMatrix<decltype(b), triangle_type>(std::move(b));
-      }
-    }
-
-
     template<typename B, std::enable_if_t<is_Eigen_matrix_v<B>, int> = 0>
     auto solve(const B& b) const
     {
@@ -492,23 +369,6 @@ namespace OpenKalman
   }
 
 
-  template<typename Arg, std::enable_if_t<OpenKalman::is_EigenSelfAdjointMatrix_v<Arg>, int> = 0>
-  inline auto
-  Cholesky_square(Arg&& arg)
-  {
-    static_assert(OpenKalman::is_diagonal_v<Arg>);
-    return std::forward<Arg>(arg).Cholesky_square();
-  }
-
-
-  template<typename Arg, std::enable_if_t<is_EigenSelfAdjointMatrix_v<Arg>, int> = 0>
-  inline auto
-  Cholesky_factor(Arg&& arg)
-  {
-    return std::forward<Arg>(arg).Cholesky_factor();
-  }
-
-
   template<typename Arg, typename U,
     std::enable_if_t<is_EigenSelfAdjointMatrix_v<Arg> and
       (is_Eigen_matrix_v<U> or is_EigenTriangularMatrix_v<U> or is_EigenSelfAdjointMatrix_v<U> or is_EigenDiagonal_v<U>) and
@@ -602,7 +462,7 @@ namespace OpenKalman
   {
     static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
     static_assert(MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns);
-    if constexpr(OpenKalman::is_EigenSelfAdjointMatrix_v<Arg1>)
+    if constexpr(is_EigenSelfAdjointMatrix_v<Arg1>)
     {
       using B = typename MatrixTraits<Arg1>::BaseMatrix;
       return MatrixTraits<Arg1>::make(base_matrix(std::forward<Arg1>(arg1)) + std::forward<Arg2>(arg2));
@@ -622,7 +482,7 @@ namespace OpenKalman
   {
     static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
     static_assert(MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns);
-    if constexpr(OpenKalman::is_EigenSelfAdjointMatrix_v<Arg1>)
+    if constexpr(is_EigenSelfAdjointMatrix_v<Arg1>)
     {
       return std::forward<Arg1>(arg1);
     }
@@ -678,7 +538,7 @@ namespace OpenKalman
   {
     static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
     static_assert(MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns);
-    if constexpr(OpenKalman::is_EigenSelfAdjointMatrix_v<Arg1>)
+    if constexpr(is_EigenSelfAdjointMatrix_v<Arg1>)
     {
       using B = typename MatrixTraits<Arg1>::BaseMatrix;
       return MatrixTraits<Arg1>::make(base_matrix(std::forward<Arg1>(arg1)) - std::forward<Arg2>(arg2));
@@ -698,7 +558,7 @@ namespace OpenKalman
   {
     static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
     static_assert(MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns);
-    if constexpr(OpenKalman::is_EigenSelfAdjointMatrix_v<Arg1>)
+    if constexpr(is_EigenSelfAdjointMatrix_v<Arg1>)
     {
       return std::forward<Arg1>(arg1);
     }
@@ -782,7 +642,7 @@ namespace OpenKalman
   {
     static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
     static_assert(MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns);
-    if constexpr(OpenKalman::is_EigenSelfAdjointMatrix_v<Arg1>)
+    if constexpr(is_EigenSelfAdjointMatrix_v<Arg1>)
     {
       return std::forward<Arg1>(arg1);
     }

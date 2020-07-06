@@ -39,6 +39,12 @@ namespace OpenKalman::internal
     /// Default constructor.
     TypedMatrixBase() : Base() {}
 
+    /// Copy constructor.
+    TypedMatrixBase(const TypedMatrixBase& other) : Base(other.base_matrix()) {}
+
+    /// Move constructor.
+    TypedMatrixBase(TypedMatrixBase&& other) noexcept : Base(std::move(other).base_matrix()) {}
+
     /// Construct from a typed matrix base.
     template<typename Arg, std::enable_if_t<is_typed_matrix_base_v<Arg>, int> = 0>
     TypedMatrixBase(Arg&& arg) noexcept : Base(std::forward<Arg>(arg))

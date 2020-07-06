@@ -12,7 +12,6 @@
 #define OPENKALMAN_SQUAREROOTCOVARIANCE_H
 
 #include <initializer_list>
-#include "variables/support/CovarianceBase.h"
 
 namespace OpenKalman
 {
@@ -26,7 +25,7 @@ namespace OpenKalman
     static constexpr auto dimension = MatrixTraits<BaseMatrix>::dimension;
     using Base = internal::CovarianceBase<SquareRootCovariance, ArgType>;
     static constexpr TriangleType triangle_type =
-      OpenKalman::triangle_type_of_v<typename MatrixTraits<BaseMatrix>::template TriangularBaseType<>>;
+      triangle_type_of_v<typename MatrixTraits<BaseMatrix>::template TriangularBaseType<>>;
 
   protected:
     using TBaseType = std::conditional_t<is_diagonal_v<BaseMatrix>, BaseMatrix,
@@ -57,7 +56,7 @@ namespace OpenKalman
     template<typename M, std::enable_if_t<is_covariance_v<M>, int> = 0>
     SquareRootCovariance(M&& m) noexcept : Base(internal::convert_base_matrix<BaseMatrix>(std::forward<M>(m)))
     {
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<M>::Coefficients, Coefficients>);
+      static_assert(is_equivalent_v<typename MatrixTraits<M>::Coefficients, Coefficients>);
       using MBase = typename MatrixTraits<M>::BaseMatrix;
       static_assert(not is_square_root_v<M> or is_self_adjoint_v<MBase> or is_self_adjoint_v<BaseMatrix> or
           is_upper_triangular_v<BaseMatrix> == is_upper_triangular_v<MBase>,
@@ -80,11 +79,11 @@ namespace OpenKalman
     SquareRootCovariance(M&& m) noexcept
       : Base(MatrixTraits<TBaseType>::make(OpenKalman::base_matrix(std::forward<M>(m))))
     {
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<M>::RowCoefficients, Coefficients>);
+      static_assert(is_equivalent_v<typename MatrixTraits<M>::RowCoefficients, Coefficients>);
       if constexpr(is_diagonal_v<BaseMatrix>)
         static_assert(MatrixTraits<M>::columns == 1);
       else
-        static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<M>::ColumnCoefficients, Coefficients>);
+        static_assert(is_equivalent_v<typename MatrixTraits<M>::ColumnCoefficients, Coefficients>);
     }
 
     /// Construct from a typed matrix base (assumed to be triangular).
@@ -104,14 +103,22 @@ namespace OpenKalman
     /// Copy assignment operator.
     auto& operator=(const SquareRootCovariance& other)
     {
-      if (this != &other) base_matrix() = other.base_matrix();
+      if (this != &other)
+      {
+        this->mark_changed();
+        base_matrix() = other.base_matrix();
+      }
       return *this;
     }
 
     /// Move assignment operator.
     auto& operator=(SquareRootCovariance&& other) noexcept
     {
-      if (this != &other) base_matrix() = std::move(other).base_matrix();
+      if (this != &other)
+      {
+        this->mark_changed();
+        base_matrix() = std::move(other).base_matrix();
+      }
       return *this;
     }
 
@@ -119,7 +126,7 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<is_covariance_v<Arg>, int> = 0>
     auto& operator=(Arg&& other) noexcept
     {
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::Coefficients, Coefficients>);
+      static_assert(is_equivalent_v<typename MatrixTraits<Arg>::Coefficients, Coefficients>);
       using ArgBase = typename MatrixTraits<Arg>::BaseMatrix;
       static_assert(not is_square_root_v<Arg> or is_self_adjoint_v<ArgBase> or is_self_adjoint_v<BaseMatrix> or
         is_upper_triangular_v<BaseMatrix> == is_upper_triangular_v<ArgBase>,
@@ -127,6 +134,7 @@ namespace OpenKalman
           "covariance, and vice versa. To convert, use adjoint().");
       if constexpr (std::is_same_v<std::decay_t<Arg>, SquareRootCovariance>) if (this == &other) return *this;
       base_matrix() = internal::convert_base_matrix<BaseMatrix>(std::forward<Arg>(other));
+      this->mark_changed();
       return *this;
     }
 
@@ -134,10 +142,10 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<is_covariance_v<Arg>, int> = 0>
     auto& operator+=(Arg&& arg)
     {
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::Coefficients, Coefficients>);
-      static_assert(OpenKalman::is_square_root_v<Arg>);
-      static_assert(is_upper_triangular_v<SquareRootCovariance> == OpenKalman::is_upper_triangular_v<Arg>);
-      if constexpr(OpenKalman::is_triangular_v<BaseMatrix>)
+      static_assert(is_equivalent_v<typename MatrixTraits<Arg>::Coefficients, Coefficients>);
+      static_assert(is_square_root_v<Arg>);
+      static_assert(is_upper_triangular_v<SquareRootCovariance> == is_upper_triangular_v<Arg>);
+      if constexpr(is_triangular_v<BaseMatrix>)
       {
         base_matrix() += internal::convert_base_matrix<BaseMatrix>(std::forward<Arg>(arg));
       }
@@ -147,6 +155,7 @@ namespace OpenKalman
           internal::convert_base_matrix<TBaseType>(std::forward<Arg>(arg));
         base_matrix() = Cholesky_square(sum);
       }
+      this->mark_changed();
       return *this;
     }
 
@@ -154,10 +163,10 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<is_covariance_v<Arg>, int> = 0>
     auto& operator-=(Arg&& arg)
     {
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::Coefficients, Coefficients>);
-      static_assert(OpenKalman::is_square_root_v<Arg>);
-      static_assert(is_upper_triangular_v<SquareRootCovariance> == OpenKalman::is_upper_triangular_v<Arg>);
-      if constexpr(OpenKalman::is_triangular_v<BaseMatrix>)
+      static_assert(is_equivalent_v<typename MatrixTraits<Arg>::Coefficients, Coefficients>);
+      static_assert(is_square_root_v<Arg>);
+      static_assert(is_upper_triangular_v<SquareRootCovariance> == is_upper_triangular_v<Arg>);
+      if constexpr(is_triangular_v<BaseMatrix>)
       {
         base_matrix() -= internal::convert_base_matrix<BaseMatrix>(std::forward<Arg>(arg));
       }
@@ -167,13 +176,14 @@ namespace OpenKalman
           internal::convert_base_matrix<TBaseType>(std::forward<Arg>(arg));
         base_matrix() = Cholesky_square(diff);
       }
+      this->mark_changed();
       return *this;
     }
 
     template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
     auto& operator*=(const S s)
     {
-      if constexpr(OpenKalman::is_triangular_v<BaseMatrix>)
+      if constexpr(is_triangular_v<BaseMatrix>)
       {
         base_matrix() *= s;
       }
@@ -181,13 +191,14 @@ namespace OpenKalman
       {
         base_matrix() *= static_cast<Scalar>(s) * s;
       }
+      this->mark_changed();
       return *this;
     }
 
     template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
     auto& operator/=(const S s)
     {
-      if constexpr(OpenKalman::is_triangular_v<BaseMatrix>)
+      if constexpr(is_triangular_v<BaseMatrix>)
       {
         base_matrix() /= s;
       }
@@ -195,16 +206,17 @@ namespace OpenKalman
       {
         base_matrix() /= static_cast<Scalar>(s) * s;
       }
+      this->mark_changed();
       return *this;
     }
 
-    /// Warning: This is computationally expensive unless &this and Arg are both the same triangular kind.
+    /// Warning: This is computationally expensive unless *this and Arg are both the same triangular kind.
     template<typename Arg, std::enable_if_t<is_covariance_v<Arg>, int> = 0>
     auto& operator*=(Arg&& arg)
     {
       static_assert(is_square_root_v<Arg> and is_upper_triangular_v<SquareRootCovariance> == is_upper_triangular_v<Arg>,
         "operator*=() requires that both Cholesky-form covariances are of the same triangular kind (both upper or lower).");
-      if constexpr(OpenKalman::is_triangular_v<BaseMatrix> or is_diagonal_v<BaseMatrix>)
+      if constexpr(is_triangular_v<BaseMatrix> or is_diagonal_v<BaseMatrix>)
       {
         base_matrix() *= internal::convert_base_matrix<BaseMatrix>(std::forward<Arg>(arg));
       }
@@ -215,6 +227,7 @@ namespace OpenKalman
           internal::convert_base_matrix<TBaseType>(std::forward<Arg>(arg));
         base_matrix() = Cholesky_square(prod);
       }
+      this->mark_changed();
       return *this;
     }
 
@@ -312,9 +325,9 @@ namespace OpenKalman
     static_assert(MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns);
     constexpr TriangleType template_type = triangle_type_of_v<typename MatrixTraits<Arg>::template TriangularBaseType<>>;
 
-    using B = std::conditional_t<OpenKalman::is_diagonal_v<Arg>,
+    using B = std::conditional_t<is_diagonal_v<Arg>,
       typename MatrixTraits<Arg>::template DiagonalBaseType<>,
-      std::conditional_t<OpenKalman::is_self_adjoint_v<Arg>,
+      std::conditional_t<is_self_adjoint_v<Arg>,
         typename MatrixTraits<Arg>::template SelfAdjointBaseType<template_type>,
         typename MatrixTraits<Arg>::template TriangularBaseType<template_type>>>;
 
@@ -330,9 +343,9 @@ namespace OpenKalman
   {
     static_assert(MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns);
 
-    using B = std::conditional_t<OpenKalman::is_diagonal_v<Arg>,
+    using B = std::conditional_t<is_diagonal_v<Arg>,
       typename MatrixTraits<Arg>::template DiagonalBaseType<>,
-      std::conditional_t<OpenKalman::is_self_adjoint_v<Arg>,
+      std::conditional_t<is_self_adjoint_v<Arg>,
         typename MatrixTraits<Arg>::template SelfAdjointBaseType<triangle_type>,
         typename MatrixTraits<Arg>::template TriangularBaseType<triangle_type>>>;
 
@@ -405,7 +418,7 @@ namespace OpenKalman
   inline auto
   make_SquareRootCovariance(Arg&& arg) noexcept
   {
-    static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, typename MatrixTraits<Arg>::ColumnCoefficients>);
+    static_assert(is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, typename MatrixTraits<Arg>::ColumnCoefficients>);
     using C = typename MatrixTraits<Arg>::RowCoefficients;
     return make_SquareRootCovariance<C, triangle_type...>(base_matrix(std::forward<Arg>(arg)));
   }
@@ -416,7 +429,7 @@ namespace OpenKalman
   inline auto
   make_SquareRootCovariance()
   {
-    static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, typename MatrixTraits<Arg>::ColumnCoefficients>);
+    static_assert(is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, typename MatrixTraits<Arg>::ColumnCoefficients>);
     using C = typename MatrixTraits<Arg>::RowCoefficients;
     using B = typename MatrixTraits<Arg>::BaseMatrix;
     return make_SquareRootCovariance<C, triangle_type, B>();
@@ -428,7 +441,7 @@ namespace OpenKalman
   inline auto
   make_SquareRootCovariance()
   {
-    static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, typename MatrixTraits<Arg>::ColumnCoefficients>);
+    static_assert(is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, typename MatrixTraits<Arg>::ColumnCoefficients>);
     using C = typename MatrixTraits<Arg>::RowCoefficients;
     using B = typename MatrixTraits<Arg>::BaseMatrix;
     return make_SquareRootCovariance<C, B>();
@@ -440,7 +453,7 @@ namespace OpenKalman
   ////////////////////////////
 
   template<typename Coeffs, typename ArgType>
-  struct MatrixTraits<OpenKalman::SquareRootCovariance<Coeffs, ArgType>>
+  struct MatrixTraits<SquareRootCovariance<Coeffs, ArgType>>
   {
     using BaseMatrix = std::decay_t<ArgType>;
     static constexpr auto dimension = MatrixTraits<BaseMatrix>::dimension;

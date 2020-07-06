@@ -18,10 +18,10 @@ namespace OpenKalman
 {
   /// Convert to strict version of the matrix.
   template<typename Arg, std::enable_if_t<
-    OpenKalman::is_Eigen_matrix_v<Arg> or
-    OpenKalman::is_EigenDiagonal_v<Arg> or
-    OpenKalman::is_EigenSelfAdjointMatrix_v<Arg> or
-    OpenKalman::is_EigenTriangularMatrix_v<Arg>, int> = 0>
+    is_Eigen_matrix_v<Arg> or
+    is_EigenDiagonal_v<Arg> or
+    is_EigenSelfAdjointMatrix_v<Arg> or
+    is_EigenTriangularMatrix_v<Arg>, int> = 0>
   constexpr decltype(auto)
   strict_matrix(Arg&& arg)
   {

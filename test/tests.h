@@ -88,8 +88,8 @@ template<typename Arg1, typename Arg2, typename ... Rest1, typename ... Rest2>
     const std::tuple<Arg2, Rest2...>& B,
     const double e = 1e-6)
 {
-  const Arg1 a = std::get<0>(A);
-  const Arg2 b = std::get<0>(B);
+  auto a = std::get<0>(A);
+  auto b = std::get<0>(B);
   if constexpr (sizeof...(Rest1) == 0)
   {
     return is_near(a, b, e);
@@ -97,9 +97,9 @@ template<typename Arg1, typename Arg2, typename ... Rest1, typename ... Rest2>
   else
   {
     const auto a_tail =
-      std::apply([](const Arg1&, const Rest1& ...rest) -> const std::tuple<Rest1...> { return {rest...}; }, A);
+      std::apply([](auto&&, auto&& ...rest) { return std::tuple {std::forward<decltype(rest)>(rest)...}; }, A);
     const auto b_tail =
-      std::apply([](const Arg2&, const Rest2& ...rest) -> const std::tuple<Rest2...> { return {rest...}; }, B);
+      std::apply([](auto&&, auto&& ...rest) { return std::tuple {std::forward<decltype(rest)>(rest)...}; }, B);
     if (is_near(a, b, e))
     {
       return is_near(a_tail, b_tail, e);

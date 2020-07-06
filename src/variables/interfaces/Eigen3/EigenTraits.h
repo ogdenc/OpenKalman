@@ -34,11 +34,25 @@ namespace Eigen::internal
 
   template<typename Coefficients, typename ArgType>
   struct traits<OpenKalman::Covariance<Coefficients, ArgType>>
-    : traits<std::decay_t<typename OpenKalman::MatrixTraits<ArgType>::BaseMatrix>> {};
+    : traits<std::decay_t<typename OpenKalman::MatrixTraits<ArgType>::BaseMatrix>>
+  {
+    using Nested = std::decay_t<typename OpenKalman::MatrixTraits<ArgType>::BaseMatrix>;
+    enum
+    {
+      Flags = traits<Nested>::Flags & (OpenKalman::is_self_adjoint_v<ArgType> ? ~0 : ~LvalueBit),
+    };
+  };
 
   template<typename Coefficients, typename ArgType>
   struct traits<OpenKalman::SquareRootCovariance<Coefficients, ArgType>>
-    : traits<std::decay_t<typename OpenKalman::MatrixTraits<ArgType>::BaseMatrix>> {};
+    : traits<std::decay_t<typename OpenKalman::MatrixTraits<ArgType>::BaseMatrix>>
+  {
+    using Nested = std::decay_t<typename OpenKalman::MatrixTraits<ArgType>::BaseMatrix>;
+    enum
+    {
+      Flags = traits<Nested>::Flags & (OpenKalman::is_triangular_v<ArgType> ? ~0 : ~LvalueBit),
+    };
+  };
 
   template<typename BaseMatrix, OpenKalman::TriangleType storage_triangle>
   struct traits<OpenKalman::EigenSelfAdjointMatrix<BaseMatrix, storage_triangle>>

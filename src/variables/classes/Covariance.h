@@ -12,7 +12,6 @@
 #define OPENKALMAN_COVARIANCE_H
 
 #include <initializer_list>
-#include "variables/support/CovarianceBase.h"
 
 namespace OpenKalman
 {
@@ -24,7 +23,7 @@ namespace OpenKalman
   struct Covariance
     : internal::CovarianceBase<Covariance<Coeffs, ArgType>, ArgType>
   {
-    static_assert(OpenKalman::is_covariance_base_v<ArgType>);
+    static_assert(is_covariance_base_v<ArgType>);
     using BaseMatrix = ArgType;
     using Coefficients = Coeffs;
     using Scalar = typename MatrixTraits<BaseMatrix>::Scalar;
@@ -33,7 +32,7 @@ namespace OpenKalman
 
   protected:
     static constexpr TriangleType storage_type =
-      OpenKalman::triangle_type_of_v<typename MatrixTraits<BaseMatrix>::template TriangularBaseType<>>;
+      triangle_type_of_v<typename MatrixTraits<BaseMatrix>::template TriangularBaseType<>>;
 
     using SABaseType = std::conditional_t<is_diagonal_v<BaseMatrix>, BaseMatrix,
       typename MatrixTraits<BaseMatrix>::template SelfAdjointBaseType<storage_type>>;
@@ -107,14 +106,22 @@ namespace OpenKalman
     /// Copy assignment operator.
     auto& operator=(const Covariance& other)
     {
-      if (this != &other) base_matrix() = other.base_matrix();
+      if (this != &other)
+      {
+        base_matrix() = other.base_matrix();
+        this->mark_changed();
+      }
       return *this;
     }
 
     /// Move assignment operator.
     auto& operator=(Covariance&& other) noexcept
     {
-      if (this != &other) base_matrix() = std::move(other).base_matrix();
+      if (this != &other)
+      {
+        base_matrix() = std::move(other).base_matrix();
+        this->mark_changed();
+      }
       return *this;
     }
 
@@ -125,6 +132,7 @@ namespace OpenKalman
       static_assert(is_equivalent_v<typename MatrixTraits<Arg>::Coefficients, Coefficients>);
       if constexpr (std::is_same_v<std::decay_t<Arg>, Covariance>) if (this == &other) return *this;
       base_matrix() = internal::convert_base_matrix<BaseMatrix>(std::forward<Arg>(other));
+      this->mark_changed();
       return *this;
     }
 
@@ -146,6 +154,7 @@ namespace OpenKalman
         else
           base_matrix() = LQ_decomposition(concatenate_horizontal(E1, E2));
       }
+      this->mark_changed();
       return *this;
     }
 
@@ -164,6 +173,7 @@ namespace OpenKalman
         const auto U = internal::convert_base_matrix<TLowerType>(std::forward<Arg>(arg));
         rank_update(base_matrix(), U, Scalar(-1));
       }
+      this->mark_changed();
       return *this;
     }
 
@@ -192,13 +202,14 @@ namespace OpenKalman
           base_matrix() = MatrixTraits<BaseMatrix>::zero();
         }
       }
+      this->mark_changed();
       return *this;
     }
 
     template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
     auto& operator/=(const S s)
     {
-      if constexpr(OpenKalman::is_self_adjoint_v<BaseMatrix>)
+      if constexpr(is_self_adjoint_v<BaseMatrix>)
       {
         base_matrix() /= s;
       }
@@ -220,6 +231,7 @@ namespace OpenKalman
           throw (std::runtime_error("Covariance operator/=: divide by zero"));
         }
       }
+      this->mark_changed();
       return *this;
     }
 
@@ -232,6 +244,7 @@ namespace OpenKalman
         base_matrix() *= static_cast<Scalar>(s) * s;
       else
         base_matrix() *= s;
+      this->mark_changed();
       return *this;
     }
 
@@ -244,6 +257,7 @@ namespace OpenKalman
         base_matrix() /= static_cast<Scalar>(s) * s;
       else
         base_matrix() /= s;
+      this->mark_changed();
       return *this;
     }
 
@@ -310,7 +324,7 @@ namespace OpenKalman
     using T = typename MatrixTraits<Arg>::template TriangularBaseType<t_type>;
     using SA = typename MatrixTraits<Arg>::template SelfAdjointBaseType<t_type>;
     using B = std::conditional_t<sizeof...(triangle_type) == 1, T, SA>;
-    const SA b = std::forward<Arg>(arg);
+    SA b = std::forward<Arg>(arg);
     return Covariance<Coefficients, B> {b};
   }
 
@@ -337,7 +351,7 @@ namespace OpenKalman
     static_assert(MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns);
     constexpr TriangleType triangle_type = triangle_type_of_v<typename MatrixTraits<Arg>::template TriangularBaseType<>>;
 
-    using B = std::conditional_t<OpenKalman::is_diagonal_v<Arg>,
+    using B = std::conditional_t<is_diagonal_v<Arg>,
       typename MatrixTraits<Arg>::template DiagonalBaseType<>,
       std::conditional_t<is_triangular_v<Arg>,
         typename MatrixTraits<Arg>::template TriangularBaseType<triangle_type>,
@@ -430,7 +444,7 @@ namespace OpenKalman
   inline auto
   make_Covariance()
   {
-    static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, typename MatrixTraits<Arg>::ColumnCoefficients>);
+    static_assert(is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, typename MatrixTraits<Arg>::ColumnCoefficients>);
     using C = typename MatrixTraits<Arg>::RowCoefficients;
     using B = typename MatrixTraits<Arg>::BaseMatrix;
     return make_Covariance<C, triangle_type, B>();
@@ -442,7 +456,7 @@ namespace OpenKalman
   inline auto
   make_Covariance()
   {
-    static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, typename MatrixTraits<Arg>::ColumnCoefficients>);
+    static_assert(is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, typename MatrixTraits<Arg>::ColumnCoefficients>);
     using C = typename MatrixTraits<Arg>::RowCoefficients;
     using B = typename MatrixTraits<Arg>::BaseMatrix;
     return make_Covariance<C, B>();
@@ -454,7 +468,7 @@ namespace OpenKalman
   ///////////////////////////
 
   template<typename Coeffs, typename ArgType>
-  struct MatrixTraits<OpenKalman::Covariance<Coeffs, ArgType>>
+  struct MatrixTraits<Covariance<Coeffs, ArgType>>
   {
     using BaseMatrix = ArgType;
     static constexpr auto dimension = MatrixTraits<BaseMatrix>::dimension;

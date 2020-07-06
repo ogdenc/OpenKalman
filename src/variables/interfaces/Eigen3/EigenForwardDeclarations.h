@@ -219,7 +219,8 @@ namespace OpenKalman
 
   template<typename BaseMatrix>
   struct is_diagonal<EigenDiagonal<BaseMatrix>,
-    std::enable_if_t<not OpenKalman::is_zero_v<EigenDiagonal<BaseMatrix>>>> : std::true_type {};
+    std::enable_if_t<not is_zero_v<EigenDiagonal<BaseMatrix>> and not is_identity_v<EigenDiagonal<BaseMatrix>> and
+      not is_1by1_v<EigenDiagonal<BaseMatrix>>>> : std::true_type {};
 
   template<typename BaseMatrix>
   struct is_zero<EigenDiagonal<BaseMatrix>, std::enable_if_t<OpenKalman::is_zero_v<BaseMatrix>>> : std::true_type {};
@@ -652,22 +653,17 @@ namespace OpenKalman
   namespace internal
   {
     /*
-     * Base class for all OpenKalman classes that are also Eigen3 matrices.
+     * Base class for all OpenKalman classes with a base that is an Eigen3 matrix.
      */
     template<typename Derived, typename Nested>
     struct EigenMatrixBase;
 
     /*
-     * Base class for all OpenKalman covariance classes that are also Eigen3 matrices.
+     * Base class for Covariance and SquareRootCovariance with a base that is an Eigen3 matrix.
      */
     template<typename Derived, typename Nested, typename Enable = void>
     struct EigenCovarianceBase;
 
-    template<
-      typename Derived,
-      typename Coeffs, /// Coefficients.
-      typename NestedType> /// A nested, non-Euclidean matrix.
-    struct EuclideanExprBase;
   }
 
 

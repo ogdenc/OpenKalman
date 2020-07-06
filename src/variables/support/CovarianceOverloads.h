@@ -102,7 +102,7 @@ namespace OpenKalman
   inline auto
   transpose(Arg&& arg) noexcept
   {
-    return MatrixTraits<Arg>::make(OpenKalman::transpose(base_matrix(std::forward<Arg>(arg))));
+    return MatrixTraits<Arg>::make(transpose(base_matrix(std::forward<Arg>(arg))));
   }
 
 
@@ -110,7 +110,7 @@ namespace OpenKalman
   inline auto
   adjoint(Arg&& arg) noexcept
   {
-    return MatrixTraits<Arg>::make(OpenKalman::adjoint(base_matrix(std::forward<Arg>(arg))));
+    return MatrixTraits<Arg>::make(adjoint(base_matrix(std::forward<Arg>(arg))));
   }
 
 
@@ -165,9 +165,9 @@ namespace OpenKalman
   inline auto
   solve(A&& a, B&& b) noexcept
   {
-    static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<A>::Coefficients, typename MatrixTraits<B>::RowCoefficients>);
+    static_assert(is_equivalent_v<typename MatrixTraits<A>::Coefficients, typename MatrixTraits<B>::RowCoefficients>);
     using ArgBase = typename MatrixTraits<A>::BaseMatrix;
-    auto x = strict(OpenKalman::solve(convert_base_matrix(std::forward<A>(a)), base_matrix(std::forward<B>(b))));
+    auto x = strict(solve(convert_base_matrix(std::forward<A>(a)), base_matrix(std::forward<B>(b))));
     return MatrixTraits<B>::template make<typename MatrixTraits<A>::Coefficients>(std::move(x));
   }
 
@@ -224,31 +224,47 @@ namespace OpenKalman
   }
 
 
+  namespace detail
+  {
+    template<typename C, typename M, typename Arg>
+    inline auto
+    split_item_impl(Arg&& arg)
+    {
+      if constexpr(is_1by1_v<Arg> and not is_square_root_v<M> and is_Cholesky_v<M>)
+      {
+        return MatrixTraits<M>::template make<C>(Cholesky_square(std::forward<Arg>(arg)));
+      }
+      else if constexpr(is_1by1_v<Arg> and is_square_root_v<M> and not is_Cholesky_v<M>)
+      {
+        return MatrixTraits<M>::template make<C>(Cholesky_factor(std::forward<Arg>(arg)));
+      }
+      else
+      {
+        return MatrixTraits<M>::template make<C>(std::forward<Arg>(arg));
+      }
+    }
+  }
+
+
   /// Split Covariance or SquareRootCovariance diagonally.
   template<typename ... Cs, typename M, std::enable_if_t<is_covariance_v<M>, int> = 0>
   inline auto
   split(M&& m) noexcept
   {
     using Coeffs = typename MatrixTraits<M>::Coefficients;
-    static_assert(is_prefix_v<OpenKalman::Concatenate<Cs...>, Coeffs>);
-    if constexpr(sizeof...(Cs) == 1 and is_equivalent_v<OpenKalman::Concatenate<Cs...>, Coeffs>)
+    static_assert(is_prefix_v<Concatenate<Cs...>, Coeffs>);
+    if constexpr(sizeof...(Cs) == 1 and is_equivalent_v<Concatenate<Cs...>, Coeffs>)
     {
       return std::tuple(std::forward<M>(m));
     }
     else
     {
-      return std::apply(
-        [](const auto& ...args) { return std::tuple {
-          [](const auto& arg){
-            using Arg = decltype(arg);
-            if constexpr(is_1by1_v<Arg> and not is_square_root_v<M> and is_Cholesky_v<M>)
-              return from_Cholesky(MatrixTraits<M>::template make<Cs>(arg));
-            else if constexpr(is_1by1_v<Arg> and is_square_root_v<M> and not is_Cholesky_v<M>)
-              return to_Cholesky(MatrixTraits<M>::template make<Cs>(arg));
-            else
-              return MatrixTraits<M>::template make<Cs>(arg);
-          }(args)...}; },
-        split<Cs::size...>(base_matrix(std::forward<M>(m))));
+      auto fn = [](auto&& ...args)
+      {
+        return std::tuple {detail::split_item_impl<Cs, M>(std::forward<decltype(args)>(args))...};
+      };
+      auto t = split<Cs::size...>(base_matrix(std::forward<M>(m)));
+      return std::apply(fn, t);
     }
   }
 
@@ -258,7 +274,7 @@ namespace OpenKalman
   inline auto
   split_diagonal(M&& m) noexcept
   {
-    static_assert(OpenKalman::is_prefix_v<OpenKalman::Concatenate<Cs...>, typename MatrixTraits<M>::Coefficients>);
+    static_assert(is_prefix_v<Concatenate<Cs...>, typename MatrixTraits<M>::Coefficients>);
     return split<Cs...>(std::forward<M>(m));
   }
 
@@ -269,8 +285,8 @@ namespace OpenKalman
   split_vertical(M&& m) noexcept
   {
     using Coeffs = typename MatrixTraits<M>::Coefficients;
-    static_assert(OpenKalman::is_prefix_v<OpenKalman::Concatenate<Cs...>, Coeffs>);
-    if constexpr(sizeof...(Cs) == 1 and OpenKalman::is_equivalent_v<OpenKalman::Concatenate<Cs...>, Coeffs>)
+    static_assert(is_prefix_v<Concatenate<Cs...>, Coeffs>);
+    if constexpr(sizeof...(Cs) == 1 and is_equivalent_v<Concatenate<Cs...>, Coeffs>)
     {
       return std::tuple(std::forward<M>(m));
     }
@@ -278,7 +294,7 @@ namespace OpenKalman
     {
       return std::apply(
         [](const auto& ...args) { return std::tuple {make_Matrix<Cs, Coeffs>(strict(args))...}; },
-        OpenKalman::split_vertical<Cs::size...>(strict_matrix(std::forward<M>(m))));
+        split_vertical<Cs::size...>(strict_matrix(std::forward<M>(m))));
     }
   }
 
@@ -289,8 +305,8 @@ namespace OpenKalman
   split_horizontal(M&& m) noexcept
   {
     using Coeffs = typename MatrixTraits<M>::Coefficients;
-    static_assert(OpenKalman::is_prefix_v<OpenKalman::Concatenate<Cs...>, Coeffs>);
-    if constexpr(sizeof...(Cs) == 1 and OpenKalman::is_equivalent_v<OpenKalman::Concatenate<Cs...>, Coeffs>)
+    static_assert(is_prefix_v<Concatenate<Cs...>, Coeffs>);
+    if constexpr(sizeof...(Cs) == 1 and is_equivalent_v<Concatenate<Cs...>, Coeffs>)
     {
       return std::tuple(std::forward<M>(m));
     }
@@ -298,7 +314,7 @@ namespace OpenKalman
     {
       return std::apply(
         [](const auto& ...args) { return std::tuple {make_Matrix<Coeffs, Cs>(strict(args))...}; },
-        OpenKalman::split_horizontal<Cs::size...>(strict_matrix(std::forward<M>(m))));
+        split_horizontal<Cs::size...>(strict_matrix(std::forward<M>(m))));
     }
   }
 
@@ -512,17 +528,17 @@ namespace OpenKalman
   constexpr decltype(auto) operator*(Arg1&& arg1, Arg2&& arg2) noexcept
   {
     using C = typename MatrixTraits<Arg1>::Coefficients;
-    static_assert(OpenKalman::is_equivalent_v<C, typename MatrixTraits<Arg2>::Coefficients>);
+    static_assert(is_equivalent_v<C, typename MatrixTraits<Arg2>::Coefficients>);
 
-    if constexpr(OpenKalman::is_zero_v<Arg1> or is_zero_v<Arg2>)
+    if constexpr(is_zero_v<Arg1> or is_zero_v<Arg2>)
     {
       return MatrixTraits<Arg1>::zero();
     }
-    else if constexpr(OpenKalman::is_identity_v<Arg1>)
+    else if constexpr(is_identity_v<Arg1>)
     {
       return std::forward<Arg2>(arg2);
     }
-    else if constexpr(OpenKalman::is_identity_v<Arg2>)
+    else if constexpr(is_identity_v<Arg2>)
     {
       return std::forward<Arg1>(arg1);
     }
@@ -633,7 +649,7 @@ namespace OpenKalman
     {
       if constexpr(is_square_root_v<M>)
       {
-        return MatrixTraits<M>::make(std::forward<M>(m).base_matrix() * static_cast<Scalar>(s));
+        return MatrixTraits<M>::make(base_matrix(std::forward<M>(m)) * static_cast<Scalar>(s));
       }
       else
       {
@@ -659,11 +675,11 @@ namespace OpenKalman
       }
       else if constexpr(is_square_root_v<M> and not is_diagonal_v<M>)
       {
-        return MatrixTraits<M>::make(std::forward<M>(m).base_matrix() * (static_cast<Scalar>(s) * static_cast<Scalar>(s)));
+        return MatrixTraits<M>::make(base_matrix(std::forward<M>(m)) * (static_cast<Scalar>(s) * static_cast<Scalar>(s)));
       }
       else
       {
-        return MatrixTraits<M>::make(std::forward<M>(m).base_matrix() * static_cast<Scalar>(s));
+        return MatrixTraits<M>::make(base_matrix(std::forward<M>(m)) * static_cast<Scalar>(s));
       }
     }
   }
@@ -685,11 +701,11 @@ namespace OpenKalman
   inline auto operator/(M&& m, const S s)
   {
     using Scalar = typename MatrixTraits<M>::Scalar;
-    if constexpr(OpenKalman::is_Cholesky_v<M>)
+    if constexpr(is_Cholesky_v<M>)
     {
       if constexpr(is_square_root_v<M>)
       {
-        return MatrixTraits<M>::make(std::forward<M>(m).base_matrix() / static_cast<Scalar>(s));
+        return MatrixTraits<M>::make(base_matrix(std::forward<M>(m)) / static_cast<Scalar>(s));
       }
       else
       {
@@ -719,25 +735,27 @@ namespace OpenKalman
       }
       else if constexpr(is_square_root_v<M> and not is_diagonal_v<M>)
       {
-        return MatrixTraits<M>::make(std::forward<M>(m).base_matrix() / (static_cast<Scalar>(s) * static_cast<Scalar>(s)));
+        return MatrixTraits<M>::make(base_matrix(std::forward<M>(m)) / (static_cast<Scalar>(s) * static_cast<Scalar>(s)));
       }
       else
       {
-        return MatrixTraits<M>::make(std::forward<M>(m).base_matrix() / static_cast<Scalar>(s));
+        return MatrixTraits<M>::make(base_matrix(std::forward<M>(m)) / static_cast<Scalar>(s));
       }
     }
   }
 
 
   /// Negate a covariance.
-  template<typename M, std::enable_if_t<is_covariance_v<M> and not OpenKalman::is_Cholesky_v<M>, int> = 0>
+  template<typename M, std::enable_if_t<is_covariance_v<M>, int> = 0>
   inline auto operator-(M&& m) noexcept
   {
-    if constexpr(OpenKalman::is_Cholesky_v<M>)
+    static_assert(not is_Cholesky_v<M> or is_square_root_v<M>,
+      "Cannot negate a Cholesky-based Covariance because the square root would be complex.");
+    if constexpr(is_Cholesky_v<M>)
     {
-      if constexpr(OpenKalman::is_square_root_v<M>)
+      if constexpr(is_square_root_v<M>)
       {
-        return MatrixTraits<M>::make(-std::forward<M>(m).base_matrix());
+        return MatrixTraits<M>::make(-base_matrix(std::forward<M>(m)));
       }
       else
       {
@@ -754,10 +772,10 @@ namespace OpenKalman
       }
       else
       {
-        static_assert(not is_square_root_v<M> or OpenKalman::is_diagonal_v<M>,
+        static_assert(not is_square_root_v<M> or is_diagonal_v<M>,
           "With real numbers, it is impossible to represent the negation of a non-diagonal, non-Cholesky-form "
           "square-root covariance.");
-        return MatrixTraits<M>::make(-std::forward<M>(m).base_matrix());
+        return MatrixTraits<M>::make(-base_matrix(std::forward<M>(m)));
       }
     }
   }
@@ -773,7 +791,7 @@ namespace OpenKalman
     using B1 = typename MatrixTraits<Arg1>::BaseMatrix;
     using B2 = typename MatrixTraits<Arg2>::BaseMatrix;
     if constexpr(std::is_same_v<decltype(strict_matrix(std::declval<B1>())), decltype(strict_matrix(std::declval<B2>()))> and
-      OpenKalman::is_equivalent_v<typename MatrixTraits<Arg1>::Coefficients, typename MatrixTraits<Arg2>::Coefficients>)
+      is_equivalent_v<typename MatrixTraits<Arg1>::Coefficients, typename MatrixTraits<Arg2>::Coefficients>)
     {
       return strict_matrix(std::forward<Arg1>(arg1)) == strict_matrix(std::forward<Arg2>(arg2));
     }
@@ -836,41 +854,41 @@ namespace OpenKalman
   {
     using C = typename MatrixTraits<M>::Coefficients;
     using AC = typename MatrixTraits<A>::RowCoefficients;
-    static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<A>::ColumnCoefficients, C>);
-    static_assert(not OpenKalman::is_Euclidean_transformed_v<A>);
+    static_assert(is_equivalent_v<typename MatrixTraits<A>::ColumnCoefficients, C>);
+    static_assert(not is_Euclidean_transformed_v<A>);
     using BaseMatrix = typename MatrixTraits<M>::BaseMatrix;
+
+    decltype(auto) mbase = base_matrix(std::forward<M>(m));
+    decltype(auto) abase = base_matrix(std::forward<A>(a));
 
     if constexpr(is_diagonal_v<BaseMatrix>)
     {
       using SABaseType = typename MatrixTraits<BaseMatrix>::template SelfAdjointBaseType<TriangleType::lower>;
       if constexpr(is_square_root_v<M>)
       {
-        auto b = MatrixTraits<SABaseType>::make(base_matrix(std::forward<A>(a)) *
-          (Cholesky_square(base_matrix(std::forward<M>(m))) * adjoint(base_matrix(std::forward<A>(a)))));
+        auto b = MatrixTraits<SABaseType>::make(strict(abase * (Cholesky_square(mbase) * adjoint(abase))));
         return make_SquareRootCovariance<AC>(std::move(b));
       }
       else
       {
-        auto b = MatrixTraits<SABaseType>::make(base_matrix(std::forward<A>(a)) *
-          (base_matrix(std::forward<M>(m)) * adjoint(base_matrix(std::forward<A>(a)))));
+        auto b = MatrixTraits<SABaseType>::make(strict(abase * (mbase * adjoint(abase))));
         return make_Covariance<AC>(std::move(b));
       }
     }
     else if constexpr(is_self_adjoint_v<BaseMatrix>)
     {
       using SABaseType = typename MatrixTraits<BaseMatrix>::template SelfAdjointBaseType<>;
-      auto b = MatrixTraits<SABaseType>::make(base_matrix(std::forward<A>(a)) *
-        (base_matrix(std::forward<M>(m)) * adjoint(base_matrix(std::forward<A>(a)))));
+      auto b = MatrixTraits<SABaseType>::make(abase * (mbase * adjoint(abase)));
       return MatrixTraits<M>::template make<AC>(std::move(b));
     }
-    else if constexpr(OpenKalman::is_upper_triangular_v<BaseMatrix>)
+    else if constexpr(is_upper_triangular_v<BaseMatrix>)
     {
-      const auto b = base_matrix(std::forward<M>(m)) * adjoint(base_matrix(std::forward<A>(a)));
+      const auto b = mbase * adjoint(abase);
       return MatrixTraits<M>::template make<AC>(QR_decomposition(b));
     }
     else
     {
-      const auto b = base_matrix(std::forward<A>(a)) * base_matrix(std::forward<M>(m));
+      const auto b = abase * base_matrix(std::forward<M>(m));
       return MatrixTraits<M>::template make<AC>(LQ_decomposition(b));
     }
   }

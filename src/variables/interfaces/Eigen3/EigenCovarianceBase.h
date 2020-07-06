@@ -19,14 +19,26 @@ namespace Eigen
 
 namespace OpenKalman::internal
 {
+  /**
+   * Ultimate base of Covariance and SquareRootCovariance classes, general case.
+   * No conversion is necessary if either
+   * (1) Derived is not a square root and the base is self-adjoint; or
+   * (2) Derived is a square root and the base is triangular.
+   */
   template<typename Derived, typename Nested>
   struct EigenCovarianceBase<Derived, Nested,
-    std::enable_if_t<is_self_adjoint_v<Nested> and not is_square_root_v<Derived>>>
+    std::enable_if_t<(is_self_adjoint_v<Nested> and not is_square_root_v<Derived>) or
+      (is_triangular_v<Nested> and is_square_root_v<Derived>)>>
     : EigenMatrixBase<Derived, Nested> {};
 
+
+  /**
+   * Ultimate base of Covariance and SquareRootCovariance classes, if Derived is not a square root and
+   * the base is not self-adjoint (i.e., it is triangular but not diagonal).
+   */
   template<typename Derived, typename ArgType>
   struct EigenCovarianceBase<Derived, ArgType,
-    std::enable_if_t<is_triangular_v<ArgType> and not is_diagonal_v<ArgType> and not is_square_root_v<Derived>>>
+    std::enable_if_t<not is_self_adjoint_v<ArgType> and not is_square_root_v<Derived>>>
     : EigenMatrixBase<Derived, ArgType>
   {
     using Nested = std::decay_t<ArgType>;
@@ -49,9 +61,14 @@ namespace OpenKalman::internal
     }
   };
 
+
+  /**
+   * Ultimate base of Covariance and SquareRootCovariance classes, if Derived is a square root and
+   * the base is not triangular (i.e., it is self-adjoint but not diagonal).
+   */
   template<typename Derived, typename ArgType>
   struct EigenCovarianceBase<Derived, ArgType,
-    std::enable_if_t<is_self_adjoint_v<ArgType> and not is_diagonal_v<ArgType> and is_square_root_v<Derived>>>
+    std::enable_if_t<not is_triangular_v<ArgType> and is_square_root_v<Derived>>>
     : EigenMatrixBase<Derived, ArgType>
   {
     using Nested = std::decay_t<ArgType>;
@@ -74,21 +91,20 @@ namespace OpenKalman::internal
     }
   };
 
-  template<typename Derived, typename Nested>
-  struct EigenCovarianceBase<Derived, Nested,
-    std::enable_if_t<is_triangular_v<Nested> and is_square_root_v<Derived>>>
-    : EigenMatrixBase<Derived, Nested> {};
-
 }
 
 
 namespace Eigen
 {
+  /**
+   * Alternative version of CommaInitializer for Covariance and SquareRootCovariance.
+   */
   template<typename XprApparentType, typename XprActualType>
   struct CovarianceCommaInitializer
   {
     using Scalar = typename XprApparentType::Scalar;
-    using BaseMatrix = typename OpenKalman::MatrixTraits<typename OpenKalman::MatrixTraits<XprApparentType>::BaseMatrix>::template StrictMatrix<>;
+    using BaseMatrix = typename OpenKalman::MatrixTraits<
+      typename OpenKalman::MatrixTraits<XprApparentType>::BaseMatrix>::template StrictMatrix<>;
     using Nested = CommaInitializer<BaseMatrix>;
 
     BaseMatrix matrix;
@@ -107,7 +123,8 @@ namespace Eigen
       : matrix(o.matrix), comma_initializer(o.comma_initializer), xpr_actual(o.xpr_actual) {}
 
     CovarianceCommaInitializer(CovarianceCommaInitializer&& o)
-      : matrix(std::move(o.matrix)), comma_initializer(std::move(o.comma_initializer)), xpr_actual(std::move(o.xpr_actual)) {}
+      : matrix(std::move(o.matrix)),
+        comma_initializer(std::move(o.comma_initializer)), xpr_actual(std::move(o.xpr_actual)) {}
 
     template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
     auto& operator,(const S& s)

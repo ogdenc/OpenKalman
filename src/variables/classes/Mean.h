@@ -45,6 +45,9 @@ namespace OpenKalman
       std::is_constructible_v<BaseMatrix, decltype(wrap_angles<Coefficients>(std::declval<Arg>()))>, int> = 0>
     Mean(Arg&& arg) noexcept : Base(wrap_angles<Coefficients>(std::forward<Arg>(arg)))
     {
+      static_assert(Coefficients::axes_only or not std::is_rvalue_reference_v<BaseMatrix>,
+        "The base matrix of a Mean cannot be an rvalue reference if one of the coefficient types is not an Axis "
+        "(because wrapping would be impossible).");
       static_assert(MatrixTraits<Arg>::dimension == Base::dimension);
       static_assert(MatrixTraits<Arg>::columns == Base::columns);
     }
@@ -68,7 +71,7 @@ namespace OpenKalman
 
     /// Construct from a compatible Euclidean-transformed typed matrix.
     template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg> and is_Euclidean_transformed_v<Arg>, int> = 0>
-    Mean(Arg&& other) noexcept : Base(OpenKalman::from_Euclidean<Coefficients>(std::forward<Arg>(other).base_matrix()))
+    Mean(Arg&& other) noexcept : Base(from_Euclidean<Coefficients>(std::forward<Arg>(other).base_matrix()))
     {
       static_assert(is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>);
       static_assert(is_equivalent_v<typename MatrixTraits<Arg>::ColumnCoefficients, typename Base::ColumnCoefficients>);

@@ -26,7 +26,7 @@ include_directories(SYSTEM ${EIGEN3_INCLUDE_DIRS})
 #include_directories(SYSTEM ${OPENCV_INCLUDE_DIRS})
 #include_directories(${BOOST_INCLUDE_DIRS})
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -g -O2")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -g -O2 -ftemplate-backtrace-limit=0")
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -g -std=c++2a -O2")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
 
@@ -59,9 +59,10 @@ add_test(typed-matrix-tests 0)
 add_executable(covariance-tests
         covariance-tests/covariance_tests.cpp
         covariance-tests/tests-covariance.cpp
-        covariance-tests/tests-sqrt-covariance.cpp
-        covariance-tests/tests-distributions.cpp
+        #covariance-tests/tests-sqrt-covariance.cpp
+        #covariance-tests/tests-distributions.cpp
         )
+set_target_properties(covariance-tests PROPERTIES CXX_STANDARD_REQUIRED ON CXX_STANDARD 17)
 target_link_libraries(covariance-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)
 add_test(covariance-tests 0)
 
@@ -72,6 +73,7 @@ add_executable(transformation-tests
         transformation-tests/tests-linear.cpp
         transformation-tests/tests-stochastic.cpp
         )
+set_target_properties(transformation-tests PROPERTIES CXX_STANDARD_REQUIRED ON CXX_STANDARD 17)
 target_link_libraries(transformation-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)
 add_test(transformation-tests 0)
 
@@ -83,6 +85,7 @@ add_executable(transform-linear-tests
         transform-linear-tests/tests-linearized-add.cpp
         transform-linear-tests/tests-linearized-aug.cpp
         )
+set_target_properties(transform-linear-tests PROPERTIES CXX_STANDARD_REQUIRED ON CXX_STANDARD 17)
 target_link_libraries(transform-linear-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)
 add_test(transform-linear-tests 0)
 
@@ -93,6 +96,7 @@ add_executable(transform-nonlinear-tests
         transform-nonlinear-tests/tests-sample-aug.cpp
         transform-nonlinear-tests/tests-sample-angle.cpp
         )
+set_target_properties(transform-nonlinear-tests PROPERTIES CXX_STANDARD_REQUIRED ON CXX_STANDARD 17)
 target_link_libraries(transform-nonlinear-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)
 add_test(transform-nonlinear-tests 0)
 
@@ -108,6 +112,7 @@ add_executable(linear-tests
         #linear-tests/linear-tests.8x3.spherical.cpp
         #linear-tests/linear-tests.8x3.symmetric.cpp
         )
+set_target_properties(linear-tests PROPERTIES CXX_STANDARD_REQUIRED ON CXX_STANDARD 17)
 target_link_libraries(linear-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)
 add_test(linear-tests 0)
 
@@ -122,6 +127,7 @@ add_executable(nonlinear-tests
         nonlinear-tests/nonlinear-tests.2x2.TT.cpp
         nonlinear-tests/nonlinear-tests.2x2.UT.cpp
         )
+set_target_properties(nonlinear-tests PROPERTIES CXX_STANDARD_REQUIRED ON CXX_STANDARD 17)
 target_link_libraries(nonlinear-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)
 add_test(nonlinear-tests 0)
 
@@ -133,6 +139,7 @@ add_executable(nonlinear-sqrt-tests
         nonlinear-sqrt-tests/nonlinear-sqrt-tests.UT.spher.cpp
         nonlinear-sqrt-tests/nonlinear-sqrt-tests.CT.cpp
         )
+set_target_properties(nonlinear-sqrt-tests PROPERTIES CXX_STANDARD_REQUIRED ON CXX_STANDARD 17)
 target_link_libraries(nonlinear-sqrt-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)
 add_test(nonlinear-sqrt-tests 0)
 
@@ -141,6 +148,7 @@ add_executable(MonteCarlo-tests
         MonteCarlo-tests/MonteCarlo-tests.2x1.cpp
         MonteCarlo-tests/MonteCarlo-tests.2x2.cpp
         )
+set_target_properties(MonteCarlo-tests PROPERTIES CXX_STANDARD_REQUIRED ON CXX_STANDARD 17)
 target_link_libraries(MonteCarlo-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)
 add_test(MonteCarlo-tests 0)
 
@@ -154,5 +162,6 @@ add_executable(kalman-tests
         kalman-tests/kalman-tests.2x2.UT.spher.Add.cpp
         kalman-tests/kalman-tests.radial.CT.Aug.cpp
         )
+set_target_properties(kalman-tests PROPERTIES CXX_STANDARD_REQUIRED ON CXX_STANDARD 17)
 target_link_libraries(kalman-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)
 add_test(kalman-tests 0)

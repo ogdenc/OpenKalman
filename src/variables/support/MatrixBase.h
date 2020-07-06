@@ -23,12 +23,10 @@ namespace OpenKalman::internal
     MatrixBase() : m_arg() {}
 
     /// Copy constructor.
-    MatrixBase(const MatrixBase& other)
-      : m_arg(other.base_matrix()) {}
+    MatrixBase(const MatrixBase& other) : m_arg(other.base_matrix()) {}
 
     /// Move constructor.
-    MatrixBase(MatrixBase&& other) noexcept
-      : m_arg(std::move(other).base_matrix()) {}
+    MatrixBase(MatrixBase&& other) noexcept : m_arg(std::move(other).base_matrix()) {}
 
     /// Forwarding constructor.
     template<typename Arg>

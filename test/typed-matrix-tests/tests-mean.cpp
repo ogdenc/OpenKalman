@@ -455,9 +455,10 @@ TEST_F(typed_matrix_tests, Mean_references_axis)
 
 TEST_F(typed_matrix_tests, Mean_references_angle)
 {
-  Mean<Coefficients<Axis, Angle, Axis>, M33> v1 {1., 4, 7,
-        2, 5, 8,
-        3, 6, 9};
+  Mean<Coefficients<Axis, Angle, Axis>, M33>
+  v1 {1., 4, 7,
+      2, 5, 8,
+      3, 6, 9};
   Mean<Coefficients<Axis, Angle, Axis>, M33> v5 = v1;
   v1 = {1.4, 4.4, 7.4,
         2.4, 5.4, 8.4,
@@ -470,27 +471,31 @@ TEST_F(typed_matrix_tests, Mean_references_angle)
   //v2(1,0) = 2.05; ///< This should not compile, because mean subscripts containing angles are not lvalues.
   //EXPECT_EQ(v2(1,0), 2.05);
   EXPECT_TRUE(is_near(v1, v2));
-  v1 = {1.1, 4.1, 7.1,
-        2.1, 5.1, 8.1,
-        3.1, 6.1, 9.1};
   EXPECT_NEAR(v1(1,0), 2.4, 1e-6);
   EXPECT_NEAR(v2(1,0), 2.4, 1e-6);
   EXPECT_NEAR(v1(1,1), 5.4-2*M_PI, 1e-6);
   EXPECT_NEAR(v2(1,1), 5.4-2*M_PI, 1e-6);
+  v1 = {1.1, 4.1, 7.1,
+        2.1, 5.1, 8.1,
+        3.1, 6.1, 9.1};
+  EXPECT_NEAR(v1(1,0), 2.1, 1e-6);
+  EXPECT_NEAR(v2(1,0), 2.1, 1e-6);
+  EXPECT_NEAR(v1(1,1), 5.1-2*M_PI, 1e-6);
+  EXPECT_NEAR(v2(1,1), 5.1-2*M_PI, 1e-6);
   //v2(0,1) = 4.2; ///< This should not compile, because mean subscripts containing angles are not lvalues.
   //EXPECT_NEAR(v1(0,1), 4.2, 1e-6);
   //v2(1,1) = 5.2; ///< This should not compile, because mean subscripts containing angles are not lvalues.
   //EXPECT_NEAR(v1(1,1), 5.2, 1e-6);
-  Mean<Coefficients<Axis, Angle, Axis>, M33&&> v3 = std::move(v5);
-  EXPECT_NEAR(v3(0,1), 4, 1e-6);
-  EXPECT_NEAR(v3(1,1), 5-2*M_PI, 1e-6);
-  EXPECT_NEAR(v3(2,1), 6, 1e-6);
-  Mean<Coefficients<Axis, Angle, Axis>, const M33&> v4 = v3;
-  EXPECT_TRUE(is_near(v4, v3));
-  v3 = {1.3, 4.3, 7.3,
+  //Mean<Coefficients<Axis, Angle, Axis>, M33&&> v3 = std::move(v5); // Should not compile.
+  //EXPECT_NEAR(v3(0,1), 4, 1e-6);
+  //EXPECT_NEAR(v3(1,1), 5-2*M_PI, 1e-6);
+  //EXPECT_NEAR(v3(2,1), 6, 1e-6);
+  Mean<Coefficients<Axis, Angle, Axis>, const M33&> v4 = v5;
+  EXPECT_TRUE(is_near(v4, v5));
+  v5 = {1.3, 4.3, 7.3,
         2.3, 5.3, 8.3,
         3.3, 6.3, 9.3};
-  EXPECT_NEAR(v3(2,1), 6.3, 1e-6);
+  EXPECT_NEAR(v5(2,1), 6.3, 1e-6);
   EXPECT_NEAR(v4(2,1), 6.3, 1e-6);
 }
 

@@ -26,11 +26,12 @@
 #include "variables/interfaces/Eigen3/EigenCovarianceBase.h"
 #include "variables/interfaces/Eigen3/EigenMatrixTraits.h"
 
-#include "variables/interfaces/Eigen3/EigenZero.h"
+#include "variables/interfaces/Eigen3/EigenCholesky.h"
 
+#include "variables/interfaces/Eigen3/EigenZero.h"
+#include "variables/interfaces/Eigen3/EigenDiagonal.h"
 #include "variables/interfaces/Eigen3/EigenSelfAdjointMatrix.h"
 #include "variables/interfaces/Eigen3/EigenTriangularMatrix.h"
-#include "variables/interfaces/Eigen3/EigenDiagonal.h"
 #include "variables/interfaces/Eigen3/EigenSpecialMatrixOverloads.h"
 
 #include "variables/interfaces/Eigen3/ToEuclideanExpr.h"

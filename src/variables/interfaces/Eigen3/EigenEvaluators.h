@@ -304,15 +304,26 @@ namespace Eigen::internal
 
     template<typename ArgType>
     struct CovarianceEvaluatorBase<ArgType, std::enable_if_t<not OpenKalman::is_self_adjoint_v<ArgType>>>
-      : evaluator<typename OpenKalman::MatrixTraits<ArgType>::template SelfAdjointBaseType<>>
+      : evaluator_base<CovarianceEvaluatorBase<ArgType>>
     {
+      static_assert(OpenKalman::is_covariance_base_v<ArgType>);
+      using Scalar = typename std::decay_t<ArgType>::Scalar;
       using Nested = typename OpenKalman::MatrixTraits<ArgType>::template SelfAdjointBaseType<>;
-      using Base = evaluator<Nested>;
-      explicit CovarianceEvaluatorBase(const ArgType& arg)
-        : Base(m_arg), m_arg(arg) {}
+      using NestedEvaluator = evaluator<Nested>;
+
+      enum
+      {
+        CoeffReadCost = NestedEvaluator::CoeffReadCost,
+        Flags = NestedEvaluator::Flags & (~LvalueBit),
+        Alignment = NestedEvaluator::Alignment
+      };
+
+      explicit CovarianceEvaluatorBase(const ArgType& m_arg) : m_argImpl(OpenKalman::Cholesky_square(m_arg)) {}
+
+      auto coeff(Index row, Index col) const { return m_argImpl.coeff(row, col); }
 
     protected:
-      const Nested m_arg;
+      NestedEvaluator m_argImpl;
     };
   }
 
@@ -341,14 +352,26 @@ namespace Eigen::internal
 
     template<typename ArgType>
     struct SquareRootCovarianceEvaluatorBase<ArgType, std::enable_if_t<not OpenKalman::is_triangular_v<ArgType>>>
-      : evaluator<typename OpenKalman::MatrixTraits<ArgType>::template TriangularBaseType<>>
+      : evaluator_base<SquareRootCovarianceEvaluatorBase<ArgType>>
     {
+      static_assert(OpenKalman::is_covariance_base_v<ArgType>);
+      using Scalar = typename std::decay_t<ArgType>::Scalar;
       using Nested = typename OpenKalman::MatrixTraits<ArgType>::template TriangularBaseType<>;
-      using Base = evaluator<Nested>;
-      explicit SquareRootCovarianceEvaluatorBase(const ArgType& arg) : Base(m_arg), m_arg(arg) {}
+      using NestedEvaluator = evaluator<Nested>;
+
+      enum
+      {
+        CoeffReadCost = NestedEvaluator::CoeffReadCost,
+        Flags = NestedEvaluator::Flags & (~LvalueBit),
+        Alignment = NestedEvaluator::Alignment
+      };
+
+      explicit SquareRootCovarianceEvaluatorBase(const ArgType& m_arg) : m_argImpl(OpenKalman::Cholesky_factor(m_arg)) {}
+
+      auto coeff(Index row, Index col) const { return m_argImpl.coeff(row, col); }
 
     protected:
-      const Nested m_arg;
+      NestedEvaluator m_argImpl;
     };
   }
 

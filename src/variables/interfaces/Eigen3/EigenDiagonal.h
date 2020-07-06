@@ -318,24 +318,6 @@ namespace OpenKalman
 
 
   template<typename Arg, std::enable_if_t<is_EigenDiagonal_v<Arg>, int> = 0>
-  inline auto
-  Cholesky_square(Arg&& arg)
-  {
-    auto b = base_matrix(std::forward<Arg>(arg)).array().square().matrix();
-    return EigenDiagonal<decltype(b)>(std::move(b));
-  }
-
-
-  template<typename Arg, std::enable_if_t<is_EigenDiagonal_v<Arg>, int> = 0>
-  inline auto
-  Cholesky_factor(Arg&& arg)
-  {
-    auto b = base_matrix(std::forward<Arg>(arg)).cwiseSqrt();
-    return EigenDiagonal<decltype(b)>(std::move(b));
-  }
-
-
-  template<typename Arg, std::enable_if_t<is_EigenDiagonal_v<Arg>, int> = 0>
   constexpr decltype(auto)
   transpose(Arg&& arg) noexcept
   {

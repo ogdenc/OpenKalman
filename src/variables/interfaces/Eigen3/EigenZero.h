@@ -70,22 +70,6 @@ namespace OpenKalman
   }
 
 
-  template<typename Arg, std::enable_if_t<OpenKalman::is_EigenZero_v<Arg>, int> = 0>
-  constexpr decltype(auto)
-  Cholesky_square(Arg&& arg)
-  {
-    return std::forward<Arg>(arg);
-  }
-
-
-  template<typename Arg, std::enable_if_t<is_EigenZero_v<Arg>, int> = 0>
-  constexpr decltype(auto)
-  Cholesky_factor(Arg&& arg)
-  {
-    return std::forward<Arg>(arg);
-  }
-
-
   template<typename Arg, std::enable_if_t<is_EigenZero_v<Arg>, int> = 0>
   constexpr auto
   determinant(Arg&& arg) noexcept

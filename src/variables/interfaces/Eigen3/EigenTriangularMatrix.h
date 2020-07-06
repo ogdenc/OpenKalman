@@ -44,7 +44,7 @@ namespace OpenKalman
     /// Construct from a compatible self-adjoint matrix object
     template<typename Arg, std::enable_if_t<is_EigenSelfAdjointMatrix_v<Arg>, int> = 0>
     EigenTriangularMatrix(Arg&& arg) noexcept
-      : EigenTriangularMatrix(std::forward<Arg>(arg).template Cholesky_factor<triangle_type>()) {}
+      : EigenTriangularMatrix(Cholesky_factor<triangle_type>(std::forward<Arg>(arg))) {}
 
     /// Construct from a reference to a regular or diagonal matrix object
     template<typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg> or is_EigenDiagonal_v<Arg>, int> = 0>
@@ -91,7 +91,7 @@ namespace OpenKalman
     auto& operator=(Arg&& arg)
     {
       this->base_matrix().template triangularView<uplo>() =
-        base_matrix(std::forward<Arg>(arg).template Cholesky_factor<triangle_type>());
+        base_matrix(Cholesky_factor<triangle_type>(std::forward<Arg>(arg)));
       return *this;
     }
 
@@ -239,72 +239,6 @@ namespace OpenKalman
       }
     }
 
-    auto Cholesky_square() const
-    {
-      if constexpr(is_identity_v<BaseMatrix>)
-      {
-        return MatrixTraits<BaseMatrix>::identity();
-      }
-      else if constexpr (is_zero_v<BaseMatrix>)
-      {
-        return MatrixTraits<BaseMatrix>::zero();
-      }
-      else if constexpr (is_EigenDiagonal_v<BaseMatrix>)
-      {
-        return this->base_matrix().square();
-      }
-      else if constexpr (is_1by1_v<BaseMatrix>)
-      {
-        return this->base_matrix().array().square().matrix();
-      }
-      else if constexpr (triangle_type == TriangleType::diagonal)
-      {
-        using M = Eigen::Matrix<Scalar, dimension, 1>;
-        M b = this->base_matrix().diagonal();
-        M ret = (b.array() * b.array()).matrix();
-        return EigenDiagonal(std::move(ret));
-      }
-      else if constexpr (triangle_type == TriangleType::upper)
-      {
-        using M = Eigen::Matrix<Scalar, dimension, dimension>;
-        M b = base_view(), ret = this->base_matrix().adjoint().template triangularView<Eigen::Lower>() * b;
-        return EigenSelfAdjointMatrix<M, triangle_type>(std::move(ret));
-      }
-      else // if constexpr (triangle_type == TriangleType::lower)
-      {
-        using M = Eigen::Matrix<Scalar, dimension, dimension>;
-        M b = base_view().adjoint(), ret = base_view() * b;
-        return EigenSelfAdjointMatrix<M, triangle_type>(std::move(ret));
-      }
-    }
-
-    auto Cholesky_factor() const
-    {
-      static_assert(is_diagonal_v<BaseMatrix> or triangle_type == TriangleType::diagonal);
-      if constexpr(is_identity_v<BaseMatrix>)
-      {
-        return MatrixTraits<BaseMatrix>::identity();
-      }
-      else if constexpr (is_zero_v<BaseMatrix>)
-      {
-        return MatrixTraits<BaseMatrix>::zero();
-      }
-      else if constexpr (is_EigenDiagonal_v<BaseMatrix>)
-      {
-        return this->base_matrix().square_root();
-      }
-      else if constexpr (is_1by1_v<BaseMatrix>)
-      {
-        return this->base_matrix().cwiseSqrt();
-      }
-      else // if constexpr (not is_diagonal_v<BaseMatrix> and triangle_type == TriangleType::diagonal)
-      {
-        using M = Eigen::Matrix<Scalar, dimension, 1>;
-        M b = this->base_matrix().diagonal(), ret = (b.array().sqrt()).matrix();
-        return EigenDiagonal(std::move(ret));
-      }
-    }
-
     template<typename B, std::enable_if_t<is_Eigen_matrix_v<B>, int> = 0>
     auto solve(const B& b) const
     {
@@ -422,23 +356,6 @@ namespace OpenKalman
                        triangle_type_of_v<Arg> == TriangleType::upper ? TriangleType::lower : TriangleType::diagonal;
     auto b = base_matrix(std::forward<Arg>(arg)).adjoint();
     return EigenTriangularMatrix<decltype(b), t>(std::move(b));
-  }
-
-
-  template<typename Arg, std::enable_if_t<is_EigenTriangularMatrix_v<Arg>, int> = 0>
-  inline auto
-  Cholesky_factor(Arg&& arg)
-  {
-    static_assert(is_diagonal_v<Arg>);
-    return std::forward<Arg>(arg).Cholesky_factor();
-  }
-
-
-  template<typename Arg, std::enable_if_t<is_EigenTriangularMatrix_v<Arg>, int> = 0>
-  inline auto
-  Cholesky_square(Arg&& arg)
-  {
-    return std::forward<Arg>(arg).Cholesky_square();
   }
 
 
