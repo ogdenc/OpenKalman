@@ -64,7 +64,7 @@ namespace OpenKalman::internal
     constexpr void mark_changed() const {}
 
     /// Get the apparent base matrix.
-    constexpr const auto& get_apparent_base_matrix() & { return m_arg; }
+    constexpr auto& get_apparent_base_matrix() & { return m_arg; }
 
     /// Get the apparent base matrix.
     constexpr auto&& get_apparent_base_matrix() && { return std::move(m_arg); }
@@ -76,14 +76,20 @@ namespace OpenKalman::internal
     constexpr const auto&& get_apparent_base_matrix() const && { return std::move(m_arg); }
 
     /// Set the apparent base matrix.
-    template<typename Arg>
+    template<typename Arg, std::enable_if_t<is_covariance_base_v<Arg>, int> = 0>
     constexpr void set_apparent_base_matrix(Arg&& arg)
     {
       static_assert(
         (is_self_adjoint_v<Arg> and not is_square_root_v<Derived>) or
         (is_triangular_v<Arg> and is_square_root_v<Derived>));
       if constexpr(is_square_root_v<Derived>) m_arg = Cholesky_square(arg); else m_arg = Cholesky_factor(arg);
-      m_arg = std::forward<Arg>(arg);
+    }
+
+    /// Set the apparent base matrix.
+    template<typename Arg, std::enable_if_t<not is_covariance_base_v<Arg>, int> = 0>
+    constexpr void set_apparent_base_matrix(Arg&& arg)
+    {
+      m_arg = BaseMatrix {std::forward<Arg>(arg)};
     }
 
   protected:
@@ -170,15 +176,25 @@ namespace OpenKalman::internal
     }
 
     /// Set the apparent base matrix.
-    template<typename Arg>
+    template<typename Arg, std::enable_if_t<is_covariance_base_v<Arg>, int> = 0>
     constexpr void set_apparent_base_matrix(Arg&& arg)
     {
       static_assert(
         (is_self_adjoint_v<Arg> and not is_square_root_v<Derived>) or
         (is_triangular_v<Arg> and is_square_root_v<Derived>));
-      if constexpr(is_square_root_v<Derived>) m_arg = Cholesky_square(arg); else m_arg = Cholesky_factor(arg);
       apparent_base = std::forward<Arg>(arg);
+      if constexpr(is_square_root_v<Derived>)
+        m_arg = Cholesky_square(apparent_base);
+      else
+        m_arg = Cholesky_factor(apparent_base);
       synchronized = true;
+    }
+
+    /// Set the apparent base matrix.
+    template<typename Arg, std::enable_if_t<not is_covariance_base_v<Arg>, int> = 0>
+    constexpr void set_apparent_base_matrix(Arg&& arg)
+    {
+      set_apparent_base_matrix(ApparentBaseMatrix {std::forward<Arg>(arg)});
     }
 
     constexpr auto operator() (std::size_t i, std::size_t j)

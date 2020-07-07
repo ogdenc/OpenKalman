@@ -13,7 +13,7 @@
 
 namespace Eigen
 {
-  template<typename XprApparentType, typename XprActualType>
+  template<typename CovarianceType>
   struct CovarianceCommaInitializer;
 }
 
@@ -44,20 +44,19 @@ namespace OpenKalman::internal
     using Nested = std::decay_t<ArgType>;
     using Scalar = typename Nested::Scalar;
     using Base = EigenMatrixBase<Derived, Nested>;
-    using Apparent = typename MatrixTraits<Nested>::template SelfAdjointBaseType<>;
 
     template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
     constexpr auto operator<<(const S& s)
     {
-      auto& xpr = base_matrix(static_cast<Derived&>(*this));
-      return Eigen::CovarianceCommaInitializer<Apparent, Nested>(xpr, static_cast<const Scalar&>(s));
+      auto& xpr = static_cast<Derived&>(*this);
+      return Eigen::CovarianceCommaInitializer(xpr, static_cast<const Scalar&>(s));
     }
 
     template<typename OtherDerived>
     constexpr auto operator<<(const Eigen::DenseBase<OtherDerived>& other)
     {
-      auto& xpr = base_matrix(static_cast<Derived&>(*this));
-      return Eigen::CovarianceCommaInitializer<Apparent, Nested>(xpr, other);
+      auto& xpr = static_cast<Derived&>(*this);
+      return Eigen::CovarianceCommaInitializer(xpr, other);
     }
   };
 
@@ -74,20 +73,19 @@ namespace OpenKalman::internal
     using Nested = std::decay_t<ArgType>;
     using Scalar = typename Nested::Scalar;
     using Base = EigenMatrixBase<Derived, Nested>;
-    using Apparent = typename MatrixTraits<Nested>::template TriangularBaseType<>;
 
     template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
     constexpr auto operator<<(const S& s)
     {
-      auto& xpr = base_matrix(static_cast<Derived&>(*this));
-      return Eigen::CovarianceCommaInitializer<Apparent, Nested>(xpr, static_cast<const Scalar&>(s));
+      auto& xpr = static_cast<Derived&>(*this);
+      return Eigen::CovarianceCommaInitializer(xpr, static_cast<const Scalar&>(s));
     }
 
     template<typename OtherDerived>
     constexpr auto operator<<(const Eigen::DenseBase<OtherDerived>& other)
     {
-      auto& xpr = base_matrix(static_cast<Derived&>(*this));
-      return Eigen::CovarianceCommaInitializer<Apparent, Nested>(xpr, other);
+      auto& xpr = static_cast<Derived&>(*this);
+      return Eigen::CovarianceCommaInitializer(xpr, other);
     }
   };
 
@@ -99,32 +97,32 @@ namespace Eigen
   /**
    * Alternative version of CommaInitializer for Covariance and SquareRootCovariance.
    */
-  template<typename XprApparentType, typename XprActualType>
+  template<typename CovarianceType>
   struct CovarianceCommaInitializer
   {
-    using Scalar = typename XprApparentType::Scalar;
+    using Scalar = typename CovarianceType::Scalar;
     using BaseMatrix = typename OpenKalman::MatrixTraits<
-      typename OpenKalman::MatrixTraits<XprApparentType>::BaseMatrix>::template StrictMatrix<>;
+      typename OpenKalman::MatrixTraits<CovarianceType>::BaseMatrix>::template StrictMatrix<>;
     using Nested = CommaInitializer<BaseMatrix>;
 
     BaseMatrix matrix;
     Nested comma_initializer;
-    XprActualType& xpr_actual; // target expression after conversion
+    CovarianceType& cov;
 
     template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
-    CovarianceCommaInitializer(XprActualType& xpr, const S& s)
-      : matrix(), comma_initializer(matrix, static_cast<const Scalar&>(s)), xpr_actual(xpr) {}
+    CovarianceCommaInitializer(CovarianceType& xpr, const S& s)
+      : matrix(), comma_initializer(matrix, static_cast<const Scalar&>(s)), cov(xpr) {}
 
     template<typename OtherDerived>
-    CovarianceCommaInitializer(XprActualType& xpr, const DenseBase <OtherDerived>& other)
-      : matrix(), comma_initializer(matrix, other), xpr_actual(xpr) {}
+    CovarianceCommaInitializer(CovarianceType& xpr, const DenseBase <OtherDerived>& other)
+      : matrix(), comma_initializer(matrix, other), cov(xpr) {}
 
     CovarianceCommaInitializer(const CovarianceCommaInitializer& o)
-      : matrix(o.matrix), comma_initializer(o.comma_initializer), xpr_actual(o.xpr_actual) {}
+      : matrix(o.matrix), comma_initializer(o.comma_initializer), cov(o.cov) {}
 
     CovarianceCommaInitializer(CovarianceCommaInitializer&& o)
       : matrix(std::move(o.matrix)),
-        comma_initializer(std::move(o.comma_initializer)), xpr_actual(std::move(o.xpr_actual)) {}
+        comma_initializer(std::move(o.comma_initializer)), cov(std::move(o.cov)) {}
 
     template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
     auto& operator,(const S& s)
@@ -147,7 +145,8 @@ namespace Eigen
 
     auto& finished()
     {
-      return xpr_actual = XprApparentType(comma_initializer.finished());
+      cov.set_apparent_base_matrix(comma_initializer.finished());
+      return cov;
     }
   };
 
