@@ -17,6 +17,7 @@
 #include "variables/support/MatrixBase.h"
 #include "variables/support/TypedMatrixBase.h"
 #include "variables/support/CovarianceBase.h"
+#include "variables/support/ConvertBaseMatrix.h"
 //
 #include "variables/support/OpenKalman-coefficients.h"
 #include "variables/classes/Mean.h"

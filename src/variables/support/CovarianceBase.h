@@ -20,7 +20,8 @@ namespace OpenKalman::internal
   struct CovarianceBase;
 
 
- /**
+  // ============================================================================
+  /**
    * Base of Covariance and SquareRootCovariance classes, general case.
    * No conversion is necessary if either
    * (1) Derived is not a square root and the base is self-adjoint; or
@@ -48,6 +49,26 @@ namespace OpenKalman::internal
     /// Construct from another covariance base.
     template<typename Arg, std::enable_if_t<is_covariance_base_v<Arg>, int> = 0>
     CovarianceBase(Arg&& arg) noexcept : m_arg(std::forward<Arg>(arg)) {}
+
+    /// Copy assignment operator.
+    auto& operator=(const CovarianceBase& other)
+    {
+      if (this != &other)
+      {
+        m_arg = other.m_arg;
+      }
+      return *this;
+    }
+
+    /// Move assignment operator.
+    auto& operator=(CovarianceBase&& other) noexcept
+    {
+      if (this != &other)
+      {
+        m_arg = std::move(other.m_arg);
+      }
+      return *this;
+    }
 
     /// Get the base matrix.
     constexpr auto& base_matrix() & { return m_arg; }
@@ -97,6 +118,7 @@ namespace OpenKalman::internal
   };
 
 
+  // ============================================================================
   /**
    * Ultimate base of Covariance and SquareRootCovariance classes, if
    * (1) Derived is a square root and the base is not triangular (i.e., it is self-adjoint but not diagonal); or
@@ -119,18 +141,42 @@ namespace OpenKalman::internal
     /// Copy constructor.
     CovarianceBase(const CovarianceBase& other)
       : synchronized(other.synchronized),
-        apparent_base(other.apparent_base_matrix()),
-        m_arg(other.base_matrix()) {}
+        apparent_base(other.apparent_base),
+        m_arg(other.m_arg) {}
 
     /// Move constructor.
     CovarianceBase(CovarianceBase&& other) noexcept
       : synchronized(other.synchronized),
-        apparent_base(other.apparent_base_matrix()),
-        m_arg(std::move(other).base_matrix()) {}
+        apparent_base(std::move(other.apparent_base)),
+        m_arg(std::move(other.m_arg)) {}
 
     /// Construct from a covariance base matrix.
     template<typename Arg, std::enable_if_t<is_covariance_base_v<Arg>, int> = 0>
     CovarianceBase(Arg&& arg) noexcept : synchronized(false), m_arg(std::forward<Arg>(arg)) { synchronized = false; }
+
+    /// Copy assignment operator.
+    auto& operator=(const CovarianceBase& other)
+    {
+      if (this != &other)
+      {
+        synchronized = other.synchronized;
+        apparent_base = other.apparent_base;
+        m_arg = other.m_arg;
+      }
+      return *this;
+    }
+
+    /// Move assignment operator.
+    auto& operator=(CovarianceBase&& other) noexcept
+    {
+      if (this != &other)
+      {
+        synchronized = std::move(other.synchronized);
+        apparent_base = std::move(other.apparent_base);
+        m_arg = std::move(other.m_arg);
+      }
+      return *this;
+    }
 
     /// Get the base matrix.
     constexpr auto& base_matrix() & { return m_arg; }
@@ -223,78 +269,6 @@ namespace OpenKalman::internal
     ApparentBaseMatrix apparent_base; ///< The apparent base matrix for Covariance or SquareRootCovariance.
     BaseMatrix m_arg; ///< The base matrix for Covariance or SquareRootCovariance.
   };
-
-
-  /**
-   * Convert covariance matrix to a covariance base of type T. If T is void, convert to a triangular matrix if
-   * covariance is a square root, or otherwise convert to a self-adjoint matrix.
-   * @tparam T Type to which Arg is to be converted (optional).
-   * @tparam Arg Type of covariance matrix to be converted
-   * @param arg Covariance matrix to be converted.
-   * @return A covariance base.
-   */
-  template<typename T = void, typename Arg,
-    std::enable_if_t<is_covariance_v<Arg> or is_typed_matrix_v<Arg>, int> = 0>
-  constexpr decltype(auto)
-  convert_base_matrix(Arg&& arg) noexcept
-  {
-    if constexpr(std::is_void_v<T>)
-    {
-      if constexpr(is_Cholesky_v<Arg> and not is_square_root_v<Arg>)
-      {
-        return Cholesky_square(std::forward<Arg>(arg).base_matrix());
-      }
-      else if constexpr(not is_Cholesky_v<Arg> and is_square_root_v<Arg> and not is_diagonal_v<Arg>)
-      {
-        return Cholesky_factor(std::forward<Arg>(arg).base_matrix());
-      }
-      else
-      {
-        return std::forward<Arg>(arg).base_matrix();
-      }
-    }
-    else
-    {
-      using ArgBase = typename MatrixTraits<Arg>::BaseMatrix;
-      if constexpr(is_self_adjoint_v<T> and not is_diagonal_v<T> and
-        ((not is_diagonal_v<Arg> and is_triangular_v<ArgBase> )
-          or (is_diagonal_v<Arg> and is_square_root_v<Arg>)))
-      {
-        return Cholesky_square(std::forward<Arg>(arg).base_matrix());
-      }
-      else if constexpr(is_triangular_v<T> and not is_diagonal_v<T> and
-        ((not is_diagonal_v<Arg> and not is_triangular_v<ArgBase> )
-          or (is_diagonal_v<Arg> and not is_square_root_v<Arg> )))
-      {
-        if constexpr(is_diagonal_v<Arg>)
-        {
-          return Cholesky_factor(std::forward<Arg>(arg).base_matrix());
-        }
-        else
-        {
-          using B = decltype(Cholesky_factor(std::forward<Arg>(arg).base_matrix()));
-          if constexpr(is_upper_triangular_v<T> != is_upper_triangular_v<B>)
-          {
-            return Cholesky_factor(adjoint(std::forward<Arg>(arg).base_matrix()));
-          }
-          else
-          {
-            return Cholesky_factor(std::forward<Arg>(arg).base_matrix());
-          }
-        }
-      }
-      else if constexpr(is_triangular_v<T> and is_Cholesky_v<Arg>
-        and is_upper_triangular_v<T> != is_upper_triangular_v<ArgBase>)
-      {
-        return adjoint(std::forward<Arg>(arg).base_matrix());
-      }
-      else
-      {
-        return std::forward<Arg>(arg).base_matrix();
-      }
-    }
-  }
-
 
 }
 

@@ -53,10 +53,10 @@ namespace OpenKalman
     Covariance() : Base() {}
 
     /// Copy constructor.
-    Covariance(const Covariance& other) : Base(other.base_matrix()) {}
+    Covariance(const Covariance& other) : Base(other) {}
 
     /// Move constructor.
-    Covariance(Covariance&& other) noexcept : Base(std::move(other).base_matrix()) {}
+    Covariance(Covariance&& other) noexcept : Base(std::move(other)) {}
 
     /// Convert from a general covariance type.
     template<typename M, std::enable_if_t<is_covariance_v<M>, int> = 0>
@@ -106,23 +106,13 @@ namespace OpenKalman
     /// Copy assignment operator.
     auto& operator=(const Covariance& other)
     {
-      if (this != &other)
-      {
-        base_matrix() = other.base_matrix();
-        this->mark_changed();
-      }
-      return *this;
+      return Base::operator=(other);
     }
 
     /// Move assignment operator.
     auto& operator=(Covariance&& other) noexcept
     {
-      if (this != &other)
-      {
-        base_matrix() = std::move(other).base_matrix();
-        this->mark_changed();
-      }
-      return *this;
+      return Base::operator=(std::move(other));
     }
 
     /// Assign from a compatible covariance type.

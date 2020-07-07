@@ -47,10 +47,10 @@ namespace OpenKalman
     SquareRootCovariance() : Base() {}
 
     /// Copy constructor.
-    SquareRootCovariance(const SquareRootCovariance& other) : Base(other.base_matrix()) {}
+    SquareRootCovariance(const SquareRootCovariance& other) : Base(other) {}
 
     /// Move constructor.
-    SquareRootCovariance(SquareRootCovariance&& other) : Base(std::move(other).base_matrix()) {}
+    SquareRootCovariance(SquareRootCovariance&& other) : Base(std::move(other)) {}
 
     /// Construct from a general covariance type.
     template<typename M, std::enable_if_t<is_covariance_v<M>, int> = 0>
@@ -103,23 +103,13 @@ namespace OpenKalman
     /// Copy assignment operator.
     auto& operator=(const SquareRootCovariance& other)
     {
-      if (this != &other)
-      {
-        this->mark_changed();
-        base_matrix() = other.base_matrix();
-      }
-      return *this;
+      return Base::operator=(other);
     }
 
     /// Move assignment operator.
     auto& operator=(SquareRootCovariance&& other) noexcept
     {
-      if (this != &other)
-      {
-        this->mark_changed();
-        base_matrix() = std::move(other).base_matrix();
-      }
-      return *this;
+      return Base::operator=(std::move(other));
     }
 
     /// Assign from a compatible covariance object.
