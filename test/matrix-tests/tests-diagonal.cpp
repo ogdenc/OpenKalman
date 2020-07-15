@@ -71,6 +71,9 @@ TEST_F(matrix_tests, Diagonal_class)
   EXPECT_NEAR(d1(0), 5, 1e-6);
   EXPECT_NEAR(d1(1), 6, 1e-6);
   EXPECT_NEAR(d1(2), 7, 1e-6);
+  EXPECT_NEAR(d1[0], 5, 1e-6);
+  EXPECT_NEAR(d1[1], 6, 1e-6);
+  EXPECT_NEAR(d1[2], 7, 1e-6);
   EXPECT_NEAR(d1(0, 0), 5, 1e-6);
   EXPECT_NEAR(d1(0, 1), 0, 1e-6);
   EXPECT_NEAR(d1(0, 2), 0, 1e-6);

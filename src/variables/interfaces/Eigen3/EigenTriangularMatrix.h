@@ -239,6 +239,16 @@ namespace OpenKalman
       }
     }
 
+
+    decltype(auto) operator[](std::size_t i) & { return (*this).operator()(i); }
+
+    decltype(auto) operator[](std::size_t i) && noexcept { return std::move(*this).operator()(i); }
+
+    decltype(auto) operator[](std::size_t i) const& { return (*this).operator()(i); }
+
+    decltype(auto) operator[](std::size_t i) const&& noexcept { return std::move(*this).operator()(i); }
+
+
     template<typename B, std::enable_if_t<is_Eigen_matrix_v<B>, int> = 0>
     auto solve(const B& b) const
     {

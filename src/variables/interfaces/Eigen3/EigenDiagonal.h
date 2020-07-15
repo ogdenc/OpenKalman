@@ -197,6 +197,15 @@ namespace OpenKalman
 
     decltype(auto) operator()(std::size_t i) const&& noexcept { return std::move(*this).base_matrix()(i); }
 
+
+    decltype(auto) operator[](std::size_t i) & { return (*this).base_matrix()[i]; }
+
+    decltype(auto) operator[](std::size_t i) && noexcept { return std::move(*this).base_matrix()[i]; }
+
+    decltype(auto) operator[](std::size_t i) const& { return (*this).base_matrix()[i]; }
+
+    decltype(auto) operator[](std::size_t i) const&& noexcept { return std::move(*this).base_matrix()[i]; }
+
   };
 
 
@@ -232,7 +241,7 @@ namespace OpenKalman
   /////////////////////////////////
 
   template<typename ArgType>
-  struct MatrixTraits<OpenKalman::EigenDiagonal<ArgType>>
+  struct MatrixTraits<EigenDiagonal<ArgType>>
   {
     using BaseMatrix = ArgType;
     using Scalar = typename MatrixTraits<BaseMatrix>::Scalar;

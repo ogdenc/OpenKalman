@@ -209,6 +209,12 @@ TEST_F(matrix_tests, TriangularMatrix_class)
   EXPECT_NEAR((Diagonal2 {2, 3})(1), 3, 1e-6);
   EXPECT_NEAR((Diagonal3 {2, 3})(0), 2, 1e-6);
   EXPECT_NEAR((Diagonal3 {2, 3})(1), 3, 1e-6);
+  EXPECT_NEAR((Diagonal {2, 1, 0, 3})[0], 2, 1e-6);
+  EXPECT_NEAR((Diagonal {2, 1, 0, 3})[1], 3, 1e-6);
+  EXPECT_NEAR((Diagonal2 {2, 3})[0], 2, 1e-6);
+  EXPECT_NEAR((Diagonal2 {2, 3})[1], 3, 1e-6);
+  EXPECT_NEAR((Diagonal3 {2, 3})[0], 2, 1e-6);
+  EXPECT_NEAR((Diagonal3 {2, 3})[1], 3, 1e-6);
   //
   EXPECT_NEAR((Lower {3., 0, 1, 3})(0, 0), 3, 1e-6);
   EXPECT_NEAR((Upper {3., 1, 0, 3})(0, 0), 3, 1e-6);

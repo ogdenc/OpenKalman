@@ -229,6 +229,12 @@ TEST_F(matrix_tests, SelfAdjointMatrix_class)
   EXPECT_NEAR((Diagonal2 {9, 10})(1), 10, 1e-6);
   EXPECT_NEAR((Diagonal3 {9, 10})(0), 9, 1e-6);
   EXPECT_NEAR((Diagonal3 {9, 10})(1), 10, 1e-6);
+  EXPECT_NEAR((Diagonal {9, 3, 3, 10})[0], 9, 1e-6);
+  EXPECT_NEAR((Diagonal {9, 3, 3, 10})[1], 10, 1e-6);
+  EXPECT_NEAR((Diagonal2 {9, 10})[0], 9, 1e-6);
+  EXPECT_NEAR((Diagonal2 {9, 10})[1], 10, 1e-6);
+  EXPECT_NEAR((Diagonal3 {9, 10})[0], 9, 1e-6);
+  EXPECT_NEAR((Diagonal3 {9, 10})[1], 10, 1e-6);
   //
   EXPECT_NEAR((Lower {9., 3, 3, 10})(0, 0), 9, 1e-6);
   EXPECT_NEAR((Upper {9., 3, 3, 10})(0, 0), 9, 1e-6);
