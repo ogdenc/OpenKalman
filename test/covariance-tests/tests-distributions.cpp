@@ -441,7 +441,7 @@ TEST_F(covariance_tests, GaussianDistribution_class_random_axis)
     mean_x = (mean_x * i + to_Euclidean(x)) / (i + 1);
   }
   EXPECT_NE(from_Euclidean(mean_x), true_x);
-  EXPECT_TRUE(is_near(from_Euclidean(mean_x), true_x, MatrixTraits<Mat>::BaseMatrix::Constant(0.5)));
+  EXPECT_TRUE(is_near(from_Euclidean(mean_x), true_x, MatrixTraits<Mat>::BaseMatrix::Constant(1.0)));
 }
 
 

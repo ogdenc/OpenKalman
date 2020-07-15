@@ -198,6 +198,14 @@ namespace OpenKalman
   struct is_strict<SquareRootCovariance<Coefficients, BaseMatrix>> : is_strict<BaseMatrix> {};
 
 
+  namespace internal
+  {
+    /// Convert a covariance to a base matrix of a particular type
+    template<typename T = void, typename Arg>
+    constexpr decltype(auto) convert_base_matrix(Arg&&) noexcept;
+  }
+
+
   /**
    * @brief A Gaussian distribution, defined in terms of a mean vector and a covariance matrix.
    * @tparam Coefficients Coefficient types.

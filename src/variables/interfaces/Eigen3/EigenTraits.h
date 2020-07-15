@@ -34,23 +34,23 @@ namespace Eigen::internal
 
   template<typename Coefficients, typename ArgType>
   struct traits<OpenKalman::Covariance<Coefficients, ArgType>>
-    : traits<std::decay_t<typename OpenKalman::MatrixTraits<ArgType>::BaseMatrix>>
+    : traits<typename OpenKalman::MatrixTraits<ArgType>::template SelfAdjointBaseType<>>
   {
-    using Nested = std::decay_t<typename OpenKalman::MatrixTraits<ArgType>::BaseMatrix>;
+    using Base = traits<typename OpenKalman::MatrixTraits<ArgType>::template SelfAdjointBaseType<>>;
     enum
     {
-      Flags = traits<Nested>::Flags & (OpenKalman::is_self_adjoint_v<ArgType> ? ~0 : ~LvalueBit),
+      Flags = Base::Flags & (OpenKalman::is_self_adjoint_v<ArgType> ? ~0 : ~LvalueBit),
     };
   };
 
   template<typename Coefficients, typename ArgType>
   struct traits<OpenKalman::SquareRootCovariance<Coefficients, ArgType>>
-    : traits<std::decay_t<typename OpenKalman::MatrixTraits<ArgType>::BaseMatrix>>
+    : traits<typename OpenKalman::MatrixTraits<ArgType>::template TriangularBaseType<>>
   {
-    using Nested = std::decay_t<typename OpenKalman::MatrixTraits<ArgType>::BaseMatrix>;
+    using Base = traits<typename OpenKalman::MatrixTraits<ArgType>::template TriangularBaseType<>>;
     enum
     {
-      Flags = traits<Nested>::Flags & (OpenKalman::is_triangular_v<ArgType> ? ~0 : ~LvalueBit),
+      Flags = Base::Flags & (OpenKalman::is_triangular_v<ArgType> ? ~0 : ~LvalueBit),
     };
   };
 

@@ -21,66 +21,67 @@ namespace OpenKalman::internal
    * @param arg Covariance matrix to be converted.
    * @return A covariance base.
    */
-  template<typename T = void, typename Arg,
-    std::enable_if_t<is_covariance_v<Arg> or is_typed_matrix_v<Arg>, int> = 0>
+  template<typename T = void, typename Arg>
   constexpr decltype(auto)
   convert_base_matrix(Arg&& arg) noexcept
   {
-    if constexpr(std::is_void_v<T>)
+    static_assert(is_covariance_v<Arg> or is_typed_matrix_v<Arg>);
+    using ArgBase = typename MatrixTraits<Arg>::BaseMatrix;
+    if constexpr(is_typed_matrix_v<Arg>)
     {
-      if constexpr(is_Cholesky_v<Arg> and not is_square_root_v<Arg>)
-      {
-        //return Cholesky_square(std::forward<Arg>(arg).base_matrix());
+      static_assert(is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, typename MatrixTraits<Arg>::ColumnCoefficients>);
+      using SA = typename MatrixTraits<ArgBase>::template SelfAdjointBaseType<>;
+      if constexpr(std::is_void_v<T>)
+        return std::forward<Arg>(arg).base_matrix();
+      else
+        return T {SA {std::forward<Arg>(arg).base_matrix()}};
+    }
+    else if constexpr(std::is_void_v<T>)
+    {
+      return std::forward<Arg>(arg).get_apparent_base_matrix();
+    }
+    else if constexpr(is_self_adjoint_v<T> and not is_diagonal_v<T> and
+      ((is_triangular_v<ArgBase> and not is_diagonal_v<Arg>) or (is_square_root_v<Arg> and is_diagonal_v<Arg>)))
+    {
+      if constexpr((is_self_adjoint_v<ArgBase> and not is_square_root_v<Arg>) or
+        (is_triangular_v<ArgBase> and is_square_root_v<Arg>))
+        return Cholesky_square(std::forward<Arg>(arg).base_matrix());
+      else
         return std::forward<Arg>(arg).get_apparent_base_matrix();
-      }
-      else if constexpr(not is_Cholesky_v<Arg> and is_square_root_v<Arg> and not is_diagonal_v<Arg>)
+    }
+    else if constexpr(is_triangular_v<T> and not is_diagonal_v<T> and
+      ((not is_diagonal_v<Arg> and not is_triangular_v<ArgBase> )
+        or (is_diagonal_v<Arg> and not is_square_root_v<Arg> )))
+    {
+      if constexpr(is_diagonal_v<Arg>)
       {
         return Cholesky_factor(std::forward<Arg>(arg).base_matrix());
       }
       else
       {
-        return std::forward<Arg>(arg).base_matrix();
-      }
-    }
-    else
-    {
-      using ArgBase = typename MatrixTraits<Arg>::BaseMatrix;
-      if constexpr(is_self_adjoint_v<T> and not is_diagonal_v<T> and
-        ((not is_diagonal_v<Arg> and is_triangular_v<ArgBase> )
-          or (is_diagonal_v<Arg> and is_square_root_v<Arg>)))
-      {
-        return Cholesky_square(std::forward<Arg>(arg).base_matrix());
-      }
-      else if constexpr(is_triangular_v<T> and not is_diagonal_v<T> and
-        ((not is_diagonal_v<Arg> and not is_triangular_v<ArgBase> )
-          or (is_diagonal_v<Arg> and not is_square_root_v<Arg> )))
-      {
-        if constexpr(is_diagonal_v<Arg>)
+        using B = decltype(Cholesky_factor(std::forward<Arg>(arg).base_matrix()));
+        if constexpr(is_upper_triangular_v<T> != is_upper_triangular_v<B>)
         {
-          return Cholesky_factor(std::forward<Arg>(arg).base_matrix());
+          return Cholesky_factor(adjoint(std::forward<Arg>(arg).base_matrix()));
         }
         else
         {
-          using B = decltype(Cholesky_factor(std::forward<Arg>(arg).base_matrix()));
-          if constexpr(is_upper_triangular_v<T> != is_upper_triangular_v<B>)
-          {
-            return Cholesky_factor(adjoint(std::forward<Arg>(arg).base_matrix()));
-          }
-          else
-          {
+          if constexpr((is_self_adjoint_v<ArgBase> and not is_square_root_v<Arg>) or
+            (is_triangular_v<ArgBase> and is_square_root_v<Arg>))
             return Cholesky_factor(std::forward<Arg>(arg).base_matrix());
-          }
+          else
+            return std::forward<Arg>(arg).get_apparent_base_matrix();
         }
       }
-      else if constexpr(is_triangular_v<T> and is_Cholesky_v<Arg>
-        and is_upper_triangular_v<T> != is_upper_triangular_v<ArgBase>)
-      {
-        return adjoint(std::forward<Arg>(arg).base_matrix());
-      }
-      else
-      {
-        return std::forward<Arg>(arg).base_matrix();
-      }
+    }
+    else if constexpr(is_triangular_v<T> and is_Cholesky_v<Arg>
+      and is_upper_triangular_v<T> != is_upper_triangular_v<ArgBase>)
+    {
+      return adjoint(std::forward<Arg>(arg).base_matrix());
+    }
+    else
+    {
+      return std::forward<Arg>(arg).base_matrix();
     }
   }
 

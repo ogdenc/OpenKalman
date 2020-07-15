@@ -27,10 +27,10 @@ static constexpr bool is_test_trait =
   is_covariance_v<Arg>;
 
 template<typename ArgA, typename ArgB, std::enable_if_t<is_test_trait<ArgA> and is_test_trait<ArgB>, int> = 0>
-::testing::AssertionResult is_near(const ArgA& A, const ArgB& B, const double err = 1e-6)
+::testing::AssertionResult is_near(ArgA&& A, ArgB&& B, const double err = 1e-6)
 {
-  auto A_n = strict_matrix(A);
-  auto B_n = strict_matrix(B);
+  auto A_n = strict_matrix(std::forward<ArgA>(A));
+  auto B_n = strict_matrix(std::forward<ArgB>(B));
 
   if (A_n.isApprox(B_n, err))
   {
@@ -45,10 +45,10 @@ template<typename ArgA, typename ArgB, std::enable_if_t<is_test_trait<ArgA> and 
 
 template<typename ArgA, typename ArgB, typename Err,
   std::enable_if_t<is_test_trait<ArgA> and is_test_trait<ArgB> and is_Eigen_matrix_v<Err>, int> = 0>
-::testing::AssertionResult is_near(const ArgA& A, const ArgB& B, const Err& err)
+::testing::AssertionResult is_near(ArgA&& A, ArgB&& B, const Err& err)
 {
-  auto A_n = strict_matrix(A);
-  auto B_n = strict_matrix(B);
+  auto A_n = strict_matrix(std::forward<ArgA>(A));
+  auto B_n = strict_matrix(std::forward<ArgB>(B));
 
   if (((A_n - B_n).cwiseAbs().array() - strict_matrix(err).array()).maxCoeff() <= 0)
   {
@@ -67,8 +67,8 @@ template<
     std::enable_if_t<is_Gaussian_distribution_v<Dist1>, int> = 0,
     std::enable_if_t<is_Gaussian_distribution_v<Dist2>, int> = 0>
 ::testing::AssertionResult is_near(
-    const Dist1& A,
-    const Dist2& B,
+    Dist1&& A,
+    Dist2&& B,
     const typename DistributionTraits<Dist1>::Scalar err = (typename DistributionTraits<Dist1>::Scalar) 1e-6)
 {
   if (is_near(mean(A), mean(B), err) and is_near(covariance(A), covariance(B), err))
@@ -77,7 +77,8 @@ template<
   }
   else
   {
-    return ::testing::AssertionFailure() << std::endl << A << std::endl << "is not near" << std::endl << B << std::endl;
+    return ::testing::AssertionFailure() << std::endl << std::forward<Dist1>(A) <<
+      std::endl << "is not near" << std::endl << std::forward<Dist2>(B) << std::endl;
   }
 }
 

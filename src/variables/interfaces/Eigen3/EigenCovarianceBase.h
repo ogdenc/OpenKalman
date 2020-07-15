@@ -145,7 +145,7 @@ namespace Eigen
 
     auto& finished()
     {
-      cov.set_apparent_base_matrix(comma_initializer.finished());
+      cov = comma_initializer.finished();
       return cov;
     }
   };

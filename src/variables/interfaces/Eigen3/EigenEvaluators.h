@@ -51,6 +51,7 @@ namespace Eigen::internal
   {
     using Scalar = typename std::decay_t<ArgType>::Scalar;
     using XprType = OpenKalman::EigenSelfAdjointMatrix<ArgType, storage_triangle>;
+    using CoeffReturnType = typename XprType::CoeffReturnType;
     using NestedEvaluator = evaluator<std::decay_t<ArgType>>;
     enum
     {
@@ -99,12 +100,21 @@ namespace Eigen::internal
       return m_argImpl.coeffRef(i);
     }
 
-    auto coeff(Index row, Index col) const
+    CoeffReturnType coeff(Index row, Index col) const
     {
       if constexpr(storage_triangle == OpenKalman::TriangleType::diagonal)
       {
         if (row != col)
-          return Scalar(0);
+        {
+          if constexpr(std::is_lvalue_reference_v<CoeffReturnType>)
+          {
+            static Scalar dummy;
+            dummy = 0;
+            return dummy;
+          }
+          else
+            return Scalar(0);
+        }
         else
           return m_argImpl.coeff(col, row);
       }
@@ -128,7 +138,7 @@ namespace Eigen::internal
       }
     }
 
-    auto coeff(Index i) const
+    CoeffReturnType coeff(Index i) const
     {
       return m_argImpl.coeff(i);
     }
@@ -144,6 +154,7 @@ namespace Eigen::internal
   {
     using Scalar = typename std::decay_t<ArgType>::Scalar;
     using XprType = OpenKalman::EigenTriangularMatrix<ArgType, triangle_type>;
+    using CoeffReturnType = typename XprType::CoeffReturnType;
     using NestedEvaluator = evaluator<std::decay_t<ArgType>>;
     enum
     {
@@ -200,26 +211,53 @@ namespace Eigen::internal
       return m_argImpl.coeffRef(i);
     }
 
-    auto coeff(Index row, Index col) const
+    CoeffReturnType coeff(Index row, Index col) const
     {
       if constexpr(triangle_type == OpenKalman::TriangleType::diagonal)
       {
         if (row != col)
-          return Scalar(0);
+        {
+          if constexpr(std::is_lvalue_reference_v<CoeffReturnType>)
+          {
+            static Scalar dummy;
+            dummy = 0;
+            return dummy;
+          }
+          else
+            return Scalar(0);
+        }
         else
           return m_argImpl.coeff(col, row);
       }
       else if constexpr(triangle_type == OpenKalman::TriangleType::upper)
       {
         if (row > col)
-          return Scalar(0);
+        {
+          if constexpr(std::is_lvalue_reference_v<CoeffReturnType>)
+          {
+            static Scalar dummy;
+            dummy = 0;
+            return dummy;
+          }
+          else
+            return Scalar(0);
+        }
         else
           return m_argImpl.coeff(row, col);
       }
       else if constexpr(triangle_type == OpenKalman::TriangleType::lower)
       {
         if (row < col)
-          return Scalar(0);
+        {
+          if constexpr(std::is_lvalue_reference_v<CoeffReturnType>)
+          {
+            static Scalar dummy;
+            dummy = 0;
+            return dummy;
+          }
+          else
+            return Scalar(0);
+        }
         else
           return m_argImpl.coeff(row, col);
       }
@@ -229,7 +267,7 @@ namespace Eigen::internal
       }
     }
 
-    auto coeff(Index i) const
+    CoeffReturnType coeff(Index i) const
     {
       return m_argImpl.coeff(i);
     }
@@ -245,6 +283,7 @@ namespace Eigen::internal
   {
     using Scalar = typename std::decay_t<ArgType>::Scalar;
     using XprType = OpenKalman::EigenDiagonal<ArgType>;
+    using CoeffReturnType = typename XprType::CoeffReturnType;
     using NestedEvaluator = evaluator<std::decay_t<ArgType>>;
     enum
     {
@@ -267,12 +306,21 @@ namespace Eigen::internal
       }
     }
 
-    auto coeff(Index row, Index col) const
+    CoeffReturnType coeff(Index row, Index col) const
     {
       if (row == col)
         return m_argImpl.coeff(row);
       else
-        return Scalar(0);
+      {
+        if constexpr(std::is_lvalue_reference_v<CoeffReturnType>)
+        {
+          static Scalar dummy;
+          dummy = 0;
+          return dummy;
+        }
+        else
+          return Scalar(0);
+      }
     }
 
   protected:
@@ -289,99 +337,35 @@ namespace Eigen::internal
   };
 
 
-  namespace detail
-  {
-    template<typename ArgType, typename Enable = void>
-    struct CovarianceEvaluatorBase {};
-
-    template<typename ArgType>
-    struct CovarianceEvaluatorBase<ArgType, std::enable_if_t<OpenKalman::is_self_adjoint_v<ArgType>>>
-      : evaluator<ArgType>
-    {
-      using Base = evaluator<ArgType>;
-      explicit CovarianceEvaluatorBase(const ArgType& arg) : Base(arg) {}
-    };
-
-    template<typename ArgType>
-    struct CovarianceEvaluatorBase<ArgType, std::enable_if_t<not OpenKalman::is_self_adjoint_v<ArgType>>>
-      : evaluator_base<CovarianceEvaluatorBase<ArgType>>
-    {
-      static_assert(OpenKalman::is_covariance_base_v<ArgType>);
-      using Scalar = typename std::decay_t<ArgType>::Scalar;
-      using Nested = typename OpenKalman::MatrixTraits<ArgType>::template SelfAdjointBaseType<>;
-      using NestedEvaluator = evaluator<Nested>;
-
-      enum
-      {
-        CoeffReadCost = NestedEvaluator::CoeffReadCost,
-        Flags = NestedEvaluator::Flags & (~LvalueBit),
-        Alignment = NestedEvaluator::Alignment
-      };
-
-      explicit CovarianceEvaluatorBase(const ArgType& m_arg) : m_argImpl(OpenKalman::Cholesky_square(m_arg)) {}
-
-      auto coeff(Index row, Index col) const { return m_argImpl.coeff(row, col); }
-
-    protected:
-      NestedEvaluator m_argImpl;
-    };
-  }
-
   template<typename Coefficients, typename ArgType>
   struct evaluator<OpenKalman::Covariance<Coefficients, ArgType>>
-    : detail::CovarianceEvaluatorBase<std::decay_t<ArgType>>
+    : evaluator<std::decay_t<decltype(OpenKalman::internal::convert_base_matrix(
+      std::declval<const OpenKalman::Covariance<Coefficients, ArgType>&>()))>>
   {
     using XprType = OpenKalman::Covariance<Coefficients, ArgType>;
-    using Base = detail::CovarianceEvaluatorBase<std::decay_t<ArgType>>;
-    explicit evaluator(const XprType& arg) : Base(arg.base_matrix()) {}
+    using Base = evaluator<std::decay_t<decltype(OpenKalman::internal::convert_base_matrix(
+      std::declval<const XprType&>()))>>;
+    enum
+    {
+      Flags = Base::Flags & (OpenKalman::is_self_adjoint_v<ArgType> ? ~0 : ~LvalueBit),
+    };
+    explicit evaluator(const XprType& m_arg) : Base(OpenKalman::internal::convert_base_matrix(m_arg)) {}
   };
 
 
-  namespace detail
-  {
-    template<typename ArgType, typename Enable = void>
-    struct SquareRootCovarianceEvaluatorBase {};
-
-    template<typename ArgType>
-    struct SquareRootCovarianceEvaluatorBase<ArgType, std::enable_if_t<OpenKalman::is_triangular_v<ArgType>>>
-      : evaluator<ArgType>
-    {
-      using Base = evaluator<ArgType>;
-      explicit SquareRootCovarianceEvaluatorBase(const ArgType& arg) : Base(arg) {}
-    };
-
-    template<typename ArgType>
-    struct SquareRootCovarianceEvaluatorBase<ArgType, std::enable_if_t<not OpenKalman::is_triangular_v<ArgType>>>
-      : evaluator_base<SquareRootCovarianceEvaluatorBase<ArgType>>
-    {
-      static_assert(OpenKalman::is_covariance_base_v<ArgType>);
-      using Scalar = typename std::decay_t<ArgType>::Scalar;
-      using Nested = typename OpenKalman::MatrixTraits<ArgType>::template TriangularBaseType<>;
-      using NestedEvaluator = evaluator<Nested>;
-
-      enum
-      {
-        CoeffReadCost = NestedEvaluator::CoeffReadCost,
-        Flags = NestedEvaluator::Flags & (~LvalueBit),
-        Alignment = NestedEvaluator::Alignment
-      };
-
-      explicit SquareRootCovarianceEvaluatorBase(const ArgType& m_arg) : m_argImpl(OpenKalman::Cholesky_factor(m_arg)) {}
-
-      auto coeff(Index row, Index col) const { return m_argImpl.coeff(row, col); }
-
-    protected:
-      NestedEvaluator m_argImpl;
-    };
-  }
-
   template<typename Coefficients, typename ArgType>
   struct evaluator<OpenKalman::SquareRootCovariance<Coefficients, ArgType>>
-    : detail::SquareRootCovarianceEvaluatorBase<std::decay_t<ArgType>>
+    : evaluator<std::decay_t<decltype(OpenKalman::internal::convert_base_matrix(
+      std::declval<const OpenKalman::SquareRootCovariance<Coefficients, ArgType>&>()))>>
   {
     using XprType = OpenKalman::SquareRootCovariance<Coefficients, ArgType>;
-    using Base = detail::SquareRootCovarianceEvaluatorBase<std::decay_t<ArgType>>;
-    explicit evaluator(const XprType& arg) : Base(arg.base_matrix()) {}
+    using Base = evaluator<std::decay_t<decltype(OpenKalman::internal::convert_base_matrix(
+      std::declval<const XprType&>()))>>;
+    enum
+    {
+      Flags = Base::Flags & (OpenKalman::is_triangular_v<ArgType> ? ~0 : ~LvalueBit),
+    };
+    explicit evaluator(const XprType& m_arg) : Base(OpenKalman::internal::convert_base_matrix(m_arg)) {}
   };
 
 
@@ -454,6 +438,7 @@ namespace Eigen::internal
     std::decay_t<ArgType>, evaluator<std::decay_t<ArgType>>>
   {
     using XprType = OpenKalman::ToEuclideanExpr<Coefficients, ArgType>;
+    using CoeffReturnType = typename XprType::CoeffReturnType;
     using Nested = std::decay_t<ArgType>;
     using NestedEvaluator = evaluator<Nested>;
     using Base = detail::Evaluator_EuclideanExpr_Base<Coefficients, XprType, Nested, NestedEvaluator>;
@@ -473,7 +458,7 @@ namespace Eigen::internal
 
     explicit evaluator(const XprType& t) : Base {base_matrix(t)} {}
 
-    auto coeff(Index row, Index col) const
+    CoeffReturnType coeff(Index row, Index col) const
     {
       if constexpr (Coefficients::axes_only)
       {
@@ -486,7 +471,7 @@ namespace Eigen::internal
       }
     }
 
-    auto coeff(Index row) const
+    CoeffReturnType coeff(Index row) const
     {
       if constexpr (Coefficients::axes_only)
       {
@@ -514,6 +499,7 @@ namespace Eigen::internal
     std::decay_t<ArgType>, evaluator<std::decay_t<ArgType>>>
   {
     using XprType = OpenKalman::FromEuclideanExpr<Coefficients, ArgType>;
+    using CoeffReturnType = typename XprType::CoeffReturnType;
     using Nested = std::decay_t<ArgType>;
     using NestedEvaluator = evaluator<Nested>;
     using Base = detail::Evaluator_EuclideanExpr_Base<Coefficients, XprType, Nested, NestedEvaluator>;
@@ -532,7 +518,7 @@ namespace Eigen::internal
 
     explicit evaluator(const XprType& t) : Base {base_matrix(t)} {}
 
-    auto coeff(Index row, Index col) const
+    CoeffReturnType coeff(Index row, Index col) const
     {
       if constexpr (Coefficients::axes_only)
       {
@@ -545,7 +531,7 @@ namespace Eigen::internal
       }
     }
 
-    auto coeff(Index row) const
+    CoeffReturnType coeff(Index row) const
     {
       if constexpr (Coefficients::axes_only)
       {
@@ -570,6 +556,7 @@ namespace Eigen::internal
     OpenKalman::ToEuclideanExpr<Coefficients, ArgType>>, std::decay_t<ArgType>, evaluator<std::decay_t<ArgType>>>
   {
     using XprType = OpenKalman::FromEuclideanExpr<Coefficients, OpenKalman::ToEuclideanExpr<Coefficients, ArgType>>;
+    using CoeffReturnType = typename XprType::CoeffReturnType;
     using Nested = std::decay_t<ArgType>;
     using NestedEvaluator = evaluator<Nested>;
     using Base = detail::Evaluator_EuclideanExpr_Base<Coefficients, XprType, Nested, NestedEvaluator>;
@@ -584,7 +571,7 @@ namespace Eigen::internal
 
     explicit evaluator(const XprType& t) : Base {base_matrix(base_matrix(t))} {}
 
-    auto coeff(Index row, Index col) const
+    CoeffReturnType coeff(Index row, Index col) const
     {
       if constexpr (Coefficients::axes_only)
       {
@@ -597,7 +584,7 @@ namespace Eigen::internal
       }
     }
 
-    auto coeff(Index row) const
+    CoeffReturnType coeff(Index row) const
     {
       if constexpr (Coefficients::axes_only)
       {

@@ -59,8 +59,11 @@ add_test(typed-matrix-tests 0)
 add_executable(covariance-tests
         covariance-tests/covariance_tests.cpp
         covariance-tests/tests-covariance.cpp
-        #covariance-tests/tests-sqrt-covariance.cpp
-        #covariance-tests/tests-distributions.cpp
+        covariance-tests/tests-covariance-ops.cpp
+        covariance-tests/tests-sqrt-covariance.cpp
+        covariance-tests/tests-sqrt-covariance-ops.cpp
+        covariance-tests/tests-covariance-refs.cpp
+        covariance-tests/tests-distributions.cpp
         )
 set_target_properties(covariance-tests PROPERTIES CXX_STANDARD_REQUIRED ON CXX_STANDARD 17)
 target_link_libraries(covariance-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)

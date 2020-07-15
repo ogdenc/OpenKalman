@@ -331,6 +331,34 @@ namespace OpenKalman
   inline constexpr bool is_strict_matrix_v = is_strict_matrix<T>::value;
 
 
+  namespace internal
+  {
+    /// Whether a class allows (i,j) indexing (two indices).
+    template<typename, typename = std::void_t<>>
+    struct has_2_index_parentheses : std::false_type {};
+
+    template<typename T>
+    struct has_2_index_parentheses<T,
+      std::void_t<decltype(std::declval<T>()(std::declval<std::size_t>(), std::declval<std::size_t>()))>>
+      : std::true_type {};
+
+    /// Whether a class allows (i) indexing (one index).
+    template<typename, typename = std::void_t<>>
+    struct has_1_index_parentheses : std::false_type {};
+
+    template<typename T>
+    struct has_1_index_parentheses<T, std::void_t<decltype(std::declval<T>()(std::declval<std::size_t>()))>>
+      : std::true_type {};
+
+    /// Whether a class allows [i] indexing (one index).
+    template<typename, typename = std::void_t<>>
+    struct has_1_index_brackets : std::false_type {};
+
+    template<typename T>
+    struct has_1_index_brackets<T, std::void_t<decltype(std::declval<T>()[std::declval<std::size_t>()])>>
+      : std::true_type {};
+  }
+
   /////////////////////
   //  Distributions  //
   /////////////////////

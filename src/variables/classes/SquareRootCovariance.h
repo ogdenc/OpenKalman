@@ -54,7 +54,7 @@ namespace OpenKalman
 
     /// Construct from a general covariance type.
     template<typename M, std::enable_if_t<is_covariance_v<M>, int> = 0>
-    SquareRootCovariance(M&& m) noexcept : Base(internal::convert_base_matrix<BaseMatrix>(std::forward<M>(m)))
+    SquareRootCovariance(M&& m) noexcept : Base(std::forward<M>(m))
     {
       static_assert(is_equivalent_v<typename MatrixTraits<M>::Coefficients, Coefficients>);
       using MBase = typename MatrixTraits<M>::BaseMatrix;

@@ -13,18 +13,18 @@
 
 #include "variables/support/Traits.h"
 #include "variables/support/ForwardDeclarations.h"
+#include "variables/support/OpenKalman-coefficients.h"
 //
 #include "variables/support/MatrixBase.h"
 #include "variables/support/TypedMatrixBase.h"
-#include "variables/support/CovarianceBase.h"
-#include "variables/support/ConvertBaseMatrix.h"
-//
-#include "variables/support/OpenKalman-coefficients.h"
 #include "variables/classes/Mean.h"
 #include "variables/classes/EuclideanMean.h"
 #include "variables/classes/TypedMatrix.h"
 #include "variables/support/TypedMatrixOverloads.h"
 //
+#include "variables/support/ConvertBaseMatrix.h"
+#include "variables/support/CovarianceBaseBase.h"
+#include "variables/support/CovarianceBase.h"
 #include "variables/classes/Covariance.h"
 #include "variables/classes/SquareRootCovariance.h"
 #include "variables/support/CovarianceOverloads.h"
