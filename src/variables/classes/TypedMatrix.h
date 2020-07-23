@@ -11,8 +11,6 @@
 #ifndef OPENKALMAN_TYPEDMATRIX_H
 #define OPENKALMAN_TYPEDMATRIX_H
 
-#include "variables/support/TypedMatrixBase.h"
-
 namespace OpenKalman
 {
   ////////////////////////////////

@@ -134,6 +134,30 @@ namespace OpenKalman
       using ST = typename MatrixTraits<BaseMatrix>::template StrictMatrix<Coefficients::size>;
       return MatrixTraits<ST>::identity();
     }
+
+    auto operator()(std::size_t i, std::size_t j)
+    {
+      if constexpr (is_element_settable_v<FromEuclideanExpr, 2>)
+        return internal::ElementSetter(*this, i, j);
+      else
+        return const_cast<const FromEuclideanExpr&>(*this)(i, j);
+    }
+
+    auto operator()(std::size_t i, std::size_t j) const noexcept { return internal::ElementSetter(*this, i, j); }
+
+    auto operator[](std::size_t i)
+    {
+      if constexpr (is_element_settable_v<FromEuclideanExpr, 1>)
+        return internal::ElementSetter(*this, i);
+      else
+        return const_cast<const FromEuclideanExpr&>(*this)[i];
+    }
+
+    auto operator[](std::size_t i) const noexcept { return internal::ElementSetter(*this, i); }
+
+    auto operator()(std::size_t i) { return operator[](i); }
+
+    auto operator()(std::size_t i) const { return operator[](i); }
   };
 
 

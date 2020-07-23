@@ -11,8 +11,6 @@
 #ifndef OPENKALMAN_SQUAREROOTCOVARIANCE_H
 #define OPENKALMAN_SQUAREROOTCOVARIANCE_H
 
-#include <initializer_list>
-
 namespace OpenKalman
 {
   template<typename Coeffs, typename ArgType>
@@ -103,27 +101,33 @@ namespace OpenKalman
     /// Copy assignment operator.
     auto& operator=(const SquareRootCovariance& other)
     {
-      return Base::operator=(other);
+      Base::operator=(other);
+      return *this;
     }
 
     /// Move assignment operator.
     auto& operator=(SquareRootCovariance&& other) noexcept
     {
-      return Base::operator=(std::move(other));
+      Base::operator=(std::move(other));
+      return *this;
     }
 
-    /// Assign from a compatible covariance object.
-    template<typename Arg, std::enable_if_t<is_covariance_v<Arg>, int> = 0>
+    /// Assign from a compatible covariance or typed matrix object.
+    template<typename Arg, std::enable_if_t<is_covariance_v<Arg> or is_typed_matrix_v<Arg>, int> = 0>
     auto& operator=(Arg&& other) noexcept
     {
-      static_assert(is_equivalent_v<typename MatrixTraits<Arg>::Coefficients, Coefficients>);
+      if constexpr(is_covariance_v<Arg>)
+        static_assert(is_equivalent_v<typename MatrixTraits<Arg>::Coefficients, Coefficients>);
+      else if constexpr(is_typed_matrix_v<Arg>)
+        static_assert(is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, Coefficients> and
+          is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>);
       using ArgBase = typename MatrixTraits<Arg>::BaseMatrix;
       static_assert(not is_square_root_v<Arg> or is_self_adjoint_v<ArgBase> or is_self_adjoint_v<BaseMatrix> or
         is_upper_triangular_v<BaseMatrix> == is_upper_triangular_v<ArgBase>,
           "An upper-triangle Cholesky-form covariance cannot be assigned a lower-triangle Cholesky-form "
           "covariance, and vice versa. To convert, use adjoint().");
       if constexpr (std::is_same_v<std::decay_t<Arg>, SquareRootCovariance>) if (this == &other) return *this;
-      base_matrix() = internal::convert_base_matrix<BaseMatrix>(std::forward<Arg>(other));
+      base_matrix() = internal::convert_base_matrix<std::decay_t<BaseMatrix>>(std::forward<Arg>(other));
       this->mark_changed();
       return *this;
     }

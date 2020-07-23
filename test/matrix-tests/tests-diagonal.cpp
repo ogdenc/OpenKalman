@@ -58,15 +58,39 @@ TEST_F(matrix_tests, Diagonal_class)
   EXPECT_TRUE(is_near(d1, EigenDiagonal {1., 4, 9}));
   EXPECT_TRUE(is_near(d1.square_root(), EigenDiagonal {1., 2, 3}));
   EXPECT_TRUE(is_near(d1.square(), EigenDiagonal {1., 16, 81}));
+}
+
+TEST_F(matrix_tests, Diagonal_subscripts)
+{
+  auto el = EigenDiagonal {1., 2, 3};
+  set_element(el, 5.5, 1);
+  EXPECT_NEAR(get_element(el, 1), 5.5, 1e-8);
+  set_element(el, 6.5, 2, 2);
+  EXPECT_NEAR(get_element(el, 2), 6.5, 1e-8);
+  bool test = false; try { set_element(el, 7.5, 2, 0); } catch (const std::out_of_range& e) { test = true; }
+  EXPECT_TRUE(test);
+  EXPECT_NEAR(get_element(el, 2, 0), 0, 1e-8);
+
+  EigenDiagonal<Eigen::Matrix<double, 3, 1>> d1 {1, 4, 9};
+
+  static_assert(is_element_gettable_v<EigenDiagonal<Eigen::Matrix<double, 3, 1>>, 2>);
+  static_assert(is_element_gettable_v<decltype(d1), 2>);
+  static_assert(is_element_gettable_v<decltype(d1), 1>);
+  static_assert(not is_element_gettable_v<decltype(d1), 3>);
+  static_assert(is_element_settable_v<decltype(d1), 2>);
+  static_assert(is_element_settable_v<decltype(d1), 1>);
   EXPECT_EQ(d1(2), 9);
   EXPECT_EQ(d1(0), 1);
   EXPECT_EQ(d1(0, 1), 0);
   EXPECT_EQ(d1(1, 1), 4);
+
   d1(0,0) = 5;
   d1(1) = 6;
   d1(2) = 7;
-  d1(1, 0) = 3; // Should have no effect.
+  test = false; try { d1(1, 0) = 3; } catch (const std::out_of_range& e) { test = true; }
+  EXPECT_TRUE(test);
   EXPECT_EQ(d1(1, 0), 0);
+
   EXPECT_TRUE(is_near(d1, EigenDiagonal {5., 6, 7}));
   EXPECT_NEAR(d1(0), 5, 1e-6);
   EXPECT_NEAR(d1(1), 6, 1e-6);
@@ -213,6 +237,7 @@ TEST_F(matrix_tests, Diagonal_blocks)
                  3, 0,
                  0, 4,
                  0, 0).finished()}));
+
   EXPECT_TRUE(is_near(column(EigenDiagonal{1., 2, 3}, 2), Mean{0., 0, 3}));
   EXPECT_TRUE(is_near(column<1>(EigenDiagonal{1., 2, 3}), Mean{0., 2, 0}));
   EXPECT_TRUE(is_near(apply_columnwise(EigenDiagonal{1., 2, 3}, [](const auto& col){ return col + col.Constant(1); }),

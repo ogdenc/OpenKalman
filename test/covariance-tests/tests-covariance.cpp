@@ -530,8 +530,10 @@ TEST_F(covariance_tests, Covariance_class)
   EXPECT_TRUE(is_near(square_root(CovT2l::identity()), M2::Identity()));
   EXPECT_TRUE(is_near(square_root(CovT2u::identity()), M2::Identity()));
   EXPECT_TRUE(is_near(square_root(CovD2::identity()), M2::Identity()));
+}
 
-  // Subscripts
+TEST_F(covariance_tests, Covariance_subscripts)
+{
   EXPECT_NEAR((CovSA2l {9, 3, 3, 10})(0, 0), 9, 1e-6);
   EXPECT_NEAR((CovSA2l {9, 3, 3, 10})(0, 1), 3, 1e-6);
   EXPECT_NEAR((CovSA2l {9, 3, 3, 10})(1, 0), 3, 1e-6);
@@ -548,6 +550,37 @@ TEST_F(covariance_tests, Covariance_class)
   EXPECT_NEAR((CovT2u {9, 3, 3, 10})(0, 1), 3, 1e-6);
   EXPECT_NEAR((CovT2u {9, 3, 3, 10})(1, 0), 3, 1e-6);
   EXPECT_NEAR((CovT2u {9, 3, 3, 10})(1, 1), 10, 1e-6);
+  EXPECT_NEAR((CovD2 {9, 10})(0, 0), 9, 1e-6);
+  EXPECT_NEAR((CovD2 {9, 10})(1, 1), 10, 1e-6);
+  EXPECT_NEAR((CovD2 {9, 10})(0), 9, 1e-6);
+  EXPECT_NEAR((CovD2 {9, 10})(1), 10, 1e-6);
+
+  EXPECT_NEAR(get_element(CovSA2l {9, 3, 3, 10}, 0, 0), 9, 1e-6);
+  EXPECT_NEAR(get_element(CovSA2u {9, 3, 3, 10}, 0, 1), 3, 1e-6);
+  EXPECT_NEAR(get_element(CovT2l {9, 3, 3, 10}, 1, 0), 3, 1e-6);
+  EXPECT_NEAR(get_element(CovT2u {9, 3, 3, 10}, 1, 1), 10, 1e-6);
+  EXPECT_NEAR(get_element(CovD2 {9, 10}, 0, 0), 9, 1e-6);
+  EXPECT_NEAR(get_element(CovD2 {9, 10}, 1, 1), 10, 1e-6);
+  EXPECT_NEAR(get_element(CovD2 {9, 10}, 0), 9, 1e-6);
+  EXPECT_NEAR(get_element(CovD2 {9, 10}, 1), 10, 1e-6);
+
+  auto sa2l = CovSA2l {9, 3, 3, 10};
+  sa2l(0, 0) = 9.1; EXPECT_NEAR(get_element(sa2l, 0, 0), 9.1, 1e-6);
+  set_element(sa2l, 9.2, 0, 0); EXPECT_NEAR(sa2l(0, 0), 9.2, 1e-6);
+  auto sa2u = CovSA2u {9, 3, 3, 10};
+  sa2u(0, 1) = 3.1; EXPECT_NEAR(get_element(sa2u, 0, 1), 3.1, 1e-6);
+  set_element(sa2u, 3.2, 0, 1); EXPECT_NEAR(sa2u(0, 1), 3.2, 1e-6);
+  auto t2l = CovT2l {9, 3, 3, 10};
+  t2l(1, 0) = 3.1; EXPECT_NEAR(get_element(t2l, 1, 0), 3.1, 1e-6);
+  set_element(t2l, 3.2, 1, 0); EXPECT_NEAR(t2l(1, 0), 3.2, 1e-6);
+  auto t2u = CovT2u {9, 3, 3, 10};
+  t2u(1, 1) = 10.1; EXPECT_NEAR(get_element(t2u, 1, 1), 10.1, 1e-6);
+  set_element(t2u, 10.2, 1, 1); EXPECT_NEAR(t2u(1, 1), 10.2, 1e-6);
+  auto d2 = CovD2 {9, 10};
+  d2(0, 0) = 9.1; EXPECT_NEAR(get_element(d2, 0, 0), 9.1, 1e-6);
+  set_element(d2, 9.2, 0, 0); EXPECT_NEAR(d2(0, 0), 9.2, 1e-6);
+  d2(1) = 10.1; EXPECT_NEAR(get_element(d2, 1), 10.1, 1e-6);
+  set_element(d2, 10.2, 1); EXPECT_NEAR(d2(1), 10.2, 1e-6);
 }
 
 

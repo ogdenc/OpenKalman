@@ -26,6 +26,12 @@ namespace OpenKalman
 
     template<typename Arg>
     EigenZero(const Arg&) : EigenZero() {};
+
+    auto operator()(std::size_t i, std::size_t j) const { return internal::ElementSetter(*this, i, j); }
+
+    auto operator()(std::size_t i) const { return internal::ElementSetter(*this, i); }
+
+    auto operator[](std::size_t i) const { return internal::ElementSetter(*this, i); }
   };
 
 
@@ -102,6 +108,24 @@ namespace OpenKalman
       using Scalar = typename MatrixTraits<Arg>::Scalar;
       return EigenZero<Eigen::Matrix<Scalar, MatrixTraits<Arg>::dimension, 1>>();
     }
+  }
+
+
+  /// Get an element of a EigenZero matrix. Always 0.
+  template<typename Arg, std::enable_if_t<is_EigenZero_v<Arg>, int> = 0>
+  constexpr auto
+  get_element(const Arg&, std::size_t, std::size_t)
+  {
+    return 0;
+  }
+
+
+  /// Get an element of a one-column EigenZero matrix. Always 0.
+  template<typename Arg, std::enable_if_t<is_EigenZero_v<Arg> and MatrixTraits<Arg>::columns == 1, int> = 0>
+  constexpr auto
+  get_element(const Arg&, std::size_t)
+  {
+    return 0;
   }
 
 

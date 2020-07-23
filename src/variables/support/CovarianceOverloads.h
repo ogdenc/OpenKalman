@@ -11,8 +11,6 @@
 #ifndef OPENKALMAN_COVARIANCEOVERLOADS_H
 #define OPENKALMAN_COVARIANCEOVERLOADS_H
 
-#include "variables/support/OpenKalman-coefficients.h"
-
 namespace OpenKalman
 {
   template<typename M, std::enable_if_t<is_covariance_v<M>, int> = 0>
@@ -138,7 +136,8 @@ namespace OpenKalman
 
 
   template<typename Arg, typename U,
-    std::enable_if_t<is_covariance_v<Arg> and is_typed_matrix_v<U> and not std::is_const_v<Arg>, int> = 0>
+    std::enable_if_t<is_covariance_v<Arg> and is_typed_matrix_v<U> and
+      not std::is_const_v<std::remove_reference_t<Arg>>, int> = 0>
   inline Arg&
   rank_update(Arg& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
   {
@@ -316,6 +315,52 @@ namespace OpenKalman
         [](const auto& ...args) { return std::tuple {make_Matrix<Coeffs, Cs>(strict(args))...}; },
         split_horizontal<Cs::size...>(strict_matrix(std::forward<M>(m))));
     }
+  }
+
+
+  /// Get element (i, j) of a covariance matrix.
+  template<typename Arg, std::enable_if_t<is_covariance_v<Arg> and
+    is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>, int> = 0>
+  inline auto
+  get_element(Arg&& arg, std::size_t i, std::size_t j)
+  {
+    return std::forward<Arg>(arg)(i, j);
+  }
+
+
+  /// Get element (i) of a covariance matrix.
+  template<typename Arg, std::enable_if_t<is_covariance_v<Arg> and
+    ((is_self_adjoint_v<typename MatrixTraits<Arg>::BaseMatrix> and not is_square_root_v<Arg>) or
+      (is_triangular_v<typename MatrixTraits<Arg>::BaseMatrix> and is_square_root_v<Arg>)) and
+    is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 1>, int> = 0>
+  inline auto
+  get_element(Arg&& arg, std::size_t i)
+  {
+    return std::forward<Arg>(arg)[i];
+  }
+
+
+  /// Set element (i, j) of a covariance matrix.
+  template<typename Arg, typename Scalar,
+    std::enable_if_t<is_covariance_v<Arg> and not std::is_const_v<std::remove_reference_t<Arg>> and
+      is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>, int> = 0>
+  inline void
+  set_element(Arg& arg, Scalar s, std::size_t i, std::size_t j)
+  {
+    arg(i, j) = s;
+  }
+
+
+  /// Set element (i) of a covariance matrix.
+  template<typename Arg, typename Scalar,
+    std::enable_if_t<is_covariance_v<Arg> and not std::is_const_v<std::remove_reference_t<Arg>> and
+      ((is_self_adjoint_v<typename MatrixTraits<Arg>::BaseMatrix> and not is_square_root_v<Arg>) or
+        (is_triangular_v<typename MatrixTraits<Arg>::BaseMatrix> and is_square_root_v<Arg>)) and
+      is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 1>, int> = 0>
+  inline void
+  set_element(Arg& arg, Scalar s, std::size_t i)
+  {
+    arg[i] = s;
   }
 
 

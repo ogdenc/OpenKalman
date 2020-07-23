@@ -14,6 +14,7 @@
 #include "variables/support/Traits.h"
 #include "variables/support/ForwardDeclarations.h"
 #include "variables/support/OpenKalman-coefficients.h"
+#include "variables/support/ElementSetter.h"
 //
 #include "variables/support/MatrixBase.h"
 #include "variables/support/TypedMatrixBase.h"

@@ -368,8 +368,10 @@ TEST_F(covariance_tests, SquareRootCovariance_class)
 
   // Increment
   clsa8 += SqCovSA2l {2, 0, 1, 2};
+  EXPECT_TRUE(is_near(clsa8.base_matrix(), Mat2 {25, 10, 10, 29}));
   EXPECT_TRUE(is_near(clsa8, Mat2 {5, 0, 2, 5}));
   cusa8 += SqCovSA2u {3, 1, 0, 3};
+  EXPECT_TRUE(is_near(cusa8.base_matrix(), Mat2 {25, 10, 10, 29}));
   EXPECT_TRUE(is_near(cusa8, Mat2 {5, 2, 0, 5}));
   clt8 += SqCovT2l {2, 0, 1, 2};
   EXPECT_TRUE(is_near(clt8, Mat2 {5, 0, 2, 5}));
@@ -460,8 +462,10 @@ TEST_F(covariance_tests, SquareRootCovariance_class)
   EXPECT_TRUE(is_near(square(SqCovT2l::identity()), M2::Identity()));
   EXPECT_TRUE(is_near(square(SqCovT2u::identity()), M2::Identity()));
   EXPECT_TRUE(is_near(square(SqCovD2::identity()), M2::Identity()));
+}
 
-  // Subscripts
+TEST_F(covariance_tests, SquareRootCovariance_subscripts)
+{
   EXPECT_NEAR((SqCovSA2l {3, 0, 1, 3})(0, 0), 3, 1e-6);
   EXPECT_NEAR((SqCovSA2l {3, 0, 1, 3})(0, 1), 0, 1e-6);
   EXPECT_NEAR((SqCovSA2l {3, 0, 1, 3})(1, 0), 1, 1e-6);
@@ -478,6 +482,37 @@ TEST_F(covariance_tests, SquareRootCovariance_class)
   EXPECT_NEAR((SqCovT2u {3, 1, 0, 3})(0, 1), 1, 1e-6);
   EXPECT_NEAR((SqCovT2u {3, 1, 0, 3})(1, 0), 0, 1e-6);
   EXPECT_NEAR((SqCovT2u {3, 1, 0, 3})(1, 1), 3, 1e-6);
+  EXPECT_NEAR((SqCovD2 {3, 4})(0, 0), 3, 1e-6);
+  EXPECT_NEAR((SqCovD2 {3, 4})(1, 1), 4, 1e-6);
+  EXPECT_NEAR((SqCovD2 {3, 4})(0), 3, 1e-6);
+  EXPECT_NEAR((SqCovD2 {3, 4})(1), 4, 1e-6);
+
+  EXPECT_NEAR(get_element(SqCovSA2l {3, 0, 1, 3}, 0, 0), 3, 1e-6);
+  EXPECT_NEAR(get_element(SqCovSA2u {3, 1, 0, 3}, 0, 1), 1, 1e-6);
+  EXPECT_NEAR(get_element(SqCovT2l {3, 0, 1, 3}, 1, 0), 1, 1e-6);
+  EXPECT_NEAR(get_element(SqCovT2u {3, 1, 0, 3}, 1, 1), 3, 1e-6);
+  EXPECT_NEAR(get_element(SqCovD2 {3, 4}, 0, 0), 3, 1e-6);
+  EXPECT_NEAR(get_element(SqCovD2 {3, 4}, 1, 1), 4, 1e-6);
+  EXPECT_NEAR(get_element(SqCovD2 {3, 4}, 0), 3, 1e-6);
+  EXPECT_NEAR(get_element(SqCovD2 {3, 4}, 1), 4, 1e-6);
+
+  auto sa2l = SqCovSA2l {3, 0, 1, 3};
+  sa2l(1, 0) = 1.1; EXPECT_NEAR(get_element(sa2l, 1, 0), 1.1, 1e-6);
+  set_element(sa2l, 1.2, 1, 0); EXPECT_NEAR(sa2l(1, 0), 1.2, 1e-6);
+  auto sa2u = SqCovSA2u {3, 1, 0, 3};
+  sa2u(0, 1) = 1.1; EXPECT_NEAR(get_element(sa2u, 0, 1), 1.1, 1e-6);
+  set_element(sa2u, 1.2, 0, 1); EXPECT_NEAR(sa2u(0, 1), 1.2, 1e-6);
+  auto t2l = SqCovT2l {3, 0, 1, 3};
+  t2l(1, 0) = 1.1; EXPECT_NEAR(get_element(t2l, 1, 0), 1.1, 1e-6);
+  set_element(t2l, 1.2, 1, 0); EXPECT_NEAR(t2l(1, 0), 1.2, 1e-6);
+  auto t2u = SqCovT2u {3, 1, 0, 3};
+  t2u(0, 1) = 1.1; EXPECT_NEAR(get_element(t2u, 0, 1), 1.1, 1e-6);
+  set_element(t2u, 1.2, 0, 1); EXPECT_NEAR(t2u(0, 1), 1.2, 1e-6);
+  auto d2 = SqCovD2 {3, 4};
+  d2(1, 1) = 4.1; EXPECT_NEAR(get_element(d2, 1, 1), 4.1, 1e-6);
+  set_element(d2, 4.2, 1, 1); EXPECT_NEAR(d2(1, 1), 4.2, 1e-6);
+  d2(0) = 3.1; EXPECT_NEAR(get_element(d2, 0), 3.1, 1e-6);
+  set_element(d2, 3.2, 0); EXPECT_NEAR(d2(0), 3.2, 1e-6);
 }
 
 TEST_F(covariance_tests, SquareRootCovariance_deduction_guides)

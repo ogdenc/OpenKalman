@@ -85,8 +85,9 @@ namespace OpenKalman
     }
 
     /// Assign from a compatible EigenDiagonal.
-    template<typename Arg, std::enable_if_t<is_EigenDiagonal_v<Arg>, int> = 0>
-    auto& operator=(Arg& other)
+    template<typename Arg,
+      std::enable_if_t<is_EigenDiagonal_v<Arg> and not is_zero_v<Arg> and not is_identity_v<Arg>, int> = 0>
+    auto& operator=(Arg&& other)
     {
       if constexpr (std::is_same_v<std::decay_t<Arg>, EigenDiagonal>) if (this == &other) return *this;
       this->base_matrix() = std::forward<Arg>(other).base_matrix();
@@ -94,7 +95,7 @@ namespace OpenKalman
     }
 
     /// Assign from a square zero matrix.
-    template<typename Arg, std::enable_if_t<is_zero_v<Arg> and (MatrixTraits<Arg>::columns > 1), int> = 0>
+    template<typename Arg, std::enable_if_t<is_zero_v<Arg>, int> = 0>
     auto& operator=(const Arg&)
     {
       static_assert(MatrixTraits<Arg>::dimension == dimension);
@@ -104,7 +105,7 @@ namespace OpenKalman
     }
 
     /// Assign from an identity matrix.
-    template<typename Arg, std::enable_if_t<is_identity_v<Arg> and (MatrixTraits<Arg>::columns > 1), int> = 0>
+    template<typename Arg, std::enable_if_t<is_identity_v<Arg>, int> = 0>
     auto& operator=(const Arg&)
     {
       static_assert(MatrixTraits<Arg>::dimension == dimension);
@@ -180,31 +181,31 @@ namespace OpenKalman
     }
 
 
-    decltype(auto) operator()(std::size_t i, std::size_t j) & { return (*this).Base::operator()(i, j); }
+    auto operator()(std::size_t i, std::size_t j)
+    {
+      if constexpr (is_element_settable_v<EigenDiagonal, 2>)
+        return internal::ElementSetter(*this, i, j);
+      else
+        return const_cast<const EigenDiagonal&>(*this)(i, j);
+    }
 
-    decltype(auto) operator()(std::size_t i, std::size_t j) && noexcept { return std::move(*this).Base::operator()(i, j); }
-
-    decltype(auto) operator()(std::size_t i, std::size_t j) const& { return (*this).Base::operator()(i, j); }
-
-    decltype(auto) operator()(std::size_t i, std::size_t j) const&& noexcept { return std::move(*this).Base::operator()(i, j); }
-
-
-    decltype(auto) operator()(std::size_t i) & { return (*this).base_matrix()(i); }
-
-    decltype(auto) operator()(std::size_t i) && noexcept { return std::move(*this).base_matrix()(i); }
-
-    decltype(auto) operator()(std::size_t i) const& { return (*this).base_matrix()(i); }
-
-    decltype(auto) operator()(std::size_t i) const&& noexcept { return std::move(*this).base_matrix()(i); }
+    auto operator()(std::size_t i, std::size_t j) const noexcept { return internal::ElementSetter(*this, i, j); }
 
 
-    decltype(auto) operator[](std::size_t i) & { return (*this).base_matrix()[i]; }
+    auto operator[](std::size_t i)
+    {
+      if constexpr (is_element_settable_v<EigenDiagonal, 1>)
+        return internal::ElementSetter(*this, i);
+      else
+        return const_cast<const EigenDiagonal&>(*this)[i];
+    }
 
-    decltype(auto) operator[](std::size_t i) && noexcept { return std::move(*this).base_matrix()[i]; }
+    auto operator[](std::size_t i) const { return internal::ElementSetter(*this, i); }
 
-    decltype(auto) operator[](std::size_t i) const& { return (*this).base_matrix()[i]; }
 
-    decltype(auto) operator[](std::size_t i) const&& noexcept { return std::move(*this).base_matrix()[i]; }
+    auto operator()(std::size_t i) { return operator[](i); }
+
+    auto operator()(std::size_t i) const { return operator[](i); }
 
   };
 
@@ -446,6 +447,74 @@ namespace OpenKalman
       return std::apply([](const auto&...bs){ return std::tuple {MatrixTraits<Arg>::make(strict(bs))...}; },
         split_vertical<cuts...>(base_matrix(std::forward<Arg>(arg))));
     }
+  }
+
+
+  /// Get element (i) of diagonal matrix arg.
+  template<typename Arg, std::enable_if_t<is_EigenDiagonal_v<Arg> and
+    (is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 1> or
+    is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>), int> = 0>
+  inline auto
+  get_element(Arg&& arg, std::size_t i)
+  {
+    if constexpr (is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 1>)
+      return get_element(base_matrix(std::forward<Arg>(arg)), i);
+    else
+      return get_element(base_matrix(std::forward<Arg>(arg)), i, 1);
+  }
+
+
+  /// Get element (i, j) of diagonal matrix arg.
+  template<typename Arg, std::enable_if_t<is_EigenDiagonal_v<Arg> and
+    (is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 1> or
+    is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>), int> = 0>
+  inline auto
+  get_element(Arg&& arg, std::size_t i, std::size_t j)
+  {
+    if (i == j)
+    {
+      if constexpr (is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 1>)
+        return get_element(base_matrix(std::forward<Arg>(arg)), i);
+      else
+        return get_element(base_matrix(std::forward<Arg>(arg)), i, 1);
+    }
+    else
+      return typename MatrixTraits<Arg>::Scalar(0);
+  }
+
+
+  /// Set element (i) of matrix arg to s.
+  template<typename Arg, typename Scalar,
+    std::enable_if_t<is_EigenDiagonal_v<Arg> and not std::is_const_v<std::remove_reference_t<Arg>> and
+      (is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 1> or
+      is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>), int> = 0>
+  inline void
+  set_element(Arg& arg, Scalar s, std::size_t i)
+  {
+    if constexpr (is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 1>)
+      set_element(base_matrix(arg), s, i);
+    else
+      set_element(base_matrix(arg), s, i, 1);
+  }
+
+
+  /// Set element (i, j) of matrix arg to s.
+  template<typename Arg, typename Scalar,
+    std::enable_if_t<is_EigenDiagonal_v<Arg> and not std::is_const_v<std::remove_reference_t<Arg>> and
+      (is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 1> or
+      is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>), int> = 0>
+  inline void
+  set_element(Arg& arg, Scalar s, std::size_t i, std::size_t j)
+  {
+    if (i == j)
+    {
+      if constexpr (is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 1>)
+        set_element(base_matrix(arg), s, i);
+      else
+        set_element(base_matrix(arg), s, i, 1);
+    }
+    else
+      throw std::out_of_range("Only diagonal elements of a diagonal matrix may be set.");
   }
 
 

@@ -15,9 +15,7 @@
 
 #include "variables/support/Traits.h"
 #include "variables/support/ForwardDeclarations.h"
-#include "variables/support/MatrixBase.h"
 #include "variables/support/OpenKalman-coefficients.h"
-
 #include "variables/interfaces/Eigen3/EigenForwardDeclarations.h"
 
 #include "variables/interfaces/Eigen3/EigenMatrixOverloads.h"
@@ -27,6 +25,7 @@
 #include "variables/interfaces/Eigen3/EigenMatrixTraits.h"
 
 #include "variables/interfaces/Eigen3/EigenCholesky.h"
+#include "variables/support/MatrixBase.h"
 
 #include "variables/interfaces/Eigen3/EigenZero.h"
 #include "variables/interfaces/Eigen3/EigenDiagonal.h"
@@ -40,6 +39,8 @@
 
 #include "variables/interfaces/Eigen3/EigenTraits.h"
 #include "variables/interfaces/Eigen3/EigenEvaluators.h"
+
+#include "variables/support/ElementSetter.h"
 
 
 #endif //OPENKALMAN_EIGEN3_H

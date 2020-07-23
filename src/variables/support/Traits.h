@@ -224,7 +224,7 @@ namespace OpenKalman
   template<typename T, typename Enable = void>
   struct is_Euclidean_transformed : class_trait<is_Euclidean_transformed, T, Enable> {};
 
-  /// Whether an object is Euclidean-transformed.
+  /// A EuclideanMean is Euclidean-transformed unless the coefficients are Axes only.
   template<typename T>
   struct is_Euclidean_transformed<T, std::enable_if_t<is_Euclidean_mean_v<T>>>
     : std::integral_constant<bool, not MatrixTraits<T>::RowCoefficients::axes_only> {};
@@ -237,7 +237,7 @@ namespace OpenKalman
   template<typename T, typename Enable = void>
   struct is_wrapped : class_trait<is_wrapped, T, Enable> {};
 
-  /// Whether the matrix is wrapped.
+  /// A Mean is wrapped unless the coefficients are Axes only.
   template<typename T>
   struct is_wrapped<T, std::enable_if_t<is_mean_v<T>>>
     : std::integral_constant<bool, not MatrixTraits<T>::RowCoefficients::axes_only> {};
@@ -250,7 +250,7 @@ namespace OpenKalman
   template<typename T, typename Enable = void>
   struct is_column_vector : class_trait<is_column_vector, T, Enable> {};
 
-  /// Whether the matrix is a column vector or set of column vectors.
+  /// A typed matrix is a column vector if the columns are Axes only.
   template<typename T>
   struct is_column_vector<T, std::enable_if_t<is_typed_matrix_v<T>>>
     : std::integral_constant<bool, MatrixTraits<T>::ColumnCoefficients::axes_only> {};
@@ -331,33 +331,38 @@ namespace OpenKalman
   inline constexpr bool is_strict_matrix_v = is_strict_matrix<T>::value;
 
 
-  namespace internal
-  {
-    /// Whether a class allows (i,j) indexing (two indices).
-    template<typename, typename = std::void_t<>>
-    struct has_2_index_parentheses : std::false_type {};
+  /// Whether an object has elements that can be retrieved with N indices.
+  template<typename T, std::size_t N, typename Enable = void>
+  struct is_element_gettable : std::false_type {};
 
-    template<typename T>
-    struct has_2_index_parentheses<T,
-      std::void_t<decltype(std::declval<T>()(std::declval<std::size_t>(), std::declval<std::size_t>()))>>
-      : std::true_type {};
+  template<typename T, std::size_t N, typename Enable>
+  struct is_element_gettable<T&, N, Enable> : is_element_gettable<T, N, Enable> {};
 
-    /// Whether a class allows (i) indexing (one index).
-    template<typename, typename = std::void_t<>>
-    struct has_1_index_parentheses : std::false_type {};
+  template<typename T, std::size_t N, typename Enable>
+  struct is_element_gettable<T&&, N, Enable> : is_element_gettable<T, N, Enable> {};
 
-    template<typename T>
-    struct has_1_index_parentheses<T, std::void_t<decltype(std::declval<T>()(std::declval<std::size_t>()))>>
-      : std::true_type {};
+  template<typename T, std::size_t N, typename Enable>
+  struct is_element_gettable<const T, N, Enable> : is_element_gettable<T, N, Enable> {};
 
-    /// Whether a class allows [i] indexing (one index).
-    template<typename, typename = std::void_t<>>
-    struct has_1_index_brackets : std::false_type {};
+  /// Helper template for is_element_gettable.
+  template<typename T, std::size_t N>
+  inline constexpr bool is_element_gettable_v = is_element_gettable<T, N>::value;
 
-    template<typename T>
-    struct has_1_index_brackets<T, std::void_t<decltype(std::declval<T>()[std::declval<std::size_t>()])>>
-      : std::true_type {};
-  }
+
+  /// Whether an object has elements that can be set with N indices.
+  template<typename T, std::size_t N, typename Enable = void>
+  struct is_element_settable : std::false_type {};
+
+  template<typename T, std::size_t N, typename Enable>
+  struct is_element_settable<T&, N, Enable> : is_element_settable<T, N, Enable> {};
+
+  template<typename T, std::size_t N, typename Enable>
+  struct is_element_settable<T&&, N, Enable> : is_element_settable<T, N, Enable> {};
+
+  /// Helper template for is_element_settable.
+  template<typename T, std::size_t N>
+  inline constexpr bool is_element_settable_v = is_element_settable<T, N>::value;
+
 
   /////////////////////
   //  Distributions  //

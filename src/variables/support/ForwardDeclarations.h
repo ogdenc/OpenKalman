@@ -46,6 +46,14 @@ namespace OpenKalman
   template<typename RowCoefficients, typename ColumnCoefficients, typename BaseMatrix>
   struct is_strict<TypedMatrix<RowCoefficients, ColumnCoefficients, BaseMatrix>> : is_strict<BaseMatrix> {};
 
+  template<typename RowCoefficients, typename ColumnCoefficients, typename BaseMatrix, std::size_t N>
+  struct is_element_gettable<TypedMatrix<RowCoefficients, ColumnCoefficients, BaseMatrix>, N>
+    : std::integral_constant<bool, is_element_gettable_v<BaseMatrix, N>> {};
+
+  template<typename RowCoefficients, typename ColumnCoefficients, typename BaseMatrix, std::size_t N>
+  struct is_element_settable<TypedMatrix<RowCoefficients, ColumnCoefficients, BaseMatrix>, N>
+    : std::integral_constant<bool, is_element_settable_v<BaseMatrix, N>> {};
+
 
   /**
    * @brief A set of column vectors representing one or more means.
@@ -78,6 +86,13 @@ namespace OpenKalman
   template<typename Coefficients, typename BaseMatrix>
   struct is_strict<Mean<Coefficients, BaseMatrix>> : is_strict<BaseMatrix> {};
 
+  template<typename Coefficients, typename BaseMatrix, std::size_t N>
+  struct is_element_gettable<Mean<Coefficients, BaseMatrix>, N>
+    : std::integral_constant<bool, is_element_gettable_v<BaseMatrix, N>> {};
+
+  template<typename Coefficients, typename BaseMatrix, std::size_t N>
+  struct is_element_settable<Mean<Coefficients, BaseMatrix>, N>
+    : std::integral_constant<bool, is_element_settable_v<BaseMatrix, N>> {};
 
   /**
    * @brief The underlying class representing the Euclidean space version of a mean, with typed coefficients.
@@ -111,12 +126,20 @@ namespace OpenKalman
   template<typename Coefficients, typename BaseMatrix>
   struct is_strict<EuclideanMean<Coefficients, BaseMatrix>> : is_strict<BaseMatrix> {};
 
+  template<typename Coefficients, typename BaseMatrix, std::size_t N>
+  struct is_element_gettable<EuclideanMean<Coefficients, BaseMatrix>, N>
+    : std::integral_constant<bool, is_element_gettable_v<BaseMatrix, N>> {};
+
+  template<typename Coefficients, typename BaseMatrix, std::size_t N>
+  struct is_element_settable<EuclideanMean<Coefficients, BaseMatrix>, N>
+    : std::integral_constant<bool, is_element_settable_v<BaseMatrix, N>> {};
+
 
   /**
- * @brief A Covariance matrix.
- * @tparam Coefficients Coefficient types.
- * @tparam ArgType Type of the underlying storage matrix (e.g., self-adjoint or triangular).
- */
+   * @brief A Covariance matrix.
+   * @tparam Coefficients Coefficient types.
+   * @tparam ArgType Type of the underlying storage matrix (e.g., self-adjoint or triangular).
+   */
   template<
     typename Coefficients,
     typename ArgType>
@@ -148,6 +171,13 @@ namespace OpenKalman
   template<typename Coefficients, typename BaseMatrix>
   struct is_strict<Covariance<Coefficients, BaseMatrix>> : is_strict<BaseMatrix> {};
 
+  template<typename Coefficients, typename BaseMatrix, std::size_t N>
+  struct is_element_gettable<Covariance<Coefficients, BaseMatrix>, N>
+    : std::integral_constant<bool, is_element_gettable_v<BaseMatrix, N>> {};
+
+  template<typename Coefficients, typename BaseMatrix, std::size_t N>
+  struct is_element_settable<Covariance<Coefficients, BaseMatrix>, N>
+    : std::integral_constant<bool, is_element_settable_v<BaseMatrix, N>> {};
 
   /**
    * @brief The upper or lower triangle Cholesky factor (square root) of a covariance matrix.
@@ -197,12 +227,32 @@ namespace OpenKalman
   template<typename Coefficients, typename BaseMatrix>
   struct is_strict<SquareRootCovariance<Coefficients, BaseMatrix>> : is_strict<BaseMatrix> {};
 
+  template<typename Coefficients, typename BaseMatrix, std::size_t N>
+  struct is_element_gettable<SquareRootCovariance<Coefficients, BaseMatrix>, N>
+    : std::integral_constant<bool, is_element_gettable_v<BaseMatrix, N>> {};
+
+  template<typename Coefficients, typename BaseMatrix, std::size_t N>
+  struct is_element_settable<SquareRootCovariance<Coefficients, BaseMatrix>, N>
+    : std::integral_constant<bool, is_element_settable_v<BaseMatrix, N>> {};
+
 
   namespace internal
   {
     /// Convert a covariance to a base matrix of a particular type
     template<typename T = void, typename Arg>
     constexpr decltype(auto) convert_base_matrix(Arg&&) noexcept;
+
+    /// A helper object for setting elements of a matrix.
+    template<bool read_only, typename T>
+    struct ElementSetter;
+
+    template<bool read_only, typename T>
+    auto make_ElementSetter(T&&, std::size_t, std::size_t,
+      const std::function<void()>& = []{}, const std::function<void()>& = []{});
+
+    template<bool read_only, typename T>
+    auto make_ElementSetter(T&&, std::size_t,
+      const std::function<void()>& = []{}, const std::function<void()>& = []{});
   }
 
 

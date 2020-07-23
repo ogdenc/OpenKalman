@@ -466,7 +466,7 @@ namespace Eigen::internal
       }
       else
       {
-        const auto get_coeff = [&](const Index i) { return this->m_argImpl.coeff(i, col); };
+        const auto get_coeff = [col, this](const Index i) { return this->m_argImpl.coeff(i, col); };
         return OpenKalman::to_Euclidean<Coefficients, Scalar>((std::size_t) row, get_coeff);
       }
     }
@@ -479,7 +479,7 @@ namespace Eigen::internal
       }
       else
       {
-        const auto get_coeff = [&](const Index i) { return this->m_argImpl.coeff(i); };
+        const auto get_coeff = [this](const Index i) { return this->m_argImpl.coeff(i); };
         return OpenKalman::to_Euclidean<Coefficients, Scalar>((std::size_t) row, get_coeff);
       }
     }
@@ -526,7 +526,7 @@ namespace Eigen::internal
       }
       else
       {
-        const auto get_coeff = [&](const Index i) { return this->m_argImpl.coeff(i, col); };
+        const auto get_coeff = [col, this](const Index i) { return this->m_argImpl.coeff(i, col); };
         return OpenKalman::from_Euclidean<Coefficients, Scalar>((std::size_t) row, get_coeff);
       }
     }
@@ -539,7 +539,7 @@ namespace Eigen::internal
       }
       else
       {
-        const auto get_coeff = [&](const Index i) { return this->m_argImpl.coeff(i); };
+        const auto get_coeff = [this](const Index i) { return this->m_argImpl.coeff(i); };
         return OpenKalman::from_Euclidean<Coefficients, Scalar>((std::size_t) row, get_coeff);
       }
     }
@@ -579,7 +579,7 @@ namespace Eigen::internal
       }
       else
       {
-        const auto get_coeff = [&](const Index i) { return this->m_argImpl.coeff(i, col); };
+        const auto get_coeff = [col, this](const Index i) { return this->m_argImpl.coeff(i, col); };
         return OpenKalman::wrap<Coefficients, Scalar>((std::size_t) row, get_coeff);
       }
     }
@@ -592,7 +592,7 @@ namespace Eigen::internal
       }
       else
       {
-        const auto get_coeff = [&](const Index i) { return this->m_argImpl.coeff(i); };
+        const auto get_coeff = [this](const Index i) { return this->m_argImpl.coeff(i); };
         return OpenKalman::wrap<Coefficients, Scalar>((std::size_t) row, get_coeff);
       }
     }

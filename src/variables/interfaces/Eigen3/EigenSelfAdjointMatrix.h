@@ -173,79 +173,37 @@ namespace OpenKalman
     constexpr const auto&& base_view() const && { return std::move(view); }
 
 
-    decltype(auto) operator()(std::size_t i, std::size_t j) & { return (*this).Base::operator()(i, j); }
-
-    decltype(auto) operator()(std::size_t i, std::size_t j) && noexcept { return std::move(*this).Base::operator()(i, j); }
-
-    decltype(auto) operator()(std::size_t i, std::size_t j) const& { return (*this).Base::operator()(i, j); }
-
-    decltype(auto) operator()(std::size_t i, std::size_t j) const&& noexcept { return std::move(*this).Base::operator()(i, j); }
-
-
-    decltype(auto) operator()(std::size_t i) &
+    auto operator()(std::size_t i, std::size_t j)
     {
-      if constexpr(is_EigenDiagonal_v<BaseMatrix>)
-      {
-        return (*this).base_matrix()(i);
-      }
+      if constexpr (is_element_settable_v<EigenSelfAdjointMatrix, 2>)
+        return internal::ElementSetter(*this, i, j);
       else
-      {
-        static_assert(storage_triangle == TriangleType::diagonal or dimension == 1,
-          "Single-index access requires a diagonal matrix.");
-        return (*this).Base::operator()(i, i);
-      }
+        return const_cast<const EigenSelfAdjointMatrix&>(*this)(i, j);
     }
 
-    decltype(auto) operator()(std::size_t i) && noexcept
+    auto operator()(std::size_t i, std::size_t j) const noexcept { return internal::ElementSetter(*this, i, j); }
+
+    auto operator[](std::size_t i)
     {
-      if constexpr(is_EigenDiagonal_v<BaseMatrix>)
-      {
-        return std::move(*this).base_matrix()(i);
-      }
+      if constexpr(is_element_settable_v<EigenSelfAdjointMatrix, 1>)
+        return internal::ElementSetter(*this, i);
+      else if constexpr(is_element_settable_v<EigenSelfAdjointMatrix, 2>)
+        return internal::ElementSetter(*this, i, i);
       else
-      {
-        static_assert(storage_triangle == TriangleType::diagonal or dimension == 1,
-          "Single-index access requires a diagonal matrix.");
-        return std::move(*this).Base::operator()(i, i);
-      }
+        return const_cast<const EigenSelfAdjointMatrix&>(*this)[i];
     }
 
-    decltype(auto) operator()(std::size_t i) const&
+    auto operator[](std::size_t i) const
     {
-      if constexpr(is_EigenDiagonal_v<BaseMatrix>)
-      {
-        return (*this).base_matrix()(i);
-      }
+      if constexpr(is_element_gettable_v<EigenSelfAdjointMatrix, 1>)
+        return internal::ElementSetter(*this, i);
       else
-      {
-        static_assert(storage_triangle == TriangleType::diagonal or dimension == 1,
-          "Single-index access requires a diagonal matrix.");
-        return (*this).Base::operator()(i, i);
-      }
+        return internal::ElementSetter(*this, i, i);
     }
 
-    decltype(auto) operator()(std::size_t i) const&& noexcept
-    {
-      if constexpr(is_EigenDiagonal_v<BaseMatrix>)
-      {
-        return std::move(*this).base_matrix()(i);
-      }
-      else
-      {
-        static_assert(storage_triangle == TriangleType::diagonal or dimension == 1,
-          "Single-index access requires a diagonal matrix.");
-        return std::move(*this).Base::operator()(i, i);
-      }
-    }
+    auto operator()(std::size_t i) { return operator[](i); }
 
-
-    decltype(auto) operator[](std::size_t i) & { return (*this).operator()(i); }
-
-    decltype(auto) operator[](std::size_t i) && noexcept { return std::move(*this).operator()(i); }
-
-    decltype(auto) operator[](std::size_t i) const& { return (*this).operator()(i); }
-
-    decltype(auto) operator[](std::size_t i) const&& noexcept { return std::move(*this).operator()(i); }
+    auto operator()(std::size_t i) const { return operator[](i); }
 
 
     template<typename B, std::enable_if_t<is_Eigen_matrix_v<B>, int> = 0>
@@ -382,7 +340,7 @@ namespace OpenKalman
   template<typename Arg, typename U,
     std::enable_if_t<is_EigenSelfAdjointMatrix_v<Arg> and
       (is_Eigen_matrix_v<U> or is_EigenTriangularMatrix_v<U> or is_EigenSelfAdjointMatrix_v<U> or is_EigenDiagonal_v<U>) and
-      not std::is_const_v<Arg>, int> = 0>
+      not std::is_const_v<std::remove_reference_t<Arg>>, int> = 0>
   inline Arg&
   rank_update(Arg& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
   {

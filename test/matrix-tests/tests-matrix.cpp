@@ -75,6 +75,8 @@ TEST_F(matrix_tests, EigenZero)
   EXPECT_NEAR(determinant(EigenZero<Eigen::Matrix<double, 2, 2>>()), 0, 1e-6);
   EXPECT_NEAR(trace(EigenZero<Eigen::Matrix<double, 2, 2>>()), 0, 1e-6);
   EXPECT_TRUE(is_near(reduce_columns(EigenZero<Eigen::Matrix<double, 2, 3>>()), (Eigen::Matrix<double, 2, 1>::Zero())));
+  EXPECT_NEAR(get_element(EigenZero<Eigen::Matrix<double, 2, 2>>(), 1, 0), 0, 1e-8);
+  static_assert(not is_element_settable_v<EigenZero<Eigen::Matrix<double, 2, 2>>, 2>);
   EXPECT_TRUE(is_near(column(EigenZero<Eigen::Matrix<double, 2, 3>>(), 1), (Eigen::Matrix<double, 2, 1>::Zero())));
   EXPECT_TRUE(is_near(column<1>(EigenZero<Eigen::Matrix<double, 2, 3>>()), (Eigen::Matrix<double, 2, 1>::Zero())));
 }
@@ -170,6 +172,21 @@ TEST_F(matrix_tests, Matrix_blocks)
                  0, 4).finished()}));
   EXPECT_TRUE(is_near(split_diagonal<3, 2>(MatrixTraits<Eigen::Matrix<double, 5, 5>>::zero()),
     std::tuple {Eigen::Matrix<double, 3, 3>::Zero(), Eigen::Matrix<double, 2, 2>::Zero()}));
+
+  Eigen::Matrix<double, 2, 2> el; el << 1, 2, 3, 4;
+  set_element(el, 5.5, 1, 0);
+  EXPECT_NEAR(get_element(el, 1, 0), 5.5, 1e-8);
+  static_assert(is_element_gettable_v<Eigen::Matrix<double, 3, 2>, 2>);
+  static_assert(is_element_gettable_v<Eigen::Matrix<double, 3, 1>, 1>);
+  static_assert(is_element_settable_v<Eigen::Matrix<double, 3, 2>, 2>);
+  static_assert(is_element_settable_v<Eigen::Matrix<double, 3, 1>, 1>);
+  static_assert(not is_element_gettable_v<Eigen::Matrix<double, 3, 2>, 1>);
+  static_assert(is_element_gettable_v<Eigen::Matrix<double, 3, 1>, 2>);
+  static_assert(not is_element_settable_v<Eigen::Matrix<double, 3, 2>, 1>);
+  static_assert(is_element_settable_v<Eigen::Matrix<double, 3, 1>, 2>);
+  static_assert(not is_element_settable_v<const Eigen::Matrix<double, 3, 2>, 2>);
+  static_assert(not is_element_settable_v<const Eigen::Matrix<double, 3, 1>, 1>);
+
   EXPECT_TRUE(is_near(column((Eigen::Matrix<double, 3, 3>() <<
     1, 0, 0,
     0, 2, 0,

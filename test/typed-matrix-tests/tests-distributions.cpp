@@ -8,7 +8,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#include "covariance_tests.h"
+#include "typed_matrix_tests.h"
 
 using namespace OpenKalman;
 
@@ -74,7 +74,7 @@ inline auto covz2 = CovZ2(z2);
 inline auto disti2 = DistI2(EigenZero<M2col>(), covi2);
 inline auto distz2 = DistZ2(EigenZero<M2col>(), covz2);
 
-TEST_F(covariance_tests, GaussianDistribution_class)
+TEST_F(typed_matrix_tests, GaussianDistribution_class)
 {
   // Default constructor
   DistSA2l distSA2la;
@@ -401,7 +401,7 @@ TEST_F(covariance_tests, GaussianDistribution_class)
 }
 
 
-TEST_F(covariance_tests, GaussianDistribution_class_random)
+TEST_F(typed_matrix_tests, GaussianDistribution_class_random)
 {
   using V = Mean<C3>;
   M3 d;
@@ -425,7 +425,7 @@ TEST_F(covariance_tests, GaussianDistribution_class_random)
 }
 
 
-TEST_F(covariance_tests, GaussianDistribution_class_random_axis)
+TEST_F(typed_matrix_tests, GaussianDistribution_class_random_axis)
 {
   using Mat = Mean<Coefficients<Axis, Axis>>;
   const Mat true_x {20, 30};
@@ -445,7 +445,7 @@ TEST_F(covariance_tests, GaussianDistribution_class_random_axis)
 }
 
 
-TEST_F(covariance_tests, GaussianDistribution_class_Cholesky_random)
+TEST_F(typed_matrix_tests, GaussianDistribution_class_Cholesky_random)
 {
   using V = Mean<C3>;
   M3 d;
@@ -469,7 +469,7 @@ TEST_F(covariance_tests, GaussianDistribution_class_Cholesky_random)
 }
 
 
-TEST_F(covariance_tests, GaussianDistribution_class_Cholesky_random_axis)
+TEST_F(typed_matrix_tests, GaussianDistribution_class_Cholesky_random_axis)
 {
   using Mat = Mean<Coefficients<Axis, Axis>>;
   M2 d;
@@ -488,11 +488,11 @@ TEST_F(covariance_tests, GaussianDistribution_class_Cholesky_random_axis)
     mean_x = (mean_x * i + to_Euclidean(x)) / (i + 1);
   }
   EXPECT_NE(from_Euclidean(mean_x), true_x);
-  EXPECT_TRUE(is_near(from_Euclidean(mean_x), true_x, MatrixTraits<Mat>::BaseMatrix::Constant(0.5)));
+  EXPECT_TRUE(is_near(from_Euclidean(mean_x), true_x, MatrixTraits<Mat>::BaseMatrix::Constant(1.0)));
 }
 
 
-TEST_F(covariance_tests, GaussianDistribution_class_statistics)
+TEST_F(typed_matrix_tests, GaussianDistribution_class_statistics)
 {
   GaussianDistribution<Axis, M1, SA1l> x1 = {M1(2), SA1l(M1(9))};
   EXPECT_NEAR(x1.log_likelihood(Mean{M1(1)}), -2.07310637743, 1e-6);
@@ -515,7 +515,7 @@ TEST_F(covariance_tests, GaussianDistribution_class_statistics)
 }
 
 
-TEST_F(covariance_tests, GaussianDistribution_deduction_guides)
+TEST_F(typed_matrix_tests, GaussianDistribution_deduction_guides)
 {
   EXPECT_TRUE(is_near(GaussianDistribution(DistSA2l {{1, 2}, {9, 3, 3, 10}}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
   static_assert(is_equivalent_v<typename DistributionTraits<decltype(GaussianDistribution(DistSA2l {{1, 2}, {9, 3, 3, 10}}))>::Coefficients, C2>);
@@ -547,7 +547,7 @@ TEST_F(covariance_tests, GaussianDistribution_deduction_guides)
 }
 
 
-TEST_F(covariance_tests, GaussianDistribution_make)
+TEST_F(typed_matrix_tests, GaussianDistribution_make)
 {
   EXPECT_TRUE(is_near(make_GaussianDistribution(DistSA2l {{1, 2}, {9, 3, 3, 10}}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
   static_assert(is_equivalent_v<typename DistributionTraits<decltype(make_GaussianDistribution(DistSA2l {{1, 2}, {9, 3, 3, 10}}))>::Coefficients, C2>);
@@ -607,7 +607,7 @@ TEST_F(covariance_tests, GaussianDistribution_make)
 }
 
 
-TEST_F(covariance_tests, GaussianDistribution_traits)
+TEST_F(typed_matrix_tests, GaussianDistribution_traits)
 {
   static_assert(not is_square_root_v<DistSA2l>);
   static_assert(not is_diagonal_v<DistSA2l>);
@@ -666,7 +666,7 @@ TEST_F(covariance_tests, GaussianDistribution_traits)
 }
 
 
-TEST_F(covariance_tests, GaussianDistribution_overloads)
+TEST_F(typed_matrix_tests, GaussianDistribution_overloads)
 {
   // mean
   EXPECT_TRUE(is_near(mean(DistSA2l {{1, 2}, {9, 3, 3, 10}}), Mean2 {1, 2}));
@@ -695,7 +695,7 @@ TEST_F(covariance_tests, GaussianDistribution_overloads)
 }
 
 
-TEST_F(covariance_tests, GaussianDistribution_blocks)
+TEST_F(typed_matrix_tests, GaussianDistribution_blocks)
 {
   Mean2 a1 {1, 2}, a2 {3, 4};
   Mean4 b {1, 2, 3, 4};
@@ -721,7 +721,7 @@ TEST_F(covariance_tests, GaussianDistribution_blocks)
 }
 
 
-TEST_F(covariance_tests, GaussianDistribution_addition_subtraction)
+TEST_F(typed_matrix_tests, GaussianDistribution_addition_subtraction)
 {
   Mean<Axes<2>> x_mean {20, 30};
   M2 d;
@@ -762,7 +762,7 @@ TEST_F(covariance_tests, GaussianDistribution_addition_subtraction)
 }
 
 
-TEST_F(covariance_tests, GaussianDistribution_mult_div)
+TEST_F(typed_matrix_tests, GaussianDistribution_mult_div)
 {
   auto a = GaussianDistribution(make_Mean<C2>(2., 30), make_Covariance<C2>(8., 2, 2, 6));
   auto a_chol = GaussianDistribution(make_Mean<C2>(2., 30), make_Covariance<C2, TriangleType::lower>(8., 2, 2, 6));

@@ -461,6 +461,47 @@ namespace OpenKalman
   }
 
 
+  /// Get element (i, j) of matrix arg
+  template<typename Arg, std::enable_if_t<is_native_Eigen_type_v<Arg>, int> = 0>
+  inline auto
+  get_element(Arg&& arg, std::size_t i, std::size_t j)
+  {
+    return std::forward<Arg>(arg)(i, j);
+  }
+
+
+  /// Get element (i) of one-column matrix arg
+  template<typename Arg, std::enable_if_t<is_native_Eigen_type_v<Arg> and MatrixTraits<Arg>::columns == 1, int> = 0>
+  inline auto
+  get_element(Arg&& arg, std::size_t i)
+  {
+    return std::forward<Arg>(arg)(i);
+  }
+
+
+  /// Set element (i, j) of matrix arg to s.
+  template<typename Arg, typename Scalar,
+    std::enable_if_t<is_native_Eigen_type_v<Arg> and not std::is_const_v<std::remove_reference_t<Arg>> and
+    static_cast<bool>(std::decay_t<Arg>::Flags & Eigen::LvalueBit), int> = 0>
+  inline void
+  set_element(Arg& arg, Scalar s, std::size_t i, std::size_t j)
+  {
+    arg(i, j) = s;
+  }
+
+
+  /// Set element (i) of one-column matrix arg to s.
+  template<typename Arg, typename Scalar,
+    std::enable_if_t<is_native_Eigen_type_v<Arg> and not std::is_const_v<std::remove_reference_t<Arg>> and
+      MatrixTraits<Arg>::columns == 1 and
+    static_cast<bool>(std::decay_t<Arg>::Flags & Eigen::LvalueBit), int> = 0>
+  inline void
+  set_element(Arg& arg, Scalar s, std::size_t i)
+  {
+    arg(i) = s;
+  }
+
+
   /// Return column <code>index</code> of Arg.
   template<typename Arg, std::enable_if_t<is_native_Eigen_type_v<Arg>, int> = 0>
   inline auto

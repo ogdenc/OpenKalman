@@ -183,9 +183,168 @@ namespace OpenKalman
   }
 
 
+  /// Get element (i, j) of self-adjoint matrix arg.
+  template<typename Arg, std::enable_if_t<is_EigenSelfAdjointMatrix_v<Arg> and
+    not is_diagonal_v<Arg> and
+    is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>, int> = 0>
+  inline auto
+  get_element(Arg&& arg, std::size_t i, std::size_t j)
+  {
+    if constexpr(is_Eigen_lower_storage_triangle_v<Arg>)
+    {
+      if (i >= j) return get_element(base_matrix(arg), i, j);
+      else return get_element(base_matrix(std::forward<Arg>(arg)), j, i);
+    }
+    else
+    {
+      if (i <= j) return get_element(base_matrix(arg), i, j);
+      else return get_element(base_matrix(std::forward<Arg>(arg)), j, i);
+    }
+  }
+
+
+  /// Get element (i, j) of triangular matrix arg.
+  template<typename Arg, std::enable_if_t<is_EigenTriangularMatrix_v<Arg> and
+    not is_diagonal_v<Arg> and
+    is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>, int> = 0>
+  inline auto
+  get_element(Arg&& arg, std::size_t i, std::size_t j)
+  {
+    if constexpr(is_lower_triangular_v<Arg>)
+    {
+      if (i >= j) return get_element(base_matrix(std::forward<Arg>(arg)), i, j);
+      else return typename MatrixTraits<Arg>::Scalar(0);
+    }
+    else
+    {
+      if (i <= j) return get_element(base_matrix(std::forward<Arg>(arg)), i, j);
+      else return typename MatrixTraits<Arg>::Scalar(0);
+    }
+  }
+
+
+  /// Get element (i, j) of a self-adjoint or triangular matrix that is also diagonal.
+  template<typename Arg, std::enable_if_t<(is_EigenSelfAdjointMatrix_v<Arg> or is_EigenTriangularMatrix_v<Arg>) and
+    is_diagonal_v<Arg> and
+    (is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 2> or
+      is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 1>), int> = 0>
+  inline auto
+  get_element(Arg&& arg, std::size_t i, std::size_t j)
+  {
+    if (i == j)
+    {
+      if constexpr(is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 1>)
+        return get_element(base_matrix(std::forward<Arg>(arg)), i);
+      else
+        return get_element(base_matrix(std::forward<Arg>(arg)), i, i);
+    }
+    else return typename MatrixTraits<Arg>::Scalar(0);
+  }
+
+
+  /// Get element (i) of diagonal self-adjoint or triangular matrix.
+  template<typename Arg, std::enable_if_t<is_diagonal_v<Arg> and
+    (is_EigenSelfAdjointMatrix_v<Arg> or is_EigenTriangularMatrix_v<Arg>) and
+    (is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 1> or
+      is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>), int> = 0>
+  inline auto
+  get_element(Arg&& arg, std::size_t i)
+  {
+    using BaseMatrix = typename MatrixTraits<Arg>::BaseMatrix;
+    if constexpr(is_element_gettable_v<BaseMatrix, 1>)
+    {
+      return get_element(base_matrix(std::forward<Arg>(arg)), i);
+    }
+    else
+    {
+      return get_element(base_matrix(std::forward<Arg>(arg)), i, i);
+    }
+  }
+
+
+  /// Set element (i, j) of self-adjoint matrix arg to s.
+  template<typename Arg, typename Scalar, std::enable_if_t<is_EigenSelfAdjointMatrix_v<Arg> and
+    not std::is_const_v<std::remove_reference_t<Arg>> and not is_diagonal_v<Arg> and
+    is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>, int> = 0>
+  inline void
+  set_element(Arg& arg, Scalar s, std::size_t i, std::size_t j)
+  {
+    if constexpr(is_Eigen_lower_storage_triangle_v<Arg>)
+    {
+      if (i >= j) set_element(base_matrix(arg), s, i, j);
+      else set_element(base_matrix(arg), s, j, i);
+    }
+    else
+    {
+      if (i <= j) set_element(base_matrix(arg), s, i, j);
+      else set_element(base_matrix(arg), s, j, i);
+    }
+  }
+
+
+  /// Set element (i, j) of triangular matrix arg to s.
+  template<typename Arg, typename Scalar, std::enable_if_t<is_EigenTriangularMatrix_v<Arg> and
+    not std::is_const_v<std::remove_reference_t<Arg>> and not is_diagonal_v<Arg> and
+    is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>, int> = 0>
+  inline void
+  set_element(Arg& arg, Scalar s, std::size_t i, std::size_t j)
+  {
+    if constexpr(is_lower_triangular_v<Arg>)
+    {
+      if (i >= j) set_element(base_matrix(arg), s, i, j);
+      else throw std::out_of_range("Only lower-triangle elements of a lower-triangular matrix may be set.");
+    }
+    else
+    {
+      if (i <= j) set_element(base_matrix(arg), s, i, j);
+      else throw std::out_of_range("Only upper-triangle elements of an upper-triangular matrix may be set.");
+    }
+  }
+
+
+  /// Set element (i, j) of a self-adjoint or triangular matrix that is also diagonal.
+  template<typename Arg, typename Scalar,
+    std::enable_if_t<(is_EigenSelfAdjointMatrix_v<Arg> or is_EigenTriangularMatrix_v<Arg>) and
+    not std::is_const_v<std::remove_reference_t<Arg>> and is_diagonal_v<Arg> and
+    (is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 2> or
+      is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 1>), int> = 0>
+  inline void
+  set_element(Arg& arg, Scalar s, std::size_t i, std::size_t j)
+  {
+    if (i == j)
+    {
+      if constexpr(is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 1>)
+        set_element(base_matrix(arg), s, i);
+      else
+        set_element(base_matrix(arg), s, i, i);
+    }
+    else throw std::out_of_range("Only diagonal elements of a diagonal matrix may be set.");
+  }
+
+
+  /// Set element (i) of diagonal self-adjoint or triangular matrix.
+  template<typename Arg, typename Scalar, std::enable_if_t<is_diagonal_v<Arg> and
+    (is_EigenSelfAdjointMatrix_v<Arg> or is_EigenTriangularMatrix_v<Arg>) and
+    (is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 1> or
+      is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>), int> = 0>
+  inline void
+  set_element(Arg& arg, Scalar s, std::size_t i)
+  {
+    using BaseMatrix = typename MatrixTraits<Arg>::BaseMatrix;
+    if constexpr(is_element_settable_v<BaseMatrix, 1>)
+    {
+      set_element(base_matrix(arg), s, i);
+    }
+    else
+    {
+      set_element(base_matrix(arg), s, i, i);
+    }
+  }
+
+
   /// Return column <code>index</code> of Arg.
-  template<typename Arg,
-    std::enable_if_t<is_EigenSelfAdjointMatrix_v<Arg> or is_EigenTriangularMatrix_v<Arg> or is_EigenDiagonal_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<is_EigenSelfAdjointMatrix_v<Arg> or
+    is_EigenTriangularMatrix_v<Arg> or is_EigenDiagonal_v<Arg>, int> = 0>
   inline auto
   column(Arg&& arg, const std::size_t index)
   {
@@ -194,8 +353,8 @@ namespace OpenKalman
 
 
   /// Return column <code>index</code> of Arg. Constexpr index version.
-  template<std::size_t index, typename Arg,
-    std::enable_if_t<is_EigenSelfAdjointMatrix_v<Arg> or is_EigenTriangularMatrix_v<Arg> or is_EigenDiagonal_v<Arg>, int> = 0>
+  template<std::size_t index, typename Arg, std::enable_if_t<is_EigenSelfAdjointMatrix_v<Arg> or
+    is_EigenTriangularMatrix_v<Arg> or is_EigenDiagonal_v<Arg>, int> = 0>
   inline decltype(auto)
   column(Arg&& arg)
   {
@@ -204,8 +363,8 @@ namespace OpenKalman
   }
 
 
-  template<typename Arg, typename Function,
-    std::enable_if_t<is_EigenSelfAdjointMatrix_v<Arg> or is_EigenTriangularMatrix_v<Arg> or is_EigenDiagonal_v<Arg>, int> = 0>
+  template<typename Arg, typename Function, std::enable_if_t<is_EigenSelfAdjointMatrix_v<Arg> or
+    is_EigenTriangularMatrix_v<Arg> or is_EigenDiagonal_v<Arg>, int> = 0>
   inline auto
   apply_columnwise(Arg&& arg, const Function& f)
   {
@@ -213,8 +372,8 @@ namespace OpenKalman
   }
 
 
-  template<typename Arg, typename Function,
-    std::enable_if_t<is_EigenSelfAdjointMatrix_v<Arg> or is_EigenTriangularMatrix_v<Arg> or is_EigenDiagonal_v<Arg>, int> = 0>
+  template<typename Arg, typename Function, std::enable_if_t<is_EigenSelfAdjointMatrix_v<Arg> or
+    is_EigenTriangularMatrix_v<Arg> or is_EigenDiagonal_v<Arg>, int> = 0>
   inline auto
   apply_coefficientwise(Arg&& arg, const Function& f)
   {

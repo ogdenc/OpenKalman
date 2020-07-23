@@ -102,6 +102,18 @@ TEST_F(matrix_tests, FromEuclideanExpr_class)
   EXPECT_NEAR(e1(1), M_PI/4, 1e-6);
   EXPECT_EQ(d1(0, 1), 2);
   EXPECT_EQ(d1(2, 1), 4);
+}
+
+
+TEST_F(matrix_tests, FromEuclideanExpr_subscripts)
+{
+  auto el = FromTo3 {1, 2, M_PI/6, M_PI/3, 3, 4};
+  set_element(el, M_PI/2, 1, 0);
+  EXPECT_NEAR(get_element(el, 1, 0), M_PI/2, 1e-8);
+  set_element(el, 3.1, 2, 0);
+  EXPECT_NEAR(get_element(el, 2, 0), 3.1, 1e-8);
+  EXPECT_NEAR(get_element(From3 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2}, 1, 1), M_PI/3, 1e-8);
+
   FromEuclideanExpr<Coefficients<Axes<2>>, Eigen::Matrix<double, 2, 2>> e2 = {1, 2, 3, 4};
   e2(0,0) = 5;
   EXPECT_EQ(e2(0, 0), 5);
@@ -266,6 +278,7 @@ TEST_F(matrix_tests, FromEuclideanExpr_blocks)
       0.5, std::sqrt(3)/2, std::sqrt(2)/2, std::sqrt(2)/2, std::sqrt(3)/2, 0.5}),
     std::tuple{(Eigen::Matrix<double, 2, 3>() << 1., 2, 3, M_PI/6, M_PI/3, M_PI/4).finished(),
                (Eigen::Matrix<double, 2, 2>() << 4, 5, M_PI/4, M_PI/3).finished()}));
+
   EXPECT_TRUE(is_near(column(
     FromEuclideanExpr<Coefficients<Axis, Angle>, Eigen::Matrix<double, 3, 3>> {1, 2, 3,
                                                                                std::sqrt(3)/2, 0.5, std::sqrt(2)/2,

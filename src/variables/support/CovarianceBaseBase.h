@@ -20,6 +20,7 @@ namespace OpenKalman::internal
   struct CovarianceBaseBase : MatrixTraits<ArgType>::template CovarianceBaseType<Derived>
   {
     using BaseMatrix = ArgType;
+    using Base = typename MatrixTraits<ArgType>::template CovarianceBaseType<Derived>;
 
     /// Default constructor.
     CovarianceBaseBase() : m_arg() {}
@@ -71,6 +72,7 @@ namespace OpenKalman::internal
 
     /// Get the base matrix.
     constexpr const auto&& base_matrix() const && { return std::move(m_arg); }
+
 
   protected:
     BaseMatrix m_arg; ///< The base matrix for Covariance or SquareRootCovariance.

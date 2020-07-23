@@ -59,6 +59,14 @@ namespace OpenKalman
   template<typename Coefficients, typename BaseMatrix>
   struct is_typed_matrix_base<ToEuclideanExpr<Coefficients, BaseMatrix>> : std::true_type {};
 
+  template<typename Coefficients, typename BaseMatrix, std::size_t N>
+  struct is_element_gettable<ToEuclideanExpr<Coefficients, BaseMatrix>, N>
+    : std::integral_constant<bool, is_element_gettable_v<BaseMatrix, N>> {};
+
+  template<typename Coefficients, typename BaseMatrix, std::size_t N>
+  struct is_element_settable<ToEuclideanExpr<Coefficients, BaseMatrix>, N>
+    : std::integral_constant<bool, Coefficients::axes_only and is_element_settable_v<BaseMatrix, N>> {};
+
 
   /////////////////////////////
   //    FromEuclideanExpr    //
@@ -81,6 +89,17 @@ namespace OpenKalman
 
   template<typename Coefficients, typename BaseMatrix>
   struct is_typed_matrix_base<FromEuclideanExpr<Coefficients, BaseMatrix>> : std::true_type {};
+
+  template<typename Coefficients, typename BaseMatrix, std::size_t N>
+  struct is_element_gettable<FromEuclideanExpr<Coefficients, BaseMatrix>, N>
+    : std::integral_constant<bool, is_element_gettable_v<BaseMatrix, N>> {};
+
+  template<typename Coefficients, typename BaseMatrix, std::size_t N>
+  struct is_element_settable<FromEuclideanExpr<Coefficients, BaseMatrix>, N>
+    : std::integral_constant<bool,
+      (Coefficients::axes_only and is_element_settable_v<BaseMatrix, N>) or
+      (is_ToEuclideanExpr_v<typename MatrixTraits<BaseMatrix>::BaseMatrix> and
+      is_element_settable_v<typename MatrixTraits<BaseMatrix>::BaseMatrix, N>)> {};
 
 
   //////////////////////////////////
@@ -145,6 +164,24 @@ namespace OpenKalman
   template<typename BaseMatrix, TriangleType storage_triangle>
   struct is_strict<EigenSelfAdjointMatrix<BaseMatrix, storage_triangle>> : is_strict<BaseMatrix> {};
 
+  template<typename BaseMatrix, TriangleType storage_triangle>
+  struct is_element_gettable<EigenSelfAdjointMatrix<BaseMatrix, storage_triangle>, 2>
+    : std::integral_constant<bool, is_element_gettable_v<BaseMatrix, 2> or is_element_gettable_v<BaseMatrix, 1>> {};
+
+  template<typename BaseMatrix, TriangleType storage_triangle>
+  struct is_element_gettable<EigenSelfAdjointMatrix<BaseMatrix, storage_triangle>, 1>
+    : std::integral_constant<bool, is_element_gettable_v<BaseMatrix, 1> or
+      (is_element_gettable_v<BaseMatrix, 2> and storage_triangle == TriangleType::diagonal)> {};
+
+  template<typename BaseMatrix, TriangleType storage_triangle>
+  struct is_element_settable<EigenSelfAdjointMatrix<BaseMatrix, storage_triangle>, 2>
+    : std::integral_constant<bool, is_element_settable_v<BaseMatrix, 2> or is_element_settable_v<BaseMatrix, 1>> {};
+
+  template<typename BaseMatrix, TriangleType storage_triangle>
+  struct is_element_settable<EigenSelfAdjointMatrix<BaseMatrix, storage_triangle>, 1>
+    : std::integral_constant<bool, is_element_settable_v<BaseMatrix, 1> or
+      (is_element_settable_v<BaseMatrix, 2> and storage_triangle == TriangleType::diagonal)> {};
+
 
   /////////////////////////////////
   //    EigenTriangularMatrix    //
@@ -193,6 +230,24 @@ namespace OpenKalman
   template<typename BaseMatrix, TriangleType triangle_type>
   struct is_strict<EigenTriangularMatrix<BaseMatrix, triangle_type>> : is_strict<BaseMatrix> {};
 
+  template<typename BaseMatrix, TriangleType triangle_type>
+  struct is_element_gettable<EigenTriangularMatrix<BaseMatrix, triangle_type>, 2>
+    : std::integral_constant<bool, is_element_gettable_v<BaseMatrix, 2> or is_element_gettable_v<BaseMatrix, 1>> {};
+
+  template<typename BaseMatrix, TriangleType triangle_type>
+  struct is_element_gettable<EigenTriangularMatrix<BaseMatrix, triangle_type>, 1>
+    : std::integral_constant<bool, is_element_gettable_v<BaseMatrix, 1> or
+      (is_element_gettable_v<BaseMatrix, 2> and triangle_type == TriangleType::diagonal)> {};
+
+  template<typename BaseMatrix, TriangleType triangle_type>
+  struct is_element_settable<EigenTriangularMatrix<BaseMatrix, triangle_type>, 2>
+    : std::integral_constant<bool, is_element_settable_v<BaseMatrix, 2> or is_element_settable_v<BaseMatrix, 1>> {};
+
+  template<typename BaseMatrix, TriangleType triangle_type>
+  struct is_element_settable<EigenTriangularMatrix<BaseMatrix, triangle_type>, 1>
+    : std::integral_constant<bool, is_element_settable_v<BaseMatrix, 1> or
+      (is_element_settable_v<BaseMatrix, 2> and triangle_type == TriangleType::diagonal)> {};
+
 
   /////////////////////////
   //    EigenDiagonal    //
@@ -228,6 +283,14 @@ namespace OpenKalman
   template<typename BaseMatrix>
   struct is_strict<EigenDiagonal<BaseMatrix>> : is_strict<BaseMatrix> {};
 
+  template<typename BaseMatrix, std::size_t N>
+  struct is_element_gettable<EigenDiagonal<BaseMatrix>, N> : std::integral_constant<bool, (N == 1 or  N == 2) and
+      (is_element_gettable_v<BaseMatrix, 1> or is_element_gettable_v<BaseMatrix, 2>)> {};
+
+  template<typename BaseMatrix, std::size_t N>
+  struct is_element_settable<EigenDiagonal<BaseMatrix>, N> : std::integral_constant<bool, (N == 1 or  N == 2) and
+      (is_element_settable_v<BaseMatrix, 1> or is_element_settable_v<BaseMatrix, 2>)> {};
+
 
   ////////////////////////////////////////////////////////////
   //    EigenZero and other known Eigen zero expressions    //
@@ -235,7 +298,7 @@ namespace OpenKalman
 
   /// Exclusive wrapper type for zero. Necessary because Eigen3 does not distinguish between zero type and a constant type.
   /// This will be treated as a native Eigen matrix.
-  template<typename ArgType>
+  template<typename BaseMatrix>
   struct EigenZero;
 
   template<typename T>
@@ -286,6 +349,13 @@ namespace OpenKalman
   struct is_zero<Eigen::CwiseUnaryOp<Eigen::internal::scalar_opposite_op<typename Arg::Scalar>, Arg>,
     std::enable_if_t<is_zero_v<Arg>>>
     : std::true_type {};
+
+  template<typename BaseMatrix, std::size_t N>
+  struct is_element_gettable<EigenZero<BaseMatrix>, N>
+    : std::integral_constant<bool, N == 2 or (N == 1 and MatrixTraits<BaseMatrix>::columns == 1)> {};
+
+  template<typename BaseMatrix, std::size_t N>
+  struct is_element_settable<EigenZero<BaseMatrix>, N> : std::false_type {};
 
 
   ///////////////////////////////////////////////////////////////
@@ -355,14 +425,14 @@ namespace OpenKalman
   template<typename T>
   struct is_native_Eigen_type : std::integral_constant<bool,
     std::is_base_of_v<Eigen::MatrixBase<std::decay_t<T>>, std::decay_t<T>> and
-    not OpenKalman::is_EigenSelfAdjointMatrix_v<T> and
-    not OpenKalman::is_EigenTriangularMatrix_v<T> and
-    not OpenKalman::is_EigenDiagonal_v<T> and
-    not OpenKalman::is_EigenZero_v<T> and
-    not OpenKalman::is_FromEuclideanExpr_v<T> and
-    not OpenKalman::is_ToEuclideanExpr_v<T> and
-    not OpenKalman::is_typed_matrix_v<T> and
-    not OpenKalman::is_covariance_v<T>> {};
+    not is_EigenSelfAdjointMatrix_v<T> and
+    not is_EigenTriangularMatrix_v<T> and
+    not is_EigenDiagonal_v<T> and
+    not is_EigenZero_v<T> and
+    not is_FromEuclideanExpr_v<T> and
+    not is_ToEuclideanExpr_v<T> and
+    not is_typed_matrix_v<T> and
+    not is_covariance_v<T>> {};
 
   /// Helper template for is_native_Eigen_type.
   template<typename T>
@@ -371,8 +441,8 @@ namespace OpenKalman
   /// Whether an object is a regular Eigen matrix.
   template<typename T>
   struct is_Eigen_matrix : std::integral_constant<bool,
-    OpenKalman::is_native_Eigen_type_v<T> or
-    OpenKalman::is_EigenZero_v<T>> {};
+    is_native_Eigen_type_v<T> or
+    is_EigenZero_v<T>> {};
 
   /// Helper template for is_native_Eigen_type.
   template<typename T>
@@ -384,9 +454,27 @@ namespace OpenKalman
     : std::true_type {};
 
   template<typename T>
-  struct is_typed_matrix_base<T,
-    std::enable_if_t<is_native_Eigen_type_v<T>>>
+  struct is_typed_matrix_base<T, std::enable_if_t<is_native_Eigen_type_v<T>>>
     : std::true_type {};
+
+
+  template<typename T>
+  struct is_element_gettable<T, 2, std::enable_if_t<std::is_same_v<T, std::decay_t<T>> and is_native_Eigen_type_v<T>>>
+    : std::true_type {};
+
+  template<typename T>
+  struct is_element_gettable<T, 1, std::enable_if_t<std::is_same_v<T, std::decay_t<T>> and is_native_Eigen_type_v<T>>>
+    : std::integral_constant<bool, MatrixTraits<T>::columns == 1> {};
+
+  template<typename T>
+  struct is_element_settable<T, 2, std::enable_if_t<std::is_same_v<T, std::decay_t<T>> and is_native_Eigen_type_v<T>>>
+    : std::integral_constant<bool, not std::is_const_v<std::remove_reference_t<T>> and
+      static_cast<bool>(std::decay_t<T>::Flags & Eigen::LvalueBit)> {};
+
+  template<typename T>
+  struct is_element_settable<T, 1, std::enable_if_t<std::is_same_v<T, std::decay_t<T>> and is_native_Eigen_type_v<T>>>
+    : std::integral_constant<bool, MatrixTraits<T>::columns == 1 and not std::is_const_v<std::remove_reference_t<T>> and
+      static_cast<bool>(std::decay_t<T>::Flags & Eigen::LvalueBit)> {};
 
 
   ////////////////

@@ -11,7 +11,7 @@
 #ifndef OPENKALMAN_COVARIANCEBASE_H
 #define OPENKALMAN_COVARIANCEBASE_H
 
-#include <memory>
+#include <utility>
 
 namespace OpenKalman::internal
 {
@@ -24,20 +24,23 @@ namespace OpenKalman::internal
 
   // ============================================================================
   /**
-   * Base of Covariance and SquareRootCovariance classes, general case.
+   * Base of Covariance and SquareRootCovariance classes, if ArgType is not an lvalue reference.
    * No conversion is necessary if either
    * (1) Derived is not a square root and the base is self-adjoint; or
    * (2) Derived is a square root and the base is triangular.
    */
    template<typename Derived, typename ArgType>
   struct CovarianceBase<Derived, ArgType, std::enable_if_t<
-    (is_self_adjoint_v<ArgType> and not is_square_root_v<Derived>) or
-    (is_triangular_v<ArgType> and is_square_root_v<Derived>)>>
+    ((is_self_adjoint_v<ArgType> and not is_square_root_v<Derived>) or
+    (is_triangular_v<ArgType> and is_square_root_v<Derived>)) and not
+    (std::is_lvalue_reference_v<ArgType> or
+    std::is_lvalue_reference_v<typename MatrixTraits<ArgType>::BaseMatrix>)>>
   : CovarianceBaseBase<Derived, ArgType>
   {
     using BaseMatrix = ArgType;
     using Base = CovarianceBaseBase<Derived, BaseMatrix>;
     using Base::base_matrix;
+    using Scalar = typename MatrixTraits<BaseMatrix>::Scalar;
 
     /// Default constructor.
     CovarianceBase() : Base() {}
@@ -74,37 +77,184 @@ namespace OpenKalman::internal
       return *this;
     }
 
-    constexpr decltype(auto) operator() (std::size_t i, std::size_t j) &
+    auto operator() (std::size_t i, std::size_t j)
     {
-      constexpr auto q = has_2_index_parentheses<BaseMatrix>::value;
-      static_assert(q, "(i,j) indices are not defined for covariance base type");
-      if constexpr(q) return base_matrix()(i, j);
-      else return 0;
+      return make_ElementSetter<not is_element_settable_v<Derived, 2>>(base_matrix(), i, j);
     }
 
-    constexpr decltype(auto) operator() (std::size_t i, std::size_t j) const &
+    auto operator() (std::size_t i, std::size_t j) const
     {
-      constexpr auto q = has_2_index_parentheses<BaseMatrix>::value;
-      static_assert(q, "(i,j) indices are not defined for covariance base type");
-      if constexpr(q) return base_matrix()(i, j);
-      else return 0;
+      return make_ElementSetter<true>(base_matrix(), i, j);
     }
 
-    constexpr decltype(auto) operator() (std::size_t i, std::size_t j) &&
+    auto operator[] (std::size_t i)
     {
-      constexpr auto q = has_2_index_parentheses<BaseMatrix>::value;
-      static_assert(q, "(i,j) indices are not defined for covariance base type");
-      if constexpr(q) return std::move(base_matrix())(i, j);
-      else return 0;
+      return make_ElementSetter<not is_element_settable_v<Derived, 2>>(base_matrix(), i);
     }
 
-    constexpr decltype(auto) operator() (std::size_t i, std::size_t j) const &&
+    auto operator[] (std::size_t i) const
     {
-      constexpr auto q = has_2_index_parentheses<BaseMatrix>::value;
-      static_assert(q, "(i,j) indices are not defined for covariance base type");
-      if constexpr(q) return std::move(base_matrix())(i, j);
-      else return 0;
+      return make_ElementSetter<true>(base_matrix(), i);
     }
+
+    auto operator() (std::size_t i) { return operator[](i); }
+
+    auto operator() (std::size_t i) const { return operator[](i); }
+
+  protected:
+    template<typename, typename Arg>
+    friend constexpr decltype(auto) convert_base_matrix(Arg&&) noexcept;
+
+    constexpr void mark_changed() const {}
+
+    /// Get the apparent base matrix.
+    constexpr auto& get_apparent_base_matrix() & { return base_matrix(); }
+
+    /// Get the apparent base matrix.
+    constexpr auto&& get_apparent_base_matrix() && { return std::move(base_matrix()); }
+
+    /// Get the apparent base matrix.
+    constexpr const auto& get_apparent_base_matrix() const & { return base_matrix(); }
+
+    /// Get the apparent base matrix.
+    constexpr const auto&& get_apparent_base_matrix() const && { return std::move(base_matrix()); }
+
+  };
+
+
+  // ============================================================================
+  /**
+   * Base of Covariance and SquareRootCovariance classes, if ArgType is an lvalue reference.
+   * No conversion is necessary if either
+   * (1) Derived is not a square root and the base is self-adjoint; or
+   * (2) Derived is a square root and the base is triangular.
+   */
+   template<typename Derived, typename ArgType>
+  struct CovarianceBase<Derived, ArgType, std::enable_if_t<
+    ((is_self_adjoint_v<ArgType> and not is_square_root_v<Derived>) or
+    (is_triangular_v<ArgType> and is_square_root_v<Derived>)) and
+    (std::is_lvalue_reference_v<ArgType> or
+    std::is_lvalue_reference_v<typename MatrixTraits<ArgType>::BaseMatrix>)>>
+  : CovarianceBaseBase<Derived, ArgType>
+  {
+    using BaseMatrix = ArgType;
+    using Base = CovarianceBaseBase<Derived, BaseMatrix>;
+    using Base::base_matrix;
+    using Scalar = typename MatrixTraits<BaseMatrix>::Scalar;
+
+  private:
+    const bool apparent_base_linked;
+
+    bool * const synchronized;
+
+  public:
+    /// Default constructor.
+    CovarianceBase() = delete;
+
+    /// Copy constructor.
+    CovarianceBase(const CovarianceBase& other)
+      : Base(other.base_matrix()), synchronized(other.synchronized) {}
+
+    /// Move constructor.
+    CovarianceBase(CovarianceBase&& other) noexcept
+      : Base(std::move(other)), synchronized(other.synchronized) {}
+
+    /// Construct from a covariance base or another covariance that does not store a distinct apparent base matrix.
+    template<typename Arg,
+      std::enable_if_t<is_covariance_base_v<Arg> or (is_covariance_v<Arg> and
+        ((is_self_adjoint_v<typename MatrixTraits<Arg>::BaseMatrix> and not is_square_root_v<Arg>) or
+        (is_triangular_v<typename MatrixTraits<Arg>::BaseMatrix> and is_square_root_v<Arg>))), int> = 0>
+    CovarianceBase(Arg&& arg) noexcept
+      : Base(std::forward<Arg>(arg)), apparent_base_linked(false), synchronized(new bool {true}) {}
+
+    /// Construct from another covariance that stores a distinct apparent base matrix (base matrix is not an lvalue ref).
+    template<typename Arg,
+      std::enable_if_t<is_covariance_v<Arg> and not
+        ((is_self_adjoint_v<typename MatrixTraits<Arg>::BaseMatrix> and not is_square_root_v<Arg>) or
+        (is_triangular_v<typename MatrixTraits<Arg>::BaseMatrix> and is_square_root_v<Arg>)) and not
+        (std::is_lvalue_reference_v<typename MatrixTraits<Arg>::BaseMatrix> or
+        std::is_lvalue_reference_v<typename MatrixTraits<typename MatrixTraits<Arg>::BaseMatrix>::BaseMatrix>), int> = 0>
+    CovarianceBase(Arg&& arg) noexcept
+      : Base(std::forward<Arg>(arg)), apparent_base_linked(true), synchronized(&arg.synchronized) {}
+
+    /// Construct from another covariance that stores a distinct apparent base matrix (base matrix is an lvalue ref).
+    template<typename Arg,
+      std::enable_if_t<is_covariance_v<Arg> and not
+        ((is_self_adjoint_v<typename MatrixTraits<Arg>::BaseMatrix> and not is_square_root_v<Arg>) or
+        (is_triangular_v<typename MatrixTraits<Arg>::BaseMatrix> and is_square_root_v<Arg>)) and
+        (std::is_lvalue_reference_v<typename MatrixTraits<Arg>::BaseMatrix> or
+        std::is_lvalue_reference_v<typename MatrixTraits<typename MatrixTraits<Arg>::BaseMatrix>::BaseMatrix>), int> = 0>
+    CovarianceBase(Arg&& arg) noexcept
+      : Base(std::forward<Arg>(arg)), apparent_base_linked(true), synchronized(arg.synchronized) {}
+
+    ~CovarianceBase()
+    {
+      if (not apparent_base_linked)
+      {
+        delete synchronized;
+      }
+    }
+
+    /// Copy assignment operator.
+    auto& operator=(const CovarianceBase& other)
+    {
+      if (this != &other)
+      {
+        Base::operator=(other);
+        if (apparent_base_linked) *synchronized = false;
+      }
+      return *this;
+    }
+
+    /// Move assignment operator.
+    auto& operator=(CovarianceBase&& other) noexcept
+    {
+      if (this != &other)
+      {
+        Base::operator=(std::move(other));
+        if (apparent_base_linked) *synchronized = false;
+      }
+      return *this;
+    }
+
+    /// Assign from a covariance base or typed matrix base.
+    template<typename Arg, std::enable_if_t<is_covariance_base_v<Arg> or is_typed_matrix_base_v<Arg>, int> = 0>
+    auto& operator=(Arg&& arg) noexcept
+    {
+      Base::operator=(std::forward<Arg>(arg));
+      if (apparent_base_linked) *synchronized = false;
+      return *this;
+    }
+
+    auto operator() (std::size_t i, std::size_t j)
+    {
+      if constexpr (is_element_settable_v<Derived, 2>)
+        return ElementSetter(base_matrix(), i, j, [] {}, [=] { if (apparent_base_linked) *synchronized = false; });
+      else
+        return make_ElementSetter<true>(base_matrix(), i, j);
+    }
+
+    auto operator() (std::size_t i, std::size_t j) const
+    {
+      return make_ElementSetter<true>(base_matrix(), i, j);
+    }
+
+    auto operator[] (std::size_t i)
+    {
+      if constexpr (is_element_settable_v<Derived, 1>)
+        return ElementSetter(base_matrix(), i, [] {}, [=] { if (apparent_base_linked) *synchronized = false; });
+      else
+        return make_ElementSetter<true>(base_matrix(), i);
+    }
+
+    auto operator[] (std::size_t i) const
+    {
+      return make_ElementSetter<true>(base_matrix(), i);
+    }
+
+    auto operator() (std::size_t i) { return operator[](i); }
+
+    auto operator() (std::size_t i) const { return operator[](i); }
 
   protected:
     template<typename, typename Arg>
@@ -144,6 +294,7 @@ namespace OpenKalman::internal
     using BaseMatrix = ArgType;
     using Base = CovarianceBaseBase<Derived, BaseMatrix>;
     using Base::base_matrix;
+    using Scalar = typename MatrixTraits<BaseMatrix>::Scalar;
 
   private:
     using ApparentBaseMatrix = std::conditional_t<is_triangular_v<BaseMatrix>,
@@ -265,17 +416,33 @@ namespace OpenKalman::internal
       return operator=(ApparentBaseMatrix {std::forward<Arg>(arg)});
     }
 
-    constexpr decltype(auto) operator() (std::size_t i, std::size_t j) const
+    auto operator() (std::size_t i, std::size_t j)
     {
-      constexpr auto q = has_2_index_parentheses<ApparentBaseMatrix>::value;
-      static_assert(q, "(i,j) indices are not defined for covariance base type");
-      if constexpr(q)
-      {
-        if (not synchronized) synchronize();
-        return apparent_base(i, j);
-      }
-      else return 0;
+      if constexpr(is_element_settable_v<Derived, 2>)
+        return ElementSetter(
+          apparent_base,
+          i, j,
+          [=] { if (not synchronized) synchronize(); },
+          [=]
+          {
+            if constexpr(is_square_root_v<Derived>)
+              base_matrix() = Cholesky_square(apparent_base);
+            else
+              base_matrix() = Cholesky_factor(apparent_base);
+          });
+      else
+        return make_ElementSetter<true>(apparent_base, i, j, [] {}, [=] { if (not synchronized) synchronize(); });
     }
+
+    auto operator() (std::size_t i, std::size_t j) const
+    {
+      return make_ElementSetter<true>(apparent_base, i, j, [] {}, [=] { if (not synchronized) synchronize(); });
+    }
+
+    decltype(auto) operator[](std::size_t i) const = delete;
+
+    decltype(auto) operator()(std::size_t i) const = delete;
+
 
   protected:
     template<typename, typename, typename>
@@ -290,28 +457,28 @@ namespace OpenKalman::internal
     }
 
     /// Get the apparent base matrix.
-    constexpr auto get_apparent_base_matrix() &
+    constexpr auto& get_apparent_base_matrix() &
     {
       if (not synchronized) synchronize();
       return apparent_base;
     }
 
     /// Get the apparent base matrix.
-    constexpr auto get_apparent_base_matrix() &&
+    constexpr auto&& get_apparent_base_matrix() &&
     {
       if (not synchronized) synchronize();
       return std::move(apparent_base);
     }
 
     /// Get the apparent base matrix.
-    constexpr auto get_apparent_base_matrix() const &
+    constexpr const auto& get_apparent_base_matrix() const &
     {
       if (not synchronized) synchronize();
       return apparent_base;
     }
 
     /// Get the apparent base matrix.
-    constexpr auto get_apparent_base_matrix() const &&
+    constexpr const auto&& get_apparent_base_matrix() const &&
     {
       if (not synchronized) synchronize();
       return std::move(apparent_base);
@@ -337,6 +504,7 @@ namespace OpenKalman::internal
     using BaseMatrix = ArgType;
     using Base = CovarianceBaseBase<Derived, BaseMatrix>;
     using Base::base_matrix;
+    using Scalar = typename MatrixTraits<BaseMatrix>::Scalar;
 
   private:
     using ApparentBaseMatrix = std::conditional_t<is_triangular_v<BaseMatrix>,
@@ -383,7 +551,7 @@ namespace OpenKalman::internal
         synchronized(new bool {false}),
         apparent_base(new ApparentBaseMatrix) {}
 
-    /// Construct from another covariance that stores a distinct apparent base matrix (base matrix is not an lvalue ref).
+    /// Construct from a covariance base or another covariance that stores a distinct apparent base matrix (base matrix is not an lvalue ref).
     template<typename Arg,
       std::enable_if_t<is_covariance_v<Arg> and not
         ((is_self_adjoint_v<typename MatrixTraits<Arg>::BaseMatrix> and not is_square_root_v<Arg>) or
@@ -405,7 +573,7 @@ namespace OpenKalman::internal
     CovarianceBase(Arg&& arg) noexcept
       : Base(std::forward<decltype(arg.base_matrix())>(arg.base_matrix())),
         apparent_base_linked(true), synchronized(arg.synchronized),
-        apparent_base(arg.apparent_base) {}
+        apparent_base(std::forward<Arg>(arg).apparent_base) {}
 
     ~CovarianceBase()
     {
@@ -471,17 +639,33 @@ namespace OpenKalman::internal
       return operator=(ApparentBaseMatrix {std::forward<Arg>(arg)});
     }
 
-    constexpr decltype(auto) operator() (std::size_t i, std::size_t j) const
+    auto operator() (std::size_t i, std::size_t j)
     {
-      constexpr auto q = has_2_index_parentheses<ApparentBaseMatrix>::value;
-      static_assert(q, "(i,j) indices are not defined for covariance base type");
-      if constexpr(q)
-      {
-        if (not *synchronized) synchronize();
-        return (*apparent_base)(i, j);
-      }
-      else return 0;
+      if constexpr(is_element_settable_v<Derived, 2>)
+        return ElementSetter(
+          *apparent_base,
+          i, j,
+          [=] { if (not *synchronized) synchronize(); },
+          [=]
+          {
+            if constexpr(is_square_root_v<Derived>)
+              base_matrix() = Cholesky_square(*apparent_base);
+            else
+              base_matrix() = Cholesky_factor(*apparent_base);
+          });
+      else
+        return make_ElementSetter<true>(*apparent_base, i, j, [] {}, [=] { if (not *synchronized) synchronize(); });
     }
+
+    auto operator() (std::size_t i, std::size_t j) const
+    {
+      return make_ElementSetter<true>(*apparent_base, i, j, [] {}, [=] { if (not *synchronized) synchronize(); });
+    }
+
+    decltype(auto) operator[](std::size_t i) const = delete;
+
+    decltype(auto) operator()(std::size_t i) const = delete;
+
 
   protected:
     template<typename, typename, typename>
@@ -496,28 +680,28 @@ namespace OpenKalman::internal
     }
 
     /// Get the apparent base matrix.
-    constexpr auto get_apparent_base_matrix() &
+    constexpr auto& get_apparent_base_matrix() &
     {
       if (not *synchronized) synchronize();
       return *apparent_base;
     }
 
     /// Get the apparent base matrix.
-    constexpr auto get_apparent_base_matrix() &&
+    constexpr auto&& get_apparent_base_matrix() &&
     {
       if (not *synchronized) synchronize();
       return std::move(*apparent_base);
     }
 
     /// Get the apparent base matrix.
-    constexpr auto get_apparent_base_matrix() const &
+    constexpr const auto& get_apparent_base_matrix() const &
     {
       if (not *synchronized) synchronize();
       return *apparent_base;
     }
 
     /// Get the apparent base matrix.
-    constexpr auto get_apparent_base_matrix() const &&
+    constexpr const auto&& get_apparent_base_matrix() const &&
     {
       if (not *synchronized) synchronize();
       return std::move(*apparent_base);

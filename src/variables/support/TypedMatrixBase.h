@@ -11,9 +11,6 @@
 #ifndef OPENKALMAN_TYPEDMATRIXBASE_H
 #define OPENKALMAN_TYPEDMATRIXBASE_H
 
-#include "variables/support/MatrixBase.h"
-#include "variables/support/OpenKalman-coefficients.h"
-
 namespace OpenKalman::internal
 {
   /// Base class for means or matrices.
@@ -119,6 +116,49 @@ namespace OpenKalman::internal
       return *this;
     }
 
+    auto operator()(std::size_t i, std::size_t j) &
+    {
+      return make_ElementSetter<not is_element_settable_v<Derived, 2>>(static_cast<Derived&>(*this), i, j);
+    }
+
+    auto operator()(std::size_t i, std::size_t j) &&
+    {
+      return make_ElementSetter<true>(static_cast<Derived&&>(*this), i, j);
+    }
+
+    auto operator()(std::size_t i, std::size_t j) const &
+    {
+      return make_ElementSetter<true>(static_cast<const Derived&>(*this), i, j);
+    }
+
+    auto operator()(std::size_t i, std::size_t j) const &&
+    {
+      return make_ElementSetter<true>(static_cast<const Derived&&>(*this), i, j);
+    }
+
+    auto operator[](std::size_t i) &
+    {
+      return make_ElementSetter<not is_element_settable_v<Derived, 1>>(static_cast<Derived&>(*this), i);
+    }
+
+    auto operator[](std::size_t i) &&
+    {
+      return make_ElementSetter<true>(static_cast<Derived&&>(*this), i);
+    }
+
+    auto operator[](std::size_t i) const &
+    {
+      return make_ElementSetter<true>(static_cast<const Derived&>(*this), i);
+    }
+
+    auto operator[](std::size_t i) const &&
+    {
+      return make_ElementSetter<true>(static_cast<const Derived&&>(*this), i);
+    }
+
+    auto operator()(std::size_t i) { return operator[](i); }
+
+    auto operator()(std::size_t i) const { return operator[](i); }
   };
 
 

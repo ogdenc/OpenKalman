@@ -27,6 +27,8 @@ namespace OpenKalman::internal
   {
     static_assert(is_covariance_v<Arg> or is_typed_matrix_v<Arg>);
     using ArgBase = typename MatrixTraits<Arg>::BaseMatrix;
+
+    // Typed matrices:
     if constexpr(is_typed_matrix_v<Arg>)
     {
       static_assert(is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, typename MatrixTraits<Arg>::ColumnCoefficients>);
@@ -34,14 +36,19 @@ namespace OpenKalman::internal
       if constexpr(std::is_void_v<T>)
         return std::forward<Arg>(arg).base_matrix();
       else
-        return T {SA {std::forward<Arg>(arg).base_matrix()}};
+        return MatrixTraits<T>::make(base_matrix(MatrixTraits<SA>::make(std::forward<Arg>(arg).base_matrix())));
     }
+
+    // Natural conversion:
     else if constexpr(std::is_void_v<T>)
     {
       return std::forward<Arg>(arg).get_apparent_base_matrix();
     }
+
+    // strictly triangular or diagonal square root --> strictly self-adjoint
     else if constexpr(is_self_adjoint_v<T> and not is_diagonal_v<T> and
-      ((is_triangular_v<ArgBase> and not is_diagonal_v<Arg>) or (is_square_root_v<Arg> and is_diagonal_v<Arg>)))
+      ((is_triangular_v<ArgBase> and not is_diagonal_v<ArgBase>) or
+      (is_square_root_v<Arg> and is_diagonal_v<ArgBase>)))
     {
       if constexpr((is_self_adjoint_v<ArgBase> and not is_square_root_v<Arg>) or
         (is_triangular_v<ArgBase> and is_square_root_v<Arg>))
@@ -49,36 +56,44 @@ namespace OpenKalman::internal
       else
         return std::forward<Arg>(arg).get_apparent_base_matrix();
     }
+
+    // strictly self-adjoint or diagonal non-square root --> strictly triangular
     else if constexpr(is_triangular_v<T> and not is_diagonal_v<T> and
-      ((not is_diagonal_v<Arg> and not is_triangular_v<ArgBase> )
-        or (is_diagonal_v<Arg> and not is_square_root_v<Arg> )))
+      ((not is_diagonal_v<ArgBase> and not is_triangular_v<ArgBase>) or
+        (is_diagonal_v<ArgBase> and not is_square_root_v<Arg> )))
     {
-      if constexpr(is_diagonal_v<Arg>)
+      if constexpr(is_diagonal_v<ArgBase>) // diagonal non-square root
       {
         return Cholesky_factor(std::forward<Arg>(arg).base_matrix());
       }
-      else
+      else // ArgBase is strictly self-adjoint.
       {
         using B = decltype(Cholesky_factor(std::forward<Arg>(arg).base_matrix()));
-        if constexpr(is_upper_triangular_v<T> != is_upper_triangular_v<B>)
+        if constexpr(is_upper_triangular_v<T> != is_upper_triangular_v<B>) // Converted triangle types don't match.
         {
           return Cholesky_factor(adjoint(std::forward<Arg>(arg).base_matrix()));
         }
-        else
+        else // Converted triangle types match.
         {
           if constexpr((is_self_adjoint_v<ArgBase> and not is_square_root_v<Arg>) or
             (is_triangular_v<ArgBase> and is_square_root_v<Arg>))
             return Cholesky_factor(std::forward<Arg>(arg).base_matrix());
           else
+          {
             return std::forward<Arg>(arg).get_apparent_base_matrix();
+          }
         }
       }
     }
+
+    // upper <--> lower
     else if constexpr(is_triangular_v<T> and is_Cholesky_v<Arg>
       and is_upper_triangular_v<T> != is_upper_triangular_v<ArgBase>)
     {
       return adjoint(std::forward<Arg>(arg).base_matrix());
     }
+
+    // pass through
     else
     {
       return std::forward<Arg>(arg).base_matrix();

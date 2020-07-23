@@ -13,11 +13,12 @@
 using namespace OpenKalman;
 
 using M2 = Eigen::Matrix<double, 2, 2>;
+using D2 = EigenDiagonal<Eigen::Matrix<double, 2, 1>>;
 using Lower = EigenTriangularMatrix<M2, TriangleType::lower>;
 using Upper = EigenTriangularMatrix<M2, TriangleType::upper>;
 using Diagonal = EigenTriangularMatrix<M2, TriangleType::diagonal>;
-using Diagonal2 = EigenTriangularMatrix<EigenDiagonal<Eigen::Matrix<double, 2, 1>>, TriangleType::diagonal>;
-using Diagonal3 = EigenTriangularMatrix<EigenDiagonal<Eigen::Matrix<double, 2, 1>>, TriangleType::lower>;
+using Diagonal2 = EigenTriangularMatrix<D2, TriangleType::diagonal>;
+using Diagonal3 = EigenTriangularMatrix<D2, TriangleType::lower>;
 using Mat = TypedMatrix<Axes<2>, Axes<2>, M2>;
 
 TEST_F(matrix_tests, TriangularMatrix_class)
@@ -180,7 +181,64 @@ TEST_F(matrix_tests, TriangularMatrix_class)
   //
   EXPECT_TRUE(is_near(l1.solve((Eigen::Matrix<double, 2, 1>() << 3, 7).finished()), (Eigen::Matrix<double, 2, 1>() << 1, 2).finished()));
   EXPECT_TRUE(is_near(u1.solve((Eigen::Matrix<double, 2, 1>() << 3, 9).finished()), (Eigen::Matrix<double, 2, 1>() << 0, 3).finished()));
-  //
+}
+
+TEST_F(matrix_tests, TriangularMatrix_subscripts)
+{
+  static_assert(is_element_gettable_v<Lower, 2>);
+  static_assert(not is_element_gettable_v<Lower, 1>);
+  static_assert(is_element_gettable_v<Upper, 2>);
+  static_assert(not is_element_gettable_v<Upper, 1>);
+  static_assert(is_element_gettable_v<Diagonal, 2>);
+  static_assert(is_element_gettable_v<Diagonal, 1>);
+  static_assert(is_element_gettable_v<Diagonal2, 2>);
+  static_assert(is_element_gettable_v<Diagonal2, 1>);
+  static_assert(is_element_gettable_v<Diagonal3, 2>);
+  static_assert(is_element_gettable_v<Diagonal3, 1>);
+
+  static_assert(is_element_settable_v<Lower, 2>);
+  static_assert(not is_element_settable_v<Lower, 1>);
+  static_assert(is_element_settable_v<Upper, 2>);
+  static_assert(not is_element_settable_v<Upper, 1>);
+  static_assert(is_element_settable_v<Diagonal, 2>);
+  static_assert(is_element_settable_v<Diagonal, 1>);
+  static_assert(is_element_settable_v<Diagonal2, 2>);
+  static_assert(is_element_settable_v<Diagonal2, 1>);
+  static_assert(is_element_settable_v<Diagonal3, 2>);
+  static_assert(is_element_settable_v<Diagonal3, 1>);
+
+  static_assert(not is_element_settable_v<const Lower, 2>);
+  static_assert(not is_element_settable_v<const Lower, 1>);
+  static_assert(not is_element_settable_v<const Upper, 2>);
+  static_assert(not is_element_settable_v<const Upper, 1>);
+  static_assert(not is_element_settable_v<const Diagonal, 2>);
+  static_assert(not is_element_settable_v<const Diagonal, 1>);
+  static_assert(not is_element_settable_v<const Diagonal2, 2>);
+  static_assert(not is_element_settable_v<const Diagonal2, 1>);
+  static_assert(not is_element_settable_v<const Diagonal3, 2>);
+  static_assert(not is_element_settable_v<const Diagonal3, 1>);
+
+  static_assert(not is_element_settable_v<EigenTriangularMatrix<const M2, TriangleType::lower>, 2>);
+  static_assert(not is_element_settable_v<EigenTriangularMatrix<const D2, TriangleType::lower>, 2>);
+  static_assert(not is_element_settable_v<EigenTriangularMatrix<const D2, TriangleType::lower>, 1>);
+  static_assert(not is_element_settable_v<EigenTriangularMatrix<EigenDiagonal<const Eigen::Matrix<double, 2, 1>>, TriangleType::lower>, 2>);
+  static_assert(not is_element_settable_v<EigenTriangularMatrix<EigenDiagonal<const Eigen::Matrix<double, 2, 1>>, TriangleType::lower>, 1>);
+
+  auto l1 = Lower {3, 0, 1, 3};
+  set_element(l1, 1.1, 1, 0);
+  EXPECT_NEAR(get_element(l1, 1, 0), 1.1, 1e-8);
+  bool test = false; try { set_element(l1, 2.1, 0, 1); } catch (const std::out_of_range& e) { test = true; }
+  EXPECT_TRUE(test);
+  EXPECT_NEAR(get_element(l1, 0, 1), 0, 1e-8);
+
+  auto u1 = Upper {3, 1, 0, 3};
+  set_element(u1, 1.1, 0, 1);
+  EXPECT_NEAR(get_element(u1, 0, 1), 1.1, 1e-8);
+  test = false;
+  try { set_element(u1, 2.1, 1, 0); } catch (const std::out_of_range& e) { test = true; }
+  EXPECT_TRUE(test);
+  EXPECT_NEAR(get_element(u1, 1, 0), 0, 1e-8);
+
   EXPECT_EQ(l1(0, 1), 0);
   EXPECT_EQ(u1(1, 0), 0);
   //
@@ -188,18 +246,49 @@ TEST_F(matrix_tests, TriangularMatrix_class)
   EXPECT_EQ(u1(1, 1), 3);
   //
   l1(0, 0) = 5;
+  EXPECT_NEAR(l1(0, 0), 5, 1e-8);
   l1(1, 0) = 6;
-  l1(0, 1) = 7; // Should have no effect
-  EXPECT_EQ(l1(0, 1), 0);
-  u1(0, 0) = 5;
-  u1(0, 1) = 6;
-  u1(1, 0) = 7; // Should have no effect
-  EXPECT_EQ(u1(1, 0), 0);
-  //
+  EXPECT_NEAR(l1(1, 0), 6, 1e-8);
   l1(1, 1) = 8;
+  test = false; try { l1(0, 1) = 7; } catch (const std::out_of_range& e) { test = true; }
+  EXPECT_TRUE(test);
   EXPECT_TRUE(is_near(l1, Mat {5, 0, 6, 8}));
+
+  u1(0, 0) = 5;
+  EXPECT_NEAR(u1(0, 0), 5, 1e-8);
+  u1(0, 1) = 6;
+  EXPECT_NEAR(u1(0, 1), 6, 1e-8);
   u1(1, 1) = 8;
+  test = false; try { u1(1, 0) = 7; } catch (const std::out_of_range& e) { test = true; }
+  EXPECT_TRUE(test);
   EXPECT_TRUE(is_near(u1, Mat {5, 6, 0, 8}));
+  //
+  auto d9 = Diagonal {9, 3, 3, 10};
+  d9(0, 0) = 7.1;
+  EXPECT_NEAR(d9(0), 7.1, 1e-8);
+  d9(1) = 8.1;
+  EXPECT_NEAR(d9(1, 1), 8.1, 1e-8);
+  test = false; try { d9(1, 0) = 9.1; } catch (const std::out_of_range& e) { test = true; }
+  EXPECT_TRUE(test);
+  EXPECT_TRUE(is_near(d9, Mat {7.1, 0, 0, 8.1}));
+
+  auto d9b = Diagonal2 {9, 10};
+  d9b(0, 0) = 7.1;
+  EXPECT_NEAR(d9b(0, 0), 7.1, 1e-8);
+  d9b(1, 1) = 8.1;
+  EXPECT_NEAR(d9b(1, 1), 8.1, 1e-8);
+  test = false; try { d9b(1, 0) = 9.1; } catch (const std::out_of_range& e) { test = true; }
+  EXPECT_TRUE(test);
+  EXPECT_TRUE(is_near(d9b, Mat {7.1, 0, 0, 8.1}));
+
+  auto d9c = Diagonal3 {9, 10};
+  d9c(0, 0) = 7.1;
+  EXPECT_NEAR(d9c(0, 0), 7.1, 1e-8);
+  d9c(1, 1) = 8.1;
+  EXPECT_NEAR(d9c(1, 1), 8.1, 1e-8);
+  test = false; try { d9c(1, 0) = 9.1; } catch (const std::out_of_range& e) { test = true; }
+  EXPECT_TRUE(test);
+  EXPECT_TRUE(is_near(d9c, Mat {7.1, 0, 0, 8.1}));
   //
   EXPECT_NEAR((EigenTriangularMatrix<Eigen::Matrix<double, 1, 1>, TriangleType::lower> {7.})(0), 7., 1e-6);
   EXPECT_NEAR((EigenTriangularMatrix<Eigen::Matrix<double, 1, 1>, TriangleType::upper> {7.})(0), 7., 1e-6);
@@ -453,6 +542,7 @@ TEST_F(matrix_tests, TriangularMatrix_blocks_lower)
                                                                              0, 0, 6, 8, 9}),
     std::tuple{TypedMatrix<Axes<5>, Axes<2>> {1, 0, 2, 3, 0, 0, 0, 0, 0, 0},
                TypedMatrix<Axes<5>, Axes<2>> {0, 0, 0, 0, 4, 0, 5, 7, 6, 8}}));
+
   EXPECT_TRUE(is_near(column(m1, 2), Mean{0., 0, 9}));
   EXPECT_TRUE(is_near(column<1>(m1), Mean{0., 7, 8}));
   EXPECT_TRUE(is_near(apply_columnwise(m1, [](const auto& col){ return col + col.Constant(1); }),
@@ -696,8 +786,8 @@ TEST_F(matrix_tests, TriangularMatrix_references)
   V v1 {1., 0, 0,
         2, 4, 0,
         3, -6, -3};
-  v1(0, 1) = 3.2;
-  EXPECT_EQ(v1(0,1), 0); // Assigning to the upper right triangle does not change anything. It's still zero.
+  bool test = false; try { v1(0, 1) = 3.2; } catch (const std::out_of_range& e) { test = true; }
+  EXPECT_TRUE(test);
   EXPECT_EQ(v1(1,0), 2);
   EigenTriangularMatrix<Eigen::Matrix<double, 3, 3>&> v2 = v1;
   EXPECT_TRUE(is_near(v1, v2));

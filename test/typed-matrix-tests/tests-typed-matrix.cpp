@@ -179,8 +179,41 @@ TEST_F(typed_matrix_tests, TypedMatrix_class)
 
   // Identity
   EXPECT_TRUE(is_near(Mat22::identity(), M22::Identity()));
+}
 
-  // Subscripts
+
+TEST_F(typed_matrix_tests, TypedMatrix_subscripts)
+{
+  static_assert(is_element_gettable_v<Mat23, 2>);
+  static_assert(not is_element_gettable_v<Mat23, 1>);
+  static_assert(is_element_gettable_v<const Mat23, 2>);
+  static_assert(not is_element_gettable_v<const Mat23, 1>);
+  static_assert(is_element_gettable_v<Mat21, 2>);
+  static_assert(is_element_gettable_v<Mat21, 1>);
+  static_assert(is_element_gettable_v<const Mat21, 2>);
+  static_assert(is_element_gettable_v<const Mat21, 1>);
+  static_assert(is_element_gettable_v<TypedMatrix<C3, C2, M32>, 2>);
+  static_assert(not is_element_gettable_v<TypedMatrix<C3, C2, M32>, 1>);
+  static_assert(is_element_gettable_v<TypedMatrix<C2, Axis, M21>, 2>);
+  static_assert(is_element_gettable_v<TypedMatrix<C2, Axis, M21>, 1>);
+
+  static_assert(is_element_settable_v<Mat23, 2>);
+  static_assert(not is_element_settable_v<Mat23, 1>);
+  static_assert(not is_element_settable_v<const Mat23, 2>);
+  static_assert(not is_element_settable_v<const Mat23, 1>);
+  static_assert(is_element_settable_v<Mat21, 2>);
+  static_assert(is_element_settable_v<Mat21, 1>);
+  static_assert(not is_element_settable_v<const Mat21, 2>);
+  static_assert(not is_element_settable_v<const Mat21, 1>);
+  static_assert(is_element_settable_v<TypedMatrix<C3, C2, M32>, 2>);
+  static_assert(not is_element_settable_v<TypedMatrix<C3, C2, M32>, 1>);
+  static_assert(not is_element_settable_v<TypedMatrix<C3, C2, const M32>, 2>);
+  static_assert(not is_element_settable_v<TypedMatrix<C3, C2, const M32>, 1>);
+  static_assert(is_element_settable_v<TypedMatrix<C2, Axis, M21>, 2>);
+  static_assert(is_element_settable_v<TypedMatrix<C2, Axis, M21>, 1>);
+  static_assert(not is_element_settable_v<TypedMatrix<C2, Axis, const M21>, 2>);
+  static_assert(not is_element_settable_v<TypedMatrix<C2, Axis, const M21>, 1>);
+
   EXPECT_NEAR((Mat23 {1, 2, 3, 4, 5, 6})(0, 0), 1, 1e-6);
   EXPECT_NEAR((Mat23 {1, 2, 3, 4, 5, 6})(0, 1), 2, 1e-6);
   EXPECT_NEAR((Mat23 {1, 2, 3, 4, 5, 6})(0, 2), 3, 1e-6);
@@ -435,26 +468,3 @@ TEST_F(typed_matrix_tests, TypedMatrix_arithmetic)
   EXPECT_FALSE((Mat22 {1, 2, 3, 4} == TypedMatrix<C2, Axes<2>, M22> {1, 2, 3, 4}));
 }
 
-
-TEST_F(typed_matrix_tests, TypedMatrix_references_axis)
-{
-  using V = TypedMatrix<C3, C3, M33>;
-  V v1 {1., 2, 3,
-        2, 4, -6,
-        3, 6, -3};
-  TypedMatrix<C3, C3, M33&> v2 = v1;
-  EXPECT_TRUE(is_near(v1, v2));
-  v1(1,0) = 4.1;
-  EXPECT_EQ(v2(1,0), 4.1);
-  v2(0, 1) = 5.2;
-  EXPECT_EQ(v1(0,1), 5.2);
-  TypedMatrix<C3, C3, M33&&> v3 = std::move(v2);
-  EXPECT_EQ(v3(1,0), 4.1);
-  TypedMatrix<C3, C3, const M33&> v4 = v3;
-  v3(2,1) = 7.3;
-  EXPECT_EQ(v4(2,1), 7.3);
-  TypedMatrix<C3, C3, M33> v5 = v3;
-  v3(1,1) = 8.4;
-  EXPECT_EQ(v3(1,1), 8.4);
-  EXPECT_EQ(v5(1,1), 4);
-}

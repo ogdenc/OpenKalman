@@ -14,7 +14,6 @@
 #include <cmath>
 #include <array>
 #include <functional>
-#include "variables/support/Traits.h"
 
 namespace OpenKalman
 {

@@ -11,8 +11,6 @@
 #ifndef OPENKALMAN_MEAN_H
 #define OPENKALMAN_MEAN_H
 
-#include "variables/support/TypedMatrixBase.h"
-
 namespace OpenKalman
 {
   /////////////////////////
@@ -45,9 +43,6 @@ namespace OpenKalman
       std::is_constructible_v<BaseMatrix, decltype(wrap_angles<Coefficients>(std::declval<Arg>()))>, int> = 0>
     Mean(Arg&& arg) noexcept : Base(wrap_angles<Coefficients>(std::forward<Arg>(arg)))
     {
-      static_assert(Coefficients::axes_only or not std::is_rvalue_reference_v<BaseMatrix>,
-        "The base matrix of a Mean cannot be an rvalue reference if one of the coefficient types is not an Axis "
-        "(because wrapping would be impossible).");
       static_assert(MatrixTraits<Arg>::dimension == Base::dimension);
       static_assert(MatrixTraits<Arg>::columns == Base::columns);
     }
@@ -198,7 +193,6 @@ namespace OpenKalman
     static auto zero() { return make(MatrixTraits<BaseMatrix>::zero()); }
 
     static auto identity() { return make(MatrixTraits<BaseMatrix>::identity()); }
-
   };
 
 

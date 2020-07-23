@@ -343,6 +343,192 @@ namespace OpenKalman
   }
 
 
+  /// Get element (i, j) of ToEuclideanExpr or FromEuclideanExpr matrix arg.
+  template<typename Arg, std::enable_if_t<
+    ((is_FromEuclideanExpr_v<Arg> and not is_ToEuclideanExpr_v<typename MatrixTraits<Arg>::BaseMatrix>) or
+      is_ToEuclideanExpr_v<Arg>) and
+    is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>, int> = 0>
+  inline auto
+  get_element(Arg&& arg, std::size_t i, std::size_t j)
+  {
+    if constexpr (MatrixTraits<Arg>::Coefficients::axes_only)
+    {
+      return get_element(base_matrix(std::forward<Arg>(arg)), i, j);
+    }
+    else
+    {
+      using Coeffs = typename MatrixTraits<Arg>::Coefficients;
+      using Scalar = typename MatrixTraits<Arg>::Scalar;
+      const auto get_coeff = [j, &arg] (const std::size_t row)
+        {
+          return get_element(base_matrix(std::forward<Arg>(arg)), row, j);
+        };
+      if constexpr(is_ToEuclideanExpr_v<Arg>)
+      {
+        return to_Euclidean<Coeffs, Scalar>(i, get_coeff);
+      }
+      else
+      {
+        return from_Euclidean<Coeffs, Scalar>(i, get_coeff);
+      }
+    }
+  }
+
+
+  /// Get element (i) of one-column ToEuclideanExpr or FromEuclideanExpr matrix arg.
+  template<typename Arg, std::enable_if_t<
+    ((is_FromEuclideanExpr_v<Arg> and not is_ToEuclideanExpr_v<typename MatrixTraits<Arg>::BaseMatrix>) or
+      is_ToEuclideanExpr_v<Arg>) and
+    is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 1>, int> = 0>
+  inline auto
+  get_element(Arg&& arg, std::size_t i)
+  {
+    if constexpr (MatrixTraits<Arg>::Coefficients::axes_only)
+    {
+      return get_element(base_matrix(std::forward<Arg>(arg)), i);
+    }
+    else
+    {
+      using Coeffs = typename MatrixTraits<Arg>::Coefficients;
+      using Scalar = typename MatrixTraits<Arg>::Scalar;
+      const auto get_coeff = [&arg] (const std::size_t row)
+        {
+          return get_element(base_matrix(std::forward<Arg>(arg)), row);
+        };
+      if constexpr(is_ToEuclideanExpr_v<Arg>)
+      {
+        return to_Euclidean<Coeffs, Scalar>((std::size_t) i, get_coeff);
+      }
+      else
+      {
+        return from_Euclidean<Coeffs, Scalar>((std::size_t) i, get_coeff);
+      }
+    }
+  }
+
+
+  /// Get element (i, j) of FromEuclideanExpr(ToEuclideanExpr) matrix.
+  template<typename Arg,
+    std::enable_if_t<is_FromEuclideanExpr_v<Arg> and is_ToEuclideanExpr_v<typename MatrixTraits<Arg>::BaseMatrix> and
+      is_element_gettable_v<typename MatrixTraits<typename MatrixTraits<Arg>::BaseMatrix>::BaseMatrix, 2>, int> = 0>
+  inline auto
+  get_element(Arg&& arg, std::size_t i, std::size_t j)
+  {
+    if constexpr (MatrixTraits<Arg>::Coefficients::axes_only)
+    {
+      return get_element(base_matrix(base_matrix(std::forward<Arg>(arg))), i, j);
+    }
+    else
+    {
+      using Coeffs = typename MatrixTraits<Arg>::Coefficients;
+      using Scalar = typename MatrixTraits<Arg>::Scalar;
+      const auto get_coeff = [j, &arg] (const std::size_t row)
+        {
+          return get_element(base_matrix(base_matrix(std::forward<Arg>(arg))), row, j);
+        };
+      return wrap<Coeffs, Scalar>((std::size_t) i, get_coeff);
+    }
+  }
+
+
+  /// Get element (i) of FromEuclideanExpr(ToEuclideanExpr) matrix.
+  template<typename Arg,
+    std::enable_if_t<is_FromEuclideanExpr_v<Arg> and is_ToEuclideanExpr_v<typename MatrixTraits<Arg>::BaseMatrix> and
+      is_element_gettable_v<typename MatrixTraits<typename MatrixTraits<Arg>::BaseMatrix>::BaseMatrix, 1>, int> = 0>
+  inline auto
+  get_element(Arg&& arg, std::size_t i)
+  {
+    if constexpr (MatrixTraits<Arg>::Coefficients::axes_only)
+    {
+      return get_element(base_matrix(base_matrix(std::forward<Arg>(arg))), i);
+    }
+    else
+    {
+      using Coeffs = typename MatrixTraits<Arg>::Coefficients;
+      using Scalar = typename MatrixTraits<Arg>::Scalar;
+      const auto get_coeff = [&arg] (const std::size_t row)
+        {
+          return get_element(base_matrix(base_matrix(std::forward<Arg>(arg))), row);
+        };
+      return wrap<Coeffs, Scalar>((std::size_t) i, get_coeff);
+    }
+  }
+
+
+  /// Set element (i, j) of ToEuclideanExpr or FromEuclideanExpr matrix arg if coefficients are only axes.
+  template<typename Arg, typename Scalar, std::enable_if_t<
+    ((is_FromEuclideanExpr_v<Arg> and not is_ToEuclideanExpr_v<typename MatrixTraits<Arg>::BaseMatrix>) or
+      is_ToEuclideanExpr_v<Arg>) and
+    not std::is_const_v<std::remove_reference_t<Arg>> and
+    MatrixTraits<Arg>::Coefficients::axes_only and
+    is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>, int> = 0>
+  inline void
+  set_element(Arg& arg, Scalar s, std::size_t i, std::size_t j)
+  {
+    set_element(base_matrix(arg), s, i, j);
+  }
+
+
+  /// Set element (i) of ToEuclideanExpr or FromEuclideanExpr matrix arg if coefficients are only axes.
+  template<typename Arg, typename Scalar, std::enable_if_t<
+    ((is_FromEuclideanExpr_v<Arg> and not is_ToEuclideanExpr_v<typename MatrixTraits<Arg>::BaseMatrix>) or
+      is_ToEuclideanExpr_v<Arg>) and
+    not std::is_const_v<std::remove_reference_t<Arg>> and
+    MatrixTraits<Arg>::Coefficients::axes_only and
+    is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 1>, int> = 0>
+  inline void
+  set_element(Arg& arg, Scalar s, std::size_t i)
+  {
+    set_element(base_matrix(arg), s, i);
+  }
+
+
+  /// Set element (i, j) of FromEuclideanExpr(ToEuclideanExpr) matrix arg to s.
+  template<typename Arg, typename Scalar,
+    std::enable_if_t<is_FromEuclideanExpr_v<Arg> and is_ToEuclideanExpr_v<typename MatrixTraits<Arg>::BaseMatrix> and
+      not std::is_const_v<std::remove_reference_t<Arg>> and
+      is_element_settable_v<typename MatrixTraits<typename MatrixTraits<Arg>::BaseMatrix>::BaseMatrix, 2>, int> = 0>
+  inline void
+  set_element(Arg& arg, Scalar s, std::size_t i, std::size_t j)
+  {
+    if constexpr (MatrixTraits<Arg>::Coefficients::axes_only)
+    {
+      set_element(base_matrix(base_matrix(arg)), s, i, j);
+    }
+    else
+    {
+      using Coeffs = typename MatrixTraits<Arg>::Coefficients;
+      using ScalarA = typename MatrixTraits<Arg>::Scalar;
+      const auto get_coeff = [s] (const std::size_t row) { return (ScalarA) s; };
+      auto ws = wrap<Coeffs, ScalarA>((std::size_t) i, get_coeff);
+      set_element(base_matrix(base_matrix(arg)), ws, i, j);
+    }
+  }
+
+
+  /// Set element (i) of FromEuclideanExpr(ToEuclideanExpr) matrix arg to s.
+  template<typename Arg, typename Scalar,
+    std::enable_if_t<is_FromEuclideanExpr_v<Arg> and is_ToEuclideanExpr_v<typename MatrixTraits<Arg>::BaseMatrix> and
+      not std::is_const_v<std::remove_reference_t<Arg>> and
+      is_element_settable_v<typename MatrixTraits<typename MatrixTraits<Arg>::BaseMatrix>::BaseMatrix, 1>, int> = 0>
+  inline void
+  set_element(Arg& arg, Scalar s, std::size_t i)
+  {
+    if constexpr (MatrixTraits<Arg>::Coefficients::axes_only)
+    {
+      set_element(base_matrix(base_matrix(arg)), s, i);
+    }
+    else
+    {
+      using Coeffs = typename MatrixTraits<Arg>::Coefficients;
+      using ScalarA = typename MatrixTraits<Arg>::Scalar;
+      const auto get_coeff = [s] (const std::size_t row) { return (ScalarA) s; };
+      auto ws = wrap<Coeffs, ScalarA>((std::size_t) i, get_coeff);
+      set_element(base_matrix(base_matrix(arg)), s, i);
+    }
+  }
+
+
   template<typename Arg, std::enable_if_t<is_ToEuclideanExpr_v<Arg> or is_FromEuclideanExpr_v<Arg>, int> = 0>
   inline decltype(auto)
   column(Arg&& arg, const std::size_t index)

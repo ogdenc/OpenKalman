@@ -11,8 +11,6 @@
 #ifndef OPENKALMAN_EUCLIDEANMEAN_H
 #define OPENKALMAN_EUCLIDEANMEAN_H
 
-#include "variables/support/TypedMatrixBase.h"
-
 namespace OpenKalman
 {
   //////////////////////////////////

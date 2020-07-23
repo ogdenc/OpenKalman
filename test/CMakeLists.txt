@@ -28,7 +28,7 @@ include_directories(SYSTEM ${EIGEN3_INCLUDE_DIRS})
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -g -O2 -ftemplate-backtrace-limit=0")
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -g -std=c++2a -O2")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
+#set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
 
 add_executable(matrix-tests
         matrix-tests/matrix_tests.cpp
@@ -45,17 +45,6 @@ target_link_libraries(matrix-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)
 add_test(matrix-tests 0)
 
 
-add_executable(typed-matrix-tests
-        typed-matrix-tests/typed_matrix_tests.cpp
-        typed-matrix-tests/tests-typed-matrix.cpp
-        typed-matrix-tests/tests-mean.cpp
-        typed-matrix-tests/tests-euclidean_mean.cpp
-        )
-set_target_properties(typed-matrix-tests PROPERTIES CXX_STANDARD_REQUIRED ON CXX_STANDARD 17)
-target_link_libraries(typed-matrix-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)
-add_test(typed-matrix-tests 0)
-
-
 add_executable(covariance-tests
         covariance-tests/covariance_tests.cpp
         covariance-tests/tests-covariance.cpp
@@ -63,11 +52,23 @@ add_executable(covariance-tests
         covariance-tests/tests-sqrt-covariance.cpp
         covariance-tests/tests-sqrt-covariance-ops.cpp
         covariance-tests/tests-covariance-refs.cpp
-        covariance-tests/tests-distributions.cpp
         )
 set_target_properties(covariance-tests PROPERTIES CXX_STANDARD_REQUIRED ON CXX_STANDARD 17)
 target_link_libraries(covariance-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)
 add_test(covariance-tests 0)
+
+
+add_executable(typed-matrix-tests
+        typed-matrix-tests/typed_matrix_tests.cpp
+        typed-matrix-tests/tests-typed-matrix.cpp
+        typed-matrix-tests/tests-mean.cpp
+        typed-matrix-tests/tests-euclidean_mean.cpp
+        typed-matrix-tests/tests-typed-matrix-refs.cpp
+        typed-matrix-tests/tests-distributions.cpp
+        )
+set_target_properties(typed-matrix-tests PROPERTIES CXX_STANDARD_REQUIRED ON CXX_STANDARD 17)
+target_link_libraries(typed-matrix-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)
+add_test(typed-matrix-tests 0)
 
 
 add_executable(transformation-tests
