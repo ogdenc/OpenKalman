@@ -43,16 +43,16 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg> and not is_Euclidean_transformed_v<Arg>, int> = 0>
     TypedMatrix(Arg&& other) noexcept : Base(std::forward<Arg>(other).base_matrix())
     {
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients>);
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::ColumnCoefficients, ColumnCoefficients>);
+      static_assert(is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients>);
+      static_assert(is_equivalent_v<typename MatrixTraits<Arg>::ColumnCoefficients, ColumnCoefficients>);
     }
 
     /// Construct from a compatible Euclidean-transformed matrix.
     template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg> and is_Euclidean_transformed_v<Arg>, int> = 0>
     TypedMatrix(Arg&& other) noexcept : Base(OpenKalman::from_Euclidean<RowCoefficients>(std::forward<Arg>(other).base_matrix()))
     {
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients>);
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::ColumnCoefficients, ColumnCoefficients>);
+      static_assert(is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients>);
+      static_assert(is_equivalent_v<typename MatrixTraits<Arg>::ColumnCoefficients, ColumnCoefficients>);
     }
 
     /// Construct from compatible typed matrix base.
@@ -67,8 +67,8 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<is_covariance_v<Arg>, int> = 0>
     TypedMatrix(Arg&& arg) noexcept : Base(strict_matrix(std::forward<Arg>(arg)))
     {
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::Coefficients, RowCoefficients>);
-      static_assert(OpenKalman::is_equivalent_v<RowCoefficients, ColumnCoefficients>);
+      static_assert(is_equivalent_v<typename MatrixTraits<Arg>::Coefficients, RowCoefficients>);
+      static_assert(is_equivalent_v<RowCoefficients, ColumnCoefficients>);
     }
 
     /// Copy assignment operator.
@@ -89,8 +89,8 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg>, int> = 0>
     auto& operator=(Arg&& other) noexcept
     {
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients>);
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::ColumnCoefficients, ColumnCoefficients>);
+      static_assert(is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients>);
+      static_assert(is_equivalent_v<typename MatrixTraits<Arg>::ColumnCoefficients, ColumnCoefficients>);
       if constexpr (std::is_same_v<std::decay_t<Arg>, TypedMatrix>) if (this == &other) return *this;
       if constexpr(is_Euclidean_transformed_v<Arg>)
         this->base_matrix() = from_Euclidean<RowCoefficients>(std::forward<Arg>(other).base_matrix());

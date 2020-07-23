@@ -38,26 +38,17 @@ namespace OpenKalman
     /// Move constructor.
     Mean(Mean&& other) noexcept : Base(std::move(other).base_matrix()) {}
 
-    /// Construct from a typed matrix base.
-    template<typename Arg, std::enable_if_t<is_typed_matrix_base_v<Arg> and
-      std::is_constructible_v<BaseMatrix, decltype(wrap_angles<Coefficients>(std::declval<Arg>()))>, int> = 0>
-    Mean(Arg&& arg) noexcept : Base(wrap_angles<Coefficients>(std::forward<Arg>(arg)))
+    /// Construct from a compatible mean.
+    template<typename Arg, std::enable_if_t<is_mean_v<Arg>, int> = 0>
+    Mean(Arg&& other) noexcept : Base(std::forward<Arg>(other).base_matrix())
     {
-      static_assert(MatrixTraits<Arg>::dimension == Base::dimension);
-      static_assert(MatrixTraits<Arg>::columns == Base::columns);
+      static_assert(is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>);
+      static_assert(is_equivalent_v<typename MatrixTraits<Arg>::ColumnCoefficients, typename Base::ColumnCoefficients>);
     }
 
-    /// Construct from a typed matrix base. For zero or identity matrices.
-    template<typename Arg, std::enable_if_t<is_typed_matrix_base_v<Arg> and
-      not std::is_constructible_v<BaseMatrix, decltype(wrap_angles<Coefficients>(std::declval<Arg>()))>, int> = 0>
-    Mean(Arg&& arg) noexcept : Base(std::forward<Arg>(arg))
-    {
-      static_assert(MatrixTraits<Arg>::dimension == Base::dimension);
-      static_assert(MatrixTraits<Arg>::columns == Base::columns);
-    }
-
-    /// Construct from a compatible typed matrix.
-    template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg> and not is_Euclidean_transformed_v<Arg>, int> = 0>
+    /// Construct from a compatible typed matrix or Euclidean-transformed mean.
+    template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg> and not is_Euclidean_transformed_v<Arg> and
+      not is_mean_v<Arg>, int> = 0>
     Mean(Arg&& other) noexcept : Mean(std::forward<Arg>(other).base_matrix())
     {
       static_assert(is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>);
@@ -70,6 +61,26 @@ namespace OpenKalman
     {
       static_assert(is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>);
       static_assert(is_equivalent_v<typename MatrixTraits<Arg>::ColumnCoefficients, typename Base::ColumnCoefficients>);
+    }
+
+    /// Construct from a typed matrix base.
+    template<typename Arg, std::enable_if_t<is_typed_matrix_base_v<Arg> and not
+      (std::is_lvalue_reference_v<typename MatrixTraits<Arg>::BaseMatrix> or
+      not std::is_constructible_v<Base, decltype(wrap_angles<Coefficients>(std::declval<Arg>()))>), int> = 0>
+    Mean(Arg&& arg) noexcept : Base(wrap_angles<Coefficients>(std::forward<Arg>(arg)))
+    {
+      static_assert(MatrixTraits<Arg>::dimension == Base::dimension);
+      static_assert(MatrixTraits<Arg>::columns == Base::columns);
+    }
+
+    /// Construct from a typed matrix base. For situations when angle wrapping should not occur.
+    template<typename Arg, std::enable_if_t<is_typed_matrix_base_v<Arg> and
+      (std::is_lvalue_reference_v<typename MatrixTraits<Arg>::BaseMatrix> or
+      not std::is_constructible_v<Base, decltype(wrap_angles<Coefficients>(std::declval<Arg>()))>), int> = 0>
+    Mean(Arg&& arg) noexcept : Base(std::forward<Arg>(arg))
+    {
+      static_assert(MatrixTraits<Arg>::dimension == Base::dimension);
+      static_assert(MatrixTraits<Arg>::columns == Base::columns);
     }
 
     /// Construct from a list of coefficients.

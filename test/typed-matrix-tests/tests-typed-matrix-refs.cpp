@@ -31,6 +31,7 @@ TEST_F(typed_matrix_tests, References_TypedMatrix_lvalue)
         4, 5, 6,
         7, 8, 9};
   TypedMatrix<C3, C3, M33&> v2 = v1;
+  EXPECT_EQ(&base_matrix(v1), &base_matrix(v2));
   EXPECT_TRUE(is_near(v1, v2));
   EXPECT_EQ(v2(1, 0), 4);
   v1(1, 0) = 4.1;
@@ -53,6 +54,7 @@ TEST_F(typed_matrix_tests, References_TypedMatrix_const_lvalue)
                                4, 5, 6,
                                7, 8, 9};
   TypedMatrix<C3, C3, const M33&> v2 = v1;
+  EXPECT_EQ(&base_matrix(v1), &base_matrix(v2));
   EXPECT_TRUE(is_near(v1, v2));
   EXPECT_EQ(v2(1, 0), 4);
   v1(1, 0) = 4.1;
@@ -83,6 +85,7 @@ TEST_F(typed_matrix_tests, References_Mean_lvalue)
         7, 8, 9};
   EXPECT_EQ(v1(1, 0), 4 - 2*M_PI);
   Mean<C3, M33&> v2 = v1;
+  EXPECT_EQ(&base_matrix(v1), &base_matrix(v2));
   EXPECT_TRUE(is_near(v1, v2));
   EXPECT_EQ(v2(1, 0), 4 - 2*M_PI);
   v1(1, 0) = 4.1;
@@ -106,11 +109,13 @@ TEST_F(typed_matrix_tests, References_Mean_const_lvalue)
                     7, 8, 9};
   EXPECT_EQ(v1(1, 0), 4 - 2*M_PI);
   Mean<C3, const M33&> v2 = v1;
+  EXPECT_EQ(&base_matrix(v1), &base_matrix(v2));
   EXPECT_TRUE(is_near(v1, v2));
-  EXPECT_EQ(v2(1, 0), 4 - 2*M_PI);
-  EXPECT_EQ(base_matrix(v2)(1, 0), 4 - 2*M_PI);
+  EXPECT_TRUE(is_near(base_matrix(v1), base_matrix(v2)));
+  EXPECT_EQ(get_element(base_matrix(v2), 1, 0), 4 - 2*M_PI);
   EXPECT_EQ(get_element(v2, 1, 0), 4 - 2*M_PI);
   EXPECT_EQ(get_element(base_matrix(v2), 1, 0), 4 - 2*M_PI);
+  EXPECT_TRUE(is_near(base_matrix(v1), base_matrix(v2)));
   v1(1, 0) = 4.1;
   EXPECT_EQ(v2(1, 0), 4.1 - 2*M_PI);
   EXPECT_EQ(base_matrix(v2)(1, 0), 4.1 - 2*M_PI);
@@ -140,6 +145,7 @@ TEST_F(typed_matrix_tests, References_Mean_lvalue_axes)
         4, 5, 6,
         7, 8, 9};
   Mean<Axes<3>, M33&> v2 = v1;
+  EXPECT_EQ(&base_matrix(v1), &base_matrix(v2));
   EXPECT_TRUE(is_near(v1, v2));
   EXPECT_EQ(v2(1, 0), 4);
   v1(1, 0) = 4.1;
@@ -162,6 +168,7 @@ TEST_F(typed_matrix_tests, References_Mean_const_lvalue_axes)
                     4, 5, 6,
                     7, 8, 9};
   Mean<Axes<3>, const M33&> v2 = v1;
+  EXPECT_EQ(&base_matrix(v1), &base_matrix(v2));
   EXPECT_TRUE(is_near(v1, v2));
   EXPECT_EQ(v2(1, 0), 4);
   v1(1, 0) = 4.1;
@@ -191,6 +198,7 @@ TEST_F(typed_matrix_tests, References_EuclideanMean_lvalue)
         4, 5, 6,
         7, 8, 9};
   EuclideanMean<C2, M33&> v2 = v1;
+  EXPECT_EQ(&base_matrix(v1), &base_matrix(v2));
   EXPECT_TRUE(is_near(v1, v2));
   EXPECT_EQ(v2(1, 0), 4);
   v1(1, 0) = 4.1;
@@ -213,6 +221,7 @@ TEST_F(typed_matrix_tests, References_EuclideanMean_const_lvalue)
                              4, 5, 6,
                              7, 8, 9};
   EuclideanMean<C2, const M33&> v2 = v1;
+  EXPECT_EQ(&base_matrix(v1), &base_matrix(v2));
   EXPECT_TRUE(is_near(v1, v2));
   EXPECT_EQ(v2(1, 0), 4);
   v1(1, 0) = 4.1;

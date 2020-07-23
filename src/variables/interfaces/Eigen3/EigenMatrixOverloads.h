@@ -92,9 +92,9 @@ namespace OpenKalman
   constexpr decltype(auto)
   wrap_angles(Arg&& arg) noexcept
   {
-    if constexpr(Coefficients::axes_only)
+    if constexpr(Coefficients::axes_only or is_identity_v<Arg> or is_zero_v<Arg>)
     {
-      /// @TODO: Add functionality to bypass wrapping for zero and identity, as appropriate based on wrap min and max.
+      /// @TODO: Add functionality to conditionally wrap zero and identity, depending on wrap min and max.
       return std::forward<Arg>(arg);
     }
     else
@@ -464,18 +464,18 @@ namespace OpenKalman
   /// Get element (i, j) of matrix arg
   template<typename Arg, std::enable_if_t<is_native_Eigen_type_v<Arg>, int> = 0>
   inline auto
-  get_element(Arg&& arg, std::size_t i, std::size_t j)
+  get_element(const Arg& arg, std::size_t i, std::size_t j)
   {
-    return std::forward<Arg>(arg)(i, j);
+    return arg.coeff(i, j);
   }
 
 
   /// Get element (i) of one-column matrix arg
   template<typename Arg, std::enable_if_t<is_native_Eigen_type_v<Arg> and MatrixTraits<Arg>::columns == 1, int> = 0>
   inline auto
-  get_element(Arg&& arg, std::size_t i)
+  get_element(const Arg& arg, std::size_t i)
   {
-    return std::forward<Arg>(arg)(i);
+    return arg.coeff(i);
   }
 
 

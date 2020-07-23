@@ -38,7 +38,7 @@ namespace OpenKalman
     /// Move constructor.
     EuclideanMean(EuclideanMean&& other) noexcept : Base(std::move(other).base_matrix()) {}
 
-    /// Construct from a compatible EuclideanMean.
+    /// Construct from a compatible Euclidean-transformed matrix.
     template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg> and is_Euclidean_transformed_v<Arg>, int> = 0>
     EuclideanMean(Arg&& other) noexcept : Base(std::forward<Arg>(other).base_matrix())
     {
@@ -46,7 +46,7 @@ namespace OpenKalman
       static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::ColumnCoefficients, typename Base::ColumnCoefficients>);
     }
 
-    /// Construct from a compatible typed matrix.
+    /// Construct from a compatible non-Euclidean-transformed typed matrix.
     template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg> and not is_Euclidean_transformed_v<Arg>, int> = 0>
     EuclideanMean(Arg&& other) noexcept : Base(OpenKalman::to_Euclidean<Coefficients>(std::forward<Arg>(other).base_matrix()))
     {
