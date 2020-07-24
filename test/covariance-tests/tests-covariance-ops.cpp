@@ -695,8 +695,11 @@ TEST_F(covariance_tests, Covariance_mult_TypedMatrix)
   static_assert(is_zero_v<decltype((covz2 * matz2).base_matrix())>);
   static_assert(is_equivalent_v<typename MatrixTraits<decltype(covz2 * mati2x)>::RowCoefficients, C>);
   static_assert(is_equivalent_v<typename MatrixTraits<decltype(covz2 * mati2x)>::ColumnCoefficients, Cx>);
+}
 
-  // Scalar multiplication
+
+TEST_F(covariance_tests, Covariance_mult_scalar)
+{
   Mat2 p1 {4, 2, 2, 5};
   EXPECT_TRUE(is_near(CovSA2l(p1) * 2, Mat2 {8, 4, 4, 10}));
   EXPECT_TRUE(is_near(CovSA2u(p1) * 2, Mat2 {8, 4, 4, 10}));
@@ -750,6 +753,14 @@ TEST_F(covariance_tests, Covariance_mult_TypedMatrix)
   static_assert(is_diagonal_v<decltype((-2 * covi2).base_matrix())>);
   static_assert(is_zero_v<decltype((-2 * covz2).base_matrix())>);
 
+  EXPECT_TRUE(is_near(CovSA2l::identity() + 2 * CovSA2l::identity(), Mat2 {3, 0, 0, 3}));
+  EXPECT_TRUE(is_near(CovSA2u::identity() * 2 + CovSA2u::identity(), Mat2 {3, 0, 0, 3}));
+  EXPECT_TRUE(is_near(CovT2l::identity() + 2 * CovT2l::identity(), Mat2 {3, 0, 0, 3}));
+  EXPECT_TRUE(is_near(CovT2u::identity() * 2 + CovT2u::identity(), Mat2 {3, 0, 0, 3}));
+  EXPECT_TRUE(is_near(CovD2::identity() + 2 * CovD2::identity(), Mat2 {3, 0, 0, 3}));
+  EXPECT_TRUE(is_near(CovI2::identity() * 2 + CovI2::identity(), Mat2 {3, 0, 0, 3}));
+  EXPECT_TRUE(is_near(CovZ2::identity() + 2 * CovZ2::identity(), Mat2 {3, 0, 0, 3}));
+
   // Scalar division
   EXPECT_TRUE(is_near(CovSA2l(p1) / 0.5, Mat2 {8, 4, 4, 10}));
   EXPECT_TRUE(is_near(CovSA2u(p1) / 0.5, Mat2 {8, 4, 4, 10}));
@@ -776,8 +787,12 @@ TEST_F(covariance_tests, Covariance_mult_TypedMatrix)
   static_assert(is_diagonal_v<decltype((CovD2 {1, 2} / -0.5).base_matrix())>);
   static_assert(is_diagonal_v<decltype((covi2 / -0.5).base_matrix())>);
   static_assert(is_zero_v<decltype((covz2 / -0.5).base_matrix())>);
+}
 
-  // Scale
+
+TEST_F(covariance_tests, Covariance_scale)
+{
+  Mat2 p1 {4, 2, 2, 5};
   EXPECT_TRUE(is_near(scale(CovSA2l(p1), 2), Mat2 {16, 8, 8, 20}));
   EXPECT_TRUE(is_near(scale(CovSA2u(p1), 2), Mat2 {16, 8, 8, 20}));
   EXPECT_TRUE(is_near(scale(CovT2l(p1), 2), Mat2 {16, 8, 8, 20}));

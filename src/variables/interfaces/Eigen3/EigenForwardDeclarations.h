@@ -116,32 +116,34 @@ namespace OpenKalman
   inline constexpr bool is_EigenSelfAdjointMatrix_v = is_EigenSelfAdjointMatrix<T>::value;
 
   template<typename BaseMatrix, TriangleType storage_triangle>
-  struct is_EigenSelfAdjointMatrix<EigenSelfAdjointMatrix<BaseMatrix, storage_triangle>> : std::true_type {};
-
-  template<typename BaseMatrix, TriangleType storage_triangle>
-  struct is_covariance_base<EigenSelfAdjointMatrix<BaseMatrix, storage_triangle>> : std::true_type {};
-
-  template<typename BaseMatrix, TriangleType storage_triangle>
-  struct is_typed_matrix_base<EigenSelfAdjointMatrix<BaseMatrix, storage_triangle>> : std::true_type {};
-
-  template<typename BaseMatrix, TriangleType storage_triangle>
-  struct is_zero<EigenSelfAdjointMatrix<BaseMatrix, storage_triangle>, std::enable_if_t<is_zero_v<BaseMatrix>>>
+  struct is_EigenSelfAdjointMatrix<EigenSelfAdjointMatrix<BaseMatrix, storage_triangle>>
     : std::true_type {};
+
+  template<typename BaseMatrix, TriangleType storage_triangle>
+  struct is_covariance_base<EigenSelfAdjointMatrix<BaseMatrix, storage_triangle>>
+    : std::true_type {};
+
+  template<typename BaseMatrix, TriangleType storage_triangle>
+  struct is_typed_matrix_base<EigenSelfAdjointMatrix<BaseMatrix, storage_triangle>>
+    : std::true_type {};
+
+  template<typename BaseMatrix, TriangleType storage_triangle>
+  struct is_zero<EigenSelfAdjointMatrix<BaseMatrix, storage_triangle>>
+    : std::integral_constant<bool, is_zero_v<BaseMatrix>> {};
+
+  template<typename BaseMatrix, TriangleType storage_triangle>
+  struct is_identity<EigenSelfAdjointMatrix<BaseMatrix, storage_triangle>>
+    : std::integral_constant<bool, is_identity_v<BaseMatrix>> {};
 
   template<typename BaseMatrix, TriangleType storage_triangle>
   struct is_diagonal<EigenSelfAdjointMatrix<BaseMatrix, storage_triangle>,
-    std::enable_if_t<is_diagonal_v<BaseMatrix> and not is_zero_v<BaseMatrix> and not is_1by1_v<BaseMatrix>>>
-    : std::true_type {};
-
-  template<typename BaseMatrix>
-  struct is_diagonal<EigenSelfAdjointMatrix<BaseMatrix, TriangleType::diagonal>,
-    std::enable_if_t<not is_diagonal_v<BaseMatrix>>>
-    : std::true_type {};
+    std::enable_if_t<not is_zero_v<BaseMatrix> and not is_identity_v<BaseMatrix> and not is_1by1_v<BaseMatrix>>>
+    : std::integral_constant<bool, is_diagonal_v<BaseMatrix> or storage_triangle == TriangleType::diagonal> {};
 
   template<typename BaseMatrix, TriangleType storage_triangle>
   struct is_self_adjoint<EigenSelfAdjointMatrix<BaseMatrix, storage_triangle>,
-    std::enable_if_t<not OpenKalman::is_diagonal_v<BaseMatrix> and
-    storage_triangle != TriangleType::diagonal>> : std::true_type {};
+    std::enable_if_t<not is_diagonal_v<BaseMatrix> and storage_triangle != TriangleType::diagonal>>
+    : std::true_type {};
 
   template<typename T>
   struct is_Eigen_upper_storage_triangle : class_trait<is_Eigen_upper_storage_triangle, T> {};
@@ -206,26 +208,27 @@ namespace OpenKalman
   struct is_typed_matrix_base<EigenTriangularMatrix<BaseMatrix, triangle_type>> : std::true_type {};
 
   template<typename BaseMatrix, TriangleType triangle_type>
-  struct is_zero<EigenTriangularMatrix<BaseMatrix, triangle_type>, std::enable_if_t<is_zero_v<BaseMatrix>>>
-    : std::true_type {};
+  struct is_zero<EigenTriangularMatrix<BaseMatrix, triangle_type>>
+    : std::integral_constant<bool, is_zero_v<BaseMatrix>> {};
+
+  template<typename BaseMatrix, TriangleType triangle_type>
+  struct is_identity<EigenTriangularMatrix<BaseMatrix, triangle_type>>
+    : std::integral_constant<bool, is_identity_v<BaseMatrix>> {};
 
   template<typename BaseMatrix, TriangleType triangle_type>
   struct is_diagonal<EigenTriangularMatrix<BaseMatrix, triangle_type>,
-    std::enable_if_t<is_diagonal_v<BaseMatrix> and not is_zero_v<BaseMatrix> and not is_1by1_v<BaseMatrix>>>
-    : std::true_type {};
-
-  template<typename BaseMatrix>
-  struct is_diagonal<EigenTriangularMatrix<BaseMatrix, TriangleType::diagonal>,
-    std::enable_if_t<not is_diagonal_v<BaseMatrix>>>
-  : std::true_type {};
+    std::enable_if_t<not is_zero_v<BaseMatrix> and not is_identity_v<BaseMatrix> and not is_1by1_v<BaseMatrix>>>
+    : std::integral_constant<bool, is_diagonal_v<BaseMatrix> or triangle_type == TriangleType::diagonal> {};
 
   template<typename BaseMatrix>
   struct is_lower_triangular<EigenTriangularMatrix<BaseMatrix, TriangleType::lower>,
-    std::enable_if_t<not is_diagonal_v<BaseMatrix>>> : std::true_type {};
+    std::enable_if_t<not is_diagonal_v<BaseMatrix>>>
+    : std::true_type {};
 
   template<typename BaseMatrix>
   struct is_upper_triangular<EigenTriangularMatrix<BaseMatrix, TriangleType::upper>,
-    std::enable_if_t<not is_diagonal_v<BaseMatrix>>> : std::true_type {};
+    std::enable_if_t<not is_diagonal_v<BaseMatrix>>>
+    : std::true_type {};
 
   template<typename BaseMatrix, TriangleType triangle_type>
   struct is_strict<EigenTriangularMatrix<BaseMatrix, triangle_type>> : is_strict<BaseMatrix> {};
@@ -273,12 +276,13 @@ namespace OpenKalman
   struct is_typed_matrix_base<EigenDiagonal<BaseMatrix>> : std::true_type {};
 
   template<typename BaseMatrix>
-  struct is_diagonal<EigenDiagonal<BaseMatrix>,
-    std::enable_if_t<not is_zero_v<EigenDiagonal<BaseMatrix>> and not is_identity_v<EigenDiagonal<BaseMatrix>> and
-      not is_1by1_v<EigenDiagonal<BaseMatrix>>>> : std::true_type {};
+  struct is_zero<EigenDiagonal<BaseMatrix>>
+    : std::integral_constant<bool, is_zero_v<BaseMatrix>> {};
 
   template<typename BaseMatrix>
-  struct is_zero<EigenDiagonal<BaseMatrix>, std::enable_if_t<OpenKalman::is_zero_v<BaseMatrix>>> : std::true_type {};
+  struct is_diagonal<EigenDiagonal<BaseMatrix>,
+    std::enable_if_t<not is_zero_v<BaseMatrix> and not is_1by1_v<BaseMatrix>>>
+    : std::true_type {};
 
   template<typename BaseMatrix>
   struct is_strict<EigenDiagonal<BaseMatrix>> : is_strict<BaseMatrix> {};

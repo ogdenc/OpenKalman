@@ -687,7 +687,7 @@ namespace OpenKalman
   /// Multiply a covariance type by a scalar.
   template<typename M, typename S,
     std::enable_if_t<is_covariance_v<M> and std::is_convertible_v<S, typename MatrixTraits<M>::Scalar>, int> = 0>
-  inline auto operator*(M&& m, const S s) noexcept
+  constexpr decltype(auto) operator*(M&& m, const S s) noexcept
   {
     using Scalar = const typename MatrixTraits<M>::Scalar;
     if constexpr(is_Cholesky_v<M>)
@@ -733,7 +733,7 @@ namespace OpenKalman
   /// Multiply a scalar by a self-adjoint-type covariance type.
   template<typename S, typename M,
     std::enable_if_t<std::is_convertible_v<S, typename MatrixTraits<M>::Scalar> and is_covariance_v<M>, int> = 0>
-  inline auto operator*(const S s, M&& m) noexcept
+  constexpr decltype(auto) operator*(const S s, M&& m) noexcept
   {
     using Scalar = typename MatrixTraits<M>::Scalar;
     return std::forward<M>(m) * static_cast<Scalar>(s);
@@ -743,7 +743,7 @@ namespace OpenKalman
   /// Divide a self-adjoint-type covariance type by a scalar.
   template<typename M, typename S,
     std::enable_if_t<is_covariance_v<M> and std::is_convertible_v<S, typename MatrixTraits<M>::Scalar>, int> = 0>
-  inline auto operator/(M&& m, const S s)
+  constexpr decltype(auto) operator/(M&& m, const S s)
   {
     using Scalar = typename MatrixTraits<M>::Scalar;
     if constexpr(is_Cholesky_v<M>)
@@ -792,7 +792,7 @@ namespace OpenKalman
 
   /// Negate a covariance.
   template<typename M, std::enable_if_t<is_covariance_v<M>, int> = 0>
-  inline auto operator-(M&& m) noexcept
+  constexpr decltype(auto) operator-(M&& m) noexcept
   {
     static_assert(not is_Cholesky_v<M> or is_square_root_v<M>,
       "Cannot negate a Cholesky-based Covariance because the square root would be complex.");

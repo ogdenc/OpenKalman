@@ -474,7 +474,7 @@ namespace OpenKalman
     using StrictMatrix = typename MatrixTraits<BaseMatrix>::template StrictMatrix<rows, cols, S>;
 
     /// Make covariance from a covariance base.
-    template<typename C = Coefficients, typename Arg, std::enable_if_t<is_covariance_base_v<Arg>, int> = 0>
+    template<typename C = Coefficients, typename Arg>
     static auto make(Arg&& arg) noexcept
     {
       return make_Covariance<C>(std::forward<Arg>(arg));

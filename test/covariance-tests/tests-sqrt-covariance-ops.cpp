@@ -681,8 +681,11 @@ TEST_F(covariance_tests, SquareRootCovariance_mult_TypedMatrix)
   static_assert(is_zero_v<decltype((sqcovz2 * matz2).base_matrix())>);
   static_assert(is_equivalent_v<typename MatrixTraits<decltype(sqcovz2 * mati2x)>::RowCoefficients, C>);
   static_assert(is_equivalent_v<typename MatrixTraits<decltype(sqcovz2 * mati2x)>::ColumnCoefficients, Cx>);
+}
 
-  // Scalar multiplication
+
+TEST_F(covariance_tests, SquareRootCovariance_mult_scalar)
+{
   EXPECT_TRUE(is_near(SqCovSA2l {2, 0, 1, 2} * 2, Mat2 {4, 0, 2, 4}));
   EXPECT_TRUE(is_near(SqCovSA2u {2, 1, 0, 2} * 2, Mat2 {4, 2, 0, 4}));
   EXPECT_TRUE(is_near(SqCovT2l {2, 0, 1, 2} * 2, Mat2 {4, 0, 2, 4}));
@@ -713,6 +716,14 @@ TEST_F(covariance_tests, SquareRootCovariance_mult_TypedMatrix)
   static_assert(is_diagonal_v<decltype((2 * sqcovi2).base_matrix())>);
   static_assert(is_zero_v<decltype((2 * sqcovz2).base_matrix())>);
 
+  EXPECT_TRUE(is_near(SqCovSA2l::identity() + 2 * SqCovSA2l::identity(), Mat2 {3, 0, 0, 3}));
+  EXPECT_TRUE(is_near(SqCovSA2u::identity() * 2 + SqCovSA2u::identity(), Mat2 {3, 0, 0, 3}));
+  EXPECT_TRUE(is_near(SqCovT2l::identity() + 2 * SqCovT2l::identity(), Mat2 {3, 0, 0, 3}));
+  EXPECT_TRUE(is_near(SqCovT2u::identity() * 2 + SqCovT2u::identity(), Mat2 {3, 0, 0, 3}));
+  EXPECT_TRUE(is_near(SqCovD2::identity() + 2 * SqCovD2::identity(), Mat2 {3, 0, 0, 3}));
+  EXPECT_TRUE(is_near(SqCovI2::identity() * 2 + SqCovI2::identity(), Mat2 {3, 0, 0, 3}));
+  EXPECT_TRUE(is_near(SqCovZ2::identity() + 2 * SqCovZ2::identity(), Mat2 {3, 0, 0, 3}));
+
   // Scalar division
   EXPECT_TRUE(is_near(SqCovSA2l {2, 0, 1, 2} / 0.5, Mat2 {4, 0, 2, 4}));
   EXPECT_TRUE(is_near(SqCovSA2u {2, 1, 0, 2} / 0.5, Mat2 {4, 2, 0, 4}));
@@ -728,8 +739,11 @@ TEST_F(covariance_tests, SquareRootCovariance_mult_TypedMatrix)
   static_assert(is_diagonal_v<decltype((SqCovD2 {1, 2} / 0.5).base_matrix())>);
   static_assert(is_diagonal_v<decltype((sqcovi2 / 0.5).base_matrix())>);
   static_assert(is_zero_v<decltype((sqcovz2 / 0.5).base_matrix())>);
+}
 
-  // Scale
+
+TEST_F(covariance_tests, SquareRootCovariance_scale)
+{
   TypedMatrix<Coefficients<Angle, Axis, Angle>, C> a1 {1, 2, 3, 4, 5, 6};
   EXPECT_TRUE(is_near(scale(SqCovSA2l {2, 0, 1, 2}, 2), Mat2 {4, 0, 2, 4}));
   EXPECT_TRUE(is_near(scale(SqCovSA2u {2, 1, 0, 2}, 2), Mat2 {4, 2, 0, 4}));

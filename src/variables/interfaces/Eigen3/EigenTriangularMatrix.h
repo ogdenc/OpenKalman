@@ -279,25 +279,25 @@ namespace OpenKalman
     template<std::size_t dim = dimension, typename S = Scalar>
     using DiagonalBaseType = EigenDiagonal<StrictMatrix<dim, 1, S>>;
 
-    template<typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg>, int> = 0>
+    template<TriangleType t = triangle_type, typename Arg>
     static auto make(Arg&& arg) noexcept
     {
-      return EigenTriangularMatrix<std::decay_t<Arg>, triangle_type>(std::forward<Arg>(arg));
+      return EigenTriangularMatrix<std::decay_t<Arg>, t>(std::forward<Arg>(arg));
     }
 
     /// Make triangular matrix using a list of coefficients in row-major order.
     /// Only the coefficients in the lower-left corner are significant.
-    template<typename ... Args,
+    template<TriangleType t = triangle_type, typename ... Args,
       std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...>, int> = 0>
     static auto make(Args ... args)
     {
       static_assert(sizeof...(Args) == dimension * dimension);
-      return make(MatrixTraits<BaseMatrix>::make(args...));
+      return make<t>(MatrixTraits<BaseMatrix>::make(args...));
     }
 
     static auto zero() { return MatrixTraits<BaseMatrix>::zero(); }
 
-    static auto identity() { return MatrixTraits<BaseMatrix>::identity(); }
+    static auto identity() { return make<TriangleType::diagonal>(MatrixTraits<BaseMatrix>::identity()); }
   };
 
 

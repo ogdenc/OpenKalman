@@ -258,7 +258,6 @@ namespace OpenKalman
     template<std::size_t rows = dimension, std::size_t cols = columns, typename S = Scalar>
     using StrictMatrix = typename MatrixTraits<std::decay_t<BaseMatrix>>::template StrictMatrix<rows, cols, S>;
 
-    /// @TODO: Can we change to EigenDiagonal, since it is both self-adjoint and triangular?
     template<TriangleType storage_triangle = TriangleType::diagonal, std::size_t dim = dimension, typename S = Scalar>
     using SelfAdjointBaseType = EigenSelfAdjointMatrix<StrictMatrix<dim, dim, S>, storage_triangle>;
 
@@ -268,7 +267,7 @@ namespace OpenKalman
     template<std::size_t dim = dimension, typename S = Scalar>
     using DiagonalBaseType = EigenDiagonal<StrictMatrix<dim, 1, S>>;
 
-    template<typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg>, int> = 0>
+    template<typename Arg>
     static auto make(Arg&& arg) noexcept
     {
       static_assert(MatrixTraits<Arg>::columns == 1);
@@ -297,7 +296,10 @@ namespace OpenKalman
 
     static auto zero() { return MatrixTraits<StrictMatrix<>>::zero(); }
 
-    static auto identity() { return MatrixTraits<StrictMatrix<>>::identity(); }
+    static auto identity()
+    {
+      return MatrixTraits<SelfAdjointBaseType<>>::make(MatrixTraits<StrictMatrix<>>::identity());
+    }
 
   };
 
