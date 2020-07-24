@@ -11,7 +11,6 @@
 #ifndef OPENKALMAN_OPENKALMAN_TRANSFORMS_H
 #define OPENKALMAN_OPENKALMAN_TRANSFORMS_H
 
-#include "OpenKalman.h"
 #include "transforms/transformations/Transformation.h"
 #include "transforms/transformations/LinearTransformation.h"
 

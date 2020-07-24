@@ -144,7 +144,7 @@ namespace OpenKalman
       static_assert(std::conjunction_v<
         is_equivalent<typename internal::PerturbationTraits<Perturbations>::RowCoefficients, OutputCoefficients>...>);
       auto ret = sumprod(
-        std::forward_as_tuple(std::forward<In>(in), internal::get_perturbation(std::forward<Perturbations>(perturbation))...),
+        std::tuple {std::forward<In>(in), internal::get_perturbation(std::forward<Perturbations>(perturbation))...},
         std::make_index_sequence<sizeof...(Perturbations) + 1>{});
       static_assert(is_equivalent_v<typename MatrixTraits<decltype(ret)>::RowCoefficients, OutputCoefficients>);
       return ret;

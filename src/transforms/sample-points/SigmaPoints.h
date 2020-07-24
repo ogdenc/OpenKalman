@@ -90,7 +90,6 @@ namespace OpenKalman
     weighted_means(const Arg& y_means)
     {
       static_assert(is_column_vector_v<Arg>);
-      static_assert(not is_Euclidean_transformed_v<Arg>);
       constexpr auto count = MatrixTraits<Arg>::columns;
       static_assert(count == SigmaPointsType::template sigma_point_count<dim>(), "Wrong number of sigma points.");
       using Weights = TypedMatrix<Axes<count>, Axis, typename MatrixTraits<Arg>::template StrictMatrix<count, 1>>;

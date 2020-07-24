@@ -94,9 +94,8 @@ namespace OpenKalman
     weighted_means(const Arg& y_means)
     {
       static_assert(is_column_vector_v<Arg>);
-      static_assert(not is_Euclidean_transformed_v<Arg>);
       static_assert(MatrixTraits<Arg>::columns == dim * 2, "Wrong number of cubature points.");
-      return from_Euclidean(reduce_columns(make_Mean(y_means))); ///@TODO: does this need to be strict?
+      return from_Euclidean(reduce_columns(y_means)); ///@TODO: does this need to be strict?
     };
 
     template<typename InputDist, typename ... NoiseDist, typename X, typename Y>
