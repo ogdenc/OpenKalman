@@ -24,11 +24,11 @@ TEST_F(linear_tests, Linear2x2LinearSA)
   for (int i=1; i<=20; i++)
   {
     auto a = randomize<Mat2, std::uniform_real_distribution>(-i*10., i*10.);
-    auto n = randomize<Mat2, std::uniform_real_distribution>(-i, i);
+    auto n = randomize<Mat2, std::uniform_real_distribution>(-double(i), double(i));
     auto g = LinearTransformation(a, n);
     auto t = LinearTransform {g};
     auto in = GaussianDistribution {Mean2::zero(), i * CovSA2 {1.2, 0.2, 0.2, 2.1}};
-    auto b = randomize<Mean2, std::normal_distribution>(0, i*2.);
+    auto b = randomize<Mean2, std::normal_distribution>(0., i*2.);
     auto noise = GaussianDistribution {b, i / 5. * CovSA2::identity()};
     EXPECT_TRUE(run_linear_test(g, t, in, noise));
   }
@@ -39,11 +39,11 @@ TEST_F(linear_tests, Linear2x2LinearT)
   for (int i=1; i<=20; i++)
   {
     auto a = randomize<Mat2, std::uniform_real_distribution>(-i*10., i*10.);
-    auto n = randomize<Mat2, std::uniform_real_distribution>(-i, i);
+    auto n = randomize<Mat2, std::uniform_real_distribution>(-double(i), double(i));
     auto g = LinearTransformation(a, n);
     auto t = LinearTransform {g};
     auto in = GaussianDistribution {Mean2::zero(), i * CovT2 {1.2, 0.2, 0.2, 2.1}};
-    auto b = randomize<Mean2, std::normal_distribution>(0, i*2.);
+    auto b = randomize<Mean2, std::normal_distribution>(0., i*2.);
     auto noise = GaussianDistribution {b, i / 5. * CovT2::identity()};
     EXPECT_TRUE(run_linear_test(g, t, in, noise));
   }
@@ -54,11 +54,11 @@ TEST_F(linear_tests, Linear2x2TT1SA)
   for (int i=1; i<=20; i++)
   {
     auto a = randomize<Mat2, std::uniform_real_distribution>(-i*10., i*10.);
-    auto n = randomize<Mat2, std::uniform_real_distribution>(-i, i);
+    auto n = randomize<Mat2, std::uniform_real_distribution>(-double(i), double(i));
     auto g = LinearTransformation(a, n);
     auto t = LinearizedTransform {g};
     auto in = GaussianDistribution {Mean2::zero(), i * CovSA2 {1.2, 0.2, 0.2, 2.1}};
-    auto b = randomize<Mean2, std::normal_distribution>(0, i*2.);
+    auto b = randomize<Mean2, std::normal_distribution>(0., i*2.);
     auto noise = GaussianDistribution {b, i / 5. * CovSA2::identity()};
     EXPECT_TRUE(run_linear_test(g, t, in, noise));
   }
@@ -69,11 +69,11 @@ TEST_F(linear_tests, Linear2x2TT1T)
   for (int i=1; i<=20; i++)
   {
     auto a = randomize<Mat2, std::uniform_real_distribution>(-i*10., i*10.);
-    auto n = randomize<Mat2, std::uniform_real_distribution>(-i, i);
+    auto n = randomize<Mat2, std::uniform_real_distribution>(-double(i), double(i));
     auto g = LinearTransformation(a, n);
     auto t = LinearizedTransform {g};
     auto in = GaussianDistribution {Mean2::zero(), i * CovT2 {1.2, 0.2, 0.2, 2.1}};
-    auto b = randomize<Mean2, std::normal_distribution>(0, i*2.);
+    auto b = randomize<Mean2, std::normal_distribution>(0., i*2.);
     auto noise = GaussianDistribution {b, i / 5. * CovT2::identity()};
     EXPECT_TRUE(run_linear_test(g, t, in, noise));
   }
@@ -84,11 +84,11 @@ TEST_F(linear_tests, Linear2x2TT2SA)
   for (int i=1; i<=20; i++)
   {
     auto a = randomize<Mat2, std::uniform_real_distribution>(-i*10., i*10.);
-    auto n = randomize<Mat2, std::uniform_real_distribution>(-i, i);
+    auto n = randomize<Mat2, std::uniform_real_distribution>(-double(i), double(i));
     auto g = LinearTransformation(a, n);
     auto t = LinearizedTransform<decltype(g), 2> {g};
     auto in = GaussianDistribution {Mean2::zero(), i * CovSA2 {1.2, 0.2, 0.2, 2.1}};
-    auto b = randomize<Mean2, std::normal_distribution>(0, i*2.);
+    auto b = randomize<Mean2, std::normal_distribution>(0., i*2.);
     auto noise = GaussianDistribution {b, i / 5. * CovSA2::identity()};
     EXPECT_TRUE(run_linear_test(g, t, in, noise));
   }
@@ -99,11 +99,11 @@ TEST_F(linear_tests, Linear2x2TT2T)
   for (int i=1; i<=20; i++)
   {
     auto a = randomize<Mat2, std::uniform_real_distribution>(-i*10., i*10.);
-    auto n = randomize<Mat2, std::uniform_real_distribution>(-i, i);
+    auto n = randomize<Mat2, std::uniform_real_distribution>(-double(i), double(i));
     auto g = LinearTransformation(a, n);
     auto t = LinearizedTransform<decltype(g), 2> {g};
     auto in = GaussianDistribution {Mean2::zero(), i * CovT2 {1.2, 0.2, 0.2, 2.1}};
-    auto b = randomize<Mean2, std::normal_distribution>(0, i*2.);
+    auto b = randomize<Mean2, std::normal_distribution>(0., i*2.);
     auto noise = GaussianDistribution {b, i / 5. * CovT2::identity()};
     EXPECT_TRUE(run_linear_test(g, t, in, noise));
   }
