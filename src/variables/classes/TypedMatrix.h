@@ -102,7 +102,7 @@ namespace OpenKalman
   protected:
     template<typename CR = RowCoefficients, typename CC = ColumnCoefficients, typename Arg>
     static auto
-    make(Arg&& arg) noexcept { return TypedMatrix<CR, CC, std::decay_t<Arg>>(std::forward<Arg>(arg)); }
+    make(Arg&& arg) noexcept { return TypedMatrix<CR, CC, strict_t<Arg>>(std::forward<Arg>(arg)); }
 
   public:
     static auto zero() { return make(MatrixTraits<BaseMatrix>::zero()); }
@@ -118,7 +118,7 @@ namespace OpenKalman
   /// Deduce parameter types from a typed matrix base.
   template<typename M, std::enable_if_t<is_typed_matrix_base_v<M>, int> = 0>
   TypedMatrix(M&&)
-  -> TypedMatrix<Axes<MatrixTraits<M>::dimension>, Axes<MatrixTraits<M>::columns>, std::decay_t<M>>;
+  -> TypedMatrix<Axes<MatrixTraits<M>::dimension>, Axes<MatrixTraits<M>::columns>, lvalue_or_strict_t<M>>;
 
   /// Deduce template parameters from a non-Euclidean-transformed typed matrix.
   template<typename V, std::enable_if_t<is_typed_matrix_v<V> and not is_Euclidean_transformed_v<V>, int> = 0>
@@ -161,7 +161,7 @@ namespace OpenKalman
       ColumnCoefficients>;
     static_assert(MatrixTraits<M>::dimension == RowCoeffs::size);
     static_assert(MatrixTraits<M>::columns == ColCoeffs::size);
-    return TypedMatrix<RowCoeffs, ColCoeffs, std::decay_t<M>>(std::forward<M>(arg));
+    return TypedMatrix<RowCoeffs, ColCoeffs, lvalue_or_strict_t<M>>(std::forward<M>(arg));
   }
 
 
@@ -227,6 +227,8 @@ namespace OpenKalman
 
     template<std::size_t rows = dimension, std::size_t cols = columns, typename S = Scalar>
     using StrictMatrix = typename MatrixTraits<BaseMatrix>::template StrictMatrix<rows, cols, S>;
+
+    using Strict = TypedMatrix<RowCoefficients, ColumnCoefficients, typename MatrixTraits<BaseMatrix>::Strict>;
 
     template<
       typename RC = RowCoefficients,

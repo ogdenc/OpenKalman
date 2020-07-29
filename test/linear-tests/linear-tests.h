@@ -41,12 +41,13 @@ public:
     const Noise& ... noise)
   {
     auto x = mean(in);
-    auto p = covariance(in);
+    const auto p = covariance(in);
     auto y = g(x, mean(noise)...);
     auto [a] = g.jacobian(x);
     auto cross_cov = p*adjoint(a);
-    auto cov = sumprod(g.jacobian(x, mean(noise)...), std::tuple {p, covariance(noise)...},
-      std::make_index_sequence<sizeof...(Noise) + 1>{});
+    auto jacobians = g.jacobian(x, mean(noise)...);
+    auto covariances = std::forward_as_tuple(p, covariance(noise)...);
+    auto cov = sumprod(jacobians, covariances, std::make_index_sequence<sizeof...(Noise) + 1>{});
     std::tuple out_true {GaussianDistribution {y, cov}, cross_cov};
     auto res = is_near(t(in, noise...), out_true);
     if (res)

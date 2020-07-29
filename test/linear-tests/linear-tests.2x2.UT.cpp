@@ -9,45 +9,105 @@
  */
 
 #include "linear-tests.h"
-#include "transforms/sample-points/SigmaPointsTypes/Unscented.h"
-#include "transforms/sample-points/SigmaPointsTypes/SphericalSimplex.h"
-#include "transforms/classes/SamplePointsTransform.h"
 
 using C2 = Coefficients<Axis, Axis>;
+using M21 = Eigen::Matrix<double, 2, 1>;
+using M22 = Eigen::Matrix<double, 2, 2>;
+using Mean2 = Mean<C2, M21>;
+using Mat2 = TypedMatrix<C2, C2, M22>;
+using CovSA2 = Covariance<C2, EigenSelfAdjointMatrix<M22>>;
+using CovT2 = Covariance<C2, EigenTriangularMatrix<M22>>;
 using Scalar = double;
 
-TEST_F(linear_tests, Linear2x2Symmetrickappa0)
+TEST_F(linear_tests, Linear2x2UnscentedSA)
 {
-    const auto [g, A] = linear_function<double, C2, C2, NoiseType::additive>();
-    const Unscented<GaussianDistribution, double, C2> s {0.001, 2, 0};
-    construct_linear_test(s, g, A, 50);
-    const Unscented<SquareRootGaussianDistribution, double, C2> s2 {0.001, 2, 0};
-    construct_linear_test(s2, g, A, 50);
+  for (int i=1; i<=20; i++)
+  {
+    auto a = randomize<Mat2, std::uniform_real_distribution>(-i*10., i*10.);
+    auto n = randomize<Mat2, std::uniform_real_distribution>(-double(i), double(i));
+    auto g = LinearTransformation(a, n);
+    auto t = make_SamplePointsTransform<UnscentedSigmaPoints>(g);
+    static_assert(is_strict_v<decltype(CovSA2 {1.2, 0.2, 0.2, 2.1})>);
+    static_assert(not is_strict_v<decltype(i * CovSA2 {1.2, 0.2, 0.2, 2.1})>);
+    auto in = GaussianDistribution {Mean2::zero(), strict(i * CovSA2 {1.2, 0.2, 0.2, 2.1})};
+    auto b = randomize<Mean2, std::normal_distribution>(0., i*2.);
+    auto noise = GaussianDistribution {b, i / 5. * CovSA2::identity()};
+    EXPECT_TRUE(run_linear_test(g, t, in, noise));
+  }
 }
 
-TEST_F(linear_tests, Linear2x2Symmetrickappa3_n)
+TEST_F(linear_tests, Linear2x2UnscentedT)
 {
-    const auto [g, A] = linear_function<double, C2, C2, NoiseType::additive>();
-    const Unscented<GaussianDistribution, double, C2> s {0.001, 2, 3 - 2};
-    construct_linear_test(s, g, A, 50);
-    //const SymmetricSigmaPoints<SquareRootGaussianDistribution, double, in_dim> s2 {0.001, 2, 3 - 2};
-    //construct_linear_test(s2, g, A, 50);
+  for (int i=1; i<=20; i++)
+  {
+    auto a = randomize<Mat2, std::uniform_real_distribution>(-i*10., i*10.);
+    auto n = randomize<Mat2, std::uniform_real_distribution>(-double(i), double(i));
+    auto g = LinearTransformation(a, n);
+    auto t = make_SamplePointsTransform<UnscentedSigmaPoints>(g);
+    auto in = GaussianDistribution {Mean2::zero(), strict(i * CovT2 {1.2, 0.2, 0.2, 2.1})};
+    auto b = randomize<Mean2, std::normal_distribution>(0., i*2.);
+    auto noise = GaussianDistribution {b, i / 5. * CovT2::identity()};
+    EXPECT_TRUE(run_linear_test(g, t, in, noise));
+  }
 }
 
-TEST_F(linear_tests, Linear2x2SphericalW03)
+TEST_F(linear_tests, Linear2x2UnscentedParamSA)
 {
-    const auto [g, A] = linear_function<double, C2, C2, NoiseType::additive>();
-    const SphericalSimplex<GaussianDistribution, double, C2> s {0.001, 2, 0.3};
-    construct_linear_test(s, g, A, 50);
-    //const SphericalSimplex<SquareRootGaussianDistribution, double, in_dim> s2 {0.001, 2, 0.3};
-    //construct_linear_test(s2, g, A, 50);
+  for (int i=1; i<=20; i++)
+  {
+    auto a = randomize<Mat2, std::uniform_real_distribution>(-i*10., i*10.);
+    auto n = randomize<Mat2, std::uniform_real_distribution>(-double(i), double(i));
+    auto g = LinearTransformation(a, n);
+    auto t = make_SamplePointsTransform<UnscentedSigmaPointsParameterEstimation>(g);
+    auto in = GaussianDistribution {Mean2::zero(), strict(i * CovSA2 {1.2, 0.2, 0.2, 2.1})};
+    auto b = randomize<Mean2, std::normal_distribution>(0., i*2.);
+    auto noise = GaussianDistribution {b, i / 5. * CovSA2::identity()};
+    EXPECT_TRUE(run_linear_test(g, t, in, noise));
+  }
 }
 
-TEST_F(linear_tests, Linear2x2SphericalW07)
+TEST_F(linear_tests, Linear2x2UnscentedParamT)
 {
-    const auto [g, A] = linear_function<double, C2, C2, NoiseType::additive>();
-    const SphericalSimplex<GaussianDistribution, double, C2> s {0.001, 2, 0.7};
-    construct_linear_test(s, g, A, 50);
-    //const SphericalSimplex<SquareRootGaussianDistribution, double, in_dim> s2 {0.001, 2, 0.7};
-    //construct_linear_test(s2, g, A, 50);
+  for (int i=1; i<=20; i++)
+  {
+    auto a = randomize<Mat2, std::uniform_real_distribution>(-i*10., i*10.);
+    auto n = randomize<Mat2, std::uniform_real_distribution>(-double(i), double(i));
+    auto g = LinearTransformation(a, n);
+    auto t = make_SamplePointsTransform<UnscentedSigmaPointsParameterEstimation>(g);
+    auto in = GaussianDistribution {Mean2::zero(), strict(i * CovT2 {1.2, 0.2, 0.2, 2.1})};
+    auto b = randomize<Mean2, std::normal_distribution>(0., i*2.);
+    auto noise = GaussianDistribution {b, i / 5. * CovT2::identity()};
+    EXPECT_TRUE(run_linear_test(g, t, in, noise));
+  }
 }
+
+TEST_F(linear_tests, Linear2x2UnscentedSphericalSA)
+{
+  for (int i=1; i<=20; i++)
+  {
+    auto a = randomize<Mat2, std::uniform_real_distribution>(-i*10., i*10.);
+    auto n = randomize<Mat2, std::uniform_real_distribution>(-double(i), double(i));
+    auto g = LinearTransformation(a, n);
+    auto t = make_SamplePointsTransform<SphericalSimplexSigmaPoints>(g);
+    auto in = GaussianDistribution {Mean2::zero(), strict(i * CovSA2 {1.2, 0.2, 0.2, 2.1})};
+    auto b = randomize<Mean2, std::normal_distribution>(0., i*2.);
+    auto noise = GaussianDistribution {b, i / 5. * CovSA2::identity()};
+    EXPECT_TRUE(run_linear_test(g, t, in, noise));
+  }
+}
+
+TEST_F(linear_tests, Linear2x2UnscentedSphericalT)
+{
+  for (int i=1; i<=20; i++)
+  {
+    auto a = randomize<Mat2, std::uniform_real_distribution>(-i*10., i*10.);
+    auto n = randomize<Mat2, std::uniform_real_distribution>(-double(i), double(i));
+    auto g = LinearTransformation(a, n);
+    auto t = make_SamplePointsTransform<SphericalSimplexSigmaPoints>(g);
+    auto in = GaussianDistribution {Mean2::zero(), strict(i * CovT2 {1.2, 0.2, 0.2, 2.1})};
+    auto b = randomize<Mean2, std::normal_distribution>(0., i*2.);
+    auto noise = GaussianDistribution {b, i / 5. * CovT2::identity()};
+    EXPECT_TRUE(run_linear_test(g, t, in, noise));
+  }
+}
+

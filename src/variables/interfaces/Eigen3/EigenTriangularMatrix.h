@@ -223,7 +223,7 @@ namespace OpenKalman
   /////////////////////////////////////
 
   template<typename M, std::enable_if_t<is_Eigen_matrix_v<M> or is_EigenDiagonal_v<M>, int> = 0>
-  EigenTriangularMatrix(M&&) -> EigenTriangularMatrix<std::decay_t<M>, TriangleType::lower>;
+  EigenTriangularMatrix(M&&) -> EigenTriangularMatrix<lvalue_or_strict_t<M>, TriangleType::lower>;
 
   template<typename M, std::enable_if_t<(is_EigenTriangularMatrix_v<M> and is_lower_triangular_v<M>) or
     (is_EigenSelfAdjointMatrix_v<M> and is_Eigen_lower_storage_triangle_v<M>), int> = 0>
@@ -269,6 +269,8 @@ namespace OpenKalman
 
     template<std::size_t rows = dimension, std::size_t cols = dimension, typename S = Scalar>
     using StrictMatrix = typename MatrixTraits<BaseMatrix>::template StrictMatrix<rows, cols, S>;
+
+    using Strict = EigenTriangularMatrix<typename MatrixTraits<BaseMatrix>::Strict, triangle_type>;
 
     template<TriangleType t = triangle_type, std::size_t dim = dimension, typename S = Scalar>
     using SelfAdjointBaseType = EigenSelfAdjointMatrix<StrictMatrix<dim, dim, S>, t>;

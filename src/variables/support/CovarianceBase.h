@@ -39,43 +39,10 @@ namespace OpenKalman::internal
   {
     using BaseMatrix = ArgType;
     using Base = CovarianceBaseBase<Derived, BaseMatrix>;
+    using Base::Base;
+    using Base::operator=;
     using Base::base_matrix;
     using Scalar = typename MatrixTraits<BaseMatrix>::Scalar;
-
-    /// Default constructor.
-    CovarianceBase() : Base() {}
-
-    /// Copy constructor.
-    CovarianceBase(const CovarianceBase& other) : Base(other) {}
-
-    /// Move constructor.
-    CovarianceBase(CovarianceBase&& other) noexcept : Base(std::move(other)) {}
-
-    /// Construct from another covariance or a covariance base.
-    template<typename Arg, std::enable_if_t<is_covariance_v<Arg> or is_covariance_base_v<Arg>, int> = 0>
-    CovarianceBase(Arg&& arg) noexcept : Base(std::forward<Arg>(arg)) {}
-
-    /// Copy assignment operator.
-    auto& operator=(const CovarianceBase& other)
-    {
-      if (this != &other) Base::operator=(other);
-      return *this;
-    }
-
-    /// Move assignment operator.
-    auto& operator=(CovarianceBase&& other) noexcept
-    {
-      if (this != &other) Base::operator=(std::move(other));
-      return *this;
-    }
-
-    /// Assign from a covariance base or typed matrix base.
-    template<typename Arg, std::enable_if_t<is_covariance_base_v<Arg> or is_typed_matrix_base_v<Arg>, int> = 0>
-    auto& operator=(Arg&& arg) noexcept
-    {
-      Base::operator=(std::forward<Arg>(arg));
-      return *this;
-    }
 
     auto operator() (std::size_t i, std::size_t j)
     {
@@ -279,7 +246,7 @@ namespace OpenKalman::internal
 
   // ============================================================================
   /**
-   * Ultimate base of Covariance and SquareRootCovariance classes, if ArgType is not an lvalue reference, and
+   * Base of Covariance and SquareRootCovariance classes, if ArgType is not an lvalue reference, and
    * (1) Derived is a square root and the base is not triangular (i.e., it is self-adjoint but not diagonal); or
    * (2) Derived is not a square root and the base is not self-adjoint (i.e., it is triangular but not diagonal).
    */
@@ -489,7 +456,7 @@ namespace OpenKalman::internal
 
   // ============================================================================
   /**
-   * Ultimate base of Covariance and SquareRootCovariance classes, if ArgType is an lvalue reference, and
+   * Base of Covariance and SquareRootCovariance classes, if ArgType is an lvalue reference, and
    * (1) Derived is a square root and the base is not triangular (i.e., it is self-adjoint but not diagonal); or
    * (2) Derived is not a square root and the base is not self-adjoint (i.e., it is triangular but not diagonal).
    */

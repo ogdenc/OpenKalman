@@ -110,7 +110,7 @@ namespace OpenKalman
 
   /// Whether a covariance is in the form of a Cholesky decomposition.
   template<typename T, typename Enable = void>
-  struct is_Cholesky : class_trait<is_Cholesky, T, Enable> {};
+  struct is_Cholesky : class_trait<is_Cholesky, T,  Enable> {};
 
   /// Helper template for is_Cholesky.
   template<typename T>
@@ -248,7 +248,7 @@ namespace OpenKalman
 
   /// Whether the matrix is a column vector or set of column vectors.
   template<typename T, typename Enable = void>
-  struct is_column_vector : class_trait<is_column_vector, T, Enable> {};
+  struct is_column_vector : class_trait<is_column_vector, T,  Enable> {};
 
   /// A typed matrix is a column vector if the columns are Axes only.
   template<typename T>
@@ -321,6 +321,12 @@ namespace OpenKalman
   /// Helper template for is_strict.
   template<typename T>
   inline constexpr bool is_strict_v = is_strict<T>::value;
+
+  template<typename T>
+  using strict_t = std::conditional_t<is_strict_v<T>, std::decay_t<T>, typename MatrixTraits<T>::Strict>;
+
+  template<typename T>
+  using lvalue_or_strict_t = std::conditional_t<std::is_lvalue_reference_v<T>, std::decay_t<T>, strict_t<T>>;
 
   /// Whether an expression is a strict, regular matrix.
   template<typename T, typename Enable = void>

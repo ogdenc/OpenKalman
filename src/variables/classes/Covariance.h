@@ -36,10 +36,10 @@ namespace OpenKalman
       typename MatrixTraits<BaseMatrix>::template SelfAdjointBaseType<storage_type>>;
 
     template<typename C = Coefficients, typename Arg>
-    static constexpr auto
+    static auto
     make(Arg&& arg) noexcept
     {
-      return Covariance<C, std::decay_t<Arg>>(std::forward<Arg>(arg));
+      return Covariance<C, strict_t<Arg>>(std::forward<Arg>(arg));
     }
 
   public:
@@ -277,7 +277,7 @@ namespace OpenKalman
   Covariance(M&&) -> Covariance<typename MatrixTraits<M>::Coefficients, typename MatrixTraits<M>::BaseMatrix>;
 
   template<typename M, std::enable_if_t<is_covariance_base_v<M>, int> = 0>
-  Covariance(M&&) -> Covariance<Axes<MatrixTraits<M>::dimension>, std::decay_t<M>>;
+  Covariance(M&&) -> Covariance<Axes<MatrixTraits<M>::dimension>, lvalue_or_strict_t<M>>;
 
   template<typename M, std::enable_if_t<is_typed_matrix_v<M>, int> = 0>
   Covariance(M&&) -> Covariance<
@@ -301,7 +301,7 @@ namespace OpenKalman
   inline auto
   make_Covariance(Arg&& arg) noexcept
   {
-    return Covariance<Coefficients, std::decay_t<Arg>>(std::forward<Arg>(arg));
+    return Covariance<Coefficients, lvalue_or_strict_t<Arg>>(std::forward<Arg>(arg));
   }
 
 
@@ -473,16 +473,18 @@ namespace OpenKalman
     template<std::size_t rows = dimension, std::size_t cols = dimension, typename S = Scalar>
     using StrictMatrix = typename MatrixTraits<BaseMatrix>::template StrictMatrix<rows, cols, S>;
 
+    using Strict = Covariance<Coefficients, typename MatrixTraits<BaseMatrix>::Strict>;
+
     /// Make covariance from a covariance base.
     template<typename C = Coefficients, typename Arg>
     static auto make(Arg&& arg) noexcept
     {
-      return make_Covariance<C>(std::forward<Arg>(arg));
+      return Covariance<C, std::decay_t<Arg>>(std::forward<Arg>(arg));
     }
 
-    static auto zero() { return Covariance<Coefficients, std::decay_t<BaseMatrix>>::zero(); }
+    static auto zero() { return Covariance<Coefficients, BaseMatrix>::zero(); }
 
-    static auto identity() { return Covariance<Coefficients, std::decay_t<BaseMatrix>>::identity(); }
+    static auto identity() { return Covariance<Coefficients, BaseMatrix>::identity(); }
   };
 
 

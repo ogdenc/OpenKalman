@@ -86,7 +86,7 @@ namespace OpenKalman::internal
       }
     }
 
-    // upper <--> lower
+    // upper triangular <--> lower triangular
     else if constexpr(is_triangular_v<T> and is_Cholesky_v<Arg>
       and is_upper_triangular_v<T> != is_upper_triangular_v<ArgBase>)
     {

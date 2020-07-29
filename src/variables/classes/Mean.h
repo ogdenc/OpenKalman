@@ -198,7 +198,7 @@ namespace OpenKalman
   protected:
     template<typename C = Coefficients, typename Arg>
     static auto
-    make(Arg&& arg) noexcept { return Mean<C, std::decay_t<Arg>>(std::forward<Arg>(arg)); }
+    make(Arg&& arg) noexcept { return Mean<C, strict_t<Arg>>(std::forward<Arg>(arg)); }
 
   public:
     static auto zero() { return make(MatrixTraits<BaseMatrix>::zero()); }
@@ -213,7 +213,7 @@ namespace OpenKalman
 
   /// Deduce template parameters from a typed matrix base, assuming axis-only coefficients.
   template<typename V, std::enable_if_t<is_typed_matrix_base_v<V>, int> = 0>
-  Mean(V&&) -> Mean<Axes<MatrixTraits<V>::dimension>, std::decay_t<V>>;
+  Mean(V&&) -> Mean<Axes<MatrixTraits<V>::dimension>, lvalue_or_strict_t<V>>;
 
   /// Deduce template parameters from a non-Euclidean-transformed typed matrix.
   template<typename V, std::enable_if_t<is_typed_matrix_v<V> and not is_Euclidean_transformed_v<V>, int> = 0>
@@ -238,7 +238,7 @@ namespace OpenKalman
     using Coeffs = std::conditional_t<std::is_void_v<Coefficients>, Axes<MatrixTraits<Arg>::dimension>, Coefficients>;
     static_assert(MatrixTraits<Arg>::dimension == Coeffs::size);
     decltype(auto) b = wrap_angles<Coeffs>(std::forward<Arg>(arg));
-    return Mean<Coeffs, std::decay_t<decltype(b)>>(b);
+    return Mean<Coeffs, lvalue_or_strict_t<decltype(b)>>(b);
   }
 
 
@@ -277,7 +277,7 @@ namespace OpenKalman
   ///////////////////////////
 
   template<typename Coeffs, typename NestedType>
-  struct MatrixTraits<OpenKalman::Mean<Coeffs, NestedType>>
+  struct MatrixTraits<Mean<Coeffs, NestedType>>
   {
     using BaseMatrix = NestedType;
     static constexpr auto dimension = MatrixTraits<BaseMatrix>::dimension;
@@ -289,6 +289,8 @@ namespace OpenKalman
 
     template<std::size_t rows = dimension, std::size_t cols = columns, typename S = Scalar>
     using StrictMatrix = typename MatrixTraits<BaseMatrix>::template StrictMatrix<rows, cols, S>;
+
+    using Strict = Mean<RowCoefficients, typename MatrixTraits<BaseMatrix>::Strict>;
 
     /// Make from a typed matrix base. If CC is specified, it must be axes-only.
     template<typename RC = RowCoefficients, typename CC = void, typename Arg,

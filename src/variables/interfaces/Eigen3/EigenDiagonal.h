@@ -215,12 +215,12 @@ namespace OpenKalman
   /////////////////////////////////////
 
   template<typename M, std::enable_if_t<is_Eigen_matrix_v<M> and MatrixTraits<M>::columns == 1, int> = 0>
-  EigenDiagonal(M&&) -> EigenDiagonal<std::decay_t<M>>;
+  EigenDiagonal(M&&) -> EigenDiagonal<lvalue_or_strict_t<M>>;
 
   template<typename M, std::enable_if_t<is_native_Eigen_type_v<M> and is_diagonal_v<M> and
     not is_EigenDiagonal_v<M> and (MatrixTraits<M>::columns > 1) , int> = 0>
   EigenDiagonal(M&&)
-  -> EigenDiagonal<Eigen::Diagonal<M, 0>>;
+  -> EigenDiagonal<strict_t<Eigen::Diagonal<M, 0>>>;
 
   template<typename Arg, std::enable_if_t<is_zero_v<Arg> and (MatrixTraits<Arg>::columns > 1) and
     MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns, int> = 0>
@@ -257,6 +257,8 @@ namespace OpenKalman
 
     template<std::size_t rows = dimension, std::size_t cols = columns, typename S = Scalar>
     using StrictMatrix = typename MatrixTraits<std::decay_t<BaseMatrix>>::template StrictMatrix<rows, cols, S>;
+
+    using Strict = EigenDiagonal<typename MatrixTraits<BaseMatrix>::Strict>;
 
     template<TriangleType storage_triangle = TriangleType::diagonal, std::size_t dim = dimension, typename S = Scalar>
     using SelfAdjointBaseType = EigenSelfAdjointMatrix<StrictMatrix<dim, dim, S>, storage_triangle>;
@@ -318,7 +320,7 @@ namespace OpenKalman
   inline decltype(auto)
   strict(Arg&& arg)
   {
-    if constexpr(is_strict_v<typename MatrixTraits<Arg>::BaseMatrix>)
+    if constexpr(is_strict_v<Arg>)
     {
       return std::forward<Arg>(arg);
     }

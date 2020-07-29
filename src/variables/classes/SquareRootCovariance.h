@@ -33,7 +33,7 @@ namespace OpenKalman
     static constexpr auto
     make(Arg&& arg) noexcept
     {
-      return SquareRootCovariance<C, std::decay_t<Arg>>(std::forward<Arg>(arg));
+      return SquareRootCovariance<C, strict_t<Arg>>(std::forward<Arg>(arg));
     }
 
   public:
@@ -258,7 +258,7 @@ namespace OpenKalman
   SquareRootCovariance(M&&)
     -> SquareRootCovariance<
       Axes<MatrixTraits<M>::dimension>,
-      std::decay_t<M>>;
+      lvalue_or_strict_t<M>>;
 
   template<typename M, std::enable_if_t<is_typed_matrix_base_v<M> and not is_covariance_base_v<M>, int> = 0>
   SquareRootCovariance(M&&)
@@ -278,7 +278,7 @@ namespace OpenKalman
   inline auto
   make_SquareRootCovariance(Arg&& arg) noexcept
   {
-    return SquareRootCovariance<Coefficients, std::decay_t<Arg>>(std::forward<Arg>(arg));
+    return SquareRootCovariance<Coefficients, lvalue_or_strict_t<Arg>>(std::forward<Arg>(arg));
   }
 
 
@@ -461,16 +461,18 @@ namespace OpenKalman
     template<std::size_t rows = dimension, std::size_t cols = dimension, typename S = Scalar>
     using StrictMatrix = typename MatrixTraits<BaseMatrix>::template StrictMatrix<rows, cols, S>;
 
+    using Strict = SquareRootCovariance<Coefficients, typename MatrixTraits<BaseMatrix>::Strict>;
+
     /// Make SquareRootCovariance from a covariance base.
     template<typename C = Coefficients, typename Arg>
     static auto make(Arg&& arg) noexcept
     {
-      return make_SquareRootCovariance<C>(std::forward<Arg>(arg));
+      return SquareRootCovariance<C, std::decay_t<Arg>>(std::forward<Arg>(arg));
     }
 
-    static auto zero() { return SquareRootCovariance<Coefficients, std::decay_t<BaseMatrix>>::zero(); }
+    static auto zero() { return SquareRootCovariance<Coefficients, BaseMatrix>::zero(); }
 
-    static auto identity() { return SquareRootCovariance<Coefficients, std::decay_t<BaseMatrix>>::identity(); }
+    static auto identity() { return SquareRootCovariance<Coefficients, BaseMatrix>::identity(); }
   };
 
 

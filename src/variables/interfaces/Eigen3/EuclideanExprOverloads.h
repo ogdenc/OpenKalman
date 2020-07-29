@@ -50,7 +50,7 @@ namespace OpenKalman
     {
       return strict(base_matrix(std::forward<Arg>(arg)));
     }
-    else if constexpr(is_strict_v<typename MatrixTraits<Arg>::BaseMatrix>)
+    else if constexpr(is_strict_v<Arg>)
     {
       return std::forward<Arg>(arg);
     }

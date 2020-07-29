@@ -29,7 +29,7 @@ namespace OpenKalman::internal
     CovarianceBaseBase(const CovarianceBaseBase& other) : m_arg(other.m_arg) {}
 
     /// Move constructor.
-    CovarianceBaseBase(CovarianceBaseBase&& other) noexcept : m_arg(std::move(other).m_arg) {}
+    CovarianceBaseBase(CovarianceBaseBase&& other) noexcept : m_arg(std::move(other.m_arg)) {}
 
     /// Construct from another covariance.
     template<typename Arg, std::enable_if_t<is_covariance_v<Arg>, int> = 0>
@@ -42,14 +42,14 @@ namespace OpenKalman::internal
     /// Copy assignment operator.
     auto& operator=(const CovarianceBaseBase& other)
     {
-      m_arg = other.m_arg; // Rely on derivative class for self-copy check.
+      if (this != &other) m_arg = other.m_arg;
       return *this;
     }
 
     /// Move assignment operator.
     auto& operator=(CovarianceBaseBase&& other) noexcept
     {
-      m_arg = std::move(other.m_arg); // Rely on derivative class for self-move check.
+      if (this != &other) m_arg = std::move(other.m_arg);
       return *this;
     }
 

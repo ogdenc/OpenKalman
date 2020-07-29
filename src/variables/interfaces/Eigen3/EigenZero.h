@@ -40,7 +40,7 @@ namespace OpenKalman
   //////////////
 
   template<typename V>
-  struct MatrixTraits<OpenKalman::EigenZero<V>>
+  struct MatrixTraits<EigenZero<V>>
     : MatrixTraits<typename std::decay_t<V>::ConstantReturnType>
   {
   protected:
@@ -54,6 +54,8 @@ namespace OpenKalman
 
     template<typename Derived>
     using CovarianceBaseType = internal::EigenCovarianceBase<Derived, Matrix>;
+
+    using Strict = EigenZero<V>;
 
     template<TriangleType storage_triangle = TriangleType::diagonal>
     using SelfAdjointBaseType = EigenSelfAdjointMatrix<Matrix, storage_triangle>;

@@ -25,7 +25,7 @@ namespace OpenKalman
   constexpr decltype(auto)
   strict(Arg&& arg)
   {
-    if constexpr(is_strict_v<typename MatrixTraits<Arg>::BaseMatrix>)
+    if constexpr(is_strict_v<Arg>)
     {
       return std::forward<Arg>(arg);
     }
