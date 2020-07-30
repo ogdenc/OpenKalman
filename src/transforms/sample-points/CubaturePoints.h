@@ -86,7 +86,14 @@ namespace OpenKalman
     sample_points(const Dist&...ds)
     {
       constexpr auto dim = (DistributionTraits<Dist>::dimension + ...);
-      return sample_points_impl<0, 0, dim>(std::tuple {ds...});
+
+      auto temp = sample_points_impl<0, 0, dim>(std::tuple {ds...});
+
+      std::cout << "sample_points 0" << std::endl << std::get<0>(temp) << std::endl << std::flush;
+      if constexpr(std::tuple_size_v<decltype(temp)> >= 2)
+        std::cout << "sample_points 1" << std::endl << std::get<1>(temp) << std::endl << std::flush;
+
+      return temp;
     }
 
     template<size_t dim, typename Arg, std::enable_if_t<is_Euclidean_mean_v<Arg>, int> = 0>
@@ -108,20 +115,18 @@ namespace OpenKalman
       constexpr auto count = MatrixTraits<X>::columns;
       static_assert(count == MatrixTraits<Y>::columns);
       static_assert(count == dim * 2, "Wrong number of cubature points.");
+      constexpr auto inv_weight = 1 / Scalar(count);
       if constexpr(is_Cholesky_v<InputDist>)
       {
-        const auto inv_sqrt_weight = std::sqrt(Scalar(count));
-        const auto y_sqw = y_deviations / inv_sqrt_weight;
-        auto cross_covariance = strict(x_deviations / inv_sqrt_weight * adjoint(y_sqw));
-        auto out_covariance = LQ_decomposition(y_sqw);
+        auto out_covariance = Covariance {LQ_decomposition(y_deviations * std::sqrt(inv_weight))};
+        auto cross_covariance = strict(x_deviations * inv_weight * adjoint(y_deviations));
         return std::tuple{std::move(out_covariance), std::move(cross_covariance)};
       }
       else
       {
-        const Scalar inv_weight = count;
-        const auto w_yT = adjoint(y_deviations) / inv_weight;
+        const auto w_yT = strict(inv_weight * adjoint(y_deviations));
+        auto out_covariance = Covariance {strict(y_deviations * w_yT)};
         auto cross_covariance = strict(x_deviations * w_yT);
-        auto out_covariance = strict(y_deviations * w_yT);
         return std::tuple{std::move(out_covariance), std::move(cross_covariance)};
       }
     }

@@ -218,8 +218,8 @@ namespace OpenKalman
     std::enable_if_t<std::conjunction_v<is_typed_matrix<T>, is_perturbation<Perturbations>...>, int> = 0>
   LinearTransformation(T&&, Perturbations&& ...)
   -> LinearTransformation<
-    typename MatrixTraits<T>::RowCoefficients,
     typename MatrixTraits<T>::ColumnCoefficients,
+    typename MatrixTraits<T>::RowCoefficients,
     typename MatrixTraits<T>::BaseMatrix,
     typename internal::PerturbationTraits<Perturbations>::BaseMatrix...>;
 

@@ -56,6 +56,28 @@ public:
       return ::testing::AssertionFailure() << res.message();
   }
 
+
+  template<std::size_t IN, std::size_t OUT, typename Cov, typename F>
+  void run_multiple_linear_tests(Cov cov, const F& f, int N = 20)
+  {
+    using MatIn = TypedMatrix<Axes<OUT>, Axes<IN>, Eigen::Matrix<double, OUT, IN>>;
+    using MatNoise = TypedMatrix<Axes<OUT>, Axes<OUT>, Eigen::Matrix<double, OUT, OUT>>;
+    using MIn = Mean<Axes<IN>, Eigen::Matrix<double, IN, 1>>;
+    using MNoise = Mean<Axes<OUT>, Eigen::Matrix<double, OUT, 1>>;
+    for (int i=1; i<=N; i++)
+    {
+      auto a = randomize<MatIn, std::uniform_real_distribution>(-i*10., i*10.);
+      auto n = randomize<MatNoise, std::uniform_real_distribution>(-double(i), double(i));
+      auto g = LinearTransformation(a, n);
+      auto t = f(g);
+      auto in = GaussianDistribution {MIn::zero(), strict(i * cov)};
+      auto b = randomize<MNoise, std::normal_distribution>(0., i*2.);
+      auto noise_cov = Covariance {i / 5. * Eigen::Matrix<double, OUT, OUT>::Identity()};
+      auto noise = GaussianDistribution {b, noise_cov};
+      EXPECT_TRUE(run_linear_test(g, t, in, noise));
+    }
+  }
+
 };
 
 

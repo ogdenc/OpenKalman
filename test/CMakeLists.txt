@@ -27,8 +27,6 @@ include_directories(SYSTEM ${EIGEN3_INCLUDE_DIRS})
 #include_directories(${BOOST_INCLUDE_DIRS})
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -g -O2 -ftemplate-backtrace-limit=0")
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -g -std=c++2a -O2")
-#set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
 
 add_executable(matrix-tests
         matrix-tests/matrix_tests.cpp
@@ -108,13 +106,9 @@ add_test(transform-nonlinear-tests 0)
 add_executable(linear-tests
         linear-tests/linear-tests.main.cpp
         linear-tests/linear-tests.2x2.cpp
-        #inear-tests/linear-tests.2x2.UT.cpp
-        #linear-tests/linear-tests.4x2.cubature.cpp
-        #linear-tests/linear-tests.4x2.spherical.cpp
-        #linear-tests/linear-tests.4x2.symmetric.cpp
-        #linear-tests/linear-tests.8x3.cubature.cpp
-        #linear-tests/linear-tests.8x3.spherical.cpp
-        #linear-tests/linear-tests.8x3.symmetric.cpp
+        linear-tests/linear-tests.2x2.sample.cpp
+        linear-tests/linear-tests.3x2.sample.cpp
+        linear-tests/linear-tests.4x3.sample.cpp
         )
 set_target_properties(linear-tests PROPERTIES CXX_STANDARD_REQUIRED ON CXX_STANDARD 17)
 target_link_libraries(linear-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)

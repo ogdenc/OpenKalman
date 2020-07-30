@@ -119,7 +119,7 @@ namespace OpenKalman
           const auto [y_deviations_head, y_deviations_tail] = split_horizontal<1, count - 1>(y_deviations);
           const auto [weights_head, weights_tail] = split_vertical<Axis, Axes<count - 1>>(weights);
           const auto sqrt_weights_tail = apply_coefficientwise(weights_tail, [](const auto x){ return std::sqrt(x); });
-          auto out_covariance = LQ_decomposition(y_deviations_tail * to_diagonal(sqrt_weights_tail));
+          auto out_covariance = Covariance {LQ_decomposition(y_deviations_tail * to_diagonal(sqrt_weights_tail))};
           rank_update(out_covariance, y_deviations_head, W_c0); ///< Factor back in the first weight, using a rank update.
           auto cross_covariance = strict(x_deviations * to_diagonal(weights) * adjoint(y_deviations));
           return std::tuple{std::move(out_covariance), std::move(cross_covariance)};
@@ -127,7 +127,7 @@ namespace OpenKalman
         else
         {
           const auto sqrt_weights = apply_coefficientwise(weights, [](const auto x){ return std::sqrt(x); });
-          auto out_covariance = LQ_decomposition(y_deviations * to_diagonal(sqrt_weights));
+          auto out_covariance = Covariance {LQ_decomposition(y_deviations * to_diagonal(sqrt_weights))};
           auto cross_covariance = strict(x_deviations * to_diagonal(weights) * adjoint(y_deviations));
           return std::tuple{std::move(out_covariance), std::move(cross_covariance)};
         }

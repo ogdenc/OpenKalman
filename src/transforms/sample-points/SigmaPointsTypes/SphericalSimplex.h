@@ -99,11 +99,7 @@ namespace OpenKalman
     sigma_points(const Dist&...ds)
     {
       constexpr auto dim = (DistributionTraits<Dist>::dimension + ...);
-      auto temp = sigma_points_impl<0, dim>(ds...);
-      std::cout << "Simplex sample points0" << std::endl << std::get<0>(temp) << std::endl;
-      if constexpr(sizeof...(Dist) > 1)
-        std::cout << "Simplex sample points1" << std::endl << std::get<1>(temp) << std::endl;
-      return temp;
+      return sigma_points_impl<0, dim>(ds...);
     }
 
   protected:
