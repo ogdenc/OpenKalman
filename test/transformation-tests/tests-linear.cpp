@@ -16,11 +16,30 @@ using M2 = Mean<Axes<2>, Eigen::Matrix<int, 2, 1>>;
 using A_int = TypedMatrix<Axes<2>, Axes<2>, Eigen::Matrix<int, 2, 2>>;
 
 template<typename A, typename X>
-struct Trans
+struct Trans1
 {
   const A a;
 
-  Trans(const A& a_): a(a_) {}
+  Trans1(const A& a_): a(a_) {}
+
+  auto operator()(const X& x) const
+  {
+    return a * x;
+  }
+
+  auto jacobian(const X& x) const
+  {
+    return std::tuple(a);
+  }
+};
+
+
+template<typename A, typename X>
+struct Trans2
+{
+  const A a;
+
+  Trans2(const A& a_): a(a_) {}
 
   auto operator()(const X& x) const
   {
@@ -35,7 +54,11 @@ struct Trans
   auto hessian(const X& x) const
   {
     using H = Eigen::Matrix<typename A::Scalar, A::ColsAtCompileTime, A::ColsAtCompileTime>;
-    return std::tuple(std::array<H, A::RowsAtCompileTime>().fill(H::Zero()));
+    using C = typename MatrixTraits<X>::RowCoefficients;
+    using MH = TypedMatrix<C, C, H>;
+    auto Arr = std::array<MH, A::RowsAtCompileTime>();
+    Arr.fill(MH::zero());
+    return std::tuple {Arr};
   }
 
 };
@@ -47,19 +70,54 @@ TEST_F(transformation_tests, linear)
   A_int a;
   a << 1, 2, 3, 4;
   LinearTransformation t {a};
+  static_assert(is_linearized_function_v<decltype(t), 0>);
+  static_assert(is_linearized_function_v<decltype(t), 1>);
+  static_assert(is_linearized_function_v<decltype(t), 2>);
   EXPECT_TRUE(is_near(t(M2(1, 2)), M2(5, 11)));
   EXPECT_TRUE(is_near(t(M2(1, 2), M2(1, 1)), M2(6, 12)));
   EXPECT_TRUE(is_near(std::get<0>(t.jacobian(M2(1, 2))), a));
   EXPECT_TRUE(is_near(std::get<1>(t.jacobian(M2(1, 2), M2(1, 1))), M2::identity()));
 }
 
-TEST_F(transformation_tests, linearized)
+TEST_F(transformation_tests, linearized1)
 {
   A_int a;
   a << 1, 2, 3, 4;
-  Transformation<Axes<2>, Axes<2>, Trans<A_int, M2>> t(Trans<A_int, M2> {a});
+  using F = Trans1<A_int, M2>;
+  auto f = F {a};
+  auto t = make_Transformation(f);
+  using T = decltype(t);
+  static_assert(is_linearized_function_v<F, 0>);
+  static_assert(is_linearized_function_v<F, 1>);
+  static_assert(not is_linearized_function_v<F, 2>);
+  static_assert(not is_linearized_function_v<F, 3>);
+  static_assert(is_linearized_function_v<T, 0>);
+  static_assert(is_linearized_function_v<T, 1>);
+  static_assert(is_linearized_function_v<T, 2>);
+  static_assert(not is_linearized_function_v<T, 3>);
   EXPECT_TRUE(is_near(t(M2(1, 2)), M2(5, 11)));
-  EXPECT_TRUE(is_near(std::get<0>(t.function.jacobian(M2(1, 2))), a));
+  EXPECT_TRUE(is_near(std::get<0>(t.jacobian(M2(1, 2))), a));
+}
+
+
+TEST_F(transformation_tests, linearized2)
+{
+  A_int a;
+  a << 1, 2, 3, 4;
+  using F = Trans2<A_int, M2>;
+  auto f = F {a};
+  auto t = Transformation(f);
+  using T = decltype(t);
+  static_assert(is_linearized_function_v<F, 0>);
+  static_assert(is_linearized_function_v<F, 1>);
+  static_assert(is_linearized_function_v<F, 2>);
+  static_assert(not is_linearized_function_v<F, 3>);
+  static_assert(is_linearized_function_v<T, 0>);
+  static_assert(is_linearized_function_v<T, 1>);
+  static_assert(is_linearized_function_v<T, 2>);
+  static_assert(not is_linearized_function_v<T, 3>);
+  EXPECT_TRUE(is_near(t(M2(1, 2)), M2(5, 11)));
+  EXPECT_TRUE(is_near(std::get<0>(t.jacobian(M2(1, 2))), a));
 }
 
 
@@ -99,7 +157,7 @@ TEST_F(transformation_tests, linearized_additive)
   A a;
   a << 1, 2,
       3, 4;
-  using T = Trans<A, M2>;
+  using T = Trans2<A, M2>;
   T t(a);
   Transformation<Axes<2>, Axes<2>, T> tn {t};
   EXPECT_TRUE(is_near(tn(M2(2, 3)) + M2(3, 3), M2(11, 21)));

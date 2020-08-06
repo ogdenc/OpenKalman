@@ -34,6 +34,11 @@ namespace OpenKalman
   struct LinearTransformation;
 
 
+  template<typename In, typename Out, typename Tm, typename...Pm, std::size_t order>
+  struct is_linearized_function<LinearTransformation<In, Out, Tm, Pm...>, order,
+    std::enable_if_t<order <= 2>> : std::true_type {};
+
+
   namespace internal
   {
     namespace detail
@@ -55,158 +60,191 @@ namespace OpenKalman
     }
 
 
-    /// Create a tuple that replicates a value.
-    template<std::size_t N, typename T>
-    constexpr auto tuple_replicate(const T& t)
+    template<
+      typename InputCoefficients,
+      typename OutputCoefficients,
+      typename TransformationMatrix,
+      typename ... PerturbationTransformationMatrices>
+    struct LinearTransformationFunctionImpl
     {
-      if constexpr(N < 1)
+    protected:
+      using TransformationMatricesTuple = std::tuple<TypedMatrix<OutputCoefficients, InputCoefficients, TransformationMatrix>,
+        TypedMatrix<OutputCoefficients, OutputCoefficients, PerturbationTransformationMatrices>...>;
+      const TransformationMatricesTuple transformation_matrices;
+
+    private:
+      template<std::size_t i, typename Input>
+      constexpr decltype(auto) sumprod_term(Input&& input) const
       {
-        return std::tuple {};
+        constexpr auto mat_count = std::tuple_size_v<TransformationMatricesTuple>;
+        // If there is no corresponding transformation matrix, treat the transformation matrix as identity.
+        if constexpr(i < mat_count)
+          return std::get<i>(transformation_matrices) * std::forward<Input>(input);
+        else
+          return std::forward<Input>(input);
       }
-      else
+
+      template<typename InputTuple, std::size_t...ints>
+      constexpr auto sumprod(InputTuple&& inputs, std::index_sequence<ints...>) const
       {
-        return std::tuple_cat(std::make_tuple(t), tuple_replicate<N - 1>(t));
+        return strict((sumprod_term<ints>(std::get<ints>(std::forward<InputTuple>(inputs))) + ...));
       }
-    }
+
+    public:
+      LinearTransformationFunctionImpl(const TransformationMatricesTuple& trans) : transformation_matrices(trans) {}
+
+      template<typename...Inputs>
+      auto operator()(Inputs&&...inputs) const
+      {
+        return sumprod(std::tuple {std::forward<Inputs>(inputs)...}, std::make_index_sequence<sizeof...(Inputs)>{});
+      }
+    };
+
+
+    template<
+      typename InputCoefficients,
+      typename OutputCoefficients,
+      typename TransformationMatrix,
+      typename ... PerturbationTransformationMatrices>
+    struct LinearTransformationJacobianImpl
+    {
+    protected:
+      using TransformationMatricesTuple = std::tuple<TypedMatrix<OutputCoefficients, InputCoefficients, TransformationMatrix>,
+        TypedMatrix<OutputCoefficients, OutputCoefficients, PerturbationTransformationMatrices>...>;
+      const TransformationMatricesTuple transformation_matrices;
+
+    public:
+      LinearTransformationJacobianImpl(const TransformationMatricesTuple& trans) : transformation_matrices(trans) {}
+
+      template<typename...Inputs>
+      auto operator()(Inputs&&...inputs) const
+      {
+        constexpr auto mat_count = std::tuple_size_v<TransformationMatricesTuple>;
+
+        // If there are more inputs than transformation matrices, pad the list with extra identity matrices.
+        if constexpr(sizeof...(Inputs) > mat_count)
+        {
+          constexpr auto pad_size = sizeof...(Inputs) - mat_count;
+          constexpr auto dim = OutputCoefficients::dimension;
+          using PStrict = typename MatrixTraits<TransformationMatrix>::template StrictMatrix<dim, dim>;
+          auto id = MatrixTraits<PStrict>::identity();
+          return std::tuple_cat(transformation_matrices, internal::tuple_replicate<pad_size>(id));
+        }
+        else
+        {
+          return internal::tuple_slice<0, sizeof...(Inputs)>(transformation_matrices);
+        }
+      }
+    };
+
   }
 
 
   template<
-    typename InputCoeffs,
-    typename OutputCoeffs,
+    typename InputCoefficients,
+    typename OutputCoefficients,
     typename TransformationMatrix,
     typename ... PerturbationTransformationMatrices>
   struct LinearTransformation
   {
-    using InputCoefficients = InputCoeffs;
-    using OutputCoefficients = OutputCoeffs;
+    static_assert(is_typed_matrix_base_v<TransformationMatrix>);
+    static_assert(std::conjunction_v<is_typed_matrix_base<PerturbationTransformationMatrices>...>);
     static_assert(MatrixTraits<TransformationMatrix>::dimension == OutputCoefficients::size);
     static_assert(MatrixTraits<TransformationMatrix>::columns == InputCoefficients::size);
     static_assert(((MatrixTraits<PerturbationTransformationMatrices>::dimension == OutputCoefficients::size) and ...));
     static_assert(((MatrixTraits<PerturbationTransformationMatrices>::columns == OutputCoefficients::size) and ...));
 
-    LinearTransformation(const TransformationMatrix& mat, const PerturbationTransformationMatrices& ... p_mats)
-      : transformation_matrices(mat, p_mats...) {}
-
-    template<typename T, typename ... Ps,
-      std::enable_if_t<std::conjunction_v<is_typed_matrix<T>, is_typed_matrix<Ps>...>, int> = 0>
-    LinearTransformation(const T& mat, const Ps& ... p_mats)
-      : transformation_matrices(mat, p_mats...)
-    {
-      static_assert(is_equivalent_v<typename MatrixTraits<T>::RowCoefficients, OutputCoefficients>);
-      static_assert(is_equivalent_v<typename MatrixTraits<T>::ColumnCoefficients, InputCoefficients>);
-      static_assert(((is_equivalent_v<typename MatrixTraits<Ps>::RowCoefficients, OutputCoefficients>) and ...));
-      static_assert(((is_equivalent_v<typename MatrixTraits<Ps>::ColumnCoefficients, OutputCoefficients>) and ...));
-    }
-
-    template<typename T, typename ... Ps,
-      std::enable_if_t<std::conjunction_v<is_typed_matrix_base<T>, is_typed_matrix_base<Ps>...>, int> = 0>
-    LinearTransformation(const T& mat, const Ps& ... p_mats)
-      : transformation_matrices(make_Matrix<OutputCoefficients, InputCoefficients>(mat),
-        make_Matrix<OutputCoefficients, InputCoefficients>(p_mats)...)
-    {
-      static_assert(MatrixTraits<T>::dimension == OutputCoefficients::size);
-      static_assert(MatrixTraits<T>::columns == InputCoefficients::size);
-      static_assert(((MatrixTraits<Ps>::dimension == OutputCoefficients::size) and ...));
-      static_assert(((MatrixTraits<Ps>::columns == OutputCoefficients::size) and ...));
-    }
-
   protected:
-    const std::tuple<TypedMatrix<OutputCoefficients, InputCoefficients, TransformationMatrix>,
-      TypedMatrix<OutputCoefficients, OutputCoefficients, PerturbationTransformationMatrices>...> transformation_matrices;
+    using TransformationMatricesTuple = std::tuple<TypedMatrix<OutputCoefficients, InputCoefficients, TransformationMatrix>,
+      TypedMatrix<OutputCoefficients, OutputCoefficients, PerturbationTransformationMatrices>...>;
+    const TransformationMatricesTuple transformation_matrices;
 
-  private:
-    template<std::size_t i, typename Input>
-    constexpr decltype(auto) sumprod_term(Input&& input) const
+    using FunctionImpl = internal::LinearTransformationFunctionImpl<
+      InputCoefficients, OutputCoefficients, TransformationMatrix, PerturbationTransformationMatrices...>;
+    const FunctionImpl function_impl;
+
+    using JacobianImpl = internal::LinearTransformationJacobianImpl<
+      InputCoefficients, OutputCoefficients, TransformationMatrix, PerturbationTransformationMatrices...>;
+    const JacobianImpl jacobian_impl;
+
+    using Nested = Transformation<InputCoefficients, OutputCoefficients, FunctionImpl, JacobianImpl>;
+    const Nested nested_transformation;
+
+    template<typename T, typename ColumnCoefficients = OutputCoefficients>
+    static constexpr bool is_valid_input_matrix_v()
     {
-      constexpr auto mat_count = sizeof...(PerturbationTransformationMatrices) + 1;
-      // If there is no corresponding transformation matrix, treat the transformation matrix as identity.
-      if constexpr(i < mat_count)
-        return std::get<i>(transformation_matrices) * std::forward<Input>(input);
+      static_assert(is_typed_matrix_v<T> or is_typed_matrix_base_v<T>);
+      if constexpr(is_typed_matrix_v<T>)
+        return
+          is_equivalent_v<typename MatrixTraits<T>::RowCoefficients, OutputCoefficients> and
+          is_equivalent_v<typename MatrixTraits<T>::ColumnCoefficients, ColumnCoefficients>;
       else
-        return std::forward<Input>(input);
-    }
-
-    template<typename InputTuple, std::size_t...ints>
-    constexpr auto sumprod(InputTuple&& inputs, std::index_sequence<ints...>) const
-    {
-      return strict((sumprod_term<ints>(std::get<ints>(std::forward<InputTuple>(inputs))) + ...));
+        return
+          MatrixTraits<T>::dimension == OutputCoefficients::size and
+          MatrixTraits<T>::columns == ColumnCoefficients::size;
     }
 
   public:
-    template<
-      typename In, typename ... Perturbations,
-      std::enable_if_t<std::conjunction_v<is_typed_matrix<In>, is_perturbation<Perturbations>...>, int> = 0>
-    auto operator()(In&& in, Perturbations&& ... perturbation) const
+    LinearTransformation(const TransformationMatrix& mat, const PerturbationTransformationMatrices& ... p_mats)
+      : nested_transformation(function_impl, jacobian_impl),
+        transformation_matrices(mat, p_mats...),
+        function_impl(transformation_matrices),
+        jacobian_impl(transformation_matrices) {}
+
+    template<typename T, typename ... Ps,
+      std::enable_if_t<(is_typed_matrix_v<T> or is_typed_matrix_base_v<T>) and
+        ((is_typed_matrix_v<Ps> or is_typed_matrix_base_v<Ps>) and ...), int> = 0>
+    LinearTransformation(const T& mat, const Ps& ... p_mats)
+      : nested_transformation(function_impl, jacobian_impl),
+        transformation_matrices(mat, p_mats...),
+        function_impl(transformation_matrices),
+        jacobian_impl(transformation_matrices)
+    {
+      static_assert(is_valid_input_matrix_v<T, InputCoefficients>);
+      static_assert((is_valid_input_matrix_v<Ps, OutputCoefficients> and ...));
+    }
+
+    /// Applies the transformation.
+    template<typename M, typename ... Perturbations>
+    auto operator()(M&& in, Perturbations&& ... perturbations) const
+    {
+      static_assert(is_column_vector_v<M>);
+      static_assert((is_perturbation_v<Perturbations> and ...));
+      static_assert(MatrixTraits<M>::columns == 1);
+      static_assert(((internal::PerturbationTraits<Perturbations>::columns == 1) and ...));
+      static_assert(is_equivalent_v<typename MatrixTraits<M>::RowCoefficients, InputCoefficients>);
+      static_assert(std::conjunction_v<
+        is_equivalent<typename internal::PerturbationTraits<Perturbations>::RowCoefficients, OutputCoefficients>...>);
+      return nested_transformation(
+        std::forward<M>(in), internal::get_perturbation(std::forward<Perturbations>(perturbations))...);
+    }
+
+    /// Returns a tuple of the Jacobians for the input and each perturbation term.
+    template<typename In, typename ... Perturbations>
+    auto jacobian(In&& in, Perturbations&&...ps) const
     {
       static_assert(is_column_vector_v<In>);
+      static_assert((is_perturbation_v<Perturbations> and ...));
       static_assert(is_equivalent_v<typename MatrixTraits<In>::RowCoefficients, InputCoefficients>);
       static_assert(std::conjunction_v<
         is_equivalent<typename internal::PerturbationTraits<Perturbations>::RowCoefficients, OutputCoefficients>...>);
-      auto ret = sumprod(
-        std::tuple {std::forward<In>(in), internal::get_perturbation(std::forward<Perturbations>(perturbation))...},
-        std::make_index_sequence<sizeof...(Perturbations) + 1>{});
-      static_assert(is_equivalent_v<typename MatrixTraits<decltype(ret)>::RowCoefficients, OutputCoefficients>);
-      return ret;
+      return nested_transformation.jacobian(
+        std::forward<In>(in), internal::get_perturbation(std::forward<Perturbations>(ps))...);
     }
 
-    /// The Jacobians corresponding to the input and all perturbation matrices.
-    /// Returns a tuple of the transformation matrices.
-    template<typename In, typename ... Perturbations,
-      std::enable_if_t<std::conjunction_v<is_typed_matrix<In>, is_perturbation<Perturbations>...>, int> = 0>
-    auto jacobian(In&&, Perturbations&&...) const
+    /// Returns a tuple of Hessian matrices for the input and each perturbation term.
+    template<typename In, typename ... Perturbations>
+    auto hessian(In&& in, Perturbations&&...ps) const
     {
       static_assert(is_column_vector_v<In>);
+      static_assert((is_perturbation_v<Perturbations> and ...));
       static_assert(is_equivalent_v<typename MatrixTraits<In>::RowCoefficients, InputCoefficients>);
       static_assert(std::conjunction_v<
         is_equivalent<typename internal::PerturbationTraits<Perturbations>::RowCoefficients, OutputCoefficients>...>);
-
-      constexpr auto mat_count = sizeof...(PerturbationTransformationMatrices);
-      if constexpr(sizeof...(Perturbations) > mat_count)
-      {
-        constexpr auto size = sizeof...(Perturbations) - mat_count;
-        constexpr auto dim = OutputCoefficients::dimension;
-        using PStrict = typename MatrixTraits<TransformationMatrix>::template StrictMatrix<dim, dim>;
-        auto id = MatrixTraits<PStrict>::identity();
-        return std::tuple_cat(transformation_matrices, internal::tuple_replicate<size>(id));
-      }
-      else
-      {
-        return internal::tuple_slice<0, sizeof...(Perturbations) + 1>(transformation_matrices);
-      }
+      return nested_transformation.hessian(
+        std::forward<In>(in), internal::get_perturbation(std::forward<Perturbations>(ps))...);
     }
 
-    /// The Hessian matrices corresponding to the input and all perturbation matrices.
-    /// Returns a tuple of arrays of Hessian matrices. In this case, they are all zero.
-    template<typename In, typename ... Perturbations,
-      std::enable_if_t<std::conjunction_v<is_typed_matrix<In>, is_typed_matrix<Perturbations>...>, int> = 0>
-    auto hessian(In&&, Perturbations&&...) const
-    {
-      static_assert(is_column_vector_v<In>);
-      static_assert(is_equivalent_v<typename MatrixTraits<In>::RowCoefficients, InputCoefficients>);
-      static_assert(std::conjunction_v<
-        is_equivalent<typename internal::PerturbationTraits<Perturbations>::RowCoefficients, OutputCoefficients>...>);
-      constexpr std::size_t input_size = InputCoefficients::size;
-      constexpr std::size_t output_size = OutputCoefficients::size;
-      using HessianMatrixInBase = typename MatrixTraits<In>::template StrictMatrix<input_size, input_size>;
-      using HessianMatrixIn = TypedMatrix<InputCoefficients, InputCoefficients, HessianMatrixInBase>;
-      using HessianArrayIn = std::array<HessianMatrixIn, output_size>;
-      HessianArrayIn a;
-      a.fill(HessianMatrixIn::zero());
-      if constexpr (sizeof...(Perturbations) >= 1)
-      {
-        using HessianMatrixNoiseBase = typename MatrixTraits<In>::template StrictMatrix<output_size, output_size>;
-        using HessianMatrixNoise = TypedMatrix<OutputCoefficients, OutputCoefficients, HessianMatrixNoiseBase>;
-        using HessianArrayNoise = std::array<HessianMatrixNoise, output_size>;
-        HessianArrayNoise an;
-        an.fill(HessianMatrixNoise::zero());
-        return std::tuple_cat(std::tuple(std::move(a)), internal::tuple_replicate<sizeof...(Perturbations)>(std::move(an)));
-      }
-      else
-      {
-        return std::tuple(std::move(a));
-      }
-    }
   };
 
 
