@@ -121,6 +121,36 @@ TEST_F(transformation_tests, linearized2)
 }
 
 
+TEST_F(transformation_tests, linearized_lambdas)
+{
+  A_int a;
+  a << 1, 2, 3, 4;
+  auto f = [&a] (const M2& x) { return a * x; };
+  auto j = [&a] (const M2& x) { return std::tuple(a); };
+  auto h = [] (const M2& x)
+    {
+      using H = Eigen::Matrix<typename A_int::Scalar, A_int::ColsAtCompileTime, A_int::ColsAtCompileTime>;
+      using C = typename MatrixTraits<M2>::RowCoefficients;
+      using MH = TypedMatrix<C, C, H>;
+      auto Arr = std::array<MH, A_int::RowsAtCompileTime>();
+      Arr.fill(MH::zero());
+      return std::tuple {Arr};
+    };
+  auto t = Transformation(f, j, h);
+  using F = decltype(f);
+  using T = decltype(t);
+  static_assert(is_linearized_function_v<F, 0>);
+  static_assert(not is_linearized_function_v<F, 1>);
+  static_assert(not is_linearized_function_v<F, 2>);
+  static_assert(is_linearized_function_v<T, 0>);
+  static_assert(is_linearized_function_v<T, 1>);
+  static_assert(is_linearized_function_v<T, 2>);
+  static_assert(not is_linearized_function_v<T, 3>);
+  EXPECT_TRUE(is_near(t(M2(1, 2)), M2(5, 11)));
+  EXPECT_TRUE(is_near(std::get<0>(t.jacobian(M2(1, 2))), a));
+}
+
+
 TEST_F(transformation_tests, linear_additive)
 {
   A_int a;
