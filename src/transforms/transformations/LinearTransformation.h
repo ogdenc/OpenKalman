@@ -58,19 +58,47 @@ namespace OpenKalman
       static_assert(index2 <= std::tuple_size_v<std::decay_t<T>>, "Index is out of bounds");
       return detail::tuple_slice_impl<index1>(std::forward<T>(t), std::make_index_sequence<index2 - index1>());
     }
+  }
 
 
-    template<
-      typename InputCoefficients,
-      typename OutputCoefficients,
-      typename TransformationMatrix,
-      typename ... PerturbationTransformationMatrices>
-    struct LinearTransformationFunctionImpl
+  template<
+    typename InputCoefficients,
+    typename OutputCoefficients,
+    typename TransformationMatrix,
+    typename ... PerturbationTransformationMatrices>
+  struct LinearTransformation
+  {
+    static_assert(is_typed_matrix_base_v<TransformationMatrix>);
+    static_assert(std::conjunction_v<is_typed_matrix_base<PerturbationTransformationMatrices>...>);
+    static_assert(MatrixTraits<TransformationMatrix>::dimension == OutputCoefficients::size);
+    static_assert(MatrixTraits<TransformationMatrix>::columns == InputCoefficients::size);
+    static_assert(((MatrixTraits<PerturbationTransformationMatrices>::dimension == OutputCoefficients::size) and ...));
+    static_assert(((MatrixTraits<PerturbationTransformationMatrices>::columns == OutputCoefficients::size) and ...));
+
+  protected:
+    template<typename T, typename ColumnCoefficients = OutputCoefficients>
+    static constexpr bool is_valid_input_matrix_v()
+    {
+      static_assert(is_typed_matrix_v<T> or is_typed_matrix_base_v<T>);
+      if constexpr(is_typed_matrix_v<T>)
+        return
+          is_equivalent_v<typename MatrixTraits<T>::RowCoefficients, OutputCoefficients> and
+          is_equivalent_v<typename MatrixTraits<T>::ColumnCoefficients, ColumnCoefficients>;
+      else
+        return
+          MatrixTraits<T>::dimension == OutputCoefficients::size and
+          MatrixTraits<T>::columns == ColumnCoefficients::size;
+    }
+
+    using TransformationMatricesTuple = std::tuple<TypedMatrix<OutputCoefficients, InputCoefficients, TransformationMatrix>,
+      TypedMatrix<OutputCoefficients, OutputCoefficients, PerturbationTransformationMatrices>...>;
+
+
+    /// Implementation of the main linear transformation function.
+    struct FunctionImpl
     {
     protected:
-      using TransformationMatricesTuple = std::tuple<TypedMatrix<OutputCoefficients, InputCoefficients, TransformationMatrix>,
-        TypedMatrix<OutputCoefficients, OutputCoefficients, PerturbationTransformationMatrices>...>;
-      const TransformationMatricesTuple transformation_matrices;
+      const TransformationMatricesTuple& transformation_matrices;
 
     private:
       template<std::size_t i, typename Input>
@@ -91,7 +119,7 @@ namespace OpenKalman
       }
 
     public:
-      LinearTransformationFunctionImpl(const TransformationMatricesTuple& trans) : transformation_matrices(trans) {}
+      FunctionImpl(const TransformationMatricesTuple& trans) : transformation_matrices(trans) {}
 
       template<typename...Inputs>
       auto operator()(Inputs&&...inputs) const
@@ -101,20 +129,14 @@ namespace OpenKalman
     };
 
 
-    template<
-      typename InputCoefficients,
-      typename OutputCoefficients,
-      typename TransformationMatrix,
-      typename ... PerturbationTransformationMatrices>
-    struct LinearTransformationJacobianImpl
+    /// Implementation of the linear Jacobian function.
+    struct JacobianImpl
     {
     protected:
-      using TransformationMatricesTuple = std::tuple<TypedMatrix<OutputCoefficients, InputCoefficients, TransformationMatrix>,
-        TypedMatrix<OutputCoefficients, OutputCoefficients, PerturbationTransformationMatrices>...>;
-      const TransformationMatricesTuple transformation_matrices;
+      const TransformationMatricesTuple& transformation_matrices;
 
     public:
-      LinearTransformationJacobianImpl(const TransformationMatricesTuple& trans) : transformation_matrices(trans) {}
+      JacobianImpl(const TransformationMatricesTuple& trans) : transformation_matrices(trans) {}
 
       template<typename...Inputs>
       auto operator()(Inputs&&...inputs) const
@@ -137,68 +159,21 @@ namespace OpenKalman
       }
     };
 
-  }
-
-
-  template<
-    typename InputCoefficients,
-    typename OutputCoefficients,
-    typename TransformationMatrix,
-    typename ... PerturbationTransformationMatrices>
-  struct LinearTransformation
-  {
-    static_assert(is_typed_matrix_base_v<TransformationMatrix>);
-    static_assert(std::conjunction_v<is_typed_matrix_base<PerturbationTransformationMatrices>...>);
-    static_assert(MatrixTraits<TransformationMatrix>::dimension == OutputCoefficients::size);
-    static_assert(MatrixTraits<TransformationMatrix>::columns == InputCoefficients::size);
-    static_assert(((MatrixTraits<PerturbationTransformationMatrices>::dimension == OutputCoefficients::size) and ...));
-    static_assert(((MatrixTraits<PerturbationTransformationMatrices>::columns == OutputCoefficients::size) and ...));
-
-  protected:
-    using TransformationMatricesTuple = std::tuple<TypedMatrix<OutputCoefficients, InputCoefficients, TransformationMatrix>,
-      TypedMatrix<OutputCoefficients, OutputCoefficients, PerturbationTransformationMatrices>...>;
     const TransformationMatricesTuple transformation_matrices;
+    const Transformation<InputCoefficients, OutputCoefficients, FunctionImpl, JacobianImpl> nested_transformation;
 
-    using FunctionImpl = internal::LinearTransformationFunctionImpl<
-      InputCoefficients, OutputCoefficients, TransformationMatrix, PerturbationTransformationMatrices...>;
-    const FunctionImpl function_impl;
-
-    using JacobianImpl = internal::LinearTransformationJacobianImpl<
-      InputCoefficients, OutputCoefficients, TransformationMatrix, PerturbationTransformationMatrices...>;
-    const JacobianImpl jacobian_impl;
-
-    using Nested = Transformation<InputCoefficients, OutputCoefficients, FunctionImpl, JacobianImpl>;
-    const Nested nested_transformation;
-
-    template<typename T, typename ColumnCoefficients = OutputCoefficients>
-    static constexpr bool is_valid_input_matrix_v()
-    {
-      static_assert(is_typed_matrix_v<T> or is_typed_matrix_base_v<T>);
-      if constexpr(is_typed_matrix_v<T>)
-        return
-          is_equivalent_v<typename MatrixTraits<T>::RowCoefficients, OutputCoefficients> and
-          is_equivalent_v<typename MatrixTraits<T>::ColumnCoefficients, ColumnCoefficients>;
-      else
-        return
-          MatrixTraits<T>::dimension == OutputCoefficients::size and
-          MatrixTraits<T>::columns == ColumnCoefficients::size;
-    }
 
   public:
     LinearTransformation(const TransformationMatrix& mat, const PerturbationTransformationMatrices& ... p_mats)
-      : nested_transformation(function_impl, jacobian_impl),
-        transformation_matrices(mat, p_mats...),
-        function_impl(transformation_matrices),
-        jacobian_impl(transformation_matrices) {}
+      : transformation_matrices(mat, p_mats...),
+        nested_transformation(FunctionImpl(transformation_matrices), JacobianImpl(transformation_matrices)) {}
 
     template<typename T, typename ... Ps,
       std::enable_if_t<(is_typed_matrix_v<T> or is_typed_matrix_base_v<T>) and
         ((is_typed_matrix_v<Ps> or is_typed_matrix_base_v<Ps>) and ...), int> = 0>
     LinearTransformation(const T& mat, const Ps& ... p_mats)
-      : nested_transformation(function_impl, jacobian_impl),
-        transformation_matrices(mat, p_mats...),
-        function_impl(transformation_matrices),
-        jacobian_impl(transformation_matrices)
+      : transformation_matrices(mat, p_mats...),
+        nested_transformation(FunctionImpl(transformation_matrices), JacobianImpl(transformation_matrices))
     {
       static_assert(is_valid_input_matrix_v<T, InputCoefficients>);
       static_assert((is_valid_input_matrix_v<Ps, OutputCoefficients> and ...));
