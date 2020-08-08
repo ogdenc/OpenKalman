@@ -173,15 +173,15 @@ namespace OpenKalman
 
   public:
     LinearTransformation(const TransformationMatrix& mat, const PerturbationTransformationMatrices& ... p_mats)
-      : transformation_matrices(mat, p_mats...),
-        Base(FunctionImpl(transformation_matrices), JacobianImpl(transformation_matrices)) {}
+      : Base(FunctionImpl(transformation_matrices), JacobianImpl(transformation_matrices)),
+        transformation_matrices(mat, p_mats...) {}
 
     template<typename T, typename ... Ps,
       std::enable_if_t<(is_typed_matrix_v<T> or is_typed_matrix_base_v<T>) and
         ((is_typed_matrix_v<Ps> or is_typed_matrix_base_v<Ps>) and ...), int> = 0>
     LinearTransformation(const T& mat, const Ps& ... p_mats)
-      : transformation_matrices(mat, p_mats...),
-        Base(FunctionImpl(transformation_matrices), JacobianImpl(transformation_matrices))
+      : Base(FunctionImpl(transformation_matrices), JacobianImpl(transformation_matrices)),
+        transformation_matrices(mat, p_mats...)
     {
       static_assert(is_valid_input_matrix_v<T, InputCoefficients>);
       static_assert((is_valid_input_matrix_v<Ps, OutputCoefficients> and ...));

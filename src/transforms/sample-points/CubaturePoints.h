@@ -86,14 +86,7 @@ namespace OpenKalman
     sample_points(const Dist&...ds)
     {
       constexpr auto dim = (DistributionTraits<Dist>::dimension + ...);
-
-      auto temp = sample_points_impl<0, 0, dim>(std::tuple {ds...});
-
-      std::cout << "sample_points 0" << std::endl << std::get<0>(temp) << std::endl << std::flush;
-      if constexpr(std::tuple_size_v<decltype(temp)> >= 2)
-        std::cout << "sample_points 1" << std::endl << std::get<1>(temp) << std::endl << std::flush;
-
-      return temp;
+      return sample_points_impl<0, 0, dim>(std::tuple {ds...});
     }
 
     template<size_t dim, typename Arg, std::enable_if_t<is_Euclidean_mean_v<Arg>, int> = 0>
