@@ -133,6 +133,38 @@ namespace OpenKalman
       }
     }
 
+    /// Returns a tuple of zero-filled Hessian matrices for the input and each perturbation term.
+    template<typename InputCoefficients, typename OutputCoefficients, typename In, typename ... Perturbations>
+    inline auto zero_hessian()
+    {
+      static_assert(is_column_vector_v<In>);
+      static_assert((is_perturbation_v<Perturbations> and ...));
+      static_assert(is_equivalent_v<typename MatrixTraits<In>::RowCoefficients, InputCoefficients>);
+      static_assert(std::conjunction_v<
+        is_equivalent<typename internal::PerturbationTraits<Perturbations>::RowCoefficients, OutputCoefficients>...>);
+      constexpr std::size_t input_size = InputCoefficients::size;
+      constexpr std::size_t output_size = OutputCoefficients::size;
+
+      using HessianMatrixInBase = typename MatrixTraits<In>::template StrictMatrix<input_size, input_size>;
+      using HessianMatrixIn = TypedMatrix<InputCoefficients, InputCoefficients, HessianMatrixInBase>;
+      using HessianArrayIn = std::array<HessianMatrixIn, output_size>;
+      HessianArrayIn a;
+      a.fill(HessianMatrixIn::zero());
+      if constexpr (sizeof...(Perturbations) >= 1)
+      {
+        using HessianMatrixNoiseBase = typename MatrixTraits<In>::template StrictMatrix<output_size, output_size>;
+        using HessianMatrixNoise = TypedMatrix<OutputCoefficients, OutputCoefficients, HessianMatrixNoiseBase>;
+        using HessianArrayNoise = std::array<HessianMatrixNoise, output_size>;
+        HessianArrayNoise an;
+        an.fill(HessianMatrixNoise::zero());
+        return std::tuple_cat(std::tuple {std::move(a)}, internal::tuple_replicate<sizeof...(Perturbations)>(std::move(an)));
+      }
+      else
+      {
+        return std::tuple {std::move(a)};
+      }
+    }
+
   }
 
 
@@ -151,17 +183,17 @@ namespace OpenKalman
     Transformation(const Function& f = Function()) : function(f) {}
 
     /// Applies the transformation.
-    template<typename M, typename ... Perturbations>
-    auto operator()(M&& in, Perturbations&& ... perturbations) const
+    template<typename In, typename ... Perturbations>
+    auto operator()(In&& in, Perturbations&& ... ps) const
     {
-      static_assert(is_column_vector_v<M>);
+      static_assert(is_column_vector_v<In>);
       static_assert((is_perturbation_v<Perturbations> and ...));
-      static_assert(MatrixTraits<M>::columns == 1);
+      static_assert(MatrixTraits<In>::columns == 1);
       static_assert(((internal::PerturbationTraits<Perturbations>::columns == 1) and ...));
-      static_assert(is_equivalent_v<typename MatrixTraits<M>::RowCoefficients, InputCoefficients>);
+      static_assert(is_equivalent_v<typename MatrixTraits<In>::RowCoefficients, InputCoefficients>);
       static_assert(std::conjunction_v<
         is_equivalent<typename internal::PerturbationTraits<Perturbations>::RowCoefficients, OutputCoefficients>...>);
-      return function(std::forward<M>(in), internal::get_perturbation(std::forward<Perturbations>(perturbations))...);
+      return function(std::forward<In>(in), internal::get_perturbation(std::forward<Perturbations>(ps))...);
     }
 
   protected:
@@ -216,35 +248,10 @@ namespace OpenKalman
     template<typename In, typename ... Perturbations>
     auto hessian(In&&, Perturbations&&...) const
     {
-      static_assert(is_column_vector_v<In>);
-      static_assert((is_perturbation_v<Perturbations> and ...));
-      static_assert(is_equivalent_v<typename MatrixTraits<In>::RowCoefficients, InputCoefficients>);
-      static_assert(std::conjunction_v<
-        is_equivalent<typename internal::PerturbationTraits<Perturbations>::RowCoefficients, OutputCoefficients>...>);
-      constexpr std::size_t input_size = InputCoefficients::size;
-      constexpr std::size_t output_size = OutputCoefficients::size;
-
-      using HessianMatrixInBase = typename MatrixTraits<In>::template StrictMatrix<input_size, input_size>;
-      using HessianMatrixIn = TypedMatrix<InputCoefficients, InputCoefficients, HessianMatrixInBase>;
-      using HessianArrayIn = std::array<HessianMatrixIn, output_size>;
-      HessianArrayIn a;
-      a.fill(HessianMatrixIn::zero());
-      if constexpr (sizeof...(Perturbations) >= 1)
-      {
-        using HessianMatrixNoiseBase = typename MatrixTraits<In>::template StrictMatrix<output_size, output_size>;
-        using HessianMatrixNoise = TypedMatrix<OutputCoefficients, OutputCoefficients, HessianMatrixNoiseBase>;
-        using HessianArrayNoise = std::array<HessianMatrixNoise, output_size>;
-        HessianArrayNoise an;
-        an.fill(HessianMatrixNoise::zero());
-        return std::tuple_cat(std::tuple(std::move(a)), internal::tuple_replicate<sizeof...(Perturbations)>(std::move(an)));
-      }
-      else
-      {
-        return std::tuple(std::move(a));
-      }
+      return internal::zero_hessian<InputCoefficients, OutputCoefficients, In, Perturbations...>();
     }
 
-  protected:
+  //protected:
     const JacobianFunction jacobian_fun;
   };
 
