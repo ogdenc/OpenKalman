@@ -506,7 +506,7 @@ namespace OpenKalman
     constexpr std::size_t dim = Coefficients::size;
     static_assert(sizeof...(Args) % dim == 0);
     constexpr auto cols = sizeof...(Args) / dim;
-    using Mat = Eigen::Matrix<double, dim, cols>;
+    using Mat = Eigen::Matrix<Scalar, dim, cols>;
     return Mean<Coefficients, Mat>(MatrixTraits<Mat>::make(args...));
   }
 
@@ -548,7 +548,7 @@ namespace OpenKalman
     constexpr auto dim = RowCoefficients::size;
     constexpr auto cols = ColumnCoefficients::size;
     static_assert(dim * cols == sizeof...(Args));
-    using Mat = Eigen::Matrix<double, dim, cols>;
+    using Mat = Eigen::Matrix<Scalar, dim, cols>;
     return TypedMatrix<RowCoefficients, ColumnCoefficients, Mat>(MatrixTraits<Mat>::make(args...));
   }
 
@@ -600,7 +600,7 @@ namespace OpenKalman
     constexpr auto dim = Coefficients::dimension;
     static_assert(sizeof...(Args) % dim == 0);
     constexpr auto cols = sizeof...(Args) / dim;
-    using Mat = Eigen::Matrix<double, dim, 1>;
+    using Mat = Eigen::Matrix<Scalar, dim, 1>;
     return EuclideanMean<Coefficients, Mat>(MatrixTraits<Mat>::make(args...));
   }
 
@@ -650,7 +650,7 @@ namespace OpenKalman
     using Scalar = std::common_type_t<Args...>;
     constexpr auto dim = Coefficients::size;
     static_assert(sizeof...(Args) == dim * dim);
-    using Mat = Eigen::Matrix<double, dim, dim>;
+    using Mat = Eigen::Matrix<Scalar, dim, dim>;
     using T = EigenTriangularMatrix<Mat, triangle_type...>;
     using SA = EigenSelfAdjointMatrix<Mat, triangle_type...>;
     using B = std::conditional_t<sizeof...(triangle_type) == 1, T, SA>;
@@ -708,7 +708,7 @@ namespace OpenKalman
     using Scalar = std::common_type_t<Args...>;
     constexpr auto dim = Coefficients::size;
     static_assert(sizeof...(Args) == dim * dim);
-    using Mat = Eigen::Matrix<double, dim, dim>;
+    using Mat = Eigen::Matrix<Scalar, dim, dim>;
     using B = std::conditional_t<(sizeof...(triangle_type) == 1), // Is triangle type specified?
       typename MatrixTraits<Mat>::template TriangularBaseType<triangle_type...>,
       typename MatrixTraits<Mat>::template TriangularBaseType<TriangleType::lower>>; // lower-triangular self-adjoint, by default
