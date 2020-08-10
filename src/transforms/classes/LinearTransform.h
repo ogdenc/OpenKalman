@@ -18,21 +18,23 @@ namespace OpenKalman
    * @brief A linear transformation from one statistical distribution to another.
    */
   template<
-    /// The linear transformation on which the transform is based.
-    typename LinearTransformationType>
+    typename InputCoefficients,
+    typename OutputCoefficients,
+    typename TransformationMatrix,
+    typename ... PerturbationTransformationMatrices>
   struct LinearTransform;
 
 
   namespace detail
   {
-    template<typename LinearTransformation>
+  template<typename LinearTransformationType>
     struct LinearTransformFunction
     {
-      const LinearTransformation transformation;
+      const LinearTransformationType transformation;
 
-      explicit LinearTransformFunction(const LinearTransformation& trans) : transformation(trans) {}
+      //explicit LinearTransformFunction(const LinearTransformationType& trans) : transformation(trans) {}
 
-      explicit LinearTransformFunction(LinearTransformation&& trans) noexcept : transformation(std::move(trans)) {}
+      //explicit LinearTransformFunction(LinearTransformationType&& trans) noexcept : transformation(std::move(trans)) {}
 
       template<typename InputMean, typename ... NoiseMean>
       auto operator()(const InputMean& x, const NoiseMean& ... n) const
@@ -45,33 +47,51 @@ namespace OpenKalman
   }
 
 
-  template<typename LinearTransformationType>
+  template<
+    typename InputCoefficients,
+    typename OutputCoefficients,
+    typename TransformationMatrix,
+    typename ... PerturbationTransformationMatrices>
   struct LinearTransform
     : internal::LinearTransformBase<
-      typename LinearTransformationType::InputCoefficients,
-      typename LinearTransformationType::OutputCoefficients,
-      detail::LinearTransformFunction<LinearTransformationType>>
+      InputCoefficients,
+      OutputCoefficients,
+      detail::LinearTransformFunction<LinearTransformation<InputCoefficients, OutputCoefficients,
+        TransformationMatrix, PerturbationTransformationMatrices...>>>
   {
-    using InputCoefficients = typename LinearTransformationType::InputCoefficients;
-    using OutputCoefficients = typename LinearTransformationType::OutputCoefficients;
-    using Function = detail::LinearTransformFunction<LinearTransformationType>;
-    using Base = internal::LinearTransformBase<InputCoefficients, OutputCoefficients, Function>;
+    using LinearTransformationType = LinearTransformation<InputCoefficients, OutputCoefficients,
+      TransformationMatrix, PerturbationTransformationMatrices...>;
+    using TransformFunction = detail::LinearTransformFunction<LinearTransformationType>;
+    using Base = internal::LinearTransformBase<InputCoefficients, OutputCoefficients, TransformFunction>;
+
+    static_assert(is_typed_matrix_base_v<TransformationMatrix>);
+    static_assert(std::conjunction_v<is_typed_matrix_base<PerturbationTransformationMatrices>...>);
+    static_assert(MatrixTraits<TransformationMatrix>::dimension == OutputCoefficients::size);
+    static_assert(MatrixTraits<TransformationMatrix>::columns == InputCoefficients::size);
+    static_assert(((MatrixTraits<PerturbationTransformationMatrices>::dimension == OutputCoefficients::size) and ...));
+    static_assert(((MatrixTraits<PerturbationTransformationMatrices>::columns == OutputCoefficients::size) and ...));
 
     explicit LinearTransform(const LinearTransformationType& transformation)
-      : Base(Function(transformation)) {}
+      : Base(TransformFunction {transformation}) {}
 
     explicit LinearTransform(LinearTransformationType&& transformation) noexcept
-      : Base(Function(std::move(transformation))) {}
+      : Base(TransformFunction {std::move(transformation)}) {}
 
-    template<typename T, typename ... Noise,
-      std::enable_if_t<std::conjunction_v<is_typed_matrix<T>, is_typed_matrix<Noise>...>, int> = 0>
-    explicit LinearTransform(T&& t, Noise&&...n)
-      : Base(Function(LinearTransformationType(std::forward<T>(t), std::forward<Noise>(n)...))) {}
+    template<typename T, typename ... Ps,
+      std::enable_if_t<std::conjunction_v<std::disjunction<is_typed_matrix<T>, is_typed_matrix_base<T>>,
+        std::disjunction<is_typed_matrix<Ps>, is_typed_matrix_base<Ps>>...>, int> = 0>
+    LinearTransform(T&& t, Ps&&...n)
+      : LinearTransform(LinearTransformationType(std::forward<T>(t), std::forward<Ps>(n)...))
+    {
+      static_assert(MatrixTraits<T>::dimension == OutputCoefficients::size);
+      static_assert(MatrixTraits<T>::columns == InputCoefficients::size);
+      static_assert(((MatrixTraits<Ps>::dimension == OutputCoefficients::size) and ...));
+      static_assert(((MatrixTraits<Ps>::columns == OutputCoefficients::size) and ...));
+    }
 
-    template<typename T, typename ... Noise,
-      std::enable_if_t<std::conjunction_v<is_typed_matrix_base<T>, is_typed_matrix_base<Noise>...>, int> = 0>
-    explicit LinearTransform(T&& t, Noise&&...n)
-      : Base(Function(LinearTransformationType(std::forward<T>(t), std::forward<Noise>(n)...))) {}
+    LinearTransform(TransformationMatrix&& t, PerturbationTransformationMatrices&&...n)
+      : LinearTransform(LinearTransformationType(std::forward<TransformationMatrix>(t),
+        std::forward<PerturbationTransformationMatrices>(n)...)) {}
 
   };
 
@@ -80,23 +100,23 @@ namespace OpenKalman
   //  Deduction guides  //
   ////////////////////////
 
-  template<typename T, typename ... Noise,
-    std::enable_if_t<std::conjunction_v<is_typed_matrix<T>, is_typed_matrix<Noise>...>, int> = 0>
-  LinearTransform(T&&, Noise&& ...)
-  -> LinearTransform<LinearTransformation<
+  template<typename T, typename ... Ps,
+    std::enable_if_t<std::conjunction_v<is_typed_matrix<T>, is_typed_matrix<Ps>...>, int> = 0>
+  LinearTransform(T&&, Ps&& ...)
+  -> LinearTransform<
     typename MatrixTraits<T>::RowCoefficients,
     typename MatrixTraits<T>::ColumnCoefficients,
-    typename MatrixTraits<T>::BaseMatrix,
-    typename MatrixTraits<Noise>::BaseMatrix...>>;
+    strict_t<typename MatrixTraits<T>::BaseMatrix>,
+    strict_t<typename MatrixTraits<Ps>::BaseMatrix>...>;
 
-  template<typename T, typename ... Noise,
-    std::enable_if_t<std::conjunction_v<is_typed_matrix_base<T>, is_typed_matrix_base<Noise>...>, int> = 0>
-  LinearTransform(T&&, Noise&& ...)
-  -> LinearTransform<LinearTransformation<
+  template<typename T, typename ... Ps,
+    std::enable_if_t<std::conjunction_v<is_typed_matrix_base<T>, is_typed_matrix_base<Ps>...>, int> = 0>
+  LinearTransform(T&&, Ps&& ...)
+  -> LinearTransform<
     Axes<MatrixTraits<T>::columns>,
     Axes<MatrixTraits<T>::dimension>,
-    std::decay_t<T>,
-    std::decay_t<Noise>...>>;
+    strict_t<std::decay_t<T>>,
+    strict_t<std::decay_t<Ps>>...>;
 
 }
 
