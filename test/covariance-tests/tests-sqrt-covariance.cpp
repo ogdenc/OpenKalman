@@ -366,6 +366,9 @@ TEST_F(covariance_tests, SquareRootCovariance_class)
   clt5i = CovI2 {i2};
   EXPECT_TRUE(is_near(clt5i, Mat2 {1, 0, 0, 1}));
 
+  clsa8 += {2, 0, 1, 2};
+  clsa8 -= {2, 0, 1, 2};
+
   // Increment
   clsa8 += SqCovSA2l {2, 0, 1, 2};
   EXPECT_TRUE(is_near(clsa8.base_matrix(), Mat2 {25, 10, 10, 29}));
@@ -641,15 +644,15 @@ TEST_F(covariance_tests, SquareRootCovariance_make)
   static_assert(is_lower_triangular_v<decltype(make_SquareRootCovariance<Mat2>().base_matrix())>);
 
   // Eigen defaults
-  EXPECT_TRUE(is_near(make_SquareRootCovariance<C, TriangleType::lower>(3, 0, 1, 3).base_matrix(), Mat2 {3, 0, 1, 3}));
-  EXPECT_TRUE(is_near(make_SquareRootCovariance<C, TriangleType::upper>(3, 1, 0, 3).base_matrix(), Mat2 {3, 1, 0, 3}));
-  EXPECT_TRUE(is_near(make_SquareRootCovariance<C>(3, 0, 1, 3).base_matrix(), Mat2 {3, 0, 1, 3}));
+  EXPECT_TRUE(is_near(make_SquareRootCovariance<C, TriangleType::lower>(3., 0, 1, 3).base_matrix(), Mat2 {3, 0, 1, 3}));
+  EXPECT_TRUE(is_near(make_SquareRootCovariance<C, TriangleType::upper>(3., 1, 0, 3).base_matrix(), Mat2 {3, 1, 0, 3}));
+  EXPECT_TRUE(is_near(make_SquareRootCovariance<C>(3., 0, 1, 3).base_matrix(), Mat2 {3, 0, 1, 3}));
 
-  static_assert(is_lower_triangular_v<decltype(make_SquareRootCovariance<C, TriangleType::lower>(3, 0, 1, 3).base_matrix())>);
-  static_assert(is_upper_triangular_v<decltype(make_SquareRootCovariance<C, TriangleType::upper>(3, 1, 0, 3).base_matrix())>);
-  static_assert(is_lower_triangular_v<decltype(make_SquareRootCovariance<C>(9, 3, 3, 10).base_matrix())>);
+  static_assert(is_lower_triangular_v<decltype(make_SquareRootCovariance<C, TriangleType::lower>(3., 0, 1, 3).base_matrix())>);
+  static_assert(is_upper_triangular_v<decltype(make_SquareRootCovariance<C, TriangleType::upper>(3., 1, 0, 3).base_matrix())>);
+  static_assert(is_lower_triangular_v<decltype(make_SquareRootCovariance<C>(9., 3, 3, 10).base_matrix())>);
 
-  static_assert(is_lower_triangular_v<decltype(make_SquareRootCovariance<TriangleType::lower>(3, 0, 1, 3).base_matrix())>);
+  static_assert(is_lower_triangular_v<decltype(make_SquareRootCovariance<TriangleType::lower>(3., 0, 1, 3).base_matrix())>);
   static_assert(is_lower_triangular_v<decltype(make_SquareRootCovariance<C, TriangleType::lower>().base_matrix())>);
   static_assert(is_upper_triangular_v<decltype(make_SquareRootCovariance<C, TriangleType::upper>().base_matrix())>);
   static_assert(is_lower_triangular_v<decltype(make_SquareRootCovariance<C>().base_matrix())>);

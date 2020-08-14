@@ -165,7 +165,7 @@ namespace OpenKalman::internal
     /// Copy assignment operator.
     auto& operator=(const CovarianceBase& other)
     {
-      if (this != &other)
+      if constexpr (not is_zero_v<BaseMatrix> and not is_identity_v<BaseMatrix>) if (this != &other)
       {
         Base::operator=(other);
         if (apparent_base_linked) *synchronized = false;
@@ -176,7 +176,7 @@ namespace OpenKalman::internal
     /// Move assignment operator.
     auto& operator=(CovarianceBase&& other) noexcept
     {
-      if (this != &other)
+      if constexpr (not is_zero_v<BaseMatrix> and not is_identity_v<BaseMatrix>) if (this != &other)
       {
         Base::operator=(std::move(other));
         if (apparent_base_linked) *synchronized = false;
@@ -185,11 +185,23 @@ namespace OpenKalman::internal
     }
 
     /// Assign from a covariance base or typed matrix base.
-    template<typename Arg, std::enable_if_t<is_covariance_base_v<Arg> or is_typed_matrix_base_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<is_covariance_base_v<Arg> or is_typed_matrix_base_v<Arg> and
+      std::is_assignable_v<BaseMatrix, Arg&&>, int> = 0>
     auto& operator=(Arg&& arg) noexcept
     {
-      Base::operator=(std::forward<Arg>(arg));
-      if (apparent_base_linked) *synchronized = false;
+      if constexpr (is_zero_v<BaseMatrix>)
+      {
+        static_assert(is_zero_v<Arg>);
+      }
+      else if constexpr (is_identity_v<BaseMatrix>)
+      {
+        static_assert(is_identity_v<Arg>);
+      }
+      else
+      {
+        Base::operator=(std::forward<Arg>(arg));
+        if (apparent_base_linked) *synchronized = false;
+      }
       return *this;
     }
 
@@ -331,7 +343,7 @@ namespace OpenKalman::internal
     /// Copy assignment operator.
     auto& operator=(const CovarianceBase& other)
     {
-      if (this != &other)
+      if constexpr (not is_zero_v<BaseMatrix> and not is_identity_v<BaseMatrix>) if (this != &other)
       {
         synchronized = other.synchronized;
         if (synchronized) apparent_base = other.apparent_base;
@@ -343,7 +355,7 @@ namespace OpenKalman::internal
     /// Move assignment operator.
     auto& operator=(CovarianceBase&& other) noexcept
     {
-      if (this != &other)
+      if constexpr (not is_zero_v<BaseMatrix> and not is_identity_v<BaseMatrix>) if (this != &other)
       {
         synchronized = other.synchronized;
         if (synchronized) apparent_base = std::move(other.apparent_base);
@@ -352,11 +364,19 @@ namespace OpenKalman::internal
       return *this;
     }
 
-    /// Assign from a covariance base.
+    /*/// Assign from a covariance base.
     template<typename Arg, std::enable_if_t<is_covariance_base_v<Arg>, int> = 0>
     auto& operator=(Arg&& arg) noexcept
     {
-      if constexpr(is_triangular_v<Arg> and is_square_root_v<Derived>)
+      if constexpr (is_zero_v<BaseMatrix>)
+      {
+        static_assert(is_zero_v<Arg>);
+      }
+      else if constexpr (is_identity_v<BaseMatrix>)
+      {
+        static_assert(is_identity_v<Arg>);
+      }
+      else if constexpr(is_triangular_v<Arg> and is_square_root_v<Derived>)
       {
         apparent_base = std::forward<Arg>(arg);
         Base::operator=(Cholesky_square(apparent_base));
@@ -380,7 +400,39 @@ namespace OpenKalman::internal
     template<typename Arg, std::enable_if_t<not is_covariance_base_v<Arg> and is_typed_matrix_base_v<Arg>, int> = 0>
     auto& operator=(Arg&& arg) noexcept
     {
-      return operator=(ApparentBaseMatrix {std::forward<Arg>(arg)});
+      if constexpr (is_zero_v<BaseMatrix>)
+      {
+        static_assert(is_zero_v<Arg>);
+      }
+      else if constexpr (is_identity_v<BaseMatrix>)
+      {
+        static_assert(is_identity_v<Arg>);
+      }
+      else
+      {
+        return operator=(ApparentBaseMatrix {std::forward<Arg>(arg)});
+      }
+      return *this;
+    }*/
+
+    /// Assign from a covariance base.
+    template<typename Arg, std::enable_if_t<is_covariance_base_v<Arg>, int> = 0>
+    auto& operator=(Arg&& arg) noexcept
+    {
+      if constexpr (is_zero_v<BaseMatrix>)
+      {
+        static_assert(is_zero_v<Arg>);
+      }
+      else if constexpr (is_identity_v<BaseMatrix>)
+      {
+        static_assert(is_identity_v<Arg>);
+      }
+      else
+      {
+        Base::operator=(std::forward<Arg>(arg));
+        synchronized = false;
+      }
+      return *this;
     }
 
     auto operator() (std::size_t i, std::size_t j)
@@ -554,7 +606,7 @@ namespace OpenKalman::internal
     /// Copy assignment operator.
     auto& operator=(const CovarianceBase& other)
     {
-      if (this != &other)
+      if constexpr (not is_zero_v<BaseMatrix> and not is_identity_v<BaseMatrix>) if (this != &other)
       {
         *synchronized = *other.synchronized;
         if (*synchronized) *apparent_base = *other.apparent_base;
@@ -566,7 +618,7 @@ namespace OpenKalman::internal
     /// Move assignment operator.
     auto& operator=(CovarianceBase&& other) noexcept
     {
-      if (this != &other)
+      if constexpr (not is_zero_v<BaseMatrix> and not is_identity_v<BaseMatrix>) if (this != &other)
       {
         *synchronized = *other.synchronized;
         if (*synchronized) *apparent_base = std::move(*other.apparent_base);
@@ -575,11 +627,19 @@ namespace OpenKalman::internal
       return *this;
     }
 
-    /// Assign from a covariance base.
+    /*/// Assign from a covariance base.
     template<typename Arg, std::enable_if_t<is_covariance_base_v<Arg>, int> = 0>
     auto& operator=(Arg&& arg)
     {
-      if constexpr(is_triangular_v<Arg> and is_square_root_v<Derived>)
+      if constexpr (is_zero_v<BaseMatrix>)
+      {
+        static_assert(is_zero_v<Arg>);
+      }
+      else if constexpr (is_identity_v<BaseMatrix>)
+      {
+        static_assert(is_identity_v<Arg>);
+      }
+      else if constexpr(is_triangular_v<Arg> and is_square_root_v<Derived>)
       {
         *apparent_base = std::forward<Arg>(arg);
         Base::operator=(Cholesky_square(*apparent_base));
@@ -603,7 +663,39 @@ namespace OpenKalman::internal
     template<typename Arg, std::enable_if_t<not is_covariance_base_v<Arg> and is_typed_matrix_base_v<Arg>, int> = 0>
     auto& operator=(Arg&& arg)
     {
-      return operator=(ApparentBaseMatrix {std::forward<Arg>(arg)});
+      if constexpr (is_zero_v<BaseMatrix>)
+      {
+        static_assert(is_zero_v<Arg>);
+      }
+      else if constexpr (is_identity_v<BaseMatrix>)
+      {
+        static_assert(is_identity_v<Arg>);
+      }
+      else
+      {
+        return operator=(ApparentBaseMatrix {std::forward<Arg>(arg)});
+      }
+      return *this;
+    }*/
+
+    /// Assign from a covariance base.
+    template<typename Arg, std::enable_if_t<is_covariance_base_v<Arg>, int> = 0>
+    auto& operator=(Arg&& arg)
+    {
+      if constexpr (is_zero_v<BaseMatrix>)
+      {
+        static_assert(is_zero_v<Arg>);
+      }
+      else if constexpr (is_identity_v<BaseMatrix>)
+      {
+        static_assert(is_identity_v<Arg>);
+      }
+      else
+      {
+        Base::operator=(std::forward<Arg>(arg));
+        *synchronized = false;
+      }
+      return *this;
     }
 
     auto operator() (std::size_t i, std::size_t j)

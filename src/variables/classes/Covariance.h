@@ -39,7 +39,7 @@ namespace OpenKalman
     static auto
     make(Arg&& arg) noexcept
     {
-      return Covariance<C, strict_t<Arg>>(std::forward<Arg>(arg));
+      return Covariance<C, strict_t<std::decay_t<Arg>>>(std::forward<Arg>(arg));
     }
 
   public:
@@ -104,14 +104,16 @@ namespace OpenKalman
     /// Copy assignment operator.
     auto& operator=(const Covariance& other)
     {
-      Base::operator=(other);
+      if constexpr(not is_zero_v<BaseMatrix> and not is_identity_v<BaseMatrix>)
+        Base::operator=(other);
       return *this;
     }
 
     /// Move assignment operator.
     auto& operator=(Covariance&& other) noexcept
     {
-      Base::operator=(std::move(other));
+      if constexpr(not is_zero_v<BaseMatrix> and not is_identity_v<BaseMatrix>)
+        Base::operator=(std::move(other));
       return *this;
     }
 
@@ -120,18 +122,32 @@ namespace OpenKalman
     auto& operator=(Arg&& other) noexcept
     {
       if constexpr(is_covariance_v<Arg>)
+      {
         static_assert(is_equivalent_v<typename MatrixTraits<Arg>::Coefficients, Coefficients>);
+      }
       else if constexpr(is_typed_matrix_v<Arg>)
+      {
         static_assert(is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, Coefficients> and
           is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>);
-      if constexpr (std::is_same_v<std::decay_t<Arg>, Covariance>) if (this == &other) return *this;
-      base_matrix() = internal::convert_base_matrix<std::decay_t<BaseMatrix>>(std::forward<Arg>(other));
-      this->mark_changed();
+      }
+
+      if constexpr (is_zero_v<BaseMatrix>)
+      {
+        static_assert(is_zero_v<Arg>);
+      }
+      else if constexpr (is_identity_v<BaseMatrix>)
+      {
+        static_assert(is_identity_v<Arg>);
+      }
+      else
+      {
+        Base::operator=(internal::convert_base_matrix<std::decay_t<BaseMatrix>>(std::forward<Arg>(other)));
+      }
       return *this;
     }
 
     template<typename Arg, std::enable_if_t<is_covariance_v<Arg>, int> = 0>
-    auto& operator+=(Arg&& arg)
+    auto& operator+=(Arg&& arg) noexcept
     {
       static_assert(is_equivalent_v<typename MatrixTraits<Arg>::Coefficients, Coefficients>);
       static_assert(not is_square_root_v<Arg>);
@@ -152,8 +168,13 @@ namespace OpenKalman
       return *this;
     }
 
+    auto& operator+=(const Covariance& arg) noexcept
+    {
+      return operator+=<const Covariance&>(arg);
+    }
+
     template<typename Arg, std::enable_if_t<is_covariance_v<Arg>, int> = 0>
-    auto& operator-=(Arg&& arg)
+    auto& operator-=(Arg&& arg) noexcept
     {
       static_assert(is_equivalent_v<typename MatrixTraits<Arg>::Coefficients, Coefficients>);
       static_assert(not is_square_root_v<Arg>);
@@ -169,6 +190,11 @@ namespace OpenKalman
       }
       this->mark_changed();
       return *this;
+    }
+
+    auto& operator-=(const Covariance& arg) noexcept
+    {
+      return operator-=<const Covariance&>(arg);
     }
 
     template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>

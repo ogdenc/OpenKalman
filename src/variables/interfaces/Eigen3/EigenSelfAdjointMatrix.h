@@ -59,14 +59,20 @@ namespace OpenKalman
     /// Copy assignment operator
     auto& operator=(const EigenSelfAdjointMatrix& other)
     {
-      if (this != &other) this->base_matrix().template triangularView<uplo>() = other.base_matrix();
+      if constexpr (not is_zero_v<BaseMatrix> and not is_identity_v<BaseMatrix>) if (this != &other)
+      {
+        this->base_matrix().template triangularView<uplo>() = other.base_matrix();
+      }
       return *this;
     }
 
     /// Move assignment operator
     auto& operator=(EigenSelfAdjointMatrix&& other) noexcept
     {
-      if (this != &other) this->base_matrix() = std::move(other).base_matrix();
+      if constexpr (not is_zero_v<BaseMatrix> and not is_identity_v<BaseMatrix>) if (this != &other)
+      {
+        this->base_matrix() = std::move(other).base_matrix();
+      }
       return *this;
     }
 
@@ -74,8 +80,15 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<is_EigenSelfAdjointMatrix_v<Arg>, int> = 0>
     auto& operator=(Arg&& arg)
     {
-      if constexpr (std::is_same_v<std::decay_t<Arg>, EigenSelfAdjointMatrix>) if (this == &arg) return *this;
-      if constexpr(std::is_lvalue_reference_v<Arg>)
+      if constexpr (is_zero_v<BaseMatrix>)
+      {
+        static_assert(is_zero_v<Arg>);
+      }
+      else if constexpr (is_identity_v<BaseMatrix>)
+      {
+        static_assert(is_identity_v<Arg>);
+      }
+      else if constexpr(std::is_lvalue_reference_v<Arg>)
       {
         if constexpr(is_Eigen_upper_storage_triangle_v<Arg> == is_Eigen_upper_storage_triangle_v<EigenSelfAdjointMatrix>)
           this->base_matrix().template triangularView<uplo>() = base_matrix(arg);
@@ -93,19 +106,40 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<is_EigenTriangularMatrix_v<Arg>, int> = 0>
     auto& operator=(Arg&& arg)
     {
-      return operator=(Cholesky_square(std::forward<Arg>(arg)));
+      if constexpr (is_zero_v<BaseMatrix>)
+      {
+        static_assert(is_zero_v<Arg>);
+      }
+      else if constexpr (is_identity_v<BaseMatrix>)
+      {
+        static_assert(is_identity_v<Arg>);
+      }
+      else
+      {
+        return operator=(Cholesky_square(std::forward<Arg>(arg)));
+      }
     }
 
     /// Assign from a regular Eigen matrix. (Uses only the storage triangular part.)
     template<typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg>, int> = 0>
     auto& operator=(Arg&& arg)
     {
-      if constexpr(std::is_lvalue_reference_v<Arg>)
+      if constexpr (is_zero_v<BaseMatrix>)
+      {
+        static_assert(is_zero_v<Arg>);
+      }
+      else if constexpr (is_identity_v<BaseMatrix>)
+      {
+        static_assert(is_identity_v<Arg>);
+      }
+      else if constexpr(std::is_lvalue_reference_v<Arg>)
       {
         this->base_matrix().template triangularView<uplo>() = arg;
       }
       else
+      {
         this->base_matrix() = std::forward<Arg>(arg);
+      }
       return *this;
     }
 
@@ -113,10 +147,22 @@ namespace OpenKalman
     template<typename Arg, unsigned int UpLo>
     auto& operator=(const Eigen::SelfAdjointView<Arg, UpLo>& arg)
     {
-      if constexpr(((UpLo & Eigen::Upper) != 0) != (storage_triangle == TriangleType::upper))
+      if constexpr (is_zero_v<BaseMatrix>)
+      {
+        static_assert(is_zero_v<Arg>);
+      }
+      else if constexpr (is_identity_v<BaseMatrix>)
+      {
+        static_assert(is_identity_v<Arg>);
+      }
+      else if constexpr(((UpLo & Eigen::Upper) != 0) != (storage_triangle == TriangleType::upper))
+      {
         this->base_matrix().template triangularView<UpLo>() = arg.nestedExpression().adjoint();
+      }
       else
+      {
         this->base_matrix().template triangularView<UpLo>() = arg.nestedExpression();
+      }
       return *this;
     }
 
@@ -124,7 +170,18 @@ namespace OpenKalman
     template<typename Arg>
     auto& operator=(Eigen::SelfAdjointView<Arg, uplo>&& arg) noexcept
     {
-      this->base_matrix() = std::move(arg.nestedExpression());
+      if constexpr (is_zero_v<BaseMatrix>)
+      {
+        static_assert(is_zero_v<Arg>);
+      }
+      else if constexpr (is_identity_v<BaseMatrix>)
+      {
+        static_assert(is_identity_v<Arg>);
+      }
+      else
+      {
+        this->base_matrix() = std::move(arg.nestedExpression());
+      }
       return *this;
     }
 

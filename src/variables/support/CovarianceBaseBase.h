@@ -42,22 +42,35 @@ namespace OpenKalman::internal
     /// Copy assignment operator.
     auto& operator=(const CovarianceBaseBase& other)
     {
-      if (this != &other) m_arg = other.m_arg;
+      if constexpr (not is_zero_v<BaseMatrix> and not is_identity_v<BaseMatrix>) if (this != &other)
+        m_arg = other.m_arg;
       return *this;
     }
 
     /// Move assignment operator.
     auto& operator=(CovarianceBaseBase&& other) noexcept
     {
-      if (this != &other) m_arg = std::move(other.m_arg);
+      if constexpr (not is_zero_v<BaseMatrix> and not is_identity_v<BaseMatrix>) if (this != &other)
+        m_arg = std::move(other.m_arg);
       return *this;
     }
 
     /// Assign from a covariance base.
-    template<typename Arg, std::enable_if_t<is_covariance_base_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<is_covariance_base_v<Arg> or is_typed_matrix_base_v<Arg>, int> = 0>
     auto& operator=(Arg&& arg) noexcept
     {
-      m_arg = std::forward<Arg>(arg);
+      if constexpr (is_zero_v<BaseMatrix>)
+      {
+        static_assert(is_zero_v<Arg>);
+      }
+      else if constexpr (is_identity_v<BaseMatrix>)
+      {
+        static_assert(is_identity_v<Arg>);
+      }
+      else
+      {
+        m_arg = std::forward<Arg>(arg);
+      }
       return *this;
     }
 

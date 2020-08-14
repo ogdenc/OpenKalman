@@ -365,6 +365,9 @@ TEST_F(covariance_tests, Covariance_class)
   cd8 = {3, 4};
   EXPECT_TRUE(is_near(cd8, Mat2 {3, 0, 0, 4}));
 
+  clsasa4 += {9, 3, 3, 10};
+  clsasa4 -= {9, 3, 3, 10};
+
   // Increment
   clsasa4 += CovSA2u {9, 3, 3, 10};
   EXPECT_TRUE(is_near(clsasa4, Mat2 {13, 5, 5, 15}));
@@ -705,15 +708,15 @@ TEST_F(covariance_tests, Covariance_make)
   static_assert(is_Eigen_lower_storage_triangle_v<decltype(make_Covariance<Mat2>().base_matrix())>);
 
   // Eigen defaults
-  EXPECT_TRUE(is_near(make_Covariance<C, TriangleType::lower>(9, 3, 3, 10).base_matrix(), Mat2 {3, 0, 1, 3}));
-  EXPECT_TRUE(is_near(make_Covariance<C, TriangleType::upper>(9, 3, 3, 10).base_matrix(), Mat2 {3, 1, 0, 3}));
-  EXPECT_TRUE(is_near(make_Covariance<C>(9, 3, 3, 10).base_matrix(), Mat2 {9, 3, 3, 10}));
+  EXPECT_TRUE(is_near(make_Covariance<C, TriangleType::lower>(9., 3, 3, 10).base_matrix(), Mat2 {3, 0, 1, 3}));
+  EXPECT_TRUE(is_near(make_Covariance<C, TriangleType::upper>(9., 3, 3, 10).base_matrix(), Mat2 {3, 1, 0, 3}));
+  EXPECT_TRUE(is_near(make_Covariance<C>(9., 3, 3, 10).base_matrix(), Mat2 {9, 3, 3, 10}));
 
-  static_assert(is_lower_triangular_v<decltype(make_Covariance<C, TriangleType::lower>(9, 3, 3, 10).base_matrix())>);
-  static_assert(is_upper_triangular_v<decltype(make_Covariance<C, TriangleType::upper>(9, 3, 3, 10).base_matrix())>);
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype(make_Covariance<C>(9, 3, 3, 10).base_matrix())>);
+  static_assert(is_lower_triangular_v<decltype(make_Covariance<C, TriangleType::lower>(9., 3, 3, 10).base_matrix())>);
+  static_assert(is_upper_triangular_v<decltype(make_Covariance<C, TriangleType::upper>(9., 3, 3, 10).base_matrix())>);
+  static_assert(is_Eigen_lower_storage_triangle_v<decltype(make_Covariance<C>(9., 3, 3, 10).base_matrix())>);
 
-  static_assert(is_lower_triangular_v<decltype(make_Covariance<TriangleType::lower>(9, 3, 3, 10).base_matrix())>);
+  static_assert(is_lower_triangular_v<decltype(make_Covariance<TriangleType::lower>(9., 3, 3, 10).base_matrix())>);
   static_assert(is_lower_triangular_v<decltype(make_Covariance<C, TriangleType::lower>().base_matrix())>);
   static_assert(is_upper_triangular_v<decltype(make_Covariance<C, TriangleType::upper>().base_matrix())>);
   static_assert(is_Eigen_lower_storage_triangle_v<decltype(make_Covariance<C>().base_matrix())>);

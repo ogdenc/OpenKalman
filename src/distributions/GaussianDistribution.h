@@ -36,15 +36,6 @@ namespace OpenKalman
     static_assert(MatrixTraits<MatrixBase>::columns == 1);
     static_assert(std::is_same_v<Scalar, typename MatrixTraits<Covariance>::Scalar>);
 
-  protected:
-    template<typename Arg1, typename Arg2>
-    static auto
-    make(Arg1&& arg_mean, Arg2&& arg_moment)
-    {
-      return DistributionTraits<GaussianDistribution>::make(std::forward<Arg1>(arg_mean), std::forward<Arg2>(arg_moment));
-    }
-
-  public:
     /**************
      * Constructors
      **************/
@@ -162,55 +153,25 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<is_Gaussian_distribution_v<Arg>, int> = 0>
     GaussianDistribution& operator=(Arg&& other) noexcept
     {
-      static_assert(OpenKalman::is_equivalent_v<typename DistributionTraits<Arg>::Coefficients, Coefficients>);
+      static_assert(is_equivalent_v<typename DistributionTraits<Arg>::Coefficients, Coefficients>);
       if constexpr (std::is_same_v<std::decay_t<Arg>, GaussianDistribution>) if (this == &other) return *this;
       mu = std::forward<Arg>(other).mean();
       sigma = std::forward<Arg>(other).covariance();
       return *this;
     }
 
-  protected:
-    template<typename M, typename C>
-    auto& increment(M&& m, C&& c)
+    auto& operator+=(const GaussianDistribution& arg)
     {
-      mu += std::forward<M>(m);
-      sigma += std::forward<C>(c);
+      mu += arg.mean();
+      sigma += arg.covariance();
       return *this;
     };
 
-  public:
-    auto& operator+=(GaussianDistribution&& arg)
+    auto& operator-=(const GaussianDistribution& arg)
     {
-      return increment(std::move(arg).mean(), std::move(arg).covariance());
-    };
-
-    template<typename Arg, std::enable_if_t<is_Gaussian_distribution_v<Arg>, int> = 0>
-    auto& operator+=(Arg&& arg)
-    {
-      static_assert(OpenKalman::is_equivalent_v<typename DistributionTraits<Arg>::Coefficients, Coefficients>);
-      return increment(std::forward<Arg>(arg).mean(), std::forward<Arg>(arg).covariance());
-    };
-
-  protected:
-    template<typename M, typename C>
-    auto& decrement(M&& m, C&& c)
-    {
-      mu -= std::forward<M>(m);
-      sigma -= std::forward<C>(c);
+      mu -= arg.mean();
+      sigma -= arg.covariance();
       return *this;
-    };
-
-  public:
-    auto& operator-=(GaussianDistribution&& arg)
-    {
-      return decrement(std::move(arg).mean(), std::move(arg).covariance());
-    };
-
-    template<typename Arg, std::enable_if_t<is_Gaussian_distribution_v<Arg>, int> = 0>
-    auto& operator-=(Arg&& arg)
-    {
-      static_assert(OpenKalman::is_equivalent_v<typename DistributionTraits<Arg>::Coefficients, Coefficients>);
-      return decrement(std::forward<Arg>(arg).mean(), std::forward<Arg>(arg).covariance());
     };
 
     template<typename S, std::enable_if_t<std::is_convertible_v<S, const Scalar>, int> = 0>
@@ -233,6 +194,17 @@ namespace OpenKalman
      * Other
      *********/
 
+  protected:
+    template<typename M, typename C>
+    static auto
+    make(M&& m, C&& c)
+    {
+      using MB = strict_t<typename MatrixTraits<M>::BaseMatrix>;
+      using CB = strict_t<typename MatrixTraits<C>::BaseMatrix>;
+      return GaussianDistribution<Coefficients, MB, CB, random_number_engine>(std::forward<M>(m), std::forward<C>(c));
+    }
+
+  public:
     static constexpr auto zero() { return make(Mean::zero(), Covariance::zero()); }
 
     static constexpr auto normal() { return make(Mean::zero(), Covariance::identity()); }
@@ -515,7 +487,7 @@ namespace OpenKalman
 
     static auto zero() { return make(MatrixTraits<Mean>::zero(), MatrixTraits<Covariance>::zero()); }
 
-    static auto identity() { return make(MatrixTraits<Mean>::zero(), MatrixTraits<Covariance>::identity()); }
+    static auto normal() { return make(MatrixTraits<Mean>::zero(), MatrixTraits<Covariance>::identity()); }
   };
 
 
