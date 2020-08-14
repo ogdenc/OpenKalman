@@ -381,7 +381,9 @@ namespace OpenKalman
   /// Product of two diagonal matrices is also diagonal.
   template<typename Arg1, typename Arg2>
   struct is_diagonal<Eigen::Product<Arg1, Arg2>,
-    std::enable_if_t<(not is_zero_v<Arg1> or not is_zero_v<Arg2>) and (not is_identity_v<Arg1> or not is_identity_v<Arg2>)>>
+    std::enable_if_t<not((is_zero_v<Arg1> or is_zero_v<Arg2>) or
+      (is_identity_v<Arg1> and is_identity_v<Arg2>) or
+      (Arg1::RowsAtCompileTime == 1 and Arg2::ColsAtCompileTime == 1))>>
     : std::integral_constant<bool, is_diagonal_v<Arg1> and is_diagonal_v<Arg2>> {};
 
   /// Diagonal matrix times a scalar is also diagonal.
@@ -402,16 +404,20 @@ namespace OpenKalman
   template<typename Arg1, typename Arg2>
   struct is_diagonal<Eigen::CwiseBinaryOp<
     Eigen::internal::scalar_sum_op<typename Arg1::Scalar, typename Arg2::Scalar>, Arg1, Arg2>,
-    std::enable_if_t<not is_zero_v<Arg1> or not is_zero_v<Arg2>>>
+    std::enable_if_t<
+      not (is_zero_v<Arg1> and is_zero_v<Arg2>) and
+      not (is_identity_v<Arg1> and is_identity_v<Arg2>) and
+      not (is_1by1_v<Arg1> and is_1by1_v<Arg2>)>>
     : std::integral_constant<bool, is_diagonal_v<Arg1> and is_diagonal_v<Arg2>> {};
 
   /// Difference of two diagonal matrices is also diagonal.
   template<typename Arg1, typename Arg2>
   struct is_diagonal<Eigen::CwiseBinaryOp<
     Eigen::internal::scalar_difference_op<typename Arg1::Scalar, typename Arg2::Scalar>, Arg1, Arg2>,
-    std::enable_if_t<(not is_zero_v<Arg1> or not is_zero_v<Arg2>) and
-      (not is_identity_v<Arg1> or not is_identity_v<Arg2>) and
-      (not is_1by1_v<Arg1> and not is_1by1_v<Arg2>)>>
+    std::enable_if_t<
+      not (is_zero_v<Arg1> and is_zero_v<Arg2>) and
+      not (is_identity_v<Arg1> and is_identity_v<Arg2>) and
+      not (is_1by1_v<Arg1> and is_1by1_v<Arg2>)>>
     : std::integral_constant<bool, is_diagonal_v<Arg1> and is_diagonal_v<Arg2>> {};
 
   /// The negation of an identity matrix is diagonal.
