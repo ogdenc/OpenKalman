@@ -87,8 +87,7 @@ namespace OpenKalman
   }
 
 
-  template<typename Coefficients, typename Arg,
-    std::enable_if_t<is_Eigen_matrix_v<Arg>, int> = 0>
+  template<typename Coefficients, typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg>, int> = 0>
   constexpr decltype(auto)
   wrap_angles(Arg&& arg) noexcept
   {
@@ -104,7 +103,7 @@ namespace OpenKalman
   }
 
 
-  template<typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<is_native_Eigen_type_v<Arg>, int> = 0>
   inline auto
   to_diagonal(Arg&& arg) noexcept
   {
@@ -116,7 +115,7 @@ namespace OpenKalman
   }
 
 
-  template<typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<is_native_Eigen_type_v<Arg>, int> = 0>
   constexpr decltype(auto)
   transpose(Arg&& arg) noexcept
   {
@@ -127,7 +126,7 @@ namespace OpenKalman
   }
 
 
-  template<typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<is_native_Eigen_type_v<Arg>, int> = 0>
   constexpr decltype(auto)
   adjoint(Arg&& arg) noexcept
   {
@@ -205,7 +204,7 @@ namespace OpenKalman
    * Perform an LQ decomposition of matrix A=[L,0]Q, L is a lower-triangular matrix, and Q is orthogonal.
    * Returns L as a lower-triangular matrix.
    */
-  template<typename A, std::enable_if_t<is_Eigen_matrix_v<A>, int> = 0>
+  template<typename A, std::enable_if_t<is_native_Eigen_type_v<A>, int> = 0>
   inline auto
   LQ_decomposition(A&& a)
   {
@@ -233,7 +232,7 @@ namespace OpenKalman
    * Perform a QR decomposition of matrix A=Q[U,0], U is a upper-triangular matrix, and Q is orthogonal.
    * Returns U as an upper-triangular matrix.
    */
-  template<typename A, std::enable_if_t<is_Eigen_matrix_v<A>, int> = 0>
+  template<typename A, std::enable_if_t<is_native_Eigen_type_v<A>, int> = 0>
   inline auto
   QR_decomposition(A&& a)
   {

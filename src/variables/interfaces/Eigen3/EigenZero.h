@@ -79,6 +79,36 @@ namespace OpenKalman
 
 
   template<typename Arg, std::enable_if_t<is_EigenZero_v<Arg>, int> = 0>
+  inline auto
+  to_diagonal(Arg&& arg) noexcept
+  {
+    static_assert(MatrixTraits<Arg>::columns == 1);
+    constexpr auto dim = MatrixTraits<Arg>::dimension;
+    using B = typename MatrixTraits<Arg>::StrictMatrix<dim, dim>;
+    return EigenZero<B>();
+  }
+
+
+  template<typename Arg, std::enable_if_t<is_EigenZero_v<Arg>, int> = 0>
+  constexpr decltype(auto)
+  transpose(Arg&& arg) noexcept
+  {
+    constexpr auto rows = MatrixTraits<Arg>::dimension;
+    constexpr auto cols = MatrixTraits<Arg>::columns;
+    using B = typename MatrixTraits<Arg>::StrictMatrix<cols, rows>;
+    return EigenZero<B>();
+  }
+
+
+  template<typename Arg, std::enable_if_t<is_EigenZero_v<Arg>, int> = 0>
+  constexpr decltype(auto)
+  adjoint(Arg&& arg) noexcept
+  {
+    return transpose(std::forward<Arg>(arg));
+  }
+
+
+  template<typename Arg, std::enable_if_t<is_EigenZero_v<Arg>, int> = 0>
   constexpr auto
   determinant(Arg&& arg) noexcept
   {
@@ -110,6 +140,34 @@ namespace OpenKalman
       using Scalar = typename MatrixTraits<Arg>::Scalar;
       return EigenZero<Eigen::Matrix<Scalar, MatrixTraits<Arg>::dimension, 1>>();
     }
+  }
+
+
+  /**
+   * Perform an LQ decomposition of matrix A=[L,0]Q, L is a lower-triangular matrix, and Q is orthogonal.
+   * Returns L as a lower-triangular matrix.
+   */
+  template<typename A, std::enable_if_t<is_EigenZero_v<A>, int> = 0>
+  inline auto
+  LQ_decomposition(A&& a)
+  {
+    constexpr auto dim = MatrixTraits<A>::dimension;
+    using B = typename MatrixTraits<A>::StrictMatrix<dim, dim>;
+    return EigenZero<B>();
+  }
+
+
+  /**
+   * Perform a QR decomposition of matrix A=Q[U,0], U is a upper-triangular matrix, and Q is orthogonal.
+   * Returns U as an upper-triangular matrix.
+   */
+  template<typename A, std::enable_if_t<is_EigenZero_v<A>, int> = 0>
+  inline auto
+  QR_decomposition(A&& a)
+  {
+    constexpr auto dim = MatrixTraits<A>::columns;
+    using B = typename MatrixTraits<A>::StrictMatrix<dim, dim>;
+    return EigenZero<B>();
   }
 
 
