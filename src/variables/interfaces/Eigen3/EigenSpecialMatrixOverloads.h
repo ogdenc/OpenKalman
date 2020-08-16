@@ -54,6 +54,31 @@ namespace OpenKalman
   }
 
 
+  template<typename Arg, typename U,
+    std::enable_if_t<is_native_Eigen_type_v<Arg> and is_1by1_v<Arg> and
+      (is_Eigen_matrix_v<U> or is_EigenTriangularMatrix_v<U> or is_EigenSelfAdjointMatrix_v<U> or is_EigenDiagonal_v<U>) and
+      not std::is_const_v<std::remove_reference_t<Arg>>, int> = 0>
+  inline Arg&
+  rank_update(Arg& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
+  {
+    static_assert(MatrixTraits<U>::dimension == MatrixTraits<Arg>::dimension);
+    arg(0, 0) = std::sqrt(trace(arg) * trace(arg) + alpha * trace(u) * trace(u));
+    return arg;
+  }
+
+
+  template<typename Arg, typename U,
+    std::enable_if_t<is_native_Eigen_type_v<Arg> and is_1by1_v<Arg> and
+    (is_Eigen_matrix_v<U> or is_EigenTriangularMatrix_v<U> or is_EigenSelfAdjointMatrix_v<U> or is_EigenDiagonal_v<U>), int> = 0>
+  inline auto
+  rank_update(const Arg& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
+  {
+    static_assert(MatrixTraits<U>::dimension == MatrixTraits<Arg>::dimension);
+    auto b = std::sqrt(trace(arg) * trace(arg) + alpha * trace(u) * trace(u));
+    return Eigen::Matrix<typename MatrixTraits<Arg>::Scalar, 1, 1>(b);
+  }
+
+
   template<
     typename A, typename B,
     std::enable_if_t<is_EigenSelfAdjointMatrix_v<A> or is_EigenTriangularMatrix_v<A>, int> = 0,

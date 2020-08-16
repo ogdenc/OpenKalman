@@ -207,6 +207,10 @@ namespace OpenKalman
 
     auto operator()(std::size_t i) const { return operator[](i); }
 
+    static auto zero() { return MatrixTraits<Eigen::Matrix<Scalar, dimension, dimension>>::zero(); }
+
+    static auto identity() { return MatrixTraits<Eigen::Matrix<Scalar, dimension, dimension>>::identity(); }
+
   };
 
 
@@ -269,7 +273,7 @@ namespace OpenKalman
     template<std::size_t dim = dimension, typename S = Scalar>
     using DiagonalBaseType = EigenDiagonal<StrictMatrix<dim, 1, S>>;
 
-    template<typename Arg>
+    template<typename Arg, std::enable_if_t<not std::is_convertible_v<Arg, const Scalar>, int> = 0>
     static auto make(Arg&& arg) noexcept
     {
       static_assert(MatrixTraits<Arg>::columns == 1);
@@ -296,12 +300,9 @@ namespace OpenKalman
       return make(strict(MatrixTraits<StrictMatrix<>>::make(args...).diagonal()));
     }
 
-    static auto zero() { return MatrixTraits<StrictMatrix<>>::zero(); }
+    static auto zero() { return EigenDiagonal<BaseMatrix>::zero(); }
 
-    static auto identity()
-    {
-      return MatrixTraits<SelfAdjointBaseType<>>::make(MatrixTraits<StrictMatrix<>>::identity());
-    }
+    static auto identity() { return EigenDiagonal<BaseMatrix>::identity(); }
 
   };
 
@@ -362,6 +363,66 @@ namespace OpenKalman
   {
     static_assert(MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns);
     return base_matrix(std::forward<Arg>(arg)).sum();
+  }
+
+
+  template<typename Arg, typename U,
+    std::enable_if_t<is_EigenDiagonal_v<Arg> and is_EigenDiagonal_v<U> and
+      not std::is_const_v<std::remove_reference_t<Arg>>, int> = 0>
+  inline Arg&
+  rank_update(Arg& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
+  {
+    static_assert(MatrixTraits<U>::dimension == MatrixTraits<Arg>::dimension);
+    arg = (base_matrix(arg).array().square() + alpha * base_matrix(u).array().square()).sqrt().matrix();
+    return arg;
+  }
+
+
+  template<typename Arg, typename U,
+    std::enable_if_t<is_EigenDiagonal_v<Arg> and is_diagonal_v<U> and not is_EigenDiagonal_v<U> and
+      not std::is_const_v<std::remove_reference_t<Arg>>, int> = 0>
+  inline Arg&
+  rank_update(Arg& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
+  {
+    static_assert(MatrixTraits<U>::dimension == MatrixTraits<Arg>::dimension);
+    auto sa = EigenTriangularMatrix(strict_matrix(arg));
+    rank_update(sa, u, alpha);
+    arg = EigenDiagonal(strict_matrix(base_matrix(sa).diagonal()));
+    return arg;
+  }
+
+
+  template<typename Arg, typename U,
+    std::enable_if_t<is_EigenDiagonal_v<Arg> and is_EigenDiagonal_v<U>, int> = 0>
+  inline auto
+  rank_update(const Arg& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
+  {
+    static_assert(MatrixTraits<U>::dimension == MatrixTraits<Arg>::dimension);
+    auto sa = (base_matrix(arg).array().square() + alpha * base_matrix(u).array().square()).sqrt().matrix();
+    return EigenDiagonal(sa);
+  }
+
+
+  template<typename Arg, typename U,
+    std::enable_if_t<is_EigenDiagonal_v<Arg> and is_diagonal_v<U> and not is_EigenDiagonal_v<U>, int> = 0>
+  inline auto
+  rank_update(const Arg& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
+  {
+    static_assert(MatrixTraits<U>::dimension == MatrixTraits<Arg>::dimension);
+    auto sa = EigenTriangularMatrix(strict_matrix(arg));
+    rank_update(sa, u, alpha);
+    return EigenTriangularMatrix<std::decay_t<decltype(sa)>, TriangleType::diagonal>(sa);
+  }
+
+
+  template<typename Arg, typename U,
+    std::enable_if_t<is_EigenDiagonal_v<Arg> and not is_diagonal_v<U>, int> = 0>
+  inline auto
+  rank_update(const Arg& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
+  {
+    static_assert(MatrixTraits<U>::dimension == MatrixTraits<Arg>::dimension);
+    auto sa = EigenTriangularMatrix(strict_matrix(arg));
+    return rank_update(sa, u, alpha);
   }
 
 

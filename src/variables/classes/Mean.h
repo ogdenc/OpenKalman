@@ -27,7 +27,6 @@ namespace OpenKalman
     static_assert(is_typed_matrix_base_v<BaseMatrix>);
     static_assert(Base::dimension == Coefficients::size);
     using Scalar = typename MatrixTraits<BaseMatrix>::Scalar; ///< Scalar type for this variable.
-    using Base::base_matrix;
 
     /// Default constructor.
     Mean() : Base() {}
@@ -88,16 +87,18 @@ namespace OpenKalman
     Mean(Args ... args) : Mean(MatrixTraits<BaseMatrix>::make(args...)) {}
 
     /// Copy assignment operator.
-    Mean& operator=(const Mean& other)
+    auto& operator=(const Mean& other)
     {
-      this->base_matrix() = other.base_matrix();
+      if constexpr (not is_zero_v<BaseMatrix> and not is_identity_v<BaseMatrix>) if (this != &other)
+        this->base_matrix() = other.base_matrix();
       return *this;
     }
 
     /// Move assignment operator.
-    Mean& operator=(Mean&& other)
+    auto& operator=(Mean&& other)
     {
-      if (this != &other) this->base_matrix() = std::move(other).base_matrix();
+      if constexpr (not is_zero_v<BaseMatrix> and not is_identity_v<BaseMatrix>) if (this != &other)
+        this->base_matrix() = std::move(other).base_matrix();
       return *this;
     }
 
@@ -106,23 +107,46 @@ namespace OpenKalman
     auto& operator=(Arg&& other) noexcept
     {
       static_assert(is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>);
-      static_assert(is_equivalent_v<typename MatrixTraits<Arg>::ColumnCoefficients, typename Base::ColumnCoefficients>);
-      if constexpr (std::is_same_v<std::decay_t<Arg>, Mean>) if (this == &other) return *this;
-      if constexpr(is_mean_v<Arg>)
+      static_assert(MatrixTraits<Arg>::ColumnCoefficients::axes_only);
+      if constexpr (is_zero_v<BaseMatrix>)
+      {
+        static_assert(is_zero_v<Arg>);
+      }
+      else if constexpr (is_identity_v<BaseMatrix>)
+      {
+        static_assert(is_identity_v<Arg>);
+      }
+      else if constexpr(is_mean_v<Arg>)
+      {
         this->base_matrix() = std::forward<Arg>(other).base_matrix();
+      }
       else if constexpr(is_Euclidean_transformed_v<Arg>)
+      {
         this->base_matrix() = OpenKalman::from_Euclidean<Coefficients>(std::forward<Arg>(other).base_matrix());
+      }
       else
+      {
         this->base_matrix() = OpenKalman::wrap_angles<Coefficients>(std::forward<Arg>(other).base_matrix());
+      }
       return *this;
     }
 
     /// Increment from another mean.
+    auto& operator+=(const Mean& other)
+    {
+      if constexpr(Coefficients::axes_only)
+        this->base_matrix() += other.base_matrix();
+      else
+        this->base_matrix() = OpenKalman::wrap_angles<Coefficients>(this->base_matrix() + other.base_matrix());
+      return *this;
+    }
+
+    /// Increment from another typed matrix.
     template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg>, int> = 0>
     auto& operator+=(Arg&& other) noexcept
     {
       static_assert(is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>);
-      static_assert(is_equivalent_v<typename MatrixTraits<Arg>::ColumnCoefficients, typename Base::ColumnCoefficients>);
+      static_assert(MatrixTraits<Arg>::ColumnCoefficients::axes_only);
       static_assert(not is_Euclidean_transformed_v<Arg>);
       if constexpr(Coefficients::axes_only)
         this->base_matrix() += std::forward<Arg>(other).base_matrix();
@@ -146,11 +170,21 @@ namespace OpenKalman
     }
 
     /// Decrement from another mean.
+    auto& operator-=(const Mean& other)
+    {
+      if constexpr(Coefficients::axes_only)
+        this->base_matrix() -= other.base_matrix();
+      else
+        this->base_matrix() = OpenKalman::wrap_angles<Coefficients>(this->base_matrix() - other.base_matrix());
+      return *this;
+    }
+
+    /// Decrement from another typed matrix.
     template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg>, int> = 0>
     auto& operator-=(Arg&& other) noexcept
     {
       static_assert(is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>);
-      static_assert(is_equivalent_v<typename MatrixTraits<Arg>::ColumnCoefficients, typename Base::ColumnCoefficients>);
+      static_assert(MatrixTraits<Arg>::ColumnCoefficients::axes_only);
       static_assert(not is_Euclidean_transformed_v<Arg>);
       if constexpr(Coefficients::axes_only)
         this->base_matrix() -= std::forward<Arg>(other).base_matrix();

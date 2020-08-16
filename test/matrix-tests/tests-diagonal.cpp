@@ -15,6 +15,7 @@ using namespace OpenKalman;
 using Mat2 = Eigen::Matrix<double, 2, 2>;
 using Mat3 = Eigen::Matrix<double, 3, 3>;
 using Axis2 = Coefficients<Axis, Axis>;
+using M2 = TypedMatrix<Axes<2>, Axes<2>, Mat2>;
 
 TEST_F(matrix_tests, Diagonal_class)
 {
@@ -165,11 +166,32 @@ TEST_F(matrix_tests, Diagonal_overloads)
   EXPECT_TRUE(is_near(adjoint(EigenDiagonal {1., 2, 3}), EigenDiagonal {1., 2, 3}));
   EXPECT_NEAR(determinant(EigenDiagonal {2., 3, 4}), 24, 1e-6);
   EXPECT_NEAR(trace(EigenDiagonal {2., 3, 4}), 9, 1e-6);
+  //
+  auto s2 = EigenDiagonal {3., 3};
+  rank_update(s2, EigenDiagonal {2., 2}, 4);
+  EXPECT_TRUE(is_near(s2, M2 {5., 0, 0, 5}));
+  s2 = EigenDiagonal {3., 3};
+  rank_update(s2, 2 * Mat2::Identity(), 4);
+  EXPECT_TRUE(is_near(s2, M2 {5., 0, 0, 5}));
+  //
+  using M1by1 = Eigen::Matrix<double, 1, 1>;
+  auto s2a = M1by1 {3.};
+  rank_update(s2a, M1by1 {2.}, 4);
+  EXPECT_TRUE(is_near(s2a, M1by1 {5.}));
+  //
+  EXPECT_TRUE(is_near(rank_update(EigenDiagonal {3., 3}, EigenDiagonal {2., 2}, 4), M2 {5., 0, 0, 5}));
+  EXPECT_TRUE(is_near(rank_update(EigenDiagonal {3., 3}, 2 * Mat2::Identity(), 4), M2 {5., 0, 0, 5}));
+  EXPECT_TRUE(is_near(rank_update(EigenDiagonal {3., 3}, (Mat2() << 2, 0, 0, 2).finished(), 4), M2 {5., 0, 0, 5}));
+  //
+  EXPECT_TRUE(is_near(rank_update(M1by1 {3.}, M1by1 {2.}, 4), M1by1 {5.}));
+  //
   EXPECT_TRUE(is_near(solve(EigenDiagonal {1., 2, 3}, (Eigen::Matrix<double, 3, 1>() << 4., 10, 18).finished()),
     Mean {4., 5, 6}));
   EXPECT_TRUE(is_near(reduce_columns(EigenDiagonal {1., 2, 3}), Mean {1., 2, 3}));
   EXPECT_TRUE(is_near(LQ_decomposition(EigenDiagonal {1., 2, 3}), EigenDiagonal {1., 2, 3}));
   EXPECT_TRUE(is_near(QR_decomposition(EigenDiagonal {1., 2, 3}), EigenDiagonal {1., 2, 3}));
+  EXPECT_TRUE(is_near(LQ_decomposition(M1by1 {4}), EigenDiagonal {4.}));
+  EXPECT_TRUE(is_near(QR_decomposition(M1by1 {4}), EigenDiagonal {4.}));
 
   using Mat = EigenDiagonal<Eigen::Matrix<double, 2, 1>>;
   Mat m = MatrixTraits<Mat>::zero();

@@ -511,7 +511,8 @@ namespace OpenKalman
   }
 
 
-  template<typename Arg, std::enable_if_t<is_Gaussian_distribution_v<Arg> and not is_Cholesky_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<is_Gaussian_distribution_v<Arg> and not is_Cholesky_v<Arg> and
+    not is_diagonal_v<Arg>, int> = 0>
   inline auto
   to_Cholesky(Arg&& arg) noexcept
   {
@@ -520,7 +521,8 @@ namespace OpenKalman
   }
 
 
-  template<typename Arg, std::enable_if_t<is_Gaussian_distribution_v<Arg> and is_Cholesky_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<is_Gaussian_distribution_v<Arg> and is_Cholesky_v<Arg> and
+    not is_diagonal_v<Arg>, int> = 0>
   inline auto
   from_Cholesky(Arg&& arg) noexcept
   {

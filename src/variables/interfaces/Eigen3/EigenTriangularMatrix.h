@@ -57,14 +57,20 @@ namespace OpenKalman
     /// Copy assignment operator
     auto& operator=(const EigenTriangularMatrix& other)
     {
-      if (this != &other) this->base_matrix().template triangularView<uplo>() = other.base_matrix();
+      if constexpr (not is_zero_v<BaseMatrix> and not is_identity_v<BaseMatrix>) if (this != &other)
+      {
+        this->base_matrix().template triangularView<uplo>() = other.base_matrix();
+      }
       return *this;
     }
 
     /// Move assignment operator
     auto& operator=(EigenTriangularMatrix&& other) noexcept
     {
-      if (this != &other) this->base_matrix() = std::move(other).base_matrix();
+      if constexpr (not is_zero_v<BaseMatrix> and not is_identity_v<BaseMatrix>) if (this != &other)
+      {
+        this->base_matrix() = std::move(other).base_matrix();
+      }
       return *this;
     }
 
@@ -74,8 +80,15 @@ namespace OpenKalman
     auto& operator=(Arg&& arg)
     {
       static_assert(is_upper_triangular_v<Arg> == is_upper_triangular_v<EigenTriangularMatrix>);
-      if constexpr (std::is_same_v<std::decay_t<Arg>, EigenTriangularMatrix>) if (this == &arg) return *this;
-      if constexpr(std::is_lvalue_reference_v<Arg>)
+      if constexpr (is_zero_v<BaseMatrix>)
+      {
+        static_assert(is_zero_v<Arg>);
+      }
+      else if constexpr (is_identity_v<BaseMatrix>)
+      {
+        static_assert(is_identity_v<Arg>);
+      }
+      else if constexpr(std::is_lvalue_reference_v<Arg>)
       {
         this->base_matrix().template triangularView<uplo>() = base_matrix(arg);
       }
@@ -90,8 +103,19 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<is_EigenSelfAdjointMatrix_v<Arg>, int> = 0>
     auto& operator=(Arg&& arg)
     {
-      this->base_matrix().template triangularView<uplo>() =
-        base_matrix(Cholesky_factor<triangle_type>(std::forward<Arg>(arg)));
+      if constexpr (is_zero_v<BaseMatrix>)
+      {
+        static_assert(is_zero_v<Arg>);
+      }
+      else if constexpr (is_identity_v<BaseMatrix>)
+      {
+        static_assert(is_identity_v<Arg>);
+      }
+      else
+      {
+        this->base_matrix().template triangularView<uplo>() =
+          base_matrix(Cholesky_factor<triangle_type>(std::forward<Arg>(arg)));
+      }
       return *this;
     }
 
@@ -99,12 +123,22 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg>, int> = 0>
     auto& operator=(Arg&& arg)
     {
-      if constexpr(std::is_lvalue_reference_v<Arg>)
+      if constexpr (is_zero_v<BaseMatrix>)
+      {
+        static_assert(is_zero_v<Arg>);
+      }
+      else if constexpr (is_identity_v<BaseMatrix>)
+      {
+        static_assert(is_identity_v<Arg>);
+      }
+      else if constexpr(std::is_lvalue_reference_v<Arg>)
       {
         this->base_matrix().template triangularView<uplo>() = arg;
       }
       else
+      {
         this->base_matrix() = std::forward<Arg>(arg);
+      }
       return *this;
     }
 
@@ -112,10 +146,22 @@ namespace OpenKalman
     template<typename Arg, unsigned int UpLo>
     auto& operator=(const Eigen::TriangularView<Arg, UpLo>& arg)
     {
-      if constexpr(((UpLo & Eigen::Lower) != 0) == (triangle_type == TriangleType::lower))
+      if constexpr (is_zero_v<BaseMatrix>)
+      {
+        static_assert(is_zero_v<Arg>);
+      }
+      else if constexpr (is_identity_v<BaseMatrix>)
+      {
+        static_assert(is_identity_v<Arg>);
+      }
+      else if constexpr(((UpLo & Eigen::Lower) != 0) == (triangle_type == TriangleType::lower))
+      {
         this->base_matrix().template triangularView<UpLo>() = arg.nestedExpression();
+      }
       else
+      {
         this->base_matrix().template triangularView<UpLo>() = arg.nestedExpression().adjoint();
+      }
       return *this;
     }
 
@@ -123,7 +169,18 @@ namespace OpenKalman
     template<typename Arg>
     auto& operator=(Eigen::TriangularView<Arg, uplo>&& arg) noexcept
     {
-      this->base_matrix() = std::move(arg.nestedExpression());
+      if constexpr (is_zero_v<BaseMatrix>)
+      {
+        static_assert(is_zero_v<Arg>);
+      }
+      else if constexpr (is_identity_v<BaseMatrix>)
+      {
+        static_assert(is_identity_v<Arg>);
+      }
+      else
+      {
+        this->base_matrix() = std::move(arg.nestedExpression());
+      }
       return *this;
     }
 
@@ -213,6 +270,14 @@ namespace OpenKalman
       return this->base_view().solve(b);
     }
 
+    static auto zero() { return MatrixTraits<BaseMatrix>::zero(); }
+
+    static auto identity()
+    {
+      auto b = MatrixTraits<BaseMatrix>::identity();
+      return EigenTriangularMatrix<std::decay_t<decltype(b)>, TriangleType::diagonal>(std::move(b));
+    }
+
   private:
     View view;
   };
@@ -281,7 +346,8 @@ namespace OpenKalman
     template<std::size_t dim = dimension, typename S = Scalar>
     using DiagonalBaseType = EigenDiagonal<StrictMatrix<dim, 1, S>>;
 
-    template<TriangleType t = triangle_type, typename Arg>
+    template<TriangleType t = triangle_type, typename Arg,
+      std::enable_if_t<not std::is_convertible_v<Arg, const Scalar>, int> = 0>
     static auto make(Arg&& arg) noexcept
     {
       return EigenTriangularMatrix<std::decay_t<Arg>, t>(std::forward<Arg>(arg));
@@ -297,9 +363,10 @@ namespace OpenKalman
       return make<t>(MatrixTraits<BaseMatrix>::make(args...));
     }
 
-    static auto zero() { return MatrixTraits<BaseMatrix>::zero(); }
+    static auto zero() { return EigenTriangularMatrix<BaseMatrix, triangle_type>::zero(); }
 
-    static auto identity() { return make<TriangleType::diagonal>(MatrixTraits<BaseMatrix>::identity()); }
+    static auto identity() { return EigenTriangularMatrix<BaseMatrix, triangle_type>::identity(); }
+
   };
 
 

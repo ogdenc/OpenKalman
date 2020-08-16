@@ -45,10 +45,9 @@ namespace OpenKalman::internal
       return std::forward<Arg>(arg).get_apparent_base_matrix();
     }
 
-    // strictly triangular or diagonal square root --> strictly self-adjoint
-    else if constexpr(is_self_adjoint_v<T> and not is_diagonal_v<T> and
-      ((is_triangular_v<ArgBase> and not is_diagonal_v<ArgBase>) or
-      (is_square_root_v<Arg> and is_diagonal_v<ArgBase>)))
+    // strictly triangular or diagonal square root --> self-adjoint
+    else if constexpr(((is_triangular_v<ArgBase> and not is_diagonal_v<ArgBase>) or
+      (is_square_root_v<Arg> and is_diagonal_v<ArgBase>)) and is_self_adjoint_v<T> and not is_diagonal_v<T>)
     {
       if constexpr((is_self_adjoint_v<ArgBase> and not is_square_root_v<Arg>) or
         (is_triangular_v<ArgBase> and is_square_root_v<Arg>))
@@ -58,9 +57,8 @@ namespace OpenKalman::internal
     }
 
     // strictly self-adjoint or diagonal non-square root --> strictly triangular
-    else if constexpr(is_triangular_v<T> and not is_diagonal_v<T> and
-      ((not is_diagonal_v<ArgBase> and not is_triangular_v<ArgBase>) or
-        (is_diagonal_v<ArgBase> and not is_square_root_v<Arg> )))
+    else if constexpr(((not is_diagonal_v<ArgBase> and not is_triangular_v<ArgBase>) or
+        (is_diagonal_v<ArgBase> and not is_square_root_v<Arg> )) and is_triangular_v<T> and not is_diagonal_v<T>)
     {
       if constexpr(is_diagonal_v<ArgBase>) // diagonal non-square root
       {
@@ -87,8 +85,8 @@ namespace OpenKalman::internal
     }
 
     // upper triangular <--> lower triangular
-    else if constexpr(is_triangular_v<T> and is_Cholesky_v<Arg>
-      and is_upper_triangular_v<T> != is_upper_triangular_v<ArgBase>)
+    else if constexpr(is_Cholesky_v<Arg> and is_triangular_v<T>
+      and is_upper_triangular_v<ArgBase> != is_upper_triangular_v<T>)
     {
       return adjoint(std::forward<Arg>(arg).base_matrix());
     }

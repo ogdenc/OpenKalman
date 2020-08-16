@@ -662,7 +662,7 @@ TEST_F(typed_matrix_tests, GaussianDistribution_traits)
   EXPECT_TRUE(is_near(DistributionTraits<DistSA2l>::make(Mean2 {1, 2}, CovSA2l {9, 3, 3, 10}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
   EXPECT_TRUE(is_near(DistributionTraits<DistSA2l>::make(Mean2 {1, 2}, SA2l {9, 3, 3, 10}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
   EXPECT_TRUE(is_near(DistributionTraits<DistSA2l>::zero(), distz2));
-  EXPECT_TRUE(is_near(DistributionTraits<DistSA2l>::identity(), disti2));
+  EXPECT_TRUE(is_near(DistributionTraits<DistSA2l>::normal(), disti2));
 }
 
 
@@ -684,9 +684,6 @@ TEST_F(typed_matrix_tests, GaussianDistribution_overloads)
   EXPECT_TRUE(is_near(base_matrix(covariance(to_Cholesky(DistSA2u {{1, 2}, {9, 3, 3, 10}}))), Mat2 {3, 1, 0, 3}));
   EXPECT_TRUE(is_near(base_matrix(covariance(from_Cholesky(DistT2l {{1, 2}, {9, 3, 3, 10}}))), Mat2 {9, 3, 3, 10}));
   EXPECT_TRUE(is_near(base_matrix(covariance(from_Cholesky(DistT2u {{1, 2}, {9, 3, 3, 10}}))), Mat2 {9, 3, 3, 10}));
-  EXPECT_TRUE(is_near(base_matrix(covariance(to_Cholesky(DistD2 {{1, 2}, {4, 9}}))), Mat2 {2, 0, 0, 3}));
-  EXPECT_TRUE(is_near(base_matrix(covariance(to_Cholesky(disti2))), Mat2 {1, 0, 0, 1}));
-  EXPECT_TRUE(is_near(base_matrix(covariance(to_Cholesky(distz2))), Mat2 {0, 0, 0, 0}));
 
   static_assert(std::is_same_v<std::decay_t<decltype(strict(DistSA2l {Mean2 {1, 2} * 2, CovSA2l{9, 3, 3, 10} * 2}))>, DistSA2l>);
   static_assert(std::is_same_v<std::decay_t<decltype(strict(DistSA2u {Mean2 {1, 2} * 2, CovSA2u{9, 3, 3, 10} * 2}))>, DistSA2u>);
@@ -766,14 +763,14 @@ TEST_F(typed_matrix_tests, GaussianDistribution_mult_div)
 {
   auto a = GaussianDistribution(make_Mean<C2>(2., 30), make_Covariance<C2>(8., 2, 2, 6));
   auto a_chol = GaussianDistribution(make_Mean<C2>(2., 30), make_Covariance<C2, TriangleType::lower>(8., 2, 2, 6));
-  auto f_matrix = make_Matrix<C3, C2>(1, 2, 3, 4, 5, 6);
+  auto f_matrix = make_Matrix<C3, C2>(1., 2, 3, 4, 5, 6);
   auto a_scaled3 = f_matrix * a;
   EXPECT_TRUE(is_near(mean(a_scaled3), make_Mean<C3>(62., 126, 190)));
-  EXPECT_TRUE(is_near(covariance(a_scaled3), make_Matrix<C3, C3>(40, 92, 144, 92, 216, 340, 144, 340, 536)));
+  EXPECT_TRUE(is_near(covariance(a_scaled3), make_Matrix<C3, C3>(40., 92, 144, 92, 216, 340, 144, 340, 536)));
   static_assert(is_equivalent_v<typename decltype(a_scaled3)::Coefficients, C3>);
   auto a_chol_scaled3 = f_matrix * a_chol;
   EXPECT_TRUE(is_near(mean(a_chol_scaled3), make_Mean<C3>(62., 126, 190)));
-  EXPECT_TRUE(is_near(covariance(a_chol_scaled3), make_Matrix<C3, C3>(40, 92, 144, 92, 216, 340, 144, 340, 536)));
+  EXPECT_TRUE(is_near(covariance(a_chol_scaled3), make_Matrix<C3, C3>(40., 92, 144, 92, 216, 340, 144, 340, 536)));
   static_assert(is_equivalent_v<typename decltype(a_chol_scaled3)::Coefficients, C3>);
 
   Eigen::Matrix<double, 2, 2> cov_mat; cov_mat << 8, 2, 2, 6;

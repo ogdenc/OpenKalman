@@ -21,6 +21,7 @@ using SA2u = EigenSelfAdjointMatrix<M2, TriangleType::upper>;
 using T2l = EigenTriangularMatrix<M2, TriangleType::lower>;
 using T2u = EigenTriangularMatrix<M2, TriangleType::upper>;
 using D2 = EigenDiagonal<Eigen::Matrix<double, 2, 1>>;
+using D1 = Eigen::Matrix<double, 1, 1>;
 using I2 = EigenIdentity<M2>;
 using Z2 = EigenZero<M2>;
 using CovSA2l = Covariance<C, SA2l>;
@@ -28,6 +29,7 @@ using CovSA2u = Covariance<C, SA2u>;
 using CovT2l = Covariance<C, T2l>;
 using CovT2u = Covariance<C, T2u>;
 using CovD2 = Covariance<C, D2>;
+using CovD1 = Covariance<Axis, D1>;
 using CovI2 = Covariance<C, I2>;
 using CovZ2 = Covariance<C, Z2>;
 using SqCovSA2l = SquareRootCovariance<C, SA2l>;
@@ -35,6 +37,7 @@ using SqCovSA2u = SquareRootCovariance<C, SA2u>;
 using SqCovT2l = SquareRootCovariance<C, T2l>;
 using SqCovT2u = SquareRootCovariance<C, T2u>;
 using SqCovD2 = SquareRootCovariance<C, D2>;
+using SqCovD1 = SquareRootCovariance<Axis, D1>;
 using SqCovI2 = SquareRootCovariance<C, I2>;
 using SqCovZ2 = SquareRootCovariance<C, Z2>;
 
@@ -188,6 +191,10 @@ TEST_F(covariance_tests, Covariance_class)
   EXPECT_TRUE(is_near(cut4dX, Mat2 {4, 0, 0, 9}));
   CovT2u cut4iX(SqCovI2 {i2});
   EXPECT_TRUE(is_near(cut4iX, Mat2 {1, 0, 0, 1}));
+  CovD2 cd4d2X(SqCovD2 {2, 3});
+  EXPECT_TRUE(is_near(cd4d2X, D2 {4, 9}));
+  CovD1 cd4d1X(SqCovD1 {2});
+  EXPECT_TRUE(is_near(cd4d1X, D1 {4}));
 
   // Construct from a covariance base
   CovSA2l clsasa5(SA2u {9, 3, 3, 10});
@@ -352,6 +359,10 @@ TEST_F(covariance_tests, Covariance_class)
   EXPECT_TRUE(is_near(cut5d, Mat2 {9, 0, 0, 16}));
   clt5i = SqCovI2 {i2};
   EXPECT_TRUE(is_near(clt5i, Mat2 {1, 0, 0, 1}));
+  cd4d2X = SqCovD2 {3, 4};
+  EXPECT_TRUE(is_near(cd4d2X, D2 {9, 16}));
+  cd4d1X = SqCovD1 {3};
+  EXPECT_TRUE(is_near(cd4d1X, D1 {9}));
 
   // Assign from a list of coefficients (via move assignment operator)
   clsa8 = {9, 3, 3, 10};
@@ -365,10 +376,10 @@ TEST_F(covariance_tests, Covariance_class)
   cd8 = {3, 4};
   EXPECT_TRUE(is_near(cd8, Mat2 {3, 0, 0, 4}));
 
+  // Increment
   clsasa4 += {9, 3, 3, 10};
   clsasa4 -= {9, 3, 3, 10};
 
-  // Increment
   clsasa4 += CovSA2u {9, 3, 3, 10};
   EXPECT_TRUE(is_near(clsasa4, Mat2 {13, 5, 5, 15}));
   cusasa4 += CovSA2l {4, 2, 2, 5};
@@ -833,12 +844,6 @@ TEST_F(covariance_tests, Covariance_overloads)
   EXPECT_TRUE(is_near(to_Cholesky(CovSA2u {9, 3, 3, 10}).base_matrix(), Mat2 {3, 1, 0, 3}));
   EXPECT_TRUE(is_near(from_Cholesky(CovT2l {9, 3, 3, 10}).base_matrix(), Mat2 {9, 3, 3, 10}));
   EXPECT_TRUE(is_near(from_Cholesky(CovT2u {9, 3, 3, 10}).base_matrix(), Mat2 {9, 3, 3, 10}));
-  EXPECT_TRUE(is_near(to_Cholesky(CovD2 {4, 9}).base_matrix(), Mat2 {2, 0, 0, 3}));
-  EXPECT_TRUE(is_near(from_Cholesky(CovD2 {4, 9}).base_matrix(), Mat2 {16, 0, 0, 81}));
-  EXPECT_TRUE(is_near(to_Cholesky(CovI2(i2)).base_matrix(), Mat2 {1, 0, 0, 1}));
-  EXPECT_TRUE(is_near(from_Cholesky(CovI2(i2)).base_matrix(), Mat2 {1, 0, 0, 1}));
-  EXPECT_TRUE(is_near(to_Cholesky(CovZ2()).base_matrix(), Mat2 {0, 0, 0, 0}));
-  EXPECT_TRUE(is_near(from_Cholesky(CovZ2()).base_matrix(), Mat2 {0, 0, 0, 0}));
 
   EXPECT_TRUE(is_near(strict_matrix(CovSA2l {9, 3, 3, 10}), Mat2 { 9, 3, 3, 10}));
   EXPECT_TRUE(is_near(strict_matrix(CovSA2u {9, 3, 3, 10}), Mat2 { 9, 3, 3, 10}));

@@ -27,7 +27,14 @@ namespace OpenKalman
     using Scalar = typename MatrixTraits<BaseMatrix>::Scalar; ///< Scalar type for this variable.
     static constexpr auto columns = MatrixTraits<BaseMatrix>::columns; ///< Number of columns.
 
-    using Base::Base;
+    /// Default constructor.
+    FromEuclideanExpr() : Base() {}
+
+    /// Copy constructor.
+    FromEuclideanExpr(const FromEuclideanExpr& other) : Base(other.base_matrix()) {}
+
+    /// Move constructor.
+    FromEuclideanExpr(FromEuclideanExpr&& other) noexcept : Base(std::move(other).base_matrix()) {}
 
     /// Convert from a compatible from-euclidean expression.
     template<typename Arg, std::enable_if_t<is_FromEuclideanExpr_v<Arg>, int> = 0>
@@ -57,7 +64,21 @@ namespace OpenKalman
     template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...>, int> = 0>
     FromEuclideanExpr(Args ... args) : Base(MatrixTraits<BaseMatrix>::make(args...)) {}
 
-    using Base::operator=;
+    /// Copy assignment operator.
+    auto& operator=(const FromEuclideanExpr& other)
+    {
+      if constexpr (not is_zero_v<BaseMatrix> and not is_identity_v<BaseMatrix>) if (this != &other)
+        this->base_matrix() = other.base_matrix();
+      return *this;
+    }
+
+    /// Move assignment operator.
+    auto& operator=(FromEuclideanExpr&& other) noexcept
+    {
+      if constexpr (not is_zero_v<BaseMatrix> and not is_identity_v<BaseMatrix>) if (this != &other)
+        this->base_matrix() = std::move(other).base_matrix();
+      return *this;
+    }
 
     /// Assign from a compatible from-Euclidean expression.
     template<typename Arg, std::enable_if_t<is_FromEuclideanExpr_v<Arg>, int> = 0>
@@ -65,8 +86,18 @@ namespace OpenKalman
     {
       static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::Coefficients, Coefficients>);
       static_assert(MatrixTraits<Arg>::columns == columns);
-      if constexpr (std::is_same_v<std::decay_t<Arg>, FromEuclideanExpr>) if (this == &other) return *this;
-      this->base_matrix() = std::forward<Arg>(other).base_matrix();
+      if constexpr (is_zero_v<BaseMatrix>)
+      {
+        static_assert(is_zero_v<Arg>);
+      }
+      else if constexpr (is_identity_v<BaseMatrix>)
+      {
+        static_assert(is_identity_v<Arg>);
+      }
+      else
+      {
+        this->base_matrix() = std::forward<Arg>(other).base_matrix();
+      }
       return *this;
     }
 
@@ -76,7 +107,18 @@ namespace OpenKalman
     {
       static_assert(MatrixTraits<Arg>::dimension == Coefficients::size);
       static_assert(MatrixTraits<Arg>::columns == columns);
-      this->base_matrix() = to_Euclidean<Coefficients>(std::forward<Arg>(arg));
+      if constexpr (is_zero_v<BaseMatrix>)
+      {
+        static_assert(is_zero_v<Arg>);
+      }
+      else if constexpr (is_identity_v<BaseMatrix>)
+      {
+        static_assert(is_identity_v<Arg>);
+      }
+      else
+      {
+        this->base_matrix() = to_Euclidean<Coefficients>(std::forward<Arg>(arg));
+      }
       return *this;
     }
 

@@ -57,8 +57,17 @@ namespace OpenKalman
     Covariance(Covariance&& other) noexcept : Base(std::move(other)) {}
 
     /// Convert from a general covariance type.
-    template<typename M, std::enable_if_t<is_covariance_v<M>, int> = 0>
+    template<typename M, std::enable_if_t<is_covariance_v<M> and
+      not (is_diagonal_v<M> and is_square_root_v<M> and is_diagonal_v<BaseMatrix>), int> = 0>
     Covariance(M&& m) noexcept : Base(std::forward<M>(m))
+    {
+      static_assert(is_equivalent_v<typename MatrixTraits<M>::Coefficients, Coefficients>);
+    }
+
+    /// Convert from a diagonal square-root covariance type.
+    template<typename M, std::enable_if_t<is_covariance_v<M> and
+      is_diagonal_v<M> and is_square_root_v<M> and is_diagonal_v<BaseMatrix>, int> = 0>
+    Covariance(M&& m) noexcept : Base(Cholesky_square(std::forward<M>(m).base_matrix()))
     {
       static_assert(is_equivalent_v<typename MatrixTraits<M>::Coefficients, Coefficients>);
     }
@@ -138,6 +147,11 @@ namespace OpenKalman
       else if constexpr (is_identity_v<BaseMatrix>)
       {
         static_assert(is_identity_v<Arg>);
+      }
+      else if constexpr(is_covariance_v<Arg> and
+        is_diagonal_v<Arg> and is_square_root_v<Arg> and is_diagonal_v<BaseMatrix>)
+      {
+        Base::operator=(Cholesky_square(std::forward<Arg>(other).base_matrix()));
       }
       else
       {

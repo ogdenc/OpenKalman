@@ -205,26 +205,32 @@ namespace OpenKalman
    * Returns L as a lower-triangular matrix.
    */
   template<typename A, std::enable_if_t<is_native_Eigen_type_v<A>, int> = 0>
-  inline auto
+  constexpr auto
   LQ_decomposition(A&& a)
   {
-    using Scalar = typename MatrixTraits<A>::Scalar;
-    constexpr auto dim = MatrixTraits<A>::dimension, col = MatrixTraits<A>::columns;
-    using MatrixType = Eigen::Matrix<Scalar, col, dim>;
-    using ResultType = Eigen::Matrix<Scalar, dim, dim>;
-    if constexpr(is_1by1_v<A>) return std::forward<A>(a);
-    Eigen::HouseholderQR<MatrixType> QR(std::forward<A>(a).adjoint());
-    ResultType ret;
-    if constexpr(col < dim)
+    if constexpr(is_diagonal_v<A> or is_lower_triangular_v<A>)
     {
-      ret << QR.matrixQR().template topRows<col>().adjoint(), Eigen::Matrix<Scalar, dim, dim - col>::Zero();
+      return std::forward<A>(a);
     }
     else
     {
-      ret = QR.matrixQR().template topRows<dim>().adjoint();
+      using Scalar = typename MatrixTraits<A>::Scalar;
+      constexpr auto dim = MatrixTraits<A>::dimension, col = MatrixTraits<A>::columns;
+      using MatrixType = Eigen::Matrix<Scalar, col, dim>;
+      using ResultType = Eigen::Matrix<Scalar, dim, dim>;
+      Eigen::HouseholderQR<MatrixType> QR(std::forward<A>(a).adjoint());
+      ResultType ret;
+      if constexpr(col < dim)
+      {
+        ret << QR.matrixQR().template topRows<col>().adjoint(), Eigen::Matrix<Scalar, dim, dim - col>::Zero();
+      }
+      else
+      {
+        ret = QR.matrixQR().template topRows<dim>().adjoint();
+      }
+      using TType = typename MatrixTraits<ResultType>::template TriangularBaseType<TriangleType::lower>;
+      return MatrixTraits<TType>::make(std::move(ret));
     }
-    using TType = typename MatrixTraits<ResultType>::template TriangularBaseType<TriangleType::lower>;
-    return MatrixTraits<TType>::make(std::move(ret));
   }
 
 
@@ -233,26 +239,32 @@ namespace OpenKalman
    * Returns U as an upper-triangular matrix.
    */
   template<typename A, std::enable_if_t<is_native_Eigen_type_v<A>, int> = 0>
-  inline auto
+  constexpr auto
   QR_decomposition(A&& a)
   {
-    using Scalar = typename MatrixTraits<A>::Scalar;
-    constexpr auto dim = MatrixTraits<A>::dimension, col = MatrixTraits<A>::columns;
-    using MatrixType = Eigen::Matrix<Scalar, dim, col>;
-    using ResultType = Eigen::Matrix<Scalar, col, col>;
-    if constexpr(is_1by1_v<A>) return std::forward<A>(a);
-    Eigen::HouseholderQR<MatrixType> QR(std::forward<A>(a));
-    ResultType ret;
-    if constexpr(dim < col)
+    if constexpr(is_diagonal_v<A> or is_upper_triangular_v<A>)
     {
-      ret << QR.matrixQR().template topRows<dim>(), Eigen::Matrix<Scalar, col - dim, col>::Zero();
+      return std::forward<A>(a);
     }
     else
     {
-      ret = QR.matrixQR().template topRows<col>();
+      using Scalar = typename MatrixTraits<A>::Scalar;
+      constexpr auto dim = MatrixTraits<A>::dimension, col = MatrixTraits<A>::columns;
+      using MatrixType = Eigen::Matrix<Scalar, dim, col>;
+      using ResultType = Eigen::Matrix<Scalar, col, col>;
+      Eigen::HouseholderQR<MatrixType> QR(std::forward<A>(a));
+      ResultType ret;
+      if constexpr(dim < col)
+      {
+        ret << QR.matrixQR().template topRows<dim>(), Eigen::Matrix<Scalar, col - dim, col>::Zero();
+      }
+      else
+      {
+        ret = QR.matrixQR().template topRows<col>();
+      }
+      using TType = typename MatrixTraits<ResultType>::template TriangularBaseType<TriangleType::upper>;
+      return MatrixTraits<TType>::make(std::move(ret));
     }
-    using TType = typename MatrixTraits<ResultType>::template TriangularBaseType<TriangleType::upper>;
-    return MatrixTraits<TType>::make(std::move(ret));
   }
 
 

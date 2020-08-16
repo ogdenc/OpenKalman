@@ -54,7 +54,7 @@ namespace OpenKalman
 
 
   template<typename Arg,
-    std::enable_if_t<is_covariance_v<Arg> and (not is_Cholesky_v<Arg> or is_diagonal_v<Arg>), int> = 0>
+    std::enable_if_t<is_covariance_v<Arg> and not is_Cholesky_v<Arg> and not is_diagonal_v<Arg>, int> = 0>
   inline auto
   to_Cholesky(Arg&& arg) noexcept
   {
@@ -63,7 +63,7 @@ namespace OpenKalman
 
 
   template<typename Arg,
-    std::enable_if_t<is_covariance_v<Arg> and (is_Cholesky_v<Arg> or is_diagonal_v<Arg>), int> = 0>
+    std::enable_if_t<is_covariance_v<Arg> and is_Cholesky_v<Arg> and not is_diagonal_v<Arg>, int> = 0>
   inline auto
   from_Cholesky(Arg&& arg) noexcept
   {
@@ -187,7 +187,8 @@ namespace OpenKalman
   LQ_decomposition(A&& a)
   {
     using C = typename MatrixTraits<A>::Coefficients;
-    return make_SquareRootCovariance<C>(LQ_decomposition(convert_base_matrix(std::forward<A>(a))));
+    auto tm = LQ_decomposition(convert_base_matrix(std::forward<A>(a)));
+    return make_SquareRootCovariance<C>(std::move(tm));
   }
 
 
@@ -198,7 +199,8 @@ namespace OpenKalman
   QR_decomposition(A&& a)
   {
     using C = typename MatrixTraits<A>::Coefficients;
-    return make_SquareRootCovariance<C>(QR_decomposition(convert_base_matrix(std::forward<A>(a))));
+    auto tm = QR_decomposition(convert_base_matrix(std::forward<A>(a)));
+    return make_SquareRootCovariance<C>(std::move(tm));
   }
 
 

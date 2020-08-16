@@ -283,6 +283,14 @@ namespace OpenKalman
       return ret;
     }
 
+    static auto zero() { return MatrixTraits<BaseMatrix>::zero(); }
+
+    static auto identity()
+    {
+      auto b = MatrixTraits<BaseMatrix>::identity();
+      return EigenSelfAdjointMatrix<std::decay_t<decltype(b)>, TriangleType::diagonal>(std::move(b));
+    }
+
   private:
     View view;
   };
@@ -351,7 +359,8 @@ namespace OpenKalman
     template<std::size_t dim = dimension, typename S = Scalar>
     using DiagonalBaseType = EigenDiagonal<StrictMatrix<dim, 1, S>>;
 
-    template<TriangleType t = storage_type, typename Arg>
+    template<TriangleType t = storage_type, typename Arg,
+      std::enable_if_t<not std::is_convertible_v<Arg, const Scalar>, int> = 0>
     static auto make(Arg&& arg) noexcept
     {
       return EigenSelfAdjointMatrix<std::decay_t<Arg>, t>(std::forward<Arg>(arg));
@@ -367,9 +376,10 @@ namespace OpenKalman
       return make<t>(MatrixTraits<BaseMatrix>::make(args...));
     }
 
-    static auto zero() { return MatrixTraits<BaseMatrix>::zero(); }
+    static auto zero() { return EigenSelfAdjointMatrix<BaseMatrix, storage_type>::zero(); }
 
-    static auto identity() { return make<TriangleType::diagonal>(MatrixTraits<BaseMatrix>::identity()); }
+    static auto identity() { return EigenSelfAdjointMatrix<BaseMatrix, storage_type>::identity(); }
+
   };
 
 

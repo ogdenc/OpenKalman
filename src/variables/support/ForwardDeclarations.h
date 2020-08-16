@@ -35,13 +35,13 @@ namespace OpenKalman
 
   template<typename RowCoefficients, typename ColumnCoefficients, typename BaseMatrix>
   struct is_identity<TypedMatrix<RowCoefficients, ColumnCoefficients, BaseMatrix>>
-    : std::integral_constant<bool, OpenKalman::is_identity_v<BaseMatrix> and
-    OpenKalman::is_equivalent_v<RowCoefficients, ColumnCoefficients>> {};
+    : std::integral_constant<bool, is_identity_v<BaseMatrix> and
+    is_equivalent_v<RowCoefficients, ColumnCoefficients>> {};
 
   template<typename Coefficients, typename BaseMatrix>
   struct is_diagonal<TypedMatrix<Coefficients, Coefficients, BaseMatrix>,
     std::enable_if_t<not is_zero_v<BaseMatrix> and not is_identity_v<BaseMatrix> and not is_1by1_v<BaseMatrix>>>
-    : OpenKalman::is_diagonal<BaseMatrix> {};
+    : is_diagonal<BaseMatrix> {};
 
   template<typename RowCoefficients, typename ColumnCoefficients, typename BaseMatrix>
   struct is_strict<TypedMatrix<RowCoefficients, ColumnCoefficients, BaseMatrix>> : is_strict<BaseMatrix> {};
@@ -81,7 +81,7 @@ namespace OpenKalman
 
   template<typename Coefficients, typename BaseMatrix>
   struct is_identity<Mean<Coefficients, BaseMatrix>>
-    : std::integral_constant<bool, OpenKalman::is_identity_v<BaseMatrix> and Coefficients::axes_only> {};
+    : std::integral_constant<bool, is_identity_v<BaseMatrix> and Coefficients::axes_only> {};
 
   template<typename Coefficients, typename BaseMatrix>
   struct is_strict<Mean<Coefficients, BaseMatrix>> : is_strict<BaseMatrix> {};

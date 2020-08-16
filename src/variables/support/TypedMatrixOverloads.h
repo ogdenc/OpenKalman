@@ -213,8 +213,8 @@ namespace OpenKalman
   {
     static_assert(not is_Euclidean_transformed_v<A>);
     using C = typename MatrixTraits<A>::RowCoefficients;
-    auto sm = LQ_decomposition(base_matrix(std::forward<A>(a)));
-    return SquareRootCovariance<C, decltype(sm)>(std::move(sm));
+    auto tm = LQ_decomposition(base_matrix(std::forward<A>(a)));
+    return SquareRootCovariance<C, decltype(tm)>(std::move(tm));
   }
 
 
@@ -224,9 +224,9 @@ namespace OpenKalman
   inline auto
   QR_decomposition(A&& a)
   {
-    using Coefficients = typename MatrixTraits<A>::ColumnCoefficients;
-    auto sm = QR_decomposition(base_matrix(std::forward<A>(a)));
-    return SquareRootCovariance<Coefficients, decltype(sm)>(std::move(sm));
+    using C = typename MatrixTraits<A>::ColumnCoefficients;
+    auto tm = QR_decomposition(base_matrix(std::forward<A>(a)));
+    return SquareRootCovariance<C, decltype(tm)>(std::move(tm));
   }
 
 
@@ -304,7 +304,7 @@ namespace OpenKalman
     else
     {
       return std::apply(
-        [](const auto& ...args) { return std::tuple {MatrixTraits<V>::template make<Cs>(args)...}; },
+        [](const auto& ...args) { return std::tuple {MatrixTraits<V>::template make<Cs>(strict(args))...}; },
         split_vertical<(is_Euclidean_transformed_v<V> ? Cs::dimension : Cs::size)...>(base_matrix(std::forward<V>(v))));
     }
   }
@@ -336,7 +336,7 @@ namespace OpenKalman
     {
       using RC = typename MatrixTraits<V>::RowCoefficients;
       return std::apply(
-        [](const auto& ...args) { return std::tuple {MatrixTraits<V>::template make<RC, Axes<cuts>>(args)...}; },
+        [](const auto& ...args) { return std::tuple {MatrixTraits<V>::template make<RC, Axes<cuts>>(strict(args))...}; },
         split_horizontal<cuts...>(base_matrix(std::forward<V>(v))));
     }
   }

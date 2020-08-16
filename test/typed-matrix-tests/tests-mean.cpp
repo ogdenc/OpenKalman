@@ -467,10 +467,10 @@ TEST_F(typed_matrix_tests, Mean_angles_construct_coefficients)
   const auto v0 = make_Mean<Coefficients<Angle, Axis>>(Eigen::Matrix<double, 2, 1>(0.5, 2));
   EXPECT_EQ(v0[0], 0.5);
   EXPECT_EQ(v0[1], 2);
-  const auto v1 = make_Mean<Coefficients<Axis, Angle>>(6, 7);
+  const auto v1 = make_Mean<Coefficients<Axis, Angle>>(6., 7);
   EXPECT_EQ(v1[0], 6);
   EXPECT_EQ(v1[1], 7-2*M_PI);
-  const auto v2 = make_Mean<Coefficients<Angle, Axis, Angle>>(7, 8, 9);
+  const auto v2 = make_Mean<Coefficients<Angle, Axis, Angle>>(7., 8, 9);
   EXPECT_EQ(v2[0], 7-2*M_PI);
   EXPECT_EQ(v2[1], 8);
   EXPECT_EQ(v2[2], 9-2*M_PI);
@@ -483,7 +483,7 @@ TEST_F(typed_matrix_tests, Mean_angles_construct_coefficients)
     3, 8, 2,
     7, 1, 8;
   EXPECT_TRUE(is_near(base_matrix(v3), m3));
-  auto v3_1 = make_Mean<Coefficients<Axis, Angle, Axis>>(9, 3, 1, 3, 8, 2, 7, 1, 8);
+  auto v3_1 = make_Mean<Coefficients<Axis, Angle, Axis>>(9., 3, 1, 3, 8, 2, 7, 1, 8);
   EXPECT_TRUE(is_near(v3_1, m3));
   auto v3_2 = v3;
   EXPECT_TRUE(is_near(v3_2, m3));

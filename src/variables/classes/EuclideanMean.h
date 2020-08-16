@@ -29,7 +29,6 @@ namespace OpenKalman
     static_assert(is_typed_matrix_base_v<BaseMatrix>);
     static_assert(Base::dimension == Coefficients::dimension);
 
-    using Base::base_matrix;
     using Base::Base;
 
     /// Copy constructor.
@@ -63,16 +62,18 @@ namespace OpenKalman
     }
 
     /// Copy assignment operator.
-    EuclideanMean& operator=(const EuclideanMean& other)
+    auto& operator=(const EuclideanMean& other)
     {
-      this->base_matrix() = other.base_matrix();
+      if constexpr (not is_zero_v<BaseMatrix> and not is_identity_v<BaseMatrix>) if (this != &other)
+        this->base_matrix() = other.base_matrix();
       return *this;
     }
 
     /// Move assignment operator.
-    EuclideanMean& operator=(EuclideanMean&& other)
+    auto& operator=(EuclideanMean&& other)
     {
-      if (this != &other) this->base_matrix() = std::move(other).base_matrix();
+      if constexpr (not is_zero_v<BaseMatrix> and not is_identity_v<BaseMatrix>) if (this != &other)
+        this->base_matrix() = std::move(other).base_matrix();
       return *this;
     }
 
@@ -82,11 +83,78 @@ namespace OpenKalman
     {
       static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>);
       static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::ColumnCoefficients, typename Base::ColumnCoefficients>);
-      if constexpr (std::is_same_v<std::decay_t<Arg>, EuclideanMean>) if (this == &other) return *this;
-      if constexpr(is_Euclidean_transformed_v<Arg> or Coefficients::axes_only)
+      if constexpr (is_zero_v<BaseMatrix>)
+      {
+        static_assert(is_zero_v<Arg>);
+      }
+      else if constexpr (is_identity_v<BaseMatrix>)
+      {
+        static_assert(is_identity_v<Arg>);
+      }
+      else if constexpr(is_Euclidean_transformed_v<Arg> or Coefficients::axes_only)
+      {
         this->base_matrix() = std::forward<Arg>(other).base_matrix();
+      }
       else
+      {
         this->base_matrix() = to_Euclidean<Coefficients>(std::forward<Arg>(other).base_matrix());
+      }
+      return *this;
+    }
+
+    /// Increment from another EuclideanMean.
+    auto& operator+=(const EuclideanMean& other)
+    {
+      this->base_matrix() += other.base_matrix();
+      return *this;
+    }
+
+    /// Increment from another typed matrix.
+    template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg>, int> = 0>
+    auto& operator+=(Arg&& other) noexcept
+    {
+      static_assert(is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>);
+      static_assert(MatrixTraits<Arg>::ColumnCoefficients::axes_only);
+      static_assert(Coefficients::axes_only or is_Euclidean_transformed_v<Arg>);
+      this->base_matrix() += std::forward<Arg>(other).base_matrix();
+      return *this;
+    }
+
+    /// Add a stochastic value to each column of the matrix, based on a distribution.
+    template<typename Arg, std::enable_if_t<is_distribution_v<Arg>, int> = 0>
+    auto& operator+=(const Arg& arg) noexcept
+    {
+      static_assert(is_equivalent_v<typename DistributionTraits<Arg>::Coefficients, Coefficients>);
+      static_assert(Coefficients::axes_only);
+      apply_columnwise(this->base_matrix(), [&arg](auto& col){ col += arg().base_matrix(); });
+      return *this;
+    }
+
+    /// Decrement from another EuclideanMean.
+    auto& operator-=(const EuclideanMean& other)
+    {
+      this->base_matrix() -= other.base_matrix();
+      return *this;
+    }
+
+    /// Decrement from another typed matrix.
+    template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg>, int> = 0>
+    auto& operator-=(Arg&& other) noexcept
+    {
+      static_assert(is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>);
+      static_assert(MatrixTraits<Arg>::ColumnCoefficients::axes_only);
+      static_assert(Coefficients::axes_only or is_Euclidean_transformed_v<Arg>);
+      this->base_matrix() -= std::forward<Arg>(other).base_matrix();
+      return *this;
+    }
+
+    /// Subtract a stochastic value to each column of the matrix, based on a distribution.
+    template<typename Arg, std::enable_if_t<is_distribution_v<Arg>, int> = 0>
+    auto& operator-=(const Arg& arg) noexcept
+    {
+      static_assert(is_equivalent_v<typename DistributionTraits<Arg>::Coefficients, Coefficients>);
+      static_assert(Coefficients::axes_only);
+      apply_columnwise(this->base_matrix(), [&arg](auto& col){ col -= arg().base_matrix(); });
       return *this;
     }
 
