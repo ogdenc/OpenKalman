@@ -130,18 +130,6 @@ target_link_libraries(nonlinear-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)
 add_test(nonlinear-tests 0)
 
 
-add_executable(nonlinear-sqrt-tests
-        nonlinear-sqrt-tests/nonlinear-sqrt-tests.main.cpp
-        nonlinear-sqrt-tests/nonlinear-sqrt-tests.TT.cpp
-        nonlinear-sqrt-tests/nonlinear-sqrt-tests.UT.symm.cpp
-        nonlinear-sqrt-tests/nonlinear-sqrt-tests.UT.spher.cpp
-        nonlinear-sqrt-tests/nonlinear-sqrt-tests.CT.cpp
-        )
-set_target_properties(nonlinear-sqrt-tests PROPERTIES CXX_STANDARD_REQUIRED ON CXX_STANDARD 17)
-target_link_libraries(nonlinear-sqrt-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)
-add_test(nonlinear-sqrt-tests 0)
-
-
 add_executable(MonteCarlo-tests
         MonteCarlo-tests/MonteCarlo-tests.2x1.cpp
         MonteCarlo-tests/MonteCarlo-tests.2x2.cpp
