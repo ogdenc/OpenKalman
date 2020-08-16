@@ -9,100 +9,184 @@
  */
 
 #include "nonlinear-tests.h"
-#include "transforms/classes/LinearizedTransform.h"
-#include "distributions/DistributionTraits.h"
-
 
 /*
  * Test data from Gustafsson & Hendeby. Some Relations Between Extended and Unscented Kalman Filters.
  * IEEE Transactions on Signal Processing, (60), 2, 545-555. 2012.
  */
 
-TEST_F(nonlinear_tests, TT1SumOfSquares2)
+template<std::size_t n>
+using M = Eigen::Matrix<double, n, 1>;
+
+template<std::size_t n>
+using SA = EigenSelfAdjointMatrix<Eigen::Matrix<double, n, n>>;
+
+template<std::size_t n>
+using TR = EigenTriangularMatrix<Eigen::Matrix<double, n, n>>;
+
+template<std::size_t n>
+using G = GaussianDistribution<Axes<n>, M<n>, SA<n>>;
+
+template<std::size_t n>
+using GT = GaussianDistribution<Axes<n>, M<n>, TR<n>>;
+
+TEST_F(nonlinear_tests, TT1SumOfSquares2SelfAdjoint)
 {
-  constexpr int n = 2;
-  LinearizedTransform t {LinearizedTransformation<double, Axes<n>, Coefficients<Axis>, NoiseType::none, 1> {
-      sum_of_squares<double, n>}};
-  const Eigen::Matrix<double, n, 1> mu = Eigen::Matrix<double, n, 1>::Zero();
-  const Eigen::Matrix<double, n, n> P = Eigen::Matrix<double, n, n>::Identity();
-  doReduction(t, mu, P, 0., 0., 1e-6, 1e-6);
+  constexpr std::size_t n = 2;
+  auto t = make_LinearizedTransform(sum_of_squares<n>);
+  auto in = G<n>::normal();
+  auto out = std::get<0>(t(in));
+  EXPECT_NEAR(mean(out)(0), 0., 1e-6);
+  EXPECT_NEAR(covariance(out)(0,0), 0., 1e-6);
 }
 
-TEST_F(nonlinear_tests, TT1SumOfSquares5)
+TEST_F(nonlinear_tests, TT1SumOfSquares2Triangular)
 {
-  constexpr int n = 5;
-  LinearizedTransform t {LinearizedTransformation<double, Axes<n>, Coefficients<Axis>, NoiseType::none, 1> {
-      sum_of_squares<double, n>}};
-  const Eigen::Matrix<double, n, 1> mu = Eigen::Matrix<double, n, 1>::Zero();
-  const Eigen::Matrix<double, n, n> P = Eigen::Matrix<double, n, n>::Identity();
-  doReduction(t, mu, P, 0., 0., 1e-6, 1e-6);
+  constexpr std::size_t n = 2;
+  auto t = make_LinearizedTransform(sum_of_squares<n>);
+  auto in = GT<n>::normal();
+  auto out = std::get<0>(t(in));
+  EXPECT_NEAR(mean(out)(0), 0., 1e-6);
+  EXPECT_NEAR(covariance(out)(0,0), 0., 1e-6);
 }
 
-TEST_F(nonlinear_tests, TT2SumOfSquares2)
+TEST_F(nonlinear_tests, TT1SumOfSquares5SelfAdjoint)
 {
-  constexpr int n = 2;
-  LinearizedTransform t {sum_of_squares<double, n>};
-  const Eigen::Matrix<double, n, 1> mu = Eigen::Matrix<double, n, 1>::Zero();
-  const Eigen::Matrix<double, n, n> P = Eigen::Matrix<double, n, n>::Identity();
-  doReduction(t, mu, P, (double) n, (double) 2 * n, 1e-6, 1e-6);
+  constexpr std::size_t n = 5;
+  auto t = make_LinearizedTransform(sum_of_squares<n>);
+  auto in = G<n>::normal();
+  auto out = std::get<0>(t(in));
+  EXPECT_NEAR(mean(out)(0), 0., 1e-6);
+  EXPECT_NEAR(covariance(out)(0,0), 0., 1e-6);
 }
 
-TEST_F(nonlinear_tests, TT2SumOfSquares5)
+TEST_F(nonlinear_tests, TT1SumOfSquares5Triangular)
 {
-  constexpr int n = 5;
-  LinearizedTransform t {sum_of_squares<double, n>};
-  const Eigen::Matrix<double, n, 1> mu = Eigen::Matrix<double, n, 1>::Zero();
-  const Eigen::Matrix<double, n, n> P = Eigen::Matrix<double, n, n>::Identity();
-  doReduction(t, mu, P, (double) n, (double) 2 * n, 1e-6, 1e-6);
+  constexpr std::size_t n = 5;
+  auto t = make_LinearizedTransform(sum_of_squares<n>);
+  auto in = GT<n>::normal();
+  auto out = std::get<0>(t(in));
+  EXPECT_NEAR(mean(out)(0), 0., 1e-6);
+  EXPECT_NEAR(covariance(out)(0,0), 0., 1e-6);
 }
 
-
-TEST_F(nonlinear_tests, TT1TOA2)
+TEST_F(nonlinear_tests, TT2SumOfSquares2SelfAdjoint)
 {
-  constexpr int n = 2;
-  LinearizedTransform t {LinearizedTransformation<double, Axes<n>, Coefficients<Axis>, NoiseType::none, 1> {
-      time_of_arrival<double, n>}};
-  Eigen::Matrix<double, n, 1> mu_x = Eigen::Matrix<double, n, 1>::Zero();
-  mu_x(0) = 3;
-  Eigen::Matrix<double, n, n> P_xx = Eigen::Matrix<double, n, n>::Identity();
-  P_xx *= 10;
-  P_xx(0, 0) = 1;
-  doReduction(t, mu_x, P_xx, 3., 1., 1e-6, 1e-6);
+  constexpr std::size_t n = 2;
+  auto t = make_LinearizedTransform<2>(sum_of_squares<n>);
+  auto in = G<n>::normal();
+  auto out = std::get<0>(t(in));
+  EXPECT_NEAR(mean(out)(0), (double) n, 1e-6);
+  EXPECT_NEAR(covariance(out)(0,0), 2. * n, 1e-6);
 }
 
-TEST_F(nonlinear_tests, TT2TOA2)
+TEST_F(nonlinear_tests, TT2SumOfSquares2Triangular)
 {
-  constexpr int n = 2;
-  LinearizedTransform t {time_of_arrival<double, n>};
-  Eigen::Matrix<double, n, 1> mu_x = Eigen::Matrix<double, n, 1>::Zero();
-  mu_x(0) = 3;
-  Eigen::Matrix<double, n, n> P_xx = Eigen::Matrix<double, n, n>::Identity();
-  P_xx *= 10;
-  P_xx(0, 0) = 1;
-  doReduction(t, mu_x, P_xx, 4.67, 6.56, 1e-2, 1e-2);
+  constexpr std::size_t n = 2;
+  auto t = make_LinearizedTransform<2>(sum_of_squares<n>);
+  auto in = GT<n>::normal();
+  auto out = std::get<0>(t(in));
+  EXPECT_NEAR(mean(out)(0), (double) n, 1e-6);
+  EXPECT_NEAR(covariance(out)(0,0), 2. * n, 1e-6);
 }
 
-TEST_F(nonlinear_tests, TT1TOA3)
+TEST_F(nonlinear_tests, TT2SumOfSquares5SelfAdjoint)
 {
-  constexpr int n = 3;
-  LinearizedTransform t {LinearizedTransformation<double, Axes<n>, Coefficients<Axis>, NoiseType::none, 1> {
-      time_of_arrival<double, n>}};
-  Eigen::Matrix<double, n, 1> mu_x = Eigen::Matrix<double, n, 1>::Zero();
-  mu_x(0) = 3;
-  Eigen::Matrix<double, n, n> P_xx = Eigen::Matrix<double, n, n>::Identity();
-  P_xx *= 10;
-  P_xx(0, 0) = 1;
-  doReduction(t, mu_x, P_xx, 3., 1., 1e-6, 1e-6);
+  constexpr std::size_t n = 5;
+  auto t = make_LinearizedTransform<2>(sum_of_squares<n>);
+  auto in = G<n>::normal();
+  auto out = std::get<0>(t(in));
+  EXPECT_NEAR(mean(out)(0), (double) n, 1e-6);
+  EXPECT_NEAR(covariance(out)(0,0), 2. * n, 1e-6);
 }
 
-TEST_F(nonlinear_tests, TT2TOA3)
+TEST_F(nonlinear_tests, TT2SumOfSquares5Triangular)
 {
-  constexpr int n = 3;
-  LinearizedTransform t {time_of_arrival<double, n>};
-  Eigen::Matrix<double, n, 1> mu_x = Eigen::Matrix<double, n, 1>::Zero();
-  mu_x(0) = 3;
-  Eigen::Matrix<double, n, n> P_xx = Eigen::Matrix<double, n, n>::Identity();
-  P_xx *= 10;
-  P_xx(0, 0) = 1;
-  doReduction(t, mu_x, P_xx, 6.33, 12.1, 1e-2, 1e-1);
+  constexpr std::size_t n = 5;
+  auto t = make_LinearizedTransform<2>(sum_of_squares<n>);
+  auto in = GT<n>::normal();
+  auto out = std::get<0>(t(in));
+  EXPECT_NEAR(mean(out)(0), (double) n, 1e-6);
+  EXPECT_NEAR(covariance(out)(0,0), 2. * n, 1e-6);
 }
+
+TEST_F(nonlinear_tests, TT1TOA2SelfAdjoint)
+{
+  constexpr std::size_t n = 2;
+  auto t = make_LinearizedTransform(time_of_arrival<n>);
+  auto in = G<n> {{3., 0}, {1., 0, 0, 10}};
+  auto out = std::get<0>(t(in));
+  EXPECT_NEAR(mean(out)(0), 3., 1e-6);
+  EXPECT_NEAR(covariance(out)(0,0), 1., 1e-6);
+}
+
+TEST_F(nonlinear_tests, TT1TOA2Triangular)
+{
+  constexpr std::size_t n = 2;
+  auto t = make_LinearizedTransform(time_of_arrival<n>);
+  auto in = GT<n> {{3., 0}, {1., 0, 0, 10}};
+  auto out = std::get<0>(t(in));
+  EXPECT_NEAR(mean(out)(0), 3., 1e-6);
+  EXPECT_NEAR(covariance(out)(0,0), 1., 1e-6);
+}
+
+TEST_F(nonlinear_tests, TT2TOA2SelfAdjoint)
+{
+  constexpr std::size_t n = 2;
+  auto t = make_LinearizedTransform<2>(time_of_arrival<n>);
+  auto in = G<n> {{3., 0}, {1., 0, 0, 10}};
+  auto out = std::get<0>(t(in));
+  EXPECT_NEAR(mean(out)(0), 4.67, 1e-2);
+  EXPECT_NEAR(covariance(out)(0,0), 6.56, 1e-2);
+}
+
+TEST_F(nonlinear_tests, TT2TOA2Triangular)
+{
+  constexpr std::size_t n = 2;
+  auto t = make_LinearizedTransform<2>(time_of_arrival<n>);
+  auto in = GT<n> {{3., 0}, {1., 0, 0, 10}};
+  auto out = std::get<0>(t(in));
+  EXPECT_NEAR(mean(out)(0), 4.67, 1e-2);
+  EXPECT_NEAR(covariance(out)(0,0), 6.56, 1e-2);
+}
+
+TEST_F(nonlinear_tests, TT1TOA3SelfAdjoint)
+{
+  constexpr std::size_t n = 3;
+  auto t = make_LinearizedTransform(time_of_arrival<n>);
+  auto in = G<n> {{3., 0, 0}, {1., 0, 0, 0, 10, 0, 0, 0, 10}};
+  auto out = std::get<0>(t(in));
+  EXPECT_NEAR(mean(out)(0), 3., 1e-6);
+  EXPECT_NEAR(covariance(out)(0,0), 1., 1e-6);
+}
+
+TEST_F(nonlinear_tests, TT1TOA3Triangular)
+{
+  constexpr std::size_t n = 3;
+  auto t = make_LinearizedTransform(time_of_arrival<n>);
+  auto in = GT<n> {{3., 0, 0}, {1., 0, 0, 0, 10, 0, 0, 0, 10}};
+  auto out = std::get<0>(t(in));
+  EXPECT_NEAR(mean(out)(0), 3., 1e-6);
+  EXPECT_NEAR(covariance(out)(0,0), 1., 1e-6);
+}
+
+TEST_F(nonlinear_tests, TT2TOA3SelfAdjoint)
+{
+  constexpr std::size_t n = 3;
+  auto t = make_LinearizedTransform<2>(time_of_arrival<n>);
+  auto in = G<n> {{3., 0, 0}, {1., 0, 0, 0, 10, 0, 0, 0, 10}};
+  auto out = std::get<0>(t(in));
+  EXPECT_NEAR(mean(out)(0), 6.33, 1e-2);
+  EXPECT_NEAR(covariance(out)(0,0), 12.1, 1e-1);
+}
+
+TEST_F(nonlinear_tests, TT2TOA3Triangular)
+{
+  constexpr std::size_t n = 3;
+  auto t = make_LinearizedTransform<2>(time_of_arrival<n>);
+  auto in = GT<n> {{3., 0, 0}, {1., 0, 0, 0, 10, 0, 0, 0, 10}};
+  auto out = std::get<0>(t(in));
+  EXPECT_NEAR(mean(out)(0), 6.33, 1e-2);
+  EXPECT_NEAR(covariance(out)(0,0), 12.1, 1e-1);
+}
+

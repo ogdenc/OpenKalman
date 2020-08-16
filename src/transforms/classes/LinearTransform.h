@@ -32,10 +32,6 @@ namespace OpenKalman
     {
       const LinearTransformationType transformation;
 
-      //explicit LinearTransformFunction(const LinearTransformationType& trans) : transformation(trans) {}
-
-      //explicit LinearTransformFunction(LinearTransformationType&& trans) noexcept : transformation(std::move(trans)) {}
-
       template<typename InputMean, typename ... NoiseMean>
       auto operator()(const InputMean& x, const NoiseMean& ... n) const
       {
@@ -77,10 +73,14 @@ namespace OpenKalman
     explicit LinearTransform(LinearTransformationType&& transformation) noexcept
       : Base(TransformFunction {std::move(transformation)}) {}
 
+    LinearTransform(TransformationMatrix&& t, PerturbationTransformationMatrices&&...n) noexcept
+      : LinearTransform(LinearTransformationType(std::forward<TransformationMatrix>(t),
+        std::forward<PerturbationTransformationMatrices>(n)...)) {}
+
     template<typename T, typename ... Ps,
       std::enable_if_t<std::conjunction_v<std::disjunction<is_typed_matrix<T>, is_typed_matrix_base<T>>,
         std::disjunction<is_typed_matrix<Ps>, is_typed_matrix_base<Ps>>...>, int> = 0>
-    LinearTransform(T&& t, Ps&&...n)
+    LinearTransform(T&& t, Ps&&...n) noexcept
       : LinearTransform(LinearTransformationType(std::forward<T>(t), std::forward<Ps>(n)...))
     {
       static_assert(MatrixTraits<T>::dimension == OutputCoefficients::size);
@@ -88,10 +88,6 @@ namespace OpenKalman
       static_assert(((MatrixTraits<Ps>::dimension == OutputCoefficients::size) and ...));
       static_assert(((MatrixTraits<Ps>::columns == OutputCoefficients::size) and ...));
     }
-
-    LinearTransform(TransformationMatrix&& t, PerturbationTransformationMatrices&&...n)
-      : LinearTransform(LinearTransformationType(std::forward<TransformationMatrix>(t),
-        std::forward<PerturbationTransformationMatrices>(n)...)) {}
 
   };
 

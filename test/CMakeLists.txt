@@ -117,13 +117,13 @@ add_test(linear-tests 0)
 
 add_executable(nonlinear-tests
         nonlinear-tests/nonlinear-tests.main.cpp
-        nonlinear-tests/nonlinear-tests.2x1.CT.cpp
         nonlinear-tests/nonlinear-tests.2x1.TT.cpp
-        nonlinear-tests/nonlinear-tests.2x1.UT.cpp
-        nonlinear-tests/nonlinear-tests.2x2.CT.cpp
-        nonlinear-tests/nonlinear-tests.2x2.MCT.cpp
         nonlinear-tests/nonlinear-tests.2x2.TT.cpp
+        nonlinear-tests/nonlinear-tests.2x1.CT.cpp
+        nonlinear-tests/nonlinear-tests.2x2.CT.cpp
+        nonlinear-tests/nonlinear-tests.2x1.UT.cpp
         nonlinear-tests/nonlinear-tests.2x2.UT.cpp
+        #nonlinear-tests/nonlinear-tests.2x2.MCT.cpp
         )
 set_target_properties(nonlinear-tests PROPERTIES CXX_STANDARD_REQUIRED ON CXX_STANDARD 17)
 target_link_libraries(nonlinear-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)

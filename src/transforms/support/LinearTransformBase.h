@@ -54,21 +54,22 @@ namespace OpenKalman::internal
       using InputDist = std::tuple_element<0, Dist>;
       if constexpr(is_Cholesky_v<InputDist>)
       {
-        const auto sqrt_c0 =square_root(covariance(std::get<0>(dist)));
-        const auto term0 = std::get<0>(j) * sqrt_c0;
+        auto sqrt_c0 =square_root(covariance(std::get<0>(dist)));
+        auto term0 = std::get<0>(j) * sqrt_c0;
         return std::tuple {
-          strict(sqrt_c0 * adjoint(term0)),
           LQ_decomposition(concatenate_horizontal(term0, TypedMatrix(
-            (std::get<ints+1>(j) * (square_root(covariance(std::get<ints+1>(dist))))))...))};
+            (std::get<ints+1>(j) * (square_root(covariance(std::get<ints+1>(dist))))))...)),
+          strict(sqrt_c0 * adjoint(term0))};
       }
       else
       {
-        const auto cross = strict(covariance(std::get<0>(dist)) * adjoint(std::get<0>(j)));
-        return std::tuple {
-          cross,
-          make_Covariance(strict((
+        auto cross = strict(covariance(std::get<0>(dist)) * adjoint(std::get<0>(j)));
+        auto cov = make_Covariance((
           (std::get<0>(j) * cross) +
-            ... + (std::get<ints+1>(j) * (covariance(std::get<ints+1>(dist)) * adjoint(std::get<ints+1>(j)))))))};
+            ... + (std::get<ints+1>(j) * (covariance(std::get<ints+1>(dist)) * adjoint(std::get<ints+1>(j))))));
+        return std::tuple {
+          std::move(cov),
+          std::move(cross)};
       }
     }
 
@@ -77,11 +78,11 @@ namespace OpenKalman::internal
       std::enable_if_t<std::conjunction_v<is_distribution<InputDist>, is_distribution<NoiseDist>...>, int> = 0>
     auto operator()(const InputDist& in, const NoiseDist& ...n) const
     {
-      const auto[mean_output, jacobians] = function(mean(in), mean(n)...);
-      const auto j0 = std::get<0>(jacobians);
-      auto [cross_covariance, cov_out] = sum_noise_terms(jacobians, std::tuple {in, n...},
+      auto[mean_output, jacobians] = function(mean(in), mean(n)...);
+      auto j0 = std::get<0>(jacobians);
+      auto [cov_out, cross_covariance] = sum_noise_terms(jacobians, std::tuple {in, n...},
         std::make_index_sequence<std::min(sizeof...(NoiseDist), std::tuple_size_v<decltype(jacobians)> - 1)>{});
-      const auto out = make_GaussianDistribution(mean_output, cov_out);
+      auto out = make_GaussianDistribution(mean_output, cov_out);
       if constexpr(TransformFunction::correction)
         return std::tuple {strict(out + function.add_correction(in, n...)), cross_covariance};
       else

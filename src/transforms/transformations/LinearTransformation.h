@@ -46,7 +46,7 @@ namespace OpenKalman
       template<std::size_t begin, typename T, std::size_t... I>
       constexpr auto tuple_slice_impl(T&& t, std::index_sequence<I...>)
       {
-        return std::tuple {std::get<begin + I>(std::forward<T>(t))...};
+        return std::forward_as_tuple(std::get<begin + I>(std::forward<T>(t))...);
       }
     }
 
@@ -101,8 +101,8 @@ namespace OpenKalman
     }
 
     using TransformationMatricesTuple = std::tuple<
-      TypedMatrix<OutputCoefficients, InputCoefficients, strict_t<TransformationMatrix>>,
-      TypedMatrix<OutputCoefficients, OutputCoefficients, strict_t<PerturbationTransformationMatrices>>...>;
+      const TypedMatrix<OutputCoefficients, InputCoefficients, strict_t<TransformationMatrix>>,
+      const TypedMatrix<OutputCoefficients, OutputCoefficients, strict_t<PerturbationTransformationMatrices>>...>;
     const TransformationMatricesTuple transformation_matrices;
 
   public:
@@ -112,7 +112,7 @@ namespace OpenKalman
     template<typename T, typename ... Ps,
       std::enable_if_t<(is_typed_matrix_v<T> or is_typed_matrix_base_v<T>) and
         ((is_typed_matrix_v<Ps> or is_typed_matrix_base_v<Ps>) and ...), int> = 0>
-    LinearTransformation(T&& mat, Ps&& ... p_mats)
+    LinearTransformation(T&& mat, Ps&& ... p_mats) noexcept
       : transformation_matrices(std::forward<T>(mat), std::forward<Ps>(p_mats)...)
     {
       static_assert(is_valid_input_matrix_v<T, InputCoefficients>);
@@ -121,7 +121,7 @@ namespace OpenKalman
 
     /// Applies the transformation.
     template<typename In, typename ... Perturbations>
-    auto operator()(In&& in, Perturbations&& ... ps) const
+    auto operator()(const In& in, const Perturbations& ... ps) const noexcept
     {
       static_assert(is_column_vector_v<In>);
       static_assert((is_perturbation_v<Perturbations> and ...));
@@ -133,13 +133,13 @@ namespace OpenKalman
 
       return sumprod(
         jacobian(in, ps...),
-        std::tuple {std::forward<In>(in), internal::get_perturbation(std::forward<Perturbations>(ps))...},
+        std::forward_as_tuple(in, internal::get_perturbation(ps)...),
         std::make_index_sequence<sizeof...(Perturbations) + 1>{});
     }
 
     /// Returns a tuple of the Jacobians for the input and each perturbation term.
     template<typename In, typename ... Perturbations>
-    auto jacobian(In&&, Perturbations&&...) const
+    auto jacobian(const In&, const Perturbations&...) const
     {
       static_assert(is_column_vector_v<In>);
       static_assert((is_perturbation_v<Perturbations> and ...));
@@ -163,9 +163,9 @@ namespace OpenKalman
 
     /// Returns a tuple of Hessian matrices for the input and each perturbation term. In this case, they are zero matrices.
     template<typename In, typename ... Perturbations>
-    auto hessian(In&&, Perturbations&&...) const
+    auto hessian(const In&, const Perturbations&...) const
     {
-      return internal::zero_hessian<InputCoefficients, OutputCoefficients, In, Perturbations...>();
+      return zero_hessian<InputCoefficients, OutputCoefficients, In, Perturbations...>();
     }
 
   };

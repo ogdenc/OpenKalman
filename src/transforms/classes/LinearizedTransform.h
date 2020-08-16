@@ -19,13 +19,13 @@ namespace OpenKalman
    */
   template<
     typename Transformation, ///< The transformation on which the transform is based.
-    int order = 1> ///< Order of the Taylor approximation (1 or 2).
+    unsigned int order = 1> ///< Order of the Taylor approximation (1 or 2).
   struct LinearizedTransform;
 
 
   namespace internal
   {
-    template<typename LinearizedTransformation, int order>
+    template<typename LinearizedTransformation, unsigned int order>
     struct LinearizedTransformFunction
     {
       using OutputCoeffs = typename LinearizedTransformation::OutputCoefficients;
@@ -40,7 +40,7 @@ namespace OpenKalman
       template<typename OutputCoeffs, typename MeanOut, typename Hessian, typename Cov, std::size_t...ints>
       static auto make_mean(const Hessian& hessian, const Cov& P, std::index_sequence<ints...>)
       {
-        return Mean<OutputCoeffs, MeanOut>(0.5 * trace(P * hessian[ints])...);
+        return Mean<OutputCoeffs, MeanOut> {0.5 * trace(P * hessian[ints])...};
       }
 
       template<std::size_t i, std::size_t...js, typename Hessian, typename Cov>
@@ -113,7 +113,7 @@ namespace OpenKalman
   }
 
 
-  template<typename Transformation, int order>
+  template<typename Transformation, unsigned int order>
   struct LinearizedTransform
     : internal::LinearTransformBase<typename Transformation::InputCoefficients, typename Transformation::OutputCoefficients,
       internal::LinearizedTransformFunction<Transformation, order>>
@@ -129,6 +129,13 @@ namespace OpenKalman
     explicit LinearizedTransform(Transformation&& transformation)
       : Base(Function(std::move(transformation))) {}
 
+  };
+
+
+  template<unsigned int order = 1, typename TransformationType>
+  auto make_LinearizedTransform(TransformationType&& t)
+  {
+    return LinearizedTransform<std::decay_t<TransformationType>, order>(std::forward<TransformationType>(t));
   };
 
 }

@@ -19,95 +19,189 @@ using namespace OpenKalman;
  * IEEE Transactions on Signal Processing, (60), 2, 545-555. 2012.
  */
 
-Unscented<GaussianDistribution, double, Axes<2>> UT1_2 {1, 0, 3 - 2};
-Unscented<GaussianDistribution, double, Axes<3>> UT1_3 {1, 0, 3 - 3};
-Unscented<GaussianDistribution, double, Axes<5>> UT1_5 {1, 0, 3 - 5};
-Unscented<GaussianDistribution, double, Axes<2>> UT2_2 {1e-3, 2, 0};
-Unscented<GaussianDistribution, double, Axes<3>> UT2_3 {1e-3, 2, 0};
-Unscented<GaussianDistribution, double, Axes<5>> UT2_5 {1e-3, 2, 0};
+template<std::size_t n>
+using M = Eigen::Matrix<double, n, 1>;
 
-TEST_F(nonlinear_tests, UT1SumOfSquares2)
+template<std::size_t n>
+using SA = EigenSelfAdjointMatrix<Eigen::Matrix<double, n, n>>;
+
+template<std::size_t n>
+using TR = EigenTriangularMatrix<Eigen::Matrix<double, n, n>>;
+
+template<std::size_t n>
+using G = GaussianDistribution<Axes<n>, M<n>, SA<n>>;
+
+template<std::size_t n>
+using GT = GaussianDistribution<Axes<n>, M<n>, TR<n>>;
+
+struct UT1p
 {
-  constexpr int n = 2;
-  SamplePointsTransform t {UT1_2, sum_of_squares<double, n>};
-  const Eigen::Matrix<double, n, 1> mu = Eigen::Matrix<double, n, 1>::Zero();
-  const Eigen::Matrix<double, n, n> P = Eigen::Matrix<double, n, n>::Identity();
-  doReduction(t, mu, P, (double) n, (double) (3 - n) * n, 1e-6, 1e-6);
+  static constexpr double alpha = 1;
+  static constexpr double beta = 0;
+  template<int dim> static constexpr double kappa = 3 - dim;
+};
+using UT1 = SigmaPoints<Unscented<UT1p>>;
+
+using UT2 = UnscentedSigmaPointsStateEstimation; // alpha = 1e-3, beta = 2, kappa = 0;
+
+
+TEST_F(nonlinear_tests, UT1SumOfSquares2SelfAdjoint)
+{
+  constexpr std::size_t n = 2;
+  auto t = make_SamplePointsTransform<UT1>(sum_of_squares<n>);
+  auto in = G<n>::normal();
+  auto out = std::get<0>(t(in));
+  EXPECT_NEAR(mean(out)(0), (double) n, 1e-6);
+  EXPECT_NEAR(covariance(out)(0,0), (3. - n) * n, 1e-6);
 }
 
-TEST_F(nonlinear_tests, UT1SumOfSquares5)
+TEST_F(nonlinear_tests, UT1SumOfSquares2Triangular)
 {
-  constexpr int n = 5;
-  SamplePointsTransform t {UT1_5, sum_of_squares<double, n>};
-  const Eigen::Matrix<double, n, 1> mu = Eigen::Matrix<double, n, 1>::Zero();
-  const Eigen::Matrix<double, n, n> P = Eigen::Matrix<double, n, n>::Identity();
-  doReduction(t, mu, P, (double) n, (double) (3 - n) * n, 1e-6, 1e-6);
+  constexpr std::size_t n = 2;
+  auto t = make_SamplePointsTransform<UT1>(sum_of_squares<n>);
+  auto in = GT<n>::normal();
+  auto out = std::get<0>(t(in));
+  EXPECT_NEAR(mean(out)(0), (double) n, 1e-6);
+  EXPECT_NEAR(covariance(out)(0,0), (3. - n) * n, 1e-6);
 }
 
-TEST_F(nonlinear_tests, UT2SumOfSquares2)
+TEST_F(nonlinear_tests, UT1SumOfSquares5SelfAdjoint)
 {
-  constexpr int n = 2;
-  SamplePointsTransform t {UT2_2, sum_of_squares<double, n>};
-  const Eigen::Matrix<double, n, 1> mu = Eigen::Matrix<double, n, 1>::Zero();
-  const Eigen::Matrix<double, n, n> P = Eigen::Matrix<double, n, n>::Identity();
-  doReduction(t, mu, P, (double) n, (double) 2 * n * n, 1e-6, 1e-6);
+  constexpr std::size_t n = 5;
+  auto t = make_SamplePointsTransform<UT1>(sum_of_squares<n>);
+  auto in = G<n>::normal();
+  auto out = std::get<0>(t(in));
+  EXPECT_NEAR(mean(out)(0), (double) n, 1e-6);
+  EXPECT_NEAR(covariance(out)(0,0), (3. - n) * n, 1e-6);
 }
 
-
-TEST_F(nonlinear_tests, UT2SumOfSquares5)
+TEST_F(nonlinear_tests, UT1SumOfSquares5Triangular)
 {
-  constexpr int n = 5;
-  SamplePointsTransform t {UT2_5, sum_of_squares<double, n>};
-  const Eigen::Matrix<double, n, 1> mu = Eigen::Matrix<double, n, 1>::Zero();
-  const Eigen::Matrix<double, n, n> P = Eigen::Matrix<double, n, n>::Identity();
-  doReduction(t, mu, P, (double) n, (double) 2 * n * n, 1e-6, 1e-6);
+  constexpr std::size_t n = 5;
+  auto t = make_SamplePointsTransform<UT1>(sum_of_squares<n>);
+  auto in = GT<n>::normal();
+  auto out = std::get<0>(t(in));
+  EXPECT_NEAR(mean(out)(0), (double) n, 1e-6);
+  EXPECT_NEAR(covariance(out)(0,0), (3. - n) * n, 1e-6);
 }
 
-TEST_F(nonlinear_tests, UT1TOA2)
+TEST_F(nonlinear_tests, UT2SumOfSquares2SelfAdjoint)
 {
-  constexpr int n = 2;
-  SamplePointsTransform t {UT1_2, time_of_arrival<double, n>};
-  Eigen::Matrix<double, n, 1> mu = Eigen::Matrix<double, n, 1>::Zero();
-  mu(0) = 3;
-  Eigen::Matrix<double, n, n> P = Eigen::Matrix<double, n, n>::Identity();
-  P *= 10;
-  P(0, 0) = 1;
-  doReduction(t, mu, P, 4.08, 3.34, 1e-2, 1e-2);
+  constexpr std::size_t n = 2;
+  auto t = make_SamplePointsTransform<UT2>(sum_of_squares<n>);
+  auto in = G<n>::normal();
+  auto out = std::get<0>(t(in));
+  EXPECT_NEAR(mean(out)(0), (double) n, 1e-6);
+  EXPECT_NEAR(covariance(out)(0,0), 2. * n * n, 1e-6);
 }
 
-TEST_F(nonlinear_tests, UT1TOA3)
+TEST_F(nonlinear_tests, UT2SumOfSquares2Triangular)
 {
-  constexpr int n = 3;
-  SamplePointsTransform t {UT1_3, time_of_arrival<double, n>};
-  Eigen::Matrix<double, n, 1> mu = Eigen::Matrix<double, n, 1>::Zero();
-  mu(0) = 3;
-  Eigen::Matrix<double, n, n> P = Eigen::Matrix<double, n, n>::Identity();
-  P *= 10;
-  P(0, 0) = 1;
-  doReduction(t, mu, P, 5.16, 3.34, 1e-2, 1e-2);
+  constexpr std::size_t n = 2;
+  auto t = make_SamplePointsTransform<UT2>(sum_of_squares<n>);
+  auto in = GT<n>::normal();
+  auto out = std::get<0>(t(in));
+  EXPECT_NEAR(mean(out)(0), (double) n, 1e-6);
+  EXPECT_NEAR(covariance(out)(0,0), 2. * n * n, 1e-6);
 }
 
-TEST_F(nonlinear_tests, UT2TOA2)
+TEST_F(nonlinear_tests, UT2SumOfSquares5SelfAdjoint)
 {
-  constexpr int n = 2;
-  SamplePointsTransform t {UT2_2, time_of_arrival<double, n>};
-  Eigen::Matrix<double, n, 1> mu = Eigen::Matrix<double, n, 1>::Zero();
-  mu(0) = 3;
-  Eigen::Matrix<double, n, n> P = Eigen::Matrix<double, n, n>::Identity();
-  P *= 10;
-  P(0, 0) = 1;
-  doReduction(t, mu, P, 4.67, 6.56, 1e-2, 1e-2);
+  constexpr std::size_t n = 5;
+  auto t = make_SamplePointsTransform<UT2>(sum_of_squares<n>);
+  auto in = G<n>::normal();
+  auto out = std::get<0>(t(in));
+  EXPECT_NEAR(mean(out)(0), (double) n, 1e-6);
+  EXPECT_NEAR(covariance(out)(0,0), 2. * n * n, 1e-6);
 }
 
-TEST_F(nonlinear_tests, UT2TOA3)
+TEST_F(nonlinear_tests, UT2SumOfSquares5Triangular)
 {
-  constexpr int n = 3;
-  SamplePointsTransform t {UT2_3, time_of_arrival<double, n>};
-  Eigen::Matrix<double, n, 1> mu = Eigen::Matrix<double, n, 1>::Zero();
-  mu(0) = 3;
-  Eigen::Matrix<double, n, n> P = Eigen::Matrix<double, n, n>::Identity();
-  P *= 10;
-  P(0, 0) = 1;
-  doReduction(t, mu, P, 6.33, 23.2, 1e-2, 1e-1);
+  constexpr std::size_t n = 5;
+  auto t = make_SamplePointsTransform<UT2>(sum_of_squares<n>);
+  auto in = GT<n>::normal();
+  auto out = std::get<0>(t(in));
+  EXPECT_NEAR(mean(out)(0), (double) n, 1e-6);
+  EXPECT_NEAR(covariance(out)(0,0), 2. * n * n, 1e-6);
+}
+
+TEST_F(nonlinear_tests, UT1TOA2SelfAdjoint)
+{
+  constexpr std::size_t n = 2;
+  auto t = make_SamplePointsTransform<UT1>(time_of_arrival<n>);
+  auto in = G<n> {{3., 0}, {1., 0, 0, 10}};
+  auto out = std::get<0>(t(in));
+  EXPECT_NEAR(mean(out)(0), 4.08, 1e-2);
+  EXPECT_NEAR(covariance(out)(0,0), 3.34, 1e-2);
+}
+
+TEST_F(nonlinear_tests, UT1TOA2Triangular)
+{
+  constexpr std::size_t n = 2;
+  auto t = make_SamplePointsTransform<UT1>(time_of_arrival<n>);
+  auto in = GT<n> {{3., 0}, {1., 0, 0, 10}};
+  auto out = std::get<0>(t(in));
+  EXPECT_NEAR(mean(out)(0), 4.08, 1e-2);
+  EXPECT_NEAR(covariance(out)(0,0), 3.34, 1e-2);
+}
+
+TEST_F(nonlinear_tests, UT1TOA3SelfAdjoint)
+{
+  constexpr std::size_t n = 3;
+  auto t = make_SamplePointsTransform<UT1>(time_of_arrival<n>);
+  auto in = G<n> {{3., 0, 0}, {1., 0, 0, 0, 10, 0, 0, 0, 10}};
+  auto out = std::get<0>(t(in));
+  EXPECT_NEAR(mean(out)(0), 5.16, 1e-2);
+  EXPECT_NEAR(covariance(out)(0,0), 3.34, 1e-2);
+}
+
+TEST_F(nonlinear_tests, UT1TOA3Triangular)
+{
+  constexpr std::size_t n = 3;
+  auto t = make_SamplePointsTransform<UT1>(time_of_arrival<n>);
+  auto in = GT<n> {{3., 0, 0}, {1., 0, 0, 0, 10, 0, 0, 0, 10}};
+  auto out = std::get<0>(t(in));
+  EXPECT_NEAR(mean(out)(0), 5.16, 1e-2);
+  EXPECT_NEAR(covariance(out)(0,0), 3.34, 1e-2);
+}
+
+TEST_F(nonlinear_tests, UT2TOA2SelfAdjoint)
+{
+  constexpr std::size_t n = 2;
+  auto t = make_SamplePointsTransform<UT2>(time_of_arrival<n>);
+  auto in = G<n> {{3., 0}, {1., 0, 0, 10}};
+  auto out = std::get<0>(t(in));
+  EXPECT_NEAR(mean(out)(0), 4.67, 1e-2);
+  EXPECT_NEAR(covariance(out)(0,0), 6.56, 1e-2);
+}
+
+TEST_F(nonlinear_tests, UT2TOA2Triangular)
+{
+  constexpr std::size_t n = 2;
+  auto t = make_SamplePointsTransform<UT2>(time_of_arrival<n>);
+  auto in = GT<n> {{3., 0}, {1., 0, 0, 10}};
+  auto out = std::get<0>(t(in));
+  EXPECT_NEAR(mean(out)(0), 4.67, 1e-2);
+  EXPECT_NEAR(covariance(out)(0,0), 6.56, 1e-2);
+}
+
+TEST_F(nonlinear_tests, UT2TOA3SelfAdjoint)
+{
+  constexpr std::size_t n = 3;
+  auto t = make_SamplePointsTransform<UT2>(time_of_arrival<n>);
+  auto in = G<n> {{3., 0, 0}, {1., 0, 0, 0, 10, 0, 0, 0, 10}};
+  auto out = std::get<0>(t(in));
+  EXPECT_NEAR(mean(out)(0), 6.33, 1e-2);
+  EXPECT_NEAR(covariance(out)(0,0), 23.2, 1e-1);
+}
+
+TEST_F(nonlinear_tests, UT2TOA3Triangular)
+{
+  constexpr std::size_t n = 3;
+  auto t = make_SamplePointsTransform<UT2>(time_of_arrival<n>);
+  auto in = GT<n> {{3., 0, 0}, {1., 0, 0, 0, 10, 0, 0, 0, 10}};
+  auto out = std::get<0>(t(in));
+  EXPECT_NEAR(mean(out)(0), 6.33, 1e-2);
+  EXPECT_NEAR(covariance(out)(0,0), 23.2, 1e-1);
 }
 

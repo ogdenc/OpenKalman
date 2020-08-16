@@ -20,327 +20,128 @@
 
 using namespace OpenKalman;
 
-//-------- Sum of squares --------//
-
-template<typename Scalar, int n>
-static const Transformation<Scalar, Axes<n>, Coefficients<Axis>, NoiseType::none, 2> sum_of_squares
+template<int n>
+inline const auto sum_of_squares = make_Transformation<Axes<n>, Axis>
+  (
+    [](const auto& x, const auto&...ps) // function
     {
-        [](Eigen::Matrix<Scalar, n, 1> x) -> Eigen::Matrix<Scalar, 1, 1> { return x.transpose() * x; },
-        [](Eigen::Matrix<Scalar, n, 1> x) -> Eigen::Matrix<Scalar, 1, n> { return 2 * x.transpose(); },
-        [](Eigen::Matrix<Scalar, n, 1> x) -> std::array<Eigen::Matrix<Scalar, n, n>, 1>
-        {
-          std::array<Eigen::Matrix<Scalar, n, n>, 1> I;
-          I[0] = 2 * Eigen::Matrix<Scalar, n, n>::Identity();
-          return I;
-        }
-    };
+      static_assert(is_equivalent_v<typename MatrixTraits<decltype(x)>::RowCoefficients, Axes<n>>);
+      static_assert(is_equivalent_v<typename MatrixTraits<decltype(x)>::ColumnCoefficients, Axis>);
+      static_assert(std::conjunction_v<is_equivalent_v<typename MatrixTraits<decltype(ps)>::RowCoefficients, Axis>...>);
+      static_assert(std::conjunction_v<is_equivalent_v<typename MatrixTraits<decltype(ps)>::ColumnCoefficients, Axis>...>);
 
-template<typename Scalar, int n>
-static const Transformation<Scalar, Axes<n>, Coefficients<Axis>, NoiseType::additive, 2> sum_of_squares_add
+      return strict(((transpose(x) * x) + ... + ps));
+    },
+    [](const auto& x, const auto&...ps) // Jacobians
     {
-        [](Eigen::Matrix<Scalar, n, 1> x) -> Eigen::Matrix<Scalar, 1, 1> { return x.transpose() * x; },
-        [](Eigen::Matrix<Scalar, n, 1> x) -> Eigen::Matrix<Scalar, 1, n> { return 2 * x.transpose(); },
-        [](Eigen::Matrix<Scalar, n, 1> x) -> std::array<Eigen::Matrix<Scalar, n, n>, 1>
-        {
-          std::array<Eigen::Matrix<Scalar, n, n>, 1> I;
-          I[0] = 2 * Eigen::Matrix<Scalar, n, n>::Identity();
-          return I;
-        }
-    };
+      static_assert(is_equivalent_v<typename MatrixTraits<decltype(x)>::RowCoefficients, Axes<n>>);
+      static_assert(is_equivalent_v<typename MatrixTraits<decltype(x)>::ColumnCoefficients, Axis>);
+      static_assert(std::conjunction_v<is_equivalent_v<typename MatrixTraits<decltype(ps)>::RowCoefficients, Axis>...>);
+      static_assert(std::conjunction_v<is_equivalent_v<typename MatrixTraits<decltype(ps)>::ColumnCoefficients, Axis>...>);
 
-template<typename Scalar, int n>
-static const Transformation<Scalar, Axes<n>, Coefficients<Axis>, NoiseType::augmented, 2> sum_of_squares_aug
+      return std::tuple {2 * transpose(x), internal::tuple_replicate<sizeof...(ps)>(Mean {1.})};
+    },
+    [](const auto& x, const auto&...ps) // Hessians
     {
-        [](Eigen::Matrix<Scalar, n + 1, 1> x_aug) -> Eigen::Matrix<Scalar, 1, 1>
-        {
-          Eigen::Matrix<Scalar, n, 1> x {x_aug.template head<n>()};
-          return x.transpose() * x + Eigen::Matrix<Scalar, 1, 1> {x_aug(n)};
-        },
-        [](Eigen::Matrix<Scalar, n + 1, 1> x_aug) -> Eigen::Matrix<Scalar, 1, n + 1>
-        {
-          Eigen::Matrix<Scalar, n, 1> x {x_aug.template head<n>()};
-          Eigen::Matrix<Scalar, 1, n + 1> ret;
-          ret << 2 * x.transpose(), 1;
-          return ret;
-        },
-        [](Eigen::Matrix<Scalar, n + 1, 1> x_aug) -> std::array<Eigen::Matrix<Scalar, n + 1, n + 1>, 1>
-        {
-          std::array<Eigen::Matrix<Scalar, n + 1, n + 1>, 1> I;
-          I[0] = 2 * Eigen::Matrix<Scalar, n + 1, n + 1>::Identity();
-          I[0](n, n) = 0;
-          return I;
-        }
-    };
+      static_assert(is_equivalent_v<typename MatrixTraits<decltype(x)>::RowCoefficients, Axes<n>>);
+      static_assert(is_equivalent_v<typename MatrixTraits<decltype(x)>::ColumnCoefficients, Axis>);
+      static_assert(std::conjunction_v<is_equivalent_v<typename MatrixTraits<decltype(ps)>::RowCoefficients, Axis>...>);
+      static_assert(std::conjunction_v<is_equivalent_v<typename MatrixTraits<decltype(ps)>::ColumnCoefficients, Axis>...>);
 
+      std::array<TypedMatrix<Axes<n>, Axes<n>, Eigen::Matrix<double, n, n>>, 1> I;
+      I[0] = 2 * Eigen::Matrix<double, n, n>::Identity();
+      return std::tuple_cat(std::tuple {I}, internal::tuple_replicate<sizeof...(ps)>(zero_hessian<Axes<n>, Axis, decltype(x), decltype(ps)...>()));
+    }
+  );
 
-//-------- Time of arrival --------//
-
-template<typename Scalar, int n>
-static const Transformation<Scalar, Axes<n>, Coefficients<Axis>, NoiseType::none, 2> time_of_arrival
+template<int n>
+inline const auto time_of_arrival = make_Transformation<Axes<n>, Axis>
+  (
+    [](const auto& x, const auto&...ps) // function
     {
-        [](Eigen::Matrix<Scalar, n, 1> x) -> Eigen::Matrix<Scalar, 1, 1> { return (x.adjoint() * x).cwiseSqrt(); },
-        [](Eigen::Matrix<Scalar, n, 1> x) -> Eigen::Matrix<Scalar, 1, n>
-        {
-          return x.adjoint() / std::sqrt(x.adjoint() * x);
-        },
-        [](Eigen::Matrix<Scalar, n, 1> x) -> std::array<Eigen::Matrix<Scalar, n, n>, 1>
-        {
-          std::array<Eigen::Matrix<Scalar, n, n>, 1> ret;
-          Scalar sq = x.adjoint() * x;
-          ret[0] = pow(sq, -1.5) * (-x * x.adjoint() + sq * Eigen::Matrix<Scalar, n, n>::Identity());
-          return ret;
-        }
-    };
+      static_assert(is_equivalent_v<typename MatrixTraits<decltype(x)>::RowCoefficients, Axes<n>>);
+      static_assert(is_equivalent_v<typename MatrixTraits<decltype(x)>::ColumnCoefficients, Axis>);
+      static_assert(std::conjunction_v<is_equivalent_v<typename MatrixTraits<decltype(ps)>::RowCoefficients, Axis>...>);
+      static_assert(std::conjunction_v<is_equivalent_v<typename MatrixTraits<decltype(ps)>::ColumnCoefficients, Axis>...>);
 
-template<typename Scalar, int n>
-static const Transformation<Scalar, Axes<n>, Coefficients<Axis>, NoiseType::additive, 2> time_of_arrival_add
+      return strict((apply_coefficientwise(adjoint(x) * x, [](const auto& c) { return std::sqrt(c); }) + ... + ps));
+    },
+    [](const auto& x, const auto&...ps) // Jacobians
     {
-        [](Eigen::Matrix<Scalar, n, 1> x) -> Eigen::Matrix<Scalar, 1, 1> { return (x.adjoint() * x).cwiseSqrt(); },
-        [](Eigen::Matrix<Scalar, n, 1> x) -> Eigen::Matrix<Scalar, 1, n>
-        {
-          return x.adjoint() / std::sqrt(x.adjoint() * x);
-        },
-        [](Eigen::Matrix<Scalar, n, 1> x) -> std::array<Eigen::Matrix<Scalar, n, n>, 1>
-        {
-          std::array<Eigen::Matrix<Scalar, n, n>, 1> ret;
-          Scalar sq = x.adjoint() * x;
-          ret[0] = pow(sq, -1.5) * (-x * x.adjoint() + sq * Eigen::Matrix<Scalar, n, n>::Identity());
-          return ret;
-        }
-    };
+      static_assert(is_equivalent_v<typename MatrixTraits<decltype(x)>::RowCoefficients, Axes<n>>);
+      static_assert(is_equivalent_v<typename MatrixTraits<decltype(x)>::ColumnCoefficients, Axis>);
+      static_assert(std::conjunction_v<is_equivalent_v<typename MatrixTraits<decltype(ps)>::RowCoefficients, Axis>...>);
+      static_assert(std::conjunction_v<is_equivalent_v<typename MatrixTraits<decltype(ps)>::ColumnCoefficients, Axis>...>);
 
-template<typename Scalar, int n>
-static const Transformation<Scalar, Axes<n>, Coefficients<Axis>, NoiseType::augmented, 2> time_of_arrival_aug
+      return std::tuple_cat(std::tuple {strict(adjoint(x) / std::sqrt((x.adjoint() * x)(0,0)))},
+        internal::tuple_replicate<sizeof...(ps)>(Mean {1.}));
+    },
+    [](const auto& x, const auto&...ps) // Hessians
     {
-        [](Eigen::Matrix<Scalar, n + 1, 1> x_aug) -> Eigen::Matrix<Scalar, 1, 1>
-        {
-          Eigen::Matrix<Scalar, n, 1> x {x_aug.template head<n>()};
-          return (x.adjoint() * x).cwiseSqrt() + Eigen::Matrix<Scalar, 1, 1> {x_aug(n)};
-        },
-        [](Eigen::Matrix<Scalar, n + 1, 1> x_aug) -> Eigen::Matrix<Scalar, 1, n + 1>
-        {
-          Eigen::Matrix<Scalar, n, 1> x {x_aug.template head<n>()};
-          Eigen::Matrix<Scalar, 1, n + 1> ret;
-          ret << x.adjoint() / std::sqrt(x.adjoint() * x), 1;
-          return ret;
-        },
-        [](Eigen::Matrix<Scalar, n + 1, 1> x_aug) -> std::array<Eigen::Matrix<Scalar, n + 1, n + 1>, 1>
-        {
-          Eigen::Matrix<Scalar, n, 1> x {x_aug.template head<n>()};
-          std::array<Eigen::Matrix<Scalar, n + 1, n + 1>, 1> ret;
-          std::array<Eigen::Matrix<Scalar, n, n>, 1> ret_sub;
-          Scalar sq = x.adjoint() * x;
-          ret_sub = pow(sq, -1.5) * (-x * x.adjoint() + sq * Eigen::Matrix<Scalar, n, n>::Identity());
-          ret[0] << ret_sub, Eigen::Matrix<Scalar, n, 1>::Zero(),
-              Eigen::Matrix<Scalar, 1, n>::Zero(), Eigen::Matrix<Scalar, 1, 1>::Constant(0);
-          return ret;
-        }
-    };
+      std::array<TypedMatrix<Axes<n>, Axes<n>, Eigen::Matrix<double, n, n>>, 1> ret;
+      double sq = (adjoint(x) * x)(0,0);
+      ret[0] = pow(sq, -1.5) * (-x * adjoint(x) + sq * MatrixTraits<decltype(ret[0])>::identity());
+      return std::tuple_cat(std::tuple {ret}, internal::tuple_replicate<sizeof...(ps)>(zero_hessian<Axes<n>, Axis, decltype(x), decltype(ps)...>()));
+    }
+  );
 
+using C2t = Coefficients<Axis, Axis>;
+using M2t = Mean<C2t, Eigen::Matrix<double, 2, 1>>;
+using M22t = TypedMatrix<C2t, C2t, Eigen::Matrix<double, 2, 2>>;
 
-//-------- Radar --------//
-
-using C2 = Coefficients<Axis, Axis>;
-
-template<typename Scalar>
-static const Transformation<Scalar, C2, C2, NoiseType::none, 2> radar
+inline const auto radar = make_Transformation<C2t, C2t>
+  (
+    [](const M2t& x, const auto&...ps) // function
     {
-        [](Eigen::Matrix<Scalar, 2, 1> x) -> Eigen::Matrix<Scalar, 2, 1>
-        {
-          return Eigen::Matrix<Scalar, 2, 1> {x(0) * cos(x(1)), x(0) * sin(x(1))};
-        },
-        [](Eigen::Matrix<Scalar, 2, 1> x) -> Eigen::Matrix<Scalar, 2, 2>
-        {
-          Eigen::Matrix<Scalar, 2, 2> ret;
-          ret(0, 0) = cos(x(1));
-          ret(0, 1) = -x(0) * sin(x(1));
-          ret(1, 0) = sin(x(1));
-          ret(1, 1) = x(0) * cos(x(1));
-          return ret;
-        },
-        [](Eigen::Matrix<Scalar, 2, 1> x) -> std::array<Eigen::Matrix<Scalar, 2, 2>, 2>
-        {
-          std::array<Eigen::Matrix<Scalar, 2, 2>, 2> ret;
-          ret[0](0, 0) = 0;
-          ret[0](0, 1) = -sin(x(1));
-          ret[0](1, 0) = -sin(x(1));
-          ret[0](1, 1) = -x(0) * cos(x(1));
-          ret[1](0, 0) = 0;
-          ret[1](0, 1) = cos(x(1));
-          ret[1](1, 0) = cos(x(1));
-          ret[1](1, 1) = -x(0) * sin(x(1));
-          return ret;
-        }
-    };
-
-template<typename Scalar>
-static const Transformation<Scalar, C2, C2, NoiseType::additive, 2> radar_add
+      return (M2t {x(0) * cos(x(1)), x(0) * sin(x(1))} + ... + ps);
+    },
+    [](const M2t& x, const auto&...ps) // Jacobians
     {
-        [](Eigen::Matrix<Scalar, 2, 1> x) -> Eigen::Matrix<Scalar, 2, 1>
-        {
-          return Eigen::Matrix<Scalar, 2, 1> {x(0) * cos(x(1)), x(0) * sin(x(1))};
-        },
-        [](Eigen::Matrix<Scalar, 2, 1> x) -> Eigen::Matrix<Scalar, 2, 2>
-        {
-          Eigen::Matrix<Scalar, 2, 2> ret;
-          ret(0, 0) = cos(x(1));
-          ret(0, 1) = -x(0) * sin(x(1));
-          ret(1, 0) = sin(x(1));
-          ret(1, 1) = x(0) * cos(x(1));
-          return ret;
-        },
-        [](Eigen::Matrix<Scalar, 2, 1> x) -> std::array<Eigen::Matrix<Scalar, 2, 2>, 2>
-        {
-          std::array<Eigen::Matrix<Scalar, 2, 2>, 2> ret;
-          ret[0](0, 0) = 0;
-          ret[0](0, 1) = -sin(x(1));
-          ret[0](1, 0) = -sin(x(1));
-          ret[0](1, 1) = -x(0) * cos(x(1));
-          ret[1](0, 0) = 0;
-          ret[1](0, 1) = cos(x(1));
-          ret[1](1, 0) = cos(x(1));
-          ret[1](1, 1) = -x(0) * sin(x(1));
-          return ret;
-        }
-    };
-
-template<typename Scalar>
-static const Transformation<Scalar, C2, C2, NoiseType::augmented, 2> radar_aug
+      M22t ret = {
+        std::cos(x(1)), -x(0) * std::sin(x(1)),
+        std::sin(x(1)), x(0) * std::cos(x(1))};
+      return std::tuple_cat(std::tuple {ret}, internal::tuple_replicate<sizeof...(ps)>(M2t::identity()));
+    },
+    [](const M2t& x, const auto&...ps) // Hessians
     {
-        [](Eigen::Matrix<Scalar, 4, 1> x) -> Eigen::Matrix<Scalar, 2, 1>
-        {
-          return Eigen::Matrix<Scalar, 2, 1> {x(0) * cos(x(1)) + x(2), x(0) * sin(x(1)) + x(3)};
-        },
-        [](Eigen::Matrix<Scalar, 4, 1> x) -> Eigen::Matrix<Scalar, 2, 4>
-        {
-          Eigen::Matrix<Scalar, 2, 4> ret;
-          ret(0, 0) = cos(x(1));
-          ret(0, 1) = -x(0) * sin(x(1));
-          ret(0, 2) = 1;
-          ret(0, 3) = 0;
-          ret(1, 0) = sin(x(1));
-          ret(1, 1) = x(0) * cos(x(1));
-          ret(1, 2) = 0;
-          ret(1, 3) = 1;
-          return ret;
-        },
-        [](Eigen::Matrix<Scalar, 4, 1> x) -> std::array<Eigen::Matrix<Scalar, 4, 4>, 2>
-        {
-          std::array<Eigen::Matrix<Scalar, 4, 4>, 2> ret;
-          ret[0] = Eigen::Matrix<Scalar, 4, 4>::Zero();
-          ret[0](0, 0) = 0;
-          ret[0](0, 1) = -sin(x(1));
-          ret[0](1, 0) = -sin(x(1));
-          ret[0](1, 1) = -x(0) * cos(x(1));
-          ret[1] = Eigen::Matrix<Scalar, 4, 4>::Zero();
-          ret[1](0, 0) = 0;
-          ret[1](0, 1) = cos(x(1));
-          ret[1](1, 0) = cos(x(1));
-          ret[1](1, 1) = -x(0) * sin(x(1));
-          return ret;
-        }
-    };
+      std::array<M22t, 2> ret;
+      ret[0] = {0, -sin(x(1)),
+                -sin(x(1)), -x(0) * cos(x(1))};
+      ret[1] = {0, cos(x(1)),
+                cos(x(1)), -x(0) * sin(x(1))};
+      return std::tuple_cat(std::tuple {ret}, internal::tuple_replicate<sizeof...(ps)>(
+        zero_hessian<C2t, C2t, decltype(x), decltype(ps)...>()));
+    }
+  );
 
-//-------- RadarPolar --------//
 
-template<typename Scalar>
-static const Transformation<Scalar, Coefficients<Polar>, C2, NoiseType::none, 2> radarP
+using M2Pt = Mean<Polar<>, Eigen::Matrix<double, 2, 1>>;
+using M22Pt = TypedMatrix<Polar<>, Polar<>, Eigen::Matrix<double, 2, 2>>;
+
+inline const auto radarP = make_Transformation<Polar<>, Polar<>>
+  (
+    [](const M2Pt& x, const auto&...ps) // function
     {
-        [](Eigen::Matrix<Scalar, 2, 1> x) -> Eigen::Matrix<Scalar, 2, 1>
-        {
-          return Eigen::Matrix<Scalar, 2, 1> {x(0) * cos(x(1)), x(0) * sin(x(1))};
-        },
-        [](Eigen::Matrix<Scalar, 2, 1> x) -> Eigen::Matrix<Scalar, 2, 2>
-        {
-          Eigen::Matrix<Scalar, 2, 2> ret;
-          ret(0, 0) = cos(x(1));
-          ret(0, 1) = -x(0) * sin(x(1));
-          ret(1, 0) = sin(x(1));
-          ret(1, 1) = x(0) * cos(x(1));
-          return ret;
-        },
-        [](Eigen::Matrix<Scalar, 2, 1> x) -> std::array<Eigen::Matrix<Scalar, 2, 2>, 2>
-        {
-          std::array<Eigen::Matrix<Scalar, 2, 2>, 2> ret;
-          ret[0](0, 0) = 0;
-          ret[0](0, 1) = -sin(x(1));
-          ret[0](1, 0) = -sin(x(1));
-          ret[0](1, 1) = -x(0) * cos(x(1));
-          ret[1](0, 0) = 0;
-          ret[1](0, 1) = cos(x(1));
-          ret[1](1, 0) = cos(x(1));
-          ret[1](1, 1) = -x(0) * sin(x(1));
-          return ret;
-        }
-    };
-
-template<typename Scalar>
-static const Transformation<Scalar, Coefficients<Polar>, C2, NoiseType::additive, 2> radarP_add
+      return (M2Pt {x(0) * cos(x(1)), x(0) * sin(x(1))} + ... + ps);
+    },
+    [](const M2Pt& x, const auto&...ps) // Jacobians
     {
-        [](Eigen::Matrix<Scalar, 2, 1> x) -> Eigen::Matrix<Scalar, 2, 1>
-        {
-          return Eigen::Matrix<Scalar, 2, 1> {x(0) * cos(x(1)), x(0) * sin(x(1))};
-        },
-        [](Eigen::Matrix<Scalar, 2, 1> x) -> Eigen::Matrix<Scalar, 2, 2>
-        {
-          Eigen::Matrix<Scalar, 2, 2> ret;
-          ret(0, 0) = cos(x(1));
-          ret(0, 1) = -x(0) * sin(x(1));
-          ret(1, 0) = sin(x(1));
-          ret(1, 1) = x(0) * cos(x(1));
-          return ret;
-        },
-        [](Eigen::Matrix<Scalar, 2, 1> x) -> std::array<Eigen::Matrix<Scalar, 2, 2>, 2>
-        {
-          std::array<Eigen::Matrix<Scalar, 2, 2>, 2> ret;
-          ret[0](0, 0) = 0;
-          ret[0](0, 1) = -sin(x(1));
-          ret[0](1, 0) = -sin(x(1));
-          ret[0](1, 1) = -x(0) * cos(x(1));
-          ret[1](0, 0) = 0;
-          ret[1](0, 1) = cos(x(1));
-          ret[1](1, 0) = cos(x(1));
-          ret[1](1, 1) = -x(0) * sin(x(1));
-          return ret;
-        }
-    };
-
-template<typename Scalar>
-static const Transformation<Scalar, Coefficients<Polar>, C2, NoiseType::augmented, 2> radarP_aug
+      M22Pt ret = {
+        std::cos(x(1)), -x(0) * std::sin(x(1)),
+        std::sin(x(1)), x(0) * std::cos(x(1))};
+      return std::tuple_cat(std::tuple {ret}, internal::tuple_replicate<sizeof...(ps)>(M2Pt::identity()));
+    },
+    [](const M2Pt& x, const auto&...ps) // Hessians
     {
-        [](Eigen::Matrix<Scalar, 4, 1> x) -> Eigen::Matrix<Scalar, 2, 1>
-        {
-          return Eigen::Matrix<Scalar, 2, 1> {x(0) * cos(x(1)) + x(2), x(0) * sin(x(1)) + x(3)};
-        },
-        [](Eigen::Matrix<Scalar, 4, 1> x) -> Eigen::Matrix<Scalar, 2, 4>
-        {
-          Eigen::Matrix<Scalar, 2, 4> ret;
-          ret(0, 0) = cos(x(1));
-          ret(0, 1) = -x(0) * sin(x(1));
-          ret(0, 2) = 1;
-          ret(0, 3) = 0;
-          ret(1, 0) = sin(x(1));
-          ret(1, 1) = x(0) * cos(x(1));
-          ret(1, 2) = 0;
-          ret(1, 3) = 1;
-          return ret;
-        },
-        [](Eigen::Matrix<Scalar, 4, 1> x) -> std::array<Eigen::Matrix<Scalar, 4, 4>, 2>
-        {
-          std::array<Eigen::Matrix<Scalar, 4, 4>, 2> ret;
-          ret[0] = Eigen::Matrix<Scalar, 4, 4>::Zero();
-          ret[0](0, 0) = 0;
-          ret[0](0, 1) = -sin(x(1));
-          ret[0](1, 0) = -sin(x(1));
-          ret[0](1, 1) = -x(0) * cos(x(1));
-          ret[1] = Eigen::Matrix<Scalar, 4, 4>::Zero();
-          ret[1](0, 0) = 0;
-          ret[1](0, 1) = cos(x(1));
-          ret[1](1, 0) = cos(x(1));
-          ret[1](1, 1) = -x(0) * sin(x(1));
-          return ret;
-        }
-    };
+      std::array<M22Pt, 2> ret;
+      ret[0] = {0, -sin(x(1)),
+                -sin(x(1)), -x(0) * cos(x(1))};
+      ret[1] = {0, cos(x(1)),
+                cos(x(1)), -x(0) * sin(x(1))};
+      return std::tuple_cat(std::tuple {ret}, internal::tuple_replicate<sizeof...(ps)>(
+        zero_hessian<Polar<>, Polar<>, decltype(x), decltype(ps)...>()));
+    }
+  );
 
 
 #endif //OPENKALMAN_TESTS_TRANSFORMATIONS_H

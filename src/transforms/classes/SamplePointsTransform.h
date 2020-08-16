@@ -82,13 +82,11 @@ namespace OpenKalman
       constexpr auto dim = (DistributionTraits<Dist>::dimension + ... + DistributionTraits<Noise>::dimension);
       //
       auto x_deviations = std::get<0>(sample_points_tuple);
-      auto y_means = y_means_impl(sample_points_tuple, std::tuple{x, n...}, std::make_index_sequence<sizeof...(Noise) + 1>());
-      std::cout << "y_means" << std::endl << y_means << std::endl << std::flush;
+      auto y_means = y_means_impl(sample_points_tuple, std::forward_as_tuple(x, n...), std::make_index_sequence<sizeof...(Noise) + 1>());
       //
       auto mean_output = strict(SamplePointsType::template weighted_means<dim>(y_means));
       // Each column is a deviation from y mean for each transformed sigma point:
       auto y_deviations = apply_columnwise(y_means, [&mean_output](const auto& col) { return col - mean_output; });
-      std::cout << "y_deviations" << std::endl << y_deviations << std::endl << std::flush;
       //
       return std::tuple {std::move(mean_output), std::move(x_deviations), std::move(y_deviations)};
     }
@@ -97,7 +95,6 @@ namespace OpenKalman
     template<typename InputDist, typename ... NoiseDist>
     auto operator()(const InputDist& in, const NoiseDist& ...n) const
     {
-      std::cout << "------------------------------------------------------------------------" << std::endl;
       auto [mean_output, x_deviations, y_deviations] = trans(in, n...);
       auto [out_covariance, cross_covariance] = SamplePointsType::template covariance<InputDist, NoiseDist...>(x_deviations, y_deviations);
       auto out = GaussianDistribution {mean_output, out_covariance};
