@@ -26,7 +26,7 @@ include_directories(SYSTEM ${EIGEN3_INCLUDE_DIRS})
 #include_directories(SYSTEM ${OPENCV_INCLUDE_DIRS})
 #include_directories(${BOOST_INCLUDE_DIRS})
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -g -O2 -ftemplate-backtrace-limit=0")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O2 -fopenmp -ftemplate-backtrace-limit=0")
 
 add_executable(matrix-tests
         matrix-tests/matrix_tests.cpp
@@ -123,20 +123,11 @@ add_executable(nonlinear-tests
         nonlinear-tests/nonlinear-tests.2x2.CT.cpp
         nonlinear-tests/nonlinear-tests.2x1.UT.cpp
         nonlinear-tests/nonlinear-tests.2x2.UT.cpp
-        #nonlinear-tests/nonlinear-tests.2x2.MCT.cpp
+        nonlinear-tests/nonlinear-tests.2x2.MCT.cpp
         )
 set_target_properties(nonlinear-tests PROPERTIES CXX_STANDARD_REQUIRED ON CXX_STANDARD 17)
 target_link_libraries(nonlinear-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)
 add_test(nonlinear-tests 0)
-
-
-add_executable(MonteCarlo-tests
-        MonteCarlo-tests/MonteCarlo-tests.2x1.cpp
-        MonteCarlo-tests/MonteCarlo-tests.2x2.cpp
-        )
-set_target_properties(MonteCarlo-tests PROPERTIES CXX_STANDARD_REQUIRED ON CXX_STANDARD 17)
-target_link_libraries(MonteCarlo-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)
-add_test(MonteCarlo-tests 0)
 
 
 add_executable(kalman-tests

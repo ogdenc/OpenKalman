@@ -23,8 +23,8 @@
 #include "transforms/classes/LinearTransform.h"
 #include "transforms/classes/LinearizedTransform.h"
 #include "transforms/classes/SamplePointsTransform.h"
+#include "transforms/classes/MonteCarloTransform.h"
 //#include "transforms/classes/IdentityTransform.h"
-//#include "transforms/classes/MonteCarloTransform.h"
 //#include "transforms/classes/RecursiveLeastSquaresTransform.h"
 
 #endif //OPENKALMAN_OPENKALMAN_TRANSFORMS_H

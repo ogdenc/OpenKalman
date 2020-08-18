@@ -9,60 +9,94 @@
  */
 
 #include "nonlinear-tests.h"
-#include <transforms/classes/MonteCarloTransform.h>
-#include <transforms/classes/LinearizedTransform.h>
-
-using namespace std;
-using namespace OpenKalman;
-using namespace Eigen;
 
 /*
  * Test data from Gustafsson & Hendeby. Some Relations Between Extended and Unscented Kalman Filters.
  * IEEE Transactions on Signal Processing, (60), 2, 545-555. 2012.
  */
 
-using C2 = Coefficients<Axis, Axis>;
+using M2 = Eigen::Matrix<double, 2, 1>;
+using SA = EigenSelfAdjointMatrix<Eigen::Matrix<double, 2, 2>>;
+using TR = EigenTriangularMatrix<Eigen::Matrix<double, 2, 2>>;
+using G2 = GaussianDistribution<Axes<2>, M2, SA>;
+using G2T = GaussianDistribution<Axes<2>, M2, TR>;
 
-TEST_F(nonlinear_tests, MCTRadarA1)
+TEST_F(nonlinear_tests, MCTRadarA1SelfAdjoint)
 {
-    MonteCarloTransform<GaussianDistribution, double, C2, C2, NoiseType::none> t {radar<double>, 100000};
-    do2x2Transform(
-        t,
-        Matrix<double, 2, 1>(3.0, 0.0),
-        Eigen::Matrix<double,2,2> {Eigen::Matrix<double,2,2>::Identity()},
-        {1.8, 1e-1,
-         0.0, 1e-1},
-        {2.5, 2e-1, 0.0, 1e-1, // need a little more latitude here
-         0.0, 1e-1, 4.4, 1e-1}
-    );
+  auto t = make_MonteCarloTransform(radar);
+  auto in = G2 {{3.0, 0.0}, SA::identity()};
+  auto out = std::get<0>(t(in));
+  EXPECT_NEAR(mean(out)(0), 1.8, 1e-1);
+  EXPECT_NEAR(mean(out)(1), 0.0, 1e-1);
+  EXPECT_NEAR(covariance(out)(0,0), 2.4, 1e-1); // Original paper said 2.5. This is probably wrong.
+  EXPECT_NEAR(covariance(out)(0,1), 0.0, 1e-1);
+  EXPECT_NEAR(covariance(out)(1,0), 0.0, 1e-1);
+  EXPECT_NEAR(covariance(out)(1,1), 4.4, 1e-1);
 }
 
-TEST_F(nonlinear_tests, MCTRadarA2)
+TEST_F(nonlinear_tests, MCTRadarA1Triangular)
 {
-    MonteCarloTransform<GaussianDistribution, double, C2, C2, NoiseType::none> t {radar<double>, 100000};
-    do2x2Transform(
-        t,
-        Matrix<double, 2, 1>(3.0, M_PI / 6),
-        Eigen::Matrix<double,2,2> {Eigen::Matrix<double,2,2>::Identity()},
-        {1.6, 1e-1,
-         0.9, 1e-1},
-        {2.9, 1e-1, -0.8, 1e-1,
-         -0.8, 1e-1, 3.9, 1e-1}
-    );
+  auto t = make_MonteCarloTransform(radar);
+  auto in = G2T {{3.0, 0.0}, SA::identity()};
+  auto out = std::get<0>(t(in));
+  EXPECT_NEAR(mean(out)(0), 1.8, 1e-1);
+  EXPECT_NEAR(mean(out)(1), 0.0, 1e-1);
+  EXPECT_NEAR(covariance(out)(0,0), 2.4, 1e-1); // Original paper said 2.5. This is probably wrong.
+  EXPECT_NEAR(covariance(out)(0,1), 0.0, 1e-1);
+  EXPECT_NEAR(covariance(out)(1,0), 0.0, 1e-1);
+  EXPECT_NEAR(covariance(out)(1,1), 4.4, 2e-1);
 }
 
-TEST_F(nonlinear_tests, MCTRadarA3)
+TEST_F(nonlinear_tests, MCTRadarA2SelfAdjoint)
 {
-    MonteCarloTransform<GaussianDistribution, double, C2, C2, NoiseType::none> t {radar<double>, 100000};
-    do2x2Transform(
-        t,
-        Matrix<double, 2, 1>(3.0, M_PI_4),
-        Eigen::Matrix<double,2,2> {Eigen::Matrix<double,2,2>::Identity()},
-        {1.3, 1e-1,
-         1.3, 1e-1},
-        {3.4, 1e-1, -1.0, 1e-1,
-         -1.0, 1e-1, 3.4, 1e-1}
-    );
+  auto t = make_MonteCarloTransform(radar);
+  auto in = G2 {{3.0, M_PI/6}, SA::identity()};
+  auto out = std::get<0>(t(in));
+  EXPECT_NEAR(mean(out)(0), 1.6, 1e-1);
+  EXPECT_NEAR(mean(out)(1), 0.9, 1e-1);
+  EXPECT_NEAR(covariance(out)(0,0), 2.9, 1e-1);
+  EXPECT_NEAR(covariance(out)(0,1), -0.8, 1e-1);
+  EXPECT_NEAR(covariance(out)(1,0), -0.8, 1e-1);
+  EXPECT_NEAR(covariance(out)(1,1), 3.9, 1e-1);
+}
+
+TEST_F(nonlinear_tests, MCTRadarA2Triangular)
+{
+  auto t = make_MonteCarloTransform(radar);
+  auto in = G2T {{3.0, M_PI/6}, SA::identity()};
+  auto out = std::get<0>(t(in));
+  EXPECT_NEAR(mean(out)(0), 1.6, 1e-1);
+  EXPECT_NEAR(mean(out)(1), 0.9, 1e-1);
+  EXPECT_NEAR(covariance(out)(0,0), 2.9, 1e-1);
+  EXPECT_NEAR(covariance(out)(0,1), -0.8, 1e-1);
+  EXPECT_NEAR(covariance(out)(1,0), -0.8, 1e-1);
+  EXPECT_NEAR(covariance(out)(1,1), 3.9, 1e-1);
+}
+
+TEST_F(nonlinear_tests, MCTRadarA3SelfAdjoint)
+{
+  auto t = make_MonteCarloTransform(radar);
+  auto in = G2 {{3.0, M_PI_4}, SA::identity()};
+  auto out = std::get<0>(t(in));
+  EXPECT_NEAR(mean(out)(0), 1.3, 1e-1);
+  EXPECT_NEAR(mean(out)(1), 1.3, 1e-1);
+  EXPECT_NEAR(covariance(out)(0,0), 3.4, 1e-1);
+  EXPECT_NEAR(covariance(out)(0,1), -1.0, 1e-1);
+  EXPECT_NEAR(covariance(out)(1,0), -1.0, 1e-1);
+  EXPECT_NEAR(covariance(out)(1,1), 3.4, 1e-1);
+}
+
+TEST_F(nonlinear_tests, MCTRadarA3Triangular)
+{
+  auto t = make_MonteCarloTransform(radar);
+  auto in = G2T {{3.0, M_PI_4}, SA::identity()};
+  auto out = std::get<0>(t(in));
+  EXPECT_NEAR(mean(out)(0), 1.3, 1e-1);
+  EXPECT_NEAR(mean(out)(1), 1.3, 1e-1);
+  EXPECT_NEAR(covariance(out)(0,0), 3.4, 1e-1);
+  EXPECT_NEAR(covariance(out)(0,1), -1.0, 1e-1);
+  EXPECT_NEAR(covariance(out)(1,0), -1.0, 1e-1);
+  EXPECT_NEAR(covariance(out)(1,1), 3.4, 1e-1);
 }
 
 
@@ -71,44 +105,81 @@ TEST_F(nonlinear_tests, MCTRadarA3)
  * to Nonlinear Filtering. International Conference on Acoustics, Speech, and Signal Processing (ICASSP). 2007:
  */
 
-TEST_F(nonlinear_tests, MCTRadarB1)
+TEST_F(nonlinear_tests, MCTRadarB1SelfAdjoint)
 {
-    MonteCarloTransform<GaussianDistribution, double, C2, C2, NoiseType::none> t {radar<double>, 100000};
-    do2x2Transform(
-        t,
-        Matrix<double, 2, 1>(20.0, 0.0),
-        Eigen::Matrix<double,2,2> {Eigen::Matrix<double,2,1>(1.0, 0.1).asDiagonal()},
-        {19.0, 1e-1,
-         -0.1, 2e-1},
-        {2.9, 2e-1, 0.3, 1e0, // need a little more latitude here
-         0.3, 1e0, 36.6, 1e0}
-    );
+  auto t = make_MonteCarloTransform(radar);
+  auto in = G2 {{20.0, 0.0}, {1.0, 0.0, 0.0, 0.1}};
+  auto out = std::get<0>(t(in));
+  EXPECT_NEAR(mean(out)(0), 19.0, 1e-1);
+  EXPECT_NEAR(mean(out)(1), 0.0, 1e-1); // Reference says -0.1.
+  EXPECT_NEAR(covariance(out)(0,0), 2.7, 2e-1); // Reference says 2.9
+  EXPECT_NEAR(covariance(out)(0,1), 0.0, 2e-1); // Reference says 0.3
+  EXPECT_NEAR(covariance(out)(1,0), 0.0, 2e-1); // Reference says 0.3
+  EXPECT_NEAR(covariance(out)(1,1), 36.3, 4e-1); // Reference says 36.6
 }
 
-TEST_F(nonlinear_tests, MCTRadarB2)
+TEST_F(nonlinear_tests, MCTRadarB1Triangular)
 {
-    MonteCarloTransform<GaussianDistribution, double, C2, C2, NoiseType::none> t {radar<double>, 100000};
-    do2x2Transform(
-        t,
-        Matrix<double, 2, 1>(20.0, M_PI / 6),
-        Eigen::Matrix<double,2,2> {Eigen::Matrix<double,2,1>(1.0, 0.1).asDiagonal()},
-        {16.3, 1e0,
-         9.8, 1e0},
-        {12.2, 2e0, -15.4, 1e0,
-         -15.4, 1e0, 27.9, 1e0}
-    );
+  auto t = make_MonteCarloTransform(radar);
+  auto in = G2T {{20.0, 0.0}, {1.0, 0.0, 0.0, 0.1}};
+  auto out = std::get<0>(t(in));
+  EXPECT_NEAR(mean(out)(0), 19.0, 1e-1);
+  EXPECT_NEAR(mean(out)(1), 0.0, 1e-1); // Reference says -0.1
+  EXPECT_NEAR(covariance(out)(0,0), 2.7, 2e-1); // Reference says 2.9
+  EXPECT_NEAR(covariance(out)(0,1), 0.0, 2e-1); // Reference says 0.3
+  EXPECT_NEAR(covariance(out)(1,0), 0.0, 2e-1); // Reference says 0.3
+  EXPECT_NEAR(covariance(out)(1,1), 36.3, 4e-1); // Reference says 36.6
 }
 
-TEST_F(nonlinear_tests, MCTRadarB3)
+TEST_F(nonlinear_tests, MCTRadarB2SelfAdjoint)
 {
-    MonteCarloTransform<GaussianDistribution, double, C2, C2, NoiseType::none> t {radar<double>, 100000};
-    do2x2Transform(
-        t,
-        Matrix<double, 2, 1>(20.0, M_PI_4),
-        Eigen::Matrix<double,2,2> {Eigen::Matrix<double,2,1>(1.0, 0.1).asDiagonal()},
-        {13.3, 1e0,
-         13.6, 1e0},
-        {20.3, 1e0, -17.1, 1e0,
-         -17.1, 1e0, 20.0, 1e0}
-    );
+  auto t = make_MonteCarloTransform(radar);
+  auto in = G2 {{20.0, M_PI/6}, {1.0, 0.0, 0.0, 0.1}};
+  auto out = std::get<0>(t(in));
+  EXPECT_NEAR(mean(out)(0), 16.5, 1e-1); // Reference says 16.3
+  EXPECT_NEAR(mean(out)(1), 9.5, 1e-1); // Reference says 9.8
+  EXPECT_NEAR(covariance(out)(0,0), 11.2, 3e-1); // Reference says 12.2
+  EXPECT_NEAR(covariance(out)(0,1), -14.6, 2e-1); // Reference says -15.4
+  EXPECT_NEAR(covariance(out)(1,0), -14.6, 2e-1); // Reference says -15.4
+  EXPECT_NEAR(covariance(out)(1,1), 27.9, 2e-1); // Reference says 27.9
 }
+
+TEST_F(nonlinear_tests, MCTRadarB2Triangular)
+{
+  auto t = make_MonteCarloTransform(radar);
+  auto in = G2T {{20.0, M_PI/6}, {1.0, 0.0, 0.0, 0.1}};
+  auto out = std::get<0>(t(in));
+  EXPECT_NEAR(mean(out)(0), 16.5, 1e-1); // Reference says 16.3
+  EXPECT_NEAR(mean(out)(1), 9.5, 1e-1); // Reference says 9.8
+  EXPECT_NEAR(covariance(out)(0,0), 11.2, 3e-1); // Reference says 12.2
+  EXPECT_NEAR(covariance(out)(0,1), -14.6, 2e-1); // Reference says -15.4
+  EXPECT_NEAR(covariance(out)(1,0), -14.6, 2e-1); // Reference says -15.4
+  EXPECT_NEAR(covariance(out)(1,1), 27.9, 2e-1); // Reference says 27.9
+}
+
+TEST_F(nonlinear_tests, MCTRadarB3SelfAdjoint)
+{
+  auto t = make_MonteCarloTransform(radar);
+  auto in = G2 {{20.0, M_PI_4}, {1.0, 0.0, 0.0, 0.1}};
+  auto out = std::get<0>(t(in));
+  EXPECT_NEAR(mean(out)(0), 13.45, 1e-1); // Reference says 13.3
+  EXPECT_NEAR(mean(out)(1), 13.45, 1e-1); // Reference says 13.6
+  EXPECT_NEAR(covariance(out)(0,0), 19.5, 3e-1); // Reference says 20.3
+  EXPECT_NEAR(covariance(out)(0,1), -16.8, 2e-1); // Reference says -17.1
+  EXPECT_NEAR(covariance(out)(1,0), -16.8, 2e-1); // Reference says -17.1
+  EXPECT_NEAR(covariance(out)(1,1), 19.45, 2e-1); // Reference says 20.0
+}
+
+TEST_F(nonlinear_tests, MCTRadarB3Triangular)
+{
+  auto t = make_MonteCarloTransform(radar);
+  auto in = G2T {{20.0, M_PI_4}, {1.0, 0.0, 0.0, 0.1}};
+  auto out = std::get<0>(t(in));
+  EXPECT_NEAR(mean(out)(0), 13.45, 1e-1); // Reference says 13.3
+  EXPECT_NEAR(mean(out)(1), 13.45, 1e-1); // Reference says 13.6
+  EXPECT_NEAR(covariance(out)(0,0), 19.5, 3e-1); // Reference says 20.3
+  EXPECT_NEAR(covariance(out)(0,1), -16.8, 2e-1); // Reference says -17.1
+  EXPECT_NEAR(covariance(out)(1,0), -16.8, 2e-1); // Reference says -17.1
+  EXPECT_NEAR(covariance(out)(1,1), 19.45, 2e-1); // Reference says 20.0
+}
+
