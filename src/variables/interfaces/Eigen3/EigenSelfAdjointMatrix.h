@@ -466,11 +466,13 @@ namespace OpenKalman
     static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
     if constexpr(is_Eigen_lower_storage_triangle_v<Arg1> != is_Eigen_lower_storage_triangle_v<Arg2>)
     {
-      return MatrixTraits<Arg1>::make(base_matrix(std::forward<Arg1>(arg1)) + adjoint(base_matrix(std::forward<Arg2>(arg2))));
+      auto ret = MatrixTraits<Arg1>::make(base_matrix(std::forward<Arg1>(arg1)) + adjoint(base_matrix(std::forward<Arg2>(arg2))));
+      if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>) return strict(std::move(ret)); else return ret;
     }
     else
     {
-      return MatrixTraits<Arg1>::make(base_matrix(std::forward<Arg1>(arg1)) + base_matrix(std::forward<Arg2>(arg2)));
+      auto ret = MatrixTraits<Arg1>::make(base_matrix(std::forward<Arg1&&>(arg1)) + base_matrix(std::forward<Arg2&&>(arg2)));
+      if constexpr (not std::is_lvalue_reference_v<Arg1> or not std::is_lvalue_reference_v<Arg2>) return strict(std::move(ret)); else return ret;
     }
   }
 
@@ -484,11 +486,13 @@ namespace OpenKalman
     static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
     if constexpr(is_EigenSelfAdjointMatrix_v<Arg1>)
     {
-      return MatrixTraits<Arg1>::make(base_matrix(std::forward<Arg1>(arg1)) + std::forward<Arg2>(arg2));
+      auto ret = MatrixTraits<Arg1>::make(base_matrix(std::forward<Arg1>(arg1)) + std::forward<Arg2>(arg2));
+      if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>) return strict(std::move(ret)); else return ret;
     }
     else
     {
-      return MatrixTraits<Arg2>::make(std::forward<Arg1>(arg1) + base_matrix(std::forward<Arg2>(arg2)));
+      auto ret = MatrixTraits<Arg2>::make(std::forward<Arg1>(arg1) + base_matrix(std::forward<Arg2>(arg2)));
+      if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>) return strict(std::move(ret)); else return ret;
     }
   }
 
@@ -502,13 +506,13 @@ namespace OpenKalman
     static_assert(MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns);
     if constexpr(is_EigenSelfAdjointMatrix_v<Arg1>)
     {
-      using B = typename MatrixTraits<Arg1>::BaseMatrix;
-      return MatrixTraits<Arg1>::make(base_matrix(std::forward<Arg1>(arg1)) + std::forward<Arg2>(arg2));
+      auto ret = MatrixTraits<Arg1>::make(base_matrix(std::forward<Arg1>(arg1)) + std::forward<Arg2>(arg2));
+      if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>) return strict(std::move(ret)); else return ret;
     }
     else
     {
-      using B = typename MatrixTraits<Arg2>::BaseMatrix;
-      return MatrixTraits<Arg2>::make(std::forward<Arg1>(arg1) + base_matrix(std::forward<Arg2>(arg2)));
+      auto ret = MatrixTraits<Arg2>::make(std::forward<Arg1>(arg1) + base_matrix(std::forward<Arg2>(arg2)));
+      if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>) return strict(std::move(ret)); else return ret;
     }
   }
 
@@ -542,11 +546,13 @@ namespace OpenKalman
     static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
     if constexpr(is_Eigen_lower_storage_triangle_v<Arg1> != is_Eigen_lower_storage_triangle_v<Arg2>)
     {
-      return MatrixTraits<Arg1>::make(base_matrix(std::forward<Arg1>(arg1)) - adjoint(base_matrix(std::forward<Arg2>(arg2))));
+      auto ret = MatrixTraits<Arg1>::make(base_matrix(std::forward<Arg1>(arg1)) - adjoint(base_matrix(std::forward<Arg2>(arg2))));
+      if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>) return strict(std::move(ret)); else return ret;
     }
     else
     {
-      return MatrixTraits<Arg1>::make(base_matrix(std::forward<Arg1>(arg1)) - base_matrix(std::forward<Arg2>(arg2)));
+      auto ret = MatrixTraits<Arg1>::make(base_matrix(std::forward<Arg1>(arg1)) - base_matrix(std::forward<Arg2>(arg2)));
+      if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>) return strict(std::move(ret)); else return ret;
     }
   }
 
@@ -560,11 +566,13 @@ namespace OpenKalman
     static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
     if constexpr(is_EigenSelfAdjointMatrix_v<Arg1>)
     {
-      return MatrixTraits<Arg1>::make(base_matrix(std::forward<Arg1>(arg1)) - std::forward<Arg2>(arg2));
+      auto ret = MatrixTraits<Arg1>::make(base_matrix(std::forward<Arg1>(arg1)) - std::forward<Arg2>(arg2));
+      if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>) return strict(std::move(ret)); else return ret;
     }
     else
     {
-      return MatrixTraits<Arg2>::make(std::forward<Arg1>(arg1) - base_matrix(std::forward<Arg2>(arg2)));
+      auto ret = MatrixTraits<Arg2>::make(std::forward<Arg1>(arg1) - base_matrix(std::forward<Arg2>(arg2)));
+      if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>) return strict(std::move(ret)); else return ret;
     }
   }
 
@@ -578,13 +586,13 @@ namespace OpenKalman
     static_assert(MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns);
     if constexpr(is_EigenSelfAdjointMatrix_v<Arg1>)
     {
-      using B = typename MatrixTraits<Arg1>::BaseMatrix;
-      return MatrixTraits<Arg1>::make(base_matrix(std::forward<Arg1>(arg1)) - std::forward<Arg2>(arg2));
+      auto ret = MatrixTraits<Arg1>::make(base_matrix(std::forward<Arg1>(arg1)) - std::forward<Arg2>(arg2));
+      if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>) return strict(std::move(ret)); else return ret;
     }
     else
     {
-      using B = typename MatrixTraits<Arg2>::BaseMatrix;
-      return MatrixTraits<Arg2>::make(std::forward<Arg1>(arg1) - base_matrix(std::forward<Arg2>(arg2)));
+      auto ret = MatrixTraits<Arg2>::make(std::forward<Arg1>(arg1) - base_matrix(std::forward<Arg2>(arg2)));
+      if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>) return strict(std::move(ret)); else return ret;
     }
   }
 
@@ -615,7 +623,8 @@ namespace OpenKalman
     std::enable_if_t<std::is_convertible_v<S, typename MatrixTraits<Arg>::Scalar>, int> = 0>
   inline auto operator*(Arg&& arg, const S scale)
   {
-    return MatrixTraits<Arg>::make(std::forward<Arg>(arg).base_matrix() * scale);
+    auto ret = MatrixTraits<Arg>::make(std::forward<Arg>(arg).base_matrix() * scale);
+    if constexpr (not std::is_lvalue_reference_v<Arg&&>) return strict(std::move(ret)); else return ret;
   }
 
 
@@ -625,7 +634,8 @@ namespace OpenKalman
     std::enable_if_t<std::is_convertible_v<S, typename MatrixTraits<Arg>::Scalar>, int> = 0>
   inline auto operator*(const S scale, Arg&& arg)
   {
-    return MatrixTraits<Arg>::make(scale * std::forward<Arg>(arg).base_matrix());
+    auto ret = MatrixTraits<Arg>::make(scale * std::forward<Arg>(arg).base_matrix());
+    if constexpr (not std::is_lvalue_reference_v<Arg&&>) return strict(std::move(ret)); else return ret;
   }
 
 
@@ -635,7 +645,8 @@ namespace OpenKalman
     std::enable_if_t<std::is_convertible_v<S, typename MatrixTraits<Arg>::Scalar>, int> = 0>
   inline auto operator/(Arg&& arg, const S scale)
   {
-    return MatrixTraits<Arg>::make(std::forward<Arg>(arg).base_matrix() / scale);
+    auto ret = MatrixTraits<Arg>::make(std::forward<Arg>(arg).base_matrix() / scale);
+    if constexpr (not std::is_lvalue_reference_v<Arg&&>) return strict(std::move(ret)); else return ret;
   }
 
 
@@ -650,7 +661,8 @@ namespace OpenKalman
   inline auto operator*(Arg1&& arg1, Arg2&& arg2)
   {
     static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
-    return std::forward<Arg1>(arg1).base_view() * std::forward<Arg2>(arg2);
+    auto ret = std::forward<Arg1>(arg1).base_view() * std::forward<Arg2>(arg2);
+    if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>) return strict(std::move(ret)); else return ret;
   }
 
 
@@ -664,11 +676,13 @@ namespace OpenKalman
     static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
     if constexpr(is_EigenSelfAdjointMatrix_v<Arg1>)
     {
-      return std::forward<Arg1>(arg1).base_view() * std::forward<Arg2>(arg2);
+      auto ret = std::forward<Arg1>(arg1).base_view() * std::forward<Arg2>(arg2);
+      if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>) return strict(std::move(ret)); else return ret;
     }
     else
     {
-      return std::forward<Arg1>(arg1) * std::forward<Arg2>(arg2).base_view();
+      auto ret = std::forward<Arg1>(arg1) * std::forward<Arg2>(arg2).base_view();
+      if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>) return strict(std::move(ret)); else return ret;
     }
   }
 
@@ -716,11 +730,13 @@ namespace OpenKalman
     static_assert(MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::dimension);
     if constexpr(is_EigenSelfAdjointMatrix_v<Arg1>)
     {
-      return std::forward<Arg1>(arg1).base_view() * std::forward<Arg2>(arg2);
+      auto ret = std::forward<Arg1>(arg1).base_view() * std::forward<Arg2>(arg2);
+      if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>) return strict(std::move(ret)); else return ret;
     }
     else
     {
-      return std::forward<Arg1>(arg1) * std::forward<Arg2>(arg2).base_view();
+      auto ret = std::forward<Arg1>(arg1) * std::forward<Arg2>(arg2).base_view();
+      if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>) return strict(std::move(ret)); else return ret;
     }
   }
 
@@ -732,7 +748,8 @@ namespace OpenKalman
     std::enable_if_t<is_EigenSelfAdjointMatrix_v<Arg>, int> = 0>
   inline auto operator-(Arg&& arg)
   {
-    return MatrixTraits<Arg>::make(-std::forward<Arg>(arg).base_matrix());
+    auto ret = MatrixTraits<Arg>::make(-std::forward<Arg>(arg).base_matrix());
+    if constexpr (not std::is_lvalue_reference_v<Arg&&>) return strict(std::move(ret)); else return ret;
   }
 
 }

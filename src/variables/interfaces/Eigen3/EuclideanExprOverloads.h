@@ -705,9 +705,10 @@ namespace OpenKalman
   {
     static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg1>::Coefficients, typename MatrixTraits<Arg2>::Coefficients>);
     using C = typename MatrixTraits<Arg1>::Coefficients;
-    return from_Euclidean<C>(to_Euclidean<C>(
+    auto ret = from_Euclidean<C>(to_Euclidean<C>(
       base_matrix(base_matrix(std::forward<Arg1>(v1))) +
         base_matrix(base_matrix(std::forward<Arg2>(v2)))));
+    if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>) return strict(std::move(ret)); else return ret;
   }
 
 
@@ -721,9 +722,10 @@ namespace OpenKalman
   {
     static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg1>::Coefficients, typename MatrixTraits<Arg2>::Coefficients>);
     using C = typename MatrixTraits<Arg1>::Coefficients;
-    return from_Euclidean<C>(to_Euclidean<C>(
+    auto ret = from_Euclidean<C>(to_Euclidean<C>(
       base_matrix(base_matrix(std::forward<Arg1>(v1))) -
         base_matrix(base_matrix(std::forward<Arg2>(v2)))));
+    if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>) return strict(std::move(ret)); else return ret;
   }
 
 
@@ -734,7 +736,8 @@ namespace OpenKalman
   constexpr decltype(auto) operator-(Arg&& v)
   {
     using C = typename MatrixTraits<Arg>::Coefficients;
-    return from_Euclidean<C>(to_Euclidean<C>(-base_matrix(base_matrix(std::forward<Arg>(v)))));
+    auto ret = from_Euclidean<C>(to_Euclidean<C>(-base_matrix(base_matrix(std::forward<Arg>(v)))));
+    if constexpr (not std::is_lvalue_reference_v<Arg&&>) return strict(std::move(ret)); else return ret;
   }
 
 

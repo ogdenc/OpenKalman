@@ -718,7 +718,8 @@ namespace OpenKalman
       (is_Euclidean_mean_v<V1> and is_mean_v<V2>) or
       (not is_mean_v<V2> and not is_Euclidean_mean_v<V2>),
       V1, V2>>;
-    return wrap_angles(MatrixTraits<CommonV>::make(base_matrix(std::forward<V1>(v1)) + base_matrix(std::forward<V2>(v2))));
+    auto ret = wrap_angles(MatrixTraits<CommonV>::make(base_matrix(std::forward<V1>(v1)) + base_matrix(std::forward<V2>(v2))));
+    if constexpr (not std::is_lvalue_reference_v<V1&&> or not std::is_lvalue_reference_v<V2&&>) return strict(std::move(ret)); else return ret;
   }
 
 
@@ -733,7 +734,8 @@ namespace OpenKalman
       (is_Euclidean_mean_v<V1> and is_mean_v<V2>) or
       (not is_mean_v<V2> and not is_Euclidean_mean_v<V2>),
       V1, V2>>;
-    return wrap_angles(MatrixTraits<CommonV>::make(base_matrix(std::forward<V1>(v1)) - base_matrix(std::forward<V2>(v2))));
+    auto ret = wrap_angles(MatrixTraits<CommonV>::make(base_matrix(std::forward<V1>(v1)) - base_matrix(std::forward<V2>(v2))));
+    if constexpr (not std::is_lvalue_reference_v<V1&&> or not std::is_lvalue_reference_v<V2&&>) return strict(std::move(ret)); else return ret;
   }
 
 
@@ -746,7 +748,8 @@ namespace OpenKalman
   inline auto operator*(V&& v, S scale)
   {
     using Sc = typename MatrixTraits<V>::Scalar;
-    return wrap_angles(MatrixTraits<V>::make(base_matrix(std::forward<V>(v)) * static_cast<Sc>(scale)));
+    auto ret = wrap_angles(MatrixTraits<V>::make(base_matrix(std::forward<V>(v)) * static_cast<Sc>(scale)));
+    if constexpr (not std::is_lvalue_reference_v<V&&>) return strict(std::move(ret)); else return ret;
   }
 
 
@@ -759,7 +762,8 @@ namespace OpenKalman
   inline auto operator*(S scale, V&& v)
   {
     using Sc = const typename MatrixTraits<V>::Scalar;
-    return wrap_angles(MatrixTraits<V>::make(static_cast<Sc>(scale) * base_matrix(std::forward<V>(v))));
+    auto ret = wrap_angles(MatrixTraits<V>::make(static_cast<Sc>(scale) * base_matrix(std::forward<V>(v))));
+    if constexpr (not std::is_lvalue_reference_v<V&&>) return strict(std::move(ret)); else return ret;
   }
 
 
@@ -772,7 +776,8 @@ namespace OpenKalman
   inline auto operator/(V&& v, S scale)
   {
     using Sc = typename MatrixTraits<V>::Scalar;
-    return wrap_angles(MatrixTraits<V>::make(base_matrix(std::forward<V>(v)) / static_cast<Sc>(scale)));
+    auto ret = wrap_angles(MatrixTraits<V>::make(base_matrix(std::forward<V>(v)) / static_cast<Sc>(scale)));
+    if constexpr (not std::is_lvalue_reference_v<V&&>) return strict(std::move(ret)); else return ret;
   }
 
 
@@ -783,18 +788,19 @@ namespace OpenKalman
     std::enable_if_t<is_typed_matrix_v<V1> and is_typed_matrix_v<V2>, int> = 0>
   inline auto operator*(V1&& v1, V2&& v2)
   {
-    static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<V1>::ColumnCoefficients, typename MatrixTraits<V2>::RowCoefficients>);
+    static_assert(is_equivalent_v<typename MatrixTraits<V1>::ColumnCoefficients, typename MatrixTraits<V2>::RowCoefficients>);
     static_assert(MatrixTraits<V1>::columns == MatrixTraits<V2>::dimension);
     using RC = typename MatrixTraits<V1>::RowCoefficients;
     using CC = typename MatrixTraits<V2>::ColumnCoefficients;
     if constexpr(is_Euclidean_mean_v<V1>) static_assert(CC::axes_only,
       "A Euclidean-transformed matrix can only multiply with a matrix in which column coefficients are Axes only.");
     using CommonV = std::decay_t<std::conditional_t<
-      not OpenKalman::is_column_vector_v<V2> or (OpenKalman::is_mean_v<V2> and not is_Euclidean_mean_v<V1>),
+      not is_column_vector_v<V2> or (is_mean_v<V2> and not is_Euclidean_mean_v<V1>),
       V2,
       V1>>;
-    return wrap_angles(MatrixTraits<CommonV>::template make<RC, CC>(
+    auto ret = wrap_angles(MatrixTraits<CommonV>::template make<RC, CC>(
       base_matrix(std::forward<V1>(v1)) * base_matrix(std::forward<V2>(v2))));
+    if constexpr (not std::is_lvalue_reference_v<V1&&> or not std::is_lvalue_reference_v<V2&&>) return strict(std::move(ret)); else return ret;
   }
 
 
@@ -804,7 +810,8 @@ namespace OpenKalman
     std::enable_if_t<is_typed_matrix_v<V>, int> = 0>
   inline auto operator-(V&& v)
   {
-    return wrap_angles(MatrixTraits<V>::make(-base_matrix(std::forward<V>(v))));
+    auto ret = wrap_angles(MatrixTraits<V>::make(-base_matrix(std::forward<V>(v))));
+    if constexpr (not std::is_lvalue_reference_v<V&&>) return strict(std::move(ret)); else return ret;
   }
 
 
