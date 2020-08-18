@@ -9,10 +9,6 @@
  */
 
 #include "nonlinear-tests.h"
-#include <transforms/classes/SamplePointsTransform.h>
-#include <transforms/sample-points/CubaturePoints.h>
-
-using namespace OpenKalman;
 
 /*
  * Test data from Gustafsson & Hendeby. Some Relations Between Extended and Unscented Kalman Filters.

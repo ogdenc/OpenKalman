@@ -9,10 +9,6 @@
  */
 
 #include "nonlinear-tests.h"
-#include <transforms/classes/SamplePointsTransform.h>
-#include <transforms/sample-points/SigmaPointsTypes/Unscented.h>
-
-using namespace OpenKalman;
 
 /*
  * Test data from Gustafsson & Hendeby. Some Relations Between Extended and Unscented Kalman Filters.
@@ -67,8 +63,8 @@ TEST_F(nonlinear_tests, UT1Radar2ASelfAdjoint)
   auto t = make_SamplePointsTransform<UT1>(radar);
   auto in = G2 {{3.0, M_PI/6}, SA::identity()};
   auto out = std::get<0>(t(in));
-  EXPECT_NEAR(mean(out)(0), 1.6, 1e-1); //2
-  EXPECT_NEAR(mean(out)(1), 0.9, 1e-1); //4
+  EXPECT_NEAR(mean(out)(0), 1.6, 1e-1);
+  EXPECT_NEAR(mean(out)(1), 0.9, 1e-1);
   EXPECT_NEAR(covariance(out)(0,0), 3.5, 1e-1);
   EXPECT_NEAR(covariance(out)(0,1), 0.3, 1e-1);
   EXPECT_NEAR(covariance(out)(1,0), 0.3, 1e-1);

@@ -13,7 +13,6 @@
 
 #include <functional>
 #include <tuple>
-#include <Eigen/Dense>
 
 namespace OpenKalman
 {

@@ -11,8 +11,6 @@
 #include "nonlinear-tests.h"
 #include "transforms/classes/LinearizedTransform.h"
 
-using namespace OpenKalman;
-
 /*
  * Test data from Gustafsson & Hendeby. Some Relations Between Extended and Unscented Kalman Filters.
  * IEEE Transactions on Signal Processing, (60), 2, 545-555. 2012 (TT2 data appears to be in error, and is omitted).
