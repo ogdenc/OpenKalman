@@ -11,56 +11,22 @@
 #ifndef OPENKALMAN_IDENTITYTRANSFORM_H
 #define OPENKALMAN_IDENTITYTRANSFORM_H
 
-#include "transforms/internal/TransformBase.h"
-
 namespace OpenKalman
 {
 
   /// An identity transformation from one statistical distribution to another.
-  template<
-    /// Input distribution.
-    typename InputDistribution>
-  struct IdentityTransform;
-
-
-  namespace internal
-  {
-    struct IdentityTransformFunction
-    {
-      template<typename Dist, typename ... Noise>
-      inline auto operator()(const Dist& x, const Noise& ... n) const
-      {
-        return std::tuple {strict_matrix(x.moment1() + ... + n.moment1()), std::tuple {Noise::Identity()...}};
-      }
-    };
-  }
-
-
-  template<typename Dist>
   struct IdentityTransform
-    : Transform<Dist, typename DistributionTraits<Dist>::Coefficients, internal::IdentityTransformFunction>
   {
-  using Base = Transform<Dist, typename DistributionTraits<Dist>::Coefficients, internal::IdentityTransformFunction>;
-
-  protected:
-    static constexpr internal::IdentityTransformFunction function;
-
-  public:
-    Transform() : Base(function) {}
-
-    /// Augmented case.
-    template<typename ... NonlinearNoise, typename ... LinearNoise>
-    constexpr auto operator()(const std::tuple<Dist, NonlinearNoise...>& in, const LinearNoise& ... linear_noise) const
+    /// Apply the identity transform on an input distribution. Any noise distributions are treated as additive.
+    template<typename InputDist, typename ... NoiseDist>
+    auto operator()(InputDist&& in, const NoiseDist& ...n) const
     {
-      auto sum = [](const auto&...elem) constexpr -> decltype(auto) { return strict_matrix(elem + ...); };
-      return (std::apply(sum, in) + ... + linear_noise);
-    }
+      static_assert(std::conjunction_v<is_equivalent<typename DistributionTraits<InputDist>::Coefficients,
+        typename DistributionTraits<NoiseDist>::Coefficients>...>,
+        "Input and Noise distributions must be the same size and an equivalent type.");
 
-    /// Non-augmented case.
-    template<typename ... LinearNoise>
-    constexpr auto operator()(const Dist& in, const LinearNoise& ... linear_noise) const
-    {
-      return (in + ... + linear_noise);
+      auto cross_covariance = TypedMatrix {covariance(in)};
+      return std::tuple {strict((in + ... + n)), std::move(cross_covariance)};
     }
 
   };

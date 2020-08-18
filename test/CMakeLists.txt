@@ -109,6 +109,7 @@ add_executable(linear-tests
         linear-tests/linear-tests.2x2.sample.cpp
         linear-tests/linear-tests.3x2.sample.cpp
         linear-tests/linear-tests.4x3.sample.cpp
+        linear-tests/linear-tests.identity.cpp
         )
 set_target_properties(linear-tests PROPERTIES CXX_STANDARD_REQUIRED ON CXX_STANDARD 17)
 target_link_libraries(linear-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)

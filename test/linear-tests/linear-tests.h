@@ -78,6 +78,28 @@ public:
     }
   }
 
+
+  template<std::size_t DIM, typename Cov>
+  void run_multiple_identity_tests(Cov cov, int N = 20)
+  {
+    using MatIn = TypedMatrix<Axes<DIM>, Axes<DIM>, Eigen::Matrix<double, DIM, DIM>>;
+    using MatNoise = TypedMatrix<Axes<DIM>, Axes<DIM>, Eigen::Matrix<double, DIM, DIM>>;
+    using MIn = Mean<Axes<DIM>, Eigen::Matrix<double, DIM, 1>>;
+    using MNoise = Mean<Axes<DIM>, Eigen::Matrix<double, DIM, 1>>;
+    for (int i=1; i<=N; i++)
+    {
+      auto a = MatIn::identity();
+      auto n = MatNoise::identity();
+      auto g = LinearTransformation(a, n);
+      auto t = IdentityTransform();
+      auto in = GaussianDistribution {MIn::zero(), strict(i * cov)};
+      auto b = randomize<MNoise, std::normal_distribution>(0., i*2.);
+      auto noise_cov = Covariance {i / 5. * Eigen::Matrix<double, DIM, DIM>::Identity()};
+      auto noise = GaussianDistribution {b, noise_cov};
+      EXPECT_TRUE(run_linear_test(g, t, in, noise));
+    }
+  }
+
 };
 
 
