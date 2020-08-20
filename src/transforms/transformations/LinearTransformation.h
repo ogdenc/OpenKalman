@@ -115,8 +115,8 @@ namespace OpenKalman
     LinearTransformation(T&& mat, Ps&& ... p_mats) noexcept
       : transformation_matrices(std::forward<T>(mat), std::forward<Ps>(p_mats)...)
     {
-      static_assert(is_valid_input_matrix_v<T, InputCoefficients>);
-      static_assert((is_valid_input_matrix_v<Ps, OutputCoefficients> and ...));
+      static_assert(is_valid_input_matrix_v<T, InputCoefficients>());
+      static_assert((is_valid_input_matrix_v<Ps, OutputCoefficients>() and ...));
     }
 
     /// Applies the transformation.

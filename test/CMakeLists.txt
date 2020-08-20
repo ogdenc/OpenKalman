@@ -26,7 +26,7 @@ include_directories(SYSTEM ${EIGEN3_INCLUDE_DIRS})
 #include_directories(SYSTEM ${OPENCV_INCLUDE_DIRS})
 #include_directories(${BOOST_INCLUDE_DIRS})
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O2 -fopenmp -ftemplate-backtrace-limit=0")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O2 -Wall -pthread -fopenmp -ftemplate-backtrace-limit=0")
 
 add_executable(matrix-tests
         matrix-tests/matrix_tests.cpp
@@ -110,6 +110,7 @@ add_executable(linear-tests
         linear-tests/linear-tests.3x2.sample.cpp
         linear-tests/linear-tests.4x3.sample.cpp
         linear-tests/linear-tests.identity.cpp
+        linear-tests/linear-tests.MCT.cpp
         )
 set_target_properties(linear-tests PROPERTIES CXX_STANDARD_REQUIRED ON CXX_STANDARD 17)
 target_link_libraries(linear-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)

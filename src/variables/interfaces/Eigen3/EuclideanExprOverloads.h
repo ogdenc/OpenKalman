@@ -533,7 +533,6 @@ namespace OpenKalman
   inline decltype(auto)
   column(Arg&& arg, const std::size_t index)
   {
-    using Coefficients = typename MatrixTraits<Arg>::Coefficients;
     return MatrixTraits<Arg>::make(column(base_matrix(std::forward<Arg>(arg)), index));
   }
 
@@ -543,7 +542,6 @@ namespace OpenKalman
   inline decltype(auto)
   column(Arg&& arg)
   {
-    using Coefficients = typename MatrixTraits<Arg>::Coefficients;
     return MatrixTraits<Arg>::make(column<index>(base_matrix(std::forward<Arg>(arg))));
   }
 

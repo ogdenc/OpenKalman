@@ -165,7 +165,6 @@ namespace OpenKalman
   solve(A&& a, B&& b) noexcept
   {
     static_assert(is_equivalent_v<typename MatrixTraits<A>::Coefficients, typename MatrixTraits<B>::RowCoefficients>);
-    using ArgBase = typename MatrixTraits<A>::BaseMatrix;
     auto x = strict(solve(convert_base_matrix(std::forward<A>(a)), base_matrix(std::forward<B>(b))));
     return MatrixTraits<B>::template make<typename MatrixTraits<A>::Coefficients>(std::move(x));
   }
@@ -418,7 +417,6 @@ namespace OpenKalman
   inline auto
   apply_coefficientwise(Arg&& arg, const Function& f)
   {
-    using Scalar = typename MatrixTraits<Arg>::Scalar;
     using C = typename MatrixTraits<Arg>::Coefficients;
     return make_Matrix<C, C>(apply_coefficientwise(convert_base_matrix(std::forward<Arg>(arg)), f));
   }
@@ -430,7 +428,6 @@ namespace OpenKalman
   inline auto
   apply_coefficientwise(Arg&& arg, const Function& f)
   {
-    using Scalar = typename MatrixTraits<Arg>::Scalar;
     using C = typename MatrixTraits<Arg>::Coefficients;
     return make_Matrix<C, C>(apply_coefficientwise(convert_base_matrix(std::forward<Arg>(arg)), f));
   }
@@ -555,7 +552,6 @@ namespace OpenKalman
       not is_square_root_v<Arg1> and not is_square_root_v<Arg2>)
     {
       using Scalar = typename MatrixTraits<Arg1>::Scalar;
-      using A = typename MatrixTraits<Arg1>::BaseMatrix;
       using B = typename MatrixTraits<Arg2>::BaseMatrix;
 
       decltype(auto) a = base_matrix(std::forward<Arg1>(arg1));

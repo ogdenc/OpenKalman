@@ -40,7 +40,6 @@ namespace OpenKalman
   constexpr decltype(auto)
   strict_matrix(Arg&& arg) noexcept
   {
-    using C = typename MatrixTraits<Arg>::RowCoefficients;
     return strict_matrix(base_matrix(std::forward<Arg>(arg)));
   }
 
@@ -56,7 +55,6 @@ namespace OpenKalman
     }
     else
     {
-      using C = typename MatrixTraits<Arg>::RowCoefficients;
       return MatrixTraits<Arg>::make(strict(base_matrix(std::forward<Arg>(arg))));
     }
   }
