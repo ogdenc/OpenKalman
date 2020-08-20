@@ -32,85 +32,93 @@ namespace OpenKalman
 
   namespace internal
   {
-    template<typename InputDistribution, typename TransformationType>
-    struct MonteCarloSum
+    template<typename TransformationType, typename InputDistribution, typename...NoiseDistributions>
+    struct MonteCarloSet
     {
-      using InputMean = strict_t<typename DistributionTraits<InputDistribution>::Mean>;
-
     protected:
       using InputCoefficients = typename TransformationType::InputCoefficients;
       using OutputCoefficients = typename TransformationType::OutputCoefficients;
       static_assert(is_equivalent_v<InputCoefficients, typename DistributionTraits<InputDistribution>::Coefficients>);
+      static_assert(std::conjunction_v<is_equivalent<OutputCoefficients,
+        typename DistributionTraits<NoiseDistributions>::Coefficients>...>);
+
+      using InputMeanMatrix = typename MatrixTraits<
+        typename DistributionTraits<InputDistribution>::Mean>::template StrictMatrix<InputCoefficients::size, 1>;
       using OutputEuclideanMeanMatrix =
-        typename MatrixTraits<InputMean>::template StrictMatrix<OutputCoefficients::size, 1>;
+        typename MatrixTraits<InputMeanMatrix>::template StrictMatrix<OutputCoefficients::size, 1>;
       using OutputCovarianceMatrix =
-        typename MatrixTraits<InputMean>::template StrictMatrix<OutputCoefficients::size, OutputCoefficients::size>;
+        typename MatrixTraits<InputMeanMatrix>::template StrictMatrix<OutputCoefficients::size, OutputCoefficients::size>;
       using OutputCovarianceSA = typename MatrixTraits<OutputCovarianceMatrix>::template SelfAdjointBaseType<>;
       using CrossCovarianceMatrix =
-        typename MatrixTraits<InputMean>::template StrictMatrix<InputCoefficients::size, OutputCoefficients::size>;
+        typename MatrixTraits<InputMeanMatrix>::template StrictMatrix<InputCoefficients::size, OutputCoefficients::size>;
 
-    public:
+      using InputMean = Mean<InputCoefficients, InputMeanMatrix>;
       using OutputEuclideanMean = EuclideanMean<OutputCoefficients, OutputEuclideanMeanMatrix>;
       using OutputCovariance = Covariance<OutputCoefficients, OutputCovarianceSA>;
       using CrossCovariance = TypedMatrix<InputCoefficients, OutputCoefficients, CrossCovarianceMatrix>;
 
-      MonteCarloSum(const std::size_t c, const InputMean& x_, const OutputEuclideanMean& y_E_,
-        const OutputCovariance& yy_, const CrossCovariance& xy_)
-        : count(c), x(x_), y_E(y_E_), yy(yy_), xy(xy_) {}
+    public:
+      struct MonteCarloSum
+      {
+        std::size_t count;
+        InputMean x;
+        OutputEuclideanMean y_E;
+        OutputCovariance yy;
+        CrossCovariance xy;
+      };
 
-      std::size_t count;
-      InputMean x;
-      OutputEuclideanMean y_E;
-      OutputCovariance yy;
-      CrossCovariance xy;
-
-      static constexpr auto zero()
+      static constexpr auto
+      zero()
       {
         return MonteCarloSum {
           0, MatrixTraits<InputMean>::zero(), MatrixTraits<OutputEuclideanMean>::zero(),
           MatrixTraits<OutputCovariance>::zero(), MatrixTraits<CrossCovariance>::zero()};
       }
 
-      static auto one(const InputDistribution& distribution, const TransformationType& transformation)
+      static auto
+      one(const TransformationType& trans, const InputDistribution& dist, const NoiseDistributions&...noise)
       {
-        const auto x = distribution();
-        const auto y = transformation(x);
-        return MonteCarloSum {
-          1, x, to_Euclidean(y), OutputCovariance::zero(), CrossCovariance::zero()};
+        const auto x = dist();
+        const auto y = trans(x, noise()...);
+        return MonteCarloSum {1, x, to_Euclidean(y), OutputCovariance::zero(), CrossCovariance::zero()};
       }
-    };
 
-
-    template<typename InputDistribution, typename TransformationType>
-    struct MonteCarloBinaryOp
-    {
-      using MonteCarloSum = MonteCarloSum<InputDistribution, TransformationType>;
-
-      auto operator()(const MonteCarloSum& set1, const MonteCarloSum& set2)
+      struct MonteCarloBinaryOp
       {
-        using Scalar = typename MatrixTraits<decltype(set1.y_E)>::Scalar;
-        const auto count = set1.count + set2.count;
-        const Scalar s_count = count;
-        const auto x = (set1.count * set1.x + set2.count * set2.x) / s_count;
-        const auto y_E = (set1.count * set1.y_E + set2.count * set2.y_E) / s_count;
-        const auto delta = from_Euclidean(set2.y_E) - from_Euclidean(set1.y_E);
-        const auto delta_adj_factor = adjoint(delta) * set1.count * set2.count / s_count;
-        const auto yy = set1.yy + set2.yy + delta * delta_adj_factor;
-        const auto xy = set1.xy + set2.xy + (set2.x - set1.x) * delta_adj_factor;
-        return MonteCarloSum {count, x, y_E, yy, xy};
-      }
-    };
+        auto operator()(const MonteCarloSum& set1, const MonteCarloSum& set2)
+        {
+          using Scalar = typename MatrixTraits<decltype(set1.y_E)>::Scalar;
+          if (set2.count == 1) // This is most likely. Take advantage of prior knowledge of set2.
+          {
+            const auto count = set1.count + 1;
+            const Scalar s_count = count;
+            const auto x = (set1.count * set1.x + set2.x) / s_count;
+            const auto y_E = (set1.count * set1.y_E + set2.y_E) / s_count;
+            const auto delta = from_Euclidean(set2.y_E) - from_Euclidean(set1.y_E);
+            const auto delta_adj_factor = adjoint(delta) * set1.count / s_count;
+            const auto yy = set1.yy + delta * delta_adj_factor;
+            const auto xy = set1.xy + (set2.x - set1.x) * delta_adj_factor;
+            return MonteCarloSum {count, x, y_E, yy, xy};
+          }
+          else
+          {
+            const auto count = set1.count + set2.count;
+            const Scalar s_count = count;
+            const auto x = (set1.count * set1.x + set2.count * set2.x) / s_count;
+            const auto y_E = (set1.count * set1.y_E + set2.count * set2.y_E) / s_count;
+            const auto delta = from_Euclidean(set2.y_E) - from_Euclidean(set1.y_E);
+            const auto delta_adj_factor = adjoint(delta) * set1.count * set2.count / s_count;
+            const auto yy = set1.yy + set2.yy + delta * delta_adj_factor;
+            const auto xy = set1.xy + set2.xy + (set2.x - set1.x) * delta_adj_factor;
+            return MonteCarloSum {count, x, y_E, yy, xy};
+          }
+        }
+      };
 
-
-    template<typename InputDistribution, typename TransformationType>
-    struct MonteCarloSet
-    {
       struct iterator
       {
-        iterator(const InputDistribution& dist, const TransformationType& trans, std::size_t initial_position = 0)
-          : transformation(trans), distribution(dist), position(initial_position) {}
-
-        using MonteCarloSum = MonteCarloSum<InputDistribution, TransformationType>;
+        iterator(const std::function<MonteCarloSum()>& g, std::size_t initial_position = 0)
+          : one_sum_generator(g), position(initial_position) {}
 
         using iterator_category = std::forward_iterator_tag;
         using value_type = MonteCarloSum;
@@ -120,32 +128,32 @@ namespace OpenKalman
 
         auto& operator=(const iterator& other) { if (this != &other) position = other.position; }
 
-        auto operator*() const { return MonteCarloSum::one(distribution, transformation); }
+        auto operator*() const { return one_sum_generator(); }
 
         auto& operator++() { ++position; return *this; }
         auto operator++(int) { const auto temp = *this; ++position; return temp; }
 
         auto operator==(const iterator& other) const { return position == other.position; }
         auto operator!=(const iterator& other) const { return position != other.position; }
-        auto operator<(const iterator& other) const { return position < other.position; }
 
       protected:
-        const InputDistribution& distribution;
-        const TransformationType& transformation;
+        const std::function<MonteCarloSum()>& one_sum_generator;
         std::size_t position;
       };
 
-      MonteCarloSet(const InputDistribution& dist, const TransformationType& trans, std::size_t s)
-        : distribution(dist), transformation(trans), samples(s) {}
+      MonteCarloSet(
+        const TransformationType& trans, std::size_t s, const InputDistribution& dist, const NoiseDistributions&...noise)
+        : samples(s),
+          one_sum_generator([trans, dist, noise...] { return one(trans, dist, noise...); })
+      {}
 
-      auto begin() { return iterator(distribution, transformation, 0); }
+      auto begin() { return iterator(one_sum_generator, 0); }
 
-      auto end() { return iterator(distribution, transformation, samples); }
+      auto end() { return iterator(one_sum_generator, samples); }
 
     protected:
-      const InputDistribution& distribution;
-      const TransformationType& transformation;
       const std::size_t samples;
+      const std::function<MonteCarloSum()> one_sum_generator;
     };
 
   }
@@ -167,12 +175,12 @@ namespace OpenKalman
     template<typename InputDist, typename ... NoiseDist>
     auto operator()(const InputDist& in, const NoiseDist& ...n) const
     {
-      using MSum = internal::MonteCarloSum<InputDist, TransformationType>;
+      using MSet = internal::MonteCarloSet<TransformationType, InputDist, NoiseDist...>;
+      auto m_set = MSet(transformation, size, in, n...);
+      auto binary_op = typename MSet::MonteCarloBinaryOp();
+      using MSum = typename MSet::MonteCarloSum;
 
-      auto m_set = internal::MonteCarloSet<InputDist, TransformationType>(in, transformation, size);
-      auto binary_op = internal::MonteCarloBinaryOp<InputDist, TransformationType>();
-
-      MSum m_sum = std::reduce(std::execution::par_unseq, m_set.begin(), m_set.end(), MSum::zero(), binary_op);
+      MSum m_sum = std::reduce(std::execution::par_unseq, m_set.begin(), m_set.end(), MSet::zero(), binary_op);
       auto mean_output = strict(from_Euclidean(m_sum.y_E));
       auto out_covariance = strict(m_sum.yy / (size - 1.));
       auto cross_covariance = strict(m_sum.xy / (size - 1.));

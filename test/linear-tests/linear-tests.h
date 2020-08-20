@@ -35,6 +35,7 @@ protected:
 public:
   template<typename Transformation, typename Transform, typename InputDist, typename ... Noise>
   ::testing::AssertionResult run_linear_test(
+    double err,
     const Transformation& g,
     const Transform& t,
     const InputDist& in,
@@ -49,7 +50,8 @@ public:
     auto covariances = std::forward_as_tuple(p, covariance(noise)...);
     auto cov = sumprod(jacobians, covariances, std::make_index_sequence<sizeof...(Noise) + 1>{});
     std::tuple out_true {GaussianDistribution {y, cov}, cross_cov};
-    auto res = is_near(t(in, noise...), out_true);
+    auto out = t(in, noise...);
+    auto res = is_near(out, out_true, err);
     if (res)
       return ::testing::AssertionSuccess();
     else
@@ -58,7 +60,7 @@ public:
 
 
   template<std::size_t IN, std::size_t OUT, typename Cov, typename F>
-  void run_multiple_linear_tests(Cov cov, const F& f, int N = 20)
+  void run_multiple_linear_tests(Cov cov, const F& f, double err = 1e-6, int N = 5)
   {
     using MatIn = TypedMatrix<Axes<OUT>, Axes<IN>, Eigen::Matrix<double, OUT, IN>>;
     using MatNoise = TypedMatrix<Axes<OUT>, Axes<OUT>, Eigen::Matrix<double, OUT, OUT>>;
@@ -66,21 +68,21 @@ public:
     using MNoise = Mean<Axes<OUT>, Eigen::Matrix<double, OUT, 1>>;
     for (int i=1; i<=N; i++)
     {
-      auto a = randomize<MatIn, std::uniform_real_distribution>(-i*10., i*10.);
-      auto n = randomize<MatNoise, std::uniform_real_distribution>(-double(i), double(i));
+      auto a = randomize<MatIn, std::uniform_real_distribution>(-double(i), double(i));
+      auto n = randomize<MatNoise, std::uniform_real_distribution>(-0.1 * i, 0.1 * i);
       auto g = LinearTransformation(a, n);
       auto t = f(g);
-      auto in = GaussianDistribution {MIn::zero(), strict(i * cov)};
+      auto in = GaussianDistribution {MIn::zero(), cov};
       auto b = randomize<MNoise, std::normal_distribution>(0., i*2.);
-      auto noise_cov = Covariance {i / 5. * Eigen::Matrix<double, OUT, OUT>::Identity()};
+      auto noise_cov = Covariance {0.5 * Eigen::Matrix<double, OUT, OUT>::Identity()};
       auto noise = GaussianDistribution {b, noise_cov};
-      EXPECT_TRUE(run_linear_test(g, t, in, noise));
+      EXPECT_TRUE(run_linear_test(err, g, t, in, noise));
     }
   }
 
 
   template<std::size_t DIM, typename Cov>
-  void run_multiple_identity_tests(Cov cov, int N = 20)
+  void run_multiple_identity_tests(Cov cov, double err = 1e-6, int N = 5)
   {
     using MatIn = TypedMatrix<Axes<DIM>, Axes<DIM>, Eigen::Matrix<double, DIM, DIM>>;
     using MatNoise = TypedMatrix<Axes<DIM>, Axes<DIM>, Eigen::Matrix<double, DIM, DIM>>;
@@ -96,7 +98,7 @@ public:
       auto b = randomize<MNoise, std::normal_distribution>(0., i*2.);
       auto noise_cov = Covariance {i / 5. * Eigen::Matrix<double, DIM, DIM>::Identity()};
       auto noise = GaussianDistribution {b, noise_cov};
-      EXPECT_TRUE(run_linear_test(g, t, in, noise));
+      EXPECT_TRUE(run_linear_test(err, g, t, in, noise));
     }
   }
 
