@@ -489,6 +489,9 @@ namespace OpenKalman
     template<typename S> using distribution_type = std::normal_distribution<S>;
     using random_number_engine = re;
 
+    using Strict = GaussianDistribution<Coefficients, typename MatrixTraits<MatrixBase>::Strict,
+      typename MatrixTraits<CovarianceBase>::Strict>;
+
     template<typename C = Coefficients, typename Mean, typename Covariance,
       std::enable_if_t<(is_typed_matrix_v<Mean> or is_typed_matrix_base_v<Mean>) and
       MatrixTraits<Mean>::columns == 1 and
