@@ -34,8 +34,8 @@ TEST_F(matrix_tests, SelfAdjointMatrix_class)
   EXPECT_TRUE(is_near(u1.base_matrix(), Mat { 9, 3, 7, 10}));
   EXPECT_TRUE(is_near(u1, m));
   Diagonal d1;
-  d1 << 9, 7, 3, 10;
-  EXPECT_TRUE(is_near(d1.base_matrix(), Mat {9, 7, 3, 10}));
+  d1 << 9, 10;
+  EXPECT_TRUE(is_near(d1.base_matrix(), Mat {9, 0, 0, 10}));
   EXPECT_TRUE(is_near(d1, Mat {9, 0, 0, 10}));
   d1.template triangularView<Eigen::Lower>() = (M2() << 7, 5, 6, 12).finished();
   EXPECT_TRUE(is_near(d1, Mat {7, 0, 0, 12}));
@@ -86,7 +86,7 @@ TEST_F(matrix_tests, SelfAdjointMatrix_class)
   Lower l7 = EigenTriangularMatrix<M2, TriangleType::lower>{3, 0, 1, 3}; // compatible triangular matrix
   EXPECT_TRUE(is_near(l7, m));
   Upper u7 = EigenTriangularMatrix<M2, TriangleType::upper>{3, 1, 0, 3}; // compatible triangular matrix
-  EXPECT_TRUE(is_near(l7, m));
+  EXPECT_TRUE(is_near(u7, m));
   //
   Lower l8 = EigenTriangularMatrix<M2, TriangleType::upper>{3, 1, 0, 3}; // opposite triangular matrix
   EXPECT_TRUE(is_near(l8, m));
@@ -97,7 +97,7 @@ TEST_F(matrix_tests, SelfAdjointMatrix_class)
   EXPECT_TRUE(is_near(l9, m));
   Upper u9 {9, 3, 3, 10}; // Construct from list of scalars.
   EXPECT_TRUE(is_near(u9, m));
-  Diagonal d9 {9, 3, 3, 10}; // Construct from list of scalars.
+  Diagonal d9 {9, 10}; // Construct from list of scalars.
   EXPECT_TRUE(is_near(d9, Mat {9, 0, 0, 10}));
   Diagonal2 d9b {9, 10}; // Construct from list of scalars.
   EXPECT_TRUE(is_near(d9b, Mat {9, 0, 0, 10}));
@@ -275,7 +275,7 @@ TEST_F(matrix_tests, SelfAdjointMatrix_subscripts)
   EXPECT_EQ(u1(1, 1), 8);
   EXPECT_TRUE(is_near(u1, Mat {5, 7, 7, 8}));
   //
-  auto d9 = Diagonal {9, 3, 3, 10};
+  auto d9 = Diagonal {9, 10};
   d9(0, 0) = 7.1;
   EXPECT_NEAR(d9(0), 7.1, 1e-8);
   d9(1) = 8.1;
@@ -304,14 +304,14 @@ TEST_F(matrix_tests, SelfAdjointMatrix_subscripts)
   //
   EXPECT_NEAR((EigenSelfAdjointMatrix<Eigen::Matrix<double, 1, 1>, TriangleType::lower> {7.})(0), 7., 1e-6);
   EXPECT_NEAR((EigenSelfAdjointMatrix<Eigen::Matrix<double, 1, 1>, TriangleType::upper> {7.})(0), 7., 1e-6);
-  EXPECT_NEAR((Diagonal {9, 3, 3, 10})(0), 9, 1e-6);
-  EXPECT_NEAR((Diagonal {9, 3, 3, 10})(1), 10, 1e-6);
+  EXPECT_NEAR((Diagonal {9, 10})(0), 9, 1e-6);
+  EXPECT_NEAR((Diagonal {9, 10})(1), 10, 1e-6);
   EXPECT_NEAR((Diagonal2 {9, 10})(0), 9, 1e-6);
   EXPECT_NEAR((Diagonal2 {9, 10})(1), 10, 1e-6);
   EXPECT_NEAR((Diagonal3 {9, 10})(0), 9, 1e-6);
   EXPECT_NEAR((Diagonal3 {9, 10})(1), 10, 1e-6);
-  EXPECT_NEAR((Diagonal {9, 3, 3, 10})[0], 9, 1e-6);
-  EXPECT_NEAR((Diagonal {9, 3, 3, 10})[1], 10, 1e-6);
+  EXPECT_NEAR((Diagonal {9, 10})[0], 9, 1e-6);
+  EXPECT_NEAR((Diagonal {9, 10})[1], 10, 1e-6);
   EXPECT_NEAR((Diagonal2 {9, 10})[0], 9, 1e-6);
   EXPECT_NEAR((Diagonal2 {9, 10})[1], 10, 1e-6);
   EXPECT_NEAR((Diagonal3 {9, 10})[0], 9, 1e-6);
@@ -319,25 +319,25 @@ TEST_F(matrix_tests, SelfAdjointMatrix_subscripts)
   //
   EXPECT_NEAR((Lower {9., 3, 3, 10})(0, 0), 9, 1e-6);
   EXPECT_NEAR((Upper {9., 3, 3, 10})(0, 0), 9, 1e-6);
-  EXPECT_NEAR((Diagonal {9., 3, 3, 10})(0, 0), 9, 1e-6);
+  EXPECT_NEAR((Diagonal {9., 10})(0, 0), 9, 1e-6);
   EXPECT_NEAR((Diagonal2 {9., 10})(0, 0), 9, 1e-6);
   EXPECT_NEAR((Diagonal3 {9., 10})(0, 0), 9, 1e-6);
   //
   EXPECT_NEAR((Lower {9., 3, 3, 10})(0, 1), 3, 1e-6);
   EXPECT_NEAR((Upper {9., 3, 3, 10})(0, 1), 3, 1e-6);
-  EXPECT_NEAR((Diagonal {9., 3, 3, 10})(0, 1), 0, 1e-6);
+  EXPECT_NEAR((Diagonal {9., 10})(0, 1), 0, 1e-6);
   EXPECT_NEAR((Diagonal2 {9., 10})(0, 1), 0, 1e-6);
   EXPECT_NEAR((Diagonal3 {9., 10})(0, 1), 0, 1e-6);
   //
   EXPECT_NEAR((Lower {9., 3, 3, 10})(1, 0), 3, 1e-6);
   EXPECT_NEAR((Upper {9., 3, 3, 10})(1, 0), 3, 1e-6);
-  EXPECT_NEAR((Diagonal {9., 3, 3, 10})(1, 0), 0, 1e-6);
+  EXPECT_NEAR((Diagonal {9., 10})(1, 0), 0, 1e-6);
   EXPECT_NEAR((Diagonal2 {9., 10})(1, 0), 0, 1e-6);
   EXPECT_NEAR((Diagonal3 {9., 10})(1, 0), 0, 1e-6);
   //
   EXPECT_NEAR((Lower {9., 3, 3, 10})(1, 1), 10, 1e-6);
   EXPECT_NEAR((Upper {9., 3, 3, 10})(1, 1), 10, 1e-6);
-  EXPECT_NEAR((Diagonal {9., 3, 3, 10})(1, 1), 10, 1e-6);
+  EXPECT_NEAR((Diagonal {9., 10})(1, 1), 10, 1e-6);
   EXPECT_NEAR((Diagonal2 {9., 10})(1, 1), 10, 1e-6);
   EXPECT_NEAR((Diagonal3 {9., 10})(1, 1), 10, 1e-6);
 }
@@ -743,7 +743,7 @@ TEST_F(matrix_tests, SelfAdjointMatrix_blocks_mixed)
   auto m2 = EigenSelfAdjointMatrix<Eigen::Matrix<double, 3, 3>, TriangleType::upper> {4., 5, 6,
                                                                                       5, 7, 8,
                                                                                       6, 8, 9};
-  EXPECT_TRUE(is_near(concatenate(EigenSelfAdjointMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}, m1),
+  EXPECT_TRUE(is_near(concatenate(EigenSelfAdjointMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}, m2),
     EigenSelfAdjointMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::lower> {1., 2, 0, 0, 0,
                                                                               2, 3, 0, 0, 0,
                                                                               0, 0, 4, 5, 6,
