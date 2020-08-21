@@ -67,7 +67,8 @@ namespace OpenKalman
     }
 
     /// Construct from a list of scalar coefficients defining the diagonal.
-    template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...>, int> = 0>
+    template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...> and
+      sizeof...(Args) == dimension, int> = 0>
     EigenDiagonal(Args ... args) : EigenDiagonal(MatrixTraits<BaseMatrix>::make(args...)) {}
 
     /// Copy assignment operator.

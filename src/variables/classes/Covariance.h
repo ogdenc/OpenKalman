@@ -102,8 +102,7 @@ namespace OpenKalman
     Covariance(M&& m) noexcept : Base(MatrixTraits<SABaseType>::make(std::forward<M>(m))) {}
 
     /// Construct from Scalar coefficients. Assumes matrix is self-adjoint, and only reads lower left triangle.
-    template<typename ... Args, std::enable_if_t<
-      std::conjunction_v<std::is_convertible<Args, const Scalar>...>, int> = 0>
+    template<typename ... Args, std::enable_if_t< std::conjunction_v<std::is_convertible<Args, const Scalar>...>, int> = 0>
     Covariance(Args ... args) : Base(MatrixTraits<SABaseType>::make(args...)) {}
 
     /**********************
@@ -354,7 +353,7 @@ namespace OpenKalman
   {
     static_assert(MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns);
     constexpr TriangleType arg_t_type = triangle_type_of_v<typename MatrixTraits<Arg>::template TriangularBaseType<>>;
-    constexpr TriangleType t_type = (arg_t_type, ... , triangle_type);
+    constexpr TriangleType t_type = std::get<0>(std::tuple {triangle_type..., arg_t_type});
     using T = typename MatrixTraits<Arg>::template TriangularBaseType<t_type>;
     using SA = typename MatrixTraits<Arg>::template SelfAdjointBaseType<t_type>;
     using B = std::conditional_t<sizeof...(triangle_type) == 1, T, SA>;

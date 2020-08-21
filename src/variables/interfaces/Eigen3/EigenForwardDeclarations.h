@@ -604,7 +604,6 @@ namespace OpenKalman
     using Scalar = std::common_type_t<Args...>;
     constexpr auto dim = Coefficients::dimension;
     static_assert(sizeof...(Args) % dim == 0);
-    constexpr auto cols = sizeof...(Args) / dim;
     using Mat = Eigen::Matrix<Scalar, dim, 1>;
     return EuclideanMean<Coefficients, Mat>(MatrixTraits<Mat>::make(args...));
   }

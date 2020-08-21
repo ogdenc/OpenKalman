@@ -667,9 +667,9 @@ namespace OpenKalman
   inline Arg&
   apply_coefficientwise(Arg& arg, const Function& f)
   {
-    for (Eigen::Index j = 0; j < MatrixTraits<Arg>::columns; j++)
+    for (std::size_t j = 0; j < MatrixTraits<Arg>::columns; j++)
     {
-      for (Eigen::Index i = 0; i < MatrixTraits<Arg>::dimension; i++)
+      for (std::size_t i = 0; i < MatrixTraits<Arg>::dimension; i++)
       {
         f(arg(i, j));
       }
@@ -684,11 +684,11 @@ namespace OpenKalman
   inline Arg&
   apply_coefficientwise(Arg& arg, const Function& f)
   {
-    for (Eigen::Index j = 0; j < MatrixTraits<Arg>::columns; j++)
+    for (std::size_t j = 0; j < MatrixTraits<Arg>::columns; j++)
     {
-      for (Eigen::Index i = 0; i < MatrixTraits<Arg>::dimension; i++)
+      for (std::size_t i = 0; i < MatrixTraits<Arg>::dimension; i++)
       {
-        f(arg(i, j), static_cast<std::size_t>(i), static_cast<std::size_t>(j));
+        f(arg(i, j), i, j);
       }
     }
     return arg;
@@ -713,11 +713,11 @@ namespace OpenKalman
   apply_coefficientwise(const Arg& arg, const Function& f)
   {
     Arg ret;
-    for (Eigen::Index j = 0; j < MatrixTraits<Arg>::columns; j++)
+    for (std::size_t j = 0; j < MatrixTraits<Arg>::columns; j++)
     {
-      for (Eigen::Index i = 0; i < MatrixTraits<Arg>::dimension; i++)
+      for (std::size_t i = 0; i < MatrixTraits<Arg>::dimension; i++)
       {
-        ret(i, j) = f(arg(i, j), static_cast<std::size_t>(i), static_cast<std::size_t>(j));
+        ret(i, j) = f(arg(i, j), i, j);
       }
     }
     return ret;

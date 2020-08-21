@@ -56,11 +56,11 @@ namespace OpenKalman
 
     /// Make matrix from a list of coefficients in row-major order.
     template<typename Arg, typename ... Args,
-      std::enable_if_t<std::conjunction_v<std::is_convertible<Arg, Scalar>, std::is_convertible<Args, Scalar>...>, int> = 0>
+      std::enable_if_t<std::conjunction_v<std::is_convertible<Arg, Scalar>, std::is_convertible<Args, Scalar>...> and
+      1 + sizeof...(Args) == dimension * columns, int> = 0>
     static auto
     make(const Arg arg, const Args ... args)
     {
-      static_assert(1 + sizeof...(Args) == dimension * columns);
       return ((StrictMatrix<>() << arg), ... , args).finished();
     }
 

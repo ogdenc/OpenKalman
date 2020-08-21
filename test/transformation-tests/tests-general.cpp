@@ -43,7 +43,7 @@ TEST_F(transformation_tests, Scale_additive)
   Transformation<Axes<2>, Axes<2>, Scale<7>> t;
   EXPECT_EQ(t(M_int2 {2, 3}), (M_int2 {14, 21}));
   EXPECT_EQ(t(M_int2(2, 3)) + M_int2(1, 1), M_int2(15, 22));
-  static_assert(std::is_same_v<decltype(strict(t(M_int2(2, 3)) + M_int2(1, 1))), decltype(M_int2(15, 22))>);
+  static_assert(std::is_same_v<decltype(t(M_int2(2, 3)) + M_int2(1, 1)), decltype(M_int2(15, 22))>);
   EXPECT_EQ(t(M_int2(2, 3)) + M_int2(3, 3), M_int2(17, 24));
 }
 

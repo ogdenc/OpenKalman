@@ -79,7 +79,6 @@ namespace OpenKalman::internal
     auto operator()(const InputDist& in, const NoiseDist& ...n) const
     {
       auto[mean_output, jacobians] = function(mean(in), mean(n)...);
-      auto j0 = std::get<0>(jacobians);
       auto [cov_out, cross_covariance] = sum_noise_terms(jacobians, std::tuple {in, n...},
         std::make_index_sequence<std::min(sizeof...(NoiseDist), std::tuple_size_v<decltype(jacobians)> - 1)>{});
       auto out = make_GaussianDistribution(mean_output, cov_out);

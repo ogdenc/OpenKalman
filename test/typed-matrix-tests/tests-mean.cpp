@@ -585,7 +585,6 @@ TEST_F(typed_matrix_tests, Mean_angle_arithmetic)
   EXPECT_TRUE(is_near(v7, Var3 {6 - M_PI*2, 12, -6 + M_PI*2, 24, -10}));
   v7 -= v6;
   EXPECT_TRUE(is_near(v7, v6));
-  using T00 = decltype(v5);
   using T0 = decltype(v5);
   using T3 = decltype(v5.base_matrix());
   static_assert(std::is_same_v<typename T0::BaseMatrix&, T3>);
@@ -673,8 +672,6 @@ TEST_F(typed_matrix_tests, Mean_angle_columns)
   EXPECT_TRUE(is_near(v1 * 0.5, v5));
   EXPECT_TRUE(is_near(0.5 * v1, v5));
   EXPECT_TRUE(is_near(v5 / 0.5, v1));
-  using T1 = decltype(v5 + v2);
-  using T2 = decltype(v5.base_matrix() + v2.base_matrix());
 }
 
 

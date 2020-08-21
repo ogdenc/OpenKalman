@@ -53,7 +53,9 @@ namespace OpenKalman
     }
 
     /// Construct from a list of coefficients.
-    template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...>, int> = 0>
+    template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...> and
+      sizeof...(Args) == columns *
+      (is_FromEuclideanExpr_v<BaseMatrix> ? Coefficients::dimension : Coefficients::size), int> = 0>
     ToEuclideanExpr(Args ... args) : Base(MatrixTraits<BaseMatrix>::make(args...)) {}
 
     /// Copy assignment operator.

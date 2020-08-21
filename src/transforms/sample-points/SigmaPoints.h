@@ -48,7 +48,6 @@ namespace OpenKalman
     static auto cat_weights(const Scalar w0, std::index_sequence<ints...>)
     {
       constexpr Scalar w = SigmaPointsType::template W<dim, Scalar>();
-      constexpr auto count = sizeof...(ints) + 1;
       return Weights {w0, cat_dummy_function<ints>(w)...};
     };
 

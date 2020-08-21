@@ -50,9 +50,17 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg> or is_EigenDiagonal_v<Arg>, int> = 0>
     EigenTriangularMatrix(Arg&& arg) noexcept : Base(std::forward<Arg>(arg)), view(this->base_matrix()) {}
 
-    /// Construct from a list of scalar coefficients, in row-major order. Only reads the triangular part.
-    template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...>, int> = 0>
+    /// Construct from a list of scalar coefficients, in row-major order.
+    template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...> and
+      ((not is_EigenDiagonal_v<BaseMatrix> and sizeof...(Args) == dimension * dimension and triangle_type != TriangleType::diagonal) or
+      (is_EigenDiagonal_v<BaseMatrix> and sizeof...(Args) == dimension)), int> = 0>
     EigenTriangularMatrix(Args ... args) : EigenTriangularMatrix(MatrixTraits<BaseMatrix>::make(args...)) {}
+
+    /// Construct from a list of scalar coefficients, in row-major order.
+    template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...> and
+      not is_EigenDiagonal_v<BaseMatrix> and sizeof...(Args) == dimension and triangle_type == TriangleType::diagonal, int> = 0>
+    EigenTriangularMatrix(Args ... args)
+      : EigenTriangularMatrix(strict_matrix(EigenDiagonal {static_cast<const Scalar>(args)...})) {}
 
     /// Copy assignment operator
     auto& operator=(const EigenTriangularMatrix& other)
@@ -406,7 +414,7 @@ namespace OpenKalman
     static_assert(MatrixTraits<U>::dimension == MatrixTraits<Arg>::dimension);
     using Scalar = typename MatrixTraits<Arg>::Scalar;
     constexpr auto t = is_lower_triangular_v<Arg> ? Eigen::Lower : Eigen::Upper;
-    for (Eigen::Index i = 0; i < MatrixTraits<U>::columns; ++i)
+    for (Eigen::Index i = 0; i < Eigen::Index(MatrixTraits<U>::columns); ++i)
     {
       if (Eigen::internal::llt_inplace<Scalar, t>::rankUpdate(arg.base_matrix(), u.col(i), alpha) >= 0)
       {

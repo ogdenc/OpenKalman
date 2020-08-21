@@ -91,7 +91,6 @@ namespace OpenKalman
   {
     using BaseMatrix = typename MatrixTraits<Arg>::BaseMatrix;
     using Scalar = typename MatrixTraits<Arg>::Scalar;
-    constexpr auto dimension = MatrixTraits<Arg>::dimension;
     static_assert(is_diagonal_v<BaseMatrix> or MatrixTraits<Arg>::storage_type == TriangleType::diagonal);
 
     if constexpr(is_identity_v<BaseMatrix>)
@@ -112,6 +111,7 @@ namespace OpenKalman
     }
     else // if constexpr (not is_diagonal_v<BaseMatrix> and MatrixTraits<Arg>::storage_type == TriangleType::diagonal)
     {
+      constexpr auto dimension = MatrixTraits<Arg>::dimension;
       using M = Eigen::Matrix<Scalar, dimension, 1>;
       M b = base_matrix(std::forward<Arg>(arg)).diagonal();
       M ret = (b.array() * b.array()).matrix();
@@ -297,7 +297,6 @@ namespace OpenKalman
   {
     using BaseMatrix = std::decay_t<typename MatrixTraits<Arg>::BaseMatrix>;
     using Scalar = typename MatrixTraits<Arg>::Scalar;
-    constexpr auto dimension = MatrixTraits<Arg>::dimension;
     static_assert(is_diagonal_v<BaseMatrix> or MatrixTraits<Arg>::triangle_type == TriangleType::diagonal);
 
     if constexpr(is_identity_v<BaseMatrix>)
@@ -318,6 +317,7 @@ namespace OpenKalman
     }
     else // if constexpr (not is_diagonal_v<BaseMatrix> and triangle_type == TriangleType::diagonal)
     {
+      constexpr auto dimension = MatrixTraits<Arg>::dimension;
       using M = Eigen::Matrix<Scalar, dimension, 1>;
       M b = base_matrix(std::forward<Arg>(arg)).diagonal();
       M ret = (b.array().sqrt()).matrix();

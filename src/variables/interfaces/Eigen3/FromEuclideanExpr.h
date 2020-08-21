@@ -61,7 +61,9 @@ namespace OpenKalman
     }
 
     /// Constructor that fills vector with the values of the arguments.
-    template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...>, int> = 0>
+    template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...> and
+      sizeof...(Args) == columns *
+        (is_ToEuclideanExpr_v<BaseMatrix> ? Coefficients::size : Coefficients::dimension), int> = 0>
     FromEuclideanExpr(Args ... args) : Base(MatrixTraits<BaseMatrix>::make(args...)) {}
 
     /// Copy assignment operator.

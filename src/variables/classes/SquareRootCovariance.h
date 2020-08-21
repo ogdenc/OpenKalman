@@ -99,8 +99,7 @@ namespace OpenKalman
     SquareRootCovariance(M&& m) noexcept : Base(MatrixTraits<TBaseType>::make(std::forward<M>(m))) {}
 
     /// Construct from Scalar coefficients. Assumes matrix is triangular, and only reads lower left triangle.
-    template<typename ... Args, std::enable_if_t<
-      std::conjunction_v<std::is_convertible<Args, const Scalar>...>, int> = 0>
+    template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...>, int> = 0>
     SquareRootCovariance(Args ... args) : Base(MatrixTraits<TBaseType>::make(args...)) {}
 
     /**********************
@@ -333,7 +332,7 @@ namespace OpenKalman
   {
     static_assert(MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns);
     constexpr TriangleType arg_t_type = triangle_type_of_v<typename MatrixTraits<Arg>::template TriangularBaseType<>>;
-    constexpr TriangleType t_type = (arg_t_type, ... , triangle_type);
+    constexpr TriangleType t_type = std::get<0>(std::tuple {triangle_type..., arg_t_type});
     using B = typename MatrixTraits<Arg>::template TriangularBaseType<t_type>;
     return SquareRootCovariance<Coefficients, B> {static_cast<B>(std::forward<Arg>(arg))};
   }
