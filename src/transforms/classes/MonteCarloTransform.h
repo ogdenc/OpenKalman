@@ -167,14 +167,13 @@ namespace OpenKalman
     explicit MonteCarloTransform(const TransformationType& transformation, const std::size_t samples = 100000)
       : size(samples), transformation(transformation) {}
 
-  protected:
-    const std::size_t size;
-    const TransformationType transformation;
-
-  public:
     template<typename InputDist, typename ... NoiseDist>
     auto operator()(const InputDist& in, const NoiseDist& ...n) const
     {
+      static_assert(is_equivalent_v<typename DistributionTraits<InputDist>::Coefficients, InputCoefficients>);
+      static_assert(std::conjunction_v<is_equivalent<typename DistributionTraits<NoiseDist>::Coefficients,
+        OutputCoefficients>...>);
+
       using MSet = internal::MonteCarloSet<TransformationType, InputDist, NoiseDist...>;
       auto m_set = MSet(transformation, size, in, n...);
       auto binary_op = typename MSet::MonteCarloBinaryOp();
@@ -187,6 +186,10 @@ namespace OpenKalman
       auto out = GaussianDistribution {mean_output, out_covariance};
       return std::tuple {std::move(out), std::move(cross_covariance)};
     }
+
+  protected:
+    const std::size_t size;
+    const TransformationType transformation;
 
   };
 
