@@ -14,52 +14,48 @@ using C2 = Coefficients<Axis, Axis>;
 using M22 = Eigen::Matrix<double, 2, 2>;
 using CovSA2 = Covariance<C2, EigenSelfAdjointMatrix<M22>>;
 using CovT2 = Covariance<C2, EigenTriangularMatrix<M22>>;
+inline SamplePointsTransform<UnscentedSigmaPoints> UT1;
+inline SamplePointsTransform<UnscentedSigmaPointsParameterEstimation> UT2;
+inline SamplePointsTransform<SphericalSimplexSigmaPoints> UTS;
+inline CubatureTransform CT;
 
 TEST_F(linear_tests, Linear2x2UnscentedSA)
 {
-  run_multiple_linear_tests<2, 2>(CovSA2 {1.2, 0.2, 0.2, 2.1},
-    [] (const auto& g) { return make_SamplePointsTransform<UnscentedSigmaPoints>(g); });
+  run_multiple_linear_tests<2, 2>(CovSA2 {1.2, 0.2, 0.2, 2.1}, UT1);
 }
 
 TEST_F(linear_tests, Linear2x2UnscentedT)
 {
-  run_multiple_linear_tests<2, 2>(CovT2 {1.2, 0.2, 0.2, 2.1},
-    [] (const auto& g) { return make_SamplePointsTransform<UnscentedSigmaPoints>(g); });
+  run_multiple_linear_tests<2, 2>(CovT2 {1.2, 0.2, 0.2, 2.1}, UT1);
 }
 
 TEST_F(linear_tests, Linear2x2UnscentedParamSA)
 {
-  run_multiple_linear_tests<2, 2>(CovSA2 {1.2, 0.2, 0.2, 2.1},
-    [] (const auto& g) { return make_SamplePointsTransform<UnscentedSigmaPointsParameterEstimation>(g); });
+  run_multiple_linear_tests<2, 2>(CovSA2 {1.2, 0.2, 0.2, 2.1}, UT2);
 }
 
 TEST_F(linear_tests, Linear2x2UnscentedParamT)
 {
-  run_multiple_linear_tests<2, 2>(CovT2 {1.2, 0.2, 0.2, 2.1},
-    [] (const auto& g) { return make_SamplePointsTransform<UnscentedSigmaPointsParameterEstimation>(g); });
+  run_multiple_linear_tests<2, 2>(CovT2 {1.2, 0.2, 0.2, 2.1}, UT2);
 }
 
 TEST_F(linear_tests, Linear2x2UnscentedSphericalSA)
 {
-  run_multiple_linear_tests<2, 2>(CovSA2 {1.2, 0.2, 0.2, 2.1},
-    [] (const auto& g) { return make_SamplePointsTransform<SphericalSimplexSigmaPoints>(g); });
+  run_multiple_linear_tests<2, 2>(CovSA2 {1.2, 0.2, 0.2, 2.1}, UTS);
 }
 
 TEST_F(linear_tests, Linear2x2UnscentedSphericalT)
 {
-  run_multiple_linear_tests<2, 2>(CovT2 {1.2, 0.2, 0.2, 2.1},
-    [] (const auto& g) { return make_SamplePointsTransform<SphericalSimplexSigmaPoints>(g); });
+  run_multiple_linear_tests<2, 2>(CovT2 {1.2, 0.2, 0.2, 2.1}, UTS);
 }
 
 TEST_F(linear_tests, Linear2x2CubatureSA)
 {
-  run_multiple_linear_tests<2, 2>(CovSA2 {1.2, 0.2, 0.2, 2.1},
-    [] (const auto& g) { return make_SamplePointsTransform<CubaturePoints>(g); });
+  run_multiple_linear_tests<2, 2>(CovSA2 {1.2, 0.2, 0.2, 2.1}, CT);
 }
 
 TEST_F(linear_tests, Linear2x2CubatureT)
 {
-  run_multiple_linear_tests<2, 2>(CovT2 {1.2, 0.2, 0.2, 2.1},
-    [] (const auto& g) { return make_SamplePointsTransform<CubaturePoints>(g); });
+  run_multiple_linear_tests<2, 2>(CovT2 {1.2, 0.2, 0.2, 2.1}, CT);
 }
 

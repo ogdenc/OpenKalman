@@ -34,9 +34,9 @@ using UT2 = UnscentedSigmaPointsStateEstimation; // alpha = 1e-3, beta = 2, kapp
 
 TEST_F(nonlinear_tests, UT1Radar1ASelfAdjoint)
 {
-  auto t = make_SamplePointsTransform<UT1>(radar);
+  SamplePointsTransform<UT1> t;
   auto in = G2 {{3.0, 0.0}, SA::identity()};
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(radar, in));
   EXPECT_NEAR(mean(out)(0), 1.8, 1e-1);
   EXPECT_NEAR(mean(out)(1), 0.0, 1e-1);
   EXPECT_NEAR(covariance(out)(0,0), 3.7, 1e-1);
@@ -47,9 +47,9 @@ TEST_F(nonlinear_tests, UT1Radar1ASelfAdjoint)
 
 TEST_F(nonlinear_tests, UT1Radar1ATriangular)
 {
-  auto t = make_SamplePointsTransform<UT1>(radar);
+  SamplePointsTransform<UT1> t;
   auto in = G2T {{3.0, 0.0}, SA::identity()};
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(radar, in));
   EXPECT_NEAR(mean(out)(0), 1.8, 1e-1);
   EXPECT_NEAR(mean(out)(1), 0.0, 1e-1);
   EXPECT_NEAR(covariance(out)(0,0), 3.7, 1e-1);
@@ -60,9 +60,9 @@ TEST_F(nonlinear_tests, UT1Radar1ATriangular)
 
 TEST_F(nonlinear_tests, UT1Radar2ASelfAdjoint)
 {
-  auto t = make_SamplePointsTransform<UT1>(radar);
+  SamplePointsTransform<UT1> t;
   auto in = G2 {{3.0, M_PI/6}, SA::identity()};
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(radar, in));
   EXPECT_NEAR(mean(out)(0), 1.6, 1e-1);
   EXPECT_NEAR(mean(out)(1), 0.9, 1e-1);
   EXPECT_NEAR(covariance(out)(0,0), 3.5, 1e-1);
@@ -73,9 +73,9 @@ TEST_F(nonlinear_tests, UT1Radar2ASelfAdjoint)
 
 TEST_F(nonlinear_tests, UT1Radar2ATriangular)
 {
-  auto t = make_SamplePointsTransform<UT1>(radar);
+  SamplePointsTransform<UT1> t;
   auto in = G2T {{3.0, M_PI/6}, SA::identity()};
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(radar, in));
   EXPECT_NEAR(mean(out)(0), 1.6, 1e-1);
   EXPECT_NEAR(mean(out)(1), 0.9, 1e-1);
   EXPECT_NEAR(covariance(out)(0,0), 3.5, 1e-1);
@@ -86,9 +86,9 @@ TEST_F(nonlinear_tests, UT1Radar2ATriangular)
 
 TEST_F(nonlinear_tests, UT1Radar3ASelfAdjoint)
 {
-  auto t = make_SamplePointsTransform<UT1>(radar);
+  SamplePointsTransform<UT1> t;
   auto in = G2 {{3.0, M_PI_4}, SA::identity()};
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(radar, in));
   EXPECT_NEAR(mean(out)(0), 1.3, 1e-1);
   EXPECT_NEAR(mean(out)(1), 1.3, 1e-1);
   EXPECT_NEAR(covariance(out)(0,0), 3.3, 1e-1);
@@ -99,9 +99,9 @@ TEST_F(nonlinear_tests, UT1Radar3ASelfAdjoint)
 
 TEST_F(nonlinear_tests, UT1Radar3ATriangular)
 {
-  auto t = make_SamplePointsTransform<UT1>(radar);
+  SamplePointsTransform<UT1> t;
   auto in = G2T {{3.0, M_PI_4}, SA::identity()};
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(radar, in));
   EXPECT_NEAR(mean(out)(0), 1.3, 1e-1);
   EXPECT_NEAR(mean(out)(1), 1.3, 1e-1);
   EXPECT_NEAR(covariance(out)(0,0), 3.3, 1e-1);
@@ -112,9 +112,9 @@ TEST_F(nonlinear_tests, UT1Radar3ATriangular)
 
 TEST_F(nonlinear_tests, UT2Radar1ASelfAdjoint)
 {
-  auto t = make_SamplePointsTransform<UT2>(radar);
+  SamplePointsTransform<UT2> t;
   auto in = G2 {{3.0, 0.0}, SA::identity()};
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(radar, in));
   EXPECT_NEAR(mean(out)(0), 1.5, 1e-1);
   EXPECT_NEAR(mean(out)(1), 0.0, 1e-1);
   EXPECT_NEAR(covariance(out)(0,0), 5.5, 1e-1);
@@ -125,9 +125,9 @@ TEST_F(nonlinear_tests, UT2Radar1ASelfAdjoint)
 
 TEST_F(nonlinear_tests, UT2Radar1ATriangular)
 {
-  auto t = make_SamplePointsTransform<UT2>(radar);
+  SamplePointsTransform<UT2> t;
   auto in = G2T {{3.0, 0.0}, SA::identity()};
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(radar, in));
   EXPECT_NEAR(mean(out)(0), 1.5, 1e-1);
   EXPECT_NEAR(mean(out)(1), 0.0, 1e-1);
   EXPECT_NEAR(covariance(out)(0,0), 5.5, 1e-1);
@@ -138,9 +138,9 @@ TEST_F(nonlinear_tests, UT2Radar1ATriangular)
 
 TEST_F(nonlinear_tests, UT2Radar2ASelfAdjoint)
 {
-  auto t = make_SamplePointsTransform<UT2>(radar);
+  SamplePointsTransform<UT2> t;
   auto in = G2 {{3.0, M_PI/6}, SA::identity()};
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(radar, in));
   EXPECT_NEAR(mean(out)(0), 1.3, 1e-1); //2
   EXPECT_NEAR(mean(out)(1), 0.8, 1e-1); //4
   EXPECT_NEAR(covariance(out)(0,0), 6.4, 1e-1);
@@ -151,9 +151,9 @@ TEST_F(nonlinear_tests, UT2Radar2ASelfAdjoint)
 
 TEST_F(nonlinear_tests, UT2Radar2ATriangular)
 {
-  auto t = make_SamplePointsTransform<UT2>(radar);
+  SamplePointsTransform<UT2> t;
   auto in = G2T {{3.0, M_PI/6}, SA::identity()};
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(radar, in));
   EXPECT_NEAR(mean(out)(0), 1.3, 1e-1); //2
   EXPECT_NEAR(mean(out)(1), 0.8, 1e-1); //4
   EXPECT_NEAR(covariance(out)(0,0), 6.4, 1e-1);
@@ -164,9 +164,9 @@ TEST_F(nonlinear_tests, UT2Radar2ATriangular)
 
 TEST_F(nonlinear_tests, UT2Radar3ASelfAdjoint)
 {
-  auto t = make_SamplePointsTransform<UT2>(radar);
+  SamplePointsTransform<UT2> t;
   auto in = G2 {{3.0, M_PI_4}, SA::identity()};
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(radar, in));
   EXPECT_NEAR(mean(out)(0), 1.1, 1e-1);
   EXPECT_NEAR(mean(out)(1), 1.1, 1e-1);
   EXPECT_NEAR(covariance(out)(0,0), 7.2, 1e-1);
@@ -177,9 +177,9 @@ TEST_F(nonlinear_tests, UT2Radar3ASelfAdjoint)
 
 TEST_F(nonlinear_tests, UT2Radar3ATriangular)
 {
-  auto t = make_SamplePointsTransform<UT2>(radar);
+  SamplePointsTransform<UT2> t;
   auto in = G2T {{3.0, M_PI_4}, SA::identity()};
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(radar, in));
   EXPECT_NEAR(mean(out)(0), 1.1, 1e-1);
   EXPECT_NEAR(mean(out)(1), 1.1, 1e-1);
   EXPECT_NEAR(covariance(out)(0,0), 7.2, 1e-1);
@@ -197,9 +197,9 @@ TEST_F(nonlinear_tests, UT2Radar3ATriangular)
 /* These do not appear to be accurate in the paper:
 TEST_F(nonlinear_tests, UT1Radar1BSelfAdjoint)
 {
-  auto t = make_SamplePointsTransform<UT1>(radar);
+  SamplePointsTransform<UT1> t;
   auto in = G2 {{20.0, 0.0}, {1.0, 0.0, 0.0, 0.1}};
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(radar, in));
   EXPECT_NEAR(mean(out)(0), 20.0, 1e-1); // should be 19.0
   EXPECT_NEAR(mean(out)(1), 0.0, 1e-1);
   EXPECT_NEAR(covariance(out)(0,0), 1.0, 1e-1); // should be 2.9
@@ -210,9 +210,9 @@ TEST_F(nonlinear_tests, UT1Radar1BSelfAdjoint)
 
 TEST_F(nonlinear_tests, UT1Radar1BTriangular)
 {
-  auto t = make_SamplePointsTransform<UT1>(radar);
+  SamplePointsTransform<UT1> t;
   auto in = G2T {{20.0, 0.0}, {1.0, 0.0, 0.0, 0.1}};
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(radar, in));
   EXPECT_NEAR(mean(out)(0), 20.0, 1e-1); // should be 19.0
   EXPECT_NEAR(mean(out)(1), 0.0, 1e-1);
   EXPECT_NEAR(covariance(out)(0,0), 1.0, 1e-1); // should be 2.9
@@ -223,9 +223,9 @@ TEST_F(nonlinear_tests, UT1Radar1BTriangular)
 
 TEST_F(nonlinear_tests, UT1Radar2BSelfAdjoint)
 {
-  auto t = make_SamplePointsTransform<UT1>(radar);
+  SamplePointsTransform<UT1> t;
   auto in = G2 {{20.0, M_PI/6}, {1.0, 0.0, 0.0, 0.1}};
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(radar, in));
   EXPECT_NEAR(mean(out)(0), 16.5, 1e-1);
   EXPECT_NEAR(mean(out)(1), 9.5, 1e-1);
   EXPECT_NEAR(covariance(out)(0,0), 11.2, 1e-1);
@@ -236,9 +236,9 @@ TEST_F(nonlinear_tests, UT1Radar2BSelfAdjoint)
 
 TEST_F(nonlinear_tests, UT1Radar2BTriangular)
 {
-  auto t = make_SamplePointsTransform<UT1>(radar);
+  SamplePointsTransform<UT1> t;
   auto in = G2T {{20.0, M_PI/6}, {1.0, 0.0, 0.0, 0.1}};
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(radar, in));
   EXPECT_NEAR(mean(out)(0), 16.5, 1e-1);
   EXPECT_NEAR(mean(out)(1), 9.5, 1e-1);
   EXPECT_NEAR(covariance(out)(0,0), 11.2, 1e-1);
@@ -249,9 +249,9 @@ TEST_F(nonlinear_tests, UT1Radar2BTriangular)
 
 TEST_F(nonlinear_tests, UT1Radar3BSelfAdjoint)
 {
-  auto t = make_SamplePointsTransform<UT1>(radar);
+  SamplePointsTransform<UT1> t;
   auto in = G2 {{20.0, M_PI_4}, {1.0, 0.0, 0.0, 0.1}};
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(radar, in));
   EXPECT_NEAR(mean(out)(0), 13.5, 1e-1);
   EXPECT_NEAR(mean(out)(1), 13.5, 1e-1);
   EXPECT_NEAR(covariance(out)(0,0), 19.5, 1e-1);
@@ -262,9 +262,9 @@ TEST_F(nonlinear_tests, UT1Radar3BSelfAdjoint)
 
 TEST_F(nonlinear_tests, UT1Radar3BTriangular)
 {
-  auto t = make_SamplePointsTransform<UT1>(radar);
+  SamplePointsTransform<UT1> t;
   auto in = G2T {{20.0, M_PI_4}, {1.0, 0.0, 0.0, 0.1}};
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(radar, in));
   EXPECT_NEAR(mean(out)(0), 13.5, 1e-1);
   EXPECT_NEAR(mean(out)(1), 13.5, 1e-1);
   EXPECT_NEAR(covariance(out)(0,0), 19.5, 1e-1);
@@ -275,9 +275,9 @@ TEST_F(nonlinear_tests, UT1Radar3BTriangular)
 
 TEST_F(nonlinear_tests, UT2Radar1BSelfAdjoint)
 {
-  auto t = make_SamplePointsTransform<UT2>(radar);
+  SamplePointsTransform<UT2> t;
   auto in = G2 {{20.0, 0.0}, {1.0, 0.0, 0.0, 0.1}};
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(radar, in));
   EXPECT_NEAR(mean(out)(0), 19.0, 1e-1);
   EXPECT_NEAR(mean(out)(1), 0.0, 1e-1);
   EXPECT_NEAR(covariance(out)(0,0), 3.0, 1e-1);
@@ -288,9 +288,9 @@ TEST_F(nonlinear_tests, UT2Radar1BSelfAdjoint)
 
 TEST_F(nonlinear_tests, UT2Radar1BTriangular)
 {
-  auto t = make_SamplePointsTransform<UT2>(radar);
+  SamplePointsTransform<UT2> t;
   auto in = G2T {{20.0, 0.0}, {1.0, 0.0, 0.0, 0.1}};
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(radar, in));
   EXPECT_NEAR(mean(out)(0), 19.0, 1e-1);
   EXPECT_NEAR(mean(out)(1), 0.0, 1e-1);
   EXPECT_NEAR(covariance(out)(0,0), 3.0, 1e-1);
@@ -301,9 +301,9 @@ TEST_F(nonlinear_tests, UT2Radar1BTriangular)
 
 TEST_F(nonlinear_tests, UT2Radar2BSelfAdjoint)
 {
-  auto t = make_SamplePointsTransform<UT2>(radar);
+  SamplePointsTransform<UT2> t;
   auto in = G2 {{20.0, M_PI/6}, {1.0, 0.0, 0.0, 0.1}};
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(radar, in));
   EXPECT_NEAR(mean(out)(0), 16.5, 1e-1);
   EXPECT_NEAR(mean(out)(1), 9.5, 1e-1);
   EXPECT_NEAR(covariance(out)(0,0), 12.3, 1e-1);
@@ -314,9 +314,9 @@ TEST_F(nonlinear_tests, UT2Radar2BSelfAdjoint)
 
 TEST_F(nonlinear_tests, UT2Radar2BTriangular)
 {
-  auto t = make_SamplePointsTransform<UT2>(radar);
+  SamplePointsTransform<UT2> t;
   auto in = G2T {{20.0, M_PI/6}, {1.0, 0.0, 0.0, 0.1}};
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(radar, in));
   EXPECT_NEAR(mean(out)(0), 16.5, 1e-1);
   EXPECT_NEAR(mean(out)(1), 9.5, 1e-1);
   EXPECT_NEAR(covariance(out)(0,0), 12.3, 1e-1);
@@ -327,9 +327,9 @@ TEST_F(nonlinear_tests, UT2Radar2BTriangular)
 
 TEST_F(nonlinear_tests, UT2Radar3BSelfAdjoint)
 {
-  auto t = make_SamplePointsTransform<UT2>(radar);
+  SamplePointsTransform<UT2> t;
   auto in = G2 {{20.0, M_PI_4}, {1.0, 0.0, 0.0, 0.1}};
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(radar, in));
   EXPECT_NEAR(mean(out)(0), 13.4, 1e-1);
   EXPECT_NEAR(mean(out)(1), 13.4, 1e-1);
   EXPECT_NEAR(covariance(out)(0,0), 21.5, 1e-1);
@@ -340,9 +340,9 @@ TEST_F(nonlinear_tests, UT2Radar3BSelfAdjoint)
 
 TEST_F(nonlinear_tests, UT2Radar3BTriangular)
 {
-  auto t = make_SamplePointsTransform<UT2>(radar);
+  SamplePointsTransform<UT2> t;
   auto in = G2T {{20.0, M_PI_4}, {1.0, 0.0, 0.0, 0.1}};
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(radar, in));
   EXPECT_NEAR(mean(out)(0), 13.4, 1e-1);
   EXPECT_NEAR(mean(out)(1), 13.4, 1e-1);
   EXPECT_NEAR(covariance(out)(0,0), 21.5, 1e-1);

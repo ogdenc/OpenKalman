@@ -20,14 +20,15 @@ TEST_F(transform_tests, linear_additive)
 {
   Mat2 a {1, 2,
           3, 4};
-  LinearTransform t {a};
+  LinearTransformation g {a};
+  LinearTransform t;
   GaussianDistribution input {M2(1, 2), Covariance(Mat2::identity())};
   GaussianDistribution noise {M2::zero(), Covariance(Mat2::identity())};
   Mat2 P_output {5, 11,
                  11, 25};
   Mat2 cross_output {1, 3,
                      2, 4};
-  auto [out, cross] = t(input);
+  auto [out, cross] = t(g, input);
   EXPECT_TRUE(is_near(mean(out), M2(5, 11)));
   EXPECT_TRUE(is_near(covariance(out), P_output));
   EXPECT_TRUE(is_near(out + noise, GaussianDistribution {M2(5, 11), Covariance(P_output + Mat2::identity())}));
@@ -38,14 +39,15 @@ TEST_F(transform_tests, linear_additive_Cholesky)
 {
   Mat2 a {1, 2,
           3, 4};
-  LinearTransform t {a};
+  LinearTransformation g {a};
+  LinearTransform t;
   GaussianDistribution input {M2(1, 2), make_Covariance<TriangleType::lower>(Mat2::identity())};
   GaussianDistribution noise {M2::zero(), make_Covariance<TriangleType::lower>(Mat2::identity())};
   Mat2 P_output {5, 11,
                  11, 25};
   Mat2 cross_output {1, 3,
                      2, 4};
-  auto [out, cross] = t(input);
+  auto [out, cross] = t(g, input);
   EXPECT_TRUE(is_near(mean(out), M2(5, 11)));
   EXPECT_TRUE(is_near(covariance(out), P_output));
   EXPECT_TRUE(is_near(out + noise, GaussianDistribution {M2(5, 11), Covariance(P_output + Mat2::identity())}));
@@ -58,14 +60,15 @@ TEST_F(transform_tests, linear_augmented)
           4, 3};
   Mat2 an {3, 4,
            2, 1};
-  LinearTransform t {a, an};
+  LinearTransformation g {a, an};
+  LinearTransform t;
   GaussianDistribution input {M2(1, 2), Covariance(Mat2::identity())};
   GaussianDistribution noise {M2::zero(), Covariance(Mat2::identity())};
   Mat2 P_output {30, 20,
                  20, 30};
   Mat2 cross_output {1, 4,
                      2, 3};
-  EXPECT_TRUE(is_near(t(input, noise), std::tuple {GaussianDistribution {M2(5, 10), Covariance(P_output)}, cross_output}));
+  EXPECT_TRUE(is_near(t(g, input, noise), std::tuple {GaussianDistribution {M2(5, 10), Covariance(P_output)}, cross_output}));
 }
 
 TEST_F(transform_tests, linear_augmented_Cholesky)
@@ -74,13 +77,14 @@ TEST_F(transform_tests, linear_augmented_Cholesky)
           4, 3};
   Mat2 an {3, 4,
            2, 1};
-  LinearTransform t {a, an};
+  LinearTransformation g {a, an};
+  LinearTransform t;
   GaussianDistribution input {M2(1, 2), make_Covariance<TriangleType::lower>(Mat2::identity())};
   GaussianDistribution noise {M2::zero(), make_Covariance<TriangleType::lower>(Mat2::identity())};
   Mat2 P_output {30, 20,
                  20, 30};
   Mat2 cross_output {1, 4,
                      2, 3};
-  EXPECT_TRUE(is_near(t(input, noise), std::tuple {GaussianDistribution {M2(5, 10), Covariance(P_output)}, cross_output}));
+  EXPECT_TRUE(is_near(t(g, input, noise), std::tuple {GaussianDistribution {M2(5, 10), Covariance(P_output)}, cross_output}));
 }
 

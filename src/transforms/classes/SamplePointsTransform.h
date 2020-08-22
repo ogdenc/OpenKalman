@@ -26,41 +26,29 @@ namespace OpenKalman
    */
   template<
     /// The type of sample points on which the transform is based.
-    typename SamplePointsType,
-    /// The transformation on which the transform is based.
-    typename TransformationType>
+    typename SamplePointsType>
   struct SamplePointsTransform;
 
 
-  template<typename TransformationType>
-  using CubatureTransform = SamplePointsTransform<CubaturePoints, TransformationType>;
+  using CubatureTransform = SamplePointsTransform<CubaturePoints>;
 
-  template<typename TransformationType>
-  using UnscentedTransform = SamplePointsTransform<UnscentedSigmaPoints, TransformationType>;
+  using UnscentedTransform = SamplePointsTransform<UnscentedSigmaPoints>;
 
 
-  template<typename SamplePointsType, typename TransformationType>
+  template<typename SamplePointsType>
   struct SamplePointsTransform
   {
-    using InputCoefficients = typename TransformationType::InputCoefficients;
-    using OutputCoefficients = typename TransformationType::OutputCoefficients;
-
-    explicit SamplePointsTransform(const TransformationType& transformation)
-      : transformation(transformation) {}
-
-  protected:
-    const TransformationType transformation;
-
   private:
-    template<typename...XDevs, typename...Dists, std::size_t...ints>
+    template<typename Transformation, typename...XDevs, typename...Dists, std::size_t...ints>
     constexpr auto y_means_impl(
+      const Transformation& g,
       const std::tuple<XDevs...>& x_devs,
       const std::tuple<Dists...>& dists,
       std::index_sequence<ints...>) const
     {
       constexpr auto count = MatrixTraits<decltype(std::get<0>(x_devs))>::columns;
-      return apply_columnwise<count>([&x_devs, &dists, this](size_t i) {
-        return to_Euclidean(transformation((column(std::get<ints>(x_devs), i) + make_Matrix(mean(std::get<ints>(dists))))...));
+      return apply_columnwise<count>([&g, &x_devs, &dists, this](size_t i) {
+        return to_Euclidean(g((column(std::get<ints>(x_devs), i) + make_Matrix(mean(std::get<ints>(dists))))...));
       });
     }
 
@@ -73,15 +61,16 @@ namespace OpenKalman
      * -# the x-deviations, and
      * -# the y-deviations.
      */
-    template<typename Dist, typename ... Noise>
-    auto trans(const Dist& x, const Noise& ... n) const
+    template<typename Transformation, typename Dist, typename ... Noise>
+    auto trans(const Transformation& g, const Dist& x, const Noise& ... n) const
     {
       // The sample points, divided into tuples for the input and each noise term:
       const auto sample_points_tuple = SamplePointsType::sample_points(x, n...);
       constexpr auto dim = (DistributionTraits<Dist>::dimension + ... + DistributionTraits<Noise>::dimension);
       //
       auto x_deviations = std::get<0>(sample_points_tuple);
-      auto y_means = y_means_impl(sample_points_tuple, std::forward_as_tuple(x, n...), std::make_index_sequence<sizeof...(Noise) + 1>());
+      auto y_means = y_means_impl(
+        g, sample_points_tuple, std::forward_as_tuple(x, n...), std::make_index_sequence<sizeof...(Noise) + 1>());
       //
       auto mean_output = strict(SamplePointsType::template weighted_means<dim>(y_means));
       // Each column is a deviation from y mean for each transformed sigma point:
@@ -91,22 +80,21 @@ namespace OpenKalman
     }
 
   public:
-    template<typename InputDist, typename ... NoiseDist>
-    auto operator()(const InputDist& in, const NoiseDist& ...n) const
+    /**
+     * Perform a linearized transform from one statistical distribution to another.
+     * @tparam Transformation The transformation on which the transform is based.
+     * @tparam InputDist Input distribution.
+     * @tparam NoiseDist Noise distribution.
+     **/
+    template<typename Transformation, typename InputDist, typename ... NoiseDist>
+    auto operator()(const Transformation& g, const InputDist& in, const NoiseDist& ...n) const
     {
-      auto [mean_output, x_deviations, y_deviations] = trans(in, n...);
+      auto [mean_output, x_deviations, y_deviations] = trans(g, in, n...);
       auto [out_covariance, cross_covariance] = SamplePointsType::template covariance<InputDist, NoiseDist...>(x_deviations, y_deviations);
       auto out = GaussianDistribution {mean_output, out_covariance};
       return std::tuple {std::move(out), std::move(cross_covariance)};
     }
 
-  };
-
-
-  template<typename SamplePointsType, typename TransformationType>
-  auto make_SamplePointsTransform(TransformationType&& f)
-  {
-    return SamplePointsTransform<SamplePointsType, std::decay_t<TransformationType>>(std::forward<TransformationType>(f));
   };
 
 

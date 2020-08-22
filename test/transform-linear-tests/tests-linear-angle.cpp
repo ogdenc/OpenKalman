@@ -27,8 +27,9 @@ TEST_F(transform_tests, linear_additive_angle)
   const GaussianDistribution output {M2(1.1, 1.1 * 19 / 20 * M_PI - 2 * M_PI), P_output};
   Mat2 cross_output {1.1 * M_PI *M_PI / 9, 0,
                      0, 0.011};
-  const LinearTransform t {a};
-  auto [out, cross] = t(input);
+  LinearTransformation g {a};
+  LinearTransform t;
+  auto [out, cross] = t(g, input);
   EXPECT_TRUE(is_near(out, output));
   EXPECT_TRUE(is_near(cross, cross_output));
 }
@@ -42,8 +43,9 @@ TEST_F(transform_tests, linear_additive_angle_Cholesky)
   const GaussianDistribution output {M2(1.1, 1.1 * 19 / 20 * M_PI - 2 * M_PI), P_output};
   Mat2 cross_output {1.1 * M_PI * M_PI / 9, 0,
                      0, 0.011};
-  const LinearTransform t {a};
-  auto [out, cross] = t(input);
+  LinearTransformation g {a};
+  LinearTransform t;
+  auto [out, cross] = t(g, input);
   EXPECT_TRUE(is_near(out, output));
   EXPECT_TRUE(is_near(cross, cross_output));
 }
@@ -59,8 +61,9 @@ TEST_F(transform_tests, linear_augmented_angle)
   Mat2 cross_output {1.1 * M_PI * M_PI / 9, 0,
                      0, 0.011};
   const GaussianDistribution output {M2(1.1, 1.1 * 19 / 20 * M_PI - 2 * M_PI), P_output};
-  const LinearTransform t {a, an};
-  auto [out, cross] = t(input, noise);
+  LinearTransformation g {a, an};
+  LinearTransform t;
+  auto [out, cross] = t(g, input, noise);
   EXPECT_TRUE(is_near(out, output));
   EXPECT_TRUE(is_near(cross, cross_output));
 }
@@ -76,8 +79,9 @@ TEST_F(transform_tests, linear_augmented_angle_Cholesky)
   Mat2 cross_output{1.1 * M_PI * M_PI / 9, 0,
                     0, 0.011};
   const GaussianDistribution output {M2(1.1, 1.1 * 19 / 20 * M_PI - 2 * M_PI), P_output};
-  const LinearTransform t {a, an};
-  auto [out, cross] = t(input, noise);
+  LinearTransformation g {a, an};
+  LinearTransform t;
+  auto [out, cross] = t(g, input, noise);
   EXPECT_TRUE(is_near(out, output));
   EXPECT_TRUE(is_near(cross, cross_output));
 }

@@ -44,9 +44,10 @@ using UT2 = UnscentedSigmaPointsStateEstimation; // alpha = 1e-3, beta = 2, kapp
 TEST_F(nonlinear_tests, UT1SumOfSquares2SelfAdjoint)
 {
   constexpr std::size_t n = 2;
-  auto t = make_SamplePointsTransform<UT1>(sum_of_squares<n>);
+  auto g = sum_of_squares<n>;
+  SamplePointsTransform<UT1> t;
   auto in = G<n>::normal();
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(g, in));
   EXPECT_NEAR(mean(out)(0), (double) n, 1e-6);
   EXPECT_NEAR(covariance(out)(0,0), (3. - n) * n, 1e-6);
 }
@@ -54,9 +55,10 @@ TEST_F(nonlinear_tests, UT1SumOfSquares2SelfAdjoint)
 TEST_F(nonlinear_tests, UT1SumOfSquares2Triangular)
 {
   constexpr std::size_t n = 2;
-  auto t = make_SamplePointsTransform<UT1>(sum_of_squares<n>);
+  auto g = sum_of_squares<n>;
+  SamplePointsTransform<UT1> t;
   auto in = GT<n>::normal();
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(g, in));
   EXPECT_NEAR(mean(out)(0), (double) n, 1e-6);
   EXPECT_NEAR(covariance(out)(0,0), (3. - n) * n, 1e-6);
 }
@@ -64,9 +66,10 @@ TEST_F(nonlinear_tests, UT1SumOfSquares2Triangular)
 TEST_F(nonlinear_tests, UT1SumOfSquares5SelfAdjoint)
 {
   constexpr std::size_t n = 5;
-  auto t = make_SamplePointsTransform<UT1>(sum_of_squares<n>);
+  auto g = sum_of_squares<n>;
+  SamplePointsTransform<UT1> t;
   auto in = G<n>::normal();
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(g, in));
   EXPECT_NEAR(mean(out)(0), (double) n, 1e-6);
   EXPECT_NEAR(covariance(out)(0,0), (3. - n) * n, 1e-6);
 }
@@ -74,9 +77,10 @@ TEST_F(nonlinear_tests, UT1SumOfSquares5SelfAdjoint)
 TEST_F(nonlinear_tests, UT1SumOfSquares5Triangular)
 {
   constexpr std::size_t n = 5;
-  auto t = make_SamplePointsTransform<UT1>(sum_of_squares<n>);
+  auto g = sum_of_squares<n>;
+  SamplePointsTransform<UT1> t;
   auto in = GT<n>::normal();
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(g, in));
   EXPECT_NEAR(mean(out)(0), (double) n, 1e-6);
   EXPECT_NEAR(covariance(out)(0,0), (3. - n) * n, 1e-6);
 }
@@ -84,9 +88,10 @@ TEST_F(nonlinear_tests, UT1SumOfSquares5Triangular)
 TEST_F(nonlinear_tests, UT2SumOfSquares2SelfAdjoint)
 {
   constexpr std::size_t n = 2;
-  auto t = make_SamplePointsTransform<UT2>(sum_of_squares<n>);
+  auto g = sum_of_squares<n>;
+  SamplePointsTransform<UT2> t;
   auto in = G<n>::normal();
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(g, in));
   EXPECT_NEAR(mean(out)(0), (double) n, 1e-6);
   EXPECT_NEAR(covariance(out)(0,0), 2. * n * n, 1e-6);
 }
@@ -94,9 +99,10 @@ TEST_F(nonlinear_tests, UT2SumOfSquares2SelfAdjoint)
 TEST_F(nonlinear_tests, UT2SumOfSquares2Triangular)
 {
   constexpr std::size_t n = 2;
-  auto t = make_SamplePointsTransform<UT2>(sum_of_squares<n>);
+  auto g = sum_of_squares<n>;
+  SamplePointsTransform<UT2> t;
   auto in = GT<n>::normal();
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(g, in));
   EXPECT_NEAR(mean(out)(0), (double) n, 1e-6);
   EXPECT_NEAR(covariance(out)(0,0), 2. * n * n, 1e-6);
 }
@@ -104,9 +110,10 @@ TEST_F(nonlinear_tests, UT2SumOfSquares2Triangular)
 TEST_F(nonlinear_tests, UT2SumOfSquares5SelfAdjoint)
 {
   constexpr std::size_t n = 5;
-  auto t = make_SamplePointsTransform<UT2>(sum_of_squares<n>);
+  auto g = sum_of_squares<n>;
+  SamplePointsTransform<UT2> t;
   auto in = G<n>::normal();
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(g, in));
   EXPECT_NEAR(mean(out)(0), (double) n, 1e-6);
   EXPECT_NEAR(covariance(out)(0,0), 2. * n * n, 1e-6);
 }
@@ -114,9 +121,10 @@ TEST_F(nonlinear_tests, UT2SumOfSquares5SelfAdjoint)
 TEST_F(nonlinear_tests, UT2SumOfSquares5Triangular)
 {
   constexpr std::size_t n = 5;
-  auto t = make_SamplePointsTransform<UT2>(sum_of_squares<n>);
+  auto g = sum_of_squares<n>;
+  SamplePointsTransform<UT2> t;
   auto in = GT<n>::normal();
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(g, in));
   EXPECT_NEAR(mean(out)(0), (double) n, 1e-6);
   EXPECT_NEAR(covariance(out)(0,0), 2. * n * n, 1e-6);
 }
@@ -124,9 +132,10 @@ TEST_F(nonlinear_tests, UT2SumOfSquares5Triangular)
 TEST_F(nonlinear_tests, UT1TOA2SelfAdjoint)
 {
   constexpr std::size_t n = 2;
-  auto t = make_SamplePointsTransform<UT1>(time_of_arrival<n>);
+  auto g = time_of_arrival<n>;
+  SamplePointsTransform<UT1> t;
   auto in = G<n> {{3., 0}, {1., 0, 0, 10}};
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(g, in));
   EXPECT_NEAR(mean(out)(0), 4.08, 1e-2);
   EXPECT_NEAR(covariance(out)(0,0), 3.34, 1e-2);
 }
@@ -134,9 +143,10 @@ TEST_F(nonlinear_tests, UT1TOA2SelfAdjoint)
 TEST_F(nonlinear_tests, UT1TOA2Triangular)
 {
   constexpr std::size_t n = 2;
-  auto t = make_SamplePointsTransform<UT1>(time_of_arrival<n>);
+  auto g = time_of_arrival<n>;
+  SamplePointsTransform<UT1> t;
   auto in = GT<n> {{3., 0}, {1., 0, 0, 10}};
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(g, in));
   EXPECT_NEAR(mean(out)(0), 4.08, 1e-2);
   EXPECT_NEAR(covariance(out)(0,0), 3.34, 1e-2);
 }
@@ -144,9 +154,10 @@ TEST_F(nonlinear_tests, UT1TOA2Triangular)
 TEST_F(nonlinear_tests, UT1TOA3SelfAdjoint)
 {
   constexpr std::size_t n = 3;
-  auto t = make_SamplePointsTransform<UT1>(time_of_arrival<n>);
+  auto g = time_of_arrival<n>;
+  SamplePointsTransform<UT1> t;
   auto in = G<n> {{3., 0, 0}, {1., 0, 0, 0, 10, 0, 0, 0, 10}};
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(g, in));
   EXPECT_NEAR(mean(out)(0), 5.16, 1e-2);
   EXPECT_NEAR(covariance(out)(0,0), 3.34, 1e-2);
 }
@@ -154,9 +165,10 @@ TEST_F(nonlinear_tests, UT1TOA3SelfAdjoint)
 TEST_F(nonlinear_tests, UT1TOA3Triangular)
 {
   constexpr std::size_t n = 3;
-  auto t = make_SamplePointsTransform<UT1>(time_of_arrival<n>);
+  auto g = time_of_arrival<n>;
+  SamplePointsTransform<UT1> t;
   auto in = GT<n> {{3., 0, 0}, {1., 0, 0, 0, 10, 0, 0, 0, 10}};
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(g, in));
   EXPECT_NEAR(mean(out)(0), 5.16, 1e-2);
   EXPECT_NEAR(covariance(out)(0,0), 3.34, 1e-2);
 }
@@ -164,9 +176,10 @@ TEST_F(nonlinear_tests, UT1TOA3Triangular)
 TEST_F(nonlinear_tests, UT2TOA2SelfAdjoint)
 {
   constexpr std::size_t n = 2;
-  auto t = make_SamplePointsTransform<UT2>(time_of_arrival<n>);
+  auto g = time_of_arrival<n>;
+  SamplePointsTransform<UT2> t;
   auto in = G<n> {{3., 0}, {1., 0, 0, 10}};
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(g, in));
   EXPECT_NEAR(mean(out)(0), 4.67, 1e-2);
   EXPECT_NEAR(covariance(out)(0,0), 6.56, 1e-2);
 }
@@ -174,9 +187,10 @@ TEST_F(nonlinear_tests, UT2TOA2SelfAdjoint)
 TEST_F(nonlinear_tests, UT2TOA2Triangular)
 {
   constexpr std::size_t n = 2;
-  auto t = make_SamplePointsTransform<UT2>(time_of_arrival<n>);
+  auto g = time_of_arrival<n>;
+  SamplePointsTransform<UT2> t;
   auto in = GT<n> {{3., 0}, {1., 0, 0, 10}};
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(g, in));
   EXPECT_NEAR(mean(out)(0), 4.67, 1e-2);
   EXPECT_NEAR(covariance(out)(0,0), 6.56, 1e-2);
 }
@@ -184,9 +198,10 @@ TEST_F(nonlinear_tests, UT2TOA2Triangular)
 TEST_F(nonlinear_tests, UT2TOA3SelfAdjoint)
 {
   constexpr std::size_t n = 3;
-  auto t = make_SamplePointsTransform<UT2>(time_of_arrival<n>);
+  auto g = time_of_arrival<n>;
+  SamplePointsTransform<UT2> t;
   auto in = G<n> {{3., 0, 0}, {1., 0, 0, 0, 10, 0, 0, 0, 10}};
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(g, in));
   EXPECT_NEAR(mean(out)(0), 6.33, 1e-2);
   EXPECT_NEAR(covariance(out)(0,0), 23.2, 1e-1);
 }
@@ -194,9 +209,10 @@ TEST_F(nonlinear_tests, UT2TOA3SelfAdjoint)
 TEST_F(nonlinear_tests, UT2TOA3Triangular)
 {
   constexpr std::size_t n = 3;
-  auto t = make_SamplePointsTransform<UT2>(time_of_arrival<n>);
+  auto g = time_of_arrival<n>;
+  SamplePointsTransform<UT2> t;
   auto in = GT<n> {{3., 0, 0}, {1., 0, 0, 0, 10, 0, 0, 0, 10}};
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(g, in));
   EXPECT_NEAR(mean(out)(0), 6.33, 1e-2);
   EXPECT_NEAR(covariance(out)(0,0), 23.2, 1e-1);
 }

@@ -18,23 +18,19 @@ namespace OpenKalman
    * @brief A linearized transform, using a 1st or 2nd order Taylor approximation of a linear transformation.
    */
   template<
-    typename Transformation, ///< The transformation on which the transform is based.
     unsigned int order = 1> ///< Order of the Taylor approximation (1 or 2).
-  struct LinearizedTransform;
-
-
-  namespace internal
+  struct LinearizedTransform : internal::LinearTransformBase
   {
-    template<typename LinearizedTransformation, unsigned int order>
-    struct LinearizedTransformFunction
+  protected:
+    using Base = internal::LinearTransformBase;
+
+    template<typename Transformation>
+    struct TransformFunction
     {
-      using OutputCoeffs = typename LinearizedTransformation::OutputCoefficients;
+    protected:
+      using OutputCoeffs = typename Transformation::OutputCoefficients;
 
-      LinearizedTransformation transformation;
-
-      LinearizedTransformFunction(const LinearizedTransformation& trans) : transformation(trans) {}
-
-      LinearizedTransformFunction(LinearizedTransformation&& trans) noexcept : transformation(std::move(trans)) {}
+      const Transformation& transformation;
 
     private:
       template<typename OutputCoeffs, typename MeanOut, typename Hessian, typename Cov, std::size_t...ints>
@@ -94,6 +90,8 @@ namespace OpenKalman
       }
 
     public:
+      TransformFunction(const Transformation& t) : transformation(t) {}
+
       template<typename InputMean, typename ... NoiseMean>
       auto operator()(const InputMean& x, const NoiseMean& ... n) const
       {
@@ -110,33 +108,22 @@ namespace OpenKalman
       }
     };
 
-  }
-
-
-  template<typename Transformation, unsigned int order>
-  struct LinearizedTransform
-    : internal::LinearTransformBase<typename Transformation::InputCoefficients, typename Transformation::OutputCoefficients,
-      internal::LinearizedTransformFunction<Transformation, order>>
-  {
-    using InputCoefficients = typename Transformation::InputCoefficients;
-    using OutputCoefficients = typename Transformation::OutputCoefficients;
-    using Function = internal::LinearizedTransformFunction<Transformation, order>;
-    using Base = internal::LinearTransformBase<InputCoefficients, OutputCoefficients, Function>;
-
-    explicit LinearizedTransform(const Transformation& transformation)
-      : Base(Function(transformation)) {}
-
-    explicit LinearizedTransform(Transformation&& transformation)
-      : Base(Function(std::move(transformation))) {}
+  public:
+    /**
+     * Perform a linearized transform from one statistical distribution to another.
+     * @tparam Transformation The transformation on which the transform is based.
+     * @tparam InputDist Input distribution.
+     * @tparam NoiseDist Noise distribution.
+     **/
+    template<typename Transformation, typename InputDist, typename ... NoiseDist,
+      std::enable_if_t<std::conjunction_v<is_distribution<InputDist>, is_distribution<NoiseDist>...>, int> = 0>
+    auto operator()(const Transformation& transformation, const InputDist& in, const NoiseDist& ...n) const
+    {
+      return Base::transform(TransformFunction {transformation}, in, n...);
+    }
 
   };
 
-
-  template<unsigned int order = 1, typename TransformationType>
-  auto make_LinearizedTransform(TransformationType&& t)
-  {
-    return LinearizedTransform<std::decay_t<TransformationType>, order>(std::forward<TransformationType>(t));
-  };
 
 }
 

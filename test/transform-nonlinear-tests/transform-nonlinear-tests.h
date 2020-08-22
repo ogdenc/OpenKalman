@@ -41,9 +41,9 @@ struct transform_tests : public ::testing::Test
     const AngleRotDist& angle_input_rot,
     const Noise& ... noise)
   {
-    const auto t = make_SamplePointsTransform<SamplePointsType>(f1);
-    const auto[output, cross] = t(angle_input, noise...);
-    const auto[output_rot, cross_rot] = t(angle_input_rot, noise...);
+    const SamplePointsTransform<SamplePointsType> t;
+    const auto[output, cross] = t(f1, angle_input, noise...);
+    const auto[output_rot, cross_rot] = t(f1, angle_input_rot, noise...);
     const auto res1 = is_near(f2(mean(output)), f2(mean(output_rot)) +
       make_Mean<typename DistributionTraits<AngleRotDist>::Mean::Coefficients>(0, M_PI), 1e-4);
     const auto res2 = is_near(covariance(output), covariance(output_rot), 1e-3);

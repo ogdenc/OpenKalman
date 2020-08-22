@@ -23,9 +23,9 @@ using G2T = GaussianDistribution<Axes<2>, M2, TR>;
 
 TEST_F(nonlinear_tests, CTRadar1SelfAdjoint)
 {
-  auto t = make_SamplePointsTransform<CubaturePoints>(radar);
+  SamplePointsTransform<CubaturePoints> t;
   auto in = G2 {{3.0, 0.0}, SA::identity()};
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(radar, in));
   EXPECT_NEAR(mean(out)(0), 1.73, 1e-2);
   EXPECT_NEAR(mean(out)(1), 0.0, 1e-1);
   EXPECT_NEAR(covariance(out)(0,0), 2.6, 1e-1);
@@ -36,9 +36,9 @@ TEST_F(nonlinear_tests, CTRadar1SelfAdjoint)
 
 TEST_F(nonlinear_tests, CTRadar1Triangular)
 {
-  auto t = make_SamplePointsTransform<CubaturePoints>(radar);
+  SamplePointsTransform<CubaturePoints> t;
   auto in = G2T {{3.0, 0.0}, SA::identity()};
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(radar, in));
   EXPECT_NEAR(mean(out)(0), 1.73, 1e-2);
   EXPECT_NEAR(mean(out)(1), 0.0, 1e-1);
   EXPECT_NEAR(covariance(out)(0,0), 2.6, 1e-1);
@@ -49,9 +49,9 @@ TEST_F(nonlinear_tests, CTRadar1Triangular)
 
 TEST_F(nonlinear_tests, CTRadar2SelfAdjoint)
 {
-  auto t = make_SamplePointsTransform<CubaturePoints>(radar);
+  SamplePointsTransform<CubaturePoints> t;
   auto in = G2 {{3.0, 0.5}, SA::identity()};
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(radar, in));
   EXPECT_NEAR(mean(out)(0), 1.52, 1e-2);
   EXPECT_NEAR(mean(out)(1), 0.83, 1e-2);
   EXPECT_NEAR(covariance(out)(0,0), 3.01, 1e-2);
@@ -62,9 +62,9 @@ TEST_F(nonlinear_tests, CTRadar2SelfAdjoint)
 
 TEST_F(nonlinear_tests, CTRadar2Triangular)
 {
-  auto t = make_SamplePointsTransform<CubaturePoints>(radar);
+  SamplePointsTransform<CubaturePoints> t;
   auto in = G2T {{3.0, 0.5}, SA::identity()};
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(radar, in));
   EXPECT_NEAR(mean(out)(0), 1.52, 1e-2);
   EXPECT_NEAR(mean(out)(1), 0.83, 1e-2);
   EXPECT_NEAR(covariance(out)(0,0), 3.01, 1e-2);
@@ -75,9 +75,9 @@ TEST_F(nonlinear_tests, CTRadar2Triangular)
 
 TEST_F(nonlinear_tests, CTRadar3SelfAdjoint)
 {
-  auto t = make_SamplePointsTransform<CubaturePoints>(radar);
+  SamplePointsTransform<CubaturePoints> t;
   auto in = G2 {{3.0, 0.8}, SA::identity()};
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(radar, in));
   EXPECT_NEAR(mean(out)(0), 1.21, 1e-2);
   EXPECT_NEAR(mean(out)(1), 1.24, 1e-2);
   EXPECT_NEAR(covariance(out)(0,0), 3.52, 1e-2);
@@ -88,9 +88,9 @@ TEST_F(nonlinear_tests, CTRadar3SelfAdjoint)
 
 TEST_F(nonlinear_tests, CTRadar3Triangular)
 {
-  auto t = make_SamplePointsTransform<CubaturePoints>(radar);
+  SamplePointsTransform<CubaturePoints> t;
   auto in = G2T {{3.0, 0.8}, SA::identity()};
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(radar, in));
   EXPECT_NEAR(mean(out)(0), 1.21, 1e-2);
   EXPECT_NEAR(mean(out)(1), 1.24, 1e-2);
   EXPECT_NEAR(covariance(out)(0,0), 3.52, 1e-2);

@@ -14,39 +14,36 @@ using C2 = Coefficients<Axis, Axis>;
 using M22 = Eigen::Matrix<double, 2, 2>;
 using CovSA2 = Covariance<C2, EigenSelfAdjointMatrix<M22>>;
 using CovT2 = Covariance<C2, EigenTriangularMatrix<M22>>;
+inline LinearTransform L;
+inline LinearizedTransform L1;
+inline LinearizedTransform<2> L2;
 
 TEST_F(linear_tests, Linear2x2LinearSA)
 {
-  run_multiple_linear_tests<2, 2>(CovSA2 {1.2, 0.2, 0.2, 2.1},
-    [] (const auto& g) { return LinearTransform {g}; });
+  run_multiple_linear_tests<2, 2>(CovSA2 {1.2, 0.2, 0.2, 2.1}, L);
 }
 
 TEST_F(linear_tests, Linear2x2LinearT)
 {
-  run_multiple_linear_tests<2, 2>(CovT2 {1.2, 0.2, 0.2, 2.1},
-    [] (const auto& g) { return LinearTransform {g}; });
+  run_multiple_linear_tests<2, 2>(CovT2 {1.2, 0.2, 0.2, 2.1}, L);
 }
 
 TEST_F(linear_tests, Linear2x2TT1SA)
 {
-  run_multiple_linear_tests<2, 2>(CovSA2 {1.2, 0.2, 0.2, 2.1},
-    [] (const auto& g) { return LinearizedTransform {g}; });
+  run_multiple_linear_tests<2, 2>(CovSA2 {1.2, 0.2, 0.2, 2.1}, L1);
 }
 
 TEST_F(linear_tests, Linear2x2TT1T)
 {
-  run_multiple_linear_tests<2, 2>(CovT2 {1.2, 0.2, 0.2, 2.1},
-    [] (const auto& g) { return LinearizedTransform {g}; });
+  run_multiple_linear_tests<2, 2>(CovT2 {1.2, 0.2, 0.2, 2.1}, L1);
 }
 
 TEST_F(linear_tests, Linear2x2TT2SA)
 {
-  run_multiple_linear_tests<2, 2>(CovSA2 {1.2, 0.2, 0.2, 2.1},
-    [] (const auto& g) { return LinearizedTransform<std::decay_t<decltype(g)>, 2> {g}; });
+  run_multiple_linear_tests<2, 2>(CovSA2 {1.2, 0.2, 0.2, 2.1}, L2);
 }
 
 TEST_F(linear_tests, Linear2x2TT2T)
 {
-  run_multiple_linear_tests<2, 2>(CovT2 {1.2, 0.2, 0.2, 2.1},
-    [] (const auto& g) { return LinearizedTransform<std::decay_t<decltype(g)>, 2> {g}; });
+  run_multiple_linear_tests<2, 2>(CovT2 {1.2, 0.2, 0.2, 2.1}, L2);
 }

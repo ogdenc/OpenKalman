@@ -20,33 +20,9 @@ namespace OpenKalman::internal
 
   /**
    * Internal base class for linear or linearized transformations from one statistical distribution to another.
-   * @tparam InputCoefficients Coefficient types for input distribution.
-   * @tparam OutputCoefficients Coefficient types for the output distribution.
-   * @tparam TransformFunction Underlying transform function that takes an input distribution and an optional set of
-   * noise distributions and returns the following information used in constructing the output distribution
-   * and cross-covariance:
-   * -# the output mean, and
-   * -# a tuple of Jacobians corresponding to each input and noise term,
    **/
-  template<typename InputCoefficients, typename OutputCoefficients, typename TransformFunction>
-  struct LinearTransformBase;
-
-
-  template<
-    typename InputCoeffs,
-    typename OutputCoeffs,
-    typename TransformFunction>
   struct LinearTransformBase
   {
-    using InputCoefficients = InputCoeffs;
-    using OutputCoefficients = OutputCoeffs;
-
-    const TransformFunction function;
-
-    LinearTransformBase(const TransformFunction& f) : function {f} {}
-
-    LinearTransformBase(TransformFunction&& f) noexcept : function {std::move(f)} {}
-
   private:
     template<typename J, typename Dist, std::size_t...ints>
     static auto sum_noise_terms(const J& j, const Dist& dist, std::index_sequence<ints...>)
@@ -73,17 +49,27 @@ namespace OpenKalman::internal
       }
     }
 
-  public:
-    template<typename InputDist, typename ... NoiseDist,
+  protected:
+  /**
+   * Linearly transform one statistical distribution to another.
+   * @tparam TransformFunction Underlying transform function that takes an input distribution and an optional set of
+   * noise distributions and returns the following information used in constructing the output distribution
+   * and cross-covariance:
+   * -# the output mean, and
+   * -# a tuple of Jacobians corresponding to each input and noise term,
+   * @tparam InputDist Input distribution.
+   * @tparam NoiseDist Noise distribution.
+   **/
+    template<typename TransformFunction, typename InputDist, typename ... NoiseDist,
       std::enable_if_t<std::conjunction_v<is_distribution<InputDist>, is_distribution<NoiseDist>...>, int> = 0>
-    auto operator()(const InputDist& in, const NoiseDist& ...n) const
+    auto transform(const TransformFunction& f, const InputDist& in, const NoiseDist& ...n) const
     {
-      auto[mean_output, jacobians] = function(mean(in), mean(n)...);
+      auto[mean_output, jacobians] = f(mean(in), mean(n)...);
       auto [cov_out, cross_covariance] = sum_noise_terms(jacobians, std::tuple {in, n...},
         std::make_index_sequence<std::min(sizeof...(NoiseDist), std::tuple_size_v<decltype(jacobians)> - 1)>{});
       auto out = make_GaussianDistribution(mean_output, cov_out);
       if constexpr(TransformFunction::correction)
-        return std::tuple {strict(out + function.add_correction(in, n...)), cross_covariance};
+        return std::tuple {strict(out + f.add_correction(in, n...)), cross_covariance};
       else
         return std::tuple {out, cross_covariance};
     }

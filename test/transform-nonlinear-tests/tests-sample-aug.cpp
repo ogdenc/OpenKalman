@@ -47,36 +47,36 @@ using namespace test_sample_aug;
 
 TEST_F(transform_tests, Basic_linear_unscented_aug)
 {
-  auto unscented = make_SamplePointsTransform<UnscentedSigmaPoints>(g);
-  EXPECT_TRUE(is_near(unscented(input, noise), full_output));
-  EXPECT_TRUE(is_near(unscented(input_chol, noise), full_output));
-  static_assert(not is_Cholesky_v<decltype(std::get<0>(unscented(input)))>);
-  static_assert(is_Cholesky_v<decltype(std::get<0>(unscented(input_chol)))>);
+  SamplePointsTransform<UnscentedSigmaPoints> unscented;
+  EXPECT_TRUE(is_near(unscented(g, input, noise), full_output));
+  EXPECT_TRUE(is_near(unscented(g, input_chol, noise), full_output));
+  static_assert(not is_Cholesky_v<decltype(std::get<0>(unscented(g, input)))>);
+  static_assert(is_Cholesky_v<decltype(std::get<0>(unscented(g, input_chol)))>);
 }
 
 TEST_F(transform_tests, Basic_linear_unscented2_aug)
 {
-  auto unscented2 = make_SamplePointsTransform<UnscentedSigmaPoints2>(g);
-  EXPECT_TRUE(is_near(unscented2(input, noise), full_output));
-  EXPECT_TRUE(is_near(unscented2(input_chol, noise), full_output));
-  static_assert(not is_Cholesky_v<decltype(std::get<0>(unscented2(input)))>);
-  static_assert(is_Cholesky_v<decltype(std::get<0>(unscented2(input_chol)))>);
+  SamplePointsTransform<UnscentedSigmaPoints2> unscented2;
+  EXPECT_TRUE(is_near(unscented2(g, input, noise), full_output));
+  EXPECT_TRUE(is_near(unscented2(g, input_chol, noise), full_output));
+  static_assert(not is_Cholesky_v<decltype(std::get<0>(unscented2(g, input)))>);
+  static_assert(is_Cholesky_v<decltype(std::get<0>(unscented2(g, input_chol)))>);
 }
 
 TEST_F(transform_tests, Basic_linear_spherical_simplex_aug)
 {
-  auto spherical_simplex = make_SamplePointsTransform<SphericalSimplexSigmaPoints>(g);
-  EXPECT_TRUE(is_near(spherical_simplex(input, noise), full_output));
-  EXPECT_TRUE(is_near(spherical_simplex(input_chol, noise), full_output));
-  static_assert(not is_Cholesky_v<decltype(std::get<0>(spherical_simplex(input)))>);
-  static_assert(is_Cholesky_v<decltype(std::get<0>(spherical_simplex(input_chol)))>);
+  SamplePointsTransform<SphericalSimplexSigmaPoints> spherical_simplex;
+  EXPECT_TRUE(is_near(spherical_simplex(g, input, noise), full_output));
+  EXPECT_TRUE(is_near(spherical_simplex(g, input_chol, noise), full_output));
+  static_assert(not is_Cholesky_v<decltype(std::get<0>(spherical_simplex(g, input)))>);
+  static_assert(is_Cholesky_v<decltype(std::get<0>(spherical_simplex(g, input_chol)))>);
 }
 
 TEST_F(transform_tests, Basic_linear_cubature_aug)
 {
-  auto cubature = make_SamplePointsTransform<CubaturePoints>(g);
-  EXPECT_TRUE(is_near(cubature(input, noise), full_output));
-  EXPECT_TRUE(is_near(cubature(input_chol, noise), full_output));
-  static_assert(not is_Cholesky_v<decltype(std::get<0>(cubature(input)))>);
-  static_assert(is_Cholesky_v<decltype(std::get<0>(cubature(input_chol)))>);
+  SamplePointsTransform<CubaturePoints> cubature;
+  EXPECT_TRUE(is_near(cubature(g, input, noise), full_output));
+  EXPECT_TRUE(is_near(cubature(g, input_chol, noise), full_output));
+  static_assert(not is_Cholesky_v<decltype(std::get<0>(cubature(g, input)))>);
+  static_assert(is_Cholesky_v<decltype(std::get<0>(cubature(g, input_chol)))>);
 }

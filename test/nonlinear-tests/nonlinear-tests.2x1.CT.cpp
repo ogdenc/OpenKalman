@@ -33,9 +33,10 @@ using GT = GaussianDistribution<Axes<n>, M<n>, TR<n>>;
 TEST_F(nonlinear_tests, CTSumOfSquares2SelfAdjoint)
 {
   constexpr std::size_t n = 2;
-  auto t = make_SamplePointsTransform<CubaturePoints>(sum_of_squares<n>);
+  auto g = sum_of_squares<n>;
+  SamplePointsTransform<CubaturePoints> t;
   auto in = G<n>::normal();
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(g, in));
   EXPECT_NEAR(mean(out)(0), (double) n, 1e-6);
   EXPECT_NEAR(covariance(out)(0,0), 0., 1e-6);
 }
@@ -43,9 +44,10 @@ TEST_F(nonlinear_tests, CTSumOfSquares2SelfAdjoint)
 TEST_F(nonlinear_tests, CTSumOfSquares2Triangular)
 {
   constexpr std::size_t n = 2;
-  auto t = make_SamplePointsTransform<CubaturePoints>(sum_of_squares<n>);
+  auto g = sum_of_squares<n>;
+  SamplePointsTransform<CubaturePoints> t;
   auto in = GT<n>::normal();
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(g, in));
   EXPECT_NEAR(mean(out)(0), (double) n, 1e-6);
   EXPECT_NEAR(covariance(out)(0,0), 0., 1e-6);
 }
@@ -53,9 +55,10 @@ TEST_F(nonlinear_tests, CTSumOfSquares2Triangular)
 TEST_F(nonlinear_tests, CTSumOfSquares5SelfAdjoint)
 {
   constexpr std::size_t n = 5;
-  auto t = make_SamplePointsTransform<CubaturePoints>(sum_of_squares<n>);
+  auto g = sum_of_squares<n>;
+  SamplePointsTransform<CubaturePoints> t;
   auto in = G<n>::normal();
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(g, in));
   EXPECT_NEAR(mean(out)(0), (double) n, 1e-6);
   EXPECT_NEAR(covariance(out)(0,0), 0., 1e-6);
 }
@@ -63,9 +66,10 @@ TEST_F(nonlinear_tests, CTSumOfSquares5SelfAdjoint)
 TEST_F(nonlinear_tests, CTSumOfSquares5Triangular)
 {
   constexpr std::size_t n = 5;
-  auto t = make_SamplePointsTransform<CubaturePoints>(sum_of_squares<n>);
+  auto g = sum_of_squares<n>;
+  SamplePointsTransform<CubaturePoints> t;
   auto in = GT<n>::normal();
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(g, in));
   EXPECT_NEAR(mean(out)(0), (double) n, 1e-6);
   EXPECT_NEAR(covariance(out)(0,0), 0., 1e-6);
 }
@@ -73,9 +77,10 @@ TEST_F(nonlinear_tests, CTSumOfSquares5Triangular)
 TEST_F(nonlinear_tests, CTTOA2SelfAdjoint)
 {
   constexpr std::size_t n = 2;
-  auto t = make_SamplePointsTransform<CubaturePoints>(time_of_arrival<n>);
+  auto g = time_of_arrival<n>;
+  SamplePointsTransform<CubaturePoints> t;
   auto in = G<n> {{3., 0}, {1., 0, 0, 10}};
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(g, in));
   EXPECT_NEAR(mean(out)(0), 4.19, 1e-2);
   EXPECT_NEAR(covariance(out)(0,0), 2.42, 1e-2);
 }
@@ -83,9 +88,10 @@ TEST_F(nonlinear_tests, CTTOA2SelfAdjoint)
 TEST_F(nonlinear_tests, CTTOA2Triangular)
 {
   constexpr std::size_t n = 2;
-  auto t = make_SamplePointsTransform<CubaturePoints>(time_of_arrival<n>);
+  auto g = time_of_arrival<n>;
+  SamplePointsTransform<CubaturePoints> t;
   auto in = GT<n> {{3., 0}, {1., 0, 0, 10}};
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(g, in));
   EXPECT_NEAR(mean(out)(0), 4.19, 1e-2);
   EXPECT_NEAR(covariance(out)(0,0), 2.42, 1e-2);
 }
@@ -93,9 +99,10 @@ TEST_F(nonlinear_tests, CTTOA2Triangular)
 TEST_F(nonlinear_tests, CTTOA3SelfAdjoint)
 {
   constexpr std::size_t n = 3;
-  auto t = make_SamplePointsTransform<CubaturePoints>(time_of_arrival<n>);
+  auto g = time_of_arrival<n>;
+  SamplePointsTransform<CubaturePoints> t;
   auto in = G<n> {{3., 0, 0}, {1., 0, 0, 0, 10, 0, 0, 0, 10}};
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(g, in));
   EXPECT_NEAR(mean(out)(0), 5.16, 1e-2);
   EXPECT_NEAR(covariance(out)(0,0), 3.34, 1e-2);
 }
@@ -103,9 +110,10 @@ TEST_F(nonlinear_tests, CTTOA3SelfAdjoint)
 TEST_F(nonlinear_tests, CTTOA3Triangular)
 {
   constexpr std::size_t n = 3;
-  auto t = make_SamplePointsTransform<CubaturePoints>(time_of_arrival<n>);
+  auto g = time_of_arrival<n>;
+  SamplePointsTransform<CubaturePoints> t;
   auto in = GT<n> {{3., 0, 0}, {1., 0, 0, 0, 10, 0, 0, 0, 10}};
-  auto out = std::get<0>(t(in));
+  auto out = std::get<0>(t(g, in));
   EXPECT_NEAR(mean(out)(0), 5.16, 1e-2);
   EXPECT_NEAR(covariance(out)(0,0), 3.34, 1e-2);
 }

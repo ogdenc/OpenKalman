@@ -17,20 +17,24 @@ namespace OpenKalman
   /**
    * @brief A linear transformation from one statistical distribution to another.
    */
-  template<
-    typename InputCoefficients,
-    typename OutputCoefficients,
-    typename TransformationMatrix,
-    typename ... PerturbationTransformationMatrices>
-  struct LinearTransform;
-
-
-  namespace detail
+  struct LinearTransform : internal::LinearTransformBase
   {
-  template<typename LinearTransformationType>
-    struct LinearTransformFunction
+  protected:
+
+    using Base = internal::LinearTransformBase;
+
+    /// The underlying transform function model for LinearTransform.
+    template<typename InputCoefficients, typename OutputCoefficients,
+      typename TransformationMatrix, typename...PerturbationTransformationMatrices>
+    struct TransformFunction
     {
-      const LinearTransformationType transformation;
+    protected:
+      using LinTrans = LinearTransformation<InputCoefficients, OutputCoefficients, TransformationMatrix,
+        PerturbationTransformationMatrices...>;
+      const LinTrans& transformation;
+
+    public:
+      TransformFunction(const LinTrans& t) : transformation(t) {}
 
       template<typename InputMean, typename ... NoiseMean>
       auto operator()(const InputMean& x, const NoiseMean& ... n) const
@@ -40,79 +44,39 @@ namespace OpenKalman
 
       static constexpr bool correction = false;
     };
-  }
 
-
-  template<
-    typename InputCoefficients,
-    typename OutputCoefficients,
-    typename TransformationMatrix,
-    typename ... PerturbationTransformationMatrices>
-  struct LinearTransform
-    : internal::LinearTransformBase<
-      InputCoefficients,
-      OutputCoefficients,
-      detail::LinearTransformFunction<LinearTransformation<InputCoefficients, OutputCoefficients,
-        TransformationMatrix, PerturbationTransformationMatrices...>>>
-  {
-    using LinearTransformationType = LinearTransformation<InputCoefficients, OutputCoefficients,
-      TransformationMatrix, PerturbationTransformationMatrices...>;
-    using TransformFunction = detail::LinearTransformFunction<LinearTransformationType>;
-    using Base = internal::LinearTransformBase<InputCoefficients, OutputCoefficients, TransformFunction>;
-
-    static_assert(is_typed_matrix_base_v<TransformationMatrix>);
-    static_assert(std::conjunction_v<is_typed_matrix_base<PerturbationTransformationMatrices>...>);
-    static_assert(MatrixTraits<TransformationMatrix>::dimension == OutputCoefficients::size);
-    static_assert(MatrixTraits<TransformationMatrix>::columns == InputCoefficients::size);
-    static_assert(((MatrixTraits<PerturbationTransformationMatrices>::dimension == OutputCoefficients::size) and ...));
-    static_assert(((MatrixTraits<PerturbationTransformationMatrices>::columns == OutputCoefficients::size) and ...));
-
-    explicit LinearTransform(const LinearTransformationType& transformation)
-      : Base(TransformFunction {transformation}) {}
-
-    explicit LinearTransform(LinearTransformationType&& transformation) noexcept
-      : Base(TransformFunction {std::move(transformation)}) {}
-
-    LinearTransform(TransformationMatrix&& t, PerturbationTransformationMatrices&&...n) noexcept
-      : LinearTransform(LinearTransformationType(std::forward<TransformationMatrix>(t),
-        std::forward<PerturbationTransformationMatrices>(n)...)) {}
-
-    template<typename T, typename ... Ps,
-      std::enable_if_t<std::conjunction_v<std::disjunction<is_typed_matrix<T>, is_typed_matrix_base<T>>,
-        std::disjunction<is_typed_matrix<Ps>, is_typed_matrix_base<Ps>>...>, int> = 0>
-    LinearTransform(T&& t, Ps&&...n) noexcept
-      : LinearTransform(LinearTransformationType(std::forward<T>(t), std::forward<Ps>(n)...))
+  public:
+    /**
+     * Linearly transform one statistical distribution to another.
+     * @tparam InputCoefficients Coefficient types for the input.
+     * @tparam OutputCoefficients Coefficient types for the output.
+     * @tparam TransformationMatrix Transformation matrix. It is a native matrix type with rows corresponding to
+     * OutputCoefficients and columns corresponding to InputCoefficients.
+     * @tparam PerturbationTransformationMatrices Transformation matrices for each potential perturbation term.
+     * if the parameter is not given, the transformation matrix is assumed to be identity (i.e., it is a translation).
+     * It is a native matrix type with both rows and columns corresponding to OutputCoefficients.
+     * @tparam InputDist Input distribution.
+     * @tparam NoiseDist Noise distribution.
+     **/
+    template<
+      typename InputCoefficients,
+      typename OutputCoefficients,
+      typename TransformationMatrix,
+      typename...PerturbationTransformationMatrices,
+      typename InputDist,
+      typename ... NoiseDist,
+      std::enable_if_t<std::conjunction_v<is_distribution<InputDist>, is_distribution<NoiseDist>...>, int> = 0>
+    auto operator()(
+      const LinearTransformation<InputCoefficients, OutputCoefficients, TransformationMatrix,
+        PerturbationTransformationMatrices...>& transformation,
+      const InputDist& in,
+      const NoiseDist& ...n) const
     {
-      static_assert(MatrixTraits<T>::dimension == OutputCoefficients::size);
-      static_assert(MatrixTraits<T>::columns == InputCoefficients::size);
-      static_assert(((MatrixTraits<Ps>::dimension == OutputCoefficients::size) and ...));
-      static_assert(((MatrixTraits<Ps>::columns == OutputCoefficients::size) and ...));
+      return Base::transform(TransformFunction {transformation}, in, n...);
     }
 
   };
 
-
-  ////////////////////////
-  //  Deduction guides  //
-  ////////////////////////
-
-  template<typename T, typename ... Ps,
-    std::enable_if_t<std::conjunction_v<is_typed_matrix<T>, is_typed_matrix<Ps>...>, int> = 0>
-  LinearTransform(T&&, Ps&& ...)
-  -> LinearTransform<
-    typename MatrixTraits<T>::RowCoefficients,
-    typename MatrixTraits<T>::ColumnCoefficients,
-    strict_t<typename MatrixTraits<T>::BaseMatrix>,
-    strict_t<typename MatrixTraits<Ps>::BaseMatrix>...>;
-
-  template<typename T, typename ... Ps,
-    std::enable_if_t<std::conjunction_v<is_typed_matrix_base<T>, is_typed_matrix_base<Ps>...>, int> = 0>
-  LinearTransform(T&&, Ps&& ...)
-  -> LinearTransform<
-    Axes<MatrixTraits<T>::columns>,
-    Axes<MatrixTraits<T>::dimension>,
-    strict_t<std::decay_t<T>>,
-    strict_t<std::decay_t<Ps>>...>;
 
 }
 

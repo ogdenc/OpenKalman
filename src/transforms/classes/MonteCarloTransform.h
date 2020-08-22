@@ -25,13 +25,9 @@ namespace OpenKalman
    * Technical Report STAN-CS-79-773, Department of Computer Science, Stanford University.
    * http://i.stanford.edu/pub/cstr/reports/cs/tr/79/773/CS-TR-79-773.pdf
    */
-  template<
-    typename TransformationType> ///< The transformation on which the transform is based.
-  struct MonteCarloTransform;
-
-
-  namespace internal
+  struct MonteCarloTransform
   {
+  protected:
     template<typename TransformationType, typename InputDistribution, typename...NoiseDistributions>
     struct MonteCarloSet
     {
@@ -144,7 +140,7 @@ namespace OpenKalman
       MonteCarloSet(
         const TransformationType& trans, std::size_t s, const InputDistribution& dist, const NoiseDistributions&...noise)
         : samples(s),
-          one_sum_generator([trans, dist, noise...] { return one(trans, dist, noise...); })
+          one_sum_generator([&trans, &dist, &noise...] { return one(trans, dist, noise...); })
       {}
 
       auto begin() { return iterator(one_sum_generator, 0); }
@@ -156,25 +152,13 @@ namespace OpenKalman
       const std::function<MonteCarloSum()> one_sum_generator;
     };
 
-  }
+  public:
+    explicit MonteCarloTransform(const std::size_t samples = 100000) : size(samples) {}
 
-  template<typename TransformationType>
-  struct MonteCarloTransform
-  {
-    using InputCoefficients = typename TransformationType::InputCoefficients;
-    using OutputCoefficients = typename TransformationType::OutputCoefficients;
-
-    explicit MonteCarloTransform(const TransformationType& transformation, const std::size_t samples = 100000)
-      : size(samples), transformation(transformation) {}
-
-    template<typename InputDist, typename ... NoiseDist>
-    auto operator()(const InputDist& in, const NoiseDist& ...n) const
+    template<typename TransformationType, typename InputDist, typename ... NoiseDist>
+    auto operator()(const TransformationType& transformation, const InputDist& in, const NoiseDist& ...n) const
     {
-      static_assert(is_equivalent_v<typename DistributionTraits<InputDist>::Coefficients, InputCoefficients>);
-      static_assert(std::conjunction_v<is_equivalent<typename DistributionTraits<NoiseDist>::Coefficients,
-        OutputCoefficients>...>);
-
-      using MSet = internal::MonteCarloSet<TransformationType, InputDist, NoiseDist...>;
+      using MSet = MonteCarloSet<TransformationType, InputDist, NoiseDist...>;
       auto m_set = MSet(transformation, size, in, n...);
       auto binary_op = typename MSet::MonteCarloBinaryOp();
       using MSum = typename MSet::MonteCarloSum;
@@ -189,16 +173,9 @@ namespace OpenKalman
 
   protected:
     const std::size_t size;
-    const TransformationType transformation;
 
   };
 
-
-  template<typename TransformationType>
-  auto make_MonteCarloTransform(TransformationType&& f, const std::size_t sample_size = 100000)
-  {
-    return MonteCarloTransform<std::decay_t<TransformationType>>(std::forward<TransformationType>(f), sample_size);
-  };
 
 }
 
