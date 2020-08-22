@@ -29,6 +29,8 @@ TEST_F(transformation_tests, Scale_no_noise_1D)
 {
   using M_int1 = Mean<Coefficients<Axis>, Eigen::Matrix<int, 1, 1>>;
   Transformation<Axis, Axis, Scale<3>> t;
+  static_assert(is_equivalent_v<TransformationTraits<decltype(t)>::InputCoefficients, Axis>);
+  static_assert(is_equivalent_v<TransformationTraits<decltype(t)>::OutputCoefficients, Axis>);
   EXPECT_EQ(t(M_int1 {2}), M_int1 {6});
 }
 

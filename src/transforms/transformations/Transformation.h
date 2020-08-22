@@ -312,7 +312,7 @@ namespace OpenKalman
 
 
   ////////////////////////////////////
-  //  TransformationFunctionTraits  //
+  //  TransformationTraits  //
   ////////////////////////////////////
 
   /**
@@ -321,15 +321,15 @@ namespace OpenKalman
    * @tparam Function The transformation function, which should transform one Mean to another.
    */
   template<typename Function, typename T = void, typename Enable = void>
-  struct TransformationFunctionTraits {};
+  struct TransformationTraits {};
 
   namespace detail
   {
     template<typename Function, typename T = void, typename Enable1 = void, typename Enable2 = void>
-    struct TransformationFunctionTraitsImpl {};
+    struct TransformationTraitsImpl {};
 
     template<typename In, typename Out, typename T, typename...Perturbations>
-    struct TransformationFunctionTraitsImpl<std::function<Out(In, Perturbations...)>, T>
+    struct TransformationTraitsImpl<std::function<Out(In, Perturbations...)>, T>
     {
       using type = T;
       using InputCoefficients = typename MatrixTraits<In>::RowCoefficients;
@@ -345,18 +345,26 @@ namespace OpenKalman
   }
 
   template<typename F, typename T>
-  struct TransformationFunctionTraits<F, T, std::void_t<decltype(std::function(std::declval<F>()))>>
-    : detail::TransformationFunctionTraitsImpl<decltype(std::function(std::declval<F>())), T> {};
+  struct TransformationTraits<F, T, std::void_t<decltype(std::function(std::declval<F>()))>>
+    : detail::TransformationTraitsImpl<decltype(std::function(std::declval<F>())), T> {};
 
   template<typename F, typename T>
-  struct TransformationFunctionTraits<F&, T> : TransformationFunctionTraits<F, T> {};
+  struct TransformationTraits<F&, T> : TransformationTraits<F, T> {};
 
   template<typename F, typename T>
-  struct TransformationFunctionTraits<F&&, T> : TransformationFunctionTraits<F, T> {};
+  struct TransformationTraits<F&&, T> : TransformationTraits<F, T> {};
 
   template<typename F, typename T>
-  struct TransformationFunctionTraits<const F, T> : TransformationFunctionTraits<F, T> {};
+  struct TransformationTraits<const F, T> : TransformationTraits<F, T> {};
 
+
+  template<typename InCoeff, typename OutCoeff, typename F, typename T>
+  struct TransformationTraits<Transformation<InCoeff, OutCoeff, F>, T>
+  {
+    using type = T;
+    using InputCoefficients = InCoeff;
+    using OutputCoefficients = OutCoeff;
+  };
 
   ///////////////////////
   //  Deduction guides  //
@@ -364,43 +372,43 @@ namespace OpenKalman
 
   /// Derive transformation template parameters from the function. (Substitution failure if function is polymorphic.)
   template<typename Function,
-    typename TransformationFunctionTraits<Function, int>::type = 0,
+    typename TransformationTraits<Function, int>::type = 0,
     std::enable_if_t<not is_linearized_function_v<Function, 1>, int> = 0>
   Transformation(const Function&)
   -> Transformation<
-    typename TransformationFunctionTraits<Function>::InputCoefficients,
-    typename TransformationFunctionTraits<Function>::OutputCoefficients,
+    typename TransformationTraits<Function>::InputCoefficients,
+    typename TransformationTraits<Function>::OutputCoefficients,
     Function>;
 
   /// Derive transformation template parameters from the function. (Substitution failure if function is polymorphic.)
   template<typename Function, typename JacobianFunction, typename...TaylorDerivatives,
-    typename TransformationFunctionTraits<Function, int>::type = 0,
+    typename TransformationTraits<Function, int>::type = 0,
     std::enable_if_t<not is_linearized_function_v<Function, 1>, int> = 0>
   Transformation(const Function&, const JacobianFunction&, const TaylorDerivatives&...)
   -> Transformation<
-    typename TransformationFunctionTraits<Function>::InputCoefficients,
-    typename TransformationFunctionTraits<Function>::OutputCoefficients,
+    typename TransformationTraits<Function>::InputCoefficients,
+    typename TransformationTraits<Function>::OutputCoefficients,
     Function,
     JacobianFunction,
     TaylorDerivatives...>;
 
   /// Derive transformation template parameters from a first-order linearized function.
-  template<typename Function, typename TransformationFunctionTraits<Function, int>::type = 0,
+  template<typename Function, typename TransformationTraits<Function, int>::type = 0,
     std::enable_if_t<is_linearized_function_v<Function, 1> and not is_linearized_function_v<Function, 2>, int> = 0>
   Transformation(const Function&)
   -> Transformation<
-    typename TransformationFunctionTraits<Function>::InputCoefficients,
-    typename TransformationFunctionTraits<Function>::OutputCoefficients,
+    typename TransformationTraits<Function>::InputCoefficients,
+    typename TransformationTraits<Function>::OutputCoefficients,
     Function,
     decltype(is_linearized_function<Function, 1>::get_lambda(std::declval<Function>()))>;
 
   /// Derive transformation template parameters from a second-order linearized function.
-  template<typename Function, typename TransformationFunctionTraits<Function, int>::type = 0,
+  template<typename Function, typename TransformationTraits<Function, int>::type = 0,
     std::enable_if_t<is_linearized_function_v<Function, 2>, int> = 0>
   Transformation(const Function&)
   -> Transformation<
-    typename TransformationFunctionTraits<Function>::InputCoefficients,
-    typename TransformationFunctionTraits<Function>::OutputCoefficients,
+    typename TransformationTraits<Function>::InputCoefficients,
+    typename TransformationTraits<Function>::OutputCoefficients,
     Function,
     decltype(is_linearized_function<Function, 1>::get_lambda(std::declval<Function>())),
     decltype(is_linearized_function<Function, 2>::get_lambda(std::declval<Function>()))>;
@@ -464,12 +472,12 @@ namespace OpenKalman
   template<
     typename Function,
     typename...TaylorDerivatives,
-    typename TransformationFunctionTraits<Function, int>::type = 0,
+    typename TransformationTraits<Function, int>::type = 0,
     std::enable_if_t<not is_linearized_function_v<Function, 1>, int> = 0>
   auto make_Transformation(const Function& f, const TaylorDerivatives&...ds)
   {
-    using InputCoefficients = typename TransformationFunctionTraits<Function>::InputCoefficients;
-    using OutputCoefficients = typename TransformationFunctionTraits<Function>::OutputCoefficients;
+    using InputCoefficients = typename TransformationTraits<Function>::InputCoefficients;
+    using OutputCoefficients = typename TransformationTraits<Function>::OutputCoefficients;
     return Transformation<InputCoefficients, OutputCoefficients, Function, TaylorDerivatives...>(f, ds...);
   };
 
@@ -477,12 +485,12 @@ namespace OpenKalman
   /// Substitution failure if the transformation function is polymorphic.
   template<
     typename Function,
-    typename TransformationFunctionTraits<Function, int>::type = 0,
+    typename TransformationTraits<Function, int>::type = 0,
     std::enable_if_t<is_linearized_function_v<Function, 1> and not is_linearized_function_v<Function, 2>, int> = 0>
   auto make_Transformation(const Function& f)
   {
-    using InputCoefficients = typename TransformationFunctionTraits<Function>::InputCoefficients;
-    using OutputCoefficients = typename TransformationFunctionTraits<Function>::OutputCoefficients;
+    using InputCoefficients = typename TransformationTraits<Function>::InputCoefficients;
+    using OutputCoefficients = typename TransformationTraits<Function>::OutputCoefficients;
     return Transformation<InputCoefficients, OutputCoefficients, Function,
       decltype(is_linearized_function<Function, 1>::get_lambda(std::declval<Function>()))>(f);
   };
@@ -491,12 +499,12 @@ namespace OpenKalman
   /// Substitution failure if the transformation function is polymorphic.
   template<
     typename Function,
-    typename TransformationFunctionTraits<Function, int>::type = 0,
+    typename TransformationTraits<Function, int>::type = 0,
     std::enable_if_t<is_linearized_function_v<Function, 2>, int> = 0>
   auto make_Transformation(const Function& f)
   {
-    using InputCoefficients = typename TransformationFunctionTraits<Function>::InputCoefficients;
-    using OutputCoefficients = typename TransformationFunctionTraits<Function>::OutputCoefficients;
+    using InputCoefficients = typename TransformationTraits<Function>::InputCoefficients;
+    using OutputCoefficients = typename TransformationTraits<Function>::OutputCoefficients;
     return Transformation<InputCoefficients, OutputCoefficients, Function,
       decltype(is_linearized_function<Function, 1>::get_lambda(std::declval<Function>())),
       decltype(is_linearized_function<Function, 2>::get_lambda(std::declval<Function>()))>(f);

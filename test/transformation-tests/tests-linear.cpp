@@ -70,6 +70,8 @@ TEST_F(transformation_tests, linear)
   A_int a;
   a << 1, 2, 3, 4;
   LinearTransformation t {a};
+  static_assert(is_equivalent_v<TransformationTraits<decltype(t)>::InputCoefficients, Axes<2>>);
+  static_assert(is_equivalent_v<TransformationTraits<decltype(t)>::OutputCoefficients, Axes<2>>);
   static_assert(is_linearized_function_v<decltype(t), 0>);
   static_assert(is_linearized_function_v<decltype(t), 1>);
   static_assert(is_linearized_function_v<decltype(t), 2>);

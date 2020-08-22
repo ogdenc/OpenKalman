@@ -17,23 +17,18 @@ namespace OpenKalman
   /**
    * @brief A linearized transform, using a 1st or 2nd order Taylor approximation of a linear transformation.
    */
-  template<
-    unsigned int order = 1> ///< Order of the Taylor approximation (1 or 2).
+  template<unsigned int order = 1> ///< Order of the Taylor approximation (1 or 2).
   struct LinearizedTransform : internal::LinearTransformBase
   {
   protected:
     using Base = internal::LinearTransformBase;
 
-    template<typename Transformation>
+    //-----------------------------------------------
+    template<typename Transformation, typename OutputCoeffs>
     struct TransformFunction
     {
-    protected:
-      using OutputCoeffs = typename Transformation::OutputCoefficients;
-
-      const Transformation& transformation;
-
     private:
-      template<typename OutputCoeffs, typename MeanOut, typename Hessian, typename Cov, std::size_t...ints>
+      template<typename MeanOut, typename Hessian, typename Cov, std::size_t...ints>
       static auto make_mean(const Hessian& hessian, const Cov& P, std::index_sequence<ints...>)
       {
         return Mean<OutputCoeffs, MeanOut> {0.5 * trace(P * hessian[ints])...};
@@ -45,7 +40,7 @@ namespace OpenKalman
         return std::tuple {0.5 * trace(P * hessian[i] * P * hessian[js])...};
       }
 
-      template<typename OutputCoeffs, typename CovOut, typename Hessian, typename Cov, std::size_t...is, std::size_t...js>
+      template<typename CovOut, typename Hessian, typename Cov, std::size_t...is, std::size_t...js>
       static auto make_cov(const Hessian& hessian, const Cov& P, std::index_sequence<is...>, std::index_sequence<js...>)
       {
         auto mat = std::tuple_cat(make_cov_row<is, js...>(hessian, P)...);
@@ -53,6 +48,8 @@ namespace OpenKalman
       }
 
     protected:
+      const Transformation& transformation;
+
       /**
        * Add second-order moment terms, based on Hessian matrices.
        * @tparam Hessian An array of Hessian matrices. Must be accessible by bracket index, as in hessian[i].
@@ -71,8 +68,8 @@ namespace OpenKalman
         using CovOut = typename MatrixTraits<CovIn>::template SelfAdjointBaseType<triangle_type_of_v<CovIn>, output_dim>;
         const auto P = covariance(x);
         const std::make_index_sequence<output_dim> ints;
-        auto mean_terms = make_mean<OutputCoeffs, MeanOut>(hessian, P, ints);
-        auto cov_terms = make_cov<OutputCoeffs, CovOut>(hessian, P, ints, ints);
+        auto mean_terms = make_mean<MeanOut>(hessian, P, ints);
+        auto cov_terms = make_cov<CovOut>(hessian, P, ints, ints);
         return GaussianDistribution(mean_terms, cov_terms);
       }
 
@@ -107,6 +104,7 @@ namespace OpenKalman
         return zip_tuples(hessians, std::tuple {x, n...});
       }
     };
+    //-----------------------------------------------
 
   public:
     /**
@@ -119,7 +117,10 @@ namespace OpenKalman
       std::enable_if_t<std::conjunction_v<is_distribution<InputDist>, is_distribution<NoiseDist>...>, int> = 0>
     auto operator()(const Transformation& transformation, const InputDist& in, const NoiseDist& ...n) const
     {
-      return Base::transform(TransformFunction {transformation}, in, n...);
+      using In_Mean = typename DistributionTraits<InputDist>::Mean;
+      using Out_Mean = std::invoke_result_t<Transformation, In_Mean>;
+      using OutputCoeffs = typename MatrixTraits<Out_Mean>::RowCoefficients;
+      return Base::transform(TransformFunction<Transformation, OutputCoeffs> {transformation}, in, n...);
     }
 
   };

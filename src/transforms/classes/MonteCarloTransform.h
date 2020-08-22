@@ -32,9 +32,10 @@ namespace OpenKalman
     struct MonteCarloSet
     {
     protected:
-      using InputCoefficients = typename TransformationType::InputCoefficients;
-      using OutputCoefficients = typename TransformationType::OutputCoefficients;
-      static_assert(is_equivalent_v<InputCoefficients, typename DistributionTraits<InputDistribution>::Coefficients>);
+      using In_Mean = typename DistributionTraits<InputDistribution>::Mean;
+      using Out_Mean = std::invoke_result_t<TransformationType, In_Mean>;
+      using InputCoefficients = typename MatrixTraits<In_Mean>::RowCoefficients;
+      using OutputCoefficients = typename MatrixTraits<Out_Mean>::RowCoefficients;
       static_assert(std::conjunction_v<is_equivalent<OutputCoefficients,
         typename DistributionTraits<NoiseDistributions>::Coefficients>...>);
 

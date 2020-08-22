@@ -171,6 +171,14 @@ namespace OpenKalman
   };
 
 
+  template<typename InCoeff, typename OutCoeff, typename Tr, typename...Ps, typename T>
+  struct TransformationTraits<LinearTransformation<InCoeff, OutCoeff, Tr, Ps...>, T>
+  {
+    using type = T;
+    using InputCoefficients = InCoeff;
+    using OutputCoefficients = OutCoeff;
+  };
+
   /**
    * Deduction guides
    */
