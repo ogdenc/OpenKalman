@@ -86,35 +86,35 @@ TEST_F(transform_nonlinear_tests, Basic_linear_cubature_aug)
 TEST_F(transform_nonlinear_tests, Basic_linear_identity_unscented_aug)
 {
   SamplePointsTransform<UnscentedSigmaPoints> t;
-  auto out1 = t(IdentityTransformation(), g, input, noise, noise);
+  auto out1 = t(input, std::tuple {IdentityTransformation(), noise}, std::tuple {g, noise});
   EXPECT_TRUE(is_near(out1, full_output2));
-  auto out2 = t(IdentityTransformation(), g, input_chol, noise, noise);
+  auto out2 = t(input_chol, std::tuple {IdentityTransformation(), noise}, std::tuple {g, noise});
   EXPECT_TRUE(is_near(out2, full_output2));
 }
 
 TEST_F(transform_nonlinear_tests, Basic_linear_identity_unscented2_aug)
 {
   SamplePointsTransform<UnscentedSigmaPoints2> t;
-  auto out1 = t(IdentityTransformation(), g, input, noise, noise);
+  auto out1 = t(input, std::tuple {IdentityTransformation(), noise}, std::tuple {g, noise});
   EXPECT_TRUE(is_near(out1, full_output2));
-  auto out2 = t(IdentityTransformation(), g, input_chol, noise, noise);
+  auto out2 = t(input_chol, std::tuple {IdentityTransformation(), noise}, std::tuple {g, noise});
   EXPECT_TRUE(is_near(out2, full_output2));
 }
 
 TEST_F(transform_nonlinear_tests, Basic_linear_identity_spherical_simplex_aug)
 {
   SamplePointsTransform<SphericalSimplexSigmaPoints> t;
-  auto out1 = t(IdentityTransformation(), g, input, noise, noise);
+  auto out1 = t(input, std::tuple {IdentityTransformation(), noise}, std::tuple {g, noise});
   EXPECT_TRUE(is_near(out1, full_output2));
-  auto out2 = t(IdentityTransformation(), g, input_chol, noise, noise);
+  auto out2 = t(input_chol, std::tuple {IdentityTransformation(), noise}, std::tuple {g, noise});
   EXPECT_TRUE(is_near(out2, full_output2));
 }
 
 TEST_F(transform_nonlinear_tests, Basic_linear_identity_cubature_aug)
 {
   SamplePointsTransform<CubaturePoints> t;
-  auto out1 = t(IdentityTransformation(), g, input, noise, noise);
+  auto out1 = t(input, std::tuple {IdentityTransformation(), noise}, std::tuple {g, noise});
   EXPECT_TRUE(is_near(out1, full_output2));
-  auto out2 = t(IdentityTransformation(), g, input_chol, noise, noise);
+  auto out2 = t(input_chol, std::tuple {IdentityTransformation(), noise}, std::tuple {g, noise});
   EXPECT_TRUE(is_near(out2, full_output2));
 }

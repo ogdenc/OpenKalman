@@ -80,35 +80,35 @@ TEST_F(transform_nonlinear_tests, Basic_linear_cubature)
 TEST_F(transform_nonlinear_tests, Basic_linear_identity_unscented)
 {
   SamplePointsTransform<UnscentedSigmaPoints> t;
-  auto out1 = t(IdentityTransformation(), g, input, decltype(input)::zero(), decltype(output)::zero());
+  auto out1 = t(input, std::tuple {IdentityTransformation()}, std::tuple {g});
   EXPECT_TRUE(is_near(out1, full_output));
-  auto out2 = t(IdentityTransformation(), g, input_chol, decltype(input_chol)::zero(), decltype(output)::zero());
+  auto out2 = t(input_chol, std::tuple {IdentityTransformation()}, std::tuple {g});
   EXPECT_TRUE(is_near(out2, full_output));
 }
 
 TEST_F(transform_nonlinear_tests, Basic_linear_identity_unscented2)
 {
   SamplePointsTransform<UnscentedSigmaPoints2> t;
-  auto out1 = t(IdentityTransformation(), g, input, decltype(input)::zero(), decltype(output)::zero());
+  auto out1 = t(input, std::tuple {IdentityTransformation()}, std::tuple {g});
   EXPECT_TRUE(is_near(out1, full_output));
-  auto out2 = t(IdentityTransformation(), g, input_chol, decltype(input_chol)::zero(), decltype(output)::zero());
+  auto out2 = t(input_chol, std::tuple {IdentityTransformation()}, std::tuple {g});
   EXPECT_TRUE(is_near(out2, full_output));
 }
 
 TEST_F(transform_nonlinear_tests, Basic_linear_identity_spherical_simplex)
 {
   SamplePointsTransform<SphericalSimplexSigmaPoints> t;
-  auto out1 = t(IdentityTransformation(), g, input, decltype(input)::zero(), decltype(output)::zero());
+  auto out1 = t(input, std::tuple {IdentityTransformation()}, std::tuple {g});
   EXPECT_TRUE(is_near(out1, full_output));
-  auto out2 = t(IdentityTransformation(), g, input_chol, decltype(input_chol)::zero(), decltype(output)::zero());
+  auto out2 = t(input_chol, std::tuple {IdentityTransformation()}, std::tuple {g});
   EXPECT_TRUE(is_near(out2, full_output));
 }
 
 TEST_F(transform_nonlinear_tests, Basic_linear_identity_cubature)
 {
   SamplePointsTransform<CubaturePoints> t;
-  auto out1 = t(IdentityTransformation(), g, input, decltype(input)::zero(), decltype(output)::zero());
+  auto out1 = t(input, std::tuple {IdentityTransformation()}, std::tuple {g});
   EXPECT_TRUE(is_near(out1, full_output));
-  auto out2 = t(IdentityTransformation(), g, input_chol, decltype(input_chol)::zero(), decltype(output)::zero());
+  auto out2 = t(input_chol, std::tuple {IdentityTransformation()}, std::tuple {g});
   EXPECT_TRUE(is_near(out2, full_output));
 }
