@@ -40,16 +40,35 @@ namespace OpenKalman
   {
   private:
     template<typename Transformation, typename...Points, typename...Dists, std::size_t...ints>
-    constexpr auto y_means_impl(
+    static constexpr auto y_means_impl(
       const Transformation& g,
       const std::tuple<Points...>& points,
       const std::tuple<Dists...>& dists,
-      std::index_sequence<ints...>) const
+      std::index_sequence<ints...>)
     {
       constexpr auto count = MatrixTraits<decltype(std::get<0>(points))>::columns;
       return apply_columnwise<count>([&](size_t i) {
         return to_Euclidean(g((column(std::get<ints>(points), i) + make_Matrix(mean(std::get<ints>(dists))))...));
       });
+    }
+
+  protected:
+    template<std::size_t dim, typename InputDist, typename Transformation, typename XPointsTup, typename XDistsTup>
+    static constexpr auto transform_impl(
+      const Transformation& g,
+      const XPointsTup& xpoints_tup,
+      const XDistsTup& xdists_tup)
+    {
+      constexpr std::size_t N = std::tuple_size_v<XPointsTup>;
+      static_assert(N == std::tuple_size_v<XDistsTup>);
+      auto ymeans = y_means_impl(g, xpoints_tup, xdists_tup, std::make_index_sequence<N>());
+      auto y_mean = SamplePointsType::template weighted_means<dim>(ymeans);
+      auto xpoints0 = std::get<0>(xpoints_tup);
+      // Each column is a deviation from y mean for each transformed sigma point:
+      auto ypoints = apply_columnwise(ymeans, [&y_mean](const auto& col) { return col - y_mean; });
+      auto [y_covariance, cross_covariance] = SamplePointsType::template covariance<dim, InputDist>(xpoints0, ypoints);
+      auto y = GaussianDistribution {y_mean, y_covariance};
+      return std::tuple {ypoints, y, cross_covariance};
     }
 
   public:
@@ -64,20 +83,12 @@ namespace OpenKalman
     auto operator()(const Transformation& g, const InputDist& x, const NoiseDist& ...n) const
     {
       // The sample points, divided into tuples for the input and each noise term:
-      const auto xpoints_tuple = SamplePointsType::sample_points(x, n...);
+      const auto points_tuple = SamplePointsType::sample_points(x, n...);
       constexpr auto dim = (DistributionTraits<InputDist>::dimension + ... + DistributionTraits<NoiseDist>::dimension);
       //
-      auto xpoints = std::get<0>(xpoints_tuple);
-      // Calculate y means for each sigma point:
-      auto ymeans = y_means_impl(
-        g, xpoints_tuple, std::forward_as_tuple(x, n...), std::make_index_sequence<sizeof...(NoiseDist) + 1>());
-      //
-      auto y_mean = strict(SamplePointsType::template weighted_means<dim>(ymeans));
-      // Each column is a deviation from y mean for each transformed sigma point:
-      auto ypoints = apply_columnwise(ymeans, [&y_mean](const auto& col) { return col - y_mean; });
+      auto xdists_tup = std::forward_as_tuple(x, n...);
+      auto [_, y, cross_covariance] = transform_impl<dim, InputDist>(g, points_tuple, xdists_tup);
 
-      auto [y_covariance, cross_covariance] = SamplePointsType::template covariance<dim, InputDist>(xpoints, ypoints);
-      auto y = GaussianDistribution {y_mean, y_covariance};
       return std::tuple {std::move(y), std::move(cross_covariance)};
     }
 
@@ -100,36 +111,26 @@ namespace OpenKalman
       // The scaled sample points, divided into tuples for the input and each noise term:
       const auto qs = internal::tuple_slice<1, 1 + sizeof...(QNoise)>(t1);
       const auto rs = internal::tuple_slice<1, 1 + sizeof...(RNoise)>(t2);
-      const auto xpoints_tuple = std::apply([](const auto&...args) {
+      const auto points_tuple = std::apply([](const auto&...args) {
         return SamplePointsType::sample_points(args...);
       }, std::tuple_cat(std::tuple {x}, qs, rs));
       constexpr auto dim = ((DistributionTraits<InputDist>::dimension + ... + DistributionTraits<QNoise>::dimension) +
         ... + DistributionTraits<RNoise>::dimension);
-      auto xpoints1 = std::get<0>(xpoints_tuple);
-      auto xpoints2 = internal::tuple_slice<1, 1 + sizeof...(QNoise)>(xpoints_tuple);
-      auto xpoints3 = internal::tuple_slice<1 + sizeof...(QNoise), 1 + sizeof...(QNoise) + sizeof...(RNoise)>(xpoints_tuple);
+      auto xpoints1 = std::get<0>(points_tuple);
+      auto xpoints2 = internal::tuple_slice<1, 1 + sizeof...(QNoise)>(points_tuple);
+      auto xpoints3 = internal::tuple_slice<1 + sizeof...(QNoise), 1 + sizeof...(QNoise) + sizeof...(RNoise)>(points_tuple);
 
       // First transform:
       decltype(auto) g1 = std::get<0>(t1);
       auto xpoints_tup = std::tuple_cat(std::tuple {xpoints1}, xpoints2);
       auto xdists_tup = std::tuple_cat(std::tuple {x}, qs);
-      auto ymeans = y_means_impl(g1, xpoints_tup, xdists_tup, std::make_index_sequence<1 + sizeof...(QNoise)>());
-      auto y_mean = SamplePointsType::template weighted_means<dim>(ymeans);
-      // Each column is a deviation from y mean for each transformed sigma point:
-      auto ypoints = apply_columnwise(ymeans, [&y_mean](const auto& col) { return col - y_mean; });
-      auto [y_covariance, _] = SamplePointsType::template covariance<dim, InputDist>(xpoints1, ypoints);
-      auto y = GaussianDistribution {y_mean, y_covariance};
+      auto [ypoints, y, _] = transform_impl<dim, InputDist>(g1, xpoints_tup, xdists_tup);
 
       // Second transform:
       decltype(auto) g2 = std::get<0>(t2);
       auto ypoints_tup = std::tuple_cat(std::tuple {ypoints}, xpoints3);
       auto ydists_tup = std::tuple_cat(std::tuple {y}, rs);
-      auto zmeans = y_means_impl(g2, ypoints_tup, ydists_tup, std::make_index_sequence<1 + sizeof...(RNoise)>());
-      auto z_mean = strict(SamplePointsType::template weighted_means<dim>(zmeans));
-      // Each column is a deviation from y mean for each transformed sigma point:
-      auto zpoints = apply_columnwise(zmeans, [&z_mean](const auto& col) { return col - z_mean; });
-      auto [z_covariance, cross_covariance] = SamplePointsType::template covariance<dim, InputDist>(xpoints1, zpoints);
-      auto z = GaussianDistribution {z_mean, z_covariance};
+      auto [zpoints, z, cross_covariance] = transform_impl<dim, InputDist>(g2, ypoints_tup, ydists_tup);
 
       return std::tuple {std::move(z), std::move(cross_covariance)};
     }

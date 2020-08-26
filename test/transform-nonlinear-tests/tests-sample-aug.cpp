@@ -31,10 +31,12 @@ namespace
                              24.12, 55.074};
   Mat2 cross_output {1.2, 3.4,
                      2.1, 4.3};
+  Mat2 cross_output2 {2.4, 6.8,
+                      4.2, 8.6};
   GaussianDistribution output {M2(5, 11), P_output};
   GaussianDistribution output2 {M2(5, 11), P_output2};
   auto full_output = std::tuple {output, cross_output};
-  auto full_output2 = std::tuple {output2, cross_output};
+  auto full_output2 = std::tuple {output2, cross_output2};
 
   /// Unscented with alpha==1 and kappa = 0 (to avoid negative first weight).
   struct Params
