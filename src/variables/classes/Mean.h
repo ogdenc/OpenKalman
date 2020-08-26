@@ -339,7 +339,11 @@ namespace OpenKalman
 
     static auto zero() { return make(MatrixTraits<BaseMatrix>::zero()); }
 
-    static auto identity() { return make(MatrixTraits<BaseMatrix>::identity()); }
+    static auto identity()
+    {
+      auto b = MatrixTraits<BaseMatrix>::identity();
+      return TypedMatrix<RowCoefficients, RowCoefficients, decltype(b)>(std::move(b));
+    }
 
   };
 

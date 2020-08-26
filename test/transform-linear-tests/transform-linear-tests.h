@@ -14,15 +14,15 @@
 
 using namespace Eigen;
 
-struct transform_tests : public ::testing::Test
+struct transform_linear_tests : public ::testing::Test
 {
-  transform_tests() {}
+  transform_linear_tests() {}
 
   void SetUp() override {}
 
   void TearDown() override {}
 
-  ~transform_tests() override {}
+  ~transform_linear_tests() override {}
 };
 
 #endif //TRANSFORM_LINEAR_TESTS_H

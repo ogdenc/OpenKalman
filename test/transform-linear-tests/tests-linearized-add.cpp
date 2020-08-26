@@ -17,7 +17,7 @@ using M2 = Mean<Axis2>;
 using Mat2 = TypedMatrix<Axis2, Axis2>;
 
 
-TEST_F(transform_tests, linearized_additive_order1)
+TEST_F(transform_linear_tests, linearized_additive_order1)
 {
   Mat2 a {1, 2,
           4, 3};
@@ -44,7 +44,7 @@ TEST_F(transform_tests, linearized_additive_order1)
 }
 
 
-TEST_F(transform_tests, linearized_additive_order2)
+TEST_F(transform_linear_tests, linearized_additive_order2)
 {
   Mat2 a {1, 2,
           4, 3};

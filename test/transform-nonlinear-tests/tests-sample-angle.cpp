@@ -40,7 +40,7 @@ inline namespace
 }
 
 
-TEST_F(transform_tests, Transform_angle_cubature)
+TEST_F(transform_nonlinear_tests, Transform_angle_cubature)
 {
   EXPECT_TRUE(rotational_invariance_test<CubaturePoints>(
     polar2Cartesian, Cartesian2polar, angle_input, angle_input_rot));
@@ -52,7 +52,7 @@ TEST_F(transform_tests, Transform_angle_cubature)
     polar2Cartesian, Cartesian2polar, to_Cholesky(angle_input), to_Cholesky(angle_input_rot), to_Cholesky(cart_noise)));
 }
 
-TEST_F(transform_tests, Transform_angle_unscented)
+TEST_F(transform_nonlinear_tests, Transform_angle_unscented)
 {
   EXPECT_TRUE(rotational_invariance_test<UnscentedSigmaPoints>(
     polar2Cartesian, Cartesian2polar, angle_input, angle_input_rot));
@@ -64,7 +64,7 @@ TEST_F(transform_tests, Transform_angle_unscented)
     polar2Cartesian, Cartesian2polar, angle_input, angle_input_rot, cart_noise));
 }
 
-TEST_F(transform_tests, Transform_angle_spherical_simplex)
+TEST_F(transform_nonlinear_tests, Transform_angle_spherical_simplex)
 {
   EXPECT_TRUE(rotational_invariance_test<SphericalSimplexSigmaPoints>(
     polar2Cartesian, Cartesian2polar, angle_input, angle_input_rot));

@@ -11,17 +11,9 @@
 #ifndef KALMAN_TESTS_H
 #define KALMAN_TESTS_H
 
-#include <array>
-#include <initializer_list>
-#include <iostream>
-#include <gtest/gtest.h>
-
 #include "../tests.h"
-#include "../independent-noise.h"
 #include "../transformations.h"
-#include "OpenKalman.h"
-#include "transforms/OpenKalman-transforms"
-#include "filters/KalmanFilter.h"
+
 
 using namespace OpenKalman;
 

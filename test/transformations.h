@@ -27,8 +27,8 @@ inline const auto sum_of_squares = make_Transformation<Axes<n>, Axis>
     {
       static_assert(is_equivalent_v<typename MatrixTraits<decltype(x)>::RowCoefficients, Axes<n>>);
       static_assert(is_equivalent_v<typename MatrixTraits<decltype(x)>::ColumnCoefficients, Axis>);
-      static_assert(std::conjunction_v<is_equivalent_v<typename MatrixTraits<decltype(ps)>::RowCoefficients, Axis>...>);
-      static_assert(std::conjunction_v<is_equivalent_v<typename MatrixTraits<decltype(ps)>::ColumnCoefficients, Axis>...>);
+      static_assert(std::conjunction_v<is_equivalent<typename MatrixTraits<decltype(ps)>::RowCoefficients, Axis>...>);
+      static_assert(std::conjunction_v<is_equivalent<typename MatrixTraits<decltype(ps)>::ColumnCoefficients, Axis>...>);
 
       return strict(((transpose(x) * x) + ... + ps));
     },
@@ -36,8 +36,8 @@ inline const auto sum_of_squares = make_Transformation<Axes<n>, Axis>
     {
       static_assert(is_equivalent_v<typename MatrixTraits<decltype(x)>::RowCoefficients, Axes<n>>);
       static_assert(is_equivalent_v<typename MatrixTraits<decltype(x)>::ColumnCoefficients, Axis>);
-      static_assert(std::conjunction_v<is_equivalent_v<typename MatrixTraits<decltype(ps)>::RowCoefficients, Axis>...>);
-      static_assert(std::conjunction_v<is_equivalent_v<typename MatrixTraits<decltype(ps)>::ColumnCoefficients, Axis>...>);
+      static_assert(std::conjunction_v<is_equivalent<typename MatrixTraits<decltype(ps)>::RowCoefficients, Axis>...>);
+      static_assert(std::conjunction_v<is_equivalent<typename MatrixTraits<decltype(ps)>::ColumnCoefficients, Axis>...>);
 
       return std::tuple {2 * transpose(x), internal::tuple_replicate<sizeof...(ps)>(Mean {1.})};
     },
@@ -45,8 +45,8 @@ inline const auto sum_of_squares = make_Transformation<Axes<n>, Axis>
     {
       static_assert(is_equivalent_v<typename MatrixTraits<decltype(x)>::RowCoefficients, Axes<n>>);
       static_assert(is_equivalent_v<typename MatrixTraits<decltype(x)>::ColumnCoefficients, Axis>);
-      static_assert(std::conjunction_v<is_equivalent_v<typename MatrixTraits<decltype(ps)>::RowCoefficients, Axis>...>);
-      static_assert(std::conjunction_v<is_equivalent_v<typename MatrixTraits<decltype(ps)>::ColumnCoefficients, Axis>...>);
+      static_assert(std::conjunction_v<is_equivalent<typename MatrixTraits<decltype(ps)>::RowCoefficients, Axis>...>);
+      static_assert(std::conjunction_v<is_equivalent<typename MatrixTraits<decltype(ps)>::ColumnCoefficients, Axis>...>);
 
       std::array<TypedMatrix<Axes<n>, Axes<n>, Eigen::Matrix<double, n, n>>, 1> I;
       I[0] = 2 * Eigen::Matrix<double, n, n>::Identity();
@@ -61,8 +61,8 @@ inline const auto time_of_arrival = make_Transformation<Axes<n>, Axis>
     {
       static_assert(is_equivalent_v<typename MatrixTraits<decltype(x)>::RowCoefficients, Axes<n>>);
       static_assert(is_equivalent_v<typename MatrixTraits<decltype(x)>::ColumnCoefficients, Axis>);
-      static_assert(std::conjunction_v<is_equivalent_v<typename MatrixTraits<decltype(ps)>::RowCoefficients, Axis>...>);
-      static_assert(std::conjunction_v<is_equivalent_v<typename MatrixTraits<decltype(ps)>::ColumnCoefficients, Axis>...>);
+      static_assert(std::conjunction_v<is_equivalent<typename MatrixTraits<decltype(ps)>::RowCoefficients, Axis>...>);
+      static_assert(std::conjunction_v<is_equivalent<typename MatrixTraits<decltype(ps)>::ColumnCoefficients, Axis>...>);
 
       return strict((apply_coefficientwise(adjoint(x) * x, [](const auto& c) { return std::sqrt(c); }) + ... + ps));
     },
@@ -70,8 +70,8 @@ inline const auto time_of_arrival = make_Transformation<Axes<n>, Axis>
     {
       static_assert(is_equivalent_v<typename MatrixTraits<decltype(x)>::RowCoefficients, Axes<n>>);
       static_assert(is_equivalent_v<typename MatrixTraits<decltype(x)>::ColumnCoefficients, Axis>);
-      static_assert(std::conjunction_v<is_equivalent_v<typename MatrixTraits<decltype(ps)>::RowCoefficients, Axis>...>);
-      static_assert(std::conjunction_v<is_equivalent_v<typename MatrixTraits<decltype(ps)>::ColumnCoefficients, Axis>...>);
+      static_assert(std::conjunction_v<is_equivalent<typename MatrixTraits<decltype(ps)>::RowCoefficients, Axis>...>);
+      static_assert(std::conjunction_v<is_equivalent<typename MatrixTraits<decltype(ps)>::ColumnCoefficients, Axis>...>);
 
       return std::tuple_cat(std::tuple {strict(adjoint(x) / std::sqrt((x.adjoint() * x)(0,0)))},
         internal::tuple_replicate<sizeof...(ps)>(Mean {1.}));

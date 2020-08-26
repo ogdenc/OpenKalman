@@ -31,7 +31,7 @@ TEST_F(nonlinear_tests, MCTRadarA1SelfAdjoint)
   EXPECT_NEAR(covariance(out)(0,0), 2.4, 1e-1); // Original paper said 2.5. This is probably wrong.
   EXPECT_NEAR(covariance(out)(0,1), 0.0, 1e-1);
   EXPECT_NEAR(covariance(out)(1,0), 0.0, 1e-1);
-  EXPECT_NEAR(covariance(out)(1,1), 4.4, 1e-1);
+  EXPECT_NEAR(covariance(out)(1,1), 4.4, 2e-1);
 }
 
 TEST_F(nonlinear_tests, MCTRadarA1Triangular)
@@ -167,7 +167,7 @@ TEST_F(nonlinear_tests, MCTRadarB3SelfAdjoint)
   EXPECT_NEAR(covariance(out)(0,0), 19.5, 3e-1); // Reference says 20.3
   EXPECT_NEAR(covariance(out)(0,1), -16.8, 2e-1); // Reference says -17.1
   EXPECT_NEAR(covariance(out)(1,0), -16.8, 2e-1); // Reference says -17.1
-  EXPECT_NEAR(covariance(out)(1,1), 19.45, 2e-1); // Reference says 20.0
+  EXPECT_NEAR(covariance(out)(1,1), 19.45, 3e-1); // Reference says 20.0
 }
 
 TEST_F(nonlinear_tests, MCTRadarB3Triangular)
@@ -180,6 +180,6 @@ TEST_F(nonlinear_tests, MCTRadarB3Triangular)
   EXPECT_NEAR(covariance(out)(0,0), 19.5, 3e-1); // Reference says 20.3
   EXPECT_NEAR(covariance(out)(0,1), -16.8, 2e-1); // Reference says -17.1
   EXPECT_NEAR(covariance(out)(1,0), -16.8, 2e-1); // Reference says -17.1
-  EXPECT_NEAR(covariance(out)(1,1), 19.45, 2e-1); // Reference says 20.0
+  EXPECT_NEAR(covariance(out)(1,1), 19.45, 3e-1); // Reference says 20.0
 }
 

@@ -17,15 +17,15 @@
 #include <gtest/gtest.h>
 #include "../tests.h"
 
-struct transform_tests : public ::testing::Test
+struct transform_nonlinear_tests : public ::testing::Test
 {
-  transform_tests() {}
+  transform_nonlinear_tests() {}
 
   void SetUp() override {}
 
   void TearDown() override {}
 
-  ~transform_tests() override {}
+  ~transform_nonlinear_tests() override {}
 
   template<
     typename SamplePointsType,

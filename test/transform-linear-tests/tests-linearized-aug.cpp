@@ -16,7 +16,7 @@ using Axis2 = Coefficients<Axis, Axis>;
 using M2 = Mean<Axis2>;
 using Mat2 = TypedMatrix<Axis2, Axis2>;
 
-TEST_F(transform_tests, linearized_augmented_order1)
+TEST_F(transform_linear_tests, linearized_augmented_order1)
 {
   Mat2 a {1, 2,
           4, 3};
@@ -42,7 +42,7 @@ TEST_F(transform_tests, linearized_augmented_order1)
   EXPECT_TRUE(is_near(t(g, input2, noise2), full_output2));
 }
 
-TEST_F(transform_tests, linearized_augmented_order2)
+TEST_F(transform_linear_tests, linearized_augmented_order2)
 {
   Mat2 a {1, 2,
           4, 3};

@@ -121,7 +121,7 @@ namespace OpenKalman
 
     /// Applies the transformation.
     template<typename In, typename ... Perturbations>
-    auto operator()(const In& in, const Perturbations& ... ps) const noexcept
+    auto operator()(const In& in, const Perturbations& ... ps) const
     {
       static_assert(is_column_vector_v<In>);
       static_assert((is_perturbation_v<Perturbations> and ...));
@@ -143,6 +143,8 @@ namespace OpenKalman
     {
       static_assert(is_column_vector_v<In>);
       static_assert((is_perturbation_v<Perturbations> and ...));
+      static_assert(MatrixTraits<In>::columns == 1);
+      static_assert(((internal::PerturbationTraits<Perturbations>::columns == 1) and ...));
       static_assert(is_equivalent_v<typename MatrixTraits<In>::RowCoefficients, InputCoefficients>);
       static_assert(std::conjunction_v<
         is_equivalent<typename internal::PerturbationTraits<Perturbations>::RowCoefficients, OutputCoefficients>...>);

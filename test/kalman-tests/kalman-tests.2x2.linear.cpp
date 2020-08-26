@@ -8,11 +8,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#include <cmath>
-#include <tuple>
 #include "kalman-tests.h"
-#include "transforms/classes/LinearTransform.h"
-#include "transforms/classes/LinearizedTransform.h"
 
 using namespace OpenKalman;
 

@@ -16,7 +16,7 @@ using Axis2 = Coefficients<Axis, Axis>;
 using M2 = Mean<Axis2>;
 using Mat2 = TypedMatrix<Axis2, Axis2>;
 
-TEST_F(transform_tests, linear_additive)
+TEST_F(transform_linear_tests, linear_additive)
 {
   Mat2 a {1, 2,
           3, 4};
@@ -35,7 +35,7 @@ TEST_F(transform_tests, linear_additive)
   EXPECT_TRUE(is_near(cross, cross_output));
 }
 
-TEST_F(transform_tests, linear_additive_Cholesky)
+TEST_F(transform_linear_tests, linear_additive_Cholesky)
 {
   Mat2 a {1, 2,
           3, 4};
@@ -54,7 +54,7 @@ TEST_F(transform_tests, linear_additive_Cholesky)
   EXPECT_TRUE(is_near(cross, cross_output));
 }
 
-TEST_F(transform_tests, linear_augmented)
+TEST_F(transform_linear_tests, linear_augmented)
 {
   Mat2 a {1, 2,
           4, 3};
@@ -71,7 +71,7 @@ TEST_F(transform_tests, linear_augmented)
   EXPECT_TRUE(is_near(t(g, input, noise), std::tuple {GaussianDistribution {M2(5, 10), Covariance(P_output)}, cross_output}));
 }
 
-TEST_F(transform_tests, linear_augmented_Cholesky)
+TEST_F(transform_linear_tests, linear_augmented_Cholesky)
 {
   Mat2 a {1, 2,
           4, 3};

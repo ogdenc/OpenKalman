@@ -18,7 +18,7 @@ using M2 = Mean<C2>;
 using Mat2 = TypedMatrix<C2, C2>;
 using Cov2 = Covariance<C2>;
 
-TEST_F(transform_tests, linear_additive_angle)
+TEST_F(transform_linear_tests, linear_additive_angle)
 {
   auto a = Mat2::identity() * 1.1;
   const GaussianDistribution input {M2(1, M_PI * 19 / 20), Cov2(M_PI *M_PI / 9, 0, 0, 0.01)};
@@ -34,7 +34,7 @@ TEST_F(transform_tests, linear_additive_angle)
   EXPECT_TRUE(is_near(cross, cross_output));
 }
 
-TEST_F(transform_tests, linear_additive_angle_Cholesky)
+TEST_F(transform_linear_tests, linear_additive_angle_Cholesky)
 {
   auto a = Mat2::identity() * 1.1;
   const GaussianDistribution input {M2(1, M_PI * 19 / 20), make_Covariance<C2, TriangleType::lower>(M_PI * M_PI / 9, 0, 0, 0.01)};
@@ -50,7 +50,7 @@ TEST_F(transform_tests, linear_additive_angle_Cholesky)
   EXPECT_TRUE(is_near(cross, cross_output));
 }
 
-TEST_F(transform_tests, linear_augmented_angle)
+TEST_F(transform_linear_tests, linear_augmented_angle)
 {
   auto a = Mat2::identity() * 1.1;
   auto an = Mat2::identity();
@@ -68,7 +68,7 @@ TEST_F(transform_tests, linear_augmented_angle)
   EXPECT_TRUE(is_near(cross, cross_output));
 }
 
-TEST_F(transform_tests, linear_augmented_angle_Cholesky)
+TEST_F(transform_linear_tests, linear_augmented_angle_Cholesky)
 {
   auto a = Mat2::identity() * 1.1;
   auto an = Mat2::identity();
