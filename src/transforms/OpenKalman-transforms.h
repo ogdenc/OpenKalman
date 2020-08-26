@@ -13,6 +13,7 @@
 
 #include "transforms/transformations/Transformation.h"
 #include "transforms/transformations/LinearTransformation.h"
+#include "transforms/transformations/IdentityTransformation.h"
 
 #include "transforms/sample-points/CubaturePoints.h"
 #include "transforms/sample-points/SigmaPointsTypes/Unscented.h"

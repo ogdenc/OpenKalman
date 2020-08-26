@@ -53,7 +53,6 @@ TEST_F(transformation_tests, Scale_augmented)
 {
   Transformation<Axes<2>, Axes<2>, Scale<7, 3>> t;
   EXPECT_EQ(t(M_int2 {2, 3}, M_int2 {1, 1}), M_int2(17, 24));
-
 }
 
 TEST_F(transformation_tests, Mult_additive_axis)
@@ -103,3 +102,15 @@ TEST_F(transformation_tests, Mult_augmented_angle)
   auto t = make_Transformation<C, C>(f);
   EXPECT_TRUE(is_near(M(t(M(1, 0.5), M(0.1, 0.1))), M(2.7, 5.8 - M_PI*2)));
 }
+
+TEST_F(transformation_tests, Identity)
+{
+  IdentityTransformation t;
+  EXPECT_EQ(t(M_int2 {2, 3}), M_int2(2, 3));
+  EXPECT_EQ(t(M_int2 {2, 3}, M_int2 {1, 1}), M_int2(3, 4));
+  EXPECT_EQ(std::get<0>(t.jacobian(M_int2 {2, 3})), A_int2::identity());
+  EXPECT_EQ(std::get<0>(t.jacobian(M_int2 {2, 3}, M_int2 {1, 1})), A_int2::identity());
+  EXPECT_EQ(std::get<1>(t.jacobian(M_int2 {2, 3}, M_int2 {1, 1})), A_int2::zero());
+  EXPECT_EQ(std::get<0>(t.hessian(M_int2 {2, 3}, M_int2 {1, 1}))[0], A_int2::zero());
+}
+
