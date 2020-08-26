@@ -41,7 +41,7 @@ namespace OpenKalman
   struct SigmaPoints
   {
   private:
-    template<std::size_t i, typename Scalar>
+    template<std::size_t, typename Scalar>
     static constexpr auto cat_dummy_function(const Scalar w) { return w; };
 
     template<std::size_t dim, typename Weights, typename Scalar, std::size_t ... ints>
@@ -58,18 +58,18 @@ namespace OpenKalman
     static auto mean_weights()
     {
       using Scalar = typename MatrixTraits<Weights>::Scalar;
-      constexpr auto count = SigmaPointsType::template sigma_point_count<dim>() - 1;
+      constexpr auto count = MatrixTraits<Weights>::dimension;
       constexpr auto w0 = SigmaPointsType::template W_m0<dim, Scalar>();
-      return cat_weights<dim, Weights>(w0, std::make_index_sequence<count>());
+      return cat_weights<dim, Weights>(w0, std::make_index_sequence<count - 1>());
     };
 
     template<std::size_t dim, typename Weights>
     static auto covariance_weights()
     {
       using Scalar = typename MatrixTraits<Weights>::Scalar;
-      constexpr auto count = SigmaPointsType::template sigma_point_count<dim>() - 1;
+      constexpr auto count = MatrixTraits<Weights>::dimension;
       constexpr auto w0 = SigmaPointsType::template W_c0<dim, Scalar>();
-      return cat_weights<dim, Weights>(w0, std::make_index_sequence<count>());
+      return cat_weights<dim, Weights>(w0, std::make_index_sequence<count - 1>());
     };
 
   public:
@@ -84,27 +84,27 @@ namespace OpenKalman
       return SigmaPointsType::template sigma_points(ds...);
     }
 
-    template<size_t dim, typename Arg, std::enable_if_t<is_Euclidean_mean_v<Arg>, int> = 0>
+    template<std::size_t dim, typename YMeans, std::enable_if_t<is_Euclidean_mean_v<YMeans>, int> = 0>
     static auto
-    weighted_means(const Arg& y_means)
+    weighted_means(const YMeans& y_means)
     {
-      static_assert(is_column_vector_v<Arg>);
-      constexpr auto count = MatrixTraits<Arg>::columns;
+      static_assert(is_column_vector_v<YMeans>);
+      constexpr auto count = MatrixTraits<YMeans>::columns;
       static_assert(count == SigmaPointsType::template sigma_point_count<dim>(), "Wrong number of sigma points.");
-      using Weights = TypedMatrix<Axes<count>, Axis, typename MatrixTraits<Arg>::template StrictMatrix<count, 1>>;
+      using Weights = TypedMatrix<Axes<count>, Axis, typename MatrixTraits<YMeans>::template StrictMatrix<count, 1>>;
       return strict(from_Euclidean(y_means * mean_weights<dim, Weights>()));
     }
 
-    template<typename InputDist, typename ... NoiseDist, typename X, typename Y>
+    template<std::size_t dim, typename InputDist, typename X, typename Y>
     static auto
     covariance(const X& x_deviations, const Y& y_deviations)
     {
       static_assert(is_typed_matrix_v<X> and is_typed_matrix_v<Y>);
       static_assert(is_equivalent_v<typename MatrixTraits<X>::RowCoefficients,
         typename DistributionTraits<InputDist>::Coefficients>);
-      constexpr auto dim = (DistributionTraits<InputDist>::dimension + ... + DistributionTraits<NoiseDist>::dimension);
       constexpr auto count = MatrixTraits<X>::columns;
       static_assert(count == MatrixTraits<Y>::columns);
+      static_assert(count == SigmaPointsType::template sigma_point_count<dim>(), "Wrong number of sigma points.");
       using Weights = TypedMatrix<Axes<count>, Axis, typename MatrixTraits<X>::template StrictMatrix<count, 1>>;
       auto weights = covariance_weights<dim, Weights>();
       if constexpr(is_Cholesky_v<InputDist>)

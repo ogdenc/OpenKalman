@@ -12,7 +12,7 @@
 
 using namespace OpenKalman;
 
-namespace test_sample_aug
+namespace
 {
   using C2 = Coefficients<Axis, Axis>;
   using M2 = Mean<C2>;
@@ -27,10 +27,14 @@ namespace test_sample_aug
   GaussianDistribution noise {M2::zero(), Mat2 {1, 0.1, 0.1, 1}};
   Covariance<C2> P_output = {5.454, 12.12,
                              12.12, 27.674};
+  Covariance<C2> P_output2 = {10.854, 24.12,
+                             24.12, 55.074};
   Mat2 cross_output {1.2, 3.4,
                      2.1, 4.3};
   GaussianDistribution output {M2(5, 11), P_output};
+  GaussianDistribution output2 {M2(5, 11), P_output2};
   auto full_output = std::tuple {output, cross_output};
+  auto full_output2 = std::tuple {output2, cross_output};
 
   /// Unscented with alpha==1 and kappa = 0 (to avoid negative first weight).
   struct Params
@@ -43,9 +47,7 @@ namespace test_sample_aug
   using UnscentedSigmaPoints2 = SigmaPoints<Unscented<Params>>;
 }
 
-using namespace test_sample_aug;
-
-TEST_F(transform_tests, Basic_linear_unscented_aug)
+TEST_F(transform_nonlinear_tests, Basic_linear_unscented_aug)
 {
   SamplePointsTransform<UnscentedSigmaPoints> unscented;
   EXPECT_TRUE(is_near(unscented(g, input, noise), full_output));
@@ -54,7 +56,7 @@ TEST_F(transform_tests, Basic_linear_unscented_aug)
   static_assert(is_Cholesky_v<decltype(std::get<0>(unscented(g, input_chol)))>);
 }
 
-TEST_F(transform_tests, Basic_linear_unscented2_aug)
+TEST_F(transform_nonlinear_tests, Basic_linear_unscented2_aug)
 {
   SamplePointsTransform<UnscentedSigmaPoints2> unscented2;
   EXPECT_TRUE(is_near(unscented2(g, input, noise), full_output));
@@ -63,7 +65,7 @@ TEST_F(transform_tests, Basic_linear_unscented2_aug)
   static_assert(is_Cholesky_v<decltype(std::get<0>(unscented2(g, input_chol)))>);
 }
 
-TEST_F(transform_tests, Basic_linear_spherical_simplex_aug)
+TEST_F(transform_nonlinear_tests, Basic_linear_spherical_simplex_aug)
 {
   SamplePointsTransform<SphericalSimplexSigmaPoints> spherical_simplex;
   EXPECT_TRUE(is_near(spherical_simplex(g, input, noise), full_output));
@@ -72,11 +74,47 @@ TEST_F(transform_tests, Basic_linear_spherical_simplex_aug)
   static_assert(is_Cholesky_v<decltype(std::get<0>(spherical_simplex(g, input_chol)))>);
 }
 
-TEST_F(transform_tests, Basic_linear_cubature_aug)
+TEST_F(transform_nonlinear_tests, Basic_linear_cubature_aug)
 {
   SamplePointsTransform<CubaturePoints> cubature;
   EXPECT_TRUE(is_near(cubature(g, input, noise), full_output));
   EXPECT_TRUE(is_near(cubature(g, input_chol, noise), full_output));
   static_assert(not is_Cholesky_v<decltype(std::get<0>(cubature(g, input)))>);
   static_assert(is_Cholesky_v<decltype(std::get<0>(cubature(g, input_chol)))>);
+}
+
+TEST_F(transform_nonlinear_tests, Basic_linear_identity_unscented_aug)
+{
+  SamplePointsTransform<UnscentedSigmaPoints> t;
+  auto out1 = t(IdentityTransformation(), g, input, noise, noise);
+  EXPECT_TRUE(is_near(out1, full_output2));
+  auto out2 = t(IdentityTransformation(), g, input_chol, noise, noise);
+  EXPECT_TRUE(is_near(out2, full_output2));
+}
+
+TEST_F(transform_nonlinear_tests, Basic_linear_identity_unscented2_aug)
+{
+  SamplePointsTransform<UnscentedSigmaPoints2> t;
+  auto out1 = t(IdentityTransformation(), g, input, noise, noise);
+  EXPECT_TRUE(is_near(out1, full_output2));
+  auto out2 = t(IdentityTransformation(), g, input_chol, noise, noise);
+  EXPECT_TRUE(is_near(out2, full_output2));
+}
+
+TEST_F(transform_nonlinear_tests, Basic_linear_identity_spherical_simplex_aug)
+{
+  SamplePointsTransform<SphericalSimplexSigmaPoints> t;
+  auto out1 = t(IdentityTransformation(), g, input, noise, noise);
+  EXPECT_TRUE(is_near(out1, full_output2));
+  auto out2 = t(IdentityTransformation(), g, input_chol, noise, noise);
+  EXPECT_TRUE(is_near(out2, full_output2));
+}
+
+TEST_F(transform_nonlinear_tests, Basic_linear_identity_cubature_aug)
+{
+  SamplePointsTransform<CubaturePoints> t;
+  auto out1 = t(IdentityTransformation(), g, input, noise, noise);
+  EXPECT_TRUE(is_near(out1, full_output2));
+  auto out2 = t(IdentityTransformation(), g, input_chol, noise, noise);
+  EXPECT_TRUE(is_near(out2, full_output2));
 }

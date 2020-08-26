@@ -89,21 +89,20 @@ namespace OpenKalman
       return sample_points_impl<0, 0, dim>(std::tuple {ds...});
     }
 
-    template<size_t dim, typename Arg, std::enable_if_t<is_Euclidean_mean_v<Arg>, int> = 0>
+    template<std::size_t dim, typename Arg, std::enable_if_t<is_Euclidean_mean_v<Arg>, int> = 0>
     static auto
     weighted_means(const Arg& y_means)
     {
       static_assert(is_column_vector_v<Arg>);
       static_assert(MatrixTraits<Arg>::columns == dim * 2, "Wrong number of cubature points.");
-      return from_Euclidean(reduce_columns(y_means)); ///@TODO: does this need to be strict?
+      return from_Euclidean(reduce_columns(y_means));
     };
 
-    template<typename InputDist, typename ... NoiseDist, typename X, typename Y>
+    template<std::size_t dim, typename InputDist, typename X, typename Y>
     static auto
     covariance(const X& x_deviations, const Y& y_deviations)
     {
       static_assert(is_typed_matrix_v<X> and is_typed_matrix_v<Y>);
-      constexpr auto dim = (DistributionTraits<InputDist>::dimension + ... + DistributionTraits<NoiseDist>::dimension);
       using Scalar = typename MatrixTraits<X>::Scalar;
       constexpr auto count = MatrixTraits<X>::columns;
       static_assert(count == MatrixTraits<Y>::columns);
