@@ -103,9 +103,9 @@ namespace OpenKalman
   template<typename V, typename ... Vs,
     std::enable_if_t<
       (std::conjunction_v<is_EigenSelfAdjointMatrix<V>, is_EigenSelfAdjointMatrix<Vs>...> and
-        ((is_Eigen_upper_storage_triangle_v<V> == is_Eigen_upper_storage_triangle_v<Vs>) and ...)) or
+        ((is_Eigen_upper_storage_triangle_v<V> == is_Eigen_upper_storage_triangle_v<Vs>) and ... and true)) or
       (std::conjunction_v<is_EigenTriangularMatrix<V>, is_EigenTriangularMatrix<Vs>...> and
-        ((is_upper_triangular_v<V> == is_upper_triangular_v<Vs>) and ...)), int> = 0>
+        ((is_upper_triangular_v<V> == is_upper_triangular_v<Vs>) and ... and true)), int> = 0>
   constexpr decltype(auto)
   concatenate(V&& v, Vs&& ... vs)
   {
@@ -125,7 +125,7 @@ namespace OpenKalman
   template<typename V, typename ... Vs,
     std::enable_if_t<
       std::conjunction_v<is_EigenSelfAdjointMatrix<V>, is_EigenSelfAdjointMatrix<Vs>...> and
-      not ((is_Eigen_upper_storage_triangle_v<V> == is_Eigen_upper_storage_triangle_v<Vs>) and ...), int> = 0>
+      not ((is_Eigen_upper_storage_triangle_v<V> == is_Eigen_upper_storage_triangle_v<Vs>) and ... and true), int> = 0>
   constexpr decltype(auto)
   concatenate(V&& v, Vs&& ... vs)
   {
@@ -139,7 +139,7 @@ namespace OpenKalman
     std::enable_if_t<
       std::conjunction_v<is_EigenSelfAdjointMatrix<V>, is_EigenSelfAdjointMatrix<Vs>...> or
       (std::conjunction_v<is_EigenTriangularMatrix<V>, is_EigenTriangularMatrix<Vs>...> and
-        ((is_upper_triangular_v<V> == is_upper_triangular_v<Vs>) and ...)), int> = 0>
+        ((is_upper_triangular_v<V> == is_upper_triangular_v<Vs>) and ... and true)), int> = 0>
   constexpr decltype(auto)
   concatenate_diagonal(V&& v, Vs&& ... vs)
   {

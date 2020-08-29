@@ -228,7 +228,7 @@ namespace OpenKalman
   }
 
 
-  /// Concatenate one or more vector objects vertically.
+  /// Concatenate one or more typed matrices objects vertically.
   template<
     typename V, typename ... Vs,
     std::enable_if_t<std::conjunction_v<is_typed_matrix<V>, is_typed_matrix<Vs>...>, int> = 0>
@@ -251,7 +251,7 @@ namespace OpenKalman
   };
 
 
-  /// Concatenate one or more vector objects vertically. (Synonym for concatenate_vertical.)
+  /// Concatenate one or more typed matrices vertically. (Synonym for concatenate_vertical.)
   template<typename ... Vs, std::enable_if_t<std::conjunction_v<is_typed_matrix<Vs>...>, int> = 0>
   constexpr decltype(auto)
   concatenate(Vs&& ... vs) noexcept
@@ -268,7 +268,7 @@ namespace OpenKalman
   {
     if constexpr(sizeof...(Vs) > 0)
     {
-      static_assert((OpenKalman::is_equivalent_v<
+      static_assert((is_equivalent_v<
         typename MatrixTraits<V>::RowCoefficients,
         typename MatrixTraits<Vs>::RowCoefficients> and ...));
       using RC = typename MatrixTraits<V>::RowCoefficients;
@@ -280,6 +280,27 @@ namespace OpenKalman
       }
       else
         return make_Matrix<RC, CC>(std::move(cat));
+    }
+    else
+    {
+      return std::forward<V>(v);
+    }
+  };
+
+
+  /// Concatenate one or more typed matrices diagonally.
+  template<
+    typename V, typename ... Vs,
+    std::enable_if_t<std::conjunction_v<is_typed_matrix<V>, is_typed_matrix<Vs>...>, int> = 0>
+  constexpr decltype(auto)
+  concatenate_diagonal(V&& v, Vs&& ... vs) noexcept
+  {
+    if constexpr(sizeof...(Vs) > 0)
+    {
+      using RC = Concatenate<typename MatrixTraits<V>::RowCoefficients, typename MatrixTraits<Vs>::RowCoefficients...>;
+      using CC = Concatenate<typename MatrixTraits<V>::ColumnCoefficients, typename MatrixTraits<Vs>::ColumnCoefficients...>;
+      decltype(auto) cat = concatenate_diagonal(base_matrix(std::forward<V>(v)), base_matrix(std::forward<Vs>(vs))...);
+      return MatrixTraits<V>::template make<RC, CC>(std::move(cat));
     }
     else
     {
