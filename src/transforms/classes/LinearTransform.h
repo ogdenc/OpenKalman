@@ -69,10 +69,35 @@ namespace OpenKalman
     auto operator()(
       const LinearTransformation<InputCoefficients, OutputCoefficients, TransformationMatrix,
         PerturbationTransformationMatrices...>& transformation,
-      const InputDist& in,
-      const NoiseDist& ...n) const
+      const InputDist& x,
+      const NoiseDist& ...ns) const
     {
-      return Base::transform(TransformFunction {transformation}, in, n...);
+      return Base::transform(TransformFunction {transformation}, x, ns...);
+    }
+
+    /**
+     * Perform one or more consecutive linear transforms.
+     * @tparam InputDist Input distribution.
+     * @tparam T The first tuple containing (1) a LinearTransformation and (2) zero or more noise terms for that transformation.
+     * @tparam Ts A list of tuples containing (1) a LinearTransformation and (2) zero or more noise terms for that transformation.
+     **/
+    template<typename InputDist, typename T, typename...Ts>
+    auto operator()(const InputDist& x, const T& t, const Ts&...ts) const
+    {
+      auto g = std::get<0>(t);
+      auto ns = internal::tuple_slice<1, std::tuple_size_v<T>>(t);
+      auto ret = std::apply([&](const auto&...args) {
+        return Base::transform(TransformFunction {g}, x, args...);
+      }, ns);
+      if constexpr (sizeof...(Ts) > 0)
+      {
+        auto [out, cross] = std::move(ret);
+        return this->operator()(std::move(out), ts...);
+      }
+      else
+      {
+        return ret;
+      }
     }
 
   };

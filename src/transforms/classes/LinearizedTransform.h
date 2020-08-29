@@ -24,14 +24,14 @@ namespace OpenKalman
     using Base = internal::LinearTransformBase;
 
     //-----------------------------------------------
-    template<typename Transformation, typename OutputCoeffs>
+    template<typename Transformation>
     struct TransformFunction
     {
     private:
-      template<typename MeanOut, typename Hessian, typename Cov, std::size_t...ints>
+      template<typename MeanType, typename Hessian, typename Cov, std::size_t...ints>
       static auto make_mean(const Hessian& hessian, const Cov& P, std::index_sequence<ints...>)
       {
-        return Mean<OutputCoeffs, MeanOut> {0.5 * trace(P * hessian[ints])...};
+        return MeanType {0.5 * trace(P * hessian[ints])...};
       }
 
       template<std::size_t i, std::size_t...js, typename Hessian, typename Cov>
@@ -40,11 +40,11 @@ namespace OpenKalman
         return std::tuple {0.5 * trace(P * hessian[i] * P * hessian[js])...};
       }
 
-      template<typename CovOut, typename Hessian, typename Cov, std::size_t...is, std::size_t...js>
+      template<typename CovType, typename Hessian, typename Cov, std::size_t...is, std::size_t...js>
       static auto make_cov(const Hessian& hessian, const Cov& P, std::index_sequence<is...>, std::index_sequence<js...>)
       {
         auto mat = std::tuple_cat(make_cov_row<is, js...>(hessian, P)...);
-        return std::make_from_tuple<Covariance<OutputCoeffs, CovOut>>(std::move(mat));
+        return std::make_from_tuple<CovType>(std::move(mat));
       }
 
     protected:
@@ -54,22 +54,26 @@ namespace OpenKalman
        * Add second-order moment terms, based on Hessian matrices.
        * @tparam Hessian An array of Hessian matrices. Must be accessible by bracket index, as in hessian[i].
        * Each matrix is a regular matrix type.
-       * @tparam Dist Input distribution.
+       * @tparam InputDist Input distribution.
        * @return
        */
-      template<typename Hessian, typename Dist>
-      static auto second_order_term(const Hessian& hessian, const Dist& x)
+      template<typename Hessian, typename InputDist>
+      static auto second_order_term(const Hessian& hessian, const InputDist& x)
       {
+        using In_Mean = typename DistributionTraits<InputDist>::Mean;
+        using Out_Mean = std::invoke_result_t<Transformation, In_Mean>;
+        using OutputCoeffs = typename MatrixTraits<Out_Mean>::RowCoefficients;
         constexpr auto output_dim = OutputCoeffs::size;
         //
         // Convert input distribution type to output distribution types, and initialize mean and covariance:
-        using CovIn = typename MatrixTraits<typename DistributionTraits<Dist>::Covariance>::BaseMatrix;
+        using CovIn = typename MatrixTraits<typename DistributionTraits<InputDist>::Covariance>::BaseMatrix;
         using MeanOut = strict_matrix_t<CovIn, output_dim, 1>;
         using CovOut = typename MatrixTraits<CovIn>::template SelfAdjointBaseType<triangle_type_of_v<CovIn>, output_dim>;
+
         const auto P = covariance(x);
         const std::make_index_sequence<output_dim> ints;
-        auto mean_terms = make_mean<MeanOut>(hessian, P, ints);
-        auto cov_terms = make_cov<CovOut>(hessian, P, ints, ints);
+        auto mean_terms = make_mean<Mean<OutputCoeffs, MeanOut>>(hessian, P, ints);
+        auto cov_terms = make_cov<Covariance<OutputCoeffs, CovOut>>(hessian, P, ints, ints);
         return GaussianDistribution(mean_terms, cov_terms);
       }
 
@@ -115,12 +119,35 @@ namespace OpenKalman
      **/
     template<typename Transformation, typename InputDist, typename ... NoiseDist,
       std::enable_if_t<std::conjunction_v<is_distribution<InputDist>, is_distribution<NoiseDist>...>, int> = 0>
-    auto operator()(const Transformation& transformation, const InputDist& in, const NoiseDist& ...n) const
+    auto operator()(const Transformation& transformation, const InputDist& x, const NoiseDist& ...ns) const
     {
-      using In_Mean = typename DistributionTraits<InputDist>::Mean;
-      using Out_Mean = std::invoke_result_t<Transformation, In_Mean>;
-      using OutputCoeffs = typename MatrixTraits<Out_Mean>::RowCoefficients;
-      return Base::transform(TransformFunction<Transformation, OutputCoeffs> {transformation}, in, n...);
+      return Base::transform(TransformFunction<Transformation> {transformation}, x, ns...);
+    }
+
+    /**
+     * Perform one or more consecutive linearized transforms.
+     * @tparam InputDist Input distribution.
+     * @tparam T The first tuple containing (1) a LinearTransformation and (2) zero or more noise terms for that transformation.
+     * @tparam Ts A list of tuples containing (1) a LinearTransformation and (2) zero or more noise terms for that transformation.
+     **/
+    template<typename InputDist, typename T, typename...Ts,
+      std::enable_if_t<is_distribution_v<InputDist>, int> = 0>
+    auto operator()(const InputDist& x, const T& t, const Ts&...ts) const
+    {
+      auto g = std::get<0>(t);
+      auto ns = internal::tuple_slice<1, std::tuple_size_v<T>>(t);
+      auto ret = std::apply([&](const auto&...args) {
+        return Base::transform(TransformFunction<decltype(g)> {g}, x, args...);
+      }, ns);
+      if constexpr (sizeof...(Ts) > 0)
+      {
+        auto [out, cross] = std::move(ret);
+        return this->operator()(std::move(out), ts...);
+      }
+      else
+      {
+        return ret;
+      }
     }
 
   };
