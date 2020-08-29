@@ -15,19 +15,19 @@ inline namespace
   using C2 = Coefficients<Axis, Axis>;
   using P2 = Coefficients<Polar<>>;
 
-  static auto polar2Cartesian = make_Transformation<P2, C2>(
+  static auto polar2Cartesian = make_Transformation(
     [](const Mean<P2>& x, const auto&...noise) -> Mean<C2>
       {
         return {((x(0)*cos(x(1))) + ... + noise(0)), ((x(0)*sin(x(1))) + ... + noise(1))};
       });
 
-  static auto Cartesian2polar = make_Transformation<C2, P2>(
+  static auto Cartesian2polar = make_Transformation(
     [](const Mean<C2>& a, const auto&...noise) -> Mean<P2>
       {
         return {((std::hypot(a(1), a(0))) + ... + noise(0)), ((std::atan2(a(1), a(0))) + ... + noise(1))};
       });
 
-  static auto polar2polar = make_Transformation<P2, P2>(
+  static auto polar2polar = make_Transformation(
     [](const Mean<P2> a, const auto&...noise) -> Mean<P2>
       {
         return ((a + Mean<P2>(0, M_PI)) + ... + noise);

@@ -50,7 +50,8 @@ inline const auto sum_of_squares = make_Transformation<Axes<n>, Axis>
 
       std::array<TypedMatrix<Axes<n>, Axes<n>, Eigen::Matrix<double, n, n>>, 1> I;
       I[0] = 2 * Eigen::Matrix<double, n, n>::Identity();
-      return std::tuple_cat(std::tuple {I}, internal::tuple_replicate<sizeof...(ps)>(zero_hessian<Axes<n>, Axis, decltype(x), decltype(ps)...>()));
+      using F =
+      return std::tuple_cat(std::tuple {I}, internal::tuple_replicate<sizeof...(ps)>(zero_hessian<Axis, decltype(x), decltype(ps)...>()));
     }
   );
 
@@ -81,7 +82,7 @@ inline const auto time_of_arrival = make_Transformation<Axes<n>, Axis>
       std::array<TypedMatrix<Axes<n>, Axes<n>, Eigen::Matrix<double, n, n>>, 1> ret;
       double sq = (adjoint(x) * x)(0,0);
       ret[0] = pow(sq, -1.5) * (-x * adjoint(x) + sq * MatrixTraits<decltype(ret[0])>::identity());
-      return std::tuple_cat(std::tuple {ret}, internal::tuple_replicate<sizeof...(ps)>(zero_hessian<Axes<n>, Axis, decltype(x), decltype(ps)...>()));
+      return std::tuple_cat(std::tuple {ret}, internal::tuple_replicate<sizeof...(ps)>(zero_hessian<Axis, decltype(x), decltype(ps)...>()));
     }
   );
 
@@ -110,7 +111,7 @@ inline const auto radar = make_Transformation<C2t, C2t>
       ret[1] = {0, cos(x(1)),
                 cos(x(1)), -x(0) * sin(x(1))};
       return std::tuple_cat(std::tuple {ret}, internal::tuple_replicate<sizeof...(ps)>(
-        zero_hessian<C2t, C2t, decltype(x), decltype(ps)...>()));
+        zero_hessian<C2t, decltype(x), decltype(ps)...>()));
     }
   );
 
@@ -139,7 +140,7 @@ inline const auto radarP = make_Transformation<Polar<>, Polar<>>
       ret[1] = {0, cos(x(1)),
                 cos(x(1)), -x(0) * sin(x(1))};
       return std::tuple_cat(std::tuple {ret}, internal::tuple_replicate<sizeof...(ps)>(
-        zero_hessian<Polar<>, Polar<>, decltype(x), decltype(ps)...>()));
+        zero_hessian<Polar<>, decltype(x), decltype(ps)...>()));
     }
   );
 

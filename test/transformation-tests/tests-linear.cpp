@@ -70,8 +70,6 @@ TEST_F(transformation_tests, linear)
   A_int a;
   a << 1, 2, 3, 4;
   LinearTransformation t {a};
-  static_assert(is_equivalent_v<TransformationTraits<decltype(t)>::InputCoefficients, Axes<2>>);
-  static_assert(is_equivalent_v<TransformationTraits<decltype(t)>::OutputCoefficients, Axes<2>>);
   static_assert(is_linearized_function_v<decltype(t), 0>);
   static_assert(is_linearized_function_v<decltype(t), 1>);
   static_assert(is_linearized_function_v<decltype(t), 2>);
@@ -161,7 +159,7 @@ TEST_F(transformation_tests, linear_additive)
   LinearTransformation t {a};
   EXPECT_TRUE(is_near(t(M2(2, 3)) + M2(2, 4), M2(10, 22)));
   EXPECT_TRUE(is_near(t(M2(2, 3)), M2(8, 18)));
-  Transformation<Axes<2>, Axes<2>, decltype(t)> tn {t};
+  Transformation<decltype(t)> tn {t};
   EXPECT_TRUE(is_near(tn(M2(2, 3)) + M2(2, 4), M2(10, 22)));
   EXPECT_TRUE(is_near(tn(M2(2, 3)), M2(8, 18)));
 }
@@ -176,7 +174,7 @@ TEST_F(transformation_tests, linear_augmented)
   EXPECT_TRUE(is_near(t1(M2(2, 3)), M2(8, 17)));
   EXPECT_TRUE(is_near(t1(M2(2, 3), M2(3, 3)), M2(29, 26)));
   EXPECT_TRUE(is_near(t1(M2(2, 3), M2(3, 3), M2(1, 1)), M2(30, 27)));
-  Transformation<Axes<2>, Axes<2>, decltype(t1)> t2 {t1};
+  Transformation<decltype(t1)> t2 {t1};
   EXPECT_TRUE(is_near(t2(M2(2, 3), M2(3, 3)), M2(29, 26)));
   EXPECT_TRUE(is_near(std::get<0>(t1.jacobian(M2(2, 3), M2(3, 3))), a));
   EXPECT_TRUE(is_near(std::get<1>(t1.jacobian(M2(2, 3), M2(3, 3))), an));
@@ -191,8 +189,8 @@ TEST_F(transformation_tests, linearized_additive)
       3, 4;
   using T = Trans2<A, M2>;
   T t(a);
-  Transformation<Axes<2>, Axes<2>, T> tn {t};
+  Transformation<T> tn {t};
   EXPECT_TRUE(is_near(tn(M2(2, 3)) + M2(3, 3), M2(11, 21)));
-  Transformation<Axes<2>, Axes<2>, T> tn2 {t};
+  Transformation<T> tn2 {t};
   EXPECT_TRUE(is_near(tn2(M2(2, 3)) + M2(3, 3), M2(11, 21)));
 }

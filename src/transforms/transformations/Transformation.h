@@ -22,8 +22,6 @@ namespace OpenKalman
    * The transformation takes an input vector, and optionally one or more perturbation terms. These can be
    * associated with noise, or translation, etc. The perturbation terms can either be constant single-column
    * vectors, or statistical distributions (in which case, the perturbation will be stochastic).
-   * @tparam InputCoefficients Coefficients of the input.
-   * @tparam OutputCoefficients Coefficients of the output.
    * @tparam Function The transformation function, in the following exemplary form:
    *   (Mean<InputCoefficients,...>, Mean<OutputCoefficients,...>, ...) -> Mean<OutputCoefficients,...>.
    *   The first term is the input, the next term(s) represent perturbation(s), and the final term is the output.
@@ -31,8 +29,6 @@ namespace OpenKalman
    *   for the input and each perturbation.
    */
   template<
-    typename InputCoefficients,
-    typename OutputCoefficients,
     typename Function,
     typename...TaylorDerivatives>
   struct Transformation;
@@ -46,6 +42,15 @@ namespace OpenKalman
   template<typename T, std::size_t order = 1, typename Enable = void>
   struct is_linearized_function : std::false_type {};
 
+  template<typename T, std::size_t order>
+  struct is_linearized_function<T&, order> : is_linearized_function<T, order> {};
+
+  template<typename T, std::size_t order>
+  struct is_linearized_function<T&&, order> : is_linearized_function<T, order> {};
+
+  template<typename T, std::size_t order>
+  struct is_linearized_function<const T, order> : is_linearized_function<T, order> {};
+
   /// Helper template for is_linearized_function.
   template<typename T, std::size_t order>
   inline constexpr bool is_linearized_function_v = is_linearized_function<T, order>::value;
@@ -53,38 +58,59 @@ namespace OpenKalman
   template<typename T>
   struct is_linearized_function<T, 0,
     std::enable_if_t<
-      std::is_member_function_pointer_v<decltype(&std::decay_t<T>::operator())> or
-      std::is_function_v<T>>>
+      not std::is_reference_v<T> and not std::is_const_v<T> and
+      (std::is_member_function_pointer_v<decltype(&std::decay_t<T>::operator())> or
+      std::is_function_v<T>)>>
     : std::true_type {};
 
   template<typename T>
   struct is_linearized_function<T, 1,
-    std::enable_if_t<std::is_member_function_pointer_v<decltype(&std::decay_t<T>::jacobian)> and
-      is_linearized_function_v<T, 0>>>
+    std::enable_if_t<
+      not std::is_reference_v<T> and not std::is_const_v<T> and
+      (std::is_member_function_pointer_v<decltype(&T::jacobian)> and
+      is_linearized_function_v<T, 0>)>>
     : std::true_type
+  {
+    static constexpr auto get_lambda(const T& t)
     {
-      static constexpr auto get_lambda(const T& t)
-      {
-        return [&t] (auto&&...inputs) { return t.jacobian(std::forward<decltype(inputs)>(inputs)...); };
-      }
-    };
+      return [&t] (auto&&...inputs) { return t.jacobian(std::forward<decltype(inputs)>(inputs)...); };
+    }
+  };
 
   template<typename T>
   struct is_linearized_function<T, 2,
-    std::enable_if_t<std::is_member_function_pointer_v<decltype(&std::decay_t<T>::hessian)> and
-      is_linearized_function_v<T, 1>>>
+    std::enable_if_t<
+      not std::is_reference_v<T> and not std::is_const_v<T> and
+      (std::is_member_function_pointer_v<decltype(&T::hessian)> and
+      is_linearized_function_v<T, 1>)>>
     : std::true_type
+  {
+    static constexpr auto get_lambda(const T& t)
     {
-      static constexpr auto get_lambda(const T& t)
-      {
-        return [&t] (auto&&...inputs) { return t.hessian(std::forward<decltype(inputs)>(inputs)...); };
-      }
-    };
+      return [&t] (auto&&...inputs) { return t.hessian(std::forward<decltype(inputs)>(inputs)...); };
+    }
+  };
 
-  template<typename In, typename Out, typename Tm, typename...Pm, std::size_t order>
-  struct is_linearized_function<Transformation<In, Out, Tm, Pm...>, order,
-    std::enable_if_t<order <= 2>> : std::true_type {};
+  template<typename Function, typename...TaylorDerivatives>
+  struct is_linearized_function<Transformation<Function, TaylorDerivatives...>, 0> : std::true_type {};
 
+  template<typename Function, typename Jacobian, typename...TaylorDerivatives>
+  struct is_linearized_function<Transformation<Function, Jacobian, TaylorDerivatives...>, 1> : std::true_type
+  {
+    static constexpr auto get_lambda(const Transformation<Function, Jacobian, TaylorDerivatives...>& t)
+    {
+      return [&t] (auto&&...inputs) { return t.jacobian(std::forward<decltype(inputs)>(inputs)...); };
+    }
+  };
+
+  template<typename Function, typename Jacobian, typename...TaylorDerivatives>
+  struct is_linearized_function<Transformation<Function, Jacobian, TaylorDerivatives...>, 2> : std::true_type
+  {
+    static constexpr auto get_lambda(const Transformation<Function, Jacobian, TaylorDerivatives...>& t)
+    {
+      return [&t] (auto&&...inputs) { return t.hessian(std::forward<decltype(inputs)>(inputs)...); };
+    }
+  };
 
 
   template<typename T>
@@ -137,14 +163,13 @@ namespace OpenKalman
 
 
   /// A tuple of zero-filled arrays of Hessian matrices, based on the input and each perturbation term.
-  template<typename InputCoefficients, typename OutputCoefficients, typename In, typename ... Perturbations>
+  template<typename OutputCoefficients, typename In, typename ... Perturbations>
   inline auto zero_hessian()
   {
     static_assert(is_column_vector_v<In>);
     static_assert((is_perturbation_v<Perturbations> and ...));
-    static_assert(is_equivalent_v<typename MatrixTraits<In>::RowCoefficients, InputCoefficients>);
-    static_assert(std::conjunction_v<
-      is_equivalent<typename internal::PerturbationTraits<Perturbations>::RowCoefficients, OutputCoefficients>...>);
+
+    using InputCoefficients = typename MatrixTraits<In>::RowCoefficients;
     constexpr std::size_t input_size = InputCoefficients::size;
     constexpr std::size_t output_size = OutputCoefficients::size;
 
@@ -173,11 +198,9 @@ namespace OpenKalman
   //  Non-linearized Transformation  //
   /////////////////////////////////////
 
-  template<typename InputCoefficients_, typename OutputCoefficients_, typename Func>
-  struct Transformation<InputCoefficients_, OutputCoefficients_, Func>
+  template<typename Func>
+  struct Transformation<Func>
   {
-    using InputCoefficients = InputCoefficients_; ///< Coefficients of the input.
-    using OutputCoefficients = OutputCoefficients_; ///< Coefficients of the output.
     using Function = Func; ///< Transformation function type.
 
     /// Constructs transformation using a reference to a transformation function.
@@ -191,9 +214,7 @@ namespace OpenKalman
       static_assert((is_perturbation_v<Perturbations> and ...));
       static_assert(MatrixTraits<In>::columns == 1);
       static_assert(((internal::PerturbationTraits<Perturbations>::columns == 1) and ...));
-      static_assert(is_equivalent_v<typename MatrixTraits<In>::RowCoefficients, InputCoefficients>);
-      static_assert(std::conjunction_v<
-        is_equivalent<typename internal::PerturbationTraits<Perturbations>::RowCoefficients, OutputCoefficients>...>);
+
       return function(std::forward<In>(in), internal::get_perturbation(std::forward<Perturbations>(ps))...);
     }
 
@@ -206,12 +227,11 @@ namespace OpenKalman
   //  First-Order Linearized Transformation  //
   /////////////////////////////////////////////
 
-  template<typename InputCoefficients, typename OutputCoefficients, typename Function, typename JacobianFunc>
-  struct Transformation<InputCoefficients, OutputCoefficients, Function, JacobianFunc>
-    : Transformation<InputCoefficients, OutputCoefficients, Function>
+  template<typename Function, typename JacobianFunc>
+  struct Transformation<Function, JacobianFunc> : Transformation<Function>
   {
     using JacobianFunction = JacobianFunc;
-    using Base = Transformation<InputCoefficients, OutputCoefficients, Function>;
+    using Base = Transformation<Function>;
 
   protected:
     static auto default_Jacobian(const Function& f)
@@ -239,9 +259,7 @@ namespace OpenKalman
     {
       static_assert(is_column_vector_v<In>);
       static_assert((is_perturbation_v<Perturbations> and ...));
-      static_assert(is_equivalent_v<typename MatrixTraits<In>::RowCoefficients, InputCoefficients>);
-      static_assert(std::conjunction_v<
-        is_equivalent<typename internal::PerturbationTraits<Perturbations>::RowCoefficients, OutputCoefficients>...>);
+
       return jacobian_fun(std::forward<In>(in), internal::get_perturbation(std::forward<Perturbations>(ps))...);
     }
 
@@ -249,7 +267,9 @@ namespace OpenKalman
     template<typename In, typename ... Perturbations>
     auto hessian(In&&, Perturbations&&...) const
     {
-      return zero_hessian<InputCoefficients, OutputCoefficients, In, Perturbations...>();
+      using Out_Mean = std::invoke_result_t<Function, In&&, decltype(internal::get_perturbation(std::declval<Perturbations&&>()))...>;
+      using OutputCoeffs = typename MatrixTraits<Out_Mean>::RowCoefficients;
+      return zero_hessian<OutputCoeffs, In, Perturbations...>();
     }
 
   //protected:
@@ -257,17 +277,18 @@ namespace OpenKalman
   };
 
 
+  //////////////////////////////////////////////
+  //  Second-Order Linearized Transformation  //
+  //////////////////////////////////////////////
+
   template<
-    typename InputCoefficients,
-    typename OutputCoefficients,
     typename Function,
     typename JacobianFunction,
     typename HessianFunc>
-  struct Transformation<InputCoefficients, OutputCoefficients, Function, JacobianFunction, HessianFunc>
-    : Transformation<InputCoefficients, OutputCoefficients, Function, JacobianFunction>
+  struct Transformation<Function, JacobianFunction, HessianFunc> : Transformation<Function, JacobianFunction>
   {
     using HessianFunction = HessianFunc;
-    using Base = Transformation<InputCoefficients, OutputCoefficients, Function, JacobianFunction>;
+    using Base = Transformation<Function, JacobianFunction>;
 
   protected:
     static auto default_Hessian(const Function& f)
@@ -300,9 +321,7 @@ namespace OpenKalman
     {
       static_assert(is_column_vector_v<In>);
       static_assert((is_perturbation_v<Perturbations> and ...));
-      static_assert(is_equivalent_v<typename MatrixTraits<In>::RowCoefficients, InputCoefficients>);
-      static_assert(std::conjunction_v<
-        is_equivalent<typename internal::PerturbationTraits<Perturbations>::RowCoefficients, OutputCoefficients>...>);
+
       return hessian_fun(std::forward<In>(in), internal::get_perturbation(std::forward<Perturbations>(ps))...);
     }
 
@@ -311,105 +330,26 @@ namespace OpenKalman
   };
 
 
-  ////////////////////////////////////
-  //  TransformationTraits  //
-  ////////////////////////////////////
-
   /**
-   * Traits of a transformation function.
-   * This will automatically derive input and output coefficients, if the function is not polymorphic.
-   * @tparam Function The transformation function, which should transform one Mean to another.
+   * Deduction guide
    */
-  template<typename Function, typename T = void, typename Enable = void>
-  struct TransformationTraits {};
 
-  namespace detail
-  {
-    template<typename Function, typename T = void, typename Enable1 = void, typename Enable2 = void>
-    struct TransformationTraitsImpl {};
+  template<typename Function, typename...TaylorDerivatives>
+  Transformation(Function&&, TaylorDerivatives&&...) -> Transformation<Function, TaylorDerivatives...>;
 
-    template<typename In, typename Out, typename T, typename...Perturbations>
-    struct TransformationTraitsImpl<std::function<Out(In, Perturbations...)>, T>
-    {
-      using type = T;
-      using InputCoefficients = typename MatrixTraits<In>::RowCoefficients;
-      using OutputCoefficients = typename MatrixTraits<Out>::RowCoefficients;
-      static_assert(std::conjunction_v<
-        is_equivalent<typename internal::PerturbationTraits<Perturbations>::RowCoefficients, OutputCoefficients>...>);
-      static_assert(is_column_vector_v<In>);
-      static_assert(is_column_vector_v<Out>);
-      static_assert(MatrixTraits<In>::columns == 1);
-      static_assert(MatrixTraits<Out>::columns == 1);
-      static_assert(((internal::PerturbationTraits<Perturbations>::columns == 1) and ...));
-    };
-  }
-
-  template<typename F, typename T>
-  struct TransformationTraits<F, T, std::void_t<decltype(std::function(std::declval<F>()))>>
-    : detail::TransformationTraitsImpl<decltype(std::function(std::declval<F>())), T> {};
-
-  template<typename F, typename T>
-  struct TransformationTraits<F&, T> : TransformationTraits<F, T> {};
-
-  template<typename F, typename T>
-  struct TransformationTraits<F&&, T> : TransformationTraits<F, T> {};
-
-  template<typename F, typename T>
-  struct TransformationTraits<const F, T> : TransformationTraits<F, T> {};
-
-
-  template<typename InCoeff, typename OutCoeff, typename F, typename T>
-  struct TransformationTraits<Transformation<InCoeff, OutCoeff, F>, T>
-  {
-    using type = T;
-    using InputCoefficients = InCoeff;
-    using OutputCoefficients = OutCoeff;
-  };
-
-  ///////////////////////
-  //  Deduction guides  //
-  ///////////////////////
-
-  /// Derive transformation template parameters from the function. (Substitution failure if function is polymorphic.)
   template<typename Function,
-    typename TransformationTraits<Function, int>::type = 0,
-    std::enable_if_t<not is_linearized_function_v<Function, 1>, int> = 0>
-  Transformation(const Function&)
-  -> Transformation<
-    typename TransformationTraits<Function>::InputCoefficients,
-    typename TransformationTraits<Function>::OutputCoefficients,
-    Function>;
+    std::enable_if_t<is_linearized_function_v<Function, 0> and not is_linearized_function_v<Function, 1>, int> = 0>
+  Transformation(Function&&) -> Transformation<Function>;
 
-  /// Derive transformation template parameters from the function. (Substitution failure if function is polymorphic.)
-  template<typename Function, typename JacobianFunction, typename...TaylorDerivatives,
-    typename TransformationTraits<Function, int>::type = 0,
-    std::enable_if_t<not is_linearized_function_v<Function, 1>, int> = 0>
-  Transformation(const Function&, const JacobianFunction&, const TaylorDerivatives&...)
-  -> Transformation<
-    typename TransformationTraits<Function>::InputCoefficients,
-    typename TransformationTraits<Function>::OutputCoefficients,
-    Function,
-    JacobianFunction,
-    TaylorDerivatives...>;
-
-  /// Derive transformation template parameters from a first-order linearized function.
-  template<typename Function, typename TransformationTraits<Function, int>::type = 0,
+  template<typename Function,
     std::enable_if_t<is_linearized_function_v<Function, 1> and not is_linearized_function_v<Function, 2>, int> = 0>
-  Transformation(const Function&)
-  -> Transformation<
-    typename TransformationTraits<Function>::InputCoefficients,
-    typename TransformationTraits<Function>::OutputCoefficients,
-    Function,
+  Transformation(Function&&)
+  -> Transformation<Function,
     decltype(is_linearized_function<Function, 1>::get_lambda(std::declval<Function>()))>;
 
-  /// Derive transformation template parameters from a second-order linearized function.
-  template<typename Function, typename TransformationTraits<Function, int>::type = 0,
-    std::enable_if_t<is_linearized_function_v<Function, 2>, int> = 0>
-  Transformation(const Function&)
-  -> Transformation<
-    typename TransformationTraits<Function>::InputCoefficients,
-    typename TransformationTraits<Function>::OutputCoefficients,
-    Function,
+  template<typename Function, std::enable_if_t<is_linearized_function_v<Function, 2>, int> = 0>
+  Transformation(Function&&)
+  -> Transformation<Function,
     decltype(is_linearized_function<Function, 1>::get_lambda(std::declval<Function>())),
     decltype(is_linearized_function<Function, 2>::get_lambda(std::declval<Function>()))>;
 
@@ -418,94 +358,35 @@ namespace OpenKalman
   //  Make functions  //
   //////////////////////
 
-  /// Make a Transformation from a transformation function (and optionally one or more Taylor derivatives).
-  template<
-    typename InputCoefficients, ///< Coefficients of the input.
-    typename OutputCoefficients, ///< Coefficients of the output.
-    typename Function, ///< Transformation function.
-    std::enable_if_t<not is_linearized_function_v<Function, 1>, int> = 0>
-  auto make_Transformation(const Function& f)
-  {
-    return Transformation<InputCoefficients, OutputCoefficients, Function>(f);
-  };
-
-  /// Make a Transformation from a transformation function (and optionally one or more Taylor derivatives).
-  template<
-    typename InputCoefficients, ///< Coefficients of the input.
-    typename OutputCoefficients, ///< Coefficients of the output.
-    typename Function, ///< Transformation function.
-    typename JacobianFunction,
-    typename...TaylorDerivatives,
-    std::enable_if_t<not is_linearized_function_v<Function, 1>, int> = 0>
-  auto make_Transformation(const Function& f, const JacobianFunction& j, const TaylorDerivatives&...ds)
-  {
-    return Transformation<InputCoefficients, OutputCoefficients, Function, JacobianFunction, TaylorDerivatives...>(f, j, ds...);
-  };
-
-  /// Make a Transformation from a first-order linearized transformation function.
-  template<
-    typename InputCoefficients, ///< Coefficients of the input.
-    typename OutputCoefficients, ///< Coefficients of the output.
-    typename Function, ///< Transformation function.
-    std::enable_if_t<is_linearized_function_v<Function, 1> and not is_linearized_function_v<Function, 2>, int> = 0>
-  auto make_Transformation(const Function& f)
-  {
-    return Transformation<InputCoefficients, OutputCoefficients, Function,
-      decltype(is_linearized_function<Function, 1>::get_lambda(std::declval<Function>()))>(f);
-  };
-
-  /// Make a Transformation from a second-order linearized transformation function.
-  template<
-    typename InputCoefficients, ///< Coefficients of the input.
-    typename OutputCoefficients, ///< Coefficients of the output.
-    typename Function, ///< Transformation function.
-    std::enable_if_t<is_linearized_function_v<Function, 2>, int> = 0>
-  auto make_Transformation(const Function& f)
-  {
-    return Transformation<InputCoefficients, OutputCoefficients, Function,
-      decltype(is_linearized_function<Function, 1>::get_lambda(std::declval<Function>())),
-      decltype(is_linearized_function<Function, 2>::get_lambda(std::declval<Function>()))>(f);
-  };
-
-  /// Make a transformation from a transformation function, deriving the coefficients.
-  /// Substitution failure if the transformation function is polymorphic.
+  /// Make a Transformation from a transformation function (and optionally one or more Taylor series derivatives).
   template<
     typename Function,
     typename...TaylorDerivatives,
-    typename TransformationTraits<Function, int>::type = 0,
     std::enable_if_t<not is_linearized_function_v<Function, 1>, int> = 0>
   auto make_Transformation(const Function& f, const TaylorDerivatives&...ds)
   {
-    using InputCoefficients = typename TransformationTraits<Function>::InputCoefficients;
-    using OutputCoefficients = typename TransformationTraits<Function>::OutputCoefficients;
-    return Transformation<InputCoefficients, OutputCoefficients, Function, TaylorDerivatives...>(f, ds...);
+    return Transformation<Function, TaylorDerivatives...>(f, ds...);
   };
 
-  /// Make a transformation from a first-order linearized transformation function, deriving the coefficients.
+  /// Make a transformation from a first-order linearized transformation defining a Jacobian function.
   /// Substitution failure if the transformation function is polymorphic.
   template<
     typename Function,
-    typename TransformationTraits<Function, int>::type = 0,
     std::enable_if_t<is_linearized_function_v<Function, 1> and not is_linearized_function_v<Function, 2>, int> = 0>
   auto make_Transformation(const Function& f)
   {
-    using InputCoefficients = typename TransformationTraits<Function>::InputCoefficients;
-    using OutputCoefficients = typename TransformationTraits<Function>::OutputCoefficients;
-    return Transformation<InputCoefficients, OutputCoefficients, Function,
+    return Transformation<Function,
       decltype(is_linearized_function<Function, 1>::get_lambda(std::declval<Function>()))>(f);
   };
 
-  /// Make a transformation from a first-order linearized transformation function, deriving the coefficients.
+  /// Make a transformation from a second-order linearized transformation defining Jacobian and Hessian functions.
   /// Substitution failure if the transformation function is polymorphic.
   template<
     typename Function,
-    typename TransformationTraits<Function, int>::type = 0,
     std::enable_if_t<is_linearized_function_v<Function, 2>, int> = 0>
   auto make_Transformation(const Function& f)
   {
-    using InputCoefficients = typename TransformationTraits<Function>::InputCoefficients;
-    using OutputCoefficients = typename TransformationTraits<Function>::OutputCoefficients;
-    return Transformation<InputCoefficients, OutputCoefficients, Function,
+    return Transformation<Function,
       decltype(is_linearized_function<Function, 1>::get_lambda(std::declval<Function>())),
       decltype(is_linearized_function<Function, 2>::get_lambda(std::declval<Function>()))>(f);
   };

@@ -167,19 +167,11 @@ namespace OpenKalman
     template<typename In, typename ... Perturbations>
     auto hessian(const In&, const Perturbations&...) const
     {
-      return zero_hessian<InputCoefficients, OutputCoefficients, In, Perturbations...>();
+      return zero_hessian<OutputCoefficients, In, Perturbations...>();
     }
 
   };
 
-
-  template<typename InCoeff, typename OutCoeff, typename Tr, typename...Ps, typename T>
-  struct TransformationTraits<LinearTransformation<InCoeff, OutCoeff, Tr, Ps...>, T>
-  {
-    using type = T;
-    using InputCoefficients = InCoeff;
-    using OutputCoefficients = OutCoeff;
-  };
 
   /**
    * Deduction guides
@@ -206,6 +198,23 @@ namespace OpenKalman
     Axes<MatrixTraits<T>::dimension>,
     strict_t<std::decay_t<T>>,
     strict_t<std::decay_t<Ps>>...>;
+
+
+  /**
+   * Traits
+   */
+
+  template<typename InC, typename OutC, typename T, typename ... Ps>
+  struct is_linearized_function<LinearTransformation<InC, OutC, T, Ps...>, 0> : std::true_type {};
+
+  template<typename InC, typename OutC, typename T, typename ... Ps>
+  struct is_linearized_function<LinearTransformation<InC, OutC, T, Ps...>, 1> : std::true_type
+  {
+    static constexpr auto get_lambda(const LinearTransformation<InC, OutC, T, Ps...>& t)
+    {
+      return [&t] (auto&&...inputs) { return t.jacobian(std::forward<decltype(inputs)>(inputs)...); };
+    }
+  };
 
 }
 

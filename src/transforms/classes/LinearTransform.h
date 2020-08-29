@@ -24,22 +24,20 @@ namespace OpenKalman
     using Base = internal::LinearTransformBase;
 
     /// The underlying transform function model for LinearTransform.
-    template<typename InputCoefficients, typename OutputCoefficients,
-      typename TransformationMatrix, typename...PerturbationTransformationMatrices>
+    template<typename LinTransformation>
     struct TransformFunction
     {
     protected:
-      using LinTrans = LinearTransformation<InputCoefficients, OutputCoefficients, TransformationMatrix,
-        PerturbationTransformationMatrices...>;
-      const LinTrans& transformation;
+      const LinTransformation& transformation;
 
     public:
-      TransformFunction(const LinTrans& t) : transformation(t) {}
+      TransformFunction(const LinTransformation& t) : transformation(t) {}
 
       template<typename InputMean, typename ... NoiseMean>
       auto operator()(const InputMean& x, const NoiseMean& ... n) const
       {
-        return std::tuple {transformation(x, n...), transformation.jacobian(x, n...)};
+        return std::tuple {transformation(x, n...),
+        is_linearized_function<LinTransformation, 1>::get_lambda(transformation)(x, n...)};
       }
 
       static constexpr bool correction = false;
@@ -48,31 +46,22 @@ namespace OpenKalman
   public:
     /**
      * Linearly transform one statistical distribution to another.
-     * @tparam InputCoefficients Coefficient types for the input.
-     * @tparam OutputCoefficients Coefficient types for the output.
-     * @tparam TransformationMatrix Transformation matrix. It is a native matrix type with rows corresponding to
-     * OutputCoefficients and columns corresponding to InputCoefficients.
-     * @tparam PerturbationTransformationMatrices Transformation matrices for each potential perturbation term.
-     * if the parameter is not given, the transformation matrix is assumed to be identity (i.e., it is a translation).
-     * It is a native matrix type with both rows and columns corresponding to OutputCoefficients.
+     * @tparam LinTransformation A linear transformation (e.g., class LinearTransformation).
      * @tparam InputDist Input distribution.
      * @tparam NoiseDist Noise distribution.
      **/
     template<
-      typename InputCoefficients,
-      typename OutputCoefficients,
-      typename TransformationMatrix,
-      typename...PerturbationTransformationMatrices,
+      typename LinTransformation,
       typename InputDist,
       typename ... NoiseDist,
-      std::enable_if_t<std::conjunction_v<is_distribution<InputDist>, is_distribution<NoiseDist>...>, int> = 0>
+      std::enable_if_t<std::conjunction_v<is_linearized_function<LinTransformation, 1>,
+        is_distribution<InputDist>, is_distribution<NoiseDist>...>, int> = 0>
     auto operator()(
-      const LinearTransformation<InputCoefficients, OutputCoefficients, TransformationMatrix,
-        PerturbationTransformationMatrices...>& transformation,
+      const LinTransformation& g,
       const InputDist& x,
       const NoiseDist& ...ns) const
     {
-      return Base::transform(TransformFunction {transformation}, x, ns...);
+      return Base::transform(TransformFunction {g}, x, ns...);
     }
 
     /**
@@ -81,12 +70,14 @@ namespace OpenKalman
      * @tparam T The first tuple containing (1) a LinearTransformation and (2) zero or more noise terms for that transformation.
      * @tparam Ts A list of tuples containing (1) a LinearTransformation and (2) zero or more noise terms for that transformation.
      **/
-    template<typename InputDist, typename T, typename...Ts>
+    template<typename InputDist, typename T, typename...Ts,
+      std::enable_if_t<is_distribution_v<InputDist>, int> = 0>
     auto operator()(const InputDist& x, const T& t, const Ts&...ts) const
     {
       auto g = std::get<0>(t);
       auto ns = internal::tuple_slice<1, std::tuple_size_v<T>>(t);
       auto ret = std::apply([&](const auto&...args) {
+        static_assert(is_linearized_function_v<decltype(g), 1>);
         return Base::transform(TransformFunction {g}, x, args...);
       }, ns);
       if constexpr (sizeof...(Ts) > 0)

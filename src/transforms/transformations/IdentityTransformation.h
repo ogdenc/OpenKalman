@@ -65,18 +65,10 @@ namespace OpenKalman
       static_assert(std::conjunction_v<
         is_equivalent<typename internal::PerturbationTraits<Perturbations>::RowCoefficients, Coeffs>...>);
 
-      return zero_hessian<Coeffs, Coeffs, In, Perturbations...>();
+      return zero_hessian<Coeffs, In, Perturbations...>();
     }
 
   };
-
-
-  template<typename T>
-  struct TransformationTraits<IdentityTransformation, T>
-  {
-    using type = T;
-  };
-
 
 }
 
