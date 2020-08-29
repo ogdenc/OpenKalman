@@ -225,7 +225,7 @@ namespace OpenKalman
   {
     static_assert(Coefficients::dimension == MatrixTraits<V>::dimension);
     constexpr auto rows = Coefficients::dimension;
-    return EuclideanMean<Coefficients, typename MatrixTraits<V>::template StrictMatrix<rows>>();
+    return EuclideanMean<Coefficients, strict_matrix_t<V, rows>>();
   }
 
 

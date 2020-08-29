@@ -392,6 +392,9 @@ namespace OpenKalman
   template<typename T>
   inline constexpr bool is_strict_matrix_v = is_strict_matrix<T>::value;
 
+  template<typename T, std::size_t rows = MatrixTraits<T>::dimension, std::size_t cols = MatrixTraits<T>::columns>
+  using strict_matrix_t = typename MatrixTraits<T>::template StrictMatrix<rows, cols>;
+
 
   /// Whether an object has elements that can be retrieved with N indices.
   template<typename T, std::size_t N, typename Enable = void>

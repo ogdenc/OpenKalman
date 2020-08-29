@@ -64,7 +64,7 @@ namespace OpenKalman
         //
         // Convert input distribution type to output distribution types, and initialize mean and covariance:
         using CovIn = typename MatrixTraits<typename DistributionTraits<Dist>::Covariance>::BaseMatrix;
-        using MeanOut = typename MatrixTraits<CovIn>::template StrictMatrix<output_dim, 1>;
+        using MeanOut = strict_matrix_t<CovIn, output_dim, 1>;
         using CovOut = typename MatrixTraits<CovIn>::template SelfAdjointBaseType<triangle_type_of_v<CovIn>, output_dim>;
         const auto P = covariance(x);
         const std::make_index_sequence<output_dim> ints;

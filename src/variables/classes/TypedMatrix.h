@@ -208,7 +208,7 @@ namespace OpenKalman
   TypedMatrix(V&&) -> TypedMatrix<
     typename MatrixTraits<V>::Coefficients,
     typename MatrixTraits<V>::Coefficients,
-    typename MatrixTraits<V>::template StrictMatrix<>>;
+    strict_matrix_t<typename MatrixTraits<V>::BaseMatrix>>;
 
 
   ///////////////////////////////////
@@ -261,7 +261,7 @@ namespace OpenKalman
   inline auto make_Matrix()
   {
     static_assert(RowCoefficients::size == MatrixTraits<M>::dimension);
-    return TypedMatrix<RowCoefficients, ColumnCoefficients, typename MatrixTraits<M>::template StrictMatrix<>>();
+    return TypedMatrix<RowCoefficients, ColumnCoefficients, strict_matrix_t<M>>();
   }
 
 

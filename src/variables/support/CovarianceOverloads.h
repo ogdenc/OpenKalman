@@ -637,7 +637,7 @@ namespace OpenKalman
     using CC = typename MatrixTraits<Cov>::Coefficients;
     static_assert(is_equivalent_v<typename MatrixTraits<M>::ColumnCoefficients, CC>);
     using RC = typename MatrixTraits<M>::RowCoefficients;
-    using Mat = typename MatrixTraits<M>::template StrictMatrix<RC::size, CC::size>;
+    using Mat = strict_matrix_t<M, RC::size, CC::size>;
 
     if constexpr(is_zero_v<M> or is_zero_v<Cov>)
     {
@@ -681,7 +681,7 @@ namespace OpenKalman
     using RC = typename MatrixTraits<Cov>::Coefficients;
     static_assert(is_equivalent_v<RC, typename MatrixTraits<M>::RowCoefficients>);
     using CC = typename MatrixTraits<M>::ColumnCoefficients;
-    using Mat = typename MatrixTraits<M>::template StrictMatrix<RC::size, CC::size>;
+    using Mat = strict_matrix_t<M, RC::size, CC::size>;
 
     if constexpr(is_zero_v<Cov> or is_zero_v<M>)
     {

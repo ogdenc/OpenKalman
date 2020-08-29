@@ -39,15 +39,12 @@ namespace OpenKalman
       static_assert(std::conjunction_v<is_equivalent<OutputCoefficients,
         typename DistributionTraits<NoiseDistributions>::Coefficients>...>);
 
-      using InputMeanMatrix = typename MatrixTraits<
-        typename DistributionTraits<InputDistribution>::Mean>::template StrictMatrix<InputCoefficients::size, 1>;
-      using OutputEuclideanMeanMatrix =
-        typename MatrixTraits<InputMeanMatrix>::template StrictMatrix<OutputCoefficients::size, 1>;
-      using OutputCovarianceMatrix =
-        typename MatrixTraits<InputMeanMatrix>::template StrictMatrix<OutputCoefficients::size, OutputCoefficients::size>;
+      using InputMeanMatrix = strict_matrix_t<
+        typename DistributionTraits<InputDistribution>::Mean, InputCoefficients::size, 1>;
+      using OutputEuclideanMeanMatrix = strict_matrix_t<InputMeanMatrix, OutputCoefficients::size, 1>;
+      using OutputCovarianceMatrix = strict_matrix_t<InputMeanMatrix, OutputCoefficients::size, OutputCoefficients::size>;
       using OutputCovarianceSA = typename MatrixTraits<OutputCovarianceMatrix>::template SelfAdjointBaseType<>;
-      using CrossCovarianceMatrix =
-        typename MatrixTraits<InputMeanMatrix>::template StrictMatrix<InputCoefficients::size, OutputCoefficients::size>;
+      using CrossCovarianceMatrix = strict_matrix_t<InputMeanMatrix, InputCoefficients::size, OutputCoefficients::size>;
 
       using InputMean = Mean<InputCoefficients, InputMeanMatrix>;
       using OutputEuclideanMean = EuclideanMean<OutputCoefficients, OutputEuclideanMeanMatrix>;

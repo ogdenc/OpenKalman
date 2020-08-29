@@ -294,7 +294,7 @@ namespace OpenKalman
   inline auto make_Mean()
   {
     static_assert(Coefficients::size == MatrixTraits<V>::dimension);
-    return Mean<Coefficients, typename MatrixTraits<V>::template StrictMatrix<>>();
+    return Mean<Coefficients, strict_matrix_t<V>>();
   }
 
 

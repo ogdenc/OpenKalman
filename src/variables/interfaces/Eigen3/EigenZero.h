@@ -84,7 +84,7 @@ namespace OpenKalman
   {
     static_assert(MatrixTraits<Arg>::columns == 1);
     constexpr auto dim = MatrixTraits<Arg>::dimension;
-    using B = typename MatrixTraits<Arg>::StrictMatrix<dim, dim>;
+    using B = strict_matrix_t<Arg, dim, dim>;
     return EigenZero<B>();
   }
 
@@ -95,7 +95,7 @@ namespace OpenKalman
   {
     constexpr auto rows = MatrixTraits<Arg>::dimension;
     constexpr auto cols = MatrixTraits<Arg>::columns;
-    using B = typename MatrixTraits<Arg>::StrictMatrix<cols, rows>;
+    using B = strict_matrix_t<Arg, cols, rows>;
     return EigenZero<B>();
   }
 
@@ -152,7 +152,7 @@ namespace OpenKalman
   LQ_decomposition(A&& a)
   {
     constexpr auto dim = MatrixTraits<A>::dimension;
-    using B = typename MatrixTraits<A>::StrictMatrix<dim, dim>;
+    using B = strict_matrix_t<A, dim, dim>;
     return EigenZero<B>();
   }
 
@@ -166,7 +166,7 @@ namespace OpenKalman
   QR_decomposition(A&& a)
   {
     constexpr auto dim = MatrixTraits<A>::columns;
-    using B = typename MatrixTraits<A>::StrictMatrix<dim, dim>;
+    using B = strict_matrix_t<A, dim, dim>;
     return EigenZero<B>();
   }
 
@@ -255,7 +255,7 @@ namespace OpenKalman
       {
         using D = typename MatrixTraits<Arg2>::template DiagonalBaseType<>;
         constexpr auto dim = MatrixTraits<Arg2>::dimension;
-        using B = typename MatrixTraits<D>::template StrictMatrix<dim, 1>;
+        using B = strict_matrix_t<D, dim, 1>;
         return MatrixTraits<D>::make(B::Constant(-1));
       }
       else

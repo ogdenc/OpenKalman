@@ -148,14 +148,14 @@ namespace OpenKalman
     constexpr std::size_t input_size = InputCoefficients::size;
     constexpr std::size_t output_size = OutputCoefficients::size;
 
-    using HessianMatrixInBase = typename MatrixTraits<In>::template StrictMatrix<input_size, input_size>;
+    using HessianMatrixInBase = strict_matrix_t<In, input_size, input_size>;
     using HessianMatrixIn = TypedMatrix<InputCoefficients, InputCoefficients, HessianMatrixInBase>;
     using HessianArrayIn = std::array<HessianMatrixIn, output_size>;
     HessianArrayIn a;
     a.fill(HessianMatrixIn::zero());
     if constexpr (sizeof...(Perturbations) >= 1)
     {
-      using HessianMatrixNoiseBase = typename MatrixTraits<In>::template StrictMatrix<output_size, output_size>;
+      using HessianMatrixNoiseBase = strict_matrix_t<In, output_size, output_size>;
       using HessianMatrixNoise = TypedMatrix<OutputCoefficients, OutputCoefficients, HessianMatrixNoiseBase>;
       using HessianArrayNoise = std::array<HessianMatrixNoise, output_size>;
       HessianArrayNoise an;

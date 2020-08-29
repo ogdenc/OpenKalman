@@ -159,7 +159,7 @@ namespace OpenKalman
     /// Zero coefficients.
     static auto zero()
     {
-      using ST = typename MatrixTraits<BaseMatrix>::template StrictMatrix<Coefficients::dimension>;
+      using ST = strict_matrix_t<BaseMatrix, Coefficients::dimension>;
       return MatrixTraits<ST>::zero();
     }
 
@@ -167,7 +167,7 @@ namespace OpenKalman
     static auto identity()
     {
       static_assert(MatrixTraits<BaseMatrix>::dimension == columns, "Identity requires a square matrix.");
-      using ST = typename MatrixTraits<BaseMatrix>::template StrictMatrix<Coefficients::dimension>;
+      using ST = strict_matrix_t<BaseMatrix, Coefficients::dimension>;
       return MatrixTraits<ST>::identity();
     }
 

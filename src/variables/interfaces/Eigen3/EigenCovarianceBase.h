@@ -101,8 +101,7 @@ namespace Eigen
   struct CovarianceCommaInitializer
   {
     using Scalar = typename CovarianceType::Scalar;
-    using BaseMatrix = typename OpenKalman::MatrixTraits<
-      typename OpenKalman::MatrixTraits<CovarianceType>::BaseMatrix>::template StrictMatrix<>;
+    using BaseMatrix = OpenKalman::strict_matrix_t<typename OpenKalman::MatrixTraits<CovarianceType>::BaseMatrix>;
     using Nested = CommaInitializer<BaseMatrix>;
 
     BaseMatrix matrix;
