@@ -52,23 +52,60 @@ namespace OpenKalman
       });
     }
 
-  protected:
-    template<std::size_t dim, typename InputDist, typename Transformation, typename XPointsTup, typename XDistsTup>
-    static constexpr auto transform_impl(
-      const Transformation& g,
-      const XPointsTup& xpoints_tup,
-      const XDistsTup& xdists_tup)
+    template<std::size_t pos = 0, typename FlattenedPs>
+    static constexpr auto construct_ps(const FlattenedPs&)
     {
-      constexpr std::size_t N = std::tuple_size_v<XPointsTup>;
-      static_assert(N == std::tuple_size_v<XDistsTup>);
+      static_assert(pos == std::tuple_size_v<FlattenedPs>);
+      return std::tuple {};
+    }
+
+    template<std::size_t pos = 0, typename FlattenedPs, typename D, typename...Ds>
+    static auto construct_ps(const FlattenedPs& flattened_ps, const D&, const Ds&...ds)
+    {
+      constexpr auto group_size = std::tuple_size_v<D>;
+      auto ps_group = internal::tuple_slice<pos, pos + group_size>(flattened_ps);
+      return std::tuple_cat(std::make_tuple(ps_group), construct_ps<pos + group_size>(flattened_ps, ds...));
+    }
+
+    template<typename D, typename...Ds>
+    static constexpr auto count_dim(const std::tuple<Ds...>&)
+    {
+      return (DistributionTraits<D>::dimension + ... + DistributionTraits<Ds>::dimension);
+    }
+
+  protected:
+    template<std::size_t dim, typename InputDist, std::size_t i,
+      typename...Gs, typename P, typename...Ps, typename D, typename...Ds>
+    static constexpr auto transform_impl(
+      const std::tuple<Gs...>& gs,
+      const P& xpoints,
+      const std::tuple<Ps...>& ps,
+      const D& x,
+      const std::tuple<Ds...>& ds)
+    {
+      static_assert(sizeof...(Gs) == sizeof...(Ps) and sizeof...(Gs) == sizeof...(Ds));
+      auto g = std::get<i>(gs);
+      auto xpoints_tup = std::tuple_cat(std::tuple {xpoints}, std::get<i>(ps));
+      auto xdists_tup = std::tuple_cat(std::tuple {x}, std::get<i>(ds));
+
+      constexpr std::size_t N = std::tuple_size_v<decltype(xpoints_tup)>;
+      static_assert(N == std::tuple_size_v<decltype(xdists_tup)>);
+
       auto ymeans = y_means_impl(g, xpoints_tup, xdists_tup, std::make_index_sequence<N>());
       auto y_mean = SamplePointsType::template weighted_means<dim>(ymeans);
-      auto xpoints0 = std::get<0>(xpoints_tup);
       // Each column is a deviation from y mean for each transformed sigma point:
       auto ypoints = apply_columnwise(ymeans, [&y_mean](const auto& col) { return col - y_mean; });
-      auto [y_covariance, cross_covariance] = SamplePointsType::template covariance<dim, InputDist>(xpoints0, ypoints);
+      auto [y_covariance, cross_covariance] = SamplePointsType::template covariance<dim, InputDist>(xpoints, ypoints);
       auto y = GaussianDistribution {y_mean, y_covariance};
-      return std::tuple {ypoints, y, cross_covariance};
+
+      if constexpr(i + 1 < sizeof...(Gs))
+      {
+        return transform_impl<dim, InputDist, i + 1>(gs, ypoints, ps, y, ds);
+      }
+      else
+      {
+        return std::tuple {y, cross_covariance};
+      }
     }
 
   public:
@@ -85,54 +122,36 @@ namespace OpenKalman
       // The sample points, divided into tuples for the input and each noise term:
       const auto points_tuple = SamplePointsType::sample_points(x, n...);
       constexpr auto dim = (DistributionTraits<InputDist>::dimension + ... + DistributionTraits<NoiseDist>::dimension);
-      //
-      auto xdists_tup = std::forward_as_tuple(x, n...);
-      auto [_, y, cross_covariance] = transform_impl<dim, InputDist>(g, points_tuple, xdists_tup);
 
-      return std::tuple {std::move(y), std::move(cross_covariance)};
+      auto gs = std::tuple {g};
+      auto ds = std::make_tuple(std::tuple {n...});
+      auto xpoints = std::get<0>(points_tuple);
+      auto ps = std::make_tuple(internal::tuple_slice<1, std::tuple_size_v<decltype(points_tuple)>>(points_tuple));
+      return transform_impl<dim, InputDist, 0>(gs, xpoints, ps, x, ds);
     }
 
     /**
-     * Perform two sample points transforms.
-     * @tparam Transformation1 The transformation on which the first transform is based.
-     * @tparam Transformation2 The transformation on which the second transform is based.
+     * Perform one or more consecutive sample points transforms.
      * @tparam InputDist Input distribution.
-     * @tparam NoiseDist Noise distribution.
+     * @tparam Ts A list of tuples containing (1) a transformation and (2) zero or more noise terms for that transformation.
      **/
-    template<
-      typename InputDist, typename Transformation1, typename...QNoise, typename Transformation2, typename...RNoise,
-      std::enable_if_t<std::conjunction_v<is_distribution<InputDist>,
-        is_distribution<QNoise>..., is_distribution<RNoise>...>, int> = 0>
-    auto operator()(
-      const InputDist& x,
-      const std::tuple<Transformation1, QNoise...>& t1,
-      const std::tuple<Transformation2, RNoise...>& t2) const
+    template<typename InputDist, typename...Ts>
+    auto operator()(const InputDist& x, const Ts&...ts) const
     {
-      // The scaled sample points, divided into tuples for the input and each noise term:
-      const auto qs = internal::tuple_slice<1, 1 + sizeof...(QNoise)>(t1);
-      const auto rs = internal::tuple_slice<1, 1 + sizeof...(RNoise)>(t2);
-      const auto points_tuple = std::apply([](const auto&...args) {
-        return SamplePointsType::sample_points(args...);
-      }, std::tuple_cat(std::tuple {x}, qs, rs));
-      constexpr auto dim = ((DistributionTraits<InputDist>::dimension + ... + DistributionTraits<QNoise>::dimension) +
-        ... + DistributionTraits<RNoise>::dimension);
-      auto xpoints1 = std::get<0>(points_tuple);
-      auto xpoints2 = internal::tuple_slice<1, 1 + sizeof...(QNoise)>(points_tuple);
-      auto xpoints3 = internal::tuple_slice<1 + sizeof...(QNoise), 1 + sizeof...(QNoise) + sizeof...(RNoise)>(points_tuple);
+      auto gs = std::tuple {std::get<0>(ts)...};
+      auto ds = std::make_tuple(internal::tuple_slice<1, std::tuple_size_v<Ts>>(ts)...);
 
-      // First transform:
-      decltype(auto) g1 = std::get<0>(t1);
-      auto xpoints_tup = std::tuple_cat(std::tuple {xpoints1}, xpoints2);
-      auto xdists_tup = std::tuple_cat(std::tuple {x}, qs);
-      auto [ypoints, y, _] = transform_impl<dim, InputDist>(g1, xpoints_tup, xdists_tup);
+      auto flattened_ds = std::apply([](const auto&...args) {return std::tuple_cat(args...); }, ds);
+      auto points_tuple = std::apply([&x](const auto&...args) {
+        return SamplePointsType::sample_points(x, args...);
+      }, flattened_ds);
+      constexpr auto dim = count_dim<InputDist>(flattened_ds);
 
-      // Second transform:
-      decltype(auto) g2 = std::get<0>(t2);
-      auto ypoints_tup = std::tuple_cat(std::tuple {ypoints}, xpoints3);
-      auto ydists_tup = std::tuple_cat(std::tuple {y}, rs);
-      auto [zpoints, z, cross_covariance] = transform_impl<dim, InputDist>(g2, ypoints_tup, ydists_tup);
+      auto xpoints = std::get<0>(points_tuple);
+      auto flattened_ps = internal::tuple_slice<1, std::tuple_size_v<decltype(points_tuple)>>(points_tuple);
+      auto ps = std::apply([&](const auto&...args) { return construct_ps(flattened_ps, args...); }, ds);
 
-      return std::tuple {std::move(z), std::move(cross_covariance)};
+      return transform_impl<dim, InputDist, 0>(gs, xpoints, ps, x, ds);
     }
 
   };

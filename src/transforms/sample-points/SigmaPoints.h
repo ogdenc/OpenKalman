@@ -77,10 +77,11 @@ namespace OpenKalman
      * @brief Scale and translate normalized sample points based on mean and (square root) covariance.
      * @return A tuple of matrices of sample points (each sample point in a column).
      */
-    template<typename...Dist, std::enable_if_t<std::conjunction_v<is_Gaussian_distribution<Dist>...>, int> = 0>
+    template<typename...Dist>
     static auto
     sample_points(const Dist&...ds)
     {
+      static_assert(std::conjunction_v<is_Gaussian_distribution<Dist>...>);
       return SigmaPointsType::template sigma_points(ds...);
     }
 
@@ -91,7 +92,7 @@ namespace OpenKalman
       static_assert(is_column_vector_v<YMeans>);
       constexpr auto count = MatrixTraits<YMeans>::columns;
       static_assert(count == SigmaPointsType::template sigma_point_count<dim>(), "Wrong number of sigma points.");
-      using Weights = TypedMatrix<Axes<count>, Axis, typename MatrixTraits<YMeans>::template StrictMatrix<count, 1>>;
+      using Weights = TypedMatrix<Axes<count>, Axis, strict_matrix_t<YMeans, count, 1>>;
       return strict(from_Euclidean(y_means * mean_weights<dim, Weights>()));
     }
 
@@ -105,7 +106,7 @@ namespace OpenKalman
       constexpr auto count = MatrixTraits<X>::columns;
       static_assert(count == MatrixTraits<Y>::columns);
       static_assert(count == SigmaPointsType::template sigma_point_count<dim>(), "Wrong number of sigma points.");
-      using Weights = TypedMatrix<Axes<count>, Axis, typename MatrixTraits<X>::template StrictMatrix<count, 1>>;
+      using Weights = TypedMatrix<Axes<count>, Axis, strict_matrix_t<X, count, 1>>;
       auto weights = covariance_weights<dim, Weights>();
       if constexpr(is_Cholesky_v<InputDist>)
       {

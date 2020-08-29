@@ -64,7 +64,7 @@ namespace OpenKalman
         return Scalar(0);
     }
 
-    template<typename Dist, std::size_t row_start, std::size_t dim, std::size_t...ns>
+    template<typename Dist, std::size_t dim, std::size_t pos, std::size_t...ns>
     static constexpr auto
     unscaled_sigma_points(std::index_sequence<ns...>)
     {
@@ -72,34 +72,35 @@ namespace OpenKalman
       using Scalar = typename DistributionTraits<Dist>::Scalar;
       constexpr auto rows = DistributionTraits<Dist>::dimension;
       constexpr auto count = sigma_point_count<dim>();
-      using Xbase = typename MatrixTraits<typename DistributionTraits<Dist>::Mean>::template StrictMatrix<rows, count>;
-      TypedMatrix<Coefficients, Axes<count>, Xbase> X {sigma_point_coeff<ns / count + row_start, ns % count, dim, Scalar>()...};
+      using Xbase = strict_matrix_t<typename DistributionTraits<Dist>::Mean, rows, count>;
+      TypedMatrix<Coefficients, Axes<count>, Xbase> X {sigma_point_coeff<ns / count + pos, ns % count, dim, Scalar>()...};
       return X;
     }
 
-    template<std::size_t row_start, std::size_t dim, typename D, typename...Ds>
+    template<std::size_t dim, std::size_t pos = 0, typename D, typename...Ds>
     static auto
     sigma_points_impl(const D& d, const Ds&...ds)
     {
       constexpr auto rows = DistributionTraits<D>::dimension;
       constexpr auto count = sigma_point_count<dim>();
-      auto X = unscaled_sigma_points<D, row_start, dim>(std::make_index_sequence<count * rows>());
+      auto X = unscaled_sigma_points<D, dim, pos>(std::make_index_sequence<count * rows>());
       // Scale based on covariance:
       auto ret = strict(square_root(covariance(d)) * Parameters::alpha * X);
       //
       if constexpr(sizeof...(ds) > 0)
-        return std::tuple_cat(std::tuple {std::move(ret)}, sigma_points_impl<row_start + rows, dim>(ds...));
+        return std::tuple_cat(std::tuple {std::move(ret)}, sigma_points_impl<dim, pos + rows>(ds...));
       else
         return std::tuple {std::move(ret)};
     }
 
   public:
-    template<typename...Dist, std::enable_if_t<std::conjunction_v<is_Gaussian_distribution<Dist>...>, int> = 0>
+    template<typename...Dist>
     static constexpr auto
     sigma_points(const Dist&...ds)
     {
+      static_assert(std::conjunction_v<is_Gaussian_distribution<Dist>...>);
       constexpr auto dim = (DistributionTraits<Dist>::dimension + ...);
-      return sigma_points_impl<0, dim>(ds...);
+      return sigma_points_impl<dim>(ds...);
     }
 
   protected:

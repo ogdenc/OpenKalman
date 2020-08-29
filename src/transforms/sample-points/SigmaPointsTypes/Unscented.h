@@ -63,59 +63,63 @@ namespace OpenKalman
     sigma_point_count() { return dim * 2 + 1; };
 
   private:
-    // Scale and translate normalized sample points based on mean and (square root) covariance.
-    // This algorithm decreases the complexity from O(n^3) to O(n^2).
-    template<std::size_t i, std::size_t pos, std::size_t dim, typename DTuple>
+    /// Scale and translate normalized sample points based on mean and (square root) covariance.
+    /// This algorithm decreases the complexity from O(n^3) to O(n^2).
+    /// This steps recursively through a tuple of input and noise distributions.
+    template<
+      std::size_t dim, ///< The total number of dimensions for which sigma points are assigned.
+      std::size_t pos = 0, ///< The writing position during this recursive step.
+      typename D, ///< First input or noise distribution.
+      typename...Ds> ///< Other input or noise distributions.
     static auto
-    sigma_points_impl(const DTuple& dtuple)
+    sigma_points_impl(const D& d, const Ds&...ds)
     {
-      using D = std::tuple_element_t<i, DTuple>;
       using Scalar = typename DistributionTraits<D>::Scalar;
       using Coeffs = typename DistributionTraits<D>::Coefficients;
-      const auto d = std::get<i>(dtuple);
-      constexpr auto dim_i = MatrixTraits<typename DistributionTraits<D>::Mean>::dimension;
-      constexpr auto count = sigma_point_count<dim>();
-      constexpr auto size = sigma_point_count<DistributionTraits<D>::dimension>();
-      constexpr auto dsize = std::tuple_size_v<DTuple>;
+      using M = typename DistributionTraits<D>::Mean;
+      constexpr auto points_count = sigma_point_count<dim>();
+      constexpr auto dim_i = DistributionTraits<D>::dimension;
+      constexpr auto frame_size = dim_i * 2;
       constexpr Scalar alpha = Parameters::alpha;
       constexpr Scalar kappa = Parameters::template kappa<dim>;
       constexpr Scalar gamma_L = alpha * alpha * (kappa + dim);
       const auto delta = make_Matrix<Coeffs, Axes<dim_i>>(strict_matrix(square_root(gamma_L * covariance(d))));
       //
-      using M0base = typename MatrixTraits<typename DistributionTraits<D>::Mean>::template StrictMatrix<dim_i, 1>;
+      using M0base = strict_matrix_t<M, dim_i, 1>;
       const auto m0 = TypedMatrix<Coeffs, Axis, M0base>::zero();
-      if constexpr(dsize == 1)
+      if constexpr(1 + frame_size == points_count)
       {
         auto ret = concatenate_horizontal(m0, delta, -delta);
-        static_assert(MatrixTraits<decltype(ret)>::columns == count);
+        static_assert(MatrixTraits<decltype(ret)>::columns == points_count);
         return std::tuple {std::move(ret)};
       }
-      else if constexpr (i == 0)
+      else if constexpr (pos == 0)
       {
-        constexpr auto width = count - (pos + size);
-        using MRbase = typename MatrixTraits<typename DistributionTraits<D>::Mean>::template StrictMatrix<dim_i, width>;
+        constexpr auto width = points_count - (1 + frame_size);
+        using MRbase = strict_matrix_t<M, dim_i, width>;
         const auto mright = TypedMatrix<Coeffs, Axes<width>, MRbase>::zero();
         auto ret = concatenate_horizontal(m0, delta, -delta, mright);
-        static_assert(MatrixTraits<decltype(ret)>::columns == count);
-        return std::tuple_cat(std::tuple {std::move(ret)}, sigma_points_impl<i + 1, pos + size, dim>(dtuple));
+        static_assert(MatrixTraits<decltype(ret)>::columns == points_count);
+        return std::tuple_cat(std::tuple {std::move(ret)}, sigma_points_impl<dim, 1 + frame_size>(ds...));
       }
-      else if constexpr (i < dsize - 1)
+      else if constexpr (pos + frame_size < points_count)
       {
-        using MLbase = typename MatrixTraits<typename DistributionTraits<D>::Mean>::template StrictMatrix<dim_i, pos>;
+        using MLbase = strict_matrix_t<M, dim_i, pos>;
         const auto mleft = TypedMatrix<Coeffs, Axes<pos>, MLbase>::zero();
-        constexpr auto width = count - (pos + 2*dim_i);
-        using MRbase = typename MatrixTraits<typename DistributionTraits<D>::Mean>::template StrictMatrix<dim_i, width>;
+        constexpr auto width = points_count - (pos + frame_size);
+        using MRbase = strict_matrix_t<M, dim_i, width>;
         const auto mright = TypedMatrix<Coeffs, Axes<width>, MRbase>::zero();
         auto ret = concatenate_horizontal(mleft, delta, -delta, mright);
-        static_assert(MatrixTraits<decltype(ret)>::columns == count);
-        return std::tuple_cat(std::tuple {std::move(ret)}, sigma_points_impl<i + 1, pos + 2*dim_i, dim>(dtuple));
+        static_assert(MatrixTraits<decltype(ret)>::columns == points_count);
+        return std::tuple_cat(std::tuple {std::move(ret)}, sigma_points_impl<dim, pos + frame_size>(ds...));
       }
       else
       {
-        using MLbase = typename MatrixTraits<typename DistributionTraits<D>::Mean>::template StrictMatrix<dim_i, pos>;
+        static_assert(sizeof...(ds) == 0);
+        using MLbase = strict_matrix_t<M, dim_i, pos>;
         const auto mleft = TypedMatrix<Coeffs, Axes<pos>, MLbase>::zero();
         auto ret = concatenate_horizontal(mleft, delta, -delta);
-        static_assert(MatrixTraits<decltype(ret)>::columns == count);
+        static_assert(MatrixTraits<decltype(ret)>::columns == points_count);
         return std::tuple {std::move(ret)};
       }
     }
@@ -127,12 +131,13 @@ namespace OpenKalman
      * @param x The input distribution.
      * @return A matrix of sigma points (each sigma point in a column).
      */
-    template<typename...Dist, std::enable_if_t<std::conjunction_v<is_Gaussian_distribution<Dist>...>, int> = 0>
+    template<typename...Dist>
     static constexpr auto
     sigma_points(const Dist& ...ds)
     {
+      static_assert(std::conjunction_v<is_Gaussian_distribution<Dist>...>);
       constexpr auto dim = (DistributionTraits<Dist>::dimension + ...);
-      return sigma_points_impl<0, 0, dim>(std::tuple {ds...});
+      return sigma_points_impl<dim>(ds...);
     }
 
   protected:
