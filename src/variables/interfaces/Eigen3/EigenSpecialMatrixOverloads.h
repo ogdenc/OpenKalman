@@ -99,10 +99,13 @@ namespace OpenKalman
   }
 
 
-  /// Concatenate diagonally.
+  /// Concatenate diagonally if the arguments are all self-adjoint or all triangular, and of the same type.
   template<typename V, typename ... Vs,
-    std::enable_if_t<std::conjunction_v<is_EigenSelfAdjointMatrix<V>, is_EigenSelfAdjointMatrix<Vs>...> or
-      std::conjunction_v<is_EigenTriangularMatrix<V>, is_EigenTriangularMatrix<Vs>...>, int> = 0>
+    std::enable_if_t<
+      (std::conjunction_v<is_EigenSelfAdjointMatrix<V>, is_EigenSelfAdjointMatrix<Vs>...> and
+        ((is_Eigen_upper_storage_triangle_v<V> == is_Eigen_upper_storage_triangle_v<Vs>) and ...)) or
+      (std::conjunction_v<is_EigenTriangularMatrix<V>, is_EigenTriangularMatrix<Vs>...> and
+        ((is_upper_triangular_v<V> == is_upper_triangular_v<Vs>) and ...)), int> = 0>
   constexpr decltype(auto)
   concatenate(V&& v, Vs&& ... vs)
   {
@@ -117,10 +120,26 @@ namespace OpenKalman
   };
 
 
+  /// Concatenate diagonally if arguments are a heterogeneous mix upper and lower-storage self-adjoint.
+  /// The result will have the storage type of the first matrix.
+  template<typename V, typename ... Vs,
+    std::enable_if_t<
+      std::conjunction_v<is_EigenSelfAdjointMatrix<V>, is_EigenSelfAdjointMatrix<Vs>...> and
+      not ((is_Eigen_upper_storage_triangle_v<V> == is_Eigen_upper_storage_triangle_v<Vs>) and ...), int> = 0>
+  constexpr decltype(auto)
+  concatenate(V&& v, Vs&& ... vs)
+  {
+    constexpr auto t = MatrixTraits<V>::storage_type;
+    return concatenate(std::forward<V>(v), make_EigenSelfAdjointMatrix<t>(std::forward<Vs>(vs))...);
+  };
+
+
   /// Concatenate diagonally.
   template<typename V, typename ... Vs,
-    std::enable_if_t<std::conjunction_v<is_EigenSelfAdjointMatrix<V>, is_EigenSelfAdjointMatrix<Vs>...> or
-      std::conjunction_v<is_EigenTriangularMatrix<V>, is_EigenTriangularMatrix<Vs>...>, int> = 0>
+    std::enable_if_t<
+      std::conjunction_v<is_EigenSelfAdjointMatrix<V>, is_EigenSelfAdjointMatrix<Vs>...> or
+      (std::conjunction_v<is_EigenTriangularMatrix<V>, is_EigenTriangularMatrix<Vs>...> and
+        ((is_upper_triangular_v<V> == is_upper_triangular_v<Vs>) and ...)), int> = 0>
   constexpr decltype(auto)
   concatenate_diagonal(V&& v, Vs&& ... vs)
   {

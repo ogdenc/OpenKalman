@@ -342,6 +342,26 @@ TEST_F(matrix_tests, SelfAdjointMatrix_subscripts)
   EXPECT_NEAR((Diagonal3 {9., 10})(1, 1), 10, 1e-6);
 }
 
+TEST_F(matrix_tests, SelfAdjointMatrix_make)
+{
+  static_assert(is_zero_v<decltype(make_EigenSelfAdjointMatrix<TriangleType::upper>(MatrixTraits<M2>::zero()))>);
+  static_assert(is_zero_v<decltype(make_EigenSelfAdjointMatrix<TriangleType::lower>(MatrixTraits<M2>::zero()))>);
+  static_assert(is_zero_v<decltype(make_EigenSelfAdjointMatrix(MatrixTraits<M2>::zero()))>);
+  static_assert(is_Eigen_upper_storage_triangle_v<decltype(make_EigenSelfAdjointMatrix<TriangleType::upper>((M2() << 9, 3, 3, 10).finished()))>);
+  static_assert(is_Eigen_lower_storage_triangle_v<decltype(make_EigenSelfAdjointMatrix<TriangleType::lower>((M2() << 9, 3, 3, 10).finished()))>);
+  static_assert(is_Eigen_lower_storage_triangle_v<decltype(make_EigenSelfAdjointMatrix((M2() << 9, 3, 3, 10).finished()))>);
+  static_assert(is_diagonal_v<decltype(make_EigenSelfAdjointMatrix<TriangleType::upper>(EigenDiagonal {3., 4}))>);
+  static_assert(is_diagonal_v<decltype(make_EigenSelfAdjointMatrix<TriangleType::lower>(EigenDiagonal {3., 4}))>);
+  static_assert(is_diagonal_v<decltype(make_EigenSelfAdjointMatrix(EigenDiagonal {3., 4}))>);
+
+  static_assert(is_Eigen_upper_storage_triangle_v<decltype(make_EigenSelfAdjointMatrix<TriangleType::upper>(Upper {9, 3, 3, 10}))>);
+  static_assert(is_Eigen_lower_storage_triangle_v<decltype(make_EigenSelfAdjointMatrix<TriangleType::lower>(Lower {9, 3, 3, 10}))>);
+  static_assert(is_Eigen_upper_storage_triangle_v<decltype(make_EigenSelfAdjointMatrix<TriangleType::upper>(Lower {9, 3, 3, 10}))>);
+  static_assert(is_Eigen_lower_storage_triangle_v<decltype(make_EigenSelfAdjointMatrix<TriangleType::lower>(Upper {9, 3, 3, 10}))>);
+  static_assert(is_Eigen_upper_storage_triangle_v<decltype(make_EigenSelfAdjointMatrix(Upper {9, 3, 3, 10}))>);
+  static_assert(is_Eigen_lower_storage_triangle_v<decltype(make_EigenSelfAdjointMatrix(Lower {9, 3, 3, 10}))>);
+}
+
 TEST_F(matrix_tests, SelfAdjointMatrix_traits)
 {
   M2 m;
@@ -359,6 +379,15 @@ TEST_F(matrix_tests, SelfAdjointMatrix_traits)
   //
   EXPECT_TRUE(is_near(MatrixTraits<Dl>::identity(), M2::Identity()));
   EXPECT_TRUE(is_near(MatrixTraits<Du>::identity(), M2::Identity()));
+
+  static_assert(is_Eigen_lower_storage_triangle_v<Lower>);
+  static_assert(is_Eigen_upper_storage_triangle_v<Upper>);
+  static_assert(is_diagonal_v<Diagonal>);
+  static_assert(is_diagonal_v<Diagonal2>);
+  static_assert(is_diagonal_v<Diagonal3>);
+  static_assert(is_zero_v<decltype(EigenSelfAdjointMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::lower>(MatrixTraits<M2>::zero()))>);
+  static_assert(is_zero_v<decltype(EigenSelfAdjointMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::upper>(MatrixTraits<M2>::zero()))>);
+  static_assert(is_identity_v<decltype(EigenSelfAdjointMatrix<decltype(MatrixTraits<M2>::identity()), TriangleType::lower>(MatrixTraits<M2>::identity()))>);
 }
 
 TEST_F(matrix_tests, SelfAdjointMatrix_overloads)
@@ -514,12 +543,14 @@ TEST_F(matrix_tests, SelfAdjointMatrix_blocks_lower)
   auto m1 = EigenSelfAdjointMatrix<Eigen::Matrix<double, 3, 3>, TriangleType::lower> {4, 5, 6,
                                                                                       5, 7, 8,
                                                                                       6, 8, 9};
-  EXPECT_TRUE(is_near(concatenate(EigenSelfAdjointMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}, m1),
+  EXPECT_TRUE(is_near(concatenate_diagonal(EigenSelfAdjointMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}, m1),
     EigenSelfAdjointMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::lower> {1., 2, 0, 0, 0,
                                                                               2, 3, 0, 0, 0,
                                                                               0, 0, 4, 5, 6,
                                                                               0, 0, 5, 7, 8,
                                                                               0, 0, 6, 8, 9}));
+  static_assert(is_Eigen_lower_storage_triangle_v<decltype(concatenate(EigenSelfAdjointMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}, m1))>);
+
   EXPECT_TRUE(is_near(concatenate_vertical(m0, m1),
     TypedMatrix<Axes<6>, Axes<3>> {1., 2, 3,
                                    2, 4, 5,
@@ -625,6 +656,8 @@ TEST_F(matrix_tests, SelfAdjointMatrix_blocks_upper)
                                                                               0, 0, 4, 5, 6,
                                                                               0, 0, 5, 7, 8,
                                                                               0, 0, 6, 8, 9}));
+  static_assert(is_Eigen_upper_storage_triangle_v<decltype(concatenate_diagonal(EigenSelfAdjointMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}, m1))>);
+
   EXPECT_TRUE(is_near(concatenate_vertical(m0, m1),
     TypedMatrix<Axes<6>, Axes<3>> {1., 2, 3,
                                    2, 4, 5,
@@ -723,12 +756,15 @@ TEST_F(matrix_tests, SelfAdjointMatrix_blocks_mixed)
   auto m1 = EigenSelfAdjointMatrix<Eigen::Matrix<double, 3, 3>, TriangleType::lower> {4., 5, 6,
                                                                                       5, 7, 8,
                                                                                       6, 8, 9};
-  EXPECT_TRUE(is_near(concatenate(EigenSelfAdjointMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}, m1),
+  EXPECT_TRUE(is_near(concatenate_diagonal(EigenSelfAdjointMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}, m1),
     EigenSelfAdjointMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::upper> {1., 2, 0, 0, 0,
                                                                               2, 3, 0, 0, 0,
                                                                               0, 0, 4, 5, 6,
                                                                               0, 0, 5, 7, 8,
                                                                               0, 0, 6, 8, 9}));
+  static_assert(is_Eigen_upper_storage_triangle_v<decltype(concatenate_diagonal(EigenSelfAdjointMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}, m1))>);
+  static_assert(is_Eigen_lower_storage_triangle_v<decltype(concatenate(EigenSelfAdjointMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}, m0))>);
+
   EXPECT_TRUE(is_near(concatenate_vertical(m0, m1),
     TypedMatrix<Axes<6>, Axes<3>> {1., 2, 3,
                                    2, 4, 5,

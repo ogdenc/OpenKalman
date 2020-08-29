@@ -333,6 +333,33 @@ namespace OpenKalman
       internal::constexpr_sqrt(sizeof...(Args))>, TriangleType::lower>;
 
 
+  ///////////////////////////////////
+  //        Make functions         //
+  ///////////////////////////////////
+
+  template<TriangleType t = TriangleType::lower, typename M,
+    std::enable_if_t<is_Eigen_matrix_v<M> or is_EigenDiagonal_v<M>, int> = 0>
+  auto
+  make_EigenSelfAdjointMatrix(M&& m)
+  {
+    return EigenSelfAdjointMatrix<lvalue_or_strict_t<M>, t>(std::forward<M>(m));
+  }
+
+  template<TriangleType t, typename M, std::enable_if_t<is_EigenSelfAdjointMatrix_v<M>, int> = 0>
+  auto
+  make_EigenSelfAdjointMatrix(M&& m)
+  {
+    return EigenSelfAdjointMatrix<lvalue_or_strict_t<M>, t>(std::forward<M>(m));
+  }
+
+  template<typename M, std::enable_if_t<is_EigenSelfAdjointMatrix_v<M>, int> = 0>
+  auto
+  make_EigenSelfAdjointMatrix(M&& m)
+  {
+    return make_EigenSelfAdjointMatrix<MatrixTraits<M>::storage_type>(std::forward<M>(m));
+  }
+
+
   ///////////////////////////
   //        Traits         //
   ///////////////////////////
@@ -721,7 +748,7 @@ namespace OpenKalman
     static_assert(MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::dimension);
     constexpr auto rows = MatrixTraits<Arg1>::dimension;
     constexpr auto cols = MatrixTraits<Arg2>::columns;
-    using B = typename MatrixTraits<Arg1>::template StrictMatrix<rows, cols>;
+    using B = strict_matrix_t<Arg1, rows, cols>;
     return EigenZero<B>();
   }
 

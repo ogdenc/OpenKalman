@@ -570,18 +570,18 @@ namespace OpenKalman
 
   template<typename D, typename ... Ds,
     std::enable_if_t<std::conjunction_v<is_Gaussian_distribution<D>, is_Gaussian_distribution<Ds>...>, int> = 0>
-  constexpr decltype(auto)
+  auto
   concatenate(const D& d, const Ds& ... ds)
   {
     if constexpr(sizeof...(Ds) > 0)
     {
-      auto mean = concatenate(OpenKalman::mean(d), OpenKalman::mean(ds)...);
-      auto covariance = concatenate(OpenKalman::covariance(d), OpenKalman::covariance(ds)...);
-      return DistributionTraits<D>::template make(std::move(mean), std::move(covariance));
+      auto m = concatenate(mean(d), mean(ds)...);
+      auto cov = concatenate(covariance(d), covariance(ds)...);
+      return DistributionTraits<D>::template make(std::move(m), std::move(cov));
     }
     else
     {
-      return std::forward<D>(d);
+      return d;
     }
   }
 

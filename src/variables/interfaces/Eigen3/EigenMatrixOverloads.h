@@ -352,7 +352,10 @@ namespace OpenKalman
         is_EigenDiagonal<V>, is_FromEuclideanExpr<V>>,
       std::disjunction<is_Eigen_matrix<Vs>, is_EigenSelfAdjointMatrix<Vs>, is_EigenTriangularMatrix<Vs>,
         is_EigenDiagonal<Vs>, is_FromEuclideanExpr<Vs>>...> and
-      not std::conjunction_v<is_FromEuclideanExpr<V>, is_FromEuclideanExpr<Vs>...>, int> = 0>
+      not std::conjunction_v<is_FromEuclideanExpr<V>, is_FromEuclideanExpr<Vs>...> and
+      not (std::conjunction_v<is_EigenSelfAdjointMatrix<V>, is_EigenSelfAdjointMatrix<Vs>...> or
+      (std::conjunction_v<is_EigenTriangularMatrix<V>, is_EigenTriangularMatrix<Vs>...> and
+        ((is_upper_triangular_v<V> == is_upper_triangular_v<Vs>) and ...))), int> = 0>
   constexpr decltype(auto)
   concatenate_diagonal(V&& v, Vs&& ... vs) noexcept
   {
