@@ -96,7 +96,7 @@ namespace OpenKalman
       return strict(from_Euclidean(y_means * mean_weights<dim, Weights>()));
     }
 
-    template<std::size_t dim, typename InputDist, typename X, typename Y>
+    template<std::size_t dim, typename InputDist, bool return_cross = false, typename X, typename Y>
     static auto
     covariance(const X& x_deviations, const Y& y_deviations)
     {
@@ -121,23 +121,44 @@ namespace OpenKalman
           const auto sqrt_weights_tail = apply_coefficientwise(weights_tail, [](const auto x){ return std::sqrt(x); });
           auto out_covariance = LQ_decomposition(y_deviations_tail * to_diagonal(sqrt_weights_tail));
           rank_update(out_covariance, y_deviations_head, W_c0); ///< Factor back in the first weight, using a rank update.
-          auto cross_covariance = strict(x_deviations * to_diagonal(weights) * adjoint(y_deviations));
-          return std::tuple{Covariance {out_covariance}, std::move(cross_covariance)};
+          if constexpr (return_cross)
+          {
+            auto cross_covariance = strict(x_deviations * to_diagonal(weights) * adjoint(y_deviations));
+            return std::tuple{std::move(out_covariance), std::move(cross_covariance)};
+          }
+          else
+          {
+            return out_covariance;
+          }
         }
         else
         {
           const auto sqrt_weights = apply_coefficientwise(weights, [](const auto x){ return std::sqrt(x); });
           auto out_covariance = Covariance {LQ_decomposition(y_deviations * to_diagonal(sqrt_weights))};
-          auto cross_covariance = strict(x_deviations * to_diagonal(weights) * adjoint(y_deviations));
-          return std::tuple{std::move(out_covariance), std::move(cross_covariance)};
+          if constexpr (return_cross)
+          {
+            auto cross_covariance = strict(x_deviations * to_diagonal(weights) * adjoint(y_deviations));
+            return std::tuple{std::move(out_covariance), std::move(cross_covariance)};
+          }
+          else
+          {
+            return out_covariance;
+          }
         }
       }
       else
       {
         const auto w_yT = to_diagonal(weights) * adjoint(y_deviations);
         auto out_covariance = strict(make_Covariance(y_deviations * w_yT));
-        auto cross_covariance = strict(x_deviations * w_yT);
-        return std::tuple{std::move(out_covariance), std::move(cross_covariance)};
+        if constexpr (return_cross)
+        {
+          auto cross_covariance = strict(x_deviations * w_yT);
+          return std::tuple{std::move(out_covariance), std::move(cross_covariance)};
+        }
+        else
+        {
+          return out_covariance;
+        }
       }
     }
 

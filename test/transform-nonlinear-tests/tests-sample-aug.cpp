@@ -52,71 +52,71 @@ namespace
 TEST_F(transform_nonlinear_tests, Basic_linear_unscented_aug)
 {
   SamplePointsTransform<UnscentedSigmaPoints> unscented;
-  EXPECT_TRUE(is_near(unscented(g, input, noise), full_output));
-  EXPECT_TRUE(is_near(unscented(g, input_chol, noise), full_output));
-  static_assert(not is_Cholesky_v<decltype(std::get<0>(unscented(g, input)))>);
-  static_assert(is_Cholesky_v<decltype(std::get<0>(unscented(g, input_chol)))>);
+  EXPECT_TRUE(is_near(unscented.transform_with_cross_covariance(g, input, noise), full_output));
+  EXPECT_TRUE(is_near(unscented.transform_with_cross_covariance(g, input_chol, noise), full_output));
+  static_assert(not is_Cholesky_v<decltype(unscented(g, input))>);
+  static_assert(is_Cholesky_v<decltype(unscented(g, input_chol))>);
 }
 
 TEST_F(transform_nonlinear_tests, Basic_linear_unscented2_aug)
 {
   SamplePointsTransform<UnscentedSigmaPoints2> unscented2;
-  EXPECT_TRUE(is_near(unscented2(g, input, noise), full_output));
-  EXPECT_TRUE(is_near(unscented2(g, input_chol, noise), full_output));
-  static_assert(not is_Cholesky_v<decltype(std::get<0>(unscented2(g, input)))>);
-  static_assert(is_Cholesky_v<decltype(std::get<0>(unscented2(g, input_chol)))>);
+  EXPECT_TRUE(is_near(unscented2.transform_with_cross_covariance(g, input, noise), full_output));
+  EXPECT_TRUE(is_near(unscented2.transform_with_cross_covariance(g, input_chol, noise), full_output));
+  static_assert(not is_Cholesky_v<decltype(unscented2(g, input))>);
+  static_assert(is_Cholesky_v<decltype(unscented2(g, input_chol))>);
 }
 
 TEST_F(transform_nonlinear_tests, Basic_linear_spherical_simplex_aug)
 {
   SamplePointsTransform<SphericalSimplexSigmaPoints> spherical_simplex;
-  EXPECT_TRUE(is_near(spherical_simplex(g, input, noise), full_output));
-  EXPECT_TRUE(is_near(spherical_simplex(g, input_chol, noise), full_output));
-  static_assert(not is_Cholesky_v<decltype(std::get<0>(spherical_simplex(g, input)))>);
-  static_assert(is_Cholesky_v<decltype(std::get<0>(spherical_simplex(g, input_chol)))>);
+  EXPECT_TRUE(is_near(spherical_simplex.transform_with_cross_covariance(g, input, noise), full_output));
+  EXPECT_TRUE(is_near(spherical_simplex.transform_with_cross_covariance(g, input_chol, noise), full_output));
+  static_assert(not is_Cholesky_v<decltype(spherical_simplex(g, input))>);
+  static_assert(is_Cholesky_v<decltype(spherical_simplex(g, input_chol))>);
 }
 
 TEST_F(transform_nonlinear_tests, Basic_linear_cubature_aug)
 {
   SamplePointsTransform<CubaturePoints> cubature;
-  EXPECT_TRUE(is_near(cubature(g, input, noise), full_output));
-  EXPECT_TRUE(is_near(cubature(g, input_chol, noise), full_output));
-  static_assert(not is_Cholesky_v<decltype(std::get<0>(cubature(g, input)))>);
-  static_assert(is_Cholesky_v<decltype(std::get<0>(cubature(g, input_chol)))>);
+  EXPECT_TRUE(is_near(cubature.transform_with_cross_covariance(g, input, noise), full_output));
+  EXPECT_TRUE(is_near(cubature.transform_with_cross_covariance(g, input_chol, noise), full_output));
+  static_assert(not is_Cholesky_v<decltype(cubature(g, input))>);
+  static_assert(is_Cholesky_v<decltype(cubature(g, input_chol))>);
 }
 
 TEST_F(transform_nonlinear_tests, Basic_linear_identity_unscented_aug)
 {
   SamplePointsTransform<UnscentedSigmaPoints> t;
-  auto out1 = t(input, std::tuple {IdentityTransformation(), noise}, std::tuple {g, noise});
+  auto out1 = t.transform_with_cross_covariance(input, std::tuple {IdentityTransformation(), noise}, std::tuple {g, noise});
   EXPECT_TRUE(is_near(out1, full_output2));
-  auto out2 = t(input_chol, std::tuple {IdentityTransformation(), noise}, std::tuple {g, noise});
+  auto out2 = t.transform_with_cross_covariance(input_chol, std::tuple {IdentityTransformation(), noise}, std::tuple {g, noise});
   EXPECT_TRUE(is_near(out2, full_output2));
 }
 
 TEST_F(transform_nonlinear_tests, Basic_linear_identity_unscented2_aug)
 {
   SamplePointsTransform<UnscentedSigmaPoints2> t;
-  auto out1 = t(input, std::tuple {IdentityTransformation(), noise}, std::tuple {g, noise});
+  auto out1 = t.transform_with_cross_covariance(input, std::tuple {IdentityTransformation(), noise}, std::tuple {g, noise});
   EXPECT_TRUE(is_near(out1, full_output2));
-  auto out2 = t(input_chol, std::tuple {IdentityTransformation(), noise}, std::tuple {g, noise});
+  auto out2 = t.transform_with_cross_covariance(input_chol, std::tuple {IdentityTransformation(), noise}, std::tuple {g, noise});
   EXPECT_TRUE(is_near(out2, full_output2));
 }
 
 TEST_F(transform_nonlinear_tests, Basic_linear_identity_spherical_simplex_aug)
 {
   SamplePointsTransform<SphericalSimplexSigmaPoints> t;
-  auto out1 = t(input, std::tuple {IdentityTransformation(), noise}, std::tuple {g, noise});
+  auto out1 = t.transform_with_cross_covariance(input, std::tuple {IdentityTransformation(), noise}, std::tuple {g, noise});
   EXPECT_TRUE(is_near(out1, full_output2));
-  auto out2 = t(input_chol, std::tuple {IdentityTransformation(), noise}, std::tuple {g, noise});
+  auto out2 = t.transform_with_cross_covariance(input_chol, std::tuple {IdentityTransformation(), noise}, std::tuple {g, noise});
   EXPECT_TRUE(is_near(out2, full_output2));
 }
 
 TEST_F(transform_nonlinear_tests, Basic_linear_identity_cubature_aug)
 {
   SamplePointsTransform<CubaturePoints> t;
-  auto out1 = t(input, std::tuple {IdentityTransformation(), noise}, std::tuple {g, noise});
+  auto out1 = t.transform_with_cross_covariance(input, std::tuple {IdentityTransformation(), noise}, std::tuple {g, noise});
   EXPECT_TRUE(is_near(out1, full_output2));
-  auto out2 = t(input_chol, std::tuple {IdentityTransformation(), noise}, std::tuple {g, noise});
+  auto out2 = t.transform_with_cross_covariance(input_chol, std::tuple {IdentityTransformation(), noise}, std::tuple {g, noise});
   EXPECT_TRUE(is_near(out2, full_output2));
 }

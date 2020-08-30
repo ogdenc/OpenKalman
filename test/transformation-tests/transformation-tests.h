@@ -6,10 +6,6 @@
 #ifndef TRANSFORMATION_TESTS_H
 #define TRANSFORMATION_TESTS_H
 
-#include <iostream>
-#include <random>
-#include <Eigen/Dense>
-#include <gtest/gtest.h>
 #include "../tests.h"
 
 using namespace Eigen;

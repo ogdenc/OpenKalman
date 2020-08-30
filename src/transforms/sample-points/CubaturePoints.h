@@ -104,7 +104,7 @@ namespace OpenKalman
       return from_Euclidean(reduce_columns(y_means));
     };
 
-    template<std::size_t dim, typename InputDist, typename X, typename Y>
+    template<std::size_t dim, typename InputDist, bool return_cross = false, typename X, typename Y>
     static auto
     covariance(const X& x_deviations, const Y& y_deviations)
     {
@@ -117,15 +117,29 @@ namespace OpenKalman
       if constexpr(is_Cholesky_v<InputDist>)
       {
         auto out_covariance = Covariance {LQ_decomposition(y_deviations * std::sqrt(inv_weight))};
-        auto cross_covariance = strict(x_deviations * inv_weight * adjoint(y_deviations));
-        return std::tuple{std::move(out_covariance), std::move(cross_covariance)};
+        if constexpr (return_cross)
+        {
+          auto cross_covariance = strict(x_deviations * inv_weight * adjoint(y_deviations));
+          return std::tuple{std::move(out_covariance), std::move(cross_covariance)};
+        }
+        else
+        {
+          return out_covariance;
+        }
       }
       else
       {
         const auto w_yT = strict(inv_weight * adjoint(y_deviations));
         auto out_covariance = Covariance {strict(y_deviations * w_yT)};
-        auto cross_covariance = strict(x_deviations * w_yT);
-        return std::tuple{std::move(out_covariance), std::move(cross_covariance)};
+        if constexpr (return_cross)
+        {
+          auto cross_covariance = strict(x_deviations * w_yT);
+          return std::tuple{std::move(out_covariance), std::move(cross_covariance)};
+        }
+        else
+        {
+          return out_covariance;
+        }
       }
     }
 

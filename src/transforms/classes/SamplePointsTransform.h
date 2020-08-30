@@ -74,7 +74,7 @@ namespace OpenKalman
     }
 
   protected:
-    template<std::size_t dim, typename InputDist, std::size_t i,
+    template<std::size_t dim, typename InputDist, std::size_t i, bool return_cross = false,
       typename...Gs, typename P, typename...Ps, typename D, typename...Ds>
     static constexpr auto transform_impl(
       const std::tuple<Gs...>& gs,
@@ -92,42 +92,28 @@ namespace OpenKalman
       static_assert(N == std::tuple_size_v<decltype(xdists_tup)>);
 
       auto ymeans = y_means_impl(g, xpoints_tup, xdists_tup, std::make_index_sequence<N>());
-      auto y_mean = SamplePointsType::template weighted_means<dim>(ymeans);
+      auto y_mean = from_Euclidean(SamplePointsType::template weighted_means<dim>(ymeans));
       // Each column is a deviation from y mean for each transformed sigma point:
       auto ypoints = apply_columnwise(ymeans, [&y_mean](const auto& col) { return col - y_mean; });
-      auto [y_covariance, cross_covariance] = SamplePointsType::template covariance<dim, InputDist>(xpoints, ypoints);
-      auto y = GaussianDistribution {y_mean, y_covariance};
 
-      if constexpr(i + 1 < sizeof...(Gs))
+      if constexpr (i + 1 < sizeof...(Gs))
       {
-        return transform_impl<dim, InputDist, i + 1>(gs, ypoints, ps, y, ds);
+        auto y_covariance = SamplePointsType::template covariance<dim, InputDist, false>(xpoints, ypoints);
+        auto y = GaussianDistribution {y_mean, y_covariance};
+        return transform_impl<dim, InputDist, i + 1, return_cross>(gs, ypoints, ps, y, ds);
       }
       else
       {
-        return std::tuple {y, cross_covariance};
+        auto y_covariance = SamplePointsType::template covariance<dim, InputDist, return_cross>(xpoints, ypoints);
+        if constexpr (return_cross)
+        {
+          return std::tuple {GaussianDistribution {y_mean, std::get<0>(y_covariance)}, std::get<1>(y_covariance)};
+        }
+        else
+        {
+          return GaussianDistribution {y_mean, y_covariance};
+        }
       }
-    }
-
-  public:
-    /**
-     * Perform a sample points transform from one statistical distribution to another.
-     * @tparam Transformation The transformation on which the transform is based.
-     * @tparam InputDist Input distribution.
-     * @tparam NoiseDist Noise distribution.
-     **/
-    template<typename Transformation, typename InputDist, typename ... NoiseDist,
-      std::enable_if_t<std::conjunction_v<is_distribution<InputDist>, is_distribution<NoiseDist>...>, int> = 0>
-    auto operator()(const Transformation& g, const InputDist& x, const NoiseDist& ...n) const
-    {
-      // The sample points, divided into tuples for the input and each noise term:
-      const auto points_tuple = SamplePointsType::sample_points(x, n...);
-      constexpr auto dim = (DistributionTraits<InputDist>::dimension + ... + DistributionTraits<NoiseDist>::dimension);
-
-      auto gs = std::tuple {g};
-      auto ds = std::make_tuple(std::tuple {n...});
-      auto xpoints = std::get<0>(points_tuple);
-      auto ps = std::make_tuple(internal::tuple_slice<1, std::tuple_size_v<decltype(points_tuple)>>(points_tuple));
-      return transform_impl<dim, InputDist, 0>(gs, xpoints, ps, x, ds);
     }
 
     /**
@@ -135,8 +121,8 @@ namespace OpenKalman
      * @tparam InputDist Input distribution.
      * @tparam Ts A list of tuples containing (1) a transformation and (2) zero or more noise terms for that transformation.
      **/
-    template<typename InputDist, typename...Ts>
-    auto operator()(const InputDist& x, const Ts&...ts) const
+    template<bool return_cross, typename InputDist, typename...Ts>
+    auto transform(const InputDist& x, const Ts&...ts) const
     {
       auto gs = std::tuple {std::get<0>(ts)...};
       auto ds = std::make_tuple(internal::tuple_slice<1, std::tuple_size_v<Ts>>(ts)...);
@@ -151,11 +137,59 @@ namespace OpenKalman
       auto flattened_ps = internal::tuple_slice<1, std::tuple_size_v<decltype(points_tuple)>>(points_tuple);
       auto ps = std::apply([&](const auto&...args) { return construct_ps(flattened_ps, args...); }, ds);
 
-      return transform_impl<dim, InputDist, 0>(gs, xpoints, ps, x, ds);
+      return transform_impl<dim, InputDist, 0, return_cross>(gs, xpoints, ps, x, ds);
+    }
+
+  public:
+    /**
+     * Perform one or more consecutive sample points transforms.
+     * @tparam InputDist Input distribution.
+     * @tparam Ts A list of tuples containing (1) a transformation and (2) zero or more noise terms for that transformation.
+     **/
+    template<typename InputDist, typename...Ts, std::enable_if_t<is_distribution_v<InputDist>, int> = 0>
+    auto operator()(const InputDist& x, const Ts&...ts) const
+    {
+      return transform<false>(x, ts...);
+    }
+
+    /**
+     * Perform one sample points transform.
+     * @tparam Transformation The transformation on which the transform is based.
+     * @tparam InputDist Input distribution.
+     * @tparam NoiseDist Noise distributions.
+     **/
+    template<typename Transformation, typename InputDist, typename ... NoiseDist,
+      std::enable_if_t<std::conjunction_v<is_distribution<InputDist>, is_distribution<NoiseDist>...>, int> = 0>
+    auto operator()(const Transformation& g, const InputDist& x, const NoiseDist& ...n) const
+    {
+      return transform<false>(x, std::tuple {g, n...});
+    }
+
+    /**
+     * Perform one or more consecutive sample points transforms, also returning the cross-covariance.
+     * @tparam InputDist Input distribution.
+     * @tparam Ts A list of tuples containing (1) a transformation and (2) zero or more noise terms for that transformation.
+     **/
+    template<typename InputDist, typename...Ts, std::enable_if_t<is_distribution_v<InputDist>, int> = 0>
+    auto transform_with_cross_covariance(const InputDist& x, const Ts&...ts) const
+    {
+      return transform<true>(x, ts...);
+    }
+
+    /**
+     * Perform one sample points transform, also returning the cross-covariance.
+     * @tparam Transformation The transformation on which the transform is based.
+     * @tparam InputDist Input distribution.
+     * @tparam NoiseDist Noise distributions.
+     **/
+    template<typename Transformation, typename InputDist, typename ... NoiseDist,
+      std::enable_if_t<std::conjunction_v<is_distribution<InputDist>, is_distribution<NoiseDist>...>, int> = 0>
+    auto transform_with_cross_covariance(const Transformation& g, const InputDist& x, const NoiseDist& ...n) const
+    {
+      return transform<true>(x, std::forward_as_tuple(g, n...));
     }
 
   };
-
 
 }
 
