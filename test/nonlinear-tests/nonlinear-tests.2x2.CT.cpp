@@ -25,7 +25,7 @@ TEST_F(nonlinear_tests, CTRadar1SelfAdjoint)
 {
   SamplePointsTransform<CubaturePoints> t;
   auto in = G2 {{3.0, 0.0}, SA::identity()};
-  auto out = std::get<0>(t(radar, in));
+  auto out = t(radar, in);
   EXPECT_NEAR(mean(out)(0), 1.73, 1e-2);
   EXPECT_NEAR(mean(out)(1), 0.0, 1e-1);
   EXPECT_NEAR(covariance(out)(0,0), 2.6, 1e-1);
@@ -38,7 +38,7 @@ TEST_F(nonlinear_tests, CTRadar1Triangular)
 {
   SamplePointsTransform<CubaturePoints> t;
   auto in = G2T {{3.0, 0.0}, SA::identity()};
-  auto out = std::get<0>(t(radar, in));
+  auto out = t(radar, in);
   EXPECT_NEAR(mean(out)(0), 1.73, 1e-2);
   EXPECT_NEAR(mean(out)(1), 0.0, 1e-1);
   EXPECT_NEAR(covariance(out)(0,0), 2.6, 1e-1);
@@ -51,7 +51,7 @@ TEST_F(nonlinear_tests, CTRadar2SelfAdjoint)
 {
   SamplePointsTransform<CubaturePoints> t;
   auto in = G2 {{3.0, 0.5}, SA::identity()};
-  auto out = std::get<0>(t(radar, in));
+  auto out = t(radar, in);
   EXPECT_NEAR(mean(out)(0), 1.52, 1e-2);
   EXPECT_NEAR(mean(out)(1), 0.83, 1e-2);
   EXPECT_NEAR(covariance(out)(0,0), 3.01, 1e-2);
@@ -64,7 +64,7 @@ TEST_F(nonlinear_tests, CTRadar2Triangular)
 {
   SamplePointsTransform<CubaturePoints> t;
   auto in = G2T {{3.0, 0.5}, SA::identity()};
-  auto out = std::get<0>(t(radar, in));
+  auto out = t(radar, in);
   EXPECT_NEAR(mean(out)(0), 1.52, 1e-2);
   EXPECT_NEAR(mean(out)(1), 0.83, 1e-2);
   EXPECT_NEAR(covariance(out)(0,0), 3.01, 1e-2);
@@ -77,7 +77,7 @@ TEST_F(nonlinear_tests, CTRadar3SelfAdjoint)
 {
   SamplePointsTransform<CubaturePoints> t;
   auto in = G2 {{3.0, 0.8}, SA::identity()};
-  auto out = std::get<0>(t(radar, in));
+  auto out = t(radar, in);
   EXPECT_NEAR(mean(out)(0), 1.21, 1e-2);
   EXPECT_NEAR(mean(out)(1), 1.24, 1e-2);
   EXPECT_NEAR(covariance(out)(0,0), 3.52, 1e-2);
@@ -90,7 +90,7 @@ TEST_F(nonlinear_tests, CTRadar3Triangular)
 {
   SamplePointsTransform<CubaturePoints> t;
   auto in = G2T {{3.0, 0.8}, SA::identity()};
-  auto out = std::get<0>(t(radar, in));
+  auto out = t(radar, in);
   EXPECT_NEAR(mean(out)(0), 1.21, 1e-2);
   EXPECT_NEAR(mean(out)(1), 1.24, 1e-2);
   EXPECT_NEAR(covariance(out)(0,0), 3.52, 1e-2);

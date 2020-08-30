@@ -14,7 +14,7 @@
 namespace OpenKalman
 {
 
-  /// An identity transformation from one statistical distribution to another.
+  /// An identity transform from one statistical distribution to another.
   struct IdentityTransform
   {
     /// Apply the identity transform on an input distribution. Any noise distributions are treated as additive.
@@ -24,7 +24,20 @@ namespace OpenKalman
       static_assert(std::conjunction_v<is_equivalent<typename DistributionTraits<InputDist>::Coefficients,
         typename DistributionTraits<NoiseDist>::Coefficients>...>,
         "Input and Noise distributions must be the same size and an equivalent type.");
+      return strict((in + ... + n));
+    }
 
+    /**
+     * Perform identity transform, also returning the cross-covariance.
+     * @tparam InputDist Input distribution.
+     * @tparam NoiseDist Noise distributions.
+     **/
+    template<typename InputDist, typename ... NoiseDist>
+    auto transform_with_cross_covariance(InputDist&& in, const NoiseDist& ...n) const
+    {
+      static_assert(std::conjunction_v<is_equivalent<typename DistributionTraits<InputDist>::Coefficients,
+        typename DistributionTraits<NoiseDist>::Coefficients>...>,
+        "Input and Noise distributions must be the same size and an equivalent type.");
       auto cross_covariance = TypedMatrix {covariance(in)};
       return std::tuple {strict((in + ... + n)), std::move(cross_covariance)};
     }

@@ -36,7 +36,7 @@ TEST_F(nonlinear_tests, CTSumOfSquares2SelfAdjoint)
   auto g = sum_of_squares<n>;
   SamplePointsTransform<CubaturePoints> t;
   auto in = G<n>::normal();
-  auto out = std::get<0>(t(g, in));
+  auto out = t(g, in);
   EXPECT_NEAR(mean(out)(0), (double) n, 1e-6);
   EXPECT_NEAR(covariance(out)(0,0), 0., 1e-6);
 }
@@ -47,7 +47,7 @@ TEST_F(nonlinear_tests, CTSumOfSquares2Triangular)
   auto g = sum_of_squares<n>;
   SamplePointsTransform<CubaturePoints> t;
   auto in = GT<n>::normal();
-  auto out = std::get<0>(t(g, in));
+  auto out = t(g, in);
   EXPECT_NEAR(mean(out)(0), (double) n, 1e-6);
   EXPECT_NEAR(covariance(out)(0,0), 0., 1e-6);
 }
@@ -58,7 +58,7 @@ TEST_F(nonlinear_tests, CTSumOfSquares5SelfAdjoint)
   auto g = sum_of_squares<n>;
   SamplePointsTransform<CubaturePoints> t;
   auto in = G<n>::normal();
-  auto out = std::get<0>(t(g, in));
+  auto out = t(g, in);
   EXPECT_NEAR(mean(out)(0), (double) n, 1e-6);
   EXPECT_NEAR(covariance(out)(0,0), 0., 1e-6);
 }
@@ -69,7 +69,7 @@ TEST_F(nonlinear_tests, CTSumOfSquares5Triangular)
   auto g = sum_of_squares<n>;
   SamplePointsTransform<CubaturePoints> t;
   auto in = GT<n>::normal();
-  auto out = std::get<0>(t(g, in));
+  auto out = t(g, in);
   EXPECT_NEAR(mean(out)(0), (double) n, 1e-6);
   EXPECT_NEAR(covariance(out)(0,0), 0., 1e-6);
 }
@@ -80,7 +80,7 @@ TEST_F(nonlinear_tests, CTTOA2SelfAdjoint)
   auto g = time_of_arrival<n>;
   SamplePointsTransform<CubaturePoints> t;
   auto in = G<n> {{3., 0}, {1., 0, 0, 10}};
-  auto out = std::get<0>(t(g, in));
+  auto out = t(g, in);
   EXPECT_NEAR(mean(out)(0), 4.19, 1e-2);
   EXPECT_NEAR(covariance(out)(0,0), 2.42, 1e-2);
 }
@@ -91,7 +91,7 @@ TEST_F(nonlinear_tests, CTTOA2Triangular)
   auto g = time_of_arrival<n>;
   SamplePointsTransform<CubaturePoints> t;
   auto in = GT<n> {{3., 0}, {1., 0, 0, 10}};
-  auto out = std::get<0>(t(g, in));
+  auto out = t(g, in);
   EXPECT_NEAR(mean(out)(0), 4.19, 1e-2);
   EXPECT_NEAR(covariance(out)(0,0), 2.42, 1e-2);
 }
@@ -102,7 +102,7 @@ TEST_F(nonlinear_tests, CTTOA3SelfAdjoint)
   auto g = time_of_arrival<n>;
   SamplePointsTransform<CubaturePoints> t;
   auto in = G<n> {{3., 0, 0}, {1., 0, 0, 0, 10, 0, 0, 0, 10}};
-  auto out = std::get<0>(t(g, in));
+  auto out = t(g, in);
   EXPECT_NEAR(mean(out)(0), 5.16, 1e-2);
   EXPECT_NEAR(covariance(out)(0,0), 3.34, 1e-2);
 }
@@ -113,7 +113,7 @@ TEST_F(nonlinear_tests, CTTOA3Triangular)
   auto g = time_of_arrival<n>;
   SamplePointsTransform<CubaturePoints> t;
   auto in = GT<n> {{3., 0, 0}, {1., 0, 0, 0, 10, 0, 0, 0, 10}};
-  auto out = std::get<0>(t(g, in));
+  auto out = t(g, in);
   EXPECT_NEAR(mean(out)(0), 5.16, 1e-2);
   EXPECT_NEAR(covariance(out)(0,0), 3.34, 1e-2);
 }

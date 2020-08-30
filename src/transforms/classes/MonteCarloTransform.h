@@ -24,6 +24,7 @@ namespace OpenKalman
    * "Updating Formulae and a Pairwise Algorithm for Computing Sample Variances."
    * Technical Report STAN-CS-79-773, Department of Computer Science, Stanford University.
    * http://i.stanford.edu/pub/cstr/reports/cs/tr/79/773/CS-TR-79-773.pdf
+   * @TODO: Separate-out a faster version that does not calculate the cross-covariance.
    */
   struct MonteCarloTransform
   {
@@ -154,7 +155,27 @@ namespace OpenKalman
     explicit MonteCarloTransform(const std::size_t samples = 100000) : size(samples) {}
 
     template<typename TransformationType, typename InputDist, typename ... NoiseDist>
-    auto operator()(const TransformationType& transformation, const InputDist& in, const NoiseDist& ...n) const
+    auto operator()(
+      const TransformationType& transformation,
+      const InputDist& in,
+      const NoiseDist& ...n) const
+    {
+      using MSet = MonteCarloSet<TransformationType, InputDist, NoiseDist...>;
+      auto m_set = MSet(transformation, size, in, n...);
+      auto binary_op = typename MSet::MonteCarloBinaryOp();
+      using MSum = typename MSet::MonteCarloSum;
+
+      MSum m_sum = std::reduce(std::execution::par_unseq, m_set.begin(), m_set.end(), MSet::zero(), binary_op);
+      auto mean_output = strict(from_Euclidean(m_sum.y_E));
+      auto out_covariance = strict(m_sum.yy / (size - 1.));
+      return GaussianDistribution {mean_output, out_covariance};
+    }
+
+    template<typename TransformationType, typename InputDist, typename ... NoiseDist>
+    auto transform_with_cross_covariance(
+      const TransformationType& transformation,
+      const InputDist& in,
+      const NoiseDist& ...n) const
     {
       using MSet = MonteCarloSet<TransformationType, InputDist, NoiseDist...>;
       auto m_set = MSet(transformation, size, in, n...);

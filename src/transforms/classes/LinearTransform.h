@@ -61,7 +61,7 @@ namespace OpenKalman
       const InputDist& x,
       const NoiseDist& ...ns) const
     {
-      return Base::transform(TransformFunction {g}, x, ns...);
+      return Base::transform<false>(TransformFunction {g}, x, ns...);
     }
 
     /**
@@ -76,18 +76,66 @@ namespace OpenKalman
     {
       auto g = std::get<0>(t);
       auto ns = internal::tuple_slice<1, std::tuple_size_v<T>>(t);
-      auto ret = std::apply([&](const auto&...args) {
+      auto out = std::apply([&](const auto&...args) {
         static_assert(is_linearized_function_v<decltype(g), 1>);
-        return Base::transform(TransformFunction {g}, x, args...);
+        return Base::transform<false>(TransformFunction {g}, x, args...);
       }, ns);
       if constexpr (sizeof...(Ts) > 0)
       {
-        auto [out, cross] = std::move(ret);
         return this->operator()(std::move(out), ts...);
       }
       else
       {
-        return ret;
+        return out;
+      }
+    }
+
+    /**
+     * Linearly transform one statistical distribution to another, also returning the cross-covariance.
+     * @tparam LinTransformation A linear transformation (e.g., class LinearTransformation).
+     * @tparam InputDist Input distribution.
+     * @tparam NoiseDist Noise distribution.
+     **/
+    template<
+      typename LinTransformation,
+      typename InputDist,
+      typename ... NoiseDist,
+      std::enable_if_t<std::conjunction_v<is_linearized_function<LinTransformation, 1>,
+        is_distribution<InputDist>, is_distribution<NoiseDist>...>, int> = 0>
+    auto transform_with_cross_covariance(
+      const LinTransformation& g,
+      const InputDist& x,
+      const NoiseDist& ...ns) const
+    {
+      return Base::transform<true>(TransformFunction {g}, x, ns...);
+    }
+
+    /**
+     * Perform one or more consecutive linear transforms, also returning the cross-covariance.
+     * @tparam InputDist Input distribution.
+     * @tparam T The first tuple containing (1) a LinearTransformation and (2) zero or more noise terms for that transformation.
+     * @tparam Ts A list of tuples containing (1) a LinearTransformation and (2) zero or more noise terms for that transformation.
+     **/
+    template<typename InputDist, typename T, typename...Ts,
+      std::enable_if_t<is_distribution_v<InputDist>, int> = 0>
+    auto transform_with_cross_covariance(const InputDist& x, const T& t, const Ts&...ts) const
+    {
+      auto g = std::get<0>(t);
+      auto ns = internal::tuple_slice<1, std::tuple_size_v<T>>(t);
+      if constexpr (sizeof...(Ts) > 0)
+      {
+        auto out = std::apply([&](const auto&...args) {
+          static_assert(is_linearized_function_v<decltype(g), 1>);
+          return Base::transform<false>(TransformFunction {g}, x, args...);
+        }, ns);
+        return transform_with_cross_covariance(std::move(out), ts...);
+      }
+      else
+      {
+        return std::apply([&](const auto&...args) {
+          static_assert(is_linearized_function_v<decltype(g), 1>);
+          return Base::transform<true>(TransformFunction {g}, x, args...);
+        }, ns);
       }
     }
 

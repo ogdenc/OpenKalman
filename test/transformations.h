@@ -21,7 +21,7 @@
 using namespace OpenKalman;
 
 template<int n>
-inline const auto sum_of_squares = make_Transformation<Axes<n>, Axis>
+inline const auto sum_of_squares = make_Transformation
   (
     [](const auto& x, const auto&...ps) // function
     {
@@ -50,13 +50,13 @@ inline const auto sum_of_squares = make_Transformation<Axes<n>, Axis>
 
       std::array<TypedMatrix<Axes<n>, Axes<n>, Eigen::Matrix<double, n, n>>, 1> I;
       I[0] = 2 * Eigen::Matrix<double, n, n>::Identity();
-      using F =
+
       return std::tuple_cat(std::tuple {I}, internal::tuple_replicate<sizeof...(ps)>(zero_hessian<Axis, decltype(x), decltype(ps)...>()));
     }
   );
 
 template<int n>
-inline const auto time_of_arrival = make_Transformation<Axes<n>, Axis>
+inline const auto time_of_arrival = make_Transformation
   (
     [](const auto& x, const auto&...ps) // function
     {
@@ -90,7 +90,7 @@ using C2t = Coefficients<Axis, Axis>;
 using M2t = Mean<C2t, Eigen::Matrix<double, 2, 1>>;
 using M22t = TypedMatrix<C2t, C2t, Eigen::Matrix<double, 2, 2>>;
 
-inline const auto radar = make_Transformation<C2t, C2t>
+inline const auto radar = make_Transformation
   (
     [](const M2t& x, const auto&...ps) // function
     {
@@ -119,7 +119,7 @@ inline const auto radar = make_Transformation<C2t, C2t>
 using M2Pt = Mean<Polar<>, Eigen::Matrix<double, 2, 1>>;
 using M22Pt = TypedMatrix<Polar<>, Polar<>, Eigen::Matrix<double, 2, 2>>;
 
-inline const auto radarP = make_Transformation<Polar<>, Polar<>>
+inline const auto radarP = make_Transformation
   (
     [](const M2Pt& x, const auto&...ps) // function
     {

@@ -31,7 +31,21 @@ namespace OpenKalman
       static_assert(std::conjunction_v<is_equivalent<typename DistributionTraits<InputDist>::Coefficients,
         typename DistributionTraits<NoiseDist>::Coefficients>...>,
         "Input and Noise distributions must be the same size and an equivalent type.");
+      auto scaled_cov = in * inv_lambda;
+      return strict((scaled_cov + ... + n));
+    }
 
+    /**
+     * Perform RLS transform, also returning the cross-covariance.
+     * @tparam InputDist Input distribution.
+     * @tparam NoiseDist Noise distributions.
+     **/
+    template<typename InputDist, typename ... NoiseDist>
+    auto transform_with_cross_covariance(InputDist&& in, const NoiseDist& ...n) const
+    {
+      static_assert(std::conjunction_v<is_equivalent<typename DistributionTraits<InputDist>::Coefficients,
+        typename DistributionTraits<NoiseDist>::Coefficients>...>,
+        "Input and Noise distributions must be the same size and an equivalent type.");
       auto scaled_cov = in * inv_lambda;
       auto out_covariance = strict((scaled_cov + ... + n));
       auto cross_covariance = TypedMatrix {scaled_cov};
