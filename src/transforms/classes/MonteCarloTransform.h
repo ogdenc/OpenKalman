@@ -29,7 +29,7 @@ namespace OpenKalman
   struct MonteCarloTransform
   {
   protected:
-    template<typename TransformationType, typename InputDistribution, typename...NoiseDistributions>
+    template<bool return_cross, typename TransformationType, typename InputDistribution, typename...NoiseDistributions>
     struct MonteCarloSet
     {
     protected:
@@ -52,8 +52,15 @@ namespace OpenKalman
       using OutputCovariance = Covariance<OutputCoefficients, OutputCovarianceSA>;
       using CrossCovariance = TypedMatrix<InputCoefficients, OutputCoefficients, CrossCovarianceMatrix>;
 
-    public:
-      struct MonteCarloSum
+      struct MonteCarloSum0
+      {
+        std::size_t count;
+        InputMean x;
+        OutputEuclideanMean y_E;
+        OutputCovariance yy;
+      };
+
+      struct MonteCarloSum1
       {
         std::size_t count;
         InputMean x;
@@ -62,12 +69,20 @@ namespace OpenKalman
         CrossCovariance xy;
       };
 
+    public:
+      using MonteCarloSum = std::conditional_t<return_cross, MonteCarloSum0, MonteCarloSum1>;
+
       static constexpr auto
       zero()
       {
-        return MonteCarloSum {
-          0, MatrixTraits<InputMean>::zero(), MatrixTraits<OutputEuclideanMean>::zero(),
-          MatrixTraits<OutputCovariance>::zero(), MatrixTraits<CrossCovariance>::zero()};
+        if constexpr (return_cross)
+          return MonteCarloSum {
+            0, MatrixTraits<InputMean>::zero(), MatrixTraits<OutputEuclideanMean>::zero(),
+            MatrixTraits<OutputCovariance>::zero(), MatrixTraits<CrossCovariance>::zero()};
+        else
+          return MonteCarloSum {
+            0, MatrixTraits<InputMean>::zero(), MatrixTraits<OutputEuclideanMean>::zero(),
+            MatrixTraits<OutputCovariance>::zero()};
       }
 
       static auto
@@ -75,7 +90,10 @@ namespace OpenKalman
       {
         const auto x = dist();
         const auto y = trans(x, noise()...);
-        return MonteCarloSum {1, x, to_Euclidean(y), OutputCovariance::zero(), CrossCovariance::zero()};
+        if constexpr (return_cross)
+          return MonteCarloSum {1, x, to_Euclidean(y), OutputCovariance::zero(), CrossCovariance::zero()};
+        else
+          return MonteCarloSum {1, x, to_Euclidean(y), OutputCovariance::zero()};
       }
 
       struct MonteCarloBinaryOp
@@ -92,8 +110,15 @@ namespace OpenKalman
             const auto delta = from_Euclidean(set2.y_E) - from_Euclidean(set1.y_E);
             const auto delta_adj_factor = adjoint(delta) * set1.count / s_count;
             const auto yy = set1.yy + delta * delta_adj_factor;
-            const auto xy = set1.xy + (set2.x - set1.x) * delta_adj_factor;
-            return MonteCarloSum {count, x, y_E, yy, xy};
+            if constexpr (return_cross)
+            {
+              const auto xy = set1.xy + (set2.x - set1.x) * delta_adj_factor;
+              return MonteCarloSum {count, x, y_E, yy, xy};
+            }
+            else
+            {
+              return MonteCarloSum {count, x, y_E, yy};
+            }
           }
           else
           {
@@ -104,8 +129,15 @@ namespace OpenKalman
             const auto delta = from_Euclidean(set2.y_E) - from_Euclidean(set1.y_E);
             const auto delta_adj_factor = adjoint(delta) * set1.count * set2.count / s_count;
             const auto yy = set1.yy + set2.yy + delta * delta_adj_factor;
-            const auto xy = set1.xy + set2.xy + (set2.x - set1.x) * delta_adj_factor;
-            return MonteCarloSum {count, x, y_E, yy, xy};
+            if constexpr (return_cross)
+            {
+              const auto xy = set1.xy + set2.xy + (set2.x - set1.x) * delta_adj_factor;
+              return MonteCarloSum {count, x, y_E, yy, xy};
+            }
+            else
+            {
+              return MonteCarloSum {count, x, y_E, yy};
+            }
           }
         }
       };
@@ -160,7 +192,7 @@ namespace OpenKalman
       const InputDist& in,
       const NoiseDist& ...n) const
     {
-      using MSet = MonteCarloSet<TransformationType, InputDist, NoiseDist...>;
+      using MSet = MonteCarloSet<false, TransformationType, InputDist, NoiseDist...>;
       auto m_set = MSet(transformation, size, in, n...);
       auto binary_op = typename MSet::MonteCarloBinaryOp();
       using MSum = typename MSet::MonteCarloSum;
@@ -177,7 +209,7 @@ namespace OpenKalman
       const InputDist& in,
       const NoiseDist& ...n) const
     {
-      using MSet = MonteCarloSet<TransformationType, InputDist, NoiseDist...>;
+      using MSet = MonteCarloSet<true, TransformationType, InputDist, NoiseDist...>;
       auto m_set = MSet(transformation, size, in, n...);
       auto binary_op = typename MSet::MonteCarloBinaryOp();
       using MSum = typename MSet::MonteCarloSum;
