@@ -50,7 +50,7 @@ public:
     auto covariances = std::forward_as_tuple(p, covariance(noise)...);
     auto cov = sumprod(jacobians, covariances, std::make_index_sequence<sizeof...(Noise) + 1>{});
     std::tuple out_true {GaussianDistribution {y, cov}, cross_cov};
-    auto out = t.transform_with_cross_covariance(g, in, noise...);
+    auto out = t.transform_with_cross_covariance(in, g, noise...);
     auto res = is_near(out, out_true, err);
     if (res)
       return ::testing::AssertionSuccess();

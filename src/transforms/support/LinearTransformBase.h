@@ -21,7 +21,8 @@ namespace OpenKalman::internal
   /**
    * Internal base class for linear or linearized transformations from one statistical distribution to another.
    **/
-  struct LinearTransformBase
+  template<typename Derived>
+  struct LinearTransformBase : TransformBase<Derived>
   {
   private:
     template<std::size_t return_cross, typename J, typename Dist, std::size_t...ints>
@@ -54,9 +55,7 @@ namespace OpenKalman::internal
           auto cov = make_Covariance((
             (std::get<0>(j) * cross) +
               ... + (std::get<ints+1>(j) * (covariance(std::get<ints+1>(dist)) * adjoint(std::get<ints+1>(j))))));
-          return std::tuple {
-            std::move(cov),
-            std::move(cross)};
+          return std::tuple {std::move(cov), std::move(cross)};
         }
         else
         {
@@ -68,6 +67,8 @@ namespace OpenKalman::internal
     }
 
   protected:
+  using Base = TransformBase<Derived>;
+
   /**
    * Linearly transform one statistical distribution to another.
    * @tparam TransformFunction Underlying transform function that takes an input distribution and an optional set of
@@ -103,6 +104,36 @@ namespace OpenKalman::internal
         else
           return out;
       }
+    }
+
+  public:
+    using Base::operator();
+    using Base::transform_with_cross_covariance;
+
+    /**
+     * Perform a linear(ized) transform from one statistical distribution to another.
+     * @tparam InputDist Input distribution.
+     * @tparam Transformation The transformation on which the transform is based (e.g., LinearTransformation).
+     * @tparam NoiseDists Noise distributions.
+     **/
+    template<typename InputDist, typename Trans, typename ... NoiseDists, std::enable_if_t<std::conjunction_v<
+      is_linearized_function<Trans, 1>, is_distribution<InputDist>, is_distribution<NoiseDists>...>, int> = 0>
+    auto operator()(const InputDist& x, const Trans& g, const NoiseDists&...ns) const
+    {
+      return transform<false>(typename Derived::TransformFunction<Trans> {g}, x, ns...);
+    }
+
+    /**
+     * Perform a linear(ized) transform, also returning the cross-covariance.
+     * @tparam InputDist Input distribution.
+     * @tparam Transformation The transformation on which the transform is based (e.g., LinearTransformation).
+     * @tparam NoiseDists Noise distributions.
+     **/
+    template<typename InputDist, typename Trans, typename ... NoiseDists, std::enable_if_t<std::conjunction_v<
+      is_linearized_function<Trans, 1>, is_distribution<InputDist>, is_distribution<NoiseDists>...>, int> = 0>
+    auto transform_with_cross_covariance(const InputDist& x, const Trans& g, const NoiseDists&...ns) const
+    {
+      return transform<true>(typename Derived::TransformFunction<Trans> {g}, x, ns...);
     }
 
   };

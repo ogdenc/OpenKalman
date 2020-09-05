@@ -11,8 +11,6 @@
 #ifndef OPENKALMAN_SPHERICALSIMPLEX_H
 #define OPENKALMAN_SPHERICALSIMPLEX_H
 
-#include "transforms/support/ScaledSigmaPointsBase.h"
-
 namespace OpenKalman
 {
   /*************SphericalSimplexSigmaPoints************

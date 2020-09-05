@@ -29,7 +29,7 @@ TEST_F(transform_linear_tests, linear_additive_angle)
                      0, 0.011};
   LinearTransformation g {a};
   LinearTransform t;
-  auto [out, cross] = t.transform_with_cross_covariance(g, input);
+  auto [out, cross] = t.transform_with_cross_covariance(input, g);
   EXPECT_TRUE(is_near(out, output));
   EXPECT_TRUE(is_near(cross, cross_output));
 }
@@ -45,7 +45,7 @@ TEST_F(transform_linear_tests, linear_additive_angle_Cholesky)
                      0, 0.011};
   LinearTransformation g {a};
   LinearTransform t;
-  auto [out, cross] = t.transform_with_cross_covariance(g, input);
+  auto [out, cross] = t.transform_with_cross_covariance(input, g);
   EXPECT_TRUE(is_near(out, output));
   EXPECT_TRUE(is_near(cross, cross_output));
 }
@@ -63,7 +63,7 @@ TEST_F(transform_linear_tests, linear_augmented_angle)
   const GaussianDistribution output {M2(1.1, 1.1 * 19 / 20 * M_PI - 2 * M_PI), P_output};
   LinearTransformation g {a, an};
   LinearTransform t;
-  auto [out, cross] = t.transform_with_cross_covariance(g, input, noise);
+  auto [out, cross] = t.transform_with_cross_covariance(input, g, noise);
   EXPECT_TRUE(is_near(out, output));
   EXPECT_TRUE(is_near(cross, cross_output));
 }
@@ -81,7 +81,7 @@ TEST_F(transform_linear_tests, linear_augmented_angle_Cholesky)
   const GaussianDistribution output {M2(1.1, 1.1 * 19 / 20 * M_PI - 2 * M_PI), P_output};
   LinearTransformation g {a, an};
   LinearTransform t;
-  auto [out, cross] = t.transform_with_cross_covariance(g, input, noise);
+  auto [out, cross] = t.transform_with_cross_covariance(input, g, noise);
   EXPECT_TRUE(is_near(out, output));
   EXPECT_TRUE(is_near(cross, cross_output));
 }

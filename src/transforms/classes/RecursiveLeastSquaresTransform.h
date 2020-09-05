@@ -19,20 +19,25 @@ namespace OpenKalman
    * @tparam Scalar The scalar type.
    */
   template<typename Scalar = double>
-  struct RecursiveLeastSquaresTransform
+  struct RecursiveLeastSquaresTransform : TransformBase<RecursiveLeastSquaresTransform<Scalar>>
   {
     explicit RecursiveLeastSquaresTransform(const Scalar lambda = 0.9995)
      : inv_lambda(1/lambda) {}
 
-    /// Apply the RLS transform on an input distribution. Any noise distributions are treated as additive.
-    template<typename InputDist, typename ... NoiseDist>
-    auto operator()(InputDist&& in, const NoiseDist& ...n) const
+    /**
+     * Apply the RLS transform on an input distribution. Any noise distributions are treated as additive.
+     * @tparam InputDist Input distribution.
+     * @tparam NoiseDists Noise distribution.
+     **/
+    template<typename InputDist, typename ... NoiseDists,
+      std::enable_if_t<std::conjunction_v<is_distribution<InputDist>, is_distribution<NoiseDists>...>, int> = 0>
+    auto operator()(const InputDist& x, const NoiseDists& ...ns) const
     {
       static_assert(std::conjunction_v<is_equivalent<typename DistributionTraits<InputDist>::Coefficients,
-        typename DistributionTraits<NoiseDist>::Coefficients>...>,
+        typename DistributionTraits<NoiseDists>::Coefficients>...>,
         "Input and Noise distributions must be the same size and an equivalent type.");
-      auto scaled_cov = in * inv_lambda;
-      return strict((scaled_cov + ... + n));
+      const auto scaled_x = GaussianDistribution {mean(x), covariance(x) * inv_lambda};
+      return strict((scaled_x + ... + ns));
     }
 
     /**
@@ -40,16 +45,18 @@ namespace OpenKalman
      * @tparam InputDist Input distribution.
      * @tparam NoiseDist Noise distributions.
      **/
-    template<typename InputDist, typename ... NoiseDist>
-    auto transform_with_cross_covariance(InputDist&& in, const NoiseDist& ...n) const
+    template<typename InputDist, typename ... NoiseDists,
+      std::enable_if_t<std::conjunction_v<is_distribution<InputDist>, is_distribution<NoiseDists>...>, int> = 0>
+    auto transform_with_cross_covariance(const InputDist& x, const NoiseDists& ...ns) const
     {
       static_assert(std::conjunction_v<is_equivalent<typename DistributionTraits<InputDist>::Coefficients,
-        typename DistributionTraits<NoiseDist>::Coefficients>...>,
+        typename DistributionTraits<NoiseDists>::Coefficients>...>,
         "Input and Noise distributions must be the same size and an equivalent type.");
-      auto scaled_cov = in * inv_lambda;
-      auto out_covariance = strict((scaled_cov + ... + n));
-      auto cross_covariance = TypedMatrix {scaled_cov};
-      return std::tuple {std::move(out_covariance), std::move(cross_covariance)};
+      auto scaled_cov = strict(covariance(x) * inv_lambda);
+      const auto scaled_x = GaussianDistribution {mean(x), scaled_cov};
+      auto y = strict((scaled_x + ... + ns));
+      auto cross = TypedMatrix {scaled_cov};
+      return std::tuple {std::move(y), std::move(cross)};
     }
 
   protected:

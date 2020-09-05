@@ -24,9 +24,8 @@ namespace OpenKalman
    * "Updating Formulae and a Pairwise Algorithm for Computing Sample Variances."
    * Technical Report STAN-CS-79-773, Department of Computer Science, Stanford University.
    * http://i.stanford.edu/pub/cstr/reports/cs/tr/79/773/CS-TR-79-773.pdf
-   * @TODO: Separate-out a faster version that does not calculate the cross-covariance.
    */
-  struct MonteCarloTransform
+  struct MonteCarloTransform : TransformBase<MonteCarloTransform>
   {
   protected:
     template<bool return_cross, typename TransformationType, typename InputDistribution, typename...NoiseDistributions>
@@ -70,7 +69,7 @@ namespace OpenKalman
       };
 
     public:
-      using MonteCarloSum = std::conditional_t<return_cross, MonteCarloSum0, MonteCarloSum1>;
+      using MonteCarloSum = std::conditional_t<return_cross, MonteCarloSum1, MonteCarloSum0>;
 
       static constexpr auto
       zero()
@@ -186,14 +185,13 @@ namespace OpenKalman
   public:
     explicit MonteCarloTransform(const std::size_t samples = 100000) : size(samples) {}
 
-    template<typename TransformationType, typename InputDist, typename ... NoiseDist>
-    auto operator()(
-      const TransformationType& transformation,
-      const InputDist& in,
-      const NoiseDist& ...n) const
+    template<typename InputDist, typename Trans, typename ... NoiseDist,
+      std::enable_if_t<std::conjunction_v<is_distribution<InputDist>, is_distribution<NoiseDist>...> and
+        std::is_invocable_v<Trans, typename DistributionTraits<InputDist>::Mean, typename DistributionTraits<NoiseDist>::Mean...>, int> = 0>
+    auto operator()(const InputDist& x, const Trans& transformation, const NoiseDist& ...n) const
     {
-      using MSet = MonteCarloSet<false, TransformationType, InputDist, NoiseDist...>;
-      auto m_set = MSet(transformation, size, in, n...);
+      using MSet = MonteCarloSet<false, Trans, InputDist, NoiseDist...>;
+      auto m_set = MSet(transformation, size, x, n...);
       auto binary_op = typename MSet::MonteCarloBinaryOp();
       using MSum = typename MSet::MonteCarloSum;
 
@@ -203,14 +201,13 @@ namespace OpenKalman
       return GaussianDistribution {mean_output, out_covariance};
     }
 
-    template<typename TransformationType, typename InputDist, typename ... NoiseDist>
-    auto transform_with_cross_covariance(
-      const TransformationType& transformation,
-      const InputDist& in,
-      const NoiseDist& ...n) const
+    template<typename InputDist, typename Trans, typename ... NoiseDist,
+      std::enable_if_t<std::conjunction_v<is_distribution<InputDist>, is_distribution<NoiseDist>...> and
+        std::is_invocable_v<Trans, typename DistributionTraits<InputDist>::Mean, typename DistributionTraits<NoiseDist>::Mean...>, int> = 0>
+    auto transform_with_cross_covariance(const InputDist& x, const Trans& transformation, const NoiseDist& ...n) const
     {
-      using MSet = MonteCarloSet<true, TransformationType, InputDist, NoiseDist...>;
-      auto m_set = MSet(transformation, size, in, n...);
+      using MSet = MonteCarloSet<true, Trans, InputDist, NoiseDist...>;
+      auto m_set = MSet(transformation, size, x, n...);
       auto binary_op = typename MSet::MonteCarloBinaryOp();
       using MSum = typename MSet::MonteCarloSum;
 

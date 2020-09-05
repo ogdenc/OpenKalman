@@ -11,8 +11,6 @@
 #ifndef OPENKALMAN_UNSCENTED_H
 #define OPENKALMAN_UNSCENTED_H
 
-#include "transforms/support/ScaledSigmaPointsBase.h"
-
 namespace OpenKalman
 {
   /*************SymmetricSigmaPoints************

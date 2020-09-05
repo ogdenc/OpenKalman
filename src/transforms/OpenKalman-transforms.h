@@ -15,11 +15,13 @@
 #include "transforms/transformations/LinearTransformation.h"
 #include "transforms/transformations/IdentityTransformation.h"
 
-#include "transforms/sample-points/CubaturePoints.h"
+#include "transforms/support/ScaledSigmaPointsBase.h"
 #include "transforms/sample-points/SigmaPointsTypes/Unscented.h"
 #include "transforms/sample-points/SigmaPointsTypes/SphericalSimplex.h"
 #include "transforms/sample-points/SigmaPoints.h"
+#include "transforms/sample-points/CubaturePoints.h"
 
+#include "transforms/support/TransformBase.h"
 #include "transforms/support/LinearTransformBase.h"
 #include "transforms/classes/LinearTransform.h"
 #include "transforms/classes/LinearizedTransform.h"

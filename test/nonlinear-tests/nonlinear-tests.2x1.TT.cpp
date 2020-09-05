@@ -36,7 +36,7 @@ TEST_F(nonlinear_tests, TT1SumOfSquares2SelfAdjoint)
   auto g = sum_of_squares<n>;
   LinearizedTransform t;
   auto in = G<n>::normal();
-  auto out = t(g, in);
+  auto out = t(in, g);
   EXPECT_NEAR(mean(out)(0), 0., 1e-6);
   EXPECT_NEAR(covariance(out)(0,0), 0., 1e-6);
 }
@@ -47,7 +47,7 @@ TEST_F(nonlinear_tests, TT1SumOfSquares2Triangular)
   auto g = sum_of_squares<n>;
   LinearizedTransform t;
   auto in = GT<n>::normal();
-  auto out = t(g, in);
+  auto out = t(in, g);
   EXPECT_NEAR(mean(out)(0), 0., 1e-6);
   EXPECT_NEAR(covariance(out)(0,0), 0., 1e-6);
 }
@@ -58,7 +58,7 @@ TEST_F(nonlinear_tests, TT1SumOfSquares5SelfAdjoint)
   auto g = sum_of_squares<n>;
   LinearizedTransform t;
   auto in = G<n>::normal();
-  auto out = t(g, in);
+  auto out = t(in, g);
   EXPECT_NEAR(mean(out)(0), 0., 1e-6);
   EXPECT_NEAR(covariance(out)(0,0), 0., 1e-6);
 }
@@ -69,7 +69,7 @@ TEST_F(nonlinear_tests, TT1SumOfSquares5Triangular)
   auto g = sum_of_squares<n>;
   LinearizedTransform t;
   auto in = GT<n>::normal();
-  auto out = t(g, in);
+  auto out = t(in, g);
   EXPECT_NEAR(mean(out)(0), 0., 1e-6);
   EXPECT_NEAR(covariance(out)(0,0), 0., 1e-6);
 }
@@ -80,7 +80,7 @@ TEST_F(nonlinear_tests, TT2SumOfSquares2SelfAdjoint)
   auto g = sum_of_squares<n>;
   LinearizedTransform<2> t;
   auto in = G<n>::normal();
-  auto out = t(g, in);
+  auto out = t(in, g);
   EXPECT_NEAR(mean(out)(0), (double) n, 1e-6);
   EXPECT_NEAR(covariance(out)(0,0), 2. * n, 1e-6);
 }
@@ -91,7 +91,7 @@ TEST_F(nonlinear_tests, TT2SumOfSquares2Triangular)
   auto g = sum_of_squares<n>;
   LinearizedTransform<2> t;
   auto in = GT<n>::normal();
-  auto out = t(g, in);
+  auto out = t(in, g);
   EXPECT_NEAR(mean(out)(0), (double) n, 1e-6);
   EXPECT_NEAR(covariance(out)(0,0), 2. * n, 1e-6);
 }
@@ -102,7 +102,7 @@ TEST_F(nonlinear_tests, TT2SumOfSquares5SelfAdjoint)
   auto g = sum_of_squares<n>;
   LinearizedTransform<2> t;
   auto in = G<n>::normal();
-  auto out = t(g, in);
+  auto out = t(in, g);
   EXPECT_NEAR(mean(out)(0), (double) n, 1e-6);
   EXPECT_NEAR(covariance(out)(0,0), 2. * n, 1e-6);
 }
@@ -113,7 +113,7 @@ TEST_F(nonlinear_tests, TT2SumOfSquares5Triangular)
   auto g = sum_of_squares<n>;
   LinearizedTransform<2> t;
   auto in = GT<n>::normal();
-  auto out = t(g, in);
+  auto out = t(in, g);
   EXPECT_NEAR(mean(out)(0), (double) n, 1e-6);
   EXPECT_NEAR(covariance(out)(0,0), 2. * n, 1e-6);
 }
@@ -124,7 +124,7 @@ TEST_F(nonlinear_tests, TT1TOA2SelfAdjoint)
   auto g = time_of_arrival<n>;
   LinearizedTransform t;
   auto in = G<n> {{3., 0}, {1., 0, 0, 10}};
-  auto out = t(g, in);
+  auto out = t(in, g);
   EXPECT_NEAR(mean(out)(0), 3., 1e-6);
   EXPECT_NEAR(covariance(out)(0,0), 1., 1e-6);
 }
@@ -135,7 +135,7 @@ TEST_F(nonlinear_tests, TT1TOA2Triangular)
   auto g = time_of_arrival<n>;
   LinearizedTransform t;
   auto in = GT<n> {{3., 0}, {1., 0, 0, 10}};
-  auto out = t(g, in);
+  auto out = t(in, g);
   EXPECT_NEAR(mean(out)(0), 3., 1e-6);
   EXPECT_NEAR(covariance(out)(0,0), 1., 1e-6);
 }
@@ -146,7 +146,7 @@ TEST_F(nonlinear_tests, TT2TOA2SelfAdjoint)
   auto g = time_of_arrival<n>;
   LinearizedTransform<2> t;
   auto in = G<n> {{3., 0}, {1., 0, 0, 10}};
-  auto out = t(g, in);
+  auto out = t(in, g);
   EXPECT_NEAR(mean(out)(0), 4.67, 1e-2);
   EXPECT_NEAR(covariance(out)(0,0), 6.56, 1e-2);
 }
@@ -157,7 +157,7 @@ TEST_F(nonlinear_tests, TT2TOA2Triangular)
   auto g = time_of_arrival<n>;
   LinearizedTransform<2> t;
   auto in = GT<n> {{3., 0}, {1., 0, 0, 10}};
-  auto out = t(g, in);
+  auto out = t(in, g);
   EXPECT_NEAR(mean(out)(0), 4.67, 1e-2);
   EXPECT_NEAR(covariance(out)(0,0), 6.56, 1e-2);
 }
@@ -168,7 +168,7 @@ TEST_F(nonlinear_tests, TT1TOA3SelfAdjoint)
   auto g = time_of_arrival<n>;
   LinearizedTransform t;
   auto in = G<n> {{3., 0, 0}, {1., 0, 0, 0, 10, 0, 0, 0, 10}};
-  auto out = t(g, in);
+  auto out = t(in, g);
   EXPECT_NEAR(mean(out)(0), 3., 1e-6);
   EXPECT_NEAR(covariance(out)(0,0), 1., 1e-6);
 }
@@ -179,7 +179,7 @@ TEST_F(nonlinear_tests, TT1TOA3Triangular)
   auto g = time_of_arrival<n>;
   LinearizedTransform t;
   auto in = GT<n> {{3., 0, 0}, {1., 0, 0, 0, 10, 0, 0, 0, 10}};
-  auto out = t(g, in);
+  auto out = t(in, g);
   EXPECT_NEAR(mean(out)(0), 3., 1e-6);
   EXPECT_NEAR(covariance(out)(0,0), 1., 1e-6);
 }
@@ -190,7 +190,7 @@ TEST_F(nonlinear_tests, TT2TOA3SelfAdjoint)
   auto g = time_of_arrival<n>;
   LinearizedTransform<2> t;
   auto in = G<n> {{3., 0, 0}, {1., 0, 0, 0, 10, 0, 0, 0, 10}};
-  auto out = t(g, in);
+  auto out = t(in, g);
   EXPECT_NEAR(mean(out)(0), 6.33, 1e-2);
   EXPECT_NEAR(covariance(out)(0,0), 12.1, 1e-1);
 }
@@ -201,7 +201,7 @@ TEST_F(nonlinear_tests, TT2TOA3Triangular)
   auto g = time_of_arrival<n>;
   LinearizedTransform<2> t;
   auto in = GT<n> {{3., 0, 0}, {1., 0, 0, 0, 10, 0, 0, 0, 10}};
-  auto out = t(g, in);
+  auto out = t(in, g);
   EXPECT_NEAR(mean(out)(0), 6.33, 1e-2);
   EXPECT_NEAR(covariance(out)(0,0), 12.1, 1e-1);
 }
