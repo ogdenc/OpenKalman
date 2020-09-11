@@ -93,7 +93,7 @@ namespace OpenKalman
       constexpr auto count = MatrixTraits<YMeans>::columns;
       static_assert(count == SigmaPointsType::template sigma_point_count<dim>(), "Wrong number of sigma points.");
       using Weights = TypedMatrix<Axes<count>, Axis, strict_matrix_t<YMeans, count, 1>>;
-      return strict(from_Euclidean(y_means * mean_weights<dim, Weights>()));
+      return strict(y_means * mean_weights<dim, Weights>());
     }
 
     template<std::size_t dim, typename InputDist, bool return_cross = false, typename X, typename Y>

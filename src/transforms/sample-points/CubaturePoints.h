@@ -101,7 +101,7 @@ namespace OpenKalman
     {
       static_assert(is_column_vector_v<Arg>);
       static_assert(MatrixTraits<Arg>::columns == dim * 2, "Wrong number of cubature points.");
-      return from_Euclidean(reduce_columns(y_means));
+      return reduce_columns(y_means);
     };
 
     template<std::size_t dim, typename InputDist, bool return_cross = false, typename X, typename Y>
