@@ -123,18 +123,18 @@ inline const auto radarP = make_Transformation
   (
     [](const M2Pt& x, const auto&...ps) // function
     {
-      return (M2Pt {x(0) * cos(x(1)), x(0) * sin(x(1))} + ... + ps);
+      return (M2t {x(0) * cos(x(1)), x(0) * sin(x(1))} + ... + ps);
     },
     [](const M2Pt& x, const auto&...ps) // Jacobians
     {
-      M22Pt ret = {
+      M22t ret = {
         std::cos(x(1)), -x(0) * std::sin(x(1)),
         std::sin(x(1)), x(0) * std::cos(x(1))};
-      return std::tuple_cat(std::tuple {ret}, internal::tuple_replicate<sizeof...(ps)>(M2Pt::identity()));
+      return std::tuple_cat(std::tuple {ret}, internal::tuple_replicate<sizeof...(ps)>(M2t::identity()));
     },
     [](const M2Pt& x, const auto&...ps) // Hessians
     {
-      std::array<M22Pt, 2> ret;
+      std::array<M22t, 2> ret;
       ret[0] = {0, -sin(x(1)),
                 -sin(x(1)), -x(0) * cos(x(1))};
       ret[1] = {0, cos(x(1)),
@@ -143,6 +143,16 @@ inline const auto radarP = make_Transformation
         zero_hessian<Polar<>, decltype(x), decltype(ps)...>()));
     }
   );
+
+
+inline const auto Cartesian2polar = make_Transformation
+  (
+    [](const M2t& x, const auto&...ps)
+    {
+      return (M2Pt {std::hypot(x(1), x(0)), std::atan2(x(1), x(0))} + ... + ps);
+    }
+  );
+
 
 
 #endif //OPENKALMAN_TESTS_TRANSFORMATIONS_H

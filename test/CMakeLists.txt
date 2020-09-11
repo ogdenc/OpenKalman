@@ -105,8 +105,10 @@ add_test(transform-nonlinear-tests 0)
 
 add_executable(linear-tests
         linear-tests/linear-tests.main.cpp
-        linear-tests/linear-tests.2x2.cpp
+        linear-tests/linear-tests.2x2.linear.cpp
+        linear-tests/linear-tests.2x3.linear.cpp
         linear-tests/linear-tests.2x2.sample.cpp
+        linear-tests/linear-tests.2x3.sample.cpp
         linear-tests/linear-tests.3x2.sample.cpp
         linear-tests/linear-tests.4x3.sample.cpp
         linear-tests/linear-tests.identity.cpp
@@ -134,12 +136,7 @@ add_test(nonlinear-tests 0)
 
 add_executable(kalman-tests
         kalman-tests/kalman-tests.main.cpp
-        kalman-tests/kalman-tests.2x2.update.cpp
-        kalman-tests/kalman-tests.2x2.linear.cpp
-        kalman-tests/kalman-tests.2x2.CT.Add.cpp
-        kalman-tests/kalman-tests.2x2.CT.Aug.cpp
-        kalman-tests/kalman-tests.2x2.UT.spher.Add.cpp
-        kalman-tests/kalman-tests.radial.CT.Aug.cpp
+        kalman-tests/kalman-tests.linear.cpp
         )
 set_target_properties(kalman-tests PROPERTIES CXX_STANDARD_REQUIRED ON CXX_STANDARD 17)
 target_link_libraries(kalman-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)

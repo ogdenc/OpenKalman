@@ -55,19 +55,17 @@ namespace OpenKalman
        * Add second-order moment terms, based on Hessian matrices.
        * @tparam Hessian An array of Hessian matrices. Must be accessible by bracket index, as in hessian[i].
        * Each matrix is a regular matrix type.
-       * @tparam InputDist Input distribution.
+       * @tparam Dist Input or noise distribution.
        * @return
        */
-      template<typename Hessian, typename InputDist>
-      static auto second_order_term(const Hessian& hessian, const InputDist& x)
+      template<typename OutputCoeffs, typename Hessian, typename Dist>
+      static auto second_order_term(const Hessian& hessian, const Dist& x)
       {
-        using In_Mean = typename DistributionTraits<InputDist>::Mean;
-        using Out_Mean = std::invoke_result_t<Transformation, In_Mean>;
-        using OutputCoeffs = typename MatrixTraits<Out_Mean>::RowCoefficients;
-        constexpr auto output_dim = OutputCoeffs::size;
+        constexpr auto output_dim = std::tuple_size_v<Hessian>;
+        static_assert(OutputCoeffs::size == output_dim);
         //
         // Convert input distribution type to output distribution types, and initialize mean and covariance:
-        using CovIn = typename MatrixTraits<typename DistributionTraits<InputDist>::Covariance>::BaseMatrix;
+        using CovIn = typename MatrixTraits<typename DistributionTraits<Dist>::Covariance>::BaseMatrix;
         using MeanOut = strict_matrix_t<CovIn, output_dim, 1>;
         using CovOut = typename MatrixTraits<CovIn>::template SelfAdjointBaseType<triangle_type_of_v<CovIn>, output_dim>;
 
@@ -78,17 +76,17 @@ namespace OpenKalman
         return GaussianDistribution(mean_terms, cov_terms);
       }
 
-      template<typename T1, typename T2, std::size_t...I>
+      template<typename OutputCoeffs, typename T1, typename T2, std::size_t...I>
       static auto zip_tuples_impl(const T1& t1, const T2& t2, std::index_sequence<I...>)
       {
-        return strict((second_order_term(std::get<I>(t1), std::get<I>(t2)) + ...));
+        return strict((second_order_term<OutputCoeffs>(std::get<I>(t1), std::get<I>(t2)) + ...));
       }
 
-      template<typename T1, typename T2>
+      template<typename OutputCoeffs, typename T1, typename T2>
       static constexpr auto zip_tuples(const T1& t1, const T2& t2)
       {
         static_assert(std::tuple_size_v<T1> == std::tuple_size_v<T2>);
-        return zip_tuples_impl(t1, t2, std::make_index_sequence<std::tuple_size_v<T1>>());
+        return zip_tuples_impl<OutputCoeffs>(t1, t2, std::make_index_sequence<std::tuple_size_v<T1>>());
       }
 
     public:
@@ -102,11 +100,14 @@ namespace OpenKalman
 
       static constexpr bool correction = order > 1;
 
-      template<typename Dist, typename ... Noise>
-      auto add_correction(const Dist& x, const Noise& ... n) const
+      template<typename InputDist, typename ... Noise>
+      auto add_correction(const InputDist& x, const Noise& ... n) const
       {
+        using In_Mean = typename DistributionTraits<InputDist>::Mean;
+        using Out_Mean = std::invoke_result_t<Transformation, In_Mean>;
+        using OutputCoeffs = typename MatrixTraits<Out_Mean>::RowCoefficients;
         const auto hessians = transformation.hessian(mean(x), mean(n)...);
-        return zip_tuples(hessians, std::tuple {x, n...});
+        return zip_tuples<OutputCoeffs>(hessians, std::tuple {x, n...});
       }
     };
     //-----------------------------------------------

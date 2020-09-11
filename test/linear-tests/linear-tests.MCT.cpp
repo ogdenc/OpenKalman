@@ -45,6 +45,16 @@ TEST_F(linear_tests, Linear2x2MonteCarloT)
   run_multiple_linear_tests<2, 2>(covT2, MCT, err * 4, M);
 }
 
+TEST_F(linear_tests, Linear2x3MonteCarloSA)
+{
+  run_multiple_linear_tests<2, 3>(covSA2, MCT, err * 4, M);
+}
+
+TEST_F(linear_tests, Linear2x3MonteCarloT)
+{
+  run_multiple_linear_tests<2, 3>(covT2, MCT, err * 4, M);
+}
+
 TEST_F(linear_tests, Linear3x2MonteCarloSA)
 {
   run_multiple_linear_tests<3, 2>(covSA3, MCT, err * 6, M);
