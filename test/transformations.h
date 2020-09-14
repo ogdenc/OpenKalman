@@ -117,7 +117,8 @@ inline const auto radar = make_Transformation
 
 
 using M2Pt = Mean<Polar<>, Eigen::Matrix<double, 2, 1>>;
-using M22Pt = TypedMatrix<Polar<>, Polar<>, Eigen::Matrix<double, 2, 2>>;
+using M22Pt = TypedMatrix<Polar<>, Axes<2>, Eigen::Matrix<double, 2, 2>>;
+using M22PPt = TypedMatrix<Polar<>, Polar<>, Eigen::Matrix<double, 2, 2>>;
 
 inline const auto radarP = make_Transformation
   (
@@ -130,7 +131,7 @@ inline const auto radarP = make_Transformation
       M22t ret = {
         std::cos(x(1)), -x(0) * std::sin(x(1)),
         std::sin(x(1)), x(0) * std::cos(x(1))};
-      return std::tuple_cat(std::tuple {ret}, internal::tuple_replicate<sizeof...(ps)>(M2t::identity()));
+      return std::tuple_cat(std::tuple {ret}, internal::tuple_replicate<sizeof...(ps)>(M22t::identity()));
     },
     [](const M2Pt& x, const auto&...ps) // Hessians
     {
@@ -140,7 +141,7 @@ inline const auto radarP = make_Transformation
       ret[1] = {0, cos(x(1)),
                 cos(x(1)), -x(0) * sin(x(1))};
       return std::tuple_cat(std::tuple {ret}, internal::tuple_replicate<sizeof...(ps)>(
-        zero_hessian<Polar<>, decltype(x), decltype(ps)...>()));
+        zero_hessian<C2t, decltype(x), decltype(ps)...>()));
     }
   );
 
@@ -149,7 +150,26 @@ inline const auto Cartesian2polar = make_Transformation
   (
     [](const M2t& x, const auto&...ps)
     {
-      return (M2Pt {std::hypot(x(1), x(0)), std::atan2(x(1), x(0))} + ... + ps);
+      return (M2Pt {std::hypot(x(0), x(1)), std::atan2(x(1), x(0))} + ... + ps);
+    },
+    [](const M2t& x, const auto&...ps) // Jacobians
+    {
+      const auto h = 1/std::hypot(x(1), x(0));
+      M22Pt ret = {
+        x(0)*h, x(1)*h,
+        -x(1)*h*h, x(0)*h*h};
+      return std::tuple_cat(std::tuple {ret}, internal::tuple_replicate<sizeof...(ps)>(M22PPt::identity()));
+    },
+    [](const M2t& x, const auto&...ps) // Hessians
+    {
+      const auto h = 1/std::hypot(x(1), x(0));
+      std::array<M22Pt, 2> ret;
+      ret[0] = {h - x(0)*x(0)*h*h*h, x(0)*x(1)*h*h*h,
+                x(0)*x(1)*h*h*h, h - x(1)*x(1)*h*h*h};
+      ret[1] = {2*x(0)*x(1)*h*h*h*h, -h*h + 2*x(0)*x(0)*h*h*h*h,
+                -h*h + 2*x(1)*x(1)*h*h*h*h, 2*x(0)*x(1)*h*h*h*h};
+      return std::tuple_cat(std::tuple {ret}, internal::tuple_replicate<sizeof...(ps)>(
+        zero_hessian<Polar<>, decltype(x), decltype(ps)...>()));
     }
   );
 

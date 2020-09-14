@@ -136,7 +136,9 @@ add_test(nonlinear-tests 0)
 
 add_executable(kalman-tests
         kalman-tests/kalman-tests.main.cpp
-        kalman-tests/kalman-tests.linear.cpp
+        #kalman-tests/kalman-tests.rotation.2D.cpp
+        #kalman-tests/kalman-tests.rotation.3D.cpp
+        kalman-tests/kalman-tests.radar.cpp
         )
 set_target_properties(kalman-tests PROPERTIES CXX_STANDARD_REQUIRED ON CXX_STANDARD 17)
 target_link_libraries(kalman-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)
