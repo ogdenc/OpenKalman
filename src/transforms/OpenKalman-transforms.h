@@ -11,6 +11,8 @@
 #ifndef OPENKALMAN_OPENKALMAN_TRANSFORMS_H
 #define OPENKALMAN_OPENKALMAN_TRANSFORMS_H
 
+#include "transforms/support/TransformationTraits.h"
+#include "transforms/transformations/FiniteDifferenceLinearization.h"
 #include "transforms/transformations/Transformation.h"
 #include "transforms/transformations/LinearTransformation.h"
 #include "transforms/transformations/IdentityTransformation.h"

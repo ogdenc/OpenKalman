@@ -34,63 +34,6 @@ namespace OpenKalman
   struct Transformation;
 
 
-  //////////////
-  //  Traits  //
-  //////////////
-
-  /// Whether an object is a linearized function (with defined Jacobian and optionally Hessian functions).
-  template<typename T, std::size_t order = 1, typename Enable = void>
-  struct is_linearized_function : std::false_type {};
-
-  template<typename T, std::size_t order>
-  struct is_linearized_function<T&, order> : is_linearized_function<T, order> {};
-
-  template<typename T, std::size_t order>
-  struct is_linearized_function<T&&, order> : is_linearized_function<T, order> {};
-
-  template<typename T, std::size_t order>
-  struct is_linearized_function<const T, order> : is_linearized_function<T, order> {};
-
-  /// Helper template for is_linearized_function.
-  template<typename T, std::size_t order>
-  inline constexpr bool is_linearized_function_v = is_linearized_function<T, order>::value;
-
-  template<typename T>
-  struct is_linearized_function<T, 0,
-    std::enable_if_t<
-      not std::is_reference_v<T> and not std::is_const_v<T> and
-      (std::is_member_function_pointer_v<decltype(&std::decay_t<T>::operator())> or
-      std::is_function_v<T>)>>
-    : std::true_type {};
-
-  template<typename T>
-  struct is_linearized_function<T, 1,
-    std::enable_if_t<
-      not std::is_reference_v<T> and not std::is_const_v<T> and
-      (std::is_member_function_pointer_v<decltype(&T::jacobian)> and
-      is_linearized_function_v<T, 0>)>>
-    : std::true_type
-  {
-    static constexpr auto get_lambda(const T& t)
-    {
-      return [&t] (auto&&...inputs) { return t.jacobian(std::forward<decltype(inputs)>(inputs)...); };
-    }
-  };
-
-  template<typename T>
-  struct is_linearized_function<T, 2,
-    std::enable_if_t<
-      not std::is_reference_v<T> and not std::is_const_v<T> and
-      (std::is_member_function_pointer_v<decltype(&T::hessian)> and
-      is_linearized_function_v<T, 1>)>>
-    : std::true_type
-  {
-    static constexpr auto get_lambda(const T& t)
-    {
-      return [&t] (auto&&...inputs) { return t.hessian(std::forward<decltype(inputs)>(inputs)...); };
-    }
-  };
-
   template<typename Function, typename...TaylorDerivatives>
   struct is_linearized_function<Transformation<Function, TaylorDerivatives...>, 0> : std::true_type {};
 
@@ -111,55 +54,6 @@ namespace OpenKalman
       return [&t] (auto&&...inputs) { return t.hessian(std::forward<decltype(inputs)>(inputs)...); };
     }
   };
-
-
-  template<typename T>
-  struct is_perturbation : std::integral_constant<bool, is_Gaussian_distribution_v<T> or
-    (is_typed_matrix_v<T> and is_column_vector_v<T> and not is_Euclidean_transformed_v<T>)> {};
-
-  /// Helper template for is_perturbation.
-  template<typename T>
-  inline constexpr bool is_perturbation_v = is_perturbation<T>::value;
-
-
-  namespace internal
-  {
-    template<typename Noise, typename T = void, typename Enable = void>
-    struct PerturbationTraits;
-
-    template<typename Noise, typename T>
-    struct PerturbationTraits<Noise, T, std::enable_if_t<is_Gaussian_distribution_v<Noise>>>
-      : MatrixTraits<typename DistributionTraits<Noise>::Mean> {};
-
-    template<typename Noise, typename T>
-    struct PerturbationTraits<Noise, T, std::enable_if_t<is_typed_matrix_v<Noise>>>
-      : MatrixTraits<Noise> {};
-
-    template<typename Arg, std::enable_if_t<is_perturbation_v<Arg>, int> = 0>
-    inline auto
-    get_perturbation(Arg&& arg) noexcept
-    {
-      if constexpr(is_Gaussian_distribution_v<Arg>)
-        return std::forward<Arg>(arg)();
-      else
-        return std::forward<Arg>(arg);
-    }
-
-    /// Create a tuple that replicates a value.
-    template<std::size_t N, typename T>
-    constexpr auto tuple_replicate(const T& t)
-    {
-      if constexpr(N < 1)
-      {
-        return std::tuple {};
-      }
-      else
-      {
-        return std::tuple_cat(std::make_tuple(t), tuple_replicate<N - 1>(t));
-      }
-    }
-
-  }
 
 
   /// A tuple of zero-filled arrays of Hessian matrices, based on the input and each perturbation term.
@@ -206,15 +100,22 @@ namespace OpenKalman
     /// Constructs transformation using a reference to a transformation function.
     Transformation(const Function& f = Function()) : function(f) {}
 
-    /// Applies the transformation.
+  protected:
     template<typename In, typename ... Perturbations>
-    auto operator()(In&& in, Perturbations&& ... ps) const
+    static constexpr void check_inputs(In&&, Perturbations&& ...)
     {
       static_assert(is_column_vector_v<In>);
       static_assert((is_perturbation_v<Perturbations> and ...));
       static_assert(MatrixTraits<In>::columns == 1);
       static_assert(((internal::PerturbationTraits<Perturbations>::columns == 1) and ...));
+    }
 
+  public:
+    /// Applies the transformation.
+    template<typename In, typename ... Perturbations>
+    auto operator()(In&& in, Perturbations&& ... ps) const
+    {
+      check_inputs(in, ps...);
       return function(std::forward<In>(in), internal::get_perturbation(std::forward<Perturbations>(ps))...);
     }
 
@@ -257,16 +158,15 @@ namespace OpenKalman
     template<typename In, typename ... Perturbations>
     auto jacobian(In&& in, Perturbations&&...ps) const
     {
-      static_assert(is_column_vector_v<In>);
-      static_assert((is_perturbation_v<Perturbations> and ...));
-
+      Base::check_inputs(in, ps...);
       return jacobian_fun(std::forward<In>(in), internal::get_perturbation(std::forward<Perturbations>(ps))...);
     }
 
     /// Returns a tuple of Hessian matrices for the input and each perturbation term. In this case, they are zero matrices.
     template<typename In, typename ... Perturbations>
-    auto hessian(In&&, Perturbations&&...) const
+    auto hessian(In&& in, Perturbations&&...ps) const
     {
+      Base::check_inputs(in, ps...);
       using Out_Mean = std::invoke_result_t<Function, In&&, decltype(internal::get_perturbation(std::declval<Perturbations&&>()))...>;
       using OutputCoeffs = typename MatrixTraits<Out_Mean>::RowCoefficients;
       return zero_hessian<OutputCoeffs, In, Perturbations...>();
@@ -319,9 +219,7 @@ namespace OpenKalman
     template<typename In, typename ... Perturbations>
     auto hessian(In&& in, Perturbations&&...ps) const
     {
-      static_assert(is_column_vector_v<In>);
-      static_assert((is_perturbation_v<Perturbations> and ...));
-
+      Base::check_inputs(in, ps...);
       return hessian_fun(std::forward<In>(in), internal::get_perturbation(std::forward<Perturbations>(ps))...);
     }
 
@@ -331,7 +229,7 @@ namespace OpenKalman
 
 
   /**
-   * Deduction guide
+   * Deduction guides
    */
 
   template<typename Function, typename...TaylorDerivatives>

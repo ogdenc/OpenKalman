@@ -39,29 +39,6 @@ namespace OpenKalman
     std::enable_if_t<order <= 2>> : std::true_type {};
 
 
-  namespace internal
-  {
-    namespace detail
-    {
-      template<std::size_t begin, typename T, std::size_t... I>
-      constexpr auto tuple_slice_impl(T&& t, std::index_sequence<I...>)
-      {
-        return std::forward_as_tuple(std::get<begin + I>(std::forward<T>(t))...);
-      }
-    }
-
-    /// Return a subset of a tuple, given an index range.
-    template<std::size_t index1, std::size_t index2, typename T>
-    constexpr auto tuple_slice(T&& t)
-    {
-      static_assert(index1 <= index2, "Index range is invalid");
-      static_assert(index2 <= std::tuple_size_v<std::decay_t<T>>, "Index is out of bounds");
-      return detail::tuple_slice_impl<index1>(std::forward<T>(t), std::make_index_sequence<index2 - index1>());
-    }
-
-  }
-
-
   template<
     typename InputCoefficients_,
     typename OutputCoefficients_,

@@ -74,6 +74,7 @@ add_executable(transformation-tests
         transformation-tests/tests-general.cpp
         transformation-tests/tests-linear.cpp
         transformation-tests/tests-stochastic.cpp
+        transformation-tests/tests-linear-fd.cpp
         )
 set_target_properties(transformation-tests PROPERTIES CXX_STANDARD_REQUIRED ON CXX_STANDARD 17)
 target_link_libraries(transformation-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)

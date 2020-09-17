@@ -7,8 +7,7 @@
 #define TRANSFORMATION_TESTS_H
 
 #include "../tests.h"
-
-using namespace Eigen;
+#include "../transformations.h"
 
 struct transformation_tests : public ::testing::Test
 {

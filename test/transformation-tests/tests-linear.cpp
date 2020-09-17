@@ -10,8 +10,6 @@
 
 #include "transformation-tests.h"
 
-using namespace OpenKalman;
-
 using M2 = Mean<Axes<2>, Eigen::Matrix<int, 2, 1>>;
 using A_int = TypedMatrix<Axes<2>, Axes<2>, Eigen::Matrix<int, 2, 2>>;
 
