@@ -458,12 +458,20 @@ namespace OpenKalman
 
 
   template<size_t index, typename Arg, std::enable_if_t<is_typed_matrix_v<Arg>, int> = 0>
-  inline auto
+  constexpr decltype(auto)
   column(Arg&& arg)
   {
-    using RC = typename MatrixTraits<Arg>::RowCoefficients;
-    using CC = typename MatrixTraits<Arg>::ColumnCoefficients::template Coefficient<index>;
-    return MatrixTraits<Arg>::template make<RC, CC>(column<index>(base_matrix(std::forward<Arg>(arg))));
+    static_assert(index < MatrixTraits<Arg>::columns, "Column index out of range.");
+    if constexpr (MatrixTraits<Arg>::columns == 1)
+    {
+      return std::forward<Arg>(arg);
+    }
+    else
+    {
+      using RC = typename MatrixTraits<Arg>::RowCoefficients;
+      using CC = typename MatrixTraits<Arg>::ColumnCoefficients::template Coefficient<index>;
+      return MatrixTraits<Arg>::template make<RC, CC>(column<index>(base_matrix(std::forward<Arg>(arg))));
+    }
   }
 
 
@@ -528,7 +536,7 @@ namespace OpenKalman
     using ResultType = std::invoke_result_t<Function, decltype(column(std::declval<Arg&>(), 0))>;
     using ResRC = typename MatrixTraits<ResultType>::RowCoefficients;
     using ResCC0 = typename MatrixTraits<ResultType>::ColumnCoefficients;
-    static_assert(ResCC0::size == 1, "Columnwise application function must return a column vector.");
+    static_assert(ResCC0::size == 1, "Function argument of apply_columnwise must return a column vector.");
     using ResCC = Replicate<ResCC0, MatrixTraits<Arg>::columns>;
     using RC = typename MatrixTraits<Arg>::RowCoefficients;
     const auto f_base = [&f](const auto& col) {
@@ -550,7 +558,7 @@ namespace OpenKalman
     using ResultType = std::invoke_result_t<Function, decltype(column(std::declval<Arg&>(), 0)), std::size_t>;
     using ResRC = typename MatrixTraits<ResultType>::RowCoefficients;
     using ResCC0 = typename MatrixTraits<ResultType>::ColumnCoefficients;
-    static_assert(ResCC0::size == 1, "Columnwise application function must return a column vector.");
+    static_assert(ResCC0::size == 1, "Function argument of apply_columnwise must return a column vector.");
     using ResCC = Replicate<ResCC0, MatrixTraits<Arg>::columns>;
     const auto f_base = [&f](const auto& col, std::size_t i) {
       using RC = typename MatrixTraits<Arg>::RowCoefficients;
@@ -570,7 +578,7 @@ namespace OpenKalman
     using ResultType = std::invoke_result_t<Function>;
     using RC = typename MatrixTraits<ResultType>::RowCoefficients;
     using CC0 = typename MatrixTraits<ResultType>::ColumnCoefficients;
-    static_assert(CC0::size == 1, "Columnwise application function must return a column vector.");
+    static_assert(CC0::size == 1, "Function argument of apply_columnwise must return a column vector.");
     using CC = Replicate<CC0, count>;
     return wrap_angles(MatrixTraits<ResultType>::template make<RC, CC>(apply_columnwise<count>(f_base)));
   }
@@ -586,7 +594,7 @@ namespace OpenKalman
     using ResultType = std::invoke_result_t<Function, std::size_t>;
     using RC = typename MatrixTraits<ResultType>::RowCoefficients;
     using CC0 = typename MatrixTraits<ResultType>::ColumnCoefficients;
-    static_assert(CC0::size == 1, "Columnwise application function must return a column vector.");
+    static_assert(CC0::size == 1, "Function argument of apply_columnwise must return a column vector.");
     using CC = Replicate<CC0, count>;
     return wrap_angles(MatrixTraits<ResultType>::template make<RC, CC>(apply_columnwise<count>(f_base)));
   }

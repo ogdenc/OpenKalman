@@ -530,6 +530,7 @@ namespace OpenKalman
   inline decltype(auto)
   column(Arg&& arg)
   {
+    static_assert(index < MatrixTraits<Arg>::columns, "Column index out of range.");
     if constexpr(MatrixTraits<Arg>::columns == 1)
       return std::forward<Arg>(arg);
     else if constexpr(index == 0)
@@ -552,13 +553,13 @@ namespace OpenKalman
     };
 
     template<bool index, typename Arg, typename Function, std::size_t ... ints>
-    inline decltype(auto) do_columnwise_impl(Arg& arg, const Function& f, std::index_sequence<ints...>)
+    inline auto do_columnwise_impl(Arg& arg, const Function& f, std::index_sequence<ints...>)
     {
       return (do_one_column<index, ints>(arg, f), ...);
     };
 
     template<typename Arg, typename Function, std::size_t ... ints>
-    inline decltype(auto) cat_columnwise_impl(const Arg& arg, const Function& f, std::index_sequence<ints...>)
+    inline auto cat_columnwise_impl(const Arg& arg, const Function& f, std::index_sequence<ints...>)
     {
       using ResultType = decltype(f(column(arg, 0)));
       if constexpr(is_ToEuclideanExpr_v<ResultType> or is_FromEuclideanExpr_v<ResultType>)
@@ -573,7 +574,7 @@ namespace OpenKalman
     };
 
     template<typename Arg, typename Function, std::size_t ... ints>
-    inline decltype(auto) cat_columnwise_index_impl(const Arg& arg, const Function& f, std::index_sequence<ints...>)
+    inline auto cat_columnwise_index_impl(const Arg& arg, const Function& f, std::index_sequence<ints...>)
     {
       using ResultType = decltype(f(column(arg, 0), 0));
       if constexpr(is_ToEuclideanExpr_v<ResultType> or is_FromEuclideanExpr_v<ResultType>)
@@ -588,16 +589,16 @@ namespace OpenKalman
     };
 
     template<std::size_t i, typename Function>
-    constexpr decltype(auto) cat_columnwise_dummy_function(const Function& f) { return f(); };
+    constexpr auto cat_columnwise_dummy_function(const Function& f) { return f(); };
 
     template<typename Function, std::size_t ... ints>
-    inline decltype(auto) cat_columnwise_impl(const Function& f, std::index_sequence<ints...>)
+    inline auto cat_columnwise_impl(const Function& f, std::index_sequence<ints...>)
     {
       return concatenate_horizontal(cat_columnwise_dummy_function<ints>(f)...);
     };
 
     template<typename Function, std::size_t ... ints>
-    inline decltype(auto) cat_columnwise_index_impl(const Function& f, std::index_sequence<ints...>)
+    inline auto cat_columnwise_index_impl(const Function& f, std::index_sequence<ints...>)
     {
       return concatenate_horizontal(f(ints)...);
     };
