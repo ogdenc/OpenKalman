@@ -14,5 +14,6 @@
 #include "variables/OpenKalman-variables.h"
 #include "distributions/GaussianDistribution.h"
 #include "transforms/OpenKalman-transforms.h"
+#include "filters/KalmanFilter.h"
 
 #endif //OPENKALMAN_OPENKALMAN_H

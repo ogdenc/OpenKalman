@@ -11,250 +11,179 @@
 #ifndef OPENKALMAN_KALMANFILTER_H
 #define OPENKALMAN_KALMANFILTER_H
 
-#include <Eigen/Dense>
-#include <iostream>
-#include "utilities/NoiseType.h"
-
 namespace OpenKalman
 {
   /**
-   * @brief A Kalman filter, using any statistical transform. Propagates either covariances or their square roots.
-   * @tparam Dist The distribution type (e.g., Distribution).
-   * @tparam Scalar The scalar type.
-   * @tparam StateCoeffs Coefficients of the state vector.
-   * @tparam MeasurementCoeffs Coefficients of the measurement vector.
-   * @tparam Noise Noise parameters (state, measurement).
+   * @brief A Kalman filter, using one or more statistical transforms.
+   * @tparam Transforms Transforms for the filter.
    */
-  template<
-      template<typename, typename> typename Dist,
-      typename Scalar,
-      typename StateCoeffs,
-      typename MeasurementCoeffs,
-      typename ... Noise>
+  template<typename...Transform>
   struct KalmanFilter;
 
-  template<
-      template<typename, typename> typename Dist,
-      typename Scalar,
-      typename StateCoeffs,
-      typename MeasurementCoeffs,
-      typename ... StateNoise,
-      typename ... MeasurementNoise>
-  struct KalmanFilter<Dist, Scalar, StateCoeffs, MeasurementCoeffs, std::tuple<StateNoise ...>, std::tuple<MeasurementNoise ...>>
+
+  /**
+   * @brief A Kalman filter, using the same transform for the process and the measurement.
+   * @tparam Transform The transform for the physical process and the measurement.
+   */
+  template<typename Transform>
+  struct KalmanFilter<Transform>
   {
-    using StateDist = Dist<Scalar, StateCoeffs>;
-    using MeasurementDist = Dist<Scalar, MeasurementCoeffs>;
-    using Measurement = Mean<Scalar, MeasurementCoeffs>;
+  protected:
+    Transform transform;
 
-
-    template<typename DY, typename PxyType, typename Z>
-    auto&
-    kalmanUpdate(StateDist&& Dist_x, DY&& Dist_y, PxyType&& P_xy, Z&& z)
+    template<typename XDistribution, typename YDistribution, typename CrossCovariance, typename Measurement>
+    static auto
+    update_step(const XDistribution& Nx, const YDistribution& Ny, const CrossCovariance& P_xy, const Measurement& z)
     {
-      static_assert(is_covariance_v<typename DistributionTraits<DY>::Covariance>);
-      static_assert(is_typed_matrix_v<PxyType>);
-      static_assert(is_mean_v<Z>);
-      static_assert(MatrixTraits<Z>::columns == 1);
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<PxyType>::RowCoefficients, Coefficients>);
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<PxyType>::ColumnCoefficients, typename DistributionTraits<DY>::Coefficients>);
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Z>::RowCoefficients, typename DistributionTraits<DY>::Coefficients>);
-      using CoeffsM = typename DistributionTraits<DY>::Coefficients;
-      auto y = mean(std::forward<DY>(Dist_y));
-      if constexpr (is_Cholesky_v<DY>)
+      static_assert(is_Gaussian_distribution_v<XDistribution>);
+      static_assert(is_Gaussian_distribution_v<YDistribution>);
+      static_assert(is_typed_matrix_v<CrossCovariance>);
+      static_assert(is_column_vector_v<Measurement> and MatrixTraits<Measurement>::columns == 1);
+      static_assert(is_equivalent_v<typename MatrixTraits<Measurement>::RowCoefficients,
+        typename DistributionTraits<YDistribution>::Coefficients>);
+      static_assert(is_equivalent_v<typename MatrixTraits<CrossCovariance>::RowCoefficients,
+        typename DistributionTraits<XDistribution>::Coefficients>);
+      static_assert(is_equivalent_v<typename MatrixTraits<CrossCovariance>::ColumnCoefficients,
+        typename DistributionTraits<YDistribution>::Coefficients>);
+
+      const auto y = mean(Ny);
+      const auto P_yy = covariance(Ny);
+      const auto K = adjoint(solve(adjoint(P_yy), adjoint(P_xy))); // K * P_yy == P_xy, or K == P_xy * inverse(P_yy)
+      auto out_x_mean = strict(mean(Nx) + K * (z - y));
+
+      if constexpr (is_Cholesky_v<YDistribution>)
       {
-        auto S_yy = sqrt_covariance(std::forward<DY>(Dist_y));
-        auto K = make_Matrix<Coefficients, CoeffsM>(adjoint(solve(adjoint(S_yy), adjoint(std::forward<PxyType>(P_xy)))));
-        mean(Dist_x) += K * (std::forward<Z>(z) - std::move(y));
-        covariance(Dist_x) -= std::move(K) * std::move(S_yy);
-        // Note: this is equivalent to P_xx -= K * P_yy * K.adjoint() == K * S_yy * (K * S_yy).adjoint();
+        // P_xy * adjoint(K) == K * P_yy * adjoint(K) == K * square_root(P_yy) * adjoint(K * square_root(P_yy))
+        // == square(LQ(K * square_root(P_yy)))
+        auto out_x_cov = covariance(Nx) - square(LQ_decomposition(K * square_root(P_yy)));
+        return make_GaussianDistribution(out_x_mean, out_x_cov);
       }
       else
       {
-        // Effectively, P_xx -= P_xy * adjoint(inverse(P_yy)) * adjoint(P_xy)
-        auto P_yy = covariance(std::forward<DY>(Dist_y));
-        auto K = make_Matrix<Coefficients, CoeffsM>(adjoint(solve(adjoint(std::move(P_yy)), adjoint(P_xy))));
-        // Note: K == P_xy * inverse(P_yy)
-        mean(Dist_x) += K * (std::forward<Z>(z) - std::move(y)); // == K(z - y)
-        covariance(Dist_x) -= std::move(P_xy) * adjoint(std::move(K)); // == K * P_yy * adjoint(K)
+        // K == P_xy * inverse(P_yy), so
+        // P_xy * adjoint(K) == P_xy * adjoint(inverse(P_yy)) * adjoint(P_xy)
+        auto out_x_cov = covariance(Nx) - Covariance(P_xy * adjoint(K));
+        return make_GaussianDistribution(out_x_mean, out_x_cov);
       }
-      return *this;
     }
 
+  public:
+    explicit KalmanFilter(const Transform& trans)
+      : transform(trans)
+    {}
 
-    /**
-     * @brief Construct Kalman filter, using separate process and measurement transforms
-     * @param state_transform the transform to be used for the state prediction
-     * @param measurement_transform the transform to be used for the measurement prediction
-     */
+   /*
+    * Predict the next state based on the process model.
+    */
+    template<typename...ProcessTransformArguments>
+    auto
+    predict(const ProcessTransformArguments&...args)
+    {
+      return transform(args...);
+    }
+
+   /*
+    * Update the state based on a measurement and the measurement model.
+    */
+    template<typename Measurement, typename State, typename...MeasurementTransformArguments>
+    auto
+    update(const Measurement& z, const State& x, const MeasurementTransformArguments&...args)
+    {
+      const auto [y, P_xy] = transform.transform_with_cross_covariance(x, args...);
+      return update_step(x, y, P_xy, z);
+    }
+
+   /*
+    * Perform a complete predict–update cycle. Predict the next state based on the process model, and then
+    * update the state based on a measurement and the measurement model.
+    */
     template<
-        template<
-        template<typename, typename> typename,
-        typename,
-        typename,
-        typename, NoiseType,
-        typename ...> typename ProcessTransform,
-        NoiseType state_noise_t,
-        template<template<typename, typename> typename, typename, typename, typename, NoiseType, typename ...>
-        typename MeasurementTransform,
-        NoiseType measurement_noise_t>
-    KalmanFilter(
-        const ProcessTransform<Dist, Scalar, StateCoeffs, StateCoeffs, state_noise_t, StateNoise ...>& state_transform,
-        const MeasurementTransform<Dist, Scalar, StateCoeffs, MeasurementCoeffs, measurement_noise_t, MeasurementNoise ...>& measurement_transform)
-        :
-        predict
-            {
-                [state_transform](const StateDist& x, const StateNoise& ... v) -> const StateDist
-                {
-                  const auto[y, _] = state_transform(x, v ...);
-                  return y;
-                }
-            },
-        update
-            {
-                [measurement_transform](
-                    const StateDist& x,
-                    const Measurement& z,
-                    const MeasurementNoise& ... u) -> const StateDist
-                {
-                  const auto[y, P_xy] = measurement_transform(x, u ...);
-                  StateDist ret {x};
-                  return kalmanUpdate(ret, y, P_xy, z);
-                }
-            },
-        predict_update
-            {
-                [this](
-                    const StateDist& x,
-                    const StateNoise& ... v,
-                    const Measurement& z,
-                    const MeasurementNoise& ... u) -> const StateDist
-                {
-                  return update(predict(x, v ...), z, u ...);
-                }
-            } {}
-
-
-    /**
-     * @brief Construct Kalman filter, using the same transform for both process and measurement
-     * @param state_transform the transform to be used for the state prediction
-     * @param measurement_transform the transform to be used for the measurement prediction
-     */
-    template<
-        template<
-        template<typename, typename> typename,
-        typename,
-        typename,
-        typename, NoiseType,
-        typename ...> typename Transform,
-        NoiseType noise_t>
-    explicit KalmanFilter(
-        const Transform<Dist, Scalar, StateCoeffs, MeasurementCoeffs, noise_t, StateNoise ..., MeasurementNoise ...>& transform)
-        :
-        predict
-            {
-                [transform](const StateDist& x, const StateNoise& ... v) -> const StateDist
-                {
-                  const auto[y, _] = transform.first_half(x, v ...);
-                  return y;
-                }
-            },
-        update
-            {
-                [transform](const StateDist& x, const Measurement& z, const MeasurementNoise& ... u) -> const StateDist
-                {
-                  const auto[y, P_xy] = transform.second_half(x, u ...);
-                  StateDist ret {x};
-                  return ret.kalmanUpdate(y, P_xy, z);
-                }
-            },
-        predict_update
-            {
-                [transform](
-                    const StateDist& x,
-                    const StateNoise& ... v,
-                    const Measurement& z,
-                    const MeasurementNoise& ... u) -> const StateDist
-                {
-                  const auto[y, P_xy] = transform(x, v ..., u ...);
-                  StateDist ret {x};
-                  return ret.kalmanUpdate(y, P_xy, z);
-                }
-            } {}
-
-    /**
-     * @brief Predict the next state distribution, using prior state distribution and process noise.
-     * @param x Distribution of the current state.
-     * @param v Process noise.
-     * @return Updated distribution of the state.
-     */
-    const std::function<const StateDist(const StateDist& x, const StateNoise& ... v)>
-        predict;
-
-    /**
-     * @brief Update the state distribution, using prior state distribution, a measurement, and measurement noise.
-     * @param x Distribution of the current state.
-     * @param z The measurement.
-     * @param u Measurement noise.
-     * @return Updated distribution of the state.
-     */
-    const std::function<const StateDist(const StateDist& x, const Measurement& z, const MeasurementNoise& ... u)>
-        update;
-
-    /**
-     * @brief Update the state distribution, using prior state distribution, a measurement, and measurement noise.
-     * @param x Distribution of the current state.
-     * @param v Process noise.
-     * @param z The measurement.
-     * @param u Measurement noise.
-     * @return Updated distribution of the state.
-     */
-    const std::function<const StateDist(
-        const StateDist& x,
-        const StateNoise& ... v,
-        const Measurement& z,
-        const MeasurementNoise& ... u)>
-        predict_update;
+      typename Measurement,
+      typename State,
+      typename...ProcessTransformArgs,
+      typename...MeasurementTransformArgs>
+    auto
+    operator()(
+      const Measurement& z,
+      const State& x,
+      const std::tuple<ProcessTransformArgs...>& proc_args = std::tuple {},
+      const std::tuple<MeasurementTransformArgs...>& meas_args = std::tuple {})
+    {
+      const auto&& [y_, P_xy, y] = std::apply(
+        transform.transform_with_cross_covariance,
+        std::tuple_cat(std::forward_as_tuple(x), proc_args, meas_args));
+      return update_step(y, y_, P_xy, z);
+    }
 
   };
 
 
   /**
-   * Deduction guides
+   * @brief A Kalman filter, using a different statistical transform for the process and the measurement.
+   * @tparam ProcessTransform The transform for the physical process.
+   * @tparam MeasurementTransform An optional, separately-defined transform for the measurement.
    */
-  template<
-      template<typename, typename> typename Dist,
-      typename Scalar,
-      typename StateCoeffs,
-      typename MeasurementCoeffs,
-      typename ... StateNoise,
-      typename ... MeasurementNoise,
-      template<template<typename, typename> typename, typename, typename, typename, NoiseType, typename ...>
-      typename ProcessTransform,
-      NoiseType state_noise_t,
-      template<template<typename, typename> typename, typename, typename, typename, NoiseType, typename ...>
-      typename MeasurementTransform,
-      NoiseType measurement_noise_t>
-  KalmanFilter(
-      const ProcessTransform<Dist, Scalar, StateCoeffs, StateCoeffs, state_noise_t, StateNoise ...>&,
-      const MeasurementTransform<Dist, Scalar, StateCoeffs, MeasurementCoeffs, measurement_noise_t, MeasurementNoise ...>&)
-  ->
-  KalmanFilter<Dist, Scalar, StateCoeffs, MeasurementCoeffs, std::tuple<StateNoise ...>, std::tuple<MeasurementNoise ...>>;
+  template<typename ProcessTransform, typename MeasurementTransform>
+  struct KalmanFilter<ProcessTransform, MeasurementTransform> : KalmanFilter<ProcessTransform>
+  {
+  protected:
+    using Base = KalmanFilter<ProcessTransform>;
+    using Base::transform;
+    MeasurementTransform measurement_transform;
 
-  template<
-      template<typename, typename> typename Dist,
-      typename Scalar,
-      typename StateCoeffs,
-      typename MeasurementCoeffs,
-      typename StateNoise,
-      typename MeasurementNoise,
-      template<template<typename, typename> typename, typename, typename, typename, NoiseType, typename ...>
-      typename Transform,
-      NoiseType noise_t,
-      typename = std::enable_if_t<noise_t != NoiseType::none>>
-  KalmanFilter(
-      const Transform<Dist, Scalar, StateCoeffs, MeasurementCoeffs, noise_t, StateNoise, MeasurementNoise>&)
-  ->
-  KalmanFilter<Dist, Scalar, StateCoeffs, MeasurementCoeffs, std::tuple<StateNoise>, std::tuple<MeasurementNoise>>;
+    using Base::update_step;
+
+  public:
+    KalmanFilter(const ProcessTransform& p_transform, const MeasurementTransform& m_transform)
+      : Base(p_transform), measurement_transform(m_transform)
+    {}
+
+   /*
+    * Update the state based on a measurement and the measurement model.
+    */
+    template<typename Measurement, typename State, typename...MeasurementTransformArguments>
+    auto
+    update(const Measurement& z, const State& x, const MeasurementTransformArguments&...args)
+    {
+      const auto [y, P_xy] = measurement_transform.transform_with_cross_covariance(x, args...);
+      return update_step(x, y, P_xy, z);
+    }
+
+   /*
+    * Perform a complete predict–update cycle. Predict the next state based on the process model, and then
+    * update the state based on a measurement and the measurement model.
+    */
+    template<
+      typename Measurement,
+      typename State,
+      typename...ProcessTransformArgs,
+      typename...MeasurementTransformArgs>
+    auto
+    operator()(
+      const Measurement& z,
+      const State& x,
+      const std::tuple<ProcessTransformArgs...>& proc_args = std::tuple {},
+      const std::tuple<MeasurementTransformArgs...>& meas_args = std::tuple {})
+    {
+      const auto y = std::apply(transform, std::tuple_cat(std::forward_as_tuple(x), proc_args));
+      const auto [y_, P_xy] = std::apply(
+        measurement_transform.transform_with_cross_covariance,
+        std::tuple_cat(std::forward_as_tuple(y), meas_args));
+      return update_step(y, y_, P_xy, z);
+    }
+
+  };
+
+
+  /////////////////////////////////////
+  //        Deduction guides         //
+  /////////////////////////////////////
+
+  template<typename P>
+  KalmanFilter(P&&) -> KalmanFilter<P>;
+
+  template<typename P, typename M>
+  KalmanFilter(P&&, M&&) -> KalmanFilter<P, M>;
 
 }
 

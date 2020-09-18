@@ -54,7 +54,8 @@ namespace OpenKalman
         col[i] = x + h;
         const auto x2 = std::tuple_cat(t_start, std::tuple {col}, t_end);
 
-        return strict((std::apply(transformation, x2) - std::apply(transformation, x1))/(2*h));
+        auto ret = strict((std::apply(transformation, x2) - std::apply(transformation, x1))/(2*h));
+        return ret;
       });
     }
 
