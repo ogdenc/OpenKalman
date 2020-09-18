@@ -478,7 +478,7 @@ namespace OpenKalman
   /// Get element (i, j) of matrix arg
   template<typename Arg, std::enable_if_t<is_native_Eigen_type_v<Arg>, int> = 0>
   inline auto
-  get_element(const Arg& arg, std::size_t i, std::size_t j)
+  get_element(const Arg& arg, const std::size_t i, const std::size_t j)
   {
     return arg.coeff(i, j);
   }
@@ -487,7 +487,7 @@ namespace OpenKalman
   /// Get element (i) of one-column matrix arg
   template<typename Arg, std::enable_if_t<is_native_Eigen_type_v<Arg> and MatrixTraits<Arg>::columns == 1, int> = 0>
   inline auto
-  get_element(const Arg& arg, std::size_t i)
+  get_element(const Arg& arg, const std::size_t i)
   {
     return arg.coeff(i);
   }
@@ -498,7 +498,7 @@ namespace OpenKalman
     std::enable_if_t<is_native_Eigen_type_v<Arg> and not std::is_const_v<std::remove_reference_t<Arg>> and
     static_cast<bool>(std::decay_t<Arg>::Flags & Eigen::LvalueBit), int> = 0>
   inline void
-  set_element(Arg& arg, Scalar s, std::size_t i, std::size_t j)
+  set_element(Arg& arg, const Scalar s, const std::size_t i, const std::size_t j)
   {
     arg(i, j) = s;
   }
@@ -510,7 +510,7 @@ namespace OpenKalman
       MatrixTraits<Arg>::columns == 1 and
     static_cast<bool>(std::decay_t<Arg>::Flags & Eigen::LvalueBit), int> = 0>
   inline void
-  set_element(Arg& arg, Scalar s, std::size_t i)
+  set_element(Arg& arg, const Scalar s, const std::size_t i)
   {
     arg(i) = s;
   }

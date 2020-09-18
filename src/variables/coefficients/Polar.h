@@ -24,25 +24,31 @@ namespace OpenKalman
     struct PolarImpl;
 
     template<typename Scalar>
-    struct PolarImpl<OpenKalman::Distance, Scalar>
+    struct PolarImpl<Distance, Scalar>
     {
       using GetCoeff = std::function<Scalar(const std::size_t)>;
 
       template<std::size_t i, std::size_t d_i, std::size_t a_i>
       static constexpr std::array<Scalar (*const)(const GetCoeff&), 1>
-        to_Euclidean_array = {[](const GetCoeff& get_coeff) constexpr { return get_coeff(i + d_i); }};
+        to_Euclidean_array = {[](const GetCoeff& get_coeff) constexpr {
+          return get_coeff(i + d_i);
+        }};
 
       template<std::size_t i, std::size_t d_i, std::size_t x_i, std::size_t y_i>
       static constexpr std::array<Scalar (*const)(const GetCoeff&), 1>
-        from_Euclidean_array = {[](const GetCoeff& get_coeff) constexpr { return std::abs(get_coeff(i + d_i)); }};
+        from_Euclidean_array = {[](const GetCoeff& get_coeff) constexpr {
+          return std::abs(get_coeff(i + d_i));
+        }};
 
       template<std::size_t i, std::size_t d_i, std::size_t a_i>
       static constexpr std::array<Scalar (*const)(const GetCoeff&), 1>
-        wrap_array = {[](const GetCoeff& get_coeff) constexpr { return std::abs(get_coeff(i + d_i)); }};
+        wrap_array = {[](const GetCoeff& get_coeff) constexpr {
+          return std::abs(get_coeff(i + d_i));
+        }};
     };
 
     template<typename Traits, typename Scalar>
-    struct PolarImpl<OpenKalman::Circle<Traits>, Scalar>
+    struct PolarImpl<Circle<Traits>, Scalar>
     {
       using GetCoeff = std::function<Scalar(const std::size_t)>;
       static constexpr Scalar cf = 2 * M_PI / (Traits::template wrap_max<Scalar> - Traits::template wrap_min<Scalar>);
@@ -75,6 +81,9 @@ namespace OpenKalman
 
         if (std::signbit(get_coeff(i + d_i))) // If radius is negative,
         {
+          std::cout << "|~~~| i = " << i << std::endl;
+          std::cout << "|~~~| a_i = " << d_i << std::endl;
+          std::cout << "|~~~| d_i = " << a_i << std::endl;
           a += period * 0.5; // Reflect across the origin.
         }
 
@@ -137,13 +146,13 @@ namespace OpenKalman
 
   /// Polar coordinates (Radius, Angle).
   template<typename Traits>
-  struct Polar<OpenKalman::Distance, OpenKalman::Circle<Traits>>
-    : detail::PolarBase<Polar<OpenKalman::Distance, OpenKalman::Circle<Traits>>, OpenKalman::Distance, OpenKalman::Circle<Traits>, 0, 1,  0, 1, 2> {};
+  struct Polar<Distance, Circle<Traits>>
+    : detail::PolarBase<Polar<Distance, Circle<Traits>>, Distance, Circle<Traits>, 0, 1,  0, 1, 2> {};
 
   /// Polar coordinates (Angle, Radius).
   template<typename Traits>
-  struct Polar<OpenKalman::Circle<Traits>, OpenKalman::Distance>
-    : detail::PolarBase<Polar<OpenKalman::Circle<Traits>, OpenKalman::Distance>, OpenKalman::Circle<Traits>, OpenKalman::Distance, 1, 0,  2, 0, 1> {};
+  struct Polar<Circle<Traits>, Distance>
+    : detail::PolarBase<Polar<Circle<Traits>, Distance>, Circle<Traits>, Distance, 1, 0,  2, 0, 1> {};
 
   /// Polar is a coefficient.
   template<typename Coeff1, typename Coeff2>

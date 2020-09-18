@@ -349,7 +349,7 @@ namespace OpenKalman
       is_ToEuclideanExpr_v<Arg>) and
     is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>, int> = 0>
   inline auto
-  get_element(Arg&& arg, std::size_t i, std::size_t j)
+  get_element(Arg&& arg, const std::size_t i, const std::size_t j)
   {
     if constexpr (MatrixTraits<Arg>::Coefficients::axes_only)
     {
@@ -381,7 +381,7 @@ namespace OpenKalman
       is_ToEuclideanExpr_v<Arg>) and
     is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 1>, int> = 0>
   inline auto
-  get_element(Arg&& arg, std::size_t i)
+  get_element(Arg&& arg, const std::size_t i)
   {
     if constexpr (MatrixTraits<Arg>::Coefficients::axes_only)
     {
@@ -412,7 +412,7 @@ namespace OpenKalman
     std::enable_if_t<is_FromEuclideanExpr_v<Arg> and is_ToEuclideanExpr_v<typename MatrixTraits<Arg>::BaseMatrix> and
       is_element_gettable_v<typename MatrixTraits<typename MatrixTraits<Arg>::BaseMatrix>::BaseMatrix, 2>, int> = 0>
   inline auto
-  get_element(Arg&& arg, std::size_t i, std::size_t j)
+  get_element(Arg&& arg, const std::size_t i, const std::size_t j)
   {
     if constexpr (MatrixTraits<Arg>::Coefficients::axes_only)
     {
@@ -436,7 +436,7 @@ namespace OpenKalman
     std::enable_if_t<is_FromEuclideanExpr_v<Arg> and is_ToEuclideanExpr_v<typename MatrixTraits<Arg>::BaseMatrix> and
       is_element_gettable_v<typename MatrixTraits<typename MatrixTraits<Arg>::BaseMatrix>::BaseMatrix, 1>, int> = 0>
   inline auto
-  get_element(Arg&& arg, std::size_t i)
+  get_element(Arg&& arg, const std::size_t i)
   {
     if constexpr (MatrixTraits<Arg>::Coefficients::axes_only)
     {
@@ -463,7 +463,7 @@ namespace OpenKalman
     MatrixTraits<Arg>::Coefficients::axes_only and
     is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>, int> = 0>
   inline void
-  set_element(Arg& arg, Scalar s, std::size_t i, std::size_t j)
+  set_element(Arg& arg, const Scalar s, const std::size_t i, const std::size_t j)
   {
     set_element(base_matrix(arg), s, i, j);
   }
@@ -477,7 +477,7 @@ namespace OpenKalman
     MatrixTraits<Arg>::Coefficients::axes_only and
     is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 1>, int> = 0>
   inline void
-  set_element(Arg& arg, Scalar s, std::size_t i)
+  set_element(Arg& arg, const Scalar s, const std::size_t i)
   {
     set_element(base_matrix(arg), s, i);
   }
@@ -489,7 +489,7 @@ namespace OpenKalman
       not std::is_const_v<std::remove_reference_t<Arg>> and
       is_element_settable_v<typename MatrixTraits<typename MatrixTraits<Arg>::BaseMatrix>::BaseMatrix, 2>, int> = 0>
   inline void
-  set_element(Arg& arg, Scalar s, std::size_t i, std::size_t j)
+  set_element(Arg& arg, const Scalar s, const std::size_t i, const std::size_t j)
   {
     if constexpr (MatrixTraits<Arg>::Coefficients::axes_only)
     {
@@ -512,7 +512,7 @@ namespace OpenKalman
       not std::is_const_v<std::remove_reference_t<Arg>> and
       is_element_settable_v<typename MatrixTraits<typename MatrixTraits<Arg>::BaseMatrix>::BaseMatrix, 1>, int> = 0>
   inline void
-  set_element(Arg& arg, Scalar s, std::size_t i)
+  set_element(Arg& arg, const Scalar s, const std::size_t i)
   {
     if constexpr (MatrixTraits<Arg>::Coefficients::axes_only)
     {

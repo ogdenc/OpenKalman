@@ -43,3 +43,4 @@ Makefile
 
 # Unversioned files
 .idea/
+/cmake-build-debug/OpenKalman.cbp

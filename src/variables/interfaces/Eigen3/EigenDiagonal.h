@@ -521,7 +521,7 @@ namespace OpenKalman
     (is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 1> or
     is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>), int> = 0>
   inline auto
-  get_element(Arg&& arg, std::size_t i)
+  get_element(Arg&& arg, const std::size_t i)
   {
     if constexpr (is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 1>)
       return get_element(base_matrix(std::forward<Arg>(arg)), i);
@@ -535,7 +535,7 @@ namespace OpenKalman
     (is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 1> or
     is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>), int> = 0>
   inline auto
-  get_element(Arg&& arg, std::size_t i, std::size_t j)
+  get_element(Arg&& arg, const std::size_t i, const std::size_t j)
   {
     if (i == j)
     {
@@ -555,7 +555,7 @@ namespace OpenKalman
       (is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 1> or
       is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>), int> = 0>
   inline void
-  set_element(Arg& arg, Scalar s, std::size_t i)
+  set_element(Arg& arg, const Scalar s, const std::size_t i)
   {
     if constexpr (is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 1>)
       set_element(base_matrix(arg), s, i);
@@ -570,7 +570,7 @@ namespace OpenKalman
       (is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 1> or
       is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>), int> = 0>
   inline void
-  set_element(Arg& arg, Scalar s, std::size_t i, std::size_t j)
+  set_element(Arg& arg, const Scalar s, const std::size_t i, const std::size_t j)
   {
     if (i == j)
     {

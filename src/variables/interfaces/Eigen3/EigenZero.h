@@ -174,7 +174,7 @@ namespace OpenKalman
   /// Get an element of a EigenZero matrix. Always 0.
   template<typename Arg, std::enable_if_t<is_EigenZero_v<Arg>, int> = 0>
   constexpr auto
-  get_element(const Arg&, std::size_t, std::size_t)
+  get_element(const Arg&, const std::size_t, const std::size_t)
   {
     return 0;
   }
@@ -183,7 +183,7 @@ namespace OpenKalman
   /// Get an element of a one-column EigenZero matrix. Always 0.
   template<typename Arg, std::enable_if_t<is_EigenZero_v<Arg> and MatrixTraits<Arg>::columns == 1, int> = 0>
   constexpr auto
-  get_element(const Arg&, std::size_t)
+  get_element(const Arg&, const std::size_t)
   {
     return 0;
   }

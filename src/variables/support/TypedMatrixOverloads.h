@@ -386,7 +386,7 @@ namespace OpenKalman
   template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg> and
     is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>, int> = 0>
   inline auto
-  get_element(Arg&& arg, std::size_t i, std::size_t j)
+  get_element(Arg&& arg, const std::size_t i, const std::size_t j)
   {
     return get_element(base_matrix(std::forward<Arg>(arg)), i, j);
   }
@@ -396,7 +396,7 @@ namespace OpenKalman
   template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg> and
     is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 1>, int> = 0>
   inline auto
-  get_element(Arg&& arg, std::size_t i)
+  get_element(Arg&& arg, const std::size_t i)
   {
     return get_element(base_matrix(std::forward<Arg>(arg)), i);
   }
@@ -407,12 +407,12 @@ namespace OpenKalman
     std::enable_if_t<is_typed_matrix_v<Arg> and not std::is_const_v<std::remove_reference_t<Arg>> and
       is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>, int> = 0>
   inline void
-  set_element(Arg& arg, Scalar s, std::size_t i, std::size_t j)
+  set_element(Arg& arg, const Scalar s, const std::size_t i, const std::size_t j)
   {
     if constexpr(is_wrapped_v<Arg>)
     {
       using Coeffs = typename MatrixTraits<Arg>::RowCoefficients;
-      const auto get_coeff = [s] (const std::size_t) { return s; };
+      const auto get_coeff = [=](const std::size_t) { return s; };
       auto ws = wrap<Coeffs, Scalar>(i, get_coeff);
       set_element(base_matrix(arg), ws, i, j);
     }
@@ -428,12 +428,12 @@ namespace OpenKalman
     std::enable_if_t<is_typed_matrix_v<Arg> and not std::is_const_v<std::remove_reference_t<Arg>> and
       is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 1>, int> = 0>
   inline void
-  set_element(Arg& arg, Scalar s, std::size_t i)
+  set_element(Arg& arg, const Scalar s, const std::size_t i)
   {
     if constexpr(is_wrapped_v<Arg>)
     {
       using Coeffs = typename MatrixTraits<Arg>::RowCoefficients;
-      const auto get_coeff = [s] (const std::size_t) { return s; };
+      const auto get_coeff = [=](const std::size_t) { return s; };
       auto ws = wrap<Coeffs, Scalar>(i, get_coeff);
       set_element(base_matrix(arg), ws, i);
     }
