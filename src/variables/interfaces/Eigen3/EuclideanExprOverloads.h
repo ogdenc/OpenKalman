@@ -8,8 +8,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#ifndef OPENKALMAN_EIGENEXPRTRAITS_H
-#define OPENKALMAN_EIGENEXPRTRAITS_H
+#ifndef OPENKALMAN_EUCLIDEANEXPROVERLOADS_H
+#define OPENKALMAN_EUCLIDEANEXPROVERLOADS_H
 
 namespace OpenKalman
 {
@@ -421,12 +421,10 @@ namespace OpenKalman
     else
     {
       using Coeffs = typename MatrixTraits<Arg>::Coefficients;
-      using Scalar = typename MatrixTraits<Arg>::Scalar;
-      const auto get_coeff = [j, &arg] (const std::size_t row)
-        {
-          return get_element(base_matrix(base_matrix(std::forward<Arg>(arg))), row, j);
-        };
-      return wrap<Coeffs, Scalar>((std::size_t) i, get_coeff);
+      const auto get_coeff = [j, &arg] (const std::size_t row) {
+        return get_element(base_matrix(base_matrix(std::forward<Arg>(arg))), row, j);
+      };
+      return wrap_get<Coeffs>(i, get_coeff);
     }
   }
 
@@ -445,12 +443,10 @@ namespace OpenKalman
     else
     {
       using Coeffs = typename MatrixTraits<Arg>::Coefficients;
-      using Scalar = typename MatrixTraits<Arg>::Scalar;
-      const auto get_coeff = [&arg] (const std::size_t row)
-        {
-          return get_element(base_matrix(base_matrix(std::forward<Arg>(arg))), row);
-        };
-      return wrap<Coeffs, Scalar>((std::size_t) i, get_coeff);
+      const auto get_coeff = [&arg] (const std::size_t row) {
+        return get_element(base_matrix(base_matrix(std::forward<Arg>(arg))), row);
+      };
+      return wrap_get<Coeffs>(i, get_coeff);
     }
   }
 
@@ -483,7 +479,11 @@ namespace OpenKalman
   }
 
 
-  /// Set element (i, j) of FromEuclideanExpr(ToEuclideanExpr) matrix arg to s.
+  /// Set element (i, j) of arg in FromEuclideanExpr(ToEuclideanExpr(arg)) to s.
+  /// This function sets the base matrix, not the wrapped resulting matrix.
+  /// For example, if the coefficient is Polar<Distance, Angle> and the initial value of a
+  /// single-column vector is {-1., pi/2}, then set_element(arg, pi/4, 1, 0) will replace p/2 with pi/4 to
+  /// yield {-1., pi/4} in the base matrix. The resulting wrapped expression will yield {1., -3*pi/4}.
   template<typename Arg, typename Scalar,
     std::enable_if_t<is_FromEuclideanExpr_v<Arg> and is_ToEuclideanExpr_v<typename MatrixTraits<Arg>::BaseMatrix> and
       not std::is_const_v<std::remove_reference_t<Arg>> and
@@ -498,15 +498,22 @@ namespace OpenKalman
     else
     {
       using Coeffs = typename MatrixTraits<Arg>::Coefficients;
-      using ScalarA = typename MatrixTraits<Arg>::Scalar;
-      const auto get_coeff = [s] (const std::size_t row) { return (ScalarA) s; };
-      auto ws = wrap<Coeffs, ScalarA>((std::size_t) i, get_coeff);
-      set_element(base_matrix(base_matrix(arg)), ws, i, j);
+      const auto get_coeff = [&arg, j] (const std::size_t row) {
+        return get_element(base_matrix(base_matrix(arg)), row, j);
+      };
+      const auto set_coeff = [&arg, j] (const Scalar value, const std::size_t row) {
+        set_element(base_matrix(base_matrix(arg)), value, row, j);
+      };
+      wrap_set<Coeffs>(s, i, set_coeff, get_coeff);
     }
   }
 
 
-  /// Set element (i) of FromEuclideanExpr(ToEuclideanExpr) matrix arg to s.
+  /// Set element (i) of arg in FromEuclideanExpr(ToEuclideanExpr(arg)) to s, where arg is a single-column vector.
+  /// This function sets the base matrix, not the wrapped resulting matrix.
+  /// For example, if the coefficient is Polar<Distance, Angle> and the initial value of a
+  /// single-column vector is {-1., pi/2}, then set_element(arg, pi/4, 1) will replace p/2 with pi/4 to
+  /// yield {-1., pi/4} in the base matrix. The resulting wrapped expression will yield {1., -3*pi/4}.
   template<typename Arg, typename Scalar,
     std::enable_if_t<is_FromEuclideanExpr_v<Arg> and is_ToEuclideanExpr_v<typename MatrixTraits<Arg>::BaseMatrix> and
       not std::is_const_v<std::remove_reference_t<Arg>> and
@@ -521,10 +528,13 @@ namespace OpenKalman
     else
     {
       using Coeffs = typename MatrixTraits<Arg>::Coefficients;
-      using ScalarA = typename MatrixTraits<Arg>::Scalar;
-      const auto get_coeff = [s] (const std::size_t row) { return (ScalarA) s; };
-      auto ws = wrap<Coeffs, ScalarA>((std::size_t) i, get_coeff);
-      set_element(base_matrix(base_matrix(arg)), s, i);
+      const auto get_coeff = [&arg] (const std::size_t row) {
+        return get_element(base_matrix(base_matrix(arg)), row);
+      };
+      const auto set_coeff = [&arg] (const Scalar value, const std::size_t row) {
+        set_element(base_matrix(base_matrix(arg)), value, row);
+      };
+      wrap_set<Coeffs>(s, i, set_coeff, get_coeff);
     }
   }
 
@@ -701,12 +711,11 @@ namespace OpenKalman
     std::enable_if_t<is_ToEuclideanExpr_v<typename MatrixTraits<Arg2>::BaseMatrix>, int> = 0>
   constexpr decltype(auto) operator+(Arg1&& v1, Arg2&& v2)
   {
-    static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg1>::Coefficients, typename MatrixTraits<Arg2>::Coefficients>);
+    static_assert(is_equivalent_v<typename MatrixTraits<Arg1>::Coefficients, typename MatrixTraits<Arg2>::Coefficients>);
     using C = typename MatrixTraits<Arg1>::Coefficients;
-    auto ret = from_Euclidean<C>(to_Euclidean<C>(
-      base_matrix(base_matrix(std::forward<Arg1>(v1))) +
-        base_matrix(base_matrix(std::forward<Arg2>(v2)))));
-    if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>) return strict(std::move(ret)); else return ret;
+    auto m1 = strict_matrix(std::forward<Arg1>(v1));
+    auto m2 = strict_matrix(std::forward<Arg2>(v2));
+    return strict(wrap_angles<C>(m1 + m2));
   }
 
 
@@ -718,12 +727,11 @@ namespace OpenKalman
     std::enable_if_t<is_ToEuclideanExpr_v<typename MatrixTraits<Arg2>::BaseMatrix>, int> = 0>
   constexpr decltype(auto) operator-(Arg1&& v1, Arg2&& v2)
   {
-    static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg1>::Coefficients, typename MatrixTraits<Arg2>::Coefficients>);
+    static_assert(is_equivalent_v<typename MatrixTraits<Arg1>::Coefficients, typename MatrixTraits<Arg2>::Coefficients>);
     using C = typename MatrixTraits<Arg1>::Coefficients;
-    auto ret = from_Euclidean<C>(to_Euclidean<C>(
-      base_matrix(base_matrix(std::forward<Arg1>(v1))) -
-        base_matrix(base_matrix(std::forward<Arg2>(v2)))));
-    if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>) return strict(std::move(ret)); else return ret;
+    auto m1 = strict_matrix(std::forward<Arg1>(v1));
+    auto m2 = strict_matrix(std::forward<Arg2>(v2));
+    return strict(wrap_angles<C>(m1 - m2));
   }
 
 
@@ -734,11 +742,11 @@ namespace OpenKalman
   constexpr decltype(auto) operator-(Arg&& v)
   {
     using C = typename MatrixTraits<Arg>::Coefficients;
-    auto ret = from_Euclidean<C>(to_Euclidean<C>(-base_matrix(base_matrix(std::forward<Arg>(v)))));
-    if constexpr (not std::is_lvalue_reference_v<Arg&&>) return strict(std::move(ret)); else return ret;
+    auto m = strict_matrix(std::forward<Arg>(v));
+    return strict(wrap_angles<C>(-m));
   }
 
 
 }
 
-#endif //OPENKALMAN_EIGENEXPRTRAITS_H
+#endif //OPENKALMAN_EUCLIDEANEXPROVERLOADS_H

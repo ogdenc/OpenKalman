@@ -22,23 +22,9 @@ namespace OpenKalman
     template<typename Coefficient, typename CircleTraits, typename InclinationTraits, typename Scalar>
     struct SphericalImpl;
 
-    template<typename CircleTraits, typename InclinationTraits, typename Scalar>
-    struct SphericalImpl<OpenKalman::Distance, CircleTraits, InclinationTraits, Scalar>
-    {
-      using GetCoeff = std::function<Scalar(const std::size_t)>;
-
-      template<std::size_t i, std::size_t d_i, std::size_t x_i, std::size_t y_i, std::size_t z_i>
-      static constexpr std::array<Scalar (*const)(const GetCoeff&), 1>
-        from_Euclidean_array = {[](const GetCoeff& get_coeff) constexpr {return std::abs(get_coeff(i + d_i)); }};
-
-      template<std::size_t i, std::size_t d_i, std::size_t a_i, std::size_t i_i>
-      static constexpr std::array<Scalar (*const)(const GetCoeff&), 1>
-        wrap_array = {[](const GetCoeff& get_coeff) constexpr { return std::abs(get_coeff(i + d_i)); }};
-    };
-
-    template<typename Scalar, typename InclinationTraits>
+    template<typename InclinationTraits, typename Scalar>
     static constexpr std::tuple<Scalar, bool>
-    wrap_inclination(const Scalar a)
+    inclination_wrap_impl(const Scalar a)
     {
       constexpr Scalar period = InclinationTraits::template wrap_max<Scalar> - InclinationTraits::template wrap_min<Scalar>;
       constexpr Scalar wrap_mod = 0.5 * period;
@@ -63,10 +49,66 @@ namespace OpenKalman
       }
     }
 
+    template<typename CircleTraits, typename Scalar>
+    static inline Scalar azimuth_wrap_impl(const bool reflect_azimuth, const Scalar s)
+    {
+      constexpr Scalar wrap_max = CircleTraits::template wrap_max<Scalar>;
+      constexpr Scalar wrap_min = CircleTraits::template wrap_min<Scalar>;
+      constexpr Scalar period = wrap_max - wrap_min;
+
+      Scalar a = reflect_azimuth ? s + period * 0.5 : s;
+
+      if (a >= wrap_min and a < wrap_max) // Check if angle doesn't need wrapping.
+      {
+        return a;
+      }
+      else // Wrap the angle.
+      {
+        Scalar ar = std::fmod(a - wrap_min, period);
+        if (ar < 0)
+        {
+          ar += period;
+        }
+        return ar + wrap_min;
+      }
+    }
+
     template<typename CircleTraits, typename InclinationTraits, typename Scalar>
-    struct SphericalImpl<OpenKalman::Circle<CircleTraits>, CircleTraits, InclinationTraits, Scalar>
+    struct SphericalImpl<Distance, CircleTraits, InclinationTraits, Scalar>
     {
       using GetCoeff = std::function<Scalar(const std::size_t)>;
+      using SetCoeff = std::function<void(const Scalar, const std::size_t)>;
+
+      template<std::size_t i, std::size_t d_i, std::size_t x_i, std::size_t y_i, std::size_t z_i>
+      static constexpr std::array<Scalar (*const)(const GetCoeff&), 1>
+        from_Euclidean_array = {[](const GetCoeff& get_coeff) constexpr {return std::abs(get_coeff(i + d_i)); }};
+
+      template<std::size_t i, std::size_t d_i, std::size_t a_i, std::size_t i_i>
+      static constexpr std::array<Scalar (*const)(const GetCoeff&), 1>
+        wrap_array_get = {[](const GetCoeff& get_coeff) constexpr { return std::abs(get_coeff(i + d_i)); }};
+
+      template<std::size_t i, std::size_t d_i, std::size_t a_i, std::size_t i_i>
+      static constexpr std::array<void (*const)(const Scalar, const SetCoeff&, const GetCoeff&), 1>
+        wrap_array_set =
+        {
+          [](const Scalar s, const SetCoeff& set_coeff, const GetCoeff& get_coeff) {
+            set_coeff(std::abs(s), i + d_i);
+            if (std::signbit(s)) // If new distance is negative
+            {
+              set_coeff(azimuth_wrap_impl<CircleTraits>(true, get_coeff(i + a_i)), i + a_i); // Adjust azimuth.
+              set_coeff(-get_coeff(i + i_i), i + i_i); // Adjust inclination.
+            }
+          }
+        };
+
+    };
+
+    template<typename CircleTraits, typename InclinationTraits, typename Scalar>
+    struct SphericalImpl<Circle<CircleTraits>, CircleTraits, InclinationTraits, Scalar>
+    {
+      using GetCoeff = std::function<Scalar(const std::size_t)>;
+      using SetCoeff = std::function<void(const Scalar, const std::size_t)>;
+
       static constexpr Scalar cf_cir = 2 * M_PI / (CircleTraits::template wrap_max<Scalar> - CircleTraits::template wrap_min<Scalar>);
 
       template<std::size_t i, std::size_t d_i, std::size_t x_i, std::size_t y_i, std::size_t z_i>
@@ -79,35 +121,29 @@ namespace OpenKalman
 
       template<std::size_t i, std::size_t d_i, std::size_t a_i, std::size_t i_i>
       static constexpr std::array<Scalar (*const)(const GetCoeff&), 1>
-        wrap_array = {[](const GetCoeff& get_coeff) constexpr {
-        constexpr Scalar wrap_max = CircleTraits::template wrap_max<Scalar>;
-        constexpr Scalar wrap_min = CircleTraits::template wrap_min<Scalar>;
-        constexpr Scalar period = wrap_max - wrap_min;
-        Scalar a = get_coeff(i + a_i);
-        if (std::get<1>(wrap_inclination<Scalar, InclinationTraits>(get_coeff(i + i_i))) != std::signbit(get_coeff(i + d_i)))
-        {
-          a += period * 0.5; // Reflect azimuth across the origin.
-        }
-        if (a >= wrap_min and a < wrap_max) // Check if angle doesn't need wrapping.
-        {
-          return a;
-        }
-        else // Wrap the angle.
-        {
-          Scalar ar = std::fmod(a - wrap_min, period);
-          if (ar < 0)
-          {
-            ar += period;
-          }
-          return ar + wrap_min;
-        }
+        wrap_array_get = {[](const GetCoeff& get_coeff) {
+          const auto [new_i, b] = inclination_wrap_impl<InclinationTraits>(get_coeff(i + i_i));
+          const bool reflect_azimuth = b != std::signbit(get_coeff(i + d_i));
+          return azimuth_wrap_impl<CircleTraits>(reflect_azimuth, get_coeff(i + a_i));
       }};
-    };
+
+      template<std::size_t i, std::size_t d_i, std::size_t a_i, std::size_t i_i>
+      static constexpr std::array<void (*const)(const Scalar, const SetCoeff&, const GetCoeff&), 1>
+        wrap_array_set =
+        {
+          [](const Scalar s, const SetCoeff& set_coeff, const GetCoeff&) {
+            set_coeff(azimuth_wrap_impl<CircleTraits>(false, s), i + a_i); // Assume distance and inclination are correct.
+          }
+        };
+
+  };
 
     template<typename CircleTraits, typename InclinationTraits, typename Scalar>
-    struct SphericalImpl<OpenKalman::Inclination<InclinationTraits>, CircleTraits, InclinationTraits, Scalar>
+    struct SphericalImpl<Inclination<InclinationTraits>, CircleTraits, InclinationTraits, Scalar>
     {
       using GetCoeff = std::function<Scalar(const std::size_t)>;
+      using SetCoeff = std::function<void(const Scalar, const std::size_t)>;
+
       static constexpr Scalar cf_inc = 2 * M_PI / (InclinationTraits::template wrap_max<Scalar> - InclinationTraits::template wrap_min<Scalar>);
 
       template<std::size_t i, std::size_t d_i, std::size_t x_i, std::size_t y_i, std::size_t z_i>
@@ -121,11 +157,23 @@ namespace OpenKalman
 
       template<std::size_t i, std::size_t d_i, std::size_t a_i, std::size_t i_i>
       static constexpr std::array<Scalar (*const)(const GetCoeff&), 1>
-        wrap_array =  {[](const GetCoeff& get_coeff) constexpr {
-        const Scalar ar = std::get<0>(wrap_inclination<Scalar, InclinationTraits>(get_coeff(i + i_i)));
-        return std::signbit(get_coeff(i + d_i)) ? -ar : ar;
+        wrap_array_get =  {[](const GetCoeff& get_coeff) constexpr {
+        const auto [new_i, b] = inclination_wrap_impl<InclinationTraits>(get_coeff(i + i_i));
+        return std::signbit(get_coeff(i + d_i)) ? -new_i : new_i;
       }};
-    };
+
+      template<std::size_t i, std::size_t d_i, std::size_t a_i, std::size_t i_i>
+      static constexpr std::array<void (*const)(const Scalar, const SetCoeff&, const GetCoeff&), 1>
+        wrap_array_set =
+        {
+          [](const Scalar s, const SetCoeff& set_coeff, const GetCoeff& get_coeff) {
+            const auto [new_i, b] = inclination_wrap_impl<InclinationTraits>(get_coeff(i + i_i));
+            set_coeff(new_i, i + i_i); // Adjust inclination.
+            set_coeff(azimuth_wrap_impl<CircleTraits>(not b, get_coeff(i + a_i)), i + a_i); // Adjust azimuth.
+          }
+        };
+
+};
 
     // Implementation of polar coordinates.
     template<typename Derived,
@@ -146,6 +194,9 @@ namespace OpenKalman
 
       template<typename Scalar>
       using GetCoeff = std::function<Scalar(const std::size_t)>;
+
+      template<typename Scalar>
+      using SetCoeff = std::function<void(const Scalar, const std::size_t)>;
 
       template<typename Scalar>
       static constexpr Scalar cf_cir = 2 * M_PI / (CircleTraits::template wrap_max<Scalar> - CircleTraits::template wrap_min<Scalar>);
@@ -177,12 +228,22 @@ namespace OpenKalman
 
       template<typename Scalar, std::size_t i>
       static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), size>
-        wrap_array = internal::join(
+        wrap_array_get = internal::join(
         internal::join(
-          detail::SphericalImpl<Coeff1, CircleTraits, InclinationTraits, Scalar>::template wrap_array<i, d_i, a_i, i_i>,
-          detail::SphericalImpl<Coeff2, CircleTraits, InclinationTraits, Scalar>::template wrap_array<i, d_i, a_i, i_i>),
-          detail::SphericalImpl<Coeff3, CircleTraits, InclinationTraits, Scalar>::template wrap_array<i, d_i, a_i, i_i>
+          detail::SphericalImpl<Coeff1, CircleTraits, InclinationTraits, Scalar>::template wrap_array_get<i, d_i, a_i, i_i>,
+          detail::SphericalImpl<Coeff2, CircleTraits, InclinationTraits, Scalar>::template wrap_array_get<i, d_i, a_i, i_i>),
+          detail::SphericalImpl<Coeff3, CircleTraits, InclinationTraits, Scalar>::template wrap_array_get<i, d_i, a_i, i_i>
       );
+
+      template<typename Scalar, std::size_t i>
+      static constexpr std::array<void (*const)(const Scalar, const SetCoeff<Scalar>&, const GetCoeff<Scalar>&), size>
+        wrap_array_set = internal::join(
+        internal::join(
+          detail::SphericalImpl<Coeff1, CircleTraits, InclinationTraits, Scalar>::template wrap_array_set<i, d_i, a_i, i_i>,
+          detail::SphericalImpl<Coeff2, CircleTraits, InclinationTraits, Scalar>::template wrap_array_set<i, d_i, a_i, i_i>),
+          detail::SphericalImpl<Coeff3, CircleTraits, InclinationTraits, Scalar>::template wrap_array_set<i, d_i, a_i, i_i>
+      );
+
     };
   }
 

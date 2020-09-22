@@ -20,13 +20,38 @@ namespace OpenKalman
 
   namespace detail
   {
-    template<typename Coefficient, typename Scalar>
+    template<typename AngleTraits, typename Coefficient, typename Scalar>
     struct PolarImpl;
 
-    template<typename Scalar>
-    struct PolarImpl<Distance, Scalar>
+    template<typename AngleTraits, typename Scalar>
+    static inline Scalar polar_angle_wrap_impl(const bool distance_is_negative, const Scalar s)
+    {
+      constexpr Scalar wrap_max = AngleTraits::template wrap_max<Scalar>;
+      constexpr Scalar wrap_min = AngleTraits::template wrap_min<Scalar>;
+      constexpr Scalar period = wrap_max - wrap_min;
+
+      Scalar a = distance_is_negative ? s + period * 0.5 : s;
+
+      if (a >= wrap_min and a < wrap_max) // Check if the angle doesn't need wrapping.
+      {
+        return a;
+      }
+      else // Wrap the angle.
+      {
+        Scalar ar = std::fmod(a - wrap_min, period);
+        if (ar < 0)
+        {
+          ar += period;
+        }
+        return ar + wrap_min;
+      }
+    }
+
+    template<typename AngleTraits, typename Scalar>
+    struct PolarImpl<AngleTraits, Distance, Scalar>
     {
       using GetCoeff = std::function<Scalar(const std::size_t)>;
+      using SetCoeff = std::function<void(const Scalar, const std::size_t)>;
 
       template<std::size_t i, std::size_t d_i, std::size_t a_i>
       static constexpr std::array<Scalar (*const)(const GetCoeff&), 1>
@@ -42,28 +67,44 @@ namespace OpenKalman
 
       template<std::size_t i, std::size_t d_i, std::size_t a_i>
       static constexpr std::array<Scalar (*const)(const GetCoeff&), 1>
-        wrap_array = {[](const GetCoeff& get_coeff) constexpr {
-          return std::abs(get_coeff(i + d_i));
-        }};
+        wrap_array_get =
+        {
+          [](const GetCoeff& get_coeff) { return std::abs(get_coeff(i + d_i)); }
+        };
+
+      template<std::size_t i, std::size_t d_i, std::size_t a_i>
+      static constexpr std::array<void (*const)(const Scalar, const SetCoeff&, const GetCoeff&), 1>
+        wrap_array_set =
+        {
+          [](const Scalar s, const SetCoeff& set_coeff, const GetCoeff& get_coeff) {
+            set_coeff(std::abs(s), i + d_i);
+            const auto a = get_coeff(i + a_i);
+            set_coeff(polar_angle_wrap_impl<AngleTraits>(std::signbit(s), a), i + a_i); // May need to reflect angle.
+          }
+        };
+
     };
 
-    template<typename Traits, typename Scalar>
-    struct PolarImpl<Circle<Traits>, Scalar>
+    template<typename AngleTraits, typename Scalar>
+    struct PolarImpl<AngleTraits, Circle<AngleTraits>, Scalar>
     {
       using GetCoeff = std::function<Scalar(const std::size_t)>;
-      static constexpr Scalar cf = 2 * M_PI / (Traits::template wrap_max<Scalar> - Traits::template wrap_min<Scalar>);
+      using SetCoeff = std::function<void(const Scalar, const std::size_t)>;
+
+      static constexpr Scalar cf =
+        2 * M_PI / (AngleTraits::template wrap_max<Scalar> - AngleTraits::template wrap_min<Scalar>);
 
       template<std::size_t i, std::size_t d_i, std::size_t a_i>
       static constexpr std::array<Scalar (*const)(const GetCoeff&), 2>
         to_Euclidean_array =
         {
-          [](const GetCoeff& get_coeff) constexpr { return std::cos(get_coeff(i + a_i) * cf); },
-          [](const GetCoeff& get_coeff) constexpr { return std::sin(get_coeff(i + a_i) * cf); }
+          [](const GetCoeff& get_coeff) { return std::cos(get_coeff(i + a_i) * cf); },
+          [](const GetCoeff& get_coeff) { return std::sin(get_coeff(i + a_i) * cf); }
         };
 
       template<std::size_t i, std::size_t d_i, std::size_t x_i, std::size_t y_i>
       static constexpr std::array<Scalar (*const)(const GetCoeff&), 1>
-        from_Euclidean_array = {[](const GetCoeff& get_coeff) constexpr
+        from_Euclidean_array = {[](const GetCoeff& get_coeff)
       {
         const auto x = std::signbit(get_coeff(i + d_i)) ? -get_coeff(i + x_i) : get_coeff(i + x_i);
         const auto y = std::signbit(get_coeff(i + d_i)) ? -get_coeff(i + y_i) : get_coeff(i + y_i);
@@ -72,39 +113,24 @@ namespace OpenKalman
 
       template<std::size_t i, std::size_t d_i, std::size_t a_i>
       static constexpr std::array<Scalar (*const)(const GetCoeff&), 1>
-        wrap_array = {[](const GetCoeff& get_coeff) constexpr
+        wrap_array_get = {[](const GetCoeff& get_coeff)
       {
-        constexpr Scalar wrap_max = Traits::template wrap_max<Scalar>;
-        constexpr Scalar wrap_min = Traits::template wrap_min<Scalar>;
-        constexpr Scalar period = wrap_max - wrap_min;
-        Scalar a = get_coeff(i + a_i);
-
-        if (std::signbit(get_coeff(i + d_i))) // If radius is negative,
-        {
-          std::cout << "|~~~| i = " << i << std::endl;
-          std::cout << "|~~~| a_i = " << d_i << std::endl;
-          std::cout << "|~~~| d_i = " << a_i << std::endl;
-          a += period * 0.5; // Reflect across the origin.
-        }
-
-        if (a >= wrap_min and a < wrap_max) // Check if the angle doesn't need wrapping.
-        {
-          return a;
-        }
-        else // Wrap the angle.
-        {
-          Scalar ar = std::fmod(a - wrap_min, period);
-          if (ar < 0)
-          {
-            ar += period;
-          }
-          return ar + wrap_min;
-        }
+        return polar_angle_wrap_impl<AngleTraits>(std::signbit(get_coeff(i + d_i)), get_coeff(i + a_i));
       }};
-    };
+
+      template<std::size_t i, std::size_t d_i, std::size_t a_i>
+      static constexpr std::array<void (*const)(const Scalar, const SetCoeff&, const GetCoeff&), 1>
+        wrap_array_set =
+        {
+          [](const Scalar s, const SetCoeff& set_coeff, const GetCoeff&) {
+            set_coeff(polar_angle_wrap_impl<AngleTraits>(false, s), i + a_i); // Assumes that the corresponding distance is positive.
+          }
+        };
+
+  };
 
     // Implementation of polar coordinates.
-    template<typename Derived, typename Coeff1, typename Coeff2,
+    template<typename AngleTraits, typename Derived, typename Coeff1, typename Coeff2,
       std::size_t d_i, std::size_t a_i, std::size_t d2_i, std::size_t x_i, std::size_t y_i>
     struct PolarBase
     {
@@ -121,38 +147,49 @@ namespace OpenKalman
       template<typename Scalar>
       using GetCoeff = std::function<Scalar(const std::size_t)>;
 
+      template<typename Scalar>
+      using SetCoeff = std::function<void(const Scalar, const std::size_t)>;
+
       template<typename Scalar, std::size_t i>
       static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), dimension>
         to_Euclidean_array = internal::join(
-        detail::PolarImpl<Coeff1, Scalar>::template to_Euclidean_array<i, d_i, a_i>,
-        detail::PolarImpl<Coeff2, Scalar>::template to_Euclidean_array<i, d_i, a_i>
+        detail::PolarImpl<AngleTraits, Coeff1, Scalar>::template to_Euclidean_array<i, d_i, a_i>,
+        detail::PolarImpl<AngleTraits, Coeff2, Scalar>::template to_Euclidean_array<i, d_i, a_i>
       );
 
       template<typename Scalar, std::size_t i>
       static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), size>
         from_Euclidean_array = internal::join(
-        detail::PolarImpl<Coeff1, Scalar>::template from_Euclidean_array<i, d2_i, x_i, y_i>,
-        detail::PolarImpl<Coeff2, Scalar>::template from_Euclidean_array<i, d2_i, x_i, y_i>
+        detail::PolarImpl<AngleTraits, Coeff1, Scalar>::template from_Euclidean_array<i, d2_i, x_i, y_i>,
+        detail::PolarImpl<AngleTraits, Coeff2, Scalar>::template from_Euclidean_array<i, d2_i, x_i, y_i>
       );
 
       template<typename Scalar, std::size_t i>
       static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), size>
-        wrap_array = internal::join(
-        detail::PolarImpl<Coeff1, Scalar>::template wrap_array<i, d_i, a_i>,
-        detail::PolarImpl<Coeff2, Scalar>::template wrap_array<i, d_i, a_i>
+        wrap_array_get = internal::join(
+        detail::PolarImpl<AngleTraits, Coeff1, Scalar>::template wrap_array_get<i, d_i, a_i>,
+        detail::PolarImpl<AngleTraits, Coeff2, Scalar>::template wrap_array_get<i, d_i, a_i>
       );
+
+      template<typename Scalar, std::size_t i>
+      static constexpr std::array<void (*const)(const Scalar, const SetCoeff<Scalar>&, const GetCoeff<Scalar>&), size>
+        wrap_array_set = internal::join(
+        detail::PolarImpl<AngleTraits, Coeff1, Scalar>::template wrap_array_set<i, d_i, a_i>,
+        detail::PolarImpl<AngleTraits, Coeff2, Scalar>::template wrap_array_set<i, d_i, a_i>
+      );
+
     };
   }
 
   /// Polar coordinates (Radius, Angle).
   template<typename Traits>
   struct Polar<Distance, Circle<Traits>>
-    : detail::PolarBase<Polar<Distance, Circle<Traits>>, Distance, Circle<Traits>, 0, 1,  0, 1, 2> {};
+    : detail::PolarBase<Traits, Polar<Distance, Circle<Traits>>, Distance, Circle<Traits>, 0, 1,  0, 1, 2> {};
 
   /// Polar coordinates (Angle, Radius).
   template<typename Traits>
   struct Polar<Circle<Traits>, Distance>
-    : detail::PolarBase<Polar<Circle<Traits>, Distance>, Circle<Traits>, Distance, 1, 0,  2, 0, 1> {};
+    : detail::PolarBase<Traits, Polar<Circle<Traits>, Distance>, Circle<Traits>, Distance, 1, 0,  2, 0, 1> {};
 
   /// Polar is a coefficient.
   template<typename Coeff1, typename Coeff2>

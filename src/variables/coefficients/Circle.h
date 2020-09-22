@@ -27,22 +27,24 @@ namespace OpenKalman
     using GetCoeff = std::function<Scalar(const std::size_t)>;
 
     template<typename Scalar>
+    using SetCoeff = std::function<void(const Scalar, const std::size_t)>;
+
+    template<typename Scalar>
     static constexpr Scalar cf = 2 * M_PI / (Traits::template wrap_max<Scalar> - Traits::template wrap_min<Scalar>);
 
     template<typename Scalar, std::size_t i>
     static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), dimension>
       to_Euclidean_array =
       {
-        [](const GetCoeff<Scalar>& get_coeff) constexpr { return std::cos(get_coeff(i) * cf<Scalar>); },
-        [](const GetCoeff<Scalar>& get_coeff) constexpr { return std::sin(get_coeff(i) * cf<Scalar>); }
+        [](const GetCoeff<Scalar>& get_coeff) { return std::cos(get_coeff(i) * cf<Scalar>); },
+        [](const GetCoeff<Scalar>& get_coeff) { return std::sin(get_coeff(i) * cf<Scalar>); }
       };
 
     template<typename Scalar, std::size_t i>
     static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), size>
       from_Euclidean_array =
       {
-        [](const GetCoeff<Scalar>& get_coeff) constexpr
-        {
+        [](const GetCoeff<Scalar>& get_coeff) {
           constexpr Scalar wrap_max = Traits::template wrap_max<Scalar>;
           constexpr Scalar wrap_min = Traits::template wrap_min<Scalar>;
           constexpr Scalar period = wrap_max - wrap_min;
@@ -55,27 +57,38 @@ namespace OpenKalman
         }
       };
 
+  protected:
+    template<typename Scalar>
+    static Scalar wrap_impl(const Scalar a)
+    {
+      constexpr Scalar wrap_max = Traits::template wrap_max<Scalar>;
+      constexpr Scalar wrap_min = Traits::template wrap_min<Scalar>;
+      constexpr Scalar period = wrap_max - wrap_min;
+      if (a >= wrap_min and a < wrap_max)
+      {
+        return a;
+      }
+      else
+      {
+        Scalar ar = std::fmod(a - wrap_min, period);
+        if (ar < 0) ar += period;
+        return ar + wrap_min;
+      }
+    }
+
+  public:
     template<typename Scalar, std::size_t i>
     static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), size>
-      wrap_array =
+      wrap_array_get =
       {
-        [](const GetCoeff<Scalar>& get_coeff) constexpr
-        {
-          constexpr Scalar wrap_max = Traits::template wrap_max<Scalar>;
-          constexpr Scalar wrap_min = Traits::template wrap_min<Scalar>;
-          constexpr Scalar period = wrap_max - wrap_min;
-          const Scalar a = get_coeff(i);
-          if (a >= wrap_min and a < wrap_max)
-          {
-            return a;
-          }
-          else
-          {
-            Scalar ar = std::fmod(a - wrap_min, period);
-            if (ar < 0) ar += period;
-            return ar + wrap_min;
-          }
-        }
+        [](const GetCoeff<Scalar>& get_coeff) { return wrap_impl(get_coeff(i)); }
+      };
+
+    template<typename Scalar, std::size_t i>
+    static constexpr std::array<void (*const)(const Scalar, const SetCoeff<Scalar>&, const GetCoeff<Scalar>&), size>
+      wrap_array_set =
+      {
+        [](const Scalar s, const SetCoeff<Scalar>& set_coeff, const GetCoeff<Scalar>&) { set_coeff(wrap_impl(s), i); }
       };
 
   };

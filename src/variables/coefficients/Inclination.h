@@ -28,45 +28,60 @@ namespace OpenKalman
     using GetCoeff = std::function<Scalar(const std::size_t)>;
 
     template<typename Scalar>
+    using SetCoeff = std::function<void(const Scalar, const std::size_t)>;
+
+    template<typename Scalar>
     static constexpr Scalar cf = 2 * M_PI / (Traits::template wrap_max<Scalar> - Traits::template wrap_min<Scalar>);
 
     template<typename Scalar, std::size_t i>
     static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), dimension>
       to_Euclidean_array =
       {
-        [](const GetCoeff<Scalar>& get_coeff) constexpr { return std::cos(get_coeff(i)) * cf<Scalar>; },
-        [](const GetCoeff<Scalar>& get_coeff) constexpr { return std::sin(get_coeff(i)) * cf<Scalar>; }
+        [](const GetCoeff<Scalar>& get_coeff) { return std::cos(get_coeff(i)) * cf<Scalar>; },
+        [](const GetCoeff<Scalar>& get_coeff) { return std::sin(get_coeff(i)) * cf<Scalar>; }
       };
 
     template<typename Scalar, std::size_t i>
     static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), size>
       from_Euclidean_array =
       {
-        [](const GetCoeff<Scalar>& get_coeff) constexpr
+        [](const GetCoeff<Scalar>& get_coeff)
           {
             return std::atan2(get_coeff(i + 1), std::abs(get_coeff(i))) / cf<Scalar>;
           }
       };
 
+  protected:
+    template<typename Scalar>
+    static Scalar wrap_impl(const Scalar s)
+    {
+      constexpr Scalar inclination_max = M_PI / 2;
+      constexpr Scalar wrap_mod = inclination_max * 2;
+      Scalar a = std::fmod(s + inclination_max, wrap_mod * 2);
+      if (a < 0)
+      {
+        a += wrap_mod * 2;
+      }
+      if (a > wrap_mod)
+      {
+        a = wrap_mod * 2 - a;
+      }
+      return a - inclination_max;
+    }
+
+  public:
     template<typename Scalar, std::size_t i>
     static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), size>
-      wrap_array =
+      wrap_array_get =
       {
-        [](const GetCoeff<Scalar>& get_coeff) constexpr
-        {
-          constexpr Scalar inclination_max = M_PI / 2;
-          constexpr Scalar wrap_mod = inclination_max * 2;
-          Scalar a = std::fmod(get_coeff(i) + inclination_max, wrap_mod * 2);
-          if (a < 0)
-          {
-            a += wrap_mod * 2;
-          }
-          if (a > wrap_mod)
-          {
-            a = wrap_mod * 2 - a;
-          }
-          return a - inclination_max;
-        }
+        [](const GetCoeff<Scalar>& get_coeff) { return wrap_impl(get_coeff(i)); }
+      };
+
+    template<typename Scalar, std::size_t i>
+    static constexpr std::array<void (*const)(const Scalar, const SetCoeff<Scalar>&, const GetCoeff<Scalar>&), size>
+      wrap_array_set =
+      {
+        [](const Scalar s, const SetCoeff<Scalar>& set_coeff, const GetCoeff<Scalar>&) { set_coeff(wrap_impl(s), i); }
       };
 
   };

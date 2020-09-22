@@ -271,7 +271,7 @@ TEST_F(typed_matrix_tests, Mean_overloads)
   auto w_4 = 4 - 2*M_PI;
   auto w_5 = 5 - 2*M_PI;
   auto w_6 = 6 - 2*M_PI;
-  EXPECT_TRUE(is_near(wrap_angles(Mean<C2, M23> {1, 2, 3, M_PI*7/3, M_PI*13/6, -M_PI*7/4}),
+  EXPECT_TRUE(is_near(Mean<C2, M23> {1, 2, 3, M_PI*7/3, M_PI*13/6, -M_PI*7/4},
     Mat23 {1, 2, 3, M_PI/3, M_PI/6, M_PI/4}));
 
   EXPECT_TRUE(is_near(base_matrix(Mat23 {1, 2, 3, 4, 5, 6}), TMat23 {1, 2, 3, w_4, w_5, w_6}));
@@ -505,8 +505,8 @@ TEST_F(typed_matrix_tests, Mean_angle_concatenate_split)
   auto x4 = Mean<Concatenate<C3, C3, C3>> {5., 7, 9, 3, 2, 1, 5, 7, 9};
   EXPECT_TRUE(is_near(concatenate(x1, x2, x1), x4));
   auto [x5, x6] = split<C3, C3>(x3);
-  EXPECT_TRUE(is_near(base_matrix(x5), base_matrix(wrap_angles(x1))));
-  EXPECT_TRUE(is_near(x5, wrap_angles(x1)));
+  EXPECT_TRUE(is_near(base_matrix(x5), base_matrix(x1)));
+  EXPECT_TRUE(is_near(x5, x1));
   EXPECT_TRUE(is_near(x6, x2));
   const Var3 y1 {M_PI / 6, 2, M_PI / 3};
   const Var3 y2 {M_PI / 4, 3, M_PI / 4};
@@ -706,3 +706,219 @@ TEST_F(typed_matrix_tests, Mean_angle_columns_Euclidean)
   EXPECT_NEAR(x1e(2,0), 5, 1e-6);
   EXPECT_NEAR(x1e(2,1), 2, 1e-6);
 }
+
+
+TEST_F(typed_matrix_tests, Wrap_angle)
+{
+  using R = Mean<Angle>;
+  R x0 {M_PI_4};
+  EXPECT_NEAR(get_element(x0, 0, 0), M_PI_4, 1e-6);
+  EXPECT_NEAR(get_element(x0, 0), M_PI_4, 1e-6);
+  set_element(x0, 5*M_PI_4, 0, 0);
+  EXPECT_NEAR(get_element(x0, 0), -3*M_PI_4, 1e-6);
+  set_element(x0, -7*M_PI/6, 0);
+  EXPECT_NEAR(get_element(x0, 0), 5*M_PI/6, 1e-6);
+}
+
+
+TEST_F(typed_matrix_tests, Wrap_distance)
+{
+  using R = Mean<Distance>;
+  R x0 {-5};
+  EXPECT_TRUE(is_near(x0, Eigen::Matrix<double, 1, 1> {5}));
+  EXPECT_TRUE(is_near(x0 + R {1.2}, Eigen::Matrix<double, 1, 1> {6.2}));
+  EXPECT_TRUE(is_near(from_Euclidean(-to_Euclidean(x0) + to_Euclidean(R {1.2})), Eigen::Matrix<double, 1, 1> {3.8}));
+  EXPECT_TRUE(is_near(R {1.1} - 3. * R {1}, R {1.9}));
+  EXPECT_TRUE(is_near(R {1.2} + R {-3}, R {4.2}));
+  EXPECT_NEAR(get_element(x0, 0, 0), 5, 1e-6);
+  EXPECT_NEAR(get_element(x0, 0), 5., 1e-6);
+  set_element(x0, 4, 0, 0);
+  EXPECT_NEAR(get_element(x0, 0, 0), 4., 1e-6);
+  set_element(x0, -3, 0, 0);
+  EXPECT_NEAR(get_element(x0, 0, 0), 3., 1e-6);
+}
+
+
+TEST_F(typed_matrix_tests, Wrap_inclination)
+{
+  using R = Mean<InclinationAngle>;
+  EXPECT_TRUE(is_near(R {M_PI * 7 / 12}, R {M_PI * 5 / 12}));
+  EXPECT_TRUE(is_near(R {-M_PI * 7 / 12}, R {-M_PI * 5 / 12}));
+  EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(R {M_PI / 6}) + to_Euclidean(R {M_PI})), R {M_PI / 12}));
+  EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(R {-M_PI / 6}) + to_Euclidean(R {M_PI})), R {-M_PI / 12}));
+  EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(R {M_PI * 5 / 6}) + to_Euclidean(R {M_PI / 2})), R {M_PI / 3}));
+  R x0 {M_PI_2};
+  EXPECT_NEAR(get_element(x0, 0, 0), M_PI_2, 1e-6);
+  EXPECT_NEAR(get_element(x0, 0), M_PI_2, 1e-6);
+  set_element(x0, M_PI_4, 0, 0);
+  EXPECT_NEAR(get_element(x0, 0, 0), M_PI_4, 1e-6);
+  set_element(x0, 3*M_PI_4, 0, 0);
+  EXPECT_NEAR(get_element(x0, 0, 0), M_PI_4, 1e-6);
+}
+
+
+TEST_F(typed_matrix_tests, Wrap_polar)
+{
+  using P = Mean<Polar<Distance, Angle>>;
+  EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(P {1., M_PI / 6}) + to_Euclidean(P {-0.5, 0})), P {1.5, M_PI * 7 / 12}));
+  EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(P {1., M_PI / 6}) + to_Euclidean(P {-1.5, 0})), P {2.5, M_PI * 7 / 12}));
+  EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(P {1., M_PI * 5 / 6}) + to_Euclidean(P {0, -M_PI * 2 / 3})), P {1., -M_PI * 11 / 12}));
+  EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(P {1., M_PI * 5 / 6}) + to_Euclidean(P {-1.5, -M_PI * 2 / 3})), P {2.5, M_PI * 7 / 12}));
+  P x0 {2, M_PI_4};
+  EXPECT_NEAR(get_element(x0, 0, 0), 2, 1e-6);
+  EXPECT_NEAR(get_element(x0, 1), M_PI_4, 1e-6);
+  set_element(x0, -1.5, 0);
+  EXPECT_NEAR(get_element(x0, 0), 1.5, 1e-6);
+  EXPECT_NEAR(get_element(x0, 1), -3*M_PI_4, 1e-6);
+  set_element(x0, 7*M_PI/6, 1);
+  EXPECT_NEAR(get_element(x0, 0), 1.5, 1e-6);
+  EXPECT_NEAR(get_element(x0, 1), -5*M_PI/6, 1e-6);
+
+  using Q = Mean<Polar<Angle, Distance>>;
+  EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(Q {M_PI / 6, 1}) + to_Euclidean(Q {0, -0.5})), Q {M_PI * 7 / 12, 1.5}));
+  EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(Q {M_PI / 6, 1}) + to_Euclidean(Q {0, -1.5})), Q {M_PI * 7 / 12, 2.5}));
+  EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(Q {M_PI * 5 / 6, 1}) + to_Euclidean(Q {-M_PI * 2 / 3, 0})), Q {-M_PI * 11 / 12, 1}));
+  EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(Q {M_PI * 5 / 6, 1}) + to_Euclidean(Q {-M_PI * 2 / 3, -1.5})), Q {M_PI * 7 / 12, 2.5}));
+  Q x1 {M_PI_4, 2};
+  EXPECT_NEAR(get_element(x1, 1, 0), 2, 1e-6);
+  EXPECT_NEAR(get_element(x1, 0), M_PI_4, 1e-6);
+  set_element(x1, -1.5, 1);
+  EXPECT_NEAR(get_element(x1, 1), 1.5, 1e-6);
+  EXPECT_NEAR(get_element(x1, 0), -3*M_PI_4, 1e-6);
+  set_element(x1, 7*M_PI/6, 0);
+  EXPECT_NEAR(get_element(x1, 1), 1.5, 1e-6);
+  EXPECT_NEAR(get_element(x1, 0), -5*M_PI/6, 1e-6);
+}
+
+
+TEST_F(typed_matrix_tests, Wrap_spherical)
+{
+  using S = Mean<Spherical<Distance, Angle, InclinationAngle>>;
+  EXPECT_TRUE(is_near(S {-0.5, M_PI / 3, M_PI / 6}, S {0.5, -M_PI * 2 / 3, -M_PI / 6}));
+  EXPECT_TRUE(is_near(S {-0.5, M_PI * 7, M_PI * 7 / 6}, S {0.5, M_PI, M_PI / 6}));
+  const auto x1 = S {0.5, std::atan2(3. / 4, 1. + std::sqrt(3.) / 4),
+                     std::asin(0.5 / std::hypot(1. + std::sqrt(3.) / 4, 3. / 4, 0.5))};
+  const auto x2 = S {0.5, std::atan2(3. / 4, 1. + std::sqrt(3.) / 4) - M_PI,
+                     -std::asin(0.5 / std::hypot(1. + std::sqrt(3.) / 4, 3. / 4, 0.5))};
+  const auto x3 = S {1.0, std::atan2(3. / 4, -1. + std::sqrt(3.) / 4),
+                     std::asin(0.5 / std::hypot(-1. + std::sqrt(3.) / 4, 3. / 4, 0.5))};
+  EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(S {1., M_PI / 3, M_PI / 6}) - to_Euclidean(S {-0.5, 0, 0})), x1));
+  EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(S {1., M_PI / 3, M_PI / 6}) - to_Euclidean(S {-1.5, 0, 0})), x2));
+  EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(S {1., M_PI / 3, M_PI / 6}) + to_Euclidean(S {0, 0, M_PI})), x3));
+  S x0 {2, M_PI_4, -M_PI_4};
+  EXPECT_NEAR(get_element(x0, 0, 0), 2, 1e-6);
+  EXPECT_NEAR(get_element(x0, 1), M_PI_4, 1e-6);
+  EXPECT_NEAR(get_element(x0, 2), -M_PI_4, 1e-6);
+  set_element(x0, -1.5, 0);
+  EXPECT_NEAR(get_element(x0, 0), 1.5, 1e-6);
+  EXPECT_NEAR(get_element(x0, 1), -3*M_PI_4, 1e-6);
+  EXPECT_NEAR(get_element(x0, 2), M_PI_4, 1e-6);
+  set_element(x0, 7*M_PI/6, 1);
+  EXPECT_NEAR(get_element(x0, 0), 1.5, 1e-6);
+  EXPECT_NEAR(get_element(x0, 1), -5*M_PI/6, 1e-6);
+  EXPECT_NEAR(get_element(x0, 2), M_PI_4, 1e-6);
+  set_element(x0, 3*M_PI_4, 2);
+  EXPECT_NEAR(get_element(x0, 0), 1.5, 1e-6);
+  EXPECT_NEAR(get_element(x0, 1), M_PI/6, 1e-6);
+  EXPECT_NEAR(get_element(x0, 2), M_PI_4, 1e-6);
+
+  using T = Mean<Spherical<Angle, Distance, InclinationAngle>>;
+  EXPECT_TRUE(is_near(T {M_PI / 3, -0.5, M_PI / 6}, T {-M_PI * 2 / 3, 0.5, -M_PI / 6}));
+  EXPECT_TRUE(is_near(T {M_PI * 7, -0.5, M_PI * 7 / 6}, T {M_PI, 0.5, M_PI / 6}));
+  const auto y1 = T {std::atan2(3. / 4, 1. + std::sqrt(3.) / 4),
+                     0.5, std::asin(0.5 / std::hypot(1. + std::sqrt(3.) / 4, 3. / 4, 0.5))};
+  const auto y2 = T {std::atan2(3. / 4, 1. + std::sqrt(3.) / 4) - M_PI,
+                     0.5, -std::asin(0.5 / std::hypot(1. + std::sqrt(3.) / 4, 3. / 4, 0.5))};
+  const auto y3 = T {std::atan2(3. / 4, -1. + std::sqrt(3.) / 4),
+                     1.0, std::asin(0.5 / std::hypot(-1. + std::sqrt(3.) / 4, 3. / 4, 0.5))};
+  EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(T {M_PI / 3, 1, M_PI / 6}) - to_Euclidean(T {0, -0.5, 0})), y1));
+  EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(T {M_PI / 3, 1, M_PI / 6}) - to_Euclidean(T {0, -1.5, 0})), y2));
+  EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(T {M_PI / 3, 1, M_PI / 6}) + to_Euclidean(T {0, 0, M_PI})), y3));
+  T z1 {M_PI_4, 2, -M_PI_4};
+  EXPECT_NEAR(get_element(z1, 1, 0), 2, 1e-6);
+  EXPECT_NEAR(get_element(z1, 0), M_PI_4, 1e-6);
+  EXPECT_NEAR(get_element(z1, 2), -M_PI_4, 1e-6);
+  set_element(z1, -1.5, 1);
+  EXPECT_NEAR(get_element(z1, 1), 1.5, 1e-6);
+  EXPECT_NEAR(get_element(z1, 0), -3*M_PI_4, 1e-6);
+  EXPECT_NEAR(get_element(z1, 2), M_PI_4, 1e-6);
+  set_element(z1, 7*M_PI/6, 0);
+  EXPECT_NEAR(get_element(z1, 1), 1.5, 1e-6);
+  EXPECT_NEAR(get_element(z1, 0), -5*M_PI/6, 1e-6);
+  EXPECT_NEAR(get_element(z1, 2), M_PI_4, 1e-6);
+  set_element(z1, 3*M_PI_4, 2);
+  EXPECT_NEAR(get_element(z1, 1), 1.5, 1e-6);
+  EXPECT_NEAR(get_element(z1, 0), M_PI/6, 1e-6);
+  EXPECT_NEAR(get_element(z1, 2), M_PI_4, 1e-6);
+
+  using U = Mean<Spherical<Angle, InclinationAngle, Distance>>;
+  U z2 {M_PI_4, -M_PI_4, 2};
+  EXPECT_NEAR(get_element(z2, 2, 0), 2, 1e-6);
+  EXPECT_NEAR(get_element(z2, 0), M_PI_4, 1e-6);
+  EXPECT_NEAR(get_element(z2, 1), -M_PI_4, 1e-6);
+  set_element(z2, -1.5, 2);
+  EXPECT_NEAR(get_element(z2, 2), 1.5, 1e-6);
+  EXPECT_NEAR(get_element(z2, 0), -3*M_PI_4, 1e-6);
+  EXPECT_NEAR(get_element(z2, 1), M_PI_4, 1e-6);
+  set_element(z2, 7*M_PI/6, 0);
+  EXPECT_NEAR(get_element(z2, 2), 1.5, 1e-6);
+  EXPECT_NEAR(get_element(z2, 0), -5*M_PI/6, 1e-6);
+  EXPECT_NEAR(get_element(z2, 1), M_PI_4, 1e-6);
+  set_element(z2, 3*M_PI_4, 1);
+  EXPECT_NEAR(get_element(z2, 2), 1.5, 1e-6);
+  EXPECT_NEAR(get_element(z2, 0), M_PI/6, 1e-6);
+  EXPECT_NEAR(get_element(z2, 1), M_PI_4, 1e-6);
+}
+
+
+TEST_F(typed_matrix_tests, Wrap_angle_polar)
+{
+  using R = Mean<Coefficients<Angle, Polar<Distance, Angle>>>;
+  EXPECT_TRUE(is_near(R {M_PI_4, 1., M_PI/6} + R {-M_PI_2, 0.5, M_PI}, R {-M_PI_4, 1.5, -M_PI*5/6}));
+  EXPECT_TRUE(is_near(R {M_PI_4, 1., M_PI/6} + R {M_PI_4, -1.5, -M_PI_2}, R {M_PI_2, 2.5, M_PI*2/3}));
+  EXPECT_TRUE(is_near(R {-M_PI_2, 1., M_PI*5/6} + R {M_PI/3, -0.5, M_PI_2}, R {-M_PI/6, 1.5, M_PI/3}));
+  R x0 {M_PI_4, 2, M_PI_4};
+  EXPECT_NEAR(get_element(x0, 0, 0), M_PI_4, 1e-6);
+  EXPECT_NEAR(get_element(x0, 0), M_PI_4, 1e-6);
+  set_element(x0, 5*M_PI_4, 0, 0);
+  EXPECT_NEAR(get_element(x0, 0), -3*M_PI_4, 1e-6);
+  EXPECT_NEAR(get_element(x0, 1), 2, 1e-6);
+  EXPECT_NEAR(get_element(x0, 2), M_PI_4, 1e-6);
+  set_element(x0, -7*M_PI/6, 0);
+  EXPECT_NEAR(get_element(x0, 0), 5*M_PI/6, 1e-6);
+  EXPECT_NEAR(get_element(x0, 1), 2, 1e-6);
+  EXPECT_NEAR(get_element(x0, 2), M_PI_4, 1e-6);
+  set_element(x0, -1.5, 1);
+  EXPECT_NEAR(get_element(x0, 0), 5*M_PI/6, 1e-6);
+  EXPECT_NEAR(get_element(x0, 1), 1.5, 1e-6);
+  EXPECT_NEAR(get_element(x0, 2), -3*M_PI_4, 1e-6);
+  set_element(x0, 7*M_PI/6, 2);
+  EXPECT_NEAR(get_element(x0, 0), 5*M_PI/6, 1e-6);
+  EXPECT_NEAR(get_element(x0, 1), 1.5, 1e-6);
+  EXPECT_NEAR(get_element(x0, 2), -5*M_PI/6, 1e-6);
+
+  using Q = Mean<Coefficients<Polar<Angle, Distance>, Angle>>;
+  EXPECT_TRUE(is_near(Q {M_PI/6, 1, M_PI_4} + Q {M_PI, 0.5, -M_PI_2}, Q {-M_PI*5/6, 1.5, -M_PI_4}));
+  EXPECT_TRUE(is_near(Q {M_PI/6, 1, M_PI_4} + Q {-M_PI_2, -1.5, M_PI_4}, Q {M_PI*2/3, 2.5, M_PI_2}));
+  EXPECT_TRUE(is_near(Q {M_PI*5/6, 1., -M_PI_2} + Q {M_PI_2, -0.5, M_PI/3}, Q {M_PI/3, 1.5, -M_PI/6}));
+  Q x1 {M_PI_4, 2, M_PI_4};
+  EXPECT_NEAR(get_element(x1, 2, 0), M_PI_4, 1e-6);
+  EXPECT_NEAR(get_element(x1, 2), M_PI_4, 1e-6);
+  set_element(x1, 5*M_PI_4, 2, 0);
+  EXPECT_NEAR(get_element(x1, 2), -3*M_PI_4, 1e-6);
+  EXPECT_NEAR(get_element(x1, 1), 2, 1e-6);
+  EXPECT_NEAR(get_element(x1, 0), M_PI_4, 1e-6);
+  set_element(x1, -7*M_PI/6, 2);
+  EXPECT_NEAR(get_element(x1, 2), 5*M_PI/6, 1e-6);
+  EXPECT_NEAR(get_element(x1, 1), 2, 1e-6);
+  EXPECT_NEAR(get_element(x1, 0), M_PI_4, 1e-6);
+  set_element(x1, -1.5, 1);
+  EXPECT_NEAR(get_element(x1, 2), 5*M_PI/6, 1e-6);
+  EXPECT_NEAR(get_element(x1, 1), 1.5, 1e-6);
+  EXPECT_NEAR(get_element(x1, 0), -3*M_PI_4, 1e-6);
+  set_element(x1, 7*M_PI/6, 0);
+  EXPECT_NEAR(get_element(x1, 2), 5*M_PI/6, 1e-6);
+  EXPECT_NEAR(get_element(x1, 1), 1.5, 1e-6);
+  EXPECT_NEAR(get_element(x1, 0), -5*M_PI/6, 1e-6);
+}
+

@@ -26,12 +26,15 @@ namespace OpenKalman
     template<typename Scalar>
     using GetCoeff = std::function<Scalar(const std::size_t)>;
 
+    template<typename Scalar>
+    using SetCoeff = std::function<void(const Scalar, const std::size_t)>;
+
     ///A vector in which all coefficients are axes already represents a point in Euclidean space. No action taken.
     template<typename Scalar, std::size_t i>
     static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), dimension>
       to_Euclidean_array =
       {
-        [](const GetCoeff<Scalar>& get_coeff) constexpr { return get_coeff(i); }
+        [](const GetCoeff<Scalar>& get_coeff) { return get_coeff(i); }
       };
 
     ///A vector in which all coefficients are axes already represents a point in Euclidean space. No action taken.
@@ -39,15 +42,23 @@ namespace OpenKalman
     static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), size>
       from_Euclidean_array =
       {
-        [](const GetCoeff<Scalar>& get_coeff) constexpr { return std::abs(get_coeff(i)); }
+        [](const GetCoeff<Scalar>& get_coeff) { return std::abs(get_coeff(i)); }
       };
 
     template<typename Scalar, std::size_t i>
     static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), size>
-      wrap_array =
+      wrap_array_get =
       {
-        [](const GetCoeff<Scalar>& get_coeff) constexpr { return std::abs(get_coeff(i)); }
+        [](const GetCoeff<Scalar>& get_coeff) { return std::abs(get_coeff(i)); }
       };
+
+    template<typename Scalar, std::size_t i>
+    static constexpr std::array<void (*const)(const Scalar, const SetCoeff<Scalar>&, const GetCoeff<Scalar>&), size>
+      wrap_array_set =
+      {
+        [](const Scalar s, const SetCoeff<Scalar>& set_coeff, const GetCoeff<Scalar>&) { set_coeff(std::abs(s), i); }
+      };
+
   };
 
   /// Radius is a coefficient.

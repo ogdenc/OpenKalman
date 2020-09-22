@@ -145,12 +145,11 @@ inline const auto radarP = make_Transformation
     }
   );
 
-
 inline const auto Cartesian2polar = make_Transformation
   (
     [](const M2t& x, const auto&...ps)
     {
-      return (M2Pt {std::hypot(x(0), x(1)), std::atan2(x(1), x(0))} + ... + ps);
+      return (TypedMatrix {M2Pt {std::hypot(x(0), x(1)), std::atan2(x(1), x(0))}} + ... + TypedMatrix {ps});
     },
     [](const M2t& x, const auto&...ps) // Jacobians
     {

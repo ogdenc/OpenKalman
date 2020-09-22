@@ -23,6 +23,8 @@ namespace OpenKalman
     static_assert(MatrixTraits<InDelta>::columns == 1);
     static_assert(((MatrixTraits<PsDelta>::columns == 1) and ...));
     static_assert(std::is_invocable_v<Trans, std::decay_t<InDelta>, std::decay_t<PsDelta>...>);
+    static_assert(not is_wrapped_v<std::invoke_result_t<Trans, std::decay_t<InDelta>, std::decay_t<PsDelta>...>>,
+      "For finite difference linearization, the transformation function cannot return a wrapped matrix.");
 
     FiniteDifferenceLinearization(Trans&& trans, InDelta&& in_delta, PsDelta&& ... ps_delta)
     : transformation(std::forward<Trans>(trans)),
@@ -47,14 +49,25 @@ namespace OpenKalman
         const auto t_start = internal::tuple_slice<0, term>(inputs);
         const auto t_end = internal::tuple_slice<1, sizeof...(Inputs)>(inputs);
 
-        auto col = std::get<term>(inputs);
+        auto col = TypedMatrix {std::get<term>(inputs)};
         const Scalar x = col[i];
+        ///@TODO: change everything to TypedMatrix, to avoid wrapping issues
         col[i] = x - h;
         const auto x1 = std::tuple_cat(t_start, std::tuple {col}, t_end);
         col[i] = x + h;
         const auto x2 = std::tuple_cat(t_start, std::tuple {col}, t_end);
-
         auto ret = strict((std::apply(transformation, x2) - std::apply(transformation, x1))/(2*h));
+        if (x < 0)
+        {
+          std::cout << "col" << std::endl << col << std::endl;
+          std::cout << "x2" << std::endl << x + h << std::endl;
+          std::cout << "2col" << std::endl << col << std::endl;
+          std::cout << "x1" << std::endl << x - h << std::endl;
+          std::cout << "1col" << std::endl << col << std::endl;
+          std::cout << "f2" << std::endl << std::apply(transformation, x2) << std::endl;
+          std::cout << "f1" << std::endl << std::apply(transformation, x1) << std::endl;
+          std::cout << "ret" << std::endl << ret << std::endl;
+        }
         return ret;
       });
     }

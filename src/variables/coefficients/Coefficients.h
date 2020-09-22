@@ -52,20 +52,31 @@ namespace OpenKalman
     using GetCoeff = std::function<Scalar(const std::size_t)>;
 
     template<typename Scalar>
-    using CoeffFunction = Scalar(*)(const GetCoeff<Scalar>&);
+    using SetCoeff = std::function<void(const Scalar, const std::size_t)>;
+
+    template<typename Scalar>
+    using GetCoeffFunction = Scalar(*)(const GetCoeff<Scalar>&);
+
+    template<typename Scalar>
+    using SetCoeffFunction = void(*)(const Scalar, const SetCoeff<Scalar>&, const GetCoeff<Scalar>&);
 
     template<typename Scalar, std::size_t i>
-    static constexpr std::array<const CoeffFunction<Scalar>, dimension>
+    static constexpr std::array<const GetCoeffFunction<Scalar>, dimension>
       to_Euclidean_array = {};
 
     template<typename Scalar, std::size_t i>
-    static constexpr std::array<const CoeffFunction<Scalar>, size>
+    static constexpr std::array<const GetCoeffFunction<Scalar>, size>
       from_Euclidean_array = {};
 
-    /// Array of functions that perform wrapping without using expensive trigonometric functions.
+    /// Array of functions that retrieve a wrapped value without using expensive trigonometric functions.
     template<typename Scalar, std::size_t i>
-    static constexpr std::array<const CoeffFunction<Scalar>, size>
-      wrap_array = {};
+    static constexpr std::array<const GetCoeffFunction<Scalar>, size>
+      wrap_array_get = {};
+
+    /// Array of functions that set a wrapped value without using expensive trigonometric functions.
+    template<typename Scalar, std::size_t i>
+    static constexpr std::array<const SetCoeffFunction<Scalar>, size>
+      wrap_array_set = {};
   };
 
 
@@ -104,23 +115,35 @@ namespace OpenKalman
     using GetCoeff = std::function<Scalar(const std::size_t)>;
 
     template<typename Scalar>
-    using CoeffFunction = Scalar(*)(const GetCoeff<Scalar>&);
+    using SetCoeff = std::function<void(const Scalar, const std::size_t)>;
+
+    template<typename Scalar>
+    using GetCoeffFunction = Scalar(*)(const GetCoeff<Scalar>&);
+
+    template<typename Scalar>
+    using SetCoeffFunction = void(*)(const Scalar, const SetCoeff<Scalar>&, const GetCoeff<Scalar>&);
 
     template<typename Scalar, std::size_t i>
-    static constexpr std::array<const CoeffFunction<Scalar>, dimension>
+    static constexpr std::array<const GetCoeffFunction<Scalar>, dimension>
       to_Euclidean_array = internal::join(C::template to_Euclidean_array<Scalar, i>,
         Coefficients<Ctail...>::template to_Euclidean_array<Scalar, i + C::size>);
 
     template<typename Scalar, std::size_t i>
-    static constexpr std::array<const CoeffFunction<Scalar>, size>
+    static constexpr std::array<const GetCoeffFunction<Scalar>, size>
       from_Euclidean_array = internal::join(C::template from_Euclidean_array<Scalar, i>,
         Coefficients<Ctail...>::template from_Euclidean_array<Scalar, i + C::dimension>);
 
-    /// Array of functions that perform wrapping without using expensive trigonometric functions.
+    /// Array of functions that retrieve a wrapped value without using expensive trigonometric functions.
     template<typename Scalar, std::size_t i>
-    static constexpr std::array<const CoeffFunction<Scalar>, size>
-      wrap_array = internal::join(C::template wrap_array<Scalar, i>,
-        Coefficients<Ctail...>::template wrap_array<Scalar, i + C::size>);
+    static constexpr std::array<const GetCoeffFunction<Scalar>, size>
+      wrap_array_get = internal::join(C::template wrap_array_get<Scalar, i>,
+        Coefficients<Ctail...>::template wrap_array_get<Scalar, i + C::size>);
+
+    /// Array of functions that set a wrapped value without using expensive trigonometric functions.
+    template<typename Scalar, std::size_t i>
+    static constexpr std::array<const SetCoeffFunction<Scalar>, size>
+      wrap_array_set = internal::join(C::template wrap_array_set<Scalar, i>,
+        Coefficients<Ctail...>::template wrap_array_set<Scalar, i + C::size>);
   };
 
   /// Coefficients can, itself, be a coefficient. May be used to group coefficients together as a unit.
@@ -171,10 +194,23 @@ namespace OpenKalman
     return Coeffs::template from_Euclidean_array<Scalar, 0>[row](get_coeff);
   }
 
-  template<typename Coeffs, typename Scalar, std::enable_if_t<is_coefficient_v<Coeffs>, int> = 0>
-  static Scalar wrap(const std::size_t row, const std::function<Scalar(const std::size_t)> get_coeff)
+  /// Wrap and return a single coefficient.
+  template<typename Coeffs, typename F, std::enable_if_t<is_coefficient_v<Coeffs>, int> = 0>
+  static auto wrap_get(const std::size_t row, const F& get_coeff)
   {
-    return Coeffs::template wrap_array<Scalar, 0>[row](get_coeff);
+    static_assert(std::is_invocable_v<F, const std::size_t>);
+    using Scalar = std::invoke_result_t<F, const std::size_t>;
+    static_assert(std::is_arithmetic_v<Scalar>);
+    return Coeffs::template wrap_array_get<Scalar, 0>[row](get_coeff);
+  }
+
+  /// Wrap and set a single coefficient.
+  template<typename Coeffs, typename Scalar, typename FS, typename FG, std::enable_if_t<is_coefficient_v<Coeffs>, int> = 0>
+  static void wrap_set(const Scalar s, const std::size_t row, const FS& set_coeff, const FG& get_coeff)
+  {
+    static_assert(std::is_invocable_v<FG, const std::size_t>);
+    static_assert(std::is_invocable_v<FS, const std::size_t, const Scalar>);
+    Coeffs::template wrap_array_set<Scalar, 0>[row](s, set_coeff, get_coeff);
   }
 
 

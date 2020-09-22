@@ -553,7 +553,7 @@ namespace OpenKalman
     };
 
     template<bool index, typename Arg, typename Function, std::size_t ... ints>
-    inline auto do_columnwise_impl(Arg& arg, const Function& f, std::index_sequence<ints...>)
+    inline Arg& do_columnwise_impl(Arg& arg, const Function& f, std::index_sequence<ints...>)
     {
       return (do_one_column<index, ints>(arg, f), ...);
     };

@@ -580,7 +580,7 @@ namespace Eigen::internal
       else
       {
         const auto get_coeff = [col, this](const Index i) { return this->m_argImpl.coeff(i, col); };
-        return OpenKalman::wrap<Coefficients, Scalar>((std::size_t) row, get_coeff);
+        return OpenKalman::wrap_get<Coefficients>((std::size_t) row, get_coeff);
       }
     }
 
@@ -593,7 +593,7 @@ namespace Eigen::internal
       else
       {
         const auto get_coeff = [this](const Index i) { return this->m_argImpl.coeff(i); };
-        return OpenKalman::wrap<Coefficients, Scalar>((std::size_t) row, get_coeff);
+        return OpenKalman::wrap_get<Coefficients>((std::size_t) row, get_coeff);
       }
     }
   };
