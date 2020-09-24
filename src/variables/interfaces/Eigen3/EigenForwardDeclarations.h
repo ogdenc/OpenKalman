@@ -390,7 +390,7 @@ namespace OpenKalman
   template<typename Arg1, typename Arg2>
   struct is_diagonal<Eigen::CwiseBinaryOp<
     Eigen::internal::scalar_product_op<typename Arg1::Scalar, typename Arg2::Scalar>, Arg1, Arg2>,
-    std::enable_if_t<not is_zero_v<Arg1> and not is_zero_v<Arg2>>>
+    std::enable_if_t<not is_zero_v<Arg1> and not is_zero_v<Arg2> and not is_1by1_v<Arg1> and not is_1by1_v<Arg2>>>
     : std::integral_constant<bool, is_diagonal_v<Arg1> or is_diagonal_v<Arg2>> {};
 
   /// Diagonal matrix divided by a scalar is also diagonal.

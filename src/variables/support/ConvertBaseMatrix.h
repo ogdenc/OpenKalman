@@ -21,7 +21,7 @@ namespace OpenKalman::internal
    * @param arg Covariance matrix to be converted.
    * @return A covariance base.
    */
-  template<typename T = void, typename Arg>
+  template<typename T, typename Arg>
   constexpr decltype(auto)
   convert_base_matrix(Arg&& arg) noexcept
   {

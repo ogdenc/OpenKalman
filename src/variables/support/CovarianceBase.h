@@ -185,7 +185,7 @@ namespace OpenKalman::internal
     }
 
     /// Assign from a covariance base or typed matrix base.
-    template<typename Arg, std::enable_if_t<is_covariance_base_v<Arg> or is_typed_matrix_base_v<Arg> and
+    template<typename Arg, std::enable_if_t<(is_covariance_base_v<Arg> or is_typed_matrix_base_v<Arg>) and
       std::is_assignable_v<BaseMatrix, Arg&&>, int> = 0>
     auto& operator=(Arg&& arg) noexcept
     {

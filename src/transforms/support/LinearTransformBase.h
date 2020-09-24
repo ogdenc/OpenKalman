@@ -120,7 +120,7 @@ namespace OpenKalman::internal
       is_linearized_function<Trans, 1>, is_distribution<InputDist>, is_distribution<NoiseDists>...>, int> = 0>
     auto operator()(const InputDist& x, const Trans& g, const NoiseDists&...ns) const
     {
-      return transform<false>(typename Derived::TransformFunction<Trans> {g}, x, ns...);
+      return transform<false>(typename Derived::template TransformFunction<Trans> {g}, x, ns...);
     }
 
     /**
@@ -133,7 +133,7 @@ namespace OpenKalman::internal
       is_linearized_function<Trans, 1>, is_distribution<InputDist>, is_distribution<NoiseDists>...>, int> = 0>
     auto transform_with_cross_covariance(const InputDist& x, const Trans& g, const NoiseDists&...ns) const
     {
-      return transform<true>(typename Derived::TransformFunction<Trans> {g}, x, ns...);
+      return transform<true>(typename Derived::template TransformFunction<Trans> {g}, x, ns...);
     }
 
   };
