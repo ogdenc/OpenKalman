@@ -11,6 +11,8 @@
 #ifndef OPENKALMAN_SPHERICALSIMPLEX_H
 #define OPENKALMAN_SPHERICALSIMPLEX_H
 
+#include <limits>
+
 namespace OpenKalman
 {
   /*************SphericalSimplexSigmaPoints************
@@ -47,11 +49,23 @@ namespace OpenKalman
     sigma_point_count() { return dim + 2; };
 
   private:
+    /// Compile time sqrt.
+    template<typename Scalar>
+    static constexpr Scalar constexpr_sqrt(Scalar x, Scalar guess)
+    {
+      return (0.25 * (guess + x / guess) * (guess + x / guess) - x <= 10*std::numeric_limits<Scalar>::epsilon()) ?
+        (0.5 * (guess + x / guess)) :
+        constexpr_sqrt(x, 0.5 * (guess + x / guess));
+    }
+
+    template<typename Scalar>
+    static constexpr Scalar constexpr_sqrt(Scalar x) { return constexpr_sqrt(x, 1.); }
+
     template<std::size_t j, std::size_t i, std::size_t dim, typename Scalar>
     static constexpr auto
     sigma_point_coeff()
     {
-      constexpr auto denom = 1 / std::sqrt((j + 1) * (j + 2) * unscaled_W<dim, Scalar>());
+      constexpr auto denom = 1 / constexpr_sqrt((j + 1) * (j + 2) * unscaled_W<dim, Scalar>());
       if constexpr(i == 0)
         return Scalar(0);
       else if constexpr(i < j + 2)
