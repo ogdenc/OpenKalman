@@ -53,7 +53,7 @@ namespace OpenKalman
     template<typename Scalar>
     static constexpr Scalar constexpr_sqrt(Scalar x, Scalar guess)
     {
-      return (0.25 * (guess + x / guess) * (guess + x / guess) - x <= 10*std::numeric_limits<Scalar>::epsilon()) ?
+      return (0.25 * (guess + x / guess) * (guess + x / guess)/x - 1 <= std::numeric_limits<Scalar>::epsilon()) ?
         (0.5 * (guess + x / guess)) :
         constexpr_sqrt(x, 0.5 * (guess + x / guess));
     }
