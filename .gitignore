@@ -32,7 +32,7 @@
 *.app
 
 # Code::Blocks
-/*.cbp
+*.cbp
 /*.layout
 
 # CMake
@@ -43,4 +43,3 @@ Makefile
 
 # Unversioned files
 .idea/
-/cmake-build-debug/OpenKalman.cbp
