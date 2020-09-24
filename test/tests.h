@@ -32,7 +32,7 @@ template<typename ArgA, typename ArgB, std::enable_if_t<is_test_trait<ArgA> and 
   auto A_n = strict_matrix(std::forward<ArgA>(A));
   auto B_n = strict_matrix(std::forward<ArgB>(B));
 
-  if (A_n.isApprox(B_n, err))
+  if (A_n.isApprox(B_n, err) or (A_n.isMuchSmallerThan(1., err) and B_n.isMuchSmallerThan(1., err)))
   {
     return ::testing::AssertionSuccess();
   }
@@ -82,6 +82,48 @@ template<
   }
 }
 
+namespace
+{
+  template<typename Arg1, typename Arg2, std::size_t N>
+  ::testing::AssertionResult
+  is_near_impl(const std::array<Arg1, N>& A, const std::array<Arg2, N>& B, const double e, const std::size_t i)
+  {
+    auto res_i = is_near(A[i], B[i], e);
+    if (res_i)
+    {
+      if (i < N - 1) return is_near_impl(A, B, e, i + 1);
+      else return ::testing::AssertionSuccess();
+    }
+    else
+    {
+      if (i < N - 1)
+      {
+        auto res_i1 = is_near_impl(A, B, e, i + 1);
+        if (res_i1) return ::testing::AssertionFailure() << "array element " << i+1 << "/" << N << ": " << res_i.message();
+        else return ::testing::AssertionFailure() << "array element " << i+1 << "/" << N << ": " << res_i.message() << res_i1.message();
+      }
+      else
+      {
+        return ::testing::AssertionFailure() << "array element " << i+1 << "/" << N << ": " << res_i.message();
+      }
+    }
+  };
+}
+
+template<typename Arg1, typename Arg2, std::size_t N>
+::testing::AssertionResult is_near(
+  const std::array<Arg1, N>& A,
+  const std::array<Arg2, N>& B,
+  const double e = 1e-6)
+{
+  return is_near_impl(A, B, e, 0);
+}
+
+
+inline ::testing::AssertionResult is_near(const std::tuple<>&, const std::tuple<>&, const double e = 1e-6)
+{
+  return ::testing::AssertionSuccess();
+}
 
 template<typename Arg1, typename Arg2, typename ... Rest1, typename ... Rest2>
 ::testing::AssertionResult is_near(
@@ -89,6 +131,7 @@ template<typename Arg1, typename Arg2, typename ... Rest1, typename ... Rest2>
     const std::tuple<Arg2, Rest2...>& B,
     const double e = 1e-6)
 {
+  static_assert(sizeof...(Rest1) == sizeof...(Rest2));
   auto a = std::get<0>(A);
   auto b = std::get<0>(B);
   if constexpr (sizeof...(Rest1) == 0)
@@ -97,10 +140,8 @@ template<typename Arg1, typename Arg2, typename ... Rest1, typename ... Rest2>
   }
   else
   {
-    const auto a_tail =
-      std::apply([](auto&&, auto&& ...rest) { return std::tuple {std::forward<decltype(rest)>(rest)...}; }, A);
-    const auto b_tail =
-      std::apply([](auto&&, auto&& ...rest) { return std::tuple {std::forward<decltype(rest)>(rest)...}; }, B);
+    const auto a_tail = internal::tuple_slice<1, sizeof...(Rest1)>(A);
+    const auto b_tail = internal::tuple_slice<1, sizeof...(Rest2)>(B);
     if (is_near(a, b, e))
     {
       return is_near(a_tail, b_tail, e);
@@ -111,12 +152,6 @@ template<typename Arg1, typename Arg2, typename ... Rest1, typename ... Rest2>
     }
   }
 }
-
-inline ::testing::AssertionResult is_near(const std::tuple<>&, const std::tuple<>&, const double e = 1e-6)
-{
-  return ::testing::AssertionSuccess();
-}
-
 
 
 #endif //OPENKALMAN_TESTS_H
