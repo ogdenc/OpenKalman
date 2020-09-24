@@ -16,6 +16,7 @@
 #include <Eigen/Dense>
 #include <gtest/gtest.h>
 #include "../tests.h"
+#include "../transformations.h"
 
 struct transform_nonlinear_tests : public ::testing::Test
 {

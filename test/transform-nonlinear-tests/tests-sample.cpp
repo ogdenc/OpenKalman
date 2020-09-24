@@ -12,7 +12,7 @@
 
 using namespace OpenKalman;
 
-namespace
+inline namespace
 {
   using C2 = Coefficients<Axis, Axis>;
   using M2 = Mean<C2>;

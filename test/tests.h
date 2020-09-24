@@ -82,7 +82,7 @@ template<
   }
 }
 
-namespace
+inline namespace
 {
   template<typename Arg1, typename Arg2, std::size_t N>
   ::testing::AssertionResult
