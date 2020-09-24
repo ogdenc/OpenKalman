@@ -107,7 +107,7 @@ namespace OpenKalman
       template<std::size_t begin, typename T, std::size_t... I>
       constexpr auto tuple_slice_impl(T&& t, std::index_sequence<I...>)
       {
-        return std::forward_as_tuple(std::get<begin + I>(std::forward<T>(t))...);
+        return std::make_tuple(std::get<begin + I>(std::forward<T>(t))...);
       }
     }
 
@@ -135,6 +135,38 @@ namespace OpenKalman
       }
     }
 
+  }
+
+
+  /// A tuple of zero-filled arrays of Hessian matrices, based on the input and each perturbation term.
+  template<typename OutputCoefficients, typename In, typename ... Perturbations>
+  inline auto zero_hessian()
+  {
+    static_assert(is_column_vector_v<In>);
+    static_assert((is_perturbation_v<Perturbations> and ...));
+
+    using InputCoefficients = typename MatrixTraits<In>::RowCoefficients;
+    constexpr std::size_t input_size = InputCoefficients::size;
+    constexpr std::size_t output_size = OutputCoefficients::size;
+
+    using HessianMatrixInBase = strict_matrix_t<In, input_size, input_size>;
+    using HessianMatrixIn = TypedMatrix<InputCoefficients, InputCoefficients, HessianMatrixInBase>;
+    using HessianArrayIn = std::array<HessianMatrixIn, output_size>;
+    HessianArrayIn a;
+    a.fill(HessianMatrixIn::zero());
+    if constexpr (sizeof...(Perturbations) >= 1)
+    {
+      using HessianMatrixNoiseBase = strict_matrix_t<In, output_size, output_size>;
+      using HessianMatrixNoise = TypedMatrix<OutputCoefficients, OutputCoefficients, HessianMatrixNoiseBase>;
+      using HessianArrayNoise = std::array<HessianMatrixNoise, output_size>;
+      HessianArrayNoise an;
+      an.fill(HessianMatrixNoise::zero());
+      return std::tuple_cat(std::tuple {std::move(a)}, internal::tuple_replicate<sizeof...(Perturbations)>(std::move(an)));
+    }
+    else
+    {
+      return std::tuple {std::move(a)};
+    }
   }
 
 }
