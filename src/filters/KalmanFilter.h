@@ -94,7 +94,7 @@ namespace OpenKalman
     }
 
    /*
-    * Perform a complete predict–update cycle. Predict the next state based on the process model, and then
+    * Perform a complete predict-update cycle. Predict the next state based on the process model, and then
     * update the state based on a measurement and the measurement model.
     */
     template<
@@ -150,7 +150,7 @@ namespace OpenKalman
     }
 
    /*
-    * Perform a complete predict–update cycle. Predict the next state based on the process model, and then
+    * Perform a complete predict-update cycle. Predict the next state based on the process model, and then
     * update the state based on a measurement and the measurement model.
     */
     template<

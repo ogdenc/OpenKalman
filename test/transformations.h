@@ -159,7 +159,7 @@ inline const auto Cartesian2polar = make_Transformation
       MP2t ret = {
         x(0)*h, x(1)*h,
         -x(1)*h2, x(0)*h2};
-      return std::tuple_cat(std::tuple {ret}, internal::tuple_replicate<sizeof...(ps)>(MP2t::identity()));
+      return std::tuple_cat(std::tuple {ret}, internal::tuple_replicate<sizeof...(ps)>(MPPt::identity()));
     },
     [](const M2t& x, const auto&...ps) // Hessians
     {
@@ -184,6 +184,7 @@ using Cyl = Coefficients<Polar<>, Axis>;
 using MC1t = TypedMatrix<Cyl, Axis, Eigen::Matrix<double, 3, 1>>;
 using MS1t = TypedMatrix<Spherical<>, Axis, Eigen::Matrix<double, 3, 1>>;
 using MSCt = TypedMatrix<Spherical<>, Cyl, Eigen::Matrix<double, 3, 3>>;
+using MSSt = TypedMatrix<Spherical<>, Spherical<>, Eigen::Matrix<double, 3, 3>>;
 using MCCt = TypedMatrix<Cyl, Cyl, Eigen::Matrix<double, 3, 3>>;
 
 inline const auto Cylindrical2spherical = make_Transformation
@@ -200,7 +201,7 @@ inline const auto Cylindrical2spherical = make_Transformation
         x(0)*h, 0, x(2)*h,
         0, 1, 0,
         -x(2)*h2, 0, x(0)*h2};
-      return std::tuple_cat(std::tuple {ret}, internal::tuple_replicate<sizeof...(ps)>(MSCt::identity()));
+      return std::tuple_cat(std::tuple {ret}, internal::tuple_replicate<sizeof...(ps)>(MSSt::identity()));
     },
     [](const MC1t& x, const auto&...ps) // Hessians
     {
