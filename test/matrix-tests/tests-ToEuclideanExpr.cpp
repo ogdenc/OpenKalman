@@ -239,6 +239,20 @@ TEST_F(matrix_tests, ToEuclideanExpr_blocks)
                  std::sqrt(2)/2, 0.5, std::sqrt(3)/2,
                  std::sqrt(2)/2, std::sqrt(3)/2, 0.5,
                  4, 5, 6).finished()}));
+  auto a1 = ToEuclideanExpr<Coefficients<Polar<>, Angle, Axis>, Eigen::Matrix<double, 4, 3>> {
+    1., 2, 3,
+    M_PI/6, M_PI/3, M_PI/4,
+    M_PI/4, M_PI/3, M_PI/6,
+    4, 5, 6};
+  EXPECT_TRUE(is_near(split_vertical<3, 3>(a1),
+    std::tuple{(Eigen::Matrix<double, 3, 3>() <<
+      1, 2, 3,
+      std::sqrt(3)/2, 0.5, std::sqrt(2)/2,
+      0.5, std::sqrt(3)/2, std::sqrt(2)/2).finished(),
+               (Eigen::Matrix<double, 3, 3>() <<
+                 std::sqrt(2)/2, 0.5, std::sqrt(3)/2,
+                 std::sqrt(2)/2, std::sqrt(3)/2, 0.5,
+                 4, 5, 6).finished()}));
   EXPECT_TRUE(is_near(split_vertical<3, 2>(
     ToEuclideanExpr<Coefficients<Axis, Angle, Angle, Axis>, Eigen::Matrix<double, 4, 3>> {
       1., 2, 3,
@@ -281,6 +295,7 @@ TEST_F(matrix_tests, ToEuclideanExpr_blocks)
     (Eigen::Matrix<double, 2, 3>() <<
       std::sqrt(2)/2, 0.5, std::sqrt(3)/2,
       std::sqrt(2)/2, std::sqrt(3)/2, 0.5).finished()}));
+
   EXPECT_TRUE(is_near(split_horizontal(
     ToEuclideanExpr<Coefficients<Axis, Angle>, Eigen::Matrix<double, 2, 2>> {1., 2, M_PI/6, M_PI/3}), std::tuple{}));
   EXPECT_TRUE(is_near(split_horizontal<3, 3>(
@@ -296,7 +311,7 @@ TEST_F(matrix_tests, ToEuclideanExpr_blocks)
                  std::sqrt(2)/2, 0.5, std::sqrt(3)/2,
                  std::sqrt(2)/2, std::sqrt(3)/2, 0.5).finished()}));
   EXPECT_TRUE(is_near(split_horizontal<3, 2>(
-    ToEuclideanExpr<Coefficients<Axis, Angle>, Eigen::Matrix<double, 2, 6>> {
+    ToEuclideanExpr<Polar<>, Eigen::Matrix<double, 2, 6>> {
       1., 2, 3, 4, 5, 6,
       M_PI/6, M_PI/3, M_PI/4, M_PI/4, M_PI/3, M_PI/6}),
     std::tuple{
@@ -308,6 +323,23 @@ TEST_F(matrix_tests, ToEuclideanExpr_blocks)
       4, 5,
       std::sqrt(2)/2, 0.5,
       std::sqrt(2)/2, std::sqrt(3)/2).finished()}));
+
+  EXPECT_TRUE(is_near(split_diagonal<Axis, Angle>(
+    ToEuclideanExpr<Coefficients<Axis, Angle>, Eigen::Matrix<double, 2, 3>> {
+      1., 2, 3,
+      M_PI/6, M_PI/3, M_PI/4}),
+    std::tuple{(Eigen::Matrix<double, 1, 1>() << 1).finished(),
+               (Eigen::Matrix<double, 2, 2>() <<
+                 0.5, std::sqrt(3)/2,
+                 std::sqrt(3)/2, 0.5).finished()}));
+  EXPECT_TRUE(is_near(split_diagonal<1, 2>(
+    ToEuclideanExpr<Polar<>, Eigen::Matrix<double, 2, 3>> {
+      1., 2, 3,
+      M_PI/6, M_PI/3, M_PI/4}),
+    std::tuple{(Eigen::Matrix<double, 1, 1>() << 1).finished(),
+               (Eigen::Matrix<double, 2, 2>() <<
+                 0.5, std::sqrt(3)/2,
+                 std::sqrt(3)/2, 0.5).finished()}));
 
   EXPECT_TRUE(is_near(column(
     ToEuclideanExpr<Coefficients<Axis, Angle>, Eigen::Matrix<double, 2, 3>> {1., 2, 3, M_PI/6, M_PI/3, M_PI/4}, 2),

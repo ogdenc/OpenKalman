@@ -941,15 +941,15 @@ TEST_F(covariance_tests, Covariance_blocks)
   EXPECT_TRUE(is_near(concatenate(CovT2l(m1), CovT2l(m2)), n));
   EXPECT_TRUE(is_near(concatenate(CovT2u(m1), CovT2u(m2)), n));
 
-  EXPECT_TRUE(is_near(split(CovSA4l(n)), std::tuple {}));
-  EXPECT_TRUE(is_near(split<C, C>(CovSA4l(n)), std::tuple {m1, m2}));
-  EXPECT_TRUE(is_near(split<C, C>(CovSA4u(n)), std::tuple {m1, m2}));
-  EXPECT_TRUE(is_near(split<C, C>(CovT4l(n)), std::tuple {m1, m2}));
-  EXPECT_TRUE(is_near(split<C, C>(CovT4u(n)), std::tuple {m1, m2}));
-  EXPECT_TRUE(is_near(split<C, C::Take<1>>(CovSA4l(n)), std::tuple {m1, TypedMatrix<Angle, Angle>{4}}));
-  EXPECT_TRUE(is_near(split<C, C::Take<1>>(CovSA4u(n)), std::tuple {m1, TypedMatrix<Angle, Angle>{4}}));
-  EXPECT_TRUE(is_near(split<C, C::Take<1>>(CovT4l(n)), std::tuple {m1, TypedMatrix<Angle, Angle>{4}}));
-  EXPECT_TRUE(is_near(split<C, C::Take<1>>(CovT4u(n)), std::tuple {m1, TypedMatrix<Angle, Angle>{4}}));
+  EXPECT_TRUE(is_near(split_diagonal(CovSA4l(n)), std::tuple {}));
+  EXPECT_TRUE(is_near(split_diagonal<C, C>(CovSA4l(n)), std::tuple {m1, m2}));
+  EXPECT_TRUE(is_near(split_diagonal<C, C>(CovSA4u(n)), std::tuple {m1, m2}));
+  EXPECT_TRUE(is_near(split_diagonal<C, C>(CovT4l(n)), std::tuple {m1, m2}));
+  EXPECT_TRUE(is_near(split_diagonal<C, C>(CovT4u(n)), std::tuple {m1, m2}));
+  EXPECT_TRUE(is_near(split_diagonal<C, C::Take<1>>(CovSA4l(n)), std::tuple {m1, TypedMatrix<Angle, Angle>{4}}));
+  EXPECT_TRUE(is_near(split_diagonal<C, C::Take<1>>(CovSA4u(n)), std::tuple {m1, TypedMatrix<Angle, Angle>{4}}));
+  EXPECT_TRUE(is_near(split_diagonal<C, C::Take<1>>(CovT4l(n)), std::tuple {m1, TypedMatrix<Angle, Angle>{4}}));
+  EXPECT_TRUE(is_near(split_diagonal<C, C::Take<1>>(CovT4u(n)), std::tuple {m1, TypedMatrix<Angle, Angle>{4}}));
 
   EXPECT_TRUE(is_near(split_vertical(CovSA4l(n)), std::tuple {}));
   EXPECT_TRUE(is_near(split_vertical<C, C>(CovSA4l(n)), std::tuple {concatenate_horizontal(m1, Mat2::zero()), concatenate_horizontal(Mat2::zero(), m2)}));

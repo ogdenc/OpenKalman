@@ -98,7 +98,7 @@ namespace OpenKalman
   struct is_element_settable<FromEuclideanExpr<Coefficients, BaseMatrix>, N>
     : std::integral_constant<bool,
       (Coefficients::axes_only and is_element_settable_v<BaseMatrix, N>) or
-      (is_ToEuclideanExpr_v<typename MatrixTraits<BaseMatrix>::BaseMatrix> and
+      (is_ToEuclideanExpr_v<BaseMatrix> and
       is_element_settable_v<typename MatrixTraits<BaseMatrix>::BaseMatrix, N>)> {};
 
 

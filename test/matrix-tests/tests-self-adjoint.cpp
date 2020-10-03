@@ -563,14 +563,20 @@ TEST_F(matrix_tests, SelfAdjointMatrix_blocks_lower)
                                    2, 4, 5, 5, 7, 8,
                                    3, 5, 6, 6, 8, 9}));
   EXPECT_TRUE(is_near(split_diagonal(EigenSelfAdjointMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}), std::tuple{}));
-  EXPECT_TRUE(is_near(split<2, 3>(
+  EXPECT_TRUE(is_near(split_diagonal<2, 3>(
     EigenSelfAdjointMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::lower> {1., 2, 0, 0, 0,
                                                                               2, 3, 0, 0, 0,
                                                                               0, 0, 4, 5, 6,
                                                                               0, 0, 5, 7, 8,
                                                                               0, 0, 6, 8, 9}),
       std::tuple{EigenSelfAdjointMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}, m1}));
-  EXPECT_TRUE(is_near(split<2, 2>(
+  const auto a1 = EigenSelfAdjointMatrix<const Eigen::Matrix<double, 5, 5>, TriangleType::lower> {1., 2, 0, 0, 0,
+                                                                                                  2, 3, 0, 0, 0,
+                                                                                                  0, 0, 4, 5, 6,
+                                                                                                  0, 0, 5, 7, 8,
+                                                                                                  0, 0, 6, 8, 9};
+  EXPECT_TRUE(is_near(split_diagonal<2, 3>(a1), std::tuple{EigenSelfAdjointMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}, m1}));
+  EXPECT_TRUE(is_near(split_diagonal<2, 2>(
     EigenSelfAdjointMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::lower> {1., 2, 0, 0, 0,
                                                                               2, 3, 0, 0, 0,
                                                                               0, 0, 4, 5, 6,
@@ -677,6 +683,12 @@ TEST_F(matrix_tests, SelfAdjointMatrix_blocks_upper)
                                                                               0, 0, 5, 7, 8,
                                                                               0, 0, 6, 8, 9}),
     std::tuple{EigenSelfAdjointMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}, m1}));
+  const auto a1 = EigenSelfAdjointMatrix<const Eigen::Matrix<double, 5, 5>, TriangleType::upper> {1., 2, 0, 0, 0,
+                                                                                                  2, 3, 0, 0, 0,
+                                                                                                  0, 0, 4, 5, 6,
+                                                                                                  0, 0, 5, 7, 8,
+                                                                                                  0, 0, 6, 8, 9};
+  EXPECT_TRUE(is_near(split_diagonal<2, 3>(a1), std::tuple{EigenSelfAdjointMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}, m1}));
   EXPECT_TRUE(is_near(split_diagonal<2, 2>(
     EigenSelfAdjointMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::upper> {1., 2, 0, 0, 0,
                                                                               2, 3, 0, 0, 0,

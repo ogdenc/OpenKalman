@@ -211,10 +211,10 @@ TEST_F(matrix_tests, Diagonal_blocks)
     TypedMatrix<Axes<4>, Axes<2>> {1., 0, 0, 2, 3, 0, 0, 4}));
   EXPECT_TRUE(is_near(concatenate_horizontal(EigenDiagonal {1., 2}, EigenDiagonal {3., 4}),
     TypedMatrix<Axes<2>, Axes<4>> {1., 0, 3, 0, 0, 2, 0, 4}));
-  EXPECT_TRUE(is_near(split(EigenDiagonal{1., 2, 3, 4, 5}), std::tuple{}));
-  EXPECT_TRUE(is_near(split<3, 2>(EigenDiagonal{1., 2, 3, 4, 5}), std::tuple{EigenDiagonal{1., 2, 3}, EigenDiagonal{4., 5}}));
   EXPECT_TRUE(is_near(split_diagonal(EigenDiagonal{1., 2, 3, 4, 5}), std::tuple{}));
   EXPECT_TRUE(is_near(split_diagonal<3, 2>(EigenDiagonal{1., 2, 3, 4, 5}), std::tuple{EigenDiagonal{1., 2, 3}, EigenDiagonal{4., 5}}));
+  const auto a1 = EigenDiagonal<const Eigen::Matrix<double, 5, 1>>{1., 2, 3, 4, 5};
+  EXPECT_TRUE(is_near(split_diagonal<3, 2>(a1), std::tuple{EigenDiagonal{1., 2, 3}, EigenDiagonal{4., 5}}));
   EXPECT_TRUE(is_near(split_diagonal<2, 2>(EigenDiagonal{1., 2, 3, 4, 5}), std::tuple{EigenDiagonal{1., 2}, EigenDiagonal{3., 4}}));
   EXPECT_TRUE(is_near(split_vertical(EigenDiagonal{1., 2, 3, 4, 5}), std::tuple{}));
   EXPECT_TRUE(is_near(split_vertical<3, 2>(EigenDiagonal{1., 2, 3, 4, 5}),

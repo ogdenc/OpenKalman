@@ -90,12 +90,28 @@ TEST_F(matrix_tests, Matrix_blocks)
   EXPECT_TRUE(is_near(concatenate_diagonal((Eigen::Matrix<double, 2, 2>() << 1, 2, 3, 4).finished(),
     (Eigen::Matrix<double, 2, 2>() << 5, 6, 7, 8).finished()), (Eigen::Matrix<double, 4, 4>() << 1, 2, 0, 0, 3, 4, 0, 0, 0, 0, 5, 6, 0, 0, 7, 8).finished()));
   EXPECT_TRUE(is_near(split_vertical((Eigen::Matrix<double, 2, 2>() << 1, 0, 0, 2).finished()), std::tuple{}));
-  EXPECT_TRUE(is_near(split_vertical<3, 2>((Eigen::Matrix<double, 5, 3>() <<
+  Eigen::Matrix<double, 5, 3> x1;
+  x1 <<
     1, 0, 0,
     0, 2, 0,
     0, 0, 3,
     4, 0, 0,
-    0, 5, 0).finished()),
+    0, 5, 0;
+  auto a1 = split_vertical<3, 2>(x1);
+  EXPECT_TRUE(is_near(a1, std::tuple{(Eigen::Matrix<double, 3, 3>() <<
+      1, 0, 0,
+      0, 2, 0,
+      0, 0, 3).finished(),
+               (Eigen::Matrix<double, 2, 3>() <<
+                 4, 0, 0,
+                 0, 5, 0).finished()}));
+  auto a2 = split_vertical<3, 2>(std::move((Eigen::Matrix<double, 5, 3>() << // Note that finished() returns an lvalue
+      1, 0, 0,
+      0, 2, 0,
+      0, 0, 3,
+      4, 0, 0,
+      0, 5, 0).finished()));
+  EXPECT_TRUE(is_near(a2,
     std::tuple{(Eigen::Matrix<double, 3, 3>() <<
       1, 0, 0,
       0, 2, 0,
@@ -122,6 +138,19 @@ TEST_F(matrix_tests, Matrix_blocks)
       1, 0, 0, 0, 0,
       0, 2, 0, 4, 0,
       0, 0, 3, 0, 5).finished()),
+    std::tuple{(Eigen::Matrix<double, 3, 3>() <<
+      1, 0, 0,
+      0, 2, 0,
+      0, 0, 3).finished(),
+               (Eigen::Matrix<double, 3, 2>() <<
+                 0, 0,
+                 4, 0,
+                 0, 5).finished()}));
+  const auto b1 = (Eigen::Matrix<double, 3, 5>() <<
+    1, 0, 0, 0, 0,
+    0, 2, 0, 4, 0,
+    0, 0, 3, 0, 5).finished();
+  EXPECT_TRUE(is_near(split_horizontal<3, 2>(b1),
     std::tuple{(Eigen::Matrix<double, 3, 3>() <<
       1, 0, 0,
       0, 2, 0,

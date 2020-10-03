@@ -293,76 +293,82 @@ namespace OpenKalman
   };
 
 
-  /// Split typed matrix into one or more typed matrices vertically.
-  template<typename ... Cs, typename V, std::enable_if_t<is_typed_matrix_v<V>, int> = 0>
-  inline auto
-  split_vertical(V&& v) noexcept
+  namespace internal
   {
-    using Coeffs = typename MatrixTraits<V>::RowCoefficients;
-    static_assert(is_prefix_v<Concatenate<Cs...>, Coeffs>);
-    if constexpr(sizeof...(Cs) == 1 and is_equivalent_v<Concatenate<Cs...>, Coeffs>)
+    template<typename Expr, typename CC>
+    struct SplitMatVertF
     {
-      return std::tuple(std::forward<V>(v));
-    }
-    else
+      template<typename RC, typename, typename Arg>
+      static auto call(Arg&& arg)
+      {
+        return MatrixTraits<Expr>::template make<RC, CC>(std::forward<decltype(arg)>(arg));
+      }
+    };
+
+    template<typename Expr, typename RC>
+    struct SplitMatHorizF
     {
-      return std::apply(
-        [](const auto& ...args) { return std::tuple {MatrixTraits<V>::template make<Cs>(strict(args))...}; },
-        split_vertical<(is_Euclidean_transformed_v<V> ? Cs::dimension : Cs::size)...>(base_matrix(std::forward<V>(v))));
-    }
+      template<typename, typename CC, typename Arg>
+      static auto call(Arg&& arg)
+      {
+        return MatrixTraits<Expr>::template make<RC, CC>(std::forward<decltype(arg)>(arg));
+      }
+    };
+
+    template<typename Expr>
+    struct SplitMatDiagF
+    {
+      template<typename RC, typename CC, typename Arg>
+      static auto call(Arg&& arg)
+      {
+        static_assert(is_equivalent_v<RC, CC>);
+        return MatrixTraits<Expr>::template make<RC, CC>(std::forward<decltype(arg)>(arg));
+      }
+    };
   }
 
-
-  /// Split typed matrix into one or more typed matrices vertically. Synonym for split_vertical.
-  template<typename ... Cs, typename V, std::enable_if_t<is_typed_matrix_v<V>, int> = 0>
+  /// Split typed matrix into one or more typed matrices vertically.
+  template<typename ... Cs, typename M, std::enable_if_t<is_typed_matrix_v<M>, int> = 0>
   inline auto
-  split(V&& v) noexcept
+  split_vertical(M&& m) noexcept
   {
-    static_assert(is_prefix_v<Concatenate<Cs...>, typename MatrixTraits<V>::RowCoefficients>);
-    return split_vertical<Cs...>(std::forward<V>(v));
-  };
-
-
-  /// Split typed matrix into one or more typed matrices horizontally. Column coefficients must all be Axis.
-  template<std::size_t ... cuts, typename V,
-    std::enable_if_t<is_typed_matrix_v<V> and is_column_vector_v<V> and (sizeof...(cuts) > 0), int> = 0>
-  inline auto
-  split_horizontal(V&& v) noexcept
-  {
-    constexpr auto cols = MatrixTraits<V>::columns;
-    static_assert((... + cuts) <= cols);
-    if constexpr(sizeof...(cuts) == 1 and (... + cuts) == cols)
-    {
-      return std::tuple(std::forward<V>(v));
-    }
-    else
-    {
-      using RC = typename MatrixTraits<V>::RowCoefficients;
-      return std::apply(
-        [](const auto& ...args) { return std::tuple {MatrixTraits<V>::template make<RC, Axes<cuts>>(strict(args))...}; },
-        split_horizontal<cuts...>(base_matrix(std::forward<V>(v))));
-    }
+    using CC = typename MatrixTraits<M>::ColumnCoefficients;
+    static_assert(is_prefix_v<Concatenate<Cs...>, typename MatrixTraits<M>::RowCoefficients>);
+    constexpr auto euclidean = is_Euclidean_transformed_v<M>;
+    return split_vertical<internal::SplitMatVertF<M, CC>, euclidean, Cs...>(base_matrix(std::forward<M>(m)));
   }
 
 
   /// Split typed matrix into one or more typed matrices horizontally.
-  template<typename ... Cs, typename V, std::enable_if_t<is_typed_matrix_v<V>, int> = 0>
+  template<typename ... Cs, typename M, std::enable_if_t<is_typed_matrix_v<M>, int> = 0>
   inline auto
-  split_horizontal(V&& v) noexcept
+  split_horizontal(M&& m) noexcept
   {
-    using Coeffs = typename MatrixTraits<V>::ColumnCoefficients;
-    static_assert(is_prefix_v<OpenKalman::Concatenate<Cs...>, Coeffs>);
-    if constexpr(sizeof...(Cs) == 1 and is_equivalent_v<Concatenate<Cs...>, Coeffs>)
-    {
-      return std::tuple(std::forward<V>(v));
-    }
-    else
-    {
-      using RC = typename MatrixTraits<V>::RowCoefficients;
-      return std::apply(
-        [](const auto& ...args) { return std::tuple {MatrixTraits<V>::template make<RC, Cs>(args)...}; },
-        split_horizontal<Cs::size...>(base_matrix(std::forward<V>(v))));
-    }
+    using RC = typename MatrixTraits<M>::RowCoefficients;
+    static_assert(is_prefix_v<Concatenate<Cs...>, typename MatrixTraits<M>::ColumnCoefficients>);
+    return split_horizontal<internal::SplitMatHorizF<M, RC>, Cs...>(base_matrix(std::forward<M>(m)));
+  }
+
+
+  /// Split typed matrix into one or more typed matrices horizontally. Column coefficients must all be Axis.
+  template<std::size_t ... cuts, typename M,
+    std::enable_if_t<is_typed_matrix_v<M> and is_column_vector_v<M> and (sizeof...(cuts) > 0), int> = 0>
+  inline auto
+  split_horizontal(M&& m) noexcept
+  {
+    static_assert((... + cuts) <= MatrixTraits<M>::columns);
+    return split_horizontal<Axes<cuts>...>(std::forward<M>(m));
+  }
+
+
+  /// Split typed matrix into one or more typed matrices diagonally.
+  template<typename ... Cs, typename M, std::enable_if_t<is_typed_matrix_v<M>, int> = 0>
+  inline auto
+  split_diagonal(M&& m) noexcept
+  {
+    static_assert(is_prefix_v<Concatenate<Cs...>, typename MatrixTraits<M>::RowCoefficients>);
+    static_assert(is_equivalent_v<typename MatrixTraits<M>::ColumnCoefficients, typename MatrixTraits<M>::RowCoefficients>);
+    return split_diagonal<internal::SplitMatDiagF<M>, Cs...>(base_matrix(std::forward<M>(m)));
   }
 
 
@@ -861,4 +867,4 @@ namespace OpenKalman
 
 }
 
-#endif //OPENKALMAN_TYPEDMATRIXOVERLOADS_H
+#endif //OPENKALMAN_TYPEDMATRIXOVERLOADS_

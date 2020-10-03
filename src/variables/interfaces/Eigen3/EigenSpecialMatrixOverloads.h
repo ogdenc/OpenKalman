@@ -147,83 +147,126 @@ namespace OpenKalman
   };
 
 
-  /// Split a matrix diagonally.
-  template<std::size_t ... cuts, typename Arg,
-    std::enable_if_t<is_EigenSelfAdjointMatrix_v<Arg> or is_EigenTriangularMatrix_v<Arg>, int> = 0>
-  inline auto
-  split(Arg&& arg)
+  namespace internal
   {
-    static_assert((0 + ... + cuts) <= MatrixTraits<Arg>::dimension);
-    if constexpr(sizeof...(cuts) == 0)
+    template<typename G, typename Expr>
+    struct SplitSpecF
     {
-      return std::tuple {};
-    }
-    else if constexpr(sizeof...(cuts) == 1 and (0 + ... + cuts) == MatrixTraits<Arg>::dimension)
-    {
-      return std::tuple {std::forward<Arg>(arg)};
-    }
-    else
-    {
-      return std::apply([](const auto&...bs){ return std::tuple {MatrixTraits<Arg>::make(bs)...}; },
-        split_diagonal<cuts...>(base_matrix(std::forward<Arg>(arg))));
-    }
+      template<typename RC, typename CC, typename Arg>
+      static auto call(Arg&& arg)
+      {
+        return G::template call<RC, CC>(MatrixTraits<Expr>::template make(std::forward<Arg>(arg)));
+      }
+    };
   }
 
+  /// Split a diagonal matrix diagonally.
+  template<typename F, typename ... Cs, typename Arg,
+    std::enable_if_t<is_EigenDiagonal_v<Arg> and not is_coefficient_v<F> and
+    not is_coefficient_v<F> and std::conjunction_v<is_coefficient<Cs>...>, int> = 0>
+  inline auto
+  split_diagonal(Arg&& arg)
+  {
+    static_assert((0 + ... + Cs::size) <= MatrixTraits<Arg>::dimension);
+    return split_vertical<internal::SplitSpecF<F, Arg>, Cs...>(base_matrix(std::forward<Arg>(arg)));
+  }
 
-  /// Split a special matrix diagonally, returning a regular matrix.
-  template<std::size_t ... cuts, typename Arg,
+  /// Split a self-adjoint or triangular matrix diagonally.
+  template<typename F, typename ... Cs, typename Arg,
+    std::enable_if_t<(is_EigenSelfAdjointMatrix_v<Arg> or is_EigenTriangularMatrix_v<Arg>) and
+    not is_coefficient_v<F> and std::conjunction_v<is_coefficient<Cs>...>, int> = 0>
+  inline auto
+  split_diagonal(Arg&& arg)
+  {
+    static_assert((0 + ... + Cs::size) <= MatrixTraits<Arg>::dimension);
+    return split_diagonal<internal::SplitSpecF<F, Arg>, Cs...>(base_matrix(std::forward<Arg>(arg)));
+  }
+
+  /// Split a self-adjoint, triangular, or diagonal matrix diagonally.
+  template<typename ... Cs, typename Arg,
+    std::enable_if_t<(is_EigenSelfAdjointMatrix_v<Arg> or is_EigenTriangularMatrix_v<Arg> or is_EigenDiagonal_v<Arg>) and
+      std::conjunction_v<is_coefficient<Cs>...>, int> = 0>
+  inline auto
+  split_diagonal(Arg&& arg)
+  {
+    static_assert((0 + ... + Cs::size) <= MatrixTraits<Arg>::dimension);
+    return split_diagonal<internal::default_split_function, Cs...>(std::forward<Arg>(arg));
+  }
+
+  /// Split a self-adjoint, triangular, or diagonal matrix diagonally.
+  template<std::size_t cut, std::size_t ... cuts, typename Arg,
     std::enable_if_t<is_EigenSelfAdjointMatrix_v<Arg> or is_EigenTriangularMatrix_v<Arg> or is_EigenDiagonal_v<Arg>, int> = 0>
   inline auto
   split_diagonal(Arg&& arg)
   {
-    static_assert((0 + ... + cuts) <= MatrixTraits<Arg>::dimension);
-    return split<cuts...>(std::forward<Arg>(arg));
+    static_assert((cut + ... + cuts) <= MatrixTraits<Arg>::dimension);
+    return split_diagonal<Axes<cut>, Axes<cuts>...>(std::forward<Arg>(arg));
   }
 
 
-  /// Split a special matrix vertically, returning a regular matrix.
-  template<std::size_t ... cuts, typename Arg,
+  /// Split a self-adjoint, triangular, or diagonal matrix vertically, returning a regular matrix.
+  template<typename F, typename ... Cs, typename Arg,
+    std::enable_if_t<(is_EigenSelfAdjointMatrix_v<Arg> or is_EigenTriangularMatrix_v<Arg> or is_EigenDiagonal_v<Arg>) and
+      not is_coefficient_v<F> and std::conjunction_v<is_coefficient<Cs>...>, int> = 0>
+  inline auto
+  split_vertical(Arg&& arg)
+  {
+    static_assert((0 + ... + Cs::size) <= MatrixTraits<Arg>::dimension);
+    return split_vertical<internal::SplitSpecF<F, strict_matrix_t<Arg>>, Cs...>(strict_matrix(std::forward<Arg>(arg)));
+  }
+
+  /// Split a self-adjoint, triangular, or diagonal matrix diagonally.
+  template<typename ... Cs, typename Arg,
+    std::enable_if_t<(is_EigenSelfAdjointMatrix_v<Arg> or is_EigenTriangularMatrix_v<Arg> or is_EigenDiagonal_v<Arg>) and
+      std::conjunction_v<is_coefficient<Cs>...>, int> = 0>
+  inline auto
+  split_vertical(Arg&& arg)
+  {
+    static_assert((0 + ... + Cs::size) <= MatrixTraits<Arg>::dimension);
+    return split_vertical<internal::default_split_function, Cs...>(std::forward<Arg>(arg));
+  }
+
+  /// Split a self-adjoint, triangular, or diagonal matrix diagonally.
+  template<std::size_t cut, std::size_t ... cuts, typename Arg,
     std::enable_if_t<is_EigenSelfAdjointMatrix_v<Arg> or is_EigenTriangularMatrix_v<Arg> or is_EigenDiagonal_v<Arg>, int> = 0>
   inline auto
   split_vertical(Arg&& arg)
   {
-    static_assert((0 + ... + cuts) <= MatrixTraits<Arg>::dimension);
-    if constexpr(sizeof...(cuts) == 0)
-    {
-      return std::tuple {};
-    }
-    else if constexpr(sizeof...(cuts) == 1 and (0 + ... + cuts) == MatrixTraits<Arg>::dimension)
-    {
-      return std::tuple {std::forward<Arg>(arg)};
-    }
-    else
-    {
-      return std::apply([](const auto&...bs){ return std::tuple {strict(bs)...}; },
-        split_vertical<cuts...>(strict_matrix(std::forward<Arg>(arg))));
-    }
+    static_assert((cut + ... + cuts) <= MatrixTraits<Arg>::dimension);
+    return split_vertical<Axes<cut>, Axes<cuts>...>(std::forward<Arg>(arg));
   }
 
 
-  /// Split a special matrix horizontally, returning a regular matrix.
-  template<std::size_t ... cuts, typename Arg,
+  /// Split a self-adjoint, triangular, or diagonal matrix horizontally, returning a regular matrix.
+  template<typename F, typename ... Cs, typename Arg,
+    std::enable_if_t<(is_EigenSelfAdjointMatrix_v<Arg> or is_EigenTriangularMatrix_v<Arg> or is_EigenDiagonal_v<Arg>) and
+      not is_coefficient_v<F> and std::conjunction_v<is_coefficient<Cs>...>, int> = 0>
+  inline auto
+  split_horizontal(Arg&& arg)
+  {
+    static_assert((0 + ... + Cs::size) <= MatrixTraits<Arg>::dimension);
+    return split_horizontal<internal::SplitSpecF<F, strict_matrix_t<Arg>>, Cs...>(strict_matrix(std::forward<Arg>(arg)));
+  }
+
+  /// Split a self-adjoint, triangular, or diagonal matrix horizontally.
+  template<typename ... Cs, typename Arg,
+    std::enable_if_t<(is_EigenSelfAdjointMatrix_v<Arg> or is_EigenTriangularMatrix_v<Arg> or is_EigenDiagonal_v<Arg>) and
+      std::conjunction_v<is_coefficient<Cs>...>, int> = 0>
+  inline auto
+  split_horizontal(Arg&& arg)
+  {
+    static_assert((0 + ... + Cs::size) <= MatrixTraits<Arg>::dimension);
+    return split_horizontal<internal::default_split_function, Cs...>(std::forward<Arg>(arg));
+  }
+
+  /// Split a self-adjoint, triangular, or diagonal matrix horizontally.
+  template<std::size_t cut, std::size_t ... cuts, typename Arg,
     std::enable_if_t<is_EigenSelfAdjointMatrix_v<Arg> or is_EigenTriangularMatrix_v<Arg> or is_EigenDiagonal_v<Arg>, int> = 0>
   inline auto
   split_horizontal(Arg&& arg)
   {
-    static_assert((0 + ... + cuts) <= MatrixTraits<Arg>::dimension);
-    if constexpr(sizeof...(cuts) == 0)
-    {
-      return std::tuple {};
-    }
-    else if constexpr(sizeof...(cuts) == 1 and (0 + ... + cuts) == MatrixTraits<Arg>::dimension)
-    {
-      return std::tuple {std::forward<Arg>(arg)};
-    }
-    else
-    {
-      return std::apply([](const auto&...bs){ return std::tuple {strict(bs)...}; },
-        split_horizontal<cuts...>(strict_matrix(std::forward<Arg>(arg))));
-    }
+    static_assert((cut + ... + cuts) <= MatrixTraits<Arg>::dimension);
+    return split_horizontal<Axes<cut>, Axes<cuts>...>(std::forward<Arg>(arg));
   }
 
 

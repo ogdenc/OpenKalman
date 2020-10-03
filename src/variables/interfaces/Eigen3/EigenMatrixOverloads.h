@@ -293,7 +293,7 @@ namespace OpenKalman
     {
       return std::forward<V>(v);
     }
-  };
+  }
 
 
   /// Concatenate one or more Eigen::MatrixBase objects horizontally.
@@ -321,7 +321,7 @@ namespace OpenKalman
     {
       return std::forward<V>(v);
     }
-  };
+  }
 
 
   namespace detail
@@ -340,7 +340,7 @@ namespace OpenKalman
         if constexpr(row == col) return std::get<row>(vs);
         else return Eigen::Matrix<typename M::Scalar, row_size, col_size>::Zero();
       }());
-    };
+    }
   }
 
 
@@ -372,106 +372,270 @@ namespace OpenKalman
     {
       return std::forward<V>(v);
     }
-  };
+  }
 
 
-  /// Split a matrix vertically. If no cut parameter is specified, the function returns an empty tuple.
-  template<typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg>, int> = 0>
-  constexpr auto
-  split_vertical(Arg&& arg)
+  namespace internal
   {
-    return std::tuple {};
+    /// Make a tuple containing an Eigen matrix (general case).
+    template<typename F, typename RC, typename CC, typename Arg>
+    auto
+    make_split_tuple(Arg&& arg)
+    {
+      return std::tuple {F::template call<RC, CC>(std::forward<Arg>(arg))};
+    }
+
+    /// Make a tuple containing an Eigen::Block.
+    template<typename F, typename RC, typename CC, typename XprType, int BlockRows, int BlockCols, bool InnerPanel>
+    auto
+    make_split_tuple(Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>&& arg)
+    {
+      using NonConstBlock = Eigen::Block<std::remove_const_t<XprType>, BlockRows, BlockCols, InnerPanel>;
+      // A const_cast is necessary, because a const Eigen::Block cannot be inserted into a tuple.
+      auto& xpr = const_cast<std::remove_const_t<XprType>&>(arg.nestedExpression());
+      const auto block = F::template call<RC, CC>(NonConstBlock(xpr, arg.startRow(), arg.startCol()));
+      return std::tuple {std::move(block)};
+    }
+
+    /// Default split function.
+    struct default_split_function
+    {
+      template<typename, typename, typename Arg>
+      static constexpr Arg&& call(Arg&& arg) { return std::forward<Arg>(arg); }
+    };
   }
 
 
   /// Split a matrix vertically.
+  /// @tparam F A class with a static <code>call</code> member to which the result is applied before creating the tuple.
+  /// @tparam euclidean Whether coefficients RC and RCs are transformed to Euclidean space.
+  /// @tparam RC Coefficients for the first cut.
+  /// @tparam RCs Coefficients for each of the second and subsequent cuts.
+  template<typename F, bool euclidean, typename RC, typename...RCs,
+    typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg>, int> = 0>
+  inline auto
+  split_vertical(Arg&& arg) noexcept
+  {
+    constexpr auto RC_size = euclidean ? RC::dimension : RC::size;
+    static_assert((RC_size + ... + (euclidean ? RCs::dimension : RCs::size)) <= MatrixTraits<Arg>::dimension);
+    using CC = Axes<MatrixTraits<Arg>::columns>;
+    constexpr Eigen::Index dim1 = RC_size, dim2 = std::decay_t<Arg>::RowsAtCompileTime - dim1;
+    constexpr auto g = [](auto&& m) -> decltype(auto) {
+      if constexpr (std::is_lvalue_reference_v<Arg&&>)
+        return std::forward<decltype(m)>(m);
+      else
+        return strict_matrix(std::forward<decltype(m)>(m));
+    };
+    if constexpr (sizeof...(RCs) > 0)
+    {
+      auto split1 = g(arg.template topRows<dim1>());
+      auto split2 = g(arg.template bottomRows<dim2>());
+      return std::tuple_cat(
+        internal::make_split_tuple<F, RC, CC>(std::move(split1)),
+        split_vertical<F, euclidean, RCs...>(std::move(split2)));
+    }
+    else if constexpr (dim1 < std::decay_t<Arg>::RowsAtCompileTime)
+    {
+      return internal::make_split_tuple<F, RC, CC>(g(arg.template topRows<dim1>()));
+    }
+    else
+    {
+      return internal::make_split_tuple<F, RC, CC>(std::forward<Arg>(arg));
+    }
+  }
+
+  /// Split a matrix vertically (case in which there is no split).
+  template<typename F = internal::default_split_function, bool euclidean = false,
+    typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg>, int> = 0>
+  inline auto
+  split_vertical(Arg&& arg) noexcept
+  {
+    return std::tuple {};
+  }
+
+  /// Split a matrix vertically.
+  /// @tparam F A class with a static <code>call</code> member to which the result is applied before creating the tuple.
+  /// @tparam RCs Coefficients for each of the cuts.
+  template<typename F, typename RC, typename...RCs, typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg> and
+    not is_coefficient_v<F> and std::conjunction_v<is_coefficient<RC>, is_coefficient<RCs>...>, int> = 0>
+  inline auto
+  split_vertical(Arg&& arg) noexcept
+  {
+    return split_vertical<F, false, RC, RCs...>(std::forward<Arg>(arg));
+  }
+
+  /// Split a matrix vertically.
+  /// @tparam RC Coefficients for the first cut.
+  /// @tparam RCs Coefficients for the second and subsequent cuts.
+  template<typename RC, typename...RCs, typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg> and
+    std::conjunction_v<is_coefficient<RC>, is_coefficient<RCs>...>, int> = 0>
+  inline auto
+  split_vertical(Arg&& arg) noexcept
+  {
+    return split_vertical<internal::default_split_function, RC, RCs...>(std::forward<Arg>(arg));
+  }
+
+  /// Split a matrix vertically.
+  /// @tparam cut Number of rows in the first cut.
+  /// @tparam cuts Numbers of rows in the second and subsequent cuts.
   template<std::size_t cut, std::size_t ... cuts, typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg>, int> = 0>
   inline auto
   split_vertical(Arg&& arg) noexcept
   {
-    constexpr Eigen::Index dim1 = cut, dim2 = std::decay_t<Arg>::RowsAtCompileTime - dim1;
-    static_assert(dim2 >= (0 + ... + cuts));
-    if constexpr(sizeof...(cuts) > 0)
-    {
-      auto split1 = arg.template topRows<dim1>();
-      auto split2 = arg.template bottomRows<dim2>();
-      return std::tuple_cat(std::tuple(std::move(split1)), split_vertical<cuts...>(std::move(split2)));
-    }
-    else if constexpr(dim1 < std::decay_t<Arg>::RowsAtCompileTime)
-    {
-      return std::tuple(arg.template topRows<dim1>());
-    }
-    else
-    {
-      return std::tuple(std::forward<Arg>(arg));
-    }
+    static_assert((cut + ... + cuts) <= MatrixTraits<Arg>::dimension);
+    return split_vertical<Axes<cut>, Axes<cuts>...>(std::forward<Arg>(arg));
   }
 
 
-  /// Split a matrix horizontally. If no cut parameter is specified, the function returns an empty tuple.
-  template<typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg>, int> = 0>
-  constexpr auto
-  split_horizontal(Arg&& arg)
+  /// Split a matrix horizontally and invoke function F on each segment, returning a tuple.
+  /// @tparam CC Coefficients for the first cut.
+  /// @tparam CCs Coefficients for each of the second and subsequent cuts.
+  /// @tparam F An object having a static call() method to which the result is applied before creating the tuple.
+  template<typename F, typename CC, typename...CCs, typename Arg,
+    std::enable_if_t<is_Eigen_matrix_v<Arg> and not is_coefficient_v<F>, int> = 0>
+  inline auto
+  split_horizontal(Arg&& arg) noexcept
+  {
+    static_assert((CC::size + ... + CCs::size) <= MatrixTraits<Arg>::columns);
+    using RC = Axes<MatrixTraits<Arg>::dimension>;
+    constexpr Eigen::Index dim1 = CC::size, dim2 = std::decay_t<Arg>::ColsAtCompileTime - dim1;
+    constexpr auto g = [](auto&& m) -> decltype(auto) {
+      if constexpr (std::is_lvalue_reference_v<Arg&&>)
+        return std::forward<decltype(m)>(m);
+      else
+        return strict_matrix(std::forward<decltype(m)>(m));
+    };
+    if constexpr(sizeof...(CCs) > 0)
+    {
+      auto split1 = g(arg.template leftCols<dim1>());
+      auto split2 = g(arg.template rightCols<dim2>());
+      return std::tuple_cat(
+        internal::make_split_tuple<F, RC, CC>(std::move(split1)),
+        split_horizontal<F, CCs...>(std::move(split2)));
+    }
+    else if constexpr(dim1 < std::decay_t<Arg>::ColsAtCompileTime)
+    {
+      return internal::make_split_tuple<F, RC, CC>(g(arg.template leftCols<dim1>()));
+    }
+    else
+    {
+      return internal::make_split_tuple<F, RC, CC>(std::forward<Arg>(arg));
+    }
+  }
+
+  /// Split a matrix horizontally (case in which there is no split).
+  template<typename F = internal::default_split_function,
+    typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg>, int> = 0>
+  inline auto
+  split_horizontal(Arg&& arg) noexcept
   {
     return std::tuple {};
   }
 
+  /// Split a matrix horizontally.
+  /// @tparam CC Coefficients for the first cut.
+  /// @tparam CCs Coefficients for the second and subsequent cuts.
+  template<typename CC, typename...CCs, typename Arg,
+    std::enable_if_t<is_Eigen_matrix_v<Arg> and is_coefficient_v<CC>, int> = 0>
+  inline auto
+  split_horizontal(Arg&& arg) noexcept
+  {
+    return split_horizontal<internal::default_split_function, CC, CCs...>(std::forward<Arg>(arg));
+  }
 
   /// Split a matrix horizontally.
+  /// @tparam cut Number of columns in the first cut.
+  /// @tparam cuts Numbers of columns in the second and subsequent cuts.
+  /// @tparam F An object having a static call() method to which the result is applied before creating the tuple.
   template<std::size_t cut, std::size_t ... cuts, typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg>, int> = 0>
   inline auto
   split_horizontal(Arg&& arg) noexcept
   {
-    constexpr Eigen::Index dim1 = cut, dim2 = std::decay_t<Arg>::ColsAtCompileTime - dim1;
-    static_assert(dim2 >= (0 + ... + cuts));
-    if constexpr(sizeof...(cuts) > 0)
-    {
-      auto split1 = arg.template leftCols<dim1>();
-      auto split2 = arg.template rightCols<dim2>();
-      return std::tuple_cat(std::tuple(std::move(split1)), split_horizontal<cuts...>(std::move(split2)));
-    }
-    else if constexpr(dim1 < std::decay_t<Arg>::ColsAtCompileTime)
-    {
-      return std::tuple(arg.template leftCols<dim1>());
-    }
-    else
-    {
-      return std::tuple(std::forward<Arg>(arg));
-    }
+    static_assert((cut + ... + cuts) <= MatrixTraits<Arg>::columns);
+    return split_horizontal<Axes<cut>, Axes<cuts>...>(std::forward<Arg>(arg));
   }
 
 
-  /// Split a matrix diagonally. If no cut parameter is specified, the function returns an empty tuple.
-  template<typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg>, int> = 0>
-  constexpr auto
-  split_diagonal(Arg&& arg)
+  /// Split a matrix diagonally and invoke function F on each segment, returning a tuple. Must be a square matrix.
+  /// @tparam F An object having a static call() method to which the result is applied before creating the tuple.
+  /// @tparam C Coefficients for the first cut.
+  /// @tparam Cs Coefficients for each of the second and subsequent cuts.
+  template<typename F, bool euclidean, typename C, typename...Cs,
+    typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg>, int> = 0>
+  inline auto
+  split_diagonal(Arg&& arg) noexcept
+  {
+    constexpr auto RC_size = euclidean ? C::dimension : C::size;
+    static_assert((RC_size + ... + (euclidean ? Cs::dimension : Cs::size)) <= MatrixTraits<Arg>::dimension);
+    static_assert((C::size + ... + Cs::size) <= MatrixTraits<Arg>::columns);
+    constexpr Eigen::Index rdim1 = RC_size, rdim2 = std::decay_t<Arg>::RowsAtCompileTime - rdim1;
+    constexpr Eigen::Index cdim1 = C::size, cdim2 = std::decay_t<Arg>::RowsAtCompileTime - cdim1;
+    constexpr auto g = [](auto&& m) -> decltype(auto) {
+      if constexpr (std::is_lvalue_reference_v<Arg&&>)
+        return std::forward<decltype(m)>(m);
+      else
+        return strict_matrix(std::forward<decltype(m)>(m));
+    };
+    if constexpr(sizeof...(Cs) > 0)
+    {
+      auto split1 = g(arg.template topLeftCorner<rdim1, cdim1>());
+      auto split2 = g(arg.template bottomRightCorner<rdim2, cdim2>());
+      return std::tuple_cat(
+        internal::make_split_tuple<F, C, C>(std::move(split1)),
+        split_diagonal<F, euclidean, Cs...>(std::move(split2)));
+    }
+    else if constexpr(rdim1 < std::decay_t<Arg>::RowsAtCompileTime)
+    {
+      return internal::make_split_tuple<F, C, C>(g(arg.template topLeftCorner<rdim1, cdim1>()));
+    }
+    else
+    {
+      return internal::make_split_tuple<F, C, C>(std::forward<Arg>(arg));
+    }
+  }
+
+  /// Split a matrix vertically (case in which there is no split).
+  template<typename F = internal::default_split_function, bool euclidean = false,
+    typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg> and not is_coefficient_v<F>, int> = 0>
+  inline auto
+  split_diagonal(Arg&& arg) noexcept
   {
     return std::tuple {};
   }
 
+  /// Split a matrix vertically.
+  /// @tparam F A class with a static <code>call</code> member to which the result is applied before creating the tuple.
+  /// @tparam C Coefficients for the first cut.
+  /// @tparam Cs Coefficients for each of the second and subsequent cuts.
+  template<typename F, typename C, typename...Cs, typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg> and
+    not is_coefficient_v<F> and std::conjunction_v<is_coefficient<C>, is_coefficient<Cs>...>, int> = 0>
+  inline auto
+  split_diagonal(Arg&& arg) noexcept
+  {
+    return split_diagonal<F, false, C, Cs...>(std::forward<Arg>(arg));
+  }
 
   /// Split a matrix diagonally. Must be a square matrix.
+  /// @tparam C Coefficients for the first cut.
+  /// @tparam Cs Coefficients for the second and subsequent cuts.
+  template<typename C, typename...Cs, typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg> and
+    std::conjunction_v<is_coefficient<C>, is_coefficient<Cs>...>, int> = 0>
+  inline auto
+  split_diagonal(Arg&& arg) noexcept
+  {
+    return split_diagonal<internal::default_split_function, C, Cs...>(std::forward<Arg>(arg));
+  }
+
+  /// Split a matrix diagonally. Must be a square matrix.
+  /// @tparam cut Number of rows and columns in the first cut.
+  /// @tparam cuts Numbers of rows and columns in the second and subsequent cuts.
+  /// @tparam F An object having a static call() method to which the result is applied before creating the tuple.
   template<std::size_t cut, std::size_t ... cuts, typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg>, int> = 0>
   inline auto
   split_diagonal(Arg&& arg) noexcept
   {
-    static_assert(std::decay_t<Arg>::ColsAtCompileTime == std::decay_t<Arg>::RowsAtCompileTime);
-    constexpr Eigen::Index dim1 = cut, dim2 = std::decay_t<Arg>::RowsAtCompileTime - dim1;
-    static_assert(dim2 >= (0 + ... + cuts));
-    if constexpr(sizeof...(cuts) > 0)
-    {
-      auto split1 = arg.template topLeftCorner<dim1, dim1>();
-      auto split2 = arg.template bottomRightCorner<dim2, dim2>();
-      return std::tuple_cat(std::tuple(std::move(split1)), split_diagonal<cuts...>(std::move(split2)));
-    }
-    else if constexpr(dim1 < std::decay_t<Arg>::RowsAtCompileTime)
-    {
-      return std::tuple(arg.template topLeftCorner<dim1, dim1>());
-    }
-    else
-    {
-      return std::tuple(std::forward<Arg>(arg));
-    }
+    static_assert((cut + ... + cuts) <= MatrixTraits<Arg>::columns);
+    return split_diagonal<Axes<cut>, Axes<cuts>...>(std::forward<Arg>(arg));
   }
 
 

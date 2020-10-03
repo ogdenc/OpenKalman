@@ -218,7 +218,7 @@ namespace OpenKalman
     {
       return std::forward<V>(v);
     }
-  };
+  }
 
 
   /// Concatenate one or more EuclideanExpr objects horizontally.
@@ -240,105 +240,184 @@ namespace OpenKalman
     {
       return std::forward<V>(v);
     }
-  };
-
-
-  /**
-   * Split into one or more FromEuclideanExp objects vertically. Preserves FromEuclideanExpr structure.
-   */
-  template<std::size_t cut, std::size_t ... cuts, typename Arg, std::enable_if_t<is_FromEuclideanExpr_v<Arg>, int> = 0>
-  inline auto
-  split_vertical(Arg&& arg) noexcept
-  {
-    static_assert((cut + ... + cuts) <= MatrixTraits<Arg>::dimension);
-    using C = typename MatrixTraits<Arg>::Coefficients::template Take<cut>;
-    if constexpr(sizeof...(cuts) > 0)
-    {
-      using Cs = typename MatrixTraits<Arg>::Coefficients::template Discard<cut>;
-      auto [top, bottom] = split_vertical<C::dimension, Cs::dimension>(base_matrix(std::forward<Arg>(arg)));
-      return std::tuple_cat(
-        std::tuple {MatrixTraits<Arg>::template make<C>(std::move(top))},
-        split_vertical<cuts...>(MatrixTraits<Arg>::template make<Cs>(std::move(bottom))));
-    }
-    else if constexpr(C::size < MatrixTraits<Arg>::dimension)
-    {
-      auto [top] = split_vertical<C::dimension>(base_matrix(std::forward<Arg>(arg)));
-      return std::tuple {MatrixTraits<Arg>::template make<C>(std::move(top))};
-    }
-    else
-    {
-      return std::tuple {std::forward<Arg>(arg)};
-    }
   }
 
 
-  /// Split into one or more ToEuclideanExpr objects vertically. Does not preserve ToEuclideanExpr structure.
-  template<std::size_t cut, std::size_t ... cuts, typename Arg, std::enable_if_t<is_ToEuclideanExpr_v<Arg>, int> = 0>
-  inline auto
-  split_vertical(Arg&& arg)
+  namespace internal
   {
-    static_assert((cut + ... + cuts) <= MatrixTraits<Arg>::dimension);
-    if constexpr(sizeof...(cuts) == 0 and cut == MatrixTraits<Arg>::dimension)
+    template<typename G, typename Expr, typename CC>
+    struct SplitEuclideanVertF
     {
-      return std::tuple {std::forward<Arg>(arg)};
-    }
-    else
-    {
-      return std::apply([](const auto&...bs){ return std::tuple {strict(bs)...}; },
-        split_vertical<cut, cuts...>(strict_matrix(std::forward<Arg>(arg))));
-    }
-  }
+      template<typename RC, typename, typename Arg>
+      static auto call(Arg&& arg)
+      {
+        return G::template call<RC, CC>(MatrixTraits<Expr>::template make<RC>(std::forward<Arg>(arg)));
+      }
+    };
 
+    template<typename G, typename Expr, typename RC>
+    struct SplitEuclideanHorizF
+    {
+      template<typename, typename CC, typename Arg>
+      static auto call(Arg&& arg)
+      {
+        return G::template call<RC, CC>(MatrixTraits<Expr>::template make<RC>(std::forward<Arg>(arg)));
+      }
+    };
+
+    template<typename G, typename Expr>
+    struct SplitEuclideanDiagF
+    {
+      template<typename RC, typename CC, typename Arg>
+      static auto call(Arg&& arg)
+      {
+        return G::template call<RC, CC>(MatrixTraits<Expr>::template make<RC>(std::forward<Arg>(arg)));
+      }
+    };
+  }
 
   /// Split into one or more Euclidean expressions vertically.
-  template<typename ... Cs, typename Arg,
-    std::enable_if_t<is_FromEuclideanExpr_v<Arg> or is_ToEuclideanExpr_v<Arg>, int> = 0>
+  template<typename F, typename...Cs, typename Arg,
+    std::enable_if_t<(is_ToEuclideanExpr_v<Arg> or is_FromEuclideanExpr_v<Arg>) and not is_coefficient_v<F>, int> = 0>
   inline auto
   split_vertical(Arg&& arg) noexcept
   {
-    static_assert(OpenKalman::is_prefix_v<OpenKalman::Concatenate<Cs...>, typename MatrixTraits<Arg>::Coefficients>);
-    if constexpr(sizeof...(Cs) == 0)
-    {
-      return std::tuple {};
-    }
-    else if constexpr(sizeof...(Cs) == 1 and
-      OpenKalman::is_equivalent_v<OpenKalman::Concatenate<Cs...>, typename MatrixTraits<Arg>::Coefficients>)
+    static_assert(is_prefix_v<Concatenate<Cs...>, typename MatrixTraits<Arg>::Coefficients>);
+    using CC = Axes<MatrixTraits<Arg>::columns>;
+    constexpr auto euclidean = is_FromEuclideanExpr_v<Arg>;
+    return split_vertical<internal::SplitEuclideanVertF<F, Arg, CC>, euclidean, Cs...>(
+      base_matrix(std::forward<Arg>(arg)));
+  }
+
+  /// Split into one or more Euclidean expressions vertically.
+  template<typename F, bool, typename...Cs, typename Arg,
+    std::enable_if_t<(is_ToEuclideanExpr_v<Arg> or is_FromEuclideanExpr_v<Arg>) and not is_coefficient_v<F>, int> = 0>
+  inline auto
+  split_vertical(Arg&& arg) noexcept
+  {
+    return split_vertical<F, Cs...>(std::forward<Arg>(arg));
+  }
+
+  /// Split into one or more Euclidean expressions vertically.
+  template<typename...Cs, typename Arg,
+    std::enable_if_t<(is_ToEuclideanExpr_v<Arg> or is_FromEuclideanExpr_v<Arg>) and
+      std::conjunction_v<is_coefficient<Cs>...>, int> = 0>
+  inline auto
+  split_vertical(Arg&& arg) noexcept
+  {
+    static_assert(is_prefix_v<Concatenate<Cs...>, typename MatrixTraits<Arg>::Coefficients>);
+    return split_vertical<internal::default_split_function, Cs...>(std::forward<Arg>(arg));
+  }
+
+  /// Split into one or more Euclidean expressions vertically. The expression is evaluated to a strict matrix first.
+  /// @tparam cut Number of rows in the first cut.
+  /// @tparam cuts Number of rows in the second and subsequent cuts.
+  template<std::size_t cut, std::size_t ... cuts,
+    typename Arg, std::enable_if_t<is_ToEuclideanExpr_v<Arg> or is_FromEuclideanExpr_v<Arg>, int> = 0>
+  inline auto
+  split_vertical(Arg&& arg) noexcept
+  {
+    static_assert((cut + ... + cuts) <= MatrixTraits<Arg>::dimension);
+    if constexpr(cut == MatrixTraits<Arg>::dimension and sizeof...(cuts) == 0)
     {
       return std::tuple {std::forward<Arg>(arg)};
     }
     else
     {
-      return std::apply(
-        [](const auto& ...args) { return std::tuple {MatrixTraits<Arg>::template make<Cs>(args)...}; },
-        OpenKalman::split_vertical<(OpenKalman::is_FromEuclideanExpr_v<Arg> ? Cs::dimension : Cs::size)...>(
-          base_matrix(std::forward<Arg>(arg))
-      ));
+      return split_vertical<cut, cuts...>(strict_matrix(std::forward<Arg>(arg)));
     }
   }
 
 
   /// Split into one or more Euclidean expressions horizontally.
-  template<std::size_t ... cuts, typename Arg,
-    std::enable_if_t<is_ToEuclideanExpr_v<Arg> or is_FromEuclideanExpr_v<Arg>, int> = 0>
+  template<typename F, typename...Cs, typename Arg,
+    std::enable_if_t<(is_ToEuclideanExpr_v<Arg> or is_FromEuclideanExpr_v<Arg>) and not is_coefficient_v<F>, int> = 0>
   inline auto
   split_horizontal(Arg&& arg) noexcept
   {
-    static_assert((0 + ... + cuts) <= MatrixTraits<Arg>::columns);
-    if constexpr(sizeof...(cuts) == 0)
-    {
-      return std::tuple {};
-    }
-    else if constexpr(sizeof...(cuts) == 1 and (0 + ... + cuts) == MatrixTraits<Arg>::columns)
+    static_assert((0 + ... + Cs::size) <= MatrixTraits<Arg>::columns);
+    using RC = typename MatrixTraits<Arg>::Coefficients;
+    return split_horizontal<internal::SplitEuclideanHorizF<F, Arg, RC>, Cs...>(
+      base_matrix(std::forward<Arg>(arg)));
+  }
+
+  /// Split into one or more Euclidean expressions horizontally.
+  template<typename...Cs, typename Arg,
+    std::enable_if_t<(is_ToEuclideanExpr_v<Arg> or is_FromEuclideanExpr_v<Arg>) and
+      std::conjunction_v<is_coefficient<Cs>...>, int> = 0>
+  inline auto
+  split_horizontal(Arg&& arg) noexcept
+  {
+    return split_horizontal<internal::default_split_function, Cs...>(std::forward<Arg>(arg));
+  }
+
+  /// Split into one or more Euclidean expressions horizontally.
+  /// @tparam cut Number of columns in the first cut.
+  /// @tparam cuts Number of columns in the second and subsequent cuts.
+  template<std::size_t cut, std::size_t ... cuts,
+    typename Arg, std::enable_if_t<is_ToEuclideanExpr_v<Arg> or is_FromEuclideanExpr_v<Arg>, int> = 0>
+  inline auto
+  split_horizontal(Arg&& arg) noexcept
+  {
+    static_assert((cut + ... + cuts) <= MatrixTraits<Arg>::columns);
+    return split_horizontal<Axes<cut>, Axes<cuts>...>(std::forward<Arg>(arg));
+  }
+
+
+  /// Split into one or more Euclidean expressions diagonally. The valuated expression must be square.
+  template<typename F, typename...Cs, typename Arg,
+    std::enable_if_t<(is_ToEuclideanExpr_v<Arg> or is_FromEuclideanExpr_v<Arg>) and not is_coefficient_v<F>, int> = 0>
+  inline auto
+  split_diagonal(Arg&& arg) noexcept
+  {
+    static_assert(is_prefix_v<Concatenate<Cs...>, typename MatrixTraits<Arg>::Coefficients>);
+    static_assert(MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns);
+    constexpr auto euclidean = is_FromEuclideanExpr_v<Arg>;
+    return split_diagonal<internal::SplitEuclideanDiagF<F, Arg>, euclidean, Cs...>(
+      base_matrix(std::forward<Arg>(arg)));
+  }
+
+  /// Split into one or more Euclidean expressions diagonally. The valuated expression must be square.
+  template<typename F, bool, typename...Cs, typename Arg,
+    std::enable_if_t<(is_ToEuclideanExpr_v<Arg> or is_FromEuclideanExpr_v<Arg>) and not is_coefficient_v<F>, int> = 0>
+  inline auto
+  split_diagonal(Arg&& arg) noexcept
+  {
+    static_assert(is_prefix_v<Concatenate<Cs...>, typename MatrixTraits<Arg>::Coefficients>);
+    static_assert(MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns);
+    return split_diagonal<F, Cs...>(std::forward<Arg>(arg));
+  }
+
+  /// Split into one or more Euclidean expressions diagonally. The valuated expression must be square.
+  template<typename...Cs, typename Arg,
+    std::enable_if_t<(is_ToEuclideanExpr_v<Arg> or is_FromEuclideanExpr_v<Arg>) and
+      std::conjunction_v<is_coefficient<Cs>...>, int> = 0>
+  inline auto
+  split_diagonal(Arg&& arg) noexcept
+  {
+    static_assert(is_prefix_v<Concatenate<Cs...>, typename MatrixTraits<Arg>::Coefficients>);
+    static_assert(MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns);
+    return split_diagonal<internal::default_split_function, false, Cs...>(std::forward<Arg>(arg));
+  }
+
+  /// Split into one or more Euclidean expressions diagonally.
+  /// The expression (which must be square) is evaluated to a strict matrix first.
+  /// @tparam cut Number of rows in the first cut.
+  /// @tparam cuts Number of rows in the second and subsequent cuts.
+  template<std::size_t cut, std::size_t ... cuts,
+    typename Arg, std::enable_if_t<is_ToEuclideanExpr_v<Arg> or is_FromEuclideanExpr_v<Arg>, int> = 0>
+  inline auto
+  split_diagonal(Arg&& arg) noexcept
+  {
+    static_assert(MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns);
+    static_assert((cut + ... + cuts) <= MatrixTraits<Arg>::dimension);
+    if constexpr(cut == MatrixTraits<Arg>::dimension and sizeof...(cuts) == 0)
     {
       return std::tuple {std::forward<Arg>(arg)};
     }
     else
     {
-      using C = typename MatrixTraits<Arg>::Coefficients;
-      return std::apply(
-        [](const auto&...args) { return std::tuple {MatrixTraits<Arg>::template make<C>(args)...}; },
-        OpenKalman::split_horizontal<cuts...>(base_matrix(std::forward<Arg>(arg))
-      ));
+      return split_diagonal<cut, cuts...>(strict_matrix(std::forward<Arg>(arg)));
     }
   }
 

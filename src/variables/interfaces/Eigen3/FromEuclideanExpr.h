@@ -86,7 +86,7 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<is_FromEuclideanExpr_v<Arg>, int> = 0>
     auto& operator=(Arg&& other) noexcept
     {
-      static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::Coefficients, Coefficients>);
+      static_assert(is_equivalent_v<typename MatrixTraits<Arg>::Coefficients, Coefficients>);
       static_assert(MatrixTraits<Arg>::columns == columns);
       if constexpr (is_zero_v<BaseMatrix>)
       {
@@ -131,7 +131,7 @@ namespace OpenKalman
       static_assert(is_FromEuclideanExpr_v<Arg> or is_Eigen_matrix_v<Arg>);
       static_assert(MatrixTraits<Arg>::columns == MatrixTraits<BaseMatrix>::columns);
       static_assert(MatrixTraits<Arg>::dimension == Coefficients::size);
-      if constexpr(is_FromEuclideanExpr_v<Arg>) static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::Coefficients, Coefficients>);
+      if constexpr(is_FromEuclideanExpr_v<Arg>) static_assert(is_equivalent_v<typename MatrixTraits<Arg>::Coefficients, Coefficients>);
       this->base_matrix() = strict(to_Euclidean<Coefficients>(*this + std::forward<Arg>(other)));
       return *this;
     }
@@ -143,7 +143,7 @@ namespace OpenKalman
       static_assert(is_FromEuclideanExpr_v<Arg> or is_Eigen_matrix_v<Arg>);
       static_assert(MatrixTraits<Arg>::columns == MatrixTraits<BaseMatrix>::columns);
       static_assert(MatrixTraits<Arg>::dimension == Coefficients::size);
-      if constexpr(is_FromEuclideanExpr_v<Arg>) static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::Coefficients, Coefficients>);
+      if constexpr(is_FromEuclideanExpr_v<Arg>) static_assert(is_equivalent_v<typename MatrixTraits<Arg>::Coefficients, Coefficients>);
       this->base_matrix() = strict(to_Euclidean<Coefficients>(*this - std::forward<Arg>(other)));
       return *this;
     }

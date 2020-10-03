@@ -226,48 +226,78 @@ namespace OpenKalman
 
   namespace detail
   {
-    template<typename C, typename M, typename Arg>
+    template<typename C, typename Expr, typename Arg>
     inline auto
     split_item_impl(Arg&& arg)
     {
-      if constexpr(is_1by1_v<Arg> and not is_square_root_v<M> and is_Cholesky_v<M>)
+      if constexpr(is_1by1_v<Arg> and not is_square_root_v<Expr> and is_Cholesky_v<Expr>)
       {
-        return MatrixTraits<M>::template make<C>(Cholesky_square(std::forward<Arg>(arg)));
+        return MatrixTraits<Expr>::template make<C>(Cholesky_square(std::forward<Arg>(arg)));
       }
-      else if constexpr(is_1by1_v<Arg> and is_square_root_v<M> and not is_Cholesky_v<M>)
+      else if constexpr(is_1by1_v<Arg> and is_square_root_v<Expr> and not is_Cholesky_v<Expr>)
       {
-        return MatrixTraits<M>::template make<C>(Cholesky_factor(std::forward<Arg>(arg)));
+        return MatrixTraits<Expr>::template make<C>(Cholesky_factor(std::forward<Arg>(arg)));
       }
       else
       {
-        return MatrixTraits<M>::template make<C>(std::forward<Arg>(arg));
+        return MatrixTraits<Expr>::template make<C>(std::forward<Arg>(arg));
       }
     }
   }
 
-
-  /// Split Covariance or SquareRootCovariance diagonally.
-  template<typename ... Cs, typename M, std::enable_if_t<is_covariance_v<M>, int> = 0>
-  inline auto
-  split(M&& m) noexcept
+  namespace internal
   {
-    using Coeffs = typename MatrixTraits<M>::Coefficients;
-    static_assert(is_prefix_v<Concatenate<Cs...>, Coeffs>);
-    if constexpr(sizeof...(Cs) == 1 and is_equivalent_v<Concatenate<Cs...>, Coeffs>)
+    template<typename Expr, typename F, typename Arg>
+    static auto split_cov_diag_impl(const F& f, Arg&& arg)
     {
-      return std::tuple(std::forward<M>(m));
-    }
-    else
-    {
-      auto fn = [](auto&& ...args)
+      if constexpr(is_1by1_v<Arg> and not is_square_root_v<Expr> and is_Cholesky_v<Expr>)
       {
-        return std::tuple {detail::split_item_impl<Cs, M>(std::forward<decltype(args)>(args))...};
-      };
-      auto t = split<Cs::size...>(base_matrix(std::forward<M>(m)));
-      return std::apply(fn, t);
+        return f(Cholesky_square(std::forward<Arg>(arg)));
+      }
+      else if constexpr(is_1by1_v<Arg> and is_square_root_v<Expr> and not is_Cholesky_v<Expr>)
+      {
+        return f(Cholesky_factor(std::forward<Arg>(arg)));
+      }
+      else
+      {
+        return f(std::forward<Arg>(arg));
+      }
     }
-  }
 
+    template<typename Expr>
+    struct SplitCovDiagF
+    {
+      template<typename RC, typename CC, typename Arg>
+      static auto call(Arg&& arg)
+      {
+        static_assert(is_equivalent_v<RC, CC>);
+        auto f = [](auto&& m) { return MatrixTraits<Expr>::template make<RC>(std::forward<decltype(m)>(m)); };
+        return split_cov_diag_impl<Expr>(f, std::forward<Arg>(arg));
+      }
+    };
+
+    template<typename Expr, typename CC>
+    struct SplitCovVertF
+    {
+      template<typename RC, typename, typename Arg>
+      static auto call(Arg&& arg)
+      {
+        auto f = [](auto&& m) { return make_Matrix<RC, CC>(std::forward<decltype(m)>(m)); };
+        return split_cov_diag_impl<Expr>(f, std::forward<Arg>(arg));
+      }
+    };
+
+    template<typename Expr, typename RC>
+    struct SplitCovHorizF
+    {
+      template<typename, typename CC, typename Arg>
+      static auto call(Arg&& arg)
+      {
+        auto f = [](auto&& m) { return make_Matrix<RC, CC>(std::forward<decltype(m)>(m)); };
+        return split_cov_diag_impl<Expr>(f, std::forward<Arg>(arg));
+      }
+    };
+  }
 
   /// Split Covariance or SquareRootCovariance diagonally.
   template<typename ... Cs, typename M, std::enable_if_t<is_covariance_v<M>, int> = 0>
@@ -275,7 +305,7 @@ namespace OpenKalman
   split_diagonal(M&& m) noexcept
   {
     static_assert(is_prefix_v<Concatenate<Cs...>, typename MatrixTraits<M>::Coefficients>);
-    return split<Cs...>(std::forward<M>(m));
+    return split_diagonal<internal::SplitCovDiagF<M>, Cs...>(base_matrix(std::forward<M>(m)));
   }
 
 
@@ -284,18 +314,9 @@ namespace OpenKalman
   inline auto
   split_vertical(M&& m) noexcept
   {
-    using Coeffs = typename MatrixTraits<M>::Coefficients;
-    static_assert(is_prefix_v<Concatenate<Cs...>, Coeffs>);
-    if constexpr(sizeof...(Cs) == 1 and is_equivalent_v<Concatenate<Cs...>, Coeffs>)
-    {
-      return std::tuple(std::forward<M>(m));
-    }
-    else
-    {
-      return std::apply(
-        [](const auto& ...args) { return std::tuple {make_Matrix<Cs, Coeffs>(strict(args))...}; },
-        split_vertical<Cs::size...>(strict_matrix(std::forward<M>(m))));
-    }
+    using CC = typename MatrixTraits<M>::Coefficients;
+    static_assert(is_prefix_v<Concatenate<Cs...>, CC>);
+    return split_vertical<internal::SplitCovVertF<M, CC>, Cs...>(strict_matrix(std::forward<M>(m)));
   }
 
 
@@ -304,18 +325,9 @@ namespace OpenKalman
   inline auto
   split_horizontal(M&& m) noexcept
   {
-    using Coeffs = typename MatrixTraits<M>::Coefficients;
-    static_assert(is_prefix_v<Concatenate<Cs...>, Coeffs>);
-    if constexpr(sizeof...(Cs) == 1 and is_equivalent_v<Concatenate<Cs...>, Coeffs>)
-    {
-      return std::tuple(std::forward<M>(m));
-    }
-    else
-    {
-      return std::apply(
-        [](const auto& ...args) { return std::tuple {make_Matrix<Coeffs, Cs>(strict(args))...}; },
-        split_horizontal<Cs::size...>(strict_matrix(std::forward<M>(m))));
-    }
+    using RC = typename MatrixTraits<M>::Coefficients;
+    static_assert(is_prefix_v<Concatenate<Cs...>, RC>);
+    return split_horizontal<internal::SplitCovHorizF<M, RC>, Cs...>(strict_matrix(std::forward<M>(m)));
   }
 
 

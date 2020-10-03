@@ -517,14 +517,14 @@ TEST_F(matrix_tests, TriangularMatrix_blocks_lower)
                                    2, 4, 0, 5, 7, 0,
                                    3, 5, 6, 6, 8, 9}));
   EXPECT_TRUE(is_near(split_diagonal(EigenTriangularMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}), std::tuple{}));
-  EXPECT_TRUE(is_near(split<2, 3>(
+  EXPECT_TRUE(is_near(split_diagonal<2, 3>(
     EigenTriangularMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::lower> {1., 0, 0, 0, 0,
                                                                              2, 3, 0, 0, 0,
                                                                              0, 0, 4, 0, 0,
                                                                              0, 0, 5, 7, 0,
                                                                              0, 0, 6, 8, 9}),
     std::tuple{EigenTriangularMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::lower> {1., 0, 2, 3}, m1}));
-  EXPECT_TRUE(is_near(split<2, 2>(
+  EXPECT_TRUE(is_near(split_diagonal<2, 2>(
     EigenTriangularMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::lower> {1., 0, 0, 0, 0,
                                                                              2, 3, 0, 0, 0,
                                                                              0, 0, 4, 0, 0,
@@ -630,7 +630,7 @@ TEST_F(matrix_tests, TriangularMatrix_blocks_upper)
                                                                              0, 0, 0, 7, 8,
                                                                              0, 0, 0, 0, 9}),
     std::tuple{EigenTriangularMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::upper> {1., 2, 0, 3}, m1}));
-  EXPECT_TRUE(is_near(split(EigenTriangularMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}), std::tuple{}));
+  EXPECT_TRUE(is_near(split_diagonal(EigenTriangularMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}), std::tuple{}));
   EXPECT_TRUE(is_near(split_diagonal<2, 2>(
     EigenTriangularMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::upper> {1., 2, 0, 0, 0,
                                                                              0, 3, 0, 0, 0,

@@ -444,7 +444,8 @@ namespace OpenKalman
 
   template<typename Arg, typename U,
     std::enable_if_t<is_EigenSelfAdjointMatrix_v<Arg> and
-      (is_Eigen_matrix_v<U> or is_EigenTriangularMatrix_v<U> or is_EigenSelfAdjointMatrix_v<U> or is_EigenDiagonal_v<U>) and
+      (is_Eigen_matrix_v<U> or is_EigenTriangularMatrix_v<U> or is_EigenSelfAdjointMatrix_v<U> or
+        is_EigenDiagonal_v<U> or is_FromEuclideanExpr_v<U> or is_ToEuclideanExpr_v<U>) and
       not std::is_const_v<std::remove_reference_t<Arg>>, int> = 0>
   inline Arg&
   rank_update(Arg& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
@@ -457,7 +458,8 @@ namespace OpenKalman
 
   template<typename Arg, typename U,
     std::enable_if_t<is_EigenSelfAdjointMatrix_v<Arg> and
-    (is_Eigen_matrix_v<U> or is_EigenTriangularMatrix_v<U> or is_EigenSelfAdjointMatrix_v<U> or is_EigenDiagonal_v<U>), int> = 0>
+    (is_Eigen_matrix_v<U> or is_EigenTriangularMatrix_v<U> or is_EigenSelfAdjointMatrix_v<U> or
+      is_EigenDiagonal_v<U> or is_FromEuclideanExpr_v<U> or is_ToEuclideanExpr_v<U>), int> = 0>
   inline auto
   rank_update(Arg&& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
   {

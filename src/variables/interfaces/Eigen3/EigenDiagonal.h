@@ -494,26 +494,7 @@ namespace OpenKalman
   };
 
 
-  /// Split a diagonal matrix diagonally.
-  template<std::size_t ... cuts, typename Arg, std::enable_if_t<is_EigenDiagonal_v<Arg>, int> = 0>
-  inline auto
-  split(Arg&& arg)
-  {
-    static_assert((0 + ... + cuts) <= MatrixTraits<Arg>::dimension);
-    if constexpr(sizeof...(cuts) == 0)
-    {
-      return std::tuple {};
-    }
-    else if constexpr(sizeof...(cuts) == 1 and (0 + ... + cuts) == MatrixTraits<Arg>::dimension)
-    {
-      return std::tuple {std::forward<Arg>(arg)};
-    }
-    else
-    {
-      return std::apply([](const auto&...bs){ return std::tuple {MatrixTraits<Arg>::make(strict(bs))...}; },
-        split_vertical<cuts...>(base_matrix(std::forward<Arg>(arg))));
-    }
-  }
+  // split functions for EigenDiagonal are found in EigenSpecialMatrixOverloads
 
 
   /// Get element (i) of diagonal matrix arg.

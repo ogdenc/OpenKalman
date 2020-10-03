@@ -54,6 +54,13 @@ namespace OpenKalman
     template<std::size_t dim = dimension, typename S = Scalar>
     using DiagonalBaseType = EigenDiagonal<StrictMatrix<dim, 1, S>>;
 
+    template<typename Arg, std::enable_if_t<not std::is_convertible_v<Arg, const Scalar>, int> = 0>
+    static decltype(auto)
+    make(Arg&& arg) noexcept
+    {
+      return std::forward<Arg>(arg);
+    }
+
     /// Make matrix from a list of coefficients in row-major order.
     template<typename Arg, typename ... Args,
       std::enable_if_t<std::conjunction_v<std::is_convertible<Arg, Scalar>, std::is_convertible<Args, Scalar>...> and

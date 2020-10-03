@@ -504,7 +504,7 @@ TEST_F(typed_matrix_tests, Mean_angle_concatenate_split)
   EXPECT_TRUE(is_near(concatenate(x1, x2), x3));
   auto x4 = Mean<Concatenate<C3, C3, C3>> {5., 7, 9, 3, 2, 1, 5, 7, 9};
   EXPECT_TRUE(is_near(concatenate(x1, x2, x1), x4));
-  auto [x5, x6] = split<C3, C3>(x3);
+  auto [x5, x6] = split_vertical<C3, C3>(x3);
   EXPECT_TRUE(is_near(base_matrix(x5), base_matrix(x1)));
   EXPECT_TRUE(is_near(x5, x1));
   EXPECT_TRUE(is_near(x6, x2));
@@ -513,11 +513,11 @@ TEST_F(typed_matrix_tests, Mean_angle_concatenate_split)
   const Mean<Coefficients<Angle, Axis, Angle, Angle, Axis, Angle>>
     y3 {M_PI / 6, 2, M_PI / 3, M_PI / 4, 3, M_PI / 4};
   EXPECT_TRUE(is_near(concatenate(y1, y2), y3));
-  EXPECT_TRUE(is_near(split<C3, C3>(y3), std::tuple(y1, y2)));
+  EXPECT_TRUE(is_near(split_vertical<C3, C3>(y3), std::tuple(y1, y2)));
   const Mean<Coefficients<Angle, Axis, Angle, Angle, Axis, Angle, Angle, Axis, Angle>>
     y4 {M_PI / 6, 2, M_PI / 3, M_PI / 4, 3, M_PI / 4, M_PI / 6, 2, M_PI / 3};
   EXPECT_TRUE(is_near(concatenate(y1, y2, y1), y4));
-  EXPECT_TRUE(is_near(split<C3, C3, C3>(y4), std::tuple(y1, y2, y1)));
+  EXPECT_TRUE(is_near(split_vertical<C3, C3, C3>(y4), std::tuple(y1, y2, y1)));
 }
 
 

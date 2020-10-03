@@ -864,15 +864,15 @@ TEST_F(covariance_tests, SquareRootCovariance_blocks)
   EXPECT_TRUE(is_near(concatenate(SqCovT2l(m1l), SqCovT2l(m2l)), nl));
   EXPECT_TRUE(is_near(concatenate(SqCovT2u(m1u), SqCovT2u(m2u)), nu));
 
-  EXPECT_TRUE(is_near(split(SqCovSA4l(nl)), std::tuple {}));
-  EXPECT_TRUE(is_near(split<C, C>(SqCovSA4l(nl)), std::tuple {m1l, m2l}));
-  EXPECT_TRUE(is_near(split<C, C>(SqCovSA4u(nu)), std::tuple {m1u, m2u}));
-  EXPECT_TRUE(is_near(split<C, C>(SqCovT4l(nl)), std::tuple {m1l, m2l}));
-  EXPECT_TRUE(is_near(split<C, C>(SqCovT4u(nu)), std::tuple {m1u, m2u}));
-  EXPECT_TRUE(is_near(split<C, C::Take<1>>(SqCovSA4l(nl)), std::tuple {m1l, TypedMatrix<Angle, Angle>{2}}));
-  EXPECT_TRUE(is_near(split<C, C::Take<1>>(SqCovSA4u(nu)), std::tuple {m1u, TypedMatrix<Angle, Angle>{2}}));
-  EXPECT_TRUE(is_near(split<C, C::Take<1>>(SqCovT4l(nl)), std::tuple {m1l, TypedMatrix<Angle, Angle>{2}}));
-  EXPECT_TRUE(is_near(split<C, C::Take<1>>(SqCovT4u(nu)), std::tuple {m1u, TypedMatrix<Angle, Angle>{2}}));
+  EXPECT_TRUE(is_near(split_diagonal(SqCovSA4l(nl)), std::tuple {}));
+  EXPECT_TRUE(is_near(split_diagonal<C, C>(SqCovSA4l(nl)), std::tuple {m1l, m2l}));
+  EXPECT_TRUE(is_near(split_diagonal<C, C>(SqCovSA4u(nu)), std::tuple {m1u, m2u}));
+  EXPECT_TRUE(is_near(split_diagonal<C, C>(SqCovT4l(nl)), std::tuple {m1l, m2l}));
+  EXPECT_TRUE(is_near(split_diagonal<C, C>(SqCovT4u(nu)), std::tuple {m1u, m2u}));
+  EXPECT_TRUE(is_near(split_diagonal<C, C::Take<1>>(SqCovSA4l(nl)), std::tuple {m1l, TypedMatrix<Angle, Angle>{2}}));
+  EXPECT_TRUE(is_near(split_diagonal<C, C::Take<1>>(SqCovSA4u(nu)), std::tuple {m1u, TypedMatrix<Angle, Angle>{2}}));
+  EXPECT_TRUE(is_near(split_diagonal<C, C::Take<1>>(SqCovT4l(nl)), std::tuple {m1l, TypedMatrix<Angle, Angle>{2}}));
+  EXPECT_TRUE(is_near(split_diagonal<C, C::Take<1>>(SqCovT4u(nu)), std::tuple {m1u, TypedMatrix<Angle, Angle>{2}}));
 
   EXPECT_TRUE(is_near(split_vertical(SqCovSA4l(nl)), std::tuple {}));
   EXPECT_TRUE(is_near(split_vertical<C, C>(SqCovSA4l(nl)), std::tuple {concatenate_horizontal(m1l, Mat2::zero()), concatenate_horizontal(Mat2::zero(), m2l)}));
