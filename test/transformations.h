@@ -132,7 +132,7 @@ inline const auto radarP = make_Transformation
       M2Pt ret = {
         std::cos(x(1)), -x(0) * std::sin(x(1)),
         std::sin(x(1)), x(0) * std::cos(x(1))};
-      return std::tuple_cat(std::tuple {ret}, internal::tuple_replicate<sizeof...(ps)>(M2Pt::identity()));
+      return std::tuple_cat(std::tuple {ret}, internal::tuple_replicate<sizeof...(ps)>(M22t::identity()));
     },
     [](const MP1t& x, const auto&...ps) // Hessians
     {
