@@ -10,6 +10,29 @@
 
 #include "kalman-tests.h"
 
+inline auto get_t2()
+{
+  auto theta = trace(randomize<Mean<Axis, Eigen::Matrix<double, 1, 1>>, std::uniform_real_distribution>(-M_PI, M_PI));
+  using M22 = Eigen::Matrix<double, 2, 2>;
+  auto a = TypedMatrix<Axes<2>, Axes<2>, M22> {std::cos(theta), -std::sin(theta), std::sin(theta), std::cos(theta)};
+  return LinearTransformation(a);
+}
+
+template<typename Cov, typename Trans>
+void kalman_tests::rotation_2D(const Trans& transform)
+{
+  using M2 = Eigen::Matrix<double, 2, 1>;
+  using Mean2 = Mean<Axes<2>, M2>;
+  for (int i = 0; i < 5; i++)
+  {
+    auto true_state = randomize<Mean2, std::uniform_real_distribution>(5.0, 10.0);
+    auto x = GaussianDistribution<Axes<2>, M2, Cov> {Mean2 {7.5, 7.5}, Cov::identity()};
+    auto meas_cov = Cov {0.01, 0, 0, 0.01};
+    auto r = GaussianDistribution<Axes<2>, M2, Cov> {Mean2::zero(), meas_cov};
+    parameter_test(transform, get_t2(), x, true_state, r, 0.1, 100);
+  }
+}
+
 using M22 = Eigen::Matrix<double, 2, 2>;
 
 TEST_F(kalman_tests, rotation_2D_linear_SA)

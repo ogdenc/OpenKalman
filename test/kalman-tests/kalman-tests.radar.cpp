@@ -10,21 +10,58 @@
 
 #include "kalman-tests.h"
 
+template<typename Cov, typename Trans>
+void kalman_tests::radar_2D(const Trans& transform)
+{
+  using M2 = Eigen::Matrix<double, 2, 1>;
+  using Loc2 = Mean<Axes<2>, M2>;
+  using Polar2 = Mean<Polar<>, M2>;
+  for (int i = 0; i < 5; i++)
+  {
+    auto true_state = randomize<Loc2, std::uniform_real_distribution>(5.0, 10.0);
+    auto x = GaussianDistribution<Axes<2>, M2, Cov> {Loc2 {7.5, 7.5}, Cov::identity()};
+    auto meas_cov = Cov {0.01, 0, 0, M_PI/360};
+    auto r = GaussianDistribution<Polar<>, M2, Cov> {Polar2::zero(), meas_cov};
+    parameter_test(transform, Cartesian2polar, x, true_state, r, 0.1, 100);
+  }
+}
+
 using M22 = Eigen::Matrix<double, 2, 2>;
 
-/*TEST_F(kalman_tests, artillery_2d)
-{
-  using SA = EigenSelfAdjointMatrix<M22>;
-  auto true_state = randomize<Radar2, std::uniform_real_distribution>(-M_PI, M_PI);
-  auto x = GaussianDistribution<Polar<>, M2, SA> {Radar2::zero(), SA::identity()};
-  auto meas_cov = SA {0.1, 0, 0, 0.1};
-  auto r = GaussianDistribution<Axes<2>, M2, SA> {Loc2::zero(), meas_cov};
-  parameter_test(CubatureTransform(), radarP, x, true_state, r, 0.1, 100);
-}*/
-
 /// Locates a stationary object in 2D space based on a radar ping (a Polar vector).
+
 TEST_F(kalman_tests, radar_2d_linearized1_SA)
 {
   radar_2D<EigenSelfAdjointMatrix<M22>>(LinearizedTransform<1>());
+}
+
+TEST_F(kalman_tests, radar_2d_linearized1_T)
+{
+  radar_2D<EigenTriangularMatrix<M22>>(LinearizedTransform<1>());
+}
+
+TEST_F(kalman_tests, radar_2d_linearized2_SA)
+{
+  radar_2D<EigenSelfAdjointMatrix<M22>>(LinearizedTransform<2>());
+}
+
+TEST_F(kalman_tests, radar_2d_cubature_SA)
+{
+  radar_2D<EigenSelfAdjointMatrix<M22>>(CubatureTransform());
+}
+
+TEST_F(kalman_tests, radar_2d_cubature_T)
+{
+  radar_2D<EigenTriangularMatrix<M22>>(CubatureTransform());
+}
+
+TEST_F(kalman_tests, radar_2d_unscented_SA)
+{
+  radar_2D<EigenSelfAdjointMatrix<M22>>(UnscentedTransform());
+}
+
+TEST_F(kalman_tests, radar_2d_unscented_T)
+{
+  radar_2D<EigenTriangularMatrix<M22>>(UnscentedTransform());
 }
 

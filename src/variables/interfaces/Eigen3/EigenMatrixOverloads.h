@@ -925,12 +925,20 @@ namespace OpenKalman
   {
     template<typename Scalar, template<typename> typename distribution_type, typename random_number_engine>
     static auto
-    get_rnd(const typename distribution_type<Scalar>::param_type params)
+    get_rnd(const typename distribution_type<Scalar>::param_type& params)
     {
       static std::random_device rd;
       static random_number_engine rng {rd()};
       static distribution_type<Scalar> dist;
       return dist(rng, params);
+    }
+
+    template<typename Scalar, template<typename> typename, typename,
+      std::enable_if_t<std::is_arithmetic_v<Scalar>, int> = 0>
+    static auto
+    get_rnd(Scalar s)
+    {
+      return s;
     }
   }
 
@@ -946,16 +954,36 @@ namespace OpenKalman
     typename...Params,
     std::enable_if_t<is_Eigen_matrix_v<ReturnType>, int> = 0>
   inline auto
-  randomize(Params...params)
+  randomize(Params&&...params)
   {
     using Scalar = typename MatrixTraits<ReturnType>::Scalar;
+    constexpr auto rows = MatrixTraits<ReturnType>::dimension;
+    constexpr auto cols = MatrixTraits<ReturnType>::columns;
     using Ps = typename distribution_type<Scalar>::param_type;
-    static_assert(std::is_constructible_v<Ps, Params...>,
-      "Parameters params... must be constructor arguments of distribution_type<RealType>::param_type.");
-    auto ps = Ps {params...};
-    return strict(ReturnType::NullaryExpr([&](auto) {
-      return detail::get_rnd<Scalar, distribution_type, random_number_engine>(ps);
-    }));
+    if constexpr (std::is_constructible_v<Ps, Params...>)
+    {
+      Ps ps {params...};
+      return strict(ReturnType::NullaryExpr([&] {
+        return detail::get_rnd<Scalar, distribution_type, random_number_engine>(ps);
+      }));
+    }
+    else if constexpr (sizeof...(Params) == rows * cols)
+    {
+      return MatrixTraits<ReturnType>::make(
+        detail::get_rnd<Scalar, distribution_type, random_number_engine>(std::forward<Params>(params))...);
+    }
+    else
+    {
+      static_assert(sizeof...(Params) == rows,
+        "Params... must be (1) a parameter set or list of parameter sets, "
+        "(2) a list of parameter sets, one for each row, or (3) a list of parameter sets, one for each coefficient.");
+      return apply_columnwise<cols>([&] {
+        using ReturnTypeCol = typename MatrixTraits<ReturnType>::template StrictMatrix<rows, 1>;
+        return MatrixTraits<ReturnTypeCol>::make(
+          detail::get_rnd<Scalar, distribution_type, random_number_engine>(std::forward<Params>(params))...);
+      });
+    }
+
   }
 
 

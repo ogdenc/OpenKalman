@@ -175,6 +175,7 @@ TEST_F(matrix_tests, FromEuclideanExpr_overloads)
   EXPECT_TRUE(is_near(QR_decomposition(From3 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2}),
     QR_decomposition((Eigen::Matrix<double, 2, 2>() << 1, 2, M_PI/6, M_PI/3).finished())));
 
+  using N = std::normal_distribution<double>::param_type;
   auto m = strict_matrix(MatrixTraits<Eigen::Matrix<double, 4, 2>>::zero());
   for (int i=0; i<100; i++)
   {
@@ -183,6 +184,23 @@ TEST_F(matrix_tests, FromEuclideanExpr_overloads)
   auto offset = Eigen::Matrix<double, 4, 2>::Constant(1);
   EXPECT_TRUE(is_near(m, offset, 0.1));
   EXPECT_FALSE(is_near(m, offset, 1e-6));
+
+  for (int i=0; i<100; i++)
+  {
+    m = (m * i + to_Euclidean(randomize<From4>(N {1.0, 0.3}, N {2.0, 0.3}, 3.0, N {4.0, 0.3}))) / (i + 1);
+  }
+  auto offset2 = to_Euclidean(From4 {1., 1., 2., 2., 3., 3., 4., 4.});
+  EXPECT_TRUE(is_near(m, offset2, 0.1));
+  EXPECT_FALSE(is_near(m, offset2, 1e-6));
+
+  for (int i=0; i<100; i++)
+  {
+    m = (m * i + to_Euclidean(randomize<From4>(N {1.0, 0.3}, N {2.0, 0.3}, 3.0, N {4.0, 0.3},
+      N {5.0, 0.3}, 6.0, N {7.0, 0.3}, N {8.0, 0.3}))) / (i + 1);
+  }
+  auto offset3 = to_Euclidean(From4 {1., 2., 3., 4., 5., 6., 7., 8.});
+  EXPECT_TRUE(is_near(m, offset3, 0.1));
+  EXPECT_FALSE(is_near(m, offset3, 1e-6));
 }
 
 

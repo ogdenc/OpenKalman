@@ -421,7 +421,7 @@ TEST_F(typed_matrix_tests, GaussianDistribution_class_random)
     mean_x = (mean_x * i + to_Euclidean(x)) / (i + 1);
   }
   EXPECT_NE(from_Euclidean(mean_x), true_x);
-  EXPECT_TRUE(is_near(from_Euclidean(mean_x) - true_x, V::zero(), MatrixTraits<V>::BaseMatrix::Constant(0.1)));
+  EXPECT_TRUE(is_near(Mean(from_Euclidean(mean_x) - true_x), V::zero(), MatrixTraits<V>::BaseMatrix::Constant(0.1)));
 }
 
 
@@ -465,7 +465,7 @@ TEST_F(typed_matrix_tests, GaussianDistribution_class_Cholesky_random)
     mean_x = (mean_x * i + to_Euclidean(x)) / (i + 1);
   }
   EXPECT_NE(from_Euclidean(mean_x), true_x);
-  EXPECT_TRUE(is_near(from_Euclidean(mean_x) - true_x, V::zero(), MatrixTraits<V>::BaseMatrix::Constant(0.1)));
+  EXPECT_TRUE(is_near(Mean(from_Euclidean(mean_x) - true_x), V::zero(), MatrixTraits<V>::BaseMatrix::Constant(0.1)));
 }
 
 

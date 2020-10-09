@@ -193,13 +193,14 @@ TEST_F(matrix_tests, Diagonal_overloads)
   EXPECT_TRUE(is_near(LQ_decomposition(M1by1 {4}), EigenDiagonal {4.}));
   EXPECT_TRUE(is_near(QR_decomposition(M1by1 {4}), EigenDiagonal {4.}));
 
+  using N = std::normal_distribution<double>::param_type;
   using Mat = EigenDiagonal<Eigen::Matrix<double, 2, 1>>;
   Mat m = MatrixTraits<Mat>::zero();
   for (int i=0; i<100; i++)
   {
-    m = (m * i + randomize<Mat>(1.0, 0.3)) / (i + 1);
+    m = (m * i + randomize<Mat>(N {1.0, 0.3}, 2.0)) / (i + 1);
   }
-  Mat offset = {1, 1};
+  Mat offset = {1, 2};
   EXPECT_TRUE(is_near(m, offset, 0.1));
   EXPECT_FALSE(is_near(m, offset, 1e-6));
 }

@@ -52,6 +52,7 @@ TEST_F(matrix_tests, Eigen_Matrix_overloads)
   EXPECT_TRUE(is_near(QR_decomposition((Eigen::Matrix<double, 2, 2>() << 0.06, 0.36, 0.08, -1.640).finished()),
     (Eigen::Matrix<double, 2, 2>() << -0.1, 1.096, 0, -1.272).finished()));
   //
+  using N = std::normal_distribution<double>::param_type;
   using Mat = Eigen::Matrix<double, 3, 1>;
   Mat m;
   m = randomize<Mat>(0.0, 1.0);
@@ -59,11 +60,28 @@ TEST_F(matrix_tests, Eigen_Matrix_overloads)
   m = Mat::Zero();
   for (int i=0; i<100; i++)
   {
-    m = (m * i + randomize<Mat>(1.0, 0.3)) / (i + 1);
+    m = (m * i + randomize<Mat>(N {1.0, 0.3})) / (i + 1);
   }
-  auto offset = Mat::Constant(1);
-  EXPECT_TRUE(is_near(m, offset, 0.1));
-  EXPECT_FALSE(is_near(m, offset, 1e-8));
+  auto offset1 = Mat::Constant(1);
+  EXPECT_TRUE(is_near(m, offset1, 0.1));
+  EXPECT_FALSE(is_near(m, offset1, 1e-8));
+
+  Mat2 m22;
+  for (int i=0; i<100; i++)
+  {
+    m22 = (m22 * i + randomize<Mat2>(N {1.0, 0.3}, N {2.0, 0.3})) / (i + 1);
+  }
+  auto offset2 = MatrixTraits<Mat2>::make(1., 1., 2., 2.);
+  EXPECT_TRUE(is_near(m22, offset2, 0.1));
+  EXPECT_FALSE(is_near(m22, offset2, 1e-8));
+
+  for (int i=0; i<100; i++)
+  {
+    m22 = (m22 * i + randomize<Mat2>(N {1.0, 0.3}, N {2.0, 0.3}, 3.0, N {4.0, 0.3})) / (i + 1);
+  }
+  auto offset3 = MatrixTraits<Mat2>::make(1., 2., 3., 4.);
+  EXPECT_TRUE(is_near(m22, offset3, 0.1));
+  EXPECT_FALSE(is_near(m22, offset3, 1e-8));
 }
 
 TEST_F(matrix_tests, EigenZero)

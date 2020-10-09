@@ -10,6 +10,42 @@
 
 #include "kalman-tests.h"
 
+inline auto get_t3()
+{
+  using M3 = Eigen::Matrix<double, 3, 1>;
+  using Mean3 = Mean<Axes<3>, M3>;
+  using M33 = Eigen::Matrix<double, 3, 3>;
+  auto angles = randomize<Mean3, std::uniform_real_distribution>(-M_PI, M_PI);
+  auto ax = TypedMatrix<Axes<3>, Axes<3>, M33> {
+    1, 0, 0,
+    0, std::cos(angles[0]), -std::sin(angles[0]),
+    0, std::sin(angles[0]), std::cos(angles[0])};
+  auto ay = TypedMatrix<Axes<3>, Axes<3>, M33> {
+    std::cos(angles[0]), 0, std::sin(angles[0]),
+    0, 1, 0,
+    -std::sin(angles[0]), 0, std::cos(angles[0])};
+  auto az = TypedMatrix<Axes<3>, Axes<3>, M33> {
+    std::cos(angles[0]), -std::sin(angles[0]), 0,
+    std::sin(angles[0]), std::cos(angles[0]), 0,
+    0, 0, 1};
+  return LinearTransformation(ax * ay * az);
+}
+
+template<typename Cov, typename Trans>
+void kalman_tests::rotation_3D(const Trans& transform)
+{
+  using M3 = Eigen::Matrix<double, 3, 1>;
+  using Mean3 = Mean<Axes<3>, M3>;
+  for (int i = 0; i < 5; i++)
+  {
+    auto true_state = randomize<Mean3, std::uniform_real_distribution>(5.0, 10.0);
+    auto x = GaussianDistribution<Axes<3>, M3, Cov> {Mean3 {7.5, 7.5, 7.5}, Cov::identity()};
+    auto meas_cov = Cov {0.01, 0, 0, 0, 0.01, 0, 0, 0, 0.1};
+    auto r = GaussianDistribution<Axes<3>, M3, Cov> {Mean3::zero(), meas_cov};
+    parameter_test(transform, get_t3(), x, true_state, r, 0.1, 100);
+  }
+}
+
 using M33 = Eigen::Matrix<double, 3, 3>;
 
 TEST_F(kalman_tests, rotation_3D_linear_SA)
