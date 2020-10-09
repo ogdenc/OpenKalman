@@ -50,8 +50,7 @@ inline const auto sum_of_squares = make_Transformation
 
       std::array<TypedMatrix<Axes<n>, Axes<n>, Eigen::Matrix<double, n, n>>, 1> I;
       I[0] = 2 * Eigen::Matrix<double, n, n>::Identity();
-
-      return std::tuple_cat(std::tuple {I}, internal::tuple_slice<1, 1 + sizeof...(ps)>(zero_hessian<Axis, decltype(x), decltype(ps)...>()));
+      return std::tuple {std::move(I), std::get<0>(zero_hessian<Axis>(ps))...};
     }
   );
 
@@ -74,15 +73,15 @@ inline const auto time_of_arrival = make_Transformation
       static_assert(std::conjunction_v<is_equivalent<typename MatrixTraits<decltype(ps)>::RowCoefficients, Axis>...>);
       static_assert(std::conjunction_v<is_equivalent<typename MatrixTraits<decltype(ps)>::ColumnCoefficients, Axis>...>);
 
-      return std::tuple_cat(std::tuple {strict(adjoint(x) / std::sqrt((x.adjoint() * x)(0,0)))},
+      return std::tuple_cat(std::tuple {strict(adjoint(x) / std::sqrt(trace(x.adjoint() * x)))},
         internal::tuple_replicate<sizeof...(ps)>(Mean {1.}));
     },
     [](const auto& x, const auto&...ps) // Hessians
     {
       std::array<TypedMatrix<Axes<n>, Axes<n>, Eigen::Matrix<double, n, n>>, 1> ret;
-      double sq = (adjoint(x) * x)(0,0);
+      double sq = trace(adjoint(x) * x);
       ret[0] = pow(sq, -1.5) * (-x * adjoint(x) + sq * MatrixTraits<decltype(ret[0])>::identity());
-      return std::tuple_cat(std::tuple {ret}, internal::tuple_slice<1, 1 + sizeof...(ps)>(zero_hessian<Axis, decltype(x), decltype(ps)...>()));
+      return std::tuple {std::move(ret), std::get<0>(zero_hessian<Axis>(ps))...};
     }
   );
 
@@ -101,7 +100,8 @@ inline const auto radar = make_Transformation
       M22t ret = {
         std::cos(x(1)), -x(0) * std::sin(x(1)),
         std::sin(x(1)), x(0) * std::cos(x(1))};
-      return std::tuple_cat(std::tuple {ret}, internal::tuple_replicate<sizeof...(ps)>(M22t::identity()));
+      return std::tuple_cat(std::tuple {std::move(ret)},
+        internal::tuple_replicate<sizeof...(ps)>(M22t::identity()));
     },
     [](const M2t& x, const auto&...ps) // Hessians
     {
@@ -110,8 +110,7 @@ inline const auto radar = make_Transformation
                 -sin(x(1)), -x(0) * cos(x(1))};
       ret[1] = {0, cos(x(1)),
                 cos(x(1)), -x(0) * sin(x(1))};
-      return std::tuple_cat(std::tuple {ret}, internal::tuple_slice<1, 1 + sizeof...(ps)>(
-        zero_hessian<C2t, decltype(x), decltype(ps)...>()));
+      return std::tuple {std::move(ret), std::get<0>(zero_hessian<C2t>(ps))...};
     }
   );
 
@@ -132,7 +131,7 @@ inline const auto radarP = make_Transformation
       M2Pt ret = {
         std::cos(x(1)), -x(0) * std::sin(x(1)),
         std::sin(x(1)), x(0) * std::cos(x(1))};
-      return std::tuple_cat(std::tuple {ret}, internal::tuple_replicate<sizeof...(ps)>(M22t::identity()));
+      return std::tuple_cat(std::tuple {std::move(ret)}, internal::tuple_replicate<sizeof...(ps)>(M22t::identity()));
     },
     [](const MP1t& x, const auto&...ps) // Hessians
     {
@@ -141,8 +140,7 @@ inline const auto radarP = make_Transformation
                 -sin(x(1)), -x(0) * cos(x(1))};
       ret[1] = {0, cos(x(1)),
                 cos(x(1)), -x(0) * sin(x(1))};
-      return std::tuple_cat(std::tuple {ret}, internal::tuple_slice<1, 1 + sizeof...(ps)>(
-        zero_hessian<C2t, decltype(x), decltype(ps)...>()));
+      return std::tuple {std::move(ret), std::get<0>(zero_hessian<C2t>(ps))...};
     }
   );
 
@@ -159,7 +157,7 @@ inline const auto Cartesian2polar = make_Transformation
       MP2t ret = {
         x(0)*h, x(1)*h,
         -x(1)*h2, x(0)*h2};
-      return std::tuple_cat(std::tuple {ret}, internal::tuple_replicate<sizeof...(ps)>(MPPt::identity()));
+      return std::tuple_cat(std::tuple {std::move(ret)}, internal::tuple_replicate<sizeof...(ps)>(MPPt::identity()));
     },
     [](const M2t& x, const auto&...ps) // Hessians
     {
@@ -175,8 +173,7 @@ inline const auto Cartesian2polar = make_Transformation
                 -x01*h3, h - x11*h3};
       ret[1] = {x01*h42, h2 - x00*h42,
                 x11*h42 - h2, -x01*h42};
-      return std::tuple_cat(std::tuple {ret}, internal::tuple_slice<1, 1 + sizeof...(ps)>(
-        zero_hessian<Polar<>, decltype(x), decltype(ps)...>()));
+      return std::tuple {std::move(ret), std::get<0>(zero_hessian<Polar<>>(ps))...};
     }
   );
 
@@ -201,7 +198,7 @@ inline const auto Cylindrical2spherical = make_Transformation
         x(0)*h, 0, x(2)*h,
         0, 1, 0,
         -x(2)*h2, 0, x(0)*h2};
-      return std::tuple_cat(std::tuple {ret}, internal::tuple_replicate<sizeof...(ps)>(MSSt::identity()));
+      return std::tuple_cat(std::tuple {std::move(ret)}, internal::tuple_replicate<sizeof...(ps)>(MSSt::identity()));
     },
     [](const MC1t& x, const auto&...ps) // Hessians
     {
@@ -220,8 +217,7 @@ inline const auto Cylindrical2spherical = make_Transformation
       ret[2] = {x02*h42, 0, h2 - x00*h42,
                 0, 0, 0,
                 x22*h42 - h2, 0, -x02*h42};
-      return std::tuple_cat(std::tuple {ret}, internal::tuple_slice<1, 1 + sizeof...(ps)>(
-        zero_hessian<Spherical<>, decltype(x), decltype(ps)...>()));
+      return std::tuple {std::move(ret), std::get<0>(zero_hessian<Spherical<>>(ps))...};
     }
   );
 
