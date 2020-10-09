@@ -710,12 +710,14 @@ namespace OpenKalman
   randomize(Params...params)
   {
     using Scalar = typename MatrixTraits<ReturnType>::Scalar;
+    constexpr auto rows = MatrixTraits<ReturnType>::dimension;
+    constexpr auto cols = MatrixTraits<ReturnType>::columns;
     using Ps = typename distribution_type<Scalar>::param_type;
-    static_assert(std::is_constructible_v<Ps, Params...>,
-      "Parameters params... must be constructor arguments of distribution_type<RealType>::param_type.");
-    auto ps = Ps {params...};
+    static_assert(std::is_constructible_v<Ps, Params...> or sizeof...(Params) == rows or sizeof...(Params) == rows * cols,
+      "Params... must be (1) a parameter set or list of parameter sets, "
+      "(2) a list of parameter sets, one for each row, or (3) a list of parameter sets, one for each coefficient.");
     using B = typename MatrixTraits<ReturnType>::BaseMatrix;
-    return MatrixTraits<ReturnType>::template make(randomize<B, distribution_type, random_number_engine>(ps));
+    return MatrixTraits<ReturnType>::template make(randomize<B, distribution_type, random_number_engine>(params...));
   }
 
 
@@ -732,39 +734,41 @@ namespace OpenKalman
   //        Arithmetic         //
   ///////////////////////////////
 
-  /// Add two typed matrices. Angles in the result may be wrapped if the result is a mean.
+  /// Add two typed matrices. If the operands are of different types, the result will be a regular typed matrix.
   template<typename V1, typename V2, std::enable_if_t<is_typed_matrix_v<V1> and is_typed_matrix_v<V2>, int> = 0>
   inline auto operator+(V1&& v1, V2&& v2)
   {
-    static_assert(is_equivalent_v<typename MatrixTraits<V2>::RowCoefficients, typename MatrixTraits<V1>::RowCoefficients>);
-    static_assert(is_equivalent_v<typename MatrixTraits<V2>::ColumnCoefficients, typename MatrixTraits<V1>::ColumnCoefficients>);
+    using RC1 = typename MatrixTraits<V1>::RowCoefficients;
+    using CC1 = typename MatrixTraits<V1>::ColumnCoefficients;
+    static_assert(is_equivalent_v<typename MatrixTraits<V2>::RowCoefficients, RC1>);
+    static_assert(is_equivalent_v<typename MatrixTraits<V2>::ColumnCoefficients, CC1>);
     static_assert(is_Euclidean_transformed_v<V1> == is_Euclidean_transformed_v<V2>);
     using CommonV = std::decay_t<std::conditional_t<
-      (is_Euclidean_mean_v<V1> and is_mean_v<V2>) or
-      (not is_mean_v<V2> and not is_Euclidean_mean_v<V2>),
-      V1, V2>>;
+      (is_Euclidean_mean_v<V1> and is_Euclidean_mean_v<V2>) or (is_mean_v<V1> and is_mean_v<V2>),
+      V1, TypedMatrix<RC1, CC1, typename MatrixTraits<V1>::BaseMatrix>>>;
     auto ret = MatrixTraits<CommonV>::make(base_matrix(std::forward<V1>(v1)) + base_matrix(std::forward<V2>(v2)));
     if constexpr (not std::is_lvalue_reference_v<V1&&> or not std::is_lvalue_reference_v<V2&&>) return strict(std::move(ret)); else return ret;
   }
 
 
-  /// Subtract two typed matrices. Angles in the result may be wrapped if the result is a mean.
+  /// Subtract two typed matrices. The result is a regular typed matrix unless both operands are EuclideanMean.
   template<typename V1, typename V2, std::enable_if_t<is_typed_matrix_v<V1> and is_typed_matrix_v<V2>, int> = 0>
   inline auto operator-(V1&& v1, V2&& v2)
   {
-    static_assert(is_equivalent_v<typename MatrixTraits<V2>::RowCoefficients, typename MatrixTraits<V1>::RowCoefficients>);
-    static_assert(is_equivalent_v<typename MatrixTraits<V2>::ColumnCoefficients, typename MatrixTraits<V1>::ColumnCoefficients>);
+    using RC1 = typename MatrixTraits<V1>::RowCoefficients;
+    using CC1 = typename MatrixTraits<V1>::ColumnCoefficients;
+    static_assert(is_equivalent_v<typename MatrixTraits<V2>::RowCoefficients, RC1>);
+    static_assert(is_equivalent_v<typename MatrixTraits<V2>::ColumnCoefficients, CC1>);
     static_assert(is_Euclidean_transformed_v<V1> == is_Euclidean_transformed_v<V2>);
     using CommonV = std::decay_t<std::conditional_t<
-      (is_Euclidean_mean_v<V1> and is_mean_v<V2>) or
-      (not is_mean_v<V2> and not is_Euclidean_mean_v<V2>),
-      V1, V2>>;
+      (is_Euclidean_mean_v<V1> and is_Euclidean_mean_v<V2>),
+      V1, TypedMatrix<RC1, CC1, typename MatrixTraits<V1>::BaseMatrix>>>;
     auto ret = MatrixTraits<CommonV>::make(base_matrix(std::forward<V1>(v1)) - base_matrix(std::forward<V2>(v2)));
     if constexpr (not std::is_lvalue_reference_v<V1&&> or not std::is_lvalue_reference_v<V2&&>) return strict(std::move(ret)); else return ret;
   }
 
 
-  /// Multiply a typed matrix by a scalar. Angles in the result may be wrapped.
+  /// Multiply a typed matrix by a scalar. The result type is the same as the operand type, so angles in the result may be wrapped.
   template<
     typename V,
     typename S,
@@ -778,7 +782,7 @@ namespace OpenKalman
   }
 
 
-  /// Multiply a scalar by a typed matrix. Angles in the result may be wrapped.
+  /// Multiply a scalar by a typed matrix. The result type is the same as the operand type, so angles in the result may be wrapped.
   template<
     typename V,
     typename S,
@@ -792,7 +796,7 @@ namespace OpenKalman
   }
 
 
-  /// Divide a typed matrix by a scalar. Angles in the result are wrapped.
+  /// Divide a typed matrix by a scalar. The result type is the same as the operand type, so angles in the result may be wrapped.
   template<
     typename V,
     typename S,
@@ -806,7 +810,7 @@ namespace OpenKalman
   }
 
 
-  /// Multiply a typed matrix by another typed matrix. Angles in the result are wrapped if result is a mean.
+  /// Multiply a typed matrix by another typed matrix. The result is a regular typed matrix unless the first operand is EuclideanMean.
   template<
     typename V1,
     typename V2,
@@ -817,25 +821,25 @@ namespace OpenKalman
     static_assert(MatrixTraits<V1>::columns == MatrixTraits<V2>::dimension);
     using RC = typename MatrixTraits<V1>::RowCoefficients;
     using CC = typename MatrixTraits<V2>::ColumnCoefficients;
-    if constexpr(is_Euclidean_mean_v<V1>) static_assert(CC::axes_only,
-      "A Euclidean-transformed matrix can only multiply with a matrix in which column coefficients are Axes only.");
-    using CommonV = std::decay_t<std::conditional_t<
-      not is_column_vector_v<V2> or (is_mean_v<V2> and not is_Euclidean_mean_v<V1>),
-      V2,
-      V1>>;
-    auto ret = MatrixTraits<CommonV>::template make<RC, CC>(
-      base_matrix(std::forward<V1>(v1)) * base_matrix(std::forward<V2>(v2)));
+    auto b = base_matrix(std::forward<V1>(v1)) * base_matrix(std::forward<V2>(v2));
+    using CommonV = std::decay_t<std::conditional_t<is_Euclidean_mean_v<V1>,
+      V1, TypedMatrix<RC, CC, decltype(b)>>>;
+    auto ret = MatrixTraits<CommonV>::template make<RC, CC>(std::move(b));
     if constexpr (not std::is_lvalue_reference_v<V1&&> or not std::is_lvalue_reference_v<V2&&>) return strict(std::move(ret)); else return ret;
   }
 
 
-  /// Negate a vector object. Angles in the result are wrapped.
+  /// Negate a vector object. The result is a regular typed matrix unless the operand is EuclideanMean.
   template<
     typename V,
     std::enable_if_t<is_typed_matrix_v<V>, int> = 0>
   inline auto operator-(V&& v)
   {
-    auto ret = MatrixTraits<V>::make(-base_matrix(std::forward<V>(v)));
+    using RC = typename MatrixTraits<V>::RowCoefficients;
+    using CC = typename MatrixTraits<V>::ColumnCoefficients;
+    using Res = std::decay_t<std::conditional_t<is_Euclidean_mean_v<V>,
+      V, TypedMatrix<RC, CC, typename MatrixTraits<V>::BaseMatrix>>>;
+    auto ret = MatrixTraits<Res>::make(-base_matrix(std::forward<V>(v)));
     if constexpr (not std::is_lvalue_reference_v<V&&>) return strict(std::move(ret)); else return ret;
   }
 
