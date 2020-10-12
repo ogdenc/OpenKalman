@@ -23,6 +23,11 @@ namespace OpenKalman
     static constexpr std::size_t dimension = 2;
     static constexpr bool axes_only = false;
 
+    /// A distance between to points on a circle cannot be more than the circumference of the circle, so it must be wrapped as Circle.
+    /// See David Frederic Crouse, Cubature/Unscented/Sigma Point Kalman Filtering with Angular Measurement Models,
+    /// 18th Int'l Conf. on Information Fusion 1550, 1553 (2015).
+    using difference_type = Coefficients<Circle>;
+
     template<typename Scalar>
     using GetCoeff = std::function<Scalar(const std::size_t)>;
 

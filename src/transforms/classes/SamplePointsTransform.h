@@ -33,6 +33,7 @@ namespace OpenKalman
   using CubatureTransform = SamplePointsTransform<CubaturePoints>;
 
   using UnscentedTransform = SamplePointsTransform<UnscentedSigmaPoints>;
+  using UnscentedTransformParameterEstimation = SamplePointsTransform<UnscentedSigmaPointsParameterEstimation>;
 
 
   template<typename SamplePointsType>
@@ -48,7 +49,7 @@ namespace OpenKalman
     {
       constexpr auto count = MatrixTraits<decltype(std::get<0>(points))>::columns;
       return apply_columnwise<count>([&](size_t i) {
-        return to_Euclidean(g((column(std::get<ints>(points), i) + make_Matrix(mean(std::get<ints>(dists))))...));
+        return g((column(std::get<ints>(points), i) + mean(std::get<ints>(dists)))...);
       });
     }
 
@@ -91,16 +92,15 @@ namespace OpenKalman
       constexpr std::size_t N = std::tuple_size_v<decltype(xpoints_tup)>;
       static_assert(N == std::tuple_size_v<decltype(xdists_tup)>);
 
-      auto ymeans = y_means_impl(g, xpoints_tup, xdists_tup, std::make_index_sequence<N>());
-      auto y_mean_E = SamplePointsType::template weighted_means<dim>(ymeans);
+      auto y_means = Mean {y_means_impl(g, xpoints_tup, xdists_tup, std::make_index_sequence<N>())};
+      auto y_mean = from_Euclidean(SamplePointsType::template weighted_means<dim>(to_Euclidean(y_means)));
       // Each column is a deviation from y mean for each transformed sigma point:
-      auto ypoints = apply_columnwise(ymeans, [&](const auto& col) { return from_Euclidean(col - y_mean_E); });
-      auto y_mean = from_Euclidean(y_mean_E);
+      auto ypoints = apply_columnwise(y_means, [&](const auto& col) { return strict(col - y_mean); });
 
       if constexpr (i + 1 < sizeof...(Gs))
       {
         auto y_covariance = SamplePointsType::template covariance<dim, InputDist, false>(xpoints, ypoints);
-        auto y = GaussianDistribution {y_mean, y_covariance};
+        auto y = GaussianDistribution {strict(std::move(y_mean)), std::move(y_covariance)};
         return transform_impl<dim, InputDist, i + 1, return_cross>(gs, ypoints, ps, y, ds);
       }
       else
@@ -108,11 +108,12 @@ namespace OpenKalman
         auto y_covariance = SamplePointsType::template covariance<dim, InputDist, return_cross>(xpoints, ypoints);
         if constexpr (return_cross)
         {
-          return std::tuple {GaussianDistribution {y_mean, std::get<0>(y_covariance)}, std::get<1>(y_covariance)};
+          auto [y_cov, cross] = y_covariance;
+          return std::tuple {GaussianDistribution {strict(std::move(y_mean)), std::move(y_cov)}, std::move(cross)};
         }
         else
         {
-          return GaussianDistribution {y_mean, y_covariance};
+          return GaussianDistribution {std::move(y_mean), std::move(y_covariance)};
         }
       }
     }

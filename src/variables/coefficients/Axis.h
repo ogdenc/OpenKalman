@@ -23,6 +23,9 @@ namespace OpenKalman
     static constexpr std::size_t dimension = 1;
     static constexpr bool axes_only = true;
 
+    /// A difference between two Axis values is also on an Axis, so there is no wrapping.
+    using difference_type = Coefficients<Axis>;
+
     template<typename Scalar>
     using GetCoeff = std::function<Scalar(const std::size_t)>;
 

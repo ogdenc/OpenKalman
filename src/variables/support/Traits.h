@@ -273,6 +273,46 @@ namespace OpenKalman
   //  Coefficient traits  //
   //////////////////////////
 
+  /**
+   * @brief A set of coefficient types to be associated with a variable.
+   * The types should be instances of is_coefficient.
+   * @tparam Cs The coefficients (e.g., Axis, Angle, anything that as an instance of is_coefficient).
+   */
+  template<typename ... Cs>
+  struct Coefficients;
+
+  namespace internal
+  {
+    /**
+     * @brief Concatenate any number of Coefficients<...> types.
+     */
+    template<typename ...>
+    struct ConcatenateImpl;
+
+    template<typename ... Cs1, typename ... Coeffs>
+    struct ConcatenateImpl<Coefficients<Cs1...>, Coeffs...>
+    {
+      using type = typename ConcatenateImpl<Coeffs...>::type::template Prepend<Cs1...>;
+    };
+
+    template<typename Cs1, typename ... Coeffs>
+    struct ConcatenateImpl<Cs1, Coeffs...>
+    {
+      using type = typename ConcatenateImpl<Coeffs...>::type::template Prepend<Cs1>;
+    };
+
+    template<>
+    struct ConcatenateImpl<>
+    {
+      using type = Coefficients<>;
+    };
+
+  }
+
+  /// Concatenate any number of Coefficients<...> types.
+  template<typename ... Coeffs> using Concatenate = typename internal::ConcatenateImpl<Coeffs...>::type;
+
+
   /// Whether an object is a coefficient.
   template<typename T>
   struct is_coefficient : std::false_type {};

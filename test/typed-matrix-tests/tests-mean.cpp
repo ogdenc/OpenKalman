@@ -10,6 +10,8 @@
 
 #include "typed_matrix_tests.h"
 
+#pragma clang diagnostic ignored "-Wpessimizing-move"
+
 using namespace OpenKalman;
 
 using M12 = Eigen::Matrix<double, 1, 2>;
@@ -423,7 +425,7 @@ TEST_F(typed_matrix_tests, Mean_arithmetic)
   static_assert(is_typed_matrix_v<decltype(Mat32 {7, 6, 5, 4, 3, 2} + TypedMatrix<C3, Axes<2>, M32> {1, 2, 3, 4, 5, 6})>);
   static_assert(is_typed_matrix_v<decltype(Mean<Axes<3>, M32> {7, 6, 5, 4, 3, 2} + EuclideanMean<Axes<3>, M32> {1, 2, 3, 4, 5, 6})>);
 
-  EXPECT_TRUE(is_near(Mat32 {7, 6, 5, 4, 3, 2} - Mat32 {1, 2, 3, 4, 5, 6}, TMat32 {6, 4, 2 - 2*M_PI, 0, -2, -4}));
+  EXPECT_TRUE(is_near(Mat32 {7, 6, 5, 4, 3, 2} - Mat32 {1, 2, 3, 4, 5, 6}, TMat32 {6, 4, 2, 0, -2, -4}));
   EXPECT_TRUE(is_near(TypedMatrix<C3, Axes<2>, M32> {7, 6, 5, 4, 3, 2} - Mean<C3, M32> {1, 2, 3, 4, 5, 6}, TMat32 {6, 4, 2, 2*M_PI, -2, -4}));
   EXPECT_TRUE(is_near(TypedMatrix<Axes<3>, Axes<2>, M32> {7, 6, 5, 4, 3, 2} - EuclideanMean<Axes<3>, M32> {1, 2, 3, 4, 5, 6}, TMat32 {6, 4, 2, 0, -2, -4}));
   static_assert(is_typed_matrix_v<decltype(Mat32 {7, 6, 5, 4, 3, 2} - Mat32 {1, 2, 3, 4, 5, 6})>);
@@ -667,7 +669,7 @@ TEST_F(typed_matrix_tests, Mean_angle_columns)
   Var3 v1 {1, 2, 3, 4};
   Var3 v2 {6, 4, -6, 8};
   Var3 v3 {7 - M_PI*2, 6 - M_PI*2, -3, 12};
-  TVar3 v4 {-5 + M_PI*2, -2 + 2*M_PI, 9, -4};
+  TVar3 v4 {-5 + M_PI*2, -2, 9, -4};
   TVar3 v5 {0.5, 1, 1.5, 2};
   EXPECT_TRUE(is_near(v1 + v2, v3));
   EXPECT_TRUE(is_near(v1 - v2, v4));
@@ -713,6 +715,7 @@ TEST_F(typed_matrix_tests, Mean_angle_columns_Euclidean)
 TEST_F(typed_matrix_tests, Wrap_angle)
 {
   using R = Mean<Angle>;
+  EXPECT_TRUE(is_near(R {-M_PI*.99} - R {M_PI*0.99}, TypedMatrix<Angle> {M_PI*0.02}));
   R x0 {M_PI_4};
   EXPECT_NEAR(get_element(x0, 0, 0), M_PI_4, 1e-6);
   EXPECT_NEAR(get_element(x0, 0), M_PI_4, 1e-6);
@@ -726,6 +729,7 @@ TEST_F(typed_matrix_tests, Wrap_angle)
 TEST_F(typed_matrix_tests, Wrap_distance)
 {
   using R = Mean<Distance>;
+  EXPECT_TRUE(is_near(R {4} - R {5}, TypedMatrix<Axis> {-1}));
   R x0 {-5};
   EXPECT_TRUE(is_near(x0, Eigen::Matrix<double, 1, 1> {5}));
   EXPECT_TRUE(is_near(x0 + R {1.2}, Eigen::Matrix<double, 1, 1> {6.2}));
@@ -744,6 +748,7 @@ TEST_F(typed_matrix_tests, Wrap_distance)
 TEST_F(typed_matrix_tests, Wrap_inclination)
 {
   using R = Mean<InclinationAngle>;
+  EXPECT_TRUE(is_near(R {-M_PI/2} - R {M_PI/2}, TypedMatrix<Angle> {-M_PI}));
   EXPECT_TRUE(is_near(R {M_PI * 7 / 12}, R {M_PI * 5 / 12}));
   EXPECT_TRUE(is_near(R {-M_PI * 7 / 12}, R {-M_PI * 5 / 12}));
   EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(R {M_PI / 6}) + to_Euclidean(R {M_PI})), R {M_PI / 12}));
@@ -762,6 +767,7 @@ TEST_F(typed_matrix_tests, Wrap_inclination)
 TEST_F(typed_matrix_tests, Wrap_polar)
 {
   using P = Mean<Polar<Distance, Angle>>;
+  EXPECT_TRUE(is_near(P {4, -M_PI*.99} - P {5, M_PI*0.99}, TypedMatrix<Polar<Distance, Angle>, Axis> {-1, M_PI*0.02}));
   EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(P {1., M_PI / 6}) + to_Euclidean(P {-0.5, 0})), P {1.5, M_PI * 7 / 12}));
   EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(P {1., M_PI / 6}) + to_Euclidean(P {-1.5, 0})), P {2.5, M_PI * 7 / 12}));
   EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(P {1., M_PI * 5 / 6}) + to_Euclidean(P {0, -M_PI * 2 / 3})), P {1., -M_PI * 11 / 12}));
@@ -777,6 +783,7 @@ TEST_F(typed_matrix_tests, Wrap_polar)
   EXPECT_NEAR(get_element(x0, 1), -5*M_PI/6, 1e-6);
 
   using Q = Mean<Polar<Angle, Distance>>;
+  EXPECT_TRUE(is_near(Q {-M_PI*.99, 4} - Q {M_PI*0.99, 5}, TypedMatrix<Polar<Angle, Distance>, Axis> {M_PI*0.02, -1}));
   EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(Q {M_PI / 6, 1}) + to_Euclidean(Q {0, -0.5})), Q {M_PI * 7 / 12, 1.5}));
   EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(Q {M_PI / 6, 1}) + to_Euclidean(Q {0, -1.5})), Q {M_PI * 7 / 12, 2.5}));
   EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(Q {M_PI * 5 / 6, 1}) + to_Euclidean(Q {-M_PI * 2 / 3, 0})), Q {-M_PI * 11 / 12, 1}));
@@ -796,6 +803,7 @@ TEST_F(typed_matrix_tests, Wrap_polar)
 TEST_F(typed_matrix_tests, Wrap_spherical)
 {
   using S = Mean<Spherical<Distance, Angle, InclinationAngle>>;
+  EXPECT_TRUE(is_near(S {4, -M_PI*.99, -M_PI/2} - S {5, M_PI*0.99, M_PI/2}, TypedMatrix<Spherical<Distance, Angle, InclinationAngle>, Axis> {-1, M_PI*0.02, -M_PI}));
   EXPECT_TRUE(is_near(S {-0.5, M_PI / 3, M_PI / 6}, S {0.5, -M_PI * 2 / 3, -M_PI / 6}));
   EXPECT_TRUE(is_near(S {-0.5, M_PI * 7, M_PI * 7 / 6}, S {0.5, M_PI, M_PI / 6}));
   const auto x1 = S {0.5, std::atan2(3. / 4, 1. + std::sqrt(3.) / 4),
@@ -825,6 +833,7 @@ TEST_F(typed_matrix_tests, Wrap_spherical)
   EXPECT_NEAR(get_element(x0, 2), M_PI_4, 1e-6);
 
   using T = Mean<Spherical<Angle, Distance, InclinationAngle>>;
+  EXPECT_TRUE(is_near(T {-M_PI*.99, 4, -M_PI/2} - T {M_PI*0.99, 5, M_PI/2}, TypedMatrix<Spherical<Angle, Distance, InclinationAngle>, Axis> {M_PI*0.02, -1, -M_PI}));
   EXPECT_TRUE(is_near(T {M_PI / 3, -0.5, M_PI / 6}, T {-M_PI * 2 / 3, 0.5, -M_PI / 6}));
   EXPECT_TRUE(is_near(T {M_PI * 7, -0.5, M_PI * 7 / 6}, T {M_PI, 0.5, M_PI / 6}));
   const auto y1 = T {std::atan2(3. / 4, 1. + std::sqrt(3.) / 4),
@@ -854,6 +863,7 @@ TEST_F(typed_matrix_tests, Wrap_spherical)
   EXPECT_NEAR(get_element(z1, 2), M_PI_4, 1e-6);
 
   using U = Mean<Spherical<Angle, InclinationAngle, Distance>>;
+  EXPECT_TRUE(is_near(U {-M_PI*.99, -M_PI/2, 4} - U {M_PI*0.99, M_PI/2, 5}, TypedMatrix<Spherical<Angle, InclinationAngle, Distance>, Axis> {M_PI*0.02, -M_PI, -1}));
   U z2 {M_PI_4, -M_PI_4, 2};
   EXPECT_NEAR(get_element(z2, 2, 0), 2, 1e-6);
   EXPECT_NEAR(get_element(z2, 0), M_PI_4, 1e-6);

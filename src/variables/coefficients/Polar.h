@@ -138,6 +138,10 @@ namespace OpenKalman
       static constexpr std::size_t dimension = 3;
       static constexpr bool axes_only = false;
 
+      /// See David Frederic Crouse, Cubature/Unscented/Sigma Point Kalman Filtering with Angular Measurement Models,
+      /// 18th Int'l Conf. on Information Fusion 1550, 1553 (2015).
+      using difference_type = Concatenate<typename Coeff1::difference_type, typename Coeff2::difference_type>;
+
       template<typename ... Cnew>
       using Prepend = Coefficients<Cnew..., Derived>;
 

@@ -24,6 +24,11 @@ namespace OpenKalman
     static constexpr std::size_t dimension = 2;
     static constexpr bool axes_only = false;
 
+    /// Because Inclination is limited to ±π/2, a difference between two Inclinations does not wrap, and is treated as Axis.
+    /// See David Frederic Crouse, Cubature/Unscented/Sigma Point Kalman Filtering with Angular Measurement Models,
+    /// 18th Int'l Conf. on Information Fusion 1550, 1555 (2015).
+    using difference_type = Coefficients<Axis>;
+
     template<typename Scalar>
     using GetCoeff = std::function<Scalar(const std::size_t)>;
 

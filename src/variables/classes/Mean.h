@@ -169,7 +169,7 @@ namespace OpenKalman
       return *this;
     }
 
-    /// Decrement from another mean.
+    /// Decrement from another mean and wrap result.
     auto& operator-=(const Mean& other)
     {
       if constexpr(Coefficients::axes_only)
@@ -179,7 +179,7 @@ namespace OpenKalman
       return *this;
     }
 
-    /// Decrement from another typed matrix.
+    /// Decrement from another typed matrix and wrap result.
     template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg>, int> = 0>
     auto& operator-=(Arg&& other) noexcept
     {
@@ -251,14 +251,14 @@ namespace OpenKalman
 
   /// Deduce template parameters from a non-Euclidean-transformed typed matrix.
   template<typename V, std::enable_if_t<is_typed_matrix_v<V> and not is_Euclidean_transformed_v<V>, int> = 0>
-  Mean(V&&) -> Mean<typename MatrixTraits<V>::RowCoefficients,
-    decltype(wrap_angles<typename MatrixTraits<V>::RowCoefficients>(std::forward<V>(std::declval<V>()).base_matrix()))>;
+  Mean(V&&) -> Mean<typename MatrixTraits<V>::RowCoefficients, std::decay_t<decltype(
+    wrap_angles<typename MatrixTraits<V>::RowCoefficients>(std::forward<V>(std::declval<V>()).base_matrix()))>>;
 
   /// Deduce template parameters from a Euclidean-transformed typed matrix.
   template<typename V, std::enable_if_t<is_typed_matrix_v<V> and is_Euclidean_transformed_v<V> and
     MatrixTraits<V>::ColumnCoefficients::axes_only, int> = 0>
-  Mean(V&&) -> Mean<typename MatrixTraits<V>::RowCoefficients,
-    decltype(from_Euclidean<typename MatrixTraits<V>::RowCoefficients>(std::forward<V>(std::declval<V>()).base_matrix()))>;
+  Mean(V&&) -> Mean<typename MatrixTraits<V>::RowCoefficients, std::decay_t<decltype(
+    from_Euclidean<typename MatrixTraits<V>::RowCoefficients>(std::forward<V>(std::declval<V>()).base_matrix()))>>;
 
 
   ///////////////////////////////////

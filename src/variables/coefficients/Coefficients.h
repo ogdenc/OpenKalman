@@ -32,6 +32,7 @@ namespace OpenKalman
     static constexpr std::size_t size = 0; ///<Number of coefficients.
     static constexpr std::size_t dimension = 0; ///<Number of coefficients when converted to Euclidian.
     static constexpr bool axes_only = true; ///<All the coefficients are of type Axis.
+    using difference_type = Coefficients<>;
 
     template<typename ... Cnew>
     using Prepend = Coefficients<Cnew...>;
@@ -91,6 +92,8 @@ namespace OpenKalman
 
     /// All the coefficients are of type Axis.
     static constexpr bool axes_only = C::axes_only and Coefficients<Ctail...>::axes_only;
+
+    using difference_type = Concatenate<typename C::difference_type, typename Ctail::difference_type...>;
 
     template<typename ... Cnew>
     using Prepend = Coefficients<Cnew..., C, Ctail ...>;
@@ -252,39 +255,6 @@ namespace OpenKalman
    */
   template<std::size_t size>
   using Axes = Replicate<Axis, size>;
-
-
-
-  namespace internal
-  {
-    /**
-     * @brief Concatenate any number of Coefficients<...> types.
-     */
-    template<typename ...>
-    struct ConcatenateImpl;
-
-    template<typename ... Cs1, typename ... Coeffs>
-    struct ConcatenateImpl<Coefficients<Cs1...>, Coeffs...>
-    {
-      using type = typename ConcatenateImpl<Coeffs...>::type::template Prepend<Cs1...>;
-    };
-
-    template<typename Cs1, typename ... Coeffs>
-    struct ConcatenateImpl<Cs1, Coeffs...>
-    {
-    using type = typename ConcatenateImpl<Coeffs...>::type::template Prepend<Cs1>;
-    };
-
-    template<>
-    struct ConcatenateImpl<>
-    {
-      using type = Coefficients<>;
-    };
-
-  }
-
-  /// Concatenate any number of Coefficients<...> types.
-  template<typename ... Coeffs> using Concatenate = typename internal::ConcatenateImpl<Coeffs...>::type;
 
 
 }// namespace OpenKalman

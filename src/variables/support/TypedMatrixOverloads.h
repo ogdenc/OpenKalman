@@ -763,8 +763,23 @@ namespace OpenKalman
     using CommonV = std::decay_t<std::conditional_t<
       (is_Euclidean_mean_v<V1> and is_Euclidean_mean_v<V2>),
       V1, TypedMatrix<RC1, CC1, typename MatrixTraits<V1>::BaseMatrix>>>;
-    auto ret = MatrixTraits<CommonV>::make(base_matrix(std::forward<V1>(v1)) - base_matrix(std::forward<V2>(v2)));
-    if constexpr (not std::is_lvalue_reference_v<V1&&> or not std::is_lvalue_reference_v<V2&&>) return strict(std::move(ret)); else return ret;
+    auto b = base_matrix(std::forward<V1>(v1)) - base_matrix(std::forward<V2>(v2));
+    if constexpr (is_mean_v<V1> and is_mean_v<V2>)
+    {
+      // WC is the difference type for the coefficients. However, the result should retain coefficient types RC1.
+      using WC = typename RC1::difference_type;
+      auto ret = MatrixTraits<CommonV>::make(wrap_angles<WC>(std::move(b)));
+      if constexpr (not std::is_lvalue_reference_v<V1&&> or not std::is_lvalue_reference_v<V2&&>)
+        return strict(std::move(ret));
+      else return ret;
+    }
+    else
+    {
+      auto ret = MatrixTraits<CommonV>::make(std::move(b));
+      if constexpr (not std::is_lvalue_reference_v<V1&&> or not std::is_lvalue_reference_v<V2&&>)
+        return strict(std::move(ret));
+      else return ret;
+    }
   }
 
 

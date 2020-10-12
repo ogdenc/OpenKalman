@@ -131,6 +131,8 @@ TEST_F(transformation_tests, finite_diff_Cartesian2polar)
 {
   auto f = Cartesian2polar;
   auto t = FiniteDifferenceLinearization {f, M2 {1e-4, 1e-4}, MP {1e-4, 1e-5}, MP {1e-4, 1e-5}};
+  EXPECT_TRUE(is_near(t.jacobian(M2(-2, 0)), f.jacobian(M2(-2, 0))));
+  EXPECT_TRUE(is_near(t.hessian(M2(-2, 0)), f.hessian(M2(-2, 0))));
   EXPECT_TRUE(is_near(t.jacobian(M2(2, 1)), f.jacobian(M2(2, 1))));
   EXPECT_TRUE(is_near(t.hessian(M2(2, 1)), f.hessian(M2(2, 1))));
   EXPECT_TRUE(is_near(t.jacobian(M2(2, -1), MP(0.2, M_PI/30)), f.jacobian(M2(2, -1), MP(0.2, M_PI/30))));
@@ -143,6 +145,8 @@ TEST_F(transformation_tests, finite_diff_Cylindrical2spherical)
 {
   auto f = Cylindrical2spherical;
   auto t = FiniteDifferenceLinearization {f, MC {1e-4, 1e-4, 1e-4}, MS {1e-4, 1e-4, 1e-4}, MS {1e-4, 1e-4, 1e-4}};
+  EXPECT_TRUE(is_near(t.jacobian(MC(2, M_PI, 1)), f.jacobian(MC(2, M_PI, 1))));
+  EXPECT_TRUE(is_near(t.hessian(MC(2, M_PI, 1)), f.hessian(MC(2, M_PI, 1))));
   EXPECT_TRUE(is_near(t.jacobian(MC(2, M_PI/3, 1)), f.jacobian(MC(2, M_PI/3, 1))));
   EXPECT_TRUE(is_near(t.hessian(MC(2, M_PI/3, 1)), f.hessian(MC(2, M_PI/3, 1))));
   EXPECT_TRUE(is_near(t.jacobian(MC(2, M_PI/3, -1), MS(0.2, M_PI/30, M_PI/30)), f.jacobian(MC(2, M_PI/3, -1), MS(0.2, M_PI/30, M_PI/30))));

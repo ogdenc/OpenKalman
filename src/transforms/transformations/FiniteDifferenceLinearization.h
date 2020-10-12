@@ -53,14 +53,14 @@ namespace OpenKalman
       using Traits = MatrixTraits<decltype(std::get<term>(inputs))>;
       using Scalar = typename Traits::Scalar;
       constexpr auto width = Traits::dimension;
+      auto& col = std::get<term>(inputs);
       return apply_columnwise<width>([&](std::size_t i) {
         const Scalar h = std::get<term>(deltas)[i];
-        auto& col = std::get<term>(inputs);
         const Scalar x = col[i];
         col[i] = x + h;
-        const auto fp = std::apply(transformation, inputs);
+        const auto fp = Mean {std::apply(transformation, inputs)};
         col[i] = x - h;
-        const auto fm = std::apply(transformation, inputs);
+        const auto fm = Mean {std::apply(transformation, inputs)};
         col[i] = x;
         return strict((fp - fm)/(2*h));
       });
@@ -83,13 +83,13 @@ namespace OpenKalman
 
       if constexpr (i == j)
       {
-        const auto f0 = std::apply(transformation, inputs);
+        const auto f0 = Mean {std::apply(transformation, inputs)};
         col[i] = xi + hi;
-        const auto fp = std::apply(transformation, inputs);
+        const auto fp = Mean {std::apply(transformation, inputs)};
         col[i] = xi - hi;
-        const auto fm = std::apply(transformation, inputs);
+        const auto fm = Mean {std::apply(transformation, inputs)};
         col[i] = xi;
-        auto ret = strict((fp - 2*f0 + fm) / (hi * hi));
+        auto ret = strict(((fp - f0) - (f0 - fm)) / (hi * hi)); // Use two separate subtractions to ensure proper wrapping.
         return ret;
       }
       else
@@ -98,16 +98,16 @@ namespace OpenKalman
         const Scalar xj = col[j];
         col[i] = xi + hi;
         col[j] = xj + hj;
-        const auto fpp = std::apply(transformation, inputs);
+        const auto fpp = Mean {std::apply(transformation, inputs)};
         col[j] = xj - hj;
-        const auto fpm = std::apply(transformation, inputs);
+        const auto fpm = Mean {std::apply(transformation, inputs)};
         col[i] = xi - hi;
-        const auto fmm = std::apply(transformation, inputs);
+        const auto fmm = Mean {std::apply(transformation, inputs)};
         col[j] = xj + hj;
-        const auto fmp = std::apply(transformation, inputs);
+        const auto fmp = Mean {std::apply(transformation, inputs)};
         col[i] = xi;
         col[j] = xj;
-        auto ret = strict((fpp - fpm - fmp + fmm) / (4 * hi * hj));
+        auto ret = strict(((fpp - fpm) - (fmp - fmm)) / (4 * hi * hj));
         return ret;
       }
     };

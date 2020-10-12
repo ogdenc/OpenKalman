@@ -364,10 +364,6 @@ TEST_F(matrix_tests, FromEuclideanExpr_blocks)
       {1., 2, 3, M_PI/6, M_PI/3, M_PI/4}, f2),
     (Eigen::Matrix<double, 2, 3>() << 2., 4, 6, M_PI/3, M_PI*2/3, M_PI/2).finished()));
 
-  static_assert(is_FromEuclideanExpr_v<decltype(apply_columnwise(
-    FromEuclideanExpr<Coefficients<Axis, Angle>, ToEuclideanExpr<Coefficients<Axis, Angle>, Eigen::Matrix<double, 2, 3>>>
-      {1., 2, 3, M_PI/6, M_PI/3, M_PI/4}, f2))>);
-
   EXPECT_TRUE(is_near(apply_columnwise(
     FromEuclideanExpr<Coefficients<Axis, Angle>, Eigen::Matrix<double, 3, 3>> {1, 2, 3,
                                                                                std::sqrt(3)/2, 0.5, std::sqrt(2)/2,

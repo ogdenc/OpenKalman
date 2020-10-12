@@ -10,6 +10,8 @@
 
 #include "typed_matrix_tests.h"
 
+#pragma clang diagnostic ignored "-Wpessimizing-move"
+
 using namespace OpenKalman;
 
 using M12 = Eigen::Matrix<double, 1, 2>;
