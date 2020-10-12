@@ -779,55 +779,6 @@ namespace OpenKalman
     return MatrixTraits<ReturnType>::make(randomize<B, distribution_type, random_number_engine>(params...));
   }
 
-
-  /////////////////////////////////////////
-  //        Arithmetic Operators         //
-  /////////////////////////////////////////
-
-  /// Shortcut rule for adding FromEuclideanExpr<ToEuclideanExpr<Arg>> to matrix value, possible because of symmetry.
-  template<typename Arg1, typename Arg2,
-    std::enable_if_t<is_FromEuclideanExpr_v<Arg1>, int> = 0,
-    std::enable_if_t<is_FromEuclideanExpr_v<Arg2>, int> = 0,
-    std::enable_if_t<is_ToEuclideanExpr_v<typename MatrixTraits<Arg1>::BaseMatrix>, int> = 0,
-    std::enable_if_t<is_ToEuclideanExpr_v<typename MatrixTraits<Arg2>::BaseMatrix>, int> = 0>
-  constexpr decltype(auto) operator+(Arg1&& v1, Arg2&& v2)
-  {
-    static_assert(is_equivalent_v<typename MatrixTraits<Arg1>::Coefficients, typename MatrixTraits<Arg2>::Coefficients>);
-    using C = typename MatrixTraits<Arg1>::Coefficients;
-    auto m1 = strict_matrix(std::forward<Arg1>(v1));
-    auto m2 = strict_matrix(std::forward<Arg2>(v2));
-    return strict(wrap_angles<C>(m1 + m2));
-  }
-
-
-  /// Shortcut rule for subtracting FromEuclideanExpr<ToEuclideanExpr<Arg>> to matrix value.
-  template<typename Arg1, typename Arg2,
-    std::enable_if_t<is_FromEuclideanExpr_v<Arg1>, int> = 0,
-    std::enable_if_t<is_FromEuclideanExpr_v<Arg2>, int> = 0,
-    std::enable_if_t<is_ToEuclideanExpr_v<typename MatrixTraits<Arg1>::BaseMatrix>, int> = 0,
-    std::enable_if_t<is_ToEuclideanExpr_v<typename MatrixTraits<Arg2>::BaseMatrix>, int> = 0>
-  constexpr decltype(auto) operator-(Arg1&& v1, Arg2&& v2)
-  {
-    static_assert(is_equivalent_v<typename MatrixTraits<Arg1>::Coefficients, typename MatrixTraits<Arg2>::Coefficients>);
-    using C = typename MatrixTraits<Arg1>::Coefficients;
-    auto m1 = strict_matrix(std::forward<Arg1>(v1));
-    auto m2 = strict_matrix(std::forward<Arg2>(v2));
-    return strict(wrap_angles<C>(m1 - m2));
-  }
-
-
-  /// Shortcut rule for negating FromEuclideanExpr<ToEuclideanExpr<Arg>>, possible because of symmetry.
-  template<typename Arg,
-    std::enable_if_t<is_FromEuclideanExpr_v<Arg>, int> = 0,
-    std::enable_if_t<is_ToEuclideanExpr_v<typename MatrixTraits<Arg>::BaseMatrix>, int> = 0>
-  constexpr decltype(auto) operator-(Arg&& v)
-  {
-    using C = typename MatrixTraits<Arg>::Coefficients;
-    auto m = strict_matrix(std::forward<Arg>(v));
-    return strict(wrap_angles<C>(-m));
-  }
-
-
 }
 
 #endif //OPENKALMAN_EUCLIDEANEXPROVERLOADS_H
