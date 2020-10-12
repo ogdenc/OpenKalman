@@ -68,13 +68,10 @@ public:
       std::cout << "-----------------------------------------------------------" << std::endl;
       std::cout << "true_state" << std::endl << true_state << std::endl << std::flush;
       std::cout << "state_" << count - 1 << std::endl << x << std::endl << std::flush;
-      std::cout << "mean(x) - true_state" << std::endl << (mean(x) - true_state) << std::endl << std::flush;
-      std::cout << "(mean(x) - true_state).norm()" << std::endl << (mean(x) - true_state).norm() << std::endl << std::flush;
       std::cout << "L2 norm: " << norm << std::endl << std::flush;
     }
     EXPECT_LT(count - 1, iterations);
     EXPECT_TRUE(is_near(mean(x), true_state, resolution));
-    EXPECT_LE(norm, resolution);
   }
 
   template<typename Cov, typename Trans>

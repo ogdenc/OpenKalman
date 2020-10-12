@@ -25,7 +25,7 @@ namespace OpenKalman
   constexpr decltype(auto)
   strict_matrix(Arg&& arg)
   {
-    if constexpr(is_strict_matrix_v<Arg>)
+    if constexpr (is_strict_matrix_v<Arg>)
     {
       return std::forward<Arg>(arg);
     }
@@ -44,7 +44,7 @@ namespace OpenKalman
   constexpr decltype(auto)
   strict(Arg&& arg)
   {
-    if constexpr(is_strict_v<Arg>)
+    if constexpr (is_strict_v<Arg>)
     {
       return std::forward<Arg>(arg);
     }
@@ -60,7 +60,7 @@ namespace OpenKalman
   to_Euclidean(Arg&& arg) noexcept
   {
     static_assert(not is_ToEuclideanExpr_v<Arg>);
-    if constexpr(Coefficients::axes_only)
+    if constexpr (Coefficients::axes_only)
     {
       return std::forward<Arg>(arg);
     }
@@ -76,7 +76,7 @@ namespace OpenKalman
   from_Euclidean(Arg&& arg) noexcept
   {
     static_assert(not is_FromEuclideanExpr_v<Arg>);
-    if constexpr(Coefficients::axes_only)
+    if constexpr (Coefficients::axes_only)
     {
       return std::forward<Arg>(arg);
     }
@@ -91,7 +91,7 @@ namespace OpenKalman
   constexpr decltype(auto)
   wrap_angles(Arg&& arg) noexcept
   {
-    if constexpr(Coefficients::axes_only or is_identity_v<Arg> or is_zero_v<Arg>)
+    if constexpr (Coefficients::axes_only or is_identity_v<Arg> or is_zero_v<Arg>)
     {
       /// @TODO: Add functionality to conditionally wrap zero and identity, depending on wrap min and max.
       return std::forward<Arg>(arg);
@@ -108,7 +108,7 @@ namespace OpenKalman
   to_diagonal(Arg&& arg) noexcept
   {
     static_assert(MatrixTraits<Arg>::columns == 1);
-    if constexpr(is_1by1_v<Arg>)
+    if constexpr (is_1by1_v<Arg>)
       return std::forward<Arg>(arg);
     else
       return EigenDiagonal(std::forward<Arg>(arg));
@@ -119,7 +119,7 @@ namespace OpenKalman
   constexpr decltype(auto)
   transpose(Arg&& arg) noexcept
   {
-    if constexpr(is_1by1_v<Arg>)
+    if constexpr (is_1by1_v<Arg>)
       return std::forward<Arg>(arg);
     else
       return std::forward<Arg>(arg).transpose();
@@ -130,7 +130,7 @@ namespace OpenKalman
   constexpr decltype(auto)
   adjoint(Arg&& arg) noexcept
   {
-    if constexpr(is_1by1_v<Arg>)
+    if constexpr (is_1by1_v<Arg>)
       return std::forward<Arg>(arg);
     else
       return std::forward<Arg>(arg).adjoint();
@@ -142,7 +142,7 @@ namespace OpenKalman
   determinant(Arg&& arg) noexcept
   {
     static_assert(MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns);
-    if constexpr(is_1by1_v<Arg>)
+    if constexpr (is_1by1_v<Arg>)
       return std::forward<Arg>(arg)(0, 0);
     else
       return std::forward<Arg>(arg).determinant();
@@ -154,7 +154,7 @@ namespace OpenKalman
   trace(Arg&& arg) noexcept
   {
     static_assert(MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns);
-    if constexpr(is_1by1_v<Arg>)
+    if constexpr (is_1by1_v<Arg>)
       return std::forward<Arg>(arg)(0, 0);
     else
       return std::forward<Arg>(arg).trace();
@@ -173,7 +173,7 @@ namespace OpenKalman
     static_assert(MatrixTraits<A>::dimension == MatrixTraits<A>::columns);
     static_assert(MatrixTraits<A>::dimension == MatrixTraits<B>::dimension);
     using M = Eigen::Matrix<typename MatrixTraits<B>::Scalar, MatrixTraits<A>::dimension, MatrixTraits<B>::columns>;
-    if constexpr(is_1by1_v<A>)
+    if constexpr (is_1by1_v<A>)
     {
       return M(b(0, 0)/a(0, 0));
     }
@@ -189,7 +189,7 @@ namespace OpenKalman
   constexpr decltype(auto)
   reduce_columns(Arg&& arg) noexcept
   {
-    if constexpr(MatrixTraits<Arg>::columns == 1)
+    if constexpr (MatrixTraits<Arg>::columns == 1)
     {
       return std::forward<Arg>(arg);
     }
@@ -208,7 +208,7 @@ namespace OpenKalman
   constexpr auto
   LQ_decomposition(A&& a)
   {
-    if constexpr(is_diagonal_v<A> or is_lower_triangular_v<A>)
+    if constexpr (is_diagonal_v<A> or is_lower_triangular_v<A>)
     {
       return std::forward<A>(a);
     }
@@ -242,7 +242,7 @@ namespace OpenKalman
   constexpr auto
   QR_decomposition(A&& a)
   {
-    if constexpr(is_diagonal_v<A> or is_upper_triangular_v<A>)
+    if constexpr (is_diagonal_v<A> or is_upper_triangular_v<A>)
     {
       return std::forward<A>(a);
     }
@@ -280,7 +280,7 @@ namespace OpenKalman
   constexpr decltype(auto)
   concatenate_vertical(V&& v, Vs&& ... vs) noexcept
   {
-    if constexpr(sizeof...(Vs) > 0)
+    if constexpr (sizeof...(Vs) > 0)
     {
       constexpr auto rows = (MatrixTraits<V>::dimension + ... + MatrixTraits<Vs>::dimension);
       constexpr auto cols = MatrixTraits<V>::columns;
@@ -308,7 +308,7 @@ namespace OpenKalman
   constexpr decltype(auto)
   concatenate_horizontal(V&& v, Vs&& ... vs) noexcept
   {
-    if constexpr(sizeof...(Vs) > 0)
+    if constexpr (sizeof...(Vs) > 0)
     {
       constexpr auto rows = MatrixTraits<V>::dimension;
       static_assert(((rows == MatrixTraits<Vs>::dimension) and ...));
@@ -331,13 +331,13 @@ namespace OpenKalman
     void
     concatenate_diagonal_impl(M& m, const std::tuple<Vs...>& vs, std::index_sequence<ints...>)
     {
-      ((m << std::get<0>(vs)), ..., [&vs]
+      ((m << std::get<0>(vs)), ..., [&]
       {
         constexpr auto row = (ints + 1) / sizeof...(Vs);
         constexpr auto col = (ints + 1) % sizeof...(Vs);
         constexpr auto row_size = MatrixTraits<decltype(std::get<row>(vs))>::dimension;
         constexpr auto col_size = MatrixTraits<decltype(std::get<col>(vs))>::columns;
-        if constexpr(row == col) return std::get<row>(vs);
+        if constexpr (row == col) return std::get<row>(vs);
         else return Eigen::Matrix<typename M::Scalar, row_size, col_size>::Zero();
       }());
     }
@@ -359,7 +359,7 @@ namespace OpenKalman
   constexpr decltype(auto)
   concatenate_diagonal(V&& v, Vs&& ... vs) noexcept
   {
-    if constexpr(sizeof...(Vs) > 0)
+    if constexpr (sizeof...(Vs) > 0)
     {
       constexpr auto rows = (MatrixTraits<V>::dimension + ... + MatrixTraits<Vs>::dimension);
       constexpr auto cols = (MatrixTraits<V>::columns + ... + MatrixTraits<Vs>::columns);
@@ -695,11 +695,11 @@ namespace OpenKalman
   column(Arg&& arg)
   {
     static_assert(index < MatrixTraits<Arg>::columns, "Column index out of range.");
-    if constexpr(MatrixTraits<Arg>::columns == 1)
+    if constexpr (MatrixTraits<Arg>::columns == 1)
       return std::forward<Arg>(arg);
-    else if constexpr(index == 0)
+    else if constexpr (index == 0)
       return std::forward<Arg>(arg).template leftCols<1>();
-    else if constexpr(index == MatrixTraits<Arg>::columns - 1)
+    else if constexpr (index == MatrixTraits<Arg>::columns - 1)
       return std::forward<Arg>(arg).template rightCols<1>();
     else
       return std::forward<Arg>(arg).col(index);
@@ -712,7 +712,7 @@ namespace OpenKalman
     inline Arg& do_one_column(Arg& arg, const Function& f)
     {
       auto c = column<i>(arg);
-      if constexpr(index) f(c, i); else f(c);
+      if constexpr (index) f(c, i); else f(c);
       return arg;
     };
 
@@ -726,7 +726,7 @@ namespace OpenKalman
     inline auto cat_columnwise_impl(const Arg& arg, const Function& f, std::index_sequence<ints...>)
     {
       using ResultType = decltype(f(column(arg, 0)));
-      if constexpr(is_ToEuclideanExpr_v<ResultType> or is_FromEuclideanExpr_v<ResultType>)
+      if constexpr (is_ToEuclideanExpr_v<ResultType> or is_FromEuclideanExpr_v<ResultType>)
       {
         auto res = concatenate_horizontal(base_matrix(f(column(arg, ints)))...);
         return MatrixTraits<ResultType>::make(std::move(res));
@@ -741,7 +741,7 @@ namespace OpenKalman
     inline auto cat_columnwise_index_impl(const Arg& arg, const Function& f, std::index_sequence<ints...>)
     {
       using ResultType = decltype(f(column(arg, 0), 0));
-      if constexpr(is_ToEuclideanExpr_v<ResultType> or is_FromEuclideanExpr_v<ResultType>)
+      if constexpr (is_ToEuclideanExpr_v<ResultType> or is_FromEuclideanExpr_v<ResultType>)
       {
         auto res = concatenate_horizontal(base_matrix(f(column(arg, ints), ints))...);
         return MatrixTraits<ResultType>::make(std::move(res));

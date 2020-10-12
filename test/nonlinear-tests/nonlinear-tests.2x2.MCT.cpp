@@ -139,9 +139,9 @@ TEST_F(nonlinear_tests, MCTRadarB2SelfAdjoint)
   EXPECT_NEAR(mean(out)(0), 16.5, 1e-1); // Reference says 16.3
   EXPECT_NEAR(mean(out)(1), 9.5, 1e-1); // Reference says 9.8
   EXPECT_NEAR(covariance(out)(0,0), 11.2, 3e-1); // Reference says 12.2
-  EXPECT_NEAR(covariance(out)(0,1), -14.6, 2e-1); // Reference says -15.4
-  EXPECT_NEAR(covariance(out)(1,0), -14.6, 2e-1); // Reference says -15.4
-  EXPECT_NEAR(covariance(out)(1,1), 27.9, 2e-1); // Reference says 27.9
+  EXPECT_NEAR(covariance(out)(0,1), -14.6, 3e-1); // Reference says -15.4
+  EXPECT_NEAR(covariance(out)(1,0), -14.6, 3e-1); // Reference says -15.4
+  EXPECT_NEAR(covariance(out)(1,1), 27.9, 3e-1); // Reference says 27.9
 }
 
 TEST_F(nonlinear_tests, MCTRadarB2Triangular)
@@ -152,9 +152,9 @@ TEST_F(nonlinear_tests, MCTRadarB2Triangular)
   EXPECT_NEAR(mean(out)(0), 16.5, 1e-1); // Reference says 16.3
   EXPECT_NEAR(mean(out)(1), 9.5, 1e-1); // Reference says 9.8
   EXPECT_NEAR(covariance(out)(0,0), 11.2, 3e-1); // Reference says 12.2
-  EXPECT_NEAR(covariance(out)(0,1), -14.6, 2e-1); // Reference says -15.4
-  EXPECT_NEAR(covariance(out)(1,0), -14.6, 2e-1); // Reference says -15.4
-  EXPECT_NEAR(covariance(out)(1,1), 27.9, 2e-1); // Reference says 27.9
+  EXPECT_NEAR(covariance(out)(0,1), -14.6, 3e-1); // Reference says -15.4
+  EXPECT_NEAR(covariance(out)(1,0), -14.6, 3e-1); // Reference says -15.4
+  EXPECT_NEAR(covariance(out)(1,1), 27.9, 3e-1); // Reference says 27.9
 }
 
 TEST_F(nonlinear_tests, MCTRadarB3SelfAdjoint)
