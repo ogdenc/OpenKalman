@@ -65,3 +65,13 @@ TEST_F(kalman_tests, radar_2d_unscented_T)
   radar_2D<EigenTriangularMatrix<M22>>(UnscentedTransform());
 }
 
+TEST_F(kalman_tests, radar_2d_simplex_SA)
+{
+  radar_2D<EigenSelfAdjointMatrix<M22>>(SamplePointsTransform<SphericalSimplexSigmaPoints>());
+}
+
+TEST_F(kalman_tests, radar_2d_simplex_T)
+{
+  radar_2D<EigenTriangularMatrix<M22>>(SamplePointsTransform<SphericalSimplexSigmaPoints>());
+}
+

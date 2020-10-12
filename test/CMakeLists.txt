@@ -98,7 +98,8 @@ add_executable(transform-nonlinear-tests
         transform-nonlinear-tests/transform-nonlinear-tests.cpp
         transform-nonlinear-tests/tests-sample.cpp
         transform-nonlinear-tests/tests-sample-aug.cpp
-        transform-nonlinear-tests/tests-sample-angle.cpp
+        transform-nonlinear-tests/tests-rot-invariance.cpp
+        transform-nonlinear-tests/tests-rev-rot-invariance.cpp
         )
 set_target_properties(transform-nonlinear-tests PROPERTIES CXX_STANDARD_REQUIRED ON CXX_STANDARD 17)
 target_link_libraries(transform-nonlinear-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)
@@ -138,8 +139,9 @@ add_test(nonlinear-tests 0)
 
 add_executable(kalman-tests
         kalman-tests/kalman-tests.main.cpp
-        #kalman-tests/kalman-tests.rotation.2D.cpp
-        #kalman-tests/kalman-tests.rotation.3D.cpp
+        kalman-tests/kalman-tests.rotation.2D.cpp
+        kalman-tests/kalman-tests.rotation.3D.cpp
+        kalman-tests/kalman-tests.artillery.cpp
         kalman-tests/kalman-tests.radar.cpp
         )
 set_target_properties(kalman-tests PROPERTIES CXX_STANDARD_REQUIRED ON CXX_STANDARD 17)

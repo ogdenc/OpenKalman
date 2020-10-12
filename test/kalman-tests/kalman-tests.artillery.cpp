@@ -16,7 +16,7 @@ void kalman_tests::artillery_2D(const Trans& transform)
   using M2 = Eigen::Matrix<double, 2, 1>;
   using Loc2 = Mean<Axes<2>, M2>;
   using Polar2 = Mean<Polar<>, M2>;
-  for (int i = 0; i < 5; i++)
+  for (int i = 0; i < 10; i++)
   {
     using U = std::uniform_real_distribution<double>::param_type;
     auto true_state = randomize<Polar2, std::uniform_real_distribution>(U {5, 10}, U {-M_PI, M_PI});
@@ -58,11 +58,21 @@ TEST_F(kalman_tests, artillery_2d_cubature_T)
 
 TEST_F(kalman_tests, artillery_2d_unscented_SA)
 {
-  artillery_2D<EigenSelfAdjointMatrix<M22>>(UnscentedTransform());
+  artillery_2D<EigenSelfAdjointMatrix<M22>>(UnscentedTransformParameterEstimation());
 }
 
 TEST_F(kalman_tests, artillery_2d_unscented_T)
 {
-  artillery_2D<EigenTriangularMatrix<M22>>(UnscentedTransform());
+  artillery_2D<EigenTriangularMatrix<M22>>(UnscentedTransformParameterEstimation());
+}
+
+TEST_F(kalman_tests, artillery_2d_simplex_SA)
+{
+  artillery_2D<EigenSelfAdjointMatrix<M22>>(SamplePointsTransform<SphericalSimplexSigmaPoints>());
+}
+
+TEST_F(kalman_tests, artillery_2d_simplex_T)
+{
+  artillery_2D<EigenTriangularMatrix<M22>>(SamplePointsTransform<SphericalSimplexSigmaPoints>());
 }
 

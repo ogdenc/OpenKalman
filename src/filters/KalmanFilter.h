@@ -46,10 +46,10 @@ namespace OpenKalman
       static_assert(is_equivalent_v<typename MatrixTraits<CrossCovariance>::ColumnCoefficients,
         typename DistributionTraits<YDistribution>::Coefficients>);
 
-      const auto y = TypedMatrix {mean(Ny)};
+      const auto y = mean(Ny);
       const auto P_yy = covariance(Ny);
       const auto K = adjoint(solve(adjoint(P_yy), adjoint(P_xy))); // K * P_yy == P_xy, or K == P_xy * inverse(P_yy)
-      auto out_x_mean = strict(mean(Nx) + K * (TypedMatrix {z} - y));
+      auto out_x_mean = strict(mean(Nx) + K * (Mean {z} - y));
 
       if constexpr (is_Cholesky_v<YDistribution>)
       {
