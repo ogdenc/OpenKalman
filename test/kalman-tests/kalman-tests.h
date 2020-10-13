@@ -71,7 +71,6 @@ public:
       std::cout << "L2 norm: " << norm << std::endl << std::flush;
     }
     EXPECT_LT(count - 1, iterations);
-    EXPECT_TRUE(is_near(mean(x), true_state, resolution));
   }
 
   template<typename Cov, typename Trans>

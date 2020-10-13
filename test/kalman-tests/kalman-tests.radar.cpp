@@ -22,7 +22,7 @@ void kalman_tests::radar_2D(const Trans& transform)
     auto x = GaussianDistribution<Axes<2>, M2, Cov> {Loc2 {7.5, 7.5}, Cov::identity()};
     auto meas_cov = Cov {0.01, 0, 0, M_PI/360};
     auto r = GaussianDistribution<Polar<>, M2, Cov> {Polar2::zero(), meas_cov};
-    parameter_test(transform, Cartesian2polar, x, true_state, r, 0.1, 100);
+    parameter_test(transform, Cartesian2polar, x, true_state, r, 0.2, 100);
   }
 }
 

@@ -76,14 +76,13 @@ struct transform_nonlinear_tests : public ::testing::Test
     const Noise& ... noise)
   {
     const auto[output, cross] = t.transform_with_cross_covariance(loc_input, f1, noise...);
-    std::cout << "output" << std::endl << output << std::endl;
     const auto[output_rot, cross_rot] = t.transform_with_cross_covariance(loc_input_rot, f1, noise...);
     const auto res1 = is_near(
       f2(mean(output) - make_Mean<Polar<>>(0, M_PI)),
       Mean {f2(mean(output_rot))},
-      1e-4);
+      1e-3);
     const auto res2 = is_near(covariance(output), covariance(output_rot), 1e-3);
-    const auto res3 = is_near(cross, -cross_rot, 1e-4);
+    const auto res3 = is_near(cross, -cross_rot, 1e-3);
     if (res1 and res2 and res3) return ::testing::AssertionSuccess();
     else
       return ::testing::AssertionFailure() <<

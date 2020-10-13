@@ -16,14 +16,14 @@ void kalman_tests::artillery_2D(const Trans& transform)
   using M2 = Eigen::Matrix<double, 2, 1>;
   using Loc2 = Mean<Axes<2>, M2>;
   using Polar2 = Mean<Polar<>, M2>;
-  for (int i = 0; i < 10; i++)
+  for (int i = 0; i < 5; i++)
   {
     using U = std::uniform_real_distribution<double>::param_type;
     auto true_state = randomize<Polar2, std::uniform_real_distribution>(U {5, 10}, U {-M_PI, M_PI});
     auto x = GaussianDistribution<Polar<>, M2, Cov> {Polar2 {7.5, 0}, Cov::identity()};
     auto meas_cov = Cov {0.0025, 0, 0, 0.0025};
     auto r = GaussianDistribution<Axes<2>, M2, Cov> {Loc2::zero(), meas_cov};
-    parameter_test(transform, radarP, x, true_state, r, 0.2, 100);
+    parameter_test(transform, radarP, x, true_state, r, 0.5, 100);
   }
 }
 

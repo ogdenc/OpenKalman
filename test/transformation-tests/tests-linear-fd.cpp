@@ -119,6 +119,10 @@ TEST_F(transformation_tests, finite_diff_radarP)
 {
   auto f = radarP;
   auto t = FiniteDifferenceLinearization {f, MP {1e-4, 1e-5}, M2 {1e-4, 1e-4}, M2 {1e-4, 1e-4}};
+  EXPECT_TRUE(is_near(t.jacobian(MP(0, M_PI)), f.jacobian(MP(0, M_PI))));
+  EXPECT_TRUE(is_near(t.hessian(MP(0, M_PI)), f.hessian(MP(0, M_PI))));
+  EXPECT_TRUE(is_near(t.jacobian(MP(2, M_PI)), f.jacobian(MP(2, M_PI))));
+  EXPECT_TRUE(is_near(t.hessian(MP(2, M_PI)), f.hessian(MP(2, M_PI))));
   EXPECT_TRUE(is_near(t.jacobian(MP(2, M_PI/3)), f.jacobian(MP(2, M_PI/3))));
   EXPECT_TRUE(is_near(t.hessian(MP(2, M_PI/3)), f.hessian(MP(2, M_PI/3))));
   EXPECT_TRUE(is_near(t.jacobian(MP(2, -M_PI/3), M2(0.2, 0.3)), f.jacobian(MP(2, -M_PI/3), M2(0.2, 0.3))));
