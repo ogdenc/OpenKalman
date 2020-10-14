@@ -1,0 +1,5 @@
+var struct_open_kalman_1_1detail_1_1_polar_impl_3_01_angle_traits_00_01_circle_3_01_angle_traits_01_4_00_01_scalar_01_4 =
+[
+    [ "GetCoeff", "struct_open_kalman_1_1detail_1_1_polar_impl_3_01_angle_traits_00_01_circle_3_01_angle_traits_01_4_00_01_scalar_01_4.html#aa4c6583ae8fb847ff32d299adb65471b", null ],
+    [ "SetCoeff", "struct_open_kalman_1_1detail_1_1_polar_impl_3_01_angle_traits_00_01_circle_3_01_angle_traits_01_4_00_01_scalar_01_4.html#a4d0277e4624d92431ea3bc868c42499f", null ]
+];

@@ -1,0 +1,13 @@
+var struct_open_kalman_1_1_matrix_traits_3_01_matrix_00_01std_1_1enable__if__t_3_01std_1_1is__same__944a322a5b62d8ca10a3f21630d4c69e =
+[
+    [ "BaseMatrix", "struct_open_kalman_1_1_matrix_traits_3_01_matrix_00_01std_1_1enable__if__t_3_01std_1_1is__same__944a322a5b62d8ca10a3f21630d4c69e.html#ae10bd9dfeb2dc00684944870d20f9243", null ],
+    [ "CovarianceBaseType", "struct_open_kalman_1_1_matrix_traits_3_01_matrix_00_01std_1_1enable__if__t_3_01std_1_1is__same__944a322a5b62d8ca10a3f21630d4c69e.html#a8c7fd06f20857b3603003aa03e2645ac", null ],
+    [ "DiagonalBaseType", "struct_open_kalman_1_1_matrix_traits_3_01_matrix_00_01std_1_1enable__if__t_3_01std_1_1is__same__944a322a5b62d8ca10a3f21630d4c69e.html#af8ccc1413ca129cdbd5d2903420ada3b", null ],
+    [ "Index", "struct_open_kalman_1_1_matrix_traits_3_01_matrix_00_01std_1_1enable__if__t_3_01std_1_1is__same__944a322a5b62d8ca10a3f21630d4c69e.html#a214f5c41d2b5aefafc305c66b98fe7e3", null ],
+    [ "MatrixBaseType", "struct_open_kalman_1_1_matrix_traits_3_01_matrix_00_01std_1_1enable__if__t_3_01std_1_1is__same__944a322a5b62d8ca10a3f21630d4c69e.html#a945926f48f50bbf749e8b9d26416e291", null ],
+    [ "Scalar", "struct_open_kalman_1_1_matrix_traits_3_01_matrix_00_01std_1_1enable__if__t_3_01std_1_1is__same__944a322a5b62d8ca10a3f21630d4c69e.html#afb50c60526c0d640c5a359a5bb0b51d7", null ],
+    [ "SelfAdjointBaseType", "struct_open_kalman_1_1_matrix_traits_3_01_matrix_00_01std_1_1enable__if__t_3_01std_1_1is__same__944a322a5b62d8ca10a3f21630d4c69e.html#a4520a1189ddf021b2c6646e7cd7cc073", null ],
+    [ "Strict", "struct_open_kalman_1_1_matrix_traits_3_01_matrix_00_01std_1_1enable__if__t_3_01std_1_1is__same__944a322a5b62d8ca10a3f21630d4c69e.html#a163da2f99d6c12e431e43ba364cf41c0", null ],
+    [ "StrictMatrix", "struct_open_kalman_1_1_matrix_traits_3_01_matrix_00_01std_1_1enable__if__t_3_01std_1_1is__same__944a322a5b62d8ca10a3f21630d4c69e.html#adb5b87f9f242085f75005f1f5a446d98", null ],
+    [ "TriangularBaseType", "struct_open_kalman_1_1_matrix_traits_3_01_matrix_00_01std_1_1enable__if__t_3_01std_1_1is__same__944a322a5b62d8ca10a3f21630d4c69e.html#af9d69e41149447999a23a08e3d8b8da2", null ]
+];

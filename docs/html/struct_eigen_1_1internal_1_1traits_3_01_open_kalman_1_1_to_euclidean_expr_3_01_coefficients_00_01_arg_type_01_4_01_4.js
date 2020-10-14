@@ -1,0 +1,16 @@
+var struct_eigen_1_1internal_1_1traits_3_01_open_kalman_1_1_to_euclidean_expr_3_01_coefficients_00_01_arg_type_01_4_01_4 =
+[
+    [ "Nested", "struct_eigen_1_1internal_1_1traits_3_01_open_kalman_1_1_to_euclidean_expr_3_01_coefficients_00_01_arg_type_01_4_01_4.html#ac2d334c48e60970bcd8251ccfeae2998", null ],
+    [ "NestedTraits", "struct_eigen_1_1internal_1_1traits_3_01_open_kalman_1_1_to_euclidean_expr_3_01_coefficients_00_01_arg_type_01_4_01_4.html#a4297e0eee0a63657bc2311080df56449", null ],
+    [ "Scalar", "struct_eigen_1_1internal_1_1traits_3_01_open_kalman_1_1_to_euclidean_expr_3_01_coefficients_00_01_arg_type_01_4_01_4.html#ab8db89ecf59684015711828811428938", null ],
+    [ "StorageIndex", "struct_eigen_1_1internal_1_1traits_3_01_open_kalman_1_1_to_euclidean_expr_3_01_coefficients_00_01_arg_type_01_4_01_4.html#a12907903f8d08b5498772a20df7f6f68", null ],
+    [ "StorageKind", "struct_eigen_1_1internal_1_1traits_3_01_open_kalman_1_1_to_euclidean_expr_3_01_coefficients_00_01_arg_type_01_4_01_4.html#ad90f9266a53ed11a32ce0b3e5f5747d5", null ],
+    [ "XprKind", "struct_eigen_1_1internal_1_1traits_3_01_open_kalman_1_1_to_euclidean_expr_3_01_coefficients_00_01_arg_type_01_4_01_4.html#a92d742eb023a13e30e3e0cc8870b502c", null ],
+    [ "Flags", "struct_eigen_1_1internal_1_1traits_3_01_open_kalman_1_1_to_euclidean_expr_3_01_coefficients_00_01_arg_type_01_4_01_4.html#ae56bf4632340bf4a65359981380c886ba4db37ae2aba0db06d8b82a6724c4c792", null ],
+    [ "RowsAtCompileTime", "struct_eigen_1_1internal_1_1traits_3_01_open_kalman_1_1_to_euclidean_expr_3_01_coefficients_00_01_arg_type_01_4_01_4.html#ae56bf4632340bf4a65359981380c886ba4c0cb2054e7dfa4361173c1da8adcc84", null ],
+    [ "MaxRowsAtCompileTime", "struct_eigen_1_1internal_1_1traits_3_01_open_kalman_1_1_to_euclidean_expr_3_01_coefficients_00_01_arg_type_01_4_01_4.html#ae56bf4632340bf4a65359981380c886baa55a99a139149871d2203a42591f698b", null ],
+    [ "ColsAtCompileTime", "struct_eigen_1_1internal_1_1traits_3_01_open_kalman_1_1_to_euclidean_expr_3_01_coefficients_00_01_arg_type_01_4_01_4.html#ae56bf4632340bf4a65359981380c886ba1f858f4e5cc5be2f1558ea22829f12b4", null ],
+    [ "MaxColsAtCompileTime", "struct_eigen_1_1internal_1_1traits_3_01_open_kalman_1_1_to_euclidean_expr_3_01_coefficients_00_01_arg_type_01_4_01_4.html#ae56bf4632340bf4a65359981380c886ba820ad9d37793897c32c3f37b9c964929", null ],
+    [ "InnerStrideAtCompileTime", "struct_eigen_1_1internal_1_1traits_3_01_open_kalman_1_1_to_euclidean_expr_3_01_coefficients_00_01_arg_type_01_4_01_4.html#ae56bf4632340bf4a65359981380c886ba83893cf41bda824d2a12dd52cc991915", null ],
+    [ "OuterStrideAtCompileTime", "struct_eigen_1_1internal_1_1traits_3_01_open_kalman_1_1_to_euclidean_expr_3_01_coefficients_00_01_arg_type_01_4_01_4.html#ae56bf4632340bf4a65359981380c886bac2451f0b0f3285ca608e080036b29fea", null ]
+];

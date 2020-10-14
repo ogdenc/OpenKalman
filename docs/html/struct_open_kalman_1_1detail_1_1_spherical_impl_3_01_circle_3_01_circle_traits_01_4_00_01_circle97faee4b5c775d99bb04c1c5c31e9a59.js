@@ -1,0 +1,5 @@
+var struct_open_kalman_1_1detail_1_1_spherical_impl_3_01_circle_3_01_circle_traits_01_4_00_01_circle97faee4b5c775d99bb04c1c5c31e9a59 =
+[
+    [ "GetCoeff", "struct_open_kalman_1_1detail_1_1_spherical_impl_3_01_circle_3_01_circle_traits_01_4_00_01_circle97faee4b5c775d99bb04c1c5c31e9a59.html#a28c87c9928da621322460723b350b619", null ],
+    [ "SetCoeff", "struct_open_kalman_1_1detail_1_1_spherical_impl_3_01_circle_3_01_circle_traits_01_4_00_01_circle97faee4b5c775d99bb04c1c5c31e9a59.html#a25e26b6f7e6cf6484b42022e61ca872a", null ]
+];

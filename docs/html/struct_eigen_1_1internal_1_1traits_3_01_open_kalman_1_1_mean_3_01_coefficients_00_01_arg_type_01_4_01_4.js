@@ -1,0 +1,5 @@
+var struct_eigen_1_1internal_1_1traits_3_01_open_kalman_1_1_mean_3_01_coefficients_00_01_arg_type_01_4_01_4 =
+[
+    [ "Base", "struct_eigen_1_1internal_1_1traits_3_01_open_kalman_1_1_mean_3_01_coefficients_00_01_arg_type_01_4_01_4.html#a751d66b4bcb79a91e88de8c81c32386c", null ],
+    [ "Flags", "struct_eigen_1_1internal_1_1traits_3_01_open_kalman_1_1_mean_3_01_coefficients_00_01_arg_type_01_4_01_4.html#af59f2f1782e89a64e3a9fd66e7361de4a2d5f81e83e063bd00d572cc15bd23a3e", null ]
+];
