@@ -448,8 +448,8 @@ namespace Eigen::internal
     {
       CoeffReadCost = NestedEvaluator::CoeffReadCost + (
         Coefficients::axes_only ? 0 :
-        Eigen::internal::functor_traits<Eigen::internal::scalar_sin_op<Scalar>>::Cost +
-        Eigen::internal::functor_traits<Eigen::internal::scalar_cos_op<Scalar>>::Cost),
+        (int) Eigen::internal::functor_traits<Eigen::internal::scalar_sin_op<Scalar>>::Cost +
+          (int) Eigen::internal::functor_traits<Eigen::internal::scalar_cos_op<Scalar>>::Cost),
       Flags = Coefficients::axes_only ?
         NestedEvaluator::Flags :
         ColMajor | (count == 1 ? LinearAccessBit : 0),

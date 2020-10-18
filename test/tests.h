@@ -44,7 +44,7 @@ template<typename ArgA, typename ArgB, std::enable_if_t<is_test_trait<ArgA> and 
 
 
 template<typename ArgA, typename ArgB, typename Err,
-  std::enable_if_t<is_test_trait<ArgA> and is_test_trait<ArgB> and is_Eigen_matrix_v<Err>, int> = 0>
+  std::enable_if_t<is_test_trait<ArgA> and is_test_trait<ArgB> and Eigen_matrix<Err>, int> = 0>
 ::testing::AssertionResult is_near(ArgA&& A, ArgB&& B, const Err& err)
 {
   auto A_n = strict_matrix(std::forward<ArgA>(A));

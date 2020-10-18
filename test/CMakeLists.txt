@@ -9,24 +9,28 @@
 
 cmake_minimum_required(VERSION 3.7)
 
-#set(BOOST_USE_STATIC_LIBS        ON) # only find static libs
-#set(BOOST_USE_MULTITHREADED      ON)
-
 enable_testing()
 find_package(GTest REQUIRED)
 
 find_package(Threads REQUIRED)
+# Note: Requires >= Eigen 3.3.9 if compiling in c++20 mode! See Eigen Commit 7a0a2a500, which fixes issue #2012.
 find_package(Eigen3 REQUIRED)
 #find_package(OpenCV REQUIRED)
-#find_package(boost 1.36.0 COMPONENTS optional REQUIRED)
 
 include_directories(${PROJECT_SOURCE_DIR}/src)
 include_directories(SYSTEM ${EIGEN3_INCLUDE_DIRS})
 #include_directories(SYSTEM ${GTEST_INCLUDE_DIRS})
 #include_directories(SYSTEM ${OPENCV_INCLUDE_DIRS})
-#include_directories(${BOOST_INCLUDE_DIRS})
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O2 -Wall -ftemplate-backtrace-limit=0 -Wno-unknown-attributes")
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(MyCXX_FLAGS "-g -O2 -Wall -ftemplate-backtrace-limit=0 -Wno-unknown-attributes")
+
+if(${CMAKE_CXX_STANDARD} LESS 20)
+  set(MyCXX_FLAGS "${MyCXX_FLAGS}")
+endif()
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MyCXX_FLAGS}")
+
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O2 -Wall -pthread -fopenmp -ftemplate-backtrace-limit=0")
 
 add_executable(matrix-tests
@@ -39,7 +43,6 @@ add_executable(matrix-tests
         matrix-tests/tests-ToEuclideanExpr.cpp
         matrix-tests/tests-FromEuclideanExpr.cpp
         )
-set_target_properties(matrix-tests PROPERTIES CXX_STANDARD_REQUIRED ON CXX_STANDARD 17)
 target_link_libraries(matrix-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)
 add_test(matrix-tests 0)
 
@@ -52,7 +55,6 @@ add_executable(covariance-tests
         covariance-tests/tests-sqrt-covariance-ops.cpp
         covariance-tests/tests-covariance-refs.cpp
         )
-set_target_properties(covariance-tests PROPERTIES CXX_STANDARD_REQUIRED ON CXX_STANDARD 17)
 target_link_libraries(covariance-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)
 add_test(covariance-tests 0)
 
@@ -65,7 +67,6 @@ add_executable(typed-matrix-tests
         typed-matrix-tests/tests-typed-matrix-refs.cpp
         typed-matrix-tests/tests-distributions.cpp
         )
-set_target_properties(typed-matrix-tests PROPERTIES CXX_STANDARD_REQUIRED ON CXX_STANDARD 17)
 target_link_libraries(typed-matrix-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)
 add_test(typed-matrix-tests 0)
 
@@ -77,7 +78,6 @@ add_executable(transformation-tests
         transformation-tests/tests-stochastic.cpp
         transformation-tests/tests-linear-fd.cpp
         )
-set_target_properties(transformation-tests PROPERTIES CXX_STANDARD_REQUIRED ON CXX_STANDARD 17)
 target_link_libraries(transformation-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)
 add_test(transformation-tests 0)
 
@@ -89,7 +89,6 @@ add_executable(transform-linear-tests
         transform-linear-tests/tests-linearized-add.cpp
         transform-linear-tests/tests-linearized-aug.cpp
         )
-set_target_properties(transform-linear-tests PROPERTIES CXX_STANDARD_REQUIRED ON CXX_STANDARD 17)
 target_link_libraries(transform-linear-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)
 add_test(transform-linear-tests 0)
 
@@ -101,7 +100,6 @@ add_executable(transform-nonlinear-tests
         transform-nonlinear-tests/tests-rot-invariance.cpp
         transform-nonlinear-tests/tests-rev-rot-invariance.cpp
         )
-set_target_properties(transform-nonlinear-tests PROPERTIES CXX_STANDARD_REQUIRED ON CXX_STANDARD 17)
 target_link_libraries(transform-nonlinear-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)
 add_test(transform-nonlinear-tests 0)
 
@@ -117,7 +115,6 @@ add_executable(linear-tests
         linear-tests/linear-tests.identity.cpp
         linear-tests/linear-tests.MCT.cpp
         )
-set_target_properties(linear-tests PROPERTIES CXX_STANDARD_REQUIRED ON CXX_STANDARD 17)
 target_link_libraries(linear-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)
 add_test(linear-tests 0)
 
@@ -132,7 +129,6 @@ add_executable(nonlinear-tests
         nonlinear-tests/nonlinear-tests.2x2.UT.cpp
         nonlinear-tests/nonlinear-tests.2x2.MCT.cpp
         )
-set_target_properties(nonlinear-tests PROPERTIES CXX_STANDARD_REQUIRED ON CXX_STANDARD 17)
 target_link_libraries(nonlinear-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)
 add_test(nonlinear-tests 0)
 
@@ -144,6 +140,5 @@ add_executable(kalman-tests
         kalman-tests/kalman-tests.artillery.cpp
         kalman-tests/kalman-tests.radar.cpp
         )
-set_target_properties(kalman-tests PROPERTIES CXX_STANDARD_REQUIRED ON CXX_STANDARD 17)
 target_link_libraries(kalman-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)
 add_test(kalman-tests 0)
