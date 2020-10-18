@@ -49,7 +49,11 @@ namespace OpenKalman
       : EigenSelfAdjointMatrix(Cholesky_square(std::forward<Arg>(arg))) {}
 
     /// Construct from a regular or diagonal matrix object.
+#ifdef __cpp_concepts
+    template<typename Arg> requires Eigen_matrix<Arg> or is_EigenDiagonal_v<Arg>
+#else
     template<typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg> or is_EigenDiagonal_v<Arg>, int> = 0>
+#endif
     EigenSelfAdjointMatrix(Arg&& arg) noexcept : Base(std::forward<Arg>(arg)), view(this->base_matrix()) {}
 
     /// Construct from a list of scalar coefficients, in row-major order.
@@ -129,7 +133,11 @@ namespace OpenKalman
     }
 
     /// Assign from a regular Eigen matrix. (Uses only the storage triangular part.)
+#ifdef __cpp_concepts
+    template<Eigen_matrix Arg>
+#else
     template<typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg>, int> = 0>
+#endif
     auto& operator=(Arg&& arg)
     {
       if constexpr (is_zero_v<BaseMatrix>)
@@ -271,13 +279,17 @@ namespace OpenKalman
     auto operator()(std::size_t i) const { return operator[](i); }
 
 
+#ifdef __cpp_concepts
+    template<Eigen_matrix B>
+#else
     template<typename B, std::enable_if_t<is_Eigen_matrix_v<B>, int> = 0>
+#endif
     auto solve(const B& b) const
     {
       using M = Eigen::Matrix<Scalar, dimension, MatrixTraits<B>::columns>;
       auto llt = this->base_view().llt();
       M ret = llt.solve(b);
-      if (llt.info() != Eigen::Success) //[[unlikely]] // C++20
+      if (llt.info() != Eigen::Success) [[unlikely]]
       {
         // A is semidefinite. Use LDLT decomposition instead.
         auto ldlt = this->base_view().ldlt();
@@ -307,9 +319,14 @@ namespace OpenKalman
   //        Deduction Guides         //
   /////////////////////////////////////
 
-  template<typename M, std::enable_if_t<is_Eigen_matrix_v<M> or is_EigenDiagonal_v<M>, int> = 0>
-  EigenSelfAdjointMatrix(M&&)
-    -> EigenSelfAdjointMatrix<lvalue_or_strict_t<M>, TriangleType::lower>;
+#ifdef __cpp_concepts
+  template<typename Arg> requires Eigen_matrix<Arg> or is_EigenDiagonal_v<Arg>
+#else
+  template<typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg> or is_EigenDiagonal_v<Arg>, int> = 0>
+#endif
+  EigenSelfAdjointMatrix(Arg&&)
+    -> EigenSelfAdjointMatrix<lvalue_or_strict_t<Arg>, TriangleType::lower>;
+
 
   template<typename M, std::enable_if_t<(is_EigenTriangularMatrix_v<M> and is_lower_triangular_v<M>) or
     (is_EigenSelfAdjointMatrix_v<M> and is_Eigen_lower_storage_triangle_v<M>), int> = 0>
@@ -337,8 +354,12 @@ namespace OpenKalman
   //        Make functions         //
   ///////////////////////////////////
 
+#ifdef __cpp_concepts
+  template<TriangleType t = TriangleType::lower, typename M> requires Eigen_matrix<M> or is_EigenDiagonal_v<M>
+#else
   template<TriangleType t = TriangleType::lower, typename M,
     std::enable_if_t<is_Eigen_matrix_v<M> or is_EigenDiagonal_v<M>, int> = 0>
+#endif
   auto
   make_EigenSelfAdjointMatrix(M&& m)
   {
@@ -442,11 +463,18 @@ namespace OpenKalman
   }
 
 
+#ifdef __cpp_concepts
+  template<typename Arg, typename U> requires is_EigenSelfAdjointMatrix_v<Arg> and
+    (Eigen_matrix<U> or is_EigenTriangularMatrix_v<U> or is_EigenSelfAdjointMatrix_v<U> or
+      is_EigenDiagonal_v<U> or is_FromEuclideanExpr_v<U> or is_ToEuclideanExpr_v<U>) and
+    (not std::is_const_v<std::remove_reference_t<Arg>>)
+#else
   template<typename Arg, typename U,
     std::enable_if_t<is_EigenSelfAdjointMatrix_v<Arg> and
       (is_Eigen_matrix_v<U> or is_EigenTriangularMatrix_v<U> or is_EigenSelfAdjointMatrix_v<U> or
         is_EigenDiagonal_v<U> or is_FromEuclideanExpr_v<U> or is_ToEuclideanExpr_v<U>) and
       not std::is_const_v<std::remove_reference_t<Arg>>, int> = 0>
+#endif
   inline Arg&
   rank_update(Arg& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
   {
@@ -456,10 +484,16 @@ namespace OpenKalman
   }
 
 
+#ifdef __cpp_concepts
+  template<typename Arg, typename U> requires is_EigenSelfAdjointMatrix_v<Arg> and
+    (Eigen_matrix<U> or is_EigenTriangularMatrix_v<U> or is_EigenSelfAdjointMatrix_v<U> or
+      is_EigenDiagonal_v<U> or is_FromEuclideanExpr_v<U> or is_ToEuclideanExpr_v<U>)
+#else
   template<typename Arg, typename U,
     std::enable_if_t<is_EigenSelfAdjointMatrix_v<Arg> and
     (is_Eigen_matrix_v<U> or is_EigenTriangularMatrix_v<U> or is_EigenSelfAdjointMatrix_v<U> or
       is_EigenDiagonal_v<U> or is_FromEuclideanExpr_v<U> or is_ToEuclideanExpr_v<U>), int> = 0>
+#endif
   inline auto
   rank_update(Arg&& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
   {
@@ -757,11 +791,20 @@ namespace OpenKalman
 
   ////
 
-  template<
-    typename Arg1, typename Arg2,
+#ifdef __cpp_concepts
+  template<typename Arg1, typename Arg2> requires
+    ((is_EigenSelfAdjointMatrix_v<Arg1> and Eigen_matrix<Arg2>) or
+      (Eigen_matrix<Arg1> and is_EigenSelfAdjointMatrix_v<Arg2>)) and
+    (not is_identity_v<Arg1>) and
+    (not is_identity_v<Arg2>) and
+    (not is_zero_v<Arg1>) and
+    (not is_zero_v<Arg2>)
+#else
+  template<typename Arg1, typename Arg2,
     std::enable_if_t<((is_EigenSelfAdjointMatrix_v<Arg1> and is_Eigen_matrix_v<Arg2>)
       or (is_Eigen_matrix_v<Arg1> and is_EigenSelfAdjointMatrix_v<Arg2>)) and
       not is_identity_v<Arg1> and not is_identity_v<Arg2> and not is_zero_v<Arg1> and not is_zero_v<Arg2>, int> = 0>
+#endif
   inline auto operator*(Arg1&& arg1, Arg2&& arg2)
   {
     static_assert(MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::dimension);
@@ -780,9 +823,11 @@ namespace OpenKalman
 
   ////
 
-  template<
-    typename Arg,
-    std::enable_if_t<is_EigenSelfAdjointMatrix_v<Arg>, int> = 0>
+#ifdef __cpp_concepts
+  template<typename Arg> requires is_EigenSelfAdjointMatrix_v<Arg>
+#else
+  template<typename Arg, std::enable_if_t<is_EigenSelfAdjointMatrix_v<Arg>, int> = 0>
+#endif
   inline auto operator-(Arg&& arg)
   {
     auto ret = MatrixTraits<Arg>::make(-std::forward<Arg>(arg).base_matrix());

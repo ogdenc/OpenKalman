@@ -216,9 +216,14 @@ namespace OpenKalman
   //        Arithmetic         //
   ///////////////////////////////
 
+#ifdef __cpp_concepts
+  template<typename Arg1, typename Arg2>
+  requires (is_zero_v<Arg1> and Eigen_matrix<Arg2>) or (Eigen_matrix<Arg1> and is_zero_v<Arg2>)
+#else
   template<typename Arg1, typename Arg2,
-    std::enable_if_t<(OpenKalman::is_zero_v<Arg1> and OpenKalman::is_Eigen_matrix_v<Arg2>) or
-      (OpenKalman::is_Eigen_matrix_v<Arg1> and OpenKalman::is_zero_v<Arg2>), int> = 0>
+    std::enable_if_t<(is_zero_v<Arg1> and is_Eigen_matrix_v<Arg2>) or
+      (is_Eigen_matrix_v<Arg1> and is_zero_v<Arg2>), int> = 0>
+#endif
   constexpr decltype(auto) operator+(Arg1&& arg1, Arg2&& arg2)
   {
     static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
@@ -238,9 +243,14 @@ namespace OpenKalman
   }
 
 
+#ifdef __cpp_concepts
+  template<typename Arg1, typename Arg2>
+  requires (is_zero_v<Arg1> and Eigen_matrix<Arg2>) or (Eigen_matrix<Arg1> and is_zero_v<Arg2>)
+#else
   template<typename Arg1, typename Arg2,
-    std::enable_if_t<(OpenKalman::is_zero_v<Arg1> and OpenKalman::is_Eigen_matrix_v<Arg2>) or
-      (OpenKalman::is_Eigen_matrix_v<Arg1> and OpenKalman::is_zero_v<Arg2>), int> = 0>
+    std::enable_if_t<(is_zero_v<Arg1> and is_Eigen_matrix_v<Arg2>) or
+      (is_Eigen_matrix_v<Arg1> and is_zero_v<Arg2>), int> = 0>
+#endif
   constexpr decltype(auto) operator-(Arg1&& arg1, Arg2&& arg2)
   {
     static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
@@ -270,9 +280,14 @@ namespace OpenKalman
   }
 
 
+#ifdef __cpp_concepts
+  template<typename Arg1, typename Arg2>
+  requires (is_zero_v<Arg1> and Eigen_matrix<Arg2>) or (Eigen_matrix<Arg1> and is_zero_v<Arg2>)
+#else
   template<typename Arg1, typename Arg2,
-    std::enable_if_t<(OpenKalman::is_zero_v<Arg1> and OpenKalman::is_Eigen_matrix_v<Arg2>) or
-      (OpenKalman::is_Eigen_matrix_v<Arg1> and OpenKalman::is_zero_v<Arg2>), int> = 0>
+    std::enable_if_t<(is_zero_v<Arg1> and is_Eigen_matrix_v<Arg2>) or
+      (is_Eigen_matrix_v<Arg1> and is_zero_v<Arg2>), int> = 0>
+#endif
   inline auto operator*(const Arg1& arg1, const Arg2& arg2)
   {
     static_assert(MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::dimension);

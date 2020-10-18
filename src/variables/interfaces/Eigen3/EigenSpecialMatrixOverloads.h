@@ -54,10 +54,17 @@ namespace OpenKalman
   }
 
 
+#ifdef __cpp_concepts
+  template<native_Eigen_type Arg, typename U>
+  requires is_1by1_v<Arg> and
+    (Eigen_matrix<U> or is_EigenTriangularMatrix_v<U> or is_EigenSelfAdjointMatrix_v<U> or is_EigenDiagonal_v<U>)
+    and (not std::is_const_v<std::remove_reference_t<Arg>>)
+#else
   template<typename Arg, typename U,
     std::enable_if_t<is_native_Eigen_type_v<Arg> and is_1by1_v<Arg> and
       (is_Eigen_matrix_v<U> or is_EigenTriangularMatrix_v<U> or is_EigenSelfAdjointMatrix_v<U> or is_EigenDiagonal_v<U>) and
       not std::is_const_v<std::remove_reference_t<Arg>>, int> = 0>
+#endif
   inline Arg&
   rank_update(Arg& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
   {
@@ -67,9 +74,15 @@ namespace OpenKalman
   }
 
 
+#ifdef __cpp_concepts
+  template<native_Eigen_type Arg, typename U>
+  requires is_1by1_v<Arg> and
+    (Eigen_matrix<U> or is_EigenTriangularMatrix_v<U> or is_EigenSelfAdjointMatrix_v<U> or is_EigenDiagonal_v<U>)
+#else
   template<typename Arg, typename U,
     std::enable_if_t<is_native_Eigen_type_v<Arg> and is_1by1_v<Arg> and
     (is_Eigen_matrix_v<U> or is_EigenTriangularMatrix_v<U> or is_EigenSelfAdjointMatrix_v<U> or is_EigenDiagonal_v<U>), int> = 0>
+#endif
   inline auto
   rank_update(const Arg& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
   {
@@ -79,10 +92,14 @@ namespace OpenKalman
   }
 
 
+#ifdef __cpp_concepts
+  template<typename A, Eigen_matrix B> requires is_EigenSelfAdjointMatrix_v<A> or is_EigenTriangularMatrix_v<A>
+#else
   template<
     typename A, typename B,
     std::enable_if_t<is_EigenSelfAdjointMatrix_v<A> or is_EigenTriangularMatrix_v<A>, int> = 0,
     std::enable_if_t<is_Eigen_matrix_v<B>, int> = 0>
+#endif
   constexpr decltype(auto)
   solve(A&& a, B&& b)
   {
@@ -90,8 +107,12 @@ namespace OpenKalman
   }
 
 
+#ifdef __cpp_concepts
+  template<typename Arg> requires is_EigenSelfAdjointMatrix_v<Arg> or is_EigenTriangularMatrix_v<Arg>
+#else
   template<typename Arg,
     std::enable_if_t<is_EigenSelfAdjointMatrix_v<Arg> or is_EigenTriangularMatrix_v<Arg>, int> = 0>
+#endif
   constexpr auto
   reduce_columns(Arg&& arg)
   {
@@ -100,12 +121,20 @@ namespace OpenKalman
 
 
   /// Concatenate diagonally if the arguments are all self-adjoint or all triangular, and of the same type.
+#ifdef __cpp_concepts
+  template<typename V, typename ... Vs>
+  requires (std::conjunction_v<is_EigenSelfAdjointMatrix<V>, is_EigenSelfAdjointMatrix<Vs>...> and
+        ((is_Eigen_upper_storage_triangle_v<V> == is_Eigen_upper_storage_triangle_v<Vs>) and ... and true)) or
+      (std::conjunction_v<is_EigenTriangularMatrix<V>, is_EigenTriangularMatrix<Vs>...> and
+        ((is_upper_triangular_v<V> == is_upper_triangular_v<Vs>) and ... and true))
+#else
   template<typename V, typename ... Vs,
     std::enable_if_t<
       (std::conjunction_v<is_EigenSelfAdjointMatrix<V>, is_EigenSelfAdjointMatrix<Vs>...> and
         ((is_Eigen_upper_storage_triangle_v<V> == is_Eigen_upper_storage_triangle_v<Vs>) and ... and true)) or
       (std::conjunction_v<is_EigenTriangularMatrix<V>, is_EigenTriangularMatrix<Vs>...> and
         ((is_upper_triangular_v<V> == is_upper_triangular_v<Vs>) and ... and true)), int> = 0>
+#endif
   constexpr decltype(auto)
   concatenate(V&& v, Vs&& ... vs)
   {
@@ -122,10 +151,16 @@ namespace OpenKalman
 
   /// Concatenate diagonally if arguments are a heterogeneous mix upper and lower-storage self-adjoint.
   /// The result will have the storage type of the first matrix.
+#ifdef __cpp_concepts
+  template<typename V, typename ... Vs>
+  requires std::conjunction_v<is_EigenSelfAdjointMatrix<V>, is_EigenSelfAdjointMatrix<Vs>...> and
+    (not ((is_Eigen_upper_storage_triangle_v<V> == is_Eigen_upper_storage_triangle_v<Vs>) and ...))
+#else
   template<typename V, typename ... Vs,
     std::enable_if_t<
       std::conjunction_v<is_EigenSelfAdjointMatrix<V>, is_EigenSelfAdjointMatrix<Vs>...> and
-      not ((is_Eigen_upper_storage_triangle_v<V> == is_Eigen_upper_storage_triangle_v<Vs>) and ... and true), int> = 0>
+      not ((is_Eigen_upper_storage_triangle_v<V> == is_Eigen_upper_storage_triangle_v<Vs>) and ...), int> = 0>
+#endif
   constexpr decltype(auto)
   concatenate(V&& v, Vs&& ... vs)
   {
@@ -135,11 +170,18 @@ namespace OpenKalman
 
 
   /// Concatenate diagonally.
+#ifdef __cpp_concepts
+  template<typename V, typename ... Vs>
+  requires std::conjunction_v<is_EigenSelfAdjointMatrix<V>, is_EigenSelfAdjointMatrix<Vs>...> or
+      (std::conjunction_v<is_EigenTriangularMatrix<V>, is_EigenTriangularMatrix<Vs>...> and
+        ((is_upper_triangular_v<V> == is_upper_triangular_v<Vs>) and ...))
+#else
   template<typename V, typename ... Vs,
     std::enable_if_t<
       std::conjunction_v<is_EigenSelfAdjointMatrix<V>, is_EigenSelfAdjointMatrix<Vs>...> or
       (std::conjunction_v<is_EigenTriangularMatrix<V>, is_EigenTriangularMatrix<Vs>...> and
-        ((is_upper_triangular_v<V> == is_upper_triangular_v<Vs>) and ... and true)), int> = 0>
+        ((is_upper_triangular_v<V> == is_upper_triangular_v<Vs>) and ...)), int> = 0>
+#endif
   constexpr decltype(auto)
   concatenate_diagonal(V&& v, Vs&& ... vs)
   {
@@ -161,9 +203,15 @@ namespace OpenKalman
   }
 
   /// Split a diagonal matrix diagonally.
+#ifdef __cpp_concepts
+  template<typename F, typename ... Cs, typename Arg>
+  requires is_EigenDiagonal_v<Arg> and (not is_coefficient_v<F>) and
+    (not is_coefficient_v<F>) and std::conjunction_v<is_coefficient<Cs>...>
+#else
   template<typename F, typename ... Cs, typename Arg,
     std::enable_if_t<is_EigenDiagonal_v<Arg> and not is_coefficient_v<F> and
     not is_coefficient_v<F> and std::conjunction_v<is_coefficient<Cs>...>, int> = 0>
+#endif
   inline auto
   split_diagonal(Arg&& arg)
   {
@@ -172,9 +220,15 @@ namespace OpenKalman
   }
 
   /// Split a self-adjoint or triangular matrix diagonally.
+#ifdef __cpp_concepts
+  template<typename F, typename ... Cs, typename Arg>
+  requires (is_EigenSelfAdjointMatrix_v<Arg> or is_EigenTriangularMatrix_v<Arg>) and
+    (not is_coefficient_v<F>) and std::conjunction_v<is_coefficient<Cs>...>
+#else
   template<typename F, typename ... Cs, typename Arg,
     std::enable_if_t<(is_EigenSelfAdjointMatrix_v<Arg> or is_EigenTriangularMatrix_v<Arg>) and
     not is_coefficient_v<F> and std::conjunction_v<is_coefficient<Cs>...>, int> = 0>
+#endif
   inline auto
   split_diagonal(Arg&& arg)
   {
@@ -183,9 +237,15 @@ namespace OpenKalman
   }
 
   /// Split a self-adjoint, triangular, or diagonal matrix diagonally.
+#ifdef __cpp_concepts
+  template<typename ... Cs, typename Arg>
+  requires (is_EigenSelfAdjointMatrix_v<Arg> or is_EigenTriangularMatrix_v<Arg> or is_EigenDiagonal_v<Arg>) and
+    std::conjunction_v<is_coefficient<Cs>...>
+#else
   template<typename ... Cs, typename Arg,
     std::enable_if_t<(is_EigenSelfAdjointMatrix_v<Arg> or is_EigenTriangularMatrix_v<Arg> or is_EigenDiagonal_v<Arg>) and
       std::conjunction_v<is_coefficient<Cs>...>, int> = 0>
+#endif
   inline auto
   split_diagonal(Arg&& arg)
   {
@@ -194,8 +254,13 @@ namespace OpenKalman
   }
 
   /// Split a self-adjoint, triangular, or diagonal matrix diagonally.
+#ifdef __cpp_concepts
+  template<std::size_t cut, std::size_t ... cuts, typename Arg>
+  requires is_EigenSelfAdjointMatrix_v<Arg> or is_EigenTriangularMatrix_v<Arg> or is_EigenDiagonal_v<Arg>
+#else
   template<std::size_t cut, std::size_t ... cuts, typename Arg,
     std::enable_if_t<is_EigenSelfAdjointMatrix_v<Arg> or is_EigenTriangularMatrix_v<Arg> or is_EigenDiagonal_v<Arg>, int> = 0>
+#endif
   inline auto
   split_diagonal(Arg&& arg)
   {

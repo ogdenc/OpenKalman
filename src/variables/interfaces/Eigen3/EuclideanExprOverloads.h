@@ -158,10 +158,13 @@ namespace OpenKalman
 
   /// Solves AX = B for X (A is a regular matrix type, and B is a Euclidean expression).
   /// A must be invertible. (Does not check.)
-  template<
-    typename A, typename B,
-    std::enable_if_t<is_ToEuclideanExpr_v<A> or is_FromEuclideanExpr_v<A>, int> = 0,
-    std::enable_if_t<is_Eigen_matrix_v<B>, int> = 0>
+#ifdef __cpp_concepts
+  template<typename A, Eigen_matrix B>
+  requires is_ToEuclideanExpr_v<A> or is_FromEuclideanExpr_v<A>
+#else
+  template<typename A, typename B,
+    std::enable_if_t<(is_ToEuclideanExpr_v<A> or is_FromEuclideanExpr_v<A>) and is_Eigen_matrix_v<B>, int> = 0>
+#endif
   inline auto solve(A&& a, B&& b) noexcept
   {
     static_assert(MatrixTraits<A>::dimension == MatrixTraits<A>::columns);

@@ -208,7 +208,7 @@ namespace OpenKalman::internal
     auto operator() (std::size_t i, std::size_t j)
     {
       if constexpr (is_element_settable_v<Derived, 2>)
-        return ElementSetter(base_matrix(), i, j, [] {}, [=] { if (apparent_base_linked) *synchronized = false; });
+        return ElementSetter(base_matrix(), i, j, [] {}, [this] { if (apparent_base_linked) *synchronized = false; });
       else
         return make_ElementSetter<true>(base_matrix(), i, j);
     }
@@ -221,7 +221,7 @@ namespace OpenKalman::internal
     auto operator[] (std::size_t i)
     {
       if constexpr (is_element_settable_v<Derived, 1>)
-        return ElementSetter(base_matrix(), i, [] {}, [=] { if (apparent_base_linked) *synchronized = false; });
+        return ElementSetter(base_matrix(), i, [] {}, [this] { if (apparent_base_linked) *synchronized = false; });
       else
         return make_ElementSetter<true>(base_matrix(), i);
     }
@@ -390,8 +390,8 @@ namespace OpenKalman::internal
         return ElementSetter(
           apparent_base,
           i, j,
-          [=] { if (not synchronized) synchronize(); },
-          [=]
+          [this] { if (not synchronized) synchronize(); },
+          [this]
           {
             if constexpr(is_square_root_v<Derived>)
               base_matrix() = Cholesky_square(apparent_base);
@@ -399,12 +399,12 @@ namespace OpenKalman::internal
               base_matrix() = Cholesky_factor(apparent_base);
           });
       else
-        return make_ElementSetter<true>(apparent_base, i, j, [] {}, [=] { if (not synchronized) synchronize(); });
+        return make_ElementSetter<true>(apparent_base, i, j, [] {}, [this] { if (not synchronized) synchronize(); });
     }
 
     auto operator() (std::size_t i, std::size_t j) const
     {
-      return make_ElementSetter<true>(apparent_base, i, j, [] {}, [=] { if (not synchronized) synchronize(); });
+      return make_ElementSetter<true>(apparent_base, i, j, [] {}, [this] { if (not synchronized) synchronize(); });
     }
 
     decltype(auto) operator[](std::size_t i) const = delete;
@@ -602,8 +602,8 @@ namespace OpenKalman::internal
         return ElementSetter(
           *apparent_base,
           i, j,
-          [=] { if (not *synchronized) synchronize(); },
-          [=]
+          [this] { if (not *synchronized) synchronize(); },
+          [this]
           {
             if constexpr(is_square_root_v<Derived>)
               base_matrix() = Cholesky_square(*apparent_base);
@@ -611,12 +611,12 @@ namespace OpenKalman::internal
               base_matrix() = Cholesky_factor(*apparent_base);
           });
       else
-        return make_ElementSetter<true>(*apparent_base, i, j, [] {}, [=] { if (not *synchronized) synchronize(); });
+        return make_ElementSetter<true>(*apparent_base, i, j, [] {}, [this] { if (not *synchronized) synchronize(); });
     }
 
     auto operator() (std::size_t i, std::size_t j) const
     {
-      return make_ElementSetter<true>(*apparent_base, i, j, [] {}, [=] { if (not *synchronized) synchronize(); });
+      return make_ElementSetter<true>(*apparent_base, i, j, [] {}, [this] { if (not *synchronized) synchronize(); });
     }
 
     decltype(auto) operator[](std::size_t i) const = delete;

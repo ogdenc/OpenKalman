@@ -13,7 +13,11 @@
 
 namespace OpenKalman
 {
+#ifdef __cpp_concepts
+  template<native_Eigen_type Arg> requires is_diagonal_v<Arg>
+#else
   template<typename Arg, std::enable_if_t<is_native_Eigen_type_v<Arg> and is_diagonal_v<Arg>, int> = 0>
+#endif
   constexpr decltype(auto)
   Cholesky_square(Arg&& arg)
   {
@@ -32,7 +36,11 @@ namespace OpenKalman
   }
 
 
+#ifdef __cpp_concepts
+  template<native_Eigen_type Arg> requires is_diagonal_v<Arg>
+#else
   template<typename Arg, std::enable_if_t<is_native_Eigen_type_v<Arg> and is_diagonal_v<Arg>, int> = 0>
+#endif
   constexpr decltype(auto)
   Cholesky_factor(Arg&& arg)
   {

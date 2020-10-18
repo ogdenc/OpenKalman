@@ -19,31 +19,34 @@ namespace OpenKalman
   //                      MatrixBase:
   //                MatrixTraits<MatrixBase>
   //----------------------------------------------------------
-
+#ifdef __cpp_concepts
+  template<native_Eigen_type Matrix> requires std::same_as<Matrix, std::decay_t<Matrix>>
+  struct MatrixTraits<Matrix>
+#else
   template<typename Matrix>
   struct MatrixTraits<Matrix,
     std::enable_if_t<std::is_same_v<Matrix, std::decay_t<Matrix>> and is_native_Eigen_type_v<Matrix>>>
+#endif
   {
-    using BaseMatrix = Matrix;
-    using Scalar = typename Matrix::Scalar;
-    using Index = Eigen::Index;
+    using BaseMatrix = std::decay_t<Matrix>;
+    using Scalar = typename BaseMatrix::Scalar;
 
-    static constexpr std::size_t dimension = Matrix::RowsAtCompileTime;
-    static constexpr std::size_t columns = Matrix::ColsAtCompileTime; ///@TODO: make columns potentially dynamic (0 = dynamic?)
+    static constexpr std::size_t dimension = BaseMatrix::RowsAtCompileTime;
+    static constexpr std::size_t columns = BaseMatrix::ColsAtCompileTime; ///@TODO: make columns potentially dynamic (0 = dynamic?)
     //Note: rows or columns at compile time are -1 if the matrix is dynamic:
     static_assert(dimension > 0);
     static_assert(columns > 0);
 
     template<typename Derived>
-    using MatrixBaseType = internal::EigenMatrixBase<Derived, Matrix>;
+    using MatrixBaseType = internal::EigenMatrixBase<Derived, BaseMatrix>;
 
     template<typename Derived>
-    using CovarianceBaseType = internal::EigenCovarianceBase<Derived, Matrix>;
+    using CovarianceBaseType = internal::EigenCovarianceBase<Derived, BaseMatrix>;
 
     template<std::size_t rows = dimension, std::size_t cols = columns, typename S = Scalar>
-    using StrictMatrix = Eigen::Matrix<S, (Index) rows, (Index) cols>;
+    using StrictMatrix = Eigen::Matrix<S, (Eigen::Index) rows, (Eigen::Index) cols>;
 
-    using Strict = typename MatrixTraits<Matrix>::template StrictMatrix<>;
+    using Strict = typename MatrixTraits<BaseMatrix>::template StrictMatrix<>;
 
     template<TriangleType storage_triangle = TriangleType::lower, std::size_t dim = dimension, typename S = Scalar>
     using SelfAdjointBaseType = EigenSelfAdjointMatrix<StrictMatrix<dim, dim, S>, storage_triangle>;
@@ -54,7 +57,11 @@ namespace OpenKalman
     template<std::size_t dim = dimension, typename S = Scalar>
     using DiagonalBaseType = EigenDiagonal<StrictMatrix<dim, 1, S>>;
 
+#ifdef __cpp_concepts
+    template<typename Arg> requires (not std::convertible_to<Arg, const Scalar>)
+#else
     template<typename Arg, std::enable_if_t<not std::is_convertible_v<Arg, const Scalar>, int> = 0>
+#endif
     static decltype(auto)
     make(Arg&& arg) noexcept
     {
@@ -62,18 +69,23 @@ namespace OpenKalman
     }
 
     /// Make matrix from a list of coefficients in row-major order.
+#ifdef __cpp_concepts
+    template<std::convertible_to<const Scalar> Arg, std::convertible_to<const Scalar> ... Args>
+    requires (1 + sizeof...(Args) == dimension * columns)
+#else
     template<typename Arg, typename ... Args,
       std::enable_if_t<std::conjunction_v<std::is_convertible<Arg, Scalar>, std::is_convertible<Args, Scalar>...> and
       1 + sizeof...(Args) == dimension * columns, int> = 0>
+#endif
     static auto
     make(const Arg arg, const Args ... args)
     {
-      return ((StrictMatrix<>() << arg), ... , args).finished();
+      return ((StrictMatrix<dimension, columns>() << arg), ... , args).finished();
     }
 
-    static auto zero() { return EigenZero<StrictMatrix<>>(); }
+    static auto zero() { return EigenZero<StrictMatrix<dimension, columns>>(); }
 
-    static auto identity() { return StrictMatrix<dimension, dimension, Scalar>::Identity(); }
+    static auto identity() { return StrictMatrix<dimension, columns>::Identity(); }
 
   };
 

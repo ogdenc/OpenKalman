@@ -19,32 +19,50 @@ namespace OpenKalman
   //  General traits  //
   //////////////////////
 
-  /// Traits of a matrix, such as size, coefficient types, etc.
-  template<typename V, typename Enable = void>
+  /**
+   * Describes the traits of a matrix, such as its dimensions, coefficient types, etc.
+   * @addtogroup Traits
+   * @tparam M The matrix type. The type is treated as non-qualified, even if it is const or a reference.
+   */
+#ifdef __cpp_concepts
+  template<typename M>
   struct MatrixTraits {};
 
-  template<typename V>
-  struct MatrixTraits<V&> : MatrixTraits<V> {};
+  template<typename M> requires std::is_reference_v<M> or std::is_const_v<std::remove_reference_t<M>>
+  struct MatrixTraits<M> : public MatrixTraits<std::decay_t<M>> {};
+#else
+  template<typename M, typename Enable = void> /// @tparam Enable A dummy variable to enable the class.
+  struct MatrixTraits {};
 
-  template<typename V>
-  struct MatrixTraits<V&&> : MatrixTraits<V> {};
+  template<typename M>
+  struct MatrixTraits<M&> : MatrixTraits<M> {};
 
-  template<typename V>
-  struct MatrixTraits<const V> : MatrixTraits<V> {};
+  template<typename M>
+  struct MatrixTraits<M&&> : MatrixTraits<M> {};
+
+  template<typename M>
+  struct MatrixTraits<const M> : MatrixTraits<M> {};
+#endif
 
 
-  /// A class trait that also applies to ref and cv-qualified classes.
-  template<template<typename T, typename...Es> typename Trait, typename T, typename...Es>
-  struct class_trait : std::false_type {};
+  namespace internal
+  {
+    /*
+     * A class trait that also applies to ref and cv-qualified classes.
+     * @tparam Trait The trait, a template template parameter that takes T and Es... as parameters.
+     */
+    template<template<typename T, typename...Es> typename Trait, typename T, typename...Es>
+    struct class_trait : std::false_type {};
 
-  template<template<typename T, typename...Es> typename Trait, typename T, typename...Es>
-  struct class_trait<Trait, T&, Es...> : Trait<T, Es...> {};
+    template<template<typename T, typename...Es> typename Trait, typename T, typename...Es>
+    struct class_trait<Trait, T&, Es...> : Trait<T, Es...> {};
 
-  template<template<typename T, typename...Es> typename Trait, typename T, typename...Es>
-  struct class_trait<Trait, T&&, Es...> : Trait<T, Es...> {};
+    template<template<typename T, typename...Es> typename Trait, typename T, typename...Es>
+    struct class_trait<Trait, T&&, Es...> : Trait<T, Es...> {};
 
-  template<template<typename T, typename...Es> typename Trait, typename T, typename...Es>
-  struct class_trait<Trait, const T, Es...> : Trait<T, Es...> {};
+    template<template<typename T, typename...Es> typename Trait, typename T, typename...Es>
+    struct class_trait<Trait, const T, Es...> : Trait<T, Es...> {};
+  }
 
 
   //////////////////////////////////
@@ -53,7 +71,7 @@ namespace OpenKalman
 
   /// Whether an object is a Covariance or SquareRootCovariance.
   template<typename T>
-  struct is_covariance : class_trait<is_covariance, T> {};
+  struct is_covariance : internal::class_trait<is_covariance, T> {};
 
   /// Helper template for is_covariance.
   template<typename T>
@@ -61,7 +79,7 @@ namespace OpenKalman
 
   /// Whether an object is a Cholesky square root (e.g., SquareRootCovariance).
   template<typename T>
-  struct is_square_root : class_trait<is_square_root, T> {};
+  struct is_square_root : internal::class_trait<is_square_root, T> {};
 
   /// Helper template for is_square_root.
   template<typename T>
@@ -69,7 +87,7 @@ namespace OpenKalman
 
   /// Whether an object is a diagonal matrix.
   template<typename T, typename Enable = void>
-  struct is_zero : class_trait<is_zero, T, Enable> {};
+  struct is_zero : internal::class_trait<is_zero, T, Enable> {};
 
   /// Helper template for is_zero.
   template<typename T>
@@ -77,7 +95,7 @@ namespace OpenKalman
 
   /// Whether an object is an identity matrix.
   template<typename T, typename Enable = void>
-  struct is_identity : class_trait<is_identity, T, Enable> {};
+  struct is_identity : internal::class_trait<is_identity, T, Enable> {};
 
   /// Helper template for is_identity.
   template<typename T>
@@ -85,7 +103,7 @@ namespace OpenKalman
 
   /// Whether an object is a 1-by-1 matrix.
   template<typename T, typename Enable = void>
-  struct is_1by1 : class_trait<is_1by1, T, Enable> {};
+  struct is_1by1 : internal::class_trait<is_1by1, T, Enable> {};
 
   /// Defining a 1-by-1 matrix.
   template<typename T>
@@ -98,7 +116,7 @@ namespace OpenKalman
 
   /// Whether an object is a diagonal matrix.
   template<typename T, typename Enable = void>
-  struct is_diagonal : class_trait<is_diagonal, T, Enable> {};
+  struct is_diagonal : internal::class_trait<is_diagonal, T, Enable> {};
 
   /// Zero and identity matrices are diagonal.
   template<typename T>
@@ -110,7 +128,7 @@ namespace OpenKalman
 
   /// Whether a covariance is in the form of a Cholesky decomposition.
   template<typename T, typename Enable = void>
-  struct is_Cholesky : class_trait<is_Cholesky, T,  Enable> {};
+  struct is_Cholesky : internal::class_trait<is_Cholesky, T,  Enable> {};
 
   /// Helper template for is_Cholesky.
   template<typename T>
@@ -118,7 +136,7 @@ namespace OpenKalman
 
   /// Whether an object is a self-adjoint matrix.
   template<typename T, typename Enable = void>
-  struct is_self_adjoint : class_trait<is_self_adjoint, T, Enable> {};
+  struct is_self_adjoint : internal::class_trait<is_self_adjoint, T, Enable> {};
 
   /// Helper template for is_self_adjoint.
   template<typename T>
@@ -130,7 +148,7 @@ namespace OpenKalman
 
   /// Whether an object is a lower triangular matrix.
   template<typename T, typename Enable = void>
-  struct is_lower_triangular : class_trait<is_lower_triangular, T, Enable> {};
+  struct is_lower_triangular : internal::class_trait<is_lower_triangular, T, Enable> {};
 
   /// Diagonal matrices are lower-triangular.
   template<typename T>
@@ -142,7 +160,7 @@ namespace OpenKalman
 
   /// Whether an object is an upper triangular matrix.
   template<typename T, typename Enable = void>
-  struct is_upper_triangular : class_trait<is_upper_triangular, T, Enable> {};
+  struct is_upper_triangular : internal::class_trait<is_upper_triangular, T, Enable> {};
 
   /// Diagonal matrices are upper-triangular.
   template<typename T>
@@ -185,7 +203,7 @@ namespace OpenKalman
 
   /// Whether an object is a base for Covariance or SquareRootCovariance.
   template<typename T, typename Enable = void>
-  struct is_covariance_base : class_trait<is_covariance_base, T> {};
+  struct is_covariance_base : internal::class_trait<is_covariance_base, T> {};
 
   /// Helper template for is_covariance_base.
   template<typename T>
@@ -198,7 +216,7 @@ namespace OpenKalman
 
   /// Whether an object is a typed matrix (i.e., Mean, EuclideanMean, or TypedMatrix).
   template<typename T>
-  struct is_typed_matrix : class_trait<is_typed_matrix, T> {};
+  struct is_typed_matrix : internal::class_trait<is_typed_matrix, T> {};
 
   /// Helper template for is_covariance_base.
   template<typename T>
@@ -206,7 +224,7 @@ namespace OpenKalman
 
   /// Whether an object is a mean.
   template<typename T>
-  struct is_mean : class_trait<is_mean, T> {};
+  struct is_mean : internal::class_trait<is_mean, T> {};
 
   /// Helper template for is_mean.
   template<typename T>
@@ -214,7 +232,7 @@ namespace OpenKalman
 
   /// Whether an object is a euclidean mean.
   template<typename T>
-  struct is_Euclidean_mean : class_trait<is_Euclidean_mean, T> {};
+  struct is_Euclidean_mean : internal::class_trait<is_Euclidean_mean, T> {};
 
   /// Helper template for is_Euclidean_mean.
   template<typename T>
@@ -222,7 +240,7 @@ namespace OpenKalman
 
   /// Whether an object is Euclidean-transformed.
   template<typename T, typename Enable = void>
-  struct is_Euclidean_transformed : class_trait<is_Euclidean_transformed, T, Enable> {};
+  struct is_Euclidean_transformed : internal::class_trait<is_Euclidean_transformed, T, Enable> {};
 
   /// A EuclideanMean is Euclidean-transformed unless the coefficients are Axes only.
   template<typename T>
@@ -235,7 +253,7 @@ namespace OpenKalman
 
   /// Whether the matrix is wrapped.
   template<typename T, typename Enable = void>
-  struct is_wrapped : class_trait<is_wrapped, T, Enable> {};
+  struct is_wrapped : internal::class_trait<is_wrapped, T, Enable> {};
 
   /// A Mean is wrapped unless the coefficients are Axes only.
   template<typename T>
@@ -248,7 +266,7 @@ namespace OpenKalman
 
   /// Whether the matrix is a column vector or set of column vectors.
   template<typename T, typename Enable = void>
-  struct is_column_vector : class_trait<is_column_vector, T,  Enable> {};
+  struct is_column_vector : internal::class_trait<is_column_vector, T,  Enable> {};
 
   /// A typed matrix is a column vector if the columns are Axes only.
   template<typename T>
@@ -262,7 +280,7 @@ namespace OpenKalman
 
   /// Whether an object is a base for a typed matrix.
   template<typename T, typename Enable = void>
-  struct is_typed_matrix_base : class_trait<is_typed_matrix_base, T> {};
+  struct is_typed_matrix_base : internal::class_trait<is_typed_matrix_base, T> {};
 
   /// Helper template for is_typed_matrix_base.
   template<typename T>
@@ -356,7 +374,7 @@ namespace OpenKalman
 
   /// Whether an object is a distribution.
   template<typename T, typename Enable = void>
-  struct is_distribution : class_trait<is_distribution, T, Enable> {};
+  struct is_distribution : internal::class_trait<is_distribution, T, Enable> {};
 
   /// Helper template for is_distribution.
   template<typename T>
@@ -365,7 +383,7 @@ namespace OpenKalman
 
   /// Whether an object is a Gaussian distribution.
   template<typename T>
-  struct is_Gaussian_distribution : class_trait<is_Gaussian_distribution, T> {};
+  struct is_Gaussian_distribution : internal::class_trait<is_Gaussian_distribution, T> {};
 
   /// Helper template for is_Gaussian_distribution.
   template<typename T>
@@ -400,7 +418,7 @@ namespace OpenKalman
 
   /// Whether an expression is strict.
   template<typename T, typename Enable = void>
-  struct is_strict : class_trait<is_strict, T> {};
+  struct is_strict : internal::class_trait<is_strict, T> {};
 
   /// Helper template for is_strict.
   template<typename T>
@@ -426,7 +444,7 @@ namespace OpenKalman
 
   /// Whether an expression is a strict, regular matrix.
   template<typename T, typename Enable = void>
-  struct is_strict_matrix : class_trait<is_strict_matrix, T> {};
+  struct is_strict_matrix : internal::class_trait<is_strict_matrix, T> {};
 
   /// Helper template for is_strict.
   template<typename T>

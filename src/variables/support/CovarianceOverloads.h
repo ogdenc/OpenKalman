@@ -982,18 +982,18 @@ namespace OpenKalman
     else if constexpr(is_self_adjoint_v<BaseMatrix>)
     {
       using SABaseType = typename MatrixTraits<BaseMatrix>::template SelfAdjointBaseType<>;
-      auto b = MatrixTraits<SABaseType>::make(abase * (mbase * adjoint(abase)));
+      auto b = strict(MatrixTraits<SABaseType>::make(abase * (mbase * adjoint(abase))));
       return MatrixTraits<M>::template make<AC>(std::move(b));
     }
     else if constexpr(is_upper_triangular_v<BaseMatrix>)
     {
       const auto b = mbase * adjoint(abase);
-      return MatrixTraits<M>::template make<AC>(strict(QR_decomposition(b)));
+      return MatrixTraits<M>::template make<AC>(strict(QR_decomposition(std::move(b))));
     }
     else
     {
       const auto b = abase * base_matrix(std::forward<M>(m));
-      return MatrixTraits<M>::template make<AC>(strict(LQ_decomposition(b)));
+      return MatrixTraits<M>::template make<AC>(strict(LQ_decomposition(std::move(b))));
     }
   }
 

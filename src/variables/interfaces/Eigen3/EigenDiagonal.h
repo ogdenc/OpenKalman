@@ -31,20 +31,33 @@ namespace OpenKalman
     EigenDiagonal(EigenDiagonal&& other) noexcept : EigenDiagonal(std::move(other).base_matrix()) {}
 
     /// Construct from a compatible EigenDiagonal.
+#ifdef __cpp_concepts
+    template<typename Arg> requires is_EigenDiagonal_v<Arg>
+#else
     template<typename Arg, std::enable_if_t<is_EigenDiagonal_v<Arg>, int> = 0>
+#endif
     EigenDiagonal(Arg&& other) noexcept : Base(std::forward<Arg>(other).base_matrix())
     {
       static_assert(MatrixTraits<Arg>::dimension == dimension);
     }
 
     /// Construct from a column vector matrix.
+#ifdef __cpp_concepts
+    template<Eigen_matrix Arg> requires (MatrixTraits<Arg>::columns == 1)
+#else
     template<typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg> and MatrixTraits<Arg>::columns == 1, int> = 0>
+#endif
     EigenDiagonal(Arg&& arg) noexcept : Base(std::forward<Arg>(arg)) {}
 
     /// Construct from a compatible diagonal native matrix that is not EigenDiagonal.
+#ifdef __cpp_concepts
+    template<native_Eigen_type Arg> requires is_diagonal_v<Arg> and
+      (not is_EigenDiagonal_v<Arg>) and (MatrixTraits<Arg>::columns > 1)
+#else
     template<typename Arg,
       std::enable_if_t<is_native_Eigen_type_v<Arg> and is_diagonal_v<Arg> and
       not is_EigenDiagonal_v<Arg> and (MatrixTraits<Arg>::columns > 1), int> = 0>
+#endif
     EigenDiagonal(Arg&& other) noexcept : Base(std::forward<Arg>(other).diagonal())
     {
       static_assert(MatrixTraits<Arg>::dimension == dimension);
@@ -203,7 +216,6 @@ namespace OpenKalman
 
     auto operator[](std::size_t i) const { return internal::ElementSetter(*this, i); }
 
-
     auto operator()(std::size_t i) { return operator[](i); }
 
     auto operator()(std::size_t i) const { return operator[](i); }
@@ -219,27 +231,59 @@ namespace OpenKalman
   //        Deduction guides         //
   /////////////////////////////////////
 
+#ifdef __cpp_concepts
+  /// @TODO For unknown reasons, SFINAE is needed here in both GCC and clang, rather than the requires clause below, to prevent matching M=double:
+  /// template<Eigen_matrix M> requires (MatrixTraits<M>::columns == 1)
+  template<typename M, std::enable_if_t<Eigen_matrix<M> and MatrixTraits<M>::columns == 1, int> = 0>
+#else
   template<typename M, std::enable_if_t<is_Eigen_matrix_v<M> and MatrixTraits<M>::columns == 1, int> = 0>
+#endif
   EigenDiagonal(M&&) -> EigenDiagonal<lvalue_or_strict_t<M>>;
 
-  template<typename M, std::enable_if_t<is_native_Eigen_type_v<M> and is_diagonal_v<M> and
-    not is_EigenDiagonal_v<M> and (MatrixTraits<M>::columns > 1) , int> = 0>
-  EigenDiagonal(M&&)
-  -> EigenDiagonal<strict_t<Eigen::Diagonal<M, 0>>>;
 
+#ifdef __cpp_concepts
+  template<native_Eigen_type Arg> requires is_diagonal_v<Arg> and
+    (not is_EigenDiagonal_v<Arg>) and (MatrixTraits<Arg>::columns > 1)
+#else
+  template<typename Arg,
+      std::enable_if_t<is_native_Eigen_type_v<Arg> and is_diagonal_v<Arg> and
+      not is_EigenDiagonal_v<Arg> and (MatrixTraits<Arg>::columns > 1), int> = 0>
+#endif
+  EigenDiagonal(Arg&&)
+  -> EigenDiagonal<strict_t<decltype(std::forward<Arg>(std::declval<Arg>()).diagonal())>>;
+
+
+#ifdef __cpp_concepts
+  template<typename Arg> requires is_zero_v<Arg> and (MatrixTraits<Arg>::columns > 1) and
+    (MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns)
+#else
   template<typename Arg, std::enable_if_t<is_zero_v<Arg> and (MatrixTraits<Arg>::columns > 1) and
     MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns, int> = 0>
+#endif
   EigenDiagonal(const Arg&)
   -> EigenDiagonal<EigenZero<Eigen::Matrix<typename MatrixTraits<Arg>::Scalar, MatrixTraits<Arg>::dimension, 1>>>;
 
+
+#ifdef __cpp_concepts
+  template<typename Arg> requires is_identity_v<Arg> and (MatrixTraits<Arg>::columns > 1) and
+    (MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns)
+#else
   template<typename Arg, std::enable_if_t<is_identity_v<Arg> and (MatrixTraits<Arg>::columns > 1) and
     MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns, int> = 0>
+#endif
   EigenDiagonal(const Arg&)
   -> EigenDiagonal<typename Eigen::Matrix<typename MatrixTraits<Arg>::Scalar, MatrixTraits<Arg>::dimension, 1>::ConstantReturnType>;
 
-  template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
-  EigenDiagonal(Args ...)
-  -> EigenDiagonal<Eigen::Matrix<std::decay_t<std::common_type_t<Args...>>, sizeof...(Args), 1>>;
+
+#ifdef __cpp_concepts
+  template<typename Arg, typename ... Args>
+  requires (std::is_arithmetic_v<Arg> and ... and std::is_arithmetic_v<Args>) and (std::common_with<Arg, Args> and ...)
+#else
+  template<typename Arg, typename ... Args,
+    std::enable_if_t<std::conjunction_v<std::is_arithmetic<Arg>, std::is_arithmetic<Args>...>, int> = 0>
+#endif
+  EigenDiagonal(Arg, Args ...)
+  -> EigenDiagonal<Eigen::Matrix<std::decay_t<std::common_type_t<Arg, Args...>>, 1 + sizeof...(Args), 1>>;
 
 
   /////////////////////////////////
@@ -428,10 +472,11 @@ namespace OpenKalman
 
 
   /// Solve the equation AX = B for X. A is a diagonal matrix.
-  template<
-    typename A, typename B,
-    std::enable_if_t<is_EigenDiagonal_v<A>, int> = 0,
-    std::enable_if_t<is_Eigen_matrix_v<B>, int> = 0>
+#ifdef __cpp_concepts
+  template<typename A, Eigen_matrix B> requires is_EigenDiagonal_v<A>
+#else
+  template<typename A, typename B, std::enable_if_t<is_EigenDiagonal_v<A> and is_Eigen_matrix_v<B>, int> = 0>
+#endif
   inline auto
   solve(const A& a, const B& b)
   {
@@ -781,11 +826,16 @@ namespace OpenKalman
 
   ////
 
-  template<
-    typename Arg1, typename Arg2,
+#ifdef __cpp_concepts
+  template<typename Arg1, typename Arg2> requires ((is_EigenDiagonal_v<Arg1> and Eigen_matrix<Arg2>) or
+    (Eigen_matrix<Arg1> and is_EigenDiagonal_v<Arg2>)) and
+    (not is_identity_v<Arg1>) and (not is_identity_v<Arg2>) and (not is_zero_v<Arg1>) and (not is_zero_v<Arg2>)
+#else
+  template<typename Arg1, typename Arg2,
     std::enable_if_t<((is_EigenDiagonal_v<Arg1> and is_Eigen_matrix_v<Arg2>) or
       (is_Eigen_matrix_v<Arg1> and is_EigenDiagonal_v<Arg2>)) and
       not is_identity_v<Arg1> and not is_identity_v<Arg2> and not is_zero_v<Arg1> and not is_zero_v<Arg2>, int> = 0>
+#endif
   inline auto operator*(Arg1&& arg1, Arg2&& arg2)
   {
     static_assert(MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::dimension);
