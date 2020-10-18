@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.18"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>OpenKalman: src/variables/interfaces/Eigen3/EigenTraits.h Source File</title>
+<title>OpenKalman: C:/Users/cogden/CLionProjects/OpenKalman/src/variables/interfaces/Eigen3/EigenTraits.h Source File</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -102,7 +102,7 @@ $(document).ready(function(){initNavTree('_eigen_traits_8h_source.html',''); ini
 <div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;<span class="keyword">namespace </span>Eigen::internal</div>
 <div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;{</div>
 <div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> Coefficients, <span class="keyword">typename</span> ArgType&gt;</div>
-<div class="line"><a name="l00017"></a><span class="lineno"><a class="line" href="struct_eigen_1_1internal_1_1traits_3_01_open_kalman_1_1_mean_3_01_coefficients_00_01_arg_type_01_4_01_4.html">   17</a></span>&#160;  <span class="keyword">struct </span>traits&lt;OpenKalman::Mean&lt;Coefficients, ArgType&gt;&gt;</div>
+<div class="line"><a name="l00017"></a><span class="lineno"><a class="line" href="struct_eigen_1_1internal_1_1traits_3_01_open_kalman_1_1_mean_3_01_coefficients_00_01_arg_type_01_4_01_4.html">   17</a></span>&#160;  <span class="keyword">struct </span>traits&lt;<a class="code" href="namespace_open_kalman.html">OpenKalman</a>::Mean&lt;Coefficients, ArgType&gt;&gt;</div>
 <div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;    : traits&lt;std::decay_t&lt;ArgType&gt;&gt;</div>
 <div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;  {</div>
 <div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;    <span class="keyword">using</span> Base = traits&lt;std::decay_t&lt;ArgType&gt;&gt;;</div>
@@ -113,15 +113,15 @@ $(document).ready(function(){initNavTree('_eigen_traits_8h_source.html',''); ini
 <div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;  };</div>
 <div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160; </div>
 <div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> RowCoefficients, <span class="keyword">typename</span> ColumnCoefficients, <span class="keyword">typename</span> ArgType&gt;</div>
-<div class="line"><a name="l00028"></a><span class="lineno"><a class="line" href="struct_eigen_1_1internal_1_1traits_3_01_open_kalman_1_1_typed_matrix_3_01_row_coefficients_00_010de3108344a14614bba7890dcab371ce.html">   28</a></span>&#160;  <span class="keyword">struct </span>traits&lt;OpenKalman::TypedMatrix&lt;RowCoefficients, ColumnCoefficients, ArgType&gt;&gt;</div>
+<div class="line"><a name="l00028"></a><span class="lineno"><a class="line" href="struct_eigen_1_1internal_1_1traits_3_01_open_kalman_1_1_typed_matrix_3_01_row_coefficients_00_010de3108344a14614bba7890dcab371ce.html">   28</a></span>&#160;  <span class="keyword">struct </span>traits&lt;<a class="code" href="namespace_open_kalman.html">OpenKalman</a>::TypedMatrix&lt;RowCoefficients, ColumnCoefficients, ArgType&gt;&gt;</div>
 <div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;    : traits&lt;std::decay_t&lt;ArgType&gt;&gt; {};</div>
 <div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160; </div>
 <div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> Coeffs, <span class="keyword">typename</span> ArgType&gt;</div>
-<div class="line"><a name="l00032"></a><span class="lineno"><a class="line" href="struct_eigen_1_1internal_1_1traits_3_01_open_kalman_1_1_euclidean_mean_3_01_coeffs_00_01_arg_type_01_4_01_4.html">   32</a></span>&#160;  <span class="keyword">struct </span>traits&lt;OpenKalman::EuclideanMean&lt;Coeffs, ArgType&gt;&gt;</div>
+<div class="line"><a name="l00032"></a><span class="lineno"><a class="line" href="struct_eigen_1_1internal_1_1traits_3_01_open_kalman_1_1_euclidean_mean_3_01_coeffs_00_01_arg_type_01_4_01_4.html">   32</a></span>&#160;  <span class="keyword">struct </span>traits&lt;<a class="code" href="namespace_open_kalman.html">OpenKalman</a>::EuclideanMean&lt;Coeffs, ArgType&gt;&gt;</div>
 <div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;    : traits&lt;std::decay_t&lt;ArgType&gt;&gt; {};</div>
 <div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160; </div>
 <div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> Coefficients, <span class="keyword">typename</span> ArgType&gt;</div>
-<div class="line"><a name="l00036"></a><span class="lineno"><a class="line" href="struct_eigen_1_1internal_1_1traits_3_01_open_kalman_1_1_covariance_3_01_coefficients_00_01_arg_type_01_4_01_4.html">   36</a></span>&#160;  <span class="keyword">struct </span>traits&lt;OpenKalman::Covariance&lt;Coefficients, ArgType&gt;&gt;</div>
+<div class="line"><a name="l00036"></a><span class="lineno"><a class="line" href="struct_eigen_1_1internal_1_1traits_3_01_open_kalman_1_1_covariance_3_01_coefficients_00_01_arg_type_01_4_01_4.html">   36</a></span>&#160;  <span class="keyword">struct </span>traits&lt;<a class="code" href="namespace_open_kalman.html">OpenKalman</a>::Covariance&lt;Coefficients, ArgType&gt;&gt;</div>
 <div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;    : traits&lt;typename OpenKalman::MatrixTraits&lt;ArgType&gt;::template SelfAdjointBaseType&lt;&gt;&gt;</div>
 <div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;  {</div>
 <div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;    <span class="keyword">using</span> Base = traits&lt;typename OpenKalman::MatrixTraits&lt;ArgType&gt;::template SelfAdjointBaseType&lt;&gt;&gt;;</div>
@@ -132,7 +132,7 @@ $(document).ready(function(){initNavTree('_eigen_traits_8h_source.html',''); ini
 <div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;  };</div>
 <div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160; </div>
 <div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> Coefficients, <span class="keyword">typename</span> ArgType&gt;</div>
-<div class="line"><a name="l00047"></a><span class="lineno"><a class="line" href="struct_eigen_1_1internal_1_1traits_3_01_open_kalman_1_1_square_root_covariance_3_01_coefficients_00_01_arg_type_01_4_01_4.html">   47</a></span>&#160;  <span class="keyword">struct </span>traits&lt;OpenKalman::SquareRootCovariance&lt;Coefficients, ArgType&gt;&gt;</div>
+<div class="line"><a name="l00047"></a><span class="lineno"><a class="line" href="struct_eigen_1_1internal_1_1traits_3_01_open_kalman_1_1_square_root_covariance_3_01_coefficients_00_01_arg_type_01_4_01_4.html">   47</a></span>&#160;  <span class="keyword">struct </span>traits&lt;<a class="code" href="namespace_open_kalman.html">OpenKalman</a>::SquareRootCovariance&lt;Coefficients, ArgType&gt;&gt;</div>
 <div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;    : traits&lt;typename OpenKalman::MatrixTraits&lt;ArgType&gt;::template TriangularBaseType&lt;&gt;&gt;</div>
 <div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;  {</div>
 <div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;    <span class="keyword">using</span> Base = traits&lt;typename OpenKalman::MatrixTraits&lt;ArgType&gt;::template TriangularBaseType&lt;&gt;&gt;;</div>
@@ -143,7 +143,7 @@ $(document).ready(function(){initNavTree('_eigen_traits_8h_source.html',''); ini
 <div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;  };</div>
 <div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160; </div>
 <div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> BaseMatrix, OpenKalman::TriangleType storage_triangle&gt;</div>
-<div class="line"><a name="l00058"></a><span class="lineno"><a class="line" href="struct_eigen_1_1internal_1_1traits_3_01_open_kalman_1_1_eigen_self_adjoint_matrix_3_01_base_matrbb9cc22469daed003003271fe0194fa3.html">   58</a></span>&#160;  <span class="keyword">struct </span>traits&lt;OpenKalman::EigenSelfAdjointMatrix&lt;BaseMatrix, storage_triangle&gt;&gt;</div>
+<div class="line"><a name="l00058"></a><span class="lineno"><a class="line" href="struct_eigen_1_1internal_1_1traits_3_01_open_kalman_1_1_eigen_self_adjoint_matrix_3_01_base_matrbb9cc22469daed003003271fe0194fa3.html">   58</a></span>&#160;  <span class="keyword">struct </span>traits&lt;<a class="code" href="namespace_open_kalman.html">OpenKalman</a>::EigenSelfAdjointMatrix&lt;BaseMatrix, storage_triangle&gt;&gt;</div>
 <div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;    : traits&lt;std::decay_t&lt;BaseMatrix&gt;&gt;</div>
 <div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;  {</div>
 <div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;    <span class="keyword">using</span> Nested = std::decay_t&lt;BaseMatrix&gt;;</div>
@@ -158,7 +158,7 @@ $(document).ready(function(){initNavTree('_eigen_traits_8h_source.html',''); ini
 <div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;  };</div>
 <div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160; </div>
 <div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> BaseMatrix, OpenKalman::TriangleType triangle_type&gt;</div>
-<div class="line"><a name="l00073"></a><span class="lineno"><a class="line" href="struct_eigen_1_1internal_1_1traits_3_01_open_kalman_1_1_eigen_triangular_matrix_3_01_base_matrix_00_01triangle__type_01_4_01_4.html">   73</a></span>&#160;  <span class="keyword">struct </span>traits&lt;OpenKalman::EigenTriangularMatrix&lt;BaseMatrix, triangle_type&gt;&gt;</div>
+<div class="line"><a name="l00073"></a><span class="lineno"><a class="line" href="struct_eigen_1_1internal_1_1traits_3_01_open_kalman_1_1_eigen_triangular_matrix_3_01_base_matrix_00_01triangle__type_01_4_01_4.html">   73</a></span>&#160;  <span class="keyword">struct </span>traits&lt;<a class="code" href="namespace_open_kalman.html">OpenKalman</a>::EigenTriangularMatrix&lt;BaseMatrix, triangle_type&gt;&gt;</div>
 <div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;    : traits&lt;std::decay_t&lt;BaseMatrix&gt;&gt;</div>
 <div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;  {</div>
 <div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;    <span class="keyword">using</span> Nested = std::decay_t&lt;BaseMatrix&gt;;</div>
@@ -173,7 +173,7 @@ $(document).ready(function(){initNavTree('_eigen_traits_8h_source.html',''); ini
 <div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;  };</div>
 <div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160; </div>
 <div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> ArgType&gt;</div>
-<div class="line"><a name="l00088"></a><span class="lineno"><a class="line" href="struct_eigen_1_1internal_1_1traits_3_01_open_kalman_1_1_eigen_diagonal_3_01_arg_type_01_4_01_4.html">   88</a></span>&#160;  <span class="keyword">struct </span>traits&lt;OpenKalman::EigenDiagonal&lt;ArgType&gt;&gt;</div>
+<div class="line"><a name="l00088"></a><span class="lineno"><a class="line" href="struct_eigen_1_1internal_1_1traits_3_01_open_kalman_1_1_eigen_diagonal_3_01_arg_type_01_4_01_4.html">   88</a></span>&#160;  <span class="keyword">struct </span>traits&lt;<a class="code" href="namespace_open_kalman.html">OpenKalman</a>::EigenDiagonal&lt;ArgType&gt;&gt;</div>
 <div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;  {</div>
 <div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;    <span class="keyword">using</span> Nested = std::decay_t&lt;ArgType&gt;;</div>
 <div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;    <span class="keyword">using</span> StorageKind = Dense;</div>
@@ -191,11 +191,11 @@ $(document).ready(function(){initNavTree('_eigen_traits_8h_source.html',''); ini
 <div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;  };</div>
 <div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160; </div>
 <div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> ArgType&gt;</div>
-<div class="line"><a name="l00106"></a><span class="lineno"><a class="line" href="struct_eigen_1_1internal_1_1traits_3_01_open_kalman_1_1_eigen_zero_3_01_arg_type_01_4_01_4.html">  106</a></span>&#160;  <span class="keyword">struct </span>traits&lt;OpenKalman::EigenZero&lt;ArgType&gt;&gt;</div>
+<div class="line"><a name="l00106"></a><span class="lineno"><a class="line" href="struct_eigen_1_1internal_1_1traits_3_01_open_kalman_1_1_eigen_zero_3_01_arg_type_01_4_01_4.html">  106</a></span>&#160;  <span class="keyword">struct </span>traits&lt;<a class="code" href="namespace_open_kalman.html">OpenKalman</a>::EigenZero&lt;ArgType&gt;&gt;</div>
 <div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;    : traits&lt;typename std::decay_t&lt;ArgType&gt;::ConstantReturnType&gt; {};</div>
 <div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160; </div>
 <div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> Coefficients, <span class="keyword">typename</span> ArgType&gt;</div>
-<div class="line"><a name="l00110"></a><span class="lineno"><a class="line" href="struct_eigen_1_1internal_1_1traits_3_01_open_kalman_1_1_to_euclidean_expr_3_01_coefficients_00_01_arg_type_01_4_01_4.html">  110</a></span>&#160;  <span class="keyword">struct </span>traits&lt;OpenKalman::ToEuclideanExpr&lt;Coefficients, ArgType&gt;&gt;</div>
+<div class="line"><a name="l00110"></a><span class="lineno"><a class="line" href="struct_eigen_1_1internal_1_1traits_3_01_open_kalman_1_1_to_euclidean_expr_3_01_coefficients_00_01_arg_type_01_4_01_4.html">  110</a></span>&#160;  <span class="keyword">struct </span>traits&lt;<a class="code" href="namespace_open_kalman.html">OpenKalman</a>::ToEuclideanExpr&lt;Coefficients, ArgType&gt;&gt;</div>
 <div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;  {</div>
 <div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;    <span class="keyword">using</span> Nested = std::decay_t&lt;ArgType&gt;;</div>
 <div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;    <span class="keyword">using</span> NestedTraits = traits&lt;Nested&gt;;</div>
@@ -218,7 +218,7 @@ $(document).ready(function(){initNavTree('_eigen_traits_8h_source.html',''); ini
 <div class="line"><a name="l00130"></a><span class="lineno">  130</span>&#160;  };</div>
 <div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160; </div>
 <div class="line"><a name="l00132"></a><span class="lineno">  132</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> Coefficients, <span class="keyword">typename</span> ArgType&gt;</div>
-<div class="line"><a name="l00133"></a><span class="lineno"><a class="line" href="struct_eigen_1_1internal_1_1traits_3_01_open_kalman_1_1_from_euclidean_expr_3_01_coefficients_00_01_arg_type_01_4_01_4.html">  133</a></span>&#160;  <span class="keyword">struct </span>traits&lt;OpenKalman::FromEuclideanExpr&lt;Coefficients, ArgType&gt;&gt;</div>
+<div class="line"><a name="l00133"></a><span class="lineno"><a class="line" href="struct_eigen_1_1internal_1_1traits_3_01_open_kalman_1_1_from_euclidean_expr_3_01_coefficients_00_01_arg_type_01_4_01_4.html">  133</a></span>&#160;  <span class="keyword">struct </span>traits&lt;<a class="code" href="namespace_open_kalman.html">OpenKalman</a>::FromEuclideanExpr&lt;Coefficients, ArgType&gt;&gt;</div>
 <div class="line"><a name="l00134"></a><span class="lineno">  134</span>&#160;  {</div>
 <div class="line"><a name="l00135"></a><span class="lineno">  135</span>&#160;    <span class="keyword">using</span> Nested = std::decay_t&lt;ArgType&gt;;</div>
 <div class="line"><a name="l00136"></a><span class="lineno">  136</span>&#160;    <span class="keyword">using</span> NestedTraits = traits&lt;Nested&gt;;</div>
@@ -241,7 +241,7 @@ $(document).ready(function(){initNavTree('_eigen_traits_8h_source.html',''); ini
 <div class="line"><a name="l00153"></a><span class="lineno">  153</span>&#160;  };</div>
 <div class="line"><a name="l00154"></a><span class="lineno">  154</span>&#160; </div>
 <div class="line"><a name="l00155"></a><span class="lineno">  155</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> Coefficients, <span class="keyword">typename</span> ArgType&gt;</div>
-<div class="line"><a name="l00156"></a><span class="lineno"><a class="line" href="struct_eigen_1_1internal_1_1traits_3_01_open_kalman_1_1_from_euclidean_expr_3_01_coefficients_001dc2cc2fb7daacf70f93e3ac8d01fe80.html">  156</a></span>&#160;  <span class="keyword">struct </span>traits&lt;OpenKalman::FromEuclideanExpr&lt;Coefficients, OpenKalman::ToEuclideanExpr&lt;Coefficients, ArgType&gt;&gt;&gt;</div>
+<div class="line"><a name="l00156"></a><span class="lineno"><a class="line" href="struct_eigen_1_1internal_1_1traits_3_01_open_kalman_1_1_from_euclidean_expr_3_01_coefficients_001dc2cc2fb7daacf70f93e3ac8d01fe80.html">  156</a></span>&#160;  <span class="keyword">struct </span>traits&lt;<a class="code" href="namespace_open_kalman.html">OpenKalman</a>::FromEuclideanExpr&lt;Coefficients, OpenKalman::ToEuclideanExpr&lt;Coefficients, ArgType&gt;&gt;&gt;</div>
 <div class="line"><a name="l00157"></a><span class="lineno">  157</span>&#160;  {</div>
 <div class="line"><a name="l00158"></a><span class="lineno">  158</span>&#160;    <span class="keyword">using</span> Nested = std::decay_t&lt;ArgType&gt;;</div>
 <div class="line"><a name="l00159"></a><span class="lineno">  159</span>&#160;    <span class="keyword">using</span> NestedTraits = traits&lt;Nested&gt;;</div>
@@ -267,6 +267,7 @@ $(document).ready(function(){initNavTree('_eigen_traits_8h_source.html',''); ini
 <div class="line"><a name="l00179"></a><span class="lineno">  179</span>&#160;<span class="preprocessor">#endif //OPENKALMAN_EIGENTRAITS_H</span></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
+<div class="ttc" id="anamespace_open_kalman_html"><div class="ttname"><a href="namespace_open_kalman.html">OpenKalman</a></div><div class="ttdef"><b>Definition:</b> <a href="_continuous_property_particle_distribution_8h_source.html#l00022">ContinuousPropertyParticleDistribution.h:22</a></div></div>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>

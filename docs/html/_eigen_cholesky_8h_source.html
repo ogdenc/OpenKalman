@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.18"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>OpenKalman: src/variables/interfaces/Eigen3/EigenCholesky.h Source File</title>
+<title>OpenKalman: C:/Users/cogden/CLionProjects/OpenKalman/src/variables/interfaces/Eigen3/EigenCholesky.h Source File</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -99,7 +99,7 @@ $(document).ready(function(){initNavTree('_eigen_cholesky_8h_source.html',''); i
 <div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;<span class="preprocessor">#ifndef OPENKALMAN_EIGENCHOLESKY_H</span></div>
 <div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;<span class="preprocessor">#define OPENKALMAN_EIGENCHOLESKY_H</span></div>
 <div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160; </div>
-<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;<span class="keyword">namespace </span>OpenKalman</div>
+<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;<span class="keyword">namespace </span><a class="code" href="namespace_open_kalman.html">OpenKalman</a></div>
 <div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;{</div>
 <div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> Arg, std::enable_if_t&lt;is_native_Eigen_type_v&lt;Arg&gt; and is_diagonal_v&lt;Arg&gt;, <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;  constexpr decltype(<span class="keyword">auto</span>)</div>
@@ -111,7 +111,7 @@ $(document).ready(function(){initNavTree('_eigen_cholesky_8h_source.html',''); i
 <div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;    }</div>
 <div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;    <span class="keywordflow">else</span> <span class="keywordflow">if</span> constexpr(is_1by1_v&lt;Arg&gt;)</div>
 <div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;    {</div>
-<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;      <span class="keywordflow">return</span> strict(std::forward&lt;Arg&gt;(arg).array().square().matrix());</div>
+<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;      <span class="keywordflow">return</span> <a class="code" href="namespace_open_kalman.html#a0fd8f48a0e8423e7f1db724d834e5375">strict</a>(std::forward&lt;Arg&gt;(arg).array().square().matrix());</div>
 <div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;    }</div>
 <div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;    <span class="keywordflow">else</span></div>
 <div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;    {</div>
@@ -130,7 +130,7 @@ $(document).ready(function(){initNavTree('_eigen_cholesky_8h_source.html',''); i
 <div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;    }</div>
 <div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;    <span class="keywordflow">else</span> <span class="keywordflow">if</span> constexpr(is_1by1_v&lt;Arg&gt;)</div>
 <div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;    {</div>
-<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;      <span class="keywordflow">return</span> strict(std::forward&lt;Arg&gt;(arg).cwiseSqrt());</div>
+<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;      <span class="keywordflow">return</span> <a class="code" href="namespace_open_kalman.html#a0fd8f48a0e8423e7f1db724d834e5375">strict</a>(std::forward&lt;Arg&gt;(arg).cwiseSqrt());</div>
 <div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;    }</div>
 <div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;    <span class="keywordflow">else</span></div>
 <div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;    {</div>
@@ -231,7 +231,7 @@ $(document).ready(function(){initNavTree('_eigen_cholesky_8h_source.html',''); i
 <div class="line"><a name="l00143"></a><span class="lineno">  143</span>&#160;    }</div>
 <div class="line"><a name="l00144"></a><span class="lineno">  144</span>&#160;    <span class="keywordflow">else</span> <span class="keywordflow">if</span> constexpr (is_1by1_v&lt;BaseMatrix&gt;)</div>
 <div class="line"><a name="l00145"></a><span class="lineno">  145</span>&#160;    {</div>
-<div class="line"><a name="l00146"></a><span class="lineno">  146</span>&#160;      <span class="keywordflow">return</span> strict(base_matrix(std::forward&lt;Arg&gt;(arg)).cwiseSqrt());</div>
+<div class="line"><a name="l00146"></a><span class="lineno">  146</span>&#160;      <span class="keywordflow">return</span> <a class="code" href="namespace_open_kalman.html#a0fd8f48a0e8423e7f1db724d834e5375">strict</a>(base_matrix(std::forward&lt;Arg&gt;(arg)).cwiseSqrt());</div>
 <div class="line"><a name="l00147"></a><span class="lineno">  147</span>&#160;    }</div>
 <div class="line"><a name="l00148"></a><span class="lineno">  148</span>&#160;    <span class="keywordflow">else</span> <span class="keywordflow">if</span> constexpr (MatrixTraits&lt;Arg&gt;::storage_type == TriangleType::diagonal)</div>
 <div class="line"><a name="l00149"></a><span class="lineno">  149</span>&#160;    {</div>
@@ -350,7 +350,7 @@ $(document).ready(function(){initNavTree('_eigen_cholesky_8h_source.html',''); i
 <div class="line"><a name="l00262"></a><span class="lineno">  262</span>&#160;    }</div>
 <div class="line"><a name="l00263"></a><span class="lineno">  263</span>&#160;    <span class="keywordflow">else</span> <span class="keywordflow">if</span> constexpr (is_1by1_v&lt;BaseMatrix&gt;)</div>
 <div class="line"><a name="l00264"></a><span class="lineno">  264</span>&#160;    {</div>
-<div class="line"><a name="l00265"></a><span class="lineno">  265</span>&#160;      <span class="keywordflow">return</span> strict(base_matrix(std::forward&lt;Arg&gt;(arg)).array().square().matrix());</div>
+<div class="line"><a name="l00265"></a><span class="lineno">  265</span>&#160;      <span class="keywordflow">return</span> <a class="code" href="namespace_open_kalman.html#a0fd8f48a0e8423e7f1db724d834e5375">strict</a>(base_matrix(std::forward&lt;Arg&gt;(arg)).array().square().matrix());</div>
 <div class="line"><a name="l00266"></a><span class="lineno">  266</span>&#160;    }</div>
 <div class="line"><a name="l00267"></a><span class="lineno">  267</span>&#160;    <span class="keywordflow">else</span> <span class="keywordflow">if</span> constexpr (triangle_type == TriangleType::diagonal)</div>
 <div class="line"><a name="l00268"></a><span class="lineno">  268</span>&#160;    {</div>
@@ -422,6 +422,8 @@ $(document).ready(function(){initNavTree('_eigen_cholesky_8h_source.html',''); i
 <div class="line"><a name="l00334"></a><span class="lineno">  334</span>&#160;<span class="preprocessor">#endif //OPENKALMAN_EIGENCHOLESKY_H</span></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
+<div class="ttc" id="anamespace_open_kalman_html"><div class="ttname"><a href="namespace_open_kalman.html">OpenKalman</a></div><div class="ttdef"><b>Definition:</b> <a href="_continuous_property_particle_distribution_8h_source.html#l00022">ContinuousPropertyParticleDistribution.h:22</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html_a0fd8f48a0e8423e7f1db724d834e5375"><div class="ttname"><a href="namespace_open_kalman.html#a0fd8f48a0e8423e7f1db724d834e5375">OpenKalman::strict</a></div><div class="ttdeci">constexpr decltype(auto) strict(Arg &amp;&amp;arg) noexcept</div><div class="ttdoc">Convert to strict version of the distribution.</div><div class="ttdef"><b>Definition:</b> <a href="_gaussian_distribution_8h_source.html#l00558">GaussianDistribution.h:558</a></div></div>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>

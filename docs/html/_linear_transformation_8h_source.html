@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.18"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>OpenKalman: src/transforms/transformations/LinearTransformation.h Source File</title>
+<title>OpenKalman: C:/Users/cogden/CLionProjects/OpenKalman/src/transforms/transformations/LinearTransformation.h Source File</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -100,7 +100,7 @@ $(document).ready(function(){initNavTree('_linear_transformation_8h_source.html'
 <div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;<span class="preprocessor">#define OPENKALMAN_LINEARTRANSFORMATION_H</span></div>
 <div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160; </div>
 <div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160; </div>
-<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;<span class="keyword">namespace </span>OpenKalman</div>
+<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;<span class="keyword">namespace </span><a class="code" href="namespace_open_kalman.html">OpenKalman</a></div>
 <div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;{</div>
 <div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160; </div>
 <div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;  <span class="keyword">template</span>&lt;</div>
@@ -150,7 +150,7 @@ $(document).ready(function(){initNavTree('_linear_transformation_8h_source.html'
 <div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> Jacobians, <span class="keyword">typename</span> InputTuple, std::size_t...ints&gt;</div>
 <div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;    constexpr <span class="keyword">auto</span> sumprod(Jacobians&amp;&amp; js, InputTuple&amp;&amp; inputs, std::index_sequence&lt;ints...&gt;)<span class="keyword"> const</span></div>
 <div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;<span class="keyword">    </span>{</div>
-<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;      <span class="keywordflow">return</span> strict(</div>
+<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;      <span class="keywordflow">return</span> <a class="code" href="namespace_open_kalman.html#a0fd8f48a0e8423e7f1db724d834e5375">strict</a>(</div>
 <div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;        ((std::get&lt;ints&gt;(std::forward&lt;Jacobians&gt;(js)) * std::get&lt;ints&gt;(std::forward&lt;InputTuple&gt;(inputs))) + ...));</div>
 <div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;    }</div>
 <div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160; </div>
@@ -180,7 +180,7 @@ $(document).ready(function(){initNavTree('_linear_transformation_8h_source.html'
 <div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;      static_assert((is_perturbation_v&lt;Perturbations&gt; and ...));</div>
 <div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;      static_assert(MatrixTraits&lt;In&gt;::columns == 1);</div>
 <div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;      static_assert(((internal::PerturbationTraits&lt;Perturbations&gt;::columns == 1) and ...));</div>
-<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;      static_assert(is_equivalent_v&lt;<span class="keyword">typename</span> MatrixTraits&lt;In&gt;::RowCoefficients, InputCoefficients&gt;);</div>
+<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;      static_assert(<a class="code" href="namespace_open_kalman.html#ac7a6ca66f215de077344f7a377d31916">is_equivalent_v</a>&lt;<span class="keyword">typename</span> MatrixTraits&lt;In&gt;::RowCoefficients, InputCoefficients&gt;);</div>
 <div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;      static_assert(std::conjunction_v&lt;</div>
 <div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;        is_equivalent&lt;<span class="keyword">typename</span> internal::PerturbationTraits&lt;Perturbations&gt;::RowCoefficients, OutputCoefficients&gt;...&gt;);</div>
 <div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160; </div>
@@ -197,7 +197,7 @@ $(document).ready(function(){initNavTree('_linear_transformation_8h_source.html'
 <div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;      static_assert((is_perturbation_v&lt;Perturbations&gt; and ...));</div>
 <div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;      static_assert(MatrixTraits&lt;In&gt;::columns == 1);</div>
 <div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160;      static_assert(((internal::PerturbationTraits&lt;Perturbations&gt;::columns == 1) and ...));</div>
-<div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160;      static_assert(is_equivalent_v&lt;<span class="keyword">typename</span> MatrixTraits&lt;In&gt;::RowCoefficients, InputCoefficients&gt;);</div>
+<div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160;      static_assert(<a class="code" href="namespace_open_kalman.html#ac7a6ca66f215de077344f7a377d31916">is_equivalent_v</a>&lt;<span class="keyword">typename</span> MatrixTraits&lt;In&gt;::RowCoefficients, InputCoefficients&gt;);</div>
 <div class="line"><a name="l00126"></a><span class="lineno">  126</span>&#160;      static_assert(std::conjunction_v&lt;</div>
 <div class="line"><a name="l00127"></a><span class="lineno">  127</span>&#160;        is_equivalent&lt;<span class="keyword">typename</span> internal::PerturbationTraits&lt;Perturbations&gt;::RowCoefficients, OutputCoefficients&gt;...&gt;);</div>
 <div class="line"><a name="l00128"></a><span class="lineno">  128</span>&#160;      constexpr <span class="keyword">auto</span> mat_count = std::tuple_size_v&lt;TransformationMatricesTuple&gt;;</div>
@@ -218,7 +218,7 @@ $(document).ready(function(){initNavTree('_linear_transformation_8h_source.html'
 <div class="line"><a name="l00144"></a><span class="lineno">  144</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> In, <span class="keyword">typename</span> ... Perturbations&gt;</div>
 <div class="line"><a name="l00145"></a><span class="lineno">  145</span>&#160;    <span class="keyword">auto</span> hessian(<span class="keyword">const</span> In&amp;, <span class="keyword">const</span> Perturbations&amp;...)<span class="keyword"> const</span></div>
 <div class="line"><a name="l00146"></a><span class="lineno">  146</span>&#160;<span class="keyword">    </span>{</div>
-<div class="line"><a name="l00147"></a><span class="lineno">  147</span>&#160;      <span class="keywordflow">return</span> zero_hessian&lt;OutputCoefficients, In, Perturbations...&gt;();</div>
+<div class="line"><a name="l00147"></a><span class="lineno">  147</span>&#160;      <span class="keywordflow">return</span> <a class="code" href="namespace_open_kalman.html#a82c83df8efb22e49dd3e6f5ea119caef">zero_hessian</a>&lt;OutputCoefficients, In, Perturbations...&gt;();</div>
 <div class="line"><a name="l00148"></a><span class="lineno">  148</span>&#160;    }</div>
 <div class="line"><a name="l00149"></a><span class="lineno">  149</span>&#160; </div>
 <div class="line"><a name="l00150"></a><span class="lineno">  150</span>&#160;  };</div>
@@ -265,10 +265,14 @@ $(document).ready(function(){initNavTree('_linear_transformation_8h_source.html'
 <div class="line"><a name="l00199"></a><span class="lineno">  199</span>&#160;<span class="preprocessor">#endif //OPENKALMAN_LINEARTRANSFORMATION_H</span></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
+<div class="ttc" id="anamespace_open_kalman_html_a82c83df8efb22e49dd3e6f5ea119caef"><div class="ttname"><a href="namespace_open_kalman.html#a82c83df8efb22e49dd3e6f5ea119caef">OpenKalman::zero_hessian</a></div><div class="ttdeci">auto zero_hessian()</div><div class="ttdoc">A tuple of zero-filled arrays of Hessian matrices, based on the input and each perturbation term.</div><div class="ttdef"><b>Definition:</b> <a href="_transformation_traits_8h_source.html#l00164">TransformationTraits.h:164</a></div></div>
 <div class="ttc" id="astruct_open_kalman_1_1_linear_transformation_html"><div class="ttname"><a href="struct_open_kalman_1_1_linear_transformation.html">OpenKalman::LinearTransformation</a></div><div class="ttdoc">A linear transformation from one single-column vector to another.</div><div class="ttdef"><b>Definition:</b> <a href="_linear_transformation_8h_source.html#l00034">LinearTransformation.h:34</a></div></div>
-<div class="ttc" id="astruct_open_kalman_1_1_matrix_traits_html"><div class="ttname"><a href="struct_open_kalman_1_1_matrix_traits.html">OpenKalman::MatrixTraits</a></div><div class="ttdoc">Traits of a matrix, such as size, coefficient types, etc.</div><div class="ttdef"><b>Definition:</b> <a href="_traits_8h_source.html#l00024">Traits.h:24</a></div></div>
-<div class="ttc" id="astruct_open_kalman_1_1is__typed__matrix__base_html"><div class="ttname"><a href="struct_open_kalman_1_1is__typed__matrix__base.html">OpenKalman::is_typed_matrix_base</a></div><div class="ttdoc">Whether an object is a base for a typed matrix.</div><div class="ttdef"><b>Definition:</b> <a href="_traits_8h_source.html#l00265">Traits.h:265</a></div></div>
+<div class="ttc" id="astruct_open_kalman_1_1_matrix_traits_html"><div class="ttname"><a href="struct_open_kalman_1_1_matrix_traits.html">OpenKalman::MatrixTraits</a></div><div class="ttdef"><b>Definition:</b> <a href="_traits_8h_source.html#l00029">Traits.h:29</a></div></div>
+<div class="ttc" id="astruct_open_kalman_1_1is__typed__matrix__base_html"><div class="ttname"><a href="struct_open_kalman_1_1is__typed__matrix__base.html">OpenKalman::is_typed_matrix_base</a></div><div class="ttdoc">Whether an object is a base for a typed matrix.</div><div class="ttdef"><b>Definition:</b> <a href="_traits_8h_source.html#l00285">Traits.h:285</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html"><div class="ttname"><a href="namespace_open_kalman.html">OpenKalman</a></div><div class="ttdef"><b>Definition:</b> <a href="_continuous_property_particle_distribution_8h_source.html#l00022">ContinuousPropertyParticleDistribution.h:22</a></div></div>
 <div class="ttc" id="astruct_open_kalman_1_1is__linearized__function_html"><div class="ttname"><a href="struct_open_kalman_1_1is__linearized__function.html">OpenKalman::is_linearized_function</a></div><div class="ttdoc">Whether an object is a linearized function (with defined Jacobian and optionally Hessian functions).</div><div class="ttdef"><b>Definition:</b> <a href="_transformation_traits_8h_source.html#l00020">TransformationTraits.h:20</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html_ac7a6ca66f215de077344f7a377d31916"><div class="ttname"><a href="namespace_open_kalman.html#ac7a6ca66f215de077344f7a377d31916">OpenKalman::is_equivalent_v</a></div><div class="ttdeci">constexpr bool is_equivalent_v</div><div class="ttdoc">Helper template for is_equivalent.</div><div class="ttdef"><b>Definition:</b> <a href="_traits_8h_source.html#l00359">Traits.h:359</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html_a0fd8f48a0e8423e7f1db724d834e5375"><div class="ttname"><a href="namespace_open_kalman.html#a0fd8f48a0e8423e7f1db724d834e5375">OpenKalman::strict</a></div><div class="ttdeci">constexpr decltype(auto) strict(Arg &amp;&amp;arg) noexcept</div><div class="ttdoc">Convert to strict version of the distribution.</div><div class="ttdef"><b>Definition:</b> <a href="_gaussian_distribution_8h_source.html#l00558">GaussianDistribution.h:558</a></div></div>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>

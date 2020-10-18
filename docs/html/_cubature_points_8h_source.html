@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.18"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>OpenKalman: src/transforms/sample-points/CubaturePoints.h Source File</title>
+<title>OpenKalman: C:/Users/cogden/CLionProjects/OpenKalman/src/transforms/sample-points/CubaturePoints.h Source File</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -100,7 +100,7 @@ $(document).ready(function(){initNavTree('_cubature_points_8h_source.html',''); 
 <div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;<span class="preprocessor">#define OPENKALMAN_CUBATUREPOINTS_H</span></div>
 <div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160; </div>
 <div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160; </div>
-<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;<span class="keyword">namespace </span>OpenKalman</div>
+<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;<span class="keyword">namespace </span><a class="code" href="namespace_open_kalman.html">OpenKalman</a></div>
 <div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;{</div>
 <div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160; </div>
 <div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;<span class="comment">  /*************CubaturePoints************</span></div>
@@ -129,10 +129,10 @@ $(document).ready(function(){initNavTree('_cubature_points_8h_source.html',''); 
 <div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;      constexpr <span class="keyword">auto</span> points_count = dim * 2;</div>
 <div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;      constexpr <span class="keyword">auto</span> dim_i = <a class="code" href="struct_open_kalman_1_1_distribution_traits.html">DistributionTraits&lt;D&gt;::dimension</a>;</div>
 <div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;      constexpr <span class="keyword">auto</span> frame_size = dim_i * 2;</div>
-<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;      <span class="keyword">const</span> <span class="keyword">auto</span> delta = make_Matrix&lt;Coeffs, Axes&lt;dim_i&gt;&gt;(strict_matrix(square_root(OpenKalman::covariance(d) * <span class="keyword">static_cast&lt;</span>Scalar<span class="keyword">&gt;</span>(dim))));</div>
+<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;      <span class="keyword">const</span> <span class="keyword">auto</span> delta = make_Matrix&lt;Coeffs, Axes&lt;dim_i&gt;&gt;(<a class="code" href="namespace_open_kalman.html#a773cf4e126d6964b9ffd37d666b56fe2">strict_matrix</a>(square_root(OpenKalman::covariance(d) * <span class="keyword">static_cast&lt;</span>Scalar<span class="keyword">&gt;</span>(dim))));</div>
 <div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;      <span class="keywordflow">if</span> constexpr(frame_size == points_count)</div>
 <div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;      {</div>
-<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;        <span class="keyword">auto</span> ret = concatenate_horizontal(delta, -delta);</div>
+<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;        <span class="keyword">auto</span> ret = <a class="code" href="namespace_open_kalman.html#ac3c5157500f9c2c2018697ce9fd276d5">concatenate_horizontal</a>(delta, -delta);</div>
 <div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;        static_assert(<a class="code" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits</a>&lt;decltype(ret)&gt;::columns == points_count);</div>
 <div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;        <span class="keywordflow">return</span> std::tuple {std::move(ret)};</div>
 <div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;      }</div>
@@ -141,7 +141,7 @@ $(document).ready(function(){initNavTree('_cubature_points_8h_source.html',''); 
 <div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;        constexpr <span class="keyword">auto</span> width = points_count - frame_size;</div>
 <div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;        <span class="keyword">using</span> MRbase = strict_matrix_t&lt;M, dim_i, width&gt;;</div>
 <div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;        <span class="keyword">const</span> <span class="keyword">auto</span> mright = <a class="code" href="struct_open_kalman_1_1_typed_matrix.html">TypedMatrix&lt;Coeffs, Axes&lt;width&gt;</a>, MRbase&gt;::zero();</div>
-<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;        <span class="keyword">auto</span> ret = concatenate_horizontal(delta, -delta, mright);</div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;        <span class="keyword">auto</span> ret = <a class="code" href="namespace_open_kalman.html#ac3c5157500f9c2c2018697ce9fd276d5">concatenate_horizontal</a>(delta, -delta, mright);</div>
 <div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;        static_assert(<a class="code" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits</a>&lt;decltype(ret)&gt;::columns == points_count);</div>
 <div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;        <span class="keywordflow">return</span> std::tuple_cat(std::tuple {std::move(ret)}, sample_points_impl&lt;dim, frame_size&gt;(ds...));</div>
 <div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;      }</div>
@@ -152,7 +152,7 @@ $(document).ready(function(){initNavTree('_cubature_points_8h_source.html',''); 
 <div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;        constexpr <span class="keyword">auto</span> width = points_count - (pos + frame_size);</div>
 <div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;        <span class="keyword">using</span> MRbase = strict_matrix_t&lt;M, dim_i, width&gt;;</div>
 <div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;        <span class="keyword">const</span> <span class="keyword">auto</span> mright = <a class="code" href="struct_open_kalman_1_1_typed_matrix.html">TypedMatrix&lt;Coeffs, Axes&lt;width&gt;</a>, MRbase&gt;::zero();</div>
-<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;        <span class="keyword">auto</span> ret = concatenate_horizontal(mleft, delta, -delta, mright);</div>
+<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;        <span class="keyword">auto</span> ret = <a class="code" href="namespace_open_kalman.html#ac3c5157500f9c2c2018697ce9fd276d5">concatenate_horizontal</a>(mleft, delta, -delta, mright);</div>
 <div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;        static_assert(<a class="code" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits</a>&lt;decltype(ret)&gt;::columns == points_count);</div>
 <div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;        <span class="keywordflow">return</span> std::tuple_cat(std::tuple {std::move(ret)}, sample_points_impl&lt;dim, pos + frame_size&gt;(ds...));</div>
 <div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;      }</div>
@@ -161,7 +161,7 @@ $(document).ready(function(){initNavTree('_cubature_points_8h_source.html',''); 
 <div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;        static_assert(<span class="keyword">sizeof</span>...(ds) == 0);</div>
 <div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;        <span class="keyword">using</span> MLbase = strict_matrix_t&lt;M, dim_i, pos&gt;;</div>
 <div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;        <span class="keyword">const</span> <span class="keyword">auto</span> mleft = <a class="code" href="struct_open_kalman_1_1_typed_matrix.html">TypedMatrix&lt;Coeffs, Axes&lt;pos&gt;</a>, MLbase&gt;::zero();</div>
-<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;        <span class="keyword">auto</span> ret = concatenate_horizontal(mleft, delta, -delta);</div>
+<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;        <span class="keyword">auto</span> ret = <a class="code" href="namespace_open_kalman.html#ac3c5157500f9c2c2018697ce9fd276d5">concatenate_horizontal</a>(mleft, delta, -delta);</div>
 <div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;        static_assert(<a class="code" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits</a>&lt;decltype(ret)&gt;::columns == points_count);</div>
 <div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;        <span class="keywordflow">return</span> std::tuple {std::move(ret)};</div>
 <div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;      }</div>
@@ -183,7 +183,7 @@ $(document).ready(function(){initNavTree('_cubature_points_8h_source.html',''); 
 <div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;    {</div>
 <div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;      static_assert(is_column_vector_v&lt;Arg&gt;);</div>
 <div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;      static_assert(<a class="code" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits&lt;Arg&gt;::columns</a> == dim * 2, <span class="stringliteral">&quot;Wrong number of cubature points.&quot;</span>);</div>
-<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;      <span class="keywordflow">return</span> reduce_columns(y_means);</div>
+<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;      <span class="keywordflow">return</span> <a class="code" href="namespace_open_kalman.html#af64ea73d28077cecfc217139a9d77813">reduce_columns</a>(y_means);</div>
 <div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;    };</div>
 <div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160; </div>
 <div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;    <span class="keyword">template</span>&lt;std::<span class="keywordtype">size_t</span> dim, <span class="keyword">typename</span> InputDist, <span class="keywordtype">bool</span> return_cross = false, <span class="keyword">typename</span> X, <span class="keyword">typename</span> Y&gt;</div>
@@ -198,10 +198,10 @@ $(document).ready(function(){initNavTree('_cubature_points_8h_source.html',''); 
 <div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;      constexpr <span class="keyword">auto</span> inv_weight = 1 / Scalar(count);</div>
 <div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;      <span class="keywordflow">if</span> constexpr(is_Cholesky_v&lt;InputDist&gt;)</div>
 <div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;      {</div>
-<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;        <span class="keyword">auto</span> out_covariance = Covariance {LQ_decomposition(y_deviations * std::sqrt(inv_weight))};</div>
+<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;        <span class="keyword">auto</span> out_covariance = Covariance {<a class="code" href="namespace_open_kalman.html#a2b6c57d62908d98416bcaed87375964c">LQ_decomposition</a>(y_deviations * std::sqrt(inv_weight))};</div>
 <div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;        <span class="keywordflow">if</span> constexpr (return_cross)</div>
 <div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;        {</div>
-<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;          <span class="keyword">auto</span> cross_covariance = strict(x_deviations * inv_weight * adjoint(y_deviations));</div>
+<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;          <span class="keyword">auto</span> cross_covariance = <a class="code" href="namespace_open_kalman.html#a0fd8f48a0e8423e7f1db724d834e5375">strict</a>(x_deviations * inv_weight * adjoint(y_deviations));</div>
 <div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;          <span class="keywordflow">return</span> std::tuple{std::move(out_covariance), std::move(cross_covariance)};</div>
 <div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160;        }</div>
 <div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160;        <span class="keywordflow">else</span></div>
@@ -211,11 +211,11 @@ $(document).ready(function(){initNavTree('_cubature_points_8h_source.html',''); 
 <div class="line"><a name="l00129"></a><span class="lineno">  129</span>&#160;      }</div>
 <div class="line"><a name="l00130"></a><span class="lineno">  130</span>&#160;      <span class="keywordflow">else</span></div>
 <div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160;      {</div>
-<div class="line"><a name="l00132"></a><span class="lineno">  132</span>&#160;        <span class="keyword">const</span> <span class="keyword">auto</span> w_yT = strict(inv_weight * adjoint(y_deviations));</div>
-<div class="line"><a name="l00133"></a><span class="lineno">  133</span>&#160;        <span class="keyword">auto</span> out_covariance = Covariance {strict(y_deviations * w_yT)};</div>
+<div class="line"><a name="l00132"></a><span class="lineno">  132</span>&#160;        <span class="keyword">const</span> <span class="keyword">auto</span> w_yT = <a class="code" href="namespace_open_kalman.html#a0fd8f48a0e8423e7f1db724d834e5375">strict</a>(inv_weight * adjoint(y_deviations));</div>
+<div class="line"><a name="l00133"></a><span class="lineno">  133</span>&#160;        <span class="keyword">auto</span> out_covariance = Covariance {<a class="code" href="namespace_open_kalman.html#a0fd8f48a0e8423e7f1db724d834e5375">strict</a>(y_deviations * w_yT)};</div>
 <div class="line"><a name="l00134"></a><span class="lineno">  134</span>&#160;        <span class="keywordflow">if</span> constexpr (return_cross)</div>
 <div class="line"><a name="l00135"></a><span class="lineno">  135</span>&#160;        {</div>
-<div class="line"><a name="l00136"></a><span class="lineno">  136</span>&#160;          <span class="keyword">auto</span> cross_covariance = strict(x_deviations * w_yT);</div>
+<div class="line"><a name="l00136"></a><span class="lineno">  136</span>&#160;          <span class="keyword">auto</span> cross_covariance = <a class="code" href="namespace_open_kalman.html#a0fd8f48a0e8423e7f1db724d834e5375">strict</a>(x_deviations * w_yT);</div>
 <div class="line"><a name="l00137"></a><span class="lineno">  137</span>&#160;          <span class="keywordflow">return</span> std::tuple{std::move(out_covariance), std::move(cross_covariance)};</div>
 <div class="line"><a name="l00138"></a><span class="lineno">  138</span>&#160;        }</div>
 <div class="line"><a name="l00139"></a><span class="lineno">  139</span>&#160;        <span class="keywordflow">else</span></div>
@@ -232,11 +232,17 @@ $(document).ready(function(){initNavTree('_cubature_points_8h_source.html',''); 
 <div class="line"><a name="l00150"></a><span class="lineno">  150</span>&#160;<span class="preprocessor">#endif //OPENKALMAN_CUBATUREPOINTS_H</span></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
-<div class="ttc" id="astruct_open_kalman_1_1_distribution_traits_html"><div class="ttname"><a href="struct_open_kalman_1_1_distribution_traits.html">OpenKalman::DistributionTraits</a></div><div class="ttdoc">Traits of a distribution.</div><div class="ttdef"><b>Definition:</b> <a href="_traits_8h_source.html#l00385">Traits.h:385</a></div></div>
-<div class="ttc" id="astruct_open_kalman_1_1_matrix_traits_html"><div class="ttname"><a href="struct_open_kalman_1_1_matrix_traits.html">OpenKalman::MatrixTraits</a></div><div class="ttdoc">Traits of a matrix, such as size, coefficient types, etc.</div><div class="ttdef"><b>Definition:</b> <a href="_traits_8h_source.html#l00024">Traits.h:24</a></div></div>
-<div class="ttc" id="astruct_open_kalman_1_1is___gaussian__distribution_html"><div class="ttname"><a href="struct_open_kalman_1_1is___gaussian__distribution.html">OpenKalman::is_Gaussian_distribution</a></div><div class="ttdoc">Whether an object is a Gaussian distribution.</div><div class="ttdef"><b>Definition:</b> <a href="_traits_8h_source.html#l00368">Traits.h:368</a></div></div>
+<div class="ttc" id="astruct_open_kalman_1_1_distribution_traits_html"><div class="ttname"><a href="struct_open_kalman_1_1_distribution_traits.html">OpenKalman::DistributionTraits</a></div><div class="ttdoc">Traits of a distribution.</div><div class="ttdef"><b>Definition:</b> <a href="_traits_8h_source.html#l00405">Traits.h:405</a></div></div>
+<div class="ttc" id="astruct_open_kalman_1_1_matrix_traits_html"><div class="ttname"><a href="struct_open_kalman_1_1_matrix_traits.html">OpenKalman::MatrixTraits</a></div><div class="ttdef"><b>Definition:</b> <a href="_traits_8h_source.html#l00029">Traits.h:29</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html_ac3c5157500f9c2c2018697ce9fd276d5"><div class="ttname"><a href="namespace_open_kalman.html#ac3c5157500f9c2c2018697ce9fd276d5">OpenKalman::concatenate_horizontal</a></div><div class="ttdeci">constexpr decltype(auto) concatenate_horizontal(V &amp;&amp;v, Vs &amp;&amp;... vs) noexcept</div><div class="ttdoc">Concatenate one or more Eigen::MatrixBase objects horizontally.</div><div class="ttdef"><b>Definition:</b> <a href="_eigen_matrix_overloads_8h_source.html#l00309">EigenMatrixOverloads.h:309</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html_af64ea73d28077cecfc217139a9d77813"><div class="ttname"><a href="namespace_open_kalman.html#af64ea73d28077cecfc217139a9d77813">OpenKalman::reduce_columns</a></div><div class="ttdeci">constexpr decltype(auto) reduce_columns(Arg &amp;&amp;arg) noexcept</div><div class="ttdoc">Create a column vector from a diagnoal matrix. (Same as base_matrix()).</div><div class="ttdef"><b>Definition:</b> <a href="_eigen_diagonal_8h_source.html#l00446">EigenDiagonal.h:446</a></div></div>
+<div class="ttc" id="astruct_open_kalman_1_1is___gaussian__distribution_html"><div class="ttname"><a href="struct_open_kalman_1_1is___gaussian__distribution.html">OpenKalman::is_Gaussian_distribution</a></div><div class="ttdoc">Whether an object is a Gaussian distribution.</div><div class="ttdef"><b>Definition:</b> <a href="_traits_8h_source.html#l00388">Traits.h:388</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html"><div class="ttname"><a href="namespace_open_kalman.html">OpenKalman</a></div><div class="ttdef"><b>Definition:</b> <a href="_continuous_property_particle_distribution_8h_source.html#l00022">ContinuousPropertyParticleDistribution.h:22</a></div></div>
 <div class="ttc" id="astruct_open_kalman_1_1_cubature_points_html"><div class="ttname"><a href="struct_open_kalman_1_1_cubature_points.html">OpenKalman::CubaturePoints</a></div><div class="ttdef"><b>Definition:</b> <a href="_cubature_points_8h_source.html#l00024">CubaturePoints.h:25</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html_a773cf4e126d6964b9ffd37d666b56fe2"><div class="ttname"><a href="namespace_open_kalman.html#a773cf4e126d6964b9ffd37d666b56fe2">OpenKalman::strict_matrix</a></div><div class="ttdeci">constexpr decltype(auto) strict_matrix(Arg &amp;&amp;arg)</div><div class="ttdoc">Convert to strict version of the matrix.</div><div class="ttdef"><b>Definition:</b> <a href="_eigen_matrix_overloads_8h_source.html#l00026">EigenMatrixOverloads.h:26</a></div></div>
 <div class="ttc" id="astruct_open_kalman_1_1_typed_matrix_html"><div class="ttname"><a href="struct_open_kalman_1_1_typed_matrix.html">OpenKalman::TypedMatrix</a></div><div class="ttdoc">A typed matrix.</div><div class="ttdef"><b>Definition:</b> <a href="_typed_matrix_8h_source.html#l00025">TypedMatrix.h:27</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html_a2b6c57d62908d98416bcaed87375964c"><div class="ttname"><a href="namespace_open_kalman.html#a2b6c57d62908d98416bcaed87375964c">OpenKalman::LQ_decomposition</a></div><div class="ttdeci">constexpr decltype(auto) LQ_decomposition(A &amp;&amp;a)</div><div class="ttdoc">Perform an LQ decomposition. Since it is diagonal, it returns the matrix unchanged.</div><div class="ttdef"><b>Definition:</b> <a href="_eigen_diagonal_8h_source.html#l00455">EigenDiagonal.h:455</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html_a0fd8f48a0e8423e7f1db724d834e5375"><div class="ttname"><a href="namespace_open_kalman.html#a0fd8f48a0e8423e7f1db724d834e5375">OpenKalman::strict</a></div><div class="ttdeci">constexpr decltype(auto) strict(Arg &amp;&amp;arg) noexcept</div><div class="ttdoc">Convert to strict version of the distribution.</div><div class="ttdef"><b>Definition:</b> <a href="_gaussian_distribution_8h_source.html#l00558">GaussianDistribution.h:558</a></div></div>
 <div class="ttc" id="astruct_open_kalman_1_1_cubature_points_html_a53e5c6e77351b2d486ef924775afc759"><div class="ttname"><a href="struct_open_kalman_1_1_cubature_points.html#a53e5c6e77351b2d486ef924775afc759">OpenKalman::CubaturePoints::sample_points</a></div><div class="ttdeci">static auto sample_points(const Dist &amp;...ds)</div><div class="ttdoc">Scale and translate normalized sample points based on mean and (square root) covariance.</div><div class="ttdef"><b>Definition:</b> <a href="_cubature_points_8h_source.html#l00091">CubaturePoints.h:91</a></div></div>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

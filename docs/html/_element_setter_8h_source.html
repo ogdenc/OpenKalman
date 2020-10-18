@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.18"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>OpenKalman: src/variables/support/ElementSetter.h Source File</title>
+<title>OpenKalman: C:/Users/cogden/CLionProjects/OpenKalman/src/variables/support/ElementSetter.h Source File</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -114,12 +114,12 @@ $(document).ready(function(){initNavTree('_element_setter_8h_source.html',''); i
 <div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;      : getter([i, j, &amp;t, on_change] () -&gt; Scalar</div>
 <div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;        {</div>
 <div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;          on_change();</div>
-<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;          <span class="keywordflow">return</span> get_element(t, i, j);</div>
+<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;          <span class="keywordflow">return</span> <a class="code" href="namespace_open_kalman.html#a7ed81d91202d9b998733a3be06de9910">get_element</a>(t, i, j);</div>
 <div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;        }),</div>
 <div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;        setter([i, j, &amp;t, on_set, on_change] (Scalar s)</div>
 <div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;        {</div>
 <div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;          on_change();</div>
-<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;          set_element(t, s, i, j);</div>
+<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;          <a class="code" href="namespace_open_kalman.html#a1a86339bc79fa01578464985b73e03a5">set_element</a>(t, s, i, j);</div>
 <div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;          on_set();</div>
 <div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;        })</div>
 <div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;      {</div>
@@ -131,12 +131,12 @@ $(document).ready(function(){initNavTree('_element_setter_8h_source.html',''); i
 <div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;      : getter([i, &amp;t, on_change] () -&gt; Scalar</div>
 <div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;        {</div>
 <div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;          on_change();</div>
-<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;          <span class="keywordflow">return</span> get_element(t, i);</div>
+<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;          <span class="keywordflow">return</span> <a class="code" href="namespace_open_kalman.html#a7ed81d91202d9b998733a3be06de9910">get_element</a>(t, i);</div>
 <div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;        }),</div>
 <div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;        setter([i, &amp;t, on_set, on_change] (Scalar s)</div>
 <div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;        {</div>
 <div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;          on_change();</div>
-<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;          set_element(t, s, i);</div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;          <a class="code" href="namespace_open_kalman.html#a1a86339bc79fa01578464985b73e03a5">set_element</a>(t, s, i);</div>
 <div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;          on_set();</div>
 <div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;        })</div>
 <div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;      {</div>
@@ -164,7 +164,7 @@ $(document).ready(function(){initNavTree('_element_setter_8h_source.html',''); i
 <div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;      : getter([i, j, &amp;t, on_change] () -&gt; Scalar</div>
 <div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;        {</div>
 <div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;          on_change();</div>
-<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;          <span class="keywordflow">return</span> get_element(t, i, j);</div>
+<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;          <span class="keywordflow">return</span> <a class="code" href="namespace_open_kalman.html#a7ed81d91202d9b998733a3be06de9910">get_element</a>(t, i, j);</div>
 <div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;        })</div>
 <div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;      {</div>
 <div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;        static_assert(is_element_gettable_v&lt;T, 2&gt;, <span class="stringliteral">&quot;Two-index element read access is not available.&quot;</span>);</div>
@@ -174,7 +174,7 @@ $(document).ready(function(){initNavTree('_element_setter_8h_source.html',''); i
 <div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;      : getter([i, &amp;t, on_change] () -&gt; Scalar</div>
 <div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;        {</div>
 <div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;          on_change();</div>
-<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;          <span class="keywordflow">return</span> get_element(t, i);</div>
+<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;          <span class="keywordflow">return</span> <a class="code" href="namespace_open_kalman.html#a7ed81d91202d9b998733a3be06de9910">get_element</a>(t, i);</div>
 <div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;        })</div>
 <div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;      {</div>
 <div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;        static_assert(is_element_gettable_v&lt;T, 1&gt;, <span class="stringliteral">&quot;One-index element read access is not available.&quot;</span>);</div>
@@ -258,7 +258,9 @@ $(document).ready(function(){initNavTree('_element_setter_8h_source.html',''); i
 <div class="line"><a name="l00173"></a><span class="lineno">  173</span>&#160;<span class="preprocessor">#endif //OPENKALMAN_ELEMENTSETTER_H</span></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
-<div class="ttc" id="astruct_open_kalman_1_1_matrix_traits_html"><div class="ttname"><a href="struct_open_kalman_1_1_matrix_traits.html">OpenKalman::MatrixTraits</a></div><div class="ttdoc">Traits of a matrix, such as size, coefficient types, etc.</div><div class="ttdef"><b>Definition:</b> <a href="_traits_8h_source.html#l00024">Traits.h:24</a></div></div>
+<div class="ttc" id="astruct_open_kalman_1_1_matrix_traits_html"><div class="ttname"><a href="struct_open_kalman_1_1_matrix_traits.html">OpenKalman::MatrixTraits</a></div><div class="ttdef"><b>Definition:</b> <a href="_traits_8h_source.html#l00029">Traits.h:29</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html_a7ed81d91202d9b998733a3be06de9910"><div class="ttname"><a href="namespace_open_kalman.html#a7ed81d91202d9b998733a3be06de9910">OpenKalman::get_element</a></div><div class="ttdeci">auto get_element(Arg &amp;&amp;arg, const std::size_t i)</div><div class="ttdoc">Get element (i) of diagonal matrix arg.</div><div class="ttdef"><b>Definition:</b> <a href="_eigen_diagonal_8h_source.html#l00505">EigenDiagonal.h:505</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html_a1a86339bc79fa01578464985b73e03a5"><div class="ttname"><a href="namespace_open_kalman.html#a1a86339bc79fa01578464985b73e03a5">OpenKalman::set_element</a></div><div class="ttdeci">void set_element(Arg &amp;arg, const Scalar s, const std::size_t i)</div><div class="ttdoc">Set element (i) of matrix arg to s.</div><div class="ttdef"><b>Definition:</b> <a href="_eigen_diagonal_8h_source.html#l00539">EigenDiagonal.h:539</a></div></div>
 <div class="ttc" id="astruct_open_kalman_1_1internal_1_1_element_setter_html"><div class="ttname"><a href="struct_open_kalman_1_1internal_1_1_element_setter.html">OpenKalman::internal::ElementSetter</a></div><div class="ttdoc">A helper object for setting elements of a matrix.</div><div class="ttdef"><b>Definition:</b> <a href="_forward_declarations_8h_source.html#l00247">ForwardDeclarations.h:247</a></div></div>
 <div class="ttc" id="astruct_open_kalman_1_1internal_1_1_element_setter_3_01false_00_01_t_01_4_html_a40318bf904f55bc71910a2d9537caf40"><div class="ttname"><a href="struct_open_kalman_1_1internal_1_1_element_setter_3_01false_00_01_t_01_4.html#a40318bf904f55bc71910a2d9537caf40">OpenKalman::internal::ElementSetter&lt; false, T &gt;::operator=</a></div><div class="ttdeci">void operator=(Scalar s)</div><div class="ttdoc">Set an element.</div><div class="ttdef"><b>Definition:</b> <a href="_element_setter_8h_source.html#l00063">ElementSetter.h:63</a></div></div>
 <!-- start footer part -->

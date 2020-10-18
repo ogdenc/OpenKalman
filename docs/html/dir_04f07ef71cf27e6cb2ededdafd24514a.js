@@ -9,7 +9,7 @@ var dir_04f07ef71cf27e6cb2ededdafd24514a =
     [ "ForwardDeclarations.h", "_forward_declarations_8h_source.html", null ],
     [ "MatrixBase.h", "_matrix_base_8h_source.html", null ],
     [ "OpenKalman-coefficients.h", "_open_kalman-coefficients_8h_source.html", null ],
-    [ "Traits.h", "_traits_8h_source.html", null ],
+    [ "Traits.h", "_traits_8h.html", "_traits_8h" ],
     [ "TypedMatrixBase.h", "_typed_matrix_base_8h_source.html", null ],
     [ "TypedMatrixOverloads.h", "_typed_matrix_overloads_8h_source.html", null ]
 ];

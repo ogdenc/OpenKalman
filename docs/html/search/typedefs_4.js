@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['nested_1144',['Nested',['../struct_open_kalman_1_1internal_1_1_eigen_matrix_base.html#a9048cbd9e72b7bec95d3503bbbb56aaa',1,'OpenKalman::internal::EigenMatrixBase']]]
+  ['function_1304',['Function',['../struct_open_kalman_1_1_transformation_3_01_func_01_4.html#a7474fbd310d44e542df79c116a6f61f0',1,'OpenKalman::Transformation&lt; Func &gt;']]]
 ];

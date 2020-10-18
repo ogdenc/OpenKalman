@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.18"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>OpenKalman: src/variables/interfaces/Eigen3/EigenMatrixOverloads.h Source File</title>
+<title>OpenKalman: C:/Users/cogden/CLionProjects/OpenKalman/src/variables/interfaces/Eigen3/EigenMatrixOverloads.h Source File</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -102,7 +102,7 @@ $(document).ready(function(){initNavTree('_eigen_matrix_overloads_8h_source.html
 <div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;<span class="preprocessor">#include &lt;type_traits&gt;</span></div>
 <div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;<span class="preprocessor">#include &lt;random&gt;</span></div>
 <div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160; </div>
-<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;<span class="keyword">namespace </span>OpenKalman</div>
+<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;<span class="keyword">namespace </span><a class="code" href="namespace_open_kalman.html">OpenKalman</a></div>
 <div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;{</div>
 <div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> Arg, std::enable_if_t&lt;</div>
 <div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;    is_Eigen_matrix_v&lt;Arg&gt; or</div>
@@ -110,7 +110,7 @@ $(document).ready(function(){initNavTree('_eigen_matrix_overloads_8h_source.html
 <div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;    is_EigenSelfAdjointMatrix_v&lt;Arg&gt; or</div>
 <div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;    is_EigenTriangularMatrix_v&lt;Arg&gt;, <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;  constexpr decltype(<span class="keyword">auto</span>)</div>
-<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;  strict_matrix(Arg&amp;&amp; arg)</div>
+<div class="line"><a name="l00026"></a><span class="lineno"><a class="line" href="namespace_open_kalman.html#a773cf4e126d6964b9ffd37d666b56fe2">   26</a></span>&#160;  <a class="code" href="namespace_open_kalman.html#a773cf4e126d6964b9ffd37d666b56fe2">strict_matrix</a>(Arg&amp;&amp; arg)</div>
 <div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;  {</div>
 <div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;    <span class="keywordflow">if</span> constexpr (is_strict_matrix_v&lt;Arg&gt;)</div>
 <div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;    {</div>
@@ -118,9 +118,9 @@ $(document).ready(function(){initNavTree('_eigen_matrix_overloads_8h_source.html
 <div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;    }</div>
 <div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;    <span class="keywordflow">else</span></div>
 <div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;    {</div>
-<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;      <span class="keyword">using</span> S = <span class="keyword">typename</span> MatrixTraits&lt;Arg&gt;::Scalar;</div>
-<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;      constexpr Eigen::Index rows = MatrixTraits&lt;Arg&gt;::dimension;</div>
-<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;      constexpr Eigen::Index cols = MatrixTraits&lt;Arg&gt;::columns;</div>
+<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;      <span class="keyword">using</span> S = <span class="keyword">typename</span> <a class="code" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits&lt;Arg&gt;::Scalar</a>;</div>
+<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;      constexpr Eigen::Index rows = <a class="code" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits&lt;Arg&gt;::dimension</a>;</div>
+<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;      constexpr Eigen::Index cols = <a class="code" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits&lt;Arg&gt;::columns</a>;</div>
 <div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;      <span class="keywordflow">return</span> <span class="keyword">static_cast&lt;</span>Eigen::Matrix&lt;S, rows, cols&gt;<span class="keyword">&gt;</span>(std::forward&lt;Arg&gt;(arg));</div>
 <div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;    }</div>
 <div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;  }</div>
@@ -128,7 +128,7 @@ $(document).ready(function(){initNavTree('_eigen_matrix_overloads_8h_source.html
 <div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160; </div>
 <div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> Arg, std::enable_if_t&lt;is_native_Eigen_type_v&lt;Arg&gt;, <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;  constexpr decltype(<span class="keyword">auto</span>)</div>
-<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;  strict(Arg&amp;&amp; arg)</div>
+<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;  <a class="code" href="namespace_open_kalman.html#a0fd8f48a0e8423e7f1db724d834e5375">strict</a>(Arg&amp;&amp; arg)</div>
 <div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;  {</div>
 <div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;    <span class="keywordflow">if</span> constexpr (is_strict_v&lt;Arg&gt;)</div>
 <div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;    {</div>
@@ -136,7 +136,7 @@ $(document).ready(function(){initNavTree('_eigen_matrix_overloads_8h_source.html
 <div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;    }</div>
 <div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;    <span class="keywordflow">else</span></div>
 <div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;    {</div>
-<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;      <span class="keywordflow">return</span> strict_matrix(std::forward&lt;Arg&gt;(arg));</div>
+<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;      <span class="keywordflow">return</span> <a class="code" href="namespace_open_kalman.html#a773cf4e126d6964b9ffd37d666b56fe2">strict_matrix</a>(std::forward&lt;Arg&gt;(arg));</div>
 <div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;    }</div>
 <div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;  }</div>
 <div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160; </div>
@@ -175,7 +175,7 @@ $(document).ready(function(){initNavTree('_eigen_matrix_overloads_8h_source.html
 <div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160; </div>
 <div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> Coefficients, <span class="keyword">typename</span> Arg, std::enable_if_t&lt;is_Eigen_matrix_v&lt;Arg&gt;, <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;  constexpr decltype(<span class="keyword">auto</span>)</div>
-<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;  wrap_angles(Arg&amp;&amp; arg) noexcept</div>
+<div class="line"><a name="l00092"></a><span class="lineno"><a class="line" href="namespace_open_kalman.html#a53512a5b7aa44f6146dfcc267c0596fd">   92</a></span>&#160;  <a class="code" href="namespace_open_kalman.html#a53512a5b7aa44f6146dfcc267c0596fd">wrap_angles</a>(Arg&amp;&amp; arg) noexcept</div>
 <div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;  {</div>
 <div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;    <span class="keywordflow">if</span> constexpr (Coefficients::axes_only or is_identity_v&lt;Arg&gt; or is_zero_v&lt;Arg&gt;)</div>
 <div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;    {</div>
@@ -251,7 +251,7 @@ $(document).ready(function(){initNavTree('_eigen_matrix_overloads_8h_source.html
 <div class="line"><a name="l00168"></a><span class="lineno">  168</span>&#160;    std::enable_if_t&lt;is_Eigen_matrix_v&lt;A&gt;, <span class="keywordtype">int</span>&gt; = 0,</div>
 <div class="line"><a name="l00169"></a><span class="lineno">  169</span>&#160;    std::enable_if_t&lt;is_Eigen_matrix_v&lt;B&gt;, <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00170"></a><span class="lineno">  170</span>&#160;  <span class="keyword">inline</span> <span class="keyword">auto</span></div>
-<div class="line"><a name="l00171"></a><span class="lineno">  171</span>&#160;  solve(<span class="keyword">const</span> A&amp; a, <span class="keyword">const</span> B&amp; b)</div>
+<div class="line"><a name="l00171"></a><span class="lineno">  171</span>&#160;  <a class="code" href="namespace_open_kalman.html#ad508289e902f8099b14dad0890c64795">solve</a>(<span class="keyword">const</span> A&amp; a, <span class="keyword">const</span> B&amp; b)</div>
 <div class="line"><a name="l00172"></a><span class="lineno">  172</span>&#160;  {</div>
 <div class="line"><a name="l00173"></a><span class="lineno">  173</span>&#160;    static_assert(MatrixTraits&lt;A&gt;::dimension == MatrixTraits&lt;A&gt;::columns);</div>
 <div class="line"><a name="l00174"></a><span class="lineno">  174</span>&#160;    static_assert(MatrixTraits&lt;A&gt;::dimension == MatrixTraits&lt;B&gt;::dimension);</div>
@@ -269,7 +269,7 @@ $(document).ready(function(){initNavTree('_eigen_matrix_overloads_8h_source.html
 <div class="line"><a name="l00186"></a><span class="lineno">  186</span>&#160; </div>
 <div class="line"><a name="l00188"></a><span class="lineno">  188</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> Arg, std::enable_if_t&lt;is_native_Eigen_type_v&lt;Arg&gt;, <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00189"></a><span class="lineno">  189</span>&#160;  constexpr decltype(<span class="keyword">auto</span>)</div>
-<div class="line"><a name="l00190"></a><span class="lineno">  190</span>&#160;  reduce_columns(Arg&amp;&amp; arg) noexcept</div>
+<div class="line"><a name="l00190"></a><span class="lineno">  190</span>&#160;  <a class="code" href="namespace_open_kalman.html#af64ea73d28077cecfc217139a9d77813">reduce_columns</a>(Arg&amp;&amp; arg) noexcept</div>
 <div class="line"><a name="l00191"></a><span class="lineno">  191</span>&#160;  {</div>
 <div class="line"><a name="l00192"></a><span class="lineno">  192</span>&#160;    <span class="keywordflow">if</span> constexpr (MatrixTraits&lt;Arg&gt;::columns == 1)</div>
 <div class="line"><a name="l00193"></a><span class="lineno">  193</span>&#160;    {</div>
@@ -284,7 +284,7 @@ $(document).ready(function(){initNavTree('_eigen_matrix_overloads_8h_source.html
 <div class="line"><a name="l00202"></a><span class="lineno">  202</span>&#160; </div>
 <div class="line"><a name="l00207"></a><span class="lineno">  207</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> A, std::enable_if_t&lt;is_native_Eigen_type_v&lt;A&gt;, <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00208"></a><span class="lineno">  208</span>&#160;  constexpr <span class="keyword">auto</span></div>
-<div class="line"><a name="l00209"></a><span class="lineno">  209</span>&#160;  LQ_decomposition(A&amp;&amp; a)</div>
+<div class="line"><a name="l00209"></a><span class="lineno"><a class="line" href="namespace_open_kalman.html#aaee351667e13c16299dbbeadc383083a">  209</a></span>&#160;  <a class="code" href="namespace_open_kalman.html#a2b6c57d62908d98416bcaed87375964c">LQ_decomposition</a>(A&amp;&amp; a)</div>
 <div class="line"><a name="l00210"></a><span class="lineno">  210</span>&#160;  {</div>
 <div class="line"><a name="l00211"></a><span class="lineno">  211</span>&#160;    <span class="keywordflow">if</span> constexpr (is_diagonal_v&lt;A&gt; or is_lower_triangular_v&lt;A&gt;)</div>
 <div class="line"><a name="l00212"></a><span class="lineno">  212</span>&#160;    {</div>
@@ -292,8 +292,8 @@ $(document).ready(function(){initNavTree('_eigen_matrix_overloads_8h_source.html
 <div class="line"><a name="l00214"></a><span class="lineno">  214</span>&#160;    }</div>
 <div class="line"><a name="l00215"></a><span class="lineno">  215</span>&#160;    <span class="keywordflow">else</span></div>
 <div class="line"><a name="l00216"></a><span class="lineno">  216</span>&#160;    {</div>
-<div class="line"><a name="l00217"></a><span class="lineno">  217</span>&#160;      <span class="keyword">using</span> Scalar = <span class="keyword">typename</span> MatrixTraits&lt;A&gt;::Scalar;</div>
-<div class="line"><a name="l00218"></a><span class="lineno">  218</span>&#160;      constexpr <span class="keyword">auto</span> dim = MatrixTraits&lt;A&gt;::dimension, col = MatrixTraits&lt;A&gt;::columns;</div>
+<div class="line"><a name="l00217"></a><span class="lineno">  217</span>&#160;      <span class="keyword">using</span> Scalar = <span class="keyword">typename</span> <a class="code" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits&lt;A&gt;::Scalar</a>;</div>
+<div class="line"><a name="l00218"></a><span class="lineno">  218</span>&#160;      constexpr <span class="keyword">auto</span> dim = <a class="code" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits&lt;A&gt;::dimension</a>, col = <a class="code" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits&lt;A&gt;::columns</a>;</div>
 <div class="line"><a name="l00219"></a><span class="lineno">  219</span>&#160;      <span class="keyword">using</span> MatrixType = Eigen::Matrix&lt;Scalar, col, dim&gt;;</div>
 <div class="line"><a name="l00220"></a><span class="lineno">  220</span>&#160;      <span class="keyword">using</span> ResultType = Eigen::Matrix&lt;Scalar, dim, dim&gt;;</div>
 <div class="line"><a name="l00221"></a><span class="lineno">  221</span>&#160;      Eigen::HouseholderQR&lt;MatrixType&gt; QR(std::forward&lt;A&gt;(a).adjoint());</div>
@@ -306,15 +306,15 @@ $(document).ready(function(){initNavTree('_eigen_matrix_overloads_8h_source.html
 <div class="line"><a name="l00228"></a><span class="lineno">  228</span>&#160;      {</div>
 <div class="line"><a name="l00229"></a><span class="lineno">  229</span>&#160;        ret = QR.matrixQR().template topRows&lt;dim&gt;().adjoint();</div>
 <div class="line"><a name="l00230"></a><span class="lineno">  230</span>&#160;      }</div>
-<div class="line"><a name="l00231"></a><span class="lineno">  231</span>&#160;      <span class="keyword">using</span> TType = <span class="keyword">typename</span> MatrixTraits&lt;ResultType&gt;::template TriangularBaseType&lt;TriangleType::lower&gt;;</div>
-<div class="line"><a name="l00232"></a><span class="lineno">  232</span>&#160;      <span class="keywordflow">return</span> MatrixTraits&lt;TType&gt;::make(std::move(ret));</div>
+<div class="line"><a name="l00231"></a><span class="lineno">  231</span>&#160;      <span class="keyword">using</span> TType = <span class="keyword">typename</span> <a class="code" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits&lt;ResultType&gt;::template</a> TriangularBaseType&lt;TriangleType::lower&gt;;</div>
+<div class="line"><a name="l00232"></a><span class="lineno">  232</span>&#160;      <span class="keywordflow">return</span> <a class="code" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits&lt;TType&gt;::make</a>(std::move(ret));</div>
 <div class="line"><a name="l00233"></a><span class="lineno">  233</span>&#160;    }</div>
 <div class="line"><a name="l00234"></a><span class="lineno">  234</span>&#160;  }</div>
 <div class="line"><a name="l00235"></a><span class="lineno">  235</span>&#160; </div>
 <div class="line"><a name="l00236"></a><span class="lineno">  236</span>&#160; </div>
 <div class="line"><a name="l00241"></a><span class="lineno">  241</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> A, std::enable_if_t&lt;is_native_Eigen_type_v&lt;A&gt;, <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00242"></a><span class="lineno">  242</span>&#160;  constexpr <span class="keyword">auto</span></div>
-<div class="line"><a name="l00243"></a><span class="lineno">  243</span>&#160;  QR_decomposition(A&amp;&amp; a)</div>
+<div class="line"><a name="l00243"></a><span class="lineno"><a class="line" href="namespace_open_kalman.html#a6c8bc52340ab01395a4aba7470d13d29">  243</a></span>&#160;  <a class="code" href="namespace_open_kalman.html#a11ae142f488e2f8e68a657b091ed195d">QR_decomposition</a>(A&amp;&amp; a)</div>
 <div class="line"><a name="l00244"></a><span class="lineno">  244</span>&#160;  {</div>
 <div class="line"><a name="l00245"></a><span class="lineno">  245</span>&#160;    <span class="keywordflow">if</span> constexpr (is_diagonal_v&lt;A&gt; or is_upper_triangular_v&lt;A&gt;)</div>
 <div class="line"><a name="l00246"></a><span class="lineno">  246</span>&#160;    {</div>
@@ -322,8 +322,8 @@ $(document).ready(function(){initNavTree('_eigen_matrix_overloads_8h_source.html
 <div class="line"><a name="l00248"></a><span class="lineno">  248</span>&#160;    }</div>
 <div class="line"><a name="l00249"></a><span class="lineno">  249</span>&#160;    <span class="keywordflow">else</span></div>
 <div class="line"><a name="l00250"></a><span class="lineno">  250</span>&#160;    {</div>
-<div class="line"><a name="l00251"></a><span class="lineno">  251</span>&#160;      <span class="keyword">using</span> Scalar = <span class="keyword">typename</span> MatrixTraits&lt;A&gt;::Scalar;</div>
-<div class="line"><a name="l00252"></a><span class="lineno">  252</span>&#160;      constexpr <span class="keyword">auto</span> dim = MatrixTraits&lt;A&gt;::dimension, col = MatrixTraits&lt;A&gt;::columns;</div>
+<div class="line"><a name="l00251"></a><span class="lineno">  251</span>&#160;      <span class="keyword">using</span> Scalar = <span class="keyword">typename</span> <a class="code" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits&lt;A&gt;::Scalar</a>;</div>
+<div class="line"><a name="l00252"></a><span class="lineno">  252</span>&#160;      constexpr <span class="keyword">auto</span> dim = <a class="code" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits&lt;A&gt;::dimension</a>, col = <a class="code" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits&lt;A&gt;::columns</a>;</div>
 <div class="line"><a name="l00253"></a><span class="lineno">  253</span>&#160;      <span class="keyword">using</span> MatrixType = Eigen::Matrix&lt;Scalar, dim, col&gt;;</div>
 <div class="line"><a name="l00254"></a><span class="lineno">  254</span>&#160;      <span class="keyword">using</span> ResultType = Eigen::Matrix&lt;Scalar, col, col&gt;;</div>
 <div class="line"><a name="l00255"></a><span class="lineno">  255</span>&#160;      Eigen::HouseholderQR&lt;MatrixType&gt; QR(std::forward&lt;A&gt;(a));</div>
@@ -336,8 +336,8 @@ $(document).ready(function(){initNavTree('_eigen_matrix_overloads_8h_source.html
 <div class="line"><a name="l00262"></a><span class="lineno">  262</span>&#160;      {</div>
 <div class="line"><a name="l00263"></a><span class="lineno">  263</span>&#160;        ret = QR.matrixQR().template topRows&lt;col&gt;();</div>
 <div class="line"><a name="l00264"></a><span class="lineno">  264</span>&#160;      }</div>
-<div class="line"><a name="l00265"></a><span class="lineno">  265</span>&#160;      <span class="keyword">using</span> TType = <span class="keyword">typename</span> MatrixTraits&lt;ResultType&gt;::template TriangularBaseType&lt;TriangleType::upper&gt;;</div>
-<div class="line"><a name="l00266"></a><span class="lineno">  266</span>&#160;      <span class="keywordflow">return</span> MatrixTraits&lt;TType&gt;::make(std::move(ret));</div>
+<div class="line"><a name="l00265"></a><span class="lineno">  265</span>&#160;      <span class="keyword">using</span> TType = <span class="keyword">typename</span> <a class="code" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits&lt;ResultType&gt;::template</a> TriangularBaseType&lt;TriangleType::upper&gt;;</div>
+<div class="line"><a name="l00266"></a><span class="lineno">  266</span>&#160;      <span class="keywordflow">return</span> <a class="code" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits&lt;TType&gt;::make</a>(std::move(ret));</div>
 <div class="line"><a name="l00267"></a><span class="lineno">  267</span>&#160;    }</div>
 <div class="line"><a name="l00268"></a><span class="lineno">  268</span>&#160;  }</div>
 <div class="line"><a name="l00269"></a><span class="lineno">  269</span>&#160; </div>
@@ -351,13 +351,13 @@ $(document).ready(function(){initNavTree('_eigen_matrix_overloads_8h_source.html
 <div class="line"><a name="l00278"></a><span class="lineno">  278</span>&#160;        is_EigenDiagonal&lt;Vs&gt;, is_FromEuclideanExpr&lt;V&gt;&gt;...&gt; and</div>
 <div class="line"><a name="l00279"></a><span class="lineno">  279</span>&#160;      not std::conjunction_v&lt;is_FromEuclideanExpr&lt;V&gt;, is_FromEuclideanExpr&lt;Vs&gt;...&gt;, <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00280"></a><span class="lineno">  280</span>&#160;  constexpr decltype(<span class="keyword">auto</span>)</div>
-<div class="line"><a name="l00281"></a><span class="lineno">  281</span>&#160;  concatenate_vertical(V&amp;&amp; v, Vs&amp;&amp; ... vs) noexcept</div>
+<div class="line"><a name="l00281"></a><span class="lineno"><a class="line" href="namespace_open_kalman.html#ac07f38b9b803ce7be54501d6899eebb1">  281</a></span>&#160;  <a class="code" href="namespace_open_kalman.html#ac07f38b9b803ce7be54501d6899eebb1">concatenate_vertical</a>(V&amp;&amp; v, Vs&amp;&amp; ... vs) noexcept</div>
 <div class="line"><a name="l00282"></a><span class="lineno">  282</span>&#160;  {</div>
 <div class="line"><a name="l00283"></a><span class="lineno">  283</span>&#160;    <span class="keywordflow">if</span> constexpr (<span class="keyword">sizeof</span>...(Vs) &gt; 0)</div>
 <div class="line"><a name="l00284"></a><span class="lineno">  284</span>&#160;    {</div>
-<div class="line"><a name="l00285"></a><span class="lineno">  285</span>&#160;      constexpr <span class="keyword">auto</span> rows = (MatrixTraits&lt;V&gt;::dimension + ... + MatrixTraits&lt;Vs&gt;::dimension);</div>
-<div class="line"><a name="l00286"></a><span class="lineno">  286</span>&#160;      constexpr <span class="keyword">auto</span> cols = MatrixTraits&lt;V&gt;::columns;</div>
-<div class="line"><a name="l00287"></a><span class="lineno">  287</span>&#160;      static_assert(((cols == MatrixTraits&lt;Vs&gt;::columns) and ...));</div>
+<div class="line"><a name="l00285"></a><span class="lineno">  285</span>&#160;      constexpr <span class="keyword">auto</span> rows = (<a class="code" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits&lt;V&gt;::dimension</a> + ... + <a class="code" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits&lt;Vs&gt;::dimension</a>);</div>
+<div class="line"><a name="l00286"></a><span class="lineno">  286</span>&#160;      constexpr <span class="keyword">auto</span> cols = <a class="code" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits&lt;V&gt;::columns</a>;</div>
+<div class="line"><a name="l00287"></a><span class="lineno">  287</span>&#160;      static_assert(((cols == <a class="code" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits&lt;Vs&gt;::columns</a>) and ...));</div>
 <div class="line"><a name="l00288"></a><span class="lineno">  288</span>&#160;      Eigen::Matrix&lt;typename MatrixTraits&lt;V&gt;::Scalar, rows, cols&gt; m;</div>
 <div class="line"><a name="l00289"></a><span class="lineno">  289</span>&#160;      ((m &lt;&lt; std::forward&lt;V&gt;(v)), ..., std::forward&lt;Vs&gt;(vs));</div>
 <div class="line"><a name="l00290"></a><span class="lineno">  290</span>&#160;      <span class="keywordflow">return</span> m;</div>
@@ -378,13 +378,13 @@ $(document).ready(function(){initNavTree('_eigen_matrix_overloads_8h_source.html
 <div class="line"><a name="l00306"></a><span class="lineno">  306</span>&#160;        is_EigenDiagonal&lt;Vs&gt;, is_FromEuclideanExpr&lt;Vs&gt;&gt;...&gt; and</div>
 <div class="line"><a name="l00307"></a><span class="lineno">  307</span>&#160;      not std::conjunction_v&lt;is_FromEuclideanExpr&lt;V&gt;, is_FromEuclideanExpr&lt;Vs&gt;...&gt;, <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00308"></a><span class="lineno">  308</span>&#160;  constexpr decltype(<span class="keyword">auto</span>)</div>
-<div class="line"><a name="l00309"></a><span class="lineno">  309</span>&#160;  concatenate_horizontal(V&amp;&amp; v, Vs&amp;&amp; ... vs) noexcept</div>
+<div class="line"><a name="l00309"></a><span class="lineno"><a class="line" href="namespace_open_kalman.html#ac3c5157500f9c2c2018697ce9fd276d5">  309</a></span>&#160;  <a class="code" href="namespace_open_kalman.html#ac3c5157500f9c2c2018697ce9fd276d5">concatenate_horizontal</a>(V&amp;&amp; v, Vs&amp;&amp; ... vs) noexcept</div>
 <div class="line"><a name="l00310"></a><span class="lineno">  310</span>&#160;  {</div>
 <div class="line"><a name="l00311"></a><span class="lineno">  311</span>&#160;    <span class="keywordflow">if</span> constexpr (<span class="keyword">sizeof</span>...(Vs) &gt; 0)</div>
 <div class="line"><a name="l00312"></a><span class="lineno">  312</span>&#160;    {</div>
-<div class="line"><a name="l00313"></a><span class="lineno">  313</span>&#160;      constexpr <span class="keyword">auto</span> rows = MatrixTraits&lt;V&gt;::dimension;</div>
-<div class="line"><a name="l00314"></a><span class="lineno">  314</span>&#160;      static_assert(((rows == MatrixTraits&lt;Vs&gt;::dimension) and ...));</div>
-<div class="line"><a name="l00315"></a><span class="lineno">  315</span>&#160;      constexpr <span class="keyword">auto</span> cols = (MatrixTraits&lt;V&gt;::columns + ... + MatrixTraits&lt;Vs&gt;::columns);</div>
+<div class="line"><a name="l00313"></a><span class="lineno">  313</span>&#160;      constexpr <span class="keyword">auto</span> rows = <a class="code" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits&lt;V&gt;::dimension</a>;</div>
+<div class="line"><a name="l00314"></a><span class="lineno">  314</span>&#160;      static_assert(((rows == <a class="code" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits&lt;Vs&gt;::dimension</a>) and ...));</div>
+<div class="line"><a name="l00315"></a><span class="lineno">  315</span>&#160;      constexpr <span class="keyword">auto</span> cols = (<a class="code" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits&lt;V&gt;::columns</a> + ... + <a class="code" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits&lt;Vs&gt;::columns</a>);</div>
 <div class="line"><a name="l00316"></a><span class="lineno">  316</span>&#160;      Eigen::Matrix&lt;typename MatrixTraits&lt;V&gt;::Scalar, rows, cols&gt; m;</div>
 <div class="line"><a name="l00317"></a><span class="lineno">  317</span>&#160;      ((m &lt;&lt; std::forward&lt;V&gt;(v)), ..., std::forward&lt;Vs&gt;(vs));</div>
 <div class="line"><a name="l00318"></a><span class="lineno">  318</span>&#160;      <span class="keywordflow">return</span> m;</div>
@@ -427,7 +427,7 @@ $(document).ready(function(){initNavTree('_eigen_matrix_overloads_8h_source.html
 <div class="line"><a name="l00357"></a><span class="lineno">  357</span>&#160;      (std::conjunction_v&lt;is_EigenTriangularMatrix&lt;V&gt;, is_EigenTriangularMatrix&lt;Vs&gt;...&gt; and</div>
 <div class="line"><a name="l00358"></a><span class="lineno">  358</span>&#160;        ((is_upper_triangular_v&lt;V&gt; == is_upper_triangular_v&lt;Vs&gt;) and ... and <span class="keyword">true</span>))), <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00359"></a><span class="lineno">  359</span>&#160;  constexpr decltype(<span class="keyword">auto</span>)</div>
-<div class="line"><a name="l00360"></a><span class="lineno">  360</span>&#160;  concatenate_diagonal(V&amp;&amp; v, Vs&amp;&amp; ... vs) noexcept</div>
+<div class="line"><a name="l00360"></a><span class="lineno">  360</span>&#160;  <a class="code" href="namespace_open_kalman.html#a0315b7e1603e75b425629b5604e470b2">concatenate_diagonal</a>(V&amp;&amp; v, Vs&amp;&amp; ... vs) noexcept</div>
 <div class="line"><a name="l00361"></a><span class="lineno">  361</span>&#160;  {</div>
 <div class="line"><a name="l00362"></a><span class="lineno">  362</span>&#160;    <span class="keywordflow">if</span> constexpr (<span class="keyword">sizeof</span>...(Vs) &gt; 0)</div>
 <div class="line"><a name="l00363"></a><span class="lineno">  363</span>&#160;    {</div>
@@ -476,17 +476,17 @@ $(document).ready(function(){initNavTree('_eigen_matrix_overloads_8h_source.html
 <div class="line"><a name="l00414"></a><span class="lineno">  414</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> F, <span class="keywordtype">bool</span> euclidean, <span class="keyword">typename</span> RC, <span class="keyword">typename</span>...RCs,</div>
 <div class="line"><a name="l00415"></a><span class="lineno">  415</span>&#160;    <span class="keyword">typename</span> Arg, std::enable_if_t&lt;is_Eigen_matrix_v&lt;Arg&gt;, <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00416"></a><span class="lineno">  416</span>&#160;  <span class="keyword">inline</span> <span class="keyword">auto</span></div>
-<div class="line"><a name="l00417"></a><span class="lineno">  417</span>&#160;  split_vertical(Arg&amp;&amp; arg) noexcept</div>
+<div class="line"><a name="l00417"></a><span class="lineno"><a class="line" href="namespace_open_kalman.html#a2742abeb205f5ed2e4d92ebb579329a7">  417</a></span>&#160;  <a class="code" href="namespace_open_kalman.html#a2742abeb205f5ed2e4d92ebb579329a7">split_vertical</a>(Arg&amp;&amp; arg) noexcept</div>
 <div class="line"><a name="l00418"></a><span class="lineno">  418</span>&#160;  {</div>
 <div class="line"><a name="l00419"></a><span class="lineno">  419</span>&#160;    constexpr <span class="keyword">auto</span> RC_size = euclidean ? RC::dimension : RC::size;</div>
 <div class="line"><a name="l00420"></a><span class="lineno">  420</span>&#160;    static_assert((RC_size + ... + (euclidean ? RCs::dimension : RCs::size)) &lt;= <a class="code" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits&lt;Arg&gt;::dimension</a>);</div>
-<div class="line"><a name="l00421"></a><span class="lineno">  421</span>&#160;    <span class="keyword">using</span> CC = Axes&lt;MatrixTraits&lt;Arg&gt;::columns&gt;;</div>
+<div class="line"><a name="l00421"></a><span class="lineno">  421</span>&#160;    <span class="keyword">using</span> CC = <a class="code" href="namespace_open_kalman.html#ad7fbe21f478b7b06ac97b6eb6f5967c3">Axes&lt;MatrixTraits&lt;Arg&gt;::columns</a>&gt;;</div>
 <div class="line"><a name="l00422"></a><span class="lineno">  422</span>&#160;    constexpr Eigen::Index dim1 = RC_size, dim2 = std::decay_t&lt;Arg&gt;::RowsAtCompileTime - dim1;</div>
 <div class="line"><a name="l00423"></a><span class="lineno">  423</span>&#160;    constexpr <span class="keyword">auto</span> g = [](<span class="keyword">auto</span>&amp;&amp; m) -&gt; decltype(<span class="keyword">auto</span>) {</div>
 <div class="line"><a name="l00424"></a><span class="lineno">  424</span>&#160;      <span class="keywordflow">if</span> constexpr (std::is_lvalue_reference_v&lt;Arg&amp;&amp;&gt;)</div>
 <div class="line"><a name="l00425"></a><span class="lineno">  425</span>&#160;        <span class="keywordflow">return</span> std::forward&lt;decltype(m)&gt;(m);</div>
 <div class="line"><a name="l00426"></a><span class="lineno">  426</span>&#160;      <span class="keywordflow">else</span></div>
-<div class="line"><a name="l00427"></a><span class="lineno">  427</span>&#160;        <span class="keywordflow">return</span> strict_matrix(std::forward&lt;decltype(m)&gt;(m));</div>
+<div class="line"><a name="l00427"></a><span class="lineno">  427</span>&#160;        <span class="keywordflow">return</span> <a class="code" href="namespace_open_kalman.html#a773cf4e126d6964b9ffd37d666b56fe2">strict_matrix</a>(std::forward&lt;decltype(m)&gt;(m));</div>
 <div class="line"><a name="l00428"></a><span class="lineno">  428</span>&#160;    };</div>
 <div class="line"><a name="l00429"></a><span class="lineno">  429</span>&#160;    <span class="keywordflow">if</span> constexpr (<span class="keyword">sizeof</span>...(RCs) &gt; 0)</div>
 <div class="line"><a name="l00430"></a><span class="lineno">  430</span>&#160;    {</div>
@@ -509,7 +509,7 @@ $(document).ready(function(){initNavTree('_eigen_matrix_overloads_8h_source.html
 <div class="line"><a name="l00448"></a><span class="lineno">  448</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> F = internal::default_split_function, <span class="keywordtype">bool</span> euclidean = <span class="keyword">false</span>,</div>
 <div class="line"><a name="l00449"></a><span class="lineno">  449</span>&#160;    <span class="keyword">typename</span> Arg, std::enable_if_t&lt;is_Eigen_matrix_v&lt;Arg&gt;, <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00450"></a><span class="lineno">  450</span>&#160;  <span class="keyword">inline</span> <span class="keyword">auto</span></div>
-<div class="line"><a name="l00451"></a><span class="lineno">  451</span>&#160;  split_vertical(Arg&amp;&amp; arg) noexcept</div>
+<div class="line"><a name="l00451"></a><span class="lineno"><a class="line" href="namespace_open_kalman.html#a620f0997bfd5cc822af4d33d52313f4d">  451</a></span>&#160;  <a class="code" href="namespace_open_kalman.html#a2742abeb205f5ed2e4d92ebb579329a7">split_vertical</a>(Arg&amp;&amp; arg) noexcept</div>
 <div class="line"><a name="l00452"></a><span class="lineno">  452</span>&#160;  {</div>
 <div class="line"><a name="l00453"></a><span class="lineno">  453</span>&#160;    <span class="keywordflow">return</span> std::tuple {};</div>
 <div class="line"><a name="l00454"></a><span class="lineno">  454</span>&#160;  }</div>
@@ -517,22 +517,22 @@ $(document).ready(function(){initNavTree('_eigen_matrix_overloads_8h_source.html
 <div class="line"><a name="l00459"></a><span class="lineno">  459</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> F, <span class="keyword">typename</span> RC, <span class="keyword">typename</span>...RCs, <span class="keyword">typename</span> Arg, std::enable_if_t&lt;is_Eigen_matrix_v&lt;Arg&gt; and</div>
 <div class="line"><a name="l00460"></a><span class="lineno">  460</span>&#160;    not is_coefficient_v&lt;F&gt; and std::conjunction_v&lt;is_coefficient&lt;RC&gt;, is_coefficient&lt;RCs&gt;...&gt;, <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00461"></a><span class="lineno">  461</span>&#160;  <span class="keyword">inline</span> <span class="keyword">auto</span></div>
-<div class="line"><a name="l00462"></a><span class="lineno">  462</span>&#160;  split_vertical(Arg&amp;&amp; arg) noexcept</div>
+<div class="line"><a name="l00462"></a><span class="lineno"><a class="line" href="namespace_open_kalman.html#ae0038e7aa690a366121acc4c2c807075">  462</a></span>&#160;  <a class="code" href="namespace_open_kalman.html#a2742abeb205f5ed2e4d92ebb579329a7">split_vertical</a>(Arg&amp;&amp; arg) noexcept</div>
 <div class="line"><a name="l00463"></a><span class="lineno">  463</span>&#160;  {</div>
-<div class="line"><a name="l00464"></a><span class="lineno">  464</span>&#160;    <span class="keywordflow">return</span> split_vertical&lt;F, <span class="keyword">false</span>, RC, RCs...&gt;(std::forward&lt;Arg&gt;(arg));</div>
+<div class="line"><a name="l00464"></a><span class="lineno">  464</span>&#160;    <span class="keywordflow">return</span> <a class="code" href="namespace_open_kalman.html#a2742abeb205f5ed2e4d92ebb579329a7">split_vertical</a>&lt;F, <span class="keyword">false</span>, RC, RCs...&gt;(std::forward&lt;Arg&gt;(arg));</div>
 <div class="line"><a name="l00465"></a><span class="lineno">  465</span>&#160;  }</div>
 <div class="line"><a name="l00466"></a><span class="lineno">  466</span>&#160; </div>
 <div class="line"><a name="l00470"></a><span class="lineno">  470</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> RC, <span class="keyword">typename</span>...RCs, <span class="keyword">typename</span> Arg, std::enable_if_t&lt;is_Eigen_matrix_v&lt;Arg&gt; and</div>
 <div class="line"><a name="l00471"></a><span class="lineno">  471</span>&#160;    std::conjunction_v&lt;is_coefficient&lt;RC&gt;, is_coefficient&lt;RCs&gt;...&gt;, <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00472"></a><span class="lineno">  472</span>&#160;  <span class="keyword">inline</span> <span class="keyword">auto</span></div>
-<div class="line"><a name="l00473"></a><span class="lineno">  473</span>&#160;  split_vertical(Arg&amp;&amp; arg) noexcept</div>
+<div class="line"><a name="l00473"></a><span class="lineno">  473</span>&#160;  <a class="code" href="namespace_open_kalman.html#a2742abeb205f5ed2e4d92ebb579329a7">split_vertical</a>(Arg&amp;&amp; arg) noexcept</div>
 <div class="line"><a name="l00474"></a><span class="lineno">  474</span>&#160;  {</div>
-<div class="line"><a name="l00475"></a><span class="lineno">  475</span>&#160;    <span class="keywordflow">return</span> split_vertical&lt;internal::default_split_function, RC, RCs...&gt;(std::forward&lt;Arg&gt;(arg));</div>
+<div class="line"><a name="l00475"></a><span class="lineno">  475</span>&#160;    <span class="keywordflow">return</span> <a class="code" href="namespace_open_kalman.html#a2742abeb205f5ed2e4d92ebb579329a7">split_vertical</a>&lt;internal::default_split_function, RC, RCs...&gt;(std::forward&lt;Arg&gt;(arg));</div>
 <div class="line"><a name="l00476"></a><span class="lineno">  476</span>&#160;  }</div>
 <div class="line"><a name="l00477"></a><span class="lineno">  477</span>&#160; </div>
 <div class="line"><a name="l00481"></a><span class="lineno">  481</span>&#160;  <span class="keyword">template</span>&lt;std::size_t cut, std::size_t ... cuts, <span class="keyword">typename</span> Arg, std::enable_if_t&lt;is_Eigen_matrix_v&lt;Arg&gt;, <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00482"></a><span class="lineno">  482</span>&#160;  <span class="keyword">inline</span> <span class="keyword">auto</span></div>
-<div class="line"><a name="l00483"></a><span class="lineno">  483</span>&#160;  split_vertical(Arg&amp;&amp; arg) noexcept</div>
+<div class="line"><a name="l00483"></a><span class="lineno">  483</span>&#160;  <a class="code" href="namespace_open_kalman.html#a2742abeb205f5ed2e4d92ebb579329a7">split_vertical</a>(Arg&amp;&amp; arg) noexcept</div>
 <div class="line"><a name="l00484"></a><span class="lineno">  484</span>&#160;  {</div>
 <div class="line"><a name="l00485"></a><span class="lineno">  485</span>&#160;    static_assert((cut + ... + cuts) &lt;= MatrixTraits&lt;Arg&gt;::dimension);</div>
 <div class="line"><a name="l00486"></a><span class="lineno">  486</span>&#160;    <span class="keywordflow">return</span> split_vertical&lt;Axes&lt;cut&gt;, Axes&lt;cuts&gt;...&gt;(std::forward&lt;Arg&gt;(arg));</div>
@@ -542,16 +542,16 @@ $(document).ready(function(){initNavTree('_eigen_matrix_overloads_8h_source.html
 <div class="line"><a name="l00494"></a><span class="lineno">  494</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> F, <span class="keyword">typename</span> CC, <span class="keyword">typename</span>...CCs, <span class="keyword">typename</span> Arg,</div>
 <div class="line"><a name="l00495"></a><span class="lineno">  495</span>&#160;    std::enable_if_t&lt;is_Eigen_matrix_v&lt;Arg&gt; and not is_coefficient_v&lt;F&gt;, <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00496"></a><span class="lineno">  496</span>&#160;  <span class="keyword">inline</span> <span class="keyword">auto</span></div>
-<div class="line"><a name="l00497"></a><span class="lineno">  497</span>&#160;  split_horizontal(Arg&amp;&amp; arg) noexcept</div>
+<div class="line"><a name="l00497"></a><span class="lineno"><a class="line" href="namespace_open_kalman.html#a9ade2c818a6ac726e63817f86ed1b071">  497</a></span>&#160;  <a class="code" href="namespace_open_kalman.html#a9ade2c818a6ac726e63817f86ed1b071">split_horizontal</a>(Arg&amp;&amp; arg) noexcept</div>
 <div class="line"><a name="l00498"></a><span class="lineno">  498</span>&#160;  {</div>
-<div class="line"><a name="l00499"></a><span class="lineno">  499</span>&#160;    static_assert((CC::size + ... + CCs::size) &lt;= MatrixTraits&lt;Arg&gt;::columns);</div>
-<div class="line"><a name="l00500"></a><span class="lineno">  500</span>&#160;    <span class="keyword">using</span> RC = Axes&lt;MatrixTraits&lt;Arg&gt;::dimension&gt;;</div>
+<div class="line"><a name="l00499"></a><span class="lineno">  499</span>&#160;    static_assert((CC::size + ... + CCs::size) &lt;= <a class="code" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits&lt;Arg&gt;::columns</a>);</div>
+<div class="line"><a name="l00500"></a><span class="lineno">  500</span>&#160;    <span class="keyword">using</span> RC = <a class="code" href="namespace_open_kalman.html#ad7fbe21f478b7b06ac97b6eb6f5967c3">Axes&lt;MatrixTraits&lt;Arg&gt;::dimension</a>&gt;;</div>
 <div class="line"><a name="l00501"></a><span class="lineno">  501</span>&#160;    constexpr Eigen::Index dim1 = CC::size, dim2 = std::decay_t&lt;Arg&gt;::ColsAtCompileTime - dim1;</div>
 <div class="line"><a name="l00502"></a><span class="lineno">  502</span>&#160;    constexpr <span class="keyword">auto</span> g = [](<span class="keyword">auto</span>&amp;&amp; m) -&gt; decltype(<span class="keyword">auto</span>) {</div>
 <div class="line"><a name="l00503"></a><span class="lineno">  503</span>&#160;      <span class="keywordflow">if</span> constexpr (std::is_lvalue_reference_v&lt;Arg&amp;&amp;&gt;)</div>
 <div class="line"><a name="l00504"></a><span class="lineno">  504</span>&#160;        <span class="keywordflow">return</span> std::forward&lt;decltype(m)&gt;(m);</div>
 <div class="line"><a name="l00505"></a><span class="lineno">  505</span>&#160;      <span class="keywordflow">else</span></div>
-<div class="line"><a name="l00506"></a><span class="lineno">  506</span>&#160;        <span class="keywordflow">return</span> strict_matrix(std::forward&lt;decltype(m)&gt;(m));</div>
+<div class="line"><a name="l00506"></a><span class="lineno">  506</span>&#160;        <span class="keywordflow">return</span> <a class="code" href="namespace_open_kalman.html#a773cf4e126d6964b9ffd37d666b56fe2">strict_matrix</a>(std::forward&lt;decltype(m)&gt;(m));</div>
 <div class="line"><a name="l00507"></a><span class="lineno">  507</span>&#160;    };</div>
 <div class="line"><a name="l00508"></a><span class="lineno">  508</span>&#160;    <span class="keywordflow">if</span> constexpr(<span class="keyword">sizeof</span>...(CCs) &gt; 0)</div>
 <div class="line"><a name="l00509"></a><span class="lineno">  509</span>&#160;    {</div>
@@ -574,7 +574,7 @@ $(document).ready(function(){initNavTree('_eigen_matrix_overloads_8h_source.html
 <div class="line"><a name="l00527"></a><span class="lineno">  527</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> F = internal::default_split_function,</div>
 <div class="line"><a name="l00528"></a><span class="lineno">  528</span>&#160;    <span class="keyword">typename</span> Arg, std::enable_if_t&lt;is_Eigen_matrix_v&lt;Arg&gt;, <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00529"></a><span class="lineno">  529</span>&#160;  <span class="keyword">inline</span> <span class="keyword">auto</span></div>
-<div class="line"><a name="l00530"></a><span class="lineno">  530</span>&#160;  split_horizontal(Arg&amp;&amp; arg) noexcept</div>
+<div class="line"><a name="l00530"></a><span class="lineno"><a class="line" href="namespace_open_kalman.html#a864237f3b06bf93ceaffbf1d992b19f2">  530</a></span>&#160;  <a class="code" href="namespace_open_kalman.html#a9ade2c818a6ac726e63817f86ed1b071">split_horizontal</a>(Arg&amp;&amp; arg) noexcept</div>
 <div class="line"><a name="l00531"></a><span class="lineno">  531</span>&#160;  {</div>
 <div class="line"><a name="l00532"></a><span class="lineno">  532</span>&#160;    <span class="keywordflow">return</span> std::tuple {};</div>
 <div class="line"><a name="l00533"></a><span class="lineno">  533</span>&#160;  }</div>
@@ -582,14 +582,14 @@ $(document).ready(function(){initNavTree('_eigen_matrix_overloads_8h_source.html
 <div class="line"><a name="l00538"></a><span class="lineno">  538</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> CC, <span class="keyword">typename</span>...CCs, <span class="keyword">typename</span> Arg,</div>
 <div class="line"><a name="l00539"></a><span class="lineno">  539</span>&#160;    std::enable_if_t&lt;is_Eigen_matrix_v&lt;Arg&gt; and is_coefficient_v&lt;CC&gt;, <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00540"></a><span class="lineno">  540</span>&#160;  <span class="keyword">inline</span> <span class="keyword">auto</span></div>
-<div class="line"><a name="l00541"></a><span class="lineno">  541</span>&#160;  split_horizontal(Arg&amp;&amp; arg) noexcept</div>
+<div class="line"><a name="l00541"></a><span class="lineno"><a class="line" href="namespace_open_kalman.html#a719b02c283269c9d08d634559a20b7dc">  541</a></span>&#160;  <a class="code" href="namespace_open_kalman.html#a9ade2c818a6ac726e63817f86ed1b071">split_horizontal</a>(Arg&amp;&amp; arg) noexcept</div>
 <div class="line"><a name="l00542"></a><span class="lineno">  542</span>&#160;  {</div>
-<div class="line"><a name="l00543"></a><span class="lineno">  543</span>&#160;    <span class="keywordflow">return</span> split_horizontal&lt;internal::default_split_function, CC, CCs...&gt;(std::forward&lt;Arg&gt;(arg));</div>
+<div class="line"><a name="l00543"></a><span class="lineno">  543</span>&#160;    <span class="keywordflow">return</span> <a class="code" href="namespace_open_kalman.html#a9ade2c818a6ac726e63817f86ed1b071">split_horizontal</a>&lt;<a class="code" href="struct_open_kalman_1_1internal_1_1default__split__function.html">internal::default_split_function</a>, CC, CCs...&gt;(std::forward&lt;Arg&gt;(arg));</div>
 <div class="line"><a name="l00544"></a><span class="lineno">  544</span>&#160;  }</div>
 <div class="line"><a name="l00545"></a><span class="lineno">  545</span>&#160; </div>
 <div class="line"><a name="l00550"></a><span class="lineno">  550</span>&#160;  <span class="keyword">template</span>&lt;std::size_t cut, std::size_t ... cuts, <span class="keyword">typename</span> Arg, std::enable_if_t&lt;is_Eigen_matrix_v&lt;Arg&gt;, <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00551"></a><span class="lineno">  551</span>&#160;  <span class="keyword">inline</span> <span class="keyword">auto</span></div>
-<div class="line"><a name="l00552"></a><span class="lineno">  552</span>&#160;  split_horizontal(Arg&amp;&amp; arg) noexcept</div>
+<div class="line"><a name="l00552"></a><span class="lineno">  552</span>&#160;  <a class="code" href="namespace_open_kalman.html#a9ade2c818a6ac726e63817f86ed1b071">split_horizontal</a>(Arg&amp;&amp; arg) noexcept</div>
 <div class="line"><a name="l00553"></a><span class="lineno">  553</span>&#160;  {</div>
 <div class="line"><a name="l00554"></a><span class="lineno">  554</span>&#160;    static_assert((cut + ... + cuts) &lt;= MatrixTraits&lt;Arg&gt;::columns);</div>
 <div class="line"><a name="l00555"></a><span class="lineno">  555</span>&#160;    <span class="keywordflow">return</span> split_horizontal&lt;Axes&lt;cut&gt;, Axes&lt;cuts&gt;...&gt;(std::forward&lt;Arg&gt;(arg));</div>
@@ -599,18 +599,18 @@ $(document).ready(function(){initNavTree('_eigen_matrix_overloads_8h_source.html
 <div class="line"><a name="l00563"></a><span class="lineno">  563</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> F, <span class="keywordtype">bool</span> euclidean, <span class="keyword">typename</span> C, <span class="keyword">typename</span>...Cs,</div>
 <div class="line"><a name="l00564"></a><span class="lineno">  564</span>&#160;    <span class="keyword">typename</span> Arg, std::enable_if_t&lt;is_Eigen_matrix_v&lt;Arg&gt;, <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00565"></a><span class="lineno">  565</span>&#160;  <span class="keyword">inline</span> <span class="keyword">auto</span></div>
-<div class="line"><a name="l00566"></a><span class="lineno">  566</span>&#160;  split_diagonal(Arg&amp;&amp; arg) noexcept</div>
+<div class="line"><a name="l00566"></a><span class="lineno"><a class="line" href="namespace_open_kalman.html#ac15b73be3f7afa907872a4c65359e71f">  566</a></span>&#160;  <a class="code" href="namespace_open_kalman.html#ac15b73be3f7afa907872a4c65359e71f">split_diagonal</a>(Arg&amp;&amp; arg) noexcept</div>
 <div class="line"><a name="l00567"></a><span class="lineno">  567</span>&#160;  {</div>
 <div class="line"><a name="l00568"></a><span class="lineno">  568</span>&#160;    constexpr <span class="keyword">auto</span> RC_size = euclidean ? C::dimension : C::size;</div>
-<div class="line"><a name="l00569"></a><span class="lineno">  569</span>&#160;    static_assert((RC_size + ... + (euclidean ? Cs::dimension : Cs::size)) &lt;= MatrixTraits&lt;Arg&gt;::dimension);</div>
-<div class="line"><a name="l00570"></a><span class="lineno">  570</span>&#160;    static_assert((C::size + ... + Cs::size) &lt;= MatrixTraits&lt;Arg&gt;::columns);</div>
+<div class="line"><a name="l00569"></a><span class="lineno">  569</span>&#160;    static_assert((RC_size + ... + (euclidean ? Cs::dimension : Cs::size)) &lt;= <a class="code" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits&lt;Arg&gt;::dimension</a>);</div>
+<div class="line"><a name="l00570"></a><span class="lineno">  570</span>&#160;    static_assert((C::size + ... + Cs::size) &lt;= <a class="code" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits&lt;Arg&gt;::columns</a>);</div>
 <div class="line"><a name="l00571"></a><span class="lineno">  571</span>&#160;    constexpr Eigen::Index rdim1 = RC_size, rdim2 = std::decay_t&lt;Arg&gt;::RowsAtCompileTime - rdim1;</div>
 <div class="line"><a name="l00572"></a><span class="lineno">  572</span>&#160;    constexpr Eigen::Index cdim1 = C::size, cdim2 = std::decay_t&lt;Arg&gt;::RowsAtCompileTime - cdim1;</div>
 <div class="line"><a name="l00573"></a><span class="lineno">  573</span>&#160;    constexpr <span class="keyword">auto</span> g = [](<span class="keyword">auto</span>&amp;&amp; m) -&gt; decltype(<span class="keyword">auto</span>) {</div>
 <div class="line"><a name="l00574"></a><span class="lineno">  574</span>&#160;      <span class="keywordflow">if</span> constexpr (std::is_lvalue_reference_v&lt;Arg&amp;&amp;&gt;)</div>
 <div class="line"><a name="l00575"></a><span class="lineno">  575</span>&#160;        <span class="keywordflow">return</span> std::forward&lt;decltype(m)&gt;(m);</div>
 <div class="line"><a name="l00576"></a><span class="lineno">  576</span>&#160;      <span class="keywordflow">else</span></div>
-<div class="line"><a name="l00577"></a><span class="lineno">  577</span>&#160;        <span class="keywordflow">return</span> strict_matrix(std::forward&lt;decltype(m)&gt;(m));</div>
+<div class="line"><a name="l00577"></a><span class="lineno">  577</span>&#160;        <span class="keywordflow">return</span> <a class="code" href="namespace_open_kalman.html#a773cf4e126d6964b9ffd37d666b56fe2">strict_matrix</a>(std::forward&lt;decltype(m)&gt;(m));</div>
 <div class="line"><a name="l00578"></a><span class="lineno">  578</span>&#160;    };</div>
 <div class="line"><a name="l00579"></a><span class="lineno">  579</span>&#160;    <span class="keywordflow">if</span> constexpr(<span class="keyword">sizeof</span>...(Cs) &gt; 0)</div>
 <div class="line"><a name="l00580"></a><span class="lineno">  580</span>&#160;    {</div>
@@ -633,7 +633,7 @@ $(document).ready(function(){initNavTree('_eigen_matrix_overloads_8h_source.html
 <div class="line"><a name="l00598"></a><span class="lineno">  598</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> F = internal::default_split_function, <span class="keywordtype">bool</span> euclidean = <span class="keyword">false</span>,</div>
 <div class="line"><a name="l00599"></a><span class="lineno">  599</span>&#160;    <span class="keyword">typename</span> Arg, std::enable_if_t&lt;is_Eigen_matrix_v&lt;Arg&gt; and not is_coefficient_v&lt;F&gt;, <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00600"></a><span class="lineno">  600</span>&#160;  <span class="keyword">inline</span> <span class="keyword">auto</span></div>
-<div class="line"><a name="l00601"></a><span class="lineno">  601</span>&#160;  split_diagonal(Arg&amp;&amp; arg) noexcept</div>
+<div class="line"><a name="l00601"></a><span class="lineno"><a class="line" href="namespace_open_kalman.html#a0a63cbe9ff790107682a6fefd2006e8d">  601</a></span>&#160;  <a class="code" href="namespace_open_kalman.html#ac15b73be3f7afa907872a4c65359e71f">split_diagonal</a>(Arg&amp;&amp; arg) noexcept</div>
 <div class="line"><a name="l00602"></a><span class="lineno">  602</span>&#160;  {</div>
 <div class="line"><a name="l00603"></a><span class="lineno">  603</span>&#160;    <span class="keywordflow">return</span> std::tuple {};</div>
 <div class="line"><a name="l00604"></a><span class="lineno">  604</span>&#160;  }</div>
@@ -641,22 +641,22 @@ $(document).ready(function(){initNavTree('_eigen_matrix_overloads_8h_source.html
 <div class="line"><a name="l00610"></a><span class="lineno">  610</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> F, <span class="keyword">typename</span> C, <span class="keyword">typename</span>...Cs, <span class="keyword">typename</span> Arg, std::enable_if_t&lt;is_Eigen_matrix_v&lt;Arg&gt; and</div>
 <div class="line"><a name="l00611"></a><span class="lineno">  611</span>&#160;    not is_coefficient_v&lt;F&gt; and std::conjunction_v&lt;is_coefficient&lt;C&gt;, is_coefficient&lt;Cs&gt;...&gt;, <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00612"></a><span class="lineno">  612</span>&#160;  <span class="keyword">inline</span> <span class="keyword">auto</span></div>
-<div class="line"><a name="l00613"></a><span class="lineno">  613</span>&#160;  split_diagonal(Arg&amp;&amp; arg) noexcept</div>
+<div class="line"><a name="l00613"></a><span class="lineno"><a class="line" href="namespace_open_kalman.html#aaa80d0137de848614c73a2bdc6a65fdd">  613</a></span>&#160;  <a class="code" href="namespace_open_kalman.html#ac15b73be3f7afa907872a4c65359e71f">split_diagonal</a>(Arg&amp;&amp; arg) noexcept</div>
 <div class="line"><a name="l00614"></a><span class="lineno">  614</span>&#160;  {</div>
-<div class="line"><a name="l00615"></a><span class="lineno">  615</span>&#160;    <span class="keywordflow">return</span> split_diagonal&lt;F, <span class="keyword">false</span>, C, Cs...&gt;(std::forward&lt;Arg&gt;(arg));</div>
+<div class="line"><a name="l00615"></a><span class="lineno">  615</span>&#160;    <span class="keywordflow">return</span> <a class="code" href="namespace_open_kalman.html#ac15b73be3f7afa907872a4c65359e71f">split_diagonal</a>&lt;F, <span class="keyword">false</span>, C, Cs...&gt;(std::forward&lt;Arg&gt;(arg));</div>
 <div class="line"><a name="l00616"></a><span class="lineno">  616</span>&#160;  }</div>
 <div class="line"><a name="l00617"></a><span class="lineno">  617</span>&#160; </div>
 <div class="line"><a name="l00621"></a><span class="lineno">  621</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> C, <span class="keyword">typename</span>...Cs, <span class="keyword">typename</span> Arg, std::enable_if_t&lt;is_Eigen_matrix_v&lt;Arg&gt; and</div>
 <div class="line"><a name="l00622"></a><span class="lineno">  622</span>&#160;    std::conjunction_v&lt;is_coefficient&lt;C&gt;, is_coefficient&lt;Cs&gt;...&gt;, <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00623"></a><span class="lineno">  623</span>&#160;  <span class="keyword">inline</span> <span class="keyword">auto</span></div>
-<div class="line"><a name="l00624"></a><span class="lineno">  624</span>&#160;  split_diagonal(Arg&amp;&amp; arg) noexcept</div>
+<div class="line"><a name="l00624"></a><span class="lineno">  624</span>&#160;  <a class="code" href="namespace_open_kalman.html#ac15b73be3f7afa907872a4c65359e71f">split_diagonal</a>(Arg&amp;&amp; arg) noexcept</div>
 <div class="line"><a name="l00625"></a><span class="lineno">  625</span>&#160;  {</div>
-<div class="line"><a name="l00626"></a><span class="lineno">  626</span>&#160;    <span class="keywordflow">return</span> split_diagonal&lt;internal::default_split_function, C, Cs...&gt;(std::forward&lt;Arg&gt;(arg));</div>
+<div class="line"><a name="l00626"></a><span class="lineno">  626</span>&#160;    <span class="keywordflow">return</span> <a class="code" href="namespace_open_kalman.html#ac15b73be3f7afa907872a4c65359e71f">split_diagonal</a>&lt;internal::default_split_function, C, Cs...&gt;(std::forward&lt;Arg&gt;(arg));</div>
 <div class="line"><a name="l00627"></a><span class="lineno">  627</span>&#160;  }</div>
 <div class="line"><a name="l00628"></a><span class="lineno">  628</span>&#160; </div>
 <div class="line"><a name="l00633"></a><span class="lineno">  633</span>&#160;  <span class="keyword">template</span>&lt;std::size_t cut, std::size_t ... cuts, <span class="keyword">typename</span> Arg, std::enable_if_t&lt;is_Eigen_matrix_v&lt;Arg&gt;, <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00634"></a><span class="lineno">  634</span>&#160;  <span class="keyword">inline</span> <span class="keyword">auto</span></div>
-<div class="line"><a name="l00635"></a><span class="lineno">  635</span>&#160;  split_diagonal(Arg&amp;&amp; arg) noexcept</div>
+<div class="line"><a name="l00635"></a><span class="lineno">  635</span>&#160;  <a class="code" href="namespace_open_kalman.html#ac15b73be3f7afa907872a4c65359e71f">split_diagonal</a>(Arg&amp;&amp; arg) noexcept</div>
 <div class="line"><a name="l00636"></a><span class="lineno">  636</span>&#160;  {</div>
 <div class="line"><a name="l00637"></a><span class="lineno">  637</span>&#160;    static_assert((cut + ... + cuts) &lt;= MatrixTraits&lt;Arg&gt;::columns);</div>
 <div class="line"><a name="l00638"></a><span class="lineno">  638</span>&#160;    <span class="keywordflow">return</span> split_diagonal&lt;Axes&lt;cut&gt;, Axes&lt;cuts&gt;...&gt;(std::forward&lt;Arg&gt;(arg));</div>
@@ -665,7 +665,7 @@ $(document).ready(function(){initNavTree('_eigen_matrix_overloads_8h_source.html
 <div class="line"><a name="l00641"></a><span class="lineno">  641</span>&#160; </div>
 <div class="line"><a name="l00643"></a><span class="lineno">  643</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> Arg, std::enable_if_t&lt;is_native_Eigen_type_v&lt;Arg&gt;, <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00644"></a><span class="lineno">  644</span>&#160;  <span class="keyword">inline</span> <span class="keyword">auto</span></div>
-<div class="line"><a name="l00645"></a><span class="lineno">  645</span>&#160;  get_element(<span class="keyword">const</span> Arg&amp; arg, <span class="keyword">const</span> std::size_t i, <span class="keyword">const</span> std::size_t j)</div>
+<div class="line"><a name="l00645"></a><span class="lineno"><a class="line" href="namespace_open_kalman.html#a439099c89e7a6522dc675be7b1fdfe0c">  645</a></span>&#160;  <a class="code" href="namespace_open_kalman.html#a7ed81d91202d9b998733a3be06de9910">get_element</a>(<span class="keyword">const</span> Arg&amp; arg, <span class="keyword">const</span> std::size_t i, <span class="keyword">const</span> std::size_t j)</div>
 <div class="line"><a name="l00646"></a><span class="lineno">  646</span>&#160;  {</div>
 <div class="line"><a name="l00647"></a><span class="lineno">  647</span>&#160;    <span class="keywordflow">return</span> arg.coeff(i, j);</div>
 <div class="line"><a name="l00648"></a><span class="lineno">  648</span>&#160;  }</div>
@@ -673,7 +673,7 @@ $(document).ready(function(){initNavTree('_eigen_matrix_overloads_8h_source.html
 <div class="line"><a name="l00650"></a><span class="lineno">  650</span>&#160; </div>
 <div class="line"><a name="l00652"></a><span class="lineno">  652</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> Arg, std::enable_if_t&lt;is_native_Eigen_type_v&lt;Arg&gt; and MatrixTraits&lt;Arg&gt;::columns == 1, <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00653"></a><span class="lineno">  653</span>&#160;  <span class="keyword">inline</span> <span class="keyword">auto</span></div>
-<div class="line"><a name="l00654"></a><span class="lineno">  654</span>&#160;  get_element(<span class="keyword">const</span> Arg&amp; arg, <span class="keyword">const</span> std::size_t i)</div>
+<div class="line"><a name="l00654"></a><span class="lineno"><a class="line" href="namespace_open_kalman.html#aa328d5db66dccad29698234879f4d63e">  654</a></span>&#160;  <a class="code" href="namespace_open_kalman.html#a7ed81d91202d9b998733a3be06de9910">get_element</a>(<span class="keyword">const</span> Arg&amp; arg, <span class="keyword">const</span> std::size_t i)</div>
 <div class="line"><a name="l00655"></a><span class="lineno">  655</span>&#160;  {</div>
 <div class="line"><a name="l00656"></a><span class="lineno">  656</span>&#160;    <span class="keywordflow">return</span> arg.coeff(i);</div>
 <div class="line"><a name="l00657"></a><span class="lineno">  657</span>&#160;  }</div>
@@ -683,7 +683,7 @@ $(document).ready(function(){initNavTree('_eigen_matrix_overloads_8h_source.html
 <div class="line"><a name="l00662"></a><span class="lineno">  662</span>&#160;    std::enable_if_t&lt;is_native_Eigen_type_v&lt;Arg&gt; and not std::is_const_v&lt;std::remove_reference_t&lt;Arg&gt;&gt; and</div>
 <div class="line"><a name="l00663"></a><span class="lineno">  663</span>&#160;    <span class="keyword">static_cast&lt;</span><span class="keywordtype">bool</span><span class="keyword">&gt;</span>(std::decay_t&lt;Arg&gt;::Flags &amp; Eigen::LvalueBit), <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00664"></a><span class="lineno">  664</span>&#160;  <span class="keyword">inline</span> <span class="keywordtype">void</span></div>
-<div class="line"><a name="l00665"></a><span class="lineno">  665</span>&#160;  set_element(Arg&amp; arg, <span class="keyword">const</span> Scalar s, <span class="keyword">const</span> std::size_t i, <span class="keyword">const</span> std::size_t j)</div>
+<div class="line"><a name="l00665"></a><span class="lineno">  665</span>&#160;  <a class="code" href="namespace_open_kalman.html#a1a86339bc79fa01578464985b73e03a5">set_element</a>(Arg&amp; arg, <span class="keyword">const</span> Scalar s, <span class="keyword">const</span> std::size_t i, <span class="keyword">const</span> std::size_t j)</div>
 <div class="line"><a name="l00666"></a><span class="lineno">  666</span>&#160;  {</div>
 <div class="line"><a name="l00667"></a><span class="lineno">  667</span>&#160;    arg(i, j) = s;</div>
 <div class="line"><a name="l00668"></a><span class="lineno">  668</span>&#160;  }</div>
@@ -694,7 +694,7 @@ $(document).ready(function(){initNavTree('_eigen_matrix_overloads_8h_source.html
 <div class="line"><a name="l00674"></a><span class="lineno">  674</span>&#160;      MatrixTraits&lt;Arg&gt;::columns == 1 and</div>
 <div class="line"><a name="l00675"></a><span class="lineno">  675</span>&#160;    <span class="keyword">static_cast&lt;</span><span class="keywordtype">bool</span><span class="keyword">&gt;</span>(std::decay_t&lt;Arg&gt;::Flags &amp; Eigen::LvalueBit), <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00676"></a><span class="lineno">  676</span>&#160;  <span class="keyword">inline</span> <span class="keywordtype">void</span></div>
-<div class="line"><a name="l00677"></a><span class="lineno">  677</span>&#160;  set_element(Arg&amp; arg, <span class="keyword">const</span> Scalar s, <span class="keyword">const</span> std::size_t i)</div>
+<div class="line"><a name="l00677"></a><span class="lineno">  677</span>&#160;  <a class="code" href="namespace_open_kalman.html#a1a86339bc79fa01578464985b73e03a5">set_element</a>(Arg&amp; arg, <span class="keyword">const</span> Scalar s, <span class="keyword">const</span> std::size_t i)</div>
 <div class="line"><a name="l00678"></a><span class="lineno">  678</span>&#160;  {</div>
 <div class="line"><a name="l00679"></a><span class="lineno">  679</span>&#160;    arg(i) = s;</div>
 <div class="line"><a name="l00680"></a><span class="lineno">  680</span>&#160;  }</div>
@@ -702,7 +702,7 @@ $(document).ready(function(){initNavTree('_eigen_matrix_overloads_8h_source.html
 <div class="line"><a name="l00682"></a><span class="lineno">  682</span>&#160; </div>
 <div class="line"><a name="l00684"></a><span class="lineno">  684</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> Arg, std::enable_if_t&lt;is_native_Eigen_type_v&lt;Arg&gt;, <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00685"></a><span class="lineno">  685</span>&#160;  <span class="keyword">inline</span> <span class="keyword">auto</span></div>
-<div class="line"><a name="l00686"></a><span class="lineno">  686</span>&#160;  column(Arg&amp;&amp; arg, <span class="keyword">const</span> std::size_t index)</div>
+<div class="line"><a name="l00686"></a><span class="lineno"><a class="line" href="namespace_open_kalman.html#a38cf22b04919ddaac53d9296aa77be2d">  686</a></span>&#160;  <a class="code" href="namespace_open_kalman.html#a38cf22b04919ddaac53d9296aa77be2d">column</a>(Arg&amp;&amp; arg, <span class="keyword">const</span> std::size_t index)</div>
 <div class="line"><a name="l00687"></a><span class="lineno">  687</span>&#160;  {</div>
 <div class="line"><a name="l00688"></a><span class="lineno">  688</span>&#160;    <span class="keywordflow">return</span> std::forward&lt;Arg&gt;(arg).col(index);</div>
 <div class="line"><a name="l00689"></a><span class="lineno">  689</span>&#160;  }</div>
@@ -710,21 +710,21 @@ $(document).ready(function(){initNavTree('_eigen_matrix_overloads_8h_source.html
 <div class="line"><a name="l00691"></a><span class="lineno">  691</span>&#160; </div>
 <div class="line"><a name="l00693"></a><span class="lineno">  693</span>&#160;  <span class="keyword">template</span>&lt;<span class="keywordtype">size_t</span> index, <span class="keyword">typename</span> Arg, std::enable_if_t&lt;is_native_Eigen_type_v&lt;Arg&gt;, <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00694"></a><span class="lineno">  694</span>&#160;  <span class="keyword">inline</span> decltype(<span class="keyword">auto</span>)</div>
-<div class="line"><a name="l00695"></a><span class="lineno">  695</span>&#160;  column(Arg&amp;&amp; arg)</div>
+<div class="line"><a name="l00695"></a><span class="lineno"><a class="line" href="namespace_open_kalman.html#a6e7e42a6fae7659f1f67c68979ba9a95">  695</a></span>&#160;  <a class="code" href="namespace_open_kalman.html#a38cf22b04919ddaac53d9296aa77be2d">column</a>(Arg&amp;&amp; arg)</div>
 <div class="line"><a name="l00696"></a><span class="lineno">  696</span>&#160;  {</div>
-<div class="line"><a name="l00697"></a><span class="lineno">  697</span>&#160;    static_assert(index &lt; MatrixTraits&lt;Arg&gt;::columns, <span class="stringliteral">&quot;Column index out of range.&quot;</span>);</div>
-<div class="line"><a name="l00698"></a><span class="lineno">  698</span>&#160;    <span class="keywordflow">if</span> constexpr (MatrixTraits&lt;Arg&gt;::columns == 1)</div>
-<div class="line"><a name="l00699"></a><span class="lineno">  699</span>&#160;      return std::forward&lt;Arg&gt;(arg);</div>
-<div class="line"><a name="l00700"></a><span class="lineno">  700</span>&#160;    else if constexpr (index == 0)</div>
-<div class="line"><a name="l00701"></a><span class="lineno">  701</span>&#160;      return std::forward&lt;Arg&gt;(arg).template leftCols&lt;1&gt;();</div>
-<div class="line"><a name="l00702"></a><span class="lineno">  702</span>&#160;    else if constexpr (index == MatrixTraits&lt;Arg&gt;::columns - 1)</div>
-<div class="line"><a name="l00703"></a><span class="lineno">  703</span>&#160;      return std::forward&lt;Arg&gt;(arg).template rightCols&lt;1&gt;();</div>
-<div class="line"><a name="l00704"></a><span class="lineno">  704</span>&#160;    else</div>
-<div class="line"><a name="l00705"></a><span class="lineno">  705</span>&#160;      return std::forward&lt;Arg&gt;(arg).col(index);</div>
+<div class="line"><a name="l00697"></a><span class="lineno">  697</span>&#160;    static_assert(index &lt; <a class="code" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits&lt;Arg&gt;::columns</a>, <span class="stringliteral">&quot;Column index out of range.&quot;</span>);</div>
+<div class="line"><a name="l00698"></a><span class="lineno">  698</span>&#160;    <span class="keywordflow">if</span> constexpr (<a class="code" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits&lt;Arg&gt;::columns</a> == 1)</div>
+<div class="line"><a name="l00699"></a><span class="lineno">  699</span>&#160;      <span class="keywordflow">return</span> std::forward&lt;Arg&gt;(arg);</div>
+<div class="line"><a name="l00700"></a><span class="lineno">  700</span>&#160;    <span class="keywordflow">else</span> <span class="keywordflow">if</span> constexpr (index == 0)</div>
+<div class="line"><a name="l00701"></a><span class="lineno">  701</span>&#160;      <span class="keywordflow">return</span> std::forward&lt;Arg&gt;(arg).template leftCols&lt;1&gt;();</div>
+<div class="line"><a name="l00702"></a><span class="lineno">  702</span>&#160;    <span class="keywordflow">else</span> <span class="keywordflow">if</span> constexpr (index == <a class="code" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits&lt;Arg&gt;::columns</a> - 1)</div>
+<div class="line"><a name="l00703"></a><span class="lineno">  703</span>&#160;      <span class="keywordflow">return</span> std::forward&lt;Arg&gt;(arg).template rightCols&lt;1&gt;();</div>
+<div class="line"><a name="l00704"></a><span class="lineno">  704</span>&#160;    <span class="keywordflow">else</span></div>
+<div class="line"><a name="l00705"></a><span class="lineno">  705</span>&#160;      <span class="keywordflow">return</span> std::forward&lt;Arg&gt;(arg).col(index);</div>
 <div class="line"><a name="l00706"></a><span class="lineno">  706</span>&#160;  }</div>
 <div class="line"><a name="l00707"></a><span class="lineno">  707</span>&#160; </div>
 <div class="line"><a name="l00708"></a><span class="lineno">  708</span>&#160; </div>
-<div class="line"><a name="l00709"></a><span class="lineno">  709</span>&#160;  namespace detail</div>
+<div class="line"><a name="l00709"></a><span class="lineno">  709</span>&#160;  <span class="keyword">namespace </span>detail</div>
 <div class="line"><a name="l00710"></a><span class="lineno">  710</span>&#160;  {</div>
 <div class="line"><a name="l00711"></a><span class="lineno">  711</span>&#160;    <span class="keyword">template</span>&lt;<span class="keywordtype">bool</span> index, std::<span class="keywordtype">size_t</span> i, <span class="keyword">typename</span> Arg, <span class="keyword">typename</span> Function&gt;</div>
 <div class="line"><a name="l00712"></a><span class="lineno">  712</span>&#160;    <span class="keyword">inline</span> Arg&amp; do_one_column(Arg&amp; arg, <span class="keyword">const</span> Function&amp; f)</div>
@@ -743,30 +743,30 @@ $(document).ready(function(){initNavTree('_eigen_matrix_overloads_8h_source.html
 <div class="line"><a name="l00725"></a><span class="lineno">  725</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> Arg, <span class="keyword">typename</span> Function, std::size_t ... ints&gt;</div>
 <div class="line"><a name="l00726"></a><span class="lineno">  726</span>&#160;    <span class="keyword">inline</span> <span class="keyword">auto</span> cat_columnwise_impl(<span class="keyword">const</span> Arg&amp; arg, <span class="keyword">const</span> Function&amp; f, std::index_sequence&lt;ints...&gt;)</div>
 <div class="line"><a name="l00727"></a><span class="lineno">  727</span>&#160;    {</div>
-<div class="line"><a name="l00728"></a><span class="lineno">  728</span>&#160;      <span class="keyword">using</span> ResultType = decltype(f(column(arg, 0)));</div>
+<div class="line"><a name="l00728"></a><span class="lineno">  728</span>&#160;      <span class="keyword">using</span> ResultType = decltype(f(<a class="code" href="namespace_open_kalman.html#a38cf22b04919ddaac53d9296aa77be2d">column</a>(arg, 0)));</div>
 <div class="line"><a name="l00729"></a><span class="lineno">  729</span>&#160;      <span class="keywordflow">if</span> constexpr (is_ToEuclideanExpr_v&lt;ResultType&gt; or is_FromEuclideanExpr_v&lt;ResultType&gt;)</div>
 <div class="line"><a name="l00730"></a><span class="lineno">  730</span>&#160;      {</div>
-<div class="line"><a name="l00731"></a><span class="lineno">  731</span>&#160;        <span class="keyword">auto</span> res = concatenate_horizontal(base_matrix(f(column(arg, ints)))...);</div>
+<div class="line"><a name="l00731"></a><span class="lineno">  731</span>&#160;        <span class="keyword">auto</span> res = <a class="code" href="namespace_open_kalman.html#ac3c5157500f9c2c2018697ce9fd276d5">concatenate_horizontal</a>(base_matrix(f(<a class="code" href="namespace_open_kalman.html#a38cf22b04919ddaac53d9296aa77be2d">column</a>(arg, ints)))...);</div>
 <div class="line"><a name="l00732"></a><span class="lineno">  732</span>&#160;        <span class="keywordflow">return</span> MatrixTraits&lt;ResultType&gt;::make(std::move(res));</div>
 <div class="line"><a name="l00733"></a><span class="lineno">  733</span>&#160;      }</div>
 <div class="line"><a name="l00734"></a><span class="lineno">  734</span>&#160;      <span class="keywordflow">else</span></div>
 <div class="line"><a name="l00735"></a><span class="lineno">  735</span>&#160;      {</div>
-<div class="line"><a name="l00736"></a><span class="lineno">  736</span>&#160;        <span class="keywordflow">return</span> concatenate_horizontal(f(column(arg, ints))...);</div>
+<div class="line"><a name="l00736"></a><span class="lineno">  736</span>&#160;        <span class="keywordflow">return</span> <a class="code" href="namespace_open_kalman.html#ac3c5157500f9c2c2018697ce9fd276d5">concatenate_horizontal</a>(f(<a class="code" href="namespace_open_kalman.html#a38cf22b04919ddaac53d9296aa77be2d">column</a>(arg, ints))...);</div>
 <div class="line"><a name="l00737"></a><span class="lineno">  737</span>&#160;      }</div>
 <div class="line"><a name="l00738"></a><span class="lineno">  738</span>&#160;    };</div>
 <div class="line"><a name="l00739"></a><span class="lineno">  739</span>&#160; </div>
 <div class="line"><a name="l00740"></a><span class="lineno">  740</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> Arg, <span class="keyword">typename</span> Function, std::size_t ... ints&gt;</div>
 <div class="line"><a name="l00741"></a><span class="lineno">  741</span>&#160;    <span class="keyword">inline</span> <span class="keyword">auto</span> cat_columnwise_index_impl(<span class="keyword">const</span> Arg&amp; arg, <span class="keyword">const</span> Function&amp; f, std::index_sequence&lt;ints...&gt;)</div>
 <div class="line"><a name="l00742"></a><span class="lineno">  742</span>&#160;    {</div>
-<div class="line"><a name="l00743"></a><span class="lineno">  743</span>&#160;      <span class="keyword">using</span> ResultType = decltype(f(column(arg, 0), 0));</div>
+<div class="line"><a name="l00743"></a><span class="lineno">  743</span>&#160;      <span class="keyword">using</span> ResultType = decltype(f(<a class="code" href="namespace_open_kalman.html#a38cf22b04919ddaac53d9296aa77be2d">column</a>(arg, 0), 0));</div>
 <div class="line"><a name="l00744"></a><span class="lineno">  744</span>&#160;      <span class="keywordflow">if</span> constexpr (is_ToEuclideanExpr_v&lt;ResultType&gt; or is_FromEuclideanExpr_v&lt;ResultType&gt;)</div>
 <div class="line"><a name="l00745"></a><span class="lineno">  745</span>&#160;      {</div>
-<div class="line"><a name="l00746"></a><span class="lineno">  746</span>&#160;        <span class="keyword">auto</span> res = concatenate_horizontal(base_matrix(f(column(arg, ints), ints))...);</div>
+<div class="line"><a name="l00746"></a><span class="lineno">  746</span>&#160;        <span class="keyword">auto</span> res = <a class="code" href="namespace_open_kalman.html#ac3c5157500f9c2c2018697ce9fd276d5">concatenate_horizontal</a>(base_matrix(f(<a class="code" href="namespace_open_kalman.html#a38cf22b04919ddaac53d9296aa77be2d">column</a>(arg, ints), ints))...);</div>
 <div class="line"><a name="l00747"></a><span class="lineno">  747</span>&#160;        <span class="keywordflow">return</span> MatrixTraits&lt;ResultType&gt;::make(std::move(res));</div>
 <div class="line"><a name="l00748"></a><span class="lineno">  748</span>&#160;      }</div>
 <div class="line"><a name="l00749"></a><span class="lineno">  749</span>&#160;      <span class="keywordflow">else</span></div>
 <div class="line"><a name="l00750"></a><span class="lineno">  750</span>&#160;      {</div>
-<div class="line"><a name="l00751"></a><span class="lineno">  751</span>&#160;        <span class="keywordflow">return</span> concatenate_horizontal(f(column(arg, ints), ints)...);</div>
+<div class="line"><a name="l00751"></a><span class="lineno">  751</span>&#160;        <span class="keywordflow">return</span> <a class="code" href="namespace_open_kalman.html#ac3c5157500f9c2c2018697ce9fd276d5">concatenate_horizontal</a>(f(<a class="code" href="namespace_open_kalman.html#a38cf22b04919ddaac53d9296aa77be2d">column</a>(arg, ints), ints)...);</div>
 <div class="line"><a name="l00752"></a><span class="lineno">  752</span>&#160;      }</div>
 <div class="line"><a name="l00753"></a><span class="lineno">  753</span>&#160;    };</div>
 <div class="line"><a name="l00754"></a><span class="lineno">  754</span>&#160; </div>
@@ -776,13 +776,13 @@ $(document).ready(function(){initNavTree('_eigen_matrix_overloads_8h_source.html
 <div class="line"><a name="l00758"></a><span class="lineno">  758</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> Function, std::size_t ... ints&gt;</div>
 <div class="line"><a name="l00759"></a><span class="lineno">  759</span>&#160;    <span class="keyword">inline</span> <span class="keyword">auto</span> cat_columnwise_impl(<span class="keyword">const</span> Function&amp; f, std::index_sequence&lt;ints...&gt;)</div>
 <div class="line"><a name="l00760"></a><span class="lineno">  760</span>&#160;    {</div>
-<div class="line"><a name="l00761"></a><span class="lineno">  761</span>&#160;      <span class="keywordflow">return</span> concatenate_horizontal(cat_columnwise_dummy_function&lt;ints&gt;(f)...);</div>
+<div class="line"><a name="l00761"></a><span class="lineno">  761</span>&#160;      <span class="keywordflow">return</span> <a class="code" href="namespace_open_kalman.html#ac3c5157500f9c2c2018697ce9fd276d5">concatenate_horizontal</a>(cat_columnwise_dummy_function&lt;ints&gt;(f)...);</div>
 <div class="line"><a name="l00762"></a><span class="lineno">  762</span>&#160;    };</div>
 <div class="line"><a name="l00763"></a><span class="lineno">  763</span>&#160; </div>
 <div class="line"><a name="l00764"></a><span class="lineno">  764</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> Function, std::size_t ... ints&gt;</div>
 <div class="line"><a name="l00765"></a><span class="lineno">  765</span>&#160;    <span class="keyword">inline</span> <span class="keyword">auto</span> cat_columnwise_index_impl(<span class="keyword">const</span> Function&amp; f, std::index_sequence&lt;ints...&gt;)</div>
 <div class="line"><a name="l00766"></a><span class="lineno">  766</span>&#160;    {</div>
-<div class="line"><a name="l00767"></a><span class="lineno">  767</span>&#160;      <span class="keywordflow">return</span> concatenate_horizontal(f(ints)...);</div>
+<div class="line"><a name="l00767"></a><span class="lineno">  767</span>&#160;      <span class="keywordflow">return</span> <a class="code" href="namespace_open_kalman.html#ac3c5157500f9c2c2018697ce9fd276d5">concatenate_horizontal</a>(f(ints)...);</div>
 <div class="line"><a name="l00768"></a><span class="lineno">  768</span>&#160;    };</div>
 <div class="line"><a name="l00769"></a><span class="lineno">  769</span>&#160; </div>
 <div class="line"><a name="l00770"></a><span class="lineno">  770</span>&#160;  }</div>
@@ -967,22 +967,22 @@ $(document).ready(function(){initNavTree('_eigen_matrix_overloads_8h_source.html
 <div class="line"><a name="l00954"></a><span class="lineno">  954</span>&#160;    <span class="keyword">typename</span>...Params,</div>
 <div class="line"><a name="l00955"></a><span class="lineno">  955</span>&#160;    std::enable_if_t&lt;is_Eigen_matrix_v&lt;ReturnType&gt;, <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00956"></a><span class="lineno">  956</span>&#160;  <span class="keyword">inline</span> <span class="keyword">auto</span></div>
-<div class="line"><a name="l00957"></a><span class="lineno">  957</span>&#160;  randomize(Params&amp;&amp;...params)</div>
+<div class="line"><a name="l00957"></a><span class="lineno"><a class="line" href="namespace_open_kalman.html#a3a5aa50cd3446c27bc08deacb3456b2d">  957</a></span>&#160;  <a class="code" href="namespace_open_kalman.html#a3a5aa50cd3446c27bc08deacb3456b2d">randomize</a>(Params&amp;&amp;...params)</div>
 <div class="line"><a name="l00958"></a><span class="lineno">  958</span>&#160;  {</div>
-<div class="line"><a name="l00959"></a><span class="lineno">  959</span>&#160;    <span class="keyword">using</span> Scalar = <span class="keyword">typename</span> MatrixTraits&lt;ReturnType&gt;::Scalar;</div>
-<div class="line"><a name="l00960"></a><span class="lineno">  960</span>&#160;    constexpr <span class="keyword">auto</span> rows = MatrixTraits&lt;ReturnType&gt;::dimension;</div>
-<div class="line"><a name="l00961"></a><span class="lineno">  961</span>&#160;    constexpr <span class="keyword">auto</span> cols = MatrixTraits&lt;ReturnType&gt;::columns;</div>
+<div class="line"><a name="l00959"></a><span class="lineno">  959</span>&#160;    <span class="keyword">using</span> Scalar = <span class="keyword">typename</span> <a class="code" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits&lt;ReturnType&gt;::Scalar</a>;</div>
+<div class="line"><a name="l00960"></a><span class="lineno">  960</span>&#160;    constexpr <span class="keyword">auto</span> rows = <a class="code" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits&lt;ReturnType&gt;::dimension</a>;</div>
+<div class="line"><a name="l00961"></a><span class="lineno">  961</span>&#160;    constexpr <span class="keyword">auto</span> cols = <a class="code" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits&lt;ReturnType&gt;::columns</a>;</div>
 <div class="line"><a name="l00962"></a><span class="lineno">  962</span>&#160;    <span class="keyword">using</span> Ps = <span class="keyword">typename</span> distribution_type&lt;Scalar&gt;::param_type;</div>
 <div class="line"><a name="l00963"></a><span class="lineno">  963</span>&#160;    <span class="keywordflow">if</span> constexpr (std::is_constructible_v&lt;Ps, Params...&gt;)</div>
 <div class="line"><a name="l00964"></a><span class="lineno">  964</span>&#160;    {</div>
 <div class="line"><a name="l00965"></a><span class="lineno">  965</span>&#160;      Ps ps {params...};</div>
-<div class="line"><a name="l00966"></a><span class="lineno">  966</span>&#160;      <span class="keywordflow">return</span> strict(ReturnType::NullaryExpr([&amp;] {</div>
+<div class="line"><a name="l00966"></a><span class="lineno">  966</span>&#160;      <span class="keywordflow">return</span> <a class="code" href="namespace_open_kalman.html#a0fd8f48a0e8423e7f1db724d834e5375">strict</a>(ReturnType::NullaryExpr([&amp;] {</div>
 <div class="line"><a name="l00967"></a><span class="lineno">  967</span>&#160;        <span class="keywordflow">return</span> detail::get_rnd&lt;Scalar, distribution_type, random_number_engine&gt;(ps);</div>
 <div class="line"><a name="l00968"></a><span class="lineno">  968</span>&#160;      }));</div>
 <div class="line"><a name="l00969"></a><span class="lineno">  969</span>&#160;    }</div>
 <div class="line"><a name="l00970"></a><span class="lineno">  970</span>&#160;    <span class="keywordflow">else</span> <span class="keywordflow">if</span> constexpr (<span class="keyword">sizeof</span>...(Params) == rows * cols)</div>
 <div class="line"><a name="l00971"></a><span class="lineno">  971</span>&#160;    {</div>
-<div class="line"><a name="l00972"></a><span class="lineno">  972</span>&#160;      <span class="keywordflow">return</span> MatrixTraits&lt;ReturnType&gt;::make(</div>
+<div class="line"><a name="l00972"></a><span class="lineno">  972</span>&#160;      <span class="keywordflow">return</span> <a class="code" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits&lt;ReturnType&gt;::make</a>(</div>
 <div class="line"><a name="l00973"></a><span class="lineno">  973</span>&#160;        detail::get_rnd&lt;Scalar, distribution_type, random_number_engine&gt;(std::forward&lt;Params&gt;(params))...);</div>
 <div class="line"><a name="l00974"></a><span class="lineno">  974</span>&#160;    }</div>
 <div class="line"><a name="l00975"></a><span class="lineno">  975</span>&#160;    <span class="keywordflow">else</span></div>
@@ -991,8 +991,8 @@ $(document).ready(function(){initNavTree('_eigen_matrix_overloads_8h_source.html
 <div class="line"><a name="l00978"></a><span class="lineno">  978</span>&#160;        <span class="stringliteral">&quot;Params... must be (1) a parameter set or list of parameter sets, &quot;</span></div>
 <div class="line"><a name="l00979"></a><span class="lineno">  979</span>&#160;        <span class="stringliteral">&quot;(2) a list of parameter sets, one for each row, or (3) a list of parameter sets, one for each coefficient.&quot;</span>);</div>
 <div class="line"><a name="l00980"></a><span class="lineno">  980</span>&#160;      <span class="keywordflow">return</span> apply_columnwise&lt;cols&gt;([&amp;] {</div>
-<div class="line"><a name="l00981"></a><span class="lineno">  981</span>&#160;        <span class="keyword">using</span> ReturnTypeCol = <span class="keyword">typename</span> MatrixTraits&lt;ReturnType&gt;::template StrictMatrix&lt;rows, 1&gt;;</div>
-<div class="line"><a name="l00982"></a><span class="lineno">  982</span>&#160;        <span class="keywordflow">return</span> MatrixTraits&lt;ReturnTypeCol&gt;::make(</div>
+<div class="line"><a name="l00981"></a><span class="lineno">  981</span>&#160;        <span class="keyword">using</span> ReturnTypeCol = <span class="keyword">typename</span> <a class="code" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits&lt;ReturnType&gt;::template</a> StrictMatrix&lt;rows, 1&gt;;</div>
+<div class="line"><a name="l00982"></a><span class="lineno">  982</span>&#160;        <span class="keywordflow">return</span> <a class="code" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits&lt;ReturnTypeCol&gt;::make</a>(</div>
 <div class="line"><a name="l00983"></a><span class="lineno">  983</span>&#160;          detail::get_rnd&lt;Scalar, distribution_type, random_number_engine&gt;(std::forward&lt;Params&gt;(params))...);</div>
 <div class="line"><a name="l00984"></a><span class="lineno">  984</span>&#160;      });</div>
 <div class="line"><a name="l00985"></a><span class="lineno">  985</span>&#160;    }</div>
@@ -1005,7 +1005,26 @@ $(document).ready(function(){initNavTree('_eigen_matrix_overloads_8h_source.html
 <div class="line"><a name="l00992"></a><span class="lineno">  992</span>&#160;<span class="preprocessor">#endif //OPENKALMAN_EIGENMATRIXOVERLOADS_H</span></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
-<div class="ttc" id="astruct_open_kalman_1_1_matrix_traits_html"><div class="ttname"><a href="struct_open_kalman_1_1_matrix_traits.html">OpenKalman::MatrixTraits</a></div><div class="ttdoc">Traits of a matrix, such as size, coefficient types, etc.</div><div class="ttdef"><b>Definition:</b> <a href="_traits_8h_source.html#l00024">Traits.h:24</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html_ad7fbe21f478b7b06ac97b6eb6f5967c3"><div class="ttname"><a href="namespace_open_kalman.html#ad7fbe21f478b7b06ac97b6eb6f5967c3">OpenKalman::Axes</a></div><div class="ttdeci">Replicate&lt; Axis, size &gt; Axes</div><div class="ttdef"><b>Definition:</b> <a href="_coefficients_8h_source.html#l00257">Coefficients.h:257</a></div></div>
+<div class="ttc" id="astruct_open_kalman_1_1_matrix_traits_html"><div class="ttname"><a href="struct_open_kalman_1_1_matrix_traits.html">OpenKalman::MatrixTraits</a></div><div class="ttdef"><b>Definition:</b> <a href="_traits_8h_source.html#l00029">Traits.h:29</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html_a7ed81d91202d9b998733a3be06de9910"><div class="ttname"><a href="namespace_open_kalman.html#a7ed81d91202d9b998733a3be06de9910">OpenKalman::get_element</a></div><div class="ttdeci">auto get_element(Arg &amp;&amp;arg, const std::size_t i)</div><div class="ttdoc">Get element (i) of diagonal matrix arg.</div><div class="ttdef"><b>Definition:</b> <a href="_eigen_diagonal_8h_source.html#l00505">EigenDiagonal.h:505</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html_a1a86339bc79fa01578464985b73e03a5"><div class="ttname"><a href="namespace_open_kalman.html#a1a86339bc79fa01578464985b73e03a5">OpenKalman::set_element</a></div><div class="ttdeci">void set_element(Arg &amp;arg, const Scalar s, const std::size_t i)</div><div class="ttdoc">Set element (i) of matrix arg to s.</div><div class="ttdef"><b>Definition:</b> <a href="_eigen_diagonal_8h_source.html#l00539">EigenDiagonal.h:539</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html_ac15b73be3f7afa907872a4c65359e71f"><div class="ttname"><a href="namespace_open_kalman.html#ac15b73be3f7afa907872a4c65359e71f">OpenKalman::split_diagonal</a></div><div class="ttdeci">auto split_diagonal(Arg &amp;&amp;arg) noexcept</div><div class="ttdef"><b>Definition:</b> <a href="_eigen_matrix_overloads_8h_source.html#l00566">EigenMatrixOverloads.h:566</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html_ac3c5157500f9c2c2018697ce9fd276d5"><div class="ttname"><a href="namespace_open_kalman.html#ac3c5157500f9c2c2018697ce9fd276d5">OpenKalman::concatenate_horizontal</a></div><div class="ttdeci">constexpr decltype(auto) concatenate_horizontal(V &amp;&amp;v, Vs &amp;&amp;... vs) noexcept</div><div class="ttdoc">Concatenate one or more Eigen::MatrixBase objects horizontally.</div><div class="ttdef"><b>Definition:</b> <a href="_eigen_matrix_overloads_8h_source.html#l00309">EigenMatrixOverloads.h:309</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html_a3a5aa50cd3446c27bc08deacb3456b2d"><div class="ttname"><a href="namespace_open_kalman.html#a3a5aa50cd3446c27bc08deacb3456b2d">OpenKalman::randomize</a></div><div class="ttdeci">auto randomize(Params &amp;&amp;...params)</div><div class="ttdef"><b>Definition:</b> <a href="_eigen_matrix_overloads_8h_source.html#l00957">EigenMatrixOverloads.h:957</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html_af64ea73d28077cecfc217139a9d77813"><div class="ttname"><a href="namespace_open_kalman.html#af64ea73d28077cecfc217139a9d77813">OpenKalman::reduce_columns</a></div><div class="ttdeci">constexpr decltype(auto) reduce_columns(Arg &amp;&amp;arg) noexcept</div><div class="ttdoc">Create a column vector from a diagnoal matrix. (Same as base_matrix()).</div><div class="ttdef"><b>Definition:</b> <a href="_eigen_diagonal_8h_source.html#l00446">EigenDiagonal.h:446</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html_ad508289e902f8099b14dad0890c64795"><div class="ttname"><a href="namespace_open_kalman.html#ad508289e902f8099b14dad0890c64795">OpenKalman::solve</a></div><div class="ttdeci">auto solve(const A &amp;a, const B &amp;b)</div><div class="ttdoc">Solve the equation AX = B for X. A is a diagonal matrix.</div><div class="ttdef"><b>Definition:</b> <a href="_eigen_diagonal_8h_source.html#l00436">EigenDiagonal.h:436</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html_a0315b7e1603e75b425629b5604e470b2"><div class="ttname"><a href="namespace_open_kalman.html#a0315b7e1603e75b425629b5604e470b2">OpenKalman::concatenate_diagonal</a></div><div class="ttdeci">constexpr decltype(auto) concatenate_diagonal(V &amp;&amp;v, Vs &amp;&amp;... vs)</div><div class="ttdoc">Concatenate diagonally.</div><div class="ttdef"><b>Definition:</b> <a href="_eigen_diagonal_8h_source.html#l00491">EigenDiagonal.h:491</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html"><div class="ttname"><a href="namespace_open_kalman.html">OpenKalman</a></div><div class="ttdef"><b>Definition:</b> <a href="_continuous_property_particle_distribution_8h_source.html#l00022">ContinuousPropertyParticleDistribution.h:22</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html_a9ade2c818a6ac726e63817f86ed1b071"><div class="ttname"><a href="namespace_open_kalman.html#a9ade2c818a6ac726e63817f86ed1b071">OpenKalman::split_horizontal</a></div><div class="ttdeci">auto split_horizontal(Arg &amp;&amp;arg) noexcept</div><div class="ttdef"><b>Definition:</b> <a href="_eigen_matrix_overloads_8h_source.html#l00497">EigenMatrixOverloads.h:497</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html_a773cf4e126d6964b9ffd37d666b56fe2"><div class="ttname"><a href="namespace_open_kalman.html#a773cf4e126d6964b9ffd37d666b56fe2">OpenKalman::strict_matrix</a></div><div class="ttdeci">constexpr decltype(auto) strict_matrix(Arg &amp;&amp;arg)</div><div class="ttdoc">Convert to strict version of the matrix.</div><div class="ttdef"><b>Definition:</b> <a href="_eigen_matrix_overloads_8h_source.html#l00026">EigenMatrixOverloads.h:26</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html_a2742abeb205f5ed2e4d92ebb579329a7"><div class="ttname"><a href="namespace_open_kalman.html#a2742abeb205f5ed2e4d92ebb579329a7">OpenKalman::split_vertical</a></div><div class="ttdeci">auto split_vertical(Arg &amp;&amp;arg) noexcept</div><div class="ttdef"><b>Definition:</b> <a href="_eigen_matrix_overloads_8h_source.html#l00417">EigenMatrixOverloads.h:417</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html_ac07f38b9b803ce7be54501d6899eebb1"><div class="ttname"><a href="namespace_open_kalman.html#ac07f38b9b803ce7be54501d6899eebb1">OpenKalman::concatenate_vertical</a></div><div class="ttdeci">constexpr decltype(auto) concatenate_vertical(V &amp;&amp;v, Vs &amp;&amp;... vs) noexcept</div><div class="ttdoc">Concatenate one or more Eigen::MatrixBase objects vertically.</div><div class="ttdef"><b>Definition:</b> <a href="_eigen_matrix_overloads_8h_source.html#l00281">EigenMatrixOverloads.h:281</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html_a38cf22b04919ddaac53d9296aa77be2d"><div class="ttname"><a href="namespace_open_kalman.html#a38cf22b04919ddaac53d9296aa77be2d">OpenKalman::column</a></div><div class="ttdeci">auto column(Arg &amp;&amp;arg, const std::size_t index)</div><div class="ttdoc">Return column index of Arg.</div><div class="ttdef"><b>Definition:</b> <a href="_eigen_matrix_overloads_8h_source.html#l00686">EigenMatrixOverloads.h:686</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html_a2b6c57d62908d98416bcaed87375964c"><div class="ttname"><a href="namespace_open_kalman.html#a2b6c57d62908d98416bcaed87375964c">OpenKalman::LQ_decomposition</a></div><div class="ttdeci">constexpr decltype(auto) LQ_decomposition(A &amp;&amp;a)</div><div class="ttdoc">Perform an LQ decomposition. Since it is diagonal, it returns the matrix unchanged.</div><div class="ttdef"><b>Definition:</b> <a href="_eigen_diagonal_8h_source.html#l00455">EigenDiagonal.h:455</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html_a11ae142f488e2f8e68a657b091ed195d"><div class="ttname"><a href="namespace_open_kalman.html#a11ae142f488e2f8e68a657b091ed195d">OpenKalman::QR_decomposition</a></div><div class="ttdeci">constexpr decltype(auto) QR_decomposition(A &amp;&amp;a)</div><div class="ttdoc">Perform a QR decomposition. Since it is diagonal, it returns the matrix unchanged.</div><div class="ttdef"><b>Definition:</b> <a href="_eigen_diagonal_8h_source.html#l00464">EigenDiagonal.h:464</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html_a0fd8f48a0e8423e7f1db724d834e5375"><div class="ttname"><a href="namespace_open_kalman.html#a0fd8f48a0e8423e7f1db724d834e5375">OpenKalman::strict</a></div><div class="ttdeci">constexpr decltype(auto) strict(Arg &amp;&amp;arg) noexcept</div><div class="ttdoc">Convert to strict version of the distribution.</div><div class="ttdef"><b>Definition:</b> <a href="_gaussian_distribution_8h_source.html#l00558">GaussianDistribution.h:558</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html_a53512a5b7aa44f6146dfcc267c0596fd"><div class="ttname"><a href="namespace_open_kalman.html#a53512a5b7aa44f6146dfcc267c0596fd">OpenKalman::wrap_angles</a></div><div class="ttdeci">constexpr decltype(auto) wrap_angles(Arg &amp;&amp;arg) noexcept</div><div class="ttdef"><b>Definition:</b> <a href="_eigen_matrix_overloads_8h_source.html#l00092">EigenMatrixOverloads.h:92</a></div></div>
 <div class="ttc" id="astruct_open_kalman_1_1internal_1_1default__split__function_html"><div class="ttname"><a href="struct_open_kalman_1_1internal_1_1default__split__function.html">OpenKalman::internal::default_split_function</a></div><div class="ttdoc">Default split function.</div><div class="ttdef"><b>Definition:</b> <a href="_eigen_matrix_overloads_8h_source.html#l00401">EigenMatrixOverloads.h:402</a></div></div>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

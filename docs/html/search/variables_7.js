@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['sigma_1134',['sigma',['../struct_open_kalman_1_1_gaussian_distribution.html#a73034bc8e4ee396fcdab1ee214710307',1,'OpenKalman::GaussianDistribution']]],
-  ['size_1135',['size',['../struct_open_kalman_1_1_coefficients_3_4.html#a5b6be21c6d2d43a07f006807bdd8ecad',1,'OpenKalman::Coefficients&lt;&gt;::size()'],['../struct_open_kalman_1_1_coefficients_3_01_c_00_01_ctail_01_8_8_8_01_4.html#a50fd2eb870b94e92a65de3499369fc5f',1,'OpenKalman::Coefficients&lt; C, Ctail ... &gt;::size()']]]
+  ['m_5farg_1291',['m_arg',['../struct_open_kalman_1_1internal_1_1_covariance_base_base.html#aa825bf0fb78646ed86f142b4b7676394',1,'OpenKalman::internal::CovarianceBaseBase']]],
+  ['mu_1292',['mu',['../struct_open_kalman_1_1_gaussian_distribution.html#a25eda0c6851551c202b8098fd2c0fc02',1,'OpenKalman::GaussianDistribution']]]
 ];

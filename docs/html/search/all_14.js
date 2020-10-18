@@ -1,11 +1,9 @@
 var searchData=
 [
-  ['w_555',['W',['../struct_open_kalman_1_1internal_1_1_scaled_sigma_points_base.html#a8b344aeb8bb6751c220c565274201d8a',1,'OpenKalman::internal::ScaledSigmaPointsBase']]],
-  ['w0_556',['W0',['../struct_open_kalman_1_1_spherical_simplex_parameters.html#a855e4d49021448081885789c1d9782bb',1,'OpenKalman::SphericalSimplexParameters']]],
-  ['w_5fc0_557',['W_c0',['../struct_open_kalman_1_1internal_1_1_scaled_sigma_points_base.html#a0f6bee450252f123458818fedd0701e8',1,'OpenKalman::internal::ScaledSigmaPointsBase']]],
-  ['w_5fm0_558',['W_m0',['../struct_open_kalman_1_1internal_1_1_scaled_sigma_points_base.html#ace268b3bd89756d1d293e4601e59a175',1,'OpenKalman::internal::ScaledSigmaPointsBase']]],
-  ['weightedparticledistribution_559',['WeightedParticleDistribution',['../struct_open_kalman_1_1_weighted_particle_distribution.html',1,'OpenKalman']]],
-  ['weightedparticledistribution_3c_20double_2c_20eigen_3a_3amatrix_3c_20double_2c_20continuous_5fdimensions_2c_201_20_3e_2c_20otherproperties_2e_2e_2e_20_3e_560',['WeightedParticleDistribution&lt; double, Eigen::Matrix&lt; double, continuous_dimensions, 1 &gt;, OtherProperties... &gt;',['../struct_open_kalman_1_1_weighted_particle_distribution.html',1,'OpenKalman']]],
-  ['wrap_5farray_5fget_561',['wrap_array_get',['../struct_open_kalman_1_1_coefficients_3_4.html#a4e618d92662ab8397d7aedd2d7921235',1,'OpenKalman::Coefficients&lt;&gt;::wrap_array_get()'],['../struct_open_kalman_1_1_coefficients_3_01_c_00_01_ctail_01_8_8_8_01_4.html#a3f8e37ddace590519835a93c9a96ad6d',1,'OpenKalman::Coefficients&lt; C, Ctail ... &gt;::wrap_array_get()']]],
-  ['wrap_5farray_5fset_562',['wrap_array_set',['../struct_open_kalman_1_1_coefficients_3_4.html#ae2106f9d9dc94f8fa60fd8fcd26f6a60',1,'OpenKalman::Coefficients&lt;&gt;::wrap_array_set()'],['../struct_open_kalman_1_1_coefficients_3_01_c_00_01_ctail_01_8_8_8_01_4.html#a9020e76a94b9aff28dbad2ef79f104ad',1,'OpenKalman::Coefficients&lt; C, Ctail ... &gt;::wrap_array_set()']]]
+  ['unitwraptraits_629',['UnitWrapTraits',['../struct_open_kalman_1_1_unit_wrap_traits.html',1,'OpenKalman']]],
+  ['unscented_630',['Unscented',['../struct_open_kalman_1_1_unscented.html',1,'OpenKalman']]],
+  ['unscentedparametersparameterestimation_631',['UnscentedParametersParameterEstimation',['../struct_open_kalman_1_1_unscented_parameters_parameter_estimation.html',1,'OpenKalman']]],
+  ['unscentedparametersstateestimation_632',['UnscentedParametersStateEstimation',['../struct_open_kalman_1_1_unscented_parameters_state_estimation.html',1,'OpenKalman']]],
+  ['unscentedsigmapoints_633',['UnscentedSigmaPoints',['../namespace_open_kalman.html#a8b0239f8b1168cde423e125102a257b3',1,'OpenKalman']]],
+  ['update_634',['update',['../struct_open_kalman_1_1_particle_filter.html#af576a2237d3640e3d4b24cbd77391983',1,'OpenKalman::ParticleFilter::update(const typename measurement_transform_t::Input_variable_t &amp;x, const measurement_t &amp;z, const Args &amp;... args) const'],['../struct_open_kalman_1_1_particle_filter.html#a5264c68e27d87dc62818c408b78acb79',1,'OpenKalman::ParticleFilter::update(typename measurement_transform_t::Input_variable_t::unaugmented_t &amp;x, const measurement_t &amp;z, const typename measurement_transform_t::Input_variable_t::augmentation_t &amp;aug) const']]]
 ];

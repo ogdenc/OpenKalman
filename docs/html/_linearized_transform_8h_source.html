@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.18"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>OpenKalman: src/transforms/classes/LinearizedTransform.h Source File</title>
+<title>OpenKalman: C:/Users/cogden/CLionProjects/OpenKalman/src/transforms/classes/LinearizedTransform.h Source File</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -100,7 +100,7 @@ $(document).ready(function(){initNavTree('_linearized_transform_8h_source.html',
 <div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;<span class="preprocessor">#define OPENKALMAN_LINEARIZEDTRANSFORM_H</span></div>
 <div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160; </div>
 <div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160; </div>
-<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;<span class="keyword">namespace </span>OpenKalman</div>
+<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;<span class="keyword">namespace </span><a class="code" href="namespace_open_kalman.html">OpenKalman</a></div>
 <div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;{</div>
 <div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;  <span class="keyword">template</span>&lt;<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> order = 1&gt; </div>
 <div class="line"><a name="l00021"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1_linearized_transform.html">   21</a></span>&#160;  <span class="keyword">struct </span><a class="code" href="struct_open_kalman_1_1_linearized_transform.html">LinearizedTransform</a> : <a class="code" href="struct_open_kalman_1_1internal_1_1_linear_transform_base.html">internal::LinearTransformBase</a>&lt;LinearizedTransform&lt;order&gt;&gt;</div>
@@ -157,7 +157,7 @@ $(document).ready(function(){initNavTree('_linearized_transform_8h_source.html',
 <div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;      <span class="keyword">template</span>&lt;<span class="keyword">typename</span> OutputCoeffs, <span class="keyword">typename</span> T1, <span class="keyword">typename</span> T2, std::size_t...I&gt;</div>
 <div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;      <span class="keyword">static</span> <span class="keyword">auto</span> zip_tuples_impl(<span class="keyword">const</span> T1&amp; t1, <span class="keyword">const</span> T2&amp; t2, std::index_sequence&lt;I...&gt;)</div>
 <div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;      {</div>
-<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;        <span class="keywordflow">return</span> strict((second_order_term&lt;OutputCoeffs&gt;(std::get&lt;I&gt;(t1), std::get&lt;I&gt;(t2)) + ...));</div>
+<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;        <span class="keywordflow">return</span> <a class="code" href="namespace_open_kalman.html#a0fd8f48a0e8423e7f1db724d834e5375">strict</a>((second_order_term&lt;OutputCoeffs&gt;(std::get&lt;I&gt;(t1), std::get&lt;I&gt;(t2)) + ...));</div>
 <div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;      }</div>
 <div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160; </div>
 <div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;      <span class="keyword">template</span>&lt;<span class="keyword">typename</span> OutputCoeffs, <span class="keyword">typename</span> T1, <span class="keyword">typename</span> T2&gt;</div>
@@ -168,7 +168,7 @@ $(document).ready(function(){initNavTree('_linearized_transform_8h_source.html',
 <div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;      }</div>
 <div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160; </div>
 <div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;    <span class="keyword">public</span>:</div>
-<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;      TransformFunction(<span class="keyword">const</span> Transformation&amp; t) : transformation(t) {}</div>
+<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;      TransformFunction(<span class="keyword">const</span> <a class="code" href="namespace_open_kalman.html#abbd655dfd0d89b3b12ece39ab953e061">Transformation</a>&amp; t) : transformation(t) {}</div>
 <div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160; </div>
 <div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;      <span class="keyword">template</span>&lt;<span class="keyword">typename</span> InputMean, <span class="keyword">typename</span> ... NoiseMean&gt;</div>
 <div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;      <span class="keyword">auto</span> operator()(<span class="keyword">const</span> InputMean&amp; x, <span class="keyword">const</span> NoiseMean&amp; ... n)<span class="keyword"> const</span></div>
@@ -199,12 +199,15 @@ $(document).ready(function(){initNavTree('_linearized_transform_8h_source.html',
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <div class="ttc" id="astruct_open_kalman_1_1_linearized_transform_html"><div class="ttname"><a href="struct_open_kalman_1_1_linearized_transform.html">OpenKalman::LinearizedTransform</a></div><div class="ttdoc">A linearized transform, using a 1st or 2nd order Taylor approximation of a linear transformation.</div><div class="ttdef"><b>Definition:</b> <a href="_linearized_transform_8h_source.html#l00021">LinearizedTransform.h:22</a></div></div>
-<div class="ttc" id="astruct_open_kalman_1_1_matrix_traits_html"><div class="ttname"><a href="struct_open_kalman_1_1_matrix_traits.html">OpenKalman::MatrixTraits</a></div><div class="ttdoc">Traits of a matrix, such as size, coefficient types, etc.</div><div class="ttdef"><b>Definition:</b> <a href="_traits_8h_source.html#l00024">Traits.h:24</a></div></div>
+<div class="ttc" id="astruct_open_kalman_1_1_matrix_traits_html"><div class="ttname"><a href="struct_open_kalman_1_1_matrix_traits.html">OpenKalman::MatrixTraits</a></div><div class="ttdef"><b>Definition:</b> <a href="_traits_8h_source.html#l00029">Traits.h:29</a></div></div>
 <div class="ttc" id="astruct_open_kalman_1_1_transformation_html"><div class="ttname"><a href="struct_open_kalman_1_1_transformation.html">OpenKalman::Transformation</a></div><div class="ttdoc">A transformation from one single-column vector to another.</div><div class="ttdef"><b>Definition:</b> <a href="_transformation_8h_source.html#l00034">Transformation.h:34</a></div></div>
 <div class="ttc" id="astruct_open_kalman_1_1_linearized_transform_1_1_transform_function_html_a62129d8147c9dac11e30081365363d55"><div class="ttname"><a href="struct_open_kalman_1_1_linearized_transform_1_1_transform_function.html#a62129d8147c9dac11e30081365363d55">OpenKalman::LinearizedTransform::TransformFunction::second_order_term</a></div><div class="ttdeci">static auto second_order_term(const Hessian &amp;hessian, const Dist &amp;x)</div><div class="ttdef"><b>Definition:</b> <a href="_linearized_transform_8h_source.html#l00062">LinearizedTransform.h:62</a></div></div>
 <div class="ttc" id="astruct_open_kalman_1_1_linearized_transform_1_1_transform_function_html"><div class="ttname"><a href="struct_open_kalman_1_1_linearized_transform_1_1_transform_function.html">OpenKalman::LinearizedTransform::TransformFunction</a></div><div class="ttdef"><b>Definition:</b> <a href="_linearized_transform_8h_source.html#l00029">LinearizedTransform.h:30</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html"><div class="ttname"><a href="namespace_open_kalman.html">OpenKalman</a></div><div class="ttdef"><b>Definition:</b> <a href="_continuous_property_particle_distribution_8h_source.html#l00022">ContinuousPropertyParticleDistribution.h:22</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html_abbd655dfd0d89b3b12ece39ab953e061"><div class="ttname"><a href="namespace_open_kalman.html#abbd655dfd0d89b3b12ece39ab953e061">OpenKalman::Transformation</a></div><div class="ttdeci">Transformation(Function &amp;&amp;, TaylorDerivatives &amp;&amp;...) -&gt; Transformation&lt; Function, TaylorDerivatives... &gt;</div></div>
 <div class="ttc" id="astruct_open_kalman_1_1internal_1_1_linear_transform_base_html"><div class="ttname"><a href="struct_open_kalman_1_1internal_1_1_linear_transform_base.html">OpenKalman::internal::LinearTransformBase</a></div><div class="ttdef"><b>Definition:</b> <a href="_linear_transform_base_8h_source.html#l00025">LinearTransformBase.h:26</a></div></div>
 <div class="ttc" id="astruct_open_kalman_1_1_gaussian_distribution_html"><div class="ttname"><a href="struct_open_kalman_1_1_gaussian_distribution.html">OpenKalman::GaussianDistribution</a></div><div class="ttdoc">A Gaussian distribution, defined in terms of a mean vector and a covariance matrix.</div><div class="ttdef"><b>Definition:</b> <a href="_gaussian_distribution_8h_source.html#l00024">GaussianDistribution.h:25</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html_a0fd8f48a0e8423e7f1db724d834e5375"><div class="ttname"><a href="namespace_open_kalman.html#a0fd8f48a0e8423e7f1db724d834e5375">OpenKalman::strict</a></div><div class="ttdeci">constexpr decltype(auto) strict(Arg &amp;&amp;arg) noexcept</div><div class="ttdoc">Convert to strict version of the distribution.</div><div class="ttdef"><b>Definition:</b> <a href="_gaussian_distribution_8h_source.html#l00558">GaussianDistribution.h:558</a></div></div>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>

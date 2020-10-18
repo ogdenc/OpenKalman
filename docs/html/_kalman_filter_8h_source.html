@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.18"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>OpenKalman: src/filters/KalmanFilter.h Source File</title>
+<title>OpenKalman: C:/Users/cogden/CLionProjects/OpenKalman/src/filters/KalmanFilter.h Source File</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -86,7 +86,7 @@ $(document).ready(function(){initNavTree('_kalman_filter_8h_source.html',''); in
 <div class="title">KalmanFilter.h</div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="comment">/* This file is part of OpenKalman, a header-only C++ library for</span></div>
+<a href="_kalman_filter_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="comment">/* This file is part of OpenKalman, a header-only C++ library for</span></div>
 <div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="comment"> * Kalman filters and other recursive filters.</span></div>
 <div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;<span class="comment"> *</span></div>
 <div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="comment"> * Copyright (c) 2017-2020 Christopher Lee Ogden &lt;ogden@gatech.edu&gt;</span></div>
@@ -99,7 +99,7 @@ $(document).ready(function(){initNavTree('_kalman_filter_8h_source.html',''); in
 <div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;<span class="preprocessor">#ifndef OPENKALMAN_KALMANFILTER_H</span></div>
 <div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;<span class="preprocessor">#define OPENKALMAN_KALMANFILTER_H</span></div>
 <div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160; </div>
-<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;<span class="keyword">namespace </span>OpenKalman</div>
+<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;<span class="keyword">namespace </span><a class="code" href="namespace_open_kalman.html">OpenKalman</a></div>
 <div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;{</div>
 <div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span>...Transform&gt;</div>
 <div class="line"><a name="l00021"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1_kalman_filter.html">   21</a></span>&#160;  <span class="keyword">struct </span><a class="code" href="struct_open_kalman_1_1_kalman_filter.html">KalmanFilter</a>;</div>
@@ -119,31 +119,31 @@ $(document).ready(function(){initNavTree('_kalman_filter_8h_source.html',''); in
 <div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;      static_assert(is_Gaussian_distribution_v&lt;YDistribution&gt;);</div>
 <div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;      static_assert(is_typed_matrix_v&lt;CrossCovariance&gt;);</div>
 <div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;      static_assert(is_column_vector_v&lt;Measurement&gt; and <a class="code" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits&lt;Measurement&gt;::columns</a> == 1);</div>
-<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;      static_assert(is_equivalent_v&lt;<span class="keyword">typename</span> <a class="code" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits&lt;Measurement&gt;::RowCoefficients</a>,</div>
+<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;      static_assert(<a class="code" href="namespace_open_kalman.html#ac7a6ca66f215de077344f7a377d31916">is_equivalent_v</a>&lt;<span class="keyword">typename</span> <a class="code" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits&lt;Measurement&gt;::RowCoefficients</a>,</div>
 <div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;        <span class="keyword">typename</span> <a class="code" href="struct_open_kalman_1_1_distribution_traits.html">DistributionTraits&lt;YDistribution&gt;::Coefficients</a>&gt;);</div>
-<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;      static_assert(is_equivalent_v&lt;<span class="keyword">typename</span> <a class="code" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits&lt;CrossCovariance&gt;::RowCoefficients</a>,</div>
+<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;      static_assert(<a class="code" href="namespace_open_kalman.html#ac7a6ca66f215de077344f7a377d31916">is_equivalent_v</a>&lt;<span class="keyword">typename</span> <a class="code" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits&lt;CrossCovariance&gt;::RowCoefficients</a>,</div>
 <div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;        <span class="keyword">typename</span> <a class="code" href="struct_open_kalman_1_1_distribution_traits.html">DistributionTraits&lt;XDistribution&gt;::Coefficients</a>&gt;);</div>
-<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;      static_assert(is_equivalent_v&lt;<span class="keyword">typename</span> <a class="code" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits&lt;CrossCovariance&gt;::ColumnCoefficients</a>,</div>
+<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;      static_assert(<a class="code" href="namespace_open_kalman.html#ac7a6ca66f215de077344f7a377d31916">is_equivalent_v</a>&lt;<span class="keyword">typename</span> <a class="code" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits&lt;CrossCovariance&gt;::ColumnCoefficients</a>,</div>
 <div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;        <span class="keyword">typename</span> <a class="code" href="struct_open_kalman_1_1_distribution_traits.html">DistributionTraits&lt;YDistribution&gt;::Coefficients</a>&gt;);</div>
 <div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160; </div>
 <div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;      <span class="keyword">const</span> <span class="keyword">auto</span> y = mean(Ny);</div>
 <div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;      <span class="keyword">const</span> <span class="keyword">auto</span> P_yy = covariance(Ny);</div>
-<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;      <span class="keyword">const</span> <span class="keyword">auto</span> K = adjoint(solve(adjoint(P_yy), adjoint(P_xy))); <span class="comment">// K * P_yy == P_xy, or K == P_xy * inverse(P_yy)</span></div>
-<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;      <span class="keyword">auto</span> out_x_mean = strict(mean(Nx) + K * (<a class="code" href="struct_open_kalman_1_1_mean.html">Mean</a> {z} - y));</div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;      <span class="keyword">const</span> <span class="keyword">auto</span> K = adjoint(<a class="code" href="namespace_open_kalman.html#ad508289e902f8099b14dad0890c64795">solve</a>(adjoint(P_yy), adjoint(P_xy))); <span class="comment">// K * P_yy == P_xy, or K == P_xy * inverse(P_yy)</span></div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;      <span class="keyword">auto</span> out_x_mean = <a class="code" href="namespace_open_kalman.html#a0fd8f48a0e8423e7f1db724d834e5375">strict</a>(mean(Nx) + K * (<a class="code" href="struct_open_kalman_1_1_mean.html">Mean</a> {z} - y));</div>
 <div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160; </div>
 <div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;      <span class="keywordflow">if</span> constexpr (is_Cholesky_v&lt;YDistribution&gt;)</div>
 <div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;      {</div>
 <div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;        <span class="comment">// P_xy * adjoint(K) == K * P_yy * adjoint(K) == K * square_root(P_yy) * adjoint(K * square_root(P_yy))</span></div>
 <div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;        <span class="comment">// == square(LQ(K * square_root(P_yy)))</span></div>
-<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;        <span class="keyword">auto</span> out_x_cov = covariance(Nx) - square(LQ_decomposition(K * square_root(P_yy)));</div>
-<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;        <span class="keywordflow">return</span> make_GaussianDistribution(out_x_mean, out_x_cov);</div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;        <span class="keyword">auto</span> out_x_cov = covariance(Nx) - square(<a class="code" href="namespace_open_kalman.html#a2b6c57d62908d98416bcaed87375964c">LQ_decomposition</a>(K * square_root(P_yy)));</div>
+<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;        <span class="keywordflow">return</span> <a class="code" href="namespace_open_kalman.html#a131455a38340a120002aca624717d3d4">make_GaussianDistribution</a>(out_x_mean, out_x_cov);</div>
 <div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;      }</div>
 <div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;      <span class="keywordflow">else</span></div>
 <div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;      {</div>
 <div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;        <span class="comment">// K == P_xy * inverse(P_yy), so</span></div>
 <div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;        <span class="comment">// P_xy * adjoint(K) == P_xy * adjoint(inverse(P_yy)) * adjoint(P_xy)</span></div>
 <div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;        <span class="keyword">auto</span> out_x_cov = covariance(Nx) - <a class="code" href="struct_open_kalman_1_1_covariance.html">Covariance</a>(P_xy * adjoint(K));</div>
-<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;        <span class="keywordflow">return</span> make_GaussianDistribution(out_x_mean, out_x_cov);</div>
+<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;        <span class="keywordflow">return</span> <a class="code" href="namespace_open_kalman.html#a131455a38340a120002aca624717d3d4">make_GaussianDistribution</a>(out_x_mean, out_x_cov);</div>
 <div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;      }</div>
 <div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;    }</div>
 <div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160; </div>
@@ -263,15 +263,21 @@ $(document).ready(function(){initNavTree('_kalman_filter_8h_source.html',''); in
 <div class="line"><a name="l00190"></a><span class="lineno">  190</span>&#160;<span class="preprocessor">#endif //OPENKALMAN_KALMANFILTER_H</span></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
-<div class="ttc" id="astruct_open_kalman_1_1_distribution_traits_html"><div class="ttname"><a href="struct_open_kalman_1_1_distribution_traits.html">OpenKalman::DistributionTraits</a></div><div class="ttdoc">Traits of a distribution.</div><div class="ttdef"><b>Definition:</b> <a href="_traits_8h_source.html#l00385">Traits.h:385</a></div></div>
-<div class="ttc" id="astruct_open_kalman_1_1_matrix_traits_html"><div class="ttname"><a href="struct_open_kalman_1_1_matrix_traits.html">OpenKalman::MatrixTraits</a></div><div class="ttdoc">Traits of a matrix, such as size, coefficient types, etc.</div><div class="ttdef"><b>Definition:</b> <a href="_traits_8h_source.html#l00024">Traits.h:24</a></div></div>
+<div class="ttc" id="astruct_open_kalman_1_1_distribution_traits_html"><div class="ttname"><a href="struct_open_kalman_1_1_distribution_traits.html">OpenKalman::DistributionTraits</a></div><div class="ttdoc">Traits of a distribution.</div><div class="ttdef"><b>Definition:</b> <a href="_traits_8h_source.html#l00405">Traits.h:405</a></div></div>
+<div class="ttc" id="astruct_open_kalman_1_1_matrix_traits_html"><div class="ttname"><a href="struct_open_kalman_1_1_matrix_traits.html">OpenKalman::MatrixTraits</a></div><div class="ttdef"><b>Definition:</b> <a href="_traits_8h_source.html#l00029">Traits.h:29</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html_ad508289e902f8099b14dad0890c64795"><div class="ttname"><a href="namespace_open_kalman.html#ad508289e902f8099b14dad0890c64795">OpenKalman::solve</a></div><div class="ttdeci">auto solve(const A &amp;a, const B &amp;b)</div><div class="ttdoc">Solve the equation AX = B for X. A is a diagonal matrix.</div><div class="ttdef"><b>Definition:</b> <a href="_eigen_diagonal_8h_source.html#l00436">EigenDiagonal.h:436</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html"><div class="ttname"><a href="namespace_open_kalman.html">OpenKalman</a></div><div class="ttdef"><b>Definition:</b> <a href="_continuous_property_particle_distribution_8h_source.html#l00022">ContinuousPropertyParticleDistribution.h:22</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html_a2b6c57d62908d98416bcaed87375964c"><div class="ttname"><a href="namespace_open_kalman.html#a2b6c57d62908d98416bcaed87375964c">OpenKalman::LQ_decomposition</a></div><div class="ttdeci">constexpr decltype(auto) LQ_decomposition(A &amp;&amp;a)</div><div class="ttdoc">Perform an LQ decomposition. Since it is diagonal, it returns the matrix unchanged.</div><div class="ttdef"><b>Definition:</b> <a href="_eigen_diagonal_8h_source.html#l00455">EigenDiagonal.h:455</a></div></div>
 <div class="ttc" id="astruct_open_kalman_1_1_kalman_filter_html"><div class="ttname"><a href="struct_open_kalman_1_1_kalman_filter.html">OpenKalman::KalmanFilter</a></div><div class="ttdoc">A Kalman filter, using one or more statistical transforms.</div><div class="ttdef"><b>Definition:</b> <a href="_kalman_filter_8h_source.html#l00021">KalmanFilter.h:21</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html_a131455a38340a120002aca624717d3d4"><div class="ttname"><a href="namespace_open_kalman.html#a131455a38340a120002aca624717d3d4">OpenKalman::make_GaussianDistribution</a></div><div class="ttdeci">auto make_GaussianDistribution(D &amp;&amp;dist) noexcept</div><div class="ttdoc">Make a Gaussian distribution from another Gaussian distribution.</div><div class="ttdef"><b>Definition:</b> <a href="_gaussian_distribution_8h_source.html#l00348">GaussianDistribution.h:348</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html_ac7a6ca66f215de077344f7a377d31916"><div class="ttname"><a href="namespace_open_kalman.html#ac7a6ca66f215de077344f7a377d31916">OpenKalman::is_equivalent_v</a></div><div class="ttdeci">constexpr bool is_equivalent_v</div><div class="ttdoc">Helper template for is_equivalent.</div><div class="ttdef"><b>Definition:</b> <a href="_traits_8h_source.html#l00359">Traits.h:359</a></div></div>
 <div class="ttc" id="astruct_open_kalman_1_1_covariance_html"><div class="ttname"><a href="struct_open_kalman_1_1_covariance.html">OpenKalman::Covariance</a></div><div class="ttdoc">A Covariance matrix.</div><div class="ttdef"><b>Definition:</b> <a href="_covariance_8h_source.html#l00021">Covariance.h:23</a></div></div>
 <div class="ttc" id="astruct_open_kalman_1_1_mean_html"><div class="ttname"><a href="struct_open_kalman_1_1_mean.html">OpenKalman::Mean</a></div><div class="ttdoc">A typed vector.</div><div class="ttdef"><b>Definition:</b> <a href="_mean_8h_source.html#l00022">Mean.h:24</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html_a0fd8f48a0e8423e7f1db724d834e5375"><div class="ttname"><a href="namespace_open_kalman.html#a0fd8f48a0e8423e7f1db724d834e5375">OpenKalman::strict</a></div><div class="ttdeci">constexpr decltype(auto) strict(Arg &amp;&amp;arg) noexcept</div><div class="ttdoc">Convert to strict version of the distribution.</div><div class="ttdef"><b>Definition:</b> <a href="_gaussian_distribution_8h_source.html#l00558">GaussianDistribution.h:558</a></div></div>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="dir_1bc13244e26df1e1f069a1fd18e36da3.html">filters</a></li><li class="navelem"><b>KalmanFilter.h</b></li>
+    <li class="navelem"><a class="el" href="dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="dir_1bc13244e26df1e1f069a1fd18e36da3.html">filters</a></li><li class="navelem"><a class="el" href="_kalman_filter_8h.html">KalmanFilter.h</a></li>
     <li class="footer">Generated by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.18 </li>

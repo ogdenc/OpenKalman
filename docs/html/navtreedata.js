@@ -25,6 +25,16 @@
 var NAVTREE =
 [
   [ "OpenKalman", "index.html", [
+    [ "Modules", "modules.html", "modules" ],
+    [ "Namespaces", "namespaces.html", [
+      [ "Namespace List", "namespaces.html", "namespaces_dup" ],
+      [ "Namespace Members", "namespacemembers.html", [
+        [ "All", "namespacemembers.html", null ],
+        [ "Functions", "namespacemembers_func.html", null ],
+        [ "Variables", "namespacemembers_vars.html", null ],
+        [ "Typedefs", "namespacemembers_type.html", null ]
+      ] ]
+    ] ],
     [ "Classes", "annotated.html", [
       [ "Class List", "annotated.html", "annotated_dup" ],
       [ "Class Index", "classes.html", null ],
@@ -45,12 +55,12 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 ".html",
-"struct_eigen_1_1internal_1_1evaluator_3_01_open_kalman_1_1_from_euclidean_expr_3_01_coefficients23ff26eca6c7a2c33fdfccefa94440e1.html#a92ba91fca3759a35e3bb4b8a2acef1ee",
-"struct_open_kalman_1_1_eigen_self_adjoint_matrix.html#a0be133a68c2a73d955035691a84e5bb0",
-"struct_open_kalman_1_1_matrix_traits_3_01_from_euclidean_expr_3_01_coeffs_00_01_arg_type_01_4_01_4.html#ad9ca48ae3fe69face7149e4e23b453c0",
-"struct_open_kalman_1_1_transformation_3_01_function_00_01_jacobian_function_00_01_hessian_func_01_4.html#aefbba8c4b92f5776645fc3b75e18efbb",
-"struct_open_kalman_1_1internal_1_1_element_setter_3_01true_00_01_t_01_4.html#ada7c9e05a9bf8d0cf85a07803a95665b",
-"struct_open_kalman_1_1is__strict_3_01_eigen_triangular_matrix_3_01_base_matrix_00_01triangle__type_01_4_01_4.html"
+"struct_eigen_1_1_mean_comma_initializer.html#a659dd9310c38cfcf2a745adbef5ba10f",
+"struct_open_kalman_1_1_covariance.html#a34cda2087b3d2733935cc7dab1f3ef59",
+"struct_open_kalman_1_1_inclination.html",
+"struct_open_kalman_1_1_spherical_simplex.html#addfb61cac0ec977c017feab4d59ef165",
+"struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enablbb90baf9efb579da98c6029a9eb63dc1.html#a4747fe910260876afe6a75810705b50c",
+"struct_open_kalman_1_1is__equivalent_3_01_coefficients_3_01_c1_8_8_8_01_4_00_01_coefficients_3_06af3164a7d4e7b320b7b50fee9260a27.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

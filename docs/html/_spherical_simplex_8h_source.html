@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.18"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>OpenKalman: src/transforms/sample-points/SigmaPointsTypes/SphericalSimplex.h Source File</title>
+<title>OpenKalman: C:/Users/cogden/CLionProjects/OpenKalman/src/transforms/sample-points/SigmaPointsTypes/SphericalSimplex.h Source File</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -101,7 +101,7 @@ $(document).ready(function(){initNavTree('_spherical_simplex_8h_source.html','')
 <div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160; </div>
 <div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;<span class="preprocessor">#include &lt;limits&gt;</span></div>
 <div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160; </div>
-<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;<span class="keyword">namespace </span>OpenKalman</div>
+<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;<span class="keyword">namespace </span><a class="code" href="namespace_open_kalman.html">OpenKalman</a></div>
 <div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;{</div>
 <div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;<span class="comment">  /*************SphericalSimplexSigmaPoints************</span></div>
 <div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;<span class="comment">   * @brief Spherical simplex sigma points, as implemented in, e.g.,</span></div>
@@ -175,7 +175,7 @@ $(document).ready(function(){initNavTree('_spherical_simplex_8h_source.html','')
 <div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;      constexpr <span class="keyword">auto</span> count = sigma_point_count&lt;dim&gt;();</div>
 <div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;      <span class="keyword">auto</span> X = unscaled_sigma_points&lt;D, dim, pos&gt;(std::make_index_sequence&lt;count * rows&gt;());</div>
 <div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;      <span class="comment">// Scale based on covariance:</span></div>
-<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;      <span class="keyword">auto</span> ret = strict(square_root(covariance(d)) * Parameters::alpha * X);</div>
+<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;      <span class="keyword">auto</span> ret = <a class="code" href="namespace_open_kalman.html#a0fd8f48a0e8423e7f1db724d834e5375">strict</a>(square_root(covariance(d)) * Parameters::alpha * X);</div>
 <div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;      <span class="comment">//</span></div>
 <div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;      <span class="keywordflow">if</span> constexpr(<span class="keyword">sizeof</span>...(ds) &gt; 0)</div>
 <div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;        return std::tuple_cat(std::tuple {std::move(ret)}, sigma_points_impl&lt;dim, pos + rows&gt;(ds...));</div>
@@ -222,11 +222,13 @@ $(document).ready(function(){initNavTree('_spherical_simplex_8h_source.html','')
 </div><!-- doc-content -->
 <div class="ttc" id="astruct_open_kalman_1_1_spherical_simplex_html_a4d381035fd3e4c31f272428378a9e34d"><div class="ttname"><a href="struct_open_kalman_1_1_spherical_simplex.html#a4d381035fd3e4c31f272428378a9e34d">OpenKalman::SphericalSimplex::sigma_point_count</a></div><div class="ttdeci">static constexpr size_t sigma_point_count()</div><div class="ttdef"><b>Definition:</b> <a href="_spherical_simplex_8h_source.html#l00049">SphericalSimplex.h:49</a></div></div>
 <div class="ttc" id="astruct_open_kalman_1_1_spherical_simplex_parameters_html_a3b386136a867da94cd5e20476b4e6689"><div class="ttname"><a href="struct_open_kalman_1_1_spherical_simplex_parameters.html#a3b386136a867da94cd5e20476b4e6689">OpenKalman::SphericalSimplexParameters::beta</a></div><div class="ttdeci">static constexpr double beta</div><div class="ttdoc">Factor to compensate for the distribution (beta==2 is optimal for Gaussian distributions).</div><div class="ttdef"><b>Definition:</b> <a href="_spherical_simplex_8h_source.html#l00032">SphericalSimplex.h:32</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html"><div class="ttname"><a href="namespace_open_kalman.html">OpenKalman</a></div><div class="ttdef"><b>Definition:</b> <a href="_continuous_property_particle_distribution_8h_source.html#l00022">ContinuousPropertyParticleDistribution.h:22</a></div></div>
 <div class="ttc" id="astruct_open_kalman_1_1_spherical_simplex_html"><div class="ttname"><a href="struct_open_kalman_1_1_spherical_simplex.html">OpenKalman::SphericalSimplex</a></div><div class="ttdef"><b>Definition:</b> <a href="_spherical_simplex_8h_source.html#l00024">SphericalSimplex.h:24</a></div></div>
 <div class="ttc" id="astruct_open_kalman_1_1internal_1_1_scaled_sigma_points_base_html"><div class="ttname"><a href="struct_open_kalman_1_1internal_1_1_scaled_sigma_points_base.html">OpenKalman::internal::ScaledSigmaPointsBase</a></div><div class="ttdef"><b>Definition:</b> <a href="_scaled_sigma_points_base_8h_source.html#l00028">ScaledSigmaPointsBase.h:29</a></div></div>
 <div class="ttc" id="astruct_open_kalman_1_1_spherical_simplex_parameters_html_a12ef55873555fb90f02507d93e8011d8"><div class="ttname"><a href="struct_open_kalman_1_1_spherical_simplex_parameters.html#a12ef55873555fb90f02507d93e8011d8">OpenKalman::SphericalSimplexParameters::alpha</a></div><div class="ttdeci">static constexpr double alpha</div><div class="ttdoc">Scaling factor (typically 0.001 but may be from 0.0001 to 1).</div><div class="ttdef"><b>Definition:</b> <a href="_spherical_simplex_8h_source.html#l00030">SphericalSimplex.h:30</a></div></div>
 <div class="ttc" id="astruct_open_kalman_1_1_spherical_simplex_parameters_html_a855e4d49021448081885789c1d9782bb"><div class="ttname"><a href="struct_open_kalman_1_1_spherical_simplex_parameters.html#a855e4d49021448081885789c1d9782bb">OpenKalman::SphericalSimplexParameters::W0</a></div><div class="ttdeci">static constexpr double W0</div><div class="ttdef"><b>Definition:</b> <a href="_spherical_simplex_8h_source.html#l00035">SphericalSimplex.h:35</a></div></div>
 <div class="ttc" id="astruct_open_kalman_1_1_spherical_simplex_parameters_html"><div class="ttname"><a href="struct_open_kalman_1_1_spherical_simplex_parameters.html">OpenKalman::SphericalSimplexParameters</a></div><div class="ttdef"><b>Definition:</b> <a href="_spherical_simplex_8h_source.html#l00027">SphericalSimplex.h:28</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html_a0fd8f48a0e8423e7f1db724d834e5375"><div class="ttname"><a href="namespace_open_kalman.html#a0fd8f48a0e8423e7f1db724d834e5375">OpenKalman::strict</a></div><div class="ttdeci">constexpr decltype(auto) strict(Arg &amp;&amp;arg) noexcept</div><div class="ttdoc">Convert to strict version of the distribution.</div><div class="ttdef"><b>Definition:</b> <a href="_gaussian_distribution_8h_source.html#l00558">GaussianDistribution.h:558</a></div></div>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>

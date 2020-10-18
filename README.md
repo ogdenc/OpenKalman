@@ -8,3 +8,5 @@ An open source, heading-only library for Kalman filters and other recursive filt
 * Written in standard C++17.
 * Efficient: filters incurs little or no overhead over hand-coding.
 * Interfaces to Eigen3, but extensible to other matrix libraries.
+
+Website: https://ogdenc.github.io/OpenKalman/

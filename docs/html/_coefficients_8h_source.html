@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.18"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>OpenKalman: src/variables/coefficients/Coefficients.h Source File</title>
+<title>OpenKalman: C:/Users/cogden/CLionProjects/OpenKalman/src/variables/coefficients/Coefficients.h Source File</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -103,7 +103,7 @@ $(document).ready(function(){initNavTree('_coefficients_8h_source.html',''); ini
 <div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;<span class="preprocessor">#include &lt;functional&gt;</span></div>
 <div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;<span class="preprocessor">#include &lt;numeric&gt;</span></div>
 <div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160; </div>
-<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;<span class="keyword">namespace </span>OpenKalman</div>
+<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;<span class="keyword">namespace </span><a class="code" href="namespace_open_kalman.html">OpenKalman</a></div>
 <div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;{</div>
 <div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160; </div>
 <div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> ... Cs&gt;</div>
@@ -172,7 +172,7 @@ $(document).ready(function(){initNavTree('_coefficients_8h_source.html',''); ini
 <div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160; </div>
 <div class="line"><a name="l00094"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1_coefficients_3_01_c_00_01_ctail_01_8_8_8_01_4.html#aa628e27ff1bd1f4c7c26c0c8c8e4767d">   94</a></span>&#160;    <span class="keyword">static</span> constexpr <span class="keywordtype">bool</span> axes_only = C::axes_only and <a class="code" href="struct_open_kalman_1_1_coefficients.html">Coefficients</a>&lt;Ctail...&gt;::axes_only;</div>
 <div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160; </div>
-<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;    <span class="keyword">using</span> difference_type = Concatenate&lt;<span class="keyword">typename</span> C::difference_type, <span class="keyword">typename</span> Ctail::difference_type...&gt;;</div>
+<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;    <span class="keyword">using</span> difference_type = <a class="code" href="namespace_open_kalman.html#ae82c5198d9b9be12ab96f47ad0177181">Concatenate</a>&lt;<span class="keyword">typename</span> C::difference_type, <span class="keyword">typename</span> Ctail::difference_type...&gt;;</div>
 <div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160; </div>
 <div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> ... Cnew&gt;</div>
 <div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;    <span class="keyword">using</span> <a class="code" href="struct_open_kalman_1_1_coefficients.html">Prepend</a> = <a class="code" href="struct_open_kalman_1_1_coefficients.html">Coefficients</a>&lt;Cnew..., C, Ctail ...&gt;;</div>
@@ -316,10 +316,10 @@ $(document).ready(function(){initNavTree('_coefficients_8h_source.html',''); ini
 <div class="line"><a name="l00242"></a><span class="lineno">  242</span>&#160;  }</div>
 <div class="line"><a name="l00243"></a><span class="lineno">  243</span>&#160; </div>
 <div class="line"><a name="l00249"></a><span class="lineno">  249</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> C, std::<span class="keywordtype">size_t</span> N&gt;</div>
-<div class="line"><a name="l00250"></a><span class="lineno">  250</span>&#160;  <span class="keyword">using</span> Replicate = <span class="keyword">typename</span> <a class="code" href="struct_open_kalman_1_1detail_1_1_replicate_impl.html">detail::ReplicateImpl&lt;C, N&gt;::type</a>;</div>
+<div class="line"><a name="l00250"></a><span class="lineno"><a class="line" href="namespace_open_kalman.html#ac66c8a3d2e7e2449a727d370262995ef">  250</a></span>&#160;  <span class="keyword">using</span> <a class="code" href="namespace_open_kalman.html#ac66c8a3d2e7e2449a727d370262995ef">Replicate</a> = <span class="keyword">typename</span> <a class="code" href="struct_open_kalman_1_1detail_1_1_replicate_impl.html">detail::ReplicateImpl&lt;C, N&gt;::type</a>;</div>
 <div class="line"><a name="l00251"></a><span class="lineno">  251</span>&#160; </div>
 <div class="line"><a name="l00256"></a><span class="lineno">  256</span>&#160;  <span class="keyword">template</span>&lt;std::<span class="keywordtype">size_t</span> size&gt;</div>
-<div class="line"><a name="l00257"></a><span class="lineno">  257</span>&#160;  <span class="keyword">using</span> Axes = Replicate&lt;Axis, size&gt;;</div>
+<div class="line"><a name="l00257"></a><span class="lineno"><a class="line" href="namespace_open_kalman.html#ad7fbe21f478b7b06ac97b6eb6f5967c3">  257</a></span>&#160;  <span class="keyword">using</span> <a class="code" href="namespace_open_kalman.html#ad7fbe21f478b7b06ac97b6eb6f5967c3">Axes</a> = <a class="code" href="namespace_open_kalman.html#ac66c8a3d2e7e2449a727d370262995ef">Replicate&lt;Axis, size&gt;</a>;</div>
 <div class="line"><a name="l00258"></a><span class="lineno">  258</span>&#160; </div>
 <div class="line"><a name="l00259"></a><span class="lineno">  259</span>&#160; </div>
 <div class="line"><a name="l00260"></a><span class="lineno">  260</span>&#160;}<span class="comment">// namespace OpenKalman</span></div>
@@ -328,13 +328,17 @@ $(document).ready(function(){initNavTree('_coefficients_8h_source.html',''); ini
 <div class="line"><a name="l00263"></a><span class="lineno">  263</span>&#160;<span class="preprocessor">#endif //OPENKALMAN_COEFFICIENTS_H</span></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
+<div class="ttc" id="anamespace_open_kalman_html_ad7fbe21f478b7b06ac97b6eb6f5967c3"><div class="ttname"><a href="namespace_open_kalman.html#ad7fbe21f478b7b06ac97b6eb6f5967c3">OpenKalman::Axes</a></div><div class="ttdeci">Replicate&lt; Axis, size &gt; Axes</div><div class="ttdef"><b>Definition:</b> <a href="_coefficients_8h_source.html#l00257">Coefficients.h:257</a></div></div>
 <div class="ttc" id="astruct_open_kalman_1_1_coefficients_html"><div class="ttname"><a href="struct_open_kalman_1_1_coefficients.html">OpenKalman::Coefficients</a></div><div class="ttdoc">A set of coefficient types to be associated with a variable. The types should be instances of is_coef...</div><div class="ttdef"><b>Definition:</b> <a href="_coefficients_8h_source.html#l00027">Coefficients.h:27</a></div></div>
-<div class="ttc" id="astruct_open_kalman_1_1is__prefix_html"><div class="ttname"><a href="struct_open_kalman_1_1is__prefix.html">OpenKalman::is_prefix</a></div><div class="ttdoc">Whether one set of coefficients is a pre-fix for another set.</div><div class="ttdef"><b>Definition:</b> <a href="_traits_8h_source.html#l00343">Traits.h:343</a></div></div>
-<div class="ttc" id="astruct_open_kalman_1_1is__composite__coefficient_html"><div class="ttname"><a href="struct_open_kalman_1_1is__composite__coefficient.html">OpenKalman::is_composite_coefficient</a></div><div class="ttdoc">Whether an object is a composite coefficient.</div><div class="ttdef"><b>Definition:</b> <a href="_traits_8h_source.html#l00326">Traits.h:326</a></div></div>
-<div class="ttc" id="astruct_open_kalman_1_1is__equivalent_html"><div class="ttname"><a href="struct_open_kalman_1_1is__equivalent.html">OpenKalman::is_equivalent</a></div><div class="ttdoc">Whether coefficients are equivalent.</div><div class="ttdef"><b>Definition:</b> <a href="_traits_8h_source.html#l00335">Traits.h:335</a></div></div>
-<div class="ttc" id="astruct_open_kalman_1_1is__coefficient_html"><div class="ttname"><a href="struct_open_kalman_1_1is__coefficient.html">OpenKalman::is_coefficient</a></div><div class="ttdoc">Whether an object is a coefficient.</div><div class="ttdef"><b>Definition:</b> <a href="_traits_8h_source.html#l00318">Traits.h:318</a></div></div>
+<div class="ttc" id="astruct_open_kalman_1_1is__prefix_html"><div class="ttname"><a href="struct_open_kalman_1_1is__prefix.html">OpenKalman::is_prefix</a></div><div class="ttdoc">Whether one set of coefficients is a pre-fix for another set.</div><div class="ttdef"><b>Definition:</b> <a href="_traits_8h_source.html#l00363">Traits.h:363</a></div></div>
+<div class="ttc" id="astruct_open_kalman_1_1is__composite__coefficient_html"><div class="ttname"><a href="struct_open_kalman_1_1is__composite__coefficient.html">OpenKalman::is_composite_coefficient</a></div><div class="ttdoc">Whether an object is a composite coefficient.</div><div class="ttdef"><b>Definition:</b> <a href="_traits_8h_source.html#l00346">Traits.h:346</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html_ac66c8a3d2e7e2449a727d370262995ef"><div class="ttname"><a href="namespace_open_kalman.html#ac66c8a3d2e7e2449a727d370262995ef">OpenKalman::Replicate</a></div><div class="ttdeci">typename detail::ReplicateImpl&lt; C, N &gt;::type Replicate</div><div class="ttdoc">Create a Coefficients&lt;...&gt; alias in which the coefficients are C repeated N times.</div><div class="ttdef"><b>Definition:</b> <a href="_coefficients_8h_source.html#l00250">Coefficients.h:250</a></div></div>
+<div class="ttc" id="astruct_open_kalman_1_1is__equivalent_html"><div class="ttname"><a href="struct_open_kalman_1_1is__equivalent.html">OpenKalman::is_equivalent</a></div><div class="ttdoc">Whether coefficients are equivalent.</div><div class="ttdef"><b>Definition:</b> <a href="_traits_8h_source.html#l00355">Traits.h:355</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html"><div class="ttname"><a href="namespace_open_kalman.html">OpenKalman</a></div><div class="ttdef"><b>Definition:</b> <a href="_continuous_property_particle_distribution_8h_source.html#l00022">ContinuousPropertyParticleDistribution.h:22</a></div></div>
+<div class="ttc" id="astruct_open_kalman_1_1is__coefficient_html"><div class="ttname"><a href="struct_open_kalman_1_1is__coefficient.html">OpenKalman::is_coefficient</a></div><div class="ttdoc">Whether an object is a coefficient.</div><div class="ttdef"><b>Definition:</b> <a href="_traits_8h_source.html#l00338">Traits.h:338</a></div></div>
 <div class="ttc" id="astruct_open_kalman_1_1detail_1_1_replicate_impl_html"><div class="ttname"><a href="struct_open_kalman_1_1detail_1_1_replicate_impl.html">OpenKalman::detail::ReplicateImpl</a></div><div class="ttdef"><b>Definition:</b> <a href="_coefficients_8h_source.html#l00223">Coefficients.h:223</a></div></div>
 <div class="ttc" id="astruct_open_kalman_1_1_coefficients_3_4_html"><div class="ttname"><a href="struct_open_kalman_1_1_coefficients_3_4.html">OpenKalman::Coefficients&lt;&gt;</a></div><div class="ttdef"><b>Definition:</b> <a href="_coefficients_8h_source.html#l00030">Coefficients.h:31</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html_ae82c5198d9b9be12ab96f47ad0177181"><div class="ttname"><a href="namespace_open_kalman.html#ae82c5198d9b9be12ab96f47ad0177181">OpenKalman::Concatenate</a></div><div class="ttdeci">typename internal::ConcatenateImpl&lt; Coeffs... &gt;::type Concatenate</div><div class="ttdoc">Concatenate any number of Coefficients&lt;...&gt; types.</div><div class="ttdef"><b>Definition:</b> <a href="_traits_8h_source.html#l00333">Traits.h:333</a></div></div>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>

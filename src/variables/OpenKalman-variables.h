@@ -11,7 +11,12 @@
 #ifndef OPENKALMAN_OPENKALMAN_VARIABLES_H
 #define OPENKALMAN_OPENKALMAN_VARIABLES_H
 
+/**
+ * @file Traits.h
+ * A header file containing forward declarations for all OpenKalman traits.
+ */
 #include "variables/support/Traits.h"
+
 #include "variables/support/ForwardDeclarations.h"
 #include "variables/support/OpenKalman-coefficients.h"
 #include "variables/support/ElementSetter.h"

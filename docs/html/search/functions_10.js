@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['zero_1123',['Zero',['../struct_open_kalman_1_1internal_1_1_eigen_matrix_base.html#a5740ab0e01f5fad2eed79463b78d2eda',1,'OpenKalman::internal::EigenMatrixBase::Zero()'],['../struct_open_kalman_1_1_from_euclidean_expr.html#ae233fbf6b437f4202a0008cee2957524',1,'OpenKalman::FromEuclideanExpr::zero()'],['../struct_open_kalman_1_1_to_euclidean_expr.html#a57e174c701bc008c0b36eb4f90b22f83',1,'OpenKalman::ToEuclideanExpr::zero()']]]
+  ['update_1243',['update',['../struct_open_kalman_1_1_particle_filter.html#af576a2237d3640e3d4b24cbd77391983',1,'OpenKalman::ParticleFilter::update(const typename measurement_transform_t::Input_variable_t &amp;x, const measurement_t &amp;z, const Args &amp;... args) const'],['../struct_open_kalman_1_1_particle_filter.html#a5264c68e27d87dc62818c408b78acb79',1,'OpenKalman::ParticleFilter::update(typename measurement_transform_t::Input_variable_t::unaugmented_t &amp;x, const measurement_t &amp;z, const typename measurement_transform_t::Input_variable_t::augmentation_t &amp;aug) const']]]
 ];

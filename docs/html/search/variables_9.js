@@ -1,6 +1,5 @@
 var searchData=
 [
-  ['w0_1137',['W0',['../struct_open_kalman_1_1_spherical_simplex_parameters.html#a855e4d49021448081885789c1d9782bb',1,'OpenKalman::SphericalSimplexParameters']]],
-  ['wrap_5farray_5fget_1138',['wrap_array_get',['../struct_open_kalman_1_1_coefficients_3_4.html#a4e618d92662ab8397d7aedd2d7921235',1,'OpenKalman::Coefficients&lt;&gt;::wrap_array_get()'],['../struct_open_kalman_1_1_coefficients_3_01_c_00_01_ctail_01_8_8_8_01_4.html#a3f8e37ddace590519835a93c9a96ad6d',1,'OpenKalman::Coefficients&lt; C, Ctail ... &gt;::wrap_array_get()']]],
-  ['wrap_5farray_5fset_1139',['wrap_array_set',['../struct_open_kalman_1_1_coefficients_3_4.html#ae2106f9d9dc94f8fa60fd8fcd26f6a60',1,'OpenKalman::Coefficients&lt;&gt;::wrap_array_set()'],['../struct_open_kalman_1_1_coefficients_3_01_c_00_01_ctail_01_8_8_8_01_4.html#a9020e76a94b9aff28dbad2ef79f104ad',1,'OpenKalman::Coefficients&lt; C, Ctail ... &gt;::wrap_array_set()']]]
+  ['to_5feuclidean_5farray_1295',['to_Euclidean_array',['../struct_open_kalman_1_1_axis.html#ac9e4d6f26941ff74a3fd006e12e61408',1,'OpenKalman::Axis::to_Euclidean_array()'],['../struct_open_kalman_1_1_distance.html#acefa65bde49d524228583e169b34aa00',1,'OpenKalman::Distance::to_Euclidean_array()']]],
+  ['triangle_5ftype_5fof_5fv_1296',['triangle_type_of_v',['../namespace_open_kalman.html#aa5072438f6668460f4165de1dff1467b',1,'OpenKalman']]]
 ];

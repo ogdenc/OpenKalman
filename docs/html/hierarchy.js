@@ -81,91 +81,91 @@ var hierarchy =
       ] ]
     ] ],
     [ "false_type", null, [
-      [ "OpenKalman::class_trait< is_1by1, T, void >", "struct_open_kalman_1_1class__trait.html", [
+      [ "OpenKalman::internal::class_trait< is_1by1, T, void >", "struct_open_kalman_1_1internal_1_1class__trait.html", [
         [ "OpenKalman::is_1by1< T, Enable >", "struct_open_kalman_1_1is__1by1.html", null ]
       ] ],
-      [ "OpenKalman::class_trait< is_Cholesky, T, void >", "struct_open_kalman_1_1class__trait.html", [
+      [ "OpenKalman::internal::class_trait< is_Cholesky, T, void >", "struct_open_kalman_1_1internal_1_1class__trait.html", [
         [ "OpenKalman::is_Cholesky< T, Enable >", "struct_open_kalman_1_1is___cholesky.html", null ]
       ] ],
-      [ "OpenKalman::class_trait< is_column_vector, T, void >", "struct_open_kalman_1_1class__trait.html", [
+      [ "OpenKalman::internal::class_trait< is_column_vector, T, void >", "struct_open_kalman_1_1internal_1_1class__trait.html", [
         [ "OpenKalman::is_column_vector< T, Enable >", "struct_open_kalman_1_1is__column__vector.html", null ]
       ] ],
-      [ "OpenKalman::class_trait< is_covariance, T >", "struct_open_kalman_1_1class__trait.html", [
+      [ "OpenKalman::internal::class_trait< is_covariance, T >", "struct_open_kalman_1_1internal_1_1class__trait.html", [
         [ "OpenKalman::is_covariance< T >", "struct_open_kalman_1_1is__covariance.html", null ]
       ] ],
-      [ "OpenKalman::class_trait< is_covariance_base, T >", "struct_open_kalman_1_1class__trait.html", [
+      [ "OpenKalman::internal::class_trait< is_covariance_base, T >", "struct_open_kalman_1_1internal_1_1class__trait.html", [
         [ "OpenKalman::is_covariance_base< T, Enable >", "struct_open_kalman_1_1is__covariance__base.html", null ]
       ] ],
-      [ "OpenKalman::class_trait< is_diagonal, BaseMatrix, void >", "struct_open_kalman_1_1class__trait.html", [
+      [ "OpenKalman::internal::class_trait< is_diagonal, BaseMatrix, void >", "struct_open_kalman_1_1internal_1_1class__trait.html", [
         [ "OpenKalman::is_diagonal< BaseMatrix >", "struct_open_kalman_1_1is__diagonal.html", [
           [ "OpenKalman::is_diagonal< Covariance< Coefficients, BaseMatrix >, std::enable_if_t< not OpenKalman::is_zero_v< BaseMatrix > and not OpenKalman::is_identity_v< BaseMatrix > > >", "struct_open_kalman_1_1is__diagonal_3_01_covariance_3_01_coefficients_00_01_base_matrix_01_4_00_04b89bd4bac78b801318c13b8ae880618.html", null ],
           [ "OpenKalman::is_diagonal< SquareRootCovariance< Coefficients, BaseMatrix >, std::enable_if_t< not is_zero_v< BaseMatrix > and not is_identity_v< BaseMatrix > > >", "struct_open_kalman_1_1is__diagonal_3_01_square_root_covariance_3_01_coefficients_00_01_base_matrb8d505607c5d5eea549dea1c749e774a.html", null ],
           [ "OpenKalman::is_diagonal< TypedMatrix< Coefficients, Coefficients, BaseMatrix >, std::enable_if_t< not is_zero_v< BaseMatrix > and not is_identity_v< BaseMatrix > and not is_1by1_v< BaseMatrix > > >", "struct_open_kalman_1_1is__diagonal_3_01_typed_matrix_3_01_coefficients_00_01_coefficients_00_01_976b60cf999dd779f5c5b25a5db08314.html", null ]
         ] ]
       ] ],
-      [ "OpenKalman::class_trait< is_diagonal, CovarianceMatrix, void >", "struct_open_kalman_1_1class__trait.html", [
+      [ "OpenKalman::internal::class_trait< is_diagonal, CovarianceMatrix, void >", "struct_open_kalman_1_1internal_1_1class__trait.html", [
         [ "OpenKalman::is_diagonal< CovarianceMatrix >", "struct_open_kalman_1_1is__diagonal.html", [
           [ "OpenKalman::is_diagonal< GaussianDistribution< Coefficients, MeanMatrix, CovarianceMatrix, re >, std::enable_if_t< not is_zero_v< MeanMatrix > or not is_zero_v< CovarianceMatrix > > >", "struct_open_kalman_1_1is__diagonal_3_01_gaussian_distribution_3_01_coefficients_00_01_mean_matri07af77aad55f59aac0801e3b4f14428b.html", null ]
         ] ]
       ] ],
-      [ "OpenKalman::class_trait< is_diagonal, T, void >", "struct_open_kalman_1_1class__trait.html", [
+      [ "OpenKalman::internal::class_trait< is_diagonal, T, void >", "struct_open_kalman_1_1internal_1_1class__trait.html", [
         [ "OpenKalman::is_diagonal< T, Enable >", "struct_open_kalman_1_1is__diagonal.html", null ]
       ] ],
-      [ "OpenKalman::class_trait< is_distribution, T, void >", "struct_open_kalman_1_1class__trait.html", [
+      [ "OpenKalman::internal::class_trait< is_distribution, T, void >", "struct_open_kalman_1_1internal_1_1class__trait.html", [
         [ "OpenKalman::is_distribution< T, Enable >", "struct_open_kalman_1_1is__distribution.html", null ]
       ] ],
-      [ "OpenKalman::class_trait< is_Eigen_lower_storage_triangle, T >", "struct_open_kalman_1_1class__trait.html", [
+      [ "OpenKalman::internal::class_trait< is_Eigen_lower_storage_triangle, T >", "struct_open_kalman_1_1internal_1_1class__trait.html", [
         [ "OpenKalman::is_Eigen_lower_storage_triangle< T >", "struct_open_kalman_1_1is___eigen__lower__storage__triangle.html", null ]
       ] ],
-      [ "OpenKalman::class_trait< is_Eigen_upper_storage_triangle, T >", "struct_open_kalman_1_1class__trait.html", [
+      [ "OpenKalman::internal::class_trait< is_Eigen_upper_storage_triangle, T >", "struct_open_kalman_1_1internal_1_1class__trait.html", [
         [ "OpenKalman::is_Eigen_upper_storage_triangle< T >", "struct_open_kalman_1_1is___eigen__upper__storage__triangle.html", null ]
       ] ],
-      [ "OpenKalman::class_trait< is_EigenDiagonal, T >", "struct_open_kalman_1_1class__trait.html", [
+      [ "OpenKalman::internal::class_trait< is_EigenDiagonal, T >", "struct_open_kalman_1_1internal_1_1class__trait.html", [
         [ "OpenKalman::is_EigenDiagonal< T >", "struct_open_kalman_1_1is___eigen_diagonal.html", null ]
       ] ],
-      [ "OpenKalman::class_trait< is_EigenSelfAdjointMatrix, T >", "struct_open_kalman_1_1class__trait.html", [
+      [ "OpenKalman::internal::class_trait< is_EigenSelfAdjointMatrix, T >", "struct_open_kalman_1_1internal_1_1class__trait.html", [
         [ "OpenKalman::is_EigenSelfAdjointMatrix< T >", "struct_open_kalman_1_1is___eigen_self_adjoint_matrix.html", null ]
       ] ],
-      [ "OpenKalman::class_trait< is_EigenTriangularMatrix, T >", "struct_open_kalman_1_1class__trait.html", [
+      [ "OpenKalman::internal::class_trait< is_EigenTriangularMatrix, T >", "struct_open_kalman_1_1internal_1_1class__trait.html", [
         [ "OpenKalman::is_EigenTriangularMatrix< T >", "struct_open_kalman_1_1is___eigen_triangular_matrix.html", null ]
       ] ],
-      [ "OpenKalman::class_trait< is_EigenZero, T >", "struct_open_kalman_1_1class__trait.html", [
+      [ "OpenKalman::internal::class_trait< is_EigenZero, T >", "struct_open_kalman_1_1internal_1_1class__trait.html", [
         [ "OpenKalman::is_EigenZero< T >", "struct_open_kalman_1_1is___eigen_zero.html", null ]
       ] ],
-      [ "OpenKalman::class_trait< is_Euclidean_mean, T >", "struct_open_kalman_1_1class__trait.html", [
+      [ "OpenKalman::internal::class_trait< is_Euclidean_mean, T >", "struct_open_kalman_1_1internal_1_1class__trait.html", [
         [ "OpenKalman::is_Euclidean_mean< T >", "struct_open_kalman_1_1is___euclidean__mean.html", null ]
       ] ],
-      [ "OpenKalman::class_trait< is_Euclidean_transformed, T, void >", "struct_open_kalman_1_1class__trait.html", [
+      [ "OpenKalman::internal::class_trait< is_Euclidean_transformed, T, void >", "struct_open_kalman_1_1internal_1_1class__trait.html", [
         [ "OpenKalman::is_Euclidean_transformed< T, Enable >", "struct_open_kalman_1_1is___euclidean__transformed.html", null ]
       ] ],
-      [ "OpenKalman::class_trait< is_FromEuclideanExpr, T >", "struct_open_kalman_1_1class__trait.html", [
+      [ "OpenKalman::internal::class_trait< is_FromEuclideanExpr, T >", "struct_open_kalman_1_1internal_1_1class__trait.html", [
         [ "OpenKalman::is_FromEuclideanExpr< T >", "struct_open_kalman_1_1is___from_euclidean_expr.html", null ]
       ] ],
-      [ "OpenKalman::class_trait< is_Gaussian_distribution, T >", "struct_open_kalman_1_1class__trait.html", [
+      [ "OpenKalman::internal::class_trait< is_Gaussian_distribution, T >", "struct_open_kalman_1_1internal_1_1class__trait.html", [
         [ "OpenKalman::is_Gaussian_distribution< T >", "struct_open_kalman_1_1is___gaussian__distribution.html", null ]
       ] ],
-      [ "OpenKalman::class_trait< is_identity, BaseMatrix, void >", "struct_open_kalman_1_1class__trait.html", [
+      [ "OpenKalman::internal::class_trait< is_identity, BaseMatrix, void >", "struct_open_kalman_1_1internal_1_1class__trait.html", [
         [ "OpenKalman::is_identity< BaseMatrix >", "struct_open_kalman_1_1is__identity.html", [
           [ "OpenKalman::is_identity< Covariance< Coefficients, BaseMatrix >, std::enable_if_t< not is_zero_v< BaseMatrix > > >", "struct_open_kalman_1_1is__identity_3_01_covariance_3_01_coefficients_00_01_base_matrix_01_4_00_0dfd29cdf2cc3fdacfb3de18193492c76.html", null ],
           [ "OpenKalman::is_identity< SquareRootCovariance< Coefficients, BaseMatrix >, std::enable_if_t< not is_zero_v< BaseMatrix > > >", "struct_open_kalman_1_1is__identity_3_01_square_root_covariance_3_01_coefficients_00_01_base_matra956d66eee16f433ab0fdd8f8fd1a4c7.html", null ]
         ] ]
       ] ],
-      [ "OpenKalman::class_trait< is_identity, T, void >", "struct_open_kalman_1_1class__trait.html", [
+      [ "OpenKalman::internal::class_trait< is_identity, T, void >", "struct_open_kalman_1_1internal_1_1class__trait.html", [
         [ "OpenKalman::is_identity< T, Enable >", "struct_open_kalman_1_1is__identity.html", null ]
       ] ],
-      [ "OpenKalman::class_trait< is_lower_triangular, T, void >", "struct_open_kalman_1_1class__trait.html", [
+      [ "OpenKalman::internal::class_trait< is_lower_triangular, T, void >", "struct_open_kalman_1_1internal_1_1class__trait.html", [
         [ "OpenKalman::is_lower_triangular< T, Enable >", "struct_open_kalman_1_1is__lower__triangular.html", null ]
       ] ],
-      [ "OpenKalman::class_trait< is_mean, T >", "struct_open_kalman_1_1class__trait.html", [
+      [ "OpenKalman::internal::class_trait< is_mean, T >", "struct_open_kalman_1_1internal_1_1class__trait.html", [
         [ "OpenKalman::is_mean< T >", "struct_open_kalman_1_1is__mean.html", null ]
       ] ],
-      [ "OpenKalman::class_trait< is_self_adjoint, T, void >", "struct_open_kalman_1_1class__trait.html", [
+      [ "OpenKalman::internal::class_trait< is_self_adjoint, T, void >", "struct_open_kalman_1_1internal_1_1class__trait.html", [
         [ "OpenKalman::is_self_adjoint< T, Enable >", "struct_open_kalman_1_1is__self__adjoint.html", null ]
       ] ],
-      [ "OpenKalman::class_trait< is_square_root, T >", "struct_open_kalman_1_1class__trait.html", [
+      [ "OpenKalman::internal::class_trait< is_square_root, T >", "struct_open_kalman_1_1internal_1_1class__trait.html", [
         [ "OpenKalman::is_square_root< T >", "struct_open_kalman_1_1is__square__root.html", null ]
       ] ],
-      [ "OpenKalman::class_trait< is_strict, BaseMatrix >", "struct_open_kalman_1_1class__trait.html", [
+      [ "OpenKalman::internal::class_trait< is_strict, BaseMatrix >", "struct_open_kalman_1_1internal_1_1class__trait.html", [
         [ "OpenKalman::is_strict< BaseMatrix >", "struct_open_kalman_1_1is__strict.html", [
           [ "OpenKalman::is_strict< Covariance< Coefficients, BaseMatrix > >", "struct_open_kalman_1_1is__strict_3_01_covariance_3_01_coefficients_00_01_base_matrix_01_4_01_4.html", null ],
           [ "OpenKalman::is_strict< EigenDiagonal< BaseMatrix > >", "struct_open_kalman_1_1is__strict_3_01_eigen_diagonal_3_01_base_matrix_01_4_01_4.html", null ],
@@ -179,28 +179,28 @@ var hierarchy =
           [ "OpenKalman::is_strict< TypedMatrix< RowCoefficients, ColumnCoefficients, BaseMatrix > >", "struct_open_kalman_1_1is__strict_3_01_typed_matrix_3_01_row_coefficients_00_01_column_coefficients_00_01_base_matrix_01_4_01_4.html", null ]
         ] ]
       ] ],
-      [ "OpenKalman::class_trait< is_strict, T >", "struct_open_kalman_1_1class__trait.html", [
+      [ "OpenKalman::internal::class_trait< is_strict, T >", "struct_open_kalman_1_1internal_1_1class__trait.html", [
         [ "OpenKalman::is_strict< T, Enable >", "struct_open_kalman_1_1is__strict.html", null ]
       ] ],
-      [ "OpenKalman::class_trait< is_strict_matrix, T >", "struct_open_kalman_1_1class__trait.html", [
+      [ "OpenKalman::internal::class_trait< is_strict_matrix, T >", "struct_open_kalman_1_1internal_1_1class__trait.html", [
         [ "OpenKalman::is_strict_matrix< T, Enable >", "struct_open_kalman_1_1is__strict__matrix.html", null ]
       ] ],
-      [ "OpenKalman::class_trait< is_ToEuclideanExpr, T >", "struct_open_kalman_1_1class__trait.html", [
+      [ "OpenKalman::internal::class_trait< is_ToEuclideanExpr, T >", "struct_open_kalman_1_1internal_1_1class__trait.html", [
         [ "OpenKalman::is_ToEuclideanExpr< T >", "struct_open_kalman_1_1is___to_euclidean_expr.html", null ]
       ] ],
-      [ "OpenKalman::class_trait< is_typed_matrix, T >", "struct_open_kalman_1_1class__trait.html", [
+      [ "OpenKalman::internal::class_trait< is_typed_matrix, T >", "struct_open_kalman_1_1internal_1_1class__trait.html", [
         [ "OpenKalman::is_typed_matrix< T >", "struct_open_kalman_1_1is__typed__matrix.html", null ]
       ] ],
-      [ "OpenKalman::class_trait< is_typed_matrix_base, T >", "struct_open_kalman_1_1class__trait.html", [
+      [ "OpenKalman::internal::class_trait< is_typed_matrix_base, T >", "struct_open_kalman_1_1internal_1_1class__trait.html", [
         [ "OpenKalman::is_typed_matrix_base< T, Enable >", "struct_open_kalman_1_1is__typed__matrix__base.html", null ]
       ] ],
-      [ "OpenKalman::class_trait< is_upper_triangular, T, void >", "struct_open_kalman_1_1class__trait.html", [
+      [ "OpenKalman::internal::class_trait< is_upper_triangular, T, void >", "struct_open_kalman_1_1internal_1_1class__trait.html", [
         [ "OpenKalman::is_upper_triangular< T, Enable >", "struct_open_kalman_1_1is__upper__triangular.html", null ]
       ] ],
-      [ "OpenKalman::class_trait< is_wrapped, T, void >", "struct_open_kalman_1_1class__trait.html", [
+      [ "OpenKalman::internal::class_trait< is_wrapped, T, void >", "struct_open_kalman_1_1internal_1_1class__trait.html", [
         [ "OpenKalman::is_wrapped< T, Enable >", "struct_open_kalman_1_1is__wrapped.html", null ]
       ] ],
-      [ "OpenKalman::class_trait< is_zero, BaseMatrix, void >", "struct_open_kalman_1_1class__trait.html", [
+      [ "OpenKalman::internal::class_trait< is_zero, BaseMatrix, void >", "struct_open_kalman_1_1internal_1_1class__trait.html", [
         [ "OpenKalman::is_zero< BaseMatrix >", "struct_open_kalman_1_1is__zero.html", [
           [ "OpenKalman::is_zero< Covariance< Coefficients, BaseMatrix > >", "struct_open_kalman_1_1is__zero_3_01_covariance_3_01_coefficients_00_01_base_matrix_01_4_01_4.html", null ],
           [ "OpenKalman::is_zero< EuclideanMean< Coefficients, BaseMatrix > >", "struct_open_kalman_1_1is__zero_3_01_euclidean_mean_3_01_coefficients_00_01_base_matrix_01_4_01_4.html", null ],
@@ -209,7 +209,7 @@ var hierarchy =
           [ "OpenKalman::is_zero< TypedMatrix< RowCoefficients, ColumnCoefficients, BaseMatrix > >", "struct_open_kalman_1_1is__zero_3_01_typed_matrix_3_01_row_coefficients_00_01_column_coefficients_00_01_base_matrix_01_4_01_4.html", null ]
         ] ]
       ] ],
-      [ "OpenKalman::class_trait< is_zero, T, void >", "struct_open_kalman_1_1class__trait.html", [
+      [ "OpenKalman::internal::class_trait< is_zero, T, void >", "struct_open_kalman_1_1internal_1_1class__trait.html", [
         [ "OpenKalman::is_zero< T, Enable >", "struct_open_kalman_1_1is__zero.html", null ]
       ] ],
       [ "OpenKalman::is_equivalent< T, U >", "struct_open_kalman_1_1is__equivalent.html", [
@@ -222,7 +222,7 @@ var hierarchy =
         [ "OpenKalman::is_linearized_function< T &&, order >", "struct_open_kalman_1_1is__linearized__function_3_01_t_01_6_6_00_01order_01_4.html", null ],
         [ "OpenKalman::is_linearized_function< T &, order >", "struct_open_kalman_1_1is__linearized__function_3_01_t_01_6_00_01order_01_4.html", null ]
       ] ],
-      [ "OpenKalman::class_trait< Trait, T, Es >", "struct_open_kalman_1_1class__trait.html", null ],
+      [ "OpenKalman::internal::class_trait< Trait, T, Es >", "struct_open_kalman_1_1internal_1_1class__trait.html", null ],
       [ "OpenKalman::is_coefficient< T >", "struct_open_kalman_1_1is__coefficient.html", null ],
       [ "OpenKalman::is_composite_coefficient< T >", "struct_open_kalman_1_1is__composite__coefficient.html", null ],
       [ "OpenKalman::is_element_gettable< T, N, Enable >", "struct_open_kalman_1_1is__element__gettable.html", [
@@ -501,9 +501,9 @@ var hierarchy =
     ] ],
     [ "OpenKalman::ToEuclideanExpr< Coefficients, BaseMatrix >", "struct_open_kalman_1_1_to_euclidean_expr.html", null ],
     [ "Trait", null, [
-      [ "OpenKalman::class_trait< Trait, const T, Es... >", "struct_open_kalman_1_1class__trait_3_01_trait_00_01const_01_t_00_01_es_8_8_8_01_4.html", null ],
-      [ "OpenKalman::class_trait< Trait, T &&, Es... >", "struct_open_kalman_1_1class__trait_3_01_trait_00_01_t_01_6_6_00_01_es_8_8_8_01_4.html", null ],
-      [ "OpenKalman::class_trait< Trait, T &, Es... >", "struct_open_kalman_1_1class__trait_3_01_trait_00_01_t_01_6_00_01_es_8_8_8_01_4.html", null ]
+      [ "OpenKalman::internal::class_trait< Trait, const T, Es... >", "struct_open_kalman_1_1internal_1_1class__trait_3_01_trait_00_01const_01_t_00_01_es_8_8_8_01_4.html", null ],
+      [ "OpenKalman::internal::class_trait< Trait, T &&, Es... >", "struct_open_kalman_1_1internal_1_1class__trait_3_01_trait_00_01_t_01_6_6_00_01_es_8_8_8_01_4.html", null ],
+      [ "OpenKalman::internal::class_trait< Trait, T &, Es... >", "struct_open_kalman_1_1internal_1_1class__trait_3_01_trait_00_01_t_01_6_00_01_es_8_8_8_01_4.html", null ]
     ] ],
     [ "traits", null, [
       [ "Eigen::internal::traits< OpenKalman::Covariance< Coefficients, ArgType > >", "struct_eigen_1_1internal_1_1traits_3_01_open_kalman_1_1_covariance_3_01_coefficients_00_01_arg_type_01_4_01_4.html", null ],

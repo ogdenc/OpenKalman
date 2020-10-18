@@ -114,7 +114,7 @@ Public Types</h2></td></tr>
 using&#160;</td><td class="memItemRight" valign="bottom"><b>Coefficients</b> = Coeffs</td></tr>
 <tr class="separator:aa3cf778508b146cda47819c7f8e34ce8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae28afdd4885af638f73fe2b51bad607b"><td class="memItemLeft" align="right" valign="top"><a id="ae28afdd4885af638f73fe2b51bad607b"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>Base</b> = <a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html">internal::TypedMatrixBase</a>&lt; <a class="el" href="struct_open_kalman_1_1_euclidean_mean.html">EuclideanMean</a>, Coefficients, Axes&lt; <a class="el" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits</a>&lt; <a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a47237ae139eed1e36d4eba388fccc0a6">BaseMatrix</a> &gt;::<a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a48a773ce459d0b82b58adeec382b995e">columns</a> &gt;, <a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a47237ae139eed1e36d4eba388fccc0a6">BaseMatrix</a> &gt;</td></tr>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>Base</b> = <a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html">internal::TypedMatrixBase</a>&lt; <a class="el" href="struct_open_kalman_1_1_euclidean_mean.html">EuclideanMean</a>, Coefficients, <a class="el" href="namespace_open_kalman.html#ad7fbe21f478b7b06ac97b6eb6f5967c3">Axes</a>&lt; <a class="el" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits</a>&lt; <a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a47237ae139eed1e36d4eba388fccc0a6">BaseMatrix</a> &gt;::<a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a48a773ce459d0b82b58adeec382b995e">columns</a> &gt;, <a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a47237ae139eed1e36d4eba388fccc0a6">BaseMatrix</a> &gt;</td></tr>
 <tr class="separator:ae28afdd4885af638f73fe2b51bad607b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a39585c1eb794916578c1b66c36a38431"><td class="memItemLeft" align="right" valign="top"><a id="a39585c1eb794916578c1b66c36a38431"></a>
 using&#160;</td><td class="memItemRight" valign="bottom"><b>Base</b> = <a class="el" href="struct_open_kalman_1_1internal_1_1_matrix_base.html">internal::MatrixBase</a>&lt; Derived, NestedType &gt;</td></tr>
@@ -127,7 +127,7 @@ using&#160;</td><td class="memItemRight" valign="bottom"><b>Base</b> = <a class=
 using&#160;</td><td class="memItemRight" valign="bottom"><b>RowCoefficients</b> = Coeffs</td></tr>
 <tr class="separator:a4ff55cdd0cf170757a7115914d929557 inherit pub_types_struct_open_kalman_1_1internal_1_1_typed_matrix_base"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a68c42d641705aede54335208a81e6d5d inherit pub_types_struct_open_kalman_1_1internal_1_1_typed_matrix_base"><td class="memItemLeft" align="right" valign="top"><a id="a68c42d641705aede54335208a81e6d5d"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>ColumnCoefficients</b> = Axes&lt; <a class="el" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits</a>&lt; <a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a47237ae139eed1e36d4eba388fccc0a6">BaseMatrix</a> &gt;::<a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a48a773ce459d0b82b58adeec382b995e">columns</a> &gt;</td></tr>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>ColumnCoefficients</b> = <a class="el" href="namespace_open_kalman.html#ad7fbe21f478b7b06ac97b6eb6f5967c3">Axes</a>&lt; <a class="el" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits</a>&lt; <a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a47237ae139eed1e36d4eba388fccc0a6">BaseMatrix</a> &gt;::<a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a48a773ce459d0b82b58adeec382b995e">columns</a> &gt;</td></tr>
 <tr class="separator:a68c42d641705aede54335208a81e6d5d inherit pub_types_struct_open_kalman_1_1internal_1_1_typed_matrix_base"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a47237ae139eed1e36d4eba388fccc0a6 inherit pub_types_struct_open_kalman_1_1internal_1_1_typed_matrix_base"><td class="memItemLeft" align="right" valign="top"><a id="a47237ae139eed1e36d4eba388fccc0a6"></a>
 using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a47237ae139eed1e36d4eba388fccc0a6">BaseMatrix</a> = BaseMatrix</td></tr>
@@ -355,14 +355,14 @@ struct OpenKalman::EuclideanMean&lt; Coeffs, BaseMatrix &gt;</h3>
 
 <p class="definition">Definition at line <a class="el" href="_euclidean_mean_8h_source.html#l00024">24</a> of file <a class="el" href="_euclidean_mean_8h_source.html">EuclideanMean.h</a>.</p>
 </div><hr/>The documentation for this struct was generated from the following file:<ul>
-<li>src/variables/classes/<a class="el" href="_euclidean_mean_8h_source.html">EuclideanMean.h</a></li>
+<li>C:/Users/cogden/CLionProjects/OpenKalman/src/variables/classes/<a class="el" href="_euclidean_mean_8h_source.html">EuclideanMean.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><b>OpenKalman</b></li><li class="navelem"><a class="el" href="struct_open_kalman_1_1_euclidean_mean.html">EuclideanMean</a></li>
+    <li class="navelem"><a class="el" href="namespace_open_kalman.html">OpenKalman</a></li><li class="navelem"><a class="el" href="struct_open_kalman_1_1_euclidean_mean.html">EuclideanMean</a></li>
     <li class="footer">Generated by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.18 </li>
