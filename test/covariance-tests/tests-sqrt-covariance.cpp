@@ -98,27 +98,33 @@ TEST_F(covariance_tests, SquareRootCovariance_class)
   EXPECT_TRUE(is_near(ci2b, Mat2 {1, 0, 0, 1}));
 
   // Move constructor
-  SqCovSA2l clsa3(std::move(SqCovSA2l {3, 0, 1, 3}));
+  auto xa = SqCovSA2l {3, 0, 1, 3};
+  SqCovSA2l clsa3(std::move(xa));
   EXPECT_TRUE(is_near(clsa3, Mat2 {3, 0, 1, 3}));
   EXPECT_TRUE(is_near(clsa3.base_matrix(), Mat2 {9, 3, 3, 10}));
   EXPECT_TRUE(is_near(const_cast<const SqCovSA2l&>(clsa3), Mat2 {3, 0, 1, 3}));
-  SqCovSA2u cusa3(std::move(SqCovSA2u {2, 1, 0, 2}));
+  auto xb = SqCovSA2u {2, 1, 0, 2};
+  SqCovSA2u cusa3(std::move(xb));
   EXPECT_TRUE(is_near(cusa3, Mat2 {2, 1, 0, 2}));
   EXPECT_TRUE(is_near(cusa3.base_matrix(), Mat2 {4, 2, 2, 5}));
   EXPECT_TRUE(is_near(const_cast<const SqCovSA2u&>(cusa3), Mat2 {2, 1, 0, 2}));
-  SqCovT2l clt3(std::move(SqCovT2l {3, 0, 1, 3}));
+  auto xc = SqCovT2l {3, 0, 1, 3};
+  SqCovT2l clt3(std::move(xc));
   EXPECT_TRUE(is_near(clt3, Mat2 {3, 0, 1, 3}));
   EXPECT_TRUE(is_near(clt3.base_matrix(), Mat2 {3, 0, 1, 3}));
   EXPECT_TRUE(is_near(const_cast<const SqCovT2l&>(clt3), Mat2 {3, 0, 1, 3}));
-  SqCovT2u cut3(std::move(SqCovT2u {2, 1, 0, 2}));
+  auto xd = SqCovT2u {2, 1, 0, 2};
+  SqCovT2u cut3(std::move(xd));
   EXPECT_TRUE(is_near(cut3, Mat2 {2, 1, 0, 2}));
   EXPECT_TRUE(is_near(cut3.base_matrix(), Mat2 {2, 1, 0, 2}));
   EXPECT_TRUE(is_near(const_cast<const SqCovT2u&>(cut3), Mat2 {2, 1, 0, 2}));
-  SqCovD2 cd3(std::move(SqCovD2 {1, 2}));
+  auto xe = SqCovD2 {1, 2};
+  SqCovD2 cd3(std::move(xe));
   EXPECT_TRUE(is_near(cd3, Mat2 {1, 0, 0, 2}));
   EXPECT_TRUE(is_near(cd3.base_matrix(), Mat2 {1, 0, 0, 2}));
   EXPECT_TRUE(is_near(const_cast<const SqCovD2&>(cd3), Mat2 {1, 0, 0, 2}));
-  SqCovI2 ci3(std::move(SqCovI2 {i2}));
+  auto xf = SqCovI2 {i2};
+  SqCovI2 ci3(std::move(xf));
   EXPECT_TRUE(is_near(ci3, Mat2 {1, 0, 0, 1}));
   EXPECT_TRUE(is_near(ci3.base_matrix(), Mat2 {1, 0, 0, 1}));
   EXPECT_TRUE(is_near(const_cast<const SqCovI2&>(ci3), Mat2 {1, 0, 0, 1}));
@@ -286,15 +292,20 @@ TEST_F(covariance_tests, SquareRootCovariance_class)
   EXPECT_TRUE(is_near(cd2, Mat2 {1, 0, 0, 2}));
 
   // Move assignment
-  clsa2 = std::move(SqCovSA2l {3, 0, 1, 3});
+  auto ya = SqCovSA2l {3, 0, 1, 3};
+  clsa2 = std::move(ya);
   EXPECT_TRUE(is_near(clsa2, Mat2 {3, 0, 1, 3}));
-  cusa2 = std::move(SqCovSA2u {2, 1, 0, 2});
+  auto yb = SqCovSA2u {2, 1, 0, 2};
+  cusa2 = std::move(yb);
   EXPECT_TRUE(is_near(cusa2, Mat2 {2, 1, 0, 2}));
-  clt2 = std::move(SqCovT2l {3, 0, 1, 3});
+  auto yc = SqCovT2l {3, 0, 1, 3};
+  clt2 = std::move(yc);
   EXPECT_TRUE(is_near(clt2, Mat2 {3, 0, 1, 3}));
-  cut2 = std::move(SqCovT2u {2, 1, 0, 2});
+  auto yd = SqCovT2u {2, 1, 0, 2};
+  cut2 = std::move(yd);
   EXPECT_TRUE(is_near(cut2, Mat2 {2, 1, 0, 2}));
-  cd2 = std::move(SqCovD2 {1, 2});
+  auto ye = SqCovD2 {1, 2};
+  cd2 = std::move(ye);
   EXPECT_TRUE(is_near(cd2, Mat2 {1, 0, 0, 2}));
 
   // Assign from a list of coefficients (via move assignment operator)

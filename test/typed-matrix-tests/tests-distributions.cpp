@@ -89,7 +89,8 @@ TEST_F(typed_matrix_tests, GaussianDistribution_class)
   EXPECT_TRUE(is_near(covariance(distSA2lb), Mat2 {9, 3, 3, 10}));
 
   // Move constructor
-  DistSA2l distSA2lc(std::move(DistSA2l {Mean2 {1, 2}, CovSA2l {9, 3, 3, 10}}));
+  auto xa = DistSA2l {Mean2 {1, 2}, CovSA2l {9, 3, 3, 10}};
+  DistSA2l distSA2lc(std::move(xa));
   EXPECT_TRUE(is_near(mean(distSA2lc), Mean2 {1, 2}));
   EXPECT_TRUE(is_near(covariance(distSA2lc), Mat2 {9, 3, 3, 10}));
 
@@ -261,7 +262,8 @@ TEST_F(typed_matrix_tests, GaussianDistribution_class)
   EXPECT_TRUE(is_near(covariance(distSA2lb), Mat2 {4, 2, 2, 5}));
 
   // Move assignment
-  distSA2lc = std::move(DistSA2l {{3, 4}, {4, 2, 2, 5}});
+  auto xb =  DistSA2l {{3, 4}, {4, 2, 2, 5}};
+  distSA2lc = std::move(xb);
   EXPECT_TRUE(is_near(mean(distSA2lc), Mean2 {3, 4}));
   EXPECT_TRUE(is_near(covariance(distSA2lc), Mat2 {4, 2, 2, 5}));
 

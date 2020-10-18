@@ -112,6 +112,7 @@ TEST_F(matrix_tests, Diagonal_subscripts)
 
 TEST_F(matrix_tests, Diagonal_traits)
 {
+  static_assert(is_diagonal_v<decltype(EigenDiagonal{2.})>);
   static_assert(is_diagonal_v<decltype(EigenDiagonal{2, 3})>);
   static_assert(is_self_adjoint_v<decltype(EigenDiagonal{2, 3})>);
   static_assert(is_triangular_v<decltype(EigenDiagonal{2, 3})>);

@@ -95,27 +95,33 @@ TEST_F(covariance_tests, Covariance_class)
   EXPECT_TRUE(is_near(ci2b, Mat2 {1, 0, 0, 1}));
 
   // Move constructor
-  CovSA2l clsa3(std::move(CovSA2l {9, 3, 3, 10}));
+  auto xa = CovSA2l {9, 3, 3, 10};
+  CovSA2l clsa3(std::move(xa));
   EXPECT_TRUE(is_near(clsa3, Mat2 {9, 3, 3, 10}));
   EXPECT_TRUE(is_near(clsa3.base_matrix(), Mat2 {9, 3, 3, 10}));
   EXPECT_TRUE(is_near(const_cast<const CovSA2l&>(clsa3), Mat2 {9, 3, 3, 10}));
-  CovSA2u cusa3(std::move(CovSA2u {4, 2, 2, 5}));
+  auto xb = CovSA2u {4, 2, 2, 5};
+  CovSA2u cusa3(std::move(xb));
   EXPECT_TRUE(is_near(cusa3, Mat2 {4, 2, 2, 5}));
   EXPECT_TRUE(is_near(cusa3.base_matrix(), Mat2 {4, 2, 2, 5}));
   EXPECT_TRUE(is_near(const_cast<const CovSA2u&>(cusa3), Mat2 {4, 2, 2, 5}));
-  CovT2l clt3(std::move(CovT2l {9, 3, 3, 10}));
+  auto xc = CovT2l {9, 3, 3, 10};
+  CovT2l clt3(std::move(xc));
   EXPECT_TRUE(is_near(clt3, Mat2 {9, 3, 3, 10}));
   EXPECT_TRUE(is_near(clt3.base_matrix(), Mat2 {3, 0, 1, 3}));
   EXPECT_TRUE(is_near(const_cast<const CovT2l&>(clt3), Mat2 {9, 3, 3, 10}));
-  CovT2u cut3(std::move(CovT2u {4, 2, 2, 5}));
+  auto xd = CovT2u {4, 2, 2, 5};
+  CovT2u cut3(std::move(xd));
   EXPECT_TRUE(is_near(cut3, Mat2 {4, 2, 2, 5}));
   EXPECT_TRUE(is_near(cut3.base_matrix(), Mat2 {2, 1, 0, 2}));
   EXPECT_TRUE(is_near(const_cast<const CovT2u&>(cut3), Mat2 {4, 2, 2, 5}));
-  CovD2 cd3(std::move(CovD2 {1, 2}));
+  auto xe = CovD2 {1, 2};
+  CovD2 cd3(std::move(xe));
   EXPECT_TRUE(is_near(cd3, Mat2 {1, 0, 0, 2}));
   EXPECT_TRUE(is_near(cd3.base_matrix(), Mat2 {1, 0, 0, 2}));
   EXPECT_TRUE(is_near(const_cast<const CovD2&>(cd3), Mat2 {1, 0, 0, 2}));
-  CovI2 ci3(std::move(CovI2 {i2}));
+  auto xf = CovI2 {i2};
+  CovI2 ci3(std::move(xf));
   EXPECT_TRUE(is_near(ci3, Mat2 {1, 0, 0, 1}));
   EXPECT_TRUE(is_near(ci3.base_matrix(), Mat2 {1, 0, 0, 1}));
   EXPECT_TRUE(is_near(const_cast<const CovI2&>(ci3), Mat2 {1, 0, 0, 1}));
@@ -281,15 +287,20 @@ TEST_F(covariance_tests, Covariance_class)
   EXPECT_TRUE(is_near(cd2, Mat2 {1, 0, 0, 2}));
 
   // Move assignment
-  clsa2 = std::move(CovSA2l {9, 3, 3, 10});
+  auto ya = CovSA2l {9, 3, 3, 10};
+  clsa2 = std::move(ya);
   EXPECT_TRUE(is_near(clsa2, Mat2 {9, 3, 3, 10}));
-  cusa2 = std::move(CovSA2u {4, 2, 2, 5});
+  auto yb = CovSA2u {4, 2, 2, 5};
+  cusa2 = std::move(yb);
   EXPECT_TRUE(is_near(cusa2, Mat2 {4, 2, 2, 5}));
-  clt2 = std::move(CovT2l {9, 3, 3, 10});
+  auto yc = CovT2l {9, 3, 3, 10};
+  clt2 = std::move(yc);
   EXPECT_TRUE(is_near(clt2, Mat2 {9, 3, 3, 10}));
-  cut2 = std::move(CovT2u {4, 2, 2, 5});
+  auto yd = CovT2u {4, 2, 2, 5};
+  cut2 = std::move(yd);
   EXPECT_TRUE(is_near(cut2, Mat2 {4, 2, 2, 5}));
-  cd2 = std::move(CovD2 {1, 2});
+  auto ye = CovD2 {1, 2};
+  cd2 = std::move(ye);
   EXPECT_TRUE(is_near(cd2, Mat2 {1, 0, 0, 2}));
 
   // Assign from different covariance type

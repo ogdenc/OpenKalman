@@ -18,6 +18,10 @@ using Axis2 = Coefficients<Axis, Axis>;
 
 TEST_F(matrix_tests, Eigen_Matrix_class_traits)
 {
+  static_assert(native_Eigen_type<Mat2>);
+  static_assert(not native_Eigen_type<double>);
+  static_assert(Eigen_matrix<Mat2>);
+  static_assert(not Eigen_matrix<double>);
   EXPECT_TRUE(is_near(MatrixTraits<Eigen::Matrix<double, 2, 3>>::zero(), (Eigen::Matrix<double, 2, 3>() << 0, 0, 0, 0, 0, 0).finished()));
   EXPECT_TRUE(is_near(MatrixTraits<Mat3>::identity(), (Mat3() << 1, 0, 0, 0, 1, 0, 0, 0, 1).finished()));
   EXPECT_NEAR(((Eigen::Matrix<double, 2, 2>() << 1, 2, 3, 4).finished())(0, 0), 1, 1e-6);

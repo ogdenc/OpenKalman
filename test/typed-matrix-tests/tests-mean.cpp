@@ -10,8 +10,6 @@
 
 #include "typed_matrix_tests.h"
 
-#pragma clang diagnostic ignored "-Wpessimizing-move"
-
 using namespace OpenKalman;
 
 using M12 = Eigen::Matrix<double, 1, 2>;
@@ -60,7 +58,8 @@ TEST_F(typed_matrix_tests, Mean_class)
   EXPECT_TRUE(is_near(mat23b, TMat23 {1, 2, 3, 4-2*M_PI, 5-2*M_PI, 6-2*M_PI}));
 
   // Move constructor
-  Mat23 mat23c(std::move(Mat23 {6, 5, 4, 3, 2, 1}));
+  auto xa = Mat23 {6, 5, 4, 3, 2, 1};
+  Mat23 mat23c(std::move(xa));
   EXPECT_TRUE(is_near(mat23c, TMat23 {6, 5, 4, 3, 2, 1}));
 
   // Convert from different covariance types
@@ -87,7 +86,8 @@ TEST_F(typed_matrix_tests, Mean_class)
   EXPECT_TRUE(is_near(mat23c, TMat23 {1, 2, 3, 4-2*M_PI, 5-2*M_PI, 6-2*M_PI}));
 
   // Move assignment
-  mat23c = std::move(Mat23 {3, 4, 5, 6, 7, 8});
+  auto ya = Mat23 {3, 4, 5, 6, 7, 8};
+  mat23c = std::move(ya);
   EXPECT_TRUE(is_near(mat23c, TMat23 {3, 4, 5, 6-2*M_PI, 7-2*M_PI, 8-2*M_PI}));
 
   // assign from different covariance types
