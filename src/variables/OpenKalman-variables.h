@@ -8,17 +8,18 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+/**
+ * @file OpenKalman-variables.h
+ * A meta-header file including all the headers relating to OpenKalman variables.
+ */
+
 #ifndef OPENKALMAN_OPENKALMAN_VARIABLES_H
 #define OPENKALMAN_OPENKALMAN_VARIABLES_H
 
-/**
- * @file Traits.h
- * A header file containing forward declarations for all OpenKalman traits.
- */
 #include "variables/support/Traits.h"
-
 #include "variables/support/ForwardDeclarations.h"
 #include "variables/support/OpenKalman-coefficients.h"
+
 #include "variables/support/ElementSetter.h"
 //
 #include "variables/support/MatrixBase.h"

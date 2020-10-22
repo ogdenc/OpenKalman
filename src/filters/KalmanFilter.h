@@ -8,6 +8,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+/**
+ * @file KalmanFilter.h
+ * A header file for the class KalmanFilter, relating to all Kalman-type recursive filters.
+ */
+
 #ifndef OPENKALMAN_KALMANFILTER_H
 #define OPENKALMAN_KALMANFILTER_H
 

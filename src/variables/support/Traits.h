@@ -8,6 +8,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+/**
+ * @file Traits.h
+ * A header file containing forward declarations for all OpenKalman traits.
+ */
+
 #ifndef OPENKALMAN_TRAITS_H
 #define OPENKALMAN_TRAITS_H
 

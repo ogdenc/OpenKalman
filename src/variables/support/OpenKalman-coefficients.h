@@ -11,7 +11,6 @@
 #ifndef OPENKALMAN_OPENKALMAN_COEFFICIENTS_H
 #define OPENKALMAN_OPENKALMAN_COEFFICIENTS_H
 
-#include "variables/support/Traits.h"
 #include "variables/support/ArrayUtils.h"
 
 #include "variables/coefficients/Axis.h"

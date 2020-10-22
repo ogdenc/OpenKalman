@@ -8,6 +8,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+/**
+ * @file OpenKalman-transforms.h
+ * A meta-header file including all the headers relating to OpenKalman transforms and transformations.
+ */
+
 #ifndef OPENKALMAN_OPENKALMAN_TRANSFORMS_H
 #define OPENKALMAN_OPENKALMAN_TRANSFORMS_H
 

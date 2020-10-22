@@ -8,6 +8,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+/**
+ * @file GaussianDistribution.h
+ * A header file for the class GaussianDistribution and its traits.
+ */
+
 #ifndef OPENKALMAN_GAUSSIANDISTRIBUTION_H
 #define OPENKALMAN_GAUSSIANDISTRIBUTION_H
 

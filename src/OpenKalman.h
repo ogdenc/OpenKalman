@@ -25,28 +25,10 @@
 namespace OpenKalman
 {}
 
-/**
- * @file OpenKalman-variables.h
- * A meta-header file including all the headers relating to OpenKalman variables.
- */
 #include "variables/OpenKalman-variables.h"
-
-/**
- * @file GaussianDistribution.h
- * A header file for the class GaussianDistribution and its traits.
- */
 #include "distributions/GaussianDistribution.h"
-
-/**
- * @file OpenKalman-transforms.h
- * A meta-header file including all the headers relating to OpenKalman transforms and transformations.
- */
 #include "transforms/OpenKalman-transforms.h"
-
-/**
- * @file KalmanFilter.h
- * A header file for the class KalmanFilter, relating to all Kalman-type recursive filters.
- */
 #include "filters/KalmanFilter.h"
+
 
 #endif //OPENKALMAN_OPENKALMAN_H
