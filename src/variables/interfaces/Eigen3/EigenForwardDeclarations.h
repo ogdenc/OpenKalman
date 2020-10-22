@@ -15,7 +15,6 @@
 
 namespace OpenKalman
 {
-
   namespace internal
   {
     namespace detail
@@ -30,6 +29,7 @@ namespace OpenKalman
       }
     }
 
+    // A constexpr square root.
     template<typename T>
     constexpr T constexpr_sqrt(T x)
     {
@@ -37,87 +37,364 @@ namespace OpenKalman
     }
   }
 
-  ///////////////////////////
-  //    ToEuclideanExpr    //
-  ///////////////////////////
 
-  template<typename Coefficients, typename BaseMatrix = Eigen::Matrix<double, Coefficients::size, 1>>
-  struct ToEuclideanExpr;
+  // ---------------------------- //
+  //    New Eigen matrix types    //
+  // ---------------------------- //
 
-  template<typename T>
-  struct is_ToEuclideanExpr : internal::class_trait<is_ToEuclideanExpr, T> {};
-
-  template<typename T>
-  inline constexpr bool is_ToEuclideanExpr_v = is_ToEuclideanExpr<T>::value;
-
-  template<typename Coefficients, typename BaseMatrix>
-  struct is_ToEuclideanExpr<ToEuclideanExpr<Coefficients, BaseMatrix>> : std::true_type {};
-
-  template<typename Coefficients, typename BaseMatrix>
-  struct is_strict<ToEuclideanExpr<Coefficients, BaseMatrix>> : is_strict<BaseMatrix> {};
-
-  template<typename Coefficients, typename BaseMatrix>
-  struct is_typed_matrix_base<ToEuclideanExpr<Coefficients, BaseMatrix>> : std::true_type {};
-
-  template<typename Coefficients, typename BaseMatrix, std::size_t N>
-  struct is_element_gettable<ToEuclideanExpr<Coefficients, BaseMatrix>, N>
-    : std::integral_constant<bool, is_element_gettable_v<BaseMatrix, N>> {};
-
-  template<typename Coefficients, typename BaseMatrix, std::size_t N>
-  struct is_element_settable<ToEuclideanExpr<Coefficients, BaseMatrix>, N>
-    : std::integral_constant<bool, Coefficients::axes_only and is_element_settable_v<BaseMatrix, N>> {};
-
-
-  /////////////////////////////
-  //    FromEuclideanExpr    //
-  /////////////////////////////
-
-  template<typename Coefficients, typename BaseMatrix = Eigen::Matrix<double, Coefficients::dimension, 1>>
-  struct FromEuclideanExpr;
-
-  template<typename T>
-  struct is_FromEuclideanExpr : internal::class_trait<is_FromEuclideanExpr, T> {};
-
-  template<typename T>
-  inline constexpr bool is_FromEuclideanExpr_v = is_FromEuclideanExpr<T>::value;
-
-  template<typename Coefficients, typename BaseMatrix>
-  struct is_FromEuclideanExpr<FromEuclideanExpr<Coefficients, BaseMatrix>> : std::true_type {};
-
-  template<typename Coefficients, typename BaseMatrix>
-  struct is_strict<FromEuclideanExpr<Coefficients, BaseMatrix>> : is_strict<BaseMatrix> {};
-
-  template<typename Coefficients, typename BaseMatrix>
-  struct is_typed_matrix_base<FromEuclideanExpr<Coefficients, BaseMatrix>> : std::true_type {};
-
-  template<typename Coefficients, typename BaseMatrix, std::size_t N>
-  struct is_element_gettable<FromEuclideanExpr<Coefficients, BaseMatrix>, N>
-    : std::integral_constant<bool, is_element_gettable_v<BaseMatrix, N>> {};
-
-  template<typename Coefficients, typename BaseMatrix, std::size_t N>
-  struct is_element_settable<FromEuclideanExpr<Coefficients, BaseMatrix>, N>
-    : std::integral_constant<bool,
-      (Coefficients::axes_only and is_element_settable_v<BaseMatrix, N>) or
-      (is_ToEuclideanExpr_v<BaseMatrix> and
-      is_element_settable_v<typename MatrixTraits<BaseMatrix>::BaseMatrix, N>)> {};
-
-
-  //////////////////////////////////
-  //    EigenSelfAdjointMatrix    //
-  //////////////////////////////////
-
+  /**
+   * A self-adjoint matrix, based on an Eigen matrix.
+   * @tparam BaseMatrix The Eigen matrix on which the self-adjoint matrix is based.
+   * @tparam storage_triangle The triangle (TriangleType::upper or TriangleType::lower) in which the data is stored.
+   */
   template<typename BaseMatrix, TriangleType storage_triangle = TriangleType::lower>
   struct EigenSelfAdjointMatrix;
 
+  /**
+   * A triangular matrix, based on an Eigen matrix.
+   * @tparam BaseMatrix The Eigen matrix on which the triangular matrix is based.
+   * @tparam triangle_type The triangle (TriangleType::upper or TriangleType::lower).
+   */
+  template<typename BaseMatrix, TriangleType triangle_type = TriangleType::lower>
+  struct EigenTriangularMatrix;
+
+  /**
+   * A diagonal matrix, based on an Eigen matrix.
+   * @tparam BaseMatrix A single-column matrix defining the diagonal.
+   */
+  template<typename BaseMatrix>
+  struct EigenDiagonal;
+
+  /**
+   * A wrapper type for an Eigen zero matrix.
+   *
+   * This is necessary because Eigen3 types do not distinguish between a zero matrix and a constant matrix.
+   * @tparam BaseMatrix The Eigen matrix type on which the zero matrix is based. Only its shape is relevant.
+   */
+  template<typename BaseMatrix>
+  struct EigenZero;
+
+  /**
+   * An expression that transforms angular or other modular coefficients into Euclidean space, for proper wrapping.
+   *
+   * This is the counterpart expression to ToEuclideanExpr.
+   * <code>FromEuclideanExpr<C, ToEuclideanExpr<C, B>></code> acts to wrap the angular/modular values in <code>B</code>.
+   * @tparam Coefficients The coefficient types.
+   * @tparam BaseMatrix The pre-transformed column vector, or set of column vectors in the form of a matrix.
+   */
+  template<typename Coefficients, typename BaseMatrix = Eigen::Matrix<double, Coefficients::size, 1>>
+  struct ToEuclideanExpr;
+
+  /**
+   * An expression that transforms angular or other modular coefficients back from Euclidean space.
+   *
+   * This is the counterpart expression to ToEuclideanExpr.
+   * <code>FromEuclideanExpr<C, ToEuclideanExpr<C, B>></code> acts to wrap the angular/modular values in <code>B</code>.
+   * @tparam Coefficients The coefficient types.
+   * @tparam BaseMatrix The pre-transformed column vector, or set of column vectors in the form of a matrix.
+   */
+  template<typename Coefficients, typename BaseMatrix = Eigen::Matrix<double, Coefficients::dimension, 1>>
+  struct FromEuclideanExpr;
+
+
+  // ----------------------------------------- //
+  //    Concepts for new Eigen matrix types    //
+  // ----------------------------------------- //
+
+  /**
+   * A self-adjoint matrix based on the Eigen library.
+   * For compatibility, this is also defined as an inline constexpr bool variable in c++17.
+   */
+#ifdef __cpp_concepts
+  template<typename T>
+  concept eigen_self_adjoint_expr = std::same_as<
+    std::decay_t<T>, EigenSelfAdjointMatrix<typename MatrixTraits<T>::BaseMatrix, MatrixTraits<T>::storage_type>>;
+#else
   template<typename T>
   struct is_EigenSelfAdjointMatrix : internal::class_trait<is_EigenSelfAdjointMatrix, T> {};
 
   template<typename T>
   inline constexpr bool is_EigenSelfAdjointMatrix_v = is_EigenSelfAdjointMatrix<T>::value;
 
+  template<typename T>
+  inline constexpr bool eigen_self_adjoint_expr = is_EigenSelfAdjointMatrix_v<T>;
+
   template<typename BaseMatrix, TriangleType storage_triangle>
-  struct is_EigenSelfAdjointMatrix<EigenSelfAdjointMatrix<BaseMatrix, storage_triangle>>
-    : std::true_type {};
+  struct is_EigenSelfAdjointMatrix<EigenSelfAdjointMatrix<BaseMatrix, storage_triangle>> : std::true_type {};
+#endif
+
+  /**
+   * A triangular matrix based on the Eigen library.
+   * For compatibility, this is also defined as an inline constexpr bool variable in c++17.
+   */
+#ifdef __cpp_concepts
+  template<typename T>
+  concept eigen_triangular_expr = std::same_as<
+    std::decay_t<T>, EigenTriangularMatrix<typename MatrixTraits<T>::BaseMatrix, MatrixTraits<T>::triangle_type>>;
+#else
+  template<typename T>
+  struct is_EigenTriangularMatrix : internal::class_trait<is_EigenTriangularMatrix, T> {};
+
+  template<typename T>
+  inline constexpr bool is_EigenTriangularMatrix_v = is_EigenTriangularMatrix<T>::value;
+
+  template<typename T>
+  inline constexpr bool eigen_triangular_expr = is_EigenTriangularMatrix_v<T>;
+
+  template<typename BaseMatrix, TriangleType triangle_type>
+  struct is_EigenTriangularMatrix<EigenTriangularMatrix<BaseMatrix, triangle_type>> : std::true_type {};
+#endif
+
+  /**
+   * A diagonal matrix based on the Eigen library.
+   * For compatibility, this is also defined as an inline constexpr bool variable in c++17.
+   */
+#ifdef __cpp_concepts
+  template<typename T>
+  concept eigen_diagonal_expr = std::same_as<std::decay_t<T>, EigenDiagonal<typename MatrixTraits<T>::BaseMatrix>>;
+#else
+  template<typename T>
+  struct is_EigenDiagonal : internal::class_trait<is_EigenDiagonal, T> {};
+
+  template<typename T>
+  inline constexpr bool is_EigenDiagonal_v = is_EigenDiagonal<T>::value;
+
+  template<typename T>
+  inline constexpr bool eigen_diagonal_expr = is_EigenDiagonal_v<T>;
+
+  template<typename BaseMatrix>
+  struct is_EigenDiagonal<EigenDiagonal<BaseMatrix>> : std::true_type {};
+#endif
+
+  /**
+   * A zero matrix based on the Eigen library. (All coefficients are zero.)
+   * For compatibility, this is also defined as an inline constexpr bool variable in c++17.
+   */
+#ifdef __cpp_concepts
+  template<typename T>
+  concept eigen_zero_expr = std::same_as<std::decay_t<T>, EigenZero<typename MatrixTraits<T>::BaseMatrix>>;
+#else
+  template<typename T>
+  struct is_EigenZero : internal::class_trait<is_EigenZero, T> {};
+
+  template<typename T>
+  inline constexpr bool is_EigenZero_v = is_EigenZero<T>::value;
+
+  template<typename T>
+  inline constexpr bool eigen_zero_expr = is_EigenZero_v<T>;
+
+  template<typename BaseMatrix>
+  struct is_EigenZero<EigenZero<BaseMatrix>> : std::true_type {};
+#endif
+
+  /**
+   * An expression converting each column vector in a Euclidean Eigen matrix from Euclidean space.
+   * For compatibility, this is also defined as an inline constexpr bool variable in c++17.
+   */
+#ifdef __cpp_concepts
+  template<typename T>
+  concept from_euclidean_expr = std::same_as<std::decay_t<T>,
+    FromEuclideanExpr<typename MatrixTraits<T>::Coefficients, typename MatrixTraits<T>::BaseMatrix>>;
+#else
+  template<typename T>
+  struct is_FromEuclideanExpr : internal::class_trait<is_FromEuclideanExpr, T> {};
+
+  template<typename T>
+  inline constexpr bool is_FromEuclideanExpr_v = is_FromEuclideanExpr<T>::value;
+
+  template<typename T>
+  inline constexpr bool from_euclidean_expr = is_FromEuclideanExpr_v<T>;
+
+  template<typename Coefficients, typename BaseMatrix>
+  struct is_FromEuclideanExpr<FromEuclideanExpr<Coefficients, BaseMatrix>> : std::true_type {};
+#endif
+
+
+  /**
+   * An expression converting each column vector in an Eigen matrix to Euclidean space.
+   * For compatibility, this is also defined as an inline constexpr bool variable in c++17.
+   */
+#ifdef __cpp_concepts
+  template<typename T>
+  concept to_euclidean_expr = std::same_as<std::decay_t<T>,
+    ToEuclideanExpr<typename MatrixTraits<T>::Coefficients, typename MatrixTraits<T>::BaseMatrix>>;
+#else
+  template<typename T>
+  struct is_ToEuclideanExpr : internal::class_trait<is_ToEuclideanExpr, T> {};
+
+  template<typename T>
+  inline constexpr bool is_ToEuclideanExpr_v = is_ToEuclideanExpr<T>::value;
+
+  template<typename T>
+  inline constexpr bool to_euclidean_expr = is_ToEuclideanExpr_v<T>;
+
+  template<typename Coefficients, typename BaseMatrix>
+  struct is_ToEuclideanExpr<ToEuclideanExpr<Coefficients, BaseMatrix>> : std::true_type {};
+#endif
+
+
+  // --------------------------------- //
+  //    General concepts and traits    //
+  // --------------------------------- //
+
+  /**
+   * Either from_euclidean_expr or to_euclidean_expr.
+   * For compatibility, this is also defined as an inline constexpr bool variable in c++17.
+   */
+#ifdef __cpp_concepts
+  template<typename T>
+  concept euclidean_expr = from_euclidean_expr<T> or to_euclidean_expr<T>;
+#else
+  template<typename T>
+    struct is_euclidean_expr : std::integral_constant<bool, is_FromEuclideanExpr_v<T> or is_ToEuclideanExpr_v<T>> {};
+
+    /// Helper template for is_native_Eigen_type.
+    template<typename T>
+    inline constexpr bool euclidean_expr = is_euclidean_expr<T>::value;
+#endif
+
+  namespace internal
+  {
+  /*
+   * A non-native Eigen type used in the Eigen interface for OpenKalman.
+   * For compatibility, this is also defined as an inline constexpr bool variable in c++17.
+   */
+#ifdef __cpp_concepts
+    template<typename T>
+    concept eigen_new =
+    eigen_self_adjoint_expr<T> or
+      eigen_triangular_expr<T> or
+      eigen_diagonal_expr<T> or
+      eigen_zero_expr<T> or
+      euclidean_expr<T>;
+#else
+    template<typename T>
+      struct is_eigen_new : std::integral_constant<bool,
+        is_EigenSelfAdjointMatrix_v<T> or
+        is_EigenTriangularMatrix_v<T> or
+        is_EigenDiagonal_v<T> or
+        is_EigenZero_v<T> or
+        euclidean_expr<T>> {};
+
+      /// Helper template for is_native_Eigen_type.
+      template<typename T>
+      inline constexpr bool eigen_new = is_eigen_new<T>::value;
+#endif
+  }
+
+#ifdef __cpp_concepts
+  /// An object that is a native Eigen::MatrixBase type in Eigen3.
+  template<typename T>
+  concept eigen_native = requires {typename MatrixTraits<std::decay_t<T>>::BaseMatrix;} and
+    (not internal::eigen_new<T>) and (not is_typed_matrix_v<T>) and (not is_covariance_v<T>);
+#else
+  /// Whether an object is a native Eigen::MatrixBase type in Eigen3.
+    template<typename T>
+    struct is_native_Eigen_type : std::integral_constant<bool,
+      std::is_base_of_v<Eigen::MatrixBase<std::decay_t<T>>, std::decay_t<T>> and
+      not internal::eigen_new<T> and not is_typed_matrix_v<T> and not is_covariance_v<T>> {};
+
+    /// Helper template for is_native_Eigen_type.
+    template<typename T>
+    inline constexpr bool is_native_Eigen_type_v = is_native_Eigen_type<T>::value;
+
+    /// Synonym for is_native_Eigen_type_v.
+    template<typename T>
+    inline constexpr bool eigen_native = is_native_Eigen_type_v<T>;
+#endif
+
+
+#ifdef __cpp_concepts
+  template<typename T>
+  concept Eigen_matrix = eigen_native<T> or eigen_zero_expr<T>;
+#else
+  /// Whether an object is a regular Eigen matrix.
+    template<typename T>
+    struct is_Eigen_matrix : std::integral_constant<bool, is_native_Eigen_type_v<T> or is_EigenZero_v<T>> {};
+
+    /// Helper template for is_native_Eigen_type.
+    template<typename T>
+    inline constexpr bool is_Eigen_matrix_v = is_Eigen_matrix<T>::value;
+
+    /// Synonym for is_Eigen_matrix_v
+    template<typename T>
+    inline constexpr bool Eigen_matrix = is_Eigen_matrix_v<T>;
+#endif
+
+
+#ifdef __cpp_concepts
+  template<eigen_native T> requires (is_triangular_v<T> or is_self_adjoint_v<T> )
+  struct is_covariance_base<T> : std::true_type {};
+#else
+  template<typename T>
+    struct is_covariance_base<T,
+      std::enable_if_t<is_native_Eigen_type_v<T> and (is_triangular_v<T> or is_self_adjoint_v<T>)>>
+      : std::true_type {};
+#endif
+
+
+#ifdef __cpp_concepts
+  template<eigen_native T>
+  struct is_typed_matrix_base<T> : std::true_type {};
+#else
+  template<typename T>
+    struct is_typed_matrix_base<T, std::enable_if_t<is_native_Eigen_type_v<T>>> : std::true_type {};
+#endif
+
+
+#ifdef __cpp_concepts
+  template<eigen_native T> requires std::same_as<T, std::decay_t<T>>
+  struct is_element_gettable<T, 2> : std::true_type {};
+#else
+  template<typename T>
+    struct is_element_gettable<T, 2, std::enable_if_t<std::is_same_v<T, std::decay_t<T>> and is_native_Eigen_type_v<T>>>
+      : std::true_type {};
+#endif
+
+
+#ifdef __cpp_concepts
+  template<eigen_native T> requires std::same_as<T, std::decay_t<T>>
+  struct is_element_gettable<T, 1> : std::integral_constant<bool, MatrixTraits<T>::columns == 1> {};
+#else
+  template<typename T>
+    struct is_element_gettable<T, 1, std::enable_if_t<std::is_same_v<T, std::decay_t<T>> and is_native_Eigen_type_v<T>>>
+      : std::integral_constant<bool, MatrixTraits<T>::columns == 1> {};
+#endif
+
+
+#ifdef __cpp_concepts
+  template<eigen_native T> requires std::same_as<T, std::decay_t<T>>
+  struct is_element_settable<T, 2>
+    : std::integral_constant<bool, not std::is_const_v<std::remove_reference_t<T>> and
+      static_cast<bool>(std::decay_t<T>::Flags & Eigen::LvalueBit)>
+  {
+  };
+#else
+  template<typename T>
+    struct is_element_settable<T, 2, std::enable_if_t<std::is_same_v<T, std::decay_t<T>> and is_native_Eigen_type_v<T>>>
+      : std::integral_constant<bool, not std::is_const_v<std::remove_reference_t<T>> and
+        static_cast<bool>(std::decay_t<T>::Flags & Eigen::LvalueBit)> {};
+#endif
+
+
+#ifdef __cpp_concepts
+  template<eigen_native T> requires std::is_same_v<T, std::decay_t<T>>
+  struct is_element_settable<T, 1>
+    : std::integral_constant<bool, MatrixTraits<T>::columns == 1 and not std::is_const_v<std::remove_reference_t<T>> and
+      static_cast<bool>(std::decay_t<T>::Flags & Eigen::LvalueBit)>
+  {
+  };
+#else
+  template<typename T>
+    struct is_element_settable<T, 1, std::enable_if_t<std::is_same_v<T, std::decay_t<T>> and is_native_Eigen_type_v<T>>>
+      : std::integral_constant<bool, MatrixTraits<T>::columns == 1 and not std::is_const_v<std::remove_reference_t<T>> and
+        static_cast<bool>(std::decay_t<T>::Flags & Eigen::LvalueBit)> {};
+#endif
+
+
+  //////////////////////////////////
+  //    EigenSelfAdjointMatrix    //
+  //////////////////////////////////
 
   template<typename BaseMatrix, TriangleType storage_triangle>
   struct is_covariance_base<EigenSelfAdjointMatrix<BaseMatrix, storage_triangle>>
@@ -189,18 +466,6 @@ namespace OpenKalman
   //    EigenTriangularMatrix    //
   /////////////////////////////////
 
-  template<typename BaseMatrix, TriangleType triangle_type = TriangleType::lower>
-  struct EigenTriangularMatrix;
-
-  template<typename T>
-  struct is_EigenTriangularMatrix : internal::class_trait<is_EigenTriangularMatrix, T> {};
-
-  template<typename T>
-  inline constexpr bool is_EigenTriangularMatrix_v = is_EigenTriangularMatrix<T>::value;
-
-  template<typename BaseMatrix, TriangleType triangle_type>
-  struct is_EigenTriangularMatrix<EigenTriangularMatrix<BaseMatrix, triangle_type>> : std::true_type {};
-
   template<typename BaseMatrix, TriangleType triangle_type>
   struct is_covariance_base<EigenTriangularMatrix<BaseMatrix, triangle_type>> : std::true_type {};
 
@@ -256,19 +521,6 @@ namespace OpenKalman
   //    EigenDiagonal    //
   /////////////////////////
 
-  /// A diagonal matrix. Works similarly to Eigen::DiagonalMatrix.
-  template<typename BaseMatrix>
-  struct EigenDiagonal;
-
-  template<typename T>
-  struct is_EigenDiagonal : internal::class_trait<is_EigenDiagonal, T> {};
-
-  template<typename T>
-  inline constexpr bool is_EigenDiagonal_v = is_EigenDiagonal<T>::value;
-
-  template<typename BaseMatrix>
-  struct is_EigenDiagonal<EigenDiagonal<BaseMatrix>> : std::true_type {};
-
   template<typename BaseMatrix>
   struct is_covariance_base<EigenDiagonal<BaseMatrix>> : std::true_type {};
 
@@ -299,20 +551,6 @@ namespace OpenKalman
   ////////////////////////////////////////////////////////////
   //    EigenZero and other known Eigen zero expressions    //
   ////////////////////////////////////////////////////////////
-
-  /// Exclusive wrapper type for zero. Necessary because Eigen3 does not distinguish between zero type and a constant type.
-  /// This will be treated as a native Eigen matrix.
-  template<typename BaseMatrix>
-  struct EigenZero;
-
-  template<typename T>
-  struct is_EigenZero : internal::class_trait<is_EigenZero, T> {};
-
-  template<typename T>
-  inline constexpr bool is_EigenZero_v = is_EigenZero<T>::value;
-
-  template<typename BaseMatrix>
-  struct is_EigenZero<EigenZero<BaseMatrix>> : std::true_type {};
 
   template<typename BaseMatrix>
   struct is_zero<EigenZero<BaseMatrix>> : std::true_type {};
@@ -360,6 +598,46 @@ namespace OpenKalman
 
   template<typename BaseMatrix, std::size_t N>
   struct is_element_settable<EigenZero<BaseMatrix>, N> : std::false_type {};
+
+
+  ///////////////////////////
+  //    ToEuclideanExpr    //
+  ///////////////////////////
+
+  template<typename Coefficients, typename BaseMatrix>
+  struct is_strict<ToEuclideanExpr<Coefficients, BaseMatrix>> : is_strict<BaseMatrix> {};
+
+  template<typename Coefficients, typename BaseMatrix>
+  struct is_typed_matrix_base<ToEuclideanExpr<Coefficients, BaseMatrix>> : std::true_type {};
+
+  template<typename Coefficients, typename BaseMatrix, std::size_t N>
+  struct is_element_gettable<ToEuclideanExpr<Coefficients, BaseMatrix>, N>
+  : std::integral_constant<bool, is_element_gettable_v<BaseMatrix, N>> {};
+
+  template<typename Coefficients, typename BaseMatrix, std::size_t N>
+  struct is_element_settable<ToEuclideanExpr<Coefficients, BaseMatrix>, N>
+  : std::integral_constant<bool, Coefficients::axes_only and is_element_settable_v<BaseMatrix, N>> {};
+
+
+  /////////////////////////////
+  //    FromEuclideanExpr    //
+  /////////////////////////////
+
+  template<typename Coefficients, typename BaseMatrix>
+  struct is_strict<FromEuclideanExpr<Coefficients, BaseMatrix>> : is_strict<BaseMatrix> {};
+
+  template<typename Coefficients, typename BaseMatrix>
+  struct is_typed_matrix_base<FromEuclideanExpr<Coefficients, BaseMatrix>> : std::true_type {};
+
+  template<typename Coefficients, typename BaseMatrix, std::size_t N>
+  struct is_element_gettable<FromEuclideanExpr<Coefficients, BaseMatrix>, N>
+  : std::integral_constant<bool, is_element_gettable_v<BaseMatrix, N>> {};
+
+  template<typename Coefficients, typename BaseMatrix, std::size_t N>
+  struct is_element_settable<FromEuclideanExpr<Coefficients, BaseMatrix>, N>
+  : std::integral_constant<bool, (Coefficients::axes_only and is_element_settable_v<BaseMatrix, N>) or
+    (to_euclidean_expr<BaseMatrix> and is_element_settable_v<typename MatrixTraits<BaseMatrix>::BaseMatrix, N>)>
+    {};
 
 
   ///////////////////////////////////////////////////////////////
@@ -424,144 +702,6 @@ namespace OpenKalman
   struct is_diagonal<Eigen::CwiseUnaryOp<Eigen::internal::scalar_opposite_op<typename Arg::Scalar>, Arg>,
     std::enable_if_t<not is_zero_v<Arg> and not is_1by1_v<Arg>>>
     : std::integral_constant<bool, is_diagonal_v<Arg>> {};
-
-
-  //////////////////////////
-  //    General traits    //
-  //////////////////////////
-
-#ifdef __cpp_concepts
-  template<typename T>
-  concept new_Eigen_type =
-    is_EigenSelfAdjointMatrix_v<T> or
-    is_EigenTriangularMatrix_v<T> or
-    is_EigenDiagonal_v<T> or
-    is_EigenZero_v<T> or
-    is_FromEuclideanExpr_v<T> or
-    is_ToEuclideanExpr_v<T>;
-#else
-  template<typename T>
-  struct is_new_Eigen_type : std::integral_constant<bool,
-    is_EigenSelfAdjointMatrix_v<T> or
-    is_EigenTriangularMatrix_v<T> or
-    is_EigenDiagonal_v<T> or
-    is_EigenZero_v<T> or
-    is_FromEuclideanExpr_v<T> or
-    is_ToEuclideanExpr_v<T>> {};
-
-  /// Helper template for is_native_Eigen_type.
-  template<typename T>
-  inline constexpr bool is_new_Eigen_type_v = is_new_Eigen_type<T>::value;
-#endif
-
-
-#ifdef __cpp_concepts
-  /// An object that is a native Eigen::MatrixBase type in Eigen3.
-  template<typename T>
-  concept native_Eigen_type =
-    std::derived_from<std::decay_t<T>, Eigen::MatrixBase<std::decay_t<T>>> and
-      (not new_Eigen_type<T>) and (not is_typed_matrix_v<T>) and (not is_covariance_v<T>);
-#else
-  /// Whether an object is a native Eigen::MatrixBase type in Eigen3.
-  template<typename T>
-  struct is_native_Eigen_type : std::integral_constant<bool,
-    std::is_base_of_v<Eigen::MatrixBase<std::decay_t<T>>, std::decay_t<T>> and
-    not is_new_Eigen_type_v<T> and not is_typed_matrix_v<T> and not is_covariance_v<T>> {};
-
-  /// Helper template for is_native_Eigen_type.
-  template<typename T>
-  inline constexpr bool is_native_Eigen_type_v = is_native_Eigen_type<T>::value;
-
-  /// Synonym for is_native_Eigen_type_v.
-  template<typename T>
-  inline constexpr bool native_Eigen_type = is_native_Eigen_type_v<T>;
-#endif
-
-
-#ifdef __cpp_concepts
-  template<typename T>
-  concept Eigen_matrix = native_Eigen_type<T> or is_EigenZero_v<T>;
-#else
-  /// Whether an object is a regular Eigen matrix.
-  template<typename T>
-  struct is_Eigen_matrix : std::integral_constant<bool, is_native_Eigen_type_v<T> or is_EigenZero_v<T>> {};
-
-  /// Helper template for is_native_Eigen_type.
-  template<typename T>
-  inline constexpr bool is_Eigen_matrix_v = is_Eigen_matrix<T>::value;
-
-  /// Synonym for is_Eigen_matrix_v
-  template<typename T>
-  inline constexpr bool Eigen_matrix = is_Eigen_matrix_v<T>;
-#endif
-
-
-
-#ifdef __cpp_concepts
-  template<native_Eigen_type T> requires (is_triangular_v<T> or is_self_adjoint_v<T>)
-  struct is_covariance_base<T>
-    : std::true_type {};
-#else
-  template<typename T>
-  struct is_covariance_base<T,
-    std::enable_if_t<is_native_Eigen_type_v<T> and (is_triangular_v<T> or is_self_adjoint_v<T>)>>
-    : std::true_type {};
-#endif
-
-
-#ifdef __cpp_concepts
-  template<native_Eigen_type T>
-  struct is_typed_matrix_base<T> : std::true_type {};
-#else
-  template<typename T>
-  struct is_typed_matrix_base<T, std::enable_if_t<is_native_Eigen_type_v<T>>> : std::true_type {};
-#endif
-
-
-#ifdef __cpp_concepts
-  template<native_Eigen_type T> requires std::same_as<T, std::decay_t<T>>
-  struct is_element_gettable<T, 2> : std::true_type {};
-#else
-  template<typename T>
-  struct is_element_gettable<T, 2, std::enable_if_t<std::is_same_v<T, std::decay_t<T>> and is_native_Eigen_type_v<T>>>
-    : std::true_type {};
-#endif
-
-
-#ifdef __cpp_concepts
-  template<native_Eigen_type T> requires std::same_as<T, std::decay_t<T>>
-  struct is_element_gettable<T, 1> : std::integral_constant<bool, MatrixTraits<T>::columns == 1> {};
-#else
-  template<typename T>
-  struct is_element_gettable<T, 1, std::enable_if_t<std::is_same_v<T, std::decay_t<T>> and is_native_Eigen_type_v<T>>>
-    : std::integral_constant<bool, MatrixTraits<T>::columns == 1> {};
-#endif
-
-
-#ifdef __cpp_concepts
-  template<native_Eigen_type T> requires std::same_as<T, std::decay_t<T>>
-  struct is_element_settable<T, 2>
-    : std::integral_constant<bool, not std::is_const_v<std::remove_reference_t<T>> and
-      static_cast<bool>(std::decay_t<T>::Flags & Eigen::LvalueBit)> {};
-#else
-  template<typename T>
-  struct is_element_settable<T, 2, std::enable_if_t<std::is_same_v<T, std::decay_t<T>> and is_native_Eigen_type_v<T>>>
-    : std::integral_constant<bool, not std::is_const_v<std::remove_reference_t<T>> and
-      static_cast<bool>(std::decay_t<T>::Flags & Eigen::LvalueBit)> {};
-#endif
-
-
-#ifdef __cpp_concepts
-  template<native_Eigen_type T> requires std::is_same_v<T, std::decay_t<T>>
-  struct is_element_settable<T, 1>
-    : std::integral_constant<bool, MatrixTraits<T>::columns == 1 and not std::is_const_v<std::remove_reference_t<T>> and
-      static_cast<bool>(std::decay_t<T>::Flags & Eigen::LvalueBit)> {};
-#else
-  template<typename T>
-  struct is_element_settable<T, 1, std::enable_if_t<std::is_same_v<T, std::decay_t<T>> and is_native_Eigen_type_v<T>>>
-    : std::integral_constant<bool, MatrixTraits<T>::columns == 1 and not std::is_const_v<std::remove_reference_t<T>> and
-      static_cast<bool>(std::decay_t<T>::Flags & Eigen::LvalueBit)> {};
-#endif
 
 
   ////////////////

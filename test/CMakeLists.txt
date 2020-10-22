@@ -23,7 +23,7 @@ include_directories(SYSTEM ${EIGEN3_INCLUDE_DIRS})
 #include_directories(SYSTEM ${OPENCV_INCLUDE_DIRS})
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(MyCXX_FLAGS "-g -O2 -Wall -ftemplate-backtrace-limit=0 -Wno-unknown-attributes")
+set(MyCXX_FLAGS "-g -O2 -Wall -ftemplate-backtrace-limit=0")
 
 if(${CMAKE_CXX_STANDARD} LESS 20)
   set(MyCXX_FLAGS "${MyCXX_FLAGS}")

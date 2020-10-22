@@ -20,15 +20,15 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typename Arg> requires
     Eigen_matrix<Arg> or
-    is_EigenDiagonal_v<Arg> or
-    is_EigenSelfAdjointMatrix_v<Arg> or
-    is_EigenTriangularMatrix_v<Arg>
+    eigen_self_adjoint_expr<Arg> or
+    eigen_triangular_expr<Arg> or
+    eigen_diagonal_expr<Arg>
 #else
   template<typename Arg, std::enable_if_t<
     is_Eigen_matrix_v<Arg> or
-    is_EigenDiagonal_v<Arg> or
     is_EigenSelfAdjointMatrix_v<Arg> or
-    is_EigenTriangularMatrix_v<Arg>, int> = 0>
+    is_EigenTriangularMatrix_v<Arg> or
+    is_EigenDiagonal_v<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   strict_matrix(Arg&& arg)
@@ -49,7 +49,7 @@ namespace OpenKalman
 
   /// Convert to strict version of the matrix.
 #ifdef __cpp_concepts
-  template<native_Eigen_type Arg>
+  template<eigen_native Arg>
 #else
   template<typename Arg, std::enable_if_t<is_native_Eigen_type_v<Arg>, int> = 0>
 #endif
@@ -75,7 +75,7 @@ namespace OpenKalman
   constexpr decltype(auto)
   to_Euclidean(Arg&& arg) noexcept
   {
-    static_assert(not is_ToEuclideanExpr_v<Arg>);
+    static_assert(not to_euclidean_expr<Arg>);
     if constexpr (Coefficients::axes_only)
     {
       return std::forward<Arg>(arg);
@@ -95,7 +95,7 @@ namespace OpenKalman
   constexpr decltype(auto)
   from_Euclidean(Arg&& arg) noexcept
   {
-    static_assert(not is_FromEuclideanExpr_v<Arg>);
+    static_assert(not from_euclidean_expr<Arg>);
     if constexpr (Coefficients::axes_only)
     {
       return std::forward<Arg>(arg);
@@ -128,7 +128,7 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<native_Eigen_type Arg>
+  template<eigen_native Arg>
 #else
   template<typename Arg, std::enable_if_t<is_native_Eigen_type_v<Arg>, int> = 0>
 #endif
@@ -144,7 +144,7 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<native_Eigen_type Arg>
+  template<eigen_native Arg>
 #else
   template<typename Arg, std::enable_if_t<is_native_Eigen_type_v<Arg>, int> = 0>
 #endif
@@ -159,7 +159,7 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<native_Eigen_type Arg>
+  template<eigen_native Arg>
 #else
   template<typename Arg, std::enable_if_t<is_native_Eigen_type_v<Arg>, int> = 0>
 #endif
@@ -174,7 +174,7 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<native_Eigen_type Arg>
+  template<eigen_native Arg>
 #else
   template<typename Arg, std::enable_if_t<is_native_Eigen_type_v<Arg>, int> = 0>
 #endif
@@ -190,7 +190,7 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<native_Eigen_type Arg>
+  template<eigen_native Arg>
 #else
   template<typename Arg, std::enable_if_t<is_native_Eigen_type_v<Arg>, int> = 0>
 #endif
@@ -232,7 +232,7 @@ namespace OpenKalman
 
   /// Create a column vector by taking the mean of each row in a set of column vectors.
 #ifdef __cpp_concepts
-  template<native_Eigen_type Arg>
+  template<eigen_native Arg>
 #else
   template<typename Arg, std::enable_if_t<is_native_Eigen_type_v<Arg>, int> = 0>
 #endif
@@ -255,7 +255,7 @@ namespace OpenKalman
    * Returns L as a lower-triangular matrix.
    */
 #ifdef __cpp_concepts
-  template<native_Eigen_type A>
+  template<eigen_native A>
 #else
   template<typename A, std::enable_if_t<is_native_Eigen_type_v<A>, int> = 0>
 #endif
@@ -293,7 +293,7 @@ namespace OpenKalman
    * Returns U as an upper-triangular matrix.
    */
 #ifdef __cpp_concepts
-  template<native_Eigen_type A>
+  template<eigen_native A>
 #else
   template<typename A, std::enable_if_t<is_native_Eigen_type_v<A>, int> = 0>
 #endif
@@ -329,11 +329,11 @@ namespace OpenKalman
   /// Concatenate one or more Eigen::MatrixBase objects vertically.
 #ifdef __cpp_concepts
   template<typename V, typename ... Vs> requires
-    (Eigen_matrix<V> or is_EigenSelfAdjointMatrix_v<V> or is_EigenTriangularMatrix_v<V> or
-      is_EigenDiagonal_v<V> or is_FromEuclideanExpr_v<V>) and
-    ((Eigen_matrix<Vs> or is_EigenSelfAdjointMatrix_v<Vs> or is_EigenTriangularMatrix_v<Vs> or
-      is_EigenDiagonal_v<Vs> or is_FromEuclideanExpr_v<Vs>) and ...) and
-    (not (is_FromEuclideanExpr_v<V> and ... and is_FromEuclideanExpr_v<Vs>))
+    ((Eigen_matrix<V> or eigen_self_adjoint_expr<V> or eigen_triangular_expr<V> or
+      eigen_diagonal_expr<V> or from_euclidean_expr<V>) and ... and
+    (Eigen_matrix<Vs> or eigen_self_adjoint_expr<Vs> or eigen_triangular_expr<Vs> or
+      eigen_diagonal_expr<Vs> or from_euclidean_expr<Vs>)) and
+    (not (from_euclidean_expr<V> and ... and from_euclidean_expr<Vs>))
 #else
   template<
     typename V, typename ... Vs,
@@ -366,11 +366,11 @@ namespace OpenKalman
   /// Concatenate one or more Eigen::MatrixBase objects horizontally.
 #ifdef __cpp_concepts
   template<typename V, typename ... Vs> requires
-    (Eigen_matrix<V> or is_EigenSelfAdjointMatrix_v<V> or is_EigenTriangularMatrix_v<V> or
-      is_EigenDiagonal_v<V> or is_FromEuclideanExpr_v<V>) and
-    ((Eigen_matrix<Vs> or is_EigenSelfAdjointMatrix_v<Vs> or is_EigenTriangularMatrix_v<Vs> or
-      is_EigenDiagonal_v<Vs> or is_FromEuclideanExpr_v<Vs>) and ...) and
-      (not (is_FromEuclideanExpr_v<V> and ... and is_FromEuclideanExpr_v<Vs>))
+    ((Eigen_matrix<V> or eigen_self_adjoint_expr<V> or eigen_triangular_expr<V> or
+      eigen_diagonal_expr<V> or from_euclidean_expr<V>) and ... and
+    (Eigen_matrix<Vs> or eigen_self_adjoint_expr<Vs> or eigen_triangular_expr<Vs> or
+      eigen_diagonal_expr<Vs> or from_euclidean_expr<Vs>)) and
+      (not (from_euclidean_expr<V> and ... and from_euclidean_expr<Vs>))
 #else
   template<
     typename V, typename ... Vs,
@@ -423,25 +423,23 @@ namespace OpenKalman
   /// Concatenate one or more Eigen::MatrixBase objects diagonally.
 #ifdef __cpp_concepts
   template<typename V, typename ... Vs> requires
-    (Eigen_matrix<V> or is_EigenSelfAdjointMatrix_v<V> or is_EigenTriangularMatrix_v<V> or
-      is_EigenDiagonal_v<V> or is_FromEuclideanExpr_v<V>) and
-    ((Eigen_matrix<Vs> or is_EigenSelfAdjointMatrix_v<Vs> or is_EigenTriangularMatrix_v<Vs> or
-      is_EigenDiagonal_v<Vs> or is_FromEuclideanExpr_v<Vs>) and ...) and
-    (not (is_FromEuclideanExpr_v<V> and ... and is_FromEuclideanExpr_v<Vs>)) and
-    (not ((is_EigenSelfAdjointMatrix_v<V> and ... and is_EigenSelfAdjointMatrix_v<Vs>) or
-      ((is_EigenTriangularMatrix_v<V> and ... and is_EigenTriangularMatrix_v<Vs>) and
-      ((is_upper_triangular_v<V> == is_upper_triangular_v<Vs>) and ...))))
+    ((Eigen_matrix<V> or eigen_self_adjoint_expr<V> or eigen_triangular_expr<V> or
+      eigen_diagonal_expr<V> or from_euclidean_expr<V>) and ... and
+    (Eigen_matrix<Vs> or eigen_self_adjoint_expr<Vs> or eigen_triangular_expr<Vs> or
+      eigen_diagonal_expr<Vs> or from_euclidean_expr<Vs>)) and
+    (not (from_euclidean_expr<V> and ... and from_euclidean_expr<Vs>)) and
+    (not (eigen_self_adjoint_expr<V> and ... and eigen_self_adjoint_expr<Vs>)) and
+    (not (eigen_triangular_expr<V> and ... and eigen_triangular_expr<Vs>))
 #else
-  template<typename V, typename ... Vs,
-    std::enable_if_t<std::conjunction_v<
-      std::disjunction<is_Eigen_matrix<V>, is_EigenSelfAdjointMatrix<V>, is_EigenTriangularMatrix<V>,
-        is_EigenDiagonal<V>, is_FromEuclideanExpr<V>>,
-      std::disjunction<is_Eigen_matrix<Vs>, is_EigenSelfAdjointMatrix<Vs>, is_EigenTriangularMatrix<Vs>,
-        is_EigenDiagonal<Vs>, is_FromEuclideanExpr<Vs>>...> and
+  template<typename V, typename ... Vs, std::enable_if_t<
+      std::conjunction_v<
+        std::disjunction<is_Eigen_matrix<V>, is_EigenSelfAdjointMatrix<V>, is_EigenTriangularMatrix<V>,
+          is_EigenDiagonal<V>, is_FromEuclideanExpr<V>>,
+        std::disjunction<is_Eigen_matrix<Vs>, is_EigenSelfAdjointMatrix<Vs>, is_EigenTriangularMatrix<Vs>,
+          is_EigenDiagonal<Vs>, is_FromEuclideanExpr<Vs>>...> and
       not std::conjunction_v<is_FromEuclideanExpr<V>, is_FromEuclideanExpr<Vs>...> and
-      not (std::conjunction_v<is_EigenSelfAdjointMatrix<V>, is_EigenSelfAdjointMatrix<Vs>...> or
-      (std::conjunction_v<is_EigenTriangularMatrix<V>, is_EigenTriangularMatrix<Vs>...> and
-        ((is_upper_triangular_v<V> == is_upper_triangular_v<Vs>) and ... and true))), int> = 0>
+      not std::conjunction_v<is_EigenSelfAdjointMatrix<V>, is_EigenSelfAdjointMatrix<Vs>...> and
+      not std::conjunction_v<is_EigenTriangularMatrix<V>, is_EigenTriangularMatrix<Vs>...>, int> = 0>
 #endif
   constexpr decltype(auto)
   concatenate_diagonal(V&& v, Vs&& ... vs) noexcept
@@ -789,7 +787,7 @@ namespace OpenKalman
 
   /// Get element (i, j) of matrix arg
 #ifdef __cpp_concepts
-  template<native_Eigen_type Arg>
+  template<eigen_native Arg>
 #else
   template<typename Arg, std::enable_if_t<is_native_Eigen_type_v<Arg>, int> = 0>
 #endif
@@ -802,7 +800,7 @@ namespace OpenKalman
 
   /// Get element (i) of one-column matrix arg
 #ifdef __cpp_concepts
-  template<native_Eigen_type Arg> requires (MatrixTraits<Arg>::columns == 1)
+  template<eigen_native Arg> requires (MatrixTraits<Arg>::columns == 1)
 #else
   template<typename Arg, std::enable_if_t<is_native_Eigen_type_v<Arg> and MatrixTraits<Arg>::columns == 1, int> = 0>
 #endif
@@ -815,7 +813,7 @@ namespace OpenKalman
 
   /// Set element (i, j) of matrix arg to s.
 #ifdef __cpp_concepts
-  template<native_Eigen_type Arg, typename Scalar> requires (not std::is_const_v<std::remove_reference_t<Arg>>) and
+  template<eigen_native Arg, typename Scalar> requires (not std::is_const_v<std::remove_reference_t<Arg>>) and
     (static_cast<bool>(std::decay_t<Arg>::Flags & Eigen::LvalueBit))
 #else
   template<typename Arg, typename Scalar,
@@ -831,7 +829,7 @@ namespace OpenKalman
 
   /// Set element (i) of one-column matrix arg to s.
 #ifdef __cpp_concepts
-  template<native_Eigen_type Arg, typename Scalar> requires (not std::is_const_v<std::remove_reference_t<Arg>>) and
+  template<eigen_native Arg, typename Scalar> requires (not std::is_const_v<std::remove_reference_t<Arg>>) and
     (MatrixTraits<Arg>::columns == 1) and (static_cast<bool>(std::decay_t<Arg>::Flags & Eigen::LvalueBit))
 #else
   template<typename Arg, typename Scalar,
@@ -848,7 +846,7 @@ namespace OpenKalman
 
   /// Return column <code>index</code> of Arg.
 #ifdef __cpp_concepts
-  template<native_Eigen_type Arg>
+  template<eigen_native Arg>
 #else
   template<typename Arg, std::enable_if_t<is_native_Eigen_type_v<Arg>, int> = 0>
 #endif
@@ -861,7 +859,7 @@ namespace OpenKalman
 
   /// Return column <code>index</code> of Arg. Constexpr index version.
 #ifdef __cpp_concepts
-  template<std::size_t index, native_Eigen_type Arg>
+  template<std::size_t index, eigen_native Arg>
 #else
   template<std::size_t index, typename Arg, std::enable_if_t<is_native_Eigen_type_v<Arg>, int> = 0>
 #endif
@@ -900,7 +898,7 @@ namespace OpenKalman
     inline auto cat_columnwise_impl(const Arg& arg, const Function& f, std::index_sequence<ints...>)
     {
       using ResultType = decltype(f(column(arg, 0)));
-      if constexpr (is_ToEuclideanExpr_v<ResultType> or is_FromEuclideanExpr_v<ResultType>)
+      if constexpr (euclidean_expr<ResultType>)
       {
         auto res = concatenate_horizontal(base_matrix(f(column(arg, ints)))...);
         return MatrixTraits<ResultType>::make(std::move(res));
@@ -915,7 +913,7 @@ namespace OpenKalman
     inline auto cat_columnwise_index_impl(const Arg& arg, const Function& f, std::index_sequence<ints...>)
     {
       using ResultType = decltype(f(column(arg, 0), 0));
-      if constexpr (is_ToEuclideanExpr_v<ResultType> or is_FromEuclideanExpr_v<ResultType>)
+      if constexpr (euclidean_expr<ResultType>)
       {
         auto res = concatenate_horizontal(base_matrix(f(column(arg, ints), ints))...);
         return MatrixTraits<ResultType>::make(std::move(res));

@@ -407,11 +407,11 @@ TEST_F(matrix_tests, TriangularMatrix_overloads)
   //
   EXPECT_TRUE(is_near(Cholesky_square(EigenTriangularMatrix<decltype(EigenDiagonal{2., 3}), TriangleType::lower>(EigenDiagonal{2., 3})), EigenDiagonal{4., 9}));
   EXPECT_TRUE(is_near(Cholesky_square(EigenTriangularMatrix<decltype(EigenDiagonal{2., 3}), TriangleType::upper>(EigenDiagonal{2., 3})), EigenDiagonal{4., 9}));
-  static_assert(is_EigenDiagonal_v<decltype(Cholesky_square(EigenTriangularMatrix<decltype(EigenDiagonal{2., 3}), TriangleType::lower>(EigenDiagonal{2., 3})))>);
-  static_assert(is_EigenDiagonal_v<decltype(Cholesky_square(EigenTriangularMatrix<decltype(EigenDiagonal{2., 3}), TriangleType::upper>(EigenDiagonal{2., 3})))>);
+  static_assert(eigen_diagonal_expr<decltype(Cholesky_square(EigenTriangularMatrix<decltype(EigenDiagonal{2., 3}), TriangleType::lower>(EigenDiagonal{2., 3})))>);
+  static_assert(eigen_diagonal_expr<decltype(Cholesky_square(EigenTriangularMatrix<decltype(EigenDiagonal{2., 3}), TriangleType::upper>(EigenDiagonal{2., 3})))>);
   //
   EXPECT_TRUE(is_near(Cholesky_square(EigenTriangularMatrix<M2, TriangleType::diagonal>(ml)), EigenDiagonal{9., 9}));
-  static_assert(is_EigenDiagonal_v<decltype(Cholesky_square(EigenTriangularMatrix<M2, TriangleType::diagonal>(ml)))>);
+  static_assert(eigen_diagonal_expr<decltype(Cholesky_square(EigenTriangularMatrix<M2, TriangleType::diagonal>(ml)))>);
   //
   EXPECT_TRUE(is_near(Cholesky_square(Lower {3., 0, 1, 3}), Mat {9., 3, 3, 10}));
   EXPECT_TRUE(is_near(Cholesky_square(Upper {3., 1, 0, 3}), Mat {9., 3, 3, 10}));
@@ -437,11 +437,11 @@ TEST_F(matrix_tests, TriangularMatrix_overloads)
   //
   EXPECT_TRUE(is_near(Cholesky_factor(EigenTriangularMatrix<decltype(EigenDiagonal{4., 9}), TriangleType::lower>(EigenDiagonal{4., 9})), EigenDiagonal{2., 3}));
   EXPECT_TRUE(is_near(Cholesky_factor(EigenTriangularMatrix<decltype(EigenDiagonal{4., 9}), TriangleType::upper>(EigenDiagonal{4., 9})), EigenDiagonal{2., 3}));
-  static_assert(is_EigenDiagonal_v<decltype(Cholesky_factor(EigenTriangularMatrix<decltype(EigenDiagonal{4., 9}), TriangleType::lower>(EigenDiagonal{4., 9})))>);
-  static_assert(is_EigenDiagonal_v<decltype(Cholesky_factor(EigenTriangularMatrix<decltype(EigenDiagonal{4., 9}), TriangleType::upper>(EigenDiagonal{4., 9})))>);
+  static_assert(eigen_diagonal_expr<decltype(Cholesky_factor(EigenTriangularMatrix<decltype(EigenDiagonal{4., 9}), TriangleType::lower>(EigenDiagonal{4., 9})))>);
+  static_assert(eigen_diagonal_expr<decltype(Cholesky_factor(EigenTriangularMatrix<decltype(EigenDiagonal{4., 9}), TriangleType::upper>(EigenDiagonal{4., 9})))>);
   //
   EXPECT_TRUE(is_near(Cholesky_factor(EigenTriangularMatrix<M2, TriangleType::diagonal>(ml)), EigenDiagonal{std::sqrt(3.), std::sqrt(3.)}));
-  static_assert(is_EigenDiagonal_v<decltype(Cholesky_factor(EigenTriangularMatrix<M2, TriangleType::diagonal>(ml)))>);
+  static_assert(eigen_diagonal_expr<decltype(Cholesky_factor(EigenTriangularMatrix<M2, TriangleType::diagonal>(ml)))>);
   //
   EXPECT_TRUE(is_near(Cholesky_factor(EigenTriangularMatrix<Eigen::Matrix<double, 1, 1>, TriangleType::lower>(Eigen::Matrix<double, 1, 1>(9))), Eigen::Matrix<double, 1, 1>(3)));
   EXPECT_TRUE(is_near(Cholesky_factor(EigenTriangularMatrix<Eigen::Matrix<double, 1, 1>, TriangleType::upper>(Eigen::Matrix<double, 1, 1>(9))), Eigen::Matrix<double, 1, 1>(3)));

@@ -19,8 +19,14 @@ namespace OpenKalman
   //                      MatrixBase:
   //                MatrixTraits<MatrixBase>
   //----------------------------------------------------------
+
+  /**
+   * Default matrix traits for any matrix derived from Eigen::MatrixBase.
+   * @tparam Matrix
+   */
 #ifdef __cpp_concepts
-  template<native_Eigen_type Matrix> requires std::same_as<Matrix, std::decay_t<Matrix>>
+  template<typename Matrix> requires std::same_as<Matrix, std::decay_t<Matrix>> and
+    std::derived_from<std::decay_t<Matrix>, Eigen::MatrixBase<std::decay_t<Matrix>>>
   struct MatrixTraits<Matrix>
 #else
   template<typename Matrix>

@@ -70,7 +70,11 @@ namespace OpenKalman
   /////////////////
 
   /// Convert to strict version of the matrix.
+#ifdef __cpp_concepts
+  template<eigen_zero_expr Arg>
+#else
   template<typename Arg, std::enable_if_t<is_EigenZero_v<Arg>, int> = 0>
+#endif
   constexpr decltype(auto)
   strict(Arg&& arg)
   {
@@ -78,7 +82,11 @@ namespace OpenKalman
   }
 
 
+#ifdef __cpp_concepts
+  template<eigen_zero_expr Arg>
+#else
   template<typename Arg, std::enable_if_t<is_EigenZero_v<Arg>, int> = 0>
+#endif
   inline auto
   to_diagonal(Arg&& arg) noexcept
   {
@@ -89,7 +97,11 @@ namespace OpenKalman
   }
 
 
+#ifdef __cpp_concepts
+  template<eigen_zero_expr Arg>
+#else
   template<typename Arg, std::enable_if_t<is_EigenZero_v<Arg>, int> = 0>
+#endif
   constexpr decltype(auto)
   transpose(Arg&& arg) noexcept
   {
@@ -100,7 +112,11 @@ namespace OpenKalman
   }
 
 
+#ifdef __cpp_concepts
+  template<eigen_zero_expr Arg>
+#else
   template<typename Arg, std::enable_if_t<is_EigenZero_v<Arg>, int> = 0>
+#endif
   constexpr decltype(auto)
   adjoint(Arg&& arg) noexcept
   {
@@ -108,7 +124,11 @@ namespace OpenKalman
   }
 
 
+#ifdef __cpp_concepts
+  template<eigen_zero_expr Arg>
+#else
   template<typename Arg, std::enable_if_t<is_EigenZero_v<Arg>, int> = 0>
+#endif
   constexpr auto
   determinant(Arg&& arg) noexcept
   {
@@ -117,7 +137,11 @@ namespace OpenKalman
   }
 
 
+#ifdef __cpp_concepts
+  template<eigen_zero_expr Arg>
+#else
   template<typename Arg, std::enable_if_t<is_EigenZero_v<Arg>, int> = 0>
+#endif
   constexpr auto
   trace(Arg&& arg) noexcept
   {
@@ -127,7 +151,11 @@ namespace OpenKalman
 
 
   /// Create a column vector by taking the mean of each row in a set of column vectors.
+#ifdef __cpp_concepts
+  template<eigen_zero_expr Arg>
+#else
   template<typename Arg, std::enable_if_t<is_EigenZero_v<Arg>, int> = 0>
+#endif
   constexpr decltype(auto)
   reduce_columns(Arg&& arg) noexcept
   {
@@ -147,7 +175,11 @@ namespace OpenKalman
    * Perform an LQ decomposition of matrix A=[L,0]Q, L is a lower-triangular matrix, and Q is orthogonal.
    * Returns L as a lower-triangular matrix.
    */
+#ifdef __cpp_concepts
+  template<eigen_zero_expr A>
+#else
   template<typename A, std::enable_if_t<is_EigenZero_v<A>, int> = 0>
+#endif
   inline auto
   LQ_decomposition(A&& a)
   {
@@ -161,7 +193,11 @@ namespace OpenKalman
    * Perform a QR decomposition of matrix A=Q[U,0], U is a upper-triangular matrix, and Q is orthogonal.
    * Returns U as an upper-triangular matrix.
    */
+#ifdef __cpp_concepts
+  template<eigen_zero_expr A>
+#else
   template<typename A, std::enable_if_t<is_EigenZero_v<A>, int> = 0>
+#endif
   inline auto
   QR_decomposition(A&& a)
   {
@@ -172,7 +208,11 @@ namespace OpenKalman
 
 
   /// Get an element of a EigenZero matrix. Always 0.
+#ifdef __cpp_concepts
+  template<eigen_zero_expr Arg>
+#else
   template<typename Arg, std::enable_if_t<is_EigenZero_v<Arg>, int> = 0>
+#endif
   constexpr auto
   get_element(const Arg&, const std::size_t, const std::size_t)
   {
@@ -181,7 +221,11 @@ namespace OpenKalman
 
 
   /// Get an element of a one-column EigenZero matrix. Always 0.
+#ifdef __cpp_concepts
+  template<eigen_zero_expr Arg> requires (MatrixTraits<Arg>::columns == 1)
+#else
   template<typename Arg, std::enable_if_t<is_EigenZero_v<Arg> and MatrixTraits<Arg>::columns == 1, int> = 0>
+#endif
   constexpr auto
   get_element(const Arg&, const std::size_t)
   {
@@ -190,7 +234,11 @@ namespace OpenKalman
 
 
   /// Return column <code>index</code> of Arg.
+#ifdef __cpp_concepts
+  template<eigen_zero_expr Arg>
+#else
   template<typename Arg, std::enable_if_t<is_EigenZero_v<Arg>, int> = 0>
+#endif
   inline auto
   column(Arg&& arg, const std::size_t index)
   {
@@ -200,7 +248,11 @@ namespace OpenKalman
 
 
   /// Return column <code>index</code> of Arg. Constexpr index version.
+#ifdef __cpp_concepts
+  template<size_t index, eigen_zero_expr Arg>
+#else
   template<size_t index, typename Arg, std::enable_if_t<is_EigenZero_v<Arg>, int> = 0>
+#endif
   inline decltype(auto)
   column(Arg&& arg)
   {
@@ -228,11 +280,11 @@ namespace OpenKalman
   {
     static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
     static_assert(MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns);
-    if constexpr(OpenKalman::is_zero_v<Arg1> and OpenKalman::is_zero_v<Arg2>)
+    if constexpr(is_zero_v<Arg1> and is_zero_v<Arg2>)
     {
       return MatrixTraits<Arg1>::zero();
     }
-    else if constexpr(OpenKalman::is_EigenZero_v<Arg1>)
+    else if constexpr(eigen_zero_expr<Arg1>)
     {
       return std::forward<Arg2>(arg2);
     }
@@ -255,13 +307,13 @@ namespace OpenKalman
   {
     static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
     static_assert(MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns);
-    if constexpr(OpenKalman::is_zero_v<Arg1> and OpenKalman::is_zero_v<Arg2>)
+    if constexpr(is_zero_v<Arg1> and is_zero_v<Arg2>)
     {
       return MatrixTraits<Arg1>::zero();
     }
-    else if constexpr(OpenKalman::is_zero_v<Arg1>)
+    else if constexpr(is_zero_v<Arg1>)
     {
-      if constexpr(OpenKalman::is_identity_v<Arg2>)
+      if constexpr(is_identity_v<Arg2>)
       {
         using D = typename MatrixTraits<Arg2>::template DiagonalBaseType<>;
         constexpr auto dim = MatrixTraits<Arg2>::dimension;
@@ -298,12 +350,16 @@ namespace OpenKalman
   }
 
 
-  template<typename Arg1, typename Arg2,
-    std::enable_if_t<(OpenKalman::is_EigenZero_v<Arg1> and std::is_arithmetic_v<Arg2>) or
-      (std::is_arithmetic_v<Arg1> and OpenKalman::is_EigenZero_v<Arg2>), int> = 0>
+#ifdef __cpp_concepts
+  template<typename Arg1, typename Arg2> requires (eigen_zero_expr<Arg1> and std::is_arithmetic_v<Arg2>) or
+    (std::is_arithmetic_v<Arg1> and eigen_zero_expr<Arg2>)
+#else
+  template<typename Arg1, typename Arg2, std::enable_if_t<(is_EigenZero_v<Arg1> and std::is_arithmetic_v<Arg2>) or
+    (std::is_arithmetic_v<Arg1> and is_EigenZero_v<Arg2>), int> = 0>
+#endif
   constexpr decltype(auto) operator*(Arg1&& arg1, Arg2&& arg2)
   {
-    if constexpr(OpenKalman::is_EigenZero_v<Arg1>)
+    if constexpr(eigen_zero_expr<Arg1>)
     {
       return std::forward<Arg1>(arg1);
     }
@@ -314,8 +370,11 @@ namespace OpenKalman
   }
 
 
-  template<typename Arg,
-    std::enable_if_t<OpenKalman::is_EigenZero_v<Arg>, int> = 0>
+#ifdef __cpp_concepts
+  template<eigen_zero_expr Arg>
+#else
+  template<typename Arg, std::enable_if_t<is_EigenZero_v<Arg>, int> = 0>
+#endif
   constexpr decltype(auto) operator-(Arg&& arg)
   {
     return std::forward<Arg>(arg);

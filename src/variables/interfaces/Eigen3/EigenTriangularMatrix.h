@@ -35,20 +35,28 @@ namespace OpenKalman
       : EigenTriangularMatrix(std::move(other).base_matrix()) {}
 
     /// Construct from a compatible triangular matrix object of the same TriangleType.
+#ifdef __cpp_concepts
+    template<eigen_triangular_expr Arg>
+#else
     template<typename Arg, std::enable_if_t<is_EigenTriangularMatrix_v<Arg>, int> = 0>
+#endif
     EigenTriangularMatrix(Arg&& arg) noexcept : EigenTriangularMatrix(base_matrix(std::forward<Arg>(arg)))
     {
       static_assert(is_lower_triangular_v<Arg> == is_lower_triangular_v<EigenTriangularMatrix>);
     }
 
     /// Construct from a compatible self-adjoint matrix object
+#ifdef __cpp_concepts
+    template<eigen_self_adjoint_expr Arg>
+#else
     template<typename Arg, std::enable_if_t<is_EigenSelfAdjointMatrix_v<Arg>, int> = 0>
+#endif
     EigenTriangularMatrix(Arg&& arg) noexcept
       : EigenTriangularMatrix(Cholesky_factor<triangle_type>(std::forward<Arg>(arg))) {}
 
     /// Construct from a reference to a regular or diagonal matrix object
 #ifdef __cpp_concepts
-    template<typename Arg> requires Eigen_matrix<Arg> or is_EigenDiagonal_v<Arg>
+    template<typename Arg> requires Eigen_matrix<Arg> or eigen_diagonal_expr<Arg>
 #else
     template<typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg> or is_EigenDiagonal_v<Arg>, int> = 0>
 #endif
@@ -56,20 +64,28 @@ namespace OpenKalman
 
     /// Construct from a list of scalar coefficients, in row-major order.
 #ifdef __cpp_concepts
-    template<typename ... Args>
-    requires std::conjunction_v<std::is_convertible<Args, const Scalar>...> and
-      ((not is_EigenDiagonal_v<BaseMatrix> and sizeof...(Args) == dimension * dimension and triangle_type != TriangleType::diagonal) or
-      (is_EigenDiagonal_v<BaseMatrix> and sizeof...(Args) == dimension))
+    template<std::convertible_to<const Scalar> ... Args> requires
+      (triangle_type != TriangleType::diagonal and (not eigen_diagonal_expr<BaseMatrix> and
+      sizeof...(Args) == dimension * dimension)) or
+      (eigen_diagonal_expr<BaseMatrix> and sizeof...(Args) == dimension)
 #else
-    template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...> and
-      ((not is_EigenDiagonal_v<BaseMatrix> and sizeof...(Args) == dimension * dimension and triangle_type != TriangleType::diagonal) or
+    template<typename ... Args, std::enable_if_t<
+      std::conjunction_v<std::is_convertible<Args, const Scalar>...> and
+      ((not is_EigenDiagonal_v<BaseMatrix> and sizeof...(Args) == dimension * dimension and
+        triangle_type != TriangleType::diagonal) or
       (is_EigenDiagonal_v<BaseMatrix> and sizeof...(Args) == dimension)), int> = 0>
 #endif
     EigenTriangularMatrix(Args ... args) : EigenTriangularMatrix(MatrixTraits<BaseMatrix>::make(args...)) {}
 
     /// Construct from a list of scalar coefficients, in row-major order.
-    template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...> and
-      not is_EigenDiagonal_v<BaseMatrix> and sizeof...(Args) == dimension and triangle_type == TriangleType::diagonal, int> = 0>
+#if defined (__cpp_concepts) && defined (__clang__) // Because of compiler issue in at least GCC version 10.1.0
+    template<std::convertible_to<const Scalar> ... Args> requires (triangle_type == TriangleType::diagonal) and
+    (not eigen_diagonal_expr<BaseMatrix>) and (sizeof...(Args) == dimension)
+#else
+    template<typename ... Args, std::enable_if_t<
+      std::conjunction_v<std::is_convertible<Args, const Scalar>...> and not eigen_diagonal_expr<BaseMatrix> and
+      sizeof...(Args) == dimension and triangle_type == TriangleType::diagonal, int> = 0>
+#endif
     EigenTriangularMatrix(Args ... args)
       : EigenTriangularMatrix(strict_matrix(EigenDiagonal {static_cast<const Scalar>(args)...})) {}
 
@@ -95,7 +111,11 @@ namespace OpenKalman
 
 
     /// Assign from another triangular matrix (must be the same triangle)
+#ifdef __cpp_concepts
+    template<eigen_triangular_expr Arg>
+#else
     template<typename Arg, std::enable_if_t<is_EigenTriangularMatrix_v<Arg>, int> = 0>
+#endif
     auto& operator=(Arg&& arg)
     {
       static_assert(is_upper_triangular_v<Arg> == is_upper_triangular_v<EigenTriangularMatrix>);
@@ -119,7 +139,11 @@ namespace OpenKalman
     }
 
     /// Assign by converting from a self-adjoint special matrix
+#ifdef __cpp_concepts
+    template<eigen_self_adjoint_expr Arg>
+#else
     template<typename Arg, std::enable_if_t<is_EigenSelfAdjointMatrix_v<Arg>, int> = 0>
+#endif
     auto& operator=(Arg&& arg)
     {
       if constexpr (is_zero_v<BaseMatrix>)
@@ -223,14 +247,22 @@ namespace OpenKalman
       return *this;
     }
 
+#ifdef __cpp_concepts
+    template<std::convertible_to<Scalar> S>
+#else
     template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
+#endif
     auto& operator*=(const S s)
     {
       this->base_view() *= s;
       return *this;
     }
 
+#ifdef __cpp_concepts
+    template<std::convertible_to<Scalar> S>
+#else
     template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
+#endif
     auto& operator/=(const S s)
     {
       this->base_view() /= s;
@@ -315,30 +347,42 @@ namespace OpenKalman
   /////////////////////////////////////
 
 #ifdef __cpp_concepts
-  template<typename M> requires Eigen_matrix<M> or is_EigenDiagonal_v<M>
+  template<typename M> requires Eigen_matrix<M> or eigen_diagonal_expr<M>
 #else
   template<typename M, std::enable_if_t<is_Eigen_matrix_v<M> or is_EigenDiagonal_v<M>, int> = 0>
 #endif
   EigenTriangularMatrix(M&&) -> EigenTriangularMatrix<lvalue_or_strict_t<M>, TriangleType::lower>;
 
+#ifdef __cpp_concepts
+  template<typename M> requires (eigen_triangular_expr<M> and is_lower_triangular_v<M>) or
+    (eigen_self_adjoint_expr<M> and is_Eigen_lower_storage_triangle_v<M>)
+#else
   template<typename M, std::enable_if_t<(is_EigenTriangularMatrix_v<M> and is_lower_triangular_v<M>) or
     (is_EigenSelfAdjointMatrix_v<M> and is_Eigen_lower_storage_triangle_v<M>), int> = 0>
-  EigenTriangularMatrix(M&&)
-    -> EigenTriangularMatrix<typename MatrixTraits<M>::BaseMatrix, TriangleType::lower>;
+#endif
+  EigenTriangularMatrix(M&&) -> EigenTriangularMatrix<typename MatrixTraits<M>::BaseMatrix, TriangleType::lower>;
 
+#ifdef __cpp_concepts
+  template<typename M> requires (eigen_triangular_expr<M> and is_upper_triangular_v<M>) or
+    (eigen_self_adjoint_expr<M> and is_Eigen_upper_storage_triangle_v<M>)
+#else
   template<typename M, std::enable_if_t<(is_EigenTriangularMatrix_v<M> and is_upper_triangular_v<M>) or
     (is_EigenSelfAdjointMatrix_v<M> and is_Eigen_upper_storage_triangle_v<M>), int> = 0>
-  EigenTriangularMatrix(M&&)
-    -> EigenTriangularMatrix<typename MatrixTraits<M>::BaseMatrix, TriangleType::upper>;
+#endif
+  EigenTriangularMatrix(M&&) -> EigenTriangularMatrix<typename MatrixTraits<M>::BaseMatrix, TriangleType::upper>;
 
   template<typename Arg, unsigned int UpLo>
   EigenTriangularMatrix(const Eigen::TriangularView<Arg, UpLo>&)
     -> EigenTriangularMatrix<Arg, UpLo & Eigen::Upper ? TriangleType::upper : TriangleType::lower>;
 
   /// If the arguments are a sequence of scalars, deduce a square, lower triangular matrix.
-  template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
-  EigenTriangularMatrix(Args ...)
-    -> EigenTriangularMatrix<
+#ifdef __cpp_concepts
+  template<typename ... Args> requires ((sizeof...(Args) >= 1) and ... and std::is_arithmetic_v<Args>)
+#else
+  template<typename ... Args,
+    std::enable_if_t<sizeof...(Args) >= 1 and std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
+#endif
+  EigenTriangularMatrix(Args ...) -> EigenTriangularMatrix<
     Eigen::Matrix<std::decay_t<std::common_type_t<Args...>>, internal::constexpr_sqrt(sizeof...(Args)),
       internal::constexpr_sqrt(sizeof...(Args))>, TriangleType::lower>;
 
@@ -348,29 +392,33 @@ namespace OpenKalman
   ///////////////////////////////////
 
 #ifdef __cpp_concepts
-  template<TriangleType t = TriangleType::lower, typename M>
-  requires Eigen_matrix<M> or is_EigenDiagonal_v<M>
+  template<TriangleType t = TriangleType::lower, typename M> requires Eigen_matrix<M> or eigen_diagonal_expr<M>
 #else
   template<TriangleType t = TriangleType::lower, typename M,
     std::enable_if_t<is_Eigen_matrix_v<M> or is_EigenDiagonal_v<M>, int> = 0>
 #endif
-  auto
-  make_EigenTriangularMatrix(M&& m)
+  auto make_EigenTriangularMatrix(M&& m)
   {
     return EigenTriangularMatrix<lvalue_or_strict_t<M>, t>(std::forward<M>(m));
   }
 
+#ifdef __cpp_concepts
+  template<TriangleType t, eigen_triangular_expr M>
+#else
   template<TriangleType t, typename M, std::enable_if_t<is_EigenTriangularMatrix_v<M>, int> = 0>
-  auto
-  make_EigenTriangularMatrix(M&& m)
+#endif
+  auto make_EigenTriangularMatrix(M&& m)
   {
     static_assert(t == MatrixTraits<M>::triangle_type);
     return EigenTriangularMatrix<lvalue_or_strict_t<M>, t>(std::forward<M>(m));
   }
 
+#ifdef __cpp_concepts
+  template<eigen_triangular_expr M>
+#else
   template<typename M, std::enable_if_t<is_EigenTriangularMatrix_v<M>, int> = 0>
-  auto
-  make_EigenTriangularMatrix(M&& m)
+#endif
+  auto make_EigenTriangularMatrix(M&& m)
   {
     return  make_EigenTriangularMatrix<MatrixTraits<M>::triangle_type>(std::forward<M>(m));
   }
@@ -410,8 +458,12 @@ namespace OpenKalman
     template<std::size_t dim = dimension, typename S = Scalar>
     using DiagonalBaseType = EigenDiagonal<StrictMatrix<dim, 1, S>>;
 
+#ifdef __cpp_concepts
+    template<TriangleType t = triangle_type, typename Arg> requires (not std::convertible_to<Arg, const Scalar>)
+#else
     template<TriangleType t = triangle_type, typename Arg,
       std::enable_if_t<not std::is_convertible_v<Arg, const Scalar>, int> = 0>
+#endif
     static auto make(Arg&& arg) noexcept
     {
       return EigenTriangularMatrix<std::decay_t<Arg>, t>(std::forward<Arg>(arg));
@@ -419,8 +471,12 @@ namespace OpenKalman
 
     /// Make triangular matrix using a list of coefficients in row-major order.
     /// Only the coefficients in the lower-left corner are significant.
+#ifdef __cpp_concepts
+    template<TriangleType t = triangle_type, std::convertible_to<const Scalar> ... Args>
+#else
     template<TriangleType t = triangle_type, typename ... Args,
       std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...>, int> = 0>
+#endif
     static auto make(Args ... args)
     {
       static_assert(sizeof...(Args) == dimension * dimension);
@@ -438,7 +494,11 @@ namespace OpenKalman
   //        Overloads         //
   //////////////////////////////
 
+#ifdef __cpp_concepts
+  template<eigen_triangular_expr Arg>
+#else
   template<typename Arg, std::enable_if_t<is_EigenTriangularMatrix_v<Arg>, int> = 0>
+#endif
   constexpr auto
   transpose(Arg&& arg)
   {
@@ -449,7 +509,11 @@ namespace OpenKalman
   }
 
 
+#ifdef __cpp_concepts
+  template<eigen_triangular_expr Arg>
+#else
   template<typename Arg, std::enable_if_t<is_EigenTriangularMatrix_v<Arg>, int> = 0>
+#endif
   constexpr auto
   adjoint(Arg&& arg)
   {
@@ -461,10 +525,9 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<typename Arg, typename U>
-  requires is_EigenTriangularMatrix_v<Arg> and
-      (Eigen_matrix<U> or is_EigenTriangularMatrix_v<U> or is_EigenSelfAdjointMatrix_v<U> or
-        is_EigenDiagonal_v<U> or is_FromEuclideanExpr_v<U> or is_ToEuclideanExpr_v<U>) and
+  template<eigen_triangular_expr Arg, typename U> requires
+      (Eigen_matrix<U> or eigen_triangular_expr<U> or eigen_self_adjoint_expr<U> or
+        eigen_diagonal_expr<U> or euclidean_expr<U>) and
     (not std::is_const_v<std::remove_reference_t<Arg>>)
 #else
   template<typename Arg, typename U,
@@ -491,10 +554,9 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<typename Arg, typename U>
-  requires is_EigenTriangularMatrix_v<Arg> and
-      (Eigen_matrix<U> or is_EigenTriangularMatrix_v<U> or is_EigenSelfAdjointMatrix_v<U> or
-        is_EigenDiagonal_v<U> or is_FromEuclideanExpr_v<U> or is_ToEuclideanExpr_v<U>)
+  template<eigen_triangular_expr Arg, typename U> requires
+      (Eigen_matrix<U> or eigen_triangular_expr<U> or eigen_self_adjoint_expr<U> or
+        eigen_diagonal_expr<U> or euclidean_expr<U>)
 #else
   template<typename Arg, typename U,
     std::enable_if_t<is_EigenTriangularMatrix_v<Arg> and
@@ -513,7 +575,11 @@ namespace OpenKalman
 
   /// Perform an LQ decomposition of matrix A=[L,0]Q, where L is a lower-triangular matrix, and Q is orthogonal.
   /// Returns L as a lower-triangular matrix.
+#ifdef __cpp_concepts
+  template<eigen_triangular_expr A>
+#else
   template<typename A, std::enable_if_t<is_EigenTriangularMatrix_v<A>, int> = 0>
+#endif
   constexpr decltype(auto)
   LQ_decomposition(A&& a)
   {
@@ -526,7 +592,11 @@ namespace OpenKalman
 
   /// Perform a QR decomposition of matrix A=Q[U,0], where U is an upper-triangular matrix, and Q is orthogonal.
   /// Returns U as an upper-triangular matrix.
+#ifdef __cpp_concepts
+  template<eigen_triangular_expr A>
+#else
   template<typename A, std::enable_if_t<is_EigenTriangularMatrix_v<A>, int> = 0>
+#endif
   constexpr decltype(auto)
   QR_decomposition(A&& a)
   {
@@ -541,10 +611,14 @@ namespace OpenKalman
   //        Arithmetic         //
   ///////////////////////////////
 
-  template<
-    typename Arg1, typename Arg2,
-    std::enable_if_t<is_EigenTriangularMatrix_v<Arg1> and is_EigenTriangularMatrix_v<Arg2> and
+#ifdef __cpp_concepts
+  template<eigen_triangular_expr Arg1, eigen_triangular_expr Arg2> requires
+    (not is_diagonal_v<Arg1>) and (not is_diagonal_v<Arg2>)
+#else
+  template<typename Arg1, typename Arg2, std::enable_if_t<
+    is_EigenTriangularMatrix_v<Arg1> and is_EigenTriangularMatrix_v<Arg2> and
       not is_diagonal_v<Arg1> and not is_diagonal_v<Arg2>, int> = 0>
+#endif
   inline auto operator+(Arg1&& arg1, Arg2&& arg2)
   {
     static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
@@ -563,14 +637,21 @@ namespace OpenKalman
   }
 
 
+#ifdef __cpp_concepts
+  template<typename Arg1, typename Arg2> requires
+    ((eigen_triangular_expr<Arg1> and is_diagonal_v<Arg2>) or
+      (is_diagonal_v<Arg1> and eigen_triangular_expr<Arg2>)) and
+      (not is_zero_v<Arg1>) and (not is_zero_v<Arg2>) and (not is_identity_v<Arg1>) and (not is_identity_v<Arg2>)
+#else
   template<typename Arg1, typename Arg2,
     std::enable_if_t<((is_EigenTriangularMatrix_v<Arg1> and is_diagonal_v<Arg2>) or
       (is_diagonal_v<Arg1> and is_EigenTriangularMatrix_v<Arg2>)) and
       not is_zero_v<Arg1> and not is_zero_v<Arg2> and not is_identity_v<Arg1> and not is_identity_v<Arg2>, int> = 0>
+#endif
   inline auto operator+(Arg1&& arg1, Arg2&& arg2)
   {
     static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
-    if constexpr(is_EigenTriangularMatrix_v<Arg1>)
+    if constexpr(eigen_triangular_expr<Arg1>)
     {
       auto ret = MatrixTraits<Arg1>::make(base_matrix(std::forward<Arg1>(arg1)) + std::forward<Arg2>(arg2));
       if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>) return strict(std::move(ret)); else return ret;
@@ -583,14 +664,19 @@ namespace OpenKalman
   }
 
 
+#ifdef __cpp_concepts
+  template<typename Arg1, typename Arg2> requires (eigen_triangular_expr<Arg1> and is_identity_v<Arg2>) or
+    (is_identity_v<Arg1> and eigen_triangular_expr<Arg2>)
+#else
   template<typename Arg1, typename Arg2,
     std::enable_if_t<(is_EigenTriangularMatrix_v<Arg1> and is_identity_v<Arg2>) or
       (is_identity_v<Arg1> and is_EigenTriangularMatrix_v<Arg2>), int> = 0>
+#endif
   inline auto operator+(Arg1&& arg1, Arg2&& arg2)
   {
     static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
     static_assert(MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns);
-    if constexpr(OpenKalman::is_EigenTriangularMatrix_v<Arg1>)
+    if constexpr(eigen_triangular_expr<Arg1>)
     {
       auto ret = MatrixTraits<Arg1>::make(base_matrix(std::forward<Arg1>(arg1)) + std::forward<Arg2>(arg2));
       if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>) return strict(std::move(ret)); else return ret;
@@ -603,14 +689,19 @@ namespace OpenKalman
   }
 
 
+#ifdef __cpp_concepts
+  template<typename Arg1, typename Arg2> requires (eigen_triangular_expr<Arg1> and is_zero_v<Arg2>) or
+    (is_zero_v<Arg1> and eigen_triangular_expr<Arg2>)
+#else
   template<typename Arg1, typename Arg2,
     std::enable_if_t<(is_EigenTriangularMatrix_v<Arg1> and is_zero_v<Arg2>) or
       (is_zero_v<Arg1> and is_EigenTriangularMatrix_v<Arg2>), int> = 0>
+#endif
   constexpr decltype(auto) operator+(Arg1&& arg1, Arg2&& arg2)
   {
     static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
     static_assert(MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns);
-    if constexpr(OpenKalman::is_EigenTriangularMatrix_v<Arg1>)
+    if constexpr(eigen_triangular_expr<Arg1>)
     {
       return std::forward<Arg1>(arg1);
     }
@@ -623,9 +714,12 @@ namespace OpenKalman
 
   ////
 
-  template<
-    typename Arg1, typename Arg2,
+#ifdef __cpp_concepts
+  template<eigen_triangular_expr Arg1, eigen_triangular_expr Arg2>
+#else
+  template<typename Arg1, typename Arg2,
     std::enable_if_t<is_EigenTriangularMatrix_v<Arg1> and is_EigenTriangularMatrix_v<Arg2>, int> = 0>
+#endif
   inline auto operator-(Arg1&& arg1, Arg2&& arg2)
   {
     static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
@@ -644,14 +738,21 @@ namespace OpenKalman
   }
 
 
+#ifdef __cpp_concepts
+  template<typename Arg1, typename Arg2> requires
+    ((eigen_triangular_expr<Arg1> and is_diagonal_v<Arg2>) or
+      (is_diagonal_v<Arg1> and eigen_triangular_expr<Arg2>)) and
+    (not is_zero_v<Arg1>) and (not is_zero_v<Arg2>) and (not is_identity_v<Arg1>) and (not is_identity_v<Arg2>)
+#else
   template<typename Arg1, typename Arg2,
     std::enable_if_t<((is_EigenTriangularMatrix_v<Arg1> and is_diagonal_v<Arg2>) or
       (is_diagonal_v<Arg1> and is_EigenTriangularMatrix_v<Arg2>)) and
       not is_zero_v<Arg1> and not is_zero_v<Arg2> and not is_identity_v<Arg1> and not is_identity_v<Arg2>, int> = 0>
+#endif
   inline auto operator-(Arg1&& arg1, Arg2&& arg2)
   {
     static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
-    if constexpr(is_EigenTriangularMatrix_v<Arg1>)
+    if constexpr(eigen_triangular_expr<Arg1>)
     {
       auto ret = MatrixTraits<Arg1>::make(base_matrix(std::forward<Arg1>(arg1)) - std::forward<Arg2>(arg2));
       if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>) return strict(std::move(ret)); else return ret;
@@ -664,14 +765,19 @@ namespace OpenKalman
   }
 
 
+#ifdef __cpp_concepts
+  template<typename Arg1, typename Arg2> requires (eigen_triangular_expr<Arg1> and is_identity_v<Arg2>) or
+    (is_identity_v<Arg1> and eigen_triangular_expr<Arg2>)
+#else
   template<typename Arg1, typename Arg2,
     std::enable_if_t<(is_EigenTriangularMatrix_v<Arg1> and is_identity_v<Arg2>) or
       (is_identity_v<Arg1> and is_EigenTriangularMatrix_v<Arg2>), int> = 0>
+#endif
   inline auto operator-(Arg1&& arg1, Arg2&& arg2)
   {
     static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
     static_assert(MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns);
-    if constexpr(OpenKalman::is_EigenTriangularMatrix_v<Arg1>)
+    if constexpr(eigen_triangular_expr<Arg1>)
     {
       auto ret = MatrixTraits<Arg1>::make(base_matrix(std::forward<Arg1>(arg1)) - std::forward<Arg2>(arg2));
       if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>) return strict(std::move(ret)); else return ret;
@@ -684,14 +790,19 @@ namespace OpenKalman
   }
 
 
+#ifdef __cpp_concepts
+  template<typename Arg1, typename Arg2> requires (eigen_triangular_expr<Arg1> and is_zero_v<Arg2>) or
+      (is_zero_v<Arg1> and eigen_triangular_expr<Arg2>)
+#else
   template<typename Arg1, typename Arg2,
     std::enable_if_t<(is_EigenTriangularMatrix_v<Arg1> and is_zero_v<Arg2>) or
       (is_zero_v<Arg1> and is_EigenTriangularMatrix_v<Arg2>), int> = 0>
+#endif
   constexpr decltype(auto) operator-(Arg1&& arg1, Arg2&& arg2)
   {
     static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
     static_assert(MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns);
-    if constexpr(OpenKalman::is_EigenTriangularMatrix_v<Arg1>)
+    if constexpr(eigen_triangular_expr<Arg1>)
     {
       return std::forward<Arg1>(arg1);
     }
@@ -704,10 +815,12 @@ namespace OpenKalman
 
   ////
 
-  template<
-    typename Arg, typename S,
-    std::enable_if_t<is_EigenTriangularMatrix_v<Arg> and
-      std::is_convertible_v<S, typename MatrixTraits<Arg>::Scalar>, int> = 0>
+#ifdef __cpp_concepts
+  template<eigen_triangular_expr Arg, std::convertible_to<typename MatrixTraits<Arg>::Scalar> S>
+#else
+template<typename Arg, typename S, std::enable_if_t<is_EigenTriangularMatrix_v<Arg> and
+    std::is_convertible_v<S, typename MatrixTraits<Arg>::Scalar>, int> = 0>
+#endif
   inline auto operator*(Arg&& arg, const S scale)
   {
     auto ret = MatrixTraits<Arg>::make(base_matrix(std::forward<Arg>(arg)) * scale);
@@ -715,10 +828,12 @@ namespace OpenKalman
   }
 
 
-  template<
-    typename Arg, typename S,
-    std::enable_if_t<is_EigenTriangularMatrix_v<Arg> and
-      std::is_convertible_v<S, typename MatrixTraits<Arg>::Scalar>, int> = 0>
+#ifdef __cpp_concepts
+  template<eigen_triangular_expr Arg, std::convertible_to<typename MatrixTraits<Arg>::Scalar> S>
+#else
+  template<typename Arg, typename S, std::enable_if_t<is_EigenTriangularMatrix_v<Arg> and
+    std::is_convertible_v<S, typename MatrixTraits<Arg>::Scalar>, int> = 0>
+#endif
   inline auto operator*(const S scale, Arg&& arg)
   {
     auto ret = MatrixTraits<Arg>::make(scale * base_matrix(std::forward<Arg>(arg)));
@@ -726,10 +841,12 @@ namespace OpenKalman
   }
 
 
-  template<
-    typename Arg, typename S,
-    std::enable_if_t<is_EigenTriangularMatrix_v<Arg> and
-      std::is_convertible_v<S, typename MatrixTraits<Arg>::Scalar>, int> = 0>
+#ifdef __cpp_concepts
+  template<eigen_triangular_expr Arg, std::convertible_to<typename MatrixTraits<Arg>::Scalar> S>
+#else
+  template<typename Arg, typename S, std::enable_if_t<is_EigenTriangularMatrix_v<Arg> and
+    std::is_convertible_v<S, typename MatrixTraits<Arg>::Scalar>, int> = 0>
+#endif
   inline auto operator/(Arg&& arg, const S scale)
   {
     auto ret = MatrixTraits<Arg>::make(base_matrix(std::forward<Arg>(arg)) / scale);
@@ -739,10 +856,14 @@ namespace OpenKalman
 
   ////
 
-  template<
-    typename Arg1, typename Arg2,
-    std::enable_if_t<is_EigenTriangularMatrix_v<Arg1> and is_EigenTriangularMatrix_v<Arg2> and
+#ifdef __cpp_concepts
+  template<eigen_triangular_expr Arg1, eigen_triangular_expr Arg2> requires
+    (not is_identity_v<Arg1>) and (not is_identity_v<Arg2>) and (not is_zero_v<Arg1>) and (not is_zero_v<Arg2>)
+#else
+  template<typename Arg1, typename Arg2, std::enable_if_t<
+    is_EigenTriangularMatrix_v<Arg1> and is_EigenTriangularMatrix_v<Arg2> and
       not is_identity_v<Arg1> and not is_identity_v<Arg2> and not is_zero_v<Arg1> and not is_zero_v<Arg2>, int> = 0>
+#endif
   inline auto operator*(Arg1&& arg1, Arg2&& arg2)
   {
     static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
@@ -759,15 +880,20 @@ namespace OpenKalman
   }
 
 
-  template<
-    typename Arg1, typename Arg2,
-    std::enable_if_t<((is_EigenTriangularMatrix_v<Arg1> and is_diagonal_v<Arg2>) or
+#ifdef __cpp_concepts
+  template<typename Arg1, typename Arg2> requires ((eigen_triangular_expr<Arg1> and is_diagonal_v<Arg2>) or
+      (is_diagonal_v<Arg1> and eigen_triangular_expr<Arg2>)) and
+    (not is_identity_v<Arg1>) and (not is_identity_v<Arg2>) and (not is_zero_v<Arg1>) and (not is_zero_v<Arg2>)
+#else
+  template<typename Arg1, typename Arg2, std::enable_if_t<
+    ((is_EigenTriangularMatrix_v<Arg1> and is_diagonal_v<Arg2>) or
       (is_diagonal_v<Arg1> and is_EigenTriangularMatrix_v<Arg2>)) and
-      not is_identity_v<Arg1> and not is_identity_v<Arg2> and not is_zero_v<Arg1> and not is_zero_v<Arg2>, int> = 0>
+    not is_identity_v<Arg1> and not is_identity_v<Arg2> and not is_zero_v<Arg1> and not is_zero_v<Arg2>, int> = 0>
+#endif
   inline auto operator*(Arg1&& arg1, Arg2&& arg2)
   {
     static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
-    if constexpr(is_EigenTriangularMatrix_v<Arg1>)
+    if constexpr(eigen_triangular_expr<Arg1>)
     {
       auto ret = MatrixTraits<Arg1>::make(std::forward<Arg1>(arg1).base_view() * std::forward<Arg2>(arg2));
       if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>) return strict(std::move(ret)); else return ret;
@@ -780,14 +906,19 @@ namespace OpenKalman
   }
 
 
-  template<typename Arg1, typename Arg2,
-    std::enable_if_t<(is_EigenTriangularMatrix_v<Arg1> and is_identity_v<Arg2>) or
+#ifdef __cpp_concepts
+  template<typename Arg1, typename Arg2> requires (eigen_triangular_expr<Arg1> and is_identity_v<Arg2>) or
+    (is_identity_v<Arg1> and eigen_triangular_expr<Arg2>)
+#else
+  template<typename Arg1, typename Arg2, std::enable_if_t<
+    (is_EigenTriangularMatrix_v<Arg1> and is_identity_v<Arg2>) or
       (is_identity_v<Arg1> and is_EigenTriangularMatrix_v<Arg2>), int> = 0>
+#endif
   inline auto operator*(Arg1&& arg1, Arg2&& arg2)
   {
     static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
     static_assert(MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns);
-    if constexpr(OpenKalman::is_EigenTriangularMatrix_v<Arg1>)
+    if constexpr(eigen_triangular_expr<Arg1>)
     {
       return std::forward<Arg1>(arg1);
     }
@@ -798,9 +929,14 @@ namespace OpenKalman
   }
 
 
+#ifdef __cpp_concepts
+  template<typename Arg1, typename Arg2> requires (eigen_triangular_expr<Arg1> and is_zero_v<Arg2>) or
+      (is_zero_v<Arg1> and eigen_triangular_expr<Arg2>)
+#else
   template<typename Arg1, typename Arg2,
     std::enable_if_t<(is_EigenTriangularMatrix_v<Arg1> and is_zero_v<Arg2>) or
       (is_zero_v<Arg1> and is_EigenTriangularMatrix_v<Arg2>), int> = 0>
+#endif
   constexpr decltype(auto) operator*(Arg1&& arg1, Arg2&& arg2)
   {
     static_assert(MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::dimension);
@@ -815,8 +951,8 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
   template<typename Arg1, typename Arg2>
-  requires ((is_EigenTriangularMatrix_v<Arg1> and Eigen_matrix<Arg2>) and
-    (Eigen_matrix<Arg1> and is_EigenTriangularMatrix_v<Arg2>)) and
+  requires ((eigen_triangular_expr<Arg1> and Eigen_matrix<Arg2>) and
+    (Eigen_matrix<Arg1> and eigen_triangular_expr<Arg2>)) and
     (not is_identity_v<Arg1>) and (not is_identity_v<Arg2>) and (not is_zero_v<Arg1>) and (not is_zero_v<Arg2>)
 #else
   template<typename Arg1, typename Arg2,
@@ -827,7 +963,7 @@ namespace OpenKalman
   inline auto operator*(Arg1&& arg1, Arg2&& arg2)
   {
     static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
-    if constexpr(is_EigenTriangularMatrix_v<Arg1>)
+    if constexpr(eigen_triangular_expr<Arg1>)
     {
       auto ret = std::forward<Arg1>(arg1).base_view() * std::forward<Arg2>(arg2);
       if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>) return strict(std::move(ret)); else return ret;
@@ -842,9 +978,11 @@ namespace OpenKalman
 
   ////
 
-  template<
-    typename Arg,
-    std::enable_if_t<is_EigenTriangularMatrix_v<Arg>, int> = 0>
+#ifdef __cpp_concepts
+  template<eigen_triangular_expr Arg>
+#else
+  template<typename Arg, std::enable_if_t<is_EigenTriangularMatrix_v<Arg>, int> = 0>
+#endif
   inline auto operator-(Arg&& arg)
   {
     auto ret = MatrixTraits<Arg>::make(-base_matrix(std::forward<Arg>(arg)));

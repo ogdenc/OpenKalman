@@ -11,8 +11,19 @@
 #ifndef OPENKALMAN_EIGEN3_H
 #define OPENKALMAN_EIGEN3_H
 
+
 // Note: Requires >= Eigen 3.3.9 if compiling in c++20 mode! See Eigen Commit 7a0a2a500, which fixes issue #2012.
 #include <Eigen/Dense>
+
+
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunknown-pragmas"
+#ifdef __clang__
+#pragma clang diagnostic ignored "-Wunknown-attributes"
+#endif
+#endif
+
 
 #include "variables/support/Traits.h"
 #include "variables/support/ForwardDeclarations.h"
@@ -43,5 +54,9 @@
 
 #include "variables/support/ElementSetter.h"
 
+
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 
 #endif //OPENKALMAN_EIGEN3_H

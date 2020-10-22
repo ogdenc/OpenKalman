@@ -38,11 +38,10 @@ namespace OpenKalman::internal
       decltype(auto) b = base_matrix(std::forward<Arg>(arg));
       using B = decltype(b);
       if constexpr(
-        is_EigenSelfAdjointMatrix_v<B> or
-        is_EigenTriangularMatrix_v<B> or
-        is_EigenDiagonal_v<B> or
-        is_FromEuclideanExpr_v<B> or
-        is_ToEuclideanExpr_v<B>)
+        eigen_self_adjoint_expr<B> or
+        eigen_triangular_expr<B> or
+        eigen_diagonal_expr<B> or
+        euclidean_expr<B>)
       {
         return get_ultimate_base_matrix(b);
       }
@@ -55,12 +54,12 @@ namespace OpenKalman::internal
     template<typename Arg>
     constexpr decltype(auto) get_ultimate_base_matrix(Arg&& arg) noexcept
     {
-      if constexpr(is_EigenSelfAdjointMatrix_v<Arg>)
+      if constexpr(eigen_self_adjoint_expr<Arg>)
       {
         if constexpr (MatrixTraits<Arg>::storage_type == TriangleType::diagonal) return std::forward<Arg>(arg);
         else return get_ultimate_base_matrix_impl(std::forward<Arg>(arg));
       }
-      else if constexpr(is_EigenTriangularMatrix_v<Arg>)
+      else if constexpr(eigen_triangular_expr<Arg>)
       {
         if constexpr(MatrixTraits<Arg>::triangle_type == TriangleType::diagonal) return std::forward<Arg>(arg);
         else return get_ultimate_base_matrix_impl(std::forward<Arg>(arg));
@@ -77,7 +76,11 @@ namespace OpenKalman::internal
 
     static constexpr Eigen::Index cols() { return Eigen::internal::traits<Derived>::ColsAtCompileTime; } ///< Required by Eigen::EigenBase.
 
+#ifdef __cpp_concepts
+    template<std::convertible_to<Scalar> S>
+#else
     template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
+#endif
     constexpr auto operator<<(const S& s)
     {
       auto& xpr = get_ultimate_base_matrix(static_cast<Derived&>(*this));
@@ -86,7 +89,7 @@ namespace OpenKalman::internal
       {
         return Eigen::MeanCommaInitializer<Derived, Xpr>(xpr, static_cast<const Scalar&>(s));
       }
-      else if constexpr(is_EigenSelfAdjointMatrix_v<Xpr> or is_EigenTriangularMatrix_v<Xpr>)
+      else if constexpr(eigen_self_adjoint_expr<Xpr> or eigen_triangular_expr<Xpr>)
       {
         return Eigen::DiagonalCommaInitializer(xpr, static_cast<const Scalar&>(s));
       }
@@ -105,7 +108,7 @@ namespace OpenKalman::internal
       {
         return Eigen::MeanCommaInitializer<Derived, Xpr>(xpr, static_cast<const OtherDerived&>(other));
       }
-      else if constexpr(is_EigenSelfAdjointMatrix_v<Xpr> or is_EigenTriangularMatrix_v<Xpr>)
+      else if constexpr(eigen_self_adjoint_expr<Xpr> or eigen_triangular_expr<Xpr>)
       {
         std::cout << "a3" << std::endl << std::flush;
         return Eigen::DiagonalCommaInitializer(xpr, static_cast<const OtherDerived&>(other));
@@ -172,7 +175,11 @@ namespace Eigen
     Nested comma_initializer;
     XprType& diag;
 
+#ifdef __cpp_concepts
+    template<std::convertible_to<Scalar> S>
+#else
     template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
+#endif
     DiagonalCommaInitializer(XprType& xpr, const S& s)
       : matrix(), comma_initializer(matrix, static_cast<const Scalar&>(s)), diag(xpr) {}
 
@@ -187,7 +194,11 @@ namespace Eigen
       : matrix(std::move(o.matrix)),
         comma_initializer(std::move(o.comma_initializer)), diag(std::move(o.diag)) {}
 
+#ifdef __cpp_concepts
+    template<std::convertible_to<Scalar> S>
+#else
     template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
+#endif
     auto& operator,(const S& s)
     {
       comma_initializer, static_cast<const Scalar&>(s);

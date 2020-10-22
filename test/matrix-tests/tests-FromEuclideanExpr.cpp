@@ -136,10 +136,10 @@ TEST_F(matrix_tests, FromEuclideanExpr_subscripts)
 
 TEST_F(matrix_tests, FromEuclideanExpr_traits)
 {
-  static_assert(is_FromEuclideanExpr_v<decltype(From4 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4})>);
+  static_assert(from_euclidean_expr<decltype(From4 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4})>);
   static_assert(is_typed_matrix_base_v<decltype(From4 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4})>);
-  static_assert(not is_ToEuclideanExpr_v<decltype(From4 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4})>);
-  static_assert(not native_Eigen_type<decltype(From4 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4})>);
+  static_assert(not to_euclidean_expr<decltype(From4 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4})>);
+  static_assert(not eigen_native<decltype(From4 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4})>);
   static_assert(not Eigen_matrix<decltype(From4 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4})>);
   static_assert(not is_identity_v<decltype(From4 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4})>);
   static_assert(not is_zero_v<decltype(From4 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4})>);

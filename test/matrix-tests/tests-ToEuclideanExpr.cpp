@@ -147,10 +147,10 @@ TEST_F(matrix_tests, ToEuclideanExpr_subscripts)
 
 TEST_F(matrix_tests, ToEuclideanExpr_traits)
 {
-  static_assert(is_ToEuclideanExpr_v<decltype(To3 {1, 2, M_PI/6, M_PI/3, 3, 4})>);
+  static_assert(to_euclidean_expr<decltype(To3 {1, 2, M_PI/6, M_PI/3, 3, 4})>);
   static_assert(is_typed_matrix_base_v<decltype(To3 {1, 2, M_PI/6, M_PI/3, 3, 4})>);
-  static_assert(not is_FromEuclideanExpr_v<decltype(To3 {1, 2, M_PI/6, M_PI/3, 3, 4})>);
-  static_assert(not native_Eigen_type<decltype(To3 {1, 2, M_PI/6, M_PI/3, 3, 4})>);
+  static_assert(not from_euclidean_expr<decltype(To3 {1, 2, M_PI/6, M_PI/3, 3, 4})>);
+  static_assert(not eigen_native<decltype(To3 {1, 2, M_PI/6, M_PI/3, 3, 4})>);
   static_assert(not Eigen_matrix<decltype(To3 {1, 2, M_PI/6, M_PI/3, 3, 4})>);
   static_assert(not is_identity_v<decltype(To3 {1, 2, M_PI/6, M_PI/3, 3, 4})>);
   static_assert(not is_zero_v<decltype(To3 {1, 2, M_PI/6, M_PI/3, 3, 4})>);
