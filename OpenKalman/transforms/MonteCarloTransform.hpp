@@ -49,7 +49,7 @@ namespace OpenKalman
       using InputMean = Mean<InputCoefficients, InputMeanMatrix>;
       using OutputEuclideanMean = EuclideanMean<OutputCoefficients, OutputEuclideanMeanMatrix>;
       using OutputCovariance = Covariance<OutputCoefficients, OutputCovarianceSA>;
-      using CrossCovariance = TypedMatrix<InputCoefficients, OutputCoefficients, CrossCovarianceMatrix>;
+      using CrossCovariance = Matrix<InputCoefficients, OutputCoefficients, CrossCovarianceMatrix>;
 
       struct MonteCarloSum0
       {

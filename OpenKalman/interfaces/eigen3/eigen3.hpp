@@ -25,19 +25,19 @@
 #endif
 
 
-#include "typed-matrices/details/Traits.hpp"
-#include "typed-matrices/details/ForwardDeclarations.hpp"
+#include "basics/basics.hpp"
 #include "coefficient-types/coefficient-types.hpp"
+
 #include "details/EigenForwardDeclarations.hpp"
 
+#include "details/EigenMatrixTraits.hpp"
 #include "details/EigenMatrixOverloads.hpp"
 
 #include "details/EigenMatrixBase.hpp"
 #include "details/EigenCovarianceBase.hpp"
-#include "details/EigenMatrixTraits.hpp"
 
-#include "details/EigenCholesky.hpp"
-#include "typed-matrices/details/MatrixBase.hpp"
+#include "details/Cholesky.hpp"
+#include "matrices/details/MatrixBase.hpp"
 
 #include "EigenZero.hpp"
 #include "EigenDiagonal.hpp"
@@ -52,7 +52,7 @@
 #include "details/EigenTraits.hpp"
 #include "details/EigenEvaluators.hpp"
 
-#include "typed-matrices/details/ElementSetter.hpp"
+#include "matrices/details/ElementSetter.hpp"
 
 
 #ifdef __GNUC__

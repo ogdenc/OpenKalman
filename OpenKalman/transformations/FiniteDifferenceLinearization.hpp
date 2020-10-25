@@ -44,7 +44,7 @@ namespace OpenKalman
     {
       using RC = typename MatrixTraits<T>::RowCoefficients;
       using CC = typename MatrixTraits<T>::ColumnCoefficients;
-      return TypedMatrix<RC, CC, strict_matrix_t<T>> {std::move(t)};
+      return Matrix<RC, CC, strict_matrix_t<T>> {std::move(t)};
     }
 
     template<std::size_t term, typename...Inputs>
@@ -135,7 +135,7 @@ namespace OpenKalman
       constexpr auto width = TermTrait::dimension;
       using C = typename TermTrait::RowCoefficients;
       using Vb = typename TermTrait::template StrictMatrix<width, width>;
-      using V = TypedMatrix<C, C, Vb>;
+      using V = Matrix<C, C, Vb>;
       return std::array {apply_coefficientwise<V>([&](std::size_t i, std::size_t j) { return t[i][j][ks]; })...};
     }
 

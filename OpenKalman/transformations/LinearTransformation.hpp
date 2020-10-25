@@ -78,8 +78,8 @@ namespace OpenKalman
     }
 
     using TransformationMatricesTuple = std::tuple<
-      const TypedMatrix<OutputCoefficients, InputCoefficients, strict_t<TransformationMatrix>>,
-      const TypedMatrix<OutputCoefficients, OutputCoefficients, strict_t<PerturbationTransformationMatrices>>...>;
+      const Matrix<OutputCoefficients, InputCoefficients, strict_t<TransformationMatrix>>,
+      const Matrix<OutputCoefficients, OutputCoefficients, strict_t<PerturbationTransformationMatrices>>...>;
     const TransformationMatricesTuple transformation_matrices;
 
   public:

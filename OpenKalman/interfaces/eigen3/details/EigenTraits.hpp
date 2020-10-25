@@ -25,7 +25,7 @@ namespace Eigen::internal
   };
 
   template<typename RowCoefficients, typename ColumnCoefficients, typename ArgType>
-  struct traits<OpenKalman::TypedMatrix<RowCoefficients, ColumnCoefficients, ArgType>>
+  struct traits<OpenKalman::Matrix<RowCoefficients, ColumnCoefficients, ArgType>>
     : traits<std::decay_t<ArgType>> {};
 
   template<typename Coeffs, typename ArgType>
@@ -55,7 +55,7 @@ namespace Eigen::internal
   };
 
   template<typename BaseMatrix, OpenKalman::TriangleType storage_triangle>
-  struct traits<OpenKalman::EigenSelfAdjointMatrix<BaseMatrix, storage_triangle>>
+  struct traits<OpenKalman::Eigen3::EigenSelfAdjointMatrix<BaseMatrix, storage_triangle>>
     : traits<std::decay_t<BaseMatrix>>
   {
     using Nested = std::decay_t<BaseMatrix>;
@@ -70,7 +70,7 @@ namespace Eigen::internal
   };
 
   template<typename BaseMatrix, OpenKalman::TriangleType triangle_type>
-  struct traits<OpenKalman::EigenTriangularMatrix<BaseMatrix, triangle_type>>
+  struct traits<OpenKalman::Eigen3::EigenTriangularMatrix<BaseMatrix, triangle_type>>
     : traits<std::decay_t<BaseMatrix>>
   {
     using Nested = std::decay_t<BaseMatrix>;
@@ -85,7 +85,7 @@ namespace Eigen::internal
   };
 
   template<typename ArgType>
-  struct traits<OpenKalman::EigenDiagonal<ArgType>>
+  struct traits<OpenKalman::Eigen3::EigenDiagonal<ArgType>>
   {
     using Nested = std::decay_t<ArgType>;
     using StorageKind = Dense;
@@ -103,11 +103,11 @@ namespace Eigen::internal
   };
 
   template<typename ArgType>
-  struct traits<OpenKalman::EigenZero<ArgType>>
+  struct traits<OpenKalman::Eigen3::EigenZero<ArgType>>
     : traits<typename std::decay_t<ArgType>::ConstantReturnType> {};
 
   template<typename Coefficients, typename ArgType>
-  struct traits<OpenKalman::ToEuclideanExpr<Coefficients, ArgType>>
+  struct traits<OpenKalman::Eigen3::ToEuclideanExpr<Coefficients, ArgType>>
   {
     using Nested = std::decay_t<ArgType>;
     using NestedTraits = traits<Nested>;
@@ -130,7 +130,7 @@ namespace Eigen::internal
   };
 
   template<typename Coefficients, typename ArgType>
-  struct traits<OpenKalman::FromEuclideanExpr<Coefficients, ArgType>>
+  struct traits<OpenKalman::Eigen3::FromEuclideanExpr<Coefficients, ArgType>>
   {
     using Nested = std::decay_t<ArgType>;
     using NestedTraits = traits<Nested>;
@@ -153,7 +153,8 @@ namespace Eigen::internal
   };
 
   template<typename Coefficients, typename ArgType>
-  struct traits<OpenKalman::FromEuclideanExpr<Coefficients, OpenKalman::ToEuclideanExpr<Coefficients, ArgType>>>
+  struct traits<
+    OpenKalman::Eigen3::FromEuclideanExpr<Coefficients, OpenKalman::Eigen3::ToEuclideanExpr<Coefficients, ArgType>>>
   {
     using Nested = std::decay_t<ArgType>;
     using NestedTraits = traits<Nested>;

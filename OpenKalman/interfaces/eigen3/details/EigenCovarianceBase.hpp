@@ -17,7 +17,7 @@ namespace Eigen
   struct CovarianceCommaInitializer;
 }
 
-namespace OpenKalman::internal
+namespace OpenKalman::Eigen3::internal
 {
   /**
    * Ultimate base of Covariance and SquareRootCovariance classes, general case.
@@ -89,7 +89,7 @@ namespace OpenKalman::internal
     }
   };
 
-}
+} // namespace OpenKalman::Eigen3::internal
 
 
 namespace Eigen
@@ -149,7 +149,7 @@ namespace Eigen
     }
   };
 
-} // end namespace Eigen
+} // namespace Eigen
 
 
 #endif //OPENKALMAN_EIGENCOVARIANCEBASE_HPP

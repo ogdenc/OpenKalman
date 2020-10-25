@@ -100,45 +100,6 @@ namespace OpenKalman
       else
         return std::forward<Arg>(arg);
     }
-
-
-    namespace detail
-    {
-      template<std::size_t begin, typename T, std::size_t... I>
-      constexpr auto tuple_slice_impl(T&& t, std::index_sequence<I...>)
-      {
-        return std::forward_as_tuple(std::get<begin + I>(std::forward<T>(t))...);
-      }
-    }
-
-    /// Return a subset of a tuple, given an index range.
-    template<std::size_t index1, std::size_t index2, typename T>
-    constexpr auto tuple_slice(T&& t)
-    {
-      static_assert(index1 <= index2, "Index range is invalid");
-      static_assert(index2 <= std::tuple_size_v<std::decay_t<T>>, "Index is out of bounds");
-      return detail::tuple_slice_impl<index1>(std::forward<T>(t), std::make_index_sequence<index2 - index1>());
-    }
-
-
-    /// Create a tuple that replicates a value.
-    template<std::size_t N, typename T>
-    constexpr auto tuple_replicate(T&& t)
-    {
-      if constexpr (N == 0)
-      {
-        return std::tuple {};
-      }
-      else if constexpr (N == 1)
-      {
-        return std::make_tuple(std::forward<T>(t));
-      }
-      else
-      {
-        return std::tuple_cat(std::make_tuple(t), tuple_replicate<N - 1>(std::forward<T>(t)));
-      }
-    }
-
   }
 
   namespace detail
@@ -150,7 +111,7 @@ namespace OpenKalman
       constexpr std::size_t input_size = InputCoefficients::size;
       constexpr std::size_t output_size = OutputCoefficients::size;
       using HessianMatrixInBase = strict_matrix_t<In, input_size, input_size>;
-      using HessianMatrixIn = TypedMatrix<InputCoefficients, InputCoefficients, HessianMatrixInBase>;
+      using HessianMatrixIn = Matrix<InputCoefficients, InputCoefficients, HessianMatrixInBase>;
       using HessianArrayIn = std::array<HessianMatrixIn, output_size>;
 
       HessianArrayIn a;

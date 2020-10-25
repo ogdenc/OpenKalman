@@ -44,7 +44,7 @@ namespace OpenKalman
       static_assert(std::conjunction_v<is_equivalent<typename DistributionTraits<InputDist>::Coefficients,
         typename DistributionTraits<NoiseDists>::Coefficients>...>,
         "Input and Noise distributions must be the same size and an equivalent type.");
-      auto cross = TypedMatrix {covariance(x)};
+      auto cross = Matrix {covariance(x)};
       return std::tuple {strict((x + ... + ns)), std::move(cross)};
     }
 

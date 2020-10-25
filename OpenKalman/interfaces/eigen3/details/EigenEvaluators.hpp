@@ -27,9 +27,9 @@ namespace Eigen::internal
 
 
   template<typename RowCoeffs, typename ColCoeffs, typename ArgType>
-  struct evaluator<OpenKalman::TypedMatrix<RowCoeffs, ColCoeffs, ArgType>> : evaluator<std::decay_t<ArgType>>
+  struct evaluator<OpenKalman::Matrix<RowCoeffs, ColCoeffs, ArgType>> : evaluator<std::decay_t<ArgType>>
   {
-    using XprType = OpenKalman::TypedMatrix<RowCoeffs, ColCoeffs, ArgType>;
+    using XprType = OpenKalman::Matrix<RowCoeffs, ColCoeffs, ArgType>;
     using Base = evaluator<std::decay_t<ArgType>>;
     explicit evaluator(const XprType& m) : Base {m.base_matrix()} {}
   };
@@ -46,11 +46,11 @@ namespace Eigen::internal
 
 
   template<typename ArgType, OpenKalman::TriangleType storage_triangle>
-  struct evaluator<OpenKalman::EigenSelfAdjointMatrix<ArgType, storage_triangle>>
-    : evaluator_base<OpenKalman::EigenSelfAdjointMatrix<ArgType, storage_triangle>>
+  struct evaluator<OpenKalman::Eigen3::EigenSelfAdjointMatrix<ArgType, storage_triangle>>
+    : evaluator_base<OpenKalman::Eigen3::EigenSelfAdjointMatrix<ArgType, storage_triangle>>
   {
     using Scalar = typename std::decay_t<ArgType>::Scalar;
-    using XprType = OpenKalman::EigenSelfAdjointMatrix<ArgType, storage_triangle>;
+    using XprType = OpenKalman::Eigen3::EigenSelfAdjointMatrix<ArgType, storage_triangle>;
     using CoeffReturnType = typename XprType::CoeffReturnType;
     using NestedEvaluator = evaluator<std::decay_t<ArgType>>;
     enum
@@ -149,11 +149,11 @@ namespace Eigen::internal
 
 
   template<typename ArgType, OpenKalman::TriangleType triangle_type>
-  struct evaluator<OpenKalman::EigenTriangularMatrix<ArgType, triangle_type>>
-    : evaluator_base<OpenKalman::EigenTriangularMatrix<ArgType, triangle_type>>
+  struct evaluator<OpenKalman::Eigen3::EigenTriangularMatrix<ArgType, triangle_type>>
+    : evaluator_base<OpenKalman::Eigen3::EigenTriangularMatrix<ArgType, triangle_type>>
   {
     using Scalar = typename std::decay_t<ArgType>::Scalar;
-    using XprType = OpenKalman::EigenTriangularMatrix<ArgType, triangle_type>;
+    using XprType = OpenKalman::Eigen3::EigenTriangularMatrix<ArgType, triangle_type>;
     using CoeffReturnType = typename XprType::CoeffReturnType;
     using NestedEvaluator = evaluator<std::decay_t<ArgType>>;
     enum
@@ -278,11 +278,11 @@ namespace Eigen::internal
 
 
   template<typename ArgType>
-  struct evaluator<OpenKalman::EigenDiagonal<ArgType>>
-    : evaluator_base<OpenKalman::EigenDiagonal<ArgType>>
+  struct evaluator<OpenKalman::Eigen3::EigenDiagonal<ArgType>>
+    : evaluator_base<OpenKalman::Eigen3::EigenDiagonal<ArgType>>
   {
     using Scalar = typename std::decay_t<ArgType>::Scalar;
-    using XprType = OpenKalman::EigenDiagonal<ArgType>;
+    using XprType = OpenKalman::Eigen3::EigenDiagonal<ArgType>;
     using CoeffReturnType = typename XprType::CoeffReturnType;
     using NestedEvaluator = evaluator<std::decay_t<ArgType>>;
     enum
@@ -329,9 +329,9 @@ namespace Eigen::internal
 
 
   template<typename Nested>
-  struct evaluator<OpenKalman::EigenZero<Nested>> : evaluator<typename Nested::ConstantReturnType>
+  struct evaluator<OpenKalman::Eigen3::EigenZero<Nested>> : evaluator<typename Nested::ConstantReturnType>
   {
-    using XprType = OpenKalman::EigenZero<Nested>;
+    using XprType = OpenKalman::Eigen3::EigenZero<Nested>;
     using Base = evaluator<typename std::decay_t<Nested>::ConstantReturnType>;
     explicit evaluator(const XprType& m_arg) : Base {m_arg} {}
   };
@@ -433,11 +433,11 @@ namespace Eigen::internal
   /// @tparam Coefficients Coefficient types
   /// @tparam Nested Type of the nested expression
   template<typename Coefficients, typename ArgType>
-  struct evaluator<OpenKalman::ToEuclideanExpr<Coefficients, ArgType>>
-    : detail::Evaluator_EuclideanExpr_Base<Coefficients, OpenKalman::ToEuclideanExpr<Coefficients, ArgType>,
+  struct evaluator<OpenKalman::Eigen3::ToEuclideanExpr<Coefficients, ArgType>>
+    : detail::Evaluator_EuclideanExpr_Base<Coefficients, OpenKalman::Eigen3::ToEuclideanExpr<Coefficients, ArgType>,
     std::decay_t<ArgType>, evaluator<std::decay_t<ArgType>>>
   {
-    using XprType = OpenKalman::ToEuclideanExpr<Coefficients, ArgType>;
+    using XprType = OpenKalman::Eigen3::ToEuclideanExpr<Coefficients, ArgType>;
     using CoeffReturnType = typename XprType::CoeffReturnType;
     using Nested = std::decay_t<ArgType>;
     using NestedEvaluator = evaluator<Nested>;
@@ -494,11 +494,11 @@ namespace Eigen::internal
   /// @tparam Coefficients Coefficient types
   /// @tparam Nested Type of the nested expression
   template<typename Coefficients, typename ArgType>
-  struct evaluator<OpenKalman::FromEuclideanExpr<Coefficients, ArgType>>
-    : detail::Evaluator_EuclideanExpr_Base<Coefficients, OpenKalman::FromEuclideanExpr<Coefficients, ArgType>,
+  struct evaluator<OpenKalman::Eigen3::FromEuclideanExpr<Coefficients, ArgType>>
+    : detail::Evaluator_EuclideanExpr_Base<Coefficients, OpenKalman::Eigen3::FromEuclideanExpr<Coefficients, ArgType>,
     std::decay_t<ArgType>, evaluator<std::decay_t<ArgType>>>
   {
-    using XprType = OpenKalman::FromEuclideanExpr<Coefficients, ArgType>;
+    using XprType = OpenKalman::Eigen3::FromEuclideanExpr<Coefficients, ArgType>;
     using CoeffReturnType = typename XprType::CoeffReturnType;
     using Nested = std::decay_t<ArgType>;
     using NestedEvaluator = evaluator<Nested>;
@@ -551,11 +551,11 @@ namespace Eigen::internal
   /// @tparam Coefficients Coefficient types
   /// @tparam Nested Type of the nested expression
   template<typename Coefficients, typename ArgType>
-  struct evaluator<OpenKalman::FromEuclideanExpr<Coefficients, OpenKalman::ToEuclideanExpr<Coefficients, ArgType>>>
-    : detail::Evaluator_EuclideanExpr_Base<Coefficients, OpenKalman::FromEuclideanExpr<Coefficients,
-    OpenKalman::ToEuclideanExpr<Coefficients, ArgType>>, std::decay_t<ArgType>, evaluator<std::decay_t<ArgType>>>
+  struct evaluator<OpenKalman::Eigen3::FromEuclideanExpr<Coefficients, OpenKalman::Eigen3::ToEuclideanExpr<Coefficients, ArgType>>>
+    : detail::Evaluator_EuclideanExpr_Base<Coefficients, OpenKalman::Eigen3::FromEuclideanExpr<Coefficients,
+    OpenKalman::Eigen3::ToEuclideanExpr<Coefficients, ArgType>>, std::decay_t<ArgType>, evaluator<std::decay_t<ArgType>>>
   {
-    using XprType = OpenKalman::FromEuclideanExpr<Coefficients, OpenKalman::ToEuclideanExpr<Coefficients, ArgType>>;
+    using XprType = OpenKalman::Eigen3::FromEuclideanExpr<Coefficients, OpenKalman::Eigen3::ToEuclideanExpr<Coefficients, ArgType>>;
     using CoeffReturnType = typename XprType::CoeffReturnType;
     using Nested = std::decay_t<ArgType>;
     using NestedEvaluator = evaluator<Nested>;
@@ -599,26 +599,26 @@ namespace Eigen::internal
   };
 
   template<typename Coefficients, typename ArgType>
-  struct evaluator<OpenKalman::FromEuclideanExpr<Coefficients, const OpenKalman::ToEuclideanExpr<Coefficients, ArgType>>>
-    : evaluator<OpenKalman::FromEuclideanExpr<Coefficients, OpenKalman::ToEuclideanExpr<Coefficients, ArgType>>> {};
+  struct evaluator<OpenKalman::Eigen3::FromEuclideanExpr<Coefficients, const OpenKalman::Eigen3::ToEuclideanExpr<Coefficients, ArgType>>>
+    : evaluator<OpenKalman::Eigen3::FromEuclideanExpr<Coefficients, OpenKalman::Eigen3::ToEuclideanExpr<Coefficients, ArgType>>> {};
 
   template<typename Coefficients, typename ArgType>
-  struct evaluator<OpenKalman::FromEuclideanExpr<Coefficients, OpenKalman::ToEuclideanExpr<Coefficients, ArgType>&>>
-    : evaluator<OpenKalman::FromEuclideanExpr<Coefficients, OpenKalman::ToEuclideanExpr<Coefficients, ArgType>>> {};
+  struct evaluator<OpenKalman::Eigen3::FromEuclideanExpr<Coefficients, OpenKalman::Eigen3::ToEuclideanExpr<Coefficients, ArgType>&>>
+    : evaluator<OpenKalman::Eigen3::FromEuclideanExpr<Coefficients, OpenKalman::Eigen3::ToEuclideanExpr<Coefficients, ArgType>>> {};
 
   template<typename Coefficients, typename ArgType>
-  struct evaluator<OpenKalman::FromEuclideanExpr<Coefficients, OpenKalman::ToEuclideanExpr<Coefficients, ArgType>&&>>
-    : evaluator<OpenKalman::FromEuclideanExpr<Coefficients, OpenKalman::ToEuclideanExpr<Coefficients, ArgType>>> {};
+  struct evaluator<OpenKalman::Eigen3::FromEuclideanExpr<Coefficients, OpenKalman::Eigen3::ToEuclideanExpr<Coefficients, ArgType>&&>>
+    : evaluator<OpenKalman::Eigen3::FromEuclideanExpr<Coefficients, OpenKalman::Eigen3::ToEuclideanExpr<Coefficients, ArgType>>> {};
 
   template<typename Coefficients, typename ArgType>
-  struct evaluator<OpenKalman::FromEuclideanExpr<Coefficients, const OpenKalman::ToEuclideanExpr<Coefficients, ArgType>&>>
-    : evaluator<OpenKalman::FromEuclideanExpr<Coefficients, OpenKalman::ToEuclideanExpr<Coefficients, ArgType>>> {};
+  struct evaluator<OpenKalman::Eigen3::FromEuclideanExpr<Coefficients, const OpenKalman::Eigen3::ToEuclideanExpr<Coefficients, ArgType>&>>
+    : evaluator<OpenKalman::Eigen3::FromEuclideanExpr<Coefficients, OpenKalman::Eigen3::ToEuclideanExpr<Coefficients, ArgType>>> {};
 
   template<typename Coefficients, typename ArgType>
-  struct evaluator<OpenKalman::FromEuclideanExpr<Coefficients, const OpenKalman::ToEuclideanExpr<Coefficients, ArgType>&&>>
-    : evaluator<OpenKalman::FromEuclideanExpr<Coefficients, OpenKalman::ToEuclideanExpr<Coefficients, ArgType>>> {};
+  struct evaluator<OpenKalman::Eigen3::FromEuclideanExpr<Coefficients, const OpenKalman::Eigen3::ToEuclideanExpr<Coefficients, ArgType>&&>>
+    : evaluator<OpenKalman::Eigen3::FromEuclideanExpr<Coefficients, OpenKalman::Eigen3::ToEuclideanExpr<Coefficients, ArgType>>> {};
 
 
-}
+} // namespace Eigen::internal
 
 #endif //OPENKALMAN_EIGENEVALUATORS_HPP

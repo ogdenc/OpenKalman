@@ -11,6 +11,9 @@
 #ifndef OPENKALMAN_COEFFICIENT_TYPES_HPP
 #define OPENKALMAN_COEFFICIENT_TYPES_HPP
 
+#include "basics/Traits.hpp"
+#include "basics/ForwardDeclarations.hpp"
+
 #include "details/ArrayUtils.hpp"
 
 #include "Axis.hpp"
@@ -19,7 +22,7 @@
 #include "Distance.hpp"
 #include "Inclination.hpp"
 
-#include "Coefficients.hpp"
+#include "coefficients.hpp"
 
 #include "Polar.hpp"
 #include "Spherical.hpp"

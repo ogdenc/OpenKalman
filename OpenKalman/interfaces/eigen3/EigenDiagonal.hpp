@@ -11,13 +11,12 @@
 #ifndef OPENKALMAN_EIGENDIAGONAL_HPP
 #define OPENKALMAN_EIGENDIAGONAL_HPP
 
-namespace OpenKalman
+namespace OpenKalman::Eigen3
 {
   template<typename BaseMatrix>
-  struct EigenDiagonal
-    : internal::MatrixBase<EigenDiagonal<BaseMatrix>, BaseMatrix>
+  struct EigenDiagonal : OpenKalman::internal::MatrixBase<EigenDiagonal<BaseMatrix>, BaseMatrix>
   {
-    using Base = internal::MatrixBase<EigenDiagonal, BaseMatrix>;
+    using Base = OpenKalman::internal::MatrixBase<EigenDiagonal, BaseMatrix>;
     using Scalar = typename MatrixTraits<BaseMatrix>::Scalar;
     static constexpr auto dimension = MatrixTraits<BaseMatrix>::dimension;
 
@@ -28,22 +27,23 @@ namespace OpenKalman
     EigenDiagonal(const EigenDiagonal& other) : EigenDiagonal(other.base_matrix()) {}
 
     /// Move constructor.
-    EigenDiagonal(EigenDiagonal&& other) noexcept : EigenDiagonal(std::move(other).base_matrix()) {}
+    EigenDiagonal(EigenDiagonal&& other) noexcept: EigenDiagonal(std::move(other).base_matrix()) {}
 
     /// Construct from a compatible EigenDiagonal.
 #ifdef __cpp_concepts
     template<eigen_diagonal_expr Arg>
 #else
-    template<typename Arg, std::enable_if_t<is_EigenDiagonal_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<is_EigenDiagonal_v < Arg>, int> = 0>
 #endif
-    EigenDiagonal(Arg&& other) noexcept : Base(std::forward<Arg>(other).base_matrix())
+    EigenDiagonal(Arg&& other) noexcept: Base(std::forward<Arg>(other).base_matrix())
     {
       static_assert(MatrixTraits<Arg>::dimension == dimension);
     }
 
     /// Construct from a column vector matrix.
 #ifdef __cpp_concepts
-    template<Eigen_matrix Arg> requires (MatrixTraits<Arg>::columns == 1)
+    template<eigen_matrix Arg>
+    requires (MatrixTraits<Arg>::columns == 1)
 #else
     template<typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg> and MatrixTraits<Arg>::columns == 1, int> = 0>
 #endif
@@ -51,23 +51,28 @@ namespace OpenKalman
 
     /// Construct from a compatible diagonal native matrix that is not EigenDiagonal.
 #ifdef __cpp_concepts
-    template<eigen_native Arg> requires is_diagonal_v<Arg> and
-      (not eigen_diagonal_expr<Arg>) and (MatrixTraits<Arg>::columns > 1)
+    template<eigen_native Arg>
+    requires is_diagonal_v<Arg> and
+      (not eigen_diagonal_expr < Arg > ) and (MatrixTraits<Arg>::columns > 1)
 #else
-    template<typename Arg,
-      std::enable_if_t<is_native_Eigen_type_v<Arg> and is_diagonal_v<Arg> and
-      not is_EigenDiagonal_v<Arg> and (MatrixTraits<Arg>::columns > 1), int> = 0>
+    template<
+      typename Arg,
+      std::enable_if_t<is_native_Eigen_type_v < Arg>and is_diagonal_v<Arg>and
+    not
+    is_EigenDiagonal_v <Arg>and (MatrixTraits<Arg>::columns
+    > 1), int> = 0>
 #endif
-    EigenDiagonal(Arg&& other) noexcept : Base(std::forward<Arg>(other).diagonal())
+    EigenDiagonal(Arg&& other) noexcept: Base(std::forward<Arg>(other).diagonal())
     {
       static_assert(MatrixTraits<Arg>::dimension == dimension);
     }
 
     /// Construct from a square zero matrix.
 #ifdef __cpp_concepts
-    template<typename Arg> requires is_zero_v<Arg> and (MatrixTraits<Arg>::columns > 1)
+    template<typename Arg>
+    requires is_zero_v<Arg> and (MatrixTraits<Arg>::columns > 1)
 #else
-    template<typename Arg, std::enable_if_t<is_zero_v<Arg> and (MatrixTraits<Arg>::columns > 1), int> = 0>
+    template<typename Arg, std::enable_if_t<is_zero_v < Arg>and (MatrixTraits<Arg>::columns> 1), int> = 0>
 #endif
     EigenDiagonal(const Arg&) : Base(MatrixTraits<Eigen::Matrix<Scalar, dimension, 1>>::zero())
     {
@@ -77,7 +82,8 @@ namespace OpenKalman
 
     /// Construct from an identity matrix.
 #ifdef __cpp_concepts
-    template<typename Arg> requires is_identity_v<Arg> and (MatrixTraits<Arg>::columns > 1)
+    template<typename Arg>
+    requires is_identity_v<Arg> and (MatrixTraits<Arg>::columns > 1)
 #else
     template<typename Arg, std::enable_if_t<is_identity_v<Arg> and (MatrixTraits<Arg>::columns > 1), int> = 0>
 #endif
@@ -89,10 +95,12 @@ namespace OpenKalman
 
     /// Construct from a list of scalar coefficients defining the diagonal.
 #ifdef __cpp_concepts
-    template<std::convertible_to<const Scalar> ... Args> requires (sizeof...(Args) == dimension)
+    template<std::convertible_to<const Scalar> ... Args>
+    requires (sizeof...(Args) == dimension)
 #else
-    template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...> and
-      sizeof...(Args) == dimension, int> = 0>
+    template<
+      typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...> and
+        sizeof...(Args) == dimension, int> = 0>
 #endif
     EigenDiagonal(Args ... args) : EigenDiagonal(MatrixTraits<BaseMatrix>::make(args...)) {}
 
@@ -112,10 +120,11 @@ namespace OpenKalman
 
     /// Assign from a compatible EigenDiagonal.
 #ifdef __cpp_concepts
-    template<eigen_diagonal_expr Arg> requires (not is_zero_v<Arg>) and (not is_identity_v<Arg>)
+    template<eigen_diagonal_expr Arg>
+    requires (not is_zero_v<Arg>) and (not is_identity_v<Arg>)
 #else
-    template<typename Arg,
-      std::enable_if_t<is_EigenDiagonal_v<Arg> and not is_zero_v<Arg> and not is_identity_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<
+      is_EigenDiagonal_v < Arg>and not is_zero_v <Arg> and not is_identity_v<Arg>, int> = 0>
 #endif
     auto& operator=(Arg&& other)
     {
@@ -229,24 +238,27 @@ namespace OpenKalman
 
     auto operator()(std::size_t i, std::size_t j)
     {
-      if constexpr (is_element_settable_v<EigenDiagonal, 2>)
-        return internal::ElementSetter(*this, i, j);
+      if constexpr (is_element_settable_v < EigenDiagonal, 2 >)
+        return OpenKalman::internal::ElementSetter(*this, i, j);
       else
         return const_cast<const EigenDiagonal&>(*this)(i, j);
     }
 
-    auto operator()(std::size_t i, std::size_t j) const noexcept { return internal::ElementSetter(*this, i, j); }
+    auto operator()(std::size_t i, std::size_t j) const noexcept
+    {
+      return OpenKalman::internal::ElementSetter(*this, i, j);
+    }
 
 
     auto operator[](std::size_t i)
     {
-      if constexpr (is_element_settable_v<EigenDiagonal, 1>)
-        return internal::ElementSetter(*this, i);
+      if constexpr (is_element_settable_v < EigenDiagonal, 1 >)
+        return OpenKalman::internal::ElementSetter(*this, i);
       else
         return const_cast<const EigenDiagonal&>(*this)[i];
     }
 
-    auto operator[](std::size_t i) const { return internal::ElementSetter(*this, i); }
+    auto operator[](std::size_t i) const { return OpenKalman::internal::ElementSetter(*this, i); }
 
     auto operator()(std::size_t i) { return operator[](i); }
 
@@ -265,43 +277,50 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
   /// @TODO For unknown reasons, SFINAE is needed here in both GCC and clang, rather than the requires clause below, to prevent matching M=double:
-  /// template<Eigen_matrix M> requires (MatrixTraits<M>::columns == 1)
-  template<typename M, std::enable_if_t<Eigen_matrix<M> and MatrixTraits<M>::columns == 1, int> = 0>
+  /// template<eigen_matrix M> requires (MatrixTraits<M>::columns == 1)
+  template<typename M, std::enable_if_t<eigen_matrix < M>and MatrixTraits<M>::columns == 1, int> = 0>
 #else
   template<typename M, std::enable_if_t<is_Eigen_matrix_v<M> and MatrixTraits<M>::columns == 1, int> = 0>
 #endif
-  EigenDiagonal(M&&) -> EigenDiagonal<lvalue_or_strict_t<M>>;
+  EigenDiagonal(M&&) -> EigenDiagonal<lvalue_or_strict_t < M>>;
 
 
 #ifdef __cpp_concepts
-  template<eigen_native Arg> requires is_diagonal_v<Arg> and
-    (not eigen_diagonal_expr<Arg>) and (MatrixTraits<Arg>::columns > 1)
+  template<eigen_native Arg>
+  requires is_diagonal_v<Arg> and
+    (not eigen_diagonal_expr < Arg > ) and (MatrixTraits<Arg>::columns > 1)
 #else
-  template<typename Arg,
-      std::enable_if_t<is_native_Eigen_type_v<Arg> and is_diagonal_v<Arg> and
-      not is_EigenDiagonal_v<Arg> and (MatrixTraits<Arg>::columns > 1), int> = 0>
+  template<
+    typename Arg,
+    std::enable_if_t<is_native_Eigen_type_v < Arg>and is_diagonal_v<Arg>and
+  not
+  is_EigenDiagonal_v <Arg>and (MatrixTraits<Arg>::columns
+  > 1), int> = 0>
 #endif
-  EigenDiagonal(Arg&&)
-  -> EigenDiagonal<strict_t<decltype(std::forward<Arg>(std::declval<Arg>()).diagonal())>>;
+  EigenDiagonal(Arg && )
+  -> EigenDiagonal<strict_t < decltype(std::forward<Arg>(std::declval<Arg>()).diagonal())>>;
 
 
 #ifdef __cpp_concepts
-  template<typename Arg> requires is_zero_v<Arg> and (MatrixTraits<Arg>::columns > 1) and
+  template<typename Arg>
+  requires is_zero_v<Arg> and (MatrixTraits<Arg>::columns > 1) and
     (MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns)
 #else
-  template<typename Arg, std::enable_if_t<is_zero_v<Arg> and (MatrixTraits<Arg>::columns > 1) and
-    MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns, int> = 0>
+  template<typename Arg, std::enable_if_t<is_zero_v < Arg>and (MatrixTraits<Arg>::columns> 1) and
+  MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns, int> = 0>
 #endif
   EigenDiagonal(const Arg&)
-  -> EigenDiagonal<EigenZero<Eigen::Matrix<typename MatrixTraits<Arg>::Scalar, MatrixTraits<Arg>::dimension, 1>>>;
+  -> EigenDiagonal<EigenZero < Eigen::Matrix<typename MatrixTraits<Arg>::Scalar, MatrixTraits<Arg>::dimension, 1>>>;
 
 
 #ifdef __cpp_concepts
-  template<typename Arg> requires is_identity_v<Arg> and (MatrixTraits<Arg>::columns > 1) and
+  template<typename Arg>
+  requires is_identity_v<Arg> and (MatrixTraits<Arg>::columns > 1) and
     (MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns)
 #else
-  template<typename Arg, std::enable_if_t<is_identity_v<Arg> and (MatrixTraits<Arg>::columns > 1) and
-    MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns, int> = 0>
+  template<
+    typename Arg, std::enable_if_t<is_identity_v<Arg> and (MatrixTraits<Arg>::columns > 1) and
+      MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns, int> = 0>
 #endif
   EigenDiagonal(const Arg&)
   -> EigenDiagonal<typename Eigen::Matrix<typename MatrixTraits<Arg>::Scalar, MatrixTraits<Arg>::dimension, 1>::ConstantReturnType>;
@@ -309,21 +328,26 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
   template<typename Arg, typename ... Args>
-  requires (std::is_arithmetic_v<Arg> and ... and std::is_arithmetic_v<Args>) and (std::common_with<Arg, Args> and ...)
+  requires (std::is_arithmetic_v<Arg> and ... and std::is_arithmetic_v<Args>) and (std::common_with<Arg, Args>and ...)
 #else
-  template<typename Arg, typename ... Args,
-    std::enable_if_t<std::conjunction_v<std::is_arithmetic<Arg>, std::is_arithmetic<Args>...>, int> = 0>
+    template<
+      typename Arg, typename ... Args,
+      std::enable_if_t<std::conjunction_v<std::is_arithmetic<Arg>, std::is_arithmetic<Args>...>, int> = 0>
 #endif
-  EigenDiagonal(Arg, Args ...)
-  -> EigenDiagonal<Eigen::Matrix<std::decay_t<std::common_type_t<Arg, Args...>>, 1 + sizeof...(Args), 1>>;
+    EigenDiagonal(Arg, Args ...)
+      ->EigenDiagonal<Eigen::Matrix<std::decay_t<std::common_type_t<Arg, Args...>>, 1 + sizeof...(Args), 1>>;
+
+} // OpenKalman::Eigen3
 
 
+namespace OpenKalman
+{
   /////////////////////////////////
   //        MatrixTraits         //
   /////////////////////////////////
 
   template<typename ArgType>
-  struct MatrixTraits<EigenDiagonal<ArgType>>
+  struct MatrixTraits<Eigen3::EigenDiagonal<ArgType>>
   {
     using BaseMatrix = ArgType;
     using Scalar = typename MatrixTraits<BaseMatrix>::Scalar;
@@ -331,41 +355,46 @@ namespace OpenKalman
     static constexpr auto columns = dimension;
 
     template<typename Derived>
-    using MatrixBaseType = internal::EigenMatrixBase<Derived, OpenKalman::EigenDiagonal<std::decay_t<BaseMatrix>>>;
+    using MatrixBaseType = Eigen3::internal::EigenMatrixBase<Derived, Eigen3::EigenDiagonal<std::decay_t<BaseMatrix>>>;
 
     template<typename Derived>
-    using CovarianceBaseType = internal::EigenCovarianceBase<Derived, EigenDiagonal<std::decay_t<ArgType>>>;
+    using CovarianceBaseType = Eigen3::internal::EigenCovarianceBase<Derived, Eigen3::EigenDiagonal<std::decay_t<ArgType>>>;
 
     template<std::size_t rows = dimension, std::size_t cols = columns, typename S = Scalar>
     using StrictMatrix = typename MatrixTraits<std::decay_t<BaseMatrix>>::template StrictMatrix<rows, cols, S>;
 
-    using Strict = EigenDiagonal<typename MatrixTraits<BaseMatrix>::Strict>;
+    using Strict = Eigen3::EigenDiagonal<typename MatrixTraits<BaseMatrix>::Strict>;
 
     template<TriangleType storage_triangle = TriangleType::diagonal, std::size_t dim = dimension, typename S = Scalar>
-    using SelfAdjointBaseType = EigenSelfAdjointMatrix<StrictMatrix<dim, dim, S>, storage_triangle>;
+    using SelfAdjointBaseType = Eigen3::EigenSelfAdjointMatrix<StrictMatrix<dim, dim, S>, storage_triangle>;
 
     template<TriangleType triangle_type = TriangleType::diagonal, std::size_t dim = dimension, typename S = Scalar>
-    using TriangularBaseType = EigenTriangularMatrix<StrictMatrix<dim, dim, S>, triangle_type>;
+    using TriangularBaseType = Eigen3::EigenTriangularMatrix<StrictMatrix<dim, dim, S>, triangle_type>;
 
     template<std::size_t dim = dimension, typename S = Scalar>
-    using DiagonalBaseType = EigenDiagonal<StrictMatrix<dim, 1, S>>;
+    using DiagonalBaseType = Eigen3::EigenDiagonal<StrictMatrix<dim, 1, S>>;
 
 #ifdef __cpp_concepts
-    template<typename Arg> requires (not std::convertible_to<Arg, const Scalar>)
+
+    template<typename Arg>
+    requires (not std::convertible_to<Arg, const Scalar>)
 #else
     template<typename Arg, std::enable_if_t<not std::is_convertible_v<Arg, const Scalar>, int> = 0>
 #endif
     static auto make(Arg&& arg) noexcept
     {
       static_assert(MatrixTraits<Arg>::columns == 1);
-      return EigenDiagonal<std::decay_t<Arg>>(std::forward<Arg>(arg));
+      return Eigen3::EigenDiagonal < std::decay_t<Arg>>
+      (std::forward<Arg>(arg));
     }
 
     /** Make diagonal matrix using a list of coefficients defining the diagonal.
      * The size of the list must match the number of diagonal coefficients.
      */
 #ifdef __cpp_concepts
-    template<std::convertible_to<const Scalar> ... Args> requires (sizeof...(Args) == dimension)
+
+    template<std::convertible_to<const Scalar> ... Args>
+    requires (sizeof...(Args) == dimension)
 #else
     template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...> and
       sizeof...(Args) == dimension, int> = 0>
@@ -380,7 +409,9 @@ namespace OpenKalman
      * The size of the list must match the number of coefficients in the matrix (diagonal and non-diagonal).
      */
 #ifdef __cpp_concepts
-    template<std::convertible_to<const Scalar> ... Args> requires
+
+    template<std::convertible_to<const Scalar> ... Args>
+    requires
     (sizeof...(Args) == dimension * dimension) and (dimension > 1)
 #else
     template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...> and
@@ -389,24 +420,28 @@ namespace OpenKalman
     static auto
     make(Args ... args)
     {
-      return make(strict(MatrixTraits<StrictMatrix<>>::make(args...).diagonal()));
+      return make(Eigen3::strict(MatrixTraits<StrictMatrix<>>::make(args...).diagonal()));
     }
 
-    static auto zero() { return EigenDiagonal<BaseMatrix>::zero(); }
+    static auto zero() { return Eigen3::EigenDiagonal < BaseMatrix > ::zero(); }
 
-    static auto identity() { return EigenDiagonal<BaseMatrix>::identity(); }
+    static auto identity() { return Eigen3::EigenDiagonal < BaseMatrix > ::identity(); }
 
   };
 
+} // namespace OpenKalman
 
+
+namespace OpenKalman::Eigen3
+{
   //////////////////////////////
   //        Overloads         //
   //////////////////////////////
 
 #ifdef __cpp_concepts
-  template<eigen_diagonal_expr Arg>
+  template<Eigen3::eigen_diagonal_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_EigenDiagonal_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<Eigen3::is_EigenDiagonal_v<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   base_matrix(Arg&& arg) { return std::forward<Arg>(arg).base_matrix(); }
@@ -414,9 +449,9 @@ namespace OpenKalman
 
   /// Convert to strict version
 #ifdef __cpp_concepts
-  template<eigen_diagonal_expr Arg>
+  template<Eigen3::eigen_diagonal_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_EigenDiagonal_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<Eigen3::is_EigenDiagonal_v<Arg>, int> = 0>
 #endif
   inline decltype(auto)
   strict(Arg&& arg)
@@ -427,15 +462,15 @@ namespace OpenKalman
     }
     else
     {
-      return EigenDiagonal(strict(base_matrix(std::forward<Arg>(arg))));
+      return Eigen3::EigenDiagonal(strict(base_matrix(std::forward<Arg>(arg))));
     }
   }
 
 
 #ifdef __cpp_concepts
-  template<eigen_diagonal_expr Arg>
+  template<Eigen3::eigen_diagonal_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_EigenDiagonal_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<Eigen3::is_EigenDiagonal_v<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   transpose(Arg&& arg) noexcept
@@ -445,21 +480,21 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<eigen_diagonal_expr Arg>
+  template<Eigen3::eigen_diagonal_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_EigenDiagonal_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<Eigen3::is_EigenDiagonal_v<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   adjoint(Arg&& arg) noexcept
   {
-    return EigenDiagonal(base_matrix(std::forward<Arg>(arg)).conjugate());
+    return Eigen3::EigenDiagonal(base_matrix(std::forward<Arg>(arg)).conjugate());
   }
 
 
 #ifdef __cpp_concepts
-  template<eigen_diagonal_expr Arg>
+  template<Eigen3::eigen_diagonal_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_EigenDiagonal_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<Eigen3::is_EigenDiagonal_v<Arg>, int> = 0>
 #endif
   inline auto
   determinant(Arg&& arg) noexcept
@@ -470,9 +505,9 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<eigen_diagonal_expr Arg>
+  template<Eigen3::eigen_diagonal_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_EigenDiagonal_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<Eigen3::is_EigenDiagonal_v<Arg>, int> = 0>
 #endif
   inline auto
   trace(Arg&& arg) noexcept
@@ -483,10 +518,10 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<eigen_diagonal_expr Arg, eigen_diagonal_expr U>
+  template<Eigen3::eigen_diagonal_expr Arg, Eigen3::eigen_diagonal_expr U>
     requires (not std::is_const_v<std::remove_reference_t<Arg>>)
 #else
-  template<typename Arg, typename U, std::enable_if_t<is_EigenDiagonal_v<Arg> and is_EigenDiagonal_v<U> and
+  template<typename Arg, typename U, std::enable_if_t<Eigen3::is_EigenDiagonal_v<Arg> and Eigen3::is_EigenDiagonal_v<U> and
     not std::is_const_v<std::remove_reference_t<Arg>>, int> = 0>
 #endif
   inline Arg&
@@ -499,11 +534,11 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<eigen_diagonal_expr Arg, typename U> requires is_diagonal_v<U> and (not eigen_diagonal_expr<U>) and
+  template<Eigen3::eigen_diagonal_expr Arg, typename U> requires is_diagonal_v<U> and (not Eigen3::eigen_diagonal_expr<U>) and
     (not std::is_const_v<std::remove_reference_t<Arg>>)
 #else
-  template<typename Arg, typename U, std::enable_if_t<is_EigenDiagonal_v<Arg> and is_diagonal_v<U> and
-    not is_EigenDiagonal_v<U> and not std::is_const_v<std::remove_reference_t<Arg>>, int> = 0>
+  template<typename Arg, typename U, std::enable_if_t<Eigen3::is_EigenDiagonal_v<Arg> and is_diagonal_v<U> and
+    not Eigen3::is_EigenDiagonal_v<U> and not std::is_const_v<std::remove_reference_t<Arg>>, int> = 0>
 #endif
   inline Arg&
   rank_update(Arg& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
@@ -511,30 +546,31 @@ namespace OpenKalman
     static_assert(MatrixTraits<U>::dimension == MatrixTraits<Arg>::dimension);
     auto sa = EigenTriangularMatrix(strict_matrix(arg));
     rank_update(sa, u, alpha);
-    arg = EigenDiagonal(strict_matrix(base_matrix(sa).diagonal()));
+    arg = Eigen3::EigenDiagonal(strict_matrix(base_matrix(sa).diagonal()));
     return arg;
   }
 
 
 #ifdef __cpp_concepts
-  template<eigen_diagonal_expr Arg, eigen_diagonal_expr U>
+  template<Eigen3::eigen_diagonal_expr Arg, Eigen3::eigen_diagonal_expr U>
 #else
-  template<typename Arg, typename U, std::enable_if_t<is_EigenDiagonal_v<Arg> and is_EigenDiagonal_v<U>, int> = 0>
+  template<typename Arg, typename U, std::enable_if_t<
+    Eigen3::is_EigenDiagonal_v<Arg> and Eigen3::is_EigenDiagonal_v<U>, int> = 0>
 #endif
   inline auto
   rank_update(const Arg& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
   {
     static_assert(MatrixTraits<U>::dimension == MatrixTraits<Arg>::dimension);
     auto sa = (base_matrix(arg).array().square() + alpha * base_matrix(u).array().square()).sqrt().matrix();
-    return EigenDiagonal(sa);
+    return Eigen3::EigenDiagonal(sa);
   }
 
 
 #ifdef __cpp_concepts
-  template<eigen_diagonal_expr Arg, typename U> requires is_diagonal_v<U> and (not eigen_diagonal_expr<U>)
+  template<Eigen3::eigen_diagonal_expr Arg, typename U> requires is_diagonal_v<U> and (not Eigen3::eigen_diagonal_expr<U>)
 #else
   template<typename Arg, typename U, std::enable_if_t<
-    is_EigenDiagonal_v<Arg> and is_diagonal_v<U> and not is_EigenDiagonal_v<U>, int> = 0>
+    Eigen3::is_EigenDiagonal_v<Arg> and is_diagonal_v<U> and not Eigen3::is_EigenDiagonal_v<U>, int> = 0>
 #endif
   inline auto
   rank_update(const Arg& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
@@ -542,14 +578,14 @@ namespace OpenKalman
     static_assert(MatrixTraits<U>::dimension == MatrixTraits<Arg>::dimension);
     auto sa = EigenTriangularMatrix(strict_matrix(arg));
     rank_update(sa, u, alpha);
-    return EigenTriangularMatrix<std::decay_t<decltype(sa)>, TriangleType::diagonal>(sa);
+    return Eigen3::EigenTriangularMatrix<std::decay_t<decltype(sa)>, TriangleType::diagonal>(sa);
   }
 
 
 #ifdef __cpp_concepts
-  template<eigen_diagonal_expr Arg, typename U> requires (not is_diagonal_v<U>)
+  template<Eigen3::eigen_diagonal_expr Arg, typename U> requires (not is_diagonal_v<U>)
 #else
-  template<typename Arg, typename U, std::enable_if_t<is_EigenDiagonal_v<Arg> and not is_diagonal_v<U>, int> = 0>
+  template<typename Arg, typename U, std::enable_if_t<Eigen3::is_EigenDiagonal_v<Arg> and not is_diagonal_v<U>, int> = 0>
 #endif
   inline auto
   rank_update(const Arg& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
@@ -562,9 +598,10 @@ namespace OpenKalman
 
   /// Solve the equation AX = B for X. A is a diagonal matrix.
 #ifdef __cpp_concepts
-  template<eigen_diagonal_expr A, Eigen_matrix B>
+  template<Eigen3::eigen_diagonal_expr A, Eigen3::eigen_matrix B>
 #else
-  template<typename A, typename B, std::enable_if_t<is_EigenDiagonal_v<A> and is_Eigen_matrix_v<B>, int> = 0>
+  template<typename A, typename B, std::enable_if_t<
+    Eigen3::is_EigenDiagonal_v<A> and Eigen3::is_Eigen_matrix_v<B>, int> = 0>
 #endif
   inline auto
   solve(const A& a, const B& b)
@@ -576,9 +613,9 @@ namespace OpenKalman
 
   /// Create a column vector from a diagnoal matrix. (Same as base_matrix()).
 #ifdef __cpp_concepts
-  template<eigen_diagonal_expr Arg>
+  template<Eigen3::eigen_diagonal_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_EigenDiagonal_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<Eigen3::is_EigenDiagonal_v<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   reduce_columns(Arg&& arg) noexcept
@@ -589,9 +626,9 @@ namespace OpenKalman
 
   /// Perform an LQ decomposition. Since it is diagonal, it returns the matrix unchanged.
 #ifdef __cpp_concepts
-  template<eigen_diagonal_expr Arg>
+  template<Eigen3::eigen_diagonal_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_EigenDiagonal_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<Eigen3::is_EigenDiagonal_v<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   LQ_decomposition(Arg&& arg)
@@ -602,9 +639,9 @@ namespace OpenKalman
 
   /// Perform a QR decomposition. Since it is diagonal, it returns the matrix unchanged.
 #ifdef __cpp_concepts
-  template<eigen_diagonal_expr Arg>
+  template<Eigen3::eigen_diagonal_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_EigenDiagonal_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<Eigen3::is_EigenDiagonal_v<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   QR_decomposition(Arg&& arg)
@@ -615,13 +652,13 @@ namespace OpenKalman
 
   /// Concatenate diagonally.
 #ifdef __cpp_concepts
-  template<eigen_diagonal_expr V, eigen_diagonal_expr ... Vs>
+  template<Eigen3::eigen_diagonal_expr V, Eigen3::eigen_diagonal_expr ... Vs>
 #else
   template<typename V, typename ... Vs, std::enable_if_t<
-    std::conjunction_v<is_EigenDiagonal<V>, is_EigenDiagonal<Vs>...>, int> = 0>
+    std::conjunction_v<Eigen3::is_EigenDiagonal<V>, Eigen3::is_EigenDiagonal<Vs>...>, int> = 0>
 #endif
   constexpr decltype(auto)
-  concatenate(V&& v, Vs&& ... vs)
+  concatenate_diagonal(V&& v, Vs&& ... vs)
   {
     if constexpr(sizeof...(Vs) > 0)
     {
@@ -634,29 +671,15 @@ namespace OpenKalman
   };
 
 
-  /// Concatenate diagonally.
-#ifdef __cpp_concepts
-  template<eigen_diagonal_expr V, eigen_diagonal_expr ... Vs>
-#else
-  template<typename V, typename ... Vs, std::enable_if_t<
-    std::conjunction_v<is_EigenDiagonal<V>, is_EigenDiagonal<Vs>...>, int> = 0>
-#endif
-  constexpr decltype(auto)
-  concatenate_diagonal(V&& v, Vs&& ... vs)
-  {
-    return concatenate(std::forward<V>(v), std::forward<Vs>(vs)...);
-  };
-
-
   // split functions for EigenDiagonal are found in EigenSpecialMatrixOverloads
 
 
   /// Get element (i) of diagonal matrix arg.
 #ifdef __cpp_concepts
-  template<eigen_diagonal_expr Arg> requires (is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 1> or
+  template<Eigen3::eigen_diagonal_expr Arg> requires (is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 1> or
     is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>)
 #else
-  template<typename Arg, std::enable_if_t<is_EigenDiagonal_v<Arg> and
+  template<typename Arg, std::enable_if_t<Eigen3::is_EigenDiagonal_v<Arg> and
     (is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 1> or
     is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>), int> = 0>
 #endif
@@ -672,10 +695,10 @@ namespace OpenKalman
 
   /// Get element (i, j) of diagonal matrix arg.
 #ifdef __cpp_concepts
-  template<eigen_diagonal_expr Arg> requires (is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 1> or
+  template<Eigen3::eigen_diagonal_expr Arg> requires (is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 1> or
     is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>)
 #else
-  template<typename Arg, std::enable_if_t<is_EigenDiagonal_v<Arg> and
+  template<typename Arg, std::enable_if_t<Eigen3::is_EigenDiagonal_v<Arg> and
     (is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 1> or
     is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>), int> = 0>
 #endif
@@ -696,13 +719,13 @@ namespace OpenKalman
 
   /// Set element (i) of matrix arg to s.
 #ifdef __cpp_concepts
-  template<eigen_diagonal_expr Arg, typename Scalar> requires
+  template<Eigen3::eigen_diagonal_expr Arg, typename Scalar> requires
     (not std::is_const_v<std::remove_reference_t<Arg>>) and
     (is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 1> or
       is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>)
 #else
   template<typename Arg, typename Scalar, std::enable_if_t<
-    is_EigenDiagonal_v<Arg> and not std::is_const_v<std::remove_reference_t<Arg>> and
+    Eigen3::is_EigenDiagonal_v<Arg> and not std::is_const_v<std::remove_reference_t<Arg>> and
       (is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 1> or
         is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>), int> = 0>
 #endif
@@ -718,13 +741,13 @@ namespace OpenKalman
 
   /// Set element (i, j) of matrix arg to s.
 #ifdef __cpp_concepts
-  template<eigen_diagonal_expr Arg, typename Scalar> requires
+  template<Eigen3::eigen_diagonal_expr Arg, typename Scalar> requires
     (not std::is_const_v<std::remove_reference_t<Arg>>) and
     (is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 1> or
       is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>)
 #else
   template<typename Arg, typename Scalar, std::enable_if_t<
-    is_EigenDiagonal_v<Arg> and not std::is_const_v<std::remove_reference_t<Arg>> and
+    Eigen3::is_EigenDiagonal_v<Arg> and not std::is_const_v<std::remove_reference_t<Arg>> and
       (is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 1> or
         is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>), int> = 0>
 #endif
@@ -749,7 +772,7 @@ namespace OpenKalman
    **/
 #ifdef __cpp_concepts
   template<
-    eigen_diagonal_expr ReturnType,
+    Eigen3::eigen_diagonal_expr ReturnType,
     template<typename Scalar> typename distribution_type = std::normal_distribution,
     typename random_number_engine = std::mt19937,
     typename...Params>
@@ -759,7 +782,7 @@ namespace OpenKalman
     template<typename Scalar> typename distribution_type = std::normal_distribution,
     typename random_number_engine = std::mt19937,
     typename...Params,
-    std::enable_if_t<is_EigenDiagonal_v<ReturnType>, int> = 0>
+    std::enable_if_t<Eigen3::is_EigenDiagonal_v<ReturnType>, int> = 0>
 #endif
   static auto
   randomize(Params...params)
@@ -781,10 +804,11 @@ namespace OpenKalman
   ///////////////////////////////
 
 #ifdef __cpp_concepts
-  template<eigen_diagonal_expr Arg1, eigen_diagonal_expr Arg2> requires
+  template<Eigen3::eigen_diagonal_expr Arg1, Eigen3::eigen_diagonal_expr Arg2> requires
     (not is_zero_v<Arg1>) and (not is_zero_v<Arg2>) and (not is_identity_v<Arg1>) and (not is_identity_v<Arg2>)
 #else
-  template<typename Arg1, typename Arg2, std::enable_if_t<is_EigenDiagonal_v<Arg1> and is_EigenDiagonal_v<Arg2> and
+  template<typename Arg1, typename Arg2, std::enable_if_t<
+    Eigen3::is_EigenDiagonal_v<Arg1> and Eigen3::is_EigenDiagonal_v<Arg2> and
     not is_zero_v<Arg1> and not is_zero_v<Arg2> and not is_identity_v<Arg1> and not is_identity_v<Arg2>, int> = 0>
 #endif
   inline auto operator+(Arg1&& arg1, Arg2&& arg2)
@@ -797,43 +821,49 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<typename Arg1, typename Arg2> requires (eigen_diagonal_expr<Arg1> and is_identity_v<Arg2>) or
-    (is_identity_v<Arg1> and eigen_diagonal_expr<Arg2>)
+  template<typename Arg1, typename Arg2> requires (Eigen3::eigen_diagonal_expr<Arg1> and is_identity_v<Arg2>) or
+    (is_identity_v<Arg1> and Eigen3::eigen_diagonal_expr<Arg2>)
 #else
-  template<typename Arg1, typename Arg2, std::enable_if_t<(is_EigenDiagonal_v<Arg1> and is_identity_v<Arg2>) or
-    (is_identity_v<Arg1> and is_EigenDiagonal_v<Arg2>), int> = 0>
+  template<typename Arg1, typename Arg2, std::enable_if_t<(Eigen3::is_EigenDiagonal_v<Arg1> and is_identity_v<Arg2>) or
+    (is_identity_v<Arg1> and Eigen3::is_EigenDiagonal_v<Arg2>), int> = 0>
 #endif
   inline auto operator+(Arg1&& arg1, Arg2&& arg2)
   {
     static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
     static_assert(MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns);
-    if constexpr(eigen_diagonal_expr<Arg1>)
+    if constexpr(Eigen3::eigen_diagonal_expr<Arg1>)
     {
       using B = typename MatrixTraits<Arg1>::BaseMatrix;
       auto ret = MatrixTraits<Arg1>::make(base_matrix(std::forward<Arg1>(arg1)) + B::Constant(1));
-      if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>) return strict(std::move(ret)); else return ret;
+      if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>)
+        return strict(std::move(ret));
+      else
+        return ret;
     }
     else
     {
       using B = typename MatrixTraits<Arg2>::BaseMatrix;
       auto ret = MatrixTraits<Arg2>::make(B::Constant(1) + base_matrix(std::forward<Arg2>(arg2)));
-      if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>) return strict(std::move(ret)); else return ret;
+      if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>)
+        return strict(std::move(ret));
+      else
+        return ret;
     }
   }
 
 
 #ifdef __cpp_concepts
-  template<typename Arg1, typename Arg2> requires (eigen_diagonal_expr<Arg1> and is_zero_v<Arg2>) or
-    (is_zero_v<Arg1> and eigen_diagonal_expr<Arg2>)
+  template<typename Arg1, typename Arg2> requires (Eigen3::eigen_diagonal_expr<Arg1> and is_zero_v<Arg2>) or
+    (is_zero_v<Arg1> and Eigen3::eigen_diagonal_expr<Arg2>)
 #else
-  template<typename Arg1, typename Arg2, std::enable_if_t<(is_EigenDiagonal_v<Arg1> and is_zero_v<Arg2>) or
-    (is_zero_v<Arg1> and is_EigenDiagonal_v<Arg2>), int> = 0>
+  template<typename Arg1, typename Arg2, std::enable_if_t<(Eigen3::is_EigenDiagonal_v<Arg1> and is_zero_v<Arg2>) or
+    (is_zero_v<Arg1> and Eigen3::is_EigenDiagonal_v<Arg2>), int> = 0>
 #endif
   constexpr decltype(auto) operator+(Arg1&& arg1, Arg2&& arg2)
   {
     static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
     static_assert(MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns);
-    if constexpr(eigen_diagonal_expr<Arg1>)
+    if constexpr(Eigen3::eigen_diagonal_expr<Arg1>)
     {
       return std::forward<Arg1>(arg1);
     }
@@ -847,11 +877,11 @@ namespace OpenKalman
   ////
 
 #ifdef __cpp_concepts
-  template<eigen_diagonal_expr Arg1, eigen_diagonal_expr Arg2> requires
+  template<Eigen3::eigen_diagonal_expr Arg1, Eigen3::eigen_diagonal_expr Arg2> requires
     (not is_zero_v<Arg1>) and (not is_zero_v<Arg2>) and (not is_identity_v<Arg1>) and (not is_identity_v<Arg2>)
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<
-    is_EigenDiagonal_v<Arg1> and is_EigenDiagonal_v<Arg2> and
+    Eigen3::is_EigenDiagonal_v<Arg1> and Eigen3::is_EigenDiagonal_v<Arg2> and
       not is_zero_v<Arg1> and not is_zero_v<Arg2> and not is_identity_v<Arg1> and not is_identity_v<Arg2>, int> = 0>
 #endif
   inline auto operator-(Arg1&& arg1, Arg2&& arg2)
@@ -865,16 +895,16 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
   template<typename Arg1, typename Arg2> requires
-    (eigen_diagonal_expr<Arg1> and is_identity_v<Arg2>) or (is_identity_v<Arg1> and eigen_diagonal_expr<Arg2>)
+    (Eigen3::eigen_diagonal_expr<Arg1> and is_identity_v<Arg2>) or (is_identity_v<Arg1> and Eigen3::eigen_diagonal_expr<Arg2>)
 #else
-  template<typename Arg1, typename Arg2, std::enable_if_t<(is_EigenDiagonal_v<Arg1> and is_identity_v<Arg2>) or
-    (is_identity_v<Arg1> and is_EigenDiagonal_v<Arg2>), int> = 0>
+  template<typename Arg1, typename Arg2, std::enable_if_t<(Eigen3::is_EigenDiagonal_v<Arg1> and is_identity_v<Arg2>) or
+    (is_identity_v<Arg1> and Eigen3::is_EigenDiagonal_v<Arg2>), int> = 0>
 #endif
   inline auto operator-(Arg1&& arg1, Arg2&& arg2)
   {
     static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
     static_assert(MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns);
-    if constexpr(eigen_diagonal_expr<Arg1>)
+    if constexpr(Eigen3::eigen_diagonal_expr<Arg1>)
     {
       using B = typename MatrixTraits<Arg1>::BaseMatrix;
       auto ret = MatrixTraits<Arg1>::make(std::forward<Arg1>(arg1).base_matrix() - B::Constant(1));
@@ -891,16 +921,16 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
   template<typename Arg1, typename Arg2> requires
-    (eigen_diagonal_expr<Arg1> and is_zero_v<Arg2>) or (is_zero_v<Arg1> and eigen_diagonal_expr<Arg2>)
+    (Eigen3::eigen_diagonal_expr<Arg1> and is_zero_v<Arg2>) or (is_zero_v<Arg1> and Eigen3::eigen_diagonal_expr<Arg2>)
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<
-    (is_EigenDiagonal_v<Arg1> and is_zero_v<Arg2>) or (is_zero_v<Arg1> and is_EigenDiagonal_v<Arg2>), int> = 0>
+    (Eigen3::is_EigenDiagonal_v<Arg1> and is_zero_v<Arg2>) or (is_zero_v<Arg1> and Eigen3::is_EigenDiagonal_v<Arg2>), int> = 0>
 #endif
   constexpr decltype(auto) operator-(Arg1&& arg1, Arg2&& arg2)
   {
     static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
     static_assert(MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns);
-    if constexpr(eigen_diagonal_expr<Arg1>)
+    if constexpr(Eigen3::eigen_diagonal_expr<Arg1>)
     {
       return std::forward<Arg1>(arg1);
     }
@@ -914,10 +944,10 @@ namespace OpenKalman
   ////
 
 #ifdef __cpp_concepts
-  template<eigen_diagonal_expr Arg, std::convertible_to<typename MatrixTraits<Arg>::Scalar> S>
+  template<Eigen3::eigen_diagonal_expr Arg, std::convertible_to<typename MatrixTraits<Arg>::Scalar> S>
 #else
   template<typename Arg, typename S, std::enable_if_t<
-    is_EigenDiagonal_v<Arg> and std::is_convertible_v<S, typename MatrixTraits<Arg>::Scalar>, int> = 0>
+    Eigen3::is_EigenDiagonal_v<Arg> and std::is_convertible_v<S, typename MatrixTraits<Arg>::Scalar>, int> = 0>
 #endif
   inline auto operator*(Arg&& arg, const S scale)
   {
@@ -927,10 +957,10 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<eigen_diagonal_expr Arg, std::convertible_to<typename MatrixTraits<Arg>::Scalar> S>
+  template<Eigen3::eigen_diagonal_expr Arg, std::convertible_to<typename MatrixTraits<Arg>::Scalar> S>
 #else
   template<typename Arg, typename S, std::enable_if_t<
-    is_EigenDiagonal_v<Arg> and std::is_convertible_v<S, typename MatrixTraits<Arg>::Scalar>, int> = 0>
+    Eigen3::is_EigenDiagonal_v<Arg> and std::is_convertible_v<S, typename MatrixTraits<Arg>::Scalar>, int> = 0>
 #endif
   inline auto operator*(const S scale, Arg&& arg)
   {
@@ -939,10 +969,10 @@ namespace OpenKalman
   }
 
 #ifdef __cpp_concepts
-  template<eigen_diagonal_expr Arg, std::convertible_to<typename MatrixTraits<Arg>::Scalar> S>
+  template<Eigen3::eigen_diagonal_expr Arg, std::convertible_to<typename MatrixTraits<Arg>::Scalar> S>
 #else
   template<typename Arg, typename S, std::enable_if_t<
-    is_EigenDiagonal_v<Arg> and std::is_convertible_v<S, typename MatrixTraits<Arg>::Scalar>, int> = 0>
+    Eigen3::is_EigenDiagonal_v<Arg> and std::is_convertible_v<S, typename MatrixTraits<Arg>::Scalar>, int> = 0>
 #endif
   inline auto operator/(Arg&& arg, const S scale)
   {
@@ -954,10 +984,11 @@ namespace OpenKalman
   ////
 
 #ifdef __cpp_concepts
-  template<eigen_diagonal_expr Arg1, eigen_diagonal_expr Arg2> requires
+  template<Eigen3::eigen_diagonal_expr Arg1, Eigen3::eigen_diagonal_expr Arg2> requires
     (not is_zero_v<Arg1>) and (not is_zero_v<Arg2>) and (not is_identity_v<Arg1>) and (not is_identity_v<Arg2>)
 #else
-  template<typename Arg1, typename Arg2, std::enable_if_t<is_EigenDiagonal_v<Arg1> and is_EigenDiagonal_v<Arg2> and
+  template<typename Arg1, typename Arg2, std::enable_if_t<
+    Eigen3::is_EigenDiagonal_v<Arg1> and Eigen3::is_EigenDiagonal_v<Arg2> and
     not is_zero_v<Arg1> and not is_zero_v<Arg2> and not is_identity_v<Arg1> and not is_identity_v<Arg2>, int> = 0>
 #endif
   inline auto operator*(Arg1&& arg1, Arg2&& arg2)
@@ -971,16 +1002,16 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
   template<typename Arg1, typename Arg2> requires
-    (eigen_diagonal_expr<Arg1> and is_identity_v<Arg2>) or (is_identity_v<Arg1> and eigen_diagonal_expr<Arg2>)
+    (Eigen3::eigen_diagonal_expr<Arg1> and is_identity_v<Arg2>) or (is_identity_v<Arg1> and Eigen3::eigen_diagonal_expr<Arg2>)
 #else
-  template<typename Arg1, typename Arg2, std::enable_if_t<(is_EigenDiagonal_v<Arg1> and is_identity_v<Arg2>) or
-    (is_identity_v<Arg1> and is_EigenDiagonal_v<Arg2>), int> = 0>
+  template<typename Arg1, typename Arg2, std::enable_if_t<(Eigen3::is_EigenDiagonal_v<Arg1> and is_identity_v<Arg2>) or
+    (is_identity_v<Arg1> and Eigen3::is_EigenDiagonal_v<Arg2>), int> = 0>
 #endif
   inline auto operator*(Arg1&& arg1, Arg2&& arg2)
   {
     static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
     static_assert(MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns);
-    if constexpr(eigen_diagonal_expr<Arg1>)
+    if constexpr(Eigen3::eigen_diagonal_expr<Arg1>)
     {
       return std::forward<Arg1>(arg1);
     }
@@ -993,10 +1024,10 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
   template<typename Arg1, typename Arg2> requires
-    (eigen_diagonal_expr<Arg1> and is_zero_v<Arg2>) or (is_zero_v<Arg1> and eigen_diagonal_expr<Arg2>)
+    (Eigen3::eigen_diagonal_expr<Arg1> and is_zero_v<Arg2>) or (is_zero_v<Arg1> and Eigen3::eigen_diagonal_expr<Arg2>)
 #else
-  template<typename Arg1, typename Arg2, std::enable_if_t<
-    (is_EigenDiagonal_v<Arg1> and is_zero_v<Arg2>) or (is_zero_v<Arg1> and is_EigenDiagonal_v<Arg2>), int> = 0>
+  template<typename Arg1, typename Arg2, std::enable_if_t<(Eigen3::is_EigenDiagonal_v<Arg1> and is_zero_v<Arg2>) or
+    (is_zero_v<Arg1> and Eigen3::is_EigenDiagonal_v<Arg2>), int> = 0>
 #endif
   constexpr decltype(auto) operator*(Arg1&& arg1, Arg2&& arg2)
   {
@@ -1016,18 +1047,19 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
   template<typename Arg1, typename Arg2> requires
-    ((eigen_diagonal_expr<Arg1> and Eigen_matrix<Arg2>) or (Eigen_matrix<Arg1> and eigen_diagonal_expr<Arg2>)) and
+    ((Eigen3::eigen_diagonal_expr<Arg1> and Eigen3::eigen_matrix<Arg2>) or
+      (Eigen3::eigen_matrix<Arg1> and Eigen3::eigen_diagonal_expr<Arg2>)) and
     (not is_identity_v<Arg1>) and (not is_identity_v<Arg2>) and (not is_zero_v<Arg1>) and (not is_zero_v<Arg2>)
 #else
   template<typename Arg1, typename Arg2,
-    std::enable_if_t<((is_EigenDiagonal_v<Arg1> and is_Eigen_matrix_v<Arg2>) or
-      (is_Eigen_matrix_v<Arg1> and is_EigenDiagonal_v<Arg2>)) and
+    std::enable_if_t<((Eigen3::is_EigenDiagonal_v<Arg1> and Eigen3::is_Eigen_matrix_v<Arg2>) or
+      (Eigen3::is_Eigen_matrix_v<Arg1> and Eigen3::is_EigenDiagonal_v<Arg2>)) and
       not is_identity_v<Arg1> and not is_identity_v<Arg2> and not is_zero_v<Arg1> and not is_zero_v<Arg2>, int> = 0>
 #endif
   inline auto operator*(Arg1&& arg1, Arg2&& arg2)
   {
     static_assert(MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::dimension);
-    if constexpr(eigen_diagonal_expr<Arg1>)
+    if constexpr(Eigen3::eigen_diagonal_expr<Arg1>)
     {
       return strict(std::forward<Arg1>(arg1).base_matrix().asDiagonal() * std::forward<Arg2>(arg2));
     }
@@ -1039,9 +1071,9 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<eigen_diagonal_expr Arg>
+  template<Eigen3::eigen_diagonal_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_EigenDiagonal_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<Eigen3::is_EigenDiagonal_v<Arg>, int> = 0>
 #endif
   inline auto operator-(Arg&& arg)
   {
@@ -1049,6 +1081,6 @@ namespace OpenKalman
     if constexpr (not std::is_lvalue_reference_v<Arg&&>) return strict(std::move(ret)); else return ret;
   }
 
-}
+} // namespace OpenKalman::Eigen3
 
 #endif //OPENKALMAN_EIGENDIAGONAL_HPP

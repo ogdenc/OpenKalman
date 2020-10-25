@@ -54,7 +54,7 @@ namespace OpenKalman
       {
         constexpr auto width = points_count - frame_size;
         using MRbase = strict_matrix_t<M, dim_i, width>;
-        const auto mright = TypedMatrix<Coeffs, Axes<width>, MRbase>::zero();
+        const auto mright = Matrix<Coeffs, Axes<width>, MRbase>::zero();
         auto ret = concatenate_horizontal(delta, -delta, mright);
         static_assert(MatrixTraits<decltype(ret)>::columns == points_count);
         return std::tuple_cat(std::tuple {std::move(ret)}, sample_points_impl<dim, frame_size>(ds...));
@@ -62,10 +62,10 @@ namespace OpenKalman
       else if constexpr (pos + frame_size < points_count)
       {
         using MLbase = strict_matrix_t<M, dim_i, pos>;
-        const auto mleft = TypedMatrix<Coeffs, Axes<pos>, MLbase>::zero();
+        const auto mleft = Matrix<Coeffs, Axes<pos>, MLbase>::zero();
         constexpr auto width = points_count - (pos + frame_size);
         using MRbase = strict_matrix_t<M, dim_i, width>;
-        const auto mright = TypedMatrix<Coeffs, Axes<width>, MRbase>::zero();
+        const auto mright = Matrix<Coeffs, Axes<width>, MRbase>::zero();
         auto ret = concatenate_horizontal(mleft, delta, -delta, mright);
         static_assert(MatrixTraits<decltype(ret)>::columns == points_count);
         return std::tuple_cat(std::tuple {std::move(ret)}, sample_points_impl<dim, pos + frame_size>(ds...));
@@ -74,7 +74,7 @@ namespace OpenKalman
       {
         static_assert(sizeof...(ds) == 0);
         using MLbase = strict_matrix_t<M, dim_i, pos>;
-        const auto mleft = TypedMatrix<Coeffs, Axes<pos>, MLbase>::zero();
+        const auto mleft = Matrix<Coeffs, Axes<pos>, MLbase>::zero();
         auto ret = concatenate_horizontal(mleft, delta, -delta);
         static_assert(MatrixTraits<decltype(ret)>::columns == points_count);
         return std::tuple {std::move(ret)};

@@ -92,7 +92,7 @@ namespace OpenKalman
       static_assert(is_column_vector_v<YMeans>);
       constexpr auto count = MatrixTraits<YMeans>::columns;
       static_assert(count == SigmaPointsType::template sigma_point_count<dim>(), "Wrong number of sigma points.");
-      using Weights = TypedMatrix<Axes<count>, Axis, strict_matrix_t<YMeans, count, 1>>;
+      using Weights = Matrix<Axes<count>, Axis, strict_matrix_t<YMeans, count, 1>>;
       return strict(y_means * mean_weights<dim, Weights>());
     }
 
@@ -106,7 +106,7 @@ namespace OpenKalman
       constexpr auto count = MatrixTraits<X>::columns;
       static_assert(count == MatrixTraits<Y>::columns);
       static_assert(count == SigmaPointsType::template sigma_point_count<dim>(), "Wrong number of sigma points.");
-      using Weights = TypedMatrix<Axes<count>, Axis, strict_matrix_t<X, count, 1>>;
+      using Weights = Matrix<Axes<count>, Axis, strict_matrix_t<X, count, 1>>;
       auto weights = covariance_weights<dim, Weights>();
       if constexpr(is_Cholesky_v<InputDist>)
       {

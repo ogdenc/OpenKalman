@@ -25,7 +25,9 @@
 namespace OpenKalman
 {}
 
-#include "typed-matrices/typed-matrices.hpp"
+#include "basics/basics.hpp"
+#include "coefficient-types/coefficient-types.hpp"
+#include "matrices/matrices.hpp"
 #include "distributions/distributions.hpp"
 #include "transformations/transformations.hpp"
 #include "transforms/transforms.hpp"

@@ -84,7 +84,7 @@ namespace OpenKalman
       const auto delta = make_Matrix<Coeffs, Axes<dim_i>>(strict_matrix(square_root(gamma_L * covariance(d))));
       //
       using M0base = strict_matrix_t<M, dim_i, 1>;
-      const auto m0 = TypedMatrix<Coeffs, Axis, M0base>::zero();
+      const auto m0 = Matrix<Coeffs, Axis, M0base>::zero();
       if constexpr(1 + frame_size == points_count)
       {
         auto ret = concatenate_horizontal(m0, delta, -delta);
@@ -95,7 +95,7 @@ namespace OpenKalman
       {
         constexpr auto width = points_count - (1 + frame_size);
         using MRbase = strict_matrix_t<M, dim_i, width>;
-        const auto mright = TypedMatrix<Coeffs, Axes<width>, MRbase>::zero();
+        const auto mright = Matrix<Coeffs, Axes<width>, MRbase>::zero();
         auto ret = concatenate_horizontal(m0, delta, -delta, mright);
         static_assert(MatrixTraits<decltype(ret)>::columns == points_count);
         return std::tuple_cat(std::tuple {std::move(ret)}, sigma_points_impl<dim, 1 + frame_size>(ds...));
@@ -103,10 +103,10 @@ namespace OpenKalman
       else if constexpr (pos + frame_size < points_count)
       {
         using MLbase = strict_matrix_t<M, dim_i, pos>;
-        const auto mleft = TypedMatrix<Coeffs, Axes<pos>, MLbase>::zero();
+        const auto mleft = Matrix<Coeffs, Axes<pos>, MLbase>::zero();
         constexpr auto width = points_count - (pos + frame_size);
         using MRbase = strict_matrix_t<M, dim_i, width>;
-        const auto mright = TypedMatrix<Coeffs, Axes<width>, MRbase>::zero();
+        const auto mright = Matrix<Coeffs, Axes<width>, MRbase>::zero();
         auto ret = concatenate_horizontal(mleft, delta, -delta, mright);
         static_assert(MatrixTraits<decltype(ret)>::columns == points_count);
         return std::tuple_cat(std::tuple {std::move(ret)}, sigma_points_impl<dim, pos + frame_size>(ds...));
@@ -115,7 +115,7 @@ namespace OpenKalman
       {
         static_assert(sizeof...(ds) == 0);
         using MLbase = strict_matrix_t<M, dim_i, pos>;
-        const auto mleft = TypedMatrix<Coeffs, Axes<pos>, MLbase>::zero();
+        const auto mleft = Matrix<Coeffs, Axes<pos>, MLbase>::zero();
         auto ret = concatenate_horizontal(mleft, delta, -delta);
         static_assert(MatrixTraits<decltype(ret)>::columns == points_count);
         return std::tuple {std::move(ret)};

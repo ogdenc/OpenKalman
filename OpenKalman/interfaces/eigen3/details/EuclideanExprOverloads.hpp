@@ -11,7 +11,7 @@
 #ifndef OPENKALMAN_EUCLIDEANEXPROVERLOADS_HPP
 #define OPENKALMAN_EUCLIDEANEXPROVERLOADS_HPP
 
-namespace OpenKalman
+namespace OpenKalman::Eigen3
 {
   //////////////////////////////
   //        Overloads         //
@@ -211,7 +211,7 @@ namespace OpenKalman
   /// Solves AX = B for X (A is a regular matrix type, and B is a Euclidean expression).
   /// A must be invertible. (Does not check.)
 #ifdef __cpp_concepts
-  template<euclidean_expr A, Eigen_matrix B>
+  template<euclidean_expr A, eigen_matrix B>
 #else
   template<typename A, typename B, std::enable_if_t<euclidean_expr<A> and is_Eigen_matrix_v<B>, int> = 0>
 #endif
@@ -347,7 +347,7 @@ namespace OpenKalman
         return G::template call<RC, CC>(MatrixTraits<Expr>::template make<RC>(std::forward<Arg>(arg)));
       }
     };
-  }
+  } // internal
 
   /// Split into one or more Euclidean expressions vertically.
 #ifdef __cpp_concepts
@@ -390,7 +390,7 @@ namespace OpenKalman
   split_vertical(Arg&& arg) noexcept
   {
     static_assert(is_prefix_v<Concatenate<Cs...>, typename MatrixTraits<Arg>::Coefficients>);
-    return split_vertical<internal::default_split_function, Cs...>(std::forward<Arg>(arg));
+    return split_vertical<OpenKalman::internal::default_split_function, Cs...>(std::forward<Arg>(arg));
   }
 
   /// Split into one or more Euclidean expressions vertically. The expression is evaluated to a strict matrix first.
@@ -442,7 +442,7 @@ namespace OpenKalman
   inline auto
   split_horizontal(Arg&& arg) noexcept
   {
-    return split_horizontal<internal::default_split_function, Cs...>(std::forward<Arg>(arg));
+    return split_horizontal<OpenKalman::internal::default_split_function, Cs...>(std::forward<Arg>(arg));
   }
 
   /// Split into one or more Euclidean expressions horizontally.
@@ -505,7 +505,7 @@ namespace OpenKalman
   {
     static_assert(is_prefix_v<Concatenate<Cs...>, typename MatrixTraits<Arg>::Coefficients>);
     static_assert(MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns);
-    return split_diagonal<internal::default_split_function, false, Cs...>(std::forward<Arg>(arg));
+    return split_diagonal<OpenKalman::internal::default_split_function, false, Cs...>(std::forward<Arg>(arg));
   }
 
   /// Split into one or more Euclidean expressions diagonally.
@@ -559,11 +559,11 @@ namespace OpenKalman
         };
       if constexpr(to_euclidean_expr<Arg>)
       {
-        return to_Euclidean<Coeffs, Scalar>(i, get_coeff);
+        return OpenKalman::to_Euclidean<Coeffs, Scalar>(i, get_coeff);
       }
       else
       {
-        return from_Euclidean<Coeffs, Scalar>(i, get_coeff);
+        return OpenKalman::from_Euclidean<Coeffs, Scalar>(i, get_coeff);
       }
     }
   }
@@ -595,11 +595,11 @@ namespace OpenKalman
         };
       if constexpr(to_euclidean_expr<Arg>)
       {
-        return to_Euclidean<Coeffs, Scalar>((std::size_t) i, get_coeff);
+        return OpenKalman::to_Euclidean<Coeffs, Scalar>((std::size_t) i, get_coeff);
       }
       else
       {
-        return from_Euclidean<Coeffs, Scalar>((std::size_t) i, get_coeff);
+        return OpenKalman::from_Euclidean<Coeffs, Scalar>((std::size_t) i, get_coeff);
       }
     }
   }
@@ -993,6 +993,6 @@ namespace OpenKalman
     return MatrixTraits<ReturnType>::make(randomize<B, distribution_type, random_number_engine>(params...));
   }
 
-}
+} // namespace OpenKalman::eigen3
 
 #endif //OPENKALMAN_EUCLIDEANEXPROVERLOADS_HPP

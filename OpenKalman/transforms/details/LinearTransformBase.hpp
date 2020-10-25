@@ -36,14 +36,14 @@ namespace OpenKalman::internal
           auto sqrt_c0 =square_root(covariance(std::get<0>(dist)));
           auto term0 = std::get<0>(j) * sqrt_c0;
           return std::tuple {
-            LQ_decomposition(concatenate_horizontal(term0, TypedMatrix(
+            LQ_decomposition(concatenate_horizontal(term0, Matrix(
               (std::get<ints+1>(j) * (square_root(covariance(std::get<ints+1>(dist))))))...)),
             strict(sqrt_c0 * adjoint(term0))};
         }
         else
         {
           auto term0 = std::get<0>(j) * square_root(covariance(std::get<0>(dist)));
-          return LQ_decomposition(concatenate_horizontal(term0, TypedMatrix(
+          return LQ_decomposition(concatenate_horizontal(term0, Matrix(
               (std::get<ints+1>(j) * (square_root(covariance(std::get<ints+1>(dist))))))...));
         }
       }

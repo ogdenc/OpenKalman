@@ -48,7 +48,7 @@ inline const auto sum_of_squares = make_Transformation
       static_assert(std::conjunction_v<is_equivalent<typename MatrixTraits<decltype(ps)>::RowCoefficients, Axis>...>);
       static_assert(std::conjunction_v<is_equivalent<typename MatrixTraits<decltype(ps)>::ColumnCoefficients, Axis>...>);
 
-      std::array<TypedMatrix<Axes<n>, Axes<n>, Eigen::Matrix<double, n, n>>, 1> I;
+      std::array<Matrix<Axes<n>, Axes<n>, Eigen::Matrix<double, n, n>>, 1> I;
       I[0] = 2 * Eigen::Matrix<double, n, n>::Identity();
       return std::tuple {std::move(I), std::get<0>(zero_hessian<Axis>(ps))...};
     }
@@ -78,7 +78,7 @@ inline const auto time_of_arrival = make_Transformation
     },
     [](const auto& x, const auto&...ps) // Hessians
     {
-      std::array<TypedMatrix<Axes<n>, Axes<n>, Eigen::Matrix<double, n, n>>, 1> ret;
+      std::array<Matrix<Axes<n>, Axes<n>, Eigen::Matrix<double, n, n>>, 1> ret;
       double sq = trace(adjoint(x) * x);
       ret[0] = pow(sq, -1.5) * (-x * adjoint(x) + sq * MatrixTraits<decltype(ret[0])>::identity());
       return std::tuple {std::move(ret), std::get<0>(zero_hessian<Axis>(ps))...};
@@ -87,7 +87,7 @@ inline const auto time_of_arrival = make_Transformation
 
 using C2t = Coefficients<Axis, Axis>;
 using M2t = Mean<C2t, Eigen::Matrix<double, 2, 1>>;
-using M22t = TypedMatrix<C2t, C2t, Eigen::Matrix<double, 2, 2>>;
+using M22t = Matrix<C2t, C2t, Eigen::Matrix<double, 2, 2>>;
 
 inline const auto radar = make_Transformation
   (
@@ -115,10 +115,10 @@ inline const auto radar = make_Transformation
   );
 
 
-using MP1t = TypedMatrix<Polar<>, Axis, Eigen::Matrix<double, 2, 1>>;
-using MP2t = TypedMatrix<Polar<>, Axes<2>, Eigen::Matrix<double, 2, 2>>;
-using M2Pt = TypedMatrix<Axes<2>, Polar<>, Eigen::Matrix<double, 2, 2>>;
-using MPPt = TypedMatrix<Polar<>, Polar<>, Eigen::Matrix<double, 2, 2>>;
+using MP1t = Matrix<Polar<>, Axis, Eigen::Matrix<double, 2, 1>>;
+using MP2t = Matrix<Polar<>, Axes<2>, Eigen::Matrix<double, 2, 2>>;
+using M2Pt = Matrix<Axes<2>, Polar<>, Eigen::Matrix<double, 2, 2>>;
+using MPPt = Matrix<Polar<>, Polar<>, Eigen::Matrix<double, 2, 2>>;
 
 inline const auto radarP = make_Transformation
   (
@@ -148,7 +148,7 @@ inline const auto Cartesian2polar = make_Transformation
   (
     [](const M2t& x, const auto&...ps)
     {
-      return (MP1t {std::hypot(x(0), x(1)), std::atan2(x(1), x(0))} + ... + TypedMatrix {ps});
+      return (MP1t {std::hypot(x(0), x(1)), std::atan2(x(1), x(0))} + ... + Matrix {ps});
     },
     [](const M2t& x, const auto&...ps) // Jacobians
     {
@@ -178,17 +178,17 @@ inline const auto Cartesian2polar = make_Transformation
   );
 
 using Cyl = Coefficients<Polar<>, Axis>;
-using MC1t = TypedMatrix<Cyl, Axis, Eigen::Matrix<double, 3, 1>>;
-using MS1t = TypedMatrix<Spherical<>, Axis, Eigen::Matrix<double, 3, 1>>;
-using MSCt = TypedMatrix<Spherical<>, Cyl, Eigen::Matrix<double, 3, 3>>;
-using MSSt = TypedMatrix<Spherical<>, Spherical<>, Eigen::Matrix<double, 3, 3>>;
-using MCCt = TypedMatrix<Cyl, Cyl, Eigen::Matrix<double, 3, 3>>;
+using MC1t = Matrix<Cyl, Axis, Eigen::Matrix<double, 3, 1>>;
+using MS1t = Matrix<Spherical<>, Axis, Eigen::Matrix<double, 3, 1>>;
+using MSCt = Matrix<Spherical<>, Cyl, Eigen::Matrix<double, 3, 3>>;
+using MSSt = Matrix<Spherical<>, Spherical<>, Eigen::Matrix<double, 3, 3>>;
+using MCCt = Matrix<Cyl, Cyl, Eigen::Matrix<double, 3, 3>>;
 
 inline const auto Cylindrical2spherical = make_Transformation
   (
     [](const MC1t& x, const auto&...ps)
     {
-      return (MS1t {std::hypot(x(0), x(2)), x(1), std::atan2(x(2), x(0))} + ... + TypedMatrix {ps});
+      return (MS1t {std::hypot(x(0), x(2)), x(1), std::atan2(x(2), x(0))} + ... + Matrix {ps});
     },
     [](const MC1t& x, const auto&...ps) // Jacobians
     {

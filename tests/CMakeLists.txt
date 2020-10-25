@@ -7,138 +7,98 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-cmake_minimum_required(VERSION 3.7)
-
-enable_testing()
-find_package(GTest REQUIRED)
-
-find_package(Threads REQUIRED)
-# Note: Requires >= Eigen 3.3.9 if compiling in c++20 mode! See Eigen Commit 7a0a2a500, which fixes issue #2012.
-find_package(Eigen3 REQUIRED)
-#find_package(OpenCV REQUIRED)
-
-include_directories(${PROJECT_SOURCE_DIR}/OpenKalman)
-include_directories(SYSTEM ${EIGEN3_INCLUDE_DIRS})
-#include_directories(SYSTEM ${GTEST_INCLUDE_DIRS})
-#include_directories(SYSTEM ${OPENCV_INCLUDE_DIRS})
-
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(MyCXX_FLAGS "-g -O2 -Wall -ftemplate-backtrace-limit=0")
-
-if(${CMAKE_CXX_STANDARD} LESS 20)
-  set(MyCXX_FLAGS "${MyCXX_FLAGS}")
-endif()
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MyCXX_FLAGS}")
-
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O2 -Wall -pthread -fopenmp -ftemplate-backtrace-limit=0")
-
-add_executable(matrix-tests
-        matrix-tests/matrix_tests.cpp
-        matrix-tests/tests-coefficients.cpp
-        matrix-tests/tests-matrix.cpp
-        matrix-tests/tests-diagonal.cpp
-        matrix-tests/tests-self-adjoint.cpp
-        matrix-tests/tests-triangular.cpp
-        matrix-tests/tests-ToEuclideanExpr.cpp
-        matrix-tests/tests-FromEuclideanExpr.cpp
+add_executable(covariances
+        covariances/covariance_tests.cpp
+        covariances/tests-covariance.cpp
+        covariances/tests-covariance-ops.cpp
+        covariances/tests-sqrt-covariance.cpp
+        covariances/tests-sqrt-covariance-ops.cpp
+        covariances/tests-covariance-refs.cpp
         )
-target_link_libraries(matrix-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)
-add_test(matrix-tests 0)
+target_link_libraries(covariances ${GTEST_BOTH_LIBRARIES} Threads::Threads)
+add_test(covariances 0)
 
 
-add_executable(covariance-tests
-        covariance-tests/covariance_tests.cpp
-        covariance-tests/tests-covariance.cpp
-        covariance-tests/tests-covariance-ops.cpp
-        covariance-tests/tests-sqrt-covariance.cpp
-        covariance-tests/tests-sqrt-covariance-ops.cpp
-        covariance-tests/tests-covariance-refs.cpp
+add_executable(typed-matrix
+        typed-matrix/matrices.cpp
+        typed-matrix/matrix.cpp
+        typed-matrix/mean.cpp
+        typed-matrix/euclidean_mean.cpp
+        typed-matrix/matrix-refs.cpp
+        typed-matrix/distributions.cpp
         )
-target_link_libraries(covariance-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)
-add_test(covariance-tests 0)
+target_link_libraries(typed-matrix ${GTEST_BOTH_LIBRARIES} Threads::Threads)
+add_test(typed-matrix 0)
 
 
-add_executable(typed-matrix-tests
-        typed-matrix-tests/typed_matrix_tests.cpp
-        typed-matrix-tests/tests-typed-matrix.cpp
-        typed-matrix-tests/tests-mean.cpp
-        typed-matrix-tests/tests-euclidean_mean.cpp
-        typed-matrix-tests/tests-typed-matrix-refs.cpp
-        typed-matrix-tests/tests-distributions.cpp
+add_executable(transformation
+        transformation/transformations.cpp
+        transformation/general.cpp
+        transformation/linear.cpp
+        transformation/stochastic.cpp
+        transformation/linear-fd.cpp
         )
-target_link_libraries(typed-matrix-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)
-add_test(typed-matrix-tests 0)
+target_link_libraries(transformation ${GTEST_BOTH_LIBRARIES} Threads::Threads)
+add_test(transformation 0)
 
 
-add_executable(transformation-tests
-        transformation-tests/transformation-tests.main.cpp
-        transformation-tests/tests-general.cpp
-        transformation-tests/tests-linear.cpp
-        transformation-tests/tests-stochastic.cpp
-        transformation-tests/tests-linear-fd.cpp
+add_executable(transform-linear
+        transform-linear/transform-linear.cpp
+        transform-linear/linear-axis.cpp
+        transform-linear/linear-angle.cpp
+        transform-linear/linearized-add.cpp
+        transform-linear/linearized-aug.cpp
         )
-target_link_libraries(transformation-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)
-add_test(transformation-tests 0)
+target_link_libraries(transform-linear ${GTEST_BOTH_LIBRARIES} Threads::Threads)
+add_test(transform-linear 0)
 
 
-add_executable(transform-linear-tests
-        transform-linear-tests/transform-linear-tests.cpp
-        transform-linear-tests/tests-linear-axis.cpp
-        transform-linear-tests/tests-linear-angle.cpp
-        transform-linear-tests/tests-linearized-add.cpp
-        transform-linear-tests/tests-linearized-aug.cpp
+add_executable(transform-nonlinear
+        transform-nonlinear/transform-nonlinear.cpp
+        transform-nonlinear/sample.cpp
+        transform-nonlinear/sample-aug.cpp
+        transform-nonlinear/rot-invariance.cpp
+        transform-nonlinear/rev-rot-invariance.cpp
         )
-target_link_libraries(transform-linear-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)
-add_test(transform-linear-tests 0)
+target_link_libraries(transform-nonlinear ${GTEST_BOTH_LIBRARIES} Threads::Threads)
+add_test(transform-nonlinear 0)
 
 
-add_executable(transform-nonlinear-tests
-        transform-nonlinear-tests/transform-nonlinear-tests.cpp
-        transform-nonlinear-tests/tests-sample.cpp
-        transform-nonlinear-tests/tests-sample-aug.cpp
-        transform-nonlinear-tests/tests-rot-invariance.cpp
-        transform-nonlinear-tests/tests-rev-rot-invariance.cpp
+add_executable(linear
+        linear/linear.cpp
+        linear/linear.2x2.cpp
+        linear/linear.2x3.cpp
+        linear/sample.2x2.cpp
+        linear/sample.2x3.cpp
+        linear/sample.3x2.cpp
+        linear/sample.4x3.cpp
+        linear/identity.cpp
+        linear/MCT.cpp
         )
-target_link_libraries(transform-nonlinear-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)
-add_test(transform-nonlinear-tests 0)
+target_link_libraries(linear ${GTEST_BOTH_LIBRARIES} Threads::Threads)
+add_test(linear 0)
 
 
-add_executable(linear-tests
-        linear-tests/linear-tests.main.cpp
-        linear-tests/linear-tests.2x2.linear.cpp
-        linear-tests/linear-tests.2x3.linear.cpp
-        linear-tests/linear-tests.2x2.sample.cpp
-        linear-tests/linear-tests.2x3.sample.cpp
-        linear-tests/linear-tests.3x2.sample.cpp
-        linear-tests/linear-tests.4x3.sample.cpp
-        linear-tests/linear-tests.identity.cpp
-        linear-tests/linear-tests.MCT.cpp
+add_executable(nonlinear
+        nonlinear/nonlinear.cpp
+        nonlinear/TT.2x1.cpp
+        nonlinear/TT.2x2.cpp
+        nonlinear/CT.2x1.cpp
+        nonlinear/CT.2x2.cpp
+        nonlinear/UT.2x1.cpp
+        nonlinear/UT.2x2.cpp
+        nonlinear/MCT.2x2.cpp
         )
-target_link_libraries(linear-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)
-add_test(linear-tests 0)
+target_link_libraries(nonlinear ${GTEST_BOTH_LIBRARIES} Threads::Threads)
+add_test(nonlinear 0)
 
 
-add_executable(nonlinear-tests
-        nonlinear-tests/nonlinear-tests.main.cpp
-        nonlinear-tests/nonlinear-tests.2x1.TT.cpp
-        nonlinear-tests/nonlinear-tests.2x2.TT.cpp
-        nonlinear-tests/nonlinear-tests.2x1.CT.cpp
-        nonlinear-tests/nonlinear-tests.2x2.CT.cpp
-        nonlinear-tests/nonlinear-tests.2x1.UT.cpp
-        nonlinear-tests/nonlinear-tests.2x2.UT.cpp
-        nonlinear-tests/nonlinear-tests.2x2.MCT.cpp
+add_executable(kalman
+        kalman/kalman.cpp
+        kalman/rotation.2D.cpp
+        kalman/rotation.3D.cpp
+        kalman/artillery.cpp
+        kalman/radar.cpp
         )
-target_link_libraries(nonlinear-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)
-add_test(nonlinear-tests 0)
-
-
-add_executable(kalman-tests
-        kalman-tests/kalman-tests.main.cpp
-        kalman-tests/kalman-tests.rotation.2D.cpp
-        kalman-tests/kalman-tests.rotation.3D.cpp
-        kalman-tests/kalman-tests.artillery.cpp
-        kalman-tests/kalman-tests.radar.cpp
-        )
-target_link_libraries(kalman-tests ${GTEST_BOTH_LIBRARIES} Threads::Threads)
-add_test(kalman-tests 0)
+target_link_libraries(kalman ${GTEST_BOTH_LIBRARIES} Threads::Threads)
+add_test(kalman 0)

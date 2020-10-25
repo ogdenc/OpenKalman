@@ -14,12 +14,45 @@
 #include <type_traits>
 #include <random>
 
-namespace OpenKalman
+namespace OpenKalman::Eigen3
 {
+  /// Make a native Eigen matrix from a list of coefficients in row-major order.
+#ifdef __cpp_concepts
+  template<std::size_t dimension, std::size_t columns = 1, typename ... Args> requires
+    (std::is_arithmetic_v<Args>and ...) and (sizeof...(Args) == dimension *columns)
+#else
+  template<std::size_t dimension, std::size_t columns = 1, typename ... Args, std::enable_if_t<
+    std::conjunction_v<std::is_arithmetic<Args>...> and sizeof...(Args) == dimension * columns, int> = 0>
+#endif
+
+  static auto
+  make_native_matrix(const Args ... args)
+  {
+    using Scalar = std::common_type_t<Args...>;
+    using M = Eigen::Matrix<Scalar, dimension, columns>;
+    return MatrixTraits<M>::make(args...);
+  }
+
+
+  /// Make a native Eigen 1-column vector from a list of coefficients in row-major order.
+#ifdef __cpp_concepts
+  template<typename ... Args> requires(std::is_arithmetic_v<Args> and ...)
+#else
+  template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
+#endif
+  static auto
+  make_native_matrix(const Args ... args)
+  {
+    using Scalar = std::common_type_t<Args...>;
+    using M = Eigen::Matrix<Scalar, sizeof...(Args), 1>;
+    return MatrixTraits<M>::make(args...);
+  }
+
+
   /// Convert to strict version of the matrix.
 #ifdef __cpp_concepts
   template<typename Arg> requires
-    Eigen_matrix<Arg> or
+    eigen_matrix<Arg> or
     eigen_self_adjoint_expr<Arg> or
     eigen_triangular_expr<Arg> or
     eigen_diagonal_expr<Arg>
@@ -68,7 +101,7 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<typename Coefficients, Eigen_matrix Arg>
+  template<typename Coefficients, eigen_matrix Arg>
 #else
   template<typename Coefficients, typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg>, int> = 0>
 #endif
@@ -88,7 +121,7 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<typename Coefficients, Eigen_matrix Arg>
+  template<typename Coefficients, eigen_matrix Arg>
 #else
   template<typename Coefficients, typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg>, int> = 0>
 #endif
@@ -108,7 +141,7 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<typename Coefficients, Eigen_matrix Arg>
+  template<typename Coefficients, eigen_matrix Arg>
 #else
   template<typename Coefficients, typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg>, int> = 0>
 #endif
@@ -208,7 +241,7 @@ namespace OpenKalman
   /// Solve the equation AX = B for X. A is an invertible square matrix. (Does not check that A is invertible.)
   /// Uses the square LU decomposition.
 #ifdef __cpp_concepts
-  template<Eigen_matrix A, Eigen_matrix B>
+  template<eigen_matrix A, eigen_matrix B>
 #else
   template<typename A, typename B,
     std::enable_if_t<is_Eigen_matrix_v<A> and is_Eigen_matrix_v<B>, int> = 0>
@@ -329,9 +362,9 @@ namespace OpenKalman
   /// Concatenate one or more Eigen::MatrixBase objects vertically.
 #ifdef __cpp_concepts
   template<typename V, typename ... Vs> requires
-    ((Eigen_matrix<V> or eigen_self_adjoint_expr<V> or eigen_triangular_expr<V> or
+    ((eigen_matrix<V> or eigen_self_adjoint_expr<V> or eigen_triangular_expr<V> or
       eigen_diagonal_expr<V> or from_euclidean_expr<V>) and ... and
-    (Eigen_matrix<Vs> or eigen_self_adjoint_expr<Vs> or eigen_triangular_expr<Vs> or
+    (eigen_matrix<Vs> or eigen_self_adjoint_expr<Vs> or eigen_triangular_expr<Vs> or
       eigen_diagonal_expr<Vs> or from_euclidean_expr<Vs>)) and
     (not (from_euclidean_expr<V> and ... and from_euclidean_expr<Vs>))
 #else
@@ -366,9 +399,9 @@ namespace OpenKalman
   /// Concatenate one or more Eigen::MatrixBase objects horizontally.
 #ifdef __cpp_concepts
   template<typename V, typename ... Vs> requires
-    ((Eigen_matrix<V> or eigen_self_adjoint_expr<V> or eigen_triangular_expr<V> or
+    ((eigen_matrix<V> or eigen_self_adjoint_expr<V> or eigen_triangular_expr<V> or
       eigen_diagonal_expr<V> or from_euclidean_expr<V>) and ... and
-    (Eigen_matrix<Vs> or eigen_self_adjoint_expr<Vs> or eigen_triangular_expr<Vs> or
+    (eigen_matrix<Vs> or eigen_self_adjoint_expr<Vs> or eigen_triangular_expr<Vs> or
       eigen_diagonal_expr<Vs> or from_euclidean_expr<Vs>)) and
       (not (from_euclidean_expr<V> and ... and from_euclidean_expr<Vs>))
 #else
@@ -423,10 +456,11 @@ namespace OpenKalman
   /// Concatenate one or more Eigen::MatrixBase objects diagonally.
 #ifdef __cpp_concepts
   template<typename V, typename ... Vs> requires
-    ((Eigen_matrix<V> or eigen_self_adjoint_expr<V> or eigen_triangular_expr<V> or
+    ((eigen_matrix<V> or eigen_self_adjoint_expr<V> or eigen_triangular_expr<V> or
       eigen_diagonal_expr<V> or from_euclidean_expr<V>) and ... and
-    (Eigen_matrix<Vs> or eigen_self_adjoint_expr<Vs> or eigen_triangular_expr<Vs> or
+    (eigen_matrix<Vs> or eigen_self_adjoint_expr<Vs> or eigen_triangular_expr<Vs> or
       eigen_diagonal_expr<Vs> or from_euclidean_expr<Vs>)) and
+    (not (eigen_diagonal_expr<V> and ... and eigen_diagonal_expr<Vs>)) and
     (not (from_euclidean_expr<V> and ... and from_euclidean_expr<Vs>)) and
     (not (eigen_self_adjoint_expr<V> and ... and eigen_self_adjoint_expr<Vs>)) and
     (not (eigen_triangular_expr<V> and ... and eigen_triangular_expr<Vs>))
@@ -437,6 +471,7 @@ namespace OpenKalman
           is_EigenDiagonal<V>, is_FromEuclideanExpr<V>>,
         std::disjunction<is_Eigen_matrix<Vs>, is_EigenSelfAdjointMatrix<Vs>, is_EigenTriangularMatrix<Vs>,
           is_EigenDiagonal<Vs>, is_FromEuclideanExpr<Vs>>...> and
+      not std::conjunction_v<is_EigenDiagonal<V>, is_EigenDiagonal<Vs>...> and
       not std::conjunction_v<is_FromEuclideanExpr<V>, is_FromEuclideanExpr<Vs>...> and
       not std::conjunction_v<is_EigenSelfAdjointMatrix<V>, is_EigenSelfAdjointMatrix<Vs>...> and
       not std::conjunction_v<is_EigenTriangularMatrix<V>, is_EigenTriangularMatrix<Vs>...>, int> = 0>
@@ -482,12 +517,6 @@ namespace OpenKalman
       return std::tuple {std::move(block)};
     }
 
-    /// Default split function.
-    struct default_split_function
-    {
-      template<typename, typename, typename Arg>
-      static constexpr Arg&& call(Arg&& arg) { return std::forward<Arg>(arg); }
-    };
   }
 
 
@@ -497,7 +526,7 @@ namespace OpenKalman
   /// @tparam RC Coefficients for the first cut.
   /// @tparam RCs Coefficients for each of the second and subsequent cuts.
 #ifdef __cpp_concepts
-  template<typename F, bool euclidean, typename RC, typename...RCs, Eigen_matrix Arg>
+  template<typename F, bool euclidean, typename RC, typename...RCs, eigen_matrix Arg>
 #else
   template<typename F, bool euclidean, typename RC, typename...RCs,
     typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg>, int> = 0>
@@ -535,9 +564,9 @@ namespace OpenKalman
 
   /// Split a matrix vertically (case in which there is no split).
 #ifdef __cpp_concepts
-  template<typename F = internal::default_split_function, bool euclidean = false, Eigen_matrix Arg>
+  template<typename F = OpenKalman::internal::default_split_function, bool euclidean = false, eigen_matrix Arg>
 #else
-  template<typename F = internal::default_split_function, bool euclidean = false,
+  template<typename F = OpenKalman::internal::default_split_function, bool euclidean = false,
     typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg>, int> = 0>
 #endif
   inline auto
@@ -550,7 +579,7 @@ namespace OpenKalman
   /// @tparam F A class with a static <code>call</code> member to which the result is applied before creating the tuple.
   /// @tparam RCs Coefficients for each of the cuts.
 #ifdef __cpp_concepts
-  template<typename F, typename RC, typename...RCs, Eigen_matrix Arg>
+  template<typename F, typename RC, typename...RCs, eigen_matrix Arg>
   requires (not is_coefficient_v<F>) and std::conjunction_v<is_coefficient<RC>, is_coefficient<RCs>...>
 #else
   template<typename F, typename RC, typename...RCs, typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg> and
@@ -566,7 +595,7 @@ namespace OpenKalman
   /// @tparam RC Coefficients for the first cut.
   /// @tparam RCs Coefficients for the second and subsequent cuts.
 #ifdef __cpp_concepts
-  template<typename RC, typename...RCs, Eigen_matrix Arg>
+  template<typename RC, typename...RCs, eigen_matrix Arg>
   requires std::conjunction_v<is_coefficient<RC>, is_coefficient<RCs>...>
 #else
   template<typename RC, typename...RCs, typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg> and
@@ -575,16 +604,17 @@ namespace OpenKalman
   inline auto
   split_vertical(Arg&& arg) noexcept
   {
-    return split_vertical<internal::default_split_function, RC, RCs...>(std::forward<Arg>(arg));
+    return split_vertical<OpenKalman::internal::default_split_function, RC, RCs...>(std::forward<Arg>(arg));
   }
 
   /// Split a matrix vertically.
   /// @tparam cut Number of rows in the first cut.
   /// @tparam cuts Numbers of rows in the second and subsequent cuts.
 #ifdef __cpp_concepts
-  template<std::size_t cut, std::size_t ... cuts, Eigen_matrix Arg>
+  template<std::size_t cut, std::size_t ... cuts, eigen_matrix Arg>
 #else
-  template<std::size_t cut, std::size_t ... cuts, typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg>, int> = 0>
+  template<std::size_t cut, std::size_t ... cuts, typename Arg,
+    std::enable_if_t<is_Eigen_matrix_v<Arg>, int> = 0>
 #endif
   inline auto
   split_vertical(Arg&& arg) noexcept
@@ -599,7 +629,7 @@ namespace OpenKalman
   /// @tparam CCs Coefficients for each of the second and subsequent cuts.
   /// @tparam F An object having a static call() method to which the result is applied before creating the tuple.
 #ifdef __cpp_concepts
-  template<typename F, typename CC, typename...CCs, Eigen_matrix Arg> requires (not is_coefficient_v<F>)
+  template<typename F, typename CC, typename...CCs, eigen_matrix Arg> requires (not is_coefficient_v<F>)
 #else
   template<typename F, typename CC, typename...CCs, typename Arg,
     std::enable_if_t<is_Eigen_matrix_v<Arg> and not is_coefficient_v<F>, int> = 0>
@@ -636,10 +666,10 @@ namespace OpenKalman
 
   /// Split a matrix horizontally (case in which there is no split).
 #ifdef __cpp_concepts
-  template<typename F = internal::default_split_function, Eigen_matrix Arg>
+  template<typename F = OpenKalman::internal::default_split_function, eigen_matrix Arg>
 #else
-  template<typename F = internal::default_split_function,
-    typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg>, int> = 0>
+  template<typename F = OpenKalman::internal::default_split_function, typename Arg,
+    std::enable_if_t<is_Eigen_matrix_v<Arg>, int> = 0>
 #endif
   inline auto
   split_horizontal(Arg&& arg) noexcept
@@ -651,7 +681,7 @@ namespace OpenKalman
   /// @tparam CC Coefficients for the first cut.
   /// @tparam CCs Coefficients for the second and subsequent cuts.
 #ifdef __cpp_concepts
-  template<typename CC, typename...CCs, Eigen_matrix Arg> requires is_coefficient_v<CC>
+  template<typename CC, typename...CCs, eigen_matrix Arg> requires is_coefficient_v<CC>
 #else
   template<typename CC, typename...CCs, typename Arg,
     std::enable_if_t<is_Eigen_matrix_v<Arg> and is_coefficient_v<CC>, int> = 0>
@@ -659,7 +689,7 @@ namespace OpenKalman
   inline auto
   split_horizontal(Arg&& arg) noexcept
   {
-    return split_horizontal<internal::default_split_function, CC, CCs...>(std::forward<Arg>(arg));
+    return split_horizontal<OpenKalman::internal::default_split_function, CC, CCs...>(std::forward<Arg>(arg));
   }
 
   /// Split a matrix horizontally.
@@ -667,7 +697,7 @@ namespace OpenKalman
   /// @tparam cuts Numbers of columns in the second and subsequent cuts.
   /// @tparam F An object having a static call() method to which the result is applied before creating the tuple.
 #ifdef __cpp_concepts
-  template<std::size_t cut, std::size_t ... cuts, Eigen_matrix Arg>
+  template<std::size_t cut, std::size_t ... cuts, eigen_matrix Arg>
 #else
   template<std::size_t cut, std::size_t ... cuts, typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg>, int> = 0>
 #endif
@@ -684,7 +714,7 @@ namespace OpenKalman
   /// @tparam C Coefficients for the first cut.
   /// @tparam Cs Coefficients for each of the second and subsequent cuts.
 #ifdef __cpp_concepts
-  template<typename F, bool euclidean, typename C, typename...Cs, Eigen_matrix Arg>
+  template<typename F, bool euclidean, typename C, typename...Cs, eigen_matrix Arg>
 #else
   template<typename F, bool euclidean, typename C, typename...Cs,
     typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg>, int> = 0>
@@ -723,10 +753,10 @@ namespace OpenKalman
 
   /// Split a matrix vertically (case in which there is no split).
 #ifdef __cpp_concepts
-  template<typename F = internal::default_split_function, bool euclidean = false, Eigen_matrix Arg>
+  template<typename F = OpenKalman::internal::default_split_function, bool euclidean = false, eigen_matrix Arg>
   requires (not is_coefficient_v<F>)
 #else
-  template<typename F = internal::default_split_function, bool euclidean = false,
+  template<typename F = OpenKalman::internal::default_split_function, bool euclidean = false,
     typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg> and not is_coefficient_v<F>, int> = 0>
 #endif
   inline auto
@@ -740,7 +770,7 @@ namespace OpenKalman
   /// @tparam C Coefficients for the first cut.
   /// @tparam Cs Coefficients for each of the second and subsequent cuts.
 #ifdef __cpp_concepts
-  template<typename F, typename C, typename...Cs, Eigen_matrix Arg>
+  template<typename F, typename C, typename...Cs, eigen_matrix Arg>
   requires (not is_coefficient_v<F>) and std::conjunction_v<is_coefficient<C>, is_coefficient<Cs>...>
 #else
   template<typename F, typename C, typename...Cs, typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg> and
@@ -756,7 +786,7 @@ namespace OpenKalman
   /// @tparam C Coefficients for the first cut.
   /// @tparam Cs Coefficients for the second and subsequent cuts.
 #ifdef __cpp_concepts
-  template<typename C, typename...Cs, Eigen_matrix Arg>
+  template<typename C, typename...Cs, eigen_matrix Arg>
   requires std::conjunction_v<is_coefficient<C>, is_coefficient<Cs>...>
 #else
   template<typename C, typename...Cs, typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg> and
@@ -765,7 +795,7 @@ namespace OpenKalman
   inline auto
   split_diagonal(Arg&& arg) noexcept
   {
-    return split_diagonal<internal::default_split_function, C, Cs...>(std::forward<Arg>(arg));
+    return split_diagonal<OpenKalman::internal::default_split_function, C, Cs...>(std::forward<Arg>(arg));
   }
 
   /// Split a matrix diagonally. Must be a square matrix.
@@ -773,9 +803,10 @@ namespace OpenKalman
   /// @tparam cuts Numbers of rows and columns in the second and subsequent cuts.
   /// @tparam F An object having a static call() method to which the result is applied before creating the tuple.
 #ifdef __cpp_concepts
-  template<std::size_t cut, std::size_t ... cuts, Eigen_matrix Arg>
+  template<std::size_t cut, std::size_t ... cuts, eigen_matrix Arg>
 #else
-  template<std::size_t cut, std::size_t ... cuts, typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg>, int> = 0>
+  template<std::size_t cut, std::size_t ... cuts, typename Arg,
+    std::enable_if_t<is_Eigen_matrix_v<Arg>, int> = 0>
 #endif
   inline auto
   split_diagonal(Arg&& arg) noexcept
@@ -802,7 +833,8 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<eigen_native Arg> requires (MatrixTraits<Arg>::columns == 1)
 #else
-  template<typename Arg, std::enable_if_t<is_native_Eigen_type_v<Arg> and MatrixTraits<Arg>::columns == 1, int> = 0>
+  template<typename Arg, std::enable_if_t<
+    is_native_Eigen_type_v<Arg> and MatrixTraits<Arg>::columns == 1, int> = 0>
 #endif
   inline auto
   get_element(const Arg& arg, const std::size_t i)
@@ -943,7 +975,7 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<Eigen_matrix Arg, typename Function>
+  template<eigen_matrix Arg, typename Function>
   requires std::is_void_v<std::invoke_result_t<Function, std::decay_t<decltype(column(std::declval<Arg>(), 0))>& >>
 #else
   template<typename Arg, typename Function, std::enable_if_t<is_Eigen_matrix_v<Arg> and
@@ -957,7 +989,7 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<Eigen_matrix Arg, typename Function>
+  template<eigen_matrix Arg, typename Function>
   requires std::is_void_v<std::invoke_result_t<Function,
     std::decay_t<decltype(column(std::declval<Arg>(), 0))>&, std::size_t>>
 #else
@@ -973,7 +1005,7 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<Eigen_matrix Arg, typename Function>
+  template<eigen_matrix Arg, typename Function>
   requires (not std::is_void_v<std::invoke_result_t<Function,
       std::decay_t<decltype(column(std::declval<Arg>(), 0))>&& >>)
 #else
@@ -989,7 +1021,7 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<Eigen_matrix Arg, typename Function>
+  template<eigen_matrix Arg, typename Function>
   requires (not std::is_void_v<std::invoke_result_t<Function,
       std::decay_t<decltype(column(std::declval<Arg>(), 0))>&&, std::size_t>>)
 #else
@@ -1005,7 +1037,7 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<std::size_t count, typename Function> requires Eigen_matrix<std::invoke_result_t<Function>>
+  template<std::size_t count, typename Function> requires eigen_matrix<std::invoke_result_t<Function>>
 #else
   template<std::size_t count, typename Function,
     std::enable_if_t<is_Eigen_matrix_v<std::invoke_result_t<Function>>, int> = 0>
@@ -1018,7 +1050,7 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<std::size_t count, typename Function> requires Eigen_matrix<std::invoke_result_t<Function, std::size_t>>
+  template<std::size_t count, typename Function> requires eigen_matrix<std::invoke_result_t<Function, std::size_t>>
 #else
   template<std::size_t count, typename Function,
     std::enable_if_t<is_Eigen_matrix_v<std::invoke_result_t<Function, std::size_t>>, int> = 0>
@@ -1033,7 +1065,7 @@ namespace OpenKalman
   ////
 
 #ifdef __cpp_concepts
-  template<Eigen_matrix Arg, typename Function>
+  template<eigen_matrix Arg, typename Function>
   requires std::is_void_v<std::invoke_result_t<Function,
       std::decay_t<typename MatrixTraits<Arg>::Scalar>&>>
 #else
@@ -1056,7 +1088,7 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<Eigen_matrix Arg, typename Function>
+  template<eigen_matrix Arg, typename Function>
   requires std::is_void_v<std::invoke_result_t<Function,
       std::decay_t<typename MatrixTraits<Arg>::Scalar>&, std::size_t, std::size_t>>
 #else
@@ -1079,7 +1111,7 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<Eigen_matrix Arg, typename Function>
+  template<eigen_matrix Arg, typename Function>
   requires std::convertible_to<std::invoke_result_t<Function, std::decay_t<typename MatrixTraits<Arg>::Scalar>>,
       typename MatrixTraits<Arg>::Scalar>
 #else
@@ -1095,7 +1127,7 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<Eigen_matrix Arg, typename Function>
+  template<eigen_matrix Arg, typename Function>
   requires std::convertible_to<std::invoke_result_t<Function,
       std::decay_t<typename MatrixTraits<Arg>::Scalar>, std::size_t, std::size_t>,
       typename MatrixTraits<Arg>::Scalar>
@@ -1158,7 +1190,6 @@ namespace OpenKalman
     return ret;
   }
 
-
   namespace detail
   {
     template<typename Scalar, template<typename> typename distribution_type, typename random_number_engine>
@@ -1187,7 +1218,7 @@ namespace OpenKalman
    **/
 #ifdef __cpp_concepts
   template<
-    Eigen_matrix ReturnType,
+    eigen_matrix ReturnType,
     template<typename> typename distribution_type = std::normal_distribution,
     typename random_number_engine = std::mt19937,
     typename...Params>

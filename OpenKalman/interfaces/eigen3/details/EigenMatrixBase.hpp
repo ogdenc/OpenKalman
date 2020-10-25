@@ -18,9 +18,9 @@ namespace Eigen
 
   template<typename XprType>
   struct DiagonalCommaInitializer;
-}
+} // namespace Eigen
 
-namespace OpenKalman::internal
+namespace OpenKalman::Eigen3::internal
 {
   /*
    * Base class for all OpenKalman classes that are also Eigen3 matrices.
@@ -38,10 +38,10 @@ namespace OpenKalman::internal
       decltype(auto) b = base_matrix(std::forward<Arg>(arg));
       using B = decltype(b);
       if constexpr(
-        eigen_self_adjoint_expr<B> or
-        eigen_triangular_expr<B> or
-        eigen_diagonal_expr<B> or
-        euclidean_expr<B>)
+        Eigen3::eigen_self_adjoint_expr<B> or
+        Eigen3::eigen_triangular_expr<B> or
+        Eigen3::eigen_diagonal_expr<B> or
+        Eigen3::euclidean_expr<B>)
       {
         return get_ultimate_base_matrix(b);
       }
@@ -54,12 +54,12 @@ namespace OpenKalman::internal
     template<typename Arg>
     constexpr decltype(auto) get_ultimate_base_matrix(Arg&& arg) noexcept
     {
-      if constexpr(eigen_self_adjoint_expr<Arg>)
+      if constexpr(Eigen3::eigen_self_adjoint_expr<Arg>)
       {
         if constexpr (MatrixTraits<Arg>::storage_type == TriangleType::diagonal) return std::forward<Arg>(arg);
         else return get_ultimate_base_matrix_impl(std::forward<Arg>(arg));
       }
-      else if constexpr(eigen_triangular_expr<Arg>)
+      else if constexpr(Eigen3::eigen_triangular_expr<Arg>)
       {
         if constexpr(MatrixTraits<Arg>::triangle_type == TriangleType::diagonal) return std::forward<Arg>(arg);
         else return get_ultimate_base_matrix_impl(std::forward<Arg>(arg));
@@ -89,7 +89,7 @@ namespace OpenKalman::internal
       {
         return Eigen::MeanCommaInitializer<Derived, Xpr>(xpr, static_cast<const Scalar&>(s));
       }
-      else if constexpr(eigen_self_adjoint_expr<Xpr> or eigen_triangular_expr<Xpr>)
+      else if constexpr(Eigen3::eigen_self_adjoint_expr<Xpr> or Eigen3::eigen_triangular_expr<Xpr>)
       {
         return Eigen::DiagonalCommaInitializer(xpr, static_cast<const Scalar&>(s));
       }
@@ -108,7 +108,7 @@ namespace OpenKalman::internal
       {
         return Eigen::MeanCommaInitializer<Derived, Xpr>(xpr, static_cast<const OtherDerived&>(other));
       }
-      else if constexpr(eigen_self_adjoint_expr<Xpr> or eigen_triangular_expr<Xpr>)
+      else if constexpr(Eigen3::eigen_self_adjoint_expr<Xpr> or Eigen3::eigen_triangular_expr<Xpr>)
       {
         std::cout << "a3" << std::endl << std::flush;
         return Eigen::DiagonalCommaInitializer(xpr, static_cast<const OtherDerived&>(other));
@@ -125,9 +125,10 @@ namespace OpenKalman::internal
 
     /// Redefined to avoid confusion with identity().
     static decltype(auto) Identity() { return Derived::identity(); }
+
   };
 
-}
+} // namespace OpenKalman::Eigen3::internal
 
 namespace Eigen
 {
@@ -155,7 +156,7 @@ namespace Eigen
 
     auto& finished()
     {
-      this->m_xpr = OpenKalman::wrap_angles<Coefficients>(Base::finished());
+      this->m_xpr = OpenKalman::Eigen3::wrap_angles<Coefficients>(Base::finished());
       return this->m_xpr;
     }
   };
@@ -219,11 +220,11 @@ namespace Eigen
 
     auto& finished()
     {
-      diag = OpenKalman::EigenDiagonal<BaseMatrix>(comma_initializer.finished());
+      diag = OpenKalman::Eigen3::EigenDiagonal<BaseMatrix>(comma_initializer.finished());
       return diag;
     }
   };
 
-}
+} // namespace Eigen3
 
 #endif //OPENKALMAN_EIGENMATRIXBASE_HPP

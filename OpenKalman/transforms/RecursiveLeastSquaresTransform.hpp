@@ -55,7 +55,7 @@ namespace OpenKalman
       auto scaled_cov = strict(covariance(x) * inv_lambda);
       const auto scaled_x = GaussianDistribution {mean(x), scaled_cov};
       auto y = strict((scaled_x + ... + ns));
-      auto cross = TypedMatrix {scaled_cov};
+      auto cross = Matrix {scaled_cov};
       return std::tuple {std::move(y), std::move(cross)};
     }
 

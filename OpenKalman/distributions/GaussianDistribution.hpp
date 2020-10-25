@@ -239,7 +239,7 @@ namespace OpenKalman
     auto operator()() const
     {
       auto norm = randomize<
-        TypedMatrix<Coefficients, Axis, MatrixBase>, std::normal_distribution, random_number_engine>(0.0, 1.0);
+        Matrix<Coefficients, Axis, MatrixBase>, std::normal_distribution, random_number_engine>(0.0, 1.0);
       auto s = square_root(sigma);
       if constexpr(not is_lower_triangular_v<CovarianceBase>)
         return strict(make_Matrix(mu) + transpose(s) * norm);

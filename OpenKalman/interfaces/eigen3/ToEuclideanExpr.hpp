@@ -11,7 +11,7 @@
 #ifndef OPENKALMAN_TESTS_TOEUCLIDEANEXPR_H
 #define OPENKALMAN_TESTS_TOEUCLIDEANEXPR_H
 
-namespace OpenKalman
+namespace OpenKalman::Eigen3
 {
   // ------------------------------ //
   //        ToEuclideanExpr         //
@@ -19,10 +19,10 @@ namespace OpenKalman
 
   // Class documentation is in EigenForwardDeclarations.h
   template<typename Coefficients, typename BaseMatrix>
-  struct ToEuclideanExpr : internal::MatrixBase<ToEuclideanExpr<Coefficients, BaseMatrix>, BaseMatrix>
+  struct ToEuclideanExpr : OpenKalman::internal::MatrixBase<ToEuclideanExpr<Coefficients, BaseMatrix>, BaseMatrix>
   {
     static_assert(MatrixTraits<BaseMatrix>::dimension == Coefficients::size);
-    using Base = internal::MatrixBase<ToEuclideanExpr, BaseMatrix>;
+    using Base = OpenKalman::internal::MatrixBase<ToEuclideanExpr, BaseMatrix>;
     using Scalar = typename MatrixTraits<BaseMatrix>::Scalar; ///< Scalar type for this variable.
     static constexpr auto columns = MatrixTraits<BaseMatrix>::columns; ///< Number of columns.
 
@@ -36,16 +36,17 @@ namespace OpenKalman
 
 
     /// Move constructor.
-    ToEuclideanExpr(ToEuclideanExpr&& other) noexcept : Base(std::move(other).base_matrix()) {}
+    ToEuclideanExpr(ToEuclideanExpr&& other) noexcept: Base(std::move(other).base_matrix()) {}
 
 
     /// Construct from a compatible to-Euclidean expression.
 #ifdef __cpp_concepts
     template<to_euclidean_expr Arg>
 #else
-    template<typename Arg, std::enable_if_t<is_ToEuclideanExpr_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<is_ToEuclideanExpr_v < Arg>, int> = 0>
 #endif
-    ToEuclideanExpr(Arg&& other) noexcept : Base(std::forward<Arg>(other).base_matrix())
+
+    ToEuclideanExpr(Arg&& other) noexcept: Base(std::forward<Arg>(other).base_matrix())
     {
       static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::Coefficients, Coefficients>);
       static_assert(MatrixTraits<Arg>::columns == columns);
@@ -53,8 +54,9 @@ namespace OpenKalman
 
     /// Construct from compatible matrix object.
 #ifdef __cpp_concepts
-    template<Eigen_matrix Arg>
+    template<eigen_matrix Arg>
 #else
+
     template<typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg>, int> = 0>
 #endif
     ToEuclideanExpr(Arg&& arg) noexcept : Base(std::forward<Arg>(arg))
@@ -68,25 +70,29 @@ namespace OpenKalman
     template<std::convertible_to<const Scalar> ... Args> requires
       (sizeof...(Args) == columns * (from_euclidean_expr<BaseMatrix> ? Coefficients::dimension : Coefficients::size))
 #else
-    template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...> and
-      sizeof...(Args) == columns *
-      (is_FromEuclideanExpr_v<BaseMatrix> ? Coefficients::dimension : Coefficients::size), int> = 0>
+
+    template<
+      typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...> and
+        sizeof...(Args) == columns *
+          (is_FromEuclideanExpr_v < BaseMatrix > ? Coefficients::dimension : Coefficients::size), int> = 0>
 #endif
     ToEuclideanExpr(Args ... args) : Base(MatrixTraits<BaseMatrix>::make(args...)) {}
 
     /// Copy assignment operator.
     auto& operator=(const ToEuclideanExpr& other)
     {
-      if constexpr (not is_zero_v<BaseMatrix> and not is_identity_v<BaseMatrix>) if (this != &other)
-        this->base_matrix() = other.base_matrix();
+      if constexpr (not is_zero_v < BaseMatrix > and not is_identity_v<BaseMatrix>)
+        if (this != &other)
+          this->base_matrix() = other.base_matrix();
       return *this;
     }
 
     /// Move assignment operator.
     auto& operator=(ToEuclideanExpr&& other) noexcept
     {
-      if constexpr (not is_zero_v<BaseMatrix> and not is_identity_v<BaseMatrix>) if (this != &other)
-        this->base_matrix() = std::move(other).base_matrix();
+      if constexpr (not is_zero_v < BaseMatrix > and not is_identity_v<BaseMatrix>)
+        if (this != &other)
+          this->base_matrix() = std::move(other).base_matrix();
       return *this;
     }
 
@@ -94,15 +100,16 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<to_euclidean_expr Arg>
 #else
-    template<typename Arg, std::enable_if_t<is_ToEuclideanExpr_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<is_ToEuclideanExpr_v < Arg>, int> = 0>
 #endif
+
     auto& operator=(Arg&& other) noexcept
     {
-      static_assert(is_equivalent_v<typename MatrixTraits<Arg>::Coefficients, Coefficients>);
+      static_assert(is_equivalent_v < typename MatrixTraits<Arg>::Coefficients, Coefficients > );
       static_assert(MatrixTraits<Arg>::columns == columns);
-      if constexpr (is_zero_v<BaseMatrix>)
+      if constexpr (is_zero_v < BaseMatrix >)
       {
-        static_assert(is_zero_v<Arg>);
+        static_assert(is_zero_v < Arg > );
       }
       else if constexpr (is_identity_v<BaseMatrix>)
       {
@@ -117,17 +124,18 @@ namespace OpenKalman
 
     /// Assign from a general Eigen matrix.
 #ifdef __cpp_concepts
-    template<Eigen_matrix Arg>
+    template<eigen_matrix Arg>
 #else
+
     template<typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg>, int> = 0>
 #endif
     auto& operator=(Arg&& arg) noexcept
     {
       static_assert(MatrixTraits<Arg>::dimension == Coefficients::dimension);
       static_assert(MatrixTraits<Arg>::columns == columns);
-      if constexpr (is_zero_v<BaseMatrix>)
+      if constexpr (is_zero_v < BaseMatrix >)
       {
-        static_assert(is_zero_v<Arg>);
+        static_assert(is_zero_v < Arg > );
       }
       else if constexpr (is_identity_v<BaseMatrix>)
       {
@@ -142,15 +150,16 @@ namespace OpenKalman
 
     /// Increment from another expression.
 #ifdef __cpp_concepts
-    template<typename Arg> requires to_euclidean_expr<Arg> or Eigen_matrix<Arg>
+    template<typename Arg> requires to_euclidean_expr<Arg> or eigen_matrix<Arg>
 #else
-    template<typename Arg, std::enable_if_t<is_ToEuclideanExpr_v<Arg> or is_Eigen_matrix_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<is_ToEuclideanExpr_v < Arg> or is_Eigen_matrix_v<Arg>, int> = 0>
 #endif
+
     auto& operator+=(Arg&& other) noexcept
     {
       static_assert(MatrixTraits<Arg>::columns == MatrixTraits<BaseMatrix>::columns);
       static_assert(MatrixTraits<Arg>::dimension == Coefficients::dimension);
-      if constexpr(to_euclidean_expr<Arg>)
+      if constexpr(to_euclidean_expr < Arg >)
         static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::Coefficients, Coefficients>);
       this->base_matrix() = strict(from_Euclidean<Coefficients>(*this + std::forward<Arg>(other)));
       return *this;
@@ -158,15 +167,16 @@ namespace OpenKalman
 
     /// Decrement from another expression.
 #ifdef __cpp_concepts
-    template<typename Arg> requires to_euclidean_expr<Arg> or Eigen_matrix<Arg>
+    template<typename Arg> requires to_euclidean_expr<Arg> or eigen_matrix<Arg>
 #else
-    template<typename Arg, std::enable_if_t<is_ToEuclideanExpr_v<Arg> or is_Eigen_matrix_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<is_ToEuclideanExpr_v < Arg> or is_Eigen_matrix_v<Arg>, int> = 0>
 #endif
+
     auto& operator-=(Arg&& other) noexcept
     {
       static_assert(MatrixTraits<Arg>::columns == MatrixTraits<BaseMatrix>::columns);
       static_assert(MatrixTraits<Arg>::dimension == Coefficients::dimension);
-      if constexpr(to_euclidean_expr<Arg>)
+      if constexpr(to_euclidean_expr < Arg >)
         static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::Coefficients, Coefficients>);
       this->base_matrix() = strict(from_Euclidean<Coefficients>(*this - std::forward<Arg>(other)));
       return *this;
@@ -184,6 +194,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<std::convertible_to<Scalar> S>
 #else
+
     template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
 #endif
     auto& operator/=(const S scale)
@@ -212,26 +223,29 @@ namespace OpenKalman
 
     auto operator()(std::size_t i, std::size_t j)
     {
-      if constexpr (is_element_settable_v<ToEuclideanExpr, 2>)
-        return internal::ElementSetter(*this, i, j);
+      if constexpr (is_element_settable_v < ToEuclideanExpr, 2 >)
+        return OpenKalman::internal::ElementSetter(*this, i, j);
       else
         return const_cast<const ToEuclideanExpr&>(*this)(i, j);
     }
 
 
-    auto operator()(std::size_t i, std::size_t j) const noexcept { return internal::ElementSetter(*this, i, j); }
+    auto operator()(std::size_t i, std::size_t j) const noexcept
+    {
+      return OpenKalman::internal::ElementSetter(*this, i, j);
+    }
 
 
     auto operator[](std::size_t i)
     {
-      if constexpr (is_element_settable_v<ToEuclideanExpr, 1>)
-        return internal::ElementSetter(*this, i);
+      if constexpr (is_element_settable_v < ToEuclideanExpr, 1 >)
+        return OpenKalman::internal::ElementSetter(*this, i);
       else
         return const_cast<const ToEuclideanExpr&>(*this)[i];
     }
 
 
-    auto operator[](std::size_t i) const noexcept { return internal::ElementSetter(*this, i); }
+    auto operator[](std::size_t i) const noexcept { return OpenKalman::internal::ElementSetter(*this, i); }
 
 
     auto operator()(std::size_t i) { return operator[](i); }
@@ -240,14 +254,18 @@ namespace OpenKalman
     auto operator()(std::size_t i) const { return operator[](i); }
   };
 
+} // OpenKalman::Eigen3
 
+
+namespace OpenKalman
+{
   // --------------------- //
   //        Traits         //
   // --------------------- //
 
   /// Define matrix traits.
   template<typename Coeffs, typename ArgType>
-  struct MatrixTraits<ToEuclideanExpr<Coeffs, ArgType>>
+  struct MatrixTraits<Eigen3::ToEuclideanExpr<Coeffs, ArgType>>
   {
     using BaseMatrix = ArgType;
     using Coefficients = Coeffs;
@@ -257,33 +275,35 @@ namespace OpenKalman
     static_assert(Coefficients::size == MatrixTraits<BaseMatrix>::dimension);
 
     template<typename Derived>
-    using MatrixBaseType = internal::EigenMatrixBase<Derived, ToEuclideanExpr<Coeffs, ArgType>>;
+    using MatrixBaseType = Eigen3::internal::EigenMatrixBase<Derived, Eigen3::ToEuclideanExpr<Coeffs, ArgType>>;
 
     template<std::size_t rows = dimension, std::size_t cols = columns, typename S = Scalar>
     using StrictMatrix = typename MatrixTraits<BaseMatrix>::template StrictMatrix<rows, cols, S>;
 
-    using Strict = ToEuclideanExpr<Coefficients, typename MatrixTraits<BaseMatrix>::Strict>;
+    using Strict = Eigen3::ToEuclideanExpr<Coefficients, typename MatrixTraits<BaseMatrix>::Strict>;
 
     template<TriangleType storage_triangle = TriangleType::lower, std::size_t dim = dimension, typename S = Scalar>
-    using SelfAdjointBaseType = EigenSelfAdjointMatrix<StrictMatrix<dim, dim, S>, storage_triangle>;
+    using SelfAdjointBaseType = Eigen3::EigenSelfAdjointMatrix<StrictMatrix<dim, dim, S>, storage_triangle>;
 
     template<TriangleType triangle_type = TriangleType::lower, std::size_t dim = dimension, typename S = Scalar>
-    using TriangularBaseType = EigenTriangularMatrix<StrictMatrix<dim, dim, S>, triangle_type>;
+    using TriangularBaseType = Eigen3::EigenTriangularMatrix<StrictMatrix<dim, dim, S>, triangle_type>;
 
     template<std::size_t dim = dimension, typename S = Scalar>
-    using DiagonalBaseType = EigenDiagonal<StrictMatrix<dim, 1, S>>;
+    using DiagonalBaseType = Eigen3::EigenDiagonal<StrictMatrix<dim, 1, S>>;
 
 
     /// Make from a regular matrix.
 #ifdef __cpp_concepts
-    template<typename C = Coefficients, typename Arg> requires Eigen_matrix<Arg> or from_euclidean_expr<Arg>
+    template<typename C = Coefficients, typename Arg> requires
+      Eigen3::eigen_matrix<Arg> or Eigen3::from_euclidean_expr<Arg>
 #else
     template<typename C = Coefficients, typename Arg,
-      std::enable_if_t<is_Eigen_matrix_v<Arg> or is_FromEuclideanExpr_v<Arg>, int> = 0>
+      std::enable_if_t<Eigen3::is_Eigen_matrix_v<Arg> or Eigen3::is_FromEuclideanExpr_v<Arg>, int> = 0>
 #endif
     static auto make(Arg&& arg) noexcept
     {
       static_assert(MatrixTraits<Arg>::dimension == C::size);
+      using namespace Eigen3;
       return to_Euclidean<C>(std::forward<Arg>(arg));
     }
 
@@ -301,10 +321,10 @@ namespace OpenKalman
     }
 
 
-    static auto zero() { return ToEuclideanExpr<Coefficients, BaseMatrix>::zero(); }
+    static auto zero() { return Eigen3::ToEuclideanExpr<Coefficients, BaseMatrix>::zero(); }
 
 
-    static auto identity() { return ToEuclideanExpr<Coefficients, BaseMatrix>::identity(); }
+    static auto identity() { return Eigen3::ToEuclideanExpr<Coefficients, BaseMatrix>::identity(); }
   };
 
 

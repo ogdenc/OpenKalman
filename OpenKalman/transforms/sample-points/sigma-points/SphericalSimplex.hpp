@@ -85,7 +85,7 @@ namespace OpenKalman
       constexpr auto rows = DistributionTraits<Dist>::dimension;
       constexpr auto count = sigma_point_count<dim>();
       using Xbase = strict_matrix_t<typename DistributionTraits<Dist>::Mean, rows, count>;
-      TypedMatrix<Coefficients, Axes<count>, Xbase> X {sigma_point_coeff<ns / count + pos, ns % count, dim, Scalar>()...};
+      Matrix<Coefficients, Axes<count>, Xbase> X {sigma_point_coeff<ns / count + pos, ns % count, dim, Scalar>()...};
       return X;
     }
 
