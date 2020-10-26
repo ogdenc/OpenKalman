@@ -50,50 +50,50 @@ using M33 = Eigen::Matrix<double, 3, 3>;
 
 TEST_F(kalman, rotation_3D_linear_SA)
 {
-  rotation_3D<EigenSelfAdjointMatrix<M33>>(LinearTransform());
+  rotation_3D<SelfAdjointMatrix<M33>>(LinearTransform());
 }
 
 TEST_F(kalman, rotation_3D_linear_T)
 {
-  rotation_3D<EigenTriangularMatrix<M33>>(LinearTransform());
+  rotation_3D<TriangularMatrix<M33>>(LinearTransform());
 }
 
 TEST_F(kalman, rotation_3D_linearized_SA)
 {
-  rotation_3D<EigenSelfAdjointMatrix<M33>>(LinearizedTransform<2>());
+  rotation_3D<SelfAdjointMatrix<M33>>(LinearizedTransform<2>());
 }
 
 TEST_F(kalman, rotation_3D_linearized_T)
 {
-  rotation_3D<EigenTriangularMatrix<M33>>(LinearizedTransform<2>());
+  rotation_3D<TriangularMatrix<M33>>(LinearizedTransform<2>());
 }
 
 TEST_F(kalman, rotation_3D_cubature_SA)
 {
-  rotation_3D<EigenSelfAdjointMatrix<M33>>(CubatureTransform());
+  rotation_3D<SelfAdjointMatrix<M33>>(CubatureTransform());
 }
 
 TEST_F(kalman, rotation_3D_cubature_T)
 {
-  rotation_3D<EigenTriangularMatrix<M33>>(CubatureTransform());
+  rotation_3D<TriangularMatrix<M33>>(CubatureTransform());
 }
 
 TEST_F(kalman, rotation_3D_unscented_SA)
 {
-  rotation_3D<EigenSelfAdjointMatrix<M33>>(SamplePointsTransform<UnscentedSigmaPointsParameterEstimation>());
+  rotation_3D<SelfAdjointMatrix<M33>>(SamplePointsTransform<UnscentedSigmaPointsParameterEstimation>());
 }
 
 TEST_F(kalman, rotation_3D_unscented_T)
 {
-  rotation_3D<EigenTriangularMatrix<M33>>(SamplePointsTransform<UnscentedSigmaPointsParameterEstimation>());
+  rotation_3D<TriangularMatrix<M33>>(SamplePointsTransform<UnscentedSigmaPointsParameterEstimation>());
 }
 
 TEST_F(kalman, rotation_3D_simplex_SA)
 {
-  rotation_3D<EigenSelfAdjointMatrix<M33>>(SamplePointsTransform<SphericalSimplexSigmaPoints>());
+  rotation_3D<SelfAdjointMatrix<M33>>(SamplePointsTransform<SphericalSimplexSigmaPoints>());
 }
 
 TEST_F(kalman, rotation_3D_simplex_T)
 {
-  rotation_3D<EigenTriangularMatrix<M33>>(SamplePointsTransform<SphericalSimplexSigmaPoints>());
+  rotation_3D<TriangularMatrix<M33>>(SamplePointsTransform<SphericalSimplexSigmaPoints>());
 }

@@ -100,7 +100,7 @@ namespace OpenKalman
 
   /// Circle is a coefficient.
   template<typename Traits>
-  struct is_coefficient<Circle<Traits>> : std::true_type {};
+  struct is_coefficients<Circle<Traits>> : std::true_type {};
 
 
   template<typename Traits>

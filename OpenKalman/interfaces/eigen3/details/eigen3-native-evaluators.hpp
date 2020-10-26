@@ -8,8 +8,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#ifndef OPENKALMAN_EIGENEVALUATORS_HPP
-#define OPENKALMAN_EIGENEVALUATORS_HPP
+#ifndef OPENKALMAN_EIGEN3_NATIVE_EVALUATORS_HPP
+#define OPENKALMAN_EIGEN3_NATIVE_EVALUATORS_HPP
 
 namespace Eigen::internal
 {
@@ -46,11 +46,11 @@ namespace Eigen::internal
 
 
   template<typename ArgType, OpenKalman::TriangleType storage_triangle>
-  struct evaluator<OpenKalman::Eigen3::EigenSelfAdjointMatrix<ArgType, storage_triangle>>
-    : evaluator_base<OpenKalman::Eigen3::EigenSelfAdjointMatrix<ArgType, storage_triangle>>
+  struct evaluator<OpenKalman::Eigen3::SelfAdjointMatrix<ArgType, storage_triangle>>
+    : evaluator_base<OpenKalman::Eigen3::SelfAdjointMatrix<ArgType, storage_triangle>>
   {
     using Scalar = typename std::decay_t<ArgType>::Scalar;
-    using XprType = OpenKalman::Eigen3::EigenSelfAdjointMatrix<ArgType, storage_triangle>;
+    using XprType = OpenKalman::Eigen3::SelfAdjointMatrix<ArgType, storage_triangle>;
     using CoeffReturnType = typename XprType::CoeffReturnType;
     using NestedEvaluator = evaluator<std::decay_t<ArgType>>;
     enum
@@ -149,11 +149,11 @@ namespace Eigen::internal
 
 
   template<typename ArgType, OpenKalman::TriangleType triangle_type>
-  struct evaluator<OpenKalman::Eigen3::EigenTriangularMatrix<ArgType, triangle_type>>
-    : evaluator_base<OpenKalman::Eigen3::EigenTriangularMatrix<ArgType, triangle_type>>
+  struct evaluator<OpenKalman::Eigen3::TriangularMatrix<ArgType, triangle_type>>
+    : evaluator_base<OpenKalman::Eigen3::TriangularMatrix<ArgType, triangle_type>>
   {
     using Scalar = typename std::decay_t<ArgType>::Scalar;
-    using XprType = OpenKalman::Eigen3::EigenTriangularMatrix<ArgType, triangle_type>;
+    using XprType = OpenKalman::Eigen3::TriangularMatrix<ArgType, triangle_type>;
     using CoeffReturnType = typename XprType::CoeffReturnType;
     using NestedEvaluator = evaluator<std::decay_t<ArgType>>;
     enum
@@ -278,11 +278,11 @@ namespace Eigen::internal
 
 
   template<typename ArgType>
-  struct evaluator<OpenKalman::Eigen3::EigenDiagonal<ArgType>>
-    : evaluator_base<OpenKalman::Eigen3::EigenDiagonal<ArgType>>
+  struct evaluator<OpenKalman::Eigen3::DiagonalMatrix<ArgType>>
+    : evaluator_base<OpenKalman::Eigen3::DiagonalMatrix<ArgType>>
   {
     using Scalar = typename std::decay_t<ArgType>::Scalar;
-    using XprType = OpenKalman::Eigen3::EigenDiagonal<ArgType>;
+    using XprType = OpenKalman::Eigen3::DiagonalMatrix<ArgType>;
     using CoeffReturnType = typename XprType::CoeffReturnType;
     using NestedEvaluator = evaluator<std::decay_t<ArgType>>;
     enum
@@ -329,9 +329,9 @@ namespace Eigen::internal
 
 
   template<typename Nested>
-  struct evaluator<OpenKalman::Eigen3::EigenZero<Nested>> : evaluator<typename Nested::ConstantReturnType>
+  struct evaluator<OpenKalman::Eigen3::ZeroMatrix<Nested>> : evaluator<typename Nested::ConstantReturnType>
   {
-    using XprType = OpenKalman::Eigen3::EigenZero<Nested>;
+    using XprType = OpenKalman::Eigen3::ZeroMatrix<Nested>;
     using Base = evaluator<typename std::decay_t<Nested>::ConstantReturnType>;
     explicit evaluator(const XprType& m_arg) : Base {m_arg} {}
   };
@@ -621,4 +621,4 @@ namespace Eigen::internal
 
 } // namespace Eigen::internal
 
-#endif //OPENKALMAN_EIGENEVALUATORS_HPP
+#endif //OPENKALMAN_EIGEN3_NATIVE_EVALUATORS_HPP

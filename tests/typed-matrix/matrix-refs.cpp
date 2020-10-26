@@ -19,7 +19,7 @@ using M23 = Eigen::Matrix<double, 2, 3>;
 using M32 = Eigen::Matrix<double, 3, 2>;
 using M33 = Eigen::Matrix<double, 3, 3>;
 using I22 = EigenIdentity<M22>;
-using Z22 = EigenZero<M22>;
+using Z22 = ZeroMatrix<M22>;
 using C2 = Coefficients<Axis, Angle>;
 using C3 = Coefficients<Axis, Angle, Axis>;
 

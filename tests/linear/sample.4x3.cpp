@@ -12,8 +12,8 @@
 
 using C4 = Axes<4>;
 using M44 = Eigen::Matrix<double, 4, 4>;
-using CovSA4 = Covariance<C4, EigenSelfAdjointMatrix<M44>>;
-using CovT4 = Covariance<C4, EigenTriangularMatrix<M44>>;
+using CovSA4 = Covariance<C4, SelfAdjointMatrix<M44>>;
+using CovT4 = Covariance<C4, TriangularMatrix<M44>>;
 inline CovSA4 covSA4 = {1.4, 0.1, 0.2, 0.3, 0.1, 2.3, 0.4, 0.5, 0.2, 0.4, 3.2, 0.6, 0.3, 0.5, 0.6, 4.1};
 inline CovT4 covT4 = {1.4, 0.1, 0.2, 0.3, 0.1, 2.3, 0.4, 0.5, 0.2, 0.4, 3.2, 0.6, 0.3, 0.5, 0.6, 4.1};
 inline SamplePointsTransform<UnscentedSigmaPoints> UT1;

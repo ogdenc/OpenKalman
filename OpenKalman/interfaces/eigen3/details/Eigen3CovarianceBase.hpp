@@ -8,8 +8,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#ifndef OPENKALMAN_EIGENCOVARIANCEBASE_HPP
-#define OPENKALMAN_EIGENCOVARIANCEBASE_HPP
+#ifndef OPENKALMAN_EIGEN3COVARIANCEBASE_HPP
+#define OPENKALMAN_EIGEN3COVARIANCEBASE_HPP
 
 namespace Eigen
 {
@@ -26,10 +26,10 @@ namespace OpenKalman::Eigen3::internal
    * (2) Derived is a square root and the base is triangular.
    */
   template<typename Derived, typename Nested>
-  struct EigenCovarianceBase<Derived, Nested,
+  struct Eigen3CovarianceBase<Derived, Nested,
     std::enable_if_t<(is_self_adjoint_v<Nested> and not is_square_root_v<Derived>) or
       (is_triangular_v<Nested> and is_square_root_v<Derived>)>>
-    : EigenMatrixBase<Derived, Nested> {};
+    : Eigen3MatrixBase<Derived, Nested> {};
 
 
   /**
@@ -37,13 +37,13 @@ namespace OpenKalman::Eigen3::internal
    * the base is not self-adjoint (i.e., it is triangular but not diagonal).
    */
   template<typename Derived, typename ArgType>
-  struct EigenCovarianceBase<Derived, ArgType,
+  struct Eigen3CovarianceBase<Derived, ArgType,
     std::enable_if_t<not is_self_adjoint_v<ArgType> and not is_square_root_v<Derived>>>
-    : EigenMatrixBase<Derived, ArgType>
+    : Eigen3MatrixBase<Derived, ArgType>
   {
     using Nested = std::decay_t<ArgType>;
     using Scalar = typename Nested::Scalar;
-    using Base = EigenMatrixBase<Derived, Nested>;
+    using Base = Eigen3MatrixBase<Derived, Nested>;
 
     template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
     constexpr auto operator<<(const S& s)
@@ -66,13 +66,13 @@ namespace OpenKalman::Eigen3::internal
    * the base is not triangular (i.e., it is self-adjoint but not diagonal).
    */
   template<typename Derived, typename ArgType>
-  struct EigenCovarianceBase<Derived, ArgType,
+  struct Eigen3CovarianceBase<Derived, ArgType,
     std::enable_if_t<not is_triangular_v<ArgType> and is_square_root_v<Derived>>>
-    : EigenMatrixBase<Derived, ArgType>
+    : Eigen3MatrixBase<Derived, ArgType>
   {
     using Nested = std::decay_t<ArgType>;
     using Scalar = typename Nested::Scalar;
-    using Base = EigenMatrixBase<Derived, Nested>;
+    using Base = Eigen3MatrixBase<Derived, Nested>;
 
     template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
     constexpr auto operator<<(const S& s)
@@ -152,4 +152,4 @@ namespace Eigen
 } // namespace Eigen
 
 
-#endif //OPENKALMAN_EIGENCOVARIANCEBASE_HPP
+#endif //OPENKALMAN_EIGEN3COVARIANCEBASE_HPP

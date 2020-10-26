@@ -84,13 +84,13 @@ TEST_F(eigen3, ToEuclideanExpr_class)
   EXPECT_TRUE(is_near(d4, m));
   To3 d5 = MatrixTraits<M3>::zero();
   EXPECT_TRUE(is_near(d5, mat4(0, 0, 1, 1, 0, 0, 0, 0)));
-  To3 d6 = EigenZero<M3>();
+  To3 d6 = ZeroMatrix<M3>();
   EXPECT_TRUE(is_near(d6, mat4(0, 0, 1, 1, 0, 0, 0, 0)));
-  To3 d7 = To3(EigenZero<M3>());
+  To3 d7 = To3(ZeroMatrix<M3>());
   EXPECT_TRUE(is_near(d7, mat4(0, 0, 1, 1, 0, 0, 0, 0)));
   To3 d8 {1, 2, M_PI/6, M_PI/3, 3, 4};
   EXPECT_TRUE(is_near(d8, m));
-  EXPECT_TRUE(is_near(To3(EigenZero<M3>()), mat4(0, 0, 1, 1, 0, 0, 0, 0)));
+  EXPECT_TRUE(is_near(To3(ZeroMatrix<M3>()), mat4(0, 0, 1, 1, 0, 0, 0, 0)));
   ToFrom4 d9 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4};
   EXPECT_TRUE(is_near(d9.base_matrix(), mat3(1, 2, M_PI/6, M_PI/3, 3, 4)));
   EXPECT_TRUE(is_near(d9, mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
@@ -175,7 +175,7 @@ TEST_F(eigen3, ToEuclideanExpr_overloads)
   EXPECT_TRUE(is_near(strict(To3 {1, 2, M_PI/6, M_PI/3, 3, 4}), mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
   EXPECT_TRUE(is_near(from_Euclidean(To3 {1, 2, 2*M_PI + M_PI/6, -4*M_PI + M_PI/3, 3, 4}), mat3(1, 2, M_PI/6, M_PI/3, 3, 4)));
   EXPECT_TRUE(is_near(from_Euclidean<C>(To3 {1, 2, 2*M_PI + M_PI/6, -4*M_PI + M_PI/3, 3, 4}), mat3(1, 2, M_PI/6, M_PI/3, 3, 4)));
-  EXPECT_TRUE(is_near(to_diagonal(ToEuclideanExpr<C, Eigen::Matrix<double, 3, 1>>{1, M_PI/6, 3}), EigenDiagonal {1., std::sqrt(3)/2, 0.5, 3}));
+  EXPECT_TRUE(is_near(to_diagonal(ToEuclideanExpr<C, Eigen::Matrix<double, 3, 1>>{1, M_PI/6, 3}), DiagonalMatrix {1., std::sqrt(3)/2, 0.5, 3}));
   EXPECT_TRUE(is_near(transpose(To3 {1, 2, M_PI/6, M_PI/3, 3, 4}), (Eigen::Matrix<double, 2, 4>() << 1, std::sqrt(3)/2, 0.5, 3, 2, 0.5, std::sqrt(3)/2, 4).finished()));
   EXPECT_TRUE(is_near(adjoint(To3 {1, 2, M_PI/6, M_PI/3, 3, 4}), (Eigen::Matrix<double, 2, 4>() << 1, std::sqrt(3)/2, 0.5, 3, 2, 0.5, std::sqrt(3)/2, 4).finished()));
   EXPECT_NEAR(determinant(To2 {1, 2, 3, M_PI/6, M_PI/3, M_PI/4}), 0.25 * (3 * std::sqrt(2) - 3 * std::sqrt(6.) + 6), 1e-6);
@@ -418,7 +418,7 @@ TEST_F(eigen3, ToEuclideanExpr_arithmetic)
   EXPECT_TRUE(is_near(2 * To3 {1, 2, M_PI/6, M_PI/3, 3, 4}, mat4(2, 4, std::sqrt(3), 1, 1, std::sqrt(3), 6, 8)));
   EXPECT_TRUE(is_near(To3 {1, 2, M_PI/6, M_PI/3, 3, 4} / 2, mat4(0.5, 1, std::sqrt(3)/4, 0.25, 0.25, std::sqrt(3)/4, 1.5, 2)));
   EXPECT_TRUE(is_near(-To3 {1, 2, M_PI/6, M_PI/3, 3, 4}, mat4(-1, -2, -std::sqrt(3)/2, -0.5, -0.5, -std::sqrt(3)/2, -3, -4)));
-  EXPECT_TRUE(is_near(To3 {1, 2, M_PI/6, M_PI/3, 3, 4} * EigenDiagonal {1., 2}, mat4(1, 4, std::sqrt(3)/2, 1, 0.5, std::sqrt(3), 3, 8)));
+  EXPECT_TRUE(is_near(To3 {1, 2, M_PI/6, M_PI/3, 3, 4} * DiagonalMatrix {1., 2}, mat4(1, 4, std::sqrt(3)/2, 1, 0.5, std::sqrt(3), 3, 8)));
 }
 
 

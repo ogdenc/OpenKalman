@@ -33,46 +33,46 @@ using M22 = Eigen::Matrix<double, 2, 2>;
 
 TEST_F(kalman, artillery_2d_linearized1_SA)
 {
-  artillery_2D<EigenSelfAdjointMatrix<M22>>(LinearizedTransform<1>());
+  artillery_2D<SelfAdjointMatrix<M22>>(LinearizedTransform<1>());
 }
 
 TEST_F(kalman, artillery_2d_linearized1_T)
 {
-  artillery_2D<EigenTriangularMatrix<M22>>(LinearizedTransform<1>());
+  artillery_2D<TriangularMatrix<M22>>(LinearizedTransform<1>());
 }
 
 TEST_F(kalman, artillery_2d_linearized2_SA)
 {
-  artillery_2D<EigenSelfAdjointMatrix<M22>>(LinearizedTransform<2>());
+  artillery_2D<SelfAdjointMatrix<M22>>(LinearizedTransform<2>());
 }
 
 TEST_F(kalman, artillery_2d_cubature_SA)
 {
-  artillery_2D<EigenSelfAdjointMatrix<M22>>(CubatureTransform());
+  artillery_2D<SelfAdjointMatrix<M22>>(CubatureTransform());
 }
 
 TEST_F(kalman, artillery_2d_cubature_T)
 {
-  artillery_2D<EigenTriangularMatrix<M22>>(CubatureTransform());
+  artillery_2D<TriangularMatrix<M22>>(CubatureTransform());
 }
 
 TEST_F(kalman, artillery_2d_unscented_SA)
 {
-  artillery_2D<EigenSelfAdjointMatrix<M22>>(UnscentedTransformParameterEstimation());
+  artillery_2D<SelfAdjointMatrix<M22>>(UnscentedTransformParameterEstimation());
 }
 
 TEST_F(kalman, artillery_2d_unscented_T)
 {
-  artillery_2D<EigenTriangularMatrix<M22>>(UnscentedTransformParameterEstimation());
+  artillery_2D<TriangularMatrix<M22>>(UnscentedTransformParameterEstimation());
 }
 
 TEST_F(kalman, artillery_2d_simplex_SA)
 {
-  artillery_2D<EigenSelfAdjointMatrix<M22>>(SamplePointsTransform<SphericalSimplexSigmaPoints>());
+  artillery_2D<SelfAdjointMatrix<M22>>(SamplePointsTransform<SphericalSimplexSigmaPoints>());
 }
 
 TEST_F(kalman, artillery_2d_simplex_T)
 {
-  artillery_2D<EigenTriangularMatrix<M22>>(SamplePointsTransform<SphericalSimplexSigmaPoints>());
+  artillery_2D<TriangularMatrix<M22>>(SamplePointsTransform<SphericalSimplexSigmaPoints>());
 }
 

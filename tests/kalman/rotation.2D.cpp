@@ -37,35 +37,35 @@ using M22 = Eigen::Matrix<double, 2, 2>;
 
 TEST_F(kalman, rotation_2D_linear_SA)
 {
-  rotation_2D<EigenSelfAdjointMatrix<M22>>(LinearTransform());
+  rotation_2D<SelfAdjointMatrix<M22>>(LinearTransform());
 }
 
 TEST_F(kalman, rotation_2D_linear_T)
 {
-  rotation_2D<EigenTriangularMatrix<M22>>(LinearTransform());
+  rotation_2D<TriangularMatrix<M22>>(LinearTransform());
 }
 
 TEST_F(kalman, rotation_2D_linearized_SA)
 {
-  rotation_2D<EigenSelfAdjointMatrix<M22>>(LinearizedTransform<2>());
+  rotation_2D<SelfAdjointMatrix<M22>>(LinearizedTransform<2>());
 }
 
 TEST_F(kalman, rotation_2D_linearized_T)
 {
-  rotation_2D<EigenTriangularMatrix<M22>>(LinearizedTransform<2>());
+  rotation_2D<TriangularMatrix<M22>>(LinearizedTransform<2>());
 }
 
 TEST_F(kalman, rotation_2D_cubature_SA)
 {
-  rotation_2D<EigenSelfAdjointMatrix<M22>>(CubatureTransform());
+  rotation_2D<SelfAdjointMatrix<M22>>(CubatureTransform());
 }
 
 TEST_F(kalman, rotation_2D_cubature_T)
 {
-  rotation_2D<EigenTriangularMatrix<M22>>(CubatureTransform());
+  rotation_2D<TriangularMatrix<M22>>(CubatureTransform());
 }
 
 TEST_F(kalman, rotation_2D_MCT_SA)
 {
-  rotation_2D<EigenSelfAdjointMatrix<M22>>(MonteCarloTransform(1e6));
+  rotation_2D<SelfAdjointMatrix<M22>>(MonteCarloTransform(1e6));
 }

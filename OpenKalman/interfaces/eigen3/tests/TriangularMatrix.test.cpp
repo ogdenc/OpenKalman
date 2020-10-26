@@ -13,12 +13,12 @@
 using namespace OpenKalman;
 
 using M2 = Eigen::Matrix<double, 2, 2>;
-using D2 = EigenDiagonal<Eigen::Matrix<double, 2, 1>>;
-using Lower = EigenTriangularMatrix<M2, TriangleType::lower>;
-using Upper = EigenTriangularMatrix<M2, TriangleType::upper>;
-using Diagonal = EigenTriangularMatrix<M2, TriangleType::diagonal>;
-using Diagonal2 = EigenTriangularMatrix<D2, TriangleType::diagonal>;
-using Diagonal3 = EigenTriangularMatrix<D2, TriangleType::lower>;
+using D2 = DiagonalMatrix<Eigen::Matrix<double, 2, 1>>;
+using Lower = TriangularMatrix<M2, TriangleType::lower>;
+using Upper = TriangularMatrix<M2, TriangleType::upper>;
+using Diagonal = TriangularMatrix<M2, TriangleType::diagonal>;
+using Diagonal2 = TriangularMatrix<D2, TriangleType::diagonal>;
+using Diagonal3 = TriangularMatrix<D2, TriangleType::lower>;
 
 template<typename...Args>
 inline auto mat22(Args...args) { return MatrixTraits<M2>::make(args...); }
@@ -59,8 +59,8 @@ TEST_F(eigen3, TriangularMatrix_class)
   Upper u2 = (M2() << 3, 1, 0, 3).finished();
   EXPECT_TRUE(is_near(u1, u2));
   //
-  EXPECT_TRUE(is_near(Lower(EigenDiagonal {3., 4}), (M2() << 3, 0, 0, 4).finished()));
-  EXPECT_TRUE(is_near(Upper(EigenDiagonal {3., 4}), (M2() << 3, 0, 0, 4).finished()));
+  EXPECT_TRUE(is_near(Lower(DiagonalMatrix {3., 4}), (M2() << 3, 0, 0, 4).finished()));
+  EXPECT_TRUE(is_near(Upper(DiagonalMatrix {3., 4}), (M2() << 3, 0, 0, 4).finished()));
   //
   EXPECT_TRUE(is_near(Lower(MatrixTraits<M2>::zero()), M2::Zero()));
   EXPECT_TRUE(is_near(Upper(MatrixTraits<M2>::zero()), M2::Zero()));
@@ -75,19 +75,19 @@ TEST_F(eigen3, TriangularMatrix_class)
   Upper u4 = Upper{3, 1, 0, 3}; // move constructor
   EXPECT_TRUE(is_near(u4, mu));
   //
-  Lower l5 = EigenTriangularMatrix<decltype(M2::Zero()), TriangleType::lower>(M2::Zero()); // compatible triangular matrix
+  Lower l5 = TriangularMatrix<decltype(M2::Zero()), TriangleType::lower>(M2::Zero()); // compatible triangular matrix
   EXPECT_TRUE(is_near(l5, M2::Zero()));
-  Upper u5 = EigenTriangularMatrix<decltype(M2::Zero()), TriangleType::upper>(M2::Zero()); // compatible triangular matrix
+  Upper u5 = TriangularMatrix<decltype(M2::Zero()), TriangleType::upper>(M2::Zero()); // compatible triangular matrix
   EXPECT_TRUE(is_near(u5, M2::Zero()));
   //
-  Lower l7 = EigenSelfAdjointMatrix<M2, TriangleType::lower>{9, 3, 3, 10}; // compatible self-adjoint matrix
+  Lower l7 = SelfAdjointMatrix<M2, TriangleType::lower>{9, 3, 3, 10}; // compatible self-adjoint matrix
   EXPECT_TRUE(is_near(l7, ml));
-  Upper u7 = EigenSelfAdjointMatrix<M2, TriangleType::upper>{9, 3, 3, 10}; // compatible self-adjoint matrix
+  Upper u7 = SelfAdjointMatrix<M2, TriangleType::upper>{9, 3, 3, 10}; // compatible self-adjoint matrix
   EXPECT_TRUE(is_near(u7, mu));
   //
-  Lower l8 = EigenSelfAdjointMatrix<M2, TriangleType::upper>{9, 3, 3, 10}; // compatible opposite self-adjoint matrix
+  Lower l8 = SelfAdjointMatrix<M2, TriangleType::upper>{9, 3, 3, 10}; // compatible opposite self-adjoint matrix
   EXPECT_TRUE(is_near(l8, ml));
-  Upper u8 = EigenSelfAdjointMatrix<M2, TriangleType::lower>{9, 3, 3, 10}; // compatible opposite self-adjoint matrix
+  Upper u8 = SelfAdjointMatrix<M2, TriangleType::lower>{9, 3, 3, 10}; // compatible opposite self-adjoint matrix
   EXPECT_TRUE(is_near(u8, mu));
   Diagonal d9 {3, 3}; // Construct from list of scalars.
   EXPECT_TRUE(is_near(d9, mat22(3, 0, 0, 3)));
@@ -106,19 +106,19 @@ TEST_F(eigen3, TriangularMatrix_class)
   u5 = Upper {3., 1, 0, 3}; // move assignment
   EXPECT_TRUE(is_near(u5, mu));
   //
-  l2 = EigenTriangularMatrix<decltype(M2::Zero()), TriangleType::lower>(M2::Zero()); // copy assignment from compatible triangular matrix
+  l2 = TriangularMatrix<decltype(M2::Zero()), TriangleType::lower>(M2::Zero()); // copy assignment from compatible triangular matrix
   EXPECT_TRUE(is_near(l2, M2::Zero()));
-  u2 = EigenTriangularMatrix<decltype(M2::Zero()), TriangleType::upper>(M2::Zero()); // copy assignment from compatible triangular matrix
+  u2 = TriangularMatrix<decltype(M2::Zero()), TriangleType::upper>(M2::Zero()); // copy assignment from compatible triangular matrix
   EXPECT_TRUE(is_near(u2, M2::Zero()));
   //
-  l2 = EigenSelfAdjointMatrix<M2, TriangleType::lower>{9, 3, 3, 10}; // compatible self-adjoint matrix
+  l2 = SelfAdjointMatrix<M2, TriangleType::lower>{9, 3, 3, 10}; // compatible self-adjoint matrix
   EXPECT_TRUE(is_near(l2, ml));
-  u2 = EigenSelfAdjointMatrix<M2, TriangleType::upper>{9, 3, 3, 10}; // compatible self-adjoint matrix
+  u2 = SelfAdjointMatrix<M2, TriangleType::upper>{9, 3, 3, 10}; // compatible self-adjoint matrix
   EXPECT_TRUE(is_near(u2, mu));
   //
-  l2 = EigenSelfAdjointMatrix<M2, TriangleType::upper>{9, 3, 3, 10}; // compatible opposite self-adjoint matrix
+  l2 = SelfAdjointMatrix<M2, TriangleType::upper>{9, 3, 3, 10}; // compatible opposite self-adjoint matrix
   EXPECT_TRUE(is_near(l2, ml));
-  u2 = EigenSelfAdjointMatrix<M2, TriangleType::lower>{9, 3, 3, 10}; // compatible opposite self-adjoint matrix
+  u2 = SelfAdjointMatrix<M2, TriangleType::lower>{9, 3, 3, 10}; // compatible opposite self-adjoint matrix
   EXPECT_TRUE(is_near(u2, mu));
   //
   l3 = (M2() << 3, 0, 1, 3).finished(); // assign from regular matrix
@@ -158,7 +158,7 @@ TEST_F(eigen3, TriangularMatrix_class)
   u1 += u2;
   EXPECT_TRUE(is_near(u1, mat22(6., 2, 0, 6)));
   //
-  l1 -= EigenTriangularMatrix {3., 0, 1, 3};
+  l1 -= TriangularMatrix {3., 0, 1, 3};
   EXPECT_TRUE(is_near(l1, mat22(3., 0, 1, 3)));
   u1 -= Upper {3., 1, 0, 3};
   EXPECT_TRUE(is_near(u1, mat22(3., 1, 0, 3)));
@@ -220,11 +220,11 @@ TEST_F(eigen3, TriangularMatrix_subscripts)
   static_assert(not is_element_settable_v<const Diagonal3, 2>);
   static_assert(not is_element_settable_v<const Diagonal3, 1>);
 
-  static_assert(not is_element_settable_v<EigenTriangularMatrix<const M2, TriangleType::lower>, 2>);
-  static_assert(not is_element_settable_v<EigenTriangularMatrix<const D2, TriangleType::lower>, 2>);
-  static_assert(not is_element_settable_v<EigenTriangularMatrix<const D2, TriangleType::lower>, 1>);
-  static_assert(not is_element_settable_v<EigenTriangularMatrix<EigenDiagonal<const Eigen::Matrix<double, 2, 1>>, TriangleType::lower>, 2>);
-  static_assert(not is_element_settable_v<EigenTriangularMatrix<EigenDiagonal<const Eigen::Matrix<double, 2, 1>>, TriangleType::lower>, 1>);
+  static_assert(not is_element_settable_v<TriangularMatrix<const M2, TriangleType::lower>, 2>);
+  static_assert(not is_element_settable_v<TriangularMatrix<const D2, TriangleType::lower>, 2>);
+  static_assert(not is_element_settable_v<TriangularMatrix<const D2, TriangleType::lower>, 1>);
+  static_assert(not is_element_settable_v<TriangularMatrix<DiagonalMatrix<const Eigen::Matrix<double, 2, 1>>, TriangleType::lower>, 2>);
+  static_assert(not is_element_settable_v<TriangularMatrix<DiagonalMatrix<const Eigen::Matrix<double, 2, 1>>, TriangleType::lower>, 1>);
 
   auto l1 = Lower {3, 0, 1, 3};
   set_element(l1, 1.1, 1, 0);
@@ -292,8 +292,8 @@ TEST_F(eigen3, TriangularMatrix_subscripts)
   EXPECT_TRUE(test);
   EXPECT_TRUE(is_near(d9c, mat22(7.1, 0, 0, 8.1)));
   //
-  EXPECT_NEAR((EigenTriangularMatrix<Eigen::Matrix<double, 1, 1>, TriangleType::lower> {7.})(0), 7., 1e-6);
-  EXPECT_NEAR((EigenTriangularMatrix<Eigen::Matrix<double, 1, 1>, TriangleType::upper> {7.})(0), 7., 1e-6);
+  EXPECT_NEAR((TriangularMatrix<Eigen::Matrix<double, 1, 1>, TriangleType::lower> {7.})(0), 7., 1e-6);
+  EXPECT_NEAR((TriangularMatrix<Eigen::Matrix<double, 1, 1>, TriangleType::upper> {7.})(0), 7., 1e-6);
   EXPECT_NEAR((Diagonal {2, 3})(0), 2, 1e-6);
   EXPECT_NEAR((Diagonal {2, 3})(1), 3, 1e-6);
   EXPECT_NEAR((Diagonal2 {2, 3})(0), 2, 1e-6);
@@ -340,9 +340,9 @@ TEST_F(eigen3, TriangularMatrix_make)
   static_assert(is_upper_triangular_v<decltype(make_EigenTriangularMatrix<TriangleType::upper>((M2() << 3, 1, 0, 3).finished()))>);
   static_assert(is_lower_triangular_v<decltype(make_EigenTriangularMatrix<TriangleType::lower>((M2() << 3, 0, 1, 3).finished()))>);
   static_assert(is_lower_triangular_v<decltype(make_EigenTriangularMatrix((M2() << 3, 0, 1, 3).finished()))>);
-  static_assert(is_diagonal_v<decltype(make_EigenTriangularMatrix<TriangleType::upper>(EigenDiagonal {3., 4}))>);
-  static_assert(is_diagonal_v<decltype(make_EigenTriangularMatrix<TriangleType::lower>(EigenDiagonal {3., 4}))>);
-  static_assert(is_diagonal_v<decltype(make_EigenTriangularMatrix(EigenDiagonal {3., 4}))>);
+  static_assert(is_diagonal_v<decltype(make_EigenTriangularMatrix<TriangleType::upper>(DiagonalMatrix {3., 4}))>);
+  static_assert(is_diagonal_v<decltype(make_EigenTriangularMatrix<TriangleType::lower>(DiagonalMatrix {3., 4}))>);
+  static_assert(is_diagonal_v<decltype(make_EigenTriangularMatrix(DiagonalMatrix {3., 4}))>);
 
   static_assert(is_upper_triangular_v<decltype(make_EigenTriangularMatrix<TriangleType::upper>(Upper {3, 1, 0, 3}))>);
   static_assert(is_lower_triangular_v<decltype(make_EigenTriangularMatrix<TriangleType::lower>(Lower {3, 0, 1, 3}))>);
@@ -355,8 +355,8 @@ TEST_F(eigen3, TriangularMatrix_traits)
   M2 ml, mu;
   ml << 3, 0, 1, 3;
   mu << 3, 1, 0, 3;
-  using Dl = EigenTriangularMatrix<M2, TriangleType::lower>;
-  using Du = EigenTriangularMatrix<M2, TriangleType::upper>;
+  using Dl = TriangularMatrix<M2, TriangleType::lower>;
+  using Du = TriangularMatrix<M2, TriangleType::upper>;
   EXPECT_TRUE(is_near(MatrixTraits<Dl>::make(ml), ml));
   EXPECT_TRUE(is_near(MatrixTraits<Du>::make(mu), mu));
   //
@@ -374,9 +374,9 @@ TEST_F(eigen3, TriangularMatrix_traits)
   static_assert(is_diagonal_v<Diagonal>);
   static_assert(is_diagonal_v<Diagonal2>);
   static_assert(is_diagonal_v<Diagonal3>);
-  static_assert(is_zero_v<decltype(EigenTriangularMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::lower>(MatrixTraits<M2>::zero()))>);
-  static_assert(is_zero_v<decltype(EigenTriangularMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::upper>(MatrixTraits<M2>::zero()))>);
-  static_assert(is_identity_v<decltype(EigenTriangularMatrix<decltype(MatrixTraits<M2>::identity()), TriangleType::lower>(MatrixTraits<M2>::identity()))>);
+  static_assert(is_zero_v<decltype(TriangularMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::lower>(MatrixTraits<M2>::zero()))>);
+  static_assert(is_zero_v<decltype(TriangularMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::upper>(MatrixTraits<M2>::zero()))>);
+  static_assert(is_identity_v<decltype(TriangularMatrix<decltype(MatrixTraits<M2>::identity()), TriangleType::lower>(MatrixTraits<M2>::identity()))>);
 }
 
 TEST_F(eigen3, TriangularMatrix_overloads)
@@ -394,59 +394,59 @@ TEST_F(eigen3, TriangularMatrix_overloads)
   static_assert(std::is_same_v<std::decay_t<decltype(strict(Upper {9, 3, 3, 10} * 2))>, Upper>);
   //
   //
-  EXPECT_TRUE(is_near(Cholesky_square(EigenTriangularMatrix<Eigen::Matrix<double, 1, 1>, TriangleType::lower>(Eigen::Matrix<double, 1, 1>(4))), Eigen::Matrix<double, 1, 1>(16)));
-  static_assert(is_1by1_v<decltype(Cholesky_square(EigenTriangularMatrix<Eigen::Matrix<double, 1, 1>, TriangleType::lower>(Eigen::Matrix<double, 1, 1>(4))))>);
+  EXPECT_TRUE(is_near(Cholesky_square(TriangularMatrix<Eigen::Matrix<double, 1, 1>, TriangleType::lower>(Eigen::Matrix<double, 1, 1>(4))), Eigen::Matrix<double, 1, 1>(16)));
+  static_assert(is_1by1_v<decltype(Cholesky_square(TriangularMatrix<Eigen::Matrix<double, 1, 1>, TriangleType::lower>(Eigen::Matrix<double, 1, 1>(4))))>);
   //
-  EXPECT_TRUE(is_near(Cholesky_square(EigenTriangularMatrix<decltype(M2::Identity()), TriangleType::lower>(M2::Identity())), M2::Identity()));
-  EXPECT_TRUE(is_near(Cholesky_square(EigenTriangularMatrix<decltype(M2::Identity()), TriangleType::upper>(M2::Identity())), M2::Identity()));
-  static_assert(is_identity_v<decltype(Cholesky_square(EigenTriangularMatrix<decltype(M2::Identity()), TriangleType::lower>(M2::Identity())))>);
-  static_assert(is_identity_v<decltype(Cholesky_square(EigenTriangularMatrix<decltype(M2::Identity()), TriangleType::upper>(M2::Identity())))>);
+  EXPECT_TRUE(is_near(Cholesky_square(TriangularMatrix<decltype(M2::Identity()), TriangleType::lower>(M2::Identity())), M2::Identity()));
+  EXPECT_TRUE(is_near(Cholesky_square(TriangularMatrix<decltype(M2::Identity()), TriangleType::upper>(M2::Identity())), M2::Identity()));
+  static_assert(is_identity_v<decltype(Cholesky_square(TriangularMatrix<decltype(M2::Identity()), TriangleType::lower>(M2::Identity())))>);
+  static_assert(is_identity_v<decltype(Cholesky_square(TriangularMatrix<decltype(M2::Identity()), TriangleType::upper>(M2::Identity())))>);
   //
-  EXPECT_TRUE(is_near(Cholesky_square(EigenTriangularMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::lower>(MatrixTraits<M2>::zero())), M2::Zero()));
-  EXPECT_TRUE(is_near(Cholesky_square(EigenTriangularMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::upper>(MatrixTraits<M2>::zero())), M2::Zero()));
-  static_assert(is_zero_v<decltype(Cholesky_square(EigenTriangularMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::lower>(MatrixTraits<M2>::zero())))>);
-  static_assert(is_zero_v<decltype(Cholesky_square(EigenTriangularMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::upper>(MatrixTraits<M2>::zero())))>);
+  EXPECT_TRUE(is_near(Cholesky_square(TriangularMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::lower>(MatrixTraits<M2>::zero())), M2::Zero()));
+  EXPECT_TRUE(is_near(Cholesky_square(TriangularMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::upper>(MatrixTraits<M2>::zero())), M2::Zero()));
+  static_assert(is_zero_v<decltype(Cholesky_square(TriangularMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::lower>(MatrixTraits<M2>::zero())))>);
+  static_assert(is_zero_v<decltype(Cholesky_square(TriangularMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::upper>(MatrixTraits<M2>::zero())))>);
   //
-  EXPECT_TRUE(is_near(Cholesky_square(EigenTriangularMatrix<decltype(EigenDiagonal{2., 3}), TriangleType::lower>(EigenDiagonal{2., 3})), EigenDiagonal{4., 9}));
-  EXPECT_TRUE(is_near(Cholesky_square(EigenTriangularMatrix<decltype(EigenDiagonal{2., 3}), TriangleType::upper>(EigenDiagonal{2., 3})), EigenDiagonal{4., 9}));
-  static_assert(eigen_diagonal_expr<decltype(Cholesky_square(EigenTriangularMatrix<decltype(EigenDiagonal{2., 3}), TriangleType::lower>(EigenDiagonal{2., 3})))>);
-  static_assert(eigen_diagonal_expr<decltype(Cholesky_square(EigenTriangularMatrix<decltype(EigenDiagonal{2., 3}), TriangleType::upper>(EigenDiagonal{2., 3})))>);
+  EXPECT_TRUE(is_near(Cholesky_square(TriangularMatrix<decltype(DiagonalMatrix{2., 3}), TriangleType::lower>(DiagonalMatrix{2., 3})), DiagonalMatrix{4., 9}));
+  EXPECT_TRUE(is_near(Cholesky_square(TriangularMatrix<decltype(DiagonalMatrix{2., 3}), TriangleType::upper>(DiagonalMatrix{2., 3})), DiagonalMatrix{4., 9}));
+  static_assert(eigen_diagonal_expr<decltype(Cholesky_square(TriangularMatrix<decltype(DiagonalMatrix{2., 3}), TriangleType::lower>(DiagonalMatrix{2., 3})))>);
+  static_assert(eigen_diagonal_expr<decltype(Cholesky_square(TriangularMatrix<decltype(DiagonalMatrix{2., 3}), TriangleType::upper>(DiagonalMatrix{2., 3})))>);
   //
-  EXPECT_TRUE(is_near(Cholesky_square(EigenTriangularMatrix<M2, TriangleType::diagonal>(ml)), EigenDiagonal{9., 9}));
-  static_assert(eigen_diagonal_expr<decltype(Cholesky_square(EigenTriangularMatrix<M2, TriangleType::diagonal>(ml)))>);
+  EXPECT_TRUE(is_near(Cholesky_square(TriangularMatrix<M2, TriangleType::diagonal>(ml)), DiagonalMatrix{9., 9}));
+  static_assert(eigen_diagonal_expr<decltype(Cholesky_square(TriangularMatrix<M2, TriangleType::diagonal>(ml)))>);
   //
   EXPECT_TRUE(is_near(Cholesky_square(Lower {3., 0, 1, 3}), mat22(9., 3, 3, 10)));
   EXPECT_TRUE(is_near(Cholesky_square(Upper {3., 1, 0, 3}), mat22(9., 3, 3, 10)));
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype(Cholesky_square(Lower {3, 0, 1, 3}))>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype(Cholesky_square(Upper {3, 1, 0, 3}))>);
+  static_assert(is_lower_storage_triangle_v<decltype(Cholesky_square(Lower {3, 0, 1, 3}))>);
+  static_assert(is_upper_storage_triangle_v<decltype(Cholesky_square(Upper {3, 1, 0, 3}))>);
   //
-  EXPECT_TRUE(is_near(Cholesky_square(EigenTriangularMatrix<Eigen::Matrix<double, 1, 1>, TriangleType::lower>(Eigen::Matrix<double, 1, 1>(9))), Eigen::Matrix<double, 1, 1>(81)));
-  EXPECT_TRUE(is_near(Cholesky_square(EigenTriangularMatrix<Eigen::Matrix<double, 1, 1>, TriangleType::upper>(Eigen::Matrix<double, 1, 1>(9))), Eigen::Matrix<double, 1, 1>(81)));
+  EXPECT_TRUE(is_near(Cholesky_square(TriangularMatrix<Eigen::Matrix<double, 1, 1>, TriangleType::lower>(Eigen::Matrix<double, 1, 1>(9))), Eigen::Matrix<double, 1, 1>(81)));
+  EXPECT_TRUE(is_near(Cholesky_square(TriangularMatrix<Eigen::Matrix<double, 1, 1>, TriangleType::upper>(Eigen::Matrix<double, 1, 1>(9))), Eigen::Matrix<double, 1, 1>(81)));
   //
   //
-  EXPECT_TRUE(is_near(Cholesky_factor(EigenTriangularMatrix<Eigen::Matrix<double, 1, 1>, TriangleType::lower>(Eigen::Matrix<double, 1, 1>(4))), Eigen::Matrix<double, 1, 1>(2)));
-  static_assert(is_1by1_v<decltype(Cholesky_factor(EigenTriangularMatrix<Eigen::Matrix<double, 1, 1>, TriangleType::lower>(Eigen::Matrix<double, 1, 1>(4))))>);
+  EXPECT_TRUE(is_near(Cholesky_factor(TriangularMatrix<Eigen::Matrix<double, 1, 1>, TriangleType::lower>(Eigen::Matrix<double, 1, 1>(4))), Eigen::Matrix<double, 1, 1>(2)));
+  static_assert(is_1by1_v<decltype(Cholesky_factor(TriangularMatrix<Eigen::Matrix<double, 1, 1>, TriangleType::lower>(Eigen::Matrix<double, 1, 1>(4))))>);
   //
-  EXPECT_TRUE(is_near(Cholesky_factor(EigenTriangularMatrix<decltype(M2::Identity()), TriangleType::lower>(M2::Identity())), M2::Identity()));
-  EXPECT_TRUE(is_near(Cholesky_factor(EigenTriangularMatrix<decltype(M2::Identity()), TriangleType::upper>(M2::Identity())), M2::Identity()));
-  static_assert(is_identity_v<decltype(Cholesky_factor(EigenTriangularMatrix<decltype(M2::Identity()), TriangleType::lower>(M2::Identity())))>);
-  static_assert(is_identity_v<decltype(Cholesky_factor(EigenTriangularMatrix<decltype(M2::Identity()), TriangleType::upper>(M2::Identity())))>);
+  EXPECT_TRUE(is_near(Cholesky_factor(TriangularMatrix<decltype(M2::Identity()), TriangleType::lower>(M2::Identity())), M2::Identity()));
+  EXPECT_TRUE(is_near(Cholesky_factor(TriangularMatrix<decltype(M2::Identity()), TriangleType::upper>(M2::Identity())), M2::Identity()));
+  static_assert(is_identity_v<decltype(Cholesky_factor(TriangularMatrix<decltype(M2::Identity()), TriangleType::lower>(M2::Identity())))>);
+  static_assert(is_identity_v<decltype(Cholesky_factor(TriangularMatrix<decltype(M2::Identity()), TriangleType::upper>(M2::Identity())))>);
   //
-  EXPECT_TRUE(is_near(Cholesky_factor(EigenTriangularMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::lower>(MatrixTraits<M2>::zero())), M2::Zero()));
-  EXPECT_TRUE(is_near(Cholesky_factor(EigenTriangularMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::upper>(MatrixTraits<M2>::zero())), M2::Zero()));
-  static_assert(is_zero_v<decltype(Cholesky_factor(EigenTriangularMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::lower>(MatrixTraits<M2>::zero())))>);
-  static_assert(is_zero_v<decltype(Cholesky_factor(EigenTriangularMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::upper>(MatrixTraits<M2>::zero())))>);
+  EXPECT_TRUE(is_near(Cholesky_factor(TriangularMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::lower>(MatrixTraits<M2>::zero())), M2::Zero()));
+  EXPECT_TRUE(is_near(Cholesky_factor(TriangularMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::upper>(MatrixTraits<M2>::zero())), M2::Zero()));
+  static_assert(is_zero_v<decltype(Cholesky_factor(TriangularMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::lower>(MatrixTraits<M2>::zero())))>);
+  static_assert(is_zero_v<decltype(Cholesky_factor(TriangularMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::upper>(MatrixTraits<M2>::zero())))>);
   //
-  EXPECT_TRUE(is_near(Cholesky_factor(EigenTriangularMatrix<decltype(EigenDiagonal{4., 9}), TriangleType::lower>(EigenDiagonal{4., 9})), EigenDiagonal{2., 3}));
-  EXPECT_TRUE(is_near(Cholesky_factor(EigenTriangularMatrix<decltype(EigenDiagonal{4., 9}), TriangleType::upper>(EigenDiagonal{4., 9})), EigenDiagonal{2., 3}));
-  static_assert(eigen_diagonal_expr<decltype(Cholesky_factor(EigenTriangularMatrix<decltype(EigenDiagonal{4., 9}), TriangleType::lower>(EigenDiagonal{4., 9})))>);
-  static_assert(eigen_diagonal_expr<decltype(Cholesky_factor(EigenTriangularMatrix<decltype(EigenDiagonal{4., 9}), TriangleType::upper>(EigenDiagonal{4., 9})))>);
+  EXPECT_TRUE(is_near(Cholesky_factor(TriangularMatrix<decltype(DiagonalMatrix{4., 9}), TriangleType::lower>(DiagonalMatrix{4., 9})), DiagonalMatrix{2., 3}));
+  EXPECT_TRUE(is_near(Cholesky_factor(TriangularMatrix<decltype(DiagonalMatrix{4., 9}), TriangleType::upper>(DiagonalMatrix{4., 9})), DiagonalMatrix{2., 3}));
+  static_assert(eigen_diagonal_expr<decltype(Cholesky_factor(TriangularMatrix<decltype(DiagonalMatrix{4., 9}), TriangleType::lower>(DiagonalMatrix{4., 9})))>);
+  static_assert(eigen_diagonal_expr<decltype(Cholesky_factor(TriangularMatrix<decltype(DiagonalMatrix{4., 9}), TriangleType::upper>(DiagonalMatrix{4., 9})))>);
   //
-  EXPECT_TRUE(is_near(Cholesky_factor(EigenTriangularMatrix<M2, TriangleType::diagonal>(ml)), EigenDiagonal{std::sqrt(3.), std::sqrt(3.)}));
-  static_assert(eigen_diagonal_expr<decltype(Cholesky_factor(EigenTriangularMatrix<M2, TriangleType::diagonal>(ml)))>);
+  EXPECT_TRUE(is_near(Cholesky_factor(TriangularMatrix<M2, TriangleType::diagonal>(ml)), DiagonalMatrix{std::sqrt(3.), std::sqrt(3.)}));
+  static_assert(eigen_diagonal_expr<decltype(Cholesky_factor(TriangularMatrix<M2, TriangleType::diagonal>(ml)))>);
   //
-  EXPECT_TRUE(is_near(Cholesky_factor(EigenTriangularMatrix<Eigen::Matrix<double, 1, 1>, TriangleType::lower>(Eigen::Matrix<double, 1, 1>(9))), Eigen::Matrix<double, 1, 1>(3)));
-  EXPECT_TRUE(is_near(Cholesky_factor(EigenTriangularMatrix<Eigen::Matrix<double, 1, 1>, TriangleType::upper>(Eigen::Matrix<double, 1, 1>(9))), Eigen::Matrix<double, 1, 1>(3)));
+  EXPECT_TRUE(is_near(Cholesky_factor(TriangularMatrix<Eigen::Matrix<double, 1, 1>, TriangleType::lower>(Eigen::Matrix<double, 1, 1>(9))), Eigen::Matrix<double, 1, 1>(3)));
+  EXPECT_TRUE(is_near(Cholesky_factor(TriangularMatrix<Eigen::Matrix<double, 1, 1>, TriangleType::upper>(Eigen::Matrix<double, 1, 1>(9))), Eigen::Matrix<double, 1, 1>(3)));
   //
   //
   EXPECT_TRUE(is_near(transpose(Lower {3., 0, 1, 3}), mu));
@@ -493,19 +493,19 @@ TEST_F(eigen3, TriangularMatrix_overloads)
 
 TEST_F(eigen3, TriangularMatrix_blocks_lower)
 {
-  auto m0 = EigenTriangularMatrix<Eigen::Matrix<double, 3, 3>, TriangleType::lower> {1, 0, 0,
+  auto m0 = TriangularMatrix<Eigen::Matrix<double, 3, 3>, TriangleType::lower> {1, 0, 0,
                                                                                      2, 4, 0,
                                                                                      3, 5, 6};
-  auto m1 = EigenTriangularMatrix<Eigen::Matrix<double, 3, 3>, TriangleType::lower> {4, 0, 0,
+  auto m1 = TriangularMatrix<Eigen::Matrix<double, 3, 3>, TriangleType::lower> {4, 0, 0,
                                                                                      5, 7, 0,
                                                                                      6, 8, 9};
-  EXPECT_TRUE(is_near(concatenate_diagonal(EigenTriangularMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::lower> {1., 0, 2, 3}, m1),
-    EigenTriangularMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::lower> {1., 0, 0, 0, 0,
+  EXPECT_TRUE(is_near(concatenate_diagonal(TriangularMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::lower> {1., 0, 2, 3}, m1),
+    TriangularMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::lower> {1., 0, 0, 0, 0,
                                                                              2, 3, 0, 0, 0,
                                                                              0, 0, 4, 0, 0,
                                                                              0, 0, 5, 7, 0,
                                                                              0, 0, 6, 8, 9}));
-  static_assert(is_lower_triangular_v<decltype(concatenate_diagonal(EigenTriangularMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::lower> {1., 0, 2, 3}, m1))>);
+  static_assert(is_lower_triangular_v<decltype(concatenate_diagonal(TriangularMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::lower> {1., 0, 2, 3}, m1))>);
 
   EXPECT_TRUE(is_near(concatenate_vertical(m0, m1),
     make_native_matrix<6,3>(1., 0, 0,
@@ -518,25 +518,25 @@ TEST_F(eigen3, TriangularMatrix_blocks_lower)
     make_native_matrix<3, 6>(1., 0, 0, 4, 0, 0,
                                      2, 4, 0, 5, 7, 0,
                                      3, 5, 6, 6, 8, 9)));
-  EXPECT_TRUE(is_near(split_diagonal(EigenTriangularMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}), std::tuple{}));
+  EXPECT_TRUE(is_near(split_diagonal(TriangularMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}), std::tuple{}));
   EXPECT_TRUE(is_near(split_diagonal<2, 3>(
-    EigenTriangularMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::lower> {1., 0, 0, 0, 0,
+    TriangularMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::lower> {1., 0, 0, 0, 0,
                                                                              2, 3, 0, 0, 0,
                                                                              0, 0, 4, 0, 0,
                                                                              0, 0, 5, 7, 0,
                                                                              0, 0, 6, 8, 9}),
-    std::tuple{EigenTriangularMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::lower> {1., 0, 2, 3}, m1}));
+    std::tuple{TriangularMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::lower> {1., 0, 2, 3}, m1}));
   EXPECT_TRUE(is_near(split_diagonal<2, 2>(
-    EigenTriangularMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::lower> {1., 0, 0, 0, 0,
+    TriangularMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::lower> {1., 0, 0, 0, 0,
                                                                              2, 3, 0, 0, 0,
                                                                              0, 0, 4, 0, 0,
                                                                              0, 0, 5, 7, 0,
                                                                              0, 0, 6, 8, 9}),
-    std::tuple{EigenTriangularMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::lower> {1., 0, 2, 3},
-               EigenTriangularMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::lower> {4., 0, 5, 7}}));
-  EXPECT_TRUE(is_near(split_vertical(EigenTriangularMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}), std::tuple{}));
+    std::tuple{TriangularMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::lower> {1., 0, 2, 3},
+               TriangularMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::lower> {4., 0, 5, 7}}));
+  EXPECT_TRUE(is_near(split_vertical(TriangularMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}), std::tuple{}));
   EXPECT_TRUE(is_near(split_vertical<2, 3>(
-    EigenTriangularMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::lower> {1, 0, 0, 0, 0,
+    TriangularMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::lower> {1, 0, 0, 0, 0,
                                                                              2, 3, 0, 0, 0,
                                                                              0, 0, 4, 0, 0,
                                                                              0, 0, 5, 7, 0,
@@ -547,7 +547,7 @@ TEST_F(eigen3, TriangularMatrix_blocks_lower)
                                                0, 0, 5, 7, 0,
                                                0, 0, 6, 8, 9)}));
   EXPECT_TRUE(is_near(split_vertical<2, 2>(
-    EigenTriangularMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::lower> {1, 0, 0, 0, 0,
+    TriangularMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::lower> {1, 0, 0, 0, 0,
                                                                              2, 3, 0, 0, 0,
                                                                              0, 0, 4, 0, 0,
                                                                              0, 0, 5, 7, 0,
@@ -556,9 +556,9 @@ TEST_F(eigen3, TriangularMatrix_blocks_lower)
                                                2, 3, 0, 0, 0),
                make_native_matrix<2,5>(0., 0, 4, 0, 0,
                                                0, 0, 5, 7, 0)}));
-  EXPECT_TRUE(is_near(split_horizontal(EigenTriangularMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}), std::tuple{}));
+  EXPECT_TRUE(is_near(split_horizontal(TriangularMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}), std::tuple{}));
   EXPECT_TRUE(is_near(split_horizontal<2, 3>(
-    EigenTriangularMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::lower> {1, 0, 0, 0, 0,
+    TriangularMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::lower> {1, 0, 0, 0, 0,
                                                                               2, 3, 0, 0, 0,
                                                                               0, 0, 4, 0, 0,
                                                                               0, 0, 5, 7, 0,
@@ -566,7 +566,7 @@ TEST_F(eigen3, TriangularMatrix_blocks_lower)
     std::tuple{make_native_matrix<5,2>(1., 0, 2, 3, 0, 0, 0, 0, 0, 0),
                make_native_matrix<5,3>(0., 0, 0, 0, 0, 0, 4, 0, 0, 5, 7, 0, 6, 8, 9)}));
   EXPECT_TRUE(is_near(split_horizontal<2, 2>(
-    EigenTriangularMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::lower> {1, 0, 0, 0, 0,
+    TriangularMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::lower> {1, 0, 0, 0, 0,
                                                                              2, 3, 0, 0, 0,
                                                                              0, 0, 4, 0, 0,
                                                                              0, 0, 5, 7, 0,
@@ -600,19 +600,19 @@ TEST_F(eigen3, TriangularMatrix_blocks_lower)
 
 TEST_F(eigen3, TriangularMatrix_blocks_upper)
 {
-  auto m0 = EigenTriangularMatrix<Eigen::Matrix<double, 3, 3>, TriangleType::upper> {1, 2, 3,
+  auto m0 = TriangularMatrix<Eigen::Matrix<double, 3, 3>, TriangleType::upper> {1, 2, 3,
                                                                                      0, 4, 5,
                                                                                      0, 0, 6};
-  auto m1 = EigenTriangularMatrix<Eigen::Matrix<double, 3, 3>, TriangleType::upper> {4., 5, 6,
+  auto m1 = TriangularMatrix<Eigen::Matrix<double, 3, 3>, TriangleType::upper> {4., 5, 6,
                                                                                      0, 7, 8,
                                                                                      0, 0, 9};
-  EXPECT_TRUE(is_near(concatenate_diagonal(EigenTriangularMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::upper> {1., 2, 0, 3}, m1),
-    EigenTriangularMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::upper> {1., 2, 0, 0, 0,
+  EXPECT_TRUE(is_near(concatenate_diagonal(TriangularMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::upper> {1., 2, 0, 3}, m1),
+    TriangularMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::upper> {1., 2, 0, 0, 0,
                                                                              0, 3, 0, 0, 0,
                                                                              0, 0, 4, 5, 6,
                                                                              0, 0, 0, 7, 8,
                                                                              0, 0, 0, 0, 9}));
-  static_assert(is_upper_triangular_v<decltype(concatenate_diagonal(EigenTriangularMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::upper> {1., 2, 0, 3}, m1))>);
+  static_assert(is_upper_triangular_v<decltype(concatenate_diagonal(TriangularMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::upper> {1., 2, 0, 3}, m1))>);
 
   EXPECT_TRUE(is_near(concatenate_vertical(m0, m1),
     make_native_matrix<6,3>(1., 2, 3,
@@ -626,24 +626,24 @@ TEST_F(eigen3, TriangularMatrix_blocks_upper)
                                     0, 4, 5, 0, 7, 8,
                                     0, 0, 6, 0, 0, 9)));
   EXPECT_TRUE(is_near(split_diagonal<2, 3>(
-    EigenTriangularMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::upper> {1., 2, 0, 0, 0,
+    TriangularMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::upper> {1., 2, 0, 0, 0,
                                                                              0, 3, 0, 0, 0,
                                                                              0, 0, 4, 5, 6,
                                                                              0, 0, 0, 7, 8,
                                                                              0, 0, 0, 0, 9}),
-    std::tuple{EigenTriangularMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::upper> {1., 2, 0, 3}, m1}));
-  EXPECT_TRUE(is_near(split_diagonal(EigenTriangularMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}), std::tuple{}));
+    std::tuple{TriangularMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::upper> {1., 2, 0, 3}, m1}));
+  EXPECT_TRUE(is_near(split_diagonal(TriangularMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}), std::tuple{}));
   EXPECT_TRUE(is_near(split_diagonal<2, 2>(
-    EigenTriangularMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::upper> {1., 2, 0, 0, 0,
+    TriangularMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::upper> {1., 2, 0, 0, 0,
                                                                              0, 3, 0, 0, 0,
                                                                              0, 0, 4, 5, 6,
                                                                              0, 0, 0, 7, 8,
                                                                              0, 0, 0, 0, 9}),
-    std::tuple{EigenTriangularMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::upper> {1., 2, 0, 3},
-               EigenTriangularMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::upper> {4., 5, 0, 7}}));
-  EXPECT_TRUE(is_near(split_vertical(EigenTriangularMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}), std::tuple{}));
+    std::tuple{TriangularMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::upper> {1., 2, 0, 3},
+               TriangularMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::upper> {4., 5, 0, 7}}));
+  EXPECT_TRUE(is_near(split_vertical(TriangularMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}), std::tuple{}));
   EXPECT_TRUE(is_near(split_vertical<2, 3>(
-    EigenTriangularMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::upper> {1, 2, 0, 0, 0,
+    TriangularMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::upper> {1, 2, 0, 0, 0,
                                                                              0, 3, 0, 0, 0,
                                                                              0, 0, 4, 5, 6,
                                                                              0, 0, 0, 7, 8,
@@ -654,7 +654,7 @@ TEST_F(eigen3, TriangularMatrix_blocks_upper)
                                                0, 0, 0, 7, 8,
                                                0, 0, 0, 0, 9)}));
   EXPECT_TRUE(is_near(split_vertical<2, 2>(
-    EigenTriangularMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::upper> {1, 2, 0, 0, 0,
+    TriangularMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::upper> {1, 2, 0, 0, 0,
                                                                              0, 3, 0, 0, 0,
                                                                              0, 0, 4, 5, 6,
                                                                              0, 0, 0, 7, 8,
@@ -663,9 +663,9 @@ TEST_F(eigen3, TriangularMatrix_blocks_upper)
                                                0, 3, 0, 0, 0),
                make_native_matrix<2,5>(0., 0, 4, 5, 6,
                                                0, 0, 0, 7, 8)}));
-  EXPECT_TRUE(is_near(split_horizontal(EigenTriangularMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}), std::tuple{}));
+  EXPECT_TRUE(is_near(split_horizontal(TriangularMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}), std::tuple{}));
   EXPECT_TRUE(is_near(split_horizontal<2, 3>(
-    EigenTriangularMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::upper> {1, 2, 0, 0, 0,
+    TriangularMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::upper> {1, 2, 0, 0, 0,
                                                                              0, 3, 0, 0, 0,
                                                                              0, 0, 4, 5, 6,
                                                                              0, 0, 0, 7, 8,
@@ -673,7 +673,7 @@ TEST_F(eigen3, TriangularMatrix_blocks_upper)
     std::tuple{make_native_matrix<5,2>(1., 2, 0, 3, 0, 0, 0, 0, 0, 0),
                make_native_matrix<5,3>(0., 0, 0, 0, 0, 0, 4, 5, 6, 0, 7, 8, 0, 0, 9)}));
   EXPECT_TRUE(is_near(split_horizontal<2, 2>(
-    EigenTriangularMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::upper> {1, 2, 0, 0, 0,
+    TriangularMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::upper> {1, 2, 0, 0, 0,
                                                                              0, 3, 0, 0, 0,
                                                                              0, 0, 4, 5, 6,
                                                                              0, 0, 0, 7, 8,
@@ -708,9 +708,9 @@ TEST_F(eigen3, TriangularMatrix_arithmetic_lower)
 {
   auto m1 = Lower {4., 0, 5, 6};
   auto m2 = Lower {1., 0, 2, 3};
-  auto d = EigenDiagonal<Eigen::Matrix<double, 2, 1>> {1, 3};
+  auto d = DiagonalMatrix<Eigen::Matrix<double, 2, 1>> {1, 3};
   auto i = M2::Identity();
-  auto z = EigenZero<M2> {};
+  auto z = ZeroMatrix<M2> {};
   EXPECT_TRUE(is_near(m1 + m2, mat22(5, 0, 7, 9))); static_assert(is_lower_triangular_v<decltype(m1 + m2)>);
   EXPECT_TRUE(is_near(m1 + d, mat22(5, 0, 5, 9))); static_assert(is_lower_triangular_v<decltype(m1 + d)>);
   EXPECT_TRUE(is_near(d + m1, mat22(5, 0, 5, 9))); static_assert(is_lower_triangular_v<decltype(d + m1)>);
@@ -749,9 +749,9 @@ TEST_F(eigen3, TriangularMatrix_arithmetic_upper)
 {
   auto m1 = Upper {4., 5, 0, 6};
   auto m2 = Upper {1., 2, 0, 3};
-  auto d = EigenDiagonal<Eigen::Matrix<double, 2, 1>> {1, 3};
+  auto d = DiagonalMatrix<Eigen::Matrix<double, 2, 1>> {1, 3};
   auto i = M2::Identity();
-  auto z = EigenZero<M2> {};
+  auto z = ZeroMatrix<M2> {};
   EXPECT_TRUE(is_near(m1 + m2, mat22(5, 7, 0, 9))); static_assert(is_upper_triangular_v<decltype(m1 + m2)>);
   EXPECT_TRUE(is_near(m1 + d, mat22(5, 5, 0, 9))); static_assert(is_upper_triangular_v<decltype(m1 + d)>);
   EXPECT_TRUE(is_near(d + m1, mat22(5, 5, 0, 9))); static_assert(is_upper_triangular_v<decltype(d + m1)>);
@@ -803,37 +803,37 @@ TEST_F(eigen3, TriangularMatrix_references)
   M2 m, n;
   m << 2, 0, 1, 2;
   n << 3, 0, 1, 3;
-  EigenTriangularMatrix<M2, TriangleType::lower> x = m;
-  EigenTriangularMatrix<M2&, TriangleType::lower> x_lvalue = x;
+  TriangularMatrix<M2, TriangleType::lower> x = m;
+  TriangularMatrix<M2&, TriangleType::lower> x_lvalue = x;
   EXPECT_TRUE(is_near(x_lvalue, m));
   x = n;
   EXPECT_TRUE(is_near(x_lvalue, n));
   x_lvalue = m;
   EXPECT_TRUE(is_near(x, m));
-  EigenTriangularMatrix<M2&&, TriangleType::lower> x_rvalue = std::move(x);
+  TriangularMatrix<M2&&, TriangleType::lower> x_rvalue = std::move(x);
   EXPECT_TRUE(is_near(x_rvalue, m));
   x_rvalue = n;
   EXPECT_TRUE(is_near(x_rvalue, n));
   //
-  using V = EigenTriangularMatrix<Eigen::Matrix<double, 3, 3>>;
+  using V = TriangularMatrix<Eigen::Matrix<double, 3, 3>>;
   V v1 {1., 0, 0,
         2, 4, 0,
         3, -6, -3};
   bool test = false; try { v1(0, 1) = 3.2; } catch (const std::out_of_range& e) { test = true; }
   EXPECT_TRUE(test);
   EXPECT_EQ(v1(1,0), 2);
-  EigenTriangularMatrix<Eigen::Matrix<double, 3, 3>&> v2 = v1;
+  TriangularMatrix<Eigen::Matrix<double, 3, 3>&> v2 = v1;
   EXPECT_TRUE(is_near(v1, v2));
   v1(1,0) = 4.1;
   EXPECT_EQ(v2(1,0), 4.1);
   v2(2, 0) = 5.2;
   EXPECT_EQ(v1(2,0), 5.2);
-  EigenTriangularMatrix<Eigen::Matrix<double, 3, 3>&&> v3 = std::move(v2);
+  TriangularMatrix<Eigen::Matrix<double, 3, 3>&&> v3 = std::move(v2);
   EXPECT_EQ(v3(1,0), 4.1);
-  EigenTriangularMatrix<const Eigen::Matrix<double, 3, 3>&> v4 = v3;
+  TriangularMatrix<const Eigen::Matrix<double, 3, 3>&> v4 = v3;
   v3(2,1) = 7.3;
   EXPECT_EQ(v4(2,1), 7.3);
-  EigenTriangularMatrix<Eigen::Matrix<double, 3, 3>> v5 = v3;
+  TriangularMatrix<Eigen::Matrix<double, 3, 3>> v5 = v3;
   v3(1,1) = 8.4;
   EXPECT_EQ(v3(1,1), 8.4);
   EXPECT_EQ(v5(1,1), 4);

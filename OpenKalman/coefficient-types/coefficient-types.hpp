@@ -11,10 +11,7 @@
 #ifndef OPENKALMAN_COEFFICIENT_TYPES_HPP
 #define OPENKALMAN_COEFFICIENT_TYPES_HPP
 
-#include "basics/Traits.hpp"
-#include "basics/ForwardDeclarations.hpp"
-
-#include "details/ArrayUtils.hpp"
+#include "basics/basics.hpp"
 
 #include "Axis.hpp"
 #include "Circle.hpp"

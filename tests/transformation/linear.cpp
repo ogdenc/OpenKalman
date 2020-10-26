@@ -11,7 +11,7 @@
 #include "transformations.hpp"
 
 using M2 = Mean<Axes<2>, Eigen::Matrix<int, 2, 1>>;
-using A_int = Matrix<Axes<2>, Axes<2>, Eigen::Matrix<int, 2, 2>>;
+using A2 = Matrix<Axes<2>, Axes<2>, Eigen::Matrix<int, 2, 2>>;
 
 template<typename A, typename X>
 struct Trans1
@@ -30,7 +30,6 @@ struct Trans1
     return std::tuple(a);
   }
 };
-
 
 template<typename A, typename X>
 struct Trans2
@@ -62,10 +61,9 @@ struct Trans2
 };
 
 
-
 TEST_F(transformations, linear)
 {
-  A_int a;
+  A2 a;
   a << 1, 2, 3, 4;
   LinearTransformation t {a};
   static_assert(is_linearized_function_v<decltype(t), 0>);
@@ -74,14 +72,14 @@ TEST_F(transformations, linear)
   EXPECT_TRUE(is_near(t(M2(1, 2)), M2(5, 11)));
   EXPECT_TRUE(is_near(t(M2(1, 2), M2(1, 1)), M2(6, 12)));
   EXPECT_TRUE(is_near(std::get<0>(t.jacobian(M2(1, 2))), a));
-  EXPECT_TRUE(is_near(std::get<1>(t.jacobian(M2(1, 2), M2(1, 1))), M2::identity()));
+  EXPECT_TRUE(is_near(std::get<1>(t.jacobian(M2(1, 2), M2(1, 1))), A2::identity()));
 }
 
 TEST_F(transformations, linearized1)
 {
-  A_int a;
+  A2 a;
   a << 1, 2, 3, 4;
-  using F = Trans1<A_int, M2>;
+  using F = Trans1<A2, M2>;
   auto f = F {a};
   auto t = make_Transformation(f);
   using T = decltype(t);
@@ -100,9 +98,9 @@ TEST_F(transformations, linearized1)
 
 TEST_F(transformations, linearized2)
 {
-  A_int a;
+  A2 a;
   a << 1, 2, 3, 4;
-  using F = Trans2<A_int, M2>;
+  using F = Trans2<A2, M2>;
   auto f = F {a};
   auto t = Transformation(f);
   using T = decltype(t);
@@ -121,16 +119,16 @@ TEST_F(transformations, linearized2)
 
 TEST_F(transformations, linearized_lambdas)
 {
-  A_int a;
+  A2 a;
   a << 1, 2, 3, 4;
   auto f = [&a] (const M2& x) { return a * x; };
   auto j = [&a] (const M2& x) { return std::tuple(a); };
   auto h = [] (const M2& x)
     {
-      using H = Eigen::Matrix<typename A_int::Scalar, A_int::ColsAtCompileTime, A_int::ColsAtCompileTime>;
+      using H = Eigen::Matrix<typename A2::Scalar, A2::ColsAtCompileTime, A2::ColsAtCompileTime>;
       using C = typename MatrixTraits<M2>::RowCoefficients;
       using MH = Matrix<C, C, H>;
-      auto Arr = std::array<MH, A_int::RowsAtCompileTime>();
+      auto Arr = std::array<MH, A2::RowsAtCompileTime>();
       Arr.fill(MH::zero());
       return std::tuple {Arr};
     };
@@ -151,7 +149,7 @@ TEST_F(transformations, linearized_lambdas)
 
 TEST_F(transformations, linear_additive)
 {
-  A_int a;
+  A2 a;
   a << 1, 2,
        3, 4;
   LinearTransformation t {a};
@@ -165,7 +163,7 @@ TEST_F(transformations, linear_additive)
 
 TEST_F(transformations, linear_augmented)
 {
-  A_int a, an;
+  A2 a, an;
   a << 1, 2, 4, 3;
   an << 3, 4, 2, 1;
   LinearTransformation t1 {a, an};
@@ -181,11 +179,10 @@ TEST_F(transformations, linear_augmented)
 
 TEST_F(transformations, linearized_additive)
 {
-  using A = Matrix<Coefficients<Axis, Axis>, Coefficients<Axis, Axis>, Eigen::Matrix<int, 2, 2>>;
-  A a;
+  A2 a;
   a << 1, 2,
-      3, 4;
-  using T = Trans2<A, M2>;
+       3, 4;
+  using T = Trans2<A2, M2>;
   T t(a);
   Transformation<T> tn {t};
   EXPECT_TRUE(is_near(tn(M2(2, 3)) + M2(3, 3), M2(11, 21)));

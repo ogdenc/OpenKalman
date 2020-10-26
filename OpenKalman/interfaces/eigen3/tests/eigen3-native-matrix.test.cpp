@@ -88,19 +88,19 @@ TEST_F(eigen3, Eigen_Matrix_overloads)
   EXPECT_FALSE(is_near(m22, offset3, 1e-8));
 }
 
-TEST_F(eigen3, EigenZero)
+TEST_F(eigen3, ZeroMatrix)
 {
-  EXPECT_NEAR((EigenZero<Eigen::Matrix<double, 2, 2>>()(0, 0)), 0, 1e-6);
-  EXPECT_NEAR((EigenZero<Eigen::Matrix<double, 2, 2>>()(0, 1)), 0, 1e-6);
-  EXPECT_TRUE(is_near(strict_matrix(EigenZero<Eigen::Matrix<double, 2, 3>>()), Eigen::Matrix<double, 2, 3>::Zero()));
-  EXPECT_TRUE(is_near(strict(EigenZero<Eigen::Matrix<double, 2, 3>>()), Eigen::Matrix<double, 2, 3>::Zero()));
-  EXPECT_NEAR(determinant(EigenZero<Eigen::Matrix<double, 2, 2>>()), 0, 1e-6);
-  EXPECT_NEAR(trace(EigenZero<Eigen::Matrix<double, 2, 2>>()), 0, 1e-6);
-  EXPECT_TRUE(is_near(reduce_columns(EigenZero<Eigen::Matrix<double, 2, 3>>()), (Eigen::Matrix<double, 2, 1>::Zero())));
-  EXPECT_NEAR(get_element(EigenZero<Eigen::Matrix<double, 2, 2>>(), 1, 0), 0, 1e-8);
-  static_assert(not is_element_settable_v<EigenZero<Eigen::Matrix<double, 2, 2>>, 2>);
-  EXPECT_TRUE(is_near(column(EigenZero<Eigen::Matrix<double, 2, 3>>(), 1), (Eigen::Matrix<double, 2, 1>::Zero())));
-  EXPECT_TRUE(is_near(column<1>(EigenZero<Eigen::Matrix<double, 2, 3>>()), (Eigen::Matrix<double, 2, 1>::Zero())));
+  EXPECT_NEAR((ZeroMatrix<Eigen::Matrix<double, 2, 2>>()(0, 0)), 0, 1e-6);
+  EXPECT_NEAR((ZeroMatrix<Eigen::Matrix<double, 2, 2>>()(0, 1)), 0, 1e-6);
+  EXPECT_TRUE(is_near(strict_matrix(ZeroMatrix<Eigen::Matrix<double, 2, 3>>()), Eigen::Matrix<double, 2, 3>::Zero()));
+  EXPECT_TRUE(is_near(strict(ZeroMatrix<Eigen::Matrix<double, 2, 3>>()), Eigen::Matrix<double, 2, 3>::Zero()));
+  EXPECT_NEAR(determinant(ZeroMatrix<Eigen::Matrix<double, 2, 2>>()), 0, 1e-6);
+  EXPECT_NEAR(trace(ZeroMatrix<Eigen::Matrix<double, 2, 2>>()), 0, 1e-6);
+  EXPECT_TRUE(is_near(reduce_columns(ZeroMatrix<Eigen::Matrix<double, 2, 3>>()), (Eigen::Matrix<double, 2, 1>::Zero())));
+  EXPECT_NEAR(get_element(ZeroMatrix<Eigen::Matrix<double, 2, 2>>(), 1, 0), 0, 1e-8);
+  static_assert(not is_element_settable_v<ZeroMatrix<Eigen::Matrix<double, 2, 2>>, 2>);
+  EXPECT_TRUE(is_near(column(ZeroMatrix<Eigen::Matrix<double, 2, 3>>(), 1), (Eigen::Matrix<double, 2, 1>::Zero())));
+  EXPECT_TRUE(is_near(column<1>(ZeroMatrix<Eigen::Matrix<double, 2, 3>>()), (Eigen::Matrix<double, 2, 1>::Zero())));
 }
 
 TEST_F(eigen3, Matrix_blocks)

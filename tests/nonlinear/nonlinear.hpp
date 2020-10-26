@@ -11,8 +11,6 @@
 #ifndef NONLINEAR_TESTS_H
 #define NONLINEAR_TESTS_H
 
-#include <functional>
-#include <gtest/gtest.h>
 #include "../tests.hpp"
 #include "../test-transformations.hpp"
 

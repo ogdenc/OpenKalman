@@ -358,7 +358,7 @@ namespace OpenKalman
 
   /// Make a Gaussian distribution from a mean and a covariance.
   template<typename re = std::mt19937, typename M, typename Cov,
-    std::enable_if_t<not is_coefficient_v<re> and (is_typed_matrix_v<M> or is_typed_matrix_base_v<M>) and
+    std::enable_if_t<not is_coefficients_v<re> and (is_typed_matrix_v<M> or is_typed_matrix_base_v<M>) and
       (is_covariance_v<Cov> or is_covariance_base_v<Cov> or is_typed_matrix_v<Cov> or is_typed_matrix_base_v<Cov>), int> = 0>
   inline auto
   make_GaussianDistribution(M&& mean, Cov&& cov) noexcept
@@ -413,7 +413,7 @@ namespace OpenKalman
 
   /// Make a Gaussian distribution from a typed matrix base and a covariance base or regular matrix for the covariance.
   template<typename Coefficients, typename re = std::mt19937, typename M, typename Cov,
-    std::enable_if_t<is_coefficient_v<Coefficients> and
+    std::enable_if_t<is_coefficients_v<Coefficients> and
       is_typed_matrix_base_v<M> and (is_covariance_base_v<Cov> or is_typed_matrix_base_v<Cov>), int> = 0>
   inline auto
   make_GaussianDistribution(M&& mean, Cov&& cov) noexcept

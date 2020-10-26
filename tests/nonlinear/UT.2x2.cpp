@@ -16,8 +16,8 @@
  */
 
 using M2 = Eigen::Matrix<double, 2, 1>;
-using SA = EigenSelfAdjointMatrix<Eigen::Matrix<double, 2, 2>>;
-using TR = EigenTriangularMatrix<Eigen::Matrix<double, 2, 2>>;
+using SA = SelfAdjointMatrix<Eigen::Matrix<double, 2, 2>>;
+using TR = TriangularMatrix<Eigen::Matrix<double, 2, 2>>;
 using G2 = GaussianDistribution<Polar<>, M2, SA>;
 using G2T = GaussianDistribution<Polar<>, M2, TR>;
 

@@ -19,10 +19,10 @@ template<std::size_t n>
 using M = Eigen::Matrix<double, n, 1>;
 
 template<std::size_t n>
-using SA = EigenSelfAdjointMatrix<Eigen::Matrix<double, n, n>>;
+using SA = SelfAdjointMatrix<Eigen::Matrix<double, n, n>>;
 
 template<std::size_t n>
-using TR = EigenTriangularMatrix<Eigen::Matrix<double, n, n>>;
+using TR = TriangularMatrix<Eigen::Matrix<double, n, n>>;
 
 template<std::size_t n>
 using G = GaussianDistribution<Axes<n>, M<n>, SA<n>>;

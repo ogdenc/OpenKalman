@@ -197,7 +197,7 @@ namespace OpenKalman
 
   /// Polar is a coefficient.
   template<typename Coeff1, typename Coeff2>
-  struct is_coefficient<Polar<Coeff1, Coeff2>> : std::true_type {};
+  struct is_coefficients<Polar<Coeff1, Coeff2>> : std::true_type {};
 
   template<typename Coeff1a, typename Coeff2a, typename Coeff1b, typename Coeff2b>
   struct is_equivalent<Polar<Coeff1a, Coeff2a>, Polar<Coeff1b, Coeff2b>>

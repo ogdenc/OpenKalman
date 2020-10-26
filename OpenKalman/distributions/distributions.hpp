@@ -13,9 +13,9 @@
  * A meta-header file including all the headers relating to OpenKalman distributions.
  */
 
-#ifndef OPENKALMAN_FILTERS_HPP
-#define OPENKALMAN_FILTERS_HPP
+#ifndef OPENKALMAN_DISTRIBUTIONS_HPP
+#define OPENKALMAN_DISTRIBUTIONS_HPP
 
 #include "GaussianDistribution.hpp"
 
-#endif //OPENKALMAN_FILTERS_HPP
+#endif //OPENKALMAN_DISTRIBUTIONS_HPP

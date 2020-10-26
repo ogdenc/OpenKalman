@@ -19,7 +19,7 @@ using M23 = Eigen::Matrix<double, 2, 3>;
 using M32 = Eigen::Matrix<double, 3, 2>;
 using M33 = Eigen::Matrix<double, 3, 3>;
 using I22 = EigenIdentity<M22>;
-using Z22 = EigenZero<M22>;
+using Z22 = ZeroMatrix<M22>;
 using C2 = Coefficients<Axis, Angle>;
 using C3 = Coefficients<Axis, Angle, Axis>;
 using Mat12 = Matrix<Axis, C2, M12>;
@@ -69,15 +69,15 @@ TEST_F(matrices, TypedMatrix_class)
   EXPECT_TRUE(is_near(mat23d, Mat23 {1, 2, 3, 4, 5, 6}));
 
   // Convert from a compatible covariance
-  Mat22 mat22a_1(Covariance<C2, EigenSelfAdjointMatrix<M22, TriangleType::lower>> {9, 3, 3, 10});
+  Mat22 mat22a_1(Covariance<C2, SelfAdjointMatrix<M22, TriangleType::lower>> {9, 3, 3, 10});
   EXPECT_TRUE(is_near(mat22a_1, Mat22 {9, 3, 3, 10}));
-  Mat22 mat22a_2(Covariance<C2, EigenSelfAdjointMatrix<M22, TriangleType::upper>> {9, 3, 3, 10});
+  Mat22 mat22a_2(Covariance<C2, SelfAdjointMatrix<M22, TriangleType::upper>> {9, 3, 3, 10});
   EXPECT_TRUE(is_near(mat22a_2, Mat22 {9, 3, 3, 10}));
-  Mat22 mat22a_3(Covariance<C2, EigenSelfAdjointMatrix<M22, TriangleType::lower>> {9, 3, 3, 10});
+  Mat22 mat22a_3(Covariance<C2, SelfAdjointMatrix<M22, TriangleType::lower>> {9, 3, 3, 10});
   EXPECT_TRUE(is_near(mat22a_3, Mat22 {9, 3, 3, 10}));
-  Mat22 mat22a_4(Covariance<C2, EigenTriangularMatrix<M22, TriangleType::upper>> {9, 3, 3, 10});
+  Mat22 mat22a_4(Covariance<C2, TriangularMatrix<M22, TriangleType::upper>> {9, 3, 3, 10});
   EXPECT_TRUE(is_near(mat22a_4, Mat22 {9, 3, 3, 10}));
-  Mat22 mat22a_5(Covariance<C2, EigenDiagonal<M21>> {9, 10});
+  Mat22 mat22a_5(Covariance<C2, DiagonalMatrix<M21>> {9, 10});
   EXPECT_TRUE(is_near(mat22a_5, Mat22 {9, 0, 0, 10}));
   Mat22 mat22a_6(covi22);
   EXPECT_TRUE(is_near(mat22a_6, Mat22 {1, 0, 0, 1}));
@@ -85,15 +85,15 @@ TEST_F(matrices, TypedMatrix_class)
   EXPECT_TRUE(is_near(mat22a_7, Mat22 {0, 0, 0, 0}));
 
   // Convert from a compatible square root covariance
-  Mat22 mat22b_1(SquareRootCovariance<C2, EigenSelfAdjointMatrix<M22, TriangleType::lower>> {3, 0, 1, 3});
+  Mat22 mat22b_1(SquareRootCovariance<C2, SelfAdjointMatrix<M22, TriangleType::lower>> {3, 0, 1, 3});
   EXPECT_TRUE(is_near(mat22b_1, Mat22 {3, 0, 1, 3}));
-  Mat22 mat22b_2(SquareRootCovariance<C2, EigenSelfAdjointMatrix<M22, TriangleType::upper>> {3, 1, 0, 3});
+  Mat22 mat22b_2(SquareRootCovariance<C2, SelfAdjointMatrix<M22, TriangleType::upper>> {3, 1, 0, 3});
   EXPECT_TRUE(is_near(mat22b_2, Mat22 {3, 1, 0, 3}));
-  Mat22 mat22b_3(SquareRootCovariance<C2, EigenSelfAdjointMatrix<M22, TriangleType::lower>> {3, 0, 1, 3});
+  Mat22 mat22b_3(SquareRootCovariance<C2, SelfAdjointMatrix<M22, TriangleType::lower>> {3, 0, 1, 3});
   EXPECT_TRUE(is_near(mat22b_3, Mat22 {3, 0, 1, 3}));
-  Mat22 mat22b_4(SquareRootCovariance<C2, EigenTriangularMatrix<M22, TriangleType::upper>> {3, 1, 0, 3});
+  Mat22 mat22b_4(SquareRootCovariance<C2, TriangularMatrix<M22, TriangleType::upper>> {3, 1, 0, 3});
   EXPECT_TRUE(is_near(mat22b_4, Mat22 {3, 1, 0, 3}));
-  Mat22 mat22b_5(SquareRootCovariance<C2, EigenDiagonal<M21>> {3, 4});
+  Mat22 mat22b_5(SquareRootCovariance<C2, DiagonalMatrix<M21>> {3, 4});
   EXPECT_TRUE(is_near(mat22b_5, Mat22 {3, 0, 0, 4}));
   Mat22 mat22b_6(sqcovi22);
   EXPECT_TRUE(is_near(mat22b_6, Mat22 {1, 0, 0, 1}));
@@ -249,7 +249,7 @@ TEST_F(matrices, TypedMatrix_deduction_guides)
   static_assert(is_equivalent_v<typename MatrixTraits<decltype(Matrix(b3))>::RowCoefficients, C2>);
   static_assert(is_equivalent_v<typename MatrixTraits<decltype(Matrix(b3))>::ColumnCoefficients, Axes<3>>);
 
-  auto c = Covariance<C2, EigenSelfAdjointMatrix<M22, TriangleType::lower>> {9, 3, 3, 10};
+  auto c = Covariance<C2, SelfAdjointMatrix<M22, TriangleType::lower>> {9, 3, 3, 10};
   EXPECT_TRUE(is_near(Matrix(c), Mat22 {9, 3, 3, 10}));
   static_assert(is_equivalent_v<typename MatrixTraits<decltype(Matrix(c))>::RowCoefficients, C2>);
   static_assert(is_equivalent_v<typename MatrixTraits<decltype(Matrix(c))>::ColumnCoefficients, C2>);
@@ -271,7 +271,7 @@ TEST_F(matrices, TypedMatrix_make_functions)
   static_assert(is_equivalent_v<typename MatrixTraits<decltype(make_Matrix(b))>::RowCoefficients, C2>);
   static_assert(is_equivalent_v<typename MatrixTraits<decltype(make_Matrix(b))>::ColumnCoefficients, C3>);
 
-  auto c = Covariance<C2, EigenSelfAdjointMatrix<M22, TriangleType::lower>> {9, 3, 3, 10};
+  auto c = Covariance<C2, SelfAdjointMatrix<M22, TriangleType::lower>> {9, 3, 3, 10};
   EXPECT_TRUE(is_near(make_Matrix(c), Mat22 {9, 3, 3, 10}));
   static_assert(is_equivalent_v<typename MatrixTraits<decltype(make_Matrix(c))>::RowCoefficients, C2>);
   static_assert(is_equivalent_v<typename MatrixTraits<decltype(make_Matrix(c))>::ColumnCoefficients, C2>);
@@ -301,7 +301,7 @@ TEST_F(matrices, TypedMatrix_traits)
   static_assert(not is_identity_v<Matrix<C2, Axes<2>, I22>>);
   static_assert(not is_zero_v<Mat23>);
   static_assert(is_zero_v<Matrix<C2, C2, Z22>>);
-  static_assert(is_zero_v<Matrix<C2, C3, EigenZero<M23>>>);
+  static_assert(is_zero_v<Matrix<C2, C3, ZeroMatrix<M23>>>);
 
   EXPECT_TRUE(is_near(MatrixTraits<Mat23>::make(
     (Eigen::Matrix<double, 2, 3>() << 1, 2, 3, 4, 5, 6).finished()).base_matrix(), Mat23 {1, 2, 3, 4, 5, 6}));

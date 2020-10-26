@@ -11,10 +11,6 @@
 #ifndef TRANSFORM_NONLINEAR_TESTS_H
 #define TRANSFORM_NONLINEAR_TESTS_H
 
-#include <iostream>
-#include <random>
-#include <Eigen/Dense>
-#include <gtest/gtest.h>
 #include "../tests.hpp"
 #include "../test-transformations.hpp"
 

@@ -292,59 +292,28 @@ namespace OpenKalman
   inline constexpr bool is_typed_matrix_base_v = is_typed_matrix_base<T>::value;
 
 
-  //////////////////////////
-  //  Coefficient traits  //
-  //////////////////////////
+  // --------------------------------- //
+  //  Coefficient concepts and traits  //
+  // --------------------------------- //
 
+  /// Whether T is a (single or composite) coefficient type.
+  template<typename T>
+  struct is_coefficients : std::false_type {};
+
+  /// Helper template for is_coefficients.
+  template<typename T>
+  inline constexpr bool is_coefficients_v = is_coefficients<T>::value;
+
+#ifdef __cpp_concepts
   /**
-   * @brief A set of coefficient types to be associated with a variable.
-   * The types should be instances of is_coefficient.
-   * @tparam Cs The coefficients (e.g., Axis, Angle, anything that as an instance of is_coefficient).
+   * T is a (single or composite) coefficient type.
    */
-  template<typename ... Cs>
-  struct Coefficients;
-
-  namespace internal
-  {
-    /**
-     * @brief Concatenate any number of Coefficients<...> types.
-     */
-    template<typename ...>
-    struct ConcatenateImpl;
-
-    template<typename ... Cs1, typename ... Coeffs>
-    struct ConcatenateImpl<Coefficients<Cs1...>, Coeffs...>
-    {
-      using type = typename ConcatenateImpl<Coeffs...>::type::template Prepend<Cs1...>;
-    };
-
-    template<typename Cs1, typename ... Coeffs>
-    struct ConcatenateImpl<Cs1, Coeffs...>
-    {
-      using type = typename ConcatenateImpl<Coeffs...>::type::template Prepend<Cs1>;
-    };
-
-    template<>
-    struct ConcatenateImpl<>
-    {
-      using type = Coefficients<>;
-    };
-
-  }
-
-  /// Concatenate any number of Coefficients<...> types.
-  template<typename ... Coeffs> using Concatenate = typename internal::ConcatenateImpl<Coeffs...>::type;
-
-
-  /// Whether an object is a coefficient.
   template<typename T>
-  struct is_coefficient : std::false_type {};
+  concept coefficients = is_coefficients_v<T>;
+#endif
 
-  /// Helper template for is_coefficient.
-  template<typename T>
-  inline constexpr bool is_coefficient_v = is_coefficient<T>::value;
 
-  /// Whether an object is a composite coefficient.
+  /// Whether T is a composite coefficient.
   template<typename T>
   struct is_composite_coefficient : std::false_type {};
 
@@ -371,6 +340,44 @@ namespace OpenKalman
 
   template<typename C1, typename C2>
   struct is_prefix<C1, C2, std::enable_if_t<is_equivalent_v<C1, C2>>> : std::true_type {};
+
+
+  /**
+   * A set of coefficient types to be associated with a variable.
+   *
+   * The types should be instances of is_coefficients.
+   * @tparam Cs The coefficients (e.g., Axis, Angle, anything that as an instance of is_coefficients).
+   */
+  template<typename ... Cs>
+  struct Coefficients;
+
+  namespace internal
+  {
+    template<typename ...>
+    struct ConcatenateImpl;
+
+    template<typename ... Cs1, typename ... Coeffs>
+    struct ConcatenateImpl<Coefficients<Cs1...>, Coeffs...>
+    {
+      using type = typename ConcatenateImpl<Coeffs...>::type::template Prepend<Cs1...>;
+    };
+
+    template<typename Cs1, typename ... Coeffs>
+    struct ConcatenateImpl<Cs1, Coeffs...>
+    {
+      using type = typename ConcatenateImpl<Coeffs...>::type::template Prepend<Cs1>;
+    };
+
+    template<>
+    struct ConcatenateImpl<>
+    {
+      using type = Coefficients<>;
+    };
+
+  }
+
+  /// Concatenate any number of Coefficients<...> types.
+  template<typename ... Coeffs> using Concatenate = typename internal::ConcatenateImpl<Coeffs...>::type;
 
 
   /////////////////////

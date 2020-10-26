@@ -66,7 +66,7 @@ namespace OpenKalman
 
   /// Axis is a coefficient.
   template<>
-  struct is_coefficient<Axis> : std::true_type {};
+  struct is_coefficients<Axis> : std::true_type {};
 
   template<>
   struct is_equivalent<Axis, Axis> : std::true_type {};

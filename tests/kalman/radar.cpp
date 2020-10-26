@@ -32,46 +32,46 @@ using M22 = Eigen::Matrix<double, 2, 2>;
 
 TEST_F(kalman, radar_2d_linearized1_SA)
 {
-  radar_2D<EigenSelfAdjointMatrix<M22>>(LinearizedTransform<1>());
+  radar_2D<SelfAdjointMatrix<M22>>(LinearizedTransform<1>());
 }
 
 TEST_F(kalman, radar_2d_linearized1_T)
 {
-  radar_2D<EigenTriangularMatrix<M22>>(LinearizedTransform<1>());
+  radar_2D<TriangularMatrix<M22>>(LinearizedTransform<1>());
 }
 
 TEST_F(kalman, radar_2d_linearized2_SA)
 {
-  radar_2D<EigenSelfAdjointMatrix<M22>>(LinearizedTransform<2>());
+  radar_2D<SelfAdjointMatrix<M22>>(LinearizedTransform<2>());
 }
 
 TEST_F(kalman, radar_2d_cubature_SA)
 {
-  radar_2D<EigenSelfAdjointMatrix<M22>>(CubatureTransform());
+  radar_2D<SelfAdjointMatrix<M22>>(CubatureTransform());
 }
 
 TEST_F(kalman, radar_2d_cubature_T)
 {
-  radar_2D<EigenTriangularMatrix<M22>>(CubatureTransform());
+  radar_2D<TriangularMatrix<M22>>(CubatureTransform());
 }
 
 TEST_F(kalman, radar_2d_unscented_SA)
 {
-  radar_2D<EigenSelfAdjointMatrix<M22>>(UnscentedTransform());
+  radar_2D<SelfAdjointMatrix<M22>>(UnscentedTransform());
 }
 
 TEST_F(kalman, radar_2d_unscented_T)
 {
-  radar_2D<EigenTriangularMatrix<M22>>(UnscentedTransform());
+  radar_2D<TriangularMatrix<M22>>(UnscentedTransform());
 }
 
 TEST_F(kalman, radar_2d_simplex_SA)
 {
-  radar_2D<EigenSelfAdjointMatrix<M22>>(SamplePointsTransform<SphericalSimplexSigmaPoints>());
+  radar_2D<SelfAdjointMatrix<M22>>(SamplePointsTransform<SphericalSimplexSigmaPoints>());
 }
 
 TEST_F(kalman, radar_2d_simplex_T)
 {
-  radar_2D<EigenTriangularMatrix<M22>>(SamplePointsTransform<SphericalSimplexSigmaPoints>());
+  radar_2D<TriangularMatrix<M22>>(SamplePointsTransform<SphericalSimplexSigmaPoints>());
 }
 

@@ -8,8 +8,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#ifndef OPENKALMAN_TESTS_TOEUCLIDEANEXPR_H
-#define OPENKALMAN_TESTS_TOEUCLIDEANEXPR_H
+#ifndef OPENKALMAN_EIGEN3_TOEUCLIDEANEXPR_HPP
+#define OPENKALMAN_EIGEN3_TOEUCLIDEANEXPR_HPP
 
 namespace OpenKalman::Eigen3
 {
@@ -43,7 +43,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
     template<to_euclidean_expr Arg>
 #else
-    template<typename Arg, std::enable_if_t<is_ToEuclideanExpr_v < Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<is_to_euclidean_expr_v < Arg>, int> = 0>
 #endif
 
     ToEuclideanExpr(Arg&& other) noexcept: Base(std::forward<Arg>(other).base_matrix())
@@ -57,7 +57,7 @@ namespace OpenKalman::Eigen3
     template<eigen_matrix Arg>
 #else
 
-    template<typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<is_eigen_matrix_v<Arg>, int> = 0>
 #endif
     ToEuclideanExpr(Arg&& arg) noexcept : Base(std::forward<Arg>(arg))
     {
@@ -74,7 +74,7 @@ namespace OpenKalman::Eigen3
     template<
       typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...> and
         sizeof...(Args) == columns *
-          (is_FromEuclideanExpr_v < BaseMatrix > ? Coefficients::dimension : Coefficients::size), int> = 0>
+          (is_from_euclidean_expr_v < BaseMatrix > ? Coefficients::dimension : Coefficients::size), int> = 0>
 #endif
     ToEuclideanExpr(Args ... args) : Base(MatrixTraits<BaseMatrix>::make(args...)) {}
 
@@ -100,7 +100,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
     template<to_euclidean_expr Arg>
 #else
-    template<typename Arg, std::enable_if_t<is_ToEuclideanExpr_v < Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<is_to_euclidean_expr_v < Arg>, int> = 0>
 #endif
 
     auto& operator=(Arg&& other) noexcept
@@ -127,7 +127,7 @@ namespace OpenKalman::Eigen3
     template<eigen_matrix Arg>
 #else
 
-    template<typename Arg, std::enable_if_t<is_Eigen_matrix_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<is_eigen_matrix_v<Arg>, int> = 0>
 #endif
     auto& operator=(Arg&& arg) noexcept
     {
@@ -152,7 +152,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
     template<typename Arg> requires to_euclidean_expr<Arg> or eigen_matrix<Arg>
 #else
-    template<typename Arg, std::enable_if_t<is_ToEuclideanExpr_v < Arg> or is_Eigen_matrix_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<is_to_euclidean_expr_v < Arg> or is_eigen_matrix_v<Arg>, int> = 0>
 #endif
 
     auto& operator+=(Arg&& other) noexcept
@@ -169,7 +169,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
     template<typename Arg> requires to_euclidean_expr<Arg> or eigen_matrix<Arg>
 #else
-    template<typename Arg, std::enable_if_t<is_ToEuclideanExpr_v < Arg> or is_Eigen_matrix_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<is_to_euclidean_expr_v < Arg> or is_eigen_matrix_v<Arg>, int> = 0>
 #endif
 
     auto& operator-=(Arg&& other) noexcept
@@ -275,7 +275,7 @@ namespace OpenKalman
     static_assert(Coefficients::size == MatrixTraits<BaseMatrix>::dimension);
 
     template<typename Derived>
-    using MatrixBaseType = Eigen3::internal::EigenMatrixBase<Derived, Eigen3::ToEuclideanExpr<Coeffs, ArgType>>;
+    using MatrixBaseType = Eigen3::internal::Eigen3MatrixBase<Derived, Eigen3::ToEuclideanExpr<Coeffs, ArgType>>;
 
     template<std::size_t rows = dimension, std::size_t cols = columns, typename S = Scalar>
     using StrictMatrix = typename MatrixTraits<BaseMatrix>::template StrictMatrix<rows, cols, S>;
@@ -283,13 +283,13 @@ namespace OpenKalman
     using Strict = Eigen3::ToEuclideanExpr<Coefficients, typename MatrixTraits<BaseMatrix>::Strict>;
 
     template<TriangleType storage_triangle = TriangleType::lower, std::size_t dim = dimension, typename S = Scalar>
-    using SelfAdjointBaseType = Eigen3::EigenSelfAdjointMatrix<StrictMatrix<dim, dim, S>, storage_triangle>;
+    using SelfAdjointBaseType = Eigen3::SelfAdjointMatrix<StrictMatrix<dim, dim, S>, storage_triangle>;
 
     template<TriangleType triangle_type = TriangleType::lower, std::size_t dim = dimension, typename S = Scalar>
-    using TriangularBaseType = Eigen3::EigenTriangularMatrix<StrictMatrix<dim, dim, S>, triangle_type>;
+    using TriangularBaseType = Eigen3::TriangularMatrix<StrictMatrix<dim, dim, S>, triangle_type>;
 
     template<std::size_t dim = dimension, typename S = Scalar>
-    using DiagonalBaseType = Eigen3::EigenDiagonal<StrictMatrix<dim, 1, S>>;
+    using DiagonalBaseType = Eigen3::DiagonalMatrix<StrictMatrix<dim, 1, S>>;
 
 
     /// Make from a regular matrix.
@@ -298,7 +298,7 @@ namespace OpenKalman
       Eigen3::eigen_matrix<Arg> or Eigen3::from_euclidean_expr<Arg>
 #else
     template<typename C = Coefficients, typename Arg,
-      std::enable_if_t<Eigen3::is_Eigen_matrix_v<Arg> or Eigen3::is_FromEuclideanExpr_v<Arg>, int> = 0>
+      std::enable_if_t<Eigen3::is_eigen_matrix_v<Arg> or Eigen3::is_from_euclidean_expr_v<Arg>, int> = 0>
 #endif
     static auto make(Arg&& arg) noexcept
     {
@@ -330,4 +330,4 @@ namespace OpenKalman
 
 } // namespace OpenKalman
 
-#endif //OPENKALMAN_TESTS_TOEUCLIDEANEXPR_H
+#endif //OPENKALMAN_EIGEN3_TOEUCLIDEANEXPR_HPP

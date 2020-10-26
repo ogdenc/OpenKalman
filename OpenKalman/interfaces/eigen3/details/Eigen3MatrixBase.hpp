@@ -8,8 +8,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#ifndef OPENKALMAN_EIGENMATRIXBASE_HPP
-#define OPENKALMAN_EIGENMATRIXBASE_HPP
+#ifndef OPENKALMAN_EIGEN3MATRIXBASE_HPP
+#define OPENKALMAN_EIGEN3MATRIXBASE_HPP
 
 namespace Eigen
 {
@@ -26,7 +26,7 @@ namespace OpenKalman::Eigen3::internal
    * Base class for all OpenKalman classes that are also Eigen3 matrices.
    */
   template<typename Derived, typename ArgType>
-  struct EigenMatrixBase : Eigen::MatrixBase<Derived>
+  struct Eigen3MatrixBase : Eigen::MatrixBase<Derived>
   {
     using Nested = std::decay_t<ArgType>; ///< The nested Eigen matrix type. Eigen3 requires this to be defined.
     using Scalar = typename Nested::Scalar;
@@ -162,7 +162,7 @@ namespace Eigen
   };
 
   /**
-   * Alternative version of CommaInitializer for diagonal versions of EigenSelfAdjointMatrix and EigenTriangularMatrix.
+   * Alternative version of CommaInitializer for diagonal versions of SelfAdjointMatrix and TriangularMatrix.
    */
   template<typename XprType>
   struct DiagonalCommaInitializer
@@ -220,11 +220,11 @@ namespace Eigen
 
     auto& finished()
     {
-      diag = OpenKalman::Eigen3::EigenDiagonal<BaseMatrix>(comma_initializer.finished());
+      diag = OpenKalman::Eigen3::DiagonalMatrix<BaseMatrix>(comma_initializer.finished());
       return diag;
     }
   };
 
 } // namespace Eigen3
 
-#endif //OPENKALMAN_EIGENMATRIXBASE_HPP
+#endif //OPENKALMAN_EIGEN3MATRIXBASE_HPP

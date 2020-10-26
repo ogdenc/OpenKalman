@@ -12,8 +12,8 @@
 
 using C2 = Coefficients<Axis, Axis>;
 using M22 = Eigen::Matrix<double, 2, 2>;
-using CovSA2 = Covariance<C2, EigenSelfAdjointMatrix<M22>>;
-using CovT2 = Covariance<C2, EigenTriangularMatrix<M22>>;
+using CovSA2 = Covariance<C2, SelfAdjointMatrix<M22>>;
+using CovT2 = Covariance<C2, TriangularMatrix<M22>>;
 inline LinearTransform L;
 inline LinearizedTransform L1;
 inline LinearizedTransform<2> L2;

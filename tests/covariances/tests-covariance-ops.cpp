@@ -16,13 +16,13 @@ using M2 = Eigen::Matrix<double, 2, 2>;
 using C = Coefficients<Angle, Axis>;
 using Mat2 = Matrix<C, C, M2>;
 using Mat2col = Matrix<C, Axis, Eigen::Matrix<double, 2, 1>>;
-using SA2l = EigenSelfAdjointMatrix<M2, TriangleType::lower>;
-using SA2u = EigenSelfAdjointMatrix<M2, TriangleType::upper>;
-using T2l = EigenTriangularMatrix<M2, TriangleType::lower>;
-using T2u = EigenTriangularMatrix<M2, TriangleType::upper>;
-using D2 = EigenDiagonal<Eigen::Matrix<double, 2, 1>>;
+using SA2l = SelfAdjointMatrix<M2, TriangleType::lower>;
+using SA2u = SelfAdjointMatrix<M2, TriangleType::upper>;
+using T2l = TriangularMatrix<M2, TriangleType::lower>;
+using T2u = TriangularMatrix<M2, TriangleType::upper>;
+using D2 = DiagonalMatrix<Eigen::Matrix<double, 2, 1>>;
 using I2 = EigenIdentity<M2>;
-using Z2 = EigenZero<M2>;
+using Z2 = ZeroMatrix<M2>;
 using CovSA2l = Covariance<C, SA2l>;
 using CovSA2u = Covariance<C, SA2u>;
 using CovT2l = Covariance<C, T2l>;
@@ -39,7 +39,7 @@ using SqCovI2 = SquareRootCovariance<C, I2>;
 using SqCovZ2 = SquareRootCovariance<C, Z2>;
 
 inline I2 i2 = M2::Identity();
-inline Z2 z2 = EigenZero<M2>();
+inline Z2 z2 = ZeroMatrix<M2>();
 inline auto covi2 = CovI2(i2);
 inline auto covz2 = CovZ2(z2);
 inline auto sqcovi2 = SqCovI2(i2);
@@ -55,13 +55,13 @@ TEST_F(covariance_tests, Covariance_addition)
   EXPECT_TRUE(is_near(CovSA2l {9, 3, 3, 10} + CovD2 {4, 5}, Mat2 {13, 3, 3, 15}));
   EXPECT_TRUE(is_near(CovSA2l {9, 3, 3, 10} + covi2, Mat2 {10, 3, 3, 11}));
   EXPECT_TRUE(is_near(CovSA2l {9, 3, 3, 10} + covz2, Mat2 {9, 3, 3, 10}));
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((CovSA2l {9, 3, 3, 10} + CovSA2l {4, 2, 2, 5}).base_matrix())>);
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((CovSA2l {9, 3, 3, 10} + CovSA2u {4, 2, 2, 5}).base_matrix())>);
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((CovSA2l {9, 3, 3, 10} + CovT2l {4, 2, 2, 5}).base_matrix())>);
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((CovSA2l {9, 3, 3, 10} + CovT2u {4, 2, 2, 5}).base_matrix())>);
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((CovSA2l {9, 3, 3, 10} + CovD2 {4, 5}).base_matrix())>);
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((CovSA2l {9, 3, 3, 10} + covi2).base_matrix())>);
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((CovSA2l {9, 3, 3, 10} + covz2).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((CovSA2l {9, 3, 3, 10} + CovSA2l {4, 2, 2, 5}).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((CovSA2l {9, 3, 3, 10} + CovSA2u {4, 2, 2, 5}).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((CovSA2l {9, 3, 3, 10} + CovT2l {4, 2, 2, 5}).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((CovSA2l {9, 3, 3, 10} + CovT2u {4, 2, 2, 5}).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((CovSA2l {9, 3, 3, 10} + CovD2 {4, 5}).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((CovSA2l {9, 3, 3, 10} + covi2).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((CovSA2l {9, 3, 3, 10} + covz2).base_matrix())>);
 
   EXPECT_TRUE(is_near(CovSA2u {9, 3, 3, 10} + CovSA2l {4, 2, 2, 5}, Mat2 {13, 5, 5, 15}));
   EXPECT_TRUE(is_near(CovSA2u {9, 3, 3, 10} + CovSA2u {4, 2, 2, 5}, Mat2 {13, 5, 5, 15}));
@@ -70,13 +70,13 @@ TEST_F(covariance_tests, Covariance_addition)
   EXPECT_TRUE(is_near(CovSA2u {9, 3, 3, 10} + CovD2 {4, 5}, Mat2 {13, 3, 3, 15}));
   EXPECT_TRUE(is_near(CovSA2u {9, 3, 3, 10} + covi2, Mat2 {10, 3, 3, 11}));
   EXPECT_TRUE(is_near(CovSA2u {9, 3, 3, 10} + covz2, Mat2 {9, 3, 3, 10}));
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((CovSA2u {9, 3, 3, 10} + CovSA2l {4, 2, 2, 5}).base_matrix())>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((CovSA2u {9, 3, 3, 10} + CovSA2u {4, 2, 2, 5}).base_matrix())>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((CovSA2u {9, 3, 3, 10} + CovT2l {4, 2, 2, 5}).base_matrix())>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((CovSA2u {9, 3, 3, 10} + CovT2u {4, 2, 2, 5}).base_matrix())>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((CovSA2u {9, 3, 3, 10} + CovD2 {4, 5}).base_matrix())>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((CovSA2u {9, 3, 3, 10} + covi2).base_matrix())>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((CovSA2u {9, 3, 3, 10} + covz2).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((CovSA2u {9, 3, 3, 10} + CovSA2l {4, 2, 2, 5}).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((CovSA2u {9, 3, 3, 10} + CovSA2u {4, 2, 2, 5}).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((CovSA2u {9, 3, 3, 10} + CovT2l {4, 2, 2, 5}).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((CovSA2u {9, 3, 3, 10} + CovT2u {4, 2, 2, 5}).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((CovSA2u {9, 3, 3, 10} + CovD2 {4, 5}).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((CovSA2u {9, 3, 3, 10} + covi2).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((CovSA2u {9, 3, 3, 10} + covz2).base_matrix())>);
 
   EXPECT_TRUE(is_near(CovT2l {9, 3, 3, 10} + CovSA2l {4, 2, 2, 5}, Mat2 {13, 5, 5, 15}));
   EXPECT_TRUE(is_near(CovT2l {9, 3, 3, 10} + CovSA2u {4, 2, 2, 5}, Mat2 {13, 5, 5, 15}));
@@ -85,12 +85,12 @@ TEST_F(covariance_tests, Covariance_addition)
   EXPECT_TRUE(is_near(CovT2l {9, 3, 3, 10} + CovD2 {4, 5}, Mat2 {13, 3, 3, 15}));
   EXPECT_TRUE(is_near(CovT2l {9, 3, 3, 10} + covi2, Mat2 {10, 3, 3, 11}));
   EXPECT_TRUE(is_near(CovT2l {9, 3, 3, 10} + covz2, Mat2 {9, 3, 3, 10}));
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((CovT2l {9, 3, 3, 10} + CovSA2l {4, 2, 2, 5}).base_matrix())>);
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((CovT2l {9, 3, 3, 10} + CovSA2u {4, 2, 2, 5}).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((CovT2l {9, 3, 3, 10} + CovSA2l {4, 2, 2, 5}).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((CovT2l {9, 3, 3, 10} + CovSA2u {4, 2, 2, 5}).base_matrix())>);
   static_assert(is_lower_triangular_v<decltype((CovT2l {9, 3, 3, 10} + CovT2l {4, 2, 2, 5}).base_matrix())>);
   static_assert(is_lower_triangular_v<decltype((CovT2l {9, 3, 3, 10} + CovT2u {4, 2, 2, 5}).base_matrix())>);
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((CovT2l {9, 3, 3, 10} + CovD2 {4, 5}).base_matrix())>);
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((CovT2l {9, 3, 3, 10} + covi2).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((CovT2l {9, 3, 3, 10} + CovD2 {4, 5}).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((CovT2l {9, 3, 3, 10} + covi2).base_matrix())>);
   static_assert(is_lower_triangular_v<decltype((CovT2l {9, 3, 3, 10} + covz2).base_matrix())>);
 
   EXPECT_TRUE(is_near(CovT2u {9, 3, 3, 10} + CovSA2l {4, 2, 2, 5}, Mat2 {13, 5, 5, 15}));
@@ -100,12 +100,12 @@ TEST_F(covariance_tests, Covariance_addition)
   EXPECT_TRUE(is_near(CovT2u {9, 3, 3, 10} + CovD2 {4, 5}, Mat2 {13, 3, 3, 15}));
   EXPECT_TRUE(is_near(CovT2u {9, 3, 3, 10} + covi2, Mat2 {10, 3, 3, 11}));
   EXPECT_TRUE(is_near(CovT2u {9, 3, 3, 10} + covz2, Mat2 {9, 3, 3, 10}));
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((CovT2u {9, 3, 3, 10} + CovSA2l {4, 2, 2, 5}).base_matrix())>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((CovT2u {9, 3, 3, 10} + CovSA2u {4, 2, 2, 5}).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((CovT2u {9, 3, 3, 10} + CovSA2l {4, 2, 2, 5}).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((CovT2u {9, 3, 3, 10} + CovSA2u {4, 2, 2, 5}).base_matrix())>);
   static_assert(is_upper_triangular_v<decltype((CovT2u {9, 3, 3, 10} + CovT2l {4, 2, 2, 5}).base_matrix())>);
   static_assert(is_upper_triangular_v<decltype((CovT2u {9, 3, 3, 10} + CovT2u {4, 2, 2, 5}).base_matrix())>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((CovT2u {9, 3, 3, 10} + CovD2 {4, 5}).base_matrix())>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((CovT2u {9, 3, 3, 10} + covi2).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((CovT2u {9, 3, 3, 10} + CovD2 {4, 5}).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((CovT2u {9, 3, 3, 10} + covi2).base_matrix())>);
   static_assert(is_upper_triangular_v<decltype((CovT2u {9, 3, 3, 10} + covz2).base_matrix())>);
 
   EXPECT_TRUE(is_near(CovD2 {9, 10} + CovSA2l {4, 2, 2, 5}, Mat2 {13, 2, 2, 15}));
@@ -115,10 +115,10 @@ TEST_F(covariance_tests, Covariance_addition)
   EXPECT_TRUE(is_near(CovD2 {9, 10} + CovD2 {4, 5}, Mat2 {13, 0, 0, 15}));
   EXPECT_TRUE(is_near(CovD2 {9, 10} + covi2, Mat2 {10, 0, 0, 11}));
   EXPECT_TRUE(is_near(CovD2 {9, 10} + covz2, Mat2 {9, 0, 0, 10}));
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((CovD2 {9, 10} + CovSA2l {4, 2, 2, 5}).base_matrix())>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((CovD2 {9, 10} + CovSA2u {4, 2, 2, 5}).base_matrix())>);
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((CovD2 {9, 10} + CovT2l {4, 2, 2, 5}).base_matrix())>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((CovD2 {9, 10} + CovT2u {4, 2, 2, 5}).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((CovD2 {9, 10} + CovSA2l {4, 2, 2, 5}).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((CovD2 {9, 10} + CovSA2u {4, 2, 2, 5}).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((CovD2 {9, 10} + CovT2l {4, 2, 2, 5}).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((CovD2 {9, 10} + CovT2u {4, 2, 2, 5}).base_matrix())>);
   static_assert(is_diagonal_v<decltype((CovD2 {9, 10} + CovD2 {4, 5}).base_matrix())>);
   static_assert(is_diagonal_v<decltype((CovD2 {9, 10} + covi2).base_matrix())>);
   static_assert(is_diagonal_v<decltype((CovD2 {9, 10} + covz2).base_matrix())>);
@@ -130,10 +130,10 @@ TEST_F(covariance_tests, Covariance_addition)
   EXPECT_TRUE(is_near(covi2 + CovD2 {4, 5}, Mat2 {5, 0, 0, 6}));
   EXPECT_TRUE(is_near(covi2 + covi2, Mat2 {2, 0, 0, 2}));
   EXPECT_TRUE(is_near(covi2 + covz2, Mat2 {1, 0, 0, 1}));
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((covi2 + CovSA2l {4, 2, 2, 5}).base_matrix())>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((covi2 + CovSA2u {4, 2, 2, 5}).base_matrix())>);
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((covi2 + CovT2l {4, 2, 2, 5}).base_matrix())>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((covi2 + CovT2u {4, 2, 2, 5}).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((covi2 + CovSA2l {4, 2, 2, 5}).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((covi2 + CovSA2u {4, 2, 2, 5}).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((covi2 + CovT2l {4, 2, 2, 5}).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((covi2 + CovT2u {4, 2, 2, 5}).base_matrix())>);
   static_assert(is_diagonal_v<decltype((covi2 + CovD2 {4, 5}).base_matrix())>);
   static_assert(is_diagonal_v<decltype((covi2 + covi2).base_matrix())>);
   static_assert(is_identity_v<decltype((covi2 + covz2).base_matrix())>);
@@ -145,8 +145,8 @@ TEST_F(covariance_tests, Covariance_addition)
   EXPECT_TRUE(is_near(covz2 + CovD2 {4, 5}, Mat2 {4, 0, 0, 5}));
   EXPECT_TRUE(is_near(covz2 + covi2, Mat2 {1, 0, 0, 1}));
   EXPECT_TRUE(is_near(covz2 + covz2, Mat2 {0, 0, 0, 0}));
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((covz2 + CovSA2l {4, 2, 2, 5}).base_matrix())>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((covz2 + CovSA2u {4, 2, 2, 5}).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((covz2 + CovSA2l {4, 2, 2, 5}).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((covz2 + CovSA2u {4, 2, 2, 5}).base_matrix())>);
   static_assert(is_lower_triangular_v<decltype((covz2 + CovT2l {4, 2, 2, 5}).base_matrix())>);
   static_assert(is_upper_triangular_v<decltype((covz2 + CovT2u {4, 2, 2, 5}).base_matrix())>);
   static_assert(is_diagonal_v<decltype((covz2 + CovD2 {4, 5}).base_matrix())>);
@@ -164,9 +164,9 @@ TEST_F(covariance_tests, Covariance_addition_mixed)
   EXPECT_TRUE(is_near(CovSA2l {9, 3, 3, 10} + SqCovD2 {4, 5}, Mat2 {13, 3, 3, 15}));
   EXPECT_TRUE(is_near(CovSA2l {9, 3, 3, 10} + sqcovi2, Mat2 {10, 3, 3, 11}));
   EXPECT_TRUE(is_near(CovSA2l {9, 3, 3, 10} + sqcovz2, Mat2 {9, 3, 3, 10}));
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((CovSA2l {9, 3, 3, 10} + SqCovD2 {4, 5}).base_matrix())>);
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((CovSA2l {9, 3, 3, 10} + sqcovi2).base_matrix())>);
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((CovSA2l {9, 3, 3, 10} + sqcovz2).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((CovSA2l {9, 3, 3, 10} + SqCovD2 {4, 5}).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((CovSA2l {9, 3, 3, 10} + sqcovi2).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((CovSA2l {9, 3, 3, 10} + sqcovz2).base_matrix())>);
 
   EXPECT_TRUE(is_near(CovSA2u {9, 3, 3, 10} + SqCovSA2l {2, 0, 1, 2}, Mat2 {11, 3, 4, 12}));
   EXPECT_TRUE(is_near(CovSA2u {9, 3, 3, 10} + SqCovSA2u {2, 1, 0, 2}, Mat2 {11, 4, 3, 12}));
@@ -175,9 +175,9 @@ TEST_F(covariance_tests, Covariance_addition_mixed)
   EXPECT_TRUE(is_near(CovSA2u {9, 3, 3, 10} + SqCovD2 {4, 5}, Mat2 {13, 3, 3, 15}));
   EXPECT_TRUE(is_near(CovSA2u {9, 3, 3, 10} + sqcovi2, Mat2 {10, 3, 3, 11}));
   EXPECT_TRUE(is_near(CovSA2u {9, 3, 3, 10} + sqcovz2, Mat2 {9, 3, 3, 10}));
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((CovSA2u {9, 3, 3, 10} + SqCovD2 {4, 5}).base_matrix())>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((CovSA2u {9, 3, 3, 10} + sqcovi2).base_matrix())>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((CovSA2u {9, 3, 3, 10} + sqcovz2).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((CovSA2u {9, 3, 3, 10} + SqCovD2 {4, 5}).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((CovSA2u {9, 3, 3, 10} + sqcovi2).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((CovSA2u {9, 3, 3, 10} + sqcovz2).base_matrix())>);
 
   EXPECT_TRUE(is_near(CovT2l {9, 3, 3, 10} + SqCovSA2l {2, 0, 1, 2}, Mat2 {11, 3, 4, 12}));
   EXPECT_TRUE(is_near(CovT2l {9, 3, 3, 10} + SqCovSA2u {2, 1, 0, 2}, Mat2 {11, 4, 3, 12}));
@@ -186,8 +186,8 @@ TEST_F(covariance_tests, Covariance_addition_mixed)
   EXPECT_TRUE(is_near(CovT2l {9, 3, 3, 10} + SqCovD2 {4, 5}, Mat2 {13, 3, 3, 15}));
   EXPECT_TRUE(is_near(CovT2l {9, 3, 3, 10} + sqcovi2, Mat2 {10, 3, 3, 11}));
   EXPECT_TRUE(is_near(CovT2l {9, 3, 3, 10} + sqcovz2, Mat2 {9, 3, 3, 10}));
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((CovT2l {9, 3, 3, 10} + SqCovD2 {4, 5}).base_matrix())>);
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((CovT2l {9, 3, 3, 10} + sqcovi2).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((CovT2l {9, 3, 3, 10} + SqCovD2 {4, 5}).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((CovT2l {9, 3, 3, 10} + sqcovi2).base_matrix())>);
   static_assert(is_lower_triangular_v<decltype((CovT2l {9, 3, 3, 10} + sqcovz2).base_matrix())>);
 
   EXPECT_TRUE(is_near(CovT2u {9, 3, 3, 10} + SqCovSA2l {2, 0, 1, 2}, Mat2 {11, 3, 4, 12}));
@@ -197,8 +197,8 @@ TEST_F(covariance_tests, Covariance_addition_mixed)
   EXPECT_TRUE(is_near(CovT2u {9, 3, 3, 10} + SqCovD2 {4, 5}, Mat2 {13, 3, 3, 15}));
   EXPECT_TRUE(is_near(CovT2u {9, 3, 3, 10} + sqcovi2, Mat2 {10, 3, 3, 11}));
   EXPECT_TRUE(is_near(CovT2u {9, 3, 3, 10} + sqcovz2, Mat2 {9, 3, 3, 10}));
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((CovT2u {9, 3, 3, 10} + SqCovD2 {4, 5}).base_matrix())>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((CovT2u {9, 3, 3, 10} + sqcovi2).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((CovT2u {9, 3, 3, 10} + SqCovD2 {4, 5}).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((CovT2u {9, 3, 3, 10} + sqcovi2).base_matrix())>);
   static_assert(is_upper_triangular_v<decltype((CovT2u {9, 3, 3, 10} + sqcovz2).base_matrix())>);
 
   EXPECT_TRUE(is_near(CovD2 {9, 10} + SqCovSA2l {2, 0, 1, 2}, Mat2 {11, 0, 1, 12}));
@@ -261,13 +261,13 @@ TEST_F(covariance_tests, Covariance_subtraction)
   EXPECT_TRUE(is_near(CovSA2l {9, 3, 3, 10} - CovD2 {4, 5}, Mat2 {5, 3, 3, 5}));
   EXPECT_TRUE(is_near(CovSA2l {9, 3, 3, 10} - covi2, Mat2 {8, 3, 3, 9}));
   EXPECT_TRUE(is_near(CovSA2l {9, 3, 3, 10} - covz2, Mat2 {9, 3, 3, 10}));
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((CovSA2l {9, 3, 3, 10} - CovSA2l {4, 2, 2, 5}).base_matrix())>);
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((CovSA2l {9, 3, 3, 10} - CovSA2u {4, 2, 2, 5}).base_matrix())>);
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((CovSA2l {9, 3, 3, 10} - CovT2l {4, 2, 2, 5}).base_matrix())>);
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((CovSA2l {9, 3, 3, 10} - CovT2u {4, 2, 2, 5}).base_matrix())>);
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((CovSA2l {9, 3, 3, 10} - CovD2 {4, 5}).base_matrix())>);
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((CovSA2l {9, 3, 3, 10} - covi2).base_matrix())>);
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((CovSA2l {9, 3, 3, 10} - covz2).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((CovSA2l {9, 3, 3, 10} - CovSA2l {4, 2, 2, 5}).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((CovSA2l {9, 3, 3, 10} - CovSA2u {4, 2, 2, 5}).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((CovSA2l {9, 3, 3, 10} - CovT2l {4, 2, 2, 5}).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((CovSA2l {9, 3, 3, 10} - CovT2u {4, 2, 2, 5}).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((CovSA2l {9, 3, 3, 10} - CovD2 {4, 5}).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((CovSA2l {9, 3, 3, 10} - covi2).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((CovSA2l {9, 3, 3, 10} - covz2).base_matrix())>);
 
   EXPECT_TRUE(is_near(CovSA2u {9, 3, 3, 10} - CovSA2l {4, 2, 2, 5}, Mat2 {5, 1, 1, 5}));
   EXPECT_TRUE(is_near(CovSA2u {9, 3, 3, 10} - CovSA2u {4, 2, 2, 5}, Mat2 {5, 1, 1, 5}));
@@ -276,13 +276,13 @@ TEST_F(covariance_tests, Covariance_subtraction)
   EXPECT_TRUE(is_near(CovSA2u {9, 3, 3, 10} - CovD2 {4, 5}, Mat2 {5, 3, 3, 5}));
   EXPECT_TRUE(is_near(CovSA2u {9, 3, 3, 10} - covi2, Mat2 {8, 3, 3, 9}));
   EXPECT_TRUE(is_near(CovSA2u {9, 3, 3, 10} - covz2, Mat2 {9, 3, 3, 10}));
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((CovSA2u {9, 3, 3, 10} - CovSA2l {4, 2, 2, 5}).base_matrix())>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((CovSA2u {9, 3, 3, 10} - CovSA2u {4, 2, 2, 5}).base_matrix())>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((CovSA2u {9, 3, 3, 10} - CovT2l {4, 2, 2, 5}).base_matrix())>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((CovSA2u {9, 3, 3, 10} - CovT2u {4, 2, 2, 5}).base_matrix())>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((CovSA2u {9, 3, 3, 10} - CovD2 {4, 5}).base_matrix())>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((CovSA2u {9, 3, 3, 10} - covi2).base_matrix())>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((CovSA2u {9, 3, 3, 10} - covz2).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((CovSA2u {9, 3, 3, 10} - CovSA2l {4, 2, 2, 5}).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((CovSA2u {9, 3, 3, 10} - CovSA2u {4, 2, 2, 5}).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((CovSA2u {9, 3, 3, 10} - CovT2l {4, 2, 2, 5}).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((CovSA2u {9, 3, 3, 10} - CovT2u {4, 2, 2, 5}).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((CovSA2u {9, 3, 3, 10} - CovD2 {4, 5}).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((CovSA2u {9, 3, 3, 10} - covi2).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((CovSA2u {9, 3, 3, 10} - covz2).base_matrix())>);
 
   EXPECT_TRUE(is_near(CovT2l {9, 3, 3, 10} - CovSA2l {4, 2, 2, 5}, Mat2 {5, 1, 1, 5}));
   EXPECT_TRUE(is_near(CovT2l {9, 3, 3, 10} - CovSA2u {4, 2, 2, 5}, Mat2 {5, 1, 1, 5}));
@@ -291,12 +291,12 @@ TEST_F(covariance_tests, Covariance_subtraction)
   EXPECT_TRUE(is_near(CovT2l {9, 3, 3, 10} - CovD2 {4, 5}, Mat2 {5, 3, 3, 5}));
   EXPECT_TRUE(is_near(CovT2l {9, 3, 3, 10} - covi2, Mat2 {8, 3, 3, 9}));
   EXPECT_TRUE(is_near(CovT2l {9, 3, 3, 10} - covz2, Mat2 {9, 3, 3, 10}));
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((CovT2l {9, 3, 3, 10} - CovSA2l {4, 2, 2, 5}).base_matrix())>);
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((CovT2l {9, 3, 3, 10} - CovSA2u {4, 2, 2, 5}).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((CovT2l {9, 3, 3, 10} - CovSA2l {4, 2, 2, 5}).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((CovT2l {9, 3, 3, 10} - CovSA2u {4, 2, 2, 5}).base_matrix())>);
   static_assert(is_lower_triangular_v<decltype((CovT2l {9, 3, 3, 10} - CovT2l {4, 2, 2, 5}).base_matrix())>);
   static_assert(is_lower_triangular_v<decltype((CovT2l {9, 3, 3, 10} - CovT2u {4, 2, 2, 5}).base_matrix())>);
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((CovT2l {9, 3, 3, 10} - CovD2 {4, 5}).base_matrix())>);
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((CovT2l {9, 3, 3, 10} - covi2).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((CovT2l {9, 3, 3, 10} - CovD2 {4, 5}).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((CovT2l {9, 3, 3, 10} - covi2).base_matrix())>);
   static_assert(is_lower_triangular_v<decltype((CovT2l {9, 3, 3, 10} - covz2).base_matrix())>);
 
   EXPECT_TRUE(is_near(CovT2u {9, 3, 3, 10} - CovSA2l {4, 2, 2, 5}, Mat2 {5, 1, 1, 5}));
@@ -306,12 +306,12 @@ TEST_F(covariance_tests, Covariance_subtraction)
   EXPECT_TRUE(is_near(CovT2u {9, 3, 3, 10} - CovD2 {4, 5}, Mat2 {5, 3, 3, 5}));
   EXPECT_TRUE(is_near(CovT2u {9, 3, 3, 10} - covi2, Mat2 {8, 3, 3, 9}));
   EXPECT_TRUE(is_near(CovT2u {9, 3, 3, 10} - covz2, Mat2 {9, 3, 3, 10}));
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((CovT2u {9, 3, 3, 10} - CovSA2l {4, 2, 2, 5}).base_matrix())>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((CovT2u {9, 3, 3, 10} - CovSA2u {4, 2, 2, 5}).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((CovT2u {9, 3, 3, 10} - CovSA2l {4, 2, 2, 5}).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((CovT2u {9, 3, 3, 10} - CovSA2u {4, 2, 2, 5}).base_matrix())>);
   static_assert(is_upper_triangular_v<decltype((CovT2u {9, 3, 3, 10} - CovT2l {4, 2, 2, 5}).base_matrix())>);
   static_assert(is_upper_triangular_v<decltype((CovT2u {9, 3, 3, 10} - CovT2u {4, 2, 2, 5}).base_matrix())>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((CovT2u {9, 3, 3, 10} - CovD2 {4, 5}).base_matrix())>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((CovT2u {9, 3, 3, 10} - covi2).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((CovT2u {9, 3, 3, 10} - CovD2 {4, 5}).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((CovT2u {9, 3, 3, 10} - covi2).base_matrix())>);
   static_assert(is_upper_triangular_v<decltype((CovT2u {9, 3, 3, 10} - covz2).base_matrix())>);
 
   EXPECT_TRUE(is_near(CovD2 {9, 10} - CovSA2l {4, 2, 2, 5}, Mat2 {5, -2, -2, 5}));
@@ -321,10 +321,10 @@ TEST_F(covariance_tests, Covariance_subtraction)
   EXPECT_TRUE(is_near(CovD2 {9, 10} - CovD2 {4, 5}, Mat2 {5, 0, 0, 5}));
   EXPECT_TRUE(is_near(CovD2 {9, 10} - covi2, Mat2 {8, 0, 0, 9}));
   EXPECT_TRUE(is_near(CovD2 {9, 10} - covz2, Mat2 {9, 0, 0, 10}));
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((CovD2 {9, 10} - CovSA2l {4, 2, 2, 5}).base_matrix())>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((CovD2 {9, 10} - CovSA2u {4, 2, 2, 5}).base_matrix())>);
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((CovD2 {9, 10} - CovT2l {4, 2, 2, 5}).base_matrix())>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((CovD2 {9, 10} - CovT2u {4, 2, 2, 5}).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((CovD2 {9, 10} - CovSA2l {4, 2, 2, 5}).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((CovD2 {9, 10} - CovSA2u {4, 2, 2, 5}).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((CovD2 {9, 10} - CovT2l {4, 2, 2, 5}).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((CovD2 {9, 10} - CovT2u {4, 2, 2, 5}).base_matrix())>);
   static_assert(is_diagonal_v<decltype((CovD2 {9, 10} - CovD2 {4, 5}).base_matrix())>);
   static_assert(is_diagonal_v<decltype((CovD2 {9, 10} - covi2).base_matrix())>);
   static_assert(is_diagonal_v<decltype((CovD2 {9, 10} - covz2).base_matrix())>);
@@ -336,10 +336,10 @@ TEST_F(covariance_tests, Covariance_subtraction)
   EXPECT_TRUE(is_near(covi2 - CovD2 {4, 5}, Mat2 {-3, 0, 0, -4}));
   EXPECT_TRUE(is_near(covi2 - covi2, Mat2 {0, 0, 0, 0}));
   EXPECT_TRUE(is_near(covi2 - covz2, Mat2 {1, 0, 0, 1}));
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((covi2 - CovSA2l {4, 2, 2, 5}).base_matrix())>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((covi2 - CovSA2u {4, 2, 2, 5}).base_matrix())>);
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((covi2 - CovT2l {4, 2, 2, 5}).base_matrix())>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((covi2 - CovT2u {4, 2, 2, 5}).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((covi2 - CovSA2l {4, 2, 2, 5}).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((covi2 - CovSA2u {4, 2, 2, 5}).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((covi2 - CovT2l {4, 2, 2, 5}).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((covi2 - CovT2u {4, 2, 2, 5}).base_matrix())>);
   static_assert(is_diagonal_v<decltype((covi2 - CovD2 {4, 5}).base_matrix())>);
   static_assert(is_zero_v<decltype((covz2 - covz2).base_matrix())>);
   static_assert(is_identity_v<decltype((covi2 - covz2).base_matrix())>);
@@ -351,10 +351,10 @@ TEST_F(covariance_tests, Covariance_subtraction)
   EXPECT_TRUE(is_near(covz2 - CovD2 {4, 5}, Mat2 {-4, 0, 0, -5}));
   EXPECT_TRUE(is_near(covz2 - covi2, Mat2 {-1, 0, 0, -1}));
   EXPECT_TRUE(is_near(covz2 - covz2, Mat2 {0, 0, 0, 0}));
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((covz2 - CovSA2l {4, 2, 2, 5}).base_matrix())>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((covz2 - CovSA2u {4, 2, 2, 5}).base_matrix())>);
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((covz2 - CovT2l {4, 2, 2, 5}).base_matrix())>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((covz2 - CovT2u {4, 2, 2, 5}).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((covz2 - CovSA2l {4, 2, 2, 5}).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((covz2 - CovSA2u {4, 2, 2, 5}).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((covz2 - CovT2l {4, 2, 2, 5}).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((covz2 - CovT2u {4, 2, 2, 5}).base_matrix())>);
   static_assert(is_diagonal_v<decltype((covz2 - CovD2 {4, 5}).base_matrix())>);
   static_assert(is_diagonal_v<decltype((covz2 - covi2).base_matrix())>);
   static_assert(is_zero_v<decltype((covz2 - covz2).base_matrix())>);
@@ -370,9 +370,9 @@ TEST_F(covariance_tests, Covariance_subtraction_mixed)
   EXPECT_TRUE(is_near(CovSA2l {9, 3, 3, 10} - SqCovD2 {4, 5}, Mat2 {5, 3, 3, 5}));
   EXPECT_TRUE(is_near(CovSA2l {9, 3, 3, 10} - sqcovi2, Mat2 {8, 3, 3, 9}));
   EXPECT_TRUE(is_near(CovSA2l {9, 3, 3, 10} - sqcovz2, Mat2 {9, 3, 3, 10}));
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((CovSA2l {9, 3, 3, 10} - SqCovD2 {4, 5}).base_matrix())>);
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((CovSA2l {9, 3, 3, 10} - sqcovi2).base_matrix())>);
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((CovSA2l {9, 3, 3, 10} - sqcovz2).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((CovSA2l {9, 3, 3, 10} - SqCovD2 {4, 5}).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((CovSA2l {9, 3, 3, 10} - sqcovi2).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((CovSA2l {9, 3, 3, 10} - sqcovz2).base_matrix())>);
 
   EXPECT_TRUE(is_near(CovSA2u {9, 3, 3, 10} - SqCovSA2l {2, 0, 1, 2}, Mat2 {7, 3, 2, 8}));
   EXPECT_TRUE(is_near(CovSA2u {9, 3, 3, 10} - SqCovSA2u {2, 1, 0, 2}, Mat2 {7, 2, 3, 8}));
@@ -381,9 +381,9 @@ TEST_F(covariance_tests, Covariance_subtraction_mixed)
   EXPECT_TRUE(is_near(CovSA2u {9, 3, 3, 10} - SqCovD2 {4, 5}, Mat2 {5, 3, 3, 5}));
   EXPECT_TRUE(is_near(CovSA2u {9, 3, 3, 10} - sqcovi2, Mat2 {8, 3, 3, 9}));
   EXPECT_TRUE(is_near(CovSA2u {9, 3, 3, 10} - sqcovz2, Mat2 {9, 3, 3, 10}));
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((CovSA2u {9, 3, 3, 10} - SqCovD2 {4, 5}).base_matrix())>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((CovSA2u {9, 3, 3, 10} - sqcovi2).base_matrix())>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((CovSA2u {9, 3, 3, 10} - sqcovz2).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((CovSA2u {9, 3, 3, 10} - SqCovD2 {4, 5}).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((CovSA2u {9, 3, 3, 10} - sqcovi2).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((CovSA2u {9, 3, 3, 10} - sqcovz2).base_matrix())>);
 
   EXPECT_TRUE(is_near(CovT2l {9, 3, 3, 10} - SqCovSA2l {2, 0, 1, 2}, Mat2 {7, 3, 2, 8}));
   EXPECT_TRUE(is_near(CovT2l {9, 3, 3, 10} - SqCovSA2u {2, 1, 0, 2}, Mat2 {7, 2, 3, 8}));
@@ -392,8 +392,8 @@ TEST_F(covariance_tests, Covariance_subtraction_mixed)
   EXPECT_TRUE(is_near(CovT2l {9, 3, 3, 10} - SqCovD2 {4, 5}, Mat2 {5, 3, 3, 5}));
   EXPECT_TRUE(is_near(CovT2l {9, 3, 3, 10} - sqcovi2, Mat2 {8, 3, 3, 9}));
   EXPECT_TRUE(is_near(CovT2l {9, 3, 3, 10} - sqcovz2, Mat2 {9, 3, 3, 10}));
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((CovT2l {9, 3, 3, 10} - SqCovD2 {4, 5}).base_matrix())>);
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((CovT2l {9, 3, 3, 10} - sqcovi2).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((CovT2l {9, 3, 3, 10} - SqCovD2 {4, 5}).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((CovT2l {9, 3, 3, 10} - sqcovi2).base_matrix())>);
   static_assert(is_lower_triangular_v<decltype((CovT2l {9, 3, 3, 10} - sqcovz2).base_matrix())>);
 
   EXPECT_TRUE(is_near(CovT2u {9, 3, 3, 10} - SqCovSA2l {2, 0, 1, 2}, Mat2 {7, 3, 2, 8}));
@@ -403,8 +403,8 @@ TEST_F(covariance_tests, Covariance_subtraction_mixed)
   EXPECT_TRUE(is_near(CovT2u {9, 3, 3, 10} - SqCovD2 {4, 5}, Mat2 {5, 3, 3, 5}));
   EXPECT_TRUE(is_near(CovT2u {9, 3, 3, 10} - sqcovi2, Mat2 {8, 3, 3, 9}));
   EXPECT_TRUE(is_near(CovT2u {9, 3, 3, 10} - sqcovz2, Mat2 {9, 3, 3, 10}));
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((CovT2u {9, 3, 3, 10} - SqCovD2 {4, 5}).base_matrix())>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((CovT2u {9, 3, 3, 10} - sqcovi2).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((CovT2u {9, 3, 3, 10} - SqCovD2 {4, 5}).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((CovT2u {9, 3, 3, 10} - sqcovi2).base_matrix())>);
   static_assert(is_upper_triangular_v<decltype((CovT2u {9, 3, 3, 10} - sqcovz2).base_matrix())>);
 
   EXPECT_TRUE(is_near(CovD2 {9, 10} - SqCovSA2l {2, 0, 1, 2}, Mat2 {7, 0, -1, 8}));
@@ -467,7 +467,7 @@ TEST_F(covariance_tests, Covariance_mult_covariance)
   EXPECT_TRUE(is_near(CovSA2l {9, 3, 3, 10} * CovD2 {9, 10}, Mat2 {81, 30, 27, 100}));
   EXPECT_TRUE(is_near(CovSA2l {9, 3, 3, 10} * covi2, Mat2 {9, 3, 3, 10}));
   EXPECT_TRUE(is_near(CovSA2l {9, 3, 3, 10} * covz2, Mat2 {0, 0, 0, 0}));
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((CovSA2l {9, 3, 3, 10} * covi2).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((CovSA2l {9, 3, 3, 10} * covi2).base_matrix())>);
   static_assert(is_zero_v<decltype((CovSA2l {9, 3, 3, 10} * covz2).base_matrix())>);
 
   EXPECT_TRUE(is_near(CovSA2l {9, 3, 3, 10} * SqCovSA2l {3, 0, 1, 3}, Mat2 {30, 9, 19, 30}));
@@ -477,7 +477,7 @@ TEST_F(covariance_tests, Covariance_mult_covariance)
   EXPECT_TRUE(is_near(CovSA2l {9, 3, 3, 10} * SqCovD2 {3, 3}, Mat2 {27, 9, 9, 30}));
   EXPECT_TRUE(is_near(CovSA2l {9, 3, 3, 10} * sqcovi2, Mat2 {9, 3, 3, 10}));
   EXPECT_TRUE(is_near(CovSA2l {9, 3, 3, 10} * sqcovz2, Mat2 {0, 0, 0, 0}));
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((CovSA2l {9, 3, 3, 10} * sqcovi2).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((CovSA2l {9, 3, 3, 10} * sqcovi2).base_matrix())>);
   static_assert(is_zero_v<decltype((CovSA2l {9, 3, 3, 10} * sqcovz2).base_matrix())>);
 
   EXPECT_TRUE(is_near(CovSA2u {9, 3, 3, 10} * CovSA2l {9, 3, 3, 10}, Mat2 {90, 57, 57, 109}));
@@ -487,7 +487,7 @@ TEST_F(covariance_tests, Covariance_mult_covariance)
   EXPECT_TRUE(is_near(CovSA2u {9, 3, 3, 10} * CovD2 {9, 10}, Mat2 {81, 30, 27, 100}));
   EXPECT_TRUE(is_near(CovSA2u {9, 3, 3, 10} * covi2, Mat2 {9, 3, 3, 10}));
   EXPECT_TRUE(is_near(CovSA2u {9, 3, 3, 10} * covz2, Mat2 {0, 0, 0, 0}));
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((CovSA2u {9, 3, 3, 10} * covi2).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((CovSA2u {9, 3, 3, 10} * covi2).base_matrix())>);
   static_assert(is_zero_v<decltype((CovSA2u {9, 3, 3, 10} * covz2).base_matrix())>);
 
   EXPECT_TRUE(is_near(CovSA2u {9, 3, 3, 10} * SqCovSA2l {3, 0, 1, 3}, Mat2 {30, 9, 19, 30}));
@@ -497,7 +497,7 @@ TEST_F(covariance_tests, Covariance_mult_covariance)
   EXPECT_TRUE(is_near(CovSA2u {9, 3, 3, 10} * SqCovD2 {3, 3}, Mat2 {27, 9, 9, 30}));
   EXPECT_TRUE(is_near(CovSA2u {9, 3, 3, 10} * sqcovi2, Mat2 {9, 3, 3, 10}));
   EXPECT_TRUE(is_near(CovSA2u {9, 3, 3, 10} * sqcovz2, Mat2 {0, 0, 0, 0}));
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((CovSA2u {9, 3, 3, 10} * sqcovi2).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((CovSA2u {9, 3, 3, 10} * sqcovi2).base_matrix())>);
   static_assert(is_zero_v<decltype((CovSA2u {9, 3, 3, 10} * sqcovz2).base_matrix())>);
 
   EXPECT_TRUE(is_near(CovT2l {9, 3, 3, 10} * CovSA2l {9, 3, 3, 10}, Mat2 {90, 57, 57, 109}));
@@ -569,8 +569,8 @@ TEST_F(covariance_tests, Covariance_mult_covariance)
   EXPECT_TRUE(is_near(covi2 * CovD2 {9, 10}, Mat2 {9, 0, 0, 10}));
   EXPECT_TRUE(is_near(covi2 * covi2, Mat2 {1, 0, 0, 1}));
   EXPECT_TRUE(is_near(covi2 * covz2, Mat2 {0, 0, 0, 0}));
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((covi2 * CovSA2l {9, 3, 3, 10}).base_matrix())>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((covi2 * CovSA2u {9, 3, 3, 10}).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((covi2 * CovSA2l {9, 3, 3, 10}).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((covi2 * CovSA2u {9, 3, 3, 10}).base_matrix())>);
   static_assert(is_lower_triangular_v<decltype((covi2 * CovT2l {9, 3, 3, 10}).base_matrix())>);
   static_assert(is_upper_triangular_v<decltype((covi2 * CovT2u {9, 3, 3, 10}).base_matrix())>);
   static_assert(is_diagonal_v<decltype((covi2 * CovD2 {9, 10}).base_matrix())>);
@@ -584,8 +584,8 @@ TEST_F(covariance_tests, Covariance_mult_covariance)
   EXPECT_TRUE(is_near(covi2 * SqCovD2 {3, 3}, Mat2 {3, 0, 0, 3}));
   EXPECT_TRUE(is_near(covi2 * sqcovi2, Mat2 {1, 0, 0, 1}));
   EXPECT_TRUE(is_near(covi2 * sqcovz2, Mat2 {0, 0, 0, 0}));
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((covi2 * SqCovSA2l {9, 3, 3, 10}).base_matrix())>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((covi2 * SqCovSA2u {9, 3, 3, 10}).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((covi2 * SqCovSA2l {9, 3, 3, 10}).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((covi2 * SqCovSA2u {9, 3, 3, 10}).base_matrix())>);
   static_assert(is_lower_triangular_v<decltype((covi2 * SqCovT2l {9, 3, 3, 10}).base_matrix())>);
   static_assert(is_upper_triangular_v<decltype((covi2 * SqCovT2u {9, 3, 3, 10}).base_matrix())>);
   static_assert(is_diagonal_v<decltype((covi2 * SqCovD2 {9, 10}).base_matrix())>);
@@ -639,7 +639,7 @@ TEST_F(covariance_tests, Covariance_mult_TypedMatrix)
   EXPECT_TRUE(is_near(covSA2l * mati2, Mat2 {9, 3, 3, 10}));
   EXPECT_TRUE(is_near(covSA2l * mati2x, Mat2 {9, 3, 3, 10}));
   EXPECT_TRUE(is_near(covSA2l * matz2, Mat2 {0, 0, 0, 0}));
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((covSA2l * mati2).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((covSA2l * mati2).base_matrix())>);
   static_assert(is_zero_v<decltype((covSA2l * matz2).base_matrix())>);
   static_assert(is_equivalent_v<typename MatrixTraits<decltype(covSA2l * mati2x)>::RowCoefficients, C>);
   static_assert(is_equivalent_v<typename MatrixTraits<decltype(covSA2l * mati2x)>::ColumnCoefficients, Cx>);
@@ -648,7 +648,7 @@ TEST_F(covariance_tests, Covariance_mult_TypedMatrix)
   EXPECT_TRUE(is_near(covSA2u * Mat2 {4, 2, 2, 5}, Mat2 {42, 33, 32, 56}));
   EXPECT_TRUE(is_near(covSA2u * mati2, Mat2 {9, 3, 3, 10}));
   EXPECT_TRUE(is_near(covSA2u * matz2, Mat2 {0, 0, 0, 0}));
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((covSA2u * mati2).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((covSA2u * mati2).base_matrix())>);
   static_assert(is_zero_v<decltype((covSA2u * matz2).base_matrix())>);
   static_assert(is_equivalent_v<typename MatrixTraits<decltype(covSA2u * mati2x)>::RowCoefficients, C>);
   static_assert(is_equivalent_v<typename MatrixTraits<decltype(covSA2u * mati2x)>::ColumnCoefficients, Cx>);
@@ -708,8 +708,8 @@ TEST_F(covariance_tests, Covariance_mult_scalar)
   EXPECT_TRUE(is_near(CovD2 {1, 2} * 2, Mat2 {2, 0, 0, 4}));
   EXPECT_TRUE(is_near(covi2 * 2, Mat2 {2, 0, 0, 2}));
   EXPECT_TRUE(is_near(covz2 * 2, Mat2 {0, 0, 0, 0}));
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((CovSA2l(p1) * 2).base_matrix())>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((CovSA2u(p1) * 2).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((CovSA2l(p1) * 2).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((CovSA2u(p1) * 2).base_matrix())>);
   static_assert(is_lower_triangular_v<decltype((CovT2l(p1) * 2).base_matrix())>);
   static_assert(is_upper_triangular_v<decltype((CovT2u(p1) * 2).base_matrix())>);
   static_assert(is_diagonal_v<decltype((CovD2 {1, 2} * 2).base_matrix())>);
@@ -723,8 +723,8 @@ TEST_F(covariance_tests, Covariance_mult_scalar)
   EXPECT_TRUE(is_near(2 * CovD2 {1, 2}, Mat2 {2, 0, 0, 4}));
   EXPECT_TRUE(is_near(2 * covi2, Mat2 {2, 0, 0, 2}));
   EXPECT_TRUE(is_near(2 * covz2, Mat2 {0, 0, 0, 0}));
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((2 * CovSA2l(p1)).base_matrix())>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((2 * CovSA2u(p1)).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((2 * CovSA2l(p1)).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((2 * CovSA2u(p1)).base_matrix())>);
   static_assert(is_lower_triangular_v<decltype((2 * CovT2l(p1)).base_matrix())>);
   static_assert(is_upper_triangular_v<decltype((2 * CovT2u(p1)).base_matrix())>);
   static_assert(is_diagonal_v<decltype((2 * CovD2 {1, 2}).base_matrix())>);
@@ -736,8 +736,8 @@ TEST_F(covariance_tests, Covariance_mult_scalar)
   EXPECT_TRUE(is_near(CovD2 {1, 2} * -2, Mat2 {-2, 0, 0, -4}));
   EXPECT_TRUE(is_near(covi2 * -2, Mat2 {-2, 0, 0, -2}));
   EXPECT_TRUE(is_near(covz2 * -2, Mat2 {0, 0, 0, 0}));
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((CovSA2l(p1) * -2).base_matrix())>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((CovSA2u(p1) * -2).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((CovSA2l(p1) * -2).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((CovSA2u(p1) * -2).base_matrix())>);
   static_assert(is_diagonal_v<decltype((CovD2 {1, 2} * -2).base_matrix())>);
   static_assert(is_diagonal_v<decltype((covi2 * -2).base_matrix())>);
   static_assert(is_zero_v<decltype((covz2 * -2).base_matrix())>);
@@ -747,8 +747,8 @@ TEST_F(covariance_tests, Covariance_mult_scalar)
   EXPECT_TRUE(is_near(-2 * CovD2 {1, 2}, Mat2 {-2, 0, 0, -4}));
   EXPECT_TRUE(is_near(-2 * covi2, Mat2 {-2, 0, 0, -2}));
   EXPECT_TRUE(is_near(-2 * covz2, Mat2 {0, 0, 0, 0}));
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((-2 * CovSA2l(p1)).base_matrix())>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((-2 * CovSA2u(p1)).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((-2 * CovSA2l(p1)).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((-2 * CovSA2u(p1)).base_matrix())>);
   static_assert(is_diagonal_v<decltype((-2 * CovD2 {1, 2}).base_matrix())>);
   static_assert(is_diagonal_v<decltype((-2 * covi2).base_matrix())>);
   static_assert(is_zero_v<decltype((-2 * covz2).base_matrix())>);
@@ -769,8 +769,8 @@ TEST_F(covariance_tests, Covariance_mult_scalar)
   EXPECT_TRUE(is_near(CovD2 {1, 2} / 0.5, Mat2 {2, 0, 0, 4}));
   EXPECT_TRUE(is_near(covi2 / 0.5, Mat2 {2, 0, 0, 2}));
   EXPECT_TRUE(is_near(covz2 / 0.5, Mat2 {0, 0, 0, 0}));
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((CovSA2l(p1) / 0.5).base_matrix())>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((CovSA2u(p1) / 0.5).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((CovSA2l(p1) / 0.5).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((CovSA2u(p1) / 0.5).base_matrix())>);
   static_assert(is_lower_triangular_v<decltype((CovT2l(p1) / 0.5).base_matrix())>);
   static_assert(is_upper_triangular_v<decltype((CovT2u(p1) / 0.5).base_matrix())>);
   static_assert(is_diagonal_v<decltype((CovD2 {1, 2} / 0.5).base_matrix())>);
@@ -782,8 +782,8 @@ TEST_F(covariance_tests, Covariance_mult_scalar)
   EXPECT_TRUE(is_near(CovD2 {1, 2} / -0.5, Mat2 {-2, 0, 0, -4}));
   EXPECT_TRUE(is_near(covi2 / -0.5, Mat2 {-2, 0, 0, -2}));
   EXPECT_TRUE(is_near(covz2 / -0.5, Mat2 {0, 0, 0, 0}));
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((CovSA2l(p1) / -0.5).base_matrix())>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((CovSA2u(p1) / -0.5).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((CovSA2l(p1) / -0.5).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((CovSA2u(p1) / -0.5).base_matrix())>);
   static_assert(is_diagonal_v<decltype((CovD2 {1, 2} / -0.5).base_matrix())>);
   static_assert(is_diagonal_v<decltype((covi2 / -0.5).base_matrix())>);
   static_assert(is_zero_v<decltype((covz2 / -0.5).base_matrix())>);
@@ -798,8 +798,8 @@ TEST_F(covariance_tests, Covariance_scale)
   EXPECT_TRUE(is_near(scale(CovT2l(p1), 2), Mat2 {16, 8, 8, 20}));
   EXPECT_TRUE(is_near(scale(CovT2u(p1), 2), Mat2 {16, 8, 8, 20}));
   EXPECT_TRUE(is_near(scale(CovD2 {1, 2}, 2), Mat2 {4, 0, 0, 8}));
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype(scale(CovSA2l(p1), 2).base_matrix())>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype(scale(CovSA2u(p1), 2).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype(scale(CovSA2l(p1), 2).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype(scale(CovSA2u(p1), 2).base_matrix())>);
   static_assert(is_lower_triangular_v<decltype(scale(CovT2l(p1), 2).base_matrix())>);
   static_assert(is_upper_triangular_v<decltype(scale(CovT2u(p1), 2).base_matrix())>);
   static_assert(is_diagonal_v<decltype(scale(CovD2 {1, 2}, 2).base_matrix())>);
@@ -809,8 +809,8 @@ TEST_F(covariance_tests, Covariance_scale)
   EXPECT_TRUE(is_near(inverse_scale(CovT2l(p1), 0.5), Mat2 {16, 8, 8, 20}));
   EXPECT_TRUE(is_near(inverse_scale(CovT2u(p1), 0.5), Mat2 {16, 8, 8, 20}));
   EXPECT_TRUE(is_near(inverse_scale(CovD2 {4, 8}, 2), Mat2 {1, 0, 0, 2}));
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype(inverse_scale(CovSA2l(p1), 2).base_matrix())>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype(inverse_scale(CovSA2u(p1), 2).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype(inverse_scale(CovSA2l(p1), 2).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype(inverse_scale(CovSA2u(p1), 2).base_matrix())>);
   static_assert(is_lower_triangular_v<decltype(inverse_scale(CovT2l(p1), 2).base_matrix())>);
   static_assert(is_upper_triangular_v<decltype(inverse_scale(CovT2u(p1), 2).base_matrix())>);
   static_assert(is_diagonal_v<decltype(inverse_scale(CovD2 {1, 2}, 2).base_matrix())>);
@@ -824,18 +824,18 @@ TEST_F(covariance_tests, Covariance_scale)
   EXPECT_TRUE(is_near(scale(CovT2l(p1), a1), Mat3 {32, 72, 112, 72, 164, 256, 112, 256, 400}));
   EXPECT_TRUE(is_near(scale(CovT2u(p1), a1), Mat3 {32, 72, 112, 72, 164, 256, 112, 256, 400}));
   EXPECT_TRUE(is_near(scale(CovD2 {1, 2}, a1), Mat3 {9, 19, 29, 19, 41, 63, 29, 63, 97}));
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype(scale(CovSA2l(p1), a1).base_matrix())>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype(scale(CovSA2u(p1), a1).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype(scale(CovSA2l(p1), a1).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype(scale(CovSA2u(p1), a1).base_matrix())>);
   static_assert(is_lower_triangular_v<decltype(scale(CovT2l(p1), a1).base_matrix())>);
   static_assert(is_upper_triangular_v<decltype(scale(CovT2u(p1), a1).base_matrix())>);
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype(scale(CovD2 {1, 2}, a1).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype(scale(CovD2 {1, 2}, a1).base_matrix())>);
 
   // Rank-sufficient case
-  using CovSA3l = Covariance<Coefficients<Angle, Axis, Angle>, EigenSelfAdjointMatrix<M3, TriangleType::lower>>;
-  using CovSA3u = Covariance<Coefficients<Angle, Axis, Angle>, EigenSelfAdjointMatrix<M3, TriangleType::upper>>;
-  using CovT3l = Covariance<Coefficients<Angle, Axis, Angle>, EigenTriangularMatrix<M3, TriangleType::lower>>;
-  using CovT3u = Covariance<Coefficients<Angle, Axis, Angle>, EigenTriangularMatrix<M3, TriangleType::upper>>;
-  using CovD3 = Covariance<Coefficients<Angle, Axis, Angle>, EigenDiagonal<Eigen::Matrix<double, 3, 1>>>;
+  using CovSA3l = Covariance<Coefficients<Angle, Axis, Angle>, SelfAdjointMatrix<M3, TriangleType::lower>>;
+  using CovSA3u = Covariance<Coefficients<Angle, Axis, Angle>, SelfAdjointMatrix<M3, TriangleType::upper>>;
+  using CovT3l = Covariance<Coefficients<Angle, Axis, Angle>, TriangularMatrix<M3, TriangleType::lower>>;
+  using CovT3u = Covariance<Coefficients<Angle, Axis, Angle>, TriangularMatrix<M3, TriangleType::upper>>;
+  using CovD3 = Covariance<Coefficients<Angle, Axis, Angle>, DiagonalMatrix<Eigen::Matrix<double, 3, 1>>>;
   Mat3 q1 {4, 2, 2,
            2, 5, 3,
            2, 3, 6};
@@ -845,11 +845,11 @@ TEST_F(covariance_tests, Covariance_scale)
   EXPECT_TRUE(is_near(scale(CovT3l(q1), b1), Mat2 {134, 317, 317, 761}));
   EXPECT_TRUE(is_near(scale(CovT3u(q1), b1), Mat2 {134, 317, 317, 761}));
   EXPECT_TRUE(is_near(scale(CovD3 {4, 5, 6}, b1), Mat2 {78, 174, 174, 405}));
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype(scale(CovSA3l(q1), b1).base_matrix())>);
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype(scale(CovSA3u(q1), b1).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype(scale(CovSA3l(q1), b1).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype(scale(CovSA3u(q1), b1).base_matrix())>);
   static_assert(is_lower_triangular_v<decltype(scale(CovT3l(q1), b1).base_matrix())>);
   static_assert(is_upper_triangular_v<decltype(scale(CovT3u(q1), b1).base_matrix())>);
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype(scale(CovD3 {4, 5, 6}, b1).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype(scale(CovD3 {4, 5, 6}, b1).base_matrix())>);
 }
 
 
@@ -868,7 +868,7 @@ TEST_F(covariance_tests, TypedMatrix_mult_Covariance)
   EXPECT_TRUE(is_near(mati2 * covSA2l, Mat2 {9, 3, 3, 10}));
   EXPECT_TRUE(is_near(mati2x * covSA2l, Mat2 {9, 3, 3, 10}));
   EXPECT_TRUE(is_near(matz2 * covSA2l, Mat2 {0, 0, 0, 0}));
-  static_assert(is_Eigen_lower_storage_triangle_v<decltype((mati2 * covSA2l).base_matrix())>);
+  static_assert(Eigen3::is_lower_storage_triangle_v<decltype((mati2 * covSA2l).base_matrix())>);
   static_assert(is_zero_v<decltype((matz2 * covSA2l).base_matrix())>);
   static_assert(is_equivalent_v<typename MatrixTraits<decltype(mati2x * covSA2l)>::RowCoefficients, Cx>);
   static_assert(is_equivalent_v<typename MatrixTraits<decltype(mati2x * covSA2l)>::ColumnCoefficients, C>);
@@ -878,7 +878,7 @@ TEST_F(covariance_tests, TypedMatrix_mult_Covariance)
   EXPECT_TRUE(is_near(mati2 * covSA2u, Mat2 {9, 3, 3, 10}));
   EXPECT_TRUE(is_near(mati2x * covSA2u, Mat2 {9, 3, 3, 10}));
   EXPECT_TRUE(is_near(matz2 * covSA2u, Mat2 {0, 0, 0, 0}));
-  static_assert(is_Eigen_upper_storage_triangle_v<decltype((mati2 * covSA2u).base_matrix())>);
+  static_assert(Eigen3::is_upper_storage_triangle_v<decltype((mati2 * covSA2u).base_matrix())>);
   static_assert(is_zero_v<decltype((matz2 * covSA2u).base_matrix())>);
   static_assert(is_equivalent_v<typename MatrixTraits<decltype(mati2x * covSA2u)>::RowCoefficients, Cx>);
   static_assert(is_equivalent_v<typename MatrixTraits<decltype(mati2x * covSA2u)>::ColumnCoefficients, C>);

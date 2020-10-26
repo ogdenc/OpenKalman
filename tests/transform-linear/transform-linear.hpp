@@ -6,13 +6,7 @@
 #ifndef TRANSFORM_LINEAR_TESTS_H
 #define TRANSFORM_LINEAR_TESTS_H
 
-#include <iostream>
-#include <random>
-#include <Eigen/Dense>
-#include <gtest/gtest.h>
 #include "../tests.hpp"
-
-using namespace Eigen;
 
 struct transform_linear : public ::testing::Test
 {

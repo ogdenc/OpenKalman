@@ -19,7 +19,7 @@ using M23 = Eigen::Matrix<double, 2, 3>;
 using M32 = Eigen::Matrix<double, 3, 2>;
 using M33 = Eigen::Matrix<double, 3, 3>;
 using I22 = EigenIdentity<M22>;
-using Z22 = EigenZero<M22>;
+using Z22 = ZeroMatrix<M22>;
 using C2 = Coefficients<Axis, Angle>;
 using C3 = Coefficients<Axis, Angle, Axis>;
 using Mat12 = Mean<Axis, M12>;
@@ -33,10 +33,10 @@ using TMat23 = Matrix<C2, Axes<3>, M23>;
 using TMat32 = Matrix<C3, Axes<2>, M32>;
 using EMat23 = EuclideanMean<C2, M33>;
 
-using SA2l = EigenSelfAdjointMatrix<M22, TriangleType::lower>;
-using SA2u = EigenSelfAdjointMatrix<M22, TriangleType::upper>;
-using T2l = EigenTriangularMatrix<M22, TriangleType::lower>;
-using T2u = EigenTriangularMatrix<M22, TriangleType::upper>;
+using SA2l = SelfAdjointMatrix<M22, TriangleType::lower>;
+using SA2u = SelfAdjointMatrix<M22, TriangleType::upper>;
+using T2l = TriangularMatrix<M22, TriangleType::lower>;
+using T2u = TriangularMatrix<M22, TriangleType::upper>;
 
 inline I22 i22 = M22::Identity();
 inline Z22 z22 = Z22();
@@ -258,7 +258,7 @@ TEST_F(matrices, Mean_traits)
   static_assert(not is_identity_v<Mean<Axes<2>, M23>>);
   static_assert(not is_zero_v<Mat23>);
   static_assert(is_zero_v<Mean<C2, Z22>>);
-  static_assert(is_zero_v<Mean<C2, EigenZero<M23>>>);
+  static_assert(is_zero_v<Mean<C2, ZeroMatrix<M23>>>);
 
   EXPECT_TRUE(is_near(
     MatrixTraits<Mat23>::make((Eigen::Matrix<double, 2, 3>() << 1, 2, 3, 4, 5, 6).finished()).base_matrix(),

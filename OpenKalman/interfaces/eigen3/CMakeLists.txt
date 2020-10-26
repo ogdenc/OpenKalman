@@ -10,10 +10,10 @@
 
 add_executable(eigen3
         tests/eigen3.gtest.cpp
-        tests/native-eigen-matrix.cpp
-        tests/EigenDiagonal.test.cpp
-        tests/EigenSelfAdjointMatrix.test.cpp
-        tests/EigenTriangularMatrix.test.cpp
+        tests/eigen3-native-matrix.test.cpp
+        tests/DiagonalMatrix.test.cpp
+        tests/SelfAdjointMatrix.test.cpp
+        tests/TriangularMatrix.test.cpp
         tests/ToEuclideanExpr.test.cpp
         tests/FromEuclideanExpr.test.cpp
         )

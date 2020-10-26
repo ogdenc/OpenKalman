@@ -68,7 +68,7 @@ namespace OpenKalman
 
   /// Radius is a coefficient.
   template<>
-  struct is_coefficient<Distance> : std::true_type {};
+  struct is_coefficients<Distance> : std::true_type {};
 
   template<>
   struct is_equivalent<Distance, Distance> : std::true_type {};

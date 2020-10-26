@@ -16,7 +16,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<eigen_native Arg> requires is_diagonal_v<Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_native_Eigen_type_v<Arg> and is_diagonal_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<is_eigen_native_v<Arg> and is_diagonal_v<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   Cholesky_square(Arg&& arg)
@@ -31,7 +31,7 @@ namespace OpenKalman::Eigen3
     }
     else
     {
-      return EigenDiagonal(std::forward<Arg>(arg).diagonal().array().square().matrix());;
+      return DiagonalMatrix(std::forward<Arg>(arg).diagonal().array().square().matrix());;
     }
   }
 
@@ -39,7 +39,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<eigen_native Arg> requires is_diagonal_v<Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_native_Eigen_type_v<Arg> and is_diagonal_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<is_eigen_native_v<Arg> and is_diagonal_v<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   Cholesky_factor(Arg&& arg)
@@ -54,7 +54,7 @@ namespace OpenKalman::Eigen3
     }
     else
     {
-      return EigenDiagonal(std::forward<Arg>(arg).diagonal().cwiseSqrt());;
+      return DiagonalMatrix(std::forward<Arg>(arg).diagonal().cwiseSqrt());;
     }
   }
 
@@ -62,7 +62,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<eigen_zero_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_EigenZero_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<is_eigen_zero_expr_v<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   Cholesky_square(Arg&& arg) noexcept
@@ -74,7 +74,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<eigen_zero_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_EigenZero_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<is_eigen_zero_expr_v<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   Cholesky_factor(Arg&& arg) noexcept
@@ -86,33 +86,33 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<eigen_diagonal_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_EigenDiagonal_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<is_eigen_diagonal_expr_v<Arg>, int> = 0>
 #endif
   inline auto
   Cholesky_square(Arg&& arg) noexcept
   {
     auto b = base_matrix(std::forward<Arg>(arg)).array().square().matrix();
-    return EigenDiagonal<decltype(b)>(std::move(b));
+    return DiagonalMatrix<decltype(b)>(std::move(b));
   }
 
 
 #ifdef __cpp_concepts
   template<eigen_diagonal_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_EigenDiagonal_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<is_eigen_diagonal_expr_v<Arg>, int> = 0>
 #endif
   inline auto
   Cholesky_factor(Arg&& arg) noexcept
   {
     auto b = base_matrix(std::forward<Arg>(arg)).cwiseSqrt();
-    return EigenDiagonal<decltype(b)>(std::move(b));
+    return DiagonalMatrix<decltype(b)>(std::move(b));
   }
 
 
 #ifdef __cpp_concepts
   template<eigen_self_adjoint_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_EigenSelfAdjointMatrix_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<is_eigen_self_adjoint_expr_v<Arg>, int> = 0>
 #endif
   inline auto
   Cholesky_square(Arg&& arg) noexcept
@@ -143,7 +143,7 @@ namespace OpenKalman::Eigen3
       using M = Eigen::Matrix<Scalar, dimension, 1>;
       M b = base_matrix(std::forward<Arg>(arg)).diagonal();
       M ret = (b.array() * b.array()).matrix();
-      return EigenDiagonal(std::move(ret));
+      return DiagonalMatrix(std::move(ret));
     }
   }
 
@@ -151,7 +151,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<TriangleType triangle_type, eigen_self_adjoint_expr Arg>
 #else
-  template<TriangleType triangle_type, typename Arg, std::enable_if_t<is_EigenSelfAdjointMatrix_v<Arg>, int> = 0>
+  template<TriangleType triangle_type, typename Arg, std::enable_if_t<is_eigen_self_adjoint_expr_v<Arg>, int> = 0>
 #endif
   inline auto
   Cholesky_factor(Arg&& arg)
@@ -182,7 +182,7 @@ namespace OpenKalman::Eigen3
       using M1 = Eigen::Matrix<Scalar, dimension, 1>;
       M1 b = base_matrix(std::forward<Arg>(arg)).diagonal();
       M1 ret = (b.array().sqrt()).matrix();
-      return EigenDiagonal(std::move(ret));
+      return DiagonalMatrix(std::move(ret));
     }
     else if constexpr (std::is_same_v<const BaseMatrix, const typename Eigen::MatrixBase<BaseMatrix>::ConstantReturnType>)
     {
@@ -191,7 +191,7 @@ namespace OpenKalman::Eigen3
       if (s < Scalar(0))
       {
         // Cholesky factors are complex, so throw an exception.
-        throw (std::runtime_error("Cholesky_factor of constant EigenSelfAdjointMatrix: covariance is indefinite"));
+        throw (std::runtime_error("Cholesky_factor of constant SelfAdjointMatrix: covariance is indefinite"));
       }
       M b;
       if constexpr(triangle_type == TriangleType::lower)
@@ -208,7 +208,7 @@ namespace OpenKalman::Eigen3
         mat(0, 0) = std::sqrt(s);
         b.template triangularView<Eigen::Upper>() = mat.template replicate<1, dimension>();
       }
-      return EigenTriangularMatrix<decltype(b), triangle_type>(std::move(b));
+      return TriangularMatrix<decltype(b), triangle_type>(std::move(b));
     }
     else
     {
@@ -243,7 +243,7 @@ namespace OpenKalman::Eigen3
           }
           else // Covariance is indefinite, so throw an exception.
           {
-            throw (std::runtime_error("Cholesky_factor of EigenSelfAdjointMatrix: covariance is indefinite"));
+            throw (std::runtime_error("Cholesky_factor of SelfAdjointMatrix: covariance is indefinite"));
           }
         }
         else if constexpr(triangle_type == TriangleType::lower)
@@ -257,7 +257,7 @@ namespace OpenKalman::Eigen3
             LDL_x.vectorD().cwiseSqrt().asDiagonal() * LDL_x.matrixU().toDenseMatrix();
         }
       }
-      return EigenTriangularMatrix<decltype(b), triangle_type>(std::move(b));
+      return TriangularMatrix<decltype(b), triangle_type>(std::move(b));
     }
 
   }
@@ -266,7 +266,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<eigen_self_adjoint_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_EigenSelfAdjointMatrix_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<is_eigen_self_adjoint_expr_v<Arg>, int> = 0>
 #endif
   inline auto
   Cholesky_factor(Arg&& arg) noexcept
@@ -278,7 +278,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<eigen_triangular_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_EigenTriangularMatrix_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<is_eigen_triangular_expr_v<Arg>, int> = 0>
 #endif
   inline auto
   Cholesky_square(Arg&& arg) noexcept
@@ -309,7 +309,7 @@ namespace OpenKalman::Eigen3
       using M = Eigen::Matrix<Scalar, dimension, 1>;
       auto b = base_matrix(std::forward<Arg>(arg)).diagonal();
       M ret = (b.array() * b.array()).matrix();
-      return EigenDiagonal(std::move(ret));
+      return DiagonalMatrix(std::move(ret));
     }
     else if constexpr (triangle_type == TriangleType::upper)
     {
@@ -317,7 +317,7 @@ namespace OpenKalman::Eigen3
       decltype(auto) b = std::forward<Arg>(arg).base_view();
       M bx = b;
       M ret = b.adjoint() * bx;
-      return EigenSelfAdjointMatrix<M, triangle_type>(std::move(ret));
+      return SelfAdjointMatrix<M, triangle_type>(std::move(ret));
     }
     else // if constexpr (MatrixTraits<Arg>::triangle_type == TriangleType::lower)
     {
@@ -325,7 +325,7 @@ namespace OpenKalman::Eigen3
       decltype(auto) b = std::forward<Arg>(arg).base_view();
       M bT = b.adjoint();
       M ret = b * bT;
-      return EigenSelfAdjointMatrix<M, triangle_type>(std::move(ret));
+      return SelfAdjointMatrix<M, triangle_type>(std::move(ret));
     }
 
   }
@@ -334,7 +334,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<eigen_triangular_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_EigenTriangularMatrix_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<is_eigen_triangular_expr_v<Arg>, int> = 0>
 #endif
   inline auto
   Cholesky_factor(Arg&& arg) noexcept
@@ -365,7 +365,7 @@ namespace OpenKalman::Eigen3
       using M = Eigen::Matrix<Scalar, dimension, 1>;
       M b = base_matrix(std::forward<Arg>(arg)).diagonal();
       M ret = (b.array().sqrt()).matrix();
-      return EigenDiagonal(std::move(ret));
+      return DiagonalMatrix(std::move(ret));
     }
 
   }

@@ -28,35 +28,83 @@
 #include "basics/basics.hpp"
 #include "coefficient-types/coefficient-types.hpp"
 
-#include "details/EigenForwardDeclarations.hpp"
+#include "details/eigen3-forward-declarations.hpp"
 
-#include "details/EigenMatrixTraits.hpp"
-#include "details/EigenMatrixOverloads.hpp"
+#include "details/eigen3-matrix-traits.hpp"
+#include "details/eigen3-matrix-overloads.hpp"
 
-#include "details/EigenMatrixBase.hpp"
-#include "details/EigenCovarianceBase.hpp"
+#include "details/Eigen3MatrixBase.hpp"
+#include "details/Eigen3CovarianceBase.hpp"
 
-#include "details/Cholesky.hpp"
-#include "matrices/details/MatrixBase.hpp"
+#include "details/eigen3-cholesky-overloads.hpp"
 
-#include "EigenZero.hpp"
-#include "EigenDiagonal.hpp"
-#include "EigenSelfAdjointMatrix.hpp"
-#include "EigenTriangularMatrix.hpp"
-#include "details/EigenSpecialMatrixOverloads.hpp"
+#include "ZeroMatrix.hpp"
+#include "DiagonalMatrix.hpp"
+#include "SelfAdjointMatrix.hpp"
+#include "TriangularMatrix.hpp"
+#include "details/eigen3-special-matrix-overloads.hpp"
 
 #include "ToEuclideanExpr.hpp"
 #include "FromEuclideanExpr.hpp"
-#include "details/EuclideanExprOverloads.hpp"
+#include "details/eigen3-euclidean-overloads.hpp"
 
-#include "details/EigenTraits.hpp"
-#include "details/EigenEvaluators.hpp"
-
-#include "matrices/details/ElementSetter.hpp"
+#include "details/eigen3-native-traits.hpp"
+#include "details/eigen3-native-evaluators.hpp"
 
 
 #ifdef __GNUC__
 #pragma GCC diagnostic pop
 #endif
+
+// Introduce key Eigen3 interface functions into OpenKalman namespace.
+namespace OpenKalman
+{
+  using Eigen3::Cholesky_square;
+  using Eigen3::Cholesky_factor;
+
+  using Eigen3::SelfAdjointMatrix;
+  using Eigen3::TriangularMatrix;
+  using Eigen3::DiagonalMatrix;
+  using Eigen3::ZeroMatrix;
+  using Eigen3::FromEuclideanExpr;
+  using Eigen3::ToEuclideanExpr;
+
+  using Eigen3::make_native_matrix;
+  using Eigen3::make_EigenSelfAdjointMatrix;
+  using Eigen3::make_EigenTriangularMatrix;
+
+  using Eigen3::base_matrix;
+  using Eigen3::strict_matrix;
+  using Eigen3::strict;
+  using Eigen3::to_Euclidean;
+  using Eigen3::from_Euclidean;
+  using Eigen3::wrap_angles;
+  using Eigen3::to_diagonal;
+  using Eigen3::transpose;
+  using Eigen3::adjoint;
+  using Eigen3::determinant;
+  using Eigen3::trace;
+  using Eigen3::rank_update;
+  using Eigen3::solve;
+  using Eigen3::reduce_columns;
+  using Eigen3::LQ_decomposition;
+  using Eigen3::QR_decomposition;
+  using Eigen3::concatenate_vertical;
+  using Eigen3::concatenate_horizontal;
+  using Eigen3::concatenate_diagonal;
+  using Eigen3::split_vertical;
+  using Eigen3::split_horizontal;
+  using Eigen3::split_diagonal;
+  using Eigen3::get_element;
+  using Eigen3::set_element;
+  using Eigen3::column;
+  using Eigen3::apply_columnwise;
+  using Eigen3::apply_coefficientwise;
+  using Eigen3::randomize;
+}
+
+#include "matrices/details/ElementSetter.hpp"
+#include "matrices/details/MatrixBase.hpp"
+
 
 #endif //OPENKALMAN_EIGEN3_HPP

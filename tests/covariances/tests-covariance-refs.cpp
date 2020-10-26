@@ -17,11 +17,11 @@ using M1 = Eigen::Matrix<double, 3, 1>;
 using C = Coefficients<Axis, Angle, Axis>;
 using Mat3 = Matrix<C, C, M>;
 using Mat31 = Matrix<C, Axis, M1>;
-template<typename Mat> using SAl = EigenSelfAdjointMatrix<Mat, TriangleType::lower>;
-template<typename Mat> using SAu = EigenSelfAdjointMatrix<Mat, TriangleType::upper>;
-template<typename Mat> using Tl = EigenTriangularMatrix<Mat, TriangleType::lower>;
-template<typename Mat> using Tu = EigenTriangularMatrix<Mat, TriangleType::upper>;
-template<typename Mat> using D = EigenDiagonal<Mat>;
+template<typename Mat> using SAl = SelfAdjointMatrix<Mat, TriangleType::lower>;
+template<typename Mat> using SAu = SelfAdjointMatrix<Mat, TriangleType::upper>;
+template<typename Mat> using Tl = TriangularMatrix<Mat, TriangleType::lower>;
+template<typename Mat> using Tu = TriangularMatrix<Mat, TriangleType::upper>;
+template<typename Mat> using D = DiagonalMatrix<Mat>;
 
 
 TEST_F(covariance_tests, References_Covariance_self_adjoint_lvalue1)

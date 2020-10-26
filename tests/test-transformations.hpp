@@ -15,9 +15,6 @@
 #include <iostream>
 #include <Eigen/Dense>
 
-#include "transformations/Transformation.hpp"
-#include "coefficient-types/Angle.h"
-
 using namespace OpenKalman;
 
 template<int n>

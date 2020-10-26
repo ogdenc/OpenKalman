@@ -23,7 +23,7 @@ using M33 = Eigen::Matrix<double, 3, 3>;
 using M42 = Eigen::Matrix<double, 4, 2>;
 using M43 = Eigen::Matrix<double, 4, 3>;
 using I22 = EigenIdentity<M22>;
-using Z22 = EigenZero<M22>;
+using Z22 = ZeroMatrix<M22>;
 using C2 = Coefficients<Axis, Angle>;
 using C3 = Coefficients<Axis, Angle, Axis>;
 using Mat12 = EuclideanMean<Axis, M12>;
@@ -240,7 +240,7 @@ TEST_F(matrices, EuclideanMean_traits)
   static_assert(not is_zero_v<Mat23>);
   static_assert(is_zero_v<EuclideanMean<Angle, Z22>>);
   static_assert(is_zero_v<EuclideanMean<Axes<2>, Z22>>);
-  static_assert(is_zero_v<EuclideanMean<C2, EigenZero<M33>>>);
+  static_assert(is_zero_v<EuclideanMean<C2, ZeroMatrix<M33>>>);
 
   EXPECT_TRUE(is_near(MatrixTraits<Mat23>::make(
     (Eigen::Matrix<double, 3, 3>() << 1, 2, 3, 4, 5, 6, 7, 8, 9).finished()).base_matrix(), TM33 {1, 2, 3, 4, 5, 6, 7, 8, 9}));

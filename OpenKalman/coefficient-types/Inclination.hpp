@@ -93,7 +93,7 @@ namespace OpenKalman
 
   /// Inclination is a coefficient.
   template<typename Traits>
-  struct is_coefficient<Inclination<Traits>> : std::true_type {};
+  struct is_coefficients<Inclination<Traits>> : std::true_type {};
 
   template<typename Traits>
   struct is_equivalent<Inclination<Traits>, Inclination<Traits>> : std::true_type {};

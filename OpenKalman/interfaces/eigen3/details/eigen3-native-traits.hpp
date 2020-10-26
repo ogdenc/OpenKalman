@@ -8,8 +8,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#ifndef OPENKALMAN_EIGENTRAITS_HPP
-#define OPENKALMAN_EIGENTRAITS_HPP
+#ifndef OPENKALMAN_EIGEN3_NATIVE_TRAITS_HPP
+#define OPENKALMAN_EIGEN3_NATIVE_TRAITS_HPP
 
 namespace Eigen::internal
 {
@@ -55,7 +55,7 @@ namespace Eigen::internal
   };
 
   template<typename BaseMatrix, OpenKalman::TriangleType storage_triangle>
-  struct traits<OpenKalman::Eigen3::EigenSelfAdjointMatrix<BaseMatrix, storage_triangle>>
+  struct traits<OpenKalman::Eigen3::SelfAdjointMatrix<BaseMatrix, storage_triangle>>
     : traits<std::decay_t<BaseMatrix>>
   {
     using Nested = std::decay_t<BaseMatrix>;
@@ -70,7 +70,7 @@ namespace Eigen::internal
   };
 
   template<typename BaseMatrix, OpenKalman::TriangleType triangle_type>
-  struct traits<OpenKalman::Eigen3::EigenTriangularMatrix<BaseMatrix, triangle_type>>
+  struct traits<OpenKalman::Eigen3::TriangularMatrix<BaseMatrix, triangle_type>>
     : traits<std::decay_t<BaseMatrix>>
   {
     using Nested = std::decay_t<BaseMatrix>;
@@ -85,7 +85,7 @@ namespace Eigen::internal
   };
 
   template<typename ArgType>
-  struct traits<OpenKalman::Eigen3::EigenDiagonal<ArgType>>
+  struct traits<OpenKalman::Eigen3::DiagonalMatrix<ArgType>>
   {
     using Nested = std::decay_t<ArgType>;
     using StorageKind = Dense;
@@ -103,7 +103,7 @@ namespace Eigen::internal
   };
 
   template<typename ArgType>
-  struct traits<OpenKalman::Eigen3::EigenZero<ArgType>>
+  struct traits<OpenKalman::Eigen3::ZeroMatrix<ArgType>>
     : traits<typename std::decay_t<ArgType>::ConstantReturnType> {};
 
   template<typename Coefficients, typename ArgType>
@@ -177,4 +177,4 @@ namespace Eigen::internal
 
 }
 
-#endif //OPENKALMAN_EIGENTRAITS_HPP
+#endif //OPENKALMAN_EIGEN3_NATIVE_TRAITS_HPP

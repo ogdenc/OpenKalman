@@ -8,8 +8,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#ifndef OPENKALMAN_FORWARDDECLARATIONS_HPP
-#define OPENKALMAN_FORWARDDECLARATIONS_HPP
+#ifndef OPENKALMAN_FORWARD_DECLARATIONS_HPP
+#define OPENKALMAN_FORWARD_DECLARATIONS_HPP
 
 namespace OpenKalman
 {
@@ -242,6 +242,9 @@ namespace OpenKalman
     template<typename T = void, typename Arg>
     constexpr decltype(auto) convert_base_matrix(Arg&&) noexcept;
 
+    template<typename Derived, typename ArgType>
+    struct MatrixBase;
+
     /// A helper object for setting elements of a matrix.
     template<bool read_only, typename T>
     struct ElementSetter;
@@ -298,4 +301,4 @@ namespace OpenKalman
 
 }
 
-#endif //OPENKALMAN_FORWARDDECLARATIONS_HPP
+#endif //OPENKALMAN_FORWARD_DECLARATIONS_HPP

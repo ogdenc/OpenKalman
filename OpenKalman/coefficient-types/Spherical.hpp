@@ -290,7 +290,7 @@ namespace OpenKalman
 
   /// Spherical is aa coefficient.
   template<typename Coeff1, typename Coeff2, typename Coeff3>
-  struct is_coefficient<Spherical<Coeff1, Coeff2, Coeff3>> : std::true_type {};
+  struct is_coefficients<Spherical<Coeff1, Coeff2, Coeff3>> : std::true_type {};
 
   template<typename Coeff1a, typename Coeff2a, typename Coeff3a, typename Coeff1b, typename Coeff2b, typename Coeff3b>
   struct is_equivalent<Spherical<Coeff1a, Coeff2a, Coeff3a>, Spherical<Coeff1b, Coeff2b, Coeff3b>>

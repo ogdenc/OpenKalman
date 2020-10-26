@@ -20,8 +20,8 @@ namespace OpenKalman
 
   /**
    * @brief A set of coefficient types to be associated with a variable.
-   * The types should be instances of is_coefficient.
-   * @tparam Cs The coefficients (e.g., Axis, Angle, anything that as an instance of is_coefficient).
+   * The types should be instances of is_coefficients.
+   * @tparam Cs The coefficients (e.g., Axis, Angle, anything that as an instance of is_coefficients).
    */
   template<typename ... Cs>
   struct Coefficients;
@@ -84,7 +84,7 @@ namespace OpenKalman
   template<typename C, typename ... Ctail>
   struct Coefficients<C, Ctail ...>
   {
-    static_assert((is_coefficient_v<C> and ... and is_coefficient_v<Ctail>));
+    static_assert((is_coefficients_v<C> and ... and is_coefficients_v<Ctail>));
     static constexpr std::size_t size = C::size + Coefficients<Ctail...>::size; ///<Number of coefficients.
 
     /// Number of coefficients when converted to Euclidian.
@@ -151,7 +151,7 @@ namespace OpenKalman
 
   /// Coefficients can, itself, be a coefficient. May be used to group coefficients together as a unit.
   template<typename...C>
-  struct is_coefficient<Coefficients<C...>> : std::true_type {};
+  struct is_coefficients<Coefficients<C...>> : std::true_type {};
 
   template<typename...C>
   struct is_composite_coefficient<Coefficients<C...>> : std::true_type {};
@@ -177,28 +177,28 @@ namespace OpenKalman
 
   template<typename C>
   struct is_prefix<Coefficients<>, C,
-    std::enable_if_t<is_coefficient_v<C> and not is_equivalent_v<Coefficients<>, C>>> : std::true_type {};
+    std::enable_if_t<is_coefficients_v<C> and not is_equivalent_v<Coefficients<>, C>>> : std::true_type {};
 
   template<typename C, typename...C1>
   struct is_prefix<C, Coefficients<C, C1...>,
-    std::enable_if_t<is_coefficient_v<C>>> : std::true_type {};
+    std::enable_if_t<is_coefficients_v<C>>> : std::true_type {};
 
 
 
-  template<typename Coeffs, typename Scalar, std::enable_if_t<is_coefficient_v<Coeffs>, int> = 0>
+  template<typename Coeffs, typename Scalar, std::enable_if_t<is_coefficients_v<Coeffs>, int> = 0>
   static Scalar to_Euclidean(const std::size_t row, const std::function<Scalar(const std::size_t)> get_coeff)
   {
     return Coeffs::template to_Euclidean_array<Scalar, 0>[row](get_coeff);
   }
 
-  template<typename Coeffs, typename Scalar, std::enable_if_t<is_coefficient_v<Coeffs>, int> = 0>
+  template<typename Coeffs, typename Scalar, std::enable_if_t<is_coefficients_v<Coeffs>, int> = 0>
   static Scalar from_Euclidean(const std::size_t row, const std::function<Scalar(const std::size_t)> get_coeff)
   {
     return Coeffs::template from_Euclidean_array<Scalar, 0>[row](get_coeff);
   }
 
   /// Wrap and return a single coefficient.
-  template<typename Coeffs, typename F, std::enable_if_t<is_coefficient_v<Coeffs>, int> = 0>
+  template<typename Coeffs, typename F, std::enable_if_t<is_coefficients_v<Coeffs>, int> = 0>
   static auto wrap_get(const std::size_t row, const F& get_coeff)
   {
     static_assert(std::is_invocable_v<F, const std::size_t>);
@@ -208,7 +208,7 @@ namespace OpenKalman
   }
 
   /// Wrap and set a single coefficient.
-  template<typename Coeffs, typename Scalar, typename FS, typename FG, std::enable_if_t<is_coefficient_v<Coeffs>, int> = 0>
+  template<typename Coeffs, typename Scalar, typename FS, typename FG, std::enable_if_t<is_coefficients_v<Coeffs>, int> = 0>
   static void wrap_set(const Scalar s, const std::size_t row, const FS& set_coeff, const FG& get_coeff)
   {
     static_assert(std::is_invocable_v<FG, const std::size_t>);
@@ -223,13 +223,13 @@ namespace OpenKalman
     struct ReplicateImpl {};
 
     template<typename C>
-    struct ReplicateImpl<C, 0, std::enable_if_t<is_coefficient_v<C>>>
+    struct ReplicateImpl<C, 0, std::enable_if_t<is_coefficients_v<C>>>
     {
       using type = Coefficients<>;
     };
 
     template<typename C, std::size_t N>
-    struct ReplicateImpl<C, N, std::enable_if_t<is_coefficient_v<C> and not is_composite_coefficient_v<C> and (N > 0)>>
+    struct ReplicateImpl<C, N, std::enable_if_t<is_coefficients_v<C> and not is_composite_coefficient_v<C> and (N > 0)>>
     {
       using type = typename ReplicateImpl<C, N - 1>::type::template Append<C>;
     };

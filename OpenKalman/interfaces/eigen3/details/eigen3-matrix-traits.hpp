@@ -8,8 +8,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#ifndef OPENKALMAN_EIGENMATRIXTRAITS_HPP
-#define OPENKALMAN_EIGENMATRIXTRAITS_HPP
+#ifndef OPENKALMAN_EIGEN3_MATRIX_TRAITS_HPP
+#define OPENKALMAN_EIGEN3_MATRIX_TRAITS_HPP
 
 #include <type_traits>
 
@@ -30,7 +30,7 @@ namespace OpenKalman
   struct MatrixTraits<M>
 #else
   template<typename M>
-  struct MatrixTraits<M, std::enable_if_t<std::is_same_v<M, std::decay_t<M>> and Eigen3::is_native_Eigen_type_v<M>>>
+  struct MatrixTraits<M, std::enable_if_t<std::is_same_v<M, std::decay_t<M>> and Eigen3::is_eigen_native_v<M>>>
 #endif
   {
     using BaseMatrix = std::decay_t<M>;
@@ -43,10 +43,10 @@ namespace OpenKalman
     static_assert(columns > 0);
 
     template<typename Derived>
-    using MatrixBaseType = Eigen3::internal::EigenMatrixBase<Derived, BaseMatrix>;
+    using MatrixBaseType = Eigen3::internal::Eigen3MatrixBase<Derived, BaseMatrix>;
 
     template<typename Derived>
-    using CovarianceBaseType = Eigen3::internal::EigenCovarianceBase<Derived, BaseMatrix>;
+    using CovarianceBaseType = Eigen3::internal::Eigen3CovarianceBase<Derived, BaseMatrix>;
 
     template<std::size_t rows = dimension, std::size_t cols = columns, typename S = Scalar>
     using StrictMatrix = Eigen::Matrix<S, (Eigen::Index) rows, (Eigen::Index) cols>;
@@ -54,13 +54,13 @@ namespace OpenKalman
     using Strict = typename MatrixTraits<BaseMatrix>::template StrictMatrix<>;
 
     template<TriangleType storage_triangle = TriangleType::lower, std::size_t dim = dimension, typename S = Scalar>
-    using SelfAdjointBaseType = Eigen3::EigenSelfAdjointMatrix<StrictMatrix<dim, dim, S>, storage_triangle>;
+    using SelfAdjointBaseType = Eigen3::SelfAdjointMatrix<StrictMatrix<dim, dim, S>, storage_triangle>;
 
     template<TriangleType triangle_type = TriangleType::lower, std::size_t dim = dimension, typename S = Scalar>
-    using TriangularBaseType = Eigen3::EigenTriangularMatrix<StrictMatrix<dim, dim, S>, triangle_type>;
+    using TriangularBaseType = Eigen3::TriangularMatrix<StrictMatrix<dim, dim, S>, triangle_type>;
 
     template<std::size_t dim = dimension, typename S = Scalar>
-    using DiagonalBaseType = Eigen3::EigenDiagonal<StrictMatrix<dim, 1, S>>;
+    using DiagonalBaseType = Eigen3::DiagonalMatrix<StrictMatrix<dim, 1, S>>;
 
 #ifdef __cpp_concepts
     template<typename Arg> requires (not std::convertible_to<Arg, const Scalar>)
@@ -88,9 +88,9 @@ namespace OpenKalman
       return ((StrictMatrix<dimension, columns>() << arg), ... , args).finished();
     }
 
-    static auto zero() { return Eigen3::EigenZero<StrictMatrix<dimension, columns>>(); }
+    static auto zero() { return Eigen3::ZeroMatrix<StrictMatrix<dimension, columns>>(); }
 
-    static auto identity() { return StrictMatrix<dimension, columns>::Identity(); }
+    static auto identity() { return StrictMatrix<dimension, dimension>::Identity(); }
 
   };
 
@@ -215,4 +215,4 @@ namespace OpenKalman
 
 }
 
-#endif //OPENKALMAN_EIGENMATRIXTRAITS_HPP
+#endif //OPENKALMAN_EIGEN3_MATRIX_TRAITS_HPP
