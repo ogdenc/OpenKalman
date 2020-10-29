@@ -70,7 +70,7 @@ namespace OpenKalman
 
 
   template<typename T>
-  struct is_perturbation : std::integral_constant<bool, is_Gaussian_distribution_v<T> or
+  struct is_perturbation : std::bool_constant<is_Gaussian_distribution_v<T> or
     (is_typed_matrix_v<T> and is_column_vector_v<T> and not is_Euclidean_transformed_v<T>)> {};
 
   /// Helper template for is_perturbation.

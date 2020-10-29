@@ -195,24 +195,6 @@ namespace OpenKalman
   struct Polar<Circle<Traits>, Distance>
     : detail::PolarBase<Traits, Polar<Circle<Traits>, Distance>, Circle<Traits>, Distance, 1, 0,  2, 0, 1> {};
 
-  /// Polar is a coefficient.
-  template<typename Coeff1, typename Coeff2>
-  struct is_coefficients<Polar<Coeff1, Coeff2>> : std::true_type {};
-
-  template<typename Coeff1a, typename Coeff2a, typename Coeff1b, typename Coeff2b>
-  struct is_equivalent<Polar<Coeff1a, Coeff2a>, Polar<Coeff1b, Coeff2b>>
-    : std::integral_constant<bool, is_equivalent_v<Coeff1a, Coeff1b> and is_equivalent_v<Coeff2a, Coeff2b>> {};
-
-  namespace internal
-  {
-    template<typename Coeff1, typename Coeff2, typename...Coeffs>
-    struct ConcatenateImpl<Polar<Coeff1, Coeff2>, Coeffs...>
-    {
-      using type = typename ConcatenateImpl<Coeffs...>::type::template Prepend<Polar<Coeff1, Coeff2>>;
-    };
-  }
-
-
 }// namespace OpenKalman
 
 #endif //OPENKALMAN_POLAR_H

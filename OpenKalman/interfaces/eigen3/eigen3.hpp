@@ -24,6 +24,11 @@
 #endif
 #endif
 
+#define OPENKALMAN_EIGEN3_INTERFACE 1001
+// This macro defines the first interface that is defined. Usually, there will be only one.
+#ifndef FIRST_EIGEN_INTERFACE
+#define FIRST_EIGEN_INTERFACE OPENKALMAN_EIGEN3_INTERFACE
+#endif
 
 #include "basics/basics.hpp"
 #include "coefficient-types/coefficient-types.hpp"
@@ -101,6 +106,12 @@ namespace OpenKalman
   using Eigen3::apply_columnwise;
   using Eigen3::apply_coefficientwise;
   using Eigen3::randomize;
+
+  using Eigen3::make_Matrix;
+  using Eigen3::make_Mean;
+  using Eigen3::make_EuclideanMean;
+  using Eigen3::make_Covariance;
+  using Eigen3::make_SquareRootCovariance;
 }
 
 #include "matrices/details/ElementSetter.hpp"

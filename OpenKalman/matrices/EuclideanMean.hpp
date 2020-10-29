@@ -17,10 +17,12 @@ namespace OpenKalman
   //        EuclideanMean         //
   //////////////////////////////////
 
-  /// A typed vector.
-  template<
-    typename Coeffs,
-    typename BaseMatrix>
+#ifdef __cpp_concepts
+  template<coefficients Coeffs, typename BaseMatrix> requires
+  is_typed_matrix_base_v<BaseMatrix> and (Coeffs::dimension == MatrixTraits<BaseMatrix>::dimension)
+#else
+  template<typename Coeffs, typename BaseMatrix>
+#endif
   struct EuclideanMean : internal::TypedMatrixBase<EuclideanMean<Coeffs, BaseMatrix>,
     Coeffs, Axes<MatrixTraits<BaseMatrix>::columns>, BaseMatrix>
   {

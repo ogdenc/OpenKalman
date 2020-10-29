@@ -101,7 +101,7 @@ namespace OpenKalman
 
   template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel>
   struct is_strict<Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>>
-    : std::integral_constant<bool, not (Eigen::internal::traits<XprType>::Flags & Eigen::NestByRefBit) and is_strict_v<XprType>> {};
+    : std::bool_constant<not (Eigen::internal::traits<XprType>::Flags & Eigen::NestByRefBit) and is_strict_v<XprType>> {};
 
   template<typename Scalar, typename PlainObjectType>
   struct is_strict<Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<Scalar>, PlainObjectType>>

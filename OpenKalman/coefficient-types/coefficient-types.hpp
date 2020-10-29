@@ -11,17 +11,16 @@
 #ifndef OPENKALMAN_COEFFICIENT_TYPES_HPP
 #define OPENKALMAN_COEFFICIENT_TYPES_HPP
 
-#include "basics/basics.hpp"
+#include "details/coefficient_forward-declarations.hpp"
 
 #include "Axis.hpp"
 #include "Circle.hpp"
 #include "Angle.hpp"
 #include "Distance.hpp"
 #include "Inclination.hpp"
-
-#include "coefficients.hpp"
-
 #include "Polar.hpp"
 #include "Spherical.hpp"
+
+#include "Coefficients.hpp"
 
 #endif //OPENKALMAN_COEFFICIENT_TYPES_HPP

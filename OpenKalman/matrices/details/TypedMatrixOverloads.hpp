@@ -745,7 +745,7 @@ namespace OpenKalman
     static_assert(is_Euclidean_transformed_v<V1> == is_Euclidean_transformed_v<V2>);
     using CommonV = std::decay_t<std::conditional_t<
       (is_Euclidean_mean_v<V1> and is_Euclidean_mean_v<V2>) or (is_mean_v<V1> and is_mean_v<V2>),
-      V1, Matrix<RC1, CC1, typename MatrixTraits<V1>::BaseMatrix>>>;
+      V1, decltype(Matrix {v1})>>;
     auto ret = MatrixTraits<CommonV>::make(base_matrix(std::forward<V1>(v1)) + base_matrix(std::forward<V2>(v2)));
     if constexpr (not std::is_lvalue_reference_v<V1&&> or not std::is_lvalue_reference_v<V2&&>) return strict(std::move(ret)); else return ret;
   }
@@ -761,8 +761,7 @@ namespace OpenKalman
     static_assert(is_equivalent_v<typename MatrixTraits<V2>::ColumnCoefficients, CC1>);
     static_assert(is_Euclidean_transformed_v<V1> == is_Euclidean_transformed_v<V2>);
     using CommonV = std::decay_t<std::conditional_t<
-      (is_Euclidean_mean_v<V1> and is_Euclidean_mean_v<V2>),
-      V1, Matrix<RC1, CC1, typename MatrixTraits<V1>::BaseMatrix>>>;
+      (is_Euclidean_mean_v<V1> and is_Euclidean_mean_v<V2>), V1, decltype(Matrix {v1})>>;
     auto b = base_matrix(std::forward<V1>(v1)) - base_matrix(std::forward<V2>(v2));
     if constexpr (is_mean_v<V1> and is_mean_v<V2>)
     {
@@ -837,10 +836,12 @@ namespace OpenKalman
     using RC = typename MatrixTraits<V1>::RowCoefficients;
     using CC = typename MatrixTraits<V2>::ColumnCoefficients;
     auto b = base_matrix(std::forward<V1>(v1)) * base_matrix(std::forward<V2>(v2));
-    using CommonV = std::decay_t<std::conditional_t<is_Euclidean_mean_v<V1>,
-      V1, Matrix<RC, CC, decltype(b)>>>;
+    using CommonV = std::decay_t<std::conditional_t<is_Euclidean_mean_v<V1>, V1, decltype(Matrix {v1})>>;
     auto ret = MatrixTraits<CommonV>::template make<RC, CC>(std::move(b));
-    if constexpr (not std::is_lvalue_reference_v<V1&&> or not std::is_lvalue_reference_v<V2&&>) return strict(std::move(ret)); else return ret;
+    if constexpr (not std::is_lvalue_reference_v<V1&&> or not std::is_lvalue_reference_v<V2&&>)
+      return strict(std::move(ret));
+    else
+      return ret;
   }
 
 
@@ -850,12 +851,12 @@ namespace OpenKalman
     std::enable_if_t<is_typed_matrix_v<V>, int> = 0>
   inline auto operator-(V&& v)
   {
-    using RC = typename MatrixTraits<V>::RowCoefficients;
-    using CC = typename MatrixTraits<V>::ColumnCoefficients;
-    using Res = std::decay_t<std::conditional_t<is_Euclidean_mean_v<V>,
-      V, Matrix<RC, CC, typename MatrixTraits<V>::BaseMatrix>>>;
+    using Res = std::decay_t<std::conditional_t<is_Euclidean_mean_v<V>, V, decltype(Matrix {v})>>;
     auto ret = MatrixTraits<Res>::make(-base_matrix(std::forward<V>(v)));
-    if constexpr (not std::is_lvalue_reference_v<V&&>) return strict(std::move(ret)); else return ret;
+    if constexpr (not std::is_lvalue_reference_v<V&&>)
+      return strict(std::move(ret));
+    else
+      return ret;
   }
 
 

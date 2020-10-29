@@ -231,7 +231,7 @@ namespace OpenKalman
     concept euclidean_expr = from_euclidean_expr<T> or to_euclidean_expr<T>;
 #else
     template<typename T>
-    struct is_euclidean_expr : std::integral_constant<bool, is_from_euclidean_expr_v<T> or is_to_euclidean_expr_v<T>> {};
+    struct is_euclidean_expr : std::bool_constant<is_from_euclidean_expr_v<T> or is_to_euclidean_expr_v<T>> {};
 
     /// Helper template for is_eigen_native.
     template<typename T>
@@ -297,7 +297,7 @@ namespace OpenKalman
 #else
     /// Whether an object is a regular Eigen matrix.
     template<typename T>
-    struct is_eigen_matrix : std::integral_constant<bool, is_eigen_native_v<T> or is_eigen_zero_expr_v<T>> {};
+    struct is_eigen_matrix : std::bool_constant<is_eigen_native_v<T> or is_eigen_zero_expr_v<T>> {};
 
     /// Helper template for is_eigen_native.
     template<typename T>
@@ -364,27 +364,25 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
   template<Eigen3::eigen_native T> requires std::same_as<T, std::decay_t<T>>
-  struct is_element_gettable<T, 1> : std::integral_constant<bool, MatrixTraits<T>::columns == 1> {};
+  struct is_element_gettable<T, 1> : std::bool_constant<MatrixTraits<T>::columns == 1> {};
 #else
   template<typename T>
     struct is_element_gettable<T, 1, std::enable_if_t<std::is_same_v<T, std::decay_t<T>> and
       Eigen3::is_eigen_native_v<T>>>
-      : std::integral_constant<bool, MatrixTraits<T>::columns == 1> {};
+      : std::bool_constant<MatrixTraits<T>::columns == 1> {};
 #endif
 
 
 #ifdef __cpp_concepts
   template<Eigen3::eigen_native T> requires std::same_as<T, std::decay_t<T>>
   struct is_element_settable<T, 2>
-    : std::integral_constant<bool, not std::is_const_v<std::remove_reference_t<T>> and
-      static_cast<bool>(std::decay_t<T>::Flags & Eigen::LvalueBit)>
-  {
-  };
+    : std::bool_constant<not std::is_const_v<std::remove_reference_t<T>> and
+      static_cast<bool>(std::decay_t<T>::Flags & Eigen::LvalueBit)> {};
 #else
   template<typename T>
     struct is_element_settable<T, 2, std::enable_if_t<std::is_same_v<T, std::decay_t<T>> and
       Eigen3::is_eigen_native_v<T>>>
-      : std::integral_constant<bool, not std::is_const_v<std::remove_reference_t<T>> and
+      : std::bool_constant<not std::is_const_v<std::remove_reference_t<T>> and
         static_cast<bool>(std::decay_t<T>::Flags & Eigen::LvalueBit)> {};
 #endif
 
@@ -392,22 +390,20 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<Eigen3::eigen_native T> requires std::is_same_v<T, std::decay_t<T>>
   struct is_element_settable<T, 1>
-    : std::integral_constant<bool, MatrixTraits<T>::columns == 1 and not std::is_const_v<std::remove_reference_t<T>> and
-      static_cast<bool>(std::decay_t<T>::Flags & Eigen::LvalueBit)>
-  {
-  };
+    : std::bool_constant<MatrixTraits<T>::columns == 1 and not std::is_const_v<std::remove_reference_t<T>> and
+      static_cast<bool>(std::decay_t<T>::Flags & Eigen::LvalueBit)> {};
 #else
   template<typename T>
     struct is_element_settable<T, 1, std::enable_if_t<std::is_same_v<T, std::decay_t<T>> and
       Eigen3::is_eigen_native_v<T>>>
-      : std::integral_constant<bool, MatrixTraits<T>::columns == 1 and not std::is_const_v<std::remove_reference_t<T>> and
+      : std::bool_constant<MatrixTraits<T>::columns == 1 and not std::is_const_v<std::remove_reference_t<T>> and
         static_cast<bool>(std::decay_t<T>::Flags & Eigen::LvalueBit)> {};
 #endif
 
 
-  //////////////////////////////////
+  /////////////////////////////
   //    SelfAdjointMatrix    //
-  //////////////////////////////////
+  /////////////////////////////
 
   template<typename BaseMatrix, TriangleType storage_triangle>
   struct is_covariance_base<Eigen3::SelfAdjointMatrix<BaseMatrix, storage_triangle>>
@@ -419,16 +415,16 @@ namespace OpenKalman
 
   template<typename BaseMatrix, TriangleType storage_triangle>
   struct is_zero<Eigen3::SelfAdjointMatrix<BaseMatrix, storage_triangle>>
-    : std::integral_constant<bool, is_zero_v<BaseMatrix>> {};
+    : std::bool_constant<is_zero_v<BaseMatrix>> {};
 
   template<typename BaseMatrix, TriangleType storage_triangle>
   struct is_identity<Eigen3::SelfAdjointMatrix<BaseMatrix, storage_triangle>>
-    : std::integral_constant<bool, is_identity_v<BaseMatrix>> {};
+    : std::bool_constant<is_identity_v<BaseMatrix>> {};
 
   template<typename BaseMatrix, TriangleType storage_triangle>
   struct is_diagonal<Eigen3::SelfAdjointMatrix<BaseMatrix, storage_triangle>,
     std::enable_if_t<not is_zero_v<BaseMatrix> and not is_identity_v<BaseMatrix> and not is_1by1_v<BaseMatrix>>>
-    : std::integral_constant<bool, is_diagonal_v<BaseMatrix> or storage_triangle == TriangleType::diagonal> {};
+    : std::bool_constant<is_diagonal_v<BaseMatrix> or storage_triangle == TriangleType::diagonal> {};
 
   template<typename BaseMatrix, TriangleType storage_triangle>
   struct is_self_adjoint<Eigen3::SelfAdjointMatrix<BaseMatrix, storage_triangle>,
@@ -464,26 +460,26 @@ namespace OpenKalman
 
   template<typename BaseMatrix, TriangleType storage_triangle>
   struct is_element_gettable<Eigen3::SelfAdjointMatrix<BaseMatrix, storage_triangle>, 2>
-    : std::integral_constant<bool, is_element_gettable_v<BaseMatrix, 2> or is_element_gettable_v<BaseMatrix, 1>> {};
+    : std::bool_constant<is_element_gettable_v<BaseMatrix, 2> or is_element_gettable_v<BaseMatrix, 1>> {};
 
   template<typename BaseMatrix, TriangleType storage_triangle>
   struct is_element_gettable<Eigen3::SelfAdjointMatrix<BaseMatrix, storage_triangle>, 1>
-    : std::integral_constant<bool, is_element_gettable_v<BaseMatrix, 1> or
+    : std::bool_constant<is_element_gettable_v<BaseMatrix, 1> or
       (is_element_gettable_v<BaseMatrix, 2> and storage_triangle == TriangleType::diagonal)> {};
 
   template<typename BaseMatrix, TriangleType storage_triangle>
   struct is_element_settable<Eigen3::SelfAdjointMatrix<BaseMatrix, storage_triangle>, 2>
-    : std::integral_constant<bool, is_element_settable_v<BaseMatrix, 2> or is_element_settable_v<BaseMatrix, 1>> {};
+    : std::bool_constant<is_element_settable_v<BaseMatrix, 2> or is_element_settable_v<BaseMatrix, 1>> {};
 
   template<typename BaseMatrix, TriangleType storage_triangle>
   struct is_element_settable<Eigen3::SelfAdjointMatrix<BaseMatrix, storage_triangle>, 1>
-    : std::integral_constant<bool, is_element_settable_v<BaseMatrix, 1> or
+    : std::bool_constant<is_element_settable_v<BaseMatrix, 1> or
       (is_element_settable_v<BaseMatrix, 2> and storage_triangle == TriangleType::diagonal)> {};
 
 
-  /////////////////////////////////
+  ////////////////////////////
   //    TriangularMatrix    //
-  /////////////////////////////////
+  ////////////////////////////
 
   template<typename BaseMatrix, TriangleType triangle_type>
   struct is_covariance_base<Eigen3::TriangularMatrix<BaseMatrix, triangle_type>> : std::true_type {};
@@ -493,16 +489,16 @@ namespace OpenKalman
 
   template<typename BaseMatrix, TriangleType triangle_type>
   struct is_zero<Eigen3::TriangularMatrix<BaseMatrix, triangle_type>>
-    : std::integral_constant<bool, is_zero_v<BaseMatrix>> {};
+    : std::bool_constant<is_zero_v<BaseMatrix>> {};
 
   template<typename BaseMatrix, TriangleType triangle_type>
   struct is_identity<Eigen3::TriangularMatrix<BaseMatrix, triangle_type>>
-    : std::integral_constant<bool, is_identity_v<BaseMatrix>> {};
+    : std::bool_constant<is_identity_v<BaseMatrix>> {};
 
   template<typename BaseMatrix, TriangleType triangle_type>
   struct is_diagonal<Eigen3::TriangularMatrix<BaseMatrix, triangle_type>,
     std::enable_if_t<not is_zero_v<BaseMatrix> and not is_identity_v<BaseMatrix> and not is_1by1_v<BaseMatrix>>>
-    : std::integral_constant<bool, is_diagonal_v<BaseMatrix> or triangle_type == TriangleType::diagonal> {};
+    : std::bool_constant<is_diagonal_v<BaseMatrix> or triangle_type == TriangleType::diagonal> {};
 
   template<typename BaseMatrix>
   struct is_lower_triangular<Eigen3::TriangularMatrix<BaseMatrix, TriangleType::lower>,
@@ -519,26 +515,26 @@ namespace OpenKalman
 
   template<typename BaseMatrix, TriangleType triangle_type>
   struct is_element_gettable<Eigen3::TriangularMatrix<BaseMatrix, triangle_type>, 2>
-    : std::integral_constant<bool, is_element_gettable_v<BaseMatrix, 2> or is_element_gettable_v<BaseMatrix, 1>> {};
+    : std::bool_constant<is_element_gettable_v<BaseMatrix, 2> or is_element_gettable_v<BaseMatrix, 1>> {};
 
   template<typename BaseMatrix, TriangleType triangle_type>
   struct is_element_gettable<Eigen3::TriangularMatrix<BaseMatrix, triangle_type>, 1>
-    : std::integral_constant<bool, is_element_gettable_v<BaseMatrix, 1> or
+    : std::bool_constant<is_element_gettable_v<BaseMatrix, 1> or
       (is_element_gettable_v<BaseMatrix, 2> and triangle_type == TriangleType::diagonal)> {};
 
   template<typename BaseMatrix, TriangleType triangle_type>
   struct is_element_settable<Eigen3::TriangularMatrix<BaseMatrix, triangle_type>, 2>
-    : std::integral_constant<bool, is_element_settable_v<BaseMatrix, 2> or is_element_settable_v<BaseMatrix, 1>> {};
+    : std::bool_constant<is_element_settable_v<BaseMatrix, 2> or is_element_settable_v<BaseMatrix, 1>> {};
 
   template<typename BaseMatrix, TriangleType triangle_type>
   struct is_element_settable<Eigen3::TriangularMatrix<BaseMatrix, triangle_type>, 1>
-    : std::integral_constant<bool, is_element_settable_v<BaseMatrix, 1> or
+    : std::bool_constant<is_element_settable_v<BaseMatrix, 1> or
       (is_element_settable_v<BaseMatrix, 2> and triangle_type == TriangleType::diagonal)> {};
 
 
-  /////////////////////////
+  // -------------------- //
   //    DiagonalMatrix    //
-  /////////////////////////
+  // -------------------- //
 
   template<typename BaseMatrix>
   struct is_covariance_base<Eigen3::DiagonalMatrix<BaseMatrix>> : std::true_type {};
@@ -548,7 +544,7 @@ namespace OpenKalman
 
   template<typename BaseMatrix>
   struct is_zero<Eigen3::DiagonalMatrix<BaseMatrix>>
-    : std::integral_constant<bool, is_zero_v<BaseMatrix>> {};
+    : std::bool_constant<is_zero_v<BaseMatrix>> {};
 
   template<typename BaseMatrix>
   struct is_diagonal<Eigen3::DiagonalMatrix<BaseMatrix>,
@@ -559,17 +555,17 @@ namespace OpenKalman
   struct is_strict<Eigen3::DiagonalMatrix<BaseMatrix>> : is_strict<BaseMatrix> {};
 
   template<typename BaseMatrix, std::size_t N>
-  struct is_element_gettable<Eigen3::DiagonalMatrix<BaseMatrix>, N> : std::integral_constant<bool, (N == 1 or  N == 2) and
+  struct is_element_gettable<Eigen3::DiagonalMatrix<BaseMatrix>, N> : std::bool_constant<(N == 1 or  N == 2) and
       (is_element_gettable_v<BaseMatrix, 1> or is_element_gettable_v<BaseMatrix, 2>)> {};
 
   template<typename BaseMatrix, std::size_t N>
-  struct is_element_settable<Eigen3::DiagonalMatrix<BaseMatrix>, N> : std::integral_constant<bool, (N == 1 or  N == 2) and
+  struct is_element_settable<Eigen3::DiagonalMatrix<BaseMatrix>, N> : std::bool_constant<(N == 1 or  N == 2) and
       (is_element_settable_v<BaseMatrix, 1> or is_element_settable_v<BaseMatrix, 2>)> {};
 
 
-  ////////////////////////////////////////////////////////////
+  // ------------------------------------------------------- //
   //    ZeroMatrix and other known Eigen zero expressions    //
-  ////////////////////////////////////////////////////////////
+  // ------------------------------------------------------- //
 
   template<typename BaseMatrix>
   struct is_zero<Eigen3::ZeroMatrix<BaseMatrix>> : std::true_type {};
@@ -613,7 +609,7 @@ namespace OpenKalman
 
   template<typename BaseMatrix, std::size_t N>
   struct is_element_gettable<Eigen3::ZeroMatrix<BaseMatrix>, N>
-    : std::integral_constant<bool, N == 2 or (N == 1 and MatrixTraits<BaseMatrix>::columns == 1)> {};
+    : std::bool_constant<N == 2 or (N == 1 and MatrixTraits<BaseMatrix>::columns == 1)> {};
 
   template<typename BaseMatrix, std::size_t N>
   struct is_element_settable<Eigen3::ZeroMatrix<BaseMatrix>, N> : std::false_type {};
@@ -631,11 +627,11 @@ namespace OpenKalman
 
   template<typename Coefficients, typename BaseMatrix, std::size_t N>
   struct is_element_gettable<Eigen3::ToEuclideanExpr<Coefficients, BaseMatrix>, N>
-  : std::integral_constant<bool, is_element_gettable_v<BaseMatrix, N>> {};
+  : std::bool_constant<is_element_gettable_v<BaseMatrix, N>> {};
 
   template<typename Coefficients, typename BaseMatrix, std::size_t N>
   struct is_element_settable<Eigen3::ToEuclideanExpr<Coefficients, BaseMatrix>, N>
-  : std::integral_constant<bool, Coefficients::axes_only and is_element_settable_v<BaseMatrix, N>> {};
+  : std::bool_constant<Coefficients::axes_only and is_element_settable_v<BaseMatrix, N>> {};
 
 
   /////////////////////////////
@@ -650,11 +646,11 @@ namespace OpenKalman
 
   template<typename Coefficients, typename BaseMatrix, std::size_t N>
   struct is_element_gettable<Eigen3::FromEuclideanExpr<Coefficients, BaseMatrix>, N>
-  : std::integral_constant<bool, is_element_gettable_v<BaseMatrix, N>> {};
+  : std::bool_constant<is_element_gettable_v<BaseMatrix, N>> {};
 
   template<typename Coefficients, typename BaseMatrix, std::size_t N>
   struct is_element_settable<Eigen3::FromEuclideanExpr<Coefficients, BaseMatrix>, N>
-  : std::integral_constant<bool, (Coefficients::axes_only and is_element_settable_v<BaseMatrix, N>) or
+  : std::bool_constant<(Coefficients::axes_only and is_element_settable_v<BaseMatrix, N>) or
     (Eigen3::to_euclidean_expr<BaseMatrix> and is_element_settable_v<typename MatrixTraits<BaseMatrix>::BaseMatrix, N>)>
     {};
 
@@ -668,12 +664,12 @@ namespace OpenKalman
 
   template<typename Arg>
   struct is_identity<EigenIdentity<Arg>>
-    : std::integral_constant<bool, Arg::RowsAtCompileTime == Arg::ColsAtCompileTime> {};
+    : std::bool_constant<Arg::RowsAtCompileTime == Arg::ColsAtCompileTime> {};
 
   /// Product of two identity matrices is also identity.
   template<typename Arg1, typename Arg2>
   struct is_identity<Eigen::Product<Arg1, Arg2>>
-    : std::integral_constant<bool, is_identity_v<Arg1> and is_identity_v<Arg2>> {};
+    : std::bool_constant<is_identity_v<Arg1> and is_identity_v<Arg2>> {};
 
   /// Product of two diagonal matrices is also diagonal.
   template<typename Arg1, typename Arg2>
@@ -681,21 +677,21 @@ namespace OpenKalman
     std::enable_if_t<not((is_zero_v<Arg1> or is_zero_v<Arg2>) or
       (is_identity_v<Arg1> and is_identity_v<Arg2>) or
       (Arg1::RowsAtCompileTime == 1 and Arg2::ColsAtCompileTime == 1))>>
-    : std::integral_constant<bool, is_diagonal_v<Arg1> and is_diagonal_v<Arg2>> {};
+    : std::bool_constant<is_diagonal_v<Arg1> and is_diagonal_v<Arg2>> {};
 
   /// Diagonal matrix times a scalar is also diagonal.
   template<typename Arg1, typename Arg2>
   struct is_diagonal<Eigen::CwiseBinaryOp<
     Eigen::internal::scalar_product_op<typename Arg1::Scalar, typename Arg2::Scalar>, Arg1, Arg2>,
     std::enable_if_t<not is_zero_v<Arg1> and not is_zero_v<Arg2> and not is_1by1_v<Arg1> and not is_1by1_v<Arg2>>>
-    : std::integral_constant<bool, is_diagonal_v<Arg1> or is_diagonal_v<Arg2>> {};
+    : std::bool_constant<is_diagonal_v<Arg1> or is_diagonal_v<Arg2>> {};
 
   /// Diagonal matrix divided by a scalar is also diagonal.
   template<typename Arg1, typename Arg2>
   struct is_diagonal<Eigen::CwiseBinaryOp<
     Eigen::internal::scalar_quotient_op<typename Arg1::Scalar, typename Arg2::Scalar>, Arg1, Arg2>,
     std::enable_if_t<not is_zero_v<Arg1>>>
-    : std::integral_constant<bool, is_diagonal_v<Arg1>> {};
+    : std::bool_constant<is_diagonal_v<Arg1>> {};
 
   /// Sum of two diagonal matrices is also diagonal.
   template<typename Arg1, typename Arg2>
@@ -704,7 +700,7 @@ namespace OpenKalman
     std::enable_if_t<
       not (is_zero_v<Arg1> and is_zero_v<Arg2>) and
       not (is_1by1_v<Arg1> and is_1by1_v<Arg2>)>>
-    : std::integral_constant<bool, is_diagonal_v<Arg1> and is_diagonal_v<Arg2>> {};
+    : std::bool_constant<is_diagonal_v<Arg1> and is_diagonal_v<Arg2>> {};
 
   /// Difference of two diagonal matrices is also diagonal.
   template<typename Arg1, typename Arg2>
@@ -714,155 +710,217 @@ namespace OpenKalman
       not (is_zero_v<Arg1> and is_zero_v<Arg2>) and
       not (is_identity_v<Arg1> and is_identity_v<Arg2>) and
       not (is_1by1_v<Arg1> and is_1by1_v<Arg2>)>>
-    : std::integral_constant<bool, is_diagonal_v<Arg1> and is_diagonal_v<Arg2>> {};
+    : std::bool_constant<is_diagonal_v<Arg1> and is_diagonal_v<Arg2>> {};
 
   /// The negation of an identity matrix is diagonal.
   template<typename Arg>
   struct is_diagonal<Eigen::CwiseUnaryOp<Eigen::internal::scalar_opposite_op<typename Arg::Scalar>, Arg>,
     std::enable_if_t<not is_zero_v<Arg> and not is_1by1_v<Arg>>>
-    : std::integral_constant<bool, is_diagonal_v<Arg>> {};
+    : std::bool_constant<is_diagonal_v<Arg>> {};
 
 
-  ////////////////
-  //    Mean    //
-  ////////////////
+  // ------------ //
+  //    Matrix    //
+  // ------------ //
 
-  /// By default when using Eigen3, a Mean is an Eigen3 column vector corresponding to the Coefficients.
-  template<typename Coefficients, typename BaseMatrix = Eigen::Matrix<double, Coefficients::size, 1>>
-  struct Mean;
+#if FIRST_EIGEN_INTERFACE == OPENKALMAN_EIGEN3_INTERFACE
+  // Default for Eigen: the base matrix will be an Eigen::Matrix of the appropriate size.
+#ifdef __cpp_concepts
+  template<coefficients RowCoefficients, coefficients ColumnCoefficients = RowCoefficients,
+    typename BaseMatrix = Eigen::Matrix<double, RowCoefficients::size, ColumnCoefficients::size>> requires
+  is_typed_matrix_base_v<BaseMatrix> and (RowCoefficients::size == MatrixTraits<BaseMatrix>::dimension) and
+    (ColumnCoefficients::size == MatrixTraits<BaseMatrix>::columns)
+#else
+  template<typename RowCoefficients, typename ColumnCoefficients = RowCoefficients,
+    typename BaseMatrix = Eigen::Matrix<double, RowCoefficients::size, ColumnCoefficients::size>>
+#endif
+  struct Matrix;
+#endif
 
-  /// If the arguments are a sequence of scalars, deduce a single-column Euclidean mean.
+
+#if FIRST_EIGEN_INTERFACE == OPENKALMAN_EIGEN3_INTERFACE
+  /// If the arguments are a sequence of scalars, deduce a single-column matrix.
+#ifdef __cpp_concepts
+  template<typename ... Args> requires (sizeof...(Args) > 0) and (std::is_arithmetic_v<Args> and ...)
+#else
   template<typename ... Args,
     std::enable_if_t<(sizeof...(Args) > 0) and std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
+#endif
+  Matrix(Args ...) -> Matrix<Axes<sizeof...(Args)>, Axis,
+    Eigen::Matrix<std::decay_t<std::common_type_t<Args...>>, sizeof...(Args), 1>>;
+#endif
+
+
+  namespace Eigen3
+  {
+    /// Make Mean from a list of coefficients.
+    template<
+      typename RowCoefficients, typename ColumnCoefficients = RowCoefficients, typename ... Args,
+      std::enable_if_t<(sizeof...(Args) > 0) and std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
+    auto make_Matrix(Args ... args)
+    {
+      using Scalar = std::common_type_t<Args...>;
+      constexpr auto dim = RowCoefficients::size;
+      constexpr auto cols = ColumnCoefficients::size;
+      static_assert(dim * cols == sizeof...(Args));
+      using Mat = Eigen::Matrix<Scalar, dim, cols>;
+      return Matrix<RowCoefficients, ColumnCoefficients, Mat>(MatrixTraits<Mat>::make(args...));
+    }
+
+    /// Make Mean from a list of coefficients.
+    template<
+      typename ... Args,
+      std::enable_if_t<(sizeof...(Args) > 0) and std::conjunction_v<std::is_arithmetic_v<Args>...>, int> = 0>
+    auto make_Matrix(Args ... args)
+    {
+      using Coeffs = Axes<sizeof...(Args)>;
+      return make_Matrix<Coeffs, Coefficients<Axis>>(args...);
+    }
+
+    /// Make Mean from a Scalar type and one or two sets of Coefficients.
+    template<
+      typename Scalar, typename RowCoefficients, typename ColumnCoefficients = RowCoefficients,
+      std::enable_if_t<std::is_arithmetic_v<Scalar>, int> = 0,
+      std::enable_if_t<not std::is_arithmetic_v<RowCoefficients>, int> = 0,
+      std::enable_if_t<not std::is_arithmetic_v<ColumnCoefficients>, int> = 0>
+    auto make_Matrix()
+    {
+      using Mat = Eigen::Matrix<Scalar, RowCoefficients::size, ColumnCoefficients::size>;
+      return Matrix<RowCoefficients, ColumnCoefficients, Mat>();
+    }
+  }
+
+  // ---------- //
+  //    Mean    //
+  // ---------- //
+
+#if FIRST_EIGEN_INTERFACE == OPENKALMAN_EIGEN3_INTERFACE
+  // By default when using Eigen3, a Mean is an Eigen3 column vector corresponding to the Coefficients.
+#ifdef __cpp_concepts
+  template<coefficients Coefficients, typename BaseMatrix = Eigen::Matrix<double, Coefficients::size, 1>> requires
+    is_typed_matrix_base_v<BaseMatrix> and (Coefficients::size == MatrixTraits<BaseMatrix>::dimension)
+#else
+  template<typename Coefficients, typename BaseMatrix = Eigen::Matrix<double, Coefficients::size, 1>>
+#endif
+  struct Mean;
+#endif
+
+
+#if FIRST_EIGEN_INTERFACE == OPENKALMAN_EIGEN3_INTERFACE
+  /// If the arguments are a sequence of scalars, deduce a single-column mean with all Axis coefficients.
+#ifdef __cpp_concepts
+  template<typename ... Args> requires (sizeof...(Args) > 0) and (std::is_arithmetic_v<Args> and ...)
+#else
+  template<typename ... Args,
+    std::enable_if_t<(sizeof...(Args) > 0) and std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
+#endif
   Mean(Args ...) -> Mean<Axes<sizeof...(Args)>,
     Eigen::Matrix<std::decay_t<std::common_type_t<Args...>>, sizeof...(Args), 1>>;
+#endif
 
-  /// Make Mean from a list of coefficients, if Coefficients types are known.
-  template<
-    typename Coefficients, typename ... Args,
-    std::enable_if_t<not std::is_arithmetic_v<Coefficients> and (sizeof...(Args) > 0) and
-      std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
-  auto make_Mean(Args ... args)
+  namespace Eigen3
   {
-    using Scalar = std::common_type_t<Args...>;
-    constexpr std::size_t dim = Coefficients::size;
-    static_assert(sizeof...(Args) % dim == 0);
-    constexpr auto cols = sizeof...(Args) / dim;
-    using Mat = Eigen::Matrix<Scalar, dim, cols>;
-    return Mean<Coefficients, Mat>(MatrixTraits<Mat>::make(args...));
-  }
+    /// Make Mean from a list of coefficients, if Coefficients types are known.
+    template<
+      typename Coefficients, typename ... Args,
+      std::enable_if_t<not std::is_arithmetic_v<Coefficients> and (sizeof...(Args) > 0) and
+        std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
+    auto make_Mean(Args ... args)
+    {
+      using Scalar = std::common_type_t<Args...>;
+      constexpr std::size_t dim = Coefficients::size;
+      static_assert(sizeof...(Args) % dim == 0);
+      constexpr auto cols = sizeof...(Args) / dim;
+      using Mat = Eigen::Matrix<Scalar, dim, cols>;
+      return Mean<Coefficients, Mat>(MatrixTraits<Mat>::make(args...));
+    }
 
-  /// Make Mean from a list of coefficients, assuming that Coefficients types are all Axis.
-  template<typename ... Args,
-    std::enable_if_t<(sizeof...(Args) > 0) and std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
-  auto make_Mean(Args ... args)
-  {
-    return make_Mean<OpenKalman::Axes<sizeof...(Args)>>(args...);
-  }
+    /// Make Mean from a list of coefficients, assuming that Coefficients types are all Axis.
+    template<
+      typename ... Args,
+      std::enable_if_t<(sizeof...(Args) > 0) and std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
+    auto make_Mean(Args ... args)
+    {
+      return make_Mean<OpenKalman::Axes<sizeof...(Args)>>(args...);
+    }
 
-  /// Make a default Eigen3 Mean, based on a Scalar type, a set of Coefficients, and a number of columns.
-  template<
-    typename Scalar, typename Coefficients, std::size_t cols = 1,
-    std::enable_if_t<std::is_arithmetic_v<Scalar>, int> = 0,
-    std::enable_if_t<not std::is_arithmetic_v<Coefficients>, int> = 0>
-  auto make_Mean()
-  {
-    return Mean<Coefficients, Eigen::Matrix<Scalar, Coefficients::size, cols>>();
-  }
-
-  //////////////////
-  //    Matrix    //
-  //////////////////
-
-  template<
-    typename RowCoefficients,
-    typename ColumnCoefficients = RowCoefficients,
-    typename ArgType = Eigen::Matrix<double, RowCoefficients::size, ColumnCoefficients::size>>
-  struct Matrix;
-
-  /// Make Mean from a list of coefficients.
-  template<
-    typename RowCoefficients, typename ColumnCoefficients = RowCoefficients, typename ... Args,
-    std::enable_if_t<(sizeof...(Args) > 0) and std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
-  auto make_Matrix(Args ... args)
-  {
-    using Scalar = std::common_type_t<Args...>;
-    constexpr auto dim = RowCoefficients::size;
-    constexpr auto cols = ColumnCoefficients::size;
-    static_assert(dim * cols == sizeof...(Args));
-    using Mat = Eigen::Matrix<Scalar, dim, cols>;
-    return Matrix<RowCoefficients, ColumnCoefficients, Mat>(MatrixTraits<Mat>::make(args...));
-  }
-
-  /// Make Mean from a list of coefficients.
-  template<typename ... Args,
-    std::enable_if_t<(sizeof...(Args) > 0) and std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
-  auto make_Matrix(Args ... args)
-  {
-    using Coefficients = OpenKalman::Axes<sizeof...(Args)>;
-    return make_Mean<Coefficients, OpenKalman::Coefficients<Axis>>(args...);
-  }
-
-  /// Make Mean from a Scalar type and one or two sets of Coefficients.
-  template<
-    typename Scalar, typename RowCoefficients, typename ColumnCoefficients = RowCoefficients,
-    std::enable_if_t<std::is_arithmetic_v<Scalar>, int> = 0,
-    std::enable_if_t<not std::is_arithmetic_v<RowCoefficients>, int> = 0,
-    std::enable_if_t<not std::is_arithmetic_v<ColumnCoefficients>, int> = 0>
-  auto make_Matrix()
-  {
-    using Mat = Eigen::Matrix<Scalar, RowCoefficients::size, ColumnCoefficients::size>;
-    return Matrix<RowCoefficients, ColumnCoefficients, Mat>();
+    /// Make a default Eigen3 Mean, based on a Scalar type, a set of Coefficients, and a number of columns.
+    template<
+      typename Scalar, typename Coefficients, std::size_t cols = 1,
+      std::enable_if_t<std::is_arithmetic_v<Scalar>, int> = 0,
+      std::enable_if_t<not std::is_arithmetic_v<Coefficients>, int> = 0>
+    auto make_Mean()
+    {
+      return Mean<Coefficients, Eigen::Matrix<Scalar, Coefficients::size, cols>>();
+    }
   }
 
 
-  /////////////////////////
+  // ------------------- //
   //    EuclideanMean    //
-  /////////////////////////
+  // ------------------- //
 
-  template<
-    typename Coefficients,
-    typename BaseMatrix = Eigen::Matrix<double, Coefficients::dimension, 1>>
+#if FIRST_EIGEN_INTERFACE == OPENKALMAN_EIGEN3_INTERFACE
+#ifdef __cpp_concepts
+  template<coefficients Coefficients, typename BaseMatrix = Eigen::Matrix<double, Coefficients::dimension, 1>> requires
+    is_typed_matrix_base_v<BaseMatrix> and (Coefficients::dimension == MatrixTraits<BaseMatrix>::dimension)
   struct EuclideanMean;
+#else
+  template<typename Coefficients, typename BaseMatrix = Eigen::Matrix<double, Coefficients::dimension, 1>>
+  struct EuclideanMean;
+#endif
+#endif
 
+
+#if FIRST_EIGEN_INTERFACE == OPENKALMAN_EIGEN3_INTERFACE
   /// If the arguments are a sequence of scalars, construct a single-column Euclidean mean.
-  template<typename ... Args,
-    std::enable_if_t<(sizeof...(Args) > 0) and std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
+#ifdef __cpp_concepts
+  template<typename ... Args> requires (sizeof...(Args) > 0) and (std::is_arithmetic_v<Args> and ...)
+#else
+  template<typename ... Args, std::enable_if_t<
+    (sizeof...(Args) > 0) and std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
+#endif
   EuclideanMean(Args ...) -> EuclideanMean<OpenKalman::Axes<sizeof...(Args)>,
     Eigen::Matrix<std::decay_t<std::common_type_t<Args...>>, sizeof...(Args), 1>>;
+#endif
 
-  /// Make Euclidean mean from a list of coefficients.
-  template<
-    typename Coefficients,
-    typename ... Args,
-    std::enable_if_t<(sizeof...(Args) > 0) and std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
-  auto make_EuclideanMean(Args ... args) noexcept
-  {
-    using Scalar = std::common_type_t<Args...>;
-    constexpr auto dim = Coefficients::dimension;
-    static_assert(sizeof...(Args) % dim == 0);
-    using Mat = Eigen::Matrix<Scalar, dim, 1>;
-    return EuclideanMean<Coefficients, Mat>(MatrixTraits<Mat>::make(args...));
-  }
 
-  /// Make Mean from a list of coefficients.
-  template<typename ... Args,
-    std::enable_if_t<(sizeof...(Args) > 0) and std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
-  auto make_EuclideanMean(Args ... args) noexcept
+  namespace Eigen3
   {
-    using Coefficients = OpenKalman::Axes<sizeof...(Args)>;
-    return make_EuclideanMean<Coefficients>(args...);
-  }
+    /// Make Euclidean mean from a list of coefficients.
+    template<
+      typename Coefficients,
+      typename ... Args,
+      std::enable_if_t<(sizeof...(Args) > 0) and std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
+    auto make_EuclideanMean(Args ... args) noexcept
+    {
+      using Scalar = std::common_type_t<Args...>;
+      constexpr auto dim = Coefficients::dimension;
+      static_assert(sizeof...(Args) % dim == 0);
+      using Mat = Eigen::Matrix<Scalar, dim, 1>;
+      return EuclideanMean<Coefficients, Mat>(MatrixTraits<Mat>::make(args...));
+    }
 
-  /// Make strict EuclideanMean from a Scalar type, a set of Coefficients, and a number of columns.
-  template<
-    typename Scalar, typename Coefficients, std::size_t cols = 1,
-    std::enable_if_t<std::is_arithmetic_v<Scalar>, int> = 0,
-    std::enable_if_t<not std::is_arithmetic_v<Coefficients>, int> = 0>
-  auto make_EuclideanMean()
-  {
-    using Mat = Eigen::Matrix<Scalar, Coefficients::dimension, cols>;
-    return Mean<Coefficients, Mat>();
+    /// Make Mean from a list of coefficients.
+    template<
+      typename ... Args,
+      std::enable_if_t<(sizeof...(Args) > 0) and std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
+    auto make_EuclideanMean(Args ... args) noexcept
+    {
+      using Coefficients = OpenKalman::Axes<sizeof...(Args)>;
+      return make_EuclideanMean<Coefficients>(args...);
+    }
+
+    /// Make strict EuclideanMean from a Scalar type, a set of Coefficients, and a number of columns.
+    template<
+      typename Scalar, typename Coefficients, std::size_t cols = 1,
+      std::enable_if_t<std::is_arithmetic_v<Scalar>, int> = 0,
+      std::enable_if_t<not std::is_arithmetic_v<Coefficients>, int> = 0>
+    auto make_EuclideanMean()
+    {
+      using Mat = Eigen::Matrix<Scalar, Coefficients::dimension, cols>;
+      return Mean<Coefficients, Mat>();
+    }
   }
 
 
@@ -870,56 +928,80 @@ namespace OpenKalman
   //    Covariance    //
   //////////////////////
 
+#if FIRST_EIGEN_INTERFACE == OPENKALMAN_EIGEN3_INTERFACE
   template<
     typename Coefficients,
     typename ArgType = Eigen3::SelfAdjointMatrix<Eigen::Matrix<double, Coefficients::size, Coefficients::size>>>
   struct Covariance;
+#endif
 
+
+#if FIRST_EIGEN_INTERFACE == OPENKALMAN_EIGEN3_INTERFACE
   /// If the arguments are a sequence of scalars, derive a square, self-adjoint matrix.
+#ifdef __cpp_concepts
+  template<typename ... Args> requires (sizeof...(Args) > 0) and (std::is_arithmetic_v<Args> and ...)
+#else
   template<typename ... Args,
     std::enable_if_t<(sizeof...(Args) > 0) and std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
-  Covariance(Args ...) -> Covariance<Axes<OpenKalman::internal::constexpr_sqrt(sizeof...(Args))>,
-Eigen3::SelfAdjointMatrix<Eigen::Matrix<std::decay_t<std::common_type_t<Args...>>,
-      OpenKalman::internal::constexpr_sqrt(sizeof...(Args)), OpenKalman::internal::constexpr_sqrt(sizeof...(Args))>>>;
+#endif
+  Covariance(Args ...) -> Covariance<Axes<internal::constexpr_sqrt(sizeof...(Args))>,
+  Eigen3::SelfAdjointMatrix<Eigen::Matrix<std::decay_t<std::common_type_t<Args...>>,
+    internal::constexpr_sqrt(sizeof...(Args)), internal::constexpr_sqrt(sizeof...(Args))>>>;
+#endif
 
-  /// Make a Covariance, based on a list of coefficients in row-major order.
-  template<typename Coefficients, TriangleType ... triangle_type, typename ... Args,
-    std::enable_if_t<(sizeof...(Args) > 0) and sizeof...(triangle_type) <= 1 and is_coefficients_v<Coefficients> and
+
+  namespace Eigen3
+  {
+    /// Make a Covariance, based on a list of coefficients in row-major order.
+#ifdef __cpp_concepts
+    template<coefficients Coefficients, TriangleType ... triangle_type, typename ... Args> requires
+      (sizeof...(Args) > 0) and (sizeof...(triangle_type) <= 1) and (std::is_arithmetic_v<Args> and ...)
+#else
+    template<
+      typename Coefficients, TriangleType ... triangle_type, typename ... Args,
+      std::enable_if_t<(sizeof...(Args) > 0) and sizeof...(triangle_type) <= 1 and is_coefficients_v < Coefficients>and
       std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
-  auto make_Covariance(Args ... args)
-  {
-    using Scalar = std::common_type_t<Args...>;
-    constexpr auto dim = Coefficients::size;
-    static_assert(sizeof...(Args) == dim * dim);
-    using Mat = Eigen::Matrix<Scalar, dim, dim>;
-    using T = Eigen3::TriangularMatrix<Mat, triangle_type...>;
-    using SA = Eigen3::SelfAdjointMatrix<Mat, triangle_type...>;
-    using B = std::conditional_t<sizeof...(triangle_type) == 1, T, SA>;
-    return Covariance<Coefficients, B>(MatrixTraits<SA>::make(args...));
-  }
+#endif
+    auto make_Covariance(Args ... args)
+    {
+      using Scalar = std::common_type_t<Args...>;
+      constexpr auto dim = Coefficients::size;
+      static_assert(sizeof...(Args) == dim * dim);
+      using Mat = Eigen::Matrix<Scalar, dim, dim>;
+      using T = Eigen3::TriangularMatrix<Mat, triangle_type...>;
+      using SA = Eigen3::SelfAdjointMatrix<Mat, triangle_type...>;
+      using B = std::conditional_t<sizeof...(triangle_type) == 1, T, SA>;
+      return Covariance<Coefficients, B>(MatrixTraits<SA>::make(args...));
+    }
 
-  /// Make an axes-only covariance, based on a list of coefficients in row-major order.
-  template<TriangleType ... triangle_type, typename ... Args,
-    std::enable_if_t<(sizeof...(Args) > 0) and sizeof...(triangle_type) <= 1 and
-      std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
-  auto make_Covariance(Args ... args) noexcept
-  {
-    constexpr auto dim = OpenKalman::internal::constexpr_sqrt(sizeof...(Args));
-    static_assert(sizeof...(Args) == dim * dim);
-    using Coefficients = OpenKalman::Axes<dim>;
-    return make_Covariance<Coefficients, triangle_type...>(args...);
-  }
+    /// Make an axes-only covariance, based on a list of coefficients in row-major order.
+    template<
+      TriangleType ... triangle_type, typename ... Args,
+      std::enable_if_t<(sizeof...(Args) > 0) and sizeof...(triangle_type) <= 1 and
+        std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
+    auto make_Covariance(Args ... args) noexcept
+    {
+      constexpr auto dim = OpenKalman::internal::constexpr_sqrt(sizeof...(Args));
+      static_assert(sizeof...(Args) == dim * dim);
+      using Coefficients = OpenKalman::Axes<dim>;
+      return make_Covariance<Coefficients, triangle_type...>(args...);
+    }
 
-  /// Make default Covariance, based the size on the number of coefficients.
-  template<typename Coefficients, TriangleType ... triangle_type,
-    std::enable_if_t<sizeof...(triangle_type) <= 1 and is_coefficients_v<Coefficients>, int> = 0>
-  auto make_Covariance()
-  {
-    using Mat = Eigen::Matrix<double, Coefficients::size, Coefficients::size>;
-    using T = Eigen3::TriangularMatrix<Mat, triangle_type...>;
-    using SA = Eigen3::SelfAdjointMatrix<Mat, triangle_type...>;
-    using B = std::conditional_t<sizeof...(triangle_type) == 1, T, SA>;
-    return Covariance<Coefficients, B>();
+    /// Make default Covariance, based the size on the number of coefficients.
+#ifdef __cpp_concepts
+    template<coefficients Coefficients, TriangleType ... triangle_type> requires (sizeof...(triangle_type) <= 1)
+#else
+    template<typename Coefficients, TriangleType ... triangle_type, std::enable_if_t<
+      sizeof...(triangle_type) <= 1 and is_coefficients_v < Coefficients>, int> = 0>
+#endif
+    auto make_Covariance()
+    {
+      using Mat = Eigen::Matrix<double, Coefficients::size, Coefficients::size>;
+      using T = Eigen3::TriangularMatrix<Mat, triangle_type...>;
+      using SA = Eigen3::SelfAdjointMatrix<Mat, triangle_type...>;
+      using B = std::conditional_t<sizeof...(triangle_type) == 1, T, SA>;
+      return Covariance<Coefficients, B>();
+    }
   }
 
 
@@ -927,56 +1009,78 @@ Eigen3::SelfAdjointMatrix<Eigen::Matrix<std::decay_t<std::common_type_t<Args...>
   //    SquareRootCovariance    //
   ////////////////////////////////
 
+#if FIRST_EIGEN_INTERFACE == OPENKALMAN_EIGEN3_INTERFACE
   template<
     typename Coefficients,
     typename ArgType = Eigen3::TriangularMatrix<Eigen::Matrix<double, Coefficients::size, Coefficients::size>>>
   struct SquareRootCovariance;
+#endif
 
-  /// If the arguments are a sequence of scalars, derive a square, lower triangular matrix.
-  template<typename ... Args,
-    std::enable_if_t<(sizeof...(Args) > 0) and std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
-  SquareRootCovariance(Args ...) -> SquareRootCovariance<Axes<OpenKalman::internal::constexpr_sqrt(sizeof...(Args))>,
-Eigen3::TriangularMatrix<Eigen::Matrix<std::decay_t<std::common_type_t<Args...>>,
-      OpenKalman::internal::constexpr_sqrt(sizeof...(Args)), OpenKalman::internal::constexpr_sqrt(sizeof...(Args))>>>;
 
-  /// Make SquareRootCovariance matrix using a list of coefficients in row-major order representing a triangular matrix.
-  /// Only the coefficients in the lower-left corner are significant.
-  template<typename Coefficients, TriangleType ... triangle_type, typename ... Args,
-    std::enable_if_t<(sizeof...(Args) > 0) and sizeof...(triangle_type) <= 1 and is_coefficients_v<Coefficients> and
+#if FIRST_EIGEN_INTERFACE == OPENKALMAN_EIGEN3_INTERFACE
+    /// If the arguments are a sequence of scalars, derive a square, lower triangular matrix.
+#ifdef __cpp_concepts
+  template<typename ... Args> requires (sizeof...(Args) > 0) and (std::is_arithmetic_v<Args> and ...)
+#else
+  template<typename ... Args, std::enable_if_t<
+    (sizeof...(Args) > 0) and std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
+#endif
+  SquareRootCovariance(Args ...) -> SquareRootCovariance<Axes<internal::constexpr_sqrt(sizeof...(Args))>,
+  Eigen3::TriangularMatrix<Eigen::Matrix<std::decay_t<std::common_type_t<Args...>>,
+    OpenKalman::internal::constexpr_sqrt(sizeof...(Args)), OpenKalman::internal::constexpr_sqrt(sizeof...(Args))>>>;
+#endif
+
+
+  namespace Eigen3
+  {
+    /// Make SquareRootCovariance matrix using a list of coefficients in row-major order representing a triangular matrix.
+    /// Only the coefficients in the lower-left corner are significant.
+#ifdef __cpp_concepts
+    template<coefficients Coefficients, TriangleType ... triangle_type, typename ... Args> requires
+      (sizeof...(Args) > 0) and (sizeof...(triangle_type) <= 1) and (std::is_arithmetic_v<Args> and ...)
+#else
+    template<typename Coefficients, TriangleType ... triangle_type, typename ... Args,
+      std::enable_if_t<(sizeof...(Args) > 0) and sizeof...(triangle_type) <= 1 and is_coefficients_v<Coefficients> and
       std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
-  auto make_SquareRootCovariance(Args ... args)
-  {
-    using Scalar = std::common_type_t<Args...>;
-    constexpr auto dim = Coefficients::size;
-    static_assert(sizeof...(Args) == dim * dim);
-    using Mat = Eigen::Matrix<Scalar, dim, dim>;
-    using B = std::conditional_t<(sizeof...(triangle_type) == 1), // Is triangle type specified?
-      typename MatrixTraits<Mat>::template TriangularBaseType<triangle_type...>,
-      typename MatrixTraits<Mat>::template TriangularBaseType<TriangleType::lower>>; // lower-triangular self-adjoint, by default
-    return SquareRootCovariance<Coefficients, B>(MatrixTraits<Mat>::make(args...));
-  }
+#endif
+    auto make_SquareRootCovariance(Args ... args)
+    {
+      using Scalar = std::common_type_t<Args...>;
+      constexpr auto dim = Coefficients::size;
+      static_assert(sizeof...(Args) == dim * dim);
+      using Mat = Eigen::Matrix<Scalar, dim, dim>;
+      using B = std::conditional_t<(sizeof...(triangle_type) == 1), // Is triangle type specified?
+        typename MatrixTraits<Mat>::template TriangularBaseType<triangle_type...>,
+        typename MatrixTraits<Mat>::template TriangularBaseType<TriangleType::lower>>; // lower-triangular self-adjoint, by default
+      return SquareRootCovariance<Coefficients, B>(MatrixTraits<Mat>::make(args...));
+    }
 
-  /// Make an axes-only covariance, based on a list of coefficients in row-major order.
-  template<TriangleType ... triangle_type, typename ... Args,
-    std::enable_if_t<(sizeof...(Args) > 0) and sizeof...(triangle_type) <= 1 and
-      std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
-  auto make_SquareRootCovariance(Args ... args) noexcept
-  {
-    constexpr auto dim = OpenKalman::internal::constexpr_sqrt(sizeof...(Args));
-    static_assert(sizeof...(Args) == dim * dim);
-    using Coefficients = OpenKalman::Axes<dim>;
-    return make_SquareRootCovariance<Coefficients, triangle_type...>(args...);
-  }
+    /// Make an axes-only covariance, based on a list of coefficients in row-major order.
+    template<TriangleType ... triangle_type, typename ... Args,
+      std::enable_if_t<(sizeof...(Args) > 0) and sizeof...(triangle_type) <= 1 and
+        std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
+    auto make_SquareRootCovariance(Args ... args) noexcept
+    {
+      constexpr auto dim = OpenKalman::internal::constexpr_sqrt(sizeof...(Args));
+      static_assert(sizeof...(Args) == dim * dim);
+      using Coefficients = OpenKalman::Axes<dim>;
+      return make_SquareRootCovariance<Coefficients, triangle_type...>(args...);
+    }
 
-  /// Make default Covariance, based the size on the number of coefficients.
-  template<typename Coefficients, TriangleType ... triangle_type,
-    std::enable_if_t<sizeof...(triangle_type) <= 1 and is_coefficients_v<Coefficients>, int> = 0>
-  auto make_SquareRootCovariance()
-  {
-    using Mat = Eigen::Matrix<double, Coefficients::size, Coefficients::size>;
-    using B = Eigen3::TriangularMatrix<Mat, triangle_type...>;
-    return SquareRootCovariance<Coefficients, B>();
-  }
+    /// Make default Covariance, based the size on the number of coefficients.
+#ifdef __cpp_concepts
+    template<coefficients Coefficients, TriangleType ... triangle_type> requires (sizeof...(triangle_type) <= 1)
+#else
+    template<typename Coefficients, TriangleType ... triangle_type,
+      std::enable_if_t<sizeof...(triangle_type) <= 1 and is_coefficients_v<Coefficients>, int> = 0>
+#endif
+    auto make_SquareRootCovariance()
+    {
+      using Mat = Eigen::Matrix<double, Coefficients::size, Coefficients::size>;
+      using B = Eigen3::TriangularMatrix<Mat, triangle_type...>;
+      return SquareRootCovariance<Coefficients, B>();
+    }
+  } // namespace Eigen3
 
 } // namespace OpenKalman
 

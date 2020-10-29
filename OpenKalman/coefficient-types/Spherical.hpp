@@ -26,25 +26,26 @@ namespace OpenKalman
     static constexpr std::tuple<Scalar, bool>
     inclination_wrap_impl(const Scalar a)
     {
-      constexpr Scalar period = InclinationTraits::template wrap_max<Scalar> - InclinationTraits::template wrap_min<Scalar>;
-      constexpr Scalar wrap_mod = 0.5 * period;
-      constexpr Scalar upward_angle = 0.25 * period;
-      if (a >= -upward_angle and a < upward_angle) // A shortcut, for the easy case.
+      constexpr Scalar max = InclinationTraits::template max<Scalar>;
+      constexpr Scalar min = InclinationTraits::template min<Scalar>;
+      constexpr Scalar range = max - min;
+      constexpr Scalar period = 2 * range;
+      if (a >= min and a <= max) // A shortcut, for the easy case.
       {
         return { a, false };
       }
       else
       {
-        Scalar ar = std::fmod(a + upward_angle, period);
+        Scalar ar = std::fmod(a - min, period); // note: (a - min) is always positive, so ar is always positive.
         if (ar < 0) ar += period;
-        if (ar > wrap_mod)
+        if (ar > range)
         {
           // Do a mirror reflection about vertical axis.
-          return { 0.75 * period - ar, true };
+          return { period + min - ar, true };
         }
         else
         {
-          return { ar - upward_angle, false };
+          return { min + ar, false };
         }
       }
     }
@@ -76,6 +77,7 @@ namespace OpenKalman
     template<typename CircleTraits, typename InclinationTraits, typename Scalar>
     struct SphericalImpl<Distance, CircleTraits, InclinationTraits, Scalar>
     {
+      static_assert(InclinationTraits::template max<double> > InclinationTraits::template min<double>);
       using GetCoeff = std::function<Scalar(const std::size_t)>;
       using SetCoeff = std::function<void(const Scalar, const std::size_t)>;
 
@@ -106,6 +108,7 @@ namespace OpenKalman
     template<typename CircleTraits, typename InclinationTraits, typename Scalar>
     struct SphericalImpl<Circle<CircleTraits>, CircleTraits, InclinationTraits, Scalar>
     {
+      static_assert(InclinationTraits::template max<double> > InclinationTraits::template min<double>);
       using GetCoeff = std::function<Scalar(const std::size_t)>;
       using SetCoeff = std::function<void(const Scalar, const std::size_t)>;
 
@@ -141,10 +144,11 @@ namespace OpenKalman
     template<typename CircleTraits, typename InclinationTraits, typename Scalar>
     struct SphericalImpl<Inclination<InclinationTraits>, CircleTraits, InclinationTraits, Scalar>
     {
+      static_assert(InclinationTraits::template max<double> > InclinationTraits::template min<double>);
       using GetCoeff = std::function<Scalar(const std::size_t)>;
       using SetCoeff = std::function<void(const Scalar, const std::size_t)>;
 
-      static constexpr Scalar cf_inc = 2 * M_PI / (InclinationTraits::template wrap_max<Scalar> - InclinationTraits::template wrap_min<Scalar>);
+      static constexpr Scalar cf_inc = M_PI / (InclinationTraits::template max<Scalar> - InclinationTraits::template min<Scalar>);
 
       template<std::size_t i, std::size_t d_i, std::size_t x_i, std::size_t y_i, std::size_t z_i>
       static constexpr std::array<Scalar (*const)(const GetCoeff&), 1>
@@ -207,7 +211,7 @@ namespace OpenKalman
       static constexpr Scalar cf_cir = 2 * M_PI / (CircleTraits::template wrap_max<Scalar> - CircleTraits::template wrap_min<Scalar>);
 
       template<typename Scalar>
-      static constexpr Scalar cf_inc = 2 * M_PI / (InclinationTraits::template wrap_max<Scalar> - InclinationTraits::template wrap_min<Scalar>);
+      static constexpr Scalar cf_inc = M_PI / (InclinationTraits::template max<Scalar> - InclinationTraits::template min<Scalar>);
 
       template<typename Scalar, std::size_t i>
       static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), dimension>
@@ -287,25 +291,6 @@ namespace OpenKalman
   struct Spherical<OpenKalman::Inclination<Traits1>, OpenKalman::Circle<Traits2>, OpenKalman::Distance>
     : detail::SphericalBase<Spherical<OpenKalman::Inclination<Traits1>, OpenKalman::Circle<Traits2>, OpenKalman::Distance>,
       OpenKalman::Inclination<Traits1>, OpenKalman::Circle<Traits2>, OpenKalman::Distance, Traits2, Traits1, 2, 1, 0> {};
-
-  /// Spherical is aa coefficient.
-  template<typename Coeff1, typename Coeff2, typename Coeff3>
-  struct is_coefficients<Spherical<Coeff1, Coeff2, Coeff3>> : std::true_type {};
-
-  template<typename Coeff1a, typename Coeff2a, typename Coeff3a, typename Coeff1b, typename Coeff2b, typename Coeff3b>
-  struct is_equivalent<Spherical<Coeff1a, Coeff2a, Coeff3a>, Spherical<Coeff1b, Coeff2b, Coeff3b>>
-    : std::integral_constant<bool, is_equivalent_v<Coeff1a, Coeff1b> and
-      is_equivalent_v<Coeff2a, Coeff2b> and is_equivalent_v<Coeff3a, Coeff3b>> {};
-
-  namespace internal
-  {
-    template<typename Coeff1, typename Coeff2, typename Coeff3, typename...Coeffs>
-    struct ConcatenateImpl<Spherical<Coeff1, Coeff2, Coeff3>, Coeffs...>
-    {
-      using type = typename ConcatenateImpl<Coeffs...>::type::template Prepend<Spherical<Coeff1, Coeff2, Coeff3>>;
-    };
-  }
-
 
 }// namespace OpenKalman
 

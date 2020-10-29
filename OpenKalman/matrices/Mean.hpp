@@ -18,9 +18,14 @@ namespace OpenKalman
   /////////////////////////
 
   /// A typed vector.
+#ifdef __cpp_concepts
+  template<coefficients Coeffs, typename BaseMatrix> requires
+  is_typed_matrix_base_v<BaseMatrix> and (Coeffs::size == MatrixTraits<BaseMatrix>::dimension)
+#else
   template<typename Coeffs, typename BaseMatrix>
-  struct Mean : internal::TypedMatrixBase<Mean<Coeffs, BaseMatrix>,
-    Coeffs, Axes<MatrixTraits<BaseMatrix>::columns>, BaseMatrix>
+#endif
+  struct Mean
+    : internal::TypedMatrixBase<Mean<Coeffs, BaseMatrix>, Coeffs, Axes<MatrixTraits<BaseMatrix>::columns>, BaseMatrix>
   {
     using Coefficients = Coeffs;
     using Base = internal::TypedMatrixBase<Mean, Coefficients, Axes<MatrixTraits<BaseMatrix>::columns>, BaseMatrix>;

@@ -20,9 +20,136 @@
 
 namespace OpenKalman
 {
-  //////////////////////
-  //  General traits  //
-  //////////////////////
+  // ---------------- //
+  //   Coefficients   //
+  // ---------------- //
+
+  namespace internal
+  {
+    /*
+     * A type trait testing whether T is an atomic group of coefficients.
+     *
+     * The atomic coefficient groups are the following:
+     * - Axis
+     * - Circle (or alias Angle)
+     * - Distance
+     * - Inclination
+     * - Polar
+     * - Spherical
+     * Atomic coefficient groups may be combined into composite coefficient sets by passing them as template
+     * arguments to Coefficients. For example Coefficients<Axis, Polar<Distance, Angle>> is a set comprising an axis and
+     * a set of polar coordinates.
+     */
+    template<typename T>
+    struct is_atomic_coefficient_group;
+
+    /*
+     * A type trait testing whether T is a composite set of coefficient groups.
+     *
+     * This corresponds to any specialization of the class Coefficients. Composite coefficients can, themselves,
+     * comprise groups of other composite components. For example, Coefficients<Axis, Coefficients<Axis, Angle>>
+     * tests positive for is_composite_coefficients.
+     */
+    template<typename T>
+    struct is_composite_coefficients;
+  }
+
+#ifdef __cpp_concepts
+  /**
+   * T is a coefficient group.
+   *
+   * A coefficient group may consist of some combination of any of the following:
+   * - Axis
+   * - Circle (including alias Angle)
+   * - Distance
+   * - Inclination
+   * - Polar
+   * - Spherical
+   * - Coefficient (a composite coefficient including any other coefficient group).
+   * Examples: Axis, Angle, Coefficient<Axis, Axis>, Coefficient<Angle, Coefficient<Axis, Angle>>.
+   */
+  template<typename T>
+  concept coefficients =
+    internal::is_composite_coefficients<T>::value or
+    internal::is_atomic_coefficient_group<T>::value;
+#else
+  /// A type trait testing whether T is a (composite or atomic) coefficient group.
+  template<typename T>
+  struct is_coefficients : std::integral_constant<bool,
+    internal::is_composite_coefficients<T>::value or internal::is_atomic_coefficient_group<T>::value> {};
+
+  /// Helper template for is_coefficients.
+  template<typename T>
+  inline constexpr bool is_coefficients_v = is_coefficients<T>::value;
+#endif
+
+
+  /**
+   * Tests whether two sets of coefficients are equivalent to each other.
+   *
+   * For example, <code>is_equivalent<Axis, Coefficients<Axis>></code> tests true.
+   */
+#ifdef __cpp_concepts
+  template<coefficients T, coefficients U>
+#else
+  template<typename T, typename U, typename Enable = void>
+#endif
+  struct is_equivalent;
+
+
+  /// Helper template for is_equivalent.
+#ifdef __cpp_concepts
+  template<coefficients T, coefficients U>
+#else
+  template<typename T, typename U>
+#endif
+  inline constexpr bool is_equivalent_v = is_equivalent<T, U>::value;
+
+  /**
+   * T is equivalent to U
+   * For example, <code>equivalent<Axis, Coefficients<Axis>></code> returns <code>true</code>.
+   */
+#ifdef __cpp_concepts
+  template<typename T, typename U>
+  concept equivalent = is_equivalent_v<T, U>;
+#endif
+
+
+  /**
+   * Tests whether one set of coefficients is a pre-fix for another set.
+   *
+   * For example, <code>is_prefix<Coefficients<Axis>, Coefficients<Axis, Angle>></code> tests true.
+   */
+#ifdef __cpp_concepts
+  template<coefficients T, coefficients U>
+#else
+  template<typename T, typename U, typename Enable = void>
+#endif
+  struct is_prefix;
+
+
+  /// Helper template for is_prefix.
+#ifdef __cpp_concepts
+  template<coefficients T, coefficients U>
+#else
+  template<typename T, typename U>
+#endif
+  inline constexpr bool is_prefix_v = is_prefix<T, U>::value;
+
+
+  /**
+   * T is a prefix of U
+   * For example, <code>prefix<Coefficients<Axis>, Coefficients<Axis, Angle>></code> returns <code>true</code>.
+   */
+#ifdef __cpp_concepts
+  template<typename T, typename U>
+  concept prefix = is_prefix_v<T, U>;
+#endif
+
+
+  // ------------------ //
+  //   General traits   //
+  // ------------------ //
 
   /**
    * Describes the traits of a matrix, such as its dimensions, coefficient types, etc.
@@ -70,9 +197,9 @@ namespace OpenKalman
   }
 
 
-  //////////////////////////////////
+  // ---------------------------- //
   //  Traits for square matrices  //
-  //////////////////////////////////
+  // ---------------------------- //
 
   /// Whether an object is a Covariance or SquareRootCovariance.
   template<typename T>
@@ -177,7 +304,7 @@ namespace OpenKalman
   inline constexpr bool is_upper_triangular_v = is_upper_triangular<T>::value;
 
   template<typename T>
-  struct is_triangular : std::integral_constant<bool, is_lower_triangular_v<T> or is_upper_triangular_v<T>> {};
+  struct is_triangular : std::bool_constant<is_lower_triangular_v<T> or is_upper_triangular_v<T>> {};
 
   /// Helper template for is_triangular.
   template<typename T>
@@ -250,7 +377,7 @@ namespace OpenKalman
   /// A EuclideanMean is Euclidean-transformed unless the coefficients are Axes only.
   template<typename T>
   struct is_Euclidean_transformed<T, std::enable_if_t<is_Euclidean_mean_v<T>>>
-    : std::integral_constant<bool, not MatrixTraits<T>::RowCoefficients::axes_only> {};
+    : std::bool_constant<not MatrixTraits<T>::RowCoefficients::axes_only> {};
 
   /// Helper template for is_covariance_base.
   template<typename T>
@@ -263,7 +390,7 @@ namespace OpenKalman
   /// A Mean is wrapped unless the coefficients are Axes only.
   template<typename T>
   struct is_wrapped<T, std::enable_if_t<is_mean_v<T>>>
-    : std::integral_constant<bool, not MatrixTraits<T>::RowCoefficients::axes_only> {};
+    : std::bool_constant<not MatrixTraits<T>::RowCoefficients::axes_only> {};
 
   /// Helper template for is_wrapped.
   template<typename T>
@@ -276,7 +403,7 @@ namespace OpenKalman
   /// A typed matrix is a column vector if the columns are Axes only.
   template<typename T>
   struct is_column_vector<T, std::enable_if_t<is_typed_matrix_v<T>>>
-    : std::integral_constant<bool, MatrixTraits<T>::ColumnCoefficients::axes_only> {};
+    : std::bool_constant<MatrixTraits<T>::ColumnCoefficients::axes_only> {};
 
   /// Helper template for is_column_vector.
   template<typename T>
@@ -290,94 +417,6 @@ namespace OpenKalman
   /// Helper template for is_typed_matrix_base.
   template<typename T>
   inline constexpr bool is_typed_matrix_base_v = is_typed_matrix_base<T>::value;
-
-
-  // --------------------------------- //
-  //  Coefficient concepts and traits  //
-  // --------------------------------- //
-
-  /// Whether T is a (single or composite) coefficient type.
-  template<typename T>
-  struct is_coefficients : std::false_type {};
-
-  /// Helper template for is_coefficients.
-  template<typename T>
-  inline constexpr bool is_coefficients_v = is_coefficients<T>::value;
-
-#ifdef __cpp_concepts
-  /**
-   * T is a (single or composite) coefficient type.
-   */
-  template<typename T>
-  concept coefficients = is_coefficients_v<T>;
-#endif
-
-
-  /// Whether T is a composite coefficient.
-  template<typename T>
-  struct is_composite_coefficient : std::false_type {};
-
-  /// Helper template for is_composite_coefficient.
-  template<typename T>
-  inline constexpr bool is_composite_coefficient_v = is_composite_coefficient<T>::value;
-
-
-  /// Whether coefficients are equivalent.
-  template<typename T, typename U, typename Enable = void>
-  struct is_equivalent : std::false_type {};
-
-  /// Helper template for is_equivalent.
-  template<typename T, typename U>
-  inline constexpr bool is_equivalent_v = is_equivalent<T, U>::value;
-
-  /// Whether one set of coefficients is a pre-fix for another set.
-  template<typename T, typename U, typename Enable = void>
-  struct is_prefix : std::false_type {};
-
-  /// Helper template for is_prefix.
-  template<typename T, typename U>
-  inline constexpr bool is_prefix_v = is_prefix<T, U>::value;
-
-  template<typename C1, typename C2>
-  struct is_prefix<C1, C2, std::enable_if_t<is_equivalent_v<C1, C2>>> : std::true_type {};
-
-
-  /**
-   * A set of coefficient types to be associated with a variable.
-   *
-   * The types should be instances of is_coefficients.
-   * @tparam Cs The coefficients (e.g., Axis, Angle, anything that as an instance of is_coefficients).
-   */
-  template<typename ... Cs>
-  struct Coefficients;
-
-  namespace internal
-  {
-    template<typename ...>
-    struct ConcatenateImpl;
-
-    template<typename ... Cs1, typename ... Coeffs>
-    struct ConcatenateImpl<Coefficients<Cs1...>, Coeffs...>
-    {
-      using type = typename ConcatenateImpl<Coeffs...>::type::template Prepend<Cs1...>;
-    };
-
-    template<typename Cs1, typename ... Coeffs>
-    struct ConcatenateImpl<Cs1, Coeffs...>
-    {
-      using type = typename ConcatenateImpl<Coeffs...>::type::template Prepend<Cs1>;
-    };
-
-    template<>
-    struct ConcatenateImpl<>
-    {
-      using type = Coefficients<>;
-    };
-
-  }
-
-  /// Concatenate any number of Coefficients<...> types.
-  template<typename ... Coeffs> using Concatenate = typename internal::ConcatenateImpl<Coeffs...>::type;
 
 
   /////////////////////

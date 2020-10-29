@@ -52,10 +52,10 @@ namespace OpenKalman
         [](const GetCoeff<Scalar>& get_coeff) {
           constexpr Scalar wrap_max = Traits::template wrap_max<Scalar>;
           constexpr Scalar wrap_min = Traits::template wrap_min<Scalar>;
-          constexpr Scalar period = wrap_max - wrap_min;
           auto a = std::atan2(get_coeff(i + 1), get_coeff(i)) / cf<Scalar>;
-          if constexpr (wrap_min != - M_PI / cf<Scalar>)
+          if constexpr (wrap_max != -wrap_min)
           {
+            constexpr Scalar period = wrap_max - wrap_min;
             if (a < wrap_min) return a + period; // Generally, this is for positive angle systems where wrap_min is 0.
           }
           return a;
@@ -68,13 +68,13 @@ namespace OpenKalman
     {
       constexpr Scalar wrap_max = Traits::template wrap_max<Scalar>;
       constexpr Scalar wrap_min = Traits::template wrap_min<Scalar>;
-      constexpr Scalar period = wrap_max - wrap_min;
       if (a >= wrap_min and a < wrap_max)
       {
         return a;
       }
       else
       {
+        constexpr Scalar period = wrap_max - wrap_min;
         Scalar ar = std::fmod(a - wrap_min, period);
         if (ar < 0) ar += period;
         return ar + wrap_min;
@@ -97,14 +97,6 @@ namespace OpenKalman
       };
 
   };
-
-  /// Circle is a coefficient.
-  template<typename Traits>
-  struct is_coefficients<Circle<Traits>> : std::true_type {};
-
-
-  template<typename Traits>
-  struct is_equivalent<Circle<Traits>, Circle<Traits>> : std::true_type {};
 
 
   struct UnitWrapTraits

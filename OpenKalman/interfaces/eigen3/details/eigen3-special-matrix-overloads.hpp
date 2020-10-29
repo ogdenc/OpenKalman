@@ -193,12 +193,11 @@ namespace OpenKalman::Eigen3
 
   /// Split a diagonal matrix diagonally.
 #ifdef __cpp_concepts
-  template<typename F, typename ... Cs, eigen_diagonal_expr Arg> requires
-    (not is_coefficients_v<F>) and (not is_coefficients_v<F>) and std::conjunction_v<is_coefficients<Cs>...>
+  template<typename F, coefficients ... Cs, eigen_diagonal_expr Arg> requires (not coefficients<F>)
 #else
   template<typename F, typename ... Cs, typename Arg,
     std::enable_if_t<is_eigen_diagonal_expr_v<Arg> and not is_coefficients_v<F> and
-    not is_coefficients_v<F> and std::conjunction_v<is_coefficients<Cs>...>, int> = 0>
+    std::conjunction_v<is_coefficients<Cs>...>, int> = 0>
 #endif
   inline auto
   split_diagonal(Arg&& arg)
@@ -209,9 +208,8 @@ namespace OpenKalman::Eigen3
 
   /// Split a self-adjoint or triangular matrix diagonally.
 #ifdef __cpp_concepts
-  template<typename F, typename ... Cs, typename Arg> requires
-    (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>) and
-    (not is_coefficients_v<F>) and std::conjunction_v<is_coefficients<Cs>...>
+  template<typename F, coefficients ... Cs, typename Arg> requires
+    (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>) and (not coefficients<F>)
 #else
   template<typename F, typename ... Cs, typename Arg,
     std::enable_if_t<(is_eigen_self_adjoint_expr_v<Arg> or is_eigen_triangular_expr_v<Arg>) and
@@ -226,9 +224,8 @@ namespace OpenKalman::Eigen3
 
   /// Split a self-adjoint, triangular, or diagonal matrix diagonally.
 #ifdef __cpp_concepts
-  template<typename ... Cs, typename Arg> requires
-    (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>) and
-    std::conjunction_v<is_coefficients<Cs>...>
+  template<coefficients ... Cs, typename Arg> requires
+    (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>)
 #else
   template<typename ... Cs, typename Arg, std::enable_if_t<std::conjunction_v<is_coefficients<Cs>...> and
     (is_eigen_self_adjoint_expr_v<Arg> or is_eigen_triangular_expr_v<Arg> or
@@ -259,9 +256,8 @@ namespace OpenKalman::Eigen3
 
   /// Split a self-adjoint, triangular, or diagonal matrix vertically, returning a regular matrix.
 #ifdef __cpp_concepts
-  template<typename F, typename ... Cs, typename Arg> requires
-    (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>) and
-    (not is_coefficients_v<F>) and std::conjunction_v<is_coefficients<Cs>...>
+  template<typename F, coefficients ... Cs, typename Arg> requires (not coefficients<F>) and
+    (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>)
 #else
   template<typename F, typename ... Cs, typename Arg, std::enable_if_t<
     (is_eigen_self_adjoint_expr_v<Arg> or is_eigen_triangular_expr_v<Arg> or is_eigen_diagonal_expr_v<Arg>) and
@@ -276,9 +272,8 @@ namespace OpenKalman::Eigen3
 
   /// Split a self-adjoint, triangular, or diagonal matrix diagonally.
 #ifdef __cpp_concepts
-  template<typename ... Cs, typename Arg> requires
-    (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>) and
-      std::conjunction_v<is_coefficients<Cs>...>
+  template<coefficients ... Cs, typename Arg> requires
+    (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>)
 #else
   template<typename ... Cs, typename Arg, std::enable_if_t<std::conjunction_v<is_coefficients<Cs>...> and
     (is_eigen_self_adjoint_expr_v<Arg> or is_eigen_triangular_expr_v<Arg> or is_eigen_diagonal_expr_v<Arg>), int> = 0>
@@ -308,9 +303,8 @@ namespace OpenKalman::Eigen3
 
   /// Split a self-adjoint, triangular, or diagonal matrix horizontally, returning a regular matrix.
 #ifdef __cpp_concepts
-  template<typename F, typename ... Cs, typename Arg> requires
-    (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>) and
-    (not is_coefficients_v<F>) and std::conjunction_v<is_coefficients<Cs>...>
+  template<typename F, coefficients ... Cs, typename Arg> requires (not coefficients<F>) and
+    (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>)
 #else
   template<typename F, typename ... Cs, typename Arg, std::enable_if_t<
     (is_eigen_self_adjoint_expr_v<Arg> or is_eigen_triangular_expr_v<Arg> or is_eigen_diagonal_expr_v<Arg>) and
@@ -325,9 +319,8 @@ namespace OpenKalman::Eigen3
 
   /// Split a self-adjoint, triangular, or diagonal matrix horizontally.
 #ifdef __cpp_concepts
-  template<typename ... Cs, typename Arg> requires
-    (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>) and
-      std::conjunction_v<is_coefficients<Cs>...>
+  template<coefficients ... Cs, typename Arg> requires
+    eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>
 #else
   template<typename ... Cs, typename Arg, std::enable_if_t<
     (is_eigen_self_adjoint_expr_v<Arg> or is_eigen_triangular_expr_v<Arg> or is_eigen_diagonal_expr_v<Arg>) and

@@ -579,8 +579,7 @@ namespace OpenKalman::Eigen3
   /// @tparam F A class with a static <code>call</code> member to which the result is applied before creating the tuple.
   /// @tparam RCs Coefficients for each of the cuts.
 #ifdef __cpp_concepts
-  template<typename F, typename RC, typename...RCs, eigen_matrix Arg>
-  requires (not is_coefficients_v<F>) and std::conjunction_v<is_coefficients<RC>, is_coefficients<RCs>...>
+  template<typename F, coefficients RC, coefficients...RCs, eigen_matrix Arg> requires (not coefficients<F>)
 #else
   template<typename F, typename RC, typename...RCs, typename Arg, std::enable_if_t<is_eigen_matrix_v<Arg> and
     not is_coefficients_v<F> and std::conjunction_v<is_coefficients<RC>, is_coefficients<RCs>...>, int> = 0>
@@ -595,8 +594,7 @@ namespace OpenKalman::Eigen3
   /// @tparam RC Coefficients for the first cut.
   /// @tparam RCs Coefficients for the second and subsequent cuts.
 #ifdef __cpp_concepts
-  template<typename RC, typename...RCs, eigen_matrix Arg>
-  requires std::conjunction_v<is_coefficients<RC>, is_coefficients<RCs>...>
+  template<coefficients RC, coefficients...RCs, eigen_matrix Arg>
 #else
   template<typename RC, typename...RCs, typename Arg, std::enable_if_t<is_eigen_matrix_v<Arg> and
     std::conjunction_v<is_coefficients<RC>, is_coefficients<RCs>...>, int> = 0>
@@ -629,7 +627,7 @@ namespace OpenKalman::Eigen3
   /// @tparam CCs Coefficients for each of the second and subsequent cuts.
   /// @tparam F An object having a static call() method to which the result is applied before creating the tuple.
 #ifdef __cpp_concepts
-  template<typename F, typename CC, typename...CCs, eigen_matrix Arg> requires (not is_coefficients_v<F>)
+  template<typename F, coefficients CC, coefficients...CCs, eigen_matrix Arg> requires (not coefficients<F>)
 #else
   template<typename F, typename CC, typename...CCs, typename Arg,
     std::enable_if_t<is_eigen_matrix_v<Arg> and not is_coefficients_v<F>, int> = 0>
@@ -681,7 +679,7 @@ namespace OpenKalman::Eigen3
   /// @tparam CC Coefficients for the first cut.
   /// @tparam CCs Coefficients for the second and subsequent cuts.
 #ifdef __cpp_concepts
-  template<typename CC, typename...CCs, eigen_matrix Arg> requires is_coefficients_v<CC>
+  template<coefficients CC, coefficients...CCs, eigen_matrix Arg>
 #else
   template<typename CC, typename...CCs, typename Arg,
     std::enable_if_t<is_eigen_matrix_v<Arg> and is_coefficients_v<CC>, int> = 0>
@@ -754,7 +752,7 @@ namespace OpenKalman::Eigen3
   /// Split a matrix vertically (case in which there is no split).
 #ifdef __cpp_concepts
   template<typename F = OpenKalman::internal::default_split_function, bool euclidean = false, eigen_matrix Arg>
-  requires (not is_coefficients_v<F>)
+    requires (not coefficients<F>)
 #else
   template<typename F = OpenKalman::internal::default_split_function, bool euclidean = false,
     typename Arg, std::enable_if_t<is_eigen_matrix_v<Arg> and not is_coefficients_v<F>, int> = 0>
@@ -770,8 +768,7 @@ namespace OpenKalman::Eigen3
   /// @tparam C Coefficients for the first cut.
   /// @tparam Cs Coefficients for each of the second and subsequent cuts.
 #ifdef __cpp_concepts
-  template<typename F, typename C, typename...Cs, eigen_matrix Arg>
-  requires (not is_coefficients_v<F>) and std::conjunction_v<is_coefficients<C>, is_coefficients<Cs>...>
+  template<typename F, coefficients C, coefficients...Cs, eigen_matrix Arg> requires (not coefficients<F>)
 #else
   template<typename F, typename C, typename...Cs, typename Arg, std::enable_if_t<is_eigen_matrix_v<Arg> and
     not is_coefficients_v<F> and std::conjunction_v<is_coefficients<C>, is_coefficients<Cs>...>, int> = 0>
@@ -786,8 +783,7 @@ namespace OpenKalman::Eigen3
   /// @tparam C Coefficients for the first cut.
   /// @tparam Cs Coefficients for the second and subsequent cuts.
 #ifdef __cpp_concepts
-  template<typename C, typename...Cs, eigen_matrix Arg>
-  requires std::conjunction_v<is_coefficients<C>, is_coefficients<Cs>...>
+  template<coefficients C, coefficients...Cs, eigen_matrix Arg>
 #else
   template<typename C, typename...Cs, typename Arg, std::enable_if_t<is_eigen_matrix_v<Arg> and
     std::conjunction_v<is_coefficients<C>, is_coefficients<Cs>...>, int> = 0>

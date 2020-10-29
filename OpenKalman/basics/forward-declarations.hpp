@@ -13,18 +13,27 @@
 
 namespace OpenKalman
 {
+  // ------------ //
+  //   Matrices   //
+  // ------------ //
+
   /**
-   * @brief A matrix representing a transformation from X to Y with typed coefficients for each of X and Y.
+   * A matrix with typed rows and columns.
+   *
+   * The matrix can be thought of as a transformation from X to Y, where the coefficients for each of X and Y are typed.
    * Example declaration:
    * <code>Matrix<double, Coefficients<Axis, Axis, Angle>, Coefficients<Axis, Axis>> x;</code>
+   * @tparam RowCoefficients A set of coefficients (e.g., Axis, Spherical, etc.) corresponding to the rows.
+   * @tparam ColumnCoefficients Another set of coefficients corresponding to the columns.
+   * @tparam ArgType The base matrix type.
    */
-  template<
-    /// A set of coefficients (e.g., Axis, Spherical, etc.) corresponding to the rows.
-    typename RowCoefficients,
-    /// Another set of coefficients corresponding to the columns.
-    typename ColumnCoefficients,
-    /// The base matrix type.
-    typename ArgType>
+#ifdef __cpp_concepts
+  template<coefficients RowCoefficients, coefficients ColumnCoefficients, typename ArgType> requires
+    is_typed_matrix_base_v<ArgType> and (RowCoefficients::size == MatrixTraits<ArgType>::dimension) and
+    (ColumnCoefficients::size == MatrixTraits<ArgType>::columns)
+#else
+  template<typename RowCoefficients, typename ColumnCoefficients, typename ArgType>
+#endif
   struct Matrix;
 
   template<typename RowCoefficients, typename ColumnCoefficients, typename BaseMatrix>
@@ -35,7 +44,7 @@ namespace OpenKalman
 
   template<typename RowCoefficients, typename ColumnCoefficients, typename BaseMatrix>
   struct is_identity<Matrix<RowCoefficients, ColumnCoefficients, BaseMatrix>>
-    : std::integral_constant<bool, is_identity_v<BaseMatrix> and
+    : std::bool_constant<is_identity_v<BaseMatrix> and
     is_equivalent_v<RowCoefficients, ColumnCoefficients>> {};
 
   template<typename Coefficients, typename BaseMatrix>
@@ -48,11 +57,11 @@ namespace OpenKalman
 
   template<typename RowCoefficients, typename ColumnCoefficients, typename BaseMatrix, std::size_t N>
   struct is_element_gettable<Matrix<RowCoefficients, ColumnCoefficients, BaseMatrix>, N>
-    : std::integral_constant<bool, is_element_gettable_v<BaseMatrix, N>> {};
+    : std::bool_constant<is_element_gettable_v<BaseMatrix, N>> {};
 
   template<typename RowCoefficients, typename ColumnCoefficients, typename BaseMatrix, std::size_t N>
   struct is_element_settable<Matrix<RowCoefficients, ColumnCoefficients, BaseMatrix>, N>
-    : std::integral_constant<bool, is_element_settable_v<BaseMatrix, N>> {};
+    : std::bool_constant<is_element_settable_v<BaseMatrix, N>> {};
 
 
   /**
@@ -67,7 +76,12 @@ namespace OpenKalman
    * @tparam Coefficients Coefficient types of the mean (e.g., Axis, Polar).
    * @tparam BaseMatrix Regular matrix on which the mean is based (usually a column vector).
    */
+#ifdef __cpp_concepts
+  template<coefficients Coefficients, typename BaseMatrix> requires
+    is_typed_matrix_base_v<BaseMatrix> and (Coefficients::size == MatrixTraits<BaseMatrix>::dimension)
+#else
   template<typename Coefficients, typename BaseMatrix>
+#endif
   struct Mean;
 
   template<typename Coefficients, typename BaseMatrix>
@@ -81,18 +95,18 @@ namespace OpenKalman
 
   template<typename Coefficients, typename BaseMatrix>
   struct is_identity<Mean<Coefficients, BaseMatrix>>
-    : std::integral_constant<bool, is_identity_v<BaseMatrix> and Coefficients::axes_only> {};
+    : std::bool_constant<is_identity_v<BaseMatrix> and Coefficients::axes_only> {};
 
   template<typename Coefficients, typename BaseMatrix>
   struct is_strict<Mean<Coefficients, BaseMatrix>> : is_strict<BaseMatrix> {};
 
   template<typename Coefficients, typename BaseMatrix, std::size_t N>
   struct is_element_gettable<Mean<Coefficients, BaseMatrix>, N>
-    : std::integral_constant<bool, is_element_gettable_v<BaseMatrix, N>> {};
+    : std::bool_constant<is_element_gettable_v<BaseMatrix, N>> {};
 
   template<typename Coefficients, typename BaseMatrix, std::size_t N>
   struct is_element_settable<Mean<Coefficients, BaseMatrix>, N>
-    : std::integral_constant<bool, is_element_settable_v<BaseMatrix, N>> {};
+    : std::bool_constant<is_element_settable_v<BaseMatrix, N>> {};
 
   /**
    * @brief The underlying class representing the Euclidean space version of a mean, with typed coefficients.
@@ -102,12 +116,15 @@ namespace OpenKalman
    * This declares a 3-dimensional mean <var>x</var>, where the coefficients are, respectively, an Axis,
    * an Axis, and an Angle, all of scalar type <code>double</code>. The underlying representation is a
    * four-dimensional vector in Euclidean space, with two of the dimensions representing the Angle coefficient.
-   */
-  template<
-    /// A set of coefficients (e.g., Angle, Polar, etc.)
-    typename Coefficients,
-    /// The mean's base type. This is a column vector or a matrix (considered as a collection of column vectors).
-    typename BaseMatrix>
+    * @tparam Coefficients A set of coefficients (e.g., Angle, Polar, etc.)
+    * @tparam BaseMatrix The mean's base type. This is a column vector or a matrix (considered as a collection of column vectors).
+    */
+#ifdef __cpp_concepts
+  template<coefficients Coefficients, typename BaseMatrix> requires
+  is_typed_matrix_base_v<BaseMatrix> and (Coefficients::dimension == MatrixTraits<BaseMatrix>::dimension)
+#else
+  template<typename Coefficients, typename BaseMatrix>
+#endif
   struct EuclideanMean;
 
   template<typename Coefficients, typename BaseMatrix>
@@ -121,18 +138,18 @@ namespace OpenKalman
 
   template<typename Coefficients, typename BaseMatrix>
   struct is_identity<EuclideanMean<Coefficients, BaseMatrix>>
-    : std::integral_constant<bool, OpenKalman::is_identity_v<BaseMatrix> and Coefficients::axes_only> {};
+    : std::bool_constant<OpenKalman::is_identity_v<BaseMatrix> and Coefficients::axes_only> {};
 
   template<typename Coefficients, typename BaseMatrix>
   struct is_strict<EuclideanMean<Coefficients, BaseMatrix>> : is_strict<BaseMatrix> {};
 
   template<typename Coefficients, typename BaseMatrix, std::size_t N>
   struct is_element_gettable<EuclideanMean<Coefficients, BaseMatrix>, N>
-    : std::integral_constant<bool, is_element_gettable_v<BaseMatrix, N>> {};
+    : std::bool_constant<is_element_gettable_v<BaseMatrix, N>> {};
 
   template<typename Coefficients, typename BaseMatrix, std::size_t N>
   struct is_element_settable<EuclideanMean<Coefficients, BaseMatrix>, N>
-    : std::integral_constant<bool, is_element_settable_v<BaseMatrix, N>> {};
+    : std::bool_constant<is_element_settable_v<BaseMatrix, N>> {};
 
 
   /**
@@ -150,7 +167,7 @@ namespace OpenKalman
 
   template<typename Coefficients, typename BaseMatrix>
   struct is_Cholesky<Covariance<Coefficients, BaseMatrix>>
-    : std::integral_constant<bool, is_triangular_v<BaseMatrix> and not is_self_adjoint_v<BaseMatrix>> {};
+    : std::bool_constant<is_triangular_v<BaseMatrix> and not is_self_adjoint_v<BaseMatrix>> {};
 
   template<typename Coefficients, typename BaseMatrix>
   struct is_self_adjoint<Covariance<Coefficients, BaseMatrix>, std::enable_if_t<not OpenKalman::is_diagonal_v<BaseMatrix>>>
@@ -173,11 +190,11 @@ namespace OpenKalman
 
   template<typename Coefficients, typename BaseMatrix, std::size_t N>
   struct is_element_gettable<Covariance<Coefficients, BaseMatrix>, N>
-    : std::integral_constant<bool, is_element_gettable_v<BaseMatrix, N>> {};
+    : std::bool_constant<is_element_gettable_v<BaseMatrix, N>> {};
 
   template<typename Coefficients, typename BaseMatrix, std::size_t N>
   struct is_element_settable<Covariance<Coefficients, BaseMatrix>, N>
-    : std::integral_constant<bool, is_element_settable_v<BaseMatrix, N>> {};
+    : std::bool_constant<is_element_settable_v<BaseMatrix, N>> {};
 
   /**
    * @brief The upper or lower triangle Cholesky factor (square root) of a covariance matrix.
@@ -198,7 +215,7 @@ namespace OpenKalman
 
   template<typename Coefficients, typename BaseMatrix>
   struct is_Cholesky<SquareRootCovariance<Coefficients, BaseMatrix>>
-    : std::integral_constant<bool, OpenKalman::is_triangular_v<BaseMatrix> and not OpenKalman::is_self_adjoint_v<BaseMatrix>> {};
+    : std::bool_constant<OpenKalman::is_triangular_v<BaseMatrix> and not OpenKalman::is_self_adjoint_v<BaseMatrix>> {};
 
   template<typename Coefficients, typename BaseMatrix>
   struct is_lower_triangular<SquareRootCovariance<Coefficients, BaseMatrix>,
@@ -229,11 +246,11 @@ namespace OpenKalman
 
   template<typename Coefficients, typename BaseMatrix, std::size_t N>
   struct is_element_gettable<SquareRootCovariance<Coefficients, BaseMatrix>, N>
-    : std::integral_constant<bool, is_element_gettable_v<BaseMatrix, N>> {};
+    : std::bool_constant<is_element_gettable_v<BaseMatrix, N>> {};
 
   template<typename Coefficients, typename BaseMatrix, std::size_t N>
   struct is_element_settable<SquareRootCovariance<Coefficients, BaseMatrix>, N>
-    : std::integral_constant<bool, is_element_settable_v<BaseMatrix, N>> {};
+    : std::bool_constant<is_element_settable_v<BaseMatrix, N>> {};
 
 
   namespace internal
@@ -278,7 +295,7 @@ namespace OpenKalman
 
   template<typename Coefficients, typename MeanMatrix, typename CovarianceMatrix, typename re>
   struct is_Cholesky<GaussianDistribution<Coefficients, MeanMatrix, CovarianceMatrix, re>>
-    : std::integral_constant<bool, not is_self_adjoint_v<CovarianceMatrix>> {};
+    : std::bool_constant<not is_self_adjoint_v<CovarianceMatrix>> {};
 
   template<typename Coefficients, typename MeanMatrix, typename CovarianceMatrix, typename re>
   struct is_self_adjoint<GaussianDistribution<Coefficients, MeanMatrix, CovarianceMatrix, re>,
@@ -292,11 +309,11 @@ namespace OpenKalman
 
   template<typename Coefficients, typename MeanMatrix, typename CovarianceMatrix, typename re>
   struct is_zero<GaussianDistribution<Coefficients, MeanMatrix, CovarianceMatrix, re>>
-    : std::integral_constant<bool, is_zero_v<MeanMatrix> and is_zero_v<CovarianceMatrix>> {};
+    : std::bool_constant<is_zero_v<MeanMatrix> and is_zero_v<CovarianceMatrix>> {};
 
   template<typename Coefficients, typename MeanMatrix, typename CovarianceMatrix, typename re>
   struct is_strict<GaussianDistribution<Coefficients, MeanMatrix, CovarianceMatrix, re>>
-    : std::integral_constant<bool, is_strict_v<MeanMatrix> and is_strict_v<CovarianceMatrix>> {};
+    : std::bool_constant<is_strict_v<MeanMatrix> and is_strict_v<CovarianceMatrix>> {};
 
 
 }

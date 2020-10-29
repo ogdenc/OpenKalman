@@ -17,11 +17,13 @@ namespace OpenKalman
   //        Matrix         //
   ///////////////////////////
 
-  /// A typed matrix.
-  template<
-    typename RowCoefficients,
-    typename ColumnCoefficients,
-    typename BaseMatrix>
+#ifdef __cpp_concepts
+  template<coefficients RowCoefficients, coefficients ColumnCoefficients, typename BaseMatrix> requires
+    is_typed_matrix_base_v<BaseMatrix> and (RowCoefficients::size == MatrixTraits<BaseMatrix>::dimension) and
+    (ColumnCoefficients::size == MatrixTraits<BaseMatrix>::columns)
+#else
+  template<typename RowCoefficients, typename ColumnCoefficients, typename BaseMatrix>
+#endif
   struct Matrix : internal::TypedMatrixBase<Matrix<RowCoefficients, ColumnCoefficients, BaseMatrix>,
     RowCoefficients, ColumnCoefficients, BaseMatrix>
   {
@@ -167,7 +169,7 @@ namespace OpenKalman
       return *this;
     }
 
-  protected:
+  private:
     template<typename CR = RowCoefficients, typename CC = ColumnCoefficients, typename Arg>
     static auto
     make(Arg&& arg) noexcept { return Matrix<CR, CC, strict_t<Arg>>(std::forward<Arg>(arg)); }

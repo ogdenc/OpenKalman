@@ -17,15 +17,6 @@
 
 namespace OpenKalman
 {
-
-  /**
-   * @brief A set of coefficient types to be associated with a variable.
-   * The types should be instances of is_coefficients.
-   * @tparam Cs The coefficients (e.g., Axis, Angle, anything that as an instance of is_coefficients).
-   */
-  template<typename ... Cs>
-  struct Coefficients;
-
   template<>
   struct Coefficients<>
   {
@@ -81,10 +72,16 @@ namespace OpenKalman
   };
 
 
+#ifdef __cpp_concepts
+  template<coefficients C, coefficients ... Ctail>
+#else
   template<typename C, typename ... Ctail>
+#endif
   struct Coefficients<C, Ctail ...>
   {
+#ifndef __cpp_concepts
     static_assert((is_coefficients_v<C> and ... and is_coefficients_v<Ctail>));
+#endif
     static constexpr std::size_t size = C::size + Coefficients<Ctail...>::size; ///<Number of coefficients.
 
     /// Number of coefficients when converted to Euclidian.
@@ -149,95 +146,80 @@ namespace OpenKalman
         Coefficients<Ctail...>::template wrap_array_set<Scalar, i + C::size>);
   };
 
-  /// Coefficients can, itself, be a coefficient. May be used to group coefficients together as a unit.
-  template<typename...C>
-  struct is_coefficients<Coefficients<C...>> : std::true_type {};
 
-  template<typename...C>
-  struct is_composite_coefficient<Coefficients<C...>> : std::true_type {};
-
-
-  template<typename...C1, typename...C2>
-  struct is_equivalent<Coefficients<C1...>, Coefficients<C2...>,
-    std::enable_if_t<std::conjunction_v<is_equivalent<C1, C2>...> and (sizeof...(C1) != 1)>> : std::true_type {};
-
-  template<typename T, typename U>
-  struct is_equivalent<Coefficients<T>, Coefficients<U>> : is_equivalent<T, U> {};
-
-  template<typename T, typename U>
-  struct is_equivalent<T, Coefficients<U>> : is_equivalent<T, U> {};
-
-  template<typename T, typename U>
-  struct is_equivalent<Coefficients<T>, U> : is_equivalent<T, U> {};
-
-  template<typename Ca, typename Cb, typename...C1, typename...C2>
-  struct is_prefix<Coefficients<Ca, C1...>, Coefficients<Cb, C2...>,
-    std::enable_if_t<is_equivalent_v<Ca, Cb> and is_prefix_v<Coefficients<C1...>, Coefficients<C2...>> and
-      not is_equivalent_v<Coefficients<Ca, C1...>, Coefficients<Cb, C2...>>>> : std::true_type {};
-
-  template<typename C>
-  struct is_prefix<Coefficients<>, C,
-    std::enable_if_t<is_coefficients_v<C> and not is_equivalent_v<Coefficients<>, C>>> : std::true_type {};
-
-  template<typename C, typename...C1>
-  struct is_prefix<C, Coefficients<C, C1...>,
-    std::enable_if_t<is_coefficients_v<C>>> : std::true_type {};
-
-
-
+#ifdef __cpp_concepts
+  template<coefficients Coeffs, typename Scalar> requires std::is_arithmetic_v<Scalar>
+#else
   template<typename Coeffs, typename Scalar, std::enable_if_t<is_coefficients_v<Coeffs>, int> = 0>
+#endif
   static Scalar to_Euclidean(const std::size_t row, const std::function<Scalar(const std::size_t)> get_coeff)
   {
     return Coeffs::template to_Euclidean_array<Scalar, 0>[row](get_coeff);
   }
 
+#ifdef __cpp_concepts
+  template<coefficients Coeffs, typename Scalar> requires std::is_arithmetic_v<Scalar>
+#else
   template<typename Coeffs, typename Scalar, std::enable_if_t<is_coefficients_v<Coeffs>, int> = 0>
+#endif
   static Scalar from_Euclidean(const std::size_t row, const std::function<Scalar(const std::size_t)> get_coeff)
   {
     return Coeffs::template from_Euclidean_array<Scalar, 0>[row](get_coeff);
   }
 
   /// Wrap and return a single coefficient.
-  template<typename Coeffs, typename F, std::enable_if_t<is_coefficients_v<Coeffs>, int> = 0>
+#ifdef __cpp_concepts
+  template<coefficients Coeffs, std::invocable<const std::size_t> F>
+#else
+  template<typename Coeffs, typename F, std::enable_if_t<
+    is_coefficients_v<Coeffs> and std::is_invocable_v<F, const std::size_t>, int> = 0>
+#endif
   static auto wrap_get(const std::size_t row, const F& get_coeff)
   {
-    static_assert(std::is_invocable_v<F, const std::size_t>);
     using Scalar = std::invoke_result_t<F, const std::size_t>;
     static_assert(std::is_arithmetic_v<Scalar>);
     return Coeffs::template wrap_array_get<Scalar, 0>[row](get_coeff);
   }
 
   /// Wrap and set a single coefficient.
-  template<typename Coeffs, typename Scalar, typename FS, typename FG, std::enable_if_t<is_coefficients_v<Coeffs>, int> = 0>
+#ifdef __cpp_concepts
+  template<coefficients Coeffs, typename Scalar, std::invocable<const std::size_t, const Scalar> FS,
+    std::invocable<const std::size_t> FG> requires std::is_arithmetic_v<Scalar>
+#else
+  template<typename Coeffs, typename Scalar, typename FS, typename FG, std::enable_if_t<
+    is_coefficients_v<Coeffs> and std::is_arithmetic_v<Scalar> and std::is_invocable_v<FG, const std::size_t> and
+    std::is_invocable_v<FS, const std::size_t, const Scalar>, int> = 0>
+#endif
   static void wrap_set(const Scalar s, const std::size_t row, const FS& set_coeff, const FG& get_coeff)
   {
-    static_assert(std::is_invocable_v<FG, const std::size_t>);
-    static_assert(std::is_invocable_v<FS, const std::size_t, const Scalar>);
     Coeffs::template wrap_array_set<Scalar, 0>[row](s, set_coeff, get_coeff);
   }
 
 
   namespace detail
   {
-    template<typename C, std::size_t N, typename Enable = void>
-    struct ReplicateImpl {};
-
-    template<typename C>
-    struct ReplicateImpl<C, 0, std::enable_if_t<is_coefficients_v<C>>>
-    {
-      using type = Coefficients<>;
-    };
-
     template<typename C, std::size_t N>
-    struct ReplicateImpl<C, N, std::enable_if_t<is_coefficients_v<C> and not is_composite_coefficient_v<C> and (N > 0)>>
+    struct ReplicateImpl
     {
       using type = typename ReplicateImpl<C, N - 1>::type::template Append<C>;
     };
 
+    template<typename C>
+    struct ReplicateImpl<C, 0>
+    {
+      using type = Coefficients<>;
+    };
+
     template<typename...Cs, std::size_t N>
-    struct ReplicateImpl<Coefficients<Cs...>, N, std::enable_if_t<(N > 0)>>
+    struct ReplicateImpl<Coefficients<Cs...>, N>
     {
       using type = typename ReplicateImpl<Coefficients<Cs...>, N - 1>::type::template Append<Cs...>;
+    };
+
+    template<typename...Cs>
+    struct ReplicateImpl<Coefficients<Cs...>, 0>
+    {
+      using type = Coefficients<>;
     };
   }
 
@@ -246,8 +228,13 @@ namespace OpenKalman
    * @tparam C The coefficient to be repeated.
    * @tparam N The number of times to repeat coefficient C.
    */
+#ifdef __cpp_concepts
+  template<coefficients C, std::size_t N>
+#else
   template<typename C, std::size_t N>
+#endif
   using Replicate = typename detail::ReplicateImpl<C, N>::type;
+
 
   /**
    * Alias for a set of Axis coefficients of a given size.

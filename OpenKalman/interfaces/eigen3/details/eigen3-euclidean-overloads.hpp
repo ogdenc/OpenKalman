@@ -351,7 +351,7 @@ namespace OpenKalman::Eigen3
 
   /// Split into one or more Euclidean expressions vertically.
 #ifdef __cpp_concepts
-  template<typename F, typename...Cs, euclidean_expr Arg> requires (not is_coefficients_v<F>)
+  template<typename F, typename...Cs, euclidean_expr Arg> requires (not coefficients<F>)
 #else
   template<typename F, typename...Cs, typename Arg, std::enable_if_t<
     euclidean_expr<Arg> and not is_coefficients_v<F>, int> = 0>
@@ -368,7 +368,7 @@ namespace OpenKalman::Eigen3
 
   /// Split into one or more Euclidean expressions vertically.
 #ifdef __cpp_concepts
-  template<typename F, bool, typename...Cs, euclidean_expr Arg> requires (not is_coefficients_v<F>)
+  template<typename F, bool, typename...Cs, euclidean_expr Arg> requires (not coefficients<F>)
 #else
   template<typename F, bool, typename...Cs, typename Arg, std::enable_if_t<
     euclidean_expr<Arg> and not is_coefficients_v<F>, int> = 0>
@@ -381,7 +381,7 @@ namespace OpenKalman::Eigen3
 
   /// Split into one or more Euclidean expressions vertically.
 #ifdef __cpp_concepts
-  template<typename...Cs, euclidean_expr Arg> requires (is_coefficients_v<Cs> and ...)
+  template<coefficients...Cs, euclidean_expr Arg>
 #else
   template<typename...Cs, typename Arg, std::enable_if_t<
     euclidean_expr<Arg> and std::conjunction_v<is_coefficients<Cs>...>, int> = 0>
@@ -418,7 +418,7 @@ namespace OpenKalman::Eigen3
 
   /// Split into one or more Euclidean expressions horizontally.
 #ifdef __cpp_concepts
-  template<typename F, typename...Cs, euclidean_expr Arg> requires (not is_coefficients_v<F>)
+  template<typename F, typename...Cs, euclidean_expr Arg> requires (not coefficients<F>)
 #else
   template<typename F, typename...Cs, typename Arg, std::enable_if_t<
     euclidean_expr<Arg> and not is_coefficients_v<F>, int> = 0>
@@ -434,7 +434,7 @@ namespace OpenKalman::Eigen3
 
   /// Split into one or more Euclidean expressions horizontally.
 #ifdef __cpp_concepts
-  template<typename...Cs, euclidean_expr Arg> requires (is_coefficients_v<Cs> and ...)
+  template<coefficients...Cs, euclidean_expr Arg>
 #else
   template<typename...Cs, typename Arg, std::enable_if_t<
     euclidean_expr<Arg> and std::conjunction_v<is_coefficients<Cs>...>, int> = 0>
@@ -463,7 +463,7 @@ namespace OpenKalman::Eigen3
 
   /// Split into one or more Euclidean expressions diagonally. The valuated expression must be square.
 #ifdef __cpp_concepts
-  template<typename F, typename...Cs, euclidean_expr Arg> requires (not is_coefficients_v<F>)
+  template<typename F, typename...Cs, euclidean_expr Arg> requires (not coefficients<F>)
 #else
   template<typename F, typename...Cs, typename Arg, std::enable_if_t<
     euclidean_expr<Arg> and not is_coefficients_v<F>, int> = 0>
@@ -480,7 +480,7 @@ namespace OpenKalman::Eigen3
 
   /// Split into one or more Euclidean expressions diagonally. The valuated expression must be square.
 #ifdef __cpp_concepts
-  template<typename F, bool, typename...Cs, euclidean_expr Arg> requires (not is_coefficients_v<F>)
+  template<typename F, bool, typename...Cs, euclidean_expr Arg> requires (not coefficients<F>)
 #else
   template<typename F, bool, typename...Cs, typename Arg, std::enable_if_t<
     euclidean_expr<Arg> and not is_coefficients_v<F>, int> = 0>
@@ -495,7 +495,7 @@ namespace OpenKalman::Eigen3
 
   /// Split into one or more Euclidean expressions diagonally. The valuated expression must be square.
 #ifdef __cpp_concepts
-  template<typename...Cs, euclidean_expr Arg> requires (is_coefficients_v<Cs> and ...)
+  template<coefficients...Cs, euclidean_expr Arg>
 #else
   template<typename...Cs, typename Arg, std::enable_if_t<
     euclidean_expr<Arg> and std::conjunction_v<is_coefficients<Cs>...>, int> = 0>
