@@ -69,7 +69,7 @@ namespace OpenKalman
         using MeanOut = strict_matrix_t<CovIn, output_dim, 1>;
         using CovOut = typename MatrixTraits<CovIn>::template SelfAdjointBaseType<triangle_type_of_v<CovIn>, output_dim>;
 
-        const auto P = covariance(x);
+        const auto P = covariance_of(x);
         const std::make_index_sequence<output_dim> ints;
         auto mean_terms = make_mean<Mean<OutputCoeffs, MeanOut>>(hessian, P, ints);
         auto cov_terms = make_cov<Covariance<OutputCoeffs, CovOut>>(hessian, P, ints, ints);
@@ -106,7 +106,7 @@ namespace OpenKalman
         using In_Mean = typename DistributionTraits<InputDist>::Mean;
         using Out_Mean = std::invoke_result_t<Transformation, In_Mean>;
         using OutputCoeffs = typename MatrixTraits<Out_Mean>::RowCoefficients;
-        const auto hessians = transformation.hessian(mean(x), mean(n)...);
+        const auto hessians = transformation.hessian(mean_of(x), mean_of(n)...);
         return zip_tuples<OutputCoeffs>(hessians, std::tuple {x, n...});
       }
     };

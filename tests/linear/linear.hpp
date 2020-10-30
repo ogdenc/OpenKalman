@@ -41,13 +41,13 @@ public:
     const InputDist& in,
     const Noise& ... noise)
   {
-    auto x = mean(in);
-    const auto p = covariance(in);
-    auto y = g(x, mean(noise)...);
+    auto x = mean_of(in);
+    const auto p = covariance_of(in);
+    auto y = g(x, mean_of(noise)...);
     auto [a] = g.jacobian(x);
     auto cross_cov = p*adjoint(a);
-    auto jacobians = g.jacobian(x, mean(noise)...);
-    auto covariances = std::forward_as_tuple(p, covariance(noise)...);
+    auto jacobians = g.jacobian(x, mean_of(noise)...);
+    auto covariances = std::forward_as_tuple(p, covariance_of(noise)...);
     auto cov = sumprod(jacobians, covariances, std::make_index_sequence<sizeof...(Noise) + 1>{});
     std::tuple out_true {GaussianDistribution {y, cov}, cross_cov};
     auto out = t.transform_with_cross_covariance(in, g, noise...);
@@ -67,13 +67,13 @@ public:
     const InputDist& in,
     const Noise& ... noise)
   {
-    auto x = mean(in);
-    const auto p = covariance(in);
-    auto y = g(x, mean(noise)...);
+    auto x = mean_of(in);
+    const auto p = covariance_of(in);
+    auto y = g(x, mean_of(noise)...);
     auto [a] = g.jacobian(x);
     auto cross_cov = p*adjoint(a);
-    auto jacobians = g.jacobian(x, mean(noise)...);
-    auto covariances = std::forward_as_tuple(p, covariance(noise)...);
+    auto jacobians = g.jacobian(x, mean_of(noise)...);
+    auto covariances = std::forward_as_tuple(p, covariance_of(noise)...);
     auto cov = sumprod(jacobians, covariances, std::make_index_sequence<sizeof...(Noise) + 1>{});
     std::tuple out_true {GaussianDistribution {y, cov}, cross_cov};
     auto out = t.transform_with_cross_covariance(in, noise...);

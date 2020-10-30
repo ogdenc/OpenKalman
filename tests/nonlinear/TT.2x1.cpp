@@ -37,8 +37,8 @@ TEST_F(nonlinear, TT1SumOfSquares2SelfAdjoint)
   LinearizedTransform t;
   auto in = G<n>::normal();
   auto out = t(in, g);
-  EXPECT_NEAR(mean(out)(0), 0., 1e-6);
-  EXPECT_NEAR(covariance(out)(0,0), 0., 1e-6);
+  EXPECT_NEAR(mean_of(out)(0), 0., 1e-6);
+  EXPECT_NEAR(covariance_of(out)(0,0), 0., 1e-6);
 }
 
 TEST_F(nonlinear, TT1SumOfSquares2Triangular)
@@ -48,8 +48,8 @@ TEST_F(nonlinear, TT1SumOfSquares2Triangular)
   LinearizedTransform t;
   auto in = GT<n>::normal();
   auto out = t(in, g);
-  EXPECT_NEAR(mean(out)(0), 0., 1e-6);
-  EXPECT_NEAR(covariance(out)(0,0), 0., 1e-6);
+  EXPECT_NEAR(mean_of(out)(0), 0., 1e-6);
+  EXPECT_NEAR(covariance_of(out)(0,0), 0., 1e-6);
 }
 
 TEST_F(nonlinear, TT1SumOfSquares5SelfAdjoint)
@@ -59,8 +59,8 @@ TEST_F(nonlinear, TT1SumOfSquares5SelfAdjoint)
   LinearizedTransform t;
   auto in = G<n>::normal();
   auto out = t(in, g);
-  EXPECT_NEAR(mean(out)(0), 0., 1e-6);
-  EXPECT_NEAR(covariance(out)(0,0), 0., 1e-6);
+  EXPECT_NEAR(mean_of(out)(0), 0., 1e-6);
+  EXPECT_NEAR(covariance_of(out)(0,0), 0., 1e-6);
 }
 
 TEST_F(nonlinear, TT1SumOfSquares5Triangular)
@@ -70,8 +70,8 @@ TEST_F(nonlinear, TT1SumOfSquares5Triangular)
   LinearizedTransform t;
   auto in = GT<n>::normal();
   auto out = t(in, g);
-  EXPECT_NEAR(mean(out)(0), 0., 1e-6);
-  EXPECT_NEAR(covariance(out)(0,0), 0., 1e-6);
+  EXPECT_NEAR(mean_of(out)(0), 0., 1e-6);
+  EXPECT_NEAR(covariance_of(out)(0,0), 0., 1e-6);
 }
 
 TEST_F(nonlinear, TT2SumOfSquares2SelfAdjoint)
@@ -81,8 +81,8 @@ TEST_F(nonlinear, TT2SumOfSquares2SelfAdjoint)
   LinearizedTransform<2> t;
   auto in = G<n>::normal();
   auto out = t(in, g);
-  EXPECT_NEAR(mean(out)(0), (double) n, 1e-6);
-  EXPECT_NEAR(covariance(out)(0,0), 2. * n, 1e-6);
+  EXPECT_NEAR(mean_of(out)(0), (double) n, 1e-6);
+  EXPECT_NEAR(covariance_of(out)(0,0), 2. * n, 1e-6);
 }
 
 TEST_F(nonlinear, TT2SumOfSquares2Triangular)
@@ -92,8 +92,8 @@ TEST_F(nonlinear, TT2SumOfSquares2Triangular)
   LinearizedTransform<2> t;
   auto in = GT<n>::normal();
   auto out = t(in, g);
-  EXPECT_NEAR(mean(out)(0), (double) n, 1e-6);
-  EXPECT_NEAR(covariance(out)(0,0), 2. * n, 1e-6);
+  EXPECT_NEAR(mean_of(out)(0), (double) n, 1e-6);
+  EXPECT_NEAR(covariance_of(out)(0,0), 2. * n, 1e-6);
 }
 
 TEST_F(nonlinear, TT2SumOfSquares5SelfAdjoint)
@@ -103,8 +103,8 @@ TEST_F(nonlinear, TT2SumOfSquares5SelfAdjoint)
   LinearizedTransform<2> t;
   auto in = G<n>::normal();
   auto out = t(in, g);
-  EXPECT_NEAR(mean(out)(0), (double) n, 1e-6);
-  EXPECT_NEAR(covariance(out)(0,0), 2. * n, 1e-6);
+  EXPECT_NEAR(mean_of(out)(0), (double) n, 1e-6);
+  EXPECT_NEAR(covariance_of(out)(0,0), 2. * n, 1e-6);
 }
 
 TEST_F(nonlinear, TT2SumOfSquares5Triangular)
@@ -114,8 +114,8 @@ TEST_F(nonlinear, TT2SumOfSquares5Triangular)
   LinearizedTransform<2> t;
   auto in = GT<n>::normal();
   auto out = t(in, g);
-  EXPECT_NEAR(mean(out)(0), (double) n, 1e-6);
-  EXPECT_NEAR(covariance(out)(0,0), 2. * n, 1e-6);
+  EXPECT_NEAR(mean_of(out)(0), (double) n, 1e-6);
+  EXPECT_NEAR(covariance_of(out)(0,0), 2. * n, 1e-6);
 }
 
 TEST_F(nonlinear, TT1TOA2SelfAdjoint)
@@ -125,8 +125,8 @@ TEST_F(nonlinear, TT1TOA2SelfAdjoint)
   LinearizedTransform t;
   auto in = G<n> {{3., 0}, {1., 0, 0, 10}};
   auto out = t(in, g);
-  EXPECT_NEAR(mean(out)(0), 3., 1e-6);
-  EXPECT_NEAR(covariance(out)(0,0), 1., 1e-6);
+  EXPECT_NEAR(mean_of(out)(0), 3., 1e-6);
+  EXPECT_NEAR(covariance_of(out)(0,0), 1., 1e-6);
 }
 
 TEST_F(nonlinear, TT1TOA2Triangular)
@@ -136,8 +136,8 @@ TEST_F(nonlinear, TT1TOA2Triangular)
   LinearizedTransform t;
   auto in = GT<n> {{3., 0}, {1., 0, 0, 10}};
   auto out = t(in, g);
-  EXPECT_NEAR(mean(out)(0), 3., 1e-6);
-  EXPECT_NEAR(covariance(out)(0,0), 1., 1e-6);
+  EXPECT_NEAR(mean_of(out)(0), 3., 1e-6);
+  EXPECT_NEAR(covariance_of(out)(0,0), 1., 1e-6);
 }
 
 TEST_F(nonlinear, TT2TOA2SelfAdjoint)
@@ -147,8 +147,8 @@ TEST_F(nonlinear, TT2TOA2SelfAdjoint)
   LinearizedTransform<2> t;
   auto in = G<n> {{3., 0}, {1., 0, 0, 10}};
   auto out = t(in, g);
-  EXPECT_NEAR(mean(out)(0), 4.67, 1e-2);
-  EXPECT_NEAR(covariance(out)(0,0), 6.56, 1e-2);
+  EXPECT_NEAR(mean_of(out)(0), 4.67, 1e-2);
+  EXPECT_NEAR(covariance_of(out)(0,0), 6.56, 1e-2);
 }
 
 TEST_F(nonlinear, TT2TOA2Triangular)
@@ -158,8 +158,8 @@ TEST_F(nonlinear, TT2TOA2Triangular)
   LinearizedTransform<2> t;
   auto in = GT<n> {{3., 0}, {1., 0, 0, 10}};
   auto out = t(in, g);
-  EXPECT_NEAR(mean(out)(0), 4.67, 1e-2);
-  EXPECT_NEAR(covariance(out)(0,0), 6.56, 1e-2);
+  EXPECT_NEAR(mean_of(out)(0), 4.67, 1e-2);
+  EXPECT_NEAR(covariance_of(out)(0,0), 6.56, 1e-2);
 }
 
 TEST_F(nonlinear, TT1TOA3SelfAdjoint)
@@ -169,8 +169,8 @@ TEST_F(nonlinear, TT1TOA3SelfAdjoint)
   LinearizedTransform t;
   auto in = G<n> {{3., 0, 0}, {1., 0, 0, 0, 10, 0, 0, 0, 10}};
   auto out = t(in, g);
-  EXPECT_NEAR(mean(out)(0), 3., 1e-6);
-  EXPECT_NEAR(covariance(out)(0,0), 1., 1e-6);
+  EXPECT_NEAR(mean_of(out)(0), 3., 1e-6);
+  EXPECT_NEAR(covariance_of(out)(0,0), 1., 1e-6);
 }
 
 TEST_F(nonlinear, TT1TOA3Triangular)
@@ -180,8 +180,8 @@ TEST_F(nonlinear, TT1TOA3Triangular)
   LinearizedTransform t;
   auto in = GT<n> {{3., 0, 0}, {1., 0, 0, 0, 10, 0, 0, 0, 10}};
   auto out = t(in, g);
-  EXPECT_NEAR(mean(out)(0), 3., 1e-6);
-  EXPECT_NEAR(covariance(out)(0,0), 1., 1e-6);
+  EXPECT_NEAR(mean_of(out)(0), 3., 1e-6);
+  EXPECT_NEAR(covariance_of(out)(0,0), 1., 1e-6);
 }
 
 TEST_F(nonlinear, TT2TOA3SelfAdjoint)
@@ -191,8 +191,8 @@ TEST_F(nonlinear, TT2TOA3SelfAdjoint)
   LinearizedTransform<2> t;
   auto in = G<n> {{3., 0, 0}, {1., 0, 0, 0, 10, 0, 0, 0, 10}};
   auto out = t(in, g);
-  EXPECT_NEAR(mean(out)(0), 6.33, 1e-2);
-  EXPECT_NEAR(covariance(out)(0,0), 12.1, 1e-1);
+  EXPECT_NEAR(mean_of(out)(0), 6.33, 1e-2);
+  EXPECT_NEAR(covariance_of(out)(0,0), 12.1, 1e-1);
 }
 
 TEST_F(nonlinear, TT2TOA3Triangular)
@@ -202,7 +202,7 @@ TEST_F(nonlinear, TT2TOA3Triangular)
   LinearizedTransform<2> t;
   auto in = GT<n> {{3., 0, 0}, {1., 0, 0, 0, 10, 0, 0, 0, 10}};
   auto out = t(in, g);
-  EXPECT_NEAR(mean(out)(0), 6.33, 1e-2);
-  EXPECT_NEAR(covariance(out)(0,0), 12.1, 1e-1);
+  EXPECT_NEAR(mean_of(out)(0), 6.33, 1e-2);
+  EXPECT_NEAR(covariance_of(out)(0,0), 12.1, 1e-1);
 }
 

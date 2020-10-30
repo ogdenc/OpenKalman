@@ -18,12 +18,12 @@ namespace OpenKalman
   template<typename Trans, typename InDelta, typename ... PsDelta>
   struct FiniteDifferenceLinearization
   {
-    static_assert(is_column_vector_v<InDelta>);
-    static_assert((is_column_vector_v<PsDelta> and ...));
+    static_assert(column_vector<InDelta>);
+    static_assert((column_vector<PsDelta> and ...));
     static_assert(MatrixTraits<InDelta>::columns == 1);
     static_assert(((MatrixTraits<PsDelta>::columns == 1) and ...));
     static_assert(std::is_invocable_v<Trans, std::decay_t<InDelta>, std::decay_t<PsDelta>...>);
-    static_assert(not is_wrapped_v<std::invoke_result_t<Trans, std::decay_t<InDelta>, std::decay_t<PsDelta>...>>,
+    static_assert(not wrapped_mean<std::invoke_result_t<Trans, std::decay_t<InDelta>, std::decay_t<PsDelta>...>>,
       "For finite difference linearization, the transformation function cannot return a wrapped matrix.");
 
     FiniteDifferenceLinearization(Trans&& trans, InDelta&& in_delta, PsDelta&& ... ps_delta)
@@ -36,7 +36,7 @@ namespace OpenKalman
     {
       static_assert(is_equivalent_v<typename MatrixTraits<In>::RowCoefficients, typename MatrixTraits<InDelta>::RowCoefficients>);
       static_assert(is_equivalent_v<typename MatrixTraits<In>::ColumnCoefficients, typename MatrixTraits<InDelta>::ColumnCoefficients>);
-      static_assert((is_perturbation_v<Perturbations> and ...));
+      static_assert((perturbation<Perturbations> and ...));
     }
 
     template<typename T>

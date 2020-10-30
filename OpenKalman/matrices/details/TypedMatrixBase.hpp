@@ -43,7 +43,11 @@ namespace OpenKalman::internal
     TypedMatrixBase(TypedMatrixBase&& other) noexcept : Base(std::move(other).base_matrix()) {}
 
     /// Construct from a typed matrix base.
+#ifdef __cpp_concepts
+    template<typed_matrix_base Arg>
+#else
     template<typename Arg, std::enable_if_t<is_typed_matrix_base_v<Arg>, int> = 0>
+#endif
     TypedMatrixBase(Arg&& arg) noexcept : Base(std::forward<Arg>(arg))
     {
       static_assert(MatrixTraits<Arg>::dimension == dimension);

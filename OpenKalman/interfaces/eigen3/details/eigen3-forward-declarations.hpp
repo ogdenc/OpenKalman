@@ -63,7 +63,12 @@ namespace OpenKalman
      * @tparam Coefficients The coefficient types.
      * @tparam BaseMatrix The pre-transformed column vector, or set of column vectors in the form of a matrix.
      */
+#ifdef __cpp_concepts
+    template<coefficients Coefficients, typename BaseMatrix = Eigen::Matrix<double, Coefficients::size, 1>>
+      requires (MatrixTraits<BaseMatrix>::dimension == Coefficients::size)
+#else
     template<typename Coefficients, typename BaseMatrix = Eigen::Matrix<double, Coefficients::size, 1>>
+#endif
     struct ToEuclideanExpr;
 
     /**
@@ -74,7 +79,12 @@ namespace OpenKalman
      * @tparam Coefficients The coefficient types.
      * @tparam BaseMatrix The pre-transformed column vector, or set of column vectors in the form of a matrix.
      */
+#ifdef __cpp_concepts
+    template<coefficients Coefficients, typename BaseMatrix = Eigen::Matrix<double, Coefficients::dimension, 1>>
+      requires (MatrixTraits<BaseMatrix>::dimension == Coefficients::dimension)
+#else
     template<typename Coefficients, typename BaseMatrix = Eigen::Matrix<double, Coefficients::dimension, 1>>
+#endif
     struct FromEuclideanExpr;
 
 
@@ -273,7 +283,7 @@ namespace OpenKalman
     /// An object that is a native Eigen::MatrixBase type in Eigen3.
     template<typename T>
     concept eigen_native = requires {typename MatrixTraits<std::decay_t<T>>::BaseMatrix;} and
-      (not internal::eigen_new<T>) and (not is_typed_matrix_v<T>) and (not is_covariance_v<T>);
+      (not internal::eigen_new<T>) and (not typed_matrix<T>) and (not is_covariance_v<T>);
 #else
     /// Whether an object is a native Eigen::MatrixBase type in Eigen3.
     template<typename T>
@@ -308,9 +318,9 @@ namespace OpenKalman
     inline constexpr bool eigen_matrix = is_eigen_matrix_v<T>;
 #endif
 
-/////////////////
-//    Other    //
-/////////////////
+    // ----------- //
+    //    other    //
+    // ----------- //
 
     namespace internal
     {
@@ -331,25 +341,53 @@ namespace OpenKalman
   } // namespace Eigen3
 
 
+  // covariance_base
 #ifdef __cpp_concepts
-  template<Eigen3::eigen_native T> requires (is_triangular_v<T> or is_self_adjoint_v<T> )
-  struct is_covariance_base<T> : std::true_type {};
+  template<typename T> requires
+    Eigen3::eigen_self_adjoint_expr<T> or
+    Eigen3::eigen_triangular_expr<T> or
+    Eigen3::eigen_diagonal_expr<T> or
+    Eigen3::eigen_zero_expr<T> or
+    (Eigen3::eigen_native<T> and (is_triangular_v<T> or is_self_adjoint_v<T>))
+  struct is_covariance_base<T>
 #else
   template<typename T>
-    struct is_covariance_base<T,
-      std::enable_if_t<Eigen3::is_eigen_native_v<T> and (is_triangular_v<T> or is_self_adjoint_v<T>)>>
-      : std::true_type {};
+  struct is_covariance_base<T, std::enable_if_t<
+    Eigen3::eigen_self_adjoint_expr<T> or
+    Eigen3::eigen_triangular_expr<T> or
+    Eigen3::eigen_diagonal_expr<T> or
+    Eigen3::eigen_zero_expr<T> or
+    (Eigen3::is_eigen_native_v<T> and (is_triangular_v<T> or is_self_adjoint_v<T>))>>
 #endif
+    : std::true_type {};
 
 
+  // typed_matrix_base
 #ifdef __cpp_concepts
-  template<Eigen3::eigen_native T>
-  struct is_typed_matrix_base<T> : std::true_type {};
+  template<typename T> requires
+    Eigen3::eigen_self_adjoint_expr<T> or
+    Eigen3::eigen_triangular_expr<T> or
+    Eigen3::eigen_diagonal_expr<T> or
+    Eigen3::eigen_zero_expr<T> or
+    Eigen3::to_euclidean_expr<T> or
+    Eigen3::from_euclidean_expr<T> or
+    Eigen3::eigen_native<T>
+  struct is_typed_matrix_base<T>
 #else
   template<typename T>
-    struct is_typed_matrix_base<T, std::enable_if_t<Eigen3::is_eigen_native_v<T>>> : std::true_type {};
+  struct is_typed_matrix_base<T, std::enable_if_t<
+    Eigen3::eigen_self_adjoint_expr<T> or
+    Eigen3::eigen_triangular_expr<T> or
+    Eigen3::eigen_diagonal_expr<T> or
+    Eigen3::eigen_zero_expr<T> or
+    Eigen3::to_euclidean_expr<T> or
+    Eigen3::from_euclidean_expr<T> or
+    Eigen3::is_eigen_native_v<T>>>
 #endif
+    : std::true_type {};
 
+
+  // ---------------------------------------------------------------
 
 #ifdef __cpp_concepts
   template<Eigen3::eigen_native T> requires std::same_as<T, std::decay_t<T>>
@@ -404,14 +442,6 @@ namespace OpenKalman
   /////////////////////////////
   //    SelfAdjointMatrix    //
   /////////////////////////////
-
-  template<typename BaseMatrix, TriangleType storage_triangle>
-  struct is_covariance_base<Eigen3::SelfAdjointMatrix<BaseMatrix, storage_triangle>>
-    : std::true_type {};
-
-  template<typename BaseMatrix, TriangleType storage_triangle>
-  struct is_typed_matrix_base<Eigen3::SelfAdjointMatrix<BaseMatrix, storage_triangle>>
-    : std::true_type {};
 
   template<typename BaseMatrix, TriangleType storage_triangle>
   struct is_zero<Eigen3::SelfAdjointMatrix<BaseMatrix, storage_triangle>>
@@ -482,12 +512,6 @@ namespace OpenKalman
   ////////////////////////////
 
   template<typename BaseMatrix, TriangleType triangle_type>
-  struct is_covariance_base<Eigen3::TriangularMatrix<BaseMatrix, triangle_type>> : std::true_type {};
-
-  template<typename BaseMatrix, TriangleType triangle_type>
-  struct is_typed_matrix_base<Eigen3::TriangularMatrix<BaseMatrix, triangle_type>> : std::true_type {};
-
-  template<typename BaseMatrix, TriangleType triangle_type>
   struct is_zero<Eigen3::TriangularMatrix<BaseMatrix, triangle_type>>
     : std::bool_constant<is_zero_v<BaseMatrix>> {};
 
@@ -537,12 +561,6 @@ namespace OpenKalman
   // -------------------- //
 
   template<typename BaseMatrix>
-  struct is_covariance_base<Eigen3::DiagonalMatrix<BaseMatrix>> : std::true_type {};
-
-  template<typename BaseMatrix>
-  struct is_typed_matrix_base<Eigen3::DiagonalMatrix<BaseMatrix>> : std::true_type {};
-
-  template<typename BaseMatrix>
   struct is_zero<Eigen3::DiagonalMatrix<BaseMatrix>>
     : std::bool_constant<is_zero_v<BaseMatrix>> {};
 
@@ -569,12 +587,6 @@ namespace OpenKalman
 
   template<typename BaseMatrix>
   struct is_zero<Eigen3::ZeroMatrix<BaseMatrix>> : std::true_type {};
-
-  template<typename BaseMatrix>
-  struct is_covariance_base<Eigen3::ZeroMatrix<BaseMatrix>> : std::true_type {};
-
-  template<typename BaseMatrix>
-  struct is_typed_matrix_base<Eigen3::ZeroMatrix<BaseMatrix>> : std::true_type {};
 
   template<typename ArgType>
   struct is_strict<Eigen3::ZeroMatrix<ArgType>> : std::true_type {};
@@ -622,9 +634,6 @@ namespace OpenKalman
   template<typename Coefficients, typename BaseMatrix>
   struct is_strict<Eigen3::ToEuclideanExpr<Coefficients, BaseMatrix>> : is_strict<BaseMatrix> {};
 
-  template<typename Coefficients, typename BaseMatrix>
-  struct is_typed_matrix_base<Eigen3::ToEuclideanExpr<Coefficients, BaseMatrix>> : std::true_type {};
-
   template<typename Coefficients, typename BaseMatrix, std::size_t N>
   struct is_element_gettable<Eigen3::ToEuclideanExpr<Coefficients, BaseMatrix>, N>
   : std::bool_constant<is_element_gettable_v<BaseMatrix, N>> {};
@@ -640,9 +649,6 @@ namespace OpenKalman
 
   template<typename Coefficients, typename BaseMatrix>
   struct is_strict<Eigen3::FromEuclideanExpr<Coefficients, BaseMatrix>> : is_strict<BaseMatrix> {};
-
-  template<typename Coefficients, typename BaseMatrix>
-  struct is_typed_matrix_base<Eigen3::FromEuclideanExpr<Coefficients, BaseMatrix>> : std::true_type {};
 
   template<typename Coefficients, typename BaseMatrix, std::size_t N>
   struct is_element_gettable<Eigen3::FromEuclideanExpr<Coefficients, BaseMatrix>, N>
@@ -727,9 +733,9 @@ namespace OpenKalman
   // Default for Eigen: the base matrix will be an Eigen::Matrix of the appropriate size.
 #ifdef __cpp_concepts
   template<coefficients RowCoefficients, coefficients ColumnCoefficients = RowCoefficients,
-    typename BaseMatrix = Eigen::Matrix<double, RowCoefficients::size, ColumnCoefficients::size>> requires
-  is_typed_matrix_base_v<BaseMatrix> and (RowCoefficients::size == MatrixTraits<BaseMatrix>::dimension) and
-    (ColumnCoefficients::size == MatrixTraits<BaseMatrix>::columns)
+    typed_matrix_base BaseMatrix = Eigen::Matrix<double, RowCoefficients::size, ColumnCoefficients::size>> requires
+      (RowCoefficients::size == MatrixTraits<BaseMatrix>::dimension) and
+      (ColumnCoefficients::size == MatrixTraits<BaseMatrix>::columns)
 #else
   template<typename RowCoefficients, typename ColumnCoefficients = RowCoefficients,
     typename BaseMatrix = Eigen::Matrix<double, RowCoefficients::size, ColumnCoefficients::size>>
@@ -797,8 +803,8 @@ namespace OpenKalman
 #if FIRST_EIGEN_INTERFACE == OPENKALMAN_EIGEN3_INTERFACE
   // By default when using Eigen3, a Mean is an Eigen3 column vector corresponding to the Coefficients.
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, typename BaseMatrix = Eigen::Matrix<double, Coefficients::size, 1>> requires
-    is_typed_matrix_base_v<BaseMatrix> and (Coefficients::size == MatrixTraits<BaseMatrix>::dimension)
+  template<coefficients Coefficients, typed_matrix_base BaseMatrix = Eigen::Matrix<double, Coefficients::size, 1>>
+    requires (Coefficients::size == MatrixTraits<BaseMatrix>::dimension)
 #else
   template<typename Coefficients, typename BaseMatrix = Eigen::Matrix<double, Coefficients::size, 1>>
 #endif
@@ -862,8 +868,8 @@ namespace OpenKalman
 
 #if FIRST_EIGEN_INTERFACE == OPENKALMAN_EIGEN3_INTERFACE
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, typename BaseMatrix = Eigen::Matrix<double, Coefficients::dimension, 1>> requires
-    is_typed_matrix_base_v<BaseMatrix> and (Coefficients::dimension == MatrixTraits<BaseMatrix>::dimension)
+  template<coefficients Coefficients, typed_matrix_base BaseMatrix = Eigen::Matrix<double, Coefficients::dimension, 1>>
+    requires (Coefficients::dimension == MatrixTraits<BaseMatrix>::dimension)
   struct EuclideanMean;
 #else
   template<typename Coefficients, typename BaseMatrix = Eigen::Matrix<double, Coefficients::dimension, 1>>
@@ -929,9 +935,14 @@ namespace OpenKalman
   //////////////////////
 
 #if FIRST_EIGEN_INTERFACE == OPENKALMAN_EIGEN3_INTERFACE
-  template<
-    typename Coefficients,
-    typename ArgType = Eigen3::SelfAdjointMatrix<Eigen::Matrix<double, Coefficients::size, Coefficients::size>>>
+#ifdef __cpp_concepts
+  template<coefficients Coefficients, covariance_base BaseMatrix =
+    Eigen3::SelfAdjointMatrix<Eigen::Matrix<double, Coefficients::size, Coefficients::size>>> requires
+    (Coefficients::size == MatrixTraits<BaseMatrix>::dimension)
+#else
+  template<typename Coefficients, typename BaseMatrix =
+    Eigen3::SelfAdjointMatrix<Eigen::Matrix<double, Coefficients::size, Coefficients::size>>>
+#endif
   struct Covariance;
 #endif
 
@@ -1010,9 +1021,14 @@ namespace OpenKalman
   ////////////////////////////////
 
 #if FIRST_EIGEN_INTERFACE == OPENKALMAN_EIGEN3_INTERFACE
-  template<
-    typename Coefficients,
-    typename ArgType = Eigen3::TriangularMatrix<Eigen::Matrix<double, Coefficients::size, Coefficients::size>>>
+#ifdef __cpp_concepts
+  template<coefficients Coefficients, covariance_base BaseMatrix =
+    Eigen3::SelfAdjointMatrix<Eigen::Matrix<double, Coefficients::size, Coefficients::size>>> requires
+    (Coefficients::size == MatrixTraits<BaseMatrix>::dimension)
+#else
+  template<typename Coefficients, typename BaseMatrix =
+    Eigen3::SelfAdjointMatrix<Eigen::Matrix<double, Coefficients::size, Coefficients::size>>>
+#endif
   struct SquareRootCovariance;
 #endif
 

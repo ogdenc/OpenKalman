@@ -36,7 +36,11 @@ namespace OpenKalman::internal
     CovarianceBaseBase(Arg&& arg) noexcept : m_arg(internal::convert_base_matrix<BaseMatrix>(std::forward<Arg>(arg))) {}
 
     /// Construct from a covariance base.
+#ifdef __cpp_concepts
+    template<covariance_base Arg>
+#else
     template<typename Arg, std::enable_if_t<is_covariance_base_v<Arg>, int> = 0>
+#endif
     CovarianceBaseBase(Arg&& arg) noexcept : m_arg(std::forward<Arg>(arg)) {}
 
     /// Copy assignment operator.
@@ -56,7 +60,11 @@ namespace OpenKalman::internal
     }
 
     /// Assign from a covariance base.
+#ifdef __cpp_concepts
+    template<typename Arg> requires covariance_base<Arg> or typed_matrix_base<Arg>
+#else
     template<typename Arg, std::enable_if_t<is_covariance_base_v<Arg> or is_typed_matrix_base_v<Arg>, int> = 0>
+#endif
     auto& operator=(Arg&& arg) noexcept
     {
       if constexpr (is_zero_v<BaseMatrix>)

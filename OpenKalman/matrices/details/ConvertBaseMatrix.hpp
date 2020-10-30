@@ -25,11 +25,11 @@ namespace OpenKalman::internal
   constexpr decltype(auto)
   convert_base_matrix(Arg&& arg) noexcept
   {
-    static_assert(is_covariance_v<Arg> or is_typed_matrix_v<Arg>);
+    static_assert(is_covariance_v<Arg> or typed_matrix<Arg>);
     using ArgBase = typename MatrixTraits<Arg>::BaseMatrix;
 
     // Typed matrices:
-    if constexpr(is_typed_matrix_v<Arg>)
+    if constexpr(typed_matrix<Arg>)
     {
       static_assert(is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, typename MatrixTraits<Arg>::ColumnCoefficients>);
       using SA = typename MatrixTraits<ArgBase>::template SelfAdjointBaseType<>;

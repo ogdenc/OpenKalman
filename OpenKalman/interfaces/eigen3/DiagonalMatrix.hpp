@@ -67,7 +67,7 @@ namespace OpenKalman::Eigen3
       static_assert(MatrixTraits<Arg>::dimension == dimension);
     }
 
-    ///@TODO: Add constructor from Eigen::DiagonalMatrix
+    //@TODO: Add constructor from Eigen::DiagonalMatrix
 
     /// Construct from a square zero matrix.
 #ifdef __cpp_concepts
@@ -277,12 +277,11 @@ namespace OpenKalman::Eigen3
   //        Deduction guides         //
   /////////////////////////////////////
 
-#ifdef __cpp_concepts
-  /// @TODO For unknown reasons, SFINAE is needed here in both GCC and clang, rather than the requires clause below, to prevent matching M=double:
-  /// template<eigen_matrix M> requires (MatrixTraits<M>::columns == 1)
-  template<typename M, std::enable_if_t<eigen_matrix < M>and MatrixTraits<M>::columns == 1, int> = 0>
+#if defined(__cpp_concepts) and false
+  // @TODO Unlike SFINAE version, this incorrectly matches M==double in both GCC 10.1.0 and clang 10.0.0:
+  template<eigen_matrix M> requires (MatrixTraits<M>::columns == 1)
 #else
-  template<typename M, std::enable_if_t<is_eigen_matrix_v<M> and MatrixTraits<M>::columns == 1, int> = 0>
+  template<typename M, std::enable_if_t<eigen_matrix<M> and MatrixTraits<M>::columns == 1, int> = 0>
 #endif
   DiagonalMatrix(M&&) -> DiagonalMatrix<lvalue_or_strict_t < M>>;
 
@@ -365,7 +364,7 @@ namespace OpenKalman
     template<std::size_t rows = dimension, std::size_t cols = columns, typename S = Scalar>
     using StrictMatrix = typename MatrixTraits<std::decay_t<BaseMatrix>>::template StrictMatrix<rows, cols, S>;
 
-    using Strict = Eigen3::DiagonalMatrix<typename MatrixTraits<BaseMatrix>::Strict>;
+    using Strict = Eigen3::DiagonalMatrix<strict_t<BaseMatrix>>;
 
     template<TriangleType storage_triangle = TriangleType::diagonal, std::size_t dim = dimension, typename S = Scalar>
     using SelfAdjointBaseType = Eigen3::SelfAdjointMatrix<StrictMatrix<dim, dim, S>, storage_triangle>;

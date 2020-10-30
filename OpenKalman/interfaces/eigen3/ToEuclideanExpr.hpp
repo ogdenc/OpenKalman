@@ -18,7 +18,12 @@ namespace OpenKalman::Eigen3
   // ------------------------------ //
 
   // Class documentation is in EigenForwardDeclarations.h
+#ifdef __cpp_concepts
+  template<coefficients Coefficients, typename BaseMatrix> requires
+    (MatrixTraits<BaseMatrix>::dimension == Coefficients::size)
+#else
   template<typename Coefficients, typename BaseMatrix>
+#endif
   struct ToEuclideanExpr : OpenKalman::internal::MatrixBase<ToEuclideanExpr<Coefficients, BaseMatrix>, BaseMatrix>
   {
     static_assert(MatrixTraits<BaseMatrix>::dimension == Coefficients::size);
@@ -272,7 +277,7 @@ namespace OpenKalman
     template<std::size_t rows = dimension, std::size_t cols = columns, typename S = Scalar>
     using StrictMatrix = typename MatrixTraits<BaseMatrix>::template StrictMatrix<rows, cols, S>;
 
-    using Strict = Eigen3::ToEuclideanExpr<Coefficients, typename MatrixTraits<BaseMatrix>::Strict>;
+    using Strict = Eigen3::ToEuclideanExpr<Coefficients, strict_t<BaseMatrix>>;
 
     template<TriangleType storage_triangle = TriangleType::lower, std::size_t dim = dimension, typename S = Scalar>
     using SelfAdjointBaseType = Eigen3::SelfAdjointMatrix<StrictMatrix<dim, dim, S>, storage_triangle>;

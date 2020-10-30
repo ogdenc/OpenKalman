@@ -36,7 +36,7 @@ namespace OpenKalman
       static_assert(std::conjunction_v<is_equivalent<typename DistributionTraits<InputDist>::Coefficients,
         typename DistributionTraits<NoiseDists>::Coefficients>...>,
         "Input and Noise distributions must be the same size and an equivalent type.");
-      const auto scaled_x = GaussianDistribution {mean(x), covariance(x) * inv_lambda};
+      const auto scaled_x = GaussianDistribution {mean_of(x), covariance_of(x) * inv_lambda};
       return strict((scaled_x + ... + ns));
     }
 
@@ -52,8 +52,8 @@ namespace OpenKalman
       static_assert(std::conjunction_v<is_equivalent<typename DistributionTraits<InputDist>::Coefficients,
         typename DistributionTraits<NoiseDists>::Coefficients>...>,
         "Input and Noise distributions must be the same size and an equivalent type.");
-      auto scaled_cov = strict(covariance(x) * inv_lambda);
-      const auto scaled_x = GaussianDistribution {mean(x), scaled_cov};
+      auto scaled_cov = strict(covariance_of(x) * inv_lambda);
+      const auto scaled_x = GaussianDistribution {mean_of(x), scaled_cov};
       auto y = strict((scaled_x + ... + ns));
       auto cross = Matrix {scaled_cov};
       return std::tuple {std::move(y), std::move(cross)};

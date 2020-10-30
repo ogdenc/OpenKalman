@@ -85,7 +85,7 @@ namespace OpenKalman::Eigen3::internal
     {
       auto& xpr = get_ultimate_base_matrix(static_cast<Derived&>(*this));
       using Xpr = std::decay_t<decltype(xpr)>;
-      if constexpr(is_mean_v<Derived>)
+      if constexpr(mean<Derived>)
       {
         return Eigen::MeanCommaInitializer<Derived, Xpr>(xpr, static_cast<const Scalar&>(s));
       }
@@ -104,7 +104,7 @@ namespace OpenKalman::Eigen3::internal
     {
       auto& xpr = get_ultimate_base_matrix(static_cast<Derived&>(*this));
       using Xpr = std::decay_t<decltype(xpr)>;
-      if constexpr(is_mean_v<Derived>)
+      if constexpr(mean<Derived>)
       {
         return Eigen::MeanCommaInitializer<Derived, Xpr>(xpr, static_cast<const OtherDerived&>(other));
       }

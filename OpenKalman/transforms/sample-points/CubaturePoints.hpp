@@ -43,7 +43,7 @@ namespace OpenKalman
       constexpr auto points_count = dim * 2;
       constexpr auto dim_i = DistributionTraits<D>::dimension;
       constexpr auto frame_size = dim_i * 2;
-      const auto delta = make_Matrix<Coeffs, Axes<dim_i>>(strict_matrix(square_root(OpenKalman::covariance(d) * static_cast<Scalar>(dim))));
+      const auto delta = make_Matrix<Coeffs, Axes<dim_i>>(strict_matrix(square_root(OpenKalman::covariance_of(d) * static_cast<Scalar>(dim))));
       if constexpr(frame_size == points_count)
       {
         auto ret = concatenate_horizontal(delta, -delta);
@@ -95,11 +95,15 @@ namespace OpenKalman
       return sample_points_impl<dim>(ds...);
     }
 
-    template<std::size_t dim, typename Arg, std::enable_if_t<is_Euclidean_mean_v<Arg>, int> = 0>
+#ifdef __cpp_concepts
+    template<std::size_t dim, euclidean_mean Arg>
+#else
+    template<std::size_t dim, typename Arg, std::enable_if_t<is_euclidean_mean_v<Arg>, int> = 0>
+#endif
     static auto
     weighted_means(const Arg& y_means)
     {
-      static_assert(is_column_vector_v<Arg>);
+      static_assert(column_vector<Arg>);
       static_assert(MatrixTraits<Arg>::columns == dim * 2, "Wrong number of cubature points.");
       return reduce_columns(y_means);
     };
@@ -108,7 +112,7 @@ namespace OpenKalman
     static auto
     covariance(const X& x_deviations, const Y& y_deviations)
     {
-      static_assert(is_typed_matrix_v<X> and is_typed_matrix_v<Y>);
+      static_assert(typed_matrix<X> and typed_matrix<Y>);
       using Scalar = typename MatrixTraits<X>::Scalar;
       constexpr auto count = MatrixTraits<X>::columns;
       static_assert(count == MatrixTraits<Y>::columns);

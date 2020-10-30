@@ -85,11 +85,15 @@ namespace OpenKalman
       return SigmaPointsType::template sigma_points(ds...);
     }
 
-    template<std::size_t dim, typename YMeans, std::enable_if_t<is_Euclidean_mean_v<YMeans>, int> = 0>
+#ifdef __cpp_concepts
+    template<std::size_t dim, euclidean_mean YMeans>
+#else
+    template<std::size_t dim, typename YMeans, std::enable_if_t<is_euclidean_mean_v<YMeans>, int> = 0>
+#endif
     static auto
     weighted_means(const YMeans& y_means)
     {
-      static_assert(is_column_vector_v<YMeans>);
+      static_assert(column_vector<YMeans>);
       constexpr auto count = MatrixTraits<YMeans>::columns;
       static_assert(count == SigmaPointsType::template sigma_point_count<dim>(), "Wrong number of sigma points.");
       using Weights = Matrix<Axes<count>, Axis, strict_matrix_t<YMeans, count, 1>>;
@@ -100,7 +104,7 @@ namespace OpenKalman
     static auto
     covariance(const X& x_deviations, const Y& y_deviations)
     {
-      static_assert(is_typed_matrix_v<X> and is_typed_matrix_v<Y>);
+      static_assert(typed_matrix<X> and typed_matrix<Y>);
       static_assert(is_equivalent_v<typename MatrixTraits<X>::RowCoefficients,
         typename DistributionTraits<InputDist>::Coefficients>);
       constexpr auto count = MatrixTraits<X>::columns;

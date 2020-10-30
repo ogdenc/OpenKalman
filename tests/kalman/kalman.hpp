@@ -51,7 +51,7 @@ public:
   {
     auto p_transform = RecursiveLeastSquaresTransform(0.9995);
     auto filter = KalmanFilter {p_transform, m_transform};
-    auto meas_dist = MeasDist {t(true_state), covariance(r)};
+    auto meas_dist = MeasDist {t(true_state), covariance_of(r)};
 
     int count = 0;
     Scalar norm = std::numeric_limits<Scalar>::infinity();
@@ -61,7 +61,7 @@ public:
       const auto z = meas_dist();
       x = filter.predict(x);
       x = filter.update(z, x, t, r);
-      norm = (mean(x) - true_state).norm() / std::sqrt(DistributionTraits<StateDist>::dimension);
+      norm = (mean_of(x) - true_state).norm() / std::sqrt(DistributionTraits<StateDist>::dimension);
     }
     if (count >= iterations)
     {

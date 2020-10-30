@@ -49,7 +49,7 @@ namespace OpenKalman
     {
       constexpr auto count = MatrixTraits<decltype(std::get<0>(points))>::columns;
       return apply_columnwise<count>([&](size_t i) {
-        return g((column(std::get<ints>(points), i) + mean(std::get<ints>(dists)))...);
+        return g((column(std::get<ints>(points), i) + mean_of(std::get<ints>(dists)))...);
       });
     }
 

@@ -49,7 +49,11 @@ namespace OpenKalman::internal
     }
 
     /// Assign from a compatible matrix or covariance base.
+#ifdef __cpp_concepts
+    template<typename Arg> requires typed_matrix_base<Arg> or covariance_base<Arg>
+#else
     template<typename Arg, std::enable_if_t<is_typed_matrix_base_v<Arg> or is_covariance_base_v<Arg>, int> = 0>
+#endif
     auto& operator=(Arg&& arg) noexcept
     {
       if constexpr (is_zero_v<BaseMatrix>)

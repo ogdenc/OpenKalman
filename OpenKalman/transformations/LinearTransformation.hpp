@@ -59,8 +59,8 @@ namespace OpenKalman
     template<typename T, typename ColumnCoefficients = OutputCoefficients>
     static constexpr bool is_valid_input_matrix_v()
     {
-      static_assert(is_typed_matrix_v<T> or is_typed_matrix_base_v<T>);
-      if constexpr(is_typed_matrix_v<T>)
+      static_assert(typed_matrix<T> or typed_matrix_base<T>);
+      if constexpr(typed_matrix<T>)
         return
           is_equivalent_v<typename MatrixTraits<T>::RowCoefficients, OutputCoefficients> and
           is_equivalent_v<typename MatrixTraits<T>::ColumnCoefficients, ColumnCoefficients>;
@@ -86,9 +86,14 @@ namespace OpenKalman
     LinearTransformation(const TransformationMatrix& mat, const PerturbationTransformationMatrices& ... p_mats)
       : transformation_matrices(mat, p_mats...) {}
 
-    template<typename T, typename ... Ps,
-      std::enable_if_t<(is_typed_matrix_v<T> or is_typed_matrix_base_v<T>) and
-        ((is_typed_matrix_v<Ps> or is_typed_matrix_base_v<Ps>) and ...), int> = 0>
+#ifdef __cpp_concepts
+    template<typename T, typename ... Ps> requires
+      (typed_matrix<T> or typed_matrix_base<T>) and ((typed_matrix<Ps> or typed_matrix_base<Ps>) and ...)
+#else
+    template<typename T, typename ... Ps, std::enable_if_t<
+      (is_typed_matrix_v<T> or is_typed_matrix_base_v<T>) and
+      ((is_typed_matrix_v<Ps> or is_typed_matrix_base_v<Ps>) and ...), int> = 0>
+#endif
     LinearTransformation(T&& mat, Ps&& ... p_mats) noexcept
       : transformation_matrices(std::forward<T>(mat), std::forward<Ps>(p_mats)...)
     {
@@ -100,8 +105,8 @@ namespace OpenKalman
     template<typename In, typename ... Perturbations>
     auto operator()(const In& in, const Perturbations& ... ps) const
     {
-      static_assert(is_column_vector_v<In>);
-      static_assert((is_perturbation_v<Perturbations> and ...));
+      static_assert(column_vector<In>);
+      static_assert((perturbation<Perturbations> and ...));
       static_assert(MatrixTraits<In>::columns == 1);
       static_assert(((internal::PerturbationTraits<Perturbations>::columns == 1) and ...));
       static_assert(is_equivalent_v<typename MatrixTraits<In>::RowCoefficients, InputCoefficients>);
@@ -118,8 +123,8 @@ namespace OpenKalman
     template<typename In, typename ... Perturbations>
     auto jacobian(const In&, const Perturbations&...) const
     {
-      static_assert(is_column_vector_v<In>);
-      static_assert((is_perturbation_v<Perturbations> and ...));
+      static_assert(column_vector<In>);
+      static_assert((perturbation<Perturbations> and ...));
       static_assert(MatrixTraits<In>::columns == 1);
       static_assert(((internal::PerturbationTraits<Perturbations>::columns == 1) and ...));
       static_assert(is_equivalent_v<typename MatrixTraits<In>::RowCoefficients, InputCoefficients>);
@@ -150,25 +155,33 @@ namespace OpenKalman
   };
 
 
-  /**
+  /*
    * Deduction guides
    */
 
-  template<typename T, typename ... Ps,
-    std::enable_if_t<std::conjunction_v<is_typed_matrix<T>,
-      std::disjunction<is_typed_matrix<Ps>, is_typed_matrix_base<Ps>>...>, int> = 0>
+#ifdef __cpp_concepts
+  template<typename T, typename ... Ps> requires
+    (typed_matrix<T> and ... and (typed_matrix<Ps> or typed_matrix_base<Ps>))
+#else
+  template<typename T, typename ... Ps, std::enable_if_t<std::conjunction_v<is_typed_matrix<T>,
+    std::disjunction<is_typed_matrix<Ps>, is_typed_matrix_base<Ps>>...>, int> = 0>
+#endif
   LinearTransformation(T&&, Ps&& ...)
   -> LinearTransformation<
     typename MatrixTraits<T>::ColumnCoefficients,
     typename MatrixTraits<T>::RowCoefficients,
     strict_t<typename MatrixTraits<T>::BaseMatrix>,
     std::conditional_t<
-      is_typed_matrix_v<Ps>,
+      typed_matrix<Ps>,
       strict_t<typename MatrixTraits<Ps>::BaseMatrix>,
       strict_t<std::decay_t<Ps>>>...>;
 
-  template<typename T, typename ... Ps,
-    std::enable_if_t<std::conjunction_v<is_typed_matrix_base<T>, is_typed_matrix_base<Ps>...>, int> = 0>
+#ifdef __cpp_concepts
+  template<typed_matrix_base T, typed_matrix_base ... Ps>
+#else
+  template<typename T, typename ... Ps, std::enable_if_t<
+    std::conjunction_v<is_typed_matrix_base<T>, is_typed_matrix_base<Ps>...>, int> = 0>
+#endif
   LinearTransformation(T&&, Ps&& ...)
   -> LinearTransformation<
     Axes<MatrixTraits<T>::columns>,
@@ -177,7 +190,7 @@ namespace OpenKalman
     strict_t<std::decay_t<Ps>>...>;
 
 
-  /**
+  /*
    * Traits
    */
 

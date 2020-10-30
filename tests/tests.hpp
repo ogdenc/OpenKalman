@@ -20,9 +20,9 @@ using namespace OpenKalman;
 
 template<typename Arg>
 static constexpr bool is_test_trait =
-  is_typed_matrix_base_v<Arg> or
-  is_typed_matrix_v<Arg> or
-  is_covariance_base_v<Arg> or
+  typed_matrix_base<Arg> or
+  typed_matrix<Arg> or
+  covariance_base<Arg> or
   is_covariance_v<Arg>;
 
 template<typename ArgA, typename ArgB, std::enable_if_t<is_test_trait<ArgA> and is_test_trait<ArgB>, int> = 0>
@@ -70,7 +70,7 @@ template<
     Dist2&& B,
     const typename DistributionTraits<Dist1>::Scalar err = (typename DistributionTraits<Dist1>::Scalar) 1e-6)
 {
-  if (is_near(mean(A), mean(B), err) and is_near(covariance(A), covariance(B), err))
+  if (is_near(mean_of(A), mean_of(B), err) and is_near(covariance_of(A), covariance_of(B), err))
   {
     return ::testing::AssertionSuccess();
   }

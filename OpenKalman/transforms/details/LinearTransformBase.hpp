@@ -33,35 +33,35 @@ namespace OpenKalman::internal
       {
         if constexpr (return_cross)
         {
-          auto sqrt_c0 =square_root(covariance(std::get<0>(dist)));
+          auto sqrt_c0 =square_root(covariance_of(std::get<0>(dist)));
           auto term0 = std::get<0>(j) * sqrt_c0;
           return std::tuple {
             LQ_decomposition(concatenate_horizontal(term0, Matrix(
-              (std::get<ints+1>(j) * (square_root(covariance(std::get<ints+1>(dist))))))...)),
+              (std::get<ints+1>(j) * (square_root(covariance_of(std::get<ints+1>(dist))))))...)),
             strict(sqrt_c0 * adjoint(term0))};
         }
         else
         {
-          auto term0 = std::get<0>(j) * square_root(covariance(std::get<0>(dist)));
+          auto term0 = std::get<0>(j) * square_root(covariance_of(std::get<0>(dist)));
           return LQ_decomposition(concatenate_horizontal(term0, Matrix(
-              (std::get<ints+1>(j) * (square_root(covariance(std::get<ints+1>(dist))))))...));
+              (std::get<ints+1>(j) * (square_root(covariance_of(std::get<ints+1>(dist))))))...));
         }
       }
       else
       {
         if constexpr (return_cross)
         {
-          auto cross = strict(covariance(std::get<0>(dist)) * adjoint(std::get<0>(j)));
+          auto cross = strict(covariance_of(std::get<0>(dist)) * adjoint(std::get<0>(j)));
           auto cov = make_Covariance((
             (std::get<0>(j) * cross) +
-              ... + (std::get<ints+1>(j) * (covariance(std::get<ints+1>(dist)) * adjoint(std::get<ints+1>(j))))));
+              ... + (std::get<ints+1>(j) * (covariance_of(std::get<ints+1>(dist)) * adjoint(std::get<ints+1>(j))))));
           return std::tuple {std::move(cov), std::move(cross)};
         }
         else
         {
           return make_Covariance((
-            (std::get<0>(j) * covariance(std::get<0>(dist)) * adjoint(std::get<0>(j))) +
-              ... + (std::get<ints+1>(j) * (covariance(std::get<ints+1>(dist)) * adjoint(std::get<ints+1>(j))))));
+            (std::get<0>(j) * covariance_of(std::get<0>(dist)) * adjoint(std::get<0>(j))) +
+              ... + (std::get<ints+1>(j) * (covariance_of(std::get<ints+1>(dist)) * adjoint(std::get<ints+1>(j))))));
         }
       }
     }
@@ -83,7 +83,7 @@ namespace OpenKalman::internal
       std::enable_if_t<std::conjunction_v<is_distribution<InputDist>, is_distribution<NoiseDist>...>, int> = 0>
     auto transform(const TransformFunction& f, const InputDist& in, const NoiseDist& ...n) const
     {
-      auto[mean_output, jacobians] = f(mean(in), mean(n)...);
+      auto[mean_output, jacobians] = f(mean_of(in), mean_of(n)...);
       if constexpr (return_cross)
       {
         auto [cov_out, cross_covariance] = sum_noise_terms<true>(jacobians, std::tuple {in, n...},

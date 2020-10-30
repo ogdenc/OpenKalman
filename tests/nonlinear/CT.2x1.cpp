@@ -37,8 +37,8 @@ TEST_F(nonlinear, CTSumOfSquares2SelfAdjoint)
   SamplePointsTransform<CubaturePoints> t;
   auto in = G<n>::normal();
   auto out = t(in, g);
-  EXPECT_NEAR(mean(out)(0), (double) n, 1e-6);
-  EXPECT_NEAR(covariance(out)(0,0), 0., 1e-6);
+  EXPECT_NEAR(mean_of(out)(0), (double) n, 1e-6);
+  EXPECT_NEAR(covariance_of(out)(0,0), 0., 1e-6);
 }
 
 TEST_F(nonlinear, CTSumOfSquares2Triangular)
@@ -48,8 +48,8 @@ TEST_F(nonlinear, CTSumOfSquares2Triangular)
   SamplePointsTransform<CubaturePoints> t;
   auto in = GT<n>::normal();
   auto out = t(in, g);
-  EXPECT_NEAR(mean(out)(0), (double) n, 1e-6);
-  EXPECT_NEAR(covariance(out)(0,0), 0., 1e-6);
+  EXPECT_NEAR(mean_of(out)(0), (double) n, 1e-6);
+  EXPECT_NEAR(covariance_of(out)(0,0), 0., 1e-6);
 }
 
 TEST_F(nonlinear, CTSumOfSquares5SelfAdjoint)
@@ -59,8 +59,8 @@ TEST_F(nonlinear, CTSumOfSquares5SelfAdjoint)
   SamplePointsTransform<CubaturePoints> t;
   auto in = G<n>::normal();
   auto out = t(in, g);
-  EXPECT_NEAR(mean(out)(0), (double) n, 1e-6);
-  EXPECT_NEAR(covariance(out)(0,0), 0., 1e-6);
+  EXPECT_NEAR(mean_of(out)(0), (double) n, 1e-6);
+  EXPECT_NEAR(covariance_of(out)(0,0), 0., 1e-6);
 }
 
 TEST_F(nonlinear, CTSumOfSquares5Triangular)
@@ -70,8 +70,8 @@ TEST_F(nonlinear, CTSumOfSquares5Triangular)
   SamplePointsTransform<CubaturePoints> t;
   auto in = GT<n>::normal();
   auto out = t(in, g);
-  EXPECT_NEAR(mean(out)(0), (double) n, 1e-6);
-  EXPECT_NEAR(covariance(out)(0,0), 0., 1e-6);
+  EXPECT_NEAR(mean_of(out)(0), (double) n, 1e-6);
+  EXPECT_NEAR(covariance_of(out)(0,0), 0., 1e-6);
 }
 
 TEST_F(nonlinear, CTTOA2SelfAdjoint)
@@ -81,8 +81,8 @@ TEST_F(nonlinear, CTTOA2SelfAdjoint)
   SamplePointsTransform<CubaturePoints> t;
   auto in = G<n> {{3., 0}, {1., 0, 0, 10}};
   auto out = t(in, g);
-  EXPECT_NEAR(mean(out)(0), 4.19, 1e-2);
-  EXPECT_NEAR(covariance(out)(0,0), 2.42, 1e-2);
+  EXPECT_NEAR(mean_of(out)(0), 4.19, 1e-2);
+  EXPECT_NEAR(covariance_of(out)(0,0), 2.42, 1e-2);
 }
 
 TEST_F(nonlinear, CTTOA2Triangular)
@@ -92,8 +92,8 @@ TEST_F(nonlinear, CTTOA2Triangular)
   SamplePointsTransform<CubaturePoints> t;
   auto in = GT<n> {{3., 0}, {1., 0, 0, 10}};
   auto out = t(in, g);
-  EXPECT_NEAR(mean(out)(0), 4.19, 1e-2);
-  EXPECT_NEAR(covariance(out)(0,0), 2.42, 1e-2);
+  EXPECT_NEAR(mean_of(out)(0), 4.19, 1e-2);
+  EXPECT_NEAR(covariance_of(out)(0,0), 2.42, 1e-2);
 }
 
 TEST_F(nonlinear, CTTOA3SelfAdjoint)
@@ -103,8 +103,8 @@ TEST_F(nonlinear, CTTOA3SelfAdjoint)
   SamplePointsTransform<CubaturePoints> t;
   auto in = G<n> {{3., 0, 0}, {1., 0, 0, 0, 10, 0, 0, 0, 10}};
   auto out = t(in, g);
-  EXPECT_NEAR(mean(out)(0), 5.16, 1e-2);
-  EXPECT_NEAR(covariance(out)(0,0), 3.34, 1e-2);
+  EXPECT_NEAR(mean_of(out)(0), 5.16, 1e-2);
+  EXPECT_NEAR(covariance_of(out)(0,0), 3.34, 1e-2);
 }
 
 TEST_F(nonlinear, CTTOA3Triangular)
@@ -114,7 +114,7 @@ TEST_F(nonlinear, CTTOA3Triangular)
   SamplePointsTransform<CubaturePoints> t;
   auto in = GT<n> {{3., 0, 0}, {1., 0, 0, 0, 10, 0, 0, 0, 10}};
   auto out = t(in, g);
-  EXPECT_NEAR(mean(out)(0), 5.16, 1e-2);
-  EXPECT_NEAR(covariance(out)(0,0), 3.34, 1e-2);
+  EXPECT_NEAR(mean_of(out)(0), 5.16, 1e-2);
+  EXPECT_NEAR(covariance_of(out)(0,0), 3.34, 1e-2);
 }
 

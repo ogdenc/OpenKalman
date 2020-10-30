@@ -42,8 +42,8 @@ namespace OpenKalman
     {
       static_assert(is_Gaussian_distribution_v<XDistribution>);
       static_assert(is_Gaussian_distribution_v<YDistribution>);
-      static_assert(is_typed_matrix_v<CrossCovariance>);
-      static_assert(is_column_vector_v<Measurement> and MatrixTraits<Measurement>::columns == 1);
+      static_assert(typed_matrix<CrossCovariance>);
+      static_assert(column_vector<Measurement> and MatrixTraits<Measurement>::columns == 1);
       static_assert(is_equivalent_v<typename MatrixTraits<Measurement>::RowCoefficients,
         typename DistributionTraits<YDistribution>::Coefficients>);
       static_assert(is_equivalent_v<typename MatrixTraits<CrossCovariance>::RowCoefficients,
@@ -51,23 +51,23 @@ namespace OpenKalman
       static_assert(is_equivalent_v<typename MatrixTraits<CrossCovariance>::ColumnCoefficients,
         typename DistributionTraits<YDistribution>::Coefficients>);
 
-      const auto y = mean(Ny);
-      const auto P_yy = covariance(Ny);
+      const auto y = mean_of(Ny);
+      const auto P_yy = covariance_of(Ny);
       const auto K = adjoint(solve(adjoint(P_yy), adjoint(P_xy))); // K * P_yy == P_xy, or K == P_xy * inverse(P_yy)
-      auto out_x_mean = strict(mean(Nx) + K * (Mean {z} - y));
+      auto out_x_mean = strict(mean_of(Nx) + K * (Mean {z} - y));
 
       if constexpr (is_Cholesky_v<YDistribution>)
       {
         // P_xy * adjoint(K) == K * P_yy * adjoint(K) == K * square_root(P_yy) * adjoint(K * square_root(P_yy))
         // == square(LQ(K * square_root(P_yy)))
-        auto out_x_cov = covariance(Nx) - square(LQ_decomposition(K * square_root(P_yy)));
+        auto out_x_cov = covariance_of(Nx) - square(LQ_decomposition(K * square_root(P_yy)));
         return make_GaussianDistribution(out_x_mean, out_x_cov);
       }
       else
       {
         // K == P_xy * inverse(P_yy), so
         // P_xy * adjoint(K) == P_xy * adjoint(inverse(P_yy)) * adjoint(P_xy)
-        auto out_x_cov = covariance(Nx) - Covariance(P_xy * adjoint(K));
+        auto out_x_cov = covariance_of(Nx) - Covariance(P_xy * adjoint(K));
         return make_GaussianDistribution(out_x_mean, out_x_cov);
       }
     }

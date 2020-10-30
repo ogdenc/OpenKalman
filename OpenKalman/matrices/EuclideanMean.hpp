@@ -18,8 +18,8 @@ namespace OpenKalman
   //////////////////////////////////
 
 #ifdef __cpp_concepts
-  template<coefficients Coeffs, typename BaseMatrix> requires
-  is_typed_matrix_base_v<BaseMatrix> and (Coeffs::dimension == MatrixTraits<BaseMatrix>::dimension)
+  template<coefficients Coeffs, typed_matrix_base BaseMatrix> requires
+    (Coeffs::dimension == MatrixTraits<BaseMatrix>::dimension)
 #else
   template<typename Coeffs, typename BaseMatrix>
 #endif
@@ -40,7 +40,11 @@ namespace OpenKalman
     EuclideanMean(EuclideanMean&& other) noexcept : Base(std::move(other).base_matrix()) {}
 
     /// Construct from a compatible Euclidean-transformed matrix.
-    template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg> and is_Euclidean_transformed_v<Arg>, int> = 0>
+#ifdef __cpp_concepts
+    template<euclidean_transformed Arg>
+#else
+    template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg> and is_euclidean_transformed_v<Arg>, int> = 0>
+#endif
     EuclideanMean(Arg&& other) noexcept : Base(std::forward<Arg>(other).base_matrix())
     {
       static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>);
@@ -48,7 +52,11 @@ namespace OpenKalman
     }
 
     /// Construct from a compatible non-Euclidean-transformed typed matrix.
-    template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg> and not is_Euclidean_transformed_v<Arg>, int> = 0>
+#ifdef __cpp_concepts
+    template<typed_matrix Arg> requires (not euclidean_transformed<Arg>)
+#else
+    template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg> and not is_euclidean_transformed_v<Arg>, int> = 0>
+#endif
     EuclideanMean(Arg&& other) noexcept : Base(OpenKalman::to_Euclidean<Coefficients>(std::forward<Arg>(other).base_matrix()))
     {
       static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>);
@@ -56,7 +64,11 @@ namespace OpenKalman
     }
 
     /// Construct from compatible typed matrix object.
+#ifdef __cpp_concepts
+    template<typed_matrix_base Arg>
+#else
     template<typename Arg, std::enable_if_t<is_typed_matrix_base_v<Arg>, int> = 0>
+#endif
     EuclideanMean(Arg&& arg) noexcept : Base(std::forward<Arg>(arg))
     {
       static_assert(MatrixTraits<Arg>::dimension == Base::dimension);
@@ -80,7 +92,11 @@ namespace OpenKalman
     }
 
     /// Assign from a compatible typed matrix.
+#ifdef __cpp_concepts
+    template<typed_matrix Arg>
+#else
     template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg>, int> = 0>
+#endif
     auto& operator=(Arg&& other) noexcept
     {
       static_assert(OpenKalman::is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>);
@@ -93,7 +109,7 @@ namespace OpenKalman
       {
         static_assert(is_identity_v<Arg>);
       }
-      else if constexpr(is_Euclidean_transformed_v<Arg> or Coefficients::axes_only)
+      else if constexpr(euclidean_transformed<Arg> or Coefficients::axes_only)
       {
         this->base_matrix() = std::forward<Arg>(other).base_matrix();
       }
@@ -112,12 +128,16 @@ namespace OpenKalman
     }
 
     /// Increment from another typed matrix.
+#ifdef __cpp_concepts
+    template<typed_matrix Arg>
+#else
     template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg>, int> = 0>
+#endif
     auto& operator+=(Arg&& other) noexcept
     {
       static_assert(is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>);
       static_assert(MatrixTraits<Arg>::ColumnCoefficients::axes_only);
-      static_assert(Coefficients::axes_only or is_Euclidean_transformed_v<Arg>);
+      static_assert(Coefficients::axes_only or euclidean_transformed<Arg>);
       this->base_matrix() += std::forward<Arg>(other).base_matrix();
       return *this;
     }
@@ -140,12 +160,16 @@ namespace OpenKalman
     }
 
     /// Decrement from another typed matrix.
+#ifdef __cpp_concepts
+    template<typed_matrix Arg>
+#else
     template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg>, int> = 0>
+#endif
     auto& operator-=(Arg&& other) noexcept
     {
       static_assert(is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>);
       static_assert(MatrixTraits<Arg>::ColumnCoefficients::axes_only);
-      static_assert(Coefficients::axes_only or is_Euclidean_transformed_v<Arg>);
+      static_assert(Coefficients::axes_only or euclidean_transformed<Arg>);
       this->base_matrix() -= std::forward<Arg>(other).base_matrix();
       return *this;
     }
@@ -177,17 +201,33 @@ namespace OpenKalman
   //        Deduction guides         //
   /////////////////////////////////////
 
-  /// Deduce template parameters from a typed matrix base, assuming axex-only coefficients.
+  /// Deduce template parameters from a typed matrix base, assuming axis-only coefficients.
+#ifdef __cpp_concepts
+  template<typed_matrix_base V>
+#else
   template<typename V, std::enable_if_t<is_typed_matrix_base_v<V>, int> = 0>
+#endif
   EuclideanMean(V&&) -> EuclideanMean<Axes<MatrixTraits<V>::dimension>, lvalue_or_strict_t<V>>;
 
   /// Deduce template parameters from a Euclidean-transformed typed matrix.
-  template<typename V, std::enable_if_t<is_typed_matrix_v<V> and is_Euclidean_transformed_v<V>, int> = 0>
+#ifdef __cpp_concepts
+  template<euclidean_transformed V>
+#else
+  template<typename V, std::enable_if_t<is_typed_matrix_v<V> and is_euclidean_transformed_v<V>, int> = 0>
+#endif
   EuclideanMean(V&&) -> EuclideanMean<typename MatrixTraits<V>::RowCoefficients, typename MatrixTraits<V>::BaseMatrix>;
 
   /// Deduce template parameters from a non-Euclidean-transformed typed matrix.
-  template<typename V, std::enable_if_t<is_typed_matrix_v<V> and not is_Euclidean_transformed_v<V> and
-    MatrixTraits<V>::ColumnCoefficients::axes_only, int> = 0>
+#if defined(__cpp_concepts) and false
+  // @TODO Unlike SFINAE version, this incorrectly matches V==EuclideanMean in both GCC 10.1.0 and clang 10.0.0:
+  template<typed_matrix V> requires (not euclidean_transformed<V>) and
+    MatrixTraits<V>::ColumnCoefficients::axes_only and
+    (MatrixTraits<V>::RowCoefficients::dimension == MatrixTraits<V>::dimension)
+#else
+  template<typename V, std::enable_if_t<typed_matrix<V> and not euclidean_transformed<V> and
+    MatrixTraits<V>::ColumnCoefficients::axes_only and
+    MatrixTraits<V>::RowCoefficients::dimension == MatrixTraits<V>::dimension, int> = 0>
+#endif
   EuclideanMean(V&&) -> EuclideanMean<typename MatrixTraits<V>::RowCoefficients,
     decltype(to_Euclidean<typename MatrixTraits<V>::RowCoefficients>(std::forward<V>(std::declval<V>()).base_matrix()))>;
 
@@ -197,7 +237,12 @@ namespace OpenKalman
   ///////////////////////////////////
 
   /// Make a EuclideanMean object from a regular matrix object.
+#ifdef __cpp_concepts
+  template<typename Coefficients = void, typed_matrix_base V> requires
+    coefficients<Coefficients> or std::same_as<Coefficients, void>
+#else
   template<typename Coefficients = void, typename V, std::enable_if_t<is_typed_matrix_base_v<V>, int> = 0>
+#endif
   auto make_EuclideanMean(V&& arg) noexcept
   {
     using Coeffs = std::conditional_t<std::is_void_v<Coefficients>,
@@ -209,12 +254,16 @@ namespace OpenKalman
 
 
   /// Make a EuclideanMean object from another typed matrix.
+#ifdef __cpp_concepts
+  template<typed_matrix Arg>
+#else
   template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg>, int> = 0>
+#endif
   inline auto make_EuclideanMean(Arg&& arg) noexcept
   {
-    static_assert(is_column_vector_v<Arg>);
+    static_assert(column_vector<Arg>);
     using C = typename MatrixTraits<Arg>::RowCoefficients;
-    if constexpr(is_Euclidean_transformed_v<Arg>)
+    if constexpr(euclidean_transformed<Arg>)
       return make_EuclideanMean<typename MatrixTraits<Arg>::RowCoefficients>(base_matrix(std::forward<Arg>(arg)));
     else
       return make_EuclideanMean<typename MatrixTraits<Arg>::RowCoefficients>(base_matrix(to_Euclidean<C>(std::forward<Arg>(arg))));
@@ -222,7 +271,11 @@ namespace OpenKalman
 
 
   /// Make a default, strict EuclideanMean.
+#ifdef __cpp_concepts
+  template<coefficients Coefficients, typed_matrix_base V>
+#else
   template<typename Coefficients, typename V, std::enable_if_t<is_typed_matrix_base_v<V>, int> = 0>
+#endif
   auto make_EuclideanMean()
   {
     static_assert(Coefficients::dimension == MatrixTraits<V>::dimension);
@@ -232,7 +285,11 @@ namespace OpenKalman
 
 
   /// Make a default, strict EuclideanMean with axis coefficients.
+#ifdef __cpp_concepts
+  template<typed_matrix_base V>
+#else
   template<typename V, std::enable_if_t<is_typed_matrix_base_v<V>, int> = 0>
+#endif
   auto make_EuclideanMean()
   {
     return make_EuclideanMean<Axes<MatrixTraits<V>::dimension>, V>();
@@ -257,11 +314,16 @@ namespace OpenKalman
     template<std::size_t rows = dimension, std::size_t cols = columns, typename S = Scalar>
     using StrictMatrix = typename MatrixTraits<BaseMatrix>::template StrictMatrix<rows, cols, S>;
 
-    using Strict = EuclideanMean<RowCoefficients, typename MatrixTraits<BaseMatrix>::Strict>;
+    using Strict = EuclideanMean<RowCoefficients, strict_t<BaseMatrix>>;
 
     /// Make from a regular matrix. If CC is specified, it must be axes-only.
+#ifdef __cpp_concepts
+    template<coefficients RC = RowCoefficients, typename CC = void, typed_matrix_base Arg> requires
+      coefficients<CC> or std::same_as<CC, void>
+#else
     template<typename RC = RowCoefficients, typename CC = void, typename Arg,
       std::enable_if_t<is_typed_matrix_base_v<Arg>, int> = 0>
+#endif
     static auto make(Arg&& arg) noexcept
     {
       static_assert(MatrixTraits<Arg>::dimension == RC::dimension);

@@ -27,12 +27,12 @@ TEST_F(nonlinear, TT1RadarA1SelfAdjoint)
   LinearizedTransform t;
   auto in = G2 {{3.0, 0.0}, SA::identity()};
   auto out = t(in, radarP);
-  EXPECT_NEAR(mean(out)(0), 3.0, 1e-1);
-  EXPECT_NEAR(mean(out)(1), 0.0, 1e-1);
-  EXPECT_NEAR(covariance(out)(0,0), 1.0, 1e-1);
-  EXPECT_NEAR(covariance(out)(0,1), 0.0, 1e-1);
-  EXPECT_NEAR(covariance(out)(1,0), 0.0, 1e-1);
-  EXPECT_NEAR(covariance(out)(1,1), 9.0, 1e-1);
+  EXPECT_NEAR(mean_of(out)(0), 3.0, 1e-1);
+  EXPECT_NEAR(mean_of(out)(1), 0.0, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(0,0), 1.0, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(0,1), 0.0, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(1,0), 0.0, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(1,1), 9.0, 1e-1);
 }
 
 TEST_F(nonlinear, TT1RadarA1Triangular)
@@ -40,12 +40,12 @@ TEST_F(nonlinear, TT1RadarA1Triangular)
   LinearizedTransform t;
   auto in = G2T {{3.0, 0.0}, SA::identity()};
   auto out = t(in, radarP);
-  EXPECT_NEAR(mean(out)(0), 3.0, 1e-1);
-  EXPECT_NEAR(mean(out)(1), 0.0, 1e-1);
-  EXPECT_NEAR(covariance(out)(0,0), 1.0, 1e-1);
-  EXPECT_NEAR(covariance(out)(0,1), 0.0, 1e-1);
-  EXPECT_NEAR(covariance(out)(1,0), 0.0, 1e-1);
-  EXPECT_NEAR(covariance(out)(1,1), 9.0, 1e-1);
+  EXPECT_NEAR(mean_of(out)(0), 3.0, 1e-1);
+  EXPECT_NEAR(mean_of(out)(1), 0.0, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(0,0), 1.0, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(0,1), 0.0, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(1,0), 0.0, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(1,1), 9.0, 1e-1);
 }
 
 TEST_F(nonlinear, TT1RadarA2SelfAdjoint)
@@ -53,12 +53,12 @@ TEST_F(nonlinear, TT1RadarA2SelfAdjoint)
   LinearizedTransform t;
   auto in = G2 {{3.0, M_PI/6}, SA::identity()};
   auto out = t(in, radarP);
-  EXPECT_NEAR(mean(out)(0), 2.6, 1e-1);
-  EXPECT_NEAR(mean(out)(1), 1.5, 1e-1);
-  EXPECT_NEAR(covariance(out)(0,0), 3.0, 1e-1);
-  EXPECT_NEAR(covariance(out)(0,1), -3.5, 1e-1);
-  EXPECT_NEAR(covariance(out)(1,0), -3.5, 1e-1);
-  EXPECT_NEAR(covariance(out)(1,1), 7.0, 1e-1);
+  EXPECT_NEAR(mean_of(out)(0), 2.6, 1e-1);
+  EXPECT_NEAR(mean_of(out)(1), 1.5, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(0,0), 3.0, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(0,1), -3.5, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(1,0), -3.5, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(1,1), 7.0, 1e-1);
 }
 
 TEST_F(nonlinear, TT1RadarA2Triangular)
@@ -66,12 +66,12 @@ TEST_F(nonlinear, TT1RadarA2Triangular)
   LinearizedTransform t;
   auto in = G2T {{3.0, M_PI/6}, SA::identity()};
   auto out = t(in, radarP);
-  EXPECT_NEAR(mean(out)(0), 2.6, 1e-1);
-  EXPECT_NEAR(mean(out)(1), 1.5, 1e-1);
-  EXPECT_NEAR(covariance(out)(0,0), 3.0, 1e-1);
-  EXPECT_NEAR(covariance(out)(0,1), -3.5, 1e-1);
-  EXPECT_NEAR(covariance(out)(1,0), -3.5, 1e-1);
-  EXPECT_NEAR(covariance(out)(1,1), 7.0, 1e-1);
+  EXPECT_NEAR(mean_of(out)(0), 2.6, 1e-1);
+  EXPECT_NEAR(mean_of(out)(1), 1.5, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(0,0), 3.0, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(0,1), -3.5, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(1,0), -3.5, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(1,1), 7.0, 1e-1);
 }
 
 TEST_F(nonlinear, TT1RadarA3SelfAdjoint)
@@ -79,12 +79,12 @@ TEST_F(nonlinear, TT1RadarA3SelfAdjoint)
   LinearizedTransform t;
   auto in = G2 {{3.0, M_PI_4}, SA::identity()};
   auto out = t(in, radarP);
-  EXPECT_NEAR(mean(out)(0), 2.1, 1e-1);
-  EXPECT_NEAR(mean(out)(1), 2.1, 1e-1);
-  EXPECT_NEAR(covariance(out)(0,0), 5.0, 1e-1);
-  EXPECT_NEAR(covariance(out)(0,1), -4.0, 1e-1);
-  EXPECT_NEAR(covariance(out)(1,0), -4.0, 1e-1);
-  EXPECT_NEAR(covariance(out)(1,1), 5.0, 1e-1);
+  EXPECT_NEAR(mean_of(out)(0), 2.1, 1e-1);
+  EXPECT_NEAR(mean_of(out)(1), 2.1, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(0,0), 5.0, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(0,1), -4.0, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(1,0), -4.0, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(1,1), 5.0, 1e-1);
 }
 
 TEST_F(nonlinear, TT1RadarA3Triangular)
@@ -92,12 +92,12 @@ TEST_F(nonlinear, TT1RadarA3Triangular)
   LinearizedTransform t;
   auto in = G2T {{3.0, M_PI_4}, SA::identity()};
   auto out = t(in, radarP);
-  EXPECT_NEAR(mean(out)(0), 2.1, 1e-1);
-  EXPECT_NEAR(mean(out)(1), 2.1, 1e-1);
-  EXPECT_NEAR(covariance(out)(0,0), 5.0, 1e-1);
-  EXPECT_NEAR(covariance(out)(0,1), -4.0, 1e-1);
-  EXPECT_NEAR(covariance(out)(1,0), -4.0, 1e-1);
-  EXPECT_NEAR(covariance(out)(1,1), 5.0, 1e-1);
+  EXPECT_NEAR(mean_of(out)(0), 2.1, 1e-1);
+  EXPECT_NEAR(mean_of(out)(1), 2.1, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(0,0), 5.0, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(0,1), -4.0, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(1,0), -4.0, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(1,1), 5.0, 1e-1);
 }
 
 
@@ -111,12 +111,12 @@ TEST_F(nonlinear, TT1RadarB1SelfAdjoint)
   LinearizedTransform t;
   auto in = G2 {{20.0, 0.0}, {1.0, 0.0, 0.0, 0.1}};
   auto out = t(in, radarP);
-  EXPECT_NEAR(mean(out)(0), 20.0, 1e-1);
-  EXPECT_NEAR(mean(out)(1), 0.0, 1e-1);
-  EXPECT_NEAR(covariance(out)(0,0), 1.0, 1e-1);
-  EXPECT_NEAR(covariance(out)(0,1), 0.0, 1e-1);
-  EXPECT_NEAR(covariance(out)(1,0), 0.0, 1e-1);
-  EXPECT_NEAR(covariance(out)(1,1), 40.0, 1e-1);
+  EXPECT_NEAR(mean_of(out)(0), 20.0, 1e-1);
+  EXPECT_NEAR(mean_of(out)(1), 0.0, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(0,0), 1.0, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(0,1), 0.0, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(1,0), 0.0, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(1,1), 40.0, 1e-1);
 }
 
 TEST_F(nonlinear, TT1RadarB1Triangular)
@@ -124,12 +124,12 @@ TEST_F(nonlinear, TT1RadarB1Triangular)
   LinearizedTransform t;
   auto in = G2T {{20.0, 0.0}, {1.0, 0.0, 0.0, 0.1}};
   auto out = t(in, radarP);
-  EXPECT_NEAR(mean(out)(0), 20.0, 1e-1);
-  EXPECT_NEAR(mean(out)(1), 0.0, 1e-1);
-  EXPECT_NEAR(covariance(out)(0,0), 1.0, 1e-1);
-  EXPECT_NEAR(covariance(out)(0,1), 0.0, 1e-1);
-  EXPECT_NEAR(covariance(out)(1,0), 0.0, 1e-1);
-  EXPECT_NEAR(covariance(out)(1,1), 40.0, 1e-1);
+  EXPECT_NEAR(mean_of(out)(0), 20.0, 1e-1);
+  EXPECT_NEAR(mean_of(out)(1), 0.0, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(0,0), 1.0, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(0,1), 0.0, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(1,0), 0.0, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(1,1), 40.0, 1e-1);
 }
 
 TEST_F(nonlinear, TT1RadarB2SelfAdjoint)
@@ -137,12 +137,12 @@ TEST_F(nonlinear, TT1RadarB2SelfAdjoint)
   LinearizedTransform t;
   auto in = G2 {{20.0, M_PI/6}, {1.0, 0.0, 0.0, 0.1}};
   auto out = t(in, radarP);
-  EXPECT_NEAR(mean(out)(0), 17.3, 1e-1);
-  EXPECT_NEAR(mean(out)(1), 10.0, 1e-1);
-  EXPECT_NEAR(covariance(out)(0,0), 10.7, 1e-1);
-  EXPECT_NEAR(covariance(out)(0,1), -16.9, 1e-1);
-  EXPECT_NEAR(covariance(out)(1,0), -16.9, 1e-1);
-  EXPECT_NEAR(covariance(out)(1,1), 30.3, 1e-1);
+  EXPECT_NEAR(mean_of(out)(0), 17.3, 1e-1);
+  EXPECT_NEAR(mean_of(out)(1), 10.0, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(0,0), 10.7, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(0,1), -16.9, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(1,0), -16.9, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(1,1), 30.3, 1e-1);
 }
 
 TEST_F(nonlinear, TT1RadarB2Triangular)
@@ -150,12 +150,12 @@ TEST_F(nonlinear, TT1RadarB2Triangular)
   LinearizedTransform t;
   auto in = G2T {{20.0, M_PI/6}, {1.0, 0.0, 0.0, 0.1}};
   auto out = t(in, radarP);
-  EXPECT_NEAR(mean(out)(0), 17.3, 1e-1);
-  EXPECT_NEAR(mean(out)(1), 10.0, 1e-1);
-  EXPECT_NEAR(covariance(out)(0,0), 10.7, 1e-1);
-  EXPECT_NEAR(covariance(out)(0,1), -16.9, 1e-1);
-  EXPECT_NEAR(covariance(out)(1,0), -16.9, 1e-1);
-  EXPECT_NEAR(covariance(out)(1,1), 30.3, 1e-1);
+  EXPECT_NEAR(mean_of(out)(0), 17.3, 1e-1);
+  EXPECT_NEAR(mean_of(out)(1), 10.0, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(0,0), 10.7, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(0,1), -16.9, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(1,0), -16.9, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(1,1), 30.3, 1e-1);
 }
 
 TEST_F(nonlinear, TT1RadarB3SelfAdjoint)
@@ -163,12 +163,12 @@ TEST_F(nonlinear, TT1RadarB3SelfAdjoint)
   LinearizedTransform t;
   auto in = G2 {{20.0, M_PI_4}, {1.0, 0.0, 0.0, 0.1}};
   auto out = t(in, radarP);
-  EXPECT_NEAR(mean(out)(0), 14.1, 1e-1);
-  EXPECT_NEAR(mean(out)(1), 14.1, 1e-1);
-  EXPECT_NEAR(covariance(out)(0,0), 20.5, 1e-1);
-  EXPECT_NEAR(covariance(out)(0,1), -19.5, 1e-1);
-  EXPECT_NEAR(covariance(out)(1,0), -19.5, 1e-1);
-  EXPECT_NEAR(covariance(out)(1,1), 20.5, 1e-1);
+  EXPECT_NEAR(mean_of(out)(0), 14.1, 1e-1);
+  EXPECT_NEAR(mean_of(out)(1), 14.1, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(0,0), 20.5, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(0,1), -19.5, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(1,0), -19.5, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(1,1), 20.5, 1e-1);
 }
 
 TEST_F(nonlinear, TT1RadarB3Triangular)
@@ -176,12 +176,12 @@ TEST_F(nonlinear, TT1RadarB3Triangular)
   LinearizedTransform t;
   auto in = G2T {{20.0, M_PI_4}, {1.0, 0.0, 0.0, 0.1}};
   auto out = t(in, radarP);
-  EXPECT_NEAR(mean(out)(0), 14.1, 1e-1);
-  EXPECT_NEAR(mean(out)(1), 14.1, 1e-1);
-  EXPECT_NEAR(covariance(out)(0,0), 20.5, 1e-1);
-  EXPECT_NEAR(covariance(out)(0,1), -19.5, 1e-1);
-  EXPECT_NEAR(covariance(out)(1,0), -19.5, 1e-1);
-  EXPECT_NEAR(covariance(out)(1,1), 20.5, 1e-1);
+  EXPECT_NEAR(mean_of(out)(0), 14.1, 1e-1);
+  EXPECT_NEAR(mean_of(out)(1), 14.1, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(0,0), 20.5, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(0,1), -19.5, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(1,0), -19.5, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(1,1), 20.5, 1e-1);
 }
 
 TEST_F(nonlinear, TT2RadarB1SelfAdjoint)
@@ -189,12 +189,12 @@ TEST_F(nonlinear, TT2RadarB1SelfAdjoint)
   LinearizedTransform<2> t;
   auto in = G2 {{20.0, 0.0}, {1.0, 0.0, 0.0, 0.1}};
   auto out = t(in, radarP);
-  EXPECT_NEAR(mean(out)(0), 19.0, 1e-1);
-  EXPECT_NEAR(mean(out)(1), 0.0, 1e-1);
-  EXPECT_NEAR(covariance(out)(0,0), 3.0, 1e-1);
-  EXPECT_NEAR(covariance(out)(0,1), 0.0, 1e-1);
-  EXPECT_NEAR(covariance(out)(1,0), 0.0, 1e-1);
-  EXPECT_NEAR(covariance(out)(1,1), 40.1, 1e-1);
+  EXPECT_NEAR(mean_of(out)(0), 19.0, 1e-1);
+  EXPECT_NEAR(mean_of(out)(1), 0.0, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(0,0), 3.0, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(0,1), 0.0, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(1,0), 0.0, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(1,1), 40.1, 1e-1);
 }
 
 TEST_F(nonlinear, TT2RadarB1Triangular)
@@ -202,12 +202,12 @@ TEST_F(nonlinear, TT2RadarB1Triangular)
   LinearizedTransform<2> t;
   auto in = G2T {{20.0, 0.0}, {1.0, 0.0, 0.0, 0.1}};
   auto out = t(in, radarP);
-  EXPECT_NEAR(mean(out)(0), 19.0, 1e-1);
-  EXPECT_NEAR(mean(out)(1), 0.0, 1e-1);
-  EXPECT_NEAR(covariance(out)(0,0), 3.0, 1e-1);
-  EXPECT_NEAR(covariance(out)(0,1), 0.0, 1e-1);
-  EXPECT_NEAR(covariance(out)(1,0), 0.0, 1e-1);
-  EXPECT_NEAR(covariance(out)(1,1), 40.1, 1e-1);
+  EXPECT_NEAR(mean_of(out)(0), 19.0, 1e-1);
+  EXPECT_NEAR(mean_of(out)(1), 0.0, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(0,0), 3.0, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(0,1), 0.0, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(1,0), 0.0, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(1,1), 40.1, 1e-1);
 }
 
 TEST_F(nonlinear, TT2RadarB2SelfAdjoint)
@@ -215,12 +215,12 @@ TEST_F(nonlinear, TT2RadarB2SelfAdjoint)
   LinearizedTransform<2> t;
   auto in = G2 {{20.0, M_PI/6}, {1.0, 0.0, 0.0, 0.1}};
   auto out = t(in, radarP);
-  EXPECT_NEAR(mean(out)(0), 16.5, 1e-1);
-  EXPECT_NEAR(mean(out)(1), 9.5, 1e-1);
-  EXPECT_NEAR(covariance(out)(0,0), 12.3, 1e-1);
-  EXPECT_NEAR(covariance(out)(0,1), -16.1, 1e-1);
-  EXPECT_NEAR(covariance(out)(1,0), -16.1, 1e-1);
-  EXPECT_NEAR(covariance(out)(1,1), 30.8, 1e-1);
+  EXPECT_NEAR(mean_of(out)(0), 16.5, 1e-1);
+  EXPECT_NEAR(mean_of(out)(1), 9.5, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(0,0), 12.3, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(0,1), -16.1, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(1,0), -16.1, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(1,1), 30.8, 1e-1);
 }
 
 TEST_F(nonlinear, TT2RadarB2Triangular)
@@ -228,12 +228,12 @@ TEST_F(nonlinear, TT2RadarB2Triangular)
   LinearizedTransform<2> t;
   auto in = G2T {{20.0, M_PI/6}, {1.0, 0.0, 0.0, 0.1}};
   auto out = t(in, radarP);
-  EXPECT_NEAR(mean(out)(0), 16.5, 1e-1);
-  EXPECT_NEAR(mean(out)(1), 9.5, 1e-1);
-  EXPECT_NEAR(covariance(out)(0,0), 12.3, 1e-1);
-  EXPECT_NEAR(covariance(out)(0,1), -16.1, 1e-1);
-  EXPECT_NEAR(covariance(out)(1,0), -16.1, 1e-1);
-  EXPECT_NEAR(covariance(out)(1,1), 30.8, 1e-1);
+  EXPECT_NEAR(mean_of(out)(0), 16.5, 1e-1);
+  EXPECT_NEAR(mean_of(out)(1), 9.5, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(0,0), 12.3, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(0,1), -16.1, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(1,0), -16.1, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(1,1), 30.8, 1e-1);
 }
 
 TEST_F(nonlinear, TT2RadarB3SelfAdjoint)
@@ -241,12 +241,12 @@ TEST_F(nonlinear, TT2RadarB3SelfAdjoint)
   LinearizedTransform<2> t;
   auto in = G2 {{20.0, M_PI_4}, {1.0, 0.0, 0.0, 0.1}};
   auto out = t(in, radarP);
-  EXPECT_NEAR(mean(out)(0), 13.4, 1e-1);
-  EXPECT_NEAR(mean(out)(1), 13.4, 1e-1);
-  EXPECT_NEAR(covariance(out)(0,0), 21.5, 1e-1);
-  EXPECT_NEAR(covariance(out)(0,1), -18.5, 1e-1);
-  EXPECT_NEAR(covariance(out)(1,0), -18.5, 1e-1);
-  EXPECT_NEAR(covariance(out)(1,1), 21.6, 1e-1);
+  EXPECT_NEAR(mean_of(out)(0), 13.4, 1e-1);
+  EXPECT_NEAR(mean_of(out)(1), 13.4, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(0,0), 21.5, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(0,1), -18.5, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(1,0), -18.5, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(1,1), 21.6, 1e-1);
 }
 
 TEST_F(nonlinear, TT2RadarB3Triangular)
@@ -254,11 +254,11 @@ TEST_F(nonlinear, TT2RadarB3Triangular)
   LinearizedTransform<2> t;
   auto in = G2 {{20.0, M_PI_4}, {1.0, 0.0, 0.0, 0.1}};
   auto out = t(in, radarP);
-  EXPECT_NEAR(mean(out)(0), 13.4, 1e-1);
-  EXPECT_NEAR(mean(out)(1), 13.4, 1e-1);
-  EXPECT_NEAR(covariance(out)(0,0), 21.5, 1e-1);
-  EXPECT_NEAR(covariance(out)(0,1), -18.5, 1e-1);
-  EXPECT_NEAR(covariance(out)(1,0), -18.5, 1e-1);
-  EXPECT_NEAR(covariance(out)(1,1), 21.6, 1e-1);
+  EXPECT_NEAR(mean_of(out)(0), 13.4, 1e-1);
+  EXPECT_NEAR(mean_of(out)(1), 13.4, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(0,0), 21.5, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(0,1), -18.5, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(1,0), -18.5, 1e-1);
+  EXPECT_NEAR(covariance_of(out)(1,1), 21.6, 1e-1);
 }
 

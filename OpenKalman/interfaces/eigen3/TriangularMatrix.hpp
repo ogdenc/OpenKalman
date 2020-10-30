@@ -467,7 +467,7 @@ namespace OpenKalman
     template<std::size_t rows = dimension, std::size_t cols = dimension, typename S = Scalar>
     using StrictMatrix = typename MatrixTraits<BaseMatrix>::template StrictMatrix<rows, cols, S>;
 
-    using Strict = Eigen3::TriangularMatrix<typename MatrixTraits<BaseMatrix>::Strict, triangle_type>;
+    using Strict = Eigen3::TriangularMatrix<strict_t<BaseMatrix>, triangle_type>;
 
     template<TriangleType t = triangle_type, std::size_t dim = dimension, typename S = Scalar>
     using SelfAdjointBaseType = Eigen3::SelfAdjointMatrix<StrictMatrix<dim, dim, S>, t>;

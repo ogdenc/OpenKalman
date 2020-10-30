@@ -101,7 +101,7 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-  template<typename Coefficients, eigen_matrix Arg>
+  template<coefficients Coefficients, eigen_matrix Arg>
 #else
   template<typename Coefficients, typename Arg, std::enable_if_t<is_eigen_matrix_v<Arg>, int> = 0>
 #endif
@@ -121,7 +121,7 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-  template<typename Coefficients, eigen_matrix Arg>
+  template<coefficients Coefficients, eigen_matrix Arg>
 #else
   template<typename Coefficients, typename Arg, std::enable_if_t<is_eigen_matrix_v<Arg>, int> = 0>
 #endif
@@ -141,7 +141,7 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-  template<typename Coefficients, eigen_matrix Arg>
+  template<coefficients Coefficients, eigen_matrix Arg>
 #else
   template<typename Coefficients, typename Arg, std::enable_if_t<is_eigen_matrix_v<Arg>, int> = 0>
 #endif
@@ -969,8 +969,8 @@ namespace OpenKalman::Eigen3
 
   }
 
-
 #ifdef __cpp_concepts
+  // @TODO: use compound requires expression.
   template<eigen_matrix Arg, typename Function>
   requires std::is_void_v<std::invoke_result_t<Function, std::decay_t<decltype(column(std::declval<Arg>(), 0))>& >>
 #else

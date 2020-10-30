@@ -25,8 +25,8 @@ namespace OpenKalman
     template<typename In, typename ... Perturbations>
     auto operator()(In&& in, Perturbations&& ... ps) const noexcept
     {
-      static_assert(is_column_vector_v<In>);
-      static_assert((is_perturbation_v<Perturbations> and ...));
+      static_assert(column_vector<In>);
+      static_assert((perturbation<Perturbations> and ...));
       static_assert(MatrixTraits<In>::columns == 1);
       static_assert(((internal::PerturbationTraits<Perturbations>::columns == 1) and ...));
       static_assert(std::conjunction_v<
@@ -40,8 +40,8 @@ namespace OpenKalman
     template<typename In, typename ... Perturbations>
     auto jacobian(const In&, const Perturbations&...) const
     {
-      static_assert(is_column_vector_v<In>);
-      static_assert((is_perturbation_v<Perturbations> and ...));
+      static_assert(column_vector<In>);
+      static_assert((perturbation<Perturbations> and ...));
       static_assert(MatrixTraits<In>::columns == 1);
       static_assert(((internal::PerturbationTraits<Perturbations>::columns == 1) and ...));
       using Coeffs = typename MatrixTraits<In>::RowCoefficients;
@@ -57,8 +57,8 @@ namespace OpenKalman
     template<typename In, typename ... Perturbations>
     auto hessian(const In&, const Perturbations&...) const
     {
-      static_assert(is_column_vector_v<In>);
-      static_assert((is_perturbation_v<Perturbations> and ...));
+      static_assert(column_vector<In>);
+      static_assert((perturbation<Perturbations> and ...));
       static_assert(MatrixTraits<In>::columns == 1);
       static_assert(((internal::PerturbationTraits<Perturbations>::columns == 1) and ...));
       using Coeffs = typename MatrixTraits<In>::RowCoefficients;

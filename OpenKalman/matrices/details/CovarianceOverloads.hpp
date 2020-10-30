@@ -135,9 +135,12 @@ namespace OpenKalman
   }
 
 
-  template<typename Arg, typename U,
-    std::enable_if_t<is_covariance_v<Arg> and is_typed_matrix_v<U> and
+#ifdef __cpp_concepts
+  template<typename Arg, typed_matrix U> requires is_covariance_v<Arg> and (not std::is_const_v<std::remove_reference_t<Arg>>)
+#else
+  template<typename Arg, typename U, std::enable_if_t<is_covariance_v<Arg> and is_typed_matrix_v<U> and
       not std::is_const_v<std::remove_reference_t<Arg>>, int> = 0>
+#endif
   inline Arg&
   rank_update(Arg& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
   {
@@ -147,8 +150,11 @@ namespace OpenKalman
   }
 
 
-  template<typename Arg, typename U,
-    std::enable_if_t<is_covariance_v<Arg> and is_typed_matrix_v<U>, int> = 0>
+#ifdef __cpp_concepts
+  template<typename Arg, typed_matrix U> requires is_covariance_v<Arg>
+#else
+  template<typename Arg, typename U, std::enable_if_t<is_covariance_v<Arg> and is_typed_matrix_v<U>, int> = 0>
+#endif
   inline auto
   rank_update(Arg&& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
   {
@@ -158,9 +164,11 @@ namespace OpenKalman
 
 
   /// Solves a x = b for x (A is a Covariance or SquareRootCovariance, B is a vector type).
-  template<
-    typename A, std::enable_if_t<is_covariance_v<A>, int> = 0,
-    typename B, std::enable_if_t<is_typed_matrix_v<B>, int> = 0>
+#ifdef __cpp_concepts
+  template<typename A, typed_matrix B> requires is_covariance_v<A>
+#else
+  template<typename A, typename B, std::enable_if_t<is_covariance_v<A> and is_typed_matrix_v<B>, int> = 0>
+#endif
   inline auto
   solve(A&& a, B&& b) noexcept
   {
@@ -399,9 +407,14 @@ namespace OpenKalman
   }
 
 
-  template<typename Arg, typename Function,
-    std::enable_if_t<is_covariance_v<Arg> and is_typed_matrix_v<std::invoke_result_t<
+#ifdef __cpp_concepts
+  template<typename Arg, typename Function> requires is_covariance_v<Arg> and
+    typed_matrix<std::invoke_result_t<Function, std::decay_t<decltype(column<0>(std::declval<Arg>()))>>>
+#else
+  template<typename Arg, typename Function, std::enable_if_t<
+    is_covariance_v<Arg> and is_typed_matrix_v<std::invoke_result_t<
       Function, std::decay_t<decltype(column<0>(std::declval<Arg>()))>>>, int> = 0>
+#endif
   inline auto
   apply_columnwise(Arg&& arg, const Function& f)
   {
@@ -411,9 +424,14 @@ namespace OpenKalman
   }
 
 
-  template<typename Arg, typename Function,
-    std::enable_if_t<is_covariance_v<Arg> and is_typed_matrix_v<std::invoke_result_t<
+#ifdef __cpp_concepts
+  template<typename Arg, typename Function> requires is_covariance_v<Arg> and
+    typed_matrix<std::invoke_result_t<Function, std::decay_t<decltype(column<0>(std::declval<Arg>()))>, std::size_t>>
+#else
+  template<typename Arg, typename Function, std::enable_if_t<
+    is_covariance_v<Arg> and is_typed_matrix_v<std::invoke_result_t<
       Function, std::decay_t<decltype(column<0>(std::declval<Arg>()))>, std::size_t>>, int> = 0>
+#endif
   inline auto
   apply_columnwise(Arg&& arg, const Function& f)
   {
@@ -458,18 +476,24 @@ namespace OpenKalman
    **********************/
 
   /// Add two covariance types or one covariance type and one compatible typed matrix.
-  template<
-    typename Arg1, typename Arg2, std::enable_if_t<
-      (is_covariance_v<Arg1> and is_covariance_v<Arg2>) or
-      (is_covariance_v<Arg1> and is_typed_matrix_v<Arg2>) or
-      (is_typed_matrix_v<Arg1> and is_covariance_v<Arg2>), int> = 0>
+#ifdef __cpp_concepts
+  template<typename Arg1, typename Arg2> requires
+    (is_covariance_v<Arg1> and is_covariance_v<Arg2>) or
+    (is_covariance_v<Arg1> and typed_matrix<Arg2>) or
+    (typed_matrix<Arg1> and is_covariance_v<Arg2>)
+#else
+  template<typename Arg1, typename Arg2, std::enable_if_t<
+    (is_covariance_v<Arg1> and is_covariance_v<Arg2>) or
+    (is_covariance_v<Arg1> and is_typed_matrix_v<Arg2>) or
+    (is_typed_matrix_v<Arg1> and is_covariance_v<Arg2>), int> = 0>
+#endif
   constexpr decltype(auto) operator+(Arg1&& arg1, Arg2&& arg2)
   {
     using Cov = std::conditional_t<is_covariance_v<Arg1>, Arg1, Arg2>;
     using Other = std::conditional_t<is_covariance_v<Arg1>, Arg2, Arg1>;
     using C = typename MatrixTraits<Cov>::Coefficients;
 
-    if constexpr(is_typed_matrix_v<Other>)
+    if constexpr(typed_matrix<Other>)
     {
       static_assert(
         is_equivalent_v<C, typename MatrixTraits<Other>::RowCoefficients> and
@@ -534,18 +558,24 @@ namespace OpenKalman
 
 
   /// Subtract two covariance types, or one covariance type and one compatible typed matrix.
-  template<
-    typename Arg1, typename Arg2, std::enable_if_t<
-      (is_covariance_v<Arg1> and is_covariance_v<Arg2>) or
-      (is_covariance_v<Arg1> and is_typed_matrix_v<Arg2>) or
-      (is_typed_matrix_v<Arg1> and is_covariance_v<Arg2>), int> = 0>
+#ifdef __cpp_concepts
+  template<typename Arg1, typename Arg2> requires
+  (is_covariance_v<Arg1> and is_covariance_v<Arg2>) or
+    (is_covariance_v<Arg1> and typed_matrix<Arg2>) or
+    (typed_matrix<Arg1> and is_covariance_v<Arg2>)
+#else
+  template<typename Arg1, typename Arg2, std::enable_if_t<
+    (is_covariance_v<Arg1> and is_covariance_v<Arg2>) or
+    (is_covariance_v<Arg1> and is_typed_matrix_v<Arg2>) or
+    (is_typed_matrix_v<Arg1> and is_covariance_v<Arg2>), int> = 0>
+#endif
   constexpr decltype(auto) operator-(Arg1&& arg1, Arg2&& arg2)
   {
     using Cov = std::conditional_t<is_covariance_v<Arg1>, Arg1, Arg2>;
     using Other = std::conditional_t<is_covariance_v<Arg1>, Arg2, Arg1>;
     using C = typename MatrixTraits<Cov>::Coefficients;
 
-    if constexpr(is_typed_matrix_v<Other>)
+    if constexpr(typed_matrix<Other>)
     {
       static_assert(
         is_equivalent_v<C, typename MatrixTraits<Other>::RowCoefficients> and
@@ -641,9 +671,11 @@ namespace OpenKalman
 
 
   /// Multiply a typed matrix by a compatible covariance.
-  template<
-    typename M, typename Cov,
-    std::enable_if_t<is_typed_matrix_v<M> and is_covariance_v<Cov>, int> = 0>
+#ifdef __cpp_concepts
+  template<typed_matrix M, typename Cov> requires is_covariance_v<Cov>
+#else
+  template<typename M, typename Cov, std::enable_if_t<is_typed_matrix_v<M> and is_covariance_v<Cov>, int> = 0>
+#endif
   constexpr decltype(auto) operator*(M&& m, Cov&& cov) noexcept
   {
     using CC = typename MatrixTraits<Cov>::Coefficients;
@@ -685,9 +717,11 @@ namespace OpenKalman
 
 
   /// Multiply a covariance type by a typed matrix. If the typed matrix is a mean, the result is wrapped.
-  template<
-    typename Cov, typename M,
-    std::enable_if_t<is_covariance_v<Cov> and is_typed_matrix_v<M>, int> = 0>
+#ifdef __cpp_concepts
+  template<typename Cov, typed_matrix M> requires is_covariance_v<Cov>
+#else
+  template<typename Cov, typename M, std::enable_if_t<is_covariance_v<Cov> and is_typed_matrix_v<M>, int> = 0>
+#endif
   constexpr decltype(auto) operator*(Cov&& cov, M&& m) noexcept
   {
     using RC = typename MatrixTraits<Cov>::Coefficients;
@@ -952,14 +986,18 @@ namespace OpenKalman
   /// A scaled square root covariance L or U is also scaled accordingly, so that
   /// scale(L * adjoint(L)) = A * L * adjoint(L) * adjoint(A) or
   /// scale(adjoint(U) * U) = A * adjoint(U) * U * adjoint(A).
+#ifdef __cpp_concepts
+  template<typename M, typed_matrix A> requires is_covariance_v<M>
+#else
   template<typename M, typename A, std::enable_if_t<is_covariance_v<M> and is_typed_matrix_v<A>, int> = 0>
+#endif
   inline auto
   scale(M&& m, A&& a)
   {
     using C = typename MatrixTraits<M>::Coefficients;
     using AC = typename MatrixTraits<A>::RowCoefficients;
     static_assert(is_equivalent_v<typename MatrixTraits<A>::ColumnCoefficients, C>);
-    static_assert(not is_Euclidean_transformed_v<A>);
+    static_assert(not euclidean_transformed<A>);
     using BaseMatrix = typename MatrixTraits<M>::BaseMatrix;
 
     decltype(auto) mbase = base_matrix(std::forward<M>(m));

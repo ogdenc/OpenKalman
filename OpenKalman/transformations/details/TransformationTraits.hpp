@@ -69,29 +69,55 @@ namespace OpenKalman
   };
 
 
+#ifdef __cpp_concepts
+  /// T is a perturbation.
+  template<typename T>
+  concept perturbation = is_Gaussian_distribution_v<T> or
+    (typed_matrix<T> and column_vector<T> and not euclidean_transformed<T>);
+#else
   template<typename T>
   struct is_perturbation : std::bool_constant<is_Gaussian_distribution_v<T> or
-    (is_typed_matrix_v<T> and is_column_vector_v<T> and not is_Euclidean_transformed_v<T>)> {};
+    (is_typed_matrix_v<T> and is_column_vector_v<T> and not is_euclidean_transformed_v<T>)> {};
 
   /// Helper template for is_perturbation.
   template<typename T>
   inline constexpr bool is_perturbation_v = is_perturbation<T>::value;
 
+  /// Helper template for is_perturbation.
+  template<typename T>
+  inline constexpr bool perturbation = is_perturbation<T>::value;
+#endif
+
 
   namespace internal
   {
-    template<typename Noise, typename T = void, typename Enable = void>
+#ifdef __cpp_concepts
+    template<typename Noise>
     struct PerturbationTraits;
 
-    template<typename Noise, typename T>
-    struct PerturbationTraits<Noise, T, std::enable_if_t<is_Gaussian_distribution_v<Noise>>>
+    template<typename Noise> requires is_Gaussian_distribution_v<Noise>
+    struct PerturbationTraits<Noise> : MatrixTraits<typename DistributionTraits<Noise>::Mean> {};
+
+    template<typed_matrix Noise>
+    struct PerturbationTraits<Noise> : MatrixTraits<Noise> {};
+#else
+    template<typename Noise, typename Enable = void>
+    struct PerturbationTraits;
+
+    template<typename Noise>
+    struct PerturbationTraits<Noise, std::enable_if_t<is_Gaussian_distribution_v<Noise>>>
       : MatrixTraits<typename DistributionTraits<Noise>::Mean> {};
 
-    template<typename Noise, typename T>
-    struct PerturbationTraits<Noise, T, std::enable_if_t<is_typed_matrix_v<Noise>>>
+    template<typename Noise>
+    struct PerturbationTraits<Noise, std::enable_if_t<is_typed_matrix_v<Noise>>>
       : MatrixTraits<Noise> {};
+#endif
 
+#ifdef __cpp_concepts
+    template<perturbation Arg>
+#else
     template<typename Arg, std::enable_if_t<is_perturbation_v<Arg>, int> = 0>
+#endif
     inline auto
     get_perturbation(Arg&& arg) noexcept
     {
@@ -124,8 +150,8 @@ namespace OpenKalman
   template<typename OutputCoefficients, typename In, typename ... Perturbations>
   inline auto zero_hessian()
   {
-    static_assert(is_column_vector_v<In>);
-    static_assert((is_perturbation_v<Perturbations> and ...));
+    static_assert(column_vector<In>);
+    static_assert((perturbation<Perturbations> and ...));
     return std::tuple {detail::zero_hessian_impl<OutputCoefficients, In>(),
       detail::zero_hessian_impl<OutputCoefficients, Perturbations>()...};
   }
