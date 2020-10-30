@@ -11,9 +11,18 @@
 #ifndef OPENKALMAN_EIGEN3_HPP
 #define OPENKALMAN_EIGEN3_HPP
 
-
-// Note: Requires >= Eigen 3.3.9 if compiling in c++20 mode! See Eigen Commit 7a0a2a500, which fixes issue #2012.
 #include <Eigen/Dense>
+
+// Note: c++20 mode requires at least Eigen version 3.3.9. See Eigen Commit 7a0a2a500, which fixes issue #2012.
+#if not EIGEN_VERSION_AT_LEAST(3,3,9) and not defined(EIGEN_OPENKALMAN_CUSTOM_UPDATE_ADDING_COMMIT_7a0a2a500)
+#define EIGEN_IS_NOT_CPLUSPLUS20_COMPATIBLE
+#endif
+
+#ifdef EIGEN_IS_NOT_CPLUSPLUS20_COMPATIBLE
+#pragma push_macro("__cpp_concepts")
+#undef __cpp_concepts
+#endif
+
 
 
 #ifdef __GNUC__
@@ -113,6 +122,11 @@ namespace OpenKalman
   using Eigen3::make_Covariance;
   using Eigen3::make_SquareRootCovariance;
 }
+
+#ifdef EIGEN_IS_NOT_CPLUSPLUS20_COMPATIBLE
+#pragma pop_macro("__cpp_concepts")
+#endif
+
 
 #include "matrices/details/ElementSetter.hpp"
 #include "matrices/details/MatrixBase.hpp"

@@ -9,19 +9,14 @@
 
 cmake_minimum_required(VERSION 3.7)
 project(OpenKalman)
-
-enable_testing()
-find_package(GTest REQUIRED)
+include_directories(${PROJECT_SOURCE_DIR}/OpenKalman)
 
 find_package(Threads REQUIRED)
-# Note: Requires >= Eigen 3.3.9 if compiling in c++20 mode! See Eigen Commit 7a0a2a500, which fixes issue #2012.
-find_package(Eigen3 REQUIRED)
-#find_package(OpenCV REQUIRED)
 
-include_directories(${PROJECT_SOURCE_DIR}/OpenKalman)
-include_directories(SYSTEM ${EIGEN3_INCLUDE_DIRS})
-#include_directories(SYSTEM ${GTEST_INCLUDE_DIRS})
+#find_package(OpenCV REQUIRED)
 #include_directories(SYSTEM ${OPENCV_INCLUDE_DIRS})
+
+#enable_testing()
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(MyCXX_FLAGS "-g -O2 -Wall -ftemplate-backtrace-limit=0")

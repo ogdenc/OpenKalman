@@ -8,8 +8,13 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 
-add_executable(coefficients
+find_package(GTest)
+if (GTest_FOUND)
+    include_directories(SYSTEM ${GTEST_INCLUDE_DIRS})
+
+    add_executable(coefficients
         tests/coefficients.cpp
         )
-target_link_libraries(coefficients ${GTEST_BOTH_LIBRARIES} Threads::Threads)
-add_test(coefficients 0)
+    target_link_libraries(coefficients ${GTEST_BOTH_LIBRARIES} Threads::Threads)
+    add_test(coefficients 0)
+ENDIF()
