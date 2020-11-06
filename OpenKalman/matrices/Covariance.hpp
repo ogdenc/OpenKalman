@@ -62,11 +62,10 @@ namespace OpenKalman
 
     /// Convert from a general covariance type.
 #ifdef __cpp_concepts
-    template<typename M> requires is_covariance_v<M> and
-      (not (is_diagonal_v<M> and is_square_root_v<M> and is_diagonal_v<BaseMatrix>))
+    template<covariance M> requires (not (is_diagonal_v<M> and square_root_covariance<M> and is_diagonal_v<BaseMatrix>))
 #else
-    template<typename M, std::enable_if_t<is_covariance_v<M> and
-      not (is_diagonal_v<M> and is_square_root_v<M> and is_diagonal_v<BaseMatrix>), int> = 0>
+    template<typename M, std::enable_if_t<covariance<M> and
+      not (is_diagonal_v<M> and square_root_covariance<M> and is_diagonal_v<BaseMatrix>), int> = 0>
 #endif
     Covariance(M&& m) noexcept : Base(std::forward<M>(m))
     {
@@ -76,11 +75,10 @@ namespace OpenKalman
 
     /// Convert from a diagonal square-root covariance type.
 #ifdef __cpp_concepts
-    template<typename M> requires is_covariance_v<M> and
-      is_diagonal_v<M> and is_square_root_v<M> and is_diagonal_v<BaseMatrix>
+    template<square_root_covariance M> requires is_diagonal_v<M> and is_diagonal_v<BaseMatrix>
 #else
-    template<typename M, std::enable_if_t<is_covariance_v<M> and
-      is_diagonal_v<M> and is_square_root_v<M> and is_diagonal_v<BaseMatrix>, int> = 0>
+    template<typename M, std::enable_if_t<covariance<M> and
+      is_diagonal_v<M> and square_root_covariance<M> and is_diagonal_v<BaseMatrix>, int> = 0>
 #endif
     Covariance(M&& m) noexcept : Base(Cholesky_square(std::forward<M>(m).base_matrix()))
     {
@@ -126,7 +124,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<typed_matrix M>
 #else
-    template<typename M, std::enable_if_t<is_typed_matrix_v<M>, int> = 0>
+    template<typename M, std::enable_if_t<typed_matrix<M>, int> = 0>
 #endif
     Covariance(M&& m) noexcept : Base(MatrixTraits<SABaseType>::make(OpenKalman::base_matrix(std::forward<M>(m))))
     {
@@ -169,13 +167,13 @@ namespace OpenKalman
 
     /// Assign from a compatible covariance type.
 #ifdef __cpp_concepts
-    template<typed_matrix Arg> requires is_covariance_v<Arg>
+    template<typename Arg> requires covariance<Arg> or typed_matrix<Arg>
 #else
-    template<typename Arg, std::enable_if_t<is_covariance_v<Arg> or is_typed_matrix_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<covariance<Arg> or typed_matrix<Arg>, int> = 0>
 #endif
     auto& operator=(Arg&& other) noexcept
     {
-      if constexpr(is_covariance_v<Arg>)
+      if constexpr(covariance<Arg>)
       {
         static_assert(is_equivalent_v<typename MatrixTraits<Arg>::Coefficients, Coefficients>);
       }
@@ -193,8 +191,8 @@ namespace OpenKalman
       {
         static_assert(is_identity_v<Arg>);
       }
-      else if constexpr(is_covariance_v<Arg> and
-        is_diagonal_v<Arg> and is_square_root_v<Arg> and is_diagonal_v<BaseMatrix>)
+      else if constexpr(covariance<Arg> and
+        is_diagonal_v<Arg> and square_root_covariance<Arg> and is_diagonal_v<BaseMatrix>)
       {
         Base::operator=(Cholesky_square(std::forward<Arg>(other).base_matrix()));
       }
@@ -205,23 +203,27 @@ namespace OpenKalman
       return *this;
     }
 
-    template<typename Arg, std::enable_if_t<is_covariance_v<Arg>, int> = 0>
+#ifdef __cpp_concepts
+    template<covariance Arg>
+#else
+    template<typename Arg, std::enable_if_t<covariance<Arg>, int> = 0>
+#endif
     auto& operator+=(Arg&& arg) noexcept
     {
       static_assert(is_equivalent_v<typename MatrixTraits<Arg>::Coefficients, Coefficients>);
-      static_assert(not is_square_root_v<Arg>);
+      static_assert(not square_root_covariance<Arg>);
       if constexpr(is_self_adjoint_v<BaseMatrix>)
       {
-        base_matrix() += internal::convert_base_matrix<BaseMatrix>(std::forward<Arg>(arg));
+        this->base_matrix() += internal::convert_base_matrix<BaseMatrix>(std::forward<Arg>(arg));
       }
       else
       {
-        decltype(auto) E1 = base_matrix();
+        decltype(auto) E1 = this->base_matrix();
         decltype(auto) E2 = internal::convert_base_matrix<BaseMatrix>(std::forward<Arg>(arg));
         if constexpr(is_upper_triangular_v<BaseMatrix>)
-          base_matrix() = QR_decomposition(concatenate_vertical(E1, E2));
+          this->base_matrix() = QR_decomposition(concatenate_vertical(E1, E2));
         else
-          base_matrix() = LQ_decomposition(concatenate_horizontal(E1, E2));
+          this->base_matrix() = LQ_decomposition(concatenate_horizontal(E1, E2));
       }
       this->mark_changed();
       return *this;
@@ -232,20 +234,25 @@ namespace OpenKalman
       return operator+=<const Covariance&>(arg);
     }
 
-    template<typename Arg, std::enable_if_t<is_covariance_v<Arg>, int> = 0>
+
+#ifdef __cpp_concepts
+    template<covariance Arg>
+#else
+    template<typename Arg, std::enable_if_t<covariance<Arg>, int> = 0>
+#endif
     auto& operator-=(Arg&& arg) noexcept
     {
       static_assert(is_equivalent_v<typename MatrixTraits<Arg>::Coefficients, Coefficients>);
-      static_assert(not is_square_root_v<Arg>);
+      static_assert(not square_root_covariance<Arg>);
       if constexpr(is_self_adjoint_v<BaseMatrix>)
       {
-        base_matrix() -= internal::convert_base_matrix<BaseMatrix>(std::forward<Arg>(arg));
+        this->base_matrix() -= internal::convert_base_matrix<BaseMatrix>(std::forward<Arg>(arg));
       }
       else
       {
         using TLowerType = typename MatrixTraits<BaseMatrix>::template TriangularBaseType<TriangleType::lower>;
         const auto U = internal::convert_base_matrix<TLowerType>(std::forward<Arg>(arg));
-        rank_update(base_matrix(), U, Scalar(-1));
+        rank_update(this->base_matrix(), U, Scalar(-1));
       }
       this->mark_changed();
       return *this;
@@ -256,54 +263,63 @@ namespace OpenKalman
       return operator-=<const Covariance&>(arg);
     }
 
+#ifdef __cpp_concepts
+    template<std::convertible_to<Scalar> S>
+#else
     template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
+#endif
     auto& operator*=(const S s)
     {
       if constexpr(is_self_adjoint_v<BaseMatrix>)
       {
-        base_matrix() *= s;
+        this->base_matrix() *= s;
       }
       else
       {
         if (s > S(0))
         {
-          base_matrix() *= std::sqrt(static_cast<Scalar>(s));
+          this->base_matrix() *= std::sqrt(static_cast<Scalar>(s));
         }
         else if (s < S(0))
         {
           using TLowerType = typename MatrixTraits<BaseMatrix>::template TriangularBaseType<TriangleType::lower>;
           const auto U = internal::convert_base_matrix<TLowerType>(*this);
-          base_matrix() = MatrixTraits<BaseMatrix>::zero();
-          rank_update(base_matrix(), U, s);
+          this->base_matrix() = MatrixTraits<BaseMatrix>::zero();
+          rank_update(this->base_matrix(), U, s);
         }
         else
         {
-          base_matrix() = MatrixTraits<BaseMatrix>::zero();
+          this->base_matrix() = MatrixTraits<BaseMatrix>::zero();
         }
       }
       this->mark_changed();
       return *this;
     }
 
+
+#ifdef __cpp_concepts
+    template<std::convertible_to<Scalar> S>
+#else
     template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
+#endif
     auto& operator/=(const S s)
     {
       if constexpr(is_self_adjoint_v<BaseMatrix>)
       {
-        base_matrix() /= s;
+        this->base_matrix() /= s;
       }
       else
       {
         if (s > S(0))
         {
-          base_matrix() /= std::sqrt(static_cast<Scalar>(s));
+          this->base_matrix() /= std::sqrt(static_cast<Scalar>(s));
         }
         else if (s < S(0))
         {
           using TLowerType = typename MatrixTraits<BaseMatrix>::template TriangularBaseType<TriangleType::lower>;
           const auto u = internal::convert_base_matrix<TLowerType>(*this);
-          base_matrix() = MatrixTraits<BaseMatrix>::zero();
-          rank_update(base_matrix(), u, 1 / static_cast<Scalar>(s));
+          this->base_matrix() = MatrixTraits<BaseMatrix>::zero();
+          rank_update(this->base_matrix(), u, 1 / static_cast<Scalar>(s));
         }
         else
         {
@@ -315,27 +331,35 @@ namespace OpenKalman
     }
 
     /// Scale by a factor. Equivalent to multiplication by the square of a scalar.
+#ifdef __cpp_concepts
+    template<std::convertible_to<Scalar> S>
+#else
     template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
+#endif
     auto&
     scale(const S s)
     {
       if constexpr(is_self_adjoint_v<BaseMatrix>)
-        base_matrix() *= static_cast<Scalar>(s) * s;
+        this->base_matrix() *= static_cast<Scalar>(s) * s;
       else
-        base_matrix() *= s;
+        this->base_matrix() *= s;
       this->mark_changed();
       return *this;
     }
 
     /// Scale by the inverse of a scalar factor. Equivalent by division by the square of a scalar.
+#ifdef __cpp_concepts
+    template<std::convertible_to<Scalar> S>
+#else
     template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
+#endif
     auto&
     inverse_scale(const S s)
     {
       if constexpr(is_self_adjoint_v<BaseMatrix>)
-        base_matrix() /= static_cast<Scalar>(s) * s;
+        this->base_matrix() /= static_cast<Scalar>(s) * s;
       else
-        base_matrix() /= s;
+        this->base_matrix() /= s;
       this->mark_changed();
       return *this;
     }
@@ -349,8 +373,6 @@ namespace OpenKalman
 
     static auto identity() { return make(MatrixTraits<BaseMatrix>::identity()); }
 
-    using Base::base_matrix;
-
   };
 
 
@@ -359,9 +381,9 @@ namespace OpenKalman
   /////////////////////////////////////
 
 #ifdef __cpp_concepts
-  template<typename M> requires is_covariance_v<M>
+  template<covariance M>
 #else
-  template<typename M, std::enable_if_t<is_covariance_v<M>, int> = 0>
+  template<typename M, std::enable_if_t<covariance<M>, int> = 0>
 #endif
   Covariance(M&&) -> Covariance<typename MatrixTraits<M>::Coefficients, typename MatrixTraits<M>::BaseMatrix>;
 
@@ -377,7 +399,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typed_matrix M>
 #else
-  template<typename M, std::enable_if_t<is_typed_matrix_v<M>, int> = 0>
+  template<typename M, std::enable_if_t<typed_matrix<M>, int> = 0>
 #endif
   Covariance(M&&) -> Covariance<
     typename MatrixTraits<M>::RowCoefficients,
@@ -529,9 +551,9 @@ namespace OpenKalman
 
   /// Make a Covariance based on another covariance.
 #ifdef __cpp_concepts
-  template<typename Arg> requires is_covariance_v<Arg>
+  template<covariance Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_covariance_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<covariance<Arg>, int> = 0>
 #endif
   inline auto
   make_Covariance(Arg&& arg) noexcept
@@ -543,9 +565,9 @@ namespace OpenKalman
 
   /// Make a default Covariance, based on a covariance template type.
 #ifdef __cpp_concepts
-  template<typename Arg> requires is_covariance_v<Arg>
+  template<covariance Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_covariance_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<covariance<Arg>, int> = 0>
 #endif
   inline auto
   make_Covariance()
@@ -563,7 +585,7 @@ namespace OpenKalman
   template<TriangleType...triangle_type, typed_matrix Arg> requires (sizeof...(triangle_type) <= 1)
 #else
   template<TriangleType...triangle_type, typename Arg,
-    std::enable_if_t<sizeof...(triangle_type) <= 1 and is_typed_matrix_v<Arg>, int> = 0>
+    std::enable_if_t<sizeof...(triangle_type) <= 1 and typed_matrix<Arg>, int> = 0>
 #endif
   inline auto
   make_Covariance(Arg&& arg) noexcept
@@ -581,7 +603,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<TriangleType triangle_type, typed_matrix Arg>
 #else
-  template<TriangleType triangle_type, typename Arg, std::enable_if_t<is_typed_matrix_v<Arg>, int> = 0>
+  template<TriangleType triangle_type, typename Arg, std::enable_if_t<typed_matrix<Arg>, int> = 0>
 #endif
   inline auto
   make_Covariance()
@@ -597,7 +619,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typed_matrix Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<typed_matrix<Arg>, int> = 0>
 #endif
   inline auto
   make_Covariance()
@@ -618,6 +640,7 @@ namespace OpenKalman
   {
     using BaseMatrix = ArgType;
     static constexpr auto dimension = MatrixTraits<BaseMatrix>::dimension;
+    static constexpr auto columns = dimension;
     static_assert(Coeffs::size == dimension);
     using Coefficients = Coeffs;
     using Scalar = typename MatrixTraits<BaseMatrix>::Scalar; ///< Scalar type for this vector.

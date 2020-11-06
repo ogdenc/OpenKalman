@@ -133,7 +133,7 @@ namespace OpenKalman
     static constexpr auto
     sigma_points(const Dist& ...ds)
     {
-      static_assert(std::conjunction_v<is_Gaussian_distribution<Dist>...>);
+      static_assert((gaussian_distribution<Dist> and ...));
       constexpr auto dim = (DistributionTraits<Dist>::dimension + ...);
       return sigma_points_impl<dim>(ds...);
     }

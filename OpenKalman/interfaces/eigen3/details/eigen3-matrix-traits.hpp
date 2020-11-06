@@ -26,14 +26,17 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<typename M> requires std::same_as<M, std::decay_t<M>> and
-    std::derived_from<std::decay_t<M>, Eigen::MatrixBase<std::decay_t<M>>>
+    std::derived_from<std::decay_t<M>, Eigen::MatrixBase<std::decay_t<M>>> and
+    (not std::derived_from<std::decay_t<M>, Eigen3::internal::Eigen3Base<std::decay_t<M>>>)
   struct MatrixTraits<M>
 #else
   template<typename M>
-  struct MatrixTraits<M, std::enable_if_t<std::is_same_v<M, std::decay_t<M>> and Eigen3::is_eigen_native_v<M>>>
+  struct MatrixTraits<M, std::enable_if_t<std::is_same_v<M, std::decay_t<M>> and
+    std::is_base_of_v<Eigen::MatrixBase<std::decay_t<M>>, std::decay_t<M>> and
+    not std::is_base_of_v<Eigen3::internal::Eigen3Base<std::decay_t<M>>, std::decay_t<M>>>>
 #endif
   {
-    using BaseMatrix = std::decay_t<M>;
+    using BaseMatrix = M;
     using Scalar = typename BaseMatrix::Scalar;
 
     static constexpr std::size_t dimension = BaseMatrix::RowsAtCompileTime;
@@ -51,7 +54,7 @@ namespace OpenKalman
     template<std::size_t rows = dimension, std::size_t cols = columns, typename S = Scalar>
     using StrictMatrix = Eigen::Matrix<S, (Eigen::Index) rows, (Eigen::Index) cols>;
 
-    using Strict = typename MatrixTraits<BaseMatrix>::template StrictMatrix<>;
+    using Strict = typename MatrixTraits<BaseMatrix>::template StrictMatrix<dimension, columns>;
 
     template<TriangleType storage_triangle = TriangleType::lower, std::size_t dim = dimension, typename S = Scalar>
     using SelfAdjointBaseType = Eigen3::SelfAdjointMatrix<StrictMatrix<dim, dim, S>, storage_triangle>;

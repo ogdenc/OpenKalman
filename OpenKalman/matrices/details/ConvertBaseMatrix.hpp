@@ -25,7 +25,7 @@ namespace OpenKalman::internal
   constexpr decltype(auto)
   convert_base_matrix(Arg&& arg) noexcept
   {
-    static_assert(is_covariance_v<Arg> or typed_matrix<Arg>);
+    static_assert(covariance<Arg> or typed_matrix<Arg>);
     using ArgBase = typename MatrixTraits<Arg>::BaseMatrix;
 
     // Typed matrices:
@@ -47,10 +47,10 @@ namespace OpenKalman::internal
 
     // strictly triangular or diagonal square root --> self-adjoint
     else if constexpr(((is_triangular_v<ArgBase> and not is_diagonal_v<ArgBase>) or
-      (is_square_root_v<Arg> and is_diagonal_v<ArgBase>)) and is_self_adjoint_v<T> and not is_diagonal_v<T>)
+      (square_root_covariance<Arg> and is_diagonal_v<ArgBase>)) and is_self_adjoint_v<T> and not is_diagonal_v<T>)
     {
-      if constexpr((is_self_adjoint_v<ArgBase> and not is_square_root_v<Arg>) or
-        (is_triangular_v<ArgBase> and is_square_root_v<Arg>))
+      if constexpr((is_self_adjoint_v<ArgBase> and not square_root_covariance<Arg>) or
+        (is_triangular_v<ArgBase> and square_root_covariance<Arg>))
         return Cholesky_square(std::forward<Arg>(arg).base_matrix());
       else
         return std::forward<Arg>(arg).get_apparent_base_matrix();
@@ -58,7 +58,7 @@ namespace OpenKalman::internal
 
     // strictly self-adjoint or diagonal non-square root --> strictly triangular
     else if constexpr(((not is_diagonal_v<ArgBase> and not is_triangular_v<ArgBase>) or
-        (is_diagonal_v<ArgBase> and not is_square_root_v<Arg> )) and is_triangular_v<T> and not is_diagonal_v<T>)
+        (is_diagonal_v<ArgBase> and not square_root_covariance<Arg> )) and is_triangular_v<T> and not is_diagonal_v<T>)
     {
       if constexpr(is_diagonal_v<ArgBase>) // diagonal non-square root
       {
@@ -73,8 +73,8 @@ namespace OpenKalman::internal
         }
         else // Converted triangle types match.
         {
-          if constexpr((is_self_adjoint_v<ArgBase> and not is_square_root_v<Arg>) or
-            (is_triangular_v<ArgBase> and is_square_root_v<Arg>))
+          if constexpr((is_self_adjoint_v<ArgBase> and not square_root_covariance<Arg>) or
+            (is_triangular_v<ArgBase> and square_root_covariance<Arg>))
             return Cholesky_factor(std::forward<Arg>(arg).base_matrix());
           else
           {

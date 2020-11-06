@@ -22,7 +22,7 @@ using T2l = TriangularMatrix<M2, TriangleType::lower>;
 using T2u = TriangularMatrix<M2, TriangleType::upper>;
 using D2 = DiagonalMatrix<Eigen::Matrix<double, 2, 1>>;
 using D1 = Eigen::Matrix<double, 1, 1>;
-using I2 = EigenIdentity<M2>;
+using I2 = IdentityMatrix<M2>;
 using Z2 = ZeroMatrix<M2>;
 using CovSA2l = Covariance<C, SA2l>;
 using CovSA2u = Covariance<C, SA2u>;
@@ -748,7 +748,7 @@ TEST_F(covariance_tests, Covariance_make)
 
 TEST_F(covariance_tests, Covariance_traits)
 {
-  static_assert(not is_square_root_v<CovSA2l>);
+  static_assert(not square_root_covariance<CovSA2l>);
   static_assert(not is_diagonal_v<CovSA2l>);
   static_assert(is_self_adjoint_v<CovSA2l>);
   static_assert(not is_Cholesky_v<CovSA2l>);
@@ -758,7 +758,7 @@ TEST_F(covariance_tests, Covariance_traits)
   static_assert(not is_identity_v<CovSA2l>);
   static_assert(not is_zero_v<CovSA2l>);
 
-  static_assert(not is_square_root_v<CovT2l>);
+  static_assert(not square_root_covariance<CovT2l>);
   static_assert(not is_diagonal_v<CovT2l>);
   static_assert(is_self_adjoint_v<CovT2l>);
   static_assert(is_Cholesky_v<CovT2l>);
@@ -769,7 +769,7 @@ TEST_F(covariance_tests, Covariance_traits)
   static_assert(not is_identity_v<CovT2l>);
   static_assert(not is_zero_v<CovT2l>);
 
-  static_assert(not is_square_root_v<CovD2>);
+  static_assert(not square_root_covariance<CovD2>);
   static_assert(is_diagonal_v<CovD2>);
   static_assert(is_self_adjoint_v<CovD2>);
   static_assert(not is_Cholesky_v<CovD2>);
@@ -780,7 +780,7 @@ TEST_F(covariance_tests, Covariance_traits)
   static_assert(not is_identity_v<CovD2>);
   static_assert(not is_zero_v<CovD2>);
 
-  static_assert(not is_square_root_v<CovI2>);
+  static_assert(not square_root_covariance<CovI2>);
   static_assert(is_diagonal_v<CovI2>);
   static_assert(is_self_adjoint_v<CovI2>);
   static_assert(not is_Cholesky_v<CovI2>);
@@ -791,7 +791,7 @@ TEST_F(covariance_tests, Covariance_traits)
   static_assert(is_identity_v<CovI2>);
   static_assert(not is_zero_v<CovI2>);
 
-  static_assert(not is_square_root_v<CovZ2>);
+  static_assert(not square_root_covariance<CovZ2>);
   static_assert(is_diagonal_v<CovZ2>);
   static_assert(is_self_adjoint_v<CovZ2>);
   static_assert(not is_Cholesky_v<CovZ2>);

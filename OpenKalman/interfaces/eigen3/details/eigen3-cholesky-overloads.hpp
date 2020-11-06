@@ -16,7 +16,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<eigen_native Arg> requires is_diagonal_v<Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_eigen_native_v<Arg> and is_diagonal_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<eigen_native<Arg> and is_diagonal_v<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   Cholesky_square(Arg&& arg)
@@ -39,7 +39,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<eigen_native Arg> requires is_diagonal_v<Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_eigen_native_v<Arg> and is_diagonal_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<eigen_native<Arg> and is_diagonal_v<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   Cholesky_factor(Arg&& arg)
@@ -62,7 +62,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<eigen_zero_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_eigen_zero_expr_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<eigen_zero_expr<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   Cholesky_square(Arg&& arg) noexcept
@@ -74,7 +74,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<eigen_zero_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_eigen_zero_expr_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<eigen_zero_expr<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   Cholesky_factor(Arg&& arg) noexcept
@@ -86,7 +86,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<eigen_diagonal_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_eigen_diagonal_expr_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<eigen_diagonal_expr<Arg>, int> = 0>
 #endif
   inline auto
   Cholesky_square(Arg&& arg) noexcept
@@ -99,7 +99,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<eigen_diagonal_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_eigen_diagonal_expr_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<eigen_diagonal_expr<Arg>, int> = 0>
 #endif
   inline auto
   Cholesky_factor(Arg&& arg) noexcept
@@ -112,7 +112,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<eigen_self_adjoint_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_eigen_self_adjoint_expr_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<eigen_self_adjoint_expr<Arg>, int> = 0>
 #endif
   inline auto
   Cholesky_square(Arg&& arg) noexcept
@@ -151,7 +151,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<TriangleType triangle_type, eigen_self_adjoint_expr Arg>
 #else
-  template<TriangleType triangle_type, typename Arg, std::enable_if_t<is_eigen_self_adjoint_expr_v<Arg>, int> = 0>
+  template<TriangleType triangle_type, typename Arg, std::enable_if_t<eigen_self_adjoint_expr<Arg>, int> = 0>
 #endif
   inline auto
   Cholesky_factor(Arg&& arg)
@@ -266,7 +266,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<eigen_self_adjoint_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_eigen_self_adjoint_expr_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<eigen_self_adjoint_expr<Arg>, int> = 0>
 #endif
   inline auto
   Cholesky_factor(Arg&& arg) noexcept
@@ -278,7 +278,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<eigen_triangular_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_eigen_triangular_expr_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<eigen_triangular_expr<Arg>, int> = 0>
 #endif
   inline auto
   Cholesky_square(Arg&& arg) noexcept
@@ -334,7 +334,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<eigen_triangular_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_eigen_triangular_expr_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<eigen_triangular_expr<Arg>, int> = 0>
 #endif
   inline auto
   Cholesky_factor(Arg&& arg) noexcept

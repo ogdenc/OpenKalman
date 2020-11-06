@@ -47,7 +47,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
     template<from_euclidean_expr Arg>
 #else
-    template<typename Arg, std::enable_if_t<is_from_euclidean_expr_v < Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<from_euclidean_expr < Arg>, int> = 0>
 #endif
     FromEuclideanExpr(Arg&& other) noexcept: Base(std::forward<Arg>(other).base_matrix())
     {
@@ -62,7 +62,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
     template<to_euclidean_expr Arg>
 #else
-    template<typename Arg, std::enable_if_t<is_to_euclidean_expr_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<to_euclidean_expr<Arg>, int> = 0>
 #endif
     FromEuclideanExpr(Arg&& other) noexcept: Base(std::forward<Arg>(other))
     {
@@ -77,7 +77,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
     template<eigen_matrix Arg>
 #else
-    template<typename Arg, std::enable_if_t<is_eigen_matrix_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<eigen_matrix<Arg>, int> = 0>
 #endif
     FromEuclideanExpr(Arg&& arg) noexcept : Base(std::forward<Arg>(arg))
     {
@@ -96,7 +96,7 @@ namespace OpenKalman::Eigen3
     template<
       typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...> and
         sizeof...(Args) == columns *
-          (is_to_euclidean_expr_v < BaseMatrix > ? Coefficients::size : Coefficients::dimension), int> = 0>
+          (to_euclidean_expr < BaseMatrix > ? Coefficients::size : Coefficients::dimension), int> = 0>
 #endif
     FromEuclideanExpr(Args ... args) : Base(MatrixTraits<BaseMatrix>::make(args...)) {}
 
@@ -125,7 +125,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
     template<from_euclidean_expr Arg>
 #else
-    template<typename Arg, std::enable_if_t<is_from_euclidean_expr_v < Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<from_euclidean_expr < Arg>, int> = 0>
 #endif
     auto& operator=(Arg&& other) noexcept
     {
@@ -153,7 +153,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
     template<eigen_matrix Arg>
 #else
-    template<typename Arg, std::enable_if_t<is_eigen_matrix_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<eigen_matrix<Arg>, int> = 0>
 #endif
     auto& operator=(Arg&& arg) noexcept
     {
@@ -181,7 +181,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
     template<typename Arg> requires from_euclidean_expr<Arg> or eigen_matrix<Arg>
 #else
-    template<typename Arg, std::enable_if_t<is_from_euclidean_expr_v < Arg> or is_eigen_matrix_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<from_euclidean_expr < Arg> or eigen_matrix<Arg>, int> = 0>
 #endif
     auto& operator+=(Arg&& other) noexcept
     {
@@ -200,7 +200,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
     template<typename Arg> requires from_euclidean_expr<Arg> or eigen_matrix<Arg>
 #else
-    template<typename Arg, std::enable_if_t<is_from_euclidean_expr_v < Arg> or is_eigen_matrix_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<from_euclidean_expr < Arg> or eigen_matrix<Arg>, int> = 0>
 #endif
     auto& operator-=(Arg&& other) noexcept
     {
@@ -372,7 +372,7 @@ namespace OpenKalman
       Eigen3::eigen_matrix<Arg> or Eigen3::to_euclidean_expr<Arg>
 #else
     template<typename C = Coefficients, typename Arg,
-      std::enable_if_t<Eigen3::is_eigen_matrix_v<Arg> or Eigen3::is_to_euclidean_expr_v<Arg>, int> = 0>
+      std::enable_if_t<Eigen3::eigen_matrix<Arg> or Eigen3::to_euclidean_expr<Arg>, int> = 0>
 #endif
     static auto make(Arg&& arg) noexcept
     {

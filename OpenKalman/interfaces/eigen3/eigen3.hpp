@@ -43,8 +43,9 @@
 #include "coefficient-types/coefficient-types.hpp"
 
 #include "details/eigen3-forward-declarations.hpp"
-
 #include "details/eigen3-matrix-traits.hpp"
+#include "details/eigen3-traits.hpp"
+
 #include "details/eigen3-matrix-overloads.hpp"
 
 #include "details/Eigen3MatrixBase.hpp"
@@ -82,6 +83,7 @@ namespace OpenKalman
   using Eigen3::ZeroMatrix;
   using Eigen3::FromEuclideanExpr;
   using Eigen3::ToEuclideanExpr;
+  using Eigen3::IdentityMatrix;
 
   using Eigen3::make_native_matrix;
   using Eigen3::make_EigenSelfAdjointMatrix;

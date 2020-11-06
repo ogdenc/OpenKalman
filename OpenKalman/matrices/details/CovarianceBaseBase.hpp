@@ -31,9 +31,15 @@ namespace OpenKalman::internal
     /// Move constructor.
     CovarianceBaseBase(CovarianceBaseBase&& other) noexcept : m_arg(std::move(other.m_arg)) {}
 
+
     /// Construct from another covariance.
-    template<typename Arg, std::enable_if_t<is_covariance_v<Arg>, int> = 0>
+#ifdef __cpp_concepts
+    template<covariance Arg>
+#else
+    template<typename Arg, std::enable_if_t<covariance<Arg>, int> = 0>
+#endif
     CovarianceBaseBase(Arg&& arg) noexcept : m_arg(internal::convert_base_matrix<BaseMatrix>(std::forward<Arg>(arg))) {}
+
 
     /// Construct from a covariance base.
 #ifdef __cpp_concepts
@@ -42,6 +48,7 @@ namespace OpenKalman::internal
     template<typename Arg, std::enable_if_t<is_covariance_base_v<Arg>, int> = 0>
 #endif
     CovarianceBaseBase(Arg&& arg) noexcept : m_arg(std::forward<Arg>(arg)) {}
+
 
     /// Copy assignment operator.
     auto& operator=(const CovarianceBaseBase& other)
@@ -58,6 +65,7 @@ namespace OpenKalman::internal
         m_arg = std::move(other.m_arg);
       return *this;
     }
+
 
     /// Assign from a covariance base.
 #ifdef __cpp_concepts
@@ -82,21 +90,37 @@ namespace OpenKalman::internal
       return *this;
     }
 
-    /// Get the base matrix.
+    /**
+     * @brief Get the base matrix of this covariance matrix.
+     * @details The base matrix will be self-adjoint, triangular, or diagonal.
+     * @return An lvalue reference to the base matrix.
+     */
     constexpr auto& base_matrix() & { return m_arg; }
 
-    /// Get the base matrix.
+    /**
+     * Get the base matrix of this covariance matrix temporary.
+     * @sa constexpr auto& base_matrix() &
+     * @return An rvalue reference to the base matrix.
+     */
     constexpr auto&& base_matrix() && { return std::move(m_arg); }
 
-    /// Get the base matrix.
+    /**
+     * Get the base matrix of this constant covariance matrix.
+     * @sa constexpr auto& base_matrix() &
+     * @return A constant lvalue reference to the base matrix.
+     */
     constexpr const auto& base_matrix() const & { return m_arg; }
 
-    /// Get the base matrix.
+    /**
+     * Get the base matrix of this constant covariance matrix temporary.
+     * @sa constexpr auto& base_matrix() &
+     * @return A constant rvalue reference to the base matrix.
+     */
     constexpr const auto&& base_matrix() const && { return std::move(m_arg); }
 
 
-  protected:
-    BaseMatrix m_arg; ///< The base matrix for Covariance or SquareRootCovariance.
+  private:
+    BaseMatrix m_arg; //< The base matrix for Covariance or SquareRootCovariance.
 
     template<typename, typename>
     friend struct CovarianceBaseBase;

@@ -46,7 +46,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<mean Arg>
 #else
-    template<typename Arg, std::enable_if_t<is_mean_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<mean<Arg>, int> = 0>
 #endif
     Mean(Arg&& other) noexcept : Base(std::forward<Arg>(other).base_matrix())
     {
@@ -58,8 +58,8 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<typed_matrix Arg> requires (not euclidean_transformed<Arg>) and (not mean<Arg>)
 #else
-    template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg> and not is_euclidean_transformed_v<Arg> and
-      not is_mean_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<typed_matrix<Arg> and not euclidean_transformed<Arg> and
+      not mean<Arg>, int> = 0>
 #endif
     Mean(Arg&& other) noexcept : Mean(std::forward<Arg>(other).base_matrix())
     {
@@ -71,7 +71,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<euclidean_transformed Arg>
 #else
-    template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg> and is_euclidean_transformed_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<typed_matrix<Arg> and euclidean_transformed<Arg>, int> = 0>
 #endif
     Mean(Arg&& other) noexcept : Base(from_Euclidean<Coefficients>(std::forward<Arg>(other).base_matrix()))
     {
@@ -139,7 +139,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<typed_matrix Arg>
 #else
-    template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<typed_matrix<Arg>, int> = 0>
 #endif
     auto& operator=(Arg&& other) noexcept
     {
@@ -182,7 +182,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<typed_matrix Arg>
 #else
-    template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<typed_matrix<Arg>, int> = 0>
 #endif
     auto& operator+=(Arg&& other) noexcept
     {
@@ -198,9 +198,9 @@ namespace OpenKalman
 
     /// Add a stochastic value to each column of the mean, based on a distribution.
 #ifdef __cpp_concepts
-    template<typename Arg> requires is_distribution_v<Arg>
+    template<typename Arg> requires distribution<Arg>
 #else
-    template<typename Arg, std::enable_if_t<is_distribution_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<distribution<Arg>, int> = 0>
 #endif
     auto& operator+=(const Arg& arg) noexcept
     {
@@ -228,7 +228,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<typed_matrix Arg>
 #else
-    template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<typed_matrix<Arg>, int> = 0>
 #endif
     auto& operator-=(Arg&& other) noexcept
     {
@@ -244,9 +244,9 @@ namespace OpenKalman
 
     /// Subtract a stochastic value to each column of the mean, based on a distribution.
 #ifdef __cpp_concepts
-    template<typename Arg> requires is_distribution_v<Arg>
+    template<typename Arg> requires distribution<Arg>
 #else
-    template<typename Arg, std::enable_if_t<is_distribution_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<distribution<Arg>, int> = 0>
 #endif
     auto& operator-=(const Arg& arg) noexcept
     {
@@ -360,7 +360,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typed_matrix Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<typed_matrix<Arg>, int> = 0>
 #endif
   inline auto make_Mean(Arg&& arg) noexcept
   {

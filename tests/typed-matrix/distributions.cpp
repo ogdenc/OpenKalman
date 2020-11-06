@@ -38,7 +38,7 @@ using SA2u = SelfAdjointMatrix<M2, TriangleType::upper>;
 using T2l = TriangularMatrix<M2, TriangleType::lower>;
 using T2u = TriangularMatrix<M2, TriangleType::upper>;
 using D2 = DiagonalMatrix<M2col>;
-using I2 = EigenIdentity<M2>;
+using I2 = IdentityMatrix<M2>;
 using Z2 = ZeroMatrix<M2>;
 using SA4l = SelfAdjointMatrix<M4, TriangleType::lower>;
 using SA4u = SelfAdjointMatrix<M4, TriangleType::upper>;
@@ -611,7 +611,7 @@ TEST_F(matrices, GaussianDistribution_make)
 
 TEST_F(matrices, GaussianDistribution_traits)
 {
-  static_assert(not is_square_root_v<DistSA2l>);
+  static_assert(not square_root_covariance<DistSA2l>);
   static_assert(not is_diagonal_v<DistSA2l>);
   static_assert(is_self_adjoint_v<DistSA2l>);
   static_assert(not is_Cholesky_v<DistSA2l>);
@@ -620,7 +620,7 @@ TEST_F(matrices, GaussianDistribution_traits)
   static_assert(not is_upper_triangular_v<DistSA2l>);
   static_assert(not is_zero_v<DistSA2l>);
 
-  static_assert(not is_square_root_v<DistT2l>);
+  static_assert(not square_root_covariance<DistT2l>);
   static_assert(not is_diagonal_v<DistT2l>);
   static_assert(is_self_adjoint_v<DistT2l>);
   static_assert(is_Cholesky_v<DistT2l>);
@@ -630,7 +630,7 @@ TEST_F(matrices, GaussianDistribution_traits)
   static_assert(not is_upper_triangular_v<DistT2l>);
   static_assert(not is_zero_v<DistT2l>);
 
-  static_assert(not is_square_root_v<DistD2>);
+  static_assert(not square_root_covariance<DistD2>);
   static_assert(is_diagonal_v<DistD2>);
   static_assert(is_self_adjoint_v<DistD2>);
   static_assert(not is_Cholesky_v<DistD2>);
@@ -640,7 +640,7 @@ TEST_F(matrices, GaussianDistribution_traits)
   static_assert(is_upper_triangular_v<DistD2>);
   static_assert(not is_zero_v<DistD2>);
 
-  static_assert(not is_square_root_v<DistI2>);
+  static_assert(not square_root_covariance<DistI2>);
   static_assert(is_diagonal_v<DistI2>);
   static_assert(is_self_adjoint_v<DistI2>);
   static_assert(not is_Cholesky_v<DistI2>);
@@ -650,7 +650,7 @@ TEST_F(matrices, GaussianDistribution_traits)
   static_assert(is_upper_triangular_v<DistI2>);
   static_assert(not is_zero_v<DistI2>);
 
-  static_assert(not is_square_root_v<DistZ2>);
+  static_assert(not square_root_covariance<DistZ2>);
   static_assert(is_diagonal_v<DistZ2>);
   static_assert(is_self_adjoint_v<DistZ2>);
   static_assert(not is_Cholesky_v<DistZ2>);

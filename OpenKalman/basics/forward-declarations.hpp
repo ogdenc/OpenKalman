@@ -86,19 +86,16 @@ namespace OpenKalman
 
 
   template<typename Coefficients, typename BaseMatrix>
-  struct is_covariance<Covariance<Coefficients, BaseMatrix>> : std::true_type {};
-
-  template<typename Coefficients, typename BaseMatrix>
   struct is_Cholesky<Covariance<Coefficients, BaseMatrix>>
     : std::bool_constant<is_triangular_v<BaseMatrix> and not is_self_adjoint_v<BaseMatrix>> {};
 
   template<typename Coefficients, typename BaseMatrix>
-  struct is_self_adjoint<Covariance<Coefficients, BaseMatrix>, std::enable_if_t<not OpenKalman::is_diagonal_v<BaseMatrix>>>
+  struct is_self_adjoint<Covariance<Coefficients, BaseMatrix>, std::enable_if_t<not is_diagonal_v<BaseMatrix>>>
     : std::true_type {};
 
   template<typename Coefficients, typename BaseMatrix>
   struct is_diagonal<Covariance<Coefficients, BaseMatrix>,
-    std::enable_if_t<not OpenKalman::is_zero_v<BaseMatrix> and not OpenKalman::is_identity_v<BaseMatrix>>>
+    std::enable_if_t<not is_zero_v<BaseMatrix> and not is_identity_v<BaseMatrix> and not is_1by1_v<BaseMatrix>>>
     : is_diagonal<BaseMatrix> {};
 
   template<typename Coefficients, typename BaseMatrix>
@@ -122,12 +119,6 @@ namespace OpenKalman
 
 
   template<typename Coefficients, typename BaseMatrix>
-  struct is_covariance<SquareRootCovariance<Coefficients, BaseMatrix>> : std::true_type {};
-
-  template<typename Coefficients, typename BaseMatrix>
-  struct is_square_root<SquareRootCovariance<Coefficients, BaseMatrix>> : std::true_type {};
-
-  template<typename Coefficients, typename BaseMatrix>
   struct is_Cholesky<SquareRootCovariance<Coefficients, BaseMatrix>>
     : std::bool_constant<OpenKalman::is_triangular_v<BaseMatrix> and not OpenKalman::is_self_adjoint_v<BaseMatrix>> {};
 
@@ -145,7 +136,7 @@ namespace OpenKalman
 
   template<typename Coefficients, typename BaseMatrix>
   struct is_diagonal<SquareRootCovariance<Coefficients, BaseMatrix>,
-  std::enable_if_t<not is_zero_v<BaseMatrix> and not is_identity_v<BaseMatrix>>>
+  std::enable_if_t<not is_zero_v<BaseMatrix> and not is_identity_v<BaseMatrix> and not is_1by1_v<BaseMatrix>>>
   : is_diagonal<BaseMatrix> {};
 
   template<typename Coefficients, typename BaseMatrix>
@@ -193,10 +184,6 @@ namespace OpenKalman
       const std::function<void()>& = []{}, const std::function<void()>& = []{});
   }
 
-
-  template<typename Coefficients, typename MeanMatrix, typename CovarianceMatrix, typename re>
-  struct is_Gaussian_distribution<GaussianDistribution<Coefficients, MeanMatrix, CovarianceMatrix, re>>
-    : std::true_type {};
 
   template<typename Coefficients, typename MeanMatrix, typename CovarianceMatrix, typename re>
   struct is_Cholesky<GaussianDistribution<Coefficients, MeanMatrix, CovarianceMatrix, re>>

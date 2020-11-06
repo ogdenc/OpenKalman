@@ -148,7 +148,7 @@ namespace OpenKalman
      * @tparam InputDist Input distribution.
      * @tparam Ts A list of tuples containing (1) a transformation and (2) zero or more noise terms for that transformation.
      **/
-    template<typename InputDist, typename...T_args, typename...Ts, std::enable_if_t<is_distribution_v<InputDist>, int> = 0>
+    template<typename InputDist, typename...T_args, typename...Ts, std::enable_if_t<distribution<InputDist>, int> = 0>
     auto operator()(const InputDist& x, const std::tuple<T_args...>& t, const Ts&...ts) const
     {
       return transform<false>(x, t, ts...);
@@ -160,10 +160,10 @@ namespace OpenKalman
      * @tparam InputDist Input distribution.
      * @tparam NoiseDist Noise distributions.
      **/
-    template<typename InputDist, typename Trans, typename ... NoiseDist,
-      std::enable_if_t<std::conjunction_v<is_distribution<InputDist>, is_distribution<NoiseDist>...> and
-        std::is_invocable_v<Trans, typename DistributionTraits<InputDist>::Mean, typename DistributionTraits<NoiseDist>::Mean...>, int> = 0>
-    auto operator()(const InputDist& x, const Trans& g, const NoiseDist& ...n) const
+    template<typename InputDist, typename Trans, typename ... NoiseDists,
+      std::enable_if_t<(distribution<InputDist> and ... and distribution<NoiseDists>) and
+        std::is_invocable_v<Trans, typename DistributionTraits<InputDist>::Mean, typename DistributionTraits<NoiseDists>::Mean...>, int> = 0>
+    auto operator()(const InputDist& x, const Trans& g, const NoiseDists& ...n) const
     {
       return transform<false>(x, std::tuple {g, n...});
     }
@@ -173,7 +173,7 @@ namespace OpenKalman
      * @tparam InputDist Input distribution.
      * @tparam Ts A list of tuples containing (1) a transformation and (2) zero or more noise terms for that transformation.
      **/
-    template<typename InputDist, typename...T_args, typename...Ts, std::enable_if_t<is_distribution_v<InputDist>, int> = 0>
+    template<typename InputDist, typename...T_args, typename...Ts, std::enable_if_t<distribution<InputDist>, int> = 0>
     auto transform_with_cross_covariance(const InputDist& x, const std::tuple<T_args...>& t, const Ts&...ts) const
     {
       return transform<true>(x, t, ts...);
@@ -185,9 +185,9 @@ namespace OpenKalman
      * @tparam InputDist Input distribution.
      * @tparam NoiseDist Noise distributions.
      **/
-    template<typename InputDist, typename Trans, typename ... NoiseDist,
-      std::enable_if_t<std::conjunction_v<is_distribution<InputDist>, is_distribution<NoiseDist>...>, int> = 0>
-    auto transform_with_cross_covariance(const InputDist& x, const Trans& g, const NoiseDist& ...n) const
+    template<typename InputDist, typename Trans, typename ... NoiseDists,
+      std::enable_if_t<(distribution<InputDist> and ... and distribution<NoiseDists>), int> = 0>
+    auto transform_with_cross_covariance(const InputDist& x, const Trans& g, const NoiseDists& ...n) const
     {
       return transform<true>(x, std::forward_as_tuple(g, n...));
     }

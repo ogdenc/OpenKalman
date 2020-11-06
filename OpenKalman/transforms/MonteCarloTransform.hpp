@@ -185,12 +185,12 @@ namespace OpenKalman
   public:
     explicit MonteCarloTransform(const std::size_t samples = 100000) : size(samples) {}
 
-    template<typename InputDist, typename Trans, typename ... NoiseDist,
-      std::enable_if_t<std::conjunction_v<is_distribution<InputDist>, is_distribution<NoiseDist>...> and
-        std::is_invocable_v<Trans, typename DistributionTraits<InputDist>::Mean, typename DistributionTraits<NoiseDist>::Mean...>, int> = 0>
-    auto operator()(const InputDist& x, const Trans& transformation, const NoiseDist& ...n) const
+    template<typename InputDist, typename Trans, typename ... NoiseDists,
+      std::enable_if_t<(distribution<InputDist> and ... and distribution<NoiseDists>) and
+        std::is_invocable_v<Trans, typename DistributionTraits<InputDist>::Mean, typename DistributionTraits<NoiseDists>::Mean...>, int> = 0>
+    auto operator()(const InputDist& x, const Trans& transformation, const NoiseDists& ...n) const
     {
-      using MSet = MonteCarloSet<false, Trans, InputDist, NoiseDist...>;
+      using MSet = MonteCarloSet<false, Trans, InputDist, NoiseDists...>;
       auto m_set = MSet(transformation, size, x, n...);
       auto binary_op = typename MSet::MonteCarloBinaryOp();
       using MSum = typename MSet::MonteCarloSum;
@@ -201,12 +201,12 @@ namespace OpenKalman
       return GaussianDistribution {mean_output, out_covariance};
     }
 
-    template<typename InputDist, typename Trans, typename ... NoiseDist,
-      std::enable_if_t<std::conjunction_v<is_distribution<InputDist>, is_distribution<NoiseDist>...> and
-        std::is_invocable_v<Trans, typename DistributionTraits<InputDist>::Mean, typename DistributionTraits<NoiseDist>::Mean...>, int> = 0>
-    auto transform_with_cross_covariance(const InputDist& x, const Trans& transformation, const NoiseDist& ...n) const
+    template<typename InputDist, typename Trans, typename ... NoiseDists,
+      std::enable_if_t<(distribution<InputDist> and ... and distribution<NoiseDists>) and
+        std::is_invocable_v<Trans, typename DistributionTraits<InputDist>::Mean, typename DistributionTraits<NoiseDists>::Mean...>, int> = 0>
+    auto transform_with_cross_covariance(const InputDist& x, const Trans& transformation, const NoiseDists& ...n) const
     {
-      using MSet = MonteCarloSet<true, Trans, InputDist, NoiseDist...>;
+      using MSet = MonteCarloSet<true, Trans, InputDist, NoiseDists...>;
       auto m_set = MSet(transformation, size, x, n...);
       auto binary_op = typename MSet::MonteCarloBinaryOp();
       using MSum = typename MSet::MonteCarloSum;

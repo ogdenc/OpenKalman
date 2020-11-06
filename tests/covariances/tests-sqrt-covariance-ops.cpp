@@ -21,7 +21,7 @@ using SA2u = SelfAdjointMatrix<M2, TriangleType::upper>;
 using T2l = TriangularMatrix<M2, TriangleType::lower>;
 using T2u = TriangularMatrix<M2, TriangleType::upper>;
 using D2 = DiagonalMatrix<Eigen::Matrix<double, 2, 1>>;
-using I2 = EigenIdentity<Eigen::Matrix<double, 2, 2>>;
+using I2 = IdentityMatrix<Eigen::Matrix<double, 2, 2>>;
 using Z2 = ZeroMatrix<Eigen::Matrix<double, 2, 2>>;
 using CovSA2l = Covariance<C, SA2l>;
 using CovSA2u = Covariance<C, SA2u>;
@@ -37,8 +37,6 @@ using SqCovT2u = SquareRootCovariance<C, T2u>;
 using SqCovD2 = SquareRootCovariance<C, D2>;
 using SqCovI2 = SquareRootCovariance<C, I2>;
 using SqCovZ2 = SquareRootCovariance<C, Z2>;
-using M3 = Eigen::Matrix<double, 3, 3>;
-using Mat3 = Matrix<C, C, M3>;
 
 inline I2 i2 = M2::Identity();
 inline Z2 z2 = ZeroMatrix<M2>();

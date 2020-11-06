@@ -30,7 +30,7 @@ namespace OpenKalman
      * @tparam NoiseDists Noise distribution.
      **/
     template<typename InputDist, typename ... NoiseDists,
-      std::enable_if_t<std::conjunction_v<is_distribution<InputDist>, is_distribution<NoiseDists>...>, int> = 0>
+      std::enable_if_t<(distribution<InputDist> and ... and distribution<NoiseDists>), int> = 0>
     auto operator()(const InputDist& x, const NoiseDists& ...ns) const
     {
       static_assert(std::conjunction_v<is_equivalent<typename DistributionTraits<InputDist>::Coefficients,
@@ -46,7 +46,7 @@ namespace OpenKalman
      * @tparam NoiseDist Noise distributions.
      **/
     template<typename InputDist, typename ... NoiseDists,
-      std::enable_if_t<std::conjunction_v<is_distribution<InputDist>, is_distribution<NoiseDists>...>, int> = 0>
+      std::enable_if_t<(distribution<InputDist> and ... and distribution<NoiseDists>), int> = 0>
     auto transform_with_cross_covariance(const InputDist& x, const NoiseDists& ...ns) const
     {
       static_assert(std::conjunction_v<is_equivalent<typename DistributionTraits<InputDist>::Coefficients,

@@ -79,15 +79,15 @@ namespace OpenKalman::internal
    * @tparam InputDist Input distribution.
    * @tparam NoiseDist Noise distribution.
    **/
-    template<std::size_t return_cross, typename TransformFunction, typename InputDist, typename ... NoiseDist,
-      std::enable_if_t<std::conjunction_v<is_distribution<InputDist>, is_distribution<NoiseDist>...>, int> = 0>
-    auto transform(const TransformFunction& f, const InputDist& in, const NoiseDist& ...n) const
+    template<std::size_t return_cross, typename TransformFunction, typename InputDist, typename ... NoiseDists,
+      std::enable_if_t<(distribution<InputDist> and ... and distribution<NoiseDists>), int> = 0>
+    auto transform(const TransformFunction& f, const InputDist& in, const NoiseDists& ...n) const
     {
       auto[mean_output, jacobians] = f(mean_of(in), mean_of(n)...);
       if constexpr (return_cross)
       {
         auto [cov_out, cross_covariance] = sum_noise_terms<true>(jacobians, std::tuple {in, n...},
-          std::make_index_sequence<std::min(sizeof...(NoiseDist), std::tuple_size_v<decltype(jacobians)> - 1)>{});
+          std::make_index_sequence<std::min(sizeof...(NoiseDists), std::tuple_size_v<decltype(jacobians)> - 1)>{});
         auto out = make_GaussianDistribution(mean_output, cov_out);
         if constexpr(TransformFunction::correction)
           return std::tuple {strict(out + f.add_correction(in, n...)), cross_covariance};
@@ -97,7 +97,7 @@ namespace OpenKalman::internal
       else
       {
         auto cov_out = sum_noise_terms<false>(jacobians, std::tuple {in, n...},
-          std::make_index_sequence<std::min(sizeof...(NoiseDist), std::tuple_size_v<decltype(jacobians)> - 1)>{});
+          std::make_index_sequence<std::min(sizeof...(NoiseDists), std::tuple_size_v<decltype(jacobians)> - 1)>{});
         auto out = make_GaussianDistribution(mean_output, cov_out);
         if constexpr(TransformFunction::correction)
           return strict(out + f.add_correction(in, n...));
@@ -116,8 +116,8 @@ namespace OpenKalman::internal
      * @tparam Transformation The transformation on which the transform is based (e.g., LinearTransformation).
      * @tparam NoiseDists Noise distributions.
      **/
-    template<typename InputDist, typename Trans, typename ... NoiseDists, std::enable_if_t<std::conjunction_v<
-      is_linearized_function<Trans, 1>, is_distribution<InputDist>, is_distribution<NoiseDists>...>, int> = 0>
+    template<typename InputDist, typename Trans, typename ... NoiseDists, std::enable_if_t<
+      (distribution<InputDist> and ... and distribution<NoiseDists>) and is_linearized_function_v<Trans, 1>, int> = 0>
     auto operator()(const InputDist& x, const Trans& g, const NoiseDists&...ns) const
     {
       return transform<false>(typename Derived::template TransformFunction<Trans> {g}, x, ns...);
@@ -129,8 +129,8 @@ namespace OpenKalman::internal
      * @tparam Transformation The transformation on which the transform is based (e.g., LinearTransformation).
      * @tparam NoiseDists Noise distributions.
      **/
-    template<typename InputDist, typename Trans, typename ... NoiseDists, std::enable_if_t<std::conjunction_v<
-      is_linearized_function<Trans, 1>, is_distribution<InputDist>, is_distribution<NoiseDists>...>, int> = 0>
+    template<typename InputDist, typename Trans, typename ... NoiseDists, std::enable_if_t<
+      (distribution<InputDist> and ... and distribution<NoiseDists>) and is_linearized_function_v<Trans, 1>, int> = 0>
     auto transform_with_cross_covariance(const InputDist& x, const Trans& g, const NoiseDists&...ns) const
     {
       return transform<true>(typename Derived::template TransformFunction<Trans> {g}, x, ns...);

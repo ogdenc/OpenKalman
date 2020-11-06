@@ -24,7 +24,7 @@ namespace OpenKalman
     * @tparam T The first tuple containing (1) a LinearTransformation (depending on transform) and (2) zero or more noise terms for that transformation.
     * @tparam Ts A list of tuples containing (1) a LinearTransformation (depending on transform) and (2) zero or more noise terms for that transformation.
     **/
-   template<typename InputDist, typename...T_args, typename...Ts, std::enable_if_t<is_distribution_v<InputDist>, int> = 0>
+   template<typename InputDist, typename...T_args, typename...Ts, std::enable_if_t<distribution<InputDist>, int> = 0>
     auto operator()(const InputDist& x, const std::tuple<T_args...>& t, const Ts&...ts) const
     {
       auto y = std::apply([&](const auto&...args) { return this->operator()(x, args...); }, t);
@@ -45,7 +45,7 @@ namespace OpenKalman
      * @tparam T The first tuple containing (1) a LinearTransformation (depending on transform) and (2) zero or more noise terms for that transformation.
      * @tparam Ts A list of tuples containing (1) a LinearTransformation (depending on transform) and (2) zero or more noise terms for that transformation.
      **/
-    template<typename InputDist, typename...T_args, typename...Ts, std::enable_if_t<is_distribution_v<InputDist>, int> = 0>
+    template<typename InputDist, typename...T_args, typename...Ts, std::enable_if_t<distribution<InputDist>, int> = 0>
     auto transform_with_cross_covariance(const InputDist& x, const std::tuple<T_args...>& t, const Ts&...ts) const
     {
       if constexpr (sizeof...(Ts) > 0)

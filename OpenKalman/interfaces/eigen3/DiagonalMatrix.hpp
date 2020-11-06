@@ -33,7 +33,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
     template<eigen_diagonal_expr Arg>
 #else
-    template<typename Arg, std::enable_if_t<is_eigen_diagonal_expr_v < Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<eigen_diagonal_expr < Arg>, int> = 0>
 #endif
     DiagonalMatrix(Arg&& other) noexcept: Base(std::forward<Arg>(other).base_matrix())
     {
@@ -45,7 +45,7 @@ namespace OpenKalman::Eigen3
     template<eigen_matrix Arg>
     requires (MatrixTraits<Arg>::columns == 1)
 #else
-    template<typename Arg, std::enable_if_t<is_eigen_matrix_v<Arg> and MatrixTraits<Arg>::columns == 1, int> = 0>
+    template<typename Arg, std::enable_if_t<eigen_matrix<Arg> and MatrixTraits<Arg>::columns == 1, int> = 0>
 #endif
     DiagonalMatrix(Arg&& arg) noexcept : Base(std::forward<Arg>(arg)) {}
 
@@ -57,9 +57,9 @@ namespace OpenKalman::Eigen3
 #else
     template<
       typename Arg,
-      std::enable_if_t<is_eigen_native_v < Arg>and is_diagonal_v<Arg>and
+      std::enable_if_t<eigen_native < Arg>and is_diagonal_v<Arg>and
     not
-    is_eigen_diagonal_expr_v <Arg>and (MatrixTraits<Arg>::columns
+    eigen_diagonal_expr <Arg>and (MatrixTraits<Arg>::columns
     > 1), int> = 0>
 #endif
     DiagonalMatrix(Arg&& other) noexcept: Base(std::forward<Arg>(other).diagonal())
@@ -126,7 +126,7 @@ namespace OpenKalman::Eigen3
     requires (not is_zero_v<Arg>) and (not is_identity_v<Arg>)
 #else
     template<typename Arg, std::enable_if_t<
-      is_eigen_diagonal_expr_v < Arg>and not is_zero_v <Arg> and not is_identity_v<Arg>, int> = 0>
+      eigen_diagonal_expr < Arg>and not is_zero_v <Arg> and not is_identity_v<Arg>, int> = 0>
 #endif
     auto& operator=(Arg&& other)
     {
@@ -293,9 +293,9 @@ namespace OpenKalman::Eigen3
 #else
   template<
     typename Arg,
-    std::enable_if_t<is_eigen_native_v < Arg>and is_diagonal_v<Arg>and
+    std::enable_if_t<eigen_native < Arg>and is_diagonal_v<Arg>and
   not
-  is_eigen_diagonal_expr_v <Arg>and (MatrixTraits<Arg>::columns
+  eigen_diagonal_expr <Arg>and (MatrixTraits<Arg>::columns
   > 1), int> = 0>
 #endif
   DiagonalMatrix(Arg && )
@@ -442,7 +442,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<Eigen3::eigen_diagonal_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<Eigen3::is_eigen_diagonal_expr_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<Eigen3::eigen_diagonal_expr<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   base_matrix(Arg&& arg) { return std::forward<Arg>(arg).base_matrix(); }
@@ -452,7 +452,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<Eigen3::eigen_diagonal_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<Eigen3::is_eigen_diagonal_expr_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<Eigen3::eigen_diagonal_expr<Arg>, int> = 0>
 #endif
   inline decltype(auto)
   strict(Arg&& arg)
@@ -471,7 +471,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<Eigen3::eigen_diagonal_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<Eigen3::is_eigen_diagonal_expr_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<Eigen3::eigen_diagonal_expr<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   transpose(Arg&& arg) noexcept
@@ -483,7 +483,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<Eigen3::eigen_diagonal_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<Eigen3::is_eigen_diagonal_expr_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<Eigen3::eigen_diagonal_expr<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   adjoint(Arg&& arg) noexcept
@@ -495,7 +495,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<Eigen3::eigen_diagonal_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<Eigen3::is_eigen_diagonal_expr_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<Eigen3::eigen_diagonal_expr<Arg>, int> = 0>
 #endif
   inline auto
   determinant(Arg&& arg) noexcept
@@ -508,7 +508,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<Eigen3::eigen_diagonal_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<Eigen3::is_eigen_diagonal_expr_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<Eigen3::eigen_diagonal_expr<Arg>, int> = 0>
 #endif
   inline auto
   trace(Arg&& arg) noexcept
@@ -522,7 +522,7 @@ namespace OpenKalman::Eigen3
   template<Eigen3::eigen_diagonal_expr Arg, Eigen3::eigen_diagonal_expr U>
     requires (not std::is_const_v<std::remove_reference_t<Arg>>)
 #else
-  template<typename Arg, typename U, std::enable_if_t<Eigen3::is_eigen_diagonal_expr_v<Arg> and Eigen3::is_eigen_diagonal_expr_v<U> and
+  template<typename Arg, typename U, std::enable_if_t<Eigen3::eigen_diagonal_expr<Arg> and Eigen3::eigen_diagonal_expr<U> and
     not std::is_const_v<std::remove_reference_t<Arg>>, int> = 0>
 #endif
   inline Arg&
@@ -538,8 +538,8 @@ namespace OpenKalman::Eigen3
   template<Eigen3::eigen_diagonal_expr Arg, typename U> requires is_diagonal_v<U> and (not Eigen3::eigen_diagonal_expr<U>) and
     (not std::is_const_v<std::remove_reference_t<Arg>>)
 #else
-  template<typename Arg, typename U, std::enable_if_t<Eigen3::is_eigen_diagonal_expr_v<Arg> and is_diagonal_v<U> and
-    not Eigen3::is_eigen_diagonal_expr_v<U> and not std::is_const_v<std::remove_reference_t<Arg>>, int> = 0>
+  template<typename Arg, typename U, std::enable_if_t<Eigen3::eigen_diagonal_expr<Arg> and is_diagonal_v<U> and
+    not Eigen3::eigen_diagonal_expr<U> and not std::is_const_v<std::remove_reference_t<Arg>>, int> = 0>
 #endif
   inline Arg&
   rank_update(Arg& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
@@ -556,7 +556,7 @@ namespace OpenKalman::Eigen3
   template<Eigen3::eigen_diagonal_expr Arg, Eigen3::eigen_diagonal_expr U>
 #else
   template<typename Arg, typename U, std::enable_if_t<
-    Eigen3::is_eigen_diagonal_expr_v<Arg> and Eigen3::is_eigen_diagonal_expr_v<U>, int> = 0>
+    Eigen3::eigen_diagonal_expr<Arg> and Eigen3::eigen_diagonal_expr<U>, int> = 0>
 #endif
   inline auto
   rank_update(const Arg& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
@@ -571,7 +571,7 @@ namespace OpenKalman::Eigen3
   template<Eigen3::eigen_diagonal_expr Arg, typename U> requires is_diagonal_v<U> and (not Eigen3::eigen_diagonal_expr<U>)
 #else
   template<typename Arg, typename U, std::enable_if_t<
-    Eigen3::is_eigen_diagonal_expr_v<Arg> and is_diagonal_v<U> and not Eigen3::is_eigen_diagonal_expr_v<U>, int> = 0>
+    Eigen3::eigen_diagonal_expr<Arg> and is_diagonal_v<U> and not Eigen3::eigen_diagonal_expr<U>, int> = 0>
 #endif
   inline auto
   rank_update(const Arg& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
@@ -586,7 +586,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<Eigen3::eigen_diagonal_expr Arg, typename U> requires (not is_diagonal_v<U>)
 #else
-  template<typename Arg, typename U, std::enable_if_t<Eigen3::is_eigen_diagonal_expr_v<Arg> and not is_diagonal_v<U>, int> = 0>
+  template<typename Arg, typename U, std::enable_if_t<Eigen3::eigen_diagonal_expr<Arg> and not is_diagonal_v<U>, int> = 0>
 #endif
   inline auto
   rank_update(const Arg& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
@@ -602,7 +602,7 @@ namespace OpenKalman::Eigen3
   template<Eigen3::eigen_diagonal_expr A, Eigen3::eigen_matrix B>
 #else
   template<typename A, typename B, std::enable_if_t<
-    Eigen3::is_eigen_diagonal_expr_v<A> and Eigen3::is_eigen_matrix_v<B>, int> = 0>
+    Eigen3::eigen_diagonal_expr<A> and Eigen3::eigen_matrix<B>, int> = 0>
 #endif
   inline auto
   solve(const A& a, const B& b)
@@ -616,7 +616,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<Eigen3::eigen_diagonal_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<Eigen3::is_eigen_diagonal_expr_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<Eigen3::eigen_diagonal_expr<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   reduce_columns(Arg&& arg) noexcept
@@ -629,7 +629,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<Eigen3::eigen_diagonal_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<Eigen3::is_eigen_diagonal_expr_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<Eigen3::eigen_diagonal_expr<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   LQ_decomposition(Arg&& arg)
@@ -642,7 +642,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<Eigen3::eigen_diagonal_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<Eigen3::is_eigen_diagonal_expr_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<Eigen3::eigen_diagonal_expr<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   QR_decomposition(Arg&& arg)
@@ -656,7 +656,7 @@ namespace OpenKalman::Eigen3
   template<Eigen3::eigen_diagonal_expr V, Eigen3::eigen_diagonal_expr ... Vs>
 #else
   template<typename V, typename ... Vs, std::enable_if_t<
-    std::conjunction_v<Eigen3::is_eigen_diagonal_expr<V>, Eigen3::is_eigen_diagonal_expr<Vs>...>, int> = 0>
+    (Eigen3::eigen_diagonal_expr<V> and ... and Eigen3::eigen_diagonal_expr<Vs>), int> = 0>
 #endif
   constexpr decltype(auto)
   concatenate_diagonal(V&& v, Vs&& ... vs)
@@ -680,7 +680,7 @@ namespace OpenKalman::Eigen3
   template<Eigen3::eigen_diagonal_expr Arg> requires (is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 1> or
     is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>)
 #else
-  template<typename Arg, std::enable_if_t<Eigen3::is_eigen_diagonal_expr_v<Arg> and
+  template<typename Arg, std::enable_if_t<Eigen3::eigen_diagonal_expr<Arg> and
     (is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 1> or
     is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>), int> = 0>
 #endif
@@ -699,7 +699,7 @@ namespace OpenKalman::Eigen3
   template<Eigen3::eigen_diagonal_expr Arg> requires (is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 1> or
     is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>)
 #else
-  template<typename Arg, std::enable_if_t<Eigen3::is_eigen_diagonal_expr_v<Arg> and
+  template<typename Arg, std::enable_if_t<Eigen3::eigen_diagonal_expr<Arg> and
     (is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 1> or
     is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>), int> = 0>
 #endif
@@ -726,7 +726,7 @@ namespace OpenKalman::Eigen3
       is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>)
 #else
   template<typename Arg, typename Scalar, std::enable_if_t<
-    Eigen3::is_eigen_diagonal_expr_v<Arg> and not std::is_const_v<std::remove_reference_t<Arg>> and
+    Eigen3::eigen_diagonal_expr<Arg> and not std::is_const_v<std::remove_reference_t<Arg>> and
       (is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 1> or
         is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>), int> = 0>
 #endif
@@ -748,7 +748,7 @@ namespace OpenKalman::Eigen3
       is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>)
 #else
   template<typename Arg, typename Scalar, std::enable_if_t<
-    Eigen3::is_eigen_diagonal_expr_v<Arg> and not std::is_const_v<std::remove_reference_t<Arg>> and
+    Eigen3::eigen_diagonal_expr<Arg> and not std::is_const_v<std::remove_reference_t<Arg>> and
       (is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 1> or
         is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>), int> = 0>
 #endif
@@ -783,7 +783,7 @@ namespace OpenKalman::Eigen3
     template<typename Scalar> typename distribution_type = std::normal_distribution,
     typename random_number_engine = std::mt19937,
     typename...Params,
-    std::enable_if_t<Eigen3::is_eigen_diagonal_expr_v<ReturnType>, int> = 0>
+    std::enable_if_t<Eigen3::eigen_diagonal_expr<ReturnType>, int> = 0>
 #endif
   static auto
   randomize(Params...params)
@@ -809,7 +809,7 @@ namespace OpenKalman::Eigen3
     (not is_zero_v<Arg1>) and (not is_zero_v<Arg2>) and (not is_identity_v<Arg1>) and (not is_identity_v<Arg2>)
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<
-    Eigen3::is_eigen_diagonal_expr_v<Arg1> and Eigen3::is_eigen_diagonal_expr_v<Arg2> and
+    Eigen3::eigen_diagonal_expr<Arg1> and Eigen3::eigen_diagonal_expr<Arg2> and
     not is_zero_v<Arg1> and not is_zero_v<Arg2> and not is_identity_v<Arg1> and not is_identity_v<Arg2>, int> = 0>
 #endif
   inline auto operator+(Arg1&& arg1, Arg2&& arg2)
@@ -825,8 +825,8 @@ namespace OpenKalman::Eigen3
   template<typename Arg1, typename Arg2> requires (Eigen3::eigen_diagonal_expr<Arg1> and is_identity_v<Arg2>) or
     (is_identity_v<Arg1> and Eigen3::eigen_diagonal_expr<Arg2>)
 #else
-  template<typename Arg1, typename Arg2, std::enable_if_t<(Eigen3::is_eigen_diagonal_expr_v<Arg1> and is_identity_v<Arg2>) or
-    (is_identity_v<Arg1> and Eigen3::is_eigen_diagonal_expr_v<Arg2>), int> = 0>
+  template<typename Arg1, typename Arg2, std::enable_if_t<(Eigen3::eigen_diagonal_expr<Arg1> and is_identity_v<Arg2>) or
+    (is_identity_v<Arg1> and Eigen3::eigen_diagonal_expr<Arg2>), int> = 0>
 #endif
   inline auto operator+(Arg1&& arg1, Arg2&& arg2)
   {
@@ -857,8 +857,8 @@ namespace OpenKalman::Eigen3
   template<typename Arg1, typename Arg2> requires (Eigen3::eigen_diagonal_expr<Arg1> and is_zero_v<Arg2>) or
     (is_zero_v<Arg1> and Eigen3::eigen_diagonal_expr<Arg2>)
 #else
-  template<typename Arg1, typename Arg2, std::enable_if_t<(Eigen3::is_eigen_diagonal_expr_v<Arg1> and is_zero_v<Arg2>) or
-    (is_zero_v<Arg1> and Eigen3::is_eigen_diagonal_expr_v<Arg2>), int> = 0>
+  template<typename Arg1, typename Arg2, std::enable_if_t<(Eigen3::eigen_diagonal_expr<Arg1> and is_zero_v<Arg2>) or
+    (is_zero_v<Arg1> and Eigen3::eigen_diagonal_expr<Arg2>), int> = 0>
 #endif
   constexpr decltype(auto) operator+(Arg1&& arg1, Arg2&& arg2)
   {
@@ -882,7 +882,7 @@ namespace OpenKalman::Eigen3
     (not is_zero_v<Arg1>) and (not is_zero_v<Arg2>) and (not is_identity_v<Arg1>) and (not is_identity_v<Arg2>)
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<
-    Eigen3::is_eigen_diagonal_expr_v<Arg1> and Eigen3::is_eigen_diagonal_expr_v<Arg2> and
+    Eigen3::eigen_diagonal_expr<Arg1> and Eigen3::eigen_diagonal_expr<Arg2> and
       not is_zero_v<Arg1> and not is_zero_v<Arg2> and not is_identity_v<Arg1> and not is_identity_v<Arg2>, int> = 0>
 #endif
   inline auto operator-(Arg1&& arg1, Arg2&& arg2)
@@ -898,8 +898,8 @@ namespace OpenKalman::Eigen3
   template<typename Arg1, typename Arg2> requires
     (Eigen3::eigen_diagonal_expr<Arg1> and is_identity_v<Arg2>) or (is_identity_v<Arg1> and Eigen3::eigen_diagonal_expr<Arg2>)
 #else
-  template<typename Arg1, typename Arg2, std::enable_if_t<(Eigen3::is_eigen_diagonal_expr_v<Arg1> and is_identity_v<Arg2>) or
-    (is_identity_v<Arg1> and Eigen3::is_eigen_diagonal_expr_v<Arg2>), int> = 0>
+  template<typename Arg1, typename Arg2, std::enable_if_t<(Eigen3::eigen_diagonal_expr<Arg1> and is_identity_v<Arg2>) or
+    (is_identity_v<Arg1> and Eigen3::eigen_diagonal_expr<Arg2>), int> = 0>
 #endif
   inline auto operator-(Arg1&& arg1, Arg2&& arg2)
   {
@@ -925,7 +925,7 @@ namespace OpenKalman::Eigen3
     (Eigen3::eigen_diagonal_expr<Arg1> and is_zero_v<Arg2>) or (is_zero_v<Arg1> and Eigen3::eigen_diagonal_expr<Arg2>)
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<
-    (Eigen3::is_eigen_diagonal_expr_v<Arg1> and is_zero_v<Arg2>) or (is_zero_v<Arg1> and Eigen3::is_eigen_diagonal_expr_v<Arg2>), int> = 0>
+    (Eigen3::eigen_diagonal_expr<Arg1> and is_zero_v<Arg2>) or (is_zero_v<Arg1> and Eigen3::eigen_diagonal_expr<Arg2>), int> = 0>
 #endif
   constexpr decltype(auto) operator-(Arg1&& arg1, Arg2&& arg2)
   {
@@ -948,7 +948,7 @@ namespace OpenKalman::Eigen3
   template<Eigen3::eigen_diagonal_expr Arg, std::convertible_to<typename MatrixTraits<Arg>::Scalar> S>
 #else
   template<typename Arg, typename S, std::enable_if_t<
-    Eigen3::is_eigen_diagonal_expr_v<Arg> and std::is_convertible_v<S, typename MatrixTraits<Arg>::Scalar>, int> = 0>
+    Eigen3::eigen_diagonal_expr<Arg> and std::is_convertible_v<S, typename MatrixTraits<Arg>::Scalar>, int> = 0>
 #endif
   inline auto operator*(Arg&& arg, const S scale)
   {
@@ -961,7 +961,7 @@ namespace OpenKalman::Eigen3
   template<Eigen3::eigen_diagonal_expr Arg, std::convertible_to<typename MatrixTraits<Arg>::Scalar> S>
 #else
   template<typename Arg, typename S, std::enable_if_t<
-    Eigen3::is_eigen_diagonal_expr_v<Arg> and std::is_convertible_v<S, typename MatrixTraits<Arg>::Scalar>, int> = 0>
+    Eigen3::eigen_diagonal_expr<Arg> and std::is_convertible_v<S, typename MatrixTraits<Arg>::Scalar>, int> = 0>
 #endif
   inline auto operator*(const S scale, Arg&& arg)
   {
@@ -973,7 +973,7 @@ namespace OpenKalman::Eigen3
   template<Eigen3::eigen_diagonal_expr Arg, std::convertible_to<typename MatrixTraits<Arg>::Scalar> S>
 #else
   template<typename Arg, typename S, std::enable_if_t<
-    Eigen3::is_eigen_diagonal_expr_v<Arg> and std::is_convertible_v<S, typename MatrixTraits<Arg>::Scalar>, int> = 0>
+    Eigen3::eigen_diagonal_expr<Arg> and std::is_convertible_v<S, typename MatrixTraits<Arg>::Scalar>, int> = 0>
 #endif
   inline auto operator/(Arg&& arg, const S scale)
   {
@@ -989,7 +989,7 @@ namespace OpenKalman::Eigen3
     (not is_zero_v<Arg1>) and (not is_zero_v<Arg2>) and (not is_identity_v<Arg1>) and (not is_identity_v<Arg2>)
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<
-    Eigen3::is_eigen_diagonal_expr_v<Arg1> and Eigen3::is_eigen_diagonal_expr_v<Arg2> and
+    Eigen3::eigen_diagonal_expr<Arg1> and Eigen3::eigen_diagonal_expr<Arg2> and
     not is_zero_v<Arg1> and not is_zero_v<Arg2> and not is_identity_v<Arg1> and not is_identity_v<Arg2>, int> = 0>
 #endif
   inline auto operator*(Arg1&& arg1, Arg2&& arg2)
@@ -1005,8 +1005,8 @@ namespace OpenKalman::Eigen3
   template<typename Arg1, typename Arg2> requires
     (Eigen3::eigen_diagonal_expr<Arg1> and is_identity_v<Arg2>) or (is_identity_v<Arg1> and Eigen3::eigen_diagonal_expr<Arg2>)
 #else
-  template<typename Arg1, typename Arg2, std::enable_if_t<(Eigen3::is_eigen_diagonal_expr_v<Arg1> and is_identity_v<Arg2>) or
-    (is_identity_v<Arg1> and Eigen3::is_eigen_diagonal_expr_v<Arg2>), int> = 0>
+  template<typename Arg1, typename Arg2, std::enable_if_t<(Eigen3::eigen_diagonal_expr<Arg1> and is_identity_v<Arg2>) or
+    (is_identity_v<Arg1> and Eigen3::eigen_diagonal_expr<Arg2>), int> = 0>
 #endif
   inline auto operator*(Arg1&& arg1, Arg2&& arg2)
   {
@@ -1027,8 +1027,8 @@ namespace OpenKalman::Eigen3
   template<typename Arg1, typename Arg2> requires
     (Eigen3::eigen_diagonal_expr<Arg1> and is_zero_v<Arg2>) or (is_zero_v<Arg1> and Eigen3::eigen_diagonal_expr<Arg2>)
 #else
-  template<typename Arg1, typename Arg2, std::enable_if_t<(Eigen3::is_eigen_diagonal_expr_v<Arg1> and is_zero_v<Arg2>) or
-    (is_zero_v<Arg1> and Eigen3::is_eigen_diagonal_expr_v<Arg2>), int> = 0>
+  template<typename Arg1, typename Arg2, std::enable_if_t<(Eigen3::eigen_diagonal_expr<Arg1> and is_zero_v<Arg2>) or
+    (is_zero_v<Arg1> and Eigen3::eigen_diagonal_expr<Arg2>), int> = 0>
 #endif
   constexpr decltype(auto) operator*(Arg1&& arg1, Arg2&& arg2)
   {
@@ -1053,8 +1053,8 @@ namespace OpenKalman::Eigen3
     (not is_identity_v<Arg1>) and (not is_identity_v<Arg2>) and (not is_zero_v<Arg1>) and (not is_zero_v<Arg2>)
 #else
   template<typename Arg1, typename Arg2,
-    std::enable_if_t<((Eigen3::is_eigen_diagonal_expr_v<Arg1> and Eigen3::is_eigen_matrix_v<Arg2>) or
-      (Eigen3::is_eigen_matrix_v<Arg1> and Eigen3::is_eigen_diagonal_expr_v<Arg2>)) and
+    std::enable_if_t<((Eigen3::eigen_diagonal_expr<Arg1> and Eigen3::eigen_matrix<Arg2>) or
+      (Eigen3::eigen_matrix<Arg1> and Eigen3::eigen_diagonal_expr<Arg2>)) and
       not is_identity_v<Arg1> and not is_identity_v<Arg2> and not is_zero_v<Arg1> and not is_zero_v<Arg2>, int> = 0>
 #endif
   inline auto operator*(Arg1&& arg1, Arg2&& arg2)
@@ -1074,7 +1074,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<Eigen3::eigen_diagonal_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<Eigen3::is_eigen_diagonal_expr_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<Eigen3::eigen_diagonal_expr<Arg>, int> = 0>
 #endif
   inline auto operator-(Arg&& arg)
   {

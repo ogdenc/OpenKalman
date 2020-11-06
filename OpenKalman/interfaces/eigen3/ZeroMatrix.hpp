@@ -81,7 +81,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<Eigen3::eigen_zero_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<Eigen3::is_eigen_zero_expr_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<Eigen3::eigen_zero_expr<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   strict(Arg&& arg)
@@ -93,7 +93,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<Eigen3::eigen_zero_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<Eigen3::is_eigen_zero_expr_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<Eigen3::eigen_zero_expr<Arg>, int> = 0>
 #endif
   inline auto
   to_diagonal(Arg&& arg) noexcept
@@ -108,7 +108,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<Eigen3::eigen_zero_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<Eigen3::is_eigen_zero_expr_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<Eigen3::eigen_zero_expr<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   transpose(Arg&& arg) noexcept
@@ -123,7 +123,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<Eigen3::eigen_zero_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<Eigen3::is_eigen_zero_expr_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<Eigen3::eigen_zero_expr<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   adjoint(Arg&& arg) noexcept
@@ -135,7 +135,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<Eigen3::eigen_zero_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<Eigen3::is_eigen_zero_expr_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<Eigen3::eigen_zero_expr<Arg>, int> = 0>
 #endif
   constexpr auto
   determinant(Arg&& arg) noexcept
@@ -148,7 +148,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<Eigen3::eigen_zero_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<Eigen3::is_eigen_zero_expr_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<Eigen3::eigen_zero_expr<Arg>, int> = 0>
 #endif
   constexpr auto
   trace(Arg&& arg) noexcept
@@ -162,7 +162,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<Eigen3::eigen_zero_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<Eigen3::is_eigen_zero_expr_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<Eigen3::eigen_zero_expr<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   reduce_columns(Arg&& arg) noexcept
@@ -186,7 +186,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<Eigen3::eigen_zero_expr A>
 #else
-  template<typename A, std::enable_if_t<Eigen3::is_eigen_zero_expr_v<A>, int> = 0>
+  template<typename A, std::enable_if_t<Eigen3::eigen_zero_expr<A>, int> = 0>
 #endif
   inline auto
   LQ_decomposition(A&& a)
@@ -204,7 +204,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<Eigen3::eigen_zero_expr A>
 #else
-  template<typename A, std::enable_if_t<Eigen3::is_eigen_zero_expr_v<A>, int> = 0>
+  template<typename A, std::enable_if_t<Eigen3::eigen_zero_expr<A>, int> = 0>
 #endif
   inline auto
   QR_decomposition(A&& a)
@@ -219,7 +219,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<Eigen3::eigen_zero_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<Eigen3::is_eigen_zero_expr_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<Eigen3::eigen_zero_expr<Arg>, int> = 0>
 #endif
   constexpr auto
   get_element(const Arg&, const std::size_t, const std::size_t)
@@ -232,7 +232,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<Eigen3::eigen_zero_expr Arg> requires (MatrixTraits<Arg>::columns == 1)
 #else
-  template<typename Arg, std::enable_if_t<Eigen3::is_eigen_zero_expr_v<Arg> and MatrixTraits<Arg>::columns == 1, int> = 0>
+  template<typename Arg, std::enable_if_t<Eigen3::eigen_zero_expr<Arg> and MatrixTraits<Arg>::columns == 1, int> = 0>
 #endif
   constexpr auto
   get_element(const Arg&, const std::size_t)
@@ -245,7 +245,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<Eigen3::eigen_zero_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<Eigen3::is_eigen_zero_expr_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<Eigen3::eigen_zero_expr<Arg>, int> = 0>
 #endif
   inline auto
   column(Arg&& arg, const std::size_t index)
@@ -259,7 +259,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<size_t index, Eigen3::eigen_zero_expr Arg>
 #else
-  template<size_t index, typename Arg, std::enable_if_t<Eigen3::is_eigen_zero_expr_v<Arg>, int> = 0>
+  template<size_t index, typename Arg, std::enable_if_t<Eigen3::eigen_zero_expr<Arg>, int> = 0>
 #endif
   inline decltype(auto)
   column(Arg&& arg)
@@ -281,8 +281,8 @@ namespace OpenKalman::Eigen3
   requires (is_zero_v<Arg1> and Eigen3::eigen_matrix<Arg2>) or (Eigen3::eigen_matrix<Arg1> and is_zero_v<Arg2>)
 #else
   template<typename Arg1, typename Arg2,
-    std::enable_if_t<(is_zero_v<Arg1> and Eigen3::is_eigen_matrix_v<Arg2>) or
-      (Eigen3::is_eigen_matrix_v<Arg1> and is_zero_v<Arg2>), int> = 0>
+    std::enable_if_t<(is_zero_v<Arg1> and Eigen3::eigen_matrix<Arg2>) or
+      (Eigen3::eigen_matrix<Arg1> and is_zero_v<Arg2>), int> = 0>
 #endif
   constexpr decltype(auto) operator+(Arg1&& arg1, Arg2&& arg2)
   {
@@ -308,8 +308,8 @@ namespace OpenKalman::Eigen3
   requires (is_zero_v<Arg1> and Eigen3::eigen_matrix<Arg2>) or (Eigen3::eigen_matrix<Arg1> and is_zero_v<Arg2>)
 #else
   template<typename Arg1, typename Arg2,
-    std::enable_if_t<(is_zero_v<Arg1> and Eigen3::is_eigen_matrix_v<Arg2>) or
-      (Eigen3::is_eigen_matrix_v<Arg1> and is_zero_v<Arg2>), int> = 0>
+    std::enable_if_t<(is_zero_v<Arg1> and Eigen3::eigen_matrix<Arg2>) or
+      (Eigen3::eigen_matrix<Arg1> and is_zero_v<Arg2>), int> = 0>
 #endif
   constexpr decltype(auto) operator-(Arg1&& arg1, Arg2&& arg2)
   {
@@ -345,8 +345,8 @@ namespace OpenKalman::Eigen3
   requires (is_zero_v<Arg1> and Eigen3::eigen_matrix<Arg2>) or (Eigen3::eigen_matrix<Arg1> and is_zero_v<Arg2>)
 #else
   template<typename Arg1, typename Arg2,
-    std::enable_if_t<(is_zero_v<Arg1> and Eigen3::is_eigen_matrix_v<Arg2>) or
-      (Eigen3::is_eigen_matrix_v<Arg1> and is_zero_v<Arg2>), int> = 0>
+    std::enable_if_t<(is_zero_v<Arg1> and Eigen3::eigen_matrix<Arg2>) or
+      (Eigen3::eigen_matrix<Arg1> and is_zero_v<Arg2>), int> = 0>
 #endif
   inline auto operator*(const Arg1& arg1, const Arg2& arg2)
   {
@@ -362,8 +362,8 @@ namespace OpenKalman::Eigen3
   template<typename Arg1, typename Arg2> requires (Eigen3::eigen_zero_expr<Arg1> and std::is_arithmetic_v<Arg2>) or
     (std::is_arithmetic_v<Arg1> and Eigen3::eigen_zero_expr<Arg2>)
 #else
-  template<typename Arg1, typename Arg2, std::enable_if_t<(Eigen3::is_eigen_zero_expr_v<Arg1> and std::is_arithmetic_v<Arg2>) or
-    (std::is_arithmetic_v<Arg1> and Eigen3::is_eigen_zero_expr_v<Arg2>), int> = 0>
+  template<typename Arg1, typename Arg2, std::enable_if_t<(Eigen3::eigen_zero_expr<Arg1> and std::is_arithmetic_v<Arg2>) or
+    (std::is_arithmetic_v<Arg1> and Eigen3::eigen_zero_expr<Arg2>), int> = 0>
 #endif
   constexpr decltype(auto) operator*(Arg1&& arg1, Arg2&& arg2)
   {
@@ -381,7 +381,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<Eigen3::eigen_zero_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<Eigen3::is_eigen_zero_expr_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<Eigen3::eigen_zero_expr<Arg>, int> = 0>
 #endif
   constexpr decltype(auto) operator-(Arg&& arg)
   {

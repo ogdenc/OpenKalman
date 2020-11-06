@@ -40,8 +40,8 @@ namespace OpenKalman
     static auto
     update_step(const XDistribution& Nx, const YDistribution& Ny, const CrossCovariance& P_xy, const Measurement& z)
     {
-      static_assert(is_Gaussian_distribution_v<XDistribution>);
-      static_assert(is_Gaussian_distribution_v<YDistribution>);
+      static_assert(gaussian_distribution<XDistribution>);
+      static_assert(gaussian_distribution<YDistribution>);
       static_assert(typed_matrix<CrossCovariance>);
       static_assert(column_vector<Measurement> and MatrixTraits<Measurement>::columns == 1);
       static_assert(is_equivalent_v<typename MatrixTraits<Measurement>::RowCoefficients,

@@ -18,14 +18,21 @@
 
 using namespace OpenKalman;
 
+#ifdef __cpp_concepts
 template<typename Arg>
-static constexpr bool is_test_trait =
-  typed_matrix_base<Arg> or
-  typed_matrix<Arg> or
-  covariance_base<Arg> or
-  is_covariance_v<Arg>;
+concept test_trait = typed_matrix_base<Arg> or typed_matrix<Arg> or covariance_base<Arg> or covariance<Arg>;
+#else
+template<typename Arg>
+static constexpr bool test_trait =
+  typed_matrix_base<Arg> or typed_matrix<Arg> or covariance_base<Arg> or covariance<Arg>;
+#endif
 
-template<typename ArgA, typename ArgB, std::enable_if_t<is_test_trait<ArgA> and is_test_trait<ArgB>, int> = 0>
+
+#ifdef __cpp_concepts
+template<test_trait ArgA, test_trait ArgB>
+#else
+template<typename ArgA, typename ArgB, std::enable_if_t<test_trait<ArgA> and test_trait<ArgB>, int> = 0>
+#endif
 ::testing::AssertionResult is_near(ArgA&& A, ArgB&& B, const double err = 1e-6)
 {
   auto A_n = strict_matrix(std::forward<ArgA>(A));
@@ -42,8 +49,12 @@ template<typename ArgA, typename ArgB, std::enable_if_t<is_test_trait<ArgA> and 
 }
 
 
+#ifdef __cpp_concepts
+template<test_trait ArgA, test_trait ArgB, Eigen3::eigen_matrix Err>
+#else
 template<typename ArgA, typename ArgB, typename Err,
-  std::enable_if_t<is_test_trait<ArgA> and is_test_trait<ArgB> and Eigen3::eigen_matrix<Err>, int> = 0>
+  std::enable_if_t<test_trait<ArgA> and test_trait<ArgB> and Eigen3::eigen_matrix<Err>, int> = 0>
+#endif
 ::testing::AssertionResult is_near(ArgA&& A, ArgB&& B, const Err& err)
 {
   auto A_n = strict_matrix(std::forward<ArgA>(A));
@@ -63,8 +74,8 @@ template<typename ArgA, typename ArgB, typename Err,
 template<
     typename Dist1,
     typename Dist2,
-    std::enable_if_t<is_Gaussian_distribution_v<Dist1>, int> = 0,
-    std::enable_if_t<is_Gaussian_distribution_v<Dist2>, int> = 0>
+    std::enable_if_t<gaussian_distribution<Dist1>, int> = 0,
+    std::enable_if_t<gaussian_distribution<Dist2>, int> = 0>
 ::testing::AssertionResult is_near(
     Dist1&& A,
     Dist2&& B,

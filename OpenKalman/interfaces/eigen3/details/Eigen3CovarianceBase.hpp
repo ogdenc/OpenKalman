@@ -25,10 +25,17 @@ namespace OpenKalman::Eigen3::internal
    * (1) Derived is not a square root and the base is self-adjoint; or
    * (2) Derived is a square root and the base is triangular.
    */
+#ifdef __cpp_concepts
+  template<typename Derived, typename Nested> requires
+    (is_self_adjoint_v<Nested> and not square_root_covariance<Derived>) or
+    (is_triangular_v<Nested> and square_root_covariance<Derived>)
+  struct Eigen3CovarianceBase<Derived, Nested>
+#else
   template<typename Derived, typename Nested>
-  struct Eigen3CovarianceBase<Derived, Nested,
-    std::enable_if_t<(is_self_adjoint_v<Nested> and not is_square_root_v<Derived>) or
-      (is_triangular_v<Nested> and is_square_root_v<Derived>)>>
+  struct Eigen3CovarianceBase<Derived, Nested, std::enable_if_t<
+    (is_self_adjoint_v<Nested> and not square_root_covariance<Derived>) or
+    (is_triangular_v<Nested> and square_root_covariance<Derived>)>>
+#endif
     : Eigen3MatrixBase<Derived, Nested> {};
 
 
@@ -36,16 +43,26 @@ namespace OpenKalman::Eigen3::internal
    * Ultimate base of Covariance and SquareRootCovariance classes, if Derived is not a square root and
    * the base is not self-adjoint (i.e., it is triangular but not diagonal).
    */
+#ifdef __cpp_concepts
+  template<typename Derived, typename ArgType> requires
+    (not is_self_adjoint_v<ArgType>) and (not square_root_covariance<Derived>)
+  struct Eigen3CovarianceBase<Derived, ArgType>
+#else
   template<typename Derived, typename ArgType>
-  struct Eigen3CovarianceBase<Derived, ArgType,
-    std::enable_if_t<not is_self_adjoint_v<ArgType> and not is_square_root_v<Derived>>>
+  struct Eigen3CovarianceBase<Derived, ArgType, std::enable_if_t<
+    not is_self_adjoint_v<ArgType> and not square_root_covariance<Derived>>>
+#endif
     : Eigen3MatrixBase<Derived, ArgType>
   {
     using Nested = std::decay_t<ArgType>;
     using Scalar = typename Nested::Scalar;
     using Base = Eigen3MatrixBase<Derived, Nested>;
 
+#ifdef __cpp_concepts
+    template<std::convertible_to<Scalar> S>
+#else
     template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
+#endif
     constexpr auto operator<<(const S& s)
     {
       auto& xpr = static_cast<Derived&>(*this);
@@ -65,16 +82,26 @@ namespace OpenKalman::Eigen3::internal
    * Ultimate base of Covariance and SquareRootCovariance classes, if Derived is a square root and
    * the base is not triangular (i.e., it is self-adjoint but not diagonal).
    */
+#ifdef __cpp_concepts
+  template<typename Derived, typename ArgType> requires
+    (not is_triangular_v<ArgType>) and square_root_covariance<Derived>
+  struct Eigen3CovarianceBase<Derived, ArgType>
+#else
   template<typename Derived, typename ArgType>
-  struct Eigen3CovarianceBase<Derived, ArgType,
-    std::enable_if_t<not is_triangular_v<ArgType> and is_square_root_v<Derived>>>
+  struct Eigen3CovarianceBase<Derived, ArgType, std::enable_if_t<
+    not is_triangular_v<ArgType> and square_root_covariance<Derived>>>
+#endif
     : Eigen3MatrixBase<Derived, ArgType>
   {
     using Nested = std::decay_t<ArgType>;
     using Scalar = typename Nested::Scalar;
     using Base = Eigen3MatrixBase<Derived, Nested>;
 
+#ifdef __cpp_concepts
+    template<std::convertible_to<Scalar> S>
+#else
     template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
+#endif
     constexpr auto operator<<(const S& s)
     {
       auto& xpr = static_cast<Derived&>(*this);

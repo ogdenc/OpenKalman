@@ -17,7 +17,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typed_matrix Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<typed_matrix<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   base_matrix(Arg&& arg) noexcept { return std::forward<Arg>(arg).base_matrix(); }
@@ -27,7 +27,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typed_matrix Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<typed_matrix<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   strict_matrix(Arg&& arg) noexcept
@@ -40,7 +40,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typed_matrix Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<typed_matrix<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   strict(Arg&& arg) noexcept
@@ -59,7 +59,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typed_matrix Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<typed_matrix<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   to_Euclidean(Arg&& arg) noexcept
@@ -81,7 +81,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typed_matrix Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<typed_matrix<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   from_Euclidean(Arg&& arg) noexcept
@@ -103,7 +103,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typed_matrix Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<typed_matrix<Arg>, int> = 0>
 #endif
   inline auto
   to_diagonal(Arg&& arg) noexcept
@@ -119,7 +119,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typed_matrix Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<typed_matrix<Arg>, int> = 0>
 #endif
   inline auto
   transpose(Arg&& arg) noexcept
@@ -137,7 +137,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typed_matrix Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<typed_matrix<Arg>, int> = 0>
 #endif
   inline auto
   adjoint(Arg&& arg) noexcept
@@ -155,7 +155,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typed_matrix Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<typed_matrix<Arg>, int> = 0>
 #endif
   inline auto
   determinant(Arg&& arg) noexcept
@@ -168,7 +168,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typed_matrix Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<typed_matrix<Arg>, int> = 0>
 #endif
   inline auto
   trace(Arg&& arg) noexcept
@@ -183,7 +183,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typed_matrix A, typed_matrix B>
 #else
-  template<typename A, typename B, std::enable_if_t<is_typed_matrix_v<A> and is_typed_matrix_v<B>, int> = 0>
+  template<typename A, typename B, std::enable_if_t<typed_matrix<A> and typed_matrix<B>, int> = 0>
 #endif
   inline auto
   solve(A&& a, B&& b) noexcept
@@ -200,7 +200,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typed_matrix Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<typed_matrix<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   reduce_columns(Arg&& arg) noexcept
@@ -237,7 +237,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typed_matrix A>
 #else
-  template<typename A, std::enable_if_t<is_typed_matrix_v<A>, int> = 0>
+  template<typename A, std::enable_if_t<typed_matrix<A>, int> = 0>
 #endif
   inline auto
   LQ_decomposition(A&& a)
@@ -254,7 +254,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typed_matrix A>
 #else
-  template<typename A, std::enable_if_t<is_typed_matrix_v<A>, int> = 0>
+  template<typename A, std::enable_if_t<typed_matrix<A>, int> = 0>
 #endif
   inline auto
   QR_decomposition(A&& a)
@@ -270,7 +270,7 @@ namespace OpenKalman
   template<typed_matrix V, typed_matrix ... Vs>
 #else
   template<typename V, typename ... Vs, std::enable_if_t<
-    std::conjunction_v<is_typed_matrix<V>, is_typed_matrix<Vs>...>, int> = 0>
+    (typed_matrix<V> and ... and typed_matrix<Vs>), int> = 0>
 #endif
   constexpr decltype(auto)
   concatenate_vertical(V&& v, Vs&& ... vs) noexcept
@@ -295,7 +295,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typed_matrix ... Vs>
 #else
-  template<typename ... Vs, std::enable_if_t<std::conjunction_v<is_typed_matrix<Vs>...>, int> = 0>
+  template<typename ... Vs, std::enable_if_t<(typed_matrix<Vs> and ...), int> = 0>
 #endif
   constexpr decltype(auto)
   concatenate(Vs&& ... vs) noexcept
@@ -309,7 +309,7 @@ namespace OpenKalman
   template<typed_matrix V, typed_matrix ... Vs>
 #else
   template<typename V, typename ... Vs, std::enable_if_t<
-    std::conjunction_v<is_typed_matrix<V>, is_typed_matrix<Vs>...>, int> = 0>
+    (typed_matrix<V> and ... and typed_matrix<Vs>), int> = 0>
 #endif
   constexpr decltype(auto)
   concatenate_horizontal(V&& v, Vs&& ... vs) noexcept
@@ -341,7 +341,7 @@ namespace OpenKalman
   template<typed_matrix V, typed_matrix ... Vs>
 #else
   template<typename V, typename ... Vs, std::enable_if_t<
-    std::conjunction_v<is_typed_matrix<V>, is_typed_matrix<Vs>...>, int> = 0>
+    (typed_matrix<V> and ... and typed_matrix<Vs>), int> = 0>
 #endif
   constexpr decltype(auto)
   concatenate_diagonal(V&& v, Vs&& ... vs) noexcept
@@ -398,7 +398,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<coefficients ... Cs, typed_matrix M>
 #else
-  template<typename ... Cs, typename M, std::enable_if_t<is_typed_matrix_v<M>, int> = 0>
+  template<typename ... Cs, typename M, std::enable_if_t<typed_matrix<M>, int> = 0>
 #endif
   inline auto
   split_vertical(M&& m) noexcept
@@ -414,7 +414,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<coefficients ... Cs, typed_matrix M>
 #else
-  template<typename ... Cs, typename M, std::enable_if_t<is_typed_matrix_v<M>, int> = 0>
+  template<typename ... Cs, typename M, std::enable_if_t<typed_matrix<M>, int> = 0>
 #endif
   inline auto
   split_horizontal(M&& m) noexcept
@@ -430,7 +430,7 @@ namespace OpenKalman
   template<std::size_t ... cuts, typed_matrix M> requires column_vector<M> and (sizeof...(cuts) > 0)
 #else
   template<std::size_t ... cuts, typename M,
-    std::enable_if_t<is_typed_matrix_v<M> and is_column_vector_v<M> and (sizeof...(cuts) > 0), int> = 0>
+    std::enable_if_t<typed_matrix<M> and column_vector<M> and (sizeof...(cuts) > 0), int> = 0>
 #endif
   inline auto
   split_horizontal(M&& m) noexcept
@@ -444,7 +444,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<coefficients ... Cs, typed_matrix M>
 #else
-  template<typename ... Cs, typename M, std::enable_if_t<is_typed_matrix_v<M>, int> = 0>
+  template<typename ... Cs, typename M, std::enable_if_t<typed_matrix<M>, int> = 0>
 #endif
   inline auto
   split_diagonal(M&& m) noexcept
@@ -459,7 +459,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typed_matrix Arg> requires is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>
 #else
-  template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg> and
+  template<typename Arg, std::enable_if_t<typed_matrix<Arg> and
     is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>, int> = 0>
 #endif
   inline auto
@@ -473,7 +473,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typed_matrix Arg> requires is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 1>
 #else
-  template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg> and
+  template<typename Arg, std::enable_if_t<typed_matrix<Arg> and
     is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 1>, int> = 0>
 #endif
   inline auto
@@ -489,7 +489,7 @@ namespace OpenKalman
     is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>
 #else
   template<typename Arg, std::enable_if_t<
-    is_typed_matrix_v<Arg> and not std::is_const_v<std::remove_reference_t<Arg>> and
+    typed_matrix<Arg> and not std::is_const_v<std::remove_reference_t<Arg>> and
       is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>, int> = 0>
 #endif
   inline void
@@ -519,7 +519,7 @@ namespace OpenKalman
     is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 1>
 #else
   template<typename Arg, std::enable_if_t<
-    is_typed_matrix_v<Arg> and not std::is_const_v<std::remove_reference_t<Arg>> and
+    typed_matrix<Arg> and not std::is_const_v<std::remove_reference_t<Arg>> and
       is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 1>, int> = 0>
 #endif
   inline void
@@ -546,7 +546,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typed_matrix Arg> requires column_vector<Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<typed_matrix<Arg>, int> = 0>
 #endif
   inline auto
   column(Arg&& arg, const std::size_t index)
@@ -563,7 +563,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<std::size_t index, typed_matrix Arg>
 #else
-  template<std::size_t index, typename Arg, std::enable_if_t<is_typed_matrix_v<Arg>, int> = 0>
+  template<std::size_t index, typename Arg, std::enable_if_t<typed_matrix<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   column(Arg&& arg)
@@ -588,7 +588,7 @@ namespace OpenKalman
   template<typed_matrix Arg, typename Function> requires
     std::is_void_v<std::invoke_result_t<const Function&, std::decay_t<decltype(column(std::declval<Arg&>(), 0))>& >>
 #else
-  template<typename Arg, typename Function, std::enable_if_t<is_typed_matrix_v<Arg> and
+  template<typename Arg, typename Function, std::enable_if_t<typed_matrix<Arg> and
     std::is_void_v<std::invoke_result_t<const Function&,
       std::decay_t<decltype(column(std::declval<Arg&>(), 0))>& >>, int> = 0>
 #endif
@@ -616,7 +616,7 @@ namespace OpenKalman
   template<typed_matrix Arg, typename Function> requires std::is_void_v<std::invoke_result_t<const Function&,
       std::decay_t<decltype(column(std::declval<Arg&>(), 0))>&, std::size_t>>
 #else
-  template<typename Arg, typename Function, std::enable_if_t<is_typed_matrix_v<Arg> and
+  template<typename Arg, typename Function, std::enable_if_t<typed_matrix<Arg> and
     std::is_void_v<std::invoke_result_t<Function,
     std::decay_t<decltype(column(std::declval<Arg&>(), 0))>&, std::size_t>>, int> = 0>
 #endif
@@ -643,7 +643,7 @@ namespace OpenKalman
   template<typed_matrix Arg, typename Function> requires (not std::is_void_v<std::invoke_result_t<const Function&,
       std::decay_t<decltype(column(std::declval<const Arg&>(), 0))>&&>>)
 #else
-  template<typename Arg, typename Function, std::enable_if_t<is_typed_matrix_v<Arg> and
+  template<typename Arg, typename Function, std::enable_if_t<typed_matrix<Arg> and
     not std::is_void_v<std::invoke_result_t<const Function&,
       std::decay_t<decltype(column(std::declval<const Arg&>(), 0))>&& >>, int> = 0>
 #endif
@@ -669,7 +669,7 @@ namespace OpenKalman
   template<typed_matrix Arg, typename Function> requires (not std::is_void_v<std::invoke_result_t<const Function&,
     std::decay_t<decltype(column(std::declval<const Arg&>(), 0))>&&, std::size_t>>)
 #else
-  template<typename Arg, typename Function, std::enable_if_t<is_typed_matrix_v<Arg> and
+  template<typename Arg, typename Function, std::enable_if_t<typed_matrix<Arg> and
     not std::is_void_v<std::invoke_result_t<const Function&,
       std::decay_t<decltype(column(std::declval<const Arg&>(), 0))>&&, std::size_t>>, int> = 0>
 #endif
@@ -695,7 +695,7 @@ namespace OpenKalman
   template<std::size_t count, typename Function> requires typed_matrix<std::invoke_result_t<const Function&>>
 #else
   template<std::size_t count, typename Function, std::enable_if_t<
-    is_typed_matrix_v<std::invoke_result_t<const Function&>>, int> = 0>
+    typed_matrix<std::invoke_result_t<const Function&>>, int> = 0>
 #endif
   inline auto
   apply_columnwise(const Function& f)
@@ -715,7 +715,7 @@ namespace OpenKalman
     typed_matrix<std::invoke_result_t<const Function&, std::size_t>>
 #else
   template<std::size_t count, typename Function, std::enable_if_t<
-    is_typed_matrix_v<std::invoke_result_t<const Function&, std::size_t>>, int> = 0>
+    typed_matrix<std::invoke_result_t<const Function&, std::size_t>>, int> = 0>
 #endif
   inline auto
   apply_columnwise(const Function& f)
@@ -736,7 +736,7 @@ namespace OpenKalman
   template<typed_matrix Arg, typename Function> requires
     std::is_void_v<std::invoke_result_t<const Function&, std::decay_t<typename MatrixTraits<Arg>::Scalar>&>>
 #else
-  template<typename Arg, typename Function, std::enable_if_t<is_typed_matrix_v<Arg> and
+  template<typename Arg, typename Function, std::enable_if_t<typed_matrix<Arg> and
     std::is_void_v<std::invoke_result_t<const Function&, std::decay_t<typename MatrixTraits<Arg>::Scalar>&>>, int> = 0>
 #endif
   inline Arg&
@@ -754,7 +754,7 @@ namespace OpenKalman
   template<typed_matrix Arg, typename Function> requires std::is_void_v<std::invoke_result_t<const Function&,
     std::decay_t<typename MatrixTraits<Arg>::Scalar>&, std::size_t, std::size_t>>
 #else
-  template<typename Arg, typename Function, std::enable_if_t<is_typed_matrix_v<Arg> and
+  template<typename Arg, typename Function, std::enable_if_t<typed_matrix<Arg> and
     std::is_void_v<std::invoke_result_t<const Function&,
       std::decay_t<typename MatrixTraits<Arg>::Scalar>&, std::size_t, std::size_t>>, int> = 0>
 #endif
@@ -774,7 +774,7 @@ namespace OpenKalman
     std::convertible_to<std::invoke_result_t<const Function&, std::decay_t<typename MatrixTraits<Arg>::Scalar>>,
       typename MatrixTraits<Arg>::Scalar>
 #else
-  template<typename Arg, typename Function, std::enable_if_t<is_typed_matrix_v<Arg> and
+  template<typename Arg, typename Function, std::enable_if_t<typed_matrix<Arg> and
     std::is_convertible_v<std::invoke_result_t<const Function&, std::decay_t<typename MatrixTraits<Arg>::Scalar>>,
       typename MatrixTraits<Arg>::Scalar>, int> = 0>
 #endif
@@ -789,7 +789,7 @@ namespace OpenKalman
   template<typed_matrix Arg, typename Function> requires std::convertible_to<std::invoke_result_t<const Function&,
       std::decay_t<typename MatrixTraits<Arg>::Scalar>, std::size_t, std::size_t>, typename MatrixTraits<Arg>::Scalar>
 #else
-  template<typename Arg, typename Function, std::enable_if_t<is_typed_matrix_v<Arg> and
+  template<typename Arg, typename Function, std::enable_if_t<typed_matrix<Arg> and
     std::is_convertible_v<std::invoke_result_t<const Function&,
       std::decay_t<typename MatrixTraits<Arg>::Scalar>, std::size_t, std::size_t>,
       typename MatrixTraits<Arg>::Scalar>, int> = 0>
@@ -805,7 +805,7 @@ namespace OpenKalman
   template<typed_matrix V, typename Function> requires
     std::convertible_to<std::invoke_result_t<const Function&>, typename MatrixTraits<V>::Scalar>
 #else
-  template<typename V, typename Function, std::enable_if_t<is_typed_matrix_v<V> and
+  template<typename V, typename Function, std::enable_if_t<typed_matrix<V> and
     std::is_convertible_v<std::invoke_result_t<const Function&>, typename MatrixTraits<V>::Scalar>, int> = 0>
 #endif
   inline auto
@@ -832,7 +832,7 @@ namespace OpenKalman
   template<typed_matrix V, typename Function> requires std::convertible_to<
     std::invoke_result_t<const Function&, std::size_t, std::size_t>, typename MatrixTraits<V>::Scalar>
 #else
-  template<typename V, typename Function, std::enable_if_t<is_typed_matrix_v<V> and std::is_convertible_v<
+  template<typename V, typename Function, std::enable_if_t<typed_matrix<V> and std::is_convertible_v<
     std::invoke_result_t<const Function&, std::size_t, std::size_t>, typename MatrixTraits<V>::Scalar>, int> = 0>
 #endif
   inline auto
@@ -871,7 +871,7 @@ namespace OpenKalman
     template<typename Scalar> typename distribution_type = std::normal_distribution,
     typename random_number_engine = std::mt19937,
     typename...Params,
-    std::enable_if_t<is_typed_matrix_v<ReturnType>, int> = 0>
+    std::enable_if_t<typed_matrix<ReturnType>, int> = 0>
 #endif
   static auto
   randomize(Params...params)
@@ -892,7 +892,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typed_matrix V>
 #else
-  template<typename V, std::enable_if_t<is_typed_matrix_v<V>, int> = 0>
+  template<typename V, std::enable_if_t<typed_matrix<V>, int> = 0>
 #endif
   inline std::ostream& operator<<(std::ostream& os, const V& v)
   {
@@ -909,7 +909,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typed_matrix V1, typed_matrix V2>
 #else
-  template<typename V1, typename V2, std::enable_if_t<is_typed_matrix_v<V1> and is_typed_matrix_v<V2>, int> = 0>
+  template<typename V1, typename V2, std::enable_if_t<typed_matrix<V1> and typed_matrix<V2>, int> = 0>
 #endif
   inline auto operator+(V1&& v1, V2&& v2)
   {
@@ -930,7 +930,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typed_matrix V1, typed_matrix V2>
 #else
-  template<typename V1, typename V2, std::enable_if_t<is_typed_matrix_v<V1> and is_typed_matrix_v<V2>, int> = 0>
+  template<typename V1, typename V2, std::enable_if_t<typed_matrix<V1> and typed_matrix<V2>, int> = 0>
 #endif
   inline auto operator-(V1&& v1, V2&& v2)
   {
@@ -966,7 +966,7 @@ namespace OpenKalman
   template<typed_matrix V, std::convertible_to<const typename MatrixTraits<V>::Scalar> S>
 #else
   template<typename V, typename S, std::enable_if_t<
-    is_typed_matrix_v<V> and std::is_convertible_v<S, const typename MatrixTraits<V>::Scalar>, int> = 0>
+    typed_matrix<V> and std::is_convertible_v<S, const typename MatrixTraits<V>::Scalar>, int> = 0>
 #endif
   inline auto operator*(V&& v, S scale)
   {
@@ -980,7 +980,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typed_matrix V, std::convertible_to<const typename MatrixTraits<V>::Scalar> S>
 #else
-  template<typename V, typename S, std::enable_if_t<is_typed_matrix_v<V> and
+  template<typename V, typename S, std::enable_if_t<typed_matrix<V> and
     std::is_convertible_v<S, const typename MatrixTraits<V>::Scalar>, int> = 0>
 #endif
   inline auto operator*(S scale, V&& v)
@@ -995,7 +995,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typed_matrix V, std::convertible_to<const typename MatrixTraits<V>::Scalar> S>
 #else
-  template<typename V, typename S, std::enable_if_t<is_typed_matrix_v<V> and
+  template<typename V, typename S, std::enable_if_t<typed_matrix<V> and
     std::is_convertible_v<S, const typename MatrixTraits<V>::Scalar>, int> = 0>
 #endif
   inline auto operator/(V&& v, S scale)
@@ -1010,7 +1010,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typed_matrix V1, typed_matrix V2>
 #else
-  template<typename V1, typename V2, std::enable_if_t<is_typed_matrix_v<V1> and is_typed_matrix_v<V2>, int> = 0>
+  template<typename V1, typename V2, std::enable_if_t<typed_matrix<V1> and typed_matrix<V2>, int> = 0>
 #endif
   inline auto operator*(V1&& v1, V2&& v2)
   {
@@ -1032,7 +1032,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typed_matrix V>
 #else
-  template<typename V, std::enable_if_t<is_typed_matrix_v<V>, int> = 0>
+  template<typename V, std::enable_if_t<typed_matrix<V>, int> = 0>
 #endif
   inline auto operator-(V&& v)
   {
@@ -1049,7 +1049,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typed_matrix V1, typed_matrix V2>
 #else
-  template<typename V1, typename V2, std::enable_if_t<is_typed_matrix_v<V1> and is_typed_matrix_v<V2>, int> = 0>
+  template<typename V1, typename V2, std::enable_if_t<typed_matrix<V1> and typed_matrix<V2>, int> = 0>
 #endif
   constexpr auto operator==(V1&& v1, V2&& v2)
   {
@@ -1070,7 +1070,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typed_matrix V1, typed_matrix V2>
 #else
-  template<typename V1, typename V2, std::enable_if_t<is_typed_matrix_v<V1> and is_typed_matrix_v<V2>, int> = 0>
+  template<typename V1, typename V2, std::enable_if_t<typed_matrix<V1> and typed_matrix<V2>, int> = 0>
 #endif
   constexpr auto operator!=(V1&& v1, V2&& v2)
   {

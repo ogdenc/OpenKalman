@@ -17,7 +17,7 @@ namespace OpenKalman::Eigen3
   template<typename Arg> requires eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>
 #else
   template<typename Arg, std::enable_if_t<
-    is_eigen_self_adjoint_expr_v<Arg> or is_eigen_triangular_expr_v<Arg>, int> = 0>
+    eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>, int> = 0>
 #endif
   static constexpr decltype(auto)
   base_matrix(Arg&& arg) { return std::forward<Arg>(arg).base_matrix(); }
@@ -28,7 +28,7 @@ namespace OpenKalman::Eigen3
   template<typename Arg> requires eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>
 #else
   template<typename Arg, std::enable_if_t<
-    is_eigen_self_adjoint_expr_v<Arg> or is_eigen_triangular_expr_v<Arg>, int> = 0>
+    eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   strict(Arg&& arg)
@@ -48,7 +48,7 @@ namespace OpenKalman::Eigen3
   template<typename Arg> requires eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>
 #else
   template<typename Arg, std::enable_if_t<
-    is_eigen_self_adjoint_expr_v<Arg> or is_eigen_triangular_expr_v<Arg>, int> = 0>
+    eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>, int> = 0>
 #endif
   inline auto
   determinant(Arg&& arg) noexcept
@@ -61,7 +61,7 @@ namespace OpenKalman::Eigen3
   template<typename Arg> requires eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>
 #else
   template<typename Arg, std::enable_if_t<
-    is_eigen_self_adjoint_expr_v<Arg> or is_eigen_triangular_expr_v<Arg>, int> = 0>
+    eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>, int> = 0>
 #endif
   inline auto
   trace(Arg&& arg) noexcept
@@ -77,9 +77,9 @@ namespace OpenKalman::Eigen3
     and (not std::is_const_v<std::remove_reference_t<Arg>>)
 #else
   template<typename Arg, typename U,
-    std::enable_if_t<is_eigen_native_v<Arg> and is_1by1_v<Arg> and
-      (is_eigen_matrix_v<U> or is_eigen_triangular_expr_v<U> or
-        is_eigen_self_adjoint_expr_v<U> or is_eigen_diagonal_expr_v<U>) and
+    std::enable_if_t<eigen_native<Arg> and is_1by1_v<Arg> and
+      (eigen_matrix<U> or eigen_triangular_expr<U> or
+        eigen_self_adjoint_expr<U> or eigen_diagonal_expr<U>) and
       not std::is_const_v<std::remove_reference_t<Arg>>, int> = 0>
 #endif
   inline Arg&
@@ -97,9 +97,9 @@ namespace OpenKalman::Eigen3
       eigen_diagonal_expr<U>)
 #else
   template<typename Arg, typename U,
-    std::enable_if_t<is_eigen_native_v<Arg> and is_1by1_v<Arg> and
-    (is_eigen_matrix_v<U> or is_eigen_triangular_expr_v<U> or
-      is_eigen_self_adjoint_expr_v<U> or is_eigen_diagonal_expr_v<U>), int> = 0>
+    std::enable_if_t<eigen_native<Arg> and is_1by1_v<Arg> and
+    (eigen_matrix<U> or eigen_triangular_expr<U> or
+      eigen_self_adjoint_expr<U> or eigen_diagonal_expr<U>), int> = 0>
 #endif
   inline auto
   rank_update(const Arg& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
@@ -115,8 +115,8 @@ namespace OpenKalman::Eigen3
     eigen_self_adjoint_expr<A> or eigen_triangular_expr<A>
 #else
   template<
-    typename A, typename B, std::enable_if_t<is_eigen_matrix_v<B> and
-      (is_eigen_self_adjoint_expr_v<A> or is_eigen_triangular_expr_v<A>), int> = 0>
+    typename A, typename B, std::enable_if_t<eigen_matrix<B> and
+      (eigen_self_adjoint_expr<A> or eigen_triangular_expr<A>), int> = 0>
 #endif
   constexpr decltype(auto)
   solve(A&& a, B&& b)
@@ -129,7 +129,7 @@ namespace OpenKalman::Eigen3
   template<typename Arg> requires eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>
 #else
   template<typename Arg,
-    std::enable_if_t<is_eigen_self_adjoint_expr_v<Arg> or is_eigen_triangular_expr_v<Arg>, int> = 0>
+    std::enable_if_t<eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>, int> = 0>
 #endif
   constexpr auto
   reduce_columns(Arg&& arg)
@@ -145,8 +145,8 @@ namespace OpenKalman::Eigen3
     (eigen_triangular_expr<V> and ... and eigen_triangular_expr<Vs>)
 #else
   template<typename V, typename ... Vs, std::enable_if_t<
-    std::conjunction_v<is_eigen_self_adjoint_expr<V>, is_eigen_self_adjoint_expr<Vs>...> or
-    std::conjunction_v<is_eigen_triangular_expr<V>, is_eigen_triangular_expr<Vs>...>, int> = 0>
+    (eigen_self_adjoint_expr<V> and ... and eigen_self_adjoint_expr<Vs>) or
+    (eigen_triangular_expr<V> and ... and eigen_triangular_expr<Vs>), int> = 0>
 #endif
   constexpr decltype(auto)
   concatenate_diagonal(V&& v, Vs&& ... vs)
@@ -196,7 +196,7 @@ namespace OpenKalman::Eigen3
   template<typename F, coefficients ... Cs, eigen_diagonal_expr Arg> requires (not coefficients<F>)
 #else
   template<typename F, typename ... Cs, typename Arg,
-    std::enable_if_t<is_eigen_diagonal_expr_v<Arg> and not is_coefficients_v<F> and
+    std::enable_if_t<eigen_diagonal_expr<Arg> and not is_coefficients_v<F> and
     std::conjunction_v<is_coefficients<Cs>...>, int> = 0>
 #endif
   inline auto
@@ -212,7 +212,7 @@ namespace OpenKalman::Eigen3
     (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>) and (not coefficients<F>)
 #else
   template<typename F, typename ... Cs, typename Arg,
-    std::enable_if_t<(is_eigen_self_adjoint_expr_v<Arg> or is_eigen_triangular_expr_v<Arg>) and
+    std::enable_if_t<(eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>) and
     not is_coefficients_v<F> and std::conjunction_v<is_coefficients<Cs>...>, int> = 0>
 #endif
   inline auto
@@ -228,8 +228,8 @@ namespace OpenKalman::Eigen3
     (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>)
 #else
   template<typename ... Cs, typename Arg, std::enable_if_t<std::conjunction_v<is_coefficients<Cs>...> and
-    (is_eigen_self_adjoint_expr_v<Arg> or is_eigen_triangular_expr_v<Arg> or
-      is_eigen_diagonal_expr_v<Arg>), int> = 0>
+    (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or
+      eigen_diagonal_expr<Arg>), int> = 0>
 #endif
   inline auto
   split_diagonal(Arg&& arg)
@@ -244,7 +244,7 @@ namespace OpenKalman::Eigen3
   requires eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>
 #else
   template<std::size_t cut, std::size_t ... cuts, typename Arg, std::enable_if_t<
-    is_eigen_self_adjoint_expr_v<Arg> or is_eigen_triangular_expr_v<Arg> or is_eigen_diagonal_expr_v<Arg>, int> = 0>
+    eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>, int> = 0>
 #endif
   inline auto
   split_diagonal(Arg&& arg)
@@ -260,7 +260,7 @@ namespace OpenKalman::Eigen3
     (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>)
 #else
   template<typename F, typename ... Cs, typename Arg, std::enable_if_t<
-    (is_eigen_self_adjoint_expr_v<Arg> or is_eigen_triangular_expr_v<Arg> or is_eigen_diagonal_expr_v<Arg>) and
+    (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>) and
       not is_coefficients_v<F> and std::conjunction_v<is_coefficients<Cs>...>, int> = 0>
 #endif
   inline auto
@@ -276,7 +276,7 @@ namespace OpenKalman::Eigen3
     (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>)
 #else
   template<typename ... Cs, typename Arg, std::enable_if_t<std::conjunction_v<is_coefficients<Cs>...> and
-    (is_eigen_self_adjoint_expr_v<Arg> or is_eigen_triangular_expr_v<Arg> or is_eigen_diagonal_expr_v<Arg>), int> = 0>
+    (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>), int> = 0>
 #endif
   inline auto
   split_vertical(Arg&& arg)
@@ -291,7 +291,7 @@ namespace OpenKalman::Eigen3
   eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>
 #else
   template<std::size_t cut, std::size_t ... cuts, typename Arg, std::enable_if_t<
-    is_eigen_self_adjoint_expr_v<Arg> or is_eigen_triangular_expr_v<Arg> or is_eigen_diagonal_expr_v<Arg>, int> = 0>
+    eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>, int> = 0>
 #endif
   inline auto
   split_vertical(Arg&& arg)
@@ -307,7 +307,7 @@ namespace OpenKalman::Eigen3
     (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>)
 #else
   template<typename F, typename ... Cs, typename Arg, std::enable_if_t<
-    (is_eigen_self_adjoint_expr_v<Arg> or is_eigen_triangular_expr_v<Arg> or is_eigen_diagonal_expr_v<Arg>) and
+    (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>) and
       not is_coefficients_v<F> and std::conjunction_v<is_coefficients<Cs>...>, int> = 0>
 #endif
   inline auto
@@ -323,7 +323,7 @@ namespace OpenKalman::Eigen3
     eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>
 #else
   template<typename ... Cs, typename Arg, std::enable_if_t<
-    (is_eigen_self_adjoint_expr_v<Arg> or is_eigen_triangular_expr_v<Arg> or is_eigen_diagonal_expr_v<Arg>) and
+    (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>) and
       std::conjunction_v<is_coefficients<Cs>...>, int> = 0>
 #endif
   inline auto
@@ -339,7 +339,7 @@ namespace OpenKalman::Eigen3
   eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>
 #else
   template<std::size_t cut, std::size_t ... cuts, typename Arg, std::enable_if_t<
-    is_eigen_self_adjoint_expr_v<Arg> or is_eigen_triangular_expr_v<Arg> or is_eigen_diagonal_expr_v<Arg>, int> = 0>
+    eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>, int> = 0>
 #endif
   inline auto
   split_horizontal(Arg&& arg)
@@ -354,7 +354,7 @@ namespace OpenKalman::Eigen3
   template<eigen_self_adjoint_expr Arg> requires (not is_diagonal_v<Arg>) and
     is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>
 #else
-  template<typename Arg, std::enable_if_t<is_eigen_self_adjoint_expr_v<Arg> and not is_diagonal_v<Arg> and
+  template<typename Arg, std::enable_if_t<eigen_self_adjoint_expr<Arg> and not is_diagonal_v<Arg> and
     is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>, int> = 0>
 #endif
   inline auto
@@ -378,7 +378,7 @@ namespace OpenKalman::Eigen3
   template<eigen_triangular_expr Arg> requires (not is_diagonal_v<Arg>) and
     is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>
 #else
-  template<typename Arg, std::enable_if_t<is_eigen_triangular_expr_v<Arg> and not is_diagonal_v<Arg> and
+  template<typename Arg, std::enable_if_t<eigen_triangular_expr<Arg> and not is_diagonal_v<Arg> and
     is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>, int> = 0>
 #endif
   inline auto
@@ -405,7 +405,7 @@ namespace OpenKalman::Eigen3
       is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 1>)
 #else
   template<typename Arg, std::enable_if_t<
-    (is_eigen_self_adjoint_expr_v<Arg> or is_eigen_triangular_expr_v<Arg>) and is_diagonal_v<Arg> and
+    (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>) and is_diagonal_v<Arg> and
     (is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 2> or
       is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 1>), int> = 0>
 #endif
@@ -431,7 +431,7 @@ namespace OpenKalman::Eigen3
       is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>)
 #else
   template<typename Arg, std::enable_if_t<
-    is_diagonal_v<Arg> and (is_eigen_self_adjoint_expr_v<Arg> or is_eigen_triangular_expr_v<Arg>) and
+    is_diagonal_v<Arg> and (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>) and
     (is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 1> or
       is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>), int> = 0>
 #endif
@@ -456,7 +456,7 @@ namespace OpenKalman::Eigen3
     (not std::is_const_v<std::remove_reference_t<Arg>>) and (not is_diagonal_v<Arg>) and
     is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>
 #else
-  template<typename Arg, typename Scalar, std::enable_if_t<is_eigen_self_adjoint_expr_v<Arg> and
+  template<typename Arg, typename Scalar, std::enable_if_t<eigen_self_adjoint_expr<Arg> and
     not std::is_const_v<std::remove_reference_t<Arg>> and not is_diagonal_v<Arg> and
     is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>, int> = 0>
 #endif
@@ -482,7 +482,7 @@ namespace OpenKalman::Eigen3
     (not std::is_const_v<std::remove_reference_t<Arg>>) and (not is_diagonal_v<Arg>) and
     is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>
 #else
-  template<typename Arg, typename Scalar, std::enable_if_t<is_eigen_triangular_expr_v<Arg> and
+  template<typename Arg, typename Scalar, std::enable_if_t<eigen_triangular_expr<Arg> and
     not std::is_const_v<std::remove_reference_t<Arg>> and not is_diagonal_v<Arg> and
     is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>, int> = 0>
 #endif
@@ -511,7 +511,7 @@ namespace OpenKalman::Eigen3
       is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 1>)
 #else
   template<typename Arg, typename Scalar, std::enable_if_t<
-    (is_eigen_self_adjoint_expr_v<Arg> or is_eigen_triangular_expr_v<Arg>) and
+    (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>) and
     not std::is_const_v<std::remove_reference_t<Arg>> and is_diagonal_v<Arg> and
     (is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 2> or
       is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 1>), int> = 0>
@@ -538,7 +538,7 @@ namespace OpenKalman::Eigen3
       is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>)
 #else
   template<typename Arg, typename Scalar, std::enable_if_t<is_diagonal_v<Arg> and
-    (is_eigen_self_adjoint_expr_v<Arg> or is_eigen_triangular_expr_v<Arg>) and
+    (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>) and
     (is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 1> or
       is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>), int> = 0>
 #endif
@@ -562,8 +562,8 @@ namespace OpenKalman::Eigen3
   template<typename Arg> requires eigen_self_adjoint_expr<Arg> or
     eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_eigen_self_adjoint_expr_v<Arg> or
-    is_eigen_triangular_expr_v<Arg> or is_eigen_diagonal_expr_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<eigen_self_adjoint_expr<Arg> or
+    eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>, int> = 0>
 #endif
   inline auto
   column(Arg&& arg, const std::size_t index)
@@ -577,8 +577,8 @@ namespace OpenKalman::Eigen3
   template<std::size_t index, typename Arg> requires eigen_self_adjoint_expr<Arg> or
     eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>
 #else
-  template<std::size_t index, typename Arg, std::enable_if_t<is_eigen_self_adjoint_expr_v<Arg> or
-    is_eigen_triangular_expr_v<Arg> or is_eigen_diagonal_expr_v<Arg>, int> = 0>
+  template<std::size_t index, typename Arg, std::enable_if_t<eigen_self_adjoint_expr<Arg> or
+    eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>, int> = 0>
 #endif
   inline decltype(auto)
   column(Arg&& arg)
@@ -592,8 +592,8 @@ namespace OpenKalman::Eigen3
   template<typename Arg, typename Function> requires eigen_self_adjoint_expr<Arg> or
     eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>
 #else
-  template<typename Arg, typename Function, std::enable_if_t<is_eigen_self_adjoint_expr_v<Arg> or
-    is_eigen_triangular_expr_v<Arg> or is_eigen_diagonal_expr_v<Arg>, int> = 0>
+  template<typename Arg, typename Function, std::enable_if_t<eigen_self_adjoint_expr<Arg> or
+    eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>, int> = 0>
 #endif
   inline auto
   apply_columnwise(Arg&& arg, const Function& f)
@@ -606,8 +606,8 @@ namespace OpenKalman::Eigen3
   template<typename Arg, typename Function> requires eigen_self_adjoint_expr<Arg> or
     eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>
 #else
-  template<typename Arg, typename Function, std::enable_if_t<is_eigen_self_adjoint_expr_v<Arg> or
-    is_eigen_triangular_expr_v<Arg> or is_eigen_diagonal_expr_v<Arg>, int> = 0>
+  template<typename Arg, typename Function, std::enable_if_t<eigen_self_adjoint_expr<Arg> or
+    eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>, int> = 0>
 #endif
   inline auto
   apply_coefficientwise(Arg&& arg, const Function& f)

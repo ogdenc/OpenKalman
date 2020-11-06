@@ -39,7 +39,7 @@ namespace OpenKalman::Eigen3
     template<eigen_self_adjoint_expr Arg> requires
       (is_lower_storage_triangle_v<Arg> == is_lower_storage_triangle_v<SelfAdjointMatrix>)
 #else
-    template<typename Arg, std::enable_if_t<is_eigen_self_adjoint_expr_v<Arg> and
+    template<typename Arg, std::enable_if_t<eigen_self_adjoint_expr<Arg> and
       is_lower_storage_triangle_v<Arg> == is_lower_storage_triangle_v <SelfAdjointMatrix>, int> = 0>
 #endif
     SelfAdjointMatrix(Arg&& arg) noexcept
@@ -51,7 +51,7 @@ namespace OpenKalman::Eigen3
     template<eigen_self_adjoint_expr Arg> requires (
       is_lower_storage_triangle_v<Arg> != is_lower_storage_triangle_v<SelfAdjointMatrix>)
 #else
-    template<typename Arg, std::enable_if_t<is_eigen_self_adjoint_expr_v < Arg> and
+    template<typename Arg, std::enable_if_t<eigen_self_adjoint_expr < Arg> and
       is_lower_storage_triangle_v<Arg> != is_lower_storage_triangle_v <SelfAdjointMatrix>, int> = 0>
 #endif
     SelfAdjointMatrix(Arg&& arg) noexcept
@@ -61,7 +61,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
     template<eigen_triangular_expr Arg>
 #else
-    template<typename Arg, std::enable_if_t<is_eigen_triangular_expr_v < Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<eigen_triangular_expr < Arg>, int> = 0>
 #endif
     SelfAdjointMatrix(Arg&& arg) noexcept
       : SelfAdjointMatrix(Cholesky_square(std::forward<Arg>(arg))) {}
@@ -70,7 +70,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
     template<typename Arg> requires eigen_matrix<Arg> or eigen_diagonal_expr<Arg>
 #else
-    template<typename Arg, std::enable_if_t<is_eigen_matrix_v<Arg> or is_eigen_diagonal_expr_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<eigen_matrix<Arg> or eigen_diagonal_expr<Arg>, int> = 0>
 #endif
     SelfAdjointMatrix(Arg&& arg) noexcept: Base(std::forward<Arg>(arg)), view(this->base_matrix()) {}
 
@@ -86,9 +86,9 @@ namespace OpenKalman::Eigen3
       (eigen_diagonal_expr < BaseMatrix > and sizeof...(Args) == dimension)
 #else
     template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...> and
-        ((not is_eigen_diagonal_expr_v < BaseMatrix > and sizeof...(Args) == dimension * dimension and
+        ((not eigen_diagonal_expr < BaseMatrix > and sizeof...(Args) == dimension * dimension and
             storage_triangle != TriangleType::diagonal) or
-          (is_eigen_diagonal_expr_v < BaseMatrix > and sizeof...(Args) == dimension)), int> = 0>
+          (eigen_diagonal_expr < BaseMatrix > and sizeof...(Args) == dimension)), int> = 0>
 #endif
     SelfAdjointMatrix(Args ... args) : SelfAdjointMatrix(MatrixTraits<BaseMatrix>::make(args...)) {}
 
@@ -142,7 +142,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
     template<eigen_self_adjoint_expr Arg>
 #else
-    template<typename Arg, std::enable_if_t<is_eigen_self_adjoint_expr_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<eigen_self_adjoint_expr<Arg>, int> = 0>
 #endif
     auto& operator=(Arg&& arg)
     {
@@ -174,7 +174,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
     template<eigen_triangular_expr Arg>
 #else
-    template<typename Arg, std::enable_if_t<is_eigen_triangular_expr_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<eigen_triangular_expr<Arg>, int> = 0>
 #endif
     auto& operator=(Arg&& arg)
     {
@@ -197,7 +197,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
     template<eigen_matrix Arg>
 #else
-    template<typename Arg, std::enable_if_t<is_eigen_matrix_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<eigen_matrix<Arg>, int> = 0>
 #endif
     auto& operator=(Arg&& arg)
     {
@@ -358,7 +358,7 @@ namespace OpenKalman::Eigen3
     template<eigen_matrix B>
 #else
 
-    template<typename B, std::enable_if_t<is_eigen_matrix_v<B>, int> = 0>
+    template<typename B, std::enable_if_t<eigen_matrix<B>, int> = 0>
 #endif
     auto solve(const B& b) const
     {
@@ -398,7 +398,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<typename Arg> requires eigen_matrix<Arg> or eigen_diagonal_expr<Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_eigen_matrix_v<Arg> or is_eigen_diagonal_expr_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<eigen_matrix<Arg> or eigen_diagonal_expr<Arg>, int> = 0>
 #endif
   SelfAdjointMatrix(Arg&&)
   -> SelfAdjointMatrix<lvalue_or_strict_t<Arg>, TriangleType::lower>;
@@ -409,8 +409,8 @@ namespace OpenKalman::Eigen3
     (eigen_self_adjoint_expr<M> and is_lower_storage_triangle_v<M>)
 #else
   template<
-    typename M, std::enable_if_t<(is_eigen_triangular_expr_v<M> and is_lower_triangular_v<M> ) or
-      (is_eigen_self_adjoint_expr_v<M> and is_lower_storage_triangle_v<M>), int> = 0>
+    typename M, std::enable_if_t<(eigen_triangular_expr<M> and is_lower_triangular_v<M> ) or
+      (eigen_self_adjoint_expr<M> and is_lower_storage_triangle_v<M>), int> = 0>
 #endif
   SelfAdjointMatrix(M&&)
   -> SelfAdjointMatrix<typename MatrixTraits<M>::BaseMatrix, TriangleType::lower>;
@@ -421,8 +421,8 @@ namespace OpenKalman::Eigen3
     (eigen_self_adjoint_expr<M> and is_upper_storage_triangle_v<M>)
 #else
   template<
-    typename M, std::enable_if_t<(is_eigen_triangular_expr_v<M> and is_upper_triangular_v<M>) or
-      (is_eigen_self_adjoint_expr_v<M> and is_upper_storage_triangle_v<M>), int> = 0>
+    typename M, std::enable_if_t<(eigen_triangular_expr<M> and is_upper_triangular_v<M>) or
+      (eigen_self_adjoint_expr<M> and is_upper_storage_triangle_v<M>), int> = 0>
 #endif
   SelfAdjointMatrix(M&&)
   -> SelfAdjointMatrix<typename MatrixTraits<M>::BaseMatrix, TriangleType::upper>;
@@ -454,7 +454,7 @@ namespace OpenKalman::Eigen3
 #else
   template<
     TriangleType t = TriangleType::lower, typename M,
-    std::enable_if_t<is_eigen_matrix_v<M> or is_eigen_diagonal_expr_v<M>, int> = 0>
+    std::enable_if_t<eigen_matrix<M> or eigen_diagonal_expr<M>, int> = 0>
 #endif
   auto
   make_EigenSelfAdjointMatrix(M&& m)
@@ -466,7 +466,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<TriangleType t, eigen_self_adjoint_expr M>
 #else
-  template<TriangleType t, typename M, std::enable_if_t<is_eigen_self_adjoint_expr_v<M>, int> = 0>
+  template<TriangleType t, typename M, std::enable_if_t<eigen_self_adjoint_expr<M>, int> = 0>
 #endif
   auto
   make_EigenSelfAdjointMatrix(M && m)
@@ -477,7 +477,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<eigen_self_adjoint_expr M>
 #else
-  template<typename M, std::enable_if_t<is_eigen_self_adjoint_expr_v<M>, int> = 0>
+  template<typename M, std::enable_if_t<eigen_self_adjoint_expr<M>, int> = 0>
 #endif
   auto
   make_EigenSelfAdjointMatrix(M && m)
@@ -568,7 +568,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<Eigen3::eigen_self_adjoint_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<Eigen3::is_eigen_self_adjoint_expr_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<Eigen3::eigen_self_adjoint_expr<Arg>, int> = 0>
 #endif
   inline auto
   transpose(Arg && arg)
@@ -582,7 +582,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<Eigen3::eigen_self_adjoint_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<Eigen3::is_eigen_self_adjoint_expr_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<Eigen3::eigen_self_adjoint_expr<Arg>, int> = 0>
 #endif
   inline auto
   adjoint(Arg && arg)
@@ -594,16 +594,16 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-  template<Eigen3::eigen_self_adjoint_expr Arg, typename U>
-  requires (Eigen3::eigen_matrix<U> or Eigen3::eigen_triangular_expr<U> or Eigen3::eigen_self_adjoint_expr<U> or
+  template<Eigen3::eigen_self_adjoint_expr Arg, typename U> requires
+    (Eigen3::eigen_matrix<U> or Eigen3::eigen_triangular_expr<U> or Eigen3::eigen_self_adjoint_expr<U> or
     Eigen3::eigen_diagonal_expr<U> or Eigen3::euclidean_expr<U>) and
     (not std::is_const_v<std::remove_reference_t<Arg>>)
 #else
-  template<typename Arg, typename U,
-    std::enable_if_t<Eigen3::is_eigen_self_adjoint_expr_v<Arg> and
-      (Eigen3::is_eigen_matrix_v<U> or Eigen3::is_eigen_triangular_expr_v<U> or Eigen3::is_eigen_self_adjoint_expr_v<U> or
-        Eigen3::is_eigen_diagonal_expr_v<U> or Eigen3::is_from_euclidean_expr_v<U> or Eigen3::is_to_euclidean_expr_v<U>) and
-      not std::is_const_v<std::remove_reference_t<Arg>>, int> = 0>
+  template<typename Arg, typename U, std::enable_if_t<
+    Eigen3::eigen_self_adjoint_expr<Arg> and
+    (Eigen3::eigen_matrix<U> or Eigen3::eigen_triangular_expr<U> or Eigen3::eigen_self_adjoint_expr<U> or
+    Eigen3::eigen_diagonal_expr<U> or Eigen3::euclidean_expr<U>) and
+    (not std::is_const_v<std::remove_reference_t<Arg>>), int> = 0>
 #endif
   inline Arg&
   rank_update(Arg & arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
@@ -615,14 +615,14 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-  template<Eigen3::eigen_self_adjoint_expr Arg, typename U>
-  requires (Eigen3::eigen_matrix<U> or Eigen3::eigen_triangular_expr<U> or Eigen3::eigen_self_adjoint_expr<U> or
+  template<Eigen3::eigen_self_adjoint_expr Arg, typename U> requires
+    (Eigen3::eigen_matrix<U> or Eigen3::eigen_triangular_expr<U> or Eigen3::eigen_self_adjoint_expr<U> or
     Eigen3::eigen_diagonal_expr<U> or Eigen3::euclidean_expr<U>)
 #else
-  template<typename Arg, typename U,
-    std::enable_if_t<Eigen3::is_eigen_self_adjoint_expr_v<Arg> and
-    (Eigen3::is_eigen_matrix_v<U> or Eigen3::is_eigen_triangular_expr_v<U> or Eigen3::is_eigen_self_adjoint_expr_v<U> or
-  Eigen3::is_eigen_diagonal_expr_v<U> or Eigen3::is_from_euclidean_expr_v<U> or Eigen3::is_to_euclidean_expr_v<U>), int> = 0>
+  template<typename Arg, typename U, std::enable_if_t<
+    Eigen3::eigen_self_adjoint_expr<Arg> and
+    (Eigen3::eigen_matrix<U> or Eigen3::eigen_triangular_expr<U> or Eigen3::eigen_self_adjoint_expr<U> or
+    Eigen3::eigen_diagonal_expr<U> or Eigen3::euclidean_expr<U>), int> = 0>
 #endif
   inline auto
   rank_update(Arg && arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
@@ -639,7 +639,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<Eigen3::eigen_self_adjoint_expr A>
 #else
-  template<typename A, std::enable_if_t<Eigen3::is_eigen_self_adjoint_expr_v<A>, int> = 0>
+  template<typename A, std::enable_if_t<Eigen3::eigen_self_adjoint_expr<A>, int> = 0>
 #endif
   inline auto
   LQ_decomposition(A && a)
@@ -653,7 +653,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<Eigen3::eigen_self_adjoint_expr A>
 #else
-  template<typename A, std::enable_if_t<Eigen3::is_eigen_self_adjoint_expr_v<A>, int> = 0>
+  template<typename A, std::enable_if_t<Eigen3::eigen_self_adjoint_expr<A>, int> = 0>
 #endif
   inline auto
   QR_decomposition(A && a)
@@ -671,7 +671,7 @@ namespace OpenKalman::Eigen3
     (not is_diagonal_v < Arg1 > ) and (not is_diagonal_v < Arg2 > )
 #else
   template<typename Arg1, typename Arg2,
-    std::enable_if_t<Eigen3::is_eigen_self_adjoint_expr_v<Arg1> and Eigen3::is_eigen_self_adjoint_expr_v<Arg2> and
+    std::enable_if_t<Eigen3::eigen_self_adjoint_expr<Arg1> and Eigen3::eigen_self_adjoint_expr<Arg2> and
       not is_diagonal_v<Arg1> and not is_diagonal_v<Arg2>, int> = 0>
 #endif
   inline auto operator+(Arg1 && arg1, Arg2 && arg2)
@@ -704,8 +704,8 @@ namespace OpenKalman::Eigen3
     and (not is_identity_v<Arg2>)
 #else
   template<typename Arg1, typename Arg2,
-      std::enable_if_t<((Eigen3::is_eigen_self_adjoint_expr_v<Arg1> and is_diagonal_v<Arg2>) or
-      (is_diagonal_v<Arg1> and Eigen3::is_eigen_self_adjoint_expr_v<Arg2>)) and
+      std::enable_if_t<((Eigen3::eigen_self_adjoint_expr<Arg1> and is_diagonal_v<Arg2>) or
+      (is_diagonal_v<Arg1> and Eigen3::eigen_self_adjoint_expr<Arg2>)) and
       not is_zero_v<Arg1> and not is_zero_v<Arg2> and not is_identity_v<Arg1> and not is_identity_v<Arg2>, int> = 0>
 #endif
   inline auto operator+(Arg1&& arg1, Arg2&& arg2)
@@ -734,8 +734,8 @@ namespace OpenKalman::Eigen3
     (is_identity_v<Arg1> and Eigen3::eigen_self_adjoint_expr<Arg2>)
 #else
   template<typename Arg1, typename Arg2,
-    std::enable_if_t<(Eigen3::is_eigen_self_adjoint_expr_v<Arg1> and is_identity_v<Arg2>) or
-      (is_identity_v<Arg1> and Eigen3::is_eigen_self_adjoint_expr_v<Arg2>), int> = 0>
+    std::enable_if_t<(Eigen3::eigen_self_adjoint_expr<Arg1> and is_identity_v<Arg2>) or
+      (is_identity_v<Arg1> and Eigen3::eigen_self_adjoint_expr<Arg2>), int> = 0>
 #endif
   inline auto operator+(Arg1&& arg1, Arg2&& arg2)
   {
@@ -764,8 +764,8 @@ namespace OpenKalman::Eigen3
     (is_zero_v<Arg1> and Eigen3::eigen_self_adjoint_expr<Arg2> )
 #else
   template<typename Arg1, typename Arg2,
-    std::enable_if_t<(Eigen3::is_eigen_self_adjoint_expr_v<Arg1> and is_zero_v<Arg2>) or
-      (is_zero_v<Arg1> and Eigen3::is_eigen_self_adjoint_expr_v<Arg2>), int> = 0>
+    std::enable_if_t<(Eigen3::eigen_self_adjoint_expr<Arg1> and is_zero_v<Arg2>) or
+      (is_zero_v<Arg1> and Eigen3::eigen_self_adjoint_expr<Arg2>), int> = 0>
 #endif
   constexpr decltype(auto) operator+(Arg1&& arg1, Arg2&& arg2)
   {
@@ -788,7 +788,7 @@ namespace OpenKalman::Eigen3
   template<Eigen3::eigen_self_adjoint_expr Arg1, Eigen3::eigen_self_adjoint_expr Arg2>
 #else
   template<typename Arg1, typename Arg2,
-    std::enable_if_t<Eigen3::is_eigen_self_adjoint_expr_v<Arg1> and Eigen3::is_eigen_self_adjoint_expr_v<Arg2>, int> = 0>
+    std::enable_if_t<Eigen3::eigen_self_adjoint_expr<Arg1> and Eigen3::eigen_self_adjoint_expr<Arg2>, int> = 0>
 #endif
   inline auto operator-(Arg1 && arg1, Arg2 && arg2)
   {
@@ -819,8 +819,8 @@ namespace OpenKalman::Eigen3
     and (not is_identity_v < Arg2 > )
 #else
   template<typename Arg1, typename Arg2,
-    std::enable_if_t<((Eigen3::is_eigen_self_adjoint_expr_v<Arg1> and is_diagonal_v<Arg2>) or
-      (is_diagonal_v<Arg1> and Eigen3::is_eigen_self_adjoint_expr_v<Arg2>)) and
+    std::enable_if_t<((Eigen3::eigen_self_adjoint_expr<Arg1> and is_diagonal_v<Arg2>) or
+      (is_diagonal_v<Arg1> and Eigen3::eigen_self_adjoint_expr<Arg2>)) and
       not is_zero_v<Arg1> and not is_zero_v<Arg2> and not is_identity_v<Arg1> and not is_identity_v<Arg2>, int> = 0>
 #endif
   inline auto operator-(Arg1&& arg1, Arg2&& arg2)
@@ -848,8 +848,8 @@ template<typename Arg1, typename Arg2>
 requires (Eigen3::eigen_self_adjoint_expr<Arg1> and is_identity_v<Arg2> ) or
   (is_identity_v<Arg1> and Eigen3::eigen_self_adjoint_expr<Arg2> )
 #else
-  template<typename Arg1, typename Arg2, std::enable_if_t<(Eigen3::is_eigen_self_adjoint_expr_v<Arg1> and is_identity_v<Arg2>) or
-    (is_identity_v<Arg1> and Eigen3::is_eigen_self_adjoint_expr_v<Arg2>), int> = 0>
+  template<typename Arg1, typename Arg2, std::enable_if_t<(Eigen3::eigen_self_adjoint_expr<Arg1> and is_identity_v<Arg2>) or
+    (is_identity_v<Arg1> and Eigen3::eigen_self_adjoint_expr<Arg2>), int> = 0>
 #endif
   inline auto operator-(Arg1&& arg1, Arg2&& arg2)
   {
@@ -877,8 +877,8 @@ requires (Eigen3::eigen_self_adjoint_expr<Arg1> and is_identity_v<Arg2> ) or
   requires (Eigen3::eigen_self_adjoint_expr<Arg1> and is_zero_v<Arg2>) or
     (is_zero_v<Arg1> and Eigen3::eigen_self_adjoint_expr<Arg2>)
 #else
-  template<typename Arg1, typename Arg2, std::enable_if_t<(Eigen3::is_eigen_self_adjoint_expr_v<Arg1> and is_zero_v<Arg2>) or
-    (is_zero_v<Arg1> and Eigen3::is_eigen_self_adjoint_expr_v<Arg2>), int> = 0>
+  template<typename Arg1, typename Arg2, std::enable_if_t<(Eigen3::eigen_self_adjoint_expr<Arg1> and is_zero_v<Arg2>) or
+    (is_zero_v<Arg1> and Eigen3::eigen_self_adjoint_expr<Arg2>), int> = 0>
 #endif
   constexpr decltype(auto) operator-(Arg1&& arg1, Arg2&& arg2)
   {
@@ -900,7 +900,7 @@ requires (Eigen3::eigen_self_adjoint_expr<Arg1> and is_identity_v<Arg2> ) or
 #ifdef __cpp_concepts
   template<Eigen3::eigen_self_adjoint_expr Arg, std::convertible_to<typename MatrixTraits<Arg>::Scalar> S>
 #else
-  template<typename Arg, typename S, std::enable_if_t<Eigen3::is_eigen_self_adjoint_expr_v<Arg> and
+  template<typename Arg, typename S, std::enable_if_t<Eigen3::eigen_self_adjoint_expr<Arg> and
     std::is_convertible_v<S, typename MatrixTraits<Arg>::Scalar>, int> = 0>
 #endif
   inline auto operator*(Arg && arg, const S scale)
@@ -916,7 +916,7 @@ requires (Eigen3::eigen_self_adjoint_expr<Arg1> and is_identity_v<Arg2> ) or
 #ifdef __cpp_concepts
   template<Eigen3::eigen_self_adjoint_expr Arg, std::convertible_to<typename MatrixTraits<Arg>::Scalar> S>
 #else
-  template<typename Arg, typename S, std::enable_if_t<Eigen3::is_eigen_self_adjoint_expr_v<Arg> and
+  template<typename Arg, typename S, std::enable_if_t<Eigen3::eigen_self_adjoint_expr<Arg> and
     std::is_convertible_v<S, typename MatrixTraits<Arg>::Scalar>, int> = 0>
 #endif
   inline auto operator*(const S scale, Arg&& arg)
@@ -929,7 +929,7 @@ requires (Eigen3::eigen_self_adjoint_expr<Arg1> and is_identity_v<Arg2> ) or
 #ifdef __cpp_concepts
   template<Eigen3::eigen_self_adjoint_expr Arg, std::convertible_to<typename MatrixTraits<Arg>::Scalar> S>
 #else
-  template<typename Arg, typename S, std::enable_if_t<Eigen3::is_eigen_self_adjoint_expr_v<Arg> and
+  template<typename Arg, typename S, std::enable_if_t<Eigen3::eigen_self_adjoint_expr<Arg> and
     std::is_convertible_v<S, typename MatrixTraits<Arg>::Scalar>, int> = 0>
 #endif
   inline auto operator/(Arg && arg, const S scale)
@@ -951,9 +951,9 @@ requires (Eigen3::eigen_self_adjoint_expr<Arg1> and is_identity_v<Arg2> ) or
     (not is_diagonal_v<Arg1>) and (not is_diagonal_v<Arg2>)
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<
-    ((Eigen3::is_eigen_self_adjoint_expr_v<Arg1> and Eigen3::is_eigen_self_adjoint_expr_v<Arg2>) or
-      (Eigen3::is_eigen_triangular_expr_v<Arg1> and Eigen3::is_eigen_self_adjoint_expr_v<Arg2>) or
-      (Eigen3::is_eigen_self_adjoint_expr_v<Arg1> and Eigen3::is_eigen_triangular_expr_v<Arg2>)) and
+    ((Eigen3::eigen_self_adjoint_expr<Arg1> and Eigen3::eigen_self_adjoint_expr<Arg2>) or
+      (Eigen3::eigen_triangular_expr<Arg1> and Eigen3::eigen_self_adjoint_expr<Arg2>) or
+      (Eigen3::eigen_self_adjoint_expr<Arg1> and Eigen3::eigen_triangular_expr<Arg2>)) and
     not is_diagonal_v<Arg1> and not is_diagonal_v<Arg2>, int> = 0>
 #endif
   inline auto operator*(Arg1&& arg1, Arg2&& arg2)
@@ -974,8 +974,8 @@ requires (Eigen3::eigen_self_adjoint_expr<Arg1> and is_identity_v<Arg2> ) or
     and (not is_zero_v<Arg2>)
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<
-    ((Eigen3::is_eigen_self_adjoint_expr_v<Arg1> and is_diagonal_v<Arg2>) or
-      (is_diagonal_v<Arg1> and Eigen3::is_eigen_self_adjoint_expr_v<Arg2>)) and
+    ((Eigen3::eigen_self_adjoint_expr<Arg1> and is_diagonal_v<Arg2>) or
+      (is_diagonal_v<Arg1> and Eigen3::eigen_self_adjoint_expr<Arg2>)) and
     not is_identity_v<Arg1> and not is_identity_v<Arg2> and not is_zero_v<Arg1> and not is_zero_v<Arg2>, int> = 0>
 #endif
   inline auto operator*(Arg1&& arg1, Arg2&& arg2)
@@ -1004,8 +1004,8 @@ requires (Eigen3::eigen_self_adjoint_expr<Arg1> and is_identity_v<Arg2> ) or
     (is_identity_v<Arg1> and Eigen3::eigen_self_adjoint_expr<Arg2>)
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<
-    (Eigen3::is_eigen_self_adjoint_expr_v<Arg1> and is_identity_v<Arg2>) or
-      (is_identity_v<Arg1> and Eigen3::is_eigen_self_adjoint_expr_v<Arg2>), int> = 0>
+    (Eigen3::eigen_self_adjoint_expr<Arg1> and is_identity_v<Arg2>) or
+      (is_identity_v<Arg1> and Eigen3::eigen_self_adjoint_expr<Arg2>), int> = 0>
 #endif
   inline auto operator*(Arg1&& arg1, Arg2&& arg2)
   {
@@ -1028,8 +1028,8 @@ requires (Eigen3::eigen_self_adjoint_expr<Arg1> and is_identity_v<Arg2> ) or
     (is_zero_v<Arg1> and Eigen3::eigen_self_adjoint_expr<Arg2> )
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<
-    (Eigen3::is_eigen_self_adjoint_expr_v<Arg1> and is_zero_v<Arg2>) or
-      (is_zero_v<Arg1> and Eigen3::is_eigen_self_adjoint_expr_v<Arg2>), int> = 0>
+    (Eigen3::eigen_self_adjoint_expr<Arg1> and is_zero_v<Arg2>) or
+      (is_zero_v<Arg1> and Eigen3::eigen_self_adjoint_expr<Arg2>), int> = 0>
 #endif
   constexpr decltype(auto) operator*(Arg1&& arg1, Arg2&& arg2)
   {
@@ -1051,8 +1051,8 @@ requires (Eigen3::eigen_self_adjoint_expr<Arg1> and is_identity_v<Arg2> ) or
     and (not is_zero_v<Arg2>)
 #else
   template<typename Arg1, typename Arg2,
-    std::enable_if_t<((Eigen3::is_eigen_self_adjoint_expr_v<Arg1> and Eigen3::is_eigen_matrix_v<Arg2>)
-      or (Eigen3::is_eigen_matrix_v<Arg1> and Eigen3::is_eigen_self_adjoint_expr_v<Arg2>)) and
+    std::enable_if_t<((Eigen3::eigen_self_adjoint_expr<Arg1> and Eigen3::eigen_matrix<Arg2>)
+      or (Eigen3::eigen_matrix<Arg1> and Eigen3::eigen_self_adjoint_expr<Arg2>)) and
       not is_identity_v<Arg1> and not is_identity_v<Arg2> and not is_zero_v<Arg1> and not is_zero_v<Arg2>, int> = 0>
 #endif
   inline auto operator*(Arg1&& arg1, Arg2&& arg2)
@@ -1080,7 +1080,7 @@ requires (Eigen3::eigen_self_adjoint_expr<Arg1> and is_identity_v<Arg2> ) or
 #ifdef __cpp_concepts
   template<Eigen3::eigen_self_adjoint_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<Eigen3::is_eigen_self_adjoint_expr_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<Eigen3::eigen_self_adjoint_expr<Arg>, int> = 0>
 #endif
   inline auto operator-(Arg && arg)
   {

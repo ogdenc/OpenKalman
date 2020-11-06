@@ -91,8 +91,8 @@ namespace OpenKalman
       (typed_matrix<T> or typed_matrix_base<T>) and ((typed_matrix<Ps> or typed_matrix_base<Ps>) and ...)
 #else
     template<typename T, typename ... Ps, std::enable_if_t<
-      (is_typed_matrix_v<T> or is_typed_matrix_base_v<T>) and
-      ((is_typed_matrix_v<Ps> or is_typed_matrix_base_v<Ps>) and ...), int> = 0>
+      (typed_matrix<T> or is_typed_matrix_base_v<T>) and
+      ((typed_matrix<Ps> or is_typed_matrix_base_v<Ps>) and ...), int> = 0>
 #endif
     LinearTransformation(T&& mat, Ps&& ... p_mats) noexcept
       : transformation_matrices(std::forward<T>(mat), std::forward<Ps>(p_mats)...)
@@ -163,8 +163,8 @@ namespace OpenKalman
   template<typename T, typename ... Ps> requires
     (typed_matrix<T> and ... and (typed_matrix<Ps> or typed_matrix_base<Ps>))
 #else
-  template<typename T, typename ... Ps, std::enable_if_t<std::conjunction_v<is_typed_matrix<T>,
-    std::disjunction<is_typed_matrix<Ps>, is_typed_matrix_base<Ps>>...>, int> = 0>
+  template<typename T, typename ... Ps, std::enable_if_t<
+    (typed_matrix<T> and ... and (typed_matrix<Ps> or is_typed_matrix_base_v<Ps>)), int> = 0>
 #endif
   LinearTransformation(T&&, Ps&& ...)
   -> LinearTransformation<
@@ -176,11 +176,12 @@ namespace OpenKalman
       strict_t<typename MatrixTraits<Ps>::BaseMatrix>,
       strict_t<std::decay_t<Ps>>>...>;
 
+
 #ifdef __cpp_concepts
   template<typed_matrix_base T, typed_matrix_base ... Ps>
 #else
   template<typename T, typename ... Ps, std::enable_if_t<
-    std::conjunction_v<is_typed_matrix_base<T>, is_typed_matrix_base<Ps>...>, int> = 0>
+    (is_typed_matrix_base_v<T> and ... and is_typed_matrix_base_v<Ps>), int> = 0>
 #endif
   LinearTransformation(T&&, Ps&& ...)
   -> LinearTransformation<

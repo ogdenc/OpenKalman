@@ -90,7 +90,7 @@ namespace OpenKalman
     static auto
     sample_points(const Dist&...ds)
     {
-      static_assert(std::conjunction_v<is_Gaussian_distribution<Dist>...>);
+      static_assert((gaussian_distribution<Dist> and ...));
       constexpr auto dim = (DistributionTraits<Dist>::dimension + ...);
       return sample_points_impl<dim>(ds...);
     }
@@ -98,7 +98,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<std::size_t dim, euclidean_mean Arg>
 #else
-    template<std::size_t dim, typename Arg, std::enable_if_t<is_euclidean_mean_v<Arg>, int> = 0>
+    template<std::size_t dim, typename Arg, std::enable_if_t<euclidean_mean<Arg>, int> = 0>
 #endif
     static auto
     weighted_means(const Arg& y_means)

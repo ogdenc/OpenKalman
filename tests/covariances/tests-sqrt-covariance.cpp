@@ -22,7 +22,7 @@ using T2l = TriangularMatrix<M2, TriangleType::lower>;
 using T2u = TriangularMatrix<M2, TriangleType::upper>;
 using D2 = DiagonalMatrix<Eigen::Matrix<double, 2, 1>>;
 using D1 = Eigen::Matrix<double, 1, 1>;
-using I2 = EigenIdentity<Eigen::Matrix<double, 2, 2>>;
+using I2 = IdentityMatrix<Eigen::Matrix<double, 2, 2>>;
 using Z2 = ZeroMatrix<Eigen::Matrix<double, 2, 2>>;
 using CovSA2l = Covariance<C, SA2l>;
 using CovSA2u = Covariance<C, SA2u>;
@@ -40,8 +40,6 @@ using SqCovD2 = SquareRootCovariance<C, D2>;
 using SqCovD1 = SquareRootCovariance<Axis, D1>;
 using SqCovI2 = SquareRootCovariance<C, I2>;
 using SqCovZ2 = SquareRootCovariance<C, Z2>;
-using M3 = Eigen::Matrix<double, 3, 3>;
-using Mat3 = Matrix<C, C, M3>;
 
 inline I2 i2 = M2::Identity();
 inline Z2 z2 = ZeroMatrix<M2>();
@@ -680,7 +678,7 @@ TEST_F(covariance_tests, SquareRootCovariance_make)
 
 TEST_F(covariance_tests, SquareRootCovariance_traits)
 {
-  static_assert(is_square_root_v<SqCovSA2l>);
+  static_assert(square_root_covariance<SqCovSA2l>);
   static_assert(not is_diagonal_v<SqCovSA2l>);
   static_assert(not is_self_adjoint_v<SqCovSA2l>);
   static_assert(not is_Cholesky_v<SqCovSA2l>);
@@ -692,7 +690,7 @@ TEST_F(covariance_tests, SquareRootCovariance_traits)
   static_assert(not is_identity_v<SqCovSA2l>);
   static_assert(not is_zero_v<SqCovSA2l>);
 
-  static_assert(is_square_root_v<SqCovT2l>);
+  static_assert(square_root_covariance<SqCovT2l>);
   static_assert(not is_diagonal_v<SqCovT2l>);
   static_assert(not is_self_adjoint_v<SqCovT2l>);
   static_assert(is_Cholesky_v<SqCovT2l>);
@@ -704,7 +702,7 @@ TEST_F(covariance_tests, SquareRootCovariance_traits)
   static_assert(not is_identity_v<SqCovT2l>);
   static_assert(not is_zero_v<SqCovT2l>);
 
-  static_assert(is_square_root_v<SqCovD2>);
+  static_assert(square_root_covariance<SqCovD2>);
   static_assert(is_diagonal_v<SqCovD2>);
   static_assert(is_self_adjoint_v<SqCovD2>);
   static_assert(not is_Cholesky_v<SqCovD2>);
@@ -714,7 +712,7 @@ TEST_F(covariance_tests, SquareRootCovariance_traits)
   static_assert(not is_identity_v<SqCovD2>);
   static_assert(not is_zero_v<SqCovD2>);
 
-  static_assert(is_square_root_v<SqCovI2>);
+  static_assert(square_root_covariance<SqCovI2>);
   static_assert(is_diagonal_v<SqCovI2>);
   static_assert(is_self_adjoint_v<SqCovI2>);
   static_assert(not is_Cholesky_v<SqCovI2>);
@@ -724,7 +722,7 @@ TEST_F(covariance_tests, SquareRootCovariance_traits)
   static_assert(is_identity_v<SqCovI2>);
   static_assert(not is_zero_v<SqCovI2>);
 
-  static_assert(is_square_root_v<SqCovZ2>);
+  static_assert(square_root_covariance<SqCovZ2>);
   static_assert(is_diagonal_v<SqCovZ2>);
   static_assert(is_self_adjoint_v<SqCovZ2>);
   static_assert(not is_Cholesky_v<SqCovZ2>);

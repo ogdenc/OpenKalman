@@ -72,12 +72,12 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   /// T is a perturbation.
   template<typename T>
-  concept perturbation = is_Gaussian_distribution_v<T> or
+  concept perturbation = gaussian_distribution<T> or
     (typed_matrix<T> and column_vector<T> and not euclidean_transformed<T>);
 #else
   template<typename T>
-  struct is_perturbation : std::bool_constant<is_Gaussian_distribution_v<T> or
-    (is_typed_matrix_v<T> and is_column_vector_v<T> and not is_euclidean_transformed_v<T>)> {};
+  struct is_perturbation : std::bool_constant<gaussian_distribution<T> or
+    (typed_matrix<T> and column_vector<T> and not euclidean_transformed<T>)> {};
 
   /// Helper template for is_perturbation.
   template<typename T>
@@ -95,7 +95,7 @@ namespace OpenKalman
     template<typename Noise>
     struct PerturbationTraits;
 
-    template<typename Noise> requires is_Gaussian_distribution_v<Noise>
+    template<typename Noise> requires gaussian_distribution<Noise>
     struct PerturbationTraits<Noise> : MatrixTraits<typename DistributionTraits<Noise>::Mean> {};
 
     template<typed_matrix Noise>
@@ -105,11 +105,11 @@ namespace OpenKalman
     struct PerturbationTraits;
 
     template<typename Noise>
-    struct PerturbationTraits<Noise, std::enable_if_t<is_Gaussian_distribution_v<Noise>>>
+    struct PerturbationTraits<Noise, std::enable_if_t<gaussian_distribution<Noise>>>
       : MatrixTraits<typename DistributionTraits<Noise>::Mean> {};
 
     template<typename Noise>
-    struct PerturbationTraits<Noise, std::enable_if_t<is_typed_matrix_v<Noise>>>
+    struct PerturbationTraits<Noise, std::enable_if_t<typed_matrix<Noise>>>
       : MatrixTraits<Noise> {};
 #endif
 
@@ -121,7 +121,7 @@ namespace OpenKalman
     inline auto
     get_perturbation(Arg&& arg) noexcept
     {
-      if constexpr(is_Gaussian_distribution_v<Arg>)
+      if constexpr(gaussian_distribution<Arg>)
         return std::forward<Arg>(arg)();
       else
         return std::forward<Arg>(arg);

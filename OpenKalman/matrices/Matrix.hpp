@@ -44,7 +44,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<typed_matrix Arg> requires (not euclidean_transformed<Arg>)
 #else
-    template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg> and not is_euclidean_transformed_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<typed_matrix<Arg> and not euclidean_transformed<Arg>, int> = 0>
 #endif
     Matrix(Arg&& other) noexcept : Base(std::forward<Arg>(other).base_matrix())
     {
@@ -56,7 +56,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<euclidean_transformed Arg>
 #else
-    template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg> and is_euclidean_transformed_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<typed_matrix<Arg> and euclidean_transformed<Arg>, int> = 0>
 #endif
     Matrix(Arg&& other) noexcept : Base(OpenKalman::from_Euclidean<RowCoefficients>(std::forward<Arg>(other).base_matrix()))
     {
@@ -78,9 +78,9 @@ namespace OpenKalman
 
     /// Construct from compatible covariance.
 #ifdef __cpp_concepts
-    template<typename Arg> requires is_covariance_v<Arg>
+    template<covariance Arg>
 #else
-    template<typename Arg, std::enable_if_t<is_covariance_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<covariance<Arg>, int> = 0>
 #endif
     Matrix(Arg&& arg) noexcept : Base(strict_matrix(std::forward<Arg>(arg)))
     {
@@ -108,7 +108,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<typed_matrix Arg>
 #else
-    template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<typed_matrix<Arg>, int> = 0>
 #endif
     auto& operator=(Arg&& other) noexcept
     {
@@ -144,7 +144,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<typed_matrix Arg>
 #else
-    template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<typed_matrix<Arg>, int> = 0>
 #endif
     auto& operator+=(Arg&& other) noexcept
     {
@@ -156,9 +156,9 @@ namespace OpenKalman
 
     /// Add a stochastic value to each column of the matrix, based on a distribution.
 #ifdef __cpp_concepts
-    template<typename Arg> requires is_distribution_v<Arg>
+    template<typename Arg> requires distribution<Arg>
 #else
-    template<typename Arg, std::enable_if_t<is_distribution_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<distribution<Arg>, int> = 0>
 #endif
     auto& operator+=(const Arg& arg) noexcept
     {
@@ -180,7 +180,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<typed_matrix Arg>
 #else
-    template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<typed_matrix<Arg>, int> = 0>
 #endif
     auto& operator-=(Arg&& other) noexcept
     {
@@ -192,9 +192,9 @@ namespace OpenKalman
 
     /// Subtract a stochastic value to each column of the matrix, based on a distribution.
 #ifdef __cpp_concepts
-    template<typename Arg> requires is_distribution_v<Arg>
+    template<typename Arg> requires distribution<Arg>
 #else
-    template<typename Arg, std::enable_if_t<is_distribution_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<distribution<Arg>, int> = 0>
 #endif
     auto& operator-=(const Arg& arg) noexcept
     {
@@ -234,7 +234,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typed_matrix V> requires (not euclidean_transformed<V>)
 #else
-  template<typename V, std::enable_if_t<is_typed_matrix_v<V> and not is_euclidean_transformed_v<V>, int> = 0>
+  template<typename V, std::enable_if_t<typed_matrix<V> and not euclidean_transformed<V>, int> = 0>
 #endif
   Matrix(V&&) -> Matrix<
     typename MatrixTraits<V>::RowCoefficients,
@@ -256,9 +256,9 @@ namespace OpenKalman
 
   /// Deduce parameter types from a Covariance.
 #ifdef __cpp_concepts
-  template<typename V> requires is_covariance_v<V>
+  template<covariance V>
 #else
-  template<typename V, std::enable_if_t<is_covariance_v<V>, int> = 0>
+  template<typename V, std::enable_if_t<covariance<V>, int> = 0>
 #endif
   Matrix(V&&) -> Matrix<
     typename MatrixTraits<V>::Coefficients,
@@ -295,9 +295,9 @@ namespace OpenKalman
 
   /// Make a Matrix object from a covariance object.
 #ifdef __cpp_concepts
-  template<typename M> requires is_covariance_v<M>
+  template<covariance M>
 #else
-  template<typename M, std::enable_if_t<is_covariance_v<M>, int> = 0>
+  template<typename M, std::enable_if_t<covariance<M>, int> = 0>
 #endif
   inline auto make_Matrix(M&& arg)
   {
@@ -310,7 +310,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typed_matrix Arg>
 #else
-  template<typename Arg, std::enable_if_t<is_typed_matrix_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<typed_matrix<Arg>, int> = 0>
 #endif
   inline auto make_Matrix(Arg&& arg)
   {

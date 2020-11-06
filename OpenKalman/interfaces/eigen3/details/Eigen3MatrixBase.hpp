@@ -26,7 +26,7 @@ namespace OpenKalman::Eigen3::internal
    * Base class for all OpenKalman classes that are also Eigen3 matrices.
    */
   template<typename Derived, typename ArgType>
-  struct Eigen3MatrixBase : Eigen::MatrixBase<Derived>
+  struct Eigen3MatrixBase : Eigen3Base<Derived>
   {
     using Nested = std::decay_t<ArgType>; ///< The nested Eigen matrix type. Eigen3 requires this to be defined.
     using Scalar = typename Nested::Scalar;

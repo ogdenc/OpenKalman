@@ -81,14 +81,14 @@ namespace OpenKalman
     static auto
     sample_points(const Dist&...ds)
     {
-      static_assert(std::conjunction_v<is_Gaussian_distribution<Dist>...>);
+      static_assert((gaussian_distribution<Dist> and ...));
       return SigmaPointsType::template sigma_points(ds...);
     }
 
 #ifdef __cpp_concepts
     template<std::size_t dim, euclidean_mean YMeans>
 #else
-    template<std::size_t dim, typename YMeans, std::enable_if_t<is_euclidean_mean_v<YMeans>, int> = 0>
+    template<std::size_t dim, typename YMeans, std::enable_if_t<euclidean_mean<YMeans>, int> = 0>
 #endif
     static auto
     weighted_means(const YMeans& y_means)

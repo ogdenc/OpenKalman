@@ -201,22 +201,6 @@ namespace OpenKalman
   //  Traits for square matrices  //
   // ---------------------------- //
 
-  /// Whether an object is a Covariance or SquareRootCovariance.
-  template<typename T>
-  struct is_covariance : internal::class_trait<is_covariance, T> {};
-
-  /// Helper template for is_covariance.
-  template<typename T>
-  inline constexpr bool is_covariance_v = is_covariance<T>::value;
-
-  /// Whether an object is a Cholesky square root (e.g., SquareRootCovariance).
-  template<typename T>
-  struct is_square_root : internal::class_trait<is_square_root, T> {};
-
-  /// Helper template for is_square_root.
-  template<typename T>
-  inline constexpr bool is_square_root_v = is_square_root<T>::value;
-
   /// Whether an object is a diagonal matrix.
   template<typename T, typename Enable = void>
   struct is_zero : internal::class_trait<is_zero, T, Enable> {};
@@ -385,8 +369,6 @@ namespace OpenKalman
 #endif
 
 
-
-
   /**
    * A matrix with typed rows and columns.
    *
@@ -495,45 +477,48 @@ namespace OpenKalman
   //   Means   //
   // --------- //
 
+
+  namespace detail
+  {
+    template<typename T>
+    struct is_mean : internal::class_trait<is_mean, T> {};
+
+    template<typename Coefficients, typename BaseMatrix>
+    struct is_mean<Mean<Coefficients, BaseMatrix>> : std::true_type {};
+  }
+
+  /** T is a mean (i.e., is a specialization of the class Mean).
+   *
+   * If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
+   */
+  template<typename T>
 #ifdef __cpp_concepts
-  /// T is a mean (i.e., is a specialization of the class Mean).
-  template<typename T>
-  concept mean = std::same_as<
-    std::decay_t<T>, Mean<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::BaseMatrix>>;
+  concept mean = detail::is_mean<T>::value;
 #else
-  /// Tests whether an object is a mean.
-  template<typename T>
-  struct is_mean : internal::class_trait<is_mean, T> {};
-
-  template<typename Coefficients, typename BaseMatrix>
-  struct is_mean<Mean<Coefficients, BaseMatrix>> : std::true_type {};
-
-  /// Helper template for is_mean.
-  template<typename T>
-  inline constexpr bool is_mean_v = is_mean<T>::value;
-
-  /// Helper template for is_mean.
-  template<typename T>
-  inline constexpr bool mean = is_mean<T>::value;
+  inline constexpr bool mean = detail::is_mean<T>::value;
 #endif
 
 
 #ifdef __cpp_concepts
-  /// T is a mean (i.e., is a specialization of the class Mean).
+  /** T is a wrapped mean (i.e., its row coefficients have at least one type that requires wrapping).
+   *
+   * If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
+   */
   template<typename T>
   concept wrapped_mean = mean<T> and (not MatrixTraits<T>::RowCoefficients::axes_only);
 #else
-  /// Tests whether the matrix is a wrapped mean.
-  template<typename T>
-  struct is_wrapped_mean : internal::class_trait<is_wrapped_mean, T> {};
+  namespace detail
+  {
+    template<typename T>
+    struct is_wrapped_mean : internal::class_trait<is_wrapped_mean, T> {};
 
-  /// A Mean is wrapped unless the coefficients are Axes only.
-  template<typename Coefficients, typename BaseMatrix>
-  struct is_wrapped_mean<Mean<Coefficients, BaseMatrix>> : std::bool_constant<not Coefficients::axes_only> {};
+    template<typename Coefficients, typename BaseMatrix>
+    struct is_wrapped_mean<Mean<Coefficients, BaseMatrix>> : std::bool_constant<not Coefficients::axes_only> {};
+  }
 
-  /// Helper template for is_wrapped_mean.
+  /// T is a wrapped mean (i.e., its row coefficients have at least one type that requires wrapping).
   template<typename T>
-  inline constexpr bool wrapped_mean = is_wrapped_mean<T>::value;
+  inline constexpr bool wrapped_mean = detail::is_wrapped_mean<T>::value;
 #endif
 
 
@@ -541,50 +526,48 @@ namespace OpenKalman
   //   Euclidean means   //
   // ------------------- //
 
+  namespace detail
+  {
+    template<typename T>
+    struct is_euclidean_mean : internal::class_trait<is_euclidean_mean, T> {};
+
+    template<typename Coefficients, typename BaseMatrix>
+    struct is_euclidean_mean<EuclideanMean<Coefficients, BaseMatrix>> : std::true_type {};
+  }
+
+  /** T is a Euclidean mean (i.e., is a specialization of the class EuclideanMean).
+   *
+   * If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
+   */
+  template<typename T>
 #ifdef __cpp_concepts
-  /// T is a Euclidean mean (i.e., is a specialization of the class EuclideanMean).
-  template<typename T>
-  concept euclidean_mean = std::same_as<
-    std::decay_t<T>, EuclideanMean<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::BaseMatrix>>;
+  concept euclidean_mean = detail::is_euclidean_mean<T>::value;
 #else
-  /// Tests whether an object is a euclidean mean.
-  template<typename T>
-  struct is_euclidean_mean : internal::class_trait<is_euclidean_mean, T> {};
-
-  template<typename Coefficients, typename BaseMatrix>
-  struct is_euclidean_mean<EuclideanMean<Coefficients, BaseMatrix>> : std::true_type {};
-
-  /// Helper template for is_euclidean_mean.
-  template<typename T>
-  inline constexpr bool is_euclidean_mean_v = is_euclidean_mean<T>::value;
-
-  /// Helper template for is_euclidean_mean.
-  template<typename T>
-  inline constexpr bool euclidean_mean = is_euclidean_mean<T>::value;
+  inline constexpr bool euclidean_mean = detail::is_euclidean_mean<T>::value;
 #endif
 
 
 #ifdef __cpp_concepts
-  /// T is a euclidean_mean that actually has coefficients that are transformed to Euclidean space.
+  /** T is a euclidean_mean that actually has coefficients that are transformed to Euclidean space.
+   *
+   * If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
+   */
   template<typename T>
   concept euclidean_transformed = euclidean_mean<T> and (not MatrixTraits<T>::RowCoefficients::axes_only);
 #else
-  /// Tests whether an object is Euclidean-transformed.
-  template<typename T, typename Enable = void>
-  struct is_euclidean_transformed : internal::class_trait<is_euclidean_transformed, T, Enable> {};
+  namespace detail
+  {
+    template<typename T, typename Enable = void>
+    struct is_euclidean_transformed : internal::class_trait<is_euclidean_transformed, T, Enable> {};
 
-  /// A EuclideanMean is Euclidean-transformed unless the coefficients are Axes only.
-  template<typename T>
-  struct is_euclidean_transformed<T, std::enable_if_t<is_euclidean_mean_v<T>>>
-    : std::bool_constant<not MatrixTraits<T>::RowCoefficients::axes_only> {};
+    template<typename T>
+    struct is_euclidean_transformed<T, std::enable_if_t<euclidean_mean<T>>>
+      : std::bool_constant<not MatrixTraits<T>::RowCoefficients::axes_only> {};
+  }
 
-  /// Helper template for is_euclidean_transformed.
+  // T is a euclidean_mean that actually has coefficients that are transformed to Euclidean space.
   template<typename T>
-  inline constexpr bool is_euclidean_transformed_v = is_euclidean_transformed<T>::value;
-
-  /// Helper template for is_euclidean_transformed.
-  template<typename T>
-  inline constexpr bool euclidean_transformed = is_euclidean_transformed<T>::value;
+  inline constexpr bool euclidean_transformed = detail::is_euclidean_transformed<T>::value;
 #endif
 
 
@@ -592,90 +575,139 @@ namespace OpenKalman
   //   typed matrices   //
   // ------------------ //
 
+  namespace detail
+  {
+    template<typename T>
+    struct is_matrix : internal::class_trait<is_matrix, T> {};
+
+    template<typename RowCoefficients, typename ColumnCoefficients, typename BaseMatrix>
+    struct is_matrix<Matrix<RowCoefficients, ColumnCoefficients, BaseMatrix>> : std::true_type {};
+  }
+
+  /** T is a typed matrix (i.e., is a specialization of Matrix, Mean, or EuclideanMean).
+   *
+   * If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
+   */
+  template<typename T>
 #ifdef __cpp_concepts
-  /// T is a typed matrix (i.e., is a specialization of Matrix, Mean, or EuclideanMean).
-  template<typename T>
-  concept typed_matrix = mean<T> or euclidean_mean<T> or std::same_as<std::decay_t<T>,
-    Matrix<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients,
-    typename MatrixTraits<T>::BaseMatrix>>;
+  concept typed_matrix = mean<T> or euclidean_mean<T> or detail::is_matrix<T>::value;
 #else
-  /// Tests whether an object is a typed matrix (i.e., a specialization of Mean, EuclideanMean, or Matrix).
-  template<typename T>
-  struct is_typed_matrix : internal::class_trait<is_typed_matrix, T> {};
-
-  template<typename RowCoefficients, typename ColumnCoefficients, typename BaseMatrix>
-  struct is_typed_matrix<Matrix<RowCoefficients, ColumnCoefficients, BaseMatrix>> : std::true_type {};
-
-  template<typename Coefficients, typename BaseMatrix>
-  struct is_typed_matrix<Mean<Coefficients, BaseMatrix>> : std::true_type {};
-
-  template<typename Coefficients, typename BaseMatrix>
-  struct is_typed_matrix<EuclideanMean<Coefficients, BaseMatrix>> : std::true_type {};
-
-  /// Helper template for is_typed_matrix.
-  template<typename T>
-  inline constexpr bool is_typed_matrix_v = is_typed_matrix<T>::value;
-
-  /// Helper template for is_typed_matrix.
-  template<typename T>
-  inline constexpr bool typed_matrix = is_typed_matrix<T>::value;
+  inline constexpr bool typed_matrix = mean<T> or euclidean_mean<T> or detail::is_matrix<T>::value;
 #endif
 
 
 #ifdef __cpp_concepts
-  /// T is a column vector or set of column vectors (i.e., the columns all have type Axis).
+  /** T is a column vector or set of column vectors (i.e., the columns all have type Axis).
+   *
+   * If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
+   */
   template<typename T>
   concept column_vector = typed_matrix<T> and MatrixTraits<T>::ColumnCoefficients::axes_only;
 #else
-  /// Whether the matrix is a column vector or set of column vectors.
+  namespace detail
+  {
+    template<typename T>
+    struct is_column_vector : internal::class_trait<is_column_vector, T> {};
+
+    template<typename RowCoefficients, typename ColumnCoefficients, typename BaseMatrix>
+    struct is_column_vector<Matrix<RowCoefficients, ColumnCoefficients, BaseMatrix>>
+      : std::bool_constant<ColumnCoefficients::axes_only> {};
+
+    template<typename Coefficients, typename BaseMatrix>
+    struct is_column_vector<Mean<Coefficients, BaseMatrix>> : std::true_type {};
+
+    template<typename Coefficients, typename BaseMatrix>
+    struct is_column_vector<EuclideanMean<Coefficients, BaseMatrix>> : std::true_type {};
+  }
+
+  /// T is a column vector or set of column vectors (i.e., the columns all have type Axis).
   template<typename T>
-  struct is_column_vector : internal::class_trait<is_column_vector, T> {};
-
-  template<typename RowCoefficients, typename ColumnCoefficients, typename BaseMatrix>
-  struct is_column_vector<Matrix<RowCoefficients, ColumnCoefficients, BaseMatrix>>
-    : std::bool_constant<ColumnCoefficients::axes_only> {};
-
-  template<typename Coefficients, typename BaseMatrix>
-  struct is_column_vector<Mean<Coefficients, BaseMatrix>> : std::true_type {};
-
-  template<typename Coefficients, typename BaseMatrix>
-  struct is_column_vector<EuclideanMean<Coefficients, BaseMatrix>> : std::true_type {};
-
-  /// Helper template for is_column_vector.
-  template<typename T>
-  inline constexpr bool is_column_vector_v = is_column_vector<T>::value;
-
-  /// Helper template for is_column_vector.
-  template<typename T>
-  inline constexpr bool column_vector = is_column_vector<T>::value;
+  inline constexpr bool column_vector = detail::is_column_vector<T>::value;
 #endif
 
 
-  /////////////////////
-  //  Distributions  //
-  /////////////////////
+  // ------------------------------------ //
+  //  square root (Cholesky) covariances  //
+  // ------------------------------------ //
 
-  /// Whether an object is a distribution.
-  template<typename T, typename Enable = void>
-  struct is_distribution : internal::class_trait<is_distribution, T, Enable> {};
+  namespace detail
+  {
+    template<typename T>
+    struct is_square_root_covariance : internal::class_trait<is_square_root_covariance, T> {};
 
-  /// Helper template for is_distribution.
+    template<typename Coefficients, typename BaseMatrix>
+    struct is_square_root_covariance<SquareRootCovariance<Coefficients, BaseMatrix>> : std::true_type {};
+  }
+
+  /** T is a square root (Cholesky) covariance matrix with typed rows and columns. The rows and columns have the same type.
+   *
+   * If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
+   */
   template<typename T>
-  inline constexpr bool is_distribution_v = is_distribution<T>::value;
+#ifdef __cpp_concepts
+  concept square_root_covariance = detail::is_square_root_covariance<T>::value;
+#else
+  inline constexpr bool square_root_covariance = detail::is_square_root_covariance<T>::value;
+#endif
 
 
-  /// Whether an object is a Gaussian distribution.
+  // ------------------------ //
+  //  covariances in general  //
+  // ------------------------ //
+
+  namespace detail
+  {
+    template<typename T>
+    struct is_non_Cholesky_covariance : internal::class_trait<is_non_Cholesky_covariance, T> {};
+
+    template<typename Coefficients, typename BaseMatrix>
+    struct is_non_Cholesky_covariance<Covariance<Coefficients, BaseMatrix>> : std::true_type {};
+  }
+
+  /** T is a covariance matrix of any kind, including a square_root_covariance. The rows and columns have the same type.
+   *
+   * If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
+   */
   template<typename T>
-  struct is_Gaussian_distribution : internal::class_trait<is_Gaussian_distribution, T> {};
+#ifdef __cpp_concepts
+  concept covariance = square_root_covariance<T> or detail::is_non_Cholesky_covariance<T>::value;
+#else
+  inline constexpr bool covariance = square_root_covariance<T> or detail::is_non_Cholesky_covariance<T>::value;
+#endif
 
-  /// Helper template for is_Gaussian_distribution.
+
+  // --------------- //
+  //  distributions  //
+  // --------------- //
+
+  namespace detail
+  {
+    template<typename T>
+    struct is_gaussian_distribution : internal::class_trait<is_gaussian_distribution, T> {};
+
+    template<typename Coefficients, typename MeanMatrix, typename CovarianceMatrix, typename re>
+    struct is_gaussian_distribution<GaussianDistribution<Coefficients, MeanMatrix, CovarianceMatrix, re>>
+      : std::true_type {};
+  }
+
   template<typename T>
-  inline constexpr bool is_Gaussian_distribution_v = is_Gaussian_distribution<T>::value;
+#ifdef __cpp_concepts
+  concept gaussian_distribution = detail::is_gaussian_distribution<T>::value;
+#else
+  inline constexpr bool gaussian_distribution = detail::is_gaussian_distribution<T>::value;
+#endif
 
 
+  /** T is a distribution.
+   *
+   * If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
+   */
   template<typename T>
-  struct is_distribution<T, std::enable_if_t<is_Gaussian_distribution_v<T>>>
-    : std::true_type {};
+#ifdef __cpp_concepts
+  concept distribution = gaussian_distribution<T>;
+#else
+  inline constexpr bool distribution = gaussian_distribution<T>;
+#endif
 
 
   /**
@@ -695,9 +727,9 @@ namespace OpenKalman
   struct DistributionTraits<const D, T> : DistributionTraits<D, T> {};
 
 
-  ////////////////////
-  //  Other traits  //
-  ////////////////////
+  // ------------ //
+  //  Strictness  //
+  // ------------ //
 
   /// Whether an expression is strict.
   template<typename T, typename Enable = void>
@@ -713,7 +745,7 @@ namespace OpenKalman
     struct strict_impl { using type = typename MatrixTraits<T>::Strict; };
 
     template<typename T>
-    struct strict_impl<T, std::enable_if_t<is_distribution_v<T>>>
+    struct strict_impl<T, std::enable_if_t<distribution<T>>>
     {
       using type = typename DistributionTraits<T>::Strict;
     };
@@ -736,6 +768,10 @@ namespace OpenKalman
   template<typename T, std::size_t rows = MatrixTraits<T>::dimension, std::size_t cols = MatrixTraits<T>::columns>
   using strict_matrix_t = typename MatrixTraits<T>::template StrictMatrix<rows, cols>;
 
+
+  // -------------- //
+  //  Other traits  //
+  // -------------- //
 
   /// Whether an object has elements that can be retrieved with N indices.
   template<typename T, std::size_t N, typename Enable = void>
