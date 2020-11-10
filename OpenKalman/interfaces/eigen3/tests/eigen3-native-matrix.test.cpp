@@ -92,8 +92,8 @@ TEST_F(eigen3, ZeroMatrix)
 {
   EXPECT_NEAR((ZeroMatrix<Eigen::Matrix<double, 2, 2>>()(0, 0)), 0, 1e-6);
   EXPECT_NEAR((ZeroMatrix<Eigen::Matrix<double, 2, 2>>()(0, 1)), 0, 1e-6);
-  EXPECT_TRUE(is_near(strict_matrix(ZeroMatrix<Eigen::Matrix<double, 2, 3>>()), Eigen::Matrix<double, 2, 3>::Zero()));
-  EXPECT_TRUE(is_near(strict(ZeroMatrix<Eigen::Matrix<double, 2, 3>>()), Eigen::Matrix<double, 2, 3>::Zero()));
+  EXPECT_TRUE(is_near(make_native_matrix(ZeroMatrix<Eigen::Matrix<double, 2, 3>>()), Eigen::Matrix<double, 2, 3>::Zero()));
+  EXPECT_TRUE(is_near(make_self_contained(ZeroMatrix<Eigen::Matrix<double, 2, 3>>()), Eigen::Matrix<double, 2, 3>::Zero()));
   EXPECT_NEAR(determinant(ZeroMatrix<Eigen::Matrix<double, 2, 2>>()), 0, 1e-6);
   EXPECT_NEAR(trace(ZeroMatrix<Eigen::Matrix<double, 2, 2>>()), 0, 1e-6);
   EXPECT_TRUE(is_near(reduce_columns(ZeroMatrix<Eigen::Matrix<double, 2, 3>>()), (Eigen::Matrix<double, 2, 1>::Zero())));

@@ -21,7 +21,7 @@ struct Scale
   template<typename Arg, typename ... Noise>
   auto operator()(const Arg& in, const Noise& ... n) const
   {
-    return strict(((t * in) + ... + (tn * n)));
+    return make_self_contained(((t * in) + ... + (tn * n)));
   }
 };
 
@@ -80,7 +80,7 @@ TEST_F(transformations, Mult_augmented_axis)
     4, 3;
   an << 3, 4,
     2, 1;
-  const auto f = [&](const auto& in, const auto& ... n) { return strict(((a * in) + ... + (an * n))); };
+  const auto f = [&](const auto& in, const auto& ... n) { return make_self_contained(((a * in) + ... + (an * n))); };
   auto t = make_Transformation(f);
   EXPECT_EQ(t(M_int2(2, 3), M_int2(1, 1)), M_int2(15, 20));
   EXPECT_EQ(t(M_int2(2, 3), M_int2(3, 3)), M_int2(29, 26));
@@ -96,7 +96,7 @@ TEST_F(transformations, Mult_augmented_angle)
     4, 3;
   an << 3, 4,
     2, 1;
-  const auto f = [&](const auto& in, const auto& ... n) { return strict(((a * in) + ... + (an * n))); };
+  const auto f = [&](const auto& in, const auto& ... n) { return make_self_contained(((a * in) + ... + (an * n))); };
   auto t = make_Transformation(f);
   EXPECT_TRUE(is_near(M(t(M(1, 0.5), M(0.1, 0.1))), M(2.7, 5.8 - M_PI*2)));
 }

@@ -29,7 +29,7 @@ protected:
   template<typename Jacobians, typename Covs, std::size_t...ints>
   constexpr auto sumprod(const Jacobians& j, const Covs& c, std::index_sequence<ints...>) const
   {
-    return strict(((std::get<ints>(j) * std::get<ints>(c) * adjoint(std::get<ints>(j))) + ...));
+    return make_self_contained(((std::get<ints>(j) * std::get<ints>(c) * adjoint(std::get<ints>(j))) + ...));
   }
 
 public:
@@ -119,7 +119,7 @@ public:
       auto n = MatNoise::identity();
       auto g = LinearTransformation(a, n);
       auto t = IdentityTransform();
-      auto in = GaussianDistribution {MIn::zero(), strict(i * cov)};
+      auto in = GaussianDistribution {MIn::zero(), make_self_contained(i * cov)};
       auto b = randomize<MNoise, std::normal_distribution>(0., i*2.);
       auto noise_cov = Covariance {i / 5. * Eigen::Matrix<double, DIM, DIM>::Identity()};
       auto noise = GaussianDistribution {b, noise_cov};

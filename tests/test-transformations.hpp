@@ -22,28 +22,28 @@ inline const auto sum_of_squares = make_Transformation
   (
     [](const auto& x, const auto&...ps) // function
     {
-      static_assert(is_equivalent_v<typename MatrixTraits<decltype(x)>::RowCoefficients, Axes<n>>);
-      static_assert(is_equivalent_v<typename MatrixTraits<decltype(x)>::ColumnCoefficients, Axis>);
-      static_assert(std::conjunction_v<is_equivalent<typename MatrixTraits<decltype(ps)>::RowCoefficients, Axis>...>);
-      static_assert(std::conjunction_v<is_equivalent<typename MatrixTraits<decltype(ps)>::ColumnCoefficients, Axis>...>);
+      static_assert(equivalent_to<typename MatrixTraits<decltype(x)>::RowCoefficients, Axes<n>>);
+      static_assert(equivalent_to<typename MatrixTraits<decltype(x)>::ColumnCoefficients, Axis>);
+      static_assert((equivalent_to<typename MatrixTraits<decltype(ps)>::RowCoefficients, Axis> and ...));
+      static_assert((equivalent_to<typename MatrixTraits<decltype(ps)>::ColumnCoefficients, Axis> and ...));
 
-      return strict(((transpose(x) * x) + ... + ps));
+      return make_self_contained(((transpose(x) * x) + ... + ps));
     },
     [](const auto& x, const auto&...ps) // Jacobians
     {
-      static_assert(is_equivalent_v<typename MatrixTraits<decltype(x)>::RowCoefficients, Axes<n>>);
-      static_assert(is_equivalent_v<typename MatrixTraits<decltype(x)>::ColumnCoefficients, Axis>);
-      static_assert(std::conjunction_v<is_equivalent<typename MatrixTraits<decltype(ps)>::RowCoefficients, Axis>...>);
-      static_assert(std::conjunction_v<is_equivalent<typename MatrixTraits<decltype(ps)>::ColumnCoefficients, Axis>...>);
+      static_assert(equivalent_to<typename MatrixTraits<decltype(x)>::RowCoefficients, Axes<n>>);
+      static_assert(equivalent_to<typename MatrixTraits<decltype(x)>::ColumnCoefficients, Axis>);
+      static_assert((equivalent_to<typename MatrixTraits<decltype(ps)>::RowCoefficients, Axis> and ...));
+      static_assert((equivalent_to<typename MatrixTraits<decltype(ps)>::ColumnCoefficients, Axis> and ...));
 
       return std::tuple_cat(std::tuple {2 * transpose(x)}, internal::tuple_replicate<sizeof...(ps)>(Mean {1.}));
     },
     [](const auto& x, const auto&...ps) // Hessians
     {
-      static_assert(is_equivalent_v<typename MatrixTraits<decltype(x)>::RowCoefficients, Axes<n>>);
-      static_assert(is_equivalent_v<typename MatrixTraits<decltype(x)>::ColumnCoefficients, Axis>);
-      static_assert(std::conjunction_v<is_equivalent<typename MatrixTraits<decltype(ps)>::RowCoefficients, Axis>...>);
-      static_assert(std::conjunction_v<is_equivalent<typename MatrixTraits<decltype(ps)>::ColumnCoefficients, Axis>...>);
+      static_assert(equivalent_to<typename MatrixTraits<decltype(x)>::RowCoefficients, Axes<n>>);
+      static_assert(equivalent_to<typename MatrixTraits<decltype(x)>::ColumnCoefficients, Axis>);
+      static_assert((equivalent_to<typename MatrixTraits<decltype(ps)>::RowCoefficients, Axis> and ...));
+      static_assert((equivalent_to<typename MatrixTraits<decltype(ps)>::ColumnCoefficients, Axis> and ...));
 
       std::array<Matrix<Axes<n>, Axes<n>, Eigen::Matrix<double, n, n>>, 1> I;
       I[0] = 2 * Eigen::Matrix<double, n, n>::Identity();
@@ -56,25 +56,30 @@ inline const auto time_of_arrival = make_Transformation
   (
     [](const auto& x, const auto&...ps) // function
     {
-      static_assert(is_equivalent_v<typename MatrixTraits<decltype(x)>::RowCoefficients, Axes<n>>);
-      static_assert(is_equivalent_v<typename MatrixTraits<decltype(x)>::ColumnCoefficients, Axis>);
-      static_assert(std::conjunction_v<is_equivalent<typename MatrixTraits<decltype(ps)>::RowCoefficients, Axis>...>);
-      static_assert(std::conjunction_v<is_equivalent<typename MatrixTraits<decltype(ps)>::ColumnCoefficients, Axis>...>);
+      static_assert(equivalent_to<typename MatrixTraits<decltype(x)>::RowCoefficients, Axes<n>>);
+      static_assert(equivalent_to<typename MatrixTraits<decltype(x)>::ColumnCoefficients, Axis>);
+      static_assert((equivalent_to<typename MatrixTraits<decltype(ps)>::RowCoefficients, Axis> and ...));
+      static_assert((equivalent_to<typename MatrixTraits<decltype(ps)>::ColumnCoefficients, Axis> and ...));
 
-      return strict((apply_coefficientwise(adjoint(x) * x, [](const auto& c) { return std::sqrt(c); }) + ... + ps));
+      return make_self_contained((apply_coefficientwise(adjoint(x) * x, [](const auto& c) { return std::sqrt(c); }) + ... + ps));
     },
     [](const auto& x, const auto&...ps) // Jacobians
     {
-      static_assert(is_equivalent_v<typename MatrixTraits<decltype(x)>::RowCoefficients, Axes<n>>);
-      static_assert(is_equivalent_v<typename MatrixTraits<decltype(x)>::ColumnCoefficients, Axis>);
-      static_assert(std::conjunction_v<is_equivalent<typename MatrixTraits<decltype(ps)>::RowCoefficients, Axis>...>);
-      static_assert(std::conjunction_v<is_equivalent<typename MatrixTraits<decltype(ps)>::ColumnCoefficients, Axis>...>);
+      static_assert(equivalent_to<typename MatrixTraits<decltype(x)>::RowCoefficients, Axes<n>>);
+      static_assert(equivalent_to<typename MatrixTraits<decltype(x)>::ColumnCoefficients, Axis>);
+      static_assert((equivalent_to<typename MatrixTraits<decltype(ps)>::RowCoefficients, Axis> and ...));
+      static_assert((equivalent_to<typename MatrixTraits<decltype(ps)>::ColumnCoefficients, Axis> and ...));
 
-      return std::tuple_cat(std::tuple {strict(adjoint(x) / std::sqrt(trace(x.adjoint() * x)))},
+      return std::tuple_cat(std::tuple {make_self_contained(adjoint(x) / std::sqrt(trace(x.adjoint() * x)))},
         internal::tuple_replicate<sizeof...(ps)>(Mean {1.}));
     },
     [](const auto& x, const auto&...ps) // Hessians
     {
+      static_assert(equivalent_to<typename MatrixTraits<decltype(x)>::RowCoefficients, Axes<n>>);
+      static_assert(equivalent_to<typename MatrixTraits<decltype(x)>::ColumnCoefficients, Axis>);
+      static_assert((equivalent_to<typename MatrixTraits<decltype(ps)>::RowCoefficients, Axis> and ...));
+      static_assert((equivalent_to<typename MatrixTraits<decltype(ps)>::ColumnCoefficients, Axis> and ...));
+
       std::array<Matrix<Axes<n>, Axes<n>, Eigen::Matrix<double, n, n>>, 1> ret;
       double sq = trace(adjoint(x) * x);
       ret[0] = pow(sq, -1.5) * (-x * adjoint(x) + sq * MatrixTraits<decltype(ret[0])>::identity());

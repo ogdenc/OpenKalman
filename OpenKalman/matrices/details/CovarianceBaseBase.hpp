@@ -45,7 +45,7 @@ namespace OpenKalman::internal
 #ifdef __cpp_concepts
     template<covariance_base Arg>
 #else
-    template<typename Arg, std::enable_if_t<is_covariance_base_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<covariance_base<Arg>, int> = 0>
 #endif
     CovarianceBaseBase(Arg&& arg) noexcept : m_arg(std::forward<Arg>(arg)) {}
 
@@ -53,7 +53,7 @@ namespace OpenKalman::internal
     /// Copy assignment operator.
     auto& operator=(const CovarianceBaseBase& other)
     {
-      if constexpr (not is_zero_v<BaseMatrix> and not is_identity_v<BaseMatrix>) if (this != &other)
+      if constexpr (not zero_matrix<BaseMatrix> and not identity_matrix<BaseMatrix>) if (this != &other)
         m_arg = other.m_arg;
       return *this;
     }
@@ -61,7 +61,7 @@ namespace OpenKalman::internal
     /// Move assignment operator.
     auto& operator=(CovarianceBaseBase&& other) noexcept
     {
-      if constexpr (not is_zero_v<BaseMatrix> and not is_identity_v<BaseMatrix>) if (this != &other)
+      if constexpr (not zero_matrix<BaseMatrix> and not identity_matrix<BaseMatrix>) if (this != &other)
         m_arg = std::move(other.m_arg);
       return *this;
     }
@@ -71,17 +71,17 @@ namespace OpenKalman::internal
 #ifdef __cpp_concepts
     template<typename Arg> requires covariance_base<Arg> or typed_matrix_base<Arg>
 #else
-    template<typename Arg, std::enable_if_t<is_covariance_base_v<Arg> or is_typed_matrix_base_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<covariance_base<Arg> or typed_matrix_base<Arg>, int> = 0>
 #endif
     auto& operator=(Arg&& arg) noexcept
     {
-      if constexpr (is_zero_v<BaseMatrix>)
+      if constexpr (zero_matrix<BaseMatrix>)
       {
-        static_assert(is_zero_v<Arg>);
+        static_assert(zero_matrix<Arg>);
       }
-      else if constexpr (is_identity_v<BaseMatrix>)
+      else if constexpr (identity_matrix<BaseMatrix>)
       {
-        static_assert(is_identity_v<Arg>);
+        static_assert(identity_matrix<Arg>);
       }
       else
       {

@@ -23,15 +23,15 @@ namespace OpenKalman::internal
    */
 #ifdef __cpp_concepts
   template<typename Derived, typename ArgType> requires
-    ((is_self_adjoint_v<ArgType> and not square_root_covariance<Derived>) or
-      (is_triangular_v<ArgType> and square_root_covariance<Derived>)) and
+    ((self_adjoint_matrix<ArgType> and not square_root_covariance<Derived>) or
+      (triangular_matrix<ArgType> and square_root_covariance<Derived>)) and
     (not (std::is_lvalue_reference_v<ArgType> or std::is_lvalue_reference_v<typename MatrixTraits<ArgType>::BaseMatrix>))
   struct CovarianceBase<Derived, ArgType>
 #else
   template<typename Derived, typename ArgType>
   struct CovarianceBase<Derived, ArgType, std::enable_if_t<
-    ((is_self_adjoint_v<ArgType> and not square_root_covariance<Derived>) or
-    (is_triangular_v<ArgType> and square_root_covariance<Derived>)) and not
+    ((self_adjoint_matrix<ArgType> and not square_root_covariance<Derived>) or
+    (triangular_matrix<ArgType> and square_root_covariance<Derived>)) and not
     (std::is_lvalue_reference_v<ArgType> or
     std::is_lvalue_reference_v<typename MatrixTraits<ArgType>::BaseMatrix>)>>
 #endif
@@ -98,15 +98,15 @@ namespace OpenKalman::internal
    */
 #ifdef __cpp_concepts
   template<typename Derived, typename ArgType> requires
-    ((is_self_adjoint_v<ArgType> and not square_root_covariance<Derived>) or
-      (is_triangular_v<ArgType> and square_root_covariance<Derived>)) and
+    ((self_adjoint_matrix<ArgType> and not square_root_covariance<Derived>) or
+      (triangular_matrix<ArgType> and square_root_covariance<Derived>)) and
     (std::is_lvalue_reference_v<ArgType> or std::is_lvalue_reference_v<typename MatrixTraits<ArgType>::BaseMatrix>)
   struct CovarianceBase<Derived, ArgType>
 #else
   template<typename Derived, typename ArgType>
   struct CovarianceBase<Derived, ArgType, std::enable_if_t<
-    ((is_self_adjoint_v<ArgType> and not square_root_covariance<Derived>) or
-    (is_triangular_v<ArgType> and square_root_covariance<Derived>)) and
+    ((self_adjoint_matrix<ArgType> and not square_root_covariance<Derived>) or
+    (triangular_matrix<ArgType> and square_root_covariance<Derived>)) and
     (std::is_lvalue_reference_v<ArgType> or
     std::is_lvalue_reference_v<typename MatrixTraits<ArgType>::BaseMatrix>)>>
 #endif
@@ -137,13 +137,13 @@ namespace OpenKalman::internal
     /// Construct from a covariance base or another covariance that does not store a distinct apparent base matrix.
 #ifdef __cpp_concepts
     template<typename Arg> requires covariance_base<Arg> or (covariance<Arg> and
-        ((is_self_adjoint_v<typename MatrixTraits<Arg>::BaseMatrix> and not square_root_covariance<Arg>) or
-        (is_triangular_v<typename MatrixTraits<Arg>::BaseMatrix> and square_root_covariance<Arg>)))
+        ((self_adjoint_matrix<typename MatrixTraits<Arg>::BaseMatrix> and not square_root_covariance<Arg>) or
+        (triangular_matrix<typename MatrixTraits<Arg>::BaseMatrix> and square_root_covariance<Arg>)))
 #else
     template<typename Arg,
-      std::enable_if_t<is_covariance_base_v<Arg> or (covariance<Arg> and
-        ((is_self_adjoint_v<typename MatrixTraits<Arg>::BaseMatrix> and not square_root_covariance<Arg>) or
-        (is_triangular_v<typename MatrixTraits<Arg>::BaseMatrix> and square_root_covariance<Arg>))), int> = 0>
+      std::enable_if_t<covariance_base<Arg> or (covariance<Arg> and
+        ((self_adjoint_matrix<typename MatrixTraits<Arg>::BaseMatrix> and not square_root_covariance<Arg>) or
+        (triangular_matrix<typename MatrixTraits<Arg>::BaseMatrix> and square_root_covariance<Arg>))), int> = 0>
 #endif
     CovarianceBase(Arg&& arg) noexcept
       : Base(std::forward<Arg>(arg)), apparent_base_linked(false), synchronized(new bool {true}) {}
@@ -151,14 +151,14 @@ namespace OpenKalman::internal
     /// Construct from another covariance that stores a distinct apparent base matrix (base matrix is not an lvalue ref).
 #ifdef __cpp_concepts
     template<covariance Arg> requires
-      (not ((is_self_adjoint_v<typename MatrixTraits<Arg>::BaseMatrix> and not square_root_covariance<Arg>) or
-        (is_triangular_v<typename MatrixTraits<Arg>::BaseMatrix> and square_root_covariance<Arg>))) and
+      (not ((self_adjoint_matrix<typename MatrixTraits<Arg>::BaseMatrix> and not square_root_covariance<Arg>) or
+        (triangular_matrix<typename MatrixTraits<Arg>::BaseMatrix> and square_root_covariance<Arg>))) and
       (not (std::is_lvalue_reference_v<typename MatrixTraits<Arg>::BaseMatrix> or
         std::is_lvalue_reference_v<typename MatrixTraits<typename MatrixTraits<Arg>::BaseMatrix>::BaseMatrix>))
 #else
     template<typename Arg, std::enable_if_t<covariance<Arg> and not
-      ((is_self_adjoint_v<typename MatrixTraits<Arg>::BaseMatrix> and not square_root_covariance<Arg>) or
-      (is_triangular_v<typename MatrixTraits<Arg>::BaseMatrix> and square_root_covariance<Arg>)) and not
+      ((self_adjoint_matrix<typename MatrixTraits<Arg>::BaseMatrix> and not square_root_covariance<Arg>) or
+      (triangular_matrix<typename MatrixTraits<Arg>::BaseMatrix> and square_root_covariance<Arg>)) and not
       (std::is_lvalue_reference_v<typename MatrixTraits<Arg>::BaseMatrix> or
       std::is_lvalue_reference_v<typename MatrixTraits<typename MatrixTraits<Arg>::BaseMatrix>::BaseMatrix>), int> = 0>
 #endif
@@ -168,14 +168,14 @@ namespace OpenKalman::internal
     /// Construct from another covariance that stores a distinct apparent base matrix (base matrix is an lvalue ref).
 #ifdef __cpp_concepts
     template<covariance Arg> requires
-      (not ((is_self_adjoint_v<typename MatrixTraits<Arg>::BaseMatrix> and not square_root_covariance<Arg>) or
-        (is_triangular_v<typename MatrixTraits<Arg>::BaseMatrix> and square_root_covariance<Arg>))) and
+      (not ((self_adjoint_matrix<typename MatrixTraits<Arg>::BaseMatrix> and not square_root_covariance<Arg>) or
+        (triangular_matrix<typename MatrixTraits<Arg>::BaseMatrix> and square_root_covariance<Arg>))) and
       (std::is_lvalue_reference_v<typename MatrixTraits<Arg>::BaseMatrix> or
         std::is_lvalue_reference_v<typename MatrixTraits<typename MatrixTraits<Arg>::BaseMatrix>::BaseMatrix>)
 #else
     template<typename Arg, std::enable_if_t<covariance<Arg> and not
-      ((is_self_adjoint_v<typename MatrixTraits<Arg>::BaseMatrix> and not square_root_covariance<Arg>) or
-      (is_triangular_v<typename MatrixTraits<Arg>::BaseMatrix> and square_root_covariance<Arg>)) and
+      ((self_adjoint_matrix<typename MatrixTraits<Arg>::BaseMatrix> and not square_root_covariance<Arg>) or
+      (triangular_matrix<typename MatrixTraits<Arg>::BaseMatrix> and square_root_covariance<Arg>)) and
       (std::is_lvalue_reference_v<typename MatrixTraits<Arg>::BaseMatrix> or
       std::is_lvalue_reference_v<typename MatrixTraits<typename MatrixTraits<Arg>::BaseMatrix>::BaseMatrix>), int> = 0>
 #endif
@@ -193,7 +193,7 @@ namespace OpenKalman::internal
     /// Copy assignment operator.
     auto& operator=(const CovarianceBase& other)
     {
-      if constexpr (not is_zero_v<BaseMatrix> and not is_identity_v<BaseMatrix>) if (this != &other)
+      if constexpr (not zero_matrix<BaseMatrix> and not identity_matrix<BaseMatrix>) if (this != &other)
       {
         Base::operator=(other);
         if (apparent_base_linked) *synchronized = false;
@@ -204,7 +204,7 @@ namespace OpenKalman::internal
     /// Move assignment operator.
     auto& operator=(CovarianceBase&& other) noexcept
     {
-      if constexpr (not is_zero_v<BaseMatrix> and not is_identity_v<BaseMatrix>) if (this != &other)
+      if constexpr (not zero_matrix<BaseMatrix> and not identity_matrix<BaseMatrix>) if (this != &other)
       {
         Base::operator=(std::move(other));
         if (apparent_base_linked) *synchronized = false;
@@ -217,18 +217,18 @@ namespace OpenKalman::internal
     template<typename Arg> requires (covariance_base<Arg> or typed_matrix_base<Arg>) and
       std::is_assignable_v<BaseMatrix, Arg&&>
 #else
-    template<typename Arg, std::enable_if_t<(is_covariance_base_v<Arg> or is_typed_matrix_base_v<Arg>) and
+    template<typename Arg, std::enable_if_t<(covariance_base<Arg> or typed_matrix_base<Arg>) and
       std::is_assignable_v<BaseMatrix, Arg&&>, int> = 0>
 #endif
     auto& operator=(Arg&& arg) noexcept
     {
-      if constexpr (is_zero_v<BaseMatrix>)
+      if constexpr (zero_matrix<BaseMatrix>)
       {
-        static_assert(is_zero_v<Arg>);
+        static_assert(zero_matrix<Arg>);
       }
-      else if constexpr (is_identity_v<BaseMatrix>)
+      else if constexpr (identity_matrix<BaseMatrix>)
       {
-        static_assert(is_identity_v<Arg>);
+        static_assert(identity_matrix<Arg>);
       }
       else
       {
@@ -297,16 +297,16 @@ namespace OpenKalman::internal
    */
 #ifdef __cpp_concepts
   template<typename Derived, typename ArgType> requires
-    (not is_self_adjoint_v<ArgType> or square_root_covariance<Derived>) and
-    (not is_triangular_v<ArgType> or not square_root_covariance<Derived>) and
+    (not self_adjoint_matrix<ArgType> or square_root_covariance<Derived>) and
+    (not triangular_matrix<ArgType> or not square_root_covariance<Derived>) and
     (not std::is_lvalue_reference_v<ArgType>) and
     (not std::is_lvalue_reference_v<typename MatrixTraits<ArgType>::BaseMatrix>)
   struct CovarianceBase<Derived, ArgType>
 #else
   template<typename Derived, typename ArgType>
   struct CovarianceBase<Derived, ArgType, std::enable_if_t<
-    (not is_self_adjoint_v<ArgType> or square_root_covariance<Derived>) and
-    (not is_triangular_v<ArgType> or not square_root_covariance<Derived>) and
+    (not self_adjoint_matrix<ArgType> or square_root_covariance<Derived>) and
+    (not triangular_matrix<ArgType> or not square_root_covariance<Derived>) and
     not std::is_lvalue_reference_v<ArgType> and
     not std::is_lvalue_reference_v<typename MatrixTraits<ArgType>::BaseMatrix>>>
 #endif
@@ -318,7 +318,7 @@ namespace OpenKalman::internal
     using Scalar = typename MatrixTraits<BaseMatrix>::Scalar;
 
   private:
-    using ApparentBaseMatrix = std::conditional_t<is_triangular_v<BaseMatrix>,
+    using ApparentBaseMatrix = std::conditional_t<triangular_matrix<BaseMatrix>,
       typename MatrixTraits<BaseMatrix>::template SelfAdjointBaseType<>,
       typename MatrixTraits<BaseMatrix>::template TriangularBaseType<>>;
 
@@ -354,12 +354,12 @@ namespace OpenKalman::internal
     /// Construct from a general covariance type. Argument matches apparent base.
 #ifdef __cpp_concepts
     template<covariance Arg> requires
-      ((is_Cholesky_v<Arg> or (is_diagonal_v<Arg> and square_root_covariance<Arg>)) == square_root_covariance<Derived>) and
-      (is_upper_triangular_v<typename MatrixTraits<Arg>::BaseMatrix> == is_upper_triangular_v<ApparentBaseMatrix>)
+      ((cholesky_form<Arg> or (diagonal_matrix<Arg> and square_root_covariance<Arg>)) == square_root_covariance<Derived>) and
+      (upper_triangular_matrix<typename MatrixTraits<Arg>::BaseMatrix> == upper_triangular_matrix<ApparentBaseMatrix>)
 #else
     template<typename Arg, std::enable_if_t<covariance<Arg> and
-      (is_Cholesky_v<Arg> or (is_diagonal_v<Arg> and square_root_covariance<Arg>)) == square_root_covariance<Derived> and
-      (is_upper_triangular_v<typename MatrixTraits<Arg>::BaseMatrix> == is_upper_triangular_v<ApparentBaseMatrix>), int> = 0>
+      (cholesky_form<Arg> or (diagonal_matrix<Arg> and square_root_covariance<Arg>)) == square_root_covariance<Derived> and
+      (upper_triangular_matrix<typename MatrixTraits<Arg>::BaseMatrix> == upper_triangular_matrix<ApparentBaseMatrix>), int> = 0>
 #endif
     CovarianceBase(Arg&& arg) noexcept
       : Base(internal::convert_base_matrix<BaseMatrix>(arg)),
@@ -369,12 +369,12 @@ namespace OpenKalman::internal
     /// Construct from a general covariance type. Argument matches kind of apparent base, but not upper/lower.
 #ifdef __cpp_concepts
     template<covariance Arg> requires
-      ((is_Cholesky_v<Arg> or (is_diagonal_v<Arg> and square_root_covariance<Arg>)) == square_root_covariance<Derived>) and
-      (is_upper_triangular_v<typename MatrixTraits<Arg>::BaseMatrix> != is_upper_triangular_v<ApparentBaseMatrix>)
+      ((cholesky_form<Arg> or (diagonal_matrix<Arg> and square_root_covariance<Arg>)) == square_root_covariance<Derived>) and
+      (upper_triangular_matrix<typename MatrixTraits<Arg>::BaseMatrix> != upper_triangular_matrix<ApparentBaseMatrix>)
 #else
     template<typename Arg, std::enable_if_t<covariance<Arg> and
-      (is_Cholesky_v<Arg> or (is_diagonal_v<Arg> and square_root_covariance<Arg>)) == square_root_covariance<Derived> and
-      (is_upper_triangular_v<typename MatrixTraits<Arg>::BaseMatrix> != is_upper_triangular_v<ApparentBaseMatrix>), int> = 0>
+      (cholesky_form<Arg> or (diagonal_matrix<Arg> and square_root_covariance<Arg>)) == square_root_covariance<Derived> and
+      (upper_triangular_matrix<typename MatrixTraits<Arg>::BaseMatrix> != upper_triangular_matrix<ApparentBaseMatrix>), int> = 0>
 #endif
     CovarianceBase(Arg&& arg) noexcept
       : Base(internal::convert_base_matrix<BaseMatrix>(arg)),
@@ -384,10 +384,10 @@ namespace OpenKalman::internal
     /// Construct from a general covariance type. Argument does not match apparent base.
 #ifdef __cpp_concepts
     template<covariance Arg> requires
-      ((is_Cholesky_v<Arg> or (is_diagonal_v<Arg> and square_root_covariance<Arg>)) != square_root_covariance<Derived>)
+      ((cholesky_form<Arg> or (diagonal_matrix<Arg> and square_root_covariance<Arg>)) != square_root_covariance<Derived>)
 #else
     template<typename Arg, std::enable_if_t<covariance<Arg> and
-      (is_Cholesky_v<Arg> or (is_diagonal_v<Arg> and square_root_covariance<Arg>)) != square_root_covariance<Derived>, int> = 0>
+      (cholesky_form<Arg> or (diagonal_matrix<Arg> and square_root_covariance<Arg>)) != square_root_covariance<Derived>, int> = 0>
 #endif
     CovarianceBase(Arg&& arg) noexcept
       : Base(internal::convert_base_matrix<BaseMatrix>(std::forward<Arg>(arg))),
@@ -397,7 +397,7 @@ namespace OpenKalman::internal
 #ifdef __cpp_concepts
     template<covariance_base Arg>
 #else
-    template<typename Arg, std::enable_if_t<is_covariance_base_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<covariance_base<Arg>, int> = 0>
 #endif
     CovarianceBase(Arg&& arg) noexcept
       : Base(std::forward<Arg>(arg)),
@@ -406,7 +406,7 @@ namespace OpenKalman::internal
     /// Copy assignment operator.
     auto& operator=(const CovarianceBase& other)
     {
-      if constexpr (not is_zero_v<BaseMatrix> and not is_identity_v<BaseMatrix>) if (this != &other)
+      if constexpr (not zero_matrix<BaseMatrix> and not identity_matrix<BaseMatrix>) if (this != &other)
       {
         synchronized = other.synchronized;
         if (synchronized) apparent_base = other.apparent_base;
@@ -418,7 +418,7 @@ namespace OpenKalman::internal
     /// Move assignment operator.
     auto& operator=(CovarianceBase&& other) noexcept
     {
-      if constexpr (not is_zero_v<BaseMatrix> and not is_identity_v<BaseMatrix>) if (this != &other)
+      if constexpr (not zero_matrix<BaseMatrix> and not identity_matrix<BaseMatrix>) if (this != &other)
       {
         synchronized = other.synchronized;
         if (synchronized) apparent_base = std::move(other.apparent_base);
@@ -431,17 +431,17 @@ namespace OpenKalman::internal
 #ifdef __cpp_concepts
     template<covariance_base Arg>
 #else
-    template<typename Arg, std::enable_if_t<is_covariance_base_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<covariance_base<Arg>, int> = 0>
 #endif
     auto& operator=(Arg&& arg) noexcept
     {
-      if constexpr (is_zero_v<BaseMatrix>)
+      if constexpr (zero_matrix<BaseMatrix>)
       {
-        static_assert(is_zero_v<Arg>);
+        static_assert(zero_matrix<Arg>);
       }
-      else if constexpr (is_identity_v<BaseMatrix>)
+      else if constexpr (identity_matrix<BaseMatrix>)
       {
-        static_assert(is_identity_v<Arg>);
+        static_assert(identity_matrix<Arg>);
       }
       else
       {
@@ -530,15 +530,15 @@ namespace OpenKalman::internal
    */
 #ifdef __cpp_concepts
   template<typename Derived, typename ArgType> requires
-    (not is_self_adjoint_v<ArgType> or square_root_covariance<Derived>) and
-    (not is_triangular_v<ArgType> or not square_root_covariance<Derived>) and
+    (not self_adjoint_matrix<ArgType> or square_root_covariance<Derived>) and
+    (not triangular_matrix<ArgType> or not square_root_covariance<Derived>) and
     (std::is_lvalue_reference_v<ArgType> or std::is_lvalue_reference_v<typename MatrixTraits<ArgType>::BaseMatrix>)
   struct CovarianceBase<Derived, ArgType>
 #else
   template<typename Derived, typename ArgType>
   struct CovarianceBase<Derived, ArgType, std::enable_if_t<
-    (not is_self_adjoint_v<ArgType> or square_root_covariance<Derived>) and
-    (not is_triangular_v<ArgType> or not square_root_covariance<Derived>) and
+    (not self_adjoint_matrix<ArgType> or square_root_covariance<Derived>) and
+    (not triangular_matrix<ArgType> or not square_root_covariance<Derived>) and
     (std::is_lvalue_reference_v<ArgType> or
     std::is_lvalue_reference_v<typename MatrixTraits<ArgType>::BaseMatrix>)>>
 #endif
@@ -550,7 +550,7 @@ namespace OpenKalman::internal
     using Scalar = typename MatrixTraits<BaseMatrix>::Scalar;
 
   private:
-    using ApparentBaseMatrix = std::conditional_t<is_triangular_v<BaseMatrix>,
+    using ApparentBaseMatrix = std::conditional_t<triangular_matrix<BaseMatrix>,
       typename MatrixTraits<BaseMatrix>::template SelfAdjointBaseType<>,
       typename MatrixTraits<BaseMatrix>::template TriangularBaseType<>>;
 
@@ -586,12 +586,12 @@ namespace OpenKalman::internal
     /// Construct from another covariance that does not store a distinct apparent base matrix.
 #ifdef __cpp_concepts
     template<typename Arg> requires covariance_base<Arg> or (covariance<Arg> and
-        ((is_self_adjoint_v<typename MatrixTraits<Arg>::BaseMatrix> and not square_root_covariance<Arg>) or
-        (is_triangular_v<typename MatrixTraits<Arg>::BaseMatrix> and square_root_covariance<Arg>)))
+        ((self_adjoint_matrix<typename MatrixTraits<Arg>::BaseMatrix> and not square_root_covariance<Arg>) or
+        (triangular_matrix<typename MatrixTraits<Arg>::BaseMatrix> and square_root_covariance<Arg>)))
 #else
-    template<typename Arg, std::enable_if_t<is_covariance_base_v<Arg> or (covariance<Arg> and
-        ((is_self_adjoint_v<typename MatrixTraits<Arg>::BaseMatrix> and not square_root_covariance<Arg>) or
-        (is_triangular_v<typename MatrixTraits<Arg>::BaseMatrix> and square_root_covariance<Arg>))), int> = 0>
+    template<typename Arg, std::enable_if_t<covariance_base<Arg> or (covariance<Arg> and
+        ((self_adjoint_matrix<typename MatrixTraits<Arg>::BaseMatrix> and not square_root_covariance<Arg>) or
+        (triangular_matrix<typename MatrixTraits<Arg>::BaseMatrix> and square_root_covariance<Arg>))), int> = 0>
 #endif
     CovarianceBase(Arg&& arg) noexcept
       : Base(std::forward<Arg>(arg)),
@@ -602,14 +602,14 @@ namespace OpenKalman::internal
     /// Construct from a covariance base or another covariance that stores a distinct apparent base matrix (base matrix is not an lvalue ref).
 #ifdef __cpp_concepts
     template<covariance Arg> requires
-      (not ((is_self_adjoint_v<typename MatrixTraits<Arg>::BaseMatrix> and not square_root_covariance<Arg>) or
-        (is_triangular_v<typename MatrixTraits<Arg>::BaseMatrix> and square_root_covariance<Arg>))) and
+      (not ((self_adjoint_matrix<typename MatrixTraits<Arg>::BaseMatrix> and not square_root_covariance<Arg>) or
+        (triangular_matrix<typename MatrixTraits<Arg>::BaseMatrix> and square_root_covariance<Arg>))) and
       (not (std::is_lvalue_reference_v<typename MatrixTraits<Arg>::BaseMatrix> or
         std::is_lvalue_reference_v<typename MatrixTraits<typename MatrixTraits<Arg>::BaseMatrix>::BaseMatrix>))
 #else
     template<typename Arg, std::enable_if_t<covariance<Arg> and not
-        ((is_self_adjoint_v<typename MatrixTraits<Arg>::BaseMatrix> and not square_root_covariance<Arg>) or
-        (is_triangular_v<typename MatrixTraits<Arg>::BaseMatrix> and square_root_covariance<Arg>)) and not
+        ((self_adjoint_matrix<typename MatrixTraits<Arg>::BaseMatrix> and not square_root_covariance<Arg>) or
+        (triangular_matrix<typename MatrixTraits<Arg>::BaseMatrix> and square_root_covariance<Arg>)) and not
         (std::is_lvalue_reference_v<typename MatrixTraits<Arg>::BaseMatrix> or
         std::is_lvalue_reference_v<typename MatrixTraits<typename MatrixTraits<Arg>::BaseMatrix>::BaseMatrix>), int> = 0>
 #endif
@@ -621,14 +621,14 @@ namespace OpenKalman::internal
     /// Construct from another covariance that stores a distinct apparent base matrix (base matrix is an lvalue ref).
 #ifdef __cpp_concepts
     template<covariance Arg> requires
-      (not ((is_self_adjoint_v<typename MatrixTraits<Arg>::BaseMatrix> and not square_root_covariance<Arg>) or
-        (is_triangular_v<typename MatrixTraits<Arg>::BaseMatrix> and square_root_covariance<Arg>))) and
+      (not ((self_adjoint_matrix<typename MatrixTraits<Arg>::BaseMatrix> and not square_root_covariance<Arg>) or
+        (triangular_matrix<typename MatrixTraits<Arg>::BaseMatrix> and square_root_covariance<Arg>))) and
       (std::is_lvalue_reference_v<typename MatrixTraits<Arg>::BaseMatrix> or
         std::is_lvalue_reference_v<typename MatrixTraits<typename MatrixTraits<Arg>::BaseMatrix>::BaseMatrix>)
 #else
     template<typename Arg, std::enable_if_t<covariance<Arg> and not
-      ((is_self_adjoint_v<typename MatrixTraits<Arg>::BaseMatrix> and not square_root_covariance<Arg>) or
-      (is_triangular_v<typename MatrixTraits<Arg>::BaseMatrix> and square_root_covariance<Arg>)) and
+      ((self_adjoint_matrix<typename MatrixTraits<Arg>::BaseMatrix> and not square_root_covariance<Arg>) or
+      (triangular_matrix<typename MatrixTraits<Arg>::BaseMatrix> and square_root_covariance<Arg>)) and
       (std::is_lvalue_reference_v<typename MatrixTraits<Arg>::BaseMatrix> or
       std::is_lvalue_reference_v<typename MatrixTraits<typename MatrixTraits<Arg>::BaseMatrix>::BaseMatrix>), int> = 0>
 #endif
@@ -649,7 +649,7 @@ namespace OpenKalman::internal
     /// Copy assignment operator.
     auto& operator=(const CovarianceBase& other)
     {
-      if constexpr (not is_zero_v<BaseMatrix> and not is_identity_v<BaseMatrix>) if (this != &other)
+      if constexpr (not zero_matrix<BaseMatrix> and not identity_matrix<BaseMatrix>) if (this != &other)
       {
         *synchronized = *other.synchronized;
         if (*synchronized) *apparent_base = *other.apparent_base;
@@ -661,7 +661,7 @@ namespace OpenKalman::internal
     /// Move assignment operator.
     auto& operator=(CovarianceBase&& other) noexcept
     {
-      if constexpr (not is_zero_v<BaseMatrix> and not is_identity_v<BaseMatrix>) if (this != &other)
+      if constexpr (not zero_matrix<BaseMatrix> and not identity_matrix<BaseMatrix>) if (this != &other)
       {
         *synchronized = *other.synchronized;
         if (*synchronized) *apparent_base = std::move(*other.apparent_base);
@@ -674,17 +674,17 @@ namespace OpenKalman::internal
 #ifdef __cpp_concepts
     template<covariance_base Arg>
 #else
-    template<typename Arg, std::enable_if_t<is_covariance_base_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<covariance_base<Arg>, int> = 0>
 #endif
     auto& operator=(Arg&& arg)
     {
-      if constexpr (is_zero_v<BaseMatrix>)
+      if constexpr (zero_matrix<BaseMatrix>)
       {
-        static_assert(is_zero_v<Arg>);
+        static_assert(zero_matrix<Arg>);
       }
-      else if constexpr (is_identity_v<BaseMatrix>)
+      else if constexpr (identity_matrix<BaseMatrix>)
       {
-        static_assert(is_identity_v<Arg>);
+        static_assert(identity_matrix<Arg>);
       }
       else
       {

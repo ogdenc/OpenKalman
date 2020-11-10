@@ -22,49 +22,49 @@ namespace OpenKalman
   struct IdentityTransformation
   {
     /// Applies the transformation.
-    template<typename In, typename ... Perturbations>
+#ifdef __cpp_concepts
+    template<column_vector In, perturbation ... Perturbations> requires
+      internal::transformation_args<In, Perturbations...>
+#else
+    template<typename In, typename ... Perturbations, std::enable_if_t<
+      column_vector<In> and (perturbation<Perturbations> and ...) and
+      internal::transformation_args<In, Perturbations...>, int> = 0>
+#endif
     auto operator()(In&& in, Perturbations&& ... ps) const noexcept
     {
-      static_assert(column_vector<In>);
-      static_assert((perturbation<Perturbations> and ...));
-      static_assert(MatrixTraits<In>::columns == 1);
-      static_assert(((internal::PerturbationTraits<Perturbations>::columns == 1) and ...));
-      static_assert(std::conjunction_v<
-        is_equivalent<typename internal::PerturbationTraits<Perturbations>::RowCoefficients,
-        typename MatrixTraits<In>::RowCoefficients>...>);
-
-      return strict((std::forward<In>(in) + ... + std::forward<Perturbations>(ps)));
+      return make_self_contained((std::forward<In>(in) + ... + std::forward<Perturbations>(ps)));
     }
 
+
     /// Returns a tuple of the Jacobians for the input and each perturbation term.
-    template<typename In, typename ... Perturbations>
+#ifdef __cpp_concepts
+    template<column_vector In, perturbation ... Perturbations> requires
+    internal::transformation_args<In, Perturbations...>
+#else
+    template<typename In, typename ... Perturbations, std::enable_if_t<
+      column_vector<In> and (perturbation<Perturbations> and ...) and
+      internal::transformation_args<In, Perturbations...>, int> = 0>
+#endif
     auto jacobian(const In&, const Perturbations&...) const
     {
-      static_assert(column_vector<In>);
-      static_assert((perturbation<Perturbations> and ...));
-      static_assert(MatrixTraits<In>::columns == 1);
-      static_assert(((internal::PerturbationTraits<Perturbations>::columns == 1) and ...));
-      using Coeffs = typename MatrixTraits<In>::RowCoefficients;
-      static_assert(std::conjunction_v<
-        is_equivalent<typename internal::PerturbationTraits<Perturbations>::RowCoefficients, Coeffs>...>);
-
       auto jacobian0 = MatrixTraits<In>::identity();
       auto jacobians = MatrixTraits<decltype(jacobian0)>::zero();
       return std::tuple_cat(std::tuple {jacobian0}, internal::tuple_replicate<sizeof...(Perturbations)>(jacobians));
     }
 
+
     /// Returns a tuple of Hessian matrices for the input and each perturbation term. In this case, they are zero matrices.
-    template<typename In, typename ... Perturbations>
+#ifdef __cpp_concepts
+    template<column_vector In, perturbation ... Perturbations> requires
+    internal::transformation_args<In, Perturbations...>
+#else
+    template<typename In, typename ... Perturbations, std::enable_if_t<
+      column_vector<In> and (perturbation<Perturbations> and ...) and
+      internal::transformation_args<In, Perturbations...>, int> = 0>
+#endif
     auto hessian(const In&, const Perturbations&...) const
     {
-      static_assert(column_vector<In>);
-      static_assert((perturbation<Perturbations> and ...));
-      static_assert(MatrixTraits<In>::columns == 1);
-      static_assert(((internal::PerturbationTraits<Perturbations>::columns == 1) and ...));
       using Coeffs = typename MatrixTraits<In>::RowCoefficients;
-      static_assert(std::conjunction_v<
-        is_equivalent<typename internal::PerturbationTraits<Perturbations>::RowCoefficients, Coeffs>...>);
-
       return zero_hessian<Coeffs, In, Perturbations...>();
     }
 

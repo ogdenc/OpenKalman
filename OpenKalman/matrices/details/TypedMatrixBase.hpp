@@ -46,7 +46,7 @@ namespace OpenKalman::internal
 #ifdef __cpp_concepts
     template<typed_matrix_base Arg>
 #else
-    template<typename Arg, std::enable_if_t<is_typed_matrix_base_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<typed_matrix_base<Arg>, int> = 0>
 #endif
     TypedMatrixBase(Arg&& arg) noexcept : Base(std::forward<Arg>(arg))
     {

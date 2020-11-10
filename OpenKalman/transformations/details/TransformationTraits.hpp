@@ -113,6 +113,7 @@ namespace OpenKalman
       : MatrixTraits<Noise> {};
 #endif
 
+
 #ifdef __cpp_concepts
     template<perturbation Arg>
 #else
@@ -126,7 +127,24 @@ namespace OpenKalman
       else
         return std::forward<Arg>(arg);
     }
-  }
+
+
+    // In and Perburbations... are arguments to a transformation.
+    template<typename In, typename ... Perturbations>
+#ifdef __cpp_concepts
+    concept transformation_args =
+      ((MatrixTraits<In>::columns == 1) and ... and (internal::PerturbationTraits<Perturbations>::columns == 1)) and
+      (equivalent_to<typename internal::PerturbationTraits<Perturbations>::RowCoefficients,
+        typename MatrixTraits<In>::RowCoefficients> and ...);
+#else
+    inline constexpr bool transformation_args =
+      ((MatrixTraits<In>::columns == 1) and ... and (internal::PerturbationTraits<Perturbations>::columns == 1)) and
+      (equivalent_to<typename internal::PerturbationTraits<Perturbations>::RowCoefficients,
+        typename MatrixTraits<In>::RowCoefficients> and ...);
+#endif
+
+  } // namespace internal
+
 
   namespace detail
   {
@@ -136,7 +154,7 @@ namespace OpenKalman
       using InputCoefficients = typename MatrixTraits<In>::RowCoefficients;
       constexpr std::size_t input_size = InputCoefficients::size;
       constexpr std::size_t output_size = OutputCoefficients::size;
-      using HessianMatrixInBase = strict_matrix_t<In, input_size, input_size>;
+      using HessianMatrixInBase = native_matrix_t<In, input_size, input_size>;
       using HessianMatrixIn = Matrix<InputCoefficients, InputCoefficients, HessianMatrixInBase>;
       using HessianArrayIn = std::array<HessianMatrixIn, output_size>;
 
@@ -145,6 +163,7 @@ namespace OpenKalman
       return a;
     }
   }
+
 
   /// A tuple of zero-filled arrays of Hessian matrices, based on the input and each perturbation term.
   template<typename OutputCoefficients, typename In, typename ... Perturbations>
@@ -155,6 +174,7 @@ namespace OpenKalman
     return std::tuple {detail::zero_hessian_impl<OutputCoefficients, In>(),
       detail::zero_hessian_impl<OutputCoefficients, Perturbations>()...};
   }
+
 
   /// A tuple of zero-filled arrays of Hessian matrices, based on the input and each perturbation term.
   template<typename OutputCoefficients, typename In, typename ... Perturbations>

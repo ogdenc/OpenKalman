@@ -29,15 +29,20 @@ namespace OpenKalman
      * @tparam InputDist Input distribution.
      * @tparam NoiseDists Noise distribution.
      **/
+#ifdef __cpp_concepts
+    template<distribution InputDist, distribution ... NoiseDists> requires
+      (equivalent_to<typename DistributionTraits<InputDist>::Coefficients,
+        typename DistributionTraits<NoiseDists>::Coefficients>and ...)
+#else
     template<typename InputDist, typename ... NoiseDists,
-      std::enable_if_t<(distribution<InputDist> and ... and distribution<NoiseDists>), int> = 0>
+      std::enable_if_t<(distribution<InputDist> and ... and distribution<NoiseDists>) and
+        (equivalent_to<typename DistributionTraits<InputDist>::Coefficients,
+        typename DistributionTraits<NoiseDists>::Coefficients>and ...), int> = 0>
+#endif
     auto operator()(const InputDist& x, const NoiseDists& ...ns) const
     {
-      static_assert(std::conjunction_v<is_equivalent<typename DistributionTraits<InputDist>::Coefficients,
-        typename DistributionTraits<NoiseDists>::Coefficients>...>,
-        "Input and Noise distributions must be the same size and an equivalent type.");
       const auto scaled_x = GaussianDistribution {mean_of(x), covariance_of(x) * inv_lambda};
-      return strict((scaled_x + ... + ns));
+      return make_self_contained((scaled_x + ... + ns));
     }
 
     /**
@@ -45,16 +50,21 @@ namespace OpenKalman
      * @tparam InputDist Input distribution.
      * @tparam NoiseDist Noise distributions.
      **/
+#ifdef __cpp_concepts
+    template<distribution InputDist, distribution ... NoiseDists> requires
+      (equivalent_to<typename DistributionTraits<InputDist>::Coefficients,
+        typename DistributionTraits<NoiseDists>::Coefficients>and ...)
+#else
     template<typename InputDist, typename ... NoiseDists,
-      std::enable_if_t<(distribution<InputDist> and ... and distribution<NoiseDists>), int> = 0>
+      std::enable_if_t<(distribution<InputDist> and ... and distribution<NoiseDists>) and
+        (equivalent_to<typename DistributionTraits<InputDist>::Coefficients,
+        typename DistributionTraits<NoiseDists>::Coefficients>and ...), int> = 0>
+#endif
     auto transform_with_cross_covariance(const InputDist& x, const NoiseDists& ...ns) const
     {
-      static_assert(std::conjunction_v<is_equivalent<typename DistributionTraits<InputDist>::Coefficients,
-        typename DistributionTraits<NoiseDists>::Coefficients>...>,
-        "Input and Noise distributions must be the same size and an equivalent type.");
-      auto scaled_cov = strict(covariance_of(x) * inv_lambda);
+      auto scaled_cov = make_self_contained(covariance_of(x) * inv_lambda);
       const auto scaled_x = GaussianDistribution {mean_of(x), scaled_cov};
-      auto y = strict((scaled_x + ... + ns));
+      auto y = make_self_contained((scaled_x + ... + ns));
       auto cross = Matrix {scaled_cov};
       return std::tuple {std::move(y), std::move(cross)};
     }

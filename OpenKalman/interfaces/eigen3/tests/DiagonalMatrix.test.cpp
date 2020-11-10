@@ -111,20 +111,20 @@ TEST_F(eigen3, Diagonal_subscripts)
 
 TEST_F(eigen3, Diagonal_traits)
 {
-  static_assert(is_diagonal_v<decltype(DiagonalMatrix{2.})>);
-  static_assert(is_diagonal_v<decltype(DiagonalMatrix{2, 3})>);
-  static_assert(is_self_adjoint_v<decltype(DiagonalMatrix{2, 3})>);
-  static_assert(is_triangular_v<decltype(DiagonalMatrix{2, 3})>);
-  static_assert(is_lower_triangular_v<decltype(DiagonalMatrix{2, 3})>);
-  static_assert(is_upper_triangular_v<decltype(DiagonalMatrix{2, 3})>);
-  static_assert(not is_identity_v<decltype(DiagonalMatrix{2, 3})>);
-  static_assert(not is_zero_v<decltype(DiagonalMatrix{2, 3})>);
-  static_assert(is_covariance_base_v<decltype(DiagonalMatrix{2, 3})>);
-  static_assert(is_covariance_base_v<decltype(Mat3::Identity())>);
-  static_assert(is_identity_v<decltype(Mat3::Identity() * Mat3::Identity())>);
-  static_assert(is_diagonal_v<decltype(0.3 * Mat3::Identity() + 0.7 * Mat3::Identity() * 0.7)>);
-  static_assert(is_diagonal_v<decltype(0.7 * Mat3::Identity() * 0.7 - Mat3::Identity() * 0.3)>);
-  static_assert(is_diagonal_v<decltype((0.7 * Mat3::Identity()) * (Mat3::Identity() + Mat3::Identity()))>);
+  static_assert(diagonal_matrix<decltype(DiagonalMatrix{2.})>);
+  static_assert(diagonal_matrix<decltype(DiagonalMatrix{2, 3})>);
+  static_assert(self_adjoint_matrix<decltype(DiagonalMatrix{2, 3})>);
+  static_assert(triangular_matrix<decltype(DiagonalMatrix{2, 3})>);
+  static_assert(lower_triangular_matrix<decltype(DiagonalMatrix{2, 3})>);
+  static_assert(upper_triangular_matrix<decltype(DiagonalMatrix{2, 3})>);
+  static_assert(not identity_matrix<decltype(DiagonalMatrix{2, 3})>);
+  static_assert(not zero_matrix<decltype(DiagonalMatrix{2, 3})>);
+  static_assert(covariance_base<decltype(DiagonalMatrix{2, 3})>);
+  static_assert(covariance_base<decltype(Mat3::Identity())>);
+  static_assert(identity_matrix<decltype(Mat3::Identity() * Mat3::Identity())>);
+  static_assert(diagonal_matrix<decltype(0.3 * Mat3::Identity() + 0.7 * Mat3::Identity() * 0.7)>);
+  static_assert(diagonal_matrix<decltype(0.7 * Mat3::Identity() * 0.7 - Mat3::Identity() * 0.3)>);
+  static_assert(diagonal_matrix<decltype((0.7 * Mat3::Identity()) * (Mat3::Identity() + Mat3::Identity()))>);
   // MatrixTraits
   using D = DiagonalMatrix<Eigen::Matrix<double, 3, 1>>;
   EXPECT_TRUE(is_near(MatrixTraits<D>::make((Eigen::Matrix<double, 3, 1>() << 1, 2, 3).finished()),
@@ -149,7 +149,7 @@ TEST_F(eigen3, Diagonal_traits)
 
 TEST_F(eigen3, Diagonal_overloads)
 {
-  EXPECT_TRUE(is_near(strict_matrix(DiagonalMatrix(1., 2, 3)), (Eigen::Matrix<double, 3, 3>() <<
+  EXPECT_TRUE(is_near(make_native_matrix(DiagonalMatrix(1., 2, 3)), (Eigen::Matrix<double, 3, 3>() <<
     1, 0, 0,
     0, 2, 0,
     0, 0, 3).finished()));
@@ -294,40 +294,40 @@ TEST_F(eigen3, Diagonal_arithmetic)
   EXPECT_TRUE(is_near(d1 + d2, DiagonalMatrix {5., 7, 9})); static_assert(eigen_diagonal_expr<decltype(d1 + d2)>);
   EXPECT_TRUE(is_near(d1 + i, DiagonalMatrix {2., 3, 4})); static_assert(eigen_diagonal_expr<decltype(d1 + i)>);
   EXPECT_TRUE(is_near(d1 + z, d1)); static_assert(eigen_diagonal_expr<decltype(d1 + z)>);
-  EXPECT_TRUE(is_near(i + i, DiagonalMatrix {2., 2, 2})); static_assert(is_diagonal_v<decltype(i + i)>);
-  EXPECT_TRUE(is_near(i + z, i)); static_assert(is_identity_v<decltype(i + z)>);
-  EXPECT_TRUE(is_near(z + i, i)); static_assert(is_identity_v<decltype(z + i)>);
+  EXPECT_TRUE(is_near(i + i, DiagonalMatrix {2., 2, 2})); static_assert(diagonal_matrix<decltype(i + i)>);
+  EXPECT_TRUE(is_near(i + z, i)); static_assert(identity_matrix<decltype(i + z)>);
+  EXPECT_TRUE(is_near(z + i, i)); static_assert(identity_matrix<decltype(z + i)>);
   EXPECT_TRUE(is_near(z + z, z)); static_assert(eigen_zero_expr<decltype(z + z)>);
 
-  EXPECT_TRUE(is_near(d1 - d2, DiagonalMatrix {-3., -3, -3})); static_assert(is_diagonal_v<decltype(d1 - d2)>);
-  EXPECT_TRUE(is_near(d1 - i, DiagonalMatrix {0., 1, 2})); static_assert(is_diagonal_v<decltype(d1 - i)>);
-  EXPECT_TRUE(is_near(d1 - z, d1)); static_assert(is_diagonal_v<decltype(d1 - z)>);
-  EXPECT_TRUE(is_near(i - i, z)); static_assert(is_zero_v<decltype(i - i)>);
-  EXPECT_TRUE(is_near(i * (i - i), z)); static_assert(is_zero_v<decltype(i - i)>);
+  EXPECT_TRUE(is_near(d1 - d2, DiagonalMatrix {-3., -3, -3})); static_assert(diagonal_matrix<decltype(d1 - d2)>);
+  EXPECT_TRUE(is_near(d1 - i, DiagonalMatrix {0., 1, 2})); static_assert(diagonal_matrix<decltype(d1 - i)>);
+  EXPECT_TRUE(is_near(d1 - z, d1)); static_assert(diagonal_matrix<decltype(d1 - z)>);
+  EXPECT_TRUE(is_near(i - i, z)); static_assert(zero_matrix<decltype(i - i)>);
+  EXPECT_TRUE(is_near(i * (i - i), z)); static_assert(zero_matrix<decltype(i - i)>);
   EXPECT_TRUE(is_near(z * (i - i), z)); static_assert(eigen_zero_expr<decltype(z * (i - i))>);
-  EXPECT_TRUE(is_near(i - z, i)); static_assert(is_identity_v<decltype(i - z)>);
+  EXPECT_TRUE(is_near(i - z, i)); static_assert(identity_matrix<decltype(i - z)>);
   EXPECT_TRUE(is_near(z - i, -i)); static_assert(eigen_diagonal_expr<decltype(z - i)>);
   EXPECT_TRUE(is_near(z - z, z)); static_assert(eigen_zero_expr<decltype(z - z)>);
 
   EXPECT_TRUE(is_near(d1 * 4, DiagonalMatrix {4., 8, 12})); static_assert(eigen_diagonal_expr<decltype(d1 * 4)>);
   EXPECT_TRUE(is_near(4 * d1, DiagonalMatrix {4., 8, 12})); static_assert(eigen_diagonal_expr<decltype(4 * d1)>);
-  EXPECT_TRUE(is_near(d1 / 2, DiagonalMatrix {0.5, 1, 1.5})); static_assert(is_diagonal_v<decltype(d1 / 2)>);
-  static_assert(is_diagonal_v<decltype(d1 / 0)>);
-  EXPECT_TRUE(is_near(i * 4, DiagonalMatrix {4., 4, 4})); static_assert(is_diagonal_v<decltype(i * 4)>);
-  EXPECT_TRUE(is_near(4 * i, DiagonalMatrix {4., 4, 4})); static_assert(is_diagonal_v<decltype(4 * i)>);
-  static_assert(is_diagonal_v<decltype(i * 0)>);
-  static_assert(not is_zero_v<decltype(i * 0)>);
-  EXPECT_TRUE(is_near(i / 2, DiagonalMatrix {0.5, 0.5, 0.5})); static_assert(is_diagonal_v<decltype(i / 2)>);
-  EXPECT_TRUE(is_near(z * 4, z)); static_assert(is_zero_v<decltype(z * 4)>);
-  EXPECT_TRUE(is_near(4 * z, z)); static_assert(is_zero_v<decltype(4 * z)>);
-  EXPECT_TRUE(is_near(z / 4, z)); static_assert(not is_zero_v<decltype(z / 4)>);
-  static_assert(not is_zero_v<decltype(z / 0)>);
-  EXPECT_TRUE(is_near((i - i) * 4, z)); static_assert(is_zero_v<decltype((i - i) * 4)>);
-  EXPECT_TRUE(is_near((i - i) / 4, z)); static_assert(not is_zero_v<decltype((i - i) / 4)>);
-  static_assert(is_diagonal_v<decltype(i / 0)>);
+  EXPECT_TRUE(is_near(d1 / 2, DiagonalMatrix {0.5, 1, 1.5})); static_assert(diagonal_matrix<decltype(d1 / 2)>);
+  static_assert(diagonal_matrix<decltype(d1 / 0)>);
+  EXPECT_TRUE(is_near(i * 4, DiagonalMatrix {4., 4, 4})); static_assert(diagonal_matrix<decltype(i * 4)>);
+  EXPECT_TRUE(is_near(4 * i, DiagonalMatrix {4., 4, 4})); static_assert(diagonal_matrix<decltype(4 * i)>);
+  static_assert(diagonal_matrix<decltype(i * 0)>);
+  static_assert(not zero_matrix<decltype(i * 0)>);
+  EXPECT_TRUE(is_near(i / 2, DiagonalMatrix {0.5, 0.5, 0.5})); static_assert(diagonal_matrix<decltype(i / 2)>);
+  EXPECT_TRUE(is_near(z * 4, z)); static_assert(zero_matrix<decltype(z * 4)>);
+  EXPECT_TRUE(is_near(4 * z, z)); static_assert(zero_matrix<decltype(4 * z)>);
+  EXPECT_TRUE(is_near(z / 4, z)); static_assert(not zero_matrix<decltype(z / 4)>);
+  static_assert(not zero_matrix<decltype(z / 0)>);
+  EXPECT_TRUE(is_near((i - i) * 4, z)); static_assert(zero_matrix<decltype((i - i) * 4)>);
+  EXPECT_TRUE(is_near((i - i) / 4, z)); static_assert(not zero_matrix<decltype((i - i) / 4)>);
+  static_assert(diagonal_matrix<decltype(i / 0)>);
 
   EXPECT_TRUE(is_near(-d1, DiagonalMatrix {-1., -2, -3})); static_assert(eigen_diagonal_expr<decltype(-d1)>);
-  EXPECT_TRUE(is_near(-i, DiagonalMatrix {-1., -1, -1})); static_assert(is_diagonal_v<decltype(-i)>);
+  EXPECT_TRUE(is_near(-i, DiagonalMatrix {-1., -1, -1})); static_assert(diagonal_matrix<decltype(-i)>);
   EXPECT_TRUE(is_near(-z, z)); static_assert(eigen_zero_expr<decltype(z)>);
 
   EXPECT_TRUE(is_near(d1 * d2, DiagonalMatrix {4., 10, 18})); static_assert(eigen_diagonal_expr<decltype(d1 * d2)>);
@@ -335,7 +335,7 @@ TEST_F(eigen3, Diagonal_arithmetic)
   EXPECT_TRUE(is_near(i * d1, d1)); static_assert(eigen_diagonal_expr<decltype(i * d1)>);
   EXPECT_TRUE(is_near(d1 * z, z)); static_assert(eigen_zero_expr<decltype(d1 * z)>);
   EXPECT_TRUE(is_near(z * d1, z)); static_assert(eigen_zero_expr<decltype(z * d1)>);
-  EXPECT_TRUE(is_near(i * i, i)); static_assert(is_identity_v<decltype(i * i)>);
+  EXPECT_TRUE(is_near(i * i, i)); static_assert(identity_matrix<decltype(i * i)>);
   EXPECT_TRUE(is_near(z * z, z)); static_assert(eigen_zero_expr<decltype(z * z)>);
 
   EXPECT_TRUE(is_near(d1 * SelfAdjointMatrix {

@@ -66,8 +66,9 @@ namespace OpenKalman
         //
         // Convert input distribution type to output distribution types, and initialize mean and covariance:
         using CovIn = typename MatrixTraits<typename DistributionTraits<Dist>::Covariance>::BaseMatrix;
-        using MeanOut = strict_matrix_t<CovIn, output_dim, 1>;
-        using CovOut = typename MatrixTraits<CovIn>::template SelfAdjointBaseType<triangle_type_of_v<CovIn>, output_dim>;
+        using MeanOut = native_matrix_t<CovIn, output_dim, 1>;
+        constexpr TriangleType tri = triangle_type_of<typename MatrixTraits<CovIn>::template TriangularBaseType<>>;
+        using CovOut = typename MatrixTraits<CovIn>::template SelfAdjointBaseType<tri, output_dim>;
 
         const auto P = covariance_of(x);
         const std::make_index_sequence<output_dim> ints;
@@ -79,7 +80,7 @@ namespace OpenKalman
       template<typename OutputCoeffs, typename T1, typename T2, std::size_t...I>
       static auto zip_tuples_impl(const T1& t1, const T2& t2, std::index_sequence<I...>)
       {
-        return strict((second_order_term<OutputCoeffs>(std::get<I>(t1), std::get<I>(t2)) + ...));
+        return make_self_contained((second_order_term<OutputCoeffs>(std::get<I>(t1), std::get<I>(t2)) + ...));
       }
 
       template<typename OutputCoeffs, typename T1, typename T2>

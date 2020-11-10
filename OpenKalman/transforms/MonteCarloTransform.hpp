@@ -36,15 +36,15 @@ namespace OpenKalman
       using Out_Mean = std::invoke_result_t<TransformationType, In_Mean>;
       using InputCoefficients = typename MatrixTraits<In_Mean>::RowCoefficients;
       using OutputCoefficients = typename MatrixTraits<Out_Mean>::RowCoefficients;
-      static_assert(std::conjunction_v<is_equivalent<OutputCoefficients,
-        typename DistributionTraits<NoiseDistributions>::Coefficients>...>);
+      static_assert((equivalent_to<OutputCoefficients,
+        typename DistributionTraits<NoiseDistributions>::Coefficients> and ...));
 
-      using InputMeanMatrix = strict_matrix_t<
+      using InputMeanMatrix = native_matrix_t<
         typename DistributionTraits<InputDistribution>::Mean, InputCoefficients::size, 1>;
-      using OutputEuclideanMeanMatrix = strict_matrix_t<InputMeanMatrix, OutputCoefficients::size, 1>;
-      using OutputCovarianceMatrix = strict_matrix_t<InputMeanMatrix, OutputCoefficients::size, OutputCoefficients::size>;
+      using OutputEuclideanMeanMatrix = native_matrix_t<InputMeanMatrix, OutputCoefficients::size, 1>;
+      using OutputCovarianceMatrix = native_matrix_t<InputMeanMatrix, OutputCoefficients::size, OutputCoefficients::size>;
       using OutputCovarianceSA = typename MatrixTraits<OutputCovarianceMatrix>::template SelfAdjointBaseType<>;
-      using CrossCovarianceMatrix = strict_matrix_t<InputMeanMatrix, InputCoefficients::size, OutputCoefficients::size>;
+      using CrossCovarianceMatrix = native_matrix_t<InputMeanMatrix, InputCoefficients::size, OutputCoefficients::size>;
 
       using InputMean = Mean<InputCoefficients, InputMeanMatrix>;
       using OutputEuclideanMean = EuclideanMean<OutputCoefficients, OutputEuclideanMeanMatrix>;
@@ -196,8 +196,8 @@ namespace OpenKalman
       using MSum = typename MSet::MonteCarloSum;
 
       MSum m_sum = std::reduce(std::execution::par_unseq, m_set.begin(), m_set.end(), MSet::zero(), binary_op);
-      auto mean_output = strict(from_Euclidean(m_sum.y_E));
-      auto out_covariance = strict(m_sum.yy / (size - 1.));
+      auto mean_output = make_self_contained(from_Euclidean(m_sum.y_E));
+      auto out_covariance = make_self_contained(m_sum.yy / (size - 1.));
       return GaussianDistribution {mean_output, out_covariance};
     }
 
@@ -212,9 +212,9 @@ namespace OpenKalman
       using MSum = typename MSet::MonteCarloSum;
 
       MSum m_sum = std::reduce(std::execution::par_unseq, m_set.begin(), m_set.end(), MSet::zero(), binary_op);
-      auto mean_output = strict(from_Euclidean(m_sum.y_E));
-      auto out_covariance = strict(m_sum.yy / (size - 1.));
-      auto cross_covariance = strict(m_sum.xy / (size - 1.));
+      auto mean_output = make_self_contained(from_Euclidean(m_sum.y_E));
+      auto out_covariance = make_self_contained(m_sum.yy / (size - 1.));
+      auto cross_covariance = make_self_contained(m_sum.xy / (size - 1.));
       auto out = GaussianDistribution {mean_output, out_covariance};
       return std::tuple {std::move(out), std::move(cross_covariance)};
     }

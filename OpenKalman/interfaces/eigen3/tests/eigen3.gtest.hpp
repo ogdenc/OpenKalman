@@ -20,13 +20,13 @@ using namespace OpenKalman;
 
 
 template<typename Arg>
-static constexpr bool is_test_trait = is_typed_matrix_base_v<Arg> or is_covariance_base_v<Arg>;
+static constexpr bool is_test_trait = typed_matrix_base<Arg> or covariance_base<Arg>;
 
 template<typename ArgA, typename ArgB, std::enable_if_t<is_test_trait<ArgA> and is_test_trait<ArgB>, int> = 0>
 ::testing::AssertionResult is_near(ArgA&& A, ArgB&& B, const double err = 1e-6)
 {
-  auto A_n = strict_matrix(std::forward<ArgA>(A));
-  auto B_n = strict_matrix(std::forward<ArgB>(B));
+  auto A_n = make_native_matrix(std::forward<ArgA>(A));
+  auto B_n = make_native_matrix(std::forward<ArgB>(B));
 
   if (A_n.isApprox(B_n, err) or (A_n.isMuchSmallerThan(1., err) and B_n.isMuchSmallerThan(1., err)))
   {
@@ -43,10 +43,10 @@ template<typename ArgA, typename ArgB, typename Err,
   std::enable_if_t<is_test_trait<ArgA> and is_test_trait<ArgB> and Eigen3::eigen_matrix<Err>, int> = 0>
 inline ::testing::AssertionResult is_near(ArgA&& A, ArgB&& B, const Err& err)
 {
-  auto A_n = strict_matrix(std::forward<ArgA>(A));
-  auto B_n = strict_matrix(std::forward<ArgB>(B));
+  auto A_n = make_native_matrix(std::forward<ArgA>(A));
+  auto B_n = make_native_matrix(std::forward<ArgB>(B));
 
-  if (((A_n - B_n).cwiseAbs().array() - strict_matrix(err).array()).maxCoeff() <= 0)
+  if (((A_n - B_n).cwiseAbs().array() - make_native_matrix(err).array()).maxCoeff() <= 0)
   {
     return ::testing::AssertionSuccess();
   }

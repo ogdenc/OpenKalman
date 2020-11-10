@@ -48,8 +48,8 @@ namespace OpenKalman
   {
     using InputCoefficients = InputCoefficients_;
     using OutputCoefficients = OutputCoefficients_;
-    static_assert(is_typed_matrix_base_v<TransformationMatrix>);
-    static_assert(std::conjunction_v<is_typed_matrix_base<PerturbationTransformationMatrices>...>);
+    static_assert(typed_matrix_base<TransformationMatrix>);
+    static_assert((typed_matrix_base<PerturbationTransformationMatrices> and ...));
     static_assert(MatrixTraits<TransformationMatrix>::dimension == OutputCoefficients::size);
     static_assert(MatrixTraits<TransformationMatrix>::columns == InputCoefficients::size);
     static_assert(((MatrixTraits<PerturbationTransformationMatrices>::dimension == OutputCoefficients::size) and ...));
@@ -62,8 +62,8 @@ namespace OpenKalman
       static_assert(typed_matrix<T> or typed_matrix_base<T>);
       if constexpr(typed_matrix<T>)
         return
-          is_equivalent_v<typename MatrixTraits<T>::RowCoefficients, OutputCoefficients> and
-          is_equivalent_v<typename MatrixTraits<T>::ColumnCoefficients, ColumnCoefficients>;
+          equivalent_to<typename MatrixTraits<T>::RowCoefficients, OutputCoefficients> and
+          equivalent_to<typename MatrixTraits<T>::ColumnCoefficients, ColumnCoefficients>;
       else
         return
           MatrixTraits<T>::dimension == OutputCoefficients::size and
@@ -73,13 +73,13 @@ namespace OpenKalman
     template<typename Jacobians, typename InputTuple, std::size_t...ints>
     constexpr auto sumprod(Jacobians&& js, InputTuple&& inputs, std::index_sequence<ints...>) const
     {
-      return strict(
+      return make_self_contained(
         ((std::get<ints>(std::forward<Jacobians>(js)) * std::get<ints>(std::forward<InputTuple>(inputs))) + ...));
     }
 
     using TransformationMatricesTuple = std::tuple<
-      const Matrix<OutputCoefficients, InputCoefficients, strict_t<TransformationMatrix>>,
-      const Matrix<OutputCoefficients, OutputCoefficients, strict_t<PerturbationTransformationMatrices>>...>;
+      const Matrix<OutputCoefficients, InputCoefficients, self_contained_t<TransformationMatrix>>,
+      const Matrix<OutputCoefficients, OutputCoefficients, self_contained_t<PerturbationTransformationMatrices>>...>;
     const TransformationMatricesTuple transformation_matrices;
 
   public:
@@ -91,8 +91,8 @@ namespace OpenKalman
       (typed_matrix<T> or typed_matrix_base<T>) and ((typed_matrix<Ps> or typed_matrix_base<Ps>) and ...)
 #else
     template<typename T, typename ... Ps, std::enable_if_t<
-      (typed_matrix<T> or is_typed_matrix_base_v<T>) and
-      ((typed_matrix<Ps> or is_typed_matrix_base_v<Ps>) and ...), int> = 0>
+      (typed_matrix<T> or typed_matrix_base<T>) and
+      ((typed_matrix<Ps> or typed_matrix_base<Ps>) and ...), int> = 0>
 #endif
     LinearTransformation(T&& mat, Ps&& ... p_mats) noexcept
       : transformation_matrices(std::forward<T>(mat), std::forward<Ps>(p_mats)...)
@@ -102,17 +102,16 @@ namespace OpenKalman
     }
 
     /// Applies the transformation.
-    template<typename In, typename ... Perturbations>
+#ifdef __cpp_concepts
+    template<column_vector In, perturbation ... Perturbations> requires
+    internal::transformation_args<In, Perturbations...>
+#else
+    template<typename In, typename ... Perturbations, std::enable_if_t<
+      column_vector<In> and (perturbation<Perturbations> and ...) and
+      internal::transformation_args<In, Perturbations...>, int> = 0>
+#endif
     auto operator()(const In& in, const Perturbations& ... ps) const
     {
-      static_assert(column_vector<In>);
-      static_assert((perturbation<Perturbations> and ...));
-      static_assert(MatrixTraits<In>::columns == 1);
-      static_assert(((internal::PerturbationTraits<Perturbations>::columns == 1) and ...));
-      static_assert(is_equivalent_v<typename MatrixTraits<In>::RowCoefficients, InputCoefficients>);
-      static_assert(std::conjunction_v<
-        is_equivalent<typename internal::PerturbationTraits<Perturbations>::RowCoefficients, OutputCoefficients>...>);
-
       return sumprod(
         jacobian(in, ps...),
         std::forward_as_tuple(in, internal::get_perturbation(ps)...),
@@ -120,16 +119,16 @@ namespace OpenKalman
     }
 
     /// Returns a tuple of the Jacobians for the input and each perturbation term.
-    template<typename In, typename ... Perturbations>
+#ifdef __cpp_concepts
+    template<column_vector In, perturbation ... Perturbations> requires
+    internal::transformation_args<In, Perturbations...>
+#else
+    template<typename In, typename ... Perturbations, std::enable_if_t<
+      column_vector<In> and (perturbation<Perturbations> and ...) and
+      internal::transformation_args<In, Perturbations...>, int> = 0>
+#endif
     auto jacobian(const In&, const Perturbations&...) const
     {
-      static_assert(column_vector<In>);
-      static_assert((perturbation<Perturbations> and ...));
-      static_assert(MatrixTraits<In>::columns == 1);
-      static_assert(((internal::PerturbationTraits<Perturbations>::columns == 1) and ...));
-      static_assert(is_equivalent_v<typename MatrixTraits<In>::RowCoefficients, InputCoefficients>);
-      static_assert(std::conjunction_v<
-        is_equivalent<typename internal::PerturbationTraits<Perturbations>::RowCoefficients, OutputCoefficients>...>);
       constexpr auto mat_count = std::tuple_size_v<TransformationMatricesTuple>;
 
       // If there are more inputs than transformation matrices, pad the list with extra identity matrices.
@@ -146,7 +145,14 @@ namespace OpenKalman
     }
 
     /// Returns a tuple of Hessian matrices for the input and each perturbation term. In this case, they are zero matrices.
-    template<typename In, typename ... Perturbations>
+#ifdef __cpp_concepts
+    template<column_vector In, perturbation ... Perturbations> requires
+    internal::transformation_args<In, Perturbations...>
+#else
+    template<typename In, typename ... Perturbations, std::enable_if_t<
+      column_vector<In> and (perturbation<Perturbations> and ...) and
+      internal::transformation_args<In, Perturbations...>, int> = 0>
+#endif
     auto hessian(const In&, const Perturbations&...) const
     {
       return zero_hessian<OutputCoefficients, In, Perturbations...>();
@@ -164,31 +170,31 @@ namespace OpenKalman
     (typed_matrix<T> and ... and (typed_matrix<Ps> or typed_matrix_base<Ps>))
 #else
   template<typename T, typename ... Ps, std::enable_if_t<
-    (typed_matrix<T> and ... and (typed_matrix<Ps> or is_typed_matrix_base_v<Ps>)), int> = 0>
+    (typed_matrix<T> and ... and (typed_matrix<Ps> or typed_matrix_base<Ps>)), int> = 0>
 #endif
   LinearTransformation(T&&, Ps&& ...)
   -> LinearTransformation<
     typename MatrixTraits<T>::ColumnCoefficients,
     typename MatrixTraits<T>::RowCoefficients,
-    strict_t<typename MatrixTraits<T>::BaseMatrix>,
+    self_contained_t<typename MatrixTraits<T>::BaseMatrix>,
     std::conditional_t<
       typed_matrix<Ps>,
-      strict_t<typename MatrixTraits<Ps>::BaseMatrix>,
-      strict_t<std::decay_t<Ps>>>...>;
+      self_contained_t<typename MatrixTraits<Ps>::BaseMatrix>,
+      self_contained_t<std::decay_t<Ps>>>...>;
 
 
 #ifdef __cpp_concepts
   template<typed_matrix_base T, typed_matrix_base ... Ps>
 #else
   template<typename T, typename ... Ps, std::enable_if_t<
-    (is_typed_matrix_base_v<T> and ... and is_typed_matrix_base_v<Ps>), int> = 0>
+    (typed_matrix_base<T> and ... and typed_matrix_base<Ps>), int> = 0>
 #endif
   LinearTransformation(T&&, Ps&& ...)
   -> LinearTransformation<
     Axes<MatrixTraits<T>::columns>,
     Axes<MatrixTraits<T>::dimension>,
-    strict_t<std::decay_t<T>>,
-    strict_t<std::decay_t<Ps>>...>;
+    self_contained_t<std::decay_t<T>>,
+    self_contained_t<std::decay_t<Ps>>...>;
 
 
   /*

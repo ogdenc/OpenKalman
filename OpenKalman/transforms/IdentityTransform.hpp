@@ -22,14 +22,19 @@ namespace OpenKalman
      * @tparam InputDist Input distribution.
      * @tparam NoiseDists Noise distribution.
      **/
+#ifdef __cpp_concepts
+    template<distribution InputDist, distribution ... NoiseDists> requires
+      (equivalent_to<typename DistributionTraits<InputDist>::Coefficients,
+        typename DistributionTraits<NoiseDists>::Coefficients> and ...)
+#else
     template<typename InputDist, typename ... NoiseDists,
-      std::enable_if_t<(distribution<InputDist> and ... and distribution<NoiseDists>), int> = 0>
+      std::enable_if_t<(distribution<InputDist> and ... and distribution<NoiseDists>) and
+        (equivalent_to<typename DistributionTraits<InputDist>::Coefficients,
+        typename DistributionTraits<NoiseDists>::Coefficients> and ...), int> = 0>
+#endif
     auto operator()(const InputDist& x, const NoiseDists&...ns) const
     {
-      static_assert(std::conjunction_v<is_equivalent<typename DistributionTraits<InputDist>::Coefficients,
-        typename DistributionTraits<NoiseDists>::Coefficients>...>,
-        "Input and Noise distributions must be the same size and an equivalent type.");
-      return strict((x + ... + ns));
+      return make_self_contained((x + ... + ns));
     }
 
     /**
@@ -37,15 +42,20 @@ namespace OpenKalman
      * @tparam InputDist Input distribution.
      * @tparam NoiseDists Noise distributions.
      **/
+#ifdef __cpp_concepts
+    template<distribution InputDist, distribution ... NoiseDists> requires
+      (equivalent_to<typename DistributionTraits<InputDist>::Coefficients,
+        typename DistributionTraits<NoiseDists>::Coefficients> and ...)
+#else
     template<typename InputDist, typename ... NoiseDists,
-      std::enable_if_t<(distribution<InputDist> and ... and distribution<NoiseDists>), int> = 0>
+      std::enable_if_t<(distribution<InputDist> and ... and distribution<NoiseDists>) and
+        (equivalent_to<typename DistributionTraits<InputDist>::Coefficients,
+        typename DistributionTraits<NoiseDists>::Coefficients> and ...), int> = 0>
+#endif
     auto transform_with_cross_covariance(const InputDist& x, const NoiseDists&...ns) const
     {
-      static_assert(std::conjunction_v<is_equivalent<typename DistributionTraits<InputDist>::Coefficients,
-        typename DistributionTraits<NoiseDists>::Coefficients>...>,
-        "Input and Noise distributions must be the same size and an equivalent type.");
       auto cross = Matrix {covariance_of(x)};
-      return std::tuple {strict((x + ... + ns)), std::move(cross)};
+      return std::tuple {make_self_contained((x + ... + ns)), std::move(cross)};
     }
 
   };

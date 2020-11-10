@@ -126,130 +126,138 @@ namespace OpenKalman
 
     template<typename...C>
     struct is_composite_coefficients<Coefficients<C...>> : std::true_type {};
-  }
 
+    // -------------------- //
+    //   is_equivalent_to   //
+    // -------------------- //
 
-  // ----------------------------- //
-  //   equivalent, is_equivalent   //
-  // ----------------------------- //
-
-  // General case.
 #ifdef __cpp_concepts
-  template<coefficients T, coefficients U>
+    template<coefficients T, coefficients U>
 #else
-  template<typename T, typename U, typename Enable>
+    template<typename T, typename U, typename Enable>
 #endif
-  struct is_equivalent : std::false_type {};
+    struct is_equivalent_to : std::false_type {};
 
-  template<>
-  struct is_equivalent<Axis, Axis> : std::true_type {};
 
-  template<typename Traits>
-  struct is_equivalent<Circle<Traits>, Circle<Traits>> : std::true_type {};
+    template<>
+    struct is_equivalent_to<Axis, Axis> : std::true_type {};
 
-  template<>
-  struct is_equivalent<Distance, Distance> : std::true_type {};
 
-  template<typename Traits>
-  struct is_equivalent<Inclination<Traits>, Inclination<Traits>> : std::true_type {};
+    template<typename Traits>
+    struct is_equivalent_to<Circle<Traits>, Circle<Traits>> : std::true_type {};
 
-  template<typename Coeff1a, typename Coeff2a, typename Coeff1b, typename Coeff2b>
-  struct is_equivalent<Polar<Coeff1a, Coeff2a>, Polar<Coeff1b, Coeff2b>>
-    : std::bool_constant<is_equivalent_v<Coeff1a, Coeff1b> and is_equivalent_v<Coeff2a, Coeff2b>> {};
 
-  template<typename Coeff1a, typename Coeff2a, typename Coeff3a, typename Coeff1b, typename Coeff2b, typename Coeff3b>
-  struct is_equivalent<Spherical<Coeff1a, Coeff2a, Coeff3a>, Spherical<Coeff1b, Coeff2b, Coeff3b>>
-    : std::bool_constant<is_equivalent_v<Coeff1a, Coeff1b> and
-      is_equivalent_v<Coeff2a, Coeff2b> and is_equivalent_v<Coeff3a, Coeff3b>> {};
+    template<>
+    struct is_equivalent_to<Distance, Distance> : std::true_type {};
+
+
+    template<typename Traits>
+    struct is_equivalent_to<Inclination<Traits>, Inclination<Traits>> : std::true_type {};
+
+
+    template<typename Coeff1a, typename Coeff2a, typename Coeff1b, typename Coeff2b>
+    struct is_equivalent_to<Polar<Coeff1a, Coeff2a>, Polar<Coeff1b, Coeff2b>>
+      : std::bool_constant<equivalent_to<Coeff1a, Coeff1b> and equivalent_to<Coeff2a, Coeff2b>> {};
+
+
+    template<typename Coeff1a, typename Coeff2a, typename Coeff3a, typename Coeff1b, typename Coeff2b, typename Coeff3b>
+    struct is_equivalent_to<Spherical<Coeff1a, Coeff2a, Coeff3a>, Spherical<Coeff1b, Coeff2b, Coeff3b>>
+      : std::bool_constant<equivalent_to<Coeff1a, Coeff1b> and
+        equivalent_to<Coeff2a, Coeff2b> and equivalent_to<Coeff3a, Coeff3b>> {};
 
 
 #ifdef __cpp_concepts
-  template<coefficients...C1, coefficients...C2> requires
-    (sizeof...(C1) == 0 and sizeof...(C2) == 0) or
-    (sizeof...(C1) > 1 and sizeof...(C2) > 1 and (is_equivalent_v<C1, C2> and ...))
-  struct is_equivalent<Coefficients<C1...>, Coefficients<C2...>>
+    template<coefficients...C1, coefficients...C2> requires
+      (sizeof...(C1) == 0 and sizeof...(C2) == 0) or
+      (sizeof...(C1) > 1 and sizeof...(C2) > 1 and (equivalent_to<C1, C2> and ...))
+    struct is_equivalent_to<Coefficients<C1...>, Coefficients<C2...>>
 #else
-  template<typename...C1, typename...C2>
-  struct is_equivalent<Coefficients<C1...>, Coefficients<C2...>, std::enable_if_t<
-    (sizeof...(C1) == 0 and sizeof...(C2) == 0) or
-    (sizeof...(C1) > 1 and sizeof...(C2) > 1 and (is_equivalent_v<C1, C2> and ...))>>
+    template<typename...C1, typename...C2>
+    struct is_equivalent_to<Coefficients<C1...>, Coefficients<C2...>, std::enable_if_t<
+      (sizeof...(C1) == 0 and sizeof...(C2) == 0) or
+      (sizeof...(C1) > 1 and sizeof...(C2) > 1 and (equivalent_to<C1, C2> and ...))>>
+#endif
+      : std::true_type {};
+
+
+#ifdef __cpp_concepts
+    template<typename T, typename U> requires equivalent_to<T, U>
+    struct is_equivalent_to<T, Coefficients<U>>
+#else
+    template<typename T, typename U>
+    struct is_equivalent_to<T, Coefficients<U>, std::enable_if_t<equivalent_to<T, U>>>
+#endif
+      : std::true_type {};
+
+
+#ifdef __cpp_concepts
+    template<typename T, typename U> requires equivalent_to<T, U> and internal::is_atomic_coefficient_group<U>::value
+    struct is_equivalent_to<Coefficients<T>, U>
+#else
+    template<typename T, typename U>
+    struct is_equivalent_to<Coefficients<T>, U, std::enable_if_t<
+      equivalent_to<T, U> and internal::is_atomic_coefficient_group<U>::value>>
 #endif
     : std::true_type {};
 
 
-#ifdef __cpp_concepts
-  template<typename T, typename U> requires is_equivalent_v<T, U>
-  struct is_equivalent<T, Coefficients<U>>
-#else
-  template<typename T, typename U>
-  struct is_equivalent<T, Coefficients<U>, std::enable_if_t<is_equivalent_v<T, U>>>
-#endif
-    : std::true_type {};
-
+    // ---------------- //
+    //   is_prefix_of   //
+    // ---------------- //
 
 #ifdef __cpp_concepts
-  template<typename T, typename U> requires is_equivalent_v<T, U> and internal::is_atomic_coefficient_group<U>::value
-  struct is_equivalent<Coefficients<T>, U>
+    template<coefficients T, coefficients U>
 #else
-  template<typename T, typename U>
-  struct is_equivalent<Coefficients<T>, U, std::enable_if_t<
-    is_equivalent_v<T, U> and internal::is_atomic_coefficient_group<U>::value>>
+    template<typename T, typename U, typename Enable>
 #endif
-  : std::true_type {};
+    struct is_prefix_of : std::false_type {};
 
-
-  // ------------- //
-  //   is_prefix   //
-  // ------------- //
 
 #ifdef __cpp_concepts
-  template<coefficients T, coefficients U>
+    template<coefficients C1, coefficients C2> requires equivalent_to<C1, C2>
+    struct is_prefix_of<C1, C2>
 #else
-  template<typename T, typename U, typename Enable>
+    template<typename C1, typename C2>
+    struct is_prefix_of<C1, C2, std::enable_if_t<equivalent_to<C1, C2>>>
 #endif
-  struct is_prefix : std::false_type {};
+      : std::true_type {};
+
 
 #ifdef __cpp_concepts
-  template<coefficients C1, coefficients C2> requires equivalent<C1, C2>
-  struct is_prefix<C1, C2>
+    template<coefficients Ca, coefficients Cb, coefficients...C1, coefficients...C2> requires
+      equivalent_to<Ca, Cb> and
+      prefix_of<Coefficients<C1...>, Coefficients<C2...>> and
+      (not equivalent_to<Coefficients<Ca, C1...>, Coefficients<Cb, C2...>>)
+    struct is_prefix_of<Coefficients<Ca, C1...>, Coefficients<Cb, C2...>>
 #else
-  template<typename C1, typename C2>
-  struct is_prefix<C1, C2, std::enable_if_t<is_equivalent_v<C1, C2>>>
+    template<typename Ca, typename Cb, typename...C1, typename...C2>
+    struct is_prefix_of<Coefficients<Ca, C1...>, Coefficients<Cb, C2...>,
+      std::enable_if_t<equivalent_to<Ca, Cb> and prefix_of<Coefficients<C1...>, Coefficients<C2...>> and
+        not equivalent_to<Coefficients<Ca, C1...>, Coefficients<Cb, C2...>>>>
 #endif
-  : std::true_type {};
+      : std::true_type {};
+
 
 #ifdef __cpp_concepts
-  template<coefficients Ca, coefficients Cb, coefficients...C1, coefficients...C2> requires
-    equivalent<Ca, Cb> and
-    is_prefix_v<Coefficients<C1...>, Coefficients<C2...>> and
-    (not equivalent<Coefficients<Ca, C1...>, Coefficients<Cb, C2...>>)
-  struct is_prefix<Coefficients<Ca, C1...>, Coefficients<Cb, C2...>>
+    template<coefficients C> requires (not equivalent_to<Coefficients<>, C>)
+    struct is_prefix_of<Coefficients<>, C>
 #else
-  template<typename Ca, typename Cb, typename...C1, typename...C2>
-  struct is_prefix<Coefficients<Ca, C1...>, Coefficients<Cb, C2...>,
-    std::enable_if_t<is_equivalent_v<Ca, Cb> and is_prefix_v<Coefficients<C1...>, Coefficients<C2...>> and
-      not is_equivalent_v<Coefficients<Ca, C1...>, Coefficients<Cb, C2...>>>>
+    template<typename C>
+    struct is_prefix_of<Coefficients<>, C,
+      std::enable_if_t<is_coefficients_v<C> and not equivalent_to<Coefficients<>, C>>>
 #endif
-  : std::true_type {};
+      : std::true_type {};
 
 #ifdef __cpp_concepts
-  template<coefficients C> requires (not equivalent<Coefficients<>, C>)
-  struct is_prefix<Coefficients<>, C>
+    template<coefficients C, coefficients...C1>
+    struct is_prefix_of<C, Coefficients<C, C1...>>
 #else
-  template<typename C>
-  struct is_prefix<Coefficients<>, C,
-    std::enable_if_t<is_coefficients_v<C> and not is_equivalent_v<Coefficients<>, C>>>
+    template<typename C, typename...C1>
+    struct is_prefix_of<C, Coefficients<C, C1...>, std::enable_if_t<is_coefficients_v<C>>>
 #endif
-  : std::true_type {};
+      : std::true_type {};
 
-#ifdef __cpp_concepts
-  template<coefficients C, coefficients...C1>
-  struct is_prefix<C, Coefficients<C, C1...>>
-#else
-  template<typename C, typename...C1>
-  struct is_prefix<C, Coefficients<C, C1...>, std::enable_if_t<is_coefficients_v<C>>>
-#endif
-  : std::true_type {};
+  } // namespace internal
 
 
   // --------------------------------- //
@@ -290,7 +298,7 @@ namespace OpenKalman
     {
       using type = typename ConcatenateImpl<Coeffs...>::type::template Prepend<Cs1...>;
     };
-  }
+  } // namespace detail
 
   /**
    * Concatenate any number of Coefficients<...> types.

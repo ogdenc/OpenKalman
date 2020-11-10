@@ -347,7 +347,7 @@ namespace Eigen::internal
       std::declval<const XprType&>()))>>;
     enum
     {
-      Flags = Base::Flags & (OpenKalman::is_self_adjoint_v<ArgType> ? ~0 : ~LvalueBit),
+      Flags = Base::Flags & (OpenKalman::self_adjoint_matrix<ArgType> ? ~0 : ~LvalueBit),
     };
     explicit evaluator(const XprType& m_arg) : Base(OpenKalman::internal::convert_base_matrix(m_arg)) {}
   };
@@ -363,7 +363,7 @@ namespace Eigen::internal
       std::declval<const XprType&>()))>>;
     enum
     {
-      Flags = Base::Flags & (OpenKalman::is_triangular_v<ArgType> ? ~0 : ~LvalueBit),
+      Flags = Base::Flags & (OpenKalman::triangular_matrix<ArgType> ? ~0 : ~LvalueBit),
     };
     explicit evaluator(const XprType& m_arg) : Base(OpenKalman::internal::convert_base_matrix(m_arg)) {}
   };

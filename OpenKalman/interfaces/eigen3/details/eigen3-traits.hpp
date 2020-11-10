@@ -168,21 +168,6 @@ namespace OpenKalman
 
 
     /**
-     * An object that is a native Eigen3 matrix (i.e., a class in the Eigen library descending from Eigen::MatrixBase).
-     *
-     * If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
-     */
-    template<typename T>
-#ifdef __cpp_concepts
-    concept eigen_native = std::derived_from<std::decay_t<T>, Eigen::MatrixBase<std::decay_t<T>>> and
-      not std::derived_from<std::decay_t<T>, internal::Eigen3Base<std::decay_t<T>>>;
-#else
-    inline constexpr bool eigen_native = std::is_base_of_v<Eigen::MatrixBase<std::decay_t<T>>, std::decay_t<T>> and
-      not std::is_base_of_v<internal::Eigen3Base<std::decay_t<T>>, std::decay_t<T>>;
-#endif
-
-
-    /**
      * T is either a native Eigen matrix or a zero Eigen matrix.
      *
      * If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
@@ -197,54 +182,55 @@ namespace OpenKalman
   } // namespace Eigen3
 
 
-  // -------------------------------------------------------------------------------- //
-  //  General OpenKalman concepts / type traits as defined for new Eigen matrix types //
-  // -------------------------------------------------------------------------------- //
-
-  // covariance_base
+  namespace internal
+  {
+    // Defines the is_covariance_base type trait specifically for Eigen3.
 #ifdef __cpp_concepts
-  template<typename T> requires
-    Eigen3::eigen_self_adjoint_expr<T> or
-    Eigen3::eigen_triangular_expr<T> or
-    Eigen3::eigen_diagonal_expr<T> or
-    Eigen3::eigen_zero_expr<T> or
-    (Eigen3::eigen_native<T> and (is_triangular_v<T> or is_self_adjoint_v<T>))
-  struct is_covariance_base<T>
+    template<typename T>
+    requires
+      Eigen3::eigen_self_adjoint_expr<T> or
+      Eigen3::eigen_triangular_expr<T> or
+      Eigen3::eigen_diagonal_expr<T> or
+      Eigen3::eigen_zero_expr<T> or
+      (Eigen3::eigen_native<T> and (triangular_matrix<T> or self_adjoint_matrix<T>))
+    struct is_covariance_base<T>
 #else
-  template<typename T>
-  struct is_covariance_base<T, std::enable_if_t<
-    Eigen3::eigen_self_adjoint_expr<T> or
-    Eigen3::eigen_triangular_expr<T> or
-    Eigen3::eigen_diagonal_expr<T> or
-    Eigen3::eigen_zero_expr<T> or
-    (Eigen3::eigen_native<T> and (is_triangular_v<T> or is_self_adjoint_v<T>))>>
+    template<typename T>
+    struct is_covariance_base<T, std::enable_if_t<
+      Eigen3::eigen_self_adjoint_expr<T> or
+      Eigen3::eigen_triangular_expr<T> or
+      Eigen3::eigen_diagonal_expr<T> or
+      Eigen3::eigen_zero_expr<T> or
+      (Eigen3::eigen_native<T> and (triangular_matrix<T> or self_adjoint_matrix<T>))>>
 #endif
     : std::true_type {};
 
 
-  // typed_matrix_base
+    // Defines the is_typed_matrix_base type trait specifically for Eigen3.
 #ifdef __cpp_concepts
-  template<typename T> requires
+    template<typename T>
+    requires
     Eigen3::eigen_self_adjoint_expr<T> or
-    Eigen3::eigen_triangular_expr<T> or
-    Eigen3::eigen_diagonal_expr<T> or
-    Eigen3::eigen_zero_expr<T> or
-    Eigen3::to_euclidean_expr<T> or
-    Eigen3::from_euclidean_expr<T> or
-    Eigen3::eigen_native<T>
-  struct is_typed_matrix_base<T>
+      Eigen3::eigen_triangular_expr<T> or
+      Eigen3::eigen_diagonal_expr<T> or
+      Eigen3::eigen_zero_expr<T> or
+      Eigen3::to_euclidean_expr<T> or
+      Eigen3::from_euclidean_expr<T> or
+      Eigen3::eigen_native<T>
+    struct is_typed_matrix_base<T>
 #else
-  template<typename T>
-  struct is_typed_matrix_base<T, std::enable_if_t<
-    Eigen3::eigen_self_adjoint_expr<T> or
-    Eigen3::eigen_triangular_expr<T> or
-    Eigen3::eigen_diagonal_expr<T> or
-    Eigen3::eigen_zero_expr<T> or
-    Eigen3::to_euclidean_expr<T> or
-    Eigen3::from_euclidean_expr<T> or
-    Eigen3::eigen_native<T>>>
+    template<typename T>
+    struct is_typed_matrix_base<T, std::enable_if_t<
+      Eigen3::eigen_self_adjoint_expr<T> or
+      Eigen3::eigen_triangular_expr<T> or
+      Eigen3::eigen_diagonal_expr<T> or
+      Eigen3::eigen_zero_expr<T> or
+      Eigen3::to_euclidean_expr<T> or
+      Eigen3::from_euclidean_expr<T> or
+      Eigen3::eigen_native<T>>>
 #endif
     : std::true_type {};
+  } // internal
 
 
   // ---------------------------------------------------------------
@@ -295,27 +281,327 @@ namespace OpenKalman
       static_cast<bool>(std::decay_t<T>::Flags & Eigen::LvalueBit)> {};
 
 
+  // -------------------------------- //
+  //   Type traits for Eigen3 types   //
+  // -------------------------------- //
+
+  namespace internal
+  {
+    // ---------------- //
+    //  is_zero_matrix  //
+    // ---------------- //
+
+#ifdef __cpp_concepts
+    template<typename T> requires Eigen3::eigen_self_adjoint_expr<T> or Eigen3::eigen_triangular_expr<T> or
+      Eigen3::eigen_diagonal_expr<T>
+    struct is_zero_matrix<T>
+#else
+    template<typename T>
+    struct is_zero_matrix<T, std::enable_if_t<Eigen3::eigen_self_adjoint_expr<T> or Eigen3::eigen_triangular_expr<T> or
+      Eigen3::eigen_diagonal_expr<T>>>
+#endif
+    : is_zero_matrix<typename MatrixTraits<T>::BaseMatrix> {};
+
+
+#ifdef __cpp_concepts
+    template<Eigen3::eigen_zero_expr T>
+    struct is_zero_matrix<T>
+#else
+    template<typename T>
+    struct is_zero_matrix<T, std::enable_if_t<Eigen3::eigen_zero_expr<T>>>
+#endif
+    : std::true_type {};
+
+
+    // The product of two zero matrices is zero.
+    template<typename Arg1, typename Arg2>
+#ifdef __cpp_concepts
+    requires zero_matrix<Arg1> or zero_matrix<Arg2>
+    struct is_zero_matrix<Eigen::Product<Arg1, Arg2>>
+#else
+    struct is_zero_matrix<Eigen::Product<Arg1, Arg2>,
+      std::enable_if_t<zero_matrix<Arg1> or zero_matrix<Arg2>>>
+#endif
+    : std::true_type {};
+
+
+    // The product of a zero matrix and a scalar (or vice versa) is zero.
+    template<typename Arg1, typename Arg2>
+#ifdef __cpp_concepts
+    requires zero_matrix<Arg1> or zero_matrix<Arg2>
+    struct is_zero_matrix<Eigen::CwiseBinaryOp<
+      Eigen::internal::scalar_product_op<typename Arg1::Scalar, typename Arg2::Scalar>, Arg1, Arg2>>
+#else
+    struct is_zero_matrix<Eigen::CwiseBinaryOp<
+      Eigen::internal::scalar_product_op<typename Arg1::Scalar, typename Arg2::Scalar>, Arg1, Arg2>,
+      std::enable_if_t<zero_matrix<Arg1> or zero_matrix<Arg2>>>
+#endif
+    : std::true_type {};
+
+
+    // The sum of two zero matrices is zero.
+#ifdef __cpp_concepts
+    template<zero_matrix Arg1, zero_matrix Arg2>
+    struct is_zero_matrix<Eigen::CwiseBinaryOp<
+      Eigen::internal::scalar_sum_op<typename Arg1::Scalar, typename Arg2::Scalar>, Arg1, Arg2>>
+#else
+    template<typename Arg1, typename Arg2>
+    struct is_zero_matrix<Eigen::CwiseBinaryOp<
+      Eigen::internal::scalar_sum_op<typename Arg1::Scalar, typename Arg2::Scalar>, Arg1, Arg2>,
+      std::enable_if_t<zero_matrix<Arg1> and zero_matrix<Arg2>>>
+#endif
+    : std::true_type {};
+
+
+    // The difference between two zero or identity matrices is zero.
+    template<typename Arg1, typename Arg2>
+#ifdef __cpp_concepts
+    requires (zero_matrix<Arg1> and zero_matrix<Arg2>) or (identity_matrix<Arg1> and identity_matrix<Arg2>)
+    struct is_zero_matrix<Eigen::CwiseBinaryOp<
+      Eigen::internal::scalar_difference_op<typename Arg1::Scalar, typename Arg2::Scalar>, Arg1, Arg2>>
+#else
+    struct is_zero_matrix<Eigen::CwiseBinaryOp<
+      Eigen::internal::scalar_difference_op<typename Arg1::Scalar, typename Arg2::Scalar>, Arg1, Arg2>,
+      std::enable_if_t<(zero_matrix<Arg1> and zero_matrix<Arg2>) or (identity_matrix<Arg1> and identity_matrix<Arg2>)>>
+#endif
+      : std::true_type {};
+
+
+    // The negation of a zero matrix is zero.
+#ifdef __cpp_concepts
+    template<zero_matrix Arg>
+    struct is_zero_matrix<Eigen::CwiseUnaryOp<Eigen::internal::scalar_opposite_op<typename Arg::Scalar>, Arg>>
+#else
+    template<typename Arg>
+    struct is_zero_matrix<Eigen::CwiseUnaryOp<Eigen::internal::scalar_opposite_op<typename Arg::Scalar>, Arg>,
+      std::enable_if_t<zero_matrix<Arg>>>
+#endif
+    : std::true_type {};
+
+
+    // -------------------- //
+    //  is_identity_matrix  //
+    // -------------------- //
+
+#ifdef __cpp_concepts
+    template<typename T> requires Eigen3::eigen_self_adjoint_expr<T> or Eigen3::eigen_triangular_expr<T>
+    struct is_identity_matrix<T>
+#else
+    template<typename T>
+    struct is_identity_matrix<T,
+      std::enable_if_t<Eigen3::eigen_self_adjoint_expr<T> or Eigen3::eigen_triangular_expr<T>>>
+#endif
+      : is_identity_matrix<typename MatrixTraits<T>::BaseMatrix> {};
+
+
+    template<typename Arg>
+    struct is_identity_matrix<Eigen3::IdentityMatrix<Arg>>
+      : std::bool_constant<Arg::RowsAtCompileTime == Arg::ColsAtCompileTime> {};
+
+
+    // The product of two identity matrices is also identity.
+    template<typename Arg1, typename Arg2>
+    struct is_identity_matrix<Eigen::Product<Arg1, Arg2>>
+      : std::bool_constant<identity_matrix<Arg1> and identity_matrix<Arg2>> {};
+
+
+    // ------------- //
+    //  is_diagonal  //
+    // ------------- //
+
+#ifdef __cpp_concepts
+    template<Eigen3::eigen_diagonal_expr T>
+    struct is_diagonal_matrix<T>
+#else
+    template<typename T>
+    struct is_diagonal_matrix<T, std::enable_if_t<Eigen3::eigen_diagonal_expr<T>>>
+#endif
+      : std::true_type {};
+
+
+#ifdef __cpp_concepts
+    template<Eigen3::eigen_self_adjoint_expr T> requires diagonal_matrix<typename MatrixTraits<T>::BaseMatrix> or
+      (MatrixTraits<T>::storage_type == TriangleType::diagonal)
+    struct is_diagonal_matrix<T>
+#else
+    template<typename T>
+    struct is_diagonal_matrix<T, std::enable_if_t<Eigen3::eigen_self_adjoint_expr<T> and
+      (diagonal_matrix<typename MatrixTraits<T>::BaseMatrix> or
+        MatrixTraits<T>::storage_type == TriangleType::diagonal)>>
+#endif
+      : std::true_type {};
+
+
+#ifdef __cpp_concepts
+    template<Eigen3::eigen_triangular_expr T> requires diagonal_matrix<typename MatrixTraits<T>::BaseMatrix> or
+      (MatrixTraits<T>::triangle_type == TriangleType::diagonal)
+    struct is_diagonal_matrix<T>
+#else
+    template<typename T>
+    struct is_diagonal_matrix<T, std::enable_if_t<Eigen3::eigen_triangular_expr<T> and
+      (diagonal_matrix<typename MatrixTraits<T>::BaseMatrix> or
+        MatrixTraits<T>::triangle_type == TriangleType::diagonal)>>
+#endif
+      : std::true_type {};
+
+
+    // The product of two diagonal matrices is also diagonal.
+#ifdef __cpp_concepts
+    template<diagonal_matrix Arg1, diagonal_matrix Arg2>
+    struct is_diagonal_matrix<Eigen::Product<Arg1, Arg2>>
+#else
+    template<typename Arg1, typename Arg2>
+    struct is_diagonal_matrix<Eigen::Product<Arg1, Arg2>,
+      std::enable_if_t<diagonal_matrix<Arg1> and diagonal_matrix<Arg2>>>
+#endif
+      : std::true_type {};
+
+
+    // A diagonal matrix times a scalar (or vice versa) is also diagonal.
+#ifdef __cpp_concepts
+    template<typename Arg1, typename Arg2> requires diagonal_matrix<Arg1> or diagonal_matrix<Arg2>
+    struct is_diagonal_matrix<Eigen::CwiseBinaryOp<
+      Eigen::internal::scalar_product_op<typename Arg1::Scalar, typename Arg2::Scalar>, Arg1, Arg2>>
+#else
+    template<typename Arg1, typename Arg2>
+    struct is_diagonal_matrix<Eigen::CwiseBinaryOp<
+      Eigen::internal::scalar_product_op<typename Arg1::Scalar, typename Arg2::Scalar>, Arg1, Arg2>,
+      std::enable_if_t<diagonal_matrix<Arg1> or diagonal_matrix<Arg2>>>
+#endif
+      : std::true_type {};
+
+
+    // A diagonal matrix divided by a scalar is also diagonal.
+#ifdef __cpp_concepts
+    template<diagonal_matrix Arg1, typename Arg2>
+    struct is_diagonal_matrix<Eigen::CwiseBinaryOp<
+      Eigen::internal::scalar_quotient_op<typename Arg1::Scalar, typename Arg2::Scalar>, Arg1, Arg2>>
+#else
+    template<typename Arg1, typename Arg2>
+    struct is_diagonal_matrix<Eigen::CwiseBinaryOp<
+      Eigen::internal::scalar_quotient_op<typename Arg1::Scalar, typename Arg2::Scalar>, Arg1, Arg2>,
+      std::enable_if_t<diagonal_matrix<Arg1>>>
+#endif
+      : std::true_type {};
+
+
+    // The sum of two diagonal matrices is also diagonal.
+#ifdef __cpp_concepts
+    template<diagonal_matrix Arg1, diagonal_matrix Arg2>
+    struct is_diagonal_matrix<Eigen::CwiseBinaryOp<
+      Eigen::internal::scalar_sum_op<typename Arg1::Scalar, typename Arg2::Scalar>, Arg1, Arg2>>
+#else
+    template<typename Arg1, typename Arg2>
+    struct is_diagonal_matrix<Eigen::CwiseBinaryOp<
+      Eigen::internal::scalar_sum_op<typename Arg1::Scalar, typename Arg2::Scalar>, Arg1, Arg2>,
+      std::enable_if_t<diagonal_matrix<Arg1> and diagonal_matrix<Arg2>>>
+#endif
+      : std::true_type {};
+
+
+    // The difference between two diagonal matrices is also diagonal.
+#ifdef __cpp_concepts
+    template<diagonal_matrix Arg1, diagonal_matrix Arg2>
+    struct is_diagonal_matrix<Eigen::CwiseBinaryOp<
+      Eigen::internal::scalar_difference_op<typename Arg1::Scalar, typename Arg2::Scalar>, Arg1, Arg2>>
+#else
+    template<typename Arg1, typename Arg2>
+    struct is_diagonal_matrix<Eigen::CwiseBinaryOp<
+      Eigen::internal::scalar_difference_op<typename Arg1::Scalar, typename Arg2::Scalar>, Arg1, Arg2>,
+      std::enable_if_t<diagonal_matrix<Arg1> and diagonal_matrix<Arg2>>>
+#endif
+      : std::true_type {};
+
+
+    // The negation of an identity matrix is diagonal.
+#ifdef __cpp_concepts
+    template<diagonal_matrix Arg>
+    struct is_diagonal_matrix<Eigen::CwiseUnaryOp<Eigen::internal::scalar_opposite_op<typename Arg::Scalar>, Arg>>
+#else
+    template<typename Arg>
+    struct is_diagonal_matrix<Eigen::CwiseUnaryOp<Eigen::internal::scalar_opposite_op<typename Arg::Scalar>, Arg>,
+      std::enable_if_t<diagonal_matrix<Arg>>>
+#endif
+      : std::true_type {};
+
+
+    // ------------------------ //
+    //  is_self_adjoint_matrix  //
+    // ------------------------ //
+
+#ifdef __cpp_concepts
+    template<Eigen3::eigen_self_adjoint_expr T>
+    struct is_self_adjoint_matrix<T>
+#else
+    template<typename T>
+    struct is_self_adjoint_matrix<T, std::enable_if_t<Eigen3::eigen_self_adjoint_expr<T>>>
+#endif
+      : std::true_type {};
+
+
+    // ---------------------------- //
+    //  is_lower_triangular_matrix  //
+    // ---------------------------- //
+
+#ifdef __cpp_concepts
+    template<Eigen3::eigen_triangular_expr T> requires (MatrixTraits<T>::triangle_type == TriangleType::lower)
+    struct is_lower_triangular_matrix<T>
+#else
+    template<typename T>
+    struct is_lower_triangular_matrix<T,
+      std::enable_if_t<Eigen3::eigen_triangular_expr<T> and (MatrixTraits<T>::triangle_type == TriangleType::lower)>>
+#endif
+    : std::true_type {};
+
+
+    // ---------------------------- //
+    //  is_upper_triangular_matrix  //
+    // ---------------------------- //
+
+#ifdef __cpp_concepts
+    template<Eigen3::eigen_triangular_expr T> requires (MatrixTraits<T>::triangle_type == TriangleType::upper)
+    struct is_upper_triangular_matrix<T>
+#else
+    template<typename T>
+    struct is_upper_triangular_matrix<T,
+      std::enable_if_t<Eigen3::eigen_triangular_expr<T> and (MatrixTraits<T>::triangle_type == TriangleType::upper)>>
+#endif
+      : std::true_type {};
+
+
+    // ------------------- //
+    //  is_self_contained  //
+    // ------------------- //
+
+#ifdef __cpp_concepts
+    template<typename T> requires Eigen3::eigen_self_adjoint_expr<T> or Eigen3::eigen_triangular_expr<T> or
+      Eigen3::eigen_diagonal_expr<T> or Eigen3::to_euclidean_expr<T> or Eigen3::from_euclidean_expr<T>
+    struct is_self_contained<T>
+#else
+    template<typename T>
+    struct is_self_contained<T, std::enable_if_t<Eigen3::eigen_self_adjoint_expr<T> or Eigen3::eigen_triangular_expr<T> or
+      Eigen3::eigen_diagonal_expr<T> or Eigen3::to_euclidean_expr<T> or Eigen3::from_euclidean_expr<T>>>
+#endif
+      : is_self_contained<typename MatrixTraits<T>::BaseMatrix> {};
+
+
+#ifdef __cpp_concepts
+    template<Eigen3::eigen_zero_expr T>
+    struct is_self_contained<T>
+#else
+    template<typename T>
+    struct is_self_contained<T, std::enable_if_t<Eigen3::eigen_zero_expr<T>>>
+#endif
+      : std::true_type {};
+
+
+
+}
+
+
   /////////////////////////////
   //    SelfAdjointMatrix    //
   /////////////////////////////
-
-  template<typename BaseMatrix, TriangleType storage_triangle>
-  struct is_zero<Eigen3::SelfAdjointMatrix<BaseMatrix, storage_triangle>>
-    : std::bool_constant<is_zero_v<BaseMatrix>> {};
-
-  template<typename BaseMatrix, TriangleType storage_triangle>
-  struct is_identity<Eigen3::SelfAdjointMatrix<BaseMatrix, storage_triangle>>
-    : std::bool_constant<is_identity_v<BaseMatrix>> {};
-
-  template<typename BaseMatrix, TriangleType storage_triangle>
-  struct is_diagonal<Eigen3::SelfAdjointMatrix<BaseMatrix, storage_triangle>,
-    std::enable_if_t<not is_zero_v<BaseMatrix> and not is_identity_v<BaseMatrix> and not is_1by1_v<BaseMatrix>>>
-    : std::bool_constant<is_diagonal_v<BaseMatrix> or storage_triangle == TriangleType::diagonal> {};
-
-  template<typename BaseMatrix, TriangleType storage_triangle>
-  struct is_self_adjoint<Eigen3::SelfAdjointMatrix<BaseMatrix, storage_triangle>,
-    std::enable_if_t<not is_diagonal_v<BaseMatrix> and storage_triangle != TriangleType::diagonal>>
-    : std::true_type {};
 
   namespace Eigen3
   {
@@ -342,9 +628,6 @@ namespace OpenKalman
 
 
   template<typename BaseMatrix, TriangleType storage_triangle>
-  struct is_strict<Eigen3::SelfAdjointMatrix<BaseMatrix, storage_triangle>> : is_strict<BaseMatrix> {};
-
-  template<typename BaseMatrix, TriangleType storage_triangle>
   struct is_element_gettable<Eigen3::SelfAdjointMatrix<BaseMatrix, storage_triangle>, 2>
     : std::bool_constant<is_element_gettable_v<BaseMatrix, 2> or is_element_gettable_v<BaseMatrix, 1>> {};
 
@@ -366,32 +649,6 @@ namespace OpenKalman
   ////////////////////////////
   //    TriangularMatrix    //
   ////////////////////////////
-
-  template<typename BaseMatrix, TriangleType triangle_type>
-  struct is_zero<Eigen3::TriangularMatrix<BaseMatrix, triangle_type>>
-    : std::bool_constant<is_zero_v<BaseMatrix>> {};
-
-  template<typename BaseMatrix, TriangleType triangle_type>
-  struct is_identity<Eigen3::TriangularMatrix<BaseMatrix, triangle_type>>
-    : std::bool_constant<is_identity_v<BaseMatrix>> {};
-
-  template<typename BaseMatrix, TriangleType triangle_type>
-  struct is_diagonal<Eigen3::TriangularMatrix<BaseMatrix, triangle_type>,
-    std::enable_if_t<not is_zero_v<BaseMatrix> and not is_identity_v<BaseMatrix> and not is_1by1_v<BaseMatrix>>>
-    : std::bool_constant<is_diagonal_v<BaseMatrix> or triangle_type == TriangleType::diagonal> {};
-
-  template<typename BaseMatrix>
-  struct is_lower_triangular<Eigen3::TriangularMatrix<BaseMatrix, TriangleType::lower>,
-    std::enable_if_t<not is_diagonal_v<BaseMatrix>>>
-    : std::true_type {};
-
-  template<typename BaseMatrix>
-  struct is_upper_triangular<Eigen3::TriangularMatrix<BaseMatrix, TriangleType::upper>,
-    std::enable_if_t<not is_diagonal_v<BaseMatrix>>>
-    : std::true_type {};
-
-  template<typename BaseMatrix, TriangleType triangle_type>
-  struct is_strict<Eigen3::TriangularMatrix<BaseMatrix, triangle_type>> : is_strict<BaseMatrix> {};
 
   template<typename BaseMatrix, TriangleType triangle_type>
   struct is_element_gettable<Eigen3::TriangularMatrix<BaseMatrix, triangle_type>, 2>
@@ -416,18 +673,6 @@ namespace OpenKalman
   //    DiagonalMatrix    //
   // -------------------- //
 
-  template<typename BaseMatrix>
-  struct is_zero<Eigen3::DiagonalMatrix<BaseMatrix>>
-    : std::bool_constant<is_zero_v<BaseMatrix>> {};
-
-  template<typename BaseMatrix>
-  struct is_diagonal<Eigen3::DiagonalMatrix<BaseMatrix>,
-    std::enable_if_t<not is_zero_v<BaseMatrix> and not is_1by1_v<BaseMatrix>>>
-    : std::true_type {};
-
-  template<typename BaseMatrix>
-  struct is_strict<Eigen3::DiagonalMatrix<BaseMatrix>> : is_strict<BaseMatrix> {};
-
   template<typename BaseMatrix, std::size_t N>
   struct is_element_gettable<Eigen3::DiagonalMatrix<BaseMatrix>, N> : std::bool_constant<(N == 1 or  N == 2) and
       (is_element_gettable_v<BaseMatrix, 1> or is_element_gettable_v<BaseMatrix, 2>)> {};
@@ -441,40 +686,6 @@ namespace OpenKalman
   //    ZeroMatrix and other known Eigen zero expressions    //
   // ------------------------------------------------------- //
 
-  template<typename BaseMatrix>
-  struct is_zero<Eigen3::ZeroMatrix<BaseMatrix>> : std::true_type {};
-
-  template<typename ArgType>
-  struct is_strict<Eigen3::ZeroMatrix<ArgType>> : std::true_type {};
-
-  template<typename Arg1, typename Arg2>
-  struct is_zero<Eigen::Product<Arg1, Arg2>,
-    std::enable_if_t<is_zero_v<Arg1> or is_zero_v<Arg2>>>
-    : std::true_type {};
-
-  template<typename Arg1, typename Arg2>
-  struct is_zero<Eigen::CwiseBinaryOp<
-    Eigen::internal::scalar_product_op<typename Arg1::Scalar, typename Arg2::Scalar>, Arg1, Arg2>,
-    std::enable_if_t<is_zero_v<Arg1> or is_zero_v<Arg2>>>
-    : std::true_type {};
-
-  template<typename Arg1, typename Arg2>
-  struct is_zero<Eigen::CwiseBinaryOp<
-    Eigen::internal::scalar_sum_op<typename Arg1::Scalar, typename Arg2::Scalar>, Arg1, Arg2>,
-    std::enable_if_t<is_zero_v<Arg1> and is_zero_v<Arg2>>>
-    : std::true_type {};
-
-  template<typename Arg1, typename Arg2>
-  struct is_zero<Eigen::CwiseBinaryOp<
-    Eigen::internal::scalar_difference_op<typename Arg1::Scalar, typename Arg2::Scalar>, Arg1, Arg2>,
-    std::enable_if_t<(is_zero_v<Arg1> and is_zero_v<Arg2>) or (is_identity_v<Arg1> and is_identity_v<Arg2>)>>
-    : std::true_type {};
-
-  template<typename Arg>
-  struct is_zero<Eigen::CwiseUnaryOp<Eigen::internal::scalar_opposite_op<typename Arg::Scalar>, Arg>,
-    std::enable_if_t<is_zero_v<Arg>>>
-    : std::true_type {};
-
   template<typename BaseMatrix, std::size_t N>
   struct is_element_gettable<Eigen3::ZeroMatrix<BaseMatrix>, N>
     : std::bool_constant<N == 2 or (N == 1 and MatrixTraits<BaseMatrix>::columns == 1)> {};
@@ -486,9 +697,6 @@ namespace OpenKalman
   ///////////////////////////
   //    ToEuclideanExpr    //
   ///////////////////////////
-
-  template<typename Coefficients, typename BaseMatrix>
-  struct is_strict<Eigen3::ToEuclideanExpr<Coefficients, BaseMatrix>> : is_strict<BaseMatrix> {};
 
   template<typename Coefficients, typename BaseMatrix, std::size_t N>
   struct is_element_gettable<Eigen3::ToEuclideanExpr<Coefficients, BaseMatrix>, N>
@@ -502,9 +710,6 @@ namespace OpenKalman
   /////////////////////////////
   //    FromEuclideanExpr    //
   /////////////////////////////
-
-  template<typename Coefficients, typename BaseMatrix>
-  struct is_strict<Eigen3::FromEuclideanExpr<Coefficients, BaseMatrix>> : is_strict<BaseMatrix> {};
 
   template<typename Coefficients, typename BaseMatrix, std::size_t N>
   struct is_element_gettable<Eigen3::FromEuclideanExpr<Coefficients, BaseMatrix>, N>
@@ -520,62 +725,6 @@ namespace OpenKalman
   ///////////////////////////////////////////////////////////////
   //    Eigen Identity and other known diagonal expressions    //
   ///////////////////////////////////////////////////////////////
-
-  template<typename Arg>
-  struct is_identity<Eigen3::IdentityMatrix<Arg>>
-    : std::bool_constant<Arg::RowsAtCompileTime == Arg::ColsAtCompileTime> {};
-
-  /// Product of two identity matrices is also identity.
-  template<typename Arg1, typename Arg2>
-  struct is_identity<Eigen::Product<Arg1, Arg2>>
-    : std::bool_constant<is_identity_v<Arg1> and is_identity_v<Arg2>> {};
-
-  /// Product of two diagonal matrices is also diagonal.
-  template<typename Arg1, typename Arg2>
-  struct is_diagonal<Eigen::Product<Arg1, Arg2>,
-    std::enable_if_t<not((is_zero_v<Arg1> or is_zero_v<Arg2>) or
-      (is_identity_v<Arg1> and is_identity_v<Arg2>) or
-      (Arg1::RowsAtCompileTime == 1 and Arg2::ColsAtCompileTime == 1))>>
-    : std::bool_constant<is_diagonal_v<Arg1> and is_diagonal_v<Arg2>> {};
-
-  /// Diagonal matrix times a scalar is also diagonal.
-  template<typename Arg1, typename Arg2>
-  struct is_diagonal<Eigen::CwiseBinaryOp<
-    Eigen::internal::scalar_product_op<typename Arg1::Scalar, typename Arg2::Scalar>, Arg1, Arg2>,
-    std::enable_if_t<not is_zero_v<Arg1> and not is_zero_v<Arg2> and not is_1by1_v<Arg1> and not is_1by1_v<Arg2>>>
-    : std::bool_constant<is_diagonal_v<Arg1> or is_diagonal_v<Arg2>> {};
-
-  /// Diagonal matrix divided by a scalar is also diagonal.
-  template<typename Arg1, typename Arg2>
-  struct is_diagonal<Eigen::CwiseBinaryOp<
-    Eigen::internal::scalar_quotient_op<typename Arg1::Scalar, typename Arg2::Scalar>, Arg1, Arg2>,
-    std::enable_if_t<not is_zero_v<Arg1>>>
-    : std::bool_constant<is_diagonal_v<Arg1>> {};
-
-  /// Sum of two diagonal matrices is also diagonal.
-  template<typename Arg1, typename Arg2>
-  struct is_diagonal<Eigen::CwiseBinaryOp<
-    Eigen::internal::scalar_sum_op<typename Arg1::Scalar, typename Arg2::Scalar>, Arg1, Arg2>,
-    std::enable_if_t<
-      not (is_zero_v<Arg1> and is_zero_v<Arg2>) and
-      not (is_1by1_v<Arg1> and is_1by1_v<Arg2>)>>
-    : std::bool_constant<is_diagonal_v<Arg1> and is_diagonal_v<Arg2>> {};
-
-  /// Difference of two diagonal matrices is also diagonal.
-  template<typename Arg1, typename Arg2>
-  struct is_diagonal<Eigen::CwiseBinaryOp<
-    Eigen::internal::scalar_difference_op<typename Arg1::Scalar, typename Arg2::Scalar>, Arg1, Arg2>,
-    std::enable_if_t<
-      not (is_zero_v<Arg1> and is_zero_v<Arg2>) and
-      not (is_identity_v<Arg1> and is_identity_v<Arg2>) and
-      not (is_1by1_v<Arg1> and is_1by1_v<Arg2>)>>
-    : std::bool_constant<is_diagonal_v<Arg1> and is_diagonal_v<Arg2>> {};
-
-  /// The negation of an identity matrix is diagonal.
-  template<typename Arg>
-  struct is_diagonal<Eigen::CwiseUnaryOp<Eigen::internal::scalar_opposite_op<typename Arg::Scalar>, Arg>,
-    std::enable_if_t<not is_zero_v<Arg> and not is_1by1_v<Arg>>>
-    : std::bool_constant<is_diagonal_v<Arg>> {};
 
 } // namespace OpenKalman
 

@@ -27,14 +27,14 @@ namespace OpenKalman::Eigen3::internal
    */
 #ifdef __cpp_concepts
   template<typename Derived, typename Nested> requires
-    (is_self_adjoint_v<Nested> and not square_root_covariance<Derived>) or
-    (is_triangular_v<Nested> and square_root_covariance<Derived>)
+    (self_adjoint_matrix<Nested> and not square_root_covariance<Derived>) or
+    (triangular_matrix<Nested> and square_root_covariance<Derived>)
   struct Eigen3CovarianceBase<Derived, Nested>
 #else
   template<typename Derived, typename Nested>
   struct Eigen3CovarianceBase<Derived, Nested, std::enable_if_t<
-    (is_self_adjoint_v<Nested> and not square_root_covariance<Derived>) or
-    (is_triangular_v<Nested> and square_root_covariance<Derived>)>>
+    (self_adjoint_matrix<Nested> and not square_root_covariance<Derived>) or
+    (triangular_matrix<Nested> and square_root_covariance<Derived>)>>
 #endif
     : Eigen3MatrixBase<Derived, Nested> {};
 
@@ -45,12 +45,12 @@ namespace OpenKalman::Eigen3::internal
    */
 #ifdef __cpp_concepts
   template<typename Derived, typename ArgType> requires
-    (not is_self_adjoint_v<ArgType>) and (not square_root_covariance<Derived>)
+    (not self_adjoint_matrix<ArgType>) and (not square_root_covariance<Derived>)
   struct Eigen3CovarianceBase<Derived, ArgType>
 #else
   template<typename Derived, typename ArgType>
   struct Eigen3CovarianceBase<Derived, ArgType, std::enable_if_t<
-    not is_self_adjoint_v<ArgType> and not square_root_covariance<Derived>>>
+    not self_adjoint_matrix<ArgType> and not square_root_covariance<Derived>>>
 #endif
     : Eigen3MatrixBase<Derived, ArgType>
   {
@@ -84,12 +84,12 @@ namespace OpenKalman::Eigen3::internal
    */
 #ifdef __cpp_concepts
   template<typename Derived, typename ArgType> requires
-    (not is_triangular_v<ArgType>) and square_root_covariance<Derived>
+    (not triangular_matrix<ArgType>) and square_root_covariance<Derived>
   struct Eigen3CovarianceBase<Derived, ArgType>
 #else
   template<typename Derived, typename ArgType>
   struct Eigen3CovarianceBase<Derived, ArgType, std::enable_if_t<
-    not is_triangular_v<ArgType> and square_root_covariance<Derived>>>
+    not triangular_matrix<ArgType> and square_root_covariance<Derived>>>
 #endif
     : Eigen3MatrixBase<Derived, ArgType>
   {
@@ -128,7 +128,7 @@ namespace Eigen
   struct CovarianceCommaInitializer
   {
     using Scalar = typename CovarianceType::Scalar;
-    using BaseMatrix = OpenKalman::strict_matrix_t<typename OpenKalman::MatrixTraits<CovarianceType>::BaseMatrix>;
+    using BaseMatrix = OpenKalman::native_matrix_t<typename OpenKalman::MatrixTraits<CovarianceType>::BaseMatrix>;
     using Nested = CommaInitializer<BaseMatrix>;
 
     BaseMatrix matrix;

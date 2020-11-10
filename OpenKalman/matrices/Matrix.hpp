@@ -28,7 +28,7 @@ namespace OpenKalman
     RowCoefficients, ColumnCoefficients, BaseMatrix>
   {
     using Base = internal::TypedMatrixBase<Matrix, RowCoefficients, ColumnCoefficients, BaseMatrix>;
-    static_assert(is_typed_matrix_base_v<BaseMatrix>);
+    static_assert(typed_matrix_base<BaseMatrix>);
     static_assert(Base::dimension == RowCoefficients::size);
     static_assert(Base::columns == ColumnCoefficients::size);
 
@@ -48,8 +48,8 @@ namespace OpenKalman
 #endif
     Matrix(Arg&& other) noexcept : Base(std::forward<Arg>(other).base_matrix())
     {
-      static_assert(is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients>);
-      static_assert(is_equivalent_v<typename MatrixTraits<Arg>::ColumnCoefficients, ColumnCoefficients>);
+      static_assert(equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients>);
+      static_assert(equivalent_to<typename MatrixTraits<Arg>::ColumnCoefficients, ColumnCoefficients>);
     }
 
     /// Construct from a compatible Euclidean-transformed matrix.
@@ -60,15 +60,15 @@ namespace OpenKalman
 #endif
     Matrix(Arg&& other) noexcept : Base(OpenKalman::from_Euclidean<RowCoefficients>(std::forward<Arg>(other).base_matrix()))
     {
-      static_assert(is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients>);
-      static_assert(is_equivalent_v<typename MatrixTraits<Arg>::ColumnCoefficients, ColumnCoefficients>);
+      static_assert(equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients>);
+      static_assert(equivalent_to<typename MatrixTraits<Arg>::ColumnCoefficients, ColumnCoefficients>);
     }
 
     /// Construct from compatible typed matrix base.
 #ifdef __cpp_concepts
     template<typed_matrix_base Arg>
 #else
-    template<typename Arg, std::enable_if_t<is_typed_matrix_base_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<typed_matrix_base<Arg>, int> = 0>
 #endif
     Matrix(Arg&& arg) noexcept : Base(std::forward<Arg>(arg))
     {
@@ -82,16 +82,16 @@ namespace OpenKalman
 #else
     template<typename Arg, std::enable_if_t<covariance<Arg>, int> = 0>
 #endif
-    Matrix(Arg&& arg) noexcept : Base(strict_matrix(std::forward<Arg>(arg)))
+    Matrix(Arg&& arg) noexcept : Base(make_native_matrix(std::forward<Arg>(arg)))
     {
-      static_assert(is_equivalent_v<typename MatrixTraits<Arg>::Coefficients, RowCoefficients>);
-      static_assert(is_equivalent_v<RowCoefficients, ColumnCoefficients>);
+      static_assert(equivalent_to<typename MatrixTraits<Arg>::Coefficients, RowCoefficients>);
+      static_assert(equivalent_to<RowCoefficients, ColumnCoefficients>);
     }
 
     /// Copy assignment operator.
     auto& operator=(const Matrix& other)
     {
-      if constexpr (not is_zero_v<BaseMatrix> and not is_identity_v<BaseMatrix>) if (this != &other)
+      if constexpr (not zero_matrix<BaseMatrix> and not identity_matrix<BaseMatrix>) if (this != &other)
         this->base_matrix() = other.base_matrix();
       return *this;
     }
@@ -99,7 +99,7 @@ namespace OpenKalman
     /// Move assignment operator.
     auto& operator=(Matrix&& other)
     {
-      if constexpr (not is_zero_v<BaseMatrix> and not is_identity_v<BaseMatrix>) if (this != &other)
+      if constexpr (not zero_matrix<BaseMatrix> and not identity_matrix<BaseMatrix>) if (this != &other)
         this->base_matrix() = std::move(other).base_matrix();
       return *this;
     }
@@ -112,15 +112,15 @@ namespace OpenKalman
 #endif
     auto& operator=(Arg&& other) noexcept
     {
-      static_assert(is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients>);
-      static_assert(is_equivalent_v<typename MatrixTraits<Arg>::ColumnCoefficients, ColumnCoefficients>);
-      if constexpr (is_zero_v<BaseMatrix>)
+      static_assert(equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients>);
+      static_assert(equivalent_to<typename MatrixTraits<Arg>::ColumnCoefficients, ColumnCoefficients>);
+      if constexpr (zero_matrix<BaseMatrix>)
       {
-        static_assert(is_zero_v<Arg>);
+        static_assert(zero_matrix<Arg>);
       }
-      else if constexpr (is_identity_v<BaseMatrix>)
+      else if constexpr (identity_matrix<BaseMatrix>)
       {
-        static_assert(is_identity_v<Arg>);
+        static_assert(identity_matrix<Arg>);
       }
       else if constexpr(euclidean_transformed<Arg>)
       {
@@ -148,8 +148,8 @@ namespace OpenKalman
 #endif
     auto& operator+=(Arg&& other) noexcept
     {
-      static_assert(is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients>);
-      static_assert(is_equivalent_v<typename MatrixTraits<Arg>::ColumnCoefficients, ColumnCoefficients>);
+      static_assert(equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients>);
+      static_assert(equivalent_to<typename MatrixTraits<Arg>::ColumnCoefficients, ColumnCoefficients>);
       this->base_matrix() += std::forward<Arg>(other).base_matrix();
       return *this;
     }
@@ -162,7 +162,7 @@ namespace OpenKalman
 #endif
     auto& operator+=(const Arg& arg) noexcept
     {
-      static_assert(is_equivalent_v<typename DistributionTraits<Arg>::Coefficients, RowCoefficients>);
+      static_assert(equivalent_to<typename DistributionTraits<Arg>::Coefficients, RowCoefficients>);
       static_assert(ColumnCoefficients::axes_only);
       static_assert(not euclidean_transformed<Matrix>);
       apply_columnwise(this->base_matrix(), [&arg](auto& col){ col += arg().base_matrix(); });
@@ -184,8 +184,8 @@ namespace OpenKalman
 #endif
     auto& operator-=(Arg&& other) noexcept
     {
-      static_assert(is_equivalent_v<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients>);
-      static_assert(is_equivalent_v<typename MatrixTraits<Arg>::ColumnCoefficients, ColumnCoefficients>);
+      static_assert(equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients>);
+      static_assert(equivalent_to<typename MatrixTraits<Arg>::ColumnCoefficients, ColumnCoefficients>);
       this->base_matrix() -= std::forward<Arg>(other).base_matrix();
       return *this;
     }
@@ -198,7 +198,7 @@ namespace OpenKalman
 #endif
     auto& operator-=(const Arg& arg) noexcept
     {
-      static_assert(is_equivalent_v<typename DistributionTraits<Arg>::Coefficients, RowCoefficients>);
+      static_assert(equivalent_to<typename DistributionTraits<Arg>::Coefficients, RowCoefficients>);
       static_assert(ColumnCoefficients::axes_only);
       static_assert(not euclidean_transformed<Matrix>);
       apply_columnwise(this->base_matrix(), [&arg](auto& col){ col -= arg().base_matrix(); });
@@ -208,7 +208,7 @@ namespace OpenKalman
   private:
     template<typename CR = RowCoefficients, typename CC = ColumnCoefficients, typename Arg>
     static auto
-    make(Arg&& arg) noexcept { return Matrix<CR, CC, strict_t<Arg>>(std::forward<Arg>(arg)); }
+    make(Arg&& arg) noexcept { return Matrix<CR, CC, self_contained_t<Arg>>(std::forward<Arg>(arg)); }
 
   public:
     static auto zero() { return make(MatrixTraits<BaseMatrix>::zero()); }
@@ -225,10 +225,10 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typed_matrix_base M>
 #else
-  template<typename M, std::enable_if_t<is_typed_matrix_base_v<M>, int> = 0>
+  template<typename M, std::enable_if_t<typed_matrix_base<M>, int> = 0>
 #endif
   Matrix(M&&)
-  -> Matrix<Axes<MatrixTraits<M>::dimension>, Axes<MatrixTraits<M>::columns>, lvalue_or_strict_t<M>>;
+  -> Matrix<Axes<MatrixTraits<M>::dimension>, Axes<MatrixTraits<M>::columns>, lvalue_or_self_contained2_t<M>>;
 
   /// Deduce template parameters from a non-Euclidean-transformed typed matrix.
 #ifdef __cpp_concepts
@@ -263,7 +263,7 @@ namespace OpenKalman
   Matrix(V&&) -> Matrix<
     typename MatrixTraits<V>::Coefficients,
     typename MatrixTraits<V>::Coefficients,
-    strict_matrix_t<typename MatrixTraits<V>::BaseMatrix>>;
+    native_matrix_t<typename MatrixTraits<V>::BaseMatrix>>;
 
 
   ///////////////////////////////////
@@ -277,7 +277,7 @@ namespace OpenKalman
     (coefficients<ColumnCoefficients> or std::same_as<ColumnCoefficients, void>)
 #else
   template<typename RowCoefficients = void, typename ColumnCoefficients = void, typename M,
-    std::enable_if_t<is_typed_matrix_base_v<M>, int> = 0>
+    std::enable_if_t<typed_matrix_base<M>, int> = 0>
 #endif
   inline auto make_Matrix(M&& arg)
   {
@@ -289,7 +289,7 @@ namespace OpenKalman
       ColumnCoefficients>;
     static_assert(MatrixTraits<M>::dimension == RowCoeffs::size);
     static_assert(MatrixTraits<M>::columns == ColCoeffs::size);
-    return Matrix<RowCoeffs, ColCoeffs, lvalue_or_strict_t<M>>(std::forward<M>(arg));
+    return Matrix<RowCoeffs, ColCoeffs, lvalue_or_self_contained2_t<M>>(std::forward<M>(arg));
   }
 
 
@@ -302,7 +302,7 @@ namespace OpenKalman
   inline auto make_Matrix(M&& arg)
   {
     using C = typename MatrixTraits<M>::Coefficients;
-    return make_Matrix<C, C>(strict_matrix(std::forward<M>(arg)));
+    return make_Matrix<C, C>(make_native_matrix(std::forward<M>(arg)));
   }
 
 
@@ -323,25 +323,25 @@ namespace OpenKalman
   }
 
 
-  /// Make a default, strict Matrix object.
+  /// Make a default, self-contained Matrix object.
 #ifdef __cpp_concepts
   template<coefficients RowCoefficients, coefficients ColumnCoefficients, typed_matrix_base M>
 #else
   template<typename RowCoefficients, typename ColumnCoefficients, typename M,
-    std::enable_if_t<is_typed_matrix_base_v<M>, int> = 0>
+    std::enable_if_t<typed_matrix_base<M>, int> = 0>
 #endif
   inline auto make_Matrix()
   {
     static_assert(RowCoefficients::size == MatrixTraits<M>::dimension);
-    return Matrix<RowCoefficients, ColumnCoefficients, strict_matrix_t<M>>();
+    return Matrix<RowCoefficients, ColumnCoefficients, native_matrix_t<M>>();
   }
 
 
-  /// Make a default, strict Matrix object with axis coefficients.
+  /// Make a default, self-contained Matrix object with axis coefficients.
 #ifdef __cpp_concepts
   template<typed_matrix_base M>
 #else
-  template<typename M, std::enable_if_t<is_typed_matrix_base_v<M>, int> = 0>
+  template<typename M, std::enable_if_t<typed_matrix_base<M>, int> = 0>
 #endif
   inline auto make_Matrix()
   {
@@ -370,15 +370,15 @@ namespace OpenKalman
     static_assert(ColumnCoefficients::size == columns);
 
     template<std::size_t rows = dimension, std::size_t cols = columns, typename S = Scalar>
-    using StrictMatrix = typename MatrixTraits<BaseMatrix>::template StrictMatrix<rows, cols, S>;
+    using NativeMatrix = typename MatrixTraits<BaseMatrix>::template NativeMatrix<rows, cols, S>;
 
-    using Strict = Matrix<RowCoefficients, ColumnCoefficients, strict_t<BaseMatrix>>;
+    using SelfContained = Matrix<RowCoefficients, ColumnCoefficients, self_contained_t<BaseMatrix>>;
 
 #ifdef __cpp_concepts
     template<coefficients RC = RowCoefficients, coefficients CC = ColumnCoefficients, typed_matrix_base Arg>
 #else
     template<typename RC = RowCoefficients, typename CC = ColumnCoefficients, typename Arg, std::enable_if_t<
-      is_typed_matrix_base_v<Arg>, int> = 0>
+      typed_matrix_base<Arg>, int> = 0>
 #endif
     static auto make(Arg&& arg)
     {

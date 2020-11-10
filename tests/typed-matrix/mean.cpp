@@ -210,19 +210,19 @@ TEST_F(matrices, Mean_deduction_guides)
 {
   auto a = (M23() << 1, 2, 3, 4, 5, 6).finished();
   EXPECT_TRUE(is_near(Mean(a), a));
-  static_assert(is_equivalent_v<typename MatrixTraits<decltype(Mean(a))>::RowCoefficients, Axes<2>>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(Mean(a))>::RowCoefficients, Axes<2>>);
 
   auto b1 = Mat23 {1, 2, 3, 4, 5, 6};
   EXPECT_TRUE(is_near(Mean(b1), Mat23 {1, 2, 3, 4, 5, 6}));
-  static_assert(is_equivalent_v<typename MatrixTraits<decltype(Mean(b1))>::RowCoefficients, C2>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(Mean(b1))>::RowCoefficients, C2>);
 
   auto b2 = Matrix<C2, Axes<3>, M23> {1, 2, 3, 4, 5, 6};
   EXPECT_TRUE(is_near(Mean(b2), Mat23 {1, 2, 3, 4, 5, 6}));
-  static_assert(is_equivalent_v<typename MatrixTraits<decltype(Mean(b2))>::RowCoefficients, C2>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(Mean(b2))>::RowCoefficients, C2>);
 
   auto b3 = EuclideanMean<C2, M33> {1, 2, 3, std::sqrt(3)/2, 0.5, std::sqrt(2)/2, 0.5, std::sqrt(3)/2, std::sqrt(2)/2};
   EXPECT_TRUE(is_near(Mean(b3), Mat23 {1, 2, 3, M_PI/6, M_PI/3, M_PI/4}));
-  static_assert(is_equivalent_v<typename MatrixTraits<decltype(Mean(b3))>::RowCoefficients, C2>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(Mean(b3))>::RowCoefficients, C2>);
   static_assert(MatrixTraits<decltype(Mean(b3))>::dimension == 2);
 }
 
@@ -231,15 +231,15 @@ TEST_F(matrices, Mean_make_functions)
 {
   auto a = (M23() << 1, 2, 3, 4, 5, 6).finished();
   EXPECT_TRUE(is_near(make_Mean<C2>(a), Mat23{a}));
-  static_assert(is_equivalent_v<typename MatrixTraits<decltype(make_Mean<C2>(a))>::RowCoefficients, C2>);
-  static_assert(is_equivalent_v<typename MatrixTraits<decltype(make_Mean<C2>(a))>::ColumnCoefficients, Axes<3>>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(make_Mean<C2>(a))>::RowCoefficients, C2>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(make_Mean<C2>(a))>::ColumnCoefficients, Axes<3>>);
 
   auto b = Mat23 {1, 2, 3, 4, 5, 6};
   EXPECT_TRUE(is_near(make_Mean(b), Mat23{a}));
-  static_assert(is_equivalent_v<typename MatrixTraits<decltype(make_Mean(b))>::RowCoefficients, C2>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(make_Mean(b))>::RowCoefficients, C2>);
 
-  static_assert(is_equivalent_v<typename MatrixTraits<decltype(make_Mean<C2, M23>())>::RowCoefficients, C2>);
-  static_assert(is_equivalent_v<typename MatrixTraits<decltype(make_Mean<M23>())>::RowCoefficients, Axes<2>>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(make_Mean<C2, M23>())>::RowCoefficients, C2>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(make_Mean<M23>())>::RowCoefficients, Axes<2>>);
 }
 
 
@@ -253,12 +253,12 @@ TEST_F(matrices, Mean_traits)
   static_assert(not wrapped_mean<Mean<Axes<2>, I22>>);
   static_assert(column_vector<Mat23>);
 
-  static_assert(not is_identity_v<Mat23>);
-  static_assert(is_identity_v<Mean<Axes<2>, I22>>);
-  static_assert(not is_identity_v<Mean<Axes<2>, M23>>);
-  static_assert(not is_zero_v<Mat23>);
-  static_assert(is_zero_v<Mean<C2, Z22>>);
-  static_assert(is_zero_v<Mean<C2, ZeroMatrix<M23>>>);
+  static_assert(not identity_matrix<Mat23>);
+  static_assert(identity_matrix<Mean<Axes<2>, I22>>);
+  static_assert(not identity_matrix<Mean<Axes<2>, M23>>);
+  static_assert(not zero_matrix<Mat23>);
+  static_assert(zero_matrix<Mean<C2, Z22>>);
+  static_assert(zero_matrix<Mean<C2, ZeroMatrix<M23>>>);
 
   EXPECT_TRUE(is_near(
     MatrixTraits<Mat23>::make((Eigen::Matrix<double, 2, 3>() << 1, 2, 3, 4, 5, 6).finished()).base_matrix(),
@@ -278,10 +278,10 @@ TEST_F(matrices, Mean_overloads)
 
   EXPECT_TRUE(is_near(base_matrix(Mat23 {1, 2, 3, 4, 5, 6}), TMat23 {1, 2, 3, w_4, w_5, w_6}));
 
-  EXPECT_TRUE(is_near(strict_matrix(Mat23 {1, 2, 3, 4, 5, 6}), Mat23 {1, 2, 3, w_4, w_5, w_6}));
+  EXPECT_TRUE(is_near(make_native_matrix(Mat23 {1, 2, 3, 4, 5, 6}), Mat23 {1, 2, 3, w_4, w_5, w_6}));
 
-  EXPECT_TRUE(is_near(strict(Mat23 {1, 2, 3, 4, 5, 6} * 2), Mat23 {2, 4, 6, 8-2*M_PI, 10-4*M_PI, 12-4*M_PI}));
-  static_assert(std::is_same_v<std::decay_t<decltype(strict(Mat23 {1, 2, 3, 4, 5, 6} * 2))>,
+  EXPECT_TRUE(is_near(make_self_contained(Mat23 {1, 2, 3, 4, 5, 6} * 2), Mat23 {2, 4, 6, 8-2*M_PI, 10-4*M_PI, 12-4*M_PI}));
+  static_assert(std::is_same_v<std::decay_t<decltype(make_self_contained(Mat23 {1, 2, 3, 4, 5, 6} * 2))>,
     Mean<C2, decltype(wrap_angles<C2>(std::declval<M23>()))>>);
 
   EXPECT_TRUE(is_near(to_Euclidean(
@@ -299,21 +299,21 @@ TEST_F(matrices, Mean_overloads)
   EXPECT_TRUE(is_near(to_Euclidean(m2).base_matrix(), x2));
 
   EXPECT_TRUE(is_near(to_diagonal(Mat21 {2, 3}).base_matrix(), Mat22 {2, 0, 0, 3}));
-  static_assert(is_diagonal_v<decltype(to_diagonal(Mat21 {2, 3}))>);
+  static_assert(diagonal_matrix<decltype(to_diagonal(Mat21 {2, 3}))>);
   static_assert(typed_matrix<decltype(to_diagonal(Mat21 {2, 3}))>);
-  static_assert(is_equivalent_v<typename MatrixTraits<decltype(to_diagonal(Mat21 {2, 3}))>::ColumnCoefficients, C2>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(to_diagonal(Mat21 {2, 3}))>::ColumnCoefficients, C2>);
 
   EXPECT_TRUE(is_near(to_diagonal(Mat21 {5, 6}).base_matrix(), Mat22 {5, 0, 0, w_6}));
-  static_assert(is_diagonal_v<decltype(to_diagonal(Mat21 {5, 6}))>);
+  static_assert(diagonal_matrix<decltype(to_diagonal(Mat21 {5, 6}))>);
   static_assert(typed_matrix<decltype(to_diagonal(Mat21 {5, 6}))>);
-  static_assert(is_equivalent_v<typename MatrixTraits<decltype(to_diagonal(Mat21 {5, 6}))>::ColumnCoefficients, C2>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(to_diagonal(Mat21 {5, 6}))>::ColumnCoefficients, C2>);
 
   EXPECT_TRUE(is_near(transpose(Mat23 {1, 2, 3, 4, 5, 6}).base_matrix(), TMat32 {1, w_4, 2, w_5, 3, w_6}));
-  static_assert(std::is_same_v<std::decay_t<decltype(strict(transpose(Mat23 {1, 2, 3, 4, 5, 6})))>,
+  static_assert(std::is_same_v<std::decay_t<decltype(make_self_contained(transpose(Mat23 {1, 2, 3, 4, 5, 6})))>,
     Matrix<Axes<3>, C2, M32>>);
 
   EXPECT_TRUE(is_near(adjoint(Mat23 {1, 2, 3, 4, 5, 6}).base_matrix(), TMat32 {1, w_4, 2, w_5, 3, w_6}));
-  static_assert(std::is_same_v<std::decay_t<decltype(strict(adjoint(Mat23 {1, 2, 3, 4, 5, 6})))>,
+  static_assert(std::is_same_v<std::decay_t<decltype(make_self_contained(adjoint(Mat23 {1, 2, 3, 4, 5, 6})))>,
     Matrix<Axes<3>, C2, M32>>);
 
   EXPECT_NEAR(determinant(Mat22 {1, 2, 3, 4}), w_4 - 6, 1e-6);
@@ -347,17 +347,17 @@ TEST_F(matrices, Mean_blocks)
 {
   EXPECT_TRUE(is_near(concatenate_vertical(Mat22 {1, 2, 3, 4}, Mat12 {5, 6}), Mat32 {1, 2, 3, 4, 5, 6}));
   static_assert(mean<decltype(concatenate_vertical(Mat22 {1, 2, 3, 4}, Mat12 {5, 6}))>);
-  static_assert(is_equivalent_v<typename MatrixTraits<decltype(concatenate_vertical(Mat22 {1, 2, 3, 4}, Mat12 {5, 6}))>::RowCoefficients, C3>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(concatenate_vertical(Mat22 {1, 2, 3, 4}, Mat12 {5, 6}))>::RowCoefficients, C3>);
 
   EXPECT_TRUE(is_near(concatenate_horizontal(Mat22 {1, 2, 4, 5}, Mat21 {3, 6}), Mat23 {1, 2, 3, 4, 5, 6}));
   static_assert(mean<decltype(concatenate_horizontal(Mat22 {1, 2, 4, 5}, Mat21 {3, 6}))>);
-  static_assert(is_equivalent_v<typename MatrixTraits<decltype(concatenate_horizontal(Mat22 {1, 2, 4, 5}, Mat21 {3, 6}))>::RowCoefficients, C2>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(concatenate_horizontal(Mat22 {1, 2, 4, 5}, Mat21 {3, 6}))>::RowCoefficients, C2>);
 
   EXPECT_TRUE(is_near(concatenate_horizontal(Mat22 {1, 2, 4, 5}, Matrix<C2, Angle, M21> {3, 6}),
     Matrix<C2, Coefficients<Axis, Axis, Angle>, M23> {1, 2, 3, 4-2*M_PI, 5-2*M_PI, 6}));
   static_assert(not mean<decltype(concatenate_horizontal(Mat22 {1, 2, 4, 5}, Matrix<C2, Angle, M21> {3, 6}))>);
-  static_assert(is_equivalent_v<typename MatrixTraits<decltype(concatenate_horizontal(Mat22 {1, 2, 4, 5}, Matrix<C2, Angle, M21> {3, 6}))>::RowCoefficients, C2>);
-  static_assert(is_equivalent_v<typename MatrixTraits<decltype(concatenate_horizontal(Mat22 {1, 2, 4, 5}, Matrix<C2, Angle, M21> {3, 6}))>::ColumnCoefficients, Coefficients<Axis, Axis, Angle>>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(concatenate_horizontal(Mat22 {1, 2, 4, 5}, Matrix<C2, Angle, M21> {3, 6}))>::RowCoefficients, C2>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(concatenate_horizontal(Mat22 {1, 2, 4, 5}, Matrix<C2, Angle, M21> {3, 6}))>::ColumnCoefficients, Coefficients<Axis, Axis, Angle>>);
 
   EXPECT_TRUE(is_near(split_vertical(Mat32 {1, 2, 3, 4, 5, 6}), std::tuple {}));
   EXPECT_TRUE(is_near(split_horizontal(Mat23 {1, 2, 3, 4, 5, 6}), std::tuple {}));
@@ -371,10 +371,10 @@ TEST_F(matrices, Mean_blocks)
 
   EXPECT_TRUE(is_near(column<0>(Mat22 {1, 2, 3, 4}), Mean{1., 3}));
   EXPECT_TRUE(is_near(column<1>(Mat22 {1, 2, 3, 4}), Mean{2., 4-2*M_PI}));
-  static_assert(is_equivalent_v<typename MatrixTraits<decltype(column<0>(Mat22 {1, 2, 3, 4}))>::RowCoefficients, C2>);
-  static_assert(is_equivalent_v<typename MatrixTraits<decltype(column<1>(Mat22 {1, 2, 3, 4}))>::RowCoefficients, C2>);
-  static_assert(is_equivalent_v<typename MatrixTraits<decltype(column<0>(Mat22 {1, 2, 3, 4}))>::ColumnCoefficients, Axis>);
-  static_assert(is_equivalent_v<typename MatrixTraits<decltype(column<1>(Mat22 {1, 2, 3, 4}))>::ColumnCoefficients, Axis>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(column<0>(Mat22 {1, 2, 3, 4}))>::RowCoefficients, C2>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(column<1>(Mat22 {1, 2, 3, 4}))>::RowCoefficients, C2>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(column<0>(Mat22 {1, 2, 3, 4}))>::ColumnCoefficients, Axis>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(column<1>(Mat22 {1, 2, 3, 4}))>::ColumnCoefficients, Axis>);
 
   auto m = Mat22 {1, 2, 3, 4};
   EXPECT_TRUE(is_near(apply_columnwise(m, [](auto& col){ col *= 2; }), Mat22 {2, 4, 6, 8}));
@@ -392,10 +392,10 @@ TEST_F(matrices, Mean_blocks)
 
   EXPECT_TRUE(is_near(apply_columnwise<2>([] { return Mat21 {1., 2}; }), Mat22 {1, 1, 2, 2}));
   EXPECT_TRUE(is_near(apply_columnwise<2>([](std::size_t i){ return Mat21 {i + 1., 2*i + 1}; }), Mat22 {1, 2, 1, 3}));
-  static_assert(is_equivalent_v<typename MatrixTraits<decltype(apply_columnwise<2>(std::declval<Mat21()>()))>::RowCoefficients, C2>);
-  static_assert(is_equivalent_v<typename MatrixTraits<decltype(apply_columnwise<2>(std::declval<Mat21()>()))>::ColumnCoefficients, Axes<2>>);
-  static_assert(is_equivalent_v<typename MatrixTraits<decltype(apply_columnwise<2>(std::declval<Mat21(std::size_t)>()))>::RowCoefficients, C2>);
-  static_assert(is_equivalent_v<typename MatrixTraits<decltype(apply_columnwise<2>(std::declval<Mat21(std::size_t)>()))>::ColumnCoefficients, Axes<2>>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(apply_columnwise<2>(std::declval<Mat21()>()))>::RowCoefficients, C2>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(apply_columnwise<2>(std::declval<Mat21()>()))>::ColumnCoefficients, Axes<2>>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(apply_columnwise<2>(std::declval<Mat21(std::size_t)>()))>::RowCoefficients, C2>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(apply_columnwise<2>(std::declval<Mat21(std::size_t)>()))>::ColumnCoefficients, Axes<2>>);
 
   auto n = Mat22 {1, 2, 3, 4};
   EXPECT_TRUE(is_near(apply_coefficientwise(n, [](auto& x){ x *= 2; }), Mat22 {2, 4, 6, 8}));
@@ -440,22 +440,22 @@ TEST_F(matrices, Mean_arithmetic)
   static_assert(mean<decltype(Mat32 {2, 4, 6, 8, 10, 12} / 2, Mat32 {1, 2, 3, 4, 5, 6})>);
 
   EXPECT_TRUE(is_near(Mat22 {1, 2, 3, 4} * Mean<Axes<2>, M23> {1, 2, 3, 4, 5, 6}, TMat23 {9, 12, 15, 19 - 8*M_PI, 26 - 10*M_PI, 33 - 12*M_PI}));
-  static_assert(is_equivalent_v<typename MatrixTraits<decltype(Mat22 {1, 2, 3, 4} * Mean<Axes<2>, M23> {1, 2, 3, 4, 5, 6})>::RowCoefficients, C2>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(Mat22 {1, 2, 3, 4} * Mean<Axes<2>, M23> {1, 2, 3, 4, 5, 6})>::RowCoefficients, C2>);
   static_assert(typed_matrix<decltype(Mat22 {1, 2, 3, 4} * Mean<Axes<2>, M23> {1, 2, 3, 4, 5, 6})>);
 
   EXPECT_TRUE(is_near(Mat22 {1, 2, 3, 4} * Matrix<Axes<2>, Axes<3>, M23> {1, 2, 3, 4, 5, 6}, TMat23 {9, 12, 15, 19 - 8*M_PI, 26 - 10*M_PI, 33 - 12*M_PI}));
-  static_assert(is_equivalent_v<typename MatrixTraits<decltype(Mat22 {1, 2, 3, 4} * Matrix<Axes<2>, Axes<3>, M23> {1, 2, 3, 4, 5, 6})>::RowCoefficients, C2>);
-  static_assert(is_equivalent_v<typename MatrixTraits<decltype(Mat22 {1, 2, 3, 4} * Matrix<Axes<2>, Axes<3>, M23> {1, 2, 3, 4, 5, 6})>::ColumnCoefficients, Axes<3>>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(Mat22 {1, 2, 3, 4} * Matrix<Axes<2>, Axes<3>, M23> {1, 2, 3, 4, 5, 6})>::RowCoefficients, C2>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(Mat22 {1, 2, 3, 4} * Matrix<Axes<2>, Axes<3>, M23> {1, 2, 3, 4, 5, 6})>::ColumnCoefficients, Axes<3>>);
   static_assert(typed_matrix<decltype(Mat22 {1, 2, 3, 4} * Matrix<Axes<2>, Axes<3>, M23> {1, 2, 3, 4, 5, 6})>);
 
   EXPECT_TRUE(is_near(Mat22 {1, 2, 3, 2} * Matrix<Axes<2>, C3, M23> {1, 2, 3, 3, 2, 1}, Matrix<Axes<2>, C3, M23> {7, 6, 5, 9, 10, 11}));
-  static_assert(is_equivalent_v<typename MatrixTraits<decltype(Mat22 {1, 2, 3, 4} * Matrix<Axes<2>, C3, M23> {1, 2, 3, 4, 5, 6})>::RowCoefficients, C2>);
-  static_assert(is_equivalent_v<typename MatrixTraits<decltype(Mat22 {1, 2, 3, 4} * Matrix<Axes<2>, C3, M23> {1, 2, 3, 4, 5, 6})>::ColumnCoefficients, C3>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(Mat22 {1, 2, 3, 4} * Matrix<Axes<2>, C3, M23> {1, 2, 3, 4, 5, 6})>::RowCoefficients, C2>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(Mat22 {1, 2, 3, 4} * Matrix<Axes<2>, C3, M23> {1, 2, 3, 4, 5, 6})>::ColumnCoefficients, C3>);
   static_assert(typed_matrix<decltype(Mat22 {1, 2, 3, 4} * Matrix<Axes<2>, C3, M23> {1, 2, 3, 4, 5, 6})>);
 
   EXPECT_TRUE(is_near(Mat22 {1, 2, 3, 4} * EuclideanMean<Axes<2>, M23> {1, 2, 3, 4, 5, 6}, TMat23 {9, 12, 15, 19 - 8*M_PI, 26 - 10*M_PI, 33 - 12*M_PI}));
-  static_assert(is_equivalent_v<typename MatrixTraits<decltype(Matrix<C2, Axes<2>, M22> {1, 2, 3, 4} * EuclideanMean<Axes<2>, M23> {1, 2, 3, 4, 5, 6})>::RowCoefficients, C2>);
-  static_assert(is_equivalent_v<typename MatrixTraits<decltype(Matrix<C2, Axes<2>, M22> {1, 2, 3, 4} * EuclideanMean<Axes<2>, M23> {1, 2, 3, 4, 5, 6})>::ColumnCoefficients, Axes<3>>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(Matrix<C2, Axes<2>, M22> {1, 2, 3, 4} * EuclideanMean<Axes<2>, M23> {1, 2, 3, 4, 5, 6})>::RowCoefficients, C2>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(Matrix<C2, Axes<2>, M22> {1, 2, 3, 4} * EuclideanMean<Axes<2>, M23> {1, 2, 3, 4, 5, 6})>::ColumnCoefficients, Axes<3>>);
   static_assert(typed_matrix<decltype(Mat22 {1, 2, 3, 4} * EuclideanMean<Axes<2>, M23> {1, 2, 3, 4, 5, 6})>);
 
   EXPECT_TRUE(is_near(-Mat32 {1, 2, 3, 4, 5, 6}, Mat32 {-1, -2, -3, -4, -5, -6}));
@@ -552,7 +552,7 @@ TEST_F(matrices, Mean_angle_mult_TypedMatrix)
              -5, 2, -1};
   const Vm vm {2, 1, -1};
   const Rm rm {-4, -7};
-  static_assert(std::is_same_v<typename MatrixTraits<decltype(strict(m*vm))>::RowCoefficients, Coefficients<Axis, Angle>>);
+  static_assert(std::is_same_v<typename MatrixTraits<decltype(make_self_contained(m*vm))>::RowCoefficients, Coefficients<Axis, Angle>>);
   EXPECT_TRUE(is_near(m*vm, rm));
 }
 
@@ -592,7 +592,7 @@ TEST_F(matrices, Mean_angle_arithmetic)
   using T3 = decltype(v5.base_matrix());
   static_assert(std::is_same_v<typename T0::BaseMatrix&, T3>);
   static_assert(std::is_same_v<std::decay_t<decltype((v5 + v2).base_matrix().base_matrix().base_matrix())>, std::decay_t<decltype(v5.base_matrix() + v2.base_matrix())>>);
-  static_assert(std::is_same_v<typename MatrixTraits<decltype(strict(v5))>::BaseMatrix, std::remove_reference_t<decltype(strict_matrix(v5))>>);
+  static_assert(std::is_same_v<typename MatrixTraits<decltype(make_self_contained(v5))>::BaseMatrix, std::remove_reference_t<decltype(make_native_matrix(v5))>>);
 }
 
 
@@ -734,7 +734,7 @@ TEST_F(matrices, Wrap_distance)
   EXPECT_TRUE(is_near(x0, Eigen::Matrix<double, 1, 1> {5}));
   EXPECT_TRUE(is_near(x0 + R {1.2}, Eigen::Matrix<double, 1, 1> {6.2}));
   EXPECT_TRUE(is_near(from_Euclidean(-to_Euclidean(x0) + to_Euclidean(R {1.2})), Eigen::Matrix<double, 1, 1> {3.8}));
-  EXPECT_TRUE(is_near(R {1.1} - 3. * R {1}, -strict_matrix(R {1.9})));
+  EXPECT_TRUE(is_near(R {1.1} - 3. * R {1}, -make_native_matrix(R {1.9})));
   EXPECT_TRUE(is_near(R {1.2} + R {-3}, R {4.2}));
   EXPECT_NEAR(get_element(x0, 0, 0), 5, 1e-6);
   EXPECT_NEAR(get_element(x0, 0), 5., 1e-6);

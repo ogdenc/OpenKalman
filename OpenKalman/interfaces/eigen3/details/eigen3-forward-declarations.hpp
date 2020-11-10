@@ -369,7 +369,7 @@ namespace OpenKalman
     }
 
 
-    /// Make strict EuclideanMean from a Scalar type, a set of Coefficients, and a number of columns.
+    /// Make self-contained EuclideanMean from a Scalar type, a set of Coefficients, and a number of columns.
 #ifdef __cpp_concepts
     template<typename Scalar, coefficients Coefficients, std::size_t cols = 1> requires std::is_arithmetic_v<Scalar>
 #else

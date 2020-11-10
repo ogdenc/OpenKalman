@@ -34,7 +34,7 @@ namespace OpenKalman
   square_root(Arg&& arg) noexcept
   {
     using C = typename MatrixTraits<Arg>::Coefficients;
-    if constexpr(is_diagonal_v<Arg> and not is_zero_v<Arg>)
+    if constexpr(diagonal_matrix<Arg> and not zero_matrix<Arg>)
     {
       return make_SquareRootCovariance<C>(Cholesky_factor(base_matrix(std::forward<Arg>(arg))));
     }
@@ -54,7 +54,7 @@ namespace OpenKalman
   square(Arg&& arg) noexcept
   {
     using C = typename MatrixTraits<Arg>::Coefficients;
-    if constexpr(is_diagonal_v<Arg> and not is_zero_v<Arg>)
+    if constexpr(diagonal_matrix<Arg> and not zero_matrix<Arg>)
     {
       return make_Covariance<C>(Cholesky_square(base_matrix(std::forward<Arg>(arg))));
     }
@@ -66,10 +66,10 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<covariance Arg> requires (not is_Cholesky_v<Arg>) and (not is_diagonal_v<Arg>)
+  template<covariance Arg> requires (not cholesky_form<Arg>) and (not diagonal_matrix<Arg>)
 #else
   template<typename Arg,
-    std::enable_if_t<covariance<Arg> and not is_Cholesky_v<Arg> and not is_diagonal_v<Arg>, int> = 0>
+    std::enable_if_t<covariance<Arg> and not cholesky_form<Arg> and not diagonal_matrix<Arg>, int> = 0>
 #endif
   inline auto
   to_Cholesky(Arg&& arg) noexcept
@@ -79,10 +79,10 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<covariance Arg> requires is_Cholesky_v<Arg> and (not is_diagonal_v<Arg>)
+  template<covariance Arg> requires cholesky_form<Arg> and (not diagonal_matrix<Arg>)
 #else
 template<typename Arg,
-    std::enable_if_t<covariance<Arg> and is_Cholesky_v<Arg> and not is_diagonal_v<Arg>, int> = 0>
+    std::enable_if_t<covariance<Arg> and cholesky_form<Arg> and not diagonal_matrix<Arg>, int> = 0>
 #endif
   inline auto
   from_Cholesky(Arg&& arg) noexcept
@@ -91,35 +91,37 @@ template<typename Arg,
   }
 
 
-  /// Convert to strict regular matrix.
+/**
+ * Convert to a self-contained Eigen3 matrix.
+ */
 #ifdef __cpp_concepts
   template<covariance Arg>
 #else
   template<typename Arg, std::enable_if_t<covariance<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
-  strict_matrix(Arg&& arg) noexcept
+  make_native_matrix(Arg&& arg) noexcept
   {
-    return strict_matrix(internal::convert_base_matrix(std::forward<Arg>(arg)));
+    return make_native_matrix(internal::convert_base_matrix(std::forward<Arg>(arg)));
   }
 
 
-  /// Convert to strict version of the covariance matrix.
+  /// Convert to self-contained version of the covariance matrix.
 #ifdef __cpp_concepts
   template<covariance Arg>
 #else
   template<typename Arg, std::enable_if_t<covariance<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
-  strict(Arg&& arg) noexcept
+  make_self_contained(Arg&& arg) noexcept
   {
-    if constexpr(is_strict_v<Arg>)
+    if constexpr(self_contained<Arg>)
     {
       return std::forward<Arg>(arg);
     }
     else
     {
-      return MatrixTraits<Arg>::make(strict(base_matrix(std::forward<Arg>(arg))));
+      return MatrixTraits<Arg>::make(make_self_contained(base_matrix(std::forward<Arg>(arg))));
     }
   }
 
@@ -158,9 +160,9 @@ template<typename Arg,
   {
     auto d = determinant(base_matrix(std::forward<Arg>(arg)));
     using ArgBase = typename MatrixTraits<Arg>::BaseMatrix;
-    if constexpr(is_triangular_v<ArgBase> and not is_self_adjoint_v<ArgBase> and not square_root_covariance<Arg>)
+    if constexpr(triangular_matrix<ArgBase> and not self_adjoint_matrix<ArgBase> and not square_root_covariance<Arg>)
       return d * d;
-    else if constexpr(not is_triangular_v<ArgBase> and is_self_adjoint_v<ArgBase> and square_root_covariance<Arg>)
+    else if constexpr(not triangular_matrix<ArgBase> and self_adjoint_matrix<ArgBase> and square_root_covariance<Arg>)
       return std::sqrt(d);
     else
       return d;
@@ -188,7 +190,7 @@ template<typename Arg,
   inline Arg&
   rank_update(Arg& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
   {
-    static_assert(is_equivalent_v<typename MatrixTraits<Arg>::Coefficients, typename MatrixTraits<U>::RowCoefficients>);
+    static_assert(equivalent_to<typename MatrixTraits<Arg>::Coefficients, typename MatrixTraits<U>::RowCoefficients>);
     rank_update(base_matrix(arg), base_matrix(u), alpha);
     return arg;
   }
@@ -202,7 +204,7 @@ template<typename Arg,
   inline auto
   rank_update(Arg&& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
   {
-    static_assert(is_equivalent_v<typename MatrixTraits<Arg>::Coefficients, typename MatrixTraits<U>::RowCoefficients>);
+    static_assert(equivalent_to<typename MatrixTraits<Arg>::Coefficients, typename MatrixTraits<U>::RowCoefficients>);
     return MatrixTraits<Arg>::make(rank_update(base_matrix(std::forward<Arg>(arg)), base_matrix(u), alpha));
   }
 
@@ -216,8 +218,8 @@ template<typename Arg,
   inline auto
   solve(A&& a, B&& b) noexcept
   {
-    static_assert(is_equivalent_v<typename MatrixTraits<A>::Coefficients, typename MatrixTraits<B>::RowCoefficients>);
-    auto x = strict(solve(convert_base_matrix(std::forward<A>(a)), base_matrix(std::forward<B>(b))));
+    static_assert(equivalent_to<typename MatrixTraits<A>::Coefficients, typename MatrixTraits<B>::RowCoefficients>);
+    auto x = make_self_contained(solve(convert_base_matrix(std::forward<A>(a)), base_matrix(std::forward<B>(b))));
     return MatrixTraits<B>::template make<typename MatrixTraits<A>::Coefficients>(std::move(x));
   }
 
@@ -295,11 +297,11 @@ template<typename Arg,
     inline auto
     split_item_impl(Arg&& arg)
     {
-      if constexpr(is_1by1_v<Arg> and not square_root_covariance<Expr> and is_Cholesky_v<Expr>)
+      if constexpr(one_by_one_matrix<Arg> and not square_root_covariance<Expr> and cholesky_form<Expr>)
       {
         return MatrixTraits<Expr>::template make<C>(Cholesky_square(std::forward<Arg>(arg)));
       }
-      else if constexpr(is_1by1_v<Arg> and square_root_covariance<Expr> and not is_Cholesky_v<Expr>)
+      else if constexpr(one_by_one_matrix<Arg> and square_root_covariance<Expr> and not cholesky_form<Expr>)
       {
         return MatrixTraits<Expr>::template make<C>(Cholesky_factor(std::forward<Arg>(arg)));
       }
@@ -315,11 +317,11 @@ template<typename Arg,
     template<typename Expr, typename F, typename Arg>
     static auto split_cov_diag_impl(const F& f, Arg&& arg)
     {
-      if constexpr(is_1by1_v<Arg> and not square_root_covariance<Expr> and is_Cholesky_v<Expr>)
+      if constexpr(one_by_one_matrix<Arg> and not square_root_covariance<Expr> and cholesky_form<Expr>)
       {
         return f(Cholesky_square(std::forward<Arg>(arg)));
       }
-      else if constexpr(is_1by1_v<Arg> and square_root_covariance<Expr> and not is_Cholesky_v<Expr>)
+      else if constexpr(one_by_one_matrix<Arg> and square_root_covariance<Expr> and not cholesky_form<Expr>)
       {
         return f(Cholesky_factor(std::forward<Arg>(arg)));
       }
@@ -335,7 +337,7 @@ template<typename Arg,
       template<typename RC, typename CC, typename Arg>
       static auto call(Arg&& arg)
       {
-        static_assert(is_equivalent_v<RC, CC>);
+        static_assert(equivalent_to<RC, CC>);
         auto f = [](auto&& m) { return MatrixTraits<Expr>::template make<RC>(std::forward<decltype(m)>(m)); };
         return split_cov_diag_impl<Expr>(f, std::forward<Arg>(arg));
       }
@@ -373,7 +375,7 @@ template<typename Arg,
   inline auto
   split_diagonal(M&& m) noexcept
   {
-    static_assert(is_prefix_v<Concatenate<Cs...>, typename MatrixTraits<M>::Coefficients>);
+    static_assert(prefix_of<Concatenate<Cs...>, typename MatrixTraits<M>::Coefficients>);
     return split_diagonal<internal::SplitCovDiagF<M>, Cs...>(base_matrix(std::forward<M>(m)));
   }
 
@@ -388,8 +390,8 @@ template<typename Arg,
   split_vertical(M&& m) noexcept
   {
     using CC = typename MatrixTraits<M>::Coefficients;
-    static_assert(is_prefix_v<Concatenate<Cs...>, CC>);
-    return split_vertical<internal::SplitCovVertF<M, CC>, Cs...>(strict_matrix(std::forward<M>(m)));
+    static_assert(prefix_of<Concatenate<Cs...>, CC>);
+    return split_vertical<internal::SplitCovVertF<M, CC>, Cs...>(make_native_matrix(std::forward<M>(m)));
   }
 
 
@@ -403,8 +405,8 @@ template<typename Arg,
   split_horizontal(M&& m) noexcept
   {
     using RC = typename MatrixTraits<M>::Coefficients;
-    static_assert(is_prefix_v<Concatenate<Cs...>, RC>);
-    return split_horizontal<internal::SplitCovHorizF<M, RC>, Cs...>(strict_matrix(std::forward<M>(m)));
+    static_assert(prefix_of<Concatenate<Cs...>, RC>);
+    return split_horizontal<internal::SplitCovHorizF<M, RC>, Cs...>(make_native_matrix(std::forward<M>(m)));
   }
 
 
@@ -425,13 +427,13 @@ template<typename Arg,
   /// Get element (i) of a covariance matrix.
 #ifdef __cpp_concepts
   template<covariance Arg> requires
-    ((is_self_adjoint_v<typename MatrixTraits<Arg>::BaseMatrix> and not square_root_covariance<Arg>) or
-      (is_triangular_v<typename MatrixTraits<Arg>::BaseMatrix> and square_root_covariance<Arg>)) and
+    ((self_adjoint_matrix<typename MatrixTraits<Arg>::BaseMatrix> and not square_root_covariance<Arg>) or
+      (triangular_matrix<typename MatrixTraits<Arg>::BaseMatrix> and square_root_covariance<Arg>)) and
     is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 1>
 #else
   template<typename Arg, std::enable_if_t<covariance<Arg> and
-    ((is_self_adjoint_v<typename MatrixTraits<Arg>::BaseMatrix> and not square_root_covariance<Arg>) or
-      (is_triangular_v<typename MatrixTraits<Arg>::BaseMatrix> and square_root_covariance<Arg>)) and
+    ((self_adjoint_matrix<typename MatrixTraits<Arg>::BaseMatrix> and not square_root_covariance<Arg>) or
+      (triangular_matrix<typename MatrixTraits<Arg>::BaseMatrix> and square_root_covariance<Arg>)) and
     is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 1>, int> = 0>
 #endif
   inline auto
@@ -462,14 +464,14 @@ template<typename Arg,
 #ifdef __cpp_concepts
   template<covariance Arg, typename Scalar> requires
     (not std::is_const_v<std::remove_reference_t<Arg>>) and
-      ((is_self_adjoint_v<typename MatrixTraits<Arg>::BaseMatrix> and not square_root_covariance<Arg>) or
-        (is_triangular_v<typename MatrixTraits<Arg>::BaseMatrix> and square_root_covariance<Arg>)) and
+      ((self_adjoint_matrix<typename MatrixTraits<Arg>::BaseMatrix> and not square_root_covariance<Arg>) or
+        (triangular_matrix<typename MatrixTraits<Arg>::BaseMatrix> and square_root_covariance<Arg>)) and
       is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 1>
 #else
   template<typename Arg, typename Scalar, std::enable_if_t<
     covariance<Arg> and not std::is_const_v<std::remove_reference_t<Arg>> and
-      ((is_self_adjoint_v<typename MatrixTraits<Arg>::BaseMatrix> and not square_root_covariance<Arg>) or
-        (is_triangular_v<typename MatrixTraits<Arg>::BaseMatrix> and square_root_covariance<Arg>)) and
+      ((self_adjoint_matrix<typename MatrixTraits<Arg>::BaseMatrix> and not square_root_covariance<Arg>) or
+        (triangular_matrix<typename MatrixTraits<Arg>::BaseMatrix> and square_root_covariance<Arg>)) and
       is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 1>, int> = 0>
 #endif
   inline void
@@ -583,14 +585,14 @@ template<typename Arg,
 #endif
   inline std::ostream& operator<<(std::ostream& os, const Cov& c)
   {
-    os << strict_matrix(c);
+    os << make_native_matrix(c);
     return os;
   }
 
 
-  /**********************
-   * Arithmetic Operators
-   **********************/
+  // ---------------------- //
+  //  Arithmetic Operators  //
+  // ---------------------- //
 
   /// Add two covariance types or one covariance type and one compatible typed matrix.
 #ifdef __cpp_concepts
@@ -613,42 +615,42 @@ template<typename Arg,
     if constexpr(typed_matrix<Other>)
     {
       static_assert(
-        is_equivalent_v<C, typename MatrixTraits<Other>::RowCoefficients> and
-        is_equivalent_v<C, typename MatrixTraits<Other>::ColumnCoefficients>);
+        equivalent_to<C, typename MatrixTraits<Other>::RowCoefficients> and
+        equivalent_to<C, typename MatrixTraits<Other>::ColumnCoefficients>);
     }
     else
     {
-      static_assert(is_equivalent_v<C, typename MatrixTraits<Arg2>::Coefficients>);
+      static_assert(equivalent_to<C, typename MatrixTraits<Arg2>::Coefficients>);
     }
 
-    if constexpr(is_zero_v<Arg1>)
+    if constexpr(zero_matrix<Arg1>)
     {
       return std::forward<Arg2>(arg2);
     }
-    else if constexpr(is_zero_v<Arg2>)
+    else if constexpr(zero_matrix<Arg2>)
     {
       return std::forward<Arg1>(arg1);
     }
-    else if constexpr(is_Cholesky_v<Arg1> and is_Cholesky_v<Arg2> and
+    else if constexpr(cholesky_form<Arg1> and cholesky_form<Arg2> and
       not square_root_covariance<Arg1> and not square_root_covariance<Arg2>)
     {
       decltype(auto) E1 = base_matrix(std::forward<Arg1>(arg1));
       decltype(auto) E2 = base_matrix(std::forward<Arg2>(arg2));
-      if constexpr(is_upper_triangular_v<decltype(E1)> and is_upper_triangular_v<decltype(E2)>)
+      if constexpr(upper_triangular_matrix<decltype(E1)> and upper_triangular_matrix<decltype(E2)>)
       {
-        return make_Covariance<C>(strict(QR_decomposition(concatenate_vertical(E1, E2))));
+        return make_Covariance<C>(make_self_contained(QR_decomposition(concatenate_vertical(E1, E2))));
       }
-      else if constexpr(is_upper_triangular_v<decltype(E1)> and is_lower_triangular_v<decltype(E2)>)
+      else if constexpr(upper_triangular_matrix<decltype(E1)> and lower_triangular_matrix<decltype(E2)>)
       {
-        return make_Covariance<C>(strict(QR_decomposition(concatenate_vertical(E1, adjoint(E2)))));
+        return make_Covariance<C>(make_self_contained(QR_decomposition(concatenate_vertical(E1, adjoint(E2)))));
       }
-      else if constexpr(is_lower_triangular_v<decltype(E1)> and is_upper_triangular_v<decltype(E2)>)
+      else if constexpr(lower_triangular_matrix<decltype(E1)> and upper_triangular_matrix<decltype(E2)>)
       {
-        return make_Covariance<C>(strict(LQ_decomposition(concatenate_horizontal(E1, adjoint(E2)))));
+        return make_Covariance<C>(make_self_contained(LQ_decomposition(concatenate_horizontal(E1, adjoint(E2)))));
       }
       else
       {
-        return make_Covariance<C>(strict(LQ_decomposition(concatenate_horizontal(E1, E2))));
+        return make_Covariance<C>(make_self_contained(LQ_decomposition(concatenate_horizontal(E1, E2))));
       }
     }
     else
@@ -657,12 +659,12 @@ template<typename Arg,
       decltype(auto) b2 = internal::convert_base_matrix(std::forward<Arg2>(arg2));
       constexpr auto conversion = not std::is_lvalue_reference_v<decltype(b1)> or not std::is_lvalue_reference_v<decltype(b2)>;
 
-      const auto sum = [&b1, &b2] { if constexpr(conversion) return strict(b1 + b2); else return b1 + b2; }();
-      if constexpr(is_self_adjoint_v<decltype(sum)>)
+      const auto sum = [&b1, &b2] { if constexpr(conversion) return make_self_contained(b1 + b2); else return b1 + b2; }();
+      if constexpr(self_adjoint_matrix<decltype(sum)>)
       {
         return make_Covariance<C>(sum);
       }
-      else if constexpr(is_triangular_v<decltype(sum)>)
+      else if constexpr(triangular_matrix<decltype(sum)>)
       {
         return make_SquareRootCovariance<C>(sum);
       }
@@ -695,30 +697,30 @@ template<typename Arg,
     if constexpr(typed_matrix<Other>)
     {
       static_assert(
-        is_equivalent_v<C, typename MatrixTraits<Other>::RowCoefficients> and
-          is_equivalent_v<C, typename MatrixTraits<Other>::ColumnCoefficients>);
+        equivalent_to<C, typename MatrixTraits<Other>::RowCoefficients> and
+          equivalent_to<C, typename MatrixTraits<Other>::ColumnCoefficients>);
     }
     else
     {
-      static_assert(is_equivalent_v<C, typename MatrixTraits<Arg2>::Coefficients>);
+      static_assert(equivalent_to<C, typename MatrixTraits<Arg2>::Coefficients>);
     }
 
-    if constexpr(is_zero_v<Arg2>)
+    if constexpr(zero_matrix<Arg2>)
     {
       return std::forward<Arg1>(arg1);
     }
-    else if constexpr(is_Cholesky_v<Arg1> and is_Cholesky_v<Arg2> and
+    else if constexpr(cholesky_form<Arg1> and cholesky_form<Arg2> and
       not square_root_covariance<Arg1> and not square_root_covariance<Arg2>)
     {
       using Scalar = typename MatrixTraits<Arg1>::Scalar;
       using B = typename MatrixTraits<Arg2>::BaseMatrix;
 
       decltype(auto) a = base_matrix(std::forward<Arg1>(arg1));
-      const auto b = is_upper_triangular_v<B> ?
-        strict_matrix(adjoint(base_matrix(std::forward<Arg2>(arg2)))) :
-        strict_matrix(base_matrix(std::forward<Arg2>(arg2)));
+      const auto b = upper_triangular_matrix<B> ?
+        make_native_matrix(adjoint(base_matrix(std::forward<Arg2>(arg2)))) :
+        make_native_matrix(base_matrix(std::forward<Arg2>(arg2)));
 
-      return make_Covariance<C>(strict(rank_update(a, b, Scalar(-1))));
+      return make_Covariance<C>(make_self_contained(rank_update(a, b, Scalar(-1))));
     }
     else
     {
@@ -726,12 +728,12 @@ template<typename Arg,
       decltype(auto) b2 = internal::convert_base_matrix(std::forward<Arg2>(arg2));
       constexpr auto conversion = not std::is_lvalue_reference_v<decltype(b1)> or not std::is_lvalue_reference_v<decltype(b2)>;
 
-      const auto diff = [&b1, &b2] { if constexpr(conversion) return strict(b1 - b2); else return b1 - b2; }();
-      if constexpr(is_self_adjoint_v<decltype(diff)>)
+      const auto diff = [&b1, &b2] { if constexpr(conversion) return make_self_contained(b1 - b2); else return b1 - b2; }();
+      if constexpr(self_adjoint_matrix<decltype(diff)>)
       {
         return make_Covariance<C>(diff);
       }
-      else if constexpr(is_triangular_v<decltype(diff)>)
+      else if constexpr(triangular_matrix<decltype(diff)>)
       {
         return make_SquareRootCovariance<C>(diff);
       }
@@ -745,25 +747,25 @@ template<typename Arg,
 
   /// Multiply two covariance types.
 #ifdef __cpp_concepts
-  template<covariance Arg1, covariance Arg2>
+  template<covariance Arg1, covariance Arg2> requires
+    equivalent_to<typename MatrixTraits<Arg1>::Coefficients, typename MatrixTraits<Arg2>::Coefficients>
 #else
-  template<typename Arg1, typename Arg2, std::enable_if_t<
-    covariance<Arg1> and covariance<Arg2>, int> = 0>
+  template<typename Arg1, typename Arg2, std::enable_if_t<covariance<Arg1> and covariance<Arg2> and
+    equivalent_to<typename MatrixTraits<Arg1>::Coefficients, typename MatrixTraits<Arg2>::Coefficients>, int> = 0>
 #endif
   constexpr decltype(auto) operator*(Arg1&& arg1, Arg2&& arg2) noexcept
   {
     using C = typename MatrixTraits<Arg1>::Coefficients;
-    static_assert(is_equivalent_v<C, typename MatrixTraits<Arg2>::Coefficients>);
 
-    if constexpr(is_zero_v<Arg1> or is_zero_v<Arg2>)
+    if constexpr(zero_matrix<Arg1> or zero_matrix<Arg2>)
     {
       return MatrixTraits<Arg1>::zero();
     }
-    else if constexpr(is_identity_v<Arg1>)
+    else if constexpr(identity_matrix<Arg1>)
     {
       return std::forward<Arg2>(arg2);
     }
-    else if constexpr(is_identity_v<Arg2>)
+    else if constexpr(identity_matrix<Arg2>)
     {
       return std::forward<Arg1>(arg1);
     }
@@ -773,12 +775,12 @@ template<typename Arg,
       decltype(auto) b2 = internal::convert_base_matrix(std::forward<Arg2>(arg2));
       constexpr auto conversion = not std::is_lvalue_reference_v<decltype(b1)> or not std::is_lvalue_reference_v<decltype(b2)>;
 
-      const auto prod = [&b1, &b2] { if constexpr(conversion) return strict(b1 * b2); else return b1 * b2; }();
-      if constexpr(is_self_adjoint_v<decltype(prod)>)
+      const auto prod = [&b1, &b2] { if constexpr(conversion) return make_self_contained(b1 * b2); else return b1 * b2; }();
+      if constexpr(self_adjoint_matrix<decltype(prod)>)
       {
         return make_Covariance<C>(prod);
       }
-      else if constexpr(is_triangular_v<decltype(prod)>)
+      else if constexpr(triangular_matrix<decltype(prod)>)
       {
         return make_SquareRootCovariance<C>(prod);
       }
@@ -799,23 +801,23 @@ template<typename Arg,
   constexpr decltype(auto) operator*(M&& m, Cov&& cov) noexcept
   {
     using CC = typename MatrixTraits<Cov>::Coefficients;
-    static_assert(is_equivalent_v<typename MatrixTraits<M>::ColumnCoefficients, CC>);
+    static_assert(equivalent_to<typename MatrixTraits<M>::ColumnCoefficients, CC>);
     using RC = typename MatrixTraits<M>::RowCoefficients;
-    using Mat = strict_matrix_t<M, RC::size, CC::size>;
+    using Mat = native_matrix_t<M, RC::size, CC::size>;
 
-    if constexpr(is_zero_v<M> or is_zero_v<Cov>)
+    if constexpr(zero_matrix<M> or zero_matrix<Cov>)
     {
       return make_Matrix<RC, CC>(MatrixTraits<Mat>::zero());
     }
-    else if constexpr(is_identity_v<M>)
+    else if constexpr(identity_matrix<M>)
     {
       return std::forward<Cov>(cov);
     }
-    else if constexpr(is_identity_v<Cov>)
+    else if constexpr(identity_matrix<Cov>)
     {
       return std::forward<M>(m);
     }
-    else if constexpr(is_identity_v<typename MatrixTraits<M>::BaseMatrix>)
+    else if constexpr(identity_matrix<typename MatrixTraits<M>::BaseMatrix>)
     {
       return make_Matrix<RC, CC>(internal::convert_base_matrix(std::forward<Cov>(cov)));
     }
@@ -826,7 +828,7 @@ template<typename Arg,
 
       if constexpr(not std::is_lvalue_reference_v<decltype(cb)>)
       {
-        return make_Matrix<RC, CC>(strict(mb * cb));
+        return make_Matrix<RC, CC>(make_self_contained(mb * cb));
       }
       else
       {
@@ -845,23 +847,23 @@ template<typename Arg,
   constexpr decltype(auto) operator*(Cov&& cov, M&& m) noexcept
   {
     using RC = typename MatrixTraits<Cov>::Coefficients;
-    static_assert(is_equivalent_v<RC, typename MatrixTraits<M>::RowCoefficients>);
+    static_assert(equivalent_to<RC, typename MatrixTraits<M>::RowCoefficients>);
     using CC = typename MatrixTraits<M>::ColumnCoefficients;
-    using Mat = strict_matrix_t<M, RC::size, CC::size>;
+    using Mat = native_matrix_t<M, RC::size, CC::size>;
 
-    if constexpr(is_zero_v<Cov> or is_zero_v<M>)
+    if constexpr(zero_matrix<Cov> or zero_matrix<M>)
     {
       return make_Matrix<RC, CC>(MatrixTraits<Mat>::zero());
     }
-    else if constexpr(is_identity_v<M>)
+    else if constexpr(identity_matrix<M>)
     {
       return std::forward<Cov>(cov);
     }
-    else if constexpr(is_identity_v<Cov>)
+    else if constexpr(identity_matrix<Cov>)
     {
       return std::forward<M>(m);
     }
-    else if constexpr(is_identity_v<typename MatrixTraits<M>::BaseMatrix>)
+    else if constexpr(identity_matrix<typename MatrixTraits<M>::BaseMatrix>)
     {
       return make_Matrix<RC, CC>(internal::convert_base_matrix(std::forward<Cov>(cov)));
     }
@@ -871,7 +873,7 @@ template<typename Arg,
       decltype(auto) mb = base_matrix(std::forward<M>(m));
 
       if constexpr(not std::is_lvalue_reference_v<decltype(cb)>)
-        return make_Matrix<RC, CC>(strict(cb * mb));
+        return make_Matrix<RC, CC>(make_self_contained(cb * mb));
       else
         return make_Matrix<RC, CC>(cb * mb);
     }
@@ -888,23 +890,23 @@ template<typename Arg,
   constexpr auto operator*(M&& m, const S s) noexcept
   {
     using Scalar = const typename MatrixTraits<M>::Scalar;
-    if constexpr(is_Cholesky_v<M>)
+    if constexpr(cholesky_form<M>)
     {
       if constexpr(square_root_covariance<M>)
       {
         auto ret = MatrixTraits<M>::make(base_matrix(std::forward<M>(m)) * static_cast<Scalar>(s));
-        if constexpr (not std::is_lvalue_reference_v<M&&>) return strict(std::move(ret)); else return ret;
+        if constexpr (not std::is_lvalue_reference_v<M&&>) return make_self_contained(std::move(ret)); else return ret;
       }
       else
       {
-        auto b = strict(base_matrix(std::forward<M>(m)));
+        auto b = make_self_contained(base_matrix(std::forward<M>(m)));
         if (s > Scalar(0))
         {
           b *= std::sqrt(static_cast<Scalar>(s));
         }
         else if (s < Scalar(0))
         {
-          const auto u = strict_matrix(b);
+          const auto u = make_native_matrix(b);
           b = MatrixTraits<decltype(b)>::zero();
           rank_update(b, u, static_cast<Scalar>(s));
         }
@@ -917,19 +919,19 @@ template<typename Arg,
     }
     else
     {
-      if constexpr(is_zero_v<M>)
+      if constexpr(zero_matrix<M>)
       {
         return MatrixTraits<M>::zero();
       }
-      else if constexpr(square_root_covariance<M> and not is_diagonal_v<M>)
+      else if constexpr(square_root_covariance<M> and not diagonal_matrix<M>)
       {
         auto ret = MatrixTraits<M>::make(base_matrix(std::forward<M>(m)) * (static_cast<Scalar>(s) * static_cast<Scalar>(s)));
-        if constexpr (not std::is_lvalue_reference_v<M&&>) return strict(std::move(ret)); else return ret;
+        if constexpr (not std::is_lvalue_reference_v<M&&>) return make_self_contained(std::move(ret)); else return ret;
       }
       else
       {
         auto ret = MatrixTraits<M>::make(base_matrix(std::forward<M>(m)) * static_cast<Scalar>(s));
-        if constexpr (not std::is_lvalue_reference_v<M&&>) return strict(std::move(ret)); else return ret;
+        if constexpr (not std::is_lvalue_reference_v<M&&>) return make_self_contained(std::move(ret)); else return ret;
       }
     }
   }
@@ -946,7 +948,7 @@ template<typename Arg,
   {
     using Scalar = typename MatrixTraits<M>::Scalar;
     auto ret = std::forward<M>(m) * static_cast<Scalar>(s);
-    if constexpr (not std::is_lvalue_reference_v<M&&>) return strict(std::move(ret)); else return ret;
+    if constexpr (not std::is_lvalue_reference_v<M&&>) return make_self_contained(std::move(ret)); else return ret;
   }
 
 
@@ -960,23 +962,23 @@ template<typename Arg,
   constexpr auto operator/(M&& m, const S s)
   {
     using Scalar = typename MatrixTraits<M>::Scalar;
-    if constexpr(is_Cholesky_v<M>)
+    if constexpr(cholesky_form<M>)
     {
       if constexpr(square_root_covariance<M>)
       {
         auto ret = MatrixTraits<M>::make(base_matrix(std::forward<M>(m)) / static_cast<Scalar>(s));
-        if constexpr (not std::is_lvalue_reference_v<M&&>) return strict(std::move(ret)); else return ret;
+        if constexpr (not std::is_lvalue_reference_v<M&&>) return make_self_contained(std::move(ret)); else return ret;
       }
       else
       {
-        auto b = strict(base_matrix(std::forward<M>(m)));
+        auto b = make_self_contained(base_matrix(std::forward<M>(m)));
         if (s > Scalar(0))
         {
           b /= std::sqrt(static_cast<Scalar>(s));
         }
         else if (s < Scalar(0))
         {
-          const auto u = strict_matrix(b);
+          const auto u = make_native_matrix(b);
           b = MatrixTraits<decltype(b)>::zero();
           rank_update(b, u, 1 / static_cast<Scalar>(s));
         }
@@ -989,19 +991,19 @@ template<typename Arg,
     }
     else
     {
-      if constexpr(is_zero_v<M>)
+      if constexpr(zero_matrix<M>)
       {
         return MatrixTraits<M>::zero();
       }
-      else if constexpr(square_root_covariance<M> and not is_diagonal_v<M>)
+      else if constexpr(square_root_covariance<M> and not diagonal_matrix<M>)
       {
         auto ret = MatrixTraits<M>::make(base_matrix(std::forward<M>(m)) / (static_cast<Scalar>(s) * static_cast<Scalar>(s)));
-        if constexpr (not std::is_lvalue_reference_v<M&>) return strict(std::move(ret)); else return ret;
+        if constexpr (not std::is_lvalue_reference_v<M&>) return make_self_contained(std::move(ret)); else return ret;
       }
       else
       {
         auto ret = MatrixTraits<M>::make(base_matrix(std::forward<M>(m)) / static_cast<Scalar>(s));
-        if constexpr (not std::is_lvalue_reference_v<M&&>) return strict(std::move(ret)); else return ret;
+        if constexpr (not std::is_lvalue_reference_v<M&&>) return make_self_contained(std::move(ret)); else return ret;
       }
     }
   }
@@ -1015,35 +1017,35 @@ template<typename Arg,
 #endif
   constexpr auto operator-(M&& m) noexcept
   {
-    static_assert(not is_Cholesky_v<M> or square_root_covariance<M>,
+    static_assert(not cholesky_form<M> or square_root_covariance<M>,
       "Cannot negate a Cholesky-based Covariance because the square root would be complex.");
-    if constexpr(is_Cholesky_v<M>)
+    if constexpr(cholesky_form<M>)
     {
       if constexpr(square_root_covariance<M>)
       {
         auto ret = MatrixTraits<M>::make(-base_matrix(std::forward<M>(m)));
-        if constexpr (not std::is_lvalue_reference_v<M&&>) return strict(std::move(ret)); else return ret;
+        if constexpr (not std::is_lvalue_reference_v<M&&>) return make_self_contained(std::move(ret)); else return ret;
       }
       else
       {
-        auto res = strict(std::forward<M>(m));
+        auto res = make_self_contained(std::forward<M>(m));
         res *= MatrixTraits<M>::Scalar(-1);
         return res;
       }
     }
     else
     {
-      if constexpr(is_zero_v<M>)
+      if constexpr(zero_matrix<M>)
       {
         return MatrixTraits<M>::zero();
       }
       else
       {
-        static_assert(not square_root_covariance<M> or is_diagonal_v<M>,
+        static_assert(not square_root_covariance<M> or diagonal_matrix<M>,
           "With real numbers, it is impossible to represent the negation of a non-diagonal, non-Cholesky-form "
           "square-root covariance.");
         auto ret = MatrixTraits<M>::make(-base_matrix(std::forward<M>(m)));
-        if constexpr (not std::is_lvalue_reference_v<M&&>) return strict(std::move(ret)); else return ret;
+        if constexpr (not std::is_lvalue_reference_v<M&&>) return make_self_contained(std::move(ret)); else return ret;
       }
     }
   }
@@ -1057,10 +1059,10 @@ template<typename Arg,
 #endif
   constexpr bool operator==(const Arg1& arg1, const Arg2& arg2)
   {
-    if constexpr(std::is_same_v<strict_matrix_t<Arg1>, strict_matrix_t<Arg2>> and
-      is_equivalent_v<typename MatrixTraits<Arg1>::Coefficients, typename MatrixTraits<Arg2>::Coefficients>)
+    if constexpr(std::is_same_v<native_matrix_t<Arg1>, native_matrix_t<Arg2>> and
+      equivalent_to<typename MatrixTraits<Arg1>::Coefficients, typename MatrixTraits<Arg2>::Coefficients>)
     {
-      return strict_matrix(arg1) == strict_matrix(arg2);
+      return make_native_matrix(arg1) == make_native_matrix(arg2);
     }
     else
     {
@@ -1093,7 +1095,7 @@ template<typename Arg,
   scale(M&& m, const S s)
   {
     using Scalar = typename MatrixTraits<M>::Scalar;
-    if constexpr(is_Cholesky_v<M> or (is_diagonal_v<M> and square_root_covariance<M>))
+    if constexpr(cholesky_form<M> or (diagonal_matrix<M> and square_root_covariance<M>))
       return MatrixTraits<M>::make(base_matrix(std::forward<M>(m)) * s);
     else
       return MatrixTraits<M>::make(base_matrix(std::forward<M>(m)) * (static_cast<Scalar>(s) * s));
@@ -1112,15 +1114,15 @@ template<typename Arg,
   inverse_scale(M&& m, const S s)
   {
     using Scalar = typename MatrixTraits<M>::Scalar;
-    if constexpr(is_Cholesky_v<M> or (is_diagonal_v<M> and square_root_covariance<M>))
+    if constexpr(cholesky_form<M> or (diagonal_matrix<M> and square_root_covariance<M>))
     {
       auto ret = MatrixTraits<M>::make(base_matrix(std::forward<M>(m)) / s);
-      if constexpr (not std::is_lvalue_reference_v<M&>) return strict(std::move(ret)); else return ret;
+      if constexpr (not std::is_lvalue_reference_v<M&>) return make_self_contained(std::move(ret)); else return ret;
     }
     else
     {
       auto ret = MatrixTraits<M>::make(base_matrix(std::forward<M>(m)) / (static_cast<Scalar>(s) * s));
-      if constexpr (not std::is_lvalue_reference_v<M&&>) return strict(std::move(ret)); else return ret;
+      if constexpr (not std::is_lvalue_reference_v<M&&>) return make_self_contained(std::move(ret)); else return ret;
     }
   }
 
@@ -1140,42 +1142,42 @@ template<typename Arg,
   {
     using C = typename MatrixTraits<M>::Coefficients;
     using AC = typename MatrixTraits<A>::RowCoefficients;
-    static_assert(is_equivalent_v<typename MatrixTraits<A>::ColumnCoefficients, C>);
+    static_assert(equivalent_to<typename MatrixTraits<A>::ColumnCoefficients, C>);
     static_assert(not euclidean_transformed<A>);
     using BaseMatrix = typename MatrixTraits<M>::BaseMatrix;
 
     decltype(auto) mbase = base_matrix(std::forward<M>(m));
     decltype(auto) abase = base_matrix(std::forward<A>(a));
 
-    if constexpr(is_diagonal_v<BaseMatrix>)
+    if constexpr(diagonal_matrix<BaseMatrix>)
     {
       using SABaseType = typename MatrixTraits<BaseMatrix>::template SelfAdjointBaseType<TriangleType::lower>;
       if constexpr(square_root_covariance<M>)
       {
-        auto b = MatrixTraits<SABaseType>::make(strict(abase * (Cholesky_square(mbase) * adjoint(abase))));
+        auto b = MatrixTraits<SABaseType>::make(make_self_contained(abase * (Cholesky_square(mbase) * adjoint(abase))));
         return make_SquareRootCovariance<AC>(std::move(b));
       }
       else
       {
-        auto b = MatrixTraits<SABaseType>::make(strict(abase * (mbase * adjoint(abase))));
+        auto b = MatrixTraits<SABaseType>::make(make_self_contained(abase * (mbase * adjoint(abase))));
         return make_Covariance<AC>(std::move(b));
       }
     }
-    else if constexpr(is_self_adjoint_v<BaseMatrix>)
+    else if constexpr(self_adjoint_matrix<BaseMatrix>)
     {
       using SABaseType = typename MatrixTraits<BaseMatrix>::template SelfAdjointBaseType<>;
-      auto b = strict(MatrixTraits<SABaseType>::make(abase * (mbase * adjoint(abase))));
+      auto b = make_self_contained(MatrixTraits<SABaseType>::make(abase * (mbase * adjoint(abase))));
       return MatrixTraits<M>::template make<AC>(std::move(b));
     }
-    else if constexpr(is_upper_triangular_v<BaseMatrix>)
+    else if constexpr(upper_triangular_matrix<BaseMatrix>)
     {
       const auto b = mbase * adjoint(abase);
-      return MatrixTraits<M>::template make<AC>(strict(QR_decomposition(std::move(b))));
+      return MatrixTraits<M>::template make<AC>(make_self_contained(QR_decomposition(std::move(b))));
     }
     else
     {
       const auto b = abase * base_matrix(std::forward<M>(m));
-      return MatrixTraits<M>::template make<AC>(strict(LQ_decomposition(std::move(b))));
+      return MatrixTraits<M>::template make<AC>(make_self_contained(LQ_decomposition(std::move(b))));
     }
   }
 

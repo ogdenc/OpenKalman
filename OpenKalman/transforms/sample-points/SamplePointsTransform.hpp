@@ -95,12 +95,12 @@ namespace OpenKalman
       auto y_means = Mean {y_means_impl(g, xpoints_tup, xdists_tup, std::make_index_sequence<N>())};
       auto y_mean = from_Euclidean(SamplePointsType::template weighted_means<dim>(to_Euclidean(y_means)));
       // Each column is a deviation from y mean for each transformed sigma point:
-      auto ypoints = apply_columnwise(y_means, [&](const auto& col) { return strict(col - y_mean); });
+      auto ypoints = apply_columnwise(y_means, [&](const auto& col) { return make_self_contained(col - y_mean); });
 
       if constexpr (i + 1 < sizeof...(Gs))
       {
         auto y_covariance = SamplePointsType::template covariance<dim, InputDist, false>(xpoints, ypoints);
-        auto y = GaussianDistribution {strict(std::move(y_mean)), std::move(y_covariance)};
+        auto y = GaussianDistribution {make_self_contained(std::move(y_mean)), std::move(y_covariance)};
         return transform_impl<dim, InputDist, i + 1, return_cross>(gs, ypoints, ps, y, ds);
       }
       else
@@ -109,7 +109,7 @@ namespace OpenKalman
         if constexpr (return_cross)
         {
           auto [y_cov, cross] = y_covariance;
-          return std::tuple {GaussianDistribution {strict(std::move(y_mean)), std::move(y_cov)}, std::move(cross)};
+          return std::tuple {GaussianDistribution {make_self_contained(std::move(y_mean)), std::move(y_cov)}, std::move(cross)};
         }
         else
         {

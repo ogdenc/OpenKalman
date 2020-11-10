@@ -106,36 +106,35 @@ TEST_F(coefficients, Concatenate)
     Coefficients<Polar<Distance, Angle>, Spherical<Distance, Angle, InclinationAngle>, Polar<Distance, Angle>>>);
 }
 
-TEST_F(coefficients, is_equivalent)
+TEST_F(coefficients, equivalent_to)
 {
-  static_assert(is_equivalent_v<Coefficients<>, Coefficients<>>);
-  static_assert(is_equivalent_v<Axis, Axis>);
-  static_assert(not is_equivalent_v<Axis, Angle>);
-  static_assert(not is_equivalent_v<Axis, Polar<>>);
-  static_assert(is_equivalent_v<Axis, Coefficients<Axis>>);
-  static_assert(is_equivalent_v<Coefficients<Axis>, Axis>);
-  static_assert(is_equivalent_v<Coefficients<Axis>, Coefficients<Axis>>);
-  static_assert(is_equivalent_v<Coefficients<Axis, Angle, Axis>, Coefficients<Axis, Angle, Axis>>);
-  static_assert(is_equivalent_v<Coefficients<Coefficients<Axis>, Angle, Coefficients<Axis>>, Coefficients<Axis, Angle, Axis>>);
-  static_assert(is_equivalent_v<Polar<Distance, Coefficients<Angle>>, Polar<Distance, Angle>>);
-  static_assert(is_equivalent_v<Spherical<Distance, Coefficients<Angle>, InclinationAngle>, Spherical<Distance, Angle, InclinationAngle>>);
-  static_assert(not is_equivalent_v<Coefficients<Axis, Angle, Angle>, Coefficients<Axis, Angle, Axis>>);
-  static_assert(not is_equivalent_v<Coefficients<Axis, Angle>, Polar<Axis, Angle>>);
+  static_assert(equivalent_to<Coefficients<>, Coefficients<>>);
+  static_assert(equivalent_to<Axis, Axis>);
+  static_assert(not equivalent_to<Axis, Angle>);
+  static_assert(not equivalent_to<Axis, Polar<>>);
+  static_assert(equivalent_to<Axis, Coefficients<Axis>>);
+  static_assert(equivalent_to<Coefficients<Axis>, Axis>);
+  static_assert(equivalent_to<Coefficients<Axis>, Coefficients<Axis>>);
+  static_assert(equivalent_to<Coefficients<Axis, Angle, Axis>, Coefficients<Axis, Angle, Axis>>);
+  static_assert(equivalent_to<Coefficients<Coefficients<Axis>, Angle, Coefficients<Axis>>, Coefficients<Axis, Angle, Axis>>);
+  static_assert(equivalent_to<Polar<Distance, Coefficients<Angle>>, Polar<Distance, Angle>>);
+  static_assert(equivalent_to<Spherical<Distance, Coefficients<Angle>, InclinationAngle>, Spherical<Distance, Angle, InclinationAngle>>);
+  static_assert(not equivalent_to<Coefficients<Axis, Angle, Angle>, Coefficients<Axis, Angle, Axis>>);
+  static_assert(not equivalent_to<Coefficients<Axis, Angle>, Polar<Axis, Angle>>);
 }
 
-TEST_F(coefficients, is_prefix)
+TEST_F(coefficients, prefix_of)
 {
-  // is_prefix
-  static_assert(is_prefix_v<Coefficients<>, Axis>);
-  static_assert(is_prefix_v<Coefficients<>, Coefficients<Axis>>);
-  static_assert(is_prefix_v<Coefficients<>, Coefficients<Axis, Angle>>);
-  static_assert(is_prefix_v<Coefficients<Axis>, Coefficients<Axis, Angle>>);
-  static_assert(is_prefix_v<Axis, Coefficients<Axis, Angle>>);
-  static_assert(not is_prefix_v<Angle, Coefficients<Axis, Angle>>);
-  static_assert(not is_prefix_v<Coefficients<Angle>, Coefficients<Axis, Angle>>);
-  static_assert(is_prefix_v<Coefficients<Axis, Angle>, Coefficients<Axis, Angle, Axis>>);
-  static_assert(is_prefix_v<Coefficients<Axis, Angle, Axis>, Coefficients<Axis, Angle, Axis>>);
-  static_assert(not is_prefix_v<Coefficients<Axis, Angle, Angle>, Coefficients<Axis, Angle, Axis>>);
+  static_assert(prefix_of<Coefficients<>, Axis>);
+  static_assert(prefix_of<Coefficients<>, Coefficients<Axis>>);
+  static_assert(prefix_of<Coefficients<>, Coefficients<Axis, Angle>>);
+  static_assert(prefix_of<Coefficients<Axis>, Coefficients<Axis, Angle>>);
+  static_assert(prefix_of<Axis, Coefficients<Axis, Angle>>);
+  static_assert(not prefix_of<Angle, Coefficients<Axis, Angle>>);
+  static_assert(not prefix_of<Coefficients<Angle>, Coefficients<Axis, Angle>>);
+  static_assert(prefix_of<Coefficients<Axis, Angle>, Coefficients<Axis, Angle, Axis>>);
+  static_assert(prefix_of<Coefficients<Axis, Angle, Axis>, Coefficients<Axis, Angle, Axis>>);
+  static_assert(not prefix_of<Coefficients<Axis, Angle, Angle>, Coefficients<Axis, Angle, Axis>>);
 }
 
 int main(int argc, char **argv)

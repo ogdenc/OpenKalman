@@ -34,8 +34,8 @@ namespace OpenKalman
     template<typename In, typename ... Perturbations>
     static constexpr void check_inputs(In&&, Perturbations&& ...)
     {
-      static_assert(is_equivalent_v<typename MatrixTraits<In>::RowCoefficients, typename MatrixTraits<InDelta>::RowCoefficients>);
-      static_assert(is_equivalent_v<typename MatrixTraits<In>::ColumnCoefficients, typename MatrixTraits<InDelta>::ColumnCoefficients>);
+      static_assert(equivalent_to<typename MatrixTraits<In>::RowCoefficients, typename MatrixTraits<InDelta>::RowCoefficients>);
+      static_assert(equivalent_to<typename MatrixTraits<In>::ColumnCoefficients, typename MatrixTraits<InDelta>::ColumnCoefficients>);
       static_assert((perturbation<Perturbations> and ...));
     }
 
@@ -44,7 +44,7 @@ namespace OpenKalman
     {
       using RC = typename MatrixTraits<T>::RowCoefficients;
       using CC = typename MatrixTraits<T>::ColumnCoefficients;
-      return Matrix<RC, CC, strict_matrix_t<T>> {std::move(t)};
+      return Matrix<RC, CC, native_matrix_t<T>> {std::move(t)};
     }
 
     template<std::size_t term, typename...Inputs>
@@ -62,7 +62,7 @@ namespace OpenKalman
         col[i] = x - h;
         const auto fm = Mean {std::apply(transformation, inputs)};
         col[i] = x;
-        return strict((fp - fm)/(2*h));
+        return make_self_contained((fp - fm)/(2*h));
       });
     }
 
@@ -89,7 +89,7 @@ namespace OpenKalman
         col[i] = xi - hi;
         const auto fm = Mean {std::apply(transformation, inputs)};
         col[i] = xi;
-        auto ret = strict(((fp - f0) - (f0 - fm)) / (hi * hi)); // Use two separate subtractions to ensure proper wrapping.
+        auto ret = make_self_contained(((fp - f0) - (f0 - fm)) / (hi * hi)); // Use two separate subtractions to ensure proper wrapping.
         return ret;
       }
       else
@@ -107,7 +107,7 @@ namespace OpenKalman
         const auto fmp = Mean {std::apply(transformation, inputs)};
         col[i] = xi;
         col[j] = xj;
-        auto ret = strict(((fpp - fpm) - (fmp - fmm)) / (4 * hi * hj));
+        auto ret = make_self_contained(((fpp - fpm) - (fmp - fmm)) / (4 * hi * hj));
         return ret;
       }
     };
@@ -134,7 +134,7 @@ namespace OpenKalman
       const auto t = h_k<term>(std::move(inputs), std::make_index_sequence<i_size>());
       constexpr auto width = TermTrait::dimension;
       using C = typename TermTrait::RowCoefficients;
-      using Vb = typename TermTrait::template StrictMatrix<width, width>;
+      using Vb = typename TermTrait::template NativeMatrix<width, width>;
       using V = Matrix<C, C, Vb>;
       return std::array {apply_coefficientwise<V>([&](std::size_t i, std::size_t j) { return t[i][j][ks]; })...};
     }

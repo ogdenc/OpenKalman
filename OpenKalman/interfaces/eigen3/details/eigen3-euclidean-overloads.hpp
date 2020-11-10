@@ -26,18 +26,20 @@ namespace OpenKalman::Eigen3
   base_matrix(Arg&& arg) noexcept { return std::forward<Arg>(arg).base_matrix(); }
 
 
-  /// Convert to strict version of the matrix.
+  /**
+   * Convert to a self-contained Eigen3 matrix.
+   */
 #ifdef __cpp_concepts
   template<euclidean_expr Arg>
 #else
   template<typename Arg, std::enable_if_t<euclidean_expr<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
-  strict_matrix(Arg&& arg)
+  make_native_matrix(Arg&& arg) noexcept
   {
     if constexpr(MatrixTraits<Arg>::Coefficients::axes_only)
     {
-      return strict_matrix(base_matrix(std::forward<Arg>(arg)));
+      return make_native_matrix(base_matrix(std::forward<Arg>(arg)));
     }
     else
     {
@@ -49,26 +51,26 @@ namespace OpenKalman::Eigen3
   }
 
 
-  /// Convert to strict version of the matrix.
+  /// Convert to self-contained version of the matrix.
 #ifdef __cpp_concepts
   template<euclidean_expr Arg>
 #else
   template<typename Arg, std::enable_if_t<euclidean_expr<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
-  strict(Arg&& arg)
+  make_self_contained(Arg&& arg)
   {
     if constexpr(MatrixTraits<Arg>::Coefficients::axes_only)
     {
-      return strict(base_matrix(std::forward<Arg>(arg)));
+      return make_self_contained(base_matrix(std::forward<Arg>(arg)));
     }
-    else if constexpr(is_strict_v<Arg>)
+    else if constexpr(self_contained<Arg>)
     {
       return std::forward<Arg>(arg);
     }
     else
     {
-      return MatrixTraits<Arg>::make(strict(base_matrix(std::forward<Arg>(arg))));
+      return MatrixTraits<Arg>::make(make_self_contained(base_matrix(std::forward<Arg>(arg))));
     }
   }
 
@@ -95,7 +97,7 @@ namespace OpenKalman::Eigen3
   constexpr decltype(auto)
   to_Euclidean(Arg&& arg) noexcept
   {
-    static_assert(is_equivalent_v<Coefficients, typename MatrixTraits<Arg>::Coefficients>);
+    static_assert(equivalent_to<Coefficients, typename MatrixTraits<Arg>::Coefficients>);
     return to_Euclidean(std::forward<Arg>(arg));
   }
 
@@ -128,7 +130,7 @@ namespace OpenKalman::Eigen3
   constexpr decltype(auto)
   from_Euclidean(Arg&& arg) noexcept
   {
-    static_assert(OpenKalman::is_equivalent_v<Coefficients, typename MatrixTraits<Arg>::Coefficients>);
+    static_assert(OpenKalman::equivalent_to<Coefficients, typename MatrixTraits<Arg>::Coefficients>);
     return from_Euclidean(std::forward<Arg>(arg));
   }
 
@@ -154,7 +156,7 @@ namespace OpenKalman::Eigen3
   to_diagonal(Arg&& arg) noexcept
   {
     static_assert(MatrixTraits<Arg>::columns == 1);
-    return DiagonalMatrix(strict_matrix(std::forward<Arg>(arg)));
+    return DiagonalMatrix(make_native_matrix(std::forward<Arg>(arg)));
   }
 
 
@@ -166,7 +168,7 @@ namespace OpenKalman::Eigen3
   constexpr decltype(auto)
   transpose(Arg&& arg) noexcept
   {
-    return strict_matrix(strict_matrix(std::forward<Arg>(arg)).transpose());
+    return make_native_matrix(make_native_matrix(std::forward<Arg>(arg)).transpose());
   }
 
 
@@ -178,7 +180,7 @@ namespace OpenKalman::Eigen3
   constexpr decltype(auto)
   adjoint(Arg&& arg) noexcept
   {
-    return strict_matrix(strict_matrix(std::forward<Arg>(arg)).adjoint());
+    return make_native_matrix(make_native_matrix(std::forward<Arg>(arg)).adjoint());
   }
 
 
@@ -191,7 +193,7 @@ namespace OpenKalman::Eigen3
   determinant(Arg&& arg) noexcept
   {
     static_assert(MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns);
-    return strict_matrix(std::forward<Arg>(arg)).determinant();
+    return make_native_matrix(std::forward<Arg>(arg)).determinant();
   }
 
 
@@ -204,7 +206,7 @@ namespace OpenKalman::Eigen3
   trace(Arg&& arg) noexcept
   {
     static_assert(MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns);
-    return strict_matrix(std::forward<Arg>(arg)).trace();
+    return make_native_matrix(std::forward<Arg>(arg)).trace();
   }
 
 
@@ -219,7 +221,7 @@ namespace OpenKalman::Eigen3
   {
     static_assert(MatrixTraits<A>::dimension == MatrixTraits<A>::columns);
     static_assert(MatrixTraits<A>::dimension == MatrixTraits<B>::dimension);
-    return solve(strict_matrix(std::forward<A>(a)), std::forward<B>(b));
+    return solve(make_native_matrix(std::forward<A>(a)), std::forward<B>(b));
   }
 
 
@@ -229,7 +231,7 @@ namespace OpenKalman::Eigen3
   template<typename Arg, std::enable_if_t<euclidean_expr<Arg>, int> = 0>
 #endif
   constexpr auto
-  reduce_columns(Arg&& arg) noexcept { return strict_matrix(reduce_columns(strict_matrix(std::forward<Arg>(arg)))); }
+  reduce_columns(Arg&& arg) noexcept { return make_native_matrix(reduce_columns(make_native_matrix(std::forward<Arg>(arg)))); }
 
   /**
    * Perform an LQ decomposition of matrix A=[L,0]Q, L is a lower-triangular matrix, and Q is orthogonal.
@@ -243,7 +245,7 @@ namespace OpenKalman::Eigen3
   inline auto
   LQ_decomposition(A&& a)
   {
-    return LQ_decomposition(strict_matrix(std::forward<A>(a)));
+    return LQ_decomposition(make_native_matrix(std::forward<A>(a)));
   }
 
 
@@ -259,7 +261,7 @@ namespace OpenKalman::Eigen3
   inline auto
   QR_decomposition(Arg&& arg)
   {
-    return QR_decomposition(strict_matrix(std::forward<Arg>(arg)));
+    return QR_decomposition(make_native_matrix(std::forward<Arg>(arg)));
   }
 
 
@@ -359,7 +361,7 @@ namespace OpenKalman::Eigen3
   inline auto
   split_vertical(Arg&& arg) noexcept
   {
-    static_assert(is_prefix_v<Concatenate<Cs...>, typename MatrixTraits<Arg>::Coefficients>);
+    static_assert(prefix_of<Concatenate<Cs...>, typename MatrixTraits<Arg>::Coefficients>);
     using CC = Axes<MatrixTraits<Arg>::columns>;
     constexpr auto euclidean = from_euclidean_expr<Arg>;
     return split_vertical<internal::SplitEuclideanVertF<F, Arg, CC>, euclidean, Cs...>(
@@ -389,11 +391,11 @@ namespace OpenKalman::Eigen3
   inline auto
   split_vertical(Arg&& arg) noexcept
   {
-    static_assert(is_prefix_v<Concatenate<Cs...>, typename MatrixTraits<Arg>::Coefficients>);
+    static_assert(prefix_of<Concatenate<Cs...>, typename MatrixTraits<Arg>::Coefficients>);
     return split_vertical<OpenKalman::internal::default_split_function, Cs...>(std::forward<Arg>(arg));
   }
 
-  /// Split into one or more Euclidean expressions vertically. The expression is evaluated to a strict matrix first.
+  /// Split into one or more Euclidean expressions vertically. The expression is evaluated to a self_contained matrix first.
   /// @tparam cut Number of rows in the first cut.
   /// @tparam cuts Number of rows in the second and subsequent cuts.
 #ifdef __cpp_concepts
@@ -411,7 +413,7 @@ namespace OpenKalman::Eigen3
     }
     else
     {
-      return split_vertical<cut, cuts...>(strict_matrix(std::forward<Arg>(arg)));
+      return split_vertical<cut, cuts...>(make_native_matrix(std::forward<Arg>(arg)));
     }
   }
 
@@ -471,7 +473,7 @@ namespace OpenKalman::Eigen3
   inline auto
   split_diagonal(Arg&& arg) noexcept
   {
-    static_assert(is_prefix_v<Concatenate<Cs...>, typename MatrixTraits<Arg>::Coefficients>);
+    static_assert(prefix_of<Concatenate<Cs...>, typename MatrixTraits<Arg>::Coefficients>);
     static_assert(MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns);
     constexpr auto euclidean = from_euclidean_expr<Arg>;
     return split_diagonal<internal::SplitEuclideanDiagF<F, Arg>, euclidean, Cs...>(
@@ -488,7 +490,7 @@ namespace OpenKalman::Eigen3
   inline auto
   split_diagonal(Arg&& arg) noexcept
   {
-    static_assert(is_prefix_v<Concatenate<Cs...>, typename MatrixTraits<Arg>::Coefficients>);
+    static_assert(prefix_of<Concatenate<Cs...>, typename MatrixTraits<Arg>::Coefficients>);
     static_assert(MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns);
     return split_diagonal<F, Cs...>(std::forward<Arg>(arg));
   }
@@ -503,13 +505,13 @@ namespace OpenKalman::Eigen3
   inline auto
   split_diagonal(Arg&& arg) noexcept
   {
-    static_assert(is_prefix_v<Concatenate<Cs...>, typename MatrixTraits<Arg>::Coefficients>);
+    static_assert(prefix_of<Concatenate<Cs...>, typename MatrixTraits<Arg>::Coefficients>);
     static_assert(MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns);
     return split_diagonal<OpenKalman::internal::default_split_function, false, Cs...>(std::forward<Arg>(arg));
   }
 
   /// Split into one or more Euclidean expressions diagonally.
-  /// The expression (which must be square) is evaluated to a strict matrix first.
+  /// The expression (which must be square) is evaluated to a self_contained matrix first.
   /// @tparam cut Number of rows in the first cut.
   /// @tparam cuts Number of rows in the second and subsequent cuts.
 #ifdef __cpp_concepts
@@ -528,7 +530,7 @@ namespace OpenKalman::Eigen3
     }
     else
     {
-      return split_diagonal<cut, cuts...>(strict_matrix(std::forward<Arg>(arg)));
+      return split_diagonal<cut, cuts...>(make_native_matrix(std::forward<Arg>(arg)));
     }
   }
 
@@ -942,7 +944,7 @@ namespace OpenKalman::Eigen3
   inline auto
   apply_coefficientwise(const Arg& arg, const Function& f)
   {
-    return strict_matrix(apply_coefficientwise(strict_matrix(arg), f));
+    return make_native_matrix(apply_coefficientwise(make_native_matrix(arg), f));
   }
 
 
@@ -957,7 +959,7 @@ namespace OpenKalman::Eigen3
   inline auto
   apply_coefficientwise(const Arg& arg, const Function& f)
   {
-    return apply_coefficientwise(strict_matrix(arg), f);
+    return apply_coefficientwise(make_native_matrix(arg), f);
   }
 
 

@@ -29,6 +29,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MyCXX_FLAGS}")
 
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O2 -Wall -pthread -fopenmp -ftemplate-backtrace-limit=0")
 
+enable_testing()
 
 add_subdirectory(OpenKalman)
 add_subdirectory(tests)

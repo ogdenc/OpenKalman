@@ -29,7 +29,7 @@ namespace OpenKalman::internal
     static auto sum_noise_terms(const J& j, const Dist& dist, std::index_sequence<ints...>)
     {
       using InputDist = std::tuple_element<0, Dist>;
-      if constexpr(is_Cholesky_v<InputDist>)
+      if constexpr(cholesky_form<InputDist>)
       {
         if constexpr (return_cross)
         {
@@ -38,7 +38,7 @@ namespace OpenKalman::internal
           return std::tuple {
             LQ_decomposition(concatenate_horizontal(term0, Matrix(
               (std::get<ints+1>(j) * (square_root(covariance_of(std::get<ints+1>(dist))))))...)),
-            strict(sqrt_c0 * adjoint(term0))};
+            make_self_contained(sqrt_c0 * adjoint(term0))};
         }
         else
         {
@@ -51,7 +51,7 @@ namespace OpenKalman::internal
       {
         if constexpr (return_cross)
         {
-          auto cross = strict(covariance_of(std::get<0>(dist)) * adjoint(std::get<0>(j)));
+          auto cross = make_self_contained(covariance_of(std::get<0>(dist)) * adjoint(std::get<0>(j)));
           auto cov = make_Covariance((
             (std::get<0>(j) * cross) +
               ... + (std::get<ints+1>(j) * (covariance_of(std::get<ints+1>(dist)) * adjoint(std::get<ints+1>(j))))));
@@ -90,7 +90,7 @@ namespace OpenKalman::internal
           std::make_index_sequence<std::min(sizeof...(NoiseDists), std::tuple_size_v<decltype(jacobians)> - 1)>{});
         auto out = make_GaussianDistribution(mean_output, cov_out);
         if constexpr(TransformFunction::correction)
-          return std::tuple {strict(out + f.add_correction(in, n...)), cross_covariance};
+          return std::tuple {make_self_contained(out + f.add_correction(in, n...)), cross_covariance};
         else
           return std::tuple {out, cross_covariance};
       }
@@ -100,7 +100,7 @@ namespace OpenKalman::internal
           std::make_index_sequence<std::min(sizeof...(NoiseDists), std::tuple_size_v<decltype(jacobians)> - 1)>{});
         auto out = make_GaussianDistribution(mean_output, cov_out);
         if constexpr(TransformFunction::correction)
-          return strict(out + f.add_correction(in, n...));
+          return make_self_contained(out + f.add_correction(in, n...));
         else
           return out;
       }

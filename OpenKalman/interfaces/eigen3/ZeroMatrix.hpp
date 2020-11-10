@@ -59,7 +59,7 @@ namespace OpenKalman
     template<typename Derived>
     using CovarianceBaseType = Eigen3::internal::Eigen3CovarianceBase<Derived, Matrix>;
 
-    using Strict = Eigen3::ZeroMatrix<V>;
+    using SelfContained = Eigen3::ZeroMatrix<V>;
 
     template<TriangleType storage_triangle = TriangleType::diagonal>
     using SelfAdjointBaseType = Eigen3::SelfAdjointMatrix<Matrix, storage_triangle>;
@@ -77,14 +77,14 @@ namespace OpenKalman::Eigen3
   //  Overloads  //
   /////////////////
 
-  /// Convert to strict version of the matrix.
+  /// Convert to self-contained version of the matrix.
 #ifdef __cpp_concepts
   template<Eigen3::eigen_zero_expr Arg>
 #else
   template<typename Arg, std::enable_if_t<Eigen3::eigen_zero_expr<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
-  strict(Arg&& arg)
+  make_self_contained(Arg&& arg)
   {
     return std::forward<Arg>(arg);
   }
@@ -100,7 +100,7 @@ namespace OpenKalman::Eigen3
   {
     static_assert(MatrixTraits<Arg>::columns == 1);
     constexpr auto dim = MatrixTraits<Arg>::dimension;
-    using B = strict_matrix_t<Arg, dim, dim>;
+    using B = native_matrix_t<Arg, dim, dim>;
     return Eigen3::ZeroMatrix<B>();
   }
 
@@ -115,7 +115,7 @@ namespace OpenKalman::Eigen3
   {
     constexpr auto rows = MatrixTraits<Arg>::dimension;
     constexpr auto cols = MatrixTraits<Arg>::columns;
-    using B = strict_matrix_t<Arg, cols, rows>;
+    using B = native_matrix_t<Arg, cols, rows>;
     return Eigen3::ZeroMatrix<B>();
   }
 
@@ -192,7 +192,7 @@ namespace OpenKalman::Eigen3
   LQ_decomposition(A&& a)
   {
     constexpr auto dim = MatrixTraits<A>::dimension;
-    using B = strict_matrix_t<A, dim, dim>;
+    using B = native_matrix_t<A, dim, dim>;
     return Eigen3::ZeroMatrix<B>();
   }
 
@@ -210,7 +210,7 @@ namespace OpenKalman::Eigen3
   QR_decomposition(A&& a)
   {
     constexpr auto dim = MatrixTraits<A>::columns;
-    using B = strict_matrix_t<A, dim, dim>;
+    using B = native_matrix_t<A, dim, dim>;
     return Eigen3::ZeroMatrix<B>();
   }
 
@@ -278,17 +278,17 @@ namespace OpenKalman::Eigen3
 
 #ifdef __cpp_concepts
   template<typename Arg1, typename Arg2>
-  requires (is_zero_v<Arg1> and Eigen3::eigen_matrix<Arg2>) or (Eigen3::eigen_matrix<Arg1> and is_zero_v<Arg2>)
+  requires (zero_matrix<Arg1> and Eigen3::eigen_matrix<Arg2>) or (Eigen3::eigen_matrix<Arg1> and zero_matrix<Arg2>)
 #else
   template<typename Arg1, typename Arg2,
-    std::enable_if_t<(is_zero_v<Arg1> and Eigen3::eigen_matrix<Arg2>) or
-      (Eigen3::eigen_matrix<Arg1> and is_zero_v<Arg2>), int> = 0>
+    std::enable_if_t<(zero_matrix<Arg1> and Eigen3::eigen_matrix<Arg2>) or
+      (Eigen3::eigen_matrix<Arg1> and zero_matrix<Arg2>), int> = 0>
 #endif
   constexpr decltype(auto) operator+(Arg1&& arg1, Arg2&& arg2)
   {
     static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
     static_assert(MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns);
-    if constexpr(is_zero_v<Arg1> and is_zero_v<Arg2>)
+    if constexpr(zero_matrix<Arg1> and zero_matrix<Arg2>)
     {
       return MatrixTraits<Arg1>::zero();
     }
@@ -305,27 +305,27 @@ namespace OpenKalman::Eigen3
 
 #ifdef __cpp_concepts
   template<typename Arg1, typename Arg2>
-  requires (is_zero_v<Arg1> and Eigen3::eigen_matrix<Arg2>) or (Eigen3::eigen_matrix<Arg1> and is_zero_v<Arg2>)
+  requires (zero_matrix<Arg1> and Eigen3::eigen_matrix<Arg2>) or (Eigen3::eigen_matrix<Arg1> and zero_matrix<Arg2>)
 #else
   template<typename Arg1, typename Arg2,
-    std::enable_if_t<(is_zero_v<Arg1> and Eigen3::eigen_matrix<Arg2>) or
-      (Eigen3::eigen_matrix<Arg1> and is_zero_v<Arg2>), int> = 0>
+    std::enable_if_t<(zero_matrix<Arg1> and Eigen3::eigen_matrix<Arg2>) or
+      (Eigen3::eigen_matrix<Arg1> and zero_matrix<Arg2>), int> = 0>
 #endif
   constexpr decltype(auto) operator-(Arg1&& arg1, Arg2&& arg2)
   {
     static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
     static_assert(MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns);
-    if constexpr(is_zero_v<Arg1> and is_zero_v<Arg2>)
+    if constexpr(zero_matrix<Arg1> and zero_matrix<Arg2>)
     {
       return MatrixTraits<Arg1>::zero();
     }
-    else if constexpr(is_zero_v<Arg1>)
+    else if constexpr(zero_matrix<Arg1>)
     {
-      if constexpr(is_identity_v<Arg2>)
+      if constexpr(identity_matrix<Arg2>)
       {
         using D = typename MatrixTraits<Arg2>::template DiagonalBaseType<>;
         constexpr auto dim = MatrixTraits<Arg2>::dimension;
-        using B = strict_matrix_t<D, dim, 1>;
+        using B = native_matrix_t<D, dim, 1>;
         return MatrixTraits<D>::make(B::Constant(-1));
       }
       else
@@ -342,11 +342,11 @@ namespace OpenKalman::Eigen3
 
 #ifdef __cpp_concepts
   template<typename Arg1, typename Arg2>
-  requires (is_zero_v<Arg1> and Eigen3::eigen_matrix<Arg2>) or (Eigen3::eigen_matrix<Arg1> and is_zero_v<Arg2>)
+  requires (zero_matrix<Arg1> and Eigen3::eigen_matrix<Arg2>) or (Eigen3::eigen_matrix<Arg1> and zero_matrix<Arg2>)
 #else
   template<typename Arg1, typename Arg2,
-    std::enable_if_t<(is_zero_v<Arg1> and Eigen3::eigen_matrix<Arg2>) or
-      (Eigen3::eigen_matrix<Arg1> and is_zero_v<Arg2>), int> = 0>
+    std::enable_if_t<(zero_matrix<Arg1> and Eigen3::eigen_matrix<Arg2>) or
+      (Eigen3::eigen_matrix<Arg1> and zero_matrix<Arg2>), int> = 0>
 #endif
   inline auto operator*(const Arg1& arg1, const Arg2& arg2)
   {

@@ -43,7 +43,7 @@ namespace OpenKalman
       constexpr auto points_count = dim * 2;
       constexpr auto dim_i = DistributionTraits<D>::dimension;
       constexpr auto frame_size = dim_i * 2;
-      const auto delta = make_Matrix<Coeffs, Axes<dim_i>>(strict_matrix(square_root(OpenKalman::covariance_of(d) * static_cast<Scalar>(dim))));
+      const auto delta = make_Matrix<Coeffs, Axes<dim_i>>(make_native_matrix(square_root(OpenKalman::covariance_of(d) * static_cast<Scalar>(dim))));
       if constexpr(frame_size == points_count)
       {
         auto ret = concatenate_horizontal(delta, -delta);
@@ -53,7 +53,7 @@ namespace OpenKalman
       else if constexpr (pos == 0)
       {
         constexpr auto width = points_count - frame_size;
-        using MRbase = strict_matrix_t<M, dim_i, width>;
+        using MRbase = native_matrix_t<M, dim_i, width>;
         const auto mright = Matrix<Coeffs, Axes<width>, MRbase>::zero();
         auto ret = concatenate_horizontal(delta, -delta, mright);
         static_assert(MatrixTraits<decltype(ret)>::columns == points_count);
@@ -61,10 +61,10 @@ namespace OpenKalman
       }
       else if constexpr (pos + frame_size < points_count)
       {
-        using MLbase = strict_matrix_t<M, dim_i, pos>;
+        using MLbase = native_matrix_t<M, dim_i, pos>;
         const auto mleft = Matrix<Coeffs, Axes<pos>, MLbase>::zero();
         constexpr auto width = points_count - (pos + frame_size);
-        using MRbase = strict_matrix_t<M, dim_i, width>;
+        using MRbase = native_matrix_t<M, dim_i, width>;
         const auto mright = Matrix<Coeffs, Axes<width>, MRbase>::zero();
         auto ret = concatenate_horizontal(mleft, delta, -delta, mright);
         static_assert(MatrixTraits<decltype(ret)>::columns == points_count);
@@ -73,7 +73,7 @@ namespace OpenKalman
       else
       {
         static_assert(sizeof...(ds) == 0);
-        using MLbase = strict_matrix_t<M, dim_i, pos>;
+        using MLbase = native_matrix_t<M, dim_i, pos>;
         const auto mleft = Matrix<Coeffs, Axes<pos>, MLbase>::zero();
         auto ret = concatenate_horizontal(mleft, delta, -delta);
         static_assert(MatrixTraits<decltype(ret)>::columns == points_count);
@@ -118,12 +118,12 @@ namespace OpenKalman
       static_assert(count == MatrixTraits<Y>::columns);
       static_assert(count == dim * 2, "Wrong number of cubature points.");
       constexpr auto inv_weight = 1 / Scalar(count);
-      if constexpr(is_Cholesky_v<InputDist>)
+      if constexpr(cholesky_form<InputDist>)
       {
         auto out_covariance = Covariance {LQ_decomposition(y_deviations * std::sqrt(inv_weight))};
         if constexpr (return_cross)
         {
-          auto cross_covariance = strict(x_deviations * inv_weight * adjoint(y_deviations));
+          auto cross_covariance = make_self_contained(x_deviations * inv_weight * adjoint(y_deviations));
           return std::tuple{std::move(out_covariance), std::move(cross_covariance)};
         }
         else
@@ -133,11 +133,11 @@ namespace OpenKalman
       }
       else
       {
-        const auto w_yT = strict(inv_weight * adjoint(y_deviations));
-        auto out_covariance = Covariance {strict(y_deviations * w_yT)};
+        const auto w_yT = make_self_contained(inv_weight * adjoint(y_deviations));
+        auto out_covariance = Covariance {make_self_contained(y_deviations * w_yT)};
         if constexpr (return_cross)
         {
-          auto cross_covariance = strict(x_deviations * w_yT);
+          auto cross_covariance = make_self_contained(x_deviations * w_yT);
           return std::tuple{std::move(out_covariance), std::move(cross_covariance)};
         }
         else

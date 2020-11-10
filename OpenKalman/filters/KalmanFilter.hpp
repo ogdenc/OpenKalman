@@ -44,19 +44,19 @@ namespace OpenKalman
       static_assert(gaussian_distribution<YDistribution>);
       static_assert(typed_matrix<CrossCovariance>);
       static_assert(column_vector<Measurement> and MatrixTraits<Measurement>::columns == 1);
-      static_assert(is_equivalent_v<typename MatrixTraits<Measurement>::RowCoefficients,
+      static_assert(equivalent_to<typename MatrixTraits<Measurement>::RowCoefficients,
         typename DistributionTraits<YDistribution>::Coefficients>);
-      static_assert(is_equivalent_v<typename MatrixTraits<CrossCovariance>::RowCoefficients,
+      static_assert(equivalent_to<typename MatrixTraits<CrossCovariance>::RowCoefficients,
         typename DistributionTraits<XDistribution>::Coefficients>);
-      static_assert(is_equivalent_v<typename MatrixTraits<CrossCovariance>::ColumnCoefficients,
+      static_assert(equivalent_to<typename MatrixTraits<CrossCovariance>::ColumnCoefficients,
         typename DistributionTraits<YDistribution>::Coefficients>);
 
       const auto y = mean_of(Ny);
       const auto P_yy = covariance_of(Ny);
       const auto K = adjoint(solve(adjoint(P_yy), adjoint(P_xy))); // K * P_yy == P_xy, or K == P_xy * inverse(P_yy)
-      auto out_x_mean = strict(mean_of(Nx) + K * (Mean {z} - y));
+      auto out_x_mean = make_self_contained(mean_of(Nx) + K * (Mean {z} - y));
 
-      if constexpr (is_Cholesky_v<YDistribution>)
+      if constexpr (cholesky_form<YDistribution>)
       {
         // P_xy * adjoint(K) == K * P_yy * adjoint(K) == K * square_root(P_yy) * adjoint(K * square_root(P_yy))
         // == square(LQ(K * square_root(P_yy)))

@@ -90,8 +90,8 @@ namespace OpenKalman
   using Eigen3::make_EigenTriangularMatrix;
 
   using Eigen3::base_matrix;
-  using Eigen3::strict_matrix;
-  using Eigen3::strict;
+  using Eigen3::make_native_matrix;
+  using Eigen3::make_self_contained;
   using Eigen3::to_Euclidean;
   using Eigen3::from_Euclidean;
   using Eigen3::wrap_angles;

@@ -35,7 +35,7 @@ TEST_F(transformations, stochastic_additive)
 
 TEST_F(transformations, stochastic_augmented)
 {
-  auto f = [](const auto& x, const auto&...n) { return strict(((A {1, 2, 4, 3} * x) + ... + (A {3, 4, 2, 1} * n))); };
+  auto f = [](const auto& x, const auto&...n) { return make_self_contained(((A {1, 2, 4, 3} * x) + ... + (A {3, 4, 2, 1} * n))); };
   auto dist = GaussianDistribution {M::zero(), A::identity()};
   auto t = Transformation<decltype(f)> {f};
   M x {2, 3}, n {0, 0};

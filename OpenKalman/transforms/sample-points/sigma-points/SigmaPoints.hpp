@@ -96,8 +96,8 @@ namespace OpenKalman
       static_assert(column_vector<YMeans>);
       constexpr auto count = MatrixTraits<YMeans>::columns;
       static_assert(count == SigmaPointsType::template sigma_point_count<dim>(), "Wrong number of sigma points.");
-      using Weights = Matrix<Axes<count>, Axis, strict_matrix_t<YMeans, count, 1>>;
-      return strict(y_means * mean_weights<dim, Weights>());
+      using Weights = Matrix<Axes<count>, Axis, native_matrix_t<YMeans, count, 1>>;
+      return make_self_contained(y_means * mean_weights<dim, Weights>());
     }
 
     template<std::size_t dim, typename InputDist, bool return_cross = false, typename X, typename Y>
@@ -105,14 +105,14 @@ namespace OpenKalman
     covariance(const X& x_deviations, const Y& y_deviations)
     {
       static_assert(typed_matrix<X> and typed_matrix<Y>);
-      static_assert(is_equivalent_v<typename MatrixTraits<X>::RowCoefficients,
+      static_assert(equivalent_to<typename MatrixTraits<X>::RowCoefficients,
         typename DistributionTraits<InputDist>::Coefficients>);
       constexpr auto count = MatrixTraits<X>::columns;
       static_assert(count == MatrixTraits<Y>::columns);
       static_assert(count == SigmaPointsType::template sigma_point_count<dim>(), "Wrong number of sigma points.");
-      using Weights = Matrix<Axes<count>, Axis, strict_matrix_t<X, count, 1>>;
+      using Weights = Matrix<Axes<count>, Axis, native_matrix_t<X, count, 1>>;
       auto weights = covariance_weights<dim, Weights>();
-      if constexpr(is_Cholesky_v<InputDist>)
+      if constexpr(cholesky_form<InputDist>)
       {
         using Scalar = typename MatrixTraits<X>::Scalar;
         //
@@ -127,7 +127,7 @@ namespace OpenKalman
           rank_update(out_covariance, y_deviations_head, W_c0); ///< Factor back in the first weight, using a rank update.
           if constexpr (return_cross)
           {
-            auto cross_covariance = strict(x_deviations * to_diagonal(weights) * adjoint(y_deviations));
+            auto cross_covariance = make_self_contained(x_deviations * to_diagonal(weights) * adjoint(y_deviations));
             return std::tuple{std::move(out_covariance), std::move(cross_covariance)};
           }
           else
@@ -141,7 +141,7 @@ namespace OpenKalman
           auto out_covariance = Covariance {LQ_decomposition(y_deviations * to_diagonal(sqrt_weights))};
           if constexpr (return_cross)
           {
-            auto cross_covariance = strict(x_deviations * to_diagonal(weights) * adjoint(y_deviations));
+            auto cross_covariance = make_self_contained(x_deviations * to_diagonal(weights) * adjoint(y_deviations));
             return std::tuple{std::move(out_covariance), std::move(cross_covariance)};
           }
           else
@@ -153,10 +153,10 @@ namespace OpenKalman
       else
       {
         const auto w_yT = to_diagonal(weights) * adjoint(y_deviations);
-        auto out_covariance = strict(make_Covariance(y_deviations * w_yT));
+        auto out_covariance = make_self_contained(make_Covariance(y_deviations * w_yT));
         if constexpr (return_cross)
         {
-          auto cross_covariance = strict(x_deviations * w_yT);
+          auto cross_covariance = make_self_contained(x_deviations * w_yT);
           return std::tuple{std::move(out_covariance), std::move(cross_covariance)};
         }
         else

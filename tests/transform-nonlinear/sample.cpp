@@ -46,8 +46,8 @@ TEST_F(transform_nonlinear, Basic_linear_unscented)
   SamplePointsTransform<UnscentedSigmaPoints> unscented;
   EXPECT_TRUE(is_near(unscented.transform_with_cross_covariance(input, g), full_output));
   EXPECT_TRUE(is_near(unscented.transform_with_cross_covariance(input_chol, g), full_output));
-  static_assert(not is_Cholesky_v<decltype(unscented(input, g))>);
-  static_assert(is_Cholesky_v<decltype(unscented(input_chol, g))>);
+  static_assert(not cholesky_form<decltype(unscented(input, g))>);
+  static_assert(cholesky_form<decltype(unscented(input_chol, g))>);
 }
 
 TEST_F(transform_nonlinear, Basic_linear_unscented2)
@@ -55,8 +55,8 @@ TEST_F(transform_nonlinear, Basic_linear_unscented2)
   SamplePointsTransform<UnscentedSigmaPoints2> unscented2;
   EXPECT_TRUE(is_near(unscented2.transform_with_cross_covariance(input, g), full_output));
   EXPECT_TRUE(is_near(unscented2.transform_with_cross_covariance(input_chol, g), full_output));
-  static_assert(not is_Cholesky_v<decltype(unscented2(input, g))>);
-  static_assert(is_Cholesky_v<decltype(unscented2(input_chol, g))>);
+  static_assert(not cholesky_form<decltype(unscented2(input, g))>);
+  static_assert(cholesky_form<decltype(unscented2(input_chol, g))>);
 }
 
 TEST_F(transform_nonlinear, Basic_linear_spherical_simplex)
@@ -64,8 +64,8 @@ TEST_F(transform_nonlinear, Basic_linear_spherical_simplex)
   SamplePointsTransform<SphericalSimplexSigmaPoints> spherical_simplex;
   EXPECT_TRUE(is_near(spherical_simplex.transform_with_cross_covariance(input, g), full_output));
   EXPECT_TRUE(is_near(spherical_simplex.transform_with_cross_covariance(input_chol, g), full_output));
-  static_assert(not is_Cholesky_v<decltype(spherical_simplex(input, g))>);
-  static_assert(is_Cholesky_v<decltype(spherical_simplex(input_chol, g))>);
+  static_assert(not cholesky_form<decltype(spherical_simplex(input, g))>);
+  static_assert(cholesky_form<decltype(spherical_simplex(input_chol, g))>);
 }
 
 TEST_F(transform_nonlinear, Basic_linear_cubature)
@@ -73,8 +73,8 @@ TEST_F(transform_nonlinear, Basic_linear_cubature)
   SamplePointsTransform<CubaturePoints> cubature;
   EXPECT_TRUE(is_near(cubature.transform_with_cross_covariance(input, g), full_output));
   EXPECT_TRUE(is_near(cubature.transform_with_cross_covariance(input_chol, g), full_output));
-  static_assert(not is_Cholesky_v<decltype(cubature(input, g))>);
-  static_assert(is_Cholesky_v<decltype(cubature(input_chol, g))>);
+  static_assert(not cholesky_form<decltype(cubature(input, g))>);
+  static_assert(cholesky_form<decltype(cubature(input_chol, g))>);
 }
 
 TEST_F(transform_nonlinear, Basic_linear_identity_unscented)

@@ -23,35 +23,37 @@ namespace OpenKalman
   base_matrix(Arg&& arg) noexcept { return std::forward<Arg>(arg).base_matrix(); }
 
 
-  /// Convert to strict regular matrix (wrapping any angles, if necessary).
+/**
+ * Convert to a self-contained Eigen3 matrix (wrapping any angles, if necessary).
+ */
 #ifdef __cpp_concepts
   template<typed_matrix Arg>
 #else
   template<typename Arg, std::enable_if_t<typed_matrix<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
-  strict_matrix(Arg&& arg) noexcept
+  make_native_matrix(Arg&& arg) noexcept
   {
-    return strict_matrix(base_matrix(std::forward<Arg>(arg)));
+    return make_native_matrix(base_matrix(std::forward<Arg>(arg)));
   }
 
 
-  /// Convert vector object to strict version (wrapping any angles).
+  /// Convert vector object to self-contained version (wrapping any angles).
 #ifdef __cpp_concepts
   template<typed_matrix Arg>
 #else
   template<typename Arg, std::enable_if_t<typed_matrix<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
-  strict(Arg&& arg) noexcept
+  make_self_contained(Arg&& arg) noexcept
   {
-    if constexpr(is_strict_v<typename MatrixTraits<Arg>::BaseMatrix>)
+    if constexpr(self_contained<typename MatrixTraits<Arg>::BaseMatrix>)
     {
       return std::forward<Arg>(arg);
     }
     else
     {
-      return MatrixTraits<Arg>::make(strict(base_matrix(std::forward<Arg>(arg))));
+      return MatrixTraits<Arg>::make(make_self_contained(base_matrix(std::forward<Arg>(arg))));
     }
   }
 
@@ -108,7 +110,7 @@ namespace OpenKalman
   inline auto
   to_diagonal(Arg&& arg) noexcept
   {
-    static_assert(is_equivalent_v<typename MatrixTraits<Arg>::ColumnCoefficients, Axis>);
+    static_assert(equivalent_to<typename MatrixTraits<Arg>::ColumnCoefficients, Axis>);
     static_assert(not euclidean_transformed<Arg>);
     using C = typename MatrixTraits<Arg>::RowCoefficients;
     auto b = to_diagonal(base_matrix(std::forward<Arg>(arg)));
@@ -189,8 +191,8 @@ namespace OpenKalman
   solve(A&& a, B&& b) noexcept
   {
     using C = typename MatrixTraits<A>::RowCoefficients;
-    static_assert(OpenKalman::is_equivalent_v<C, typename MatrixTraits<B>::RowCoefficients>);
-    static_assert(OpenKalman::is_equivalent_v<C, typename MatrixTraits<A>::ColumnCoefficients>);
+    static_assert(OpenKalman::equivalent_to<C, typename MatrixTraits<B>::RowCoefficients>);
+    static_assert(OpenKalman::equivalent_to<C, typename MatrixTraits<A>::ColumnCoefficients>);
     auto x = solve(base_matrix(std::forward<A>(a)), base_matrix(std::forward<B>(b)));
     return MatrixTraits<B>::make(std::move(x));
   }
@@ -277,7 +279,7 @@ namespace OpenKalman
   {
     if constexpr(sizeof...(Vs) > 0)
     {
-      static_assert((is_equivalent_v<
+      static_assert((equivalent_to<
         typename MatrixTraits<V>::ColumnCoefficients,
         typename MatrixTraits<Vs>::ColumnCoefficients> and ...));
       using RC = Concatenate<typename MatrixTraits<V>::RowCoefficients, typename MatrixTraits<Vs>::RowCoefficients...>;
@@ -316,7 +318,7 @@ namespace OpenKalman
   {
     if constexpr(sizeof...(Vs) > 0)
     {
-      static_assert((is_equivalent_v<
+      static_assert((equivalent_to<
         typename MatrixTraits<V>::RowCoefficients,
         typename MatrixTraits<Vs>::RowCoefficients> and ...));
       using RC = typename MatrixTraits<V>::RowCoefficients;
@@ -388,7 +390,7 @@ namespace OpenKalman
       template<typename RC, typename CC, typename Arg>
       static auto call(Arg&& arg)
       {
-        static_assert(is_equivalent_v<RC, CC>);
+        static_assert(equivalent_to<RC, CC>);
         return MatrixTraits<Expr>::template make<RC, CC>(std::forward<decltype(arg)>(arg));
       }
     };
@@ -404,7 +406,7 @@ namespace OpenKalman
   split_vertical(M&& m) noexcept
   {
     using CC = typename MatrixTraits<M>::ColumnCoefficients;
-    static_assert(is_prefix_v<Concatenate<Cs...>, typename MatrixTraits<M>::RowCoefficients>);
+    static_assert(prefix_of<Concatenate<Cs...>, typename MatrixTraits<M>::RowCoefficients>);
     constexpr auto euclidean = euclidean_transformed<M>;
     return split_vertical<internal::SplitMatVertF<M, CC>, euclidean, Cs...>(base_matrix(std::forward<M>(m)));
   }
@@ -420,7 +422,7 @@ namespace OpenKalman
   split_horizontal(M&& m) noexcept
   {
     using RC = typename MatrixTraits<M>::RowCoefficients;
-    static_assert(is_prefix_v<Concatenate<Cs...>, typename MatrixTraits<M>::ColumnCoefficients>);
+    static_assert(prefix_of<Concatenate<Cs...>, typename MatrixTraits<M>::ColumnCoefficients>);
     return split_horizontal<internal::SplitMatHorizF<M, RC>, Cs...>(base_matrix(std::forward<M>(m)));
   }
 
@@ -449,8 +451,8 @@ namespace OpenKalman
   inline auto
   split_diagonal(M&& m) noexcept
   {
-    static_assert(is_prefix_v<Concatenate<Cs...>, typename MatrixTraits<M>::RowCoefficients>);
-    static_assert(is_equivalent_v<typename MatrixTraits<M>::ColumnCoefficients, typename MatrixTraits<M>::RowCoefficients>);
+    static_assert(prefix_of<Concatenate<Cs...>, typename MatrixTraits<M>::RowCoefficients>);
+    static_assert(equivalent_to<typename MatrixTraits<M>::ColumnCoefficients, typename MatrixTraits<M>::RowCoefficients>);
     return split_diagonal<internal::SplitMatDiagF<M>, Cs...>(base_matrix(std::forward<M>(m)));
   }
 
@@ -896,7 +898,7 @@ namespace OpenKalman
 #endif
   inline std::ostream& operator<<(std::ostream& os, const V& v)
   {
-    os << strict_matrix(v);
+    os << make_native_matrix(v);
     return os;
   }
 
@@ -915,14 +917,14 @@ namespace OpenKalman
   {
     using RC1 = typename MatrixTraits<V1>::RowCoefficients;
     using CC1 = typename MatrixTraits<V1>::ColumnCoefficients;
-    static_assert(is_equivalent_v<typename MatrixTraits<V2>::RowCoefficients, RC1>);
-    static_assert(is_equivalent_v<typename MatrixTraits<V2>::ColumnCoefficients, CC1>);
+    static_assert(equivalent_to<typename MatrixTraits<V2>::RowCoefficients, RC1>);
+    static_assert(equivalent_to<typename MatrixTraits<V2>::ColumnCoefficients, CC1>);
     static_assert(euclidean_transformed<V1> == euclidean_transformed<V2>);
     using CommonV = std::decay_t<std::conditional_t<
       (euclidean_mean<V1> and euclidean_mean<V2>) or (mean<V1> and mean<V2>),
       V1, decltype(Matrix {v1})>>;
     auto ret = MatrixTraits<CommonV>::make(base_matrix(std::forward<V1>(v1)) + base_matrix(std::forward<V2>(v2)));
-    if constexpr (not std::is_lvalue_reference_v<V1&&> or not std::is_lvalue_reference_v<V2&&>) return strict(std::move(ret)); else return ret;
+    if constexpr (not std::is_lvalue_reference_v<V1&&> or not std::is_lvalue_reference_v<V2&&>) return make_self_contained(std::move(ret)); else return ret;
   }
 
 
@@ -936,8 +938,8 @@ namespace OpenKalman
   {
     using RC1 = typename MatrixTraits<V1>::RowCoefficients;
     using CC1 = typename MatrixTraits<V1>::ColumnCoefficients;
-    static_assert(is_equivalent_v<typename MatrixTraits<V2>::RowCoefficients, RC1>);
-    static_assert(is_equivalent_v<typename MatrixTraits<V2>::ColumnCoefficients, CC1>);
+    static_assert(equivalent_to<typename MatrixTraits<V2>::RowCoefficients, RC1>);
+    static_assert(equivalent_to<typename MatrixTraits<V2>::ColumnCoefficients, CC1>);
     static_assert(euclidean_transformed<V1> == euclidean_transformed<V2>);
     using CommonV = std::decay_t<std::conditional_t<
       (euclidean_mean<V1> and euclidean_mean<V2>), V1, decltype(Matrix {v1})>>;
@@ -948,14 +950,14 @@ namespace OpenKalman
       using WC = typename RC1::difference_type;
       auto ret = MatrixTraits<CommonV>::make(wrap_angles<WC>(std::move(b)));
       if constexpr (not std::is_lvalue_reference_v<V1&&> or not std::is_lvalue_reference_v<V2&&>)
-        return strict(std::move(ret));
+        return make_self_contained(std::move(ret));
       else return ret;
     }
     else
     {
       auto ret = MatrixTraits<CommonV>::make(std::move(b));
       if constexpr (not std::is_lvalue_reference_v<V1&&> or not std::is_lvalue_reference_v<V2&&>)
-        return strict(std::move(ret));
+        return make_self_contained(std::move(ret));
       else return ret;
     }
   }
@@ -972,7 +974,7 @@ namespace OpenKalman
   {
     using Sc = typename MatrixTraits<V>::Scalar;
     auto ret = MatrixTraits<V>::make(base_matrix(std::forward<V>(v)) * static_cast<Sc>(scale));
-    if constexpr (not std::is_lvalue_reference_v<V&&>) return strict(std::move(ret)); else return ret;
+    if constexpr (not std::is_lvalue_reference_v<V&&>) return make_self_contained(std::move(ret)); else return ret;
   }
 
 
@@ -987,7 +989,7 @@ namespace OpenKalman
   {
     using Sc = const typename MatrixTraits<V>::Scalar;
     auto ret = MatrixTraits<V>::make(static_cast<Sc>(scale) * base_matrix(std::forward<V>(v)));
-    if constexpr (not std::is_lvalue_reference_v<V&&>) return strict(std::move(ret)); else return ret;
+    if constexpr (not std::is_lvalue_reference_v<V&&>) return make_self_contained(std::move(ret)); else return ret;
   }
 
 
@@ -1002,7 +1004,7 @@ namespace OpenKalman
   {
     using Sc = typename MatrixTraits<V>::Scalar;
     auto ret = MatrixTraits<V>::make(base_matrix(std::forward<V>(v)) / static_cast<Sc>(scale));
-    if constexpr (not std::is_lvalue_reference_v<V&&>) return strict(std::move(ret)); else return ret;
+    if constexpr (not std::is_lvalue_reference_v<V&&>) return make_self_contained(std::move(ret)); else return ret;
   }
 
 
@@ -1014,7 +1016,7 @@ namespace OpenKalman
 #endif
   inline auto operator*(V1&& v1, V2&& v2)
   {
-    static_assert(is_equivalent_v<typename MatrixTraits<V1>::ColumnCoefficients, typename MatrixTraits<V2>::RowCoefficients>);
+    static_assert(equivalent_to<typename MatrixTraits<V1>::ColumnCoefficients, typename MatrixTraits<V2>::RowCoefficients>);
     static_assert(MatrixTraits<V1>::columns == MatrixTraits<V2>::dimension);
     using RC = typename MatrixTraits<V1>::RowCoefficients;
     using CC = typename MatrixTraits<V2>::ColumnCoefficients;
@@ -1022,7 +1024,7 @@ namespace OpenKalman
     using CommonV = std::decay_t<std::conditional_t<euclidean_mean<V1>, V1, decltype(Matrix {v1})>>;
     auto ret = MatrixTraits<CommonV>::template make<RC, CC>(std::move(b));
     if constexpr (not std::is_lvalue_reference_v<V1&&> or not std::is_lvalue_reference_v<V2&&>)
-      return strict(std::move(ret));
+      return make_self_contained(std::move(ret));
     else
       return ret;
   }
@@ -1039,7 +1041,7 @@ namespace OpenKalman
     using Res = std::decay_t<std::conditional_t<euclidean_mean<V>, V, decltype(Matrix {v})>>;
     auto ret = MatrixTraits<Res>::make(-base_matrix(std::forward<V>(v)));
     if constexpr (not std::is_lvalue_reference_v<V&&>)
-      return strict(std::move(ret));
+      return make_self_contained(std::move(ret));
     else
       return ret;
   }
@@ -1054,10 +1056,10 @@ namespace OpenKalman
   constexpr auto operator==(V1&& v1, V2&& v2)
   {
     if constexpr(
-      is_equivalent_v<typename MatrixTraits<V1>::RowCoefficients, typename MatrixTraits<V2>::RowCoefficients> and
-      is_equivalent_v<typename MatrixTraits<V1>::ColumnCoefficients, typename MatrixTraits<V2>::ColumnCoefficients>)
+      equivalent_to<typename MatrixTraits<V1>::RowCoefficients, typename MatrixTraits<V2>::RowCoefficients> and
+      equivalent_to<typename MatrixTraits<V1>::ColumnCoefficients, typename MatrixTraits<V2>::ColumnCoefficients>)
     {
-      return strict_matrix(std::forward<V1>(v1)) == strict_matrix(std::forward<V2>(v2));
+      return make_native_matrix(std::forward<V1>(v1)) == make_native_matrix(std::forward<V2>(v2));
     }
     else
     {

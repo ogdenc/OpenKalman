@@ -49,7 +49,9 @@ namespace OpenKalman::Eigen3
   }
 
 
-  /// Convert to strict version of the matrix.
+  /**
+   * Convert to a self-contained Eigen3 matrix.
+   */
 #ifdef __cpp_concepts
   template<typename Arg> requires
     eigen_matrix<Arg> or
@@ -64,9 +66,9 @@ namespace OpenKalman::Eigen3
     eigen_diagonal_expr<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
-  strict_matrix(Arg&& arg)
+  make_native_matrix(Arg&& arg) noexcept
   {
-    if constexpr (is_strict_matrix_v<Arg>)
+    if constexpr (eigen_native<Arg> and self_contained<Arg>)
     {
       return std::forward<Arg>(arg);
     }
@@ -80,22 +82,22 @@ namespace OpenKalman::Eigen3
   }
 
 
-  /// Convert to strict version of the matrix.
+  /// Convert to self-contained version of the matrix.
 #ifdef __cpp_concepts
   template<eigen_native Arg>
 #else
   template<typename Arg, std::enable_if_t<eigen_native<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
-  strict(Arg&& arg)
+  make_self_contained(Arg&& arg)
   {
-    if constexpr (is_strict_v<Arg>)
+    if constexpr (self_contained<Arg>)
     {
       return std::forward<Arg>(arg);
     }
     else
     {
-      return strict_matrix(std::forward<Arg>(arg));
+      return make_native_matrix(std::forward<Arg>(arg));
     }
   }
 
@@ -148,7 +150,7 @@ namespace OpenKalman::Eigen3
   constexpr decltype(auto)
   wrap_angles(Arg&& arg) noexcept
   {
-    if constexpr (Coefficients::axes_only or is_identity_v<Arg> or is_zero_v<Arg>)
+    if constexpr (Coefficients::axes_only or identity_matrix<Arg> or zero_matrix<Arg>)
     {
       /// @TODO: Add functionality to conditionally wrap zero and identity, depending on wrap min and max.
       return std::forward<Arg>(arg);
@@ -169,7 +171,7 @@ namespace OpenKalman::Eigen3
   to_diagonal(Arg&& arg) noexcept
   {
     static_assert(MatrixTraits<Arg>::columns == 1);
-    if constexpr (is_1by1_v<Arg>)
+    if constexpr (one_by_one_matrix<Arg>)
       return std::forward<Arg>(arg);
     else
       return DiagonalMatrix(std::forward<Arg>(arg));
@@ -184,7 +186,7 @@ namespace OpenKalman::Eigen3
   constexpr decltype(auto)
   transpose(Arg&& arg) noexcept
   {
-    if constexpr (is_1by1_v<Arg>)
+    if constexpr (one_by_one_matrix<Arg>)
       return std::forward<Arg>(arg);
     else
       return std::forward<Arg>(arg).transpose();
@@ -199,7 +201,7 @@ namespace OpenKalman::Eigen3
   constexpr decltype(auto)
   adjoint(Arg&& arg) noexcept
   {
-    if constexpr (is_1by1_v<Arg>)
+    if constexpr (one_by_one_matrix<Arg>)
       return std::forward<Arg>(arg);
     else
       return std::forward<Arg>(arg).adjoint();
@@ -215,7 +217,7 @@ namespace OpenKalman::Eigen3
   determinant(Arg&& arg) noexcept
   {
     static_assert(MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns);
-    if constexpr (is_1by1_v<Arg>)
+    if constexpr (one_by_one_matrix<Arg>)
       return std::forward<Arg>(arg)(0, 0);
     else
       return std::forward<Arg>(arg).determinant();
@@ -231,7 +233,7 @@ namespace OpenKalman::Eigen3
   trace(Arg&& arg) noexcept
   {
     static_assert(MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns);
-    if constexpr (is_1by1_v<Arg>)
+    if constexpr (one_by_one_matrix<Arg>)
       return std::forward<Arg>(arg)(0, 0);
     else
       return std::forward<Arg>(arg).trace();
@@ -252,7 +254,7 @@ namespace OpenKalman::Eigen3
     static_assert(MatrixTraits<A>::dimension == MatrixTraits<A>::columns);
     static_assert(MatrixTraits<A>::dimension == MatrixTraits<B>::dimension);
     using M = Eigen::Matrix<typename MatrixTraits<B>::Scalar, MatrixTraits<A>::dimension, MatrixTraits<B>::columns>;
-    if constexpr (is_1by1_v<A>)
+    if constexpr (one_by_one_matrix<A>)
     {
       return M(b(0, 0)/a(0, 0));
     }
@@ -295,7 +297,7 @@ namespace OpenKalman::Eigen3
   constexpr auto
   LQ_decomposition(A&& a)
   {
-    if constexpr (is_diagonal_v<A> or is_lower_triangular_v<A>)
+    if constexpr (diagonal_matrix<A> or lower_triangular_matrix<A>)
     {
       return std::forward<A>(a);
     }
@@ -333,7 +335,7 @@ namespace OpenKalman::Eigen3
   constexpr auto
   QR_decomposition(A&& a)
   {
-    if constexpr (is_diagonal_v<A> or is_upper_triangular_v<A>)
+    if constexpr (diagonal_matrix<A> or upper_triangular_matrix<A>)
     {
       return std::forward<A>(a);
     }
@@ -528,7 +530,7 @@ namespace OpenKalman::Eigen3
       if constexpr (std::is_lvalue_reference_v<Arg&&>)
         return std::forward<decltype(m)>(m);
       else
-        return strict_matrix(std::forward<decltype(m)>(m));
+        return make_native_matrix(std::forward<decltype(m)>(m));
     };
     if constexpr (sizeof...(RCs) > 0)
     {
@@ -628,7 +630,7 @@ namespace OpenKalman::Eigen3
       if constexpr (std::is_lvalue_reference_v<Arg&&>)
         return std::forward<decltype(m)>(m);
       else
-        return strict_matrix(std::forward<decltype(m)>(m));
+        return make_native_matrix(std::forward<decltype(m)>(m));
     };
     if constexpr(sizeof...(CCs) > 0)
     {
@@ -715,7 +717,7 @@ namespace OpenKalman::Eigen3
       if constexpr (std::is_lvalue_reference_v<Arg&&>)
         return std::forward<decltype(m)>(m);
       else
-        return strict_matrix(std::forward<decltype(m)>(m));
+        return make_native_matrix(std::forward<decltype(m)>(m));
     };
     if constexpr(sizeof...(Cs) > 0)
     {
@@ -1222,7 +1224,7 @@ namespace OpenKalman::Eigen3
     if constexpr (std::is_constructible_v<Ps, Params...>)
     {
       Ps ps {params...};
-      return strict(ReturnType::NullaryExpr([&] {
+      return make_self_contained(ReturnType::NullaryExpr([&] {
         return detail::get_rnd<Scalar, distribution_type, random_number_engine>(ps);
       }));
     }
@@ -1237,7 +1239,7 @@ namespace OpenKalman::Eigen3
         "Params... must be (1) a parameter set or list of parameter sets, "
         "(2) a list of parameter sets, one for each row, or (3) a list of parameter sets, one for each coefficient.");
       return apply_columnwise<cols>([&] {
-        using ReturnTypeCol = typename MatrixTraits<ReturnType>::template StrictMatrix<rows, 1>;
+        using ReturnTypeCol = typename MatrixTraits<ReturnType>::template NativeMatrix<rows, 1>;
         return MatrixTraits<ReturnTypeCol>::make(
           detail::get_rnd<Scalar, distribution_type, random_number_engine>(std::forward<Params>(params))...);
       });

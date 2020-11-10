@@ -334,20 +334,20 @@ TEST_F(eigen3, TriangularMatrix_subscripts)
 
 TEST_F(eigen3, TriangularMatrix_make)
 {
-  static_assert(is_zero_v<decltype(make_EigenTriangularMatrix<TriangleType::upper>(MatrixTraits<M2>::zero()))>);
-  static_assert(is_zero_v<decltype(make_EigenTriangularMatrix<TriangleType::lower>(MatrixTraits<M2>::zero()))>);
-  static_assert(is_zero_v<decltype(make_EigenTriangularMatrix(MatrixTraits<M2>::zero()))>);
-  static_assert(is_upper_triangular_v<decltype(make_EigenTriangularMatrix<TriangleType::upper>((M2() << 3, 1, 0, 3).finished()))>);
-  static_assert(is_lower_triangular_v<decltype(make_EigenTriangularMatrix<TriangleType::lower>((M2() << 3, 0, 1, 3).finished()))>);
-  static_assert(is_lower_triangular_v<decltype(make_EigenTriangularMatrix((M2() << 3, 0, 1, 3).finished()))>);
-  static_assert(is_diagonal_v<decltype(make_EigenTriangularMatrix<TriangleType::upper>(DiagonalMatrix {3., 4}))>);
-  static_assert(is_diagonal_v<decltype(make_EigenTriangularMatrix<TriangleType::lower>(DiagonalMatrix {3., 4}))>);
-  static_assert(is_diagonal_v<decltype(make_EigenTriangularMatrix(DiagonalMatrix {3., 4}))>);
+  static_assert(zero_matrix<decltype(make_EigenTriangularMatrix<TriangleType::upper>(MatrixTraits<M2>::zero()))>);
+  static_assert(zero_matrix<decltype(make_EigenTriangularMatrix<TriangleType::lower>(MatrixTraits<M2>::zero()))>);
+  static_assert(zero_matrix<decltype(make_EigenTriangularMatrix(MatrixTraits<M2>::zero()))>);
+  static_assert(upper_triangular_matrix<decltype(make_EigenTriangularMatrix<TriangleType::upper>((M2() << 3, 1, 0, 3).finished()))>);
+  static_assert(lower_triangular_matrix<decltype(make_EigenTriangularMatrix<TriangleType::lower>((M2() << 3, 0, 1, 3).finished()))>);
+  static_assert(lower_triangular_matrix<decltype(make_EigenTriangularMatrix((M2() << 3, 0, 1, 3).finished()))>);
+  static_assert(diagonal_matrix<decltype(make_EigenTriangularMatrix<TriangleType::upper>(DiagonalMatrix {3., 4}))>);
+  static_assert(diagonal_matrix<decltype(make_EigenTriangularMatrix<TriangleType::lower>(DiagonalMatrix {3., 4}))>);
+  static_assert(diagonal_matrix<decltype(make_EigenTriangularMatrix(DiagonalMatrix {3., 4}))>);
 
-  static_assert(is_upper_triangular_v<decltype(make_EigenTriangularMatrix<TriangleType::upper>(Upper {3, 1, 0, 3}))>);
-  static_assert(is_lower_triangular_v<decltype(make_EigenTriangularMatrix<TriangleType::lower>(Lower {3, 0, 1, 3}))>);
-  static_assert(is_upper_triangular_v<decltype(make_EigenTriangularMatrix(Upper {3, 1, 0, 3}))>);
-  static_assert(is_lower_triangular_v<decltype(make_EigenTriangularMatrix(Lower {3, 0, 1, 3}))>);
+  static_assert(upper_triangular_matrix<decltype(make_EigenTriangularMatrix<TriangleType::upper>(Upper {3, 1, 0, 3}))>);
+  static_assert(lower_triangular_matrix<decltype(make_EigenTriangularMatrix<TriangleType::lower>(Lower {3, 0, 1, 3}))>);
+  static_assert(upper_triangular_matrix<decltype(make_EigenTriangularMatrix(Upper {3, 1, 0, 3}))>);
+  static_assert(lower_triangular_matrix<decltype(make_EigenTriangularMatrix(Lower {3, 0, 1, 3}))>);
 }
 
 TEST_F(eigen3, TriangularMatrix_traits)
@@ -369,14 +369,14 @@ TEST_F(eigen3, TriangularMatrix_traits)
   EXPECT_TRUE(is_near(MatrixTraits<Dl>::identity(), M2::Identity()));
   EXPECT_TRUE(is_near(MatrixTraits<Du>::identity(), M2::Identity()));
 
-  static_assert(is_lower_triangular_v<Lower>);
-  static_assert(is_upper_triangular_v<Upper>);
-  static_assert(is_diagonal_v<Diagonal>);
-  static_assert(is_diagonal_v<Diagonal2>);
-  static_assert(is_diagonal_v<Diagonal3>);
-  static_assert(is_zero_v<decltype(TriangularMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::lower>(MatrixTraits<M2>::zero()))>);
-  static_assert(is_zero_v<decltype(TriangularMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::upper>(MatrixTraits<M2>::zero()))>);
-  static_assert(is_identity_v<decltype(TriangularMatrix<decltype(MatrixTraits<M2>::identity()), TriangleType::lower>(MatrixTraits<M2>::identity()))>);
+  static_assert(lower_triangular_matrix<Lower>);
+  static_assert(upper_triangular_matrix<Upper>);
+  static_assert(diagonal_matrix<Diagonal>);
+  static_assert(diagonal_matrix<Diagonal2>);
+  static_assert(diagonal_matrix<Diagonal3>);
+  static_assert(zero_matrix<decltype(TriangularMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::lower>(MatrixTraits<M2>::zero()))>);
+  static_assert(zero_matrix<decltype(TriangularMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::upper>(MatrixTraits<M2>::zero()))>);
+  static_assert(identity_matrix<decltype(TriangularMatrix<decltype(MatrixTraits<M2>::identity()), TriangleType::lower>(MatrixTraits<M2>::identity()))>);
 }
 
 TEST_F(eigen3, TriangularMatrix_overloads)
@@ -385,27 +385,27 @@ TEST_F(eigen3, TriangularMatrix_overloads)
   ml << 3, 0, 1, 3;
   mu << 3, 1, 0, 3;
   //
-  EXPECT_TRUE(is_near(strict_matrix(Lower(3., 0, 1, 3)), ml));
-  EXPECT_TRUE(is_near(strict_matrix(Upper(3., 1, 0, 3)), mu));
+  EXPECT_TRUE(is_near(make_native_matrix(Lower(3., 0, 1, 3)), ml));
+  EXPECT_TRUE(is_near(make_native_matrix(Upper(3., 1, 0, 3)), mu));
   //
-  EXPECT_TRUE(is_near(strict(Lower(M2::Zero())), (M2() << 0, 0, 0, 0).finished()));
-  EXPECT_TRUE(is_near(strict(Upper(M2::Zero())), (M2() << 0, 0, 0, 0).finished()));
-  static_assert(std::is_same_v<std::decay_t<decltype(strict(Lower {9, 3, 3, 10} * 2))>, Lower>);
-  static_assert(std::is_same_v<std::decay_t<decltype(strict(Upper {9, 3, 3, 10} * 2))>, Upper>);
+  EXPECT_TRUE(is_near(make_self_contained(Lower(M2::Zero())), (M2() << 0, 0, 0, 0).finished()));
+  EXPECT_TRUE(is_near(make_self_contained(Upper(M2::Zero())), (M2() << 0, 0, 0, 0).finished()));
+  static_assert(std::is_same_v<std::decay_t<decltype(make_self_contained(Lower {9, 3, 3, 10} * 2))>, Lower>);
+  static_assert(std::is_same_v<std::decay_t<decltype(make_self_contained(Upper {9, 3, 3, 10} * 2))>, Upper>);
   //
   //
   EXPECT_TRUE(is_near(Cholesky_square(TriangularMatrix<Eigen::Matrix<double, 1, 1>, TriangleType::lower>(Eigen::Matrix<double, 1, 1>(4))), Eigen::Matrix<double, 1, 1>(16)));
-  static_assert(is_1by1_v<decltype(Cholesky_square(TriangularMatrix<Eigen::Matrix<double, 1, 1>, TriangleType::lower>(Eigen::Matrix<double, 1, 1>(4))))>);
+  static_assert(one_by_one_matrix<decltype(Cholesky_square(TriangularMatrix<Eigen::Matrix<double, 1, 1>, TriangleType::lower>(Eigen::Matrix<double, 1, 1>(4))))>);
   //
   EXPECT_TRUE(is_near(Cholesky_square(TriangularMatrix<decltype(M2::Identity()), TriangleType::lower>(M2::Identity())), M2::Identity()));
   EXPECT_TRUE(is_near(Cholesky_square(TriangularMatrix<decltype(M2::Identity()), TriangleType::upper>(M2::Identity())), M2::Identity()));
-  static_assert(is_identity_v<decltype(Cholesky_square(TriangularMatrix<decltype(M2::Identity()), TriangleType::lower>(M2::Identity())))>);
-  static_assert(is_identity_v<decltype(Cholesky_square(TriangularMatrix<decltype(M2::Identity()), TriangleType::upper>(M2::Identity())))>);
+  static_assert(identity_matrix<decltype(Cholesky_square(TriangularMatrix<decltype(M2::Identity()), TriangleType::lower>(M2::Identity())))>);
+  static_assert(identity_matrix<decltype(Cholesky_square(TriangularMatrix<decltype(M2::Identity()), TriangleType::upper>(M2::Identity())))>);
   //
   EXPECT_TRUE(is_near(Cholesky_square(TriangularMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::lower>(MatrixTraits<M2>::zero())), M2::Zero()));
   EXPECT_TRUE(is_near(Cholesky_square(TriangularMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::upper>(MatrixTraits<M2>::zero())), M2::Zero()));
-  static_assert(is_zero_v<decltype(Cholesky_square(TriangularMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::lower>(MatrixTraits<M2>::zero())))>);
-  static_assert(is_zero_v<decltype(Cholesky_square(TriangularMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::upper>(MatrixTraits<M2>::zero())))>);
+  static_assert(zero_matrix<decltype(Cholesky_square(TriangularMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::lower>(MatrixTraits<M2>::zero())))>);
+  static_assert(zero_matrix<decltype(Cholesky_square(TriangularMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::upper>(MatrixTraits<M2>::zero())))>);
   //
   EXPECT_TRUE(is_near(Cholesky_square(TriangularMatrix<decltype(DiagonalMatrix{2., 3}), TriangleType::lower>(DiagonalMatrix{2., 3})), DiagonalMatrix{4., 9}));
   EXPECT_TRUE(is_near(Cholesky_square(TriangularMatrix<decltype(DiagonalMatrix{2., 3}), TriangleType::upper>(DiagonalMatrix{2., 3})), DiagonalMatrix{4., 9}));
@@ -425,17 +425,17 @@ TEST_F(eigen3, TriangularMatrix_overloads)
   //
   //
   EXPECT_TRUE(is_near(Cholesky_factor(TriangularMatrix<Eigen::Matrix<double, 1, 1>, TriangleType::lower>(Eigen::Matrix<double, 1, 1>(4))), Eigen::Matrix<double, 1, 1>(2)));
-  static_assert(is_1by1_v<decltype(Cholesky_factor(TriangularMatrix<Eigen::Matrix<double, 1, 1>, TriangleType::lower>(Eigen::Matrix<double, 1, 1>(4))))>);
+  static_assert(one_by_one_matrix<decltype(Cholesky_factor(TriangularMatrix<Eigen::Matrix<double, 1, 1>, TriangleType::lower>(Eigen::Matrix<double, 1, 1>(4))))>);
   //
   EXPECT_TRUE(is_near(Cholesky_factor(TriangularMatrix<decltype(M2::Identity()), TriangleType::lower>(M2::Identity())), M2::Identity()));
   EXPECT_TRUE(is_near(Cholesky_factor(TriangularMatrix<decltype(M2::Identity()), TriangleType::upper>(M2::Identity())), M2::Identity()));
-  static_assert(is_identity_v<decltype(Cholesky_factor(TriangularMatrix<decltype(M2::Identity()), TriangleType::lower>(M2::Identity())))>);
-  static_assert(is_identity_v<decltype(Cholesky_factor(TriangularMatrix<decltype(M2::Identity()), TriangleType::upper>(M2::Identity())))>);
+  static_assert(identity_matrix<decltype(Cholesky_factor(TriangularMatrix<decltype(M2::Identity()), TriangleType::lower>(M2::Identity())))>);
+  static_assert(identity_matrix<decltype(Cholesky_factor(TriangularMatrix<decltype(M2::Identity()), TriangleType::upper>(M2::Identity())))>);
   //
   EXPECT_TRUE(is_near(Cholesky_factor(TriangularMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::lower>(MatrixTraits<M2>::zero())), M2::Zero()));
   EXPECT_TRUE(is_near(Cholesky_factor(TriangularMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::upper>(MatrixTraits<M2>::zero())), M2::Zero()));
-  static_assert(is_zero_v<decltype(Cholesky_factor(TriangularMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::lower>(MatrixTraits<M2>::zero())))>);
-  static_assert(is_zero_v<decltype(Cholesky_factor(TriangularMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::upper>(MatrixTraits<M2>::zero())))>);
+  static_assert(zero_matrix<decltype(Cholesky_factor(TriangularMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::lower>(MatrixTraits<M2>::zero())))>);
+  static_assert(zero_matrix<decltype(Cholesky_factor(TriangularMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::upper>(MatrixTraits<M2>::zero())))>);
   //
   EXPECT_TRUE(is_near(Cholesky_factor(TriangularMatrix<decltype(DiagonalMatrix{4., 9}), TriangleType::lower>(DiagonalMatrix{4., 9})), DiagonalMatrix{2., 3}));
   EXPECT_TRUE(is_near(Cholesky_factor(TriangularMatrix<decltype(DiagonalMatrix{4., 9}), TriangleType::upper>(DiagonalMatrix{4., 9})), DiagonalMatrix{2., 3}));
@@ -505,7 +505,7 @@ TEST_F(eigen3, TriangularMatrix_blocks_lower)
                                                                              0, 0, 4, 0, 0,
                                                                              0, 0, 5, 7, 0,
                                                                              0, 0, 6, 8, 9}));
-  static_assert(is_lower_triangular_v<decltype(concatenate_diagonal(TriangularMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::lower> {1., 0, 2, 3}, m1))>);
+  static_assert(lower_triangular_matrix<decltype(concatenate_diagonal(TriangularMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::lower> {1., 0, 2, 3}, m1))>);
 
   EXPECT_TRUE(is_near(concatenate_vertical(m0, m1),
     make_native_matrix<6,3>(1., 0, 0,
@@ -612,7 +612,7 @@ TEST_F(eigen3, TriangularMatrix_blocks_upper)
                                                                              0, 0, 4, 5, 6,
                                                                              0, 0, 0, 7, 8,
                                                                              0, 0, 0, 0, 9}));
-  static_assert(is_upper_triangular_v<decltype(concatenate_diagonal(TriangularMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::upper> {1., 2, 0, 3}, m1))>);
+  static_assert(upper_triangular_matrix<decltype(concatenate_diagonal(TriangularMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::upper> {1., 2, 0, 3}, m1))>);
 
   EXPECT_TRUE(is_near(concatenate_vertical(m0, m1),
     make_native_matrix<6,3>(1., 2, 3,
@@ -711,35 +711,35 @@ TEST_F(eigen3, TriangularMatrix_arithmetic_lower)
   auto d = DiagonalMatrix<Eigen::Matrix<double, 2, 1>> {1, 3};
   auto i = M2::Identity();
   auto z = ZeroMatrix<M2> {};
-  EXPECT_TRUE(is_near(m1 + m2, mat22(5, 0, 7, 9))); static_assert(is_lower_triangular_v<decltype(m1 + m2)>);
-  EXPECT_TRUE(is_near(m1 + d, mat22(5, 0, 5, 9))); static_assert(is_lower_triangular_v<decltype(m1 + d)>);
-  EXPECT_TRUE(is_near(d + m1, mat22(5, 0, 5, 9))); static_assert(is_lower_triangular_v<decltype(d + m1)>);
-  EXPECT_TRUE(is_near(m1 + i, mat22(5, 0, 5, 7))); static_assert(is_lower_triangular_v<decltype(m1 + i)>);
-  EXPECT_TRUE(is_near(i + m1, mat22(5, 0, 5, 7))); static_assert(is_lower_triangular_v<decltype(i + m1)>);
-  EXPECT_TRUE(is_near(m1 + z, mat22(4, 0, 5, 6))); static_assert(is_lower_triangular_v<decltype(m1 + z)>);
-  EXPECT_TRUE(is_near(z + m1, mat22(4, 0, 5, 6))); static_assert(is_lower_triangular_v<decltype(z + m1)>);
+  EXPECT_TRUE(is_near(m1 + m2, mat22(5, 0, 7, 9))); static_assert(lower_triangular_matrix<decltype(m1 + m2)>);
+  EXPECT_TRUE(is_near(m1 + d, mat22(5, 0, 5, 9))); static_assert(lower_triangular_matrix<decltype(m1 + d)>);
+  EXPECT_TRUE(is_near(d + m1, mat22(5, 0, 5, 9))); static_assert(lower_triangular_matrix<decltype(d + m1)>);
+  EXPECT_TRUE(is_near(m1 + i, mat22(5, 0, 5, 7))); static_assert(lower_triangular_matrix<decltype(m1 + i)>);
+  EXPECT_TRUE(is_near(i + m1, mat22(5, 0, 5, 7))); static_assert(lower_triangular_matrix<decltype(i + m1)>);
+  EXPECT_TRUE(is_near(m1 + z, mat22(4, 0, 5, 6))); static_assert(lower_triangular_matrix<decltype(m1 + z)>);
+  EXPECT_TRUE(is_near(z + m1, mat22(4, 0, 5, 6))); static_assert(lower_triangular_matrix<decltype(z + m1)>);
 
-  EXPECT_TRUE(is_near(m1 - m2, mat22(3, 0, 3, 3))); static_assert(is_lower_triangular_v<decltype(m1 - m2)>);
-  EXPECT_TRUE(is_near(m1 - d, mat22(3, 0, 5, 3))); static_assert(is_lower_triangular_v<decltype(m1 - d)>);
-  EXPECT_TRUE(is_near(d - m1, mat22(-3, 0, -5, -3))); static_assert(is_lower_triangular_v<decltype(d - m1)>);
-  EXPECT_TRUE(is_near(m1 - i, mat22(3, 0, 5, 5))); static_assert(is_lower_triangular_v<decltype(m1 - i)>);
-  EXPECT_TRUE(is_near(i - m1, mat22(-3, 0, -5, -5))); static_assert(is_lower_triangular_v<decltype(i - m1)>);
-  EXPECT_TRUE(is_near(m1 - z, mat22(4, 0, 5, 6))); static_assert(is_lower_triangular_v<decltype(m1 - z)>);
-  EXPECT_TRUE(is_near(z - m1, mat22(-4, 0, -5, -6))); static_assert(is_lower_triangular_v<decltype(z - m1)>);
+  EXPECT_TRUE(is_near(m1 - m2, mat22(3, 0, 3, 3))); static_assert(lower_triangular_matrix<decltype(m1 - m2)>);
+  EXPECT_TRUE(is_near(m1 - d, mat22(3, 0, 5, 3))); static_assert(lower_triangular_matrix<decltype(m1 - d)>);
+  EXPECT_TRUE(is_near(d - m1, mat22(-3, 0, -5, -3))); static_assert(lower_triangular_matrix<decltype(d - m1)>);
+  EXPECT_TRUE(is_near(m1 - i, mat22(3, 0, 5, 5))); static_assert(lower_triangular_matrix<decltype(m1 - i)>);
+  EXPECT_TRUE(is_near(i - m1, mat22(-3, 0, -5, -5))); static_assert(lower_triangular_matrix<decltype(i - m1)>);
+  EXPECT_TRUE(is_near(m1 - z, mat22(4, 0, 5, 6))); static_assert(lower_triangular_matrix<decltype(m1 - z)>);
+  EXPECT_TRUE(is_near(z - m1, mat22(-4, 0, -5, -6))); static_assert(lower_triangular_matrix<decltype(z - m1)>);
 
-  EXPECT_TRUE(is_near(m1 * 2, mat22(8, 0, 10, 12))); static_assert(is_lower_triangular_v<decltype(m1 * 2)>);
-  EXPECT_TRUE(is_near(2 * m1, mat22(8, 0, 10, 12))); static_assert(is_lower_triangular_v<decltype(2 * m1)>);
-  EXPECT_TRUE(is_near(m1 / 2, mat22(2, 0, 2.5, 3))); static_assert(is_lower_triangular_v<decltype(m1 / 2)>);
-  static_assert(is_lower_triangular_v<decltype(m1 / 0)>);
-  EXPECT_TRUE(is_near(-m1, mat22(-4, 0, -5, -6)));  static_assert(is_lower_triangular_v<decltype(-m1)>);
+  EXPECT_TRUE(is_near(m1 * 2, mat22(8, 0, 10, 12))); static_assert(lower_triangular_matrix<decltype(m1 * 2)>);
+  EXPECT_TRUE(is_near(2 * m1, mat22(8, 0, 10, 12))); static_assert(lower_triangular_matrix<decltype(2 * m1)>);
+  EXPECT_TRUE(is_near(m1 / 2, mat22(2, 0, 2.5, 3))); static_assert(lower_triangular_matrix<decltype(m1 / 2)>);
+  static_assert(lower_triangular_matrix<decltype(m1 / 0)>);
+  EXPECT_TRUE(is_near(-m1, mat22(-4, 0, -5, -6)));  static_assert(lower_triangular_matrix<decltype(-m1)>);
 
-  EXPECT_TRUE(is_near(m1 * m2, mat22(4, 0, 17, 18))); static_assert(is_lower_triangular_v<decltype(m1 * m2)>);
-  EXPECT_TRUE(is_near(m1 * d, mat22(4, 0, 5, 18))); static_assert(is_lower_triangular_v<decltype(m1 * d)>);
-  EXPECT_TRUE(is_near(d * m1, mat22(4, 0, 15, 18))); static_assert(is_lower_triangular_v<decltype(d * m2)>);
-  EXPECT_TRUE(is_near(m1 * i, m1));  static_assert(is_lower_triangular_v<decltype(m1 * i)>);
-  EXPECT_TRUE(is_near(i * m1, m1));  static_assert(is_lower_triangular_v<decltype(i * m1)>);
-  EXPECT_TRUE(is_near(m1 * z, z));  static_assert(is_zero_v<decltype(m1 * z)>);
-  EXPECT_TRUE(is_near(z * m1, z));  static_assert(is_zero_v<decltype(z * m1)>);
+  EXPECT_TRUE(is_near(m1 * m2, mat22(4, 0, 17, 18))); static_assert(lower_triangular_matrix<decltype(m1 * m2)>);
+  EXPECT_TRUE(is_near(m1 * d, mat22(4, 0, 5, 18))); static_assert(lower_triangular_matrix<decltype(m1 * d)>);
+  EXPECT_TRUE(is_near(d * m1, mat22(4, 0, 15, 18))); static_assert(lower_triangular_matrix<decltype(d * m2)>);
+  EXPECT_TRUE(is_near(m1 * i, m1));  static_assert(lower_triangular_matrix<decltype(m1 * i)>);
+  EXPECT_TRUE(is_near(i * m1, m1));  static_assert(lower_triangular_matrix<decltype(i * m1)>);
+  EXPECT_TRUE(is_near(m1 * z, z));  static_assert(zero_matrix<decltype(m1 * z)>);
+  EXPECT_TRUE(is_near(z * m1, z));  static_assert(zero_matrix<decltype(z * m1)>);
 
   EXPECT_TRUE(is_near(mat22(4, 0, 5, 6) * m2, mat22(4, 0, 17, 18)));
   EXPECT_TRUE(is_near(m1 * mat22(1, 0, 2, 3), mat22(4, 0, 17, 18)));
@@ -752,35 +752,35 @@ TEST_F(eigen3, TriangularMatrix_arithmetic_upper)
   auto d = DiagonalMatrix<Eigen::Matrix<double, 2, 1>> {1, 3};
   auto i = M2::Identity();
   auto z = ZeroMatrix<M2> {};
-  EXPECT_TRUE(is_near(m1 + m2, mat22(5, 7, 0, 9))); static_assert(is_upper_triangular_v<decltype(m1 + m2)>);
-  EXPECT_TRUE(is_near(m1 + d, mat22(5, 5, 0, 9))); static_assert(is_upper_triangular_v<decltype(m1 + d)>);
-  EXPECT_TRUE(is_near(d + m1, mat22(5, 5, 0, 9))); static_assert(is_upper_triangular_v<decltype(d + m1)>);
-  EXPECT_TRUE(is_near(m1 + i, mat22(5, 5, 0, 7))); static_assert(is_upper_triangular_v<decltype(m1 + i)>);
-  EXPECT_TRUE(is_near(i + m1, mat22(5, 5, 0, 7))); static_assert(is_upper_triangular_v<decltype(i + m1)>);
-  EXPECT_TRUE(is_near(m1 + z, mat22(4, 5, 0, 6))); static_assert(is_upper_triangular_v<decltype(m1 + z)>);
-  EXPECT_TRUE(is_near(z + m1, mat22(4, 5, 0, 6))); static_assert(is_upper_triangular_v<decltype(z + m1)>);
+  EXPECT_TRUE(is_near(m1 + m2, mat22(5, 7, 0, 9))); static_assert(upper_triangular_matrix<decltype(m1 + m2)>);
+  EXPECT_TRUE(is_near(m1 + d, mat22(5, 5, 0, 9))); static_assert(upper_triangular_matrix<decltype(m1 + d)>);
+  EXPECT_TRUE(is_near(d + m1, mat22(5, 5, 0, 9))); static_assert(upper_triangular_matrix<decltype(d + m1)>);
+  EXPECT_TRUE(is_near(m1 + i, mat22(5, 5, 0, 7))); static_assert(upper_triangular_matrix<decltype(m1 + i)>);
+  EXPECT_TRUE(is_near(i + m1, mat22(5, 5, 0, 7))); static_assert(upper_triangular_matrix<decltype(i + m1)>);
+  EXPECT_TRUE(is_near(m1 + z, mat22(4, 5, 0, 6))); static_assert(upper_triangular_matrix<decltype(m1 + z)>);
+  EXPECT_TRUE(is_near(z + m1, mat22(4, 5, 0, 6))); static_assert(upper_triangular_matrix<decltype(z + m1)>);
 
-  EXPECT_TRUE(is_near(m1 - m2, mat22(3, 3, 0, 3))); static_assert(is_upper_triangular_v<decltype(m1 - m2)>);
-  EXPECT_TRUE(is_near(m1 - d, mat22(3, 5, 0, 3))); static_assert(is_upper_triangular_v<decltype(m1 - d)>);
-  EXPECT_TRUE(is_near(d - m1, mat22(-3, -5, 0, -3))); static_assert(is_upper_triangular_v<decltype(d - m1)>);
-  EXPECT_TRUE(is_near(m1 - i, mat22(3, 5, 0, 5))); static_assert(is_upper_triangular_v<decltype(m1 - i)>);
-  EXPECT_TRUE(is_near(i - m1, mat22(-3, -5, 0, -5))); static_assert(is_upper_triangular_v<decltype(i - m1)>);
-  EXPECT_TRUE(is_near(m1 - z, mat22(4, 5, 0, 6))); static_assert(is_upper_triangular_v<decltype(m1 - z)>);
-  EXPECT_TRUE(is_near(z - m1, mat22(-4, -5, 0, -6))); static_assert(is_upper_triangular_v<decltype(z - m1)>);
+  EXPECT_TRUE(is_near(m1 - m2, mat22(3, 3, 0, 3))); static_assert(upper_triangular_matrix<decltype(m1 - m2)>);
+  EXPECT_TRUE(is_near(m1 - d, mat22(3, 5, 0, 3))); static_assert(upper_triangular_matrix<decltype(m1 - d)>);
+  EXPECT_TRUE(is_near(d - m1, mat22(-3, -5, 0, -3))); static_assert(upper_triangular_matrix<decltype(d - m1)>);
+  EXPECT_TRUE(is_near(m1 - i, mat22(3, 5, 0, 5))); static_assert(upper_triangular_matrix<decltype(m1 - i)>);
+  EXPECT_TRUE(is_near(i - m1, mat22(-3, -5, 0, -5))); static_assert(upper_triangular_matrix<decltype(i - m1)>);
+  EXPECT_TRUE(is_near(m1 - z, mat22(4, 5, 0, 6))); static_assert(upper_triangular_matrix<decltype(m1 - z)>);
+  EXPECT_TRUE(is_near(z - m1, mat22(-4, -5, 0, -6))); static_assert(upper_triangular_matrix<decltype(z - m1)>);
 
-  EXPECT_TRUE(is_near(m1 * 2, mat22(8, 10, 0, 12))); static_assert(is_upper_triangular_v<decltype(m1 * 2)>);
-  EXPECT_TRUE(is_near(2 * m1, mat22(8, 10, 0, 12))); static_assert(is_upper_triangular_v<decltype(2 * m1)>);
-  EXPECT_TRUE(is_near(m1 / 2, mat22(2, 2.5, 0, 3))); static_assert(is_upper_triangular_v<decltype(m1 / 2)>);
-  static_assert(is_upper_triangular_v<decltype(m1 / 0)>);
-  EXPECT_TRUE(is_near(-m1, mat22(-4, -5, 0, -6)));  static_assert(is_upper_triangular_v<decltype(-m1)>);
+  EXPECT_TRUE(is_near(m1 * 2, mat22(8, 10, 0, 12))); static_assert(upper_triangular_matrix<decltype(m1 * 2)>);
+  EXPECT_TRUE(is_near(2 * m1, mat22(8, 10, 0, 12))); static_assert(upper_triangular_matrix<decltype(2 * m1)>);
+  EXPECT_TRUE(is_near(m1 / 2, mat22(2, 2.5, 0, 3))); static_assert(upper_triangular_matrix<decltype(m1 / 2)>);
+  static_assert(upper_triangular_matrix<decltype(m1 / 0)>);
+  EXPECT_TRUE(is_near(-m1, mat22(-4, -5, 0, -6)));  static_assert(upper_triangular_matrix<decltype(-m1)>);
 
-  EXPECT_TRUE(is_near(m1 * m2, mat22(4, 23, 0, 18))); static_assert(is_upper_triangular_v<decltype(m1 * m2)>);
-  EXPECT_TRUE(is_near(m1 * d, mat22(4, 15, 0, 18))); static_assert(is_upper_triangular_v<decltype(m1 * d)>);
-  EXPECT_TRUE(is_near(d * m1, mat22(4, 5, 0, 18))); static_assert(is_upper_triangular_v<decltype(d * m1)>);
-  EXPECT_TRUE(is_near(m1 * i, m1));  static_assert(is_upper_triangular_v<decltype(m1 * i)>);
-  EXPECT_TRUE(is_near(i * m1, m1));  static_assert(is_upper_triangular_v<decltype(i * m1)>);
-  EXPECT_TRUE(is_near(m1 * z, z));  static_assert(is_zero_v<decltype(m1 * z)>);
-  EXPECT_TRUE(is_near(z * m1, z));  static_assert(is_zero_v<decltype(z * m1)>);
+  EXPECT_TRUE(is_near(m1 * m2, mat22(4, 23, 0, 18))); static_assert(upper_triangular_matrix<decltype(m1 * m2)>);
+  EXPECT_TRUE(is_near(m1 * d, mat22(4, 15, 0, 18))); static_assert(upper_triangular_matrix<decltype(m1 * d)>);
+  EXPECT_TRUE(is_near(d * m1, mat22(4, 5, 0, 18))); static_assert(upper_triangular_matrix<decltype(d * m1)>);
+  EXPECT_TRUE(is_near(m1 * i, m1));  static_assert(upper_triangular_matrix<decltype(m1 * i)>);
+  EXPECT_TRUE(is_near(i * m1, m1));  static_assert(upper_triangular_matrix<decltype(i * m1)>);
+  EXPECT_TRUE(is_near(m1 * z, z));  static_assert(zero_matrix<decltype(m1 * z)>);
+  EXPECT_TRUE(is_near(z * m1, z));  static_assert(zero_matrix<decltype(z * m1)>);
 
   EXPECT_TRUE(is_near(mat22(4, 5, 0, 6) * m2, mat22(4, 23, 0, 18)));
   EXPECT_TRUE(is_near(m1 * mat22(1, 2, 0, 3), mat22(4, 23, 0, 18)));

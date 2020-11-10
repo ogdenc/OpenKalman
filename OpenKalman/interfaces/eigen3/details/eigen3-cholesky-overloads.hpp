@@ -14,20 +14,20 @@
 namespace OpenKalman::Eigen3
 {
 #ifdef __cpp_concepts
-  template<eigen_native Arg> requires is_diagonal_v<Arg>
+  template<eigen_native Arg> requires diagonal_matrix<Arg>
 #else
-  template<typename Arg, std::enable_if_t<eigen_native<Arg> and is_diagonal_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<eigen_native<Arg> and diagonal_matrix<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   Cholesky_square(Arg&& arg)
   {
-    if constexpr(is_identity_v<Arg>)
+    if constexpr(identity_matrix<Arg>)
     {
       return std::forward<Arg>(arg);
     }
-    else if constexpr(is_1by1_v<Arg>)
+    else if constexpr(one_by_one_matrix<Arg>)
     {
-      return strict(std::forward<Arg>(arg).array().square().matrix());
+      return make_self_contained(std::forward<Arg>(arg).array().square().matrix());
     }
     else
     {
@@ -37,20 +37,20 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-  template<eigen_native Arg> requires is_diagonal_v<Arg>
+  template<eigen_native Arg> requires diagonal_matrix<Arg>
 #else
-  template<typename Arg, std::enable_if_t<eigen_native<Arg> and is_diagonal_v<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<eigen_native<Arg> and diagonal_matrix<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   Cholesky_factor(Arg&& arg)
   {
-    if constexpr(is_identity_v<Arg>)
+    if constexpr(identity_matrix<Arg>)
     {
       return std::forward<Arg>(arg);
     }
-    else if constexpr(is_1by1_v<Arg>)
+    else if constexpr(one_by_one_matrix<Arg>)
     {
-      return strict(std::forward<Arg>(arg).cwiseSqrt());
+      return make_self_contained(std::forward<Arg>(arg).cwiseSqrt());
     }
     else
     {
@@ -119,13 +119,13 @@ namespace OpenKalman::Eigen3
   {
     using BaseMatrix = typename MatrixTraits<Arg>::BaseMatrix;
     using Scalar = typename MatrixTraits<Arg>::Scalar;
-    static_assert(is_diagonal_v<BaseMatrix> or MatrixTraits<Arg>::storage_type == TriangleType::diagonal);
+    static_assert(diagonal_matrix<BaseMatrix> or MatrixTraits<Arg>::storage_type == TriangleType::diagonal);
 
-    if constexpr(is_identity_v<BaseMatrix>)
+    if constexpr(identity_matrix<BaseMatrix>)
     {
       return MatrixTraits<BaseMatrix>::identity();
     }
-    else if constexpr (is_zero_v<BaseMatrix>)
+    else if constexpr (zero_matrix<BaseMatrix>)
     {
       return MatrixTraits<BaseMatrix>::zero();
     }
@@ -133,11 +133,11 @@ namespace OpenKalman::Eigen3
     {
       return Cholesky_square(base_matrix(std::forward<Arg>(arg)));
     }
-    else if constexpr (is_1by1_v<BaseMatrix>)
+    else if constexpr (one_by_one_matrix<BaseMatrix>)
     {
       return base_matrix(std::forward<Arg>(arg)).array().square().matrix();
     }
-    else // if constexpr (not is_diagonal_v<BaseMatrix> and MatrixTraits<Arg>::storage_type == TriangleType::diagonal)
+    else // if constexpr (not diagonal_matrix<BaseMatrix> and MatrixTraits<Arg>::storage_type == TriangleType::diagonal)
     {
       constexpr auto dimension = MatrixTraits<Arg>::dimension;
       using M = Eigen::Matrix<Scalar, dimension, 1>;
@@ -161,11 +161,11 @@ namespace OpenKalman::Eigen3
     constexpr auto dimension = MatrixTraits<Arg>::dimension;
     using M = Eigen::Matrix<Scalar, dimension, dimension>;
 
-    if constexpr(is_identity_v<BaseMatrix>)
+    if constexpr(identity_matrix<BaseMatrix>)
     {
       return MatrixTraits<BaseMatrix>::identity();
     }
-    else if constexpr (is_zero_v<BaseMatrix>)
+    else if constexpr (zero_matrix<BaseMatrix>)
     {
       return MatrixTraits<BaseMatrix>::zero();
     }
@@ -173,9 +173,9 @@ namespace OpenKalman::Eigen3
     {
       return Cholesky_factor(base_matrix(std::forward<Arg>(arg)));
     }
-    else if constexpr (is_1by1_v<BaseMatrix>)
+    else if constexpr (one_by_one_matrix<BaseMatrix>)
     {
-      return strict(base_matrix(std::forward<Arg>(arg)).cwiseSqrt());
+      return make_self_contained(base_matrix(std::forward<Arg>(arg)).cwiseSqrt());
     }
     else if constexpr (MatrixTraits<Arg>::storage_type == TriangleType::diagonal)
     {
@@ -288,11 +288,11 @@ namespace OpenKalman::Eigen3
     constexpr auto dimension = MatrixTraits<Arg>::dimension;
     constexpr auto triangle_type = MatrixTraits<Arg>::triangle_type;
 
-    if constexpr(is_identity_v<BaseMatrix>)
+    if constexpr(identity_matrix<BaseMatrix>)
     {
       return MatrixTraits<BaseMatrix>::identity();
     }
-    else if constexpr (is_zero_v<BaseMatrix>)
+    else if constexpr (zero_matrix<BaseMatrix>)
     {
       return MatrixTraits<BaseMatrix>::zero();
     }
@@ -300,9 +300,9 @@ namespace OpenKalman::Eigen3
     {
       return Cholesky_square(base_matrix(std::forward<Arg>(arg)));
     }
-    else if constexpr (is_1by1_v<BaseMatrix>)
+    else if constexpr (one_by_one_matrix<BaseMatrix>)
     {
-      return strict(base_matrix(std::forward<Arg>(arg)).array().square().matrix());
+      return make_self_contained(base_matrix(std::forward<Arg>(arg)).array().square().matrix());
     }
     else if constexpr (triangle_type == TriangleType::diagonal)
     {
@@ -341,13 +341,13 @@ namespace OpenKalman::Eigen3
   {
     using BaseMatrix = std::decay_t<typename MatrixTraits<Arg>::BaseMatrix>;
     using Scalar = typename MatrixTraits<Arg>::Scalar;
-    static_assert(is_diagonal_v<BaseMatrix> or MatrixTraits<Arg>::triangle_type == TriangleType::diagonal);
+    static_assert(diagonal_matrix<BaseMatrix> or MatrixTraits<Arg>::triangle_type == TriangleType::diagonal);
 
-    if constexpr(is_identity_v<BaseMatrix>)
+    if constexpr(identity_matrix<BaseMatrix>)
     {
       return MatrixTraits<BaseMatrix>::identity();
     }
-    else if constexpr (is_zero_v<BaseMatrix>)
+    else if constexpr (zero_matrix<BaseMatrix>)
     {
       return MatrixTraits<BaseMatrix>::zero();
     }
@@ -355,11 +355,11 @@ namespace OpenKalman::Eigen3
     {
       return Cholesky_factor(base_matrix(std::forward<Arg>(arg)));
     }
-    else if constexpr (is_1by1_v<BaseMatrix>)
+    else if constexpr (one_by_one_matrix<BaseMatrix>)
     {
       return base_matrix(std::forward<Arg>(arg)).cwiseSqrt();
     }
-    else // if constexpr (not is_diagonal_v<BaseMatrix> and triangle_type == TriangleType::diagonal)
+    else // if constexpr (not diagonal_matrix<BaseMatrix> and triangle_type == TriangleType::diagonal)
     {
       constexpr auto dimension = MatrixTraits<Arg>::dimension;
       using M = Eigen::Matrix<Scalar, dimension, 1>;

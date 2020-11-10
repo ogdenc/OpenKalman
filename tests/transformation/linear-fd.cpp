@@ -25,7 +25,7 @@ using A33 = Matrix<Axes<3>, Axes<3>, Eigen::Matrix<double, 3, 3>>;
 TEST_F(transformations, finite_diff_linear_2by2)
 {
   A22 a {1, 2, 3, 4};
-  auto f = [&] (const auto& x, const auto&...n) { return strict(((a * x) + ... + (A22::identity() * n))); };
+  auto f = [&] (const auto& x, const auto&...n) { return make_self_contained(((a * x) + ... + (A22::identity() * n))); };
   auto t = FiniteDifferenceLinearization {f, M2 {1e-4, 1e-4}, M2 {1e-4, 1e-4}, M2 {1e-4, 1e-4}};
   EXPECT_TRUE(is_near(t(M2(1, 2)), M2(5, 11)));
   EXPECT_TRUE(is_near(std::get<0>(t.jacobian(M2(1, 2))), a));
@@ -39,7 +39,7 @@ TEST_F(transformations, finite_diff_linear_2by2)
 TEST_F(transformations, finite_diff_linear_2by3)
 {
   A32 a {1, 2, 3, 4, 5, 6};
-  auto f = [&] (const auto& x, const auto&...n) { return strict(((a * x) + ... + (A33::identity() * n))); };
+  auto f = [&] (const auto& x, const auto&...n) { return make_self_contained(((a * x) + ... + (A33::identity() * n))); };
   auto t = FiniteDifferenceLinearization {f, M2 {1e-4, 1e-4}, M3 {1e-4, 1e-4, 1e-4}, M3 {1e-4, 1e-4, 1e-4}};
   EXPECT_TRUE(is_near(t(M2(1, 2)), M3(5, 11, 17)));
   EXPECT_TRUE(is_near(std::get<0>(t.jacobian(M2(3, 4))), a));

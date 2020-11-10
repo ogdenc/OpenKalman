@@ -81,9 +81,9 @@ namespace OpenKalman
       constexpr Scalar alpha = Parameters::alpha;
       constexpr Scalar kappa = Parameters::template kappa<dim>;
       constexpr Scalar gamma_L = alpha * alpha * (kappa + dim);
-      const auto delta = make_Matrix<Coeffs, Axes<dim_i>>(strict_matrix(square_root(gamma_L * covariance_of(d))));
+      const auto delta = make_Matrix<Coeffs, Axes<dim_i>>(make_native_matrix(square_root(gamma_L * covariance_of(d))));
       //
-      using M0base = strict_matrix_t<M, dim_i, 1>;
+      using M0base = native_matrix_t<M, dim_i, 1>;
       const auto m0 = Matrix<Coeffs, Axis, M0base>::zero();
       if constexpr(1 + frame_size == points_count)
       {
@@ -94,7 +94,7 @@ namespace OpenKalman
       else if constexpr (pos == 0)
       {
         constexpr auto width = points_count - (1 + frame_size);
-        using MRbase = strict_matrix_t<M, dim_i, width>;
+        using MRbase = native_matrix_t<M, dim_i, width>;
         const auto mright = Matrix<Coeffs, Axes<width>, MRbase>::zero();
         auto ret = concatenate_horizontal(m0, delta, -delta, mright);
         static_assert(MatrixTraits<decltype(ret)>::columns == points_count);
@@ -102,10 +102,10 @@ namespace OpenKalman
       }
       else if constexpr (pos + frame_size < points_count)
       {
-        using MLbase = strict_matrix_t<M, dim_i, pos>;
+        using MLbase = native_matrix_t<M, dim_i, pos>;
         const auto mleft = Matrix<Coeffs, Axes<pos>, MLbase>::zero();
         constexpr auto width = points_count - (pos + frame_size);
-        using MRbase = strict_matrix_t<M, dim_i, width>;
+        using MRbase = native_matrix_t<M, dim_i, width>;
         const auto mright = Matrix<Coeffs, Axes<width>, MRbase>::zero();
         auto ret = concatenate_horizontal(mleft, delta, -delta, mright);
         static_assert(MatrixTraits<decltype(ret)>::columns == points_count);
@@ -114,7 +114,7 @@ namespace OpenKalman
       else
       {
         static_assert(sizeof...(ds) == 0);
-        using MLbase = strict_matrix_t<M, dim_i, pos>;
+        using MLbase = native_matrix_t<M, dim_i, pos>;
         const auto mleft = Matrix<Coeffs, Axes<pos>, MLbase>::zero();
         auto ret = concatenate_horizontal(mleft, delta, -delta);
         static_assert(MatrixTraits<decltype(ret)>::columns == points_count);

@@ -152,12 +152,12 @@ TEST_F(eigen3, ToEuclideanExpr_subscripts)
 TEST_F(eigen3, ToEuclideanExpr_traits)
 {
   static_assert(to_euclidean_expr<decltype(To3 {1, 2, M_PI/6, M_PI/3, 3, 4})>);
-  static_assert(is_typed_matrix_base_v<decltype(To3 {1, 2, M_PI/6, M_PI/3, 3, 4})>);
+  static_assert(typed_matrix_base<decltype(To3 {1, 2, M_PI/6, M_PI/3, 3, 4})>);
   static_assert(not from_euclidean_expr<decltype(To3 {1, 2, M_PI/6, M_PI/3, 3, 4})>);
   static_assert(not eigen_native<decltype(To3 {1, 2, M_PI/6, M_PI/3, 3, 4})>);
   static_assert(not eigen_matrix<decltype(To3 {1, 2, M_PI/6, M_PI/3, 3, 4})>);
-  static_assert(not is_identity_v<decltype(To3 {1, 2, M_PI/6, M_PI/3, 3, 4})>);
-  static_assert(not is_zero_v<decltype(To3 {1, 2, M_PI/6, M_PI/3, 3, 4})>);
+  static_assert(not identity_matrix<decltype(To3 {1, 2, M_PI/6, M_PI/3, 3, 4})>);
+  static_assert(not zero_matrix<decltype(To3 {1, 2, M_PI/6, M_PI/3, 3, 4})>);
   // MatrixTraits
   EXPECT_TRUE(is_near(MatrixTraits<To3>::make((Eigen::Matrix<double, 3, 2>() << 1, 2, M_PI/6, M_PI/3, 3, 4).finished()),
     mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
@@ -171,8 +171,8 @@ TEST_F(eigen3, ToEuclideanExpr_traits)
 TEST_F(eigen3, ToEuclideanExpr_overloads)
 {
   EXPECT_TRUE(is_near(base_matrix(To3 {1, 2, M_PI/6, M_PI/3, 3, 4}), mat3(1, 2, M_PI/6, M_PI/3, 3, 4)));
-  EXPECT_TRUE(is_near(strict_matrix(To3 {1, 2, M_PI/6, M_PI/3, 3, 4}), mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
-  EXPECT_TRUE(is_near(strict(To3 {1, 2, M_PI/6, M_PI/3, 3, 4}), mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
+  EXPECT_TRUE(is_near(make_native_matrix(To3 {1, 2, M_PI/6, M_PI/3, 3, 4}), mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
+  EXPECT_TRUE(is_near(make_self_contained(To3 {1, 2, M_PI/6, M_PI/3, 3, 4}), mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
   EXPECT_TRUE(is_near(from_Euclidean(To3 {1, 2, 2*M_PI + M_PI/6, -4*M_PI + M_PI/3, 3, 4}), mat3(1, 2, M_PI/6, M_PI/3, 3, 4)));
   EXPECT_TRUE(is_near(from_Euclidean<C>(To3 {1, 2, 2*M_PI + M_PI/6, -4*M_PI + M_PI/3, 3, 4}), mat3(1, 2, M_PI/6, M_PI/3, 3, 4)));
   EXPECT_TRUE(is_near(to_diagonal(ToEuclideanExpr<C, Eigen::Matrix<double, 3, 1>>{1, M_PI/6, 3}), DiagonalMatrix {1., std::sqrt(3)/2, 0.5, 3}));
@@ -197,7 +197,7 @@ TEST_F(eigen3, ToEuclideanExpr_overloads)
       std::sqrt(3)/2, 0.5, std::sqrt(2)/2,
       0.5, std::sqrt(3)/2, std::sqrt(2)/2).finished())));
 
-  auto m = strict_matrix(MatrixTraits<Eigen::Matrix<double, 3, 2>>::zero());
+  auto m = make_native_matrix(MatrixTraits<Eigen::Matrix<double, 3, 2>>::zero());
   for (int i=0; i<100; i++)
   {
     m = (m * i + from_Euclidean(randomize<To3>(1.0, 0.3))) / (i + 1);

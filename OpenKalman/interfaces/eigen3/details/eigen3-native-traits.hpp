@@ -39,7 +39,7 @@ namespace Eigen::internal
     using Base = traits<typename OpenKalman::MatrixTraits<ArgType>::template SelfAdjointBaseType<>>;
     enum
     {
-      Flags = Base::Flags & (OpenKalman::is_self_adjoint_v<ArgType> ? ~0 : ~LvalueBit),
+      Flags = Base::Flags & (OpenKalman::self_adjoint_matrix<ArgType> ? ~0 : ~LvalueBit),
     };
   };
 
@@ -50,7 +50,7 @@ namespace Eigen::internal
     using Base = traits<typename OpenKalman::MatrixTraits<ArgType>::template TriangularBaseType<>>;
     enum
     {
-      Flags = Base::Flags & (OpenKalman::is_triangular_v<ArgType> ? ~0 : ~LvalueBit),
+      Flags = Base::Flags & (OpenKalman::triangular_matrix<ArgType> ? ~0 : ~LvalueBit),
     };
   };
 
