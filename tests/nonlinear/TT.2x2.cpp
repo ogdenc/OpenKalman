@@ -51,7 +51,7 @@ TEST_F(nonlinear, TT1RadarA1Triangular)
 TEST_F(nonlinear, TT1RadarA2SelfAdjoint)
 {
   LinearizedTransform t;
-  auto in = G2 {{3.0, M_PI/6}, SA::identity()};
+  auto in = G2 {{3.0, pi/6}, SA::identity()};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean_of(out)(0), 2.6, 1e-1);
   EXPECT_NEAR(mean_of(out)(1), 1.5, 1e-1);
@@ -64,7 +64,7 @@ TEST_F(nonlinear, TT1RadarA2SelfAdjoint)
 TEST_F(nonlinear, TT1RadarA2Triangular)
 {
   LinearizedTransform t;
-  auto in = G2T {{3.0, M_PI/6}, SA::identity()};
+  auto in = G2T {{3.0, pi/6}, SA::identity()};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean_of(out)(0), 2.6, 1e-1);
   EXPECT_NEAR(mean_of(out)(1), 1.5, 1e-1);
@@ -77,7 +77,7 @@ TEST_F(nonlinear, TT1RadarA2Triangular)
 TEST_F(nonlinear, TT1RadarA3SelfAdjoint)
 {
   LinearizedTransform t;
-  auto in = G2 {{3.0, M_PI_4}, SA::identity()};
+  auto in = G2 {{3.0, pi/4}, SA::identity()};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean_of(out)(0), 2.1, 1e-1);
   EXPECT_NEAR(mean_of(out)(1), 2.1, 1e-1);
@@ -90,7 +90,7 @@ TEST_F(nonlinear, TT1RadarA3SelfAdjoint)
 TEST_F(nonlinear, TT1RadarA3Triangular)
 {
   LinearizedTransform t;
-  auto in = G2T {{3.0, M_PI_4}, SA::identity()};
+  auto in = G2T {{3.0, pi/4}, SA::identity()};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean_of(out)(0), 2.1, 1e-1);
   EXPECT_NEAR(mean_of(out)(1), 2.1, 1e-1);
@@ -135,7 +135,7 @@ TEST_F(nonlinear, TT1RadarB1Triangular)
 TEST_F(nonlinear, TT1RadarB2SelfAdjoint)
 {
   LinearizedTransform t;
-  auto in = G2 {{20.0, M_PI/6}, {1.0, 0.0, 0.0, 0.1}};
+  auto in = G2 {{20.0, pi/6}, {1.0, 0.0, 0.0, 0.1}};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean_of(out)(0), 17.3, 1e-1);
   EXPECT_NEAR(mean_of(out)(1), 10.0, 1e-1);
@@ -148,7 +148,7 @@ TEST_F(nonlinear, TT1RadarB2SelfAdjoint)
 TEST_F(nonlinear, TT1RadarB2Triangular)
 {
   LinearizedTransform t;
-  auto in = G2T {{20.0, M_PI/6}, {1.0, 0.0, 0.0, 0.1}};
+  auto in = G2T {{20.0, pi/6}, {1.0, 0.0, 0.0, 0.1}};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean_of(out)(0), 17.3, 1e-1);
   EXPECT_NEAR(mean_of(out)(1), 10.0, 1e-1);
@@ -161,7 +161,7 @@ TEST_F(nonlinear, TT1RadarB2Triangular)
 TEST_F(nonlinear, TT1RadarB3SelfAdjoint)
 {
   LinearizedTransform t;
-  auto in = G2 {{20.0, M_PI_4}, {1.0, 0.0, 0.0, 0.1}};
+  auto in = G2 {{20.0, pi/4}, {1.0, 0.0, 0.0, 0.1}};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean_of(out)(0), 14.1, 1e-1);
   EXPECT_NEAR(mean_of(out)(1), 14.1, 1e-1);
@@ -174,7 +174,7 @@ TEST_F(nonlinear, TT1RadarB3SelfAdjoint)
 TEST_F(nonlinear, TT1RadarB3Triangular)
 {
   LinearizedTransform t;
-  auto in = G2T {{20.0, M_PI_4}, {1.0, 0.0, 0.0, 0.1}};
+  auto in = G2T {{20.0, pi/4}, {1.0, 0.0, 0.0, 0.1}};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean_of(out)(0), 14.1, 1e-1);
   EXPECT_NEAR(mean_of(out)(1), 14.1, 1e-1);
@@ -213,7 +213,7 @@ TEST_F(nonlinear, TT2RadarB1Triangular)
 TEST_F(nonlinear, TT2RadarB2SelfAdjoint)
 {
   LinearizedTransform<2> t;
-  auto in = G2 {{20.0, M_PI/6}, {1.0, 0.0, 0.0, 0.1}};
+  auto in = G2 {{20.0, pi/6}, {1.0, 0.0, 0.0, 0.1}};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean_of(out)(0), 16.5, 1e-1);
   EXPECT_NEAR(mean_of(out)(1), 9.5, 1e-1);
@@ -226,7 +226,7 @@ TEST_F(nonlinear, TT2RadarB2SelfAdjoint)
 TEST_F(nonlinear, TT2RadarB2Triangular)
 {
   LinearizedTransform<2> t;
-  auto in = G2T {{20.0, M_PI/6}, {1.0, 0.0, 0.0, 0.1}};
+  auto in = G2T {{20.0, pi/6}, {1.0, 0.0, 0.0, 0.1}};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean_of(out)(0), 16.5, 1e-1);
   EXPECT_NEAR(mean_of(out)(1), 9.5, 1e-1);
@@ -239,7 +239,7 @@ TEST_F(nonlinear, TT2RadarB2Triangular)
 TEST_F(nonlinear, TT2RadarB3SelfAdjoint)
 {
   LinearizedTransform<2> t;
-  auto in = G2 {{20.0, M_PI_4}, {1.0, 0.0, 0.0, 0.1}};
+  auto in = G2 {{20.0, pi/4}, {1.0, 0.0, 0.0, 0.1}};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean_of(out)(0), 13.4, 1e-1);
   EXPECT_NEAR(mean_of(out)(1), 13.4, 1e-1);
@@ -252,7 +252,7 @@ TEST_F(nonlinear, TT2RadarB3SelfAdjoint)
 TEST_F(nonlinear, TT2RadarB3Triangular)
 {
   LinearizedTransform<2> t;
-  auto in = G2 {{20.0, M_PI_4}, {1.0, 0.0, 0.0, 0.1}};
+  auto in = G2 {{20.0, pi/4}, {1.0, 0.0, 0.0, 0.1}};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean_of(out)(0), 13.4, 1e-1);
   EXPECT_NEAR(mean_of(out)(1), 13.4, 1e-1);

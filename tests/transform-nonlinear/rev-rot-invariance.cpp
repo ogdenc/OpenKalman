@@ -15,11 +15,11 @@ inline namespace
   using C2 = Coefficients<Axis, Axis>;
   using P2 = Coefficients<Polar<>>;
 
-  const GaussianDistribution input1 {Mean<C2>(std::cos(0.9999 * M_PI), std::sin(0.9999 * M_PI)), Covariance<C2>(0.25, 0, 0, 0.25)};
-  const GaussianDistribution input1_rot {Mean<C2>(std::cos(-0.0001 * M_PI), std::sin(-0.0001 * M_PI)), Covariance<C2>(0.25, 0, 0, 0.25)};
-  const GaussianDistribution input2 {Mean<C2>(std::cos(-0.9999 * M_PI), std::sin(-0.9999 * M_PI)), Covariance<C2>(0.25, 0, 0, 0.25)};
-  const GaussianDistribution input2_rot {Mean<C2>(std::cos(0.0001 * M_PI), std::sin(0.0001 * M_PI)), Covariance<C2>(0.25, 0, 0, 0.25)};
-  const GaussianDistribution noise {Mean<P2>::zero(), Covariance<P2>(0.0625, 0, 0, M_PI * M_PI / 81)};
+  const GaussianDistribution input1 {Mean<C2>(std::cos(0.9999 * pi), std::sin(0.9999 * pi)), Covariance<C2>(0.25, 0, 0, 0.25)};
+  const GaussianDistribution input1_rot {Mean<C2>(std::cos(-0.0001 * pi), std::sin(-0.0001 * pi)), Covariance<C2>(0.25, 0, 0, 0.25)};
+  const GaussianDistribution input2 {Mean<C2>(std::cos(-0.9999 * pi), std::sin(-0.9999 * pi)), Covariance<C2>(0.25, 0, 0, 0.25)};
+  const GaussianDistribution input2_rot {Mean<C2>(std::cos(0.0001 * pi), std::sin(0.0001 * pi)), Covariance<C2>(0.25, 0, 0, 0.25)};
+  const GaussianDistribution noise {Mean<P2>::zero(), Covariance<P2>(0.0625, 0, 0, pi * pi / 81)};
 }
 
 

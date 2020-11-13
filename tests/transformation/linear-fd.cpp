@@ -107,28 +107,28 @@ TEST_F(transformations, finite_diff_radar)
 {
   auto f = radar;
   auto t = FiniteDifferenceLinearization {f, M2 {1e-4, 1e-5}, M2 {1e-4, 1e-4}, M2 {1e-4, 1e-4}};
-  EXPECT_TRUE(is_near(t.jacobian(M2(2, M_PI/3)), f.jacobian(M2(2, M_PI/3))));
-  EXPECT_TRUE(is_near(t.hessian(M2(2, M_PI/3)), f.hessian(M2(2, M_PI/3))));
-  EXPECT_TRUE(is_near(t.jacobian(M2(-2, M_PI/3), M2(0.2, 0.3)), f.jacobian(M2(-2, M_PI/3), M2(0.2, 0.3))));
-  EXPECT_TRUE(is_near(t.hessian(M2(-2, M_PI/3), M2(0.2, 0.3)), f.hessian(M2(-2, M_PI/3), M2(0.2, 0.3))));
-  EXPECT_TRUE(is_near(t.jacobian(M2(2, -M_PI/3), M2(0.2, 0.3), M2(0.2, 0.3)), f.jacobian(M2(2, -M_PI/3), M2(0.2, 0.3), M2(0.2, 0.3))));
-  EXPECT_TRUE(is_near(t.hessian(M2(2, -M_PI/3), M2(0.2, 0.3), M2(0.2, 0.3)), f.hessian(M2(2, -M_PI/3), M2(0.2, 0.3), M2(0.2, 0.3))));
+  EXPECT_TRUE(is_near(t.jacobian(M2(2, pi/3)), f.jacobian(M2(2, pi/3))));
+  EXPECT_TRUE(is_near(t.hessian(M2(2, pi/3)), f.hessian(M2(2, pi/3))));
+  EXPECT_TRUE(is_near(t.jacobian(M2(-2, pi/3), M2(0.2, 0.3)), f.jacobian(M2(-2, pi/3), M2(0.2, 0.3))));
+  EXPECT_TRUE(is_near(t.hessian(M2(-2, pi/3), M2(0.2, 0.3)), f.hessian(M2(-2, pi/3), M2(0.2, 0.3))));
+  EXPECT_TRUE(is_near(t.jacobian(M2(2, -pi/3), M2(0.2, 0.3), M2(0.2, 0.3)), f.jacobian(M2(2, -pi/3), M2(0.2, 0.3), M2(0.2, 0.3))));
+  EXPECT_TRUE(is_near(t.hessian(M2(2, -pi/3), M2(0.2, 0.3), M2(0.2, 0.3)), f.hessian(M2(2, -pi/3), M2(0.2, 0.3), M2(0.2, 0.3))));
 }
 
 TEST_F(transformations, finite_diff_radarP)
 {
   auto f = radarP;
   auto t = FiniteDifferenceLinearization {f, MP {1e-4, 1e-5}, M2 {1e-4, 1e-4}, M2 {1e-4, 1e-4}};
-  EXPECT_TRUE(is_near(t.jacobian(MP(0, M_PI)), f.jacobian(MP(0, M_PI))));
-  EXPECT_TRUE(is_near(t.hessian(MP(0, M_PI)), f.hessian(MP(0, M_PI))));
-  EXPECT_TRUE(is_near(t.jacobian(MP(2, M_PI)), f.jacobian(MP(2, M_PI))));
-  EXPECT_TRUE(is_near(t.hessian(MP(2, M_PI)), f.hessian(MP(2, M_PI))));
-  EXPECT_TRUE(is_near(t.jacobian(MP(2, M_PI/3)), f.jacobian(MP(2, M_PI/3))));
-  EXPECT_TRUE(is_near(t.hessian(MP(2, M_PI/3)), f.hessian(MP(2, M_PI/3))));
-  EXPECT_TRUE(is_near(t.jacobian(MP(2, -M_PI/3), M2(0.2, 0.3)), f.jacobian(MP(2, -M_PI/3), M2(0.2, 0.3))));
-  EXPECT_TRUE(is_near(t.hessian(MP(2, -M_PI/3), M2(0.2, 0.3)), f.hessian(MP(2, -M_PI/3), M2(0.2, 0.3))));
-  EXPECT_TRUE(is_near(t.jacobian(MP(2, -M_PI/3), M2(0.2, 0.3), M2(0.2, 0.3)), f.jacobian(MP(2, -M_PI/3), M2(0.2, 0.3), M2(0.2, 0.3))));
-  EXPECT_TRUE(is_near(t.hessian(MP(2, -M_PI/3), M2(0.2, 0.3), M2(0.2, 0.3)), f.hessian(MP(2, -M_PI/3), M2(0.2, 0.3), M2(0.2, 0.3))));
+  EXPECT_TRUE(is_near(t.jacobian(MP(0, pi)), f.jacobian(MP(0, pi))));
+  EXPECT_TRUE(is_near(t.hessian(MP(0, pi)), f.hessian(MP(0, pi))));
+  EXPECT_TRUE(is_near(t.jacobian(MP(2, pi)), f.jacobian(MP(2, pi))));
+  EXPECT_TRUE(is_near(t.hessian(MP(2, pi)), f.hessian(MP(2, pi))));
+  EXPECT_TRUE(is_near(t.jacobian(MP(2, pi/3)), f.jacobian(MP(2, pi/3))));
+  EXPECT_TRUE(is_near(t.hessian(MP(2, pi/3)), f.hessian(MP(2, pi/3))));
+  EXPECT_TRUE(is_near(t.jacobian(MP(2, -pi/3), M2(0.2, 0.3)), f.jacobian(MP(2, -pi/3), M2(0.2, 0.3))));
+  EXPECT_TRUE(is_near(t.hessian(MP(2, -pi/3), M2(0.2, 0.3)), f.hessian(MP(2, -pi/3), M2(0.2, 0.3))));
+  EXPECT_TRUE(is_near(t.jacobian(MP(2, -pi/3), M2(0.2, 0.3), M2(0.2, 0.3)), f.jacobian(MP(2, -pi/3), M2(0.2, 0.3), M2(0.2, 0.3))));
+  EXPECT_TRUE(is_near(t.hessian(MP(2, -pi/3), M2(0.2, 0.3), M2(0.2, 0.3)), f.hessian(MP(2, -pi/3), M2(0.2, 0.3), M2(0.2, 0.3))));
 }
 
 TEST_F(transformations, finite_diff_Cartesian2polar)
@@ -139,25 +139,25 @@ TEST_F(transformations, finite_diff_Cartesian2polar)
   EXPECT_TRUE(is_near(t.hessian(M2(-2, 0)), f.hessian(M2(-2, 0))));
   EXPECT_TRUE(is_near(t.jacobian(M2(2, 1)), f.jacobian(M2(2, 1))));
   EXPECT_TRUE(is_near(t.hessian(M2(2, 1)), f.hessian(M2(2, 1))));
-  EXPECT_TRUE(is_near(t.jacobian(M2(2, -1), MP(0.2, M_PI/30)), f.jacobian(M2(2, -1), MP(0.2, M_PI/30))));
-  EXPECT_TRUE(is_near(t.hessian(M2(2, -1), MP(0.2, M_PI/30)), f.hessian(M2(2, -1), MP(0.2, M_PI/30))));
-  EXPECT_TRUE(is_near(t.jacobian(M2(-2, 1), MP(0.2, M_PI/30), MP(0.2, M_PI/30)), f.jacobian(M2(-2, 1), MP(0.2, M_PI/30), MP(0.2, M_PI/30))));
-  EXPECT_TRUE(is_near(t.hessian(M2(-2, 1), MP(0.2, M_PI/30), MP(0.2, M_PI/30)), f.hessian(M2(-2, 1), MP(0.2, M_PI/30), MP(0.2, M_PI/30))));
+  EXPECT_TRUE(is_near(t.jacobian(M2(2, -1), MP(0.2, pi/30)), f.jacobian(M2(2, -1), MP(0.2, pi/30))));
+  EXPECT_TRUE(is_near(t.hessian(M2(2, -1), MP(0.2, pi/30)), f.hessian(M2(2, -1), MP(0.2, pi/30))));
+  EXPECT_TRUE(is_near(t.jacobian(M2(-2, 1), MP(0.2, pi/30), MP(0.2, pi/30)), f.jacobian(M2(-2, 1), MP(0.2, pi/30), MP(0.2, pi/30))));
+  EXPECT_TRUE(is_near(t.hessian(M2(-2, 1), MP(0.2, pi/30), MP(0.2, pi/30)), f.hessian(M2(-2, 1), MP(0.2, pi/30), MP(0.2, pi/30))));
 }
 
 TEST_F(transformations, finite_diff_Cylindrical2spherical)
 {
   auto f = Cylindrical2spherical;
   auto t = FiniteDifferenceLinearization {f, MC {1e-4, 1e-4, 1e-4}, MS {1e-4, 1e-4, 1e-4}, MS {1e-4, 1e-4, 1e-4}};
-  EXPECT_TRUE(is_near(t.jacobian(MC(2, M_PI, 1)), f.jacobian(MC(2, M_PI, 1))));
-  EXPECT_TRUE(is_near(t.hessian(MC(2, M_PI, 1)), f.hessian(MC(2, M_PI, 1))));
-  EXPECT_TRUE(is_near(t.jacobian(MC(2, M_PI/3, 1)), f.jacobian(MC(2, M_PI/3, 1))));
-  EXPECT_TRUE(is_near(t.hessian(MC(2, M_PI/3, 1)), f.hessian(MC(2, M_PI/3, 1))));
-  EXPECT_TRUE(is_near(t.jacobian(MC(2, M_PI/3, -1), MS(0.2, M_PI/30, M_PI/30)), f.jacobian(MC(2, M_PI/3, -1), MS(0.2, M_PI/30, M_PI/30))));
-  EXPECT_TRUE(is_near(t.hessian(MC(2, M_PI/3, -1), MS(0.2, M_PI/30, M_PI/30)), f.hessian(MC(2, M_PI/3, -1), MS(0.2, M_PI/30, M_PI/30))));
-  EXPECT_TRUE(is_near(t.jacobian(MC(-2, M_PI/3, 1), MS(0.2, M_PI/30, M_PI/30), MS(0.2, M_PI/30, M_PI/30)), f.jacobian(MC(-2, M_PI/3, 1), MS(0.2, M_PI/30, M_PI/30), MS(0.2, M_PI/30, M_PI/30))));
-  EXPECT_TRUE(is_near(t.hessian(MC(-2, M_PI/3, 1)), f.hessian(MC(-2, M_PI/3, 1))));
-  EXPECT_TRUE(is_near(t.hessian(MC(-2, M_PI/3, 1), MS(0.2, M_PI/30, M_PI/30)), f.hessian(MC(-2, M_PI/3, 1), MS(0.2, M_PI/30, M_PI/30))));
-  EXPECT_TRUE(is_near(t.hessian(MC(-2, M_PI/3, 1), MS(0.2, M_PI/30, M_PI/30), MS(0.2, M_PI/30, M_PI/30)), f.hessian(MC(-2, M_PI/3, 1), MS(0.2, M_PI/30, M_PI/30), MS(0.2, M_PI/30, M_PI/30))));
+  EXPECT_TRUE(is_near(t.jacobian(MC(2, pi, 1)), f.jacobian(MC(2, pi, 1))));
+  EXPECT_TRUE(is_near(t.hessian(MC(2, pi, 1)), f.hessian(MC(2, pi, 1))));
+  EXPECT_TRUE(is_near(t.jacobian(MC(2, pi/3, 1)), f.jacobian(MC(2, pi/3, 1))));
+  EXPECT_TRUE(is_near(t.hessian(MC(2, pi/3, 1)), f.hessian(MC(2, pi/3, 1))));
+  EXPECT_TRUE(is_near(t.jacobian(MC(2, pi/3, -1), MS(0.2, pi/30, pi/30)), f.jacobian(MC(2, pi/3, -1), MS(0.2, pi/30, pi/30))));
+  EXPECT_TRUE(is_near(t.hessian(MC(2, pi/3, -1), MS(0.2, pi/30, pi/30)), f.hessian(MC(2, pi/3, -1), MS(0.2, pi/30, pi/30))));
+  EXPECT_TRUE(is_near(t.jacobian(MC(-2, pi/3, 1), MS(0.2, pi/30, pi/30), MS(0.2, pi/30, pi/30)), f.jacobian(MC(-2, pi/3, 1), MS(0.2, pi/30, pi/30), MS(0.2, pi/30, pi/30))));
+  EXPECT_TRUE(is_near(t.hessian(MC(-2, pi/3, 1)), f.hessian(MC(-2, pi/3, 1))));
+  EXPECT_TRUE(is_near(t.hessian(MC(-2, pi/3, 1), MS(0.2, pi/30, pi/30)), f.hessian(MC(-2, pi/3, 1), MS(0.2, pi/30, pi/30))));
+  EXPECT_TRUE(is_near(t.hessian(MC(-2, pi/3, 1), MS(0.2, pi/30, pi/30), MS(0.2, pi/30, pi/30)), f.hessian(MC(-2, pi/3, 1), MS(0.2, pi/30, pi/30), MS(0.2, pi/30, pi/30))));
 }
 

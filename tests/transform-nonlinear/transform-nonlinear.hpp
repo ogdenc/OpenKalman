@@ -43,7 +43,7 @@ struct transform_nonlinear : public ::testing::Test
     const auto[output_rot, cross_rot] = t.transform_with_cross_covariance(angle_input_rot, f1, noise...);
     const auto res1 = is_near(
       f2(mean_of(output)),
-      Mean {f2(mean_of(output_rot)) + make_Mean<typename DistributionTraits<AngleRotDist>::Mean::Coefficients>(0, M_PI)},
+      Mean {f2(mean_of(output_rot)) + make_Mean<typename DistributionTraits<AngleRotDist>::Mean::Coefficients>(0, pi)},
       1e-4);
     const auto res2 = is_near(covariance_of(output), covariance_of(output_rot), 1e-3);
     const auto res3 = is_near(cross, -cross_rot, 1e-4);
@@ -74,7 +74,7 @@ struct transform_nonlinear : public ::testing::Test
     const auto[output, cross] = t.transform_with_cross_covariance(loc_input, f1, noise...);
     const auto[output_rot, cross_rot] = t.transform_with_cross_covariance(loc_input_rot, f1, noise...);
     const auto res1 = is_near(
-      f2(mean_of(output) - make_Mean<Polar<>>(0, M_PI)),
+      f2(mean_of(output) - make_Mean<Polar<>>(0, pi)),
       Mean {f2(mean_of(output_rot))},
       1e-3);
     const auto res2 = is_near(covariance_of(output), covariance_of(output_rot), 1e-3);

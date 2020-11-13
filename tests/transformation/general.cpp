@@ -69,8 +69,8 @@ TEST_F(transformations, Mult_additive_angle)
   using A = Matrix<C, C>;
   const auto f = [](const M& x) -> M { return A {1, 2, 3, 4} * x; };
   auto t = make_Transformation(f);
-  EXPECT_TRUE(is_near(t(M(1, 0.5)), M(2, 5 - M_PI*2)));
-  EXPECT_TRUE(is_near(t(M(1, 0.5)) + M(0.1, 0.1), M(2.1, 5.1 - M_PI*2)));
+  EXPECT_TRUE(is_near(t(M(1, 0.5)), M(2, 5 - pi*2)));
+  EXPECT_TRUE(is_near(t(M(1, 0.5)) + M(0.1, 0.1), M(2.1, 5.1 - pi*2)));
 }
 
 TEST_F(transformations, Mult_augmented_axis)
@@ -98,7 +98,7 @@ TEST_F(transformations, Mult_augmented_angle)
     2, 1;
   const auto f = [&](const auto& in, const auto& ... n) { return make_self_contained(((a * in) + ... + (an * n))); };
   auto t = make_Transformation(f);
-  EXPECT_TRUE(is_near(M(t(M(1, 0.5), M(0.1, 0.1))), M(2.7, 5.8 - M_PI*2)));
+  EXPECT_TRUE(is_near(M(t(M(1, 0.5), M(0.1, 0.1))), M(2.7, 5.8 - pi*2)));
 }
 
 TEST_F(transformations, Identity)

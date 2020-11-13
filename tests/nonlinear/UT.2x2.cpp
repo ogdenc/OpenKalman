@@ -61,7 +61,7 @@ TEST_F(nonlinear, UT1Radar1ATriangular)
 TEST_F(nonlinear, UT1Radar2ASelfAdjoint)
 {
   SamplePointsTransform<UT1> t;
-  auto in = G2 {{3.0, M_PI/6}, SA::identity()};
+  auto in = G2 {{3.0, pi/6}, SA::identity()};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean(out)(0), 1.6, 1e-1);
   EXPECT_NEAR(mean(out)(1), 0.9, 1e-1);
@@ -74,7 +74,7 @@ TEST_F(nonlinear, UT1Radar2ASelfAdjoint)
 TEST_F(nonlinear, UT1Radar2ATriangular)
 {
   SamplePointsTransform<UT1> t;
-  auto in = G2T {{3.0, M_PI/6}, SA::identity()};
+  auto in = G2T {{3.0, pi/6}, SA::identity()};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean(out)(0), 1.6, 1e-1);
   EXPECT_NEAR(mean(out)(1), 0.9, 1e-1);
@@ -87,7 +87,7 @@ TEST_F(nonlinear, UT1Radar2ATriangular)
 TEST_F(nonlinear, UT1Radar3ASelfAdjoint)
 {
   SamplePointsTransform<UT1> t;
-  auto in = G2 {{3.0, M_PI_4}, SA::identity()};
+  auto in = G2 {{3.0, pi/4}, SA::identity()};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean(out)(0), 1.3, 1e-1);
   EXPECT_NEAR(mean(out)(1), 1.3, 1e-1);
@@ -100,7 +100,7 @@ TEST_F(nonlinear, UT1Radar3ASelfAdjoint)
 TEST_F(nonlinear, UT1Radar3ATriangular)
 {
   SamplePointsTransform<UT1> t;
-  auto in = G2T {{3.0, M_PI_4}, SA::identity()};
+  auto in = G2T {{3.0, pi/4}, SA::identity()};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean(out)(0), 1.3, 1e-1);
   EXPECT_NEAR(mean(out)(1), 1.3, 1e-1);
@@ -139,7 +139,7 @@ TEST_F(nonlinear, UT2Radar1ATriangular)
 TEST_F(nonlinear, UT2Radar2ASelfAdjoint)
 {
   SamplePointsTransform<UT2> t;
-  auto in = G2 {{3.0, M_PI/6}, SA::identity()};
+  auto in = G2 {{3.0, pi/6}, SA::identity()};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean(out)(0), 1.3, 1e-1); //2
   EXPECT_NEAR(mean(out)(1), 0.8, 1e-1); //4
@@ -152,7 +152,7 @@ TEST_F(nonlinear, UT2Radar2ASelfAdjoint)
 TEST_F(nonlinear, UT2Radar2ATriangular)
 {
   SamplePointsTransform<UT2> t;
-  auto in = G2T {{3.0, M_PI/6}, SA::identity()};
+  auto in = G2T {{3.0, pi/6}, SA::identity()};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean(out)(0), 1.3, 1e-1); //2
   EXPECT_NEAR(mean(out)(1), 0.8, 1e-1); //4
@@ -165,7 +165,7 @@ TEST_F(nonlinear, UT2Radar2ATriangular)
 TEST_F(nonlinear, UT2Radar3ASelfAdjoint)
 {
   SamplePointsTransform<UT2> t;
-  auto in = G2 {{3.0, M_PI_4}, SA::identity()};
+  auto in = G2 {{3.0, pi/4}, SA::identity()};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean(out)(0), 1.1, 1e-1);
   EXPECT_NEAR(mean(out)(1), 1.1, 1e-1);
@@ -178,7 +178,7 @@ TEST_F(nonlinear, UT2Radar3ASelfAdjoint)
 TEST_F(nonlinear, UT2Radar3ATriangular)
 {
   SamplePointsTransform<UT2> t;
-  auto in = G2T {{3.0, M_PI_4}, SA::identity()};
+  auto in = G2T {{3.0, pi/4}, SA::identity()};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean(out)(0), 1.1, 1e-1);
   EXPECT_NEAR(mean(out)(1), 1.1, 1e-1);
@@ -224,7 +224,7 @@ TEST_F(nonlinear_tests, UT1Radar1BTriangular)
 TEST_F(nonlinear, UT1Radar2BSelfAdjoint)
 {
   SamplePointsTransform<UT1> t;
-  auto in = G2 {{20.0, M_PI/6}, {1.0, 0.0, 0.0, 0.1}};
+  auto in = G2 {{20.0, pi/6}, {1.0, 0.0, 0.0, 0.1}};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean(out)(0), 16.5, 1e-1);
   EXPECT_NEAR(mean(out)(1), 9.5, 1e-1);
@@ -237,7 +237,7 @@ TEST_F(nonlinear, UT1Radar2BSelfAdjoint)
 TEST_F(nonlinear, UT1Radar2BTriangular)
 {
   SamplePointsTransform<UT1> t;
-  auto in = G2T {{20.0, M_PI/6}, {1.0, 0.0, 0.0, 0.1}};
+  auto in = G2T {{20.0, pi/6}, {1.0, 0.0, 0.0, 0.1}};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean(out)(0), 16.5, 1e-1);
   EXPECT_NEAR(mean(out)(1), 9.5, 1e-1);
@@ -250,7 +250,7 @@ TEST_F(nonlinear, UT1Radar2BTriangular)
 TEST_F(nonlinear, UT1Radar3BSelfAdjoint)
 {
   SamplePointsTransform<UT1> t;
-  auto in = G2 {{20.0, M_PI_4}, {1.0, 0.0, 0.0, 0.1}};
+  auto in = G2 {{20.0, pi/4}, {1.0, 0.0, 0.0, 0.1}};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean(out)(0), 13.5, 1e-1);
   EXPECT_NEAR(mean(out)(1), 13.5, 1e-1);
@@ -263,7 +263,7 @@ TEST_F(nonlinear, UT1Radar3BSelfAdjoint)
 TEST_F(nonlinear, UT1Radar3BTriangular)
 {
   SamplePointsTransform<UT1> t;
-  auto in = G2T {{20.0, M_PI_4}, {1.0, 0.0, 0.0, 0.1}};
+  auto in = G2T {{20.0, pi/4}, {1.0, 0.0, 0.0, 0.1}};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean(out)(0), 13.5, 1e-1);
   EXPECT_NEAR(mean(out)(1), 13.5, 1e-1);
@@ -302,7 +302,7 @@ TEST_F(nonlinear, UT2Radar1BTriangular)
 TEST_F(nonlinear, UT2Radar2BSelfAdjoint)
 {
   SamplePointsTransform<UT2> t;
-  auto in = G2 {{20.0, M_PI/6}, {1.0, 0.0, 0.0, 0.1}};
+  auto in = G2 {{20.0, pi/6}, {1.0, 0.0, 0.0, 0.1}};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean(out)(0), 16.5, 1e-1);
   EXPECT_NEAR(mean(out)(1), 9.5, 1e-1);
@@ -315,7 +315,7 @@ TEST_F(nonlinear, UT2Radar2BSelfAdjoint)
 TEST_F(nonlinear, UT2Radar2BTriangular)
 {
   SamplePointsTransform<UT2> t;
-  auto in = G2T {{20.0, M_PI/6}, {1.0, 0.0, 0.0, 0.1}};
+  auto in = G2T {{20.0, pi/6}, {1.0, 0.0, 0.0, 0.1}};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean(out)(0), 16.5, 1e-1);
   EXPECT_NEAR(mean(out)(1), 9.5, 1e-1);
@@ -328,7 +328,7 @@ TEST_F(nonlinear, UT2Radar2BTriangular)
 TEST_F(nonlinear, UT2Radar3BSelfAdjoint)
 {
   SamplePointsTransform<UT2> t;
-  auto in = G2 {{20.0, M_PI_4}, {1.0, 0.0, 0.0, 0.1}};
+  auto in = G2 {{20.0, pi/4}, {1.0, 0.0, 0.0, 0.1}};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean(out)(0), 13.4, 1e-1);
   EXPECT_NEAR(mean(out)(1), 13.4, 1e-1);
@@ -341,7 +341,7 @@ TEST_F(nonlinear, UT2Radar3BSelfAdjoint)
 TEST_F(nonlinear, UT2Radar3BTriangular)
 {
   SamplePointsTransform<UT2> t;
-  auto in = G2T {{20.0, M_PI_4}, {1.0, 0.0, 0.0, 0.1}};
+  auto in = G2T {{20.0, pi/4}, {1.0, 0.0, 0.0, 0.1}};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean(out)(0), 13.4, 1e-1);
   EXPECT_NEAR(mean(out)(1), 13.4, 1e-1);

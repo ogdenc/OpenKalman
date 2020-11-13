@@ -50,7 +50,7 @@ TEST_F(nonlinear, MCTRadarA1Triangular)
 TEST_F(nonlinear, MCTRadarA2SelfAdjoint)
 {
   MonteCarloTransform t;
-  auto in = G2 {{3.0, M_PI/6}, SA::identity()};
+  auto in = G2 {{3.0, pi/6}, SA::identity()};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean_of(out)(0), 1.6, 1e-1);
   EXPECT_NEAR(mean_of(out)(1), 0.9, 1e-1);
@@ -63,7 +63,7 @@ TEST_F(nonlinear, MCTRadarA2SelfAdjoint)
 TEST_F(nonlinear, MCTRadarA2Triangular)
 {
   MonteCarloTransform t;
-  auto in = G2T {{3.0, M_PI/6}, SA::identity()};
+  auto in = G2T {{3.0, pi/6}, SA::identity()};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean_of(out)(0), 1.6, 1e-1);
   EXPECT_NEAR(mean_of(out)(1), 0.9, 1e-1);
@@ -76,7 +76,7 @@ TEST_F(nonlinear, MCTRadarA2Triangular)
 TEST_F(nonlinear, MCTRadarA3SelfAdjoint)
 {
   MonteCarloTransform t;
-  auto in = G2 {{3.0, M_PI_4}, SA::identity()};
+  auto in = G2 {{3.0, pi/4}, SA::identity()};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean_of(out)(0), 1.3, 1e-1);
   EXPECT_NEAR(mean_of(out)(1), 1.3, 1e-1);
@@ -89,7 +89,7 @@ TEST_F(nonlinear, MCTRadarA3SelfAdjoint)
 TEST_F(nonlinear, MCTRadarA3Triangular)
 {
   MonteCarloTransform t;
-  auto in = G2T {{3.0, M_PI_4}, SA::identity()};
+  auto in = G2T {{3.0, pi/4}, SA::identity()};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean_of(out)(0), 1.3, 1e-1);
   EXPECT_NEAR(mean_of(out)(1), 1.3, 1e-1);
@@ -134,7 +134,7 @@ TEST_F(nonlinear, MCTRadarB1Triangular)
 TEST_F(nonlinear, MCTRadarB2SelfAdjoint)
 {
   MonteCarloTransform t;
-  auto in = G2 {{20.0, M_PI/6}, {1.0, 0.0, 0.0, 0.1}};
+  auto in = G2 {{20.0, pi/6}, {1.0, 0.0, 0.0, 0.1}};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean_of(out)(0), 16.5, 1e-1); // Reference says 16.3
   EXPECT_NEAR(mean_of(out)(1), 9.5, 1e-1); // Reference says 9.8
@@ -147,7 +147,7 @@ TEST_F(nonlinear, MCTRadarB2SelfAdjoint)
 TEST_F(nonlinear, MCTRadarB2Triangular)
 {
   MonteCarloTransform t;
-  auto in = G2T {{20.0, M_PI/6}, {1.0, 0.0, 0.0, 0.1}};
+  auto in = G2T {{20.0, pi/6}, {1.0, 0.0, 0.0, 0.1}};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean_of(out)(0), 16.5, 1e-1); // Reference says 16.3
   EXPECT_NEAR(mean_of(out)(1), 9.5, 1e-1); // Reference says 9.8
@@ -160,7 +160,7 @@ TEST_F(nonlinear, MCTRadarB2Triangular)
 TEST_F(nonlinear, MCTRadarB3SelfAdjoint)
 {
   MonteCarloTransform t;
-  auto in = G2 {{20.0, M_PI_4}, {1.0, 0.0, 0.0, 0.1}};
+  auto in = G2 {{20.0, pi/4}, {1.0, 0.0, 0.0, 0.1}};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean_of(out)(0), 13.45, 1e-1); // Reference says 13.3
   EXPECT_NEAR(mean_of(out)(1), 13.45, 1e-1); // Reference says 13.6
@@ -173,7 +173,7 @@ TEST_F(nonlinear, MCTRadarB3SelfAdjoint)
 TEST_F(nonlinear, MCTRadarB3Triangular)
 {
   MonteCarloTransform t;
-  auto in = G2T {{20.0, M_PI_4}, {1.0, 0.0, 0.0, 0.1}};
+  auto in = G2T {{20.0, pi/4}, {1.0, 0.0, 0.0, 0.1}};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean_of(out)(0), 13.45, 1e-1); // Reference says 13.3
   EXPECT_NEAR(mean_of(out)(1), 13.45, 1e-1); // Reference says 13.6

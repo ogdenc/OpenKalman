@@ -55,14 +55,14 @@ TEST_F(matrices, TypedMatrix_class)
 
   // Convert from different covariance types
   Matrix<C2, Axes<3>, M23> mat23_x1(Mean<C2, M23> {1, 2, 3, 4, 5, 6});
-  EXPECT_TRUE(is_near(mat23_x1, Mat23 {1, 2, 3, 4-2*M_PI, 5-2*M_PI, 6-2*M_PI}));
+  EXPECT_TRUE(is_near(mat23_x1, Mat23 {1, 2, 3, 4-2*pi, 5-2*pi, 6-2*pi}));
   Matrix<Axes<2>, Axes<3>, M23> mat23_x2(EuclideanMean<Axes<2>, M23> {1, 2, 3, 4, 5, 6});
   EXPECT_TRUE(is_near(mat23_x2, Mat23 {1, 2, 3, 4, 5, 6}));
   Matrix<C2, Axes<3>, M23> mat23_x3(EuclideanMean<C2, M33> {
     1, 2, 3,
-    0.5, std::sqrt(3)/2, M_SQRT2/2,
-    std::sqrt(3)/2, 0.5, M_SQRT2/2});
-  EXPECT_TRUE(is_near(mat23_x3, Mat23 {1, 2, 3, M_PI/3, M_PI/6, M_PI/4}));
+    0.5, std::sqrt(3)/2, sqrt2/2,
+    std::sqrt(3)/2, 0.5, sqrt2/2});
+  EXPECT_TRUE(is_near(mat23_x3, Mat23 {1, 2, 3, pi/3, pi/6, pi/4}));
 
   // Construct from a regular matrix
   Mat23 mat23d((M23() << 1, 2, 3, 4, 5, 6).finished());
@@ -120,9 +120,9 @@ TEST_F(matrices, TypedMatrix_class)
   EXPECT_TRUE(is_near(mat23_x2, Mat23 {6, 5, 4, 3, 2, 1}));
   mat23_x3 = EuclideanMean<C2, M33> {
     3, 2, 1,
-    std::sqrt(3)/2, M_SQRT2/2, 0.5,
-    0.5, M_SQRT2/2, std::sqrt(3)/2};
-  EXPECT_TRUE(is_near(mat23_x3, Mat23 {3, 2, 1, M_PI/6, M_PI/4, M_PI/3}));
+    std::sqrt(3)/2, sqrt2/2, 0.5,
+    0.5, sqrt2/2, std::sqrt(3)/2};
+  EXPECT_TRUE(is_near(mat23_x3, Mat23 {3, 2, 1, pi/6, pi/4, pi/3}));
 
   // assign from a regular matrix
   mat23e = (M23() << 3, 4, 5, 6, 7, 8).finished();
@@ -136,7 +136,7 @@ TEST_F(matrices, TypedMatrix_class)
   EXPECT_TRUE(is_near(mat23a, Mat23 {2, 4, 6, 8, 10, 12}));
 
   // Increment with a stochastic value
-  mat23_x1 = {1, 1, 1, M_PI, M_PI, M_PI};
+  mat23_x1 = {1, 1, 1, pi, pi, pi};
   GaussianDistribution g = {Mat21 {0, 0}, sqcovi22 * 0.1};
   Matrix<C2, Axes<3>, M23> diff = {1, 1, 1, 1, 1, 1};
   for (int i=0; i<100; i++)
@@ -153,7 +153,7 @@ TEST_F(matrices, TypedMatrix_class)
   EXPECT_TRUE(is_near(mat23a, Mat23 {1, 2, 3, 4, 5, 6}));
 
   // Decrement with a stochastic value
-  mat23_x1 = {1, 1, 1, M_PI, M_PI, M_PI};
+  mat23_x1 = {1, 1, 1, pi, pi, pi};
   diff = {1, 1, 1, 1, 1, 1};
   for (int i=0; i<100; i++)
   {
@@ -238,14 +238,14 @@ TEST_F(matrices, TypedMatrix_deduction_guides)
   //static_assert(equivalent_to<typename MatrixTraits<decltype(Matrix(b1))>::ColumnCoefficients, C3>);
 
   auto b2 = Mean<C2, M23> {1, 2, 3, 4, 5, 6};
-  EXPECT_TRUE(is_near(Matrix(b2), (M23() << 1, 2, 3, 4-2*M_PI, 5-2*M_PI, 6-2*M_PI).finished()));
+  EXPECT_TRUE(is_near(Matrix(b2), (M23() << 1, 2, 3, 4-2*pi, 5-2*pi, 6-2*pi).finished()));
   static_assert(equivalent_to<typename MatrixTraits<decltype(Matrix(b2))>::RowCoefficients, C2>);
   static_assert(equivalent_to<typename MatrixTraits<decltype(Matrix(b2))>::ColumnCoefficients, Axes<3>>);
 
   auto b3 = EuclideanMean<C2, M33> {1, 2, 3,
-                                    0.5, std::sqrt(3)/2, M_SQRT2/2,
-                                    std::sqrt(3)/2, 0.5, M_SQRT2/2};
-  EXPECT_TRUE(is_near(Matrix(b3), Mat23 {1, 2, 3, M_PI/3, M_PI/6, M_PI/4}));
+                                    0.5, std::sqrt(3)/2, sqrt2/2,
+                                    std::sqrt(3)/2, 0.5, sqrt2/2};
+  EXPECT_TRUE(is_near(Matrix(b3), Mat23 {1, 2, 3, pi/3, pi/6, pi/4}));
   static_assert(equivalent_to<typename MatrixTraits<decltype(Matrix(b3))>::RowCoefficients, C2>);
   static_assert(equivalent_to<typename MatrixTraits<decltype(Matrix(b3))>::ColumnCoefficients, Axes<3>>);
 
@@ -319,10 +319,10 @@ TEST_F(matrices, TypedMatrix_overloads)
   EXPECT_TRUE(is_near(make_self_contained(Mat23 {1, 2, 3, 4, 5, 6} * 2), Mat23 {2, 4, 6, 8, 10, 12}));
   static_assert(std::is_same_v<std::decay_t<decltype(make_self_contained(Mat23 {1, 2, 3, 4, 5, 6} * 2))>, Mat23>);
 
-  EXPECT_TRUE(is_near(to_Euclidean(Matrix<C2, Axes<3>, M23> {1, 2, 3, M_PI*7/3, M_PI*13/6, -M_PI*7/4}),
+  EXPECT_TRUE(is_near(to_Euclidean(Matrix<C2, Axes<3>, M23> {1, 2, 3, pi*7/3, pi*13/6, -pi*7/4}),
     EuclideanMean<C2, M33> {1, 2, 3,
-                            0.5, std::sqrt(3)/2, M_SQRT2/2,
-                            std::sqrt(3)/2, 0.5, M_SQRT2/2}));
+                            0.5, std::sqrt(3)/2, sqrt2/2,
+                            std::sqrt(3)/2, 0.5, sqrt2/2}));
 
   EXPECT_TRUE(is_near(to_diagonal(Mat21 {2, 3}).base_matrix(), Mat22 {2, 0, 0, 3}));
   static_assert(diagonal_matrix<decltype(to_diagonal(Mat21 {2, 3}))>);
@@ -434,14 +434,14 @@ TEST_F(matrices, TypedMatrix_blocks)
 TEST_F(matrices, TypedMatrix_arithmetic)
 {
   EXPECT_TRUE(is_near(Mat32 {7, 6, 5, 4, 3, 2} + Mat32 {1, 2, 3, 4, 5, 6}, Mat32 {8, 8, 8, 8, 8, 8}));
-  EXPECT_TRUE(is_near(Matrix<C3, Axes<2>, M32> {7, 6, 5, 4, 3, 2} + Mean<C3, M32> {1, 2, 3, 4, 5, 6}, Mat32 {8, 8, 8, 8 - 2*M_PI, 8, 8}));
+  EXPECT_TRUE(is_near(Matrix<C3, Axes<2>, M32> {7, 6, 5, 4, 3, 2} + Mean<C3, M32> {1, 2, 3, 4, 5, 6}, Mat32 {8, 8, 8, 8 - 2*pi, 8, 8}));
   EXPECT_TRUE(is_near(Matrix<Axes<3>, Axes<2>, M32> {7, 6, 5, 4, 3, 2} + EuclideanMean<Axes<3>, M32> {1, 2, 3, 4, 5, 6}, Mat32 {8, 8, 8, 8, 8, 8}));
   static_assert(equivalent_to<typename MatrixTraits<decltype(Mat32 {7, 6, 5, 4, 3, 2} + Mat32 {1, 2, 3, 4, 5, 6})>::ColumnCoefficients, C2>);
   static_assert(typed_matrix<decltype(Matrix<C3, Axes<2>, M32> {7, 6, 5, 4, 3, 2} + Mean<C3, M32> {1, 2, 3, 4, 5, 6})>);
   static_assert(typed_matrix<decltype(Matrix<Axes<3>, Axes<2>, M32> {7, 6, 5, 4, 3, 2} + EuclideanMean<Axes<3>, M32> {1, 2, 3, 4, 5, 6})>);
 
   EXPECT_TRUE(is_near(Mat32 {7, 6, 5, 4, 3, 2} - Mat32 {1, 2, 3, 4, 5, 6}, Mat32 {6, 4, 2, 0, -2, -4}));
-  EXPECT_TRUE(is_near(Matrix<C3, Axes<2>, M32> {7, 6, 5, 4, 3, 2} - Mean<C3, M32> {1, 2, 3, 4, 5, 6}, Mat32 {6, 4, 2, 2*M_PI, -2, -4}));
+  EXPECT_TRUE(is_near(Matrix<C3, Axes<2>, M32> {7, 6, 5, 4, 3, 2} - Mean<C3, M32> {1, 2, 3, 4, 5, 6}, Mat32 {6, 4, 2, 2*pi, -2, -4}));
   EXPECT_TRUE(is_near(Matrix<Axes<3>, Axes<2>, M32> {7, 6, 5, 4, 3, 2} - EuclideanMean<Axes<3>, M32> {1, 2, 3, 4, 5, 6}, Mat32 {6, 4, 2, 0, -2, -4}));
   static_assert(equivalent_to<typename MatrixTraits<decltype(Mat32 {7, 6, 5, 4, 3, 2} - Mat32 {1, 2, 3, 4, 5, 6})>::ColumnCoefficients, C2>);
   static_assert(typed_matrix<decltype(Matrix<C3, Axes<2>, M32> {7, 6, 5, 4, 3, 2} - Mean<C3, M32> {1, 2, 3, 4, 5, 6})>);

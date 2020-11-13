@@ -18,6 +18,10 @@
 
 using namespace OpenKalman;
 
+using std::numbers::pi;
+using std::numbers::log2e;
+using std::numbers::sqrt2;
+
 #ifdef __cpp_concepts
 template<typename Arg>
 concept test_trait = typed_matrix_base<Arg> or typed_matrix<Arg> or covariance_base<Arg> or covariance<Arg>;

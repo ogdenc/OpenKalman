@@ -281,7 +281,8 @@ namespace OpenKalman
     /// Entropy of the distribution, in bits.
     auto entropy() const
     {
-      return 0.5 * (dimension * (1 + std::log2(std::numbers::pi_v<Scalar>) + M_LOG2E) + std::log2(determinant(sigma)));
+      return 0.5 * (dimension * (1 + std::log2(std::numbers::pi_v<Scalar>) + std::numbers::log2e_v<Scalar>)
+        + std::log2(determinant(sigma)));
     }
 
   protected:

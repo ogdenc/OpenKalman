@@ -83,13 +83,13 @@ TEST_F(matrices, References_Mean_lvalue)
   V v1 {1, 2, 3,
         4, 5, 6,
         7, 8, 9};
-  EXPECT_EQ(v1(1, 0), 4 - 2*M_PI);
+  EXPECT_EQ(v1(1, 0), 4 - 2*pi);
   Mean<C3, M33&> v2 = v1;
   EXPECT_EQ(&base_matrix(v1), &base_matrix(v2));
   EXPECT_TRUE(is_near(v1, v2));
-  EXPECT_EQ(v2(1, 0), 4 - 2*M_PI);
+  EXPECT_EQ(v2(1, 0), 4 - 2*pi);
   v1(1, 0) = 4.1;
-  EXPECT_EQ(v2(1, 0), 4.1 - 2*M_PI);
+  EXPECT_EQ(v2(1, 0), 4.1 - 2*pi);
   v2(2, 1) = 8.1;
   EXPECT_EQ(v1(2, 1), 8.1);
   v1 = {1.2, 2.2, 3.2,
@@ -107,18 +107,18 @@ TEST_F(matrices, References_Mean_const_lvalue)
   Mean<C3, M33> v1 {1, 2, 3,
                     4, 5, 6,
                     7, 8, 9};
-  EXPECT_EQ(v1(1, 0), 4 - 2*M_PI);
+  EXPECT_EQ(v1(1, 0), 4 - 2*pi);
   Mean<C3, const M33&> v2 = v1;
   EXPECT_EQ(&base_matrix(v1), &base_matrix(v2));
   EXPECT_TRUE(is_near(v1, v2));
   EXPECT_TRUE(is_near(base_matrix(v1), base_matrix(v2)));
-  EXPECT_EQ(get_element(base_matrix(v2), 1, 0), 4 - 2*M_PI);
-  EXPECT_EQ(get_element(v2, 1, 0), 4 - 2*M_PI);
-  EXPECT_EQ(get_element(base_matrix(v2), 1, 0), 4 - 2*M_PI);
+  EXPECT_EQ(get_element(base_matrix(v2), 1, 0), 4 - 2*pi);
+  EXPECT_EQ(get_element(v2, 1, 0), 4 - 2*pi);
+  EXPECT_EQ(get_element(base_matrix(v2), 1, 0), 4 - 2*pi);
   EXPECT_TRUE(is_near(base_matrix(v1), base_matrix(v2)));
   v1(1, 0) = 4.1;
-  EXPECT_EQ(v2(1, 0), 4.1 - 2*M_PI);
-  EXPECT_EQ(base_matrix(v2)(1, 0), 4.1 - 2*M_PI);
+  EXPECT_EQ(v2(1, 0), 4.1 - 2*pi);
+  EXPECT_EQ(base_matrix(v2)(1, 0), 4.1 - 2*pi);
   v1 = {1.2, 2.2, 3.2,
         4.2, 5.2, 6.2,
         7.2, 8.2, 9.2};
@@ -132,10 +132,10 @@ TEST_F(matrices, References_Mean_rvalue)
         4, 5, 6,
         7, 8, 9};
   Mean<C3, M33> v1 = m1;
-  EXPECT_EQ(v1(1,0), 4 - 2*M_PI);
+  EXPECT_EQ(v1(1,0), 4 - 2*pi);
   Mean<C3, M33&&> v2 = std::move(v1);
   EXPECT_TRUE(is_near(v2, m1));
-  EXPECT_EQ(v2(1,0), 4 - 2*M_PI);
+  EXPECT_EQ(v2(1,0), 4 - 2*pi);
 }
 
 TEST_F(matrices, References_Mean_lvalue_axes)

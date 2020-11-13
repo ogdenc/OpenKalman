@@ -12,7 +12,7 @@
 
 inline auto get_t2()
 {
-  auto theta = trace(randomize<Mean<Axis, Eigen::Matrix<double, 1, 1>>, std::uniform_real_distribution>(-M_PI, M_PI));
+  auto theta = trace(randomize<Mean<Axis, Eigen::Matrix<double, 1, 1>>, std::uniform_real_distribution>(-pi, pi));
   using M22 = Eigen::Matrix<double, 2, 2>;
   auto a = Matrix<Axes<2>, Axes<2>, M22> {std::cos(theta), -std::sin(theta), std::sin(theta), std::cos(theta)};
   return LinearTransformation(a);

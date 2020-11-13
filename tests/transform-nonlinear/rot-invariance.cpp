@@ -15,8 +15,8 @@ inline namespace
   using C2 = Coefficients<Axis, Axis>;
   using P2 = Coefficients<Polar<>>;
 
-  const GaussianDistribution angle_input {Mean<P2>(1, 0.9999 * M_PI), Covariance<P2>(0.25, 0, 0, M_PI * M_PI / 9)};
-  const GaussianDistribution angle_input_rot {Mean<P2>(1, 0.9999 * M_PI - M_PI), Covariance<P2>(0.25, 0, 0, M_PI * M_PI / 9)};
+  const GaussianDistribution angle_input {Mean<P2>(1, 0.9999 * pi), Covariance<P2>(0.25, 0, 0, pi * pi / 9)};
+  const GaussianDistribution angle_input_rot {Mean<P2>(1, 0.9999 * pi - pi), Covariance<P2>(0.25, 0, 0, pi * pi / 9)};
   const GaussianDistribution cart_noise {Mean<C2>::zero(), Covariance<C2>(0.0625, 0, 0, 0.0625)};
 }
 

@@ -379,12 +379,12 @@ TEST_F(matrices, GaussianDistribution_class)
 
   // Scalar multiplication
   distT2le *= 2;
-  EXPECT_TRUE(is_near(mean_of(distT2le), Mean2 {6-2*std::numbers::pi, 8}));
+  EXPECT_TRUE(is_near(mean_of(distT2le), Mean2 {6-2*pi, 8}));
   EXPECT_TRUE(is_near(covariance_of(distT2le), Mat2 {16, 8, 8, 20}));
 
   // Scalar division
   distT2le /= 2;
-  EXPECT_TRUE(is_near(mean_of(distT2le), Mean2 {3-M_PI, 4}));
+  EXPECT_TRUE(is_near(mean_of(distT2le), Mean2 {3-pi, 4}));
   EXPECT_TRUE(is_near(covariance_of(distT2le), Mat2 {4, 2, 2, 5}));
 
   // Zero
@@ -410,7 +410,7 @@ TEST_F(matrices, GaussianDistribution_class_random)
   d << 0.9, 0.1, 0.3,
        0.1, 1.4, 0.45,
        0.3, 0.45, 1.1;
-  const V true_x {M_PI * 99/100, 10, 5};
+  const V true_x {pi * 99/100, 10, 5};
   GaussianDistribution dist {true_x, make_Covariance<C3>(d)};
   const V x1 {dist()};
   const V x2 {dist()};
@@ -454,7 +454,7 @@ TEST_F(matrices, GaussianDistribution_class_Cholesky_random)
   d << 0.9, 0.1, 0.3,
        0.1, 1.4, 0.45,
        0.3, 0.45, 1.1;
-  const V true_x {M_PI * 99/100, 10, 5};
+  const V true_x {pi * 99/100, 10, 5};
   GaussianDistribution dist {true_x, make_Covariance<C3, TriangleType::lower>(d)};
   const V x1 {dist()};
   const V x2 {dist()};

@@ -15,7 +15,7 @@ inline auto get_t3()
   using M3 = Eigen::Matrix<double, 3, 1>;
   using Mean3 = Mean<Axes<3>, M3>;
   using M33 = Eigen::Matrix<double, 3, 3>;
-  auto angles = randomize<Mean3, std::uniform_real_distribution>(-M_PI, M_PI);
+  auto angles = randomize<Mean3, std::uniform_real_distribution>(-pi, pi);
   auto ax = Matrix<Axes<3>, Axes<3>, M33> {
     1, 0, 0,
     0, std::cos(angles[0]), -std::sin(angles[0]),

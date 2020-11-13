@@ -26,9 +26,18 @@ namespace std::numbers
   inline constexpr T pi_v = 3.141592653589793238462643383279502884L;
 
   inline constexpr double pi = pi_v<double>;
+
+  template<typename T>
+  inline constexpr T log2e_v = 1.442695040888963407359924681001892137L;
+
+  inline constexpr double log2e = log2e_v<double>;
+
+  template<typename T>
+  inline constexpr T sqrt2_v = 1.414213562373095048801688724209698079L;
+
+  inline constexpr double sqrt2 = sqrt2_v<double>;
 }
 #endif
-
 
 namespace OpenKalman::internal
 {

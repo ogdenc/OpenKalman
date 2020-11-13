@@ -19,7 +19,7 @@ void kalman::artillery_2D(const Trans& transform)
   for (int i = 0; i < 5; i++)
   {
     using U = std::uniform_real_distribution<double>::param_type;
-    auto true_state = randomize<Polar2, std::uniform_real_distribution>(U {5, 10}, U {-M_PI, M_PI});
+    auto true_state = randomize<Polar2, std::uniform_real_distribution>(U {5, 10}, U {-pi, pi});
     auto x = GaussianDistribution<Polar<>, M2, Cov> {Polar2 {7.5, 0}, Cov::identity()};
     auto meas_cov = Cov {0.0025, 0, 0, 0.0025};
     auto r = GaussianDistribution<Axes<2>, M2, Cov> {Loc2::zero(), meas_cov};

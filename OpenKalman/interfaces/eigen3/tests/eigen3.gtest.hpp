@@ -18,6 +18,8 @@ namespace OpenKalman
 
 using namespace OpenKalman;
 
+using std::numbers::pi;
+
 
 template<typename Arg>
 static constexpr bool is_test_trait = typed_matrix_base<Arg> or covariance_base<Arg>;
