@@ -91,8 +91,8 @@ namespace OpenKalman
       using GetCoeff = std::function<Scalar(const std::size_t)>;
       using SetCoeff = std::function<void(const Scalar, const std::size_t)>;
 
-      static constexpr Scalar cf =
-        2 * M_PI / (AngleTraits::template wrap_max<Scalar> - AngleTraits::template wrap_min<Scalar>);
+      static constexpr Scalar cf = 2 * std::numbers::pi_v<Scalar> /
+        (AngleTraits::template wrap_max<Scalar> - AngleTraits::template wrap_min<Scalar>);
 
       template<std::size_t i, std::size_t d_i, std::size_t a_i>
       static constexpr std::array<Scalar (*const)(const GetCoeff&), 2>

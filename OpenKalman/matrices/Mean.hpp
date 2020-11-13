@@ -312,7 +312,8 @@ namespace OpenKalman
 #else
   template<typename V, std::enable_if_t<typed_matrix_base<V>, int> = 0>
 #endif
-  Mean(V&&) -> Mean<Axes<MatrixTraits<V>::dimension>, lvalue_or_self_contained2_t<V>>;
+  Mean(V&&) -> Mean<Axes<MatrixTraits<V>::dimension>, passable_t<V>>;
+
 
   /// Deduce template parameters from a non-Euclidean-transformed typed matrix.
 #if defined(__cpp_concepts) and false
@@ -323,6 +324,7 @@ namespace OpenKalman
 #endif
   Mean(V&&) -> Mean<typename MatrixTraits<V>::RowCoefficients, std::decay_t<decltype(
     wrap_angles<typename MatrixTraits<V>::RowCoefficients>(std::forward<V>(std::declval<V>()).base_matrix()))>>;
+
 
   /// Deduce template parameters from a Euclidean-transformed typed matrix.
 #if defined(__cpp_concepts) and false
@@ -342,29 +344,29 @@ namespace OpenKalman
 
   /// Make a Mean object from a typed matrix base.
 #ifdef __cpp_concepts
-  template<typename Coefficients = void, typed_matrix_base Arg> requires
-    coefficients<Coefficients> or std::same_as<Coefficients, void>
+  template<typename Coefficients = void, typed_matrix_base Arg> requires std::same_as<Coefficients, void> or
+    (coefficients<Coefficients> and MatrixTraits<Arg>::dimension == Coefficients::size)
 #else
   template<typename Coefficients = void, typename Arg, std::enable_if_t<typed_matrix_base<Arg>, int> = 0>
 #endif
   inline auto make_Mean(Arg&& arg) noexcept
   {
-    using Coeffs = std::conditional_t<std::is_void_v<Coefficients>, Axes<MatrixTraits<Arg>::dimension>, Coefficients>;
-    static_assert(MatrixTraits<Arg>::dimension == Coeffs::size);
+    constexpr auto rows = MatrixTraits<Arg>::dimension;
+    using Coeffs = std::conditional_t<std::is_void_v<Coefficients>, Axes<rows>, Coefficients>;
+    static_assert(Coeffs::size == rows);
     decltype(auto) b = wrap_angles<Coeffs>(std::forward<Arg>(arg));
-    return Mean<Coeffs, lvalue_or_self_contained2_t<decltype(b)>>(b);
+    return Mean<Coeffs, passable_t<decltype(b)>>(b);
   }
 
 
   /// Make a Mean object from another typed matrix.
 #ifdef __cpp_concepts
-  template<typed_matrix Arg>
+  template<typed_matrix Arg> requires column_vector<Arg>
 #else
-  template<typename Arg, std::enable_if_t<typed_matrix<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<typed_matrix<Arg> and column_vector<Arg>, int> = 0>
 #endif
   inline auto make_Mean(Arg&& arg) noexcept
   {
-    static_assert(column_vector<Arg>);
     using C = typename MatrixTraits<Arg>::RowCoefficients;
     if constexpr(euclidean_transformed<Arg>)
       return make_Mean<typename MatrixTraits<Arg>::RowCoefficients>(base_matrix(from_Euclidean<C>(std::forward<Arg>(arg))));
@@ -375,13 +377,15 @@ namespace OpenKalman
 
   /// Make a default, self-contained Mean
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, typed_matrix_base V>
+  template<coefficients Coefficients, typed_matrix_base V> requires
+    (coefficients<Coefficients> and MatrixTraits<V>::dimension == Coefficients::size)
 #else
-  template<typename Coefficients, typename V, std::enable_if_t<typed_matrix_base<V>, int> = 0>
+  template<typename Coefficients, typename V, std::enable_if_t<
+    is_coefficients_v<Coefficients> and typed_matrix_base<V> and
+    (is_coefficients_v<Coefficients> and MatrixTraits<V>::dimension == Coefficients::size), int> = 0>
 #endif
   inline auto make_Mean()
   {
-    static_assert(Coefficients::size == MatrixTraits<V>::dimension);
     return Mean<Coefficients, native_matrix_t<V>>();
   }
 
@@ -398,9 +402,9 @@ namespace OpenKalman
   }
 
 
-  ///////////////////////////
+  // --------------------- //
   //        Traits         //
-  ///////////////////////////
+  // --------------------- //
 
   template<typename Coeffs, typename NestedType>
   struct MatrixTraits<Mean<Coeffs, NestedType>>

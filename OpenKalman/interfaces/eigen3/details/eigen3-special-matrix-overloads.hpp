@@ -8,8 +8,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#ifndef OPENKALMAN_EIGEN3_SPECIALMATRIXOVERLOADS_HPP
-#define OPENKALMAN_EIGEN3_SPECIALMATRIXOVERLOADS_HPP
+#ifndef OPENKALMAN_EIGEN3_SPECIAL_MATRIX_OVERLOADS_HPP
+#define OPENKALMAN_EIGEN3_SPECIAL_MATRIX_OVERLOADS_HPP
 
 namespace OpenKalman::Eigen3
 {
@@ -25,15 +25,15 @@ namespace OpenKalman::Eigen3
 
   /// Convert to self-contained version of the special matrix.
 #ifdef __cpp_concepts
-  template<typename Arg> requires eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>
+  template<typename...Ts, typename Arg> requires eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>
 #else
-  template<typename Arg, std::enable_if_t<
+  template<typename...Ts, typename Arg, std::enable_if_t<
     eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
-  make_self_contained(Arg&& arg)
+  make_self_contained(Arg&& arg) noexcept
   {
-    if constexpr(self_contained<Arg>)
+    if constexpr(self_contained<Arg> or (std::is_lvalue_reference_v<Ts> and ... and (sizeof...(Ts) > 0)))
     {
       return std::forward<Arg>(arg);
     }
@@ -618,4 +618,4 @@ namespace OpenKalman::Eigen3
 
 } // namespace OpenKalman::Eigen3
 
-#endif //OPENKALMAN_EIGEN3_SPECIALMATRIXOVERLOADS_HPP
+#endif //OPENKALMAN_EIGEN3_SPECIAL_MATRIX_OVERLOADS_HPP

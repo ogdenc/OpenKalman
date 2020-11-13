@@ -31,6 +31,7 @@ namespace OpenKalman::Eigen3::internal
     using Nested = std::decay_t<ArgType>; ///< The nested Eigen matrix type. Eigen3 requires this to be defined.
     using Scalar = typename Nested::Scalar;
 
+
   protected:
     template<typename Arg>
     constexpr decltype(auto) get_ultimate_base_matrix_impl(Arg&& arg) noexcept
@@ -50,6 +51,7 @@ namespace OpenKalman::Eigen3::internal
         return b;
       }
     }
+
 
     template<typename Arg>
     constexpr decltype(auto) get_ultimate_base_matrix(Arg&& arg) noexcept
@@ -76,6 +78,7 @@ namespace OpenKalman::Eigen3::internal
 
     static constexpr Eigen::Index cols() { return Eigen::internal::traits<Derived>::ColsAtCompileTime; } ///< Required by Eigen::EigenBase.
 
+
 #ifdef __cpp_concepts
     template<std::convertible_to<Scalar> S>
 #else
@@ -98,6 +101,7 @@ namespace OpenKalman::Eigen3::internal
         return Eigen::CommaInitializer(xpr, static_cast<const Scalar&>(s));
       }
     }
+
 
     template<typename OtherDerived>
     constexpr auto operator<<(const Eigen::DenseBase<OtherDerived>& other)
@@ -160,6 +164,7 @@ namespace Eigen
       return this->m_xpr;
     }
   };
+
 
   /**
    * Alternative version of CommaInitializer for diagonal versions of SelfAdjointMatrix and TriangularMatrix.

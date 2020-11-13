@@ -280,19 +280,18 @@ namespace OpenKalman::Eigen3
 #else
   template<typename M, std::enable_if_t<eigen_matrix<M> and MatrixTraits<M>::columns == 1, int> = 0>
 #endif
-  DiagonalMatrix(M&&) -> DiagonalMatrix<lvalue_or_self_contained_t<M>>;
+  DiagonalMatrix(M&&) -> DiagonalMatrix<passable_t<M>>;
 
 
 #ifdef __cpp_concepts
-  template<eigen_native Arg>
-  requires diagonal_matrix<Arg> and
+  template<eigen_native Arg> requires diagonal_matrix<Arg> and
     (not eigen_diagonal_expr<Arg>) and (MatrixTraits<Arg>::columns > 1)
 #else
   template<typename Arg, std::enable_if_t<eigen_native<Arg> and diagonal_matrix<Arg> and
     (not eigen_diagonal_expr<Arg>) and (MatrixTraits<Arg>::columns > 1), int> = 0>
 #endif
-  DiagonalMatrix(Arg && )
-  -> DiagonalMatrix<self_contained_t < decltype(std::forward<Arg>(std::declval<Arg>()).diagonal())>>;
+  DiagonalMatrix(Arg&& )
+  -> DiagonalMatrix<self_contained_t<decltype(std::forward<Arg>(std::declval<Arg>()).diagonal())>>;
 
 
 #ifdef __cpp_concepts
@@ -301,19 +300,17 @@ namespace OpenKalman::Eigen3
     (MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns)
 #else
   template<typename Arg, std::enable_if_t<zero_matrix<Arg>and (MatrixTraits<Arg>::columns> 1) and
-  MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns, int> = 0>
+    MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns, int> = 0>
 #endif
   DiagonalMatrix(const Arg&)
-  -> DiagonalMatrix<ZeroMatrix < Eigen::Matrix<typename MatrixTraits<Arg>::Scalar, MatrixTraits<Arg>::dimension, 1>>>;
+  -> DiagonalMatrix<ZeroMatrix<Eigen::Matrix<typename MatrixTraits<Arg>::Scalar, MatrixTraits<Arg>::dimension, 1>>>;
 
 
 #ifdef __cpp_concepts
-  template<typename Arg>
-  requires identity_matrix<Arg> and (MatrixTraits<Arg>::columns > 1) and
+  template<identity_matrix Arg> requires (MatrixTraits<Arg>::columns > 1) and
     (MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns)
 #else
-  template<
-    typename Arg, std::enable_if_t<identity_matrix<Arg> and (MatrixTraits<Arg>::columns > 1) and
+  template<typename Arg, std::enable_if_t<identity_matrix<Arg> and (MatrixTraits<Arg>::columns > 1) and
       MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns, int> = 0>
 #endif
   DiagonalMatrix(const Arg&) -> DiagonalMatrix<
@@ -321,12 +318,11 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-  template<typename Arg, typename ... Args>
-  requires (std::is_arithmetic_v<Arg> and ... and std::is_arithmetic_v<Args>) and (std::common_with<Arg, Args>and ...)
+  template<typename Arg, typename ... Args> requires
+    (std::is_arithmetic_v<Arg> and ... and std::is_arithmetic_v<Args>) and (std::common_with<Arg, Args> and ...)
 #else
-    template<
-      typename Arg, typename ... Args,
-      std::enable_if_t<std::conjunction_v<std::is_arithmetic<Arg>, std::is_arithmetic<Args>...>, int> = 0>
+  template<typename Arg, typename ... Args, std::enable_if_t<
+    (std::is_arithmetic_v<Arg> and ... and std::is_arithmetic_v<Args>), int> = 0>
 #endif
     DiagonalMatrix(Arg, Args ...)
       -> DiagonalMatrix<Eigen::Matrix<std::decay_t<std::common_type_t<Arg, Args...>>, 1 + sizeof...(Args), 1>>;
@@ -443,14 +439,14 @@ namespace OpenKalman::Eigen3
 
   /// Convert to self_contained version
 #ifdef __cpp_concepts
-  template<Eigen3::eigen_diagonal_expr Arg>
+  template<typename...Ts, Eigen3::eigen_diagonal_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<Eigen3::eigen_diagonal_expr<Arg>, int> = 0>
+  template<typename...Ts, typename Arg, std::enable_if_t<Eigen3::eigen_diagonal_expr<Arg>, int> = 0>
 #endif
   inline decltype(auto)
-  make_self_contained(Arg&& arg)
+  make_self_contained(Arg&& arg) noexcept
   {
-    if constexpr(self_contained<Arg>)
+    if constexpr(self_contained<Arg> or (std::is_lvalue_reference_v<Ts> and ... and (sizeof...(Ts) > 0)))
     {
       return std::forward<Arg>(arg);
     }
@@ -810,7 +806,7 @@ namespace OpenKalman::Eigen3
     static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
     auto ret = MatrixTraits<Arg1>::make(
       std::forward<Arg1>(arg1).base_matrix() + std::forward<Arg2>(arg2).base_matrix());
-    if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>) return make_self_contained(std::move(ret)); else return ret;
+    return make_self_contained<Arg1, Arg2>(std::move(ret));
   }
 
 
@@ -829,19 +825,13 @@ namespace OpenKalman::Eigen3
     {
       using B = typename MatrixTraits<Arg1>::BaseMatrix;
       auto ret = MatrixTraits<Arg1>::make(base_matrix(std::forward<Arg1>(arg1)) + B::Constant(1));
-      if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>)
-        return make_self_contained(std::move(ret));
-      else
-        return ret;
+      return make_self_contained<Arg1, Arg2>(std::move(ret));
     }
     else
     {
       using B = typename MatrixTraits<Arg2>::BaseMatrix;
       auto ret = MatrixTraits<Arg2>::make(B::Constant(1) + base_matrix(std::forward<Arg2>(arg2)));
-      if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>)
-        return make_self_contained(std::move(ret));
-      else
-        return ret;
+      return make_self_contained<Arg1, Arg2>(std::move(ret));
     }
   }
 
@@ -883,7 +873,7 @@ namespace OpenKalman::Eigen3
     static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
     auto ret = MatrixTraits<Arg1>::make(
       std::forward<Arg1>(arg1).base_matrix() - std::forward<Arg2>(arg2).base_matrix());
-    if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>) return make_self_contained(std::move(ret)); else return ret;
+    return make_self_contained<Arg1, Arg2>(std::move(ret));
   }
 
 
@@ -902,13 +892,13 @@ namespace OpenKalman::Eigen3
     {
       using B = typename MatrixTraits<Arg1>::BaseMatrix;
       auto ret = MatrixTraits<Arg1>::make(std::forward<Arg1>(arg1).base_matrix() - B::Constant(1));
-      if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>) return make_self_contained(std::move(ret)); else return ret;
+      return make_self_contained<Arg1, Arg2>(std::move(ret));
     }
     else
     {
       using B = typename MatrixTraits<Arg2>::BaseMatrix;
       auto ret = MatrixTraits<Arg2>::make(B::Constant(1) - std::forward<Arg2>(arg2).base_matrix());
-      if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>) return make_self_contained(std::move(ret)); else return ret;
+      return make_self_contained<Arg1, Arg2>(std::move(ret));
     }
   }
 
@@ -946,7 +936,7 @@ namespace OpenKalman::Eigen3
   inline auto operator*(Arg&& arg, const S scale)
   {
     auto ret = MatrixTraits<Arg>::make(std::forward<Arg>(arg).base_matrix() * scale);
-    if constexpr (not std::is_lvalue_reference_v<Arg&&>) return make_self_contained(std::move(ret)); else return ret;
+    return make_self_contained<Arg>(std::move(ret));
   }
 
 
@@ -959,8 +949,9 @@ namespace OpenKalman::Eigen3
   inline auto operator*(const S scale, Arg&& arg)
   {
     auto ret = MatrixTraits<Arg>::make(scale * std::forward<Arg>(arg).base_matrix());
-    if constexpr (not std::is_lvalue_reference_v<Arg&&>) return make_self_contained(std::move(ret)); else return ret;
+    return make_self_contained<Arg>(std::move(ret));
   }
+
 
 #ifdef __cpp_concepts
   template<Eigen3::eigen_diagonal_expr Arg, std::convertible_to<typename MatrixTraits<Arg>::Scalar> S>
@@ -971,7 +962,7 @@ namespace OpenKalman::Eigen3
   inline auto operator/(Arg&& arg, const S scale)
   {
     auto ret = MatrixTraits<Arg>::make(std::forward<Arg>(arg).base_matrix() / scale);
-    if constexpr (not std::is_lvalue_reference_v<Arg&&>) return make_self_contained(std::move(ret)); else return ret;
+    return make_self_contained<Arg>(std::move(ret));
   }
 
 
@@ -990,7 +981,7 @@ namespace OpenKalman::Eigen3
     static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
     auto ret = MatrixTraits<Arg1>::make(
       (std::forward<Arg1>(arg1).base_matrix().array() * std::forward<Arg2>(arg2).base_matrix().array()).matrix());
-    if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>) return make_self_contained(std::move(ret)); else return ret;
+    return make_self_contained<Arg1, Arg2>(std::move(ret));
   }
 
 
@@ -1055,11 +1046,11 @@ namespace OpenKalman::Eigen3
     static_assert(MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::dimension);
     if constexpr(Eigen3::eigen_diagonal_expr<Arg1>)
     {
-      return make_self_contained(std::forward<Arg1>(arg1).base_matrix().asDiagonal() * std::forward<Arg2>(arg2));
+      return make_self_contained<Arg1, Arg2>(std::forward<Arg1>(arg1).base_matrix().asDiagonal() * std::forward<Arg2>(arg2));
     }
     else
     {
-      return make_self_contained(std::forward<Arg1>(arg1) * std::forward<Arg2>(arg2).base_matrix().asDiagonal());
+      return make_self_contained<Arg1, Arg2>(std::forward<Arg1>(arg1) * std::forward<Arg2>(arg2).base_matrix().asDiagonal());
     }
   }
 
@@ -1072,7 +1063,7 @@ namespace OpenKalman::Eigen3
   inline auto operator-(Arg&& arg)
   {
     auto ret = MatrixTraits<Arg>::make(-std::forward<Arg>(arg).base_matrix());
-    if constexpr (not std::is_lvalue_reference_v<Arg&&>) return make_self_contained(std::move(ret)); else return ret;
+    return make_self_contained<Arg>(std::move(ret));
   }
 
 } // namespace OpenKalman::Eigen3

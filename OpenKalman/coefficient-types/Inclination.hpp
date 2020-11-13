@@ -20,10 +20,10 @@ namespace OpenKalman
   struct AngleInclinationTraits
   {
     template<typename Scalar>
-    static constexpr Scalar max = M_PI/2;
+    static constexpr Scalar max = std::numbers::pi_v<Scalar>/2;
 
     template<typename Scalar>
-    static constexpr Scalar min = -M_PI/2;
+    static constexpr Scalar min = -std::numbers::pi_v<Scalar>/2;
   };
 
 
@@ -47,7 +47,8 @@ namespace OpenKalman
     using SetCoeff = std::function<void(const Scalar, const std::size_t)>;
 
     template<typename Scalar>
-    static constexpr Scalar cf = M_PI / (Traits::template max<Scalar> - Traits::template min<Scalar>);
+    static constexpr Scalar cf = std::numbers::pi_v<Scalar> /
+      (Traits::template max<Scalar> - Traits::template min<Scalar>);
 
     template<typename Scalar, std::size_t i>
     static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), dimension>

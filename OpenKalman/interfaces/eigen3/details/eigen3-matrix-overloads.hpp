@@ -24,7 +24,6 @@ namespace OpenKalman::Eigen3
   template<std::size_t dimension, std::size_t columns = 1, typename ... Args, std::enable_if_t<
     std::conjunction_v<std::is_arithmetic<Args>...> and sizeof...(Args) == dimension * columns, int> = 0>
 #endif
-
   static auto
   make_native_matrix(const Args ... args)
   {
@@ -82,16 +81,16 @@ namespace OpenKalman::Eigen3
   }
 
 
-  /// Convert to self-contained version of the matrix.
+  /// Convert to function-returnable version of the matrix.
 #ifdef __cpp_concepts
-  template<eigen_native Arg>
+  template<typename ... Ts, eigen_native Arg>
 #else
-  template<typename Arg, std::enable_if_t<eigen_native<Arg>, int> = 0>
+  template<typename ... Ts, typename Arg, std::enable_if_t<eigen_native<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
-  make_self_contained(Arg&& arg)
+  make_self_contained(Arg&& arg) noexcept
   {
-    if constexpr (self_contained<Arg>)
+    if constexpr (self_contained<Arg> or (std::is_lvalue_reference_v<Ts> and ... and (sizeof...(Ts) > 0)))
     {
       return std::forward<Arg>(arg);
     }

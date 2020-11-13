@@ -16,10 +16,10 @@ namespace OpenKalman
   struct AngleTraits
   {
     template<typename Scalar>
-    static constexpr Scalar wrap_max = M_PI;
+    static constexpr Scalar wrap_max = std::numbers::pi_v<Scalar>;
 
     template<typename Scalar>
-    static constexpr Scalar wrap_min = -M_PI;
+    static constexpr Scalar wrap_min = -std::numbers::pi_v<Scalar>;
   };
 
   using Angle = Circle<AngleTraits>;
@@ -28,7 +28,7 @@ namespace OpenKalman
   struct AnglePositiveRadiansTraits
   {
     template<typename Scalar>
-    static constexpr Scalar wrap_max = M_PI * 2;
+    static constexpr Scalar wrap_max = std::numbers::pi_v<Scalar> * 2;
 
     template<typename Scalar>
     static constexpr Scalar wrap_min = 0.;

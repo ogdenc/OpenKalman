@@ -89,12 +89,16 @@ namespace OpenKalman
     /// Construct from a covariance base, general case.
 #ifdef __cpp_concepts
     template<covariance_base M> requires
-      (diagonal_matrix<M> or diagonal_matrix<BaseMatrix> or upper_triangular_matrix<M> == upper_triangular_matrix<BaseMatrix>) and
+      (diagonal_matrix<M> or diagonal_matrix<BaseMatrix> or
+        (self_adjoint_matrix<M> and self_adjoint_matrix<BaseMatrix>) or
+        internal::same_triangle_type_as<M, BaseMatrix>) and
       (not diagonal_matrix<M> or self_adjoint_matrix<BaseMatrix>)
 #else
     template<typename M, std::enable_if_t<covariance_base<M> and
-      ((diagonal_matrix<M> or diagonal_matrix<BaseMatrix> or upper_triangular_matrix<M> == upper_triangular_matrix<BaseMatrix>) and
-      (not diagonal_matrix<M> or self_adjoint_matrix<BaseMatrix>)), int> = 0>
+      (diagonal_matrix<M> or diagonal_matrix<BaseMatrix> or
+        (self_adjoint_matrix<M> and self_adjoint_matrix<BaseMatrix>) or
+        internal::same_triangle_type_as<M, BaseMatrix>) and
+      (not diagonal_matrix<M> or self_adjoint_matrix<BaseMatrix>), int> = 0>
 #endif
     Covariance(M&& m) noexcept : Base(std::forward<M>(m)) {}
 
@@ -102,10 +106,14 @@ namespace OpenKalman
     /// Construct from a covariance base, if it has a different triangle type.
 #ifdef __cpp_concepts
     template<covariance_base M> requires (not diagonal_matrix<M>) and
-      (not diagonal_matrix<BaseMatrix>) and (upper_triangular_matrix<M> != upper_triangular_matrix<BaseMatrix>)
+      (not diagonal_matrix<BaseMatrix>) and
+      (not (self_adjoint_matrix<M> and self_adjoint_matrix<BaseMatrix>)) and
+      (not internal::same_triangle_type_as<M, BaseMatrix>)
 #else
     template<typename M, std::enable_if_t<covariance_base<M> and
-      not diagonal_matrix<M> and not diagonal_matrix<BaseMatrix> and upper_triangular_matrix<M> != upper_triangular_matrix<BaseMatrix>, int> = 0>
+      not diagonal_matrix<M> and not diagonal_matrix<BaseMatrix> and
+      (not (self_adjoint_matrix<M> and self_adjoint_matrix<BaseMatrix>)) and
+        (not internal::same_triangle_type_as<M, BaseMatrix>), int> = 0>
 #endif
     Covariance(M&& m) noexcept : Base(adjoint(std::forward<M>(m))) {}
 
@@ -393,7 +401,7 @@ namespace OpenKalman
 #else
   template<typename M, std::enable_if_t<covariance_base<M>, int> = 0>
 #endif
-  Covariance(M&&) -> Covariance<Axes<MatrixTraits<M>::dimension>, lvalue_or_self_contained_t<M>>;
+  Covariance(M&&) -> Covariance<Axes<MatrixTraits<M>::dimension>, passable_t<M>>;
 
 
 #ifdef __cpp_concepts
@@ -411,8 +419,7 @@ namespace OpenKalman
   template<typename M, std::enable_if_t<typed_matrix_base<M> and not covariance_base<M>, int> = 0>
 #endif
   Covariance(M&&) -> Covariance<
-    Axes<MatrixTraits<M>::dimension>,
-    typename MatrixTraits<M>::template SelfAdjointBaseType<>>;
+    Axes<MatrixTraits<M>::dimension>, typename MatrixTraits<M>::template SelfAdjointBaseType<>>;
 
 
   //////////////////////
@@ -428,7 +435,7 @@ namespace OpenKalman
   inline auto
   make_Covariance(Arg&& arg) noexcept
   {
-    return Covariance<Coefficients, lvalue_or_self_contained_t<Arg>>(std::forward<Arg>(arg));
+    return Covariance<Coefficients, passable_t<Arg>>(std::forward<Arg>(arg));
   }
 
 

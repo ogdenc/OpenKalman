@@ -345,41 +345,45 @@ namespace OpenKalman::internal
         synchronized(other.synchronized),
         apparent_base(other.apparent_base) {}
 
+
     /// Move constructor.
     CovarianceBase(CovarianceBase&& other) noexcept
       : Base(std::move(other.base_matrix())),
         synchronized(other.synchronized),
         apparent_base(std::move(other.apparent_base)) {}
 
+
     /// Construct from a general covariance type. Argument matches apparent base.
 #ifdef __cpp_concepts
     template<covariance Arg> requires
       ((cholesky_form<Arg> or (diagonal_matrix<Arg> and square_root_covariance<Arg>)) == square_root_covariance<Derived>) and
-      (upper_triangular_matrix<typename MatrixTraits<Arg>::BaseMatrix> == upper_triangular_matrix<ApparentBaseMatrix>)
+      internal::same_triangle_type_as<typename MatrixTraits<Arg>::BaseMatrix, ApparentBaseMatrix>
 #else
     template<typename Arg, std::enable_if_t<covariance<Arg> and
-      (cholesky_form<Arg> or (diagonal_matrix<Arg> and square_root_covariance<Arg>)) == square_root_covariance<Derived> and
-      (upper_triangular_matrix<typename MatrixTraits<Arg>::BaseMatrix> == upper_triangular_matrix<ApparentBaseMatrix>), int> = 0>
+      ((cholesky_form<Arg> or (diagonal_matrix<Arg> and square_root_covariance<Arg>)) == square_root_covariance<Derived>) and
+      internal::same_triangle_type_as<typename MatrixTraits<Arg>::BaseMatrix, ApparentBaseMatrix>, int> = 0>
 #endif
     CovarianceBase(Arg&& arg) noexcept
       : Base(internal::convert_base_matrix<BaseMatrix>(arg)),
         synchronized(true),
         apparent_base(std::forward<Arg>(arg).base_matrix()) {}
 
+
     /// Construct from a general covariance type. Argument matches kind of apparent base, but not upper/lower.
 #ifdef __cpp_concepts
     template<covariance Arg> requires
       ((cholesky_form<Arg> or (diagonal_matrix<Arg> and square_root_covariance<Arg>)) == square_root_covariance<Derived>) and
-      (upper_triangular_matrix<typename MatrixTraits<Arg>::BaseMatrix> != upper_triangular_matrix<ApparentBaseMatrix>)
+      (not internal::same_triangle_type_as<typename MatrixTraits<Arg>::BaseMatrix, ApparentBaseMatrix>)
 #else
     template<typename Arg, std::enable_if_t<covariance<Arg> and
-      (cholesky_form<Arg> or (diagonal_matrix<Arg> and square_root_covariance<Arg>)) == square_root_covariance<Derived> and
-      (upper_triangular_matrix<typename MatrixTraits<Arg>::BaseMatrix> != upper_triangular_matrix<ApparentBaseMatrix>), int> = 0>
+      ((cholesky_form<Arg> or (diagonal_matrix<Arg> and square_root_covariance<Arg>)) == square_root_covariance<Derived>) and
+      (not internal::same_triangle_type_as<typename MatrixTraits<Arg>::BaseMatrix, ApparentBaseMatrix>), int> = 0>
 #endif
     CovarianceBase(Arg&& arg) noexcept
       : Base(internal::convert_base_matrix<BaseMatrix>(arg)),
         synchronized(true),
         apparent_base(adjoint(std::forward<Arg>(arg).base_matrix())) {}
+
 
     /// Construct from a general covariance type. Argument does not match apparent base.
 #ifdef __cpp_concepts
@@ -392,6 +396,7 @@ namespace OpenKalman::internal
     CovarianceBase(Arg&& arg) noexcept
       : Base(internal::convert_base_matrix<BaseMatrix>(std::forward<Arg>(arg))),
         synchronized(false) {}
+
 
     /// Construct from a covariance base matrix.
 #ifdef __cpp_concepts

@@ -697,13 +697,11 @@ namespace OpenKalman
 
 
   /**
-   *
+   * A type based on T that is passable to a function
+   * (i.e., either an lvalue reference or a self-contained rvalue reference)
    */
   template<typename T>
-  using lvalue_or_self_contained_t = std::conditional_t<std::is_lvalue_reference_v<T>, std::decay_t<T>, self_contained_t<T>>;
-
-  template<typename T>
-  using lvalue_or_self_contained2_t = std::conditional_t<std::is_lvalue_reference_v<T>, std::decay_t<T>, self_contained_t<T>>;
+  using passable_t = std::conditional_t<std::is_lvalue_reference_v<T>, T, self_contained_t<T>>;
 
 
   // ---------------------------------------------------------------------------------------- //
@@ -964,6 +962,26 @@ namespace OpenKalman
 
   namespace internal
   {
+    /**
+     * T and U have the same triangular type (upper or lower).
+     *
+     * If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
+     */
+    template<typename T, typename U>
+#ifdef __cpp_concepts
+    concept same_triangle_type_as =
+      (upper_triangular_matrix<T> and upper_triangular_matrix<U>) or
+      (lower_triangular_matrix<T> and lower_triangular_matrix<U>);
+#else
+    inline constexpr bool same_triangle_type_as =
+      (upper_triangular_matrix<T> and upper_triangular_matrix<U>) or
+      (lower_triangular_matrix<T> and lower_triangular_matrix<U>);
+#endif
+  }
+
+
+  namespace internal
+  {
     // Type trait testing whether the base matrix is a Cholesky square root.
 #ifdef __cpp_concepts
     template<typename T>
@@ -1217,9 +1235,9 @@ namespace OpenKalman
     struct is_lower_triangular_matrix<T>
 #else
     template<typename T>
-    struct is_lower_triangular_matrix<T,
-      std::enable_if_t<square_root_covariance<T> and lower_triangular_matrix<typename MatrixTraits<T>::BaseMatrix> or
-      self_adjoint_matrix<typename MatrixTraits<T>::BaseMatrix>>>
+    struct is_lower_triangular_matrix<T, std::enable_if_t<square_root_covariance<T> and
+      (lower_triangular_matrix<typename MatrixTraits<T>::BaseMatrix> or
+      self_adjoint_matrix<typename MatrixTraits<T>::BaseMatrix>)>>
 #endif
       : std::true_type {};
 
@@ -1235,8 +1253,8 @@ namespace OpenKalman
 #else
     template<typename T>
     struct is_upper_triangular_matrix<T, std::enable_if_t<square_root_covariance<T> and
-      upper_triangular_matrix<typename MatrixTraits<T>::BaseMatrix> or
-      self_adjoint_matrix<typename MatrixTraits<T>::BaseMatrix>>>
+      (upper_triangular_matrix<typename MatrixTraits<T>::BaseMatrix> or
+      self_adjoint_matrix<typename MatrixTraits<T>::BaseMatrix>)>>
 #endif
       : std::true_type {};
 
@@ -1252,7 +1270,8 @@ namespace OpenKalman
     template<typename T>
     struct is_self_contained<T, std::enable_if_t<typed_matrix<T> or covariance<T>>>
 #endif
-      : is_self_contained<typename MatrixTraits<T>::BaseMatrix> {};
+      : std::bool_constant<self_contained<typename MatrixTraits<T>::BaseMatrix> and
+        not std::is_reference_v<typename MatrixTraits<T>::BaseMatrix>> {};
 
 
 #ifdef __cpp_concepts
@@ -1263,7 +1282,7 @@ namespace OpenKalman
     struct is_self_contained<T, std::enable_if_t<distribution<T>>>
 #endif
       : std::bool_constant<self_contained<typename DistributionTraits<T>::Mean> and
-        self_contained<typename DistributionTraits<T>::Covariance>> {};
+          self_contained<typename DistributionTraits<T>::Covariance>> {};
 
 
 

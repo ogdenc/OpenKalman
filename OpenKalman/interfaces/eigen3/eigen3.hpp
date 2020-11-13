@@ -58,6 +58,7 @@
 #include "SelfAdjointMatrix.hpp"
 #include "TriangularMatrix.hpp"
 #include "details/eigen3-special-matrix-overloads.hpp"
+#include "details/eigen3-special-matrix-arithmetic.hpp"
 
 #include "ToEuclideanExpr.hpp"
 #include "FromEuclideanExpr.hpp"

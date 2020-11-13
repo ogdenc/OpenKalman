@@ -23,13 +23,15 @@
 #include "Mean.hpp"
 #include "EuclideanMean.hpp"
 #include "Matrix.hpp"
-#include "details/TypedMatrixOverloads.hpp"
+#include "details/typed-matrix-overloads.hpp"
+#include "details/typed-matrix-arithmetic.hpp"
 //
 #include "details/ConvertBaseMatrix.hpp"
 #include "details/CovarianceBaseBase.hpp"
 #include "details/CovarianceBase.hpp"
 #include "Covariance.hpp"
 #include "SquareRootCovariance.hpp"
-#include "details/CovarianceOverloads.hpp"
+#include "details/covariance-overloads.hpp"
+#include "details/covariance-arithmetic.hpp"
 
 #endif //OPENKALMAN_MATRICES_HPP

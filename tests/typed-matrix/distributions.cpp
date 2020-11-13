@@ -379,7 +379,7 @@ TEST_F(matrices, GaussianDistribution_class)
 
   // Scalar multiplication
   distT2le *= 2;
-  EXPECT_TRUE(is_near(mean_of(distT2le), Mean2 {6-2*M_PI, 8}));
+  EXPECT_TRUE(is_near(mean_of(distT2le), Mean2 {6-2*std::numbers::pi, 8}));
   EXPECT_TRUE(is_near(covariance_of(distT2le), Mat2 {16, 8, 8, 20}));
 
   // Scalar division
@@ -474,11 +474,10 @@ TEST_F(matrices, GaussianDistribution_class_Cholesky_random)
 TEST_F(matrices, GaussianDistribution_class_Cholesky_random_axis)
 {
   using Mat = Mean<Coefficients<Axis, Axis>>;
-  M2 d;
-  d << 3, 0,
-  1, 3;
+  M2 m2;
+  m2 << 3, 0, 1, 3;
   const Mat true_x {20, 30};
-  GaussianDistribution dist {true_x, TriangularMatrix(d)};
+  GaussianDistribution dist {true_x, TriangularMatrix {m2}};
   const Mat x1 {dist()};
   const Mat x2 {dist()};
   EXPECT_NE(x1, x2);
@@ -535,16 +534,16 @@ TEST_F(matrices, GaussianDistribution_deduction_guides)
   static_assert(equivalent_to<typename DistributionTraits<decltype(GaussianDistribution(Mean2 {1, 2}, SA2l {9, 3, 3, 10}))>::Coefficients, C2>);
   static_assert(self_adjoint_matrix<decltype(GaussianDistribution(Mean2 {1, 2}, SA2l {9, 3, 3, 10}))>);
 
-  EXPECT_TRUE(is_near(GaussianDistribution((M2col() << 1, 2).finished(), CovSA2l {9, 3, 3, 10}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
-  static_assert(equivalent_to<typename DistributionTraits<decltype(GaussianDistribution((M2col() << 1, 2).finished(), CovSA2l {9, 3, 3, 10}))>::Coefficients, C2>);
+  EXPECT_TRUE(is_near(GaussianDistribution(make_native_matrix(1., 2), CovSA2l {9, 3, 3, 10}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
+  static_assert(equivalent_to<typename DistributionTraits<decltype(GaussianDistribution(make_native_matrix(1., 2), CovSA2l {9, 3, 3, 10}))>::Coefficients, C2>);
   static_assert(self_adjoint_matrix<decltype(GaussianDistribution((M2col() << 1, 2).finished(), CovSA2l {9, 3, 3, 10}))>);
 
-  EXPECT_TRUE(is_near(GaussianDistribution((M2col() << 1, 2).finished(), Mat2 {9, 3, 3, 10}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
-  static_assert(equivalent_to<typename DistributionTraits<decltype(GaussianDistribution((M2col() << 1, 2).finished(), Mat2 {9, 3, 3, 10}))>::Coefficients, C2>);
+  EXPECT_TRUE(is_near(GaussianDistribution(make_native_matrix(1., 2), Mat2 {9, 3, 3, 10}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
+  static_assert(equivalent_to<typename DistributionTraits<decltype(GaussianDistribution(make_native_matrix(1., 2), Mat2 {9, 3, 3, 10}))>::Coefficients, C2>);
   static_assert(self_adjoint_matrix<decltype(GaussianDistribution((M2col() << 1, 2).finished(), Mat2 {9, 3, 3, 10}))>);
 
-  EXPECT_TRUE(is_near(GaussianDistribution((M2col() << 1, 2).finished(), SA2l {9, 3, 3, 10}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
-  static_assert(equivalent_to<typename DistributionTraits<decltype(GaussianDistribution((M2col() << 1, 2).finished(), SA2l {9, 3, 3, 10}))>::Coefficients, Axes<2>>);
+  EXPECT_TRUE(is_near(GaussianDistribution(make_native_matrix(1., 2), SA2l {9, 3, 3, 10}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
+  static_assert(equivalent_to<typename DistributionTraits<decltype(GaussianDistribution(make_native_matrix(1., 2), SA2l {9, 3, 3, 10}))>::Coefficients, Axes<2>>);
   static_assert(self_adjoint_matrix<decltype(GaussianDistribution((M2col() << 1, 2).finished(), SA2l {9, 3, 3, 10}))>);
 }
 
@@ -567,29 +566,29 @@ TEST_F(matrices, GaussianDistribution_make)
   static_assert(equivalent_to<typename DistributionTraits<decltype(make_GaussianDistribution(Mean2 {1, 2}, (M2() << 9, 3, 3, 10).finished()))>::Coefficients, C2>);
   static_assert(self_adjoint_matrix<decltype(make_GaussianDistribution(Mean2 {1, 2}, (M2() << 9, 3, 3, 10).finished()))>);
 
-  EXPECT_TRUE(is_near(make_GaussianDistribution((M2col() << 1, 2).finished(), CovSA2l {9, 3, 3, 10}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
-  static_assert(equivalent_to<typename DistributionTraits<decltype(make_GaussianDistribution((M2col() << 1, 2).finished(), CovSA2l {9, 3, 3, 10}))>::Coefficients, C2>);
-  static_assert(self_adjoint_matrix<decltype(make_GaussianDistribution((M2col() << 1, 2).finished(), CovSA2l {9, 3, 3, 10}))>);
+  EXPECT_TRUE(is_near(make_GaussianDistribution(make_native_matrix(1., 2), CovSA2l {9, 3, 3, 10}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
+  static_assert(equivalent_to<typename DistributionTraits<decltype(make_GaussianDistribution(make_native_matrix(1., 2), CovSA2l {9, 3, 3, 10}))>::Coefficients, C2>);
+  static_assert(self_adjoint_matrix<decltype(make_GaussianDistribution(make_native_matrix(1., 2), CovSA2l {9, 3, 3, 10}))>);
 
-  EXPECT_TRUE(is_near(make_GaussianDistribution((M2col() << 1, 2).finished(), Mat2 {9, 3, 3, 10}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
-  static_assert(equivalent_to<typename DistributionTraits<decltype(make_GaussianDistribution((M2col() << 1, 2).finished(), Mat2 {9, 3, 3, 10}))>::Coefficients, C2>);
-  static_assert(self_adjoint_matrix<decltype(make_GaussianDistribution((M2col() << 1, 2).finished(), Mat2 {9, 3, 3, 10}))>);
+  EXPECT_TRUE(is_near(make_GaussianDistribution(make_native_matrix(1., 2), Mat2 {9, 3, 3, 10}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
+  static_assert(equivalent_to<typename DistributionTraits<decltype(make_GaussianDistribution(make_native_matrix(1., 2), Mat2 {9, 3, 3, 10}))>::Coefficients, C2>);
+  static_assert(self_adjoint_matrix<decltype(make_GaussianDistribution(make_native_matrix(1., 2), Mat2 {9, 3, 3, 10}))>);
 
-  EXPECT_TRUE(is_near(make_GaussianDistribution<C2>((M2col() << 1, 2).finished(), SA2l {9, 3, 3, 10}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
-  static_assert(equivalent_to<typename DistributionTraits<decltype(make_GaussianDistribution<C2>((M2col() << 1, 2).finished(), SA2l {9, 3, 3, 10}))>::Coefficients, C2>);
-  static_assert(self_adjoint_matrix<decltype(make_GaussianDistribution<C2>((M2col() << 1, 2).finished(), SA2l {9, 3, 3, 10}))>);
+  EXPECT_TRUE(is_near(make_GaussianDistribution<C2>(make_native_matrix(1., 2), SA2l {9, 3, 3, 10}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
+  static_assert(equivalent_to<typename DistributionTraits<decltype(make_GaussianDistribution<C2>(make_native_matrix(1., 2), SA2l {9, 3, 3, 10}))>::Coefficients, C2>);
+  static_assert(self_adjoint_matrix<decltype(make_GaussianDistribution<C2>(make_native_matrix(1., 2), SA2l {9, 3, 3, 10}))>);
 
-  EXPECT_TRUE(is_near(make_GaussianDistribution((M2col() << 1, 2).finished(), SA2l {9, 3, 3, 10}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
-  static_assert(equivalent_to<typename DistributionTraits<decltype(make_GaussianDistribution((M2col() << 1, 2).finished(), SA2l {9, 3, 3, 10}))>::Coefficients, Axes<2>>);
-  static_assert(self_adjoint_matrix<decltype(make_GaussianDistribution((M2col() << 1, 2).finished(), SA2l {9, 3, 3, 10}))>);
+  EXPECT_TRUE(is_near(make_GaussianDistribution(make_native_matrix(1., 2), SA2l {9, 3, 3, 10}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
+  static_assert(equivalent_to<typename DistributionTraits<decltype(make_GaussianDistribution(make_native_matrix(1., 2), SA2l {9, 3, 3, 10}))>::Coefficients, Axes<2>>);
+  static_assert(self_adjoint_matrix<decltype(make_GaussianDistribution(make_native_matrix(1., 2), SA2l {9, 3, 3, 10}))>);
 
-  EXPECT_TRUE(is_near(make_GaussianDistribution<C2>((M2col() << 1, 2).finished(), (M2() << 9, 3, 3, 10).finished()), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
-  static_assert(equivalent_to<typename DistributionTraits<decltype(make_GaussianDistribution<C2>((M2col() << 1, 2).finished(), (M2() << 9, 3, 3, 10).finished()))>::Coefficients, C2>);
-  static_assert(self_adjoint_matrix<decltype(make_GaussianDistribution<C2>((M2col() << 1, 2).finished(), (M2() << 9, 3, 3, 10).finished()))>);
+  EXPECT_TRUE(is_near(make_GaussianDistribution<C2>(make_native_matrix(1., 2), (M2() << 9, 3, 3, 10).finished()), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
+  static_assert(equivalent_to<typename DistributionTraits<decltype(make_GaussianDistribution<C2>(make_native_matrix(1., 2), (M2() << 9, 3, 3, 10).finished()))>::Coefficients, C2>);
+  static_assert(self_adjoint_matrix<decltype(make_GaussianDistribution<C2>(make_native_matrix(1., 2), (M2() << 9, 3, 3, 10).finished()))>);
 
-  EXPECT_TRUE(is_near(make_GaussianDistribution((M2col() << 1, 2).finished(), (M2() << 9, 3, 3, 10).finished()), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
-  static_assert(equivalent_to<typename DistributionTraits<decltype(make_GaussianDistribution((M2col() << 1, 2).finished(), (M2() << 9, 3, 3, 10).finished()))>::Coefficients, Axes<2>>);
-  static_assert(self_adjoint_matrix<decltype(make_GaussianDistribution((M2col() << 1, 2).finished(), (M2() << 9, 3, 3, 10).finished()))>);
+  EXPECT_TRUE(is_near(make_GaussianDistribution(make_native_matrix(1., 2), (M2() << 9, 3, 3, 10).finished()), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
+  static_assert(equivalent_to<typename DistributionTraits<decltype(make_GaussianDistribution(make_native_matrix(1., 2), (M2() << 9, 3, 3, 10).finished()))>::Coefficients, Axes<2>>);
+  static_assert(self_adjoint_matrix<decltype(make_GaussianDistribution(make_native_matrix(1., 2), (M2() << 9, 3, 3, 10).finished()))>);
 
   // Defaults
   static_assert(equivalent_to<typename DistributionTraits<decltype(make_GaussianDistribution<Mean2, CovSA2l>())>::Coefficients, C2>);
@@ -738,8 +737,8 @@ TEST_F(matrices, GaussianDistribution_addition_subtraction)
   auto diff1 = dist1 - dist2;
   EXPECT_TRUE(is_near(mean_of(diff1), Mean {9., 7.}));
   EXPECT_TRUE(is_near(covariance_of(diff1), Covariance {2., 2, 2, 5}));
-  GaussianDistribution dist1_chol {x_mean, TriangularMatrix(SelfAdjointMatrix(d))};
-  GaussianDistribution dist2_chol {y_mean, TriangularMatrix(SelfAdjointMatrix(e))};
+  GaussianDistribution dist1_chol {x_mean, TriangularMatrix(SelfAdjointMatrix {d})};
+  GaussianDistribution dist2_chol {y_mean, TriangularMatrix(SelfAdjointMatrix {e})};
   auto sum2 = dist1_chol + dist2_chol;
   EXPECT_TRUE(is_near(mean_of(sum2), Mean {31., 53}));
   EXPECT_TRUE(is_near(covariance_of(sum2), Covariance {16., 4, 4, 11}));

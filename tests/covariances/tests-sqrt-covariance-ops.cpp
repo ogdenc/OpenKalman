@@ -443,6 +443,29 @@ TEST_F(covariance_tests, SquareRootCovariance_subtraction_mixed)
 
 TEST_F(covariance_tests, SquareRootCovariance_mult_covariance)
 {
+  auto sqcovsa2l = SqCovSA2l {3, 0, 1, 3};
+  auto sqcovsa2u = SqCovSA2u {3, 1, 0, 3};
+  auto sqcovt2l = SqCovT2l {3, 0, 1, 3};
+  auto sqcovt2u = SqCovT2u {3, 1, 0, 3};
+
+  EXPECT_TRUE(is_near(sqcovsa2l * sqcovsa2l, Mat2 {9, 0, 6, 9}));
+  EXPECT_TRUE(is_near(sqcovsa2l * sqcovt2l, Mat2 {9, 0, 6, 9}));
+  EXPECT_TRUE(is_near(sqcovt2l * sqcovsa2l, Mat2 {9, 0, 6, 9}));
+  EXPECT_TRUE(is_near(sqcovt2l * sqcovt2l, Mat2 {9, 0, 6, 9})); //
+  EXPECT_TRUE(is_near(sqcovsa2u * sqcovsa2u, Mat2 {9, 6, 0, 9}));
+  EXPECT_TRUE(is_near(sqcovsa2u * sqcovt2u, Mat2 {9, 6, 0, 9}));
+  EXPECT_TRUE(is_near(sqcovt2u * sqcovsa2u, Mat2 {9, 6, 0, 9}));
+  EXPECT_TRUE(is_near(sqcovt2u * sqcovt2u, Mat2 {9, 6, 0, 9}));
+
+  EXPECT_TRUE(is_near(sqcovsa2l * sqcovsa2u, Mat2 {9, 3, 3, 10}));
+  EXPECT_TRUE(is_near(sqcovsa2l * sqcovt2u, Mat2 {9, 3, 3, 10}));
+  EXPECT_TRUE(is_near(sqcovt2l * sqcovsa2u, Mat2 {9, 3, 3, 10}));
+  EXPECT_TRUE(is_near(sqcovt2l * sqcovt2u, Mat2 {9, 3, 3, 10}));
+  EXPECT_TRUE(is_near(sqcovsa2u * sqcovsa2l, Mat2 {10, 3, 3, 9}));
+  EXPECT_TRUE(is_near(sqcovsa2u * sqcovt2l, Mat2 {10, 3, 3, 9}));
+  EXPECT_TRUE(is_near(sqcovt2u * sqcovsa2l, Mat2 {10, 3, 3, 9}));
+  EXPECT_TRUE(is_near(sqcovt2u * sqcovt2l, Mat2 {10, 3, 3, 9}));
+
   EXPECT_TRUE(is_near(SqCovSA2l {3, 0, 1, 3} * CovSA2l {9, 3, 3, 10}, Mat2 {27, 9, 18, 33}));
   EXPECT_TRUE(is_near(SqCovSA2l {3, 0, 1, 3} * CovSA2u {9, 3, 3, 10}, Mat2 {27, 9, 18, 33}));
   EXPECT_TRUE(is_near(SqCovSA2l {3, 0, 1, 3} * CovT2l {9, 3, 3, 10}, Mat2 {27, 9, 18, 33}));

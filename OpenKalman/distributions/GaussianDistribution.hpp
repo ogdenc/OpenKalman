@@ -33,8 +33,8 @@ namespace OpenKalman
     using Covariance = Covariance<Coefficients, CovarianceBase>;
     using Scalar = typename MatrixTraits<Mean>::Scalar;
     static constexpr auto dimension = Coefficients::size;
-    //static_assert(self_contained<MatrixBase>, "MatrixBase must be self-contained.");
-    //static_assert(self_contained<CovarianceBase>, "CovarianceBase must be self-contained.");
+    static_assert(self_contained<MatrixBase>, "MatrixBase must be self-contained.");
+    static_assert(self_contained<CovarianceBase>, "CovarianceBase must be self-contained.");
     static_assert(typed_matrix_base<MatrixBase>);
     static_assert(covariance_base<CovarianceBase>);
     static_assert(MatrixTraits<MatrixBase>::dimension == MatrixTraits<CovarianceBase>::dimension);
@@ -275,13 +275,13 @@ namespace OpenKalman
       static constexpr auto n = sizeof...(Z);
       static_assert(n >= 1);
       auto sum = (trace(transpose(z - mu) * solve(sigma, z - mu)) + ...);
-      return -0.5 * (n * (dimension * std::log(2 * M_PI) + std::log(determinant(sigma))) + sum);
+      return -0.5 * (n * (dimension * std::log(2 * std::numbers::pi_v<Scalar>) + std::log(determinant(sigma))) + sum);
     }
 
     /// Entropy of the distribution, in bits.
     auto entropy() const
     {
-      return 0.5 * (dimension * (1 + std::log2(M_PI) + M_LOG2E) + std::log2(determinant(sigma)));
+      return 0.5 * (dimension * (1 + std::log2(std::numbers::pi_v<Scalar>) + M_LOG2E) + std::log2(determinant(sigma)));
     }
 
   protected:
@@ -291,15 +291,20 @@ namespace OpenKalman
   };
 
 
-  /////////////////////////////////////
+  // ------------------------------- //
   //        Deduction Guides         //
-  /////////////////////////////////////
+  // ------------------------------- //
 
+#ifdef __cpp_concepts
+  template<gaussian_distribution D>
+#else
   template<typename D, std::enable_if_t<gaussian_distribution<D>, int> = 0>
+#endif
   GaussianDistribution(D&&) -> GaussianDistribution<
     typename DistributionTraits<D>::Coefficients,
-    typename MatrixTraits<typename DistributionTraits<D>::Mean>::BaseMatrix,
-    typename MatrixTraits<typename DistributionTraits<D>::Covariance>::BaseMatrix>;
+    typename MatrixTraits<typename DistributionTraits<passable_t<D>>::Mean>::BaseMatrix,
+    typename MatrixTraits<typename DistributionTraits<passable_t<D>>::Covariance>::BaseMatrix>;
+
 
 #ifdef __cpp_concepts
   template<typed_matrix M, covariance C> requires (not square_root_covariance<C>)
@@ -309,8 +314,9 @@ namespace OpenKalman
 #endif
   GaussianDistribution(M&&, C&&) -> GaussianDistribution<
     typename MatrixTraits<M>::RowCoefficients,
-    typename MatrixTraits<lvalue_or_self_contained_t<M&&>>::BaseMatrix,
-    typename MatrixTraits<lvalue_or_self_contained_t<C&&>>::BaseMatrix>;
+    typename MatrixTraits<passable_t<M>>::BaseMatrix,
+    typename MatrixTraits<passable_t<C>>::BaseMatrix>;
+
 
 #ifdef __cpp_concepts
   template<typed_matrix M, square_root_covariance C>
@@ -320,8 +326,9 @@ namespace OpenKalman
 #endif
   GaussianDistribution(M&&, C&&) -> GaussianDistribution<
     typename MatrixTraits<M>::RowCoefficients,
-    typename MatrixTraits<lvalue_or_self_contained_t<M&&>>::BaseMatrix,
-    typename MatrixTraits<lvalue_or_self_contained_t<decltype(square(std::declval<C&&>()))>>::BaseMatrix>;
+    typename MatrixTraits<passable_t<M>>::BaseMatrix,
+    typename MatrixTraits<self_contained_t<decltype(square(std::declval<C>()))>>::BaseMatrix>;
+
 
 #ifdef __cpp_concepts
   template<typed_matrix M, typed_matrix C> requires
@@ -333,7 +340,7 @@ namespace OpenKalman
 #endif
   GaussianDistribution(M&&, C&&) -> GaussianDistribution<
     typename MatrixTraits<M>::RowCoefficients,
-    typename MatrixTraits<lvalue_or_self_contained_t<M&&>>::BaseMatrix,
+    typename MatrixTraits<passable_t<M>>::BaseMatrix,
     typename MatrixTraits<typename MatrixTraits<C>::BaseMatrix>::template SelfAdjointBaseType<>>;
 
 
@@ -344,8 +351,8 @@ namespace OpenKalman
 #endif
   GaussianDistribution(M&&, C&&) -> GaussianDistribution<
     typename MatrixTraits<M>::RowCoefficients,
-    typename MatrixTraits<lvalue_or_self_contained_t<M&&>>::BaseMatrix,
-    lvalue_or_self_contained_t<C&&>>;
+    typename MatrixTraits<passable_t<M>>::BaseMatrix,
+    passable_t<C>>;
 
 
 #ifdef __cpp_concepts
@@ -356,8 +363,8 @@ namespace OpenKalman
 #endif
   GaussianDistribution(M&&, C&&) -> GaussianDistribution<
     typename MatrixTraits<C>::Coefficients,
-    lvalue_or_self_contained_t<M&&>,
-    typename MatrixTraits<lvalue_or_self_contained_t<C&&>>::BaseMatrix>;
+    passable_t<M>,
+    typename MatrixTraits<passable_t<C>>::BaseMatrix>;
 
 
 #ifdef __cpp_concepts
@@ -368,8 +375,8 @@ namespace OpenKalman
 #endif
   GaussianDistribution(M&&, C&&) -> GaussianDistribution<
     typename MatrixTraits<C>::Coefficients,
-    lvalue_or_self_contained_t<M&&>,
-    typename MatrixTraits<lvalue_or_self_contained_t<decltype(square(std::declval<C&&>()))>>::BaseMatrix>;
+    passable_t<M>,
+    typename MatrixTraits<self_contained_t<decltype(square(std::declval<C&&>()))>>::BaseMatrix>;
 
 
 #ifdef __cpp_concepts
@@ -381,7 +388,7 @@ namespace OpenKalman
 #endif
   GaussianDistribution(M&&, C&&) -> GaussianDistribution<
     typename MatrixTraits<C>::RowCoefficients,
-    lvalue_or_self_contained_t<M&&>,
+    passable_t<M>,
     typename MatrixTraits<typename MatrixTraits<C>::BaseMatrix>::template SelfAdjointBaseType<>>;
 
 
@@ -393,8 +400,8 @@ namespace OpenKalman
 #endif
   GaussianDistribution(M&&, C&&) -> GaussianDistribution<
     Axes<MatrixTraits<M>::dimension>,
-    lvalue_or_self_contained_t<M&&>,
-    lvalue_or_self_contained_t<C&&>>;
+    passable_t<M>,
+    passable_t<C>>;
 
 
   ///////////////////////////////////
@@ -410,7 +417,7 @@ namespace OpenKalman
   inline auto
   make_GaussianDistribution(D&& dist) noexcept
   {
-    return GaussianDistribution(std::forward<D>(dist));
+    return GaussianDistribution {std::forward<D>(dist)};
   }
 
 
@@ -444,19 +451,19 @@ namespace OpenKalman
       if constexpr(covariance<Cov> or typed_matrix<Cov>)
       {
         using Covb = typename MatrixTraits<Cov>::BaseMatrix;
-        return GaussianDistribution<C, lvalue_or_self_contained_t<Mb>, lvalue_or_self_contained_t<Covb>, re>(std::forward<M>(mean), std::forward<Cov>(cov));
+        return GaussianDistribution<C, passable_t<Mb>, passable_t<Covb>, re>(std::forward<M>(mean), std::forward<Cov>(cov));
       }
       else
       {
         auto c = base_matrix(make_Covariance<C>(std::forward<Cov>(cov)));
-        return GaussianDistribution<C, lvalue_or_self_contained_t<Mb>, lvalue_or_self_contained_t<decltype(c)>, re>(std::forward<M>(mean), std::move(c));
+        return GaussianDistribution<C, passable_t<Mb>, self_contained_t<decltype(c)>, re>(std::forward<M>(mean), std::move(c));
       }
     }
     else if constexpr(covariance<Cov>)
     {
       using C = typename MatrixTraits<Cov>::Coefficients;
       using Covb = typename MatrixTraits<Cov>::BaseMatrix;
-      return GaussianDistribution<C, lvalue_or_self_contained_t<M>, lvalue_or_self_contained_t<Covb>, re>(std::forward<M>(mean), std::forward<Cov>(cov));
+      return GaussianDistribution<C, passable_t<M>, passable_t<Covb>, re>(std::forward<M>(mean), std::forward<Cov>(cov));
     }
     else if constexpr(typed_matrix<Cov>)
     {
@@ -464,13 +471,14 @@ namespace OpenKalman
       static_assert(equivalent_to<C, typename MatrixTraits<Cov>::ColumnCoefficients>);
       auto sc = base_matrix(make_Covariance(std::forward<Cov>(cov)));
       using SC = self_contained_t<decltype(sc)>;
-      return GaussianDistribution<C, lvalue_or_self_contained_t<M>, SC, re>(std::forward<M>(mean), std::move(sc));
+      return GaussianDistribution<C, passable_t<M>, SC, re>(std::forward<M>(mean), std::move(sc));
     }
     else
     {
       using C = Axes<MatrixTraits<M>::dimension>;
       auto c = base_matrix(make_Covariance<C>(std::forward<Cov>(cov)));
-      return GaussianDistribution<C, lvalue_or_self_contained_t<M>, self_contained_t<decltype(c)>, re>(std::forward<M>(mean), std::move(c));
+      return GaussianDistribution<C, passable_t<M>, self_contained_t<decltype(c)>, re>(
+        std::forward<M>(mean), std::move(c));
     }
   }
 
@@ -491,13 +499,13 @@ namespace OpenKalman
     static_assert(MatrixTraits<M>::dimension == MatrixTraits<Cov>::dimension);
     if constexpr(covariance_base<Cov>)
     {
-      return GaussianDistribution<Coefficients, lvalue_or_self_contained_t<M>, lvalue_or_self_contained_t<Cov>, re>(
+      return GaussianDistribution<Coefficients, passable_t<M>, passable_t<Cov>, re>(
         std::forward<M>(mean), std::forward<Cov>(cov));
     }
     else
     {
       auto c = base_matrix(make_Covariance<Coefficients>(std::forward<Cov>(cov)));
-      return GaussianDistribution<Coefficients, lvalue_or_self_contained_t<M>, self_contained_t<decltype(c)>, re>(
+      return GaussianDistribution<Coefficients, passable_t<M>, self_contained_t<decltype(c)>, re>(
         std::forward<M>(mean), std::move(c));
     }
   }
@@ -524,18 +532,18 @@ namespace OpenKalman
       using Mb = typename MatrixTraits<M>::BaseMatrix;
       if constexpr(covariance<Cov>) static_assert(equivalent_to<C, typename MatrixTraits<Cov>::Coefficients>);
       using Covb = std::conditional_t<covariance<Cov>, typename MatrixTraits<Cov>::BaseMatrix, std::decay_t<Cov>>;
-      return GaussianDistribution<C, lvalue_or_self_contained_t<Mb>, lvalue_or_self_contained_t<Covb>, re>();
+      return GaussianDistribution<C, passable_t<Mb>, passable_t<Covb>, re>();
     }
     else if constexpr(covariance<Cov>)
     {
       using C = typename MatrixTraits<Cov>::Coefficients;
       using Covb = typename MatrixTraits<Cov>::BaseMatrix;
-      return GaussianDistribution<C, lvalue_or_self_contained_t<M>, lvalue_or_self_contained_t<Covb>, re>();
+      return GaussianDistribution<C, passable_t<M>, passable_t<Covb>, re>();
     }
     else
     {
       using C = Axes<MatrixTraits<M>::dimension>;
-      return GaussianDistribution<C, lvalue_or_self_contained_t<M>, lvalue_or_self_contained_t<Cov>, re>();
+      return GaussianDistribution<C, passable_t<M>, passable_t<Cov>, re>();
     }
   }
 
@@ -552,7 +560,7 @@ namespace OpenKalman
   {
     static_assert(MatrixTraits<M>::columns == 1);
     static_assert(MatrixTraits<M>::dimension == MatrixTraits<Cov>::dimension);
-    return GaussianDistribution<Coefficients, lvalue_or_self_contained_t<M>, lvalue_or_self_contained_t<Cov>, re>();
+    return GaussianDistribution<Coefficients, passable_t<M>, passable_t<Cov>, re>();
   }
 
 
@@ -565,8 +573,8 @@ namespace OpenKalman
   {
     using Coefficients = Coeffs;
     static constexpr auto dimension = Coefficients::size;
-    using Mean = Mean<Coefficients, std::decay_t<MatrixBase>>;
-    using Covariance = Covariance<Coefficients, std::decay_t<CovarianceBase>>;
+    using Mean = Mean<Coefficients, MatrixBase>;
+    using Covariance = Covariance<Coefficients, CovarianceBase>;
     using Scalar = typename MatrixTraits<Mean>::Scalar;
     template<typename S> using distribution_type = std::normal_distribution<S>;
     using random_number_engine = re;
@@ -641,11 +649,11 @@ namespace OpenKalman
 
 
   /// Convert to self-contained version of the distribution.
-  template<typename Arg, std::enable_if_t<gaussian_distribution<Arg>, int> = 0>
+  template<typename...Ts, typename Arg, std::enable_if_t<gaussian_distribution<Arg>, int> = 0>
   constexpr decltype(auto)
   make_self_contained(Arg&& arg) noexcept
   {
-    if constexpr(self_contained<Arg>)
+    if constexpr(self_contained<Arg> or (std::is_lvalue_reference_v<Ts> and ... and (sizeof...(Ts) > 0)))
     {
       return std::forward<Arg>(arg);
     }

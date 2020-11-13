@@ -79,12 +79,12 @@ namespace OpenKalman::Eigen3
 
   /// Convert to self-contained version of the matrix.
 #ifdef __cpp_concepts
-  template<Eigen3::eigen_zero_expr Arg>
+  template<typename...Ts, Eigen3::eigen_zero_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<Eigen3::eigen_zero_expr<Arg>, int> = 0>
+  template<typename...Ts, typename Arg, std::enable_if_t<Eigen3::eigen_zero_expr<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
-  make_self_contained(Arg&& arg)
+  make_self_contained(Arg&& arg) noexcept
   {
     return std::forward<Arg>(arg);
   }

@@ -15,6 +15,21 @@
 #include <tuple>
 #include <utility>
 
+#if __cplusplus > 201907L
+#include <numbers>
+#endif
+
+#ifndef __cpp_lib_math_constants
+namespace std::numbers
+{
+  template<typename T>
+  inline constexpr T pi_v = 3.141592653589793238462643383279502884L;
+
+  inline constexpr double pi = pi_v<double>;
+}
+#endif
+
+
 namespace OpenKalman::internal
 {
   namespace detail

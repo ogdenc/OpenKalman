@@ -582,7 +582,8 @@ namespace OpenKalman
     struct is_self_contained<T, std::enable_if_t<Eigen3::eigen_self_adjoint_expr<T> or Eigen3::eigen_triangular_expr<T> or
       Eigen3::eigen_diagonal_expr<T> or Eigen3::to_euclidean_expr<T> or Eigen3::from_euclidean_expr<T>>>
 #endif
-      : is_self_contained<typename MatrixTraits<T>::BaseMatrix> {};
+      : std::bool_constant<self_contained<typename MatrixTraits<T>::BaseMatrix> and
+          not std::is_reference_v<typename MatrixTraits<T>::BaseMatrix>> {};
 
 
 #ifdef __cpp_concepts

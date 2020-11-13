@@ -47,11 +47,14 @@ namespace OpenKalman
     /// Default constructor.
     SquareRootCovariance() : Base() {}
 
+
     /// Copy constructor.
     SquareRootCovariance(const SquareRootCovariance& other) : Base(other) {}
 
+
     /// Move constructor.
     SquareRootCovariance(SquareRootCovariance&& other) : Base(std::move(other)) {}
+
 
     /// Construct from a general covariance type.
 #ifdef __cpp_concepts
@@ -59,17 +62,18 @@ namespace OpenKalman
       (not (diagonal_matrix<M> and not square_root_covariance<M> and diagonal_matrix<BaseMatrix>))
 #else
     template<typename M, std::enable_if_t<covariance<M> and
-      not (diagonal_matrix<M> and not square_root_covariance<M> and diagonal_matrix<BaseMatrix>), int> = 0>
+      (not (diagonal_matrix<M> and not square_root_covariance<M> and diagonal_matrix<BaseMatrix>)), int> = 0>
 #endif
     SquareRootCovariance(M&& m) noexcept : Base(std::forward<M>(m))
     {
       static_assert(equivalent_to<typename MatrixTraits<M>::Coefficients, Coefficients>);
       using MBase = typename MatrixTraits<M>::BaseMatrix;
       static_assert(not square_root_covariance<M> or self_adjoint_matrix<MBase> or self_adjoint_matrix<BaseMatrix> or
-          upper_triangular_matrix<BaseMatrix> == upper_triangular_matrix<MBase>,
+          internal::same_triangle_type_as<BaseMatrix, MBase>,
         "An upper-triangle Cholesky-form covariance cannot be constructed from a lower-triangle Cholesky-form "
         "covariance, and vice versa. To convert, use adjoint().");
     }
+
 
     /// Construct from a general covariance type.
 #ifdef __cpp_concepts
@@ -104,6 +108,7 @@ namespace OpenKalman
 #endif
     SquareRootCovariance(M&& m) noexcept : Base(Cholesky_square(std::forward<M>(m))) {}
 
+
     /// Construct from a typed matrix (assumed to be triangular).
 #ifdef __cpp_concepts
     template<typed_matrix M>
@@ -120,6 +125,7 @@ namespace OpenKalman
         static_assert(equivalent_to<typename MatrixTraits<M>::ColumnCoefficients, Coefficients>);
     }
 
+
     /// Construct from a typed matrix base (assumed to be triangular).
 #ifdef __cpp_concepts
     template<typed_matrix_base M> requires (not covariance_base<M>)
@@ -128,9 +134,11 @@ namespace OpenKalman
 #endif
     SquareRootCovariance(M&& m) noexcept : Base(MatrixTraits<TBaseType>::make(std::forward<M>(m))) {}
 
+
     /// Construct from Scalar coefficients. Assumes matrix is triangular, and only reads lower left triangle.
     template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...>, int> = 0>
     SquareRootCovariance(Args ... args) : Base(MatrixTraits<TBaseType>::make(args...)) {}
+
 
     /**********************
      * Assignment Operators
@@ -172,7 +180,7 @@ namespace OpenKalman
       }
       using ArgBase = typename MatrixTraits<Arg>::BaseMatrix;
       static_assert(not square_root_covariance<Arg> or self_adjoint_matrix<ArgBase> or self_adjoint_matrix<BaseMatrix> or
-        upper_triangular_matrix<BaseMatrix> == upper_triangular_matrix<ArgBase>,
+          internal::same_triangle_type_as<BaseMatrix, ArgBase>,
           "An upper-triangle Cholesky-form covariance cannot be assigned a lower-triangle Cholesky-form "
           "covariance, and vice versa. To convert, use adjoint().");
 
@@ -204,13 +212,11 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<square_root_covariance Arg> requires
       equivalent_to<typename MatrixTraits<Arg>::Coefficients, Coefficients> and
-      ((upper_triangular_matrix<SquareRootCovariance> and upper_triangular_matrix<Arg>) or
-        (lower_triangular_matrix<SquareRootCovariance> and lower_triangular_matrix<Arg>))
+      internal::same_triangle_type_as<SquareRootCovariance, Arg>
 #else
     template<typename Arg, std::enable_if_t<square_root_covariance<Arg> and
       equivalent_to<typename MatrixTraits<Arg>::Coefficients, Coefficients> and
-      ((upper_triangular_matrix<SquareRootCovariance> and upper_triangular_matrix<Arg>) or
-        (lower_triangular_matrix<SquareRootCovariance> and lower_triangular_matrix<Arg>)), int> = 0>
+      internal::same_triangle_type_as<SquareRootCovariance, Arg>, int> = 0>
 #endif
     auto& operator+=(Arg&& arg) noexcept
     {
@@ -246,13 +252,11 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<square_root_covariance Arg> requires
       equivalent_to<typename MatrixTraits<Arg>::Coefficients, Coefficients> and
-      ((upper_triangular_matrix<SquareRootCovariance> and upper_triangular_matrix<Arg>) or
-        (lower_triangular_matrix<SquareRootCovariance> and lower_triangular_matrix<Arg>))
+      internal::same_triangle_type_as<SquareRootCovariance, Arg>
 #else
     template<typename Arg, std::enable_if_t<square_root_covariance<Arg> and
       equivalent_to<typename MatrixTraits<Arg>::Coefficients, Coefficients> and
-      ((upper_triangular_matrix<SquareRootCovariance> and upper_triangular_matrix<Arg>) or
-        (lower_triangular_matrix<SquareRootCovariance> and lower_triangular_matrix<Arg>)), int> = 0>
+      internal::same_triangle_type_as<SquareRootCovariance, Arg>, int> = 0>
 #endif
     auto& operator-=(Arg&& arg) noexcept
     {
@@ -326,13 +330,10 @@ namespace OpenKalman
      * @warning This is computationally expensive unless *this and Arg are both the same triangular kind.
      */
 #ifdef __cpp_concepts
-    template<square_root_covariance Arg>
-      requires ((upper_triangular_matrix<SquareRootCovariance> and upper_triangular_matrix<Arg>) or
-        (lower_triangular_matrix<SquareRootCovariance> and lower_triangular_matrix<Arg>))
+    template<square_root_covariance Arg> requires internal::same_triangle_type_as<SquareRootCovariance, Arg>
 #else
     template<typename Arg, std::enable_if_t<square_root_covariance<Arg> and
-      ((upper_triangular_matrix<SquareRootCovariance> and upper_triangular_matrix<Arg>) or
-        (lower_triangular_matrix<SquareRootCovariance> and lower_triangular_matrix<Arg>)), int> = 0>
+      internal::same_triangle_type_as<SquareRootCovariance, Arg>, int> = 0>
 #endif
     auto& operator*=(Arg&& arg)
     {
@@ -395,7 +396,7 @@ namespace OpenKalman
   template<typename M, std::enable_if_t<covariance_base<M>, int> = 0>
 #endif
   SquareRootCovariance(M&&)
-    -> SquareRootCovariance<Axes<MatrixTraits<M>::dimension>, lvalue_or_self_contained2_t<M>>;
+    -> SquareRootCovariance<Axes<MatrixTraits<M>::dimension>, passable_t<M>>;
 
 #ifdef __cpp_concepts
   template<typed_matrix_base M> requires (not covariance_base<M>)
@@ -423,7 +424,7 @@ namespace OpenKalman
   inline auto
   make_SquareRootCovariance(Arg&& arg) noexcept
   {
-    return SquareRootCovariance<Coefficients, lvalue_or_self_contained2_t<Arg>>(std::forward<Arg>(arg));
+    return SquareRootCovariance<Coefficients, passable_t<Arg>>(std::forward<Arg>(arg));
   }
 
 

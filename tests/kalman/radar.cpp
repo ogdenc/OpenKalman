@@ -20,7 +20,7 @@ void kalman::radar_2D(const Trans& transform)
   {
     auto true_state = randomize<Loc2, std::uniform_real_distribution>(5.0, 10.0);
     auto x = GaussianDistribution<Axes<2>, M2, Cov> {Loc2 {7.5, 7.5}, Cov::identity()};
-    auto meas_cov = Cov {0.01, 0, 0, M_PI/360};
+    auto meas_cov = Cov {0.01, 0, 0, std::numbers::pi/360};
     auto r = GaussianDistribution<Polar<>, M2, Cov> {Polar2::zero(), meas_cov};
     parameter_test(transform, Cartesian2polar, x, true_state, r, 0.2, 100);
   }

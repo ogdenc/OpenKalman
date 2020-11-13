@@ -30,7 +30,7 @@ namespace OpenKalman
     inline constexpr bool eigen_native = std::is_base_of_v<Eigen::MatrixBase<std::decay_t<T>>, std::decay_t<T>> and
       not std::is_base_of_v<internal::Eigen3Base<std::decay_t<T>>, std::decay_t<T>>;
 #endif
-  }
+  } // namespace Eigen3
 
 
   /**
@@ -222,7 +222,6 @@ namespace OpenKalman
     struct is_self_contained<Eigen::VectorBlock<VectorType, Size>>
       : std::integral_constant<bool,
         not (Eigen::internal::traits<VectorType>::Flags & Eigen::NestByRefBit) and self_contained<VectorType>> {};
-
 
   } // namespace internal
 

@@ -67,8 +67,7 @@ namespace OpenKalman::internal
       else // ArgBase is strictly self-adjoint.
       {
         using B = decltype(Cholesky_factor(std::forward<Arg>(arg).base_matrix()));
-        if constexpr((upper_triangular_matrix<B> and upper_triangular_matrix<T>) or
-          (lower_triangular_matrix<B> and lower_triangular_matrix<T>)) // Converted triangle types match.
+        if constexpr(internal::same_triangle_type_as<B, T>) // Converted triangle types match.
         {
           if constexpr((self_adjoint_matrix<ArgBase> and not square_root_covariance<Arg>) or
             (triangular_matrix<ArgBase> and square_root_covariance<Arg>))
@@ -86,9 +85,7 @@ namespace OpenKalman::internal
     }
 
     // upper triangular <--> lower triangular
-    else if constexpr(cholesky_form<Arg> and triangular_matrix<T>
-      and not ((upper_triangular_matrix<ArgBase> and upper_triangular_matrix<T>) or
-      (lower_triangular_matrix<ArgBase> and lower_triangular_matrix<T>)))
+    else if constexpr(cholesky_form<Arg> and triangular_matrix<T> and not (internal::same_triangle_type_as<ArgBase, T>))
     {
       return adjoint(std::forward<Arg>(arg).base_matrix());
     }

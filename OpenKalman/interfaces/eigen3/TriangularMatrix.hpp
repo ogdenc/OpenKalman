@@ -123,7 +123,7 @@ namespace OpenKalman::Eigen3
 
     auto& operator=(Arg&& arg)
     {
-      static_assert(upper_triangular_matrix<Arg> == upper_triangular_matrix<TriangularMatrix>);
+      static_assert(OpenKalman::internal::same_triangle_type_as<Arg, TriangularMatrix>);
       if constexpr (zero_matrix<BaseMatrix>)
       {
         static_assert(zero_matrix<Arg>);
@@ -361,39 +361,38 @@ namespace OpenKalman::Eigen3
 #else
   template<typename M, std::enable_if_t<eigen_matrix<M> or eigen_diagonal_expr<M>, int> = 0>
 #endif
-  TriangularMatrix(M&&) -> TriangularMatrix<lvalue_or_self_contained2_t < M>, TriangleType::lower>;
+  TriangularMatrix(M&&) -> TriangularMatrix<passable_t<M>, TriangleType::lower>;
+
 
 #ifdef __cpp_concepts
-  template<typename M> requires (eigen_triangular_expr<M> and lower_triangular_matrix<M>) or
-    (eigen_self_adjoint_expr<M> and is_lower_storage_triangle_v<M>)
+  template<eigen_triangular_expr M>
 #else
-  template<
-    typename M, std::enable_if_t<(eigen_triangular_expr<M> and lower_triangular_matrix<M>) or
-      (eigen_self_adjoint_expr<M> and is_lower_storage_triangle_v<M>), int> = 0>
+  template<typename M, std::enable_if_t<eigen_triangular_expr<M>, int> = 0>
 #endif
-  TriangularMatrix(M&&) -> TriangularMatrix<typename MatrixTraits<M>::BaseMatrix, TriangleType::lower>;
+  TriangularMatrix(M&&) -> TriangularMatrix<
+    passable_t<typename MatrixTraits<M>::BaseMatrix>, MatrixTraits<M>::triangle_type>;
+
 
 #ifdef __cpp_concepts
-  template<typename M> requires (eigen_triangular_expr<M> and upper_triangular_matrix<M>) or
-    (eigen_self_adjoint_expr<M> and is_upper_storage_triangle_v<M>)
+  template<eigen_self_adjoint_expr M>
 #else
-  template<
-    typename M, std::enable_if_t<(eigen_triangular_expr<M> and upper_triangular_matrix<M>) or
-      (eigen_self_adjoint_expr<M> and is_upper_storage_triangle_v<M>), int> = 0>
+  template<typename M, std::enable_if_t<eigen_self_adjoint_expr<M>, int> = 0>
 #endif
-  TriangularMatrix(M&&) -> TriangularMatrix<typename MatrixTraits<M>::BaseMatrix, TriangleType::upper>;
+  TriangularMatrix(M&&) -> TriangularMatrix<
+    native_matrix_t<typename MatrixTraits<M>::BaseMatrix>, MatrixTraits<M>::storage_type>;
+
 
   template<typename Arg, unsigned int UpLo>
   TriangularMatrix(const Eigen::TriangularView<Arg, UpLo>&)
   -> TriangularMatrix<Arg, UpLo & Eigen::Upper ? TriangleType::upper : TriangleType::lower>;
 
+
   /// If the arguments are a sequence of scalars, deduce a square, lower triangular matrix.
 #ifdef __cpp_concepts
   template<typename ... Args> requires ((sizeof...(Args) >= 1) and ... and std::is_arithmetic_v<Args>)
 #else
-  template<
-    typename ... Args,
-    std::enable_if_t<sizeof...(Args) >= 1 and std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
+  template<typename ... Args, std::enable_if_t<
+    sizeof...(Args) >= 1 and std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
 #endif
   TriangularMatrix(Args ...) -> TriangularMatrix<
     Eigen::Matrix<std::decay_t<std::common_type_t<Args...>>, OpenKalman::internal::constexpr_sqrt(sizeof...(Args)),
@@ -413,7 +412,7 @@ namespace OpenKalman::Eigen3
 #endif
   auto make_EigenTriangularMatrix(M&& m)
   {
-    return TriangularMatrix<lvalue_or_self_contained2_t<M>, t > (std::forward<M>(m));
+    return TriangularMatrix<passable_t<M>, t > (std::forward<M>(m));
   }
 
 #ifdef __cpp_concepts
@@ -424,7 +423,7 @@ namespace OpenKalman::Eigen3
   auto make_EigenTriangularMatrix(M&& m)
   {
     static_assert(t == MatrixTraits<M>::triangle_type);
-    return TriangularMatrix<lvalue_or_self_contained2_t<M>, t > (std::forward<M>(m));
+    return TriangularMatrix<passable_t<M>, t > (std::forward<M>(m));
   }
 
 #ifdef __cpp_concepts
@@ -517,9 +516,9 @@ namespace OpenKalman
 
 namespace OpenKalman::Eigen3
 {
-  //////////////////////////////
+  // ------------------------ //
   //        Overloads         //
-  //////////////////////////////
+  // ------------------------ //
 
 #ifdef __cpp_concepts
   template<Eigen3::eigen_triangular_expr Arg>
@@ -631,397 +630,6 @@ namespace OpenKalman::Eigen3
       return QR_decomposition(make_native_matrix(std::forward<A>(a)));
   }
 
-
-  ///////////////////////////////
-  //        Arithmetic         //
-  ///////////////////////////////
-
-#ifdef __cpp_concepts
-  template<Eigen3::eigen_triangular_expr Arg1, Eigen3::eigen_triangular_expr Arg2> requires
-    (not diagonal_matrix<Arg1>) and (not diagonal_matrix<Arg2>)
-#else
-  template<typename Arg1, typename Arg2, std::enable_if_t<
-    Eigen3::eigen_triangular_expr<Arg1> and Eigen3::eigen_triangular_expr<Arg2> and
-      not diagonal_matrix<Arg1> and not diagonal_matrix<Arg2>, int> = 0>
-#endif
-  inline auto operator+(Arg1&& arg1, Arg2&& arg2)
-  {
-    static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
-    if constexpr(lower_triangular_matrix<Arg1> == lower_triangular_matrix<Arg2>)
-    {
-      auto ret = MatrixTraits<Arg1>::make(base_matrix(std::forward<Arg1>(arg1)) + base_matrix(std::forward<Arg2>(arg2)));
-      if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>)
-        return make_self_contained(std::move(ret));
-      else
-        return ret;
-    }
-    else
-    {
-      auto ret = make_native_matrix(std::forward<Arg1>(arg1));
-      constexpr auto mode = upper_triangular_matrix<Arg2> ? Eigen::Upper : Eigen::Lower;
-      ret.template triangularView<mode>() += base_matrix(std::forward<Arg2>(arg2));
-      return ret;
-    }
-  }
-
-
-#ifdef __cpp_concepts
-  template<typename Arg1, typename Arg2> requires
-    ((Eigen3::eigen_triangular_expr<Arg1> and diagonal_matrix<Arg2>) or
-      (diagonal_matrix<Arg1> and Eigen3::eigen_triangular_expr<Arg2>)) and
-      (not zero_matrix<Arg1>) and (not zero_matrix<Arg2>) and (not identity_matrix<Arg1>) and (not identity_matrix<Arg2>)
-#else
-  template<typename Arg1, typename Arg2,
-    std::enable_if_t<((Eigen3::eigen_triangular_expr<Arg1> and diagonal_matrix<Arg2>) or
-      (diagonal_matrix<Arg1> and Eigen3::eigen_triangular_expr<Arg2>)) and
-      not zero_matrix<Arg1> and not zero_matrix<Arg2> and not identity_matrix<Arg1> and not identity_matrix<Arg2>, int> = 0>
-#endif
-  inline auto operator+(Arg1&& arg1, Arg2&& arg2)
-  {
-    static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
-    if constexpr(Eigen3::eigen_triangular_expr<Arg1>)
-    {
-      auto ret = MatrixTraits<Arg1>::make(base_matrix(std::forward<Arg1>(arg1)) + std::forward<Arg2>(arg2));
-      if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>)
-        return make_self_contained(std::move(ret));
-      else
-        return ret;
-    }
-    else
-    {
-      auto ret = MatrixTraits<Arg2>::make(std::forward<Arg1>(arg1) + base_matrix(std::forward<Arg2>(arg2)));
-      if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>)
-        return make_self_contained(std::move(ret));
-      else
-        return ret;
-    }
-  }
-
-
-#ifdef __cpp_concepts
-  template<typename Arg1, typename Arg2> requires (Eigen3::eigen_triangular_expr<Arg1> and identity_matrix<Arg2>) or
-    (identity_matrix<Arg1> and Eigen3::eigen_triangular_expr<Arg2>)
-#else
-  template<typename Arg1, typename Arg2,
-    std::enable_if_t<(Eigen3::eigen_triangular_expr<Arg1> and identity_matrix<Arg2>) or
-      (identity_matrix<Arg1> and Eigen3::eigen_triangular_expr<Arg2>), int> = 0>
-#endif
-  inline auto operator+(Arg1&& arg1, Arg2&& arg2)
-  {
-    static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
-    static_assert(MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns);
-    if constexpr(Eigen3::eigen_triangular_expr<Arg1>)
-    {
-      auto ret = MatrixTraits<Arg1>::make(base_matrix(std::forward<Arg1>(arg1)) + std::forward<Arg2>(arg2));
-      if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>) return make_self_contained(std::move(ret)); else return ret;
-    }
-    else
-    {
-      auto ret = MatrixTraits<Arg2>::make(std::forward<Arg1>(arg1) + base_matrix(std::forward<Arg2>(arg2)));
-      if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>) return make_self_contained(std::move(ret)); else return ret;
-    }
-  }
-
-
-#ifdef __cpp_concepts
-  template<typename Arg1, typename Arg2> requires (Eigen3::eigen_triangular_expr<Arg1> and zero_matrix<Arg2>) or
-    (zero_matrix<Arg1> and Eigen3::eigen_triangular_expr<Arg2>)
-#else
-  template<typename Arg1, typename Arg2,
-    std::enable_if_t<(Eigen3::eigen_triangular_expr<Arg1> and zero_matrix<Arg2>) or
-      (zero_matrix<Arg1> and Eigen3::eigen_triangular_expr<Arg2>), int> = 0>
-#endif
-  constexpr decltype(auto) operator+(Arg1&& arg1, Arg2&& arg2)
-  {
-    static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
-    static_assert(MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns);
-    if constexpr(Eigen3::eigen_triangular_expr<Arg1>)
-    {
-      return std::forward<Arg1>(arg1);
-    }
-    else
-    {
-      return std::forward<Arg2>(arg2);
-    }
-  }
-
-
-  ////
-
-#ifdef __cpp_concepts
-  template<Eigen3::eigen_triangular_expr Arg1, Eigen3::eigen_triangular_expr Arg2>
-#else
-  template<typename Arg1, typename Arg2,
-    std::enable_if_t<Eigen3::eigen_triangular_expr<Arg1> and Eigen3::eigen_triangular_expr<Arg2>, int> = 0>
-#endif
-  inline auto operator-(Arg1&& arg1, Arg2&& arg2)
-  {
-    static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
-    if constexpr(lower_triangular_matrix<Arg1> == lower_triangular_matrix<Arg2>)
-    {
-      auto ret = MatrixTraits<Arg1>::make(base_matrix(std::forward<Arg1>(arg1)) - base_matrix(std::forward<Arg2>(arg2)));
-      if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>) return make_self_contained(std::move(ret)); else return ret;
-    }
-    else
-    {
-      auto ret = make_native_matrix(std::forward<Arg1>(arg1));
-      constexpr auto mode = upper_triangular_matrix<Arg2> ? Eigen::Upper : Eigen::Lower;
-      ret.template triangularView<mode>() -= base_matrix(std::forward<Arg2>(arg2));
-      return ret;
-    }
-  }
-
-
-#ifdef __cpp_concepts
-  template<typename Arg1, typename Arg2> requires
-    ((Eigen3::eigen_triangular_expr<Arg1> and diagonal_matrix<Arg2>) or
-      (diagonal_matrix<Arg1> and Eigen3::eigen_triangular_expr<Arg2>)) and
-    (not zero_matrix<Arg1>) and (not zero_matrix<Arg2>) and (not identity_matrix<Arg1>) and (not identity_matrix<Arg2>)
-#else
-  template<typename Arg1, typename Arg2,
-    std::enable_if_t<((Eigen3::eigen_triangular_expr<Arg1> and diagonal_matrix<Arg2>) or
-      (diagonal_matrix<Arg1> and Eigen3::eigen_triangular_expr<Arg2>)) and
-      not zero_matrix<Arg1> and not zero_matrix<Arg2> and not identity_matrix<Arg1> and not identity_matrix<Arg2>, int> = 0>
-#endif
-  inline auto operator-(Arg1&& arg1, Arg2&& arg2)
-  {
-    static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
-    if constexpr(Eigen3::eigen_triangular_expr<Arg1>)
-    {
-      auto ret = MatrixTraits<Arg1>::make(base_matrix(std::forward<Arg1>(arg1)) - std::forward<Arg2>(arg2));
-      if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>) return make_self_contained(std::move(ret)); else return ret;
-    }
-    else
-    {
-      auto ret = MatrixTraits<Arg2>::make(std::forward<Arg1>(arg1) - base_matrix(std::forward<Arg2>(arg2)));
-      if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>) return make_self_contained(std::move(ret)); else return ret;
-    }
-  }
-
-
-#ifdef __cpp_concepts
-  template<typename Arg1, typename Arg2> requires (Eigen3::eigen_triangular_expr<Arg1> and identity_matrix<Arg2>) or
-    (identity_matrix<Arg1> and Eigen3::eigen_triangular_expr<Arg2>)
-#else
-  template<typename Arg1, typename Arg2,
-    std::enable_if_t<(Eigen3::eigen_triangular_expr<Arg1> and identity_matrix<Arg2>) or
-      (identity_matrix<Arg1> and Eigen3::eigen_triangular_expr<Arg2>), int> = 0>
-#endif
-  inline auto operator-(Arg1&& arg1, Arg2&& arg2)
-  {
-    static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
-    static_assert(MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns);
-    if constexpr(Eigen3::eigen_triangular_expr<Arg1>)
-    {
-      auto ret = MatrixTraits<Arg1>::make(base_matrix(std::forward<Arg1>(arg1)) - std::forward<Arg2>(arg2));
-      if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>) return make_self_contained(std::move(ret)); else return ret;
-    }
-    else
-    {
-      auto ret = MatrixTraits<Arg2>::make(std::forward<Arg1>(arg1) - base_matrix(std::forward<Arg2>(arg2)));
-      if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&>) return make_self_contained(std::move(ret)); else return ret;
-    }
-  }
-
-
-#ifdef __cpp_concepts
-  template<typename Arg1, typename Arg2> requires (Eigen3::eigen_triangular_expr<Arg1> and zero_matrix<Arg2>) or
-      (zero_matrix<Arg1> and Eigen3::eigen_triangular_expr<Arg2>)
-#else
-  template<typename Arg1, typename Arg2,
-    std::enable_if_t<(Eigen3::eigen_triangular_expr<Arg1> and zero_matrix<Arg2>) or
-      (zero_matrix<Arg1> and Eigen3::eigen_triangular_expr<Arg2>), int> = 0>
-#endif
-  constexpr decltype(auto) operator-(Arg1&& arg1, Arg2&& arg2)
-  {
-    static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
-    static_assert(MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns);
-    if constexpr(Eigen3::eigen_triangular_expr<Arg1>)
-    {
-      return std::forward<Arg1>(arg1);
-    }
-    else
-    {
-      return -std::forward<Arg2>(arg2);
-    }
-  }
-
-
-  ////
-
-#ifdef __cpp_concepts
-  template<Eigen3::eigen_triangular_expr Arg, std::convertible_to<typename MatrixTraits<Arg>::Scalar> S>
-#else
-template<typename Arg, typename S, std::enable_if_t<Eigen3::eigen_triangular_expr<Arg> and
-    std::is_convertible_v<S, typename MatrixTraits<Arg>::Scalar>, int> = 0>
-#endif
-  inline auto operator*(Arg&& arg, const S scale)
-  {
-    auto ret = MatrixTraits<Arg>::make(base_matrix(std::forward<Arg>(arg)) * scale);
-    if constexpr (not std::is_lvalue_reference_v<Arg&&>) return make_self_contained(std::move(ret)); else return ret;
-  }
-
-
-#ifdef __cpp_concepts
-  template<Eigen3::eigen_triangular_expr Arg, std::convertible_to<typename MatrixTraits<Arg>::Scalar> S>
-#else
-  template<typename Arg, typename S, std::enable_if_t<Eigen3::eigen_triangular_expr<Arg> and
-    std::is_convertible_v<S, typename MatrixTraits<Arg>::Scalar>, int> = 0>
-#endif
-  inline auto operator*(const S scale, Arg&& arg)
-  {
-    auto ret = MatrixTraits<Arg>::make(scale * base_matrix(std::forward<Arg>(arg)));
-    if constexpr (not std::is_lvalue_reference_v<Arg&&>) return make_self_contained(std::move(ret)); else return ret;
-  }
-
-
-#ifdef __cpp_concepts
-  template<Eigen3::eigen_triangular_expr Arg, std::convertible_to<typename MatrixTraits<Arg>::Scalar> S>
-#else
-  template<typename Arg, typename S, std::enable_if_t<Eigen3::eigen_triangular_expr<Arg> and
-    std::is_convertible_v<S, typename MatrixTraits<Arg>::Scalar>, int> = 0>
-#endif
-  inline auto operator/(Arg&& arg, const S scale)
-  {
-    auto ret = MatrixTraits<Arg>::make(base_matrix(std::forward<Arg>(arg)) / scale);
-    if constexpr (not std::is_lvalue_reference_v<Arg&&>) return make_self_contained(std::move(ret)); else return ret;
-  }
-
-
-  ////
-
-#ifdef __cpp_concepts
-  template<Eigen3::eigen_triangular_expr Arg1, Eigen3::eigen_triangular_expr Arg2> requires
-    (not identity_matrix<Arg1>) and (not identity_matrix<Arg2>) and (not zero_matrix<Arg1>) and (not zero_matrix<Arg2>)
-#else
-  template<typename Arg1, typename Arg2, std::enable_if_t<
-    Eigen3::eigen_triangular_expr<Arg1> and Eigen3::eigen_triangular_expr<Arg2> and
-      not identity_matrix<Arg1> and not identity_matrix<Arg2> and not zero_matrix<Arg1> and not zero_matrix<Arg2>, int> = 0>
-#endif
-  inline auto operator*(Arg1&& arg1, Arg2&& arg2)
-  {
-    static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
-    if constexpr(lower_triangular_matrix<Arg1> == lower_triangular_matrix<Arg2>)
-    {
-      auto ret = MatrixTraits<Arg1>::make(std::forward<Arg1>(arg1).base_view() * std::forward<Arg2>(arg2));
-      if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>) return make_self_contained(std::move(ret)); else return ret;
-    }
-    else
-    {
-      auto ret = make_self_contained(std::forward<Arg1>(arg1).base_view() * make_native_matrix(std::forward<Arg2>(arg2)));
-      if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>) return make_self_contained(std::move(ret)); else return ret;
-    }
-  }
-
-
-#ifdef __cpp_concepts
-  template<typename Arg1, typename Arg2> requires ((Eigen3::eigen_triangular_expr<Arg1> and diagonal_matrix<Arg2>) or
-      (diagonal_matrix<Arg1> and Eigen3::eigen_triangular_expr<Arg2>)) and
-    (not identity_matrix<Arg1>) and (not identity_matrix<Arg2>) and (not zero_matrix<Arg1>) and (not zero_matrix<Arg2>)
-#else
-  template<typename Arg1, typename Arg2, std::enable_if_t<
-    ((Eigen3::eigen_triangular_expr<Arg1> and diagonal_matrix<Arg2>) or
-      (diagonal_matrix<Arg1> and Eigen3::eigen_triangular_expr<Arg2>)) and
-    not identity_matrix<Arg1> and not identity_matrix<Arg2> and not zero_matrix<Arg1> and not zero_matrix<Arg2>, int> = 0>
-#endif
-  inline auto operator*(Arg1&& arg1, Arg2&& arg2)
-  {
-    static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
-    if constexpr(Eigen3::eigen_triangular_expr<Arg1>)
-    {
-      auto ret = MatrixTraits<Arg1>::make(std::forward<Arg1>(arg1).base_view() * std::forward<Arg2>(arg2));
-      if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>) return make_self_contained(std::move(ret)); else return ret;
-    }
-    else
-    {
-      auto ret = MatrixTraits<Arg2>::make(std::forward<Arg1>(arg1) * std::forward<Arg2>(arg2).base_view());
-      if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>) return make_self_contained(std::move(ret)); else return ret;
-    }
-  }
-
-
-#ifdef __cpp_concepts
-  template<typename Arg1, typename Arg2> requires (Eigen3::eigen_triangular_expr<Arg1> and identity_matrix<Arg2>) or
-    (identity_matrix<Arg1> and Eigen3::eigen_triangular_expr<Arg2>)
-#else
-  template<typename Arg1, typename Arg2, std::enable_if_t<
-    (Eigen3::eigen_triangular_expr<Arg1> and identity_matrix<Arg2>) or
-      (identity_matrix<Arg1> and Eigen3::eigen_triangular_expr<Arg2>), int> = 0>
-#endif
-  inline auto operator*(Arg1&& arg1, Arg2&& arg2)
-  {
-    static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
-    static_assert(MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns);
-    if constexpr(Eigen3::eigen_triangular_expr<Arg1>)
-    {
-      return std::forward<Arg1>(arg1);
-    }
-    else
-    {
-      return std::forward<Arg2>(arg2);
-    }
-  }
-
-
-#ifdef __cpp_concepts
-  template<typename Arg1, typename Arg2> requires (Eigen3::eigen_triangular_expr<Arg1> and zero_matrix<Arg2>) or
-      (zero_matrix<Arg1> and Eigen3::eigen_triangular_expr<Arg2>)
-#else
-  template<typename Arg1, typename Arg2,
-    std::enable_if_t<(Eigen3::eigen_triangular_expr<Arg1> and zero_matrix<Arg2>) or
-      (zero_matrix<Arg1> and Eigen3::eigen_triangular_expr<Arg2>), int> = 0>
-#endif
-  constexpr decltype(auto) operator*(Arg1&& arg1, Arg2&& arg2)
-  {
-    static_assert(MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::dimension);
-    constexpr auto rows = MatrixTraits<Arg1>::dimension;
-    constexpr auto cols = MatrixTraits<Arg2>::columns;
-    using B = native_matrix_t<Arg1, rows, cols>;
-    return Eigen3::ZeroMatrix<B>();
-  }
-
-
-  ////
-
-#ifdef __cpp_concepts
-  template<typename Arg1, typename Arg2>
-  requires ((Eigen3::eigen_triangular_expr<Arg1> and Eigen3::eigen_matrix<Arg2>) and
-    (Eigen3::eigen_matrix<Arg1> and Eigen3::eigen_triangular_expr<Arg2>)) and
-    (not identity_matrix<Arg1>) and (not identity_matrix<Arg2>) and (not zero_matrix<Arg1>) and (not zero_matrix<Arg2>)
-#else
-  template<typename Arg1, typename Arg2,
-    std::enable_if_t<((Eigen3::eigen_triangular_expr<Arg1> and Eigen3::eigen_matrix<Arg2>) and
-      (Eigen3::eigen_matrix<Arg1> and Eigen3::eigen_triangular_expr<Arg2>)) and
-      not identity_matrix<Arg1> and not identity_matrix<Arg2> and not zero_matrix<Arg1> and not zero_matrix<Arg2>, int> = 0>
-#endif
-  inline auto operator*(Arg1&& arg1, Arg2&& arg2)
-  {
-    static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
-    if constexpr(Eigen3::eigen_triangular_expr<Arg1>)
-    {
-      auto ret = std::forward<Arg1>(arg1).base_view() * std::forward<Arg2>(arg2);
-      if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>) return make_self_contained(std::move(ret)); else return ret;
-    }
-    else
-    {
-      auto ret = std::forward<Arg1>(arg1) * std::forward<Arg2>(arg2).base_view();
-      if constexpr (not std::is_lvalue_reference_v<Arg1&&> or not std::is_lvalue_reference_v<Arg2&&>) return make_self_contained(std::move(ret)); else return ret;
-    }
-  }
-
-
-  ////
-
-#ifdef __cpp_concepts
-  template<Eigen3::eigen_triangular_expr Arg>
-#else
-  template<typename Arg, std::enable_if_t<Eigen3::eigen_triangular_expr<Arg>, int> = 0>
-#endif
-  inline auto operator-(Arg&& arg)
-  {
-    auto ret = MatrixTraits<Arg>::make(-base_matrix(std::forward<Arg>(arg)));
-    if constexpr (not std::is_lvalue_reference_v<Arg&&>) return make_self_contained(std::move(ret)); else return ret;
-  }
 
 } // namespace OpenKalman::Eigen3
 

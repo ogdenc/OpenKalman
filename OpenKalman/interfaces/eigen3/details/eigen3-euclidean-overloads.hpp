@@ -53,18 +53,18 @@ namespace OpenKalman::Eigen3
 
   /// Convert to self-contained version of the matrix.
 #ifdef __cpp_concepts
-  template<euclidean_expr Arg>
+  template<typename...Ts, euclidean_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<euclidean_expr<Arg>, int> = 0>
+  template<typename...Ts, typename Arg, std::enable_if_t<euclidean_expr<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
-  make_self_contained(Arg&& arg)
+  make_self_contained(Arg&& arg) noexcept
   {
     if constexpr(MatrixTraits<Arg>::Coefficients::axes_only)
     {
-      return make_self_contained(base_matrix(std::forward<Arg>(arg)));
+      return make_self_contained<Ts...>(base_matrix(std::forward<Arg>(arg)));
     }
-    else if constexpr(self_contained<Arg>)
+    else if constexpr(self_contained<Arg> or (std::is_lvalue_reference_v<Ts> and ... and (sizeof...(Ts) > 0)))
     {
       return std::forward<Arg>(arg);
     }

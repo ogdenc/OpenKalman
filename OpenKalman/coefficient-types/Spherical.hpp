@@ -112,7 +112,8 @@ namespace OpenKalman
       using GetCoeff = std::function<Scalar(const std::size_t)>;
       using SetCoeff = std::function<void(const Scalar, const std::size_t)>;
 
-      static constexpr Scalar cf_cir = 2 * M_PI / (CircleTraits::template wrap_max<Scalar> - CircleTraits::template wrap_min<Scalar>);
+      static constexpr Scalar cf_cir = 2 * std::numbers::pi_v<Scalar> /
+        (CircleTraits::template wrap_max<Scalar> - CircleTraits::template wrap_min<Scalar>);
 
       template<std::size_t i, std::size_t d_i, std::size_t x_i, std::size_t y_i, std::size_t z_i>
       static constexpr std::array<Scalar (*const)(const GetCoeff&), 1>
@@ -148,7 +149,8 @@ namespace OpenKalman
       using GetCoeff = std::function<Scalar(const std::size_t)>;
       using SetCoeff = std::function<void(const Scalar, const std::size_t)>;
 
-      static constexpr Scalar cf_inc = M_PI / (InclinationTraits::template max<Scalar> - InclinationTraits::template min<Scalar>);
+      static constexpr Scalar cf_inc = std::numbers::pi_v<Scalar> /
+        (InclinationTraits::template max<Scalar> - InclinationTraits::template min<Scalar>);
 
       template<std::size_t i, std::size_t d_i, std::size_t x_i, std::size_t y_i, std::size_t z_i>
       static constexpr std::array<Scalar (*const)(const GetCoeff&), 1>
@@ -208,10 +210,12 @@ namespace OpenKalman
       using SetCoeff = std::function<void(const Scalar, const std::size_t)>;
 
       template<typename Scalar>
-      static constexpr Scalar cf_cir = 2 * M_PI / (CircleTraits::template wrap_max<Scalar> - CircleTraits::template wrap_min<Scalar>);
+      static constexpr Scalar cf_cir = 2 * std::numbers::pi_v<Scalar> /
+        (CircleTraits::template wrap_max<Scalar> - CircleTraits::template wrap_min<Scalar>);
 
       template<typename Scalar>
-      static constexpr Scalar cf_inc = M_PI / (InclinationTraits::template max<Scalar> - InclinationTraits::template min<Scalar>);
+      static constexpr Scalar cf_inc = std::numbers::pi_v<Scalar> /
+        (InclinationTraits::template max<Scalar> - InclinationTraits::template min<Scalar>);
 
       template<typename Scalar, std::size_t i>
       static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), dimension>
