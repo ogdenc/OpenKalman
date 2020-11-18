@@ -82,7 +82,7 @@ namespace OpenKalman::internal
 
     auto operator()(std::size_t i, std::size_t j) &
     {
-      return make_ElementSetter<not is_element_settable_v<Derived, 2>>(static_cast<Derived&>(*this), i, j);
+      return make_ElementSetter<not element_settable<Derived, 2>>(static_cast<Derived&>(*this), i, j);
     }
 
     auto operator()(std::size_t i, std::size_t j) &&
@@ -102,7 +102,7 @@ namespace OpenKalman::internal
 
     auto operator[](std::size_t i) &
     {
-      return make_ElementSetter<not is_element_settable_v<Derived, 1>>(static_cast<Derived&>(*this), i);
+      return make_ElementSetter<not element_settable<Derived, 1>>(static_cast<Derived&>(*this), i);
     }
 
     auto operator[](std::size_t i) &&

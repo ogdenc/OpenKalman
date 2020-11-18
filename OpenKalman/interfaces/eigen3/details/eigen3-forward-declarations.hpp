@@ -23,16 +23,16 @@ namespace OpenKalman
   {
     /**
      * A self-adjoint matrix, based on an Eigen matrix.
-     * @tparam BaseMatrix The Eigen matrix on which the self-adjoint matrix is based.
-     * @tparam storage_triangle The triangle (TriangleType::upper or TriangleType::lower) in which the data is stored.
+     * \tparam BaseMatrix The Eigen matrix on which the self-adjoint matrix is based.
+     * \tparam storage_triangle The triangle (TriangleType::upper or TriangleType::lower) in which the data is stored.
      */
     template<typename BaseMatrix, TriangleType storage_triangle = TriangleType::lower>
     struct SelfAdjointMatrix;
 
     /**
      * A triangular matrix, based on an Eigen matrix.
-     * @tparam BaseMatrix The Eigen matrix on which the triangular matrix is based.
-     * @tparam triangle_type The triangle (TriangleType::upper or TriangleType::lower).
+     * \tparam BaseMatrix The Eigen matrix on which the triangular matrix is based.
+     * \tparam triangle_type The triangle (TriangleType::upper or TriangleType::lower).
      */
     template<typename BaseMatrix, TriangleType triangle_type = TriangleType::lower>
     struct TriangularMatrix;
@@ -41,7 +41,7 @@ namespace OpenKalman
      * A diagonal matrix, based on an Eigen matrix.
      *
      * Note: This has the same name as Eigen::DiagonalMatrix, and is intended as an improved replacement.
-     * @tparam BaseMatrix A single-column matrix defining the diagonal.
+     * \tparam BaseMatrix A single-column matrix defining the diagonal.
      */
     template<typename BaseMatrix>
     struct DiagonalMatrix;
@@ -50,7 +50,7 @@ namespace OpenKalman
      * A wrapper type for an Eigen zero matrix.
      *
      * This is necessary because Eigen3 types do not distinguish between a zero matrix and a constant matrix.
-     * @tparam BaseMatrix The Eigen matrix type on which the zero matrix is based. Only its shape is relevant.
+     * \tparam BaseMatrix The Eigen matrix type on which the zero matrix is based. Only its shape is relevant.
      */
     template<typename BaseMatrix>
     struct ZeroMatrix;
@@ -60,8 +60,8 @@ namespace OpenKalman
      *
      * This is the counterpart expression to ToEuclideanExpr.
      * <code>FromEuclideanExpr<C, ToEuclideanExpr<C, B>></code> acts to wrap the angular/modular values in <code>B</code>.
-     * @tparam Coefficients The coefficient types.
-     * @tparam BaseMatrix The pre-transformed column vector, or set of column vectors in the form of a matrix.
+     * \tparam Coefficients The coefficient types.
+     * \tparam BaseMatrix The pre-transformed column vector, or set of column vectors in the form of a matrix.
      */
 #ifdef __cpp_concepts
     template<coefficients Coefficients, typename BaseMatrix = Eigen::Matrix<double, Coefficients::size, 1>>
@@ -77,8 +77,8 @@ namespace OpenKalman
      *
      * This is the counterpart expression to ToEuclideanExpr.
      * <code>FromEuclideanExpr<C, ToEuclideanExpr<C, B>></code> acts to wrap the angular/modular values in <code>B</code>.
-     * @tparam Coefficients The coefficient types.
-     * @tparam BaseMatrix The pre-transformed column vector, or set of column vectors in the form of a matrix.
+     * \tparam Coefficients The coefficient types.
+     * \tparam BaseMatrix The pre-transformed column vector, or set of column vectors in the form of a matrix.
      */
 #ifdef __cpp_concepts
     template<coefficients Coefficients, typename BaseMatrix = Eigen::Matrix<double, Coefficients::dimension, 1>>
@@ -87,6 +87,7 @@ namespace OpenKalman
     template<typename Coefficients, typename BaseMatrix = Eigen::Matrix<double, Coefficients::dimension, 1>>
 #endif
     struct FromEuclideanExpr;
+
 
     /**
      * An alias for the Eigen identity matrix.
@@ -283,7 +284,7 @@ namespace OpenKalman
 #else
     template<typename Scalar, typename RowCoefficients, typename ColumnCoefficients = RowCoefficients,
       std::enable_if_t<std::is_arithmetic_v<Scalar> and
-        is_coefficients_v<RowCoefficients> and is_coefficients_v<ColumnCoefficients>, int> = 0>
+        coefficients<RowCoefficients> and coefficients<ColumnCoefficients>, int> = 0>
 #endif
     auto make_Matrix()
     {
@@ -297,7 +298,7 @@ namespace OpenKalman
     template<coefficients Coefficients, typename ... Args> requires
     (sizeof...(Args) > 0) and (std::is_arithmetic_v<Args> and ...)
 #else
-    template<typename Coefficients, typename ... Args, std::enable_if_t<is_coefficients_v<Coefficients> and
+    template<typename Coefficients, typename ... Args, std::enable_if_t<coefficients<Coefficients> and
       (sizeof...(Args) > 0) and std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
 #endif
     auto make_Mean(Args ... args)
@@ -329,7 +330,7 @@ namespace OpenKalman
     template<typename Scalar, coefficients Coefficients, std::size_t cols = 1> requires std::is_arithmetic_v<Scalar>
 #else
     template<typename Scalar, typename Coefficients, std::size_t cols = 1, std::enable_if_t<
-      std::is_arithmetic_v<Scalar> and is_coefficients_v<Coefficients>, int> = 0>
+      std::is_arithmetic_v<Scalar> and coefficients<Coefficients>, int> = 0>
 #endif
     auto make_Mean()
     {
@@ -374,7 +375,7 @@ namespace OpenKalman
     template<typename Scalar, coefficients Coefficients, std::size_t cols = 1> requires std::is_arithmetic_v<Scalar>
 #else
     template<typename Scalar, typename Coefficients, std::size_t cols = 1, std::enable_if_t<
-      std::is_arithmetic_v<Scalar> and is_coefficients_v<Coefficients>, int> = 0>
+      std::is_arithmetic_v<Scalar> and coefficients<Coefficients>, int> = 0>
 #endif
     auto make_EuclideanMean()
     {
@@ -390,7 +391,7 @@ namespace OpenKalman
 #else
     template<
       typename Coefficients, TriangleType ... triangle_type, typename ... Args,
-      std::enable_if_t<(sizeof...(Args) > 0) and sizeof...(triangle_type) <= 1 and is_coefficients_v < Coefficients>and
+      std::enable_if_t<(sizeof...(Args) > 0) and sizeof...(triangle_type) <= 1 and coefficients < Coefficients>and
       std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
 #endif
     auto make_Covariance(Args ... args)
@@ -428,7 +429,7 @@ namespace OpenKalman
     template<coefficients Coefficients, TriangleType ... triangle_type> requires (sizeof...(triangle_type) <= 1)
 #else
     template<typename Coefficients, TriangleType ... triangle_type, std::enable_if_t<
-      sizeof...(triangle_type) <= 1 and is_coefficients_v < Coefficients>, int> = 0>
+      sizeof...(triangle_type) <= 1 and coefficients < Coefficients>, int> = 0>
 #endif
     auto make_Covariance()
     {
@@ -447,7 +448,7 @@ namespace OpenKalman
     (sizeof...(Args) > 0) and (sizeof...(triangle_type) <= 1) and (std::is_arithmetic_v<Args> and ...)
 #else
     template<typename Coefficients, TriangleType ... triangle_type, typename ... Args,
-      std::enable_if_t<(sizeof...(Args) > 0) and sizeof...(triangle_type) <= 1 and is_coefficients_v<Coefficients> and
+      std::enable_if_t<(sizeof...(Args) > 0) and sizeof...(triangle_type) <= 1 and coefficients<Coefficients> and
       std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
 #endif
     auto make_SquareRootCovariance(Args ... args)
@@ -485,7 +486,7 @@ namespace OpenKalman
     template<coefficients Coefficients, TriangleType ... triangle_type> requires (sizeof...(triangle_type) <= 1)
 #else
     template<typename Coefficients, TriangleType ... triangle_type,
-      std::enable_if_t<sizeof...(triangle_type) <= 1 and is_coefficients_v<Coefficients>, int> = 0>
+      std::enable_if_t<sizeof...(triangle_type) <= 1 and coefficients<Coefficients>, int> = 0>
 #endif
     auto make_SquareRootCovariance()
     {

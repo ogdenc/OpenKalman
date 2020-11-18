@@ -19,8 +19,8 @@ namespace OpenKalman
   {
     /**
      * Apply the identity transform on an input distribution. Any noise distributions are treated as additive.
-     * @tparam InputDist Input distribution.
-     * @tparam NoiseDists Noise distribution.
+     * \tparam InputDist Input distribution.
+     * \tparam NoiseDists Noise distribution.
      **/
 #ifdef __cpp_concepts
     template<distribution InputDist, distribution ... NoiseDists> requires
@@ -39,8 +39,8 @@ namespace OpenKalman
 
     /**
      * Perform identity transform, also returning the cross-covariance.
-     * @tparam InputDist Input distribution.
-     * @tparam NoiseDists Noise distributions.
+     * \tparam InputDist Input distribution.
+     * \tparam NoiseDists Noise distributions.
      **/
 #ifdef __cpp_concepts
     template<distribution InputDist, distribution ... NoiseDists> requires

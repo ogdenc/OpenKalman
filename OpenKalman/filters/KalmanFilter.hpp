@@ -9,7 +9,7 @@
  */
 
 /**
- * @file KalmanFilter.hpp
+ * \file KalmanFilter.hpp
  * A header file for the class KalmanFilter, relating to all Kalman-type recursive filters.
  */
 
@@ -19,16 +19,16 @@
 namespace OpenKalman
 {
   /**
-   * @brief A Kalman filter, using one or more statistical transforms.
-   * @tparam Transforms Transforms for the filter.
+   * \brief A Kalman filter, using one or more statistical transforms.
+   * \tparam Transforms Transforms for the filter.
    */
   template<typename...Transform>
   struct KalmanFilter;
 
 
   /**
-   * @brief A Kalman filter, using the same transform for the process and the measurement.
-   * @tparam Transform The transform for the physical process and the measurement.
+   * \brief A Kalman filter, using the same transform for the process and the measurement.
+   * \tparam Transform The transform for the physical process and the measurement.
    */
   template<typename Transform>
   struct KalmanFilter<Transform>
@@ -124,9 +124,9 @@ namespace OpenKalman
 
 
   /**
-   * @brief A Kalman filter, using a different statistical transform for the process and the measurement.
-   * @tparam ProcessTransform The transform for the physical process.
-   * @tparam MeasurementTransform An optional, separately-defined transform for the measurement.
+   * \brief A Kalman filter, using a different statistical transform for the process and the measurement.
+   * \tparam ProcessTransform The transform for the physical process.
+   * \tparam MeasurementTransform An optional, separately-defined transform for the measurement.
    */
   template<typename ProcessTransform, typename MeasurementTransform>
   struct KalmanFilter<ProcessTransform, MeasurementTransform> : KalmanFilter<ProcessTransform>

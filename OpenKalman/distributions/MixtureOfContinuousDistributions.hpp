@@ -18,11 +18,11 @@
 namespace OpenKalman {
 
     /**
-     * @ Weighted mixture of continuous (e.g., Gaussian) distributions
-     * @tparam ContinuousDistribution The distribution (e.g., Gaussian, SquareRootGaussian)
-     * @tparam continuous_dimensions Number of continuous dimensions of each distribution
-     * @tparam Scalar The number type (e.g., double)
-     * @tparam OtherProperties Any other properties that each distribution may have
+     * Weighted mixture of continuous (e.g., Gaussian) distributions
+     * \tparam ContinuousDistribution The distribution (e.g., Gaussian, SquareRootGaussian)
+     * \tparam continuous_dimensions Number of continuous dimensions of each distribution
+     * \tparam Scalar The number type (e.g., double)
+     * \tparam OtherProperties Any other properties that each distribution may have
      */
     template<template<int, bool, typename> typename ContinuousDistribution,
             int continuous_dimensions,

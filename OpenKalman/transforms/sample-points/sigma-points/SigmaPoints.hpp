@@ -16,7 +16,7 @@
 namespace OpenKalman
 {
   /*************GeneralSigmaPoints*********
-   * @brief This class embodies a set of sample (e.g., sigma) points.
+   * \brief This class embodies a set of sample (e.g., sigma) points.
    *
    * Given random variable X:Ω->ℝⁿ, sample points S⊂ℝⁿ are a finite set of
    * samples within ℝⁿ that are specifically arranged so that the
@@ -74,8 +74,8 @@ namespace OpenKalman
 
   public:
     /**
-     * @brief Scale and translate normalized sample points based on mean and (square root) covariance.
-     * @return A tuple of matrices of sample points (each sample point in a column).
+     * \brief Scale and translate normalized sample points based on mean and (square root) covariance.
+     * \return A tuple of matrices of sample points (each sample point in a column).
      */
     template<typename...Dist>
     static auto

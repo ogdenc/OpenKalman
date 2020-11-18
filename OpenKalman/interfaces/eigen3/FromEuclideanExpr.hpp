@@ -215,7 +215,7 @@ namespace OpenKalman::Eigen3
 
     /**
      * Multiply by a scale factor.
-     * @param scale The scale factor.
+     * \param scale The scale factor.
      */
 #ifdef __cpp_concepts
     template<std::convertible_to<Scalar> S>
@@ -231,7 +231,7 @@ namespace OpenKalman::Eigen3
 
     /**
      * Divide by a scale factor.
-     * @param scale The scale factor.
+     * \param scale The scale factor.
      */
 #ifdef __cpp_concepts
     template<std::convertible_to<Scalar> S>
@@ -246,7 +246,7 @@ namespace OpenKalman::Eigen3
 
     /**
      * A matrix with the same form factor, but with all zero coefficients.
-     * @return
+     * \return
      */
     static auto zero()
     {
@@ -257,7 +257,7 @@ namespace OpenKalman::Eigen3
     /**
      * An identity matrix.
      * Note: <code>make_native_matrix(*this)</code> must be a square matrix.
-     * @return An identity matrix.
+     * \return An identity matrix.
      */
     static auto identity()
     {
@@ -269,15 +269,15 @@ namespace OpenKalman::Eigen3
 
     /**
      * Access the coefficient at row i and column j
-     * @param i The row.
-     * @param j The column.
-     * @return If <code>is_element_settable_v<FromEuclideanExpr, 2></code>, the element is settable. Therefore,
+     * \param i The row.
+     * \param j The column.
+     * \return If <code>element_settable<FromEuclideanExpr, 2></code>, the element is settable. Therefore,
      * this function returns an object that can be assigned the coefficient to be set.
      * Otherwise, it will return the (non-settable) coefficient as a value.
      */
     auto operator()(std::size_t i, std::size_t j)
     {
-      if constexpr (is_element_settable_v < FromEuclideanExpr, 2 >)
+      if constexpr (element_settable < FromEuclideanExpr, 2 >)
         return OpenKalman::internal::ElementSetter(*this, i, j);
       else
         return const_cast<const FromEuclideanExpr&>(*this)(i, j);
@@ -285,22 +285,22 @@ namespace OpenKalman::Eigen3
 
     /**
      * Access the coefficient at row i and column j
-     * @param i The row.
-     * @param j The column.
-     * @return The value of the coefficient.
+     * \param i The row.
+     * \param j The column.
+     * \return The value of the coefficient.
      */
     auto operator()(std::size_t i, std::size_t j) const { return OpenKalman::internal::ElementSetter(*this, i, j); }
 
     /**
      * Access the coefficient at row i
-     * @param i The row.
-     * @return If <code>is_element_settable_v<FromEuclideanExpr, 1></code>, the element is settable. Therefore,
+     * \param i The row.
+     * \return If <code>element_settable<FromEuclideanExpr, 1></code>, the element is settable. Therefore,
      * this function returns an object that can be assigned the coefficient to be set.
      * Otherwise, it will return the (non-settable) coefficient as a value.
      */
     auto operator[](std::size_t i)
     {
-      if constexpr (is_element_settable_v < FromEuclideanExpr, 1 >)
+      if constexpr (element_settable < FromEuclideanExpr, 1 >)
         return OpenKalman::internal::ElementSetter(*this, i);
       else
         return const_cast<const FromEuclideanExpr&>(*this)[i];
@@ -308,15 +308,15 @@ namespace OpenKalman::Eigen3
 
     /**
      * Access the coefficient at row i
-     * @param i The row.
-     * @return The value of the coefficient.
+     * \param i The row.
+     * \return The value of the coefficient.
      */
     auto operator[](std::size_t i) const { return OpenKalman::internal::ElementSetter(*this, i); }
 
     /**
      * Synonym for operator[](std::size_t)
-     * @param i The row.
-     * @return If <code>is_element_settable_v<FromEuclideanExpr, 1></code>, the element is settable. Therefore,
+     * \param i The row.
+     * \return If <code>element_settable<FromEuclideanExpr, 1></code>, the element is settable. Therefore,
      * this function returns an object that can be assigned the coefficient to be set.
      * Otherwise, it will return the (non-settable) coefficient as a value.
      */
@@ -324,8 +324,8 @@ namespace OpenKalman::Eigen3
 
     /**
      * Synonym for operator[](std::size_t) const.
-     * @param i The row.
-     * @return The value of the coefficient.
+     * \param i The row.
+     * \return The value of the coefficient.
      */
     auto operator()(std::size_t i) const { return operator[](i); }
   };

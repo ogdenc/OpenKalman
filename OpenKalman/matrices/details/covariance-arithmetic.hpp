@@ -18,13 +18,11 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<typename Arg1, typename Arg2> requires
-    (covariance<Arg1> and covariance<Arg2>) or
-    (covariance<Arg1> and typed_matrix<Arg2>) or
+    (covariance<Arg1> and (covariance<Arg2> or typed_matrix<Arg2>)) or
     (typed_matrix<Arg1> and covariance<Arg2>)
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<
-    (covariance<Arg1> and covariance<Arg2>) or
-    (covariance<Arg1> and typed_matrix<Arg2>) or
+    (covariance<Arg1> and (covariance<Arg2> or typed_matrix<Arg2>)) or
     (typed_matrix<Arg1> and covariance<Arg2>), int> = 0>
 #endif
   constexpr decltype(auto) operator+(Arg1&& arg1, Arg2&& arg2)
@@ -100,13 +98,11 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<typename Arg1, typename Arg2> requires
-    (covariance<Arg1> and covariance<Arg2>) or
-    (covariance<Arg1> and typed_matrix<Arg2>) or
+    (covariance<Arg1> and (covariance<Arg2> or typed_matrix<Arg2>)) or
     (typed_matrix<Arg1> and covariance<Arg2>)
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<
-    (covariance<Arg1> and covariance<Arg2>) or
-    (covariance<Arg1> and typed_matrix<Arg2>) or
+    (covariance<Arg1> and (covariance<Arg2> or typed_matrix<Arg2>)) or
     (typed_matrix<Arg1> and covariance<Arg2>), int> = 0>
 #endif
   constexpr decltype(auto) operator-(Arg1&& arg1, Arg2&& arg2)
@@ -175,7 +171,6 @@ namespace OpenKalman
 #endif
   constexpr decltype(auto) operator*(Arg1&& arg1, Arg2&& arg2) noexcept
   {
-    using C = typename MatrixTraits<Arg1>::Coefficients;
 
     if constexpr(zero_matrix<Arg1> or zero_matrix<Arg2>)
     {
@@ -191,6 +186,7 @@ namespace OpenKalman
     }
     else
     {
+      using C = typename MatrixTraits<Arg1>::Coefficients;
       decltype(auto) b1 = internal::convert_base_matrix(std::forward<Arg1>(arg1));
       decltype(auto) b2 = internal::convert_base_matrix(std::forward<Arg2>(arg2));
       auto prod = make_self_contained<decltype(b1), decltype(b2)>(b1 * b2);

@@ -16,7 +16,7 @@ namespace OpenKalman
 {
 
   /*************CubaturePoints************
-   * @brief Cubature points, as implemented in
+   * \brief Cubature points, as implemented in
    * I. Arasaratnam & S. Haykin, Cubature Kalman Filters, IEEE Transactions on Automatic Control,
    * vol. 54, pp. 1254-1269, 2009.
    * This class has only static members, and is not to be instantiated.
@@ -83,8 +83,8 @@ namespace OpenKalman
 
   public:
     /**
-     * @brief Scale and translate normalized sample points based on mean and (square root) covariance.
-     * @return A matrix of sigma points (each sigma point in a column).
+     * \brief Scale and translate normalized sample points based on mean and (square root) covariance.
+     * \return A matrix of sigma points (each sigma point in a column).
      */
     template<typename...Dist>
     static auto

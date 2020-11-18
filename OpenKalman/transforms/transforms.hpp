@@ -9,7 +9,7 @@
  */
 
 /**
- * @file transforms.hpp
+ * \file transforms.hpp
  * A meta-header file including all the headers relating to OpenKalman transforms.
  */
 

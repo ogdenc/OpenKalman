@@ -60,14 +60,13 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<typed_matrix Arg>
+  template<typed_matrix Arg> requires column_vector<Arg>
 #else
-  template<typename Arg, std::enable_if_t<typed_matrix<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<typed_matrix<Arg> and column_vector<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   to_Euclidean(Arg&& arg) noexcept
   {
-    static_assert(column_vector<Arg>);
     using Coefficients = typename MatrixTraits<Arg>::RowCoefficients;
     if constexpr(not euclidean_transformed<Arg>)
     {
@@ -82,14 +81,13 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<typed_matrix Arg>
+  template<typed_matrix Arg> requires column_vector<Arg>
 #else
-  template<typename Arg, std::enable_if_t<typed_matrix<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<typed_matrix<Arg> and column_vector<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   from_Euclidean(Arg&& arg) noexcept
   {
-    static_assert(column_vector<Arg>);
     using Coefficients = typename MatrixTraits<Arg>::RowCoefficients;
     if constexpr(euclidean_transformed<Arg>)
     {
@@ -104,30 +102,29 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<typed_matrix Arg>
+  template<typed_matrix Arg> requires (not euclidean_transformed<Arg>) and
+    equivalent_to<typename MatrixTraits<Arg>::ColumnCoefficients, Axis>
 #else
-  template<typename Arg, std::enable_if_t<typed_matrix<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<typed_matrix<Arg> and (not euclidean_transformed<Arg>) and
+    equivalent_to<typename MatrixTraits<Arg>::ColumnCoefficients, Axis>, int> = 0>
 #endif
   inline auto
   to_diagonal(Arg&& arg) noexcept
   {
-    static_assert(equivalent_to<typename MatrixTraits<Arg>::ColumnCoefficients, Axis>);
-    static_assert(not euclidean_transformed<Arg>);
     using C = typename MatrixTraits<Arg>::RowCoefficients;
-    auto b = to_diagonal(base_matrix(std::forward<Arg>(arg)));
+    auto b = make_self_contained(to_diagonal(base_matrix(std::forward<Arg>(arg))));
     return Matrix<C, C, decltype(b)>(std::move(b));
   }
 
 
 #ifdef __cpp_concepts
-  template<typed_matrix Arg>
+  template<typed_matrix Arg> requires (not euclidean_transformed<Arg>)
 #else
-  template<typename Arg, std::enable_if_t<typed_matrix<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<typed_matrix<Arg> and (not euclidean_transformed<Arg>), int> = 0>
 #endif
   inline auto
   transpose(Arg&& arg) noexcept
   {
-    static_assert(not euclidean_transformed<Arg>);
     using CRows = typename MatrixTraits<Arg>::RowCoefficients;
     using CCols = typename MatrixTraits<Arg>::ColumnCoefficients;
     if constexpr(euclidean_transformed<Arg>)
@@ -138,14 +135,13 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<typed_matrix Arg>
+  template<typed_matrix Arg> requires (not euclidean_transformed<Arg>)
 #else
-  template<typename Arg, std::enable_if_t<typed_matrix<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<typed_matrix<Arg> and (not euclidean_transformed<Arg>), int> = 0>
 #endif
   inline auto
   adjoint(Arg&& arg) noexcept
   {
-    static_assert(not euclidean_transformed<Arg>);
     using CRows = typename MatrixTraits<Arg>::RowCoefficients;
     using CCols = typename MatrixTraits<Arg>::ColumnCoefficients;
     if constexpr(euclidean_transformed<Arg>)
@@ -156,27 +152,27 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<typed_matrix Arg>
+  template<typed_matrix Arg> requires (MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns)
 #else
-  template<typename Arg, std::enable_if_t<typed_matrix<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<typed_matrix<Arg> and
+    (MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns), int> = 0>
 #endif
   inline auto
   determinant(Arg&& arg) noexcept
   {
-    static_assert(MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns);
     return determinant(base_matrix(std::forward<Arg>(arg)));
   }
 
 
 #ifdef __cpp_concepts
-  template<typed_matrix Arg>
+  template<typed_matrix Arg> requires (MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns)
 #else
-  template<typename Arg, std::enable_if_t<typed_matrix<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<typed_matrix<Arg> and
+    (MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns), int> = 0>
 #endif
   inline auto
   trace(Arg&& arg) noexcept
   {
-    static_assert(MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns);
     return trace(base_matrix(std::forward<Arg>(arg)));
   }
 
@@ -184,16 +180,17 @@ namespace OpenKalman
   /// Solves AX = B for X, where X and B are means of the same type, and A is a square matrix with compatible types.
   /// If wrapping occurs, it will be both before for B and after for the X result.
 #ifdef __cpp_concepts
-  template<typed_matrix A, typed_matrix B>
+  template<typed_matrix A, typed_matrix B> requires
+    equivalent_to<typename MatrixTraits<A>::RowCoefficients, typename MatrixTraits<B>::RowCoefficients> and
+    equivalent_to<typename MatrixTraits<A>::RowCoefficients, typename MatrixTraits<A>::ColumnCoefficients>
 #else
-  template<typename A, typename B, std::enable_if_t<typed_matrix<A> and typed_matrix<B>, int> = 0>
+  template<typename A, typename B, std::enable_if_t<typed_matrix<A> and typed_matrix<B> and
+    equivalent_to<typename MatrixTraits<A>::RowCoefficients, typename MatrixTraits<B>::RowCoefficients> and
+    equivalent_to<typename MatrixTraits<A>::RowCoefficients, typename MatrixTraits<A>::ColumnCoefficients>, int> = 0>
 #endif
   inline auto
   solve(A&& a, B&& b) noexcept
   {
-    using C = typename MatrixTraits<A>::RowCoefficients;
-    static_assert(OpenKalman::equivalent_to<C, typename MatrixTraits<B>::RowCoefficients>);
-    static_assert(OpenKalman::equivalent_to<C, typename MatrixTraits<A>::ColumnCoefficients>);
     auto x = solve(base_matrix(std::forward<A>(a)), base_matrix(std::forward<B>(b)));
     return MatrixTraits<B>::make(std::move(x));
   }
@@ -201,9 +198,10 @@ namespace OpenKalman
 
   /// Returns the mean of the column vectors after they are transformed into Euclidean space.
 #ifdef __cpp_concepts
-  template<typed_matrix Arg>
+  template<typed_matrix Arg> requires (MatrixTraits<Arg>::columns == 1) or column_vector<Arg>
 #else
-  template<typename Arg, std::enable_if_t<typed_matrix<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<typed_matrix<Arg> and
+    ((MatrixTraits<Arg>::columns == 1) or column_vector<Arg>), int> = 0>
 #endif
   constexpr decltype(auto)
   reduce_columns(Arg&& arg) noexcept
@@ -214,7 +212,6 @@ namespace OpenKalman
     }
     else
     {
-      static_assert(column_vector<Arg>);
       if constexpr(euclidean_transformed<Arg>)
       {
         return MatrixTraits<Arg>::make(reduce_columns(base_matrix(std::forward<Arg>(arg))));
@@ -238,14 +235,13 @@ namespace OpenKalman
   /// Returns L as a Cholesky lower-triangular Covariance. All column coefficients must be axes, and A cannot be
   /// Euclidean-transformed.
 #ifdef __cpp_concepts
-  template<typed_matrix A>
+  template<typed_matrix A> requires (not euclidean_transformed<A>)
 #else
-  template<typename A, std::enable_if_t<typed_matrix<A>, int> = 0>
+  template<typename A, std::enable_if_t<typed_matrix<A> and (not euclidean_transformed<A>), int> = 0>
 #endif
   inline auto
   LQ_decomposition(A&& a)
   {
-    static_assert(not euclidean_transformed<A>);
     using C = typename MatrixTraits<A>::RowCoefficients;
     auto tm = LQ_decomposition(base_matrix(std::forward<A>(a)));
     return SquareRootCovariance<C, decltype(tm)>(std::move(tm));
@@ -270,19 +266,18 @@ namespace OpenKalman
 
   /// Concatenate one or more typed matrices objects vertically.
 #ifdef __cpp_concepts
-  template<typed_matrix V, typed_matrix ... Vs>
+  template<typed_matrix V, typed_matrix ... Vs> requires (sizeof...(Vs) == 0) or
+    (equivalent_to<typename MatrixTraits<V>::ColumnCoefficients, typename MatrixTraits<Vs>::ColumnCoefficients> and ...)
 #else
-  template<typename V, typename ... Vs, std::enable_if_t<
-    (typed_matrix<V> and ... and typed_matrix<Vs>), int> = 0>
+  template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... and typed_matrix<Vs>) and
+    ((sizeof...(Vs) == 0) or (equivalent_to<typename MatrixTraits<V>::ColumnCoefficients,
+      typename MatrixTraits<Vs>::ColumnCoefficients> and ...)), int> = 0>
 #endif
   constexpr decltype(auto)
   concatenate_vertical(V&& v, Vs&& ... vs) noexcept
   {
     if constexpr(sizeof...(Vs) > 0)
     {
-      static_assert((equivalent_to<
-        typename MatrixTraits<V>::ColumnCoefficients,
-        typename MatrixTraits<Vs>::ColumnCoefficients> and ...));
       using RC = Concatenate<typename MatrixTraits<V>::RowCoefficients, typename MatrixTraits<Vs>::RowCoefficients...>;
       decltype(auto) cat = concatenate_vertical(base_matrix(std::forward<V>(v)), base_matrix(std::forward<Vs>(vs))...);
       return MatrixTraits<V>::template make<RC>(std::move(cat));
@@ -309,19 +304,18 @@ namespace OpenKalman
 
   /// Concatenate one or more matrix objects vertically.
 #ifdef __cpp_concepts
-  template<typed_matrix V, typed_matrix ... Vs>
+template<typed_matrix V, typed_matrix ... Vs> requires (sizeof...(Vs) == 0) or
+    (equivalent_to<typename MatrixTraits<V>::RowCoefficients, typename MatrixTraits<Vs>::RowCoefficients> and ...)
 #else
-  template<typename V, typename ... Vs, std::enable_if_t<
-    (typed_matrix<V> and ... and typed_matrix<Vs>), int> = 0>
+template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... and typed_matrix<Vs>) and
+    ((sizeof...(Vs) == 0) or (equivalent_to<typename MatrixTraits<V>::RowCoefficients,
+      typename MatrixTraits<Vs>::RowCoefficients> and ...)), int> = 0>
 #endif
   constexpr decltype(auto)
   concatenate_horizontal(V&& v, Vs&& ... vs) noexcept
   {
     if constexpr(sizeof...(Vs) > 0)
     {
-      static_assert((equivalent_to<
-        typename MatrixTraits<V>::RowCoefficients,
-        typename MatrixTraits<Vs>::RowCoefficients> and ...));
       using RC = typename MatrixTraits<V>::RowCoefficients;
       using CC = Concatenate<typename MatrixTraits<V>::ColumnCoefficients, typename MatrixTraits<Vs>::ColumnCoefficients...>;
       decltype(auto) cat = concatenate_horizontal(base_matrix(std::forward<V>(v)), base_matrix(std::forward<Vs>(vs))...);
@@ -375,6 +369,7 @@ namespace OpenKalman
       }
     };
 
+
     template<typename Expr, typename RC>
     struct SplitMatHorizF
     {
@@ -384,6 +379,7 @@ namespace OpenKalman
         return MatrixTraits<Expr>::template make<RC, CC>(std::forward<decltype(arg)>(arg));
       }
     };
+
 
     template<typename Expr>
     struct SplitMatDiagF
@@ -397,17 +393,19 @@ namespace OpenKalman
     };
   }
 
+
   /// Split typed matrix into one or more typed matrices vertically.
 #ifdef __cpp_concepts
-  template<coefficients ... Cs, typed_matrix M>
+  template<coefficients ... Cs, typed_matrix M> requires
+    prefix_of<Concatenate<Cs...>, typename MatrixTraits<M>::RowCoefficients>
 #else
-  template<typename ... Cs, typename M, std::enable_if_t<typed_matrix<M>, int> = 0>
+  template<typename ... Cs, typename M, std::enable_if_t<typed_matrix<M> and
+    prefix_of<Concatenate<Cs...>, typename MatrixTraits<M>::RowCoefficients>, int> = 0>
 #endif
   inline auto
   split_vertical(M&& m) noexcept
   {
     using CC = typename MatrixTraits<M>::ColumnCoefficients;
-    static_assert(prefix_of<Concatenate<Cs...>, typename MatrixTraits<M>::RowCoefficients>);
     constexpr auto euclidean = euclidean_transformed<M>;
     return split_vertical<internal::SplitMatVertF<M, CC>, euclidean, Cs...>(base_matrix(std::forward<M>(m)));
   }
@@ -415,30 +413,32 @@ namespace OpenKalman
 
   /// Split typed matrix into one or more typed matrices horizontally.
 #ifdef __cpp_concepts
-  template<coefficients ... Cs, typed_matrix M>
+  template<coefficients ... Cs, typed_matrix M> requires
+    prefix_of<Concatenate<Cs...>, typename MatrixTraits<M>::ColumnCoefficients>
 #else
-  template<typename ... Cs, typename M, std::enable_if_t<typed_matrix<M>, int> = 0>
+  template<typename ... Cs, typename M, std::enable_if_t<typed_matrix<M> and
+    prefix_of<Concatenate<Cs...>, typename MatrixTraits<M>::ColumnCoefficients>, int> = 0>
 #endif
   inline auto
   split_horizontal(M&& m) noexcept
   {
     using RC = typename MatrixTraits<M>::RowCoefficients;
-    static_assert(prefix_of<Concatenate<Cs...>, typename MatrixTraits<M>::ColumnCoefficients>);
     return split_horizontal<internal::SplitMatHorizF<M, RC>, Cs...>(base_matrix(std::forward<M>(m)));
   }
 
 
   /// Split typed matrix into one or more typed matrices horizontally. Column coefficients must all be Axis.
 #ifdef __cpp_concepts
-  template<std::size_t ... cuts, typed_matrix M> requires column_vector<M> and (sizeof...(cuts) > 0)
+  template<std::size_t ... cuts, typed_matrix M> requires column_vector<M> and (sizeof...(cuts) > 0) and
+    ((... + cuts) <= MatrixTraits<M>::columns)
 #else
   template<std::size_t ... cuts, typename M,
-    std::enable_if_t<typed_matrix<M> and column_vector<M> and (sizeof...(cuts) > 0), int> = 0>
+    std::enable_if_t<typed_matrix<M> and column_vector<M> and (sizeof...(cuts) > 0) and
+      ((0 + ... + cuts) <= MatrixTraits<M>::columns), int> = 0>
 #endif
   inline auto
   split_horizontal(M&& m) noexcept
   {
-    static_assert((... + cuts) <= MatrixTraits<M>::columns);
     return split_horizontal<Axes<cuts>...>(std::forward<M>(m));
   }
 
@@ -460,10 +460,10 @@ namespace OpenKalman
 
   /// Get element (i, j) of a typed matrix.
 #ifdef __cpp_concepts
-  template<typed_matrix Arg> requires is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>
+  template<typed_matrix Arg> requires element_gettable<typename MatrixTraits<Arg>::BaseMatrix, 2>
 #else
   template<typename Arg, std::enable_if_t<typed_matrix<Arg> and
-    is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>, int> = 0>
+    element_gettable<typename MatrixTraits<Arg>::BaseMatrix, 2>, int> = 0>
 #endif
   inline auto
   get_element(Arg&& arg, const std::size_t i, const std::size_t j)
@@ -474,10 +474,10 @@ namespace OpenKalman
 
   /// Get element (i) of a typed matrix.
 #ifdef __cpp_concepts
-  template<typed_matrix Arg> requires is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 1>
+  template<typed_matrix Arg> requires element_gettable<typename MatrixTraits<Arg>::BaseMatrix, 1>
 #else
   template<typename Arg, std::enable_if_t<typed_matrix<Arg> and
-    is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 1>, int> = 0>
+    element_gettable<typename MatrixTraits<Arg>::BaseMatrix, 1>, int> = 0>
 #endif
   inline auto
   get_element(Arg&& arg, const std::size_t i)
@@ -489,11 +489,11 @@ namespace OpenKalman
   /// Set element (i, j) of a typed matrix.
 #ifdef __cpp_concepts
   template<typed_matrix Arg> requires (not std::is_const_v<std::remove_reference_t<Arg>>) and
-    is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>
+    element_settable<typename MatrixTraits<Arg>::BaseMatrix, 2>
 #else
   template<typename Arg, std::enable_if_t<
     typed_matrix<Arg> and not std::is_const_v<std::remove_reference_t<Arg>> and
-      is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>, int> = 0>
+      element_settable<typename MatrixTraits<Arg>::BaseMatrix, 2>, int> = 0>
 #endif
   inline void
   set_element(Arg& arg, const typename MatrixTraits<Arg>::Scalar s, const std::size_t i, const std::size_t j)
@@ -519,11 +519,11 @@ namespace OpenKalman
   /// Set element (i) of a typed matrix.
 #ifdef __cpp_concepts
   template<typed_matrix Arg> requires (not std::is_const_v<std::remove_reference_t<Arg>>) and
-    is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 1>
+    element_settable<typename MatrixTraits<Arg>::BaseMatrix, 1>
 #else
   template<typename Arg, std::enable_if_t<
     typed_matrix<Arg> and not std::is_const_v<std::remove_reference_t<Arg>> and
-      is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 1>, int> = 0>
+      element_settable<typename MatrixTraits<Arg>::BaseMatrix, 1>, int> = 0>
 #endif
   inline void
   set_element(Arg& arg, const typename MatrixTraits<Arg>::Scalar s, const std::size_t i)
@@ -556,7 +556,7 @@ namespace OpenKalman
   {
     static_assert(column_vector<Arg>,
       "Runtime-indexed version of column function requires that all columns be identical and of type Axis.");
-    // @TODO Make it so this function can accept any typed matrix with identically-typed columns.
+    // \TODO Make it so this function can accept any typed matrix with identically-typed columns.
     using RC = typename MatrixTraits<Arg>::RowCoefficients;
     using CC = Axis;
     return MatrixTraits<Arg>::template make<RC, CC>(column(base_matrix(std::forward<Arg>(arg)), index));
@@ -600,7 +600,7 @@ namespace OpenKalman
   {
     static_assert(column_vector<Arg>,
       "Columnwise application requires that all columns be identical column vectors of type Axis.");
-    // @TODO Make it so this function can accept any typed matrix with identically-typed columns.
+    // \TODO Make it so this function can accept any typed matrix with identically-typed columns.
     using RC = typename MatrixTraits<Arg>::RowCoefficients;
     const auto f_base = [&f](auto& col)
     {

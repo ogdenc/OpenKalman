@@ -220,7 +220,7 @@ namespace OpenKalman::Eigen3
 
     auto operator()(std::size_t i, std::size_t j)
     {
-      if constexpr (is_element_settable_v < ToEuclideanExpr, 2 >)
+      if constexpr (element_settable < ToEuclideanExpr, 2 >)
         return OpenKalman::internal::ElementSetter(*this, i, j);
       else
         return const_cast<const ToEuclideanExpr&>(*this)(i, j);
@@ -235,7 +235,7 @@ namespace OpenKalman::Eigen3
 
     auto operator[](std::size_t i)
     {
-      if constexpr (is_element_settable_v < ToEuclideanExpr, 1 >)
+      if constexpr (element_settable < ToEuclideanExpr, 1 >)
         return OpenKalman::internal::ElementSetter(*this, i);
       else
         return const_cast<const ToEuclideanExpr&>(*this)[i];

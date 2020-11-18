@@ -14,7 +14,7 @@
 namespace OpenKalman
 {
   /*************SymmetricSigmaPoints************
-   * @brief Scaled symmetric sigma points, as implemented in, e.g.,
+   * \brief Scaled symmetric sigma points, as implemented in, e.g.,
    * E. Wan & R. van der Merwe, "The unscented Kalman filter for nonlinear estimation,"
    * in Proc. of IEEE Symposium (AS-SPCC), pp. 153-158.
    * S. Julier. The scaled unscented transformation. In Proceedings of the American
@@ -53,8 +53,8 @@ namespace OpenKalman
   {
     /**
      * Number of sigma points.
-     * @tparam dim Number of dimensions of the input variable.
-     * @return Number of sigma points.
+     * \tparam dim Number of dimensions of the input variable.
+     * \return Number of sigma points.
      */
     template<std::size_t dim>
     static constexpr std::size_t
@@ -124,10 +124,10 @@ namespace OpenKalman
 
   public:
     /**
-     * @brief Scale and translate normalized sample points based on mean and (square root) covariance.
+     * \brief Scale and translate normalized sample points based on mean and (square root) covariance.
      * This algorithm decreases the complexity from O(n^3) to O(n^2).
-     * @param x The input distribution.
-     * @return A matrix of sigma points (each sigma point in a column).
+     * \param x The input distribution.
+     * \return A matrix of sigma points (each sigma point in a column).
      */
     template<typename...Dist>
     static constexpr auto

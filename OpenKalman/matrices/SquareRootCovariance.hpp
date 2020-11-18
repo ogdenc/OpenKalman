@@ -207,7 +207,7 @@ namespace OpenKalman
 
     /**
      * Increment by another square-root (Cholesky) covariance.
-     * @warning This is computationally expensive if the base matrix is self-adjoint. This can generally be avoided.
+     * \warning This is computationally expensive if the base matrix is self-adjoint. This can generally be avoided.
      */
 #ifdef __cpp_concepts
     template<square_root_covariance Arg> requires
@@ -237,7 +237,7 @@ namespace OpenKalman
 
     /**
      * Increment by another square-root (Cholesky) covariance of the same type.
-     * @warning This is computationally expensive if the base matrix is self-adjoint. This can generally be avoided.
+     * \warning This is computationally expensive if the base matrix is self-adjoint. This can generally be avoided.
      */
     auto& operator+=(const SquareRootCovariance& arg)
     {
@@ -247,7 +247,7 @@ namespace OpenKalman
 
     /**
      * Decrement by another square-root (Cholesky) covariance.
-     * @warning This is computationally expensive if the base matrix is self-adjoint. This can generally be avoided.
+     * \warning This is computationally expensive if the base matrix is self-adjoint. This can generally be avoided.
      */
 #ifdef __cpp_concepts
     template<square_root_covariance Arg> requires
@@ -276,7 +276,7 @@ namespace OpenKalman
 
     /**
      * Decrement by another square-root (Cholesky) covariance of the same type.
-     * @warning This is computationally expensive if the base matrix is self-adjoint. This can generally be avoided.
+     * \warning This is computationally expensive if the base matrix is self-adjoint. This can generally be avoided.
      */
     auto& operator-=(const SquareRootCovariance& arg)
     {
@@ -325,9 +325,9 @@ namespace OpenKalman
 
 
     /**
-     * @brief Multiply by another square-root covariance matrix.
-     * @details If the underlying triangle type (upper or lower) of Arg is different from the base matrix, it will be transposed.
-     * @warning This is computationally expensive unless *this and Arg are both the same triangular kind.
+     * \brief Multiply by another square-root covariance matrix.
+     * \details If the underlying triangle type (upper or lower) of Arg is different from the base matrix, it will be transposed.
+     * \warning This is computationally expensive unless *this and Arg are both the same triangular kind.
      */
 #ifdef __cpp_concepts
     template<square_root_covariance Arg> requires internal::same_triangle_type_as<SquareRootCovariance, Arg>
@@ -646,7 +646,7 @@ namespace OpenKalman
   template<typename Coeffs, typename ArgType>
   struct MatrixTraits<SquareRootCovariance<Coeffs, ArgType>>
   {
-    using BaseMatrix = std::decay_t<ArgType>;
+    using BaseMatrix = ArgType;
     static constexpr auto dimension = MatrixTraits<BaseMatrix>::dimension;
     static constexpr auto columns = dimension;
     static_assert(Coeffs::size == dimension);

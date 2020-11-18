@@ -24,7 +24,7 @@ namespace OpenKalman
 
   /**
    * A modular value, such as an angle or wrapping unit circle.
-   * @tparam Traits A class defining the real values <code>wrap_max</code> and <code>wrap_min</code>, which are the
+   * \tparam Traits A class defining the real values <code>wrap_max</code> and <code>wrap_min</code>, which are the
    * minimum and maximum values, respectively, beyond which wrapping occurs.
    */
   template<typename Traits>
@@ -37,7 +37,7 @@ namespace OpenKalman
 
   /**
    * A positive or negative real number representing an inclination or declination from the horizon.
-   * @tparam Traits A class defining the real value <code>max</code> and <code>min</code>, which are the
+   * \tparam Traits A class defining the real value <code>max</code> and <code>min</code>, which are the
    * maximum and minimum values reflecting up and down, respectively. Normally, the horizon will be zero,
    * but in any event, the horizon will be <code>(max+min)/2</code>
    */
@@ -49,8 +49,8 @@ namespace OpenKalman
    *
    * Coefficient1 and Coefficient2 must be some combination of Distance and Circle/Angle, such as
    * Polar<Distance, Angle> or Polar<Angle, Distance>.
-   * @tparam Coefficient1 Either Distance or Circle (e.g., Angle).
-   * @tparam Coefficient2 Either Distance or Circle (e.g., Angle).
+   * \tparam Coefficient1 Either Distance or Circle (e.g., Angle).
+   * \tparam Coefficient2 Either Distance or Circle (e.g., Angle).
    */
   template<typename Coefficient1, typename Coefficient2>
   struct Polar;
@@ -61,9 +61,9 @@ namespace OpenKalman
    * Coefficient1, Coefficient2, and Coefficient3 must be some combination of Distance, Inclination, and Circle/Angle,
    * reflecting the distance, inclination, and azimuth, respectively.
    * Examples: Spherical<Distance, Inclination, Angle>, Spherical<Angle, Distance, Inclination>.
-   * @tparam Coefficient1 Distance, inclination, or Circle (e.g., Angle).
-   * @tparam Coefficient2 Distance, inclination, or Circle (e.g., Angle).
-   * @tparam Coefficient3 Distance, inclination, or Circle (e.g., Angle).
+   * \tparam Coefficient1 Distance, inclination, or Circle (e.g., Angle).
+   * \tparam Coefficient2 Distance, inclination, or Circle (e.g., Angle).
+   * \tparam Coefficient3 Distance, inclination, or Circle (e.g., Angle).
    */
   template<typename Coefficient1, typename Coefficient2, typename Coefficient3>
   struct Spherical;
@@ -102,7 +102,7 @@ namespace OpenKalman
    *
    * Each coefficient Cs can be a single coefficient (e.g., Axis, Circle, Distance, Inclination),
    * an atomic coefficient group (e.g., Polar, Spherical) or a composite coefficient (e.g., Coefficient<Axis, Angle>).
-   * @tparam Cs Any types within the concept coefficients (type trait is_coefficients in c++17).
+   * \tparam Cs Any types within the concept coefficients (internal bool variable coefficients in c++17).
    */
 #ifdef __cpp_concepts
   template<coefficients ... Cs>
@@ -244,7 +244,7 @@ namespace OpenKalman
 #else
     template<typename C>
     struct is_prefix_of<Coefficients<>, C,
-      std::enable_if_t<is_coefficients_v<C> and not equivalent_to<Coefficients<>, C>>>
+      std::enable_if_t<coefficients<C> and not equivalent_to<Coefficients<>, C>>>
 #endif
       : std::true_type {};
 
@@ -253,7 +253,7 @@ namespace OpenKalman
     struct is_prefix_of<C, Coefficients<C, C1...>>
 #else
     template<typename C, typename...C1>
-    struct is_prefix_of<C, Coefficients<C, C1...>, std::enable_if_t<is_coefficients_v<C>>>
+    struct is_prefix_of<C, Coefficients<C, C1...>, std::enable_if_t<coefficients<C>>>
 #endif
       : std::true_type {};
 

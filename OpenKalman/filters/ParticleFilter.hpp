@@ -85,12 +85,12 @@ namespace OpenKalman {
 
 
         /**
-         * @brief Update the state, using prior state possibly augmented with measurement noise, propagating variable as Gaussian
-         * @tparam Args type of measurement noise (Gaussian or square root form, same dimension as measurement variable)
-         * @param x the current state variable (Gaussian), possibly augmented with measurement noise
-         * @param z The measurement vector
-         * @param args the optional additive process noise
-         * @return updated state variable
+         * \brief Update the state, using prior state possibly augmented with measurement noise, propagating variable as Gaussian
+         * \tparam Args type of measurement noise (Gaussian or square root form, same dimension as measurement variable)
+         * \param x the current state variable (Gaussian), possibly augmented with measurement noise
+         * \param z The measurement vector
+         * \param args the optional additive process noise
+         * \return updated state variable
          */
         template<typename ... Args>
         auto update(
@@ -106,11 +106,11 @@ namespace OpenKalman {
 
 
         /**
-         * @brief Update the state, using prior state possibly augmented with measurement noise, propagating variable as Gaussian
-         * @param x the current state variable (Gaussian), possibly augmented with measurement noise
-         * @param z The measurement vector
-         * @param aug the measurement noise for augmentation
-         * @return updated state variable
+         * \brief Update the state, using prior state possibly augmented with measurement noise, propagating variable as Gaussian
+         * \param x the current state variable (Gaussian), possibly augmented with measurement noise
+         * \param z The measurement vector
+         * \param aug the measurement noise for augmentation
+         * \return updated state variable
          */
         auto update(
                 typename measurement_transform_t::Input_variable_t::unaugmented_t& x,

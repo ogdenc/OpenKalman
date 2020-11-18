@@ -16,7 +16,7 @@ namespace OpenKalman
 {
 
   /**
-   * @brief The identity transformation from one single-column vector to another.
+   * \brief The identity transformation from one single-column vector to another.
    * Perturbation terms are treated as additive.
    */
   struct IdentityTransformation

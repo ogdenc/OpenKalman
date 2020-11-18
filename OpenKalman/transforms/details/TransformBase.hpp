@@ -20,9 +20,9 @@ namespace OpenKalman
   {
    /**
     * Perform one or more consecutive linearized transforms.
-    * @tparam InputDist Input distribution.
-    * @tparam T The first tuple containing (1) a LinearTransformation (depending on transform) and (2) zero or more noise terms for that transformation.
-    * @tparam Ts A list of tuples containing (1) a LinearTransformation (depending on transform) and (2) zero or more noise terms for that transformation.
+    * \tparam InputDist Input distribution.
+    * \tparam T The first tuple containing (1) a LinearTransformation (depending on transform) and (2) zero or more noise terms for that transformation.
+    * \tparam Ts A list of tuples containing (1) a LinearTransformation (depending on transform) and (2) zero or more noise terms for that transformation.
     **/
    template<typename InputDist, typename...T_args, typename...Ts, std::enable_if_t<distribution<InputDist>, int> = 0>
     auto operator()(const InputDist& x, const std::tuple<T_args...>& t, const Ts&...ts) const
@@ -41,9 +41,9 @@ namespace OpenKalman
 
     /**
      * Perform one or more consecutive linearized transforms, also returning the cross-covariance.
-     * @tparam InputDist Input distribution.
-     * @tparam T The first tuple containing (1) a LinearTransformation (depending on transform) and (2) zero or more noise terms for that transformation.
-     * @tparam Ts A list of tuples containing (1) a LinearTransformation (depending on transform) and (2) zero or more noise terms for that transformation.
+     * \tparam InputDist Input distribution.
+     * \tparam T The first tuple containing (1) a LinearTransformation (depending on transform) and (2) zero or more noise terms for that transformation.
+     * \tparam Ts A list of tuples containing (1) a LinearTransformation (depending on transform) and (2) zero or more noise terms for that transformation.
      **/
     template<typename InputDist, typename...T_args, typename...Ts, std::enable_if_t<distribution<InputDist>, int> = 0>
     auto transform_with_cross_covariance(const InputDist& x, const std::tuple<T_args...>& t, const Ts&...ts) const

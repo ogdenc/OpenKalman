@@ -356,7 +356,7 @@ namespace OpenKalman::Eigen3
   template<typename F, typename...Cs, euclidean_expr Arg> requires (not coefficients<F>)
 #else
   template<typename F, typename...Cs, typename Arg, std::enable_if_t<
-    euclidean_expr<Arg> and not is_coefficients_v<F>, int> = 0>
+    euclidean_expr<Arg> and not coefficients<F>, int> = 0>
 #endif
   inline auto
   split_vertical(Arg&& arg) noexcept
@@ -373,7 +373,7 @@ namespace OpenKalman::Eigen3
   template<typename F, bool, typename...Cs, euclidean_expr Arg> requires (not coefficients<F>)
 #else
   template<typename F, bool, typename...Cs, typename Arg, std::enable_if_t<
-    euclidean_expr<Arg> and not is_coefficients_v<F>, int> = 0>
+    euclidean_expr<Arg> and not coefficients<F>, int> = 0>
 #endif
   inline auto
   split_vertical(Arg&& arg) noexcept
@@ -386,7 +386,7 @@ namespace OpenKalman::Eigen3
   template<coefficients...Cs, euclidean_expr Arg>
 #else
   template<typename...Cs, typename Arg, std::enable_if_t<
-    euclidean_expr<Arg> and std::conjunction_v<is_coefficients<Cs>...>, int> = 0>
+    euclidean_expr<Arg> and (coefficients<Cs> and ...), int> = 0>
 #endif
   inline auto
   split_vertical(Arg&& arg) noexcept
@@ -396,8 +396,8 @@ namespace OpenKalman::Eigen3
   }
 
   /// Split into one or more Euclidean expressions vertically. The expression is evaluated to a self_contained matrix first.
-  /// @tparam cut Number of rows in the first cut.
-  /// @tparam cuts Number of rows in the second and subsequent cuts.
+  /// \tparam cut Number of rows in the first cut.
+  /// \tparam cuts Number of rows in the second and subsequent cuts.
 #ifdef __cpp_concepts
   template<std::size_t cut, std::size_t ... cuts, euclidean_expr Arg>
 #else
@@ -423,7 +423,7 @@ namespace OpenKalman::Eigen3
   template<typename F, typename...Cs, euclidean_expr Arg> requires (not coefficients<F>)
 #else
   template<typename F, typename...Cs, typename Arg, std::enable_if_t<
-    euclidean_expr<Arg> and not is_coefficients_v<F>, int> = 0>
+    euclidean_expr<Arg> and not coefficients<F>, int> = 0>
 #endif
   inline auto
   split_horizontal(Arg&& arg) noexcept
@@ -439,7 +439,7 @@ namespace OpenKalman::Eigen3
   template<coefficients...Cs, euclidean_expr Arg>
 #else
   template<typename...Cs, typename Arg, std::enable_if_t<
-    euclidean_expr<Arg> and std::conjunction_v<is_coefficients<Cs>...>, int> = 0>
+    euclidean_expr<Arg> and (coefficients<Cs> and ...), int> = 0>
 #endif
   inline auto
   split_horizontal(Arg&& arg) noexcept
@@ -448,8 +448,8 @@ namespace OpenKalman::Eigen3
   }
 
   /// Split into one or more Euclidean expressions horizontally.
-  /// @tparam cut Number of columns in the first cut.
-  /// @tparam cuts Number of columns in the second and subsequent cuts.
+  /// \tparam cut Number of columns in the first cut.
+  /// \tparam cuts Number of columns in the second and subsequent cuts.
 #ifdef __cpp_concepts
   template<std::size_t cut, std::size_t ... cuts, euclidean_expr Arg>
 #else
@@ -468,7 +468,7 @@ namespace OpenKalman::Eigen3
   template<typename F, typename...Cs, euclidean_expr Arg> requires (not coefficients<F>)
 #else
   template<typename F, typename...Cs, typename Arg, std::enable_if_t<
-    euclidean_expr<Arg> and not is_coefficients_v<F>, int> = 0>
+    euclidean_expr<Arg> and not coefficients<F>, int> = 0>
 #endif
   inline auto
   split_diagonal(Arg&& arg) noexcept
@@ -485,7 +485,7 @@ namespace OpenKalman::Eigen3
   template<typename F, bool, typename...Cs, euclidean_expr Arg> requires (not coefficients<F>)
 #else
   template<typename F, bool, typename...Cs, typename Arg, std::enable_if_t<
-    euclidean_expr<Arg> and not is_coefficients_v<F>, int> = 0>
+    euclidean_expr<Arg> and not coefficients<F>, int> = 0>
 #endif
   inline auto
   split_diagonal(Arg&& arg) noexcept
@@ -500,7 +500,7 @@ namespace OpenKalman::Eigen3
   template<coefficients...Cs, euclidean_expr Arg>
 #else
   template<typename...Cs, typename Arg, std::enable_if_t<
-    euclidean_expr<Arg> and std::conjunction_v<is_coefficients<Cs>...>, int> = 0>
+    euclidean_expr<Arg> and (coefficients<Cs> and ...), int> = 0>
 #endif
   inline auto
   split_diagonal(Arg&& arg) noexcept
@@ -512,8 +512,8 @@ namespace OpenKalman::Eigen3
 
   /// Split into one or more Euclidean expressions diagonally.
   /// The expression (which must be square) is evaluated to a self_contained matrix first.
-  /// @tparam cut Number of rows in the first cut.
-  /// @tparam cuts Number of rows in the second and subsequent cuts.
+  /// \tparam cut Number of rows in the first cut.
+  /// \tparam cuts Number of rows in the second and subsequent cuts.
 #ifdef __cpp_concepts
   template<std::size_t cut, std::size_t ... cuts, euclidean_expr Arg>
 #else
@@ -537,11 +537,11 @@ namespace OpenKalman::Eigen3
 
   /// Get element (i, j) of ToEuclideanExpr or FromEuclideanExpr matrix arg.
 #ifdef __cpp_concepts
-  template<euclidean_expr Arg> requires is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 2> and
+  template<euclidean_expr Arg> requires element_gettable<typename MatrixTraits<Arg>::BaseMatrix, 2> and
     (not to_euclidean_expr<typename MatrixTraits<Arg>::BaseMatrix>)
 #else
   template<typename Arg, std::enable_if_t<
-    euclidean_expr<Arg> and is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 2> and
+    euclidean_expr<Arg> and element_gettable<typename MatrixTraits<Arg>::BaseMatrix, 2> and
       (not to_euclidean_expr<typename MatrixTraits<Arg>::BaseMatrix>), int> = 0>
 #endif
   inline auto
@@ -573,11 +573,11 @@ namespace OpenKalman::Eigen3
 
   /// Get element (i) of one-column ToEuclideanExpr or FromEuclideanExpr matrix arg.
 #ifdef __cpp_concepts
-  template<euclidean_expr Arg> requires is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 1> and
+  template<euclidean_expr Arg> requires element_gettable<typename MatrixTraits<Arg>::BaseMatrix, 1> and
     (not to_euclidean_expr<typename MatrixTraits<Arg>::BaseMatrix>)
 #else
   template<typename Arg, std::enable_if_t<
-    euclidean_expr<Arg> and is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 1> and
+    euclidean_expr<Arg> and element_gettable<typename MatrixTraits<Arg>::BaseMatrix, 1> and
       (not to_euclidean_expr<typename MatrixTraits<Arg>::BaseMatrix>), int> = 0>
 #endif
   inline auto
@@ -610,11 +610,11 @@ namespace OpenKalman::Eigen3
   /// Get element (i, j) of FromEuclideanExpr(ToEuclideanExpr) matrix.
 #ifdef __cpp_concepts
   template<from_euclidean_expr Arg> requires to_euclidean_expr<typename MatrixTraits<Arg>::BaseMatrix> and
-    is_element_gettable_v<typename MatrixTraits<typename MatrixTraits<Arg>::BaseMatrix>::BaseMatrix, 2>
+    element_gettable<typename MatrixTraits<typename MatrixTraits<Arg>::BaseMatrix>::BaseMatrix, 2>
 #else
   template<typename Arg, std::enable_if_t<
     from_euclidean_expr<Arg> and to_euclidean_expr<typename MatrixTraits<Arg>::BaseMatrix> and
-      is_element_gettable_v<typename MatrixTraits<typename MatrixTraits<Arg>::BaseMatrix>::BaseMatrix, 2>, int> = 0>
+      element_gettable<typename MatrixTraits<typename MatrixTraits<Arg>::BaseMatrix>::BaseMatrix, 2>, int> = 0>
 #endif
   inline auto
   get_element(Arg&& arg, const std::size_t i, const std::size_t j)
@@ -637,11 +637,11 @@ namespace OpenKalman::Eigen3
   /// Get element (i) of FromEuclideanExpr(ToEuclideanExpr) matrix.
 #ifdef __cpp_concepts
   template<from_euclidean_expr Arg> requires to_euclidean_expr<typename MatrixTraits<Arg>::BaseMatrix> and
-    is_element_gettable_v<typename MatrixTraits<typename MatrixTraits<Arg>::BaseMatrix>::BaseMatrix, 1>
+    element_gettable<typename MatrixTraits<typename MatrixTraits<Arg>::BaseMatrix>::BaseMatrix, 1>
 #else
   template<typename Arg, std::enable_if_t<
     from_euclidean_expr<Arg> and to_euclidean_expr<typename MatrixTraits<Arg>::BaseMatrix> and
-      is_element_gettable_v<typename MatrixTraits<typename MatrixTraits<Arg>::BaseMatrix>::BaseMatrix, 1>, int> = 0>
+      element_gettable<typename MatrixTraits<typename MatrixTraits<Arg>::BaseMatrix>::BaseMatrix, 1>, int> = 0>
 #endif
   inline auto
   get_element(Arg&& arg, const std::size_t i)
@@ -667,7 +667,7 @@ namespace OpenKalman::Eigen3
     (not to_euclidean_expr<typename MatrixTraits<Arg>::BaseMatrix>) and
     (not std::is_const_v<std::remove_reference_t<Arg>>) and
     MatrixTraits<Arg>::Coefficients::axes_only and
-    is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>
+    element_settable<typename MatrixTraits<Arg>::BaseMatrix, 2>
 #else
   template<typename Arg, typename Scalar, std::enable_if_t<
     euclidean_expr<Arg> and
@@ -675,7 +675,7 @@ namespace OpenKalman::Eigen3
     not to_euclidean_expr<typename MatrixTraits<Arg>::BaseMatrix> and
     not std::is_const_v<std::remove_reference_t<Arg>> and
     MatrixTraits<Arg>::Coefficients::axes_only and
-    is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>, int> = 0>
+    element_settable<typename MatrixTraits<Arg>::BaseMatrix, 2>, int> = 0>
 #endif
   inline void
   set_element(Arg& arg, const Scalar s, const std::size_t i, const std::size_t j)
@@ -690,7 +690,7 @@ namespace OpenKalman::Eigen3
     (not to_euclidean_expr<typename MatrixTraits<Arg>::BaseMatrix>) and
     (not std::is_const_v<std::remove_reference_t<Arg>>) and
     MatrixTraits<Arg>::Coefficients::axes_only and
-    is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 1>
+    element_settable<typename MatrixTraits<Arg>::BaseMatrix, 1>
 #else
   template<typename Arg, typename Scalar, std::enable_if_t<
     euclidean_expr<Arg> and
@@ -698,7 +698,7 @@ namespace OpenKalman::Eigen3
     not to_euclidean_expr<typename MatrixTraits<Arg>::BaseMatrix> and
     not std::is_const_v<std::remove_reference_t<Arg>> and
     MatrixTraits<Arg>::Coefficients::axes_only and
-    is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 1>, int> = 0>
+    element_settable<typename MatrixTraits<Arg>::BaseMatrix, 1>, int> = 0>
 #endif
   inline void
   set_element(Arg& arg, const Scalar s, const std::size_t i)
@@ -714,22 +714,22 @@ namespace OpenKalman::Eigen3
    * For example, if the coefficient is Polar<Distance, Angle> and the initial value of a
    * single-column vector is {-1., pi/2}, then set_element(arg, pi/4, 1, 0) will replace p/2 with pi/4 to
    * yield {-1., pi/4} in the base matrix. The resulting wrapped expression will yield {1., -3*pi/4}.
-   * @tparam Arg The matrix to set.
-   * @tparam Scalar The value to set the coefficient to.
-   * @param i The row of the coefficient.
-   * @param j The column of the coefficient.
+   * \tparam Arg The matrix to set.
+   * \tparam Scalar The value to set the coefficient to.
+   * \param i The row of the coefficient.
+   * \param j The column of the coefficient.
    */
 #ifdef __cpp_concepts
   template<from_euclidean_expr Arg, std::convertible_to<typename MatrixTraits<Arg>::Scalar> Scalar> requires
     to_euclidean_expr<typename MatrixTraits<Arg>::BaseMatrix> and
     (not std::is_const_v<std::remove_reference_t<Arg>>) and
-    is_element_settable_v<typename MatrixTraits<typename MatrixTraits<Arg>::BaseMatrix>::BaseMatrix, 2>
+    element_settable<typename MatrixTraits<typename MatrixTraits<Arg>::BaseMatrix>::BaseMatrix, 2>
 #else
   template<typename Arg, typename Scalar, std::enable_if_t<
     std::is_convertible_v<Scalar, typename MatrixTraits<Arg>::Scalar> and
     from_euclidean_expr<Arg> and to_euclidean_expr<typename MatrixTraits<Arg>::BaseMatrix> and
     not std::is_const_v<std::remove_reference_t<Arg>> and
-    is_element_settable_v<typename MatrixTraits<typename MatrixTraits<Arg>::BaseMatrix>::BaseMatrix, 2>, int> = 0>
+    element_settable<typename MatrixTraits<typename MatrixTraits<Arg>::BaseMatrix>::BaseMatrix, 2>, int> = 0>
 #endif
   inline void
   set_element(Arg& arg, const Scalar s, const std::size_t i, const std::size_t j)
@@ -759,21 +759,21 @@ namespace OpenKalman::Eigen3
    * For example, if the coefficient is Polar<Distance, Angle> and the initial value of a
    * single-column vector is {-1., pi/2}, then set_element(arg, pi/4, 1) will replace p/2 with pi/4 to
    * yield {-1., pi/4} in the base matrix. The resulting wrapped expression will yield {1., -3*pi/4}.
-   * @tparam Arg The matrix to set.
-   * @tparam Scalar The value to set the coefficient to.
-   * @param i The row of the coefficient.
+   * \tparam Arg The matrix to set.
+   * \tparam Scalar The value to set the coefficient to.
+   * \param i The row of the coefficient.
    */
 #ifdef __cpp_concepts
   template<from_euclidean_expr Arg, std::convertible_to<typename MatrixTraits<Arg>::Scalar> Scalar> requires
     to_euclidean_expr<typename MatrixTraits<Arg>::BaseMatrix> and
     (not std::is_const_v<std::remove_reference_t<Arg>>) and
-    is_element_settable_v<typename MatrixTraits<typename MatrixTraits<Arg>::BaseMatrix>::BaseMatrix, 1>
+    element_settable<typename MatrixTraits<typename MatrixTraits<Arg>::BaseMatrix>::BaseMatrix, 1>
 #else
   template<typename Arg, typename Scalar, std::enable_if_t<
     std::is_convertible_v<Scalar, typename MatrixTraits<Arg>::Scalar> and
     from_euclidean_expr<Arg> and to_euclidean_expr<typename MatrixTraits<Arg>::BaseMatrix> and
     not std::is_const_v<std::remove_reference_t<Arg>> and
-    is_element_settable_v<typename MatrixTraits<typename MatrixTraits<Arg>::BaseMatrix>::BaseMatrix, 1>, int> = 0>
+    element_settable<typename MatrixTraits<typename MatrixTraits<Arg>::BaseMatrix>::BaseMatrix, 1>, int> = 0>
 #endif
   inline void
   set_element(Arg& arg, const Scalar s, const std::size_t i)

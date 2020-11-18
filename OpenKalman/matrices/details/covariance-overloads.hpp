@@ -412,10 +412,10 @@ template<typename Arg,
 
   /// Get element (i, j) of a covariance matrix.
 #ifdef __cpp_concepts
-  template<covariance Arg> requires is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>
+  template<covariance Arg> requires element_gettable<typename MatrixTraits<Arg>::BaseMatrix, 2>
 #else
   template<typename Arg, std::enable_if_t<covariance<Arg> and
-    is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>, int> = 0>
+    element_gettable<typename MatrixTraits<Arg>::BaseMatrix, 2>, int> = 0>
 #endif
   inline auto
   get_element(Arg&& arg, const std::size_t i, const std::size_t j)
@@ -429,12 +429,12 @@ template<typename Arg,
   template<covariance Arg> requires
     ((self_adjoint_matrix<typename MatrixTraits<Arg>::BaseMatrix> and not square_root_covariance<Arg>) or
       (triangular_matrix<typename MatrixTraits<Arg>::BaseMatrix> and square_root_covariance<Arg>)) and
-    is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 1>
+    element_gettable<typename MatrixTraits<Arg>::BaseMatrix, 1>
 #else
   template<typename Arg, std::enable_if_t<covariance<Arg> and
     ((self_adjoint_matrix<typename MatrixTraits<Arg>::BaseMatrix> and not square_root_covariance<Arg>) or
       (triangular_matrix<typename MatrixTraits<Arg>::BaseMatrix> and square_root_covariance<Arg>)) and
-    is_element_gettable_v<typename MatrixTraits<Arg>::BaseMatrix, 1>, int> = 0>
+    element_gettable<typename MatrixTraits<Arg>::BaseMatrix, 1>, int> = 0>
 #endif
   inline auto
   get_element(Arg&& arg, const std::size_t i)
@@ -447,11 +447,11 @@ template<typename Arg,
 #ifdef __cpp_concepts
   template<covariance Arg, typename Scalar> requires
     (not std::is_const_v<std::remove_reference_t<Arg>>) and
-    is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>
+    element_settable<typename MatrixTraits<Arg>::BaseMatrix, 2>
 #else
   template<typename Arg, typename Scalar, std::enable_if_t<
     covariance<Arg> and not std::is_const_v<std::remove_reference_t<Arg>> and
-      is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 2>, int> = 0>
+      element_settable<typename MatrixTraits<Arg>::BaseMatrix, 2>, int> = 0>
 #endif
   inline void
   set_element(Arg& arg, const Scalar s, const std::size_t i, const std::size_t j)
@@ -466,13 +466,13 @@ template<typename Arg,
     (not std::is_const_v<std::remove_reference_t<Arg>>) and
       ((self_adjoint_matrix<typename MatrixTraits<Arg>::BaseMatrix> and not square_root_covariance<Arg>) or
         (triangular_matrix<typename MatrixTraits<Arg>::BaseMatrix> and square_root_covariance<Arg>)) and
-      is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 1>
+      element_settable<typename MatrixTraits<Arg>::BaseMatrix, 1>
 #else
   template<typename Arg, typename Scalar, std::enable_if_t<
     covariance<Arg> and not std::is_const_v<std::remove_reference_t<Arg>> and
       ((self_adjoint_matrix<typename MatrixTraits<Arg>::BaseMatrix> and not square_root_covariance<Arg>) or
         (triangular_matrix<typename MatrixTraits<Arg>::BaseMatrix> and square_root_covariance<Arg>)) and
-      is_element_settable_v<typename MatrixTraits<Arg>::BaseMatrix, 1>, int> = 0>
+      element_settable<typename MatrixTraits<Arg>::BaseMatrix, 1>, int> = 0>
 #endif
   inline void
   set_element(Arg& arg, const Scalar s, const std::size_t i)

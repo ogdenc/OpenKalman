@@ -128,7 +128,7 @@ TEST_F(eigen3, FromEuclideanExpr_subscripts)
   EXPECT_EQ(e2(1, 0), 7);
   e2(1,1) = 8;
   EXPECT_EQ(e2(1, 1), 8);
-  EXPECT_TRUE(is_near(e2, (Eigen::Matrix<double, 2, 2>() << 5, 6, 7, 8).finished()));
+  EXPECT_TRUE(is_near(e2, make_native_matrix<double, 2, 2>(5, 6, 7, 8)));
   EXPECT_NEAR((FromEuclideanExpr<C, Eigen::Matrix<double, 4, 1>>{1., std::sqrt(3)/2, 0.5, 3})(1), pi/6, 1e-6);
   EXPECT_NEAR((FromEuclideanExpr<C, Eigen::Matrix<double, 4, 1>>{1., std::sqrt(3)/2, 0.5, 3})(2), 3, 1e-6);
   EXPECT_NEAR((From4 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4})(0, 0), 1, 1e-6);
@@ -148,7 +148,7 @@ TEST_F(eigen3, FromEuclideanExpr_traits)
   static_assert(not identity_matrix<decltype(From4 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4})>);
   static_assert(not zero_matrix<decltype(From4 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4})>);
   // MatrixTraits
-  EXPECT_TRUE(is_near(MatrixTraits<From4>::make((Eigen::Matrix<double, 4, 2>() << 1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4).finished()),
+  EXPECT_TRUE(is_near(MatrixTraits<From4>::make(make_native_matrix<double, 4, 2>(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)),
     mat3(1, 2, pi/6, pi/3, 3, 4)));
   EXPECT_TRUE(is_near(MatrixTraits<From4>::make(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4),
     mat3(1, 2, pi/6, pi/3, 3, 4)));
@@ -165,19 +165,19 @@ TEST_F(eigen3, FromEuclideanExpr_overloads)
   EXPECT_TRUE(is_near(to_Euclidean(From4 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
   EXPECT_TRUE(is_near(to_Euclidean<C>(From4 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
   EXPECT_TRUE(is_near(to_diagonal(FromEuclideanExpr<C, Eigen::Matrix<double, 4, 1>>{1., std::sqrt(3)/2, 0.5, 3}), DiagonalMatrix {1, pi/6, 3}));
-  EXPECT_TRUE(is_near(transpose(From4 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), (Eigen::Matrix<double, 2, 3>() << 1, pi/6, 3, 2, pi/3, 4).finished()));
-  EXPECT_TRUE(is_near(adjoint(From4 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), (Eigen::Matrix<double, 2, 3>() << 1, pi/6, 3, 2, pi/3, 4).finished()));
+  EXPECT_TRUE(is_near(transpose(From4 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), make_native_matrix<double, 2, 3>(1, pi/6, 3, 2, pi/3, 4)));
+  EXPECT_TRUE(is_near(adjoint(From4 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), make_native_matrix<double, 2, 3>(1, pi/6, 3, 2, pi/3, 4)));
   EXPECT_NEAR(determinant(From3 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2}), 0.0, 1e-6);
   EXPECT_NEAR(trace(From3 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2}), 1 + pi/3, 1e-6);
   EXPECT_TRUE(is_near(solve(
     From3 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2},
-    (Eigen::Matrix<double, 2, 1>() << 5, pi*5/6).finished()),
-    (Eigen::Matrix<double, 2, 1>() << 1, 2).finished()));
-  EXPECT_TRUE(is_near(reduce_columns(From4 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), (Eigen::Matrix<double, 3, 1>() << 1.5, pi/4, 3.5).finished()));
+    make_native_matrix<double, 2, 1>(5, pi*5/6)),
+    make_native_matrix<double, 2, 1>(1, 2)));
+  EXPECT_TRUE(is_near(reduce_columns(From4 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), make_native_matrix<double, 3, 1>(1.5, pi/4, 3.5)));
   EXPECT_TRUE(is_near(LQ_decomposition(From3 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2}),
-    LQ_decomposition((Eigen::Matrix<double, 2, 2>() << 1, 2, pi/6, pi/3).finished())));
+    LQ_decomposition(make_native_matrix<double, 2, 2>(1, 2, pi/6, pi/3))));
   EXPECT_TRUE(is_near(QR_decomposition(From3 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2}),
-    QR_decomposition((Eigen::Matrix<double, 2, 2>() << 1, 2, pi/6, pi/3).finished())));
+    QR_decomposition(make_native_matrix<double, 2, 2>(1, 2, pi/6, pi/3))));
 
   using N = std::normal_distribution<double>::param_type;
   auto m = make_native_matrix(MatrixTraits<Eigen::Matrix<double, 4, 2>>::zero());
@@ -217,11 +217,11 @@ TEST_F(eigen3, FromEuclideanExpr_blocks)
     FromEuclideanExpr<Coefficients<Angle, Axis>, Eigen::Matrix<double, 3, 3>> {std::sqrt(2)/2, 0.5, std::sqrt(3)/2,
                                                                                std::sqrt(2)/2, std::sqrt(3)/2, 0.5,
                                                                                4, 5, 6}),
-    (Eigen::Matrix<double, 4, 3>() <<
+    make_native_matrix<double, 4, 3>(
       1., 2, 3,
       pi/6, pi/3, pi/4,
       pi/4, pi/3, pi/6,
-      4, 5, 6).finished()));
+      4, 5, 6)));
   EXPECT_TRUE(is_near(concatenate_horizontal(
     FromEuclideanExpr<Coefficients<Axis, Angle>, Eigen::Matrix<double, 3, 3>> {1, 2, 3,
                                                                                std::sqrt(3)/2, 0.5, std::sqrt(2)/2,
@@ -229,9 +229,9 @@ TEST_F(eigen3, FromEuclideanExpr_blocks)
     FromEuclideanExpr<Coefficients<Axis, Angle>, Eigen::Matrix<double, 3, 3>> {4, 5, 6,
                                                                                std::sqrt(2)/2, 0.5, std::sqrt(3)/2,
                                                                                std::sqrt(2)/2, std::sqrt(3)/2, 0.5}),
-    (Eigen::Matrix<double, 2, 6>() <<
+    make_native_matrix<double, 2, 6>(
       1, 2, 3, 4, 5, 6,
-      pi/6, pi/3, pi/4, pi/4, pi/3, pi/6).finished()));
+      pi/6, pi/3, pi/4, pi/4, pi/3, pi/6)));
   EXPECT_TRUE(is_near(split_vertical(FromEuclideanExpr<Coefficients<Axis, Angle>, Eigen::Matrix<double, 3, 2>> {
       1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2}), std::tuple{}));
   EXPECT_TRUE(is_near(split_vertical<2, 2>(
@@ -242,8 +242,8 @@ TEST_F(eigen3, FromEuclideanExpr_blocks)
       std::sqrt(2)/2, 0.5, std::sqrt(3)/2,
       std::sqrt(2)/2, std::sqrt(3)/2, 0.5,
       4, 5, 6}),
-    std::tuple{(Eigen::Matrix<double, 2, 3>() << 1., 2, 3, pi/6, pi/3, pi/4).finished(),
-               (Eigen::Matrix<double, 2, 3>() << pi/4, pi/3, pi/6, 4, 5, 6).finished()}));
+    std::tuple{make_native_matrix<double, 2, 3>(1., 2, 3, pi/6, pi/3, pi/4),
+               make_native_matrix<double, 2, 3>(pi/4, pi/3, pi/6, 4, 5, 6)}));
   EXPECT_TRUE(is_near(split_vertical<2, 1>(
     FromEuclideanExpr<Coefficients<Axis, Angle, Angle, Axis>, Eigen::Matrix<double, 6, 3>> {
       1, 2, 3,
@@ -252,8 +252,8 @@ TEST_F(eigen3, FromEuclideanExpr_blocks)
       std::sqrt(2)/2, 0.5, std::sqrt(3)/2,
       std::sqrt(2)/2, std::sqrt(3)/2, 0.5,
       4, 5, 6}),
-    std::tuple{(Eigen::Matrix<double, 2, 3>() << 1., 2, 3, pi/6, pi/3, pi/4).finished(),
-               (Eigen::Matrix<double, 1, 3>() << pi/4, pi/3, pi/6).finished()}));
+    std::tuple{make_native_matrix<double, 2, 3>(1., 2, 3, pi/6, pi/3, pi/4),
+               make_native_matrix<double, 1, 3>(pi/4, pi/3, pi/6)}));
   EXPECT_TRUE(is_near(split_vertical<Coefficients<Axis, Angle>, Coefficients<Angle, Axis>>(
     FromEuclideanExpr<Coefficients<Axis, Angle, Angle, Axis>, Eigen::Matrix<double, 6, 3>> {
       1, 2, 3,
@@ -262,17 +262,17 @@ TEST_F(eigen3, FromEuclideanExpr_blocks)
       std::sqrt(2)/2, 0.5, std::sqrt(3)/2,
       std::sqrt(2)/2, std::sqrt(3)/2, 0.5,
       4, 5, 6}),
-    std::tuple{(Eigen::Matrix<double, 2, 3>() << 1., 2, 3, pi/6, pi/3, pi/4).finished(),
-               (Eigen::Matrix<double, 2, 3>() << pi/4, pi/3, pi/6, 4, 5, 6).finished()}));
+    std::tuple{make_native_matrix<double, 2, 3>(1., 2, 3, pi/6, pi/3, pi/4),
+               make_native_matrix<double, 2, 3>(pi/4, pi/3, pi/6, 4, 5, 6)}));
   EXPECT_TRUE(is_near(
     split_vertical<Coefficients<Axis, Angle>, Coefficients<Angle, Axis>>(
       from_Euclidean<Coefficients<Axis, Angle, Angle, Axis>>(
         to_Euclidean<Coefficients<Axis, Angle, Angle, Axis>>(
-          (Eigen::Matrix<double, 4, 3>() << 1., 2, 3, pi/6, pi/3, pi/4, pi/4, pi/3, pi/6, 4, 5, 6).finished()
+          make_native_matrix<double, 4, 3>(1., 2, 3, pi/6, pi/3, pi/4, pi/4, pi/3, pi/6, 4, 5, 6)
       ))),
     std::tuple{
-      (Eigen::Matrix<double, 2, 3>() << 1., 2, 3, pi/6, pi/3, pi/4).finished(),
-      (Eigen::Matrix<double, 2, 3>() << pi/4, pi/3, pi/6, 4, 5, 6).finished()
+      make_native_matrix<double, 2, 3>(1., 2, 3, pi/6, pi/3, pi/4),
+      make_native_matrix<double, 2, 3>(pi/4, pi/3, pi/6, 4, 5, 6)
       }));
   EXPECT_TRUE(is_near(split_vertical<Coefficients<Axis, Angle>, Coefficients<Angle>>(
     FromEuclideanExpr<Coefficients<Axis, Angle, Angle, Axis>, Eigen::Matrix<double, 6, 3>> {
@@ -282,8 +282,8 @@ TEST_F(eigen3, FromEuclideanExpr_blocks)
       std::sqrt(2)/2, 0.5, std::sqrt(3)/2,
       std::sqrt(2)/2, std::sqrt(3)/2, 0.5,
       4, 5, 6}),
-    std::tuple{(Eigen::Matrix<double, 2, 3>() << 1., 2, 3, pi/6, pi/3, pi/4).finished(),
-               (Eigen::Matrix<double, 1, 3>() << pi/4, pi/3, pi/6).finished()}));
+    std::tuple{make_native_matrix<double, 2, 3>(1., 2, 3, pi/6, pi/3, pi/4),
+               make_native_matrix<double, 1, 3>(pi/4, pi/3, pi/6)}));
   EXPECT_TRUE(is_near(split_horizontal(FromEuclideanExpr<Coefficients<Axis, Angle>, Eigen::Matrix<double, 3, 2>> {
     1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2}), std::tuple{}));
   EXPECT_TRUE(is_near(split_horizontal<3, 3>(
@@ -291,67 +291,67 @@ TEST_F(eigen3, FromEuclideanExpr_blocks)
       1, 2, 3, 4, 5, 6,
       std::sqrt(3)/2, 0.5, std::sqrt(2)/2, std::sqrt(2)/2, 0.5, std::sqrt(3)/2,
       0.5, std::sqrt(3)/2, std::sqrt(2)/2, std::sqrt(2)/2, std::sqrt(3)/2, 0.5}),
-    std::tuple{(Eigen::Matrix<double, 2, 3>() << 1., 2, 3, pi/6, pi/3, pi/4).finished(),
-               (Eigen::Matrix<double, 2, 3>() << 4, 5, 6, pi/4, pi/3, pi/6).finished()}));
+    std::tuple{make_native_matrix<double, 2, 3>(1., 2, 3, pi/6, pi/3, pi/4),
+               make_native_matrix<double, 2, 3>(4, 5, 6, pi/4, pi/3, pi/6)}));
   auto a1 = FromEuclideanExpr<Polar<>, const Eigen::Matrix<double, 3, 6>> {
     1, 2, 3, 4, 5, 6,
     std::sqrt(3)/2, 0.5, std::sqrt(2)/2, std::sqrt(2)/2, 0.5, std::sqrt(3)/2,
     0.5, std::sqrt(3)/2, std::sqrt(2)/2, std::sqrt(2)/2, std::sqrt(3)/2, 0.5};
   EXPECT_TRUE(is_near(split_horizontal<3, 3>(a1),
-    std::tuple{(Eigen::Matrix<double, 2, 3>() << 1., 2, 3, pi/6, pi/3, pi/4).finished(),
-               (Eigen::Matrix<double, 2, 3>() << 4, 5, 6, pi/4, pi/3, pi/6).finished()}));
+    std::tuple{make_native_matrix<double, 2, 3>(1., 2, 3, pi/6, pi/3, pi/4),
+               make_native_matrix<double, 2, 3>(4, 5, 6, pi/4, pi/3, pi/6)}));
   EXPECT_TRUE(is_near(split_horizontal<3, 2>(
     FromEuclideanExpr<Polar<>, Eigen::Matrix<double, 3, 6>> {
       1, 2, 3, 4, 5, 6,
       std::sqrt(3)/2, 0.5, std::sqrt(2)/2, std::sqrt(2)/2, 0.5, std::sqrt(3)/2,
       0.5, std::sqrt(3)/2, std::sqrt(2)/2, std::sqrt(2)/2, std::sqrt(3)/2, 0.5}),
-    std::tuple{(Eigen::Matrix<double, 2, 3>() << 1., 2, 3, pi/6, pi/3, pi/4).finished(),
-               (Eigen::Matrix<double, 2, 2>() << 4, 5, pi/4, pi/3).finished()}));
+    std::tuple{make_native_matrix<double, 2, 3>(1., 2, 3, pi/6, pi/3, pi/4),
+               make_native_matrix<double, 2, 2>(4, 5, pi/4, pi/3)}));
 
   EXPECT_TRUE(is_near(split_diagonal<Axis, Angle>(
     FromEuclideanExpr<Coefficients<Axis, Angle>, const Eigen::Matrix<double, 3, 2>> {
       1, 2,
       std::sqrt(3)/2, 0.5,
       0.5, std::sqrt(3)/2}),
-    std::tuple{(Eigen::Matrix<double, 1, 1>() << 1).finished(),
-               (Eigen::Matrix<double, 1, 1>() << pi/6).finished()}));
+    std::tuple{make_native_matrix<double, 1, 1>(1),
+               make_native_matrix<double, 1, 1>(pi/6)}));
   EXPECT_TRUE(is_near(split_diagonal<1, 1>(
     FromEuclideanExpr<Polar<>, const Eigen::Matrix<double, 3, 2>> {
       1, 2,
       std::sqrt(3)/2, 0.5,
       0.5, std::sqrt(3)/2}),
-    std::tuple{(Eigen::Matrix<double, 1, 1>() << 1).finished(),
-               (Eigen::Matrix<double, 1, 1>() << pi/6).finished()}));
+    std::tuple{make_native_matrix<double, 1, 1>(1),
+               make_native_matrix<double, 1, 1>(pi/6)}));
 
   EXPECT_TRUE(is_near(column(
     FromEuclideanExpr<Coefficients<Axis, Angle>, Eigen::Matrix<double, 3, 3>> {1, 2, 3,
                                                                                std::sqrt(3)/2, 0.5, std::sqrt(2)/2,
                                                                                0.5, std::sqrt(3)/2, std::sqrt(2)/2}, 2),
-    (Eigen::Matrix<double, 2, 1>() << 3, pi/4).finished()));
+    make_native_matrix<double, 2, 1>(3, pi/4)));
   EXPECT_TRUE(is_near(column<1>(
     FromEuclideanExpr<Coefficients<Axis, Angle>, Eigen::Matrix<double, 3, 3>> {1, 2, 3,
                                                                                std::sqrt(3)/2, 0.5, std::sqrt(2)/2,
                                                                                0.5, std::sqrt(3)/2, std::sqrt(2)/2}),
-    (Eigen::Matrix<double, 2, 1>() << 2, pi/3).finished()));
+    make_native_matrix<double, 2, 1>(2, pi/3)));
   //
   auto b = FromEuclideanExpr<Coefficients<Axis, Angle>, Eigen::Matrix<double, 3, 3>> {1, 2, 3,
                                                                                       std::sqrt(3)/2, 0.5, std::sqrt(2)/2,
                                                                                       0.5, std::sqrt(3)/2, std::sqrt(2)/2};
-  EXPECT_TRUE(is_near(b, (Eigen::Matrix<double, 2, 3>() << 1, 2, 3, pi/6, pi/3, pi/4).finished()));
+  EXPECT_TRUE(is_near(b, make_native_matrix<double, 2, 3>(1, 2, 3, pi/6, pi/3, pi/4)));
   EXPECT_TRUE(is_near(apply_columnwise(b,
     [](auto& col){ col *= 3; }),
-    (Eigen::Matrix<double, 2, 3>() <<
+    make_native_matrix<double, 2, 3>(
       3, 6, 9,
-      pi/2, pi, pi*3/4).finished()));
+      pi/2, pi, pi*3/4)));
 
   b = FromEuclideanExpr<Coefficients<Axis, Angle>, Eigen::Matrix<double, 3, 3>> {1, 2, 3,
                                                                                  std::sqrt(3)/2, 0.5, std::sqrt(2)/2,
                                                                                  0.5, std::sqrt(3)/2, std::sqrt(2)/2};
   EXPECT_TRUE(is_near(apply_columnwise(b,
     [](auto& col, std::size_t i){ col *= i + 1; }),
-    (Eigen::Matrix<double, 2, 3>() <<
+    make_native_matrix<double, 2, 3>(
       1, 4, 9,
-      pi/6, pi*2/3, pi*3/4).finished()));
+      pi/6, pi*2/3, pi*3/4)));
 
   auto f2 = [](const auto& col){ return col + col; };
   EXPECT_TRUE(is_near(apply_columnwise(
@@ -360,49 +360,49 @@ TEST_F(eigen3, FromEuclideanExpr_blocks)
       std::sqrt(3)/2, 0.5, std::sqrt(2)/2,
       0.5, std::sqrt(3)/2, std::sqrt(2)/2},
     f2),
-    (Eigen::Matrix<double, 2, 3>() <<
+    make_native_matrix<double, 2, 3>(
       2, 4, 6,
-      pi/3, pi*2/3, pi/2).finished()));
+      pi/3, pi*2/3, pi/2)));
   EXPECT_TRUE(is_near(apply_columnwise(
     FromEuclideanExpr<Coefficients<Axis, Angle>, ToEuclideanExpr<Coefficients<Axis, Angle>, Eigen::Matrix<double, 2, 3>>>
       {1., 2, 3, pi/6, pi/3, pi/4}, f2),
-    (Eigen::Matrix<double, 2, 3>() << 2., 4, 6, pi/3, pi*2/3, pi/2).finished()));
+    make_native_matrix<double, 2, 3>(2., 4, 6, pi/3, pi*2/3, pi/2)));
 
   EXPECT_TRUE(is_near(apply_columnwise(
     FromEuclideanExpr<Coefficients<Axis, Angle>, Eigen::Matrix<double, 3, 3>> {1, 2, 3,
                                                                                std::sqrt(3)/2, 0.5, std::sqrt(2)/2,
                                                                                0.5, std::sqrt(3)/2, std::sqrt(2)/2},
     [](const auto& col, std::size_t i){ return col * i; }),
-    (Eigen::Matrix<double, 2, 3>() <<
+    make_native_matrix<double, 2, 3>(
       0, 2, 6,
-      0, pi/3, pi/2).finished()));
+      0, pi/3, pi/2)));
   EXPECT_TRUE(is_near(apply_columnwise<3>(
     [](){ return FromEuclideanExpr<Coefficients<Axis, Angle>, Eigen::Matrix<double, 3, 1>> {1., std::sqrt(3)/2, 0.5}; }),
-    (Eigen::Matrix<double, 2, 3>() <<
+    make_native_matrix<double, 2, 3>(
       1, 1, 1,
-      pi/6, pi/6, pi/6).finished()));
+      pi/6, pi/6, pi/6)));
   EXPECT_TRUE(is_near(apply_columnwise<3>(
     [](std::size_t i){ return FromEuclideanExpr<Coefficients<Axis, Angle>, Eigen::Matrix<double, 3, 1>> {1., std::sqrt(3)/2, 0.5} * (i + 1); }),
-    (Eigen::Matrix<double, 2, 3>() <<
+    make_native_matrix<double, 2, 3>(
       1, 2, 3,
-      pi/6, pi/3, pi/2).finished()));
+      pi/6, pi/3, pi/2)));
   //
   EXPECT_TRUE(is_near(apply_coefficientwise(
     FromEuclideanExpr<Coefficients<Axis, Angle>, Eigen::Matrix<double, 3, 3>> {1, 2, 3,
                                                                                std::sqrt(3)/2, 0.5, std::sqrt(2)/2,
                                                                                0.5, std::sqrt(3)/2, std::sqrt(2)/2},
     [](const auto& x){ return x * 3; }),
-    (Eigen::Matrix<double, 2, 3>() <<
+    make_native_matrix<double, 2, 3>(
       3, 6, 9,
-      pi/2, pi, pi*3/4).finished()));
+      pi/2, pi, pi*3/4)));
   EXPECT_TRUE(is_near(apply_coefficientwise(
     FromEuclideanExpr<Coefficients<Axis, Angle>, Eigen::Matrix<double, 3, 3>> {1, 2, 3,
                                                                                std::sqrt(3)/2, 0.5, std::sqrt(2)/2,
                                                                                0.5, std::sqrt(3)/2, std::sqrt(2)/2},
     [](const auto& x, std::size_t i, std::size_t j){ return x * (j + 1); }),
-    (Eigen::Matrix<double, 2, 3>() <<
+    make_native_matrix<double, 2, 3>(
       1, 4, 9,
-      pi/6, pi*2/3, pi*3/4).finished()));
+      pi/6, pi*2/3, pi*3/4)));
 }
 
 

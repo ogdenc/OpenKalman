@@ -91,30 +91,30 @@ namespace OpenKalman::internal
     }
 
     /**
-     * @brief Get the base matrix of this covariance matrix.
-     * @details The base matrix will be self-adjoint, triangular, or diagonal.
-     * @return An lvalue reference to the base matrix.
+     * \brief Get the base matrix of this covariance matrix.
+     * \details The base matrix will be self-adjoint, triangular, or diagonal.
+     * \return An lvalue reference to the base matrix.
      */
     constexpr auto& base_matrix() & { return m_arg; }
 
     /**
      * Get the base matrix of this covariance matrix temporary.
-     * @sa constexpr auto& base_matrix() &
-     * @return An rvalue reference to the base matrix.
+     * \sa constexpr auto& base_matrix() &
+     * \return An rvalue reference to the base matrix.
      */
     constexpr auto&& base_matrix() && { return std::move(m_arg); }
 
     /**
      * Get the base matrix of this constant covariance matrix.
-     * @sa constexpr auto& base_matrix() &
-     * @return A constant lvalue reference to the base matrix.
+     * \sa constexpr auto& base_matrix() &
+     * \return A constant lvalue reference to the base matrix.
      */
     constexpr const auto& base_matrix() const & { return m_arg; }
 
     /**
      * Get the base matrix of this constant covariance matrix temporary.
-     * @sa constexpr auto& base_matrix() &
-     * @return A constant rvalue reference to the base matrix.
+     * \sa constexpr auto& base_matrix() &
+     * \return A constant rvalue reference to the base matrix.
      */
     constexpr const auto&& base_matrix() const && { return std::move(m_arg); }
 

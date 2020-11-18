@@ -35,8 +35,8 @@ namespace OpenKalman::internal
           on_set();
         })
       {
-        static_assert(is_element_gettable_v<T, 2>, "Two-index element read access is not available.");
-        static_assert(is_element_settable_v<T, 2>, "Two-index element write access is not available.");
+        static_assert(element_gettable<T, 2>, "Two-index element read access is not available.");
+        static_assert(element_settable<T, 2>, "Two-index element write access is not available.");
       }
 
     ElementSetter(T& t, std::size_t i, const OnSet& on_change = []{}, const OnChange& on_set = []{})
@@ -52,8 +52,8 @@ namespace OpenKalman::internal
           on_set();
         })
       {
-        static_assert(is_element_gettable_v<T, 1>, "One-index element read access is not available.");
-        static_assert(is_element_settable_v<T, 1>, "One-index element write access is not available.");
+        static_assert(element_gettable<T, 1>, "One-index element read access is not available.");
+        static_assert(element_settable<T, 1>, "One-index element write access is not available.");
       }
 
     /// Get an element.
@@ -81,7 +81,7 @@ namespace OpenKalman::internal
           return get_element(t, i, j);
         })
       {
-        static_assert(is_element_gettable_v<T, 2>, "Two-index element read access is not available.");
+        static_assert(element_gettable<T, 2>, "Two-index element read access is not available.");
       }
 
     ElementSetter(const T& t, std::size_t i, const OnChange& on_change = []{})
@@ -91,7 +91,7 @@ namespace OpenKalman::internal
           return get_element(t, i);
         })
       {
-        static_assert(is_element_gettable_v<T, 1>, "One-index element read access is not available.");
+        static_assert(element_gettable<T, 1>, "One-index element read access is not available.");
       }
 
     /// Get an element.
@@ -103,41 +103,41 @@ namespace OpenKalman::internal
 
 
   template<typename I1, typename I2, typename T, typename OnSet, typename OnChange, std::enable_if_t<
-    is_element_gettable_v<T, 2> and
+    element_gettable<T, 2> and
     std::is_integral_v<std::decay_t<I1>> and std::is_integral_v<std::decay_t<I2>> and
     std::is_invocable_r_v<void, OnSet> and
     std::is_invocable_r_v<void, OnChange>, int> = 0>
   ElementSetter(T, I1, I2, OnChange, OnSet) -> ElementSetter<false, std::decay_t<T>>;
 
   template<typename I, typename T, typename OnSet, typename OnChange, std::enable_if_t<
-    is_element_gettable_v<T, 1> and
+    element_gettable<T, 1> and
     std::is_integral_v<std::decay_t<I>> and
     std::is_invocable_r_v<void, OnSet> and
     std::is_invocable_r_v<void, OnChange>, int> = 0>
   ElementSetter(T, I, OnChange, OnSet) -> ElementSetter<false, std::decay_t<T>>;
 
   template<typename I1, typename I2, typename T, typename X, std::enable_if_t<
-    is_element_gettable_v<T, 2> and
+    element_gettable<T, 2> and
     std::is_integral_v<std::decay_t<I1>> and std::is_integral_v<std::decay_t<I2>> and
     std::is_invocable_r_v<void, X>, int> = 0>
   ElementSetter(T, I1, I2, X)
-    -> ElementSetter<not is_element_settable_v<T, 2>, std::decay_t<T>>;
+    -> ElementSetter<not element_settable<T, 2>, std::decay_t<T>>;
 
   template<typename I, typename T, typename X, std::enable_if_t<
-    is_element_gettable_v<T, 1> and
+    element_gettable<T, 1> and
     std::is_integral_v<std::decay_t<I>> and not std::is_integral_v<std::decay_t<X>> and
     std::is_invocable_r_v<void, X>, int> = 0>
-  ElementSetter(T, I, X) -> ElementSetter<not is_element_settable_v<T, 1>, std::decay_t<T>>;
+  ElementSetter(T, I, X) -> ElementSetter<not element_settable<T, 1>, std::decay_t<T>>;
 
   template<typename I1, typename I2, typename T, std::enable_if_t<
-    (true or is_element_gettable_v<T, 2>) and
+    (true or element_gettable<T, 2>) and
     std::is_integral_v<std::decay_t<I1>> and std::is_integral_v<std::decay_t<I2>>, int> = 0>
-  ElementSetter(T, I1, I2) -> ElementSetter<not is_element_settable_v<T, 2>, std::decay_t<T>>;
+  ElementSetter(T, I1, I2) -> ElementSetter<not element_settable<T, 2>, std::decay_t<T>>;
 
   template<typename I, typename T, std::enable_if_t<
-    is_element_gettable_v<T, 1> and
+    element_gettable<T, 1> and
     std::is_integral_v<std::decay_t<I>>, int> = 0>
-  ElementSetter(T, I) -> ElementSetter<not is_element_settable_v<T, 1>, std::decay_t<T>>;
+  ElementSetter(T, I) -> ElementSetter<not element_settable<T, 1>, std::decay_t<T>>;
 
 
   template<bool read_only, typename T>
@@ -145,8 +145,8 @@ namespace OpenKalman::internal
     T&& t,
     std::size_t i,
     std::size_t j,
-    const std::function<void()>& on_change,
-    const std::function<void()>& on_set)
+    const std::function<void()>& on_change, // defaults to []{}
+    const std::function<void()>& on_set) // defaults to []{}
   {
     if constexpr(read_only)
       return ElementSetter<true, std::decay_t<T>>(std::forward<T>(t), i, j, on_change);
@@ -159,8 +159,8 @@ namespace OpenKalman::internal
   auto make_ElementSetter(
     T&& t,
     std::size_t i,
-    const std::function<void()>& on_change,
-    const std::function<void()>& on_set)
+    const std::function<void()>& on_change, // defaults to []{}
+    const std::function<void()>& on_set) // defaults to []{}
   {
     if constexpr(read_only)
       return ElementSetter<true, std::decay_t<T>>(std::forward<T>(t), i, on_change);

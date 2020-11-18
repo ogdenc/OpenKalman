@@ -16,20 +16,41 @@
 
 namespace OpenKalman::Eigen3
 {
+  /**
+   * Make a native Eigen matrix from a list of coefficients in row-major order.
+   * \tparam Scalar The scalar type of the matrix.
+   * \tparam dimension The number of rows.
+   * \tparam columns The number of columns.
+   */
+#ifdef __cpp_concepts
+  template<typename Scalar, std::size_t dimension, std::size_t columns = 1, std::convertible_to<Scalar> ... Args>
+    requires std::is_arithmetic_v<Scalar> and (sizeof...(Args) == dimension * columns)
+#else
+  template<typename Scalar, std::size_t dimension, std::size_t columns = 1, typename ... Args, std::enable_if_t<
+    std::is_arithmetic_v<Scalar> and (std::is_convertible_v<Args, Scalar> and ...) and
+    (sizeof...(Args) == dimension * columns), int> = 0>
+#endif
+  static auto
+  make_native_matrix(const Args ... args)
+  {
+    using M = Eigen::Matrix<Scalar, dimension, columns>;
+    return MatrixTraits<M>::make(args...);
+  }
+
+
   /// Make a native Eigen matrix from a list of coefficients in row-major order.
 #ifdef __cpp_concepts
   template<std::size_t dimension, std::size_t columns = 1, typename ... Args> requires
-    (std::is_arithmetic_v<Args>and ...) and (sizeof...(Args) == dimension *columns)
+    (std::is_arithmetic_v<Args> and ...) and (sizeof...(Args) == dimension * columns)
 #else
   template<std::size_t dimension, std::size_t columns = 1, typename ... Args, std::enable_if_t<
-    std::conjunction_v<std::is_arithmetic<Args>...> and sizeof...(Args) == dimension * columns, int> = 0>
+    (std::is_arithmetic_v<Args> and ...) and (sizeof...(Args) == dimension * columns), int> = 0>
 #endif
   static auto
   make_native_matrix(const Args ... args)
   {
     using Scalar = std::common_type_t<Args...>;
-    using M = Eigen::Matrix<Scalar, dimension, columns>;
-    return MatrixTraits<M>::make(args...);
+    return make_native_matrix<Scalar, dimension, columns>(args...);
   }
 
 
@@ -43,8 +64,7 @@ namespace OpenKalman::Eigen3
   make_native_matrix(const Args ... args)
   {
     using Scalar = std::common_type_t<Args...>;
-    using M = Eigen::Matrix<Scalar, sizeof...(Args), 1>;
-    return MatrixTraits<M>::make(args...);
+    return make_native_matrix<Scalar, sizeof...(Args), 1>(args...);
   }
 
 
@@ -151,7 +171,7 @@ namespace OpenKalman::Eigen3
   {
     if constexpr (Coefficients::axes_only or identity_matrix<Arg> or zero_matrix<Arg>)
     {
-      /// @TODO: Add functionality to conditionally wrap zero and identity, depending on wrap min and max.
+      /// \TODO: Add functionality to conditionally wrap zero and identity, depending on wrap min and max.
       return std::forward<Arg>(arg);
     }
     else
@@ -508,10 +528,10 @@ namespace OpenKalman::Eigen3
 
 
   /// Split a matrix vertically.
-  /// @tparam F A class with a static <code>call</code> member to which the result is applied before creating the tuple.
-  /// @tparam euclidean Whether coefficients RC and RCs are transformed to Euclidean space.
-  /// @tparam RC Coefficients for the first cut.
-  /// @tparam RCs Coefficients for each of the second and subsequent cuts.
+  /// \tparam F A class with a static <code>call</code> member to which the result is applied before creating the tuple.
+  /// \tparam euclidean Whether coefficients RC and RCs are transformed to Euclidean space.
+  /// \tparam RC Coefficients for the first cut.
+  /// \tparam RCs Coefficients for each of the second and subsequent cuts.
 #ifdef __cpp_concepts
   template<typename F, bool euclidean, typename RC, typename...RCs, eigen_matrix Arg>
 #else
@@ -563,13 +583,13 @@ namespace OpenKalman::Eigen3
   }
 
   /// Split a matrix vertically.
-  /// @tparam F A class with a static <code>call</code> member to which the result is applied before creating the tuple.
-  /// @tparam RCs Coefficients for each of the cuts.
+  /// \tparam F A class with a static <code>call</code> member to which the result is applied before creating the tuple.
+  /// \tparam RCs Coefficients for each of the cuts.
 #ifdef __cpp_concepts
   template<typename F, coefficients RC, coefficients...RCs, eigen_matrix Arg> requires (not coefficients<F>)
 #else
   template<typename F, typename RC, typename...RCs, typename Arg, std::enable_if_t<eigen_matrix<Arg> and
-    not is_coefficients_v<F> and std::conjunction_v<is_coefficients<RC>, is_coefficients<RCs>...>, int> = 0>
+    not coefficients<F> and (coefficients<RC> and ... and coefficients<RCs>), int> = 0>
 #endif
   inline auto
   split_vertical(Arg&& arg) noexcept
@@ -578,13 +598,13 @@ namespace OpenKalman::Eigen3
   }
 
   /// Split a matrix vertically.
-  /// @tparam RC Coefficients for the first cut.
-  /// @tparam RCs Coefficients for the second and subsequent cuts.
+  /// \tparam RC Coefficients for the first cut.
+  /// \tparam RCs Coefficients for the second and subsequent cuts.
 #ifdef __cpp_concepts
   template<coefficients RC, coefficients...RCs, eigen_matrix Arg>
 #else
   template<typename RC, typename...RCs, typename Arg, std::enable_if_t<eigen_matrix<Arg> and
-    std::conjunction_v<is_coefficients<RC>, is_coefficients<RCs>...>, int> = 0>
+    (coefficients<RC> and ... and coefficients<RCs>), int> = 0>
 #endif
   inline auto
   split_vertical(Arg&& arg) noexcept
@@ -593,8 +613,8 @@ namespace OpenKalman::Eigen3
   }
 
   /// Split a matrix vertically.
-  /// @tparam cut Number of rows in the first cut.
-  /// @tparam cuts Numbers of rows in the second and subsequent cuts.
+  /// \tparam cut Number of rows in the first cut.
+  /// \tparam cuts Numbers of rows in the second and subsequent cuts.
 #ifdef __cpp_concepts
   template<std::size_t cut, std::size_t ... cuts, eigen_matrix Arg>
 #else
@@ -610,14 +630,14 @@ namespace OpenKalman::Eigen3
 
 
   /// Split a matrix horizontally and invoke function F on each segment, returning a tuple.
-  /// @tparam CC Coefficients for the first cut.
-  /// @tparam CCs Coefficients for each of the second and subsequent cuts.
-  /// @tparam F An object having a static call() method to which the result is applied before creating the tuple.
+  /// \tparam CC Coefficients for the first cut.
+  /// \tparam CCs Coefficients for each of the second and subsequent cuts.
+  /// \tparam F An object having a static call() method to which the result is applied before creating the tuple.
 #ifdef __cpp_concepts
   template<typename F, coefficients CC, coefficients...CCs, eigen_matrix Arg> requires (not coefficients<F>)
 #else
   template<typename F, typename CC, typename...CCs, typename Arg,
-    std::enable_if_t<eigen_matrix<Arg> and not is_coefficients_v<F>, int> = 0>
+    std::enable_if_t<eigen_matrix<Arg> and not coefficients<F>, int> = 0>
 #endif
   inline auto
   split_horizontal(Arg&& arg) noexcept
@@ -663,13 +683,13 @@ namespace OpenKalman::Eigen3
   }
 
   /// Split a matrix horizontally.
-  /// @tparam CC Coefficients for the first cut.
-  /// @tparam CCs Coefficients for the second and subsequent cuts.
+  /// \tparam CC Coefficients for the first cut.
+  /// \tparam CCs Coefficients for the second and subsequent cuts.
 #ifdef __cpp_concepts
   template<coefficients CC, coefficients...CCs, eigen_matrix Arg>
 #else
   template<typename CC, typename...CCs, typename Arg,
-    std::enable_if_t<eigen_matrix<Arg> and is_coefficients_v<CC>, int> = 0>
+    std::enable_if_t<eigen_matrix<Arg> and coefficients<CC>, int> = 0>
 #endif
   inline auto
   split_horizontal(Arg&& arg) noexcept
@@ -678,9 +698,9 @@ namespace OpenKalman::Eigen3
   }
 
   /// Split a matrix horizontally.
-  /// @tparam cut Number of columns in the first cut.
-  /// @tparam cuts Numbers of columns in the second and subsequent cuts.
-  /// @tparam F An object having a static call() method to which the result is applied before creating the tuple.
+  /// \tparam cut Number of columns in the first cut.
+  /// \tparam cuts Numbers of columns in the second and subsequent cuts.
+  /// \tparam F An object having a static call() method to which the result is applied before creating the tuple.
 #ifdef __cpp_concepts
   template<std::size_t cut, std::size_t ... cuts, eigen_matrix Arg>
 #else
@@ -695,9 +715,9 @@ namespace OpenKalman::Eigen3
 
 
   /// Split a matrix diagonally and invoke function F on each segment, returning a tuple. Must be a square matrix.
-  /// @tparam F An object having a static call() method to which the result is applied before creating the tuple.
-  /// @tparam C Coefficients for the first cut.
-  /// @tparam Cs Coefficients for each of the second and subsequent cuts.
+  /// \tparam F An object having a static call() method to which the result is applied before creating the tuple.
+  /// \tparam C Coefficients for the first cut.
+  /// \tparam Cs Coefficients for each of the second and subsequent cuts.
 #ifdef __cpp_concepts
   template<typename F, bool euclidean, typename C, typename...Cs, eigen_matrix Arg>
 #else
@@ -742,7 +762,7 @@ namespace OpenKalman::Eigen3
     requires (not coefficients<F>)
 #else
   template<typename F = OpenKalman::internal::default_split_function, bool euclidean = false,
-    typename Arg, std::enable_if_t<eigen_matrix<Arg> and not is_coefficients_v<F>, int> = 0>
+    typename Arg, std::enable_if_t<eigen_matrix<Arg> and not coefficients<F>, int> = 0>
 #endif
   inline auto
   split_diagonal(Arg&& arg) noexcept
@@ -751,14 +771,14 @@ namespace OpenKalman::Eigen3
   }
 
   /// Split a matrix vertically.
-  /// @tparam F A class with a static <code>call</code> member to which the result is applied before creating the tuple.
-  /// @tparam C Coefficients for the first cut.
-  /// @tparam Cs Coefficients for each of the second and subsequent cuts.
+  /// \tparam F A class with a static <code>call</code> member to which the result is applied before creating the tuple.
+  /// \tparam C Coefficients for the first cut.
+  /// \tparam Cs Coefficients for each of the second and subsequent cuts.
 #ifdef __cpp_concepts
   template<typename F, coefficients C, coefficients...Cs, eigen_matrix Arg> requires (not coefficients<F>)
 #else
   template<typename F, typename C, typename...Cs, typename Arg, std::enable_if_t<eigen_matrix<Arg> and
-    not is_coefficients_v<F> and std::conjunction_v<is_coefficients<C>, is_coefficients<Cs>...>, int> = 0>
+    not coefficients<F> and (coefficients<C> and ... and coefficients<Cs>), int> = 0>
 #endif
   inline auto
   split_diagonal(Arg&& arg) noexcept
@@ -767,13 +787,13 @@ namespace OpenKalman::Eigen3
   }
 
   /// Split a matrix diagonally. Must be a square matrix.
-  /// @tparam C Coefficients for the first cut.
-  /// @tparam Cs Coefficients for the second and subsequent cuts.
+  /// \tparam C Coefficients for the first cut.
+  /// \tparam Cs Coefficients for the second and subsequent cuts.
 #ifdef __cpp_concepts
   template<coefficients C, coefficients...Cs, eigen_matrix Arg>
 #else
   template<typename C, typename...Cs, typename Arg, std::enable_if_t<eigen_matrix<Arg> and
-    std::conjunction_v<is_coefficients<C>, is_coefficients<Cs>...>, int> = 0>
+    (coefficients<C> and ... and coefficients<Cs>), int> = 0>
 #endif
   inline auto
   split_diagonal(Arg&& arg) noexcept
@@ -782,9 +802,9 @@ namespace OpenKalman::Eigen3
   }
 
   /// Split a matrix diagonally. Must be a square matrix.
-  /// @tparam cut Number of rows and columns in the first cut.
-  /// @tparam cuts Numbers of rows and columns in the second and subsequent cuts.
-  /// @tparam F An object having a static call() method to which the result is applied before creating the tuple.
+  /// \tparam cut Number of rows and columns in the first cut.
+  /// \tparam cuts Numbers of rows and columns in the second and subsequent cuts.
+  /// \tparam F An object having a static call() method to which the result is applied before creating the tuple.
 #ifdef __cpp_concepts
   template<std::size_t cut, std::size_t ... cuts, eigen_matrix Arg>
 #else
@@ -957,7 +977,7 @@ namespace OpenKalman::Eigen3
   }
 
 #ifdef __cpp_concepts
-  // @TODO: use compound requires expression.
+  // \TODO: use compound requires expression.
   template<eigen_matrix Arg, typename Function>
   requires std::is_void_v<std::invoke_result_t<Function, std::decay_t<decltype(column(std::declval<Arg>(), 0))>& >>
 #else

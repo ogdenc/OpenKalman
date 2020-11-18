@@ -14,9 +14,9 @@
 namespace OpenKalman
 {
   /**
-   * @brief Propagates a recursive least squares error distribution of parameters, with a forgetting factor λ.
+   * \brief Propagates a recursive least squares error distribution of parameters, with a forgetting factor λ.
    * Useful for parameter estimation, where the parameter is expected to possibly drift over time
-   * @tparam Scalar The scalar type.
+   * \tparam Scalar The scalar type.
    */
   template<typename Scalar = double>
   struct RecursiveLeastSquaresTransform : TransformBase<RecursiveLeastSquaresTransform<Scalar>>
@@ -26,8 +26,8 @@ namespace OpenKalman
 
     /**
      * Apply the RLS transform on an input distribution. Any noise distributions are treated as additive.
-     * @tparam InputDist Input distribution.
-     * @tparam NoiseDists Noise distribution.
+     * \tparam InputDist Input distribution.
+     * \tparam NoiseDists Noise distribution.
      **/
 #ifdef __cpp_concepts
     template<distribution InputDist, distribution ... NoiseDists> requires
@@ -47,8 +47,8 @@ namespace OpenKalman
 
     /**
      * Perform RLS transform, also returning the cross-covariance.
-     * @tparam InputDist Input distribution.
-     * @tparam NoiseDist Noise distributions.
+     * \tparam InputDist Input distribution.
+     * \tparam NoiseDist Noise distributions.
      **/
 #ifdef __cpp_concepts
     template<distribution InputDist, distribution ... NoiseDists> requires

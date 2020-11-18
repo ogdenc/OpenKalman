@@ -11,8 +11,9 @@
 #ifndef OPENKALMAN_BASICS_HPP
 #define OPENKALMAN_BASICS_HPP
 
-#include "basics/traits.hpp"
-#include "basics/forward-declarations.hpp"
-#include "basics/utils.hpp"
+#include "forward-traits.hpp"
+#include "forward-class-declarations.hpp"
+#include "traits.hpp"
+#include "utils.hpp"
 
 #endif //OPENKALMAN_BASICS_HPP

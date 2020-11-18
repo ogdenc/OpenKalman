@@ -71,13 +71,13 @@ namespace OpenKalman::internal
 
   /**
    * Linearly transform one statistical distribution to another.
-   * @tparam TransformFunction Underlying transform function that takes an input distribution and an optional set of
+   * \tparam TransformFunction Underlying transform function that takes an input distribution and an optional set of
    * noise distributions and returns the following information used in constructing the output distribution
    * and cross-covariance:
    * -# the output mean, and
    * -# a tuple of Jacobians corresponding to each input and noise term,
-   * @tparam InputDist Input distribution.
-   * @tparam NoiseDist Noise distribution.
+   * \tparam InputDist Input distribution.
+   * \tparam NoiseDist Noise distribution.
    **/
     template<std::size_t return_cross, typename TransformFunction, typename InputDist, typename ... NoiseDists,
       std::enable_if_t<(distribution<InputDist> and ... and distribution<NoiseDists>), int> = 0>
@@ -112,9 +112,9 @@ namespace OpenKalman::internal
 
     /**
      * Perform a linear(ized) transform from one statistical distribution to another.
-     * @tparam InputDist Input distribution.
-     * @tparam Transformation The transformation on which the transform is based (e.g., LinearTransformation).
-     * @tparam NoiseDists Noise distributions.
+     * \tparam InputDist Input distribution.
+     * \tparam Transformation The transformation on which the transform is based (e.g., LinearTransformation).
+     * \tparam NoiseDists Noise distributions.
      **/
     template<typename InputDist, typename Trans, typename ... NoiseDists, std::enable_if_t<
       (distribution<InputDist> and ... and distribution<NoiseDists>) and is_linearized_function_v<Trans, 1>, int> = 0>
@@ -125,9 +125,9 @@ namespace OpenKalman::internal
 
     /**
      * Perform a linear(ized) transform, also returning the cross-covariance.
-     * @tparam InputDist Input distribution.
-     * @tparam Transformation The transformation on which the transform is based (e.g., LinearTransformation).
-     * @tparam NoiseDists Noise distributions.
+     * \tparam InputDist Input distribution.
+     * \tparam Transformation The transformation on which the transform is based (e.g., LinearTransformation).
+     * \tparam NoiseDists Noise distributions.
      **/
     template<typename InputDist, typename Trans, typename ... NoiseDists, std::enable_if_t<
       (distribution<InputDist> and ... and distribution<NoiseDists>) and is_linearized_function_v<Trans, 1>, int> = 0>

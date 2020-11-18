@@ -22,18 +22,18 @@ namespace OpenKalman::Eigen3
    */
 #ifdef __cpp_concepts
   template<Eigen3::eigen_self_adjoint_expr Arg1, Eigen3::eigen_self_adjoint_expr Arg2> requires
-  (not diagonal_matrix<Arg1>) and (not diagonal_matrix<Arg2>) and
+    (not diagonal_matrix<Arg1>) and (not diagonal_matrix<Arg2>) and
     (MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension)
 #else
-  template<typename Arg1, typename Arg2,
-    std::enable_if_t<Eigen3::eigen_self_adjoint_expr<Arg1> and Eigen3::eigen_self_adjoint_expr<Arg2> and
-      not diagonal_matrix<Arg1> and not diagonal_matrix<Arg2> and
+  template<typename Arg1, typename Arg2, std::enable_if_t<
+    Eigen3::eigen_self_adjoint_expr<Arg1> and Eigen3::eigen_self_adjoint_expr<Arg2> and
+    (not diagonal_matrix<Arg1>) and (not diagonal_matrix<Arg2>) and
     (MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension), int> = 0>
 #endif
   inline auto operator+(Arg1&& arg1, Arg2&& arg2)
   {
-    if constexpr((Eigen3::is_lower_storage_triangle_v<Arg1> and Eigen3::is_lower_storage_triangle_v<Arg2>) or
-      (Eigen3::is_upper_storage_triangle_v<Arg1> and Eigen3::is_upper_storage_triangle_v<Arg2>))
+    if constexpr((Eigen3::lower_storage_triangle<Arg1> and Eigen3::lower_storage_triangle<Arg2>) or
+      (Eigen3::upper_storage_triangle<Arg1> and Eigen3::upper_storage_triangle<Arg2>))
     {
       auto ret = MatrixTraits<Arg1>::make(
         base_matrix(std::forward<Arg1&&>(arg1)) + base_matrix(std::forward<Arg2&&>(arg2)));
@@ -145,7 +145,7 @@ namespace OpenKalman::Eigen3
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<
 #endif
-    (((Eigen3::eigen_self_adjoint_expr<Arg1> or Eigen3::eigen_triangular_expr<Arg1>) and zero_matrix<Arg2> ) or
+    (((Eigen3::eigen_self_adjoint_expr<Arg1> or Eigen3::eigen_triangular_expr<Arg1>) and zero_matrix<Arg2>) or
       (zero_matrix<Arg1> and (Eigen3::eigen_self_adjoint_expr<Arg2> or Eigen3::eigen_triangular_expr<Arg2>))) and
     (MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension) and
     (MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns)
@@ -182,8 +182,8 @@ namespace OpenKalman::Eigen3
 #endif
   inline auto operator-(Arg1&& arg1, Arg2&& arg2)
   {
-    if constexpr((Eigen3::is_lower_storage_triangle_v<Arg1> and Eigen3::is_lower_storage_triangle_v<Arg2>) or
-      (Eigen3::is_upper_storage_triangle_v<Arg1> and Eigen3::is_upper_storage_triangle_v<Arg2>))
+    if constexpr((Eigen3::lower_storage_triangle<Arg1> and Eigen3::lower_storage_triangle<Arg2>) or
+      (Eigen3::upper_storage_triangle<Arg1> and Eigen3::upper_storage_triangle<Arg2>))
     {
       auto ret = MatrixTraits<Arg1>::make(
         base_matrix(std::forward<Arg1>(arg1)) - base_matrix(std::forward<Arg2>(arg2)));

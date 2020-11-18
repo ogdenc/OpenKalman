@@ -77,7 +77,7 @@ TEST_F(matrices, EuclideanMean_class)
     std::sqrt(3)/2, 0.5, sqrt2/2}));
 
   // Construct from a typed matrix base
-  Mat23 mat23d((M33() << 1, 2, 3, 4, 5, 6, 7, 8, 9).finished());
+  Mat23 mat23d(make_native_matrix<M33>(1, 2, 3, 4, 5, 6, 7, 8, 9));
   EXPECT_TRUE(is_near(mat23d, TM33 {1, 2, 3, 4, 5, 6, 7, 8, 9}));
 
   // Construct from a list of coefficients
@@ -107,7 +107,7 @@ TEST_F(matrices, EuclideanMean_class)
     0.5, sqrt2/2, std::sqrt(3)/2}));
 
   // assign from a typed matrix base
-  mat23e = (M33() << 3, 4, 5, 6, 7, 8, 9, 10, 11).finished();
+  mat23e = make_native_matrix<M33>(3, 4, 5, 6, 7, 8, 9, 10, 11);
 
   // Assign from a list of coefficients (via move assignment operator)
   mat23e = {9, 8, 7, 6, 5, 4, 3, 2, 1};
@@ -143,35 +143,35 @@ TEST_F(matrices, EuclideanMean_class)
 
 TEST_F(matrices, EuclideanMean_subscripts)
 {
-  static_assert(is_element_gettable_v<Mat23, 2>);
-  static_assert(not is_element_gettable_v<Mat23, 1>);
-  static_assert(is_element_gettable_v<const Mat23, 2>);
-  static_assert(not is_element_gettable_v<const Mat23, 1>);
-  static_assert(is_element_gettable_v<Mat21, 2>);
-  static_assert(is_element_gettable_v<Mat21, 1>);
-  static_assert(is_element_gettable_v<const Mat21, 2>);
-  static_assert(is_element_gettable_v<const Mat21, 1>);
-  static_assert(is_element_gettable_v<Matrix<C3, C2, M32>, 2>);
-  static_assert(not is_element_gettable_v<Matrix<C3, C2, M32>, 1>);
-  static_assert(is_element_gettable_v<Matrix<C2, Axis, M21>, 2>);
-  static_assert(is_element_gettable_v<Matrix<C2, Axis, M21>, 1>);
+  static_assert(element_gettable<Mat23, 2>);
+  static_assert(not element_gettable<Mat23, 1>);
+  static_assert(element_gettable<const Mat23, 2>);
+  static_assert(not element_gettable<const Mat23, 1>);
+  static_assert(element_gettable<Mat21, 2>);
+  static_assert(element_gettable<Mat21, 1>);
+  static_assert(element_gettable<const Mat21, 2>);
+  static_assert(element_gettable<const Mat21, 1>);
+  static_assert(element_gettable<Matrix<C3, C2, M32>, 2>);
+  static_assert(not element_gettable<Matrix<C3, C2, M32>, 1>);
+  static_assert(element_gettable<Matrix<C2, Axis, M21>, 2>);
+  static_assert(element_gettable<Matrix<C2, Axis, M21>, 1>);
 
-  static_assert(is_element_settable_v<Mat23, 2>);
-  static_assert(not is_element_settable_v<Mat23, 1>);
-  static_assert(not is_element_settable_v<const Mat23, 2>);
-  static_assert(not is_element_settable_v<const Mat23, 1>);
-  static_assert(is_element_settable_v<Mat21, 2>);
-  static_assert(is_element_settable_v<Mat21, 1>);
-  static_assert(not is_element_settable_v<const Mat21, 2>);
-  static_assert(not is_element_settable_v<const Mat21, 1>);
-  static_assert(is_element_settable_v<Matrix<C3, C2, M32>, 2>);
-  static_assert(not is_element_settable_v<Matrix<C3, C2, M32>, 1>);
-  static_assert(not is_element_settable_v<Matrix<C3, C2, const M32>, 2>);
-  static_assert(not is_element_settable_v<Matrix<C3, C2, const M32>, 1>);
-  static_assert(is_element_settable_v<Matrix<C2, Axis, M21>, 2>);
-  static_assert(is_element_settable_v<Matrix<C2, Axis, M21>, 1>);
-  static_assert(not is_element_settable_v<Matrix<C2, Axis, const M21>, 2>);
-  static_assert(not is_element_settable_v<Matrix<C2, Axis, const M21>, 1>);
+  static_assert(element_settable<Mat23, 2>);
+  static_assert(not element_settable<Mat23, 1>);
+  static_assert(not element_settable<const Mat23, 2>);
+  static_assert(not element_settable<const Mat23, 1>);
+  static_assert(element_settable<Mat21, 2>);
+  static_assert(element_settable<Mat21, 1>);
+  static_assert(not element_settable<const Mat21, 2>);
+  static_assert(not element_settable<const Mat21, 1>);
+  static_assert(element_settable<Matrix<C3, C2, M32>, 2>);
+  static_assert(not element_settable<Matrix<C3, C2, M32>, 1>);
+  static_assert(not element_settable<Matrix<C3, C2, const M32>, 2>);
+  static_assert(not element_settable<Matrix<C3, C2, const M32>, 1>);
+  static_assert(element_settable<Matrix<C2, Axis, M21>, 2>);
+  static_assert(element_settable<Matrix<C2, Axis, M21>, 1>);
+  static_assert(not element_settable<Matrix<C2, Axis, const M21>, 2>);
+  static_assert(not element_settable<Matrix<C2, Axis, const M21>, 1>);
 
   EXPECT_NEAR((Mat23 {1, 2, 3, 4, 5, 6, 7, 8, 9})(0, 0), 1, 1e-6);
   EXPECT_NEAR((Mat23 {1, 2, 3, 4, 5, 6, 7, 8, 9})(0, 1), 2, 1e-6);
@@ -187,7 +187,7 @@ TEST_F(matrices, EuclideanMean_subscripts)
 
 TEST_F(matrices, EuclideanMean_deduction_guides)
 {
-  auto a = (M23() << 1, 2, 3, 4, 5, 6).finished();
+  auto a = make_native_matrix<M23>(1, 2, 3, 4, 5, 6);
   EXPECT_TRUE(is_near(EuclideanMean(a), a));
   static_assert(equivalent_to<typename MatrixTraits<decltype(EuclideanMean(a))>::RowCoefficients, Axes<2>>);
 
@@ -208,7 +208,7 @@ TEST_F(matrices, EuclideanMean_deduction_guides)
 
 TEST_F(matrices, EuclideanMean_make_functions)
 {
-  auto a = (M33() << 1, 2, 3, 4, 5, 6, 7, 8, 9).finished();
+  auto a = make_native_matrix<M33>(1, 2, 3, 4, 5, 6, 7, 8, 9);
   EXPECT_TRUE(is_near(make_EuclideanMean<C2>(a), a));
   static_assert(equivalent_to<typename MatrixTraits<decltype(make_EuclideanMean<C2>(a))>::RowCoefficients, C2>);
   EXPECT_TRUE(is_near(make_EuclideanMean<C2>(a), a));
@@ -243,7 +243,7 @@ TEST_F(matrices, EuclideanMean_traits)
   static_assert(zero_matrix<EuclideanMean<C2, ZeroMatrix<M33>>>);
 
   EXPECT_TRUE(is_near(MatrixTraits<Mat23>::make(
-    (Eigen::Matrix<double, 3, 3>() << 1, 2, 3, 4, 5, 6, 7, 8, 9).finished()).base_matrix(), TM33 {1, 2, 3, 4, 5, 6, 7, 8, 9}));
+    make_native_matrix<double, 3, 3>(1, 2, 3, 4, 5, 6, 7, 8, 9)).base_matrix(), TM33 {1, 2, 3, 4, 5, 6, 7, 8, 9}));
   EXPECT_TRUE(is_near(MatrixTraits<Mat23>::zero(), Eigen::Matrix<double, 3, 3>::Zero()));
   EXPECT_TRUE(is_near(MatrixTraits<EuclideanMean<Axes<2>, I22>>::identity(), Eigen::Matrix<double, 2, 2>::Identity()));
 }

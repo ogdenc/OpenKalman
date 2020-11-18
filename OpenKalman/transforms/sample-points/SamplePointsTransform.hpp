@@ -17,7 +17,7 @@
 namespace OpenKalman
 {
   /**
-   * @brief Scaled points transform. Compatible with unscented transform and cubature transform.
+   * \brief Scaled points transform. Compatible with unscented transform and cubature transform.
    * As implemented in, e.g.,
    * E. Wan & R. van der Merwe, "The unscented Kalman filter for nonlinear estimation,"
    * in Proc. of IEEE Symposium (AS-SPCC), pp. 153-158.
@@ -120,8 +120,8 @@ namespace OpenKalman
 
     /**
      * Perform one or more consecutive sample points transforms.
-     * @tparam InputDist Input distribution.
-     * @tparam Ts A list of tuples containing (1) a transformation and (2) zero or more noise terms for that transformation.
+     * \tparam InputDist Input distribution.
+     * \tparam Ts A list of tuples containing (1) a transformation and (2) zero or more noise terms for that transformation.
      **/
     template<bool return_cross, typename InputDist, typename...Ts>
     auto transform(const InputDist& x, const Ts&...ts) const
@@ -145,8 +145,8 @@ namespace OpenKalman
   public:
     /**
      * Perform one or more consecutive sample points transforms.
-     * @tparam InputDist Input distribution.
-     * @tparam Ts A list of tuples containing (1) a transformation and (2) zero or more noise terms for that transformation.
+     * \tparam InputDist Input distribution.
+     * \tparam Ts A list of tuples containing (1) a transformation and (2) zero or more noise terms for that transformation.
      **/
     template<typename InputDist, typename...T_args, typename...Ts, std::enable_if_t<distribution<InputDist>, int> = 0>
     auto operator()(const InputDist& x, const std::tuple<T_args...>& t, const Ts&...ts) const
@@ -156,9 +156,9 @@ namespace OpenKalman
 
     /**
      * Perform one sample points transform.
-     * @tparam Trans The transformation on which the transform is based.
-     * @tparam InputDist Input distribution.
-     * @tparam NoiseDist Noise distributions.
+     * \tparam Trans The transformation on which the transform is based.
+     * \tparam InputDist Input distribution.
+     * \tparam NoiseDist Noise distributions.
      **/
     template<typename InputDist, typename Trans, typename ... NoiseDists,
       std::enable_if_t<(distribution<InputDist> and ... and distribution<NoiseDists>) and
@@ -170,8 +170,8 @@ namespace OpenKalman
 
     /**
      * Perform one or more consecutive sample points transforms, also returning the cross-covariance.
-     * @tparam InputDist Input distribution.
-     * @tparam Ts A list of tuples containing (1) a transformation and (2) zero or more noise terms for that transformation.
+     * \tparam InputDist Input distribution.
+     * \tparam Ts A list of tuples containing (1) a transformation and (2) zero or more noise terms for that transformation.
      **/
     template<typename InputDist, typename...T_args, typename...Ts, std::enable_if_t<distribution<InputDist>, int> = 0>
     auto transform_with_cross_covariance(const InputDist& x, const std::tuple<T_args...>& t, const Ts&...ts) const
@@ -181,9 +181,9 @@ namespace OpenKalman
 
     /**
      * Perform one sample points transform, also returning the cross-covariance.
-     * @tparam Trans The transformation on which the transform is based.
-     * @tparam InputDist Input distribution.
-     * @tparam NoiseDist Noise distributions.
+     * \tparam Trans The transformation on which the transform is based.
+     * \tparam InputDist Input distribution.
+     * \tparam NoiseDist Noise distributions.
      **/
     template<typename InputDist, typename Trans, typename ... NoiseDists,
       std::enable_if_t<(distribution<InputDist> and ... and distribution<NoiseDists>), int> = 0>

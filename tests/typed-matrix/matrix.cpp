@@ -65,7 +65,7 @@ TEST_F(matrices, TypedMatrix_class)
   EXPECT_TRUE(is_near(mat23_x3, Mat23 {1, 2, 3, pi/3, pi/6, pi/4}));
 
   // Construct from a regular matrix
-  Mat23 mat23d((M23() << 1, 2, 3, 4, 5, 6).finished());
+  Mat23 mat23d(make_native_matrix<M23>(1, 2, 3, 4, 5, 6));
   EXPECT_TRUE(is_near(mat23d, Mat23 {1, 2, 3, 4, 5, 6}));
 
   // Convert from a compatible covariance
@@ -125,7 +125,7 @@ TEST_F(matrices, TypedMatrix_class)
   EXPECT_TRUE(is_near(mat23_x3, Mat23 {3, 2, 1, pi/6, pi/4, pi/3}));
 
   // assign from a regular matrix
-  mat23e = (M23() << 3, 4, 5, 6, 7, 8).finished();
+  mat23e = make_native_matrix<M23>(3, 4, 5, 6, 7, 8);
 
   // Assign from a list of coefficients (via move assignment operator)
   mat23e = {6, 5, 4, 3, 2, 1};
@@ -186,35 +186,35 @@ TEST_F(matrices, TypedMatrix_class)
 
 TEST_F(matrices, TypedMatrix_subscripts)
 {
-  static_assert(is_element_gettable_v<Mat23, 2>);
-  static_assert(not is_element_gettable_v<Mat23, 1>);
-  static_assert(is_element_gettable_v<const Mat23, 2>);
-  static_assert(not is_element_gettable_v<const Mat23, 1>);
-  static_assert(is_element_gettable_v<Mat21, 2>);
-  static_assert(is_element_gettable_v<Mat21, 1>);
-  static_assert(is_element_gettable_v<const Mat21, 2>);
-  static_assert(is_element_gettable_v<const Mat21, 1>);
-  static_assert(is_element_gettable_v<Matrix<C3, C2, M32>, 2>);
-  static_assert(not is_element_gettable_v<Matrix<C3, C2, M32>, 1>);
-  static_assert(is_element_gettable_v<Matrix<C2, Axis, M21>, 2>);
-  static_assert(is_element_gettable_v<Matrix<C2, Axis, M21>, 1>);
+  static_assert(element_gettable<Mat23, 2>);
+  static_assert(not element_gettable<Mat23, 1>);
+  static_assert(element_gettable<const Mat23, 2>);
+  static_assert(not element_gettable<const Mat23, 1>);
+  static_assert(element_gettable<Mat21, 2>);
+  static_assert(element_gettable<Mat21, 1>);
+  static_assert(element_gettable<const Mat21, 2>);
+  static_assert(element_gettable<const Mat21, 1>);
+  static_assert(element_gettable<Matrix<C3, C2, M32>, 2>);
+  static_assert(not element_gettable<Matrix<C3, C2, M32>, 1>);
+  static_assert(element_gettable<Matrix<C2, Axis, M21>, 2>);
+  static_assert(element_gettable<Matrix<C2, Axis, M21>, 1>);
 
-  static_assert(is_element_settable_v<Mat23, 2>);
-  static_assert(not is_element_settable_v<Mat23, 1>);
-  static_assert(not is_element_settable_v<const Mat23, 2>);
-  static_assert(not is_element_settable_v<const Mat23, 1>);
-  static_assert(is_element_settable_v<Mat21, 2>);
-  static_assert(is_element_settable_v<Mat21, 1>);
-  static_assert(not is_element_settable_v<const Mat21, 2>);
-  static_assert(not is_element_settable_v<const Mat21, 1>);
-  static_assert(is_element_settable_v<Matrix<C3, C2, M32>, 2>);
-  static_assert(not is_element_settable_v<Matrix<C3, C2, M32>, 1>);
-  static_assert(not is_element_settable_v<Matrix<C3, C2, const M32>, 2>);
-  static_assert(not is_element_settable_v<Matrix<C3, C2, const M32>, 1>);
-  static_assert(is_element_settable_v<Matrix<C2, Axis, M21>, 2>);
-  static_assert(is_element_settable_v<Matrix<C2, Axis, M21>, 1>);
-  static_assert(not is_element_settable_v<Matrix<C2, Axis, const M21>, 2>);
-  static_assert(not is_element_settable_v<Matrix<C2, Axis, const M21>, 1>);
+  static_assert(element_settable<Mat23, 2>);
+  static_assert(not element_settable<Mat23, 1>);
+  static_assert(not element_settable<const Mat23, 2>);
+  static_assert(not element_settable<const Mat23, 1>);
+  static_assert(element_settable<Mat21, 2>);
+  static_assert(element_settable<Mat21, 1>);
+  static_assert(not element_settable<const Mat21, 2>);
+  static_assert(not element_settable<const Mat21, 1>);
+  static_assert(element_settable<Matrix<C3, C2, M32>, 2>);
+  static_assert(not element_settable<Matrix<C3, C2, M32>, 1>);
+  static_assert(not element_settable<Matrix<C3, C2, const M32>, 2>);
+  static_assert(not element_settable<Matrix<C3, C2, const M32>, 1>);
+  static_assert(element_settable<Matrix<C2, Axis, M21>, 2>);
+  static_assert(element_settable<Matrix<C2, Axis, M21>, 1>);
+  static_assert(not element_settable<Matrix<C2, Axis, const M21>, 2>);
+  static_assert(not element_settable<Matrix<C2, Axis, const M21>, 1>);
 
   EXPECT_NEAR((Mat23 {1, 2, 3, 4, 5, 6})(0, 0), 1, 1e-6);
   EXPECT_NEAR((Mat23 {1, 2, 3, 4, 5, 6})(0, 1), 2, 1e-6);
@@ -227,7 +227,7 @@ TEST_F(matrices, TypedMatrix_subscripts)
 
 TEST_F(matrices, TypedMatrix_deduction_guides)
 {
-  auto a = (M23() << 1, 2, 3, 4, 5, 6).finished();
+  auto a = make_native_matrix<M23>(1, 2, 3, 4, 5, 6);
   EXPECT_TRUE(is_near(Matrix(a), a));
   static_assert(equivalent_to<typename MatrixTraits<decltype(Matrix(a))>::RowCoefficients, Axes<2>>);
   static_assert(equivalent_to<typename MatrixTraits<decltype(Matrix(a))>::ColumnCoefficients, Axes<3>>);
@@ -258,7 +258,7 @@ TEST_F(matrices, TypedMatrix_deduction_guides)
 
 TEST_F(matrices, TypedMatrix_make_functions)
 {
-  auto a = (M23() << 1, 2, 3, 4, 5, 6).finished();
+  auto a = make_native_matrix<M23>(1, 2, 3, 4, 5, 6);
   EXPECT_TRUE(is_near(make_Matrix<C2, C3>(a), a));
   static_assert(equivalent_to<typename MatrixTraits<decltype(make_Matrix<C2, C3>(a))>::RowCoefficients, C2>);
   static_assert(equivalent_to<typename MatrixTraits<decltype(make_Matrix<C2, C3>(a))>::ColumnCoefficients, C3>);
@@ -304,7 +304,7 @@ TEST_F(matrices, TypedMatrix_traits)
   static_assert(zero_matrix<Matrix<C2, C3, ZeroMatrix<M23>>>);
 
   EXPECT_TRUE(is_near(MatrixTraits<Mat23>::make(
-    (Eigen::Matrix<double, 2, 3>() << 1, 2, 3, 4, 5, 6).finished()).base_matrix(), Mat23 {1, 2, 3, 4, 5, 6}));
+    make_native_matrix<double, 2, 3>(1, 2, 3, 4, 5, 6)).base_matrix(), Mat23 {1, 2, 3, 4, 5, 6}));
   EXPECT_TRUE(is_near(MatrixTraits<Mat23>::zero(), Eigen::Matrix<double, 2, 3>::Zero()));
   EXPECT_TRUE(is_near(MatrixTraits<Mat22>::identity(), Eigen::Matrix<double, 2, 2>::Identity()));
 }

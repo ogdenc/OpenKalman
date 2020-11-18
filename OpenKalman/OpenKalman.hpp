@@ -9,7 +9,7 @@
  */
 
 /**
- * @file
+ * \file
  * This is the meta-header file for OpenKalman.
  *
  * Include this file before using any OpenKalman classes or methods.

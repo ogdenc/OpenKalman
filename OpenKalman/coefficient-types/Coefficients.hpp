@@ -80,7 +80,7 @@ namespace OpenKalman
   struct Coefficients<C, Ctail ...>
   {
 #ifndef __cpp_concepts
-    static_assert((is_coefficients_v<C> and ... and is_coefficients_v<Ctail>));
+    static_assert((coefficients<C> and ... and coefficients<Ctail>));
 #endif
     static constexpr std::size_t size = C::size + Coefficients<Ctail...>::size; ///<Number of coefficients.
 
@@ -150,7 +150,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<coefficients Coeffs, typename Scalar> requires std::is_arithmetic_v<Scalar>
 #else
-  template<typename Coeffs, typename Scalar, std::enable_if_t<is_coefficients_v<Coeffs>, int> = 0>
+  template<typename Coeffs, typename Scalar, std::enable_if_t<coefficients<Coeffs>, int> = 0>
 #endif
   static Scalar to_Euclidean(const std::size_t row, const std::function<Scalar(const std::size_t)> get_coeff)
   {
@@ -160,7 +160,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<coefficients Coeffs, typename Scalar> requires std::is_arithmetic_v<Scalar>
 #else
-  template<typename Coeffs, typename Scalar, std::enable_if_t<is_coefficients_v<Coeffs>, int> = 0>
+  template<typename Coeffs, typename Scalar, std::enable_if_t<coefficients<Coeffs>, int> = 0>
 #endif
   static Scalar from_Euclidean(const std::size_t row, const std::function<Scalar(const std::size_t)> get_coeff)
   {
@@ -172,7 +172,7 @@ namespace OpenKalman
   template<coefficients Coeffs, std::invocable<const std::size_t> F>
 #else
   template<typename Coeffs, typename F, std::enable_if_t<
-    is_coefficients_v<Coeffs> and std::is_invocable_v<F, const std::size_t>, int> = 0>
+    coefficients<Coeffs> and std::is_invocable_v<F, const std::size_t>, int> = 0>
 #endif
   static auto wrap_get(const std::size_t row, const F& get_coeff)
   {
@@ -187,7 +187,7 @@ namespace OpenKalman
     std::invocable<const std::size_t> FG> requires std::is_arithmetic_v<Scalar>
 #else
   template<typename Coeffs, typename Scalar, typename FS, typename FG, std::enable_if_t<
-    is_coefficients_v<Coeffs> and std::is_arithmetic_v<Scalar> and std::is_invocable_v<FG, const std::size_t> and
+    coefficients<Coeffs> and std::is_arithmetic_v<Scalar> and std::is_invocable_v<FG, const std::size_t> and
     std::is_invocable_v<FS, const std::size_t, const Scalar>, int> = 0>
 #endif
   static void wrap_set(const Scalar s, const std::size_t row, const FS& set_coeff, const FG& get_coeff)
@@ -224,9 +224,9 @@ namespace OpenKalman
   }
 
   /**
-   * @brief Create a Coefficients<...> alias in which the coefficients are C repeated N times.
-   * @tparam C The coefficient to be repeated.
-   * @tparam N The number of times to repeat coefficient C.
+   * \brief Create a Coefficients<...> alias in which the coefficients are C repeated N times.
+   * \tparam C The coefficient to be repeated.
+   * \tparam N The number of times to repeat coefficient C.
    */
 #ifdef __cpp_concepts
   template<coefficients C, std::size_t N>
@@ -238,7 +238,7 @@ namespace OpenKalman
 
   /**
    * Alias for a set of Axis coefficients of a given size.
-   * @tparam size The number of Axes.
+   * \tparam size The number of Axes.
    */
   template<std::size_t size>
   using Axes = Replicate<Axis, size>;

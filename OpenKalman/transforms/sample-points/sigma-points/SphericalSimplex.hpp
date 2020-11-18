@@ -16,7 +16,7 @@
 namespace OpenKalman
 {
   /*************SphericalSimplexSigmaPoints************
-   * @brief Spherical simplex sigma points, as implemented in, e.g.,
+   * \brief Spherical simplex sigma points, as implemented in, e.g.,
    * Simon J. Julier. The spherical simplex unscented transformation.
    * In Proceedings of American Control Conference, Denver, Colorado, pages 2430–2434, 2003.
    */
@@ -41,8 +41,8 @@ namespace OpenKalman
   {
     /**
      * Number of sigma points.
-     * @tparam dim Number of dimensions of the input variable.
-     * @return Number of sigma points.
+     * \tparam dim Number of dimensions of the input variable.
+     * \return Number of sigma points.
      */
     template<std::size_t dim>
     static constexpr size_t

@@ -20,8 +20,8 @@ TEST_F(eigen3, Diagonal_class)
 {
   DiagonalMatrix<Eigen::Matrix<double, 3, 1>> d1;
   d1 << 1, 2, 3;
-  EXPECT_TRUE(is_near(d1.base_matrix(), (Eigen::Matrix<double, 3, 1>() << 1, 2, 3).finished()));
-  DiagonalMatrix d2 = (Eigen::Matrix<double, 3, 1>() << 1, 2, 3).finished();
+  EXPECT_TRUE(is_near(d1.base_matrix(), make_native_matrix<double, 3, 1>(1, 2, 3)));
+  DiagonalMatrix d2 = make_native_matrix(1., 2, 3);
   EXPECT_TRUE(is_near(d2, d1));
   DiagonalMatrix d3(d2);
   EXPECT_TRUE(is_near(d3, d1));
@@ -73,12 +73,12 @@ TEST_F(eigen3, Diagonal_subscripts)
 
   DiagonalMatrix<Eigen::Matrix<double, 3, 1>> d1 {1, 4, 9};
 
-  static_assert(is_element_gettable_v<DiagonalMatrix<Eigen::Matrix<double, 3, 1>>, 2>);
-  static_assert(is_element_gettable_v<decltype(d1), 2>);
-  static_assert(is_element_gettable_v<decltype(d1), 1>);
-  static_assert(not is_element_gettable_v<decltype(d1), 3>);
-  static_assert(is_element_settable_v<decltype(d1), 2>);
-  static_assert(is_element_settable_v<decltype(d1), 1>);
+  static_assert(element_gettable<DiagonalMatrix<Eigen::Matrix<double, 3, 1>>, 2>);
+  static_assert(element_gettable<decltype(d1), 2>);
+  static_assert(element_gettable<decltype(d1), 1>);
+  static_assert(not element_gettable<decltype(d1), 3>);
+  static_assert(element_settable<decltype(d1), 2>);
+  static_assert(element_settable<decltype(d1), 1>);
   EXPECT_EQ(d1(2), 9);
   EXPECT_EQ(d1(0), 1);
   EXPECT_EQ(d1(0, 1), 0);
@@ -127,32 +127,32 @@ TEST_F(eigen3, Diagonal_traits)
   static_assert(diagonal_matrix<decltype((0.7 * Mat3::Identity()) * (Mat3::Identity() + Mat3::Identity()))>);
   // MatrixTraits
   using D = DiagonalMatrix<Eigen::Matrix<double, 3, 1>>;
-  EXPECT_TRUE(is_near(MatrixTraits<D>::make((Eigen::Matrix<double, 3, 1>() << 1, 2, 3).finished()),
-    (Eigen::Matrix<double, 3, 3>() <<
+  EXPECT_TRUE(is_near(MatrixTraits<D>::make(make_native_matrix<double, 3, 1>(1, 2, 3)),
+    make_native_matrix<double, 3, 3>(
     1, 0, 0,
     0, 2, 0,
-    0, 0, 3).finished()));
-  EXPECT_TRUE(is_near(MatrixTraits<D>::make(1, 2, 3), (Eigen::Matrix<double, 3, 3>() <<
+    0, 0, 3)));
+  EXPECT_TRUE(is_near(MatrixTraits<D>::make(1, 2, 3), make_native_matrix<double, 3, 3>(
     1, 0, 0,
     0, 2, 0,
-    0, 0, 3).finished()));
-  EXPECT_TRUE(is_near(MatrixTraits<D>::make(
+    0, 0, 3)));
+  EXPECT_TRUE(is_near(make_native_matrix<D>(
     1, 0, 0,
     0, 2, 0,
-    0, 0, 3), (Eigen::Matrix<double, 3, 3>() <<
+    0, 0, 3), make_native_matrix<double, 3, 3>(
     1, 0, 0,
     0, 2, 0,
-    0, 0, 3).finished()));
+    0, 0, 3)));
   EXPECT_TRUE(is_near(MatrixTraits<D>::zero(), Eigen::Matrix<double, 3, 3>::Zero()));
   EXPECT_TRUE(is_near(MatrixTraits<D>::identity(), Eigen::Matrix<double, 3, 3>::Identity()));
 }
 
 TEST_F(eigen3, Diagonal_overloads)
 {
-  EXPECT_TRUE(is_near(make_native_matrix(DiagonalMatrix(1., 2, 3)), (Eigen::Matrix<double, 3, 3>() <<
+  EXPECT_TRUE(is_near(make_native_matrix(DiagonalMatrix(1., 2, 3)), make_native_matrix<double, 3, 3>(
     1, 0, 0,
     0, 2, 0,
-    0, 0, 3).finished()));
+    0, 0, 3)));
   EXPECT_TRUE(is_near(Cholesky_square(DiagonalMatrix {1., 2, 3}), DiagonalMatrix {1., 4, 9}));
   EXPECT_TRUE(is_near(Cholesky_factor(DiagonalMatrix {1., 4, 9}), DiagonalMatrix {1., 2, 3}));
   EXPECT_TRUE(is_near(Cholesky_square(Eigen::Matrix<double, 1, 1>(4)), Eigen::Matrix<double, 1, 1>(16)));
@@ -179,13 +179,13 @@ TEST_F(eigen3, Diagonal_overloads)
   rank_update(s2a, M1by1 {2.}, 4);
   EXPECT_TRUE(is_near(s2a, M1by1 {5.}));
   //
-  EXPECT_TRUE(is_near(rank_update(DiagonalMatrix {3., 3}, DiagonalMatrix {2., 2}, 4), (Mat2() << 5., 0, 0, 5).finished()));
-  EXPECT_TRUE(is_near(rank_update(DiagonalMatrix {3., 3}, 2 * Mat2::Identity(), 4), (Mat2() << 5., 0, 0, 5).finished()));
-  EXPECT_TRUE(is_near(rank_update(DiagonalMatrix {3., 3}, (Mat2() << 2, 0, 0, 2).finished(), 4), (Mat2() << 5., 0, 0, 5).finished()));
+  EXPECT_TRUE(is_near(rank_update(DiagonalMatrix {3., 3}, DiagonalMatrix {2., 2}, 4), make_native_matrix<double, 2, 2>(5., 0, 0, 5.)));
+  EXPECT_TRUE(is_near(rank_update(DiagonalMatrix {3., 3}, 2 * Mat2::Identity(), 4), make_native_matrix<Mat2>(5., 0, 0, 5.)));
+  EXPECT_TRUE(is_near(rank_update(DiagonalMatrix {3., 3}, make_native_matrix<Mat2>(2, 0, 0, 2.), 4), make_native_matrix<Mat2>(5., 0, 0, 5.)));
   //
   EXPECT_TRUE(is_near(rank_update(M1by1 {3.}, M1by1 {2.}, 4), M1by1 {5.}));
   //
-  EXPECT_TRUE(is_near(solve(DiagonalMatrix {1., 2, 3}, (Eigen::Matrix<double, 3, 1>() << 4., 10, 18).finished()),
+  EXPECT_TRUE(is_near(solve(DiagonalMatrix {1., 2, 3}, make_native_matrix<double, 3, 1>(4., 10, 18)),
     make_native_matrix(4., 5, 6)));
   EXPECT_TRUE(is_near(reduce_columns(DiagonalMatrix {1., 2, 3}), make_native_matrix(1., 2, 3)));
   EXPECT_TRUE(is_near(LQ_decomposition(DiagonalMatrix {1., 2, 3}), DiagonalMatrix {1., 2, 3}));
@@ -219,70 +219,70 @@ TEST_F(eigen3, Diagonal_blocks)
   EXPECT_TRUE(is_near(split_diagonal<2, 2>(DiagonalMatrix{1., 2, 3, 4, 5}), std::tuple{DiagonalMatrix{1., 2}, DiagonalMatrix{3., 4}}));
   EXPECT_TRUE(is_near(split_vertical(DiagonalMatrix{1., 2, 3, 4, 5}), std::tuple{}));
   EXPECT_TRUE(is_near(split_vertical<3, 2>(DiagonalMatrix{1., 2, 3, 4, 5}),
-    std::tuple{(Eigen::Matrix<double, 3, 5>() <<
+    std::tuple{make_native_matrix<double, 3, 5>(
       1, 0, 0, 0, 0,
       0, 2, 0, 0, 0,
-      0, 0, 3, 0, 0).finished(),
-               (Eigen::Matrix<double, 2, 5>() <<
+      0, 0, 3, 0, 0),
+               make_native_matrix<double, 2, 5>(
                  0, 0, 0, 4, 0,
-                 0, 0, 0, 0, 5).finished()}));
+                 0, 0, 0, 0, 5)}));
   EXPECT_TRUE(is_near(split_vertical<2, 2>(DiagonalMatrix{1., 2, 3, 4, 5}),
-    std::tuple{(Eigen::Matrix<double, 2, 5>() <<
+    std::tuple{make_native_matrix<double, 2, 5>(
       1, 0, 0, 0, 0,
-      0, 2, 0, 0, 0).finished(),
-               (Eigen::Matrix<double, 2, 5>() <<
+      0, 2, 0, 0, 0),
+               make_native_matrix<double, 2, 5>(
                  0, 0, 3, 0, 0,
-                 0, 0, 0, 4, 0).finished()}));
+                 0, 0, 0, 4, 0)}));
   EXPECT_TRUE(is_near(split_horizontal(DiagonalMatrix{1., 2, 3, 4, 5}), std::tuple{}));
   EXPECT_TRUE(is_near(split_horizontal<3, 2>(DiagonalMatrix{1., 2, 3, 4, 5}),
-    std::tuple{(Eigen::Matrix<double, 5, 3>() <<
+    std::tuple{make_native_matrix<double, 5, 3>(
       1, 0, 0,
       0, 2, 0,
       0, 0, 3,
       0, 0, 0,
-      0, 0, 0).finished(),
-               (Eigen::Matrix<double, 5, 2>() <<
+      0, 0, 0),
+               make_native_matrix<double, 5, 2>(
                  0, 0,
                  0, 0,
                  0, 0,
                  4, 0,
-                 0, 5).finished()}));
+                 0, 5)}));
   EXPECT_TRUE(is_near(split_horizontal<2, 2>(DiagonalMatrix{1., 2, 3, 4, 5}),
-    std::tuple{(Eigen::Matrix<double, 5, 2>() <<
+    std::tuple{make_native_matrix<double, 5, 2>(
       1, 0,
       0, 2,
       0, 0,
       0, 0,
-      0, 0).finished(),
-               (Eigen::Matrix<double, 5, 2>() <<
+      0, 0),
+               make_native_matrix<double, 5, 2>(
                  0, 0,
                  0, 0,
                  3, 0,
                  0, 4,
-                 0, 0).finished()}));
+                 0, 0)}));
 
   EXPECT_TRUE(is_near(column(DiagonalMatrix{1., 2, 3}, 2), make_native_matrix(0., 0, 3)));
   EXPECT_TRUE(is_near(column<1>(DiagonalMatrix{1., 2, 3}), make_native_matrix(0., 2, 0)));
   EXPECT_TRUE(is_near(apply_columnwise(DiagonalMatrix{1., 2, 3}, [](const auto& col){ return col + col.Constant(1); }),
-    (Eigen::Matrix<double, 3, 3>() <<
+    make_native_matrix<double, 3, 3>(
       2, 1, 1,
       1, 3, 1,
-      1, 1, 4).finished()));
+      1, 1, 4)));
   EXPECT_TRUE(is_near(apply_columnwise(DiagonalMatrix{1., 2, 3}, [](const auto& col, std::size_t i){ return col + col.Constant(i); }),
-    (Eigen::Matrix<double, 3, 3>() <<
+    make_native_matrix<double, 3, 3>(
       1, 1, 2,
       0, 3, 2,
-      0, 1, 5).finished()));
+      0, 1, 5)));
   EXPECT_TRUE(is_near(apply_coefficientwise(DiagonalMatrix{1., 2, 3}, [](const auto& x){ return x + 1; }),
-    (Eigen::Matrix<double, 3, 3>() <<
+    make_native_matrix<double, 3, 3>(
       2, 1, 1,
       1, 3, 1,
-      1, 1, 4).finished()));
+      1, 1, 4)));
   EXPECT_TRUE(is_near(apply_coefficientwise(DiagonalMatrix{1., 2, 3}, [](const auto& x, std::size_t i, std::size_t j){ return x + i + j; }),
-    (Eigen::Matrix<double, 3, 3>() <<
+    make_native_matrix<double, 3, 3>(
       1, 1, 2,
       1, 4, 3,
-      2, 3, 7).finished()));
+      2, 3, 7)));
 }
 
 TEST_F(eigen3, Diagonal_arithmetic)
@@ -366,17 +366,17 @@ TEST_F(eigen3, Diagonal_arithmetic)
     1., 0, 0,
     2, 6, 0,
     4, 10, 18)));
-  EXPECT_TRUE(is_near(DiagonalMatrix {1., 2, 3} * (Eigen::Matrix<double, 3, 3>() <<
+  EXPECT_TRUE(is_near(DiagonalMatrix {1., 2, 3} * make_native_matrix<double, 3, 3>(
     1, 2, 3,
     4, 5, 6,
-    7, 8, 9).finished(), make_native_matrix<3,3>(
+    7, 8, 9), make_native_matrix<3,3>(
     1., 2, 3,
     8, 10, 12,
     21, 24, 27)));
-  EXPECT_TRUE(is_near((Eigen::Matrix<double, 3, 3>() <<
+  EXPECT_TRUE(is_near(make_native_matrix<double, 3, 3>(
     1, 2, 3,
     4, 5, 6,
-    7, 8, 9).finished() * DiagonalMatrix {1., 2, 3}, make_native_matrix<3,3>(
+    7, 8, 9) * DiagonalMatrix {1., 2, 3}, make_native_matrix<3,3>(
     1., 4, 9,
     4, 10, 18,
     7, 16, 27)));

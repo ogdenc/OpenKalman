@@ -317,7 +317,7 @@ namespace OpenKalman
 
   /// Deduce template parameters from a non-Euclidean-transformed typed matrix.
 #if defined(__cpp_concepts) and false
-  // @TODO Unlike SFINAE version, this incorrectly matches V==EuclideanMean in both GCC 10.1.0 and clang 10.0.0:
+  // \TODO Unlike SFINAE version, this incorrectly matches V==EuclideanMean in both GCC 10.1.0 and clang 10.0.0:
   template<typed_matrix V> requires (not euclidean_transformed<V>)
 #else
   template<typename V, std::enable_if_t<typed_matrix<V> and not euclidean_transformed<V>, int> = 0>
@@ -328,7 +328,7 @@ namespace OpenKalman
 
   /// Deduce template parameters from a Euclidean-transformed typed matrix.
 #if defined(__cpp_concepts) and false
-  // @TODO Unlike SFINAE version, this incorrectly matches V==Mean and V==Matrix in both GCC 10.1.0 and clang 10.0.0:
+  // \TODO Unlike SFINAE version, this incorrectly matches V==Mean and V==Matrix in both GCC 10.1.0 and clang 10.0.0:
   template<euclidean_transformed V> requires MatrixTraits<V>::ColumnCoefficients::axes_only
 #else
   template<typename V, std::enable_if_t<euclidean_transformed<V> and
@@ -381,8 +381,8 @@ namespace OpenKalman
     (coefficients<Coefficients> and MatrixTraits<V>::dimension == Coefficients::size)
 #else
   template<typename Coefficients, typename V, std::enable_if_t<
-    is_coefficients_v<Coefficients> and typed_matrix_base<V> and
-    (is_coefficients_v<Coefficients> and MatrixTraits<V>::dimension == Coefficients::size), int> = 0>
+    coefficients<Coefficients> and typed_matrix_base<V> and
+    (coefficients<Coefficients> and MatrixTraits<V>::dimension == Coefficients::size), int> = 0>
 #endif
   inline auto make_Mean()
   {

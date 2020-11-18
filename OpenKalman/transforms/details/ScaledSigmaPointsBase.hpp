@@ -14,7 +14,7 @@
 namespace OpenKalman::internal
 {
   /*************ScaledSigmaPointsBase*********
-   * @brief Base class that embodies a scaled set of sample (e.g., sigma) points.
+   * \brief Base class that embodies a scaled set of sample (e.g., sigma) points.
    *
    * Given random variable X:Ω->ℝⁿ, sample points S⊂ℝⁿ are a finite set of
    * samples within ℝⁿ that are specifically arranged so that the
@@ -30,9 +30,9 @@ namespace OpenKalman::internal
     /**
      * Weight for the first sigma point when calculating the posterior mean.
      * See Julier Eq. 15 (not Eq. 24, which appears to be wrong).
-     * @tparam dim Number of dimensions of the input variables (including noise).
-     * @tparam Scalar Scalar type (e.g., double).
-     * @return Weight for the first sigma point.
+     * \tparam dim Number of dimensions of the input variables (including noise).
+     * \tparam Scalar Scalar type (e.g., double).
+     * \return Weight for the first sigma point.
      */
     template<std::size_t dim, typename Scalar = double>
     static constexpr Scalar
@@ -46,9 +46,9 @@ namespace OpenKalman::internal
     /**
      * Weight for the first sigma point when calculating the posterior covariance.
      * See Julier Eq. 27.
-     * @tparam dim Number of dimensions of the input variables (including noise).
-     * @tparam Scalar Scalar type (e.g., double).
-     * @return Weight for the first sigma point.
+     * \tparam dim Number of dimensions of the input variables (including noise).
+     * \tparam Scalar Scalar type (e.g., double).
+     * \return Weight for the first sigma point.
      */
     template<std::size_t dim, typename Scalar = double>
     static constexpr Scalar
@@ -62,9 +62,9 @@ namespace OpenKalman::internal
     /**
      * Weight for each sigma point other than the first one, when calculating posterior mean and covariance.
      * See Julier Eq. 15 (not Eq. 24, which appears to be wrong), Eq. 27.
-     * @tparam dim Number of dimensions of the input variables (including noise).
-     * @tparam Scalar Scalar type (e.g., double).
-     * @return Weights for each sigma point.
+     * \tparam dim Number of dimensions of the input variables (including noise).
+     * \tparam Scalar Scalar type (e.g., double).
+     * \return Weights for each sigma point.
      */
     template<std::size_t dim, typename Scalar = double>
     static constexpr Scalar

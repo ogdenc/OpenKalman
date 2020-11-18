@@ -9,7 +9,7 @@
  */
 
 /**
- * @file distributions.hpp
+ * \file distributions.hpp
  * A meta-header file including all the headers relating to OpenKalman distributions.
  */
 

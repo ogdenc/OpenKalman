@@ -15,7 +15,7 @@
 namespace OpenKalman
 {
   /**
-   * @brief A linearized transform, using a 1st or 2nd order Taylor approximation of a linear transformation.
+   * \brief A linearized transform, using a 1st or 2nd order Taylor approximation of a linear transformation.
    */
   template<unsigned int order = 1> ///< Order of the Taylor approximation (1 or 2).
   struct LinearizedTransform : internal::LinearTransformBase<LinearizedTransform<order>>
@@ -53,10 +53,10 @@ namespace OpenKalman
 
       /**
        * Add second-order moment terms, based on Hessian matrices.
-       * @tparam Hessian An array of Hessian matrices. Must be accessible by bracket index, as in hessian[i].
+       * \tparam Hessian An array of Hessian matrices. Must be accessible by bracket index, as in hessian[i].
        * Each matrix is a regular matrix type.
-       * @tparam Dist Input or noise distribution.
-       * @return
+       * \tparam Dist Input or noise distribution.
+       * \return
        */
       template<typename OutputCoeffs, typename Hessian, typename Dist>
       static auto second_order_term(const Hessian& hessian, const Dist& x)

@@ -16,7 +16,8 @@
 namespace OpenKalman::internal
 {
   // ============================================================================
-  /*
+  /**
+   * \internal
    * Base of Covariance and SquareRootCovariance classes, if ArgType is not an lvalue reference and either
    * (1) Derived is not a square root and the base is self-adjoint; or
    * (2) Derived is a square root and the base is triangular.
@@ -25,17 +26,18 @@ namespace OpenKalman::internal
   template<typename Derived, typename ArgType> requires
     ((self_adjoint_matrix<ArgType> and not square_root_covariance<Derived>) or
       (triangular_matrix<ArgType> and square_root_covariance<Derived>)) and
-    (not (std::is_lvalue_reference_v<ArgType> or std::is_lvalue_reference_v<typename MatrixTraits<ArgType>::BaseMatrix>))
+    (not (std::is_lvalue_reference_v<ArgType> or
+      std::is_lvalue_reference_v<typename MatrixTraits<ArgType>::BaseMatrix>))
   struct CovarianceBase<Derived, ArgType>
 #else
   template<typename Derived, typename ArgType>
   struct CovarianceBase<Derived, ArgType, std::enable_if_t<
     ((self_adjoint_matrix<ArgType> and not square_root_covariance<Derived>) or
-    (triangular_matrix<ArgType> and square_root_covariance<Derived>)) and not
-    (std::is_lvalue_reference_v<ArgType> or
-    std::is_lvalue_reference_v<typename MatrixTraits<ArgType>::BaseMatrix>)>>
+      (triangular_matrix<ArgType> and square_root_covariance<Derived>)) and
+    (not (std::is_lvalue_reference_v<ArgType> or
+      std::is_lvalue_reference_v<typename MatrixTraits<ArgType>::BaseMatrix>))>>
 #endif
-  : CovarianceBaseBase<Derived, ArgType>
+    : CovarianceBaseBase<Derived, ArgType>
   {
     using BaseMatrix = ArgType;
     using Base = CovarianceBaseBase<Derived, BaseMatrix>;
@@ -46,7 +48,7 @@ namespace OpenKalman::internal
 
     auto operator() (std::size_t i, std::size_t j)
     {
-      return make_ElementSetter<not is_element_settable_v<Derived, 2>>(base_matrix(), i, j);
+      return make_ElementSetter<not element_settable<Derived, 2>>(base_matrix(), i, j);
     }
 
     auto operator() (std::size_t i, std::size_t j) const
@@ -56,7 +58,7 @@ namespace OpenKalman::internal
 
     auto operator[] (std::size_t i)
     {
-      return make_ElementSetter<not is_element_settable_v<Derived, 2>>(base_matrix(), i);
+      return make_ElementSetter<not element_settable<Derived, 2>>(base_matrix(), i);
     }
 
     auto operator[] (std::size_t i) const
@@ -69,7 +71,10 @@ namespace OpenKalman::internal
     auto operator() (std::size_t i) const { return operator[](i); }
 
   protected:
-    template<typename, typename Arg>
+    template<typename T, typename Arg>
+#ifdef __cpp_concepts
+    requires (std::is_void_v<T> or covariance_base<T>) and (covariance<Arg> or typed_matrix<Arg>)
+#endif
     friend constexpr decltype(auto) convert_base_matrix(Arg&&) noexcept;
 
     constexpr void mark_changed() const {}
@@ -90,7 +95,8 @@ namespace OpenKalman::internal
 
 
   // ============================================================================
-  /*
+  /**
+   * \internal
    * Base of Covariance and SquareRootCovariance classes, if ArgType is an lvalue reference.
    * No conversion is necessary if either
    * (1) Derived is not a square root and the base is self-adjoint; or
@@ -106,9 +112,8 @@ namespace OpenKalman::internal
   template<typename Derived, typename ArgType>
   struct CovarianceBase<Derived, ArgType, std::enable_if_t<
     ((self_adjoint_matrix<ArgType> and not square_root_covariance<Derived>) or
-    (triangular_matrix<ArgType> and square_root_covariance<Derived>)) and
-    (std::is_lvalue_reference_v<ArgType> or
-    std::is_lvalue_reference_v<typename MatrixTraits<ArgType>::BaseMatrix>)>>
+      (triangular_matrix<ArgType> and square_root_covariance<Derived>)) and
+    (std::is_lvalue_reference_v<ArgType> or std::is_lvalue_reference_v<typename MatrixTraits<ArgType>::BaseMatrix>)>>
 #endif
   : CovarianceBaseBase<Derived, ArgType>
   {
@@ -158,7 +163,7 @@ namespace OpenKalman::internal
 #else
     template<typename Arg, std::enable_if_t<covariance<Arg> and not
       ((self_adjoint_matrix<typename MatrixTraits<Arg>::BaseMatrix> and not square_root_covariance<Arg>) or
-      (triangular_matrix<typename MatrixTraits<Arg>::BaseMatrix> and square_root_covariance<Arg>)) and not
+        (triangular_matrix<typename MatrixTraits<Arg>::BaseMatrix> and square_root_covariance<Arg>)) and not
       (std::is_lvalue_reference_v<typename MatrixTraits<Arg>::BaseMatrix> or
       std::is_lvalue_reference_v<typename MatrixTraits<typename MatrixTraits<Arg>::BaseMatrix>::BaseMatrix>), int> = 0>
 #endif
@@ -175,7 +180,7 @@ namespace OpenKalman::internal
 #else
     template<typename Arg, std::enable_if_t<covariance<Arg> and not
       ((self_adjoint_matrix<typename MatrixTraits<Arg>::BaseMatrix> and not square_root_covariance<Arg>) or
-      (triangular_matrix<typename MatrixTraits<Arg>::BaseMatrix> and square_root_covariance<Arg>)) and
+        (triangular_matrix<typename MatrixTraits<Arg>::BaseMatrix> and square_root_covariance<Arg>)) and
       (std::is_lvalue_reference_v<typename MatrixTraits<Arg>::BaseMatrix> or
       std::is_lvalue_reference_v<typename MatrixTraits<typename MatrixTraits<Arg>::BaseMatrix>::BaseMatrix>), int> = 0>
 #endif
@@ -240,7 +245,7 @@ namespace OpenKalman::internal
 
     auto operator() (std::size_t i, std::size_t j)
     {
-      if constexpr (is_element_settable_v<Derived, 2>)
+      if constexpr (element_settable<Derived, 2>)
         return ElementSetter(base_matrix(), i, j, [] {}, [this] { if (apparent_base_linked) *synchronized = false; });
       else
         return make_ElementSetter<true>(base_matrix(), i, j);
@@ -253,7 +258,7 @@ namespace OpenKalman::internal
 
     auto operator[] (std::size_t i)
     {
-      if constexpr (is_element_settable_v<Derived, 1>)
+      if constexpr (element_settable<Derived, 1>)
         return ElementSetter(base_matrix(), i, [] {}, [this] { if (apparent_base_linked) *synchronized = false; });
       else
         return make_ElementSetter<true>(base_matrix(), i);
@@ -269,7 +274,10 @@ namespace OpenKalman::internal
     auto operator() (std::size_t i) const { return operator[](i); }
 
   protected:
-    template<typename, typename Arg>
+    template<typename T, typename Arg>
+#ifdef __cpp_concepts
+    requires (std::is_void_v<T> or covariance_base<T>) and (covariance<Arg> or typed_matrix<Arg>)
+#endif
     friend constexpr decltype(auto) convert_base_matrix(Arg&&) noexcept;
 
     constexpr void mark_changed() const {}
@@ -291,6 +299,7 @@ namespace OpenKalman::internal
 
   // ============================================================================
   /**
+   * \internal
    * Base of Covariance and SquareRootCovariance classes, if ArgType is not an lvalue reference, and
    * (1) Derived is a square root and the base is not triangular (i.e., it is self-adjoint but not diagonal); or
    * (2) Derived is not a square root and the base is not self-adjoint (i.e., it is triangular but not diagonal).
@@ -356,11 +365,13 @@ namespace OpenKalman::internal
     /// Construct from a general covariance type. Argument matches apparent base.
 #ifdef __cpp_concepts
     template<covariance Arg> requires
-      ((cholesky_form<Arg> or (diagonal_matrix<Arg> and square_root_covariance<Arg>)) == square_root_covariance<Derived>) and
+      ((cholesky_form<Arg> or (diagonal_matrix<Arg> and square_root_covariance<Arg>)) ==
+        square_root_covariance<Derived>) and
       internal::same_triangle_type_as<typename MatrixTraits<Arg>::BaseMatrix, ApparentBaseMatrix>
 #else
     template<typename Arg, std::enable_if_t<covariance<Arg> and
-      ((cholesky_form<Arg> or (diagonal_matrix<Arg> and square_root_covariance<Arg>)) == square_root_covariance<Derived>) and
+      ((cholesky_form<Arg> or (diagonal_matrix<Arg> and square_root_covariance<Arg>)) ==
+        square_root_covariance<Derived>) and
       internal::same_triangle_type_as<typename MatrixTraits<Arg>::BaseMatrix, ApparentBaseMatrix>, int> = 0>
 #endif
     CovarianceBase(Arg&& arg) noexcept
@@ -458,7 +469,7 @@ namespace OpenKalman::internal
 
     auto operator() (std::size_t i, std::size_t j)
     {
-      if constexpr(is_element_settable_v<Derived, 2>)
+      if constexpr(element_settable<Derived, 2>)
         return ElementSetter(
           apparent_base,
           i, j,
@@ -485,16 +496,26 @@ namespace OpenKalman::internal
 
 
   protected:
+#ifdef __cpp_concepts
+    template<typename, typename>
+#else
     template<typename, typename, typename>
+#endif
     friend struct CovarianceBase;
 
-    template<typename, typename Arg>
+
+    template<typename T, typename Arg>
+#ifdef __cpp_concepts
+    requires (std::is_void_v<T> or covariance_base<T>) and (covariance<Arg> or typed_matrix<Arg>)
+#endif
     friend constexpr decltype(auto) convert_base_matrix(Arg&&) noexcept;
+
 
     void mark_changed()
     {
       synchronized = false;
     }
+
 
     /// Get the apparent base matrix.
     constexpr auto& get_apparent_base_matrix() &
@@ -503,6 +524,7 @@ namespace OpenKalman::internal
       return apparent_base;
     }
 
+
     /// Get the apparent base matrix.
     constexpr auto&& get_apparent_base_matrix() &&
     {
@@ -510,12 +532,14 @@ namespace OpenKalman::internal
       return std::move(apparent_base);
     }
 
+
     /// Get the apparent base matrix.
     constexpr const auto& get_apparent_base_matrix() const &
     {
       if (not synchronized) synchronize();
       return apparent_base;
     }
+
 
     /// Get the apparent base matrix.
     constexpr const auto&& get_apparent_base_matrix() const &&
@@ -529,6 +553,7 @@ namespace OpenKalman::internal
 
   // ============================================================================
   /**
+   * \internal
    * Base of Covariance and SquareRootCovariance classes, if ArgType is an lvalue reference, and
    * (1) Derived is a square root and the base is not triangular (i.e., it is self-adjoint but not diagonal); or
    * (2) Derived is not a square root and the base is not self-adjoint (i.e., it is triangular but not diagonal).
@@ -701,7 +726,7 @@ namespace OpenKalman::internal
 
     auto operator() (std::size_t i, std::size_t j)
     {
-      if constexpr(is_element_settable_v<Derived, 2>)
+      if constexpr(element_settable<Derived, 2>)
         return ElementSetter(
           *apparent_base,
           i, j,
@@ -728,10 +753,17 @@ namespace OpenKalman::internal
 
 
   protected:
+#ifdef __cpp_concepts
+    template<typename, typename>
+#else
     template<typename, typename, typename>
+#endif
     friend struct CovarianceBase;
 
-    template<typename, typename Arg>
+    template<typename T, typename Arg>
+#ifdef __cpp_concepts
+    requires (std::is_void_v<T> or covariance_base<T>) and (covariance<Arg> or typed_matrix<Arg>)
+#endif
     friend constexpr decltype(auto) convert_base_matrix(Arg&&) noexcept;
 
     void mark_changed()

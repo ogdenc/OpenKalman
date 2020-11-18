@@ -16,16 +16,16 @@
 namespace OpenKalman
 {
   /**
-   * @brief A transformation from one single-column vector to another.
+   * \brief A transformation from one single-column vector to another.
    *
    * Models a transformation (linear or nonlinear) from one single-column vector to another.
    * The transformation takes an input vector, and optionally one or more perturbation terms. These can be
    * associated with noise, or translation, etc. The perturbation terms can either be constant single-column
    * vectors, or statistical distributions (in which case, the perturbation will be stochastic).
-   * @tparam Function The transformation function, in the following exemplary form:
+   * \tparam Function The transformation function, in the following exemplary form:
    *   (Mean<InputCoefficients,...>, Mean<OutputCoefficients,...>, ...) -> Mean<OutputCoefficients,...>.
    *   The first term is the input, the next term(s) represent perturbation(s), and the final term is the output.
-   * @tparam TaylorDerivatives Optional Taylor-series derivative functions, including the Jacobian and Hessian
+   * \tparam TaylorDerivatives Optional Taylor-series derivative functions, including the Jacobian and Hessian
    *   for the input and each perturbation.
    */
   template<

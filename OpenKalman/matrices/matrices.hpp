@@ -9,7 +9,7 @@
  */
 
 /**
- * @file typed-matrices.hpp
+ * \file typed-matrices.hpp
  * A meta-header file including all the headers relating to OpenKalman typed matrices.
  */
 

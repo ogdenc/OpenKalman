@@ -16,13 +16,13 @@ namespace OpenKalman
 {
 
   /**
-   * @brief A linear transformation from one single-column vector to another.
+   * \brief A linear transformation from one single-column vector to another.
    *
-   * @tparam InputCoefficients Coefficient types for the input.
-   * @tparam OutputCoefficients Coefficient types for the output.
-   * @tparam TransformationMatrix Transformation matrix. It is a native matrix type with rows corresponding to
+   * \tparam InputCoefficients Coefficient types for the input.
+   * \tparam OutputCoefficients Coefficient types for the output.
+   * \tparam TransformationMatrix Transformation matrix. It is a native matrix type with rows corresponding to
    * OutputCoefficients and columns corresponding to InputCoefficients.
-   * @tparam PerturbationTransformationMatrices Transformation matrices for each potential perturbation term.
+   * \tparam PerturbationTransformationMatrices Transformation matrices for each potential perturbation term.
    * if the parameter is not given, the transformation matrix is assumed to be identity (i.e., it is a translation).
    * It is a native matrix type with both rows and columns corresponding to OutputCoefficients.
    */

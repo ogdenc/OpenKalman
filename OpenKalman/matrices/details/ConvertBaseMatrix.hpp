@@ -14,14 +14,18 @@
 namespace OpenKalman::internal
 {
   /**
+   * /internal
    * Convert covariance matrix to a covariance base of type T. If T is void, convert to a triangular matrix if
    * covariance is a square root, or otherwise convert to a self-adjoint matrix.
-   * @tparam T Type to which Arg is to be converted (optional).
-   * @tparam Arg Type of covariance matrix to be converted
-   * @param arg Covariance matrix to be converted.
-   * @return A covariance base.
+   * \tparam T Type to which Arg is to be converted (optional).
+   * \tparam Arg Type of covariance matrix to be converted
+   * \param arg Covariance matrix to be converted.
+   * \return A covariance base.
    */
   template<typename T, typename Arg>
+#ifdef __cpp_concepts
+    requires (std::is_void_v<T> or covariance_base<T>) and (covariance<Arg> or typed_matrix<Arg>)
+#endif
   constexpr decltype(auto)
   convert_base_matrix(Arg&& arg) noexcept
   {

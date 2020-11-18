@@ -251,15 +251,15 @@ TEST_F(covariance_tests, Covariance_class)
   EXPECT_TRUE(is_near(cd6, Mat2 {1, 0, 0, 2}));
 
   // Construct from a regular matrix
-  CovSA2l clsa7((M2() << 9, 7, 3, 10).finished());
+  CovSA2l clsa7(make_native_matrix<M2>(9, 7, 3, 10));
   EXPECT_TRUE(is_near(clsa7, Mat2 {9, 3, 3, 10}));
-  CovSA2u cusa7((M2() << 4, 2, 7, 5).finished());
+  CovSA2u cusa7(make_native_matrix<M2>(4, 2, 7, 5));
   EXPECT_TRUE(is_near(cusa7, Mat2 {4, 2, 2, 5}));
-  CovT2l clt7((M2() << 9, 7, 3, 10).finished());
+  CovT2l clt7(make_native_matrix<M2>(9, 7, 3, 10));
   EXPECT_TRUE(is_near(clt7, Mat2 {9, 3, 3, 10}));
-  CovT2u cut7((M2() << 4, 2, 7, 5).finished());
+  CovT2u cut7(make_native_matrix<M2>(4, 2, 7, 5));
   EXPECT_TRUE(is_near(cut7, Mat2 {4, 2, 2, 5}));
-  CovD2 cd7((Eigen::Matrix<double, 2, 1>() << 1, 2).finished());
+  CovD2 cd7(make_native_matrix<double, 2, 1>(1, 2));
   EXPECT_TRUE(is_near(cd7, Mat2 {1, 0, 0, 2}));
 
   // Construct from a list of coefficients
@@ -623,8 +623,8 @@ TEST_F(covariance_tests, Covariance_deduction_guides)
   EXPECT_TRUE(is_near(Covariance(Mat2 {9, 3, 3, 10}), Mat2 {9, 3, 3, 10}));
   static_assert(equivalent_to<typename MatrixTraits<decltype(Covariance(Mat2 {9, 3, 3, 10}))>::Coefficients, C>);
 
-  EXPECT_TRUE(is_near(Covariance((M2() << 9, 3, 3, 10).finished()), Mat2 {9, 3, 3, 10}));
-  static_assert(equivalent_to<typename MatrixTraits<decltype(Covariance((M2() << 9, 3, 3, 10).finished()))>::Coefficients, Axes<2>>);
+  EXPECT_TRUE(is_near(Covariance(make_native_matrix<M2>(9, 3, 3, 10)), Mat2 {9, 3, 3, 10}));
+  static_assert(equivalent_to<typename MatrixTraits<decltype(Covariance(make_native_matrix<M2>(9, 3, 3, 10)))>::Coefficients, Axes<2>>);
 
   EXPECT_TRUE(is_near(Covariance {9., 3, 3, 10}, Mat2 {9, 3, 3, 10}));
   static_assert(equivalent_to<typename MatrixTraits<decltype(Covariance {9., 3, 3, 10})>::Coefficients, Axes<2>>);
@@ -646,26 +646,26 @@ TEST_F(covariance_tests, Covariance_make)
   EXPECT_TRUE(is_near(make_Covariance(SqCovT2u {3, 1, 0, 3}).base_matrix(), Mat2 {3, 1, 0, 3}));
   EXPECT_TRUE(is_near(make_Covariance(SqCovD2 {1, 2}).base_matrix(), Mat2 {1, 0, 0, 2}));
 
-  static_assert(Eigen3::is_lower_storage_triangle_v<decltype(make_Covariance(CovSA2l {9, 3, 3, 10}).base_matrix())>);
-  static_assert(Eigen3::is_upper_storage_triangle_v<decltype(make_Covariance(CovSA2u {9, 3, 3, 10}).base_matrix())>);
+  static_assert(Eigen3::lower_storage_triangle<decltype(make_Covariance(CovSA2l {9, 3, 3, 10}).base_matrix())>);
+  static_assert(Eigen3::upper_storage_triangle<decltype(make_Covariance(CovSA2u {9, 3, 3, 10}).base_matrix())>);
   static_assert(lower_triangular_matrix<decltype(make_Covariance(CovT2l {9, 3, 3, 10}).base_matrix())>);
   static_assert(upper_triangular_matrix<decltype(make_Covariance(CovT2u {9, 3, 3, 10}).base_matrix())>);
   static_assert(diagonal_matrix<decltype(make_Covariance(CovD2 {1, 2}).base_matrix())>);
 
-  static_assert(Eigen3::is_upper_storage_triangle_v<decltype(make_Covariance(adjoint(CovSA2l {9, 3, 3, 10})).base_matrix())>);
-  static_assert(Eigen3::is_lower_storage_triangle_v<decltype(make_Covariance(adjoint(CovSA2u {9, 3, 3, 10})).base_matrix())>);
+  static_assert(Eigen3::upper_storage_triangle<decltype(make_Covariance(adjoint(CovSA2l {9, 3, 3, 10})).base_matrix())>);
+  static_assert(Eigen3::lower_storage_triangle<decltype(make_Covariance(adjoint(CovSA2u {9, 3, 3, 10})).base_matrix())>);
   static_assert(upper_triangular_matrix<decltype(make_Covariance(adjoint(CovT2l {9, 3, 3, 10})).base_matrix())>);
   static_assert(lower_triangular_matrix<decltype(make_Covariance(adjoint(CovT2u {9, 3, 3, 10})).base_matrix())>);
   static_assert(diagonal_matrix<decltype(make_Covariance(adjoint(CovD2 {1, 2})).base_matrix())>);
 
-  static_assert(Eigen3::is_lower_storage_triangle_v<decltype(make_Covariance<CovSA2l>().base_matrix())>);
-  static_assert(Eigen3::is_upper_storage_triangle_v<decltype(make_Covariance<CovSA2u>().base_matrix())>);
+  static_assert(Eigen3::lower_storage_triangle<decltype(make_Covariance<CovSA2l>().base_matrix())>);
+  static_assert(Eigen3::upper_storage_triangle<decltype(make_Covariance<CovSA2u>().base_matrix())>);
   static_assert(lower_triangular_matrix<decltype(make_Covariance<CovT2l>().base_matrix())>);
   static_assert(upper_triangular_matrix<decltype(make_Covariance<CovT2u>().base_matrix())>);
   static_assert(diagonal_matrix<decltype(make_Covariance<CovD2>().base_matrix())>);
 
-  static_assert(Eigen3::is_lower_storage_triangle_v<decltype(make_Covariance<CovSA2l>().base_matrix())>);
-  static_assert(Eigen3::is_upper_storage_triangle_v<decltype(make_Covariance<CovSA2u>().base_matrix())>);
+  static_assert(Eigen3::lower_storage_triangle<decltype(make_Covariance<CovSA2l>().base_matrix())>);
+  static_assert(Eigen3::upper_storage_triangle<decltype(make_Covariance<CovSA2u>().base_matrix())>);
   static_assert(diagonal_matrix<decltype(make_Covariance<CovD2>().base_matrix())>);
 
   // Covariance bases:
@@ -675,26 +675,26 @@ TEST_F(covariance_tests, Covariance_make)
   EXPECT_TRUE(is_near(make_Covariance<C>(T2u {3, 1, 0, 3}).base_matrix(), Mat2 {3, 1, 0, 3}));
   EXPECT_TRUE(is_near(make_Covariance<C>(D2 {1, 2}).base_matrix(), Mat2 {1, 0, 0, 2}));
 
-  static_assert(Eigen3::is_lower_storage_triangle_v<decltype(make_Covariance<C>(SA2l {9, 3, 3, 10}).base_matrix())>);
-  static_assert(Eigen3::is_upper_storage_triangle_v<decltype(make_Covariance<C>(SA2u {9, 3, 3, 10}).base_matrix())>);
+  static_assert(Eigen3::lower_storage_triangle<decltype(make_Covariance<C>(SA2l {9, 3, 3, 10}).base_matrix())>);
+  static_assert(Eigen3::upper_storage_triangle<decltype(make_Covariance<C>(SA2u {9, 3, 3, 10}).base_matrix())>);
   static_assert(lower_triangular_matrix<decltype(make_Covariance<C>(T2l {3, 0, 1, 3}).base_matrix())>);
   static_assert(upper_triangular_matrix<decltype(make_Covariance<C>(T2u {3, 1, 0, 3}).base_matrix())>);
   static_assert(diagonal_matrix<decltype(make_Covariance<C>(D2 {1, 2}).base_matrix())>);
 
-  static_assert(Eigen3::is_upper_storage_triangle_v<decltype(adjoint(make_Covariance<C>(SA2l {9, 3, 3, 10})).base_matrix())>);
-  static_assert(Eigen3::is_lower_storage_triangle_v<decltype(make_Covariance<C>(adjoint(SA2u {9, 3, 3, 10})).base_matrix())>);
+  static_assert(Eigen3::upper_storage_triangle<decltype(adjoint(make_Covariance<C>(SA2l {9, 3, 3, 10})).base_matrix())>);
+  static_assert(Eigen3::lower_storage_triangle<decltype(make_Covariance<C>(adjoint(SA2u {9, 3, 3, 10})).base_matrix())>);
   static_assert(upper_triangular_matrix<decltype(make_Covariance<C>(adjoint(T2l {3, 0, 1, 3})).base_matrix())>);
   static_assert(lower_triangular_matrix<decltype(make_Covariance<C>(adjoint(T2u {3, 1, 0, 3})).base_matrix())>);
   static_assert(diagonal_matrix<decltype(make_Covariance<C>(adjoint(D2 {1, 2})).base_matrix())>);
 
-  static_assert(Eigen3::is_lower_storage_triangle_v<decltype(make_Covariance<C, SA2l>().base_matrix())>);
-  static_assert(Eigen3::is_upper_storage_triangle_v<decltype(make_Covariance<C, SA2u>().base_matrix())>);
+  static_assert(Eigen3::lower_storage_triangle<decltype(make_Covariance<C, SA2l>().base_matrix())>);
+  static_assert(Eigen3::upper_storage_triangle<decltype(make_Covariance<C, SA2u>().base_matrix())>);
   static_assert(lower_triangular_matrix<decltype(make_Covariance<C, T2l>().base_matrix())>);
   static_assert(upper_triangular_matrix<decltype(make_Covariance<C, T2u>().base_matrix())>);
   static_assert(upper_triangular_matrix<decltype(make_Covariance<C, D2>().base_matrix())>);
 
-  static_assert(Eigen3::is_lower_storage_triangle_v<decltype(make_Covariance(SA2l {9, 3, 3, 10}).base_matrix())>);
-  static_assert(Eigen3::is_upper_storage_triangle_v<decltype(make_Covariance<C>(SA2u {9, 3, 3, 10}).base_matrix())>);
+  static_assert(Eigen3::lower_storage_triangle<decltype(make_Covariance(SA2l {9, 3, 3, 10}).base_matrix())>);
+  static_assert(Eigen3::upper_storage_triangle<decltype(make_Covariance<C>(SA2u {9, 3, 3, 10}).base_matrix())>);
   static_assert(upper_triangular_matrix<decltype(make_Covariance<T2u>().base_matrix())>);
   static_assert(lower_triangular_matrix<decltype(make_Covariance<C, T2l>().base_matrix())>);
   static_assert(diagonal_matrix<decltype(make_Covariance<C, D2>().base_matrix())>);
@@ -710,9 +710,9 @@ TEST_F(covariance_tests, Covariance_make)
   static_assert(lower_triangular_matrix<decltype(make_Covariance<C, TriangleType::lower, M2>().base_matrix())>);
   static_assert(upper_triangular_matrix<decltype(make_Covariance<C, TriangleType::upper, M2>().base_matrix())>);
 
-  static_assert(Eigen3::is_lower_storage_triangle_v<decltype(make_Covariance<C>(Mat2 {9, 3, 3, 10}.base_matrix()).base_matrix())>);
+  static_assert(Eigen3::lower_storage_triangle<decltype(make_Covariance<C>(Mat2 {9, 3, 3, 10}.base_matrix()).base_matrix())>);
   static_assert(upper_triangular_matrix<decltype(make_Covariance<TriangleType::upper>(Mat2 {9, 3, 3, 10}.base_matrix()).base_matrix())>);
-  static_assert(Eigen3::is_lower_storage_triangle_v<decltype(make_Covariance<C, M2>().base_matrix())>);
+  static_assert(Eigen3::lower_storage_triangle<decltype(make_Covariance<C, M2>().base_matrix())>);
   static_assert(upper_triangular_matrix<decltype(make_Covariance<TriangleType::upper, M2>().base_matrix())>);
 
   // Typed matrices:
@@ -726,8 +726,8 @@ TEST_F(covariance_tests, Covariance_make)
   static_assert(lower_triangular_matrix<decltype(make_Covariance<TriangleType::lower, Mat2>().base_matrix())>);
   static_assert(upper_triangular_matrix<decltype(make_Covariance<TriangleType::upper, Mat2>().base_matrix())>);
 
-  static_assert(Eigen3::is_lower_storage_triangle_v<decltype(make_Covariance(Mat2 {9, 3, 3, 10}).base_matrix())>);
-  static_assert(Eigen3::is_lower_storage_triangle_v<decltype(make_Covariance<Mat2>().base_matrix())>);
+  static_assert(Eigen3::lower_storage_triangle<decltype(make_Covariance(Mat2 {9, 3, 3, 10}).base_matrix())>);
+  static_assert(Eigen3::lower_storage_triangle<decltype(make_Covariance<Mat2>().base_matrix())>);
 
   // Eigen defaults
   EXPECT_TRUE(is_near(make_Covariance<C, TriangleType::lower>(9., 3, 3, 10).base_matrix(), Mat2 {3, 0, 1, 3}));
@@ -736,12 +736,12 @@ TEST_F(covariance_tests, Covariance_make)
 
   static_assert(lower_triangular_matrix<decltype(make_Covariance<C, TriangleType::lower>(9., 3, 3, 10).base_matrix())>);
   static_assert(upper_triangular_matrix<decltype(make_Covariance<C, TriangleType::upper>(9., 3, 3, 10).base_matrix())>);
-  static_assert(Eigen3::is_lower_storage_triangle_v<decltype(make_Covariance<C>(9., 3, 3, 10).base_matrix())>);
+  static_assert(Eigen3::lower_storage_triangle<decltype(make_Covariance<C>(9., 3, 3, 10).base_matrix())>);
 
   static_assert(lower_triangular_matrix<decltype(make_Covariance<TriangleType::lower>(9., 3, 3, 10).base_matrix())>);
   static_assert(lower_triangular_matrix<decltype(make_Covariance<C, TriangleType::lower>().base_matrix())>);
   static_assert(upper_triangular_matrix<decltype(make_Covariance<C, TriangleType::upper>().base_matrix())>);
-  static_assert(Eigen3::is_lower_storage_triangle_v<decltype(make_Covariance<C>().base_matrix())>);
+  static_assert(Eigen3::lower_storage_triangle<decltype(make_Covariance<C>().base_matrix())>);
   static_assert(MatrixTraits<decltype(make_Covariance<C>())>::Coefficients::size == 2);
 }
 

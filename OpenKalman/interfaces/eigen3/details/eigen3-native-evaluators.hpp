@@ -430,8 +430,8 @@ namespace Eigen::internal
   }
 
   /// Evaluator for ToEuclideanExpr
-  /// @tparam Coefficients Coefficient types
-  /// @tparam Nested Type of the nested expression
+  /// \tparam Coefficients Coefficient types
+  /// \tparam Nested Type of the nested expression
   template<typename Coefficients, typename ArgType>
   struct evaluator<OpenKalman::Eigen3::ToEuclideanExpr<Coefficients, ArgType>>
     : detail::Evaluator_EuclideanExpr_Base<Coefficients, OpenKalman::Eigen3::ToEuclideanExpr<Coefficients, ArgType>,
@@ -491,8 +491,8 @@ namespace Eigen::internal
   ///////////////////////////
 
   /// General evaluator for FromEuclideanExpr
-  /// @tparam Coefficients Coefficient types
-  /// @tparam Nested Type of the nested expression
+  /// \tparam Coefficients Coefficient types
+  /// \tparam Nested Type of the nested expression
   template<typename Coefficients, typename ArgType>
   struct evaluator<OpenKalman::Eigen3::FromEuclideanExpr<Coefficients, ArgType>>
     : detail::Evaluator_EuclideanExpr_Base<Coefficients, OpenKalman::Eigen3::FromEuclideanExpr<Coefficients, ArgType>,
@@ -548,8 +548,8 @@ namespace Eigen::internal
 
   /// Specialized evaluator for FromEuclideanExpr that has a nested ToEuclideanExpr.
   /// This amounts to wrapping angles.
-  /// @tparam Coefficients Coefficient types
-  /// @tparam Nested Type of the nested expression
+  /// \tparam Coefficients Coefficient types
+  /// \tparam Nested Type of the nested expression
   template<typename Coefficients, typename ArgType>
   struct evaluator<OpenKalman::Eigen3::FromEuclideanExpr<Coefficients, OpenKalman::Eigen3::ToEuclideanExpr<Coefficients, ArgType>>>
     : detail::Evaluator_EuclideanExpr_Base<Coefficients, OpenKalman::Eigen3::FromEuclideanExpr<Coefficients,

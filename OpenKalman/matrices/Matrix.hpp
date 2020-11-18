@@ -245,7 +245,7 @@ namespace OpenKalman
 
   /// Deduce template parameters from a Euclidean-transformed typed matrix.
 #if defined(__cpp_concepts) and false
-  // @TODO Unlike SFINAE version, this incorrectly matches V==Mean and V==Matrix in both GCC 10.1.0 and clang 10.0.0:
+  // \TODO Unlike SFINAE version, this incorrectly matches V==Mean and V==Matrix in both GCC 10.1.0 and clang 10.0.0:
   template<euclidean_transformed V> requires MatrixTraits<V>::ColumnCoefficients::axes_only
 #else
   template<typename V, std::enable_if_t<typed_matrix<V> and euclidean_transformed<V> and
@@ -282,8 +282,8 @@ namespace OpenKalman
       (coefficients<ColumnCoefficients> and MatrixTraits<M>::columns == ColumnCoefficients::size))
 #else
   template<typename RowCoefficients = void, typename ColumnCoefficients = void, typename M, std::enable_if_t<
-    typed_matrix_base<M> and (is_coefficients_v<RowCoefficients> or std::is_same_v<RowCoefficients, void>) and
-    (is_coefficients_v<ColumnCoefficients> or std::is_same_v<ColumnCoefficients, void>), int> = 0>
+    typed_matrix_base<M> and (coefficients<RowCoefficients> or std::is_same_v<RowCoefficients, void>) and
+    (coefficients<ColumnCoefficients> or std::is_same_v<ColumnCoefficients, void>), int> = 0>
 #endif
   inline auto make_Matrix(M&& arg)
   {
@@ -334,7 +334,7 @@ namespace OpenKalman
     (MatrixTraits<M>::columns == ColumnCoefficients::size)
 #else
   template<typename RowCoefficients, typename ColumnCoefficients, typename M, std::enable_if_t<
-    is_coefficients_v<RowCoefficients> and is_coefficients_v<ColumnCoefficients> and typed_matrix_base<M> and
+    coefficients<RowCoefficients> and coefficients<ColumnCoefficients> and typed_matrix_base<M> and
     (MatrixTraits<M>::dimension == RowCoefficients::size) and
     (MatrixTraits<M>::columns == ColumnCoefficients::size), int> = 0>
 #endif

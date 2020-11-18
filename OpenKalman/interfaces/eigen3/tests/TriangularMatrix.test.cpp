@@ -39,28 +39,28 @@ TEST_F(eigen3, TriangularMatrix_class)
   d1 << 3, 3;
   EXPECT_TRUE(is_near(d1.base_matrix(), mat22(3, 0, 0, 3)));
   EXPECT_TRUE(is_near(d1, mat22(3, 0, 0, 3)));
-  d1.template triangularView<Eigen::Lower>() = (M2() << 2, 5, 6, 2).finished();
+  d1.template triangularView<Eigen::Lower>() = make_native_matrix<M2>(2, 5, 6, 2);
   EXPECT_TRUE(is_near(d1, mat22(2, 0, 0, 2)));
   Diagonal2 d1b;
   d1b << 3, 3;
   EXPECT_TRUE(is_near(d1b.base_matrix(), mat22(3, 0, 0, 3)));
   EXPECT_TRUE(is_near(d1b, mat22(3, 0, 0, 3)));
-  d1b.template triangularView<Eigen::Lower>() = (M2() << 2, 5, 6, 2).finished();
+  d1b.template triangularView<Eigen::Lower>() = make_native_matrix<M2>(2, 5, 6, 2);
   EXPECT_TRUE(is_near(d1b, mat22(2, 0, 0, 2)));
   Diagonal3 d1c;
   d1c << 3, 3;
   EXPECT_TRUE(is_near(d1c.base_matrix(), mat22(3, 0, 0, 3)));
   EXPECT_TRUE(is_near(d1c, mat22(3, 0, 0, 3)));
-  d1c.template triangularView<Eigen::Lower>() = (M2() << 2, 5, 6, 2).finished();
+  d1c.template triangularView<Eigen::Lower>() = make_native_matrix<M2>(2, 5, 6, 2);
   EXPECT_TRUE(is_near(d1c, mat22(2, 0, 0, 2)));
   //
-  Lower l2 = (M2() << 3, 0, 1, 3).finished();
+  Lower l2 = make_native_matrix<M2>(3, 0, 1, 3);
   EXPECT_TRUE(is_near(l1, l2));
-  Upper u2 = (M2() << 3, 1, 0, 3).finished();
+  Upper u2 = make_native_matrix<M2>(3, 1, 0, 3);
   EXPECT_TRUE(is_near(u1, u2));
   //
-  EXPECT_TRUE(is_near(Lower(DiagonalMatrix {3., 4}), (M2() << 3, 0, 0, 4).finished()));
-  EXPECT_TRUE(is_near(Upper(DiagonalMatrix {3., 4}), (M2() << 3, 0, 0, 4).finished()));
+  EXPECT_TRUE(is_near(Lower(DiagonalMatrix {3., 4}), make_native_matrix<M2>(3, 0, 0, 4)));
+  EXPECT_TRUE(is_near(Upper(DiagonalMatrix {3., 4}), make_native_matrix<M2>(3, 0, 0, 4)));
   //
   EXPECT_TRUE(is_near(Lower(MatrixTraits<M2>::zero()), M2::Zero()));
   EXPECT_TRUE(is_near(Upper(MatrixTraits<M2>::zero()), M2::Zero()));
@@ -121,9 +121,9 @@ TEST_F(eigen3, TriangularMatrix_class)
   u2 = SelfAdjointMatrix<M2, TriangleType::lower>{9, 3, 3, 10}; // compatible opposite self-adjoint matrix
   EXPECT_TRUE(is_near(u2, mu));
   //
-  l3 = (M2() << 3, 0, 1, 3).finished(); // assign from regular matrix
+  l3 = make_native_matrix<M2>(3, 0, 1, 3); // assign from regular matrix
   EXPECT_TRUE(is_near(l3, ml));
-  u3 = (M2() << 3, 1, 0, 3).finished(); // assign from regular matrix
+  u3 = make_native_matrix<M2>(3, 1, 0, 3); // assign from regular matrix
   EXPECT_TRUE(is_near(u3, mu));
   //
   auto tl = ml.triangularView<Eigen::Lower>();
@@ -181,50 +181,50 @@ TEST_F(eigen3, TriangularMatrix_class)
   EXPECT_TRUE(is_near(l1, mat22(3., 0, 1, 3)));
   EXPECT_TRUE(is_near(u1, mat22(3., 1, 0, 3)));
   //
-  EXPECT_TRUE(is_near(l1.solve((Eigen::Matrix<double, 2, 1>() << 3, 7).finished()), (Eigen::Matrix<double, 2, 1>() << 1, 2).finished()));
-  EXPECT_TRUE(is_near(u1.solve((Eigen::Matrix<double, 2, 1>() << 3, 9).finished()), (Eigen::Matrix<double, 2, 1>() << 0, 3).finished()));
+  EXPECT_TRUE(is_near(l1.solve(make_native_matrix<double, 2, 1>(3, 7)), make_native_matrix<double, 2, 1>(1, 2)));
+  EXPECT_TRUE(is_near(u1.solve(make_native_matrix<double, 2, 1>(3, 9)), make_native_matrix<double, 2, 1>(0, 3)));
 }
 
 TEST_F(eigen3, TriangularMatrix_subscripts)
 {
-  static_assert(is_element_gettable_v<Lower, 2>);
-  static_assert(not is_element_gettable_v<Lower, 1>);
-  static_assert(is_element_gettable_v<Upper, 2>);
-  static_assert(not is_element_gettable_v<Upper, 1>);
-  static_assert(is_element_gettable_v<Diagonal, 2>);
-  static_assert(is_element_gettable_v<Diagonal, 1>);
-  static_assert(is_element_gettable_v<Diagonal2, 2>);
-  static_assert(is_element_gettable_v<Diagonal2, 1>);
-  static_assert(is_element_gettable_v<Diagonal3, 2>);
-  static_assert(is_element_gettable_v<Diagonal3, 1>);
+  static_assert(element_gettable<Lower, 2>);
+  static_assert(not element_gettable<Lower, 1>);
+  static_assert(element_gettable<Upper, 2>);
+  static_assert(not element_gettable<Upper, 1>);
+  static_assert(element_gettable<Diagonal, 2>);
+  static_assert(element_gettable<Diagonal, 1>);
+  static_assert(element_gettable<Diagonal2, 2>);
+  static_assert(element_gettable<Diagonal2, 1>);
+  static_assert(element_gettable<Diagonal3, 2>);
+  static_assert(element_gettable<Diagonal3, 1>);
 
-  static_assert(is_element_settable_v<Lower, 2>);
-  static_assert(not is_element_settable_v<Lower, 1>);
-  static_assert(is_element_settable_v<Upper, 2>);
-  static_assert(not is_element_settable_v<Upper, 1>);
-  static_assert(is_element_settable_v<Diagonal, 2>);
-  static_assert(is_element_settable_v<Diagonal, 1>);
-  static_assert(is_element_settable_v<Diagonal2, 2>);
-  static_assert(is_element_settable_v<Diagonal2, 1>);
-  static_assert(is_element_settable_v<Diagonal3, 2>);
-  static_assert(is_element_settable_v<Diagonal3, 1>);
+  static_assert(element_settable<Lower, 2>);
+  static_assert(not element_settable<Lower, 1>);
+  static_assert(element_settable<Upper, 2>);
+  static_assert(not element_settable<Upper, 1>);
+  static_assert(element_settable<Diagonal, 2>);
+  static_assert(element_settable<Diagonal, 1>);
+  static_assert(element_settable<Diagonal2, 2>);
+  static_assert(element_settable<Diagonal2, 1>);
+  static_assert(element_settable<Diagonal3, 2>);
+  static_assert(element_settable<Diagonal3, 1>);
 
-  static_assert(not is_element_settable_v<const Lower, 2>);
-  static_assert(not is_element_settable_v<const Lower, 1>);
-  static_assert(not is_element_settable_v<const Upper, 2>);
-  static_assert(not is_element_settable_v<const Upper, 1>);
-  static_assert(not is_element_settable_v<const Diagonal, 2>);
-  static_assert(not is_element_settable_v<const Diagonal, 1>);
-  static_assert(not is_element_settable_v<const Diagonal2, 2>);
-  static_assert(not is_element_settable_v<const Diagonal2, 1>);
-  static_assert(not is_element_settable_v<const Diagonal3, 2>);
-  static_assert(not is_element_settable_v<const Diagonal3, 1>);
+  static_assert(not element_settable<const Lower, 2>);
+  static_assert(not element_settable<const Lower, 1>);
+  static_assert(not element_settable<const Upper, 2>);
+  static_assert(not element_settable<const Upper, 1>);
+  static_assert(not element_settable<const Diagonal, 2>);
+  static_assert(not element_settable<const Diagonal, 1>);
+  static_assert(not element_settable<const Diagonal2, 2>);
+  static_assert(not element_settable<const Diagonal2, 1>);
+  static_assert(not element_settable<const Diagonal3, 2>);
+  static_assert(not element_settable<const Diagonal3, 1>);
 
-  static_assert(not is_element_settable_v<TriangularMatrix<const M2, TriangleType::lower>, 2>);
-  static_assert(not is_element_settable_v<TriangularMatrix<const D2, TriangleType::lower>, 2>);
-  static_assert(not is_element_settable_v<TriangularMatrix<const D2, TriangleType::lower>, 1>);
-  static_assert(not is_element_settable_v<TriangularMatrix<DiagonalMatrix<const Eigen::Matrix<double, 2, 1>>, TriangleType::lower>, 2>);
-  static_assert(not is_element_settable_v<TriangularMatrix<DiagonalMatrix<const Eigen::Matrix<double, 2, 1>>, TriangleType::lower>, 1>);
+  static_assert(not element_settable<TriangularMatrix<const M2, TriangleType::lower>, 2>);
+  static_assert(not element_settable<TriangularMatrix<const D2, TriangleType::lower>, 2>);
+  static_assert(not element_settable<TriangularMatrix<const D2, TriangleType::lower>, 1>);
+  static_assert(not element_settable<TriangularMatrix<DiagonalMatrix<const Eigen::Matrix<double, 2, 1>>, TriangleType::lower>, 2>);
+  static_assert(not element_settable<TriangularMatrix<DiagonalMatrix<const Eigen::Matrix<double, 2, 1>>, TriangleType::lower>, 1>);
 
   auto l1 = Lower {3, 0, 1, 3};
   set_element(l1, 1.1, 1, 0);
@@ -337,9 +337,9 @@ TEST_F(eigen3, TriangularMatrix_make)
   static_assert(zero_matrix<decltype(make_EigenTriangularMatrix<TriangleType::upper>(MatrixTraits<M2>::zero()))>);
   static_assert(zero_matrix<decltype(make_EigenTriangularMatrix<TriangleType::lower>(MatrixTraits<M2>::zero()))>);
   static_assert(zero_matrix<decltype(make_EigenTriangularMatrix(MatrixTraits<M2>::zero()))>);
-  static_assert(upper_triangular_matrix<decltype(make_EigenTriangularMatrix<TriangleType::upper>((M2() << 3, 1, 0, 3).finished()))>);
-  static_assert(lower_triangular_matrix<decltype(make_EigenTriangularMatrix<TriangleType::lower>((M2() << 3, 0, 1, 3).finished()))>);
-  static_assert(lower_triangular_matrix<decltype(make_EigenTriangularMatrix((M2() << 3, 0, 1, 3).finished()))>);
+  static_assert(upper_triangular_matrix<decltype(make_EigenTriangularMatrix<TriangleType::upper>(make_native_matrix<M2>(3, 1, 0, 3)))>);
+  static_assert(lower_triangular_matrix<decltype(make_EigenTriangularMatrix<TriangleType::lower>(make_native_matrix<M2>(3, 0, 1, 3)))>);
+  static_assert(lower_triangular_matrix<decltype(make_EigenTriangularMatrix(make_native_matrix<M2>(3, 0, 1, 3)))>);
   static_assert(diagonal_matrix<decltype(make_EigenTriangularMatrix<TriangleType::upper>(DiagonalMatrix {3., 4}))>);
   static_assert(diagonal_matrix<decltype(make_EigenTriangularMatrix<TriangleType::lower>(DiagonalMatrix {3., 4}))>);
   static_assert(diagonal_matrix<decltype(make_EigenTriangularMatrix(DiagonalMatrix {3., 4}))>);
@@ -388,8 +388,8 @@ TEST_F(eigen3, TriangularMatrix_overloads)
   EXPECT_TRUE(is_near(make_native_matrix(Lower(3., 0, 1, 3)), ml));
   EXPECT_TRUE(is_near(make_native_matrix(Upper(3., 1, 0, 3)), mu));
   //
-  EXPECT_TRUE(is_near(make_self_contained(Lower(M2::Zero())), (M2() << 0, 0, 0, 0).finished()));
-  EXPECT_TRUE(is_near(make_self_contained(Upper(M2::Zero())), (M2() << 0, 0, 0, 0).finished()));
+  EXPECT_TRUE(is_near(make_self_contained(Lower(M2::Zero())), make_native_matrix<M2>(0, 0, 0, 0)));
+  EXPECT_TRUE(is_near(make_self_contained(Upper(M2::Zero())), make_native_matrix<M2>(0, 0, 0, 0)));
   static_assert(std::is_same_v<std::decay_t<decltype(make_self_contained(Lower {9, 3, 3, 10} * 2))>, Lower>);
   static_assert(std::is_same_v<std::decay_t<decltype(make_self_contained(Upper {9, 3, 3, 10} * 2))>, Upper>);
   //
@@ -417,8 +417,8 @@ TEST_F(eigen3, TriangularMatrix_overloads)
   //
   EXPECT_TRUE(is_near(Cholesky_square(Lower {3., 0, 1, 3}), mat22(9., 3, 3, 10)));
   EXPECT_TRUE(is_near(Cholesky_square(Upper {3., 1, 0, 3}), mat22(9., 3, 3, 10)));
-  static_assert(is_lower_storage_triangle_v<decltype(Cholesky_square(Lower {3, 0, 1, 3}))>);
-  static_assert(is_upper_storage_triangle_v<decltype(Cholesky_square(Upper {3, 1, 0, 3}))>);
+  static_assert(lower_storage_triangle<decltype(Cholesky_square(Lower {3, 0, 1, 3}))>);
+  static_assert(upper_storage_triangle<decltype(Cholesky_square(Upper {3, 1, 0, 3}))>);
   //
   EXPECT_TRUE(is_near(Cholesky_square(TriangularMatrix<Eigen::Matrix<double, 1, 1>, TriangleType::lower>(Eigen::Matrix<double, 1, 1>(9))), Eigen::Matrix<double, 1, 1>(81)));
   EXPECT_TRUE(is_near(Cholesky_square(TriangularMatrix<Eigen::Matrix<double, 1, 1>, TriangleType::upper>(Eigen::Matrix<double, 1, 1>(9))), Eigen::Matrix<double, 1, 1>(81)));
@@ -461,29 +461,29 @@ TEST_F(eigen3, TriangularMatrix_overloads)
   EXPECT_NEAR(trace(Lower {3., 0, 1, 3}), 6, 1e-6);
   EXPECT_NEAR(trace(Upper {3., 1, 0, 3}), 6, 1e-6);
   //
-  EXPECT_TRUE(is_near(solve(Lower {3., 0, 1, 3}, (Eigen::Matrix<double, 2, 1>() << 3, 7).finished()), make_native_matrix(1., 2)));
-  EXPECT_TRUE(is_near(solve(Upper {3., 1, 0, 3}, (Eigen::Matrix<double, 2, 1>() << 3, 9).finished()), make_native_matrix(0., 3)));
+  EXPECT_TRUE(is_near(solve(Lower {3., 0, 1, 3}, make_native_matrix<double, 2, 1>(3, 7)), make_native_matrix(1., 2)));
+  EXPECT_TRUE(is_near(solve(Upper {3., 1, 0, 3}, make_native_matrix<double, 2, 1>(3, 9)), make_native_matrix(0., 3)));
   //
   EXPECT_TRUE(is_near(reduce_columns(Lower {3., 0, 1, 3}), make_native_matrix(1.5, 2)));
   EXPECT_TRUE(is_near(reduce_columns(Upper {3., 1, 0, 3}), make_native_matrix(2, 1.5)));
   //
   auto sl1 = Lower {3., 0, 1, 3};
-  rank_update(sl1, (M2() << 2, 0, 1, 2).finished(), 4);
+  rank_update(sl1, make_native_matrix<M2>(2, 0, 1, 2), 4);
   EXPECT_TRUE(is_near(sl1, mat22(5., 0, 2.2, std::sqrt(25.16))));
   auto su1 = Upper {3., 1, 0, 3};
-  rank_update(su1, (M2() << 2, 0, 1, 2).finished(), 4);
+  rank_update(su1, make_native_matrix<M2>(2, 0, 1, 2), 4);
   EXPECT_TRUE(is_near(su1, mat22(5., 2.2, 0, std::sqrt(25.16))));
   //
   const auto sl2 = Lower {3., 0, 1, 3};
-  EXPECT_TRUE(is_near(rank_update(sl2, (M2() << 2, 0, 1, 2).finished(), 4), mat22(5., 0, 2.2, std::sqrt(25.16))));
+  EXPECT_TRUE(is_near(rank_update(sl2, make_native_matrix<M2>(2, 0, 1, 2), 4), mat22(5., 0, 2.2, std::sqrt(25.16))));
   const auto su2 = Upper {3., 1, 0, 3};
-  EXPECT_TRUE(is_near(rank_update(su2, (M2() << 2, 0, 1, 2).finished(), 4), mat22(5., 2.2, 0, std::sqrt(25.16))));
+  EXPECT_TRUE(is_near(rank_update(su2, make_native_matrix<M2>(2, 0, 1, 2), 4), mat22(5., 2.2, 0, std::sqrt(25.16))));
   //
-  EXPECT_TRUE(is_near(rank_update(Lower {3., 0, 1, 3}, (M2() << 2, 0, 1, 2).finished(), 4), mat22(5., 0, 2.2, std::sqrt(25.16))));
-  EXPECT_TRUE(is_near(rank_update(Upper {3., 1, 0, 3}, (M2() << 2, 0, 1, 2).finished(), 4), mat22(5., 2.2, 0, std::sqrt(25.16))));
+  EXPECT_TRUE(is_near(rank_update(Lower {3., 0, 1, 3}, make_native_matrix<M2>(2, 0, 1, 2), 4), mat22(5., 0, 2.2, std::sqrt(25.16))));
+  EXPECT_TRUE(is_near(rank_update(Upper {3., 1, 0, 3}, make_native_matrix<M2>(2, 0, 1, 2), 4), mat22(5., 2.2, 0, std::sqrt(25.16))));
   //
-  EXPECT_TRUE(is_near(solve(Lower {3., 0, 1, 3}, (Eigen::Matrix<double, 2, 1>() << 3, 7).finished()), (Eigen::Matrix<double, 2, 1>() << 1, 2).finished()));
-  EXPECT_TRUE(is_near(solve(Upper {3., 1, 0, 3}, (Eigen::Matrix<double, 2, 1>() << 3, 9).finished()), (Eigen::Matrix<double, 2, 1>() << 0, 3).finished()));
+  EXPECT_TRUE(is_near(solve(Lower {3., 0, 1, 3}, make_native_matrix<double, 2, 1>(3, 7)), make_native_matrix<double, 2, 1>(1, 2)));
+  EXPECT_TRUE(is_near(solve(Upper {3., 1, 0, 3}, make_native_matrix<double, 2, 1>(3, 9)), make_native_matrix<double, 2, 1>(0, 3)));
   //
   EXPECT_TRUE(is_near(LQ_decomposition(Lower {3., 0, 1, 3}), mat22(3., 0, 1, 3)));
   EXPECT_TRUE(is_near(QR_decomposition(Upper {3., 1, 0, 3}), mat22(3., 1, 0, 3)));
@@ -577,25 +577,25 @@ TEST_F(eigen3, TriangularMatrix_blocks_lower)
   EXPECT_TRUE(is_near(column(m1, 2), make_native_matrix(0., 0, 9)));
   EXPECT_TRUE(is_near(column<1>(m1), make_native_matrix(0., 7, 8)));
   EXPECT_TRUE(is_near(apply_columnwise(m1, [](const auto& col){ return col + col.Constant(1); }),
-    (Eigen::Matrix<double, 3, 3>() <<
+    make_native_matrix<double, 3, 3>(
       5, 1, 1,
       6, 8, 1,
-      7, 9, 10).finished()));
+      7, 9, 10)));
   EXPECT_TRUE(is_near(apply_columnwise(m1, [](const auto& col, std::size_t i){ return col + col.Constant(i); }),
-    (Eigen::Matrix<double, 3, 3>() <<
+    make_native_matrix<double, 3, 3>(
       4, 1, 2,
       5, 8, 2,
-      6, 9, 11).finished()));
+      6, 9, 11)));
   EXPECT_TRUE(is_near(apply_coefficientwise(m1, [](const auto& x){ return x + 1; }),
-    (Eigen::Matrix<double, 3, 3>() <<
+    make_native_matrix<double, 3, 3>(
       5, 1, 1,
       6, 8, 1,
-      7, 9, 10).finished()));
+      7, 9, 10)));
   EXPECT_TRUE(is_near(apply_coefficientwise(m1, [](const auto& x, std::size_t i, std::size_t j){ return x + i + j; }),
-    (Eigen::Matrix<double, 3, 3>() <<
+    make_native_matrix<double, 3, 3>(
       4, 1, 2,
       6, 9, 3,
-      8, 11, 13).finished()));
+      8, 11, 13)));
 }
 
 TEST_F(eigen3, TriangularMatrix_blocks_upper)
@@ -683,25 +683,25 @@ TEST_F(eigen3, TriangularMatrix_blocks_upper)
   EXPECT_TRUE(is_near(column(m1, 2), make_native_matrix(6., 8, 9)));
   EXPECT_TRUE(is_near(column<1>(m1), make_native_matrix(5., 7, 0)));
   EXPECT_TRUE(is_near(apply_columnwise(m1, [](const auto& col){ return col + col.Constant(1); }),
-    (Eigen::Matrix<double, 3, 3>() <<
+    make_native_matrix<double, 3, 3>(
       5, 6, 7,
       1, 8, 9,
-      1, 1, 10).finished()));
+      1, 1, 10)));
   EXPECT_TRUE(is_near(apply_columnwise(m1, [](const auto& col, std::size_t i){ return col + col.Constant(i); }),
-    (Eigen::Matrix<double, 3, 3>() <<
+    make_native_matrix<double, 3, 3>(
       4, 6, 8,
       0, 8, 10,
-      0, 1, 11).finished()));
+      0, 1, 11)));
   EXPECT_TRUE(is_near(apply_coefficientwise(m1, [](const auto& x){ return x + 1; }),
-    (Eigen::Matrix<double, 3, 3>() <<
+    make_native_matrix<double, 3, 3>(
       5, 6, 7,
       1, 8, 9,
-      1, 1, 10).finished()));
+      1, 1, 10)));
   EXPECT_TRUE(is_near(apply_coefficientwise(m1, [](const auto& x, std::size_t i, std::size_t j){ return x + i + j; }),
-    (Eigen::Matrix<double, 3, 3>() <<
+    make_native_matrix<double, 3, 3>(
       4, 6, 8,
       1, 9, 11,
-      2, 3, 13).finished()));
+      2, 3, 13)));
 }
 
 TEST_F(eigen3, TriangularMatrix_arithmetic_lower)

@@ -19,7 +19,7 @@
 namespace OpenKalman
 {
   /**
-   * @brief A Monte Carlo transform from one Gaussian distribution to another.
+   * \brief A Monte Carlo transform from one Gaussian distribution to another.
    * Uses ideas from Chan, Tony F.; Golub, Gene H.; LeVeque, Randall J. (1979),
    * "Updating Formulae and a Pairwise Algorithm for Computing Sample Variances."
    * Technical Report STAN-CS-79-773, Department of Computer Science, Stanford University.

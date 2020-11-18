@@ -295,7 +295,7 @@ namespace OpenKalman::Eigen3
 
     auto operator()(std::size_t i, std::size_t j)
     {
-      if constexpr (is_element_settable_v < TriangularMatrix, 2 >)
+      if constexpr (element_settable < TriangularMatrix, 2 >)
         return OpenKalman::internal::ElementSetter(*this, i, j);
       else
         return const_cast<const TriangularMatrix&>(*this)(i, j);
@@ -308,9 +308,9 @@ namespace OpenKalman::Eigen3
 
     auto operator[](std::size_t i)
     {
-      if constexpr(is_element_gettable_v < TriangularMatrix, 1 >)
+      if constexpr(element_gettable < TriangularMatrix, 1 >)
         return OpenKalman::internal::ElementSetter(*this, i);
-      else if constexpr(is_element_gettable_v < TriangularMatrix, 2 >)
+      else if constexpr(element_gettable < TriangularMatrix, 2 >)
         return OpenKalman::internal::ElementSetter(*this, i, i);
       else
         return const_cast<const TriangularMatrix&>(*this)[i];
@@ -318,7 +318,7 @@ namespace OpenKalman::Eigen3
 
     auto operator[](std::size_t i) const
     {
-      if constexpr(is_element_gettable_v < TriangularMatrix, 1 >)
+      if constexpr(element_gettable < TriangularMatrix, 1 >)
         return OpenKalman::internal::ElementSetter(*this, i);
       else
         return OpenKalman::internal::ElementSetter(*this, i, i);
@@ -416,13 +416,13 @@ namespace OpenKalman::Eigen3
   }
 
 #ifdef __cpp_concepts
-  template<TriangleType t, eigen_triangular_expr M>
+  template<TriangleType t, eigen_triangular_expr M> requires (t == MatrixTraits<M>::triangle_type)
 #else
-  template<TriangleType t, typename M, std::enable_if_t<eigen_triangular_expr<M>, int> = 0>
+  template<TriangleType t, typename M, std::enable_if_t<eigen_triangular_expr<M> and
+    (t == MatrixTraits<M>::triangle_type), int> = 0>
 #endif
   auto make_EigenTriangularMatrix(M&& m)
   {
-    static_assert(t == MatrixTraits<M>::triangle_type);
     return TriangularMatrix<passable_t<M>, t > (std::forward<M>(m));
   }
 

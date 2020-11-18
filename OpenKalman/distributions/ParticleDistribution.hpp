@@ -17,11 +17,11 @@
 namespace OpenKalman {
 
     /**
-     * @brief Distribution of particles
+     * \brief Distribution of particles
      *
      * Particles are stored in a vector, and each particle is a tuple of properties.
      *
-     * @tparam Properties The properties of each particle
+     * \tparam Properties The properties of each particle
      */
     template<typename... Properties>
     struct ParticleDistribution: std::vector<std::tuple<Properties...>>

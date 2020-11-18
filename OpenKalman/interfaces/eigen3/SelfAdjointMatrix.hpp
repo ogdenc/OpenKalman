@@ -24,38 +24,43 @@ namespace OpenKalman::Eigen3
     static constexpr auto dimension = MatrixTraits<BaseMatrix>::dimension;
     static_assert(dimension == MatrixTraits<BaseMatrix>::columns);
 
+
     /// Default constructor
     SelfAdjointMatrix() : Base(), view(this->base_matrix()) {}
 
+
     /// Copy constructor.
     SelfAdjointMatrix(const SelfAdjointMatrix& other) : SelfAdjointMatrix(other.base_matrix()) {}
+
 
     /// Move constructor.
     SelfAdjointMatrix(SelfAdjointMatrix&& other) noexcept
       : SelfAdjointMatrix(std::move(other.base_matrix())) {}
 
+
     /// Construct from a compatible self-joint matrix object of the same storage type
 #ifdef __cpp_concepts
     template<eigen_self_adjoint_expr Arg> requires
-      (is_lower_storage_triangle_v<Arg> == is_lower_storage_triangle_v<SelfAdjointMatrix>)
+      (lower_storage_triangle<Arg> == lower_storage_triangle<SelfAdjointMatrix>)
 #else
     template<typename Arg, std::enable_if_t<eigen_self_adjoint_expr<Arg> and
-      is_lower_storage_triangle_v<Arg> == is_lower_storage_triangle_v <SelfAdjointMatrix>, int> = 0>
+      lower_storage_triangle<Arg> == lower_storage_triangle <SelfAdjointMatrix>, int> = 0>
 #endif
     SelfAdjointMatrix(Arg&& arg) noexcept
       : SelfAdjointMatrix(base_matrix(std::forward<Arg>(arg))) {}
 
+
     /// Construct from a compatible self-joint matrix object of the opposite storage type
 #ifdef __cpp_concepts
-
-    template<eigen_self_adjoint_expr Arg> requires (
-      is_lower_storage_triangle_v<Arg> != is_lower_storage_triangle_v<SelfAdjointMatrix>)
+    template<eigen_self_adjoint_expr Arg> requires
+      (lower_storage_triangle<Arg> != lower_storage_triangle<SelfAdjointMatrix>)
 #else
     template<typename Arg, std::enable_if_t<eigen_self_adjoint_expr < Arg> and
-      is_lower_storage_triangle_v<Arg> != is_lower_storage_triangle_v <SelfAdjointMatrix>, int> = 0>
+      lower_storage_triangle<Arg> != lower_storage_triangle <SelfAdjointMatrix>, int> = 0>
 #endif
     SelfAdjointMatrix(Arg&& arg) noexcept
       : SelfAdjointMatrix(adjoint(base_matrix(std::forward<Arg>(arg)))) {}
+
 
     /// Construct from a compatible triangular matrix object
 #ifdef __cpp_concepts
@@ -65,6 +70,7 @@ namespace OpenKalman::Eigen3
 #endif
     SelfAdjointMatrix(Arg&& arg) noexcept
       : SelfAdjointMatrix(Cholesky_square(std::forward<Arg>(arg))) {}
+
 
     /// Construct from a regular or diagonal matrix object.
 #ifdef __cpp_concepts
@@ -76,7 +82,7 @@ namespace OpenKalman::Eigen3
 
 
     /** Construct from a list of scalar coefficients, in row-major order.
-     * @param args List of scalar values.
+     * \param args List of scalar values.
      */
 #ifdef __cpp_concepts
     template<std::convertible_to<const Scalar> ... Args>
@@ -94,7 +100,7 @@ namespace OpenKalman::Eigen3
 
 
     /** Construct from a list of scalar coefficients, in row-major order.
-     * @param args List of scalar values.
+     * \param args List of scalar values.
      */
 #if defined (__cpp_concepts) && defined (__clang__) // Because of compiler issue in at least GCC version 10.1.0
     template<std::convertible_to<const Scalar> ... Args> requires (sizeof...(Args) == dimension) and
@@ -109,8 +115,8 @@ namespace OpenKalman::Eigen3
 
 
     /** Copy assignment operator
-     * @param other Another SelfAdjointMatrix
-     * @return Reference to this.
+     * \param other Another SelfAdjointMatrix
+     * \return Reference to this.
      */
     auto& operator=(const SelfAdjointMatrix& other)
     {
@@ -124,8 +130,8 @@ namespace OpenKalman::Eigen3
 
 
     /** Move assignment operator
-     * @param other A SelfAdjointMatrix temporary value.
-     * @return Reference to this.
+     * \param other A SelfAdjointMatrix temporary value.
+     * \return Reference to this.
      */
     auto& operator=(SelfAdjointMatrix&& other) noexcept
     {
@@ -156,8 +162,8 @@ namespace OpenKalman::Eigen3
       }
       else if constexpr(std::is_lvalue_reference_v<Arg>)
       {
-        if constexpr(is_upper_storage_triangle_v<Arg>
-          == is_upper_storage_triangle_v<SelfAdjointMatrix>)
+        if constexpr(upper_storage_triangle<Arg>
+          == upper_storage_triangle<SelfAdjointMatrix>)
           this->base_matrix().template triangularView<uplo>() = base_matrix(arg);
         else
           this->base_matrix().template triangularView<uplo>() = adjoint(base_matrix(arg));
@@ -317,7 +323,7 @@ namespace OpenKalman::Eigen3
 
     auto operator()(std::size_t i, std::size_t j)
     {
-      if constexpr (is_element_settable_v < SelfAdjointMatrix, 2 >)
+      if constexpr (element_settable < SelfAdjointMatrix, 2 >)
         return OpenKalman::internal::ElementSetter(*this, i, j);
       else
         return const_cast<const SelfAdjointMatrix&>(*this)(i, j);
@@ -332,9 +338,9 @@ namespace OpenKalman::Eigen3
 
     auto operator[](std::size_t i)
     {
-      if constexpr(is_element_settable_v < SelfAdjointMatrix, 1 >)
+      if constexpr(element_settable < SelfAdjointMatrix, 1 >)
         return OpenKalman::internal::ElementSetter(*this, i);
-      else if constexpr(is_element_settable_v < SelfAdjointMatrix, 2 >)
+      else if constexpr(element_settable < SelfAdjointMatrix, 2 >)
         return OpenKalman::internal::ElementSetter(*this, i, i);
       else
         return const_cast<const SelfAdjointMatrix&>(*this)[i];
@@ -342,7 +348,7 @@ namespace OpenKalman::Eigen3
 
     auto operator[](std::size_t i) const
     {
-      if constexpr(is_element_gettable_v < SelfAdjointMatrix, 1 >)
+      if constexpr(element_gettable < SelfAdjointMatrix, 1 >)
         return OpenKalman::internal::ElementSetter(*this, i);
       else
         return OpenKalman::internal::ElementSetter(*this, i, i);
@@ -454,7 +460,7 @@ namespace OpenKalman::Eigen3
   auto
   make_EigenSelfAdjointMatrix(M&& m)
   {
-    return SelfAdjointMatrix<passable_t<M>, t> (std::forward<M>(m));
+    return SelfAdjointMatrix<passable_t<M>, t> {std::forward<M>(m)};
   }
 
 
@@ -464,9 +470,12 @@ namespace OpenKalman::Eigen3
   template<TriangleType t, typename M, std::enable_if_t<eigen_self_adjoint_expr<M>, int> = 0>
 #endif
   auto
-  make_EigenSelfAdjointMatrix(M && m)
+  make_EigenSelfAdjointMatrix(M&& m)
   {
-    return SelfAdjointMatrix<passable_t<M>, t> (std::forward<M>(m));
+    if constexpr(t == MatrixTraits<M>::storage_type)
+      return make_EigenSelfAdjointMatrix<t>(base_matrix(std::forward<M>(m)));
+    else
+      return make_EigenSelfAdjointMatrix<t>(adjoint(base_matrix(std::forward<M>(m))));
   }
 
 
@@ -476,7 +485,7 @@ namespace OpenKalman::Eigen3
   template<typename M, std::enable_if_t<eigen_self_adjoint_expr<M>, int> = 0>
 #endif
   auto
-  make_EigenSelfAdjointMatrix(M && m)
+  make_EigenSelfAdjointMatrix(M&& m)
   {
     return make_EigenSelfAdjointMatrix<MatrixTraits<M>::storage_type>(std::forward<M>(m));
   }
@@ -569,7 +578,7 @@ namespace OpenKalman::Eigen3
   inline auto
   transpose(Arg && arg)
   {
-    constexpr auto t = Eigen3::is_lower_storage_triangle_v<Arg> ? TriangleType::upper : TriangleType::lower;
+    constexpr auto t = Eigen3::lower_storage_triangle<Arg> ? TriangleType::upper : TriangleType::lower;
     auto b = transpose(base_matrix(std::forward<Arg>(arg)));
     return Eigen3::SelfAdjointMatrix<decltype(b), t>(std::move(b));
   }
@@ -583,7 +592,7 @@ namespace OpenKalman::Eigen3
   inline auto
   adjoint(Arg && arg)
   {
-    constexpr auto t = Eigen3::is_lower_storage_triangle_v<Arg> ? TriangleType::upper : TriangleType::lower;
+    constexpr auto t = Eigen3::lower_storage_triangle<Arg> ? TriangleType::upper : TriangleType::lower;
     auto b = adjoint(base_matrix(std::forward<Arg>(arg)));
     return Eigen3::SelfAdjointMatrix<decltype(b), t>(std::move(b));
   }

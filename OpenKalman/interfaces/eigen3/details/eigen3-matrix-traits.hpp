@@ -35,7 +35,7 @@ namespace OpenKalman
 
   /**
    * Default matrix traits for any matrix derived from Eigen::MatrixBase.
-   * @tparam M The matrix.
+   * \tparam M The matrix.
    */
 #ifdef __cpp_concepts
   template<typename M> requires std::same_as<M, std::decay_t<M>> and Eigen3::eigen_native<M>
@@ -49,7 +49,7 @@ namespace OpenKalman
     using Scalar = typename BaseMatrix::Scalar;
 
     static constexpr std::size_t dimension = BaseMatrix::RowsAtCompileTime;
-    static constexpr std::size_t columns = BaseMatrix::ColsAtCompileTime; ///@TODO: make columns potentially dynamic (0 = dynamic?)
+    static constexpr std::size_t columns = BaseMatrix::ColsAtCompileTime; ///\TODO: make columns potentially dynamic (0 = dynamic?)
     //Note: rows or columns at compile time are -1 if the matrix is dynamic:
     static_assert(dimension > 0);
     static_assert(columns > 0);

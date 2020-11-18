@@ -9,7 +9,7 @@
  */
 
 /**
- * @file GaussianDistribution.h
+ * \file GaussianDistribution.h
  * A header file for the class GaussianDistribution and its traits.
  */
 
@@ -251,8 +251,8 @@ namespace OpenKalman
 
     constexpr const auto&& covariance_of() const && { return std::move(sigma); }
 
-    /// @brief Generate a random value from the distribution.
-    /// @return A random, single-column typed matrix with probability based on the distribution
+    /// \brief Generate a random value from the distribution.
+    /// \return A random, single-column typed matrix with probability based on the distribution
     auto operator()() const
     {
       auto norm = randomize<
@@ -264,8 +264,8 @@ namespace OpenKalman
         return make_self_contained(make_Matrix(mu) + s * norm);
     }
 
-    /// @brief Log-likelihood function for a set of i.i.d. observations z.
-    /// @param z One or more i.i.d. observations in the same multivariate space as the mean of the distribution.
+    /// \brief Log-likelihood function for a set of i.i.d. observations z.
+    /// \param z One or more i.i.d. observations in the same multivariate space as the mean of the distribution.
     template<typename...Z>
     auto log_likelihood(const Z&...z) const
     {
@@ -429,7 +429,7 @@ namespace OpenKalman
     (covariance<Cov> or covariance_base<Cov> or typed_matrix<Cov> or typed_matrix_base<Cov>)
 #else
   template<typename re = std::mt19937, typename M, typename Cov,
-    std::enable_if_t<not is_coefficients_v<re> and (typed_matrix<M> or typed_matrix_base<M>) and
+    std::enable_if_t<not coefficients<re> and (typed_matrix<M> or typed_matrix_base<M>) and
       (covariance<Cov> or covariance_base<Cov> or typed_matrix<Cov> or typed_matrix_base<Cov>), int> = 0>
 #endif
   inline auto
@@ -490,7 +490,7 @@ namespace OpenKalman
     covariance_base<Cov> or typed_matrix_base<Cov>
 #else
   template<typename Coefficients, typename re = std::mt19937, typename M, typename Cov,
-    std::enable_if_t<is_coefficients_v<Coefficients> and
+    std::enable_if_t<coefficients<Coefficients> and
       typed_matrix_base<M> and (covariance_base<Cov> or typed_matrix_base<Cov>), int> = 0>
 #endif
   inline auto

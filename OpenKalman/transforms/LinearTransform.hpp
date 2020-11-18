@@ -15,7 +15,7 @@
 namespace OpenKalman
 {
   /**
-   * @brief A linear transformation from one statistical distribution to another.
+   * \brief A linear transformation from one statistical distribution to another.
    */
   struct LinearTransform : internal::LinearTransformBase<LinearTransform>
   {
