@@ -11,88 +11,14 @@
 #ifndef OPENKALMAN_COEFFICIENT_FORWARD_DECLARATIONS_HPP
 #define OPENKALMAN_COEFFICIENT_FORWARD_DECLARATIONS_HPP
 
+#include <type_traits>
+
+#ifdef __cpp_concepts
+#include <concepts>
+#endif
+
 namespace OpenKalman
 {
-  // ----------------------------- //
-  //   Atomic coefficient groups   //
-  // ----------------------------- //
-
-  /**
-   * A real number, [&minus;&infin;,&infin].
-   */
-  struct Axis;
-
-  /**
-   * A modular value, such as an angle or wrapping unit circle.
-   * \tparam Traits A class defining the real values <code>wrap_max</code> and <code>wrap_min</code>, which are the
-   * minimum and maximum values, respectively, beyond which wrapping occurs.
-   */
-  template<typename Traits>
-  struct Circle;
-
-  /**
-   * A non-negative real number, representing a distance.
-   */
-  struct Distance;
-
-  /**
-   * A positive or negative real number representing an inclination or declination from the horizon.
-   * \tparam Traits A class defining the real value <code>max</code> and <code>min</code>, which are the
-   * maximum and minimum values reflecting up and down, respectively. Normally, the horizon will be zero,
-   * but in any event, the horizon will be <code>(max+min)/2</code>
-   */
-  template<typename Traits>
-  struct Inclination;
-
-  /**
-   * A group reflecting polar coordinates.
-   *
-   * Coefficient1 and Coefficient2 must be some combination of Distance and Circle/Angle, such as
-   * Polar<Distance, Angle> or Polar<Angle, Distance>.
-   * \tparam Coefficient1 Either Distance or Circle (e.g., Angle).
-   * \tparam Coefficient2 Either Distance or Circle (e.g., Angle).
-   */
-  template<typename Coefficient1, typename Coefficient2>
-  struct Polar;
-
-  /**
-   * A group reflecting spherical coordinates.
-   *
-   * Coefficient1, Coefficient2, and Coefficient3 must be some combination of Distance, Inclination, and Circle/Angle,
-   * reflecting the distance, inclination, and azimuth, respectively.
-   * Examples: Spherical<Distance, Inclination, Angle>, Spherical<Angle, Distance, Inclination>.
-   * \tparam Coefficient1 Distance, inclination, or Circle (e.g., Angle).
-   * \tparam Coefficient2 Distance, inclination, or Circle (e.g., Angle).
-   * \tparam Coefficient3 Distance, inclination, or Circle (e.g., Angle).
-   */
-  template<typename Coefficient1, typename Coefficient2, typename Coefficient3>
-  struct Spherical;
-
-  namespace internal
-  {
-    template<typename T>
-    struct is_atomic_coefficient_group : std::false_type {};
-
-    template<>
-    struct is_atomic_coefficient_group<Axis> : std::true_type {};
-
-    template<typename Traits>
-    struct is_atomic_coefficient_group<Circle<Traits>> : std::true_type {};
-
-    template<>
-    struct is_atomic_coefficient_group<Distance> : std::true_type {};
-
-    template<typename Traits>
-    struct is_atomic_coefficient_group<Inclination<Traits>> : std::true_type {};
-
-    template<typename Coeff1, typename Coeff2>
-    struct is_atomic_coefficient_group<Polar<Coeff1, Coeff2>> : std::true_type {};
-
-    template<typename Coeff1, typename Coeff2, typename Coeff3>
-    struct is_atomic_coefficient_group<Spherical<Coeff1, Coeff2, Coeff3>> : std::true_type {};
-  }
-
-
   // -------------------------------- //
   //   Composite coefficient groups   //
   // -------------------------------- //
@@ -100,8 +26,8 @@ namespace OpenKalman
   /**
    * A set of coefficient types to be associated with the rows or columns of a matrix.
    *
-   * Each coefficient Cs can be a single coefficient (e.g., Axis, Circle, Distance, Inclination),
-   * an atomic coefficient group (e.g., Polar, Spherical) or a composite coefficient (e.g., Coefficient<Axis, Angle>).
+   * Each coefficient Cs can be a single coefficient (e.g., Axis, Angle, Distance, Inclination),
+   * an atomic coefficient group (e.g., Polar, Spherical) or a composite coefficient (e.g., Coefficient<Axis, angle::Radians>).
    * \tparam Cs Any types within the concept coefficients (internal bool variable coefficients in c++17).
    */
 #ifdef __cpp_concepts
@@ -114,18 +40,135 @@ namespace OpenKalman
 
   namespace internal
   {
-    /**
-     * A type trait testing whether T is a composite set of coefficient groups.
-     *
-     * This corresponds to any specialization of the class Coefficients. Composite coefficients can, themselves,
-     * comprise groups of other composite components. For example, Coefficients<Axis, Coefficients<Axis, Angle>>
-     * tests positive for is_composite_coefficients.
-     */
     template<typename T>
     struct is_composite_coefficients : std::false_type {};
 
     template<typename...C>
     struct is_composite_coefficients<Coefficients<C...>> : std::true_type {};
+  }
+
+
+  // ----------------------------- //
+  //   Atomic coefficient groups   //
+  // ----------------------------- //
+
+  /**
+   * \brief A real or integral number, [&minus;&infin;,&infin].
+   */
+  struct Axis;
+
+
+  /**
+   * \brief A non-negative real or integral number, [0,&infin], representing a distance.
+   */
+  struct Distance;
+
+
+  /**
+   * \brief An angle or any other simple modular value.
+   * \details An angle wraps to a given interval [max,min) when it increases or decreases outside that range.
+   * \tparam Limits A class template defining the real values <code>min</code> and <code>max</code>, representing
+   * minimum and maximum values, respectively, beyond which wrapping occurs. Scalar is a scalar type
+   * (e.g., <code>double</code>).
+   */
+  template<template<typename Scalar> typename Limits>
+#ifdef __cpp_concepts
+  requires std::floating_point<decltype(Limits<double>::min)> and
+    std::floating_point<decltype(Limits<double>::max)> and (Limits<double>::min < Limits<double>::max)
+#endif
+  struct Angle;
+
+
+  /**
+   * \brief A positive or negative real number &phi; representing an inclination or declination from the horizon.
+   * \details &phi;<sub>down</sub>&le;&phi;&le;&phi;<sub>up</sub>, where &phi;<sub>down</sub> is a real number
+   * representing down, and &phi;<sub>up</sub> is a real number representing up. Normally, the horizon will be zero and
+   * &phi;<sub>down</sub>=&minus;&phi;<sub>up</sub>, but in general, the horizon is at
+   * &half;(&phi;<sub>down</sub>+&minus;&phi;<sub>up</sub>).
+   * \tparam Limits A class template defining the real values <code>down</code> and <code>up</code>, where
+   * <code>down</code>=&phi;<sub>down</sub> and <code>up</code>=&phi;<sub>up</sub>. Scalar is a scalar type
+   * (e.g., <code>double</code>).
+   */
+  template<template<typename Scalar> typename Limits>
+#ifdef __cpp_concepts
+  requires std::floating_point<decltype(Limits<double>::down)> and
+    std::floating_point<decltype(Limits<double>::up)> and (Limits<double>::down < Limits<double>::up)
+#endif
+  struct Inclination;
+
+
+  /**
+   * \brief An atomic coefficient group reflecting polar coordinates.
+   * \details C1 and C2 are coefficients, and must be some combination of Distance and Angle, such as
+   * Polar<Distance, angle::Radians> or Polar<angle::Degrees, Distance>.
+   * \tparam C1 Either Distance or Angle.
+   * \tparam C2 Either Distance or Angle.
+   */
+  template<typename C1, typename C2>
+  struct Polar;
+
+
+  /**
+   * A group reflecting spherical coordinates.
+   *
+   * Coefficient1, Coefficient2, and Coefficient3 must be some combination of Distance, Inclination, and Angle/angle::Radians,
+   * reflecting the distance, inclination, and azimuth, respectively.
+   * Examples: Spherical<Distance, Inclination, angle::Radians>, Spherical<angle::Radians, Distance, Inclination>.
+   * \tparam Coefficient1 Distance, inclination, or Angle (e.g., angle::Radians).
+   * \tparam Coefficient2 Distance, inclination, or Angle (e.g., angle::Radians).
+   * \tparam Coefficient3 Distance, inclination, or Angle (e.g., angle::Radians).
+   */
+  template<typename C1, typename C2, typename C3>
+  struct Spherical;
+
+
+  namespace internal
+  {
+    template<typename T>
+    struct is_atomic_coefficient_group : std::false_type {};
+
+    /**
+     * \internal \struct is_atomic_coefficient_group<> \sa Axis
+     * \interface coefficients<> \sa Axis
+     */
+    template<>
+    struct is_atomic_coefficient_group<Axis> : std::true_type {};
+
+    /**
+     * \internal \struct is_atomic_coefficient_group<> \sa Distance
+     * \interface coefficients<> \sa Distance
+     */
+    template<>
+    struct is_atomic_coefficient_group<Distance> : std::true_type {};
+
+    /**
+     * \internal \struct is_atomic_coefficient_group<> \sa Angle<>
+     * \interface coefficients<> \sa Angle<>
+     */
+    template<template<typename Scalar> typename Limits>
+    struct is_atomic_coefficient_group<Angle<Limits>> : std::true_type {};
+
+    /**
+     * \internal \struct is_atomic_coefficient_group<> \sa Inclination<>
+     * \interface coefficients<> \sa Inclination<>
+     */
+    template<template<typename Scalar> typename Limits>
+    struct is_atomic_coefficient_group<Inclination<Limits>> : std::true_type {};
+
+    /**
+     * \internal \struct is_atomic_coefficient_group<> \sa Polar<>
+     * \interface coefficients<> \sa Polar<>
+     */
+    template<typename C1, typename C2>
+    struct is_atomic_coefficient_group<Polar<C1, C2>> : std::true_type {};
+
+    /**
+     * \internal \struct is_atomic_coefficient_group<> \sa Spherical<>
+     * \interface coefficients<> \sa Spherical<>
+     */
+    template<typename C1, typename C2, typename C3>
+    struct is_atomic_coefficient_group<Spherical<C1, C2, C3>> : std::true_type {};
+
 
     // -------------------- //
     //   is_equivalent_to   //
@@ -138,34 +181,42 @@ namespace OpenKalman
 #endif
     struct is_equivalent_to : std::false_type {};
 
+    /**
+     * \interface equivalent_to<>
+     * \note Any coefficient or group of coefficients is equivalent to itself.
+     */
 
     template<>
     struct is_equivalent_to<Axis, Axis> : std::true_type {};
-
-
-    template<typename Traits>
-    struct is_equivalent_to<Circle<Traits>, Circle<Traits>> : std::true_type {};
 
 
     template<>
     struct is_equivalent_to<Distance, Distance> : std::true_type {};
 
 
-    template<typename Traits>
-    struct is_equivalent_to<Inclination<Traits>, Inclination<Traits>> : std::true_type {};
+    template<template<typename Scalar> typename Limits>
+    struct is_equivalent_to<Angle<Limits>, Angle<Limits>> : std::true_type {};
 
 
-    template<typename Coeff1a, typename Coeff2a, typename Coeff1b, typename Coeff2b>
-    struct is_equivalent_to<Polar<Coeff1a, Coeff2a>, Polar<Coeff1b, Coeff2b>>
-      : std::bool_constant<equivalent_to<Coeff1a, Coeff1b> and equivalent_to<Coeff2a, Coeff2b>> {};
+    template<template<typename Scalar> typename Limits>
+    struct is_equivalent_to<Inclination<Limits>, Inclination<Limits>> : std::true_type {};
 
 
-    template<typename Coeff1a, typename Coeff2a, typename Coeff3a, typename Coeff1b, typename Coeff2b, typename Coeff3b>
-    struct is_equivalent_to<Spherical<Coeff1a, Coeff2a, Coeff3a>, Spherical<Coeff1b, Coeff2b, Coeff3b>>
-      : std::bool_constant<equivalent_to<Coeff1a, Coeff1b> and
-        equivalent_to<Coeff2a, Coeff2b> and equivalent_to<Coeff3a, Coeff3b>> {};
+    template<typename C1a, typename C2a, typename C1b, typename C2b>
+    struct is_equivalent_to<Polar<C1a, C2a>, Polar<C1b, C2b>>
+      : std::bool_constant<equivalent_to<C1a, C1b> and equivalent_to<C2a, C2b>> {};
 
 
+    template<typename C1a, typename C2a, typename C3a, typename C1b, typename C2b, typename C3b>
+    struct is_equivalent_to<Spherical<C1a, C2a, C3a>, Spherical<C1b, C2b, C3b>>
+      : std::bool_constant<equivalent_to<C1a, C1b> and
+        equivalent_to<C2a, C2b> and equivalent_to<C3a, C3b>> {};
+
+
+    /**
+     * \interface equivalent_to<>
+     * \note Coefficient<Ts...> is equivalent to Coefficient<Us...>, if each Ts is equivalent to its respective Us.
+     */
 #ifdef __cpp_concepts
     template<coefficients...C1, coefficients...C2> requires
       (sizeof...(C1) == 0 and sizeof...(C2) == 0) or
@@ -179,6 +230,10 @@ namespace OpenKalman
 #endif
       : std::true_type {};
 
+    /**
+     * \interface equivalent_to<>
+     * \note Coefficient<T> is equivalent to T, and vice versa.
+     */
 
 #ifdef __cpp_concepts
     template<typename T, typename U> requires equivalent_to<T, U>
@@ -213,6 +268,10 @@ namespace OpenKalman
     struct is_prefix_of : std::false_type {};
 
 
+    /**
+     * \interface prefix_of<>
+     * \note T is a prefix of U if equivalent_to<T, U>.
+     */
 #ifdef __cpp_concepts
     template<coefficients C1, coefficients C2> requires equivalent_to<C1, C2>
     struct is_prefix_of<C1, C2>
@@ -238,6 +297,10 @@ namespace OpenKalman
       : std::true_type {};
 
 
+    /**
+     * \interface prefix_of<>
+     * \note Coefficients<> is a prefix of any set of coefficients.
+     */
 #ifdef __cpp_concepts
     template<coefficients C> requires (not equivalent_to<Coefficients<>, C>)
     struct is_prefix_of<Coefficients<>, C>
@@ -248,12 +311,17 @@ namespace OpenKalman
 #endif
       : std::true_type {};
 
+
+    /**
+     * \interface prefix_of<>
+     * \note C is a prefix of Coefficients<C, Cs...> for any coefficients Cs.
+     */
 #ifdef __cpp_concepts
-    template<coefficients C, coefficients...C1>
-    struct is_prefix_of<C, Coefficients<C, C1...>>
+    template<coefficients C, coefficients...Cs>
+    struct is_prefix_of<C, Coefficients<C, Cs...>>
 #else
-    template<typename C, typename...C1>
-    struct is_prefix_of<C, Coefficients<C, C1...>, std::enable_if_t<coefficients<C>>>
+    template<typename C, typename...Cs>
+    struct is_prefix_of<C, Coefficients<C, Cs...>, std::enable_if_t<coefficients<C>>>
 #endif
       : std::true_type {};
 
@@ -266,11 +334,7 @@ namespace OpenKalman
 
   namespace detail
   {
-#ifdef __cpp_concepts
-    template<coefficients ...>
-#else
     template<typename ...>
-#endif
     struct ConcatenateImpl;
 
     template<>
@@ -279,29 +343,22 @@ namespace OpenKalman
       using type = Coefficients<>;
     };
 
-#ifdef __cpp_concepts
-    template<typename Cs1, coefficients ... Coeffs> requires internal::is_atomic_coefficient_group<Cs1>::value
-#else
     template<typename Cs1, typename ... Coeffs>
-#endif
     struct ConcatenateImpl<Cs1, Coeffs...>
     {
       using type = typename ConcatenateImpl<Coeffs...>::type::template Prepend<Cs1>;
     };
 
-#ifdef __cpp_concepts
-    template<coefficients ... Cs1, coefficients ... Coeffs>
-#else
     template<typename ... Cs1, typename ... Coeffs>
-#endif
     struct ConcatenateImpl<Coefficients<Cs1...>, Coeffs...>
     {
       using type = typename ConcatenateImpl<Coeffs...>::type::template Prepend<Cs1...>;
     };
-  } // namespace detail
+  }
+
 
   /**
-   * Concatenate any number of Coefficients<...> types.
+   * \brief Concatenate any number of Coefficients<...> types.
    */
 #ifdef __cpp_concepts
   template<coefficients ... Coeffs> using Concatenate = typename detail::ConcatenateImpl<Coeffs...>::type;
@@ -309,6 +366,6 @@ namespace OpenKalman
   template<typename ... Coeffs> using Concatenate = typename detail::ConcatenateImpl<Coeffs...>::type;
 #endif
 
-}
+} // namespace OpenKalman
 
 #endif //OPENKALMAN_COEFFICIENT_FORWARD_DECLARATIONS_HPP

@@ -13,7 +13,7 @@
 using namespace OpenKalman;
 
 using M2 = Eigen::Matrix<double, 2, 2>;
-using C = Coefficients<Angle, Axis>;
+using C = Coefficients<angle::Radians, Axis>;
 using Mat2 = Matrix<C, C, M2>;
 using Mat2col = Matrix<C, Axis, Eigen::Matrix<double, 2, 1>>;
 using SA2l = SelfAdjointMatrix<M2, TriangleType::lower>;
@@ -638,7 +638,7 @@ TEST_F(covariance_tests, SquareRootCovariance_mult_TypedMatrix)
   using MatZ2 = Matrix<C, C, Z2>;
   auto mati2 = MatI2(i2);
   auto matz2 = MatZ2(z2);
-  using Cx = Coefficients<Axis, Angle>;
+  using Cx = Coefficients<Axis, angle::Radians>;
   using MatI2x = Matrix<C, Cx, I2>;
   auto mati2x = MatI2x(i2);
 
@@ -765,7 +765,7 @@ TEST_F(covariance_tests, SquareRootCovariance_mult_scalar)
 
 TEST_F(covariance_tests, SquareRootCovariance_scale)
 {
-  Matrix<Coefficients<Angle, Axis, Angle>, C> a1 {1, 2, 3, 4, 5, 6};
+  Matrix<Coefficients<angle::Radians, Axis, angle::Radians>, C> a1 {1, 2, 3, 4, 5, 6};
   EXPECT_TRUE(is_near(scale(SqCovSA2l {2, 0, 1, 2}, 2), Mat2 {4, 0, 2, 4}));
   EXPECT_TRUE(is_near(scale(SqCovSA2u {2, 1, 0, 2}, 2), Mat2 {4, 2, 0, 4}));
   EXPECT_TRUE(is_near(scale(SqCovT2l {2, 0, 1, 2}, 2), Mat2 {4, 0, 2, 4}));
@@ -790,7 +790,7 @@ TEST_F(covariance_tests, SquareRootCovariance_scale)
 
   // Rank-deficient case
   using M3 = Eigen::Matrix<double, 3, 3>;
-  using Mat3 = Matrix<Coefficients<Angle, Axis, Angle>, Coefficients<Angle, Axis, Angle>, M3>;
+  using Mat3 = Matrix<Coefficients<angle::Radians, Axis, angle::Radians>, Coefficients<angle::Radians, Axis, angle::Radians>, M3>;
   EXPECT_TRUE(is_near(square(scale(SqCovSA2l {2, 0, 1, 2}, a1)), Mat3 {32, 72, 112, 72, 164, 256, 112, 256, 400}));
   EXPECT_TRUE(is_near(square(scale(SqCovSA2u {2, 1, 0, 2}, a1)), Mat3 {32, 72, 112, 72, 164, 256, 112, 256, 400}));
   EXPECT_TRUE(is_near(square(scale(SqCovT2l {2, 0, 1, 2}, a1)), Mat3 {32, 72, 112, 72, 164, 256, 112, 256, 400}));
@@ -803,18 +803,18 @@ TEST_F(covariance_tests, SquareRootCovariance_scale)
   static_assert(Eigen3::lower_storage_triangle<decltype(scale(SqCovD2 {1, 2}, a1).base_matrix())>);
 
   // Rank-sufficient case
-  using SqCovSA3l = SquareRootCovariance<Coefficients<Angle, Axis, Angle>, SelfAdjointMatrix<M3, TriangleType::lower>>;
-  using SqCovSA3u = SquareRootCovariance<Coefficients<Angle, Axis, Angle>, SelfAdjointMatrix<M3, TriangleType::upper>>;
-  using SqCovT3l = SquareRootCovariance<Coefficients<Angle, Axis, Angle>, TriangularMatrix<M3, TriangleType::lower>>;
-  using SqCovT3u = SquareRootCovariance<Coefficients<Angle, Axis, Angle>, TriangularMatrix<M3, TriangleType::upper>>;
-  using SqCovD3 = SquareRootCovariance<Coefficients<Angle, Axis, Angle>, DiagonalMatrix<Eigen::Matrix<double, 3, 1>>>;
+  using SqCovSA3l = SquareRootCovariance<Coefficients<angle::Radians, Axis, angle::Radians>, SelfAdjointMatrix<M3, TriangleType::lower>>;
+  using SqCovSA3u = SquareRootCovariance<Coefficients<angle::Radians, Axis, angle::Radians>, SelfAdjointMatrix<M3, TriangleType::upper>>;
+  using SqCovT3l = SquareRootCovariance<Coefficients<angle::Radians, Axis, angle::Radians>, TriangularMatrix<M3, TriangleType::lower>>;
+  using SqCovT3u = SquareRootCovariance<Coefficients<angle::Radians, Axis, angle::Radians>, TriangularMatrix<M3, TriangleType::upper>>;
+  using SqCovD3 = SquareRootCovariance<Coefficients<angle::Radians, Axis, angle::Radians>, DiagonalMatrix<Eigen::Matrix<double, 3, 1>>>;
   Mat3 q1l {4, 0, 0,
             2, 5, 0,
             2, 3, 6};
   Mat3 q1u {4, 2, 2,
             0, 5, 3,
             0, 0, 6};
-  Matrix<C, Coefficients<Angle, Axis, Angle>> b1 {1, 2, 3, 4, 5, 6};
+  Matrix<C, Coefficients<angle::Radians, Axis, angle::Radians>> b1 {1, 2, 3, 4, 5, 6};
   EXPECT_TRUE(is_near(square(scale(SqCovSA3l(q1l), b1)), Mat2 {881, 1997, 1997, 4589}));
   EXPECT_TRUE(is_near(square(scale(SqCovSA3u(q1u), b1)), Mat2 {881, 1997, 1997, 4589}));
   EXPECT_TRUE(is_near(square(scale(SqCovT3l(q1l), b1)), Mat2 {881, 1997, 1997, 4589}));
@@ -834,7 +834,7 @@ TEST_F(covariance_tests, TypedMatrix_mult_SquareRootCovariance)
   using MatZ2 = Matrix<C, C, Z2>;
   auto mati2 = MatI2(i2);
   auto matz2 = MatZ2(z2);
-  using Cx = Coefficients<Axis, Angle>;
+  using Cx = Coefficients<Axis, angle::Radians>;
   using MatI2x = Matrix<Cx, C, I2>;
   auto mati2x = MatI2x(i2);
 

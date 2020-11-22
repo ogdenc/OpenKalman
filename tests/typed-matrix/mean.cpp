@@ -20,8 +20,8 @@ using M32 = Eigen::Matrix<double, 3, 2>;
 using M33 = Eigen::Matrix<double, 3, 3>;
 using I22 = IdentityMatrix<M22>;
 using Z22 = ZeroMatrix<M22>;
-using C2 = Coefficients<Axis, Angle>;
-using C3 = Coefficients<Axis, Angle, Axis>;
+using C2 = Coefficients<Axis, angle::Radians>;
+using C3 = Coefficients<Axis, angle::Radians, Axis>;
 using Mat12 = Mean<Axis, M12>;
 using Mat21 = Mean<C2, M21>;
 using Mat22 = Mean<C2, M22>;
@@ -293,7 +293,7 @@ TEST_F(matrices, Mean_overloads)
   const auto m1 = make_Mean(-2., 5, 3);
   EXPECT_TRUE(is_near(to_Euclidean(m1), m1));
 
-  using A3 = Coefficients<Angle, Axis, Angle>;
+  using A3 = Coefficients<angle::Radians, Axis, angle::Radians>;
   const auto m2 = make_Mean<A3>(pi / 6, 5, -pi / 3);
   const auto x2 = (Eigen::Matrix<double, 5, 1> {} << std::sqrt(3) / 2, 0.5, 5, 0.5, -std::sqrt(3) / 2).finished();
   EXPECT_TRUE(is_near(to_Euclidean(m2).base_matrix(), x2));
@@ -353,17 +353,17 @@ TEST_F(matrices, Mean_blocks)
   static_assert(mean<decltype(concatenate_horizontal(Mat22 {1, 2, 4, 5}, Mat21 {3, 6}))>);
   static_assert(equivalent_to<typename MatrixTraits<decltype(concatenate_horizontal(Mat22 {1, 2, 4, 5}, Mat21 {3, 6}))>::RowCoefficients, C2>);
 
-  EXPECT_TRUE(is_near(concatenate_horizontal(Mat22 {1, 2, 4, 5}, Matrix<C2, Angle, M21> {3, 6}),
-    Matrix<C2, Coefficients<Axis, Axis, Angle>, M23> {1, 2, 3, 4-2*pi, 5-2*pi, 6}));
-  static_assert(not mean<decltype(concatenate_horizontal(Mat22 {1, 2, 4, 5}, Matrix<C2, Angle, M21> {3, 6}))>);
-  static_assert(equivalent_to<typename MatrixTraits<decltype(concatenate_horizontal(Mat22 {1, 2, 4, 5}, Matrix<C2, Angle, M21> {3, 6}))>::RowCoefficients, C2>);
-  static_assert(equivalent_to<typename MatrixTraits<decltype(concatenate_horizontal(Mat22 {1, 2, 4, 5}, Matrix<C2, Angle, M21> {3, 6}))>::ColumnCoefficients, Coefficients<Axis, Axis, Angle>>);
+  EXPECT_TRUE(is_near(concatenate_horizontal(Mat22 {1, 2, 4, 5}, Matrix<C2, angle::Radians, M21> {3, 6}),
+    Matrix<C2, Coefficients<Axis, Axis, angle::Radians>, M23> {1, 2, 3, 4-2*pi, 5-2*pi, 6}));
+  static_assert(not mean<decltype(concatenate_horizontal(Mat22 {1, 2, 4, 5}, Matrix<C2, angle::Radians, M21> {3, 6}))>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(concatenate_horizontal(Mat22 {1, 2, 4, 5}, Matrix<C2, angle::Radians, M21> {3, 6}))>::RowCoefficients, C2>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(concatenate_horizontal(Mat22 {1, 2, 4, 5}, Matrix<C2, angle::Radians, M21> {3, 6}))>::ColumnCoefficients, Coefficients<Axis, Axis, angle::Radians>>);
 
   EXPECT_TRUE(is_near(split_vertical(Mat32 {1, 2, 3, 4, 5, 6}), std::tuple {}));
   EXPECT_TRUE(is_near(split_horizontal(Mat23 {1, 2, 3, 4, 5, 6}), std::tuple {}));
   EXPECT_TRUE(is_near(split_vertical<C2, Axis>(Mat32 {1, 2, 3, 4, 5, 6}), std::tuple {Mat22 {1, 2, 3, 4}, Mat12 {5, 6}}));
   EXPECT_TRUE(is_near(split_horizontal<Axes<2>, Axis>(Mat23 {1, 2, 3, 4, 5, 6}), std::tuple {Mat22 {1, 2, 4, 5}, Mat21 {3, 6}}));
-  EXPECT_TRUE(is_near(split_vertical<Axis, Angle>(Mat32 {1, 2, 3, 4, 5, 6}), std::tuple {Mat12 {1, 2}, Mat12 {3, 4-2*pi}}));
+  EXPECT_TRUE(is_near(split_vertical<Axis, angle::Radians>(Mat32 {1, 2, 3, 4, 5, 6}), std::tuple {Mat12 {1, 2}, Mat12 {3, 4-2*pi}}));
   EXPECT_TRUE(is_near(split_horizontal<Axis, Axis>(Mat23 {1, 2, 3, 4, 5, 6}), std::tuple {Mat21 {1, 4}, Mat21 {2, 5}}));
 
   EXPECT_TRUE(is_near(column(Mat22 {1, 2, 3, 4}, 0), Mean{1., 3}));
@@ -467,13 +467,13 @@ TEST_F(matrices, Mean_arithmetic)
 
 TEST_F(matrices, Mean_angles_construct_coefficients)
 {
-  const auto v0 = make_Mean<Coefficients<Angle, Axis>>(Eigen::Matrix<double, 2, 1>(0.5, 2));
+  const auto v0 = make_Mean<Coefficients<angle::Radians, Axis>>(Eigen::Matrix<double, 2, 1>(0.5, 2));
   EXPECT_EQ(v0[0], 0.5);
   EXPECT_EQ(v0[1], 2);
-  const auto v1 = make_Mean<Coefficients<Axis, Angle>>(6., 7);
+  const auto v1 = make_Mean<Coefficients<Axis, angle::Radians>>(6., 7);
   EXPECT_EQ(v1[0], 6);
   EXPECT_EQ(v1[1], 7-2*pi);
-  const auto v2 = make_Mean<Coefficients<Angle, Axis, Angle>>(7., 8, 9);
+  const auto v2 = make_Mean<Coefficients<angle::Radians, Axis, angle::Radians>>(7., 8, 9);
   EXPECT_EQ(v2[0], 7-2*pi);
   EXPECT_EQ(v2[1], 8);
   EXPECT_EQ(v2[2], 9-2*pi);
@@ -481,17 +481,17 @@ TEST_F(matrices, Mean_angles_construct_coefficients)
   m3 << 9, 3, 1,
     3, 8 - pi*2, 2,
     7, 1, 8;
-  auto v3 = make_Mean<double, Coefficients<Axis, Angle, Axis>, 3>();
+  auto v3 = make_Mean<double, Coefficients<Axis, angle::Radians, Axis>, 3>();
   v3 << 9, 3, 1,
     3, 8, 2,
     7, 1, 8;
   EXPECT_TRUE(is_near(base_matrix(v3), m3));
-  auto v3_1 = make_Mean<Coefficients<Axis, Angle, Axis>>(9., 3, 1, 3, 8, 2, 7, 1, 8);
+  auto v3_1 = make_Mean<Coefficients<Axis, angle::Radians, Axis>>(9., 3, 1, 3, 8, 2, 7, 1, 8);
   EXPECT_TRUE(is_near(v3_1, m3));
   auto v3_2 = v3;
   EXPECT_TRUE(is_near(v3_2, m3));
   static_assert(std::is_same_v<decltype(v3)::BaseMatrix, decltype(m3)>);
-  auto v3_3 = make_Mean<double, Coefficients<Axis, Angle, Axis>, 3>();
+  auto v3_3 = make_Mean<double, Coefficients<Axis, angle::Radians, Axis>, 3>();
   v3_3 << v3;
   EXPECT_TRUE(is_near(v3_3, m3));
 }
@@ -499,7 +499,7 @@ TEST_F(matrices, Mean_angles_construct_coefficients)
 
 TEST_F(matrices, Mean_angle_concatenate_split)
 {
-  using C3 = Coefficients<Angle, Axis, Angle>;
+  using C3 = Coefficients<angle::Radians, Axis, angle::Radians>;
   using Var3 = Mean<C3>;
   auto x1 = Var3 {5., 7, 9};
   auto x2 = Var3 {3., 2, 1};
@@ -513,11 +513,11 @@ TEST_F(matrices, Mean_angle_concatenate_split)
   EXPECT_TRUE(is_near(x6, x2));
   const Var3 y1 {pi / 6, 2, pi / 3};
   const Var3 y2 {pi / 4, 3, pi / 4};
-  const Mean<Coefficients<Angle, Axis, Angle, Angle, Axis, Angle>>
+  const Mean<Coefficients<angle::Radians, Axis, angle::Radians, angle::Radians, Axis, angle::Radians>>
     y3 {pi / 6, 2, pi / 3, pi / 4, 3, pi / 4};
   EXPECT_TRUE(is_near(concatenate(y1, y2), y3));
   EXPECT_TRUE(is_near(split_vertical<C3, C3>(y3), std::tuple(y1, y2)));
-  const Mean<Coefficients<Angle, Axis, Angle, Angle, Axis, Angle, Angle, Axis, Angle>>
+  const Mean<Coefficients<angle::Radians, Axis, angle::Radians, angle::Radians, Axis, angle::Radians, angle::Radians, Axis, angle::Radians>>
     y4 {pi / 6, 2, pi / 3, pi / 4, 3, pi / 4, pi / 6, 2, pi / 3};
   EXPECT_TRUE(is_near(concatenate(y1, y2, y1), y4));
   EXPECT_TRUE(is_near(split_vertical<C3, C3, C3>(y4), std::tuple(y1, y2, y1)));
@@ -526,7 +526,7 @@ TEST_F(matrices, Mean_angle_concatenate_split)
 
 TEST_F(matrices, Mean_angle_Euclidean_conversion)
 {
-  using Var3 = Mean<Coefficients<Angle, Axis, Angle>>;
+  using Var3 = Mean<Coefficients<angle::Radians, Axis, angle::Radians>>;
   const Var3 x1 {pi / 6, 5, -pi / 3};
   const Var3 x1p {pi / 5.99999999, 5, -pi / 2.99999999};
   const auto m1 = (Eigen::Matrix<double, 3, 1> {} << pi / 6, 5, -pi / 3).finished();
@@ -545,21 +545,21 @@ TEST_F(matrices, Mean_angle_Euclidean_conversion)
 
 TEST_F(matrices, Mean_angle_mult_TypedMatrix)
 {
-  using M = Matrix<Coefficients<Axis, Angle>, Coefficients<Axis, Angle, Axis>>;
-  using Vm = Mean<Coefficients<Axis, Angle, Axis>>;
-  using Rm = Matrix<Coefficients<Axis, Angle>, Axis>;
+  using M = Matrix<Coefficients<Axis, angle::Radians>, Coefficients<Axis, angle::Radians, Axis>>;
+  using Vm = Mean<Coefficients<Axis, angle::Radians, Axis>>;
+  using Rm = Matrix<Coefficients<Axis, angle::Radians>, Axis>;
   const M m {1, -2, 4,
              -5, 2, -1};
   const Vm vm {2, 1, -1};
   const Rm rm {-4, -7};
-  static_assert(std::is_same_v<typename MatrixTraits<decltype(make_self_contained(m*vm))>::RowCoefficients, Coefficients<Axis, Angle>>);
+  static_assert(std::is_same_v<typename MatrixTraits<decltype(make_self_contained(m*vm))>::RowCoefficients, Coefficients<Axis, angle::Radians>>);
   EXPECT_TRUE(is_near(m*vm, rm));
 }
 
 
 TEST_F(matrices, Mean_angle_arithmetic)
 {
-  using Var3 = Mean<Coefficients<Angle, Axis, Angle, Axis, Axis>>;
+  using Var3 = Mean<Coefficients<angle::Radians, Axis, angle::Radians, Axis, Axis>>;
   Var3 v1 {1, 2, 3, 4, 5};
   Var3 v2 {2, 4, -6, 8, -10};
   Var3 v3 {3, 6, -3, 12, -5};
@@ -598,7 +598,7 @@ TEST_F(matrices, Mean_angle_arithmetic)
 
 TEST_F(matrices, Mean_angle_arithmetic_Euclidean)
 {
-  using Var3 = Mean<Coefficients<Angle, Axis, Angle>>;
+  using Var3 = Mean<Coefficients<angle::Radians, Axis, angle::Radians>>;
   Var3 x1 {pi / 6, 5, -pi / 3};
   Var3 x2 {2 * pi, 0, 6 * pi};
   auto x1e = to_Euclidean(x1);
@@ -624,7 +624,7 @@ TEST_F(matrices, Mean_angle_arithmetic_Euclidean)
 
 TEST_F(matrices, Mean_angle2pi_arithmetic_Euclidean)
 {
-  using Var3 = Mean<Coefficients<AnglePositiveRadians, Axis, AnglePositiveRadians>>;
+  using Var3 = Mean<Coefficients<angle::PositiveRadians, Axis, angle::PositiveRadians>>;
   const Var3 x1 {pi / 6, 5, pi * 5 / 3};
   const Var3 x2 {2 * pi, 0, 6 * pi};
   const auto x1e = to_Euclidean(x1);
@@ -644,7 +644,7 @@ TEST_F(matrices, Mean_angle2pi_arithmetic_Euclidean)
 
 TEST_F(matrices, Mean_angle2deg_arithmetic_Euclidean)
 {
-  using Var3 = Mean<Coefficients<AngleDegrees, Axis, AngleDegrees>>;
+  using Var3 = Mean<Coefficients<angle::PositiveDegrees, Axis, angle::PositiveDegrees>>;
   const Var3 x1 {30, 5, 300};
   const Var3 x2 {360, 0, 1080};
   const auto x1e = to_Euclidean(x1);
@@ -664,8 +664,8 @@ TEST_F(matrices, Mean_angle2deg_arithmetic_Euclidean)
 
 TEST_F(matrices, Mean_angle_columns)
 {
-  using Var3 = Mean<Coefficients<Angle, Axis>, Eigen::Matrix<double, 2, 2>>;
-  using TVar3 = Matrix<Coefficients<Angle, Axis>, Axes<2>, Eigen::Matrix<double, 2, 2>>;
+  using Var3 = Mean<Coefficients<angle::Radians, Axis>, Eigen::Matrix<double, 2, 2>>;
+  using TVar3 = Matrix<Coefficients<angle::Radians, Axis>, Axes<2>, Eigen::Matrix<double, 2, 2>>;
   Var3 v1 {1, 2, 3, 4};
   Var3 v2 {6, 4, -6, 8};
   Var3 v3 {7 - pi*2, 6 - pi*2, -3, 12};
@@ -681,7 +681,7 @@ TEST_F(matrices, Mean_angle_columns)
 
 TEST_F(matrices, Mean_angle_columns_Euclidean)
 {
-  using Var3 = Mean<Coefficients<Angle, Axis>, Eigen::Matrix<double, 2, 2>>;
+  using Var3 = Mean<Coefficients<angle::Radians, Axis>, Eigen::Matrix<double, 2, 2>>;
   Var3 x1 {pi / 6, -pi / 3, 5, 2};
   Var3 x2 {2 * pi, 6 * pi, 0, 0};
   const auto x1e = to_Euclidean(x1);
@@ -714,8 +714,8 @@ TEST_F(matrices, Mean_angle_columns_Euclidean)
 
 TEST_F(matrices, Wrap_angle)
 {
-  using R = Mean<Angle>;
-  EXPECT_TRUE(is_near(R {-pi*.99} - R {pi*0.99}, Matrix<Angle> {pi*0.02}));
+  using R = Mean<angle::Radians>;
+  EXPECT_TRUE(is_near(R {-pi*.99} - R {pi*0.99}, Matrix<angle::Radians> {pi*0.02}));
   R x0 {pi/4};
   EXPECT_NEAR(get_element(x0, 0, 0), pi/4, 1e-6);
   EXPECT_NEAR(get_element(x0, 0), pi/4, 1e-6);
@@ -747,8 +747,8 @@ TEST_F(matrices, Wrap_distance)
 
 TEST_F(matrices, Wrap_inclination)
 {
-  using R = Mean<InclinationAngle>;
-  EXPECT_TRUE(is_near(R {-pi/2} - R {pi/2}, Matrix<Angle> {-pi}));
+  using R = Mean<inclination::Radians>;
+  EXPECT_TRUE(is_near(R {-pi/2} - R {pi/2}, Matrix<angle::Radians> {-pi}));
   EXPECT_TRUE(is_near(R {pi * 7 / 12}, R {pi * 5 / 12}));
   EXPECT_TRUE(is_near(R {-pi * 7 / 12}, R {-pi * 5 / 12}));
   EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(R {pi / 6}) + to_Euclidean(R {pi})), R {pi / 12}));
@@ -766,8 +766,8 @@ TEST_F(matrices, Wrap_inclination)
 
 TEST_F(matrices, Wrap_polar)
 {
-  using P = Mean<Polar<Distance, Angle>>;
-  EXPECT_TRUE(is_near(P {4, -pi*.99} - P {5, pi*0.99}, Matrix<Polar<Distance, Angle>, Axis> {-1, pi*0.02}));
+  using P = Mean<Polar<Distance, angle::Radians>>;
+  EXPECT_TRUE(is_near(P {4, -pi*.99} - P {5, pi*0.99}, Matrix<Polar<Distance, angle::Radians>, Axis> {-1, pi*0.02}));
   EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(P {1., pi / 6}) + to_Euclidean(P {-0.5, 0})), P {1.5, pi * 7 / 12}));
   EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(P {1., pi / 6}) + to_Euclidean(P {-1.5, 0})), P {2.5, pi * 7 / 12}));
   EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(P {1., pi * 5 / 6}) + to_Euclidean(P {0, -pi * 2 / 3})), P {1., -pi * 11 / 12}));
@@ -782,8 +782,8 @@ TEST_F(matrices, Wrap_polar)
   EXPECT_NEAR(get_element(x0, 0), 1.5, 1e-6);
   EXPECT_NEAR(get_element(x0, 1), -5*pi/6, 1e-6);
 
-  using Q = Mean<Polar<Angle, Distance>>;
-  EXPECT_TRUE(is_near(Q {-pi*.99, 4} - Q {pi*0.99, 5}, Matrix<Polar<Angle, Distance>, Axis> {pi*0.02, -1}));
+  using Q = Mean<Polar<angle::Radians, Distance>>;
+  EXPECT_TRUE(is_near(Q {-pi*.99, 4} - Q {pi*0.99, 5}, Matrix<Polar<angle::Radians, Distance>, Axis> {pi*0.02, -1}));
   EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(Q {pi / 6, 1}) + to_Euclidean(Q {0, -0.5})), Q {pi * 7 / 12, 1.5}));
   EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(Q {pi / 6, 1}) + to_Euclidean(Q {0, -1.5})), Q {pi * 7 / 12, 2.5}));
   EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(Q {pi * 5 / 6, 1}) + to_Euclidean(Q {-pi * 2 / 3, 0})), Q {-pi * 11 / 12, 1}));
@@ -802,8 +802,8 @@ TEST_F(matrices, Wrap_polar)
 
 TEST_F(matrices, Wrap_spherical)
 {
-  using S = Mean<Spherical<Distance, Angle, InclinationAngle>>;
-  EXPECT_TRUE(is_near(S {4, -pi*.99, -pi/2} - S {5, pi*0.99, pi/2}, Matrix<Spherical<Distance, Angle, InclinationAngle>, Axis> {-1, pi*0.02, -pi}));
+  using S = Mean<Spherical<Distance, angle::Radians, inclination::Radians>>;
+  EXPECT_TRUE(is_near(S {4, -pi*.99, -pi/2} - S {5, pi*0.99, pi/2}, Matrix<Spherical<Distance, angle::Radians, inclination::Radians>, Axis> {-1, pi*0.02, -pi}));
   EXPECT_TRUE(is_near(S {-0.5, pi / 3, pi / 6}, S {0.5, -pi * 2 / 3, -pi / 6}));
   EXPECT_TRUE(is_near(S {-0.5, pi * 7, pi * 7 / 6}, S {0.5, pi, pi / 6}));
   const auto x1 = S {0.5, std::atan2(3. / 4, 1. + std::sqrt(3.) / 4),
@@ -832,8 +832,8 @@ TEST_F(matrices, Wrap_spherical)
   EXPECT_NEAR(get_element(x0, 1), pi/6, 1e-6);
   EXPECT_NEAR(get_element(x0, 2), pi/4, 1e-6);
 
-  using T = Mean<Spherical<Angle, Distance, InclinationAngle>>;
-  EXPECT_TRUE(is_near(T {-pi*.99, 4, -pi/2} - T {pi*0.99, 5, pi/2}, Matrix<Spherical<Angle, Distance, InclinationAngle>, Axis> {pi*0.02, -1, -pi}));
+  using T = Mean<Spherical<angle::Radians, Distance, inclination::Radians>>;
+  EXPECT_TRUE(is_near(T {-pi*.99, 4, -pi/2} - T {pi*0.99, 5, pi/2}, Matrix<Spherical<angle::Radians, Distance, inclination::Radians>, Axis> {pi*0.02, -1, -pi}));
   EXPECT_TRUE(is_near(T {pi / 3, -0.5, pi / 6}, T {-pi * 2 / 3, 0.5, -pi / 6}));
   EXPECT_TRUE(is_near(T {pi * 7, -0.5, pi * 7 / 6}, T {pi, 0.5, pi / 6}));
   const auto y1 = T {std::atan2(3. / 4, 1. + std::sqrt(3.) / 4),
@@ -862,8 +862,8 @@ TEST_F(matrices, Wrap_spherical)
   EXPECT_NEAR(get_element(z1, 0), pi/6, 1e-6);
   EXPECT_NEAR(get_element(z1, 2), pi/4, 1e-6);
 
-  using U = Mean<Spherical<Angle, InclinationAngle, Distance>>;
-  EXPECT_TRUE(is_near(U {-pi*.99, -pi/2, 4} - U {pi*0.99, pi/2, 5}, Matrix<Spherical<Angle, InclinationAngle, Distance>, Axis> {pi*0.02, -pi, -1}));
+  using U = Mean<Spherical<angle::Radians, inclination::Radians, Distance>>;
+  EXPECT_TRUE(is_near(U {-pi*.99, -pi/2, 4} - U {pi*0.99, pi/2, 5}, Matrix<Spherical<angle::Radians, inclination::Radians, Distance>, Axis> {pi*0.02, -pi, -1}));
   U z2 {pi/4, -pi/4, 2};
   EXPECT_NEAR(get_element(z2, 2, 0), 2, 1e-6);
   EXPECT_NEAR(get_element(z2, 0), pi/4, 1e-6);
@@ -885,7 +885,7 @@ TEST_F(matrices, Wrap_spherical)
 
 TEST_F(matrices, Wrap_angle_polar)
 {
-  using R = Mean<Coefficients<Angle, Polar<Distance, Angle>>>;
+  using R = Mean<Coefficients<angle::Radians, Polar<Distance, angle::Radians>>>;
   EXPECT_TRUE(is_near(R {pi/4, 1., pi/6} + R {-pi/2, 0.5, pi}, R {-pi/4, 1.5, -pi*5/6}));
   EXPECT_TRUE(is_near(R {pi/4, 1., pi/6} + R {pi/4, -1.5, -pi/2}, R {pi/2, 2.5, pi*2/3}));
   EXPECT_TRUE(is_near(R {-pi/2, 1., pi*5/6} + R {pi/3, -0.5, pi/2}, R {-pi/6, 1.5, pi/3}));
@@ -909,7 +909,7 @@ TEST_F(matrices, Wrap_angle_polar)
   EXPECT_NEAR(get_element(x0, 1), 1.5, 1e-6);
   EXPECT_NEAR(get_element(x0, 2), -5*pi/6, 1e-6);
 
-  using Q = Mean<Coefficients<Polar<Angle, Distance>, Angle>>;
+  using Q = Mean<Coefficients<Polar<angle::Radians, Distance>, angle::Radians>>;
   EXPECT_TRUE(is_near(Q {pi/6, 1, pi/4} + Q {pi, 0.5, -pi/2}, Q {-pi*5/6, 1.5, -pi/4}));
   EXPECT_TRUE(is_near(Q {pi/6, 1, pi/4} + Q {-pi/2, -1.5, pi/4}, Q {pi*2/3, 2.5, pi/2}));
   EXPECT_TRUE(is_near(Q {pi*5/6, 1., -pi/2} + Q {pi/2, -0.5, pi/3}, Q {pi/3, 1.5, -pi/6}));

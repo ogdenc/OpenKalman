@@ -14,20 +14,14 @@
 
 namespace OpenKalman
 {
-  template<typename Coefficient1 = Distance, typename Coefficient2 = Angle, typename Coefficient3 = InclinationAngle>
-  struct Spherical;
-
   namespace detail
   {
-    template<typename Coefficient, typename CircleTraits, typename InclinationTraits, typename Scalar>
-    struct SphericalImpl;
-
-    template<typename InclinationTraits, typename Scalar>
+    template<template<typename Scalar> typename InclinationLimits, typename Scalar>
     static constexpr std::tuple<Scalar, bool>
     inclination_wrap_impl(const Scalar a)
     {
-      constexpr Scalar max = InclinationTraits::template max<Scalar>;
-      constexpr Scalar min = InclinationTraits::template min<Scalar>;
+      constexpr Scalar max = InclinationLimits<Scalar>::up;
+      constexpr Scalar min = InclinationLimits<Scalar>::down;
       constexpr Scalar range = max - min;
       constexpr Scalar period = 2 * range;
       if (a >= min and a <= max) // A shortcut, for the easy case.
@@ -50,34 +44,42 @@ namespace OpenKalman
       }
     }
 
-    template<typename CircleTraits, typename Scalar>
+
+    template<template<typename Scalar> typename CircleLimits, typename Scalar>
     static inline Scalar azimuth_wrap_impl(const bool reflect_azimuth, const Scalar s)
     {
-      constexpr Scalar wrap_max = CircleTraits::template wrap_max<Scalar>;
-      constexpr Scalar wrap_min = CircleTraits::template wrap_min<Scalar>;
-      constexpr Scalar period = wrap_max - wrap_min;
+      constexpr Scalar max = CircleLimits<Scalar>::max;
+      constexpr Scalar min = CircleLimits<Scalar>::min;
+      constexpr Scalar period = max - min;
 
       Scalar a = reflect_azimuth ? s + period * 0.5 : s;
 
-      if (a >= wrap_min and a < wrap_max) // Check if angle doesn't need wrapping.
+      if (a >= min and a < max) // Check if angle doesn't need wrapping.
       {
         return a;
       }
       else // Wrap the angle.
       {
-        Scalar ar = std::fmod(a - wrap_min, period);
+        Scalar ar = std::fmod(a - min, period);
         if (ar < 0)
         {
           ar += period;
         }
-        return ar + wrap_min;
+        return ar + min;
       }
     }
 
-    template<typename CircleTraits, typename InclinationTraits, typename Scalar>
-    struct SphericalImpl<Distance, CircleTraits, InclinationTraits, Scalar>
+
+    template<typename Coefficient, template<typename Scalar> typename CircleLimits,
+      template<typename Scalar> typename InclinationLimits, typename Scalar>
+    struct SphericalImpl;
+
+
+    template<template<typename Scalar> typename CircleLimits, template<typename Scalar> typename InclinationLimits,
+      typename Scalar>
+    struct SphericalImpl<Distance, CircleLimits, InclinationLimits, Scalar>
     {
-      static_assert(InclinationTraits::template max<double> > InclinationTraits::template min<double>);
+      static_assert(InclinationLimits<double>::up > InclinationLimits<double>::down);
       using GetCoeff = std::function<Scalar(const std::size_t)>;
       using SetCoeff = std::function<void(const Scalar, const std::size_t)>;
 
@@ -97,7 +99,7 @@ namespace OpenKalman
             set_coeff(std::abs(s), i + d_i);
             if (std::signbit(s)) // If new distance is negative
             {
-              set_coeff(azimuth_wrap_impl<CircleTraits>(true, get_coeff(i + a_i)), i + a_i); // Adjust azimuth.
+              set_coeff(azimuth_wrap_impl<CircleLimits>(true, get_coeff(i + a_i)), i + a_i); // Adjust azimuth.
               set_coeff(-get_coeff(i + i_i), i + i_i); // Adjust inclination.
             }
           }
@@ -105,15 +107,16 @@ namespace OpenKalman
 
     };
 
-    template<typename CircleTraits, typename InclinationTraits, typename Scalar>
-    struct SphericalImpl<Circle<CircleTraits>, CircleTraits, InclinationTraits, Scalar>
+    template<template<typename Scalar> typename CircleLimits, template<typename Scalar> typename InclinationLimits,
+      typename Scalar>
+    struct SphericalImpl<Angle<CircleLimits>, CircleLimits, InclinationLimits, Scalar>
     {
-      static_assert(InclinationTraits::template max<double> > InclinationTraits::template min<double>);
+      static_assert(InclinationLimits<double>::up > InclinationLimits<double>::down);
       using GetCoeff = std::function<Scalar(const std::size_t)>;
       using SetCoeff = std::function<void(const Scalar, const std::size_t)>;
 
       static constexpr Scalar cf_cir = 2 * std::numbers::pi_v<Scalar> /
-        (CircleTraits::template wrap_max<Scalar> - CircleTraits::template wrap_min<Scalar>);
+        (CircleLimits<Scalar>::max - CircleLimits<Scalar>::min);
 
       template<std::size_t i, std::size_t d_i, std::size_t x_i, std::size_t y_i, std::size_t z_i>
       static constexpr std::array<Scalar (*const)(const GetCoeff&), 1>
@@ -126,9 +129,9 @@ namespace OpenKalman
       template<std::size_t i, std::size_t d_i, std::size_t a_i, std::size_t i_i>
       static constexpr std::array<Scalar (*const)(const GetCoeff&), 1>
         wrap_array_get = {[](const GetCoeff& get_coeff) {
-          const auto [new_i, b] = inclination_wrap_impl<InclinationTraits>(get_coeff(i + i_i));
+          const auto [new_i, b] = inclination_wrap_impl<InclinationLimits>(get_coeff(i + i_i));
           const bool reflect_azimuth = b != std::signbit(get_coeff(i + d_i));
-          return azimuth_wrap_impl<CircleTraits>(reflect_azimuth, get_coeff(i + a_i));
+          return azimuth_wrap_impl<CircleLimits>(reflect_azimuth, get_coeff(i + a_i));
       }};
 
       template<std::size_t i, std::size_t d_i, std::size_t a_i, std::size_t i_i>
@@ -136,21 +139,22 @@ namespace OpenKalman
         wrap_array_set =
         {
           [](const Scalar s, const SetCoeff& set_coeff, const GetCoeff&) {
-            set_coeff(azimuth_wrap_impl<CircleTraits>(false, s), i + a_i); // Assume distance and inclination are correct.
+            set_coeff(azimuth_wrap_impl<CircleLimits>(false, s), i + a_i); // Assume distance and inclination are correct.
           }
         };
 
-  };
+    };
 
-    template<typename CircleTraits, typename InclinationTraits, typename Scalar>
-    struct SphericalImpl<Inclination<InclinationTraits>, CircleTraits, InclinationTraits, Scalar>
+    template<template<typename Scalar> typename CircleLimits, template<typename Scalar> typename InclinationLimits,
+      typename Scalar>
+    struct SphericalImpl<Inclination<InclinationLimits>, CircleLimits, InclinationLimits, Scalar>
     {
-      static_assert(InclinationTraits::template max<double> > InclinationTraits::template min<double>);
+      static_assert(InclinationLimits<double>::up > InclinationLimits<double>::down);
       using GetCoeff = std::function<Scalar(const std::size_t)>;
       using SetCoeff = std::function<void(const Scalar, const std::size_t)>;
 
       static constexpr Scalar cf_inc = std::numbers::pi_v<Scalar> /
-        (InclinationTraits::template max<Scalar> - InclinationTraits::template min<Scalar>);
+        (InclinationLimits<Scalar>::up - InclinationLimits<Scalar>::down);
 
       template<std::size_t i, std::size_t d_i, std::size_t x_i, std::size_t y_i, std::size_t z_i>
       static constexpr std::array<Scalar (*const)(const GetCoeff&), 1>
@@ -164,7 +168,7 @@ namespace OpenKalman
       template<std::size_t i, std::size_t d_i, std::size_t a_i, std::size_t i_i>
       static constexpr std::array<Scalar (*const)(const GetCoeff&), 1>
         wrap_array_get =  {[](const GetCoeff& get_coeff) constexpr {
-        const auto [new_i, b] = inclination_wrap_impl<InclinationTraits>(get_coeff(i + i_i));
+        const auto [new_i, b] = inclination_wrap_impl<InclinationLimits>(get_coeff(i + i_i));
         return std::signbit(get_coeff(i + d_i)) ? -new_i : new_i;
       }};
 
@@ -173,36 +177,35 @@ namespace OpenKalman
         wrap_array_set =
         {
           [](const Scalar s, const SetCoeff& set_coeff, const GetCoeff& get_coeff) {
-            const auto [new_i, b] = inclination_wrap_impl<InclinationTraits>(get_coeff(i + i_i));
+            const auto [new_i, b] = inclination_wrap_impl<InclinationLimits>(get_coeff(i + i_i));
             set_coeff(new_i, i + i_i); // Adjust inclination.
-            set_coeff(azimuth_wrap_impl<CircleTraits>(not b, get_coeff(i + a_i)), i + a_i); // Adjust azimuth.
+            set_coeff(azimuth_wrap_impl<CircleLimits>(not b, get_coeff(i + a_i)), i + a_i); // Adjust azimuth.
           }
         };
 
-};
+    };
 
     // Implementation of polar coordinates.
     template<typename Derived,
-      typename Coeff1, typename Coeff2, typename Coeff3,
-      typename CircleTraits, typename InclinationTraits,
+      typename C1, typename C2, typename C3,
+      template<typename Scalar> typename CircleLimits, template<typename Scalar> typename InclinationLimits,
       std::size_t d_i, std::size_t a_i, std::size_t i_i>
     struct SphericalBase
     {
-      static constexpr std::size_t size = 3;
-      static constexpr std::size_t dimension = 4;
-      static constexpr bool axes_only = false;
+      static constexpr std::size_t size = 3; ///< The coefficient represents 3 coordinates.
+      static constexpr std::size_t dimension = 4; ///< The coefficient represents 4 coordinates in Euclidean space.
+      static constexpr bool axes_only = false; ///< The coefficient is not an Axis.
 
-      /// See David Frederic Crouse, Cubature/Unscented/Sigma Point Kalman Filtering with Angular Measurement Models,
-      /// 18th Int'l Conf. on Information Fusion 1550, 1555 (2015).
-      using difference_type = Concatenate<typename Coeff1::difference_type, typename Coeff2::difference_type,
-        typename Coeff3::difference_type>;
+      /**
+       * \brief The type of the result when subtracting two Spherical vectors.
+       * \details For differences, each coordinate behaves as if it were Distance, Angle, or Inclination.
+       * See David Frederic Crouse, Cubature/Unscented/Sigma Point Kalman Filtering with Angular Measurement Models,
+       * 18th Int'l Conf. on Information Fusion 1550, 1555 (2015).
+       */
+      using difference_type =
+        Concatenate<typename C1::difference_type, typename C2::difference_type, typename C3::difference_type>;
 
-      template<typename ... Cnew>
-      using Prepend = Coefficients<Cnew..., Derived>;
-
-      template<typename ... Cnew>
-      using Append = Coefficients<Derived, Cnew ...>;
-
+    private:
       template<typename Scalar>
       using GetCoeff = std::function<Scalar(const std::size_t)>;
 
@@ -211,12 +214,23 @@ namespace OpenKalman
 
       template<typename Scalar>
       static constexpr Scalar cf_cir = 2 * std::numbers::pi_v<Scalar> /
-        (CircleTraits::template wrap_max<Scalar> - CircleTraits::template wrap_min<Scalar>);
+        (CircleLimits<Scalar>::max - CircleLimits<Scalar>::min);
 
       template<typename Scalar>
       static constexpr Scalar cf_inc = std::numbers::pi_v<Scalar> /
-        (InclinationTraits::template max<Scalar> - InclinationTraits::template min<Scalar>);
+        (InclinationLimits<Scalar>::up - InclinationLimits<Scalar>::down);
 
+    public:
+      /**
+       * \internal
+       * \brief An array of functions that convert spherical coordinates to coordinates in Euclidean space.
+       * \details The functions in the array take the spherical coordinates and convert them to four
+       * Cartesian coordinates representing a distance and a location on unit sphere.
+       * Each array element is a function taking a ''get coefficient'' function and returning a coordinate value.
+       * The ''get coefficient'' function takes the index of a column within a row vector and returns the coefficient.
+       * \tparam Scalar The scalar type (e.g., double).
+       * \tparam i The index of the first spherical coefficient that is being transformed.
+       */
       template<typename Scalar, std::size_t i>
       static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), dimension>
         to_Euclidean_array = {
@@ -230,71 +244,131 @@ namespace OpenKalman
         [](const GetCoeff<Scalar>& get_coeff) constexpr { return std::sin(get_coeff(i + i_i) * cf_inc<Scalar>); }
       };
 
+
+      /**
+       * \internal
+       * \brief An array of functions that convert four coordinates in Euclidean space into spherical coordinates.
+       * \details The functions in the array take four Cartesian coordinates representing a distance and a location
+       * on a unit sphere, and convert those coordinates to spherical coordinates.
+       * The array element is a function taking a ''get coefficient'' function and returning spherical coordinates.
+       * The ''get coefficient'' function takes the index of a column within a row vector and returns one of
+       * the four coordinates.
+       * \tparam Scalar The scalar type (e.g., double).
+       * \tparam i The index of the first of the four Cartesian coordinates being transformed back to spherical.
+       */
       template<typename Scalar, std::size_t i>
       static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), size>
         from_Euclidean_array = internal::join(
         internal::join(
-          detail::SphericalImpl<Coeff1, CircleTraits, InclinationTraits, Scalar>::template from_Euclidean_array<i, 0, 1, 2, 3>,
-          detail::SphericalImpl<Coeff2, CircleTraits, InclinationTraits, Scalar>::template from_Euclidean_array<i, 0, 1, 2, 3>),
-          detail::SphericalImpl<Coeff3, CircleTraits, InclinationTraits, Scalar>::template from_Euclidean_array<i, 0, 1, 2, 3>
+          detail::SphericalImpl<C1, CircleLimits, InclinationLimits, Scalar>::template from_Euclidean_array<i, 0, 1, 2, 3>,
+          detail::SphericalImpl<C2, CircleLimits, InclinationLimits, Scalar>::template from_Euclidean_array<i, 0, 1, 2, 3>),
+          detail::SphericalImpl<C3, CircleLimits, InclinationLimits, Scalar>::template from_Euclidean_array<i, 0, 1, 2, 3>
       );
 
+
+      /**
+       * \internal
+       * \brief An array of functions that return a wrapped version of spherical coordinates.
+       * \details Each function in the array takes a ''get coefficient'' function and returns spherical coordinates.
+       * The ''get coefficient'' function takes the index of a column within a row vector and returns a coefficient.
+       * \tparam Scalar The scalar type (e.g., double).
+       * \tparam i The index of the first of three spherical coordinates that are being wrapped.
+       */
       template<typename Scalar, std::size_t i>
       static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), size>
         wrap_array_get = internal::join(
         internal::join(
-          detail::SphericalImpl<Coeff1, CircleTraits, InclinationTraits, Scalar>::template wrap_array_get<i, d_i, a_i, i_i>,
-          detail::SphericalImpl<Coeff2, CircleTraits, InclinationTraits, Scalar>::template wrap_array_get<i, d_i, a_i, i_i>),
-          detail::SphericalImpl<Coeff3, CircleTraits, InclinationTraits, Scalar>::template wrap_array_get<i, d_i, a_i, i_i>
+          detail::SphericalImpl<C1, CircleLimits, InclinationLimits, Scalar>::template wrap_array_get<i, d_i, a_i, i_i>,
+          detail::SphericalImpl<C2, CircleLimits, InclinationLimits, Scalar>::template wrap_array_get<i, d_i, a_i, i_i>),
+          detail::SphericalImpl<C3, CircleLimits, InclinationLimits, Scalar>::template wrap_array_get<i, d_i, a_i, i_i>
       );
 
+
+      /**
+       * \internal
+       * \brief An array of functions that set a matrix coefficient to wrapped spherical coordinates.
+       * \details Each void function in the array takes a scalar value and ''set coefficient'' function.
+       * The ''set coefficient'' function takes a scalar value and an index of a column within a row vector and
+       * sets the coefficient at that index to a wrapped version of the scalar input.
+       * \tparam Scalar The scalar type (e.g., double).
+       * \tparam i The index of the first of the three spherical coordinates that are being wrapped.
+       */
       template<typename Scalar, std::size_t i>
       static constexpr std::array<void (*const)(const Scalar, const SetCoeff<Scalar>&, const GetCoeff<Scalar>&), size>
         wrap_array_set = internal::join(
         internal::join(
-          detail::SphericalImpl<Coeff1, CircleTraits, InclinationTraits, Scalar>::template wrap_array_set<i, d_i, a_i, i_i>,
-          detail::SphericalImpl<Coeff2, CircleTraits, InclinationTraits, Scalar>::template wrap_array_set<i, d_i, a_i, i_i>),
-          detail::SphericalImpl<Coeff3, CircleTraits, InclinationTraits, Scalar>::template wrap_array_set<i, d_i, a_i, i_i>
+          detail::SphericalImpl<C1, CircleLimits, InclinationLimits, Scalar>::template wrap_array_set<i, d_i, a_i, i_i>,
+          detail::SphericalImpl<C2, CircleLimits, InclinationLimits, Scalar>::template wrap_array_set<i, d_i, a_i, i_i>),
+          detail::SphericalImpl<C3, CircleLimits, InclinationLimits, Scalar>::template wrap_array_set<i, d_i, a_i, i_i>
       );
 
     };
-  }
 
-  /// Spherical coordinates (Radius, Angle, Inclination).
-  template<typename Traits1, typename Traits2>
-  struct Spherical<OpenKalman::Distance, OpenKalman::Circle<Traits1>, OpenKalman::Inclination<Traits2>>
-    : detail::SphericalBase<Spherical<OpenKalman::Distance, OpenKalman::Circle<Traits1>, OpenKalman::Inclination<Traits2>>,
-    OpenKalman::Distance, OpenKalman::Circle<Traits1>, OpenKalman::Inclination<Traits2>, Traits1, Traits2, 0, 1, 2> {};
+  } // namespace detail
 
-  /// Spherical coordinates (Radius, Inclination, Angle).
-  template<typename Traits1, typename Traits2>
-  struct Spherical<OpenKalman::Distance, OpenKalman::Inclination<Traits1>, OpenKalman::Circle<Traits2>>
-    : detail::SphericalBase<Spherical<OpenKalman::Distance, OpenKalman::Inclination<Traits1>, OpenKalman::Circle<Traits2>>,
-    OpenKalman::Distance, OpenKalman::Inclination<Traits1>, OpenKalman::Circle<Traits2>, Traits2, Traits1, 0, 2, 1> {};
 
-  /// Spherical coordinates (Angle, Radius, Inclination).
-  template<typename Traits1, typename Traits2>
-  struct Spherical<OpenKalman::Circle<Traits1>, OpenKalman::Distance, OpenKalman::Inclination<Traits2>>
-    : detail::SphericalBase<Spherical<OpenKalman::Circle<Traits1>, OpenKalman::Distance, OpenKalman::Inclination<Traits2>>,
-      OpenKalman::Circle<Traits1>, OpenKalman::Distance, OpenKalman::Inclination<Traits2>, Traits1, Traits2, 1, 0, 2> {};
+  // Distance, Angle, Inclination.
+  template<template<typename Scalar> typename ALimits, template<typename Scalar> typename ILimits>
+  struct Spherical<Distance, Angle<ALimits>, Inclination<ILimits>>
+    : detail::SphericalBase<Spherical<Distance, Angle<ALimits>, Inclination<ILimits>>,
+    Distance, Angle<ALimits>, Inclination<ILimits>, ALimits, ILimits, 0, 1, 2>
+  {
+    static_assert(internal::coefficient_class<Spherical>);
+  };
 
-  /// Spherical coordinates (Inclination, Radius, Angle).
-  template<typename Traits1, typename Traits2>
-  struct Spherical<OpenKalman::Inclination<Traits1>, OpenKalman::Distance, OpenKalman::Circle<Traits2>>
-    : detail::SphericalBase<Spherical<OpenKalman::Inclination<Traits1>, OpenKalman::Distance, OpenKalman::Circle<Traits2>>,
-      OpenKalman::Inclination<Traits1>, OpenKalman::Distance, OpenKalman::Circle<Traits2>, Traits2, Traits1, 1, 2, 0> {};
 
-  /// Spherical coordinates (Angle, Inclination, Radius).
-  template<typename Traits1, typename Traits2>
-  struct Spherical<OpenKalman::Circle<Traits1>, OpenKalman::Inclination<Traits2>, OpenKalman::Distance>
-    : detail::SphericalBase<Spherical<OpenKalman::Circle<Traits1>, OpenKalman::Inclination<Traits2>, OpenKalman::Distance>,
-      OpenKalman::Circle<Traits1>, OpenKalman::Inclination<Traits2>, OpenKalman::Distance, Traits1, Traits2, 2, 0, 1> {};
+  // Distance, Inclination, Angle.
+  template<template<typename Scalar> typename ILimits, template<typename Scalar> typename ALimits>
+  struct Spherical<Distance, Inclination<ILimits>, Angle<ALimits>>
+    : detail::SphericalBase<Spherical<Distance, Inclination<ILimits>, Angle<ALimits>>,
+    Distance, Inclination<ILimits>, Angle<ALimits>, ALimits, ILimits, 0, 2, 1>
+{
+static_assert(internal::coefficient_class<Spherical>);
+};
 
-  /// Spherical coordinates (Inclination, Angle, Radius).
-  template<typename Traits1, typename Traits2>
-  struct Spherical<OpenKalman::Inclination<Traits1>, OpenKalman::Circle<Traits2>, OpenKalman::Distance>
-    : detail::SphericalBase<Spherical<OpenKalman::Inclination<Traits1>, OpenKalman::Circle<Traits2>, OpenKalman::Distance>,
-      OpenKalman::Inclination<Traits1>, OpenKalman::Circle<Traits2>, OpenKalman::Distance, Traits2, Traits1, 2, 1, 0> {};
+
+  // Angle, Distance, Inclination.
+  template<template<typename Scalar> typename ALimits, template<typename Scalar> typename ILimits>
+  struct Spherical<Angle<ALimits>, Distance, Inclination<ILimits>>
+    : detail::SphericalBase<Spherical<Angle<ALimits>, Distance, Inclination<ILimits>>,
+      Angle<ALimits>, Distance, Inclination<ILimits>, ALimits, ILimits, 1, 0, 2>
+  {
+    static_assert(internal::coefficient_class<Spherical>);
+  };
+
+
+  // Inclination, Distance, Angle.
+  template<template<typename Scalar> typename ILimits, template<typename Scalar> typename ALimits>
+  struct Spherical<Inclination<ILimits>, Distance, Angle<ALimits>>
+    : detail::SphericalBase<Spherical<Inclination<ILimits>, Distance, Angle<ALimits>>,
+      Inclination<ILimits>, Distance, Angle<ALimits>, ALimits, ILimits, 1, 2, 0>
+  {
+    static_assert(internal::coefficient_class<Spherical>);
+  };
+
+
+
+  // Angle, Inclination, Distance.
+  template<template<typename Scalar> typename ALimits, template<typename Scalar> typename ILimits>
+  struct Spherical<Angle<ALimits>, Inclination<ILimits>, Distance>
+    : detail::SphericalBase<Spherical<Angle<ALimits>, Inclination<ILimits>, Distance>,
+      Angle<ALimits>, Inclination<ILimits>, Distance, ALimits, ILimits, 2, 0, 1>
+  {
+    static_assert(internal::coefficient_class<Spherical>);
+  };
+
+
+
+  // Inclination, Angle, Distance.
+  template<template<typename Scalar> typename ILimits, template<typename Scalar> typename ALimits>
+  struct Spherical<Inclination<ILimits>, Angle<ALimits>, Distance>
+    : detail::SphericalBase<Spherical<Inclination<ILimits>, Angle<ALimits>, Distance>,
+      Inclination<ILimits>, Angle<ALimits>, Distance, ALimits, ILimits, 2, 1, 0>
+  {
+    static_assert(internal::coefficient_class<Spherical>);
+  };
+
+
 
 }// namespace OpenKalman
 

@@ -13,7 +13,8 @@ if (GTest_FOUND)
     include_directories(SYSTEM ${GTEST_INCLUDE_DIRS})
 
     add_executable(coefficients
-        tests/coefficients.cpp
+            tests/coefficients.cpp
+        tests/coefficient-functions.cpp
         )
     target_link_libraries(coefficients ${GTEST_BOTH_LIBRARIES} Threads::Threads)
     add_test(coefficients 0)

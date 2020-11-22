@@ -13,7 +13,7 @@
 using namespace OpenKalman;
 
 using M2 = Eigen::Matrix<double, 2, 2>;
-using C = Coefficients<Angle, Axis>;
+using C = Coefficients<angle::Radians, Axis>;
 using Mat2 = Matrix<C, C, M2>;
 using Mat2col = Matrix<C, Axis, Eigen::Matrix<double, 2, 1>>;
 using SA2l = SelfAdjointMatrix<M2, TriangleType::lower>;
@@ -630,7 +630,7 @@ TEST_F(covariance_tests, Covariance_mult_TypedMatrix)
   using MatZ2 = Matrix<C, C, Z2>;
   auto mati2 = MatI2(i2);
   auto matz2 = MatZ2(z2);
-  using Cx = Coefficients<Axis, Angle>;
+  using Cx = Coefficients<Axis, angle::Radians>;
   using MatI2x = Matrix<C, Cx, I2>;
   auto mati2x = MatI2x(i2);
 
@@ -817,8 +817,8 @@ TEST_F(covariance_tests, Covariance_scale)
 
   // Rank-deficient case
   using M3 = Eigen::Matrix<double, 3, 3>;
-  using Mat3 = Matrix<Coefficients<Angle, Axis, Angle>, Coefficients<Angle, Axis, Angle>, M3>;
-  Matrix<Coefficients<Angle, Axis, Angle>, C> a1 {1, 2, 3, 4, 5, 6};
+  using Mat3 = Matrix<Coefficients<angle::Radians, Axis, angle::Radians>, Coefficients<angle::Radians, Axis, angle::Radians>, M3>;
+  Matrix<Coefficients<angle::Radians, Axis, angle::Radians>, C> a1 {1, 2, 3, 4, 5, 6};
   EXPECT_TRUE(is_near(scale(CovSA2l(p1), a1), Mat3 {32, 72, 112, 72, 164, 256, 112, 256, 400}));
   EXPECT_TRUE(is_near(scale(CovSA2u(p1), a1), Mat3 {32, 72, 112, 72, 164, 256, 112, 256, 400}));
   EXPECT_TRUE(is_near(scale(CovT2l(p1), a1), Mat3 {32, 72, 112, 72, 164, 256, 112, 256, 400}));
@@ -831,15 +831,15 @@ TEST_F(covariance_tests, Covariance_scale)
   static_assert(Eigen3::lower_storage_triangle<decltype(scale(CovD2 {1, 2}, a1).base_matrix())>);
 
   // Rank-sufficient case
-  using CovSA3l = Covariance<Coefficients<Angle, Axis, Angle>, SelfAdjointMatrix<M3, TriangleType::lower>>;
-  using CovSA3u = Covariance<Coefficients<Angle, Axis, Angle>, SelfAdjointMatrix<M3, TriangleType::upper>>;
-  using CovT3l = Covariance<Coefficients<Angle, Axis, Angle>, TriangularMatrix<M3, TriangleType::lower>>;
-  using CovT3u = Covariance<Coefficients<Angle, Axis, Angle>, TriangularMatrix<M3, TriangleType::upper>>;
-  using CovD3 = Covariance<Coefficients<Angle, Axis, Angle>, DiagonalMatrix<Eigen::Matrix<double, 3, 1>>>;
+  using CovSA3l = Covariance<Coefficients<angle::Radians, Axis, angle::Radians>, SelfAdjointMatrix<M3, TriangleType::lower>>;
+  using CovSA3u = Covariance<Coefficients<angle::Radians, Axis, angle::Radians>, SelfAdjointMatrix<M3, TriangleType::upper>>;
+  using CovT3l = Covariance<Coefficients<angle::Radians, Axis, angle::Radians>, TriangularMatrix<M3, TriangleType::lower>>;
+  using CovT3u = Covariance<Coefficients<angle::Radians, Axis, angle::Radians>, TriangularMatrix<M3, TriangleType::upper>>;
+  using CovD3 = Covariance<Coefficients<angle::Radians, Axis, angle::Radians>, DiagonalMatrix<Eigen::Matrix<double, 3, 1>>>;
   Mat3 q1 {4, 2, 2,
            2, 5, 3,
            2, 3, 6};
-  Matrix<C, Coefficients<Angle, Axis, Angle>> b1 {1, 2, 3, 4, 5, 6};
+  Matrix<C, Coefficients<angle::Radians, Axis, angle::Radians>> b1 {1, 2, 3, 4, 5, 6};
   EXPECT_TRUE(is_near(scale(CovSA3l(q1), b1), Mat2 {134, 317, 317, 761}));
   EXPECT_TRUE(is_near(scale(CovSA3u(q1), b1), Mat2 {134, 317, 317, 761}));
   EXPECT_TRUE(is_near(scale(CovT3l(q1), b1), Mat2 {134, 317, 317, 761}));
@@ -859,7 +859,7 @@ TEST_F(covariance_tests, TypedMatrix_mult_Covariance)
   using MatZ2 = Matrix<C, C, Z2>;
   auto mati2 = MatI2(i2);
   auto matz2 = MatZ2(z2);
-  using Cx = Coefficients<Axis, Angle>;
+  using Cx = Coefficients<Axis, angle::Radians>;
   using MatI2x = Matrix<Cx, C, I2>;
   auto mati2x = MatI2x(i2);
 

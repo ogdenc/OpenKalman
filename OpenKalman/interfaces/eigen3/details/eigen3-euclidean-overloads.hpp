@@ -561,11 +561,11 @@ namespace OpenKalman::Eigen3
         };
       if constexpr(to_euclidean_expr<Arg>)
       {
-        return OpenKalman::to_Euclidean<Coeffs, Scalar>(i, get_coeff);
+        return OpenKalman::internal::to_Euclidean<Coeffs, Scalar>(i, get_coeff);
       }
       else
       {
-        return OpenKalman::from_Euclidean<Coeffs, Scalar>(i, get_coeff);
+        return OpenKalman::internal::from_Euclidean<Coeffs, Scalar>(i, get_coeff);
       }
     }
   }
@@ -597,11 +597,11 @@ namespace OpenKalman::Eigen3
         };
       if constexpr(to_euclidean_expr<Arg>)
       {
-        return OpenKalman::to_Euclidean<Coeffs, Scalar>((std::size_t) i, get_coeff);
+        return OpenKalman::internal::to_Euclidean<Coeffs, Scalar>((std::size_t) i, get_coeff);
       }
       else
       {
-        return OpenKalman::from_Euclidean<Coeffs, Scalar>((std::size_t) i, get_coeff);
+        return OpenKalman::internal::from_Euclidean<Coeffs, Scalar>((std::size_t) i, get_coeff);
       }
     }
   }
@@ -629,7 +629,7 @@ namespace OpenKalman::Eigen3
       const auto get_coeff = [j, &arg] (const std::size_t row) {
         return get_element(base_matrix(base_matrix(std::forward<Arg>(arg))), row, j);
       };
-      return wrap_get<Coeffs>(i, get_coeff);
+      return OpenKalman::internal::wrap_get<Coeffs>(i, get_coeff);
     }
   }
 
@@ -656,7 +656,7 @@ namespace OpenKalman::Eigen3
       const auto get_coeff = [&arg] (const std::size_t row) {
         return get_element(base_matrix(base_matrix(std::forward<Arg>(arg))), row);
       };
-      return wrap_get<Coeffs>(i, get_coeff);
+      return OpenKalman::internal::wrap_get<Coeffs>(i, get_coeff);
     }
   }
 
@@ -711,7 +711,7 @@ namespace OpenKalman::Eigen3
    * Set element (i, j) of arg in FromEuclideanExpr(ToEuclideanExpr(arg)) to s.
    *
    * This function sets the base matrix, not the wrapped resulting matrix.
-   * For example, if the coefficient is Polar<Distance, Angle> and the initial value of a
+   * For example, if the coefficient is Polar<Distance, angle::Radians> and the initial value of a
    * single-column vector is {-1., pi/2}, then set_element(arg, pi/4, 1, 0) will replace p/2 with pi/4 to
    * yield {-1., pi/4} in the base matrix. The resulting wrapped expression will yield {1., -3*pi/4}.
    * \tparam Arg The matrix to set.
@@ -747,7 +747,7 @@ namespace OpenKalman::Eigen3
       const auto set_coeff = [&arg, j] (const Scalar value, const std::size_t row) {
         set_element(base_matrix(base_matrix(arg)), value, row, j);
       };
-      wrap_set<Coeffs>(s, i, set_coeff, get_coeff);
+      OpenKalman::internal::wrap_set<Coeffs>(s, i, set_coeff, get_coeff);
     }
   }
 
@@ -756,7 +756,7 @@ namespace OpenKalman::Eigen3
    * Set element (i) of arg in FromEuclideanExpr(ToEuclideanExpr(arg)) to s, where arg is a single-column vector.
    *
    * This function sets the base matrix, not the wrapped resulting matrix.
-   * For example, if the coefficient is Polar<Distance, Angle> and the initial value of a
+   * For example, if the coefficient is Polar<Distance, angle::Radians> and the initial value of a
    * single-column vector is {-1., pi/2}, then set_element(arg, pi/4, 1) will replace p/2 with pi/4 to
    * yield {-1., pi/4} in the base matrix. The resulting wrapped expression will yield {1., -3*pi/4}.
    * \tparam Arg The matrix to set.
@@ -791,7 +791,7 @@ namespace OpenKalman::Eigen3
       const auto set_coeff = [&arg] (const Scalar value, const std::size_t row) {
         set_element(base_matrix(base_matrix(arg)), value, row);
       };
-      wrap_set<Coeffs>(s, i, set_coeff, get_coeff);
+      OpenKalman::internal::wrap_set<Coeffs>(s, i, set_coeff, get_coeff);
     }
   }
 

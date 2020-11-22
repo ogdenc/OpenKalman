@@ -9,8 +9,8 @@
  */
 
 /**
- * \file Traits.h
- * A header file containing forward declarations for all OpenKalman traits.
+ * \file forward-class-declarations.hpp
+ * A header file containing forward declarations for OpenKalman classes and some of their closely-associated traits.
  */
 
 #ifndef OPENKALMAN_FORWARD_CLASS_DECLARATIONS_HPP
@@ -21,108 +21,117 @@
 namespace OpenKalman
 {
   /**
-   * A matrix with typed rows and columns.
-   *
+   * \brief A matrix with typed rows and columns.
+   * \details It is a wrapper for a native matrix type from a supported matrix library such as Eigen.
    * The matrix can be thought of as a transformation from X to Y, where the coefficients for each of X and Y are typed.
    * Example declaration:
-   * <code>Matrix<double, Coefficients<Axis, Axis, Angle>, Coefficients<Axis, Axis>> x;</code>
+   * <code>Matrix<double, Coefficients<Axis, Axis, angle::Radians>, Coefficients<Axis, Axis>, Eigen::Matrix<double, 3, 2>> x;</code>
    * \tparam RowCoefficients A set of coefficients (e.g., Axis, Spherical, etc.) corresponding to the rows.
    * \tparam ColumnCoefficients Another set of coefficients corresponding to the columns.
-   * \tparam ArgType The base matrix type.
+   * \tparam NativeMatrix The underlying native matrix or matrix expression.
    */
 #ifdef __cpp_concepts
-  template<coefficients RowCoefficients, coefficients ColumnCoefficients, typed_matrix_base ArgType> requires
-    (RowCoefficients::size == MatrixTraits<ArgType>::dimension) and
-    (ColumnCoefficients::size == MatrixTraits<ArgType>::columns)
+  template<coefficients RowCoefficients, coefficients ColumnCoefficients, typed_matrix_base NativeMatrix> requires
+    (RowCoefficients::size == MatrixTraits<NativeMatrix>::dimension) and
+    (ColumnCoefficients::size == MatrixTraits<NativeMatrix>::columns)
 #else
-  template<typename RowCoefficients, typename ColumnCoefficients, typename ArgType>
+  template<typename RowCoefficients, typename ColumnCoefficients, typename NativeMatrix>
 #endif
   struct Matrix;
 
 
   /**
-   * \brief A set of column vectors representing one or more means.
-   * Generally, a column vector representing a mean. Alternatively, it can be a 2D matrix representing a collection of
-   * column vectors of the same coefficient types, each column vector representing a distinct mean.
+   * \brief A set of one or more column vectors, each representing a statistical mean.
+   * \details Unlike OpenKalman::Matrix, the columns of a Mean are untyped. When a Mean is converted to an
+   * OpenKalman::Matrix, the columns are assigned type Axis.
    * Example declaration:
-   * <code>Mean<Coefficients<Axis, Axis, Angle>, 1, Eigen::Matrix<double, 3, 1>> x;</code>
+   * <code>Mean<Coefficients<Axis, Axis, angle::Radians>, 1, Eigen::Matrix<double, 3, 1>> x;</code>
    * This declares a 3-dimensional vector <var>x</var>, where the coefficients are, respectively, an Axis,
-   * an Axis, and an Angle, all of scalar type <code>double</code>. The underlying representation is an
+   * an Axis, and an angle::Radians, all of scalar type <code>double</code>. The underlying representation is an
    * Eigen3 column vector.
    * \tparam Coefficients Coefficient types of the mean (e.g., Axis, Polar).
-   * \tparam BaseMatrix Regular matrix on which the mean is based (usually a column vector).
+   * \tparam NativeMatrix The underlying native matrix or matrix expression.
    */
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, typed_matrix_base BaseMatrix> requires
-  (Coefficients::size == MatrixTraits<BaseMatrix>::dimension)
+  template<coefficients Coefficients, typed_matrix_base NativeMatrix> requires
+  (Coefficients::size == MatrixTraits<NativeMatrix>::dimension)
 #else
-  template<typename Coefficients, typename BaseMatrix>
+  template<typename Coefficients, typename NativeMatrix>
 #endif
   struct Mean;
 
 
   /**
-   * \brief The underlying class representing the Euclidean space version of a mean, with typed coefficients.
-   *
+   * \brief Similar to a Mean, but the coefficients are transformed into Euclidean space, based on their type.
+   * \details Means containing angles should be converted to EuclideanMean before taking an average or weighted average.
    * Example declaration:
-   * <code>EuclideanMean<Coefficients<Axis, Axis, Angle>, 1, Eigen::Matrix<double, 3, 1>> x;</code>
+   * <code>EuclideanMean<Coefficients<Axis, Axis, angle::Radians>, 1, Eigen::Matrix<double, 4, 1>> x;</code>
    * This declares a 3-dimensional mean <var>x</var>, where the coefficients are, respectively, an Axis,
-   * an Axis, and an Angle, all of scalar type <code>double</code>. The underlying representation is a
-   * four-dimensional vector in Euclidean space, with two of the dimensions representing the Angle coefficient.
-   * \tparam Coefficients A set of coefficients (e.g., Angle, Polar, etc.)
-   * \tparam BaseMatrix The mean's base type. This is a column vector or a matrix (considered as a collection of column vectors).
+   * an Axis, and an angle::Radians, all of scalar type <code>double</code>. The underlying representation is a
+   * four-dimensional vector in Euclidean space, with the last two of the dimensions representing the angle::Radians coefficient
+   * transformed to x and y locations on a unit circle associated with the angle::Radians-type coefficient.
+   * \tparam Coefficients A set of coefficients (e.g., Axis, angle::Radians, Polar, etc.)
+   * \tparam NativeMatrix The underlying native matrix or matrix expression.
    */
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, typed_matrix_base BaseMatrix> requires
-  (Coefficients::dimension == MatrixTraits<BaseMatrix>::dimension)
+  template<coefficients Coefficients, typed_matrix_base NativeMatrix> requires
+  (Coefficients::dimension == MatrixTraits<NativeMatrix>::dimension)
 #else
-  template<typename Coefficients, typename BaseMatrix>
+  template<typename Coefficients, typename NativeMatrix>
 #endif
   struct EuclideanMean;
 
 
   /**
-   * A Covariance matrix.
+   * \brief A self-adjoint Covariance matrix.
+   * \details The coefficient types for the rows are the same as for the columns.
    * \tparam Coefficients Coefficient types.
-   * \tparam BaseMatrix Type of the underlying storage matrix (e.g., self-adjoint or triangular).
+   * \tparam NativeMatrix The underlying native matrix or matrix expression. It can be either self-adjoint or
+   * (either upper or lower) triangular. If it is triangular, the native matrix will be multiplied by its transpose
+   * when converted to a Matrix or when used in mathematical expressions. The self-adjoint and triangular versions
+   * are functionally identical, but often the triangular version is more efficient.
    */
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, covariance_base BaseMatrix> requires
-  (Coefficients::size == MatrixTraits<BaseMatrix>::dimension)
+  template<coefficients Coefficients, covariance_base NativeMatrix> requires
+  (Coefficients::size == MatrixTraits<NativeMatrix>::dimension)
 #else
-  template<typename Coefficients, typename BaseMatrix>
+  template<typename Coefficients, typename NativeMatrix>
 #endif
   struct Covariance;
 
 
   /**
    * \brief The upper or lower triangle Cholesky factor (square root) of a covariance matrix.
-   * \details If S is a SquareRootCovariance, S*S.transpose() is a Covariance.
+   * \details If S is a SquareRootCovariance, S*transpose(S) is a Covariance.
    * If BaseMatrix is triangular, the SquareRootCovariance has the same triangle type (upper or lower). If BaseMatrix
    * is self-adjoint, the triangle type of SquareRootCovariance is considered either upper ''or'' lower.
    * \tparam Coefficients Coefficient types.
-   * \tparam BaseMatrix Type of the underlying storage matrix (e.g., self-adjoint or triangular).
+   * \tparam NativeMatrix The underlying native matrix or matrix expression. It can be either self-adjoint or
+   * (either upper or lower) triangular. If it is self-adjoint, the native matrix will be Cholesky-factored
+   * when converted to a Matrix or when used in mathematical expressions. The self-adjoint and triangular versions
+   * are functionally identical, but often the triangular version is more efficient.
    */
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, covariance_base BaseMatrix> requires
-  (Coefficients::size == MatrixTraits<BaseMatrix>::dimension)
+  template<coefficients Coefficients, covariance_base NativeMatrix> requires
+  (Coefficients::size == MatrixTraits<NativeMatrix>::dimension)
 #else
-  template<typename Coefficients, typename BaseMatrix>
+  template<typename Coefficients, typename NativeMatrix>
 #endif
   struct SquareRootCovariance;
 
 
   /**
-   * \brief A Gaussian distribution, defined in terms of a mean vector and a covariance matrix.
+   * \brief A Gaussian distribution, defined in terms of a Mean and a Covariance.
    * \tparam Coefficients Coefficient types.
-   * \tparam ArgMean Underlying type for Mean.
-   * \tparam ArgMoment Underlying type for Moment.
+   * \tparam MeanNativeMatrix The underlying native matrix for the Mean.
+   * \tparam CovarianceNativeMatrix The underlying native matrix (triangular or self-adjoint) for the Covariance.
+   * \tparam random_number_engine A random number engine compatible with the c++ standard library (e.g., std::mt19937).
    */
   template<
     typename Coefficients,
-    typename MeanBase,
-    typename CovarianceBase,
-    typename random_number_engine>
+    typename MeanNativeMatrix,
+    typename CovarianceNativeMatrix,
+    typename random_number_engine> // = std::mt19937
   struct GaussianDistribution;
 
 
@@ -220,7 +229,7 @@ namespace OpenKalman
 
 
   /**
-   * T is a euclidean_mean that actually has coefficients that are transformed to Euclidean space.
+   * T is a Euclidean mean that actually has coefficients that are transformed to Euclidean space.
    * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
    */
 #ifdef __cpp_concepts
@@ -299,7 +308,7 @@ namespace OpenKalman
 
 
   /**
-   * T is a square root (Cholesky) covariance matrix with typed rows and columns. The rows and columns have the same type.
+   * T is a square root (Cholesky) covariance matrix (i.e., a specialization of SquareRootCovariance).
    * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
    */
   template<typename T>
@@ -325,7 +334,7 @@ namespace OpenKalman
 
 
   /**
-   * T is a covariance matrix of any kind, including a square_root_covariance. The rows and columns have the same type.
+   * T is a specialization of either Covariance or SquareRootCovariance.
    * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
    */
   template<typename T>

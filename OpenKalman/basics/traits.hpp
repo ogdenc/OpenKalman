@@ -10,7 +10,7 @@
 
 /**
  * \file Traits.h
- * A header file containing forward declarations for all OpenKalman traits.
+ * A header file containing forward declarations for OpenKalman and native-matrix traits.
  */
 
 #ifndef OPENKALMAN_TRAITS_HPP
@@ -40,7 +40,7 @@ namespace OpenKalman
 
 
   /**
-   * T is a self-contained matrix or expression (i.e., it can be the return value of a function).
+   * T is a self-contained matrix or expression (i.e., it can be created in a function and returned as the result).
    * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
    */
   template<typename T>

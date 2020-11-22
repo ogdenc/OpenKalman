@@ -14,13 +14,13 @@
 #include "details/coefficient_forward-declarations.hpp"
 
 #include "Axis.hpp"
-#include "Circle.hpp"
-#include "Angle.hpp"
 #include "Distance.hpp"
+#include "Angle.hpp"
 #include "Inclination.hpp"
 #include "Polar.hpp"
 #include "Spherical.hpp"
-
 #include "Coefficients.hpp"
+
+#include "details/coefficient-functions.hpp"
 
 #endif //OPENKALMAN_COEFFICIENT_TYPES_HPP

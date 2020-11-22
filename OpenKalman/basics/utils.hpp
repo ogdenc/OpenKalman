@@ -19,6 +19,7 @@
 #include <numbers>
 #endif
 
+// These are re-creations of the c++20 standard constant, in case they are not defined.
 #ifndef __cpp_lib_math_constants
 namespace std::numbers
 {
@@ -38,6 +39,7 @@ namespace std::numbers
   inline constexpr double sqrt2 = sqrt2_v<double>;
 }
 #endif
+
 
 namespace OpenKalman::internal
 {
@@ -88,7 +90,16 @@ namespace OpenKalman::internal
 
   } // namespace detail
 
-  /// Join two arrays.
+  /**
+   * \internal
+   * Join two arrays.
+   * \tparam T The type of the array elements.
+   * \tparam size_L The size of the left array.
+   * \tparam size_R The size of the right array.
+   * \param left The left array.
+   * \param right The right array.
+   * \return The left array concatenated with the right array.
+   */
   template<typename T, std::size_t size_L, std::size_t size_R>
   constexpr std::array<T, size_L + size_R>
   join(const std::array<T, size_L>& left, const std::array<T, size_R>& right)
@@ -97,7 +108,15 @@ namespace OpenKalman::internal
       typename detail::Counter<size_R, 0>::type());
   }
 
-  /// Prepend an element to an array.
+  /**
+   * \internal
+   * Prepend an element to an array.
+   * \tparam T The type of the array elements.
+   * \tparam size_R The size of the array to which the element is to be prepended.
+   * \param left The element to be prepended.
+   * \param right The array to which the element is to be prepended.
+   * \return An array with left prepended to right.
+   */
   template<typename T, std::size_t size_R>
   constexpr std::array<const T, 1 + size_R>
   prepend(const T left, const std::array<const T, size_R>& right)
@@ -118,11 +137,17 @@ namespace OpenKalman::internal
     }
   }
 
-  /// A constexpr square root.
-  template<typename T>
-  constexpr T constexpr_sqrt(T x)
+  /**
+   * \internal
+   * A constexpr square root function.
+   * \tparam Scalar The scalar type.
+   * \param x The operand.
+   * \return The square root of x.
+   */
+  template<typename Scalar>
+  constexpr Scalar constexpr_sqrt(Scalar x)
   {
-    return detail::sqrt_impl<T>(x, 0, x / 2 + 1);
+    return detail::sqrt_impl<Scalar>(x, 0, x / 2 + 1);
   }
 
 
@@ -135,7 +160,15 @@ namespace OpenKalman::internal
     }
   }
 
-  /// Return a subset of a tuple, given an index range.
+  /**
+   * \internal
+   * Take a slice of a tuple, given an index range.
+   * \tparam index1 The index of the beginning of the slice.
+   * \tparam index2 The first index just beyond the end of the slice.
+   * \tparam T The tuple type.
+   * \param t The tuple.
+   * \return The tuple slice.
+   */
   template<std::size_t index1, std::size_t index2, typename T>
   constexpr auto tuple_slice(T&& t)
   {
@@ -145,7 +178,14 @@ namespace OpenKalman::internal
   }
 
 
-  /// Create a tuple that replicates a value.
+  /**
+   * \internal
+   * Create a tuple that replicates a value N number of times.
+   * \tparam N The number of times to replicate.
+   * \tparam T The type of the tuple element to replicate.
+   * \param t The tuple element to replicate.
+   * \return A tuple containing N copies of t.
+   */
   template<std::size_t N, typename T>
   constexpr auto tuple_replicate(T&& t)
   {
@@ -163,9 +203,17 @@ namespace OpenKalman::internal
     }
   }
 
-  /// Default split function.
+  /**
+   * \internal
+   * The default wrapper function object for matrix splitting operations.
+   */
   struct default_split_function
   {
+    /**
+     * \internal
+     * The identity function.
+     * \return The input, unchanged.
+     */
     template<typename, typename, typename Arg>
     static constexpr Arg&& call(Arg&& arg) { return std::forward<Arg>(arg); }
   };

@@ -507,7 +507,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
       const auto set_coeff = [&arg, j](const typename MatrixTraits<Arg>::Scalar value, const std::size_t row) {
         set_element(base_matrix(arg), value, row, j);
       };
-      wrap_set<Coeffs>(s, i, set_coeff, get_coeff);
+      internal::wrap_set<Coeffs>(s, i, set_coeff, get_coeff);
     }
     else
     {
@@ -537,7 +537,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
       const auto set_coeff = [&arg](const typename MatrixTraits<Arg>::Scalar value, const std::size_t row) {
         set_element(base_matrix(arg), value, row);
       };
-      wrap_set<Coeffs>(s, i, set_coeff, get_coeff);
+      internal::wrap_set<Coeffs>(s, i, set_coeff, get_coeff);
     }
     else
     {

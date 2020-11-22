@@ -64,7 +64,7 @@ TEST_F(transformations, Mult_additive_axis)
 
 TEST_F(transformations, Mult_additive_angle)
 {
-  using C = Coefficients<Axis, Angle>;
+  using C = Coefficients<Axis, angle::Radians>;
   using M = Mean<C>;
   using A = Matrix<C, C>;
   const auto f = [](const M& x) -> M { return A {1, 2, 3, 4} * x; };
@@ -88,7 +88,7 @@ TEST_F(transformations, Mult_augmented_axis)
 
 TEST_F(transformations, Mult_augmented_angle)
 {
-  using C = Coefficients<Axis, Angle>;
+  using C = Coefficients<Axis, angle::Radians>;
   using M = Mean<C>;
   using A = Matrix<C, C>;
   A a, an;

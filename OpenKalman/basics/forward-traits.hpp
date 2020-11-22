@@ -9,8 +9,8 @@
  */
 
 /**
- * \file Traits.h
- * A header file containing forward declarations for all OpenKalman traits.
+ * \file forward-traits.hpp
+ * A header file containing forward declarations for traits relating to OpenKalman or native matrix types.
  */
 
 #ifndef OPENKALMAN_FORWARD_TRAITS_HPP
@@ -18,46 +18,87 @@
 
 #include <type_traits>
 
+
+/**
+ * The root namespace for OpenKalman.
+ */
 namespace OpenKalman
 {
   // ---------------- //
   //   Coefficients   //
   // ---------------- //
 
+  /**
+   * \internal
+   * Internal definitions, not intended for use outside of OpenKalman.
+   */
   namespace internal
   {
     /**
      * \internal
-     * A type trait testing whether T is an atomic group of coefficients.
-     *
-     * The atomic coefficient groups are the following:
-     * - Axis
-     * - Circle (or alias Angle)
-     * - Distance
-     * - Inclination
-     * - Polar
-     * - Spherical
-     * Atomic coefficient groups may be combined into composite coefficient sets by passing them as template
-     * arguments to Coefficients. For example Coefficients<Axis, Polar<Distance, Angle>> is a set comprising an axis and
-     * a set of polar coordinates.
+     * \brief A type trait testing whether T is an atomic group of coefficients.
+     * \details Atomic coefficient groups are %coefficients or groups of %coefficients that function as a unit,
+     * and cannot be separated. They may be combined into composite coefficients by passing them as template
+     * parameters to Coefficients.
      */
     template<typename T>
     struct is_atomic_coefficient_group;
 
+
     /**
      * \internal
-     * A type trait testing whether T is a composite set of coefficient groups.
-     *
-     * This corresponds to any specialization of the class Coefficients. Composite coefficients can, themselves,
-     * comprise groups of other composite components. For example, Coefficients<Axis, Coefficients<Axis, Angle>>
-     * tests positive for is_composite_coefficients.
+     * \brief A type trait testing whether T is a composite set of coefficient groups.
+     * \details Composite coefficients are specializations of the class Coefficients, which has the purpose of grouping
+     * other atomic or composite coefficients. Composite coefficients can, themselves, comprise groups of other
+     * composite components.
      */
     template<typename T>
     struct is_composite_coefficients;
-  } // namespace internal
 
 
-#ifndef __cpp_concepts
+    /**
+     * \internal
+     * A sufficiently-defined class representing an atomic or composite group of coefficients.
+     */
+    template<typename T>
+#ifdef __cpp_concepts
+    concept coefficient_class =
+    std::integral<decltype(T::size)> and std::integral<decltype(T::dimension)> and
+      (T::axes_only or not T::axes_only) and
+      (internal::is_atomic_coefficient_group<typename T::difference_type>::value or
+        internal::is_composite_coefficients<typename T::difference_type>::value) and
+      requires {T::template to_Euclidean_array<double, 0>[0](std::function<double(const std::size_t)>()) == 0.;} and
+      requires {T::template from_Euclidean_array<double, 0>[0](std::function<double(const std::size_t)>()) == 0.;} and
+      requires {T::template wrap_array_get<double, 0>[0](std::function<double(const std::size_t)>()) == 0.;} and
+      requires {T::template wrap_array_set<double, 0>[0](0., std::function<void(const double, const std::size_t)>(),
+        std::function<double(const std::size_t)>());} and
+      (std::tuple_size_v<decltype(T::template to_Euclidean_array<double, 0>)> == T::dimension) and
+      (std::tuple_size_v<decltype(T::template from_Euclidean_array<double, 0>)> == T::size) and
+      (std::tuple_size_v<decltype(T::template wrap_array_get<double, 0>)> == T::size) and
+      (std::tuple_size_v<decltype(T::template wrap_array_set<double, 0>)> == T::size);
+#else
+    inline constexpr bool coefficient_class = true;
+#endif
+
+  }
+
+
+  /**
+   * \interface coefficients<>
+   * \brief T is a group of atomic or composite coefficients.
+   * \copydetails internal::is_atomic_coefficient_group<>
+   * \copydetails internal::is_composite_coefficients<>
+   * \details Examples of coefficients:
+   * - Axis
+   * - Polar<Distance, angle::Radians>
+   * - Coefficients<Axis, angle::Radians>
+   * - Coefficients<Spherical<angle::Degrees, inclination::degrees, Distance>, Axis, Axis>
+   */
+#ifdef __cpp_concepts
+  template<typename T>
+  concept coefficients = internal::is_composite_coefficients<T>::value or
+    internal::is_atomic_coefficient_group<T>::value;
+#else
   namespace detail
   {
     // A type trait testing whether T is either an atomic group of coefficients, or a composite set of coefficients.
@@ -65,27 +106,7 @@ namespace OpenKalman
     struct is_coefficients : std::integral_constant<bool,
       internal::is_composite_coefficients<T>::value or internal::is_atomic_coefficient_group<T>::value> {};
   }
-#endif
 
-
-  /**
-   * T is a coefficient group.
-   *
-   * A coefficient group may consist of some combination of any of the following:
-   * - Axis
-   * - Circle (including alias Angle)
-   * - Distance
-   * - Inclination
-   * - Polar
-   * - Spherical
-   * - Coefficient (a composite coefficient including any other coefficient group).
-   * Examples: Axis, Angle, Coefficient<Axis, Axis>, Coefficient<Angle, Coefficient<Axis, Angle>>.
-   */
-#ifdef __cpp_concepts
-  template<typename T>
-  concept coefficients = internal::is_composite_coefficients<T>::value or
-    internal::is_atomic_coefficient_group<T>::value;
-#else
   template<typename T>
   inline constexpr bool coefficients = detail::is_coefficients<T>::value;
 #endif
@@ -95,21 +116,24 @@ namespace OpenKalman
   {
     /**
      * \internal
-     * Type trait testing whether coefficients T are equivalent to coefficients U.
+     * \brief Type trait testing whether coefficients T are equivalent to coefficients U.
+     * \details Sets of coefficients are equivalent if they are treated functionally the same.
      */
 #ifdef __cpp_concepts
     template<coefficients T, coefficients U>
 #else
     template<typename T, typename U, typename Enable = void>
+    ///< \tparam Enable A dummy parameter for selection with SFINAE.
 #endif
     struct is_equivalent_to;
   }
 
 
   /**
-   * T is equivalent to U.
-   *
-   * For example, <code>equivalent_to<Axis, Coefficients<Axis>></code> returns <code>true</code>.
+   * \interface equivalent_to<>
+   * \brief T is equivalent to U, where T and U are sets of coefficients.
+   * \copydetails internal::is_equivalent_to<>.
+   * \details For example, <code>equivalent_to<Axis, Coefficients<Axis>></code> returns <code>true</code>.
    */
   template<typename T, typename U>
 #ifdef __cpp_concepts
@@ -124,20 +148,23 @@ namespace OpenKalman
     /**
      * \internal
      * Type trait testing whether T (a set of coefficients) is a prefix of U.
+     * \details If T is a prefix of U, then U is equivalent_to concatenating T with the remaining part of U.
      */
 #ifdef __cpp_concepts
     template<coefficients T, coefficients U>
 #else
     template<typename T, typename U, typename Enable = void>
+    ///< \tparam Enable A dummy parameter for selection with SFINAE.
 #endif
     struct is_prefix_of;
   }
 
 
   /**
-   * T is a prefix of U
-   *
-   * For example, <code>prefix_of<Coefficients<Axis>, Coefficients<Axis, Angle>></code> returns <code>true</code>.
+   * \interface prefix_of<>
+   * \brief T is a prefix of U, where T and U are sets of coefficients.
+   * \copydetails internal::is_prefix_of<>.
+   * \details For example, <code>prefix_of<Coefficients<Axis>, Coefficients<Axis, angle::Radians>></code> returns <code>true</code>.
    */
   template<typename T, typename U>
 #ifdef __cpp_concepts
@@ -158,12 +185,18 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<typename T>
+  struct MatrixTraits;
+
+  template<typename T>
   struct MatrixTraits {};
 
   template<typename T> requires std::is_reference_v<T> or std::is_const_v<std::remove_reference_t<T>>
   struct MatrixTraits<T> : public MatrixTraits<std::decay_t<T>> {};
 #else
-  template<typename T, typename Enable = void> ///< \tparam Enable A dummy variable to enable the class.
+  template<typename T, typename Enable = void> ///< \tparam Enable A dummy parameter for selection with SFINAE.
+  struct MatrixTraits;
+
+  template<typename T, typename Enable>
   struct MatrixTraits {};
 
   template<typename T>
@@ -184,12 +217,18 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<typename T>
+  struct DistributionTraits;
+
+  template<typename T>
   struct DistributionTraits {};
 
   template<typename T> requires std::is_reference_v<T> or std::is_const_v<std::remove_reference_t<T>>
   struct DistributionTraits<T> : DistributionTraits<std::decay_t<T>> {};
 #else
-  template<typename T, typename Enable = void> ///< \tparam Enable A dummy variable to enable the class.
+  template<typename T, typename Enable = void> ///< \tparam Enable A dummy parameter for selection with SFINAE.
+  struct DistributionTraits;
+
+  template<typename T, typename Enable>
   struct DistributionTraits {};
 
   template<typename T>
@@ -211,18 +250,20 @@ namespace OpenKalman
   {
     /**
      * \internal
-     * All true instances of is_covariance_base need to defined in each matrix interface.
+     * \brief A type trait testing whether T can be wrapped in a covariance.
+     * \note: This class should be specialized for all appropriate matrix classes.
      */
 #ifdef __cpp_concepts
     template<typename T>
 #else
-    template<typename T, typename Enable = void>
+    template<typename T, typename Enable = void> ///< \tparam Enable A dummy parameter for selection with SFINAE.
 #endif
     struct is_covariance_base : std::false_type {};
   }
 
   /**
-   * T is an acceptable base matrix for a covariance (including square_root_covariance).
+   * \interface covariance_base<>
+   * \brief T is an acceptable base matrix for a covariance (including square_root_covariance).
    * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
    */
   template<typename T>
@@ -241,18 +282,20 @@ namespace OpenKalman
   {
     /**
      * \internal
-     * All true instances of is_typed_matrix_base need to be defined in each matrix interface.
+     * \brief A type trait testing whether T is acceptable to be wrapped in a typed_matrix.
+     * \note: This class should be specialized for all appropriate matrix classes.
      */
 #ifdef __cpp_concepts
     template<typename T>
 #else
-    template<typename T, typename Enable = void>
+    template<typename T, typename Enable = void> ///< \tparam Enable A dummy parameter for selection with SFINAE.
 #endif
     struct is_typed_matrix_base : std::false_type {};
   }
 
   /**
-   * T is an acceptable base for a general typed matrix (e.g., matrix, mean, or euclidean_mean)
+   * \interface typed_matrix_base<>
+   * \brief T is an acceptable base for a general typed matrix (e.g., matrix, mean, or euclidean_mean)
    * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
    */
   template<typename T>

@@ -20,8 +20,8 @@ using M32 = Eigen::Matrix<double, 3, 2>;
 using M33 = Eigen::Matrix<double, 3, 3>;
 using I22 = IdentityMatrix<M22>;
 using Z22 = ZeroMatrix<M22>;
-using C2 = Coefficients<Axis, Angle>;
-using C3 = Coefficients<Axis, Angle, Axis>;
+using C2 = Coefficients<Axis, angle::Radians>;
+using C3 = Coefficients<Axis, angle::Radians, Axis>;
 using Mat12 = Matrix<Axis, C2, M12>;
 using Mat21 = Matrix<C2, Axis, M21>;
 using Mat22 = Matrix<C2, C2, M22>;
@@ -371,15 +371,15 @@ TEST_F(matrices, TypedMatrix_blocks)
   static_assert(equivalent_to<typename MatrixTraits<decltype(concatenate_horizontal(Mat22 {1, 2, 4, 5}, Mat21 {3, 6}))>::ColumnCoefficients, C3>);
 
   EXPECT_TRUE(is_near(concatenate_diagonal(Mat12 {1, 2}, Mat21 {3, 4}), Mat33 {1, 2, 0, 0, 0, 3, 0, 0, 4}));
-  static_assert(equivalent_to<typename MatrixTraits<decltype(concatenate_diagonal(Mat12 {1, 2}, Mat21 {3, 4}))>::RowCoefficients, Coefficients<Axis, Axis, Angle>>);
-  static_assert(equivalent_to<typename MatrixTraits<decltype(concatenate_diagonal(Mat12 {1, 2}, Mat21 {3, 4}))>::ColumnCoefficients, Coefficients<Axis, Angle, Axis>>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(concatenate_diagonal(Mat12 {1, 2}, Mat21 {3, 4}))>::RowCoefficients, Coefficients<Axis, Axis, angle::Radians>>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(concatenate_diagonal(Mat12 {1, 2}, Mat21 {3, 4}))>::ColumnCoefficients, Coefficients<Axis, angle::Radians, Axis>>);
 
   EXPECT_TRUE(is_near(split_vertical(Mat32 {1, 2, 3, 4, 5, 6}), std::tuple {}));
   EXPECT_TRUE(is_near(split_horizontal(Mat23 {1, 2, 3, 4, 5, 6}), std::tuple {}));
   EXPECT_TRUE(is_near(split_vertical<C2, Axis>(Mat32 {1, 2, 3, 4, 5, 6}), std::tuple {Mat22 {1, 2, 3, 4}, Mat12 {5, 6}}));
   EXPECT_TRUE(is_near(split_horizontal<C2, Axis>(Mat23 {1, 2, 3, 4, 5, 6}), std::tuple {Mat22 {1, 2, 4, 5}, Mat21 {3, 6}}));
-  EXPECT_TRUE(is_near(split_vertical<Axis, Angle>(Mat32 {1, 2, 3, 4, 5, 6}), std::tuple {Mat12 {1, 2}, Mat12 {3, 4}}));
-  EXPECT_TRUE(is_near(split_horizontal<Axis, Angle>(Mat23 {1, 2, 3, 4, 5, 6}), std::tuple {Mat21 {1, 4}, Mat21 {2, 5}}));
+  EXPECT_TRUE(is_near(split_vertical<Axis, angle::Radians>(Mat32 {1, 2, 3, 4, 5, 6}), std::tuple {Mat12 {1, 2}, Mat12 {3, 4}}));
+  EXPECT_TRUE(is_near(split_horizontal<Axis, angle::Radians>(Mat23 {1, 2, 3, 4, 5, 6}), std::tuple {Mat21 {1, 4}, Mat21 {2, 5}}));
 
   EXPECT_TRUE(is_near(column(Mat22x {1, 2, 3, 4}, 0), Mean{1., 3}));
   EXPECT_TRUE(is_near(column(Mat22x {1, 2, 3, 4}, 1), Mean{2., 4}));
@@ -389,7 +389,7 @@ TEST_F(matrices, TypedMatrix_blocks)
   static_assert(equivalent_to<typename MatrixTraits<decltype(column<0>(Mat22 {1, 2, 3, 4}))>::RowCoefficients, C2>);
   static_assert(equivalent_to<typename MatrixTraits<decltype(column<1>(Mat22 {1, 2, 3, 4}))>::RowCoefficients, C2>);
   static_assert(equivalent_to<typename MatrixTraits<decltype(column<0>(Mat22 {1, 2, 3, 4}))>::ColumnCoefficients, Axis>);
-  static_assert(equivalent_to<typename MatrixTraits<decltype(column<1>(Mat22 {1, 2, 3, 4}))>::ColumnCoefficients, Angle>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(column<1>(Mat22 {1, 2, 3, 4}))>::ColumnCoefficients, angle::Radians>);
 
   auto m = Mat22x {1, 2, 3, 4};
   EXPECT_TRUE(is_near(apply_columnwise(m, [](auto& col){ col *= 2; }), Mat22 {2, 4, 6, 8}));
@@ -405,12 +405,12 @@ TEST_F(matrices, TypedMatrix_blocks)
   EXPECT_TRUE(is_near(apply_columnwise(Mat22x {1, 2, 3, 4}, [](auto&& col, std::size_t i){ return col * i; }), Mat22 {0, 2, 0, 4}));
   EXPECT_TRUE(is_near(apply_columnwise(Mat22x {1, 2, 3, 4}, [](const auto& col, std::size_t i){ return col * i; }), Mat22 {0, 2, 0, 4}));
 
-  EXPECT_TRUE(is_near(apply_columnwise<2>([] { return Matrix<C2, Angle> {1., 2}; }), Mat22 {1, 1, 2, 2}));
-  EXPECT_TRUE(is_near(apply_columnwise<2>([](std::size_t i){ return Matrix<C2, Angle> {i + 1., 2*i + 1}; }), Mat22 {1, 2, 1, 3}));
-  static_assert(equivalent_to<typename MatrixTraits<decltype(apply_columnwise<2>(std::declval<Matrix<C2, Angle>()>()))>::RowCoefficients, C2>);
-  static_assert(equivalent_to<typename MatrixTraits<decltype(apply_columnwise<2>(std::declval<Matrix<C2, Angle>()>()))>::ColumnCoefficients, Coefficients<Angle, Angle>>);
-  static_assert(equivalent_to<typename MatrixTraits<decltype(apply_columnwise<2>(std::declval<Matrix<C2, Angle>(std::size_t)>()))>::RowCoefficients, C2>);
-  static_assert(equivalent_to<typename MatrixTraits<decltype(apply_columnwise<2>(std::declval<Matrix<C2, Angle>(std::size_t)>()))>::ColumnCoefficients, Coefficients<Angle, Angle>>);
+  EXPECT_TRUE(is_near(apply_columnwise<2>([] { return Matrix<C2, angle::Radians> {1., 2}; }), Mat22 {1, 1, 2, 2}));
+  EXPECT_TRUE(is_near(apply_columnwise<2>([](std::size_t i){ return Matrix<C2, angle::Radians> {i + 1., 2*i + 1}; }), Mat22 {1, 2, 1, 3}));
+  static_assert(equivalent_to<typename MatrixTraits<decltype(apply_columnwise<2>(std::declval<Matrix<C2, angle::Radians>()>()))>::RowCoefficients, C2>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(apply_columnwise<2>(std::declval<Matrix<C2, angle::Radians>()>()))>::ColumnCoefficients, Coefficients<angle::Radians, angle::Radians>>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(apply_columnwise<2>(std::declval<Matrix<C2, angle::Radians>(std::size_t)>()))>::RowCoefficients, C2>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(apply_columnwise<2>(std::declval<Matrix<C2, angle::Radians>(std::size_t)>()))>::ColumnCoefficients, Coefficients<angle::Radians, angle::Radians>>);
 
   auto n = Mat22x {1, 2, 3, 4};
   EXPECT_TRUE(is_near(apply_coefficientwise(n, [](auto& x){ x *= 2; }), Mat22 {2, 4, 6, 8}));

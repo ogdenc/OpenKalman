@@ -19,10 +19,10 @@ using M3 = Eigen::Matrix<double, 3, 3>;
 using M3col = Eigen::Matrix<double, 3, 1>;
 using M4 = Eigen::Matrix<double, 4, 4>;
 using M4col = Eigen::Matrix<double, 4, 1>;
-using C2 = Coefficients<Angle, Axis>;
-using C3 = Coefficients<Angle, Axis, Axis>;
+using C2 = Coefficients<angle::Radians, Axis>;
+using C3 = Coefficients<angle::Radians, Axis, Axis>;
 using C4 = Concatenate<C2, C2>;
-using Mean1 = Mean<Angle, M1>;
+using Mean1 = Mean<angle::Radians, M1>;
 using Mean2 = Mean<C2, M2col>;
 using Mean3 = Mean<C3, M3col>;
 using Mean4 = Mean<C4, M4col>;
@@ -423,7 +423,7 @@ TEST_F(matrices, GaussianDistribution_class_random)
     mean_x = (mean_x * i + to_Euclidean(x)) / (i + 1);
   }
   EXPECT_NE(from_Euclidean(mean_x), true_x);
-  EXPECT_TRUE(is_near(Mean(from_Euclidean(mean_x) - true_x), V::zero(), MatrixTraits<V>::BaseMatrix::Constant(0.1)));
+  EXPECT_TRUE(is_near(Mean(from_Euclidean(mean_x) - true_x), V::zero(), MatrixTraits<V>::BaseMatrix::Constant(0.2)));
 }
 
 
