@@ -47,6 +47,7 @@ TEST_F(covariance_tests, References_Covariance_self_adjoint_lvalue1)
   EXPECT_TRUE(is_near(v1, v2));
 }
 
+
 TEST_F(covariance_tests, References_Covariance_self_adjoint_lvalue2)
 {
   using V = Covariance<C, SAu<M>>;
@@ -70,6 +71,7 @@ TEST_F(covariance_tests, References_Covariance_self_adjoint_lvalue2)
   EXPECT_TRUE(is_near(v1, v2));
 }
 
+
 TEST_F(covariance_tests, References_Covariance_self_adjoint_const_lvalue1)
 {
   using V = Covariance<C, SAl<M>>;
@@ -87,6 +89,7 @@ TEST_F(covariance_tests, References_Covariance_self_adjoint_const_lvalue1)
   EXPECT_TRUE(is_near(v1, v2));
 }
 
+
 TEST_F(covariance_tests, References_Covariance_self_adjoint_const_lvalue2)
 {
   using V = Covariance<C, SAu<M>>;
@@ -103,6 +106,7 @@ TEST_F(covariance_tests, References_Covariance_self_adjoint_const_lvalue2)
         4.2, -13.2, 46.2};
   EXPECT_TRUE(is_near(v1, v2));
 }
+
 
 TEST_F(covariance_tests, References_Covariance_triangular_lvalue1)
 {
@@ -150,6 +154,7 @@ TEST_F(covariance_tests, References_Covariance_triangular_lvalue2)
   EXPECT_TRUE(is_near(v1, v2));
 }
 
+
 TEST_F(covariance_tests, References_Covariance_triangular_const_lvalue1)
 {
   using V = Covariance<C, Tl<M>>;
@@ -166,6 +171,7 @@ TEST_F(covariance_tests, References_Covariance_triangular_const_lvalue1)
         4.2, -13.2, 46.2};
   EXPECT_TRUE(is_near(v1, v2));
 }
+
 
 TEST_F(covariance_tests, References_Covariance_triangular_const_lvalue2)
 {
@@ -184,6 +190,7 @@ TEST_F(covariance_tests, References_Covariance_triangular_const_lvalue2)
   EXPECT_TRUE(is_near(v1, v2));
 }
 
+
 TEST_F(covariance_tests, References_Covariance_diagonal_lvalue1)
 {
   using V = Covariance<C, D<M1>>;
@@ -200,6 +207,7 @@ TEST_F(covariance_tests, References_Covariance_diagonal_lvalue1)
   v2 = V {1.3, 2.3, 3.3};
   EXPECT_TRUE(is_near(v1, v2));
 }
+
 
 TEST_F(covariance_tests, References_Covariance_diagonal_lvalue2)
 {
@@ -218,6 +226,7 @@ TEST_F(covariance_tests, References_Covariance_diagonal_lvalue2)
   EXPECT_TRUE(is_near(v1, v2));
 }
 
+
 TEST_F(covariance_tests, References_Covariance_diagonal_const_lvalue1)
 {
   using V = Covariance<C, D<M1>>;
@@ -231,6 +240,7 @@ TEST_F(covariance_tests, References_Covariance_diagonal_const_lvalue1)
   EXPECT_TRUE(is_near(v1, v2));
 }
 
+
 TEST_F(covariance_tests, References_Covariance_diagonal_const_lvalue2)
 {
   using V = Covariance<C, D<M1>>;
@@ -242,68 +252,6 @@ TEST_F(covariance_tests, References_Covariance_diagonal_const_lvalue2)
   EXPECT_EQ(v2[1], 2.1);
   v1 = {1.2, 2.2, 3.2};
   EXPECT_TRUE(is_near(v1, v2));
-}
-
-TEST_F(covariance_tests, References_Covariance_self_adjoint_rvalue1)
-{
-  Mat3 m1 {16, 8, 4,
-           8, 29, -13,
-           4, -13, 46};
-  Covariance<C, SAu<M>> v1 {m1};
-  Covariance<C, SAu<M>&&> v2 = std::move(v1);
-  EXPECT_TRUE(is_near(v2, m1));
-  EXPECT_EQ(v2(1,0), 8);
-}
-
-TEST_F(covariance_tests, References_Covariance_self_adjoint_rvalue2)
-{
-  Mat3 m1 {16, 8, 4,
-           8, 29, -13,
-           4, -13, 46};
-  Covariance<C, SAl<M>> v1 {m1};
-  Covariance<C, SAl<M&&>> v2 = std::move(v1);
-  EXPECT_TRUE(is_near(v2, m1));
-  EXPECT_EQ(v2(1,0), 8);
-}
-
-TEST_F(covariance_tests, References_Covariance_triangular_rvalue1)
-{
-  Mat3 m1 {16, 8, 4,
-           8, 29, -13,
-           4, -13, 46};
-  Covariance<C, Tu<M>> v1 {m1};
-  Covariance<C, Tu<M>&&> v2 = std::move(v1);
-  EXPECT_TRUE(is_near(v2, m1));
-  EXPECT_EQ(v2(1,0), 8);
-}
-
-TEST_F(covariance_tests, References_Covariance_triangular_rvalue2)
-{
-  Mat3 m1 {16, 8, 4,
-           8, 29, -13,
-           4, -13, 46};
-  Covariance<C, Tu<M>> v1 {m1};
-  Covariance<C, Tu<M&&>> v2 = std::move(v1);
-  EXPECT_TRUE(is_near(v2, m1));
-  EXPECT_EQ(v2(1,0), 8);
-}
-
-TEST_F(covariance_tests, References_Covariance_diagonal_rvalue1)
-{
-  Mat31 m1 {1, 2, 3};
-  Covariance<C, D<M1>> v1 {m1};
-  Covariance<C, D<M1>&&> v2 = std::move(v1);
-  EXPECT_TRUE(is_near(v2, D<M1> {1, 2, 3}));
-  EXPECT_EQ(v2[1], 2);
-}
-
-TEST_F(covariance_tests, References_Covariance_diagonal_rvalue2)
-{
-  Mat31 m1 {1, 2, 3};
-  Covariance<C, D<M1>> v1 {m1};
-  Covariance<C, D<M1&&>> v2 = std::move(v1);
-  EXPECT_TRUE(is_near(v2, D<M1> {1, 2, 3}));
-  EXPECT_EQ(v2[1], 2);
 }
 
 
@@ -329,6 +277,7 @@ TEST_F(covariance_tests, References_SquareRootCovariance_self_adjoint_lvalue1)
           1.3, -3.3, 6.3};
   EXPECT_TRUE(is_near(v1, v2));
 }
+
 
 TEST_F(covariance_tests, References_SquareRootCovariance_self_adjoint_lvalue2)
 {
@@ -370,6 +319,7 @@ TEST_F(covariance_tests, References_SquareRootCovariance_self_adjoint_const_lval
   EXPECT_TRUE(is_near(v1, v2));
 }
 
+
 TEST_F(covariance_tests, References_SquareRootCovariance_self_adjoint_const_lvalue2)
 {
   using V = SquareRootCovariance<C, SAu<M>>;
@@ -386,6 +336,7 @@ TEST_F(covariance_tests, References_SquareRootCovariance_self_adjoint_const_lval
         0, 0, 6.2};
   EXPECT_TRUE(is_near(v1, v2));
 }
+
 
 TEST_F(covariance_tests, References_SquareRootCovariance_triangular_lvalue1)
 {
@@ -410,6 +361,7 @@ TEST_F(covariance_tests, References_SquareRootCovariance_triangular_lvalue1)
   EXPECT_TRUE(is_near(v1, v2));
 }
 
+
 TEST_F(covariance_tests, References_SquareRootCovariance_triangular_lvalue2)
 {
   using V = SquareRootCovariance<C, Tu<M>>;
@@ -432,6 +384,7 @@ TEST_F(covariance_tests, References_SquareRootCovariance_triangular_lvalue2)
           0, 0, -6.3};
   EXPECT_TRUE(is_near(v1, v2));
 }
+
 
 TEST_F(covariance_tests, References_SquareRootCovariance_triangular_const_lvalue1)
 {
@@ -484,6 +437,7 @@ TEST_F(covariance_tests, References_SquareRootCovariance_diagonal_lvalue1)
   EXPECT_TRUE(is_near(v1, v2));
 }
 
+
 TEST_F(covariance_tests, References_SquareRootCovariance_diagonal_lvalue2)
 {
   using V = SquareRootCovariance<C, D<M1>>;
@@ -501,6 +455,7 @@ TEST_F(covariance_tests, References_SquareRootCovariance_diagonal_lvalue2)
   EXPECT_TRUE(is_near(v1, v2));
 }
 
+
 TEST_F(covariance_tests, References_SquareRootCovariance_diagonal_const_lvalue1)
 {
   using V = SquareRootCovariance<C, D<M1>>;
@@ -513,6 +468,7 @@ TEST_F(covariance_tests, References_SquareRootCovariance_diagonal_const_lvalue1)
   v1 = {1.2, 2.2, 3.2};
   EXPECT_TRUE(is_near(v1, v2));
 }
+
 
 TEST_F(covariance_tests, References_SquareRootCovariance_diagonal_const_lvalue2)
 {
@@ -527,67 +483,6 @@ TEST_F(covariance_tests, References_SquareRootCovariance_diagonal_const_lvalue2)
   EXPECT_TRUE(is_near(v1, v2));
 }
 
-TEST_F(covariance_tests, References_SquareRootCovariance_self_adjoint_rvalue1)
-{
-  Mat3 m1 {4, 2, 1,
-           0, 5, -3,
-           0, 0, 6};
-  SquareRootCovariance<C, SAu<M>> v1 {m1};
-  SquareRootCovariance<C, SAu<M>&&> v2 = std::move(v1);
-  EXPECT_TRUE(is_near(v2, m1));
-  EXPECT_EQ(v2(0,1), 2);
-}
-
-TEST_F(covariance_tests, References_SquareRootCovariance_self_adjoint_rvalue2)
-{
-  Mat3 m1 {4, 0, 0,
-           2, 5, 0,
-           1, -3, 6};
-  SquareRootCovariance<C, SAl<M>> v1 {m1};
-  SquareRootCovariance<C, SAl<M&&>> v2 = std::move(v1);
-  EXPECT_TRUE(is_near(v2, m1));
-  EXPECT_EQ(v2(1,0), 2);
-}
-
-TEST_F(covariance_tests, References_SquareRootCovariance_triangular_rvalue1)
-{
-  Mat3 m1 {4, 2, 1,
-           0, 0, -3,
-           0, 0, 6};
-  SquareRootCovariance<C, Tu<M>> v1 {m1};
-  SquareRootCovariance<C, Tu<M>&&> v2 = std::move(v1);
-  EXPECT_TRUE(is_near(v2, m1));
-  EXPECT_EQ(v2(0,1), 2);
-}
-
-TEST_F(covariance_tests, References_SquareRootCovariance_triangular_rvalue2)
-{
-  Mat3 m1 {4, 0, 0,
-           2, 5, 0,
-           1, -3, 6};
-  SquareRootCovariance<C, Tl<M>> v1 {m1};
-  SquareRootCovariance<C, Tl<M&&>> v2 = std::move(v1);
-  EXPECT_TRUE(is_near(v2, m1));
-  EXPECT_EQ(v2(1,0), 2);
-}
-
-TEST_F(covariance_tests, References_SquareRootCovariance_diagonal_rvalue1)
-{
-  Mat31 m1 {1, 2, 3};
-  SquareRootCovariance<C, D<M1>> v1 {m1};
-  SquareRootCovariance<C, D<M1>&&> v2 = std::move(v1);
-  EXPECT_TRUE(is_near(v2, D<M1> {1, 2, 3}));
-  EXPECT_EQ(v2[1], 2);
-}
-
-TEST_F(covariance_tests, References_SquareRootCovariance_diagonal_rvalue2)
-{
-  Mat31 m1 {1, 2, 3};
-  SquareRootCovariance<C, D<M1>> v1 {m1};
-  SquareRootCovariance<C, D<M1&&>> v2 = std::move(v1);
-  EXPECT_TRUE(is_near(v2, D<M1> {1, 2, 3}));
-  EXPECT_EQ(v2[1], 2);
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 //                                Cross-assignment                                       //
@@ -639,7 +534,8 @@ TEST_F(covariance_tests, References_Covariance_cross_self_adjoint_lvalue2)
   EXPECT_TRUE(is_near(v1, Mat3 {4.2, 2.2, 1.2, 0, 5.2, 3.2, 0, 0, 6.2}));
 }
 
-/*TEST_F(covariance_tests, References_Covariance_cross_self_adjoint_const_lvalue1)
+
+TEST_F(covariance_tests, References_Covariance_cross_self_adjoint_const_lvalue1)
 {
   using V = Covariance<C, SAl<M>>;
   V v1 {4, 2, 1,
@@ -655,6 +551,7 @@ TEST_F(covariance_tests, References_Covariance_cross_self_adjoint_lvalue2)
         1.2, -3.2, -6.2};
   EXPECT_TRUE(is_near(v1, v2));
 }
+
 
 TEST_F(covariance_tests, References_Covariance_cross_self_adjoint_const_lvalue2)
 {
@@ -696,6 +593,7 @@ TEST_F(covariance_tests, References_Covariance_cross_triangular_lvalue1)
   EXPECT_TRUE(is_near(v1, v2));
 }
 
+
 TEST_F(covariance_tests, References_Covariance_cross_triangular_lvalue2)
 {
   using V = Covariance<C, Tu<M>>;
@@ -719,6 +617,7 @@ TEST_F(covariance_tests, References_Covariance_cross_triangular_lvalue2)
   EXPECT_TRUE(is_near(v1, v2));
 }
 
+
 TEST_F(covariance_tests, References_Covariance_cross_triangular_const_lvalue1)
 {
   using V = Covariance<C, Tl<M>>;
@@ -735,6 +634,7 @@ TEST_F(covariance_tests, References_Covariance_cross_triangular_const_lvalue1)
         4.2, -13.2, 46.2};
   EXPECT_TRUE(is_near(v1, v2));
 }
+
 
 TEST_F(covariance_tests, References_Covariance_cross_triangular_const_lvalue2)
 {
@@ -770,6 +670,7 @@ TEST_F(covariance_tests, References_Covariance_cross_diagonal_lvalue1)
   EXPECT_TRUE(is_near(v1, v2));
 }
 
+
 TEST_F(covariance_tests, References_Covariance_cross_diagonal_lvalue2)
 {
   using V = Covariance<C, D<M1>>;
@@ -800,6 +701,7 @@ TEST_F(covariance_tests, References_Covariance_cross_diagonal_const_lvalue1)
   EXPECT_TRUE(is_near(v1, v2));
 }
 
+
 TEST_F(covariance_tests, References_Covariance_cross_diagonal_const_lvalue2)
 {
   using V = Covariance<C, D<M1>>;
@@ -813,348 +715,3 @@ TEST_F(covariance_tests, References_Covariance_cross_diagonal_const_lvalue2)
   EXPECT_TRUE(is_near(v1, v2));
 }
 
-TEST_F(covariance_tests, References_Covariance_cross_self_adjoint_rvalue1)
-{
-  Mat3 m1 {4, 2, 1,
-           2, 5, -3,
-           1, -3, -6};
-  Covariance<C, SAu<M>> v1 {m1};
-  Covariance<C, SAu<M>&&> v2 = std::move(v1);
-  EXPECT_TRUE(is_near(v2, m1));
-  EXPECT_EQ(v2(1,0), 2);
-}
-
-TEST_F(covariance_tests, References_Covariance_cross_self_adjoint_rvalue2)
-{
-  Mat3 m1 {4, 2, 1,
-           2, 5, -3,
-           1, -3, -6};
-  Covariance<C, SAl<M>> v1 {m1};
-  Covariance<C, SAl<M&&>> v2 = std::move(v1);
-  EXPECT_TRUE(is_near(v2, m1));
-  EXPECT_EQ(v2(1,0), 2);
-}
-
-TEST_F(covariance_tests, References_Covariance_cross_triangular_rvalue1)
-{
-  Mat3 m1 {16, 8, 4,
-           8, 29, -13,
-           4, -13, 46};
-  Covariance<C, Tu<M>> v1 {m1};
-  Covariance<C, Tu<M>&&> v2 = std::move(v1);
-  EXPECT_TRUE(is_near(v2, m1));
-  EXPECT_EQ(v2(1,0), 8);
-}
-
-TEST_F(covariance_tests, References_Covariance_cross_triangular_rvalue2)
-{
-  Mat3 m1 {16, 8, 4,
-           8, 29, -13,
-           4, -13, 46};
-  Covariance<C, Tu<M>> v1 {m1};
-  Covariance<C, Tu<M&&>> v2 = std::move(v1);
-  EXPECT_TRUE(is_near(v2, m1));
-  EXPECT_EQ(v2(1,0), 8);
-}
-
-TEST_F(covariance_tests, References_Covariance_cross_diagonal_rvalue1)
-{
-  Mat31 m1 {1, 2, 3};
-  Covariance<C, D<M1>> v1 {m1};
-  Covariance<C, D<M1>&&> v2 = std::move(v1);
-  EXPECT_TRUE(is_near(v2, D<M1> {1, 2, 3}));
-  EXPECT_EQ(v2[1], 2);
-}
-
-TEST_F(covariance_tests, References_Covariance_cross_diagonal_rvalue2)
-{
-  Mat31 m1 {1, 2, 3};
-  Covariance<C, D<M1>> v1 {m1};
-  Covariance<C, D<M1&&>> v2 = std::move(v1);
-  EXPECT_TRUE(is_near(v2, D<M1> {1, 2, 3}));
-  EXPECT_EQ(v2[1], 2);
-}
-
-
-TEST_F(covariance_tests, References_SquareRootCovariance_cross_self_adjoint_lvalue1)
-{
-  using V = SquareRootCovariance<C, SAl<M>>;
-  V v1 {4, 0, 0,
-        2, 5, 0,
-        1, -3, -6};
-  SquareRootCovariance<C, SAl<M>&> v2 = v1;
-  EXPECT_TRUE(is_near(v1, v2));
-  EXPECT_EQ(v2(1,0), 2);
-  v1(1,0) = 2.1;
-  EXPECT_EQ(v2(1,0), 2.1);
-  v2(2,0) = 1.1;
-  EXPECT_EQ(v1(2,0), 1.1);
-  v1 = {4.2, 0, 0,
-        2.2, 5.2, 0,
-        1.2, -3.2, -6.2};
-  EXPECT_TRUE(is_near(v1, v2));
-  v2 = V {4.3, 0, 0,
-          2.3, 5.3, 0,
-          1.3, -3.3, -6.3};
-  EXPECT_TRUE(is_near(v1, v2));
-}
-
-TEST_F(covariance_tests, References_SquareRootCovariance_cross_self_adjoint_lvalue2)
-{
-  using V = SquareRootCovariance<C, SAu<M>>;
-  V v1 {4, 2, 1,
-        0, 5, -3,
-        0, 0, -6};
-  SquareRootCovariance<C, SAu<M&>> v2 = v1;
-  EXPECT_TRUE(is_near(v1, v2));
-  EXPECT_EQ(v2(0,1), 2);
-  v1(0,1) = 2.1;
-  EXPECT_EQ(v2(0,1), 2.1);
-  v2(0,2) = 1.1;
-  EXPECT_EQ(v1(0,2), 1.1);
-  v1 = {4.2, 2.2, 1.2,
-        0, 5.2, -3.2,
-        0, 0, -6.2};
-  EXPECT_TRUE(is_near(v1, v2));
-  v2 = V {4.3, 2.3, 1.3,
-          0, 5.3, -3.3,
-          0, 0, -6.3};
-  EXPECT_TRUE(is_near(v1, v2));
-}
-
-TEST_F(covariance_tests, References_SquareRootCovariance_cross_self_adjoint_const_lvalue1)
-{
-  using V = SquareRootCovariance<C, SAl<M>>;
-  V v1 {4, 0, 0,
-        2, 5, 0,
-        1, -3, -6};
-  SquareRootCovariance<C, const SAl<M>&> v2 = v1;
-  EXPECT_TRUE(is_near(v1, v2));
-  EXPECT_EQ(v2(1,0), 2);
-  v1(1,0) = 2.1;
-  EXPECT_EQ(v2(1,0), 2.1);
-  v1 = {4.2, 0, 0,
-        2.2, 5.2, 0,
-        1.2, -3.2, -6.2};
-  EXPECT_TRUE(is_near(v1, v2));
-}
-
-TEST_F(covariance_tests, References_SquareRootCovariance_cross_self_adjoint_const_lvalue2)
-{
-  using V = SquareRootCovariance<C, SAu<M>>;
-  V v1 {4, 2, 1,
-        0, 5, -3,
-        0, 0, -6};
-  SquareRootCovariance<C, SAu<const M&>> v2 = v1;
-  EXPECT_TRUE(is_near(v1, v2));
-  EXPECT_EQ(v2(0,1), 2);
-  v1(0,1) = 2.1;
-  EXPECT_EQ(v2(0,1), 2.1);
-  v1 = {4.2, 2.2, 1.2,
-        0, 5.2, -3.2,
-        0, 0, -6.2};
-  EXPECT_TRUE(is_near(v1, v2));
-}
-
-TEST_F(covariance_tests, References_SquareRootCovariance_cross_triangular_lvalue1)
-{
-  using V = SquareRootCovariance<C, Tl<M>>;
-  V v1 {4, 0, 0,
-        2, 5, 0,
-        1, -3, -6};
-  SquareRootCovariance<C, Tl<M>&> v2 = v1;
-  EXPECT_TRUE(is_near(v1, v2));
-  EXPECT_EQ(v2(1,0), 2);
-  v1(1,0) = 2.1;
-  EXPECT_EQ(v2(1,0), 2.1);
-  v2(2,0) = 1.1;
-  EXPECT_EQ(v1(2,0), 1.1);
-  v1 = {4.2, 0, 0,
-        2.2, 5.2, 0,
-        1.2, -3.2, -6.2};
-  EXPECT_TRUE(is_near(v1, v2));
-  v2 = V {4.3, 0, 0,
-          2.3, 5.3, 0,
-          1.3, -3.3, -6.3};
-  EXPECT_TRUE(is_near(v1, v2));
-}
-
-TEST_F(covariance_tests, References_SquareRootCovariance_cross_triangular_lvalue2)
-{
-  using V = SquareRootCovariance<C, Tu<M>>;
-  V v1 {16, 8, 4,
-        8, 29, -13,
-        4, -13, 46};
-  SquareRootCovariance<C, Tu<M&>> v2 = v1;
-  EXPECT_TRUE(is_near(v1, v2));
-  EXPECT_EQ(v2(0,1), 2);
-  v1(0,1) = 2.1;
-  EXPECT_EQ(v2(0,1), 2.1);
-  v2(0,2) = 1.1;
-  EXPECT_EQ(v1(0,2), 1.1);
-  v1 = {4.2, 2.2, 1.2,
-        0, 5.2, -3.2,
-        0, 0, -6.2};
-  EXPECT_TRUE(is_near(v1, v2));
-  v2 = V {4.3, 2.3, 1.3,
-          0, 5.3, -3.3,
-          0, 0, -6.3};
-  EXPECT_TRUE(is_near(v1, v2));
-}
-
-TEST_F(covariance_tests, References_SquareRootCovariance_cross_triangular_const_lvalue1)
-{
-  using V = SquareRootCovariance<C, Tl<M>>;
-  V v1 {4, 0, 0,
-        2, 5, 0,
-        1, -3, -6};
-  SquareRootCovariance<C, const Tl<M>&> v2 = v1;
-  EXPECT_TRUE(is_near(v1, v2));
-  EXPECT_EQ(v2(1,0), 2);
-  v1(1,0) = 2.1;
-  EXPECT_EQ(v2(1,0), 2.1);
-  v1 = {4.2, 0, 0,
-        2.2, 5.2, 0,
-        1.2, -3.2, -6.2};
-  EXPECT_TRUE(is_near(v1, v2));
-}
-
-TEST_F(covariance_tests, References_SquareRootCovariance_cross_triangular_const_lvalue2)
-{
-  using V = SquareRootCovariance<C, Tu<M>>;
-  V v1 {16, 8, 4,
-        8, 29, -13,
-        4, -13, 46};
-  SquareRootCovariance<C, Tu<const M&>> v2 = v1;
-  EXPECT_TRUE(is_near(v1, v2));
-  EXPECT_EQ(v2(0,1), 2);
-  v1(0,1) = 2.1;
-  EXPECT_EQ(v2(0,1), 2.1);
-  v1 = {4.2, 2.2, 1.2,
-        0, 5.2, -3.2,
-        0, 0, -6.2};
-  EXPECT_TRUE(is_near(v1, v2));
-}
-
-TEST_F(covariance_tests, References_SquareRootCovariance_cross_diagonal_lvalue1)
-{
-  using V = SquareRootCovariance<C, D<M1>>;
-  V v1 {1, 2, 3};
-  SquareRootCovariance<C, D<M1>&> v2 = v1;
-  EXPECT_TRUE(is_near(v1, v2));
-  EXPECT_EQ(v2[1], 2);
-  v1[1] = 2.1;
-  EXPECT_EQ(v2[1], 2.1);
-  v2[2] = 3.1;
-  EXPECT_EQ(v1[2], 3.1);
-  v1 = {1.2, 2.2, 3.2};
-  EXPECT_TRUE(is_near(v1, v2));
-  v2 = V {1.3, 2.3, 3.3};
-  EXPECT_TRUE(is_near(v1, v2));
-}
-
-TEST_F(covariance_tests, References_SquareRootCovariance_cross_diagonal_lvalue2)
-{
-  using V = SquareRootCovariance<C, D<M1>>;
-  V v1 {1, 2, 3};
-  SquareRootCovariance<C, D<M1&>> v2 = v1;
-  EXPECT_TRUE(is_near(v1, v2));
-  EXPECT_EQ(v2[1], 2);
-  v1[1] = 2.1;
-  EXPECT_EQ(v2[1], 2.1);
-  v2[2] = 3.1;
-  EXPECT_EQ(v1[2], 3.1);
-  v1 = {1.2, 2.2, 3.2};
-  EXPECT_TRUE(is_near(v1, v2));
-  v2 = V {1.3, 2.3, 3.3};
-  EXPECT_TRUE(is_near(v1, v2));
-}
-
-TEST_F(covariance_tests, References_SquareRootCovariance_cross_diagonal_const_lvalue1)
-{
-  using V = SquareRootCovariance<C, D<M1>>;
-  V v1 {1, 2, 3};
-  SquareRootCovariance<C, const D<M1>&> v2 = v1;
-  EXPECT_TRUE(is_near(v1, v2));
-  EXPECT_EQ(v2[1], 2);
-  v1[1] = 2.1;
-  EXPECT_EQ(v2[1], 2.1);
-  v1 = {1.2, 2.2, 3.2};
-  EXPECT_TRUE(is_near(v1, v2));
-}
-
-TEST_F(covariance_tests, References_SquareRootCovariance_cross_diagonal_const_lvalue2)
-{
-  using V = SquareRootCovariance<C, D<M1>>;
-  V v1 {1, 2, 3};
-  SquareRootCovariance<C, D<const M1&>> v2 = v1;
-  EXPECT_TRUE(is_near(v1, v2));
-  EXPECT_EQ(v2[1], 2);
-  v1[1] = 2.1;
-  EXPECT_EQ(v2[1], 2.1);
-  v1 = {1.2, 2.2, 3.2};
-  EXPECT_TRUE(is_near(v1, v2));
-}
-
-TEST_F(covariance_tests, References_SquareRootCovariance_cross_self_adjoint_rvalue1)
-{
-  Mat3 m1 {4, 2, 1,
-           0, 0, -3,
-           0, 0, -6};
-  SquareRootCovariance<C, SAu<M>> v1 {m1};
-  SquareRootCovariance<C, SAu<M>&&> v2 = std::move(v1);
-  EXPECT_TRUE(is_near(v2, m1));
-  EXPECT_EQ(v2(0,1), 2);
-}
-
-TEST_F(covariance_tests, References_SquareRootCovariance_cross_self_adjoint_rvalue2)
-{
-  Mat3 m1 {4, 0, 0,
-           2, 5, 0,
-           1, -3, -6};
-  SquareRootCovariance<C, SAl<M>> v1 {m1};
-  SquareRootCovariance<C, SAl<M&&>> v2 = std::move(v1);
-  EXPECT_TRUE(is_near(v2, m1));
-  EXPECT_EQ(v2(1,0), 2);
-}
-
-TEST_F(covariance_tests, References_SquareRootCovariance_cross_triangular_rvalue1)
-{
-  Mat3 m1 {4, 2, 1,
-           0, 0, -3,
-           0, 0, -6};
-  SquareRootCovariance<C, Tu<M>> v1 {m1};
-  SquareRootCovariance<C, Tu<M>&&> v2 = std::move(v1);
-  EXPECT_TRUE(is_near(v2, m1));
-  EXPECT_EQ(v2(0,1), 2);
-}
-
-TEST_F(covariance_tests, References_SquareRootCovariance_cross_triangular_rvalue2)
-{
-  Mat3 m1 {4, 0, 0,
-           2, 5, 0,
-           1, -3, -6};
-  SquareRootCovariance<C, Tu<M>> v1 {m1};
-  SquareRootCovariance<C, Tu<M&&>> v2 = std::move(v1);
-  EXPECT_TRUE(is_near(v2, m1));
-  EXPECT_EQ(v2(1,0), 2);
-}
-
-TEST_F(covariance_tests, References_SquareRootCovariance_cross_diagonal_rvalue1)
-{
-  Mat31 m1 {1, 2, 3};
-  SquareRootCovariance<C, D<M1>> v1 {m1};
-  SquareRootCovariance<C, D<M1>&&> v2 = std::move(v1);
-  EXPECT_TRUE(is_near(v2, D<M1> {1, 2, 3}));
-  EXPECT_EQ(v2[1], 2);
-}
-
-TEST_F(covariance_tests, References_SquareRootCovariance_cross_diagonal_rvalue2)
-{
-  Mat31 m1 {1, 2, 3};
-  SquareRootCovariance<C, D<M1>> v1 {m1};
-  SquareRootCovariance<C, D<M1&&>> v2 = std::move(v1);
-  EXPECT_TRUE(is_near(v2, D<M1> {1, 2, 3}));
-  EXPECT_EQ(v2[1], 2);
-}
-*/

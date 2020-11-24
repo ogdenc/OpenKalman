@@ -22,7 +22,7 @@ namespace OpenKalman
   namespace Eigen3
   {
     /**
-     * A self-adjoint matrix, based on an Eigen matrix.
+     * \brief A self-adjoint matrix, based on an Eigen matrix.
      * \tparam BaseMatrix The Eigen matrix on which the self-adjoint matrix is based.
      * \tparam storage_triangle The triangle (TriangleType::upper or TriangleType::lower) in which the data is stored.
      */
@@ -30,7 +30,7 @@ namespace OpenKalman
     struct SelfAdjointMatrix;
 
     /**
-     * A triangular matrix, based on an Eigen matrix.
+     * \brief A triangular matrix, based on an Eigen matrix.
      * \tparam BaseMatrix The Eigen matrix on which the triangular matrix is based.
      * \tparam triangle_type The triangle (TriangleType::upper or TriangleType::lower).
      */
@@ -38,27 +38,24 @@ namespace OpenKalman
     struct TriangularMatrix;
 
     /**
-     * A diagonal matrix, based on an Eigen matrix.
-     *
-     * Note: This has the same name as Eigen::DiagonalMatrix, and is intended as an improved replacement.
+     * \brief A diagonal matrix, based on an Eigen matrix.
+     * \note This has the same name as Eigen::DiagonalMatrix, and is intended as an improved replacement.
      * \tparam BaseMatrix A single-column matrix defining the diagonal.
      */
     template<typename BaseMatrix>
     struct DiagonalMatrix;
 
     /**
-     * A wrapper type for an Eigen zero matrix.
-     *
-     * This is necessary because Eigen3 types do not distinguish between a zero matrix and a constant matrix.
+     * \brief A wrapper type for an Eigen zero matrix.
+     * \note This is necessary because Eigen3 types do not distinguish between a zero matrix and a constant matrix.
      * \tparam BaseMatrix The Eigen matrix type on which the zero matrix is based. Only its shape is relevant.
      */
     template<typename BaseMatrix>
     struct ZeroMatrix;
 
     /**
-     * An expression that transforms angular or other modular coefficients into Euclidean space, for proper wrapping.
-     *
-     * This is the counterpart expression to ToEuclideanExpr.
+     * \brief An expression that transforms angular or other modular coefficients into Euclidean space, for proper wrapping.
+     * \details This is the counterpart expression to ToEuclideanExpr.
      * <code>FromEuclideanExpr<C, ToEuclideanExpr<C, B>></code> acts to wrap the angular/modular values in <code>B</code>.
      * \tparam Coefficients The coefficient types.
      * \tparam BaseMatrix The pre-transformed column vector, or set of column vectors in the form of a matrix.
@@ -73,9 +70,8 @@ namespace OpenKalman
 
 
     /**
-     * An expression that transforms angular or other modular coefficients back from Euclidean space.
-     *
-     * This is the counterpart expression to ToEuclideanExpr.
+     * \brief An expression that transforms angular or other modular coefficients back from Euclidean space.
+     * \details This is the counterpart expression to ToEuclideanExpr.
      * <code>FromEuclideanExpr<C, ToEuclideanExpr<C, B>></code> acts to wrap the angular/modular values in <code>B</code>.
      * \tparam Coefficients The coefficient types.
      * \tparam BaseMatrix The pre-transformed column vector, or set of column vectors in the form of a matrix.
@@ -90,7 +86,7 @@ namespace OpenKalman
 
 
     /**
-     * An alias for the Eigen identity matrix.
+     * \brief An alias for the Eigen identity matrix.
      */
     template<typename Arg>
     using IdentityMatrix = Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<typename Arg::Scalar>, Arg>;
@@ -110,13 +106,19 @@ namespace OpenKalman
 
   // Default for Eigen: the base matrix will be an Eigen::Matrix of the appropriate size.
 #ifdef __cpp_concepts
-  template<coefficients RowCoefficients, coefficients ColumnCoefficients = RowCoefficients,
-    typed_matrix_base BaseMatrix = Eigen::Matrix<double, RowCoefficients::size, ColumnCoefficients::size>> requires
-  (RowCoefficients::size == MatrixTraits<BaseMatrix>::dimension) and
-    (ColumnCoefficients::size == MatrixTraits<BaseMatrix>::columns)
+  template<
+    coefficients RowCoefficients,
+    coefficients ColumnCoefficients = RowCoefficients,
+    typed_matrix_base NestedMatrix = Eigen::Matrix<double, RowCoefficients::size, ColumnCoefficients::size>>
+  requires
+    (RowCoefficients::size == MatrixTraits<NestedMatrix>::dimension) and
+    (ColumnCoefficients::size == MatrixTraits<NestedMatrix>::columns) and
+    (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
-  template<typename RowCoefficients, typename ColumnCoefficients = RowCoefficients,
-    typename BaseMatrix = Eigen::Matrix<double, RowCoefficients::size, ColumnCoefficients::size>>
+  template<
+    typename RowCoefficients,
+    typename ColumnCoefficients = RowCoefficients,
+    typename NestedMatrix = Eigen::Matrix<double, RowCoefficients::size, ColumnCoefficients::size>>
 #endif
   struct Matrix;
 
@@ -138,10 +140,13 @@ namespace OpenKalman
 
   // By default when using Eigen3, a Mean is an Eigen3 column vector corresponding to the Coefficients.
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, typed_matrix_base BaseMatrix = Eigen::Matrix<double, Coefficients::size, 1>>
-  requires (Coefficients::size == MatrixTraits<BaseMatrix>::dimension)
+  template<
+    coefficients Coefficients,
+    typed_matrix_base NestedMatrix = Eigen::Matrix<double, Coefficients::size, 1>>
+  requires (Coefficients::size == MatrixTraits<NestedMatrix>::dimension) and
+    (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
-  template<typename Coefficients, typename BaseMatrix = Eigen::Matrix<double, Coefficients::size, 1>>
+  template<typename Coefficients, typename NestedMatrix = Eigen::Matrix<double, Coefficients::size, 1>>
 #endif
   struct Mean;
 
@@ -162,10 +167,14 @@ namespace OpenKalman
   // ------------------- //
 
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, typed_matrix_base BaseMatrix = Eigen::Matrix<double, Coefficients::dimension, 1>>
-  requires (Coefficients::dimension == MatrixTraits<BaseMatrix>::dimension)
+  template<
+    coefficients Coefficients,
+    typed_matrix_base NestedMatrix = Eigen::Matrix<double, Coefficients::dimension, 1>>
+  requires
+    (Coefficients::dimension == MatrixTraits<NestedMatrix>::dimension) and
+    (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
-  template<typename Coefficients, typename BaseMatrix = Eigen::Matrix<double, Coefficients::dimension, 1>>
+  template<typename Coefficients, typename NestedMatrix = Eigen::Matrix<double, Coefficients::dimension, 1>>
 #endif
   struct EuclideanMean;
 
@@ -186,11 +195,12 @@ namespace OpenKalman
   // ---------------- //
 
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, covariance_base BaseMatrix =
-  Eigen3::SelfAdjointMatrix<Eigen::Matrix<double, Coefficients::size, Coefficients::size>>> requires
-  (Coefficients::size == MatrixTraits<BaseMatrix>::dimension)
+  template<coefficients Coefficients, covariance_base NestedMatrix =
+    Eigen3::SelfAdjointMatrix<Eigen::Matrix<double, Coefficients::size, Coefficients::size>>>
+  requires (Coefficients::size == MatrixTraits<NestedMatrix>::dimension) and
+    (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
-  template<typename Coefficients, typename BaseMatrix =
+  template<typename Coefficients, typename NestedMatrix =
     Eigen3::SelfAdjointMatrix<Eigen::Matrix<double, Coefficients::size, Coefficients::size>>>
 #endif
   struct Covariance;
@@ -213,11 +223,11 @@ namespace OpenKalman
   // --------------------- //
 
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, covariance_base BaseMatrix =
+  template<coefficients Coefficients, covariance_base NestedMatrix =
   Eigen3::SelfAdjointMatrix<Eigen::Matrix<double, Coefficients::size, Coefficients::size>>> requires
-  (Coefficients::size == MatrixTraits<BaseMatrix>::dimension)
+  (Coefficients::size == MatrixTraits<NestedMatrix>::dimension) and (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
-  template<typename Coefficients, typename BaseMatrix =
+  template<typename Coefficients, typename NestedMatrix =
     Eigen3::SelfAdjointMatrix<Eigen::Matrix<double, Coefficients::size, Coefficients::size>>>
 #endif
   struct SquareRootCovariance;

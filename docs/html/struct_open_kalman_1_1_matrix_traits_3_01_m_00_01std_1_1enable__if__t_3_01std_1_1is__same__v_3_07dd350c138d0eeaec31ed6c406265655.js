@@ -1,0 +1,12 @@
+var struct_open_kalman_1_1_matrix_traits_3_01_m_00_01std_1_1enable__if__t_3_01std_1_1is__same__v_3_07dd350c138d0eeaec31ed6c406265655 =
+[
+    [ "BaseMatrix", "struct_open_kalman_1_1_matrix_traits_3_01_m_00_01std_1_1enable__if__t_3_01std_1_1is__same__v_3_07dd350c138d0eeaec31ed6c406265655.html#a9c0e620b725b86c133d711170ce0b028", null ],
+    [ "CovarianceBaseType", "struct_open_kalman_1_1_matrix_traits_3_01_m_00_01std_1_1enable__if__t_3_01std_1_1is__same__v_3_07dd350c138d0eeaec31ed6c406265655.html#a9e3a299abc5a63f7f67b560c26b1fc64", null ],
+    [ "DiagonalBaseType", "struct_open_kalman_1_1_matrix_traits_3_01_m_00_01std_1_1enable__if__t_3_01std_1_1is__same__v_3_07dd350c138d0eeaec31ed6c406265655.html#ae25267164f0882403015f50392efa947", null ],
+    [ "MatrixBaseType", "struct_open_kalman_1_1_matrix_traits_3_01_m_00_01std_1_1enable__if__t_3_01std_1_1is__same__v_3_07dd350c138d0eeaec31ed6c406265655.html#a829aec14e898bd418809a87d00014077", null ],
+    [ "NativeMatrix", "struct_open_kalman_1_1_matrix_traits_3_01_m_00_01std_1_1enable__if__t_3_01std_1_1is__same__v_3_07dd350c138d0eeaec31ed6c406265655.html#a5749c024d4bebf22bb6d05a55dbc6e18", null ],
+    [ "Scalar", "struct_open_kalman_1_1_matrix_traits_3_01_m_00_01std_1_1enable__if__t_3_01std_1_1is__same__v_3_07dd350c138d0eeaec31ed6c406265655.html#a605a97f04bfb09c9de15d1eb85e6b1f1", null ],
+    [ "SelfAdjointBaseType", "struct_open_kalman_1_1_matrix_traits_3_01_m_00_01std_1_1enable__if__t_3_01std_1_1is__same__v_3_07dd350c138d0eeaec31ed6c406265655.html#a07da491137fe91f4deb79cc4813a1589", null ],
+    [ "SelfContained", "struct_open_kalman_1_1_matrix_traits_3_01_m_00_01std_1_1enable__if__t_3_01std_1_1is__same__v_3_07dd350c138d0eeaec31ed6c406265655.html#a63349a63cae6565c59196df4a33b1ed8", null ],
+    [ "TriangularBaseType", "struct_open_kalman_1_1_matrix_traits_3_01_m_00_01std_1_1enable__if__t_3_01std_1_1is__same__v_3_07dd350c138d0eeaec31ed6c406265655.html#a463221dd53fcc60d090735a82d2e688c", null ]
+];

@@ -87,25 +87,22 @@ $(document).ready(function(){initNavTree('struct_open_kalman_1_1_coefficients.ht
 </div><!--header-->
 <div class="contents">
 
-<p>A set of coefficient types to be associated with a variable. The types should be instances of <a class="el" href="struct_open_kalman_1_1is__coefficient.html" title="Whether an object is a coefficient.">is_coefficient</a>.  
- <a href="struct_open_kalman_1_1_coefficients.html#details">More...</a></p>
-
-<p><code>#include &lt;<a class="el" href="_coefficients_8h_source.html">Coefficients.h</a>&gt;</code></p>
+<p><code>#include &lt;<a class="el" href="coefficient__forward-declarations_8hpp_source.html">coefficient_forward-declarations.hpp</a>&gt;</code></p>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><h3>template&lt;typename ... Cs&gt;<br />
 struct OpenKalman::Coefficients&lt; Cs &gt;</h3>
 
-<p>A set of coefficient types to be associated with a variable. The types should be instances of <a class="el" href="struct_open_kalman_1_1is__coefficient.html" title="Whether an object is a coefficient.">is_coefficient</a>. </p>
-<dl class="tparams"><dt>Template Parameters</dt><dd>
+<p>A set of coefficient types to be associated with the rows or columns of a matrix.</p>
+<p>Each coefficient Cs can be a single coefficient (e.g., <a class="el" href="struct_open_kalman_1_1_axis.html">Axis</a>, <a class="el" href="struct_open_kalman_1_1_angle.html" title="An angle or any other simple modular value.">Angle</a>, <a class="el" href="struct_open_kalman_1_1_distance.html">Distance</a>, <a class="el" href="struct_open_kalman_1_1_inclination.html" title="A positive or negative real number φ representing an inclination or declination from the horizon.">Inclination</a>), an atomic coefficient group (e.g., <a class="el" href="struct_open_kalman_1_1_polar.html" title="An atomic coefficient group reflecting polar coordinates.">Polar</a>, <a class="el" href="struct_open_kalman_1_1_spherical.html">Spherical</a>) or a composite coefficient (e.g., Coefficient&lt;Axis, angle::Radians&gt;). </p><dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
-    <tr><td class="paramname">Cs</td><td>The coefficients (e.g., <a class="el" href="struct_open_kalman_1_1_axis.html">Axis</a>, Angle, anything that as an instance of <a class="el" href="struct_open_kalman_1_1is__coefficient.html" title="Whether an object is a coefficient.">is_coefficient</a>). </td></tr>
+    <tr><td class="paramname">Cs</td><td>Any types within the concept coefficients (internal bool variable coefficients in c++17). </td></tr>
   </table>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="_coefficients_8h_source.html#l00027">27</a> of file <a class="el" href="_coefficients_8h_source.html">Coefficients.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="coefficient__forward-declarations_8hpp_source.html#l00038">38</a> of file <a class="el" href="coefficient__forward-declarations_8hpp_source.html">coefficient_forward-declarations.hpp</a>.</p>
 </div><hr/>The documentation for this struct was generated from the following file:<ul>
-<li>C:/Users/cogden/CLionProjects/OpenKalman/src/variables/coefficients/<a class="el" href="_coefficients_8h_source.html">Coefficients.h</a></li>
+<li>C:/Users/cogden/CLionProjects/OpenKalman/OpenKalman/coefficient-types/details/<a class="el" href="coefficient__forward-declarations_8hpp_source.html">coefficient_forward-declarations.hpp</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

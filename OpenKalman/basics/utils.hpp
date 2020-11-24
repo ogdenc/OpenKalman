@@ -92,7 +92,7 @@ namespace OpenKalman::internal
 
   /**
    * \internal
-   * Join two arrays.
+   * \brief Joins two arrays.
    * \tparam T The type of the array elements.
    * \tparam size_L The size of the left array.
    * \tparam size_R The size of the right array.
@@ -110,7 +110,7 @@ namespace OpenKalman::internal
 
   /**
    * \internal
-   * Prepend an element to an array.
+   * \brief Prepends an element to an array.
    * \tparam T The type of the array elements.
    * \tparam size_R The size of the array to which the element is to be prepended.
    * \param left The element to be prepended.
@@ -139,7 +139,7 @@ namespace OpenKalman::internal
 
   /**
    * \internal
-   * A constexpr square root function.
+   * \brief A constexpr square root function.
    * \tparam Scalar The scalar type.
    * \param x The operand.
    * \return The square root of x.
@@ -162,7 +162,7 @@ namespace OpenKalman::internal
 
   /**
    * \internal
-   * Take a slice of a tuple, given an index range.
+   * \brief Takes a slice of a tuple, given an index range.
    * \tparam index1 The index of the beginning of the slice.
    * \tparam index2 The first index just beyond the end of the slice.
    * \tparam T The tuple type.
@@ -180,7 +180,7 @@ namespace OpenKalman::internal
 
   /**
    * \internal
-   * Create a tuple that replicates a value N number of times.
+   * \brief Creates a tuple that replicates a value N number of times.
    * \tparam N The number of times to replicate.
    * \tparam T The type of the tuple element to replicate.
    * \param t The tuple element to replicate.
@@ -205,13 +205,13 @@ namespace OpenKalman::internal
 
   /**
    * \internal
-   * The default wrapper function object for matrix splitting operations.
+   * \brief The default wrapper function object for matrix splitting operations.
    */
   struct default_split_function
   {
     /**
      * \internal
-     * The identity function.
+     * \brief The identity function.
      * \return The input, unchanged.
      */
     template<typename, typename, typename Arg>

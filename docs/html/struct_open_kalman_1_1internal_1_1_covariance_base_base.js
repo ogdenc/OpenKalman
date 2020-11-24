@@ -14,6 +14,5 @@ var struct_open_kalman_1_1internal_1_1_covariance_base_base =
     [ "operator=", "struct_open_kalman_1_1internal_1_1_covariance_base_base.html#a13ce22f3ccafddd228ef4ea2a6d248df", null ],
     [ "operator=", "struct_open_kalman_1_1internal_1_1_covariance_base_base.html#a05e77a89723cc69e097b57acf0eab116", null ],
     [ "operator=", "struct_open_kalman_1_1internal_1_1_covariance_base_base.html#afed30a9dc2003777ff99af5633a2ac5f", null ],
-    [ "CovarianceBaseBase", "struct_open_kalman_1_1internal_1_1_covariance_base_base.html#a92cfad410d3ac4bb457f97abb0ce8abb", null ],
-    [ "m_arg", "struct_open_kalman_1_1internal_1_1_covariance_base_base.html#aa825bf0fb78646ed86f142b4b7676394", null ]
+    [ "CovarianceBaseBase", "struct_open_kalman_1_1internal_1_1_covariance_base_base.html#a92cfad410d3ac4bb457f97abb0ce8abb", null ]
 ];

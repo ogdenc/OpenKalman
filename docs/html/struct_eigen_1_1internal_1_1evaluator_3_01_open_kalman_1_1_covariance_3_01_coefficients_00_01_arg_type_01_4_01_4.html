@@ -99,14 +99,14 @@ Inheritance diagram for Eigen::internal::evaluator&lt; OpenKalman::Covariance&lt
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:af7fc081742a7278be4b4b9780b5bc099"><td class="memItemLeft" align="right" valign="top"><a id="af7fc081742a7278be4b4b9780b5bc099"></a>enum &#160;</td><td class="memItemRight" valign="bottom">{ <b>Flags</b> = Base::Flags &amp; (OpenKalman::is_self_adjoint_v&lt;ArgType&gt; ? ~0 : ~LvalueBit)
+<tr class="memitem:af7fc081742a7278be4b4b9780b5bc099"><td class="memItemLeft" align="right" valign="top"><a id="af7fc081742a7278be4b4b9780b5bc099"></a>enum &#160;</td><td class="memItemRight" valign="bottom">{ <b>Flags</b> = Base::Flags &amp; (OpenKalman::self_adjoint_matrix&lt;ArgType&gt; ? ~0 : ~LvalueBit)
  }</td></tr>
 <tr class="separator:af7fc081742a7278be4b4b9780b5bc099"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aed227cc355898d05bac4df415f493544"><td class="memItemLeft" align="right" valign="top"><a id="aed227cc355898d05bac4df415f493544"></a>
 using&#160;</td><td class="memItemRight" valign="bottom"><b>XprType</b> = <a class="el" href="struct_open_kalman_1_1_covariance.html">OpenKalman::Covariance</a>&lt; Coefficients, ArgType &gt;</td></tr>
 <tr class="separator:aed227cc355898d05bac4df415f493544"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab5c303c943983a6bf439d352956699f0"><td class="memItemLeft" align="right" valign="top"><a id="ab5c303c943983a6bf439d352956699f0"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>Base</b> = evaluator&lt; std::decay_t&lt; decltype(OpenKalman::internal::convert_base_matrix(std::declval&lt; const <a class="el" href="struct_open_kalman_1_1_covariance.html">XprType</a> &amp; &gt;()))&gt; &gt;</td></tr>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>Base</b> = evaluator&lt; std::decay_t&lt; decltype(<a class="el" href="namespace_open_kalman_1_1internal.html#a41970d7d7afeadd19df7882ce1b2457a">OpenKalman::internal::convert_base_matrix</a>(std::declval&lt; const <a class="el" href="struct_open_kalman_1_1_covariance.html">XprType</a> &amp; &gt;()))&gt; &gt;</td></tr>
 <tr class="separator:ab5c303c943983a6bf439d352956699f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
@@ -120,9 +120,9 @@ Public Member Functions</h2></td></tr>
 struct Eigen::internal::evaluator&lt; OpenKalman::Covariance&lt; Coefficients, ArgType &gt; &gt;</h3>
 
 
-<p class="definition">Definition at line <a class="el" href="_eigen_evaluators_8h_source.html#l00341">341</a> of file <a class="el" href="_eigen_evaluators_8h_source.html">EigenEvaluators.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="eigen3-native-evaluators_8hpp_source.html#l00341">341</a> of file <a class="el" href="eigen3-native-evaluators_8hpp_source.html">eigen3-native-evaluators.hpp</a>.</p>
 </div><hr/>The documentation for this struct was generated from the following file:<ul>
-<li>C:/Users/cogden/CLionProjects/OpenKalman/src/variables/interfaces/Eigen3/<a class="el" href="_eigen_evaluators_8h_source.html">EigenEvaluators.h</a></li>
+<li>C:/Users/cogden/CLionProjects/OpenKalman/OpenKalman/interfaces/eigen3/details/<a class="el" href="eigen3-native-evaluators_8hpp_source.html">eigen3-native-evaluators.hpp</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

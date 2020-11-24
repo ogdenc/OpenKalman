@@ -350,10 +350,10 @@ namespace OpenKalman::Eigen3
   /// Get element (i, j) of self-adjoint matrix arg.
 #ifdef __cpp_concepts
   template<eigen_self_adjoint_expr Arg> requires (not diagonal_matrix<Arg>) and
-    element_gettable<typename MatrixTraits<Arg>::BaseMatrix, 2>
+    element_gettable<nested_matrix_t<Arg>, 2>
 #else
   template<typename Arg, std::enable_if_t<eigen_self_adjoint_expr<Arg> and not diagonal_matrix<Arg> and
-    element_gettable<typename MatrixTraits<Arg>::BaseMatrix, 2>, int> = 0>
+    element_gettable<nested_matrix_t<Arg>, 2>, int> = 0>
 #endif
   inline auto
   get_element(Arg&& arg, const std::size_t i, const std::size_t j)
@@ -374,10 +374,10 @@ namespace OpenKalman::Eigen3
   /// Get element (i, j) of triangular matrix arg.
 #ifdef __cpp_concepts
   template<eigen_triangular_expr Arg> requires (not diagonal_matrix<Arg>) and
-    element_gettable<typename MatrixTraits<Arg>::BaseMatrix, 2>
+    element_gettable<nested_matrix_t<Arg>, 2>
 #else
   template<typename Arg, std::enable_if_t<eigen_triangular_expr<Arg> and not diagonal_matrix<Arg> and
-    element_gettable<typename MatrixTraits<Arg>::BaseMatrix, 2>, int> = 0>
+    element_gettable<nested_matrix_t<Arg>, 2>, int> = 0>
 #endif
   inline auto
   get_element(Arg&& arg, const std::size_t i, const std::size_t j)
@@ -399,20 +399,20 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<typename Arg> requires
     diagonal_matrix<Arg> and (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>) and
-    (element_gettable<typename MatrixTraits<Arg>::BaseMatrix, 2> or
-      element_gettable<typename MatrixTraits<Arg>::BaseMatrix, 1>)
+    (element_gettable<nested_matrix_t<Arg>, 2> or
+      element_gettable<nested_matrix_t<Arg>, 1>)
 #else
   template<typename Arg, std::enable_if_t<
     (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>) and diagonal_matrix<Arg> and
-    (element_gettable<typename MatrixTraits<Arg>::BaseMatrix, 2> or
-      element_gettable<typename MatrixTraits<Arg>::BaseMatrix, 1>), int> = 0>
+    (element_gettable<nested_matrix_t<Arg>, 2> or
+      element_gettable<nested_matrix_t<Arg>, 1>), int> = 0>
 #endif
   inline auto
   get_element(Arg&& arg, const std::size_t i, const std::size_t j)
   {
     if (i == j)
     {
-      if constexpr(element_gettable<typename MatrixTraits<Arg>::BaseMatrix, 1>)
+      if constexpr(element_gettable<nested_matrix_t<Arg>, 1>)
         return get_element(base_matrix(std::forward<Arg>(arg)), i);
       else
         return get_element(base_matrix(std::forward<Arg>(arg)), i, i);
@@ -425,18 +425,18 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<typename Arg> requires
     diagonal_matrix<Arg> and (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>) and
-    (element_gettable<typename MatrixTraits<Arg>::BaseMatrix, 1> or
-      element_gettable<typename MatrixTraits<Arg>::BaseMatrix, 2>)
+    (element_gettable<nested_matrix_t<Arg>, 1> or
+      element_gettable<nested_matrix_t<Arg>, 2>)
 #else
   template<typename Arg, std::enable_if_t<
     diagonal_matrix<Arg> and (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>) and
-    (element_gettable<typename MatrixTraits<Arg>::BaseMatrix, 1> or
-      element_gettable<typename MatrixTraits<Arg>::BaseMatrix, 2>), int> = 0>
+    (element_gettable<nested_matrix_t<Arg>, 1> or
+      element_gettable<nested_matrix_t<Arg>, 2>), int> = 0>
 #endif
   inline auto
   get_element(Arg&& arg, const std::size_t i)
   {
-    using BaseMatrix = typename MatrixTraits<Arg>::BaseMatrix;
+    using BaseMatrix = nested_matrix_t<Arg>;
     if constexpr(element_gettable<BaseMatrix, 1>)
     {
       return get_element(base_matrix(std::forward<Arg>(arg)), i);
@@ -452,11 +452,11 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<eigen_self_adjoint_expr Arg, typename Scalar> requires
     (not std::is_const_v<std::remove_reference_t<Arg>>) and (not diagonal_matrix<Arg>) and
-    element_settable<typename MatrixTraits<Arg>::BaseMatrix, 2>
+    element_settable<nested_matrix_t<Arg>, 2>
 #else
   template<typename Arg, typename Scalar, std::enable_if_t<eigen_self_adjoint_expr<Arg> and
     not std::is_const_v<std::remove_reference_t<Arg>> and not diagonal_matrix<Arg> and
-    element_settable<typename MatrixTraits<Arg>::BaseMatrix, 2>, int> = 0>
+    element_settable<nested_matrix_t<Arg>, 2>, int> = 0>
 #endif
   inline void
   set_element(Arg& arg, const Scalar s, const std::size_t i, const std::size_t j)
@@ -478,11 +478,11 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<eigen_triangular_expr Arg, typename Scalar> requires
     (not std::is_const_v<std::remove_reference_t<Arg>>) and (not diagonal_matrix<Arg>) and
-    element_settable<typename MatrixTraits<Arg>::BaseMatrix, 2>
+    element_settable<nested_matrix_t<Arg>, 2>
 #else
   template<typename Arg, typename Scalar, std::enable_if_t<eigen_triangular_expr<Arg> and
     not std::is_const_v<std::remove_reference_t<Arg>> and not diagonal_matrix<Arg> and
-    element_settable<typename MatrixTraits<Arg>::BaseMatrix, 2>, int> = 0>
+    element_settable<nested_matrix_t<Arg>, 2>, int> = 0>
 #endif
   inline void
   set_element(Arg& arg, const Scalar s, const std::size_t i, const std::size_t j)
@@ -505,21 +505,21 @@ namespace OpenKalman::Eigen3
   template<typename Arg, typename Scalar> requires
     (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>) and
     (not std::is_const_v<std::remove_reference_t<Arg>>) and diagonal_matrix<Arg> and
-    (element_settable<typename MatrixTraits<Arg>::BaseMatrix, 2> or
-      element_settable<typename MatrixTraits<Arg>::BaseMatrix, 1>)
+    (element_settable<nested_matrix_t<Arg>, 2> or
+      element_settable<nested_matrix_t<Arg>, 1>)
 #else
   template<typename Arg, typename Scalar, std::enable_if_t<
     (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>) and
     not std::is_const_v<std::remove_reference_t<Arg>> and diagonal_matrix<Arg> and
-    (element_settable<typename MatrixTraits<Arg>::BaseMatrix, 2> or
-      element_settable<typename MatrixTraits<Arg>::BaseMatrix, 1>), int> = 0>
+    (element_settable<nested_matrix_t<Arg>, 2> or
+      element_settable<nested_matrix_t<Arg>, 1>), int> = 0>
 #endif
   inline void
   set_element(Arg& arg, const Scalar s, const std::size_t i, const std::size_t j)
   {
     if (i == j)
     {
-      if constexpr(element_settable<typename MatrixTraits<Arg>::BaseMatrix, 1>)
+      if constexpr(element_settable<nested_matrix_t<Arg>, 1>)
         set_element(base_matrix(arg), s, i);
       else
         set_element(base_matrix(arg), s, i, i);
@@ -532,18 +532,18 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<typename Arg, typename Scalar> requires diagonal_matrix<Arg> and
     (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>) and
-    (element_settable<typename MatrixTraits<Arg>::BaseMatrix, 1> or
-      element_settable<typename MatrixTraits<Arg>::BaseMatrix, 2>)
+    (element_settable<nested_matrix_t<Arg>, 1> or
+      element_settable<nested_matrix_t<Arg>, 2>)
 #else
   template<typename Arg, typename Scalar, std::enable_if_t<diagonal_matrix<Arg> and
     (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>) and
-    (element_settable<typename MatrixTraits<Arg>::BaseMatrix, 1> or
-      element_settable<typename MatrixTraits<Arg>::BaseMatrix, 2>), int> = 0>
+    (element_settable<nested_matrix_t<Arg>, 1> or
+      element_settable<nested_matrix_t<Arg>, 2>), int> = 0>
 #endif
   inline void
   set_element(Arg& arg, const Scalar s, const std::size_t i)
   {
-    using BaseMatrix = typename MatrixTraits<Arg>::BaseMatrix;
+    using BaseMatrix = nested_matrix_t<Arg>;
     if constexpr(element_settable<BaseMatrix, 1>)
     {
       set_element(base_matrix(arg), s, i);

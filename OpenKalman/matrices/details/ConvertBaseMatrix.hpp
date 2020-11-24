@@ -30,7 +30,7 @@ namespace OpenKalman::internal
   convert_base_matrix(Arg&& arg) noexcept
   {
     static_assert(covariance<Arg> or typed_matrix<Arg>);
-    using ArgBase = typename MatrixTraits<Arg>::BaseMatrix;
+    using ArgBase = nested_matrix_t<Arg>;
 
     // Typed matrices:
     if constexpr(typed_matrix<Arg>)

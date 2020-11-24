@@ -20,6 +20,53 @@
 
 namespace OpenKalman
 {
+  // ----------------- //
+  //  nested_matrix_t  //
+  // ----------------- //
+
+  /**
+   * \brief An alias for a type's nested matrix, if it exists.
+   * \details Only participates in overload resolution if the type has a nested matrix.
+   * \tparam T A type that is a wrapper for a nested matrix.
+   */
+#ifdef __cpp_concepts
+  template<typename T> requires (requires {typename MatrixTraits<T>::BaseMatrix;})
+#else
+  template<typename T, typename = typename MatrixTraits<T>::BaseMatrix>
+#endif
+  using nested_matrix_t = typename MatrixTraits<T>::BaseMatrix;
+
+
+  namespace internal
+  {
+#ifndef __cpp_concepts
+    namespace detail
+    {
+      template<typename T, typename Enable = void>
+      struct is_reference_dependent : std::false_type {};
+
+      template<typename T>
+      struct is_reference_dependent<T, std::enable_if_t<std::is_lvalue_reference_v<nested_matrix_t<T>>>>
+        : std::true_type{};
+    }
+#endif
+
+
+    /**
+     * \internal
+     * \brief Specifies that a matrix type contains an internal reference.
+     */
+#ifdef __cpp_concepts
+    template<typename T>
+    concept contains_nested_lvalue_reference = std::is_reference_v<nested_matrix_t<T>>;
+#else
+    template<typename T>
+    inline constexpr bool contains_nested_lvalue_reference = detail::is_reference_dependent<T>::value;
+#endif
+
+  } // internal
+
+
   // ---------------- //
   //  self_contained  //
   // ---------------- //
@@ -28,7 +75,7 @@ namespace OpenKalman
   {
     /**
      * \internal
-     * Type trait testing whether T is self-contained (i.e., can be the return value of a function)
+     * \details Type trait testing whether T is self-contained (i.e., can be the return value of a function).
      */
 #ifdef __cpp_concepts
     template<typename T>
@@ -40,7 +87,11 @@ namespace OpenKalman
 
 
   /**
-   * T is a self-contained matrix or expression (i.e., it can be created in a function and returned as the result).
+   * \brief Specifies that a type is a self-contained matrix or expression.
+   * \details A value is self-contained if it can be created in a function and returned as the result.
+   * OpenKalman matrix types are self-contained if their wrapped native matrix is self-contained and is
+   * not an lvalue reference.
+   * The matrix library interface will specify which native matrices and expressions are self-contained.
    * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
    */
   template<typename T>
@@ -53,25 +104,21 @@ namespace OpenKalman
 
   namespace internal
   {
-    /**
-     * \internal
-     * A typed matrix or covariance is self-contained if its base matrix is self-contained and not a reference.
+    /*
+     * A typed matrix or covariance is self-contained if its nested matrix is self-contained and not an lvalue ref.
      */
 #ifdef __cpp_concepts
-    template<typename T> requires (typed_matrix<T> or covariance<T>) and
-      self_contained<typename MatrixTraits<T>::BaseMatrix> and
-      (not std::is_reference_v<typename MatrixTraits<T>::BaseMatrix>)
+    template<typename T> requires (typed_matrix<T> or covariance<T>) and self_contained<nested_matrix_t<T>> and
+      (not internal::contains_nested_lvalue_reference<T>)
     struct is_self_contained<T> : std::true_type {};
 #else
-      template<typename T>
+    template<typename T>
     struct is_self_contained<T, std::enable_if_t<(typed_matrix<T> or covariance<T>) and
-      (not std::is_reference_v<typename MatrixTraits<T>::BaseMatrix>)>>
-      : is_self_contained<typename MatrixTraits<T>::BaseMatrix> {};
+      (not internal::contains_nested_lvalue_reference<T>)>> : is_self_contained<nested_matrix_t<T>> {};
 #endif
 
 
-    /**
-     * \internal
+    /*
      * A distribution is self-contained if its associated mean and covariance are also self-contained.
      */
 #ifdef __cpp_concepts
@@ -116,7 +163,8 @@ namespace OpenKalman
 
 
   /**
-   * A type, based on T, that is transformed into a self-contained type if necessary.
+   * \brief An alias for type, derived from and equivalent to parameter T, that is self-contained.
+   * \details Use this alias to obtain a type, equivalent to T, that can safely be returned from a function.
    */
   template<typename T>
   using self_contained_t = std::conditional_t<
@@ -128,8 +176,8 @@ namespace OpenKalman
   // ------------ //
 
   /**
-   * A type, based on T, that is passable to a function as a parameter.
-   * (i.e., it is either an lvalue reference or an rvalue reference to a self-contained type)
+   * \brief An alias for a type, derived from and equivalent to parameter T, that can be passed as a function parameter.
+   * \details A passable type is either an lvalue reference or an rvalue reference to a self_contained_t type.
    */
   template<typename T>
   using passable_t = std::conditional_t<std::is_lvalue_reference_v<T>, T, self_contained_t<T>>;
@@ -140,15 +188,18 @@ namespace OpenKalman
   // --------------- //
 
   /**
-   * A type, based on T, that is a self-contained native matrix.
-   * \tparam rows Number of rows in the native matrix (defaults to number of rows in T).
-   * \tparam cols Number of columns in the native matrix (default to number of columns in T).
+   * \brief An alias for a self-contained native matrix, based on and equivalent to parameter T.
+   * \tparam T The type from which the native matrix is derived.
+   * \tparam rows Number of rows in the native matrix (defaults to the number of rows in T).
+   * \tparam cols Number of columns in the native matrix (defaults to the number of columns in T).
    */
   template<typename T, std::size_t rows = MatrixTraits<T>::dimension, std::size_t cols = MatrixTraits<T>::columns>
   using native_matrix_t = typename MatrixTraits<T>::template NativeMatrix<rows, cols>;
 
 
-  /// Make a self-contained, native matrix based on the shape of M from a list of coefficients in row-major order.
+  /**
+   * \brief Make a self-contained, native matrix based on the shape of M from a list of coefficients in row-major order.
+   */
 #ifdef __cpp_concepts
   template<typename M, std::convertible_to<typename MatrixTraits<M>::Scalar> ... Args> requires
     (sizeof...(Args) == MatrixTraits<M>::dimension * MatrixTraits<M>::columns)
@@ -176,7 +227,7 @@ namespace OpenKalman
   {
     /**
      * \internal
-     * A type trait testing whether an object is a zero matrix.
+     * \brief A type trait testing whether an object is a zero matrix.
      */
 #ifdef __cpp_concepts
     template<typename T>
@@ -188,7 +239,7 @@ namespace OpenKalman
 
 
   /**
-   * T is a zero matrix.
+   * \brief Specifies that a type is a zero matrix.
    * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
    */
   template<typename T>
@@ -201,23 +252,20 @@ namespace OpenKalman
 
   namespace internal
   {
-    /**
-     * \internal
-     * A typed matrix or covariance is a zero matrix if its base matrix is a zero matrix.
+    /*
+     * A typed matrix or covariance is a zero matrix if its nested matrix is a zero matrix.
      */
 #ifdef __cpp_concepts
-    template<typename T> requires (typed_matrix<T> or covariance<T>) and
-      zero_matrix<typename MatrixTraits<T>::BaseMatrix>
+    template<typename T> requires (typed_matrix<T> or covariance<T>) and zero_matrix<nested_matrix_t<T>>
     struct is_zero_matrix<T> : std::true_type {};
 #else
     template<typename T>
     struct is_zero_matrix<T, std::enable_if_t<(typed_matrix<T> or covariance<T>)>>
-      : is_zero_matrix<typename MatrixTraits<T>::BaseMatrix> {};
+      : is_zero_matrix<nested_matrix_t<T>> {};
 #endif
 
 
-    /**
-     * \internal
+    /*
      * A distribution is a zero matrix if its associated mean and covariance are also zero matrices.
      */
 #ifdef __cpp_concepts
@@ -241,7 +289,7 @@ namespace OpenKalman
   {
     /**
      * \internal
-     * A type trait testing whether an object is an identity matrix.
+     * \brief A type trait testing whether an object is an identity matrix.
      */
 #ifdef __cpp_concepts
     template<typename T>
@@ -252,7 +300,7 @@ namespace OpenKalman
   }
 
   /**
-   * T is an identity matrix.
+   * \brief Specifies that a type is an identity matrix.
    * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
    */
   template<typename T>
@@ -265,34 +313,31 @@ namespace OpenKalman
 
   namespace internal
   {
-    /**
-     * \internal
-     * A covariance is an identity matrix if its base matrix is an identity matrix.
+    /*
+     * A covariance is an identity matrix if its nested matrix is an identity matrix.
      */
 #ifdef __cpp_concepts
-    template<covariance T> requires identity_matrix<typename MatrixTraits<T>::BaseMatrix>
+    template<covariance T> requires identity_matrix<nested_matrix_t<T>>
     struct is_identity_matrix<T> : std::true_type {};
 #else
     template<typename T>
-    struct is_identity_matrix<T, std::enable_if_t<covariance<T>>>
-      : is_identity_matrix<typename MatrixTraits<T>::BaseMatrix> {};
+    struct is_identity_matrix<T, std::enable_if_t<covariance<T>>> : is_identity_matrix<nested_matrix_t<T>> {};
 #endif
 
 
-    /**
-     * \internal
+    /*
      * A typed matrix is an identity matrix if its base matrix is an identity matrix
      * and its row and column coefficients are equivalent.
      */
 #ifdef __cpp_concepts
-    template<typed_matrix T> requires identity_matrix<typename MatrixTraits<T>::BaseMatrix> and
+    template<typed_matrix T> requires identity_matrix<nested_matrix_t<T>> and
     equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>
     struct is_identity_matrix<T> : std::true_type {};
 #else
       template<typename T>
     struct is_identity_matrix<T, std::enable_if_t<typed_matrix<T> and
       equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>>>
-      : is_identity_matrix<typename MatrixTraits<T>::BaseMatrix> {};
+      : is_identity_matrix<nested_matrix_t<T>> {};
 #endif
   }
 
@@ -315,7 +360,7 @@ namespace OpenKalman
 
 
   /**
-   * T is a one-by-one matrix (i.e., one row and one column).
+   * \brief Specifies that a type is a one-by-one matrix (i.e., one row and one column).
    * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
    */
   template<typename T>
@@ -334,8 +379,8 @@ namespace OpenKalman
   {
     /**
      * \internal
-     * A type trait testing whether an object is a diagonal matrix
-     * (other than zero_matrix, identity_matrix, or one_by_one_matrix).
+     * \brief A type trait testing whether an object is a diagonal matrix
+     * \note This excludes zero_matrix, identity_matrix, or one_by_one_matrix.
      */
 #ifdef __cpp_concepts
     template<typename T>
@@ -361,7 +406,7 @@ namespace OpenKalman
 
 
   /**
-   * T is a diagonal matrix.
+   * \brief Specifies that a type is a diagonal matrix.
    * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
    */
 #ifdef __cpp_concepts
@@ -376,38 +421,34 @@ namespace OpenKalman
 
   namespace internal
   {
-    /**
-     * \internal
+    /*
      * A covariance is a diagonal matrix if its base matrix is diagonal
      */
 #ifdef __cpp_concepts
-    template<covariance T> requires diagonal_matrix<typename MatrixTraits<T>::BaseMatrix>
+    template<covariance T> requires diagonal_matrix<nested_matrix_t<T>>
     struct is_diagonal_matrix<T> : std::true_type {};
 #else
     template<typename T>
-    struct is_diagonal_matrix<T, std::enable_if_t<covariance<T>>>
-      : is_diagonal_matrix<typename MatrixTraits<T>::BaseMatrix> {};
+    struct is_diagonal_matrix<T, std::enable_if_t<covariance<T>>> : is_diagonal_matrix<nested_matrix_t<T>> {};
 #endif
 
 
-    /**
-     * \internal
+    /*
      * A typed matrix is diagonal if its base matrix is diagonal and its row and column coefficients are equivalent.
      */
 #ifdef __cpp_concepts
-    template<typed_matrix T> requires diagonal_matrix<typename MatrixTraits<T>::BaseMatrix> and
+    template<typed_matrix T> requires diagonal_matrix<nested_matrix_t<T>> and
       equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>
     struct is_diagonal_matrix<T> : std::true_type {};
 #else
     template<typename T>
     struct is_diagonal_matrix<T, std::enable_if_t<typed_matrix<T> and
       equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>>>
-      : is_diagonal_matrix<typename MatrixTraits<T>::BaseMatrix> {};
+      : is_diagonal_matrix<nested_matrix_t<T>> {};
 #endif
 
 
-    /**
-     * \internal
+    /*
      * A distribution is diagonal if its covariance matrix is diagonal.
      */
 #ifdef __cpp_concepts
@@ -429,7 +470,7 @@ namespace OpenKalman
   {
     /**
      * \internal
-     * A type trait testing whether an object is a self-adjoint matrix (other than diagonal_matrix).
+     * \brief A type trait testing whether an object is a self-adjoint matrix (other than diagonal_matrix).
      */
 #ifdef __cpp_concepts
     template<typename T>
@@ -455,7 +496,7 @@ namespace OpenKalman
 
 
   /**
-   * T is a self-adjoint matrix.
+   * \brief Specifies that a type is a self-adjoint matrix.
    * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
    */
 #ifdef __cpp_concepts
@@ -469,8 +510,7 @@ namespace OpenKalman
 
   namespace internal
   {
-    /**
-     * \internal
+    /*
      * A covariance matrix is self-adjoint if it is not a square root (Cholesky) covariance.
      */
 #ifdef __cpp_concepts
@@ -483,25 +523,23 @@ namespace OpenKalman
       : std::true_type {};
 
 
-    /**
-     * \internal
+    /*
      * A typed matrix is self-adjoint if its base matrix is self-adjoint and
      * its row and column coefficients are equivalent.
      */
 #ifdef __cpp_concepts
-    template<typed_matrix T> requires self_adjoint_matrix<typename MatrixTraits<T>::BaseMatrix> and
+    template<typed_matrix T> requires self_adjoint_matrix<nested_matrix_t<T>> and
       equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>
     struct is_self_adjoint_matrix<T> : std::true_type {};
 #else
     template<typename T>
     struct is_self_adjoint_matrix<T, std::enable_if_t<typed_matrix<T> and
       equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>>>
-      : is_self_adjoint_matrix<typename MatrixTraits<T>::BaseMatrix> {};
+      : is_self_adjoint_matrix<nested_matrix_t<T>> {};
 #endif
 
 
-    /**
-     * \internal
+    /*
      * A distribution is self-adjoint if its associated covariance matrix is self-adjoint.
      */
 #ifdef __cpp_concepts
@@ -523,7 +561,7 @@ namespace OpenKalman
   {
     /**
      * \internal
-     * A type trait testing whether an object is a lower-triangular matrix (other than diagonal_matrix).
+     * \brief A type trait testing whether an object is a lower-triangular matrix (other than diagonal_matrix).
      */
 #ifdef __cpp_concepts
     template<typename T>
@@ -549,7 +587,7 @@ namespace OpenKalman
 
 
   /**
-   * T is a lower-triangular matrix.
+   * \brief Specifies that a type is a lower-triangular matrix.
    * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
    */
 #ifdef __cpp_concepts
@@ -563,20 +601,19 @@ namespace OpenKalman
 
   namespace internal
   {
-    /**
-     * \internal
+    /*
      * A square root covariance is lower-triangular if its base matrix is either lower-triangular or self-adjoint.
      * If the base matrix is self-adjoint, the square root covariance can be either lower- or upper-triangular.
      */
 #ifdef __cpp_concepts
-    template<square_root_covariance T> requires lower_triangular_matrix<typename MatrixTraits<T>::BaseMatrix> or
-      self_adjoint_matrix<typename MatrixTraits<T>::BaseMatrix>
+    template<square_root_covariance T> requires lower_triangular_matrix<nested_matrix_t<T>> or
+      self_adjoint_matrix<nested_matrix_t<T>>
     struct is_lower_triangular_matrix<T> : std::true_type {};
 #else
     template<typename T>
     struct is_lower_triangular_matrix<T, std::enable_if_t<square_root_covariance<T>>>
-      : std::bool_constant<lower_triangular_matrix<typename MatrixTraits<T>::BaseMatrix> or
-          self_adjoint_matrix<typename MatrixTraits<T>::BaseMatrix>> {};
+      : std::bool_constant<lower_triangular_matrix<nested_matrix_t<T>> or
+          self_adjoint_matrix<nested_matrix_t<T>>> {};
 #endif
   }
 
@@ -589,7 +626,7 @@ namespace OpenKalman
   {
     /**
      * \internal
-     * A type trait testing whether an object is an upper-triangular matrix (other than diagonal_matrix).
+     * \brief A type trait testing whether an object is an upper-triangular matrix (other than diagonal_matrix).
      */
 #ifdef __cpp_concepts
     template<typename T>
@@ -615,9 +652,8 @@ namespace OpenKalman
 
 
   /**
-   * T is an upper-triangular matrix.
-   *
-   * If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
+   * \brief Specifies that a type is an upper-triangular matrix.
+   * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
    */
 #ifdef __cpp_concepts
   template<typename T>
@@ -630,20 +666,19 @@ namespace OpenKalman
 
   namespace internal
   {
-    /**
-     * \internal
+    /*
      * A square root covariance is upper-triangular if its base matrix is either upper-triangular or self-adjoint.
      * If the base matrix is self-adjoint, the square root covariance can be either lower- or upper-triangular.
      */
 #ifdef __cpp_concepts
-    template<square_root_covariance T> requires upper_triangular_matrix<typename MatrixTraits<T>::BaseMatrix> or
-      self_adjoint_matrix<typename MatrixTraits<T>::BaseMatrix>
+    template<square_root_covariance T> requires upper_triangular_matrix<nested_matrix_t<T>> or
+      self_adjoint_matrix<nested_matrix_t<T>>
     struct is_upper_triangular_matrix<T> : std::true_type {};
 #else
     template<typename T>
     struct is_upper_triangular_matrix<T, std::enable_if_t<square_root_covariance<T>>>
-        : std::bool_constant<upper_triangular_matrix<typename MatrixTraits<T>::BaseMatrix> or
-            self_adjoint_matrix<typename MatrixTraits<T>::BaseMatrix>> {};
+        : std::bool_constant<upper_triangular_matrix<nested_matrix_t<T>> or
+            self_adjoint_matrix<nested_matrix_t<T>>> {};
 #endif
   }
 
@@ -666,7 +701,7 @@ namespace OpenKalman
 
 
   /**
-   * T is a triangular matrix (upper or lower).
+   * \brief Specifies that a type is a triangular matrix (upper or lower).
    * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
    */
 #ifdef __cpp_concepts
@@ -685,7 +720,8 @@ namespace OpenKalman
   namespace internal
   {
     /**
-     * T and U have the same triangular type (upper or lower).
+     * \internal
+     * \brief Specifies that two types have the same triangular type (upper or lower).
      * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
      */
     template<typename T, typename U>
@@ -709,7 +745,7 @@ namespace OpenKalman
   {
     /**
      * \internal
-     * A type trait testing whether the base matrix is a Cholesky square root.
+     * \brief A type trait testing whether the base matrix is a Cholesky square root.
      */
 #ifdef __cpp_concepts
     template<typename T>
@@ -721,7 +757,8 @@ namespace OpenKalman
 
 
   /**
-   * T has a base matrix that is a Cholesky square root.
+   * \brief Specifies that a type has a nested native matrix that is a Cholesky square root.
+   * \details If this is true, then nested_matrix_t<T> is true.
    * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
    */
   template<typename T>
@@ -739,12 +776,12 @@ namespace OpenKalman
      * A covariance has a Cholesky form if its base matrix is not self-adjoint.
      */
 #ifdef __cpp_concepts
-    template<covariance T> requires (not self_adjoint_matrix<typename MatrixTraits<T>::BaseMatrix>)
+    template<covariance T> requires (not self_adjoint_matrix<nested_matrix_t<T>>)
     struct is_cholesky_form<T> : std::true_type {};
 #else
     template<typename T>
     struct is_cholesky_form<T, std::enable_if_t<covariance<T>>>
-      : std::bool_constant<not self_adjoint_matrix<typename MatrixTraits<T>::BaseMatrix>> {};
+      : std::bool_constant<not self_adjoint_matrix<nested_matrix_t<T>>> {};
 #endif
 
 
@@ -867,12 +904,12 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<typename T, std::size_t N> requires (typed_matrix<T> or covariance<T>) and
-      element_gettable<typename MatrixTraits<T>::BaseMatrix, N>
+      element_gettable<nested_matrix_t<T>, N>
     struct is_element_gettable<T, N> : std::true_type {};
 #else
     template<typename T, std::size_t N>
     struct is_element_gettable<T, N, std::enable_if_t<typed_matrix<T> or covariance<T>>>
-      : is_element_gettable<typename MatrixTraits<T>::BaseMatrix, N> {};
+      : is_element_gettable<nested_matrix_t<T>, N> {};
 #endif
   }
 
@@ -903,10 +940,10 @@ namespace OpenKalman
    */
   template<typename T, std::size_t N>
 #ifdef __cpp_concepts
-  concept element_settable = internal::is_element_settable<std::decay_t<T>, N>::value and
+  concept element_settable = internal::is_element_settable<T, N>::value and
     (not std::is_const_v<std::remove_reference_t<T>>);
 #else
-  inline constexpr bool element_settable = internal::is_element_settable<std::decay_t<T>, N>::value and
+  inline constexpr bool element_settable = internal::is_element_settable<T, N>::value and
     (not std::is_const_v<std::remove_reference_t<T>>);
 #endif
 
@@ -918,12 +955,13 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<typename T, std::size_t N> requires (typed_matrix<T> or covariance<T>) and
-      element_settable<typename MatrixTraits<T>::BaseMatrix, N>
+      element_settable<nested_matrix_t<T>, N>
     struct is_element_settable<T, N> : std::true_type {};
 #else
     template<typename T, std::size_t N>
-    struct is_element_settable<T, N, std::enable_if_t<typed_matrix<T> or covariance<T>>>
-      : is_element_settable<typename MatrixTraits<T>::BaseMatrix, N> {};
+    struct is_element_settable<T, N, std::enable_if_t<(typed_matrix<T> or covariance<T>) and
+      element_settable<nested_matrix_t<T>, N>>>
+      : std::true_type {};
 #endif
   }
 

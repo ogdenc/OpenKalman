@@ -19,7 +19,7 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
   template<coefficients Coeffs, typed_matrix_base BaseMatrix> requires
-    (Coeffs::dimension == MatrixTraits<BaseMatrix>::dimension)
+    (Coeffs::dimension == MatrixTraits<BaseMatrix>::dimension) and (not std::is_rvalue_reference_v<BaseMatrix>)
 #else
   template<typename Coeffs, typename BaseMatrix>
 #endif
@@ -30,6 +30,7 @@ namespace OpenKalman
     using Base = internal::TypedMatrixBase<EuclideanMean, Coefficients, Axes<MatrixTraits<BaseMatrix>::columns>, BaseMatrix>;
     static_assert(typed_matrix_base<BaseMatrix>);
     static_assert(Base::dimension == Coefficients::dimension);
+    static_assert(not std::is_rvalue_reference_v<BaseMatrix>);
 
     using Base::Base;
 
@@ -216,7 +217,7 @@ namespace OpenKalman
 #else
   template<typename V, std::enable_if_t<typed_matrix<V> and euclidean_transformed<V>, int> = 0>
 #endif
-  EuclideanMean(V&&) -> EuclideanMean<typename MatrixTraits<V>::RowCoefficients, typename MatrixTraits<V>::BaseMatrix>;
+  EuclideanMean(V&&) -> EuclideanMean<typename MatrixTraits<V>::RowCoefficients, nested_matrix_t<V>>;
 
 
   /// Deduce template parameters from a non-Euclidean-transformed typed matrix.

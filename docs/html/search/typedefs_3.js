@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['difference_5ftype_1303',['difference_type',['../struct_open_kalman_1_1_axis.html#aa1269a512dbcc0032059cf6982199886',1,'OpenKalman::Axis::difference_type()'],['../struct_open_kalman_1_1_circle.html#a503c75667fa5a2fb80082a3c259ee14a',1,'OpenKalman::Circle::difference_type()'],['../struct_open_kalman_1_1_distance.html#afa3166e3557e50e17ea2973f94e68f7a',1,'OpenKalman::Distance::difference_type()'],['../struct_open_kalman_1_1_inclination.html#a0fb6cc5e69b3842fffaa9d195df065e8',1,'OpenKalman::Inclination::difference_type()'],['../struct_open_kalman_1_1detail_1_1_polar_base.html#a18539d36185e0ced123785287d5e8041',1,'OpenKalman::detail::PolarBase::difference_type()'],['../struct_open_kalman_1_1detail_1_1_spherical_base.html#ad6d37dcc7f627f9b28f3e832a1a8f5ba',1,'OpenKalman::detail::SphericalBase::difference_type()']]]
+  ['degrees_522',['Degrees',['../namespace_open_kalman_1_1angle.html#a43c5ad2855eb42b8ce5d207e0693b09e',1,'OpenKalman::angle::Degrees()'],['../namespace_open_kalman_1_1inclination.html#a6395628faa0330b5ae7873e254208d07',1,'OpenKalman::inclination::Degrees()']]]
 ];

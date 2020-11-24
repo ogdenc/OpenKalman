@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.18"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>OpenKalman: OpenKalman::detail::SphericalBase&lt; Derived, Coeff1, Coeff2, Coeff3, CircleTraits, InclinationTraits, d_i, a_i, i_i &gt; Struct Template Reference</title>
+<title>OpenKalman: OpenKalman::detail::SphericalBase&lt; Derived, C1, C2, C3, CircleLimits, InclinationLimits, d_i, a_i, i_i &gt; Struct Template Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -87,97 +87,83 @@ $(document).ready(function(){initNavTree('struct_open_kalman_1_1detail_1_1_spher
 <a href="#pub-static-attribs">Static Public Attributes</a> &#124;
 <a href="struct_open_kalman_1_1detail_1_1_spherical_base-members.html">List of all members</a>  </div>
   <div class="headertitle">
-<div class="title">OpenKalman::detail::SphericalBase&lt; Derived, Coeff1, Coeff2, Coeff3, CircleTraits, InclinationTraits, d_i, a_i, i_i &gt; Struct Template Reference</div>  </div>
+<div class="title">OpenKalman::detail::SphericalBase&lt; Derived, C1, C2, C3, CircleLimits, InclinationLimits, d_i, a_i, i_i &gt; Struct Template Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:ad6d37dcc7f627f9b28f3e832a1a8f5ba"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1detail_1_1_spherical_base.html#ad6d37dcc7f627f9b28f3e832a1a8f5ba">difference_type</a> = <a class="el" href="namespace_open_kalman.html#ae82c5198d9b9be12ab96f47ad0177181">Concatenate</a>&lt; typename Coeff1::difference_type, typename Coeff2::difference_type, typename Coeff3::difference_type &gt;</td></tr>
-<tr class="separator:ad6d37dcc7f627f9b28f3e832a1a8f5ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a148d8faadef3f185d963fc7b01545cb0"><td class="memTemplParams" colspan="2"><a id="a148d8faadef3f185d963fc7b01545cb0"></a>
-template&lt;typename ... Cnew&gt; </td></tr>
-<tr class="memitem:a148d8faadef3f185d963fc7b01545cb0"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><b>Prepend</b> = <a class="el" href="struct_open_kalman_1_1_coefficients.html">Coefficients</a>&lt; Cnew..., Derived &gt;</td></tr>
-<tr class="separator:a148d8faadef3f185d963fc7b01545cb0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aacc6e279c3cdbe6132fda2b048385431"><td class="memTemplParams" colspan="2"><a id="aacc6e279c3cdbe6132fda2b048385431"></a>
-template&lt;typename ... Cnew&gt; </td></tr>
-<tr class="memitem:aacc6e279c3cdbe6132fda2b048385431"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><b>Append</b> = <a class="el" href="struct_open_kalman_1_1_coefficients.html">Coefficients</a>&lt; Derived, Cnew ... &gt;</td></tr>
-<tr class="separator:aacc6e279c3cdbe6132fda2b048385431"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0c99b26f7f8c7674d9121b443ed84bd7"><td class="memTemplParams" colspan="2"><a id="a0c99b26f7f8c7674d9121b443ed84bd7"></a>
-template&lt;typename Scalar &gt; </td></tr>
-<tr class="memitem:a0c99b26f7f8c7674d9121b443ed84bd7"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><b>GetCoeff</b> = std::function&lt; Scalar(const std::size_t)&gt;</td></tr>
-<tr class="separator:a0c99b26f7f8c7674d9121b443ed84bd7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a63ebc935df1cf1a145c34df4f0d0c874"><td class="memTemplParams" colspan="2"><a id="a63ebc935df1cf1a145c34df4f0d0c874"></a>
-template&lt;typename Scalar &gt; </td></tr>
-<tr class="memitem:a63ebc935df1cf1a145c34df4f0d0c874"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><b>SetCoeff</b> = std::function&lt; void(const Scalar, const std::size_t)&gt;</td></tr>
-<tr class="separator:a63ebc935df1cf1a145c34df4f0d0c874"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2511e8ffaaf3c6411864df96a8e58951"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1detail_1_1_spherical_base.html#a2511e8ffaaf3c6411864df96a8e58951">difference_type</a> = Concatenate&lt; typename C1::difference_type, typename C2::difference_type, typename C3::difference_type &gt;</td></tr>
+<tr class="memdesc:a2511e8ffaaf3c6411864df96a8e58951"><td class="mdescLeft">&#160;</td><td class="mdescRight">The type of the result when subtracting two Spherical vectors.  <a href="struct_open_kalman_1_1detail_1_1_spherical_base.html#a2511e8ffaaf3c6411864df96a8e58951">More...</a><br /></td></tr>
+<tr class="separator:a2511e8ffaaf3c6411864df96a8e58951"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
-<tr class="memitem:a7152d49c279134fc7b56134a728352aa"><td class="memItemLeft" align="right" valign="top"><a id="a7152d49c279134fc7b56134a728352aa"></a>
-static constexpr std::size_t&#160;</td><td class="memItemRight" valign="bottom"><b>size</b> = 3</td></tr>
-<tr class="separator:a7152d49c279134fc7b56134a728352aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ada1afcf1707798bb7b4973e6ad713880"><td class="memItemLeft" align="right" valign="top"><a id="ada1afcf1707798bb7b4973e6ad713880"></a>
-static constexpr std::size_t&#160;</td><td class="memItemRight" valign="bottom"><b>dimension</b> = 4</td></tr>
-<tr class="separator:ada1afcf1707798bb7b4973e6ad713880"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a82a1cd2d260dad1f5590ed71ef3dd44e"><td class="memItemLeft" align="right" valign="top"><a id="a82a1cd2d260dad1f5590ed71ef3dd44e"></a>
-static constexpr bool&#160;</td><td class="memItemRight" valign="bottom"><b>axes_only</b> = false</td></tr>
-<tr class="separator:a82a1cd2d260dad1f5590ed71ef3dd44e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a76f0d5bcd4ef4bcb6209405df1106c71"><td class="memTemplParams" colspan="2"><a id="a76f0d5bcd4ef4bcb6209405df1106c71"></a>
-template&lt;typename Scalar &gt; </td></tr>
-<tr class="memitem:a76f0d5bcd4ef4bcb6209405df1106c71"><td class="memTemplItemLeft" align="right" valign="top">static constexpr Scalar&#160;</td><td class="memTemplItemRight" valign="bottom"><b>cf_cir</b> = 2 * M_PI / (CircleTraits::template wrap_max&lt;Scalar&gt; - CircleTraits::template wrap_min&lt;Scalar&gt;)</td></tr>
-<tr class="separator:a76f0d5bcd4ef4bcb6209405df1106c71"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abfead5980b6bbacb9477568d2ad68d7f"><td class="memTemplParams" colspan="2"><a id="abfead5980b6bbacb9477568d2ad68d7f"></a>
-template&lt;typename Scalar &gt; </td></tr>
-<tr class="memitem:abfead5980b6bbacb9477568d2ad68d7f"><td class="memTemplItemLeft" align="right" valign="top">static constexpr Scalar&#160;</td><td class="memTemplItemRight" valign="bottom"><b>cf_inc</b> = 2 * M_PI / (InclinationTraits::template wrap_max&lt;Scalar&gt; - InclinationTraits::template wrap_min&lt;Scalar&gt;)</td></tr>
-<tr class="separator:abfead5980b6bbacb9477568d2ad68d7f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aec2fa51bec476ae65e45be2e83e4c01b"><td class="memTemplParams" colspan="2">template&lt;typename Scalar , std::size_t i&gt; </td></tr>
-<tr class="memitem:aec2fa51bec476ae65e45be2e83e4c01b"><td class="memTemplItemLeft" align="right" valign="top">static constexpr std::array&lt; Scalar(*const)(const GetCoeff&lt; Scalar &gt; &amp;), dimension &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><b>to_Euclidean_array</b></td></tr>
-<tr class="separator:aec2fa51bec476ae65e45be2e83e4c01b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a938fbd00bd4d84bc696978d371caf2b2"><td class="memTemplParams" colspan="2">template&lt;typename Scalar , std::size_t i&gt; </td></tr>
-<tr class="memitem:a938fbd00bd4d84bc696978d371caf2b2"><td class="memTemplItemLeft" align="right" valign="top">static constexpr std::array&lt; Scalar(*const)(const GetCoeff&lt; Scalar &gt; &amp;), size &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><b>from_Euclidean_array</b></td></tr>
-<tr class="separator:a938fbd00bd4d84bc696978d371caf2b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4bcfa0b0b8ce88fabc7185a851e1c97b"><td class="memTemplParams" colspan="2">template&lt;typename Scalar , std::size_t i&gt; </td></tr>
-<tr class="memitem:a4bcfa0b0b8ce88fabc7185a851e1c97b"><td class="memTemplItemLeft" align="right" valign="top">static constexpr std::array&lt; Scalar(*const)(const GetCoeff&lt; Scalar &gt; &amp;), size &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><b>wrap_array_get</b></td></tr>
-<tr class="separator:a4bcfa0b0b8ce88fabc7185a851e1c97b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7a11f2749690a87e63ec21069b339daf"><td class="memTemplParams" colspan="2">template&lt;typename Scalar , std::size_t i&gt; </td></tr>
-<tr class="memitem:a7a11f2749690a87e63ec21069b339daf"><td class="memTemplItemLeft" align="right" valign="top">static constexpr std::array&lt; void(*const)(const Scalar, const SetCoeff&lt; Scalar &gt; &amp;, const GetCoeff&lt; Scalar &gt; &amp;), size &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><b>wrap_array_set</b></td></tr>
-<tr class="separator:a7a11f2749690a87e63ec21069b339daf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9d80e69a41d82dff8a19d6bf51ad56d3"><td class="memItemLeft" align="right" valign="top"><a id="a9d80e69a41d82dff8a19d6bf51ad56d3"></a>
+static constexpr std::size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1detail_1_1_spherical_base.html#a9d80e69a41d82dff8a19d6bf51ad56d3">size</a> = 3</td></tr>
+<tr class="memdesc:a9d80e69a41d82dff8a19d6bf51ad56d3"><td class="mdescLeft">&#160;</td><td class="mdescRight">The coefficient represents 3 coordinates. <br /></td></tr>
+<tr class="separator:a9d80e69a41d82dff8a19d6bf51ad56d3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adf73e589fcb099d34dc0809e0637809d"><td class="memItemLeft" align="right" valign="top"><a id="adf73e589fcb099d34dc0809e0637809d"></a>
+static constexpr std::size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1detail_1_1_spherical_base.html#adf73e589fcb099d34dc0809e0637809d">dimension</a> = 4</td></tr>
+<tr class="memdesc:adf73e589fcb099d34dc0809e0637809d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The coefficient represents 4 coordinates in Euclidean space. <br /></td></tr>
+<tr class="separator:adf73e589fcb099d34dc0809e0637809d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1a87c63852ac356246ed430c68f97bfe"><td class="memItemLeft" align="right" valign="top"><a id="a1a87c63852ac356246ed430c68f97bfe"></a>
+static constexpr bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1detail_1_1_spherical_base.html#a1a87c63852ac356246ed430c68f97bfe">axes_only</a> = false</td></tr>
+<tr class="memdesc:a1a87c63852ac356246ed430c68f97bfe"><td class="mdescLeft">&#160;</td><td class="mdescRight">The coefficient is not an <a class="el" href="struct_open_kalman_1_1_axis.html">Axis</a>. <br /></td></tr>
+<tr class="separator:a1a87c63852ac356246ed430c68f97bfe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a603ab72edce40f9f96a275ffb41b6309"><td class="memTemplParams" colspan="2">template&lt;typename Scalar , std::size_t i&gt; </td></tr>
+<tr class="memitem:a603ab72edce40f9f96a275ffb41b6309"><td class="memTemplItemLeft" align="right" valign="top">static constexpr std::array&lt; Scalar(*const)(const GetCoeff&lt; Scalar &gt; &amp;), <a class="el" href="struct_open_kalman_1_1detail_1_1_spherical_base.html#adf73e589fcb099d34dc0809e0637809d">dimension</a> &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1detail_1_1_spherical_base.html#a603ab72edce40f9f96a275ffb41b6309">to_Euclidean_array</a></td></tr>
+<tr class="memdesc:a603ab72edce40f9f96a275ffb41b6309"><td class="mdescLeft">&#160;</td><td class="mdescRight">An array of functions that convert spherical coordinates to coordinates in Euclidean space.  <a href="struct_open_kalman_1_1detail_1_1_spherical_base.html#a603ab72edce40f9f96a275ffb41b6309">More...</a><br /></td></tr>
+<tr class="separator:a603ab72edce40f9f96a275ffb41b6309"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a65b515912864b5bb752b6a75f8567d66"><td class="memTemplParams" colspan="2">template&lt;typename Scalar , std::size_t i&gt; </td></tr>
+<tr class="memitem:a65b515912864b5bb752b6a75f8567d66"><td class="memTemplItemLeft" align="right" valign="top">static constexpr std::array&lt; Scalar(*const)(const GetCoeff&lt; Scalar &gt; &amp;), <a class="el" href="struct_open_kalman_1_1detail_1_1_spherical_base.html#a9d80e69a41d82dff8a19d6bf51ad56d3">size</a> &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1detail_1_1_spherical_base.html#a65b515912864b5bb752b6a75f8567d66">from_Euclidean_array</a></td></tr>
+<tr class="memdesc:a65b515912864b5bb752b6a75f8567d66"><td class="mdescLeft">&#160;</td><td class="mdescRight">An array of functions that convert four coordinates in Euclidean space into spherical coordinates.  <a href="struct_open_kalman_1_1detail_1_1_spherical_base.html#a65b515912864b5bb752b6a75f8567d66">More...</a><br /></td></tr>
+<tr class="separator:a65b515912864b5bb752b6a75f8567d66"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a286b06f7fc14d07062c7ec1a1f3580f1"><td class="memTemplParams" colspan="2">template&lt;typename Scalar , std::size_t i&gt; </td></tr>
+<tr class="memitem:a286b06f7fc14d07062c7ec1a1f3580f1"><td class="memTemplItemLeft" align="right" valign="top">static constexpr std::array&lt; Scalar(*const)(const GetCoeff&lt; Scalar &gt; &amp;), <a class="el" href="struct_open_kalman_1_1detail_1_1_spherical_base.html#a9d80e69a41d82dff8a19d6bf51ad56d3">size</a> &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1detail_1_1_spherical_base.html#a286b06f7fc14d07062c7ec1a1f3580f1">wrap_array_get</a></td></tr>
+<tr class="memdesc:a286b06f7fc14d07062c7ec1a1f3580f1"><td class="mdescLeft">&#160;</td><td class="mdescRight">An array of functions that return a wrapped version of spherical coordinates.  <a href="struct_open_kalman_1_1detail_1_1_spherical_base.html#a286b06f7fc14d07062c7ec1a1f3580f1">More...</a><br /></td></tr>
+<tr class="separator:a286b06f7fc14d07062c7ec1a1f3580f1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1a5e30c003a2a2e1e993afabbc4d787e"><td class="memTemplParams" colspan="2">template&lt;typename Scalar , std::size_t i&gt; </td></tr>
+<tr class="memitem:a1a5e30c003a2a2e1e993afabbc4d787e"><td class="memTemplItemLeft" align="right" valign="top">static constexpr std::array&lt; void(*const)(const Scalar, const SetCoeff&lt; Scalar &gt; &amp;, const GetCoeff&lt; Scalar &gt; &amp;), <a class="el" href="struct_open_kalman_1_1detail_1_1_spherical_base.html#a9d80e69a41d82dff8a19d6bf51ad56d3">size</a> &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1detail_1_1_spherical_base.html#a1a5e30c003a2a2e1e993afabbc4d787e">wrap_array_set</a></td></tr>
+<tr class="memdesc:a1a5e30c003a2a2e1e993afabbc4d787e"><td class="mdescLeft">&#160;</td><td class="mdescRight">An array of functions that set a matrix coefficient to wrapped spherical coordinates.  <a href="struct_open_kalman_1_1detail_1_1_spherical_base.html#a1a5e30c003a2a2e1e993afabbc4d787e">More...</a><br /></td></tr>
+<tr class="separator:a1a5e30c003a2a2e1e993afabbc4d787e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><h3>template&lt;typename Derived, typename Coeff1, typename Coeff2, typename Coeff3, typename CircleTraits, typename InclinationTraits, std::size_t d_i, std::size_t a_i, std::size_t i_i&gt;<br />
-struct OpenKalman::detail::SphericalBase&lt; Derived, Coeff1, Coeff2, Coeff3, CircleTraits, InclinationTraits, d_i, a_i, i_i &gt;</h3>
+<div class="textblock"><h3>template&lt;typename Derived, typename C1, typename C2, typename C3, template&lt; typename Scalar &gt; typename CircleLimits, template&lt; typename Scalar &gt; typename InclinationLimits, std::size_t d_i, std::size_t a_i, std::size_t i_i&gt;<br />
+struct OpenKalman::detail::SphericalBase&lt; Derived, C1, C2, C3, CircleLimits, InclinationLimits, d_i, a_i, i_i &gt;</h3>
 
 
-<p class="definition">Definition at line <a class="el" href="_spherical_8h_source.html#l00183">183</a> of file <a class="el" href="_spherical_8h_source.html">Spherical.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_spherical_8hpp_source.html#l00193">193</a> of file <a class="el" href="_spherical_8hpp_source.html">Spherical.hpp</a>.</p>
 </div><h2 class="groupheader">Member Typedef Documentation</h2>
-<a id="ad6d37dcc7f627f9b28f3e832a1a8f5ba"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad6d37dcc7f627f9b28f3e832a1a8f5ba">&#9670;&nbsp;</a></span>difference_type</h2>
+<a id="a2511e8ffaaf3c6411864df96a8e58951"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2511e8ffaaf3c6411864df96a8e58951">&#9670;&nbsp;</a></span>difference_type</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename Derived , typename Coeff1 , typename Coeff2 , typename Coeff3 , typename CircleTraits , typename InclinationTraits , std::size_t d_i, std::size_t a_i, std::size_t i_i&gt; </div>
+template&lt;typename Derived , typename C1 , typename C2 , typename C3 , template&lt; typename Scalar &gt; typename CircleLimits, template&lt; typename Scalar &gt; typename InclinationLimits, std::size_t d_i, std::size_t a_i, std::size_t i_i&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="struct_open_kalman_1_1detail_1_1_spherical_base.html">OpenKalman::detail::SphericalBase</a>&lt; Derived, Coeff1, Coeff2, Coeff3, CircleTraits, InclinationTraits, d_i, a_i, i_i &gt;::<a class="el" href="struct_open_kalman_1_1detail_1_1_spherical_base.html#ad6d37dcc7f627f9b28f3e832a1a8f5ba">difference_type</a> =  <a class="el" href="namespace_open_kalman.html#ae82c5198d9b9be12ab96f47ad0177181">Concatenate</a>&lt;typename Coeff1::difference_type, typename Coeff2::difference_type, typename Coeff3::difference_type&gt;</td>
+          <td class="memname">using <a class="el" href="struct_open_kalman_1_1detail_1_1_spherical_base.html">OpenKalman::detail::SphericalBase</a>&lt; Derived, C1, C2, C3, CircleLimits, InclinationLimits, d_i, a_i, i_i &gt;::<a class="el" href="struct_open_kalman_1_1detail_1_1_spherical_base.html#a2511e8ffaaf3c6411864df96a8e58951">difference_type</a> =  Concatenate&lt;typename C1::difference_type, typename C2::difference_type, typename C3::difference_type&gt;</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>See David Frederic Crouse, Cubature/Unscented/Sigma Point Kalman Filtering with Angular Measurement Models, 18th Int'l Conf. on Information Fusion 1550, 1555 (2015). </p>
 
-<p class="definition">Definition at line <a class="el" href="_spherical_8h_source.html#l00191">191</a> of file <a class="el" href="_spherical_8h_source.html">Spherical.h</a>.</p>
+<p>The type of the result when subtracting two Spherical vectors. </p>
+<p>For differences, each coordinate behaves as if it were <a class="el" href="struct_open_kalman_1_1_distance.html">Distance</a>, <a class="el" href="struct_open_kalman_1_1_angle.html">Angle</a>, or <a class="el" href="struct_open_kalman_1_1_inclination.html">Inclination</a>. See David Frederic Crouse, Cubature/Unscented/Sigma Point Kalman Filtering with Angular Measurement Models, 18th Int'l Conf. on Information Fusion 1550, 1555 (2015). </p>
+
+<p class="definition">Definition at line <a class="el" href="_spherical_8hpp_source.html#l00205">205</a> of file <a class="el" href="_spherical_8hpp_source.html">Spherical.hpp</a>.</p>
 
 </div>
 </div>
 <h2 class="groupheader">Member Data Documentation</h2>
-<a id="a938fbd00bd4d84bc696978d371caf2b2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a938fbd00bd4d84bc696978d371caf2b2">&#9670;&nbsp;</a></span>from_Euclidean_array</h2>
+<a id="a65b515912864b5bb752b6a75f8567d66"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a65b515912864b5bb752b6a75f8567d66">&#9670;&nbsp;</a></span>from_Euclidean_array</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename Derived , typename Coeff1 , typename Coeff2 , typename Coeff3 , typename CircleTraits , typename InclinationTraits , std::size_t d_i, std::size_t a_i, std::size_t i_i&gt; </div>
+template&lt;typename Derived , typename C1 , typename C2 , typename C3 , template&lt; typename Scalar &gt; typename CircleLimits, template&lt; typename Scalar &gt; typename InclinationLimits, std::size_t d_i, std::size_t a_i, std::size_t i_i&gt; </div>
 <div class="memtemplate">
 template&lt;typename Scalar , std::size_t i&gt; </div>
 <table class="mlabels">
@@ -185,7 +171,7 @@ template&lt;typename Scalar , std::size_t i&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">constexpr std::array&lt;Scalar (*const)(const GetCoeff&lt;Scalar&gt;&amp;), size&gt; <a class="el" href="struct_open_kalman_1_1detail_1_1_spherical_base.html">OpenKalman::detail::SphericalBase</a>&lt; Derived, Coeff1, Coeff2, Coeff3, CircleTraits, InclinationTraits, d_i, a_i, i_i &gt;::from_Euclidean_array</td>
+          <td class="memname">constexpr std::array&lt;Scalar (*const)(const GetCoeff&lt;Scalar&gt;&amp;), <a class="el" href="struct_open_kalman_1_1detail_1_1_spherical_base.html#a9d80e69a41d82dff8a19d6bf51ad56d3">size</a>&gt; <a class="el" href="struct_open_kalman_1_1detail_1_1_spherical_base.html">OpenKalman::detail::SphericalBase</a>&lt; Derived, C1, C2, C3, CircleLimits, InclinationLimits, d_i, a_i, i_i &gt;::from_Euclidean_array</td>
         </tr>
       </table>
   </td>
@@ -194,24 +180,33 @@ template&lt;typename Scalar , std::size_t i&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">= internal::join(</div>
-<div class="line">        internal::join(</div>
-<div class="line">          detail::SphericalImpl&lt;Coeff1, CircleTraits, InclinationTraits, Scalar&gt;::template from_Euclidean_array&lt;i, 0, 1, 2, 3&gt;,</div>
-<div class="line">          detail::SphericalImpl&lt;Coeff2, CircleTraits, InclinationTraits, Scalar&gt;::template from_Euclidean_array&lt;i, 0, 1, 2, 3&gt;),</div>
-<div class="line">          detail::SphericalImpl&lt;Coeff3, CircleTraits, InclinationTraits, Scalar&gt;::template from_Euclidean_array&lt;i, 0, 1, 2, 3&gt;</div>
+<b>Initial value:</b><div class="fragment"><div class="line">= <a class="code" href="namespace_open_kalman_1_1internal.html#ab4c55d1d16722622d8e01a474f69faea">internal::join</a>(</div>
+<div class="line">        <a class="code" href="namespace_open_kalman_1_1internal.html#ab4c55d1d16722622d8e01a474f69faea">internal::join</a>(</div>
+<div class="line">          detail::SphericalImpl&lt;C1, CircleLimits, InclinationLimits, Scalar&gt;::template from_Euclidean_array&lt;i, 0, 1, 2, 3&gt;,</div>
+<div class="line">          detail::SphericalImpl&lt;C2, CircleLimits, InclinationLimits, Scalar&gt;::template from_Euclidean_array&lt;i, 0, 1, 2, 3&gt;),</div>
+<div class="line">          detail::SphericalImpl&lt;C3, CircleLimits, InclinationLimits, Scalar&gt;::template from_Euclidean_array&lt;i, 0, 1, 2, 3&gt;</div>
 <div class="line">      )</div>
 </div><!-- fragment -->
-<p class="definition">Definition at line <a class="el" href="_spherical_8h_source.html#l00227">227</a> of file <a class="el" href="_spherical_8h_source.html">Spherical.h</a>.</p>
+<p>An array of functions that convert four coordinates in Euclidean space into spherical coordinates. </p>
+<p>The functions in the array take four Cartesian coordinates representing a distance and a location on a unit sphere, and convert those coordinates to spherical coordinates. The array element is a function taking a ''get coefficient'' function and returning spherical coordinates. The ''get coefficient'' function takes the index of a column within a row vector and returns one of the four coordinates. </p><dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">Scalar</td><td>The scalar type (e.g., double). </td></tr>
+    <tr><td class="paramname">i</td><td>The index of the first of the four Cartesian coordinates being transformed back to spherical. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="_spherical_8hpp_source.html#l00261">261</a> of file <a class="el" href="_spherical_8hpp_source.html">Spherical.hpp</a>.</p>
 
 </div>
 </div>
-<a id="aec2fa51bec476ae65e45be2e83e4c01b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aec2fa51bec476ae65e45be2e83e4c01b">&#9670;&nbsp;</a></span>to_Euclidean_array</h2>
+<a id="a603ab72edce40f9f96a275ffb41b6309"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a603ab72edce40f9f96a275ffb41b6309">&#9670;&nbsp;</a></span>to_Euclidean_array</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename Derived , typename Coeff1 , typename Coeff2 , typename Coeff3 , typename CircleTraits , typename InclinationTraits , std::size_t d_i, std::size_t a_i, std::size_t i_i&gt; </div>
+template&lt;typename Derived , typename C1 , typename C2 , typename C3 , template&lt; typename Scalar &gt; typename CircleLimits, template&lt; typename Scalar &gt; typename InclinationLimits, std::size_t d_i, std::size_t a_i, std::size_t i_i&gt; </div>
 <div class="memtemplate">
 template&lt;typename Scalar , std::size_t i&gt; </div>
 <table class="mlabels">
@@ -219,7 +214,7 @@ template&lt;typename Scalar , std::size_t i&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">constexpr std::array&lt;Scalar (*const)(const GetCoeff&lt;Scalar&gt;&amp;), dimension&gt; <a class="el" href="struct_open_kalman_1_1detail_1_1_spherical_base.html">OpenKalman::detail::SphericalBase</a>&lt; Derived, Coeff1, Coeff2, Coeff3, CircleTraits, InclinationTraits, d_i, a_i, i_i &gt;::to_Euclidean_array</td>
+          <td class="memname">constexpr std::array&lt;Scalar (*const)(const GetCoeff&lt;Scalar&gt;&amp;), <a class="el" href="struct_open_kalman_1_1detail_1_1_spherical_base.html#adf73e589fcb099d34dc0809e0637809d">dimension</a>&gt; <a class="el" href="struct_open_kalman_1_1detail_1_1_spherical_base.html">OpenKalman::detail::SphericalBase</a>&lt; Derived, C1, C2, C3, CircleLimits, InclinationLimits, d_i, a_i, i_i &gt;::to_Euclidean_array</td>
         </tr>
       </table>
   </td>
@@ -239,17 +234,26 @@ template&lt;typename Scalar , std::size_t i&gt; </div>
 <div class="line">        [](<span class="keyword">const</span> GetCoeff&lt;Scalar&gt;&amp; get_coeff) constexpr { <span class="keywordflow">return</span> std::sin(get_coeff(i + i_i) * cf_inc&lt;Scalar&gt;); }</div>
 <div class="line">      }</div>
 </div><!-- fragment -->
-<p class="definition">Definition at line <a class="el" href="_spherical_8h_source.html#l00214">214</a> of file <a class="el" href="_spherical_8h_source.html">Spherical.h</a>.</p>
+<p>An array of functions that convert spherical coordinates to coordinates in Euclidean space. </p>
+<p>The functions in the array take the spherical coordinates and convert them to four Cartesian coordinates representing a distance and a location on unit sphere. Each array element is a function taking a ''get coefficient'' function and returning a coordinate value. The ''get coefficient'' function takes the index of a column within a row vector and returns the coefficient. </p><dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">Scalar</td><td>The scalar type (e.g., double). </td></tr>
+    <tr><td class="paramname">i</td><td>The index of the first spherical coefficient that is being transformed. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="_spherical_8hpp_source.html#l00236">236</a> of file <a class="el" href="_spherical_8hpp_source.html">Spherical.hpp</a>.</p>
 
 </div>
 </div>
-<a id="a4bcfa0b0b8ce88fabc7185a851e1c97b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4bcfa0b0b8ce88fabc7185a851e1c97b">&#9670;&nbsp;</a></span>wrap_array_get</h2>
+<a id="a286b06f7fc14d07062c7ec1a1f3580f1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a286b06f7fc14d07062c7ec1a1f3580f1">&#9670;&nbsp;</a></span>wrap_array_get</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename Derived , typename Coeff1 , typename Coeff2 , typename Coeff3 , typename CircleTraits , typename InclinationTraits , std::size_t d_i, std::size_t a_i, std::size_t i_i&gt; </div>
+template&lt;typename Derived , typename C1 , typename C2 , typename C3 , template&lt; typename Scalar &gt; typename CircleLimits, template&lt; typename Scalar &gt; typename InclinationLimits, std::size_t d_i, std::size_t a_i, std::size_t i_i&gt; </div>
 <div class="memtemplate">
 template&lt;typename Scalar , std::size_t i&gt; </div>
 <table class="mlabels">
@@ -257,7 +261,7 @@ template&lt;typename Scalar , std::size_t i&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">constexpr std::array&lt;Scalar (*const)(const GetCoeff&lt;Scalar&gt;&amp;), size&gt; <a class="el" href="struct_open_kalman_1_1detail_1_1_spherical_base.html">OpenKalman::detail::SphericalBase</a>&lt; Derived, Coeff1, Coeff2, Coeff3, CircleTraits, InclinationTraits, d_i, a_i, i_i &gt;::wrap_array_get</td>
+          <td class="memname">constexpr std::array&lt;Scalar (*const)(const GetCoeff&lt;Scalar&gt;&amp;), <a class="el" href="struct_open_kalman_1_1detail_1_1_spherical_base.html#a9d80e69a41d82dff8a19d6bf51ad56d3">size</a>&gt; <a class="el" href="struct_open_kalman_1_1detail_1_1_spherical_base.html">OpenKalman::detail::SphericalBase</a>&lt; Derived, C1, C2, C3, CircleLimits, InclinationLimits, d_i, a_i, i_i &gt;::wrap_array_get</td>
         </tr>
       </table>
   </td>
@@ -266,24 +270,33 @@ template&lt;typename Scalar , std::size_t i&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">= internal::join(</div>
-<div class="line">        internal::join(</div>
-<div class="line">          detail::SphericalImpl&lt;Coeff1, CircleTraits, InclinationTraits, Scalar&gt;::template wrap_array_get&lt;i, d_i, a_i, i_i&gt;,</div>
-<div class="line">          detail::SphericalImpl&lt;Coeff2, CircleTraits, InclinationTraits, Scalar&gt;::template wrap_array_get&lt;i, d_i, a_i, i_i&gt;),</div>
-<div class="line">          detail::SphericalImpl&lt;Coeff3, CircleTraits, InclinationTraits, Scalar&gt;::template wrap_array_get&lt;i, d_i, a_i, i_i&gt;</div>
+<b>Initial value:</b><div class="fragment"><div class="line">= <a class="code" href="namespace_open_kalman_1_1internal.html#ab4c55d1d16722622d8e01a474f69faea">internal::join</a>(</div>
+<div class="line">        <a class="code" href="namespace_open_kalman_1_1internal.html#ab4c55d1d16722622d8e01a474f69faea">internal::join</a>(</div>
+<div class="line">          detail::SphericalImpl&lt;C1, CircleLimits, InclinationLimits, Scalar&gt;::template wrap_array_get&lt;i, d_i, a_i, i_i&gt;,</div>
+<div class="line">          detail::SphericalImpl&lt;C2, CircleLimits, InclinationLimits, Scalar&gt;::template wrap_array_get&lt;i, d_i, a_i, i_i&gt;),</div>
+<div class="line">          detail::SphericalImpl&lt;C3, CircleLimits, InclinationLimits, Scalar&gt;::template wrap_array_get&lt;i, d_i, a_i, i_i&gt;</div>
 <div class="line">      )</div>
 </div><!-- fragment -->
-<p class="definition">Definition at line <a class="el" href="_spherical_8h_source.html#l00236">236</a> of file <a class="el" href="_spherical_8h_source.html">Spherical.h</a>.</p>
+<p>An array of functions that return a wrapped version of spherical coordinates. </p>
+<p>Each function in the array takes a ''get coefficient'' function and returns spherical coordinates. The ''get coefficient'' function takes the index of a column within a row vector and returns a coefficient. </p><dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">Scalar</td><td>The scalar type (e.g., double). </td></tr>
+    <tr><td class="paramname">i</td><td>The index of the first of three spherical coordinates that are being wrapped. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="_spherical_8hpp_source.html#l00279">279</a> of file <a class="el" href="_spherical_8hpp_source.html">Spherical.hpp</a>.</p>
 
 </div>
 </div>
-<a id="a7a11f2749690a87e63ec21069b339daf"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7a11f2749690a87e63ec21069b339daf">&#9670;&nbsp;</a></span>wrap_array_set</h2>
+<a id="a1a5e30c003a2a2e1e993afabbc4d787e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1a5e30c003a2a2e1e993afabbc4d787e">&#9670;&nbsp;</a></span>wrap_array_set</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename Derived , typename Coeff1 , typename Coeff2 , typename Coeff3 , typename CircleTraits , typename InclinationTraits , std::size_t d_i, std::size_t a_i, std::size_t i_i&gt; </div>
+template&lt;typename Derived , typename C1 , typename C2 , typename C3 , template&lt; typename Scalar &gt; typename CircleLimits, template&lt; typename Scalar &gt; typename InclinationLimits, std::size_t d_i, std::size_t a_i, std::size_t i_i&gt; </div>
 <div class="memtemplate">
 template&lt;typename Scalar , std::size_t i&gt; </div>
 <table class="mlabels">
@@ -291,7 +304,7 @@ template&lt;typename Scalar , std::size_t i&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">constexpr std::array&lt;void (*const)(const Scalar, const SetCoeff&lt;Scalar&gt;&amp;, const GetCoeff&lt;Scalar&gt;&amp;), size&gt; <a class="el" href="struct_open_kalman_1_1detail_1_1_spherical_base.html">OpenKalman::detail::SphericalBase</a>&lt; Derived, Coeff1, Coeff2, Coeff3, CircleTraits, InclinationTraits, d_i, a_i, i_i &gt;::wrap_array_set</td>
+          <td class="memname">constexpr std::array&lt;void (*const)(const Scalar, const SetCoeff&lt;Scalar&gt;&amp;, const GetCoeff&lt;Scalar&gt;&amp;), <a class="el" href="struct_open_kalman_1_1detail_1_1_spherical_base.html#a9d80e69a41d82dff8a19d6bf51ad56d3">size</a>&gt; <a class="el" href="struct_open_kalman_1_1detail_1_1_spherical_base.html">OpenKalman::detail::SphericalBase</a>&lt; Derived, C1, C2, C3, CircleLimits, InclinationLimits, d_i, a_i, i_i &gt;::wrap_array_set</td>
         </tr>
       </table>
   </td>
@@ -300,22 +313,32 @@ template&lt;typename Scalar , std::size_t i&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">= internal::join(</div>
-<div class="line">        internal::join(</div>
-<div class="line">          detail::SphericalImpl&lt;Coeff1, CircleTraits, InclinationTraits, Scalar&gt;::template wrap_array_set&lt;i, d_i, a_i, i_i&gt;,</div>
-<div class="line">          detail::SphericalImpl&lt;Coeff2, CircleTraits, InclinationTraits, Scalar&gt;::template wrap_array_set&lt;i, d_i, a_i, i_i&gt;),</div>
-<div class="line">          detail::SphericalImpl&lt;Coeff3, CircleTraits, InclinationTraits, Scalar&gt;::template wrap_array_set&lt;i, d_i, a_i, i_i&gt;</div>
+<b>Initial value:</b><div class="fragment"><div class="line">= <a class="code" href="namespace_open_kalman_1_1internal.html#ab4c55d1d16722622d8e01a474f69faea">internal::join</a>(</div>
+<div class="line">        <a class="code" href="namespace_open_kalman_1_1internal.html#ab4c55d1d16722622d8e01a474f69faea">internal::join</a>(</div>
+<div class="line">          detail::SphericalImpl&lt;C1, CircleLimits, InclinationLimits, Scalar&gt;::template wrap_array_set&lt;i, d_i, a_i, i_i&gt;,</div>
+<div class="line">          detail::SphericalImpl&lt;C2, CircleLimits, InclinationLimits, Scalar&gt;::template wrap_array_set&lt;i, d_i, a_i, i_i&gt;),</div>
+<div class="line">          detail::SphericalImpl&lt;C3, CircleLimits, InclinationLimits, Scalar&gt;::template wrap_array_set&lt;i, d_i, a_i, i_i&gt;</div>
 <div class="line">      )</div>
 </div><!-- fragment -->
-<p class="definition">Definition at line <a class="el" href="_spherical_8h_source.html#l00245">245</a> of file <a class="el" href="_spherical_8h_source.html">Spherical.h</a>.</p>
+<p>An array of functions that set a matrix coefficient to wrapped spherical coordinates. </p>
+<p>Each void function in the array takes a scalar value and ''set coefficient'' function. The ''set coefficient'' function takes a scalar value and an index of a column within a row vector and sets the coefficient at that index to a wrapped version of the scalar input. </p><dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">Scalar</td><td>The scalar type (e.g., double). </td></tr>
+    <tr><td class="paramname">i</td><td>The index of the first of the three spherical coordinates that are being wrapped. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="_spherical_8hpp_source.html#l00298">298</a> of file <a class="el" href="_spherical_8hpp_source.html">Spherical.hpp</a>.</p>
 
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>C:/Users/cogden/CLionProjects/OpenKalman/src/variables/coefficients/<a class="el" href="_spherical_8h_source.html">Spherical.h</a></li>
+<li>C:/Users/cogden/CLionProjects/OpenKalman/OpenKalman/coefficient-types/<a class="el" href="_spherical_8hpp_source.html">Spherical.hpp</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->
+<div class="ttc" id="anamespace_open_kalman_1_1internal_html_ab4c55d1d16722622d8e01a474f69faea"><div class="ttname"><a href="namespace_open_kalman_1_1internal.html#ab4c55d1d16722622d8e01a474f69faea">OpenKalman::internal::join</a></div><div class="ttdeci">constexpr std::array&lt; T, size_L+size_R &gt; join(const std::array&lt; T, size_L &gt; &amp;left, const std::array&lt; T, size_R &gt; &amp;right)</div><div class="ttdef"><b>Definition:</b> <a href="utils_8hpp_source.html#l00105">utils.hpp:105</a></div></div>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>

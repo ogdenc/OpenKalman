@@ -20,7 +20,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<coefficients RowCoefficients, coefficients ColumnCoefficients, typed_matrix_base BaseMatrix> requires
     (RowCoefficients::size == MatrixTraits<BaseMatrix>::dimension) and
-    (ColumnCoefficients::size == MatrixTraits<BaseMatrix>::columns)
+    (ColumnCoefficients::size == MatrixTraits<BaseMatrix>::columns) and (not std::is_rvalue_reference_v<BaseMatrix>)
 #else
   template<typename RowCoefficients, typename ColumnCoefficients, typename BaseMatrix>
 #endif
@@ -31,6 +31,7 @@ namespace OpenKalman
     static_assert(typed_matrix_base<BaseMatrix>);
     static_assert(Base::dimension == RowCoefficients::size);
     static_assert(Base::columns == ColumnCoefficients::size);
+    static_assert(not std::is_rvalue_reference_v<BaseMatrix>);
 
     using Base::Base;
 
@@ -240,7 +241,7 @@ namespace OpenKalman
   Matrix(V&&) -> Matrix<
     typename MatrixTraits<V>::RowCoefficients,
     typename MatrixTraits<V>::ColumnCoefficients,
-    passable_t<typename MatrixTraits<V>::BaseMatrix>>;
+    passable_t<nested_matrix_t<V>>>;
 
 
   /// Deduce template parameters from a Euclidean-transformed typed matrix.
@@ -266,7 +267,7 @@ namespace OpenKalman
   Matrix(V&&) -> Matrix<
     typename MatrixTraits<V>::Coefficients,
     typename MatrixTraits<V>::Coefficients,
-    native_matrix_t<typename MatrixTraits<V>::BaseMatrix>>;
+    native_matrix_t<nested_matrix_t<V>>>;
 
 
   // ----------------------------- //

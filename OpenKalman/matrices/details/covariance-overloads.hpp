@@ -159,7 +159,7 @@ template<typename Arg,
   determinant(Arg&& arg) noexcept
   {
     auto d = determinant(base_matrix(std::forward<Arg>(arg)));
-    using ArgBase = typename MatrixTraits<Arg>::BaseMatrix;
+    using ArgBase = nested_matrix_t<Arg>;
     if constexpr(triangular_matrix<ArgBase> and not self_adjoint_matrix<ArgBase> and not square_root_covariance<Arg>)
       return d * d;
     else if constexpr(not triangular_matrix<ArgBase> and self_adjoint_matrix<ArgBase> and square_root_covariance<Arg>)
@@ -412,10 +412,10 @@ template<typename Arg,
 
   /// Get element (i, j) of a covariance matrix.
 #ifdef __cpp_concepts
-  template<covariance Arg> requires element_gettable<typename MatrixTraits<Arg>::BaseMatrix, 2>
+  template<covariance Arg> requires element_gettable<nested_matrix_t<Arg>, 2>
 #else
   template<typename Arg, std::enable_if_t<covariance<Arg> and
-    element_gettable<typename MatrixTraits<Arg>::BaseMatrix, 2>, int> = 0>
+    element_gettable<nested_matrix_t<Arg>, 2>, int> = 0>
 #endif
   inline auto
   get_element(Arg&& arg, const std::size_t i, const std::size_t j)
@@ -427,14 +427,14 @@ template<typename Arg,
   /// Get element (i) of a covariance matrix.
 #ifdef __cpp_concepts
   template<covariance Arg> requires
-    ((self_adjoint_matrix<typename MatrixTraits<Arg>::BaseMatrix> and not square_root_covariance<Arg>) or
-      (triangular_matrix<typename MatrixTraits<Arg>::BaseMatrix> and square_root_covariance<Arg>)) and
-    element_gettable<typename MatrixTraits<Arg>::BaseMatrix, 1>
+    ((self_adjoint_matrix<nested_matrix_t<Arg>> and not square_root_covariance<Arg>) or
+      (triangular_matrix<nested_matrix_t<Arg>> and square_root_covariance<Arg>)) and
+    element_gettable<nested_matrix_t<Arg>, 1>
 #else
   template<typename Arg, std::enable_if_t<covariance<Arg> and
-    ((self_adjoint_matrix<typename MatrixTraits<Arg>::BaseMatrix> and not square_root_covariance<Arg>) or
-      (triangular_matrix<typename MatrixTraits<Arg>::BaseMatrix> and square_root_covariance<Arg>)) and
-    element_gettable<typename MatrixTraits<Arg>::BaseMatrix, 1>, int> = 0>
+    ((self_adjoint_matrix<nested_matrix_t<Arg>> and not square_root_covariance<Arg>) or
+      (triangular_matrix<nested_matrix_t<Arg>> and square_root_covariance<Arg>)) and
+    element_gettable<nested_matrix_t<Arg>, 1>, int> = 0>
 #endif
   inline auto
   get_element(Arg&& arg, const std::size_t i)
@@ -447,11 +447,11 @@ template<typename Arg,
 #ifdef __cpp_concepts
   template<covariance Arg, typename Scalar> requires
     (not std::is_const_v<std::remove_reference_t<Arg>>) and
-    element_settable<typename MatrixTraits<Arg>::BaseMatrix, 2>
+    element_settable<nested_matrix_t<Arg>, 2>
 #else
   template<typename Arg, typename Scalar, std::enable_if_t<
     covariance<Arg> and not std::is_const_v<std::remove_reference_t<Arg>> and
-      element_settable<typename MatrixTraits<Arg>::BaseMatrix, 2>, int> = 0>
+      element_settable<nested_matrix_t<Arg>, 2>, int> = 0>
 #endif
   inline void
   set_element(Arg& arg, const Scalar s, const std::size_t i, const std::size_t j)
@@ -464,15 +464,15 @@ template<typename Arg,
 #ifdef __cpp_concepts
   template<covariance Arg, typename Scalar> requires
     (not std::is_const_v<std::remove_reference_t<Arg>>) and
-      ((self_adjoint_matrix<typename MatrixTraits<Arg>::BaseMatrix> and not square_root_covariance<Arg>) or
-        (triangular_matrix<typename MatrixTraits<Arg>::BaseMatrix> and square_root_covariance<Arg>)) and
-      element_settable<typename MatrixTraits<Arg>::BaseMatrix, 1>
+      ((self_adjoint_matrix<nested_matrix_t<Arg>> and not square_root_covariance<Arg>) or
+        (triangular_matrix<nested_matrix_t<Arg>> and square_root_covariance<Arg>)) and
+      element_settable<nested_matrix_t<Arg>, 1>
 #else
   template<typename Arg, typename Scalar, std::enable_if_t<
     covariance<Arg> and not std::is_const_v<std::remove_reference_t<Arg>> and
-      ((self_adjoint_matrix<typename MatrixTraits<Arg>::BaseMatrix> and not square_root_covariance<Arg>) or
-        (triangular_matrix<typename MatrixTraits<Arg>::BaseMatrix> and square_root_covariance<Arg>)) and
-      element_settable<typename MatrixTraits<Arg>::BaseMatrix, 1>, int> = 0>
+      ((self_adjoint_matrix<nested_matrix_t<Arg>> and not square_root_covariance<Arg>) or
+        (triangular_matrix<nested_matrix_t<Arg>> and square_root_covariance<Arg>)) and
+      element_settable<nested_matrix_t<Arg>, 1>, int> = 0>
 #endif
   inline void
   set_element(Arg& arg, const Scalar s, const std::size_t i)

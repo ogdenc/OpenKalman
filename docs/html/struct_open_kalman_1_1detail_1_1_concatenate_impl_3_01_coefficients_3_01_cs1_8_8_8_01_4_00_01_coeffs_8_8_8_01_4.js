@@ -1,0 +1,4 @@
+var struct_open_kalman_1_1detail_1_1_concatenate_impl_3_01_coefficients_3_01_cs1_8_8_8_01_4_00_01_coeffs_8_8_8_01_4 =
+[
+    [ "type", "struct_open_kalman_1_1detail_1_1_concatenate_impl_3_01_coefficients_3_01_cs1_8_8_8_01_4_00_01_coeffs_8_8_8_01_4.html#a43669a487f5458323b3e5c42f19d74a1", null ]
+];

@@ -48,6 +48,7 @@ TEST_F(matrices, References_TypedMatrix_lvalue)
   EXPECT_TRUE(is_near(v1, v2));
 }
 
+
 TEST_F(matrices, References_TypedMatrix_const_lvalue)
 {
   Matrix<C3, C3, M33> v1 {1, 2, 3,
@@ -65,17 +66,6 @@ TEST_F(matrices, References_TypedMatrix_const_lvalue)
   EXPECT_TRUE(is_near(v1, v2));
 }
 
-TEST_F(matrices, References_TypedMatrix_rvalue)
-{
-  using V = Matrix<C3, C3, M33>;
-  V m1 {1, 2, 3,
-        4, 5, 6,
-        7, 8, 9};
-  Matrix<C3, C3, M33> v1 = m1;
-  Matrix<C3, C3, M33&&> v2 = std::move(v1);
-  EXPECT_TRUE(is_near(v2, m1));
-  EXPECT_EQ(v2(1,0), 4);
-}
 
 TEST_F(matrices, References_Mean_lvalue)
 {
@@ -102,6 +92,7 @@ TEST_F(matrices, References_Mean_lvalue)
   EXPECT_TRUE(is_near(v1, v2));
 }
 
+
 TEST_F(matrices, References_Mean_const_lvalue)
 {
   Mean<C3, M33> v1 {1, 2, 3,
@@ -125,18 +116,6 @@ TEST_F(matrices, References_Mean_const_lvalue)
   EXPECT_TRUE(is_near(v1, v2));
 }
 
-TEST_F(matrices, References_Mean_rvalue)
-{
-  using V = Mean<C3, M33>;
-  V m1 {1, 2, 3,
-        4, 5, 6,
-        7, 8, 9};
-  Mean<C3, M33> v1 = m1;
-  EXPECT_EQ(v1(1,0), 4 - 2*pi);
-  Mean<C3, M33&&> v2 = std::move(v1);
-  EXPECT_TRUE(is_near(v2, m1));
-  EXPECT_EQ(v2(1,0), 4 - 2*pi);
-}
 
 TEST_F(matrices, References_Mean_lvalue_axes)
 {
@@ -162,6 +141,7 @@ TEST_F(matrices, References_Mean_lvalue_axes)
   EXPECT_TRUE(is_near(v1, v2));
 }
 
+
 TEST_F(matrices, References_Mean_const_lvalue_axes)
 {
   Mean<Axes<3>, M33> v1 {1, 2, 3,
@@ -179,17 +159,6 @@ TEST_F(matrices, References_Mean_const_lvalue_axes)
   EXPECT_TRUE(is_near(v1, v2));
 }
 
-TEST_F(matrices, References_Mean_rvalue_axes)
-{
-  using V = Mean<Axes<3>, M33>;
-  V m1 {1, 2, 3,
-        4, 5, 6,
-        7, 8, 9};
-  Mean<Axes<3>, M33> v1 = m1;
-  Mean<Axes<3>, M33&&> v2 = std::move(v1);
-  EXPECT_TRUE(is_near(v2, m1));
-  EXPECT_EQ(v2(1,0), 4);
-}
 
 TEST_F(matrices, References_EuclideanMean_lvalue)
 {
@@ -215,6 +184,7 @@ TEST_F(matrices, References_EuclideanMean_lvalue)
   EXPECT_TRUE(is_near(v1, v2));
 }
 
+
 TEST_F(matrices, References_EuclideanMean_const_lvalue)
 {
   EuclideanMean<C2, M33> v1 {1, 2, 3,
@@ -230,17 +200,5 @@ TEST_F(matrices, References_EuclideanMean_const_lvalue)
         4.2, 5.2, 6.2,
         7.2, 8.2, 9.2};
   EXPECT_TRUE(is_near(v1, v2));
-}
-
-TEST_F(matrices, References_EuclideanMean_rvalue)
-{
-  using V = EuclideanMean<C2, M33>;
-  V m1 {1, 2, 3,
-        4, 5, 6,
-        7, 8, 9};
-  EuclideanMean<C2, M33> v1 = m1;
-  EuclideanMean<C2, M33&&> v2 = std::move(v1);
-  EXPECT_TRUE(is_near(v2, m1));
-  EXPECT_EQ(v2(1,0), 4);
 }
 

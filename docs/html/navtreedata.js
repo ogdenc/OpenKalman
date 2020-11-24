@@ -25,42 +25,27 @@
 var NAVTREE =
 [
   [ "OpenKalman", "index.html", [
-    [ "Modules", "modules.html", "modules" ],
-    [ "Namespaces", "namespaces.html", [
-      [ "Namespace List", "namespaces.html", "namespaces_dup" ],
-      [ "Namespace Members", "namespacemembers.html", [
-        [ "All", "namespacemembers.html", null ],
-        [ "Functions", "namespacemembers_func.html", null ],
-        [ "Variables", "namespacemembers_vars.html", null ],
-        [ "Typedefs", "namespacemembers_type.html", null ]
-      ] ]
-    ] ],
-    [ "Classes", "annotated.html", [
-      [ "Class List", "annotated.html", "annotated_dup" ],
-      [ "Class Index", "classes.html", null ],
-      [ "Class Hierarchy", "hierarchy.html", "hierarchy" ],
-      [ "Class Members", "functions.html", [
-        [ "All", "functions.html", "functions_dup" ],
-        [ "Functions", "functions_func.html", "functions_func" ],
-        [ "Variables", "functions_vars.html", null ],
-        [ "Typedefs", "functions_type.html", null ]
-      ] ]
-    ] ],
-    [ "Files", "files.html", [
-      [ "File List", "files.html", "files_dup" ]
+    [ "Overview", "index.html", null ],
+    [ "Getting Started", "gettingstarted.html", null ],
+    [ "Class List", "annotated.html", "annotated" ],
+    [ "Namespace Hierarchy", "namespaces.html", "namespaces" ],
+    [ "Index", "namespacemembers.html", [
+      [ "All", "namespacemembers.html", null ],
+      [ "Functions", "namespacemembers_func.html", null ],
+      [ "Variables", "namespacemembers_vars.html", null ],
+      [ "Typedefs", "namespacemembers_type.html", null ],
+      [ "Enumerations", "namespacemembers_enum.html", null ]
     ] ]
   ] ]
 ];
 
 var NAVTREEINDEX =
 [
-".html",
-"struct_eigen_1_1_mean_comma_initializer.html#a659dd9310c38cfcf2a745adbef5ba10f",
-"struct_open_kalman_1_1_covariance.html#a34cda2087b3d2733935cc7dab1f3ef59",
-"struct_open_kalman_1_1_inclination.html",
-"struct_open_kalman_1_1_spherical_simplex.html#addfb61cac0ec977c017feab4d59ef165",
-"struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enablbb90baf9efb579da98c6029a9eb63dc1.html#a4747fe910260876afe6a75810705b50c",
-"struct_open_kalman_1_1is__equivalent_3_01_coefficients_3_01_c1_8_8_8_01_4_00_01_coefficients_3_06af3164a7d4e7b320b7b50fee9260a27.html"
+"_diagonal_matrix_8hpp.html#a012047294017da2ed474b117e95afec4",
+"namespace_open_kalman.html#a9c8f99371e3f22ae56f03a8b5ea4bca3",
+"struct_open_kalman_1_1_eigen3_1_1_diagonal_matrix.html#ab0807c7886ff436b03f67bf43a0d80d0",
+"struct_open_kalman_1_1_gaussian_distribution.html#aec8c375cdff5d86e247056f0c7e9e5d7",
+"struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enabl06c2512a6e0ff18380ece04a09152011.html#aa775033647060e543086ee51160916bd"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

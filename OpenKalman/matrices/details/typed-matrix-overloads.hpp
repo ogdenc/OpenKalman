@@ -47,7 +47,7 @@ namespace OpenKalman
   constexpr decltype(auto)
   make_self_contained(Arg&& arg) noexcept
   {
-    if constexpr(self_contained<typename MatrixTraits<Arg>::BaseMatrix> or
+    if constexpr(self_contained<nested_matrix_t<Arg>> or
       (std::is_lvalue_reference_v<Ts> and ... and (sizeof...(Ts) > 0)))
     {
       return std::forward<Arg>(arg);
@@ -460,10 +460,10 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
 
   /// Get element (i, j) of a typed matrix.
 #ifdef __cpp_concepts
-  template<typed_matrix Arg> requires element_gettable<typename MatrixTraits<Arg>::BaseMatrix, 2>
+  template<typed_matrix Arg> requires element_gettable<nested_matrix_t<Arg>, 2>
 #else
   template<typename Arg, std::enable_if_t<typed_matrix<Arg> and
-    element_gettable<typename MatrixTraits<Arg>::BaseMatrix, 2>, int> = 0>
+    element_gettable<nested_matrix_t<Arg>, 2>, int> = 0>
 #endif
   inline auto
   get_element(Arg&& arg, const std::size_t i, const std::size_t j)
@@ -474,10 +474,10 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
 
   /// Get element (i) of a typed matrix.
 #ifdef __cpp_concepts
-  template<typed_matrix Arg> requires element_gettable<typename MatrixTraits<Arg>::BaseMatrix, 1>
+  template<typed_matrix Arg> requires element_gettable<nested_matrix_t<Arg>, 1>
 #else
   template<typename Arg, std::enable_if_t<typed_matrix<Arg> and
-    element_gettable<typename MatrixTraits<Arg>::BaseMatrix, 1>, int> = 0>
+    element_gettable<nested_matrix_t<Arg>, 1>, int> = 0>
 #endif
   inline auto
   get_element(Arg&& arg, const std::size_t i)
@@ -489,11 +489,11 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   /// Set element (i, j) of a typed matrix.
 #ifdef __cpp_concepts
   template<typed_matrix Arg> requires (not std::is_const_v<std::remove_reference_t<Arg>>) and
-    element_settable<typename MatrixTraits<Arg>::BaseMatrix, 2>
+    element_settable<nested_matrix_t<Arg>, 2>
 #else
   template<typename Arg, std::enable_if_t<
     typed_matrix<Arg> and not std::is_const_v<std::remove_reference_t<Arg>> and
-      element_settable<typename MatrixTraits<Arg>::BaseMatrix, 2>, int> = 0>
+      element_settable<nested_matrix_t<Arg>, 2>, int> = 0>
 #endif
   inline void
   set_element(Arg& arg, const typename MatrixTraits<Arg>::Scalar s, const std::size_t i, const std::size_t j)
@@ -519,11 +519,11 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   /// Set element (i) of a typed matrix.
 #ifdef __cpp_concepts
   template<typed_matrix Arg> requires (not std::is_const_v<std::remove_reference_t<Arg>>) and
-    element_settable<typename MatrixTraits<Arg>::BaseMatrix, 1>
+    element_settable<nested_matrix_t<Arg>, 1>
 #else
   template<typename Arg, std::enable_if_t<
     typed_matrix<Arg> and not std::is_const_v<std::remove_reference_t<Arg>> and
-      element_settable<typename MatrixTraits<Arg>::BaseMatrix, 1>, int> = 0>
+      element_settable<nested_matrix_t<Arg>, 1>, int> = 0>
 #endif
   inline void
   set_element(Arg& arg, const typename MatrixTraits<Arg>::Scalar s, const std::size_t i)
@@ -886,7 +886,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     static_assert(std::is_constructible_v<Ps, Params...> or sizeof...(Params) == rows or sizeof...(Params) == rows * cols,
       "Params... must be (1) a parameter set or list of parameter sets, "
       "(2) a list of parameter sets, one for each row, or (3) a list of parameter sets, one for each coefficient.");
-    using B = typename MatrixTraits<ReturnType>::BaseMatrix;
+    using B = nested_matrix_t<ReturnType>;
     return MatrixTraits<ReturnType>::template make(randomize<B, distribution_type, random_number_engine>(params...));
   }
 

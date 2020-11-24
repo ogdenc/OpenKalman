@@ -24,14 +24,18 @@ namespace OpenKalman
   // -------------------------------- //
 
   /**
-   * A set of coefficient types to be associated with the rows or columns of a matrix.
-   *
-   * Each coefficient Cs can be a single coefficient (e.g., Axis, Angle, Distance, Inclination),
-   * an atomic coefficient group (e.g., Polar, Spherical) or a composite coefficient (e.g., Coefficient<Axis, angle::Radians>).
+   * \brief A set of coefficient types.
+   * \details This is the key to the wrapping functionality of OpenKalman. Each of the coefficients Cs... matches-up with
+   * one or more of the rows or columns of a matrix. The number of coefficients per coefficient depends on the size
+   * of the coefficient. For example, Axis, Distance, Angle, and Inclination are size 1, and each correspond to a
+   * single coefficient. Polar is size 2 and corresponds to two coefficients (e.g., a distance and an angle).
+   * Spherical is size 3 and corresponds to three coefficients.
+   * \par Example:
+   * \code Coefficients<Axis, angle::Radians>
    * \tparam Cs Any types within the concept coefficients (internal bool variable coefficients in c++17).
    */
 #ifdef __cpp_concepts
-  template<coefficients ... Cs>
+  template<coefficients...Cs>
 #else
   template<typename ... Cs>
 #endif
@@ -53,13 +57,15 @@ namespace OpenKalman
   // ----------------------------- //
 
   /**
-   * \brief A real or integral number, [&minus;&infin;,&infin].
+   * \brief A real or integral number, (&minus;&infin;,&infin).
+   * \details This is the default coefficient type. No wrapping occurs, and matrices operate as usual.
    */
   struct Axis;
 
 
   /**
    * \brief A non-negative real or integral number, [0,&infin], representing a distance.
+   * This is similar to Axis, but wrapping occurs to ensure that values are never negative.
    */
   struct Distance;
 
@@ -67,9 +73,10 @@ namespace OpenKalman
   /**
    * \brief An angle or any other simple modular value.
    * \details An angle wraps to a given interval [max,min) when it increases or decreases outside that range.
+   * There are several predefined angles, including angle::Radians, angle::Degrees, angle::PositiveRadians,
+   * angle::PositiveDegrees, and angle::Circle.
    * \tparam Limits A class template defining the real values <code>min</code> and <code>max</code>, representing
-   * minimum and maximum values, respectively, beyond which wrapping occurs. Scalar is a scalar type
-   * (e.g., <code>double</code>).
+   * minimum and maximum values, respectively, beyond which wrapping occurs. Scalar is a std::floating_point type.
    */
   template<template<typename Scalar> typename Limits>
 #ifdef __cpp_concepts
@@ -85,9 +92,10 @@ namespace OpenKalman
    * representing down, and &phi;<sub>up</sub> is a real number representing up. Normally, the horizon will be zero and
    * &phi;<sub>down</sub>=&minus;&phi;<sub>up</sub>, but in general, the horizon is at
    * &half;(&phi;<sub>down</sub>+&minus;&phi;<sub>up</sub>).
+   * The inclinations inclination::Radians and inclination::Degrees are predefined.
    * \tparam Limits A class template defining the real values <code>down</code> and <code>up</code>, where
-   * <code>down</code>=&phi;<sub>down</sub> and <code>up</code>=&phi;<sub>up</sub>. Scalar is a scalar type
-   * (e.g., <code>double</code>).
+   * <code>down</code>=&phi;<sub>down</sub> and <code>up</code>=&phi;<sub>up</sub>.
+   * Scalar is a std::floating_point type.
    */
   template<template<typename Scalar> typename Limits>
 #ifdef __cpp_concepts
@@ -101,6 +109,7 @@ namespace OpenKalman
    * \brief An atomic coefficient group reflecting polar coordinates.
    * \details C1 and C2 are coefficients, and must be some combination of Distance and Angle, such as
    * Polar<Distance, angle::Radians> or Polar<angle::Degrees, Distance>.
+   * Polar coordinates span two adjacent coefficients in a matrix.
    * \tparam C1 Either Distance or Angle.
    * \tparam C2 Either Distance or Angle.
    */
@@ -109,11 +118,12 @@ namespace OpenKalman
 
 
   /**
-   * A group reflecting spherical coordinates.
-   *
-   * Coefficient1, Coefficient2, and Coefficient3 must be some combination of Distance, Inclination, and Angle/angle::Radians,
-   * reflecting the distance, inclination, and azimuth, respectively.
-   * Examples: Spherical<Distance, Inclination, angle::Radians>, Spherical<angle::Radians, Distance, Inclination>.
+   * \brief An atomic coefficient group reflecting spherical coordinates.
+   * \details Coefficient1, Coefficient2, and Coefficient3 must be some combination of Distance, Inclination, and Angle
+   * in any order, reflecting the distance, inclination, and azimuth, respectively.
+   * Examples: <code>Spherical<Distance, inclination::Degrees, angle::Radians></code>,
+   * <code>Spherical<angle::PositiveDegrees, Distance, inclination::Radians></code>.
+   * Spherical coordinates span three adjacent coefficients in a matrix.
    * \tparam Coefficient1 Distance, inclination, or Angle (e.g., angle::Radians).
    * \tparam Coefficient2 Distance, inclination, or Angle (e.g., angle::Radians).
    * \tparam Coefficient3 Distance, inclination, or Angle (e.g., angle::Radians).
@@ -127,45 +137,21 @@ namespace OpenKalman
     template<typename T>
     struct is_atomic_coefficient_group : std::false_type {};
 
-    /**
-     * \internal \struct is_atomic_coefficient_group<> \sa Axis
-     * \interface coefficients<> \sa Axis
-     */
     template<>
     struct is_atomic_coefficient_group<Axis> : std::true_type {};
 
-    /**
-     * \internal \struct is_atomic_coefficient_group<> \sa Distance
-     * \interface coefficients<> \sa Distance
-     */
     template<>
     struct is_atomic_coefficient_group<Distance> : std::true_type {};
 
-    /**
-     * \internal \struct is_atomic_coefficient_group<> \sa Angle<>
-     * \interface coefficients<> \sa Angle<>
-     */
     template<template<typename Scalar> typename Limits>
     struct is_atomic_coefficient_group<Angle<Limits>> : std::true_type {};
 
-    /**
-     * \internal \struct is_atomic_coefficient_group<> \sa Inclination<>
-     * \interface coefficients<> \sa Inclination<>
-     */
     template<template<typename Scalar> typename Limits>
     struct is_atomic_coefficient_group<Inclination<Limits>> : std::true_type {};
 
-    /**
-     * \internal \struct is_atomic_coefficient_group<> \sa Polar<>
-     * \interface coefficients<> \sa Polar<>
-     */
     template<typename C1, typename C2>
     struct is_atomic_coefficient_group<Polar<C1, C2>> : std::true_type {};
 
-    /**
-     * \internal \struct is_atomic_coefficient_group<> \sa Spherical<>
-     * \interface coefficients<> \sa Spherical<>
-     */
     template<typename C1, typename C2, typename C3>
     struct is_atomic_coefficient_group<Spherical<C1, C2, C3>> : std::true_type {};
 
@@ -181,10 +167,6 @@ namespace OpenKalman
 #endif
     struct is_equivalent_to : std::false_type {};
 
-    /**
-     * \interface equivalent_to<>
-     * \note Any coefficient or group of coefficients is equivalent to itself.
-     */
 
     template<>
     struct is_equivalent_to<Axis, Axis> : std::true_type {};
@@ -213,10 +195,6 @@ namespace OpenKalman
         equivalent_to<C2a, C2b> and equivalent_to<C3a, C3b>> {};
 
 
-    /**
-     * \interface equivalent_to<>
-     * \note Coefficient<Ts...> is equivalent to Coefficient<Us...>, if each Ts is equivalent to its respective Us.
-     */
 #ifdef __cpp_concepts
     template<coefficients...C1, coefficients...C2> requires
       (sizeof...(C1) == 0 and sizeof...(C2) == 0) or
@@ -230,10 +208,6 @@ namespace OpenKalman
 #endif
       : std::true_type {};
 
-    /**
-     * \interface equivalent_to<>
-     * \note Coefficient<T> is equivalent to T, and vice versa.
-     */
 
 #ifdef __cpp_concepts
     template<typename T, typename U> requires equivalent_to<T, U>
@@ -268,10 +242,6 @@ namespace OpenKalman
     struct is_prefix_of : std::false_type {};
 
 
-    /**
-     * \interface prefix_of<>
-     * \note T is a prefix of U if equivalent_to<T, U>.
-     */
 #ifdef __cpp_concepts
     template<coefficients C1, coefficients C2> requires equivalent_to<C1, C2>
     struct is_prefix_of<C1, C2>
@@ -297,10 +267,6 @@ namespace OpenKalman
       : std::true_type {};
 
 
-    /**
-     * \interface prefix_of<>
-     * \note Coefficients<> is a prefix of any set of coefficients.
-     */
 #ifdef __cpp_concepts
     template<coefficients C> requires (not equivalent_to<Coefficients<>, C>)
     struct is_prefix_of<Coefficients<>, C>
@@ -312,10 +278,6 @@ namespace OpenKalman
       : std::true_type {};
 
 
-    /**
-     * \interface prefix_of<>
-     * \note C is a prefix of Coefficients<C, Cs...> for any coefficients Cs.
-     */
 #ifdef __cpp_concepts
     template<coefficients C, coefficients...Cs>
     struct is_prefix_of<C, Coefficients<C, Cs...>>
@@ -324,6 +286,31 @@ namespace OpenKalman
     struct is_prefix_of<C, Coefficients<C, Cs...>, std::enable_if_t<coefficients<C>>>
 #endif
       : std::true_type {};
+
+
+    /**
+     * \internal
+     * \brief A sufficiently-defined class representing an atomic or composite group of coefficients.
+     */
+    template<typename T>
+#ifdef __cpp_concepts
+    concept coefficient_class =
+    std::integral<decltype(T::size)> and std::integral<decltype(T::dimension)> and
+      (T::axes_only or not T::axes_only) and
+      (internal::is_atomic_coefficient_group<typename T::difference_type>::value or
+        internal::is_composite_coefficients<typename T::difference_type>::value) and
+      requires {T::template to_Euclidean_array<double, 0>[0](std::function<double(const std::size_t)>()) == 0.;} and
+      requires {T::template from_Euclidean_array<double, 0>[0](std::function<double(const std::size_t)>()) == 0.;} and
+      requires {T::template wrap_array_get<double, 0>[0](std::function<double(const std::size_t)>()) == 0.;} and
+      requires {T::template wrap_array_set<double, 0>[0](0., std::function<void(const double, const std::size_t)>(),
+          std::function<double(const std::size_t)>());} and
+      (std::tuple_size_v<decltype(T::template to_Euclidean_array<double, 0>)> == T::dimension) and
+      (std::tuple_size_v<decltype(T::template from_Euclidean_array<double, 0>)> == T::size) and
+      (std::tuple_size_v<decltype(T::template wrap_array_get<double, 0>)> == T::size) and
+      (std::tuple_size_v<decltype(T::template wrap_array_set<double, 0>)> == T::size);
+#else
+    inline constexpr bool coefficient_class = true;
+#endif
 
   } // namespace internal
 
@@ -359,6 +346,8 @@ namespace OpenKalman
 
   /**
    * \brief Concatenate any number of Coefficients<...> types.
+   * \details Example: <code>Concatenate<Coefficients<angle::Radians>, Coefficients<Axis, Distance>> ==
+   * Coefficients<angle::Radians, Axis, Distance></code>.
    */
 #ifdef __cpp_concepts
   template<coefficients ... Coeffs> using Concatenate = typename detail::ConcatenateImpl<Coeffs...>::type;

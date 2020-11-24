@@ -10,7 +10,7 @@
 
 /**
  * \file forward-traits.hpp
- * A header file containing forward declarations for traits relating to OpenKalman or native matrix types.
+ * \brief A header file containing forward declarations for traits relating to OpenKalman or native matrix types.
  */
 
 #ifndef OPENKALMAN_FORWARD_TRAITS_HPP
@@ -55,40 +55,20 @@ namespace OpenKalman
     template<typename T>
     struct is_composite_coefficients;
 
-
-    /**
-     * \internal
-     * A sufficiently-defined class representing an atomic or composite group of coefficients.
-     */
-    template<typename T>
-#ifdef __cpp_concepts
-    concept coefficient_class =
-    std::integral<decltype(T::size)> and std::integral<decltype(T::dimension)> and
-      (T::axes_only or not T::axes_only) and
-      (internal::is_atomic_coefficient_group<typename T::difference_type>::value or
-        internal::is_composite_coefficients<typename T::difference_type>::value) and
-      requires {T::template to_Euclidean_array<double, 0>[0](std::function<double(const std::size_t)>()) == 0.;} and
-      requires {T::template from_Euclidean_array<double, 0>[0](std::function<double(const std::size_t)>()) == 0.;} and
-      requires {T::template wrap_array_get<double, 0>[0](std::function<double(const std::size_t)>()) == 0.;} and
-      requires {T::template wrap_array_set<double, 0>[0](0., std::function<void(const double, const std::size_t)>(),
-        std::function<double(const std::size_t)>());} and
-      (std::tuple_size_v<decltype(T::template to_Euclidean_array<double, 0>)> == T::dimension) and
-      (std::tuple_size_v<decltype(T::template from_Euclidean_array<double, 0>)> == T::size) and
-      (std::tuple_size_v<decltype(T::template wrap_array_get<double, 0>)> == T::size) and
-      (std::tuple_size_v<decltype(T::template wrap_array_set<double, 0>)> == T::size);
-#else
-    inline constexpr bool coefficient_class = true;
-#endif
-
   }
 
 
   /**
-   * \interface coefficients<>
    * \brief T is a group of atomic or composite coefficients.
-   * \copydetails internal::is_atomic_coefficient_group<>
-   * \copydetails internal::is_composite_coefficients<>
-   * \details Examples of coefficients:
+   * \details Atomic coefficient groups are %coefficients or groups of %coefficients that function as a unit,
+   * and cannot be separated. They may be combined into composite coefficients by passing them as template
+   * parameters to Coefficients. These include Axis, Distance, Angle, Inclination, Polar, and Spherical.
+   *
+   * Composite coefficients are specializations of the class Coefficients, which has the purpose of grouping
+   * other atomic or composite coefficients. Composite coefficients can, themselves, comprise groups of other
+   * composite components. Composite coefficients are of the form Coefficients<Cs...>.
+   *
+   * Examples of coefficients:
    * - Axis
    * - Polar<Distance, angle::Radians>
    * - Coefficients<Axis, angle::Radians>
@@ -130,10 +110,12 @@ namespace OpenKalman
 
 
   /**
-   * \interface equivalent_to<>
    * \brief T is equivalent to U, where T and U are sets of coefficients.
-   * \copydetails internal::is_equivalent_to<>.
-   * \details For example, <code>equivalent_to<Axis, Coefficients<Axis>></code> returns <code>true</code>.
+   * \details Sets of coefficients are equivalent if they are treated functionally the same.
+   * - Any coefficient or group of coefficients is equivalent to itself.
+   * - Coefficient<Ts...> is equivalent to Coefficient<Us...>, if each Ts is equivalent to its respective Us.
+   * - Coefficient<T> is equivalent to T, and vice versa.
+   * Example: <code>equivalent_to<Axis, Coefficients<Axis>></code> returns <code>true</code>.
    */
   template<typename T, typename U>
 #ifdef __cpp_concepts
@@ -147,7 +129,7 @@ namespace OpenKalman
   {
     /**
      * \internal
-     * Type trait testing whether T (a set of coefficients) is a prefix of U.
+     * \brief Type trait testing whether T (a set of coefficients) is a prefix of U.
      * \details If T is a prefix of U, then U is equivalent_to concatenating T with the remaining part of U.
      */
 #ifdef __cpp_concepts
@@ -161,10 +143,12 @@ namespace OpenKalman
 
 
   /**
-   * \interface prefix_of<>
    * \brief T is a prefix of U, where T and U are sets of coefficients.
-   * \copydetails internal::is_prefix_of<>.
-   * \details For example, <code>prefix_of<Coefficients<Axis>, Coefficients<Axis, angle::Radians>></code> returns <code>true</code>.
+   * \details If T is a prefix of U, then U is equivalent_to concatenating T with the remaining part of U.
+   * C is a prefix of Coefficients<C, Cs...> for any coefficients Cs.
+   * T is a prefix of U if equivalent_to<T, U>.
+   * Coefficients<> is a prefix of any set of coefficients.
+   * Example, <code>prefix_of<Coefficients<Axis>, Coefficients<Axis, angle::Radians>></code> returns <code>true</code>.
    */
   template<typename T, typename U>
 #ifdef __cpp_concepts
@@ -174,13 +158,12 @@ namespace OpenKalman
 #endif
 
 
-  // ------------------ //
-  //   General traits   //
-  // ------------------ //
+  // ------------------------------------ //
+  //   MatrixTraits, DistributionTraits   //
+  // ------------------------------------ //
 
   /**
-   * Describes the traits of a matrix T, such as its dimensions, coefficient types, etc.
-   * \addtogroup Traits
+   * \brief A type trait class for any matrix T, including information such as its dimensions, coefficient types, etc.
    * \tparam T The matrix type. The type is treated as non-qualified, even if it is const or a reference.
    */
 #ifdef __cpp_concepts
@@ -211,8 +194,8 @@ namespace OpenKalman
 
 
   /**
-   * Describes the traits of a distribution type.
-   * \addtogroup Traits
+   * \brief A type trait class for any distribution T.
+   * \sa MatrixTraits
    * \tparam T The distribution type. The type is treated as non-qualified, even if it is const or a reference.
    */
 #ifdef __cpp_concepts
@@ -262,7 +245,6 @@ namespace OpenKalman
   }
 
   /**
-   * \interface covariance_base<>
    * \brief T is an acceptable base matrix for a covariance (including square_root_covariance).
    * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
    */
@@ -294,7 +276,6 @@ namespace OpenKalman
   }
 
   /**
-   * \interface typed_matrix_base<>
    * \brief T is an acceptable base for a general typed matrix (e.g., matrix, mean, or euclidean_mean)
    * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
    */

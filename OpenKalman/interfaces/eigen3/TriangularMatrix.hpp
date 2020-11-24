@@ -370,7 +370,7 @@ namespace OpenKalman::Eigen3
   template<typename M, std::enable_if_t<eigen_triangular_expr<M>, int> = 0>
 #endif
   TriangularMatrix(M&&) -> TriangularMatrix<
-    passable_t<typename MatrixTraits<M>::BaseMatrix>, MatrixTraits<M>::triangle_type>;
+    passable_t<nested_matrix_t<M>>, MatrixTraits<M>::triangle_type>;
 
 
 #ifdef __cpp_concepts
@@ -379,7 +379,7 @@ namespace OpenKalman::Eigen3
   template<typename M, std::enable_if_t<eigen_self_adjoint_expr<M>, int> = 0>
 #endif
   TriangularMatrix(M&&) -> TriangularMatrix<
-    native_matrix_t<typename MatrixTraits<M>::BaseMatrix>, MatrixTraits<M>::storage_type>;
+    native_matrix_t<nested_matrix_t<M>>, MatrixTraits<M>::storage_type>;
 
 
   template<typename Arg, unsigned int UpLo>

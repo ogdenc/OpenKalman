@@ -1,5 +1,0 @@
-var struct_open_kalman_1_1detail_1_1_spherical_impl_3_01_distance_00_01_circle_traits_00_01_inclination_traits_00_01_scalar_01_4 =
-[
-    [ "GetCoeff", "struct_open_kalman_1_1detail_1_1_spherical_impl_3_01_distance_00_01_circle_traits_00_01_inclination_traits_00_01_scalar_01_4.html#a5a5a247fa81e9c170efb5d6457995a6c", null ],
-    [ "SetCoeff", "struct_open_kalman_1_1detail_1_1_spherical_impl_3_01_distance_00_01_circle_traits_00_01_inclination_traits_00_01_scalar_01_4.html#ace7382cfcf0680d5ab84006475c45f1d", null ]
-];

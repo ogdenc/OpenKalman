@@ -174,7 +174,7 @@ namespace Eigen
   {
     using Scalar = typename XprType::Scalar;
     static constexpr auto dim = OpenKalman::MatrixTraits<XprType>::dimension;
-    using BaseMatrix = OpenKalman::native_matrix_t<typename OpenKalman::MatrixTraits<XprType>::BaseMatrix, dim, 1>;
+    using BaseMatrix = OpenKalman::native_matrix_t<typename OpenKalman::nested_matrix_t<XprType>, dim, 1>;
     using Nested = CommaInitializer<BaseMatrix>;
 
     BaseMatrix matrix;

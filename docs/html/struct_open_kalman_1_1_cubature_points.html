@@ -97,7 +97,7 @@ Static Public Member Functions</h2></td></tr>
 <tr class="memdesc:a53e5c6e77351b2d486ef924775afc759"><td class="mdescLeft">&#160;</td><td class="mdescRight">Scale and translate normalized sample points based on mean and (square root) covariance.  <a href="struct_open_kalman_1_1_cubature_points.html#a53e5c6e77351b2d486ef924775afc759">More...</a><br /></td></tr>
 <tr class="separator:a53e5c6e77351b2d486ef924775afc759"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5c06bd869f7ad528b9a28f58b5b030a5"><td class="memTemplParams" colspan="2"><a id="a5c06bd869f7ad528b9a28f58b5b030a5"></a>
-template&lt;std::size_t dim, typename Arg , std::enable_if_t&lt; is_Euclidean_mean_v&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
+template&lt;std::size_t dim, typename Arg , std::enable_if_t&lt; euclidean_mean&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:a5c06bd869f7ad528b9a28f58b5b030a5"><td class="memTemplItemLeft" align="right" valign="top">static auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>weighted_means</b> (const Arg &amp;y_means)</td></tr>
 <tr class="separator:a5c06bd869f7ad528b9a28f58b5b030a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a27f4631ea278433affb21d1a09d592e6"><td class="memTemplParams" colspan="2"><a id="a27f4631ea278433affb21d1a09d592e6"></a>
@@ -107,7 +107,7 @@ template&lt;std::size_t dim, typename InputDist , bool return_cross = false, typ
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock">
-<p class="definition">Definition at line <a class="el" href="_cubature_points_8h_source.html#l00024">24</a> of file <a class="el" href="_cubature_points_8h_source.html">CubaturePoints.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_cubature_points_8hpp_source.html#l00024">24</a> of file <a class="el" href="_cubature_points_8hpp_source.html">CubaturePoints.hpp</a>.</p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="a53e5c6e77351b2d486ef924775afc759"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a53e5c6e77351b2d486ef924775afc759">&#9670;&nbsp;</a></span>sample_points()</h2>
@@ -138,12 +138,12 @@ template&lt;typename... Dist&gt; </div>
 <p>Scale and translate normalized sample points based on mean and (square root) covariance. </p>
 <dl class="section return"><dt>Returns</dt><dd>A matrix of sigma points (each sigma point in a column). </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="_cubature_points_8h_source.html#l00091">91</a> of file <a class="el" href="_cubature_points_8h_source.html">CubaturePoints.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_cubature_points_8hpp_source.html#l00091">91</a> of file <a class="el" href="_cubature_points_8hpp_source.html">CubaturePoints.hpp</a>.</p>
 
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>C:/Users/cogden/CLionProjects/OpenKalman/src/transforms/sample-points/<a class="el" href="_cubature_points_8h_source.html">CubaturePoints.h</a></li>
+<li>C:/Users/cogden/CLionProjects/OpenKalman/OpenKalman/transforms/sample-points/<a class="el" href="_cubature_points_8hpp_source.html">CubaturePoints.hpp</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

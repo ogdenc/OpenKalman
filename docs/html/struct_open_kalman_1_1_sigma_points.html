@@ -99,7 +99,7 @@ Static Public Member Functions</h2></td></tr>
 <tr class="memdesc:abc4757adb45d5295aaabd5d47741b498"><td class="mdescLeft">&#160;</td><td class="mdescRight">Scale and translate normalized sample points based on mean and (square root) covariance.  <a href="struct_open_kalman_1_1_sigma_points.html#abc4757adb45d5295aaabd5d47741b498">More...</a><br /></td></tr>
 <tr class="separator:abc4757adb45d5295aaabd5d47741b498"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa85796593e9bf1dc7cf564b50d1bb692"><td class="memTemplParams" colspan="2"><a id="aa85796593e9bf1dc7cf564b50d1bb692"></a>
-template&lt;std::size_t dim, typename YMeans , std::enable_if_t&lt; is_Euclidean_mean_v&lt; YMeans &gt;, int &gt;  = 0&gt; </td></tr>
+template&lt;std::size_t dim, typename YMeans , std::enable_if_t&lt; euclidean_mean&lt; YMeans &gt;, int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:aa85796593e9bf1dc7cf564b50d1bb692"><td class="memTemplItemLeft" align="right" valign="top">static auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>weighted_means</b> (const YMeans &amp;y_means)</td></tr>
 <tr class="separator:aa85796593e9bf1dc7cf564b50d1bb692"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2b54c02b6dc749428118e1f7cd63a64c"><td class="memTemplParams" colspan="2">template&lt;std::size_t dim, typename InputDist , bool return_cross = false, typename X , typename Y &gt; </td></tr>
@@ -129,7 +129,7 @@ template&lt;std::size_t dim, typename Weights &gt; </td></tr>
 struct OpenKalman::SigmaPoints&lt; SigmaPointsType &gt;</h3>
 
 
-<p class="definition">Definition at line <a class="el" href="_sigma_points_8h_source.html#l00031">31</a> of file <a class="el" href="_sigma_points_8h_source.html">SigmaPoints.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_sigma_points_8hpp_source.html#l00031">31</a> of file <a class="el" href="_sigma_points_8hpp_source.html">SigmaPoints.hpp</a>.</p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="a2b54c02b6dc749428118e1f7cd63a64c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a2b54c02b6dc749428118e1f7cd63a64c">&#9670;&nbsp;</a></span>covariance()</h2>
@@ -170,7 +170,7 @@ template&lt;std::size_t dim, typename InputDist , bool return_cross = false, typ
 </div><div class="memdoc">
 <p>&lt; Factor back in the first weight, using a rank update.</p>
 
-<p class="definition">Definition at line <a class="el" href="_sigma_points_8h_source.html#l00101">101</a> of file <a class="el" href="_sigma_points_8h_source.html">SigmaPoints.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_sigma_points_8hpp_source.html#l00105">105</a> of file <a class="el" href="_sigma_points_8hpp_source.html">SigmaPoints.hpp</a>.</p>
 
 </div>
 </div>
@@ -205,12 +205,12 @@ template&lt;typename... Dist&gt; </div>
 <p>Scale and translate normalized sample points based on mean and (square root) covariance. </p>
 <dl class="section return"><dt>Returns</dt><dd>A tuple of matrices of sample points (each sample point in a column). </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="_sigma_points_8h_source.html#l00082">82</a> of file <a class="el" href="_sigma_points_8h_source.html">SigmaPoints.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_sigma_points_8hpp_source.html#l00082">82</a> of file <a class="el" href="_sigma_points_8hpp_source.html">SigmaPoints.hpp</a>.</p>
 
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>C:/Users/cogden/CLionProjects/OpenKalman/src/transforms/sample-points/<a class="el" href="_sigma_points_8h_source.html">SigmaPoints.h</a></li>
+<li>C:/Users/cogden/CLionProjects/OpenKalman/OpenKalman/transforms/sample-points/sigma-points/<a class="el" href="_sigma_points_8hpp_source.html">SigmaPoints.hpp</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

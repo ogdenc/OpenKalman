@@ -117,7 +117,7 @@ namespace OpenKalman::Eigen3
   inline auto
   Cholesky_square(Arg&& arg) noexcept
   {
-    using BaseMatrix = typename MatrixTraits<Arg>::BaseMatrix;
+    using BaseMatrix = nested_matrix_t<Arg>;
     using Scalar = typename MatrixTraits<Arg>::Scalar;
     static_assert(diagonal_matrix<BaseMatrix> or MatrixTraits<Arg>::storage_type == TriangleType::diagonal);
 
@@ -156,7 +156,7 @@ namespace OpenKalman::Eigen3
   inline auto
   Cholesky_factor(Arg&& arg)
   {
-    using BaseMatrix = std::decay_t<typename MatrixTraits<Arg>::BaseMatrix>;
+    using BaseMatrix = std::decay_t<nested_matrix_t<Arg>>;
     using Scalar = typename MatrixTraits<Arg>::Scalar;
     constexpr auto dimension = MatrixTraits<Arg>::dimension;
     using M = Eigen::Matrix<Scalar, dimension, dimension>;
@@ -235,7 +235,7 @@ namespace OpenKalman::Eigen3
         {
           if (LDL_x.isPositive() and LDL_x.isNegative()) // Covariance is zero, even though decomposition failed.
           {
-            using BM = typename MatrixTraits<Arg>::BaseMatrix;
+            using BM = nested_matrix_t<Arg>;
             if constexpr(triangle_type == TriangleType::lower)
               b.template triangularView<Eigen::Lower>() = MatrixTraits<BM>::zero();
             else
@@ -283,7 +283,7 @@ namespace OpenKalman::Eigen3
   inline auto
   Cholesky_square(Arg&& arg) noexcept
   {
-    using BaseMatrix = std::decay_t<typename MatrixTraits<Arg>::BaseMatrix>;
+    using BaseMatrix = std::decay_t<nested_matrix_t<Arg>>;
     using Scalar = typename MatrixTraits<Arg>::Scalar;
     constexpr auto dimension = MatrixTraits<Arg>::dimension;
     constexpr auto triangle_type = MatrixTraits<Arg>::triangle_type;
@@ -339,7 +339,7 @@ namespace OpenKalman::Eigen3
   inline auto
   Cholesky_factor(Arg&& arg) noexcept
   {
-    using BaseMatrix = std::decay_t<typename MatrixTraits<Arg>::BaseMatrix>;
+    using BaseMatrix = std::decay_t<nested_matrix_t<Arg>>;
     using Scalar = typename MatrixTraits<Arg>::Scalar;
     static_assert(diagonal_matrix<BaseMatrix> or MatrixTraits<Arg>::triangle_type == TriangleType::diagonal);
 

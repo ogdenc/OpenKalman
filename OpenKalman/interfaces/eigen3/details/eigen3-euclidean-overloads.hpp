@@ -537,12 +537,12 @@ namespace OpenKalman::Eigen3
 
   /// Get element (i, j) of ToEuclideanExpr or FromEuclideanExpr matrix arg.
 #ifdef __cpp_concepts
-  template<euclidean_expr Arg> requires element_gettable<typename MatrixTraits<Arg>::BaseMatrix, 2> and
-    (not to_euclidean_expr<typename MatrixTraits<Arg>::BaseMatrix>)
+  template<euclidean_expr Arg> requires element_gettable<nested_matrix_t<Arg>, 2> and
+    (not to_euclidean_expr<nested_matrix_t<Arg>>)
 #else
   template<typename Arg, std::enable_if_t<
-    euclidean_expr<Arg> and element_gettable<typename MatrixTraits<Arg>::BaseMatrix, 2> and
-      (not to_euclidean_expr<typename MatrixTraits<Arg>::BaseMatrix>), int> = 0>
+    euclidean_expr<Arg> and element_gettable<nested_matrix_t<Arg>, 2> and
+      (not to_euclidean_expr<nested_matrix_t<Arg>>), int> = 0>
 #endif
   inline auto
   get_element(Arg&& arg, const std::size_t i, const std::size_t j)
@@ -573,12 +573,12 @@ namespace OpenKalman::Eigen3
 
   /// Get element (i) of one-column ToEuclideanExpr or FromEuclideanExpr matrix arg.
 #ifdef __cpp_concepts
-  template<euclidean_expr Arg> requires element_gettable<typename MatrixTraits<Arg>::BaseMatrix, 1> and
-    (not to_euclidean_expr<typename MatrixTraits<Arg>::BaseMatrix>)
+  template<euclidean_expr Arg> requires element_gettable<nested_matrix_t<Arg>, 1> and
+    (not to_euclidean_expr<nested_matrix_t<Arg>>)
 #else
   template<typename Arg, std::enable_if_t<
-    euclidean_expr<Arg> and element_gettable<typename MatrixTraits<Arg>::BaseMatrix, 1> and
-      (not to_euclidean_expr<typename MatrixTraits<Arg>::BaseMatrix>), int> = 0>
+    euclidean_expr<Arg> and element_gettable<nested_matrix_t<Arg>, 1> and
+      (not to_euclidean_expr<nested_matrix_t<Arg>>), int> = 0>
 #endif
   inline auto
   get_element(Arg&& arg, const std::size_t i)
@@ -609,12 +609,12 @@ namespace OpenKalman::Eigen3
 
   /// Get element (i, j) of FromEuclideanExpr(ToEuclideanExpr) matrix.
 #ifdef __cpp_concepts
-  template<from_euclidean_expr Arg> requires to_euclidean_expr<typename MatrixTraits<Arg>::BaseMatrix> and
-    element_gettable<typename MatrixTraits<typename MatrixTraits<Arg>::BaseMatrix>::BaseMatrix, 2>
+  template<from_euclidean_expr Arg> requires to_euclidean_expr<nested_matrix_t<Arg>> and
+    element_gettable<nested_matrix_t<nested_matrix_t<Arg>>, 2>
 #else
   template<typename Arg, std::enable_if_t<
-    from_euclidean_expr<Arg> and to_euclidean_expr<typename MatrixTraits<Arg>::BaseMatrix> and
-      element_gettable<typename MatrixTraits<typename MatrixTraits<Arg>::BaseMatrix>::BaseMatrix, 2>, int> = 0>
+    from_euclidean_expr<Arg> and to_euclidean_expr<nested_matrix_t<Arg>> and
+      element_gettable<nested_matrix_t<nested_matrix_t<Arg>>, 2>, int> = 0>
 #endif
   inline auto
   get_element(Arg&& arg, const std::size_t i, const std::size_t j)
@@ -636,12 +636,12 @@ namespace OpenKalman::Eigen3
 
   /// Get element (i) of FromEuclideanExpr(ToEuclideanExpr) matrix.
 #ifdef __cpp_concepts
-  template<from_euclidean_expr Arg> requires to_euclidean_expr<typename MatrixTraits<Arg>::BaseMatrix> and
-    element_gettable<typename MatrixTraits<typename MatrixTraits<Arg>::BaseMatrix>::BaseMatrix, 1>
+  template<from_euclidean_expr Arg> requires to_euclidean_expr<nested_matrix_t<Arg>> and
+    element_gettable<nested_matrix_t<nested_matrix_t<Arg>>, 1>
 #else
   template<typename Arg, std::enable_if_t<
-    from_euclidean_expr<Arg> and to_euclidean_expr<typename MatrixTraits<Arg>::BaseMatrix> and
-      element_gettable<typename MatrixTraits<typename MatrixTraits<Arg>::BaseMatrix>::BaseMatrix, 1>, int> = 0>
+    from_euclidean_expr<Arg> and to_euclidean_expr<nested_matrix_t<Arg>> and
+      element_gettable<nested_matrix_t<nested_matrix_t<Arg>>, 1>, int> = 0>
 #endif
   inline auto
   get_element(Arg&& arg, const std::size_t i)
@@ -664,18 +664,18 @@ namespace OpenKalman::Eigen3
   /// Set element (i, j) of ToEuclideanExpr or FromEuclideanExpr matrix arg if coefficients are only axes.
 #ifdef __cpp_concepts
   template<euclidean_expr Arg, std::convertible_to<typename MatrixTraits<Arg>::Scalar> Scalar> requires
-    (not to_euclidean_expr<typename MatrixTraits<Arg>::BaseMatrix>) and
+    (not to_euclidean_expr<nested_matrix_t<Arg>>) and
     (not std::is_const_v<std::remove_reference_t<Arg>>) and
     MatrixTraits<Arg>::Coefficients::axes_only and
-    element_settable<typename MatrixTraits<Arg>::BaseMatrix, 2>
+    element_settable<nested_matrix_t<Arg>, 2>
 #else
   template<typename Arg, typename Scalar, std::enable_if_t<
     euclidean_expr<Arg> and
     std::is_convertible_v<Scalar, typename MatrixTraits<Arg>::Scalar> and
-    not to_euclidean_expr<typename MatrixTraits<Arg>::BaseMatrix> and
+    not to_euclidean_expr<nested_matrix_t<Arg>> and
     not std::is_const_v<std::remove_reference_t<Arg>> and
     MatrixTraits<Arg>::Coefficients::axes_only and
-    element_settable<typename MatrixTraits<Arg>::BaseMatrix, 2>, int> = 0>
+    element_settable<nested_matrix_t<Arg>, 2>, int> = 0>
 #endif
   inline void
   set_element(Arg& arg, const Scalar s, const std::size_t i, const std::size_t j)
@@ -687,18 +687,18 @@ namespace OpenKalman::Eigen3
   /// Set element (i) of ToEuclideanExpr or FromEuclideanExpr matrix arg if coefficients are only axes.
 #ifdef __cpp_concepts
   template<euclidean_expr Arg, std::convertible_to<typename MatrixTraits<Arg>::Scalar> Scalar> requires
-    (not to_euclidean_expr<typename MatrixTraits<Arg>::BaseMatrix>) and
+    (not to_euclidean_expr<nested_matrix_t<Arg>>) and
     (not std::is_const_v<std::remove_reference_t<Arg>>) and
     MatrixTraits<Arg>::Coefficients::axes_only and
-    element_settable<typename MatrixTraits<Arg>::BaseMatrix, 1>
+    element_settable<nested_matrix_t<Arg>, 1>
 #else
   template<typename Arg, typename Scalar, std::enable_if_t<
     euclidean_expr<Arg> and
     std::is_convertible_v<Scalar, typename MatrixTraits<Arg>::Scalar> and
-    not to_euclidean_expr<typename MatrixTraits<Arg>::BaseMatrix> and
+    not to_euclidean_expr<nested_matrix_t<Arg>> and
     not std::is_const_v<std::remove_reference_t<Arg>> and
     MatrixTraits<Arg>::Coefficients::axes_only and
-    element_settable<typename MatrixTraits<Arg>::BaseMatrix, 1>, int> = 0>
+    element_settable<nested_matrix_t<Arg>, 1>, int> = 0>
 #endif
   inline void
   set_element(Arg& arg, const Scalar s, const std::size_t i)
@@ -721,15 +721,15 @@ namespace OpenKalman::Eigen3
    */
 #ifdef __cpp_concepts
   template<from_euclidean_expr Arg, std::convertible_to<typename MatrixTraits<Arg>::Scalar> Scalar> requires
-    to_euclidean_expr<typename MatrixTraits<Arg>::BaseMatrix> and
+    to_euclidean_expr<nested_matrix_t<Arg>> and
     (not std::is_const_v<std::remove_reference_t<Arg>>) and
-    element_settable<typename MatrixTraits<typename MatrixTraits<Arg>::BaseMatrix>::BaseMatrix, 2>
+    element_settable<nested_matrix_t<nested_matrix_t<Arg>>, 2>
 #else
   template<typename Arg, typename Scalar, std::enable_if_t<
     std::is_convertible_v<Scalar, typename MatrixTraits<Arg>::Scalar> and
-    from_euclidean_expr<Arg> and to_euclidean_expr<typename MatrixTraits<Arg>::BaseMatrix> and
+    from_euclidean_expr<Arg> and to_euclidean_expr<nested_matrix_t<Arg>> and
     not std::is_const_v<std::remove_reference_t<Arg>> and
-    element_settable<typename MatrixTraits<typename MatrixTraits<Arg>::BaseMatrix>::BaseMatrix, 2>, int> = 0>
+    element_settable<nested_matrix_t<nested_matrix_t<Arg>>, 2>, int> = 0>
 #endif
   inline void
   set_element(Arg& arg, const Scalar s, const std::size_t i, const std::size_t j)
@@ -765,15 +765,15 @@ namespace OpenKalman::Eigen3
    */
 #ifdef __cpp_concepts
   template<from_euclidean_expr Arg, std::convertible_to<typename MatrixTraits<Arg>::Scalar> Scalar> requires
-    to_euclidean_expr<typename MatrixTraits<Arg>::BaseMatrix> and
+    to_euclidean_expr<nested_matrix_t<Arg>> and
     (not std::is_const_v<std::remove_reference_t<Arg>>) and
-    element_settable<typename MatrixTraits<typename MatrixTraits<Arg>::BaseMatrix>::BaseMatrix, 1>
+    element_settable<nested_matrix_t<nested_matrix_t<Arg>>, 1>
 #else
   template<typename Arg, typename Scalar, std::enable_if_t<
     std::is_convertible_v<Scalar, typename MatrixTraits<Arg>::Scalar> and
-    from_euclidean_expr<Arg> and to_euclidean_expr<typename MatrixTraits<Arg>::BaseMatrix> and
+    from_euclidean_expr<Arg> and to_euclidean_expr<nested_matrix_t<Arg>> and
     not std::is_const_v<std::remove_reference_t<Arg>> and
-    element_settable<typename MatrixTraits<typename MatrixTraits<Arg>::BaseMatrix>::BaseMatrix, 1>, int> = 0>
+    element_settable<nested_matrix_t<nested_matrix_t<Arg>>, 1>, int> = 0>
 #endif
   inline void
   set_element(Arg& arg, const Scalar s, const std::size_t i)
@@ -985,7 +985,7 @@ namespace OpenKalman::Eigen3
   randomize(Params...params)
   {
     using Scalar = typename MatrixTraits<ReturnType>::Scalar;
-    using B = typename MatrixTraits<ReturnType>::BaseMatrix;
+    using B = nested_matrix_t<ReturnType>;
     constexpr auto rows = MatrixTraits<B>::dimension;
     constexpr auto cols = MatrixTraits<B>::columns;
     using Ps = typename distribution_type<Scalar>::param_type;

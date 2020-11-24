@@ -1,6 +1,4 @@
 var searchData=
 [
-  ['randomize_1218',['randomize',['../namespace_open_kalman.html#a3a5aa50cd3446c27bc08deacb3456b2d',1,'OpenKalman']]],
-  ['reduce_5fcolumns_1219',['reduce_columns',['../namespace_open_kalman.html#af64ea73d28077cecfc217139a9d77813',1,'OpenKalman']]],
-  ['rows_1220',['rows',['../struct_open_kalman_1_1internal_1_1_eigen_matrix_base.html#a6df1dc87dee6cf8d58493143aac8bef8',1,'OpenKalman::internal::EigenMatrixBase']]]
+  ['qr_5fdecomposition_461',['QR_decomposition',['../namespace_open_kalman.html#a2c53f3473e7552a36723afca9d5588ad',1,'OpenKalman::QR_decomposition(Arg &amp;&amp;arg)'],['../namespace_open_kalman.html#ae8c9b539547601ae4b033c3ffe425b5b',1,'OpenKalman::QR_decomposition(A &amp;&amp;a)']]]
 ];

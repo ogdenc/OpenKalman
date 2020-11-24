@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['concatenate_1302',['Concatenate',['../namespace_open_kalman.html#ae82c5198d9b9be12ab96f47ad0177181',1,'OpenKalman']]]
+  ['circle_521',['Circle',['../namespace_open_kalman_1_1angle.html#aa956b4da387b5f3228d761597c9de05b',1,'OpenKalman::angle']]]
 ];

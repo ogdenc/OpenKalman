@@ -1,0 +1,10 @@
+var struct_open_kalman_1_1_matrix_traits_3_01_open_kalman_1_1_matrix_3_01_row_coeffs_00_01_col_coeffs_00_01_nested_type_01_4_01_4 =
+[
+    [ "BaseMatrix", "struct_open_kalman_1_1_matrix_traits_3_01_open_kalman_1_1_matrix_3_01_row_coeffs_00_01_col_coeffs_00_01_nested_type_01_4_01_4.html#a5d8d797fb75e7805d309a873c48482c9", null ],
+    [ "Coefficients", "struct_open_kalman_1_1_matrix_traits_3_01_open_kalman_1_1_matrix_3_01_row_coeffs_00_01_col_coeffs_00_01_nested_type_01_4_01_4.html#a70370849adff8372b334a89f77a62115", null ],
+    [ "ColumnCoefficients", "struct_open_kalman_1_1_matrix_traits_3_01_open_kalman_1_1_matrix_3_01_row_coeffs_00_01_col_coeffs_00_01_nested_type_01_4_01_4.html#acbda36f88b0b9a61ff0e349c917da263", null ],
+    [ "NativeMatrix", "struct_open_kalman_1_1_matrix_traits_3_01_open_kalman_1_1_matrix_3_01_row_coeffs_00_01_col_coeffs_00_01_nested_type_01_4_01_4.html#abc84afcbc27b31b726d5a74af6948321", null ],
+    [ "RowCoefficients", "struct_open_kalman_1_1_matrix_traits_3_01_open_kalman_1_1_matrix_3_01_row_coeffs_00_01_col_coeffs_00_01_nested_type_01_4_01_4.html#aeb8dbe7f3e917214e89c67d80948b365", null ],
+    [ "Scalar", "struct_open_kalman_1_1_matrix_traits_3_01_open_kalman_1_1_matrix_3_01_row_coeffs_00_01_col_coeffs_00_01_nested_type_01_4_01_4.html#a3830a68cce4debbf1f3c57ca679dd75e", null ],
+    [ "SelfContained", "struct_open_kalman_1_1_matrix_traits_3_01_open_kalman_1_1_matrix_3_01_row_coeffs_00_01_col_coeffs_00_01_nested_type_01_4_01_4.html#a298b49014ef3e6bf414071517069c610", null ]
+];

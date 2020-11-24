@@ -65,7 +65,7 @@ namespace OpenKalman
         static_assert(OutputCoeffs::size == output_dim);
         //
         // Convert input distribution type to output distribution types, and initialize mean and covariance:
-        using CovIn = typename MatrixTraits<typename DistributionTraits<Dist>::Covariance>::BaseMatrix;
+        using CovIn = nested_matrix_t<typename DistributionTraits<Dist>::Covariance>;
         using MeanOut = native_matrix_t<CovIn, output_dim, 1>;
         constexpr TriangleType tri = triangle_type_of<typename MatrixTraits<CovIn>::template TriangularBaseType<>>;
         using CovOut = typename MatrixTraits<CovIn>::template SelfAdjointBaseType<tri, output_dim>;

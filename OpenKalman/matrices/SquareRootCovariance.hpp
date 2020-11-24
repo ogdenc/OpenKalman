@@ -14,12 +14,15 @@
 namespace OpenKalman
 {
 #ifdef __cpp_concepts
-  template<coefficients Coeffs, covariance_base ArgType> requires (Coeffs::size == MatrixTraits<ArgType>::dimension)
+  template<coefficients Coeffs, covariance_base ArgType> requires
+    (Coeffs::size == MatrixTraits<ArgType>::dimension) and (not std::is_rvalue_reference_v<ArgType>)
 #else
   template<typename Coeffs, typename ArgType>
 #endif
   struct SquareRootCovariance : internal::CovarianceBase<SquareRootCovariance<Coeffs, ArgType>, ArgType>
   {
+    static_assert(Coeffs::size == MatrixTraits<ArgType>::dimension);
+    static_assert(not std::is_rvalue_reference_v<ArgType>);
     using BaseMatrix = ArgType;
     using Coefficients = Coeffs;
     using Scalar = typename MatrixTraits<BaseMatrix>::Scalar;
@@ -67,7 +70,7 @@ namespace OpenKalman
     SquareRootCovariance(M&& m) noexcept : Base(std::forward<M>(m))
     {
       static_assert(equivalent_to<typename MatrixTraits<M>::Coefficients, Coefficients>);
-      using MBase = typename MatrixTraits<M>::BaseMatrix;
+      using MBase = nested_matrix_t<M>;
       static_assert(not square_root_covariance<M> or self_adjoint_matrix<MBase> or self_adjoint_matrix<BaseMatrix> or
           internal::same_triangle_type_as<BaseMatrix, MBase>,
         "An upper-triangle Cholesky-form covariance cannot be constructed from a lower-triangle Cholesky-form "
@@ -178,7 +181,7 @@ namespace OpenKalman
         static_assert(equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients> and
           equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>);
       }
-      using ArgBase = typename MatrixTraits<Arg>::BaseMatrix;
+      using ArgBase = nested_matrix_t<Arg>;
       static_assert(not square_root_covariance<Arg> or self_adjoint_matrix<ArgBase> or self_adjoint_matrix<BaseMatrix> or
           internal::same_triangle_type_as<BaseMatrix, ArgBase>,
           "An upper-triangle Cholesky-form covariance cannot be assigned a lower-triangle Cholesky-form "
@@ -378,7 +381,7 @@ namespace OpenKalman
   SquareRootCovariance(M&&)
     -> SquareRootCovariance<
     typename MatrixTraits<M>::Coefficients,
-    typename MatrixTraits<M>::BaseMatrix>;
+    nested_matrix_t<M>>;
 
 #ifdef __cpp_concepts
   template<typed_matrix M>
@@ -388,7 +391,7 @@ namespace OpenKalman
   SquareRootCovariance(M&&)
     -> SquareRootCovariance<
     typename MatrixTraits<M>::RowCoefficients,
-    typename MatrixTraits<typename MatrixTraits<M>::BaseMatrix>::template TriangularBaseType<>>;
+    typename MatrixTraits<nested_matrix_t<M>>::template TriangularBaseType<>>;
 
 #ifdef __cpp_concepts
   template<covariance_base M>
@@ -569,7 +572,7 @@ namespace OpenKalman
   make_SquareRootCovariance()
   {
     using C = typename MatrixTraits<Arg>::Coefficients;
-    using B = typename MatrixTraits<Arg>::BaseMatrix;
+    using B = nested_matrix_t<Arg>;
     return make_SquareRootCovariance<C, triangle_type, B>();
   }
 
@@ -584,7 +587,7 @@ namespace OpenKalman
   make_SquareRootCovariance()
   {
     using C = typename MatrixTraits<Arg>::Coefficients;
-    using B = typename MatrixTraits<Arg>::BaseMatrix;
+    using B = nested_matrix_t<Arg>;
     return make_SquareRootCovariance<C, B>();
   }
 
@@ -618,7 +621,7 @@ namespace OpenKalman
   {
     static_assert(equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, typename MatrixTraits<Arg>::ColumnCoefficients>);
     using C = typename MatrixTraits<Arg>::RowCoefficients;
-    using B = typename MatrixTraits<Arg>::BaseMatrix;
+    using B = nested_matrix_t<Arg>;
     return make_SquareRootCovariance<C, triangle_type, B>();
   }
 
@@ -634,7 +637,7 @@ namespace OpenKalman
   {
     static_assert(equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, typename MatrixTraits<Arg>::ColumnCoefficients>);
     using C = typename MatrixTraits<Arg>::RowCoefficients;
-    using B = typename MatrixTraits<Arg>::BaseMatrix;
+    using B = nested_matrix_t<Arg>;
     return make_SquareRootCovariance<C, B>();
   }
 

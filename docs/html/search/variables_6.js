@@ -1,4 +1,6 @@
 var searchData=
 [
-  ['kappa_1290',['kappa',['../struct_open_kalman_1_1_unscented_parameters_state_estimation.html#a96447c332c4cb6a895b141c204a08c98',1,'OpenKalman::UnscentedParametersStateEstimation::kappa()'],['../struct_open_kalman_1_1_unscented_parameters_parameter_estimation.html#a59a335544a3664c4f827c41580a6385e',1,'OpenKalman::UnscentedParametersParameterEstimation::kappa()']]]
+  ['identity_5fmatrix_497',['identity_matrix',['../namespace_open_kalman.html#a79246e358d47951c68ade232002bdecb',1,'OpenKalman']]],
+  ['is_5flinearized_5ffunction_5fv_498',['is_linearized_function_v',['../namespace_open_kalman.html#ac012d357f1dc0a72d7a6fb43d0169998',1,'OpenKalman']]],
+  ['is_5fperturbation_5fv_499',['is_perturbation_v',['../namespace_open_kalman.html#a5ac7f227b2f13e813d6e60695f05b004',1,'OpenKalman']]]
 ];

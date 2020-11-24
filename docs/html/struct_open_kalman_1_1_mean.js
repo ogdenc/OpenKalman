@@ -1,7 +1,10 @@
 var struct_open_kalman_1_1_mean =
 [
     [ "Base", "struct_open_kalman_1_1_mean.html#a439f65ee473ce5fb32951a25ba08b545", null ],
+    [ "BaseMatrix", "struct_open_kalman_1_1_mean.html#a47237ae139eed1e36d4eba388fccc0a6", null ],
     [ "Coefficients", "struct_open_kalman_1_1_mean.html#a4ec66d8b50a8a2c7e8e2d9cf539f18e5", null ],
+    [ "ColumnCoefficients", "struct_open_kalman_1_1_mean.html#a68c42d641705aede54335208a81e6d5d", null ],
+    [ "RowCoefficients", "struct_open_kalman_1_1_mean.html#a4ff55cdd0cf170757a7115914d929557", null ],
     [ "Scalar", "struct_open_kalman_1_1_mean.html#a006d91dc97a53a6ecc61215fa9f9f044", null ],
     [ "Mean", "struct_open_kalman_1_1_mean.html#a9db1b5c0babc75531067e9aede605941", null ],
     [ "Mean", "struct_open_kalman_1_1_mean.html#a48ece0dcdaccd561ce7453522144b1e2", null ],
@@ -12,6 +15,16 @@ var struct_open_kalman_1_1_mean =
     [ "Mean", "struct_open_kalman_1_1_mean.html#a1a4730531c6de807162b65d5c15e50b1", null ],
     [ "Mean", "struct_open_kalman_1_1_mean.html#a1a4730531c6de807162b65d5c15e50b1", null ],
     [ "Mean", "struct_open_kalman_1_1_mean.html#a26c994f2379d4a2fb64ee33c77136b79", null ],
+    [ "base_matrix", "struct_open_kalman_1_1_mean.html#a620fefcc4c1d2d57e0cc8380680706d2", null ],
+    [ "base_matrix", "struct_open_kalman_1_1_mean.html#a618d552651e7bf96a5620361530314c9", null ],
+    [ "base_matrix", "struct_open_kalman_1_1_mean.html#afd6b1d3e9c928bce8641d902be0146f7", null ],
+    [ "base_matrix", "struct_open_kalman_1_1_mean.html#ae558aa563c88d72b4f8571162226a8e1", null ],
+    [ "operator()", "struct_open_kalman_1_1_mean.html#ab01a435149102865cc2146f9b066f926", null ],
+    [ "operator()", "struct_open_kalman_1_1_mean.html#a51493eee9b2e92d3bf58d915fdce0e37", null ],
+    [ "operator()", "struct_open_kalman_1_1_mean.html#a4931b07c987b684c181976ffed17dd76", null ],
+    [ "operator()", "struct_open_kalman_1_1_mean.html#abaae703086d8f589e940b44ebe7e5ea4", null ],
+    [ "operator()", "struct_open_kalman_1_1_mean.html#a5149c61033ea0f3ca6937f068a84dafe", null ],
+    [ "operator()", "struct_open_kalman_1_1_mean.html#ae48d60444c637c422d50a15f957b611a", null ],
     [ "operator*=", "struct_open_kalman_1_1_mean.html#af750ecb1eca1e944cfdac3362df6db4b", null ],
     [ "operator+=", "struct_open_kalman_1_1_mean.html#a21a32f72accde3df82bbfff79f91e651", null ],
     [ "operator+=", "struct_open_kalman_1_1_mean.html#ad293fd10b8ac61463866cd1525f0b53f", null ],
@@ -22,5 +35,9 @@ var struct_open_kalman_1_1_mean =
     [ "operator/=", "struct_open_kalman_1_1_mean.html#a18a6817203c616189b7c203c260a039c", null ],
     [ "operator=", "struct_open_kalman_1_1_mean.html#aa156e0a83012140159ae3a3551043a9f", null ],
     [ "operator=", "struct_open_kalman_1_1_mean.html#ab9f234fa30147d98ce81568d0828b9df", null ],
-    [ "operator=", "struct_open_kalman_1_1_mean.html#ac62c5c9c7ebcb5af452fd7747eef9572", null ]
+    [ "operator=", "struct_open_kalman_1_1_mean.html#ac62c5c9c7ebcb5af452fd7747eef9572", null ],
+    [ "operator[]", "struct_open_kalman_1_1_mean.html#ac6cdcd935b8e6d8b9efc1377cf2a6326", null ],
+    [ "operator[]", "struct_open_kalman_1_1_mean.html#af049f9825d05df3f20a429affe61d2c6", null ],
+    [ "operator[]", "struct_open_kalman_1_1_mean.html#a6db1b379fa5c48a3cb6bc46155871e2d", null ],
+    [ "operator[]", "struct_open_kalman_1_1_mean.html#a7b4e9bd73483b4cc83f3f69c1438e309", null ]
 ];

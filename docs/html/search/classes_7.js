@@ -1,7 +1,9 @@
 var searchData=
 [
-  ['kalmanfilter_1009',['KalmanFilter',['../struct_open_kalman_1_1_kalman_filter.html',1,'OpenKalman']]],
-  ['kalmanfilter_3c_20processtransform_20_3e_1010',['KalmanFilter&lt; ProcessTransform &gt;',['../struct_open_kalman_1_1_kalman_filter.html',1,'OpenKalman']]],
-  ['kalmanfilter_3c_20processtransform_2c_20measurementtransform_20_3e_1011',['KalmanFilter&lt; ProcessTransform, MeasurementTransform &gt;',['../struct_open_kalman_1_1_kalman_filter_3_01_process_transform_00_01_measurement_transform_01_4.html',1,'OpenKalman']]],
-  ['kalmanfilter_3c_20transform_20_3e_1012',['KalmanFilter&lt; Transform &gt;',['../struct_open_kalman_1_1_kalman_filter_3_01_transform_01_4.html',1,'OpenKalman']]]
+  ['linearizedtransform_335',['LinearizedTransform',['../struct_open_kalman_1_1_linearized_transform.html',1,'OpenKalman']]],
+  ['lineartransform_336',['LinearTransform',['../struct_open_kalman_1_1_linear_transform.html',1,'OpenKalman']]],
+  ['lineartransformation_337',['LinearTransformation',['../struct_open_kalman_1_1_linear_transformation.html',1,'OpenKalman']]],
+  ['lineartransformbase_338',['LinearTransformBase',['../struct_open_kalman_1_1internal_1_1_linear_transform_base.html',1,'OpenKalman::internal']]],
+  ['lineartransformbase_3c_20linearizedtransform_3c_201_20_3e_20_3e_339',['LinearTransformBase&lt; LinearizedTransform&lt; 1 &gt; &gt;',['../struct_open_kalman_1_1internal_1_1_linear_transform_base.html',1,'OpenKalman::internal']]],
+  ['lineartransformbase_3c_20lineartransform_20_3e_340',['LinearTransformBase&lt; LinearTransform &gt;',['../struct_open_kalman_1_1internal_1_1_linear_transform_base.html',1,'OpenKalman::internal']]]
 ];

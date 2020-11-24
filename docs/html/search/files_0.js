@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['gaussiandistribution_2eh_1160',['GaussianDistribution.h',['../_gaussian_distribution_8h.html',1,'']]]
+  ['distributions_2ehpp_398',['distributions.hpp',['../distributions_8hpp.html',1,'']]]
 ];

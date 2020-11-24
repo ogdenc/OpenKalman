@@ -341,14 +341,14 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
     template<typename T> requires (Eigen3::eigen_self_adjoint_expr<T> or Eigen3::eigen_triangular_expr<T> or
-      Eigen3::eigen_diagonal_expr<T>) and zero_matrix<typename MatrixTraits<T>::BaseMatrix>
+      Eigen3::eigen_diagonal_expr<T>) and zero_matrix<nested_matrix_t<T>>
     struct is_zero_matrix<T>
       : std::true_type {};
 #else
     template<typename T>
     struct is_zero_matrix<T, std::enable_if_t<Eigen3::eigen_self_adjoint_expr<T> or Eigen3::eigen_triangular_expr<T> or
       Eigen3::eigen_diagonal_expr<T>>>
-      : is_zero_matrix<typename MatrixTraits<T>::BaseMatrix> {};
+      : is_zero_matrix<nested_matrix_t<T>> {};
 #endif
 
 
@@ -434,12 +434,12 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
     template<typename T> requires (Eigen3::eigen_self_adjoint_expr<T> or Eigen3::eigen_triangular_expr<T>) and
-      identity_matrix<typename MatrixTraits<T>::BaseMatrix>
+      identity_matrix<nested_matrix_t<T>>
     struct is_identity_matrix<T> : std::true_type {};
 #else
     template<typename T>
     struct is_identity_matrix<T, std::enable_if_t<(Eigen3::eigen_self_adjoint_expr<T> or Eigen3::eigen_triangular_expr<T>)>>
-      : is_identity_matrix<typename MatrixTraits<T>::BaseMatrix> {};
+      : is_identity_matrix<nested_matrix_t<T>> {};
 #endif
 
 
@@ -479,25 +479,25 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<Eigen3::eigen_self_adjoint_expr T> requires diagonal_matrix<typename MatrixTraits<T>::BaseMatrix> or
+    template<Eigen3::eigen_self_adjoint_expr T> requires diagonal_matrix<nested_matrix_t<T>> or
       (MatrixTraits<T>::storage_type == TriangleType::diagonal)
     struct is_diagonal_matrix<T> : std::true_type {};
 #else
     template<typename T>
     struct is_diagonal_matrix<T, std::enable_if_t<Eigen3::eigen_self_adjoint_expr<T>>>
-      : std::bool_constant<diagonal_matrix<typename MatrixTraits<T>::BaseMatrix> or
+      : std::bool_constant<diagonal_matrix<nested_matrix_t<T>> or
           MatrixTraits<T>::storage_type == TriangleType::diagonal> {};
 #endif
 
 
 #ifdef __cpp_concepts
-    template<Eigen3::eigen_triangular_expr T> requires diagonal_matrix<typename MatrixTraits<T>::BaseMatrix> or
+    template<Eigen3::eigen_triangular_expr T> requires diagonal_matrix<nested_matrix_t<T>> or
       (MatrixTraits<T>::triangle_type == TriangleType::diagonal)
     struct is_diagonal_matrix<T> : std::true_type {};
 #else
     template<typename T>
     struct is_diagonal_matrix<T, std::enable_if_t<Eigen3::eigen_triangular_expr<T>>>
-      : std::bool_constant<diagonal_matrix<typename MatrixTraits<T>::BaseMatrix> or
+      : std::bool_constant<diagonal_matrix<nested_matrix_t<T>> or
           MatrixTraits<T>::triangle_type == TriangleType::diagonal> {};
 #endif
 
@@ -631,16 +631,16 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<typename T> requires (Eigen3::eigen_self_adjoint_expr<T> or Eigen3::eigen_triangular_expr<T> or
       Eigen3::eigen_diagonal_expr<T> or Eigen3::to_euclidean_expr<T> or Eigen3::from_euclidean_expr<T>) and
-      self_contained<typename MatrixTraits<T>::BaseMatrix> and
-      (not std::is_reference_v<typename MatrixTraits<T>::BaseMatrix>)
+      self_contained<nested_matrix_t<T>> and
+      (not std::is_reference_v<nested_matrix_t<T>>)
     struct is_self_contained<T> : std::true_type {};
 #else
     template<typename T>
     struct is_self_contained<T, std::enable_if_t<
       Eigen3::eigen_self_adjoint_expr<T> or Eigen3::eigen_triangular_expr<T> or
       Eigen3::eigen_diagonal_expr<T> or Eigen3::to_euclidean_expr<T> or Eigen3::from_euclidean_expr<T>>>
-      : std::bool_constant<self_contained<typename MatrixTraits<T>::BaseMatrix> and
-          (not std::is_reference_v<typename MatrixTraits<T>::BaseMatrix>)> {};
+      : std::bool_constant<self_contained<nested_matrix_t<T>> and
+          (not std::is_reference_v<nested_matrix_t<T>>)> {};
 #endif
 
 
@@ -660,44 +660,44 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
     template<Eigen3::eigen_self_adjoint_expr T, std::size_t N> requires
-      (element_gettable<typename MatrixTraits<T>::BaseMatrix, 2> and
+      (element_gettable<nested_matrix_t<T>, 2> and
         (N == 2 or MatrixTraits<T>::storage_type == TriangleType::diagonal)) or
-      element_gettable<typename MatrixTraits<T>::BaseMatrix, 1>
+      element_gettable<nested_matrix_t<T>, 1>
     struct is_element_gettable<T, N> : std::true_type {};
 #else
     template<typename T, std::size_t N>
     struct is_element_gettable<T, N, std::enable_if_t<Eigen3::eigen_self_adjoint_expr<T>>>
-      : std::bool_constant<(element_gettable<typename MatrixTraits<T>::BaseMatrix, 2> and
+      : std::bool_constant<(element_gettable<nested_matrix_t<T>, 2> and
           (N == 2 or MatrixTraits<T>::storage_type == TriangleType::diagonal)) or
-          element_gettable<typename MatrixTraits<T>::BaseMatrix, 1>> {};
+          element_gettable<nested_matrix_t<T>, 1>> {};
 #endif
 
 
 #ifdef __cpp_concepts
     template<Eigen3::eigen_triangular_expr T, std::size_t N> requires
-      (element_gettable<typename MatrixTraits<T>::BaseMatrix, 2> and
+      (element_gettable<nested_matrix_t<T>, 2> and
         (N == 2 or MatrixTraits<T>::triangle_type == TriangleType::diagonal)) or
-      element_gettable<typename MatrixTraits<T>::BaseMatrix, 1>
+      element_gettable<nested_matrix_t<T>, 1>
     struct is_element_gettable<T, N> : std::true_type {};
 #else
     template<typename T, std::size_t N>
     struct is_element_gettable<T, N, std::enable_if_t<Eigen3::eigen_triangular_expr<T>>>
-      : std::bool_constant<(element_gettable<typename MatrixTraits<T>::BaseMatrix, 2> and
+      : std::bool_constant<(element_gettable<nested_matrix_t<T>, 2> and
           (N == 2 or MatrixTraits<T>::triangle_type == TriangleType::diagonal)) or
-          element_gettable<typename MatrixTraits<T>::BaseMatrix, 1>> {};
+          element_gettable<nested_matrix_t<T>, 1>> {};
 #endif
 
 
 #ifdef __cpp_concepts
     template<Eigen3::eigen_diagonal_expr T, std::size_t N> requires (N <= 2) and
-      (element_gettable<typename MatrixTraits<T>::BaseMatrix, 2> or
-        element_gettable<typename MatrixTraits<T>::BaseMatrix, 1>)
+      (element_gettable<nested_matrix_t<T>, 2> or
+        element_gettable<nested_matrix_t<T>, 1>)
     struct is_element_gettable<T, N> : std::true_type {};
 #else
     template<typename T, std::size_t N>
     struct is_element_gettable<T, N, std::enable_if_t<Eigen3::eigen_diagonal_expr<T> and (N <= 2)>>
-      : std::bool_constant<element_gettable<typename MatrixTraits<T>::BaseMatrix, 2> or
-          element_gettable<typename MatrixTraits<T>::BaseMatrix, 1>> {};
+      : std::bool_constant<element_gettable<nested_matrix_t<T>, 2> or
+          element_gettable<nested_matrix_t<T>, 1>> {};
 #endif
 
 
@@ -714,23 +714,23 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
     template<Eigen3::to_euclidean_expr T, std::size_t N> requires
-      element_gettable<typename MatrixTraits<T>::BaseMatrix, N>
+      element_gettable<nested_matrix_t<T>, N>
     struct is_element_gettable<T, N> : std::true_type {};
 #else
     template<typename T, std::size_t N>
     struct is_element_gettable<T, N, std::enable_if_t<Eigen3::to_euclidean_expr<T>>>
-      : is_element_gettable<typename MatrixTraits<T>::BaseMatrix, N> {};
+      : is_element_gettable<nested_matrix_t<T>, N> {};
 #endif
 
 
 #ifdef __cpp_concepts
     template<Eigen3::from_euclidean_expr T, std::size_t N> requires
-      element_gettable<typename MatrixTraits<T>::BaseMatrix, N>
+      element_gettable<nested_matrix_t<T>, N>
     struct is_element_gettable<T, N> : std::true_type {};
 #else
     template<typename T, std::size_t N>
     struct is_element_gettable<T, N, std::enable_if_t<Eigen3::from_euclidean_expr<T>>>
-      : is_element_gettable<typename MatrixTraits<T>::BaseMatrix, N> {};
+      : is_element_gettable<nested_matrix_t<T>, N> {};
 #endif
 
 
@@ -740,44 +740,44 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
     template<Eigen3::eigen_self_adjoint_expr T, std::size_t N> requires
-      (element_settable<typename MatrixTraits<T>::BaseMatrix, 2> and
+      (element_settable<nested_matrix_t<T>, 2> and
         (N == 2 or MatrixTraits<T>::storage_type == TriangleType::diagonal)) or
-      element_settable<typename MatrixTraits<T>::BaseMatrix, 1>
+      element_settable<nested_matrix_t<T>, 1>
     struct is_element_settable<T, N> : std::true_type {};
 #else
     template<typename T, std::size_t N>
     struct is_element_settable<T, N, std::enable_if_t<Eigen3::eigen_self_adjoint_expr<T>>>
-      : std::bool_constant<(element_settable<typename MatrixTraits<T>::BaseMatrix, 2> and
+      : std::bool_constant<(element_settable<nested_matrix_t<T>, 2> and
           (N == 2 or MatrixTraits<T>::storage_type == TriangleType::diagonal)) or
-          element_settable<typename MatrixTraits<T>::BaseMatrix, 1>> {};
+          element_settable<nested_matrix_t<T>, 1>> {};
 #endif
 
 
 #ifdef __cpp_concepts
     template<Eigen3::eigen_triangular_expr T, std::size_t N> requires
-      (element_settable<typename MatrixTraits<T>::BaseMatrix, 2> and
+      (element_settable<nested_matrix_t<T>, 2> and
         (N == 2 or MatrixTraits<T>::triangle_type == TriangleType::diagonal)) or
-      element_settable<typename MatrixTraits<T>::BaseMatrix, 1>
+      element_settable<nested_matrix_t<T>, 1>
     struct is_element_settable<T, N> : std::true_type {};
 #else
     template<typename T, std::size_t N>
     struct is_element_settable<T, N, std::enable_if_t<Eigen3::eigen_triangular_expr<T>>>
-      : std::bool_constant<(element_settable<typename MatrixTraits<T>::BaseMatrix, 2> and
+      : std::bool_constant<(element_settable<nested_matrix_t<T>, 2> and
           (N == 2 or MatrixTraits<T>::triangle_type == TriangleType::diagonal)) or
-          element_settable<typename MatrixTraits<T>::BaseMatrix, 1>> {};
+          element_settable<nested_matrix_t<T>, 1>> {};
 #endif
 
 
 #ifdef __cpp_concepts
     template<Eigen3::eigen_diagonal_expr T, std::size_t N> requires (N <= 2) and
-      (element_settable<typename MatrixTraits<T>::BaseMatrix, 2> or
-        element_settable<typename MatrixTraits<T>::BaseMatrix, 1>)
+      (element_settable<nested_matrix_t<T>, 2> or
+        element_settable<nested_matrix_t<T>, 1>)
     struct is_element_settable<T, N> : std::true_type {};
 #else
     template<typename T, std::size_t N>
     struct is_element_settable<T, N, std::enable_if_t<Eigen3::eigen_diagonal_expr<T> and (N <= 2)>>
-      : std::bool_constant<element_settable<typename MatrixTraits<T>::BaseMatrix, 2> or
-          element_settable<typename MatrixTraits<T>::BaseMatrix, 1>> {};
+      : std::bool_constant<element_settable<nested_matrix_t<T>, 2> or
+          element_settable<nested_matrix_t<T>, 1>> {};
 #endif
 
 
@@ -793,28 +793,28 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
     template<Eigen3::to_euclidean_expr T, std::size_t N> requires
-      MatrixTraits<T>::Coefficients::axes_only and element_settable<typename MatrixTraits<T>::BaseMatrix, N>
+      MatrixTraits<T>::Coefficients::axes_only and element_settable<nested_matrix_t<T>, N>
     struct is_element_settable<T, N> : std::true_type {};
 #else
     template<typename T, std::size_t N>
     struct is_element_settable<T, N, std::enable_if_t<Eigen3::to_euclidean_expr<T> and
       MatrixTraits<T>::Coefficients::axes_only>>
-      : is_element_settable<typename MatrixTraits<T>::BaseMatrix, N> {};
+      : is_element_settable<nested_matrix_t<T>, N> {};
 #endif
 
 
 #ifdef __cpp_concepts
     template<Eigen3::from_euclidean_expr T, std::size_t N> requires
-      (MatrixTraits<T>::Coefficients::axes_only and element_settable<typename MatrixTraits<T>::BaseMatrix, N>) or
-      (Eigen3::to_euclidean_expr<typename MatrixTraits<T>::BaseMatrix> and
-        element_settable<typename MatrixTraits<typename MatrixTraits<T>::BaseMatrix>::BaseMatrix, N>)
+      (MatrixTraits<T>::Coefficients::axes_only and element_settable<nested_matrix_t<T>, N>) or
+      (Eigen3::to_euclidean_expr<nested_matrix_t<T>> and
+        element_settable<nested_matrix_t<nested_matrix_t<T>>, N>)
     struct is_element_settable<T, N> : std::true_type {};
 #else
     template<typename T, std::size_t N>
     struct is_element_settable<T, N, std::enable_if_t<Eigen3::from_euclidean_expr<T>>>
-      : std::bool_constant<(MatrixTraits<T>::Coefficients::axes_only and element_settable<typename MatrixTraits<T>::BaseMatrix, N>) or
-          (Eigen3::to_euclidean_expr<typename MatrixTraits<T>::BaseMatrix> and
-          element_settable<typename MatrixTraits<typename MatrixTraits<T>::BaseMatrix>::BaseMatrix, N>)> {};
+      : std::bool_constant<(MatrixTraits<T>::Coefficients::axes_only and element_settable<nested_matrix_t<T>, N>) or
+          (Eigen3::to_euclidean_expr<nested_matrix_t<T>> and
+          element_settable<nested_matrix_t<nested_matrix_t<T>>, N>)> {};
 #endif
 
 

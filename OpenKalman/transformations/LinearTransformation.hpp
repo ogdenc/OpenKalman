@@ -176,10 +176,10 @@ namespace OpenKalman
   -> LinearTransformation<
     typename MatrixTraits<T>::ColumnCoefficients,
     typename MatrixTraits<T>::RowCoefficients,
-    self_contained_t<typename MatrixTraits<T>::BaseMatrix>,
+    self_contained_t<nested_matrix_t<T>>,
     std::conditional_t<
       typed_matrix<Ps>,
-      self_contained_t<typename MatrixTraits<Ps>::BaseMatrix>,
+      self_contained_t<nested_matrix_t<Ps>>,
       self_contained_t<std::decay_t<Ps>>>...>;
 
 

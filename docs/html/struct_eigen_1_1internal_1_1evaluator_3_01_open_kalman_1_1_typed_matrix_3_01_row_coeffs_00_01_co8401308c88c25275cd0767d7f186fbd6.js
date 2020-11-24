@@ -1,6 +1,0 @@
-var struct_eigen_1_1internal_1_1evaluator_3_01_open_kalman_1_1_typed_matrix_3_01_row_coeffs_00_01_co8401308c88c25275cd0767d7f186fbd6 =
-[
-    [ "Base", "struct_eigen_1_1internal_1_1evaluator_3_01_open_kalman_1_1_typed_matrix_3_01_row_coeffs_00_01_co8401308c88c25275cd0767d7f186fbd6.html#a37d29a1c2a8277929eea195145036329", null ],
-    [ "XprType", "struct_eigen_1_1internal_1_1evaluator_3_01_open_kalman_1_1_typed_matrix_3_01_row_coeffs_00_01_co8401308c88c25275cd0767d7f186fbd6.html#a012d9d2d0696219ba5b500058060be97", null ],
-    [ "evaluator", "struct_eigen_1_1internal_1_1evaluator_3_01_open_kalman_1_1_typed_matrix_3_01_row_coeffs_00_01_co8401308c88c25275cd0767d7f186fbd6.html#add268fcbe866c7862130945ce638a7c9", null ]
-];

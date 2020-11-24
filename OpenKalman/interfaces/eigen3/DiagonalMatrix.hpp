@@ -699,17 +699,17 @@ namespace OpenKalman::Eigen3
 
   /// Get element (i) of diagonal matrix arg.
 #ifdef __cpp_concepts
-  template<Eigen3::eigen_diagonal_expr Arg> requires (element_gettable<typename MatrixTraits<Arg>::BaseMatrix, 1> or
-    element_gettable<typename MatrixTraits<Arg>::BaseMatrix, 2>)
+  template<Eigen3::eigen_diagonal_expr Arg> requires (element_gettable<nested_matrix_t<Arg>, 1> or
+    element_gettable<nested_matrix_t<Arg>, 2>)
 #else
   template<typename Arg, std::enable_if_t<Eigen3::eigen_diagonal_expr<Arg> and
-    (element_gettable<typename MatrixTraits<Arg>::BaseMatrix, 1> or
-    element_gettable<typename MatrixTraits<Arg>::BaseMatrix, 2>), int> = 0>
+    (element_gettable<nested_matrix_t<Arg>, 1> or
+    element_gettable<nested_matrix_t<Arg>, 2>), int> = 0>
 #endif
   inline auto
   get_element(Arg&& arg, const std::size_t i)
   {
-    if constexpr (element_gettable<typename MatrixTraits<Arg>::BaseMatrix, 1>)
+    if constexpr (element_gettable<nested_matrix_t<Arg>, 1>)
       return get_element(base_matrix(std::forward<Arg>(arg)), i);
     else
       return get_element(base_matrix(std::forward<Arg>(arg)), i, 1);
@@ -718,19 +718,19 @@ namespace OpenKalman::Eigen3
 
   /// Get element (i, j) of diagonal matrix arg.
 #ifdef __cpp_concepts
-  template<Eigen3::eigen_diagonal_expr Arg> requires (element_gettable<typename MatrixTraits<Arg>::BaseMatrix, 1> or
-    element_gettable<typename MatrixTraits<Arg>::BaseMatrix, 2>)
+  template<Eigen3::eigen_diagonal_expr Arg> requires (element_gettable<nested_matrix_t<Arg>, 1> or
+    element_gettable<nested_matrix_t<Arg>, 2>)
 #else
   template<typename Arg, std::enable_if_t<Eigen3::eigen_diagonal_expr<Arg> and
-    (element_gettable<typename MatrixTraits<Arg>::BaseMatrix, 1> or
-    element_gettable<typename MatrixTraits<Arg>::BaseMatrix, 2>), int> = 0>
+    (element_gettable<nested_matrix_t<Arg>, 1> or
+    element_gettable<nested_matrix_t<Arg>, 2>), int> = 0>
 #endif
   inline auto
   get_element(Arg&& arg, const std::size_t i, const std::size_t j)
   {
     if (i == j)
     {
-      if constexpr (element_gettable<typename MatrixTraits<Arg>::BaseMatrix, 1>)
+      if constexpr (element_gettable<nested_matrix_t<Arg>, 1>)
         return get_element(base_matrix(std::forward<Arg>(arg)), i);
       else
         return get_element(base_matrix(std::forward<Arg>(arg)), i, 1);
@@ -744,18 +744,18 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<Eigen3::eigen_diagonal_expr Arg, typename Scalar> requires
     (not std::is_const_v<std::remove_reference_t<Arg>>) and
-    (element_settable<typename MatrixTraits<Arg>::BaseMatrix, 1> or
-      element_settable<typename MatrixTraits<Arg>::BaseMatrix, 2>)
+    (element_settable<nested_matrix_t<Arg>, 1> or
+      element_settable<nested_matrix_t<Arg>, 2>)
 #else
   template<typename Arg, typename Scalar, std::enable_if_t<
     Eigen3::eigen_diagonal_expr<Arg> and not std::is_const_v<std::remove_reference_t<Arg>> and
-      (element_settable<typename MatrixTraits<Arg>::BaseMatrix, 1> or
-        element_settable<typename MatrixTraits<Arg>::BaseMatrix, 2>), int> = 0>
+      (element_settable<nested_matrix_t<Arg>, 1> or
+        element_settable<nested_matrix_t<Arg>, 2>), int> = 0>
 #endif
   inline void
   set_element(Arg& arg, const Scalar s, const std::size_t i)
   {
-    if constexpr (element_settable<typename MatrixTraits<Arg>::BaseMatrix, 1>)
+    if constexpr (element_settable<nested_matrix_t<Arg>, 1>)
       set_element(base_matrix(arg), s, i);
     else
       set_element(base_matrix(arg), s, i, 1);
@@ -766,20 +766,20 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<Eigen3::eigen_diagonal_expr Arg, typename Scalar> requires
     (not std::is_const_v<std::remove_reference_t<Arg>>) and
-    (element_settable<typename MatrixTraits<Arg>::BaseMatrix, 1> or
-      element_settable<typename MatrixTraits<Arg>::BaseMatrix, 2>)
+    (element_settable<nested_matrix_t<Arg>, 1> or
+      element_settable<nested_matrix_t<Arg>, 2>)
 #else
   template<typename Arg, typename Scalar, std::enable_if_t<
     Eigen3::eigen_diagonal_expr<Arg> and not std::is_const_v<std::remove_reference_t<Arg>> and
-      (element_settable<typename MatrixTraits<Arg>::BaseMatrix, 1> or
-        element_settable<typename MatrixTraits<Arg>::BaseMatrix, 2>), int> = 0>
+      (element_settable<nested_matrix_t<Arg>, 1> or
+        element_settable<nested_matrix_t<Arg>, 2>), int> = 0>
 #endif
   inline void
   set_element(Arg& arg, const Scalar s, const std::size_t i, const std::size_t j)
   {
     if (i == j)
     {
-      if constexpr (element_settable<typename MatrixTraits<Arg>::BaseMatrix, 1>)
+      if constexpr (element_settable<nested_matrix_t<Arg>, 1>)
         set_element(base_matrix(arg), s, i);
       else
         set_element(base_matrix(arg), s, i, 1);
@@ -811,7 +811,7 @@ namespace OpenKalman::Eigen3
   randomize(Params...params)
   {
     using Scalar = typename MatrixTraits<ReturnType>::Scalar;
-    using B = typename MatrixTraits<ReturnType>::BaseMatrix;
+    using B = nested_matrix_t<ReturnType>;
     constexpr auto rows = MatrixTraits<B>::dimension;
     constexpr auto cols = MatrixTraits<B>::columns;
     using Ps = typename distribution_type<Scalar>::param_type;
@@ -861,13 +861,13 @@ namespace OpenKalman::Eigen3
   {
     if constexpr(Eigen3::eigen_diagonal_expr<Arg1>)
     {
-      using B = typename MatrixTraits<Arg1>::BaseMatrix;
+      using B = nested_matrix_t<Arg1>;
       auto ret = MatrixTraits<Arg1>::make(base_matrix(std::forward<Arg1>(arg1)) + B::Constant(1));
       return make_self_contained<Arg1, Arg2>(std::move(ret));
     }
     else
     {
-      using B = typename MatrixTraits<Arg2>::BaseMatrix;
+      using B = nested_matrix_t<Arg2>;
       auto ret = MatrixTraits<Arg2>::make(B::Constant(1) + base_matrix(std::forward<Arg2>(arg2)));
       return make_self_contained<Arg1, Arg2>(std::move(ret));
     }
@@ -937,13 +937,13 @@ namespace OpenKalman::Eigen3
   {
     if constexpr(Eigen3::eigen_diagonal_expr<Arg1>)
     {
-      using B = typename MatrixTraits<Arg1>::BaseMatrix;
+      using B = nested_matrix_t<Arg1>;
       auto ret = MatrixTraits<Arg1>::make(std::forward<Arg1>(arg1).base_matrix() - B::Constant(1));
       return make_self_contained<Arg1, Arg2>(std::move(ret));
     }
     else
     {
-      using B = typename MatrixTraits<Arg2>::BaseMatrix;
+      using B = nested_matrix_t<Arg2>;
       auto ret = MatrixTraits<Arg2>::make(B::Constant(1) - std::forward<Arg2>(arg2).base_matrix());
       return make_self_contained<Arg1, Arg2>(std::move(ret));
     }

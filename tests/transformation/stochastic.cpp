@@ -29,7 +29,7 @@ TEST_F(transformations, stochastic_additive)
     mean_y = (mean_y * i + y) / (i + 1);
   }
   EXPECT_NE(mean_y, true_y);
-  EXPECT_TRUE(is_near(mean_y, true_y, MatrixTraits<M>::BaseMatrix::Constant(1.0)));
+  EXPECT_TRUE(is_near(mean_y, true_y, nested_matrix_t<M>::Constant(1.0)));
 }
 
 
@@ -47,5 +47,5 @@ TEST_F(transformations, stochastic_augmented)
     mean_y = (mean_y * i + y) / (i + 1);
   }
   EXPECT_NE(mean_y, true_y);
-  EXPECT_TRUE(is_near(mean_y, true_y, MatrixTraits<M>::BaseMatrix::Constant(1.0)));
+  EXPECT_TRUE(is_near(mean_y, true_y, nested_matrix_t<M>::Constant(1.0)));
 }

@@ -28,14 +28,14 @@ namespace OpenKalman
    * <code>Matrix<double, Coefficients<Axis, Axis, angle::Radians>, Coefficients<Axis, Axis>, Eigen::Matrix<double, 3, 2>> x;</code>
    * \tparam RowCoefficients A set of coefficients (e.g., Axis, Spherical, etc.) corresponding to the rows.
    * \tparam ColumnCoefficients Another set of coefficients corresponding to the columns.
-   * \tparam NativeMatrix The underlying native matrix or matrix expression.
+   * \tparam NestedMatrix The underlying native matrix or matrix expression.
    */
 #ifdef __cpp_concepts
-  template<coefficients RowCoefficients, coefficients ColumnCoefficients, typed_matrix_base NativeMatrix> requires
-    (RowCoefficients::size == MatrixTraits<NativeMatrix>::dimension) and
-    (ColumnCoefficients::size == MatrixTraits<NativeMatrix>::columns)
+  template<coefficients RowCoefficients, coefficients ColumnCoefficients, typed_matrix_base NestedMatrix> requires
+    (RowCoefficients::size == MatrixTraits<NestedMatrix>::dimension) and
+    (ColumnCoefficients::size == MatrixTraits<NestedMatrix>::columns) and (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
-  template<typename RowCoefficients, typename ColumnCoefficients, typename NativeMatrix>
+  template<typename RowCoefficients, typename ColumnCoefficients, typename NestedMatrix>
 #endif
   struct Matrix;
 
@@ -50,13 +50,13 @@ namespace OpenKalman
    * an Axis, and an angle::Radians, all of scalar type <code>double</code>. The underlying representation is an
    * Eigen3 column vector.
    * \tparam Coefficients Coefficient types of the mean (e.g., Axis, Polar).
-   * \tparam NativeMatrix The underlying native matrix or matrix expression.
+   * \tparam NestedMatrix The underlying native matrix or matrix expression.
    */
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, typed_matrix_base NativeMatrix> requires
-  (Coefficients::size == MatrixTraits<NativeMatrix>::dimension)
+  template<coefficients Coefficients, typed_matrix_base NestedMatrix> requires
+  (Coefficients::size == MatrixTraits<NestedMatrix>::dimension) and (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
-  template<typename Coefficients, typename NativeMatrix>
+  template<typename Coefficients, typename NestedMatrix>
 #endif
   struct Mean;
 
@@ -71,13 +71,13 @@ namespace OpenKalman
    * four-dimensional vector in Euclidean space, with the last two of the dimensions representing the angle::Radians coefficient
    * transformed to x and y locations on a unit circle associated with the angle::Radians-type coefficient.
    * \tparam Coefficients A set of coefficients (e.g., Axis, angle::Radians, Polar, etc.)
-   * \tparam NativeMatrix The underlying native matrix or matrix expression.
+   * \tparam NestedMatrix The underlying native matrix or matrix expression.
    */
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, typed_matrix_base NativeMatrix> requires
-  (Coefficients::dimension == MatrixTraits<NativeMatrix>::dimension)
+  template<coefficients Coefficients, typed_matrix_base NestedMatrix> requires
+  (Coefficients::dimension == MatrixTraits<NestedMatrix>::dimension) and (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
-  template<typename Coefficients, typename NativeMatrix>
+  template<typename Coefficients, typename NestedMatrix>
 #endif
   struct EuclideanMean;
 
@@ -86,16 +86,16 @@ namespace OpenKalman
    * \brief A self-adjoint Covariance matrix.
    * \details The coefficient types for the rows are the same as for the columns.
    * \tparam Coefficients Coefficient types.
-   * \tparam NativeMatrix The underlying native matrix or matrix expression. It can be either self-adjoint or
+   * \tparam NestedMatrix The underlying native matrix or matrix expression. It can be either self-adjoint or
    * (either upper or lower) triangular. If it is triangular, the native matrix will be multiplied by its transpose
    * when converted to a Matrix or when used in mathematical expressions. The self-adjoint and triangular versions
    * are functionally identical, but often the triangular version is more efficient.
    */
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, covariance_base NativeMatrix> requires
-  (Coefficients::size == MatrixTraits<NativeMatrix>::dimension)
+  template<coefficients Coefficients, covariance_base NestedMatrix> requires
+    (Coefficients::size == MatrixTraits<NestedMatrix>::dimension) and (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
-  template<typename Coefficients, typename NativeMatrix>
+  template<typename Coefficients, typename NestedMatrix>
 #endif
   struct Covariance;
 
@@ -106,16 +106,16 @@ namespace OpenKalman
    * If BaseMatrix is triangular, the SquareRootCovariance has the same triangle type (upper or lower). If BaseMatrix
    * is self-adjoint, the triangle type of SquareRootCovariance is considered either upper ''or'' lower.
    * \tparam Coefficients Coefficient types.
-   * \tparam NativeMatrix The underlying native matrix or matrix expression. It can be either self-adjoint or
+   * \tparam NestedMatrix The underlying native matrix or matrix expression. It can be either self-adjoint or
    * (either upper or lower) triangular. If it is self-adjoint, the native matrix will be Cholesky-factored
    * when converted to a Matrix or when used in mathematical expressions. The self-adjoint and triangular versions
    * are functionally identical, but often the triangular version is more efficient.
    */
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, covariance_base NativeMatrix> requires
-  (Coefficients::size == MatrixTraits<NativeMatrix>::dimension)
+  template<coefficients Coefficients, covariance_base NestedMatrix> requires
+  (Coefficients::size == MatrixTraits<NestedMatrix>::dimension) and (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
-  template<typename Coefficients, typename NativeMatrix>
+  template<typename Coefficients, typename NestedMatrix>
 #endif
   struct SquareRootCovariance;
 
@@ -123,14 +123,14 @@ namespace OpenKalman
   /**
    * \brief A Gaussian distribution, defined in terms of a Mean and a Covariance.
    * \tparam Coefficients Coefficient types.
-   * \tparam MeanNativeMatrix The underlying native matrix for the Mean.
-   * \tparam CovarianceNativeMatrix The underlying native matrix (triangular or self-adjoint) for the Covariance.
+   * \tparam MeanNestedMatrix The underlying native matrix for the Mean.
+   * \tparam CovarianceNestedMatrix The underlying native matrix (triangular or self-adjoint) for the Covariance.
    * \tparam random_number_engine A random number engine compatible with the c++ standard library (e.g., std::mt19937).
    */
   template<
     typename Coefficients,
-    typename MeanNativeMatrix,
-    typename CovarianceNativeMatrix,
+    typename MeanNestedMatrix,
+    typename CovarianceNestedMatrix,
     typename random_number_engine> // = std::mt19937
   struct GaussianDistribution;
 
@@ -145,8 +145,8 @@ namespace OpenKalman
     template<typename T>
     struct is_mean : std::false_type {};
 
-    template<typename Coefficients, typename BaseMatrix>
-    struct is_mean<Mean<Coefficients, BaseMatrix>> : std::true_type {};
+    template<typename Coefficients, typename NestedMatrix>
+    struct is_mean<Mean<Coefficients, NestedMatrix>> : std::true_type {};
   }
 
 
@@ -197,8 +197,8 @@ namespace OpenKalman
     template<typename T>
     struct is_euclidean_mean : std::false_type {};
 
-    template<typename Coefficients, typename BaseMatrix>
-    struct is_euclidean_mean<EuclideanMean<Coefficients, BaseMatrix>> : std::true_type {};
+    template<typename Coefficients, typename NestedMatrix>
+    struct is_euclidean_mean<EuclideanMean<Coefficients, NestedMatrix>> : std::true_type {};
   }
 
 
@@ -250,8 +250,8 @@ namespace OpenKalman
     template<typename T>
     struct is_matrix : std::false_type {};
 
-    template<typename RowCoefficients, typename ColumnCoefficients, typename BaseMatrix>
-    struct is_matrix<Matrix<RowCoefficients, ColumnCoefficients, BaseMatrix>> : std::true_type {};
+    template<typename RowCoefficients, typename ColumnCoefficients, typename NestedMatrix>
+    struct is_matrix<Matrix<RowCoefficients, ColumnCoefficients, NestedMatrix>> : std::true_type {};
   }
 
 
@@ -302,8 +302,8 @@ namespace OpenKalman
     template<typename T>
     struct is_square_root_covariance : std::false_type {};
 
-    template<typename Coefficients, typename BaseMatrix>
-    struct is_square_root_covariance<SquareRootCovariance<Coefficients, BaseMatrix>> : std::true_type {};
+    template<typename Coefficients, typename NestedMatrix>
+    struct is_square_root_covariance<SquareRootCovariance<Coefficients, NestedMatrix>> : std::true_type {};
   }
 
 
@@ -328,8 +328,8 @@ namespace OpenKalman
     template<typename T>
     struct is_sa_covariance : std::false_type {};
 
-    template<typename Coefficients, typename BaseMatrix>
-    struct is_sa_covariance<Covariance<Coefficients, BaseMatrix>> : std::true_type {};
+    template<typename Coefficients, typename NestedMatrix>
+    struct is_sa_covariance<Covariance<Coefficients, NestedMatrix>> : std::true_type {};
   }
 
 
@@ -354,8 +354,8 @@ namespace OpenKalman
     template<typename T>
     struct is_gaussian_distribution : std::false_type {};
 
-    template<typename Coefficients, typename MeanMatrix, typename CovarianceMatrix, typename re>
-    struct is_gaussian_distribution<GaussianDistribution<Coefficients, MeanMatrix, CovarianceMatrix, re>>
+    template<typename Coefficients, typename MeanNestedMatrix, typename CovarianceNestedMatrix, typename re>
+    struct is_gaussian_distribution<GaussianDistribution<Coefficients, MeanNestedMatrix, CovarianceNestedMatrix, re>>
       : std::true_type {};
   }
 
@@ -395,15 +395,15 @@ namespace OpenKalman
 
 
     // Definition and documentation are in MatrixBase.hpp
-    template<typename Derived, typename ArgType>
+    template<typename Derived, typename NestedMatrix>
     struct MatrixBase;
 
 
     // Definition and documentation are in CovarianceBase.hpp.
 #ifdef __cpp_concepts
-    template<typename Derived, typename ArgType>
+    template<typename Derived, typename NestedMatrix>
 #else
-    template<typename Derived, typename ArgType, typename Enable = void>
+    template<typename Derived, typename NestedMatrix, typename Enable = void>
 #endif
     struct CovarianceBase;
 
@@ -416,13 +416,13 @@ namespace OpenKalman
     // Definition and documentation are in ElementSetter.hpp.
     template<bool read_only, typename T>
     auto make_ElementSetter(T&&, std::size_t, std::size_t,
-                            const std::function<void()>& = []{}, const std::function<void()>& = []{});
+      const std::function<void()>& = []{}, const std::function<void()>& = []{});
 
 
     // Definition and documentation are in ElementSetter.hpp.
     template<bool read_only, typename T>
     auto make_ElementSetter(T&&, std::size_t,
-                            const std::function<void()>& = []{}, const std::function<void()>& = []{});
+      const std::function<void()>& = []{}, const std::function<void()>& = []{});
 
   } // namespace internal
 

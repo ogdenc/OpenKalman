@@ -129,7 +129,7 @@ namespace OpenKalman
       not square_root_covariance<Arg1> and not square_root_covariance<Arg2>)
     {
       using Scalar = typename MatrixTraits<Arg1>::Scalar;
-      using B = typename MatrixTraits<Arg2>::BaseMatrix;
+      using B = nested_matrix_t<Arg2>;
 
       decltype(auto) a = base_matrix(std::forward<Arg1>(arg1));
       const auto b = upper_triangular_matrix<B> ?
@@ -233,7 +233,7 @@ namespace OpenKalman
     {
       return std::forward<M>(m);
     }
-    else if constexpr(identity_matrix<typename MatrixTraits<M>::BaseMatrix>)
+    else if constexpr(identity_matrix<nested_matrix_t<M>>)
     {
       return make_Matrix<RC, CC>(internal::convert_base_matrix(std::forward<Cov>(cov)));
     }
@@ -275,7 +275,7 @@ namespace OpenKalman
     {
       return std::forward<M>(m);
     }
-    else if constexpr(identity_matrix<typename MatrixTraits<M>::BaseMatrix>)
+    else if constexpr(identity_matrix<nested_matrix_t<M>>)
     {
       return make_Matrix<RC, CC>(internal::convert_base_matrix(std::forward<Cov>(cov)));
     }
@@ -565,7 +565,7 @@ namespace OpenKalman
     using AC = typename MatrixTraits<A>::RowCoefficients;
     static_assert(equivalent_to<typename MatrixTraits<A>::ColumnCoefficients, C>);
     static_assert(not euclidean_transformed<A>);
-    using BaseMatrix = typename MatrixTraits<M>::BaseMatrix;
+    using BaseMatrix = nested_matrix_t<M>;
 
     decltype(auto) mbase = base_matrix(std::forward<M>(m));
     decltype(auto) abase = base_matrix(std::forward<A>(a));

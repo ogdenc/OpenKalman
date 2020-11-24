@@ -1,4 +1,0 @@
-var struct_open_kalman_1_1internal_1_1_concatenate_impl_3_01_polar_3_01_coeff1_00_01_coeff2_01_4_00_01_coeffs_8_8_8_01_4 =
-[
-    [ "type", "struct_open_kalman_1_1internal_1_1_concatenate_impl_3_01_polar_3_01_coeff1_00_01_coeff2_01_4_00_01_coeffs_8_8_8_01_4.html#a791b57c88d8f086fae6e2c77b998f5e6", null ]
-];

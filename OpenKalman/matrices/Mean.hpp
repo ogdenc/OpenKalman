@@ -20,7 +20,7 @@ namespace OpenKalman
   /// A typed vector.
 #ifdef __cpp_concepts
   template<coefficients Coeffs, typed_matrix_base BaseMatrix> requires
-    (Coeffs::size == MatrixTraits<BaseMatrix>::dimension)
+    (Coeffs::size == MatrixTraits<BaseMatrix>::dimension) and (not std::is_rvalue_reference_v<BaseMatrix>)
 #else
   template<typename Coeffs, typename BaseMatrix>
 #endif
@@ -31,6 +31,7 @@ namespace OpenKalman
     using Base = internal::TypedMatrixBase<Mean, Coefficients, Axes<MatrixTraits<BaseMatrix>::columns>, BaseMatrix>;
     static_assert(typed_matrix_base<BaseMatrix>);
     static_assert(Base::dimension == Coefficients::size);
+    static_assert(not std::is_rvalue_reference_v<BaseMatrix>);
     using Scalar = typename MatrixTraits<BaseMatrix>::Scalar; ///< Scalar type for this variable.
 
     /// Default constructor.
@@ -79,14 +80,15 @@ namespace OpenKalman
       static_assert(equivalent_to<typename MatrixTraits<Arg>::ColumnCoefficients, typename Base::ColumnCoefficients>);
     }
 
+
     /// Construct from a typed matrix base.
 #ifdef __cpp_concepts
     template<typed_matrix_base Arg> requires
-      (not (std::is_lvalue_reference_v<typename MatrixTraits<Arg>::BaseMatrix> or
+      (not (internal::contains_nested_lvalue_reference<Arg> or
       not std::is_constructible_v<Base, decltype(wrap_angles<Coefficients>(std::declval<Arg>()))>))
 #else
     template<typename Arg, std::enable_if_t<typed_matrix_base<Arg> and not
-      (std::is_lvalue_reference_v<typename MatrixTraits<Arg>::BaseMatrix> or
+      (internal::contains_nested_lvalue_reference<Arg> or
       not std::is_constructible_v<Base, decltype(wrap_angles<Coefficients>(std::declval<Arg>()))>), int> = 0>
 #endif
     Mean(Arg&& arg) noexcept : Base(wrap_angles<Coefficients>(std::forward<Arg>(arg)))
@@ -95,14 +97,15 @@ namespace OpenKalman
       static_assert(MatrixTraits<Arg>::columns == Base::columns);
     }
 
+
     /// Construct from a typed matrix base. For situations when angle wrapping should not occur.
 #ifdef __cpp_concepts
     template<typed_matrix_base Arg> requires
-      std::is_lvalue_reference_v<typename MatrixTraits<Arg>::BaseMatrix> or
+      internal::contains_nested_lvalue_reference<Arg> or
       (not std::is_constructible_v<Base, decltype(wrap_angles<Coefficients>(std::declval<Arg>()))>)
 #else
     template<typename Arg, std::enable_if_t<typed_matrix_base<Arg> and
-      (std::is_lvalue_reference_v<typename MatrixTraits<Arg>::BaseMatrix> or
+      (internal::contains_nested_lvalue_reference<Arg> or
       not std::is_constructible_v<Base, decltype(wrap_angles<Coefficients>(std::declval<Arg>()))>), int> = 0>
 #endif
     Mean(Arg&& arg) noexcept : Base(std::forward<Arg>(arg))

@@ -45,25 +45,24 @@ namespace OpenKalman
   struct MatrixTraits<M, std::enable_if_t<std::is_same_v<M, std::decay_t<M>> and Eigen3::eigen_native<M>>>
 #endif
   {
-    using BaseMatrix = M;
-    using Scalar = typename BaseMatrix::Scalar;
+    using Scalar = typename M::Scalar;
 
-    static constexpr std::size_t dimension = BaseMatrix::RowsAtCompileTime;
-    static constexpr std::size_t columns = BaseMatrix::ColsAtCompileTime; ///\TODO: make columns potentially dynamic (0 = dynamic?)
+    static constexpr std::size_t dimension = M::RowsAtCompileTime;
+    static constexpr std::size_t columns = M::ColsAtCompileTime; ///\TODO: make columns potentially dynamic (0 = dynamic?)
     //Note: rows or columns at compile time are -1 if the matrix is dynamic:
     static_assert(dimension > 0);
     static_assert(columns > 0);
 
     template<typename Derived>
-    using MatrixBaseType = Eigen3::internal::Eigen3MatrixBase<Derived, BaseMatrix>;
+    using MatrixBaseType = Eigen3::internal::Eigen3MatrixBase<Derived, M>;
 
     template<typename Derived>
-    using CovarianceBaseType = Eigen3::internal::Eigen3CovarianceBase<Derived, BaseMatrix>;
+    using CovarianceBaseType = Eigen3::internal::Eigen3CovarianceBase<Derived, M>;
 
     template<std::size_t rows = dimension, std::size_t cols = columns, typename S = Scalar>
     using NativeMatrix = Eigen::Matrix<S, (Eigen::Index) rows, (Eigen::Index) cols>;
 
-    using SelfContained = typename MatrixTraits<BaseMatrix>::template NativeMatrix<dimension, columns>;
+    using SelfContained = typename MatrixTraits<M>::template NativeMatrix<dimension, columns>;
 
     template<TriangleType storage_triangle = TriangleType::lower, std::size_t dim = dimension, typename S = Scalar>
     using SelfAdjointBaseType = Eigen3::SelfAdjointMatrix<NativeMatrix<dim, dim, S>, storage_triangle>;

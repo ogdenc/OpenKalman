@@ -106,18 +106,18 @@ using&#160;</td><td class="memItemRight" valign="bottom"><b>ColumnCoefficients</
 <tr class="memitem:a4c0214a7c66a84c6f348790dea5295df"><td class="memItemLeft" align="right" valign="top"><a id="a4c0214a7c66a84c6f348790dea5295df"></a>
 using&#160;</td><td class="memItemRight" valign="bottom"><b>Scalar</b> = typename <a class="el" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits</a>&lt; BaseMatrix &gt;::Scalar</td></tr>
 <tr class="separator:a4c0214a7c66a84c6f348790dea5295df"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0ed8b66755a65172b31c64c62ebf541b"><td class="memTemplParams" colspan="2"><a id="a0ed8b66755a65172b31c64c62ebf541b"></a>
+<tr class="memitem:a2675359298602657a386d6d0c6c918d1"><td class="memTemplParams" colspan="2"><a id="a2675359298602657a386d6d0c6c918d1"></a>
 template&lt;std::size_t rows = dimension, std::size_t cols = columns, typename S  = Scalar&gt; </td></tr>
-<tr class="memitem:a0ed8b66755a65172b31c64c62ebf541b"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><b>StrictMatrix</b> = typename <a class="el" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits</a>&lt; BaseMatrix &gt;::template StrictMatrix&lt; rows, cols, S &gt;</td></tr>
-<tr class="separator:a0ed8b66755a65172b31c64c62ebf541b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab636a1eb4fa0f00d4c5454cebd7f9acf"><td class="memItemLeft" align="right" valign="top"><a id="ab636a1eb4fa0f00d4c5454cebd7f9acf"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>Strict</b> = <a class="el" href="struct_open_kalman_1_1_mean.html">Mean</a>&lt; RowCoefficients, typename <a class="el" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits</a>&lt; BaseMatrix &gt;::<a class="el" href="struct_open_kalman_1_1_mean.html">Strict</a> &gt;</td></tr>
-<tr class="separator:ab636a1eb4fa0f00d4c5454cebd7f9acf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2675359298602657a386d6d0c6c918d1"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><b>NativeMatrix</b> = typename <a class="el" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits</a>&lt; BaseMatrix &gt;::template NativeMatrix&lt; rows, cols, S &gt;</td></tr>
+<tr class="separator:a2675359298602657a386d6d0c6c918d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a19b1e43418d1d8906be068ba8b451624"><td class="memItemLeft" align="right" valign="top"><a id="a19b1e43418d1d8906be068ba8b451624"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>SelfContained</b> = <a class="el" href="struct_open_kalman_1_1_mean.html">Mean</a>&lt; RowCoefficients, <a class="el" href="namespace_open_kalman.html#a1d08cc520e029d965770641656727893">self_contained_t</a>&lt; BaseMatrix &gt; &gt;</td></tr>
+<tr class="separator:a19b1e43418d1d8906be068ba8b451624"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
 <tr class="memitem:a46ec00ecd1ee0b3845dbbd801fcf3991"><td class="memTemplParams" colspan="2"><a id="a46ec00ecd1ee0b3845dbbd801fcf3991"></a>
-template&lt;typename RC  = RowCoefficients, typename CC  = void, typename Arg , std::enable_if_t&lt; is_typed_matrix_base_v&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
+template&lt;typename RC  = RowCoefficients, typename CC  = void, typename Arg , std::enable_if_t&lt; typed_matrix_base&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:a46ec00ecd1ee0b3845dbbd801fcf3991"><td class="memTemplItemLeft" align="right" valign="top">static auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_matrix_traits_3_01_mean_3_01_coeffs_00_01_nested_type_01_4_01_4.html#a46ec00ecd1ee0b3845dbbd801fcf3991">make</a> (Arg &amp;&amp;arg) noexcept</td></tr>
 <tr class="memdesc:a46ec00ecd1ee0b3845dbbd801fcf3991"><td class="mdescLeft">&#160;</td><td class="mdescRight">Make from a typed matrix base. If CC is specified, it must be axes-only. <br /></td></tr>
 <tr class="separator:a46ec00ecd1ee0b3845dbbd801fcf3991"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -142,9 +142,9 @@ static constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><b>colu
 struct OpenKalman::MatrixTraits&lt; Mean&lt; Coeffs, NestedType &gt; &gt;</h3>
 
 
-<p class="definition">Definition at line <a class="el" href="_mean_8h_source.html#l00314">314</a> of file <a class="el" href="_mean_8h_source.html">Mean.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_mean_8hpp_source.html#l00410">410</a> of file <a class="el" href="_mean_8hpp_source.html">Mean.hpp</a>.</p>
 </div><hr/>The documentation for this struct was generated from the following file:<ul>
-<li>C:/Users/cogden/CLionProjects/OpenKalman/src/variables/classes/<a class="el" href="_mean_8h_source.html">Mean.h</a></li>
+<li>C:/Users/cogden/CLionProjects/OpenKalman/OpenKalman/matrices/<a class="el" href="_mean_8hpp_source.html">Mean.hpp</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

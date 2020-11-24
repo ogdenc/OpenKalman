@@ -18,13 +18,15 @@ namespace OpenKalman
   //////////////////
 
 #ifdef __cpp_concepts
-  template<coefficients Coeffs, covariance_base ArgType> requires (Coeffs::size == MatrixTraits<ArgType>::dimension)
+  template<coefficients Coeffs, covariance_base ArgType> requires
+    (Coeffs::size == MatrixTraits<ArgType>::dimension) and (not std::is_rvalue_reference_v<ArgType>)
 #else
   template<typename Coeffs, typename ArgType>
 #endif
   struct Covariance : internal::CovarianceBase<Covariance<Coeffs, ArgType>, ArgType>
   {
     static_assert(covariance_base<ArgType>);
+    static_assert(not std::is_rvalue_reference_v<ArgType>);
     using BaseMatrix = ArgType;
     using Coefficients = Coeffs;
     using Scalar = typename MatrixTraits<BaseMatrix>::Scalar;
@@ -393,7 +395,7 @@ namespace OpenKalman
 #else
   template<typename M, std::enable_if_t<covariance<M>, int> = 0>
 #endif
-  Covariance(M&&) -> Covariance<typename MatrixTraits<M>::Coefficients, typename MatrixTraits<M>::BaseMatrix>;
+  Covariance(M&&) -> Covariance<typename MatrixTraits<M>::Coefficients, nested_matrix_t<M>>;
 
 
 #ifdef __cpp_concepts
@@ -411,7 +413,7 @@ namespace OpenKalman
 #endif
   Covariance(M&&) -> Covariance<
     typename MatrixTraits<M>::RowCoefficients,
-    typename MatrixTraits<typename MatrixTraits<M>::BaseMatrix>::template SelfAdjointBaseType<>>;
+    typename MatrixTraits<nested_matrix_t<M>>::template SelfAdjointBaseType<>>;
 
 #ifdef __cpp_concepts
   template<typed_matrix_base M> requires (not covariance_base<M>)
@@ -580,7 +582,7 @@ namespace OpenKalman
   make_Covariance()
   {
     using C = typename MatrixTraits<Arg>::Coefficients;
-    using B = typename MatrixTraits<Arg>::BaseMatrix;
+    using B = nested_matrix_t<Arg>;
     return make_Covariance<C, B>();
   }
 
@@ -599,7 +601,7 @@ namespace OpenKalman
   {
     static_assert(equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, typename MatrixTraits<Arg>::ColumnCoefficients>);
     using C = typename MatrixTraits<Arg>::RowCoefficients;
-    if constexpr(covariance_base<typename MatrixTraits<Arg>::BaseMatrix>)
+    if constexpr(covariance_base<nested_matrix_t<Arg>>)
       return make_Covariance<C>(base_matrix(std::forward<Arg>(arg)));
     else
       return make_Covariance<C, triangle_type...>(base_matrix(std::forward<Arg>(arg)));
@@ -617,7 +619,7 @@ namespace OpenKalman
   {
     static_assert(equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, typename MatrixTraits<Arg>::ColumnCoefficients>);
     using C = typename MatrixTraits<Arg>::RowCoefficients;
-    using B = typename MatrixTraits<Arg>::BaseMatrix;
+    using B = nested_matrix_t<Arg>;
     return make_Covariance<C, triangle_type, B>();
   }
 
@@ -633,7 +635,7 @@ namespace OpenKalman
   {
     static_assert(equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, typename MatrixTraits<Arg>::ColumnCoefficients>);
     using C = typename MatrixTraits<Arg>::RowCoefficients;
-    using B = typename MatrixTraits<Arg>::BaseMatrix;
+    using B = nested_matrix_t<Arg>;
     return make_Covariance<C, B>();
   }
 
