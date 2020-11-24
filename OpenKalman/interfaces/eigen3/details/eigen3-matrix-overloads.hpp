@@ -935,7 +935,7 @@ namespace OpenKalman::Eigen3
       using ResultType = decltype(f(column(arg, 0)));
       if constexpr (euclidean_expr<ResultType>)
       {
-        auto res = concatenate_horizontal(base_matrix(f(column(arg, ints)))...);
+        auto res = concatenate_horizontal(nested_matrix(f(column(arg, ints)))...);
         return MatrixTraits<ResultType>::make(std::move(res));
       }
       else
@@ -950,7 +950,7 @@ namespace OpenKalman::Eigen3
       using ResultType = decltype(f(column(arg, 0), 0));
       if constexpr (euclidean_expr<ResultType>)
       {
-        auto res = concatenate_horizontal(base_matrix(f(column(arg, ints), ints))...);
+        auto res = concatenate_horizontal(nested_matrix(f(column(arg, ints), ints))...);
         return MatrixTraits<ResultType>::make(std::move(res));
       }
       else

@@ -24,11 +24,11 @@ using std::numbers::sqrt2;
 
 #ifdef __cpp_concepts
 template<typename Arg>
-concept test_trait = typed_matrix_base<Arg> or typed_matrix<Arg> or covariance_base<Arg> or covariance<Arg>;
+concept test_trait = typed_matrix_nestable<Arg> or typed_matrix<Arg> or covariance_nestable<Arg> or covariance<Arg>;
 #else
 template<typename Arg>
 static constexpr bool test_trait =
-  typed_matrix_base<Arg> or typed_matrix<Arg> or covariance_base<Arg> or covariance<Arg>;
+  typed_matrix_nestable<Arg> or typed_matrix<Arg> or covariance_nestable<Arg> or covariance<Arg>;
 #endif
 
 

@@ -27,8 +27,8 @@ namespace OpenKalman
       template<typename T>
       struct is_eigen_self_adjoint_expr : std::false_type {};
 
-      template<typename BaseMatrix, TriangleType storage_triangle>
-      struct is_eigen_self_adjoint_expr<SelfAdjointMatrix<BaseMatrix, storage_triangle>> : std::true_type {};
+      template<typename NestedMatrix, TriangleType storage_triangle>
+      struct is_eigen_self_adjoint_expr<SelfAdjointMatrix<NestedMatrix, storage_triangle>> : std::true_type {};
     }
 
 
@@ -49,8 +49,8 @@ namespace OpenKalman
       template<typename T>
       struct is_eigen_triangular_expr : std::false_type {};
 
-      template<typename BaseMatrix, TriangleType triangle_type>
-      struct is_eigen_triangular_expr<TriangularMatrix<BaseMatrix, triangle_type>> : std::true_type {};
+      template<typename NestedMatrix, TriangleType triangle_type>
+      struct is_eigen_triangular_expr<TriangularMatrix<NestedMatrix, triangle_type>> : std::true_type {};
     }
 
 
@@ -71,8 +71,8 @@ namespace OpenKalman
       template<typename T>
       struct is_eigen_diagonal_expr : std::false_type {};
 
-      template<typename BaseMatrix>
-      struct is_eigen_diagonal_expr<DiagonalMatrix<BaseMatrix>> : std::true_type {};
+      template<typename NestedMatrix>
+      struct is_eigen_diagonal_expr<DiagonalMatrix<NestedMatrix>> : std::true_type {};
     }
 
 
@@ -93,8 +93,8 @@ namespace OpenKalman
       template<typename T>
       struct is_eigen_zero_expr : std::false_type {};
 
-      template<typename BaseMatrix>
-      struct is_eigen_zero_expr<ZeroMatrix<BaseMatrix>> : std::true_type {};
+      template<typename NestedMatrix>
+      struct is_eigen_zero_expr<ZeroMatrix<NestedMatrix>> : std::true_type {};
     }
 
 
@@ -115,8 +115,8 @@ namespace OpenKalman
       template<typename T>
       struct is_from_euclidean_expr : std::false_type {};
 
-      template<typename Coefficients, typename BaseMatrix>
-      struct is_from_euclidean_expr<FromEuclideanExpr<Coefficients, BaseMatrix>> : std::true_type {};
+      template<typename Coefficients, typename NestedMatrix>
+      struct is_from_euclidean_expr<FromEuclideanExpr<Coefficients, NestedMatrix>> : std::true_type {};
     }
 
 
@@ -137,8 +137,8 @@ namespace OpenKalman
       template<typename T>
       struct is_to_euclidean_expr : std::false_type {};
 
-      template<typename Coefficients, typename BaseMatrix>
-      struct is_to_euclidean_expr<ToEuclideanExpr<Coefficients, BaseMatrix>> : std::true_type {};
+      template<typename Coefficients, typename NestedMatrix>
+      struct is_to_euclidean_expr<ToEuclideanExpr<Coefficients, NestedMatrix>> : std::true_type {};
     }
 
 
@@ -183,8 +183,8 @@ namespace OpenKalman
       template<typename T>
       struct is_upper_storage_triangle : std::false_type {};
 
-      template<typename BaseMatrix>
-      struct is_upper_storage_triangle<Eigen3::SelfAdjointMatrix<BaseMatrix, TriangleType::upper>> : std::true_type {};
+      template<typename NestedMatrix>
+      struct is_upper_storage_triangle<Eigen3::SelfAdjointMatrix<NestedMatrix, TriangleType::upper>> : std::true_type {};
     }
 
 
@@ -205,8 +205,8 @@ namespace OpenKalman
       template<typename T>
       struct is_lower_storage_triangle : std::false_type {};
 
-      template<typename BaseMatrix>
-      struct is_lower_storage_triangle<Eigen3::SelfAdjointMatrix<BaseMatrix, TriangleType::lower>> : std::true_type {};
+      template<typename NestedMatrix>
+      struct is_lower_storage_triangle<Eigen3::SelfAdjointMatrix<NestedMatrix, TriangleType::lower>> : std::true_type {};
     }
 
 
@@ -226,7 +226,7 @@ namespace OpenKalman
 
   namespace internal
   {
-    // Defines the is_covariance_base type trait specifically for Eigen3.
+    // Defines the is_covariance_nestable type trait specifically for Eigen3.
 #ifdef __cpp_concepts
     template<typename T>
     requires
@@ -235,10 +235,10 @@ namespace OpenKalman
       Eigen3::eigen_diagonal_expr<T> or
       Eigen3::eigen_zero_expr<T> or
       (Eigen3::eigen_native<T> and (triangular_matrix<T> or self_adjoint_matrix<T>))
-    struct is_covariance_base<T>
+    struct is_covariance_nestable<T>
 #else
     template<typename T>
-    struct is_covariance_base<T, std::enable_if_t<
+    struct is_covariance_nestable<T, std::enable_if_t<
       Eigen3::eigen_self_adjoint_expr<T> or
       Eigen3::eigen_triangular_expr<T> or
       Eigen3::eigen_diagonal_expr<T> or
@@ -248,7 +248,7 @@ namespace OpenKalman
     : std::true_type {};
 
 
-    // Defines the is_typed_matrix_base type trait specifically for Eigen3.
+    // Defines the is_typed_matrix_nestable type trait specifically for Eigen3.
 #ifdef __cpp_concepts
     template<typename T>
     requires
@@ -259,10 +259,10 @@ namespace OpenKalman
       Eigen3::to_euclidean_expr<T> or
       Eigen3::from_euclidean_expr<T> or
       Eigen3::eigen_native<T>
-    struct is_typed_matrix_base<T>
+    struct is_typed_matrix_nestable<T>
 #else
     template<typename T>
-    struct is_typed_matrix_base<T, std::enable_if_t<
+    struct is_typed_matrix_nestable<T, std::enable_if_t<
       Eigen3::eigen_self_adjoint_expr<T> or
       Eigen3::eigen_triangular_expr<T> or
       Eigen3::eigen_diagonal_expr<T> or

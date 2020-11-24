@@ -183,7 +183,7 @@ TEST_F(matrices, GaussianDistribution_class)
   EXPECT_TRUE(is_near(mean_of(distT2ud_7), Mean2 {0, 0}));
   EXPECT_TRUE(is_near(covariance_of(distT2ud_7), Mat2 {0, 0, 0, 0}));
 
-  // Construct from different combinations of mean, typed matrix base, covariance, and covariance base.
+  // Construct from different combinations of mean, typed_matrix_nestable, covariance, and covariance_nestable.
   DistSA2l distSA2le_1(Mean2 {1, 2}, SA2l {9, 3, 3, 10});
   EXPECT_TRUE(is_near(mean_of(distSA2le_1), Mean2 {1, 2}));
   EXPECT_TRUE(is_near(covariance_of(distSA2le_1), Mat2 {9, 3, 3, 10}));
@@ -216,7 +216,7 @@ TEST_F(matrices, GaussianDistribution_class)
   EXPECT_TRUE(is_near(mean_of(distZ2e), Mean2 {0, 0}));
   EXPECT_TRUE(is_near(covariance_of(distZ2e), Mat2 {0, 0, 0, 0}));
 
-  // Construct from only covariance or covariance base.
+  // Construct from only covariance or covariance_nestable.
   DistSA2l distSA2lf_1(CovSA2l {9, 3, 3, 10});
   EXPECT_TRUE(is_near(mean_of(distSA2lf_1), Mean2 {0, 0}));
   EXPECT_TRUE(is_near(covariance_of(distSA2lf_1), Mat2 {9, 3, 3, 10}));
@@ -678,13 +678,13 @@ TEST_F(matrices, GaussianDistribution_overloads)
   // covariance
   EXPECT_TRUE(is_near(covariance_of(DistSA2l {{1, 2}, {9, 3, 3, 10}}), Mat2 { 9, 3, 3, 10}));
   EXPECT_TRUE(is_near(covariance_of(DistSA2u {{1, 2}, {9, 3, 3, 10}}), Mat2 { 9, 3, 3, 10}));
-  EXPECT_TRUE(is_near(base_matrix(covariance_of(DistT2l {{1, 2}, {9, 3, 3, 10}})), Mat2 { 3, 0, 1, 3}));
-  EXPECT_TRUE(is_near(base_matrix(covariance_of(DistT2u {{1, 2}, {9, 3, 3, 10}})), Mat2 { 3, 1, 0, 3}));
+  EXPECT_TRUE(is_near(nested_matrix(covariance_of(DistT2l {{1, 2}, {9, 3, 3, 10}})), Mat2 { 3, 0, 1, 3}));
+  EXPECT_TRUE(is_near(nested_matrix(covariance_of(DistT2u {{1, 2}, {9, 3, 3, 10}})), Mat2 { 3, 1, 0, 3}));
 
-  EXPECT_TRUE(is_near(base_matrix(covariance_of(to_Cholesky(DistSA2l {{1, 2}, {9, 3, 3, 10}}))), Mat2 {3, 0, 1, 3}));
-  EXPECT_TRUE(is_near(base_matrix(covariance_of(to_Cholesky(DistSA2u {{1, 2}, {9, 3, 3, 10}}))), Mat2 {3, 1, 0, 3}));
-  EXPECT_TRUE(is_near(base_matrix(covariance_of(from_Cholesky(DistT2l {{1, 2}, {9, 3, 3, 10}}))), Mat2 {9, 3, 3, 10}));
-  EXPECT_TRUE(is_near(base_matrix(covariance_of(from_Cholesky(DistT2u {{1, 2}, {9, 3, 3, 10}}))), Mat2 {9, 3, 3, 10}));
+  EXPECT_TRUE(is_near(nested_matrix(covariance_of(to_Cholesky(DistSA2l {{1, 2}, {9, 3, 3, 10}}))), Mat2 {3, 0, 1, 3}));
+  EXPECT_TRUE(is_near(nested_matrix(covariance_of(to_Cholesky(DistSA2u {{1, 2}, {9, 3, 3, 10}}))), Mat2 {3, 1, 0, 3}));
+  EXPECT_TRUE(is_near(nested_matrix(covariance_of(from_Cholesky(DistT2l {{1, 2}, {9, 3, 3, 10}}))), Mat2 {9, 3, 3, 10}));
+  EXPECT_TRUE(is_near(nested_matrix(covariance_of(from_Cholesky(DistT2u {{1, 2}, {9, 3, 3, 10}}))), Mat2 {9, 3, 3, 10}));
 
   static_assert(std::is_same_v<std::decay_t<decltype(make_self_contained(DistSA2l {Mean2 {1, 2} * 2, CovSA2l{9, 3, 3, 10} * 2}))>, DistSA2l>);
   static_assert(std::is_same_v<std::decay_t<decltype(make_self_contained(DistSA2u {Mean2 {1, 2} * 2, CovSA2u{9, 3, 3, 10} * 2}))>, DistSA2u>);

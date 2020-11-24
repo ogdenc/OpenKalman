@@ -24,10 +24,10 @@ namespace OpenKalman::internal
     using Base = internal::MatrixBase<Derived, NestedType>;
     using RowCoefficients = RowCoeffs;
     using ColumnCoefficients = ColCoeffs;
-    using BaseMatrix = NestedType; ///< The nested class.
-    using Scalar = typename MatrixTraits<BaseMatrix>::Scalar; ///< Scalar type for this variable.
-    static constexpr auto dimension = MatrixTraits<BaseMatrix>::dimension; ///< Dimension of the vector.
-    static constexpr auto columns = MatrixTraits<BaseMatrix>::columns; ///< Number of columns.
+    using NestedMatrix = NestedType; ///< The nested class.
+    using Scalar = typename MatrixTraits<NestedMatrix>::Scalar; ///< Scalar type for this variable.
+    static constexpr auto dimension = MatrixTraits<NestedMatrix>::dimension; ///< Dimension of the vector.
+    static constexpr auto columns = MatrixTraits<NestedMatrix>::columns; ///< Number of columns.
 
     /***************
      * Constructors
@@ -37,16 +37,16 @@ namespace OpenKalman::internal
     TypedMatrixBase() : Base() {}
 
     /// Copy constructor.
-    TypedMatrixBase(const TypedMatrixBase& other) : Base(other.base_matrix()) {}
+    TypedMatrixBase(const TypedMatrixBase& other) : Base(other.nested_matrix()) {}
 
     /// Move constructor.
-    TypedMatrixBase(TypedMatrixBase&& other) noexcept : Base(std::move(other).base_matrix()) {}
+    TypedMatrixBase(TypedMatrixBase&& other) noexcept : Base(std::move(other).nested_matrix()) {}
 
-    /// Construct from a typed matrix base.
+    /// Construct from a typed_matrix_nestable.
 #ifdef __cpp_concepts
-    template<typed_matrix_base Arg>
+    template<typed_matrix_nestable Arg>
 #else
-    template<typename Arg, std::enable_if_t<typed_matrix_base<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<typed_matrix_nestable<Arg>, int> = 0>
 #endif
     TypedMatrixBase(Arg&& arg) noexcept : Base(std::forward<Arg>(arg))
     {
@@ -56,7 +56,7 @@ namespace OpenKalman::internal
 
     /// Construct from a list of coefficients.
     template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...>, int> = 0>
-    TypedMatrixBase(Args ... args) : Base(MatrixTraits<BaseMatrix>::make(args...)) {}
+    TypedMatrixBase(Args ... args) : Base(MatrixTraits<NestedMatrix>::make(args...)) {}
 
     /**********************
      * Assignment Operators
@@ -68,7 +68,7 @@ namespace OpenKalman::internal
     template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
     auto& operator*=(const S s)
     {
-      this->base_matrix() *= s;
+      this->nested_matrix() *= s;
       return *this;
     }
 
@@ -76,7 +76,7 @@ namespace OpenKalman::internal
     template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
     auto& operator/=(const S s)
     {
-      this->base_matrix() /= s;
+      this->nested_matrix() /= s;
       return *this;
     }
 

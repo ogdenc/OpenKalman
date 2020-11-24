@@ -19,10 +19,10 @@ namespace OpenKalman::Eigen3
   struct ZeroMatrix : std::decay_t<ArgType>::ConstantReturnType
   {
     using ConstantReturnType = ZeroMatrix;
-    using BaseMatrix = std::decay_t<ArgType>;
-    using Base = typename BaseMatrix::ConstantReturnType;
+    using NestedMatrix = std::decay_t<ArgType>;
+    using Base = typename NestedMatrix::ConstantReturnType;
 
-    ZeroMatrix() : Base(BaseMatrix::Zero()) {};
+    ZeroMatrix() : Base(NestedMatrix::Zero()) {};
 
     template<typename Arg>
     ZeroMatrix(const Arg&) : ZeroMatrix() {};
@@ -52,7 +52,7 @@ namespace OpenKalman
     using Matrix = Eigen3::ZeroMatrix<V>;
 
   public:
-    using BaseMatrix = V;
+    using NestedMatrix = V;
     template<typename Derived>
     using MatrixBaseType = Eigen3::internal::Eigen3MatrixBase<Derived, Matrix>;
 

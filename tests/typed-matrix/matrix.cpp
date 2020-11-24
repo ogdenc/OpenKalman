@@ -304,7 +304,7 @@ TEST_F(matrices, TypedMatrix_traits)
   static_assert(zero_matrix<Matrix<C2, C3, ZeroMatrix<M23>>>);
 
   EXPECT_TRUE(is_near(MatrixTraits<Mat23>::make(
-    make_native_matrix<double, 2, 3>(1, 2, 3, 4, 5, 6)).base_matrix(), Mat23 {1, 2, 3, 4, 5, 6}));
+    make_native_matrix<double, 2, 3>(1, 2, 3, 4, 5, 6)).nested_matrix(), Mat23 {1, 2, 3, 4, 5, 6}));
   EXPECT_TRUE(is_near(MatrixTraits<Mat23>::zero(), Eigen::Matrix<double, 2, 3>::Zero()));
   EXPECT_TRUE(is_near(MatrixTraits<Mat22>::identity(), Eigen::Matrix<double, 2, 2>::Identity()));
 }
@@ -312,7 +312,7 @@ TEST_F(matrices, TypedMatrix_traits)
 
 TEST_F(matrices, TypedMatrix_overloads)
 {
-  EXPECT_TRUE(is_near(base_matrix(Mat23 {1, 2, 3, 4, 5, 6}), Mat23 {1, 2, 3, 4, 5, 6}));
+  EXPECT_TRUE(is_near(nested_matrix(Mat23 {1, 2, 3, 4, 5, 6}), Mat23 {1, 2, 3, 4, 5, 6}));
 
   EXPECT_TRUE(is_near(make_native_matrix(Mat23 {1, 2, 3, 4, 5, 6}), Mat23 {1, 2, 3, 4, 5, 6}));
 
@@ -324,15 +324,15 @@ TEST_F(matrices, TypedMatrix_overloads)
                             0.5, std::sqrt(3)/2, sqrt2/2,
                             std::sqrt(3)/2, 0.5, sqrt2/2}));
 
-  EXPECT_TRUE(is_near(to_diagonal(Mat21 {2, 3}).base_matrix(), Mat22 {2, 0, 0, 3}));
+  EXPECT_TRUE(is_near(to_diagonal(Mat21 {2, 3}).nested_matrix(), Mat22 {2, 0, 0, 3}));
   static_assert(diagonal_matrix<decltype(to_diagonal(Mat21 {2, 3}))>);
   static_assert(typed_matrix<decltype(to_diagonal(Mat21 {2, 3}))>);
   static_assert(equivalent_to<typename MatrixTraits<decltype(to_diagonal(Mat21 {2, 3}))>::ColumnCoefficients, C2>);
 
-  EXPECT_TRUE(is_near(transpose(Mat23 {1, 2, 3, 4, 5, 6}).base_matrix(), Mat32 {1, 4, 2, 5, 3, 6}));
+  EXPECT_TRUE(is_near(transpose(Mat23 {1, 2, 3, 4, 5, 6}).nested_matrix(), Mat32 {1, 4, 2, 5, 3, 6}));
   static_assert(std::is_same_v<std::decay_t<decltype(make_self_contained(transpose(Mat23 {1, 2, 3, 4, 5, 6})))>, Mat32>);
 
-  EXPECT_TRUE(is_near(adjoint(Mat23 {1, 2, 3, 4, 5, 6}).base_matrix(), Mat32 {1, 4, 2, 5, 3, 6}));
+  EXPECT_TRUE(is_near(adjoint(Mat23 {1, 2, 3, 4, 5, 6}).nested_matrix(), Mat32 {1, 4, 2, 5, 3, 6}));
   static_assert(std::is_same_v<std::decay_t<decltype(make_self_contained(adjoint(Mat23 {1, 2, 3, 4, 5, 6})))>, Mat32>);
 
   EXPECT_NEAR(determinant(Mat22 {1, 2, 3, 4}), -2, 1e-6);

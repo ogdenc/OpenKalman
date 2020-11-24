@@ -34,9 +34,9 @@ namespace OpenKalman::Eigen3::internal
 
   protected:
     template<typename Arg>
-    constexpr decltype(auto) get_ultimate_base_matrix_impl(Arg&& arg) noexcept
+    constexpr decltype(auto) get_ultimate_nested_matrix_impl(Arg&& arg) noexcept
     {
-      decltype(auto) b = base_matrix(std::forward<Arg>(arg));
+      decltype(auto) b = nested_matrix(std::forward<Arg>(arg));
       using B = decltype(b);
       if constexpr(
         Eigen3::eigen_self_adjoint_expr<B> or
@@ -44,7 +44,7 @@ namespace OpenKalman::Eigen3::internal
         Eigen3::eigen_diagonal_expr<B> or
         Eigen3::euclidean_expr<B>)
       {
-        return get_ultimate_base_matrix(b);
+        return get_ultimate_nested_matrix(b);
       }
       else
       {
@@ -54,21 +54,21 @@ namespace OpenKalman::Eigen3::internal
 
 
     template<typename Arg>
-    constexpr decltype(auto) get_ultimate_base_matrix(Arg&& arg) noexcept
+    constexpr decltype(auto) get_ultimate_nested_matrix(Arg&& arg) noexcept
     {
       if constexpr(Eigen3::eigen_self_adjoint_expr<Arg>)
       {
         if constexpr (MatrixTraits<Arg>::storage_type == TriangleType::diagonal) return std::forward<Arg>(arg);
-        else return get_ultimate_base_matrix_impl(std::forward<Arg>(arg));
+        else return get_ultimate_nested_matrix_impl(std::forward<Arg>(arg));
       }
       else if constexpr(Eigen3::eigen_triangular_expr<Arg>)
       {
         if constexpr(MatrixTraits<Arg>::triangle_type == TriangleType::diagonal) return std::forward<Arg>(arg);
-        else return get_ultimate_base_matrix_impl(std::forward<Arg>(arg));
+        else return get_ultimate_nested_matrix_impl(std::forward<Arg>(arg));
       }
       else
       {
-        return get_ultimate_base_matrix_impl(std::forward<Arg>(arg));
+        return get_ultimate_nested_matrix_impl(std::forward<Arg>(arg));
       }
     }
 
@@ -86,7 +86,7 @@ namespace OpenKalman::Eigen3::internal
 #endif
     constexpr auto operator<<(const S& s)
     {
-      auto& xpr = get_ultimate_base_matrix(static_cast<Derived&>(*this));
+      auto& xpr = get_ultimate_nested_matrix(static_cast<Derived&>(*this));
       using Xpr = std::decay_t<decltype(xpr)>;
       if constexpr(mean<Derived>)
       {
@@ -106,7 +106,7 @@ namespace OpenKalman::Eigen3::internal
     template<typename OtherDerived>
     constexpr auto operator<<(const Eigen::DenseBase<OtherDerived>& other)
     {
-      auto& xpr = get_ultimate_base_matrix(static_cast<Derived&>(*this));
+      auto& xpr = get_ultimate_nested_matrix(static_cast<Derived&>(*this));
       using Xpr = std::decay_t<decltype(xpr)>;
       if constexpr(mean<Derived>)
       {
@@ -174,10 +174,10 @@ namespace Eigen
   {
     using Scalar = typename XprType::Scalar;
     static constexpr auto dim = OpenKalman::MatrixTraits<XprType>::dimension;
-    using BaseMatrix = OpenKalman::native_matrix_t<typename OpenKalman::nested_matrix_t<XprType>, dim, 1>;
-    using Nested = CommaInitializer<BaseMatrix>;
+    using NestedMatrix = OpenKalman::native_matrix_t<typename OpenKalman::nested_matrix_t<XprType>, dim, 1>;
+    using Nested = CommaInitializer<NestedMatrix>;
 
-    BaseMatrix matrix;
+    NestedMatrix matrix;
     Nested comma_initializer;
     XprType& diag;
 
@@ -225,7 +225,7 @@ namespace Eigen
 
     auto& finished()
     {
-      diag = OpenKalman::Eigen3::DiagonalMatrix<BaseMatrix>(comma_initializer.finished());
+      diag = OpenKalman::Eigen3::DiagonalMatrix<NestedMatrix>(comma_initializer.finished());
       return diag;
     }
   };

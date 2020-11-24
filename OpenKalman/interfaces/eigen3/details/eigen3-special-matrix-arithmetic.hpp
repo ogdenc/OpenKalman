@@ -36,13 +36,13 @@ namespace OpenKalman::Eigen3
       (Eigen3::upper_storage_triangle<Arg1> and Eigen3::upper_storage_triangle<Arg2>))
     {
       auto ret = MatrixTraits<Arg1>::make(
-        base_matrix(std::forward<Arg1&&>(arg1)) + base_matrix(std::forward<Arg2&&>(arg2)));
+        nested_matrix(std::forward<Arg1&&>(arg1)) + nested_matrix(std::forward<Arg2&&>(arg2)));
       return make_self_contained<Arg1, Arg2>(std::move(ret));
     }
     else
     {
       auto ret = MatrixTraits<Arg1>::make(
-        base_matrix(std::forward<Arg1>(arg1)) + adjoint(base_matrix(std::forward<Arg2>(arg2))));
+        nested_matrix(std::forward<Arg1>(arg1)) + adjoint(nested_matrix(std::forward<Arg2>(arg2))));
       return make_self_contained<Arg1, Arg2>(std::move(ret));
     }
   }
@@ -65,14 +65,14 @@ namespace OpenKalman::Eigen3
   {
     if constexpr(lower_triangular_matrix<Arg1> == lower_triangular_matrix<Arg2>)
     {
-      auto ret = MatrixTraits<Arg1>::make(base_matrix(std::forward<Arg1>(arg1)) + base_matrix(std::forward<Arg2>(arg2)));
+      auto ret = MatrixTraits<Arg1>::make(nested_matrix(std::forward<Arg1>(arg1)) + nested_matrix(std::forward<Arg2>(arg2)));
       return make_self_contained<Arg1, Arg2>(std::move(ret));
     }
     else
     {
       auto ret = make_native_matrix(std::forward<Arg1>(arg1));
       constexpr auto mode = upper_triangular_matrix<Arg2> ? Eigen::Upper : Eigen::Lower;
-      ret.template triangularView<mode>() += base_matrix(std::forward<Arg2>(arg2));
+      ret.template triangularView<mode>() += nested_matrix(std::forward<Arg2>(arg2));
       return ret;
     }
   }
@@ -97,12 +97,12 @@ namespace OpenKalman::Eigen3
   {
     if constexpr(Eigen3::eigen_self_adjoint_expr<Arg1> or Eigen3::eigen_triangular_expr<Arg1>)
     {
-      auto ret = MatrixTraits<Arg1>::make(base_matrix(std::forward<Arg1>(arg1)) + std::forward<Arg2>(arg2));
+      auto ret = MatrixTraits<Arg1>::make(nested_matrix(std::forward<Arg1>(arg1)) + std::forward<Arg2>(arg2));
       return make_self_contained<Arg1, Arg2>(std::move(ret));
     }
     else
     {
-      auto ret = MatrixTraits<Arg2>::make(std::forward<Arg1>(arg1) + base_matrix(std::forward<Arg2>(arg2)));
+      auto ret = MatrixTraits<Arg2>::make(std::forward<Arg1>(arg1) + nested_matrix(std::forward<Arg2>(arg2)));
       return make_self_contained<Arg1, Arg2>(std::move(ret));
     }
   }
@@ -126,12 +126,12 @@ namespace OpenKalman::Eigen3
   {
     if constexpr(Eigen3::eigen_self_adjoint_expr<Arg1> or Eigen3::eigen_triangular_expr<Arg1>)
     {
-      auto ret = MatrixTraits<Arg1>::make(base_matrix(std::forward<Arg1>(arg1)) + std::forward<Arg2>(arg2));
+      auto ret = MatrixTraits<Arg1>::make(nested_matrix(std::forward<Arg1>(arg1)) + std::forward<Arg2>(arg2));
       return make_self_contained<Arg1, Arg2>(std::move(ret));
     }
     else
     {
-      auto ret = MatrixTraits<Arg2>::make(std::forward<Arg1>(arg1) + base_matrix(std::forward<Arg2>(arg2)));
+      auto ret = MatrixTraits<Arg2>::make(std::forward<Arg1>(arg1) + nested_matrix(std::forward<Arg2>(arg2)));
       return make_self_contained<Arg1, Arg2>(std::move(ret));
     }
   }
@@ -186,13 +186,13 @@ namespace OpenKalman::Eigen3
       (Eigen3::upper_storage_triangle<Arg1> and Eigen3::upper_storage_triangle<Arg2>))
     {
       auto ret = MatrixTraits<Arg1>::make(
-        base_matrix(std::forward<Arg1>(arg1)) - base_matrix(std::forward<Arg2>(arg2)));
+        nested_matrix(std::forward<Arg1>(arg1)) - nested_matrix(std::forward<Arg2>(arg2)));
       return make_self_contained<Arg1, Arg2>(std::move(ret));
     }
     else
     {
       auto ret = MatrixTraits<Arg1>::make(
-        base_matrix(std::forward<Arg1>(arg1)) - adjoint(base_matrix(std::forward<Arg2>(arg2))));
+        nested_matrix(std::forward<Arg1>(arg1)) - adjoint(nested_matrix(std::forward<Arg2>(arg2))));
       return make_self_contained<Arg1, Arg2>(std::move(ret));
     }
   }
@@ -213,14 +213,14 @@ namespace OpenKalman::Eigen3
   {
     if constexpr(OpenKalman::internal::same_triangle_type_as<Arg1, Arg2>)
     {
-      auto ret = MatrixTraits<Arg1>::make(base_matrix(std::forward<Arg1>(arg1)) - base_matrix(std::forward<Arg2>(arg2)));
+      auto ret = MatrixTraits<Arg1>::make(nested_matrix(std::forward<Arg1>(arg1)) - nested_matrix(std::forward<Arg2>(arg2)));
       return make_self_contained<Arg1, Arg2>(std::move(ret));
     }
     else
     {
       auto ret = make_native_matrix(std::forward<Arg1>(arg1));
       constexpr auto mode = upper_triangular_matrix<Arg2> ? Eigen::Upper : Eigen::Lower;
-      ret.template triangularView<mode>() -= base_matrix(std::forward<Arg2>(arg2));
+      ret.template triangularView<mode>() -= nested_matrix(std::forward<Arg2>(arg2));
       return ret;
     }
   }
@@ -246,12 +246,12 @@ namespace OpenKalman::Eigen3
     static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
     if constexpr(Eigen3::eigen_self_adjoint_expr<Arg1> or Eigen3::eigen_triangular_expr<Arg1>)
     {
-      auto ret = MatrixTraits<Arg1>::make(base_matrix(std::forward<Arg1>(arg1)) - std::forward<Arg2>(arg2));
+      auto ret = MatrixTraits<Arg1>::make(nested_matrix(std::forward<Arg1>(arg1)) - std::forward<Arg2>(arg2));
       return make_self_contained<Arg1, Arg2>(std::move(ret));
     }
     else
     {
-      auto ret = MatrixTraits<Arg2>::make(std::forward<Arg1>(arg1) - base_matrix(std::forward<Arg2>(arg2)));
+      auto ret = MatrixTraits<Arg2>::make(std::forward<Arg1>(arg1) - nested_matrix(std::forward<Arg2>(arg2)));
       return make_self_contained<Arg1, Arg2>(std::move(ret));
     }
   }
@@ -275,12 +275,12 @@ namespace OpenKalman::Eigen3
   {
     if constexpr(Eigen3::eigen_self_adjoint_expr<Arg1> or Eigen3::eigen_triangular_expr<Arg1>)
     {
-      auto ret = MatrixTraits<Arg1>::make(base_matrix(std::forward<Arg1>(arg1)) - std::forward<Arg2>(arg2));
+      auto ret = MatrixTraits<Arg1>::make(nested_matrix(std::forward<Arg1>(arg1)) - std::forward<Arg2>(arg2));
       return make_self_contained<Arg1, Arg2>(std::move(ret));
     }
     else
     {
-      auto ret = MatrixTraits<Arg2>::make(std::forward<Arg1>(arg1) - base_matrix(std::forward<Arg2>(arg2)));
+      auto ret = MatrixTraits<Arg2>::make(std::forward<Arg1>(arg1) - nested_matrix(std::forward<Arg2>(arg2)));
       return make_self_contained<Arg1, Arg2>(std::move(ret));
     }
   }
@@ -309,7 +309,7 @@ namespace OpenKalman::Eigen3
     }
     else
     {
-      return MatrixTraits<Arg2>::make(make_self_contained<Arg2>(-base_matrix(std::forward<Arg2>(arg2))));
+      return MatrixTraits<Arg2>::make(make_self_contained<Arg2>(-nested_matrix(std::forward<Arg2>(arg2))));
     }
   }
 
@@ -326,7 +326,7 @@ namespace OpenKalman::Eigen3
 #endif
   inline auto operator-(Arg&& arg)
   {
-    return MatrixTraits<Arg>::make(make_self_contained<Arg>(-base_matrix(std::forward<Arg>(arg))));
+    return MatrixTraits<Arg>::make(make_self_contained<Arg>(-nested_matrix(std::forward<Arg>(arg))));
   }
 
 
@@ -347,7 +347,7 @@ namespace OpenKalman::Eigen3
 #endif
   inline auto operator*(Arg&& arg, const S scale) noexcept
   {
-    auto ret = MatrixTraits<Arg>::make(base_matrix(std::forward<Arg>(arg)) * scale);
+    auto ret = MatrixTraits<Arg>::make(nested_matrix(std::forward<Arg>(arg)) * scale);
     return make_self_contained<Arg>(std::move(ret));
   }
 
@@ -365,7 +365,7 @@ namespace OpenKalman::Eigen3
 #endif
   inline auto operator*(const S scale, Arg&& arg) noexcept
   {
-    auto ret = MatrixTraits<Arg>::make(scale * base_matrix(std::forward<Arg>(arg)));
+    auto ret = MatrixTraits<Arg>::make(scale * nested_matrix(std::forward<Arg>(arg)));
     return make_self_contained<Arg>(std::move(ret));
   }
 
@@ -387,7 +387,7 @@ namespace OpenKalman::Eigen3
 #endif
   inline auto operator/(Arg&& arg, const S scale) noexcept
   {
-    auto ret = MatrixTraits<Arg>::make(base_matrix(std::forward<Arg>(arg)) / scale);
+    auto ret = MatrixTraits<Arg>::make(nested_matrix(std::forward<Arg>(arg)) / scale);
     return make_self_contained<Arg>(std::move(ret));
   }
 
@@ -416,13 +416,13 @@ namespace OpenKalman::Eigen3
     if constexpr(OpenKalman::internal::same_triangle_type_as<Arg1, Arg2>)
     {
       auto m2 = make_native_matrix(std::forward<Arg2>(arg2));
-      auto b = make_self_contained(std::forward<Arg1>(arg1).base_view() * std::move(m2));
+      auto b = make_self_contained(std::forward<Arg1>(arg1).nested_view() * std::move(m2));
       return MatrixTraits<Arg1>::make(std::move(b));
     }
     else
     {
       auto m2 = make_native_matrix(std::forward<Arg2>(arg2));
-      return make_self_contained(std::forward<Arg1>(arg1).base_view() * std::move(m2));
+      return make_self_contained(std::forward<Arg1>(arg1).nested_view() * std::move(m2));
     }
   }
 
@@ -446,12 +446,12 @@ namespace OpenKalman::Eigen3
   {
     if constexpr(Eigen3::eigen_self_adjoint_expr<Arg1>)
     {
-      auto ret = std::forward<Arg1>(arg1).base_view() * std::forward<Arg2>(arg2);
+      auto ret = std::forward<Arg1>(arg1).nested_view() * std::forward<Arg2>(arg2);
       return make_self_contained<Arg1, Arg2>(std::move(ret));
     }
     else
     {
-      auto ret = std::forward<Arg1>(arg1) * std::forward<Arg2>(arg2).base_view();
+      auto ret = std::forward<Arg1>(arg1) * std::forward<Arg2>(arg2).nested_view();
       return make_self_contained<Arg1, Arg2>(std::move(ret));
     }
   }
@@ -476,12 +476,12 @@ namespace OpenKalman::Eigen3
   {
     if constexpr(Eigen3::eigen_triangular_expr<Arg1>)
     {
-      auto ret = MatrixTraits<Arg1>::make(std::forward<Arg1>(arg1).base_view() * std::forward<Arg2>(arg2));
+      auto ret = MatrixTraits<Arg1>::make(std::forward<Arg1>(arg1).nested_view() * std::forward<Arg2>(arg2));
       return make_self_contained<Arg1, Arg2>(std::move(ret));
     }
     else
     {
-      auto ret = MatrixTraits<Arg2>::make(std::forward<Arg1>(arg1) * std::forward<Arg2>(arg2).base_view());
+      auto ret = MatrixTraits<Arg2>::make(std::forward<Arg1>(arg1) * std::forward<Arg2>(arg2).nested_view());
       return make_self_contained<Arg1, Arg2>(std::move(ret));
     }
   }
@@ -556,12 +556,12 @@ namespace OpenKalman::Eigen3
   {
     if constexpr(Eigen3::eigen_self_adjoint_expr<Arg1> or Eigen3::eigen_triangular_expr<Arg1>)
     {
-      auto ret = std::forward<Arg1>(arg1).base_view() * std::forward<Arg2>(arg2);
+      auto ret = std::forward<Arg1>(arg1).nested_view() * std::forward<Arg2>(arg2);
       return make_self_contained<Arg1, Arg2>(std::move(ret));
     }
     else
     {
-      auto ret = std::forward<Arg1>(arg1) * std::forward<Arg2>(arg2).base_view();
+      auto ret = std::forward<Arg1>(arg1) * std::forward<Arg2>(arg2).nested_view();
       return make_self_contained<Arg1, Arg2>(std::move(ret));
     }
   }

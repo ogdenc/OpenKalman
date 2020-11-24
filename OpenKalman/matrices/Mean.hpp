@@ -19,29 +19,29 @@ namespace OpenKalman
 
   /// A typed vector.
 #ifdef __cpp_concepts
-  template<coefficients Coeffs, typed_matrix_base BaseMatrix> requires
-    (Coeffs::size == MatrixTraits<BaseMatrix>::dimension) and (not std::is_rvalue_reference_v<BaseMatrix>)
+  template<coefficients Coeffs, typed_matrix_nestable NestedMatrix> requires
+    (Coeffs::size == MatrixTraits<NestedMatrix>::dimension) and (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
-  template<typename Coeffs, typename BaseMatrix>
+  template<typename Coeffs, typename NestedMatrix>
 #endif
   struct Mean
-    : internal::TypedMatrixBase<Mean<Coeffs, BaseMatrix>, Coeffs, Axes<MatrixTraits<BaseMatrix>::columns>, BaseMatrix>
+    : internal::TypedMatrixBase<Mean<Coeffs, NestedMatrix>, Coeffs, Axes<MatrixTraits<NestedMatrix>::columns>, NestedMatrix>
   {
     using Coefficients = Coeffs;
-    using Base = internal::TypedMatrixBase<Mean, Coefficients, Axes<MatrixTraits<BaseMatrix>::columns>, BaseMatrix>;
-    static_assert(typed_matrix_base<BaseMatrix>);
+    using Base = internal::TypedMatrixBase<Mean, Coefficients, Axes<MatrixTraits<NestedMatrix>::columns>, NestedMatrix>;
+    static_assert(typed_matrix_nestable<NestedMatrix>);
     static_assert(Base::dimension == Coefficients::size);
-    static_assert(not std::is_rvalue_reference_v<BaseMatrix>);
-    using Scalar = typename MatrixTraits<BaseMatrix>::Scalar; ///< Scalar type for this variable.
+    static_assert(not std::is_rvalue_reference_v<NestedMatrix>);
+    using Scalar = typename MatrixTraits<NestedMatrix>::Scalar; ///< Scalar type for this variable.
 
     /// Default constructor.
     Mean() : Base() {}
 
     /// Copy constructor.
-    Mean(const Mean& other) : Base(other.base_matrix()) {}
+    Mean(const Mean& other) : Base(other.nested_matrix()) {}
 
     /// Move constructor.
-    Mean(Mean&& other) noexcept : Base(std::move(other).base_matrix()) {}
+    Mean(Mean&& other) noexcept : Base(std::move(other).nested_matrix()) {}
 
     /// Construct from a compatible mean.
 #ifdef __cpp_concepts
@@ -49,7 +49,7 @@ namespace OpenKalman
 #else
     template<typename Arg, std::enable_if_t<mean<Arg>, int> = 0>
 #endif
-    Mean(Arg&& other) noexcept : Base(std::forward<Arg>(other).base_matrix())
+    Mean(Arg&& other) noexcept : Base(std::forward<Arg>(other).nested_matrix())
     {
       static_assert(equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>);
       static_assert(equivalent_to<typename MatrixTraits<Arg>::ColumnCoefficients, typename Base::ColumnCoefficients>);
@@ -62,7 +62,7 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<typed_matrix<Arg> and not euclidean_transformed<Arg> and
       not mean<Arg>, int> = 0>
 #endif
-    Mean(Arg&& other) noexcept : Mean(std::forward<Arg>(other).base_matrix())
+    Mean(Arg&& other) noexcept : Mean(std::forward<Arg>(other).nested_matrix())
     {
       static_assert(equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>);
       static_assert(equivalent_to<typename MatrixTraits<Arg>::ColumnCoefficients, typename Base::ColumnCoefficients>);
@@ -74,20 +74,20 @@ namespace OpenKalman
 #else
     template<typename Arg, std::enable_if_t<typed_matrix<Arg> and euclidean_transformed<Arg>, int> = 0>
 #endif
-    Mean(Arg&& other) noexcept : Base(from_Euclidean<Coefficients>(std::forward<Arg>(other).base_matrix()))
+    Mean(Arg&& other) noexcept : Base(from_Euclidean<Coefficients>(std::forward<Arg>(other).nested_matrix()))
     {
       static_assert(equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>);
       static_assert(equivalent_to<typename MatrixTraits<Arg>::ColumnCoefficients, typename Base::ColumnCoefficients>);
     }
 
 
-    /// Construct from a typed matrix base.
+    /// Construct from a typed_matrix_nestable.
 #ifdef __cpp_concepts
-    template<typed_matrix_base Arg> requires
+    template<typed_matrix_nestable Arg> requires
       (not (internal::contains_nested_lvalue_reference<Arg> or
       not std::is_constructible_v<Base, decltype(wrap_angles<Coefficients>(std::declval<Arg>()))>))
 #else
-    template<typename Arg, std::enable_if_t<typed_matrix_base<Arg> and not
+    template<typename Arg, std::enable_if_t<typed_matrix_nestable<Arg> and not
       (internal::contains_nested_lvalue_reference<Arg> or
       not std::is_constructible_v<Base, decltype(wrap_angles<Coefficients>(std::declval<Arg>()))>), int> = 0>
 #endif
@@ -98,13 +98,13 @@ namespace OpenKalman
     }
 
 
-    /// Construct from a typed matrix base. For situations when angle wrapping should not occur.
+    /// Construct from a typed_matrix_nestable. For situations when angle wrapping should not occur.
 #ifdef __cpp_concepts
-    template<typed_matrix_base Arg> requires
+    template<typed_matrix_nestable Arg> requires
       internal::contains_nested_lvalue_reference<Arg> or
       (not std::is_constructible_v<Base, decltype(wrap_angles<Coefficients>(std::declval<Arg>()))>)
 #else
-    template<typename Arg, std::enable_if_t<typed_matrix_base<Arg> and
+    template<typename Arg, std::enable_if_t<typed_matrix_nestable<Arg> and
       (internal::contains_nested_lvalue_reference<Arg> or
       not std::is_constructible_v<Base, decltype(wrap_angles<Coefficients>(std::declval<Arg>()))>), int> = 0>
 #endif
@@ -120,21 +120,21 @@ namespace OpenKalman
 #else
     template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...>, int> = 0>
 #endif
-    Mean(Args ... args) : Mean(MatrixTraits<BaseMatrix>::make(args...)) {}
+    Mean(Args ... args) : Mean(MatrixTraits<NestedMatrix>::make(args...)) {}
 
     /// Copy assignment operator.
     auto& operator=(const Mean& other)
     {
-      if constexpr (not zero_matrix<BaseMatrix> and not identity_matrix<BaseMatrix>) if (this != &other)
-        this->base_matrix() = other.base_matrix();
+      if constexpr (not zero_matrix<NestedMatrix> and not identity_matrix<NestedMatrix>) if (this != &other)
+        this->nested_matrix() = other.nested_matrix();
       return *this;
     }
 
     /// Move assignment operator.
     auto& operator=(Mean&& other)
     {
-      if constexpr (not zero_matrix<BaseMatrix> and not identity_matrix<BaseMatrix>) if (this != &other)
-        this->base_matrix() = std::move(other).base_matrix();
+      if constexpr (not zero_matrix<NestedMatrix> and not identity_matrix<NestedMatrix>) if (this != &other)
+        this->nested_matrix() = std::move(other).nested_matrix();
       return *this;
     }
 
@@ -148,25 +148,25 @@ namespace OpenKalman
     {
       static_assert(equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>);
       static_assert(MatrixTraits<Arg>::ColumnCoefficients::axes_only);
-      if constexpr (zero_matrix<BaseMatrix>)
+      if constexpr (zero_matrix<NestedMatrix>)
       {
         static_assert(zero_matrix<Arg>);
       }
-      else if constexpr (identity_matrix<BaseMatrix>)
+      else if constexpr (identity_matrix<NestedMatrix>)
       {
         static_assert(identity_matrix<Arg>);
       }
       else if constexpr(mean<Arg>)
       {
-        this->base_matrix() = std::forward<Arg>(other).base_matrix();
+        this->nested_matrix() = std::forward<Arg>(other).nested_matrix();
       }
       else if constexpr(euclidean_transformed<Arg>)
       {
-        this->base_matrix() = OpenKalman::from_Euclidean<Coefficients>(std::forward<Arg>(other).base_matrix());
+        this->nested_matrix() = OpenKalman::from_Euclidean<Coefficients>(std::forward<Arg>(other).nested_matrix());
       }
       else
       {
-        this->base_matrix() = OpenKalman::wrap_angles<Coefficients>(std::forward<Arg>(other).base_matrix());
+        this->nested_matrix() = OpenKalman::wrap_angles<Coefficients>(std::forward<Arg>(other).nested_matrix());
       }
       return *this;
     }
@@ -175,9 +175,9 @@ namespace OpenKalman
     auto& operator+=(const Mean& other)
     {
       if constexpr(Coefficients::axes_only)
-        this->base_matrix() += other.base_matrix();
+        this->nested_matrix() += other.nested_matrix();
       else
-        this->base_matrix() = OpenKalman::wrap_angles<Coefficients>(this->base_matrix() + other.base_matrix());
+        this->nested_matrix() = OpenKalman::wrap_angles<Coefficients>(this->nested_matrix() + other.nested_matrix());
       return *this;
     }
 
@@ -193,9 +193,9 @@ namespace OpenKalman
       static_assert(MatrixTraits<Arg>::ColumnCoefficients::axes_only);
       static_assert(not euclidean_transformed<Arg>);
       if constexpr(Coefficients::axes_only)
-        this->base_matrix() += std::forward<Arg>(other).base_matrix();
+        this->nested_matrix() += std::forward<Arg>(other).nested_matrix();
       else
-        this->base_matrix() = OpenKalman::wrap_angles<Coefficients>(this->base_matrix() + std::forward<Arg>(other).base_matrix());
+        this->nested_matrix() = OpenKalman::wrap_angles<Coefficients>(this->nested_matrix() + std::forward<Arg>(other).nested_matrix());
       return *this;
     }
 
@@ -208,11 +208,11 @@ namespace OpenKalman
     auto& operator+=(const Arg& arg) noexcept
     {
       static_assert(equivalent_to<typename DistributionTraits<Arg>::Coefficients, Coefficients>);
-      apply_columnwise(this->base_matrix(), [&arg](auto& col){
+      apply_columnwise(this->nested_matrix(), [&arg](auto& col){
         if constexpr(Coefficients::axes_only)
-          col += arg().base_matrix();
+          col += arg().nested_matrix();
         else
-          col = OpenKalman::wrap_angles<Coefficients>(col + arg().base_matrix());
+          col = OpenKalman::wrap_angles<Coefficients>(col + arg().nested_matrix());
       });
       return *this;
     }
@@ -221,9 +221,9 @@ namespace OpenKalman
     auto& operator-=(const Mean& other)
     {
       if constexpr(Coefficients::axes_only)
-        this->base_matrix() -= other.base_matrix();
+        this->nested_matrix() -= other.nested_matrix();
       else
-        this->base_matrix() = OpenKalman::wrap_angles<Coefficients>(this->base_matrix() - other.base_matrix());
+        this->nested_matrix() = OpenKalman::wrap_angles<Coefficients>(this->nested_matrix() - other.nested_matrix());
       return *this;
     }
 
@@ -239,9 +239,9 @@ namespace OpenKalman
       static_assert(MatrixTraits<Arg>::ColumnCoefficients::axes_only);
       static_assert(not euclidean_transformed<Arg>);
       if constexpr(Coefficients::axes_only)
-        this->base_matrix() -= std::forward<Arg>(other).base_matrix();
+        this->nested_matrix() -= std::forward<Arg>(other).nested_matrix();
       else
-        this->base_matrix() = OpenKalman::wrap_angles<Coefficients>(this->base_matrix() - std::forward<Arg>(other).base_matrix());
+        this->nested_matrix() = OpenKalman::wrap_angles<Coefficients>(this->nested_matrix() - std::forward<Arg>(other).nested_matrix());
       return *this;
     }
 
@@ -254,11 +254,11 @@ namespace OpenKalman
     auto& operator-=(const Arg& arg) noexcept
     {
       static_assert(equivalent_to<typename DistributionTraits<Arg>::Coefficients, Coefficients>);
-      apply_columnwise(this->base_matrix(), [&arg](auto& col){
+      apply_columnwise(this->nested_matrix(), [&arg](auto& col){
         if constexpr(Coefficients::axes_only)
-          col -= arg().base_matrix();
+          col -= arg().nested_matrix();
         else
-          col = OpenKalman::wrap_angles<Coefficients>(col - arg().base_matrix());
+          col = OpenKalman::wrap_angles<Coefficients>(col - arg().nested_matrix());
       });
       return *this;
     }
@@ -272,9 +272,9 @@ namespace OpenKalman
     auto& operator*=(const S s)
     {
       if constexpr(Coefficients::axes_only)
-        this->base_matrix() *= s;
+        this->nested_matrix() *= s;
       else
-        this->base_matrix() = OpenKalman::wrap_angles<Coefficients>(this->base_matrix() * s);
+        this->nested_matrix() = OpenKalman::wrap_angles<Coefficients>(this->nested_matrix() * s);
       return *this;
     }
 
@@ -287,9 +287,9 @@ namespace OpenKalman
     auto& operator/=(const S s)
     {
       if constexpr(Coefficients::axes_only)
-        this->base_matrix() /= s;
+        this->nested_matrix() /= s;
       else
-        this->base_matrix() = OpenKalman::wrap_angles<Coefficients>(this->base_matrix() / s);
+        this->nested_matrix() = OpenKalman::wrap_angles<Coefficients>(this->nested_matrix() / s);
       return *this;
     }
 
@@ -299,9 +299,9 @@ namespace OpenKalman
     make(Arg&& arg) noexcept { return Mean<C, self_contained_t<Arg>>(std::forward<Arg>(arg)); }
 
   public:
-    static auto zero() { return make(MatrixTraits<BaseMatrix>::zero()); }
+    static auto zero() { return make(MatrixTraits<NestedMatrix>::zero()); }
 
-    static auto identity() { return make(MatrixTraits<BaseMatrix>::identity()); }
+    static auto identity() { return make(MatrixTraits<NestedMatrix>::identity()); }
   };
 
 
@@ -309,11 +309,11 @@ namespace OpenKalman
   //        Deduction guides         //
   /////////////////////////////////////
 
-  /// Deduce template parameters from a typed matrix base, assuming axis-only coefficients.
+  /// Deduce template parameters from a typed_matrix_nestable, assuming axis-only coefficients.
 #ifdef __cpp_concepts
-  template<typed_matrix_base V>
+  template<typed_matrix_nestable V>
 #else
-  template<typename V, std::enable_if_t<typed_matrix_base<V>, int> = 0>
+  template<typename V, std::enable_if_t<typed_matrix_nestable<V>, int> = 0>
 #endif
   Mean(V&&) -> Mean<Axes<MatrixTraits<V>::dimension>, passable_t<V>>;
 
@@ -326,7 +326,7 @@ namespace OpenKalman
   template<typename V, std::enable_if_t<typed_matrix<V> and not euclidean_transformed<V>, int> = 0>
 #endif
   Mean(V&&) -> Mean<typename MatrixTraits<V>::RowCoefficients, std::decay_t<decltype(
-    wrap_angles<typename MatrixTraits<V>::RowCoefficients>(std::forward<V>(std::declval<V>()).base_matrix()))>>;
+    wrap_angles<typename MatrixTraits<V>::RowCoefficients>(std::forward<V>(std::declval<V>()).nested_matrix()))>>;
 
 
   /// Deduce template parameters from a Euclidean-transformed typed matrix.
@@ -338,19 +338,19 @@ namespace OpenKalman
     MatrixTraits<V>::ColumnCoefficients::axes_only, int> = 0>
 #endif
   Mean(V&&) -> Mean<typename MatrixTraits<V>::RowCoefficients, std::decay_t<decltype(
-    from_Euclidean<typename MatrixTraits<V>::RowCoefficients>(std::forward<V>(std::declval<V>()).base_matrix()))>>;
+    from_Euclidean<typename MatrixTraits<V>::RowCoefficients>(std::forward<V>(std::declval<V>()).nested_matrix()))>>;
 
 
   ///////////////////////////////////
   //        Make functions         //
   ///////////////////////////////////
 
-  /// Make a Mean object from a typed matrix base.
+  /// Make a Mean object from a typed_matrix_nestable.
 #ifdef __cpp_concepts
-  template<typename Coefficients = void, typed_matrix_base Arg> requires std::same_as<Coefficients, void> or
+  template<typename Coefficients = void, typed_matrix_nestable Arg> requires std::same_as<Coefficients, void> or
     (coefficients<Coefficients> and MatrixTraits<Arg>::dimension == Coefficients::size)
 #else
-  template<typename Coefficients = void, typename Arg, std::enable_if_t<typed_matrix_base<Arg>, int> = 0>
+  template<typename Coefficients = void, typename Arg, std::enable_if_t<typed_matrix_nestable<Arg>, int> = 0>
 #endif
   inline auto make_Mean(Arg&& arg) noexcept
   {
@@ -372,19 +372,19 @@ namespace OpenKalman
   {
     using C = typename MatrixTraits<Arg>::RowCoefficients;
     if constexpr(euclidean_transformed<Arg>)
-      return make_Mean<typename MatrixTraits<Arg>::RowCoefficients>(base_matrix(from_Euclidean<C>(std::forward<Arg>(arg))));
+      return make_Mean<typename MatrixTraits<Arg>::RowCoefficients>(nested_matrix(from_Euclidean<C>(std::forward<Arg>(arg))));
     else
-      return make_Mean<typename MatrixTraits<Arg>::RowCoefficients>(base_matrix(std::forward<Arg>(arg)));
+      return make_Mean<typename MatrixTraits<Arg>::RowCoefficients>(nested_matrix(std::forward<Arg>(arg)));
   }
 
 
   /// Make a default, self-contained Mean
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, typed_matrix_base V> requires
+  template<coefficients Coefficients, typed_matrix_nestable V> requires
     (coefficients<Coefficients> and MatrixTraits<V>::dimension == Coefficients::size)
 #else
   template<typename Coefficients, typename V, std::enable_if_t<
-    coefficients<Coefficients> and typed_matrix_base<V> and
+    coefficients<Coefficients> and typed_matrix_nestable<V> and
     (coefficients<Coefficients> and MatrixTraits<V>::dimension == Coefficients::size), int> = 0>
 #endif
   inline auto make_Mean()
@@ -395,9 +395,9 @@ namespace OpenKalman
 
   /// Make a default, self-contained Mean, with axis coefficients
 #ifdef __cpp_concepts
-  template<typed_matrix_base V>
+  template<typed_matrix_nestable V>
 #else
-  template<typename V, std::enable_if_t<typed_matrix_base<V>, int> = 0>
+  template<typename V, std::enable_if_t<typed_matrix_nestable<V>, int> = 0>
 #endif
   inline auto make_Mean()
   {
@@ -412,26 +412,26 @@ namespace OpenKalman
   template<typename Coeffs, typename NestedType>
   struct MatrixTraits<Mean<Coeffs, NestedType>>
   {
-    using BaseMatrix = NestedType;
-    static constexpr auto dimension = MatrixTraits<BaseMatrix>::dimension;
-    static constexpr auto columns = MatrixTraits<BaseMatrix>::columns;
+    using NestedMatrix = NestedType;
+    static constexpr auto dimension = MatrixTraits<NestedMatrix>::dimension;
+    static constexpr auto columns = MatrixTraits<NestedMatrix>::columns;
     using RowCoefficients = Coeffs;
     using ColumnCoefficients = Axes<columns>;
-    using Scalar = typename MatrixTraits<BaseMatrix>::Scalar;
+    using Scalar = typename MatrixTraits<NestedMatrix>::Scalar;
     static_assert(RowCoefficients::size == dimension);
 
     template<std::size_t rows = dimension, std::size_t cols = columns, typename S = Scalar>
-    using NativeMatrix = typename MatrixTraits<BaseMatrix>::template NativeMatrix<rows, cols, S>;
+    using NativeMatrix = typename MatrixTraits<NestedMatrix>::template NativeMatrix<rows, cols, S>;
 
-    using SelfContained = Mean<RowCoefficients, self_contained_t<BaseMatrix>>;
+    using SelfContained = Mean<RowCoefficients, self_contained_t<NestedMatrix>>;
 
-    /// Make from a typed matrix base. If CC is specified, it must be axes-only.
+    /// Make from a typed_matrix_nestable. If CC is specified, it must be axes-only.
 #ifdef __cpp_concepts
-    template<coefficients RC = RowCoefficients, typename CC = void, typed_matrix_base Arg> requires
+    template<coefficients RC = RowCoefficients, typename CC = void, typed_matrix_nestable Arg> requires
       coefficients<CC> or std::same_as<CC, void>
 #else
     template<typename RC = RowCoefficients, typename CC = void, typename Arg, std::enable_if_t<
-      typed_matrix_base<Arg>, int> = 0>
+      typed_matrix_nestable<Arg>, int> = 0>
 #endif
     static auto make(Arg&& arg) noexcept
     {
@@ -441,11 +441,11 @@ namespace OpenKalman
       return Mean<RC, std::decay_t<decltype(b)>>(b);
     }
 
-    static auto zero() { return make(MatrixTraits<BaseMatrix>::zero()); }
+    static auto zero() { return make(MatrixTraits<NestedMatrix>::zero()); }
 
     static auto identity()
     {
-      auto b = MatrixTraits<BaseMatrix>::identity();
+      auto b = MatrixTraits<NestedMatrix>::identity();
       return Matrix<RowCoefficients, RowCoefficients, decltype(b)>(std::move(b));
     }
 

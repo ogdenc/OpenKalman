@@ -22,7 +22,7 @@ using std::numbers::pi;
 
 
 template<typename Arg>
-static constexpr bool is_test_trait = typed_matrix_base<Arg> or covariance_base<Arg>;
+static constexpr bool is_test_trait = typed_matrix_nestable<Arg> or covariance_nestable<Arg>;
 
 template<typename ArgA, typename ArgB, std::enable_if_t<is_test_trait<ArgA> and is_test_trait<ArgB>, int> = 0>
 ::testing::AssertionResult is_near(ArgA&& A, ArgB&& B, const double err = 1e-6)

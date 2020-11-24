@@ -90,7 +90,7 @@ namespace OpenKalman
   using Eigen3::make_EigenSelfAdjointMatrix;
   using Eigen3::make_EigenTriangularMatrix;
 
-  using Eigen3::base_matrix;
+  using Eigen3::nested_matrix;
   using Eigen3::make_native_matrix;
   using Eigen3::make_self_contained;
   using Eigen3::to_Euclidean;

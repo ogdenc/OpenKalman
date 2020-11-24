@@ -15,19 +15,19 @@ namespace OpenKalman::internal
 {
   /**
    * /internal
-   * Convert covariance matrix to a covariance base of type T. If T is void, convert to a triangular matrix if
+   * Convert covariance matrix to a covariance_nestable of type T. If T is void, convert to a triangular matrix if
    * covariance is a square root, or otherwise convert to a self-adjoint matrix.
    * \tparam T Type to which Arg is to be converted (optional).
    * \tparam Arg Type of covariance matrix to be converted
    * \param arg Covariance matrix to be converted.
-   * \return A covariance base.
+   * \return A covariance_nestable.
    */
   template<typename T, typename Arg>
 #ifdef __cpp_concepts
-    requires (std::is_void_v<T> or covariance_base<T>) and (covariance<Arg> or typed_matrix<Arg>)
+    requires (std::is_void_v<T> or covariance_nestable<T>) and (covariance<Arg> or typed_matrix<Arg>)
 #endif
   constexpr decltype(auto)
-  convert_base_matrix(Arg&& arg) noexcept
+  convert_nested_matrix(Arg&& arg) noexcept
   {
     static_assert(covariance<Arg> or typed_matrix<Arg>);
     using ArgBase = nested_matrix_t<Arg>;
@@ -38,15 +38,15 @@ namespace OpenKalman::internal
       static_assert(equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, typename MatrixTraits<Arg>::ColumnCoefficients>);
       using SA = typename MatrixTraits<ArgBase>::template SelfAdjointBaseType<>;
       if constexpr(std::is_void_v<T>)
-        return std::forward<Arg>(arg).base_matrix();
+        return std::forward<Arg>(arg).nested_matrix();
       else
-        return MatrixTraits<T>::make(base_matrix(MatrixTraits<SA>::make(std::forward<Arg>(arg).base_matrix())));
+        return MatrixTraits<T>::make(nested_matrix(MatrixTraits<SA>::make(std::forward<Arg>(arg).nested_matrix())));
     }
 
     // Natural conversion:
     else if constexpr(std::is_void_v<T>)
     {
-      return std::forward<Arg>(arg).get_apparent_base_matrix();
+      return std::forward<Arg>(arg).get_apparent_nested_matrix();
     }
 
     // strictly triangular or diagonal square root --> self-adjoint
@@ -55,9 +55,9 @@ namespace OpenKalman::internal
     {
       if constexpr((self_adjoint_matrix<ArgBase> and not square_root_covariance<Arg>) or
         (triangular_matrix<ArgBase> and square_root_covariance<Arg>))
-        return Cholesky_square(std::forward<Arg>(arg).base_matrix());
+        return Cholesky_square(std::forward<Arg>(arg).nested_matrix());
       else
-        return std::forward<Arg>(arg).get_apparent_base_matrix();
+        return std::forward<Arg>(arg).get_apparent_nested_matrix();
     }
 
     // strictly self-adjoint or diagonal non-square root --> strictly triangular
@@ -66,24 +66,24 @@ namespace OpenKalman::internal
     {
       if constexpr(diagonal_matrix<ArgBase>) // diagonal non-square root
       {
-        return Cholesky_factor(std::forward<Arg>(arg).base_matrix());
+        return Cholesky_factor(std::forward<Arg>(arg).nested_matrix());
       }
       else // ArgBase is strictly self-adjoint.
       {
-        using B = decltype(Cholesky_factor(std::forward<Arg>(arg).base_matrix()));
+        using B = decltype(Cholesky_factor(std::forward<Arg>(arg).nested_matrix()));
         if constexpr(internal::same_triangle_type_as<B, T>) // Converted triangle types match.
         {
           if constexpr((self_adjoint_matrix<ArgBase> and not square_root_covariance<Arg>) or
             (triangular_matrix<ArgBase> and square_root_covariance<Arg>))
-            return Cholesky_factor(std::forward<Arg>(arg).base_matrix());
+            return Cholesky_factor(std::forward<Arg>(arg).nested_matrix());
           else
           {
-            return std::forward<Arg>(arg).get_apparent_base_matrix();
+            return std::forward<Arg>(arg).get_apparent_nested_matrix();
           }
         }
         else // Converted triangle types don't match.
         {
-          return Cholesky_factor(adjoint(std::forward<Arg>(arg).base_matrix()));
+          return Cholesky_factor(adjoint(std::forward<Arg>(arg).nested_matrix()));
         }
       }
     }
@@ -91,13 +91,13 @@ namespace OpenKalman::internal
     // upper triangular <--> lower triangular
     else if constexpr(cholesky_form<Arg> and triangular_matrix<T> and not (internal::same_triangle_type_as<ArgBase, T>))
     {
-      return adjoint(std::forward<Arg>(arg).base_matrix());
+      return adjoint(std::forward<Arg>(arg).nested_matrix());
     }
 
     // pass through
     else
     {
-      return std::forward<Arg>(arg).base_matrix();
+      return std::forward<Arg>(arg).nested_matrix();
     }
   }
 

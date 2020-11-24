@@ -22,8 +22,8 @@ namespace OpenKalman::Eigen3::internal
   /**
    * Ultimate base of Covariance and SquareRootCovariance classes, general case.
    * No conversion is necessary if either
-   * (1) Derived is not a square root and the base is self-adjoint; or
-   * (2) Derived is a square root and the base is triangular.
+   * (1) Derived is not a square root and the nested matrix is self-adjoint; or
+   * (2) Derived is a square root and the nested matrix is triangular.
    */
 #ifdef __cpp_concepts
   template<typename Derived, typename Nested> requires
@@ -41,7 +41,7 @@ namespace OpenKalman::Eigen3::internal
 
   /**
    * Ultimate base of Covariance and SquareRootCovariance classes, if Derived is not a square root and
-   * the base is not self-adjoint (i.e., it is triangular but not diagonal).
+   * the nested matrix is not self-adjoint (i.e., it is triangular but not diagonal).
    */
 #ifdef __cpp_concepts
   template<typename Derived, typename ArgType> requires
@@ -80,7 +80,7 @@ namespace OpenKalman::Eigen3::internal
 
   /**
    * Ultimate base of Covariance and SquareRootCovariance classes, if Derived is a square root and
-   * the base is not triangular (i.e., it is self-adjoint but not diagonal).
+   * the nested matrix is not triangular (i.e., it is self-adjoint but not diagonal).
    */
 #ifdef __cpp_concepts
   template<typename Derived, typename ArgType> requires
@@ -128,10 +128,10 @@ namespace Eigen
   struct CovarianceCommaInitializer
   {
     using Scalar = typename CovarianceType::Scalar;
-    using BaseMatrix = OpenKalman::native_matrix_t<typename OpenKalman::nested_matrix_t<CovarianceType>>;
-    using Nested = CommaInitializer<BaseMatrix>;
+    using NestedMatrix = OpenKalman::native_matrix_t<typename OpenKalman::nested_matrix_t<CovarianceType>>;
+    using Nested = CommaInitializer<NestedMatrix>;
 
-    BaseMatrix matrix;
+    NestedMatrix matrix;
     Nested comma_initializer;
     CovarianceType& cov;
 

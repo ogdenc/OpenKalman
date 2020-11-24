@@ -23,7 +23,7 @@ namespace OpenKalman::Eigen3
   template<typename Arg, std::enable_if_t<euclidean_expr<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
-  base_matrix(Arg&& arg) noexcept { return std::forward<Arg>(arg).base_matrix(); }
+  nested_matrix(Arg&& arg) noexcept { return std::forward<Arg>(arg).nested_matrix(); }
 
 
   /**
@@ -39,7 +39,7 @@ namespace OpenKalman::Eigen3
   {
     if constexpr(MatrixTraits<Arg>::Coefficients::axes_only)
     {
-      return make_native_matrix(base_matrix(std::forward<Arg>(arg)));
+      return make_native_matrix(nested_matrix(std::forward<Arg>(arg)));
     }
     else
     {
@@ -62,7 +62,7 @@ namespace OpenKalman::Eigen3
   {
     if constexpr(MatrixTraits<Arg>::Coefficients::axes_only)
     {
-      return make_self_contained<Ts...>(base_matrix(std::forward<Arg>(arg)));
+      return make_self_contained<Ts...>(nested_matrix(std::forward<Arg>(arg)));
     }
     else if constexpr(self_contained<Arg> or (std::is_lvalue_reference_v<Ts> and ... and (sizeof...(Ts) > 0)))
     {
@@ -70,13 +70,13 @@ namespace OpenKalman::Eigen3
     }
     else
     {
-      return MatrixTraits<Arg>::make(make_self_contained(base_matrix(std::forward<Arg>(arg))));
+      return MatrixTraits<Arg>::make(make_self_contained(nested_matrix(std::forward<Arg>(arg))));
     }
   }
 
 
   /// Special case for converting a matrix to Euclidean form. This is a shortcut.
-  /// Returns the base matrix of the argument, because ToEuclideanExpr<FromEuclideanExpr<M>> reduces to M.
+  /// Returns the nested matrix of the argument, because ToEuclideanExpr<FromEuclideanExpr<M>> reduces to M.
 #ifdef __cpp_concepts
   template<from_euclidean_expr Arg>
 #else
@@ -85,7 +85,7 @@ namespace OpenKalman::Eigen3
   constexpr decltype(auto)
   to_Euclidean(Arg&& arg) noexcept
   {
-    return std::forward<Arg>(arg).base_matrix();
+    return std::forward<Arg>(arg).nested_matrix();
   }
 
 
@@ -113,7 +113,7 @@ namespace OpenKalman::Eigen3
     using Coefficients = typename MatrixTraits<Arg>::Coefficients;
     if constexpr(Coefficients::axes_only)
     {
-      return std::forward<Arg>(arg).base_matrix();
+      return std::forward<Arg>(arg).nested_matrix();
     }
     else
     {
@@ -283,7 +283,7 @@ namespace OpenKalman::Eigen3
       static_assert(((cols == MatrixTraits<Vs>::columns) and ...));
       using C = Concatenate<typename MatrixTraits<V>::Coefficients, typename MatrixTraits<Vs>::Coefficients...>;
       return MatrixTraits<V>::template make<C>(
-        concatenate_vertical(base_matrix(std::forward<V>(v)), base_matrix(std::forward<Vs>(vs))...));
+        concatenate_vertical(nested_matrix(std::forward<V>(v)), nested_matrix(std::forward<Vs>(vs))...));
     }
     else
     {
@@ -309,7 +309,7 @@ namespace OpenKalman::Eigen3
       using C = typename MatrixTraits<V>::Coefficients;
       static_assert(std::conjunction_v<std::is_same<C, typename MatrixTraits<Vs>::Coefficients>...>);
       return MatrixTraits<V>::template make<C>(
-        concatenate_horizontal(base_matrix(std::forward<V>(v)), base_matrix(std::forward<Vs>(vs))...));
+        concatenate_horizontal(nested_matrix(std::forward<V>(v)), nested_matrix(std::forward<Vs>(vs))...));
     }
     else
     {
@@ -365,7 +365,7 @@ namespace OpenKalman::Eigen3
     using CC = Axes<MatrixTraits<Arg>::columns>;
     constexpr auto euclidean = from_euclidean_expr<Arg>;
     return split_vertical<internal::SplitEuclideanVertF<F, Arg, CC>, euclidean, Cs...>(
-      base_matrix(std::forward<Arg>(arg)));
+      nested_matrix(std::forward<Arg>(arg)));
   }
 
   /// Split into one or more Euclidean expressions vertically.
@@ -431,7 +431,7 @@ namespace OpenKalman::Eigen3
     static_assert((0 + ... + Cs::size) <= MatrixTraits<Arg>::columns);
     using RC = typename MatrixTraits<Arg>::Coefficients;
     return split_horizontal<internal::SplitEuclideanHorizF<F, Arg, RC>, Cs...>(
-      base_matrix(std::forward<Arg>(arg)));
+      nested_matrix(std::forward<Arg>(arg)));
   }
 
   /// Split into one or more Euclidean expressions horizontally.
@@ -477,7 +477,7 @@ namespace OpenKalman::Eigen3
     static_assert(MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns);
     constexpr auto euclidean = from_euclidean_expr<Arg>;
     return split_diagonal<internal::SplitEuclideanDiagF<F, Arg>, euclidean, Cs...>(
-      base_matrix(std::forward<Arg>(arg)));
+      nested_matrix(std::forward<Arg>(arg)));
   }
 
   /// Split into one or more Euclidean expressions diagonally. The valuated expression must be square.
@@ -549,7 +549,7 @@ namespace OpenKalman::Eigen3
   {
     if constexpr (MatrixTraits<Arg>::Coefficients::axes_only)
     {
-      return get_element(base_matrix(std::forward<Arg>(arg)), i, j);
+      return get_element(nested_matrix(std::forward<Arg>(arg)), i, j);
     }
     else
     {
@@ -557,7 +557,7 @@ namespace OpenKalman::Eigen3
       using Scalar = typename MatrixTraits<Arg>::Scalar;
       const auto get_coeff = [j, &arg] (const std::size_t row)
         {
-          return get_element(base_matrix(std::forward<Arg>(arg)), row, j);
+          return get_element(nested_matrix(std::forward<Arg>(arg)), row, j);
         };
       if constexpr(to_euclidean_expr<Arg>)
       {
@@ -585,7 +585,7 @@ namespace OpenKalman::Eigen3
   {
     if constexpr (MatrixTraits<Arg>::Coefficients::axes_only)
     {
-      return get_element(base_matrix(std::forward<Arg>(arg)), i);
+      return get_element(nested_matrix(std::forward<Arg>(arg)), i);
     }
     else
     {
@@ -593,7 +593,7 @@ namespace OpenKalman::Eigen3
       using Scalar = typename MatrixTraits<Arg>::Scalar;
       const auto get_coeff = [&arg] (const std::size_t row)
         {
-          return get_element(base_matrix(std::forward<Arg>(arg)), row);
+          return get_element(nested_matrix(std::forward<Arg>(arg)), row);
         };
       if constexpr(to_euclidean_expr<Arg>)
       {
@@ -621,13 +621,13 @@ namespace OpenKalman::Eigen3
   {
     if constexpr (MatrixTraits<Arg>::Coefficients::axes_only)
     {
-      return get_element(base_matrix(base_matrix(std::forward<Arg>(arg))), i, j);
+      return get_element(nested_matrix(nested_matrix(std::forward<Arg>(arg))), i, j);
     }
     else
     {
       using Coeffs = typename MatrixTraits<Arg>::Coefficients;
       const auto get_coeff = [j, &arg] (const std::size_t row) {
-        return get_element(base_matrix(base_matrix(std::forward<Arg>(arg))), row, j);
+        return get_element(nested_matrix(nested_matrix(std::forward<Arg>(arg))), row, j);
       };
       return OpenKalman::internal::wrap_get<Coeffs>(i, get_coeff);
     }
@@ -648,13 +648,13 @@ namespace OpenKalman::Eigen3
   {
     if constexpr (MatrixTraits<Arg>::Coefficients::axes_only)
     {
-      return get_element(base_matrix(base_matrix(std::forward<Arg>(arg))), i);
+      return get_element(nested_matrix(nested_matrix(std::forward<Arg>(arg))), i);
     }
     else
     {
       using Coeffs = typename MatrixTraits<Arg>::Coefficients;
       const auto get_coeff = [&arg] (const std::size_t row) {
-        return get_element(base_matrix(base_matrix(std::forward<Arg>(arg))), row);
+        return get_element(nested_matrix(nested_matrix(std::forward<Arg>(arg))), row);
       };
       return OpenKalman::internal::wrap_get<Coeffs>(i, get_coeff);
     }
@@ -680,7 +680,7 @@ namespace OpenKalman::Eigen3
   inline void
   set_element(Arg& arg, const Scalar s, const std::size_t i, const std::size_t j)
   {
-    set_element(base_matrix(arg), s, i, j);
+    set_element(nested_matrix(arg), s, i, j);
   }
 
 
@@ -703,17 +703,17 @@ namespace OpenKalman::Eigen3
   inline void
   set_element(Arg& arg, const Scalar s, const std::size_t i)
   {
-    set_element(base_matrix(arg), s, i);
+    set_element(nested_matrix(arg), s, i);
   }
 
 
   /**
    * Set element (i, j) of arg in FromEuclideanExpr(ToEuclideanExpr(arg)) to s.
    *
-   * This function sets the base matrix, not the wrapped resulting matrix.
+   * This function sets the nested matrix, not the wrapped resulting matrix.
    * For example, if the coefficient is Polar<Distance, angle::Radians> and the initial value of a
    * single-column vector is {-1., pi/2}, then set_element(arg, pi/4, 1, 0) will replace p/2 with pi/4 to
-   * yield {-1., pi/4} in the base matrix. The resulting wrapped expression will yield {1., -3*pi/4}.
+   * yield {-1., pi/4} in the nested matrix. The resulting wrapped expression will yield {1., -3*pi/4}.
    * \tparam Arg The matrix to set.
    * \tparam Scalar The value to set the coefficient to.
    * \param i The row of the coefficient.
@@ -736,16 +736,16 @@ namespace OpenKalman::Eigen3
   {
     if constexpr (MatrixTraits<Arg>::Coefficients::axes_only)
     {
-      set_element(base_matrix(base_matrix(arg)), s, i, j);
+      set_element(nested_matrix(nested_matrix(arg)), s, i, j);
     }
     else
     {
       using Coeffs = typename MatrixTraits<Arg>::Coefficients;
       const auto get_coeff = [&arg, j] (const std::size_t row) {
-        return get_element(base_matrix(base_matrix(arg)), row, j);
+        return get_element(nested_matrix(nested_matrix(arg)), row, j);
       };
       const auto set_coeff = [&arg, j] (const Scalar value, const std::size_t row) {
-        set_element(base_matrix(base_matrix(arg)), value, row, j);
+        set_element(nested_matrix(nested_matrix(arg)), value, row, j);
       };
       OpenKalman::internal::wrap_set<Coeffs>(s, i, set_coeff, get_coeff);
     }
@@ -755,10 +755,10 @@ namespace OpenKalman::Eigen3
   /**
    * Set element (i) of arg in FromEuclideanExpr(ToEuclideanExpr(arg)) to s, where arg is a single-column vector.
    *
-   * This function sets the base matrix, not the wrapped resulting matrix.
+   * This function sets the nested matrix, not the wrapped resulting matrix.
    * For example, if the coefficient is Polar<Distance, angle::Radians> and the initial value of a
    * single-column vector is {-1., pi/2}, then set_element(arg, pi/4, 1) will replace p/2 with pi/4 to
-   * yield {-1., pi/4} in the base matrix. The resulting wrapped expression will yield {1., -3*pi/4}.
+   * yield {-1., pi/4} in the nested matrix. The resulting wrapped expression will yield {1., -3*pi/4}.
    * \tparam Arg The matrix to set.
    * \tparam Scalar The value to set the coefficient to.
    * \param i The row of the coefficient.
@@ -780,16 +780,16 @@ namespace OpenKalman::Eigen3
   {
     if constexpr (MatrixTraits<Arg>::Coefficients::axes_only)
     {
-      set_element(base_matrix(base_matrix(arg)), s, i);
+      set_element(nested_matrix(nested_matrix(arg)), s, i);
     }
     else
     {
       using Coeffs = typename MatrixTraits<Arg>::Coefficients;
       const auto get_coeff = [&arg] (const std::size_t row) {
-        return get_element(base_matrix(base_matrix(arg)), row);
+        return get_element(nested_matrix(nested_matrix(arg)), row);
       };
       const auto set_coeff = [&arg] (const Scalar value, const std::size_t row) {
-        set_element(base_matrix(base_matrix(arg)), value, row);
+        set_element(nested_matrix(nested_matrix(arg)), value, row);
       };
       OpenKalman::internal::wrap_set<Coeffs>(s, i, set_coeff, get_coeff);
     }
@@ -804,7 +804,7 @@ namespace OpenKalman::Eigen3
   inline decltype(auto)
   column(Arg&& arg, const std::size_t index)
   {
-    return MatrixTraits<Arg>::make(column(base_matrix(std::forward<Arg>(arg)), index));
+    return MatrixTraits<Arg>::make(column(nested_matrix(std::forward<Arg>(arg)), index));
   }
 
 
@@ -816,7 +816,7 @@ namespace OpenKalman::Eigen3
   inline decltype(auto)
   column(Arg&& arg)
   {
-    return MatrixTraits<Arg>::make(column<index>(base_matrix(std::forward<Arg>(arg))));
+    return MatrixTraits<Arg>::make(column<index>(nested_matrix(std::forward<Arg>(arg))));
   }
 
 
@@ -831,13 +831,13 @@ namespace OpenKalman::Eigen3
   apply_columnwise(Arg& arg, const Function& f)
   {
     using Coefficients = typename MatrixTraits<Arg>::Coefficients;
-    const auto f_base = [&f](auto& col)
+    const auto f_nested = [&f](auto& col)
     {
       auto mc = MatrixTraits<Arg>::template make<Coefficients>(col);
       f(mc);
     };
-    auto& c = base_matrix(arg);
-    apply_columnwise(c, f_base);
+    auto& c = nested_matrix(arg);
+    apply_columnwise(c, f_nested);
     return arg;
   }
 
@@ -853,13 +853,13 @@ namespace OpenKalman::Eigen3
   apply_columnwise(Arg& arg, const Function& f)
   {
     using Coefficients = typename MatrixTraits<Arg>::Coefficients;
-    const auto f_base = [&f](auto& col, std::size_t i)
+    const auto f_nested = [&f](auto& col, std::size_t i)
     {
       auto mc = MatrixTraits<Arg>::template make<Coefficients>(col);
       f(mc, i);
     };
-    auto& c = base_matrix(arg);
-    apply_columnwise(c, f_base);
+    auto& c = nested_matrix(arg);
+    apply_columnwise(c, f_nested);
     return arg;
   }
 
@@ -877,10 +877,10 @@ namespace OpenKalman::Eigen3
   apply_columnwise(const Arg& arg, const Function& f)
   {
     using Coefficients = typename MatrixTraits<Arg>::Coefficients;
-    const auto f_base = [&f](const auto& col) {
+    const auto f_nested = [&f](const auto& col) {
       return f(MatrixTraits<Arg>::template make<Coefficients>(col));
     };
-    return apply_columnwise(base_matrix(arg), f_base);
+    return apply_columnwise(nested_matrix(arg), f_nested);
   }
 
 
@@ -897,10 +897,10 @@ namespace OpenKalman::Eigen3
   apply_columnwise(const Arg& arg, const Function& f)
   {
     using Coefficients = typename MatrixTraits<Arg>::Coefficients;
-    const auto f_base = [&f](const auto& col, std::size_t i) {
+    const auto f_nested = [&f](const auto& col, std::size_t i) {
       return f(MatrixTraits<Arg>::template make<Coefficients>(col), i);
     };
-    return apply_columnwise(base_matrix(arg), f_base);
+    return apply_columnwise(nested_matrix(arg), f_nested);
   }
 
 
@@ -914,8 +914,8 @@ namespace OpenKalman::Eigen3
   apply_columnwise(const Function& f)
   {
     using ResultType = std::invoke_result_t<Function>;
-    const auto f_base = [&f] { return base_matrix(f()); };
-    return MatrixTraits<ResultType>::make(apply_columnwise<count>(f_base));
+    const auto f_nested = [&f] { return nested_matrix(f()); };
+    return MatrixTraits<ResultType>::make(apply_columnwise<count>(f_nested));
   }
 
 
@@ -929,8 +929,8 @@ namespace OpenKalman::Eigen3
   apply_columnwise(const Function& f)
   {
     using ResultType = std::invoke_result_t<Function, std::size_t>;
-    const auto f_base = [&f](std::size_t i) { return base_matrix(f(i)); };
-    return MatrixTraits<ResultType>::make(apply_columnwise<count>(f_base));
+    const auto f_nested = [&f](std::size_t i) { return nested_matrix(f(i)); };
+    return MatrixTraits<ResultType>::make(apply_columnwise<count>(f_nested));
   }
 
 

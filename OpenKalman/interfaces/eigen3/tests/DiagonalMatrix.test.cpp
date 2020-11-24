@@ -20,7 +20,7 @@ TEST_F(eigen3, Diagonal_class)
 {
   DiagonalMatrix<Eigen::Matrix<double, 3, 1>> d1;
   d1 << 1, 2, 3;
-  EXPECT_TRUE(is_near(d1.base_matrix(), make_native_matrix<double, 3, 1>(1, 2, 3)));
+  EXPECT_TRUE(is_near(d1.nested_matrix(), make_native_matrix<double, 3, 1>(1, 2, 3)));
   DiagonalMatrix d2 = make_native_matrix(1., 2, 3);
   EXPECT_TRUE(is_near(d2, d1));
   DiagonalMatrix d3(d2);
@@ -119,8 +119,8 @@ TEST_F(eigen3, Diagonal_traits)
   static_assert(upper_triangular_matrix<decltype(DiagonalMatrix{2, 3})>);
   static_assert(not identity_matrix<decltype(DiagonalMatrix{2, 3})>);
   static_assert(not zero_matrix<decltype(DiagonalMatrix{2, 3})>);
-  static_assert(covariance_base<decltype(DiagonalMatrix{2, 3})>);
-  static_assert(covariance_base<decltype(Mat3::Identity())>);
+  static_assert(covariance_nestable<decltype(DiagonalMatrix{2, 3})>);
+  static_assert(covariance_nestable<decltype(Mat3::Identity())>);
   static_assert(identity_matrix<decltype(Mat3::Identity() * Mat3::Identity())>);
   static_assert(diagonal_matrix<decltype(0.3 * Mat3::Identity() + 0.7 * Mat3::Identity() * 0.7)>);
   static_assert(diagonal_matrix<decltype(0.7 * Mat3::Identity() * 0.7 - Mat3::Identity() * 0.3)>);

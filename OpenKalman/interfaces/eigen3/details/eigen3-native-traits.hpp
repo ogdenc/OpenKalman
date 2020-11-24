@@ -54,11 +54,11 @@ namespace Eigen::internal
     };
   };
 
-  template<typename BaseMatrix, OpenKalman::TriangleType storage_triangle>
-  struct traits<OpenKalman::Eigen3::SelfAdjointMatrix<BaseMatrix, storage_triangle>>
-    : traits<std::decay_t<BaseMatrix>>
+  template<typename NestedMatrix, OpenKalman::TriangleType storage_triangle>
+  struct traits<OpenKalman::Eigen3::SelfAdjointMatrix<NestedMatrix, storage_triangle>>
+    : traits<std::decay_t<NestedMatrix>>
   {
-    using Nested = std::decay_t<BaseMatrix>;
+    using Nested = std::decay_t<NestedMatrix>;
     enum
     {
       Flags = traits<Nested>::Flags & (~DirectAccessBit) & (~LinearAccessBit) & (~PacketAccessBit),
@@ -69,11 +69,11 @@ namespace Eigen::internal
     };
   };
 
-  template<typename BaseMatrix, OpenKalman::TriangleType triangle_type>
-  struct traits<OpenKalman::Eigen3::TriangularMatrix<BaseMatrix, triangle_type>>
-    : traits<std::decay_t<BaseMatrix>>
+  template<typename NestedMatrix, OpenKalman::TriangleType triangle_type>
+  struct traits<OpenKalman::Eigen3::TriangularMatrix<NestedMatrix, triangle_type>>
+    : traits<std::decay_t<NestedMatrix>>
   {
-    using Nested = std::decay_t<BaseMatrix>;
+    using Nested = std::decay_t<NestedMatrix>;
     enum
     {
       Flags = traits<Nested>::Flags & (~DirectAccessBit) & (~LinearAccessBit) & (~PacketAccessBit),

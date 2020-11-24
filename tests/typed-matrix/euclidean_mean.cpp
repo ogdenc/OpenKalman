@@ -76,7 +76,7 @@ TEST_F(matrices, EuclideanMean_class)
     0.5, std::sqrt(3)/2, sqrt2/2,
     std::sqrt(3)/2, 0.5, sqrt2/2}));
 
-  // Construct from a typed matrix base
+  // Construct from a typed_matrix_nestable
   Mat23 mat23d(make_native_matrix<M33>(1, 2, 3, 4, 5, 6, 7, 8, 9));
   EXPECT_TRUE(is_near(mat23d, TM33 {1, 2, 3, 4, 5, 6, 7, 8, 9}));
 
@@ -106,7 +106,7 @@ TEST_F(matrices, EuclideanMean_class)
     std::sqrt(3)/2, sqrt2/2, 0.5,
     0.5, sqrt2/2, std::sqrt(3)/2}));
 
-  // assign from a typed matrix base
+  // assign from a typed_matrix_nestable
   mat23e = make_native_matrix<M33>(3, 4, 5, 6, 7, 8, 9, 10, 11);
 
   // Assign from a list of coefficients (via move assignment operator)
@@ -243,7 +243,7 @@ TEST_F(matrices, EuclideanMean_traits)
   static_assert(zero_matrix<EuclideanMean<C2, ZeroMatrix<M33>>>);
 
   EXPECT_TRUE(is_near(MatrixTraits<Mat23>::make(
-    make_native_matrix<double, 3, 3>(1, 2, 3, 4, 5, 6, 7, 8, 9)).base_matrix(), TM33 {1, 2, 3, 4, 5, 6, 7, 8, 9}));
+    make_native_matrix<double, 3, 3>(1, 2, 3, 4, 5, 6, 7, 8, 9)).nested_matrix(), TM33 {1, 2, 3, 4, 5, 6, 7, 8, 9}));
   EXPECT_TRUE(is_near(MatrixTraits<Mat23>::zero(), Eigen::Matrix<double, 3, 3>::Zero()));
   EXPECT_TRUE(is_near(MatrixTraits<EuclideanMean<Axes<2>, I22>>::identity(), Eigen::Matrix<double, 2, 2>::Identity()));
 }
@@ -251,7 +251,7 @@ TEST_F(matrices, EuclideanMean_traits)
 
 TEST_F(matrices, EuclideanMean_overloads)
 {
-  EXPECT_TRUE(is_near(base_matrix(Mat23 {1, 2, 3, 4, 5, 6, 7, 8, 9}), TM33 {1, 2, 3, 4, 5, 6, 7, 8, 9}));
+  EXPECT_TRUE(is_near(nested_matrix(Mat23 {1, 2, 3, 4, 5, 6, 7, 8, 9}), TM33 {1, 2, 3, 4, 5, 6, 7, 8, 9}));
 
   EXPECT_TRUE(is_near(make_native_matrix(Mat23 {1, 2, 3, 4, 5, 6, 7, 8, 9}), TM33 {1, 2, 3, 4, 5, 6, 7, 8, 9}));
 
@@ -271,18 +271,18 @@ TEST_F(matrices, EuclideanMean_overloads)
   using A3 = Coefficients<angle::Radians, Axis, angle::Radians>;
   const auto m2 = make_EuclideanMean<A3>(std::sqrt(3) / 2, 0.5, 5, 0.5, -std::sqrt(3) / 2);
   const auto x2 = (Eigen::Matrix<double, 3, 1> {} << pi / 6, 5, -pi / 3).finished();
-  EXPECT_TRUE(is_near(from_Euclidean(m2).base_matrix(), x2));
+  EXPECT_TRUE(is_near(from_Euclidean(m2).nested_matrix(), x2));
 
-  EXPECT_TRUE(is_near(to_diagonal(EuclideanMean<Axes<2>, M21> {2, 3}).base_matrix(), TM22 {2, 0, 0, 3}));
+  EXPECT_TRUE(is_near(to_diagonal(EuclideanMean<Axes<2>, M21> {2, 3}).nested_matrix(), TM22 {2, 0, 0, 3}));
   static_assert(diagonal_matrix<decltype(to_diagonal(EuclideanMean<Axes<2>, M21> {2, 3}))>);
   static_assert(typed_matrix<decltype(to_diagonal(EuclideanMean<Axes<2>, M21> {2, 3}))>);
   static_assert(equivalent_to<typename MatrixTraits<decltype(to_diagonal(EuclideanMean<Axes<2>, M21> {2, 3}))>::ColumnCoefficients, Axes<2>>);
 
-  EXPECT_TRUE(is_near(transpose(EuclideanMean<Axes<2>, M23> {1, 2, 3, 4, 5, 6}).base_matrix(), TM32 {1, 4, 2, 5, 3, 6}));
+  EXPECT_TRUE(is_near(transpose(EuclideanMean<Axes<2>, M23> {1, 2, 3, 4, 5, 6}).nested_matrix(), TM32 {1, 4, 2, 5, 3, 6}));
   static_assert(equivalent_to<typename MatrixTraits<decltype(transpose(EuclideanMean<Axes<2>, M23> {1, 2, 3, 4, 5, 6}))>::RowCoefficients, Axes<3>>);
   static_assert(equivalent_to<typename MatrixTraits<decltype(transpose(EuclideanMean<Axes<2>, M23> {1, 2, 3, 4, 5, 6}))>::ColumnCoefficients, Axes<2>>);
 
-  EXPECT_TRUE(is_near(adjoint(EuclideanMean<Axes<2>, M23> {1, 2, 3, 4, 5, 6}).base_matrix(), TM32 {1, 4, 2, 5, 3, 6}));
+  EXPECT_TRUE(is_near(adjoint(EuclideanMean<Axes<2>, M23> {1, 2, 3, 4, 5, 6}).nested_matrix(), TM32 {1, 4, 2, 5, 3, 6}));
   static_assert(equivalent_to<typename MatrixTraits<decltype(adjoint(EuclideanMean<Axes<2>, M23> {1, 2, 3, 4, 5, 6}))>::RowCoefficients, Axes<3>>);
   static_assert(equivalent_to<typename MatrixTraits<decltype(adjoint(EuclideanMean<Axes<2>, M23> {1, 2, 3, 4, 5, 6}))>::ColumnCoefficients, Axes<2>>);
 

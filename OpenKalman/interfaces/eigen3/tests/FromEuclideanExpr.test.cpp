@@ -33,11 +33,11 @@ TEST_F(eigen3, FromEuclideanExpr_class)
   m << 1, 2, pi/6, pi/3, 3, 4;
   From4 d1;
   d1 << 1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4;
-  EXPECT_TRUE(is_near(d1.base_matrix(), mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
+  EXPECT_TRUE(is_near(d1.nested_matrix(), mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
   EXPECT_TRUE(is_near(d1, m));
   FromTo3 d1b;
   d1b << 1, 2, pi/6, pi/3, 3, 4;
-  EXPECT_TRUE(is_near(d1b.base_matrix(), mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
+  EXPECT_TRUE(is_near(d1b.nested_matrix(), mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
   EXPECT_TRUE(is_near(d1b, mat3(1, 2, pi/6, pi/3, 3, 4)));
   //
   From4 d2 = (M4() << 1, 2, std::sqrt(3.)/2, 0.5, 0.5, std::sqrt(3.)/2, 3, 4).finished();
@@ -56,7 +56,7 @@ TEST_F(eigen3, FromEuclideanExpr_class)
   EXPECT_TRUE(is_near(d8, m));
   EXPECT_TRUE(is_near(From4(ZeroMatrix<M4>()), mat3(0, 0, 0, 0, 0, 0)));
   FromTo3 d9 {1, 2, pi/6, pi/3, 3, 4};
-  EXPECT_TRUE(is_near(d9.base_matrix(), mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
+  EXPECT_TRUE(is_near(d9.nested_matrix(), mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
   EXPECT_TRUE(is_near(d9, mat3(1, 2, pi/6, pi/3, 3, 4)));
   //
   d5 = d1;
@@ -121,7 +121,7 @@ TEST_F(eigen3, FromEuclideanExpr_subscripts)
 TEST_F(eigen3, FromEuclideanExpr_traits)
 {
   static_assert(from_euclidean_expr<decltype(From4 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4})>);
-  static_assert(typed_matrix_base<decltype(From4 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4})>);
+  static_assert(typed_matrix_nestable<decltype(From4 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4})>);
   static_assert(not to_euclidean_expr<decltype(From4 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4})>);
   static_assert(not eigen_native<decltype(From4 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4})>);
   static_assert(not eigen_matrix<decltype(From4 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4})>);
@@ -139,7 +139,7 @@ TEST_F(eigen3, FromEuclideanExpr_traits)
 
 TEST_F(eigen3, FromEuclideanExpr_overloads)
 {
-  EXPECT_TRUE(is_near(base_matrix(From4 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
+  EXPECT_TRUE(is_near(nested_matrix(From4 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
   EXPECT_TRUE(is_near(make_native_matrix(From4 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), mat3(1, 2, pi/6, pi/3, 3, 4)));
   EXPECT_TRUE(is_near(make_self_contained(From4 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), mat3(1, 2, pi/6, pi/3, 3, 4)));
   EXPECT_TRUE(is_near(to_Euclidean(From4 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));

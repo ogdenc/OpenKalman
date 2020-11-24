@@ -36,11 +36,11 @@ TEST_F(eigen3, ToEuclideanExpr_class)
   m << 1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4;
   To3 d1;
   d1 << 1, 2, pi/6, pi/3, 3, 4;
-  EXPECT_TRUE(is_near(d1.base_matrix(), mat3(1, 2, pi/6, pi/3, 3, 4)));
+  EXPECT_TRUE(is_near(d1.nested_matrix(), mat3(1, 2, pi/6, pi/3, 3, 4)));
   EXPECT_TRUE(is_near(d1, m));
   ToFrom4 d1b;
   d1b << 1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4;
-  EXPECT_TRUE(is_near(d1b.base_matrix(), mat3(1, 2, pi/6, pi/3, 3, 4)));
+  EXPECT_TRUE(is_near(d1b.nested_matrix(), mat3(1, 2, pi/6, pi/3, 3, 4)));
   EXPECT_TRUE(is_near(d1b, mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
   //
   To3 d2 = (M3() << 1, 2, pi/6, pi/3, 3, 4).finished();
@@ -59,7 +59,7 @@ TEST_F(eigen3, ToEuclideanExpr_class)
   EXPECT_TRUE(is_near(d8, m));
   EXPECT_TRUE(is_near(To3(ZeroMatrix<M3>()), mat4(0, 0, 1, 1, 0, 0, 0, 0)));
   ToFrom4 d9 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4};
-  EXPECT_TRUE(is_near(d9.base_matrix(), mat3(1, 2, pi/6, pi/3, 3, 4)));
+  EXPECT_TRUE(is_near(d9.nested_matrix(), mat3(1, 2, pi/6, pi/3, 3, 4)));
   EXPECT_TRUE(is_near(d9, mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
   //
   d5 = d1;
@@ -119,7 +119,7 @@ TEST_F(eigen3, ToEuclideanExpr_subscripts)
 TEST_F(eigen3, ToEuclideanExpr_traits)
 {
   static_assert(to_euclidean_expr<decltype(To3 {1, 2, pi/6, pi/3, 3, 4})>);
-  static_assert(typed_matrix_base<decltype(To3 {1, 2, pi/6, pi/3, 3, 4})>);
+  static_assert(typed_matrix_nestable<decltype(To3 {1, 2, pi/6, pi/3, 3, 4})>);
   static_assert(not from_euclidean_expr<decltype(To3 {1, 2, pi/6, pi/3, 3, 4})>);
   static_assert(not eigen_native<decltype(To3 {1, 2, pi/6, pi/3, 3, 4})>);
   static_assert(not eigen_matrix<decltype(To3 {1, 2, pi/6, pi/3, 3, 4})>);
@@ -137,7 +137,7 @@ TEST_F(eigen3, ToEuclideanExpr_traits)
 
 TEST_F(eigen3, ToEuclideanExpr_overloads)
 {
-  EXPECT_TRUE(is_near(base_matrix(To3 {1, 2, pi/6, pi/3, 3, 4}), mat3(1, 2, pi/6, pi/3, 3, 4)));
+  EXPECT_TRUE(is_near(nested_matrix(To3 {1, 2, pi/6, pi/3, 3, 4}), mat3(1, 2, pi/6, pi/3, 3, 4)));
   EXPECT_TRUE(is_near(make_native_matrix(To3 {1, 2, pi/6, pi/3, 3, 4}), mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
   EXPECT_TRUE(is_near(make_self_contained(To3 {1, 2, pi/6, pi/3, 3, 4}), mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
   EXPECT_TRUE(is_near(from_Euclidean(To3 {1, 2, 2*pi + pi/6, -4*pi + pi/3, 3, 4}), mat3(1, 2, pi/6, pi/3, 3, 4)));

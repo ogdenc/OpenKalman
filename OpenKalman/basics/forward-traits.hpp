@@ -226,7 +226,7 @@ namespace OpenKalman
 
 
   // --------------------- //
-  //    covariance_base    //
+  //    covariance_nestable    //
   // --------------------- //
 
   namespace internal
@@ -241,30 +241,30 @@ namespace OpenKalman
 #else
     template<typename T, typename Enable = void> ///< \tparam Enable A dummy parameter for selection with SFINAE.
 #endif
-    struct is_covariance_base : std::false_type {};
+    struct is_covariance_nestable : std::false_type {};
   }
 
   /**
-   * \brief T is an acceptable base matrix for a covariance (including square_root_covariance).
+   * \brief T is an acceptable nested matrix for a covariance (including square_root_covariance).
    * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept covariance_base = internal::is_covariance_base<std::decay_t<T>>::value;
+  concept covariance_nestable = internal::is_covariance_nestable<std::decay_t<T>>::value;
 #else
-  inline constexpr bool covariance_base = internal::is_covariance_base<std::decay_t<T>>::value;
+  inline constexpr bool covariance_nestable = internal::is_covariance_nestable<std::decay_t<T>>::value;
 #endif
 
 
   // ----------------------- //
-  //    typed_matrix_base    //
+  //    typed_matrix_nestable    //
   // ----------------------- //
 
   namespace internal
   {
     /**
      * \internal
-     * \brief A type trait testing whether T is acceptable to be wrapped in a typed_matrix.
+     * \brief A type trait testing whether T is acceptable to be nested in a typed_matrix.
      * \note: This class should be specialized for all appropriate matrix classes.
      */
 #ifdef __cpp_concepts
@@ -272,18 +272,18 @@ namespace OpenKalman
 #else
     template<typename T, typename Enable = void> ///< \tparam Enable A dummy parameter for selection with SFINAE.
 #endif
-    struct is_typed_matrix_base : std::false_type {};
+    struct is_typed_matrix_nestable : std::false_type {};
   }
 
   /**
-   * \brief T is an acceptable base for a general typed matrix (e.g., matrix, mean, or euclidean_mean)
+   * \brief Specifies a type that is nestable in a general typed matrix (e.g., matrix, mean, or euclidean_mean)
    * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept typed_matrix_base = internal::is_typed_matrix_base<std::decay_t<T>>::value;
+  concept typed_matrix_nestable = internal::is_typed_matrix_nestable<std::decay_t<T>>::value;
 #else
-  inline constexpr bool typed_matrix_base = internal::is_typed_matrix_base<std::decay_t<T>>::value;
+  inline constexpr bool typed_matrix_nestable = internal::is_typed_matrix_nestable<std::decay_t<T>>::value;
 #endif
 
 

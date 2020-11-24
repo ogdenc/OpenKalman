@@ -48,8 +48,8 @@ namespace OpenKalman
   {
     using InputCoefficients = InputCoefficients_;
     using OutputCoefficients = OutputCoefficients_;
-    static_assert(typed_matrix_base<TransformationMatrix>);
-    static_assert((typed_matrix_base<PerturbationTransformationMatrices> and ...));
+    static_assert(typed_matrix_nestable<TransformationMatrix>);
+    static_assert((typed_matrix_nestable<PerturbationTransformationMatrices> and ...));
     static_assert(MatrixTraits<TransformationMatrix>::dimension == OutputCoefficients::size);
     static_assert(MatrixTraits<TransformationMatrix>::columns == InputCoefficients::size);
     static_assert(((MatrixTraits<PerturbationTransformationMatrices>::dimension == OutputCoefficients::size) and ...));
@@ -59,7 +59,7 @@ namespace OpenKalman
     template<typename T, typename ColumnCoefficients = OutputCoefficients>
     static constexpr bool is_valid_input_matrix_v()
     {
-      static_assert(typed_matrix<T> or typed_matrix_base<T>);
+      static_assert(typed_matrix<T> or typed_matrix_nestable<T>);
       if constexpr(typed_matrix<T>)
         return
           equivalent_to<typename MatrixTraits<T>::RowCoefficients, OutputCoefficients> and
@@ -88,11 +88,11 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
     template<typename T, typename ... Ps> requires
-      (typed_matrix<T> or typed_matrix_base<T>) and ((typed_matrix<Ps> or typed_matrix_base<Ps>) and ...)
+      (typed_matrix<T> or typed_matrix_nestable<T>) and ((typed_matrix<Ps> or typed_matrix_nestable<Ps>) and ...)
 #else
     template<typename T, typename ... Ps, std::enable_if_t<
-      (typed_matrix<T> or typed_matrix_base<T>) and
-      ((typed_matrix<Ps> or typed_matrix_base<Ps>) and ...), int> = 0>
+      (typed_matrix<T> or typed_matrix_nestable<T>) and
+      ((typed_matrix<Ps> or typed_matrix_nestable<Ps>) and ...), int> = 0>
 #endif
     LinearTransformation(T&& mat, Ps&& ... p_mats) noexcept
       : transformation_matrices(std::forward<T>(mat), std::forward<Ps>(p_mats)...)
@@ -167,10 +167,10 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
   template<typename T, typename ... Ps> requires
-    (typed_matrix<T> and ... and (typed_matrix<Ps> or typed_matrix_base<Ps>))
+    (typed_matrix<T> and ... and (typed_matrix<Ps> or typed_matrix_nestable<Ps>))
 #else
   template<typename T, typename ... Ps, std::enable_if_t<
-    (typed_matrix<T> and ... and (typed_matrix<Ps> or typed_matrix_base<Ps>)), int> = 0>
+    (typed_matrix<T> and ... and (typed_matrix<Ps> or typed_matrix_nestable<Ps>)), int> = 0>
 #endif
   LinearTransformation(T&&, Ps&& ...)
   -> LinearTransformation<
@@ -184,10 +184,10 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<typed_matrix_base T, typed_matrix_base ... Ps>
+  template<typed_matrix_nestable T, typed_matrix_nestable ... Ps>
 #else
   template<typename T, typename ... Ps, std::enable_if_t<
-    (typed_matrix_base<T> and ... and typed_matrix_base<Ps>), int> = 0>
+    (typed_matrix_nestable<T> and ... and typed_matrix_nestable<Ps>), int> = 0>
 #endif
   LinearTransformation(T&&, Ps&& ...)
   -> LinearTransformation<

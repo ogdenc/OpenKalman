@@ -23,34 +23,34 @@ namespace OpenKalman
   {
     /**
      * \brief A self-adjoint matrix, based on an Eigen matrix.
-     * \tparam BaseMatrix The Eigen matrix on which the self-adjoint matrix is based.
+     * \tparam NestedMatrix The Eigen matrix on which the self-adjoint matrix is based.
      * \tparam storage_triangle The triangle (TriangleType::upper or TriangleType::lower) in which the data is stored.
      */
-    template<typename BaseMatrix, TriangleType storage_triangle = TriangleType::lower>
+    template<typename NestedMatrix, TriangleType storage_triangle = TriangleType::lower>
     struct SelfAdjointMatrix;
 
     /**
      * \brief A triangular matrix, based on an Eigen matrix.
-     * \tparam BaseMatrix The Eigen matrix on which the triangular matrix is based.
+     * \tparam NestedMatrix The Eigen matrix on which the triangular matrix is based.
      * \tparam triangle_type The triangle (TriangleType::upper or TriangleType::lower).
      */
-    template<typename BaseMatrix, TriangleType triangle_type = TriangleType::lower>
+    template<typename NestedMatrix, TriangleType triangle_type = TriangleType::lower>
     struct TriangularMatrix;
 
     /**
      * \brief A diagonal matrix, based on an Eigen matrix.
      * \note This has the same name as Eigen::DiagonalMatrix, and is intended as an improved replacement.
-     * \tparam BaseMatrix A single-column matrix defining the diagonal.
+     * \tparam NestedMatrix A single-column matrix defining the diagonal.
      */
-    template<typename BaseMatrix>
+    template<typename NestedMatrix>
     struct DiagonalMatrix;
 
     /**
      * \brief A wrapper type for an Eigen zero matrix.
      * \note This is necessary because Eigen3 types do not distinguish between a zero matrix and a constant matrix.
-     * \tparam BaseMatrix The Eigen matrix type on which the zero matrix is based. Only its shape is relevant.
+     * \tparam NestedMatrix The Eigen matrix type on which the zero matrix is based. Only its shape is relevant.
      */
-    template<typename BaseMatrix>
+    template<typename NestedMatrix>
     struct ZeroMatrix;
 
     /**
@@ -58,13 +58,13 @@ namespace OpenKalman
      * \details This is the counterpart expression to ToEuclideanExpr.
      * <code>FromEuclideanExpr<C, ToEuclideanExpr<C, B>></code> acts to wrap the angular/modular values in <code>B</code>.
      * \tparam Coefficients The coefficient types.
-     * \tparam BaseMatrix The pre-transformed column vector, or set of column vectors in the form of a matrix.
+     * \tparam NestedMatrix The pre-transformed column vector, or set of column vectors in the form of a matrix.
      */
 #ifdef __cpp_concepts
-    template<coefficients Coefficients, typename BaseMatrix = Eigen::Matrix<double, Coefficients::size, 1>>
-      requires (MatrixTraits<BaseMatrix>::dimension == Coefficients::size)
+    template<coefficients Coefficients, typename NestedMatrix = Eigen::Matrix<double, Coefficients::size, 1>>
+      requires (MatrixTraits<NestedMatrix>::dimension == Coefficients::size)
 #else
-    template<typename Coefficients, typename BaseMatrix = Eigen::Matrix<double, Coefficients::size, 1>>
+    template<typename Coefficients, typename NestedMatrix = Eigen::Matrix<double, Coefficients::size, 1>>
 #endif
     struct ToEuclideanExpr;
 
@@ -74,13 +74,13 @@ namespace OpenKalman
      * \details This is the counterpart expression to ToEuclideanExpr.
      * <code>FromEuclideanExpr<C, ToEuclideanExpr<C, B>></code> acts to wrap the angular/modular values in <code>B</code>.
      * \tparam Coefficients The coefficient types.
-     * \tparam BaseMatrix The pre-transformed column vector, or set of column vectors in the form of a matrix.
+     * \tparam NestedMatrix The pre-transformed column vector, or set of column vectors in the form of a matrix.
      */
 #ifdef __cpp_concepts
-    template<coefficients Coefficients, typename BaseMatrix = Eigen::Matrix<double, Coefficients::dimension, 1>>
-      requires (MatrixTraits<BaseMatrix>::dimension == Coefficients::dimension)
+    template<coefficients Coefficients, typename NestedMatrix = Eigen::Matrix<double, Coefficients::dimension, 1>>
+      requires (MatrixTraits<NestedMatrix>::dimension == Coefficients::dimension)
 #else
-    template<typename Coefficients, typename BaseMatrix = Eigen::Matrix<double, Coefficients::dimension, 1>>
+    template<typename Coefficients, typename NestedMatrix = Eigen::Matrix<double, Coefficients::dimension, 1>>
 #endif
     struct FromEuclideanExpr;
 
@@ -104,12 +104,12 @@ namespace OpenKalman
 
 #if FIRST_EIGEN_INTERFACE == OPENKALMAN_EIGEN3_INTERFACE
 
-  // Default for Eigen: the base matrix will be an Eigen::Matrix of the appropriate size.
+  // Default for Eigen: the nested matrix will be an Eigen::Matrix of the appropriate size.
 #ifdef __cpp_concepts
   template<
     coefficients RowCoefficients,
     coefficients ColumnCoefficients = RowCoefficients,
-    typed_matrix_base NestedMatrix = Eigen::Matrix<double, RowCoefficients::size, ColumnCoefficients::size>>
+    typed_matrix_nestable NestedMatrix = Eigen::Matrix<double, RowCoefficients::size, ColumnCoefficients::size>>
   requires
     (RowCoefficients::size == MatrixTraits<NestedMatrix>::dimension) and
     (ColumnCoefficients::size == MatrixTraits<NestedMatrix>::columns) and
@@ -142,7 +142,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<
     coefficients Coefficients,
-    typed_matrix_base NestedMatrix = Eigen::Matrix<double, Coefficients::size, 1>>
+    typed_matrix_nestable NestedMatrix = Eigen::Matrix<double, Coefficients::size, 1>>
   requires (Coefficients::size == MatrixTraits<NestedMatrix>::dimension) and
     (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
@@ -169,7 +169,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<
     coefficients Coefficients,
-    typed_matrix_base NestedMatrix = Eigen::Matrix<double, Coefficients::dimension, 1>>
+    typed_matrix_nestable NestedMatrix = Eigen::Matrix<double, Coefficients::dimension, 1>>
   requires
     (Coefficients::dimension == MatrixTraits<NestedMatrix>::dimension) and
     (not std::is_rvalue_reference_v<NestedMatrix>)
@@ -195,7 +195,7 @@ namespace OpenKalman
   // ---------------- //
 
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, covariance_base NestedMatrix =
+  template<coefficients Coefficients, covariance_nestable NestedMatrix =
     Eigen3::SelfAdjointMatrix<Eigen::Matrix<double, Coefficients::size, Coefficients::size>>>
   requires (Coefficients::size == MatrixTraits<NestedMatrix>::dimension) and
     (not std::is_rvalue_reference_v<NestedMatrix>)
@@ -223,7 +223,7 @@ namespace OpenKalman
   // --------------------- //
 
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, covariance_base NestedMatrix =
+  template<coefficients Coefficients, covariance_nestable NestedMatrix =
   Eigen3::SelfAdjointMatrix<Eigen::Matrix<double, Coefficients::size, Coefficients::size>>> requires
   (Coefficients::size == MatrixTraits<NestedMatrix>::dimension) and (not std::is_rvalue_reference_v<NestedMatrix>)
 #else

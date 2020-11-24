@@ -30,11 +30,11 @@ namespace OpenKalman
    * \tparam T A type that is a wrapper for a nested matrix.
    */
 #ifdef __cpp_concepts
-  template<typename T> requires (requires {typename MatrixTraits<T>::BaseMatrix;})
+  template<typename T> requires (requires {typename MatrixTraits<T>::NestedMatrix;})
 #else
-  template<typename T, typename = typename MatrixTraits<T>::BaseMatrix>
+  template<typename T, typename = typename MatrixTraits<T>::NestedMatrix>
 #endif
-  using nested_matrix_t = typename MatrixTraits<T>::BaseMatrix;
+  using nested_matrix_t = typename MatrixTraits<T>::NestedMatrix;
 
 
   namespace internal
@@ -326,7 +326,7 @@ namespace OpenKalman
 
 
     /*
-     * A typed matrix is an identity matrix if its base matrix is an identity matrix
+     * A typed matrix is an identity matrix if its nested matrix is an identity matrix
      * and its row and column coefficients are equivalent.
      */
 #ifdef __cpp_concepts
@@ -422,7 +422,7 @@ namespace OpenKalman
   namespace internal
   {
     /*
-     * A covariance is a diagonal matrix if its base matrix is diagonal
+     * A covariance is a diagonal matrix if its nested matrix is diagonal
      */
 #ifdef __cpp_concepts
     template<covariance T> requires diagonal_matrix<nested_matrix_t<T>>
@@ -434,7 +434,7 @@ namespace OpenKalman
 
 
     /*
-     * A typed matrix is diagonal if its base matrix is diagonal and its row and column coefficients are equivalent.
+     * A typed matrix is diagonal if its nested matrix is diagonal and its row and column coefficients are equivalent.
      */
 #ifdef __cpp_concepts
     template<typed_matrix T> requires diagonal_matrix<nested_matrix_t<T>> and
@@ -524,7 +524,7 @@ namespace OpenKalman
 
 
     /*
-     * A typed matrix is self-adjoint if its base matrix is self-adjoint and
+     * A typed matrix is self-adjoint if its nested matrix is self-adjoint and
      * its row and column coefficients are equivalent.
      */
 #ifdef __cpp_concepts
@@ -602,8 +602,8 @@ namespace OpenKalman
   namespace internal
   {
     /*
-     * A square root covariance is lower-triangular if its base matrix is either lower-triangular or self-adjoint.
-     * If the base matrix is self-adjoint, the square root covariance can be either lower- or upper-triangular.
+     * A square root covariance is lower-triangular if its nested matrix is either lower-triangular or self-adjoint.
+     * If the nested matrix is self-adjoint, the square root covariance can be either lower- or upper-triangular.
      */
 #ifdef __cpp_concepts
     template<square_root_covariance T> requires lower_triangular_matrix<nested_matrix_t<T>> or
@@ -667,8 +667,8 @@ namespace OpenKalman
   namespace internal
   {
     /*
-     * A square root covariance is upper-triangular if its base matrix is either upper-triangular or self-adjoint.
-     * If the base matrix is self-adjoint, the square root covariance can be either lower- or upper-triangular.
+     * A square root covariance is upper-triangular if its nested matrix is either upper-triangular or self-adjoint.
+     * If the nested matrix is self-adjoint, the square root covariance can be either lower- or upper-triangular.
      */
 #ifdef __cpp_concepts
     template<square_root_covariance T> requires upper_triangular_matrix<nested_matrix_t<T>> or
@@ -745,7 +745,7 @@ namespace OpenKalman
   {
     /**
      * \internal
-     * \brief A type trait testing whether the base matrix is a Cholesky square root.
+     * \brief A type trait testing whether the nested matrix is a Cholesky square root.
      */
 #ifdef __cpp_concepts
     template<typename T>
@@ -773,7 +773,7 @@ namespace OpenKalman
   {
     /**
      * \internal
-     * A covariance has a Cholesky form if its base matrix is not self-adjoint.
+     * A covariance has a Cholesky form if its nested matrix is not self-adjoint.
      */
 #ifdef __cpp_concepts
     template<covariance T> requires (not self_adjoint_matrix<nested_matrix_t<T>>)
@@ -900,7 +900,7 @@ namespace OpenKalman
   namespace internal
   {
     /**
-     * \internal A typed matrix or covariance T is gettable with N indices if its base matrix is likewise gettable.
+     * \internal A typed matrix or covariance T is gettable with N indices if its nested matrix is likewise gettable.
      */
 #ifdef __cpp_concepts
     template<typename T, std::size_t N> requires (typed_matrix<T> or covariance<T>) and
@@ -951,7 +951,7 @@ namespace OpenKalman
   namespace internal
   {
     /**
-     * \internal A typed matrix or covariance T is settable with N indices if its base matrix is likewise settable.
+     * \internal A typed matrix or covariance T is settable with N indices if its nested matrix is likewise settable.
      */
 #ifdef __cpp_concepts
     template<typename T, std::size_t N> requires (typed_matrix<T> or covariance<T>) and

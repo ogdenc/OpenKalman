@@ -22,7 +22,7 @@ namespace Eigen::internal
     {
       Flags = (Coefficients::axes_only ? Base::Flags : Base::Flags & ~LvalueBit),
     };
-    explicit evaluator(const XprType& m) : Base(m.base_matrix()) {}
+    explicit evaluator(const XprType& m) : Base(m.nested_matrix()) {}
   };
 
 
@@ -31,7 +31,7 @@ namespace Eigen::internal
   {
     using XprType = OpenKalman::Matrix<RowCoeffs, ColCoeffs, ArgType>;
     using Base = evaluator<std::decay_t<ArgType>>;
-    explicit evaluator(const XprType& m) : Base {m.base_matrix()} {}
+    explicit evaluator(const XprType& m) : Base {m.nested_matrix()} {}
   };
 
 
@@ -41,7 +41,7 @@ namespace Eigen::internal
     using Scalar = typename std::decay_t<ArgType>::Scalar;
     using XprType = OpenKalman::EuclideanMean<Coeffs, ArgType>;
     using Base = evaluator<std::decay_t<ArgType>>;
-    explicit evaluator(const XprType& expression) : Base {expression.base_matrix()} {}
+    explicit evaluator(const XprType& expression) : Base {expression.nested_matrix()} {}
   };
 
 
@@ -60,7 +60,7 @@ namespace Eigen::internal
       Alignment = NestedEvaluator::Alignment
     };
 
-    explicit evaluator(const XprType& m_arg) : m_argImpl(base_matrix(m_arg)) {}
+    explicit evaluator(const XprType& m_arg) : m_argImpl(nested_matrix(m_arg)) {}
 
     auto& coeffRef(Index row, Index col)
     {
@@ -163,7 +163,7 @@ namespace Eigen::internal
       Alignment = NestedEvaluator::Alignment
     };
 
-    explicit evaluator(const XprType& m_arg) : m_argImpl(base_matrix(m_arg)) {}
+    explicit evaluator(const XprType& m_arg) : m_argImpl(nested_matrix(m_arg)) {}
 
     auto& coeffRef(Index row, Index col)
     {
@@ -292,7 +292,7 @@ namespace Eigen::internal
       Alignment = NestedEvaluator::Alignment
     };
 
-    explicit evaluator(const XprType& m_arg) : m_argImpl(base_matrix(m_arg)) {}
+    explicit evaluator(const XprType& m_arg) : m_argImpl(nested_matrix(m_arg)) {}
 
     auto& coeffRef(Index row, Index col)
     {
@@ -339,33 +339,33 @@ namespace Eigen::internal
 
   template<typename Coefficients, typename ArgType>
   struct evaluator<OpenKalman::Covariance<Coefficients, ArgType>>
-    : evaluator<std::decay_t<decltype(OpenKalman::internal::convert_base_matrix(
+    : evaluator<std::decay_t<decltype(OpenKalman::internal::convert_nested_matrix(
       std::declval<const OpenKalman::Covariance<Coefficients, ArgType>&>()))>>
   {
     using XprType = OpenKalman::Covariance<Coefficients, ArgType>;
-    using Base = evaluator<std::decay_t<decltype(OpenKalman::internal::convert_base_matrix(
+    using Base = evaluator<std::decay_t<decltype(OpenKalman::internal::convert_nested_matrix(
       std::declval<const XprType&>()))>>;
     enum
     {
       Flags = Base::Flags & (OpenKalman::self_adjoint_matrix<ArgType> ? ~0 : ~LvalueBit),
     };
-    explicit evaluator(const XprType& m_arg) : Base(OpenKalman::internal::convert_base_matrix(m_arg)) {}
+    explicit evaluator(const XprType& m_arg) : Base(OpenKalman::internal::convert_nested_matrix(m_arg)) {}
   };
 
 
   template<typename Coefficients, typename ArgType>
   struct evaluator<OpenKalman::SquareRootCovariance<Coefficients, ArgType>>
-    : evaluator<std::decay_t<decltype(OpenKalman::internal::convert_base_matrix(
+    : evaluator<std::decay_t<decltype(OpenKalman::internal::convert_nested_matrix(
       std::declval<const OpenKalman::SquareRootCovariance<Coefficients, ArgType>&>()))>>
   {
     using XprType = OpenKalman::SquareRootCovariance<Coefficients, ArgType>;
-    using Base = evaluator<std::decay_t<decltype(OpenKalman::internal::convert_base_matrix(
+    using Base = evaluator<std::decay_t<decltype(OpenKalman::internal::convert_nested_matrix(
       std::declval<const XprType&>()))>>;
     enum
     {
       Flags = Base::Flags & (OpenKalman::triangular_matrix<ArgType> ? ~0 : ~LvalueBit),
     };
-    explicit evaluator(const XprType& m_arg) : Base(OpenKalman::internal::convert_base_matrix(m_arg)) {}
+    explicit evaluator(const XprType& m_arg) : Base(OpenKalman::internal::convert_nested_matrix(m_arg)) {}
   };
 
 
@@ -456,7 +456,7 @@ namespace Eigen::internal
       Alignment = NestedEvaluator::Alignment
     };
 
-    explicit evaluator(const XprType& t) : Base {base_matrix(t)} {}
+    explicit evaluator(const XprType& t) : Base {nested_matrix(t)} {}
 
     CoeffReturnType coeff(Index row, Index col) const
     {
@@ -516,7 +516,7 @@ namespace Eigen::internal
       Alignment = NestedEvaluator::Alignment
     };
 
-    explicit evaluator(const XprType& t) : Base {base_matrix(t)} {}
+    explicit evaluator(const XprType& t) : Base {nested_matrix(t)} {}
 
     CoeffReturnType coeff(Index row, Index col) const
     {
@@ -569,7 +569,7 @@ namespace Eigen::internal
       Alignment = NestedEvaluator::Alignment
     };
 
-    explicit evaluator(const XprType& t) : Base {base_matrix(base_matrix(t))} {}
+    explicit evaluator(const XprType& t) : Base {nested_matrix(nested_matrix(t))} {}
 
     CoeffReturnType coeff(Index row, Index col) const
     {

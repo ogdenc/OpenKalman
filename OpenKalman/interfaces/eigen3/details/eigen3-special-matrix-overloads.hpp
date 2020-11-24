@@ -20,7 +20,7 @@ namespace OpenKalman::Eigen3
     eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>, int> = 0>
 #endif
   static constexpr decltype(auto)
-  base_matrix(Arg&& arg) { return std::forward<Arg>(arg).base_matrix(); }
+  nested_matrix(Arg&& arg) { return std::forward<Arg>(arg).nested_matrix(); }
 
 
   /// Convert to self-contained version of the special matrix.
@@ -39,7 +39,7 @@ namespace OpenKalman::Eigen3
     }
     else
     {
-      return MatrixTraits<Arg>::make(make_self_contained(base_matrix(std::forward<Arg>(arg))));
+      return MatrixTraits<Arg>::make(make_self_contained(nested_matrix(std::forward<Arg>(arg))));
     }
   }
 
@@ -66,7 +66,7 @@ namespace OpenKalman::Eigen3
   inline auto
   trace(Arg&& arg) noexcept
   {
-    return base_matrix(std::forward<Arg>(arg)).trace();
+    return nested_matrix(std::forward<Arg>(arg)).trace();
   }
 
 
@@ -159,7 +159,7 @@ namespace OpenKalman::Eigen3
         (eigen_triangular_expr<V> and ((upper_triangular_matrix<V> == upper_triangular_matrix<Vs>) and ...)))
       {
         return MatrixTraits<V>::make(
-          concatenate_diagonal(base_matrix(std::forward<V>(v)), base_matrix(std::forward<Vs>(vs))...));
+          concatenate_diagonal(nested_matrix(std::forward<V>(v)), nested_matrix(std::forward<Vs>(vs))...));
       }
       else if constexpr (eigen_self_adjoint_expr<V>)
       {
@@ -202,7 +202,7 @@ namespace OpenKalman::Eigen3
   split_diagonal(Arg&& arg)
   {
     static_assert((0 + ... + Cs::size) <= MatrixTraits<Arg>::dimension);
-    return split_vertical<internal::SplitSpecF<F, Arg>, Cs...>(base_matrix(std::forward<Arg>(arg)));
+    return split_vertical<internal::SplitSpecF<F, Arg>, Cs...>(nested_matrix(std::forward<Arg>(arg)));
   }
 
   /// Split a self-adjoint or triangular matrix diagonally.
@@ -218,7 +218,7 @@ namespace OpenKalman::Eigen3
   split_diagonal(Arg&& arg)
   {
     static_assert((0 + ... + Cs::size) <= MatrixTraits<Arg>::dimension);
-    return split_diagonal<internal::SplitSpecF<F, Arg>, Cs...>(base_matrix(std::forward<Arg>(arg)));
+    return split_diagonal<internal::SplitSpecF<F, Arg>, Cs...>(nested_matrix(std::forward<Arg>(arg)));
   }
 
   /// Split a self-adjoint, triangular, or diagonal matrix diagonally.
@@ -360,13 +360,13 @@ namespace OpenKalman::Eigen3
   {
     if constexpr(lower_storage_triangle<Arg>)
     {
-      if (i >= j) return get_element(base_matrix(arg), i, j);
-      else return get_element(base_matrix(std::forward<Arg>(arg)), j, i);
+      if (i >= j) return get_element(nested_matrix(arg), i, j);
+      else return get_element(nested_matrix(std::forward<Arg>(arg)), j, i);
     }
     else
     {
-      if (i <= j) return get_element(base_matrix(arg), i, j);
-      else return get_element(base_matrix(std::forward<Arg>(arg)), j, i);
+      if (i <= j) return get_element(nested_matrix(arg), i, j);
+      else return get_element(nested_matrix(std::forward<Arg>(arg)), j, i);
     }
   }
 
@@ -384,12 +384,12 @@ namespace OpenKalman::Eigen3
   {
     if constexpr(lower_triangular_matrix<Arg>)
     {
-      if (i >= j) return get_element(base_matrix(std::forward<Arg>(arg)), i, j);
+      if (i >= j) return get_element(nested_matrix(std::forward<Arg>(arg)), i, j);
       else return typename MatrixTraits<Arg>::Scalar(0);
     }
     else
     {
-      if (i <= j) return get_element(base_matrix(std::forward<Arg>(arg)), i, j);
+      if (i <= j) return get_element(nested_matrix(std::forward<Arg>(arg)), i, j);
       else return typename MatrixTraits<Arg>::Scalar(0);
     }
   }
@@ -413,9 +413,9 @@ namespace OpenKalman::Eigen3
     if (i == j)
     {
       if constexpr(element_gettable<nested_matrix_t<Arg>, 1>)
-        return get_element(base_matrix(std::forward<Arg>(arg)), i);
+        return get_element(nested_matrix(std::forward<Arg>(arg)), i);
       else
-        return get_element(base_matrix(std::forward<Arg>(arg)), i, i);
+        return get_element(nested_matrix(std::forward<Arg>(arg)), i, i);
     }
     else return typename MatrixTraits<Arg>::Scalar(0);
   }
@@ -436,14 +436,14 @@ namespace OpenKalman::Eigen3
   inline auto
   get_element(Arg&& arg, const std::size_t i)
   {
-    using BaseMatrix = nested_matrix_t<Arg>;
-    if constexpr(element_gettable<BaseMatrix, 1>)
+    using NestedMatrix = nested_matrix_t<Arg>;
+    if constexpr(element_gettable<NestedMatrix, 1>)
     {
-      return get_element(base_matrix(std::forward<Arg>(arg)), i);
+      return get_element(nested_matrix(std::forward<Arg>(arg)), i);
     }
     else
     {
-      return get_element(base_matrix(std::forward<Arg>(arg)), i, i);
+      return get_element(nested_matrix(std::forward<Arg>(arg)), i, i);
     }
   }
 
@@ -463,13 +463,13 @@ namespace OpenKalman::Eigen3
   {
     if constexpr(lower_storage_triangle<Arg>)
     {
-      if (i >= j) set_element(base_matrix(arg), s, i, j);
-      else set_element(base_matrix(arg), s, j, i);
+      if (i >= j) set_element(nested_matrix(arg), s, i, j);
+      else set_element(nested_matrix(arg), s, j, i);
     }
     else
     {
-      if (i <= j) set_element(base_matrix(arg), s, i, j);
-      else set_element(base_matrix(arg), s, j, i);
+      if (i <= j) set_element(nested_matrix(arg), s, i, j);
+      else set_element(nested_matrix(arg), s, j, i);
     }
   }
 
@@ -489,12 +489,12 @@ namespace OpenKalman::Eigen3
   {
     if constexpr(lower_triangular_matrix<Arg>)
     {
-      if (i >= j) set_element(base_matrix(arg), s, i, j);
+      if (i >= j) set_element(nested_matrix(arg), s, i, j);
       else throw std::out_of_range("Only lower-triangle elements of a lower-triangular matrix may be set.");
     }
     else
     {
-      if (i <= j) set_element(base_matrix(arg), s, i, j);
+      if (i <= j) set_element(nested_matrix(arg), s, i, j);
       else throw std::out_of_range("Only upper-triangle elements of an upper-triangular matrix may be set.");
     }
   }
@@ -520,9 +520,9 @@ namespace OpenKalman::Eigen3
     if (i == j)
     {
       if constexpr(element_settable<nested_matrix_t<Arg>, 1>)
-        set_element(base_matrix(arg), s, i);
+        set_element(nested_matrix(arg), s, i);
       else
-        set_element(base_matrix(arg), s, i, i);
+        set_element(nested_matrix(arg), s, i, i);
     }
     else throw std::out_of_range("Only diagonal elements of a diagonal matrix may be set.");
   }
@@ -543,14 +543,14 @@ namespace OpenKalman::Eigen3
   inline void
   set_element(Arg& arg, const Scalar s, const std::size_t i)
   {
-    using BaseMatrix = nested_matrix_t<Arg>;
-    if constexpr(element_settable<BaseMatrix, 1>)
+    using NestedMatrix = nested_matrix_t<Arg>;
+    if constexpr(element_settable<NestedMatrix, 1>)
     {
-      set_element(base_matrix(arg), s, i);
+      set_element(nested_matrix(arg), s, i);
     }
     else
     {
-      set_element(base_matrix(arg), s, i, i);
+      set_element(nested_matrix(arg), s, i, i);
     }
   }
 

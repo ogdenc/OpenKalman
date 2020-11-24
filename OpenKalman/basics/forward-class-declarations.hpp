@@ -31,7 +31,7 @@ namespace OpenKalman
    * \tparam NestedMatrix The underlying native matrix or matrix expression.
    */
 #ifdef __cpp_concepts
-  template<coefficients RowCoefficients, coefficients ColumnCoefficients, typed_matrix_base NestedMatrix> requires
+  template<coefficients RowCoefficients, coefficients ColumnCoefficients, typed_matrix_nestable NestedMatrix> requires
     (RowCoefficients::size == MatrixTraits<NestedMatrix>::dimension) and
     (ColumnCoefficients::size == MatrixTraits<NestedMatrix>::columns) and (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
@@ -53,7 +53,7 @@ namespace OpenKalman
    * \tparam NestedMatrix The underlying native matrix or matrix expression.
    */
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, typed_matrix_base NestedMatrix> requires
+  template<coefficients Coefficients, typed_matrix_nestable NestedMatrix> requires
   (Coefficients::size == MatrixTraits<NestedMatrix>::dimension) and (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename Coefficients, typename NestedMatrix>
@@ -74,7 +74,7 @@ namespace OpenKalman
    * \tparam NestedMatrix The underlying native matrix or matrix expression.
    */
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, typed_matrix_base NestedMatrix> requires
+  template<coefficients Coefficients, typed_matrix_nestable NestedMatrix> requires
   (Coefficients::dimension == MatrixTraits<NestedMatrix>::dimension) and (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename Coefficients, typename NestedMatrix>
@@ -92,7 +92,7 @@ namespace OpenKalman
    * are functionally identical, but often the triangular version is more efficient.
    */
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, covariance_base NestedMatrix> requires
+  template<coefficients Coefficients, covariance_nestable NestedMatrix> requires
     (Coefficients::size == MatrixTraits<NestedMatrix>::dimension) and (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename Coefficients, typename NestedMatrix>
@@ -103,7 +103,7 @@ namespace OpenKalman
   /**
    * \brief The upper or lower triangle Cholesky factor (square root) of a covariance matrix.
    * \details If S is a SquareRootCovariance, S*transpose(S) is a Covariance.
-   * If BaseMatrix is triangular, the SquareRootCovariance has the same triangle type (upper or lower). If BaseMatrix
+   * If NestedMatrix is triangular, the SquareRootCovariance has the same triangle type (upper or lower). If NestedMatrix
    * is self-adjoint, the triangle type of SquareRootCovariance is considered either upper ''or'' lower.
    * \tparam Coefficients Coefficient types.
    * \tparam NestedMatrix The underlying native matrix or matrix expression. It can be either self-adjoint or
@@ -112,7 +112,7 @@ namespace OpenKalman
    * are functionally identical, but often the triangular version is more efficient.
    */
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, covariance_base NestedMatrix> requires
+  template<coefficients Coefficients, covariance_nestable NestedMatrix> requires
   (Coefficients::size == MatrixTraits<NestedMatrix>::dimension) and (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename Coefficients, typename NestedMatrix>
@@ -388,10 +388,10 @@ namespace OpenKalman
     // Definition and documentation are in ConvertBaseMatrix.hpp
     template<typename T = void, typename Arg>
 #ifdef __cpp_concepts
-      requires (std::is_void_v<T> or covariance_base<T>) and (covariance<Arg> or typed_matrix<Arg>)
+      requires (std::is_void_v<T> or covariance_nestable<T>) and (covariance<Arg> or typed_matrix<Arg>)
 #endif
     constexpr decltype(auto)
-    convert_base_matrix(Arg&&) noexcept;
+    convert_nested_matrix(Arg&&) noexcept;
 
 
     // Definition and documentation are in MatrixBase.hpp

@@ -19,7 +19,7 @@ namespace OpenKalman::internal
   template<typename Derived, typename ArgType>
   struct CovarianceBaseBase : MatrixTraits<ArgType>::template CovarianceBaseType<Derived>
   {
-    using BaseMatrix = ArgType;
+    using NestedMatrix = ArgType;
     using Base = typename MatrixTraits<ArgType>::template CovarianceBaseType<Derived>;
 
     /// Default constructor.
@@ -38,14 +38,14 @@ namespace OpenKalman::internal
 #else
     template<typename Arg, std::enable_if_t<covariance<Arg>, int> = 0>
 #endif
-    CovarianceBaseBase(Arg&& arg) noexcept : m_arg(internal::convert_base_matrix<BaseMatrix>(std::forward<Arg>(arg))) {}
+    CovarianceBaseBase(Arg&& arg) noexcept : m_arg(internal::convert_nested_matrix<NestedMatrix>(std::forward<Arg>(arg))) {}
 
 
-    /// Construct from a covariance base.
+    /// Construct from a covariance_nestable.
 #ifdef __cpp_concepts
-    template<covariance_base Arg>
+    template<covariance_nestable Arg>
 #else
-    template<typename Arg, std::enable_if_t<covariance_base<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<covariance_nestable<Arg>, int> = 0>
 #endif
     CovarianceBaseBase(Arg&& arg) noexcept : m_arg(std::forward<Arg>(arg)) {}
 
@@ -53,7 +53,7 @@ namespace OpenKalman::internal
     /// Copy assignment operator.
     auto& operator=(const CovarianceBaseBase& other)
     {
-      if constexpr (not zero_matrix<BaseMatrix> and not identity_matrix<BaseMatrix>) if (this != &other)
+      if constexpr (not zero_matrix<NestedMatrix> and not identity_matrix<NestedMatrix>) if (this != &other)
         m_arg = other.m_arg;
       return *this;
     }
@@ -61,25 +61,25 @@ namespace OpenKalman::internal
     /// Move assignment operator.
     auto& operator=(CovarianceBaseBase&& other) noexcept
     {
-      if constexpr (not zero_matrix<BaseMatrix> and not identity_matrix<BaseMatrix>) if (this != &other)
+      if constexpr (not zero_matrix<NestedMatrix> and not identity_matrix<NestedMatrix>) if (this != &other)
         m_arg = std::move(other.m_arg);
       return *this;
     }
 
 
-    /// Assign from a covariance base.
+    /// Assign from a covariance_nestable.
 #ifdef __cpp_concepts
-    template<typename Arg> requires covariance_base<Arg> or typed_matrix_base<Arg>
+    template<typename Arg> requires covariance_nestable<Arg> or typed_matrix_nestable<Arg>
 #else
-    template<typename Arg, std::enable_if_t<covariance_base<Arg> or typed_matrix_base<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<covariance_nestable<Arg> or typed_matrix_nestable<Arg>, int> = 0>
 #endif
     auto& operator=(Arg&& arg) noexcept
     {
-      if constexpr (zero_matrix<BaseMatrix>)
+      if constexpr (zero_matrix<NestedMatrix>)
       {
         static_assert(zero_matrix<Arg>);
       }
-      else if constexpr (identity_matrix<BaseMatrix>)
+      else if constexpr (identity_matrix<NestedMatrix>)
       {
         static_assert(identity_matrix<Arg>);
       }
@@ -91,36 +91,36 @@ namespace OpenKalman::internal
     }
 
     /**
-     * \brief Get the base matrix of this covariance matrix.
-     * \details The base matrix will be self-adjoint, triangular, or diagonal.
-     * \return An lvalue reference to the base matrix.
+     * \brief Get the nested matrix of this covariance matrix.
+     * \details The nested matrix will be self-adjoint, triangular, or diagonal.
+     * \return An lvalue reference to the nested matrix.
      */
-    constexpr auto& base_matrix() & { return m_arg; }
+    constexpr auto& nested_matrix() & { return m_arg; }
 
     /**
-     * Get the base matrix of this covariance matrix temporary.
-     * \sa constexpr auto& base_matrix() &
-     * \return An rvalue reference to the base matrix.
+     * Get the nested matrix of this covariance matrix temporary.
+     * \sa constexpr auto& nested_matrix() &
+     * \return An rvalue reference to the nested matrix.
      */
-    constexpr auto&& base_matrix() && { return std::move(m_arg); }
+    constexpr auto&& nested_matrix() && { return std::move(m_arg); }
 
     /**
-     * Get the base matrix of this constant covariance matrix.
-     * \sa constexpr auto& base_matrix() &
-     * \return A constant lvalue reference to the base matrix.
+     * Get the nested matrix of this constant covariance matrix.
+     * \sa constexpr auto& nested_matrix() &
+     * \return A constant lvalue reference to the nested matrix.
      */
-    constexpr const auto& base_matrix() const & { return m_arg; }
+    constexpr const auto& nested_matrix() const & { return m_arg; }
 
     /**
-     * Get the base matrix of this constant covariance matrix temporary.
-     * \sa constexpr auto& base_matrix() &
-     * \return A constant rvalue reference to the base matrix.
+     * Get the nested matrix of this constant covariance matrix temporary.
+     * \sa constexpr auto& nested_matrix() &
+     * \return A constant rvalue reference to the nested matrix.
      */
-    constexpr const auto&& base_matrix() const && { return std::move(m_arg); }
+    constexpr const auto&& nested_matrix() const && { return std::move(m_arg); }
 
 
   private:
-    BaseMatrix m_arg; //< The base matrix for Covariance or SquareRootCovariance.
+    NestedMatrix m_arg; //< The nested matrix for Covariance or SquareRootCovariance.
 
     template<typename, typename>
     friend struct CovarianceBaseBase;

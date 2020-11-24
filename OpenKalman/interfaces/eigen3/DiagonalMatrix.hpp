@@ -13,12 +13,12 @@
 
 namespace OpenKalman::Eigen3
 {
-  template<typename BaseMatrix>
-  struct DiagonalMatrix : OpenKalman::internal::MatrixBase<DiagonalMatrix<BaseMatrix>, BaseMatrix>
+  template<typename NestedMatrix>
+  struct DiagonalMatrix : OpenKalman::internal::MatrixBase<DiagonalMatrix<NestedMatrix>, NestedMatrix>
   {
-    using Base = OpenKalman::internal::MatrixBase<DiagonalMatrix, BaseMatrix>;
-    using Scalar = typename MatrixTraits<BaseMatrix>::Scalar;
-    static constexpr auto dimension = MatrixTraits<BaseMatrix>::dimension;
+    using Base = OpenKalman::internal::MatrixBase<DiagonalMatrix, NestedMatrix>;
+    using Scalar = typename MatrixTraits<NestedMatrix>::Scalar;
+    static constexpr auto dimension = MatrixTraits<NestedMatrix>::dimension;
 
 
     /// Default constructor.
@@ -26,11 +26,11 @@ namespace OpenKalman::Eigen3
 
 
     /// Copy constructor.
-    DiagonalMatrix(const DiagonalMatrix& other) : DiagonalMatrix(other.base_matrix()) {}
+    DiagonalMatrix(const DiagonalMatrix& other) : DiagonalMatrix(other.nested_matrix()) {}
 
 
     /// Move constructor.
-    DiagonalMatrix(DiagonalMatrix&& other) noexcept: DiagonalMatrix(std::move(other).base_matrix()) {}
+    DiagonalMatrix(DiagonalMatrix&& other) noexcept: DiagonalMatrix(std::move(other).nested_matrix()) {}
 
 
     /// Construct from a compatible DiagonalMatrix.
@@ -40,7 +40,7 @@ namespace OpenKalman::Eigen3
     template<typename Arg, std::enable_if_t<eigen_diagonal_expr<Arg> and
       (MatrixTraits<Arg>::dimension == dimension), int> = 0>
 #endif
-    DiagonalMatrix(Arg&& other) noexcept: Base(std::forward<Arg>(other).base_matrix()) {}
+    DiagonalMatrix(Arg&& other) noexcept: Base(std::forward<Arg>(other).nested_matrix()) {}
 
 
     /// Construct from a column vector matrix.
@@ -100,13 +100,13 @@ namespace OpenKalman::Eigen3
       typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...> and
         sizeof...(Args) == dimension, int> = 0>
 #endif
-    DiagonalMatrix(Args ... args) : DiagonalMatrix(MatrixTraits<BaseMatrix>::make(args...)) {}
+    DiagonalMatrix(Args ... args) : DiagonalMatrix(MatrixTraits<NestedMatrix>::make(args...)) {}
 
 
     /// Copy assignment operator.
     auto& operator=(const DiagonalMatrix& other)
     {
-      if (this != &other) this->base_matrix() = other.base_matrix();
+      if (this != &other) this->nested_matrix() = other.nested_matrix();
       return *this;
     }
 
@@ -114,7 +114,7 @@ namespace OpenKalman::Eigen3
     /// Move assignment operator.
     auto& operator=(DiagonalMatrix&& other) noexcept
     {
-      if (this != &other) this->base_matrix() = std::move(other).base_matrix();
+      if (this != &other) this->nested_matrix() = std::move(other).nested_matrix();
       return *this;
     }
 
@@ -129,7 +129,7 @@ namespace OpenKalman::Eigen3
     auto& operator=(Arg&& other)
     {
       if constexpr (std::is_same_v<std::decay_t<Arg>, DiagonalMatrix>) if (this == &other) return *this;
-      this->base_matrix() = std::forward<Arg>(other).base_matrix();
+      this->nested_matrix() = std::forward<Arg>(other).nested_matrix();
       return *this;
     }
 
@@ -144,7 +144,7 @@ namespace OpenKalman::Eigen3
 #endif
     auto& operator=(const Arg&)
     {
-      this->base_matrix() = MatrixTraits<Eigen::Matrix<Scalar, dimension, 1>>::zero();
+      this->nested_matrix() = MatrixTraits<Eigen::Matrix<Scalar, dimension, 1>>::zero();
       return *this;
     }
 
@@ -159,7 +159,7 @@ namespace OpenKalman::Eigen3
 #endif
     auto& operator=(const Arg&)
     {
-      this->base_matrix() = Eigen::Matrix<Scalar, dimension, 1>::Constant(1);
+      this->nested_matrix() = Eigen::Matrix<Scalar, dimension, 1>::Constant(1);
       return *this;
     }
 
@@ -168,7 +168,7 @@ namespace OpenKalman::Eigen3
     template<typename Arg>
     auto& operator=(const Eigen::DiagonalBase<Arg>& arg)
     {
-      this->base_matrix() = arg.diagonal();
+      this->nested_matrix() = arg.diagonal();
       return *this;
     }
 
@@ -177,7 +177,7 @@ namespace OpenKalman::Eigen3
     template<typename Arg>
     auto& operator=(Eigen::DiagonalBase<Arg>&& arg) noexcept
     {
-      this->base_matrix() = std::move(arg).diagonal();
+      this->nested_matrix() = std::move(arg).diagonal();
       return *this;
     }
 
@@ -189,7 +189,7 @@ namespace OpenKalman::Eigen3
 #endif
     auto& operator+=(const DiagonalMatrix<Arg>& arg)
     {
-      this->base_matrix() += arg.base_matrix();
+      this->nested_matrix() += arg.nested_matrix();
       return *this;
     }
 
@@ -201,7 +201,7 @@ namespace OpenKalman::Eigen3
 #endif
     auto& operator-=(const DiagonalMatrix<Arg>& arg)
     {
-      this->base_matrix() -= arg.base_matrix();
+      this->nested_matrix() -= arg.nested_matrix();
       return *this;
     }
 
@@ -213,7 +213,7 @@ namespace OpenKalman::Eigen3
 #endif
     auto& operator*=(const S s)
     {
-      this->base_matrix() *= s;
+      this->nested_matrix() *= s;
       return *this;
     }
 
@@ -225,7 +225,7 @@ namespace OpenKalman::Eigen3
 #endif
     auto& operator/=(const S s)
     {
-      this->base_matrix() /= s;
+      this->nested_matrix() /= s;
       return *this;
     }
 
@@ -238,21 +238,21 @@ namespace OpenKalman::Eigen3
     auto& operator*=(const DiagonalMatrix<Arg>& arg)
     {
       static_assert(MatrixTraits<Arg>::dimension == dimension);
-      this->base_matrix() = this->base_matrix().array() * arg.base_matrix().array();
+      this->nested_matrix() = this->nested_matrix().array() * arg.nested_matrix().array();
       return *this;
     }
 
 
     auto square() const
     {
-      auto b = this->base_matrix().array().square().matrix();
+      auto b = this->nested_matrix().array().square().matrix();
       return DiagonalMatrix<decltype(b)>(std::move(b));
     }
 
 
     auto square_root() const
     {
-      auto b = this->base_matrix().cwiseSqrt();
+      auto b = this->nested_matrix().cwiseSqrt();
       return DiagonalMatrix<decltype(b)>(std::move(b));
     }
 
@@ -366,21 +366,21 @@ namespace OpenKalman
   template<typename ArgType>
   struct MatrixTraits<Eigen3::DiagonalMatrix<ArgType>>
   {
-    using BaseMatrix = ArgType;
-    using Scalar = typename MatrixTraits<BaseMatrix>::Scalar;
-    static constexpr auto dimension = MatrixTraits<BaseMatrix>::dimension;
+    using NestedMatrix = ArgType;
+    using Scalar = typename MatrixTraits<NestedMatrix>::Scalar;
+    static constexpr auto dimension = MatrixTraits<NestedMatrix>::dimension;
     static constexpr auto columns = dimension;
 
     template<typename Derived>
-    using MatrixBaseType = Eigen3::internal::Eigen3MatrixBase<Derived, Eigen3::DiagonalMatrix<std::decay_t<BaseMatrix>>>;
+    using MatrixBaseType = Eigen3::internal::Eigen3MatrixBase<Derived, Eigen3::DiagonalMatrix<std::decay_t<NestedMatrix>>>;
 
     template<typename Derived>
     using CovarianceBaseType = Eigen3::internal::Eigen3CovarianceBase<Derived, Eigen3::DiagonalMatrix<std::decay_t<ArgType>>>;
 
     template<std::size_t rows = dimension, std::size_t cols = columns, typename S = Scalar>
-    using NativeMatrix = typename MatrixTraits<std::decay_t<BaseMatrix>>::template NativeMatrix<rows, cols, S>;
+    using NativeMatrix = typename MatrixTraits<std::decay_t<NestedMatrix>>::template NativeMatrix<rows, cols, S>;
 
-    using SelfContained = Eigen3::DiagonalMatrix<self_contained_t<BaseMatrix>>;
+    using SelfContained = Eigen3::DiagonalMatrix<self_contained_t<NestedMatrix>>;
 
     template<TriangleType storage_triangle = TriangleType::diagonal, std::size_t dim = dimension, typename S = Scalar>
     using SelfAdjointBaseType = Eigen3::SelfAdjointMatrix<NativeMatrix<dim, dim, S>, storage_triangle>;
@@ -416,7 +416,7 @@ namespace OpenKalman
 #endif
     static auto make(Args ... args)
     {
-      return make(MatrixTraits<BaseMatrix>::make(args...));
+      return make(MatrixTraits<NestedMatrix>::make(args...));
     }
 
 
@@ -437,10 +437,10 @@ namespace OpenKalman
     }
 
 
-    static auto zero() { return Eigen3::DiagonalMatrix < BaseMatrix > ::zero(); }
+    static auto zero() { return Eigen3::DiagonalMatrix < NestedMatrix > ::zero(); }
 
 
-    static auto identity() { return Eigen3::DiagonalMatrix < BaseMatrix > ::identity(); }
+    static auto identity() { return Eigen3::DiagonalMatrix < NestedMatrix > ::identity(); }
 
   };
 
@@ -459,9 +459,9 @@ namespace OpenKalman::Eigen3
   template<typename Arg, std::enable_if_t<Eigen3::eigen_diagonal_expr<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
-  base_matrix(Arg&& arg)
+  nested_matrix(Arg&& arg)
   {
-    return std::forward<Arg>(arg).base_matrix();
+    return std::forward<Arg>(arg).nested_matrix();
   }
 
 
@@ -480,7 +480,7 @@ namespace OpenKalman::Eigen3
     }
     else
     {
-      return Eigen3::DiagonalMatrix(make_self_contained(base_matrix(std::forward<Arg>(arg))));
+      return Eigen3::DiagonalMatrix(make_self_contained(nested_matrix(std::forward<Arg>(arg))));
     }
   }
 
@@ -505,7 +505,7 @@ namespace OpenKalman::Eigen3
   constexpr decltype(auto)
   adjoint(Arg&& arg) noexcept
   {
-    return Eigen3::DiagonalMatrix(base_matrix(std::forward<Arg>(arg)).conjugate());
+    return Eigen3::DiagonalMatrix(nested_matrix(std::forward<Arg>(arg)).conjugate());
   }
 
 
@@ -518,7 +518,7 @@ namespace OpenKalman::Eigen3
   inline auto
   determinant(Arg&& arg) noexcept
   {
-    return base_matrix(std::forward<Arg>(arg)).prod();
+    return nested_matrix(std::forward<Arg>(arg)).prod();
   }
 
 
@@ -531,7 +531,7 @@ namespace OpenKalman::Eigen3
   inline auto
   trace(Arg&& arg) noexcept
   {
-    return base_matrix(std::forward<Arg>(arg)).sum();
+    return nested_matrix(std::forward<Arg>(arg)).sum();
   }
 
 
@@ -547,7 +547,7 @@ namespace OpenKalman::Eigen3
   inline Arg&
   rank_update(Arg& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
   {
-    arg = (base_matrix(arg).array().square() + alpha * base_matrix(u).array().square()).sqrt().matrix();
+    arg = (nested_matrix(arg).array().square() + alpha * nested_matrix(u).array().square()).sqrt().matrix();
     return arg;
   }
 
@@ -565,7 +565,7 @@ namespace OpenKalman::Eigen3
   {
     auto sa = Eigen3::TriangularMatrix {make_native_matrix(arg)};
     rank_update(sa, u, alpha);
-    arg = Eigen3::DiagonalMatrix {make_native_matrix(base_matrix(sa).diagonal())};
+    arg = Eigen3::DiagonalMatrix {make_native_matrix(nested_matrix(sa).diagonal())};
     return arg;
   }
 
@@ -581,7 +581,7 @@ namespace OpenKalman::Eigen3
   inline auto
   rank_update(const Arg& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
   {
-    auto sa = (base_matrix(arg).array().square() + alpha * base_matrix(u).array().square()).sqrt().matrix();
+    auto sa = (nested_matrix(arg).array().square() + alpha * nested_matrix(u).array().square()).sqrt().matrix();
     return Eigen3::DiagonalMatrix {make_self_contained(std::move(sa))};
   }
 
@@ -630,11 +630,11 @@ namespace OpenKalman::Eigen3
   inline auto
   solve(const A& a, const B& b)
   {
-    return (b.array().colwise() / base_matrix(a).array()).matrix();
+    return (b.array().colwise() / nested_matrix(a).array()).matrix();
   }
 
 
-  /// Create a column vector from a diagnoal matrix. (Same as base_matrix()).
+  /// Create a column vector from a diagnoal matrix. (Same as nested_matrix()).
 #ifdef __cpp_concepts
   template<Eigen3::eigen_diagonal_expr Arg>
 #else
@@ -643,7 +643,7 @@ namespace OpenKalman::Eigen3
   constexpr decltype(auto)
   reduce_columns(Arg&& arg) noexcept
   {
-    return base_matrix(std::forward<Arg>(arg));
+    return nested_matrix(std::forward<Arg>(arg));
   }
 
 
@@ -685,7 +685,7 @@ namespace OpenKalman::Eigen3
   {
     if constexpr(sizeof...(Vs) > 0)
     {
-      return MatrixTraits<V>::make(concatenate_vertical(base_matrix(std::forward<V>(v)), base_matrix(std::forward<Vs>(vs))...));
+      return MatrixTraits<V>::make(concatenate_vertical(nested_matrix(std::forward<V>(v)), nested_matrix(std::forward<Vs>(vs))...));
     }
     else
     {
@@ -710,9 +710,9 @@ namespace OpenKalman::Eigen3
   get_element(Arg&& arg, const std::size_t i)
   {
     if constexpr (element_gettable<nested_matrix_t<Arg>, 1>)
-      return get_element(base_matrix(std::forward<Arg>(arg)), i);
+      return get_element(nested_matrix(std::forward<Arg>(arg)), i);
     else
-      return get_element(base_matrix(std::forward<Arg>(arg)), i, 1);
+      return get_element(nested_matrix(std::forward<Arg>(arg)), i, 1);
   }
 
 
@@ -731,9 +731,9 @@ namespace OpenKalman::Eigen3
     if (i == j)
     {
       if constexpr (element_gettable<nested_matrix_t<Arg>, 1>)
-        return get_element(base_matrix(std::forward<Arg>(arg)), i);
+        return get_element(nested_matrix(std::forward<Arg>(arg)), i);
       else
-        return get_element(base_matrix(std::forward<Arg>(arg)), i, 1);
+        return get_element(nested_matrix(std::forward<Arg>(arg)), i, 1);
     }
     else
       return typename MatrixTraits<Arg>::Scalar(0);
@@ -756,9 +756,9 @@ namespace OpenKalman::Eigen3
   set_element(Arg& arg, const Scalar s, const std::size_t i)
   {
     if constexpr (element_settable<nested_matrix_t<Arg>, 1>)
-      set_element(base_matrix(arg), s, i);
+      set_element(nested_matrix(arg), s, i);
     else
-      set_element(base_matrix(arg), s, i, 1);
+      set_element(nested_matrix(arg), s, i, 1);
   }
 
 
@@ -780,9 +780,9 @@ namespace OpenKalman::Eigen3
     if (i == j)
     {
       if constexpr (element_settable<nested_matrix_t<Arg>, 1>)
-        set_element(base_matrix(arg), s, i);
+        set_element(nested_matrix(arg), s, i);
       else
-        set_element(base_matrix(arg), s, i, 1);
+        set_element(nested_matrix(arg), s, i, 1);
     }
     else
       throw std::out_of_range("Only diagonal elements of a diagonal matrix may be set.");
@@ -839,7 +839,7 @@ namespace OpenKalman::Eigen3
   inline auto operator+(Arg1&& arg1, Arg2&& arg2)
   {
     auto ret = MatrixTraits<Arg1>::make(
-      std::forward<Arg1>(arg1).base_matrix() + std::forward<Arg2>(arg2).base_matrix());
+      std::forward<Arg1>(arg1).nested_matrix() + std::forward<Arg2>(arg2).nested_matrix());
     return make_self_contained<Arg1, Arg2>(std::move(ret));
   }
 
@@ -862,13 +862,13 @@ namespace OpenKalman::Eigen3
     if constexpr(Eigen3::eigen_diagonal_expr<Arg1>)
     {
       using B = nested_matrix_t<Arg1>;
-      auto ret = MatrixTraits<Arg1>::make(base_matrix(std::forward<Arg1>(arg1)) + B::Constant(1));
+      auto ret = MatrixTraits<Arg1>::make(nested_matrix(std::forward<Arg1>(arg1)) + B::Constant(1));
       return make_self_contained<Arg1, Arg2>(std::move(ret));
     }
     else
     {
       using B = nested_matrix_t<Arg2>;
-      auto ret = MatrixTraits<Arg2>::make(B::Constant(1) + base_matrix(std::forward<Arg2>(arg2)));
+      auto ret = MatrixTraits<Arg2>::make(B::Constant(1) + nested_matrix(std::forward<Arg2>(arg2)));
       return make_self_contained<Arg1, Arg2>(std::move(ret));
     }
   }
@@ -915,7 +915,7 @@ namespace OpenKalman::Eigen3
   inline auto operator-(Arg1&& arg1, Arg2&& arg2)
   {
     auto ret = MatrixTraits<Arg1>::make(
-      std::forward<Arg1>(arg1).base_matrix() - std::forward<Arg2>(arg2).base_matrix());
+      std::forward<Arg1>(arg1).nested_matrix() - std::forward<Arg2>(arg2).nested_matrix());
     return make_self_contained<Arg1, Arg2>(std::move(ret));
   }
 
@@ -938,13 +938,13 @@ namespace OpenKalman::Eigen3
     if constexpr(Eigen3::eigen_diagonal_expr<Arg1>)
     {
       using B = nested_matrix_t<Arg1>;
-      auto ret = MatrixTraits<Arg1>::make(std::forward<Arg1>(arg1).base_matrix() - B::Constant(1));
+      auto ret = MatrixTraits<Arg1>::make(std::forward<Arg1>(arg1).nested_matrix() - B::Constant(1));
       return make_self_contained<Arg1, Arg2>(std::move(ret));
     }
     else
     {
       using B = nested_matrix_t<Arg2>;
-      auto ret = MatrixTraits<Arg2>::make(B::Constant(1) - std::forward<Arg2>(arg2).base_matrix());
+      auto ret = MatrixTraits<Arg2>::make(B::Constant(1) - std::forward<Arg2>(arg2).nested_matrix());
       return make_self_contained<Arg1, Arg2>(std::move(ret));
     }
   }
@@ -986,7 +986,7 @@ namespace OpenKalman::Eigen3
 #endif
   inline auto operator*(Arg&& arg, const S scale)
   {
-    auto ret = MatrixTraits<Arg>::make(std::forward<Arg>(arg).base_matrix() * scale);
+    auto ret = MatrixTraits<Arg>::make(std::forward<Arg>(arg).nested_matrix() * scale);
     return make_self_contained<Arg>(std::move(ret));
   }
 
@@ -999,7 +999,7 @@ namespace OpenKalman::Eigen3
 #endif
   inline auto operator*(const S scale, Arg&& arg)
   {
-    auto ret = MatrixTraits<Arg>::make(scale * std::forward<Arg>(arg).base_matrix());
+    auto ret = MatrixTraits<Arg>::make(scale * std::forward<Arg>(arg).nested_matrix());
     return make_self_contained<Arg>(std::move(ret));
   }
 
@@ -1012,7 +1012,7 @@ namespace OpenKalman::Eigen3
 #endif
   inline auto operator/(Arg&& arg, const S scale)
   {
-    auto ret = MatrixTraits<Arg>::make(std::forward<Arg>(arg).base_matrix() / scale);
+    auto ret = MatrixTraits<Arg>::make(std::forward<Arg>(arg).nested_matrix() / scale);
     return make_self_contained<Arg>(std::move(ret));
   }
 
@@ -1032,7 +1032,7 @@ namespace OpenKalman::Eigen3
   inline auto operator*(Arg1&& arg1, Arg2&& arg2)
   {
     auto ret = MatrixTraits<Arg1>::make(
-      (std::forward<Arg1>(arg1).base_matrix().array() * std::forward<Arg2>(arg2).base_matrix().array()).matrix());
+      (std::forward<Arg1>(arg1).nested_matrix().array() * std::forward<Arg2>(arg2).nested_matrix().array()).matrix());
     return make_self_contained<Arg1, Arg2>(std::move(ret));
   }
 
@@ -1106,11 +1106,11 @@ namespace OpenKalman::Eigen3
   {
     if constexpr(Eigen3::eigen_diagonal_expr<Arg1>)
     {
-      return make_self_contained<Arg1, Arg2>(std::forward<Arg1>(arg1).base_matrix().asDiagonal() * std::forward<Arg2>(arg2));
+      return make_self_contained<Arg1, Arg2>(std::forward<Arg1>(arg1).nested_matrix().asDiagonal() * std::forward<Arg2>(arg2));
     }
     else
     {
-      return make_self_contained<Arg1, Arg2>(std::forward<Arg1>(arg1) * std::forward<Arg2>(arg2).base_matrix().asDiagonal());
+      return make_self_contained<Arg1, Arg2>(std::forward<Arg1>(arg1) * std::forward<Arg2>(arg2).nested_matrix().asDiagonal());
     }
   }
 
@@ -1122,7 +1122,7 @@ namespace OpenKalman::Eigen3
 #endif
   inline auto operator-(Arg&& arg)
   {
-    auto ret = MatrixTraits<Arg>::make(-std::forward<Arg>(arg).base_matrix());
+    auto ret = MatrixTraits<Arg>::make(-std::forward<Arg>(arg).nested_matrix());
     return make_self_contained<Arg>(std::move(ret));
   }
 

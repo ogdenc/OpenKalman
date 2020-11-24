@@ -53,19 +53,19 @@ namespace OpenKalman
       else if constexpr (pos == 0)
       {
         constexpr auto width = points_count - frame_size;
-        using MRbase = native_matrix_t<M, dim_i, width>;
-        const auto mright = Matrix<Coeffs, Axes<width>, MRbase>::zero();
+        using MRnative = native_matrix_t<M, dim_i, width>;
+        const auto mright = Matrix<Coeffs, Axes<width>, MRnative>::zero();
         auto ret = concatenate_horizontal(delta, -delta, mright);
         static_assert(MatrixTraits<decltype(ret)>::columns == points_count);
         return std::tuple_cat(std::tuple {std::move(ret)}, sample_points_impl<dim, frame_size>(ds...));
       }
       else if constexpr (pos + frame_size < points_count)
       {
-        using MLbase = native_matrix_t<M, dim_i, pos>;
-        const auto mleft = Matrix<Coeffs, Axes<pos>, MLbase>::zero();
+        using MLnative = native_matrix_t<M, dim_i, pos>;
+        const auto mleft = Matrix<Coeffs, Axes<pos>, MLnative>::zero();
         constexpr auto width = points_count - (pos + frame_size);
-        using MRbase = native_matrix_t<M, dim_i, width>;
-        const auto mright = Matrix<Coeffs, Axes<width>, MRbase>::zero();
+        using MRnative = native_matrix_t<M, dim_i, width>;
+        const auto mright = Matrix<Coeffs, Axes<width>, MRnative>::zero();
         auto ret = concatenate_horizontal(mleft, delta, -delta, mright);
         static_assert(MatrixTraits<decltype(ret)>::columns == points_count);
         return std::tuple_cat(std::tuple {std::move(ret)}, sample_points_impl<dim, pos + frame_size>(ds...));
@@ -73,8 +73,8 @@ namespace OpenKalman
       else
       {
         static_assert(sizeof...(ds) == 0);
-        using MLbase = native_matrix_t<M, dim_i, pos>;
-        const auto mleft = Matrix<Coeffs, Axes<pos>, MLbase>::zero();
+        using MLnative = native_matrix_t<M, dim_i, pos>;
+        const auto mleft = Matrix<Coeffs, Axes<pos>, MLnative>::zero();
         auto ret = concatenate_horizontal(mleft, delta, -delta);
         static_assert(MatrixTraits<decltype(ret)>::columns == points_count);
         return std::tuple {std::move(ret)};
