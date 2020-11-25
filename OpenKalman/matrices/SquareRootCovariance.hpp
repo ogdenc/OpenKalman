@@ -412,233 +412,283 @@ namespace OpenKalman
       typename MatrixTraits<M>::template TriangularBaseType<>>;
 
 
-  //////////////////////
+  // ---------------- //
   //  Make Functions  //
-  //////////////////////
+  // ---------------- //
 
-  // Make from covariance_nestable or regular matrix:
-
-  /// Make a SquareRootCovariance based on a covariance_nestable.
+  /**
+   * \brief Make a SquareRootCovariance from a covariance_nestable, specifying the coefficients.
+   * \tparam Coefficients The coefficient types corresponding to the rows and columns.
+   * \tparam Arg A covariance_nestable with size matching Coefficients.
+   */
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, covariance_nestable Arg>
+  template<coefficients Coefficients, covariance_nestable Arg> requires
+    (Coefficients::size == MatrixTraits<Arg>::dimension)
 #else
-  template<typename Coefficients, typename Arg, std::enable_if_t<covariance_nestable<Arg>, int> = 0>
+  template<typename Coefficients, typename Arg, std::enable_if_t<coefficients<Coefficients> and
+    covariance_nestable<Arg> and (Coefficients::size == MatrixTraits<Arg>::dimension), int> = 0>
 #endif
   inline auto
-  make_SquareRootCovariance(Arg&& arg) noexcept
+  make_square_root_covariance(Arg&& arg) noexcept
   {
     return SquareRootCovariance<Coefficients, passable_t<Arg>>(std::forward<Arg>(arg));
   }
 
 
-  /// Make a SquareRootCovariance, converting from a matrix other than a covariance_nestable.
+  /**
+   * \overload
+   * \brief Make a SquareRootCovariance from a covariance_nestable, with default Axis coefficients.
+   * \tparam Coefficients The coefficient types corresponding to the rows and columns.
+   * \tparam Arg A covariance_nestable.
+   */
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, TriangleType...triangle_type, typed_matrix_nestable Arg> requires
-    (sizeof...(triangle_type) <= 1) and (not covariance_nestable<Arg>)
+  template<covariance_nestable Arg>
 #else
-  template<typename Coefficients, TriangleType...triangle_type, typename Arg,
-    std::enable_if_t<sizeof...(triangle_type) <= 1 and not covariance_nestable<Arg> and
-      typed_matrix_nestable<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<covariance_nestable<Arg>, int> = 0>
 #endif
   inline auto
-  make_SquareRootCovariance(Arg&& arg) noexcept
+  make_square_root_covariance(Arg&& arg) noexcept
   {
-    static_assert(MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns);
-    constexpr TriangleType arg_t_type = triangle_type_of<typename MatrixTraits<Arg>::template TriangularBaseType<>>;
-    constexpr TriangleType t_type = std::get<0>(std::tuple {triangle_type..., arg_t_type});
-    using B = typename MatrixTraits<Arg>::template TriangularBaseType<t_type>;
-    return SquareRootCovariance<Coefficients, B> {static_cast<B>(std::forward<Arg>(arg))};
-  }
-
-
-  /// Make an axes-only SquareRootCovariance, based on a covariance_nestable or regular matrix.
-#ifdef __cpp_concepts
-  template<TriangleType...triangle_type, typename Arg> requires
-    (sizeof...(triangle_type) == 0 and covariance_nestable<Arg>) or
-    (sizeof...(triangle_type) <= 1 and typed_matrix_nestable<Arg>)
-#else
-  template<TriangleType...triangle_type, typename Arg, std::enable_if_t<
-    (sizeof...(triangle_type) == 0 and covariance_nestable<Arg>) or
-    (sizeof...(triangle_type) <= 1 and typed_matrix_nestable<Arg>), int> = 0>
-#endif
-  inline auto
-  make_SquareRootCovariance(Arg&& arg) noexcept
-  {
-    static_assert(MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns);
     using C = Axes<MatrixTraits<Arg>::dimension>;
-    return make_SquareRootCovariance<C, triangle_type...>(std::forward<Arg>(arg));
+    return make_square_root_covariance<C>(std::forward<Arg>(arg));
   }
 
 
-  /// Make a default SquareRootCovariance, based on a template type.
+  /**
+   * \overload
+   * \brief Make a SquareRootCovariance (with nested triangular matrix) from a self-adjoint typed_matrix_nestable.
+   * \tparam Coefficients The coefficient types corresponding to the rows and columns.
+   * \tparam TriangleType The type of the nested triangular matrix (upper, lower).
+   * \tparam Arg A square, self-adjoint typed_matrix_nestable with size matching Coefficients.
+   */
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, typename Arg> requires covariance_nestable<Arg> or typed_matrix_nestable<Arg>
+  template<coefficients Coefficients, TriangleType triangle_type = TriangleType::lower, typed_matrix_nestable Arg>
+  requires (not covariance_nestable<Arg>) and
+    (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
+    (Coefficients::size == MatrixTraits<Arg>::dimension) and (Coefficients::size == MatrixTraits<Arg>::columns)
 #else
-  template<typename Coefficients, typename Arg,
-    std::enable_if_t<covariance_nestable<Arg> or typed_matrix_nestable<Arg>, int> = 0>
+  template<typename Coefficients, TriangleType triangle_type = TriangleType::lower, typename Arg, std::enable_if_t<
+    coefficients<Coefficients> and typed_matrix_nestable<Arg> and (not covariance_nestable<Arg>) and
+    (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
+    (Coefficients::size == MatrixTraits<Arg>::dimension) and
+    (Coefficients::size == MatrixTraits<Arg>::columns), int> = 0>
 #endif
   inline auto
-  make_SquareRootCovariance()
+  make_square_root_covariance(Arg&& arg) noexcept
   {
-    static_assert(MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns);
-    constexpr TriangleType template_type = triangle_type_of<typename MatrixTraits<Arg>::template TriangularBaseType<>>;
+    using T = typename MatrixTraits<Arg>::template TriangularBaseType<triangle_type>;
+    return SquareRootCovariance<Coefficients, T>(std::forward<Arg>(arg));
+  }
 
+
+  /**
+   * \overload
+   * \brief Make a default Axis SquareRootCovariance from a self-adjoint typed_matrix_nestable.
+   * \tparam TriangleType The type of the nested triangular matrix (upper, lower).
+   * \tparam Arg A square, self-adjoint typed_matrix_nestable.
+   */
+#ifdef __cpp_concepts
+  template<TriangleType triangle_type = TriangleType::lower, typed_matrix_nestable Arg> requires
+    (not covariance_nestable<Arg>) and
+    (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
+    (MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns)
+#else
+  template<TriangleType triangle_type = TriangleType::lower, typename Arg, std::enable_if_t<
+    typed_matrix_nestable<Arg> and (not covariance_nestable<Arg>) and
+    (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
+    (MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns), int> = 0>
+#endif
+  inline auto
+  make_square_root_covariance(Arg&& arg) noexcept
+  {
+    using C = Axes<MatrixTraits<Arg>::dimension>;
+    return make_square_root_covariance<C, triangle_type>(std::forward<Arg>(arg));
+  }
+
+
+  /**
+   * \overload
+   * \brief Make a writable, uninitialized SquareRootCovariance from a typed_matrix_nestable.
+   */
+#ifdef __cpp_concepts
+  template<coefficients Coefficients, TriangleType triangle_type, typed_matrix_nestable Arg>
+    requires (MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns)
+#else
+  template<typename Coefficients, TriangleType triangle_type, typename Arg,
+    std::enable_if_t<coefficients<Coefficients> and typed_matrix_nestable<Arg> and
+      (MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns), int> = 0>
+#endif
+  inline auto
+  make_square_root_covariance()
+  {
+    using B = std::conditional_t<triangle_type == TriangleType::diagonal,
+    typename MatrixTraits<Arg>::template DiagonalBaseType<>,
+      typename MatrixTraits<Arg>::template TriangularBaseType<triangle_type>>;
+    return SquareRootCovariance<Coefficients, B>();
+  }
+
+
+  /**
+   * \overload
+   * \brief Make a writable, uninitialized SquareRootCovariance from a covariance_nestable or typed_matrix_nestable.
+   */
+#ifdef __cpp_concepts
+  template<coefficients Coefficients, typename Arg> requires
+    (covariance_nestable<Arg> or typed_matrix_nestable<Arg>) and
+    (MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns)
+#else
+  template<typename Coefficients, typename Arg, std::enable_if_t<
+    (covariance_nestable<Arg> or typed_matrix_nestable<Arg>) and
+    (MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns), int> = 0>
+#endif
+  inline auto
+  make_square_root_covariance()
+  {
+    constexpr TriangleType template_type = triangle_type_of<typename MatrixTraits<Arg>::template TriangularBaseType<>>;
     using B = std::conditional_t<diagonal_matrix<Arg>,
       typename MatrixTraits<Arg>::template DiagonalBaseType<>,
       std::conditional_t<self_adjoint_matrix<Arg>,
         typename MatrixTraits<Arg>::template SelfAdjointBaseType<template_type>,
         typename MatrixTraits<Arg>::template TriangularBaseType<template_type>>>;
-
     return SquareRootCovariance<Coefficients, B>();
   }
 
 
-  /// Make a default SquareRootCovariance for a regular matrix.
+/**
+ * \overload
+ * \brief Make a writable, uninitialized SquareRootCovariance from a typed_matrix_nestable or covariance_nestable.
+ * \details The coefficients will be Axis.
+ */
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, TriangleType triangle_type, typed_matrix_nestable Arg>
+  template<typename Arg> requires (covariance_nestable<Arg> or typed_matrix_nestable<Arg>) and
+    (MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns)
 #else
-  template<typename Coefficients, TriangleType triangle_type, typename Arg,
-    std::enable_if_t<typed_matrix_nestable<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<(covariance_nestable<Arg> or typed_matrix_nestable<Arg>) and
+    (MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns), int> = 0>
 #endif
   inline auto
-  make_SquareRootCovariance()
+  make_square_root_covariance()
   {
-    static_assert(MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns);
-
-    using B = std::conditional_t<diagonal_matrix<Arg>,
-      typename MatrixTraits<Arg>::template DiagonalBaseType<>,
-      std::conditional_t<self_adjoint_matrix<Arg>,
-        typename MatrixTraits<Arg>::template SelfAdjointBaseType<triangle_type>,
-        typename MatrixTraits<Arg>::template TriangularBaseType<triangle_type>>>;
-
-    return SquareRootCovariance<Coefficients, B>();
-  }
-
-
-  /// Make a default axes-only SquareRootCovariance, based on a template type.
-#ifdef __cpp_concepts
-  template<typename Arg> requires covariance_nestable<Arg> or typed_matrix_nestable<Arg>
-#else
-  template<typename Arg, std::enable_if_t<covariance_nestable<Arg> or typed_matrix_nestable<Arg>, int> = 0>
-#endif
-  inline auto
-  make_SquareRootCovariance()
-  {
-    static_assert(MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns);
     using C = Axes<MatrixTraits<Arg>::dimension>;
-    return make_SquareRootCovariance<C, Arg>();
+    return make_square_root_covariance<C, Arg>();
   }
 
 
-  /// Make a default axes-only SquareRootCovariance for a regular matrix.
+  /**
+   * \overload
+   * \brief Make a writable, uninitialized SquareRootCovariance, with default Axis coefficients.
+   */
 #ifdef __cpp_concepts
-  template<TriangleType triangle_type, typed_matrix_nestable Arg>
+  template<TriangleType triangle_type, typed_matrix_nestable Arg> requires
+    (MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns)
 #else
-  template<TriangleType triangle_type, typename Arg, std::enable_if_t<typed_matrix_nestable<Arg>, int> = 0>
+  template<TriangleType triangle_type, typename Arg, std::enable_if_t<
+    typed_matrix_nestable<Arg> and (MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns), int> = 0>
 #endif
   inline auto
-  make_SquareRootCovariance()
+  make_square_root_covariance()
   {
-    static_assert(MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns);
     using C = Axes<MatrixTraits<Arg>::dimension>;
-    return make_SquareRootCovariance<C, triangle_type, Arg>();
+    return make_square_root_covariance<C, triangle_type, Arg>();
   }
 
 
-  // Make from another covariance type
-
-  /// Make a SquareRootCovariance based on another covariance.
-#ifdef __cpp_concepts
-  template<TriangleType...triangle_type, covariance Arg> requires (sizeof...(triangle_type) <= 1)
-#else
-  template<TriangleType...triangle_type, typename Arg, std::enable_if_t<
-    sizeof...(triangle_type) <= 1 and covariance<Arg>, int> = 0>
-#endif
-  inline auto
-  make_SquareRootCovariance(Arg&& arg) noexcept
-  {
-    using C = typename MatrixTraits<Arg>::Coefficients;
-    return make_SquareRootCovariance<C, triangle_type...>(nested_matrix(std::forward<Arg>(arg)));
-  }
-
-
-  /// Make a default axes-only SquareRootCovariance, based on a covariance template type.
-#ifdef __cpp_concepts
-  template<TriangleType triangle_type, covariance Arg>
-#else
-  template<TriangleType triangle_type, typename Arg, std::enable_if_t<covariance<Arg>, int> = 0>
-#endif
-  inline auto
-  make_SquareRootCovariance()
-  {
-    using C = typename MatrixTraits<Arg>::Coefficients;
-    using B = nested_matrix_t<Arg>;
-    return make_SquareRootCovariance<C, triangle_type, B>();
-  }
-
-
-  /// Make a default axes-only SquareRootCovariance, based on a covariance template type.
+  /**
+   * \overload
+   * \brief Make a SquareRootCovariance based on another covariance.
+   */
 #ifdef __cpp_concepts
   template<covariance Arg>
 #else
   template<typename Arg, std::enable_if_t<covariance<Arg>, int> = 0>
 #endif
   inline auto
-  make_SquareRootCovariance()
+  make_square_root_covariance(Arg&& arg) noexcept
+  {
+    using C = typename MatrixTraits<Arg>::Coefficients;
+    return make_square_root_covariance<C>(nested_matrix(std::forward<Arg>(arg)));
+  }
+
+
+  /**
+   * \overload
+   * \brief Make a writable, uninitialized SquareRootCovariance from a covariance type.
+   */
+#ifdef __cpp_concepts
+  template<covariance Arg>
+#else
+  template<typename Arg, std::enable_if_t<covariance<Arg>, int> = 0>
+#endif
+  inline auto
+  make_square_root_covariance()
   {
     using C = typename MatrixTraits<Arg>::Coefficients;
     using B = nested_matrix_t<Arg>;
-    return make_SquareRootCovariance<C, B>();
+    return make_square_root_covariance<C, B>();
   }
 
 
-  // Make from a typed matrix
-
-  /// Make a SquareRootCovariance from a typed matrix.
+  /**
+   * \overload
+   * \brief Make a SquareRootCovariance from a typed matrix.
+   */
 #ifdef __cpp_concepts
-  template<TriangleType...triangle_type, typed_matrix Arg> requires (sizeof...(triangle_type) <= 1)
+  template<TriangleType triangle_type = TriangleType::lower, typed_matrix Arg> requires
+    (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
+    (equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, typename MatrixTraits<Arg>::ColumnCoefficients>)
 #else
-  template<TriangleType...triangle_type, typename Arg, std::enable_if_t<
-    sizeof...(triangle_type) <= 1 and typed_matrix<Arg>, int> = 0>
+  template<TriangleType triangle_type = TriangleType::lower, typename Arg, std::enable_if_t<typed_matrix<Arg> and
+    (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
+    (equivalent_to<typename MatrixTraits<Arg>::RowCoefficients,
+      typename MatrixTraits<Arg>::ColumnCoefficients>), int> = 0>
 #endif
   inline auto
-  make_SquareRootCovariance(Arg&& arg) noexcept
+  make_square_root_covariance(Arg&& arg) noexcept
   {
-    static_assert(equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, typename MatrixTraits<Arg>::ColumnCoefficients>);
     using C = typename MatrixTraits<Arg>::RowCoefficients;
-    return make_SquareRootCovariance<C, triangle_type...>(nested_matrix(std::forward<Arg>(arg)));
+    return make_square_root_covariance<C, triangle_type>(nested_matrix(std::forward<Arg>(arg)));
   }
 
 
-  /// Make a default axes-only SquareRootCovariance, based on a typed matrix template type, specifying a triangle type.
+  /**
+   * \overload
+   * \brief Make a writable, uninitialized SquareRootCovariance based on a typed_matrix.
+   */
 #ifdef __cpp_concepts
-  template<TriangleType triangle_type, typed_matrix Arg>
+  template<TriangleType triangle_type, typed_matrix Arg> requires
+    (equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, typename MatrixTraits<Arg>::ColumnCoefficients>)
 #else
-  template<TriangleType triangle_type, typename Arg, std::enable_if_t<typed_matrix<Arg>, int> = 0>
+  template<TriangleType triangle_type, typename Arg, std::enable_if_t<typed_matrix<Arg> and
+    (equivalent_to<typename MatrixTraits<Arg>::RowCoefficients,
+      typename MatrixTraits<Arg>::ColumnCoefficients>), int> = 0>
 #endif
   inline auto
-  make_SquareRootCovariance()
+  make_square_root_covariance()
   {
-    static_assert(equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, typename MatrixTraits<Arg>::ColumnCoefficients>);
-    using C = typename MatrixTraits<Arg>::RowCoefficients;
-    using B = nested_matrix_t<Arg>;
-    return make_SquareRootCovariance<C, triangle_type, B>();
-  }
-
-
-  /// Make a default axes-only SquareRootCovariance, based on a typed matrix template type.
-#ifdef __cpp_concepts
-  template<typed_matrix Arg>
-#else
-  template<typename Arg, std::enable_if_t<typed_matrix<Arg>, int> = 0>
-#endif
-  inline auto
-  make_SquareRootCovariance()
-  {
-    static_assert(equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, typename MatrixTraits<Arg>::ColumnCoefficients>);
     using C = typename MatrixTraits<Arg>::RowCoefficients;
     using B = nested_matrix_t<Arg>;
-    return make_SquareRootCovariance<C, B>();
+    return make_square_root_covariance<C, triangle_type, B>();
+  }
+
+
+  /**
+   * \overload
+   * \brief Make a writable, uninitialized SquareRootCovariance based on a typed_matrix.
+   */
+#ifdef __cpp_concepts
+  template<typed_matrix Arg> requires
+    (equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, typename MatrixTraits<Arg>::ColumnCoefficients>)
+#else
+  template<typename Arg, std::enable_if_t<typed_matrix<Arg> and
+    (equivalent_to<typename MatrixTraits<Arg>::RowCoefficients,
+      typename MatrixTraits<Arg>::ColumnCoefficients>), int> = 0>
+#endif
+  inline auto
+  make_square_root_covariance()
+  {
+    using C = typename MatrixTraits<Arg>::RowCoefficients;
+    using B = nested_matrix_t<Arg>;
+    return make_square_root_covariance<C, B>();
   }
 
 

@@ -35,9 +35,9 @@ TEST_F(transform_linear, linearized_augmented_order1)
   const auto full_output = std::tuple {output, cross_output};
   EXPECT_TRUE(is_near(t.transform_with_cross_covariance(input, g, noise), full_output));
   //
-  const GaussianDistribution input2 {M2(1, 2), make_Covariance<TriangleType::lower>(Mat2::identity())};
-  const GaussianDistribution noise2 {M2::zero(), make_Covariance<TriangleType::lower>(Mat2::identity())};
-  const GaussianDistribution output2 {M2(5, 10), make_Covariance<TriangleType::lower>(P_output)};
+  const GaussianDistribution input2 {M2(1, 2), make_covariance<TriangleType::lower>(Mat2::identity())};
+  const GaussianDistribution noise2 {M2::zero(), make_covariance<TriangleType::lower>(Mat2::identity())};
+  const GaussianDistribution output2 {M2(5, 10), make_covariance<TriangleType::lower>(P_output)};
   const auto full_output2 = std::tuple {output2, cross_output};
   EXPECT_TRUE(is_near(t.transform_with_cross_covariance(input2, g, noise2), full_output2));
 }
@@ -74,14 +74,14 @@ TEST_F(transform_linear, linearized_augmented_order2)
   EXPECT_TRUE(is_near(out, GaussianDistribution {M2(5, 10), Mat2 {30, 20, 20, 30}}));
   EXPECT_TRUE(is_near(cross, Mat2 {1, 4, 2, 3}));
   //
-  const GaussianDistribution input2 {M2(1, 2), make_Covariance<TriangleType::lower>(Mat2 {2, 1, 1, 2})};
-  const GaussianDistribution noise2 {M2::zero(), make_Covariance<TriangleType::lower>(Mat2 {1, 0, 0, 1})};
+  const GaussianDistribution input2 {M2(1, 2), make_covariance<TriangleType::lower>(Mat2 {2, 1, 1, 2})};
+  const GaussianDistribution noise2 {M2::zero(), make_covariance<TriangleType::lower>(Mat2 {1, 0, 0, 1})};
   auto [out2, cross2] = t.transform_with_cross_covariance(input2, g, noise2);
   EXPECT_TRUE(is_near(out2, GaussianDistribution {M2(5, 10), Mat2 {39, 41, 41, 79}}));
   EXPECT_TRUE(is_near(cross2, Mat2 {4, 11, 5, 10}));
 
-  const GaussianDistribution input3 {M2(1, 2), make_Covariance<TriangleType::upper>(Mat2 {2, 1, 1, 2})};
-  const GaussianDistribution noise3 {M2::zero(), make_Covariance<TriangleType::upper>(Mat2 {1, 0, 0, 1})};
+  const GaussianDistribution input3 {M2(1, 2), make_covariance<TriangleType::upper>(Mat2 {2, 1, 1, 2})};
+  const GaussianDistribution noise3 {M2::zero(), make_covariance<TriangleType::upper>(Mat2 {1, 0, 0, 1})};
   auto [out3, cross3] = t.transform_with_cross_covariance(input3, g, noise3);
   EXPECT_TRUE(is_near(out3, GaussianDistribution {M2(5, 10), Mat2 {39, 41, 41, 79}}));
   EXPECT_TRUE(is_near(cross3, Mat2 {4, 11, 5, 10}));

@@ -14,6 +14,10 @@
 
 namespace OpenKalman
 {
+  template<typename C1 = Distance, typename C2 = angle::Radians, typename C3 = inclination::Radians>
+  struct Spherical;
+
+
   namespace detail
   {
     template<template<typename Scalar> typename InclinationLimits, typename Scalar>
@@ -322,9 +326,9 @@ namespace OpenKalman
   struct Spherical<Distance, Inclination<ILimits>, Angle<ALimits>>
     : detail::SphericalBase<Spherical<Distance, Inclination<ILimits>, Angle<ALimits>>,
     Distance, Inclination<ILimits>, Angle<ALimits>, ALimits, ILimits, 0, 2, 1>
-{
-static_assert(internal::coefficient_class<Spherical>);
-};
+  {
+  static_assert(internal::coefficient_class<Spherical>);
+  };
 
 
   // Angle, Distance, Inclination.
@@ -347,7 +351,6 @@ static_assert(internal::coefficient_class<Spherical>);
   };
 
 
-
   // Angle, Inclination, Distance.
   template<template<typename Scalar> typename ALimits, template<typename Scalar> typename ILimits>
   struct Spherical<Angle<ALimits>, Inclination<ILimits>, Distance>
@@ -358,7 +361,6 @@ static_assert(internal::coefficient_class<Spherical>);
   };
 
 
-
   // Inclination, Angle, Distance.
   template<template<typename Scalar> typename ILimits, template<typename Scalar> typename ALimits>
   struct Spherical<Inclination<ILimits>, Angle<ALimits>, Distance>
@@ -367,7 +369,6 @@ static_assert(internal::coefficient_class<Spherical>);
   {
     static_assert(internal::coefficient_class<Spherical>);
   };
-
 
 
 }// namespace OpenKalman

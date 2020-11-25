@@ -259,9 +259,9 @@ namespace OpenKalman
         Matrix<Coefficients, Axis, MatrixBase>, std::normal_distribution, random_number_engine>(0.0, 1.0);
       auto s = square_root(sigma);
       if constexpr(not lower_triangular_matrix<CovarianceBase>)
-        return make_self_contained(make_Matrix(mu) + transpose(s) * norm);
+        return make_self_contained(make_matrix(mu) + transpose(s) * norm);
       else
-        return make_self_contained(make_Matrix(mu) + s * norm);
+        return make_self_contained(make_matrix(mu) + s * norm);
     }
 
     /// \brief Log-likelihood function for a set of i.i.d. observations z.
@@ -456,7 +456,7 @@ namespace OpenKalman
       }
       else
       {
-        auto c = nested_matrix(make_Covariance<C>(std::forward<Cov>(cov)));
+        auto c = nested_matrix(make_covariance<C>(std::forward<Cov>(cov)));
         return GaussianDistribution<C, passable_t<Mb>, self_contained_t<decltype(c)>, re>(std::forward<M>(mean), std::move(c));
       }
     }
@@ -470,14 +470,14 @@ namespace OpenKalman
     {
       using C = typename MatrixTraits<Cov>::RowCoefficients;
       static_assert(equivalent_to<C, typename MatrixTraits<Cov>::ColumnCoefficients>);
-      auto sc = nested_matrix(make_Covariance(std::forward<Cov>(cov)));
+      auto sc = nested_matrix(make_covariance(std::forward<Cov>(cov)));
       using SC = self_contained_t<decltype(sc)>;
       return GaussianDistribution<C, passable_t<M>, SC, re>(std::forward<M>(mean), std::move(sc));
     }
     else
     {
       using C = Axes<MatrixTraits<M>::dimension>;
-      auto c = nested_matrix(make_Covariance<C>(std::forward<Cov>(cov)));
+      auto c = nested_matrix(make_covariance<C>(std::forward<Cov>(cov)));
       return GaussianDistribution<C, passable_t<M>, self_contained_t<decltype(c)>, re>(
         std::forward<M>(mean), std::move(c));
     }
@@ -505,7 +505,7 @@ namespace OpenKalman
     }
     else
     {
-      auto c = nested_matrix(make_Covariance<Coefficients>(std::forward<Cov>(cov)));
+      auto c = nested_matrix(make_covariance<Coefficients>(std::forward<Cov>(cov)));
       return GaussianDistribution<Coefficients, passable_t<M>, self_contained_t<decltype(c)>, re>(
         std::forward<M>(mean), std::move(c));
     }

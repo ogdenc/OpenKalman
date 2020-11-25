@@ -187,6 +187,7 @@ namespace OpenKalman
   //  native_matrix  //
   // --------------- //
 
+
   /**
    * \brief An alias for a self-contained native matrix, based on and equivalent to parameter T.
    * \tparam T The type from which the native matrix is derived.
@@ -771,8 +772,7 @@ namespace OpenKalman
 
   namespace internal
   {
-    /**
-     * \internal
+    /*
      * A covariance has a Cholesky form if its nested matrix is not self-adjoint.
      */
 #ifdef __cpp_concepts
@@ -785,8 +785,7 @@ namespace OpenKalman
 #endif
 
 
-    /**
-     * \internal
+    /*
      * A distribution has a Cholesky form if its associated Covariance has a Cholesky form.
      */
 #ifdef __cpp_concepts
@@ -805,7 +804,7 @@ namespace OpenKalman
   // -------------------------------- //
 
   /**
-   * The type of a triangular matrix, either lower, upper, or diagonal.
+   * \brief The type of a triangular matrix, either lower, upper, or diagonal.
    */
   enum struct TriangleType { lower, upper, diagonal };
 
@@ -853,7 +852,7 @@ namespace OpenKalman
 
 
   /**
-   * Derive the TriangleType from the type of the triangular_matrix.
+   * \brief Derive the TriangleType from the type of the triangular_matrix.
    */
 #ifdef __cpp_concepts
   template<triangular_matrix T>
@@ -873,7 +872,7 @@ namespace OpenKalman
     /**
      * \internal
      * \brief Type trait testing whether an object has elements that can be retrieved with N indices.
-     * This should be specialized for all matrix types usable with OpenKalman.
+     * \note This should be specialized for all matrix types usable with OpenKalman.
      */
 #ifdef __cpp_concepts
     template<typename T, std::size_t N>
@@ -886,7 +885,7 @@ namespace OpenKalman
 
 
   /**
-   * T has elements that can be retrieved with N indices.
+   * \brief Specifies that a type has elements that can be retrieved with N number of indices.
    * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
    */
   template<typename T, std::size_t N>
@@ -899,8 +898,8 @@ namespace OpenKalman
 
   namespace internal
   {
-    /**
-     * \internal A typed matrix or covariance T is gettable with N indices if its nested matrix is likewise gettable.
+    /*
+     * A typed matrix or covariance T is gettable with N indices if its nested matrix is likewise gettable.
      */
 #ifdef __cpp_concepts
     template<typename T, std::size_t N> requires (typed_matrix<T> or covariance<T>) and
@@ -923,7 +922,7 @@ namespace OpenKalman
     /**
      * \internal
      * \brief Type trait testing whether an object has elements that can be set with N indices.
-     * This should be specialized for all matrix types usable with OpenKalman.
+     * \note This should be specialized for all matrix types usable with OpenKalman.
      */
 #ifdef __cpp_concepts
     template<typename T, std::size_t N>
@@ -935,7 +934,7 @@ namespace OpenKalman
   }
 
   /**
-   * T has elements that can be set with N indices.
+   * \brief Specifies that a type has elements that can be set with N number of indices.
    * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
    */
   template<typename T, std::size_t N>
@@ -950,8 +949,8 @@ namespace OpenKalman
 
   namespace internal
   {
-    /**
-     * \internal A typed matrix or covariance T is settable with N indices if its nested matrix is likewise settable.
+    /*
+     * A typed matrix or covariance T is settable with N indices if its nested matrix is likewise settable.
      */
 #ifdef __cpp_concepts
     template<typename T, std::size_t N> requires (typed_matrix<T> or covariance<T>) and

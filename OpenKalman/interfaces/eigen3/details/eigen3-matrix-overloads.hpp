@@ -38,7 +38,10 @@ namespace OpenKalman::Eigen3
   }
 
 
-  /// Make a native Eigen matrix from a list of coefficients in row-major order.
+  /**
+   * \overload
+   * \brief Make a native Eigen matrix from a list of coefficients in row-major order.
+   */
 #ifdef __cpp_concepts
   template<std::size_t dimension, std::size_t columns = 1, typename ... Args> requires
     (std::is_arithmetic_v<Args> and ...) and (sizeof...(Args) == dimension * columns)
@@ -1258,7 +1261,7 @@ namespace OpenKalman::Eigen3
         "Params... must be (1) a parameter set or list of parameter sets, "
         "(2) a list of parameter sets, one for each row, or (3) a list of parameter sets, one for each coefficient.");
       return apply_columnwise<cols>([&] {
-        using ReturnTypeCol = typename MatrixTraits<ReturnType>::template NativeMatrix<rows, 1>;
+        using ReturnTypeCol = native_matrix_t<ReturnType, rows, 1>;
         return MatrixTraits<ReturnTypeCol>::make(
           detail::get_rnd<Scalar, distribution_type, random_number_engine>(std::forward<Params>(params))...);
       });

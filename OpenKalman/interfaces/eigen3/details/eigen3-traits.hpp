@@ -811,10 +811,14 @@ namespace OpenKalman
     struct is_element_settable<T, N> : std::true_type {};
 #else
     template<typename T, std::size_t N>
-    struct is_element_settable<T, N, std::enable_if_t<Eigen3::from_euclidean_expr<T>>>
-      : std::bool_constant<(MatrixTraits<T>::Coefficients::axes_only and element_settable<nested_matrix_t<T>, N>) or
-          (Eigen3::to_euclidean_expr<nested_matrix_t<T>> and
-          element_settable<nested_matrix_t<nested_matrix_t<T>>, N>)> {};
+    struct is_element_settable<T, N, std::enable_if_t<Eigen3::from_euclidean_expr<T> and
+      (not Eigen3::to_euclidean_expr<nested_matrix_t<T>>)>>
+      : std::bool_constant<MatrixTraits<T>::Coefficients::axes_only and element_settable<nested_matrix_t<T>, N>> {};
+
+    template<typename T, std::size_t N>
+    struct is_element_settable<T, N, std::enable_if_t<Eigen3::from_euclidean_expr<T> and
+      Eigen3::to_euclidean_expr<nested_matrix_t<T>>>>
+      : std::bool_constant<element_settable<nested_matrix_t<nested_matrix_t<T>>, N>> {};
 #endif
 
 

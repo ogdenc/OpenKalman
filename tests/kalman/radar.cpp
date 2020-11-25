@@ -13,7 +13,7 @@
 template<typename Cov, typename Trans>
 void kalman::radar_2D(const Trans& transform)
 {
-  using M2 = Eigen::Matrix<double, 2, 1>;
+  using M2 = native_matrix_t<double, 2, 1>;
   using Loc2 = Mean<Axes<2>, M2>;
   using Polar2 = Mean<Polar<>, M2>;
   for (int i = 0; i < 5; i++)
@@ -26,7 +26,7 @@ void kalman::radar_2D(const Trans& transform)
   }
 }
 
-using M22 = Eigen::Matrix<double, 2, 2>;
+using M22 = native_matrix_t<double, 2, 2>;
 
 /// Locates a stationary object in 2D space based on a radar ping (a Polar vector).
 

@@ -81,7 +81,7 @@ namespace OpenKalman
       constexpr Scalar alpha = Parameters::alpha;
       constexpr Scalar kappa = Parameters::template kappa<dim>;
       constexpr Scalar gamma_L = alpha * alpha * (kappa + dim);
-      const auto delta = make_Matrix<Coeffs, Axes<dim_i>>(make_native_matrix(square_root(gamma_L * covariance_of(d))));
+      const auto delta = make_matrix<Coeffs, Axes<dim_i>>(make_native_matrix(square_root(gamma_L * covariance_of(d))));
       //
       using M0nested = native_matrix_t<M, dim_i, 1>;
       const auto m0 = Matrix<Coeffs, Axis, M0nested>::zero();

@@ -24,8 +24,10 @@ namespace OpenKalman
    * \brief A matrix with typed rows and columns.
    * \details It is a wrapper for a native matrix type from a supported matrix library such as Eigen.
    * The matrix can be thought of as a transformation from X to Y, where the coefficients for each of X and Y are typed.
-   * Example declaration:
-   * <code>Matrix<double, Coefficients<Axis, Axis, angle::Radians>, Coefficients<Axis, Axis>, Eigen::Matrix<double, 3, 2>> x;</code>
+   * Example declarations:
+   * - <code>Matrix<Coefficients<Axis, Axis, angle::Radians>, Coefficients<Axis, Axis>, native_matrix_t<native_matrix_t<double, 3, 2>> x;</code>
+   * - <code>Matrix<double, Coefficients<Axis, Axis, angle::Radians>, Coefficients<Axis, Axis>,
+   * native_matrix_t<double, 3, 2>> x;</code>
    * \tparam RowCoefficients A set of coefficients (e.g., Axis, Spherical, etc.) corresponding to the rows.
    * \tparam ColumnCoefficients Another set of coefficients corresponding to the columns.
    * \tparam NestedMatrix The underlying native matrix or matrix expression.
@@ -45,7 +47,7 @@ namespace OpenKalman
    * \details Unlike OpenKalman::Matrix, the columns of a Mean are untyped. When a Mean is converted to an
    * OpenKalman::Matrix, the columns are assigned type Axis.
    * Example declaration:
-   * <code>Mean<Coefficients<Axis, Axis, angle::Radians>, 1, Eigen::Matrix<double, 3, 1>> x;</code>
+   * <code>Mean<Coefficients<Axis, Axis, angle::Radians>, 1, native_matrix_t<double, 3, 1>> x;</code>
    * This declares a 3-dimensional vector <var>x</var>, where the coefficients are, respectively, an Axis,
    * an Axis, and an angle::Radians, all of scalar type <code>double</code>. The underlying representation is an
    * Eigen3 column vector.
@@ -65,7 +67,7 @@ namespace OpenKalman
    * \brief Similar to a Mean, but the coefficients are transformed into Euclidean space, based on their type.
    * \details Means containing angles should be converted to EuclideanMean before taking an average or weighted average.
    * Example declaration:
-   * <code>EuclideanMean<Coefficients<Axis, Axis, angle::Radians>, 1, Eigen::Matrix<double, 4, 1>> x;</code>
+   * <code>EuclideanMean<Coefficients<Axis, Axis, angle::Radians>, 1, native_matrix_t<double, 4, 1>> x;</code>
    * This declares a 3-dimensional mean <var>x</var>, where the coefficients are, respectively, an Axis,
    * an Axis, and an angle::Radians, all of scalar type <code>double</code>. The underlying representation is a
    * four-dimensional vector in Euclidean space, with the last two of the dimensions representing the angle::Radians coefficient

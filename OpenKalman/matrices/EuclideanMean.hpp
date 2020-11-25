@@ -239,63 +239,95 @@ namespace OpenKalman
   //        Make functions         //
   // ----------------------------- //
 
-  /// Make a EuclideanMean object from a regular matrix object.
+  /**
+   * \brief Make a EuclideanMean from a typed_matrix_nestable, specifying the row coefficients.
+   * \tparam Coefficients The coefficient types corresponding to the rows.
+   * \tparam M A typed_matrix_nestable with size matching ColumnCoefficients.
+   */
 #ifdef __cpp_concepts
-  template<typename Coefficients = void, typed_matrix_nestable V> requires std::same_as<Coefficients, void> or
-    (coefficients<Coefficients> and MatrixTraits<V>::dimension == Coefficients::dimension)
+  template<coefficients Coefficients, typed_matrix_nestable M> requires
+    (Coefficients::dimension == MatrixTraits<M>::dimension)
 #else
-  template<typename Coefficients = void, typename V, std::enable_if_t<typed_matrix_nestable<V>, int> = 0>
+  template<typename Coefficients, typename M, std::enable_if_t<coefficients<Coefficients> and
+    typed_matrix_nestable<M> and (Coefficients::dimension == MatrixTraits<M>::dimension), int> = 0>
 #endif
-  auto make_EuclideanMean(V&& arg) noexcept
+  auto make_euclidean_mean(M&& arg) noexcept
   {
-    constexpr auto rows = MatrixTraits<V>::dimension;
-    using Coeffs = std::conditional_t<std::is_void_v<Coefficients>, Axes<rows>, Coefficients>;
-    static_assert(Coeffs::dimension == rows);
-    return EuclideanMean<Coeffs, passable_t<V>>(std::forward<V>(arg));
+    return EuclideanMean<Coefficients, passable_t<M>>(std::forward<M>(arg));
   }
 
 
-  /// Make a EuclideanMean object from another typed matrix.
+  /**
+   * \overload
+   * \brief Make a EuclideanMean from a typed_matrix_nestable object, with default Axis coefficients.
+   */
 #ifdef __cpp_concepts
-  template<typed_matrix Arg>
+  template<typed_matrix_nestable M>
 #else
-  template<typename Arg, std::enable_if_t<typed_matrix<Arg>, int> = 0>
+  template<typename M, std::enable_if_t<typed_matrix_nestable<M>, int> = 0>
 #endif
-  inline auto make_EuclideanMean(Arg&& arg) noexcept
+  auto make_euclidean_mean(M&& m) noexcept
   {
-    static_assert(column_vector<Arg>);
+    using Coeffs = Axes<MatrixTraits<M>::dimension>;
+    return make_mean<Coeffs>(std::forward<M>(m));
+  }
+
+
+  /**
+   * \overload
+   * \brief Make a EuclideanMean from another typed_matrix.
+   * \tparam Arg A typed_matrix (i.e., Matrix, Mean, or EuclideanMean).
+   */
+#ifdef __cpp_concepts
+  template<typed_matrix Arg> requires column_vector<Arg>
+#else
+  template<typename Arg, std::enable_if_t<typed_matrix<Arg> and column_vector<Arg>, int> = 0>
+#endif
+  inline auto make_euclidean_mean(Arg&& arg) noexcept
+  {
     using C = typename MatrixTraits<Arg>::RowCoefficients;
     if constexpr(euclidean_transformed<Arg>)
-      return make_EuclideanMean<typename MatrixTraits<Arg>::RowCoefficients>(nested_matrix(std::forward<Arg>(arg)));
+      return make_euclidean_mean<C>(nested_matrix(std::forward<Arg>(arg)));
     else
-      return make_EuclideanMean<typename MatrixTraits<Arg>::RowCoefficients>(nested_matrix(to_Euclidean<C>(std::forward<Arg>(arg))));
+      return make_euclidean_mean<C>(nested_matrix(to_Euclidean<C>(std::forward<Arg>(arg))));
   }
 
 
-  /// Make a default, self-contained EuclideanMean.
+  /**
+   * \overload
+   * \brief Make a default, self-contained EuclideanMean.
+   * \tparam Coefficients The coefficient types corresponding to the rows.
+   * \tparam M a typed_matrix_nestable on which the new matrix is based. It will be converted to a self_contained type
+   * if it is not already self-contained.
+   */
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, typed_matrix_nestable V> requires
-    (coefficients<Coefficients> and Coefficients::dimension == MatrixTraits<V>::dimension)
+  template<coefficients Coefficients, typed_matrix_nestable M> requires
+    (Coefficients::dimension == MatrixTraits<M>::dimension)
 #else
-  template<typename Coefficients, typename V, std::enable_if_t<typed_matrix_nestable<V> and
-    (Coefficients::dimension == MatrixTraits<V>::dimension), int> = 0>
+  template<typename Coefficients, typename M, std::enable_if_t<coefficients<Coefficients> and
+    typed_matrix_nestable<M> and (Coefficients::dimension == MatrixTraits<M>::dimension), int> = 0>
 #endif
-  auto make_EuclideanMean()
+  auto make_euclidean_mean()
   {
-    constexpr auto rows = MatrixTraits<V>::dimension;
-    return EuclideanMean<Coefficients, native_matrix_t<V, rows>>();
+    constexpr auto rows = MatrixTraits<M>::dimension;
+    return EuclideanMean<Coefficients, native_matrix_t<M, rows>>();
   }
 
 
-  /// Make a default, self-contained EuclideanMean with axis coefficients.
+  /**
+   * \overload
+   * \brief Make a self-contained EuclideanMean with default Axis coefficients.
+   * \tparam M a typed_matrix_nestable on which the new Euclidean mean is based.
+   * It will be converted to a self_contained type if it is not already self-contained.
+   */
 #ifdef __cpp_concepts
-  template<typed_matrix_nestable V>
+  template<typed_matrix_nestable M>
 #else
-  template<typename V, std::enable_if_t<typed_matrix_nestable<V>, int> = 0>
+  template<typename M, std::enable_if_t<typed_matrix_nestable<M>, int> = 0>
 #endif
-  auto make_EuclideanMean()
+  auto make_euclidean_mean()
   {
-    return make_EuclideanMean<Axes<MatrixTraits<V>::dimension>, V>();
+    return make_euclidean_mean<Axes<MatrixTraits<M>::dimension>, M>();
   }
 
 

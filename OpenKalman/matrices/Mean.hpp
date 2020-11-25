@@ -345,63 +345,98 @@ namespace OpenKalman
   //        Make functions         //
   ///////////////////////////////////
 
-  /// Make a Mean object from a typed_matrix_nestable.
+  /**
+   * \brief Make a Mean from a typed_matrix_nestable, specifying the row coefficients.
+   * \tparam Coefficients The coefficient types corresponding to the rows.
+   * \tparam M A typed_matrix_nestable with size matching ColumnCoefficients.
+   */
 #ifdef __cpp_concepts
-  template<typename Coefficients = void, typed_matrix_nestable Arg> requires std::same_as<Coefficients, void> or
-    (coefficients<Coefficients> and MatrixTraits<Arg>::dimension == Coefficients::size)
+  template<coefficients Coefficients, typed_matrix_nestable M> requires
+    (Coefficients::size == MatrixTraits<M>::dimension)
 #else
-  template<typename Coefficients = void, typename Arg, std::enable_if_t<typed_matrix_nestable<Arg>, int> = 0>
+  template<typename Coefficients, typename M, std::enable_if_t<coefficients<Coefficients> and
+    typed_matrix_nestable<M> and (Coefficients::size == MatrixTraits<M>::dimension), int> = 0>
 #endif
-  inline auto make_Mean(Arg&& arg) noexcept
+  inline auto make_mean(M&& m) noexcept
   {
-    constexpr auto rows = MatrixTraits<Arg>::dimension;
+    constexpr auto rows = MatrixTraits<M>::dimension;
     using Coeffs = std::conditional_t<std::is_void_v<Coefficients>, Axes<rows>, Coefficients>;
-    static_assert(Coeffs::size == rows);
-    decltype(auto) b = wrap_angles<Coeffs>(std::forward<Arg>(arg));
+    decltype(auto) b = wrap_angles<Coeffs>(std::forward<M>(m));
     return Mean<Coeffs, passable_t<decltype(b)>>(b);
   }
 
 
-  /// Make a Mean object from another typed matrix.
+  /**
+   * \overload
+   * \brief Make a Mean from a typed_matrix_nestable object, with default Axis coefficients.
+   */
+#ifdef __cpp_concepts
+  template<typed_matrix_nestable M>
+#else
+  template<typename M, std::enable_if_t<typed_matrix_nestable<M>, int> = 0>
+#endif
+  inline auto make_mean(M&& m) noexcept
+  {
+    using Coeffs = Axes<MatrixTraits<M>::dimension>;
+    return make_mean<Coeffs>(std::forward<M>(m));
+  }
+
+
+  /**
+   * \overload
+   * \brief Make a Mean from another typed_matrix.
+   * \tparam Arg A typed_matrix (i.e., Matrix, Mean, or EuclideanMean).
+   */
 #ifdef __cpp_concepts
   template<typed_matrix Arg> requires column_vector<Arg>
 #else
   template<typename Arg, std::enable_if_t<typed_matrix<Arg> and column_vector<Arg>, int> = 0>
 #endif
-  inline auto make_Mean(Arg&& arg) noexcept
+  inline auto make_mean(Arg&& arg) noexcept
   {
     using C = typename MatrixTraits<Arg>::RowCoefficients;
     if constexpr(euclidean_transformed<Arg>)
-      return make_Mean<typename MatrixTraits<Arg>::RowCoefficients>(nested_matrix(from_Euclidean<C>(std::forward<Arg>(arg))));
+      return make_mean<C>(nested_matrix(from_Euclidean<C>(std::forward<Arg>(arg))));
     else
-      return make_Mean<typename MatrixTraits<Arg>::RowCoefficients>(nested_matrix(std::forward<Arg>(arg)));
+      return make_mean<C>(nested_matrix(std::forward<Arg>(arg)));
   }
 
 
-  /// Make a default, self-contained Mean
+  /**
+   * \overload
+   * \brief Make a default, self-contained Mean.
+   * \tparam Coefficients The coefficient types corresponding to the rows.
+   * \tparam M a typed_matrix_nestable on which the new matrix is based. It will be converted to a self_contained type
+   * if it is not already self-contained.
+   */
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, typed_matrix_nestable V> requires
-    (coefficients<Coefficients> and MatrixTraits<V>::dimension == Coefficients::size)
+  template<coefficients Coefficients, typed_matrix_nestable M> requires
+    (MatrixTraits<M>::dimension == Coefficients::size)
 #else
-  template<typename Coefficients, typename V, std::enable_if_t<
-    coefficients<Coefficients> and typed_matrix_nestable<V> and
-    (coefficients<Coefficients> and MatrixTraits<V>::dimension == Coefficients::size), int> = 0>
+  template<typename Coefficients, typename M, std::enable_if_t<
+    coefficients<Coefficients> and typed_matrix_nestable<M> and
+    (MatrixTraits<M>::dimension == Coefficients::size), int> = 0>
 #endif
-  inline auto make_Mean()
+  inline auto make_mean()
   {
-    return Mean<Coefficients, native_matrix_t<V>>();
+    return Mean<Coefficients, native_matrix_t<M>>();
   }
 
 
-  /// Make a default, self-contained Mean, with axis coefficients
+  /**
+   * \overload
+   * \brief Make a self-contained Mean with default Axis coefficients.
+   * \tparam M a typed_matrix_nestable on which the new mean is based. It will be converted to a self_contained type
+   * if it is not already self-contained.
+   */
 #ifdef __cpp_concepts
-  template<typed_matrix_nestable V>
+  template<typed_matrix_nestable M>
 #else
-  template<typename V, std::enable_if_t<typed_matrix_nestable<V>, int> = 0>
+  template<typename M, std::enable_if_t<typed_matrix_nestable<M>, int> = 0>
 #endif
-  inline auto make_Mean()
+  inline auto make_mean()
   {
-    return make_Mean<Axes<MatrixTraits<V>::dimension>, V>();
+    return make_mean<Axes<MatrixTraits<M>::dimension>, M>();
   }
 
 

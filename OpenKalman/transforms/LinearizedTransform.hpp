@@ -30,21 +30,21 @@ namespace OpenKalman
     {
     private:
       template<typename MeanType, typename Hessian, typename Cov, std::size_t...ints>
-      static auto make_mean(const Hessian& hessian, const Cov& P, std::index_sequence<ints...>)
+      static auto construct_mean(const Hessian& hessian, const Cov& P, std::index_sequence<ints...>)
       {
         return MeanType {0.5 * trace(P * hessian[ints])...};
       }
 
       template<std::size_t i, std::size_t...js, typename Hessian, typename Cov>
-      static constexpr auto make_cov_row(const Hessian& hessian, const Cov& P)
+      static constexpr auto construct_cov_row(const Hessian& hessian, const Cov& P)
       {
         return std::tuple {0.5 * trace(P * hessian[i] * P * hessian[js])...};
       }
 
       template<typename CovType, typename Hessian, typename Cov, std::size_t...is, std::size_t...js>
-      static auto make_cov(const Hessian& hessian, const Cov& P, std::index_sequence<is...>, std::index_sequence<js...>)
+      static auto construct_cov(const Hessian& hessian, const Cov& P, std::index_sequence<is...>, std::index_sequence<js...>)
       {
-        auto mat = std::tuple_cat(make_cov_row<is, js...>(hessian, P)...);
+        auto mat = std::tuple_cat(construct_cov_row<is, js...>(hessian, P)...);
         return std::make_from_tuple<CovType>(std::move(mat));
       }
 
@@ -72,8 +72,8 @@ namespace OpenKalman
 
         const auto P = covariance_of(x);
         const std::make_index_sequence<output_dim> ints;
-        auto mean_terms = make_mean<Mean<OutputCoeffs, MeanOut>>(hessian, P, ints);
-        auto cov_terms = make_cov<Covariance<OutputCoeffs, CovOut>>(hessian, P, ints, ints);
+        auto mean_terms = construct_mean<Mean<OutputCoeffs, MeanOut>>(hessian, P, ints);
+        auto cov_terms = construct_cov<Covariance<OutputCoeffs, CovOut>>(hessian, P, ints, ints);
         return GaussianDistribution(mean_terms, cov_terms);
       }
 

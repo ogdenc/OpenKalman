@@ -88,10 +88,10 @@ public:
   template<std::size_t IN, std::size_t OUT, typename Cov, typename T>
   void run_multiple_linear_tests(Cov cov, const T& t, double err = 1e-6, int N = 5)
   {
-    using MatIn = Matrix<Axes<OUT>, Axes<IN>, Eigen::Matrix<double, OUT, IN>>;
-    using MatNoise = Matrix<Axes<OUT>, Axes<OUT>, Eigen::Matrix<double, OUT, OUT>>;
-    using MIn = Mean<Axes<IN>, Eigen::Matrix<double, IN, 1>>;
-    using MNoise = Mean<Axes<OUT>, Eigen::Matrix<double, OUT, 1>>;
+    using MatIn = Matrix<Axes<OUT>, Axes<IN>, native_matrix_t<double, OUT, IN>>;
+    using MatNoise = Matrix<Axes<OUT>, Axes<OUT>, native_matrix_t<double, OUT, OUT>>;
+    using MIn = Mean<Axes<IN>, native_matrix_t<double, IN, 1>>;
+    using MNoise = Mean<Axes<OUT>, native_matrix_t<double, OUT, 1>>;
     for (int i=1; i<=N; i++)
     {
       auto a = randomize<MatIn, std::uniform_real_distribution>(-double(i), double(i));
@@ -99,7 +99,7 @@ public:
       auto g = LinearTransformation(a, n);
       auto in = GaussianDistribution {MIn::zero(), cov};
       auto b = randomize<MNoise, std::normal_distribution>(0., i*2.);
-      auto noise_cov = Covariance {0.5 * Eigen::Matrix<double, OUT, OUT>::Identity()};
+      auto noise_cov = Covariance {0.5 * native_matrix_t<double, OUT, OUT>::Identity()};
       auto noise = GaussianDistribution {b, noise_cov};
       EXPECT_TRUE(run_linear_test(err, g, t, in, noise));
     }
@@ -109,10 +109,10 @@ public:
   template<std::size_t DIM, typename Cov>
   void run_multiple_identity_tests(Cov cov, double err = 1e-6, int N = 5)
   {
-    using MatIn = Matrix<Axes<DIM>, Axes<DIM>, Eigen::Matrix<double, DIM, DIM>>;
-    using MatNoise = Matrix<Axes<DIM>, Axes<DIM>, Eigen::Matrix<double, DIM, DIM>>;
-    using MIn = Mean<Axes<DIM>, Eigen::Matrix<double, DIM, 1>>;
-    using MNoise = Mean<Axes<DIM>, Eigen::Matrix<double, DIM, 1>>;
+    using MatIn = Matrix<Axes<DIM>, Axes<DIM>, native_matrix_t<double, DIM, DIM>>;
+    using MatNoise = Matrix<Axes<DIM>, Axes<DIM>, native_matrix_t<double, DIM, DIM>>;
+    using MIn = Mean<Axes<DIM>, native_matrix_t<double, DIM, 1>>;
+    using MNoise = Mean<Axes<DIM>, native_matrix_t<double, DIM, 1>>;
     for (int i=1; i<=N; i++)
     {
       auto a = MatIn::identity();
@@ -121,7 +121,7 @@ public:
       auto t = IdentityTransform();
       auto in = GaussianDistribution {MIn::zero(), make_self_contained(i * cov)};
       auto b = randomize<MNoise, std::normal_distribution>(0., i*2.);
-      auto noise_cov = Covariance {i / 5. * Eigen::Matrix<double, DIM, DIM>::Identity()};
+      auto noise_cov = Covariance {i / 5. * native_matrix_t<double, DIM, DIM>::Identity()};
       auto noise = GaussianDistribution {b, noise_cov};
       EXPECT_TRUE(run_identity_test(err, g, t, in, noise));
     }

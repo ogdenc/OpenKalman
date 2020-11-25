@@ -153,7 +153,7 @@ namespace OpenKalman
       else
       {
         const auto w_yT = to_diagonal(weights) * adjoint(y_deviations);
-        auto out_covariance = make_self_contained(make_Covariance(y_deviations * w_yT));
+        auto out_covariance = make_self_contained(make_covariance(y_deviations * w_yT));
         if constexpr (return_cross)
         {
           auto cross_covariance = make_self_contained(x_deviations * w_yT);

@@ -36,6 +36,7 @@ namespace OpenKalman
     template<typename Scalar>
     using SetCoeff = std::function<void(const Scalar, const std::size_t)>;
 
+
   public:
     /**
      * \internal

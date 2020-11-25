@@ -12,8 +12,8 @@
 
 using namespace OpenKalman;
 
-using M = Eigen::Matrix<double, 3, 3>;
-using M1 = Eigen::Matrix<double, 3, 1>;
+using M = native_matrix_t<double, 3, 3>;
+using M1 = native_matrix_t<double, 3, 1>;
 using C = Coefficients<Axis, angle::Radians, Axis>;
 using Mat3 = Matrix<C, C, M>;
 using Mat31 = Matrix<C, Axis, M1>;

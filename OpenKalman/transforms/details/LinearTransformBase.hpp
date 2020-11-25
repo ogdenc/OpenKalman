@@ -52,14 +52,14 @@ namespace OpenKalman::internal
         if constexpr (return_cross)
         {
           auto cross = make_self_contained(covariance_of(std::get<0>(dist)) * adjoint(std::get<0>(j)));
-          auto cov = make_Covariance((
+          auto cov = make_covariance((
             (std::get<0>(j) * cross) +
               ... + (std::get<ints+1>(j) * (covariance_of(std::get<ints+1>(dist)) * adjoint(std::get<ints+1>(j))))));
           return std::tuple {std::move(cov), std::move(cross)};
         }
         else
         {
-          return make_Covariance((
+          return make_covariance((
             (std::get<0>(j) * covariance_of(std::get<0>(dist)) * adjoint(std::get<0>(j))) +
               ... + (std::get<ints+1>(j) * (covariance_of(std::get<ints+1>(dist)) * adjoint(std::get<ints+1>(j))))));
         }

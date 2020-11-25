@@ -11,11 +11,11 @@
 #include "linear.hpp"
 
 using C2 = Coefficients<Axis, Axis>;
-using M22 = Eigen::Matrix<double, 2, 2>;
+using M22 = native_matrix_t<double, 2, 2>;
 using CovSA2 = Covariance<C2, SelfAdjointMatrix<M22>>;
 using CovT2 = Covariance<C2, TriangularMatrix<M22>>;
 using C3 = Coefficients<Axis, Axis, Axis>;
-using M33 = Eigen::Matrix<double, 3, 3>;
+using M33 = native_matrix_t<double, 3, 3>;
 using CovSA3 = Covariance<C3, SelfAdjointMatrix<M33>>;
 using CovT3 = Covariance<C3, TriangularMatrix<M33>>;
 

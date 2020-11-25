@@ -225,9 +225,9 @@ namespace OpenKalman
 #endif
 
 
-  // --------------------- //
+  // ------------------------- //
   //    covariance_nestable    //
-  // --------------------- //
+  // ------------------------- //
 
   namespace internal
   {

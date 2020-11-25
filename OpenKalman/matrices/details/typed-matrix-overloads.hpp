@@ -128,9 +128,9 @@ namespace OpenKalman
     using CRows = typename MatrixTraits<Arg>::RowCoefficients;
     using CCols = typename MatrixTraits<Arg>::ColumnCoefficients;
     if constexpr(euclidean_transformed<Arg>)
-      return make_Matrix<CCols, CRows>(transpose(nested_matrix(from_Euclidean(std::forward<Arg>(arg)))));
+      return make_matrix<CCols, CRows>(transpose(nested_matrix(from_Euclidean(std::forward<Arg>(arg)))));
     else
-      return make_Matrix<CCols, CRows>(transpose(nested_matrix(std::forward<Arg>(arg))));
+      return make_matrix<CCols, CRows>(transpose(nested_matrix(std::forward<Arg>(arg))));
   }
 
 
@@ -145,9 +145,9 @@ namespace OpenKalman
     using CRows = typename MatrixTraits<Arg>::RowCoefficients;
     using CCols = typename MatrixTraits<Arg>::ColumnCoefficients;
     if constexpr(euclidean_transformed<Arg>)
-      return make_Matrix<CCols, CRows>(adjoint(nested_matrix(from_Euclidean(std::forward<Arg>(arg)))));
+      return make_matrix<CCols, CRows>(adjoint(nested_matrix(from_Euclidean(std::forward<Arg>(arg)))));
     else
-      return make_Matrix<CCols, CRows>(adjoint(nested_matrix(std::forward<Arg>(arg))));
+      return make_matrix<CCols, CRows>(adjoint(nested_matrix(std::forward<Arg>(arg))));
   }
 
 
@@ -225,7 +225,7 @@ namespace OpenKalman
       else
       {
         using C = typename MatrixTraits<Arg>::RowCoefficients;
-        return make_Matrix<C, Axis>(reduce_columns(nested_matrix(std::forward<Arg>(arg))));
+        return make_matrix<C, Axis>(reduce_columns(nested_matrix(std::forward<Arg>(arg))));
       }
     }
   }
@@ -324,7 +324,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
         return MatrixTraits<V>::template make<RC, CC>(std::move(cat));
       }
       else
-        return make_Matrix<RC, CC>(std::move(cat));
+        return make_matrix<RC, CC>(std::move(cat));
     }
     else
     {

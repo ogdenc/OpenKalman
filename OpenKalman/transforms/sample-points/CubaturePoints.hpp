@@ -43,7 +43,7 @@ namespace OpenKalman
       constexpr auto points_count = dim * 2;
       constexpr auto dim_i = DistributionTraits<D>::dimension;
       constexpr auto frame_size = dim_i * 2;
-      const auto delta = make_Matrix<Coeffs, Axes<dim_i>>(make_native_matrix(square_root(OpenKalman::covariance_of(d) * static_cast<Scalar>(dim))));
+      const auto delta = make_matrix<Coeffs, Axes<dim_i>>(make_native_matrix(square_root(OpenKalman::covariance_of(d) * static_cast<Scalar>(dim))));
       if constexpr(frame_size == points_count)
       {
         auto ret = concatenate_horizontal(delta, -delta);

@@ -16,9 +16,9 @@
  * IEEE Transactions on Signal Processing, (60), 2, 545-555. 2012 (TT2 data appears to be in error, and is omitted).
  */
 
-using M2 = Eigen::Matrix<double, 2, 1>;
-using SA = SelfAdjointMatrix<Eigen::Matrix<double, 2, 2>>;
-using TR = TriangularMatrix<Eigen::Matrix<double, 2, 2>>;
+using M2 = native_matrix_t<double, 2, 1>;
+using SA = SelfAdjointMatrix<native_matrix_t<double, 2, 2>>;
+using TR = TriangularMatrix<native_matrix_t<double, 2, 2>>;
 using G2 = GaussianDistribution<Polar<>, M2, SA>;
 using G2T = GaussianDistribution<Polar<>, M2, TR>;
 

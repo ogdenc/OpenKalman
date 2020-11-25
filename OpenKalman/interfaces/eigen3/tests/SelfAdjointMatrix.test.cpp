@@ -10,8 +10,8 @@
 
 #include "eigen3.gtest.hpp"
 
-using M2 = Eigen::Matrix<double, 2, 2>;
-using D2 = DiagonalMatrix<Eigen::Matrix<double, 2, 1>>;
+using M2 = native_matrix_t<double, 2, 2>;
+using D2 = DiagonalMatrix<native_matrix_t<double, 2, 1>>;
 using Lower = SelfAdjointMatrix<M2, TriangleType::lower>;
 using Upper = SelfAdjointMatrix<M2, TriangleType::upper>;
 using Diagonal = SelfAdjointMatrix<M2, TriangleType::diagonal>;
@@ -239,8 +239,8 @@ TEST_F(eigen3, SelfAdjointMatrix_subscripts)
   static_assert(not element_settable<SelfAdjointMatrix<const M2, TriangleType::lower>, 2>);
   static_assert(not element_settable<SelfAdjointMatrix<const D2, TriangleType::lower>, 2>);
   static_assert(not element_settable<SelfAdjointMatrix<const D2, TriangleType::lower>, 1>);
-  static_assert(not element_settable<SelfAdjointMatrix<DiagonalMatrix<const Eigen::Matrix<double, 2, 1>>, TriangleType::lower>, 2>);
-  static_assert(not element_settable<SelfAdjointMatrix<DiagonalMatrix<const Eigen::Matrix<double, 2, 1>>, TriangleType::lower>, 1>);
+  static_assert(not element_settable<SelfAdjointMatrix<DiagonalMatrix<const native_matrix_t<double, 2, 1>>, TriangleType::lower>, 2>);
+  static_assert(not element_settable<SelfAdjointMatrix<DiagonalMatrix<const native_matrix_t<double, 2, 1>>, TriangleType::lower>, 1>);
 
   auto l1 = Lower {9, 3, 3, 10};
   set_element(l1, 3.1, 1, 0);
@@ -302,8 +302,8 @@ TEST_F(eigen3, SelfAdjointMatrix_subscripts)
   EXPECT_TRUE(test);
   EXPECT_TRUE(is_near(d9c, mat22(7.1, 0, 0, 8.1)));
   //
-  EXPECT_NEAR((SelfAdjointMatrix<Eigen::Matrix<double, 1, 1>, TriangleType::lower> {7.})(0), 7., 1e-6);
-  EXPECT_NEAR((SelfAdjointMatrix<Eigen::Matrix<double, 1, 1>, TriangleType::upper> {7.})(0), 7., 1e-6);
+  EXPECT_NEAR((SelfAdjointMatrix<native_matrix_t<double, 1, 1>, TriangleType::lower> {7.})(0), 7., 1e-6);
+  EXPECT_NEAR((SelfAdjointMatrix<native_matrix_t<double, 1, 1>, TriangleType::upper> {7.})(0), 7., 1e-6);
   EXPECT_NEAR((Diagonal {9, 10})(0), 9, 1e-6);
   EXPECT_NEAR((Diagonal {9, 10})(1), 10, 1e-6);
   EXPECT_NEAR((Diagonal2 {9, 10})(0), 9, 1e-6);
@@ -419,8 +419,8 @@ TEST_F(eigen3, SelfAdjointMatrix_overloads)
   EXPECT_TRUE(is_near(Cholesky_square(SelfAdjointMatrix<M2, TriangleType::diagonal>(make_native_matrix<M2>(3, 0, 1, 3))), DiagonalMatrix{9., 9}));
   static_assert(eigen_diagonal_expr<decltype(Cholesky_square(SelfAdjointMatrix<M2, TriangleType::diagonal>(make_native_matrix<M2>(3, 0, 1, 3))))>);
   //
-  EXPECT_TRUE(is_near(Cholesky_square(SelfAdjointMatrix<Eigen::Matrix<double, 1, 1>, TriangleType::lower>(Eigen::Matrix<double, 1, 1>(9))), Eigen::Matrix<double, 1, 1>(81)));
-  EXPECT_TRUE(is_near(Cholesky_square(SelfAdjointMatrix<Eigen::Matrix<double, 1, 1>, TriangleType::upper>(Eigen::Matrix<double, 1, 1>(9))), Eigen::Matrix<double, 1, 1>(81)));
+  EXPECT_TRUE(is_near(Cholesky_square(SelfAdjointMatrix<native_matrix_t<double, 1, 1>, TriangleType::lower>(native_matrix_t<double, 1, 1>(9))), native_matrix_t<double, 1, 1>(81)));
+  EXPECT_TRUE(is_near(Cholesky_square(SelfAdjointMatrix<native_matrix_t<double, 1, 1>, TriangleType::upper>(native_matrix_t<double, 1, 1>(9))), native_matrix_t<double, 1, 1>(81)));
   //
   //
   EXPECT_TRUE(is_near(Cholesky_factor(SelfAdjointMatrix<decltype(M2::Identity()), TriangleType::lower>(M2::Identity())), M2::Identity()));
@@ -441,8 +441,8 @@ TEST_F(eigen3, SelfAdjointMatrix_overloads)
   EXPECT_TRUE(is_near(Cholesky_factor(SelfAdjointMatrix<M2, TriangleType::diagonal>(make_native_matrix<M2>(9, 3, 3, 9))), DiagonalMatrix{3., 3}));
   static_assert(eigen_diagonal_expr<decltype(Cholesky_factor(SelfAdjointMatrix<M2, TriangleType::diagonal>(make_native_matrix<M2>(9, 3, 3, 9))))>);
   //
-  EXPECT_TRUE(is_near(Cholesky_factor(SelfAdjointMatrix<Eigen::Matrix<double, 1, 1>, TriangleType::lower>(Eigen::Matrix<double, 1, 1>(9))), Eigen::Matrix<double, 1, 1>(3)));
-  EXPECT_TRUE(is_near(Cholesky_factor(SelfAdjointMatrix<Eigen::Matrix<double, 1, 1>, TriangleType::upper>(Eigen::Matrix<double, 1, 1>(9))), Eigen::Matrix<double, 1, 1>(3)));
+  EXPECT_TRUE(is_near(Cholesky_factor(SelfAdjointMatrix<native_matrix_t<double, 1, 1>, TriangleType::lower>(native_matrix_t<double, 1, 1>(9))), native_matrix_t<double, 1, 1>(3)));
+  EXPECT_TRUE(is_near(Cholesky_factor(SelfAdjointMatrix<native_matrix_t<double, 1, 1>, TriangleType::upper>(native_matrix_t<double, 1, 1>(9))), native_matrix_t<double, 1, 1>(3)));
   //
   EXPECT_TRUE(is_near(Cholesky_factor<TriangleType::lower>(Upper {9., 3, 3, 10}), mat22(3., 0, 1, 3)));
   EXPECT_TRUE(is_near(Cholesky_factor<TriangleType::upper>(Lower {9., 3, 3, 10}), mat22(3., 1, 0, 3)));
@@ -537,19 +537,19 @@ TEST_F(eigen3, SelfAdjointMatrix_overloads)
 
 TEST_F(eigen3, SelfAdjointMatrix_blocks_lower)
 {
-  auto m0 = SelfAdjointMatrix<Eigen::Matrix<double, 3, 3>, TriangleType::lower> {1, 2, 3,
+  auto m0 = SelfAdjointMatrix<native_matrix_t<double, 3, 3>, TriangleType::lower> {1, 2, 3,
                                                                                       2, 4, 5,
                                                                                       3, 5, 6};
-  auto m1 = SelfAdjointMatrix<Eigen::Matrix<double, 3, 3>, TriangleType::lower> {4, 5, 6,
+  auto m1 = SelfAdjointMatrix<native_matrix_t<double, 3, 3>, TriangleType::lower> {4, 5, 6,
                                                                                       5, 7, 8,
                                                                                       6, 8, 9};
-  EXPECT_TRUE(is_near(concatenate_diagonal(SelfAdjointMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}, m1),
-    SelfAdjointMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::lower> {1., 2, 0, 0, 0,
+  EXPECT_TRUE(is_near(concatenate_diagonal(SelfAdjointMatrix<native_matrix_t<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}, m1),
+    SelfAdjointMatrix<native_matrix_t<double, 5, 5>, TriangleType::lower> {1., 2, 0, 0, 0,
                                                                               2, 3, 0, 0, 0,
                                                                               0, 0, 4, 5, 6,
                                                                               0, 0, 5, 7, 8,
                                                                               0, 0, 6, 8, 9}));
-  static_assert(lower_storage_triangle<decltype(concatenate_diagonal(SelfAdjointMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}, m1))>);
+  static_assert(lower_storage_triangle<decltype(concatenate_diagonal(SelfAdjointMatrix<native_matrix_t<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}, m1))>);
 
   EXPECT_TRUE(is_near(concatenate_vertical(m0, m1),
     make_native_matrix<6,3>(1., 2, 3,
@@ -562,31 +562,31 @@ TEST_F(eigen3, SelfAdjointMatrix_blocks_lower)
     make_native_matrix<3,6>(1., 2, 3, 4, 5, 6,
                                    2, 4, 5, 5, 7, 8,
                                    3, 5, 6, 6, 8, 9)));
-  EXPECT_TRUE(is_near(split_diagonal(SelfAdjointMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}), std::tuple{}));
+  EXPECT_TRUE(is_near(split_diagonal(SelfAdjointMatrix<native_matrix_t<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}), std::tuple{}));
   EXPECT_TRUE(is_near(split_diagonal<2, 3>(
-    SelfAdjointMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::lower> {1., 2, 0, 0, 0,
+    SelfAdjointMatrix<native_matrix_t<double, 5, 5>, TriangleType::lower> {1., 2, 0, 0, 0,
                                                                               2, 3, 0, 0, 0,
                                                                               0, 0, 4, 5, 6,
                                                                               0, 0, 5, 7, 8,
                                                                               0, 0, 6, 8, 9}),
-      std::tuple{SelfAdjointMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}, m1}));
-  const auto a1 = SelfAdjointMatrix<const Eigen::Matrix<double, 5, 5>, TriangleType::lower> {1., 2, 0, 0, 0,
+      std::tuple{SelfAdjointMatrix<native_matrix_t<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}, m1}));
+  const auto a1 = SelfAdjointMatrix<const native_matrix_t<double, 5, 5>, TriangleType::lower> {1., 2, 0, 0, 0,
                                                                                                   2, 3, 0, 0, 0,
                                                                                                   0, 0, 4, 5, 6,
                                                                                                   0, 0, 5, 7, 8,
                                                                                                   0, 0, 6, 8, 9};
-  EXPECT_TRUE(is_near(split_diagonal<2, 3>(a1), std::tuple{SelfAdjointMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}, m1}));
+  EXPECT_TRUE(is_near(split_diagonal<2, 3>(a1), std::tuple{SelfAdjointMatrix<native_matrix_t<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}, m1}));
   EXPECT_TRUE(is_near(split_diagonal<2, 2>(
-    SelfAdjointMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::lower> {1., 2, 0, 0, 0,
+    SelfAdjointMatrix<native_matrix_t<double, 5, 5>, TriangleType::lower> {1., 2, 0, 0, 0,
                                                                               2, 3, 0, 0, 0,
                                                                               0, 0, 4, 5, 6,
                                                                               0, 0, 5, 7, 8,
                                                                               0, 0, 6, 8, 9}),
-    std::tuple{SelfAdjointMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3},
-               SelfAdjointMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::lower> {4., 5, 5, 7}}));
-  EXPECT_TRUE(is_near(split_vertical(SelfAdjointMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}), std::tuple{}));
+    std::tuple{SelfAdjointMatrix<native_matrix_t<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3},
+               SelfAdjointMatrix<native_matrix_t<double, 2, 2>, TriangleType::lower> {4., 5, 5, 7}}));
+  EXPECT_TRUE(is_near(split_vertical(SelfAdjointMatrix<native_matrix_t<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}), std::tuple{}));
   EXPECT_TRUE(is_near(split_vertical<2, 3>(
-    SelfAdjointMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::lower> {1, 2, 0, 0, 0,
+    SelfAdjointMatrix<native_matrix_t<double, 5, 5>, TriangleType::lower> {1, 2, 0, 0, 0,
                                                                               2, 3, 0, 0, 0,
                                                                               0, 0, 4, 5, 6,
                                                                               0, 0, 5, 7, 8,
@@ -597,7 +597,7 @@ TEST_F(eigen3, SelfAdjointMatrix_blocks_lower)
                                                0, 0, 5, 7, 8,
                                                0, 0, 6, 8, 9)}));
   EXPECT_TRUE(is_near(split_vertical<2, 2>(
-    SelfAdjointMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::lower> {1, 2, 0, 0, 0,
+    SelfAdjointMatrix<native_matrix_t<double, 5, 5>, TriangleType::lower> {1, 2, 0, 0, 0,
                                                                               2, 3, 0, 0, 0,
                                                                               0, 0, 4, 5, 6,
                                                                               0, 0, 5, 7, 8,
@@ -606,9 +606,9 @@ TEST_F(eigen3, SelfAdjointMatrix_blocks_lower)
                                                2, 3, 0, 0, 0),
                make_native_matrix<2,5>(0., 0, 4, 5, 6,
                                                0, 0, 5, 7, 8)}));
-  EXPECT_TRUE(is_near(split_horizontal(SelfAdjointMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}), std::tuple{}));
+  EXPECT_TRUE(is_near(split_horizontal(SelfAdjointMatrix<native_matrix_t<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}), std::tuple{}));
   EXPECT_TRUE(is_near(split_horizontal<2, 3>(
-    SelfAdjointMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::lower> {1, 2, 0, 0, 0,
+    SelfAdjointMatrix<native_matrix_t<double, 5, 5>, TriangleType::lower> {1, 2, 0, 0, 0,
                                                                               2, 3, 0, 0, 0,
                                                                               0, 0, 4, 5, 6,
                                                                               0, 0, 5, 7, 8,
@@ -616,7 +616,7 @@ TEST_F(eigen3, SelfAdjointMatrix_blocks_lower)
     std::tuple{make_native_matrix<5,2>(1., 2, 2, 3, 0, 0, 0, 0, 0, 0),
                make_native_matrix<5,3>(0., 0, 0, 0, 0, 0, 4, 5, 6, 5, 7, 8, 6, 8, 9)}));
   EXPECT_TRUE(is_near(split_horizontal<2, 2>(
-    SelfAdjointMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::lower> {1, 2, 0, 0, 0,
+    SelfAdjointMatrix<native_matrix_t<double, 5, 5>, TriangleType::lower> {1, 2, 0, 0, 0,
                                                                               2, 3, 0, 0, 0,
                                                                               0, 0, 4, 5, 6,
                                                                               0, 0, 5, 7, 8,
@@ -650,19 +650,19 @@ TEST_F(eigen3, SelfAdjointMatrix_blocks_lower)
 
 TEST_F(eigen3, SelfAdjointMatrix_blocks_upper)
 {
-  auto m0 = SelfAdjointMatrix<Eigen::Matrix<double, 3, 3>, TriangleType::upper> {1, 2, 3,
+  auto m0 = SelfAdjointMatrix<native_matrix_t<double, 3, 3>, TriangleType::upper> {1, 2, 3,
                                                                                       2, 4, 5,
                                                                                       3, 5, 6};
-  auto m1 = SelfAdjointMatrix<Eigen::Matrix<double, 3, 3>, TriangleType::upper> {4., 5, 6,
+  auto m1 = SelfAdjointMatrix<native_matrix_t<double, 3, 3>, TriangleType::upper> {4., 5, 6,
                                                                                       5, 7, 8,
                                                                                       6, 8, 9};
-  EXPECT_TRUE(is_near(concatenate_diagonal(SelfAdjointMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}, m1),
-    SelfAdjointMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::upper> {1., 2, 0, 0, 0,
+  EXPECT_TRUE(is_near(concatenate_diagonal(SelfAdjointMatrix<native_matrix_t<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}, m1),
+    SelfAdjointMatrix<native_matrix_t<double, 5, 5>, TriangleType::upper> {1., 2, 0, 0, 0,
                                                                               2, 3, 0, 0, 0,
                                                                               0, 0, 4, 5, 6,
                                                                               0, 0, 5, 7, 8,
                                                                               0, 0, 6, 8, 9}));
-  static_assert(upper_storage_triangle<decltype(concatenate_diagonal(SelfAdjointMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}, m1))>);
+  static_assert(upper_storage_triangle<decltype(concatenate_diagonal(SelfAdjointMatrix<native_matrix_t<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}, m1))>);
 
   EXPECT_TRUE(is_near(concatenate_vertical(m0, m1),
     make_native_matrix<6,3>(1., 2, 3,
@@ -675,31 +675,31 @@ TEST_F(eigen3, SelfAdjointMatrix_blocks_upper)
     make_native_matrix<3,6>(1., 2, 3, 4, 5, 6,
                                     2, 4, 5, 5, 7, 8,
                                     3, 5, 6, 6, 8, 9)));
-  EXPECT_TRUE(is_near(split_diagonal(SelfAdjointMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}), std::tuple{}));
+  EXPECT_TRUE(is_near(split_diagonal(SelfAdjointMatrix<native_matrix_t<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}), std::tuple{}));
   EXPECT_TRUE(is_near(split_diagonal<2, 3>(
-    SelfAdjointMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::upper> {1., 2, 0, 0, 0,
+    SelfAdjointMatrix<native_matrix_t<double, 5, 5>, TriangleType::upper> {1., 2, 0, 0, 0,
                                                                               2, 3, 0, 0, 0,
                                                                               0, 0, 4, 5, 6,
                                                                               0, 0, 5, 7, 8,
                                                                               0, 0, 6, 8, 9}),
-    std::tuple{SelfAdjointMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}, m1}));
-  const auto a1 = SelfAdjointMatrix<const Eigen::Matrix<double, 5, 5>, TriangleType::upper> {1., 2, 0, 0, 0,
+    std::tuple{SelfAdjointMatrix<native_matrix_t<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}, m1}));
+  const auto a1 = SelfAdjointMatrix<const native_matrix_t<double, 5, 5>, TriangleType::upper> {1., 2, 0, 0, 0,
                                                                                                   2, 3, 0, 0, 0,
                                                                                                   0, 0, 4, 5, 6,
                                                                                                   0, 0, 5, 7, 8,
                                                                                                   0, 0, 6, 8, 9};
-  EXPECT_TRUE(is_near(split_diagonal<2, 3>(a1), std::tuple{SelfAdjointMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}, m1}));
+  EXPECT_TRUE(is_near(split_diagonal<2, 3>(a1), std::tuple{SelfAdjointMatrix<native_matrix_t<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}, m1}));
   EXPECT_TRUE(is_near(split_diagonal<2, 2>(
-    SelfAdjointMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::upper> {1., 2, 0, 0, 0,
+    SelfAdjointMatrix<native_matrix_t<double, 5, 5>, TriangleType::upper> {1., 2, 0, 0, 0,
                                                                               2, 3, 0, 0, 0,
                                                                               0, 0, 4, 5, 6,
                                                                               0, 0, 5, 7, 8,
                                                                               0, 0, 6, 8, 9}),
-    std::tuple{SelfAdjointMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3},
-               SelfAdjointMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::upper> {4., 5, 5, 7}}));
-  EXPECT_TRUE(is_near(split_vertical(SelfAdjointMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}), std::tuple{}));
+    std::tuple{SelfAdjointMatrix<native_matrix_t<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3},
+               SelfAdjointMatrix<native_matrix_t<double, 2, 2>, TriangleType::upper> {4., 5, 5, 7}}));
+  EXPECT_TRUE(is_near(split_vertical(SelfAdjointMatrix<native_matrix_t<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}), std::tuple{}));
   EXPECT_TRUE(is_near(split_vertical<2, 3>(
-    SelfAdjointMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::upper> {1, 2, 0, 0, 0,
+    SelfAdjointMatrix<native_matrix_t<double, 5, 5>, TriangleType::upper> {1, 2, 0, 0, 0,
                                                                               2, 3, 0, 0, 0,
                                                                               0, 0, 4, 5, 6,
                                                                               0, 0, 5, 7, 8,
@@ -710,7 +710,7 @@ TEST_F(eigen3, SelfAdjointMatrix_blocks_upper)
                                                0, 0, 5, 7, 8,
                                                0, 0, 6, 8, 9)}));
   EXPECT_TRUE(is_near(split_vertical<2, 2>(
-    SelfAdjointMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::upper> {1, 2, 0, 0, 0,
+    SelfAdjointMatrix<native_matrix_t<double, 5, 5>, TriangleType::upper> {1, 2, 0, 0, 0,
                                                                               2, 3, 0, 0, 0,
                                                                               0, 0, 4, 5, 6,
                                                                               0, 0, 5, 7, 8,
@@ -719,9 +719,9 @@ TEST_F(eigen3, SelfAdjointMatrix_blocks_upper)
                                                2, 3, 0, 0, 0),
                make_native_matrix<2,5>(0., 0, 4, 5, 6,
                                                0, 0, 5, 7, 8)}));
-  EXPECT_TRUE(is_near(split_horizontal(SelfAdjointMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}), std::tuple{}));
+  EXPECT_TRUE(is_near(split_horizontal(SelfAdjointMatrix<native_matrix_t<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}), std::tuple{}));
   EXPECT_TRUE(is_near(split_horizontal<2, 3>(
-    SelfAdjointMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::upper> {1, 2, 0, 0, 0,
+    SelfAdjointMatrix<native_matrix_t<double, 5, 5>, TriangleType::upper> {1, 2, 0, 0, 0,
                                                                               2, 3, 0, 0, 0,
                                                                               0, 0, 4, 5, 6,
                                                                               0, 0, 5, 7, 8,
@@ -729,7 +729,7 @@ TEST_F(eigen3, SelfAdjointMatrix_blocks_upper)
     std::tuple{make_native_matrix<5,2>(1., 2, 2, 3, 0, 0, 0, 0, 0, 0),
                make_native_matrix<5,3>(0., 0, 0, 0, 0, 0, 4, 5, 6, 5, 7, 8, 6, 8, 9)}));
   EXPECT_TRUE(is_near(split_horizontal<2, 2>(
-    SelfAdjointMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::upper> {1, 2, 0, 0, 0,
+    SelfAdjointMatrix<native_matrix_t<double, 5, 5>, TriangleType::upper> {1, 2, 0, 0, 0,
                                                                               2, 3, 0, 0, 0,
                                                                               0, 0, 4, 5, 6,
                                                                               0, 0, 5, 7, 8,
@@ -762,20 +762,20 @@ TEST_F(eigen3, SelfAdjointMatrix_blocks_upper)
 
 TEST_F(eigen3, SelfAdjointMatrix_blocks_mixed)
 {
-  auto m0 = SelfAdjointMatrix<Eigen::Matrix<double, 3, 3>, TriangleType::upper> {1, 2, 3,
+  auto m0 = SelfAdjointMatrix<native_matrix_t<double, 3, 3>, TriangleType::upper> {1, 2, 3,
                                                                                       2, 4, 5,
                                                                                       3, 5, 6};
-  auto m1 = SelfAdjointMatrix<Eigen::Matrix<double, 3, 3>, TriangleType::lower> {4., 5, 6,
+  auto m1 = SelfAdjointMatrix<native_matrix_t<double, 3, 3>, TriangleType::lower> {4., 5, 6,
                                                                                       5, 7, 8,
                                                                                       6, 8, 9};
-  EXPECT_TRUE(is_near(concatenate_diagonal(SelfAdjointMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}, m1),
-    SelfAdjointMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::upper> {1., 2, 0, 0, 0,
+  EXPECT_TRUE(is_near(concatenate_diagonal(SelfAdjointMatrix<native_matrix_t<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}, m1),
+    SelfAdjointMatrix<native_matrix_t<double, 5, 5>, TriangleType::upper> {1., 2, 0, 0, 0,
                                                                               2, 3, 0, 0, 0,
                                                                               0, 0, 4, 5, 6,
                                                                               0, 0, 5, 7, 8,
                                                                               0, 0, 6, 8, 9}));
-  static_assert(upper_storage_triangle<decltype(concatenate_diagonal(SelfAdjointMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}, m1))>);
-  static_assert(lower_storage_triangle<decltype(concatenate_diagonal(SelfAdjointMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}, m0))>);
+  static_assert(upper_storage_triangle<decltype(concatenate_diagonal(SelfAdjointMatrix<native_matrix_t<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}, m1))>);
+  static_assert(lower_storage_triangle<decltype(concatenate_diagonal(SelfAdjointMatrix<native_matrix_t<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}, m0))>);
 
   EXPECT_TRUE(is_near(concatenate_vertical(m0, m1),
     make_native_matrix<6,3>(1., 2, 3,
@@ -788,11 +788,11 @@ TEST_F(eigen3, SelfAdjointMatrix_blocks_mixed)
     make_native_matrix<3,6>(1., 2, 3, 4, 5, 6,
                                     2, 4, 5, 5, 7, 8,
                                     3, 5, 6, 6, 8, 9)));
-  auto m2 = SelfAdjointMatrix<Eigen::Matrix<double, 3, 3>, TriangleType::upper> {4., 5, 6,
+  auto m2 = SelfAdjointMatrix<native_matrix_t<double, 3, 3>, TriangleType::upper> {4., 5, 6,
                                                                                       5, 7, 8,
                                                                                       6, 8, 9};
-  EXPECT_TRUE(is_near(concatenate_diagonal(SelfAdjointMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}, m2),
-    SelfAdjointMatrix<Eigen::Matrix<double, 5, 5>, TriangleType::lower> {1., 2, 0, 0, 0,
+  EXPECT_TRUE(is_near(concatenate_diagonal(SelfAdjointMatrix<native_matrix_t<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}, m2),
+    SelfAdjointMatrix<native_matrix_t<double, 5, 5>, TriangleType::lower> {1., 2, 0, 0, 0,
                                                                               2, 3, 0, 0, 0,
                                                                               0, 0, 4, 5, 6,
                                                                               0, 0, 5, 7, 8,
@@ -803,7 +803,7 @@ TEST_F(eigen3, SelfAdjointMatrix_arithmetic_lower)
 {
   auto m1 = Lower {4., 5, 5, 6};
   auto m2 = Lower {1., 2, 2, 3};
-  auto d = DiagonalMatrix<Eigen::Matrix<double, 2, 1>> {1, 3};
+  auto d = DiagonalMatrix<native_matrix_t<double, 2, 1>> {1, 3};
   auto i = M2::Identity();
   auto z = ZeroMatrix<M2> {};
   EXPECT_TRUE(is_near(m1 + m2, mat22(5, 7, 7, 9))); static_assert(self_adjoint_matrix<decltype(m1 + m2)>);
@@ -836,8 +836,8 @@ TEST_F(eigen3, SelfAdjointMatrix_arithmetic_lower)
   EXPECT_TRUE(is_near(m1 * z, z));  static_assert(zero_matrix<decltype(m1 * z)>);
   EXPECT_TRUE(is_near(z * m1, z));  static_assert(zero_matrix<decltype(z * m1)>);
 
-  auto tl1 = TriangularMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::lower> {2, 0, 1, 2};
-  auto tu1 = TriangularMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::upper> {2, 1, 0, 2};
+  auto tl1 = TriangularMatrix<native_matrix_t<double, 2, 2>, TriangleType::lower> {2, 0, 1, 2};
+  auto tu1 = TriangularMatrix<native_matrix_t<double, 2, 2>, TriangleType::upper> {2, 1, 0, 2};
   EXPECT_TRUE(is_near(m1 * tl1, mat22(13, 10, 16, 12)));
   EXPECT_TRUE(is_near(m1 * tu1, mat22(8, 14, 10, 17)));
   EXPECT_TRUE(is_near(tl1 * m1, mat22(8, 10, 14, 17)));
@@ -850,7 +850,7 @@ TEST_F(eigen3, SelfAdjointMatrix_arithmetic_upper)
 {
   auto m1 = Upper {4., 5, 5, 6};
   auto m2 = Upper {1., 2, 2, 3};
-  auto d = DiagonalMatrix<Eigen::Matrix<double, 2, 1>> {1, 3};
+  auto d = DiagonalMatrix<native_matrix_t<double, 2, 1>> {1, 3};
   auto i = M2::Identity();
   auto z = ZeroMatrix<M2> {};
   EXPECT_TRUE(is_near(m1 + m2, mat22(5, 7, 7, 9))); static_assert(self_adjoint_matrix<decltype(m1 + m2)>);
@@ -883,8 +883,8 @@ TEST_F(eigen3, SelfAdjointMatrix_arithmetic_upper)
   EXPECT_TRUE(is_near(m1 * z, z));  static_assert(zero_matrix<decltype(m1 * z)>);
   EXPECT_TRUE(is_near(z * m1, z));  static_assert(zero_matrix<decltype(z * m1)>);
 
-  auto tl1 = TriangularMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::lower> {2, 0, 1, 2};
-  auto tu1 = TriangularMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::upper> {2, 1, 0, 2};
+  auto tl1 = TriangularMatrix<native_matrix_t<double, 2, 2>, TriangleType::lower> {2, 0, 1, 2};
+  auto tu1 = TriangularMatrix<native_matrix_t<double, 2, 2>, TriangleType::upper> {2, 1, 0, 2};
   EXPECT_TRUE(is_near(m1 * tl1, mat22(13, 10, 16, 12)));
   EXPECT_TRUE(is_near(m1 * tu1, mat22(8, 14, 10, 17)));
   EXPECT_TRUE(is_near(tl1 * m1, mat22(8, 10, 14, 17)));
@@ -897,8 +897,8 @@ TEST_F(eigen3, SelfAdjointMatrix_arithmetic_mixed)
 {
   auto m1 = Upper {4., 5, 5, 6};
   auto m2 = Lower {1., 2, 2, 3};
-  auto tl1 = TriangularMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::lower> {2, 0, 1, 2};
-  auto tu1 = TriangularMatrix<Eigen::Matrix<double, 2, 2>, TriangleType::upper> {2, 1, 0, 2};
+  auto tl1 = TriangularMatrix<native_matrix_t<double, 2, 2>, TriangleType::lower> {2, 0, 1, 2};
+  auto tu1 = TriangularMatrix<native_matrix_t<double, 2, 2>, TriangleType::upper> {2, 1, 0, 2};
   EXPECT_TRUE(is_near(m1 + m2, mat22(5., 7, 7, 9))); static_assert(upper_storage_triangle<decltype(m1 + m2)>);
   EXPECT_TRUE(is_near(m2 + m1, mat22(5., 7, 7, 9))); static_assert(lower_storage_triangle<decltype(m2 + m1)>);
   EXPECT_TRUE(is_near(m1 - m2, mat22(3, 3, 3, 3))); static_assert(upper_storage_triangle<decltype(m1 - m2)>);
@@ -933,11 +933,11 @@ TEST_F(eigen3, SelfAdjointMatrix_references)
   x_rvalue = n;
   EXPECT_TRUE(is_near(x_rvalue, n));
   //
-  using V = SelfAdjointMatrix<Eigen::Matrix<double, 3, 3>>;
+  using V = SelfAdjointMatrix<native_matrix_t<double, 3, 3>>;
   V v1 {1., 2, 3,
         2, 4, -6,
         3, -6, -3};
-  SelfAdjointMatrix<Eigen::Matrix<double, 3, 3>&> v2 = v1;
+  SelfAdjointMatrix<native_matrix_t<double, 3, 3>&> v2 = v1;
   EXPECT_TRUE(is_near(v1, v2));
   v1(1,0) = 4.1;
   EXPECT_EQ(v2(1,0), 4.1);
@@ -945,12 +945,12 @@ TEST_F(eigen3, SelfAdjointMatrix_references)
   v2(0, 2) = 5.2;
   EXPECT_EQ(v1(0,2), 5.2);
   EXPECT_EQ(v1(2,0), 5.2);
-  SelfAdjointMatrix<Eigen::Matrix<double, 3, 3>&&> v3 = std::move(v2);
+  SelfAdjointMatrix<native_matrix_t<double, 3, 3>&&> v3 = std::move(v2);
   EXPECT_EQ(v3(1,0), 4.1);
-  SelfAdjointMatrix<const Eigen::Matrix<double, 3, 3>&> v4 = v3;
+  SelfAdjointMatrix<const native_matrix_t<double, 3, 3>&> v4 = v3;
   v3(2,1) = 7.3;
   EXPECT_EQ(v4(2,1), 7.3);
-  SelfAdjointMatrix<Eigen::Matrix<double, 3, 3>> v5 = v3;
+  SelfAdjointMatrix<native_matrix_t<double, 3, 3>> v5 = v3;
   v3(1,1) = 8.4;
   EXPECT_EQ(v3(1,1), 8.4);
   EXPECT_EQ(v5(1,1), 4);

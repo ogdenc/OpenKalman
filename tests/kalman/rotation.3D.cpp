@@ -12,9 +12,9 @@
 
 inline auto get_t3()
 {
-  using M3 = Eigen::Matrix<double, 3, 1>;
+  using M3 = native_matrix_t<double, 3, 1>;
   using Mean3 = Mean<Axes<3>, M3>;
-  using M33 = Eigen::Matrix<double, 3, 3>;
+  using M33 = native_matrix_t<double, 3, 3>;
   auto angles = randomize<Mean3, std::uniform_real_distribution>(-pi, pi);
   auto ax = Matrix<Axes<3>, Axes<3>, M33> {
     1, 0, 0,
@@ -34,7 +34,7 @@ inline auto get_t3()
 template<typename Cov, typename Trans>
 void kalman::rotation_3D(const Trans& transform)
 {
-  using M3 = Eigen::Matrix<double, 3, 1>;
+  using M3 = native_matrix_t<double, 3, 1>;
   using Mean3 = Mean<Axes<3>, M3>;
   for (int i = 0; i < 5; i++)
   {
@@ -46,7 +46,7 @@ void kalman::rotation_3D(const Trans& transform)
   }
 }
 
-using M33 = Eigen::Matrix<double, 3, 3>;
+using M33 = native_matrix_t<double, 3, 3>;
 
 TEST_F(kalman, rotation_3D_linear_SA)
 {

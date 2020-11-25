@@ -274,61 +274,112 @@ namespace OpenKalman
   //        Make functions         //
   // ----------------------------- //
 
-  /// Make a Matrix object from a typed_matrix_nestable.
+  /**
+   * \brief Make a Matrix object from a typed_matrix_nestable, specifying the row and column coefficients.
+   * \tparam RowCoefficients The coefficient types corresponding to the rows.
+   * \tparam ColumnCoefficients The coefficient types corresponding to the columns.
+   * \tparam M A typed_matrix_nestable with size matching RowCoefficients and ColumnCoefficients.
+   */
 #ifdef __cpp_concepts
-  template<typename RowCoefficients = void, typename ColumnCoefficients = void, typed_matrix_nestable M> requires
-    (std::same_as<RowCoefficients, void> or
-      (coefficients<RowCoefficients> and MatrixTraits<M>::dimension == RowCoefficients::size)) and
-    (std::same_as<ColumnCoefficients, void> or
-      (coefficients<ColumnCoefficients> and MatrixTraits<M>::columns == ColumnCoefficients::size))
+  template<coefficients RowCoefficients, coefficients ColumnCoefficients, typed_matrix_nestable M>
+    requires (MatrixTraits<M>::dimension == RowCoefficients::size) and
+    (MatrixTraits<M>::columns == ColumnCoefficients::size)
 #else
-  template<typename RowCoefficients = void, typename ColumnCoefficients = void, typename M, std::enable_if_t<
-    typed_matrix_nestable<M> and (coefficients<RowCoefficients> or std::is_same_v<RowCoefficients, void>) and
-    (coefficients<ColumnCoefficients> or std::is_same_v<ColumnCoefficients, void>), int> = 0>
+  template<typename RowCoefficients, typename ColumnCoefficients, typename M, std::enable_if_t<
+    coefficients<RowCoefficients> and coefficients<ColumnCoefficients> and typed_matrix_nestable<M> and
+    (MatrixTraits<M>::dimension == RowCoefficients::size) and
+    (MatrixTraits<M>::columns == ColumnCoefficients::size), int> = 0>
 #endif
-  inline auto make_Matrix(M&& arg)
+  inline auto make_matrix(M&& m)
   {
-    using RowCoeffs = std::conditional_t<std::is_void_v<RowCoefficients>,
-      Axes<MatrixTraits<M>::dimension>, RowCoefficients>;
-    using ColCoeffs = std::conditional_t<std::is_void_v<ColumnCoefficients>,
-      Axes<MatrixTraits<M>::columns>, ColumnCoefficients>;
-    static_assert(MatrixTraits<M>::dimension == RowCoeffs::size);
-    static_assert(MatrixTraits<M>::columns == ColCoeffs::size);
-    return Matrix<RowCoeffs, ColCoeffs, passable_t<M>>(std::forward<M>(arg));
+    return Matrix<RowCoefficients, ColumnCoefficients, passable_t<M>>(std::forward<M>(m));
   }
 
 
-  /// Make a Matrix object from a covariance object.
+  /**
+   * \brief Make a Matrix object from a typed_matrix_nestable, specifying only the row coefficients.
+   * \details The column coefficients are default Axis.
+   * \tparam RowCoefficients The coefficient types corresponding to the rows.
+   * \tparam M A typed_matrix_nestable with size matching RowCoefficients and ColumnCoefficients.
+   */
+#ifdef __cpp_concepts
+  template<coefficients RowCoefficients, typed_matrix_nestable M>
+  requires (MatrixTraits<M>::dimension == RowCoefficients::size)
+#else
+  template<typename RowCoefficients, typename M, std::enable_if_t<
+    coefficients<RowCoefficients> and typed_matrix_nestable<M> and
+    (MatrixTraits<M>::dimension == RowCoefficients::size), int> = 0>
+#endif
+  inline auto make_matrix(M&& m)
+  {
+    using ColumnCoefficients = Axes<MatrixTraits<M>::columns>;
+    return Matrix<RowCoefficients, ColumnCoefficients, passable_t<M>>(std::forward<M>(m));
+  }
+
+
+  /**
+   * \overload
+   * \brief Make a Matrix object from a typed_matrix_nestable object, with default Axis coefficients.
+   */
+#ifdef __cpp_concepts
+  template<typed_matrix_nestable M>
+#else
+  template<typename M, std::enable_if_t<typed_matrix_nestable<M>, int> = 0>
+#endif
+  inline auto make_matrix(M&& m)
+  {
+    using RowCoeffs = Axes<MatrixTraits<M>::dimension>;
+    using ColCoeffs = Axes<MatrixTraits<M>::columns>;
+    return make_matrix<RowCoeffs, ColCoeffs>(std::forward<M>(m));
+  }
+
+
+  /**
+   * \overload
+   * \brief Make a Matrix object from a covariance object.
+   * \tparam M A covariance object (i.e., Covariance, SquareRootCovariance).
+   */
 #ifdef __cpp_concepts
   template<covariance M>
 #else
   template<typename M, std::enable_if_t<covariance<M>, int> = 0>
 #endif
-  inline auto make_Matrix(M&& arg)
+  inline auto make_matrix(M&& arg)
   {
     using C = typename MatrixTraits<M>::Coefficients;
-    return make_Matrix<C, C>(make_native_matrix(std::forward<M>(arg)));
+    return make_matrix<C, C>(make_native_matrix(std::forward<M>(arg)));
   }
 
 
-  /// Make a Matrix object from another typed matrix.
+  /**
+   * \overload
+   * \brief Make a Matrix object from another typed_matrix.
+   * \tparam Arg A typed_matrix (i.e., Matrix, Mean, or EuclideanMean).
+   */
 #ifdef __cpp_concepts
   template<typed_matrix Arg>
 #else
   template<typename Arg, std::enable_if_t<typed_matrix<Arg>, int> = 0>
 #endif
-  inline auto make_Matrix(Arg&& arg)
+  inline auto make_matrix(Arg&& arg)
   {
     using RowCoeffs = typename MatrixTraits<Arg>::RowCoefficients;
     using ColCoeffs = typename MatrixTraits<Arg>::ColumnCoefficients;
     if constexpr(euclidean_transformed<Arg>)
-      return make_Matrix<RowCoeffs, ColCoeffs>(nested_matrix(from_Euclidean<RowCoeffs>(std::forward<Arg>(arg))));
+      return make_matrix<RowCoeffs, ColCoeffs>(nested_matrix(from_Euclidean<RowCoeffs>(std::forward<Arg>(arg))));
     else
-      return make_Matrix<RowCoeffs, ColCoeffs>(nested_matrix(std::forward<Arg>(arg)));
+      return make_matrix<RowCoeffs, ColCoeffs>(nested_matrix(std::forward<Arg>(arg)));
   }
 
 
-  /// Make a default, self-contained Matrix object.
+  /**
+   * \overload
+   * \brief Make a default, self-contained Matrix object.
+   * \tparam RowCoefficients The coefficient types corresponding to the rows.
+   * \tparam ColumnCoefficients The coefficient types corresponding to the columns.
+   * \tparam M a typed_matrix_nestable on which the new matrix is based. It will be converted to a self_contained type
+   * if it is not already self-contained.
+   */
 #ifdef __cpp_concepts
   template<coefficients RowCoefficients, coefficients ColumnCoefficients, typed_matrix_nestable M> requires
     (MatrixTraits<M>::dimension == RowCoefficients::size) and
@@ -339,23 +390,28 @@ namespace OpenKalman
     (MatrixTraits<M>::dimension == RowCoefficients::size) and
     (MatrixTraits<M>::columns == ColumnCoefficients::size), int> = 0>
 #endif
-  inline auto make_Matrix()
+  inline auto make_matrix()
   {
     return Matrix<RowCoefficients, ColumnCoefficients, native_matrix_t<M>>();
   }
 
 
-  /// Make a default, self-contained Matrix object with axis coefficients.
+  /**
+   * \overload
+   * \brief Make a self-contained Matrix object with default Axis coefficients.
+   * \tparam M a typed_matrix_nestable on which the new matrix is based. It will be converted to a self_contained type
+   * if it is not already self-contained.
+   */
 #ifdef __cpp_concepts
   template<typed_matrix_nestable M>
 #else
   template<typename M, std::enable_if_t<typed_matrix_nestable<M>, int> = 0>
 #endif
-  inline auto make_Matrix()
+  inline auto make_matrix()
   {
     using RowCoeffs = Axes<MatrixTraits<M>::dimension>;
     using ColCoeffs = Axes<MatrixTraits<M>::columns>;
-    return make_Matrix<RowCoeffs, ColCoeffs, M>();
+    return make_matrix<RowCoeffs, ColCoeffs, M>();
   }
 
 

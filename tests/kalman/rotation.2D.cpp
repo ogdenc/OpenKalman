@@ -12,8 +12,8 @@
 
 inline auto get_t2()
 {
-  auto theta = trace(randomize<Mean<Axis, Eigen::Matrix<double, 1, 1>>, std::uniform_real_distribution>(-pi, pi));
-  using M22 = Eigen::Matrix<double, 2, 2>;
+  auto theta = trace(randomize<Mean<Axis, native_matrix_t<double, 1, 1>>, std::uniform_real_distribution>(-pi, pi));
+  using M22 = native_matrix_t<double, 2, 2>;
   auto a = Matrix<Axes<2>, Axes<2>, M22> {std::cos(theta), -std::sin(theta), std::sin(theta), std::cos(theta)};
   return LinearTransformation(a);
 }
@@ -21,7 +21,7 @@ inline auto get_t2()
 template<typename Cov, typename Trans>
 void kalman::rotation_2D(const Trans& transform)
 {
-  using M2 = Eigen::Matrix<double, 2, 1>;
+  using M2 = native_matrix_t<double, 2, 1>;
   using Mean2 = Mean<Axes<2>, M2>;
   for (int i = 0; i < 5; i++)
   {
@@ -33,7 +33,7 @@ void kalman::rotation_2D(const Trans& transform)
   }
 }
 
-using M22 = Eigen::Matrix<double, 2, 2>;
+using M22 = native_matrix_t<double, 2, 2>;
 
 TEST_F(kalman, rotation_2D_linear_SA)
 {

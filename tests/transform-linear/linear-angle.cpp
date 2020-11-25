@@ -37,7 +37,7 @@ TEST_F(transform_linear, linear_additive_angle)
 TEST_F(transform_linear, linear_additive_angle_Cholesky)
 {
   auto a = Mat2::identity() * 1.1;
-  const GaussianDistribution input {M2(1, pi * 19 / 20), make_Covariance<C2, TriangleType::lower>(pi * pi / 9, 0, 0, 0.01)};
+  const GaussianDistribution input {M2(1, pi * 19 / 20), make_covariance<C2, TriangleType::lower>(pi * pi / 9, 0, 0, 0.01)};
   Cov2 P_output {1.21 * pi * pi / 9, 0,
                  0, 0.0121};
   const GaussianDistribution output {M2(1.1, 1.1 * 19 / 20 * pi - 2 * pi), P_output};
@@ -72,8 +72,8 @@ TEST_F(transform_linear, linear_augmented_angle_Cholesky)
 {
   auto a = Mat2::identity() * 1.1;
   auto an = Mat2::identity();
-  const GaussianDistribution input {M2(1, pi * 19 / 20), make_Covariance<C2, TriangleType::lower>(pi * pi / 9, 0, 0, 0.01)};
-  const GaussianDistribution noise {M2::zero(), make_Covariance<TriangleType::lower>(Mat2::identity() * 0.01)};
+  const GaussianDistribution input {M2(1, pi * 19 / 20), make_covariance<C2, TriangleType::lower>(pi * pi / 9, 0, 0, 0.01)};
+  const GaussianDistribution noise {M2::zero(), make_covariance<TriangleType::lower>(Mat2::identity() * 0.01)};
   Cov2 P_output {1.21 * pi * pi / 9 + 0.01, 0,
                  0, 0.0121 + 0.01};
   Mat2 cross_output{1.1 * pi * pi / 9, 0,

@@ -12,13 +12,13 @@
 
 using namespace OpenKalman;
 
-using M1 = Eigen::Matrix<double, 1, 1>;
-using M2 = Eigen::Matrix<double, 2, 2>;
-using M2col = Eigen::Matrix<double, 2, 1>;
-using M3 = Eigen::Matrix<double, 3, 3>;
-using M3col = Eigen::Matrix<double, 3, 1>;
-using M4 = Eigen::Matrix<double, 4, 4>;
-using M4col = Eigen::Matrix<double, 4, 1>;
+using M1 = native_matrix_t<double, 1, 1>;
+using M2 = native_matrix_t<double, 2, 2>;
+using M2col = native_matrix_t<double, 2, 1>;
+using M3 = native_matrix_t<double, 3, 3>;
+using M3col = native_matrix_t<double, 3, 1>;
+using M4 = native_matrix_t<double, 4, 4>;
+using M4col = native_matrix_t<double, 4, 1>;
 using C2 = Coefficients<angle::Radians, Axis>;
 using C3 = Coefficients<angle::Radians, Axis, Axis>;
 using C4 = Concatenate<C2, C2>;
@@ -411,7 +411,7 @@ TEST_F(matrices, GaussianDistribution_class_random)
        0.1, 1.4, 0.45,
        0.3, 0.45, 1.1;
   const V true_x {pi * 99/100, 10, 5};
-  GaussianDistribution dist {true_x, make_Covariance<C3>(d)};
+  GaussianDistribution dist {true_x, make_covariance<C3>(d)};
   const V x1 {dist()};
   const V x2 {dist()};
   EXPECT_NE(x1, x2);
@@ -455,7 +455,7 @@ TEST_F(matrices, GaussianDistribution_class_Cholesky_random)
        0.1, 1.4, 0.45,
        0.3, 0.45, 1.1;
   const V true_x {pi * 99/100, 10, 5};
-  GaussianDistribution dist {true_x, make_Covariance<C3, TriangleType::lower>(d)};
+  GaussianDistribution dist {true_x, make_covariance<C3, TriangleType::lower>(d)};
   const V x1 {dist()};
   const V x2 {dist()};
   EXPECT_NE(x1, x2);
@@ -762,19 +762,19 @@ TEST_F(matrices, GaussianDistribution_addition_subtraction)
 
 TEST_F(matrices, GaussianDistribution_mult_div)
 {
-  auto a = GaussianDistribution(make_Mean<C2>(2., 30), make_Covariance<C2>(8., 2, 2, 6));
-  auto a_chol = GaussianDistribution(make_Mean<C2>(2., 30), make_Covariance<C2, TriangleType::lower>(8., 2, 2, 6));
-  auto f_matrix = make_Matrix<C3, C2>(1., 2, 3, 4, 5, 6);
+  auto a = GaussianDistribution(make_mean<C2>(2., 30), make_covariance<C2>(8., 2, 2, 6));
+  auto a_chol = GaussianDistribution(make_mean<C2>(2., 30), make_covariance<C2, TriangleType::lower>(8., 2, 2, 6));
+  auto f_matrix = make_matrix<C3, C2>(1., 2, 3, 4, 5, 6);
   auto a_scaled3 = f_matrix * a;
-  EXPECT_TRUE(is_near(mean_of(a_scaled3), make_Mean<C3>(62., 126, 190)));
-  EXPECT_TRUE(is_near(covariance_of(a_scaled3), make_Matrix<C3, C3>(40., 92, 144, 92, 216, 340, 144, 340, 536)));
+  EXPECT_TRUE(is_near(mean_of(a_scaled3), make_mean<C3>(62., 126, 190)));
+  EXPECT_TRUE(is_near(covariance_of(a_scaled3), make_matrix<C3, C3>(40., 92, 144, 92, 216, 340, 144, 340, 536)));
   static_assert(equivalent_to<typename decltype(a_scaled3)::Coefficients, C3>);
   auto a_chol_scaled3 = f_matrix * a_chol;
-  EXPECT_TRUE(is_near(mean_of(a_chol_scaled3), make_Mean<C3>(62., 126, 190)));
-  EXPECT_TRUE(is_near(covariance_of(a_chol_scaled3), make_Matrix<C3, C3>(40., 92, 144, 92, 216, 340, 144, 340, 536)));
+  EXPECT_TRUE(is_near(mean_of(a_chol_scaled3), make_mean<C3>(62., 126, 190)));
+  EXPECT_TRUE(is_near(covariance_of(a_chol_scaled3), make_matrix<C3, C3>(40., 92, 144, 92, 216, 340, 144, 340, 536)));
   static_assert(equivalent_to<typename decltype(a_chol_scaled3)::Coefficients, C3>);
 
-  Eigen::Matrix<double, 2, 2> cov_mat; cov_mat << 8, 2, 2, 6;
+  native_matrix_t<double, 2, 2> cov_mat; cov_mat << 8, 2, 2, 6;
   decltype(a) a_scaled = a * 2;
   EXPECT_TRUE(is_near(mean_of(a_scaled), mean_of(a) * 2));
   EXPECT_TRUE(is_near(covariance_of(a_scaled), covariance_of(a) * 4));

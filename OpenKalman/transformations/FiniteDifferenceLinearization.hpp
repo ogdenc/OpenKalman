@@ -129,12 +129,13 @@ namespace OpenKalman
     template<std::size_t term, typename...Inputs, std::size_t...ks>
     auto h_term(std::tuple<Inputs...>&& inputs, std::index_sequence<ks...>) const
     {
-      using TermTrait = MatrixTraits<decltype(std::get<term>(inputs))>;
+      using Term = decltype(std::get<term>(inputs));
+      using TermTrait = MatrixTraits<Term>;
       constexpr auto i_size = TermTrait::dimension;
       const auto t = h_k<term>(std::move(inputs), std::make_index_sequence<i_size>());
       constexpr auto width = TermTrait::dimension;
       using C = typename TermTrait::RowCoefficients;
-      using Vb = typename TermTrait::template NativeMatrix<width, width>;
+      using Vb = native_matrix_t<Term, width, width>;
       using V = Matrix<C, C, Vb>;
       return std::array {apply_coefficientwise<V>([&](std::size_t i, std::size_t j) { return t[i][j][ks]; })...};
     }

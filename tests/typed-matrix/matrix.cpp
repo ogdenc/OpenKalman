@@ -12,12 +12,12 @@
 
 using namespace OpenKalman;
 
-using M12 = Eigen::Matrix<double, 1, 2>;
-using M21 = Eigen::Matrix<double, 2, 1>;
-using M22 = Eigen::Matrix<double, 2, 2>;
-using M23 = Eigen::Matrix<double, 2, 3>;
-using M32 = Eigen::Matrix<double, 3, 2>;
-using M33 = Eigen::Matrix<double, 3, 3>;
+using M12 = native_matrix_t<double, 1, 2>;
+using M21 = native_matrix_t<double, 2, 1>;
+using M22 = native_matrix_t<double, 2, 2>;
+using M23 = native_matrix_t<double, 2, 3>;
+using M32 = native_matrix_t<double, 3, 2>;
+using M33 = native_matrix_t<double, 3, 3>;
 using I22 = IdentityMatrix<M22>;
 using Z22 = ZeroMatrix<M22>;
 using C2 = Coefficients<Axis, angle::Radians>;
@@ -259,27 +259,27 @@ TEST_F(matrices, TypedMatrix_deduction_guides)
 TEST_F(matrices, TypedMatrix_make_functions)
 {
   auto a = make_native_matrix<M23>(1, 2, 3, 4, 5, 6);
-  EXPECT_TRUE(is_near(make_Matrix<C2, C3>(a), a));
-  static_assert(equivalent_to<typename MatrixTraits<decltype(make_Matrix<C2, C3>(a))>::RowCoefficients, C2>);
-  static_assert(equivalent_to<typename MatrixTraits<decltype(make_Matrix<C2, C3>(a))>::ColumnCoefficients, C3>);
-  EXPECT_TRUE(is_near(make_Matrix<C2>(a), a));
-  static_assert(equivalent_to<typename MatrixTraits<decltype(make_Matrix<C2>(a))>::RowCoefficients, C2>);
-  static_assert(equivalent_to<typename MatrixTraits<decltype(make_Matrix<C2>(a))>::ColumnCoefficients, Axes<3>>);
+  EXPECT_TRUE(is_near(make_matrix<C2, C3>(a), a));
+  static_assert(equivalent_to<typename MatrixTraits<decltype(make_matrix<C2, C3>(a))>::RowCoefficients, C2>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(make_matrix<C2, C3>(a))>::ColumnCoefficients, C3>);
+  EXPECT_TRUE(is_near(make_matrix<C2>(a), a));
+  static_assert(equivalent_to<typename MatrixTraits<decltype(make_matrix<C2>(a))>::RowCoefficients, C2>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(make_matrix<C2>(a))>::ColumnCoefficients, Axes<3>>);
 
   auto b = Mat23 {1, 2, 3, 4, 5, 6};
-  EXPECT_TRUE(is_near(make_Matrix(b), a));
-  static_assert(equivalent_to<typename MatrixTraits<decltype(make_Matrix(b))>::RowCoefficients, C2>);
-  static_assert(equivalent_to<typename MatrixTraits<decltype(make_Matrix(b))>::ColumnCoefficients, C3>);
+  EXPECT_TRUE(is_near(make_matrix(b), a));
+  static_assert(equivalent_to<typename MatrixTraits<decltype(make_matrix(b))>::RowCoefficients, C2>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(make_matrix(b))>::ColumnCoefficients, C3>);
 
   auto c = Covariance<C2, SelfAdjointMatrix<M22, TriangleType::lower>> {9, 3, 3, 10};
-  EXPECT_TRUE(is_near(make_Matrix(c), Mat22 {9, 3, 3, 10}));
-  static_assert(equivalent_to<typename MatrixTraits<decltype(make_Matrix(c))>::RowCoefficients, C2>);
-  static_assert(equivalent_to<typename MatrixTraits<decltype(make_Matrix(c))>::ColumnCoefficients, C2>);
+  EXPECT_TRUE(is_near(make_matrix(c), Mat22 {9, 3, 3, 10}));
+  static_assert(equivalent_to<typename MatrixTraits<decltype(make_matrix(c))>::RowCoefficients, C2>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(make_matrix(c))>::ColumnCoefficients, C2>);
 
-  static_assert(equivalent_to<typename MatrixTraits<decltype(make_Matrix<C2, C3, M23>())>::RowCoefficients, C2>);
-  static_assert(equivalent_to<typename MatrixTraits<decltype(make_Matrix<C2, C3, M23>())>::ColumnCoefficients, C3>);
-  static_assert(equivalent_to<typename MatrixTraits<decltype(make_Matrix<M23>())>::RowCoefficients, Axes<2>>);
-  static_assert(equivalent_to<typename MatrixTraits<decltype(make_Matrix<M23>())>::ColumnCoefficients, Axes<3>>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(make_matrix<C2, C3, M23>())>::RowCoefficients, C2>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(make_matrix<C2, C3, M23>())>::ColumnCoefficients, C3>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(make_matrix<M23>())>::RowCoefficients, Axes<2>>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(make_matrix<M23>())>::ColumnCoefficients, Axes<3>>);
 }
 
 
@@ -305,8 +305,8 @@ TEST_F(matrices, TypedMatrix_traits)
 
   EXPECT_TRUE(is_near(MatrixTraits<Mat23>::make(
     make_native_matrix<double, 2, 3>(1, 2, 3, 4, 5, 6)).nested_matrix(), Mat23 {1, 2, 3, 4, 5, 6}));
-  EXPECT_TRUE(is_near(MatrixTraits<Mat23>::zero(), Eigen::Matrix<double, 2, 3>::Zero()));
-  EXPECT_TRUE(is_near(MatrixTraits<Mat22>::identity(), Eigen::Matrix<double, 2, 2>::Identity()));
+  EXPECT_TRUE(is_near(MatrixTraits<Mat23>::zero(), native_matrix_t<double, 2, 3>::Zero()));
+  EXPECT_TRUE(is_near(MatrixTraits<Mat22>::identity(), native_matrix_t<double, 2, 2>::Identity()));
 }
 
 

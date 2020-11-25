@@ -14,6 +14,10 @@
 
 namespace OpenKalman
 {
+  template<typename C1 = Distance, typename C2 = angle::Radians>
+  struct Polar;
+
+
   namespace detail
   {
     template<template<typename Scalar> typename Limits, typename Scalar>
@@ -227,9 +231,6 @@ namespace OpenKalman
 
   } // namespace detail
 
-
-  template<typename C1 = Distance, typename C2 = angle::Radians>
-  struct Polar;
 
   // (Radius, Angle).
   template<template<typename Scalar> typename Limits>

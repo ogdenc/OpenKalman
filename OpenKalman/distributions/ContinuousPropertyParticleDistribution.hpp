@@ -28,15 +28,15 @@ namespace OpenKalman {
     struct ContinuousPropertyParticleDistribution:
             WeightedParticleDistribution<
                     Scalar, // Weights for each particle
-                    Eigen::Matrix<Scalar, continuous_dimensions, 1>,
+                    native_matrix_t<Scalar, continuous_dimensions, 1>,
                     OtherProperties...>
     {
     public:
-        using Mean = Eigen::Matrix<Scalar, continuous_dimensions, 1>;
-        using Covariance = Eigen::Matrix<Scalar, continuous_dimensions, continuous_dimensions>;
+        using Mean = native_matrix_t<Scalar, continuous_dimensions, 1>;
+        using Covariance = native_matrix_t<Scalar, continuous_dimensions, continuous_dimensions>;
 
     protected:
-        using Parent = WeightedParticleDistribution<Eigen::Matrix<Scalar, continuous_dimensions, 1>, OtherProperties...>;
+        using Parent = WeightedParticleDistribution<native_matrix_t<Scalar, continuous_dimensions, 1>, OtherProperties...>;
         using Parent::Properties;
 
     public:
