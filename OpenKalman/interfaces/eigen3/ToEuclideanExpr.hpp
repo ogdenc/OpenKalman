@@ -272,7 +272,7 @@ namespace OpenKalman
     static_assert(Coefficients::size == MatrixTraits<NestedMatrix>::dimension);
 
     template<typename Derived>
-    using MatrixBaseType = Eigen3::internal::Eigen3MatrixBase<Derived, Eigen3::ToEuclideanExpr<Coeffs, ArgType>>;
+    using MatrixBaseType = Eigen3::internal::Eigen3CovarianceBase<Derived, Eigen3::ToEuclideanExpr<Coeffs, ArgType>>;
 
     template<std::size_t rows = dimension, std::size_t cols = columns, typename S = Scalar>
     using NativeMatrix = typename MatrixTraits<NestedMatrix>::template NativeMatrix<rows, cols, S>;

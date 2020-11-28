@@ -9,8 +9,8 @@
  */
 
 /**
- * \file Traits.h
- * A header file containing forward declarations for OpenKalman and native-matrix traits.
+ * \file
+ * \brief Declarations for OpenKalman and native-matrix traits.
  */
 
 #ifndef OPENKALMAN_TRAITS_HPP

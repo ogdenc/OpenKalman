@@ -9,8 +9,8 @@
  */
 
 /**
- * \file forward-traits.hpp
- * \brief A header file containing forward declarations for traits relating to OpenKalman or native matrix types.
+ * \file
+ * \brief Forward declarations for traits relating to OpenKalman or native matrix types.
  */
 
 #ifndef OPENKALMAN_FORWARD_TRAITS_HPP
@@ -20,7 +20,7 @@
 
 
 /**
- * The root namespace for OpenKalman.
+ * \brief The root namespace for OpenKalman.
  */
 namespace OpenKalman
 {
@@ -163,7 +163,9 @@ namespace OpenKalman
   // ------------------------------------ //
 
   /**
-   * \brief A type trait class for any matrix T, including information such as its dimensions, coefficient types, etc.
+   * \brief A type trait class for any matrix T.
+   * \details This class includes key information about a matrix or matrix expression, such as its dimensions,
+   * coefficient types, etc.
    * \tparam T The matrix type. The type is treated as non-qualified, even if it is const or a reference.
    */
 #ifdef __cpp_concepts
@@ -191,6 +193,81 @@ namespace OpenKalman
   template<typename T>
   struct MatrixTraits<const T> : MatrixTraits<T> {};
 #endif
+
+  /**
+   * \typedef MatrixTraits<T>::NestedMatrix
+   * \brief The type of the nested matrix.
+   *//**
+   * \typedef MatrixTraits<T>::Scalar
+   * \brief The scalar type.
+   *//**
+   * \variable static constexpr std::size_t MatrixTraits<T>::dimension
+   * \brief The number of rows in the matrix.
+   *//**
+   * \variable static constexpr std::size_t MatrixTraits<T>::columns
+   * \brief The number of columns.
+   *//**
+   * \typedef MatrixTraits<T>::Scalar
+   * \brief The scalar type.
+   *//**
+   * \typedef MatrixTraits<T>::NativeMatrix<std::size_t rows, std::size_t cols, typename Scalar>
+   * \brief A writable, native matrix type equivalent to this matrix.
+   * \tparam rows The number of rows.
+   * \tparam cols The number of columns.
+   * \tparam Scalar The scalar type (integral or floating-point) for the new native matrix.
+   *//**
+   * \typedef MatrixTraits<T>::SelfAdjointBaseType<TriangleType storage_triangle, std::size_t dim, typename Scalar>
+   * \brief A writable, native self-adjoint matrix type equivalent to this matrix.
+   * \details This should be defined for any native interface types.
+   * \tparam storage_triangle The triangle type (upper, lower) where the coefficients are stored.
+   * \tparam dim The number of rows and columns.
+   * \tparam Scalar The scalar type (integral or floating-point) for the new native matrix.
+   *//**
+   * \typedef MatrixTraits<T>::TriangularBaseType<TriangleType triangle_type, std::size_t dim, typename Scalar>
+   * \brief A writable, native self-adjoint matrix type equivalent to this matrix.
+   * \details This should be defined for any native interface types.
+   * \tparam triangle_type The triangle type.
+   * \tparam dim The number of rows and columns.
+   * \tparam Scalar The scalar type (integral or floating-point) for the new native matrix.
+   *//**
+   * \typedef MatrixTraits<T>::SelfContained
+   * \brief A self_contained type equivalent to this matrix.
+   *//**
+   * \typedef MatrixTraits<T>::Coefficients
+   * \brief The coefficient types associated with this matrix.
+   * \details Only applicable for matrices with typed coefficients.
+   *//**
+   * \typedef MatrixTraits<T>::RowCoefficients
+   * \brief The coefficient types associated with the rows.
+   * \details Only applicable for matrices with typed coefficients. If this is defined, then ColumnCoefficients
+   * should also be defined, and Coefficients should ''not'' be defined.
+   *//**
+   * \typedef MatrixTraits<T>::ColumnCoefficients
+   * \brief The coefficient types associated with this columns.
+   * \details Only applicable for matrices with typed coefficients. If this is defined, then RowCoefficients
+   * should also be defined, and Coefficients should ''not'' be defined.
+   *//**
+   * \fn static auto MatrixTraits<T>::make<coefficients RC, coefficients CC, typed_matrix_nestable Arg>(Arg&& arg)
+   * \brief Makes a self-contained typed matrix based on this type.
+   * \details This is only defined for matrices with typed coefficients.
+   * \tparam RC The row coefficients for the new matrix.
+   * \tparam CC The column coefficients for the new matrix.
+   * \tparam Arg a matrix type, which is nestable in a typed matrix, on which the new matrix is based.
+   *//**
+   * \fn static auto MatrixTraits<T>::zero()
+   * \brief Makes a zero matrix based on this type.
+   * \details All the coefficients are zero.
+   *//**
+   * \fn static auto MatrixTraits<T>::identity()
+   * \brief Makes an identity matrix based on this type.
+   * \details The resulting type will be a square matrix, of dimension MatrixTraits<>::dimension.
+   *//**
+   * \typedef MatrixTraits<T>::MatrixBaseType<typename Derived>
+   * \brief A native base type for any class Derived for which T is a nested matrix class.
+   * \details This is the mechanism by which new matrix types can inherit from a base class of the matrix library.
+   * \tparam Derived The type using T as a nested class.
+   */
+
 
 
   /**

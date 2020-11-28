@@ -14,10 +14,10 @@
 namespace Eigen
 {
   template<typename Derived, typename XprType>
-  struct MeanCommaInitializer;
+  struct MeanCommaInitializer2;
 
   template<typename XprType>
-  struct DiagonalCommaInitializer;
+  struct DiagonalCommaInitializer2;
 } // namespace Eigen
 
 namespace OpenKalman::Eigen3::internal
@@ -90,11 +90,11 @@ namespace OpenKalman::Eigen3::internal
       using Xpr = std::decay_t<decltype(xpr)>;
       if constexpr(mean<Derived>)
       {
-        return Eigen::MeanCommaInitializer<Derived, Xpr>(xpr, static_cast<const Scalar&>(s));
+        return Eigen::MeanCommaInitializer2<Derived, Xpr>(xpr, static_cast<const Scalar&>(s));
       }
       else if constexpr(Eigen3::eigen_self_adjoint_expr<Xpr> or Eigen3::eigen_triangular_expr<Xpr>)
       {
-        return Eigen::DiagonalCommaInitializer(xpr, static_cast<const Scalar&>(s));
+        return Eigen::DiagonalCommaInitializer2(xpr, static_cast<const Scalar&>(s));
       }
       else
       {
@@ -110,16 +110,14 @@ namespace OpenKalman::Eigen3::internal
       using Xpr = std::decay_t<decltype(xpr)>;
       if constexpr(mean<Derived>)
       {
-        return Eigen::MeanCommaInitializer<Derived, Xpr>(xpr, static_cast<const OtherDerived&>(other));
+        return Eigen::MeanCommaInitializer2<Derived, Xpr>(xpr, static_cast<const OtherDerived&>(other));
       }
       else if constexpr(Eigen3::eigen_self_adjoint_expr<Xpr> or Eigen3::eigen_triangular_expr<Xpr>)
       {
-        std::cout << "a3" << std::endl << std::flush;
-        return Eigen::DiagonalCommaInitializer(xpr, static_cast<const OtherDerived&>(other));
+        return Eigen::DiagonalCommaInitializer2(xpr, static_cast<const OtherDerived&>(other));
       }
       else
       {
-        std::cout << "a4" << std::endl << std::flush;
         return Eigen::CommaInitializer(xpr, static_cast<const OtherDerived&>(other));
       }
     }
@@ -140,7 +138,7 @@ namespace Eigen
    * Alternative version of CommaInitializer for Mean.
    */
   template<typename Derived, typename XprType>
-  struct MeanCommaInitializer : CommaInitializer<XprType>
+  struct MeanCommaInitializer2 : CommaInitializer<XprType>
   {
     using Base = CommaInitializer<XprType>;
     using Scalar = typename XprType::Scalar;
@@ -148,12 +146,12 @@ namespace Eigen
     using Base::Base;
 
     template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
-    MeanCommaInitializer(XprType& xpr, const S& s) : Base(xpr, static_cast<const Scalar&>(s)) {}
+    MeanCommaInitializer2(XprType& xpr, const S& s) : Base(xpr, static_cast<const Scalar&>(s)) {}
 
     template<typename OtherDerived>
-    MeanCommaInitializer(XprType& xpr, const DenseBase <OtherDerived>& other) : Base(xpr, other) {}
+    MeanCommaInitializer2(XprType& xpr, const DenseBase <OtherDerived>& other) : Base(xpr, other) {}
 
-    ~MeanCommaInitializer()
+    ~MeanCommaInitializer2()
     {
       finished();
     }
@@ -170,7 +168,7 @@ namespace Eigen
    * Alternative version of CommaInitializer for diagonal versions of SelfAdjointMatrix and TriangularMatrix.
    */
   template<typename XprType>
-  struct DiagonalCommaInitializer
+  struct DiagonalCommaInitializer2
   {
     using Scalar = typename XprType::Scalar;
     static constexpr auto dim = OpenKalman::MatrixTraits<XprType>::dimension;
@@ -186,17 +184,17 @@ namespace Eigen
 #else
     template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
 #endif
-    DiagonalCommaInitializer(XprType& xpr, const S& s)
+    DiagonalCommaInitializer2(XprType& xpr, const S& s)
       : matrix(), comma_initializer(matrix, static_cast<const Scalar&>(s)), diag(xpr) {}
 
     template<typename OtherDerived>
-    DiagonalCommaInitializer(XprType& xpr, const DenseBase <OtherDerived>& other)
+    DiagonalCommaInitializer2(XprType& xpr, const DenseBase <OtherDerived>& other)
       : matrix(), comma_initializer(matrix, other), diag(xpr) {}
 
-    DiagonalCommaInitializer(const DiagonalCommaInitializer& o)
+    DiagonalCommaInitializer2(const DiagonalCommaInitializer2& o)
       : matrix(o.matrix), comma_initializer(o.comma_initializer), diag(o.diag) {}
 
-    DiagonalCommaInitializer(DiagonalCommaInitializer&& o)
+    DiagonalCommaInitializer2(DiagonalCommaInitializer2&& o)
       : matrix(std::move(o.matrix)),
         comma_initializer(std::move(o.comma_initializer)), diag(std::move(o.diag)) {}
 
@@ -218,7 +216,7 @@ namespace Eigen
       return *this;
     }
 
-    ~DiagonalCommaInitializer()
+    ~DiagonalCommaInitializer2()
     {
       finished();
     }

@@ -13,24 +13,57 @@
 
 namespace OpenKalman::internal
 {
+  /**
+   * \internal
+   * \brief Ultimate base of OpenKalman matrix types.
+   * \tparam Derived The fully-derived matrix type.
+   * \tparam ArgType The nested native matrix.
+   */
   template<typename Derived, typename ArgType>
   struct MatrixBase : MatrixTraits<ArgType>::template MatrixBaseType<Derived>
   {
     using NestedMatrix = ArgType;
     static constexpr auto columns = MatrixTraits<ArgType>::columns;
 
+
     /// Default constructor.
     MatrixBase() : m_arg() {}
+
 
     /// Copy constructor.
     MatrixBase(const MatrixBase& other) : m_arg(other.nested_matrix()) {}
 
+
     /// Move constructor.
     MatrixBase(MatrixBase&& other) noexcept : m_arg(std::move(other).nested_matrix()) {}
 
-    /// Forwarding constructor.
-    template<typename Arg>
+
+    /// Construct from a typed_matrix_nestable or covariance_nestable.
+#ifdef __cpp_concepts
+    template<typename Arg> requires typed_matrix_nestable<Arg> or covariance_nestable<Arg>
+#else
+    template<typename Arg, std::enable_if_t<typed_matrix_nestable<Arg> or covariance_nestable<Arg>, int> = 0>
+#endif
     MatrixBase(Arg&& arg) noexcept : m_arg(std::forward<Arg>(arg)) {}
+
+
+    /// Construct from a typed_matrix.
+#ifdef __cpp_concepts
+    template<typed_matrix Arg>
+#else
+    template<typename Arg, std::enable_if_t<typed_matrix<Arg>, int> = 0>
+#endif
+    MatrixBase(Arg&& arg) noexcept : m_arg(std::forward<Arg>(arg)) {}
+
+
+    /// Construct from a covariance.
+#ifdef __cpp_concepts
+    template<covariance Arg>
+#else
+    template<typename Arg, std::enable_if_t<covariance<Arg>, int> = 0>
+#endif
+    MatrixBase(Arg&& arg) noexcept : m_arg(internal::convert_nested_matrix<NestedMatrix>(std::forward<Arg>(arg))) {}
+
 
     /// Copy assignment operator.
     auto& operator=(const MatrixBase& other)
@@ -40,6 +73,7 @@ namespace OpenKalman::internal
       return *this;
     }
 
+
     /// Move assignment operator.
     auto& operator=(MatrixBase&& other) noexcept
     {
@@ -47,6 +81,7 @@ namespace OpenKalman::internal
         m_arg = std::move(other).nested_matrix();
       return *this;
     }
+
 
     /// Assign from a compatible matrix or covariance_nestable.
 #ifdef __cpp_concepts
@@ -71,16 +106,33 @@ namespace OpenKalman::internal
       return *this;
     }
 
-    /// Get the nested matrix.
+
+    /**
+     * \brief Get the nested matrix of this covariance matrix.
+     * \details The nested matrix will be self-adjoint, triangular, or diagonal.
+     * \return An lvalue reference to the nested matrix.
+     */
     constexpr auto& nested_matrix() & { return m_arg; }
 
-    /// Get the nested matrix.
+    /**
+     * Get the nested matrix of this covariance matrix temporary.
+     * \sa constexpr auto& nested_matrix() &
+     * \return An rvalue reference to the nested matrix.
+     */
     constexpr auto&& nested_matrix() && { return std::move(m_arg); }
 
-    /// Get the nested matrix.
+    /**
+     * Get the nested matrix of this constant covariance matrix.
+     * \sa constexpr auto& nested_matrix() &
+     * \return A constant lvalue reference to the nested matrix.
+     */
     constexpr const auto& nested_matrix() const & { return m_arg; }
 
-    /// Get the nested matrix.
+    /**
+     * Get the nested matrix of this constant covariance matrix temporary.
+     * \sa constexpr auto& nested_matrix() &
+     * \return A constant rvalue reference to the nested matrix.
+     */
     constexpr const auto&& nested_matrix() const && { return std::move(m_arg); }
 
   private:

@@ -18,17 +18,17 @@ namespace OpenKalman
   namespace Eigen3
   {
     /**
-     * An object that is a native Eigen3 matrix (i.e., a class in the Eigen library descending from Eigen::MatrixBase).
-     *
-     * If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
+     * \brief Specifies a native Eigen3 matrix.
+     * \details This includes any class in the Eigen library descending from Eigen::MatrixBase.
+     * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
      */
     template<typename T>
 #ifdef __cpp_concepts
     concept eigen_native = std::derived_from<std::decay_t<T>, Eigen::MatrixBase<std::decay_t<T>>> and
-      not std::derived_from<std::decay_t<T>, internal::Eigen3Base<std::decay_t<T>>>;
+      (not std::derived_from<std::decay_t<T>, internal::Eigen3Base<std::decay_t<T>>>);
 #else
     inline constexpr bool eigen_native = std::is_base_of_v<Eigen::MatrixBase<std::decay_t<T>>, std::decay_t<T>> and
-      not std::is_base_of_v<internal::Eigen3Base<std::decay_t<T>>, std::decay_t<T>>;
+      (not std::is_base_of_v<internal::Eigen3Base<std::decay_t<T>>, std::decay_t<T>>);
 #endif
   } // namespace Eigen3
 
@@ -53,12 +53,6 @@ namespace OpenKalman
     static_assert(dimension > 0);
     static_assert(columns > 0);
 
-    template<typename Derived>
-    using MatrixBaseType = Eigen3::internal::Eigen3MatrixBase<Derived, M>;
-
-    template<typename Derived>
-    using CovarianceBaseType = Eigen3::internal::Eigen3CovarianceBase<Derived, M>;
-
     template<std::size_t rows = dimension, std::size_t cols = columns, typename S = Scalar>
     using NativeMatrix = Eigen::Matrix<S, (Eigen::Index) rows, (Eigen::Index) cols>;
 
@@ -72,6 +66,9 @@ namespace OpenKalman
 
     template<std::size_t dim = dimension, typename S = Scalar>
     using DiagonalBaseType = Eigen3::DiagonalMatrix<NativeMatrix<dim, 1, S>>;
+
+    template<typename Derived>
+    using MatrixBaseType = Eigen3::internal::Eigen3CovarianceBase<Derived, M>;
 
 #ifdef __cpp_concepts
     template<typename Arg> requires (not std::convertible_to<Arg, const Scalar>)

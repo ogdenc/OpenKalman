@@ -10,9 +10,8 @@
 
 /**
  * \file
- * This is the meta-header file for OpenKalman in combination with Eigen3.
- *
- * Include this file before using any OpenKalman classes or methods with Eigen3.
+ * \brief A meta-header file for using OpenKalman in combination with Eigen3.
+ * \details Include this file before using any OpenKalman classes or methods with Eigen3.
  */
 
 #ifndef OPENKALMAN_OPENKALMAN_EIGEN3_HPP

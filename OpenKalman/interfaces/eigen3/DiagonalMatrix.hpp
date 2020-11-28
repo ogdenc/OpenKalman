@@ -14,7 +14,8 @@
 namespace OpenKalman::Eigen3
 {
   template<typename NestedMatrix>
-  struct DiagonalMatrix : OpenKalman::internal::MatrixBase<DiagonalMatrix<NestedMatrix>, NestedMatrix>
+  struct DiagonalMatrix
+    : OpenKalman::internal::MatrixBase<DiagonalMatrix<NestedMatrix>, NestedMatrix>
   {
     using Base = OpenKalman::internal::MatrixBase<DiagonalMatrix, NestedMatrix>;
     using Scalar = typename MatrixTraits<NestedMatrix>::Scalar;
@@ -372,10 +373,7 @@ namespace OpenKalman
     static constexpr auto columns = dimension;
 
     template<typename Derived>
-    using MatrixBaseType = Eigen3::internal::Eigen3MatrixBase<Derived, Eigen3::DiagonalMatrix<std::decay_t<NestedMatrix>>>;
-
-    template<typename Derived>
-    using CovarianceBaseType = Eigen3::internal::Eigen3CovarianceBase<Derived, Eigen3::DiagonalMatrix<std::decay_t<ArgType>>>;
+    using MatrixBaseType = Eigen3::internal::Eigen3CovarianceBase<Derived, Eigen3::DiagonalMatrix<ArgType>>;
 
     template<std::size_t rows = dimension, std::size_t cols = columns, typename S = Scalar>
     using NativeMatrix = typename MatrixTraits<std::decay_t<NestedMatrix>>::template NativeMatrix<rows, cols, S>;
@@ -400,8 +398,7 @@ namespace OpenKalman
 #endif
     static auto make(Arg&& arg) noexcept
     {
-      return Eigen3::DiagonalMatrix < std::decay_t<Arg>>
-      (std::forward<Arg>(arg));
+      return Eigen3::DiagonalMatrix<std::decay_t<Arg>>(std::forward<Arg>(arg));
     }
 
 
@@ -437,10 +434,9 @@ namespace OpenKalman
     }
 
 
-    static auto zero() { return Eigen3::DiagonalMatrix < NestedMatrix > ::zero(); }
+    static auto zero() { return Eigen3::DiagonalMatrix<NestedMatrix>::zero(); }
 
-
-    static auto identity() { return Eigen3::DiagonalMatrix < NestedMatrix > ::identity(); }
+    static auto identity() { return Eigen3::DiagonalMatrix<NestedMatrix>::identity(); }
 
   };
 

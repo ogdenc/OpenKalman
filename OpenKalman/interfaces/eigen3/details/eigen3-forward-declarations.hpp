@@ -8,6 +8,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+/**
+ * \file
+ * \brief Forward declarations for OpenKalman's Eigen3 interface.
+ */
+
 #ifndef OPENKALMAN_EIGEN3_FORWARD_DECLARATIONS_HPP
 #define OPENKALMAN_EIGEN3_FORWARD_DECLARATIONS_HPP
 
@@ -15,7 +20,7 @@
 
 
 /**
- * Namespace for all Eigen3 interface definitions.
+ * \brief Namespace for all Eigen3 interface definitions.
  */
 namespace OpenKalman::Eigen3
 {
@@ -27,6 +32,8 @@ namespace OpenKalman::Eigen3
    * \brief A self-adjoint matrix, based on an Eigen matrix.
    * \tparam NestedMatrix The Eigen matrix on which the self-adjoint matrix is based.
    * \tparam storage_triangle The triangle (TriangleType::upper or TriangleType::lower) in which the data is stored.
+   * The other triangle is not used, and coefficients are mapped from the other triangle to ensure that the
+   * matrix is always self-adjoint.
    */
   template<typename NestedMatrix, TriangleType storage_triangle = TriangleType::lower>
   struct SelfAdjointMatrix;
@@ -61,9 +68,9 @@ namespace OpenKalman::Eigen3
 
   /**
    * \brief An expression that transforms coefficients into Euclidean space for proper wrapping.
-   * \details This is the counterpart expression to ToEuclideanExpr.
-   * <code>FromEuclideanExpr<C, ToEuclideanExpr<C, B>></code> acts to wrap the angular/modular values in
-   * <code>B</code>.
+   * \details This is the counterpart expression to FromEuclideanExpr.
+   * <code>FromEuclideanExpr<C, ToEuclideanExpr<C, M>></code> acts to wrap the angular/modular values in
+   * <code>M</code>.
    * \tparam Coefficients The coefficient types.
    * \tparam NestedMatrix The pre-transformed column vector, or set of column vectors in the form of a matrix.
    */
@@ -79,8 +86,8 @@ namespace OpenKalman::Eigen3
   /**
    * \brief An expression that transforms angular or other modular coefficients back from Euclidean space.
    * \details This is the counterpart expression to ToEuclideanExpr.
-   * <code>FromEuclideanExpr<C, ToEuclideanExpr<C, B>></code> acts to wrap the angular/modular values in
-   * <code>B</code>.
+   * <code>FromEuclideanExpr<C, ToEuclideanExpr<C, M>></code> acts to wrap the angular/modular values in
+   * <code>M</code>.
    * \tparam Coefficients The coefficient types.
    * \tparam NestedMatrix The pre-transformed column vector, or set of column vectors in the form of a matrix.
    */
@@ -118,11 +125,7 @@ namespace OpenKalman::Eigen3
     /*
      * Base class for Covariance and SquareRootCovariance with a base that is an Eigen3 matrix.
      */
-#ifdef __cpp_concepts
     template<typename Derived, typename Nested>
-#else
-    template<typename Derived, typename Nested, typename Enable = void>
-#endif
     struct Eigen3CovarianceBase;
 
   }

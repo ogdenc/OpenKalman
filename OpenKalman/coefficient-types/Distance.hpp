@@ -49,7 +49,7 @@ namespace OpenKalman
      * \tparam i The index of the coefficient that is being transformed.
      */
     template<typename Scalar, std::size_t i>
-#ifdef __cpp_concepts
+#if defined (__cpp_concepts) && defined (__clang__) // Because of compiler issue in at least GCC version 10.1.0
       requires std::is_arithmetic_v<Scalar>
 #endif
     static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), dimension>
@@ -69,7 +69,7 @@ namespace OpenKalman
      * \tparam i The index of the coefficient that is being transformed.
      */
     template<typename Scalar, std::size_t i>
-#ifdef __cpp_concepts
+#if defined (__cpp_concepts) && defined (__clang__) // Because of compiler issue in at least GCC version 10.1.0
       requires std::is_arithmetic_v<Scalar>
 #endif
     static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), size>
@@ -88,7 +88,7 @@ namespace OpenKalman
      * \tparam i The index of the distance coefficient that is being wrapped.
      */
     template<typename Scalar, std::size_t i>
-#ifdef __cpp_concepts
+#if defined (__cpp_concepts) && defined (__clang__) // Because of compiler issue in at least GCC version 10.1.0
       requires std::is_arithmetic_v<Scalar>
 #endif
     static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), size>
@@ -108,7 +108,7 @@ namespace OpenKalman
      * \tparam i The index of the distance coefficient that is being wrapped.
      */
     template<typename Scalar, std::size_t i>
-#ifdef __cpp_concepts
+#if defined (__cpp_concepts) && defined (__clang__) // Because of compiler issue in at least GCC version 10.1.0
       requires std::is_arithmetic_v<Scalar>
 #endif
     static constexpr std::array<void (*const)(const Scalar, const SetCoeff<Scalar>&, const GetCoeff<Scalar>&), size>

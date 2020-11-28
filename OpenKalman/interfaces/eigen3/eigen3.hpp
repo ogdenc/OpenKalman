@@ -8,6 +8,12 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+/**
+ * \file
+ * \brief The comprehensive header file for OpenKalman's interface to the Eigen3 library.
+ * \details This should be included ''before'' OpenKalman.hpp.
+ */
+
 #ifndef OPENKALMAN_EIGEN3_HPP
 #define OPENKALMAN_EIGEN3_HPP
 

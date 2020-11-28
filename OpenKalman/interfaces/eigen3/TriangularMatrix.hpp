@@ -24,15 +24,18 @@ namespace OpenKalman::Eigen3
     static constexpr auto dimension = MatrixTraits<NestedMatrix>::dimension;
     static_assert(dimension == MatrixTraits<NestedMatrix>::columns);
 
+
     /// Default constructor
     TriangularMatrix() : Base(), view(this->nested_matrix()) {}
 
     /// Copy constructor
     TriangularMatrix(const TriangularMatrix& other) : TriangularMatrix(other.nested_matrix()) {}
 
+
     /// Move constructor
     TriangularMatrix(TriangularMatrix&& other) noexcept
       : TriangularMatrix(std::move(other).nested_matrix()) {}
+
 
     /// Construct from a compatible triangular matrix object of the same TriangleType.
 #ifdef __cpp_concepts
@@ -45,6 +48,7 @@ namespace OpenKalman::Eigen3
       static_assert(lower_triangular_matrix<Arg> == lower_triangular_matrix<TriangularMatrix>);
     }
 
+
     /// Construct from a compatible self-adjoint matrix object
 #ifdef __cpp_concepts
     template<eigen_self_adjoint_expr Arg>
@@ -53,6 +57,7 @@ namespace OpenKalman::Eigen3
 #endif
     TriangularMatrix(Arg&& arg) noexcept
       : TriangularMatrix(Cholesky_factor<triangle_type>(std::forward<Arg>(arg))) {}
+
 
     /// Construct from a reference to a regular or diagonal matrix object
 #ifdef __cpp_concepts
@@ -78,6 +83,7 @@ namespace OpenKalman::Eigen3
 #endif
     TriangularMatrix(Args ... args) : TriangularMatrix(MatrixTraits<NestedMatrix>::make(args...)) {}
 
+
     /// Construct from a list of scalar coefficients, in row-major order.
 #if defined (__cpp_concepts) && defined (__clang__) // Because of compiler issue in at least GCC version 10.1.0
     template<std::convertible_to<const Scalar> ... Args> requires (triangle_type == TriangleType::diagonal) and
@@ -91,6 +97,7 @@ namespace OpenKalman::Eigen3
     TriangularMatrix(Args ... args)
       : TriangularMatrix(make_native_matrix(DiagonalMatrix {static_cast<const Scalar>(args)...})) {}
 
+
     /// Copy assignment operator
     auto& operator=(const TriangularMatrix& other)
     {
@@ -101,6 +108,7 @@ namespace OpenKalman::Eigen3
         }
       return *this;
     }
+
 
     /// Move assignment operator
     auto& operator=(TriangularMatrix&& other) noexcept
@@ -120,7 +128,6 @@ namespace OpenKalman::Eigen3
 #else
     template<typename Arg, std::enable_if_t<eigen_triangular_expr<Arg>, int> = 0>
 #endif
-
     auto& operator=(Arg&& arg)
     {
       static_assert(OpenKalman::internal::same_triangle_type_as<Arg, TriangularMatrix>);
@@ -143,13 +150,13 @@ namespace OpenKalman::Eigen3
       return *this;
     }
 
+
     /// Assign by converting from a self-adjoint special matrix
 #ifdef __cpp_concepts
     template<eigen_self_adjoint_expr Arg>
 #else
     template<typename Arg, std::enable_if_t<eigen_self_adjoint_expr<Arg>, int> = 0>
 #endif
-
     auto& operator=(Arg&& arg)
     {
       if constexpr (zero_matrix < NestedMatrix >)
@@ -168,11 +175,11 @@ namespace OpenKalman::Eigen3
       return *this;
     }
 
+
     /// Assign from an Eigen::MatrixBase derived object. (Only uses the triangular part.)
 #ifdef __cpp_concepts
     template<eigen_matrix Arg>
 #else
-
     template<typename Arg, std::enable_if_t<eigen_matrix<Arg>, int> = 0>
 #endif
     auto& operator=(Arg&& arg)
@@ -195,6 +202,7 @@ namespace OpenKalman::Eigen3
       }
       return *this;
     }
+
 
     /// Assign by copying from an Eigen::TriangularBase derived object.
     template<typename Arg, unsigned int UpLo>
@@ -219,6 +227,7 @@ namespace OpenKalman::Eigen3
       return *this;
     }
 
+
     /// Assign by moving from an Eigen::TriangularBase derived object.
     template<typename Arg>
     auto& operator=(Eigen::TriangularView<Arg, uplo>&& arg) noexcept
@@ -238,6 +247,7 @@ namespace OpenKalman::Eigen3
       return *this;
     }
 
+
     template<typename Arg>
     auto& operator+=(const TriangularMatrix<Arg, triangle_type>& arg)
     {
@@ -246,6 +256,7 @@ namespace OpenKalman::Eigen3
       return *this;
     }
 
+
     template<typename Arg>
     auto& operator-=(const TriangularMatrix<Arg, triangle_type>& arg)
     {
@@ -253,6 +264,7 @@ namespace OpenKalman::Eigen3
       this->nested_view() -= arg.nested_matrix();
       return *this;
     }
+
 
 #ifdef __cpp_concepts
     template<std::convertible_to<Scalar> S>
@@ -265,6 +277,7 @@ namespace OpenKalman::Eigen3
       return *this;
     }
 
+
 #ifdef __cpp_concepts
     template<std::convertible_to<Scalar> S>
 #else
@@ -275,6 +288,7 @@ namespace OpenKalman::Eigen3
       this->nested_view() /= s;
       return *this;
     }
+
 
     template<typename Arg>
     auto& operator*=(const TriangularMatrix<Arg, triangle_type>& arg)
@@ -301,10 +315,12 @@ namespace OpenKalman::Eigen3
         return const_cast<const TriangularMatrix&>(*this)(i, j);
     }
 
+
     auto operator()(std::size_t i, std::size_t j) const noexcept
     {
       return OpenKalman::internal::ElementSetter(*this, i, j);
     }
+
 
     auto operator[](std::size_t i)
     {
@@ -316,6 +332,7 @@ namespace OpenKalman::Eigen3
         return const_cast<const TriangularMatrix&>(*this)[i];
     }
 
+
     auto operator[](std::size_t i) const
     {
       if constexpr(element_gettable < TriangularMatrix, 1 >)
@@ -323,6 +340,7 @@ namespace OpenKalman::Eigen3
       else
         return OpenKalman::internal::ElementSetter(*this, i, i);
     }
+
 
     auto operator()(std::size_t i) { return operator[](i); }
 
@@ -456,12 +474,7 @@ namespace OpenKalman
     static_assert(dimension == columns, "A triangular matrix must be square.");
 
     template<typename Derived>
-    using MatrixBaseType =
-    Eigen3::internal::Eigen3MatrixBase<Derived, Eigen3::TriangularMatrix<std::decay_t<NestedMatrix>, triangle_type>>;
-
-    template<typename Derived>
-    using CovarianceBaseType = Eigen3::internal::Eigen3CovarianceBase<
-      Derived, Eigen3::TriangularMatrix<std::decay_t<NestedMatrix>, triangle_type>>;
+    using MatrixBaseType = Eigen3::internal::Eigen3CovarianceBase<Derived, Eigen3::TriangularMatrix<ArgType, triangle>>;
 
     template<std::size_t rows = dimension, std::size_t cols = dimension, typename S = Scalar>
     using NativeMatrix = typename MatrixTraits<NestedMatrix>::template NativeMatrix<rows, cols, S>;

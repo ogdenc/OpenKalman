@@ -397,6 +397,7 @@ namespace OpenKalman::Eigen3
     View view;
   };
 
+
   /////////////////////////////////////
   //        Deduction Guides         //
   /////////////////////////////////////
@@ -509,12 +510,8 @@ namespace OpenKalman
     static_assert(dimension == columns, "A self-adjoint matrix must be square.");
 
     template<typename Derived>
-    using MatrixBaseType = Eigen3::internal::Eigen3MatrixBase<
-      Derived, Eigen3::SelfAdjointMatrix<std::decay_t<NestedMatrix>, storage_type>>;
-
-    template<typename Derived>
-    using CovarianceBaseType = Eigen3::internal::Eigen3CovarianceBase<
-      Derived, Eigen3::SelfAdjointMatrix<std::decay_t<NestedMatrix>, storage_type>>;
+    using MatrixBaseType =
+      Eigen3::internal::Eigen3CovarianceBase<Derived, Eigen3::SelfAdjointMatrix<ArgType, storage_triangle>>;
 
     template<std::size_t rows = dimension, std::size_t cols = dimension, typename S = Scalar>
     using NativeMatrix = typename MatrixTraits<NestedMatrix>::template NativeMatrix<rows, cols, S>;

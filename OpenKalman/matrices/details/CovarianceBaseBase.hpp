@@ -15,12 +15,13 @@ namespace OpenKalman::internal
 {
   /**
    * Ultimate base of Covariance and SquareRootCovariance classes.
+   * \TODO: combine with OpenKalman::internal::MatrixBase
    */
   template<typename Derived, typename ArgType>
-  struct CovarianceBaseBase : MatrixTraits<ArgType>::template CovarianceBaseType<Derived>
+  struct CovarianceBaseBase : MatrixTraits<ArgType>::template MatrixBaseType<Derived>
   {
     using NestedMatrix = ArgType;
-    using Base = typename MatrixTraits<ArgType>::template CovarianceBaseType<Derived>;
+    using Base = typename MatrixTraits<ArgType>::template MatrixBaseType<Derived>;
 
     /// Default constructor.
     CovarianceBaseBase() : m_arg() {}

@@ -24,7 +24,8 @@ namespace OpenKalman::Eigen3
 #else
   template<typename Coefficients, typename NestedMatrix>
 #endif
-  struct FromEuclideanExpr : OpenKalman::internal::MatrixBase<FromEuclideanExpr<Coefficients, NestedMatrix>, NestedMatrix>
+  struct FromEuclideanExpr
+    : OpenKalman::internal::MatrixBase<FromEuclideanExpr<Coefficients, NestedMatrix>, NestedMatrix>
   {
     static_assert(MatrixTraits<NestedMatrix>::dimension == Coefficients::dimension);
     using Base = OpenKalman::internal::MatrixBase<FromEuclideanExpr, NestedMatrix>;
@@ -350,7 +351,7 @@ namespace OpenKalman
     static_assert(Coefficients::dimension == MatrixTraits<NestedMatrix>::dimension);
 
     template<typename Derived>
-    using MatrixBaseType = Eigen3::internal::Eigen3MatrixBase<Derived, Eigen3::FromEuclideanExpr<Coeffs, ArgType>>;
+    using MatrixBaseType = Eigen3::internal::Eigen3CovarianceBase<Derived, Eigen3::FromEuclideanExpr<Coeffs, ArgType>>;
 
     template<std::size_t rows = dimension, std::size_t cols = columns, typename S = Scalar>
     using NativeMatrix = typename MatrixTraits<NestedMatrix>::template NativeMatrix<rows, cols, S>;

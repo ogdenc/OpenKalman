@@ -8,6 +8,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+/**
+ * \file
+ * \brief Defines various utilities used in OpenKalman.
+ */
+
 #ifndef OPENKALMAN_UTILS_H
 #define OPENKALMAN_UTILS_H
 

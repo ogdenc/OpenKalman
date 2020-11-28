@@ -23,16 +23,16 @@ namespace OpenKalman::internal
    */
 #ifdef __cpp_concepts
   template<typename Derived, typename ArgType> requires
-    ((self_adjoint_matrix<ArgType> and not square_root_covariance<Derived>) or
-      (triangular_matrix<ArgType> and square_root_covariance<Derived>)) and
+    ((not square_root_covariance<Derived> and self_adjoint_matrix<ArgType>) or
+      (square_root_covariance<Derived> and triangular_matrix<ArgType>)) and
     (not std::is_lvalue_reference_v<ArgType>) and
     (not internal::contains_nested_lvalue_reference<ArgType>)
   struct CovarianceBase<Derived, ArgType>
 #else
   template<typename Derived, typename ArgType>
   struct CovarianceBase<Derived, ArgType, std::enable_if_t<
-    ((self_adjoint_matrix<ArgType> and not square_root_covariance<Derived>) or
-      (triangular_matrix<ArgType> and square_root_covariance<Derived>)) and
+    ((not square_root_covariance<Derived> and self_adjoint_matrix<ArgType>) or
+      (square_root_covariance<Derived> and triangular_matrix<ArgType>)) and
     (not std::is_lvalue_reference_v<ArgType>) and
     (not internal::contains_nested_lvalue_reference<ArgType>)>>
 #endif
@@ -115,15 +115,15 @@ namespace OpenKalman::internal
    */
 #ifdef __cpp_concepts
   template<typename Derived, typename ArgType> requires
-    ((self_adjoint_matrix<ArgType> and not square_root_covariance<Derived>) or
-      (triangular_matrix<ArgType> and square_root_covariance<Derived>)) and
+    ((not square_root_covariance<Derived> and self_adjoint_matrix<ArgType>) or
+      (square_root_covariance<Derived> and triangular_matrix<ArgType>)) and
     (std::is_lvalue_reference_v<ArgType> or internal::contains_nested_lvalue_reference<ArgType>)
   struct CovarianceBase<Derived, ArgType>
 #else
   template<typename Derived, typename ArgType>
   struct CovarianceBase<Derived, ArgType, std::enable_if_t<
-    ((self_adjoint_matrix<ArgType> and not square_root_covariance<Derived>) or
-      (triangular_matrix<ArgType> and square_root_covariance<Derived>)) and
+    ((not square_root_covariance<Derived> and self_adjoint_matrix<ArgType>) or
+      (square_root_covariance<Derived> and triangular_matrix<ArgType>)) and
     (std::is_lvalue_reference_v<ArgType> or internal::contains_nested_lvalue_reference<ArgType>)>>
 #endif
   : CovarianceBaseBase<Derived, ArgType>
@@ -337,16 +337,16 @@ namespace OpenKalman::internal
    */
 #ifdef __cpp_concepts
   template<typename Derived, typename ArgType> requires
-    (not self_adjoint_matrix<ArgType> or square_root_covariance<Derived>) and
-    (not triangular_matrix<ArgType> or not square_root_covariance<Derived>) and
+    (square_root_covariance<Derived> or not self_adjoint_matrix<ArgType>) and
+    (not square_root_covariance<Derived> or not triangular_matrix<ArgType>) and
     (not std::is_lvalue_reference_v<ArgType>) and
     (not internal::contains_nested_lvalue_reference<ArgType>)
   struct CovarianceBase<Derived, ArgType>
 #else
   template<typename Derived, typename ArgType>
   struct CovarianceBase<Derived, ArgType, std::enable_if_t<
-    (not self_adjoint_matrix<ArgType> or square_root_covariance<Derived>) and
-    (not triangular_matrix<ArgType> or not square_root_covariance<Derived>) and
+    (square_root_covariance<Derived> or not self_adjoint_matrix<ArgType>) and
+    (not square_root_covariance<Derived> or not triangular_matrix<ArgType>) and
     (not std::is_lvalue_reference_v<ArgType>) and
     (not internal::contains_nested_lvalue_reference<ArgType>)>>
 #endif
@@ -591,15 +591,15 @@ namespace OpenKalman::internal
    */
 #ifdef __cpp_concepts
   template<typename Derived, typename ArgType> requires
-    (not self_adjoint_matrix<ArgType> or square_root_covariance<Derived>) and
-    (not triangular_matrix<ArgType> or not square_root_covariance<Derived>) and
+    (square_root_covariance<Derived> or not self_adjoint_matrix<ArgType>) and
+    (not square_root_covariance<Derived> or not triangular_matrix<ArgType>) and
     (std::is_lvalue_reference_v<ArgType> or internal::contains_nested_lvalue_reference<ArgType>)
   struct CovarianceBase<Derived, ArgType>
 #else
   template<typename Derived, typename ArgType>
   struct CovarianceBase<Derived, ArgType, std::enable_if_t<
-    (not self_adjoint_matrix<ArgType> or square_root_covariance<Derived>) and
-    (not triangular_matrix<ArgType> or not square_root_covariance<Derived>) and
+    (square_root_covariance<Derived> or not self_adjoint_matrix<ArgType>) and
+    (not square_root_covariance<Derived> or not triangular_matrix<ArgType>) and
     (std::is_lvalue_reference_v<ArgType> or internal::contains_nested_lvalue_reference<ArgType>)>>
 #endif
   : CovarianceBaseBase<Derived, ArgType>

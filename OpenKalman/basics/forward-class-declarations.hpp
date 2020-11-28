@@ -9,8 +9,8 @@
  */
 
 /**
- * \file forward-class-declarations.hpp
- * A header file containing forward declarations for OpenKalman classes and some of their closely-associated traits.
+ * \file
+ * \brief Forward declarations for OpenKalman classes and related traits.
  */
 
 #ifndef OPENKALMAN_FORWARD_CLASS_DECLARATIONS_HPP
@@ -396,8 +396,13 @@ namespace OpenKalman
     convert_nested_matrix(Arg&&) noexcept;
 
 
-    // Definition and documentation are in MatrixBase.hpp
-    template<typename Derived, typename NestedMatrix>
+    /**
+     * \internal
+     * \brief General base class for all matrix and interface objects.
+     * \tparam Base A base matrix class within the native matrix library.
+     * \tparam NestedMatrix The nested native matrix.
+     */
+    template<typename Base, typename NestedMatrix>
     struct MatrixBase;
 
 

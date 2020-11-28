@@ -8,6 +8,13 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+/**
+ * \file
+ * \brief Basic forward definitions for OpenKalman as a whole.
+ * \details This should be included by any OpenKalman file, including interface files.
+ */
+
+
 #ifndef OPENKALMAN_BASICS_HPP
 #define OPENKALMAN_BASICS_HPP
 
