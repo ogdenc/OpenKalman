@@ -36,10 +36,10 @@ namespace OpenKalman::internal
     (not std::is_lvalue_reference_v<ArgType>) and
     (not internal::contains_nested_lvalue_reference<ArgType>)>>
 #endif
-    : CovarianceBaseBase<Derived, ArgType>
+    : MatrixBase<Derived, ArgType>
   {
     using NestedMatrix = ArgType;
-    using Base = CovarianceBaseBase<Derived, NestedMatrix>;
+    using Base = MatrixBase<Derived, NestedMatrix>;
     using Base::Base;
     using Base::operator=;
     using Base::nested_matrix;
@@ -126,10 +126,10 @@ namespace OpenKalman::internal
       (square_root_covariance<Derived> and triangular_matrix<ArgType>)) and
     (std::is_lvalue_reference_v<ArgType> or internal::contains_nested_lvalue_reference<ArgType>)>>
 #endif
-  : CovarianceBaseBase<Derived, ArgType>
+  : MatrixBase<Derived, ArgType>
   {
     using NestedMatrix = ArgType;
-    using Base = CovarianceBaseBase<Derived, NestedMatrix>;
+    using Base = MatrixBase<Derived, NestedMatrix>;
     using Base::nested_matrix;
     using Scalar = typename MatrixTraits<NestedMatrix>::Scalar;
 
@@ -350,10 +350,10 @@ namespace OpenKalman::internal
     (not std::is_lvalue_reference_v<ArgType>) and
     (not internal::contains_nested_lvalue_reference<ArgType>)>>
 #endif
-  : CovarianceBaseBase<Derived, ArgType>
+  : MatrixBase<Derived, ArgType>
   {
     using NestedMatrix = ArgType;
-    using Base = CovarianceBaseBase<Derived, NestedMatrix>;
+    using Base = MatrixBase<Derived, NestedMatrix>;
     using Base::nested_matrix;
     using Scalar = typename MatrixTraits<NestedMatrix>::Scalar;
 
@@ -602,10 +602,10 @@ namespace OpenKalman::internal
     (not square_root_covariance<Derived> or not triangular_matrix<ArgType>) and
     (std::is_lvalue_reference_v<ArgType> or internal::contains_nested_lvalue_reference<ArgType>)>>
 #endif
-  : CovarianceBaseBase<Derived, ArgType>
+  : MatrixBase<Derived, ArgType>
   {
     using NestedMatrix = ArgType;
-    using Base = CovarianceBaseBase<Derived, NestedMatrix>;
+    using Base = MatrixBase<Derived, NestedMatrix>;
     using Base::nested_matrix;
     using Scalar = typename MatrixTraits<NestedMatrix>::Scalar;
 

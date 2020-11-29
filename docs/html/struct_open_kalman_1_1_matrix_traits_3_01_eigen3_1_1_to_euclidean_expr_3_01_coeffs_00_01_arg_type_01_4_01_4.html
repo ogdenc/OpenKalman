@@ -103,26 +103,26 @@ struct OpenKalman::MatrixTraits&lt; Eigen3::ToEuclideanExpr&lt; Coeffs, ArgType 
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:a8ac32e47f106d36b7a5314eb55031700"><td class="memItemLeft" align="right" valign="top"><a id="a8ac32e47f106d36b7a5314eb55031700"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>BaseMatrix</b> = ArgType</td></tr>
-<tr class="separator:a8ac32e47f106d36b7a5314eb55031700"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5056b95cf8b5aad98faa9b8a31fa151e"><td class="memItemLeft" align="right" valign="top"><a id="a5056b95cf8b5aad98faa9b8a31fa151e"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>NestedMatrix</b> = ArgType</td></tr>
+<tr class="separator:a5056b95cf8b5aad98faa9b8a31fa151e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa17c76558441a7a53c9c9b668f47b1be"><td class="memItemLeft" align="right" valign="top"><a id="aa17c76558441a7a53c9c9b668f47b1be"></a>
 using&#160;</td><td class="memItemRight" valign="bottom"><b>Coefficients</b> = Coeffs</td></tr>
 <tr class="separator:aa17c76558441a7a53c9c9b668f47b1be"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afdbb6b150934d9af9bef1c40f5841429"><td class="memItemLeft" align="right" valign="top"><a id="afdbb6b150934d9af9bef1c40f5841429"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>Scalar</b> = typename <a class="el" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits</a>&lt; BaseMatrix &gt;::Scalar</td></tr>
-<tr class="separator:afdbb6b150934d9af9bef1c40f5841429"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a71b40571917eb4ffb53ccea16d7e63cc"><td class="memItemLeft" align="right" valign="top"><a id="a71b40571917eb4ffb53ccea16d7e63cc"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>Scalar</b> = typename <a class="el" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits</a>&lt; NestedMatrix &gt;::Scalar</td></tr>
+<tr class="separator:a71b40571917eb4ffb53ccea16d7e63cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a48c798cd67d80ab31ac1601ed80b7f79"><td class="memTemplParams" colspan="2"><a id="a48c798cd67d80ab31ac1601ed80b7f79"></a>
 template&lt;typename Derived &gt; </td></tr>
-<tr class="memitem:a48c798cd67d80ab31ac1601ed80b7f79"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><b>MatrixBaseType</b> = Eigen3::internal::Eigen3MatrixBase&lt; Derived, <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_to_euclidean_expr.html">Eigen3::ToEuclideanExpr</a>&lt; Coeffs, ArgType &gt; &gt;</td></tr>
+<tr class="memitem:a48c798cd67d80ab31ac1601ed80b7f79"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><b>MatrixBaseType</b> = <a class="el" href="struct_open_kalman_1_1_eigen3_1_1internal_1_1_eigen3_matrix_base.html">Eigen3::internal::Eigen3MatrixBase</a>&lt; Derived, <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_to_euclidean_expr.html">Eigen3::ToEuclideanExpr</a>&lt; Coeffs, ArgType &gt; &gt;</td></tr>
 <tr class="separator:a48c798cd67d80ab31ac1601ed80b7f79"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2c479ce7564273f68b9701627902de2d"><td class="memTemplParams" colspan="2"><a id="a2c479ce7564273f68b9701627902de2d"></a>
+<tr class="memitem:a6d88c06e8b26a7538bb4a7b5bed7e8ca"><td class="memTemplParams" colspan="2"><a id="a6d88c06e8b26a7538bb4a7b5bed7e8ca"></a>
 template&lt;std::size_t rows = dimension, std::size_t cols = columns, typename S  = Scalar&gt; </td></tr>
-<tr class="memitem:a2c479ce7564273f68b9701627902de2d"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><b>NativeMatrix</b> = typename <a class="el" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits</a>&lt; BaseMatrix &gt;::template NativeMatrix&lt; rows, cols, S &gt;</td></tr>
-<tr class="separator:a2c479ce7564273f68b9701627902de2d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1607059b26d93c5d807745a938c147fe"><td class="memItemLeft" align="right" valign="top"><a id="a1607059b26d93c5d807745a938c147fe"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>SelfContained</b> = <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_to_euclidean_expr.html">Eigen3::ToEuclideanExpr</a>&lt; Coefficients, <a class="el" href="namespace_open_kalman.html#a1d08cc520e029d965770641656727893">self_contained_t</a>&lt; BaseMatrix &gt; &gt;</td></tr>
-<tr class="separator:a1607059b26d93c5d807745a938c147fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6d88c06e8b26a7538bb4a7b5bed7e8ca"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><b>NativeMatrix</b> = typename <a class="el" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits</a>&lt; NestedMatrix &gt;::template NativeMatrix&lt; rows, cols, S &gt;</td></tr>
+<tr class="separator:a6d88c06e8b26a7538bb4a7b5bed7e8ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a63af11892b6cca55f7f87e4061414d79"><td class="memItemLeft" align="right" valign="top"><a id="a63af11892b6cca55f7f87e4061414d79"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>SelfContained</b> = <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_to_euclidean_expr.html">Eigen3::ToEuclideanExpr</a>&lt; Coefficients, <a class="el" href="namespace_open_kalman.html#a1d08cc520e029d965770641656727893">self_contained_t</a>&lt; NestedMatrix &gt; &gt;</td></tr>
+<tr class="separator:a63af11892b6cca55f7f87e4061414d79"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a87b9e48ee531923fda15cc5a5547e791"><td class="memTemplParams" colspan="2"><a id="a87b9e48ee531923fda15cc5a5547e791"></a>
 template&lt;TriangleType storage_triangle = TriangleType::lower, std::size_t dim = dimension, typename S  = Scalar&gt; </td></tr>
 <tr class="memitem:a87b9e48ee531923fda15cc5a5547e791"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><b>SelfAdjointBaseType</b> = <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix.html">Eigen3::SelfAdjointMatrix</a>&lt; NativeMatrix&lt; dim, dim, S &gt;, storage_triangle &gt;</td></tr>
@@ -160,7 +160,7 @@ Static Public Attributes</h2></td></tr>
 static constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><b>dimension</b> = Coefficients::dimension</td></tr>
 <tr class="separator:a0f7040f98eb6390e87a7b3d0cd7cf597"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab68abf57c79de4cd99ffb0520fbf13a7"><td class="memItemLeft" align="right" valign="top"><a id="ab68abf57c79de4cd99ffb0520fbf13a7"></a>
-static constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><b>columns</b> = <a class="el" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits</a>&lt;BaseMatrix&gt;::columns</td></tr>
+static constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><b>columns</b> = <a class="el" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits</a>&lt;NestedMatrix&gt;::columns</td></tr>
 <tr class="separator:ab68abf57c79de4cd99ffb0520fbf13a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <hr/>The documentation for this struct was generated from the following file:<ul>

@@ -14,25 +14,30 @@
 namespace Eigen
 {
   template<typename Derived, typename XprType>
-  struct MeanCommaInitializer2;
+  struct MeanCommaInitializer;
 
   template<typename XprType>
-  struct DiagonalCommaInitializer2;
-} // namespace Eigen
+  struct DiagonalCommaInitializer;
+
+  template<typename CovarianceType>
+  struct CovarianceCommaInitializer;
+}
+
 
 namespace OpenKalman::Eigen3::internal
 {
-  /*
-   * Base class for all OpenKalman classes that are also Eigen3 matrices.
+  /**
+   * Ultimate base of OpenKalman matrix types.
    */
   template<typename Derived, typename ArgType>
   struct Eigen3MatrixBase : Eigen3Base<Derived>
   {
-    using Nested = std::decay_t<ArgType>; ///< The nested Eigen matrix type. Eigen3 requires this to be defined.
-    using Scalar = typename Nested::Scalar;
+    using Nested = ArgType;
+    using Scalar = typename MatrixTraits<Nested>::Scalar;
+    using Base = Eigen3Base<Derived>;
 
+  private:
 
-  protected:
     template<typename Arg>
     constexpr decltype(auto) get_ultimate_nested_matrix_impl(Arg&& arg) noexcept
     {
@@ -40,9 +45,9 @@ namespace OpenKalman::Eigen3::internal
       using B = decltype(b);
       if constexpr(
         Eigen3::eigen_self_adjoint_expr<B> or
-        Eigen3::eigen_triangular_expr<B> or
-        Eigen3::eigen_diagonal_expr<B> or
-        Eigen3::euclidean_expr<B>)
+          Eigen3::eigen_triangular_expr<B> or
+          Eigen3::eigen_diagonal_expr<B> or
+          Eigen3::euclidean_expr<B>)
       {
         return get_ultimate_nested_matrix(b);
       }
@@ -74,11 +79,6 @@ namespace OpenKalman::Eigen3::internal
 
   public:
 
-    static constexpr Eigen::Index rows() { return Eigen::internal::traits<Derived>::RowsAtCompileTime; } ///< Required by Eigen::EigenBase.
-
-    static constexpr Eigen::Index cols() { return Eigen::internal::traits<Derived>::ColsAtCompileTime; } ///< Required by Eigen::EigenBase.
-
-
 #ifdef __cpp_concepts
     template<std::convertible_to<Scalar> S>
 #else
@@ -86,19 +86,29 @@ namespace OpenKalman::Eigen3::internal
 #endif
     constexpr auto operator<<(const S& s)
     {
-      auto& xpr = get_ultimate_nested_matrix(static_cast<Derived&>(*this));
-      using Xpr = std::decay_t<decltype(xpr)>;
-      if constexpr(mean<Derived>)
+      if constexpr(covariance<Derived> and
+        ((square_root_covariance<Derived> and not triangular_matrix<Nested>) or
+          (not square_root_covariance<Derived> and not self_adjoint_matrix<Nested>)))
       {
-        return Eigen::MeanCommaInitializer2<Derived, Xpr>(xpr, static_cast<const Scalar&>(s));
-      }
-      else if constexpr(Eigen3::eigen_self_adjoint_expr<Xpr> or Eigen3::eigen_triangular_expr<Xpr>)
-      {
-        return Eigen::DiagonalCommaInitializer2(xpr, static_cast<const Scalar&>(s));
+        auto& xpr = static_cast<Derived&>(*this);
+        return Eigen::CovarianceCommaInitializer(xpr, static_cast<const Scalar&>(s));
       }
       else
       {
-        return Eigen::CommaInitializer(xpr, static_cast<const Scalar&>(s));
+        auto& xpr = get_ultimate_nested_matrix(static_cast<Derived&>(*this));
+        using Xpr = std::decay_t<decltype(xpr)>;
+        if constexpr(mean<Derived>)
+        {
+          return Eigen::MeanCommaInitializer<Derived, Xpr>(xpr, static_cast<const Scalar&>(s));
+        }
+        else if constexpr(Eigen3::eigen_self_adjoint_expr<Xpr> or Eigen3::eigen_triangular_expr<Xpr>)
+        {
+          return Eigen::DiagonalCommaInitializer(xpr, static_cast<const Scalar&>(s));
+        }
+        else
+        {
+          return Eigen::CommaInitializer(xpr, static_cast<const Scalar&>(s));
+        }
       }
     }
 
@@ -106,31 +116,68 @@ namespace OpenKalman::Eigen3::internal
     template<typename OtherDerived>
     constexpr auto operator<<(const Eigen::DenseBase<OtherDerived>& other)
     {
-      auto& xpr = get_ultimate_nested_matrix(static_cast<Derived&>(*this));
-      using Xpr = std::decay_t<decltype(xpr)>;
-      if constexpr(mean<Derived>)
+      if constexpr(covariance<Derived> and
+        ((square_root_covariance<Derived> and not triangular_matrix<Nested>) or
+          (not square_root_covariance<Derived> and not self_adjoint_matrix<Nested>)))
       {
-        return Eigen::MeanCommaInitializer2<Derived, Xpr>(xpr, static_cast<const OtherDerived&>(other));
-      }
-      else if constexpr(Eigen3::eigen_self_adjoint_expr<Xpr> or Eigen3::eigen_triangular_expr<Xpr>)
-      {
-        return Eigen::DiagonalCommaInitializer2(xpr, static_cast<const OtherDerived&>(other));
+        auto& xpr = static_cast<Derived&>(*this);
+        return Eigen::CovarianceCommaInitializer(xpr, other);
       }
       else
       {
-        return Eigen::CommaInitializer(xpr, static_cast<const OtherDerived&>(other));
+        auto& xpr = get_ultimate_nested_matrix(static_cast<Derived&>(*this));
+        using Xpr = std::decay_t<decltype(xpr)>;
+        if constexpr(mean<Derived>)
+        {
+          return Eigen::MeanCommaInitializer<Derived, Xpr>(xpr, static_cast<const OtherDerived&>(other));
+        }
+        else if constexpr(Eigen3::eigen_self_adjoint_expr<Xpr> or Eigen3::eigen_triangular_expr<Xpr>)
+        {
+          return Eigen::DiagonalCommaInitializer(xpr, static_cast<const OtherDerived&>(other));
+        }
+        else
+        {
+          return Eigen::CommaInitializer(xpr, static_cast<const OtherDerived&>(other));
+        }
       }
     }
 
-    /// Refined to avoid confusion with zero().
+
+    /**
+     * \internal
+     * \return The number of rows. (Required by Eigen::EigenBase).
+     */
+    static constexpr Eigen::Index rows() { return Eigen::internal::traits<Derived>::RowsAtCompileTime; }
+
+
+    /**
+     * \internal
+     * \return The number of columns. (Required by Eigen::EigenBase).
+     */
+    static constexpr Eigen::Index cols() { return Eigen::internal::traits<Derived>::ColsAtCompileTime; }
+
+
+    /**
+     * \brief Synonym for zero().
+     * \deprecated Use zero() instead. Provided to avoid confusion with native Eigen member function.
+     * \return A matrix, of the same size and shape, containing only zero coefficients.
+     */
+    [[deprecated("Use zero() instead.")]]
     static decltype(auto) Zero() { return Derived::zero(); }
 
-    /// Redefined to avoid confusion with identity().
+
+    /**
+     * \brief Synonym for identity().
+     * \deprecated Use identity() instead. Provided to avoid confusion with native Eigen member function.
+     * \return A square identity matrix with the same number of rows.
+     */
+    [[deprecated("Use identity() instead.")]]
     static decltype(auto) Identity() { return Derived::identity(); }
 
   };
 
 } // namespace OpenKalman::Eigen3::internal
+
 
 namespace Eigen
 {
@@ -138,7 +185,7 @@ namespace Eigen
    * Alternative version of CommaInitializer for Mean.
    */
   template<typename Derived, typename XprType>
-  struct MeanCommaInitializer2 : CommaInitializer<XprType>
+  struct MeanCommaInitializer : CommaInitializer<XprType>
   {
     using Base = CommaInitializer<XprType>;
     using Scalar = typename XprType::Scalar;
@@ -146,12 +193,12 @@ namespace Eigen
     using Base::Base;
 
     template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
-    MeanCommaInitializer2(XprType& xpr, const S& s) : Base(xpr, static_cast<const Scalar&>(s)) {}
+    MeanCommaInitializer(XprType& xpr, const S& s) : Base(xpr, static_cast<const Scalar&>(s)) {}
 
     template<typename OtherDerived>
-    MeanCommaInitializer2(XprType& xpr, const DenseBase <OtherDerived>& other) : Base(xpr, other) {}
+    MeanCommaInitializer(XprType& xpr, const DenseBase <OtherDerived>& other) : Base(xpr, other) {}
 
-    ~MeanCommaInitializer2()
+    ~MeanCommaInitializer()
     {
       finished();
     }
@@ -168,7 +215,7 @@ namespace Eigen
    * Alternative version of CommaInitializer for diagonal versions of SelfAdjointMatrix and TriangularMatrix.
    */
   template<typename XprType>
-  struct DiagonalCommaInitializer2
+  struct DiagonalCommaInitializer
   {
     using Scalar = typename XprType::Scalar;
     static constexpr auto dim = OpenKalman::MatrixTraits<XprType>::dimension;
@@ -184,17 +231,17 @@ namespace Eigen
 #else
     template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
 #endif
-    DiagonalCommaInitializer2(XprType& xpr, const S& s)
+    DiagonalCommaInitializer(XprType& xpr, const S& s)
       : matrix(), comma_initializer(matrix, static_cast<const Scalar&>(s)), diag(xpr) {}
 
     template<typename OtherDerived>
-    DiagonalCommaInitializer2(XprType& xpr, const DenseBase <OtherDerived>& other)
+    DiagonalCommaInitializer(XprType& xpr, const DenseBase <OtherDerived>& other)
       : matrix(), comma_initializer(matrix, other), diag(xpr) {}
 
-    DiagonalCommaInitializer2(const DiagonalCommaInitializer2& o)
+    DiagonalCommaInitializer(const DiagonalCommaInitializer& o)
       : matrix(o.matrix), comma_initializer(o.comma_initializer), diag(o.diag) {}
 
-    DiagonalCommaInitializer2(DiagonalCommaInitializer2&& o)
+    DiagonalCommaInitializer(DiagonalCommaInitializer&& o)
       : matrix(std::move(o.matrix)),
         comma_initializer(std::move(o.comma_initializer)), diag(std::move(o.diag)) {}
 
@@ -216,7 +263,7 @@ namespace Eigen
       return *this;
     }
 
-    ~DiagonalCommaInitializer2()
+    ~DiagonalCommaInitializer()
     {
       finished();
     }
@@ -228,6 +275,63 @@ namespace Eigen
     }
   };
 
-} // namespace Eigen3
+
+  /**
+   * Alternative version of CommaInitializer for Covariance and SquareRootCovariance.
+   */
+  template<typename CovarianceType>
+  struct CovarianceCommaInitializer
+  {
+    using Scalar = typename CovarianceType::Scalar;
+    using NestedMatrix = OpenKalman::native_matrix_t<typename OpenKalman::nested_matrix_t<CovarianceType>>;
+    using Nested = CommaInitializer<NestedMatrix>;
+
+    NestedMatrix matrix;
+    Nested comma_initializer;
+    CovarianceType& cov;
+
+    template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
+    CovarianceCommaInitializer(CovarianceType& xpr, const S& s)
+      : matrix(), comma_initializer(matrix, static_cast<const Scalar&>(s)), cov(xpr) {}
+
+    template<typename OtherDerived>
+    CovarianceCommaInitializer(CovarianceType& xpr, const DenseBase <OtherDerived>& other)
+      : matrix(), comma_initializer(matrix, other), cov(xpr) {}
+
+    CovarianceCommaInitializer(const CovarianceCommaInitializer& o)
+      : matrix(o.matrix), comma_initializer(o.comma_initializer), cov(o.cov) {}
+
+    CovarianceCommaInitializer(CovarianceCommaInitializer&& o)
+      : matrix(std::move(o.matrix)),
+        comma_initializer(std::move(o.comma_initializer)), cov(std::move(o.cov)) {}
+
+    template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
+    auto& operator,(const S& s)
+    {
+      comma_initializer, static_cast<const Scalar&>(s);
+      return *this;
+    }
+
+    template<typename OtherDerived>
+    auto& operator,(const DenseBase<OtherDerived>& other)
+    {
+      comma_initializer, other;
+      return *this;
+    }
+
+    ~CovarianceCommaInitializer()
+    {
+      finished();
+    }
+
+    auto& finished()
+    {
+      cov = comma_initializer.finished();
+      return cov;
+    }
+  };
+
+} // namespace Eigen
+
 
 #endif //OPENKALMAN_EIGEN3MATRIXBASE_HPP

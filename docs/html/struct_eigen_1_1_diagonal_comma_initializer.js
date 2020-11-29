@@ -1,7 +1,7 @@
 var struct_eigen_1_1_diagonal_comma_initializer =
 [
-    [ "BaseMatrix", "struct_eigen_1_1_diagonal_comma_initializer.html#aa136ae0c9b7da15011e5a89fc1142ad8", null ],
-    [ "Nested", "struct_eigen_1_1_diagonal_comma_initializer.html#a562681d73d35a4be2a72684328d93f0b", null ],
+    [ "Nested", "struct_eigen_1_1_diagonal_comma_initializer.html#a09844b9737ddcd62a65eb6239ab26497", null ],
+    [ "NestedMatrix", "struct_eigen_1_1_diagonal_comma_initializer.html#af387b189ab59602a5a44ee2e58f378ec", null ],
     [ "Scalar", "struct_eigen_1_1_diagonal_comma_initializer.html#a36351d906109893f821afaebe8e05985", null ],
     [ "DiagonalCommaInitializer", "struct_eigen_1_1_diagonal_comma_initializer.html#a8985c036b89803e5632543f1badeae26", null ],
     [ "DiagonalCommaInitializer", "struct_eigen_1_1_diagonal_comma_initializer.html#a4998fe3f702c3dffffd80ee27b3bebc6", null ],
@@ -13,5 +13,5 @@ var struct_eigen_1_1_diagonal_comma_initializer =
     [ "operator,", "struct_eigen_1_1_diagonal_comma_initializer.html#a5caa1295bdcf28443097cbf710f6d704", null ],
     [ "comma_initializer", "struct_eigen_1_1_diagonal_comma_initializer.html#a6423c3b093674eb87dadbb2e83b12ccd", null ],
     [ "diag", "struct_eigen_1_1_diagonal_comma_initializer.html#a3d4214c3eb3b2b343b2661be71ce7ce2", null ],
-    [ "matrix", "struct_eigen_1_1_diagonal_comma_initializer.html#aa5b24e3fde853b902414b2a65c3ef1b6", null ]
+    [ "matrix", "struct_eigen_1_1_diagonal_comma_initializer.html#aad044184e1c7dbb024470639b3b962e9", null ]
 ];

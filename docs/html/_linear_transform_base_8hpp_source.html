@@ -140,14 +140,14 @@ $(document).ready(function(){initNavTree('_linear_transform_base_8hpp_source.htm
 <div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;        <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (return_cross)</div>
 <div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;        {</div>
 <div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;          <span class="keyword">auto</span> cross = make_self_contained(covariance_of(std::get&lt;0&gt;(dist)) * adjoint(std::get&lt;0&gt;(j)));</div>
-<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;          <span class="keyword">auto</span> cov = make_Covariance((</div>
+<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;          <span class="keyword">auto</span> cov = make_covariance((</div>
 <div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;            (std::get&lt;0&gt;(j) * cross) +</div>
 <div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;              ... + (std::get&lt;ints+1&gt;(j) * (covariance_of(std::get&lt;ints+1&gt;(dist)) * adjoint(std::get&lt;ints+1&gt;(j))))));</div>
 <div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;          <span class="keywordflow">return</span> std::tuple {std::move(cov), std::move(cross)};</div>
 <div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;        }</div>
 <div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;        <span class="keywordflow">else</span></div>
 <div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;        {</div>
-<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;          <span class="keywordflow">return</span> make_Covariance((</div>
+<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;          <span class="keywordflow">return</span> make_covariance((</div>
 <div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;            (std::get&lt;0&gt;(j) * covariance_of(std::get&lt;0&gt;(dist)) * adjoint(std::get&lt;0&gt;(j))) +</div>
 <div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;              ... + (std::get&lt;ints+1&gt;(j) * (covariance_of(std::get&lt;ints+1&gt;(dist)) * adjoint(std::get&lt;ints+1&gt;(j))))));</div>
 <div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;        }</div>

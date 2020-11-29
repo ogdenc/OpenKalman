@@ -1,7 +1,7 @@
 var struct_eigen_1_1_covariance_comma_initializer =
 [
-    [ "BaseMatrix", "struct_eigen_1_1_covariance_comma_initializer.html#ab33c2acb24dc6a7503c0ca680f81c88c", null ],
-    [ "Nested", "struct_eigen_1_1_covariance_comma_initializer.html#a4ebf9ee18f2f0431da46d4b2e7a036ca", null ],
+    [ "Nested", "struct_eigen_1_1_covariance_comma_initializer.html#a9684096024b8b011f560fc1f90a08aaa", null ],
+    [ "NestedMatrix", "struct_eigen_1_1_covariance_comma_initializer.html#af7b0b2dbd6436f28a217e7f94e4bdd92", null ],
     [ "Scalar", "struct_eigen_1_1_covariance_comma_initializer.html#ab06c2b81e6e07f988db7295b4fa5f83e", null ],
     [ "CovarianceCommaInitializer", "struct_eigen_1_1_covariance_comma_initializer.html#a286c2d28f26c32348e5ad7cfc3c7ea16", null ],
     [ "CovarianceCommaInitializer", "struct_eigen_1_1_covariance_comma_initializer.html#a7bb5a85cae58ac25dff0c62a23b163fd", null ],
@@ -13,5 +13,5 @@ var struct_eigen_1_1_covariance_comma_initializer =
     [ "operator,", "struct_eigen_1_1_covariance_comma_initializer.html#acbda1aec53fc99b0f132e35cec873ede", null ],
     [ "comma_initializer", "struct_eigen_1_1_covariance_comma_initializer.html#a87a7fb050c9c987e0eb696a55a746da6", null ],
     [ "cov", "struct_eigen_1_1_covariance_comma_initializer.html#a6b440005af2670b0391923d66c3f5152", null ],
-    [ "matrix", "struct_eigen_1_1_covariance_comma_initializer.html#a6de8c4c94ef0a06e570813395fd37242", null ]
+    [ "matrix", "struct_eigen_1_1_covariance_comma_initializer.html#a4b569d618cea4fbd2bdb999eab1f1879", null ]
 ];

@@ -169,10 +169,10 @@ $(document).ready(function(){initNavTree('_unscented_8hpp_source.html',''); init
 <div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;      <span class="keyword">constexpr</span> Scalar alpha = Parameters::alpha;</div>
 <div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;      <span class="keyword">constexpr</span> Scalar kappa = Parameters::<span class="keyword">template</span> kappa&lt;dim&gt;;</div>
 <div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;      <span class="keyword">constexpr</span> Scalar gamma_L = alpha * alpha * (kappa + dim);</div>
-<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;      <span class="keyword">const</span> <span class="keyword">auto</span> delta = make_Matrix&lt;Coeffs, Axes&lt;dim_i&gt;&gt;(make_native_matrix(square_root(gamma_L * covariance_of(d))));</div>
+<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;      <span class="keyword">const</span> <span class="keyword">auto</span> delta = make_matrix&lt;Coeffs, Axes&lt;dim_i&gt;&gt;(make_native_matrix(square_root(gamma_L * covariance_of(d))));</div>
 <div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;      <span class="comment">//</span></div>
-<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;      <span class="keyword">using</span> M0base = native_matrix_t&lt;M, dim_i, 1&gt;;</div>
-<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;      <span class="keyword">const</span> <span class="keyword">auto</span> m0 = Matrix&lt;Coeffs, Axis, M0base&gt;::zero();</div>
+<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;      <span class="keyword">using</span> M0nested = native_matrix_t&lt;M, dim_i, 1&gt;;</div>
+<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;      <span class="keyword">const</span> <span class="keyword">auto</span> m0 = Matrix&lt;Coeffs, Axis, M0nested&gt;::zero();</div>
 <div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;      <span class="keywordflow">if</span> <span class="keyword">constexpr</span>(1 + frame_size == points_count)</div>
 <div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;      {</div>
 <div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;        <span class="keyword">auto</span> ret = concatenate_horizontal(m0, delta, -delta);</div>
@@ -182,19 +182,19 @@ $(document).ready(function(){initNavTree('_unscented_8hpp_source.html',''); init
 <div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;      <span class="keywordflow">else</span> <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (pos == 0)</div>
 <div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;      {</div>
 <div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;        <span class="keyword">constexpr</span> <span class="keyword">auto</span> width = points_count - (1 + frame_size);</div>
-<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;        <span class="keyword">using</span> MRbase = native_matrix_t&lt;M, dim_i, width&gt;;</div>
-<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;        <span class="keyword">const</span> <span class="keyword">auto</span> mright = Matrix&lt;Coeffs, Axes&lt;width&gt;, MRbase&gt;::zero();</div>
+<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;        <span class="keyword">using</span> MRnative = native_matrix_t&lt;M, dim_i, width&gt;;</div>
+<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;        <span class="keyword">const</span> <span class="keyword">auto</span> mright = Matrix&lt;Coeffs, Axes&lt;width&gt;, MRnative&gt;::zero();</div>
 <div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;        <span class="keyword">auto</span> ret = concatenate_horizontal(m0, delta, -delta, mright);</div>
 <div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;        <span class="keyword">static_assert</span>(MatrixTraits&lt;<span class="keyword">decltype</span>(ret)&gt;::columns == points_count);</div>
 <div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;        <span class="keywordflow">return</span> std::tuple_cat(std::tuple {std::move(ret)}, sigma_points_impl&lt;dim, 1 + frame_size&gt;(ds...));</div>
 <div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;      }</div>
 <div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;      <span class="keywordflow">else</span> <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (pos + frame_size &lt; points_count)</div>
 <div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;      {</div>
-<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;        <span class="keyword">using</span> MLbase = native_matrix_t&lt;M, dim_i, pos&gt;;</div>
-<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;        <span class="keyword">const</span> <span class="keyword">auto</span> mleft = Matrix&lt;Coeffs, Axes&lt;pos&gt;, MLbase&gt;::zero();</div>
+<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;        <span class="keyword">using</span> MLnative = native_matrix_t&lt;M, dim_i, pos&gt;;</div>
+<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;        <span class="keyword">const</span> <span class="keyword">auto</span> mleft = Matrix&lt;Coeffs, Axes&lt;pos&gt;, MLnative&gt;::zero();</div>
 <div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;        <span class="keyword">constexpr</span> <span class="keyword">auto</span> width = points_count - (pos + frame_size);</div>
-<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;        <span class="keyword">using</span> MRbase = native_matrix_t&lt;M, dim_i, width&gt;;</div>
-<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;        <span class="keyword">const</span> <span class="keyword">auto</span> mright = Matrix&lt;Coeffs, Axes&lt;width&gt;, MRbase&gt;::zero();</div>
+<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;        <span class="keyword">using</span> MRnative = native_matrix_t&lt;M, dim_i, width&gt;;</div>
+<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;        <span class="keyword">const</span> <span class="keyword">auto</span> mright = Matrix&lt;Coeffs, Axes&lt;width&gt;, MRnative&gt;::zero();</div>
 <div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;        <span class="keyword">auto</span> ret = concatenate_horizontal(mleft, delta, -delta, mright);</div>
 <div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;        <span class="keyword">static_assert</span>(MatrixTraits&lt;<span class="keyword">decltype</span>(ret)&gt;::columns == points_count);</div>
 <div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;        <span class="keywordflow">return</span> std::tuple_cat(std::tuple {std::move(ret)}, sigma_points_impl&lt;dim, pos + frame_size&gt;(ds...));</div>
@@ -202,8 +202,8 @@ $(document).ready(function(){initNavTree('_unscented_8hpp_source.html',''); init
 <div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;      <span class="keywordflow">else</span></div>
 <div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;      {</div>
 <div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;        <span class="keyword">static_assert</span>(<span class="keyword">sizeof</span>...(ds) == 0);</div>
-<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;        <span class="keyword">using</span> MLbase = native_matrix_t&lt;M, dim_i, pos&gt;;</div>
-<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;        <span class="keyword">const</span> <span class="keyword">auto</span> mleft = Matrix&lt;Coeffs, Axes&lt;pos&gt;, MLbase&gt;::zero();</div>
+<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;        <span class="keyword">using</span> MLnative = native_matrix_t&lt;M, dim_i, pos&gt;;</div>
+<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;        <span class="keyword">const</span> <span class="keyword">auto</span> mleft = Matrix&lt;Coeffs, Axes&lt;pos&gt;, MLnative&gt;::zero();</div>
 <div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;        <span class="keyword">auto</span> ret = concatenate_horizontal(mleft, delta, -delta);</div>
 <div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;        <span class="keyword">static_assert</span>(MatrixTraits&lt;<span class="keyword">decltype</span>(ret)&gt;::columns == points_count);</div>
 <div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;        <span class="keywordflow">return</span> std::tuple {std::move(ret)};</div>

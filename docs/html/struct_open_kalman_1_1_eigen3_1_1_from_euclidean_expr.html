@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.0"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>OpenKalman: OpenKalman::Eigen3::FromEuclideanExpr&lt; Coefficients, BaseMatrix &gt; Struct Template Reference</title>
+<title>OpenKalman: OpenKalman::Eigen3::FromEuclideanExpr&lt; Coefficients, NestedMatrix &gt; Struct Template Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -89,142 +89,139 @@ $(document).ready(function(){initNavTree('struct_open_kalman_1_1_eigen3_1_1_from
 <a href="#pub-static-methods">Static Public Member Functions</a> &#124;
 <a href="#pub-static-attribs">Static Public Attributes</a>  </div>
   <div class="headertitle">
-<div class="title">OpenKalman::Eigen3::FromEuclideanExpr&lt; Coefficients, BaseMatrix &gt; Struct Template Reference</div>  </div>
+<div class="title">OpenKalman::Eigen3::FromEuclideanExpr&lt; Coefficients, NestedMatrix &gt; Struct Template Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
 <a name="details" id="details"></a><h2 class="groupheader">Description</h2>
-<div class="textblock"><h3>template&lt;typename Coefficients, typename BaseMatrix&gt;<br />
-struct OpenKalman::Eigen3::FromEuclideanExpr&lt; Coefficients, BaseMatrix &gt;</h3>
+<div class="textblock"><h3>template&lt;typename Coefficients, typename NestedMatrix&gt;<br />
+struct OpenKalman::Eigen3::FromEuclideanExpr&lt; Coefficients, NestedMatrix &gt;</h3>
 
 <p>An expression that transforms angular or other modular coefficients back from Euclidean space. </p>
-<p>This is the counterpart expression to <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_to_euclidean_expr.html" title="An expression that transforms angular or other modular coefficients into Euclidean space,...">ToEuclideanExpr</a>. <code><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html" title="An expression that transforms angular or other modular coefficients back from Euclidean space.">FromEuclideanExpr</a>&lt;C, ToEuclideanExpr&lt;C, B&gt;&gt;</code> acts to wrap the angular/modular values in <code>B</code>. </p><dl class="tparams"><dt>Template Parameters</dt><dd>
+<p>This is the counterpart expression to <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_to_euclidean_expr.html" title="An expression that transforms coefficients into Euclidean space for proper wrapping.">ToEuclideanExpr</a>. <code><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html" title="An expression that transforms angular or other modular coefficients back from Euclidean space.">FromEuclideanExpr</a>&lt;C, ToEuclideanExpr&lt;C, M&gt;&gt;</code> acts to wrap the angular/modular values in <code>M</code>. </p><dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">Coefficients</td><td>The coefficient types. </td></tr>
-    <tr><td class="paramname">BaseMatrix</td><td>The pre-transformed column vector, or set of column vectors in the form of a matrix. </td></tr>
+    <tr><td class="paramname">NestedMatrix</td><td>The pre-transformed column vector, or set of column vectors in the form of a matrix. </td></tr>
   </table>
   </dd>
 </dl>
 
 <p class="definition">Definition at line <a class="el" href="_from_euclidean_expr_8hpp_source.html#l00027">27</a> of file <a class="el" href="_from_euclidean_expr_8hpp_source.html">FromEuclideanExpr.hpp</a>.</p>
-</div>
-<p>Inherits OpenKalman::internal::MatrixBase&lt; Derived, ArgType &gt;.</p>
+</div><div class="dynheader">
+Inheritance diagram for OpenKalman::Eigen3::FromEuclideanExpr&lt; Coefficients, NestedMatrix &gt;:</div>
+<div class="dyncontent">
+ <div class="center">
+  <img src="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.png" usemap="#OpenKalman::Eigen3::FromEuclideanExpr_3C_20Coefficients_2C_20NestedMatrix_20_3E_map" alt=""/>
+  <map id="OpenKalman::Eigen3::FromEuclideanExpr_3C_20Coefficients_2C_20NestedMatrix_20_3E_map" name="OpenKalman::Eigen3::FromEuclideanExpr_3C_20Coefficients_2C_20NestedMatrix_20_3E_map">
+<area href="struct_open_kalman_1_1internal_1_1_matrix_base.html" alt="OpenKalman::internal::MatrixBase&lt; FromEuclideanExpr&lt; Coefficients, NestedMatrix &gt;, NestedMatrix &gt;" shape="rect" coords="0,0,593,24"/>
+  </map>
+</div></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:a121967f68d44ac841af667b22d382cb4"><td class="memItemLeft" align="right" valign="top"><a id="a121967f68d44ac841af667b22d382cb4"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>Base</b> = OpenKalman::internal::MatrixBase&lt; <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">FromEuclideanExpr</a>, BaseMatrix &gt;</td></tr>
-<tr class="separator:a121967f68d44ac841af667b22d382cb4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a73732000e9af0c0e4d107956e572875a"><td class="memItemLeft" align="right" valign="top"><a id="a73732000e9af0c0e4d107956e572875a"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#a73732000e9af0c0e4d107956e572875a">Scalar</a> = typename <a class="el" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits</a>&lt; BaseMatrix &gt;::<a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#a73732000e9af0c0e4d107956e572875a">Scalar</a></td></tr>
-<tr class="memdesc:a73732000e9af0c0e4d107956e572875a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Scalar type for this variable. <br /></td></tr>
-<tr class="separator:a73732000e9af0c0e4d107956e572875a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab0807c7886ff436b03f67bf43a0d80d0"><td class="memItemLeft" align="right" valign="top"><a id="ab0807c7886ff436b03f67bf43a0d80d0"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>BaseMatrix</b> = ArgType</td></tr>
-<tr class="separator:ab0807c7886ff436b03f67bf43a0d80d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a92a1210aeed099bbaf1780c6e4a4d526"><td class="memItemLeft" align="right" valign="top"><a id="a92a1210aeed099bbaf1780c6e4a4d526"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>Base</b> = <a class="el" href="struct_open_kalman_1_1internal_1_1_matrix_base.html">OpenKalman::internal::MatrixBase</a>&lt; <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">FromEuclideanExpr</a>, NestedMatrix &gt;</td></tr>
+<tr class="separator:a92a1210aeed099bbaf1780c6e4a4d526"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6e06ffd63d8d4d64d192142642e90c65"><td class="memItemLeft" align="right" valign="top"><a id="a6e06ffd63d8d4d64d192142642e90c65"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#a6e06ffd63d8d4d64d192142642e90c65">Scalar</a> = typename <a class="el" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits</a>&lt; NestedMatrix &gt;::<a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#a6e06ffd63d8d4d64d192142642e90c65">Scalar</a></td></tr>
+<tr class="memdesc:a6e06ffd63d8d4d64d192142642e90c65"><td class="mdescLeft">&#160;</td><td class="mdescRight">Scalar type for this variable. <br /></td></tr>
+<tr class="separator:a6e06ffd63d8d4d64d192142642e90c65"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a4390a01bee63053de01af12cd9fa2e92"><td class="memItemLeft" align="right" valign="top"><a id="a4390a01bee63053de01af12cd9fa2e92"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#a4390a01bee63053de01af12cd9fa2e92">FromEuclideanExpr</a> ()</td></tr>
-<tr class="memdesc:a4390a01bee63053de01af12cd9fa2e92"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default constructor. <br /></td></tr>
-<tr class="separator:a4390a01bee63053de01af12cd9fa2e92"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2b5f50ac838d2d9b31c379c899b99330"><td class="memItemLeft" align="right" valign="top"><a id="a2b5f50ac838d2d9b31c379c899b99330"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#a2b5f50ac838d2d9b31c379c899b99330">FromEuclideanExpr</a> (const <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">FromEuclideanExpr</a> &amp;other)</td></tr>
-<tr class="memdesc:a2b5f50ac838d2d9b31c379c899b99330"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy constructor. <br /></td></tr>
-<tr class="separator:a2b5f50ac838d2d9b31c379c899b99330"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abcde76a826774928c29c712aa4ea6adf"><td class="memItemLeft" align="right" valign="top"><a id="abcde76a826774928c29c712aa4ea6adf"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#abcde76a826774928c29c712aa4ea6adf">FromEuclideanExpr</a> (<a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">FromEuclideanExpr</a> &amp;&amp;other) noexcept</td></tr>
-<tr class="memdesc:abcde76a826774928c29c712aa4ea6adf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Move constructor. <br /></td></tr>
-<tr class="separator:abcde76a826774928c29c712aa4ea6adf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a022e32f45003bd926186cb8d9dee4aad"><td class="memTemplParams" colspan="2">template&lt;typename Arg , std::enable_if_t&lt; from_euclidean_expr&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a022e32f45003bd926186cb8d9dee4aad"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#a022e32f45003bd926186cb8d9dee4aad">FromEuclideanExpr</a> (Arg &amp;&amp;other) noexcept</td></tr>
-<tr class="separator:a022e32f45003bd926186cb8d9dee4aad"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a022e32f45003bd926186cb8d9dee4aad"><td class="memTemplParams" colspan="2">template&lt;typename Arg , std::enable_if_t&lt; to_euclidean_expr&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a022e32f45003bd926186cb8d9dee4aad"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#a022e32f45003bd926186cb8d9dee4aad">FromEuclideanExpr</a> (Arg &amp;&amp;other) noexcept</td></tr>
-<tr class="separator:a022e32f45003bd926186cb8d9dee4aad"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ada5926bcd6b10832f9c26b7ed1a0f3c2"><td class="memTemplParams" colspan="2">template&lt;typename Arg , std::enable_if_t&lt; eigen_matrix&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:ada5926bcd6b10832f9c26b7ed1a0f3c2"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#ada5926bcd6b10832f9c26b7ed1a0f3c2">FromEuclideanExpr</a> (Arg &amp;&amp;arg) noexcept</td></tr>
-<tr class="separator:ada5926bcd6b10832f9c26b7ed1a0f3c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8ab28a863208cb15b7de64628d58d68e"><td class="memTemplParams" colspan="2">template&lt;typename ... Args, std::enable_if_t&lt; std::conjunction_v&lt; std::is_convertible&lt; Args, const Scalar &gt;... &gt; and sizeof...(Args)==columns *(to_euclidean_expr&lt; BaseMatrix &gt; ? Coefficients::size :Coefficients::dimension), int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a8ab28a863208cb15b7de64628d58d68e"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#a8ab28a863208cb15b7de64628d58d68e">FromEuclideanExpr</a> (Args ... args)</td></tr>
-<tr class="separator:a8ab28a863208cb15b7de64628d58d68e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8fd7d1f02819967be14f7ec50d05df7a"><td class="memItemLeft" align="right" valign="top"><a id="a8fd7d1f02819967be14f7ec50d05df7a"></a>
-auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#a8fd7d1f02819967be14f7ec50d05df7a">operator=</a> (const <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">FromEuclideanExpr</a> &amp;other)</td></tr>
-<tr class="memdesc:a8fd7d1f02819967be14f7ec50d05df7a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy assignment operator. <br /></td></tr>
-<tr class="separator:a8fd7d1f02819967be14f7ec50d05df7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa00f81fa1fc7c2e86dc31e1e4bfcd5f5"><td class="memItemLeft" align="right" valign="top"><a id="aa00f81fa1fc7c2e86dc31e1e4bfcd5f5"></a>
-auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#aa00f81fa1fc7c2e86dc31e1e4bfcd5f5">operator=</a> (<a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">FromEuclideanExpr</a> &amp;&amp;other) noexcept</td></tr>
-<tr class="memdesc:aa00f81fa1fc7c2e86dc31e1e4bfcd5f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Move assignment operator. <br /></td></tr>
-<tr class="separator:aa00f81fa1fc7c2e86dc31e1e4bfcd5f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adb0038cb64812682ce9e68ff34b891b4"><td class="memTemplParams" colspan="2">template&lt;typename Arg , std::enable_if_t&lt; from_euclidean_expr&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:adb0038cb64812682ce9e68ff34b891b4"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#adb0038cb64812682ce9e68ff34b891b4">operator=</a> (Arg &amp;&amp;other) noexcept</td></tr>
-<tr class="separator:adb0038cb64812682ce9e68ff34b891b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a364d0cefbe8bc74fb46cfdb1fc7dd713"><td class="memTemplParams" colspan="2">template&lt;typename Arg , std::enable_if_t&lt; eigen_matrix&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a364d0cefbe8bc74fb46cfdb1fc7dd713"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#a364d0cefbe8bc74fb46cfdb1fc7dd713">operator=</a> (Arg &amp;&amp;arg) noexcept</td></tr>
-<tr class="separator:a364d0cefbe8bc74fb46cfdb1fc7dd713"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a95656505daa1a4783e0afdc3f2d4ceed"><td class="memTemplParams" colspan="2">template&lt;typename Arg , std::enable_if_t&lt; from_euclidean_expr&lt; Arg &gt; or eigen_matrix&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a95656505daa1a4783e0afdc3f2d4ceed"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#a95656505daa1a4783e0afdc3f2d4ceed">operator+=</a> (Arg &amp;&amp;other) noexcept</td></tr>
-<tr class="separator:a95656505daa1a4783e0afdc3f2d4ceed"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adaafa1cf98cd17c60389761312214058"><td class="memTemplParams" colspan="2">template&lt;typename Arg , std::enable_if_t&lt; from_euclidean_expr&lt; Arg &gt; or eigen_matrix&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:adaafa1cf98cd17c60389761312214058"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#adaafa1cf98cd17c60389761312214058">operator-=</a> (Arg &amp;&amp;other) noexcept</td></tr>
-<tr class="separator:adaafa1cf98cd17c60389761312214058"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a66fcae6709103bebbd31f426623e3155"><td class="memTemplParams" colspan="2">template&lt;typename S , std::enable_if_t&lt; std::is_convertible_v&lt; S, Scalar &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a66fcae6709103bebbd31f426623e3155"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#a66fcae6709103bebbd31f426623e3155">operator*=</a> (const S <a class="el" href="namespace_open_kalman.html#a77f2335ea8a758c0b229c54cadc27aa1">scale</a>)</td></tr>
-<tr class="separator:a66fcae6709103bebbd31f426623e3155"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae49642fa210cd6e79475305a237d888f"><td class="memTemplParams" colspan="2">template&lt;typename S , std::enable_if_t&lt; std::is_convertible_v&lt; S, Scalar &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:ae49642fa210cd6e79475305a237d888f"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#ae49642fa210cd6e79475305a237d888f">operator/=</a> (const S <a class="el" href="namespace_open_kalman.html#a77f2335ea8a758c0b229c54cadc27aa1">scale</a>)</td></tr>
-<tr class="separator:ae49642fa210cd6e79475305a237d888f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a51ffb474c8db58f5a6a78caf7de44fb6"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#a51ffb474c8db58f5a6a78caf7de44fb6">operator()</a> (std::size_t i, std::size_t j)</td></tr>
-<tr class="separator:a51ffb474c8db58f5a6a78caf7de44fb6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5943b0392bac9b4ab60aff834a872084"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#a5943b0392bac9b4ab60aff834a872084">operator()</a> (std::size_t i, std::size_t j) const</td></tr>
-<tr class="separator:a5943b0392bac9b4ab60aff834a872084"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae3a5c9075313f488e640495c965e9a3c"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#ae3a5c9075313f488e640495c965e9a3c">operator[]</a> (std::size_t i)</td></tr>
-<tr class="separator:ae3a5c9075313f488e640495c965e9a3c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a895267ac8d93c79f9b075d025fefc96d"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#a895267ac8d93c79f9b075d025fefc96d">operator[]</a> (std::size_t i) const</td></tr>
-<tr class="separator:a895267ac8d93c79f9b075d025fefc96d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad8c9b988ee98ddf68d21fb61e3c299f6"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#ad8c9b988ee98ddf68d21fb61e3c299f6">operator()</a> (std::size_t i)</td></tr>
-<tr class="separator:ad8c9b988ee98ddf68d21fb61e3c299f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1ea7fda7c1f7c7cd2d70123d7ca2880b"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#a1ea7fda7c1f7c7cd2d70123d7ca2880b">operator()</a> (std::size_t i) const</td></tr>
-<tr class="separator:a1ea7fda7c1f7c7cd2d70123d7ca2880b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a620fefcc4c1d2d57e0cc8380680706d2"><td class="memItemLeft" align="right" valign="top"><a id="a620fefcc4c1d2d57e0cc8380680706d2"></a>
-constexpr auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>base_matrix</b> () &amp;</td></tr>
-<tr class="memdesc:a620fefcc4c1d2d57e0cc8380680706d2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the base matrix. <br /></td></tr>
-<tr class="separator:a620fefcc4c1d2d57e0cc8380680706d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a618d552651e7bf96a5620361530314c9"><td class="memItemLeft" align="right" valign="top"><a id="a618d552651e7bf96a5620361530314c9"></a>
-constexpr auto &amp;&amp;&#160;</td><td class="memItemRight" valign="bottom"><b>base_matrix</b> () &amp;&amp;</td></tr>
-<tr class="memdesc:a618d552651e7bf96a5620361530314c9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the base matrix. <br /></td></tr>
-<tr class="separator:a618d552651e7bf96a5620361530314c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afd6b1d3e9c928bce8641d902be0146f7"><td class="memItemLeft" align="right" valign="top"><a id="afd6b1d3e9c928bce8641d902be0146f7"></a>
-constexpr const auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>base_matrix</b> () const &amp;</td></tr>
-<tr class="memdesc:afd6b1d3e9c928bce8641d902be0146f7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the base matrix. <br /></td></tr>
-<tr class="separator:afd6b1d3e9c928bce8641d902be0146f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae558aa563c88d72b4f8571162226a8e1"><td class="memItemLeft" align="right" valign="top"><a id="ae558aa563c88d72b4f8571162226a8e1"></a>
-constexpr const auto &amp;&amp;&#160;</td><td class="memItemRight" valign="bottom"><b>base_matrix</b> () const &amp;&amp;</td></tr>
-<tr class="memdesc:ae558aa563c88d72b4f8571162226a8e1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the base matrix. <br /></td></tr>
-<tr class="separator:ae558aa563c88d72b4f8571162226a8e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a74a09b30bf512924babb350572319fd7"><td class="memItemLeft" align="right" valign="top"><a id="a74a09b30bf512924babb350572319fd7"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#a74a09b30bf512924babb350572319fd7">FromEuclideanExpr</a> ()</td></tr>
+<tr class="memdesc:a74a09b30bf512924babb350572319fd7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default constructor. <br /></td></tr>
+<tr class="separator:a74a09b30bf512924babb350572319fd7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aca287ff0ad797e182a4d77df3a698203"><td class="memItemLeft" align="right" valign="top"><a id="aca287ff0ad797e182a4d77df3a698203"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#aca287ff0ad797e182a4d77df3a698203">FromEuclideanExpr</a> (const <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">FromEuclideanExpr</a> &amp;other)</td></tr>
+<tr class="memdesc:aca287ff0ad797e182a4d77df3a698203"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy constructor. <br /></td></tr>
+<tr class="separator:aca287ff0ad797e182a4d77df3a698203"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9819dcf33ff9cd68807c0658f79e95b8"><td class="memItemLeft" align="right" valign="top"><a id="a9819dcf33ff9cd68807c0658f79e95b8"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#a9819dcf33ff9cd68807c0658f79e95b8">FromEuclideanExpr</a> (<a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">FromEuclideanExpr</a> &amp;&amp;other) noexcept</td></tr>
+<tr class="memdesc:a9819dcf33ff9cd68807c0658f79e95b8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Move constructor. <br /></td></tr>
+<tr class="separator:a9819dcf33ff9cd68807c0658f79e95b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8035b5c29b6ba64b2c93b16560baf034"><td class="memTemplParams" colspan="2">template&lt;typename Arg , std::enable_if_t&lt; from_euclidean_expr&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:a8035b5c29b6ba64b2c93b16560baf034"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#a8035b5c29b6ba64b2c93b16560baf034">FromEuclideanExpr</a> (Arg &amp;&amp;other) noexcept</td></tr>
+<tr class="separator:a8035b5c29b6ba64b2c93b16560baf034"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8035b5c29b6ba64b2c93b16560baf034"><td class="memTemplParams" colspan="2">template&lt;typename Arg , std::enable_if_t&lt; to_euclidean_expr&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:a8035b5c29b6ba64b2c93b16560baf034"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#a8035b5c29b6ba64b2c93b16560baf034">FromEuclideanExpr</a> (Arg &amp;&amp;other) noexcept</td></tr>
+<tr class="separator:a8035b5c29b6ba64b2c93b16560baf034"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0328de51b705639a1b6d0cc55906844a"><td class="memTemplParams" colspan="2">template&lt;typename Arg , std::enable_if_t&lt; eigen_matrix&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:a0328de51b705639a1b6d0cc55906844a"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#a0328de51b705639a1b6d0cc55906844a">FromEuclideanExpr</a> (Arg &amp;&amp;arg) noexcept</td></tr>
+<tr class="separator:a0328de51b705639a1b6d0cc55906844a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a66efbdc2f46d1b54434b1795aa9dea60"><td class="memTemplParams" colspan="2">template&lt;typename ... Args, std::enable_if_t&lt; std::conjunction_v&lt; std::is_convertible&lt; Args, const Scalar &gt;... &gt; and sizeof...(Args)==columns *(to_euclidean_expr&lt; NestedMatrix &gt; ? Coefficients::size :Coefficients::dimension), int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:a66efbdc2f46d1b54434b1795aa9dea60"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#a66efbdc2f46d1b54434b1795aa9dea60">FromEuclideanExpr</a> (Args ... args)</td></tr>
+<tr class="separator:a66efbdc2f46d1b54434b1795aa9dea60"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a585efaadedc1aecf93565f1f1c9fb60f"><td class="memItemLeft" align="right" valign="top"><a id="a585efaadedc1aecf93565f1f1c9fb60f"></a>
+auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#a585efaadedc1aecf93565f1f1c9fb60f">operator=</a> (const <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">FromEuclideanExpr</a> &amp;other)</td></tr>
+<tr class="memdesc:a585efaadedc1aecf93565f1f1c9fb60f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy assignment operator. <br /></td></tr>
+<tr class="separator:a585efaadedc1aecf93565f1f1c9fb60f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad6646c172f7702687cf6d4ec4a9c9399"><td class="memItemLeft" align="right" valign="top"><a id="ad6646c172f7702687cf6d4ec4a9c9399"></a>
+auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#ad6646c172f7702687cf6d4ec4a9c9399">operator=</a> (<a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">FromEuclideanExpr</a> &amp;&amp;other) noexcept</td></tr>
+<tr class="memdesc:ad6646c172f7702687cf6d4ec4a9c9399"><td class="mdescLeft">&#160;</td><td class="mdescRight">Move assignment operator. <br /></td></tr>
+<tr class="separator:ad6646c172f7702687cf6d4ec4a9c9399"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a76ae31dd3a4157609d4ca16ffe0f6f34"><td class="memTemplParams" colspan="2">template&lt;typename Arg , std::enable_if_t&lt; from_euclidean_expr&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:a76ae31dd3a4157609d4ca16ffe0f6f34"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#a76ae31dd3a4157609d4ca16ffe0f6f34">operator=</a> (Arg &amp;&amp;other) noexcept</td></tr>
+<tr class="separator:a76ae31dd3a4157609d4ca16ffe0f6f34"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af2e3fe5699a1ce31e096063c7abc8ca4"><td class="memTemplParams" colspan="2">template&lt;typename Arg , std::enable_if_t&lt; eigen_matrix&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:af2e3fe5699a1ce31e096063c7abc8ca4"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#af2e3fe5699a1ce31e096063c7abc8ca4">operator=</a> (Arg &amp;&amp;arg) noexcept</td></tr>
+<tr class="separator:af2e3fe5699a1ce31e096063c7abc8ca4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7f8ba2cc5314dc993b35a961c7e7c258"><td class="memTemplParams" colspan="2">template&lt;typename Arg , std::enable_if_t&lt; from_euclidean_expr&lt; Arg &gt; or eigen_matrix&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:a7f8ba2cc5314dc993b35a961c7e7c258"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#a7f8ba2cc5314dc993b35a961c7e7c258">operator+=</a> (Arg &amp;&amp;other) noexcept</td></tr>
+<tr class="separator:a7f8ba2cc5314dc993b35a961c7e7c258"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a32fe9ad9833faf70ad1ad3a3ff80f818"><td class="memTemplParams" colspan="2">template&lt;typename Arg , std::enable_if_t&lt; from_euclidean_expr&lt; Arg &gt; or eigen_matrix&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:a32fe9ad9833faf70ad1ad3a3ff80f818"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#a32fe9ad9833faf70ad1ad3a3ff80f818">operator-=</a> (Arg &amp;&amp;other) noexcept</td></tr>
+<tr class="separator:a32fe9ad9833faf70ad1ad3a3ff80f818"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a727d2e2f6f9074748a25cf4ab81b5daf"><td class="memTemplParams" colspan="2">template&lt;typename S , std::enable_if_t&lt; std::is_convertible_v&lt; S, Scalar &gt;, int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:a727d2e2f6f9074748a25cf4ab81b5daf"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#a727d2e2f6f9074748a25cf4ab81b5daf">operator*=</a> (const S <a class="el" href="namespace_open_kalman.html#a77f2335ea8a758c0b229c54cadc27aa1">scale</a>)</td></tr>
+<tr class="separator:a727d2e2f6f9074748a25cf4ab81b5daf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad3aee00f93df9c72ad690bae1d7d9994"><td class="memTemplParams" colspan="2">template&lt;typename S , std::enable_if_t&lt; std::is_convertible_v&lt; S, Scalar &gt;, int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:ad3aee00f93df9c72ad690bae1d7d9994"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#ad3aee00f93df9c72ad690bae1d7d9994">operator/=</a> (const S <a class="el" href="namespace_open_kalman.html#a77f2335ea8a758c0b229c54cadc27aa1">scale</a>)</td></tr>
+<tr class="separator:ad3aee00f93df9c72ad690bae1d7d9994"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad289a36044558742c44b3f68abee47b6"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#ad289a36044558742c44b3f68abee47b6">operator()</a> (std::size_t i, std::size_t j)</td></tr>
+<tr class="separator:ad289a36044558742c44b3f68abee47b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a48932284fc8a4e8a5c3e65662b2f0146"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#a48932284fc8a4e8a5c3e65662b2f0146">operator()</a> (std::size_t i, std::size_t j) const</td></tr>
+<tr class="separator:a48932284fc8a4e8a5c3e65662b2f0146"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:addefe49c918f8563de20ac4ac8f0e2db"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#addefe49c918f8563de20ac4ac8f0e2db">operator[]</a> (std::size_t i)</td></tr>
+<tr class="separator:addefe49c918f8563de20ac4ac8f0e2db"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a782ec36ff71bdbba4571d9560fb9f80d"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#a782ec36ff71bdbba4571d9560fb9f80d">operator[]</a> (std::size_t i) const</td></tr>
+<tr class="separator:a782ec36ff71bdbba4571d9560fb9f80d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abf7ebe98f495346ad124ee9b2cece379"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#abf7ebe98f495346ad124ee9b2cece379">operator()</a> (std::size_t i)</td></tr>
+<tr class="separator:abf7ebe98f495346ad124ee9b2cece379"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af04c5c963d0583c0eec416ca8e48ea39"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#af04c5c963d0583c0eec416ca8e48ea39">operator()</a> (std::size_t i) const</td></tr>
+<tr class="separator:af04c5c963d0583c0eec416ca8e48ea39"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3418b2a4dcfe6e9c62ab1f37ce15503c"><td class="memItemLeft" align="right" valign="top">constexpr auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1_matrix_base.html#a3418b2a4dcfe6e9c62ab1f37ce15503c">nested_matrix</a> () &amp;</td></tr>
+<tr class="memdesc:a3418b2a4dcfe6e9c62ab1f37ce15503c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the nested matrix of this covariance matrix.  <a href="struct_open_kalman_1_1internal_1_1_matrix_base.html#a3418b2a4dcfe6e9c62ab1f37ce15503c">More...</a><br /></td></tr>
+<tr class="separator:a3418b2a4dcfe6e9c62ab1f37ce15503c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4503a0ddf37a5c6cd18543bf80f9a065"><td class="memItemLeft" align="right" valign="top">constexpr auto &amp;&amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1_matrix_base.html#a4503a0ddf37a5c6cd18543bf80f9a065">nested_matrix</a> () &amp;&amp;</td></tr>
+<tr class="separator:a4503a0ddf37a5c6cd18543bf80f9a065"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a04b892885f61fa451d503325e6c39bcd"><td class="memItemLeft" align="right" valign="top">constexpr const auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1_matrix_base.html#a04b892885f61fa451d503325e6c39bcd">nested_matrix</a> () const &amp;</td></tr>
+<tr class="separator:a04b892885f61fa451d503325e6c39bcd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af02e754e6d550efee9ee61bdddaec32b"><td class="memItemLeft" align="right" valign="top">constexpr const auto &amp;&amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1_matrix_base.html#af02e754e6d550efee9ee61bdddaec32b">nested_matrix</a> () const &amp;&amp;</td></tr>
+<tr class="separator:af02e754e6d550efee9ee61bdddaec32b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:a3231fccae96b06e794c35f95d2edb4c2"><td class="memItemLeft" align="right" valign="top">static auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#a3231fccae96b06e794c35f95d2edb4c2">zero</a> ()</td></tr>
-<tr class="separator:a3231fccae96b06e794c35f95d2edb4c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a657ba71ad5039ba3c1af1ffeb6d1c593"><td class="memItemLeft" align="right" valign="top">static auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#a657ba71ad5039ba3c1af1ffeb6d1c593">identity</a> ()</td></tr>
-<tr class="separator:a657ba71ad5039ba3c1af1ffeb6d1c593"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab70df42423eafbbb16f6d4a1532fcebd"><td class="memItemLeft" align="right" valign="top">static auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#ab70df42423eafbbb16f6d4a1532fcebd">zero</a> ()</td></tr>
+<tr class="separator:ab70df42423eafbbb16f6d4a1532fcebd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac3d065641564289367766fa2523c6f26"><td class="memItemLeft" align="right" valign="top">static auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#ac3d065641564289367766fa2523c6f26">identity</a> ()</td></tr>
+<tr class="separator:ac3d065641564289367766fa2523c6f26"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
-<tr class="memitem:ad0b0695b3220c4e80c6ae9ccde8d2517"><td class="memItemLeft" align="right" valign="top"><a id="ad0b0695b3220c4e80c6ae9ccde8d2517"></a>
-static constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#ad0b0695b3220c4e80c6ae9ccde8d2517">columns</a> = <a class="el" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits</a>&lt;BaseMatrix&gt;::columns</td></tr>
-<tr class="memdesc:ad0b0695b3220c4e80c6ae9ccde8d2517"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of columns. <br /></td></tr>
-<tr class="separator:ad0b0695b3220c4e80c6ae9ccde8d2517"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adf48c1d5caf0080040d05464e9275d19"><td class="memItemLeft" align="right" valign="top"><a id="adf48c1d5caf0080040d05464e9275d19"></a>
+static constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#adf48c1d5caf0080040d05464e9275d19">columns</a> = <a class="el" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits</a>&lt;NestedMatrix&gt;::columns</td></tr>
+<tr class="memdesc:adf48c1d5caf0080040d05464e9275d19"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of columns. <br /></td></tr>
+<tr class="separator:adf48c1d5caf0080040d05464e9275d19"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a022e32f45003bd926186cb8d9dee4aad"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a022e32f45003bd926186cb8d9dee4aad">&#9670;&nbsp;</a></span>FromEuclideanExpr() <span class="overload">[1/4]</span></h2>
+<a id="a8035b5c29b6ba64b2c93b16560baf034"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8035b5c29b6ba64b2c93b16560baf034">&#9670;&nbsp;</a></span>FromEuclideanExpr() <span class="overload">[1/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename Coefficients , typename BaseMatrix &gt; </div>
+template&lt;typename Coefficients , typename NestedMatrix &gt; </div>
 <div class="memtemplate">
 template&lt;typename Arg , std::enable_if_t&lt; from_euclidean_expr&lt; Arg &gt;, int &gt;  = 0&gt; </div>
 <table class="mlabels">
@@ -232,7 +229,7 @@ template&lt;typename Arg , std::enable_if_t&lt; from_euclidean_expr&lt; Arg &gt;
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">OpenKalman::Eigen3::FromEuclideanExpr</a>&lt; Coefficients, BaseMatrix &gt;::<a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">FromEuclideanExpr</a> </td>
+          <td class="memname"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">OpenKalman::Eigen3::FromEuclideanExpr</a>&lt; Coefficients, NestedMatrix &gt;::<a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">FromEuclideanExpr</a> </td>
           <td>(</td>
           <td class="paramtype">Arg &amp;&amp;&#160;</td>
           <td class="paramname"><em>other</em></td><td>)</td>
@@ -247,17 +244,17 @@ template&lt;typename Arg , std::enable_if_t&lt; from_euclidean_expr&lt; Arg &gt;
 </div><div class="memdoc">
 <p>Convert from a compatible from-euclidean expression. </p>
 
-<p class="definition">Definition at line <a class="el" href="_from_euclidean_expr_8hpp_source.html#l00052">52</a> of file <a class="el" href="_from_euclidean_expr_8hpp_source.html">FromEuclideanExpr.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_from_euclidean_expr_8hpp_source.html#l00053">53</a> of file <a class="el" href="_from_euclidean_expr_8hpp_source.html">FromEuclideanExpr.hpp</a>.</p>
 
 </div>
 </div>
-<a id="a022e32f45003bd926186cb8d9dee4aad"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a022e32f45003bd926186cb8d9dee4aad">&#9670;&nbsp;</a></span>FromEuclideanExpr() <span class="overload">[2/4]</span></h2>
+<a id="a8035b5c29b6ba64b2c93b16560baf034"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8035b5c29b6ba64b2c93b16560baf034">&#9670;&nbsp;</a></span>FromEuclideanExpr() <span class="overload">[2/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename Coefficients , typename BaseMatrix &gt; </div>
+template&lt;typename Coefficients , typename NestedMatrix &gt; </div>
 <div class="memtemplate">
 template&lt;typename Arg , std::enable_if_t&lt; to_euclidean_expr&lt; Arg &gt;, int &gt;  = 0&gt; </div>
 <table class="mlabels">
@@ -265,7 +262,7 @@ template&lt;typename Arg , std::enable_if_t&lt; to_euclidean_expr&lt; Arg &gt;, 
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">OpenKalman::Eigen3::FromEuclideanExpr</a>&lt; Coefficients, BaseMatrix &gt;::<a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">FromEuclideanExpr</a> </td>
+          <td class="memname"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">OpenKalman::Eigen3::FromEuclideanExpr</a>&lt; Coefficients, NestedMatrix &gt;::<a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">FromEuclideanExpr</a> </td>
           <td>(</td>
           <td class="paramtype">Arg &amp;&amp;&#160;</td>
           <td class="paramname"><em>other</em></td><td>)</td>
@@ -280,17 +277,17 @@ template&lt;typename Arg , std::enable_if_t&lt; to_euclidean_expr&lt; Arg &gt;, 
 </div><div class="memdoc">
 <p>Construct from a compatible to-euclidean expression. </p>
 
-<p class="definition">Definition at line <a class="el" href="_from_euclidean_expr_8hpp_source.html#l00067">67</a> of file <a class="el" href="_from_euclidean_expr_8hpp_source.html">FromEuclideanExpr.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_from_euclidean_expr_8hpp_source.html#l00068">68</a> of file <a class="el" href="_from_euclidean_expr_8hpp_source.html">FromEuclideanExpr.hpp</a>.</p>
 
 </div>
 </div>
-<a id="ada5926bcd6b10832f9c26b7ed1a0f3c2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ada5926bcd6b10832f9c26b7ed1a0f3c2">&#9670;&nbsp;</a></span>FromEuclideanExpr() <span class="overload">[3/4]</span></h2>
+<a id="a0328de51b705639a1b6d0cc55906844a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0328de51b705639a1b6d0cc55906844a">&#9670;&nbsp;</a></span>FromEuclideanExpr() <span class="overload">[3/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename Coefficients , typename BaseMatrix &gt; </div>
+template&lt;typename Coefficients , typename NestedMatrix &gt; </div>
 <div class="memtemplate">
 template&lt;typename Arg , std::enable_if_t&lt; eigen_matrix&lt; Arg &gt;, int &gt;  = 0&gt; </div>
 <table class="mlabels">
@@ -298,7 +295,7 @@ template&lt;typename Arg , std::enable_if_t&lt; eigen_matrix&lt; Arg &gt;, int &
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">OpenKalman::Eigen3::FromEuclideanExpr</a>&lt; Coefficients, BaseMatrix &gt;::<a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">FromEuclideanExpr</a> </td>
+          <td class="memname"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">OpenKalman::Eigen3::FromEuclideanExpr</a>&lt; Coefficients, NestedMatrix &gt;::<a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">FromEuclideanExpr</a> </td>
           <td>(</td>
           <td class="paramtype">Arg &amp;&amp;&#160;</td>
           <td class="paramname"><em>arg</em></td><td>)</td>
@@ -313,25 +310,25 @@ template&lt;typename Arg , std::enable_if_t&lt; eigen_matrix&lt; Arg &gt;, int &
 </div><div class="memdoc">
 <p>Construct from compatible matrix object. </p>
 
-<p class="definition">Definition at line <a class="el" href="_from_euclidean_expr_8hpp_source.html#l00082">82</a> of file <a class="el" href="_from_euclidean_expr_8hpp_source.html">FromEuclideanExpr.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_from_euclidean_expr_8hpp_source.html#l00083">83</a> of file <a class="el" href="_from_euclidean_expr_8hpp_source.html">FromEuclideanExpr.hpp</a>.</p>
 
 </div>
 </div>
-<a id="a8ab28a863208cb15b7de64628d58d68e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8ab28a863208cb15b7de64628d58d68e">&#9670;&nbsp;</a></span>FromEuclideanExpr() <span class="overload">[4/4]</span></h2>
+<a id="a66efbdc2f46d1b54434b1795aa9dea60"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a66efbdc2f46d1b54434b1795aa9dea60">&#9670;&nbsp;</a></span>FromEuclideanExpr() <span class="overload">[4/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename Coefficients , typename BaseMatrix &gt; </div>
+template&lt;typename Coefficients , typename NestedMatrix &gt; </div>
 <div class="memtemplate">
-template&lt;typename ... Args, std::enable_if_t&lt; std::conjunction_v&lt; std::is_convertible&lt; Args, const Scalar &gt;... &gt; and sizeof...(Args)==columns *(to_euclidean_expr&lt; BaseMatrix &gt; ? Coefficients::size :Coefficients::dimension), int &gt;  = 0&gt; </div>
+template&lt;typename ... Args, std::enable_if_t&lt; std::conjunction_v&lt; std::is_convertible&lt; Args, const Scalar &gt;... &gt; and sizeof...(Args)==columns *(to_euclidean_expr&lt; NestedMatrix &gt; ? Coefficients::size :Coefficients::dimension), int &gt;  = 0&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">OpenKalman::Eigen3::FromEuclideanExpr</a>&lt; Coefficients, BaseMatrix &gt;::<a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">FromEuclideanExpr</a> </td>
+          <td class="memname"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">OpenKalman::Eigen3::FromEuclideanExpr</a>&lt; Coefficients, NestedMatrix &gt;::<a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">FromEuclideanExpr</a> </td>
           <td>(</td>
           <td class="paramtype">Args ...&#160;</td>
           <td class="paramname"><em>args</em></td><td>)</td>
@@ -346,24 +343,24 @@ template&lt;typename ... Args, std::enable_if_t&lt; std::conjunction_v&lt; std::
 </div><div class="memdoc">
 <p>Construct from a list of coefficients. </p>
 
-<p class="definition">Definition at line <a class="el" href="_from_euclidean_expr_8hpp_source.html#l00101">101</a> of file <a class="el" href="_from_euclidean_expr_8hpp_source.html">FromEuclideanExpr.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_from_euclidean_expr_8hpp_source.html#l00102">102</a> of file <a class="el" href="_from_euclidean_expr_8hpp_source.html">FromEuclideanExpr.hpp</a>.</p>
 
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a657ba71ad5039ba3c1af1ffeb6d1c593"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a657ba71ad5039ba3c1af1ffeb6d1c593">&#9670;&nbsp;</a></span>identity()</h2>
+<a id="ac3d065641564289367766fa2523c6f26"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac3d065641564289367766fa2523c6f26">&#9670;&nbsp;</a></span>identity()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename Coefficients , typename BaseMatrix &gt; </div>
+template&lt;typename Coefficients , typename NestedMatrix &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">static auto <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">OpenKalman::Eigen3::FromEuclideanExpr</a>&lt; Coefficients, BaseMatrix &gt;::identity </td>
+          <td class="memname">static auto <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">OpenKalman::Eigen3::FromEuclideanExpr</a>&lt; Coefficients, NestedMatrix &gt;::identity </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -377,23 +374,140 @@ template&lt;typename Coefficients , typename BaseMatrix &gt; </div>
 </div><div class="memdoc">
 <p>An identity matrix. Note: <code>make_native_matrix(*this)</code> must be a square matrix. </p><dl class="section return"><dt>Returns</dt><dd>An identity matrix. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="_from_euclidean_expr_8hpp_source.html#l00262">262</a> of file <a class="el" href="_from_euclidean_expr_8hpp_source.html">FromEuclideanExpr.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_from_euclidean_expr_8hpp_source.html#l00263">263</a> of file <a class="el" href="_from_euclidean_expr_8hpp_source.html">FromEuclideanExpr.hpp</a>.</p>
 
 </div>
 </div>
-<a id="ad8c9b988ee98ddf68d21fb61e3c299f6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad8c9b988ee98ddf68d21fb61e3c299f6">&#9670;&nbsp;</a></span>operator()() <span class="overload">[1/4]</span></h2>
+<a id="a3418b2a4dcfe6e9c62ab1f37ce15503c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3418b2a4dcfe6e9c62ab1f37ce15503c">&#9670;&nbsp;</a></span>nested_matrix() <span class="overload">[1/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
-<div class="memtemplate">
-template&lt;typename Coefficients , typename BaseMatrix &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">auto <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">OpenKalman::Eigen3::FromEuclideanExpr</a>&lt; Coefficients, BaseMatrix &gt;::operator() </td>
+          <td class="memname">constexpr auto&amp; <a class="el" href="struct_open_kalman_1_1internal_1_1_matrix_base.html">OpenKalman::internal::MatrixBase</a>&lt; <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">FromEuclideanExpr</a>&lt; Coefficients, NestedMatrix &gt; , NestedMatrix &gt;::nested_matrix </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> &amp;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Get the nested matrix of this covariance matrix. </p>
+<p>The nested matrix will be self-adjoint, triangular, or diagonal. </p><dl class="section return"><dt>Returns</dt><dd>An lvalue reference to the nested matrix. </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="_matrix_base_8hpp_source.html#l00111">111</a> of file <a class="el" href="_matrix_base_8hpp_source.html">MatrixBase.hpp</a>.</p>
+
+</div>
+</div>
+<a id="a4503a0ddf37a5c6cd18543bf80f9a065"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4503a0ddf37a5c6cd18543bf80f9a065">&#9670;&nbsp;</a></span>nested_matrix() <span class="overload">[2/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr auto&amp;&amp; <a class="el" href="struct_open_kalman_1_1internal_1_1_matrix_base.html">OpenKalman::internal::MatrixBase</a>&lt; <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">FromEuclideanExpr</a>&lt; Coefficients, NestedMatrix &gt; , NestedMatrix &gt;::nested_matrix </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> &amp;&amp;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Get the nested matrix of this covariance matrix temporary. </p><dl class="section see"><dt>See also</dt><dd>constexpr auto&amp; <a class="el" href="struct_open_kalman_1_1internal_1_1_matrix_base.html#a3418b2a4dcfe6e9c62ab1f37ce15503c" title="Get the nested matrix of this covariance matrix.">nested_matrix()</a> &amp; </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>An rvalue reference to the nested matrix. </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="_matrix_base_8hpp_source.html#l00119">119</a> of file <a class="el" href="_matrix_base_8hpp_source.html">MatrixBase.hpp</a>.</p>
+
+</div>
+</div>
+<a id="a04b892885f61fa451d503325e6c39bcd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a04b892885f61fa451d503325e6c39bcd">&#9670;&nbsp;</a></span>nested_matrix() <span class="overload">[3/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr const auto&amp; <a class="el" href="struct_open_kalman_1_1internal_1_1_matrix_base.html">OpenKalman::internal::MatrixBase</a>&lt; <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">FromEuclideanExpr</a>&lt; Coefficients, NestedMatrix &gt; , NestedMatrix &gt;::nested_matrix </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const &amp;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Get the nested matrix of this constant covariance matrix. </p><dl class="section see"><dt>See also</dt><dd>constexpr auto&amp; <a class="el" href="struct_open_kalman_1_1internal_1_1_matrix_base.html#a3418b2a4dcfe6e9c62ab1f37ce15503c" title="Get the nested matrix of this covariance matrix.">nested_matrix()</a> &amp; </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>A constant lvalue reference to the nested matrix. </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="_matrix_base_8hpp_source.html#l00127">127</a> of file <a class="el" href="_matrix_base_8hpp_source.html">MatrixBase.hpp</a>.</p>
+
+</div>
+</div>
+<a id="af02e754e6d550efee9ee61bdddaec32b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af02e754e6d550efee9ee61bdddaec32b">&#9670;&nbsp;</a></span>nested_matrix() <span class="overload">[4/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr const auto&amp;&amp; <a class="el" href="struct_open_kalman_1_1internal_1_1_matrix_base.html">OpenKalman::internal::MatrixBase</a>&lt; <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">FromEuclideanExpr</a>&lt; Coefficients, NestedMatrix &gt; , NestedMatrix &gt;::nested_matrix </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const &amp;&amp;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Get the nested matrix of this constant covariance matrix temporary. </p><dl class="section see"><dt>See also</dt><dd>constexpr auto&amp; <a class="el" href="struct_open_kalman_1_1internal_1_1_matrix_base.html#a3418b2a4dcfe6e9c62ab1f37ce15503c" title="Get the nested matrix of this covariance matrix.">nested_matrix()</a> &amp; </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>A constant rvalue reference to the nested matrix. </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="_matrix_base_8hpp_source.html#l00135">135</a> of file <a class="el" href="_matrix_base_8hpp_source.html">MatrixBase.hpp</a>.</p>
+
+</div>
+</div>
+<a id="abf7ebe98f495346ad124ee9b2cece379"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abf7ebe98f495346ad124ee9b2cece379">&#9670;&nbsp;</a></span>operator()() <span class="overload">[1/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Coefficients , typename NestedMatrix &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">OpenKalman::Eigen3::FromEuclideanExpr</a>&lt; Coefficients, NestedMatrix &gt;::operator() </td>
           <td>(</td>
           <td class="paramtype">std::size_t&#160;</td>
           <td class="paramname"><em>i</em></td><td>)</td>
@@ -406,7 +520,7 @@ template&lt;typename Coefficients , typename BaseMatrix &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Synonym for <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#ae3a5c9075313f488e640495c965e9a3c">operator[](std::size_t)</a> </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Synonym for <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#addefe49c918f8563de20ac4ac8f0e2db">operator[](std::size_t)</a> </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">i</td><td>The row. </td></tr>
   </table>
@@ -414,23 +528,23 @@ template&lt;typename Coefficients , typename BaseMatrix &gt; </div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>If <code>element_settable&lt;FromEuclideanExpr, 1&gt;</code>, the element is settable. Therefore, this function returns an object that can be assigned the coefficient to be set. Otherwise, it will return the (non-settable) coefficient as a value. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="_from_euclidean_expr_8hpp_source.html#l00323">323</a> of file <a class="el" href="_from_euclidean_expr_8hpp_source.html">FromEuclideanExpr.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_from_euclidean_expr_8hpp_source.html#l00324">324</a> of file <a class="el" href="_from_euclidean_expr_8hpp_source.html">FromEuclideanExpr.hpp</a>.</p>
 
 </div>
 </div>
-<a id="a1ea7fda7c1f7c7cd2d70123d7ca2880b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1ea7fda7c1f7c7cd2d70123d7ca2880b">&#9670;&nbsp;</a></span>operator()() <span class="overload">[2/4]</span></h2>
+<a id="af04c5c963d0583c0eec416ca8e48ea39"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af04c5c963d0583c0eec416ca8e48ea39">&#9670;&nbsp;</a></span>operator()() <span class="overload">[2/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename Coefficients , typename BaseMatrix &gt; </div>
+template&lt;typename Coefficients , typename NestedMatrix &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">auto <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">OpenKalman::Eigen3::FromEuclideanExpr</a>&lt; Coefficients, BaseMatrix &gt;::operator() </td>
+          <td class="memname">auto <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">OpenKalman::Eigen3::FromEuclideanExpr</a>&lt; Coefficients, NestedMatrix &gt;::operator() </td>
           <td>(</td>
           <td class="paramtype">std::size_t&#160;</td>
           <td class="paramname"><em>i</em></td><td>)</td>
@@ -443,7 +557,7 @@ template&lt;typename Coefficients , typename BaseMatrix &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Synonym for <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#a895267ac8d93c79f9b075d025fefc96d">operator[](std::size_t) const</a>. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Synonym for <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#a782ec36ff71bdbba4571d9560fb9f80d">operator[](std::size_t) const</a>. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">i</td><td>The row. </td></tr>
   </table>
@@ -451,23 +565,23 @@ template&lt;typename Coefficients , typename BaseMatrix &gt; </div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The value of the coefficient. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="_from_euclidean_expr_8hpp_source.html#l00330">330</a> of file <a class="el" href="_from_euclidean_expr_8hpp_source.html">FromEuclideanExpr.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_from_euclidean_expr_8hpp_source.html#l00331">331</a> of file <a class="el" href="_from_euclidean_expr_8hpp_source.html">FromEuclideanExpr.hpp</a>.</p>
 
 </div>
 </div>
-<a id="a51ffb474c8db58f5a6a78caf7de44fb6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a51ffb474c8db58f5a6a78caf7de44fb6">&#9670;&nbsp;</a></span>operator()() <span class="overload">[3/4]</span></h2>
+<a id="ad289a36044558742c44b3f68abee47b6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad289a36044558742c44b3f68abee47b6">&#9670;&nbsp;</a></span>operator()() <span class="overload">[3/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename Coefficients , typename BaseMatrix &gt; </div>
+template&lt;typename Coefficients , typename NestedMatrix &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">auto <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">OpenKalman::Eigen3::FromEuclideanExpr</a>&lt; Coefficients, BaseMatrix &gt;::operator() </td>
+          <td class="memname">auto <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">OpenKalman::Eigen3::FromEuclideanExpr</a>&lt; Coefficients, NestedMatrix &gt;::operator() </td>
           <td>(</td>
           <td class="paramtype">std::size_t&#160;</td>
           <td class="paramname"><em>i</em>, </td>
@@ -499,23 +613,23 @@ template&lt;typename Coefficients , typename BaseMatrix &gt; </div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>If <code>element_settable&lt;FromEuclideanExpr, 2&gt;</code>, the element is settable. Therefore, this function returns an object that can be assigned the coefficient to be set. Otherwise, it will return the (non-settable) coefficient as a value. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="_from_euclidean_expr_8hpp_source.html#l00278">278</a> of file <a class="el" href="_from_euclidean_expr_8hpp_source.html">FromEuclideanExpr.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_from_euclidean_expr_8hpp_source.html#l00279">279</a> of file <a class="el" href="_from_euclidean_expr_8hpp_source.html">FromEuclideanExpr.hpp</a>.</p>
 
 </div>
 </div>
-<a id="a5943b0392bac9b4ab60aff834a872084"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5943b0392bac9b4ab60aff834a872084">&#9670;&nbsp;</a></span>operator()() <span class="overload">[4/4]</span></h2>
+<a id="a48932284fc8a4e8a5c3e65662b2f0146"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a48932284fc8a4e8a5c3e65662b2f0146">&#9670;&nbsp;</a></span>operator()() <span class="overload">[4/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename Coefficients , typename BaseMatrix &gt; </div>
+template&lt;typename Coefficients , typename NestedMatrix &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">auto <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">OpenKalman::Eigen3::FromEuclideanExpr</a>&lt; Coefficients, BaseMatrix &gt;::operator() </td>
+          <td class="memname">auto <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">OpenKalman::Eigen3::FromEuclideanExpr</a>&lt; Coefficients, NestedMatrix &gt;::operator() </td>
           <td>(</td>
           <td class="paramtype">std::size_t&#160;</td>
           <td class="paramname"><em>i</em>, </td>
@@ -547,17 +661,17 @@ template&lt;typename Coefficients , typename BaseMatrix &gt; </div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The value of the coefficient. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="_from_euclidean_expr_8hpp_source.html#l00292">292</a> of file <a class="el" href="_from_euclidean_expr_8hpp_source.html">FromEuclideanExpr.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_from_euclidean_expr_8hpp_source.html#l00293">293</a> of file <a class="el" href="_from_euclidean_expr_8hpp_source.html">FromEuclideanExpr.hpp</a>.</p>
 
 </div>
 </div>
-<a id="a66fcae6709103bebbd31f426623e3155"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a66fcae6709103bebbd31f426623e3155">&#9670;&nbsp;</a></span>operator*=()</h2>
+<a id="a727d2e2f6f9074748a25cf4ab81b5daf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a727d2e2f6f9074748a25cf4ab81b5daf">&#9670;&nbsp;</a></span>operator*=()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename Coefficients , typename BaseMatrix &gt; </div>
+template&lt;typename Coefficients , typename NestedMatrix &gt; </div>
 <div class="memtemplate">
 template&lt;typename S , std::enable_if_t&lt; std::is_convertible_v&lt; S, Scalar &gt;, int &gt;  = 0&gt; </div>
 <table class="mlabels">
@@ -565,7 +679,7 @@ template&lt;typename S , std::enable_if_t&lt; std::is_convertible_v&lt; S, Scala
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">auto&amp; <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">OpenKalman::Eigen3::FromEuclideanExpr</a>&lt; Coefficients, BaseMatrix &gt;::operator*= </td>
+          <td class="memname">auto&amp; <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">OpenKalman::Eigen3::FromEuclideanExpr</a>&lt; Coefficients, NestedMatrix &gt;::operator*= </td>
           <td>(</td>
           <td class="paramtype">const S&#160;</td>
           <td class="paramname"><em>scale</em></td><td>)</td>
@@ -585,17 +699,17 @@ template&lt;typename S , std::enable_if_t&lt; std::is_convertible_v&lt; S, Scala
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="_from_euclidean_expr_8hpp_source.html#l00225">225</a> of file <a class="el" href="_from_euclidean_expr_8hpp_source.html">FromEuclideanExpr.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_from_euclidean_expr_8hpp_source.html#l00226">226</a> of file <a class="el" href="_from_euclidean_expr_8hpp_source.html">FromEuclideanExpr.hpp</a>.</p>
 
 </div>
 </div>
-<a id="a95656505daa1a4783e0afdc3f2d4ceed"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a95656505daa1a4783e0afdc3f2d4ceed">&#9670;&nbsp;</a></span>operator+=()</h2>
+<a id="a7f8ba2cc5314dc993b35a961c7e7c258"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7f8ba2cc5314dc993b35a961c7e7c258">&#9670;&nbsp;</a></span>operator+=()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename Coefficients , typename BaseMatrix &gt; </div>
+template&lt;typename Coefficients , typename NestedMatrix &gt; </div>
 <div class="memtemplate">
 template&lt;typename Arg , std::enable_if_t&lt; from_euclidean_expr&lt; Arg &gt; or eigen_matrix&lt; Arg &gt;, int &gt;  = 0&gt; </div>
 <table class="mlabels">
@@ -603,7 +717,7 @@ template&lt;typename Arg , std::enable_if_t&lt; from_euclidean_expr&lt; Arg &gt;
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">auto&amp; <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">OpenKalman::Eigen3::FromEuclideanExpr</a>&lt; Coefficients, BaseMatrix &gt;::operator+= </td>
+          <td class="memname">auto&amp; <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">OpenKalman::Eigen3::FromEuclideanExpr</a>&lt; Coefficients, NestedMatrix &gt;::operator+= </td>
           <td>(</td>
           <td class="paramtype">Arg &amp;&amp;&#160;</td>
           <td class="paramname"><em>other</em></td><td>)</td>
@@ -618,17 +732,17 @@ template&lt;typename Arg , std::enable_if_t&lt; from_euclidean_expr&lt; Arg &gt;
 </div><div class="memdoc">
 <p>Increment from another expression. </p>
 
-<p class="definition">Definition at line <a class="el" href="_from_euclidean_expr_8hpp_source.html#l00186">186</a> of file <a class="el" href="_from_euclidean_expr_8hpp_source.html">FromEuclideanExpr.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_from_euclidean_expr_8hpp_source.html#l00187">187</a> of file <a class="el" href="_from_euclidean_expr_8hpp_source.html">FromEuclideanExpr.hpp</a>.</p>
 
 </div>
 </div>
-<a id="adaafa1cf98cd17c60389761312214058"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#adaafa1cf98cd17c60389761312214058">&#9670;&nbsp;</a></span>operator-=()</h2>
+<a id="a32fe9ad9833faf70ad1ad3a3ff80f818"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a32fe9ad9833faf70ad1ad3a3ff80f818">&#9670;&nbsp;</a></span>operator-=()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename Coefficients , typename BaseMatrix &gt; </div>
+template&lt;typename Coefficients , typename NestedMatrix &gt; </div>
 <div class="memtemplate">
 template&lt;typename Arg , std::enable_if_t&lt; from_euclidean_expr&lt; Arg &gt; or eigen_matrix&lt; Arg &gt;, int &gt;  = 0&gt; </div>
 <table class="mlabels">
@@ -636,7 +750,7 @@ template&lt;typename Arg , std::enable_if_t&lt; from_euclidean_expr&lt; Arg &gt;
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">auto&amp; <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">OpenKalman::Eigen3::FromEuclideanExpr</a>&lt; Coefficients, BaseMatrix &gt;::operator-= </td>
+          <td class="memname">auto&amp; <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">OpenKalman::Eigen3::FromEuclideanExpr</a>&lt; Coefficients, NestedMatrix &gt;::operator-= </td>
           <td>(</td>
           <td class="paramtype">Arg &amp;&amp;&#160;</td>
           <td class="paramname"><em>other</em></td><td>)</td>
@@ -651,17 +765,17 @@ template&lt;typename Arg , std::enable_if_t&lt; from_euclidean_expr&lt; Arg &gt;
 </div><div class="memdoc">
 <p>Decrement from another expression. </p>
 
-<p class="definition">Definition at line <a class="el" href="_from_euclidean_expr_8hpp_source.html#l00205">205</a> of file <a class="el" href="_from_euclidean_expr_8hpp_source.html">FromEuclideanExpr.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_from_euclidean_expr_8hpp_source.html#l00206">206</a> of file <a class="el" href="_from_euclidean_expr_8hpp_source.html">FromEuclideanExpr.hpp</a>.</p>
 
 </div>
 </div>
-<a id="ae49642fa210cd6e79475305a237d888f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae49642fa210cd6e79475305a237d888f">&#9670;&nbsp;</a></span>operator/=()</h2>
+<a id="ad3aee00f93df9c72ad690bae1d7d9994"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad3aee00f93df9c72ad690bae1d7d9994">&#9670;&nbsp;</a></span>operator/=()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename Coefficients , typename BaseMatrix &gt; </div>
+template&lt;typename Coefficients , typename NestedMatrix &gt; </div>
 <div class="memtemplate">
 template&lt;typename S , std::enable_if_t&lt; std::is_convertible_v&lt; S, Scalar &gt;, int &gt;  = 0&gt; </div>
 <table class="mlabels">
@@ -669,7 +783,7 @@ template&lt;typename S , std::enable_if_t&lt; std::is_convertible_v&lt; S, Scala
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">auto&amp; <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">OpenKalman::Eigen3::FromEuclideanExpr</a>&lt; Coefficients, BaseMatrix &gt;::operator/= </td>
+          <td class="memname">auto&amp; <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">OpenKalman::Eigen3::FromEuclideanExpr</a>&lt; Coefficients, NestedMatrix &gt;::operator/= </td>
           <td>(</td>
           <td class="paramtype">const S&#160;</td>
           <td class="paramname"><em>scale</em></td><td>)</td>
@@ -689,17 +803,17 @@ template&lt;typename S , std::enable_if_t&lt; std::is_convertible_v&lt; S, Scala
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="_from_euclidean_expr_8hpp_source.html#l00241">241</a> of file <a class="el" href="_from_euclidean_expr_8hpp_source.html">FromEuclideanExpr.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_from_euclidean_expr_8hpp_source.html#l00242">242</a> of file <a class="el" href="_from_euclidean_expr_8hpp_source.html">FromEuclideanExpr.hpp</a>.</p>
 
 </div>
 </div>
-<a id="a364d0cefbe8bc74fb46cfdb1fc7dd713"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a364d0cefbe8bc74fb46cfdb1fc7dd713">&#9670;&nbsp;</a></span>operator=() <span class="overload">[1/2]</span></h2>
+<a id="af2e3fe5699a1ce31e096063c7abc8ca4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af2e3fe5699a1ce31e096063c7abc8ca4">&#9670;&nbsp;</a></span>operator=() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename Coefficients , typename BaseMatrix &gt; </div>
+template&lt;typename Coefficients , typename NestedMatrix &gt; </div>
 <div class="memtemplate">
 template&lt;typename Arg , std::enable_if_t&lt; eigen_matrix&lt; Arg &gt;, int &gt;  = 0&gt; </div>
 <table class="mlabels">
@@ -707,7 +821,7 @@ template&lt;typename Arg , std::enable_if_t&lt; eigen_matrix&lt; Arg &gt;, int &
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">auto&amp; <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">OpenKalman::Eigen3::FromEuclideanExpr</a>&lt; Coefficients, BaseMatrix &gt;::operator= </td>
+          <td class="memname">auto&amp; <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">OpenKalman::Eigen3::FromEuclideanExpr</a>&lt; Coefficients, NestedMatrix &gt;::operator= </td>
           <td>(</td>
           <td class="paramtype">Arg &amp;&amp;&#160;</td>
           <td class="paramname"><em>arg</em></td><td>)</td>
@@ -722,17 +836,17 @@ template&lt;typename Arg , std::enable_if_t&lt; eigen_matrix&lt; Arg &gt;, int &
 </div><div class="memdoc">
 <p>Assign from a general Eigen matrix. </p>
 
-<p class="definition">Definition at line <a class="el" href="_from_euclidean_expr_8hpp_source.html#l00158">158</a> of file <a class="el" href="_from_euclidean_expr_8hpp_source.html">FromEuclideanExpr.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_from_euclidean_expr_8hpp_source.html#l00159">159</a> of file <a class="el" href="_from_euclidean_expr_8hpp_source.html">FromEuclideanExpr.hpp</a>.</p>
 
 </div>
 </div>
-<a id="adb0038cb64812682ce9e68ff34b891b4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#adb0038cb64812682ce9e68ff34b891b4">&#9670;&nbsp;</a></span>operator=() <span class="overload">[2/2]</span></h2>
+<a id="a76ae31dd3a4157609d4ca16ffe0f6f34"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a76ae31dd3a4157609d4ca16ffe0f6f34">&#9670;&nbsp;</a></span>operator=() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename Coefficients , typename BaseMatrix &gt; </div>
+template&lt;typename Coefficients , typename NestedMatrix &gt; </div>
 <div class="memtemplate">
 template&lt;typename Arg , std::enable_if_t&lt; from_euclidean_expr&lt; Arg &gt;, int &gt;  = 0&gt; </div>
 <table class="mlabels">
@@ -740,7 +854,7 @@ template&lt;typename Arg , std::enable_if_t&lt; from_euclidean_expr&lt; Arg &gt;
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">auto&amp; <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">OpenKalman::Eigen3::FromEuclideanExpr</a>&lt; Coefficients, BaseMatrix &gt;::operator= </td>
+          <td class="memname">auto&amp; <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">OpenKalman::Eigen3::FromEuclideanExpr</a>&lt; Coefficients, NestedMatrix &gt;::operator= </td>
           <td>(</td>
           <td class="paramtype">Arg &amp;&amp;&#160;</td>
           <td class="paramname"><em>other</em></td><td>)</td>
@@ -755,23 +869,23 @@ template&lt;typename Arg , std::enable_if_t&lt; from_euclidean_expr&lt; Arg &gt;
 </div><div class="memdoc">
 <p>Assign from a compatible from-Euclidean expression. </p>
 
-<p class="definition">Definition at line <a class="el" href="_from_euclidean_expr_8hpp_source.html#l00130">130</a> of file <a class="el" href="_from_euclidean_expr_8hpp_source.html">FromEuclideanExpr.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_from_euclidean_expr_8hpp_source.html#l00131">131</a> of file <a class="el" href="_from_euclidean_expr_8hpp_source.html">FromEuclideanExpr.hpp</a>.</p>
 
 </div>
 </div>
-<a id="ae3a5c9075313f488e640495c965e9a3c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae3a5c9075313f488e640495c965e9a3c">&#9670;&nbsp;</a></span>operator[]() <span class="overload">[1/2]</span></h2>
+<a id="addefe49c918f8563de20ac4ac8f0e2db"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#addefe49c918f8563de20ac4ac8f0e2db">&#9670;&nbsp;</a></span>operator[]() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename Coefficients , typename BaseMatrix &gt; </div>
+template&lt;typename Coefficients , typename NestedMatrix &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">auto <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">OpenKalman::Eigen3::FromEuclideanExpr</a>&lt; Coefficients, BaseMatrix &gt;::operator[] </td>
+          <td class="memname">auto <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">OpenKalman::Eigen3::FromEuclideanExpr</a>&lt; Coefficients, NestedMatrix &gt;::operator[] </td>
           <td>(</td>
           <td class="paramtype">std::size_t&#160;</td>
           <td class="paramname"><em>i</em></td><td>)</td>
@@ -792,23 +906,23 @@ template&lt;typename Coefficients , typename BaseMatrix &gt; </div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>If <code>element_settable&lt;FromEuclideanExpr, 1&gt;</code>, the element is settable. Therefore, this function returns an object that can be assigned the coefficient to be set. Otherwise, it will return the (non-settable) coefficient as a value. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="_from_euclidean_expr_8hpp_source.html#l00301">301</a> of file <a class="el" href="_from_euclidean_expr_8hpp_source.html">FromEuclideanExpr.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_from_euclidean_expr_8hpp_source.html#l00302">302</a> of file <a class="el" href="_from_euclidean_expr_8hpp_source.html">FromEuclideanExpr.hpp</a>.</p>
 
 </div>
 </div>
-<a id="a895267ac8d93c79f9b075d025fefc96d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a895267ac8d93c79f9b075d025fefc96d">&#9670;&nbsp;</a></span>operator[]() <span class="overload">[2/2]</span></h2>
+<a id="a782ec36ff71bdbba4571d9560fb9f80d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a782ec36ff71bdbba4571d9560fb9f80d">&#9670;&nbsp;</a></span>operator[]() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename Coefficients , typename BaseMatrix &gt; </div>
+template&lt;typename Coefficients , typename NestedMatrix &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">auto <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">OpenKalman::Eigen3::FromEuclideanExpr</a>&lt; Coefficients, BaseMatrix &gt;::operator[] </td>
+          <td class="memname">auto <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">OpenKalman::Eigen3::FromEuclideanExpr</a>&lt; Coefficients, NestedMatrix &gt;::operator[] </td>
           <td>(</td>
           <td class="paramtype">std::size_t&#160;</td>
           <td class="paramname"><em>i</em></td><td>)</td>
@@ -829,23 +943,23 @@ template&lt;typename Coefficients , typename BaseMatrix &gt; </div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The value of the coefficient. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="_from_euclidean_expr_8hpp_source.html#l00314">314</a> of file <a class="el" href="_from_euclidean_expr_8hpp_source.html">FromEuclideanExpr.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_from_euclidean_expr_8hpp_source.html#l00315">315</a> of file <a class="el" href="_from_euclidean_expr_8hpp_source.html">FromEuclideanExpr.hpp</a>.</p>
 
 </div>
 </div>
-<a id="a3231fccae96b06e794c35f95d2edb4c2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3231fccae96b06e794c35f95d2edb4c2">&#9670;&nbsp;</a></span>zero()</h2>
+<a id="ab70df42423eafbbb16f6d4a1532fcebd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab70df42423eafbbb16f6d4a1532fcebd">&#9670;&nbsp;</a></span>zero()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename Coefficients , typename BaseMatrix &gt; </div>
+template&lt;typename Coefficients , typename NestedMatrix &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">static auto <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">OpenKalman::Eigen3::FromEuclideanExpr</a>&lt; Coefficients, BaseMatrix &gt;::zero </td>
+          <td class="memname">static auto <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">OpenKalman::Eigen3::FromEuclideanExpr</a>&lt; Coefficients, NestedMatrix &gt;::zero </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -859,7 +973,7 @@ template&lt;typename Coefficients , typename BaseMatrix &gt; </div>
 </div><div class="memdoc">
 <p>A matrix with the same form factor, but with all zero coefficients. </p><dl class="section return"><dt>Returns</dt><dd></dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="_from_euclidean_expr_8hpp_source.html#l00251">251</a> of file <a class="el" href="_from_euclidean_expr_8hpp_source.html">FromEuclideanExpr.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_from_euclidean_expr_8hpp_source.html#l00252">252</a> of file <a class="el" href="_from_euclidean_expr_8hpp_source.html">FromEuclideanExpr.hpp</a>.</p>
 
 </div>
 </div>
@@ -872,7 +986,7 @@ template&lt;typename Coefficients , typename BaseMatrix &gt; </div>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="namespace_open_kalman.html">OpenKalman</a></li><li class="navelem"><b>Eigen3</b></li><li class="navelem"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">FromEuclideanExpr</a></li>
+    <li class="navelem"><a class="el" href="namespace_open_kalman.html">OpenKalman</a></li><li class="navelem"><a class="el" href="namespace_open_kalman_1_1_eigen3.html">Eigen3</a></li><li class="navelem"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">FromEuclideanExpr</a></li>
     <li class="footer">Generated by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
   </ul>
 </div>

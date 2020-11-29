@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['circle_521',['Circle',['../namespace_open_kalman_1_1angle.html#aa956b4da387b5f3228d761597c9de05b',1,'OpenKalman::angle']]]
+  ['degrees_567',['Degrees',['../namespace_open_kalman_1_1angle.html#a43c5ad2855eb42b8ce5d207e0693b09e',1,'OpenKalman::angle::Degrees()'],['../namespace_open_kalman_1_1inclination.html#a6395628faa0330b5ae7873e254208d07',1,'OpenKalman::inclination::Degrees()']]]
 ];

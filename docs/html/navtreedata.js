@@ -30,7 +30,7 @@ var NAVTREE =
     [ "Class List", "annotated.html", "annotated" ],
     [ "Namespace Hierarchy", "namespaces.html", "namespaces" ],
     [ "Index", "namespacemembers.html", [
-      [ "All", "namespacemembers.html", null ],
+      [ "All", "namespacemembers.html", "namespacemembers_dup" ],
       [ "Functions", "namespacemembers_func.html", null ],
       [ "Variables", "namespacemembers_vars.html", null ],
       [ "Typedefs", "namespacemembers_type.html", null ],
@@ -41,11 +41,11 @@ var NAVTREE =
 
 var NAVTREEINDEX =
 [
-"_diagonal_matrix_8hpp.html#a012047294017da2ed474b117e95afec4",
-"namespace_open_kalman.html#a9c8f99371e3f22ae56f03a8b5ea4bca3",
-"struct_open_kalman_1_1_eigen3_1_1_diagonal_matrix.html#ab0807c7886ff436b03f67bf43a0d80d0",
-"struct_open_kalman_1_1_gaussian_distribution.html#aec8c375cdff5d86e247056f0c7e9e5d7",
-"struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enabl06c2512a6e0ff18380ece04a09152011.html#aa775033647060e543086ee51160916bd"
+"annotated.html",
+"namespace_open_kalman_1_1_eigen3.html#a4213585dbf9ef23d61030a68523a827b",
+"struct_open_kalman_1_1_covariance.html#aa7f0122d5a739f47ddeecca838fd9374",
+"struct_open_kalman_1_1_gaussian_distribution.html#a4ac3d1a034c5ed387de781d3f212a57d",
+"struct_open_kalman_1_1angle_1_1limits_1_1_degrees.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

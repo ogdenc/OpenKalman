@@ -91,7 +91,7 @@ $(document).ready(function(){initNavTree('forward-traits_8hpp.html',''); initRes
 </div><!--header-->
 <div class="contents">
 
-<p>A header file containing forward declarations for traits relating to <a class="el" href="namespace_open_kalman.html">OpenKalman</a> or native matrix types.  
+<p>Forward declarations for traits relating to <a class="el" href="namespace_open_kalman.html" title="The root namespace for OpenKalman.">OpenKalman</a> or native matrix types.  
 <a href="#details">More...</a></p>
 <div class="textblock"><code>#include &lt;type_traits&gt;</code><br />
 </div>
@@ -100,21 +100,22 @@ $(document).ready(function(){initNavTree('forward-traits_8hpp.html',''); initRes
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_matrix_traits.html">OpenKalman::MatrixTraits&lt; T, Enable &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Describes the traits of a matrix T, such as its dimensions, coefficient types, etc.  <a href="struct_open_kalman_1_1_matrix_traits.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A type trait class for any matrix T.  <a href="struct_open_kalman_1_1_matrix_traits.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_distribution_traits.html">OpenKalman::DistributionTraits&lt; T, Enable &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Describes the traits of a distribution type.  <a href="struct_open_kalman_1_1_distribution_traits.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A type trait class for any distribution T.  <a href="struct_open_kalman_1_1_distribution_traits.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1is__covariance__base.html">OpenKalman::internal::is_covariance_base&lt; T, Enable &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A type trait testing whether T can be wrapped in a covariance.  <a href="struct_open_kalman_1_1internal_1_1is__covariance__base.html#details">More...</a><br /></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1is__covariance__nestable.html">OpenKalman::internal::is_covariance_nestable&lt; T, Enable &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A type trait testing whether T can be wrapped in a covariance.  <a href="struct_open_kalman_1_1internal_1_1is__covariance__nestable.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1is__typed__matrix__base.html">OpenKalman::internal::is_typed_matrix_base&lt; T, Enable &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A type trait testing whether T is acceptable to be wrapped in a typed_matrix.  <a href="struct_open_kalman_1_1internal_1_1is__typed__matrix__base.html#details">More...</a><br /></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1is__typed__matrix__nestable.html">OpenKalman::internal::is_typed_matrix_nestable&lt; T, Enable &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A type trait testing whether T is acceptable to be nested in a typed_matrix.  <a href="struct_open_kalman_1_1internal_1_1is__typed__matrix__nestable.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="namespaces"></a>
 Namespaces</h2></td></tr>
 <tr class="memitem:namespace_open_kalman"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html">OpenKalman</a></td></tr>
+<tr class="memdesc:namespace_open_kalman"><td class="mdescLeft">&#160;</td><td class="mdescRight">The root namespace for <a class="el" href="namespace_open_kalman.html" title="The root namespace for OpenKalman.">OpenKalman</a>. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:namespace_open_kalman_1_1internal"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1internal.html">OpenKalman::internal</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -124,33 +125,29 @@ Namespaces</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
 Variables</h2></td></tr>
-<tr class="memitem:a21b0d5cafdda4517d6b87ed8be8e35cc"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
-<tr class="memitem:a21b0d5cafdda4517d6b87ed8be8e35cc"><td class="memTemplItemLeft" align="right" valign="top">constexpr bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1internal.html#a21b0d5cafdda4517d6b87ed8be8e35cc">OpenKalman::internal::coefficient_class</a> = true</td></tr>
-<tr class="memdesc:a21b0d5cafdda4517d6b87ed8be8e35cc"><td class="mdescLeft">&#160;</td><td class="mdescRight">A sufficiently-defined class representing an atomic or composite group of coefficients.  <a href="namespace_open_kalman_1_1internal.html#a21b0d5cafdda4517d6b87ed8be8e35cc">More...</a><br /></td></tr>
-<tr class="separator:a21b0d5cafdda4517d6b87ed8be8e35cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af847ece5eb2e6d50df847573c505b852"><td class="memTemplParams" colspan="2"><a id="af847ece5eb2e6d50df847573c505b852"></a>
 template&lt;typename T &gt; </td></tr>
 <tr class="memitem:af847ece5eb2e6d50df847573c505b852"><td class="memTemplItemLeft" align="right" valign="top">constexpr bool&#160;</td><td class="memTemplItemRight" valign="bottom"><b>OpenKalman::coefficients</b> = detail::is_coefficients&lt;T&gt;::value</td></tr>
 <tr class="separator:af847ece5eb2e6d50df847573c505b852"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a78584a279011110fd315cbf73ca2fe36"><td class="memTemplParams" colspan="2"><a id="a78584a279011110fd315cbf73ca2fe36"></a>
-template&lt;typename T , typename U &gt; </td></tr>
-<tr class="memitem:a78584a279011110fd315cbf73ca2fe36"><td class="memTemplItemLeft" align="right" valign="top">constexpr bool&#160;</td><td class="memTemplItemRight" valign="bottom"><b>OpenKalman::equivalent_to</b> = internal::is_equivalent_to&lt;T, U&gt;::value</td></tr>
+<tr class="memitem:a78584a279011110fd315cbf73ca2fe36"><td class="memTemplParams" colspan="2">template&lt;typename T , typename U &gt; </td></tr>
+<tr class="memitem:a78584a279011110fd315cbf73ca2fe36"><td class="memTemplItemLeft" align="right" valign="top">constexpr bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#a78584a279011110fd315cbf73ca2fe36">OpenKalman::equivalent_to</a> = internal::is_equivalent_to&lt;T, U&gt;::value</td></tr>
+<tr class="memdesc:a78584a279011110fd315cbf73ca2fe36"><td class="mdescLeft">&#160;</td><td class="mdescRight">T is equivalent to U, where T and U are sets of coefficients.  <a href="namespace_open_kalman.html#a78584a279011110fd315cbf73ca2fe36">More...</a><br /></td></tr>
 <tr class="separator:a78584a279011110fd315cbf73ca2fe36"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a163a7971e4b4684e1793a209c83f5688"><td class="memTemplParams" colspan="2">template&lt;typename T , typename U &gt; </td></tr>
 <tr class="memitem:a163a7971e4b4684e1793a209c83f5688"><td class="memTemplItemLeft" align="right" valign="top">constexpr bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#a163a7971e4b4684e1793a209c83f5688">OpenKalman::prefix_of</a> = internal::is_prefix_of&lt;T, U&gt;::value</td></tr>
 <tr class="memdesc:a163a7971e4b4684e1793a209c83f5688"><td class="mdescLeft">&#160;</td><td class="mdescRight">T is a prefix of U, where T and U are sets of coefficients.  <a href="namespace_open_kalman.html#a163a7971e4b4684e1793a209c83f5688">More...</a><br /></td></tr>
 <tr class="separator:a163a7971e4b4684e1793a209c83f5688"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ade58cea131d15daf2c3d9b94f36dc19e"><td class="memTemplParams" colspan="2"><a id="ade58cea131d15daf2c3d9b94f36dc19e"></a>
-template&lt;typename T &gt; </td></tr>
-<tr class="memitem:ade58cea131d15daf2c3d9b94f36dc19e"><td class="memTemplItemLeft" align="right" valign="top">constexpr bool&#160;</td><td class="memTemplItemRight" valign="bottom"><b>OpenKalman::covariance_base</b> = internal::is_covariance_base&lt;std::decay_t&lt;T&gt;&gt;::value</td></tr>
-<tr class="separator:ade58cea131d15daf2c3d9b94f36dc19e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab0e032659b4c5504d0f04c26021bac6a"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
-<tr class="memitem:ab0e032659b4c5504d0f04c26021bac6a"><td class="memTemplItemLeft" align="right" valign="top">constexpr bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#ab0e032659b4c5504d0f04c26021bac6a">OpenKalman::typed_matrix_base</a> = internal::is_typed_matrix_base&lt;std::decay_t&lt;T&gt;&gt;::value</td></tr>
-<tr class="memdesc:ab0e032659b4c5504d0f04c26021bac6a"><td class="mdescLeft">&#160;</td><td class="mdescRight">T is an acceptable base for a general typed matrix (e.g., matrix, mean, or euclidean_mean)  <a href="namespace_open_kalman.html#ab0e032659b4c5504d0f04c26021bac6a">More...</a><br /></td></tr>
-<tr class="separator:ab0e032659b4c5504d0f04c26021bac6a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a19898d83f3f0b722b834acac97f7c17e"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:a19898d83f3f0b722b834acac97f7c17e"><td class="memTemplItemLeft" align="right" valign="top">constexpr bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#a19898d83f3f0b722b834acac97f7c17e">OpenKalman::covariance_nestable</a> = internal::is_covariance_nestable&lt;std::decay_t&lt;T&gt;&gt;::value</td></tr>
+<tr class="memdesc:a19898d83f3f0b722b834acac97f7c17e"><td class="mdescLeft">&#160;</td><td class="mdescRight">T is an acceptable nested matrix for a covariance (including square_root_covariance).  <a href="namespace_open_kalman.html#a19898d83f3f0b722b834acac97f7c17e">More...</a><br /></td></tr>
+<tr class="separator:a19898d83f3f0b722b834acac97f7c17e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5245fbf912b12a279acb815fcf7650d9"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:a5245fbf912b12a279acb815fcf7650d9"><td class="memTemplItemLeft" align="right" valign="top">constexpr bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#a5245fbf912b12a279acb815fcf7650d9">OpenKalman::typed_matrix_nestable</a> = internal::is_typed_matrix_nestable&lt;std::decay_t&lt;T&gt;&gt;::value</td></tr>
+<tr class="memdesc:a5245fbf912b12a279acb815fcf7650d9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Specifies a type that is nestable in a general typed matrix (e.g., matrix, mean, or euclidean_mean)  <a href="namespace_open_kalman.html#a5245fbf912b12a279acb815fcf7650d9">More...</a><br /></td></tr>
+<tr class="separator:a5245fbf912b12a279acb815fcf7650d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>A header file containing forward declarations for traits relating to <a class="el" href="namespace_open_kalman.html">OpenKalman</a> or native matrix types. </p>
+<div class="textblock"><p>Forward declarations for traits relating to <a class="el" href="namespace_open_kalman.html" title="The root namespace for OpenKalman.">OpenKalman</a> or native matrix types. </p>
 
 <p class="definition">Definition in file <a class="el" href="forward-traits_8hpp_source.html">forward-traits.hpp</a>.</p>
 </div></div><!-- contents -->

@@ -102,8 +102,8 @@ struct OpenKalman::GaussianDistribution&lt; Coeffs, MatrixBase, CovarianceBase, 
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">Coefficients</td><td>Coefficient types. </td></tr>
-    <tr><td class="paramname">MeanNativeMatrix</td><td>The underlying native matrix for the <a class="el" href="struct_open_kalman_1_1_mean.html" title="A set of one or more column vectors, each representing a statistical mean.">Mean</a>. </td></tr>
-    <tr><td class="paramname">CovarianceNativeMatrix</td><td>The underlying native matrix (triangular or self-adjoint) for the <a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a>. </td></tr>
+    <tr><td class="paramname">MeanNestedMatrix</td><td>The underlying native matrix for the <a class="el" href="struct_open_kalman_1_1_mean.html" title="A set of one or more column vectors, each representing a statistical mean.">Mean</a>. </td></tr>
+    <tr><td class="paramname">CovarianceNestedMatrix</td><td>The underlying native matrix (triangular or self-adjoint) for the <a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a>. </td></tr>
     <tr><td class="paramname">random_number_engine</td><td>A random number engine compatible with the c++ standard library (e.g., std::mt19937). </td></tr>
   </table>
   </dd>
@@ -150,24 +150,24 @@ template&lt;typename Arg , std::enable_if_t&lt; gaussian_distribution&lt; Arg &g
 <tr class="memdesc:aae86b09d0643178d855ea51d27acde7f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct from an rvalue of a mean and a covariance. <br /></td></tr>
 <tr class="separator:aae86b09d0643178d855ea51d27acde7f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4d0e9997e04be52876b300872e3d21ad"><td class="memTemplParams" colspan="2"><a id="a4d0e9997e04be52876b300872e3d21ad"></a>
-template&lt;typename M , std::enable_if_t&lt; typed_matrix&lt; M &gt; or typed_matrix_base&lt; M &gt;, int &gt;  = 0&gt; </td></tr>
+template&lt;typename M , std::enable_if_t&lt; typed_matrix&lt; M &gt; or typed_matrix_nestable&lt; M &gt;, int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:a4d0e9997e04be52876b300872e3d21ad"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_gaussian_distribution.html#a4d0e9997e04be52876b300872e3d21ad">GaussianDistribution</a> (M &amp;&amp;<a class="el" href="namespace_open_kalman.html#a2745b3bfff7250ac8d9e0dc79902508c">mean</a>, Covariance &amp;&amp;cov)</td></tr>
-<tr class="memdesc:a4d0e9997e04be52876b300872e3d21ad"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct from a typed matrix (or typed matrix base) and an rvalue of a covariance. <br /></td></tr>
+<tr class="memdesc:a4d0e9997e04be52876b300872e3d21ad"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct from a typed matrix (or typed_matrix_nestable) and an rvalue of a covariance. <br /></td></tr>
 <tr class="separator:a4d0e9997e04be52876b300872e3d21ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac52b99d646d5185312f1bbe772028eb2"><td class="memTemplParams" colspan="2"><a id="ac52b99d646d5185312f1bbe772028eb2"></a>
-template&lt;typename Cov , std::enable_if_t&lt; covariance&lt; Cov &gt; or covariance_base&lt; Cov &gt; or typed_matrix&lt; Cov &gt;, int &gt;  = 0&gt; </td></tr>
+template&lt;typename Cov , std::enable_if_t&lt; covariance&lt; Cov &gt; or covariance_nestable&lt; Cov &gt; or typed_matrix&lt; Cov &gt;, int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:ac52b99d646d5185312f1bbe772028eb2"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_gaussian_distribution.html#ac52b99d646d5185312f1bbe772028eb2">GaussianDistribution</a> (Mean &amp;&amp;<a class="el" href="namespace_open_kalman.html#a2745b3bfff7250ac8d9e0dc79902508c">mean</a>, Cov &amp;&amp;cov)</td></tr>
-<tr class="memdesc:ac52b99d646d5185312f1bbe772028eb2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct from an rvalue of a mean and a covariance (or covariance base or symmetric typed matrix). <br /></td></tr>
+<tr class="memdesc:ac52b99d646d5185312f1bbe772028eb2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct from an rvalue of a mean and a covariance (or covariance_nestable or symmetric typed matrix). <br /></td></tr>
 <tr class="separator:ac52b99d646d5185312f1bbe772028eb2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae3bf00aeb58ea26a345c8e44db784e26"><td class="memTemplParams" colspan="2"><a id="ae3bf00aeb58ea26a345c8e44db784e26"></a>
-template&lt;typename M , typename Cov , std::enable_if_t&lt;(typed_matrix&lt; M &gt; or typed_matrix_base&lt; M &gt;) and(covariance&lt; Cov &gt; or covariance_base&lt; Cov &gt; or typed_matrix&lt; Cov &gt;), int &gt;  = 0&gt; </td></tr>
+template&lt;typename M , typename Cov , std::enable_if_t&lt;(typed_matrix&lt; M &gt; or typed_matrix_nestable&lt; M &gt;) and(covariance&lt; Cov &gt; or covariance_nestable&lt; Cov &gt; or typed_matrix&lt; Cov &gt;), int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:ae3bf00aeb58ea26a345c8e44db784e26"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_gaussian_distribution.html#ae3bf00aeb58ea26a345c8e44db784e26">GaussianDistribution</a> (M &amp;&amp;<a class="el" href="namespace_open_kalman.html#a2745b3bfff7250ac8d9e0dc79902508c">mean</a>, Cov &amp;&amp;cov)</td></tr>
-<tr class="memdesc:ae3bf00aeb58ea26a345c8e44db784e26"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct from a typed matrix (or typed matrix base) and a covariance (or covariance base or symmetric typed matrix). <br /></td></tr>
+<tr class="memdesc:ae3bf00aeb58ea26a345c8e44db784e26"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct from a typed matrix (or typed_matrix_nestable) and a covariance (or covariance_nestable or symmetric typed matrix). <br /></td></tr>
 <tr class="separator:ae3bf00aeb58ea26a345c8e44db784e26"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abfa723e1a4dd4362e24d9533cd757b42"><td class="memTemplParams" colspan="2"><a id="abfa723e1a4dd4362e24d9533cd757b42"></a>
-template&lt;typename Cov , std::enable_if_t&lt; covariance&lt; Cov &gt; or covariance_base&lt; Cov &gt; or typed_matrix&lt; Cov &gt;, int &gt;  = 0&gt; </td></tr>
+template&lt;typename Cov , std::enable_if_t&lt; covariance&lt; Cov &gt; or covariance_nestable&lt; Cov &gt; or typed_matrix&lt; Cov &gt;, int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:abfa723e1a4dd4362e24d9533cd757b42"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_gaussian_distribution.html#abfa723e1a4dd4362e24d9533cd757b42">GaussianDistribution</a> (Cov &amp;&amp;cov)</td></tr>
-<tr class="memdesc:abfa723e1a4dd4362e24d9533cd757b42"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct using only a covariance, covariance base, or symmetric typed matrix (the mean is set to zero). <br /></td></tr>
+<tr class="memdesc:abfa723e1a4dd4362e24d9533cd757b42"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct using only a covariance, covariance_nestable, or symmetric typed matrix (the mean is set to zero). <br /></td></tr>
 <tr class="separator:abfa723e1a4dd4362e24d9533cd757b42"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a596ffe89c69c67b7359517ca3e885a29"><td class="memItemLeft" align="right" valign="top"><a id="a596ffe89c69c67b7359517ca3e885a29"></a>
 <a class="el" href="struct_open_kalman_1_1_gaussian_distribution.html">GaussianDistribution</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_gaussian_distribution.html#a596ffe89c69c67b7359517ca3e885a29">operator=</a> (const <a class="el" href="struct_open_kalman_1_1_gaussian_distribution.html">GaussianDistribution</a> &amp;other)</td></tr>

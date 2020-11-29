@@ -110,7 +110,7 @@ $(document).ready(function(){initNavTree('eigen3-native-evaluators_8hpp_source.h
 <div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;    {</div>
 <div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;      Flags = (Coefficients::axes_only ? Base::Flags : Base::Flags &amp; ~LvalueBit),</div>
 <div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;    };</div>
-<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;    <span class="keyword">explicit</span> evaluator(<span class="keyword">const</span> XprType&amp; m) : Base(m.base_matrix()) {}</div>
+<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;    <span class="keyword">explicit</span> evaluator(<span class="keyword">const</span> XprType&amp; m) : Base(m.nested_matrix()) {}</div>
 <div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;  };</div>
 <div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160; </div>
 <div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160; </div>
@@ -119,7 +119,7 @@ $(document).ready(function(){initNavTree('eigen3-native-evaluators_8hpp_source.h
 <div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;  {</div>
 <div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;    <span class="keyword">using</span> XprType = OpenKalman::Matrix&lt;RowCoeffs, ColCoeffs, ArgType&gt;;</div>
 <div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;    <span class="keyword">using</span> Base = evaluator&lt;std::decay_t&lt;ArgType&gt;&gt;;</div>
-<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;    <span class="keyword">explicit</span> evaluator(<span class="keyword">const</span> XprType&amp; m) : Base {m.base_matrix()} {}</div>
+<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;    <span class="keyword">explicit</span> evaluator(<span class="keyword">const</span> XprType&amp; m) : Base {m.nested_matrix()} {}</div>
 <div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;  };</div>
 <div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160; </div>
 <div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160; </div>
@@ -129,7 +129,7 @@ $(document).ready(function(){initNavTree('eigen3-native-evaluators_8hpp_source.h
 <div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;    <span class="keyword">using</span> Scalar = <span class="keyword">typename</span> std::decay_t&lt;ArgType&gt;::Scalar;</div>
 <div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;    <span class="keyword">using</span> XprType = OpenKalman::EuclideanMean&lt;Coeffs, ArgType&gt;;</div>
 <div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;    <span class="keyword">using</span> Base = evaluator&lt;std::decay_t&lt;ArgType&gt;&gt;;</div>
-<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;    <span class="keyword">explicit</span> evaluator(<span class="keyword">const</span> XprType&amp; expression) : Base {expression.base_matrix()} {}</div>
+<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;    <span class="keyword">explicit</span> evaluator(<span class="keyword">const</span> XprType&amp; expression) : Base {expression.nested_matrix()} {}</div>
 <div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;  };</div>
 <div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160; </div>
 <div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160; </div>
@@ -148,7 +148,7 @@ $(document).ready(function(){initNavTree('eigen3-native-evaluators_8hpp_source.h
 <div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;      Alignment = NestedEvaluator::Alignment</div>
 <div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;    };</div>
 <div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160; </div>
-<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;    <span class="keyword">explicit</span> evaluator(<span class="keyword">const</span> XprType&amp; m_arg) : m_argImpl(base_matrix(m_arg)) {}</div>
+<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;    <span class="keyword">explicit</span> evaluator(<span class="keyword">const</span> XprType&amp; m_arg) : m_argImpl(nested_matrix(m_arg)) {}</div>
 <div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160; </div>
 <div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;    <span class="keyword">auto</span>&amp; coeffRef(Index row, Index col)</div>
 <div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;    {</div>
@@ -251,7 +251,7 @@ $(document).ready(function(){initNavTree('eigen3-native-evaluators_8hpp_source.h
 <div class="line"><a name="l00163"></a><span class="lineno">  163</span>&#160;      Alignment = NestedEvaluator::Alignment</div>
 <div class="line"><a name="l00164"></a><span class="lineno">  164</span>&#160;    };</div>
 <div class="line"><a name="l00165"></a><span class="lineno">  165</span>&#160; </div>
-<div class="line"><a name="l00166"></a><span class="lineno">  166</span>&#160;    <span class="keyword">explicit</span> evaluator(<span class="keyword">const</span> XprType&amp; m_arg) : m_argImpl(base_matrix(m_arg)) {}</div>
+<div class="line"><a name="l00166"></a><span class="lineno">  166</span>&#160;    <span class="keyword">explicit</span> evaluator(<span class="keyword">const</span> XprType&amp; m_arg) : m_argImpl(nested_matrix(m_arg)) {}</div>
 <div class="line"><a name="l00167"></a><span class="lineno">  167</span>&#160; </div>
 <div class="line"><a name="l00168"></a><span class="lineno">  168</span>&#160;    <span class="keyword">auto</span>&amp; coeffRef(Index row, Index col)</div>
 <div class="line"><a name="l00169"></a><span class="lineno">  169</span>&#160;    {</div>
@@ -380,7 +380,7 @@ $(document).ready(function(){initNavTree('eigen3-native-evaluators_8hpp_source.h
 <div class="line"><a name="l00292"></a><span class="lineno">  292</span>&#160;      Alignment = NestedEvaluator::Alignment</div>
 <div class="line"><a name="l00293"></a><span class="lineno">  293</span>&#160;    };</div>
 <div class="line"><a name="l00294"></a><span class="lineno">  294</span>&#160; </div>
-<div class="line"><a name="l00295"></a><span class="lineno">  295</span>&#160;    <span class="keyword">explicit</span> evaluator(<span class="keyword">const</span> XprType&amp; m_arg) : m_argImpl(base_matrix(m_arg)) {}</div>
+<div class="line"><a name="l00295"></a><span class="lineno">  295</span>&#160;    <span class="keyword">explicit</span> evaluator(<span class="keyword">const</span> XprType&amp; m_arg) : m_argImpl(nested_matrix(m_arg)) {}</div>
 <div class="line"><a name="l00296"></a><span class="lineno">  296</span>&#160; </div>
 <div class="line"><a name="l00297"></a><span class="lineno">  297</span>&#160;    <span class="keyword">auto</span>&amp; coeffRef(Index row, Index col)</div>
 <div class="line"><a name="l00298"></a><span class="lineno">  298</span>&#160;    {</div>
@@ -427,33 +427,33 @@ $(document).ready(function(){initNavTree('eigen3-native-evaluators_8hpp_source.h
 <div class="line"><a name="l00339"></a><span class="lineno">  339</span>&#160; </div>
 <div class="line"><a name="l00340"></a><span class="lineno">  340</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> Coefficients, <span class="keyword">typename</span> ArgType&gt;</div>
 <div class="line"><a name="l00341"></a><span class="lineno">  341</span>&#160;  <span class="keyword">struct</span> evaluator&lt;OpenKalman::Covariance&lt;Coefficients, ArgType&gt;&gt;</div>
-<div class="line"><a name="l00342"></a><span class="lineno">  342</span>&#160;    : evaluator&lt;std::decay_t&lt;<span class="keyword">decltype</span>(OpenKalman::internal::convert_base_matrix(</div>
+<div class="line"><a name="l00342"></a><span class="lineno">  342</span>&#160;    : evaluator&lt;std::decay_t&lt;<span class="keyword">decltype</span>(OpenKalman::internal::convert_nested_matrix(</div>
 <div class="line"><a name="l00343"></a><span class="lineno">  343</span>&#160;      std::declval&lt;<span class="keyword">const</span> OpenKalman::Covariance&lt;Coefficients, ArgType&gt;&amp;&gt;()))&gt;&gt;</div>
 <div class="line"><a name="l00344"></a><span class="lineno">  344</span>&#160;  {</div>
 <div class="line"><a name="l00345"></a><span class="lineno">  345</span>&#160;    <span class="keyword">using</span> XprType = OpenKalman::Covariance&lt;Coefficients, ArgType&gt;;</div>
-<div class="line"><a name="l00346"></a><span class="lineno">  346</span>&#160;    <span class="keyword">using</span> Base = evaluator&lt;std::decay_t&lt;<span class="keyword">decltype</span>(OpenKalman::internal::convert_base_matrix(</div>
+<div class="line"><a name="l00346"></a><span class="lineno">  346</span>&#160;    <span class="keyword">using</span> Base = evaluator&lt;std::decay_t&lt;<span class="keyword">decltype</span>(OpenKalman::internal::convert_nested_matrix(</div>
 <div class="line"><a name="l00347"></a><span class="lineno">  347</span>&#160;      std::declval&lt;<span class="keyword">const</span> XprType&amp;&gt;()))&gt;&gt;;</div>
 <div class="line"><a name="l00348"></a><span class="lineno">  348</span>&#160;    <span class="keyword">enum</span></div>
 <div class="line"><a name="l00349"></a><span class="lineno">  349</span>&#160;    {</div>
 <div class="line"><a name="l00350"></a><span class="lineno">  350</span>&#160;      Flags = Base::Flags &amp; (OpenKalman::self_adjoint_matrix&lt;ArgType&gt; ? ~0 : ~LvalueBit),</div>
 <div class="line"><a name="l00351"></a><span class="lineno">  351</span>&#160;    };</div>
-<div class="line"><a name="l00352"></a><span class="lineno">  352</span>&#160;    <span class="keyword">explicit</span> evaluator(<span class="keyword">const</span> XprType&amp; m_arg) : Base(OpenKalman::internal::convert_base_matrix(m_arg)) {}</div>
+<div class="line"><a name="l00352"></a><span class="lineno">  352</span>&#160;    <span class="keyword">explicit</span> evaluator(<span class="keyword">const</span> XprType&amp; m_arg) : Base(OpenKalman::internal::convert_nested_matrix(m_arg)) {}</div>
 <div class="line"><a name="l00353"></a><span class="lineno">  353</span>&#160;  };</div>
 <div class="line"><a name="l00354"></a><span class="lineno">  354</span>&#160; </div>
 <div class="line"><a name="l00355"></a><span class="lineno">  355</span>&#160; </div>
 <div class="line"><a name="l00356"></a><span class="lineno">  356</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> Coefficients, <span class="keyword">typename</span> ArgType&gt;</div>
 <div class="line"><a name="l00357"></a><span class="lineno">  357</span>&#160;  <span class="keyword">struct</span> evaluator&lt;OpenKalman::SquareRootCovariance&lt;Coefficients, ArgType&gt;&gt;</div>
-<div class="line"><a name="l00358"></a><span class="lineno">  358</span>&#160;    : evaluator&lt;std::decay_t&lt;<span class="keyword">decltype</span>(OpenKalman::internal::convert_base_matrix(</div>
+<div class="line"><a name="l00358"></a><span class="lineno">  358</span>&#160;    : evaluator&lt;std::decay_t&lt;<span class="keyword">decltype</span>(OpenKalman::internal::convert_nested_matrix(</div>
 <div class="line"><a name="l00359"></a><span class="lineno">  359</span>&#160;      std::declval&lt;<span class="keyword">const</span> OpenKalman::SquareRootCovariance&lt;Coefficients, ArgType&gt;&amp;&gt;()))&gt;&gt;</div>
 <div class="line"><a name="l00360"></a><span class="lineno">  360</span>&#160;  {</div>
 <div class="line"><a name="l00361"></a><span class="lineno">  361</span>&#160;    <span class="keyword">using</span> XprType = OpenKalman::SquareRootCovariance&lt;Coefficients, ArgType&gt;;</div>
-<div class="line"><a name="l00362"></a><span class="lineno">  362</span>&#160;    <span class="keyword">using</span> Base = evaluator&lt;std::decay_t&lt;<span class="keyword">decltype</span>(OpenKalman::internal::convert_base_matrix(</div>
+<div class="line"><a name="l00362"></a><span class="lineno">  362</span>&#160;    <span class="keyword">using</span> Base = evaluator&lt;std::decay_t&lt;<span class="keyword">decltype</span>(OpenKalman::internal::convert_nested_matrix(</div>
 <div class="line"><a name="l00363"></a><span class="lineno">  363</span>&#160;      std::declval&lt;<span class="keyword">const</span> XprType&amp;&gt;()))&gt;&gt;;</div>
 <div class="line"><a name="l00364"></a><span class="lineno">  364</span>&#160;    <span class="keyword">enum</span></div>
 <div class="line"><a name="l00365"></a><span class="lineno">  365</span>&#160;    {</div>
 <div class="line"><a name="l00366"></a><span class="lineno">  366</span>&#160;      Flags = Base::Flags &amp; (OpenKalman::triangular_matrix&lt;ArgType&gt; ? ~0 : ~LvalueBit),</div>
 <div class="line"><a name="l00367"></a><span class="lineno">  367</span>&#160;    };</div>
-<div class="line"><a name="l00368"></a><span class="lineno">  368</span>&#160;    <span class="keyword">explicit</span> evaluator(<span class="keyword">const</span> XprType&amp; m_arg) : Base(OpenKalman::internal::convert_base_matrix(m_arg)) {}</div>
+<div class="line"><a name="l00368"></a><span class="lineno">  368</span>&#160;    <span class="keyword">explicit</span> evaluator(<span class="keyword">const</span> XprType&amp; m_arg) : Base(OpenKalman::internal::convert_nested_matrix(m_arg)) {}</div>
 <div class="line"><a name="l00369"></a><span class="lineno">  369</span>&#160;  };</div>
 <div class="line"><a name="l00370"></a><span class="lineno">  370</span>&#160; </div>
 <div class="line"><a name="l00371"></a><span class="lineno">  371</span>&#160; </div>
@@ -544,7 +544,7 @@ $(document).ready(function(){initNavTree('eigen3-native-evaluators_8hpp_source.h
 <div class="line"><a name="l00456"></a><span class="lineno">  456</span>&#160;      Alignment = NestedEvaluator::Alignment</div>
 <div class="line"><a name="l00457"></a><span class="lineno">  457</span>&#160;    };</div>
 <div class="line"><a name="l00458"></a><span class="lineno">  458</span>&#160; </div>
-<div class="line"><a name="l00459"></a><span class="lineno">  459</span>&#160;    <span class="keyword">explicit</span> evaluator(<span class="keyword">const</span> XprType&amp; t) : Base {base_matrix(t)} {}</div>
+<div class="line"><a name="l00459"></a><span class="lineno">  459</span>&#160;    <span class="keyword">explicit</span> evaluator(<span class="keyword">const</span> XprType&amp; t) : Base {nested_matrix(t)} {}</div>
 <div class="line"><a name="l00460"></a><span class="lineno">  460</span>&#160; </div>
 <div class="line"><a name="l00461"></a><span class="lineno">  461</span>&#160;    CoeffReturnType coeff(Index row, Index col) <span class="keyword">const</span></div>
 <div class="line"><a name="l00462"></a><span class="lineno">  462</span>&#160;    {</div>
@@ -604,7 +604,7 @@ $(document).ready(function(){initNavTree('eigen3-native-evaluators_8hpp_source.h
 <div class="line"><a name="l00516"></a><span class="lineno">  516</span>&#160;      Alignment = NestedEvaluator::Alignment</div>
 <div class="line"><a name="l00517"></a><span class="lineno">  517</span>&#160;    };</div>
 <div class="line"><a name="l00518"></a><span class="lineno">  518</span>&#160; </div>
-<div class="line"><a name="l00519"></a><span class="lineno">  519</span>&#160;    <span class="keyword">explicit</span> evaluator(<span class="keyword">const</span> XprType&amp; t) : Base {base_matrix(t)} {}</div>
+<div class="line"><a name="l00519"></a><span class="lineno">  519</span>&#160;    <span class="keyword">explicit</span> evaluator(<span class="keyword">const</span> XprType&amp; t) : Base {nested_matrix(t)} {}</div>
 <div class="line"><a name="l00520"></a><span class="lineno">  520</span>&#160; </div>
 <div class="line"><a name="l00521"></a><span class="lineno">  521</span>&#160;    CoeffReturnType coeff(Index row, Index col) <span class="keyword">const</span></div>
 <div class="line"><a name="l00522"></a><span class="lineno">  522</span>&#160;    {</div>
@@ -657,7 +657,7 @@ $(document).ready(function(){initNavTree('eigen3-native-evaluators_8hpp_source.h
 <div class="line"><a name="l00569"></a><span class="lineno">  569</span>&#160;      Alignment = NestedEvaluator::Alignment</div>
 <div class="line"><a name="l00570"></a><span class="lineno">  570</span>&#160;    };</div>
 <div class="line"><a name="l00571"></a><span class="lineno">  571</span>&#160; </div>
-<div class="line"><a name="l00572"></a><span class="lineno">  572</span>&#160;    <span class="keyword">explicit</span> evaluator(<span class="keyword">const</span> XprType&amp; t) : Base {base_matrix(base_matrix(t))} {}</div>
+<div class="line"><a name="l00572"></a><span class="lineno">  572</span>&#160;    <span class="keyword">explicit</span> evaluator(<span class="keyword">const</span> XprType&amp; t) : Base {nested_matrix(nested_matrix(t))} {}</div>
 <div class="line"><a name="l00573"></a><span class="lineno">  573</span>&#160; </div>
 <div class="line"><a name="l00574"></a><span class="lineno">  574</span>&#160;    CoeffReturnType coeff(Index row, Index col) <span class="keyword">const</span></div>
 <div class="line"><a name="l00575"></a><span class="lineno">  575</span>&#160;    {</div>

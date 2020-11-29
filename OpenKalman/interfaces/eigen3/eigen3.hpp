@@ -47,11 +47,9 @@
 #include "details/eigen3-traits.hpp"
 
 #include "details/eigen3-matrix-overloads.hpp"
+#include "details/eigen3-cholesky-overloads.hpp"
 
 #include "details/Eigen3MatrixBase.hpp"
-#include "details/Eigen3CovarianceBase.hpp"
-
-#include "details/eigen3-cholesky-overloads.hpp"
 
 #include "ZeroMatrix.hpp"
 #include "DiagonalMatrix.hpp"

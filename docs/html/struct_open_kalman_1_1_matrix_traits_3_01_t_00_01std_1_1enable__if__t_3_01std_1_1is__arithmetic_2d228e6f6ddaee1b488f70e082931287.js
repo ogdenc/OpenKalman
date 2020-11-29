@@ -1,0 +1,8 @@
+var struct_open_kalman_1_1_matrix_traits_3_01_t_00_01std_1_1enable__if__t_3_01std_1_1is__arithmetic_2d228e6f6ddaee1b488f70e082931287 =
+[
+    [ "DiagonalBaseType", "struct_open_kalman_1_1_matrix_traits_3_01_t_00_01std_1_1enable__if__t_3_01std_1_1is__arithmetic_2d228e6f6ddaee1b488f70e082931287.html#accb086ccc40d1e127e85e34cb534fb00", null ],
+    [ "NativeMatrix", "struct_open_kalman_1_1_matrix_traits_3_01_t_00_01std_1_1enable__if__t_3_01std_1_1is__arithmetic_2d228e6f6ddaee1b488f70e082931287.html#a530e9d3fe0728828c9154d176290eb1a", null ],
+    [ "Scalar", "struct_open_kalman_1_1_matrix_traits_3_01_t_00_01std_1_1enable__if__t_3_01std_1_1is__arithmetic_2d228e6f6ddaee1b488f70e082931287.html#ae98b308c855eb7b4b6814626ae650011", null ],
+    [ "SelfAdjointBaseType", "struct_open_kalman_1_1_matrix_traits_3_01_t_00_01std_1_1enable__if__t_3_01std_1_1is__arithmetic_2d228e6f6ddaee1b488f70e082931287.html#a7f146bff381389f0f66bcc506e23aa4a", null ],
+    [ "TriangularBaseType", "struct_open_kalman_1_1_matrix_traits_3_01_t_00_01std_1_1enable__if__t_3_01std_1_1is__arithmetic_2d228e6f6ddaee1b488f70e082931287.html#a6f1a05ddc6e25131122531511a5bcb91", null ]
+];

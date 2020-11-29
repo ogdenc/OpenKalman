@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.0"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>OpenKalman: OpenKalman::Mean&lt; Coeffs, BaseMatrix &gt; Struct Template Reference</title>
+<title>OpenKalman: OpenKalman::Mean&lt; Coeffs, NestedMatrix &gt; Struct Template Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -90,154 +90,155 @@ $(document).ready(function(){initNavTree('struct_open_kalman_1_1_mean.html','');
 <a href="#pub-static-attribs">Static Public Attributes</a> &#124;
 <a href="#pro-static-methods">Static Protected Member Functions</a>  </div>
   <div class="headertitle">
-<div class="title">OpenKalman::Mean&lt; Coeffs, BaseMatrix &gt; Struct Template Reference</div>  </div>
+<div class="title">OpenKalman::Mean&lt; Coeffs, NestedMatrix &gt; Struct Template Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
 
 <p><code>#include &lt;<a class="el" href="_mean_8hpp_source.html">Mean.hpp</a>&gt;</code></p>
 <a name="details" id="details"></a><h2 class="groupheader">Description</h2>
-<div class="textblock"><h3>template&lt;typename Coeffs, typename BaseMatrix&gt;<br />
-struct OpenKalman::Mean&lt; Coeffs, BaseMatrix &gt;</h3>
+<div class="textblock"><h3>template&lt;typename Coeffs, typename NestedMatrix&gt;<br />
+struct OpenKalman::Mean&lt; Coeffs, NestedMatrix &gt;</h3>
 
 <p>A set of one or more column vectors, each representing a statistical mean. </p>
 <p>A typed vector.</p>
-<p>Unlike <a class="el" href="struct_open_kalman_1_1_matrix.html" title="A matrix with typed rows and columns.">OpenKalman::Matrix</a>, the columns of a <a class="el" href="struct_open_kalman_1_1_mean.html" title="A set of one or more column vectors, each representing a statistical mean.">Mean</a> are untyped. When a <a class="el" href="struct_open_kalman_1_1_mean.html" title="A set of one or more column vectors, each representing a statistical mean.">Mean</a> is converted to an <a class="el" href="struct_open_kalman_1_1_matrix.html" title="A matrix with typed rows and columns.">OpenKalman::Matrix</a>, the columns are assigned type Axis. Example declaration: <code><a class="el" href="struct_open_kalman_1_1_mean.html" title="A set of one or more column vectors, each representing a statistical mean.">Mean</a>&lt;Coefficients&lt;Axis, Axis, angle::Radians&gt;, 1, Eigen::Matrix&lt;double, 3, 1&gt;&gt; x;</code> This declares a 3-dimensional vector <em>x</em>, where the coefficients are, respectively, an Axis, an Axis, and an <a class="el" href="namespace_open_kalman_1_1angle.html#a83281632e5031d7542ef229623b292a9" title="An angle measured in radians [-π,π).">angle::Radians</a>, all of scalar type <code>double</code>. The underlying representation is an Eigen3 column vector. </p><dl class="tparams"><dt>Template Parameters</dt><dd>
+<p>Unlike <a class="el" href="struct_open_kalman_1_1_matrix.html" title="A matrix with typed rows and columns.">OpenKalman::Matrix</a>, the columns of a <a class="el" href="struct_open_kalman_1_1_mean.html" title="A set of one or more column vectors, each representing a statistical mean.">Mean</a> are untyped. When a <a class="el" href="struct_open_kalman_1_1_mean.html" title="A set of one or more column vectors, each representing a statistical mean.">Mean</a> is converted to an <a class="el" href="struct_open_kalman_1_1_matrix.html" title="A matrix with typed rows and columns.">OpenKalman::Matrix</a>, the columns are assigned type Axis. Example declaration: <code><a class="el" href="struct_open_kalman_1_1_mean.html" title="A set of one or more column vectors, each representing a statistical mean.">Mean</a>&lt;Coefficients&lt;Axis, Axis, angle::Radians&gt;, 1, native_matrix_t&lt;double, 3, 1&gt;&gt; x;</code> This declares a 3-dimensional vector <em>x</em>, where the coefficients are, respectively, an Axis, an Axis, and an <a class="el" href="namespace_open_kalman_1_1angle.html#a83281632e5031d7542ef229623b292a9" title="An angle measured in radians [-π,π).">angle::Radians</a>, all of scalar type <code>double</code>. The underlying representation is an <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a> column vector. </p><dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">Coefficients</td><td>Coefficient types of the mean (e.g., Axis, Polar). </td></tr>
-    <tr><td class="paramname">NativeMatrix</td><td>The underlying native matrix or matrix expression. </td></tr>
+    <tr><td class="paramname">NestedMatrix</td><td>The underlying native matrix or matrix expression. </td></tr>
   </table>
   </dd>
 </dl>
 
 <p class="definition">Definition at line <a class="el" href="_mean_8hpp_source.html#l00027">27</a> of file <a class="el" href="_mean_8hpp_source.html">Mean.hpp</a>.</p>
 </div><div class="dynheader">
-Inheritance diagram for OpenKalman::Mean&lt; Coeffs, BaseMatrix &gt;:</div>
+Inheritance diagram for OpenKalman::Mean&lt; Coeffs, NestedMatrix &gt;:</div>
 <div class="dyncontent">
  <div class="center">
-  <img src="struct_open_kalman_1_1_mean.png" usemap="#OpenKalman::Mean_3C_20Coeffs_2C_20BaseMatrix_20_3E_map" alt=""/>
-  <map id="OpenKalman::Mean_3C_20Coeffs_2C_20BaseMatrix_20_3E_map" name="OpenKalman::Mean_3C_20Coeffs_2C_20BaseMatrix_20_3E_map">
-<area href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html" alt="OpenKalman::internal::TypedMatrixBase&lt; Mean&lt; Coeffs, BaseMatrix &gt;, Coeffs, Axes&lt; MatrixTraits&lt; BaseMatrix &gt;::columns &gt;, BaseMatrix &gt;" shape="rect" coords="0,0,809,24"/>
+  <img src="struct_open_kalman_1_1_mean.png" usemap="#OpenKalman::Mean_3C_20Coeffs_2C_20NestedMatrix_20_3E_map" alt=""/>
+  <map id="OpenKalman::Mean_3C_20Coeffs_2C_20NestedMatrix_20_3E_map" name="OpenKalman::Mean_3C_20Coeffs_2C_20NestedMatrix_20_3E_map">
+<area href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html" alt="OpenKalman::internal::TypedMatrixBase&lt; Mean&lt; Coeffs, NestedMatrix &gt;, Coeffs, Axes&lt; MatrixTraits&lt; NestedMatrix &gt;::columns &gt;, NestedMatrix &gt;" shape="rect" coords="0,56,842,80"/>
+<area href="struct_open_kalman_1_1internal_1_1_matrix_base.html" alt="OpenKalman::internal::MatrixBase&lt; Mean&lt; Coeffs, NestedMatrix &gt;, NestedMatrix &gt;" shape="rect" coords="0,0,842,24"/>
   </map>
 </div></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:a4ec66d8b50a8a2c7e8e2d9cf539f18e5"><td class="memItemLeft" align="right" valign="top"><a id="a4ec66d8b50a8a2c7e8e2d9cf539f18e5"></a>
+<tr class="memitem:ae0e8ce71435941fc0e233932b980e507"><td class="memItemLeft" align="right" valign="top"><a id="ae0e8ce71435941fc0e233932b980e507"></a>
 using&#160;</td><td class="memItemRight" valign="bottom"><b>Coefficients</b> = Coeffs</td></tr>
-<tr class="separator:a4ec66d8b50a8a2c7e8e2d9cf539f18e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a439f65ee473ce5fb32951a25ba08b545"><td class="memItemLeft" align="right" valign="top"><a id="a439f65ee473ce5fb32951a25ba08b545"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>Base</b> = <a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html">internal::TypedMatrixBase</a>&lt; <a class="el" href="struct_open_kalman_1_1_mean.html">Mean</a>, Coefficients, <a class="el" href="namespace_open_kalman.html#ad7fbe21f478b7b06ac97b6eb6f5967c3">Axes</a>&lt; <a class="el" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits</a>&lt; <a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a47237ae139eed1e36d4eba388fccc0a6">BaseMatrix</a> &gt;::<a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a48a773ce459d0b82b58adeec382b995e">columns</a> &gt;, <a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a47237ae139eed1e36d4eba388fccc0a6">BaseMatrix</a> &gt;</td></tr>
-<tr class="separator:a439f65ee473ce5fb32951a25ba08b545"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a006d91dc97a53a6ecc61215fa9f9f044"><td class="memItemLeft" align="right" valign="top"><a id="a006d91dc97a53a6ecc61215fa9f9f044"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_mean.html#a006d91dc97a53a6ecc61215fa9f9f044">Scalar</a> = typename <a class="el" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits</a>&lt; <a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a47237ae139eed1e36d4eba388fccc0a6">BaseMatrix</a> &gt;::<a class="el" href="struct_open_kalman_1_1_mean.html#a006d91dc97a53a6ecc61215fa9f9f044">Scalar</a></td></tr>
-<tr class="memdesc:a006d91dc97a53a6ecc61215fa9f9f044"><td class="mdescLeft">&#160;</td><td class="mdescRight">Scalar type for this variable. <br /></td></tr>
-<tr class="separator:a006d91dc97a53a6ecc61215fa9f9f044"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="separator:ae0e8ce71435941fc0e233932b980e507"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a63b2a0ed82f6b13e53cac86277d90674"><td class="memItemLeft" align="right" valign="top"><a id="a63b2a0ed82f6b13e53cac86277d90674"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>Base</b> = <a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html">internal::TypedMatrixBase</a>&lt; <a class="el" href="struct_open_kalman_1_1_mean.html">Mean</a>, Coefficients, <a class="el" href="namespace_open_kalman.html#ad7fbe21f478b7b06ac97b6eb6f5967c3">Axes</a>&lt; <a class="el" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits</a>&lt; <a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a7a5b7cbef96464c0b8efcc1a192e00f8">NestedMatrix</a> &gt;::<a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a48a773ce459d0b82b58adeec382b995e">columns</a> &gt;, <a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a7a5b7cbef96464c0b8efcc1a192e00f8">NestedMatrix</a> &gt;</td></tr>
+<tr class="separator:a63b2a0ed82f6b13e53cac86277d90674"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7d7924d403cbca3f6a1fba7d778b3807"><td class="memItemLeft" align="right" valign="top"><a id="a7d7924d403cbca3f6a1fba7d778b3807"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_mean.html#a7d7924d403cbca3f6a1fba7d778b3807">Scalar</a> = typename <a class="el" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits</a>&lt; <a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a7a5b7cbef96464c0b8efcc1a192e00f8">NestedMatrix</a> &gt;::<a class="el" href="struct_open_kalman_1_1_mean.html#a7d7924d403cbca3f6a1fba7d778b3807">Scalar</a></td></tr>
+<tr class="memdesc:a7d7924d403cbca3f6a1fba7d778b3807"><td class="mdescLeft">&#160;</td><td class="mdescRight">Scalar type for this variable. <br /></td></tr>
+<tr class="separator:a7d7924d403cbca3f6a1fba7d778b3807"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4ff55cdd0cf170757a7115914d929557"><td class="memItemLeft" align="right" valign="top"><a id="a4ff55cdd0cf170757a7115914d929557"></a>
 using&#160;</td><td class="memItemRight" valign="bottom"><b>RowCoefficients</b> = Coeffs</td></tr>
 <tr class="separator:a4ff55cdd0cf170757a7115914d929557"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a68c42d641705aede54335208a81e6d5d"><td class="memItemLeft" align="right" valign="top"><a id="a68c42d641705aede54335208a81e6d5d"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>ColumnCoefficients</b> = <a class="el" href="namespace_open_kalman.html#ad7fbe21f478b7b06ac97b6eb6f5967c3">Axes</a>&lt; <a class="el" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits</a>&lt; <a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a47237ae139eed1e36d4eba388fccc0a6">BaseMatrix</a> &gt;::<a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a48a773ce459d0b82b58adeec382b995e">columns</a> &gt;</td></tr>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>ColumnCoefficients</b> = <a class="el" href="namespace_open_kalman.html#ad7fbe21f478b7b06ac97b6eb6f5967c3">Axes</a>&lt; <a class="el" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits</a>&lt; <a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a7a5b7cbef96464c0b8efcc1a192e00f8">NestedMatrix</a> &gt;::<a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a48a773ce459d0b82b58adeec382b995e">columns</a> &gt;</td></tr>
 <tr class="separator:a68c42d641705aede54335208a81e6d5d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a47237ae139eed1e36d4eba388fccc0a6"><td class="memItemLeft" align="right" valign="top"><a id="a47237ae139eed1e36d4eba388fccc0a6"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a47237ae139eed1e36d4eba388fccc0a6">BaseMatrix</a> = BaseMatrix</td></tr>
-<tr class="memdesc:a47237ae139eed1e36d4eba388fccc0a6"><td class="mdescLeft">&#160;</td><td class="mdescRight">The nested class. <br /></td></tr>
-<tr class="separator:a47237ae139eed1e36d4eba388fccc0a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7a5b7cbef96464c0b8efcc1a192e00f8"><td class="memItemLeft" align="right" valign="top"><a id="a7a5b7cbef96464c0b8efcc1a192e00f8"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a7a5b7cbef96464c0b8efcc1a192e00f8">NestedMatrix</a> = <a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a7a5b7cbef96464c0b8efcc1a192e00f8">NestedMatrix</a></td></tr>
+<tr class="memdesc:a7a5b7cbef96464c0b8efcc1a192e00f8"><td class="mdescLeft">&#160;</td><td class="mdescRight">The nested class. <br /></td></tr>
+<tr class="separator:a7a5b7cbef96464c0b8efcc1a192e00f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a9db1b5c0babc75531067e9aede605941"><td class="memItemLeft" align="right" valign="top"><a id="a9db1b5c0babc75531067e9aede605941"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_mean.html#a9db1b5c0babc75531067e9aede605941">Mean</a> ()</td></tr>
-<tr class="memdesc:a9db1b5c0babc75531067e9aede605941"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default constructor. <br /></td></tr>
-<tr class="separator:a9db1b5c0babc75531067e9aede605941"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a48ece0dcdaccd561ce7453522144b1e2"><td class="memItemLeft" align="right" valign="top"><a id="a48ece0dcdaccd561ce7453522144b1e2"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_mean.html#a48ece0dcdaccd561ce7453522144b1e2">Mean</a> (const <a class="el" href="struct_open_kalman_1_1_mean.html">Mean</a> &amp;other)</td></tr>
-<tr class="memdesc:a48ece0dcdaccd561ce7453522144b1e2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy constructor. <br /></td></tr>
-<tr class="separator:a48ece0dcdaccd561ce7453522144b1e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad17d6ace3eb2d241f7d369c475a6d3aa"><td class="memItemLeft" align="right" valign="top"><a id="ad17d6ace3eb2d241f7d369c475a6d3aa"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_mean.html#ad17d6ace3eb2d241f7d369c475a6d3aa">Mean</a> (<a class="el" href="struct_open_kalman_1_1_mean.html">Mean</a> &amp;&amp;other) noexcept</td></tr>
-<tr class="memdesc:ad17d6ace3eb2d241f7d369c475a6d3aa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Move constructor. <br /></td></tr>
-<tr class="separator:ad17d6ace3eb2d241f7d369c475a6d3aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af9896d1352386b4337a87e4b0de4b0dc"><td class="memTemplParams" colspan="2"><a id="af9896d1352386b4337a87e4b0de4b0dc"></a>
+<tr class="memitem:ae5bfe9e5917a8e53528dbde3b7dfa9d0"><td class="memItemLeft" align="right" valign="top"><a id="ae5bfe9e5917a8e53528dbde3b7dfa9d0"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_mean.html#ae5bfe9e5917a8e53528dbde3b7dfa9d0">Mean</a> ()</td></tr>
+<tr class="memdesc:ae5bfe9e5917a8e53528dbde3b7dfa9d0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default constructor. <br /></td></tr>
+<tr class="separator:ae5bfe9e5917a8e53528dbde3b7dfa9d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a170ffbbb20f0f8b84ca18b2cd61bcbfe"><td class="memItemLeft" align="right" valign="top"><a id="a170ffbbb20f0f8b84ca18b2cd61bcbfe"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_mean.html#a170ffbbb20f0f8b84ca18b2cd61bcbfe">Mean</a> (const <a class="el" href="struct_open_kalman_1_1_mean.html">Mean</a> &amp;other)</td></tr>
+<tr class="memdesc:a170ffbbb20f0f8b84ca18b2cd61bcbfe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy constructor. <br /></td></tr>
+<tr class="separator:a170ffbbb20f0f8b84ca18b2cd61bcbfe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a50055d9af1315650f1434a50f08f4a9d"><td class="memItemLeft" align="right" valign="top"><a id="a50055d9af1315650f1434a50f08f4a9d"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_mean.html#a50055d9af1315650f1434a50f08f4a9d">Mean</a> (<a class="el" href="struct_open_kalman_1_1_mean.html">Mean</a> &amp;&amp;other) noexcept</td></tr>
+<tr class="memdesc:a50055d9af1315650f1434a50f08f4a9d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Move constructor. <br /></td></tr>
+<tr class="separator:a50055d9af1315650f1434a50f08f4a9d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a32a79427c9e8c0b133cc7284390d2a8f"><td class="memTemplParams" colspan="2"><a id="a32a79427c9e8c0b133cc7284390d2a8f"></a>
 template&lt;typename Arg , std::enable_if_t&lt; mean&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:af9896d1352386b4337a87e4b0de4b0dc"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_mean.html#af9896d1352386b4337a87e4b0de4b0dc">Mean</a> (Arg &amp;&amp;other) noexcept</td></tr>
-<tr class="memdesc:af9896d1352386b4337a87e4b0de4b0dc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct from a compatible mean. <br /></td></tr>
-<tr class="separator:af9896d1352386b4337a87e4b0de4b0dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af9896d1352386b4337a87e4b0de4b0dc"><td class="memTemplParams" colspan="2"><a id="af9896d1352386b4337a87e4b0de4b0dc"></a>
+<tr class="memitem:a32a79427c9e8c0b133cc7284390d2a8f"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_mean.html#a32a79427c9e8c0b133cc7284390d2a8f">Mean</a> (Arg &amp;&amp;other) noexcept</td></tr>
+<tr class="memdesc:a32a79427c9e8c0b133cc7284390d2a8f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct from a compatible mean. <br /></td></tr>
+<tr class="separator:a32a79427c9e8c0b133cc7284390d2a8f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a32a79427c9e8c0b133cc7284390d2a8f"><td class="memTemplParams" colspan="2"><a id="a32a79427c9e8c0b133cc7284390d2a8f"></a>
 template&lt;typename Arg , std::enable_if_t&lt; typed_matrix&lt; Arg &gt; and not euclidean_transformed&lt; Arg &gt; and not mean&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:af9896d1352386b4337a87e4b0de4b0dc"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_mean.html#af9896d1352386b4337a87e4b0de4b0dc">Mean</a> (Arg &amp;&amp;other) noexcept</td></tr>
-<tr class="memdesc:af9896d1352386b4337a87e4b0de4b0dc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct from a compatible typed matrix or Euclidean-transformed mean. <br /></td></tr>
-<tr class="separator:af9896d1352386b4337a87e4b0de4b0dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af9896d1352386b4337a87e4b0de4b0dc"><td class="memTemplParams" colspan="2"><a id="af9896d1352386b4337a87e4b0de4b0dc"></a>
+<tr class="memitem:a32a79427c9e8c0b133cc7284390d2a8f"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_mean.html#a32a79427c9e8c0b133cc7284390d2a8f">Mean</a> (Arg &amp;&amp;other) noexcept</td></tr>
+<tr class="memdesc:a32a79427c9e8c0b133cc7284390d2a8f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct from a compatible typed matrix or Euclidean-transformed mean. <br /></td></tr>
+<tr class="separator:a32a79427c9e8c0b133cc7284390d2a8f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a32a79427c9e8c0b133cc7284390d2a8f"><td class="memTemplParams" colspan="2"><a id="a32a79427c9e8c0b133cc7284390d2a8f"></a>
 template&lt;typename Arg , std::enable_if_t&lt; typed_matrix&lt; Arg &gt; and euclidean_transformed&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:af9896d1352386b4337a87e4b0de4b0dc"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_mean.html#af9896d1352386b4337a87e4b0de4b0dc">Mean</a> (Arg &amp;&amp;other) noexcept</td></tr>
-<tr class="memdesc:af9896d1352386b4337a87e4b0de4b0dc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct from a compatible Euclidean-transformed typed matrix. <br /></td></tr>
-<tr class="separator:af9896d1352386b4337a87e4b0de4b0dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1a4730531c6de807162b65d5c15e50b1"><td class="memTemplParams" colspan="2"><a id="a1a4730531c6de807162b65d5c15e50b1"></a>
-template&lt;typename Arg , std::enable_if_t&lt; typed_matrix_base&lt; Arg &gt; and not(std::is_lvalue_reference_v&lt; typename MatrixTraits&lt; Arg &gt;::BaseMatrix &gt; or not std::is_constructible_v&lt; Base, decltype(wrap_angles&lt; Coefficients &gt;(std::declval&lt; Arg &gt;()))&gt;), int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a1a4730531c6de807162b65d5c15e50b1"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_mean.html#a1a4730531c6de807162b65d5c15e50b1">Mean</a> (Arg &amp;&amp;arg) noexcept</td></tr>
-<tr class="memdesc:a1a4730531c6de807162b65d5c15e50b1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct from a typed matrix base. <br /></td></tr>
-<tr class="separator:a1a4730531c6de807162b65d5c15e50b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1a4730531c6de807162b65d5c15e50b1"><td class="memTemplParams" colspan="2"><a id="a1a4730531c6de807162b65d5c15e50b1"></a>
-template&lt;typename Arg , std::enable_if_t&lt; typed_matrix_base&lt; Arg &gt; and(std::is_lvalue_reference_v&lt; typename MatrixTraits&lt; Arg &gt;::BaseMatrix &gt; or not std::is_constructible_v&lt; Base, decltype(wrap_angles&lt; Coefficients &gt;(std::declval&lt; Arg &gt;()))&gt;), int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a1a4730531c6de807162b65d5c15e50b1"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_mean.html#a1a4730531c6de807162b65d5c15e50b1">Mean</a> (Arg &amp;&amp;arg) noexcept</td></tr>
-<tr class="memdesc:a1a4730531c6de807162b65d5c15e50b1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct from a typed matrix base. For situations when angle wrapping should not occur. <br /></td></tr>
-<tr class="separator:a1a4730531c6de807162b65d5c15e50b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a26c994f2379d4a2fb64ee33c77136b79"><td class="memTemplParams" colspan="2"><a id="a26c994f2379d4a2fb64ee33c77136b79"></a>
+<tr class="memitem:a32a79427c9e8c0b133cc7284390d2a8f"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_mean.html#a32a79427c9e8c0b133cc7284390d2a8f">Mean</a> (Arg &amp;&amp;other) noexcept</td></tr>
+<tr class="memdesc:a32a79427c9e8c0b133cc7284390d2a8f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct from a compatible Euclidean-transformed typed matrix. <br /></td></tr>
+<tr class="separator:a32a79427c9e8c0b133cc7284390d2a8f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a46e131f963323fb8d5a15fb4a8dece40"><td class="memTemplParams" colspan="2"><a id="a46e131f963323fb8d5a15fb4a8dece40"></a>
+template&lt;typename Arg , std::enable_if_t&lt; typed_matrix_nestable&lt; Arg &gt; and not(internal::contains_nested_lvalue_reference&lt; Arg &gt; or not std::is_constructible_v&lt; Base, decltype(wrap_angles&lt; Coefficients &gt;(std::declval&lt; Arg &gt;()))&gt;), int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:a46e131f963323fb8d5a15fb4a8dece40"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_mean.html#a46e131f963323fb8d5a15fb4a8dece40">Mean</a> (Arg &amp;&amp;arg) noexcept</td></tr>
+<tr class="memdesc:a46e131f963323fb8d5a15fb4a8dece40"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct from a typed_matrix_nestable. <br /></td></tr>
+<tr class="separator:a46e131f963323fb8d5a15fb4a8dece40"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a46e131f963323fb8d5a15fb4a8dece40"><td class="memTemplParams" colspan="2"><a id="a46e131f963323fb8d5a15fb4a8dece40"></a>
+template&lt;typename Arg , std::enable_if_t&lt; typed_matrix_nestable&lt; Arg &gt; and(internal::contains_nested_lvalue_reference&lt; Arg &gt; or not std::is_constructible_v&lt; Base, decltype(wrap_angles&lt; Coefficients &gt;(std::declval&lt; Arg &gt;()))&gt;), int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:a46e131f963323fb8d5a15fb4a8dece40"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_mean.html#a46e131f963323fb8d5a15fb4a8dece40">Mean</a> (Arg &amp;&amp;arg) noexcept</td></tr>
+<tr class="memdesc:a46e131f963323fb8d5a15fb4a8dece40"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct from a typed_matrix_nestable. For situations when angle wrapping should not occur. <br /></td></tr>
+<tr class="separator:a46e131f963323fb8d5a15fb4a8dece40"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0be4fd420d6be557f03e16b26fa3fffa"><td class="memTemplParams" colspan="2"><a id="a0be4fd420d6be557f03e16b26fa3fffa"></a>
 template&lt;typename ... Args, std::enable_if_t&lt; std::conjunction_v&lt; std::is_convertible&lt; Args, const Scalar &gt;... &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a26c994f2379d4a2fb64ee33c77136b79"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_mean.html#a26c994f2379d4a2fb64ee33c77136b79">Mean</a> (Args ... args)</td></tr>
-<tr class="memdesc:a26c994f2379d4a2fb64ee33c77136b79"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct from a list of coefficients. <br /></td></tr>
-<tr class="separator:a26c994f2379d4a2fb64ee33c77136b79"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab9f234fa30147d98ce81568d0828b9df"><td class="memItemLeft" align="right" valign="top"><a id="ab9f234fa30147d98ce81568d0828b9df"></a>
-auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_mean.html#ab9f234fa30147d98ce81568d0828b9df">operator=</a> (const <a class="el" href="struct_open_kalman_1_1_mean.html">Mean</a> &amp;other)</td></tr>
-<tr class="memdesc:ab9f234fa30147d98ce81568d0828b9df"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy assignment operator. <br /></td></tr>
-<tr class="separator:ab9f234fa30147d98ce81568d0828b9df"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac62c5c9c7ebcb5af452fd7747eef9572"><td class="memItemLeft" align="right" valign="top"><a id="ac62c5c9c7ebcb5af452fd7747eef9572"></a>
-auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_mean.html#ac62c5c9c7ebcb5af452fd7747eef9572">operator=</a> (<a class="el" href="struct_open_kalman_1_1_mean.html">Mean</a> &amp;&amp;other)</td></tr>
-<tr class="memdesc:ac62c5c9c7ebcb5af452fd7747eef9572"><td class="mdescLeft">&#160;</td><td class="mdescRight">Move assignment operator. <br /></td></tr>
-<tr class="separator:ac62c5c9c7ebcb5af452fd7747eef9572"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa156e0a83012140159ae3a3551043a9f"><td class="memTemplParams" colspan="2"><a id="aa156e0a83012140159ae3a3551043a9f"></a>
+<tr class="memitem:a0be4fd420d6be557f03e16b26fa3fffa"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_mean.html#a0be4fd420d6be557f03e16b26fa3fffa">Mean</a> (Args ... args)</td></tr>
+<tr class="memdesc:a0be4fd420d6be557f03e16b26fa3fffa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct from a list of coefficients. <br /></td></tr>
+<tr class="separator:a0be4fd420d6be557f03e16b26fa3fffa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4573d800121ee90986a1280ac716c47b"><td class="memItemLeft" align="right" valign="top"><a id="a4573d800121ee90986a1280ac716c47b"></a>
+auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_mean.html#a4573d800121ee90986a1280ac716c47b">operator=</a> (const <a class="el" href="struct_open_kalman_1_1_mean.html">Mean</a> &amp;other)</td></tr>
+<tr class="memdesc:a4573d800121ee90986a1280ac716c47b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy assignment operator. <br /></td></tr>
+<tr class="separator:a4573d800121ee90986a1280ac716c47b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3655e2479613d5b9dbc5b00340144812"><td class="memItemLeft" align="right" valign="top"><a id="a3655e2479613d5b9dbc5b00340144812"></a>
+auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_mean.html#a3655e2479613d5b9dbc5b00340144812">operator=</a> (<a class="el" href="struct_open_kalman_1_1_mean.html">Mean</a> &amp;&amp;other)</td></tr>
+<tr class="memdesc:a3655e2479613d5b9dbc5b00340144812"><td class="mdescLeft">&#160;</td><td class="mdescRight">Move assignment operator. <br /></td></tr>
+<tr class="separator:a3655e2479613d5b9dbc5b00340144812"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afb5976ca283911892ae1b7079ecba7f1"><td class="memTemplParams" colspan="2"><a id="afb5976ca283911892ae1b7079ecba7f1"></a>
 template&lt;typename Arg , std::enable_if_t&lt; typed_matrix&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:aa156e0a83012140159ae3a3551043a9f"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_mean.html#aa156e0a83012140159ae3a3551043a9f">operator=</a> (Arg &amp;&amp;other) noexcept</td></tr>
-<tr class="memdesc:aa156e0a83012140159ae3a3551043a9f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Assign from a compatible typed matrix. <br /></td></tr>
-<tr class="separator:aa156e0a83012140159ae3a3551043a9f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acaa542f9087bd5f2d66193a411f44f5a"><td class="memItemLeft" align="right" valign="top"><a id="acaa542f9087bd5f2d66193a411f44f5a"></a>
-auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_mean.html#acaa542f9087bd5f2d66193a411f44f5a">operator+=</a> (const <a class="el" href="struct_open_kalman_1_1_mean.html">Mean</a> &amp;other)</td></tr>
-<tr class="memdesc:acaa542f9087bd5f2d66193a411f44f5a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Increment from another mean. <br /></td></tr>
-<tr class="separator:acaa542f9087bd5f2d66193a411f44f5a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a21a32f72accde3df82bbfff79f91e651"><td class="memTemplParams" colspan="2"><a id="a21a32f72accde3df82bbfff79f91e651"></a>
+<tr class="memitem:afb5976ca283911892ae1b7079ecba7f1"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_mean.html#afb5976ca283911892ae1b7079ecba7f1">operator=</a> (Arg &amp;&amp;other) noexcept</td></tr>
+<tr class="memdesc:afb5976ca283911892ae1b7079ecba7f1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Assign from a compatible typed matrix. <br /></td></tr>
+<tr class="separator:afb5976ca283911892ae1b7079ecba7f1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae4244625e87206a7596c4568b4b37584"><td class="memItemLeft" align="right" valign="top"><a id="ae4244625e87206a7596c4568b4b37584"></a>
+auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_mean.html#ae4244625e87206a7596c4568b4b37584">operator+=</a> (const <a class="el" href="struct_open_kalman_1_1_mean.html">Mean</a> &amp;other)</td></tr>
+<tr class="memdesc:ae4244625e87206a7596c4568b4b37584"><td class="mdescLeft">&#160;</td><td class="mdescRight">Increment from another mean. <br /></td></tr>
+<tr class="separator:ae4244625e87206a7596c4568b4b37584"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac6aaf458d68df9c17259da9235e71e04"><td class="memTemplParams" colspan="2"><a id="ac6aaf458d68df9c17259da9235e71e04"></a>
 template&lt;typename Arg , std::enable_if_t&lt; typed_matrix&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a21a32f72accde3df82bbfff79f91e651"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_mean.html#a21a32f72accde3df82bbfff79f91e651">operator+=</a> (Arg &amp;&amp;other) noexcept</td></tr>
-<tr class="memdesc:a21a32f72accde3df82bbfff79f91e651"><td class="mdescLeft">&#160;</td><td class="mdescRight">Increment from another typed matrix. <br /></td></tr>
-<tr class="separator:a21a32f72accde3df82bbfff79f91e651"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad293fd10b8ac61463866cd1525f0b53f"><td class="memTemplParams" colspan="2"><a id="ad293fd10b8ac61463866cd1525f0b53f"></a>
+<tr class="memitem:ac6aaf458d68df9c17259da9235e71e04"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_mean.html#ac6aaf458d68df9c17259da9235e71e04">operator+=</a> (Arg &amp;&amp;other) noexcept</td></tr>
+<tr class="memdesc:ac6aaf458d68df9c17259da9235e71e04"><td class="mdescLeft">&#160;</td><td class="mdescRight">Increment from another typed matrix. <br /></td></tr>
+<tr class="separator:ac6aaf458d68df9c17259da9235e71e04"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acd18b46baa0220ce5b22bd5070bd59ee"><td class="memTemplParams" colspan="2"><a id="acd18b46baa0220ce5b22bd5070bd59ee"></a>
 template&lt;typename Arg , std::enable_if_t&lt; distribution&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:ad293fd10b8ac61463866cd1525f0b53f"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_mean.html#ad293fd10b8ac61463866cd1525f0b53f">operator+=</a> (const Arg &amp;arg) noexcept</td></tr>
-<tr class="memdesc:ad293fd10b8ac61463866cd1525f0b53f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add a stochastic value to each column of the mean, based on a distribution. <br /></td></tr>
-<tr class="separator:ad293fd10b8ac61463866cd1525f0b53f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a772428e23a802d787481a9959559bd34"><td class="memItemLeft" align="right" valign="top"><a id="a772428e23a802d787481a9959559bd34"></a>
-auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_mean.html#a772428e23a802d787481a9959559bd34">operator-=</a> (const <a class="el" href="struct_open_kalman_1_1_mean.html">Mean</a> &amp;other)</td></tr>
-<tr class="memdesc:a772428e23a802d787481a9959559bd34"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decrement from another mean and wrap result. <br /></td></tr>
-<tr class="separator:a772428e23a802d787481a9959559bd34"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a959a4b258785181561ec575341423119"><td class="memTemplParams" colspan="2"><a id="a959a4b258785181561ec575341423119"></a>
+<tr class="memitem:acd18b46baa0220ce5b22bd5070bd59ee"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_mean.html#acd18b46baa0220ce5b22bd5070bd59ee">operator+=</a> (const Arg &amp;arg) noexcept</td></tr>
+<tr class="memdesc:acd18b46baa0220ce5b22bd5070bd59ee"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add a stochastic value to each column of the mean, based on a distribution. <br /></td></tr>
+<tr class="separator:acd18b46baa0220ce5b22bd5070bd59ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acff874e663a831e71a71af9048b128e9"><td class="memItemLeft" align="right" valign="top"><a id="acff874e663a831e71a71af9048b128e9"></a>
+auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_mean.html#acff874e663a831e71a71af9048b128e9">operator-=</a> (const <a class="el" href="struct_open_kalman_1_1_mean.html">Mean</a> &amp;other)</td></tr>
+<tr class="memdesc:acff874e663a831e71a71af9048b128e9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decrement from another mean and wrap result. <br /></td></tr>
+<tr class="separator:acff874e663a831e71a71af9048b128e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4354985465672a9c85b830575d83c6c6"><td class="memTemplParams" colspan="2"><a id="a4354985465672a9c85b830575d83c6c6"></a>
 template&lt;typename Arg , std::enable_if_t&lt; typed_matrix&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a959a4b258785181561ec575341423119"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_mean.html#a959a4b258785181561ec575341423119">operator-=</a> (Arg &amp;&amp;other) noexcept</td></tr>
-<tr class="memdesc:a959a4b258785181561ec575341423119"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decrement from another typed matrix and wrap result. <br /></td></tr>
-<tr class="separator:a959a4b258785181561ec575341423119"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3beefa444b25b5bd3c9473b0a7d2fd76"><td class="memTemplParams" colspan="2"><a id="a3beefa444b25b5bd3c9473b0a7d2fd76"></a>
+<tr class="memitem:a4354985465672a9c85b830575d83c6c6"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_mean.html#a4354985465672a9c85b830575d83c6c6">operator-=</a> (Arg &amp;&amp;other) noexcept</td></tr>
+<tr class="memdesc:a4354985465672a9c85b830575d83c6c6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decrement from another typed matrix and wrap result. <br /></td></tr>
+<tr class="separator:a4354985465672a9c85b830575d83c6c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a343557cc20a045524f26437842a30005"><td class="memTemplParams" colspan="2"><a id="a343557cc20a045524f26437842a30005"></a>
 template&lt;typename Arg , std::enable_if_t&lt; distribution&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a3beefa444b25b5bd3c9473b0a7d2fd76"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_mean.html#a3beefa444b25b5bd3c9473b0a7d2fd76">operator-=</a> (const Arg &amp;arg) noexcept</td></tr>
-<tr class="memdesc:a3beefa444b25b5bd3c9473b0a7d2fd76"><td class="mdescLeft">&#160;</td><td class="mdescRight">Subtract a stochastic value to each column of the mean, based on a distribution. <br /></td></tr>
-<tr class="separator:a3beefa444b25b5bd3c9473b0a7d2fd76"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af750ecb1eca1e944cfdac3362df6db4b"><td class="memTemplParams" colspan="2"><a id="af750ecb1eca1e944cfdac3362df6db4b"></a>
+<tr class="memitem:a343557cc20a045524f26437842a30005"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_mean.html#a343557cc20a045524f26437842a30005">operator-=</a> (const Arg &amp;arg) noexcept</td></tr>
+<tr class="memdesc:a343557cc20a045524f26437842a30005"><td class="mdescLeft">&#160;</td><td class="mdescRight">Subtract a stochastic value to each column of the mean, based on a distribution. <br /></td></tr>
+<tr class="separator:a343557cc20a045524f26437842a30005"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:affd09255c5b8af518756494efaa02262"><td class="memTemplParams" colspan="2"><a id="affd09255c5b8af518756494efaa02262"></a>
 template&lt;typename S , std::enable_if_t&lt; std::is_convertible_v&lt; S, Scalar &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:af750ecb1eca1e944cfdac3362df6db4b"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_mean.html#af750ecb1eca1e944cfdac3362df6db4b">operator*=</a> (const S s)</td></tr>
-<tr class="memdesc:af750ecb1eca1e944cfdac3362df6db4b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Multiply by a scale factor. <br /></td></tr>
-<tr class="separator:af750ecb1eca1e944cfdac3362df6db4b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a18a6817203c616189b7c203c260a039c"><td class="memTemplParams" colspan="2"><a id="a18a6817203c616189b7c203c260a039c"></a>
+<tr class="memitem:affd09255c5b8af518756494efaa02262"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_mean.html#affd09255c5b8af518756494efaa02262">operator*=</a> (const S s)</td></tr>
+<tr class="memdesc:affd09255c5b8af518756494efaa02262"><td class="mdescLeft">&#160;</td><td class="mdescRight">Multiply by a scale factor. <br /></td></tr>
+<tr class="separator:affd09255c5b8af518756494efaa02262"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2063274c5104d70d595689bc7e234c4c"><td class="memTemplParams" colspan="2"><a id="a2063274c5104d70d595689bc7e234c4c"></a>
 template&lt;typename S , std::enable_if_t&lt; std::is_convertible_v&lt; S, Scalar &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a18a6817203c616189b7c203c260a039c"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_mean.html#a18a6817203c616189b7c203c260a039c">operator/=</a> (const S s)</td></tr>
-<tr class="memdesc:a18a6817203c616189b7c203c260a039c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Divide by a scale factor. <br /></td></tr>
-<tr class="separator:a18a6817203c616189b7c203c260a039c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2063274c5104d70d595689bc7e234c4c"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_mean.html#a2063274c5104d70d595689bc7e234c4c">operator/=</a> (const S s)</td></tr>
+<tr class="memdesc:a2063274c5104d70d595689bc7e234c4c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Divide by a scale factor. <br /></td></tr>
+<tr class="separator:a2063274c5104d70d595689bc7e234c4c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4931b07c987b684c181976ffed17dd76"><td class="memItemLeft" align="right" valign="top"><a id="a4931b07c987b684c181976ffed17dd76"></a>
 auto&#160;</td><td class="memItemRight" valign="bottom"><b>operator()</b> (std::size_t i, std::size_t j) &amp;</td></tr>
 <tr class="separator:a4931b07c987b684c181976ffed17dd76"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -268,31 +269,24 @@ auto&#160;</td><td class="memItemRight" valign="bottom"><b>operator[]</b> (std::
 <tr class="memitem:a7b4e9bd73483b4cc83f3f69c1438e309"><td class="memItemLeft" align="right" valign="top"><a id="a7b4e9bd73483b4cc83f3f69c1438e309"></a>
 auto&#160;</td><td class="memItemRight" valign="bottom"><b>operator[]</b> (std::size_t i) const &amp;&amp;</td></tr>
 <tr class="separator:a7b4e9bd73483b4cc83f3f69c1438e309"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a620fefcc4c1d2d57e0cc8380680706d2"><td class="memItemLeft" align="right" valign="top"><a id="a620fefcc4c1d2d57e0cc8380680706d2"></a>
-constexpr auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>base_matrix</b> () &amp;</td></tr>
-<tr class="memdesc:a620fefcc4c1d2d57e0cc8380680706d2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the base matrix. <br /></td></tr>
-<tr class="separator:a620fefcc4c1d2d57e0cc8380680706d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a618d552651e7bf96a5620361530314c9"><td class="memItemLeft" align="right" valign="top"><a id="a618d552651e7bf96a5620361530314c9"></a>
-constexpr auto &amp;&amp;&#160;</td><td class="memItemRight" valign="bottom"><b>base_matrix</b> () &amp;&amp;</td></tr>
-<tr class="memdesc:a618d552651e7bf96a5620361530314c9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the base matrix. <br /></td></tr>
-<tr class="separator:a618d552651e7bf96a5620361530314c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afd6b1d3e9c928bce8641d902be0146f7"><td class="memItemLeft" align="right" valign="top"><a id="afd6b1d3e9c928bce8641d902be0146f7"></a>
-constexpr const auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>base_matrix</b> () const &amp;</td></tr>
-<tr class="memdesc:afd6b1d3e9c928bce8641d902be0146f7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the base matrix. <br /></td></tr>
-<tr class="separator:afd6b1d3e9c928bce8641d902be0146f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae558aa563c88d72b4f8571162226a8e1"><td class="memItemLeft" align="right" valign="top"><a id="ae558aa563c88d72b4f8571162226a8e1"></a>
-constexpr const auto &amp;&amp;&#160;</td><td class="memItemRight" valign="bottom"><b>base_matrix</b> () const &amp;&amp;</td></tr>
-<tr class="memdesc:ae558aa563c88d72b4f8571162226a8e1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the base matrix. <br /></td></tr>
-<tr class="separator:ae558aa563c88d72b4f8571162226a8e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3418b2a4dcfe6e9c62ab1f37ce15503c"><td class="memItemLeft" align="right" valign="top">constexpr auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1_matrix_base.html#a3418b2a4dcfe6e9c62ab1f37ce15503c">nested_matrix</a> () &amp;</td></tr>
+<tr class="memdesc:a3418b2a4dcfe6e9c62ab1f37ce15503c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the nested matrix of this covariance matrix.  <a href="struct_open_kalman_1_1internal_1_1_matrix_base.html#a3418b2a4dcfe6e9c62ab1f37ce15503c">More...</a><br /></td></tr>
+<tr class="separator:a3418b2a4dcfe6e9c62ab1f37ce15503c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4503a0ddf37a5c6cd18543bf80f9a065"><td class="memItemLeft" align="right" valign="top">constexpr auto &amp;&amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1_matrix_base.html#a4503a0ddf37a5c6cd18543bf80f9a065">nested_matrix</a> () &amp;&amp;</td></tr>
+<tr class="separator:a4503a0ddf37a5c6cd18543bf80f9a065"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a04b892885f61fa451d503325e6c39bcd"><td class="memItemLeft" align="right" valign="top">constexpr const auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1_matrix_base.html#a04b892885f61fa451d503325e6c39bcd">nested_matrix</a> () const &amp;</td></tr>
+<tr class="separator:a04b892885f61fa451d503325e6c39bcd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af02e754e6d550efee9ee61bdddaec32b"><td class="memItemLeft" align="right" valign="top">constexpr const auto &amp;&amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1_matrix_base.html#af02e754e6d550efee9ee61bdddaec32b">nested_matrix</a> () const &amp;&amp;</td></tr>
+<tr class="separator:af02e754e6d550efee9ee61bdddaec32b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:a2733328712de199fe46f061a2d5fe2d4"><td class="memItemLeft" align="right" valign="top"><a id="a2733328712de199fe46f061a2d5fe2d4"></a>
+<tr class="memitem:a284917cd7ceeb447afd9eebd1cd7d760"><td class="memItemLeft" align="right" valign="top"><a id="a284917cd7ceeb447afd9eebd1cd7d760"></a>
 static auto&#160;</td><td class="memItemRight" valign="bottom"><b>zero</b> ()</td></tr>
-<tr class="separator:a2733328712de199fe46f061a2d5fe2d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7a39f51e09351a22732e40f8b71fa611"><td class="memItemLeft" align="right" valign="top"><a id="a7a39f51e09351a22732e40f8b71fa611"></a>
+<tr class="separator:a284917cd7ceeb447afd9eebd1cd7d760"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9dfcc29b4124c5ca63156ce7e38cc7e3"><td class="memItemLeft" align="right" valign="top"><a id="a9dfcc29b4124c5ca63156ce7e38cc7e3"></a>
 static auto&#160;</td><td class="memItemRight" valign="bottom"><b>identity</b> ()</td></tr>
-<tr class="separator:a7a39f51e09351a22732e40f8b71fa611"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="separator:a9dfcc29b4124c5ca63156ce7e38cc7e3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
@@ -307,11 +301,129 @@ static constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><a clas
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-static-methods"></a>
 Static Protected Member Functions</h2></td></tr>
-<tr class="memitem:aa9264ae0779b135195389adb85778a24"><td class="memTemplParams" colspan="2"><a id="aa9264ae0779b135195389adb85778a24"></a>
+<tr class="memitem:a3e048f3462442a734568e2044dcea330"><td class="memTemplParams" colspan="2"><a id="a3e048f3462442a734568e2044dcea330"></a>
 template&lt;typename C  = Coefficients, typename Arg &gt; </td></tr>
-<tr class="memitem:aa9264ae0779b135195389adb85778a24"><td class="memTemplItemLeft" align="right" valign="top">static auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>make</b> (Arg &amp;&amp;arg) noexcept</td></tr>
-<tr class="separator:aa9264ae0779b135195389adb85778a24"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3e048f3462442a734568e2044dcea330"><td class="memTemplItemLeft" align="right" valign="top">static auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>make</b> (Arg &amp;&amp;arg) noexcept</td></tr>
+<tr class="separator:a3e048f3462442a734568e2044dcea330"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<h2 class="groupheader">Member Function Documentation</h2>
+<a id="a3418b2a4dcfe6e9c62ab1f37ce15503c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3418b2a4dcfe6e9c62ab1f37ce15503c">&#9670;&nbsp;</a></span>nested_matrix() <span class="overload">[1/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr auto&amp; <a class="el" href="struct_open_kalman_1_1internal_1_1_matrix_base.html">OpenKalman::internal::MatrixBase</a>&lt; <a class="el" href="struct_open_kalman_1_1_mean.html">Mean</a>&lt; Coeffs, <a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a7a5b7cbef96464c0b8efcc1a192e00f8">NestedMatrix</a> &gt; , <a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a7a5b7cbef96464c0b8efcc1a192e00f8">NestedMatrix</a> &gt;::nested_matrix </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> &amp;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Get the nested matrix of this covariance matrix. </p>
+<p>The nested matrix will be self-adjoint, triangular, or diagonal. </p><dl class="section return"><dt>Returns</dt><dd>An lvalue reference to the nested matrix. </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="_matrix_base_8hpp_source.html#l00111">111</a> of file <a class="el" href="_matrix_base_8hpp_source.html">MatrixBase.hpp</a>.</p>
+
+</div>
+</div>
+<a id="a4503a0ddf37a5c6cd18543bf80f9a065"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4503a0ddf37a5c6cd18543bf80f9a065">&#9670;&nbsp;</a></span>nested_matrix() <span class="overload">[2/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr auto&amp;&amp; <a class="el" href="struct_open_kalman_1_1internal_1_1_matrix_base.html">OpenKalman::internal::MatrixBase</a>&lt; <a class="el" href="struct_open_kalman_1_1_mean.html">Mean</a>&lt; Coeffs, <a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a7a5b7cbef96464c0b8efcc1a192e00f8">NestedMatrix</a> &gt; , <a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a7a5b7cbef96464c0b8efcc1a192e00f8">NestedMatrix</a> &gt;::nested_matrix </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> &amp;&amp;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Get the nested matrix of this covariance matrix temporary. </p><dl class="section see"><dt>See also</dt><dd>constexpr auto&amp; <a class="el" href="struct_open_kalman_1_1internal_1_1_matrix_base.html#a3418b2a4dcfe6e9c62ab1f37ce15503c" title="Get the nested matrix of this covariance matrix.">nested_matrix()</a> &amp; </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>An rvalue reference to the nested matrix. </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="_matrix_base_8hpp_source.html#l00119">119</a> of file <a class="el" href="_matrix_base_8hpp_source.html">MatrixBase.hpp</a>.</p>
+
+</div>
+</div>
+<a id="a04b892885f61fa451d503325e6c39bcd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a04b892885f61fa451d503325e6c39bcd">&#9670;&nbsp;</a></span>nested_matrix() <span class="overload">[3/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr const auto&amp; <a class="el" href="struct_open_kalman_1_1internal_1_1_matrix_base.html">OpenKalman::internal::MatrixBase</a>&lt; <a class="el" href="struct_open_kalman_1_1_mean.html">Mean</a>&lt; Coeffs, <a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a7a5b7cbef96464c0b8efcc1a192e00f8">NestedMatrix</a> &gt; , <a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a7a5b7cbef96464c0b8efcc1a192e00f8">NestedMatrix</a> &gt;::nested_matrix </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const &amp;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Get the nested matrix of this constant covariance matrix. </p><dl class="section see"><dt>See also</dt><dd>constexpr auto&amp; <a class="el" href="struct_open_kalman_1_1internal_1_1_matrix_base.html#a3418b2a4dcfe6e9c62ab1f37ce15503c" title="Get the nested matrix of this covariance matrix.">nested_matrix()</a> &amp; </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>A constant lvalue reference to the nested matrix. </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="_matrix_base_8hpp_source.html#l00127">127</a> of file <a class="el" href="_matrix_base_8hpp_source.html">MatrixBase.hpp</a>.</p>
+
+</div>
+</div>
+<a id="af02e754e6d550efee9ee61bdddaec32b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af02e754e6d550efee9ee61bdddaec32b">&#9670;&nbsp;</a></span>nested_matrix() <span class="overload">[4/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr const auto&amp;&amp; <a class="el" href="struct_open_kalman_1_1internal_1_1_matrix_base.html">OpenKalman::internal::MatrixBase</a>&lt; <a class="el" href="struct_open_kalman_1_1_mean.html">Mean</a>&lt; Coeffs, <a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a7a5b7cbef96464c0b8efcc1a192e00f8">NestedMatrix</a> &gt; , <a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a7a5b7cbef96464c0b8efcc1a192e00f8">NestedMatrix</a> &gt;::nested_matrix </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const &amp;&amp;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Get the nested matrix of this constant covariance matrix temporary. </p><dl class="section see"><dt>See also</dt><dd>constexpr auto&amp; <a class="el" href="struct_open_kalman_1_1internal_1_1_matrix_base.html#a3418b2a4dcfe6e9c62ab1f37ce15503c" title="Get the nested matrix of this covariance matrix.">nested_matrix()</a> &amp; </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>A constant rvalue reference to the nested matrix. </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="_matrix_base_8hpp_source.html#l00135">135</a> of file <a class="el" href="_matrix_base_8hpp_source.html">MatrixBase.hpp</a>.</p>
+
+</div>
+</div>
 <hr/>The documentation for this struct was generated from the following files:<ul>
 <li>C:/Users/cogden/CLionProjects/OpenKalman/OpenKalman/basics/<a class="el" href="forward-class-declarations_8hpp_source.html">forward-class-declarations.hpp</a></li>
 <li>C:/Users/cogden/CLionProjects/OpenKalman/OpenKalman/matrices/<a class="el" href="_mean_8hpp_source.html">Mean.hpp</a></li>

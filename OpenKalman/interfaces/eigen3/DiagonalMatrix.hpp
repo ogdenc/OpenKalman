@@ -373,7 +373,7 @@ namespace OpenKalman
     static constexpr auto columns = dimension;
 
     template<typename Derived>
-    using MatrixBaseType = Eigen3::internal::Eigen3CovarianceBase<Derived, Eigen3::DiagonalMatrix<ArgType>>;
+    using MatrixBaseType = Eigen3::internal::Eigen3MatrixBase<Derived, Eigen3::DiagonalMatrix<ArgType>>;
 
     template<std::size_t rows = dimension, std::size_t cols = columns, typename S = Scalar>
     using NativeMatrix = typename MatrixTraits<std::decay_t<NestedMatrix>>::template NativeMatrix<rows, cols, S>;

@@ -241,7 +241,7 @@ $(document).ready(function(){initNavTree('_sigma_points_8hpp_source.html',''); i
 <div class="line"><a name="l00153"></a><span class="lineno">  153</span>&#160;      <span class="keywordflow">else</span></div>
 <div class="line"><a name="l00154"></a><span class="lineno">  154</span>&#160;      {</div>
 <div class="line"><a name="l00155"></a><span class="lineno">  155</span>&#160;        <span class="keyword">const</span> <span class="keyword">auto</span> w_yT = to_diagonal(weights) * adjoint(y_deviations);</div>
-<div class="line"><a name="l00156"></a><span class="lineno">  156</span>&#160;        <span class="keyword">auto</span> out_covariance = make_self_contained(make_Covariance(y_deviations * w_yT));</div>
+<div class="line"><a name="l00156"></a><span class="lineno">  156</span>&#160;        <span class="keyword">auto</span> out_covariance = make_self_contained(make_covariance(y_deviations * w_yT));</div>
 <div class="line"><a name="l00157"></a><span class="lineno">  157</span>&#160;        <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (return_cross)</div>
 <div class="line"><a name="l00158"></a><span class="lineno">  158</span>&#160;        {</div>
 <div class="line"><a name="l00159"></a><span class="lineno">  159</span>&#160;          <span class="keyword">auto</span> cross_covariance = make_self_contained(x_deviations * w_yT);</div>

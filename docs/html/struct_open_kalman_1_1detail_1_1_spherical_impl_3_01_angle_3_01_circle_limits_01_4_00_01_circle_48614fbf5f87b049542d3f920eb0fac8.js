@@ -1,5 +1,0 @@
-var struct_open_kalman_1_1detail_1_1_spherical_impl_3_01_angle_3_01_circle_limits_01_4_00_01_circle_48614fbf5f87b049542d3f920eb0fac8 =
-[
-    [ "GetCoeff", "struct_open_kalman_1_1detail_1_1_spherical_impl_3_01_angle_3_01_circle_limits_01_4_00_01_circle_48614fbf5f87b049542d3f920eb0fac8.html#a4215d78d7cdf4297ea4bf55837c4fef7", null ],
-    [ "SetCoeff", "struct_open_kalman_1_1detail_1_1_spherical_impl_3_01_angle_3_01_circle_limits_01_4_00_01_circle_48614fbf5f87b049542d3f920eb0fac8.html#a0ff29d9c696d1b1c613614278b9975c2", null ]
-];

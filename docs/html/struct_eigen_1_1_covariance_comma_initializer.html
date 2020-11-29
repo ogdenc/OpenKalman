@@ -92,26 +92,26 @@ $(document).ready(function(){initNavTree('struct_eigen_1_1_covariance_comma_init
 </div><!--header-->
 <div class="contents">
 
-<p><code>#include &lt;<a class="el" href="_eigen3_covariance_base_8hpp_source.html">Eigen3CovarianceBase.hpp</a>&gt;</code></p>
+<p><code>#include &lt;<a class="el" href="_eigen3_matrix_base_8hpp_source.html">Eigen3MatrixBase.hpp</a>&gt;</code></p>
 <a name="details" id="details"></a><h2 class="groupheader">Description</h2>
 <div class="textblock"><h3>template&lt;typename CovarianceType&gt;<br />
 struct Eigen::CovarianceCommaInitializer&lt; CovarianceType &gt;</h3>
 
 <p>Alternative version of CommaInitializer for Covariance and SquareRootCovariance. </p>
 
-<p class="definition">Definition at line <a class="el" href="_eigen3_covariance_base_8hpp_source.html#l00128">128</a> of file <a class="el" href="_eigen3_covariance_base_8hpp_source.html">Eigen3CovarianceBase.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_eigen3_matrix_base_8hpp_source.html#l00283">283</a> of file <a class="el" href="_eigen3_matrix_base_8hpp_source.html">Eigen3MatrixBase.hpp</a>.</p>
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
 Public Types</h2></td></tr>
 <tr class="memitem:ab06c2b81e6e07f988db7295b4fa5f83e"><td class="memItemLeft" align="right" valign="top"><a id="ab06c2b81e6e07f988db7295b4fa5f83e"></a>
 using&#160;</td><td class="memItemRight" valign="bottom"><b>Scalar</b> = typename CovarianceType::Scalar</td></tr>
 <tr class="separator:ab06c2b81e6e07f988db7295b4fa5f83e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab33c2acb24dc6a7503c0ca680f81c88c"><td class="memItemLeft" align="right" valign="top"><a id="ab33c2acb24dc6a7503c0ca680f81c88c"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>BaseMatrix</b> = <a class="el" href="namespace_open_kalman.html#a7fb718bc7a10021ec9a0032e9b3fc92e">OpenKalman::native_matrix_t</a>&lt; typename <a class="el" href="struct_open_kalman_1_1_matrix_traits.html">OpenKalman::MatrixTraits</a>&lt; CovarianceType &gt;::BaseMatrix &gt;</td></tr>
-<tr class="separator:ab33c2acb24dc6a7503c0ca680f81c88c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4ebf9ee18f2f0431da46d4b2e7a036ca"><td class="memItemLeft" align="right" valign="top"><a id="a4ebf9ee18f2f0431da46d4b2e7a036ca"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>Nested</b> = CommaInitializer&lt; BaseMatrix &gt;</td></tr>
-<tr class="separator:a4ebf9ee18f2f0431da46d4b2e7a036ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af7b0b2dbd6436f28a217e7f94e4bdd92"><td class="memItemLeft" align="right" valign="top"><a id="af7b0b2dbd6436f28a217e7f94e4bdd92"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>NestedMatrix</b> = <a class="el" href="namespace_open_kalman.html#a7fb718bc7a10021ec9a0032e9b3fc92e">OpenKalman::native_matrix_t</a>&lt; typename <a class="el" href="namespace_open_kalman.html#abc8e1017c2a892423e656ba212290b74">OpenKalman::nested_matrix_t</a>&lt; CovarianceType &gt; &gt;</td></tr>
+<tr class="separator:af7b0b2dbd6436f28a217e7f94e4bdd92"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9684096024b8b011f560fc1f90a08aaa"><td class="memItemLeft" align="right" valign="top"><a id="a9684096024b8b011f560fc1f90a08aaa"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>Nested</b> = CommaInitializer&lt; NestedMatrix &gt;</td></tr>
+<tr class="separator:a9684096024b8b011f560fc1f90a08aaa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -143,9 +143,9 @@ auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>finished</b> ()
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:a6de8c4c94ef0a06e570813395fd37242"><td class="memItemLeft" align="right" valign="top"><a id="a6de8c4c94ef0a06e570813395fd37242"></a>
-BaseMatrix&#160;</td><td class="memItemRight" valign="bottom"><b>matrix</b></td></tr>
-<tr class="separator:a6de8c4c94ef0a06e570813395fd37242"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4b569d618cea4fbd2bdb999eab1f1879"><td class="memItemLeft" align="right" valign="top"><a id="a4b569d618cea4fbd2bdb999eab1f1879"></a>
+NestedMatrix&#160;</td><td class="memItemRight" valign="bottom"><b>matrix</b></td></tr>
+<tr class="separator:a4b569d618cea4fbd2bdb999eab1f1879"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a87a7fb050c9c987e0eb696a55a746da6"><td class="memItemLeft" align="right" valign="top"><a id="a87a7fb050c9c987e0eb696a55a746da6"></a>
 Nested&#160;</td><td class="memItemRight" valign="bottom"><b>comma_initializer</b></td></tr>
 <tr class="separator:a87a7fb050c9c987e0eb696a55a746da6"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -154,7 +154,7 @@ CovarianceType &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>cov</
 <tr class="separator:a6b440005af2670b0391923d66c3f5152"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>C:/Users/cogden/CLionProjects/OpenKalman/OpenKalman/interfaces/eigen3/details/<a class="el" href="_eigen3_covariance_base_8hpp_source.html">Eigen3CovarianceBase.hpp</a></li>
+<li>C:/Users/cogden/CLionProjects/OpenKalman/OpenKalman/interfaces/eigen3/details/<a class="el" href="_eigen3_matrix_base_8hpp_source.html">Eigen3MatrixBase.hpp</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

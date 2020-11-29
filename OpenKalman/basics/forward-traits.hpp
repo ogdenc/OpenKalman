@@ -178,7 +178,7 @@ namespace OpenKalman
   template<typename T> requires std::is_reference_v<T> or std::is_const_v<std::remove_reference_t<T>>
   struct MatrixTraits<T> : public MatrixTraits<std::decay_t<T>> {};
 #else
-  template<typename T, typename Enable = void> ///< \tparam Enable A dummy parameter for selection with SFINAE.
+  template<typename T, typename Enable = void>
   struct MatrixTraits;
 
   template<typename T, typename Enable>

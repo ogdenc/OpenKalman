@@ -27,7 +27,6 @@
 #include "details/typed-matrix-arithmetic.hpp"
 //
 #include "details/ConvertBaseMatrix.hpp"
-#include "details/CovarianceBaseBase.hpp"
 #include "details/CovarianceBase.hpp"
 #include "Covariance.hpp"
 #include "SquareRootCovariance.hpp"

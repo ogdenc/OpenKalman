@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['gaussian_5fdistribution_496',['gaussian_distribution',['../namespace_open_kalman.html#af9367eb4d7b08c961db76037c1926531',1,'OpenKalman']]]
+  ['from_5feuclidean_5fexpr_538',['from_euclidean_expr',['../namespace_open_kalman_1_1_eigen3.html#aaf6a888caf6f486dadc2bafa6f526d6c',1,'OpenKalman::Eigen3']]]
 ];

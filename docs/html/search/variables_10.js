@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['zero_5fmatrix_518',['zero_matrix',['../namespace_open_kalman.html#ae46b30e35dee139fe206951335c1b4ec',1,'OpenKalman']]]
+  ['wrapped_5fmean_563',['wrapped_mean',['../namespace_open_kalman.html#ae2d3de4ef2635e290fd9640db5721563',1,'OpenKalman']]]
 ];

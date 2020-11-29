@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['basematrix_520',['BaseMatrix',['../struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a47237ae139eed1e36d4eba388fccc0a6',1,'OpenKalman::internal::TypedMatrixBase']]]
+  ['circle_566',['Circle',['../namespace_open_kalman_1_1angle.html#aa956b4da387b5f3228d761597c9de05b',1,'OpenKalman::angle']]]
 ];

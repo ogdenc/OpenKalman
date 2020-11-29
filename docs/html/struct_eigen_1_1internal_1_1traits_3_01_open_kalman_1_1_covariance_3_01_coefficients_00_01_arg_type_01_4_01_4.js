@@ -1,5 +1,0 @@
-var struct_eigen_1_1internal_1_1traits_3_01_open_kalman_1_1_covariance_3_01_coefficients_00_01_arg_type_01_4_01_4 =
-[
-    [ "Base", "struct_eigen_1_1internal_1_1traits_3_01_open_kalman_1_1_covariance_3_01_coefficients_00_01_arg_type_01_4_01_4.html#a21c7525124457b198fa2c937e1310b30", null ],
-    [ "Flags", "struct_eigen_1_1internal_1_1traits_3_01_open_kalman_1_1_covariance_3_01_coefficients_00_01_arg_type_01_4_01_4.html#aa759131cf0cecc543a901405790743baa679d22542834bf468cfe8df0fef5abd1", null ]
-];

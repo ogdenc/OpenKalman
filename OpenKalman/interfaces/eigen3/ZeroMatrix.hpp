@@ -55,7 +55,7 @@ namespace OpenKalman
     using NestedMatrix = V;
 
     template<typename Derived>
-    using MatrixBaseType = Eigen3::internal::Eigen3CovarianceBase<Derived, Eigen3::ZeroMatrix<V>>;
+    using MatrixBaseType = Eigen3::internal::Eigen3MatrixBase<Derived, Eigen3::ZeroMatrix<V>>;
 
     using SelfContained = Eigen3::ZeroMatrix<V>;
 

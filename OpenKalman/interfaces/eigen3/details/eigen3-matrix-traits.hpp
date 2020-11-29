@@ -68,7 +68,7 @@ namespace OpenKalman
     using DiagonalBaseType = Eigen3::DiagonalMatrix<NativeMatrix<dim, 1, S>>;
 
     template<typename Derived>
-    using MatrixBaseType = Eigen3::internal::Eigen3CovarianceBase<Derived, M>;
+    using MatrixBaseType = Eigen3::internal::Eigen3MatrixBase<Derived, M>;
 
 #ifdef __cpp_concepts
     template<typename Arg> requires (not std::convertible_to<Arg, const Scalar>)

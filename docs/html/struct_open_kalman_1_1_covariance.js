@@ -1,10 +1,10 @@
 var struct_open_kalman_1_1_covariance =
 [
     [ "Base", "struct_open_kalman_1_1_covariance.html#a819c6adb943f080b55fee7c8e17a660c", null ],
-    [ "BaseMatrix", "struct_open_kalman_1_1_covariance.html#aae90d084dc7c39267d3f42010ccad7d6", null ],
     [ "Coefficients", "struct_open_kalman_1_1_covariance.html#aa7f0122d5a739f47ddeecca838fd9374", null ],
-    [ "SABaseType", "struct_open_kalman_1_1_covariance.html#afcbc6eb17612d469f5409cd904755bb3", null ],
-    [ "Scalar", "struct_open_kalman_1_1_covariance.html#a6bba57b36ab1a43d74edb955ed11ef45", null ],
+    [ "NestedMatrix", "struct_open_kalman_1_1_covariance.html#a62609493f652c182e632de52b8b89580", null ],
+    [ "SABaseType", "struct_open_kalman_1_1_covariance.html#abcfaee1deea7e33d7245efa4b9b60e73", null ],
+    [ "Scalar", "struct_open_kalman_1_1_covariance.html#acd7d1afc98f71037f85bdf586db674d5", null ],
     [ "Covariance", "struct_open_kalman_1_1_covariance.html#a46c5ce51df44a561509d030450f8332d", null ],
     [ "Covariance", "struct_open_kalman_1_1_covariance.html#a4715aac304447877f2a55ff175980e33", null ],
     [ "Covariance", "struct_open_kalman_1_1_covariance.html#a4dcc555d269f56804ea175c450f0a308", null ],

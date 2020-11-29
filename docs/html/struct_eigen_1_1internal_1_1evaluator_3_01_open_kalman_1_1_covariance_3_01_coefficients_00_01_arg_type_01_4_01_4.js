@@ -1,7 +1,0 @@
-var struct_eigen_1_1internal_1_1evaluator_3_01_open_kalman_1_1_covariance_3_01_coefficients_00_01_arg_type_01_4_01_4 =
-[
-    [ "Base", "struct_eigen_1_1internal_1_1evaluator_3_01_open_kalman_1_1_covariance_3_01_coefficients_00_01_arg_type_01_4_01_4.html#ab5c303c943983a6bf439d352956699f0", null ],
-    [ "XprType", "struct_eigen_1_1internal_1_1evaluator_3_01_open_kalman_1_1_covariance_3_01_coefficients_00_01_arg_type_01_4_01_4.html#aed227cc355898d05bac4df415f493544", null ],
-    [ "Flags", "struct_eigen_1_1internal_1_1evaluator_3_01_open_kalman_1_1_covariance_3_01_coefficients_00_01_arg_type_01_4_01_4.html#af7fc081742a7278be4b4b9780b5bc099a7b58e766314d647579d467820a3f9718", null ],
-    [ "evaluator", "struct_eigen_1_1internal_1_1evaluator_3_01_open_kalman_1_1_covariance_3_01_coefficients_00_01_arg_type_01_4_01_4.html#a8769cdcb3efaeb3bffa3fd52e55c618b", null ]
-];

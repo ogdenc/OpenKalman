@@ -1,5 +1,0 @@
-var struct_open_kalman_1_1detail_1_1_spherical_impl_3_01_inclination_3_01_inclination_limits_01_4_00e883dbae7e413bc2b3f219c4a53f003f =
-[
-    [ "GetCoeff", "struct_open_kalman_1_1detail_1_1_spherical_impl_3_01_inclination_3_01_inclination_limits_01_4_00e883dbae7e413bc2b3f219c4a53f003f.html#ae58e0e2da622c6e96d2baa421191f6a0", null ],
-    [ "SetCoeff", "struct_open_kalman_1_1detail_1_1_spherical_impl_3_01_inclination_3_01_inclination_limits_01_4_00e883dbae7e413bc2b3f219c4a53f003f.html#ac616fc7a40552a2c00ca4cf1d48122aa", null ]
-];

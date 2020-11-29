@@ -110,23 +110,20 @@ namespace OpenKalman::Eigen3
 
   namespace internal
   {
-    /*
-     * Ultimate base class for new Eigen3 classes in OpenKalman.
+    /**
+     * \internal
+     * \brief Ultimate base for matrix classes in OpenKalman.
      */
     template<typename Derived>
-    struct Eigen3Base : Eigen::MatrixBase<Derived> { using type = Derived; };
+    struct Eigen3Base : Eigen::MatrixBase<Derived> {};
+
 
     /*
-     * Base class for all OpenKalman classes with a base that is an Eigen3 matrix.
+     * \internal
+     * \brief Penultimate base for matrix classes in OpenKalman.
      */
     template<typename Derived, typename Nested>
     struct Eigen3MatrixBase;
-
-    /*
-     * Base class for Covariance and SquareRootCovariance with a base that is an Eigen3 matrix.
-     */
-    template<typename Derived, typename Nested>
-    struct Eigen3CovarianceBase;
 
   }
 

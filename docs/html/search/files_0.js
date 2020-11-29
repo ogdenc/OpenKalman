@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['distributions_2ehpp_398',['distributions.hpp',['../distributions_8hpp.html',1,'']]]
+  ['basics_2ehpp_421',['basics.hpp',['../basics_8hpp.html',1,'']]]
 ];

@@ -511,7 +511,7 @@ namespace OpenKalman
 
     template<typename Derived>
     using MatrixBaseType =
-      Eigen3::internal::Eigen3CovarianceBase<Derived, Eigen3::SelfAdjointMatrix<ArgType, storage_triangle>>;
+      Eigen3::internal::Eigen3MatrixBase<Derived, Eigen3::SelfAdjointMatrix<ArgType, storage_triangle>>;
 
     template<std::size_t rows = dimension, std::size_t cols = dimension, typename S = Scalar>
     using NativeMatrix = typename MatrixTraits<NestedMatrix>::template NativeMatrix<rows, cols, S>;

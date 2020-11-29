@@ -108,40 +108,33 @@ struct OpenKalman::MatrixTraits&lt; M, std::enable_if_t&lt; std::is_same_v&lt; M
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:a9c0e620b725b86c133d711170ce0b028"><td class="memItemLeft" align="right" valign="top"><a id="a9c0e620b725b86c133d711170ce0b028"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>BaseMatrix</b> = M</td></tr>
-<tr class="separator:a9c0e620b725b86c133d711170ce0b028"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a605a97f04bfb09c9de15d1eb85e6b1f1"><td class="memItemLeft" align="right" valign="top"><a id="a605a97f04bfb09c9de15d1eb85e6b1f1"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>Scalar</b> = typename BaseMatrix::Scalar</td></tr>
-<tr class="separator:a605a97f04bfb09c9de15d1eb85e6b1f1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a829aec14e898bd418809a87d00014077"><td class="memTemplParams" colspan="2"><a id="a829aec14e898bd418809a87d00014077"></a>
-template&lt;typename Derived &gt; </td></tr>
-<tr class="memitem:a829aec14e898bd418809a87d00014077"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_matrix_traits_3_01_m_00_01std_1_1enable__if__t_3_01std_1_1is__same__v_3_07dd350c138d0eeaec31ed6c406265655.html#a829aec14e898bd418809a87d00014077">MatrixBaseType</a> = Eigen3::internal::Eigen3MatrixBase&lt; Derived, BaseMatrix &gt;</td></tr>
-<tr class="memdesc:a829aec14e898bd418809a87d00014077"><td class="mdescLeft">&#160;</td><td class="mdescRight">\TODO: make columns potentially dynamic (0 = dynamic?) <br /></td></tr>
-<tr class="separator:a829aec14e898bd418809a87d00014077"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9e3a299abc5a63f7f67b560c26b1fc64"><td class="memTemplParams" colspan="2"><a id="a9e3a299abc5a63f7f67b560c26b1fc64"></a>
-template&lt;typename Derived &gt; </td></tr>
-<tr class="memitem:a9e3a299abc5a63f7f67b560c26b1fc64"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><b>CovarianceBaseType</b> = Eigen3::internal::Eigen3CovarianceBase&lt; Derived, BaseMatrix &gt;</td></tr>
-<tr class="separator:a9e3a299abc5a63f7f67b560c26b1fc64"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a03ea18baefc1f3543f5d1ce24d5eebca"><td class="memItemLeft" align="right" valign="top"><a id="a03ea18baefc1f3543f5d1ce24d5eebca"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>Scalar</b> = typename M::Scalar</td></tr>
+<tr class="separator:a03ea18baefc1f3543f5d1ce24d5eebca"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5749c024d4bebf22bb6d05a55dbc6e18"><td class="memTemplParams" colspan="2"><a id="a5749c024d4bebf22bb6d05a55dbc6e18"></a>
 template&lt;std::size_t rows = dimension, std::size_t cols = columns, typename S  = Scalar&gt; </td></tr>
-<tr class="memitem:a5749c024d4bebf22bb6d05a55dbc6e18"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><b>NativeMatrix</b> = Eigen::Matrix&lt; S,(Eigen::Index) rows,(Eigen::Index) cols &gt;</td></tr>
+<tr class="memitem:a5749c024d4bebf22bb6d05a55dbc6e18"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_matrix_traits_3_01_m_00_01std_1_1enable__if__t_3_01std_1_1is__same__v_3_07dd350c138d0eeaec31ed6c406265655.html#a5749c024d4bebf22bb6d05a55dbc6e18">NativeMatrix</a> = Eigen::Matrix&lt; S,(Eigen::Index) rows,(Eigen::Index) cols &gt;</td></tr>
+<tr class="memdesc:a5749c024d4bebf22bb6d05a55dbc6e18"><td class="mdescLeft">&#160;</td><td class="mdescRight">\TODO: make columns potentially dynamic (0 = dynamic?) <br /></td></tr>
 <tr class="separator:a5749c024d4bebf22bb6d05a55dbc6e18"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a63349a63cae6565c59196df4a33b1ed8"><td class="memItemLeft" align="right" valign="top"><a id="a63349a63cae6565c59196df4a33b1ed8"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>SelfContained</b> = typename <a class="el" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits</a>&lt; BaseMatrix &gt;::template NativeMatrix&lt; dimension, columns &gt;</td></tr>
-<tr class="separator:a63349a63cae6565c59196df4a33b1ed8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0545992f95964978e2606697158a1d58"><td class="memItemLeft" align="right" valign="top"><a id="a0545992f95964978e2606697158a1d58"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>SelfContained</b> = typename <a class="el" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits</a>&lt; M &gt;::template <a class="el" href="struct_open_kalman_1_1_matrix_traits_3_01_m_00_01std_1_1enable__if__t_3_01std_1_1is__same__v_3_07dd350c138d0eeaec31ed6c406265655.html#a5749c024d4bebf22bb6d05a55dbc6e18">NativeMatrix</a>&lt; dimension, columns &gt;</td></tr>
+<tr class="separator:a0545992f95964978e2606697158a1d58"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a07da491137fe91f4deb79cc4813a1589"><td class="memTemplParams" colspan="2"><a id="a07da491137fe91f4deb79cc4813a1589"></a>
 template&lt;TriangleType storage_triangle = TriangleType::lower, std::size_t dim = dimension, typename S  = Scalar&gt; </td></tr>
-<tr class="memitem:a07da491137fe91f4deb79cc4813a1589"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><b>SelfAdjointBaseType</b> = <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix.html">Eigen3::SelfAdjointMatrix</a>&lt; NativeMatrix&lt; dim, dim, S &gt;, storage_triangle &gt;</td></tr>
+<tr class="memitem:a07da491137fe91f4deb79cc4813a1589"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><b>SelfAdjointBaseType</b> = <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix.html">Eigen3::SelfAdjointMatrix</a>&lt; <a class="el" href="struct_open_kalman_1_1_matrix_traits_3_01_m_00_01std_1_1enable__if__t_3_01std_1_1is__same__v_3_07dd350c138d0eeaec31ed6c406265655.html#a5749c024d4bebf22bb6d05a55dbc6e18">NativeMatrix</a>&lt; dim, dim, S &gt;, storage_triangle &gt;</td></tr>
 <tr class="separator:a07da491137fe91f4deb79cc4813a1589"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a463221dd53fcc60d090735a82d2e688c"><td class="memTemplParams" colspan="2"><a id="a463221dd53fcc60d090735a82d2e688c"></a>
 template&lt;TriangleType triangle_type = TriangleType::lower, std::size_t dim = dimension, typename S  = Scalar&gt; </td></tr>
-<tr class="memitem:a463221dd53fcc60d090735a82d2e688c"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><b>TriangularBaseType</b> = <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_triangular_matrix.html">Eigen3::TriangularMatrix</a>&lt; NativeMatrix&lt; dim, dim, S &gt;, triangle_type &gt;</td></tr>
+<tr class="memitem:a463221dd53fcc60d090735a82d2e688c"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><b>TriangularBaseType</b> = <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_triangular_matrix.html">Eigen3::TriangularMatrix</a>&lt; <a class="el" href="struct_open_kalman_1_1_matrix_traits_3_01_m_00_01std_1_1enable__if__t_3_01std_1_1is__same__v_3_07dd350c138d0eeaec31ed6c406265655.html#a5749c024d4bebf22bb6d05a55dbc6e18">NativeMatrix</a>&lt; dim, dim, S &gt;, triangle_type &gt;</td></tr>
 <tr class="separator:a463221dd53fcc60d090735a82d2e688c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae25267164f0882403015f50392efa947"><td class="memTemplParams" colspan="2"><a id="ae25267164f0882403015f50392efa947"></a>
 template&lt;std::size_t dim = dimension, typename S  = Scalar&gt; </td></tr>
-<tr class="memitem:ae25267164f0882403015f50392efa947"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><b>DiagonalBaseType</b> = <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_diagonal_matrix.html">Eigen3::DiagonalMatrix</a>&lt; NativeMatrix&lt; dim, 1, S &gt; &gt;</td></tr>
+<tr class="memitem:ae25267164f0882403015f50392efa947"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><b>DiagonalBaseType</b> = <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_diagonal_matrix.html">Eigen3::DiagonalMatrix</a>&lt; <a class="el" href="struct_open_kalman_1_1_matrix_traits_3_01_m_00_01std_1_1enable__if__t_3_01std_1_1is__same__v_3_07dd350c138d0eeaec31ed6c406265655.html#a5749c024d4bebf22bb6d05a55dbc6e18">NativeMatrix</a>&lt; dim, 1, S &gt; &gt;</td></tr>
 <tr class="separator:ae25267164f0882403015f50392efa947"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acd7b3bb1c03b2428aff0991954c85ef0"><td class="memTemplParams" colspan="2"><a id="acd7b3bb1c03b2428aff0991954c85ef0"></a>
+template&lt;typename Derived &gt; </td></tr>
+<tr class="memitem:acd7b3bb1c03b2428aff0991954c85ef0"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><b>MatrixBaseType</b> = <a class="el" href="struct_open_kalman_1_1_eigen3_1_1internal_1_1_eigen3_matrix_base.html">Eigen3::internal::Eigen3MatrixBase</a>&lt; Derived, M &gt;</td></tr>
+<tr class="separator:acd7b3bb1c03b2428aff0991954c85ef0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
@@ -164,10 +157,10 @@ static auto&#160;</td><td class="memItemRight" valign="bottom"><b>identity</b> (
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
 <tr class="memitem:a651b15b72099387129d8bbf753643ded"><td class="memItemLeft" align="right" valign="top"><a id="a651b15b72099387129d8bbf753643ded"></a>
-static constexpr std::size_t&#160;</td><td class="memItemRight" valign="bottom"><b>dimension</b> = BaseMatrix::RowsAtCompileTime</td></tr>
+static constexpr std::size_t&#160;</td><td class="memItemRight" valign="bottom"><b>dimension</b> = M::RowsAtCompileTime</td></tr>
 <tr class="separator:a651b15b72099387129d8bbf753643ded"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa73a811db891f3d9d57ac61fac568e36"><td class="memItemLeft" align="right" valign="top"><a id="aa73a811db891f3d9d57ac61fac568e36"></a>
-static constexpr std::size_t&#160;</td><td class="memItemRight" valign="bottom"><b>columns</b> = BaseMatrix::ColsAtCompileTime</td></tr>
+static constexpr std::size_t&#160;</td><td class="memItemRight" valign="bottom"><b>columns</b> = M::ColsAtCompileTime</td></tr>
 <tr class="separator:aa73a811db891f3d9d57ac61fac568e36"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <hr/>The documentation for this struct was generated from the following file:<ul>

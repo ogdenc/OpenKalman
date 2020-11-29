@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['mean_502',['mean',['../namespace_open_kalman.html#a2745b3bfff7250ac8d9e0dc79902508c',1,'OpenKalman']]],
-  ['mu_503',['mu',['../struct_open_kalman_1_1_gaussian_distribution.html#a25eda0c6851551c202b8098fd2c0fc02',1,'OpenKalman::GaussianDistribution']]]
+  ['lower_5fstorage_5ftriangle_544',['lower_storage_triangle',['../namespace_open_kalman_1_1_eigen3.html#aba6821f8a9abf88a0994495139d95b0d',1,'OpenKalman::Eigen3']]],
+  ['lower_5ftriangular_5fmatrix_545',['lower_triangular_matrix',['../namespace_open_kalman.html#a05da5d495bfe6445599208b60bf12d69',1,'OpenKalman']]]
 ];
