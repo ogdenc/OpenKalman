@@ -76,17 +76,6 @@ namespace OpenKalman::internal
     auto operator() (std::size_t i) const { return operator[](i); }
 
 
-  protected:
-    template<typename T, typename Arg>
-#ifdef __cpp_concepts
-    requires (std::is_void_v<T> or covariance_nestable<T>) and (covariance<Arg> or typed_matrix<Arg>)
-#endif
-    friend constexpr decltype(auto) convert_nested_matrix(Arg&&) noexcept;
-
-
-    constexpr void mark_changed() const {}
-
-
     /// Get the apparent nested matrix.
     constexpr auto& get_apparent_nested_matrix() & { return nested_matrix(); }
 
@@ -101,6 +90,10 @@ namespace OpenKalman::internal
 
     /// Get the apparent nested matrix.
     constexpr const auto&& get_apparent_nested_matrix() const && { return std::move(nested_matrix()); }
+
+
+  protected:
+    constexpr void mark_changed() const {}
 
   };
 
@@ -299,17 +292,6 @@ namespace OpenKalman::internal
     auto operator() (std::size_t i) const { return operator[](i); }
 
 
-  protected:
-    template<typename T, typename Arg>
-#ifdef __cpp_concepts
-    requires (std::is_void_v<T> or covariance_nestable<T>) and (covariance<Arg> or typed_matrix<Arg>)
-#endif
-    friend constexpr decltype(auto) convert_nested_matrix(Arg&&) noexcept;
-
-
-    constexpr void mark_changed() const {}
-
-
     /// Get the apparent nested matrix.
     constexpr auto& get_apparent_nested_matrix() & { return nested_matrix(); }
 
@@ -324,6 +306,10 @@ namespace OpenKalman::internal
 
     /// Get the apparent nested matrix.
     constexpr const auto&& get_apparent_nested_matrix() const && { return std::move(nested_matrix()); }
+
+
+  protected:
+    constexpr void mark_changed() const {}
 
   };
 
@@ -526,28 +512,6 @@ namespace OpenKalman::internal
     decltype(auto) operator()(std::size_t i) const = delete;
 
 
-  protected:
-#ifdef __cpp_concepts
-    template<typename, typename>
-#else
-    template<typename, typename, typename>
-#endif
-    friend struct CovarianceBase;
-
-
-    template<typename T, typename Arg>
-#ifdef __cpp_concepts
-    requires (std::is_void_v<T> or covariance_nestable<T>) and (covariance<Arg> or typed_matrix<Arg>)
-#endif
-    friend constexpr decltype(auto) convert_nested_matrix(Arg&&) noexcept;
-
-
-    void mark_changed()
-    {
-      synchronized = false;
-    }
-
-
     /// Get the apparent nested matrix.
     constexpr auto& get_apparent_nested_matrix() &
     {
@@ -577,6 +541,21 @@ namespace OpenKalman::internal
     {
       if (not synchronized) synchronize();
       return std::move(apparent_nested_matrix);
+    }
+
+
+  protected:
+#ifdef __cpp_concepts
+    template<typename, typename>
+#else
+    template<typename, typename, typename>
+#endif
+    friend struct CovarianceBase;
+
+
+    void mark_changed()
+    {
+      synchronized = false;
     }
 
   };
@@ -797,28 +776,6 @@ namespace OpenKalman::internal
     decltype(auto) operator()(std::size_t i) const = delete;
 
 
-  protected:
-#ifdef __cpp_concepts
-    template<typename, typename>
-#else
-    template<typename, typename, typename>
-#endif
-    friend struct CovarianceBase;
-
-
-    template<typename T, typename Arg>
-#ifdef __cpp_concepts
-    requires (std::is_void_v<T> or covariance_nestable<T>) and (covariance<Arg> or typed_matrix<Arg>)
-#endif
-    friend constexpr decltype(auto) convert_nested_matrix(Arg&&) noexcept;
-
-
-    void mark_changed()
-    {
-      *synchronized = false;
-    }
-
-
     /// Get the apparent nested matrix.
     constexpr auto& get_apparent_nested_matrix() &
     {
@@ -848,6 +805,21 @@ namespace OpenKalman::internal
     {
       if (not *synchronized) synchronize();
       return std::move(*apparent_nested_matrix);
+    }
+
+
+  protected:
+#ifdef __cpp_concepts
+    template<typename, typename>
+#else
+    template<typename, typename, typename>
+#endif
+    friend struct CovarianceBase;
+
+
+    void mark_changed()
+    {
+      *synchronized = false;
     }
 
   };

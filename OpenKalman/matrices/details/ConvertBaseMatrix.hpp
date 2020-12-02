@@ -13,18 +13,12 @@
 
 namespace OpenKalman::internal
 {
-  /**
-   * /internal
-   * Convert covariance matrix to a covariance_nestable of type T. If T is void, convert to a triangular matrix if
-   * covariance is a square root, or otherwise convert to a self-adjoint matrix.
-   * \tparam T Type to which Arg is to be converted (optional).
-   * \tparam Arg Type of covariance matrix to be converted
-   * \param arg Covariance matrix to be converted.
-   * \return A covariance_nestable.
-   */
-  template<typename T, typename Arg>
 #ifdef __cpp_concepts
-    requires (std::is_void_v<T> or covariance_nestable<T>) and (covariance<Arg> or typed_matrix<Arg>)
+  template<covariance_nestable T, typename Arg>
+  requires covariance<Arg> or (typed_matrix<Arg> and equivalent_to<typename MatrixTraits<Arg>::RowCoefficients,
+    typename MatrixTraits<Arg>::ColumnCoefficients>)
+#else
+  template<typename T, typename Arg, typename>
 #endif
   constexpr decltype(auto)
   convert_nested_matrix(Arg&& arg) noexcept
@@ -37,16 +31,7 @@ namespace OpenKalman::internal
     {
       static_assert(equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, typename MatrixTraits<Arg>::ColumnCoefficients>);
       using SA = typename MatrixTraits<ArgBase>::template SelfAdjointBaseType<>;
-      if constexpr(std::is_void_v<T>)
-        return std::forward<Arg>(arg).nested_matrix();
-      else
-        return MatrixTraits<T>::make(nested_matrix(MatrixTraits<SA>::make(std::forward<Arg>(arg).nested_matrix())));
-    }
-
-    // Natural conversion:
-    else if constexpr(std::is_void_v<T>)
-    {
-      return std::forward<Arg>(arg).get_apparent_nested_matrix();
+      return MatrixTraits<T>::make(nested_matrix(MatrixTraits<SA>::make(std::forward<Arg>(arg).nested_matrix())));
     }
 
     // strictly triangular or diagonal square root --> self-adjoint
@@ -99,6 +84,29 @@ namespace OpenKalman::internal
     {
       return std::forward<Arg>(arg).nested_matrix();
     }
+  }
+
+
+#ifdef __cpp_concepts
+  template<typename Arg>
+  requires covariance<Arg> or (typed_matrix<Arg> and equivalent_to<typename MatrixTraits<Arg>::RowCoefficients,
+    typename MatrixTraits<Arg>::ColumnCoefficients>)
+#else
+  template<typename Arg, typename>
+#endif
+  constexpr decltype(auto)
+  convert_nested_matrix(Arg&& arg) noexcept
+  {
+    // Typed matrices:
+    if constexpr(typed_matrix<Arg>)
+    {
+      return std::forward<Arg>(arg).nested_matrix();
+    }
+    else
+    {
+      return std::forward<Arg>(arg).get_apparent_nested_matrix();
+    }
+
   }
 
 

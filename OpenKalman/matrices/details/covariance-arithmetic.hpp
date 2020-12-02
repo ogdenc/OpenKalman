@@ -29,7 +29,7 @@ namespace OpenKalman
   {
     using Cov = std::conditional_t<covariance<Arg1>, Arg1, Arg2>;
     using Other = std::conditional_t<covariance<Arg1>, Arg2, Arg1>;
-    using C = typename MatrixTraits<Cov>::Coefficients;
+    using C = typename MatrixTraits<Cov>::RowCoefficients;
 
     if constexpr(typed_matrix<Other>)
     {
@@ -39,7 +39,7 @@ namespace OpenKalman
     }
     else
     {
-      static_assert(equivalent_to<C, typename MatrixTraits<Arg2>::Coefficients>);
+      static_assert(equivalent_to<C, typename MatrixTraits<Arg2>::RowCoefficients>);
     }
 
     if constexpr(zero_matrix<Arg1>)
@@ -109,7 +109,7 @@ namespace OpenKalman
   {
     using Cov = std::conditional_t<covariance<Arg1>, Arg1, Arg2>;
     using Other = std::conditional_t<covariance<Arg1>, Arg2, Arg1>;
-    using C = typename MatrixTraits<Cov>::Coefficients;
+    using C = typename MatrixTraits<Cov>::RowCoefficients;
 
     if constexpr(typed_matrix<Other>)
     {
@@ -118,7 +118,7 @@ namespace OpenKalman
     }
     else
     {
-      static_assert(equivalent_to<C, typename MatrixTraits<Arg2>::Coefficients>);
+      static_assert(equivalent_to<C, typename MatrixTraits<Arg2>::RowCoefficients>);
     }
 
     if constexpr(zero_matrix<Arg2>)
@@ -164,10 +164,10 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<covariance Arg1, covariance Arg2> requires
-    equivalent_to<typename MatrixTraits<Arg1>::Coefficients, typename MatrixTraits<Arg2>::Coefficients>
+    equivalent_to<typename MatrixTraits<Arg1>::RowCoefficients, typename MatrixTraits<Arg2>::RowCoefficients>
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<covariance<Arg1> and covariance<Arg2> and
-    equivalent_to<typename MatrixTraits<Arg1>::Coefficients, typename MatrixTraits<Arg2>::Coefficients>, int> = 0>
+    equivalent_to<typename MatrixTraits<Arg1>::RowCoefficients, typename MatrixTraits<Arg2>::RowCoefficients>, int> = 0>
 #endif
   constexpr decltype(auto) operator*(Arg1&& arg1, Arg2&& arg2) noexcept
   {
@@ -186,7 +186,7 @@ namespace OpenKalman
     }
     else
     {
-      using C = typename MatrixTraits<Arg1>::Coefficients;
+      using C = typename MatrixTraits<Arg1>::RowCoefficients;
       decltype(auto) b1 = internal::convert_nested_matrix(std::forward<Arg1>(arg1));
       decltype(auto) b2 = internal::convert_nested_matrix(std::forward<Arg2>(arg2));
       auto prod = make_self_contained<decltype(b1), decltype(b2)>(b1 * b2);
@@ -216,7 +216,7 @@ namespace OpenKalman
 #endif
   constexpr decltype(auto) operator*(M&& m, Cov&& cov) noexcept
   {
-    using CC = typename MatrixTraits<Cov>::Coefficients;
+    using CC = typename MatrixTraits<Cov>::RowCoefficients;
     static_assert(equivalent_to<typename MatrixTraits<M>::ColumnCoefficients, CC>);
     using RC = typename MatrixTraits<M>::RowCoefficients;
     using Mat = native_matrix_t<M, RC::size, CC::size>;
@@ -258,7 +258,7 @@ namespace OpenKalman
 #endif
   constexpr decltype(auto) operator*(Cov&& cov, M&& m) noexcept
   {
-    using RC = typename MatrixTraits<Cov>::Coefficients;
+    using RC = typename MatrixTraits<Cov>::RowCoefficients;
     static_assert(equivalent_to<RC, typename MatrixTraits<M>::RowCoefficients>);
     using CC = typename MatrixTraits<M>::ColumnCoefficients;
     using Mat = native_matrix_t<M, RC::size, CC::size>;
@@ -479,7 +479,7 @@ namespace OpenKalman
   constexpr bool operator==(const Arg1& arg1, const Arg2& arg2)
   {
     if constexpr(std::is_same_v<native_matrix_t<Arg1>, native_matrix_t<Arg2>> and
-      equivalent_to<typename MatrixTraits<Arg1>::Coefficients, typename MatrixTraits<Arg2>::Coefficients>)
+      equivalent_to<typename MatrixTraits<Arg1>::RowCoefficients, typename MatrixTraits<Arg2>::RowCoefficients>)
     {
       return make_native_matrix(arg1) == make_native_matrix(arg2);
     }
@@ -561,7 +561,7 @@ namespace OpenKalman
   inline auto
   scale(M&& m, A&& a)
   {
-    using C = typename MatrixTraits<M>::Coefficients;
+    using C = typename MatrixTraits<M>::RowCoefficients;
     using AC = typename MatrixTraits<A>::RowCoefficients;
     static_assert(equivalent_to<typename MatrixTraits<A>::ColumnCoefficients, C>);
     static_assert(not euclidean_transformed<A>);

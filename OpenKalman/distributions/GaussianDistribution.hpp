@@ -9,7 +9,7 @@
  */
 
 /**
- * \file GaussianDistribution.h
+ * \file
  * A header file for the class GaussianDistribution and its traits.
  */
 
@@ -97,7 +97,7 @@ namespace OpenKalman
     GaussianDistribution(Mean&& mean, Cov&& cov) : mu {std::move(mean)}, sigma {std::forward<Cov>(cov)}
     {
       if constexpr(covariance<Cov>)
-        static_assert(equivalent_to<typename MatrixTraits<Cov>::Coefficients, Coefficients>);
+        static_assert(equivalent_to<typename MatrixTraits<Cov>::RowCoefficients, Coefficients>);
       else if constexpr(typed_matrix<Cov>)
         static_assert(equivalent_to<typename MatrixTraits<Cov>::RowCoefficients, Coefficients> and
           equivalent_to<typename MatrixTraits<Cov>::ColumnCoefficients, Coefficients>);
@@ -126,7 +126,7 @@ namespace OpenKalman
         static_assert(MatrixTraits<M>::dimension == dimension);
       }
       if constexpr(covariance<Cov>)
-        static_assert(equivalent_to<typename MatrixTraits<Cov>::Coefficients, Coefficients>);
+        static_assert(equivalent_to<typename MatrixTraits<Cov>::RowCoefficients, Coefficients>);
       else if constexpr(typed_matrix<Cov>)
         static_assert(equivalent_to<typename MatrixTraits<Cov>::RowCoefficients, Coefficients> and
           equivalent_to<typename MatrixTraits<Cov>::ColumnCoefficients, Coefficients>);
@@ -144,7 +144,7 @@ namespace OpenKalman
     explicit GaussianDistribution(Cov&& cov) : mu {Mean::zero()}, sigma {std::forward<Cov>(cov)}
     {
       if constexpr(covariance<Cov>)
-        static_assert(equivalent_to<typename MatrixTraits<Cov>::Coefficients, Coefficients>);
+        static_assert(equivalent_to<typename MatrixTraits<Cov>::RowCoefficients, Coefficients>);
       else if constexpr(typed_matrix<Cov>)
         static_assert(equivalent_to<typename MatrixTraits<Cov>::RowCoefficients, Coefficients> and
           equivalent_to<typename MatrixTraits<Cov>::ColumnCoefficients, Coefficients>);
@@ -363,7 +363,7 @@ namespace OpenKalman
     typed_matrix_nestable<M> and covariance<C> and not square_root_covariance<C>, int> = 0>
 #endif
   GaussianDistribution(M&&, C&&) -> GaussianDistribution<
-    typename MatrixTraits<C>::Coefficients,
+    typename MatrixTraits<C>::RowCoefficients,
     passable_t<M>,
     nested_matrix_t<passable_t<C>>>;
 
@@ -375,7 +375,7 @@ namespace OpenKalman
     typed_matrix_nestable<M> and square_root_covariance<C>, int> = 0>
 #endif
   GaussianDistribution(M&&, C&&) -> GaussianDistribution<
-    typename MatrixTraits<C>::Coefficients,
+    typename MatrixTraits<C>::RowCoefficients,
     passable_t<M>,
     nested_matrix_t<self_contained_t<decltype(square(std::declval<C&&>()))>>>;
 
@@ -444,7 +444,7 @@ namespace OpenKalman
       using Mb = nested_matrix_t<M>;
 
       if constexpr(covariance<Cov>)
-        static_assert(equivalent_to<C, typename MatrixTraits<Cov>::Coefficients>);
+        static_assert(equivalent_to<C, typename MatrixTraits<Cov>::RowCoefficients>);
       else if constexpr(typed_matrix<Cov>)
         static_assert(equivalent_to<C, typename MatrixTraits<Cov>::RowCoefficients> and
           equivalent_to<C, typename MatrixTraits<Cov>::ColumnCoefficients>);
@@ -462,7 +462,7 @@ namespace OpenKalman
     }
     else if constexpr(covariance<Cov>)
     {
-      using C = typename MatrixTraits<Cov>::Coefficients;
+      using C = typename MatrixTraits<Cov>::RowCoefficients;
       using Covb = nested_matrix_t<Cov>;
       return GaussianDistribution<C, passable_t<M>, passable_t<Covb>, re>(std::forward<M>(mean), std::forward<Cov>(cov));
     }
@@ -531,13 +531,13 @@ namespace OpenKalman
       static_assert(MatrixTraits<M>::ColumnCoefficients::axes_only);
       using C = typename MatrixTraits<M>::RowCoefficients;
       using Mb = nested_matrix_t<M>;
-      if constexpr(covariance<Cov>) static_assert(equivalent_to<C, typename MatrixTraits<Cov>::Coefficients>);
+      if constexpr(covariance<Cov>) static_assert(equivalent_to<C, typename MatrixTraits<Cov>::RowCoefficients>);
       using Covb = std::conditional_t<covariance<Cov>, nested_matrix_t<Cov>, std::decay_t<Cov>>;
       return GaussianDistribution<C, passable_t<Mb>, passable_t<Covb>, re>();
     }
     else if constexpr(covariance<Cov>)
     {
-      using C = typename MatrixTraits<Cov>::Coefficients;
+      using C = typename MatrixTraits<Cov>::RowCoefficients;
       using Covb = nested_matrix_t<Cov>;
       return GaussianDistribution<C, passable_t<M>, passable_t<Covb>, re>();
     }
@@ -569,43 +569,38 @@ namespace OpenKalman
   //        Traits         //
   ///////////////////////////
 
-  template<typename Coeffs, typename MatrixBase, typename CovarianceBase, typename re>
-  struct DistributionTraits<GaussianDistribution<Coeffs, MatrixBase, CovarianceBase, re>>
+  template<typename Coeffs, typename NestedMean, typename NestedCovariance, typename re>
+  struct DistributionTraits<GaussianDistribution<Coeffs, NestedMean, NestedCovariance, re>>
   {
     using Coefficients = Coeffs;
     static constexpr auto dimension = Coefficients::size;
-    using Mean = Mean<Coefficients, MatrixBase>;
-    using Covariance = Covariance<Coefficients, CovarianceBase>;
+    using Mean = Mean<Coefficients, NestedMean>;
+    using Covariance = Covariance<Coefficients, NestedCovariance>;
     using Scalar = typename MatrixTraits<Mean>::Scalar;
     template<typename S> using distribution_type = std::normal_distribution<S>;
     using random_number_engine = re;
 
-    using SelfContained = GaussianDistribution<Coefficients, typename MatrixTraits<MatrixBase>::SelfContained,
-      typename MatrixTraits<CovarianceBase>::SelfContained>;
+    using SelfContained = GaussianDistribution<Coefficients, typename MatrixTraits<NestedMean>::SelfContained,
+      typename MatrixTraits<NestedCovariance>::SelfContained>;
 
 #ifdef __cpp_concepts
-    template<typename C = Coefficients, typename Mean, typename Covariance> requires
-      (typed_matrix<Mean> or typed_matrix_nestable<Mean>) and (MatrixTraits<Mean>::columns == 1) and
-      (covariance<Covariance> or covariance_nestable<Covariance>)
+    template<typename C = Coefficients, typed_matrix_nestable M, covariance_nestable Cov> requires
+      (MatrixTraits<M>::columns == 1) and (MatrixTraits<M>::dimension == MatrixTraits<Cov>::dimension)
 #else
-    template<typename C = Coefficients, typename Mean, typename Covariance,
-      std::enable_if_t<(typed_matrix<Mean> or typed_matrix_nestable<Mean>) and
-      MatrixTraits<Mean>::columns == 1 and
-      (covariance<Covariance> or covariance_nestable<Covariance>), int> = 0>
+    template<typename C = Coefficients, typename M, typename Cov,
+      std::enable_if_t<typed_matrix_nestable<M> and covariance_nestable<Cov> and
+      (MatrixTraits<M>::columns == 1) and
+      (MatrixTraits<M>::dimension == MatrixTraits<Cov>::dimension), int> = 0>
 #endif
-    static auto make(Mean&& mean, Covariance&& covariance) noexcept
+    static auto make(M&& mean, Cov&& covariance) noexcept
     {
-      if constexpr(typed_matrix_nestable<Mean> and covariance_nestable<Covariance>)
-        return make_GaussianDistribution<C, random_number_engine>(
-          std::forward<Mean>(mean), std::forward<Covariance>(covariance));
-      else
-        return make_GaussianDistribution<random_number_engine>(
-          std::forward<Mean>(mean), std::forward<Covariance>(covariance));
+      return make_GaussianDistribution<C, random_number_engine>(
+        std::forward<M>(mean), std::forward<Cov>(covariance));
     }
 
-    static auto zero() { return make(MatrixTraits<Mean>::zero(), MatrixTraits<Covariance>::zero()); }
+    static auto zero() { return make(MatrixTraits<NestedMean>::zero(), MatrixTraits<NestedCovariance>::zero()); }
 
-    static auto normal() { return make(MatrixTraits<Mean>::zero(), MatrixTraits<Covariance>::identity()); }
+    static auto normal() { return make(MatrixTraits<NestedMean>::zero(), MatrixTraits<NestedCovariance>::identity()); }
   };
 
 
@@ -635,7 +630,7 @@ namespace OpenKalman
   to_Cholesky(Arg&& arg) noexcept
   {
     auto cov = to_Cholesky(covariance_of(arg));
-    return DistributionTraits<Arg>::make(mean_of(std::forward<Arg>(arg)), std::move(cov));
+    return make_GaussianDistribution(mean_of(std::forward<Arg>(arg)), std::move(cov));
   }
 
 
@@ -645,7 +640,7 @@ namespace OpenKalman
   from_Cholesky(Arg&& arg) noexcept
   {
     auto cov = from_Cholesky(covariance_of(arg));
-    return DistributionTraits<Arg>::make(mean_of(std::forward<Arg>(arg)), std::move(cov));
+    return make_GaussianDistribution(mean_of(std::forward<Arg>(arg)), std::move(cov));
   }
 
 
@@ -660,7 +655,7 @@ namespace OpenKalman
     }
     else
     {
-      return DistributionTraits<Arg>::make(make_self_contained(mean_of(arg)), make_self_contained(covariance_of(arg)));
+      return make_GaussianDistribution(make_self_contained(mean_of(arg)), make_self_contained(covariance_of(arg)));
     }
   }
 
@@ -674,7 +669,7 @@ namespace OpenKalman
     {
       auto m = concatenate(mean_of(d), mean_of(ds)...);
       auto cov = concatenate(covariance_of(d), covariance_of(ds)...);
-      return DistributionTraits<D>::template make(std::move(m), std::move(cov));
+      return make_GaussianDistribution(std::move(m), std::move(cov));
     }
     else
     {
@@ -688,7 +683,7 @@ namespace OpenKalman
     template<typename Dist, typename Means, typename Covariances, std::size_t ... ints>
     inline auto zip_dist(Means&& ms, Covariances&& cs, std::index_sequence<ints...>)
     {
-      return std::tuple {DistributionTraits<Dist>::make(
+      return std::tuple {make_GaussianDistribution(
         std::get<ints>(std::forward<Means>(ms)),
         std::get<ints>(std::forward<Covariances>(cs)))...};
     };
@@ -740,7 +735,7 @@ namespace OpenKalman
   {
     auto m1 = mean_of(d1) + mean_of(d2);
     auto m2 = covariance_of(d1) + covariance_of(d2);
-    return DistributionTraits<Dist1>::make(std::move(m1), std::move(m2));
+    return make_GaussianDistribution(std::move(m1), std::move(m2));
   };
 
 
@@ -755,7 +750,7 @@ namespace OpenKalman
   {
     auto m1 = mean_of(d1) - mean_of(d2);
     auto m2 = covariance_of(d1) - covariance_of(d2);
-    return DistributionTraits<Dist1>::make(std::move(m1), std::move(m2));
+    return make_GaussianDistribution(std::move(m1), std::move(m2));
   };
 
 
@@ -770,7 +765,7 @@ namespace OpenKalman
   {
     static_assert(not euclidean_transformed<A>);
     static_assert(equivalent_to<typename MatrixTraits<A>::ColumnCoefficients, typename DistributionTraits<D>::Coefficients>);
-    return DistributionTraits<D>::make(a * mean_of(d), scale(covariance_of(d), a));
+    return make_GaussianDistribution(a * mean_of(d), scale(covariance_of(d), a));
   }
 
 
@@ -783,7 +778,7 @@ namespace OpenKalman
   {
     auto m = mean_of(d) * s;
     auto c = scale(covariance_of(d), s);
-    return DistributionTraits<Dist>::make(std::move(m), std::move(c));
+    return make_GaussianDistribution(std::move(m), std::move(c));
   };
 
 
@@ -796,7 +791,7 @@ namespace OpenKalman
   {
     auto m = s * mean_of(d);
     auto c = scale(covariance_of(d), s);
-    return DistributionTraits<Dist>::make(std::move(m), std::move(c));
+    return make_GaussianDistribution(std::move(m), std::move(c));
   };
 
 
@@ -809,7 +804,7 @@ namespace OpenKalman
   {
     auto m = mean_of(d) / s;
     auto c = inverse_scale(covariance_of(d), s);
-    return DistributionTraits<Dist>::make(std::move(m), std::move(c));
+    return make_GaussianDistribution(std::move(m), std::move(c));
   };
 
 }

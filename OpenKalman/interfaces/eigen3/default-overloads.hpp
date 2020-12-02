@@ -12,7 +12,7 @@
 #define OPENKALMAN_DEFAULT_OVERLOADS_HPP
 
 /**
- * \file eigen3-default-overloads.hpp
+ * \file
  * \brief A header file defining Eigen3 as the default interface.
  * \details The definitions in this file are only enabled if Eigen3 is the first-defined interface.
  */
@@ -633,7 +633,11 @@ namespace OpenKalman
     OpenKalman::internal::constexpr_sqrt(sizeof...(Args)), OpenKalman::internal::constexpr_sqrt(sizeof...(Args))>>>;
 
 
-  /**
+  // -------------- //
+  //  MatrixTraits  //
+  // -------------- //
+
+  /*
    * \internal
    * \brief Type traits for deriving Eigen matrices based on an arithmetic type.
    */
@@ -670,7 +674,7 @@ namespace OpenKalman
       return std::forward<Arg>(arg);
     }
 
-    /// Make matrix from a list of coefficients in row-major order.
+    // Make matrix from a list of coefficients in row-major order.
 #ifdef __cpp_concepts
     template<std::convertible_to<const Scalar> Arg, std::convertible_to<const Scalar> ... Args>
 #else
@@ -684,6 +688,7 @@ namespace OpenKalman
     }
 
   };
+
 
 } // namespace OpenKalman
 

@@ -660,8 +660,8 @@ TEST_F(matrices, GaussianDistribution_traits)
   static_assert(zero_matrix<DistZ2>);
 
   // DistributionTraits
-  EXPECT_TRUE(is_near(DistributionTraits<DistSA2l>::make(Mean2 {1, 2}, CovSA2l {9, 3, 3, 10}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
-  EXPECT_TRUE(is_near(DistributionTraits<DistSA2l>::make(Mean2 {1, 2}, SA2l {9, 3, 3, 10}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
+  EXPECT_TRUE(is_near(DistributionTraits<DistSA2l>::template make<C2>(nested_matrix(Mean2 {1, 2}), nested_matrix(CovSA2l {9, 3, 3, 10})), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
+  EXPECT_TRUE(is_near(DistributionTraits<DistSA2l>::template make<C2>(nested_matrix(Mean2 {1, 2}), SA2l {9, 3, 3, 10}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
   EXPECT_TRUE(is_near(DistributionTraits<DistSA2l>::zero(), distz2));
   EXPECT_TRUE(is_near(DistributionTraits<DistSA2l>::normal(), disti2));
 }

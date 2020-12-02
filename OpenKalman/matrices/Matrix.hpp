@@ -85,7 +85,7 @@ namespace OpenKalman
 #endif
     Matrix(Arg&& arg) noexcept : Base(make_native_matrix(std::forward<Arg>(arg)))
     {
-      static_assert(equivalent_to<typename MatrixTraits<Arg>::Coefficients, RowCoefficients>);
+      static_assert(equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients>);
       static_assert(equivalent_to<RowCoefficients, ColumnCoefficients>);
     }
 
@@ -265,8 +265,8 @@ namespace OpenKalman
   template<typename V, std::enable_if_t<covariance<V>, int> = 0>
 #endif
   Matrix(V&&) -> Matrix<
-    typename MatrixTraits<V>::Coefficients,
-    typename MatrixTraits<V>::Coefficients,
+    typename MatrixTraits<V>::RowCoefficients,
+    typename MatrixTraits<V>::RowCoefficients,
     native_matrix_t<nested_matrix_t<V>>>;
 
 
@@ -346,7 +346,7 @@ namespace OpenKalman
 #endif
   inline auto make_matrix(M&& arg)
   {
-    using C = typename MatrixTraits<M>::Coefficients;
+    using C = typename MatrixTraits<M>::RowCoefficients;
     return make_matrix<C, C>(make_native_matrix(std::forward<M>(arg)));
   }
 
@@ -415,11 +415,10 @@ namespace OpenKalman
   }
 
 
-  ///////////////////////////
-  //        Traits         //
-  ///////////////////////////
+  // -------------- //
+  //  MatrixTraits  //
+  // -------------- //
 
-  /// MatrixTraits for Matrix
   template<typename RowCoeffs, typename ColCoeffs, typename NestedType>
   struct MatrixTraits<OpenKalman::Matrix<RowCoeffs, ColCoeffs, NestedType>>
   {

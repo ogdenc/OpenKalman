@@ -14,7 +14,6 @@
  * \details This should be included by any OpenKalman file, including interface files.
  */
 
-
 #ifndef OPENKALMAN_BASICS_HPP
 #define OPENKALMAN_BASICS_HPP
 

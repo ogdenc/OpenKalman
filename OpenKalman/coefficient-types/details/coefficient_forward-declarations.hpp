@@ -30,8 +30,7 @@ namespace OpenKalman
    * of the coefficient. For example, Axis, Distance, Angle, and Inclination are size 1, and each correspond to a
    * single coefficient. Polar is size 2 and corresponds to two coefficients (e.g., a distance and an angle).
    * Spherical is size 3 and corresponds to three coefficients.
-   * \par Example:
-   * \code Coefficients<Axis, angle::Radians>
+   * Example: \code Coefficients<Axis, angle::Radians> \endcode
    * \tparam Cs Any types within the concept coefficients (internal bool variable coefficients in c++17).
    */
 #ifdef __cpp_concepts
@@ -121,8 +120,8 @@ namespace OpenKalman
    * \brief An atomic coefficient group reflecting spherical coordinates.
    * \details Coefficient1, Coefficient2, and Coefficient3 must be some combination of Distance, Inclination, and Angle
    * in any order, reflecting the distance, inclination, and azimuth, respectively.
-   * Examples: <code>Spherical<Distance, inclination::Degrees, angle::Radians></code>,
-   * <code>Spherical<angle::PositiveDegrees, Distance, inclination::Radians></code>.
+   * Examples: \code Spherical<Distance, inclination::Degrees, angle::Radians> \endcode,
+   * \code Spherical<angle::PositiveDegrees, Distance, inclination::Radians> \endcode.
    * Spherical coordinates span three adjacent coefficients in a matrix.
    * \tparam Coefficient1 Distance, inclination, or Angle (e.g., angle::Radians).
    * \tparam Coefficient2 Distance, inclination, or Angle (e.g., angle::Radians).
@@ -346,8 +345,8 @@ namespace OpenKalman
 
   /**
    * \brief Concatenate any number of Coefficients<...> types.
-   * \details Example: <code>Concatenate<Coefficients<angle::Radians>, Coefficients<Axis, Distance>> ==
-   * Coefficients<angle::Radians, Axis, Distance></code>.
+   * \details Example: \code Concatenate<Coefficients<angle::Radians>, Coefficients<Axis, Distance>> ==
+   * Coefficients<angle::Radians, Axis, Distance> \endcode.
    */
 #ifdef __cpp_concepts
   template<coefficients ... Coeffs> using Concatenate = typename detail::ConcatenateImpl<Coeffs...>::type;

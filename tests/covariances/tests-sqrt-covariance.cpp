@@ -538,28 +538,28 @@ TEST_F(covariance_tests, SquareRootCovariance_subscripts)
 TEST_F(covariance_tests, SquareRootCovariance_deduction_guides)
 {
   EXPECT_TRUE(is_near(SquareRootCovariance(SqCovSA2l {3, 0, 1, 3}), Mat2 {3, 0, 1, 3}));
-  static_assert(equivalent_to<typename MatrixTraits<decltype(SquareRootCovariance(SqCovSA2l {3, 0, 1, 3}))>::Coefficients, C>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(SquareRootCovariance(SqCovSA2l {3, 0, 1, 3}))>::RowCoefficients, C>);
 
   EXPECT_TRUE(is_near(SquareRootCovariance(SqCovSA2u {3, 1, 0, 3}), Mat2 {3, 1, 0, 3}));
-  static_assert(equivalent_to<typename MatrixTraits<decltype(SquareRootCovariance(SqCovSA2l {3, 1, 0, 3}))>::Coefficients, C>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(SquareRootCovariance(SqCovSA2l {3, 1, 0, 3}))>::RowCoefficients, C>);
 
   EXPECT_TRUE(is_near(SquareRootCovariance(T2l {3, 0, 1, 3}), Mat2 {3, 0, 1, 3}));
-  static_assert(equivalent_to<typename MatrixTraits<decltype(SquareRootCovariance(T2l {3, 0, 1, 3}))>::Coefficients, Axes<2>>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(SquareRootCovariance(T2l {3, 0, 1, 3}))>::RowCoefficients, Axes<2>>);
 
   EXPECT_TRUE(is_near(SquareRootCovariance(T2u {3, 1, 0, 3}), Mat2 {3, 1, 0, 3}));
-  static_assert(equivalent_to<typename MatrixTraits<decltype(SquareRootCovariance(T2u {3, 1, 0, 3}))>::Coefficients, Axes<2>>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(SquareRootCovariance(T2u {3, 1, 0, 3}))>::RowCoefficients, Axes<2>>);
 
   EXPECT_TRUE(is_near(SquareRootCovariance(D2 {1, 2}), Mat2 {1, 0, 0, 2}));
-  static_assert(equivalent_to<typename MatrixTraits<decltype(SquareRootCovariance(D2 {1, 2}))>::Coefficients, Axes<2>>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(SquareRootCovariance(D2 {1, 2}))>::RowCoefficients, Axes<2>>);
 
   EXPECT_TRUE(is_near(SquareRootCovariance(Mat2 {3, 0, 1, 3}), Mat2 {3, 0, 1, 3}));
-  static_assert(equivalent_to<typename MatrixTraits<decltype(SquareRootCovariance(Mat2 {3, 0, 1, 3}))>::Coefficients, C>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(SquareRootCovariance(Mat2 {3, 0, 1, 3}))>::RowCoefficients, C>);
 
   EXPECT_TRUE(is_near(SquareRootCovariance(make_native_matrix<M2>(3, 0, 1, 3)), Mat2 {3, 0, 1, 3}));
-  static_assert(equivalent_to<typename MatrixTraits<decltype(SquareRootCovariance(make_native_matrix<M2>(3, 0, 1, 3)))>::Coefficients, Axes<2>>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(SquareRootCovariance(make_native_matrix<M2>(3, 0, 1, 3)))>::RowCoefficients, Axes<2>>);
 
   EXPECT_TRUE(is_near(SquareRootCovariance {3., 0, 1, 3}, Mat2 {3, 0, 1, 3}));
-  static_assert(equivalent_to<typename MatrixTraits<decltype(SquareRootCovariance {3., 0, 1, 3})>::Coefficients, Axes<2>>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(SquareRootCovariance {3., 0, 1, 3})>::RowCoefficients, Axes<2>>);
 }
 
 TEST_F(covariance_tests, SquareRootCovariance_make)
@@ -673,7 +673,7 @@ TEST_F(covariance_tests, SquareRootCovariance_make)
   static_assert(lower_triangular_matrix<decltype(make_square_root_covariance<C, TriangleType::lower>().nested_matrix())>);
   static_assert(upper_triangular_matrix<decltype(make_square_root_covariance<C, TriangleType::upper>().nested_matrix())>);
   static_assert(lower_triangular_matrix<decltype(make_square_root_covariance<C>().nested_matrix())>);
-  static_assert(MatrixTraits<decltype(make_square_root_covariance<C>())>::Coefficients::size == 2);
+  static_assert(MatrixTraits<decltype(make_square_root_covariance<C>())>::RowCoefficients::size == 2);
 }
 
 TEST_F(covariance_tests, SquareRootCovariance_traits)

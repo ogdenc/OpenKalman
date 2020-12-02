@@ -92,7 +92,7 @@ namespace OpenKalman
    * OpenKalman matrix types are self-contained if their wrapped native matrix is self-contained and is
    * not an lvalue reference.
    * The matrix library interface will specify which native matrices and expressions are self-contained.
-   * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T>
 #ifdef __cpp_concepts
@@ -183,9 +183,9 @@ namespace OpenKalman
   using passable_t = std::conditional_t<std::is_lvalue_reference_v<T>, T, self_contained_t<T>>;
 
 
-  // --------------- //
-  //  native_matrix  //
-  // --------------- //
+  // ----------------- //
+  //  native_matrix_t  //
+  // ----------------- //
 
 
   /**
@@ -241,7 +241,7 @@ namespace OpenKalman
 
   /**
    * \brief Specifies that a type is a zero matrix.
-   * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T>
 #ifdef __cpp_concepts
@@ -302,7 +302,7 @@ namespace OpenKalman
 
   /**
    * \brief Specifies that a type is an identity matrix.
-   * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T>
 #ifdef __cpp_concepts
@@ -362,7 +362,7 @@ namespace OpenKalman
 
   /**
    * \brief Specifies that a type is a one-by-one matrix (i.e., one row and one column).
-   * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T>
 #ifdef __cpp_concepts
@@ -408,7 +408,7 @@ namespace OpenKalman
 
   /**
    * \brief Specifies that a type is a diagonal matrix.
-   * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
 #ifdef __cpp_concepts
   template<typename T>
@@ -498,7 +498,7 @@ namespace OpenKalman
 
   /**
    * \brief Specifies that a type is a self-adjoint matrix.
-   * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
 #ifdef __cpp_concepts
   template<typename T>
@@ -589,7 +589,7 @@ namespace OpenKalman
 
   /**
    * \brief Specifies that a type is a lower-triangular matrix.
-   * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
 #ifdef __cpp_concepts
   template<typename T>
@@ -654,7 +654,7 @@ namespace OpenKalman
 
   /**
    * \brief Specifies that a type is an upper-triangular matrix.
-   * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
 #ifdef __cpp_concepts
   template<typename T>
@@ -703,7 +703,7 @@ namespace OpenKalman
 
   /**
    * \brief Specifies that a type is a triangular matrix (upper or lower).
-   * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
 #ifdef __cpp_concepts
   template<typename T>
@@ -723,7 +723,7 @@ namespace OpenKalman
     /**
      * \internal
      * \brief Specifies that two types have the same triangular type (upper or lower).
-     * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
+     * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
      */
     template<typename T, typename U>
 #ifdef __cpp_concepts
@@ -760,7 +760,7 @@ namespace OpenKalman
   /**
    * \brief Specifies that a type has a nested native matrix that is a Cholesky square root.
    * \details If this is true, then nested_matrix_t<T> is true.
-   * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T>
 #ifdef __cpp_concepts
@@ -856,11 +856,10 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<triangular_matrix T>
-  inline constexpr TriangleType triangle_type_of = detail::triangle_type_of_impl<T>::value;
 #else
   template<typename T>
-  inline constexpr TriangleType triangle_type_of = detail::triangle_type_of_impl<T>::value;
 #endif
+  inline constexpr TriangleType triangle_type_of = detail::triangle_type_of_impl<T>::value;
 
 
   // --------------------- //
@@ -886,7 +885,7 @@ namespace OpenKalman
 
   /**
    * \brief Specifies that a type has elements that can be retrieved with N number of indices.
-   * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T, std::size_t N>
 #ifdef __cpp_concepts
@@ -935,7 +934,7 @@ namespace OpenKalman
 
   /**
    * \brief Specifies that a type has elements that can be set with N number of indices.
-   * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T, std::size_t N>
 #ifdef __cpp_concepts

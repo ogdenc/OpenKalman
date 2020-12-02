@@ -71,7 +71,7 @@ namespace OpenKalman
 #endif
     Covariance(M&& m) noexcept : Base(std::forward<M>(m))
     {
-      static_assert(equivalent_to<typename MatrixTraits<M>::Coefficients, Coefficients>);
+      static_assert(equivalent_to<typename MatrixTraits<M>::RowCoefficients, Coefficients>);
     }
 
 
@@ -84,7 +84,7 @@ namespace OpenKalman
 #endif
     Covariance(M&& m) noexcept : Base(Cholesky_square(std::forward<M>(m).nested_matrix()))
     {
-      static_assert(equivalent_to<typename MatrixTraits<M>::Coefficients, Coefficients>);
+      static_assert(equivalent_to<typename MatrixTraits<M>::RowCoefficients, Coefficients>);
     }
 
 
@@ -185,7 +185,7 @@ namespace OpenKalman
     {
       if constexpr(covariance<Arg>)
       {
-        static_assert(equivalent_to<typename MatrixTraits<Arg>::Coefficients, Coefficients>);
+        static_assert(equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>);
       }
       else if constexpr(typed_matrix<Arg>)
       {
@@ -220,7 +220,7 @@ namespace OpenKalman
 #endif
     auto& operator+=(Arg&& arg) noexcept
     {
-      static_assert(equivalent_to<typename MatrixTraits<Arg>::Coefficients, Coefficients>);
+      static_assert(equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>);
       static_assert(not square_root_covariance<Arg>);
       if constexpr(self_adjoint_matrix<NestedMatrix>)
       {
@@ -252,7 +252,7 @@ namespace OpenKalman
 #endif
     auto& operator-=(Arg&& arg) noexcept
     {
-      static_assert(equivalent_to<typename MatrixTraits<Arg>::Coefficients, Coefficients>);
+      static_assert(equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>);
       static_assert(not square_root_covariance<Arg>);
       if constexpr(self_adjoint_matrix<NestedMatrix>)
       {
@@ -395,7 +395,7 @@ namespace OpenKalman
 #else
   template<typename M, std::enable_if_t<covariance<M>, int> = 0>
 #endif
-  Covariance(M&&) -> Covariance<typename MatrixTraits<M>::Coefficients, nested_matrix_t<M>>;
+  Covariance(M&&) -> Covariance<typename MatrixTraits<M>::RowCoefficients, nested_matrix_t<M>>;
 
 
 #ifdef __cpp_concepts
@@ -658,7 +658,7 @@ namespace OpenKalman
   inline auto
   make_covariance(Arg&& arg) noexcept
   {
-    using C = typename MatrixTraits<Arg>::Coefficients;
+    using C = typename MatrixTraits<Arg>::RowCoefficients;
     return make_covariance<C>(nested_matrix(std::forward<Arg>(arg)));
   }
 
@@ -675,7 +675,7 @@ namespace OpenKalman
   inline auto
   make_covariance()
   {
-    using C = typename MatrixTraits<T>::Coefficients;
+    using C = typename MatrixTraits<T>::RowCoefficients;
     using B = nested_matrix_t<T>;
     return make_covariance<C, B>();
   }
@@ -775,27 +775,28 @@ namespace OpenKalman
     using NestedMatrix = ArgType;
     static constexpr auto dimension = MatrixTraits<NestedMatrix>::dimension;
     static constexpr auto columns = dimension;
-    using Coefficients = Coeffs;
+    using RowCoefficients = Coeffs;
+    using ColumnCoefficients = Coeffs;
     using Scalar = typename MatrixTraits<NestedMatrix>::Scalar;
 
     template<std::size_t rows = dimension, std::size_t cols = dimension, typename S = Scalar>
     using NativeMatrix = typename MatrixTraits<NestedMatrix>::template NativeMatrix<rows, cols, S>;
 
-    using SelfContained = Covariance<Coefficients, self_contained_t<NestedMatrix>>;
+    using SelfContained = Covariance<Coeffs, self_contained_t<NestedMatrix>>;
 
 #ifdef __cpp_concepts
-    template<coefficients C = Coefficients, covariance_nestable Arg>
+    template<coefficients C = Coeffs, covariance_nestable Arg>
 #else
-    template<typename C = Coefficients, typename Arg>
+    template<typename C = Coeffs, typename Arg>
 #endif
     static auto make(Arg&& arg) noexcept
     {
       return Covariance<C, std::decay_t<Arg>>(std::forward<Arg>(arg));
     }
 
-    static auto zero() { return Covariance<Coefficients, NestedMatrix>::zero(); }
+    static auto zero() { return Covariance<Coeffs, NestedMatrix>::zero(); }
 
-    static auto identity() { return Covariance<Coefficients, NestedMatrix>::identity(); }
+    static auto identity() { return Covariance<Coeffs, NestedMatrix>::identity(); }
   };
 
 

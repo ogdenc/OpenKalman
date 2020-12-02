@@ -612,22 +612,22 @@ TEST_F(covariance_tests, Covariance_subscripts)
 TEST_F(covariance_tests, Covariance_deduction_guides)
 {
   EXPECT_TRUE(is_near(Covariance(CovSA2l {9, 3, 3, 10}), Mat2 {9, 3, 3, 10}));
-  static_assert(equivalent_to<typename MatrixTraits<decltype(Covariance(CovSA2l {9, 3, 3, 10}))>::Coefficients, C>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(Covariance(CovSA2l {9, 3, 3, 10}))>::RowCoefficients, C>);
 
   EXPECT_TRUE(is_near(Covariance(T2l {3, 0, 1, 3}), Mat2 {9, 3, 3, 10}));
-  static_assert(equivalent_to<typename MatrixTraits<decltype(Covariance(T2l {3, 0, 1, 3}))>::Coefficients, Axes<2>>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(Covariance(T2l {3, 0, 1, 3}))>::RowCoefficients, Axes<2>>);
 
   EXPECT_TRUE(is_near(Covariance(D2 {1, 2}), Mat2 {1, 0, 0, 2}));
-  static_assert(equivalent_to<typename MatrixTraits<decltype(Covariance(D2 {1, 2}))>::Coefficients, Axes<2>>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(Covariance(D2 {1, 2}))>::RowCoefficients, Axes<2>>);
 
   EXPECT_TRUE(is_near(Covariance(Mat2 {9, 3, 3, 10}), Mat2 {9, 3, 3, 10}));
-  static_assert(equivalent_to<typename MatrixTraits<decltype(Covariance(Mat2 {9, 3, 3, 10}))>::Coefficients, C>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(Covariance(Mat2 {9, 3, 3, 10}))>::RowCoefficients, C>);
 
   EXPECT_TRUE(is_near(Covariance(make_native_matrix<M2>(9, 3, 3, 10)), Mat2 {9, 3, 3, 10}));
-  static_assert(equivalent_to<typename MatrixTraits<decltype(Covariance(make_native_matrix<M2>(9, 3, 3, 10)))>::Coefficients, Axes<2>>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(Covariance(make_native_matrix<M2>(9, 3, 3, 10)))>::RowCoefficients, Axes<2>>);
 
   EXPECT_TRUE(is_near(Covariance {9., 3, 3, 10}, Mat2 {9, 3, 3, 10}));
-  static_assert(equivalent_to<typename MatrixTraits<decltype(Covariance {9., 3, 3, 10})>::Coefficients, Axes<2>>);
+  static_assert(equivalent_to<typename MatrixTraits<decltype(Covariance {9., 3, 3, 10})>::RowCoefficients, Axes<2>>);
 }
 
 
@@ -742,7 +742,7 @@ TEST_F(covariance_tests, Covariance_make)
   static_assert(lower_triangular_matrix<decltype(make_covariance<C, TriangleType::lower>().nested_matrix())>);
   static_assert(upper_triangular_matrix<decltype(make_covariance<C, TriangleType::upper>().nested_matrix())>);
   static_assert(Eigen3::lower_storage_triangle<decltype(make_covariance<C>().nested_matrix())>);
-  static_assert(MatrixTraits<decltype(make_covariance<C>())>::Coefficients::size == 2);
+  static_assert(MatrixTraits<decltype(make_covariance<C>())>::RowCoefficients::size == 2);
 }
 
 

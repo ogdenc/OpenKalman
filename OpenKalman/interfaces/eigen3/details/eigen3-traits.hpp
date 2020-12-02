@@ -34,7 +34,7 @@ namespace OpenKalman
 
     /**
      * Type T is a self-adjoint matrix based on the Eigen library.
-     * /note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
+     * /note This is a concept when compiled with c++20, and a constexpr bool in c++17.
      */
     template<typename T>
 #ifdef __cpp_concepts
@@ -56,7 +56,7 @@ namespace OpenKalman
 
     /**
      * A triangular matrix based on the Eigen library.
-     * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
+     * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
      */
     template<typename T>
 #ifdef __cpp_concepts
@@ -78,7 +78,7 @@ namespace OpenKalman
 
     /**
      * A diagonal matrix based on the Eigen library.
-     * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
+     * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
      */
     template<typename T>
 #ifdef __cpp_concepts
@@ -100,7 +100,7 @@ namespace OpenKalman
 
     /**
      * A zero matrix based on the Eigen library. (All coefficients are zero.)
-     * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
+     * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
      */
     template<typename T>
 #ifdef __cpp_concepts
@@ -122,7 +122,7 @@ namespace OpenKalman
 
     /**
      * An expression converting each column vector in a Euclidean Eigen matrix from Euclidean space.
-     * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
+     * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
      */
     template<typename T>
 #ifdef __cpp_concepts
@@ -144,7 +144,7 @@ namespace OpenKalman
 
     /**
      * An expression converting each column vector in an Eigen matrix to Euclidean space.
-     * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
+     * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
      */
     template<typename T>
 #ifdef __cpp_concepts
@@ -156,7 +156,7 @@ namespace OpenKalman
 
     /**
      * Either from_euclidean_expr or to_euclidean_expr.
-     * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
+     * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
      */
     template<typename T>
 #ifdef __cpp_concepts
@@ -168,7 +168,7 @@ namespace OpenKalman
 
     /**
      * T is either a native Eigen matrix or a zero Eigen matrix.
-     * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
+     * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
      */
     template<typename T>
 #ifdef __cpp_concepts
@@ -190,7 +190,7 @@ namespace OpenKalman
 
     /**
      * A self-adjoint matrix that stores data in the upper triangle.
-     * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
+     * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
      */
     template<typename T>
 #ifdef __cpp_concepts
@@ -212,7 +212,7 @@ namespace OpenKalman
 
     /**
      * A self-adjoint matrix that stores data in the lower triangle.
-     * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
+     * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
      */
     template<typename T>
 #ifdef __cpp_concepts
@@ -793,19 +793,19 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
     template<Eigen3::to_euclidean_expr T, std::size_t N> requires
-      MatrixTraits<T>::Coefficients::axes_only and element_settable<nested_matrix_t<T>, N>
+      MatrixTraits<T>::RowCoefficients::axes_only and element_settable<nested_matrix_t<T>, N>
     struct is_element_settable<T, N> : std::true_type {};
 #else
     template<typename T, std::size_t N>
     struct is_element_settable<T, N, std::enable_if_t<Eigen3::to_euclidean_expr<T> and
-      MatrixTraits<T>::Coefficients::axes_only>>
+      MatrixTraits<T>::RowCoefficients::axes_only>>
       : is_element_settable<nested_matrix_t<T>, N> {};
 #endif
 
 
 #ifdef __cpp_concepts
     template<Eigen3::from_euclidean_expr T, std::size_t N> requires
-      (MatrixTraits<T>::Coefficients::axes_only and element_settable<nested_matrix_t<T>, N>) or
+      (MatrixTraits<T>::RowCoefficients::axes_only and element_settable<nested_matrix_t<T>, N>) or
       (Eigen3::to_euclidean_expr<nested_matrix_t<T>> and
         element_settable<nested_matrix_t<nested_matrix_t<T>>, N>)
     struct is_element_settable<T, N> : std::true_type {};
@@ -813,7 +813,7 @@ namespace OpenKalman
     template<typename T, std::size_t N>
     struct is_element_settable<T, N, std::enable_if_t<Eigen3::from_euclidean_expr<T> and
       (not Eigen3::to_euclidean_expr<nested_matrix_t<T>>)>>
-      : std::bool_constant<MatrixTraits<T>::Coefficients::axes_only and element_settable<nested_matrix_t<T>, N>> {};
+      : std::bool_constant<MatrixTraits<T>::RowCoefficients::axes_only and element_settable<nested_matrix_t<T>, N>> {};
 
     template<typename T, std::size_t N>
     struct is_element_settable<T, N, std::enable_if_t<Eigen3::from_euclidean_expr<T> and

@@ -8,6 +8,10 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+/**
+ * \file
+ * \brief Definitions relating to Mean.
+ */
 #ifndef OPENKALMAN_MEAN_HPP
 #define OPENKALMAN_MEAN_HPP
 

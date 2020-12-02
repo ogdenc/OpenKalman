@@ -20,7 +20,7 @@ namespace OpenKalman
     /**
      * \brief Specifies a native Eigen3 matrix.
      * \details This includes any class in the Eigen library descending from Eigen::MatrixBase.
-     * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
+     * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
      */
     template<typename T>
 #ifdef __cpp_concepts
@@ -33,8 +33,8 @@ namespace OpenKalman
   } // namespace Eigen3
 
 
-  /**
-   * Default matrix traits for any matrix derived from Eigen::MatrixBase.
+  /*
+   * \brief Default matrix traits for any matrix derived from Eigen::MatrixBase.
    * \tparam M The matrix.
    */
 #ifdef __cpp_concepts
@@ -48,7 +48,7 @@ namespace OpenKalman
     using Scalar = typename M::Scalar;
 
     static constexpr std::size_t dimension = M::RowsAtCompileTime;
-    static constexpr std::size_t columns = M::ColsAtCompileTime; ///\TODO: make columns potentially dynamic (0 = dynamic?)
+    static constexpr std::size_t columns = M::ColsAtCompileTime; //<\TODO: make columns potentially dynamic (0 = dynamic?)
     //Note: rows or columns at compile time are -1 if the matrix is dynamic:
     static_assert(dimension > 0);
     static_assert(columns > 0);
@@ -81,7 +81,7 @@ namespace OpenKalman
       return std::forward<Arg>(arg);
     }
 
-    /// Make matrix from a list of coefficients in row-major order.
+    // Make matrix from a list of coefficients in row-major order.
 #ifdef __cpp_concepts
     template<std::convertible_to<const Scalar> Arg, std::convertible_to<const Scalar> ... Args>
     requires (1 + sizeof...(Args) == dimension * columns)

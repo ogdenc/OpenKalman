@@ -33,7 +33,7 @@ namespace OpenKalman
   inline auto
   square_root(Arg&& arg) noexcept
   {
-    using C = typename MatrixTraits<Arg>::Coefficients;
+    using C = typename MatrixTraits<Arg>::RowCoefficients;
     if constexpr(diagonal_matrix<Arg> and not zero_matrix<Arg>)
     {
       return make_square_root_covariance<C>(Cholesky_factor(nested_matrix(std::forward<Arg>(arg))));
@@ -53,7 +53,7 @@ namespace OpenKalman
   inline auto
   square(Arg&& arg) noexcept
   {
-    using C = typename MatrixTraits<Arg>::Coefficients;
+    using C = typename MatrixTraits<Arg>::RowCoefficients;
     if constexpr(diagonal_matrix<Arg> and not zero_matrix<Arg>)
     {
       return make_covariance<C>(Cholesky_square(nested_matrix(std::forward<Arg>(arg))));
@@ -190,7 +190,7 @@ template<typename Arg,
   inline Arg&
   rank_update(Arg& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
   {
-    static_assert(equivalent_to<typename MatrixTraits<Arg>::Coefficients, typename MatrixTraits<U>::RowCoefficients>);
+    static_assert(equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, typename MatrixTraits<U>::RowCoefficients>);
     rank_update(nested_matrix(arg), nested_matrix(u), alpha);
     return arg;
   }
@@ -204,7 +204,7 @@ template<typename Arg,
   inline auto
   rank_update(Arg&& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
   {
-    static_assert(equivalent_to<typename MatrixTraits<Arg>::Coefficients, typename MatrixTraits<U>::RowCoefficients>);
+    static_assert(equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, typename MatrixTraits<U>::RowCoefficients>);
     return MatrixTraits<Arg>::make(rank_update(nested_matrix(std::forward<Arg>(arg)), nested_matrix(u), alpha));
   }
 
@@ -218,9 +218,9 @@ template<typename Arg,
   inline auto
   solve(A&& a, B&& b) noexcept
   {
-    static_assert(equivalent_to<typename MatrixTraits<A>::Coefficients, typename MatrixTraits<B>::RowCoefficients>);
+    static_assert(equivalent_to<typename MatrixTraits<A>::RowCoefficients, typename MatrixTraits<B>::RowCoefficients>);
     auto x = make_self_contained(solve(convert_nested_matrix(std::forward<A>(a)), nested_matrix(std::forward<B>(b))));
-    return MatrixTraits<B>::template make<typename MatrixTraits<A>::Coefficients>(std::move(x));
+    return MatrixTraits<B>::template make<typename MatrixTraits<A>::RowCoefficients>(std::move(x));
   }
 
 
@@ -232,7 +232,7 @@ template<typename Arg,
   constexpr auto
   reduce_columns(Arg&& arg)
   {
-    using RC = typename MatrixTraits<Arg>::Coefficients;
+    using RC = typename MatrixTraits<Arg>::RowCoefficients;
     return make_matrix<RC, Axis>(reduce_columns(convert_nested_matrix(std::forward<Arg>(arg))));
   }
 
@@ -247,7 +247,7 @@ template<typename Arg,
   inline auto
   LQ_decomposition(Arg&& arg)
   {
-    using C = typename MatrixTraits<Arg>::Coefficients;
+    using C = typename MatrixTraits<Arg>::RowCoefficients;
     auto tm = LQ_decomposition(convert_nested_matrix(std::forward<Arg>(arg)));
     return make_square_root_covariance<C>(std::move(tm));
   }
@@ -263,7 +263,7 @@ template<typename Arg,
   inline auto
   QR_decomposition(Arg&& arg)
   {
-    using C = typename MatrixTraits<Arg>::Coefficients;
+    using C = typename MatrixTraits<Arg>::RowCoefficients;
     auto tm = QR_decomposition(convert_nested_matrix(std::forward<Arg>(arg)));
     return make_square_root_covariance<C>(std::move(tm));
   }
@@ -280,7 +280,7 @@ template<typename Arg,
   {
     if constexpr(sizeof...(Ms) > 0)
     {
-      using Coeffs = Concatenate<typename MatrixTraits<M>::Coefficients, typename MatrixTraits<Ms>::Coefficients...>;
+      using Coeffs = Concatenate<typename MatrixTraits<M>::RowCoefficients, typename MatrixTraits<Ms>::RowCoefficients...>;
       auto cat = concatenate_diagonal(nested_matrix(std::forward<M>(m)), nested_matrix(std::forward<Ms>(mN))...);
       return MatrixTraits<M>::template make<Coeffs>(std::move(cat));
     }
@@ -375,7 +375,7 @@ template<typename Arg,
   inline auto
   split_diagonal(M&& m) noexcept
   {
-    static_assert(prefix_of<Concatenate<Cs...>, typename MatrixTraits<M>::Coefficients>);
+    static_assert(prefix_of<Concatenate<Cs...>, typename MatrixTraits<M>::RowCoefficients>);
     return split_diagonal<internal::SplitCovDiagF<M>, Cs...>(nested_matrix(std::forward<M>(m)));
   }
 
@@ -389,7 +389,7 @@ template<typename Arg,
   inline auto
   split_vertical(M&& m) noexcept
   {
-    using CC = typename MatrixTraits<M>::Coefficients;
+    using CC = typename MatrixTraits<M>::RowCoefficients;
     static_assert(prefix_of<Concatenate<Cs...>, CC>);
     return split_vertical<internal::SplitCovVertF<M, CC>, Cs...>(make_native_matrix(std::forward<M>(m)));
   }
@@ -404,7 +404,7 @@ template<typename Arg,
   inline auto
   split_horizontal(M&& m) noexcept
   {
-    using RC = typename MatrixTraits<M>::Coefficients;
+    using RC = typename MatrixTraits<M>::RowCoefficients;
     static_assert(prefix_of<Concatenate<Cs...>, RC>);
     return split_horizontal<internal::SplitCovHorizF<M, RC>, Cs...>(make_native_matrix(std::forward<M>(m)));
   }
@@ -490,7 +490,7 @@ template<typename Arg,
   inline auto
   column(Arg&& arg, const std::size_t index)
   {
-    using C = typename MatrixTraits<Arg>::Coefficients;
+    using C = typename MatrixTraits<Arg>::RowCoefficients;
     return make_matrix<C, Axis>(column(convert_nested_matrix(std::forward<Arg>(arg)), index));
   }
 
@@ -505,7 +505,7 @@ template<typename Arg,
   column(Arg&& arg)
   {
     static_assert(index < MatrixTraits<Arg>::dimension);
-    using C = typename MatrixTraits<Arg>::Coefficients;
+    using C = typename MatrixTraits<Arg>::RowCoefficients;
     using CC = typename C::template Coefficient<index>;
     return make_matrix<C, CC>(column<index>(convert_nested_matrix(std::forward<Arg>(arg))));
   }
@@ -522,7 +522,7 @@ template<typename Arg,
   inline auto
   apply_columnwise(Arg&& arg, const Function& f)
   {
-    using C = typename MatrixTraits<Arg>::Coefficients;
+    using C = typename MatrixTraits<Arg>::RowCoefficients;
     const auto f_nested = [&f](const auto& col) { return nested_matrix(f(make_matrix<C, Axis>(col))); };
     return make_matrix<C, C>(apply_columnwise(convert_nested_matrix(std::forward<Arg>(arg)), f_nested));
   }
@@ -539,7 +539,7 @@ template<typename Arg,
   inline auto
   apply_columnwise(Arg&& arg, const Function& f)
   {
-    using C = typename MatrixTraits<Arg>::Coefficients;
+    using C = typename MatrixTraits<Arg>::RowCoefficients;
     const auto f_nested = [&f](const auto& col, std::size_t i) { return nested_matrix(f(make_matrix<C, Axis>(col), i)); };
     return make_matrix<C, C>(apply_columnwise(convert_nested_matrix(std::forward<Arg>(arg)), f_nested));
   }
@@ -556,7 +556,7 @@ template<typename Arg,
   inline auto
   apply_coefficientwise(Arg&& arg, const Function& f)
   {
-    using C = typename MatrixTraits<Arg>::Coefficients;
+    using C = typename MatrixTraits<Arg>::RowCoefficients;
     return make_matrix<C, C>(apply_coefficientwise(convert_nested_matrix(std::forward<Arg>(arg)), f));
   }
 
@@ -573,7 +573,7 @@ template<typename Arg,
   inline auto
   apply_coefficientwise(Arg&& arg, const Function& f)
   {
-    using C = typename MatrixTraits<Arg>::Coefficients;
+    using C = typename MatrixTraits<Arg>::RowCoefficients;
     return make_matrix<C, C>(apply_coefficientwise(convert_nested_matrix(std::forward<Arg>(arg)), f));
   }
 

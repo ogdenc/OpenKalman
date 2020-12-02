@@ -28,8 +28,8 @@ namespace OpenKalman
    * - <code>Matrix<Coefficients<Axis, Axis, angle::Radians>, Coefficients<Axis, Axis>, native_matrix_t<native_matrix_t<double, 3, 2>> x;</code>
    * - <code>Matrix<double, Coefficients<Axis, Axis, angle::Radians>, Coefficients<Axis, Axis>,
    * native_matrix_t<double, 3, 2>> x;</code>
-   * \tparam RowCoefficients A set of coefficients (e.g., Axis, Spherical, etc.) corresponding to the rows.
-   * \tparam ColumnCoefficients Another set of coefficients corresponding to the columns.
+   * \tparam RowCoefficients A set of \ref coefficients (e.g., Axis, Spherical, etc.) corresponding to the rows.
+   * \tparam ColumnCoefficients Another set of \ref coefficients corresponding to the columns.
    * \tparam NestedMatrix The underlying native matrix or matrix expression.
    */
 #ifdef __cpp_concepts
@@ -154,7 +154,7 @@ namespace OpenKalman
 
   /**
    * T is a mean (i.e., is a specialization of the class Mean).
-   * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T>
 #ifdef __cpp_concepts
@@ -179,7 +179,7 @@ namespace OpenKalman
 
   /**
    * T is a wrapped mean (i.e., its row coefficients have at least one type that requires wrapping).
-   * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
 #ifdef __cpp_concepts
   template<typename T>
@@ -206,7 +206,7 @@ namespace OpenKalman
 
   /**
    * T is a Euclidean mean (i.e., is a specialization of the class EuclideanMean).
-   * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T>
 #ifdef __cpp_concepts
@@ -232,7 +232,7 @@ namespace OpenKalman
 
   /**
    * T is a Euclidean mean that actually has coefficients that are transformed to Euclidean space.
-   * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
 #ifdef __cpp_concepts
   template<typename T>
@@ -259,7 +259,7 @@ namespace OpenKalman
 
   /**
    * T is a typed matrix (i.e., is a specialization of Matrix, Mean, or EuclideanMean).
-   * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T>
 #ifdef __cpp_concepts
@@ -284,7 +284,7 @@ namespace OpenKalman
 
   /**
    * T is a column vector or set of column vectors (i.e., the columns all have type Axis).
-   * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
 #ifdef __cpp_concepts
   template<typename T>
@@ -311,7 +311,7 @@ namespace OpenKalman
 
   /**
    * T is a square root (Cholesky) covariance matrix (i.e., a specialization of SquareRootCovariance).
-   * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T>
 #ifdef __cpp_concepts
@@ -337,7 +337,7 @@ namespace OpenKalman
 
   /**
    * T is a specialization of either Covariance or SquareRootCovariance.
-   * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T>
 #ifdef __cpp_concepts
@@ -363,7 +363,7 @@ namespace OpenKalman
 
   /**
    * T is a Gaussian distribution.
-   * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T>
 #ifdef __cpp_concepts
@@ -375,7 +375,7 @@ namespace OpenKalman
 
   /**
    * T is a statistical distribution of any kind that is defined in OpenKalman.
-   * \note If compiled in c++17 mode, this is an inline constexpr bool variable rather than a concept.
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T>
 #ifdef __cpp_concepts
@@ -387,10 +387,40 @@ namespace OpenKalman
 
   namespace internal
   {
-    // Definition and documentation are in ConvertBaseMatrix.hpp
-    template<typename T = void, typename Arg>
+    /**
+     * /internal
+     * Convert covariance matrix to a covariance_nestable of type T.
+     * \tparam T \ref covariance_nestable to which Arg is to be converted.
+     * \tparam Arg Type of covariance matrix (or square typed matrix) to be converted
+     * \param arg Covariance matrix (or square typed matrix) to be converted.
+     * \return A \ref covariance_nestable.
+     */
 #ifdef __cpp_concepts
-      requires (std::is_void_v<T> or covariance_nestable<T>) and (covariance<Arg> or typed_matrix<Arg>)
+    template<covariance_nestable T, typename Arg>
+    requires covariance<Arg> or (typed_matrix<Arg> and equivalent_to<typename MatrixTraits<Arg>::RowCoefficients,
+      typename MatrixTraits<Arg>::ColumnCoefficients>)
+#else
+    template<typename T, typename Arg, typename = std::enable_if_t<covariance<Arg> or
+      (typed_matrix<Arg> and equivalent_to<typename MatrixTraits<Arg>::RowCoefficients,
+      typename MatrixTraits<Arg>::ColumnCoefficients>)>>
+#endif
+    constexpr decltype(auto)
+    convert_nested_matrix(Arg&&) noexcept;
+
+
+    /**
+     * /overload
+     * /internal
+     * Convert to a triangular matrix if Arg is a square root, or otherwise convert to a self-adjoint matrix.
+     */
+#ifdef __cpp_concepts
+    template<typename Arg>
+    requires covariance<Arg> or (typed_matrix<Arg> and equivalent_to<typename MatrixTraits<Arg>::RowCoefficients,
+      typename MatrixTraits<Arg>::ColumnCoefficients>)
+#else
+    template<typename Arg, typename = std::enable_if_t<covariance<Arg> or
+      (typed_matrix<Arg> and equivalent_to<typename MatrixTraits<Arg>::RowCoefficients,
+      typename MatrixTraits<Arg>::ColumnCoefficients>)>>
 #endif
     constexpr decltype(auto)
     convert_nested_matrix(Arg&&) noexcept;

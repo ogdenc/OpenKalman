@@ -27,7 +27,7 @@ namespace OpenKalman
     namespace limits
     {
       /**
-       * The limits of an inclination measured in radians: [-&half;&pi;,&half;&pi;].
+       * The limits of an inclination measured in radians: [-½&pi;,½&pi;].
        * \tparam Scalar The scalar type (e.g., <code>double</code>).
        */
       template<typename Scalar = double>
@@ -57,7 +57,7 @@ namespace OpenKalman
 
     } // namespace limits
 
-    /// An inclination measured in radians [-&half;&pi;,&half;&pi;].
+    /// An inclination measured in radians [-½&pi;,½&pi;].
     using Radians = Inclination<limits::Radians>;
 
     /// An inclination measured in degrees [-90,90].
