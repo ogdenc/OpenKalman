@@ -153,7 +153,7 @@ namespace OpenKalman
 
 
   /**
-   * T is a mean (i.e., is a specialization of the class Mean).
+   * \brief T is a mean (i.e., is a specialization of the class Mean).
    * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T>
@@ -178,7 +178,7 @@ namespace OpenKalman
 
 
   /**
-   * T is a wrapped mean (i.e., its row coefficients have at least one type that requires wrapping).
+   * \brief T is a wrapped mean (i.e., its row coefficients have at least one type that requires wrapping).
    * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
 #ifdef __cpp_concepts
@@ -205,7 +205,7 @@ namespace OpenKalman
 
 
   /**
-   * T is a Euclidean mean (i.e., is a specialization of the class EuclideanMean).
+   * \brief T is a Euclidean mean (i.e., is a specialization of the class EuclideanMean).
    * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T>
@@ -231,7 +231,7 @@ namespace OpenKalman
 
 
   /**
-   * T is a Euclidean mean that actually has coefficients that are transformed to Euclidean space.
+   * \brief T is a Euclidean mean that actually has coefficients that are transformed to Euclidean space.
    * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
 #ifdef __cpp_concepts
@@ -258,7 +258,7 @@ namespace OpenKalman
 
 
   /**
-   * T is a typed matrix (i.e., is a specialization of Matrix, Mean, or EuclideanMean).
+   * \brief T is a typed matrix (i.e., is a specialization of Matrix, Mean, or EuclideanMean).
    * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T>
@@ -283,7 +283,7 @@ namespace OpenKalman
 
 
   /**
-   * T is a column vector or set of column vectors (i.e., the columns all have type Axis).
+   * \brief T is a column vector or set of column vectors (i.e., the columns all have type Axis).
    * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
 #ifdef __cpp_concepts
@@ -310,7 +310,7 @@ namespace OpenKalman
 
 
   /**
-   * T is a square root (Cholesky) covariance matrix (i.e., a specialization of SquareRootCovariance).
+   * \brief T is a square root (Cholesky) covariance matrix (i.e., a specialization of SquareRootCovariance).
    * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T>
@@ -336,7 +336,7 @@ namespace OpenKalman
 
 
   /**
-   * T is a specialization of either Covariance or SquareRootCovariance.
+   * \brief T is a specialization of either Covariance or SquareRootCovariance.
    * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T>
@@ -362,7 +362,7 @@ namespace OpenKalman
   }
 
   /**
-   * T is a Gaussian distribution.
+   * \brief T is a Gaussian distribution.
    * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T>
@@ -374,7 +374,7 @@ namespace OpenKalman
 
 
   /**
-   * T is a statistical distribution of any kind that is defined in OpenKalman.
+   * \brief T is a statistical distribution of any kind that is defined in OpenKalman.
    * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T>
@@ -388,8 +388,8 @@ namespace OpenKalman
   namespace internal
   {
     /**
-     * /internal
-     * Convert covariance matrix to a covariance_nestable of type T.
+     * \internal
+     * \brief Convert covariance matrix to a covariance_nestable of type T.
      * \tparam T \ref covariance_nestable to which Arg is to be converted.
      * \tparam Arg Type of covariance matrix (or square typed matrix) to be converted
      * \param arg Covariance matrix (or square typed matrix) to be converted.
@@ -409,9 +409,9 @@ namespace OpenKalman
 
 
     /**
-     * /overload
-     * /internal
-     * Convert to a triangular matrix if Arg is a square root, or otherwise convert to a self-adjoint matrix.
+     * \overload
+     * \internal
+     * \brief Convert to a triangular matrix if Arg is a square root, or otherwise convert to a self-adjoint matrix.
      */
 #ifdef __cpp_concepts
     template<typename Arg>
@@ -428,15 +428,20 @@ namespace OpenKalman
 
     /**
      * \internal
-     * \brief General base class for all matrix and interface objects.
-     * \tparam Base A base matrix class within the native matrix library.
+     * \brief Ultimate base of typed matrices and covariance matrices.
+     * \tparam Derived The fully derived matrix type.
      * \tparam NestedMatrix The nested native matrix.
      */
-    template<typename Base, typename NestedMatrix>
+    template<typename Derived, typename NestedMatrix>
     struct MatrixBase;
 
 
-    // Definition and documentation are in CovarianceBase.hpp.
+    /**
+     * \internal
+     * \brief Base of Covariance and SquareRootCovariance classes.
+     * \tparam Derived The fully derived covariance type.
+     * \tparam NestedMatrix The nested native matrix.
+     */
 #ifdef __cpp_concepts
     template<typename Derived, typename NestedMatrix>
 #else
@@ -445,21 +450,40 @@ namespace OpenKalman
     struct CovarianceBase;
 
 
-    // Definition and documentation are in ElementSetter.hpp.
+    /**
+     * \internal
+     * \brief An interface to a matrix, to be used for getting and setting the individual matrix elements.
+     * \tparam read_only Whether the matrix elements are read-only (as opposed to writable).
+     * \tparam T The matrix type.
+     */
     template<bool read_only, typename T>
     struct ElementSetter;
 
 
-    // Definition and documentation are in ElementSetter.hpp.
+    /**
+     * \internal
+     * \brief Make an ElementSetter that takes two indices.
+     * \tparam read_only Whether the matrix elements are read-only.
+     * \tparam T The matrix type
+     * \param do_before The action, if any, taken before getting or setting an element.
+     * \param on_set The action, if any, taken after setting an element.
+     */
     template<bool read_only, typename T>
-    auto make_ElementSetter(T&&, std::size_t, std::size_t,
-      const std::function<void()>& = []{}, const std::function<void()>& = []{});
+    auto make_ElementSetter(T&& t, std::size_t i, std::size_t j,
+      const std::function<void()>& do_before = []{}, const std::function<void()>& on_set = []{});
 
 
-    // Definition and documentation are in ElementSetter.hpp.
+    /**
+     * \internal
+     * \brief Make an ElementSetter that takes one index (i.e., is a vector).
+     * \tparam read_only Whether the matrix elements are read-only.
+     * \tparam T The matrix type
+     * \param do_before The action, if any, taken before getting or setting an element.
+     * \param on_set The action, if any, taken after setting an element.
+     */
     template<bool read_only, typename T>
-    auto make_ElementSetter(T&&, std::size_t,
-      const std::function<void()>& = []{}, const std::function<void()>& = []{});
+    auto make_ElementSetter(T&& t, std::size_t i,
+      const std::function<void()>& do_before = []{}, const std::function<void()>& on_set = []{});
 
   } // namespace internal
 

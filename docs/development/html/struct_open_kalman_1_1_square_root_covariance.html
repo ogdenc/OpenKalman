@@ -84,12 +84,7 @@ $(document).ready(function(){initNavTree('struct_open_kalman_1_1_square_root_cov
 <div class="header">
   <div class="summary">
 <a href="struct_open_kalman_1_1_square_root_covariance-members.html">List of all members</a> &#124;
-<a href="#pub-static-attribs">Static Public Attributes</a> &#124;
-<a href="#pub-types">Public Aliases</a> &#124;
-<a href="#pub-static-methods">Static Public Member Functions</a> &#124;
-<a href="#pub-methods">Public Member Functions</a> &#124;
-<a href="#pro-types">Protected Types</a> &#124;
-<a href="#pro-static-methods">Static Protected Member Functions</a>  </div>
+<a href="#pub-methods">Public Member Functions</a>  </div>
   <div class="headertitle">
 <div class="title">OpenKalman::SquareRootCovariance&lt; Coeffs, ArgType &gt; Struct Template Reference</div>  </div>
 </div><!--header-->
@@ -108,41 +103,16 @@ struct OpenKalman::SquareRootCovariance&lt; Coeffs, ArgType &gt;</h3>
 </dl>
 
 <p class="definition">Definition at line <a class="el" href="_square_root_covariance_8hpp_source.html#l00022">22</a> of file <a class="el" href="_square_root_covariance_8hpp_source.html">SquareRootCovariance.hpp</a>.</p>
-</div>
-<p>Inherits OpenKalman::internal::CovarianceBase&lt; Derived, NestedMatrix, Enable &gt;.</p>
+</div><div class="dynheader">
+Inheritance diagram for OpenKalman::SquareRootCovariance&lt; Coeffs, ArgType &gt;:</div>
+<div class="dyncontent">
+ <div class="center">
+  <img src="struct_open_kalman_1_1_square_root_covariance.png" usemap="#OpenKalman::SquareRootCovariance_3C_20Coeffs_2C_20ArgType_20_3E_map" alt=""/>
+  <map id="OpenKalman::SquareRootCovariance_3C_20Coeffs_2C_20ArgType_20_3E_map" name="OpenKalman::SquareRootCovariance_3C_20Coeffs_2C_20ArgType_20_3E_map">
+<area href="struct_open_kalman_1_1internal_1_1_covariance_base.html" alt="OpenKalman::internal::CovarianceBase&lt; SquareRootCovariance&lt; Coeffs, ArgType &gt;, ArgType &gt;" shape="rect" coords="0,0,564,24"/>
+  </map>
+</div></div>
 <table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-attribs"></a>
-Static Public Attributes</h2></td></tr>
-<tr class="memitem:a06009af712020b436175294d36bdfdc9"><td class="memItemLeft" align="right" valign="top"><a id="a06009af712020b436175294d36bdfdc9"></a>
-static constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><b>dimension</b> = <a class="el" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits</a>&lt;NestedMatrix&gt;::dimension</td></tr>
-<tr class="separator:a06009af712020b436175294d36bdfdc9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a442d09b1d5816e7a7f0426766abd1d3e"><td class="memItemLeft" align="right" valign="top">static constexpr <a class="el" href="namespace_open_kalman.html#ab6c606169452d88f33b64e3b1ae18fa2">TriangleType</a>&#160;</td><td class="memItemRight" valign="bottom"><b>triangle_type</b></td></tr>
-<tr class="separator:a442d09b1d5816e7a7f0426766abd1d3e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
-Public Aliases</h2></td></tr>
-<tr class="memitem:abbd2ac3384a900866adef8d07b35414f"><td class="memItemLeft" align="right" valign="top"><a id="abbd2ac3384a900866adef8d07b35414f"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>NestedMatrix</b> = ArgType</td></tr>
-<tr class="separator:abbd2ac3384a900866adef8d07b35414f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa88a051338cfccb1113293a3f9f3f49b"><td class="memItemLeft" align="right" valign="top"><a id="aa88a051338cfccb1113293a3f9f3f49b"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>Coefficients</b> = Coeffs</td></tr>
-<tr class="separator:aa88a051338cfccb1113293a3f9f3f49b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa2119fb718e734d787cc2b9450080a14"><td class="memItemLeft" align="right" valign="top"><a id="aa2119fb718e734d787cc2b9450080a14"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>Scalar</b> = typename <a class="el" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits</a>&lt; NestedMatrix &gt;::Scalar</td></tr>
-<tr class="separator:aa2119fb718e734d787cc2b9450080a14"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3b7ec26643cba7f207a3259a6d86d946"><td class="memItemLeft" align="right" valign="top"><a id="a3b7ec26643cba7f207a3259a6d86d946"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>Base</b> = internal::CovarianceBase&lt; <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">SquareRootCovariance</a>, ArgType &gt;</td></tr>
-<tr class="separator:a3b7ec26643cba7f207a3259a6d86d946"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
-Static Public Member Functions</h2></td></tr>
-<tr class="memitem:ab3fd62febda5921fa3bc2485565d5ae5"><td class="memItemLeft" align="right" valign="top"><a id="ab3fd62febda5921fa3bc2485565d5ae5"></a>
-static auto&#160;</td><td class="memItemRight" valign="bottom"><b>zero</b> ()</td></tr>
-<tr class="separator:ab3fd62febda5921fa3bc2485565d5ae5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5652b00bad4d86af6d656d80f2d2fc60"><td class="memItemLeft" align="right" valign="top"><a id="a5652b00bad4d86af6d656d80f2d2fc60"></a>
-static auto&#160;</td><td class="memItemRight" valign="bottom"><b>identity</b> ()</td></tr>
-<tr class="separator:a5652b00bad4d86af6d656d80f2d2fc60"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a50b370c851faa6e1b338c1ae67343a0b"><td class="memItemLeft" align="right" valign="top"><a id="a50b370c851faa6e1b338c1ae67343a0b"></a>
@@ -215,61 +185,11 @@ template&lt;typename Arg , std::enable_if_t&lt; covariance&lt; Arg &gt; or typed
 <tr class="separator:aa1cdc25b8caf95abaf3fb9b260ae9123"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab98b09cb3137ae3dc7525c4138193671"><td class="memItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#ab98b09cb3137ae3dc7525c4138193671">operator-=</a> (const <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">SquareRootCovariance</a> &amp;arg)</td></tr>
 <tr class="separator:ab98b09cb3137ae3dc7525c4138193671"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aded8a36868c00e3bbebd6f72de307939"><td class="memTemplParams" colspan="2"><a id="aded8a36868c00e3bbebd6f72de307939"></a>
-template&lt;typename S , std::enable_if_t&lt; std::is_convertible_v&lt; S, Scalar &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:aded8a36868c00e3bbebd6f72de307939"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><b>operator*=</b> (const S s)</td></tr>
-<tr class="separator:aded8a36868c00e3bbebd6f72de307939"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a991dcf64a476c12d6227e932a24c63db"><td class="memTemplParams" colspan="2"><a id="a991dcf64a476c12d6227e932a24c63db"></a>
-template&lt;typename S , std::enable_if_t&lt; std::is_convertible_v&lt; S, Scalar &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a991dcf64a476c12d6227e932a24c63db"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><b>operator/=</b> (const S s)</td></tr>
-<tr class="separator:a991dcf64a476c12d6227e932a24c63db"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5037e1fff466866805c05e31a5a1077c"><td class="memTemplParams" colspan="2">template&lt;typename Arg , std::enable_if_t&lt; square_root_covariance&lt; Arg &gt; and internal::same_triangle_type_as&lt; SquareRootCovariance, Arg &gt;, int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:a5037e1fff466866805c05e31a5a1077c"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#a5037e1fff466866805c05e31a5a1077c">operator*=</a> (Arg &amp;&amp;arg)</td></tr>
 <tr class="memdesc:a5037e1fff466866805c05e31a5a1077c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Multiply by another square-root covariance matrix.  <a href="struct_open_kalman_1_1_square_root_covariance.html#a5037e1fff466866805c05e31a5a1077c">More...</a><br /></td></tr>
 <tr class="separator:a5037e1fff466866805c05e31a5a1077c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-types"></a>
-Protected Types</h2></td></tr>
-<tr class="memitem:a724d57d4f9d49ede7758f070d35432a9"><td class="memItemLeft" align="right" valign="top"><a id="a724d57d4f9d49ede7758f070d35432a9"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>TBaseType</b> = std::conditional_t&lt; <a class="el" href="namespace_open_kalman.html#acda49202b6dd92195051ed9db5fcdcaf">diagonal_matrix</a>&lt; NestedMatrix &gt;, NestedMatrix, typename <a class="el" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits</a>&lt; NestedMatrix &gt;::template TriangularBaseType&lt; triangle_type &gt; &gt;</td></tr>
-<tr class="separator:a724d57d4f9d49ede7758f070d35432a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-static-methods"></a>
-Static Protected Member Functions</h2></td></tr>
-<tr class="memitem:a342eaa219e44b63c1f5103136afdda5f"><td class="memTemplParams" colspan="2"><a id="a342eaa219e44b63c1f5103136afdda5f"></a>
-template&lt;typename C  = Coefficients, typename Arg &gt; </td></tr>
-<tr class="memitem:a342eaa219e44b63c1f5103136afdda5f"><td class="memTemplItemLeft" align="right" valign="top">static constexpr auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>make</b> (Arg &amp;&amp;arg) noexcept</td></tr>
-<tr class="separator:a342eaa219e44b63c1f5103136afdda5f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Data Documentation</h2>
-<a id="a442d09b1d5816e7a7f0426766abd1d3e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a442d09b1d5816e7a7f0426766abd1d3e">&#9670;&nbsp;</a></span>triangle_type</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename Coeffs , typename ArgType &gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr <a class="el" href="namespace_open_kalman.html#ab6c606169452d88f33b64e3b1ae18fa2">TriangleType</a> <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">OpenKalman::SquareRootCovariance</a>&lt; Coeffs, ArgType &gt;::triangle_type</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">=</div>
-<div class="line">      triangle_type_of&lt;typename MatrixTraits&lt;NestedMatrix&gt;::template TriangularBaseType&lt;&gt;&gt;</div>
-</div><!-- fragment -->
-<p class="definition">Definition at line <a class="el" href="_square_root_covariance_8hpp_source.html#l00031">31</a> of file <a class="el" href="_square_root_covariance_8hpp_source.html">SquareRootCovariance.hpp</a>.</p>
-
-</div>
-</div>
 <h2 class="groupheader">Member Function Documentation</h2>
 <a id="a5037e1fff466866805c05e31a5a1077c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5037e1fff466866805c05e31a5a1077c">&#9670;&nbsp;</a></span>operator*=()</h2>
@@ -444,7 +364,7 @@ template&lt;typename Coeffs , typename ArgType &gt; </div>
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="namespace_open_kalman.html">OpenKalman</a></li><li class="navelem"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">SquareRootCovariance</a></li>
-    <li class="footer">Generated on Wed Dec 2 2020 15:38:15 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
+    <li class="footer">Generated on Sat Dec 5 2020 03:00:23 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
   </ul>
 </div>
 </body>

@@ -78,7 +78,7 @@ namespace OpenKalman
 #else
     template<typename Arg, std::enable_if_t<typed_matrix<Arg> and euclidean_transformed<Arg>, int> = 0>
 #endif
-    Mean(Arg&& other) noexcept : Base(from_Euclidean<Coefficients>(std::forward<Arg>(other).nested_matrix()))
+    Mean(Arg&& other) noexcept : Base(from_euclidean<Coefficients>(std::forward<Arg>(other).nested_matrix()))
     {
       static_assert(equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>);
       static_assert(equivalent_to<typename MatrixTraits<Arg>::ColumnCoefficients, typename Base::ColumnCoefficients>);
@@ -166,7 +166,7 @@ namespace OpenKalman
       }
       else if constexpr(euclidean_transformed<Arg>)
       {
-        this->nested_matrix() = OpenKalman::from_Euclidean<Coefficients>(std::forward<Arg>(other).nested_matrix());
+        this->nested_matrix() = OpenKalman::from_euclidean<Coefficients>(std::forward<Arg>(other).nested_matrix());
       }
       else
       {
@@ -342,7 +342,7 @@ namespace OpenKalman
     MatrixTraits<V>::ColumnCoefficients::axes_only, int> = 0>
 #endif
   Mean(V&&) -> Mean<typename MatrixTraits<V>::RowCoefficients, std::decay_t<decltype(
-    from_Euclidean<typename MatrixTraits<V>::RowCoefficients>(std::forward<V>(std::declval<V>()).nested_matrix()))>>;
+    from_euclidean<typename MatrixTraits<V>::RowCoefficients>(std::forward<V>(std::declval<V>()).nested_matrix()))>>;
 
 
   ///////////////////////////////////
@@ -400,7 +400,7 @@ namespace OpenKalman
   {
     using C = typename MatrixTraits<Arg>::RowCoefficients;
     if constexpr(euclidean_transformed<Arg>)
-      return make_mean<C>(nested_matrix(from_Euclidean<C>(std::forward<Arg>(arg))));
+      return make_mean<C>(nested_matrix(from_euclidean<C>(std::forward<Arg>(arg))));
     else
       return make_mean<C>(nested_matrix(std::forward<Arg>(arg)));
   }

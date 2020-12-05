@@ -65,12 +65,12 @@ namespace OpenKalman
   template<typename Arg, std::enable_if_t<typed_matrix<Arg> and column_vector<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
-  to_Euclidean(Arg&& arg) noexcept
+  to_euclidean(Arg&& arg) noexcept
   {
     using Coefficients = typename MatrixTraits<Arg>::RowCoefficients;
     if constexpr(not euclidean_transformed<Arg>)
     {
-      auto e = OpenKalman::to_Euclidean<Coefficients>(nested_matrix(std::forward<Arg>(arg)));
+      auto e = OpenKalman::to_euclidean<Coefficients>(nested_matrix(std::forward<Arg>(arg)));
       return EuclideanMean<Coefficients, std::decay_t<decltype(e)>>(std::move(e));
     }
     else
@@ -86,12 +86,12 @@ namespace OpenKalman
   template<typename Arg, std::enable_if_t<typed_matrix<Arg> and column_vector<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
-  from_Euclidean(Arg&& arg) noexcept
+  from_euclidean(Arg&& arg) noexcept
   {
     using Coefficients = typename MatrixTraits<Arg>::RowCoefficients;
     if constexpr(euclidean_transformed<Arg>)
     {
-      auto e = OpenKalman::from_Euclidean<Coefficients>(nested_matrix(std::forward<Arg>(arg)));
+      auto e = OpenKalman::from_euclidean<Coefficients>(nested_matrix(std::forward<Arg>(arg)));
       return Mean<Coefficients, std::decay_t<decltype(e)>>(std::move(e));
     }
     else
@@ -128,7 +128,7 @@ namespace OpenKalman
     using CRows = typename MatrixTraits<Arg>::RowCoefficients;
     using CCols = typename MatrixTraits<Arg>::ColumnCoefficients;
     if constexpr(euclidean_transformed<Arg>)
-      return make_matrix<CCols, CRows>(transpose(nested_matrix(from_Euclidean(std::forward<Arg>(arg)))));
+      return make_matrix<CCols, CRows>(transpose(nested_matrix(from_euclidean(std::forward<Arg>(arg)))));
     else
       return make_matrix<CCols, CRows>(transpose(nested_matrix(std::forward<Arg>(arg))));
   }
@@ -145,7 +145,7 @@ namespace OpenKalman
     using CRows = typename MatrixTraits<Arg>::RowCoefficients;
     using CCols = typename MatrixTraits<Arg>::ColumnCoefficients;
     if constexpr(euclidean_transformed<Arg>)
-      return make_matrix<CCols, CRows>(adjoint(nested_matrix(from_Euclidean(std::forward<Arg>(arg)))));
+      return make_matrix<CCols, CRows>(adjoint(nested_matrix(from_euclidean(std::forward<Arg>(arg)))));
     else
       return make_matrix<CCols, CRows>(adjoint(nested_matrix(std::forward<Arg>(arg))));
   }
@@ -219,8 +219,8 @@ namespace OpenKalman
       else if constexpr(mean<Arg>)
       {
         using C = typename MatrixTraits<Arg>::RowCoefficients;
-        auto ev = reduce_columns(nested_matrix(to_Euclidean(std::forward<Arg>(arg))));
-        return MatrixTraits<Arg>::make(from_Euclidean<C>(std::move(ev)));
+        auto ev = reduce_columns(nested_matrix(to_euclidean(std::forward<Arg>(arg))));
+        return MatrixTraits<Arg>::make(from_euclidean<C>(std::move(ev)));
       }
       else
       {
@@ -504,10 +504,10 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
       const auto get_coeff = [&arg, j] (const std::size_t row) {
         return get_element(nested_matrix(arg), row, j);
       };
-      const auto set_coeff = [&arg, j](const typename MatrixTraits<Arg>::Scalar value, const std::size_t row) {
+      const auto set_coeff = [&arg, j](const std::size_t row, const typename MatrixTraits<Arg>::Scalar value) {
         set_element(nested_matrix(arg), value, row, j);
       };
-      internal::wrap_set<Coeffs>(s, i, set_coeff, get_coeff);
+      internal::wrap_set<Coeffs>(i, s, set_coeff, get_coeff);
     }
     else
     {
@@ -534,10 +534,10 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
       const auto get_coeff = [&arg] (const std::size_t row) {
         return get_element(nested_matrix(arg), row);
       };
-      const auto set_coeff = [&arg](const typename MatrixTraits<Arg>::Scalar value, const std::size_t row) {
+      const auto set_coeff = [&arg](const std::size_t row, const typename MatrixTraits<Arg>::Scalar value) {
         set_element(nested_matrix(arg), value, row);
       };
-      internal::wrap_set<Coeffs>(s, i, set_coeff, get_coeff);
+      internal::wrap_set<Coeffs>(i, s, set_coeff, get_coeff);
     }
     else
     {

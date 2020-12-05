@@ -33,7 +33,7 @@ var NAVTREE =
     [ "classlist", "annotated.html", "annotated" ],
     [ "Namespaces", "namespaces.html", null ],
     [ "Namespace List", "namespaces.html", "namespaces" ],
-    [ "Namespace Mambers", "namespacemembers.html", [
+    [ "Namespace Members", "namespacemembers.html", [
       [ "All", "namespacemembers.html", "namespacemembers_dup" ],
       [ "Functions", "namespacemembers_func.html", null ],
       [ "Variables", "namespacemembers_vars.html", null ],
@@ -51,12 +51,10 @@ var NAVTREE =
 
 var NAVTREEINDEX =
 [
-"_angle_8hpp_source.html",
-"namespace_open_kalman.html#a2da67807e9ed9ade59482260747bc809",
-"namespace_open_kalman_1_1_eigen3.html#aa8a476c4cfb61d510f7d8b9773ad9527",
-"struct_open_kalman_1_1_eigen3_1_1_diagonal_matrix.html#add67b1f3bb338c517e70d2e97452abfe",
-"struct_open_kalman_1_1_linear_transform.html#a5ebcd711e65fbc1d3bb97cc3c8a9c97a",
-"struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enabla13a6eb46bea1ac02dc83313a9b3010e.html#a5d130572d9e7371796c74700e3c66f2a"
+"_angle_8hpp.html",
+"namespace_open_kalman.html#a67371d0db0c89c7d13983f48b94d66ea",
+"struct_open_kalman_1_1_eigen3_1_1_diagonal_matrix.html#af02e754e6d550efee9ee61bdddaec32b",
+"struct_open_kalman_1_1_square_root_covariance.html#ae46aad737b7f1f754a6aa3d51260ce61"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

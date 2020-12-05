@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['utils_2ehpp_442',['utils.hpp',['../utils_8hpp.html',1,'']]]
+  ['matrices_2ehpp_467',['matrices.hpp',['../matrices_8hpp.html',1,'']]],
+  ['mean_2ehpp_468',['Mean.hpp',['../_mean_8hpp.html',1,'']]]
 ];

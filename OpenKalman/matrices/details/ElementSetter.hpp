@@ -22,15 +22,15 @@ namespace OpenKalman::internal
     using OnChange = std::function<void()>;
     using OnSet = std::function<void()>;
 
-    ElementSetter(T& t, std::size_t i, std::size_t j, const OnSet& on_change = []{}, const OnChange& on_set = []{})
-      : getter([i, j, &t, on_change] () -> Scalar
+    ElementSetter(T& t, std::size_t i, std::size_t j, const OnSet& do_before = []{}, const OnChange& on_set = []{})
+      : getter([i, j, &t, do_before] () -> Scalar
         {
-          on_change();
+          do_before();
           return get_element(t, i, j);
         }),
-        setter([i, j, &t, on_set, on_change] (Scalar s)
+        setter([i, j, &t, on_set, do_before] (Scalar s)
         {
-          on_change();
+          do_before();
           set_element(t, s, i, j);
           on_set();
         })
@@ -39,15 +39,15 @@ namespace OpenKalman::internal
         static_assert(element_settable<T, 2>, "Two-index element write access is not available.");
       }
 
-    ElementSetter(T& t, std::size_t i, const OnSet& on_change = []{}, const OnChange& on_set = []{})
-      : getter([i, &t, on_change] () -> Scalar
+    ElementSetter(T& t, std::size_t i, const OnSet& do_before = []{}, const OnChange& on_set = []{})
+      : getter([i, &t, do_before] () -> Scalar
         {
-          on_change();
+          do_before();
           return get_element(t, i);
         }),
-        setter([i, &t, on_set, on_change] (Scalar s)
+        setter([i, &t, on_set, do_before] (Scalar s)
         {
-          on_change();
+          do_before();
           set_element(t, s, i);
           on_set();
         })
@@ -74,20 +74,20 @@ namespace OpenKalman::internal
     using Scalar = typename MatrixTraits<T>::Scalar;
     using OnChange = std::function<void()>;
 
-    ElementSetter(const T& t, std::size_t i, std::size_t j, const OnChange& on_change = []{})
-      : getter([i, j, &t, on_change] () -> Scalar
+    ElementSetter(const T& t, std::size_t i, std::size_t j, const OnChange& do_before = []{})
+      : getter([i, j, &t, do_before] () -> Scalar
         {
-          on_change();
+          do_before();
           return get_element(t, i, j);
         })
       {
         static_assert(element_gettable<T, 2>, "Two-index element read access is not available.");
       }
 
-    ElementSetter(const T& t, std::size_t i, const OnChange& on_change = []{})
-      : getter([i, &t, on_change] () -> Scalar
+    ElementSetter(const T& t, std::size_t i, const OnChange& do_before = []{})
+      : getter([i, &t, do_before] () -> Scalar
         {
-          on_change();
+          do_before();
           return get_element(t, i);
         })
       {
@@ -145,13 +145,13 @@ namespace OpenKalman::internal
     T&& t,
     std::size_t i,
     std::size_t j,
-    const std::function<void()>& on_change, // defaults to []{}
+    const std::function<void()>& do_before, // defaults to []{}
     const std::function<void()>& on_set) // defaults to []{}
   {
     if constexpr(read_only)
-      return ElementSetter<true, std::decay_t<T>>(std::forward<T>(t), i, j, on_change);
+      return ElementSetter<true, std::decay_t<T>>(std::forward<T>(t), i, j, do_before);
     else
-      return ElementSetter<false, std::decay_t<T>>(std::forward<T>(t), i, j, on_change, on_set);
+      return ElementSetter<false, std::decay_t<T>>(std::forward<T>(t), i, j, do_before, on_set);
   }
 
 
@@ -159,13 +159,13 @@ namespace OpenKalman::internal
   auto make_ElementSetter(
     T&& t,
     std::size_t i,
-    const std::function<void()>& on_change, // defaults to []{}
+    const std::function<void()>& do_before, // defaults to []{}
     const std::function<void()>& on_set) // defaults to []{}
   {
     if constexpr(read_only)
-      return ElementSetter<true, std::decay_t<T>>(std::forward<T>(t), i, on_change);
+      return ElementSetter<true, std::decay_t<T>>(std::forward<T>(t), i, do_before);
     else
-      return ElementSetter<false, std::decay_t<T>>(std::forward<T>(t), i, on_change, on_set);
+      return ElementSetter<false, std::decay_t<T>>(std::forward<T>(t), i, do_before, on_set);
   }
 
 }

@@ -13,12 +13,6 @@
 
 namespace OpenKalman::internal
 {
-  /**
-   * \internal
-   * \brief Ultimate base of typed matrices and covariance matrices.
-   * \tparam Derived The fully derived matrix type.
-   * \tparam NestedMatrix The nested native matrix.
-   */
   template<typename Derived, typename NestedMatrix>
   struct MatrixBase : MatrixTraits<NestedMatrix>::template MatrixBaseType<Derived>
   {

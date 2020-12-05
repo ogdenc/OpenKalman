@@ -83,11 +83,7 @@ $(document).ready(function(){initNavTree('struct_eigen_1_1internal_1_1evaluator_
 
 <div class="header">
   <div class="summary">
-<a href="struct_eigen_1_1internal_1_1evaluator_3_01_open_kalman_1_1_eigen3_1_1_from_euclidean_expr_3_01_c3d4234372ef6aab5514afb92154f0f81.html">List of all members</a> &#124;
-<a href="#pub-static-attribs">Static Public Attributes</a> &#124;
-<a href="#pub-types">Public Aliases</a> &#124;
-<a href="#pub-methods">Public Member Functions</a> &#124;
-<a href="#pro-attribs">Protected Attributes</a>  </div>
+<a href="struct_eigen_1_1internal_1_1evaluator_3_01_open_kalman_1_1_eigen3_1_1_from_euclidean_expr_3_01_c3d4234372ef6aab5514afb92154f0f81.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">Eigen::internal::evaluator&lt; OpenKalman::Eigen3::FromEuclideanExpr&lt; Coefficients, OpenKalman::Eigen3::ToEuclideanExpr&lt; Coefficients, ArgType &gt; &gt; &gt; Struct Template Reference</div>  </div>
 </div><!--header-->
@@ -111,79 +107,6 @@ struct Eigen::internal::evaluator&lt; OpenKalman::Eigen3::FromEuclideanExpr&lt; 
 <p>Inherits Eigen::internal::detail::Evaluator_EuclideanExpr_Base&lt; Coefficients, XprType, Nested, NestedEvaluator &gt;.</p>
 
 <p>Inherited by Eigen::internal::evaluator&lt; OpenKalman::Eigen3::FromEuclideanExpr&lt; Coefficients, OpenKalman::Eigen3::ToEuclideanExpr&lt; Coefficients, ArgType &gt; &amp; &gt; &gt;, Eigen::internal::evaluator&lt; OpenKalman::Eigen3::FromEuclideanExpr&lt; Coefficients, OpenKalman::Eigen3::ToEuclideanExpr&lt; Coefficients, ArgType &gt; &amp;&amp; &gt; &gt;, Eigen::internal::evaluator&lt; OpenKalman::Eigen3::FromEuclideanExpr&lt; Coefficients, const OpenKalman::Eigen3::ToEuclideanExpr&lt; Coefficients, ArgType &gt; &amp; &gt; &gt;, Eigen::internal::evaluator&lt; OpenKalman::Eigen3::FromEuclideanExpr&lt; Coefficients, const OpenKalman::Eigen3::ToEuclideanExpr&lt; Coefficients, ArgType &gt; &amp;&amp; &gt; &gt;, and Eigen::internal::evaluator&lt; OpenKalman::Eigen3::FromEuclideanExpr&lt; Coefficients, const OpenKalman::Eigen3::ToEuclideanExpr&lt; Coefficients, ArgType &gt; &gt; &gt;.</p>
-<table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-attribs"></a>
-Static Public Attributes</h2></td></tr>
-<tr class="memitem:a687da642085627b8e562b05a6dcc9671"><td class="memItemLeft" align="right" valign="top"><a id="a687da642085627b8e562b05a6dcc9671"></a>
-static constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><b>count</b> = Nested::ColsAtCompileTime</td></tr>
-<tr class="separator:a687da642085627b8e562b05a6dcc9671"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
-Public Aliases</h2></td></tr>
-<tr class="memitem:a5640a78a7ba1fa6321314c2eb64b50c9"><td class="memItemLeft" align="right" valign="top"><a id="a5640a78a7ba1fa6321314c2eb64b50c9"></a>enum &#160;</td><td class="memItemRight" valign="bottom">{ <b>CoeffReadCost</b> = NestedEvaluator::CoeffReadCost
-, <b>Flags</b> = (count == 1 ? LinearAccessBit : 0) | (Coefficients::axes_only ? NestedEvaluator::Flags : (unsigned int) ColMajor)
-, <b>Alignment</b> = NestedEvaluator::Alignment
- }</td></tr>
-<tr class="separator:a5640a78a7ba1fa6321314c2eb64b50c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a57125eb65d9d96657c9b231d339991fd"><td class="memItemLeft" align="right" valign="top"><a id="a57125eb65d9d96657c9b231d339991fd"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>XprType</b> = <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">OpenKalman::Eigen3::FromEuclideanExpr</a>&lt; Coefficients, <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_to_euclidean_expr.html">OpenKalman::Eigen3::ToEuclideanExpr</a>&lt; Coefficients, ArgType &gt; &gt;</td></tr>
-<tr class="separator:a57125eb65d9d96657c9b231d339991fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aef4b2276ff7dee2fc2f689619bb36b5b"><td class="memItemLeft" align="right" valign="top"><a id="aef4b2276ff7dee2fc2f689619bb36b5b"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>CoeffReturnType</b> = typename XprType::CoeffReturnType</td></tr>
-<tr class="separator:aef4b2276ff7dee2fc2f689619bb36b5b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a668f36d7790b39fddc1422231591fbed"><td class="memItemLeft" align="right" valign="top"><a id="a668f36d7790b39fddc1422231591fbed"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>Nested</b> = std::decay_t&lt; ArgType &gt;</td></tr>
-<tr class="separator:a668f36d7790b39fddc1422231591fbed"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a070e203211c22f0143628e3f4205a37e"><td class="memItemLeft" align="right" valign="top"><a id="a070e203211c22f0143628e3f4205a37e"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>NestedEvaluator</b> = evaluator&lt; Nested &gt;</td></tr>
-<tr class="separator:a070e203211c22f0143628e3f4205a37e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a41fa10529903cc1a405a2d3961ce0216"><td class="memItemLeft" align="right" valign="top"><a id="a41fa10529903cc1a405a2d3961ce0216"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>Base</b> = detail::Evaluator_EuclideanExpr_Base&lt; Coefficients, <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">XprType</a>, Nested, NestedEvaluator &gt;</td></tr>
-<tr class="separator:a41fa10529903cc1a405a2d3961ce0216"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6526dfeb2fa96353a2156decd45ba079"><td class="memItemLeft" align="right" valign="top"><a id="a6526dfeb2fa96353a2156decd45ba079"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>Scalar</b> = typename <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#a6e06ffd63d8d4d64d192142642e90c65">XprType::Scalar</a></td></tr>
-<tr class="separator:a6526dfeb2fa96353a2156decd45ba079"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
-Public Member Functions</h2></td></tr>
-<tr class="memitem:a5ec976df36b385688c550487145912f4"><td class="memItemLeft" align="right" valign="top"><a id="a5ec976df36b385688c550487145912f4"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>evaluator</b> (const <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">XprType</a> &amp;t)</td></tr>
-<tr class="separator:a5ec976df36b385688c550487145912f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adf324507a83f3ce7617ceef827d9a8da"><td class="memItemLeft" align="right" valign="top"><a id="adf324507a83f3ce7617ceef827d9a8da"></a>
-CoeffReturnType&#160;</td><td class="memItemRight" valign="bottom"><b>coeff</b> (Index row, Index col) const</td></tr>
-<tr class="separator:adf324507a83f3ce7617ceef827d9a8da"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1da5bd804d0bf9f15c76432888669bc2"><td class="memItemLeft" align="right" valign="top"><a id="a1da5bd804d0bf9f15c76432888669bc2"></a>
-CoeffReturnType&#160;</td><td class="memItemRight" valign="bottom"><b>coeff</b> (Index row) const</td></tr>
-<tr class="separator:a1da5bd804d0bf9f15c76432888669bc2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af736566bf5fd88e04828df14dd4cdc26"><td class="memItemLeft" align="right" valign="top"><a id="af736566bf5fd88e04828df14dd4cdc26"></a>
-Scalar &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>coeffRef</b> (Index row, Index col)</td></tr>
-<tr class="separator:af736566bf5fd88e04828df14dd4cdc26"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a159225b149b8cd60ff5f505f1d9610b2"><td class="memItemLeft" align="right" valign="top"><a id="a159225b149b8cd60ff5f505f1d9610b2"></a>
-Scalar &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>coeffRef</b> (Index row)</td></tr>
-<tr class="separator:a159225b149b8cd60ff5f505f1d9610b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a11d1254b1752e650c2f55f08e9414b73"><td class="memTemplParams" colspan="2"><a id="a11d1254b1752e650c2f55f08e9414b73"></a>
-template&lt;int LoadMode, typename PacketType &gt; </td></tr>
-<tr class="memitem:a11d1254b1752e650c2f55f08e9414b73"><td class="memTemplItemLeft" align="right" valign="top">PacketType&#160;</td><td class="memTemplItemRight" valign="bottom"><b>packet</b> (Index row, Index col) const</td></tr>
-<tr class="separator:a11d1254b1752e650c2f55f08e9414b73"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7df7007f38469fa0f71c217d454a3f09"><td class="memTemplParams" colspan="2"><a id="a7df7007f38469fa0f71c217d454a3f09"></a>
-template&lt;int LoadMode, typename PacketType &gt; </td></tr>
-<tr class="memitem:a7df7007f38469fa0f71c217d454a3f09"><td class="memTemplItemLeft" align="right" valign="top">PacketType&#160;</td><td class="memTemplItemRight" valign="bottom"><b>packet</b> (Index index) const</td></tr>
-<tr class="separator:a7df7007f38469fa0f71c217d454a3f09"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a89ca2a437c6f99208fd20a04f5955fe5"><td class="memTemplParams" colspan="2"><a id="a89ca2a437c6f99208fd20a04f5955fe5"></a>
-template&lt;int StoreMode, typename PacketType &gt; </td></tr>
-<tr class="memitem:a89ca2a437c6f99208fd20a04f5955fe5"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><b>writePacket</b> (Index row, Index col, const PacketType &amp;x)</td></tr>
-<tr class="separator:a89ca2a437c6f99208fd20a04f5955fe5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6e0f90f16ff6d984fdcde610d5afc1a4"><td class="memTemplParams" colspan="2"><a id="a6e0f90f16ff6d984fdcde610d5afc1a4"></a>
-template&lt;int StoreMode, typename PacketType &gt; </td></tr>
-<tr class="memitem:a6e0f90f16ff6d984fdcde610d5afc1a4"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><b>writePacket</b> (Index index, const PacketType &amp;x)</td></tr>
-<tr class="separator:a6e0f90f16ff6d984fdcde610d5afc1a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-attribs"></a>
-Protected Attributes</h2></td></tr>
-<tr class="memitem:ac2f6056fd276aa52d2d302b9bc9a70e0"><td class="memItemLeft" align="right" valign="top"><a id="ac2f6056fd276aa52d2d302b9bc9a70e0"></a>
-NestedEvaluator&#160;</td><td class="memItemRight" valign="bottom"><b>m_argImpl</b></td></tr>
-<tr class="separator:ac2f6056fd276aa52d2d302b9bc9a70e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table>
 <hr/>The documentation for this struct was generated from the following file:<ul>
 <li>C:/Users/cogden/CLionProjects/OpenKalman/OpenKalman/interfaces/eigen3/details/<a class="el" href="eigen3-native-evaluators_8hpp_source.html">eigen3-native-evaluators.hpp</a></li>
 </ul>
@@ -193,7 +116,7 @@ NestedEvaluator&#160;</td><td class="memItemRight" valign="bottom"><b>m_argImpl<
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><b>Eigen</b></li><li class="navelem"><b>internal</b></li><li class="navelem"><a class="el" href="struct_eigen_1_1internal_1_1evaluator_3_01_open_kalman_1_1_eigen3_1_1_from_euclidean_expr_3_01_c1197a1d12be34607e8682b3c0e469bb3.html">evaluator&lt; OpenKalman::Eigen3::FromEuclideanExpr&lt; Coefficients, OpenKalman::Eigen3::ToEuclideanExpr&lt; Coefficients, ArgType &gt; &gt; &gt;</a></li>
-    <li class="footer">Generated on Wed Dec 2 2020 15:38:14 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
+    <li class="footer">Generated on Sat Dec 5 2020 03:00:22 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
   </ul>
 </div>
 </body>

@@ -30,7 +30,7 @@ var menudata={children:[
 {text:"classlist",url:"annotated.html"},
 {text:"Namespaces",url:"namespaces.html"},
 {text:"Namespace List",url:"namespaces.html"},
-{text:"Namespace Mambers",url:"namespacemembers.html",children:[
+{text:"Namespace Members",url:"namespacemembers.html",children:[
 {text:"All",url:"namespacemembers.html",children:[
 {text:"a",url:"namespacemembers.html#index_a"},
 {text:"c",url:"namespacemembers_c.html#index_c"},

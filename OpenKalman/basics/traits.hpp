@@ -335,7 +335,7 @@ namespace OpenKalman
     equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>
     struct is_identity_matrix<T> : std::true_type {};
 #else
-      template<typename T>
+    template<typename T>
     struct is_identity_matrix<T, std::enable_if_t<typed_matrix<T> and
       equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>>>
       : is_identity_matrix<nested_matrix_t<T>> {};

@@ -91,8 +91,8 @@ namespace OpenKalman
   using Eigen3::nested_matrix;
   using Eigen3::make_native_matrix;
   using Eigen3::make_self_contained;
-  using Eigen3::to_Euclidean;
-  using Eigen3::from_Euclidean;
+  using Eigen3::to_euclidean;
+  using Eigen3::from_euclidean;
   using Eigen3::wrap_angles;
   using Eigen3::to_diagonal;
   using Eigen3::transpose;

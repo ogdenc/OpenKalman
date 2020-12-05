@@ -166,7 +166,7 @@ $(document).ready(function(){initNavTree('_mean_8hpp_source.html',''); initResiz
 <div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">else</span></div>
 <div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> Arg, std::enable_if_t&lt;typed_matrix&lt;Arg&gt; <span class="keyword">and</span> euclidean_transformed&lt;Arg&gt;, <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">endif</span></div>
-<div class="line"><a name="l00081"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1_mean.html#a32a79427c9e8c0b133cc7284390d2a8f">   81</a></span>&#160;    Mean(Arg&amp;&amp; other) <span class="keyword">noexcept</span> : Base(from_Euclidean&lt;Coefficients&gt;(std::forward&lt;Arg&gt;(other).nested_matrix()))</div>
+<div class="line"><a name="l00081"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1_mean.html#a32a79427c9e8c0b133cc7284390d2a8f">   81</a></span>&#160;    Mean(Arg&amp;&amp; other) <span class="keyword">noexcept</span> : Base(from_euclidean&lt;Coefficients&gt;(std::forward&lt;Arg&gt;(other).nested_matrix()))</div>
 <div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;    {</div>
 <div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;      <span class="keyword">static_assert</span>(equivalent_to&lt;<span class="keyword">typename</span> MatrixTraits&lt;Arg&gt;::RowCoefficients, Coefficients&gt;);</div>
 <div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;      <span class="keyword">static_assert</span>(equivalent_to&lt;<span class="keyword">typename</span> MatrixTraits&lt;Arg&gt;::ColumnCoefficients, <span class="keyword">typename</span> Base::ColumnCoefficients&gt;);</div>
@@ -254,7 +254,7 @@ $(document).ready(function(){initNavTree('_mean_8hpp_source.html',''); initResiz
 <div class="line"><a name="l00166"></a><span class="lineno">  166</span>&#160;      }</div>
 <div class="line"><a name="l00167"></a><span class="lineno">  167</span>&#160;      <span class="keywordflow">else</span> <span class="keywordflow">if</span> <span class="keyword">constexpr</span>(euclidean_transformed&lt;Arg&gt;)</div>
 <div class="line"><a name="l00168"></a><span class="lineno">  168</span>&#160;      {</div>
-<div class="line"><a name="l00169"></a><span class="lineno">  169</span>&#160;        <span class="keyword">this</span>-&gt;nested_matrix() = OpenKalman::from_Euclidean&lt;Coefficients&gt;(std::forward&lt;Arg&gt;(other).nested_matrix());</div>
+<div class="line"><a name="l00169"></a><span class="lineno">  169</span>&#160;        <span class="keyword">this</span>-&gt;nested_matrix() = OpenKalman::from_euclidean&lt;Coefficients&gt;(std::forward&lt;Arg&gt;(other).nested_matrix());</div>
 <div class="line"><a name="l00170"></a><span class="lineno">  170</span>&#160;      }</div>
 <div class="line"><a name="l00171"></a><span class="lineno">  171</span>&#160;      <span class="keywordflow">else</span></div>
 <div class="line"><a name="l00172"></a><span class="lineno">  172</span>&#160;      {</div>
@@ -430,7 +430,7 @@ $(document).ready(function(){initNavTree('_mean_8hpp_source.html',''); initResiz
 <div class="line"><a name="l00342"></a><span class="lineno">  342</span>&#160;    MatrixTraits&lt;V&gt;::ColumnCoefficients::axes_only, <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00343"></a><span class="lineno">  343</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">endif</span></div>
 <div class="line"><a name="l00344"></a><span class="lineno">  344</span>&#160;  Mean(V&amp;&amp;) -&gt; Mean&lt;<span class="keyword">typename</span> MatrixTraits&lt;V&gt;::RowCoefficients, std::decay_t&lt;<span class="keyword">decltype</span>(</div>
-<div class="line"><a name="l00345"></a><span class="lineno">  345</span>&#160;    from_Euclidean&lt;<span class="keyword">typename</span> MatrixTraits&lt;V&gt;::RowCoefficients&gt;(std::forward&lt;V&gt;(std::declval&lt;V&gt;()).nested_matrix()))&gt;&gt;;</div>
+<div class="line"><a name="l00345"></a><span class="lineno">  345</span>&#160;    from_euclidean&lt;<span class="keyword">typename</span> MatrixTraits&lt;V&gt;::RowCoefficients&gt;(std::forward&lt;V&gt;(std::declval&lt;V&gt;()).nested_matrix()))&gt;&gt;;</div>
 <div class="line"><a name="l00346"></a><span class="lineno">  346</span>&#160; </div>
 <div class="line"><a name="l00347"></a><span class="lineno">  347</span>&#160; </div>
 <div class="line"><a name="l00348"></a><span class="lineno">  348</span>&#160;  <span class="comment">///////////////////////////////////</span></div>
@@ -488,7 +488,7 @@ $(document).ready(function(){initNavTree('_mean_8hpp_source.html',''); initResiz
 <div class="line"><a name="l00400"></a><span class="lineno">  400</span>&#160;  {</div>
 <div class="line"><a name="l00401"></a><span class="lineno">  401</span>&#160;    <span class="keyword">using</span> C = <span class="keyword">typename</span> MatrixTraits&lt;Arg&gt;::RowCoefficients;</div>
 <div class="line"><a name="l00402"></a><span class="lineno">  402</span>&#160;    <span class="keywordflow">if</span> <span class="keyword">constexpr</span>(euclidean_transformed&lt;Arg&gt;)</div>
-<div class="line"><a name="l00403"></a><span class="lineno">  403</span>&#160;      <span class="keywordflow">return</span> make_mean&lt;C&gt;(nested_matrix(from_Euclidean&lt;C&gt;(std::forward&lt;Arg&gt;(arg))));</div>
+<div class="line"><a name="l00403"></a><span class="lineno">  403</span>&#160;      <span class="keywordflow">return</span> make_mean&lt;C&gt;(nested_matrix(from_euclidean&lt;C&gt;(std::forward&lt;Arg&gt;(arg))));</div>
 <div class="line"><a name="l00404"></a><span class="lineno">  404</span>&#160;    <span class="keywordflow">else</span></div>
 <div class="line"><a name="l00405"></a><span class="lineno">  405</span>&#160;      <span class="keywordflow">return</span> make_mean&lt;C&gt;(nested_matrix(std::forward&lt;Arg&gt;(arg)));</div>
 <div class="line"><a name="l00406"></a><span class="lineno">  406</span>&#160;  }</div>
@@ -589,7 +589,7 @@ $(document).ready(function(){initNavTree('_mean_8hpp_source.html',''); initResiz
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_bf85a1622761b0afd6fb52adee52cf94.html">OpenKalman</a></li><li class="navelem"><a class="el" href="dir_d9323b2d30f8bd90efc890cacaa77a07.html">matrices</a></li><li class="navelem"><a class="el" href="_mean_8hpp.html">Mean.hpp</a></li>
-    <li class="footer">Generated on Wed Dec 2 2020 15:38:03 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
+    <li class="footer">Generated on Sat Dec 5 2020 03:00:15 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
   </ul>
 </div>
 </body>

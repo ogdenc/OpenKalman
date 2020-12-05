@@ -8,6 +8,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+/**
+ * \file
+ * \brief Definitions for Coefficient class specializations and associated aliases.
+ */
+
 #ifndef OPENKALMAN_COEFFICIENTS_H
 #define OPENKALMAN_COEFFICIENTS_H
 
@@ -17,6 +22,11 @@
 
 namespace OpenKalman
 {
+  /**
+   * \brief An empty set of Coefficients.
+   * \details This is a specialization of Coefficients.
+   * \sa Coefficients
+   */
   template<>
   struct Coefficients<>
   {
@@ -25,12 +35,11 @@ namespace OpenKalman
     static constexpr bool axes_only = true;
     using difference_type = Coefficients<>;
 
-  private:
     template<typename Scalar>
     using GetCoeff = std::function<Scalar(const std::size_t)>;
 
     template<typename Scalar>
-    using SetCoeff = std::function<void(const Scalar, const std::size_t)>;
+    using SetCoeff = std::function<void(const std::size_t, const Scalar)>;
 
     template<typename Scalar>
     using GetCoeffFunction = Scalar(*)(const GetCoeff<Scalar>&);
@@ -38,14 +47,13 @@ namespace OpenKalman
     template<typename Scalar>
     using SetCoeffFunction = void(*)(const Scalar, const SetCoeff<Scalar>&, const GetCoeff<Scalar>&);
 
-  public:
     template<typename Scalar, std::size_t i>
     static constexpr std::array<const GetCoeffFunction<Scalar>, dimension>
-      to_Euclidean_array = {};
+      to_euclidean_array = {};
 
     template<typename Scalar, std::size_t i>
     static constexpr std::array<const GetCoeffFunction<Scalar>, size>
-      from_Euclidean_array = {};
+      from_euclidean_array = {};
 
     template<typename Scalar, std::size_t i>
     static constexpr std::array<const GetCoeffFunction<Scalar>, size>
@@ -74,59 +82,81 @@ namespace OpenKalman
   };
 
 
+  /**
+   * \anchor CoefficientsCCs
+   * \brief A set of two or more coefficient types.
+   * \details This is a specialization of Coefficients.
+   * \tparam C, Cs... The first and subsequent coefficient types.
+   * \sa Coefficients
+   */
 #ifdef __cpp_concepts
-  template<coefficients C, coefficients ... Ctail>
+  template<coefficients C, coefficients ... Cs>
 #else
-  template<typename C, typename ... Ctail>
+  template<typename C, typename ... Cs>
 #endif
-  struct Coefficients<C, Ctail ...>
+  struct Coefficients<C, Cs ...>
   {
 #ifndef __cpp_concepts
-    static_assert((coefficients<C> and ... and coefficients<Ctail>));
+    static_assert((coefficients<C> and ... and coefficients<Cs>));
 #endif
-    static constexpr std::size_t size = C::size + Coefficients<Ctail...>::size; ///<Aggregate number of coefficients.
+    static constexpr std::size_t size = C::size + Coefficients<Cs...>::size; ///<Aggregate number of coefficients.
 
     /// Aggregate number of coefficients when converted to Euclidian.
-    static constexpr std::size_t dimension = C::dimension + Coefficients<Ctail...>::dimension;
+    static constexpr std::size_t dimension = C::dimension + Coefficients<Cs...>::dimension;
 
     /// Whether all the coefficients are of type Axis.
-    static constexpr bool axes_only = C::axes_only and Coefficients<Ctail...>::axes_only;
+    static constexpr bool axes_only = C::axes_only and Coefficients<Cs...>::axes_only;
 
     /**
      * \brief The type of the result when subtracting two Coefficients vectors.
      * \details Each coefficient is subtracted independently.
      */
-    using difference_type = Concatenate<typename C::difference_type, typename Ctail::difference_type...>;
+    using difference_type = Concatenate<typename C::difference_type, typename Cs::difference_type...>;
 
-  private:
+    /*
+     * \brief A function taking a row index and returning a corresponding matrix element.
+     * \details A separate function will be constructed for each column in the matrix.
+     * \tparam Scalar The scalar type of the matrix.
+     */
     template<typename Scalar>
     using GetCoeff = std::function<Scalar(const std::size_t)>;
 
+    /*
+     * \brief A function that sets a matrix element corresponding to a row index to a scalar value.
+     * \details A separate function will be constructed for each column in the matrix.
+     * \tparam Scalar The scalar type of the matrix.
+     */
     template<typename Scalar>
-    using SetCoeff = std::function<void(const Scalar, const std::size_t)>;
+    using SetCoeff = std::function<void(const std::size_t, const Scalar)>;
 
+    /**
+     * \brief A pointer to a function (stored in an array) that takes a GetCoeff and returns a scalar value.
+     */
     template<typename Scalar>
     using GetCoeffFunction = Scalar(*)(const GetCoeff<Scalar>&);
 
+    /**
+     * \brief A pointer to a function (stored in an array) that takes a GetCoeff and returns a scalar value.
+     */
     template<typename Scalar>
     using SetCoeffFunction = void(*)(const Scalar, const SetCoeff<Scalar>&, const GetCoeff<Scalar>&);
 
-  public:
-    /**
+    /*
      * \internal
      * \brief An array of functions that convert the coefficients to coordinates in Euclidean space.
      * \details The functions in the array take the coefficients and convert them to
      * Cartesian coordinates in a Euclidean space, depending on the type of each coordinate.
      * Each array element is a function taking a ''get coefficient'' function and returning a coordinate value.
      * The ''get coefficient'' function takes the index of a column within a row vector and returns the coefficient.
+     * \note This should be accessed only through \ref internal::to_euclidean_coeff.
      * \tparam Scalar The scalar type (e.g., double).
      * \tparam i The index of the first spherical coefficient that is being transformed.
      * This may be non-zero if this set of coefficients is part of a larger set of composite coordinates.
      */
     template<typename Scalar, std::size_t i>
     static constexpr std::array<const GetCoeffFunction<Scalar>, dimension>
-      to_Euclidean_array = internal::join(C::template to_Euclidean_array<Scalar, i>,
-        Coefficients<Ctail...>::template to_Euclidean_array<Scalar, i + C::size>);
+      to_euclidean_array = internal::join(C::template to_euclidean_array<Scalar, i>,
+        Coefficients<Cs...>::template to_euclidean_array<Scalar, i + C::size>);
 
 
     /**
@@ -142,8 +172,8 @@ namespace OpenKalman
      */
     template<typename Scalar, std::size_t i>
     static constexpr std::array<const GetCoeffFunction<Scalar>, size>
-      from_Euclidean_array = internal::join(C::template from_Euclidean_array<Scalar, i>,
-        Coefficients<Ctail...>::template from_Euclidean_array<Scalar, i + C::dimension>);
+      from_euclidean_array = internal::join(C::template from_euclidean_array<Scalar, i>,
+        Coefficients<Cs...>::template from_euclidean_array<Scalar, i + C::dimension>);
 
 
     /**
@@ -158,7 +188,7 @@ namespace OpenKalman
     template<typename Scalar, std::size_t i>
     static constexpr std::array<const GetCoeffFunction<Scalar>, size>
       wrap_array_get = internal::join(C::template wrap_array_get<Scalar, i>,
-        Coefficients<Ctail...>::template wrap_array_get<Scalar, i + C::size>);
+        Coefficients<Cs...>::template wrap_array_get<Scalar, i + C::size>);
 
 
     /**
@@ -174,14 +204,14 @@ namespace OpenKalman
     template<typename Scalar, std::size_t i>
     static constexpr std::array<const SetCoeffFunction<Scalar>, size>
       wrap_array_set = internal::join(C::template wrap_array_set<Scalar, i>,
-        Coefficients<Ctail...>::template wrap_array_set<Scalar, i + C::size>);
+        Coefficients<Cs...>::template wrap_array_set<Scalar, i + C::size>);
 
     /**
      * \brief Prepend a set of new coefficients to the existing set.
      * \tparam Cnew The set of new coordinates to prepend.
      */
     template<typename ... Cnew>
-    using Prepend = Coefficients<Cnew..., C, Ctail ...>;
+    using Prepend = Coefficients<Cnew..., C, Cs ...>;
 
 
     /**
@@ -189,7 +219,7 @@ namespace OpenKalman
      * \tparam Cnew The set of new coordinates to append.
      */
     template<typename ... Cnew>
-    using Append = Coefficients<C, Ctail ..., Cnew ...>;
+    using Append = Coefficients<C, Cs ..., Cnew ...>;
 
 
     /**
@@ -197,7 +227,7 @@ namespace OpenKalman
      * \tparam i The index of the coefficient.
      */
     template<std::size_t i>
-    using Coefficient = std::conditional_t<i == 0, C, typename Coefficients<Ctail...>::template Coefficient<i - 1>>;
+    using Coefficient = std::conditional_t<i == 0, C, typename Coefficients<Cs...>::template Coefficient<i - 1>>;
 
 
     /**
@@ -207,7 +237,7 @@ namespace OpenKalman
     template<std::size_t count>
     using Take = std::conditional_t<count == 0,
       Coefficients<>,
-      typename Coefficients<Ctail...>::template Take<count - 1>::template Prepend<C>>;
+      typename Coefficients<Cs...>::template Take<count - 1>::template Prepend<C>>;
 
 
     /**
@@ -217,7 +247,7 @@ namespace OpenKalman
     template<std::size_t count>
     using Discard = std::conditional_t<count == 0,
       Coefficients,
-      typename Coefficients<Ctail...>::template Discard<count - 1>>;
+      typename Coefficients<Cs...>::template Discard<count - 1>>;
 
 
     static_assert(internal::coefficient_class<Coefficients>);

@@ -84,8 +84,7 @@ $(document).ready(function(){initNavTree('struct_open_kalman_1_1_monte_carlo_tra
 <div class="header">
   <div class="summary">
 <a href="struct_open_kalman_1_1_monte_carlo_transform-members.html">List of all members</a> &#124;
-<a href="#pub-methods">Public Member Functions</a> &#124;
-<a href="#pro-attribs">Protected Attributes</a>  </div>
+<a href="#pub-methods">Public Member Functions</a>  </div>
   <div class="headertitle">
 <div class="title">OpenKalman::MonteCarloTransform Struct Reference</div>  </div>
 </div><!--header-->
@@ -108,27 +107,10 @@ Inheritance diagram for OpenKalman::MonteCarloTransform:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a5c2cec1c85b2595a3bc9974768acee72"><td class="memItemLeft" align="right" valign="top"><a id="a5c2cec1c85b2595a3bc9974768acee72"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>MonteCarloTransform</b> (const std::size_t samples=100000)</td></tr>
-<tr class="separator:a5c2cec1c85b2595a3bc9974768acee72"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a39bb25773f8864c767fb8a2cc92fb695"><td class="memTemplParams" colspan="2"><a id="a39bb25773f8864c767fb8a2cc92fb695"></a>
-template&lt;typename InputDist , typename Trans , typename ... NoiseDists, std::enable_if_t&lt;(distribution&lt; InputDist &gt; and ... and distribution&lt; NoiseDists &gt;) and std::is_invocable_v&lt; Trans, typename DistributionTraits&lt; InputDist &gt;::Mean, typename DistributionTraits&lt; NoiseDists &gt;::Mean... &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a39bb25773f8864c767fb8a2cc92fb695"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>operator()</b> (const InputDist &amp;x, const Trans &amp;transformation, const NoiseDists &amp;...n) const</td></tr>
-<tr class="separator:a39bb25773f8864c767fb8a2cc92fb695"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af564d8e1a319552561babe3919bbc260"><td class="memTemplParams" colspan="2"><a id="af564d8e1a319552561babe3919bbc260"></a>
-template&lt;typename InputDist , typename Trans , typename ... NoiseDists, std::enable_if_t&lt;(distribution&lt; InputDist &gt; and ... and distribution&lt; NoiseDists &gt;) and std::is_invocable_v&lt; Trans, typename DistributionTraits&lt; InputDist &gt;::Mean, typename DistributionTraits&lt; NoiseDists &gt;::Mean... &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:af564d8e1a319552561babe3919bbc260"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>transform_with_cross_covariance</b> (const InputDist &amp;x, const Trans &amp;transformation, const NoiseDists &amp;...n) const</td></tr>
-<tr class="separator:af564d8e1a319552561babe3919bbc260"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab6279e4f7acefc70dabe5786ac0a0cde"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_transform_base.html#ab6279e4f7acefc70dabe5786ac0a0cde">operator()</a> (const InputDist &amp;x, const std::tuple&lt; T_args... &gt; &amp;t, const Ts &amp;...ts) const</td></tr>
 <tr class="separator:ab6279e4f7acefc70dabe5786ac0a0cde"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6ae7b226e0ebbb39dc71935cfc241272"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_transform_base.html#a6ae7b226e0ebbb39dc71935cfc241272">transform_with_cross_covariance</a> (const InputDist &amp;x, const std::tuple&lt; T_args... &gt; &amp;t, const Ts &amp;...ts) const</td></tr>
 <tr class="separator:a6ae7b226e0ebbb39dc71935cfc241272"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-attribs"></a>
-Protected Attributes</h2></td></tr>
-<tr class="memitem:a72a08a29e566f22acd1556c8093d437c"><td class="memItemLeft" align="right" valign="top"><a id="a72a08a29e566f22acd1556c8093d437c"></a>
-const std::size_t&#160;</td><td class="memItemRight" valign="bottom"><b>size</b></td></tr>
-<tr class="separator:a72a08a29e566f22acd1556c8093d437c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Member Function Documentation</h2>
 <a id="ab6279e4f7acefc70dabe5786ac0a0cde"></a>
@@ -244,7 +226,7 @@ const std::size_t&#160;</td><td class="memItemRight" valign="bottom"><b>size</b>
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="namespace_open_kalman.html">OpenKalman</a></li><li class="navelem"><a class="el" href="struct_open_kalman_1_1_monte_carlo_transform.html">MonteCarloTransform</a></li>
-    <li class="footer">Generated on Wed Dec 2 2020 15:38:14 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
+    <li class="footer">Generated on Sat Dec 5 2020 03:00:23 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
   </ul>
 </div>
 </body>

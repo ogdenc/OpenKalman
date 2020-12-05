@@ -10,7 +10,7 @@
     <tab type="classlist" visible="yes" title="classlist" intro="Here is a list of all classes and concepts:"/>
     <tab type="namespaces" visible="yes" title="Namespaces" intro=""/>
     <tab type="namespacelist" visible="yes" title="Namespace List" intro=""/>
-    <tab type="namespacemembers" visible="yes" title="Namespace Mambers" intro=""/>
+    <tab type="namespacemembers" visible="yes" title="Namespace Members" intro=""/>
     <tab type="files" visible="yes" title="Files" intro=""/>
     <tab type="filelist" visible="yes" title="File List" intro=""/>
     <tab type="globals" visible="yes" title="Globals" intro=""/>

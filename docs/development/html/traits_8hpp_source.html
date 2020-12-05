@@ -423,7 +423,7 @@ $(document).ready(function(){initNavTree('traits_8hpp_source.html',''); initResi
 <div class="line"><a name="l00335"></a><span class="lineno">  335</span>&#160;    equivalent_to&lt;<span class="keyword">typename</span> MatrixTraits&lt;T&gt;::RowCoefficients, <span class="keyword">typename</span> MatrixTraits&lt;T&gt;::ColumnCoefficients&gt;</div>
 <div class="line"><a name="l00336"></a><span class="lineno">  336</span>&#160;    <span class="keyword">struct</span> is_identity_matrix&lt;T&gt; : std::true_type {};</div>
 <div class="line"><a name="l00337"></a><span class="lineno">  337</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">else</span></div>
-<div class="line"><a name="l00338"></a><span class="lineno">  338</span>&#160;      <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a name="l00338"></a><span class="lineno">  338</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
 <div class="line"><a name="l00339"></a><span class="lineno">  339</span>&#160;    <span class="keyword">struct</span> is_identity_matrix&lt;T, std::enable_if_t&lt;typed_matrix&lt;T&gt; <span class="keyword">and</span></div>
 <div class="line"><a name="l00340"></a><span class="lineno">  340</span>&#160;      equivalent_to&lt;<span class="keyword">typename</span> MatrixTraits&lt;T&gt;::RowCoefficients, <span class="keyword">typename</span> MatrixTraits&lt;T&gt;::ColumnCoefficients&gt;&gt;&gt;</div>
 <div class="line"><a name="l00341"></a><span class="lineno">  341</span>&#160;      : is_identity_matrix&lt;nested_matrix_t&lt;T&gt;&gt; {};</div>
@@ -1060,7 +1060,7 @@ $(document).ready(function(){initNavTree('traits_8hpp_source.html',''); initResi
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_bf85a1622761b0afd6fb52adee52cf94.html">OpenKalman</a></li><li class="navelem"><a class="el" href="dir_a4c8436c8b3115862a8863d26709ba0b.html">basics</a></li><li class="navelem"><a class="el" href="traits_8hpp.html">traits.hpp</a></li>
-    <li class="footer">Generated on Wed Dec 2 2020 15:37:35 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
+    <li class="footer">Generated on Sat Dec 5 2020 02:59:57 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
   </ul>
 </div>
 </body>

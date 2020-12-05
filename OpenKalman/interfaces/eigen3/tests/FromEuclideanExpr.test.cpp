@@ -142,8 +142,8 @@ TEST_F(eigen3, FromEuclideanExpr_overloads)
   EXPECT_TRUE(is_near(nested_matrix(From4 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
   EXPECT_TRUE(is_near(make_native_matrix(From4 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), mat3(1, 2, pi/6, pi/3, 3, 4)));
   EXPECT_TRUE(is_near(make_self_contained(From4 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), mat3(1, 2, pi/6, pi/3, 3, 4)));
-  EXPECT_TRUE(is_near(to_Euclidean(From4 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
-  EXPECT_TRUE(is_near(to_Euclidean<C>(From4 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
+  EXPECT_TRUE(is_near(to_euclidean(From4 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
+  EXPECT_TRUE(is_near(to_euclidean<C>(From4 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
   EXPECT_TRUE(is_near(to_diagonal(FromEuclideanExpr<C, native_matrix_t<double, 4, 1>>{1., std::sqrt(3)/2, 0.5, 3}), DiagonalMatrix {1, pi/6, 3}));
   EXPECT_TRUE(is_near(transpose(From4 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), make_native_matrix<double, 2, 3>(1, pi/6, 3, 2, pi/3, 4)));
   EXPECT_TRUE(is_near(adjoint(From4 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), make_native_matrix<double, 2, 3>(1, pi/6, 3, 2, pi/3, 4)));
@@ -163,7 +163,7 @@ TEST_F(eigen3, FromEuclideanExpr_overloads)
   auto m = make_native_matrix(MatrixTraits<native_matrix_t<double, 4, 2>>::zero());
   for (int i=0; i<100; i++)
   {
-    m = (m * i + to_Euclidean(randomize<From4>(1.0, 0.3))) / (i + 1);
+    m = (m * i + to_euclidean(randomize<From4>(1.0, 0.3))) / (i + 1);
   }
   auto offset = native_matrix_t<double, 4, 2>::Constant(1);
   EXPECT_TRUE(is_near(m, offset, 0.1));
@@ -171,18 +171,18 @@ TEST_F(eigen3, FromEuclideanExpr_overloads)
 
   for (int i=0; i<100; i++)
   {
-    m = (m * i + to_Euclidean(randomize<From4>(N {1.0, 0.3}, N {2.0, 0.3}, 3.0, N {4.0, 0.3}))) / (i + 1);
+    m = (m * i + to_euclidean(randomize<From4>(N {1.0, 0.3}, N {2.0, 0.3}, 3.0, N {4.0, 0.3}))) / (i + 1);
   }
-  auto offset2 = to_Euclidean(From4 {1., 1., 2., 2., 3., 3., 4., 4.});
+  auto offset2 = to_euclidean(From4 {1., 1., 2., 2., 3., 3., 4., 4.});
   EXPECT_TRUE(is_near(m, offset2, 0.1));
   EXPECT_FALSE(is_near(m, offset2, 1e-6));
 
   for (int i=0; i<100; i++)
   {
-    m = (m * i + to_Euclidean(randomize<From4>(N {1.0, 0.3}, N {2.0, 0.3}, 3.0, N {4.0, 0.3},
+    m = (m * i + to_euclidean(randomize<From4>(N {1.0, 0.3}, N {2.0, 0.3}, 3.0, N {4.0, 0.3},
       N {5.0, 0.3}, 6.0, N {7.0, 0.3}, N {8.0, 0.3}))) / (i + 1);
   }
-  auto offset3 = to_Euclidean(From4 {1., 2., 3., 4., 5., 6., 7., 8.});
+  auto offset3 = to_euclidean(From4 {1., 2., 3., 4., 5., 6., 7., 8.});
   EXPECT_TRUE(is_near(m, offset3, 0.1));
   EXPECT_FALSE(is_near(m, offset3, 1e-6));
 }
@@ -246,8 +246,8 @@ TEST_F(eigen3, FromEuclideanExpr_blocks)
                make_native_matrix<double, 2, 3>(pi/4, pi/3, pi/6, 4, 5, 6)}));
   EXPECT_TRUE(is_near(
     split_vertical<Coefficients<Axis, angle::Radians>, Coefficients<angle::Radians, Axis>>(
-      from_Euclidean<Coefficients<Axis, angle::Radians, angle::Radians, Axis>>(
-        to_Euclidean<Coefficients<Axis, angle::Radians, angle::Radians, Axis>>(
+      from_euclidean<Coefficients<Axis, angle::Radians, angle::Radians, Axis>>(
+        to_euclidean<Coefficients<Axis, angle::Radians, angle::Radians, Axis>>(
           make_native_matrix<double, 4, 3>(1., 2, 3, pi/6, pi/3, pi/4, pi/4, pi/3, pi/6, 4, 5, 6)
       ))),
     std::tuple{

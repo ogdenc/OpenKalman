@@ -170,7 +170,7 @@ namespace OpenKalman::Eigen3
       }
       else
       {
-        this->nested_matrix() = to_Euclidean<Coefficients>(std::forward<Arg>(arg));
+        this->nested_matrix() = to_euclidean<Coefficients>(std::forward<Arg>(arg));
       }
       return *this;
     }
@@ -190,7 +190,7 @@ namespace OpenKalman::Eigen3
       static_assert(MatrixTraits<Arg>::dimension == Coefficients::size);
       if constexpr(from_euclidean_expr < Arg >)
         static_assert(equivalent_to < typename MatrixTraits<Arg>::RowCoefficients, Coefficients > );
-      this->nested_matrix() = make_self_contained(to_Euclidean<Coefficients>(*this + std::forward<Arg>(other)));
+      this->nested_matrix() = make_self_contained(to_euclidean<Coefficients>(*this + std::forward<Arg>(other)));
       return *this;
     }
 
@@ -209,7 +209,7 @@ namespace OpenKalman::Eigen3
       static_assert(MatrixTraits<Arg>::dimension == Coefficients::size);
       if constexpr(from_euclidean_expr < Arg >)
         static_assert(equivalent_to < typename MatrixTraits<Arg>::RowCoefficients, Coefficients > );
-      this->nested_matrix() = make_self_contained(to_Euclidean<Coefficients>(*this - std::forward<Arg>(other)));
+      this->nested_matrix() = make_self_contained(to_euclidean<Coefficients>(*this - std::forward<Arg>(other)));
       return *this;
     }
 
@@ -225,7 +225,7 @@ namespace OpenKalman::Eigen3
 #endif
     auto& operator*=(const S scale)
     {
-      this->nested_matrix() = make_self_contained(to_Euclidean<Coefficients>(*this * scale));
+      this->nested_matrix() = make_self_contained(to_euclidean<Coefficients>(*this * scale));
       return *this;
     }
 
@@ -241,7 +241,7 @@ namespace OpenKalman::Eigen3
 #endif
     auto& operator/=(const S scale)
     {
-      this->nested_matrix() = make_self_contained(to_Euclidean<Coefficients>(*this / scale));
+      this->nested_matrix() = make_self_contained(to_euclidean<Coefficients>(*this / scale));
       return *this;
     }
 
@@ -379,7 +379,7 @@ namespace OpenKalman
     {
       static_assert(MatrixTraits<Arg>::dimension == C::dimension);
       using namespace Eigen3;
-      return from_Euclidean<C>(std::forward<Arg>(arg));
+      return from_euclidean<C>(std::forward<Arg>(arg));
     }
 
 #ifdef __cpp_concepts

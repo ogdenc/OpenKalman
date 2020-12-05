@@ -93,7 +93,7 @@ namespace OpenKalman
       static_assert(N == std::tuple_size_v<decltype(xdists_tup)>);
 
       auto y_means = Mean {y_means_impl(g, xpoints_tup, xdists_tup, std::make_index_sequence<N>())};
-      auto y_mean = from_Euclidean(SamplePointsType::template weighted_means<dim>(to_Euclidean(y_means)));
+      auto y_mean = from_euclidean(SamplePointsType::template weighted_means<dim>(to_euclidean(y_means)));
       // Each column is a deviation from y mean for each transformed sigma point:
       auto ypoints = apply_columnwise(y_means, [&](const auto& col) { return make_self_contained(col - y_mean); });
 

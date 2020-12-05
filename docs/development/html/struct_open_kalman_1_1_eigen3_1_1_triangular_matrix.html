@@ -84,9 +84,6 @@ $(document).ready(function(){initNavTree('struct_open_kalman_1_1_eigen3_1_1_tria
 <div class="header">
   <div class="summary">
 <a href="struct_open_kalman_1_1_eigen3_1_1_triangular_matrix-members.html">List of all members</a> &#124;
-<a href="#pub-static-attribs">Static Public Attributes</a> &#124;
-<a href="#pub-types">Public Aliases</a> &#124;
-<a href="#pub-static-methods">Static Public Member Functions</a> &#124;
 <a href="#pub-methods">Public Member Functions</a>  </div>
   <div class="headertitle">
 <div class="title">OpenKalman::Eigen3::TriangularMatrix&lt; NestedMatrix, triangle_type &gt; Struct Template Reference</div>  </div>
@@ -116,36 +113,6 @@ Inheritance diagram for OpenKalman::Eigen3::TriangularMatrix&lt; NestedMatrix, t
   </map>
 </div></div>
 <table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-attribs"></a>
-Static Public Attributes</h2></td></tr>
-<tr class="memitem:a2c5698a71675bfb374c5962c49d716d7"><td class="memItemLeft" align="right" valign="top"><a id="a2c5698a71675bfb374c5962c49d716d7"></a>
-static constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><b>uplo</b> = triangle_type == TriangleType::upper ? Eigen::Upper : Eigen::Lower</td></tr>
-<tr class="separator:a2c5698a71675bfb374c5962c49d716d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a77e2c054a37b701146b1ec0f0f7fa810"><td class="memItemLeft" align="right" valign="top"><a id="a77e2c054a37b701146b1ec0f0f7fa810"></a>
-static constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><b>dimension</b> = <a class="el" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits</a>&lt;NestedMatrix&gt;::dimension</td></tr>
-<tr class="separator:a77e2c054a37b701146b1ec0f0f7fa810"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
-Public Aliases</h2></td></tr>
-<tr class="memitem:accb97173c5828fb13c57a25589c37e79"><td class="memItemLeft" align="right" valign="top"><a id="accb97173c5828fb13c57a25589c37e79"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>Base</b> = <a class="el" href="struct_open_kalman_1_1internal_1_1_matrix_base.html">OpenKalman::internal::MatrixBase</a>&lt; <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_triangular_matrix.html">TriangularMatrix</a>, NestedMatrix &gt;</td></tr>
-<tr class="separator:accb97173c5828fb13c57a25589c37e79"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a315ef6da66f640343dc199607881c12c"><td class="memItemLeft" align="right" valign="top"><a id="a315ef6da66f640343dc199607881c12c"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>View</b> = Eigen::TriangularView&lt; std::remove_reference_t&lt; NestedMatrix &gt;, uplo &gt;</td></tr>
-<tr class="separator:a315ef6da66f640343dc199607881c12c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4718b9d815b841fb6523c900124cee7c"><td class="memItemLeft" align="right" valign="top"><a id="a4718b9d815b841fb6523c900124cee7c"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>Scalar</b> = typename <a class="el" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits</a>&lt; NestedMatrix &gt;::Scalar</td></tr>
-<tr class="separator:a4718b9d815b841fb6523c900124cee7c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
-Static Public Member Functions</h2></td></tr>
-<tr class="memitem:a9cd7b3b5ee90c64f62f4cdf2f681db8b"><td class="memItemLeft" align="right" valign="top"><a id="a9cd7b3b5ee90c64f62f4cdf2f681db8b"></a>
-static auto&#160;</td><td class="memItemRight" valign="bottom"><b>zero</b> ()</td></tr>
-<tr class="separator:a9cd7b3b5ee90c64f62f4cdf2f681db8b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa631371b4f439d0a086cc2c6c8616de9"><td class="memItemLeft" align="right" valign="top"><a id="aa631371b4f439d0a086cc2c6c8616de9"></a>
-static auto&#160;</td><td class="memItemRight" valign="bottom"><b>identity</b> ()</td></tr>
-<tr class="separator:aa631371b4f439d0a086cc2c6c8616de9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a2e26b8a094086fe7f0faab8f7bbdb923"><td class="memItemLeft" align="right" valign="top"><a id="a2e26b8a094086fe7f0faab8f7bbdb923"></a>
@@ -218,60 +185,6 @@ template&lt;typename Arg &gt; </td></tr>
 <tr class="memitem:a2460a818002004bb71b8612f2e0ff3e1"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_triangular_matrix.html#a2460a818002004bb71b8612f2e0ff3e1">operator=</a> (Eigen::TriangularView&lt; Arg, uplo &gt; &amp;&amp;arg) noexcept</td></tr>
 <tr class="memdesc:a2460a818002004bb71b8612f2e0ff3e1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Assign by moving from an Eigen::TriangularBase derived object. <br /></td></tr>
 <tr class="separator:a2460a818002004bb71b8612f2e0ff3e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7bb05ac102a57b577c9f97f37201ffa1"><td class="memTemplParams" colspan="2"><a id="a7bb05ac102a57b577c9f97f37201ffa1"></a>
-template&lt;typename Arg &gt; </td></tr>
-<tr class="memitem:a7bb05ac102a57b577c9f97f37201ffa1"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><b>operator+=</b> (const <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_triangular_matrix.html">TriangularMatrix</a>&lt; Arg, triangle_type &gt; &amp;arg)</td></tr>
-<tr class="separator:a7bb05ac102a57b577c9f97f37201ffa1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a50cf457a07164476d1a8073f14bf313c"><td class="memTemplParams" colspan="2"><a id="a50cf457a07164476d1a8073f14bf313c"></a>
-template&lt;typename Arg &gt; </td></tr>
-<tr class="memitem:a50cf457a07164476d1a8073f14bf313c"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><b>operator-=</b> (const <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_triangular_matrix.html">TriangularMatrix</a>&lt; Arg, triangle_type &gt; &amp;arg)</td></tr>
-<tr class="separator:a50cf457a07164476d1a8073f14bf313c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3f2dcc4da30b8d218a48cfea22796577"><td class="memTemplParams" colspan="2"><a id="a3f2dcc4da30b8d218a48cfea22796577"></a>
-template&lt;typename S , std::enable_if_t&lt; std::is_convertible_v&lt; S, Scalar &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a3f2dcc4da30b8d218a48cfea22796577"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><b>operator*=</b> (const S s)</td></tr>
-<tr class="separator:a3f2dcc4da30b8d218a48cfea22796577"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa3468b4aa99f84fba985bd0002aea16a"><td class="memTemplParams" colspan="2"><a id="aa3468b4aa99f84fba985bd0002aea16a"></a>
-template&lt;typename S , std::enable_if_t&lt; std::is_convertible_v&lt; S, Scalar &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:aa3468b4aa99f84fba985bd0002aea16a"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><b>operator/=</b> (const S s)</td></tr>
-<tr class="separator:aa3468b4aa99f84fba985bd0002aea16a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5b87ae347857e1470e8d91ad7654f4cf"><td class="memTemplParams" colspan="2"><a id="a5b87ae347857e1470e8d91ad7654f4cf"></a>
-template&lt;typename Arg &gt; </td></tr>
-<tr class="memitem:a5b87ae347857e1470e8d91ad7654f4cf"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><b>operator*=</b> (const <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_triangular_matrix.html">TriangularMatrix</a>&lt; Arg, triangle_type &gt; &amp;arg)</td></tr>
-<tr class="separator:a5b87ae347857e1470e8d91ad7654f4cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a16bd12b48f46583bd0a2034e835d205b"><td class="memItemLeft" align="right" valign="top"><a id="a16bd12b48f46583bd0a2034e835d205b"></a>
-constexpr auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>nested_view</b> () &amp;</td></tr>
-<tr class="separator:a16bd12b48f46583bd0a2034e835d205b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abbbbc6df6aaf2e920742dda426d1c0ef"><td class="memItemLeft" align="right" valign="top"><a id="abbbbc6df6aaf2e920742dda426d1c0ef"></a>
-constexpr const auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>nested_view</b> () const &amp;</td></tr>
-<tr class="separator:abbbbc6df6aaf2e920742dda426d1c0ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae6a6d61021be054b281944afd397d79e"><td class="memItemLeft" align="right" valign="top"><a id="ae6a6d61021be054b281944afd397d79e"></a>
-constexpr auto &amp;&amp;&#160;</td><td class="memItemRight" valign="bottom"><b>nested_view</b> () &amp;&amp;</td></tr>
-<tr class="separator:ae6a6d61021be054b281944afd397d79e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a55a26c7b4a21dc370c47b24fc3a118e2"><td class="memItemLeft" align="right" valign="top"><a id="a55a26c7b4a21dc370c47b24fc3a118e2"></a>
-constexpr const auto &amp;&amp;&#160;</td><td class="memItemRight" valign="bottom"><b>nested_view</b> () const &amp;&amp;</td></tr>
-<tr class="separator:a55a26c7b4a21dc370c47b24fc3a118e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a340dc58cd3f442641f977da32d808ce2"><td class="memItemLeft" align="right" valign="top"><a id="a340dc58cd3f442641f977da32d808ce2"></a>
-auto&#160;</td><td class="memItemRight" valign="bottom"><b>operator()</b> (std::size_t i, std::size_t j)</td></tr>
-<tr class="separator:a340dc58cd3f442641f977da32d808ce2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a31c90feb2ae8573d142362d15d6946c0"><td class="memItemLeft" align="right" valign="top"><a id="a31c90feb2ae8573d142362d15d6946c0"></a>
-auto&#160;</td><td class="memItemRight" valign="bottom"><b>operator()</b> (std::size_t i, std::size_t j) const noexcept</td></tr>
-<tr class="separator:a31c90feb2ae8573d142362d15d6946c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a24a63b2461ec164645d61eb3d31eec96"><td class="memItemLeft" align="right" valign="top"><a id="a24a63b2461ec164645d61eb3d31eec96"></a>
-auto&#160;</td><td class="memItemRight" valign="bottom"><b>operator[]</b> (std::size_t i)</td></tr>
-<tr class="separator:a24a63b2461ec164645d61eb3d31eec96"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a82d0e05d71364a7b28ba0edbbf05d5f9"><td class="memItemLeft" align="right" valign="top"><a id="a82d0e05d71364a7b28ba0edbbf05d5f9"></a>
-auto&#160;</td><td class="memItemRight" valign="bottom"><b>operator[]</b> (std::size_t i) const</td></tr>
-<tr class="separator:a82d0e05d71364a7b28ba0edbbf05d5f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a468964a1df2f0cb9455c4bbccd205c47"><td class="memItemLeft" align="right" valign="top"><a id="a468964a1df2f0cb9455c4bbccd205c47"></a>
-auto&#160;</td><td class="memItemRight" valign="bottom"><b>operator()</b> (std::size_t i)</td></tr>
-<tr class="separator:a468964a1df2f0cb9455c4bbccd205c47"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adedf21cc334047703feff22f6a4a0136"><td class="memItemLeft" align="right" valign="top"><a id="adedf21cc334047703feff22f6a4a0136"></a>
-auto&#160;</td><td class="memItemRight" valign="bottom"><b>operator()</b> (std::size_t i) const</td></tr>
-<tr class="separator:adedf21cc334047703feff22f6a4a0136"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a24bb98d5aa653fb0cbe80116521d4b74"><td class="memTemplParams" colspan="2"><a id="a24bb98d5aa653fb0cbe80116521d4b74"></a>
-template&lt;typename B , std::enable_if_t&lt; eigen_matrix&lt; B &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a24bb98d5aa653fb0cbe80116521d4b74"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>solve</b> (const B &amp;b) const</td></tr>
-<tr class="separator:a24bb98d5aa653fb0cbe80116521d4b74"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3418b2a4dcfe6e9c62ab1f37ce15503c"><td class="memItemLeft" align="right" valign="top">constexpr auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1_matrix_base.html#a3418b2a4dcfe6e9c62ab1f37ce15503c">nested_matrix</a> () &amp;</td></tr>
 <tr class="memdesc:a3418b2a4dcfe6e9c62ab1f37ce15503c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the nested matrix of this covariance matrix.  <a href="struct_open_kalman_1_1internal_1_1_matrix_base.html#a3418b2a4dcfe6e9c62ab1f37ce15503c">More...</a><br /></td></tr>
 <tr class="separator:a3418b2a4dcfe6e9c62ab1f37ce15503c"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -309,7 +222,7 @@ template&lt;typename B , std::enable_if_t&lt; eigen_matrix&lt; B &gt;, int &gt; 
 <p>Get the nested matrix of this covariance matrix. </p>
 <p>The nested matrix will be self-adjoint, triangular, or diagonal. </p><dl class="section return"><dt>Returns</dt><dd>An lvalue reference to the nested matrix. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="_matrix_base_8hpp_source.html#l00111">111</a> of file <a class="el" href="_matrix_base_8hpp_source.html">MatrixBase.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_matrix_base_8hpp_source.html#l00105">105</a> of file <a class="el" href="_matrix_base_8hpp_source.html">MatrixBase.hpp</a>.</p>
 
 </div>
 </div>
@@ -338,7 +251,7 @@ template&lt;typename B , std::enable_if_t&lt; eigen_matrix&lt; B &gt;, int &gt; 
 <p>Get the nested matrix of this covariance matrix temporary. </p><dl class="section see"><dt>See also</dt><dd>constexpr auto&amp; <a class="el" href="struct_open_kalman_1_1internal_1_1_matrix_base.html#a3418b2a4dcfe6e9c62ab1f37ce15503c" title="Get the nested matrix of this covariance matrix.">nested_matrix()</a> &amp; </dd></dl>
 <dl class="section return"><dt>Returns</dt><dd>An rvalue reference to the nested matrix. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="_matrix_base_8hpp_source.html#l00119">119</a> of file <a class="el" href="_matrix_base_8hpp_source.html">MatrixBase.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_matrix_base_8hpp_source.html#l00113">113</a> of file <a class="el" href="_matrix_base_8hpp_source.html">MatrixBase.hpp</a>.</p>
 
 </div>
 </div>
@@ -367,7 +280,7 @@ template&lt;typename B , std::enable_if_t&lt; eigen_matrix&lt; B &gt;, int &gt; 
 <p>Get the nested matrix of this constant covariance matrix. </p><dl class="section see"><dt>See also</dt><dd>constexpr auto&amp; <a class="el" href="struct_open_kalman_1_1internal_1_1_matrix_base.html#a3418b2a4dcfe6e9c62ab1f37ce15503c" title="Get the nested matrix of this covariance matrix.">nested_matrix()</a> &amp; </dd></dl>
 <dl class="section return"><dt>Returns</dt><dd>A constant lvalue reference to the nested matrix. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="_matrix_base_8hpp_source.html#l00127">127</a> of file <a class="el" href="_matrix_base_8hpp_source.html">MatrixBase.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_matrix_base_8hpp_source.html#l00121">121</a> of file <a class="el" href="_matrix_base_8hpp_source.html">MatrixBase.hpp</a>.</p>
 
 </div>
 </div>
@@ -396,7 +309,7 @@ template&lt;typename B , std::enable_if_t&lt; eigen_matrix&lt; B &gt;, int &gt; 
 <p>Get the nested matrix of this constant covariance matrix temporary. </p><dl class="section see"><dt>See also</dt><dd>constexpr auto&amp; <a class="el" href="struct_open_kalman_1_1internal_1_1_matrix_base.html#a3418b2a4dcfe6e9c62ab1f37ce15503c" title="Get the nested matrix of this covariance matrix.">nested_matrix()</a> &amp; </dd></dl>
 <dl class="section return"><dt>Returns</dt><dd>A constant rvalue reference to the nested matrix. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="_matrix_base_8hpp_source.html#l00135">135</a> of file <a class="el" href="_matrix_base_8hpp_source.html">MatrixBase.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_matrix_base_8hpp_source.html#l00129">129</a> of file <a class="el" href="_matrix_base_8hpp_source.html">MatrixBase.hpp</a>.</p>
 
 </div>
 </div>
@@ -410,7 +323,7 @@ template&lt;typename B , std::enable_if_t&lt; eigen_matrix&lt; B &gt;, int &gt; 
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="namespace_open_kalman.html">OpenKalman</a></li><li class="navelem"><a class="el" href="namespace_open_kalman_1_1_eigen3.html">Eigen3</a></li><li class="navelem"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_triangular_matrix.html">TriangularMatrix</a></li>
-    <li class="footer">Generated on Wed Dec 2 2020 15:38:15 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
+    <li class="footer">Generated on Sat Dec 5 2020 03:00:23 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
   </ul>
 </div>
 </body>

@@ -2,13 +2,13 @@ var annotated =
 [
     [ "Eigen", null, [
       [ "internal", null, [
-        [ "evaluator< OpenKalman::Eigen3::FromEuclideanExpr< Coefficients, ArgType > >", "struct_eigen_1_1internal_1_1evaluator_3_01_open_kalman_1_1_eigen3_1_1_from_euclidean_expr_3_01_c3d0d14969db7718f8c6a763debfd6966.html", "struct_eigen_1_1internal_1_1evaluator_3_01_open_kalman_1_1_eigen3_1_1_from_euclidean_expr_3_01_c3d0d14969db7718f8c6a763debfd6966" ],
-        [ "evaluator< OpenKalman::Eigen3::FromEuclideanExpr< Coefficients, OpenKalman::Eigen3::ToEuclideanExpr< Coefficients, ArgType > > >", "struct_eigen_1_1internal_1_1evaluator_3_01_open_kalman_1_1_eigen3_1_1_from_euclidean_expr_3_01_c1197a1d12be34607e8682b3c0e469bb3.html", "struct_eigen_1_1internal_1_1evaluator_3_01_open_kalman_1_1_eigen3_1_1_from_euclidean_expr_3_01_c1197a1d12be34607e8682b3c0e469bb3" ],
-        [ "evaluator< OpenKalman::Eigen3::ToEuclideanExpr< Coefficients, ArgType > >", "struct_eigen_1_1internal_1_1evaluator_3_01_open_kalman_1_1_eigen3_1_1_to_euclidean_expr_3_01_coe85b734b43baed46435269b60f3d32211.html", "struct_eigen_1_1internal_1_1evaluator_3_01_open_kalman_1_1_eigen3_1_1_to_euclidean_expr_3_01_coe85b734b43baed46435269b60f3d32211" ]
+        [ "evaluator< OpenKalman::Eigen3::FromEuclideanExpr< Coefficients, ArgType > >", "struct_eigen_1_1internal_1_1evaluator_3_01_open_kalman_1_1_eigen3_1_1_from_euclidean_expr_3_01_c3d0d14969db7718f8c6a763debfd6966.html", null ],
+        [ "evaluator< OpenKalman::Eigen3::FromEuclideanExpr< Coefficients, OpenKalman::Eigen3::ToEuclideanExpr< Coefficients, ArgType > > >", "struct_eigen_1_1internal_1_1evaluator_3_01_open_kalman_1_1_eigen3_1_1_from_euclidean_expr_3_01_c1197a1d12be34607e8682b3c0e469bb3.html", null ],
+        [ "evaluator< OpenKalman::Eigen3::ToEuclideanExpr< Coefficients, ArgType > >", "struct_eigen_1_1internal_1_1evaluator_3_01_open_kalman_1_1_eigen3_1_1_to_euclidean_expr_3_01_coe85b734b43baed46435269b60f3d32211.html", null ]
       ] ],
-      [ "CovarianceCommaInitializer", "struct_eigen_1_1_covariance_comma_initializer.html", "struct_eigen_1_1_covariance_comma_initializer" ],
-      [ "DiagonalCommaInitializer", "struct_eigen_1_1_diagonal_comma_initializer.html", "struct_eigen_1_1_diagonal_comma_initializer" ],
-      [ "MeanCommaInitializer", "struct_eigen_1_1_mean_comma_initializer.html", "struct_eigen_1_1_mean_comma_initializer" ]
+      [ "CovarianceCommaInitializer", "struct_eigen_1_1_covariance_comma_initializer.html", null ],
+      [ "DiagonalCommaInitializer", "struct_eigen_1_1_diagonal_comma_initializer.html", null ],
+      [ "MeanCommaInitializer", "struct_eigen_1_1_mean_comma_initializer.html", null ]
     ] ],
     [ "OpenKalman", "namespace_open_kalman.html", [
       [ "angle", "namespace_open_kalman_1_1angle.html", [
@@ -23,14 +23,14 @@ var annotated =
       [ "Eigen3", "namespace_open_kalman_1_1_eigen3.html", [
         [ "internal", null, [
           [ "Eigen3Base", "struct_open_kalman_1_1_eigen3_1_1internal_1_1_eigen3_base.html", null ],
-          [ "Eigen3MatrixBase", "struct_open_kalman_1_1_eigen3_1_1internal_1_1_eigen3_matrix_base.html", "struct_open_kalman_1_1_eigen3_1_1internal_1_1_eigen3_matrix_base" ]
+          [ "Eigen3MatrixBase", "struct_open_kalman_1_1_eigen3_1_1internal_1_1_eigen3_matrix_base.html", null ]
         ] ],
         [ "DiagonalMatrix", "struct_open_kalman_1_1_eigen3_1_1_diagonal_matrix.html", "struct_open_kalman_1_1_eigen3_1_1_diagonal_matrix" ],
         [ "FromEuclideanExpr", "struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html", "struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr" ],
         [ "SelfAdjointMatrix", "struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix.html", "struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix" ],
         [ "ToEuclideanExpr", "struct_open_kalman_1_1_eigen3_1_1_to_euclidean_expr.html", "struct_open_kalman_1_1_eigen3_1_1_to_euclidean_expr" ],
         [ "TriangularMatrix", "struct_open_kalman_1_1_eigen3_1_1_triangular_matrix.html", "struct_open_kalman_1_1_eigen3_1_1_triangular_matrix" ],
-        [ "ZeroMatrix", "struct_open_kalman_1_1_eigen3_1_1_zero_matrix.html", "struct_open_kalman_1_1_eigen3_1_1_zero_matrix" ]
+        [ "ZeroMatrix", "struct_open_kalman_1_1_eigen3_1_1_zero_matrix.html", null ]
       ] ],
       [ "inclination", "namespace_open_kalman_1_1inclination.html", [
         [ "limits", "namespace_open_kalman_1_1inclination_1_1limits.html", [
@@ -39,12 +39,9 @@ var annotated =
         ] ]
       ] ],
       [ "internal", "namespace_open_kalman_1_1internal.html", [
-        [ "CovarianceBase< Derived, ArgType, std::enable_if_t<((not square_root_covariance< Derived > and self_adjoint_matrix< ArgType >) or(square_root_covariance< Derived > and triangular_matrix< ArgType >)) and(not std::is_lvalue_reference_v< ArgType >) and(not internal::contains_nested_lvalue_reference< ArgType >)> >", "struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enabl29df945888bdf150793bc6dc6b1445fb.html", "struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enabl29df945888bdf150793bc6dc6b1445fb" ],
-        [ "CovarianceBase< Derived, ArgType, std::enable_if_t<((not square_root_covariance< Derived > and self_adjoint_matrix< ArgType >) or(square_root_covariance< Derived > and triangular_matrix< ArgType >)) and(std::is_lvalue_reference_v< ArgType > or internal::contains_nested_lvalue_reference< ArgType >)> >", "struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enabla13a6eb46bea1ac02dc83313a9b3010e.html", "struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enabla13a6eb46bea1ac02dc83313a9b3010e" ],
-        [ "CovarianceBase< Derived, ArgType, std::enable_if_t<(square_root_covariance< Derived > or not self_adjoint_matrix< ArgType >) and(not square_root_covariance< Derived > or not triangular_matrix< ArgType >) and(not std::is_lvalue_reference_v< ArgType >) and(not internal::contains_nested_lvalue_reference< ArgType >)> >", "struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enabl33dea91a16b54869feea364852fa5cb9.html", "struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enabl33dea91a16b54869feea364852fa5cb9" ],
-        [ "CovarianceBase< Derived, ArgType, std::enable_if_t<(square_root_covariance< Derived > or not self_adjoint_matrix< ArgType >) and(not square_root_covariance< Derived > or not triangular_matrix< ArgType >) and(std::is_lvalue_reference_v< ArgType > or internal::contains_nested_lvalue_reference< ArgType >)> >", "struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enablf7ccd8f72f32390098ce960e2476ff72.html", "struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enablf7ccd8f72f32390098ce960e2476ff72" ],
-        [ "CovarianceBaseBase", "struct_open_kalman_1_1internal_1_1_covariance_base_base.html", null ],
+        [ "CovarianceBase", "struct_open_kalman_1_1internal_1_1_covariance_base.html", null ],
         [ "default_split_function", "struct_open_kalman_1_1internal_1_1default__split__function.html", null ],
+        [ "ElementSetter", "struct_open_kalman_1_1internal_1_1_element_setter.html", null ],
         [ "is_atomic_coefficient_group", "struct_open_kalman_1_1internal_1_1is__atomic__coefficient__group.html", null ],
         [ "is_cholesky_form", "struct_open_kalman_1_1internal_1_1is__cholesky__form.html", null ],
         [ "is_composite_coefficients", "struct_open_kalman_1_1internal_1_1is__composite__coefficients.html", null ],
@@ -66,8 +63,12 @@ var annotated =
         [ "TypedMatrixBase", "struct_open_kalman_1_1internal_1_1_typed_matrix_base.html", "struct_open_kalman_1_1internal_1_1_typed_matrix_base" ]
       ] ],
       [ "Angle", "struct_open_kalman_1_1_angle.html", "struct_open_kalman_1_1_angle" ],
+      [ "Axis", "struct_open_kalman_1_1_axis.html", "struct_open_kalman_1_1_axis" ],
       [ "Coefficients", "struct_open_kalman_1_1_coefficients.html", null ],
+      [ "Coefficients< C, Cs ... >", "struct_open_kalman_1_1_coefficients_3_01_c_00_01_cs_01_8_8_8_01_4.html", "struct_open_kalman_1_1_coefficients_3_01_c_00_01_cs_01_8_8_8_01_4" ],
+      [ "Coefficients<>", "struct_open_kalman_1_1_coefficients_3_4.html", null ],
       [ "Covariance", "struct_open_kalman_1_1_covariance.html", "struct_open_kalman_1_1_covariance" ],
+      [ "Distance", "struct_open_kalman_1_1_distance.html", "struct_open_kalman_1_1_distance" ],
       [ "DistributionTraits", "struct_open_kalman_1_1_distribution_traits.html", null ],
       [ "EuclideanMean", "struct_open_kalman_1_1_euclidean_mean.html", "struct_open_kalman_1_1_euclidean_mean" ],
       [ "GaussianDistribution", "struct_open_kalman_1_1_gaussian_distribution.html", "struct_open_kalman_1_1_gaussian_distribution" ],
@@ -76,8 +77,8 @@ var annotated =
       [ "Inclination", "struct_open_kalman_1_1_inclination.html", "struct_open_kalman_1_1_inclination" ],
       [ "is_linearized_function", "struct_open_kalman_1_1is__linearized__function.html", null ],
       [ "KalmanFilter", "struct_open_kalman_1_1_kalman_filter.html", null ],
-      [ "KalmanFilter< ProcessTransform, MeasurementTransform >", "struct_open_kalman_1_1_kalman_filter_3_01_process_transform_00_01_measurement_transform_01_4.html", "struct_open_kalman_1_1_kalman_filter_3_01_process_transform_00_01_measurement_transform_01_4" ],
-      [ "KalmanFilter< Transform >", "struct_open_kalman_1_1_kalman_filter_3_01_transform_01_4.html", "struct_open_kalman_1_1_kalman_filter_3_01_transform_01_4" ],
+      [ "KalmanFilter< ProcessTransform, MeasurementTransform >", "struct_open_kalman_1_1_kalman_filter_3_01_process_transform_00_01_measurement_transform_01_4.html", null ],
+      [ "KalmanFilter< Transform >", "struct_open_kalman_1_1_kalman_filter_3_01_transform_01_4.html", null ],
       [ "LinearizedTransform", "struct_open_kalman_1_1_linearized_transform.html", "struct_open_kalman_1_1_linearized_transform" ],
       [ "LinearTransform", "struct_open_kalman_1_1_linear_transform.html", "struct_open_kalman_1_1_linear_transform" ],
       [ "LinearTransformation", "struct_open_kalman_1_1_linear_transformation.html", null ],

@@ -97,14 +97,6 @@ $(document).ready(function(){initNavTree('_gaussian_distribution_8hpp.html','');
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:aeb6f38230dcdbeeecce62ba45cf45714"><td class="memTemplParams" colspan="2"><a id="aeb6f38230dcdbeeecce62ba45cf45714"></a>
-template&lt;typename D , std::enable_if_t&lt; gaussian_distribution&lt; D &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:aeb6f38230dcdbeeecce62ba45cf45714"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><b>OpenKalman::GaussianDistribution</b> (D &amp;&amp;) -&gt; GaussianDistribution&lt; typename DistributionTraits&lt; D &gt;::Coefficients, nested_matrix_t&lt; typename DistributionTraits&lt; passable_t&lt; D &gt;&gt;::Mean &gt;, nested_matrix_t&lt; typename DistributionTraits&lt; passable_t&lt; D &gt;&gt;::Covariance &gt;&gt;</td></tr>
-<tr class="separator:aeb6f38230dcdbeeecce62ba45cf45714"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3f4a480268c32d2e7531eae879bba64e"><td class="memTemplParams" colspan="2"><a id="a3f4a480268c32d2e7531eae879bba64e"></a>
-template&lt;typename M , typename C , std::enable_if_t&lt; typed_matrix&lt; M &gt; and covariance&lt; C &gt; and not square_root_covariance&lt; C &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a3f4a480268c32d2e7531eae879bba64e"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><b>OpenKalman::GaussianDistribution</b> (M &amp;&amp;, C &amp;&amp;) -&gt; GaussianDistribution&lt; typename MatrixTraits&lt; M &gt;::RowCoefficients, nested_matrix_t&lt; passable_t&lt; M &gt;&gt;, nested_matrix_t&lt; passable_t&lt; C &gt;&gt;&gt;</td></tr>
-<tr class="separator:a3f4a480268c32d2e7531eae879bba64e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a131455a38340a120002aca624717d3d4"><td class="memTemplParams" colspan="2"><a id="a131455a38340a120002aca624717d3d4"></a>
 template&lt;typename D , std::enable_if_t&lt; gaussian_distribution&lt; D &gt;, int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:a131455a38340a120002aca624717d3d4"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#a131455a38340a120002aca624717d3d4">OpenKalman::make_GaussianDistribution</a> (D &amp;&amp;dist) noexcept</td></tr>
@@ -130,67 +122,15 @@ template&lt;typename Coefficients , typename M , typename Cov , typename re  = s
 <tr class="memitem:a8c01a83c83d3a23aafb59dcd527daed1"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#a8c01a83c83d3a23aafb59dcd527daed1">OpenKalman::make_GaussianDistribution</a> ()</td></tr>
 <tr class="memdesc:a8c01a83c83d3a23aafb59dcd527daed1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Make a default Gaussian distribution from a typed_matrix_nestable and a covariance_nestable or regular matrix for the covariance. <br /></td></tr>
 <tr class="separator:a8c01a83c83d3a23aafb59dcd527daed1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a14d2e4b600345150553cfd00b35b5873"><td class="memTemplParams" colspan="2"><a id="a14d2e4b600345150553cfd00b35b5873"></a>
-template&lt;typename Arg , std::enable_if_t&lt; gaussian_distribution&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a14d2e4b600345150553cfd00b35b5873"><td class="memTemplItemLeft" align="right" valign="top">constexpr decltype(auto)&#160;</td><td class="memTemplItemRight" valign="bottom"><b>OpenKalman::mean_of</b> (Arg &amp;&amp;arg) noexcept</td></tr>
-<tr class="separator:a14d2e4b600345150553cfd00b35b5873"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9bd8a5e344ce40d706ed10798b1aec8d"><td class="memTemplParams" colspan="2"><a id="a9bd8a5e344ce40d706ed10798b1aec8d"></a>
-template&lt;typename Arg , std::enable_if_t&lt; gaussian_distribution&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a9bd8a5e344ce40d706ed10798b1aec8d"><td class="memTemplItemLeft" align="right" valign="top">constexpr decltype(auto)&#160;</td><td class="memTemplItemRight" valign="bottom"><b>OpenKalman::covariance_of</b> (Arg &amp;&amp;arg) noexcept</td></tr>
-<tr class="separator:a9bd8a5e344ce40d706ed10798b1aec8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0641e84ff6f6105215fe70acc0896277"><td class="memTemplParams" colspan="2"><a id="a0641e84ff6f6105215fe70acc0896277"></a>
-template&lt;typename Arg , std::enable_if_t&lt; gaussian_distribution&lt; Arg &gt; and not cholesky_form&lt; Arg &gt; and not diagonal_matrix&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a0641e84ff6f6105215fe70acc0896277"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>OpenKalman::to_Cholesky</b> (Arg &amp;&amp;arg) noexcept</td></tr>
-<tr class="separator:a0641e84ff6f6105215fe70acc0896277"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6c544e1f5e268ea657d3895746468c91"><td class="memTemplParams" colspan="2"><a id="a6c544e1f5e268ea657d3895746468c91"></a>
-template&lt;typename Arg , std::enable_if_t&lt; gaussian_distribution&lt; Arg &gt; and cholesky_form&lt; Arg &gt; and not diagonal_matrix&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a6c544e1f5e268ea657d3895746468c91"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>OpenKalman::from_Cholesky</b> (Arg &amp;&amp;arg) noexcept</td></tr>
-<tr class="separator:a6c544e1f5e268ea657d3895746468c91"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad137ac22381d6cd2d06a57b96a3f4a83"><td class="memTemplParams" colspan="2">template&lt;typename... Ts, typename Arg , std::enable_if_t&lt; gaussian_distribution&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:ad137ac22381d6cd2d06a57b96a3f4a83"><td class="memTemplItemLeft" align="right" valign="top">constexpr decltype(auto)&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#ad137ac22381d6cd2d06a57b96a3f4a83">OpenKalman::make_self_contained</a> (Arg &amp;&amp;arg) noexcept</td></tr>
 <tr class="memdesc:ad137ac22381d6cd2d06a57b96a3f4a83"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert to self-contained version of the distribution.  <a href="namespace_open_kalman.html#ad137ac22381d6cd2d06a57b96a3f4a83">More...</a><br /></td></tr>
 <tr class="separator:ad137ac22381d6cd2d06a57b96a3f4a83"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a20f06f7fc72648cedfd49327fa17ac75"><td class="memTemplParams" colspan="2"><a id="a20f06f7fc72648cedfd49327fa17ac75"></a>
-template&lt;typename D , typename ... Ds, std::enable_if_t&lt;(gaussian_distribution&lt; D &gt; and ... and gaussian_distribution&lt; Ds &gt;), int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a20f06f7fc72648cedfd49327fa17ac75"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>OpenKalman::concatenate</b> (const D &amp;d, const Ds &amp;... ds)</td></tr>
-<tr class="separator:a20f06f7fc72648cedfd49327fa17ac75"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a14f9d9ee0ba0f719d4fd96b573476af9"><td class="memTemplParams" colspan="2"><a id="a14f9d9ee0ba0f719d4fd96b573476af9"></a>
-template&lt;typename Dist , typename Means , typename Covariances , std::size_t ... ints&gt; </td></tr>
-<tr class="memitem:a14f9d9ee0ba0f719d4fd96b573476af9"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>OpenKalman::detail::zip_dist</b> (Means &amp;&amp;ms, Covariances &amp;&amp;cs, std::index_sequence&lt; ints... &gt;)</td></tr>
-<tr class="separator:a14f9d9ee0ba0f719d4fd96b573476af9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6656a830ae8f0446ec8f3bfe5159a90f"><td class="memTemplParams" colspan="2"><a id="a6656a830ae8f0446ec8f3bfe5159a90f"></a>
 template&lt;typename ... Cs, typename D , std::enable_if_t&lt; gaussian_distribution&lt; D &gt;, int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:a6656a830ae8f0446ec8f3bfe5159a90f"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#a6656a830ae8f0446ec8f3bfe5159a90f">OpenKalman::split</a> (D &amp;&amp;d) noexcept</td></tr>
 <tr class="memdesc:a6656a830ae8f0446ec8f3bfe5159a90f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Split distribution. <br /></td></tr>
 <tr class="separator:a6656a830ae8f0446ec8f3bfe5159a90f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a74b12ec95de2bc68ab2b3115873d36e6"><td class="memTemplParams" colspan="2"><a id="a74b12ec95de2bc68ab2b3115873d36e6"></a>
-template&lt;typename Dist , std::enable_if_t&lt; gaussian_distribution&lt; Dist &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a74b12ec95de2bc68ab2b3115873d36e6"><td class="memTemplItemLeft" align="right" valign="top">std::ostream &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><b>OpenKalman::operator&lt;&lt;</b> (std::ostream &amp;os, const Dist &amp;d)</td></tr>
-<tr class="separator:a74b12ec95de2bc68ab2b3115873d36e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a189f804de633e1696b5ea798571632c6"><td class="memTemplParams" colspan="2"><a id="a189f804de633e1696b5ea798571632c6"></a>
-template&lt;typename Dist1 , typename Dist2 , std::enable_if_t&lt; gaussian_distribution&lt; Dist1 &gt; and gaussian_distribution&lt; Dist2 &gt; and equivalent_to&lt; typename DistributionTraits&lt; Dist1 &gt;::Coefficients, typename DistributionTraits&lt; Dist2 &gt;::Coefficients &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a189f804de633e1696b5ea798571632c6"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>OpenKalman::operator+</b> (const Dist1 &amp;d1, const Dist2 &amp;d2)</td></tr>
-<tr class="separator:a189f804de633e1696b5ea798571632c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a708c180a99179c17769a15d282d4cf97"><td class="memTemplParams" colspan="2"><a id="a708c180a99179c17769a15d282d4cf97"></a>
-template&lt;typename Dist1 , typename Dist2 , std::enable_if_t&lt; gaussian_distribution&lt; Dist1 &gt; and gaussian_distribution&lt; Dist2 &gt; and equivalent_to&lt; typename DistributionTraits&lt; Dist1 &gt;::Coefficients, typename DistributionTraits&lt; Dist2 &gt;::Coefficients &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a708c180a99179c17769a15d282d4cf97"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>OpenKalman::operator-</b> (const Dist1 &amp;d1, const Dist2 &amp;d2)</td></tr>
-<tr class="separator:a708c180a99179c17769a15d282d4cf97"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3371aaf35876aee1bc583ef48d123617"><td class="memTemplParams" colspan="2"><a id="a3371aaf35876aee1bc583ef48d123617"></a>
-template&lt;typename A , typename D , std::enable_if_t&lt; typed_matrix&lt; A &gt; and gaussian_distribution&lt; D &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a3371aaf35876aee1bc583ef48d123617"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>OpenKalman::operator*</b> (const A &amp;a, const D &amp;d)</td></tr>
-<tr class="separator:a3371aaf35876aee1bc583ef48d123617"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aaf93273a761823f98487e018bf9cc55b"><td class="memTemplParams" colspan="2"><a id="aaf93273a761823f98487e018bf9cc55b"></a>
-template&lt;typename Dist , typename S , std::enable_if_t&lt; gaussian_distribution&lt; Dist &gt; and std::is_convertible_v&lt; S, typename DistributionTraits&lt; Dist &gt;::Scalar &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:aaf93273a761823f98487e018bf9cc55b"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>OpenKalman::operator*</b> (Dist &amp;&amp;d, const S s)</td></tr>
-<tr class="separator:aaf93273a761823f98487e018bf9cc55b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3a3aa9d1579cf96946a65a7dfd9ad315"><td class="memTemplParams" colspan="2"><a id="a3a3aa9d1579cf96946a65a7dfd9ad315"></a>
-template&lt;typename Dist , typename S , std::enable_if_t&lt; gaussian_distribution&lt; Dist &gt; and std::is_convertible_v&lt; S, typename DistributionTraits&lt; Dist &gt;::Scalar &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a3a3aa9d1579cf96946a65a7dfd9ad315"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>OpenKalman::operator*</b> (const S s, Dist &amp;&amp;d)</td></tr>
-<tr class="separator:a3a3aa9d1579cf96946a65a7dfd9ad315"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2da67807e9ed9ade59482260747bc809"><td class="memTemplParams" colspan="2"><a id="a2da67807e9ed9ade59482260747bc809"></a>
-template&lt;typename Dist , typename S , std::enable_if_t&lt; gaussian_distribution&lt; Dist &gt; and std::is_convertible_v&lt; S, typename DistributionTraits&lt; Dist &gt;::Scalar &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a2da67807e9ed9ade59482260747bc809"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>OpenKalman::operator/</b> (Dist &amp;&amp;d, const S s)</td></tr>
-<tr class="separator:a2da67807e9ed9ade59482260747bc809"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
@@ -214,7 +154,7 @@ Namespaces</h2></td></tr>
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_bf85a1622761b0afd6fb52adee52cf94.html">OpenKalman</a></li><li class="navelem"><a class="el" href="dir_4df9be8959a377e32e7a35238a89a209.html">distributions</a></li><li class="navelem"><a class="el" href="_gaussian_distribution_8hpp.html">GaussianDistribution.hpp</a></li>
-    <li class="footer">Generated on Wed Dec 2 2020 15:38:14 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
+    <li class="footer">Generated on Sat Dec 5 2020 03:00:22 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
   </ul>
 </div>
 </body>

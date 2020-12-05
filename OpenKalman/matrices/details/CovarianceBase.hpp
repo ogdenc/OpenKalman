@@ -15,7 +15,7 @@
 
 namespace OpenKalman::internal
 {
-  /**
+  /*
    * \internal
    * Base of Covariance and SquareRootCovariance classes, if ArgType is not an lvalue reference and either
    * (1) Derived is not a square root and the nested matrix is self-adjoint; or
@@ -99,7 +99,7 @@ namespace OpenKalman::internal
 
 
   // ============================================================================
-  /**
+  /*
    * \internal
    * Base of Covariance and SquareRootCovariance classes, if ArgType is an lvalue reference.
    * No conversion is necessary if either
@@ -315,7 +315,7 @@ namespace OpenKalman::internal
 
 
   // ============================================================================
-  /**
+  /*
    * \internal
    * Base of Covariance and SquareRootCovariance classes, if ArgType is not an lvalue reference, and
    * # Derived is a square root and the nested matrix is not triangular (i.e., it is self-adjoint but not diagonal); or
@@ -562,7 +562,7 @@ namespace OpenKalman::internal
 
 
   // ============================================================================
-  /**
+  /*
    * \internal
    * Base of Covariance and SquareRootCovariance classes, if ArgType is an lvalue reference, and
    * # Derived is a square root and the nested matrix is not triangular (i.e., it is self-adjoint but not diagonal); or

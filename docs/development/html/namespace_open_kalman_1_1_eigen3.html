@@ -142,98 +142,38 @@ template&lt;typename NestedMatrix &gt; </td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:afa9439977c34c4778e78dc32728e06bb"><td class="memTemplParams" colspan="2"><a id="afa9439977c34c4778e78dc32728e06bb"></a>
-template&lt;typename RowCoefficients , typename ColumnCoefficients  = RowCoefficients, typename ... Args, std::enable_if_t&lt;(sizeof...(Args) &gt; 0) and std::conjunction_v&lt; std::is_arithmetic&lt; Args &gt;... &gt; and(RowCoefficients::size *ColumnCoefficients::size==sizeof...(Args)), int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:afa9439977c34c4778e78dc32728e06bb"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>make_matrix</b> (Args ... args)</td></tr>
-<tr class="separator:afa9439977c34c4778e78dc32728e06bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a254ef68edfc93e94556975d3635e640a"><td class="memTemplParams" colspan="2">template&lt;typename ... Args, std::enable_if_t&lt;(sizeof...(Args) &gt; 0) and std::conjunction_v&lt; std::is_arithmetic&lt; Args &gt;... &gt;, int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:a254ef68edfc93e94556975d3635e640a"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1_eigen3.html#a254ef68edfc93e94556975d3635e640a">make_matrix</a> (Args ... args)</td></tr>
-<tr class="memdesc:a254ef68edfc93e94556975d3635e640a"><td class="mdescLeft">&#160;</td><td class="mdescRight">For <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a>: Make a one-column <a class="el" href="struct_open_kalman_1_1_matrix.html" title="A matrix with typed rows and columns.">Matrix</a> from a list of coefficients, with default Axis coefficients.  <a href="namespace_open_kalman_1_1_eigen3.html#a254ef68edfc93e94556975d3635e640a">More...</a><br /></td></tr>
+<tr class="memdesc:a254ef68edfc93e94556975d3635e640a"><td class="mdescLeft">&#160;</td><td class="mdescRight">For <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a>: Make a one-column <a class="el" href="struct_open_kalman_1_1_matrix.html" title="A matrix with typed rows and columns.">Matrix</a> from a list of coefficients, with default <a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a> coefficients.  <a href="namespace_open_kalman_1_1_eigen3.html#a254ef68edfc93e94556975d3635e640a">More...</a><br /></td></tr>
 <tr class="separator:a254ef68edfc93e94556975d3635e640a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac60ae4e5bdee892abe4344e998cd0e4a"><td class="memTemplParams" colspan="2">template&lt;typename Scalar , typename RowCoefficients , typename ColumnCoefficients  = RowCoefficients, std::enable_if_t&lt; std::is_arithmetic_v&lt; Scalar &gt; and coefficients&lt; RowCoefficients &gt; and coefficients&lt; ColumnCoefficients &gt;, int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:ac60ae4e5bdee892abe4344e998cd0e4a"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1_eigen3.html#ac60ae4e5bdee892abe4344e998cd0e4a">make_matrix</a> ()</td></tr>
 <tr class="memdesc:ac60ae4e5bdee892abe4344e998cd0e4a"><td class="mdescLeft">&#160;</td><td class="mdescRight">For <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a>: Make a <a class="el" href="struct_open_kalman_1_1_matrix.html" title="A matrix with typed rows and columns.">Matrix</a> based on a scalar type and row and column coefficients.  <a href="namespace_open_kalman_1_1_eigen3.html#ac60ae4e5bdee892abe4344e998cd0e4a">More...</a><br /></td></tr>
 <tr class="separator:ac60ae4e5bdee892abe4344e998cd0e4a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad4b038954e9f58483c5ce349ebe48444"><td class="memTemplParams" colspan="2"><a id="ad4b038954e9f58483c5ce349ebe48444"></a>
-template&lt;typename Coefficients , typename ... Args, std::enable_if_t&lt; coefficients&lt; Coefficients &gt; and(sizeof...(Args) &gt; 0) and std::conjunction_v&lt; std::is_arithmetic&lt; Args &gt;... &gt; and(sizeof...(Args) % Coefficients::size==0), int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:ad4b038954e9f58483c5ce349ebe48444"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>make_mean</b> (Args ... args)</td></tr>
-<tr class="separator:ad4b038954e9f58483c5ce349ebe48444"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0c9a6b195d8d4fbae6ba1878c1bb335e"><td class="memTemplParams" colspan="2">template&lt;typename ... Args, std::enable_if_t&lt;(sizeof...(Args) &gt; 0) and std::conjunction_v&lt; std::is_arithmetic&lt; Args &gt;... &gt;, int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:a0c9a6b195d8d4fbae6ba1878c1bb335e"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1_eigen3.html#a0c9a6b195d8d4fbae6ba1878c1bb335e">make_mean</a> (Args ... args)</td></tr>
-<tr class="memdesc:a0c9a6b195d8d4fbae6ba1878c1bb335e"><td class="mdescLeft">&#160;</td><td class="mdescRight">For <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a>: Make a one-column <a class="el" href="struct_open_kalman_1_1_mean.html" title="A set of one or more column vectors, each representing a statistical mean.">Mean</a> from a list of coefficients, with default Axis coefficients.  <a href="namespace_open_kalman_1_1_eigen3.html#a0c9a6b195d8d4fbae6ba1878c1bb335e">More...</a><br /></td></tr>
+<tr class="memdesc:a0c9a6b195d8d4fbae6ba1878c1bb335e"><td class="mdescLeft">&#160;</td><td class="mdescRight">For <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a>: Make a one-column <a class="el" href="struct_open_kalman_1_1_mean.html" title="A set of one or more column vectors, each representing a statistical mean.">Mean</a> from a list of coefficients, with default <a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a> coefficients.  <a href="namespace_open_kalman_1_1_eigen3.html#a0c9a6b195d8d4fbae6ba1878c1bb335e">More...</a><br /></td></tr>
 <tr class="separator:a0c9a6b195d8d4fbae6ba1878c1bb335e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab958f7a462b5c8a0f8a0b27fcfd8e971"><td class="memTemplParams" colspan="2">template&lt;typename Scalar , typename Coefficients , std::size_t cols = 1, std::enable_if_t&lt; std::is_arithmetic_v&lt; Scalar &gt; and coefficients&lt; Coefficients &gt;, int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:ab958f7a462b5c8a0f8a0b27fcfd8e971"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1_eigen3.html#ab958f7a462b5c8a0f8a0b27fcfd8e971">make_mean</a> ()</td></tr>
 <tr class="memdesc:ab958f7a462b5c8a0f8a0b27fcfd8e971"><td class="mdescLeft">&#160;</td><td class="mdescRight">For <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a>: Make a <a class="el" href="struct_open_kalman_1_1_mean.html" title="A set of one or more column vectors, each representing a statistical mean.">Mean</a> based on a scalar type, a set of row coefficients, and a number of columns.  <a href="namespace_open_kalman_1_1_eigen3.html#ab958f7a462b5c8a0f8a0b27fcfd8e971">More...</a><br /></td></tr>
 <tr class="separator:ab958f7a462b5c8a0f8a0b27fcfd8e971"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3dbf75984b08cebac6aa0900067df116"><td class="memTemplParams" colspan="2"><a id="a3dbf75984b08cebac6aa0900067df116"></a>
-template&lt;typename Coefficients , typename ... Args, std::enable_if_t&lt;(sizeof...(Args) &gt; 0) and std::conjunction_v&lt; std::is_arithmetic&lt; Args &gt;... &gt; and(sizeof...(Args) % Coefficients::dimension==0), int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a3dbf75984b08cebac6aa0900067df116"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>make_euclidean_mean</b> (Args ... args) noexcept</td></tr>
-<tr class="separator:a3dbf75984b08cebac6aa0900067df116"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ace928597d23cded16c159a1929748fa4"><td class="memTemplParams" colspan="2">template&lt;typename ... Args, std::enable_if_t&lt;(sizeof...(Args) &gt; 0) and std::conjunction_v&lt; std::is_arithmetic&lt; Args &gt;... &gt;, int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:ace928597d23cded16c159a1929748fa4"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1_eigen3.html#ace928597d23cded16c159a1929748fa4">make_euclidean_mean</a> (Args ... args) noexcept</td></tr>
-<tr class="memdesc:ace928597d23cded16c159a1929748fa4"><td class="mdescLeft">&#160;</td><td class="mdescRight">For <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a>: Make a one-column <a class="el" href="struct_open_kalman_1_1_euclidean_mean.html" title="Similar to a Mean, but the coefficients are transformed into Euclidean space, based on their type.">EuclideanMean</a> from a list of coefficients, with default Axis coefficients.  <a href="namespace_open_kalman_1_1_eigen3.html#ace928597d23cded16c159a1929748fa4">More...</a><br /></td></tr>
+<tr class="memdesc:ace928597d23cded16c159a1929748fa4"><td class="mdescLeft">&#160;</td><td class="mdescRight">For <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a>: Make a one-column <a class="el" href="struct_open_kalman_1_1_euclidean_mean.html" title="Similar to a Mean, but the coefficients are transformed into Euclidean space, based on their type.">EuclideanMean</a> from a list of coefficients, with default <a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a> coefficients.  <a href="namespace_open_kalman_1_1_eigen3.html#ace928597d23cded16c159a1929748fa4">More...</a><br /></td></tr>
 <tr class="separator:ace928597d23cded16c159a1929748fa4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a28355caa34a0d30cb75e07dea788f49b"><td class="memTemplParams" colspan="2">template&lt;typename Scalar , typename Coefficients , std::size_t cols = 1, std::enable_if_t&lt; std::is_arithmetic_v&lt; Scalar &gt; and coefficients&lt; Coefficients &gt;, int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:a28355caa34a0d30cb75e07dea788f49b"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1_eigen3.html#a28355caa34a0d30cb75e07dea788f49b">make_euclidean_mean</a> ()</td></tr>
 <tr class="memdesc:a28355caa34a0d30cb75e07dea788f49b"><td class="mdescLeft">&#160;</td><td class="mdescRight">For <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a>: Make a <a class="el" href="struct_open_kalman_1_1_euclidean_mean.html" title="Similar to a Mean, but the coefficients are transformed into Euclidean space, based on their type.">EuclideanMean</a> based on a scalar type, row coefficients, and a number of columns.  <a href="namespace_open_kalman_1_1_eigen3.html#a28355caa34a0d30cb75e07dea788f49b">More...</a><br /></td></tr>
 <tr class="separator:a28355caa34a0d30cb75e07dea788f49b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a88c482345dcde644fadf140076af77e4"><td class="memTemplParams" colspan="2"><a id="a88c482345dcde644fadf140076af77e4"></a>
-template&lt;typename Coefficients , TriangleType triangle_type, typename ... Args, std::enable_if_t&lt; coefficients&lt; Coefficients &gt; and std::conjunction_v&lt; std::is_arithmetic&lt; Args &gt;... &gt; and(triangle_type==TriangleType::lower or triangle_type==TriangleType::upper) and(sizeof...(Args) &gt; 0) and(sizeof...(Args)==Coefficients::size *Coefficients::size), int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a88c482345dcde644fadf140076af77e4"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>make_covariance</b> (Args ... args)</td></tr>
-<tr class="separator:a88c482345dcde644fadf140076af77e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a26e1a7e4109527978bafc9af3d8daa53"><td class="memTemplParams" colspan="2"><a id="a26e1a7e4109527978bafc9af3d8daa53"></a>
-template&lt;typename Coefficients , typename ... Args, std::enable_if_t&lt; coefficients&lt; Coefficients &gt; and std::conjunction_v&lt; std::is_arithmetic&lt; Args &gt;... &gt; and(sizeof...(Args) &gt; 0) and(sizeof...(Args)==Coefficients::size *Coefficients::size), int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a26e1a7e4109527978bafc9af3d8daa53"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>make_covariance</b> (Args ... args)</td></tr>
-<tr class="separator:a26e1a7e4109527978bafc9af3d8daa53"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a59bd017eb3e14f9529799224b78a8bd7"><td class="memTemplParams" colspan="2"><a id="a59bd017eb3e14f9529799224b78a8bd7"></a>
-template&lt;typename ... Args, std::enable_if_t&lt;(sizeof...(Args) &gt; 0) and(std::is_arithmetic_v&lt; Args &gt; and ...) and(sizeof...(Args)==OpenKalman::internal::constexpr_sqrt(sizeof...(Args)) *OpenKalman::internal::constexpr_sqrt(sizeof...(Args))), int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a59bd017eb3e14f9529799224b78a8bd7"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>make_covariance</b> (Args ... args) noexcept</td></tr>
-<tr class="separator:a59bd017eb3e14f9529799224b78a8bd7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a928f12401b0fce7dae651a934008030a"><td class="memTemplParams" colspan="2">template&lt;typename Coefficients , TriangleType triangle_type, typename Scalar  = double, std::enable_if_t&lt; coefficients&lt; Coefficients &gt; and(triangle_type==TriangleType::lower or triangle_type==TriangleType::upper) and std::is_arithmetic_v&lt; Scalar &gt;, int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:a928f12401b0fce7dae651a934008030a"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1_eigen3.html#a928f12401b0fce7dae651a934008030a">make_covariance</a> ()</td></tr>
 <tr class="memdesc:a928f12401b0fce7dae651a934008030a"><td class="mdescLeft">&#160;</td><td class="mdescRight">For <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a>: Make a <a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a>, with nested triangular type, from a list of coefficients.  <a href="namespace_open_kalman_1_1_eigen3.html#a928f12401b0fce7dae651a934008030a">More...</a><br /></td></tr>
 <tr class="separator:a928f12401b0fce7dae651a934008030a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa5d14030b87e57b7c22459e653ef86c6"><td class="memTemplParams" colspan="2"><a id="aa5d14030b87e57b7c22459e653ef86c6"></a>
-template&lt;typename Coefficients , typename Scalar  = double, std::enable_if_t&lt; coefficients&lt; Coefficients &gt; and std::is_arithmetic_v&lt; Scalar &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:aa5d14030b87e57b7c22459e653ef86c6"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>make_covariance</b> ()</td></tr>
-<tr class="separator:aa5d14030b87e57b7c22459e653ef86c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa9857442157945aa624dd3cdacf31311"><td class="memTemplParams" colspan="2"><a id="aa9857442157945aa624dd3cdacf31311"></a>
-template&lt;typename Coefficients , TriangleType triangle_type = TriangleType::lower, typename ... Args, std::enable_if_t&lt; coefficients&lt; Coefficients &gt; and std::conjunction_v&lt; std::is_arithmetic&lt; Args &gt;... &gt; and(triangle_type==TriangleType::lower or triangle_type==TriangleType::upper) and(sizeof...(Args) &gt; 0) and(sizeof...(Args)==Coefficients::size *Coefficients::size), int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:aa9857442157945aa624dd3cdacf31311"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>make_square_root_covariance</b> (Args ... args)</td></tr>
-<tr class="separator:aa9857442157945aa624dd3cdacf31311"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a31bce6af49e94a15fc00d1b0632b61d7"><td class="memTemplParams" colspan="2"><a id="a31bce6af49e94a15fc00d1b0632b61d7"></a>
-template&lt;TriangleType triangle_type = TriangleType::lower, typename ... Args, std::enable_if_t&lt;(sizeof...(Args) &gt; 0) and(std::is_arithmetic_v&lt; Args &gt; and ...) and(triangle_type==TriangleType::lower or triangle_type==TriangleType::upper) and(sizeof...(Args)==OpenKalman::internal::constexpr_sqrt(sizeof...(Args)) *OpenKalman::internal::constexpr_sqrt(sizeof...(Args))), int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a31bce6af49e94a15fc00d1b0632b61d7"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>make_square_root_covariance</b> (Args ... args) noexcept</td></tr>
-<tr class="separator:a31bce6af49e94a15fc00d1b0632b61d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3c71ab9b79246e22a2834dce8c360c51"><td class="memTemplParams" colspan="2">template&lt;typename Coefficients , TriangleType triangle_type = TriangleType::lower, typename Scalar  = double, std::enable_if_t&lt; coefficients&lt; Coefficients &gt; and(triangle_type==TriangleType::lower or triangle_type==TriangleType::upper) and std::is_arithmetic_v&lt; Scalar &gt;, int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:a3c71ab9b79246e22a2834dce8c360c51"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1_eigen3.html#a3c71ab9b79246e22a2834dce8c360c51">make_square_root_covariance</a> ()</td></tr>
 <tr class="memdesc:a3c71ab9b79246e22a2834dce8c360c51"><td class="mdescLeft">&#160;</td><td class="mdescRight">For <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a>: Make a <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html" title="The upper or lower triangle Cholesky factor (square root) of a covariance matrix.">SquareRootCovariance</a> from a list of coefficients.  <a href="namespace_open_kalman_1_1_eigen3.html#a3c71ab9b79246e22a2834dce8c360c51">More...</a><br /></td></tr>
 <tr class="separator:a3c71ab9b79246e22a2834dce8c360c51"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a407d3d8921390d30a636af85c51328e6"><td class="memTemplParams" colspan="2"><a id="a407d3d8921390d30a636af85c51328e6"></a>
-template&lt;typename Arg , std::enable_if_t&lt; eigen_native&lt; Arg &gt; and diagonal_matrix&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a407d3d8921390d30a636af85c51328e6"><td class="memTemplItemLeft" align="right" valign="top">constexpr decltype(auto)&#160;</td><td class="memTemplItemRight" valign="bottom"><b>Cholesky_square</b> (Arg &amp;&amp;arg)</td></tr>
-<tr class="separator:a407d3d8921390d30a636af85c51328e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa6a5623d25270d837d21695281bac7a0"><td class="memTemplParams" colspan="2"><a id="aa6a5623d25270d837d21695281bac7a0"></a>
-template&lt;typename Arg , std::enable_if_t&lt; eigen_native&lt; Arg &gt; and diagonal_matrix&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:aa6a5623d25270d837d21695281bac7a0"><td class="memTemplItemLeft" align="right" valign="top">constexpr decltype(auto)&#160;</td><td class="memTemplItemRight" valign="bottom"><b>Cholesky_factor</b> (Arg &amp;&amp;arg)</td></tr>
-<tr class="separator:aa6a5623d25270d837d21695281bac7a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a90320e1298b58f77526ed2b6cad740c7"><td class="memTemplParams" colspan="2"><a id="a90320e1298b58f77526ed2b6cad740c7"></a>
-template&lt;typename Arg , std::enable_if_t&lt; eigen_diagonal_expr&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a90320e1298b58f77526ed2b6cad740c7"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>Cholesky_square</b> (Arg &amp;&amp;arg) noexcept</td></tr>
-<tr class="separator:a90320e1298b58f77526ed2b6cad740c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a97df072bf488a5020a058920fb709555"><td class="memTemplParams" colspan="2"><a id="a97df072bf488a5020a058920fb709555"></a>
-template&lt;typename Arg , std::enable_if_t&lt; eigen_diagonal_expr&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a97df072bf488a5020a058920fb709555"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>Cholesky_factor</b> (Arg &amp;&amp;arg) noexcept</td></tr>
-<tr class="separator:a97df072bf488a5020a058920fb709555"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a09befcd76fb369637bd5b24335b5bc2c"><td class="memTemplParams" colspan="2"><a id="a09befcd76fb369637bd5b24335b5bc2c"></a>
-template&lt;TriangleType triangle_type, typename Arg , std::enable_if_t&lt; eigen_self_adjoint_expr&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a09befcd76fb369637bd5b24335b5bc2c"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>Cholesky_factor</b> (Arg &amp;&amp;arg)</td></tr>
-<tr class="separator:a09befcd76fb369637bd5b24335b5bc2c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a74be9280aaab8241076e33de5c0e8445"><td class="memTemplParams" colspan="2"><a id="a74be9280aaab8241076e33de5c0e8445"></a>
-template&lt;typename Arg , std::enable_if_t&lt; euclidean_expr&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a74be9280aaab8241076e33de5c0e8445"><td class="memTemplItemLeft" align="right" valign="top">constexpr decltype(auto)&#160;</td><td class="memTemplItemRight" valign="bottom"><b>nested_matrix</b> (Arg &amp;&amp;arg) noexcept</td></tr>
-<tr class="separator:a74be9280aaab8241076e33de5c0e8445"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a72cc88064aa1729df7d7b09ae554bebe"><td class="memTemplParams" colspan="2">template&lt;typename Arg , std::enable_if_t&lt; euclidean_expr&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:a72cc88064aa1729df7d7b09ae554bebe"><td class="memTemplItemLeft" align="right" valign="top">constexpr decltype(auto)&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1_eigen3.html#a72cc88064aa1729df7d7b09ae554bebe">make_native_matrix</a> (Arg &amp;&amp;arg) noexcept</td></tr>
 <tr class="separator:a72cc88064aa1729df7d7b09ae554bebe"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -241,51 +181,15 @@ template&lt;typename Arg , std::enable_if_t&lt; euclidean_expr&lt; Arg &gt;, int
 <tr class="memitem:a40e16a8d6ebf133a37fad616756a92cc"><td class="memTemplItemLeft" align="right" valign="top">constexpr decltype(auto)&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1_eigen3.html#a40e16a8d6ebf133a37fad616756a92cc">make_self_contained</a> (Arg &amp;&amp;arg) noexcept</td></tr>
 <tr class="memdesc:a40e16a8d6ebf133a37fad616756a92cc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert to self-contained version of the matrix.  <a href="namespace_open_kalman_1_1_eigen3.html#a40e16a8d6ebf133a37fad616756a92cc">More...</a><br /></td></tr>
 <tr class="separator:a40e16a8d6ebf133a37fad616756a92cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5b77c6906d71b6d599be034640071b22"><td class="memTemplParams" colspan="2">template&lt;typename Arg , std::enable_if_t&lt; from_euclidean_expr&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a5b77c6906d71b6d599be034640071b22"><td class="memTemplItemLeft" align="right" valign="top">constexpr decltype(auto)&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1_eigen3.html#a5b77c6906d71b6d599be034640071b22">to_Euclidean</a> (Arg &amp;&amp;arg) noexcept</td></tr>
-<tr class="separator:a5b77c6906d71b6d599be034640071b22"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adb8a9f9e092f34d575d638ca7911effc"><td class="memTemplParams" colspan="2"><a id="adb8a9f9e092f34d575d638ca7911effc"></a>
-template&lt;typename Coefficients , typename Arg , std::enable_if_t&lt; from_euclidean_expr&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:adb8a9f9e092f34d575d638ca7911effc"><td class="memTemplItemLeft" align="right" valign="top">constexpr decltype(auto)&#160;</td><td class="memTemplItemRight" valign="bottom"><b>to_Euclidean</b> (Arg &amp;&amp;arg) noexcept</td></tr>
-<tr class="separator:adb8a9f9e092f34d575d638ca7911effc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af58a7a54378ee4e62d3d5754381da1e9"><td class="memTemplParams" colspan="2"><a id="af58a7a54378ee4e62d3d5754381da1e9"></a>
-template&lt;typename Arg , std::enable_if_t&lt; to_euclidean_expr&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:af58a7a54378ee4e62d3d5754381da1e9"><td class="memTemplItemLeft" align="right" valign="top">constexpr decltype(auto)&#160;</td><td class="memTemplItemRight" valign="bottom"><b>from_Euclidean</b> (Arg &amp;&amp;arg) noexcept</td></tr>
-<tr class="separator:af58a7a54378ee4e62d3d5754381da1e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0f09e86f7631dcff5a22471062e250d9"><td class="memTemplParams" colspan="2"><a id="a0f09e86f7631dcff5a22471062e250d9"></a>
-template&lt;typename Coefficients , typename Arg , std::enable_if_t&lt; to_euclidean_expr&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a0f09e86f7631dcff5a22471062e250d9"><td class="memTemplItemLeft" align="right" valign="top">constexpr decltype(auto)&#160;</td><td class="memTemplItemRight" valign="bottom"><b>from_Euclidean</b> (Arg &amp;&amp;arg) noexcept</td></tr>
-<tr class="separator:a0f09e86f7631dcff5a22471062e250d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af5fa7ebc6d79d4db4418c65e9603b4cf"><td class="memTemplParams" colspan="2">template&lt;typename Arg , std::enable_if_t&lt; from_euclidean_expr&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:af5fa7ebc6d79d4db4418c65e9603b4cf"><td class="memTemplItemLeft" align="right" valign="top">constexpr decltype(auto)&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1_eigen3.html#af5fa7ebc6d79d4db4418c65e9603b4cf">to_euclidean</a> (Arg &amp;&amp;arg) noexcept</td></tr>
+<tr class="separator:af5fa7ebc6d79d4db4418c65e9603b4cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8d390585998024a682e322f235c0c708"><td class="memTemplParams" colspan="2">template&lt;typename Coefficients , typename Arg , std::enable_if_t&lt; from_euclidean_expr&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:a8d390585998024a682e322f235c0c708"><td class="memTemplItemLeft" align="right" valign="top">constexpr decltype(auto)&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1_eigen3.html#a8d390585998024a682e322f235c0c708">wrap_angles</a> (Arg &amp;&amp;arg) noexcept</td></tr>
 <tr class="separator:a8d390585998024a682e322f235c0c708"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa584a67ed93e0ae5dae4f5874b60de09"><td class="memTemplParams" colspan="2"><a id="aa584a67ed93e0ae5dae4f5874b60de09"></a>
-template&lt;typename Arg , std::enable_if_t&lt; euclidean_expr&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:aa584a67ed93e0ae5dae4f5874b60de09"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>to_diagonal</b> (Arg &amp;&amp;arg) noexcept</td></tr>
-<tr class="separator:aa584a67ed93e0ae5dae4f5874b60de09"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a192ab112ccdce51bd06f566b7c572e41"><td class="memTemplParams" colspan="2"><a id="a192ab112ccdce51bd06f566b7c572e41"></a>
-template&lt;typename Arg , std::enable_if_t&lt; euclidean_expr&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a192ab112ccdce51bd06f566b7c572e41"><td class="memTemplItemLeft" align="right" valign="top">constexpr decltype(auto)&#160;</td><td class="memTemplItemRight" valign="bottom"><b>transpose</b> (Arg &amp;&amp;arg) noexcept</td></tr>
-<tr class="separator:a192ab112ccdce51bd06f566b7c572e41"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae1c449577da01839e873f493580417b1"><td class="memTemplParams" colspan="2"><a id="ae1c449577da01839e873f493580417b1"></a>
-template&lt;typename Arg , std::enable_if_t&lt; euclidean_expr&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:ae1c449577da01839e873f493580417b1"><td class="memTemplItemLeft" align="right" valign="top">constexpr decltype(auto)&#160;</td><td class="memTemplItemRight" valign="bottom"><b>adjoint</b> (Arg &amp;&amp;arg) noexcept</td></tr>
-<tr class="separator:ae1c449577da01839e873f493580417b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0c9ae302614f4ac3ff32842067b6df42"><td class="memTemplParams" colspan="2"><a id="a0c9ae302614f4ac3ff32842067b6df42"></a>
-template&lt;typename Arg , std::enable_if_t&lt; euclidean_expr&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a0c9ae302614f4ac3ff32842067b6df42"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>determinant</b> (Arg &amp;&amp;arg) noexcept</td></tr>
-<tr class="separator:a0c9ae302614f4ac3ff32842067b6df42"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9648e92ef87fe09e8cdee8dbae2476e3"><td class="memTemplParams" colspan="2"><a id="a9648e92ef87fe09e8cdee8dbae2476e3"></a>
-template&lt;typename Arg , std::enable_if_t&lt; euclidean_expr&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a9648e92ef87fe09e8cdee8dbae2476e3"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>trace</b> (Arg &amp;&amp;arg) noexcept</td></tr>
-<tr class="separator:a9648e92ef87fe09e8cdee8dbae2476e3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8d1b813053fe755883d24c7a1933c96c"><td class="memTemplParams" colspan="2">template&lt;typename A , typename B , std::enable_if_t&lt; euclidean_expr&lt; A &gt; and eigen_matrix&lt; B &gt;, int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:a8d1b813053fe755883d24c7a1933c96c"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1_eigen3.html#a8d1b813053fe755883d24c7a1933c96c">solve</a> (A &amp;&amp;a, B &amp;&amp;b) noexcept</td></tr>
 <tr class="separator:a8d1b813053fe755883d24c7a1933c96c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4728d45e68772863c990ad66ff9879c9"><td class="memTemplParams" colspan="2"><a id="a4728d45e68772863c990ad66ff9879c9"></a>
-template&lt;typename Arg , std::enable_if_t&lt; euclidean_expr&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a4728d45e68772863c990ad66ff9879c9"><td class="memTemplItemLeft" align="right" valign="top">constexpr auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>reduce_columns</b> (Arg &amp;&amp;arg) noexcept</td></tr>
-<tr class="separator:a4728d45e68772863c990ad66ff9879c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1e68e2f00653ec30dffdea1a77853f2f"><td class="memTemplParams" colspan="2">template&lt;typename A , std::enable_if_t&lt; euclidean_expr&lt; A &gt;, int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:a1e68e2f00653ec30dffdea1a77853f2f"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1_eigen3.html#a1e68e2f00653ec30dffdea1a77853f2f">LQ_decomposition</a> (A &amp;&amp;a)</td></tr>
 <tr class="separator:a1e68e2f00653ec30dffdea1a77853f2f"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -348,31 +252,11 @@ template&lt;typename Arg , std::enable_if_t&lt; euclidean_expr&lt; Arg &gt;, int
 <tr class="memitem:aff5c36cca718e6c44e3081778f1d44b9"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1_eigen3.html#aff5c36cca718e6c44e3081778f1d44b9">set_element</a> (Arg &amp;arg, const Scalar s, const std::size_t i)</td></tr>
 <tr class="memdesc:aff5c36cca718e6c44e3081778f1d44b9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set element (i) of <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_to_euclidean_expr.html" title="An expression that transforms coefficients into Euclidean space for proper wrapping.">ToEuclideanExpr</a> or <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html" title="An expression that transforms angular or other modular coefficients back from Euclidean space.">FromEuclideanExpr</a> matrix arg if coefficients are only axes.  <a href="namespace_open_kalman_1_1_eigen3.html#aff5c36cca718e6c44e3081778f1d44b9">More...</a><br /></td></tr>
 <tr class="separator:aff5c36cca718e6c44e3081778f1d44b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af258a1a46e870dfbddf3380bc8563e25"><td class="memTemplParams" colspan="2"><a id="af258a1a46e870dfbddf3380bc8563e25"></a>
-template&lt;typename Arg , std::enable_if_t&lt; euclidean_expr&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:af258a1a46e870dfbddf3380bc8563e25"><td class="memTemplItemLeft" align="right" valign="top">decltype(auto)&#160;</td><td class="memTemplItemRight" valign="bottom"><b>column</b> (Arg &amp;&amp;arg, const std::size_t index)</td></tr>
-<tr class="separator:af258a1a46e870dfbddf3380bc8563e25"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7e6c3b8a617930c6f44f164c6069fa3f"><td class="memTemplParams" colspan="2"><a id="a7e6c3b8a617930c6f44f164c6069fa3f"></a>
 template&lt;std::size_t index, typename Arg , std::enable_if_t&lt; euclidean_expr&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:a7e6c3b8a617930c6f44f164c6069fa3f"><td class="memTemplItemLeft" align="right" valign="top">decltype(auto)&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1_eigen3.html#a7e6c3b8a617930c6f44f164c6069fa3f">column</a> (Arg &amp;&amp;arg)</td></tr>
 <tr class="memdesc:a7e6c3b8a617930c6f44f164c6069fa3f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return column <code>index</code> of Arg. Constexpr index version. <br /></td></tr>
 <tr class="separator:a7e6c3b8a617930c6f44f164c6069fa3f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1761f144c78dcc380c0687184b1cde2a"><td class="memTemplParams" colspan="2"><a id="a1761f144c78dcc380c0687184b1cde2a"></a>
-template&lt;typename Arg , typename Function , std::enable_if_t&lt; euclidean_expr&lt; Arg &gt; and std::is_void_v&lt; std::invoke_result_t&lt; Function, decltype(column(std::declval&lt; Arg &amp; &gt;(), 0))&amp; &gt;&gt; , int &gt; </td></tr>
-<tr class="memitem:a1761f144c78dcc380c0687184b1cde2a"><td class="memTemplItemLeft" align="right" valign="top">Arg &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><b>apply_columnwise</b> (Arg &amp;arg, const Function &amp;f)</td></tr>
-<tr class="separator:a1761f144c78dcc380c0687184b1cde2a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4c86b4a6ac68b9be315b9e726d094caa"><td class="memTemplParams" colspan="2"><a id="a4c86b4a6ac68b9be315b9e726d094caa"></a>
-template&lt;typename Arg , typename Function , std::enable_if_t&lt; euclidean_expr&lt; Arg &gt; and not std::is_void_v&lt; std::invoke_result_t&lt; Function, std::decay_t&lt; decltype(column(std::declval&lt; const Arg &amp; &gt;(), 0))&gt; &amp;&amp; &gt;&gt; , int &gt; </td></tr>
-<tr class="memitem:a4c86b4a6ac68b9be315b9e726d094caa"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>apply_columnwise</b> (const Arg &amp;arg, const Function &amp;f)</td></tr>
-<tr class="separator:a4c86b4a6ac68b9be315b9e726d094caa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a58037d0ed060a9b496fb6f91d8df52e9"><td class="memTemplParams" colspan="2"><a id="a58037d0ed060a9b496fb6f91d8df52e9"></a>
-template&lt;std::size_t count, typename Function , std::enable_if_t&lt; euclidean_expr&lt; std::invoke_result_t&lt; Function &gt;&gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a58037d0ed060a9b496fb6f91d8df52e9"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>apply_columnwise</b> (const Function &amp;f)</td></tr>
-<tr class="separator:a58037d0ed060a9b496fb6f91d8df52e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa2a2298137a89c1f85ba8497c662d973"><td class="memTemplParams" colspan="2"><a id="aa2a2298137a89c1f85ba8497c662d973"></a>
-template&lt;typename Arg , typename Function , std::enable_if_t&lt; euclidean_expr&lt; Arg &gt; and std::is_arithmetic_v&lt; std::invoke_result_t&lt; Function, std::decay_t&lt; typename MatrixTraits&lt; Arg &gt;::Scalar &gt; &amp;&amp; &gt;&gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:aa2a2298137a89c1f85ba8497c662d973"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>apply_coefficientwise</b> (const Arg &amp;arg, const Function &amp;f)</td></tr>
-<tr class="separator:aa2a2298137a89c1f85ba8497c662d973"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad8a4e9c73dead8cfb0c7b4053d8f1d61"><td class="memTemplParams" colspan="2">template&lt;typename A , typename B , std::enable_if_t&lt; eigen_matrix&lt; A &gt; and eigen_matrix&lt; B &gt;, int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:ad8a4e9c73dead8cfb0c7b4053d8f1d61"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1_eigen3.html#ad8a4e9c73dead8cfb0c7b4053d8f1d61">solve</a> (const A &amp;a, const B &amp;b)</td></tr>
 <tr class="memdesc:ad8a4e9c73dead8cfb0c7b4053d8f1d61"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solve the equation AX = B for X. A is a diagonal matrix.  <a href="namespace_open_kalman_1_1_eigen3.html#ad8a4e9c73dead8cfb0c7b4053d8f1d61">More...</a><br /></td></tr>
@@ -415,93 +299,9 @@ template&lt;typename Arg , std::enable_if_t&lt; eigen_native&lt; Arg &gt;, int &
 <tr class="memitem:a8dfa4d456e05849bb9ab3b0e56dfc65d"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1_eigen3.html#a8dfa4d456e05849bb9ab3b0e56dfc65d">column</a> (Arg &amp;&amp;arg, const std::size_t index)</td></tr>
 <tr class="memdesc:a8dfa4d456e05849bb9ab3b0e56dfc65d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return column <code>index</code> of Arg. <br /></td></tr>
 <tr class="separator:a8dfa4d456e05849bb9ab3b0e56dfc65d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab2594c5ab52c07ce3296c837c9e22664"><td class="memTemplParams" colspan="2"><a id="ab2594c5ab52c07ce3296c837c9e22664"></a>
-template&lt;typename Arg , typename Function , std::enable_if_t&lt; eigen_matrix&lt; Arg &gt; and std::is_void_v&lt; std::invoke_result_t&lt; Function, std::decay_t&lt; typename MatrixTraits&lt; Arg &gt;::Scalar &gt; &amp; &gt;&gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:ab2594c5ab52c07ce3296c837c9e22664"><td class="memTemplItemLeft" align="right" valign="top">Arg &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><b>apply_coefficientwise</b> (Arg &amp;arg, const Function &amp;f)</td></tr>
-<tr class="separator:ab2594c5ab52c07ce3296c837c9e22664"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a033504376699e0b4346494747422e8ae"><td class="memTemplParams" colspan="2"><a id="a033504376699e0b4346494747422e8ae"></a>
-template&lt;std::size_t rows, std::size_t columns, typename Function , std::enable_if_t&lt; std::is_arithmetic_v&lt; std::invoke_result_t&lt; Function &gt;&gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a033504376699e0b4346494747422e8ae"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>apply_coefficientwise</b> (const Function &amp;f)</td></tr>
-<tr class="separator:a033504376699e0b4346494747422e8ae"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a953012881d72bf25a25a087f3eb52a26"><td class="memTemplParams" colspan="2">template&lt;typename ReturnType , template&lt; typename &gt; typename distribution_type = std::normal_distribution, typename random_number_engine  = std::mt19937, typename... Params, std::enable_if_t&lt; eigen_matrix&lt; ReturnType &gt;, int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:a953012881d72bf25a25a087f3eb52a26"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1_eigen3.html#a953012881d72bf25a25a087f3eb52a26">randomize</a> (Params &amp;&amp;...params)</td></tr>
 <tr class="separator:a953012881d72bf25a25a087f3eb52a26"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a22f50549734d3edab52a91b4c5dd2df2"><td class="memTemplParams" colspan="2"><a id="a22f50549734d3edab52a91b4c5dd2df2"></a>
-template&lt;typename Arg1 , typename Arg2 , std::enable_if_t&lt; Eigen3::eigen_self_adjoint_expr&lt; Arg1 &gt; and Eigen3::eigen_self_adjoint_expr&lt; Arg2 &gt; and(not diagonal_matrix&lt; Arg1 &gt;) and(not diagonal_matrix&lt; Arg2 &gt;) and(MatrixTraits&lt; Arg1 &gt;::dimension==MatrixTraits&lt; Arg2 &gt;::dimension), int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a22f50549734d3edab52a91b4c5dd2df2"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>operator+</b> (Arg1 &amp;&amp;arg1, Arg2 &amp;&amp;arg2)</td></tr>
-<tr class="separator:a22f50549734d3edab52a91b4c5dd2df2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aaecaf332801ba8ace4c63d9287ddc7de"><td class="memTemplParams" colspan="2"><a id="aaecaf332801ba8ace4c63d9287ddc7de"></a>
-template&lt;typename Arg1 , typename Arg2 , std::enable_if_t&lt;(((Eigen3::eigen_self_adjoint_expr&lt; Arg1 &gt; or Eigen3::eigen_triangular_expr&lt; Arg1 &gt;) and zero_matrix&lt; Arg2 &gt;) or(zero_matrix&lt; Arg1 &gt; and(Eigen3::eigen_self_adjoint_expr&lt; Arg2 &gt; or Eigen3::eigen_triangular_expr&lt; Arg2 &gt;))) and(MatrixTraits&lt; Arg1 &gt;::dimension==MatrixTraits&lt; Arg2 &gt;::dimension) and(MatrixTraits&lt; Arg1 &gt;::columns==MatrixTraits&lt; Arg2 &gt;::columns), int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:aaecaf332801ba8ace4c63d9287ddc7de"><td class="memTemplItemLeft" align="right" valign="top">constexpr decltype(auto)&#160;</td><td class="memTemplItemRight" valign="bottom"><b>operator+</b> (Arg1 &amp;&amp;arg1, Arg2 &amp;&amp;arg2)</td></tr>
-<tr class="separator:aaecaf332801ba8ace4c63d9287ddc7de"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa9d03f3fece3212c171b640479b2f390"><td class="memTemplParams" colspan="2"><a id="aa9d03f3fece3212c171b640479b2f390"></a>
-template&lt;typename Arg1 , typename Arg2 , std::enable_if_t&lt; Eigen3::eigen_self_adjoint_expr&lt; Arg1 &gt; and Eigen3::eigen_self_adjoint_expr&lt; Arg2 &gt; and(MatrixTraits&lt; Arg1 &gt;::dimension==MatrixTraits&lt; Arg2 &gt;::dimension), int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:aa9d03f3fece3212c171b640479b2f390"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>operator-</b> (Arg1 &amp;&amp;arg1, Arg2 &amp;&amp;arg2)</td></tr>
-<tr class="separator:aa9d03f3fece3212c171b640479b2f390"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a153d1ff7e9e303b8e5eb7acae9e9cdbe"><td class="memTemplParams" colspan="2"><a id="a153d1ff7e9e303b8e5eb7acae9e9cdbe"></a>
-template&lt;typename Arg1 , typename Arg2 , std::enable_if_t&lt;(((Eigen3::eigen_self_adjoint_expr&lt; Arg1 &gt; or Eigen3::eigen_triangular_expr&lt; Arg1 &gt;) and zero_matrix&lt; Arg2 &gt;) or(zero_matrix&lt; Arg1 &gt; and(Eigen3::eigen_self_adjoint_expr&lt; Arg2 &gt; or Eigen3::eigen_triangular_expr&lt; Arg2 &gt;))) and(MatrixTraits&lt; Arg1 &gt;::dimension==MatrixTraits&lt; Arg2 &gt;::dimension) and(MatrixTraits&lt; Arg1 &gt;::columns==MatrixTraits&lt; Arg2 &gt;::columns), int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a153d1ff7e9e303b8e5eb7acae9e9cdbe"><td class="memTemplItemLeft" align="right" valign="top">constexpr decltype(auto)&#160;</td><td class="memTemplItemRight" valign="bottom"><b>operator-</b> (Arg1 &amp;&amp;arg1, Arg2 &amp;&amp;arg2)</td></tr>
-<tr class="separator:a153d1ff7e9e303b8e5eb7acae9e9cdbe"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa2b6172d85c4c63721c7e661c3d83c11"><td class="memTemplParams" colspan="2"><a id="aa2b6172d85c4c63721c7e661c3d83c11"></a>
-template&lt;typename Arg , std::enable_if_t&lt; Eigen3::eigen_self_adjoint_expr&lt; Arg &gt; or Eigen3::eigen_triangular_expr&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:aa2b6172d85c4c63721c7e661c3d83c11"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>operator-</b> (Arg &amp;&amp;arg)</td></tr>
-<tr class="separator:aa2b6172d85c4c63721c7e661c3d83c11"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3bc5a4b5461f90363cf6e41eb88bda66"><td class="memTemplParams" colspan="2"><a id="a3bc5a4b5461f90363cf6e41eb88bda66"></a>
-template&lt;typename Arg , typename S , std::enable_if_t&lt;(Eigen3::eigen_self_adjoint_expr&lt; Arg &gt; or Eigen3::eigen_triangular_expr&lt; Arg &gt;) and std::is_convertible_v&lt; S, typename MatrixTraits&lt; Arg &gt;::Scalar &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a3bc5a4b5461f90363cf6e41eb88bda66"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>operator*</b> (Arg &amp;&amp;arg, const S <a class="el" href="namespace_open_kalman.html#a77f2335ea8a758c0b229c54cadc27aa1">scale</a>) noexcept</td></tr>
-<tr class="separator:a3bc5a4b5461f90363cf6e41eb88bda66"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a604d62c589fc845b6a9fbf486eb8ed04"><td class="memTemplParams" colspan="2"><a id="a604d62c589fc845b6a9fbf486eb8ed04"></a>
-template&lt;typename Arg , typename S , std::enable_if_t&lt;(Eigen3::eigen_self_adjoint_expr&lt; Arg &gt; or Eigen3::eigen_triangular_expr&lt; Arg &gt;) and std::is_convertible_v&lt; S, typename MatrixTraits&lt; Arg &gt;::Scalar &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a604d62c589fc845b6a9fbf486eb8ed04"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>operator*</b> (const S <a class="el" href="namespace_open_kalman.html#a77f2335ea8a758c0b229c54cadc27aa1">scale</a>, Arg &amp;&amp;arg) noexcept</td></tr>
-<tr class="separator:a604d62c589fc845b6a9fbf486eb8ed04"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae93afae4df60e068b476d53589aed52a"><td class="memTemplParams" colspan="2"><a id="ae93afae4df60e068b476d53589aed52a"></a>
-template&lt;typename Arg , typename S , std::enable_if_t&lt;(Eigen3::eigen_self_adjoint_expr&lt; Arg &gt; or Eigen3::eigen_triangular_expr&lt; Arg &gt;) and std::is_convertible_v&lt; S, typename MatrixTraits&lt; Arg &gt;::Scalar &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:ae93afae4df60e068b476d53589aed52a"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>operator/</b> (Arg &amp;&amp;arg, const S <a class="el" href="namespace_open_kalman.html#a77f2335ea8a758c0b229c54cadc27aa1">scale</a>) noexcept</td></tr>
-<tr class="separator:ae93afae4df60e068b476d53589aed52a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab981ae90c43d7df2973c213b54bd5712"><td class="memTemplParams" colspan="2"><a id="ab981ae90c43d7df2973c213b54bd5712"></a>
-template&lt;typename Arg1 , typename Arg2 , std::enable_if_t&lt;((Eigen3::eigen_self_adjoint_expr&lt; Arg1 &gt; or Eigen3::eigen_triangular_expr&lt; Arg1 &gt;) and(Eigen3::eigen_self_adjoint_expr&lt; Arg2 &gt; or Eigen3::eigen_triangular_expr&lt; Arg2 &gt;)) and(not diagonal_matrix&lt; Arg1 &gt;) and(not diagonal_matrix&lt; Arg2 &gt;) and(MatrixTraits&lt; Arg1 &gt;::dimension==MatrixTraits&lt; Arg2 &gt;::dimension), int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:ab981ae90c43d7df2973c213b54bd5712"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>operator*</b> (Arg1 &amp;&amp;arg1, Arg2 &amp;&amp;arg2)</td></tr>
-<tr class="separator:ab981ae90c43d7df2973c213b54bd5712"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1a3adde5e028c6f397b0812af0eccaf1"><td class="memTemplParams" colspan="2"><a id="a1a3adde5e028c6f397b0812af0eccaf1"></a>
-template&lt;typename Arg1 , typename Arg2 , std::enable_if_t&lt;(((Eigen3::eigen_self_adjoint_expr&lt; Arg1 &gt; or Eigen3::eigen_triangular_expr&lt; Arg1 &gt;) and zero_matrix&lt; Arg2 &gt;) or(zero_matrix&lt; Arg1 &gt; and(Eigen3::eigen_self_adjoint_expr&lt; Arg2 &gt; or Eigen3::eigen_triangular_expr&lt; Arg2 &gt;))) and(MatrixTraits&lt; Arg1 &gt;::columns==MatrixTraits&lt; Arg2 &gt;::dimension), int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a1a3adde5e028c6f397b0812af0eccaf1"><td class="memTemplItemLeft" align="right" valign="top">constexpr decltype(auto)&#160;</td><td class="memTemplItemRight" valign="bottom"><b>operator*</b> (Arg1 &amp;&amp;arg1, Arg2 &amp;&amp;arg2)</td></tr>
-<tr class="separator:a1a3adde5e028c6f397b0812af0eccaf1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a60e092995d352caca1ce2e8a2d5a1790"><td class="memTemplParams" colspan="2"><a id="a60e092995d352caca1ce2e8a2d5a1790"></a>
-template&lt;typename Arg , typename U , std::enable_if_t&lt; eigen_native&lt; Arg &gt; and one_by_one_matrix&lt; Arg &gt; and(eigen_matrix&lt; U &gt; or eigen_triangular_expr&lt; U &gt; or eigen_self_adjoint_expr&lt; U &gt; or eigen_diagonal_expr&lt; U &gt;) and not std::is_const_v&lt; std::remove_reference_t&lt; Arg &gt;&gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a60e092995d352caca1ce2e8a2d5a1790"><td class="memTemplItemLeft" align="right" valign="top">Arg &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><b>rank_update</b> (Arg &amp;arg, const U &amp;u, const typename <a class="el" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits</a>&lt; Arg &gt;::Scalar alpha=1)</td></tr>
-<tr class="separator:a60e092995d352caca1ce2e8a2d5a1790"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a696e5ced67bd4c8a0cea75fbd7a28cfb"><td class="memTemplParams" colspan="2"><a id="a696e5ced67bd4c8a0cea75fbd7a28cfb"></a>
-template&lt;typename Arg , typename U , std::enable_if_t&lt; eigen_native&lt; Arg &gt; and one_by_one_matrix&lt; Arg &gt; and(eigen_matrix&lt; U &gt; or eigen_triangular_expr&lt; U &gt; or eigen_self_adjoint_expr&lt; U &gt; or eigen_diagonal_expr&lt; U &gt;), int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a696e5ced67bd4c8a0cea75fbd7a28cfb"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>rank_update</b> (const Arg &amp;arg, const U &amp;u, const typename <a class="el" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits</a>&lt; Arg &gt;::Scalar alpha=1)</td></tr>
-<tr class="separator:a696e5ced67bd4c8a0cea75fbd7a28cfb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac1b8d2aa3ab51fdf883ba082bdc22c8d"><td class="memTemplParams" colspan="2"><a id="ac1b8d2aa3ab51fdf883ba082bdc22c8d"></a>
-template&lt;typename A , typename B , std::enable_if_t&lt; eigen_matrix&lt; B &gt; and(eigen_self_adjoint_expr&lt; A &gt; or eigen_triangular_expr&lt; A &gt;), int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:ac1b8d2aa3ab51fdf883ba082bdc22c8d"><td class="memTemplItemLeft" align="right" valign="top">constexpr decltype(auto)&#160;</td><td class="memTemplItemRight" valign="bottom"><b>solve</b> (A &amp;&amp;a, B &amp;&amp;b)</td></tr>
-<tr class="separator:ac1b8d2aa3ab51fdf883ba082bdc22c8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a979d36ede3e935ac4e274ffab6f31839"><td class="memTemplParams" colspan="2"><a id="a979d36ede3e935ac4e274ffab6f31839"></a>
-template&lt;typename Arg , typename Function , std::enable_if_t&lt; eigen_self_adjoint_expr&lt; Arg &gt; or eigen_triangular_expr&lt; Arg &gt; or eigen_diagonal_expr&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a979d36ede3e935ac4e274ffab6f31839"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>apply_columnwise</b> (Arg &amp;&amp;arg, const Function &amp;f)</td></tr>
-<tr class="separator:a979d36ede3e935ac4e274ffab6f31839"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a208448c75bb8c316e968501e400454d6"><td class="memTemplParams" colspan="2"><a id="a208448c75bb8c316e968501e400454d6"></a>
-template&lt;typename Arg , typename Function , std::enable_if_t&lt; eigen_self_adjoint_expr&lt; Arg &gt; or eigen_triangular_expr&lt; Arg &gt; or eigen_diagonal_expr&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a208448c75bb8c316e968501e400454d6"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>apply_coefficientwise</b> (Arg &amp;&amp;arg, const Function &amp;f)</td></tr>
-<tr class="separator:a208448c75bb8c316e968501e400454d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af121f8adc61e3e34ade853094ba2e18b"><td class="memTemplParams" colspan="2"><a id="af121f8adc61e3e34ade853094ba2e18b"></a>
-template&lt;typename M , std::enable_if_t&lt; eigen_matrix&lt; M &gt; and MatrixTraits&lt; M &gt;::columns==1, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:af121f8adc61e3e34ade853094ba2e18b"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><b>DiagonalMatrix</b> (M &amp;&amp;) -&gt; <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_diagonal_matrix.html">DiagonalMatrix</a>&lt; <a class="el" href="namespace_open_kalman.html#ab86f091b16817336eb3f67006cd3a779">passable_t</a>&lt; M &gt;&gt;</td></tr>
-<tr class="separator:af121f8adc61e3e34ade853094ba2e18b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0524d0c45180c25b4a2340027f387f6f"><td class="memTemplParams" colspan="2"><a id="a0524d0c45180c25b4a2340027f387f6f"></a>
-template&lt;typename Arg , std::enable_if_t&lt; eigen_native&lt; Arg &gt; and diagonal_matrix&lt; Arg &gt; and(not eigen_diagonal_expr&lt; Arg &gt;) and(MatrixTraits&lt; Arg &gt;::columns &gt; 1), int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a0524d0c45180c25b4a2340027f387f6f"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><b>DiagonalMatrix</b> (Arg &amp;&amp;) -&gt; <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_diagonal_matrix.html">DiagonalMatrix</a>&lt; <a class="el" href="namespace_open_kalman.html#a1d08cc520e029d965770641656727893">self_contained_t</a>&lt; decltype(std::forward&lt; Arg &gt;(std::declval&lt; Arg &gt;()).diagonal())&gt;&gt;</td></tr>
-<tr class="separator:a0524d0c45180c25b4a2340027f387f6f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0f3d15a5485443de4f0456de8928a7e9"><td class="memTemplParams" colspan="2"><a id="a0f3d15a5485443de4f0456de8928a7e9"></a>
-template&lt;typename Arg , std::enable_if_t&lt; zero_matrix&lt; Arg &gt;and(MatrixTraits&lt; Arg &gt;::columns &gt; 1) and MatrixTraits&lt; Arg &gt;::dimension==MatrixTraits&lt; Arg &gt;::columns, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a0f3d15a5485443de4f0456de8928a7e9"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><b>DiagonalMatrix</b> (const Arg &amp;) -&gt; <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_diagonal_matrix.html">DiagonalMatrix</a>&lt; <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_zero_matrix.html">ZeroMatrix</a>&lt; Eigen::Matrix&lt; typename <a class="el" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits</a>&lt; Arg &gt;::Scalar, <a class="el" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits</a>&lt; Arg &gt;::dimension, 1 &gt;&gt;&gt;</td></tr>
-<tr class="separator:a0f3d15a5485443de4f0456de8928a7e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad4802817744f54cea59ab5c47b938094"><td class="memTemplParams" colspan="2"><a id="ad4802817744f54cea59ab5c47b938094"></a>
-template&lt;typename Arg , typename ... Args, std::enable_if_t&lt;(std::is_arithmetic_v&lt; Arg &gt; and ... and std::is_arithmetic_v&lt; Args &gt;), int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:ad4802817744f54cea59ab5c47b938094"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><b>DiagonalMatrix</b> (Arg, Args ...) -&gt; <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_diagonal_matrix.html">DiagonalMatrix</a>&lt; Eigen::Matrix&lt; std::decay_t&lt; std::common_type_t&lt; Arg, Args... &gt;&gt;, 1+sizeof...(Args), 1 &gt;&gt;</td></tr>
-<tr class="separator:ad4802817744f54cea59ab5c47b938094"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a227224e3e0a35d9498371fc6c137f0cd"><td class="memTemplParams" colspan="2"><a id="a227224e3e0a35d9498371fc6c137f0cd"></a>
 template&lt;typename... Ts, typename Arg , std::enable_if_t&lt; Eigen3::eigen_diagonal_expr&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:a227224e3e0a35d9498371fc6c137f0cd"><td class="memTemplItemLeft" align="right" valign="top">decltype(auto)&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1_eigen3.html#a227224e3e0a35d9498371fc6c137f0cd">make_self_contained</a> (Arg &amp;&amp;arg) noexcept</td></tr>
@@ -517,85 +317,25 @@ template&lt;typename Arg , std::enable_if_t&lt; Eigen3::eigen_diagonal_expr&lt; 
 <tr class="memitem:a012047294017da2ed474b117e95afec4"><td class="memTemplItemLeft" align="right" valign="top">constexpr decltype(auto)&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1_eigen3.html#a012047294017da2ed474b117e95afec4">QR_decomposition</a> (Arg &amp;&amp;arg)</td></tr>
 <tr class="memdesc:a012047294017da2ed474b117e95afec4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Perform a QR decomposition. Since it is diagonal, it returns the matrix unchanged. <br /></td></tr>
 <tr class="separator:a012047294017da2ed474b117e95afec4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a92519d3fc64e802a1097039e972d662d"><td class="memTemplParams" colspan="2"><a id="a92519d3fc64e802a1097039e972d662d"></a>
-template&lt;typename Arg , std::enable_if_t&lt; eigen_matrix&lt; Arg &gt; or eigen_diagonal_expr&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a92519d3fc64e802a1097039e972d662d"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><b>SelfAdjointMatrix</b> (Arg &amp;&amp;) -&gt; <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix.html">SelfAdjointMatrix</a>&lt; <a class="el" href="namespace_open_kalman.html#ab86f091b16817336eb3f67006cd3a779">passable_t</a>&lt; Arg &gt;, TriangleType::lower &gt;</td></tr>
-<tr class="separator:a92519d3fc64e802a1097039e972d662d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa5716aa63312c3d9e08790e6f3a9f67b"><td class="memTemplParams" colspan="2"><a id="aa5716aa63312c3d9e08790e6f3a9f67b"></a>
-template&lt;typename M , std::enable_if_t&lt; eigen_self_adjoint_expr&lt; M &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:aa5716aa63312c3d9e08790e6f3a9f67b"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><b>SelfAdjointMatrix</b> (M &amp;&amp;) -&gt; <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix.html">SelfAdjointMatrix</a>&lt; <a class="el" href="namespace_open_kalman.html#ab86f091b16817336eb3f67006cd3a779">passable_t</a>&lt; <a class="el" href="namespace_open_kalman.html#abc8e1017c2a892423e656ba212290b74">nested_matrix_t</a>&lt; M &gt;&gt;, <a class="el" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits</a>&lt; M &gt;::storage_type &gt;</td></tr>
-<tr class="separator:aa5716aa63312c3d9e08790e6f3a9f67b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a407ea2e82fde4b9774fd4ccd647d01b5"><td class="memTemplParams" colspan="2"><a id="a407ea2e82fde4b9774fd4ccd647d01b5"></a>
-template&lt;typename Arg , unsigned int UpLo&gt; </td></tr>
-<tr class="memitem:a407ea2e82fde4b9774fd4ccd647d01b5"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><b>SelfAdjointMatrix</b> (Eigen::SelfAdjointView&lt; Arg, UpLo &gt; &amp;&amp;) -&gt; <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix.html">SelfAdjointMatrix</a>&lt; Arg, UpLo &amp;Eigen::Upper ? TriangleType::upper :TriangleType::lower &gt;</td></tr>
-<tr class="separator:a407ea2e82fde4b9774fd4ccd647d01b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afda54550c3ae101cf184feb9c741a4f1"><td class="memTemplParams" colspan="2"><a id="afda54550c3ae101cf184feb9c741a4f1"></a>
 template&lt;typename ... Args, std::enable_if_t&lt; std::conjunction_v&lt; std::is_arithmetic&lt; Args &gt;... &gt;, int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:afda54550c3ae101cf184feb9c741a4f1"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1_eigen3.html#afda54550c3ae101cf184feb9c741a4f1">SelfAdjointMatrix</a> (Args ...) -&gt; <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix.html">SelfAdjointMatrix</a>&lt; Eigen::Matrix&lt; std::decay_t&lt; std::common_type_t&lt; Args... &gt;&gt;, <a class="el" href="namespace_open_kalman_1_1internal.html#a0de6ea03b16d31991db9843df173d674">OpenKalman::internal::constexpr_sqrt</a>(sizeof...(Args)), <a class="el" href="namespace_open_kalman_1_1internal.html#a0de6ea03b16d31991db9843df173d674">OpenKalman::internal::constexpr_sqrt</a>(sizeof...(Args))&gt;, TriangleType::lower &gt;</td></tr>
 <tr class="memdesc:afda54550c3ae101cf184feb9c741a4f1"><td class="mdescLeft">&#160;</td><td class="mdescRight">If the arguments are a sequence of scalars, deduce a square, self-adjoint matrix. <br /></td></tr>
 <tr class="separator:afda54550c3ae101cf184feb9c741a4f1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2aa19eea6ed5d70d95e1b4913305bdac"><td class="memTemplParams" colspan="2"><a id="a2aa19eea6ed5d70d95e1b4913305bdac"></a>
-template&lt;TriangleType t = TriangleType::lower, typename M , std::enable_if_t&lt; eigen_matrix&lt; M &gt; or eigen_diagonal_expr&lt; M &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a2aa19eea6ed5d70d95e1b4913305bdac"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>make_EigenSelfAdjointMatrix</b> (M &amp;&amp;m)</td></tr>
-<tr class="separator:a2aa19eea6ed5d70d95e1b4913305bdac"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a38edf6e47e0c5856091a1ec6f37411f7"><td class="memTemplParams" colspan="2"><a id="a38edf6e47e0c5856091a1ec6f37411f7"></a>
-template&lt;typename M , std::enable_if_t&lt; eigen_self_adjoint_expr&lt; M &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a38edf6e47e0c5856091a1ec6f37411f7"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>make_EigenSelfAdjointMatrix</b> (M &amp;&amp;m)</td></tr>
-<tr class="separator:a38edf6e47e0c5856091a1ec6f37411f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a30ee16577a71a8904a6f4a18589704a2"><td class="memTemplParams" colspan="2"><a id="a30ee16577a71a8904a6f4a18589704a2"></a>
-template&lt;typename Arg , std::enable_if_t&lt; Eigen3::eigen_self_adjoint_expr&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a30ee16577a71a8904a6f4a18589704a2"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>transpose</b> (Arg &amp;&amp;arg)</td></tr>
-<tr class="separator:a30ee16577a71a8904a6f4a18589704a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a401481eafd9ce701a7eb866846de6d77"><td class="memTemplParams" colspan="2"><a id="a401481eafd9ce701a7eb866846de6d77"></a>
-template&lt;typename Arg , std::enable_if_t&lt; Eigen3::eigen_self_adjoint_expr&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a401481eafd9ce701a7eb866846de6d77"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>adjoint</b> (Arg &amp;&amp;arg)</td></tr>
-<tr class="separator:a401481eafd9ce701a7eb866846de6d77"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a86f4f66017af58be865b693c50ae4760"><td class="memTemplParams" colspan="2"><a id="a86f4f66017af58be865b693c50ae4760"></a>
-template&lt;typename Arg , typename U , std::enable_if_t&lt; Eigen3::eigen_self_adjoint_expr&lt; Arg &gt; and(Eigen3::eigen_matrix&lt; U &gt; or Eigen3::eigen_triangular_expr&lt; U &gt; or Eigen3::eigen_self_adjoint_expr&lt; U &gt; or Eigen3::eigen_diagonal_expr&lt; U &gt; or Eigen3::euclidean_expr&lt; U &gt;), int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a86f4f66017af58be865b693c50ae4760"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>rank_update</b> (Arg &amp;&amp;arg, const U &amp;u, const typename <a class="el" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits</a>&lt; Arg &gt;::Scalar alpha=1)</td></tr>
-<tr class="separator:a86f4f66017af58be865b693c50ae4760"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5a30b32549d0a5f1e8138643ef13071b"><td class="memTemplParams" colspan="2">template&lt;typename A , std::enable_if_t&lt; Eigen3::eigen_self_adjoint_expr&lt; A &gt;, int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:a5a30b32549d0a5f1e8138643ef13071b"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1_eigen3.html#a5a30b32549d0a5f1e8138643ef13071b">QR_decomposition</a> (A &amp;&amp;a)</td></tr>
 <tr class="separator:a5a30b32549d0a5f1e8138643ef13071b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1a23e7c332c4ff719ca8e36ac9ab2d6a"><td class="memTemplParams" colspan="2"><a id="a1a23e7c332c4ff719ca8e36ac9ab2d6a"></a>
-template&lt;typename M , std::enable_if_t&lt; eigen_matrix&lt; M &gt; or eigen_diagonal_expr&lt; M &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a1a23e7c332c4ff719ca8e36ac9ab2d6a"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><b>TriangularMatrix</b> (M &amp;&amp;) -&gt; <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_triangular_matrix.html">TriangularMatrix</a>&lt; <a class="el" href="namespace_open_kalman.html#ab86f091b16817336eb3f67006cd3a779">passable_t</a>&lt; M &gt;, TriangleType::lower &gt;</td></tr>
-<tr class="separator:a1a23e7c332c4ff719ca8e36ac9ab2d6a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a717c694c3795be78f9a0e6ca25d74dae"><td class="memTemplParams" colspan="2"><a id="a717c694c3795be78f9a0e6ca25d74dae"></a>
-template&lt;typename Arg , unsigned int UpLo&gt; </td></tr>
-<tr class="memitem:a717c694c3795be78f9a0e6ca25d74dae"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><b>TriangularMatrix</b> (const Eigen::TriangularView&lt; Arg, UpLo &gt; &amp;) -&gt; <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_triangular_matrix.html">TriangularMatrix</a>&lt; Arg, UpLo &amp;Eigen::Upper ? TriangleType::upper :TriangleType::lower &gt;</td></tr>
-<tr class="separator:a717c694c3795be78f9a0e6ca25d74dae"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad719d3ead30f7983801900b6225feac8"><td class="memTemplParams" colspan="2"><a id="ad719d3ead30f7983801900b6225feac8"></a>
 template&lt;TriangleType t = TriangleType::lower, typename M , std::enable_if_t&lt; eigen_matrix&lt; M &gt; or eigen_diagonal_expr&lt; M &gt;, int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:ad719d3ead30f7983801900b6225feac8"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1_eigen3.html#ad719d3ead30f7983801900b6225feac8">make_EigenTriangularMatrix</a> (M &amp;&amp;m)</td></tr>
 <tr class="memdesc:ad719d3ead30f7983801900b6225feac8"><td class="mdescLeft">&#160;</td><td class="mdescRight">If the arguments are a sequence of scalars, deduce a square, lower triangular matrix. <br /></td></tr>
 <tr class="separator:ad719d3ead30f7983801900b6225feac8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1a045495db18ad76445ee35e01b4cded"><td class="memTemplParams" colspan="2"><a id="a1a045495db18ad76445ee35e01b4cded"></a>
-template&lt;typename M , std::enable_if_t&lt; eigen_triangular_expr&lt; M &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a1a045495db18ad76445ee35e01b4cded"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>make_EigenTriangularMatrix</b> (M &amp;&amp;m)</td></tr>
-<tr class="separator:a1a045495db18ad76445ee35e01b4cded"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3add0f6a92a2ffbcf474627c3d17a009"><td class="memTemplParams" colspan="2"><a id="a3add0f6a92a2ffbcf474627c3d17a009"></a>
-template&lt;typename Arg , std::enable_if_t&lt; Eigen3::eigen_triangular_expr&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a3add0f6a92a2ffbcf474627c3d17a009"><td class="memTemplItemLeft" align="right" valign="top">constexpr auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>transpose</b> (Arg &amp;&amp;arg)</td></tr>
-<tr class="separator:a3add0f6a92a2ffbcf474627c3d17a009"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ade184bc3254c3758409224287707361d"><td class="memTemplParams" colspan="2"><a id="ade184bc3254c3758409224287707361d"></a>
-template&lt;typename Arg , std::enable_if_t&lt; Eigen3::eigen_triangular_expr&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:ade184bc3254c3758409224287707361d"><td class="memTemplItemLeft" align="right" valign="top">constexpr auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>adjoint</b> (Arg &amp;&amp;arg)</td></tr>
-<tr class="separator:ade184bc3254c3758409224287707361d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3622eb8c8e3ae9e4ef7280f2c50d18e2"><td class="memTemplParams" colspan="2">template&lt;typename A , std::enable_if_t&lt; Eigen3::eigen_triangular_expr&lt; A &gt;, int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:a3622eb8c8e3ae9e4ef7280f2c50d18e2"><td class="memTemplItemLeft" align="right" valign="top">constexpr decltype(auto)&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1_eigen3.html#a3622eb8c8e3ae9e4ef7280f2c50d18e2">LQ_decomposition</a> (A &amp;&amp;a)</td></tr>
 <tr class="separator:a3622eb8c8e3ae9e4ef7280f2c50d18e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad57174029ea3969f2e57da1c8cc5b3fc"><td class="memTemplParams" colspan="2">template&lt;typename A , std::enable_if_t&lt; Eigen3::eigen_triangular_expr&lt; A &gt;, int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:ad57174029ea3969f2e57da1c8cc5b3fc"><td class="memTemplItemLeft" align="right" valign="top">constexpr decltype(auto)&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1_eigen3.html#ad57174029ea3969f2e57da1c8cc5b3fc">QR_decomposition</a> (A &amp;&amp;a)</td></tr>
 <tr class="separator:ad57174029ea3969f2e57da1c8cc5b3fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a592644cd830b6a62ebe08d54a631ce2b"><td class="memTemplParams" colspan="2"><a id="a592644cd830b6a62ebe08d54a631ce2b"></a>
-template&lt;typename Arg , std::enable_if_t&lt; Eigen3::eigen_zero_expr&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a592644cd830b6a62ebe08d54a631ce2b"><td class="memTemplItemLeft" align="right" valign="top">constexpr auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>determinant</b> (Arg &amp;&amp;arg) noexcept</td></tr>
-<tr class="separator:a592644cd830b6a62ebe08d54a631ce2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a17c2a0cc41315b00fcb1b2cfa3670cf6"><td class="memTemplParams" colspan="2"><a id="a17c2a0cc41315b00fcb1b2cfa3670cf6"></a>
-template&lt;typename Arg , std::enable_if_t&lt; Eigen3::eigen_zero_expr&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a17c2a0cc41315b00fcb1b2cfa3670cf6"><td class="memTemplItemLeft" align="right" valign="top">constexpr auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>trace</b> (Arg &amp;&amp;arg) noexcept</td></tr>
-<tr class="separator:a17c2a0cc41315b00fcb1b2cfa3670cf6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1517656da29a76c8f164b04e058ce012"><td class="memTemplParams" colspan="2"><a id="a1517656da29a76c8f164b04e058ce012"></a>
 template&lt;typename Arg , std::enable_if_t&lt; Eigen3::eigen_zero_expr&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:a1517656da29a76c8f164b04e058ce012"><td class="memTemplItemLeft" align="right" valign="top">constexpr auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1_eigen3.html#a1517656da29a76c8f164b04e058ce012">get_element</a> (const Arg &amp;, const std::size_t, const std::size_t)</td></tr>
@@ -606,14 +346,6 @@ template&lt;typename Arg , std::enable_if_t&lt; Eigen3::eigen_zero_expr&lt; Arg 
 <tr class="memitem:a2e581a715b4bff7ac0a91dfcfe546caf"><td class="memTemplItemLeft" align="right" valign="top">constexpr auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1_eigen3.html#a2e581a715b4bff7ac0a91dfcfe546caf">get_element</a> (const Arg &amp;, const std::size_t)</td></tr>
 <tr class="memdesc:a2e581a715b4bff7ac0a91dfcfe546caf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get an element of a one-column <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_zero_matrix.html" title="A wrapper type for an Eigen zero matrix.">ZeroMatrix</a> matrix. Always 0. <br /></td></tr>
 <tr class="separator:a2e581a715b4bff7ac0a91dfcfe546caf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa729d954dd534e9fa9eebc32098b4312"><td class="memTemplParams" colspan="2"><a id="aa729d954dd534e9fa9eebc32098b4312"></a>
-template&lt;typename Arg1 , typename Arg2 , std::enable_if_t&lt;(zero_matrix&lt; Arg1 &gt; and Eigen3::eigen_matrix&lt; Arg2 &gt;) or(Eigen3::eigen_matrix&lt; Arg1 &gt; and zero_matrix&lt; Arg2 &gt;), int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:aa729d954dd534e9fa9eebc32098b4312"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>operator*</b> (const Arg1 &amp;arg1, const Arg2 &amp;arg2)</td></tr>
-<tr class="separator:aa729d954dd534e9fa9eebc32098b4312"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0ae051f88196100da353ee367188d384"><td class="memTemplParams" colspan="2"><a id="a0ae051f88196100da353ee367188d384"></a>
-template&lt;typename Arg , std::enable_if_t&lt; Eigen3::eigen_zero_expr&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a0ae051f88196100da353ee367188d384"><td class="memTemplItemLeft" align="right" valign="top">constexpr decltype(auto)&#160;</td><td class="memTemplItemRight" valign="bottom"><b>operator-</b> (Arg &amp;&amp;arg)</td></tr>
-<tr class="separator:a0ae051f88196100da353ee367188d384"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
@@ -1282,8 +1014,8 @@ template&lt;typename Coefficients , TriangleType triangle_type, typename Scalar 
 <p>For <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a>: Make a <a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a>, with nested triangular type, from a list of coefficients. </p>
 <p>For <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a>: Make a writable, uninitialized <a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a>, specifying the coefficients.</p>
 <p>For <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a>: Make a writable, uninitialized <a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a> with nested triangular matrix.</p>
-<p>For <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a>: Make a <a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a> from a list of coefficients, with default Axis coefficients.</p>
-<p>For <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a>: Make a default Axis <a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a>, with nested triangular type, from a list of coefficients.</p>
+<p>For <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a>: Make a <a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a> from a list of coefficients, with default <a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a> coefficients.</p>
+<p>For <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a>: Make a default <a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a> <a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a>, with nested triangular type, from a list of coefficients.</p>
 <p>For <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a>: Make a <a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a> from a list of coefficients, specifying the coefficients.</p>
 <dl class="section note"><dt>Note</dt><dd>This function is imported into the <a class="el" href="namespace_open_kalman.html" title="The root namespace for OpenKalman.">OpenKalman</a> namespace if <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a> is the first-included interface. </dd></dl>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
@@ -1406,7 +1138,7 @@ template&lt;typename ... Args, std::enable_if_t&lt;(sizeof...(Args) &gt; 0) and 
 </table>
 </div><div class="memdoc">
 
-<p>For <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a>: Make a one-column <a class="el" href="struct_open_kalman_1_1_euclidean_mean.html" title="Similar to a Mean, but the coefficients are transformed into Euclidean space, based on their type.">EuclideanMean</a> from a list of coefficients, with default Axis coefficients. </p>
+<p>For <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a>: Make a one-column <a class="el" href="struct_open_kalman_1_1_euclidean_mean.html" title="Similar to a Mean, but the coefficients are transformed into Euclidean space, based on their type.">EuclideanMean</a> from a list of coefficients, with default <a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a> coefficients. </p>
 <p>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </p><dl class="section note"><dt>Note</dt><dd>This function is imported into the <a class="el" href="namespace_open_kalman.html" title="The root namespace for OpenKalman.">OpenKalman</a> namespace if <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a> is the first-included interface. </dd></dl>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
@@ -1479,7 +1211,7 @@ template&lt;typename ... Args, std::enable_if_t&lt;(sizeof...(Args) &gt; 0) and 
       </table>
 </div><div class="memdoc">
 
-<p>For <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a>: Make a one-column <a class="el" href="struct_open_kalman_1_1_matrix.html" title="A matrix with typed rows and columns.">Matrix</a> from a list of coefficients, with default Axis coefficients. </p>
+<p>For <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a>: Make a one-column <a class="el" href="struct_open_kalman_1_1_matrix.html" title="A matrix with typed rows and columns.">Matrix</a> from a list of coefficients, with default <a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a> coefficients. </p>
 <p>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </p><dl class="section note"><dt>Note</dt><dd>This function is imported into the <a class="el" href="namespace_open_kalman.html" title="The root namespace for OpenKalman.">OpenKalman</a> namespace if <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a> is the first-included interface. </dd></dl>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
@@ -1551,7 +1283,7 @@ template&lt;typename ... Args, std::enable_if_t&lt;(sizeof...(Args) &gt; 0) and 
       </table>
 </div><div class="memdoc">
 
-<p>For <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a>: Make a one-column <a class="el" href="struct_open_kalman_1_1_mean.html" title="A set of one or more column vectors, each representing a statistical mean.">Mean</a> from a list of coefficients, with default Axis coefficients. </p>
+<p>For <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a>: Make a one-column <a class="el" href="struct_open_kalman_1_1_mean.html" title="A set of one or more column vectors, each representing a statistical mean.">Mean</a> from a list of coefficients, with default <a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a> coefficients. </p>
 <p>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </p><dl class="section note"><dt>Note</dt><dd>This function is imported into the <a class="el" href="namespace_open_kalman.html" title="The root namespace for OpenKalman.">OpenKalman</a> namespace if <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a> is the first-included interface. </dd></dl>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
@@ -1648,7 +1380,7 @@ template&lt;typename Coefficients , TriangleType triangle_type = TriangleType::l
 
 <p>For <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a>: Make a <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html" title="The upper or lower triangle Cholesky factor (square root) of a covariance matrix.">SquareRootCovariance</a> from a list of coefficients. </p>
 <p>For <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a>: Make a writable, uninitialized <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html" title="The upper or lower triangle Cholesky factor (square root) of a covariance matrix.">SquareRootCovariance</a>.</p>
-<p>For <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a>: Make a default Axis <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html" title="The upper or lower triangle Cholesky factor (square root) of a covariance matrix.">SquareRootCovariance</a> from a list of coefficients.</p>
+<p>For <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a>: Make a default <a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a> <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html" title="The upper or lower triangle Cholesky factor (square root) of a covariance matrix.">SquareRootCovariance</a> from a list of coefficients.</p>
 <p>Only the coefficients in the associated upper or lower triangle are significant. </p><dl class="section note"><dt>Note</dt><dd>This function is imported into the <a class="el" href="namespace_open_kalman.html" title="The root namespace for OpenKalman.">OpenKalman</a> namespace if <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a> is the first-included interface. </dd></dl>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
@@ -2554,8 +2286,8 @@ template&lt;typename F , bool euclidean, typename RC , typename... RCs, typename
 
 </div>
 </div>
-<a id="a5b77c6906d71b6d599be034640071b22"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5b77c6906d71b6d599be034640071b22">&#9670;&nbsp;</a></span>to_Euclidean()</h2>
+<a id="af5fa7ebc6d79d4db4418c65e9603b4cf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af5fa7ebc6d79d4db4418c65e9603b4cf">&#9670;&nbsp;</a></span>to_euclidean()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2566,7 +2298,7 @@ template&lt;typename Arg , std::enable_if_t&lt; from_euclidean_expr&lt; Arg &gt;
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">constexpr decltype(auto) OpenKalman::Eigen3::to_Euclidean </td>
+          <td class="memname">constexpr decltype(auto) OpenKalman::Eigen3::to_euclidean </td>
           <td>(</td>
           <td class="paramtype">Arg &amp;&amp;&#160;</td>
           <td class="paramname"><em>arg</em></td><td>)</td>
@@ -2622,7 +2354,7 @@ template&lt;typename Coefficients , typename Arg , std::enable_if_t&lt; from_euc
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="namespace_open_kalman.html">OpenKalman</a></li><li class="navelem"><a class="el" href="namespace_open_kalman_1_1_eigen3.html">Eigen3</a></li>
-    <li class="footer">Generated on Wed Dec 2 2020 15:38:15 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
+    <li class="footer">Generated on Sat Dec 5 2020 03:00:23 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
   </ul>
 </div>
 </body>

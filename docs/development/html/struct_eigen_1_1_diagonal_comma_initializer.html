@@ -83,11 +83,7 @@ $(document).ready(function(){initNavTree('struct_eigen_1_1_diagonal_comma_initia
 
 <div class="header">
   <div class="summary">
-<a href="struct_eigen_1_1_diagonal_comma_initializer-members.html">List of all members</a> &#124;
-<a href="#pub-static-attribs">Static Public Attributes</a> &#124;
-<a href="#pub-attribs">Public Attributes</a> &#124;
-<a href="#pub-types">Public Aliases</a> &#124;
-<a href="#pub-methods">Public Member Functions</a>  </div>
+<a href="struct_eigen_1_1_diagonal_comma_initializer-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">Eigen::DiagonalCommaInitializer&lt; XprType &gt; Struct Template Reference</div>  </div>
 </div><!--header-->
@@ -101,66 +97,7 @@ struct Eigen::DiagonalCommaInitializer&lt; XprType &gt;</h3>
 <p>Alternative version of CommaInitializer for diagonal versions of SelfAdjointMatrix and TriangularMatrix. </p>
 
 <p class="definition">Definition at line <a class="el" href="_eigen3_matrix_base_8hpp_source.html#l00218">218</a> of file <a class="el" href="_eigen3_matrix_base_8hpp_source.html">Eigen3MatrixBase.hpp</a>.</p>
-</div><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-attribs"></a>
-Static Public Attributes</h2></td></tr>
-<tr class="memitem:a561e2b270d138ae746e0ee33a55d4cd8"><td class="memItemLeft" align="right" valign="top"><a id="a561e2b270d138ae746e0ee33a55d4cd8"></a>
-static constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><b>dim</b> = <a class="el" href="struct_open_kalman_1_1_matrix_traits.html">OpenKalman::MatrixTraits</a>&lt;XprType&gt;::dimension</td></tr>
-<tr class="separator:a561e2b270d138ae746e0ee33a55d4cd8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
-Public Attributes</h2></td></tr>
-<tr class="memitem:aad044184e1c7dbb024470639b3b962e9"><td class="memItemLeft" align="right" valign="top"><a id="aad044184e1c7dbb024470639b3b962e9"></a>
-NestedMatrix&#160;</td><td class="memItemRight" valign="bottom"><b>matrix</b></td></tr>
-<tr class="separator:aad044184e1c7dbb024470639b3b962e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6423c3b093674eb87dadbb2e83b12ccd"><td class="memItemLeft" align="right" valign="top"><a id="a6423c3b093674eb87dadbb2e83b12ccd"></a>
-Nested&#160;</td><td class="memItemRight" valign="bottom"><b>comma_initializer</b></td></tr>
-<tr class="separator:a6423c3b093674eb87dadbb2e83b12ccd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3d4214c3eb3b2b343b2661be71ce7ce2"><td class="memItemLeft" align="right" valign="top"><a id="a3d4214c3eb3b2b343b2661be71ce7ce2"></a>
-XprType &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>diag</b></td></tr>
-<tr class="separator:a3d4214c3eb3b2b343b2661be71ce7ce2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
-Public Aliases</h2></td></tr>
-<tr class="memitem:a36351d906109893f821afaebe8e05985"><td class="memItemLeft" align="right" valign="top"><a id="a36351d906109893f821afaebe8e05985"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>Scalar</b> = typename XprType::Scalar</td></tr>
-<tr class="separator:a36351d906109893f821afaebe8e05985"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af387b189ab59602a5a44ee2e58f378ec"><td class="memItemLeft" align="right" valign="top"><a id="af387b189ab59602a5a44ee2e58f378ec"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>NestedMatrix</b> = <a class="el" href="namespace_open_kalman.html#a7fb718bc7a10021ec9a0032e9b3fc92e">OpenKalman::native_matrix_t</a>&lt; typename <a class="el" href="namespace_open_kalman.html#abc8e1017c2a892423e656ba212290b74">OpenKalman::nested_matrix_t</a>&lt; XprType &gt;, dim, 1 &gt;</td></tr>
-<tr class="separator:af387b189ab59602a5a44ee2e58f378ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a09844b9737ddcd62a65eb6239ab26497"><td class="memItemLeft" align="right" valign="top"><a id="a09844b9737ddcd62a65eb6239ab26497"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>Nested</b> = CommaInitializer&lt; NestedMatrix &gt;</td></tr>
-<tr class="separator:a09844b9737ddcd62a65eb6239ab26497"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
-Public Member Functions</h2></td></tr>
-<tr class="memitem:a8985c036b89803e5632543f1badeae26"><td class="memTemplParams" colspan="2"><a id="a8985c036b89803e5632543f1badeae26"></a>
-template&lt;typename S , std::enable_if_t&lt; std::is_convertible_v&lt; S, Scalar &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a8985c036b89803e5632543f1badeae26"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><b>DiagonalCommaInitializer</b> (XprType &amp;xpr, const S &amp;s)</td></tr>
-<tr class="separator:a8985c036b89803e5632543f1badeae26"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4998fe3f702c3dffffd80ee27b3bebc6"><td class="memTemplParams" colspan="2"><a id="a4998fe3f702c3dffffd80ee27b3bebc6"></a>
-template&lt;typename OtherDerived &gt; </td></tr>
-<tr class="memitem:a4998fe3f702c3dffffd80ee27b3bebc6"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><b>DiagonalCommaInitializer</b> (XprType &amp;xpr, const DenseBase&lt; OtherDerived &gt; &amp;other)</td></tr>
-<tr class="separator:a4998fe3f702c3dffffd80ee27b3bebc6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a21e21297e8efdd69803575f63acf234b"><td class="memItemLeft" align="right" valign="top"><a id="a21e21297e8efdd69803575f63acf234b"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>DiagonalCommaInitializer</b> (const <a class="el" href="struct_eigen_1_1_diagonal_comma_initializer.html">DiagonalCommaInitializer</a> &amp;o)</td></tr>
-<tr class="separator:a21e21297e8efdd69803575f63acf234b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acfb527040892fd52a286e6d0b07273b8"><td class="memItemLeft" align="right" valign="top"><a id="acfb527040892fd52a286e6d0b07273b8"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>DiagonalCommaInitializer</b> (<a class="el" href="struct_eigen_1_1_diagonal_comma_initializer.html">DiagonalCommaInitializer</a> &amp;&amp;o)</td></tr>
-<tr class="separator:acfb527040892fd52a286e6d0b07273b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5caa1295bdcf28443097cbf710f6d704"><td class="memTemplParams" colspan="2"><a id="a5caa1295bdcf28443097cbf710f6d704"></a>
-template&lt;typename S , std::enable_if_t&lt; std::is_convertible_v&lt; S, Scalar &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a5caa1295bdcf28443097cbf710f6d704"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><b>operator,</b> (const S &amp;s)</td></tr>
-<tr class="separator:a5caa1295bdcf28443097cbf710f6d704"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a53d7cabbc794f310ff44bb3af6614e8e"><td class="memTemplParams" colspan="2"><a id="a53d7cabbc794f310ff44bb3af6614e8e"></a>
-template&lt;typename OtherDerived &gt; </td></tr>
-<tr class="memitem:a53d7cabbc794f310ff44bb3af6614e8e"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><b>operator,</b> (const DenseBase&lt; OtherDerived &gt; &amp;other)</td></tr>
-<tr class="separator:a53d7cabbc794f310ff44bb3af6614e8e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4fcba734e2302c18609cbaeaef8ed454"><td class="memItemLeft" align="right" valign="top"><a id="a4fcba734e2302c18609cbaeaef8ed454"></a>
-auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>finished</b> ()</td></tr>
-<tr class="separator:a4fcba734e2302c18609cbaeaef8ed454"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table>
-<hr/>The documentation for this struct was generated from the following file:<ul>
+</div><hr/>The documentation for this struct was generated from the following file:<ul>
 <li>C:/Users/cogden/CLionProjects/OpenKalman/OpenKalman/interfaces/eigen3/details/<a class="el" href="_eigen3_matrix_base_8hpp_source.html">Eigen3MatrixBase.hpp</a></li>
 </ul>
 </div><!-- contents -->
@@ -169,7 +106,7 @@ auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>finished</b> ()
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><b>Eigen</b></li><li class="navelem"><a class="el" href="struct_eigen_1_1_diagonal_comma_initializer.html">DiagonalCommaInitializer</a></li>
-    <li class="footer">Generated on Wed Dec 2 2020 15:38:14 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
+    <li class="footer">Generated on Sat Dec 5 2020 03:00:22 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
   </ul>
 </div>
 </body>

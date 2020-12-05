@@ -103,7 +103,7 @@ $(document).ready(function(){initNavTree('_covariance_base_8hpp_source.html','')
 <div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160; </div>
 <div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;<span class="keyword">namespace</span> OpenKalman::internal</div>
 <div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;{</div>
-<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;  <span class="comment">/**</span></div>
+<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;  <span class="comment">/*</span></div>
 <div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;<span class="comment">   * \internal</span></div>
 <div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;<span class="comment">   * Base of Covariance and SquareRootCovariance classes, if ArgType is not an lvalue reference and either</span></div>
 <div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;<span class="comment">   * (1) Derived is not a square root and the nested matrix is self-adjoint; or</span></div>
@@ -118,7 +118,7 @@ $(document).ready(function(){initNavTree('_covariance_base_8hpp_source.html','')
 <div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;  <span class="keyword">struct</span> CovarianceBase&lt;Derived, ArgType&gt;</div>
 <div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">else</span></div>
 <div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> Derived, <span class="keyword">typename</span> ArgType&gt;</div>
-<div class="line"><a name="l00033"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enabl29df945888bdf150793bc6dc6b1445fb.html">   33</a></span>&#160;  <span class="keyword">struct</span> CovarianceBase&lt;Derived, ArgType, std::enable_if_t&lt;</div>
+<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;  <span class="keyword">struct</span> CovarianceBase&lt;Derived, ArgType, std::enable_if_t&lt;</div>
 <div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;    ((<span class="keyword">not</span> square_root_covariance&lt;Derived&gt; <span class="keyword">and</span> self_adjoint_matrix&lt;ArgType&gt;) <span class="keyword">or</span></div>
 <div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;      (square_root_covariance&lt;Derived&gt; <span class="keyword">and</span> triangular_matrix&lt;ArgType&gt;)) <span class="keyword">and</span></div>
 <div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;    (<span class="keyword">not</span> std::is_lvalue_reference_v&lt;ArgType&gt;) <span class="keyword">and</span></div>
@@ -165,19 +165,19 @@ $(document).ready(function(){initNavTree('_covariance_base_8hpp_source.html','')
 <div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160; </div>
 <div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160; </div>
 <div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;    <span class="comment">/// Get the apparent nested matrix.</span></div>
-<div class="line"><a name="l00080"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enabl29df945888bdf150793bc6dc6b1445fb.html#ad45efc4946f6a2fc654a4fe16745df13">   80</a></span>&#160;    <span class="keyword">constexpr</span> <span class="keyword">auto</span>&amp; get_apparent_nested_matrix() &amp; { <span class="keywordflow">return</span> nested_matrix(); }</div>
+<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;    <span class="keyword">constexpr</span> <span class="keyword">auto</span>&amp; get_apparent_nested_matrix() &amp; { <span class="keywordflow">return</span> nested_matrix(); }</div>
 <div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160; </div>
 <div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160; </div>
 <div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;    <span class="comment">/// Get the apparent nested matrix.</span></div>
-<div class="line"><a name="l00084"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enabl29df945888bdf150793bc6dc6b1445fb.html#a12f71925db0d39b776321b470e0576ad">   84</a></span>&#160;    <span class="keyword">constexpr</span> <span class="keyword">auto</span>&amp;&amp; get_apparent_nested_matrix() &amp;&amp; { <span class="keywordflow">return</span> std::move(nested_matrix()); }</div>
+<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;    <span class="keyword">constexpr</span> <span class="keyword">auto</span>&amp;&amp; get_apparent_nested_matrix() &amp;&amp; { <span class="keywordflow">return</span> std::move(nested_matrix()); }</div>
 <div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160; </div>
 <div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160; </div>
 <div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;    <span class="comment">/// Get the apparent nested matrix.</span></div>
-<div class="line"><a name="l00088"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enabl29df945888bdf150793bc6dc6b1445fb.html#a35cb47d220113992cf5e1b4da618ad09">   88</a></span>&#160;    <span class="keyword">constexpr</span> <span class="keyword">const</span> <span class="keyword">auto</span>&amp; get_apparent_nested_matrix() <span class="keyword">const</span> &amp; { <span class="keywordflow">return</span> nested_matrix(); }</div>
+<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;    <span class="keyword">constexpr</span> <span class="keyword">const</span> <span class="keyword">auto</span>&amp; get_apparent_nested_matrix() <span class="keyword">const</span> &amp; { <span class="keywordflow">return</span> nested_matrix(); }</div>
 <div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160; </div>
 <div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160; </div>
 <div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;    <span class="comment">/// Get the apparent nested matrix.</span></div>
-<div class="line"><a name="l00092"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enabl29df945888bdf150793bc6dc6b1445fb.html#aaad783679aaeabc40e538a33d2ad0edf">   92</a></span>&#160;    <span class="keyword">constexpr</span> <span class="keyword">const</span> <span class="keyword">auto</span>&amp;&amp; get_apparent_nested_matrix() <span class="keyword">const</span> &amp;&amp; { <span class="keywordflow">return</span> std::move(nested_matrix()); }</div>
+<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;    <span class="keyword">constexpr</span> <span class="keyword">const</span> <span class="keyword">auto</span>&amp;&amp; get_apparent_nested_matrix() <span class="keyword">const</span> &amp;&amp; { <span class="keywordflow">return</span> std::move(nested_matrix()); }</div>
 <div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160; </div>
 <div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160; </div>
 <div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;  <span class="keyword">protected</span>:</div>
@@ -187,7 +187,7 @@ $(document).ready(function(){initNavTree('_covariance_base_8hpp_source.html','')
 <div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160; </div>
 <div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160; </div>
 <div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;  <span class="comment">// ============================================================================</span></div>
-<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;  <span class="comment">/**</span></div>
+<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;  <span class="comment">/*</span></div>
 <div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;<span class="comment">   * \internal</span></div>
 <div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;<span class="comment">   * Base of Covariance and SquareRootCovariance classes, if ArgType is an lvalue reference.</span></div>
 <div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;<span class="comment">   * No conversion is necessary if either</span></div>
@@ -202,7 +202,7 @@ $(document).ready(function(){initNavTree('_covariance_base_8hpp_source.html','')
 <div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;  <span class="keyword">struct</span> CovarianceBase&lt;Derived, ArgType&gt;</div>
 <div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">else</span></div>
 <div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> Derived, <span class="keyword">typename</span> ArgType&gt;</div>
-<div class="line"><a name="l00117"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enabla13a6eb46bea1ac02dc83313a9b3010e.html">  117</a></span>&#160;  <span class="keyword">struct</span> CovarianceBase&lt;Derived, ArgType, std::enable_if_t&lt;</div>
+<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;  <span class="keyword">struct</span> CovarianceBase&lt;Derived, ArgType, std::enable_if_t&lt;</div>
 <div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;    ((<span class="keyword">not</span> square_root_covariance&lt;Derived&gt; <span class="keyword">and</span> self_adjoint_matrix&lt;ArgType&gt;) <span class="keyword">or</span></div>
 <div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;      (square_root_covariance&lt;Derived&gt; <span class="keyword">and</span> triangular_matrix&lt;ArgType&gt;)) <span class="keyword">and</span></div>
 <div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;    (std::is_lvalue_reference_v&lt;ArgType&gt; <span class="keyword">or</span> internal::contains_nested_lvalue_reference&lt;ArgType&gt;)&gt;&gt;</div>
@@ -220,16 +220,16 @@ $(document).ready(function(){initNavTree('_covariance_base_8hpp_source.html','')
 <div class="line"><a name="l00132"></a><span class="lineno">  132</span>&#160; </div>
 <div class="line"><a name="l00133"></a><span class="lineno">  133</span>&#160;  <span class="keyword">public</span>:</div>
 <div class="line"><a name="l00134"></a><span class="lineno">  134</span>&#160;    <span class="comment">/// Default constructor.</span></div>
-<div class="line"><a name="l00135"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enabla13a6eb46bea1ac02dc83313a9b3010e.html#a680ca22fa70c9e5c2b08d152ccf4de23">  135</a></span>&#160;    CovarianceBase() = <span class="keyword">delete</span>;</div>
+<div class="line"><a name="l00135"></a><span class="lineno">  135</span>&#160;    CovarianceBase() = <span class="keyword">delete</span>;</div>
 <div class="line"><a name="l00136"></a><span class="lineno">  136</span>&#160; </div>
 <div class="line"><a name="l00137"></a><span class="lineno">  137</span>&#160; </div>
 <div class="line"><a name="l00138"></a><span class="lineno">  138</span>&#160;    <span class="comment">/// Copy constructor.</span></div>
-<div class="line"><a name="l00139"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enabla13a6eb46bea1ac02dc83313a9b3010e.html#a618a35cdccec182be0cb7e59b1ba1a63">  139</a></span>&#160;    CovarianceBase(<span class="keyword">const</span> CovarianceBase&amp; other)</div>
+<div class="line"><a name="l00139"></a><span class="lineno">  139</span>&#160;    CovarianceBase(<span class="keyword">const</span> CovarianceBase&amp; other)</div>
 <div class="line"><a name="l00140"></a><span class="lineno">  140</span>&#160;      : Base(other.nested_matrix()), synchronized(other.synchronized) {}</div>
 <div class="line"><a name="l00141"></a><span class="lineno">  141</span>&#160; </div>
 <div class="line"><a name="l00142"></a><span class="lineno">  142</span>&#160; </div>
 <div class="line"><a name="l00143"></a><span class="lineno">  143</span>&#160;    <span class="comment">/// Move constructor.</span></div>
-<div class="line"><a name="l00144"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enabla13a6eb46bea1ac02dc83313a9b3010e.html#ac87b650cf5d25168724eaaf5ef4030e7">  144</a></span>&#160;    CovarianceBase(CovarianceBase&amp;&amp; other) <span class="keyword">noexcept</span></div>
+<div class="line"><a name="l00144"></a><span class="lineno">  144</span>&#160;    CovarianceBase(CovarianceBase&amp;&amp; other) <span class="keyword">noexcept</span></div>
 <div class="line"><a name="l00145"></a><span class="lineno">  145</span>&#160;      : Base(std::move(other)), synchronized(other.synchronized) {}</div>
 <div class="line"><a name="l00146"></a><span class="lineno">  146</span>&#160; </div>
 <div class="line"><a name="l00147"></a><span class="lineno">  147</span>&#160; </div>
@@ -244,7 +244,7 @@ $(document).ready(function(){initNavTree('_covariance_base_8hpp_source.html','')
 <div class="line"><a name="l00156"></a><span class="lineno">  156</span>&#160;        ((self_adjoint_matrix&lt;nested_matrix_t&lt;Arg&gt;&gt; <span class="keyword">and</span> <span class="keyword">not</span> square_root_covariance&lt;Arg&gt;) <span class="keyword">or</span></div>
 <div class="line"><a name="l00157"></a><span class="lineno">  157</span>&#160;        (triangular_matrix&lt;nested_matrix_t&lt;Arg&gt;&gt; <span class="keyword">and</span> square_root_covariance&lt;Arg&gt;))), <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00158"></a><span class="lineno">  158</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">endif</span></div>
-<div class="line"><a name="l00159"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enabla13a6eb46bea1ac02dc83313a9b3010e.html#a17ffbf29189d84fbd99e5d5fda0f5553">  159</a></span>&#160;    CovarianceBase(Arg&amp;&amp; arg) <span class="keyword">noexcept</span></div>
+<div class="line"><a name="l00159"></a><span class="lineno">  159</span>&#160;    CovarianceBase(Arg&amp;&amp; arg) <span class="keyword">noexcept</span></div>
 <div class="line"><a name="l00160"></a><span class="lineno">  160</span>&#160;      : Base(std::forward&lt;Arg&gt;(arg)), apparent_nested_linked(<span class="keyword">false</span>), synchronized(<span class="keyword">new</span> <span class="keywordtype">bool</span> {<span class="keyword">true</span>}) {}</div>
 <div class="line"><a name="l00161"></a><span class="lineno">  161</span>&#160; </div>
 <div class="line"><a name="l00162"></a><span class="lineno">  162</span>&#160; </div>
@@ -262,7 +262,7 @@ $(document).ready(function(){initNavTree('_covariance_base_8hpp_source.html','')
 <div class="line"><a name="l00174"></a><span class="lineno">  174</span>&#160;      (internal::contains_nested_lvalue_reference&lt;Arg&gt; <span class="keyword">or</span></div>
 <div class="line"><a name="l00175"></a><span class="lineno">  175</span>&#160;        internal::contains_nested_lvalue_reference&lt;nested_matrix_t&lt;Arg&gt;&gt;), <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00176"></a><span class="lineno">  176</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">endif</span></div>
-<div class="line"><a name="l00177"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enabla13a6eb46bea1ac02dc83313a9b3010e.html#a17ffbf29189d84fbd99e5d5fda0f5553">  177</a></span>&#160;    CovarianceBase(Arg&amp;&amp; arg) <span class="keyword">noexcept</span></div>
+<div class="line"><a name="l00177"></a><span class="lineno">  177</span>&#160;    CovarianceBase(Arg&amp;&amp; arg) <span class="keyword">noexcept</span></div>
 <div class="line"><a name="l00178"></a><span class="lineno">  178</span>&#160;      : Base(std::forward&lt;Arg&gt;(arg)), apparent_nested_linked(<span class="keyword">true</span>), synchronized(&amp;arg.synchronized) {}</div>
 <div class="line"><a name="l00179"></a><span class="lineno">  179</span>&#160; </div>
 <div class="line"><a name="l00180"></a><span class="lineno">  180</span>&#160; </div>
@@ -280,7 +280,7 @@ $(document).ready(function(){initNavTree('_covariance_base_8hpp_source.html','')
 <div class="line"><a name="l00192"></a><span class="lineno">  192</span>&#160;      (internal::contains_nested_lvalue_reference&lt;Arg&gt; <span class="keyword">or</span></div>
 <div class="line"><a name="l00193"></a><span class="lineno">  193</span>&#160;        internal::contains_nested_lvalue_reference&lt;nested_matrix_t&lt;Arg&gt;&gt;), <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00194"></a><span class="lineno">  194</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">endif</span></div>
-<div class="line"><a name="l00195"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enabla13a6eb46bea1ac02dc83313a9b3010e.html#a17ffbf29189d84fbd99e5d5fda0f5553">  195</a></span>&#160;    CovarianceBase(Arg&amp;&amp; arg) <span class="keyword">noexcept</span></div>
+<div class="line"><a name="l00195"></a><span class="lineno">  195</span>&#160;    CovarianceBase(Arg&amp;&amp; arg) <span class="keyword">noexcept</span></div>
 <div class="line"><a name="l00196"></a><span class="lineno">  196</span>&#160;      : Base(std::forward&lt;Arg&gt;(arg)), apparent_nested_linked(<span class="keyword">true</span>), synchronized(arg.synchronized) {}</div>
 <div class="line"><a name="l00197"></a><span class="lineno">  197</span>&#160; </div>
 <div class="line"><a name="l00198"></a><span class="lineno">  198</span>&#160; </div>
@@ -294,7 +294,7 @@ $(document).ready(function(){initNavTree('_covariance_base_8hpp_source.html','')
 <div class="line"><a name="l00206"></a><span class="lineno">  206</span>&#160; </div>
 <div class="line"><a name="l00207"></a><span class="lineno">  207</span>&#160; </div>
 <div class="line"><a name="l00208"></a><span class="lineno">  208</span>&#160;    <span class="comment">/// Copy assignment operator.</span></div>
-<div class="line"><a name="l00209"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enabla13a6eb46bea1ac02dc83313a9b3010e.html#addd265dac8d2a9dab13795089e12413e">  209</a></span>&#160;    <span class="keyword">auto</span>&amp; operator=(<span class="keyword">const</span> CovarianceBase&amp; other)</div>
+<div class="line"><a name="l00209"></a><span class="lineno">  209</span>&#160;    <span class="keyword">auto</span>&amp; operator=(<span class="keyword">const</span> CovarianceBase&amp; other)</div>
 <div class="line"><a name="l00210"></a><span class="lineno">  210</span>&#160;    {</div>
 <div class="line"><a name="l00211"></a><span class="lineno">  211</span>&#160;      <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (<span class="keyword">not</span> zero_matrix&lt;NestedMatrix&gt; <span class="keyword">and</span> <span class="keyword">not</span> identity_matrix&lt;NestedMatrix&gt;) <span class="keywordflow">if</span> (<span class="keyword">this</span> != &amp;other)</div>
 <div class="line"><a name="l00212"></a><span class="lineno">  212</span>&#160;      {</div>
@@ -306,7 +306,7 @@ $(document).ready(function(){initNavTree('_covariance_base_8hpp_source.html','')
 <div class="line"><a name="l00218"></a><span class="lineno">  218</span>&#160; </div>
 <div class="line"><a name="l00219"></a><span class="lineno">  219</span>&#160; </div>
 <div class="line"><a name="l00220"></a><span class="lineno">  220</span>&#160;    <span class="comment">/// Move assignment operator.</span></div>
-<div class="line"><a name="l00221"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enabla13a6eb46bea1ac02dc83313a9b3010e.html#a25a5b6088b424274daeb07675c6a1d1f">  221</a></span>&#160;    <span class="keyword">auto</span>&amp; operator=(CovarianceBase&amp;&amp; other) <span class="keyword">noexcept</span></div>
+<div class="line"><a name="l00221"></a><span class="lineno">  221</span>&#160;    <span class="keyword">auto</span>&amp; operator=(CovarianceBase&amp;&amp; other) <span class="keyword">noexcept</span></div>
 <div class="line"><a name="l00222"></a><span class="lineno">  222</span>&#160;    {</div>
 <div class="line"><a name="l00223"></a><span class="lineno">  223</span>&#160;      <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (<span class="keyword">not</span> zero_matrix&lt;NestedMatrix&gt; <span class="keyword">and</span> <span class="keyword">not</span> identity_matrix&lt;NestedMatrix&gt;) <span class="keywordflow">if</span> (<span class="keyword">this</span> != &amp;other)</div>
 <div class="line"><a name="l00224"></a><span class="lineno">  224</span>&#160;      {</div>
@@ -325,7 +325,7 @@ $(document).ready(function(){initNavTree('_covariance_base_8hpp_source.html','')
 <div class="line"><a name="l00237"></a><span class="lineno">  237</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> Arg, std::enable_if_t&lt;(covariance_nestable&lt;Arg&gt; <span class="keyword">or</span> typed_matrix_nestable&lt;Arg&gt;) <span class="keyword">and</span></div>
 <div class="line"><a name="l00238"></a><span class="lineno">  238</span>&#160;      std::is_assignable_v&lt;NestedMatrix, Arg&amp;&amp;&gt;, <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00239"></a><span class="lineno">  239</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">endif</span></div>
-<div class="line"><a name="l00240"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enabla13a6eb46bea1ac02dc83313a9b3010e.html#a43076f06df37c3fa602d3712f01e0e5e">  240</a></span>&#160;    <span class="keyword">auto</span>&amp; operator=(Arg&amp;&amp; arg) <span class="keyword">noexcept</span></div>
+<div class="line"><a name="l00240"></a><span class="lineno">  240</span>&#160;    <span class="keyword">auto</span>&amp; operator=(Arg&amp;&amp; arg) <span class="keyword">noexcept</span></div>
 <div class="line"><a name="l00241"></a><span class="lineno">  241</span>&#160;    {</div>
 <div class="line"><a name="l00242"></a><span class="lineno">  242</span>&#160;      <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (zero_matrix&lt;NestedMatrix&gt;)</div>
 <div class="line"><a name="l00243"></a><span class="lineno">  243</span>&#160;      {</div>
@@ -381,19 +381,19 @@ $(document).ready(function(){initNavTree('_covariance_base_8hpp_source.html','')
 <div class="line"><a name="l00293"></a><span class="lineno">  293</span>&#160; </div>
 <div class="line"><a name="l00294"></a><span class="lineno">  294</span>&#160; </div>
 <div class="line"><a name="l00295"></a><span class="lineno">  295</span>&#160;    <span class="comment">/// Get the apparent nested matrix.</span></div>
-<div class="line"><a name="l00296"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enabla13a6eb46bea1ac02dc83313a9b3010e.html#a398bc029a5c81bec2c00da05983cc14e">  296</a></span>&#160;    <span class="keyword">constexpr</span> <span class="keyword">auto</span>&amp; get_apparent_nested_matrix() &amp; { <span class="keywordflow">return</span> nested_matrix(); }</div>
+<div class="line"><a name="l00296"></a><span class="lineno">  296</span>&#160;    <span class="keyword">constexpr</span> <span class="keyword">auto</span>&amp; get_apparent_nested_matrix() &amp; { <span class="keywordflow">return</span> nested_matrix(); }</div>
 <div class="line"><a name="l00297"></a><span class="lineno">  297</span>&#160; </div>
 <div class="line"><a name="l00298"></a><span class="lineno">  298</span>&#160; </div>
 <div class="line"><a name="l00299"></a><span class="lineno">  299</span>&#160;    <span class="comment">/// Get the apparent nested matrix.</span></div>
-<div class="line"><a name="l00300"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enabla13a6eb46bea1ac02dc83313a9b3010e.html#a83248cd04867d528eb0a882036e1029a">  300</a></span>&#160;    <span class="keyword">constexpr</span> <span class="keyword">auto</span>&amp;&amp; get_apparent_nested_matrix() &amp;&amp; { <span class="keywordflow">return</span> std::move(nested_matrix()); }</div>
+<div class="line"><a name="l00300"></a><span class="lineno">  300</span>&#160;    <span class="keyword">constexpr</span> <span class="keyword">auto</span>&amp;&amp; get_apparent_nested_matrix() &amp;&amp; { <span class="keywordflow">return</span> std::move(nested_matrix()); }</div>
 <div class="line"><a name="l00301"></a><span class="lineno">  301</span>&#160; </div>
 <div class="line"><a name="l00302"></a><span class="lineno">  302</span>&#160; </div>
 <div class="line"><a name="l00303"></a><span class="lineno">  303</span>&#160;    <span class="comment">/// Get the apparent nested matrix.</span></div>
-<div class="line"><a name="l00304"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enabla13a6eb46bea1ac02dc83313a9b3010e.html#a345e71fe76e5b6118047facd7f2ea61f">  304</a></span>&#160;    <span class="keyword">constexpr</span> <span class="keyword">const</span> <span class="keyword">auto</span>&amp; get_apparent_nested_matrix() <span class="keyword">const</span> &amp; { <span class="keywordflow">return</span> nested_matrix(); }</div>
+<div class="line"><a name="l00304"></a><span class="lineno">  304</span>&#160;    <span class="keyword">constexpr</span> <span class="keyword">const</span> <span class="keyword">auto</span>&amp; get_apparent_nested_matrix() <span class="keyword">const</span> &amp; { <span class="keywordflow">return</span> nested_matrix(); }</div>
 <div class="line"><a name="l00305"></a><span class="lineno">  305</span>&#160; </div>
 <div class="line"><a name="l00306"></a><span class="lineno">  306</span>&#160; </div>
 <div class="line"><a name="l00307"></a><span class="lineno">  307</span>&#160;    <span class="comment">/// Get the apparent nested matrix.</span></div>
-<div class="line"><a name="l00308"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enabla13a6eb46bea1ac02dc83313a9b3010e.html#aa98b513937bbb3b949d6f3468adb3104">  308</a></span>&#160;    <span class="keyword">constexpr</span> <span class="keyword">const</span> <span class="keyword">auto</span>&amp;&amp; get_apparent_nested_matrix() <span class="keyword">const</span> &amp;&amp; { <span class="keywordflow">return</span> std::move(nested_matrix()); }</div>
+<div class="line"><a name="l00308"></a><span class="lineno">  308</span>&#160;    <span class="keyword">constexpr</span> <span class="keyword">const</span> <span class="keyword">auto</span>&amp;&amp; get_apparent_nested_matrix() <span class="keyword">const</span> &amp;&amp; { <span class="keywordflow">return</span> std::move(nested_matrix()); }</div>
 <div class="line"><a name="l00309"></a><span class="lineno">  309</span>&#160; </div>
 <div class="line"><a name="l00310"></a><span class="lineno">  310</span>&#160; </div>
 <div class="line"><a name="l00311"></a><span class="lineno">  311</span>&#160;  <span class="keyword">protected</span>:</div>
@@ -403,7 +403,7 @@ $(document).ready(function(){initNavTree('_covariance_base_8hpp_source.html','')
 <div class="line"><a name="l00315"></a><span class="lineno">  315</span>&#160; </div>
 <div class="line"><a name="l00316"></a><span class="lineno">  316</span>&#160; </div>
 <div class="line"><a name="l00317"></a><span class="lineno">  317</span>&#160;  <span class="comment">// ============================================================================</span></div>
-<div class="line"><a name="l00318"></a><span class="lineno">  318</span>&#160;  <span class="comment">/**</span></div>
+<div class="line"><a name="l00318"></a><span class="lineno">  318</span>&#160;  <span class="comment">/*</span></div>
 <div class="line"><a name="l00319"></a><span class="lineno">  319</span>&#160;<span class="comment">   * \internal</span></div>
 <div class="line"><a name="l00320"></a><span class="lineno">  320</span>&#160;<span class="comment">   * Base of Covariance and SquareRootCovariance classes, if ArgType is not an lvalue reference, and</span></div>
 <div class="line"><a name="l00321"></a><span class="lineno">  321</span>&#160;<span class="comment">   * # Derived is a square root and the nested matrix is not triangular (i.e., it is self-adjoint but not diagonal); or</span></div>
@@ -418,7 +418,7 @@ $(document).ready(function(){initNavTree('_covariance_base_8hpp_source.html','')
 <div class="line"><a name="l00330"></a><span class="lineno">  330</span>&#160;  <span class="keyword">struct</span> CovarianceBase&lt;Derived, ArgType&gt;</div>
 <div class="line"><a name="l00331"></a><span class="lineno">  331</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">else</span></div>
 <div class="line"><a name="l00332"></a><span class="lineno">  332</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> Derived, <span class="keyword">typename</span> ArgType&gt;</div>
-<div class="line"><a name="l00333"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enabl33dea91a16b54869feea364852fa5cb9.html">  333</a></span>&#160;  <span class="keyword">struct</span> CovarianceBase&lt;Derived, ArgType, std::enable_if_t&lt;</div>
+<div class="line"><a name="l00333"></a><span class="lineno">  333</span>&#160;  <span class="keyword">struct</span> CovarianceBase&lt;Derived, ArgType, std::enable_if_t&lt;</div>
 <div class="line"><a name="l00334"></a><span class="lineno">  334</span>&#160;    (square_root_covariance&lt;Derived&gt; <span class="keyword">or</span> <span class="keyword">not</span> self_adjoint_matrix&lt;ArgType&gt;) <span class="keyword">and</span></div>
 <div class="line"><a name="l00335"></a><span class="lineno">  335</span>&#160;    (<span class="keyword">not</span> square_root_covariance&lt;Derived&gt; <span class="keyword">or</span> <span class="keyword">not</span> triangular_matrix&lt;ArgType&gt;) <span class="keyword">and</span></div>
 <div class="line"><a name="l00336"></a><span class="lineno">  336</span>&#160;    (<span class="keyword">not</span> std::is_lvalue_reference_v&lt;ArgType&gt;) <span class="keyword">and</span></div>
@@ -451,17 +451,17 @@ $(document).ready(function(){initNavTree('_covariance_base_8hpp_source.html','')
 <div class="line"><a name="l00363"></a><span class="lineno">  363</span>&#160; </div>
 <div class="line"><a name="l00364"></a><span class="lineno">  364</span>&#160;  <span class="keyword">public</span>:</div>
 <div class="line"><a name="l00365"></a><span class="lineno">  365</span>&#160;    <span class="comment">/// Default constructor.</span></div>
-<div class="line"><a name="l00366"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enabl33dea91a16b54869feea364852fa5cb9.html#a5a06c5a049b2264276cd7045f31754ba">  366</a></span>&#160;    CovarianceBase() : synchronized() {}</div>
+<div class="line"><a name="l00366"></a><span class="lineno">  366</span>&#160;    CovarianceBase() : synchronized() {}</div>
 <div class="line"><a name="l00367"></a><span class="lineno">  367</span>&#160; </div>
 <div class="line"><a name="l00368"></a><span class="lineno">  368</span>&#160;    <span class="comment">/// Copy constructor.</span></div>
-<div class="line"><a name="l00369"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enabl33dea91a16b54869feea364852fa5cb9.html#aa4549e5fbec108c63f7900db170cebfc">  369</a></span>&#160;    CovarianceBase(<span class="keyword">const</span> CovarianceBase&amp; other)</div>
+<div class="line"><a name="l00369"></a><span class="lineno">  369</span>&#160;    CovarianceBase(<span class="keyword">const</span> CovarianceBase&amp; other)</div>
 <div class="line"><a name="l00370"></a><span class="lineno">  370</span>&#160;      : Base(other),</div>
 <div class="line"><a name="l00371"></a><span class="lineno">  371</span>&#160;        synchronized(other.synchronized),</div>
 <div class="line"><a name="l00372"></a><span class="lineno">  372</span>&#160;        apparent_nested_matrix(other.apparent_nested_matrix) {}</div>
 <div class="line"><a name="l00373"></a><span class="lineno">  373</span>&#160; </div>
 <div class="line"><a name="l00374"></a><span class="lineno">  374</span>&#160; </div>
 <div class="line"><a name="l00375"></a><span class="lineno">  375</span>&#160;    <span class="comment">/// Move constructor.</span></div>
-<div class="line"><a name="l00376"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enabl33dea91a16b54869feea364852fa5cb9.html#a3d3e4e320cdca36efd45a3016d9c8b1b">  376</a></span>&#160;    CovarianceBase(CovarianceBase&amp;&amp; other) <span class="keyword">noexcept</span></div>
+<div class="line"><a name="l00376"></a><span class="lineno">  376</span>&#160;    CovarianceBase(CovarianceBase&amp;&amp; other) <span class="keyword">noexcept</span></div>
 <div class="line"><a name="l00377"></a><span class="lineno">  377</span>&#160;      : Base(std::move(other.nested_matrix())),</div>
 <div class="line"><a name="l00378"></a><span class="lineno">  378</span>&#160;        synchronized(other.synchronized),</div>
 <div class="line"><a name="l00379"></a><span class="lineno">  379</span>&#160;        apparent_nested_matrix(std::move(other.apparent_nested_matrix)) {}</div>
@@ -479,7 +479,7 @@ $(document).ready(function(){initNavTree('_covariance_base_8hpp_source.html','')
 <div class="line"><a name="l00391"></a><span class="lineno">  391</span>&#160;        square_root_covariance&lt;Derived&gt;) <span class="keyword">and</span></div>
 <div class="line"><a name="l00392"></a><span class="lineno">  392</span>&#160;      internal::same_triangle_type_as&lt;nested_matrix_t&lt;Arg&gt;, ApparentNestedMatrix&gt;, <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00393"></a><span class="lineno">  393</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">endif</span></div>
-<div class="line"><a name="l00394"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enabl33dea91a16b54869feea364852fa5cb9.html#a91fdac621f06f27a0d756e14b0fdfba2">  394</a></span>&#160;    CovarianceBase(Arg&amp;&amp; arg) <span class="keyword">noexcept</span></div>
+<div class="line"><a name="l00394"></a><span class="lineno">  394</span>&#160;    CovarianceBase(Arg&amp;&amp; arg) <span class="keyword">noexcept</span></div>
 <div class="line"><a name="l00395"></a><span class="lineno">  395</span>&#160;      : Base(internal::convert_nested_matrix&lt;NestedMatrix&gt;(arg)),</div>
 <div class="line"><a name="l00396"></a><span class="lineno">  396</span>&#160;        synchronized(<span class="keyword">true</span>),</div>
 <div class="line"><a name="l00397"></a><span class="lineno">  397</span>&#160;        apparent_nested_matrix(std::forward&lt;Arg&gt;(arg).nested_matrix()) {}</div>
@@ -495,7 +495,7 @@ $(document).ready(function(){initNavTree('_covariance_base_8hpp_source.html','')
 <div class="line"><a name="l00407"></a><span class="lineno">  407</span>&#160;      ((cholesky_form&lt;Arg&gt; <span class="keyword">or</span> (diagonal_matrix&lt;Arg&gt; <span class="keyword">and</span> square_root_covariance&lt;Arg&gt;)) == square_root_covariance&lt;Derived&gt;) <span class="keyword">and</span></div>
 <div class="line"><a name="l00408"></a><span class="lineno">  408</span>&#160;      (<span class="keyword">not</span> internal::same_triangle_type_as&lt;nested_matrix_t&lt;Arg&gt;, ApparentNestedMatrix&gt;), <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00409"></a><span class="lineno">  409</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">endif</span></div>
-<div class="line"><a name="l00410"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enabl33dea91a16b54869feea364852fa5cb9.html#a91fdac621f06f27a0d756e14b0fdfba2">  410</a></span>&#160;    CovarianceBase(Arg&amp;&amp; arg) <span class="keyword">noexcept</span></div>
+<div class="line"><a name="l00410"></a><span class="lineno">  410</span>&#160;    CovarianceBase(Arg&amp;&amp; arg) <span class="keyword">noexcept</span></div>
 <div class="line"><a name="l00411"></a><span class="lineno">  411</span>&#160;      : Base(internal::convert_nested_matrix&lt;NestedMatrix&gt;(arg)),</div>
 <div class="line"><a name="l00412"></a><span class="lineno">  412</span>&#160;        synchronized(<span class="keyword">true</span>),</div>
 <div class="line"><a name="l00413"></a><span class="lineno">  413</span>&#160;        apparent_nested_matrix(adjoint(std::forward&lt;Arg&gt;(arg).nested_matrix())) {}</div>
@@ -509,7 +509,7 @@ $(document).ready(function(){initNavTree('_covariance_base_8hpp_source.html','')
 <div class="line"><a name="l00421"></a><span class="lineno">  421</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> Arg, std::enable_if_t&lt;covariance&lt;Arg&gt; <span class="keyword">and</span></div>
 <div class="line"><a name="l00422"></a><span class="lineno">  422</span>&#160;      (cholesky_form&lt;Arg&gt; <span class="keyword">or</span> (diagonal_matrix&lt;Arg&gt; <span class="keyword">and</span> square_root_covariance&lt;Arg&gt;)) != square_root_covariance&lt;Derived&gt;, <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00423"></a><span class="lineno">  423</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">endif</span></div>
-<div class="line"><a name="l00424"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enabl33dea91a16b54869feea364852fa5cb9.html#a91fdac621f06f27a0d756e14b0fdfba2">  424</a></span>&#160;    CovarianceBase(Arg&amp;&amp; arg) <span class="keyword">noexcept</span></div>
+<div class="line"><a name="l00424"></a><span class="lineno">  424</span>&#160;    CovarianceBase(Arg&amp;&amp; arg) <span class="keyword">noexcept</span></div>
 <div class="line"><a name="l00425"></a><span class="lineno">  425</span>&#160;      : Base(internal::convert_nested_matrix&lt;NestedMatrix&gt;(std::forward&lt;Arg&gt;(arg))),</div>
 <div class="line"><a name="l00426"></a><span class="lineno">  426</span>&#160;        synchronized(<span class="keyword">false</span>) {}</div>
 <div class="line"><a name="l00427"></a><span class="lineno">  427</span>&#160; </div>
@@ -520,12 +520,12 @@ $(document).ready(function(){initNavTree('_covariance_base_8hpp_source.html','')
 <div class="line"><a name="l00432"></a><span class="lineno">  432</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">else</span></div>
 <div class="line"><a name="l00433"></a><span class="lineno">  433</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> Arg, std::enable_if_t&lt;covariance_nestable&lt;Arg&gt;, <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00434"></a><span class="lineno">  434</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">endif</span></div>
-<div class="line"><a name="l00435"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enabl33dea91a16b54869feea364852fa5cb9.html#a91fdac621f06f27a0d756e14b0fdfba2">  435</a></span>&#160;    CovarianceBase(Arg&amp;&amp; arg) <span class="keyword">noexcept</span></div>
+<div class="line"><a name="l00435"></a><span class="lineno">  435</span>&#160;    CovarianceBase(Arg&amp;&amp; arg) <span class="keyword">noexcept</span></div>
 <div class="line"><a name="l00436"></a><span class="lineno">  436</span>&#160;      : Base(std::forward&lt;Arg&gt;(arg)),</div>
 <div class="line"><a name="l00437"></a><span class="lineno">  437</span>&#160;        synchronized(<span class="keyword">false</span>) {}</div>
 <div class="line"><a name="l00438"></a><span class="lineno">  438</span>&#160; </div>
 <div class="line"><a name="l00439"></a><span class="lineno">  439</span>&#160;    <span class="comment">/// Copy assignment operator.</span></div>
-<div class="line"><a name="l00440"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enabl33dea91a16b54869feea364852fa5cb9.html#a6ca0d79c1b057b712ae53353a168ecf4">  440</a></span>&#160;    <span class="keyword">auto</span>&amp; operator=(<span class="keyword">const</span> CovarianceBase&amp; other)</div>
+<div class="line"><a name="l00440"></a><span class="lineno">  440</span>&#160;    <span class="keyword">auto</span>&amp; operator=(<span class="keyword">const</span> CovarianceBase&amp; other)</div>
 <div class="line"><a name="l00441"></a><span class="lineno">  441</span>&#160;    {</div>
 <div class="line"><a name="l00442"></a><span class="lineno">  442</span>&#160;      <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (<span class="keyword">not</span> zero_matrix&lt;NestedMatrix&gt; <span class="keyword">and</span> <span class="keyword">not</span> identity_matrix&lt;NestedMatrix&gt;) <span class="keywordflow">if</span> (<span class="keyword">this</span> != &amp;other)</div>
 <div class="line"><a name="l00443"></a><span class="lineno">  443</span>&#160;      {</div>
@@ -537,7 +537,7 @@ $(document).ready(function(){initNavTree('_covariance_base_8hpp_source.html','')
 <div class="line"><a name="l00449"></a><span class="lineno">  449</span>&#160;    }</div>
 <div class="line"><a name="l00450"></a><span class="lineno">  450</span>&#160; </div>
 <div class="line"><a name="l00451"></a><span class="lineno">  451</span>&#160;    <span class="comment">/// Move assignment operator.</span></div>
-<div class="line"><a name="l00452"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enabl33dea91a16b54869feea364852fa5cb9.html#a209153ca16f40bce54465c6b7d8bbb1d">  452</a></span>&#160;    <span class="keyword">auto</span>&amp; operator=(CovarianceBase&amp;&amp; other) <span class="keyword">noexcept</span></div>
+<div class="line"><a name="l00452"></a><span class="lineno">  452</span>&#160;    <span class="keyword">auto</span>&amp; operator=(CovarianceBase&amp;&amp; other) <span class="keyword">noexcept</span></div>
 <div class="line"><a name="l00453"></a><span class="lineno">  453</span>&#160;    {</div>
 <div class="line"><a name="l00454"></a><span class="lineno">  454</span>&#160;      <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (<span class="keyword">not</span> zero_matrix&lt;NestedMatrix&gt; <span class="keyword">and</span> <span class="keyword">not</span> identity_matrix&lt;NestedMatrix&gt;) <span class="keywordflow">if</span> (<span class="keyword">this</span> != &amp;other)</div>
 <div class="line"><a name="l00455"></a><span class="lineno">  455</span>&#160;      {</div>
@@ -554,7 +554,7 @@ $(document).ready(function(){initNavTree('_covariance_base_8hpp_source.html','')
 <div class="line"><a name="l00466"></a><span class="lineno">  466</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">else</span></div>
 <div class="line"><a name="l00467"></a><span class="lineno">  467</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> Arg, std::enable_if_t&lt;covariance_nestable&lt;Arg&gt;, <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00468"></a><span class="lineno">  468</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">endif</span></div>
-<div class="line"><a name="l00469"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enabl33dea91a16b54869feea364852fa5cb9.html#a72bccec1375a609450f1ad314bef9462">  469</a></span>&#160;    <span class="keyword">auto</span>&amp; operator=(Arg&amp;&amp; arg) <span class="keyword">noexcept</span></div>
+<div class="line"><a name="l00469"></a><span class="lineno">  469</span>&#160;    <span class="keyword">auto</span>&amp; operator=(Arg&amp;&amp; arg) <span class="keyword">noexcept</span></div>
 <div class="line"><a name="l00470"></a><span class="lineno">  470</span>&#160;    {</div>
 <div class="line"><a name="l00471"></a><span class="lineno">  471</span>&#160;      <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (zero_matrix&lt;NestedMatrix&gt;)</div>
 <div class="line"><a name="l00472"></a><span class="lineno">  472</span>&#160;      {</div>
@@ -601,7 +601,7 @@ $(document).ready(function(){initNavTree('_covariance_base_8hpp_source.html','')
 <div class="line"><a name="l00513"></a><span class="lineno">  513</span>&#160; </div>
 <div class="line"><a name="l00514"></a><span class="lineno">  514</span>&#160; </div>
 <div class="line"><a name="l00515"></a><span class="lineno">  515</span>&#160;    <span class="comment">/// Get the apparent nested matrix.</span></div>
-<div class="line"><a name="l00516"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enabl33dea91a16b54869feea364852fa5cb9.html#a51653f21700602f860db8f4594339139">  516</a></span>&#160;    <span class="keyword">constexpr</span> <span class="keyword">auto</span>&amp; get_apparent_nested_matrix() &amp;</div>
+<div class="line"><a name="l00516"></a><span class="lineno">  516</span>&#160;    <span class="keyword">constexpr</span> <span class="keyword">auto</span>&amp; get_apparent_nested_matrix() &amp;</div>
 <div class="line"><a name="l00517"></a><span class="lineno">  517</span>&#160;    {</div>
 <div class="line"><a name="l00518"></a><span class="lineno">  518</span>&#160;      <span class="keywordflow">if</span> (<span class="keyword">not</span> synchronized) synchronize();</div>
 <div class="line"><a name="l00519"></a><span class="lineno">  519</span>&#160;      <span class="keywordflow">return</span> apparent_nested_matrix;</div>
@@ -609,7 +609,7 @@ $(document).ready(function(){initNavTree('_covariance_base_8hpp_source.html','')
 <div class="line"><a name="l00521"></a><span class="lineno">  521</span>&#160; </div>
 <div class="line"><a name="l00522"></a><span class="lineno">  522</span>&#160; </div>
 <div class="line"><a name="l00523"></a><span class="lineno">  523</span>&#160;    <span class="comment">/// Get the apparent nested matrix.</span></div>
-<div class="line"><a name="l00524"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enabl33dea91a16b54869feea364852fa5cb9.html#a9360433558b3b68672c30e243670f3b7">  524</a></span>&#160;    <span class="keyword">constexpr</span> <span class="keyword">auto</span>&amp;&amp; get_apparent_nested_matrix() &amp;&amp;</div>
+<div class="line"><a name="l00524"></a><span class="lineno">  524</span>&#160;    <span class="keyword">constexpr</span> <span class="keyword">auto</span>&amp;&amp; get_apparent_nested_matrix() &amp;&amp;</div>
 <div class="line"><a name="l00525"></a><span class="lineno">  525</span>&#160;    {</div>
 <div class="line"><a name="l00526"></a><span class="lineno">  526</span>&#160;      <span class="keywordflow">if</span> (<span class="keyword">not</span> synchronized) synchronize();</div>
 <div class="line"><a name="l00527"></a><span class="lineno">  527</span>&#160;      <span class="keywordflow">return</span> std::move(apparent_nested_matrix);</div>
@@ -617,7 +617,7 @@ $(document).ready(function(){initNavTree('_covariance_base_8hpp_source.html','')
 <div class="line"><a name="l00529"></a><span class="lineno">  529</span>&#160; </div>
 <div class="line"><a name="l00530"></a><span class="lineno">  530</span>&#160; </div>
 <div class="line"><a name="l00531"></a><span class="lineno">  531</span>&#160;    <span class="comment">/// Get the apparent nested matrix.</span></div>
-<div class="line"><a name="l00532"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enabl33dea91a16b54869feea364852fa5cb9.html#a4aefd0e0c93d689e2c9dc03540679d5b">  532</a></span>&#160;    <span class="keyword">constexpr</span> <span class="keyword">const</span> <span class="keyword">auto</span>&amp; get_apparent_nested_matrix() <span class="keyword">const</span> &amp;</div>
+<div class="line"><a name="l00532"></a><span class="lineno">  532</span>&#160;    <span class="keyword">constexpr</span> <span class="keyword">const</span> <span class="keyword">auto</span>&amp; get_apparent_nested_matrix() <span class="keyword">const</span> &amp;</div>
 <div class="line"><a name="l00533"></a><span class="lineno">  533</span>&#160;    {</div>
 <div class="line"><a name="l00534"></a><span class="lineno">  534</span>&#160;      <span class="keywordflow">if</span> (<span class="keyword">not</span> synchronized) synchronize();</div>
 <div class="line"><a name="l00535"></a><span class="lineno">  535</span>&#160;      <span class="keywordflow">return</span> apparent_nested_matrix;</div>
@@ -625,7 +625,7 @@ $(document).ready(function(){initNavTree('_covariance_base_8hpp_source.html','')
 <div class="line"><a name="l00537"></a><span class="lineno">  537</span>&#160; </div>
 <div class="line"><a name="l00538"></a><span class="lineno">  538</span>&#160; </div>
 <div class="line"><a name="l00539"></a><span class="lineno">  539</span>&#160;    <span class="comment">/// Get the apparent nested matrix.</span></div>
-<div class="line"><a name="l00540"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enabl33dea91a16b54869feea364852fa5cb9.html#a752422eb81fbf715d660d1cbd9376e88">  540</a></span>&#160;    <span class="keyword">constexpr</span> <span class="keyword">const</span> <span class="keyword">auto</span>&amp;&amp; get_apparent_nested_matrix() <span class="keyword">const</span> &amp;&amp;</div>
+<div class="line"><a name="l00540"></a><span class="lineno">  540</span>&#160;    <span class="keyword">constexpr</span> <span class="keyword">const</span> <span class="keyword">auto</span>&amp;&amp; get_apparent_nested_matrix() <span class="keyword">const</span> &amp;&amp;</div>
 <div class="line"><a name="l00541"></a><span class="lineno">  541</span>&#160;    {</div>
 <div class="line"><a name="l00542"></a><span class="lineno">  542</span>&#160;      <span class="keywordflow">if</span> (<span class="keyword">not</span> synchronized) synchronize();</div>
 <div class="line"><a name="l00543"></a><span class="lineno">  543</span>&#160;      <span class="keywordflow">return</span> std::move(apparent_nested_matrix);</div>
@@ -650,7 +650,7 @@ $(document).ready(function(){initNavTree('_covariance_base_8hpp_source.html','')
 <div class="line"><a name="l00562"></a><span class="lineno">  562</span>&#160; </div>
 <div class="line"><a name="l00563"></a><span class="lineno">  563</span>&#160; </div>
 <div class="line"><a name="l00564"></a><span class="lineno">  564</span>&#160;  <span class="comment">// ============================================================================</span></div>
-<div class="line"><a name="l00565"></a><span class="lineno">  565</span>&#160;  <span class="comment">/**</span></div>
+<div class="line"><a name="l00565"></a><span class="lineno">  565</span>&#160;  <span class="comment">/*</span></div>
 <div class="line"><a name="l00566"></a><span class="lineno">  566</span>&#160;<span class="comment">   * \internal</span></div>
 <div class="line"><a name="l00567"></a><span class="lineno">  567</span>&#160;<span class="comment">   * Base of Covariance and SquareRootCovariance classes, if ArgType is an lvalue reference, and</span></div>
 <div class="line"><a name="l00568"></a><span class="lineno">  568</span>&#160;<span class="comment">   * # Derived is a square root and the nested matrix is not triangular (i.e., it is self-adjoint but not diagonal); or</span></div>
@@ -664,7 +664,7 @@ $(document).ready(function(){initNavTree('_covariance_base_8hpp_source.html','')
 <div class="line"><a name="l00576"></a><span class="lineno">  576</span>&#160;  <span class="keyword">struct</span> CovarianceBase&lt;Derived, ArgType&gt;</div>
 <div class="line"><a name="l00577"></a><span class="lineno">  577</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">else</span></div>
 <div class="line"><a name="l00578"></a><span class="lineno">  578</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> Derived, <span class="keyword">typename</span> ArgType&gt;</div>
-<div class="line"><a name="l00579"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enablf7ccd8f72f32390098ce960e2476ff72.html">  579</a></span>&#160;  <span class="keyword">struct</span> CovarianceBase&lt;Derived, ArgType, std::enable_if_t&lt;</div>
+<div class="line"><a name="l00579"></a><span class="lineno">  579</span>&#160;  <span class="keyword">struct</span> CovarianceBase&lt;Derived, ArgType, std::enable_if_t&lt;</div>
 <div class="line"><a name="l00580"></a><span class="lineno">  580</span>&#160;    (square_root_covariance&lt;Derived&gt; <span class="keyword">or</span> <span class="keyword">not</span> self_adjoint_matrix&lt;ArgType&gt;) <span class="keyword">and</span></div>
 <div class="line"><a name="l00581"></a><span class="lineno">  581</span>&#160;    (<span class="keyword">not</span> square_root_covariance&lt;Derived&gt; <span class="keyword">or</span> <span class="keyword">not</span> triangular_matrix&lt;ArgType&gt;) <span class="keyword">and</span></div>
 <div class="line"><a name="l00582"></a><span class="lineno">  582</span>&#160;    (std::is_lvalue_reference_v&lt;ArgType&gt; <span class="keyword">or</span> internal::contains_nested_lvalue_reference&lt;ArgType&gt;)&gt;&gt;</div>
@@ -700,17 +700,17 @@ $(document).ready(function(){initNavTree('_covariance_base_8hpp_source.html','')
 <div class="line"><a name="l00612"></a><span class="lineno">  612</span>&#160; </div>
 <div class="line"><a name="l00613"></a><span class="lineno">  613</span>&#160;  <span class="keyword">public</span>:</div>
 <div class="line"><a name="l00614"></a><span class="lineno">  614</span>&#160;    <span class="comment">/// Default constructor.</span></div>
-<div class="line"><a name="l00615"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enablf7ccd8f72f32390098ce960e2476ff72.html#a30f38e13426c5630cd071ec08f1e5f73">  615</a></span>&#160;    CovarianceBase() = <span class="keyword">delete</span>;</div>
+<div class="line"><a name="l00615"></a><span class="lineno">  615</span>&#160;    CovarianceBase() = <span class="keyword">delete</span>;</div>
 <div class="line"><a name="l00616"></a><span class="lineno">  616</span>&#160; </div>
 <div class="line"><a name="l00617"></a><span class="lineno">  617</span>&#160; </div>
 <div class="line"><a name="l00618"></a><span class="lineno">  618</span>&#160;    <span class="comment">/// Copy constructor.</span></div>
-<div class="line"><a name="l00619"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enablf7ccd8f72f32390098ce960e2476ff72.html#a66446fd0ce67d4a1b39e25e798b6be03">  619</a></span>&#160;    CovarianceBase(<span class="keyword">const</span> CovarianceBase&amp; other)</div>
+<div class="line"><a name="l00619"></a><span class="lineno">  619</span>&#160;    CovarianceBase(<span class="keyword">const</span> CovarianceBase&amp; other)</div>
 <div class="line"><a name="l00620"></a><span class="lineno">  620</span>&#160;      : Base(other.nested_matrix()), apparent_nested_linked(other.apparent_nested_linked),</div>
 <div class="line"><a name="l00621"></a><span class="lineno">  621</span>&#160;        synchronized(other.synchronized), apparent_nested_matrix(other.apparent_nested_matrix) {}</div>
 <div class="line"><a name="l00622"></a><span class="lineno">  622</span>&#160; </div>
 <div class="line"><a name="l00623"></a><span class="lineno">  623</span>&#160; </div>
 <div class="line"><a name="l00624"></a><span class="lineno">  624</span>&#160;    <span class="comment">/// Move constructor.</span></div>
-<div class="line"><a name="l00625"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enablf7ccd8f72f32390098ce960e2476ff72.html#ae82e6335151c5b55fa6d26af18e441b3">  625</a></span>&#160;    CovarianceBase(CovarianceBase&amp;&amp; other) <span class="keyword">noexcept</span></div>
+<div class="line"><a name="l00625"></a><span class="lineno">  625</span>&#160;    CovarianceBase(CovarianceBase&amp;&amp; other) <span class="keyword">noexcept</span></div>
 <div class="line"><a name="l00626"></a><span class="lineno">  626</span>&#160;      : Base(std::move(other.nested_matrix())), apparent_nested_linked(other.apparent_nested_linked),</div>
 <div class="line"><a name="l00627"></a><span class="lineno">  627</span>&#160;        synchronized(other.synchronized), apparent_nested_matrix(std::move(other.apparent_nested_matrix)) {}</div>
 <div class="line"><a name="l00628"></a><span class="lineno">  628</span>&#160; </div>
@@ -725,7 +725,7 @@ $(document).ready(function(){initNavTree('_covariance_base_8hpp_source.html','')
 <div class="line"><a name="l00637"></a><span class="lineno">  637</span>&#160;        ((self_adjoint_matrix&lt;nested_matrix_t&lt;Arg&gt;&gt; <span class="keyword">and</span> <span class="keyword">not</span> square_root_covariance&lt;Arg&gt;) <span class="keyword">or</span></div>
 <div class="line"><a name="l00638"></a><span class="lineno">  638</span>&#160;        (triangular_matrix&lt;nested_matrix_t&lt;Arg&gt;&gt; <span class="keyword">and</span> square_root_covariance&lt;Arg&gt;))), <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00639"></a><span class="lineno">  639</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">endif</span></div>
-<div class="line"><a name="l00640"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enablf7ccd8f72f32390098ce960e2476ff72.html#a71f5b1f645e0f7d868dbbf199fc9e844">  640</a></span>&#160;    CovarianceBase(Arg&amp;&amp; arg) <span class="keyword">noexcept</span></div>
+<div class="line"><a name="l00640"></a><span class="lineno">  640</span>&#160;    CovarianceBase(Arg&amp;&amp; arg) <span class="keyword">noexcept</span></div>
 <div class="line"><a name="l00641"></a><span class="lineno">  641</span>&#160;      : Base(std::forward&lt;Arg&gt;(arg)),</div>
 <div class="line"><a name="l00642"></a><span class="lineno">  642</span>&#160;        apparent_nested_linked(<span class="keyword">false</span>),</div>
 <div class="line"><a name="l00643"></a><span class="lineno">  643</span>&#160;        synchronized(<span class="keyword">new</span> <span class="keywordtype">bool</span> {<span class="keyword">false</span>}),</div>
@@ -746,7 +746,7 @@ $(document).ready(function(){initNavTree('_covariance_base_8hpp_source.html','')
 <div class="line"><a name="l00658"></a><span class="lineno">  658</span>&#160;        (internal::contains_nested_lvalue_reference&lt;Arg&gt; <span class="keyword">or</span></div>
 <div class="line"><a name="l00659"></a><span class="lineno">  659</span>&#160;          internal::contains_nested_lvalue_reference&lt;nested_matrix_t&lt;Arg&gt;&gt;), <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00660"></a><span class="lineno">  660</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">endif</span></div>
-<div class="line"><a name="l00661"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enablf7ccd8f72f32390098ce960e2476ff72.html#a71f5b1f645e0f7d868dbbf199fc9e844">  661</a></span>&#160;    CovarianceBase(Arg&amp;&amp; arg) <span class="keyword">noexcept</span></div>
+<div class="line"><a name="l00661"></a><span class="lineno">  661</span>&#160;    CovarianceBase(Arg&amp;&amp; arg) <span class="keyword">noexcept</span></div>
 <div class="line"><a name="l00662"></a><span class="lineno">  662</span>&#160;      : Base(std::forward&lt;<span class="keyword">decltype</span>(arg.nested_matrix())&gt;(arg.nested_matrix())),</div>
 <div class="line"><a name="l00663"></a><span class="lineno">  663</span>&#160;        apparent_nested_linked(<span class="keyword">true</span>), synchronized(&amp;arg.synchronized),</div>
 <div class="line"><a name="l00664"></a><span class="lineno">  664</span>&#160;        apparent_nested_matrix(&amp;arg.apparent_nested_matrix) {}</div>
@@ -766,7 +766,7 @@ $(document).ready(function(){initNavTree('_covariance_base_8hpp_source.html','')
 <div class="line"><a name="l00678"></a><span class="lineno">  678</span>&#160;      (internal::contains_nested_lvalue_reference&lt;Arg&gt; <span class="keyword">or</span></div>
 <div class="line"><a name="l00679"></a><span class="lineno">  679</span>&#160;        internal::contains_nested_lvalue_reference&lt;nested_matrix_t&lt;Arg&gt;&gt;), <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00680"></a><span class="lineno">  680</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">endif</span></div>
-<div class="line"><a name="l00681"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enablf7ccd8f72f32390098ce960e2476ff72.html#a71f5b1f645e0f7d868dbbf199fc9e844">  681</a></span>&#160;    CovarianceBase(Arg&amp;&amp; arg) <span class="keyword">noexcept</span></div>
+<div class="line"><a name="l00681"></a><span class="lineno">  681</span>&#160;    CovarianceBase(Arg&amp;&amp; arg) <span class="keyword">noexcept</span></div>
 <div class="line"><a name="l00682"></a><span class="lineno">  682</span>&#160;      : Base(std::forward&lt;<span class="keyword">decltype</span>(arg.nested_matrix())&gt;(arg.nested_matrix())),</div>
 <div class="line"><a name="l00683"></a><span class="lineno">  683</span>&#160;        apparent_nested_linked(<span class="keyword">true</span>), synchronized(arg.synchronized),</div>
 <div class="line"><a name="l00684"></a><span class="lineno">  684</span>&#160;        apparent_nested_matrix(std::forward&lt;Arg&gt;(arg).apparent_nested_matrix) {}</div>
@@ -783,7 +783,7 @@ $(document).ready(function(){initNavTree('_covariance_base_8hpp_source.html','')
 <div class="line"><a name="l00695"></a><span class="lineno">  695</span>&#160; </div>
 <div class="line"><a name="l00696"></a><span class="lineno">  696</span>&#160; </div>
 <div class="line"><a name="l00697"></a><span class="lineno">  697</span>&#160;    <span class="comment">/// Copy assignment operator.</span></div>
-<div class="line"><a name="l00698"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enablf7ccd8f72f32390098ce960e2476ff72.html#ae1cc40ebdd511c0c5beb5bb01273dda3">  698</a></span>&#160;    <span class="keyword">auto</span>&amp; operator=(<span class="keyword">const</span> CovarianceBase&amp; other)</div>
+<div class="line"><a name="l00698"></a><span class="lineno">  698</span>&#160;    <span class="keyword">auto</span>&amp; operator=(<span class="keyword">const</span> CovarianceBase&amp; other)</div>
 <div class="line"><a name="l00699"></a><span class="lineno">  699</span>&#160;    {</div>
 <div class="line"><a name="l00700"></a><span class="lineno">  700</span>&#160;      <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (<span class="keyword">not</span> zero_matrix&lt;NestedMatrix&gt; <span class="keyword">and</span> <span class="keyword">not</span> identity_matrix&lt;NestedMatrix&gt;) <span class="keywordflow">if</span> (<span class="keyword">this</span> != &amp;other)</div>
 <div class="line"><a name="l00701"></a><span class="lineno">  701</span>&#160;      {</div>
@@ -796,7 +796,7 @@ $(document).ready(function(){initNavTree('_covariance_base_8hpp_source.html','')
 <div class="line"><a name="l00708"></a><span class="lineno">  708</span>&#160; </div>
 <div class="line"><a name="l00709"></a><span class="lineno">  709</span>&#160; </div>
 <div class="line"><a name="l00710"></a><span class="lineno">  710</span>&#160;    <span class="comment">/// Move assignment operator.</span></div>
-<div class="line"><a name="l00711"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enablf7ccd8f72f32390098ce960e2476ff72.html#a62668fcbd32db38a8dae06183ffd819f">  711</a></span>&#160;    <span class="keyword">auto</span>&amp; operator=(CovarianceBase&amp;&amp; other) <span class="keyword">noexcept</span></div>
+<div class="line"><a name="l00711"></a><span class="lineno">  711</span>&#160;    <span class="keyword">auto</span>&amp; operator=(CovarianceBase&amp;&amp; other) <span class="keyword">noexcept</span></div>
 <div class="line"><a name="l00712"></a><span class="lineno">  712</span>&#160;    {</div>
 <div class="line"><a name="l00713"></a><span class="lineno">  713</span>&#160;      <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (<span class="keyword">not</span> zero_matrix&lt;NestedMatrix&gt; <span class="keyword">and</span> <span class="keyword">not</span> identity_matrix&lt;NestedMatrix&gt;) <span class="keywordflow">if</span> (<span class="keyword">this</span> != &amp;other)</div>
 <div class="line"><a name="l00714"></a><span class="lineno">  714</span>&#160;      {</div>
@@ -814,7 +814,7 @@ $(document).ready(function(){initNavTree('_covariance_base_8hpp_source.html','')
 <div class="line"><a name="l00726"></a><span class="lineno">  726</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">else</span></div>
 <div class="line"><a name="l00727"></a><span class="lineno">  727</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> Arg, std::enable_if_t&lt;covariance_nestable&lt;Arg&gt;, <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00728"></a><span class="lineno">  728</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">endif</span></div>
-<div class="line"><a name="l00729"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enablf7ccd8f72f32390098ce960e2476ff72.html#aeed6a3565274f0d3892e25c1e201e6b3">  729</a></span>&#160;    <span class="keyword">auto</span>&amp; operator=(Arg&amp;&amp; arg)</div>
+<div class="line"><a name="l00729"></a><span class="lineno">  729</span>&#160;    <span class="keyword">auto</span>&amp; operator=(Arg&amp;&amp; arg)</div>
 <div class="line"><a name="l00730"></a><span class="lineno">  730</span>&#160;    {</div>
 <div class="line"><a name="l00731"></a><span class="lineno">  731</span>&#160;      <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (zero_matrix&lt;NestedMatrix&gt;)</div>
 <div class="line"><a name="l00732"></a><span class="lineno">  732</span>&#160;      {</div>
@@ -865,7 +865,7 @@ $(document).ready(function(){initNavTree('_covariance_base_8hpp_source.html','')
 <div class="line"><a name="l00777"></a><span class="lineno">  777</span>&#160; </div>
 <div class="line"><a name="l00778"></a><span class="lineno">  778</span>&#160; </div>
 <div class="line"><a name="l00779"></a><span class="lineno">  779</span>&#160;    <span class="comment">/// Get the apparent nested matrix.</span></div>
-<div class="line"><a name="l00780"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enablf7ccd8f72f32390098ce960e2476ff72.html#aa164dbbcbb6ce5e446c5e4f28d31eecb">  780</a></span>&#160;    <span class="keyword">constexpr</span> <span class="keyword">auto</span>&amp; get_apparent_nested_matrix() &amp;</div>
+<div class="line"><a name="l00780"></a><span class="lineno">  780</span>&#160;    <span class="keyword">constexpr</span> <span class="keyword">auto</span>&amp; get_apparent_nested_matrix() &amp;</div>
 <div class="line"><a name="l00781"></a><span class="lineno">  781</span>&#160;    {</div>
 <div class="line"><a name="l00782"></a><span class="lineno">  782</span>&#160;      <span class="keywordflow">if</span> (<span class="keyword">not</span> *synchronized) synchronize();</div>
 <div class="line"><a name="l00783"></a><span class="lineno">  783</span>&#160;      <span class="keywordflow">return</span> *apparent_nested_matrix;</div>
@@ -873,7 +873,7 @@ $(document).ready(function(){initNavTree('_covariance_base_8hpp_source.html','')
 <div class="line"><a name="l00785"></a><span class="lineno">  785</span>&#160; </div>
 <div class="line"><a name="l00786"></a><span class="lineno">  786</span>&#160; </div>
 <div class="line"><a name="l00787"></a><span class="lineno">  787</span>&#160;    <span class="comment">/// Get the apparent nested matrix.</span></div>
-<div class="line"><a name="l00788"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enablf7ccd8f72f32390098ce960e2476ff72.html#ad5078596fb620b7424a0b44482785f58">  788</a></span>&#160;    <span class="keyword">constexpr</span> <span class="keyword">auto</span>&amp;&amp; get_apparent_nested_matrix() &amp;&amp;</div>
+<div class="line"><a name="l00788"></a><span class="lineno">  788</span>&#160;    <span class="keyword">constexpr</span> <span class="keyword">auto</span>&amp;&amp; get_apparent_nested_matrix() &amp;&amp;</div>
 <div class="line"><a name="l00789"></a><span class="lineno">  789</span>&#160;    {</div>
 <div class="line"><a name="l00790"></a><span class="lineno">  790</span>&#160;      <span class="keywordflow">if</span> (<span class="keyword">not</span> *synchronized) synchronize();</div>
 <div class="line"><a name="l00791"></a><span class="lineno">  791</span>&#160;      <span class="keywordflow">return</span> std::move(*apparent_nested_matrix);</div>
@@ -881,7 +881,7 @@ $(document).ready(function(){initNavTree('_covariance_base_8hpp_source.html','')
 <div class="line"><a name="l00793"></a><span class="lineno">  793</span>&#160; </div>
 <div class="line"><a name="l00794"></a><span class="lineno">  794</span>&#160; </div>
 <div class="line"><a name="l00795"></a><span class="lineno">  795</span>&#160;    <span class="comment">/// Get the apparent nested matrix.</span></div>
-<div class="line"><a name="l00796"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enablf7ccd8f72f32390098ce960e2476ff72.html#a2f479bcd78dcc2b08915af46596715bf">  796</a></span>&#160;    <span class="keyword">constexpr</span> <span class="keyword">const</span> <span class="keyword">auto</span>&amp; get_apparent_nested_matrix() <span class="keyword">const</span> &amp;</div>
+<div class="line"><a name="l00796"></a><span class="lineno">  796</span>&#160;    <span class="keyword">constexpr</span> <span class="keyword">const</span> <span class="keyword">auto</span>&amp; get_apparent_nested_matrix() <span class="keyword">const</span> &amp;</div>
 <div class="line"><a name="l00797"></a><span class="lineno">  797</span>&#160;    {</div>
 <div class="line"><a name="l00798"></a><span class="lineno">  798</span>&#160;      <span class="keywordflow">if</span> (<span class="keyword">not</span> *synchronized) synchronize();</div>
 <div class="line"><a name="l00799"></a><span class="lineno">  799</span>&#160;      <span class="keywordflow">return</span> *apparent_nested_matrix;</div>
@@ -889,7 +889,7 @@ $(document).ready(function(){initNavTree('_covariance_base_8hpp_source.html','')
 <div class="line"><a name="l00801"></a><span class="lineno">  801</span>&#160; </div>
 <div class="line"><a name="l00802"></a><span class="lineno">  802</span>&#160; </div>
 <div class="line"><a name="l00803"></a><span class="lineno">  803</span>&#160;    <span class="comment">/// Get the apparent nested matrix.</span></div>
-<div class="line"><a name="l00804"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_arg_type_00_01std_1_1enablf7ccd8f72f32390098ce960e2476ff72.html#a0b330057cffc2a630292780205faf3ad">  804</a></span>&#160;    <span class="keyword">constexpr</span> <span class="keyword">const</span> <span class="keyword">auto</span>&amp;&amp; get_apparent_nested_matrix() <span class="keyword">const</span> &amp;&amp;</div>
+<div class="line"><a name="l00804"></a><span class="lineno">  804</span>&#160;    <span class="keyword">constexpr</span> <span class="keyword">const</span> <span class="keyword">auto</span>&amp;&amp; get_apparent_nested_matrix() <span class="keyword">const</span> &amp;&amp;</div>
 <div class="line"><a name="l00805"></a><span class="lineno">  805</span>&#160;    {</div>
 <div class="line"><a name="l00806"></a><span class="lineno">  806</span>&#160;      <span class="keywordflow">if</span> (<span class="keyword">not</span> *synchronized) synchronize();</div>
 <div class="line"><a name="l00807"></a><span class="lineno">  807</span>&#160;      <span class="keywordflow">return</span> std::move(*apparent_nested_matrix);</div>
@@ -921,7 +921,7 @@ $(document).ready(function(){initNavTree('_covariance_base_8hpp_source.html','')
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_bf85a1622761b0afd6fb52adee52cf94.html">OpenKalman</a></li><li class="navelem"><a class="el" href="dir_d9323b2d30f8bd90efc890cacaa77a07.html">matrices</a></li><li class="navelem"><a class="el" href="dir_90319fe7bad51690590a77f58314e4d2.html">details</a></li><li class="navelem"><b>CovarianceBase.hpp</b></li>
-    <li class="footer">Generated on Wed Dec 2 2020 15:38:02 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
+    <li class="footer">Generated on Sat Dec 5 2020 03:00:15 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
   </ul>
 </div>
 </body>

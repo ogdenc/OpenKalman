@@ -218,7 +218,7 @@ $(document).ready(function(){initNavTree('eigen3-matrix-overloads_8hpp_source.ht
 <div class="line"><a name="l00130"></a><span class="lineno">  130</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> Coefficients, <span class="keyword">typename</span> Arg, std::enable_if_t&lt;eigen_matrix&lt;Arg&gt;, <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">endif</span></div>
 <div class="line"><a name="l00132"></a><span class="lineno">  132</span>&#160;  <span class="keyword">constexpr</span> <span class="keyword">decltype</span>(<span class="keyword">auto</span>)</div>
-<div class="line"><a name="l00133"></a><span class="lineno">  133</span>&#160;  to_Euclidean(Arg&amp;&amp; arg) <span class="keyword">noexcept</span></div>
+<div class="line"><a name="l00133"></a><span class="lineno">  133</span>&#160;  to_euclidean(Arg&amp;&amp; arg) <span class="keyword">noexcept</span></div>
 <div class="line"><a name="l00134"></a><span class="lineno">  134</span>&#160;  {</div>
 <div class="line"><a name="l00135"></a><span class="lineno">  135</span>&#160;    <span class="keyword">static_assert</span>(<span class="keyword">not</span> to_euclidean_expr&lt;Arg&gt;);</div>
 <div class="line"><a name="l00136"></a><span class="lineno">  136</span>&#160;    <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (Coefficients::axes_only)</div>
@@ -238,7 +238,7 @@ $(document).ready(function(){initNavTree('eigen3-matrix-overloads_8hpp_source.ht
 <div class="line"><a name="l00150"></a><span class="lineno">  150</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> Coefficients, <span class="keyword">typename</span> Arg, std::enable_if_t&lt;eigen_matrix&lt;Arg&gt;, <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00151"></a><span class="lineno">  151</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">endif</span></div>
 <div class="line"><a name="l00152"></a><span class="lineno">  152</span>&#160;  <span class="keyword">constexpr</span> <span class="keyword">decltype</span>(<span class="keyword">auto</span>)</div>
-<div class="line"><a name="l00153"></a><span class="lineno">  153</span>&#160;  from_Euclidean(Arg&amp;&amp; arg) <span class="keyword">noexcept</span></div>
+<div class="line"><a name="l00153"></a><span class="lineno">  153</span>&#160;  from_euclidean(Arg&amp;&amp; arg) <span class="keyword">noexcept</span></div>
 <div class="line"><a name="l00154"></a><span class="lineno">  154</span>&#160;  {</div>
 <div class="line"><a name="l00155"></a><span class="lineno">  155</span>&#160;    <span class="keyword">static_assert</span>(<span class="keyword">not</span> from_euclidean_expr&lt;Arg&gt;);</div>
 <div class="line"><a name="l00156"></a><span class="lineno">  156</span>&#160;    <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (Coefficients::axes_only)</div>
@@ -267,7 +267,7 @@ $(document).ready(function(){initNavTree('eigen3-matrix-overloads_8hpp_source.ht
 <div class="line"><a name="l00179"></a><span class="lineno">  179</span>&#160;    }</div>
 <div class="line"><a name="l00180"></a><span class="lineno">  180</span>&#160;    <span class="keywordflow">else</span></div>
 <div class="line"><a name="l00181"></a><span class="lineno">  181</span>&#160;    {</div>
-<div class="line"><a name="l00182"></a><span class="lineno">  182</span>&#160;      <span class="keywordflow">return</span> from_Euclidean&lt;Coefficients&gt;(to_Euclidean&lt;Coefficients&gt;(std::forward&lt;Arg&gt;(arg)));</div>
+<div class="line"><a name="l00182"></a><span class="lineno">  182</span>&#160;      <span class="keywordflow">return</span> from_euclidean&lt;Coefficients&gt;(to_euclidean&lt;Coefficients&gt;(std::forward&lt;Arg&gt;(arg)));</div>
 <div class="line"><a name="l00183"></a><span class="lineno">  183</span>&#160;    }</div>
 <div class="line"><a name="l00184"></a><span class="lineno">  184</span>&#160;  }</div>
 <div class="line"><a name="l00185"></a><span class="lineno">  185</span>&#160; </div>
@@ -1367,7 +1367,7 @@ $(document).ready(function(){initNavTree('eigen3-matrix-overloads_8hpp_source.ht
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_bf85a1622761b0afd6fb52adee52cf94.html">OpenKalman</a></li><li class="navelem"><a class="el" href="dir_9a874cd55ac13c4ed4215eed8bf81d10.html">interfaces</a></li><li class="navelem"><a class="el" href="dir_5cdfd102c8f8103b4d6d7ed8f2352ca0.html">eigen3</a></li><li class="navelem"><a class="el" href="dir_0675fd94e4ecce8ed7db3e3062a9ddac.html">details</a></li><li class="navelem"><b>eigen3-matrix-overloads.hpp</b></li>
-    <li class="footer">Generated on Wed Dec 2 2020 15:37:40 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
+    <li class="footer">Generated on Sat Dec 5 2020 03:00:01 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
   </ul>
 </div>
 </body>

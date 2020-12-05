@@ -83,7 +83,7 @@ namespace OpenKalman::Eigen3
   template<typename Arg, std::enable_if_t<from_euclidean_expr<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
-  to_Euclidean(Arg&& arg) noexcept
+  to_euclidean(Arg&& arg) noexcept
   {
     return std::forward<Arg>(arg).nested_matrix();
   }
@@ -95,10 +95,10 @@ namespace OpenKalman::Eigen3
   template<typename Coefficients, typename Arg, std::enable_if_t<from_euclidean_expr<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
-  to_Euclidean(Arg&& arg) noexcept
+  to_euclidean(Arg&& arg) noexcept
   {
     static_assert(equivalent_to<Coefficients, typename MatrixTraits<Arg>::RowCoefficients>);
-    return to_Euclidean(std::forward<Arg>(arg));
+    return to_euclidean(std::forward<Arg>(arg));
   }
 
 
@@ -108,7 +108,7 @@ namespace OpenKalman::Eigen3
   template<typename Arg, std::enable_if_t<to_euclidean_expr<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
-  from_Euclidean(Arg&& arg) noexcept
+  from_euclidean(Arg&& arg) noexcept
   {
     using Coefficients = typename MatrixTraits<Arg>::RowCoefficients;
     if constexpr(Coefficients::axes_only)
@@ -128,10 +128,10 @@ namespace OpenKalman::Eigen3
   template<typename Coefficients, typename Arg, std::enable_if_t<to_euclidean_expr<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
-  from_Euclidean(Arg&& arg) noexcept
+  from_euclidean(Arg&& arg) noexcept
   {
     static_assert(OpenKalman::equivalent_to<Coefficients, typename MatrixTraits<Arg>::RowCoefficients>);
-    return from_Euclidean(std::forward<Arg>(arg));
+    return from_euclidean(std::forward<Arg>(arg));
   }
 
 
@@ -561,11 +561,11 @@ namespace OpenKalman::Eigen3
         };
       if constexpr(to_euclidean_expr<Arg>)
       {
-        return OpenKalman::internal::to_Euclidean<Coeffs, Scalar>(i, get_coeff);
+        return OpenKalman::internal::to_euclidean_coeff<Coeffs, Scalar>(i, get_coeff);
       }
       else
       {
-        return OpenKalman::internal::from_Euclidean<Coeffs, Scalar>(i, get_coeff);
+        return OpenKalman::internal::from_euclidean_coeff<Coeffs, Scalar>(i, get_coeff);
       }
     }
   }
@@ -597,11 +597,11 @@ namespace OpenKalman::Eigen3
         };
       if constexpr(to_euclidean_expr<Arg>)
       {
-        return OpenKalman::internal::to_Euclidean<Coeffs, Scalar>((std::size_t) i, get_coeff);
+        return OpenKalman::internal::to_euclidean_coeff<Coeffs, Scalar>((std::size_t) i, get_coeff);
       }
       else
       {
-        return OpenKalman::internal::from_Euclidean<Coeffs, Scalar>((std::size_t) i, get_coeff);
+        return OpenKalman::internal::from_euclidean_coeff<Coeffs, Scalar>((std::size_t) i, get_coeff);
       }
     }
   }
@@ -744,10 +744,10 @@ namespace OpenKalman::Eigen3
       const auto get_coeff = [&arg, j] (const std::size_t row) {
         return get_element(nested_matrix(nested_matrix(arg)), row, j);
       };
-      const auto set_coeff = [&arg, j] (const Scalar value, const std::size_t row) {
+      const auto set_coeff = [&arg, j] (const std::size_t row, const Scalar value) {
         set_element(nested_matrix(nested_matrix(arg)), value, row, j);
       };
-      OpenKalman::internal::wrap_set<Coeffs>(s, i, set_coeff, get_coeff);
+      OpenKalman::internal::wrap_set<Coeffs>(i, s, set_coeff, get_coeff);
     }
   }
 
@@ -788,10 +788,10 @@ namespace OpenKalman::Eigen3
       const auto get_coeff = [&arg] (const std::size_t row) {
         return get_element(nested_matrix(nested_matrix(arg)), row);
       };
-      const auto set_coeff = [&arg] (const Scalar value, const std::size_t row) {
+      const auto set_coeff = [&arg] (const std::size_t row, const Scalar value) {
         set_element(nested_matrix(nested_matrix(arg)), value, row);
       };
-      OpenKalman::internal::wrap_set<Coeffs>(s, i, set_coeff, get_coeff);
+      OpenKalman::internal::wrap_set<Coeffs>(i, s, set_coeff, get_coeff);
     }
   }
 
@@ -964,7 +964,7 @@ namespace OpenKalman::Eigen3
 
 
   /**
-   * Fill a matrix of to-Euclidean- or from_Euclidean-transformed values selected from a random distribution.
+   * Fill a matrix of to-Euclidean- or from_euclidean-transformed values selected from a random distribution.
    * The Gaussian distribution has zero mean and standard deviation sigma (1, if not specified).
    **/
 #ifdef __cpp_concepts

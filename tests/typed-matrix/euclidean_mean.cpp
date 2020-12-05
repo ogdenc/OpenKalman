@@ -258,7 +258,7 @@ TEST_F(matrices, EuclideanMean_overloads)
   EXPECT_TRUE(is_near(make_self_contained(Mat23 {1, 2, 3, 4, 5, 6, 7, 8, 9} * 2), TM33 {2, 4, 6, 8, 10, 12, 14, 16, 18}));
   static_assert(std::is_same_v<std::decay_t<decltype(make_self_contained(Mat23 {1, 2, 3, 4, 5, 6, 7, 8, 9} * 2))>, Mat23>);
 
-  EXPECT_TRUE(is_near(from_Euclidean(
+  EXPECT_TRUE(is_near(from_euclidean(
     EuclideanMean<C2, M33> {1, 2, 3,
                             0.5, std::sqrt(3)/2, sqrt2/2,
                             std::sqrt(3)/2, 0.5, sqrt2/2}),
@@ -266,12 +266,12 @@ TEST_F(matrices, EuclideanMean_overloads)
                    pi/3, pi/6, pi/4}));
 
   const auto m1 = make_euclidean_mean(-2., 5, 3);
-  EXPECT_TRUE(is_near(from_Euclidean(m1), m1));
+  EXPECT_TRUE(is_near(from_euclidean(m1), m1));
 
   using A3 = Coefficients<angle::Radians, Axis, angle::Radians>;
   const auto m2 = make_euclidean_mean<A3>(std::sqrt(3) / 2, 0.5, 5, 0.5, -std::sqrt(3) / 2);
   const auto x2 = (native_matrix_t<double, 3, 1> {} << pi / 6, 5, -pi / 3).finished();
-  EXPECT_TRUE(is_near(from_Euclidean(m2).nested_matrix(), x2));
+  EXPECT_TRUE(is_near(from_euclidean(m2).nested_matrix(), x2));
 
   EXPECT_TRUE(is_near(to_diagonal(EuclideanMean<Axes<2>, M21> {2, 3}).nested_matrix(), TM22 {2, 0, 0, 3}));
   static_assert(diagonal_matrix<decltype(to_diagonal(EuclideanMean<Axes<2>, M21> {2, 3}))>);
@@ -427,42 +427,42 @@ TEST_F(matrices, Polar_Spherical_toEuclideanExpr)
   using P1 = Polar<Distance, angle::Radians>;
   const Mean<P1> m1 {2, pi / 6};
   const auto x1 = make_euclidean_mean<P1>(2, std::sqrt(3) / 2, 0.5);
-  EXPECT_TRUE(is_near(to_Euclidean(m1), x1));
+  EXPECT_TRUE(is_near(to_euclidean(m1), x1));
 
   using P2 = Polar<angle::Radians, Distance>;
   const Mean<P2> m2 {pi / 6, 2};
   const auto x2 = make_euclidean_mean<P2>(std::sqrt(3) / 2, 0.5, 2);
-  EXPECT_TRUE(is_near(to_Euclidean(m2), x2));
+  EXPECT_TRUE(is_near(to_euclidean(m2), x2));
 
   using S3 = Spherical<Distance, angle::Radians, inclination::Radians>;
   const Mean<S3> m3 {2, pi / 6, -pi / 3};
   const auto x3 = make_euclidean_mean<S3>(2, std::sqrt(3) / 4, 0.25, -std::sqrt(3) / 2);
-  EXPECT_TRUE(is_near(to_Euclidean(m3), x3));
+  EXPECT_TRUE(is_near(to_euclidean(m3), x3));
 
   using S4 = Spherical<Distance, inclination::Radians, angle::Radians>;
   const Mean<S4> m4 {2, -pi / 3, pi / 6};
   const auto x4 = make_euclidean_mean<S4>(2, std::sqrt(3) / 4, 0.25, -std::sqrt(3) / 2);
-  EXPECT_TRUE(is_near(to_Euclidean(m4), x4));
+  EXPECT_TRUE(is_near(to_euclidean(m4), x4));
 
   using S5 = Spherical<angle::Radians, Distance, inclination::Radians>;
   const Mean<S5> m5 {pi / 6, 2, -pi / 3};
   const auto x5 = make_euclidean_mean<S5>(2, std::sqrt(3) / 4, 0.25, -std::sqrt(3) / 2);
-  EXPECT_TRUE(is_near(to_Euclidean(m5), x5));
+  EXPECT_TRUE(is_near(to_euclidean(m5), x5));
 
   using S6 = Spherical<inclination::Radians, Distance, angle::Radians>;
   const Mean<S6> m6 {-pi / 3, 2, pi / 6};
   const auto x6 = make_euclidean_mean<S6>(2, std::sqrt(3) / 4, 0.25, -std::sqrt(3) / 2);
-  EXPECT_TRUE(is_near(to_Euclidean(m6), x6));
+  EXPECT_TRUE(is_near(to_euclidean(m6), x6));
 
   using S7 = Spherical<angle::Radians, inclination::Radians, Distance>;
   const Mean<S7> m7 {pi / 6, -pi / 3, 2};
   const auto x7 = make_euclidean_mean<S7>(2, std::sqrt(3) / 4, 0.25, -std::sqrt(3) / 2);
-  EXPECT_TRUE(is_near(to_Euclidean(m7), x7));
+  EXPECT_TRUE(is_near(to_euclidean(m7), x7));
 
   using S8 = Spherical<inclination::Radians, angle::Radians, Distance>;
   const Mean<S8> m8 {-pi / 3, pi / 6, 2};
   const auto x8 = make_euclidean_mean<S8>(2, std::sqrt(3) / 4, 0.25, -std::sqrt(3) / 2);
-  EXPECT_TRUE(is_near(to_Euclidean(m8), x8));
+  EXPECT_TRUE(is_near(to_euclidean(m8), x8));
 }
 
 
@@ -471,40 +471,40 @@ TEST_F(matrices, Polar_Spherical_fromEuclideanExpr)
   using P1 = Polar<Distance, angle::Radians>;
   const Mean<P1> m1 {2, pi / 6};
   const auto x1 = make_euclidean_mean<P1>(2, std::sqrt(3) / 2, 0.5);
-  EXPECT_TRUE(is_near(m1, from_Euclidean(x1)));
+  EXPECT_TRUE(is_near(m1, from_euclidean(x1)));
 
   using P2 = Polar<angle::Radians, Distance>;
   const Mean<P2> m2 {pi / 6, 2};
   const auto x2 = make_euclidean_mean<P2>(std::sqrt(3) / 2, 0.5, 2);
-  EXPECT_TRUE(is_near(m2, from_Euclidean(x2)));
+  EXPECT_TRUE(is_near(m2, from_euclidean(x2)));
 
   using S3 = Spherical<Distance, angle::Radians, inclination::Radians>;
   const Mean<S3> m3 {2, pi / 6, -pi / 3};
   const auto x3 = make_euclidean_mean<S3>(2, std::sqrt(3) / 4, 0.25, -std::sqrt(3) / 2);
-  EXPECT_TRUE(is_near(m3, from_Euclidean(x3)));
+  EXPECT_TRUE(is_near(m3, from_euclidean(x3)));
 
   using S4 = Spherical<Distance, inclination::Radians, angle::Radians>;
   const Mean<S4> m4 {2, -pi / 3, pi / 6};
   const auto x4 = make_euclidean_mean<S4>(2, std::sqrt(3) / 4, 0.25, -std::sqrt(3) / 2);
-  EXPECT_TRUE(is_near(m4, from_Euclidean(x4)));
+  EXPECT_TRUE(is_near(m4, from_euclidean(x4)));
 
   using S5 = Spherical<angle::Radians, Distance, inclination::Radians>;
   const Mean<S5> m5 {pi / 6, 2, -pi / 3};
   const auto x5 = make_euclidean_mean<S5>(2, std::sqrt(3) / 4, 0.25, -std::sqrt(3) / 2);
-  EXPECT_TRUE(is_near(m5, from_Euclidean(x5)));
+  EXPECT_TRUE(is_near(m5, from_euclidean(x5)));
 
   using S6 = Spherical<inclination::Radians, Distance, angle::Radians>;
   const Mean<S6> m6 {-pi / 3, 2, pi / 6};
   const auto x6 = make_euclidean_mean<S6>(2, std::sqrt(3) / 4, 0.25, -std::sqrt(3) / 2);
-  EXPECT_TRUE(is_near(m6, from_Euclidean(x6)));
+  EXPECT_TRUE(is_near(m6, from_euclidean(x6)));
 
   using S7 = Spherical<angle::Radians, inclination::Radians, Distance>;
   const Mean<S7> m7 {pi / 6, -pi / 3, 2};
   const auto x7 = make_euclidean_mean<S7>(2, std::sqrt(3) / 4, 0.25, -std::sqrt(3) / 2);
-  EXPECT_TRUE(is_near(m7, from_Euclidean(x7)));
+  EXPECT_TRUE(is_near(m7, from_euclidean(x7)));
 
   using S8 = Spherical<inclination::Radians, angle::Radians, Distance>;
   const Mean<S8> m8 {-pi / 3, pi / 6, 2};
   const auto x8 = make_euclidean_mean<S8>(2, std::sqrt(3) / 4, 0.25, -std::sqrt(3) / 2);
-  EXPECT_TRUE(is_near(m8, from_Euclidean(x8)));
+  EXPECT_TRUE(is_near(m8, from_euclidean(x8)));
 }

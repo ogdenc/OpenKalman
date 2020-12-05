@@ -8,6 +8,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+/**
+ * \file
+ * \brief Functions for accessing elements of typed arrays, based on typed coefficients.
+ */
+
 #ifndef OPENKALMAN_COEFFICIENT_FUNCTIONS_H
 #define OPENKALMAN_COEFFICIENT_FUNCTIONS_H
 
@@ -30,15 +35,18 @@ namespace OpenKalman::internal
    * \param get_coeff A function taking an index to a column in the transformed matrix and returning its Scalar value.
    * \return The Scalar value of the transformed coordinate in Euclidean space corresponding to the provided
    * row and column (the column is an input into get_coeff).
+   * \relatesalso Axis
+   * \relatesalso Angle
    */
 #ifdef __cpp_concepts
   template<coefficients Coeffs, typename Scalar> requires std::is_arithmetic_v<Scalar>
 #else
-  template<typename Coeffs, typename Scalar, std::enable_if_t<coefficients<Coeffs>, int> = 0>
+  template<typename Coeffs, typename Scalar, typename = std::enable_if_t<coefficients<Coeffs>>>
 #endif
-  static Scalar to_Euclidean(const std::size_t row, const std::function<Scalar(const std::size_t)> get_coeff)
+  static Scalar
+  to_euclidean_coeff(const std::size_t row, const std::function<Scalar(const std::size_t)>& get_coeff)
   {
-    return Coeffs::template to_Euclidean_array<Scalar, 0>[row](get_coeff);
+    return Coeffs::template to_euclidean_array<Scalar, 0>[row](get_coeff);
   }
 
 
@@ -55,11 +63,12 @@ namespace OpenKalman::internal
 #ifdef __cpp_concepts
   template<coefficients Coeffs, typename Scalar> requires std::is_arithmetic_v<Scalar>
 #else
-  template<typename Coeffs, typename Scalar, std::enable_if_t<coefficients<Coeffs>, int> = 0>
+  template<typename Coeffs, typename Scalar, typename = std::enable_if_t<coefficients<Coeffs>>>
 #endif
-  static Scalar from_Euclidean(const std::size_t row, const std::function<Scalar(const std::size_t)> get_coeff)
+  static Scalar
+  from_euclidean_coeff(const std::size_t row, const std::function<Scalar(const std::size_t)>& get_coeff)
   {
-    return Coeffs::template from_Euclidean_array<Scalar, 0>[row](get_coeff);
+    return Coeffs::template from_euclidean_array<Scalar, 0>[row](get_coeff);
   }
 
 
@@ -67,7 +76,7 @@ namespace OpenKalman::internal
    * \internal
    * \brief Wrap a given coefficient and return its wrapped, scalar value.
    * \tparam Coeffs The row coefficients for the typed matrix.
-   * \tparam F An invocable function that takes a column index of a matrix and returns its unwrapped, Scalar value.
+   * \tparam F A function that takes a column index of a matrix and returns its unwrapped, Scalar value.
    * \param row The applicable row of the matrix.
    * \return The Scalar value of the wrapped coefficient corresponding to the provided
    * row and column (the column is an input into get_coeff).
@@ -76,11 +85,12 @@ namespace OpenKalman::internal
   template<coefficients Coeffs, std::invocable<const std::size_t> F>
     requires std::is_arithmetic_v<std::invoke_result_t<F, const std::size_t>>
 #else
-  template<typename Coeffs, typename F, std::enable_if_t<
+  template<typename Coeffs, typename F, typename = std::enable_if_t<
     coefficients<Coeffs> and std::is_invocable_v<F, const std::size_t> and
-    std::is_arithmetic_v<std::invoke_result_t<F, const std::size_t>>, int> = 0>
+    std::is_arithmetic_v<std::invoke_result_t<F, const std::size_t>>>>
 #endif
-  static auto wrap_get(const std::size_t row, const F& get_coeff)
+  static std::invoke_result_t<F, const std::size_t>
+  wrap_get(const std::size_t row, const F& get_coeff)
   {
     using Scalar = std::invoke_result_t<F, const std::size_t>;
     static_assert(std::is_arithmetic_v<Scalar>);
@@ -93,9 +103,9 @@ namespace OpenKalman::internal
    * \brief Set the scalar value of a given typed coefficient in a matrix, and wrap the matrix column.
    * \tparam Coeffs The row coefficients for the typed matrix.
    * \tparam Scalar The scalar type of the matrix.
-   * \tparam FS An invocable function that takes an index and a Scalar value, and uses that value to set
+   * \tparam FS A function that takes an index and a Scalar value, and uses that value to set
    * a coefficient in a matrix, without any wrapping.
-   * \tparam FG An invocable function that takes an index to a column in a matrix and returns an unwrapped scalar
+   * \tparam FG A function that takes an index to a column in a matrix and returns an unwrapped scalar
    * value corresponding to a matrix coefficient.
    * \param row The applicable row of the matrix.
    */
@@ -104,12 +114,13 @@ namespace OpenKalman::internal
     std::invocable<const std::size_t, const Scalar> FS, std::invocable<const std::size_t> FG>
     requires std::is_arithmetic_v<Scalar> and std::is_arithmetic_v<std::invoke_result_t<FG, const std::size_t>>
 #else
-  template<typename Coeffs, typename Scalar, typename FS, typename FG, std::enable_if_t<
+  template<typename Coeffs, typename Scalar, typename FS, typename FG, typename = std::enable_if_t<
     coefficients<Coeffs> and std::is_arithmetic_v<Scalar> and std::is_invocable_v<FG, const std::size_t> and
     std::is_invocable_v<FS, const std::size_t, const Scalar> and
-    std::is_arithmetic_v<std::invoke_result_t<FG, const std::size_t>>, int> = 0>
+    std::is_arithmetic_v<std::invoke_result_t<FG, const std::size_t>>>>
 #endif
-  static void wrap_set(const Scalar s, const std::size_t row, const FS& set_coeff, const FG& get_coeff)
+  static void
+  wrap_set(const std::size_t row, const Scalar s, const FS& set_coeff, const FG& get_coeff)
   {
     Coeffs::template wrap_array_set<Scalar, 0>[row](s, set_coeff, get_coeff);
   }

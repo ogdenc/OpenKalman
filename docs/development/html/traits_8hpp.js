@@ -25,11 +25,7 @@ var traits_8hpp =
     [ "triangular_matrix", "traits_8hpp.html#ada97c2afb746e33dd806af6f63957fce", null ],
     [ "upper_triangular_matrix", "traits_8hpp.html#a5456de7a2e027daca692a5c72dc3540e", null ],
     [ "zero_matrix", "traits_8hpp.html#ae46b30e35dee139fe206951335c1b4ec", null ],
-    [ "TriangleType", "traits_8hpp.html#ab6c606169452d88f33b64e3b1ae18fa2", [
-      [ "lower", "traits_8hpp.html#ab6c606169452d88f33b64e3b1ae18fa2a81e073b428b50247daba38531dcf412a", null ],
-      [ "upper", "traits_8hpp.html#ab6c606169452d88f33b64e3b1ae18fa2a0122b4c2c01ee1c698ecc309d2b8eb5a", null ],
-      [ "diagonal", "traits_8hpp.html#ab6c606169452d88f33b64e3b1ae18fa2aa0e17e2709a0404ae3d7de03b8ea9093", null ]
-    ] ],
+    [ "TriangleType", "traits_8hpp.html#ab6c606169452d88f33b64e3b1ae18fa2", null ],
     [ "native_matrix_t", "traits_8hpp.html#a7fb718bc7a10021ec9a0032e9b3fc92e", null ],
     [ "nested_matrix_t", "traits_8hpp.html#abc8e1017c2a892423e656ba212290b74", null ],
     [ "passable_t", "traits_8hpp.html#ab86f091b16817336eb3f67006cd3a779", null ],

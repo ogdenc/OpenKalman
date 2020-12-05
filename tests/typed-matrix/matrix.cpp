@@ -319,7 +319,7 @@ TEST_F(matrices, TypedMatrix_overloads)
   EXPECT_TRUE(is_near(make_self_contained(Mat23 {1, 2, 3, 4, 5, 6} * 2), Mat23 {2, 4, 6, 8, 10, 12}));
   static_assert(std::is_same_v<std::decay_t<decltype(make_self_contained(Mat23 {1, 2, 3, 4, 5, 6} * 2))>, Mat23>);
 
-  EXPECT_TRUE(is_near(to_Euclidean(Matrix<C2, Axes<3>, M23> {1, 2, 3, pi*7/3, pi*13/6, -pi*7/4}),
+  EXPECT_TRUE(is_near(to_euclidean(Matrix<C2, Axes<3>, M23> {1, 2, 3, pi*7/3, pi*13/6, -pi*7/4}),
     EuclideanMean<C2, M33> {1, 2, 3,
                             0.5, std::sqrt(3)/2, sqrt2/2,
                             std::sqrt(3)/2, 0.5, sqrt2/2}));

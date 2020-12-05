@@ -147,7 +147,7 @@ $(document).ready(function(){initNavTree('_matrix_8hpp_source.html',''); initRes
 <div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">else</span></div>
 <div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> Arg, std::enable_if_t&lt;typed_matrix&lt;Arg&gt; <span class="keyword">and</span> euclidean_transformed&lt;Arg&gt;, <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">endif</span></div>
-<div class="line"><a name="l00062"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1_matrix.html#a7398f7fce7e6650a38262b2cf8b1f04f">   62</a></span>&#160;    Matrix(Arg&amp;&amp; other) <span class="keyword">noexcept</span> : Base(OpenKalman::from_Euclidean&lt;RowCoefficients&gt;(std::forward&lt;Arg&gt;(other).nested_matrix()))</div>
+<div class="line"><a name="l00062"></a><span class="lineno"><a class="line" href="struct_open_kalman_1_1_matrix.html#a7398f7fce7e6650a38262b2cf8b1f04f">   62</a></span>&#160;    Matrix(Arg&amp;&amp; other) <span class="keyword">noexcept</span> : Base(OpenKalman::from_euclidean&lt;RowCoefficients&gt;(std::forward&lt;Arg&gt;(other).nested_matrix()))</div>
 <div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;    {</div>
 <div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;      <span class="keyword">static_assert</span>(equivalent_to&lt;<span class="keyword">typename</span> MatrixTraits&lt;Arg&gt;::RowCoefficients, RowCoefficients&gt;);</div>
 <div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;      <span class="keyword">static_assert</span>(equivalent_to&lt;<span class="keyword">typename</span> MatrixTraits&lt;Arg&gt;::ColumnCoefficients, ColumnCoefficients&gt;);</div>
@@ -213,7 +213,7 @@ $(document).ready(function(){initNavTree('_matrix_8hpp_source.html',''); initRes
 <div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160;      }</div>
 <div class="line"><a name="l00126"></a><span class="lineno">  126</span>&#160;      <span class="keywordflow">else</span> <span class="keywordflow">if</span> <span class="keyword">constexpr</span>(euclidean_transformed&lt;Arg&gt;)</div>
 <div class="line"><a name="l00127"></a><span class="lineno">  127</span>&#160;      {</div>
-<div class="line"><a name="l00128"></a><span class="lineno">  128</span>&#160;        <span class="keyword">this</span>-&gt;nested_matrix() = from_Euclidean&lt;RowCoefficients&gt;(std::forward&lt;Arg&gt;(other).nested_matrix());</div>
+<div class="line"><a name="l00128"></a><span class="lineno">  128</span>&#160;        <span class="keyword">this</span>-&gt;nested_matrix() = from_euclidean&lt;RowCoefficients&gt;(std::forward&lt;Arg&gt;(other).nested_matrix());</div>
 <div class="line"><a name="l00129"></a><span class="lineno">  129</span>&#160;      }</div>
 <div class="line"><a name="l00130"></a><span class="lineno">  130</span>&#160;      <span class="keywordflow">else</span></div>
 <div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160;      {</div>
@@ -343,7 +343,7 @@ $(document).ready(function(){initNavTree('_matrix_8hpp_source.html',''); initRes
 <div class="line"><a name="l00255"></a><span class="lineno">  255</span>&#160;  Matrix(V&amp;&amp;) -&gt; Matrix&lt;</div>
 <div class="line"><a name="l00256"></a><span class="lineno">  256</span>&#160;    <span class="keyword">typename</span> MatrixTraits&lt;V&gt;::RowCoefficients,</div>
 <div class="line"><a name="l00257"></a><span class="lineno">  257</span>&#160;    <span class="keyword">typename</span> MatrixTraits&lt;V&gt;::ColumnCoefficients,</div>
-<div class="line"><a name="l00258"></a><span class="lineno">  258</span>&#160;    <span class="keyword">decltype</span>(from_Euclidean&lt;<span class="keyword">typename</span> MatrixTraits&lt;V&gt;::RowCoefficients&gt;(std::forward&lt;V&gt;(std::declval&lt;V&gt;()).nested_matrix()))&gt;;</div>
+<div class="line"><a name="l00258"></a><span class="lineno">  258</span>&#160;    <span class="keyword">decltype</span>(from_euclidean&lt;<span class="keyword">typename</span> MatrixTraits&lt;V&gt;::RowCoefficients&gt;(std::forward&lt;V&gt;(std::declval&lt;V&gt;()).nested_matrix()))&gt;;</div>
 <div class="line"><a name="l00259"></a><span class="lineno">  259</span>&#160; </div>
 <div class="line"><a name="l00260"></a><span class="lineno">  260</span>&#160; </div>
 <div class="line"><a name="l00261"></a><span class="lineno">  261</span>&#160;  <span class="comment">/// Deduce parameter types from a Covariance.</span></div>
@@ -454,7 +454,7 @@ $(document).ready(function(){initNavTree('_matrix_8hpp_source.html',''); initRes
 <div class="line"><a name="l00366"></a><span class="lineno">  366</span>&#160;    <span class="keyword">using</span> RowCoeffs = <span class="keyword">typename</span> MatrixTraits&lt;Arg&gt;::RowCoefficients;</div>
 <div class="line"><a name="l00367"></a><span class="lineno">  367</span>&#160;    <span class="keyword">using</span> ColCoeffs = <span class="keyword">typename</span> MatrixTraits&lt;Arg&gt;::ColumnCoefficients;</div>
 <div class="line"><a name="l00368"></a><span class="lineno">  368</span>&#160;    <span class="keywordflow">if</span> <span class="keyword">constexpr</span>(euclidean_transformed&lt;Arg&gt;)</div>
-<div class="line"><a name="l00369"></a><span class="lineno">  369</span>&#160;      <span class="keywordflow">return</span> make_matrix&lt;RowCoeffs, ColCoeffs&gt;(nested_matrix(from_Euclidean&lt;RowCoeffs&gt;(std::forward&lt;Arg&gt;(arg))));</div>
+<div class="line"><a name="l00369"></a><span class="lineno">  369</span>&#160;      <span class="keywordflow">return</span> make_matrix&lt;RowCoeffs, ColCoeffs&gt;(nested_matrix(from_euclidean&lt;RowCoeffs&gt;(std::forward&lt;Arg&gt;(arg))));</div>
 <div class="line"><a name="l00370"></a><span class="lineno">  370</span>&#160;    <span class="keywordflow">else</span></div>
 <div class="line"><a name="l00371"></a><span class="lineno">  371</span>&#160;      <span class="keywordflow">return</span> make_matrix&lt;RowCoeffs, ColCoeffs&gt;(nested_matrix(std::forward&lt;Arg&gt;(arg)));</div>
 <div class="line"><a name="l00372"></a><span class="lineno">  372</span>&#160;  }</div>
@@ -560,7 +560,7 @@ $(document).ready(function(){initNavTree('_matrix_8hpp_source.html',''); initRes
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_bf85a1622761b0afd6fb52adee52cf94.html">OpenKalman</a></li><li class="navelem"><a class="el" href="dir_d9323b2d30f8bd90efc890cacaa77a07.html">matrices</a></li><li class="navelem"><b>Matrix.hpp</b></li>
-    <li class="footer">Generated on Wed Dec 2 2020 15:38:03 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
+    <li class="footer">Generated on Sat Dec 5 2020 03:00:15 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
   </ul>
 </div>
 </body>

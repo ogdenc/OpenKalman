@@ -59,7 +59,7 @@ namespace OpenKalman
 #else
     template<typename Arg, std::enable_if_t<typed_matrix<Arg> and euclidean_transformed<Arg>, int> = 0>
 #endif
-    Matrix(Arg&& other) noexcept : Base(OpenKalman::from_Euclidean<RowCoefficients>(std::forward<Arg>(other).nested_matrix()))
+    Matrix(Arg&& other) noexcept : Base(OpenKalman::from_euclidean<RowCoefficients>(std::forward<Arg>(other).nested_matrix()))
     {
       static_assert(equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients>);
       static_assert(equivalent_to<typename MatrixTraits<Arg>::ColumnCoefficients, ColumnCoefficients>);
@@ -125,7 +125,7 @@ namespace OpenKalman
       }
       else if constexpr(euclidean_transformed<Arg>)
       {
-        this->nested_matrix() = from_Euclidean<RowCoefficients>(std::forward<Arg>(other).nested_matrix());
+        this->nested_matrix() = from_euclidean<RowCoefficients>(std::forward<Arg>(other).nested_matrix());
       }
       else
       {
@@ -255,7 +255,7 @@ namespace OpenKalman
   Matrix(V&&) -> Matrix<
     typename MatrixTraits<V>::RowCoefficients,
     typename MatrixTraits<V>::ColumnCoefficients,
-    decltype(from_Euclidean<typename MatrixTraits<V>::RowCoefficients>(std::forward<V>(std::declval<V>()).nested_matrix()))>;
+    decltype(from_euclidean<typename MatrixTraits<V>::RowCoefficients>(std::forward<V>(std::declval<V>()).nested_matrix()))>;
 
 
   /// Deduce parameter types from a Covariance.
@@ -366,7 +366,7 @@ namespace OpenKalman
     using RowCoeffs = typename MatrixTraits<Arg>::RowCoefficients;
     using ColCoeffs = typename MatrixTraits<Arg>::ColumnCoefficients;
     if constexpr(euclidean_transformed<Arg>)
-      return make_matrix<RowCoeffs, ColCoeffs>(nested_matrix(from_Euclidean<RowCoeffs>(std::forward<Arg>(arg))));
+      return make_matrix<RowCoeffs, ColCoeffs>(nested_matrix(from_euclidean<RowCoeffs>(std::forward<Arg>(arg))));
     else
       return make_matrix<RowCoeffs, ColCoeffs>(nested_matrix(std::forward<Arg>(arg)));
   }

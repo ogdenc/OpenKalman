@@ -284,19 +284,19 @@ TEST_F(matrices, Mean_overloads)
   static_assert(std::is_same_v<std::decay_t<decltype(make_self_contained(Mat23 {1, 2, 3, 4, 5, 6} * 2))>,
     Mean<C2, decltype(wrap_angles<C2>(std::declval<M23>()))>>);
 
-  EXPECT_TRUE(is_near(to_Euclidean(
+  EXPECT_TRUE(is_near(to_euclidean(
     Mean<C2, M23> {1, 2, 3, pi*7/3, pi*13/6, -pi*7/4}),
     EuclideanMean<C2, M33> {1, 2, 3,
                             0.5, std::sqrt(3)/2, sqrt2/2,
                             std::sqrt(3)/2, 0.5, sqrt2/2}));
 
   const auto m1 = make_mean(-2., 5, 3);
-  EXPECT_TRUE(is_near(to_Euclidean(m1), m1));
+  EXPECT_TRUE(is_near(to_euclidean(m1), m1));
 
   using A3 = Coefficients<angle::Radians, Axis, angle::Radians>;
   const auto m2 = make_mean<A3>(pi / 6, 5, -pi / 3);
   const auto x2 = (native_matrix_t<double, 5, 1> {} << std::sqrt(3) / 2, 0.5, 5, 0.5, -std::sqrt(3) / 2).finished();
-  EXPECT_TRUE(is_near(to_Euclidean(m2).nested_matrix(), x2));
+  EXPECT_TRUE(is_near(to_euclidean(m2).nested_matrix(), x2));
 
   EXPECT_TRUE(is_near(to_diagonal(Mat21 {2, 3}).nested_matrix(), Mat22 {2, 0, 0, 3}));
   static_assert(diagonal_matrix<decltype(to_diagonal(Mat21 {2, 3}))>);
@@ -334,11 +334,11 @@ TEST_F(matrices, Mean_overloads)
   EMat23 m = EMat23::zero();
   for (int i=0; i<100; i++)
   {
-    m = (m * i + to_Euclidean(randomize<Mat23>(N {1.0, 0.3}, 2.0))) / (i + 1);
+    m = (m * i + to_euclidean(randomize<Mat23>(N {1.0, 0.3}, 2.0))) / (i + 1);
   }
   Mat23 offset = {1, 1, 1, 2, 2, 2};
-  EXPECT_TRUE(is_near(from_Euclidean(m), offset, 0.1));
-  EXPECT_FALSE(is_near(from_Euclidean(m), offset, 1e-6));
+  EXPECT_TRUE(is_near(from_euclidean(m), offset, 0.1));
+  EXPECT_FALSE(is_near(from_euclidean(m), offset, 1e-6));
 
 }
 
@@ -532,13 +532,13 @@ TEST_F(matrices, Mean_angle_Euclidean_conversion)
   const auto m1 = (native_matrix_t<double, 3, 1> {} << pi / 6, 5, -pi / 3).finished();
   EXPECT_TRUE(is_near(x1, x1p));
   EXPECT_TRUE(is_near(x1.nested_matrix(), x1p.nested_matrix()));
-  EXPECT_TRUE(is_near(to_Euclidean(x1).nested_matrix(), to_Euclidean(x1p).nested_matrix()));
-  EXPECT_TRUE(is_near(to_Euclidean(x1), to_Euclidean(x1p)));
+  EXPECT_TRUE(is_near(to_euclidean(x1).nested_matrix(), to_euclidean(x1p).nested_matrix()));
+  EXPECT_TRUE(is_near(to_euclidean(x1), to_euclidean(x1p)));
   EXPECT_NEAR(x1.nested_matrix()[0], pi / 6, 1e-6);
   EXPECT_NEAR(x1.nested_matrix()[1], 5, 1e-6);
   EXPECT_NEAR(x1.nested_matrix()[2], -pi / 3, 1e-6);
   EXPECT_TRUE(is_near(x1.nested_matrix(), m1));
-  EXPECT_TRUE(is_near(make_mean(std::sqrt(3.)/2, 0.5, 5, 0.5, -std::sqrt(3.)/2), to_Euclidean(x1).nested_matrix()));
+  EXPECT_TRUE(is_near(make_mean(std::sqrt(3.)/2, 0.5, 5, 0.5, -std::sqrt(3.)/2), to_euclidean(x1).nested_matrix()));
   EXPECT_TRUE(is_near(Var3 {m1}, x1));
 }
 
@@ -601,24 +601,24 @@ TEST_F(matrices, Mean_angle_arithmetic_Euclidean)
   using Var3 = Mean<Coefficients<angle::Radians, Axis, angle::Radians>>;
   Var3 x1 {pi / 6, 5, -pi / 3};
   Var3 x2 {2 * pi, 0, 6 * pi};
-  auto x1e = to_Euclidean(x1);
-  auto x2e = to_Euclidean(x2);
-  EXPECT_TRUE(is_near(from_Euclidean(x1e + x2e), Var3 {pi / 12, 5, -pi / 6}));
-  EXPECT_TRUE(is_near(from_Euclidean(x2e + x1e), Var3 {pi / 12, 5, -pi / 6}));
-  EXPECT_TRUE(is_near(from_Euclidean(x1e - x2e), Var3 {pi * 7 / 12, 5, -pi * 2 / 3}));
-  EXPECT_TRUE(is_near(from_Euclidean(x2e - x1e), Var3 {-pi * 5 / 12, -5, pi / 3}));
-  EXPECT_TRUE(is_near(from_Euclidean(-x1e), Var3 {-pi * 5 / 6, -5, pi * 2 / 3}));
+  auto x1e = to_euclidean(x1);
+  auto x2e = to_euclidean(x2);
+  EXPECT_TRUE(is_near(from_euclidean(x1e + x2e), Var3 {pi / 12, 5, -pi / 6}));
+  EXPECT_TRUE(is_near(from_euclidean(x2e + x1e), Var3 {pi / 12, 5, -pi / 6}));
+  EXPECT_TRUE(is_near(from_euclidean(x1e - x2e), Var3 {pi * 7 / 12, 5, -pi * 2 / 3}));
+  EXPECT_TRUE(is_near(from_euclidean(x2e - x1e), Var3 {-pi * 5 / 12, -5, pi / 3}));
+  EXPECT_TRUE(is_near(from_euclidean(-x1e), Var3 {-pi * 5 / 6, -5, pi * 2 / 3}));
   Var3 x50 {pi / 6, 50, -pi / 3};
-  EXPECT_TRUE(is_near(from_Euclidean(x1e * 10.), x50));
-  EXPECT_TRUE(is_near(from_Euclidean(10. * x1e), x50));
-  EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(x50) / 10), x1));
-  EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(x50) / 10. + x2e / 10.), Var3 {pi / 12, 5, -pi / 6}));
-  EXPECT_TRUE(is_near(from_Euclidean((to_Euclidean(x1) * 2.0 + to_Euclidean(x1).zero()) / 2.0), x1));
+  EXPECT_TRUE(is_near(from_euclidean(x1e * 10.), x50));
+  EXPECT_TRUE(is_near(from_euclidean(10. * x1e), x50));
+  EXPECT_TRUE(is_near(from_euclidean(to_euclidean(x50) / 10), x1));
+  EXPECT_TRUE(is_near(from_euclidean(to_euclidean(x50) / 10. + x2e / 10.), Var3 {pi / 12, 5, -pi / 6}));
+  EXPECT_TRUE(is_near(from_euclidean((to_euclidean(x1) * 2.0 + to_euclidean(x1).zero()) / 2.0), x1));
   auto mean_x = Mean(x1);
-  mean_x = from_Euclidean((to_Euclidean(mean_x) * 2.0 + to_Euclidean(mean_x).zero()) / 2.0);
+  mean_x = from_euclidean((to_euclidean(mean_x) * 2.0 + to_euclidean(mean_x).zero()) / 2.0);
   EXPECT_TRUE(is_near(mean_x, x1));
   auto x6 = x1e;
-  EXPECT_TRUE(is_near(to_Euclidean(Var3{x6}), x6));
+  EXPECT_TRUE(is_near(to_euclidean(Var3{x6}), x6));
 }
 
 
@@ -627,18 +627,18 @@ TEST_F(matrices, Mean_angle2pi_arithmetic_Euclidean)
   using Var3 = Mean<Coefficients<angle::PositiveRadians, Axis, angle::PositiveRadians>>;
   const Var3 x1 {pi / 6, 5, pi * 5 / 3};
   const Var3 x2 {2 * pi, 0, 6 * pi};
-  const auto x1e = to_Euclidean(x1);
-  const auto x2e = to_Euclidean(x2);
-  EXPECT_TRUE(is_near(from_Euclidean(x1e + x2e), Var3 {pi / 12, 5, pi * 11 / 6}));
-  EXPECT_TRUE(is_near(from_Euclidean(x2e + x1e), Var3 {pi / 12, 5, pi * 11 / 6}));
-  EXPECT_TRUE(is_near(from_Euclidean(x1e - x2e), Var3 {pi * 7 / 12, 5, pi * 4 / 3}));
-  EXPECT_TRUE(is_near(from_Euclidean(x2e - x1e), Var3 {pi * 19 / 12, -5, pi / 3}));
-  EXPECT_TRUE(is_near(from_Euclidean(-x1e), Var3 {pi * 7 / 6, -5, pi * 2 / 3}));
+  const auto x1e = to_euclidean(x1);
+  const auto x2e = to_euclidean(x2);
+  EXPECT_TRUE(is_near(from_euclidean(x1e + x2e), Var3 {pi / 12, 5, pi * 11 / 6}));
+  EXPECT_TRUE(is_near(from_euclidean(x2e + x1e), Var3 {pi / 12, 5, pi * 11 / 6}));
+  EXPECT_TRUE(is_near(from_euclidean(x1e - x2e), Var3 {pi * 7 / 12, 5, pi * 4 / 3}));
+  EXPECT_TRUE(is_near(from_euclidean(x2e - x1e), Var3 {pi * 19 / 12, -5, pi / 3}));
+  EXPECT_TRUE(is_near(from_euclidean(-x1e), Var3 {pi * 7 / 6, -5, pi * 2 / 3}));
   const Var3 x50 {pi / 6, 50, pi * 5 / 3};
-  EXPECT_TRUE(is_near(from_Euclidean(x1e * 10.), x50));
-  EXPECT_TRUE(is_near(from_Euclidean(10. * x1e), x50));
-  EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(x50) / 10.), x1));
-  EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(x50) / 10. + x2e / 10.), Var3 {pi / 12, 5, pi * 11 / 6}));
+  EXPECT_TRUE(is_near(from_euclidean(x1e * 10.), x50));
+  EXPECT_TRUE(is_near(from_euclidean(10. * x1e), x50));
+  EXPECT_TRUE(is_near(from_euclidean(to_euclidean(x50) / 10.), x1));
+  EXPECT_TRUE(is_near(from_euclidean(to_euclidean(x50) / 10. + x2e / 10.), Var3 {pi / 12, 5, pi * 11 / 6}));
 }
 
 
@@ -647,18 +647,18 @@ TEST_F(matrices, Mean_angle2deg_arithmetic_Euclidean)
   using Var3 = Mean<Coefficients<angle::PositiveDegrees, Axis, angle::PositiveDegrees>>;
   const Var3 x1 {30, 5, 300};
   const Var3 x2 {360, 0, 1080};
-  const auto x1e = to_Euclidean(x1);
-  const auto x2e = to_Euclidean(x2);
-  EXPECT_TRUE(is_near(from_Euclidean(x1e + x2e), Var3 {15, 5, 330}));
-  EXPECT_TRUE(is_near(from_Euclidean(x2e + x1e), Var3 {15, 5, 330}));
-  EXPECT_TRUE(is_near(from_Euclidean(x1e - x2e), Var3 {105, 5, 240}));
-  EXPECT_TRUE(is_near(from_Euclidean(x2e - x1e), Var3 {285, -5, 60}));
-  EXPECT_TRUE(is_near(from_Euclidean(-x1e), Var3 {210, -5, 120}));
+  const auto x1e = to_euclidean(x1);
+  const auto x2e = to_euclidean(x2);
+  EXPECT_TRUE(is_near(from_euclidean(x1e + x2e), Var3 {15, 5, 330}));
+  EXPECT_TRUE(is_near(from_euclidean(x2e + x1e), Var3 {15, 5, 330}));
+  EXPECT_TRUE(is_near(from_euclidean(x1e - x2e), Var3 {105, 5, 240}));
+  EXPECT_TRUE(is_near(from_euclidean(x2e - x1e), Var3 {285, -5, 60}));
+  EXPECT_TRUE(is_near(from_euclidean(-x1e), Var3 {210, -5, 120}));
   const Var3 x50 {30, 50, 300};
-  EXPECT_TRUE(is_near(from_Euclidean(x1e * 10.), x50));
-  EXPECT_TRUE(is_near(from_Euclidean(10. * x1e), x50));
-  EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(x50) / 10.), x1));
-  EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(x50) / 10. + x2e / 10.), Var3 {15, 5, 330}));
+  EXPECT_TRUE(is_near(from_euclidean(x1e * 10.), x50));
+  EXPECT_TRUE(is_near(from_euclidean(10. * x1e), x50));
+  EXPECT_TRUE(is_near(from_euclidean(to_euclidean(x50) / 10.), x1));
+  EXPECT_TRUE(is_near(from_euclidean(to_euclidean(x50) / 10. + x2e / 10.), Var3 {15, 5, 330}));
 }
 
 
@@ -684,23 +684,23 @@ TEST_F(matrices, Mean_angle_columns_Euclidean)
   using Var3 = Mean<Coefficients<angle::Radians, Axis>, native_matrix_t<double, 2, 2>>;
   Var3 x1 {pi / 6, -pi / 3, 5, 2};
   Var3 x2 {2 * pi, 6 * pi, 0, 0};
-  const auto x1e = to_Euclidean(x1);
-  const auto x2e = to_Euclidean(x2);
-  EXPECT_TRUE(is_near(from_Euclidean(x1e + x2e), Var3 {pi / 12, -pi / 6, 5, 2}));
-  EXPECT_TRUE(is_near(from_Euclidean(x2e + x1e), Var3 {pi / 12, -pi / 6, 5, 2}));
-  EXPECT_TRUE(is_near(from_Euclidean(x1e - x2e), Var3 {pi * 7 / 12, -pi * 2 / 3, 5, 2}));
-  EXPECT_TRUE(is_near(from_Euclidean(x2e - x1e), Var3 {-pi * 5 / 12, pi / 3, -5, -2}));
-  EXPECT_TRUE(is_near(from_Euclidean(-x1e), Var3 {-pi * 5 / 6, pi * 2 / 3, -5, -2}));
+  const auto x1e = to_euclidean(x1);
+  const auto x2e = to_euclidean(x2);
+  EXPECT_TRUE(is_near(from_euclidean(x1e + x2e), Var3 {pi / 12, -pi / 6, 5, 2}));
+  EXPECT_TRUE(is_near(from_euclidean(x2e + x1e), Var3 {pi / 12, -pi / 6, 5, 2}));
+  EXPECT_TRUE(is_near(from_euclidean(x1e - x2e), Var3 {pi * 7 / 12, -pi * 2 / 3, 5, 2}));
+  EXPECT_TRUE(is_near(from_euclidean(x2e - x1e), Var3 {-pi * 5 / 12, pi / 3, -5, -2}));
+  EXPECT_TRUE(is_near(from_euclidean(-x1e), Var3 {-pi * 5 / 6, pi * 2 / 3, -5, -2}));
   Var3 x10 {pi / 6, -pi / 3, 50, 20};
-  EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(x1) * 10.), x10));
-  EXPECT_TRUE(is_near(from_Euclidean(10. * to_Euclidean(x1)), x10));
-  EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(x10) / 10.), x1));
-  EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(x10) / 10. + x2e / 10.), Var3 {pi / 12, -pi / 6, 5, 2}));
+  EXPECT_TRUE(is_near(from_euclidean(to_euclidean(x1) * 10.), x10));
+  EXPECT_TRUE(is_near(from_euclidean(10. * to_euclidean(x1)), x10));
+  EXPECT_TRUE(is_near(from_euclidean(to_euclidean(x10) / 10.), x1));
+  EXPECT_TRUE(is_near(from_euclidean(to_euclidean(x10) / 10. + x2e / 10.), Var3 {pi / 12, -pi / 6, 5, 2}));
   Var3 mean_x = x1;
-  mean_x = from_Euclidean((to_Euclidean(mean_x) * 2.0 + to_Euclidean(mean_x).zero()) / 2.0);
+  mean_x = from_euclidean((to_euclidean(mean_x) * 2.0 + to_euclidean(mean_x).zero()) / 2.0);
   EXPECT_TRUE(is_near(mean_x, x1));
-  auto x6 = to_Euclidean(x1);
-  EXPECT_TRUE(is_near(to_Euclidean(Var3{x6}), x6));
+  auto x6 = to_euclidean(x1);
+  EXPECT_TRUE(is_near(to_euclidean(Var3{x6}), x6));
   EXPECT_NEAR(x1(0,0), pi / 6, 1e-6);
   EXPECT_NEAR(x1(0,1), -pi/3, 1e-6);
   EXPECT_NEAR(x1(1,0), 5, 1e-6);
@@ -733,7 +733,7 @@ TEST_F(matrices, Wrap_distance)
   R x0 {-5};
   EXPECT_TRUE(is_near(x0, native_matrix_t<double, 1, 1> {5}));
   EXPECT_TRUE(is_near(x0 + R {1.2}, native_matrix_t<double, 1, 1> {6.2}));
-  EXPECT_TRUE(is_near(from_Euclidean(-to_Euclidean(x0) + to_Euclidean(R {1.2})), native_matrix_t<double, 1, 1> {3.8}));
+  EXPECT_TRUE(is_near(from_euclidean(-to_euclidean(x0) + to_euclidean(R {1.2})), native_matrix_t<double, 1, 1> {3.8}));
   EXPECT_TRUE(is_near(R {1.1} - 3. * R {1}, -make_native_matrix(R {1.9})));
   EXPECT_TRUE(is_near(R {1.2} + R {-3}, R {4.2}));
   EXPECT_NEAR(get_element(x0, 0, 0), 5, 1e-6);
@@ -751,9 +751,9 @@ TEST_F(matrices, Wrap_inclination)
   EXPECT_TRUE(is_near(R {-pi/2} - R {pi/2}, Matrix<angle::Radians> {-pi}));
   EXPECT_TRUE(is_near(R {pi * 7 / 12}, R {pi * 5 / 12}));
   EXPECT_TRUE(is_near(R {-pi * 7 / 12}, R {-pi * 5 / 12}));
-  EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(R {pi / 6}) + to_Euclidean(R {pi})), R {pi / 12}));
-  EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(R {-pi / 6}) + to_Euclidean(R {pi})), R {-pi / 12}));
-  EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(R {pi * 5 / 6}) + to_Euclidean(R {pi / 2})), R {pi / 3}));
+  EXPECT_TRUE(is_near(from_euclidean(to_euclidean(R {pi / 6}) + to_euclidean(R {pi})), R {pi / 12}));
+  EXPECT_TRUE(is_near(from_euclidean(to_euclidean(R {-pi / 6}) + to_euclidean(R {pi})), R {-pi / 12}));
+  EXPECT_TRUE(is_near(from_euclidean(to_euclidean(R {pi * 5 / 6}) + to_euclidean(R {pi / 2})), R {pi / 3}));
   R x0 {pi/2};
   EXPECT_NEAR(get_element(x0, 0, 0), pi/2, 1e-6);
   EXPECT_NEAR(get_element(x0, 0), pi/2, 1e-6);
@@ -768,10 +768,10 @@ TEST_F(matrices, Wrap_polar)
 {
   using P = Mean<Polar<Distance, angle::Radians>>;
   EXPECT_TRUE(is_near(P {4, -pi*.99} - P {5, pi*0.99}, Matrix<Polar<Distance, angle::Radians>, Axis> {-1, pi*0.02}));
-  EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(P {1., pi / 6}) + to_Euclidean(P {-0.5, 0})), P {1.5, pi * 7 / 12}));
-  EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(P {1., pi / 6}) + to_Euclidean(P {-1.5, 0})), P {2.5, pi * 7 / 12}));
-  EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(P {1., pi * 5 / 6}) + to_Euclidean(P {0, -pi * 2 / 3})), P {1., -pi * 11 / 12}));
-  EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(P {1., pi * 5 / 6}) + to_Euclidean(P {-1.5, -pi * 2 / 3})), P {2.5, pi * 7 / 12}));
+  EXPECT_TRUE(is_near(from_euclidean(to_euclidean(P {1., pi / 6}) + to_euclidean(P {-0.5, 0})), P {1.5, pi * 7 / 12}));
+  EXPECT_TRUE(is_near(from_euclidean(to_euclidean(P {1., pi / 6}) + to_euclidean(P {-1.5, 0})), P {2.5, pi * 7 / 12}));
+  EXPECT_TRUE(is_near(from_euclidean(to_euclidean(P {1., pi * 5 / 6}) + to_euclidean(P {0, -pi * 2 / 3})), P {1., -pi * 11 / 12}));
+  EXPECT_TRUE(is_near(from_euclidean(to_euclidean(P {1., pi * 5 / 6}) + to_euclidean(P {-1.5, -pi * 2 / 3})), P {2.5, pi * 7 / 12}));
   P x0 {2, pi/4};
   EXPECT_NEAR(get_element(x0, 0, 0), 2, 1e-6);
   EXPECT_NEAR(get_element(x0, 1), pi/4, 1e-6);
@@ -784,10 +784,10 @@ TEST_F(matrices, Wrap_polar)
 
   using Q = Mean<Polar<angle::Radians, Distance>>;
   EXPECT_TRUE(is_near(Q {-pi*.99, 4} - Q {pi*0.99, 5}, Matrix<Polar<angle::Radians, Distance>, Axis> {pi*0.02, -1}));
-  EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(Q {pi / 6, 1}) + to_Euclidean(Q {0, -0.5})), Q {pi * 7 / 12, 1.5}));
-  EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(Q {pi / 6, 1}) + to_Euclidean(Q {0, -1.5})), Q {pi * 7 / 12, 2.5}));
-  EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(Q {pi * 5 / 6, 1}) + to_Euclidean(Q {-pi * 2 / 3, 0})), Q {-pi * 11 / 12, 1}));
-  EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(Q {pi * 5 / 6, 1}) + to_Euclidean(Q {-pi * 2 / 3, -1.5})), Q {pi * 7 / 12, 2.5}));
+  EXPECT_TRUE(is_near(from_euclidean(to_euclidean(Q {pi / 6, 1}) + to_euclidean(Q {0, -0.5})), Q {pi * 7 / 12, 1.5}));
+  EXPECT_TRUE(is_near(from_euclidean(to_euclidean(Q {pi / 6, 1}) + to_euclidean(Q {0, -1.5})), Q {pi * 7 / 12, 2.5}));
+  EXPECT_TRUE(is_near(from_euclidean(to_euclidean(Q {pi * 5 / 6, 1}) + to_euclidean(Q {-pi * 2 / 3, 0})), Q {-pi * 11 / 12, 1}));
+  EXPECT_TRUE(is_near(from_euclidean(to_euclidean(Q {pi * 5 / 6, 1}) + to_euclidean(Q {-pi * 2 / 3, -1.5})), Q {pi * 7 / 12, 2.5}));
   Q x1 {pi/4, 2};
   EXPECT_NEAR(get_element(x1, 1, 0), 2, 1e-6);
   EXPECT_NEAR(get_element(x1, 0), pi/4, 1e-6);
@@ -812,9 +812,9 @@ TEST_F(matrices, Wrap_spherical)
                      -std::asin(0.5 / std::hypot(1. + std::sqrt(3.) / 4, 3. / 4, 0.5))};
   const auto x3 = S {1.0, std::atan2(3. / 4, -1. + std::sqrt(3.) / 4),
                      std::asin(0.5 / std::hypot(-1. + std::sqrt(3.) / 4, 3. / 4, 0.5))};
-  EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(S {1., pi / 3, pi / 6}) - to_Euclidean(S {-0.5, 0, 0})), x1));
-  EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(S {1., pi / 3, pi / 6}) - to_Euclidean(S {-1.5, 0, 0})), x2));
-  EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(S {1., pi / 3, pi / 6}) + to_Euclidean(S {0, 0, pi})), x3));
+  EXPECT_TRUE(is_near(from_euclidean(to_euclidean(S {1., pi / 3, pi / 6}) - to_euclidean(S {-0.5, 0, 0})), x1));
+  EXPECT_TRUE(is_near(from_euclidean(to_euclidean(S {1., pi / 3, pi / 6}) - to_euclidean(S {-1.5, 0, 0})), x2));
+  EXPECT_TRUE(is_near(from_euclidean(to_euclidean(S {1., pi / 3, pi / 6}) + to_euclidean(S {0, 0, pi})), x3));
   S x0 {2, pi/4, -pi/4};
   EXPECT_NEAR(get_element(x0, 0, 0), 2, 1e-6);
   EXPECT_NEAR(get_element(x0, 1), pi/4, 1e-6);
@@ -842,9 +842,9 @@ TEST_F(matrices, Wrap_spherical)
                      0.5, -std::asin(0.5 / std::hypot(1. + std::sqrt(3.) / 4, 3. / 4, 0.5))};
   const auto y3 = T {std::atan2(3. / 4, -1. + std::sqrt(3.) / 4),
                      1.0, std::asin(0.5 / std::hypot(-1. + std::sqrt(3.) / 4, 3. / 4, 0.5))};
-  EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(T {pi / 3, 1, pi / 6}) - to_Euclidean(T {0, -0.5, 0})), y1));
-  EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(T {pi / 3, 1, pi / 6}) - to_Euclidean(T {0, -1.5, 0})), y2));
-  EXPECT_TRUE(is_near(from_Euclidean(to_Euclidean(T {pi / 3, 1, pi / 6}) + to_Euclidean(T {0, 0, pi})), y3));
+  EXPECT_TRUE(is_near(from_euclidean(to_euclidean(T {pi / 3, 1, pi / 6}) - to_euclidean(T {0, -0.5, 0})), y1));
+  EXPECT_TRUE(is_near(from_euclidean(to_euclidean(T {pi / 3, 1, pi / 6}) - to_euclidean(T {0, -1.5, 0})), y2));
+  EXPECT_TRUE(is_near(from_euclidean(to_euclidean(T {pi / 3, 1, pi / 6}) + to_euclidean(T {0, 0, pi})), y3));
   T z1 {pi/4, 2, -pi/4};
   EXPECT_NEAR(get_element(z1, 1, 0), 2, 1e-6);
   EXPECT_NEAR(get_element(z1, 0), pi/4, 1e-6);

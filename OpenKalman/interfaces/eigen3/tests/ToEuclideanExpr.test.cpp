@@ -140,8 +140,8 @@ TEST_F(eigen3, ToEuclideanExpr_overloads)
   EXPECT_TRUE(is_near(nested_matrix(To3 {1, 2, pi/6, pi/3, 3, 4}), mat3(1, 2, pi/6, pi/3, 3, 4)));
   EXPECT_TRUE(is_near(make_native_matrix(To3 {1, 2, pi/6, pi/3, 3, 4}), mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
   EXPECT_TRUE(is_near(make_self_contained(To3 {1, 2, pi/6, pi/3, 3, 4}), mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
-  EXPECT_TRUE(is_near(from_Euclidean(To3 {1, 2, 2*pi + pi/6, -4*pi + pi/3, 3, 4}), mat3(1, 2, pi/6, pi/3, 3, 4)));
-  EXPECT_TRUE(is_near(from_Euclidean<C>(To3 {1, 2, 2*pi + pi/6, -4*pi + pi/3, 3, 4}), mat3(1, 2, pi/6, pi/3, 3, 4)));
+  EXPECT_TRUE(is_near(from_euclidean(To3 {1, 2, 2*pi + pi/6, -4*pi + pi/3, 3, 4}), mat3(1, 2, pi/6, pi/3, 3, 4)));
+  EXPECT_TRUE(is_near(from_euclidean<C>(To3 {1, 2, 2*pi + pi/6, -4*pi + pi/3, 3, 4}), mat3(1, 2, pi/6, pi/3, 3, 4)));
   EXPECT_TRUE(is_near(to_diagonal(ToEuclideanExpr<C, native_matrix_t<double, 3, 1>>{1, pi/6, 3}), DiagonalMatrix {1., std::sqrt(3)/2, 0.5, 3}));
   EXPECT_TRUE(is_near(transpose(To3 {1, 2, pi/6, pi/3, 3, 4}), make_native_matrix<double, 2, 4>(1, std::sqrt(3)/2, 0.5, 3, 2, 0.5, std::sqrt(3)/2, 4)));
   EXPECT_TRUE(is_near(adjoint(To3 {1, 2, pi/6, pi/3, 3, 4}), make_native_matrix<double, 2, 4>(1, std::sqrt(3)/2, 0.5, 3, 2, 0.5, std::sqrt(3)/2, 4)));
@@ -167,7 +167,7 @@ TEST_F(eigen3, ToEuclideanExpr_overloads)
   auto m = make_native_matrix(MatrixTraits<native_matrix_t<double, 3, 2>>::zero());
   for (int i=0; i<100; i++)
   {
-    m = (m * i + from_Euclidean(randomize<To3>(1.0, 0.3))) / (i + 1);
+    m = (m * i + from_euclidean(randomize<To3>(1.0, 0.3))) / (i + 1);
   }
   auto offset = native_matrix_t<double, 3, 2>::Constant(1);
   EXPECT_TRUE(is_near(m, offset, 0.1));

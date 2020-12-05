@@ -130,7 +130,7 @@ namespace OpenKalman::Eigen3
   template<typename Coefficients, typename Arg, std::enable_if_t<eigen_matrix<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
-  to_Euclidean(Arg&& arg) noexcept
+  to_euclidean(Arg&& arg) noexcept
   {
     static_assert(not to_euclidean_expr<Arg>);
     if constexpr (Coefficients::axes_only)
@@ -150,7 +150,7 @@ namespace OpenKalman::Eigen3
   template<typename Coefficients, typename Arg, std::enable_if_t<eigen_matrix<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
-  from_Euclidean(Arg&& arg) noexcept
+  from_euclidean(Arg&& arg) noexcept
   {
     static_assert(not from_euclidean_expr<Arg>);
     if constexpr (Coefficients::axes_only)
@@ -179,7 +179,7 @@ namespace OpenKalman::Eigen3
     }
     else
     {
-      return from_Euclidean<Coefficients>(to_Euclidean<Coefficients>(std::forward<Arg>(arg)));
+      return from_euclidean<Coefficients>(to_euclidean<Coefficients>(std::forward<Arg>(arg)));
     }
   }
 

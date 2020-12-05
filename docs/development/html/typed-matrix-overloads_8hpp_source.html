@@ -153,12 +153,12 @@ $(document).ready(function(){initNavTree('typed-matrix-overloads_8hpp_source.htm
 <div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> Arg, std::enable_if_t&lt;typed_matrix&lt;Arg&gt; <span class="keyword">and</span> column_vector&lt;Arg&gt;, <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">endif</span></div>
 <div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;  <span class="keyword">constexpr</span> <span class="keyword">decltype</span>(<span class="keyword">auto</span>)</div>
-<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;  to_Euclidean(Arg&amp;&amp; arg) <span class="keyword">noexcept</span></div>
+<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;  to_euclidean(Arg&amp;&amp; arg) <span class="keyword">noexcept</span></div>
 <div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;  {</div>
 <div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;    <span class="keyword">using</span> Coefficients = <span class="keyword">typename</span> MatrixTraits&lt;Arg&gt;::RowCoefficients;</div>
 <div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;    <span class="keywordflow">if</span> <span class="keyword">constexpr</span>(<span class="keyword">not</span> euclidean_transformed&lt;Arg&gt;)</div>
 <div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;    {</div>
-<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;      <span class="keyword">auto</span> e = OpenKalman::to_Euclidean&lt;Coefficients&gt;(nested_matrix(std::forward&lt;Arg&gt;(arg)));</div>
+<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;      <span class="keyword">auto</span> e = OpenKalman::to_euclidean&lt;Coefficients&gt;(nested_matrix(std::forward&lt;Arg&gt;(arg)));</div>
 <div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;      <span class="keywordflow">return</span> EuclideanMean&lt;Coefficients, std::decay_t&lt;<span class="keyword">decltype</span>(e)&gt;&gt;(std::move(e));</div>
 <div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;    }</div>
 <div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;    <span class="keywordflow">else</span></div>
@@ -174,12 +174,12 @@ $(document).ready(function(){initNavTree('typed-matrix-overloads_8hpp_source.htm
 <div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> Arg, std::enable_if_t&lt;typed_matrix&lt;Arg&gt; <span class="keyword">and</span> column_vector&lt;Arg&gt;, <span class="keywordtype">int</span>&gt; = 0&gt;</div>
 <div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">endif</span></div>
 <div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;  <span class="keyword">constexpr</span> <span class="keyword">decltype</span>(<span class="keyword">auto</span>)</div>
-<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;  from_Euclidean(Arg&amp;&amp; arg) <span class="keyword">noexcept</span></div>
+<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;  from_euclidean(Arg&amp;&amp; arg) <span class="keyword">noexcept</span></div>
 <div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;  {</div>
 <div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;    <span class="keyword">using</span> Coefficients = <span class="keyword">typename</span> MatrixTraits&lt;Arg&gt;::RowCoefficients;</div>
 <div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;    <span class="keywordflow">if</span> <span class="keyword">constexpr</span>(euclidean_transformed&lt;Arg&gt;)</div>
 <div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;    {</div>
-<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;      <span class="keyword">auto</span> e = OpenKalman::from_Euclidean&lt;Coefficients&gt;(nested_matrix(std::forward&lt;Arg&gt;(arg)));</div>
+<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;      <span class="keyword">auto</span> e = OpenKalman::from_euclidean&lt;Coefficients&gt;(nested_matrix(std::forward&lt;Arg&gt;(arg)));</div>
 <div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;      <span class="keywordflow">return</span> Mean&lt;Coefficients, std::decay_t&lt;<span class="keyword">decltype</span>(e)&gt;&gt;(std::move(e));</div>
 <div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;    }</div>
 <div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;    <span class="keywordflow">else</span></div>
@@ -216,7 +216,7 @@ $(document).ready(function(){initNavTree('typed-matrix-overloads_8hpp_source.htm
 <div class="line"><a name="l00128"></a><span class="lineno">  128</span>&#160;    <span class="keyword">using</span> CRows = <span class="keyword">typename</span> MatrixTraits&lt;Arg&gt;::RowCoefficients;</div>
 <div class="line"><a name="l00129"></a><span class="lineno">  129</span>&#160;    <span class="keyword">using</span> CCols = <span class="keyword">typename</span> MatrixTraits&lt;Arg&gt;::ColumnCoefficients;</div>
 <div class="line"><a name="l00130"></a><span class="lineno">  130</span>&#160;    <span class="keywordflow">if</span> <span class="keyword">constexpr</span>(euclidean_transformed&lt;Arg&gt;)</div>
-<div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160;      <span class="keywordflow">return</span> make_matrix&lt;CCols, CRows&gt;(transpose(nested_matrix(from_Euclidean(std::forward&lt;Arg&gt;(arg)))));</div>
+<div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160;      <span class="keywordflow">return</span> make_matrix&lt;CCols, CRows&gt;(transpose(nested_matrix(from_euclidean(std::forward&lt;Arg&gt;(arg)))));</div>
 <div class="line"><a name="l00132"></a><span class="lineno">  132</span>&#160;    <span class="keywordflow">else</span></div>
 <div class="line"><a name="l00133"></a><span class="lineno">  133</span>&#160;      <span class="keywordflow">return</span> make_matrix&lt;CCols, CRows&gt;(transpose(nested_matrix(std::forward&lt;Arg&gt;(arg))));</div>
 <div class="line"><a name="l00134"></a><span class="lineno">  134</span>&#160;  }</div>
@@ -233,7 +233,7 @@ $(document).ready(function(){initNavTree('typed-matrix-overloads_8hpp_source.htm
 <div class="line"><a name="l00145"></a><span class="lineno">  145</span>&#160;    <span class="keyword">using</span> CRows = <span class="keyword">typename</span> MatrixTraits&lt;Arg&gt;::RowCoefficients;</div>
 <div class="line"><a name="l00146"></a><span class="lineno">  146</span>&#160;    <span class="keyword">using</span> CCols = <span class="keyword">typename</span> MatrixTraits&lt;Arg&gt;::ColumnCoefficients;</div>
 <div class="line"><a name="l00147"></a><span class="lineno">  147</span>&#160;    <span class="keywordflow">if</span> <span class="keyword">constexpr</span>(euclidean_transformed&lt;Arg&gt;)</div>
-<div class="line"><a name="l00148"></a><span class="lineno">  148</span>&#160;      <span class="keywordflow">return</span> make_matrix&lt;CCols, CRows&gt;(adjoint(nested_matrix(from_Euclidean(std::forward&lt;Arg&gt;(arg)))));</div>
+<div class="line"><a name="l00148"></a><span class="lineno">  148</span>&#160;      <span class="keywordflow">return</span> make_matrix&lt;CCols, CRows&gt;(adjoint(nested_matrix(from_euclidean(std::forward&lt;Arg&gt;(arg)))));</div>
 <div class="line"><a name="l00149"></a><span class="lineno">  149</span>&#160;    <span class="keywordflow">else</span></div>
 <div class="line"><a name="l00150"></a><span class="lineno">  150</span>&#160;      <span class="keywordflow">return</span> make_matrix&lt;CCols, CRows&gt;(adjoint(nested_matrix(std::forward&lt;Arg&gt;(arg))));</div>
 <div class="line"><a name="l00151"></a><span class="lineno">  151</span>&#160;  }</div>
@@ -307,8 +307,8 @@ $(document).ready(function(){initNavTree('typed-matrix-overloads_8hpp_source.htm
 <div class="line"><a name="l00219"></a><span class="lineno">  219</span>&#160;      <span class="keywordflow">else</span> <span class="keywordflow">if</span> <span class="keyword">constexpr</span>(mean&lt;Arg&gt;)</div>
 <div class="line"><a name="l00220"></a><span class="lineno">  220</span>&#160;      {</div>
 <div class="line"><a name="l00221"></a><span class="lineno">  221</span>&#160;        <span class="keyword">using</span> C = <span class="keyword">typename</span> MatrixTraits&lt;Arg&gt;::RowCoefficients;</div>
-<div class="line"><a name="l00222"></a><span class="lineno">  222</span>&#160;        <span class="keyword">auto</span> ev = reduce_columns(nested_matrix(to_Euclidean(std::forward&lt;Arg&gt;(arg))));</div>
-<div class="line"><a name="l00223"></a><span class="lineno">  223</span>&#160;        <span class="keywordflow">return</span> MatrixTraits&lt;Arg&gt;::make(from_Euclidean&lt;C&gt;(std::move(ev)));</div>
+<div class="line"><a name="l00222"></a><span class="lineno">  222</span>&#160;        <span class="keyword">auto</span> ev = reduce_columns(nested_matrix(to_euclidean(std::forward&lt;Arg&gt;(arg))));</div>
+<div class="line"><a name="l00223"></a><span class="lineno">  223</span>&#160;        <span class="keywordflow">return</span> MatrixTraits&lt;Arg&gt;::make(from_euclidean&lt;C&gt;(std::move(ev)));</div>
 <div class="line"><a name="l00224"></a><span class="lineno">  224</span>&#160;      }</div>
 <div class="line"><a name="l00225"></a><span class="lineno">  225</span>&#160;      <span class="keywordflow">else</span></div>
 <div class="line"><a name="l00226"></a><span class="lineno">  226</span>&#160;      {</div>
@@ -592,10 +592,10 @@ $(document).ready(function(){initNavTree('typed-matrix-overloads_8hpp_source.htm
 <div class="line"><a name="l00504"></a><span class="lineno">  504</span>&#160;      <span class="keyword">const</span> <span class="keyword">auto</span> get_coeff = [&amp;arg, j] (<span class="keyword">const</span> std::size_t row) {</div>
 <div class="line"><a name="l00505"></a><span class="lineno">  505</span>&#160;        <span class="keywordflow">return</span> get_element(nested_matrix(arg), row, j);</div>
 <div class="line"><a name="l00506"></a><span class="lineno">  506</span>&#160;      };</div>
-<div class="line"><a name="l00507"></a><span class="lineno">  507</span>&#160;      <span class="keyword">const</span> <span class="keyword">auto</span> set_coeff = [&amp;arg, j](<span class="keyword">const</span> <span class="keyword">typename</span> MatrixTraits&lt;Arg&gt;::Scalar value, <span class="keyword">const</span> std::size_t row) {</div>
+<div class="line"><a name="l00507"></a><span class="lineno">  507</span>&#160;      <span class="keyword">const</span> <span class="keyword">auto</span> set_coeff = [&amp;arg, j](<span class="keyword">const</span> std::size_t row, <span class="keyword">const</span> <span class="keyword">typename</span> MatrixTraits&lt;Arg&gt;::Scalar value) {</div>
 <div class="line"><a name="l00508"></a><span class="lineno">  508</span>&#160;        set_element(nested_matrix(arg), value, row, j);</div>
 <div class="line"><a name="l00509"></a><span class="lineno">  509</span>&#160;      };</div>
-<div class="line"><a name="l00510"></a><span class="lineno">  510</span>&#160;      internal::wrap_set&lt;Coeffs&gt;(s, i, set_coeff, get_coeff);</div>
+<div class="line"><a name="l00510"></a><span class="lineno">  510</span>&#160;      internal::wrap_set&lt;Coeffs&gt;(i, s, set_coeff, get_coeff);</div>
 <div class="line"><a name="l00511"></a><span class="lineno">  511</span>&#160;    }</div>
 <div class="line"><a name="l00512"></a><span class="lineno">  512</span>&#160;    <span class="keywordflow">else</span></div>
 <div class="line"><a name="l00513"></a><span class="lineno">  513</span>&#160;    {</div>
@@ -622,10 +622,10 @@ $(document).ready(function(){initNavTree('typed-matrix-overloads_8hpp_source.htm
 <div class="line"><a name="l00534"></a><span class="lineno">  534</span>&#160;      <span class="keyword">const</span> <span class="keyword">auto</span> get_coeff = [&amp;arg] (<span class="keyword">const</span> std::size_t row) {</div>
 <div class="line"><a name="l00535"></a><span class="lineno">  535</span>&#160;        <span class="keywordflow">return</span> get_element(nested_matrix(arg), row);</div>
 <div class="line"><a name="l00536"></a><span class="lineno">  536</span>&#160;      };</div>
-<div class="line"><a name="l00537"></a><span class="lineno">  537</span>&#160;      <span class="keyword">const</span> <span class="keyword">auto</span> set_coeff = [&amp;arg](<span class="keyword">const</span> <span class="keyword">typename</span> MatrixTraits&lt;Arg&gt;::Scalar value, <span class="keyword">const</span> std::size_t row) {</div>
+<div class="line"><a name="l00537"></a><span class="lineno">  537</span>&#160;      <span class="keyword">const</span> <span class="keyword">auto</span> set_coeff = [&amp;arg](<span class="keyword">const</span> std::size_t row, <span class="keyword">const</span> <span class="keyword">typename</span> MatrixTraits&lt;Arg&gt;::Scalar value) {</div>
 <div class="line"><a name="l00538"></a><span class="lineno">  538</span>&#160;        set_element(nested_matrix(arg), value, row);</div>
 <div class="line"><a name="l00539"></a><span class="lineno">  539</span>&#160;      };</div>
-<div class="line"><a name="l00540"></a><span class="lineno">  540</span>&#160;      internal::wrap_set&lt;Coeffs&gt;(s, i, set_coeff, get_coeff);</div>
+<div class="line"><a name="l00540"></a><span class="lineno">  540</span>&#160;      internal::wrap_set&lt;Coeffs&gt;(i, s, set_coeff, get_coeff);</div>
 <div class="line"><a name="l00541"></a><span class="lineno">  541</span>&#160;    }</div>
 <div class="line"><a name="l00542"></a><span class="lineno">  542</span>&#160;    <span class="keywordflow">else</span></div>
 <div class="line"><a name="l00543"></a><span class="lineno">  543</span>&#160;    {</div>
@@ -1001,7 +1001,7 @@ $(document).ready(function(){initNavTree('typed-matrix-overloads_8hpp_source.htm
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_bf85a1622761b0afd6fb52adee52cf94.html">OpenKalman</a></li><li class="navelem"><a class="el" href="dir_d9323b2d30f8bd90efc890cacaa77a07.html">matrices</a></li><li class="navelem"><a class="el" href="dir_90319fe7bad51690590a77f58314e4d2.html">details</a></li><li class="navelem"><b>typed-matrix-overloads.hpp</b></li>
-    <li class="footer">Generated on Wed Dec 2 2020 15:38:02 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
+    <li class="footer">Generated on Sat Dec 5 2020 03:00:15 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
   </ul>
 </div>
 </body>

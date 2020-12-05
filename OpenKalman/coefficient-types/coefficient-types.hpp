@@ -8,11 +8,15 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+/**
+ * \file
+ * \brief Comprehensive header file including all coefficient-related classes and definitions.
+ */
+
 #ifndef OPENKALMAN_COEFFICIENT_TYPES_HPP
 #define OPENKALMAN_COEFFICIENT_TYPES_HPP
 
 #include "details/coefficient_forward-declarations.hpp"
-#include "details/coefficient-functions.hpp"
 
 #include "Axis.hpp"
 #include "Distance.hpp"
@@ -21,5 +25,7 @@
 #include "Polar.hpp"
 #include "Spherical.hpp"
 #include "Coefficients.hpp"
+
+#include "details/coefficient-functions.hpp"
 
 #endif //OPENKALMAN_COEFFICIENT_TYPES_HPP

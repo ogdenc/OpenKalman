@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['passable_5ft_589',['passable_t',['../namespace_open_kalman.html#ab86f091b16817336eb3f67006cd3a779',1,'OpenKalman']]],
-  ['positivedegrees_590',['PositiveDegrees',['../namespace_open_kalman_1_1angle.html#ac3976c873d043fc2ffc41480786611ba',1,'OpenKalman::angle']]],
-  ['positiveradians_591',['PositiveRadians',['../namespace_open_kalman_1_1angle.html#aae34d8777386110733617fcd3ec26631',1,'OpenKalman::angle']]]
+  ['native_5fmatrix_5ft_622',['native_matrix_t',['../namespace_open_kalman.html#a7fb718bc7a10021ec9a0032e9b3fc92e',1,'OpenKalman']]],
+  ['nested_5fmatrix_5ft_623',['nested_matrix_t',['../namespace_open_kalman.html#abc8e1017c2a892423e656ba212290b74',1,'OpenKalman']]],
+  ['nestedmatrix_624',['NestedMatrix',['../struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a7a5b7cbef96464c0b8efcc1a192e00f8',1,'OpenKalman::internal::TypedMatrixBase']]]
 ];
