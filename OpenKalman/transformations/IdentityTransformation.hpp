@@ -23,11 +23,11 @@ namespace OpenKalman
   {
     /// Applies the transformation.
 #ifdef __cpp_concepts
-    template<column_vector In, perturbation ... Perturbations> requires
+    template<typed_matrix In, perturbation ... Perturbations> requires untyped_columns<In> and
       internal::transformation_args<In, Perturbations...>
 #else
     template<typename In, typename ... Perturbations, std::enable_if_t<
-      column_vector<In> and (perturbation<Perturbations> and ...) and
+      typed_matrix<In> and untyped_columns<In> and (perturbation<Perturbations> and ...) and
       internal::transformation_args<In, Perturbations...>, int> = 0>
 #endif
     auto operator()(In&& in, Perturbations&& ... ps) const noexcept
@@ -38,11 +38,11 @@ namespace OpenKalman
 
     /// Returns a tuple of the Jacobians for the input and each perturbation term.
 #ifdef __cpp_concepts
-    template<column_vector In, perturbation ... Perturbations> requires
+    template<typed_matrix In, perturbation ... Perturbations> requires untyped_columns<In> and
     internal::transformation_args<In, Perturbations...>
 #else
     template<typename In, typename ... Perturbations, std::enable_if_t<
-      column_vector<In> and (perturbation<Perturbations> and ...) and
+      typed_matrix<In> and untyped_columns<In> and (perturbation<Perturbations> and ...) and
       internal::transformation_args<In, Perturbations...>, int> = 0>
 #endif
     auto jacobian(const In&, const Perturbations&...) const
@@ -55,11 +55,11 @@ namespace OpenKalman
 
     /// Returns a tuple of Hessian matrices for the input and each perturbation term. In this case, they are zero matrices.
 #ifdef __cpp_concepts
-    template<column_vector In, perturbation ... Perturbations> requires
+    template<typed_matrix In, perturbation ... Perturbations> requires untyped_columns<In> and
     internal::transformation_args<In, Perturbations...>
 #else
     template<typename In, typename ... Perturbations, std::enable_if_t<
-      column_vector<In> and (perturbation<Perturbations> and ...) and
+      typed_matrix<In> and untyped_columns<In> and (perturbation<Perturbations> and ...) and
       internal::transformation_args<In, Perturbations...>, int> = 0>
 #endif
     auto hessian(const In&, const Perturbations&...) const

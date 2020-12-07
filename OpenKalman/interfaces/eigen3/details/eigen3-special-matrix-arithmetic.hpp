@@ -32,8 +32,8 @@ namespace OpenKalman::Eigen3
 #endif
   inline auto operator+(Arg1&& arg1, Arg2&& arg2)
   {
-    if constexpr((Eigen3::lower_storage_triangle<Arg1> and Eigen3::lower_storage_triangle<Arg2>) or
-      (Eigen3::upper_storage_triangle<Arg1> and Eigen3::upper_storage_triangle<Arg2>))
+    if constexpr((Eigen3::lower_triangular_storage<Arg1> and Eigen3::lower_triangular_storage<Arg2>) or
+      (Eigen3::upper_triangular_storage<Arg1> and Eigen3::upper_triangular_storage<Arg2>))
     {
       auto ret = MatrixTraits<Arg1>::make(
         nested_matrix(std::forward<Arg1&&>(arg1)) + nested_matrix(std::forward<Arg2&&>(arg2)));
@@ -182,8 +182,8 @@ namespace OpenKalman::Eigen3
 #endif
   inline auto operator-(Arg1&& arg1, Arg2&& arg2)
   {
-    if constexpr((Eigen3::lower_storage_triangle<Arg1> and Eigen3::lower_storage_triangle<Arg2>) or
-      (Eigen3::upper_storage_triangle<Arg1> and Eigen3::upper_storage_triangle<Arg2>))
+    if constexpr((Eigen3::lower_triangular_storage<Arg1> and Eigen3::lower_triangular_storage<Arg2>) or
+      (Eigen3::upper_triangular_storage<Arg1> and Eigen3::upper_triangular_storage<Arg2>))
     {
       auto ret = MatrixTraits<Arg1>::make(
         nested_matrix(std::forward<Arg1>(arg1)) - nested_matrix(std::forward<Arg2>(arg2)));

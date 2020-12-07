@@ -10,9 +10,8 @@
 
 /**
  * \file
- * This is the meta-header file for OpenKalman.
- *
- * Include this file before using any OpenKalman classes or methods.
+ * \brief This is the meta-header file for OpenKalman.
+ * \details Include this file before using any OpenKalman classes or methods.
  * It should appear *after* an interface header file (e.g., Eigen3.h), for the matrix library.
  */
 

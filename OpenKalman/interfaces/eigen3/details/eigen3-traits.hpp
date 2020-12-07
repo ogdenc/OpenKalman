@@ -181,10 +181,10 @@ namespace OpenKalman
     namespace detail
     {
       template<typename T>
-      struct is_upper_storage_triangle : std::false_type {};
+      struct is_upper_triangular_storage : std::false_type {};
 
       template<typename NestedMatrix>
-      struct is_upper_storage_triangle<Eigen3::SelfAdjointMatrix<NestedMatrix, TriangleType::upper>> : std::true_type {};
+      struct is_upper_triangular_storage<Eigen3::SelfAdjointMatrix<NestedMatrix, TriangleType::upper>> : std::true_type {};
     }
 
 
@@ -194,19 +194,19 @@ namespace OpenKalman
      */
     template<typename T>
 #ifdef __cpp_concepts
-    concept upper_storage_triangle = detail::is_upper_storage_triangle<std::decay_t<T>>::value;
+    concept upper_triangular_storage = detail::is_upper_triangular_storage<std::decay_t<T>>::value;
 #else
-    inline constexpr bool upper_storage_triangle = detail::is_upper_storage_triangle<std::decay_t<T>>::value;
+    inline constexpr bool upper_triangular_storage = detail::is_upper_triangular_storage<std::decay_t<T>>::value;
 #endif
 
 
     namespace detail
     {
       template<typename T>
-      struct is_lower_storage_triangle : std::false_type {};
+      struct is_lower_triangular_storage : std::false_type {};
 
       template<typename NestedMatrix>
-      struct is_lower_storage_triangle<Eigen3::SelfAdjointMatrix<NestedMatrix, TriangleType::lower>> : std::true_type {};
+      struct is_lower_triangular_storage<Eigen3::SelfAdjointMatrix<NestedMatrix, TriangleType::lower>> : std::true_type {};
     }
 
 
@@ -216,9 +216,9 @@ namespace OpenKalman
      */
     template<typename T>
 #ifdef __cpp_concepts
-    concept lower_storage_triangle = detail::is_lower_storage_triangle<std::decay_t<T>>::value;
+    concept lower_triangular_storage = detail::is_lower_triangular_storage<std::decay_t<T>>::value;
 #else
-    inline constexpr bool lower_storage_triangle = detail::is_lower_storage_triangle<std::decay_t<T>>::value;
+    inline constexpr bool lower_triangular_storage = detail::is_lower_triangular_storage<std::decay_t<T>>::value;
 #endif
 
   } // namespace Eigen3
@@ -291,11 +291,11 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<Eigen3::eigen_native T> requires (MatrixTraits<T>::columns == 1)
+    template<Eigen3::eigen_native T> requires column_vector<T>
     struct is_element_gettable<T, 1>
 #else
     template<typename T>
-    struct is_element_gettable<T, 1, std::enable_if_t<Eigen3::eigen_native<T> and (MatrixTraits<T>::columns == 1)>>
+    struct is_element_gettable<T, 1, std::enable_if_t<Eigen3::eigen_native<T> and column_vector<T>>>
 #endif
       : std::true_type {};
 
@@ -314,13 +314,13 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<Eigen3::eigen_native T> requires (MatrixTraits<T>::columns == 1) and
+    template<Eigen3::eigen_native T> requires column_vector<T> and
       (not std::is_const_v<std::remove_reference_t<T>>) and
       (static_cast<bool>(std::decay_t<T>::Flags & Eigen::LvalueBit))
     struct is_element_settable<T, 1>
 #else
     template<typename T>
-    struct is_element_settable<T, 1, std::enable_if_t<Eigen3::eigen_native<T> and (MatrixTraits<T>::columns == 1) and
+    struct is_element_settable<T, 1, std::enable_if_t<Eigen3::eigen_native<T> and column_vector<T> and
       (not std::is_const_v<std::remove_reference_t<T>>) and
       (static_cast<bool>(std::decay_t<T>::Flags & Eigen::LvalueBit))>>
 #endif
@@ -480,13 +480,13 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
     template<Eigen3::eigen_self_adjoint_expr T> requires diagonal_matrix<nested_matrix_t<T>> or
-      (MatrixTraits<T>::storage_type == TriangleType::diagonal)
+      (MatrixTraits<T>::storage_triangle == TriangleType::diagonal)
     struct is_diagonal_matrix<T> : std::true_type {};
 #else
     template<typename T>
     struct is_diagonal_matrix<T, std::enable_if_t<Eigen3::eigen_self_adjoint_expr<T>>>
       : std::bool_constant<diagonal_matrix<nested_matrix_t<T>> or
-          MatrixTraits<T>::storage_type == TriangleType::diagonal> {};
+          MatrixTraits<T>::storage_triangle == TriangleType::diagonal> {};
 #endif
 
 
@@ -661,14 +661,14 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<Eigen3::eigen_self_adjoint_expr T, std::size_t N> requires
       (element_gettable<nested_matrix_t<T>, 2> and
-        (N == 2 or MatrixTraits<T>::storage_type == TriangleType::diagonal)) or
+        (N == 2 or MatrixTraits<T>::storage_triangle == TriangleType::diagonal)) or
       element_gettable<nested_matrix_t<T>, 1>
     struct is_element_gettable<T, N> : std::true_type {};
 #else
     template<typename T, std::size_t N>
     struct is_element_gettable<T, N, std::enable_if_t<Eigen3::eigen_self_adjoint_expr<T>>>
       : std::bool_constant<(element_gettable<nested_matrix_t<T>, 2> and
-          (N == 2 or MatrixTraits<T>::storage_type == TriangleType::diagonal)) or
+          (N == 2 or MatrixTraits<T>::storage_triangle == TriangleType::diagonal)) or
           element_gettable<nested_matrix_t<T>, 1>> {};
 #endif
 
@@ -702,12 +702,12 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<Eigen3::eigen_zero_expr T, std::size_t N> requires (N == 2) or (N == 1 and MatrixTraits<T>::columns == 1)
+    template<Eigen3::eigen_zero_expr T, std::size_t N> requires (N == 2) or (N == 1 and column_vector<T>)
     struct is_element_gettable<T, N>
 #else
     template<typename T, std::size_t N>
     struct is_element_gettable<T, N, std::enable_if_t<Eigen3::eigen_zero_expr<T> and
-      ((N == 2) or (N == 1 and MatrixTraits<T>::columns == 1))>>
+      ((N == 2) or (N == 1 and column_vector<T>))>>
 #endif
       : std::true_type {};
 
@@ -741,14 +741,14 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<Eigen3::eigen_self_adjoint_expr T, std::size_t N> requires
       (element_settable<nested_matrix_t<T>, 2> and
-        (N == 2 or MatrixTraits<T>::storage_type == TriangleType::diagonal)) or
+        (N == 2 or MatrixTraits<T>::storage_triangle == TriangleType::diagonal)) or
       element_settable<nested_matrix_t<T>, 1>
     struct is_element_settable<T, N> : std::true_type {};
 #else
     template<typename T, std::size_t N>
     struct is_element_settable<T, N, std::enable_if_t<Eigen3::eigen_self_adjoint_expr<T>>>
       : std::bool_constant<(element_settable<nested_matrix_t<T>, 2> and
-          (N == 2 or MatrixTraits<T>::storage_type == TriangleType::diagonal)) or
+          (N == 2 or MatrixTraits<T>::storage_triangle == TriangleType::diagonal)) or
           element_settable<nested_matrix_t<T>, 1>> {};
 #endif
 

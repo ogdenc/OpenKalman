@@ -72,9 +72,8 @@ namespace OpenKalman
     template<typename In, typename ... Perturbations>
     static constexpr void check_inputs(In&&, Perturbations&& ...)
     {
-      static_assert(column_vector<In>);
+      static_assert(typed_matrix<In> and column_vector<In>);
       static_assert((perturbation<Perturbations> and ...));
-      static_assert(MatrixTraits<In>::columns == 1);
       static_assert(((internal::PerturbationTraits<Perturbations>::columns == 1) and ...));
     }
 

@@ -60,9 +60,9 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<typed_matrix Arg> requires column_vector<Arg>
+  template<typed_matrix Arg> requires untyped_columns<Arg>
 #else
-  template<typename Arg, std::enable_if_t<typed_matrix<Arg> and column_vector<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<typed_matrix<Arg> and untyped_columns<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   to_euclidean(Arg&& arg) noexcept
@@ -81,9 +81,9 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<typed_matrix Arg> requires column_vector<Arg>
+  template<typed_matrix Arg> requires untyped_columns<Arg>
 #else
-  template<typename Arg, std::enable_if_t<typed_matrix<Arg> and column_vector<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<typed_matrix<Arg> and untyped_columns<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   from_euclidean(Arg&& arg) noexcept
@@ -152,10 +152,9 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<typed_matrix Arg> requires (MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns)
+  template<typed_matrix Arg> requires square_matrix<Arg>
 #else
-  template<typename Arg, std::enable_if_t<typed_matrix<Arg> and
-    (MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns), int> = 0>
+  template<typename Arg, std::enable_if_t<typed_matrix<Arg> and square_matrix<Arg>, int> = 0>
 #endif
   inline auto
   determinant(Arg&& arg) noexcept
@@ -165,10 +164,9 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<typed_matrix Arg> requires (MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns)
+  template<typed_matrix Arg> requires square_matrix<Arg>
 #else
-  template<typename Arg, std::enable_if_t<typed_matrix<Arg> and
-    (MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns), int> = 0>
+  template<typename Arg, std::enable_if_t<typed_matrix<Arg> and square_matrix<Arg>, int> = 0>
 #endif
   inline auto
   trace(Arg&& arg) noexcept
@@ -180,13 +178,11 @@ namespace OpenKalman
   /// Solves AX = B for X, where X and B are means of the same type, and A is a square matrix with compatible types.
   /// If wrapping occurs, it will be both before for B and after for the X result.
 #ifdef __cpp_concepts
-  template<typed_matrix A, typed_matrix B> requires
-    equivalent_to<typename MatrixTraits<A>::RowCoefficients, typename MatrixTraits<B>::RowCoefficients> and
-    equivalent_to<typename MatrixTraits<A>::RowCoefficients, typename MatrixTraits<A>::ColumnCoefficients>
+  template<typed_matrix A, typed_matrix B> requires square_matrix<A> and
+    equivalent_to<typename MatrixTraits<A>::RowCoefficients, typename MatrixTraits<B>::RowCoefficients>
 #else
-  template<typename A, typename B, std::enable_if_t<typed_matrix<A> and typed_matrix<B> and
-    equivalent_to<typename MatrixTraits<A>::RowCoefficients, typename MatrixTraits<B>::RowCoefficients> and
-    equivalent_to<typename MatrixTraits<A>::RowCoefficients, typename MatrixTraits<A>::ColumnCoefficients>, int> = 0>
+  template<typename A, typename B, std::enable_if_t<typed_matrix<A> and typed_matrix<B> and square_matrix<A> and
+    equivalent_to<typename MatrixTraits<A>::RowCoefficients, typename MatrixTraits<B>::RowCoefficients>, int> = 0>
 #endif
   inline auto
   solve(A&& a, B&& b) noexcept
@@ -198,35 +194,33 @@ namespace OpenKalman
 
   /// Returns the mean of the column vectors after they are transformed into Euclidean space.
 #ifdef __cpp_concepts
-  template<typed_matrix Arg> requires (MatrixTraits<Arg>::columns == 1) or column_vector<Arg>
+  template<typed_matrix Arg> requires (MatrixTraits<Arg>::columns == 1) or untyped_columns<Arg>
 #else
   template<typename Arg, std::enable_if_t<typed_matrix<Arg> and
-    ((MatrixTraits<Arg>::columns == 1) or column_vector<Arg>), int> = 0>
+    ((MatrixTraits<Arg>::columns == 1) or untyped_columns<Arg>), int> = 0>
 #endif
   constexpr decltype(auto)
   reduce_columns(Arg&& arg) noexcept
   {
+    /// \todo add an option where all the column coefficients are the same, but not Axis.
     if constexpr(MatrixTraits<Arg>::columns == 1)
     {
       return std::forward<Arg>(arg);
     }
+    else if constexpr(euclidean_transformed<Arg>)
+    {
+      return MatrixTraits<Arg>::make(reduce_columns(nested_matrix(std::forward<Arg>(arg))));
+    }
+    else if constexpr(mean<Arg>)
+    {
+      using C = typename MatrixTraits<Arg>::RowCoefficients;
+      auto ev = reduce_columns(nested_matrix(to_euclidean(std::forward<Arg>(arg))));
+      return MatrixTraits<Arg>::make(from_euclidean<C>(std::move(ev)));
+    }
     else
     {
-      if constexpr(euclidean_transformed<Arg>)
-      {
-        return MatrixTraits<Arg>::make(reduce_columns(nested_matrix(std::forward<Arg>(arg))));
-      }
-      else if constexpr(mean<Arg>)
-      {
-        using C = typename MatrixTraits<Arg>::RowCoefficients;
-        auto ev = reduce_columns(nested_matrix(to_euclidean(std::forward<Arg>(arg))));
-        return MatrixTraits<Arg>::make(from_euclidean<C>(std::move(ev)));
-      }
-      else
-      {
-        using C = typename MatrixTraits<Arg>::RowCoefficients;
-        return make_matrix<C, Axis>(reduce_columns(nested_matrix(std::forward<Arg>(arg))));
-      }
+      using C = typename MatrixTraits<Arg>::RowCoefficients;
+      return make_matrix<C, Axis>(reduce_columns(nested_matrix(std::forward<Arg>(arg))));
     }
   }
 
@@ -429,11 +423,11 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
 
   /// Split typed matrix into one or more typed matrices horizontally. Column coefficients must all be Axis.
 #ifdef __cpp_concepts
-  template<std::size_t ... cuts, typed_matrix M> requires column_vector<M> and (sizeof...(cuts) > 0) and
+  template<std::size_t ... cuts, typed_matrix M> requires untyped_columns<M> and (sizeof...(cuts) > 0) and
     ((... + cuts) <= MatrixTraits<M>::columns)
 #else
   template<std::size_t ... cuts, typename M,
-    std::enable_if_t<typed_matrix<M> and column_vector<M> and (sizeof...(cuts) > 0) and
+    std::enable_if_t<typed_matrix<M> and untyped_columns<M> and (sizeof...(cuts) > 0) and
       ((0 + ... + cuts) <= MatrixTraits<M>::columns), int> = 0>
 #endif
   inline auto
@@ -547,15 +541,13 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
 
 
 #ifdef __cpp_concepts
-  template<typed_matrix Arg> requires column_vector<Arg>
+  template<typed_matrix Arg> requires untyped_columns<Arg>
 #else
-  template<typename Arg, std::enable_if_t<typed_matrix<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<typed_matrix<Arg> and untyped_columns<Arg>, int> = 0>
 #endif
   inline auto
   column(Arg&& arg, const std::size_t index)
   {
-    static_assert(column_vector<Arg>,
-      "Runtime-indexed version of column function requires that all columns be identical and of type Axis.");
     // \todo Make it so this function can accept any typed matrix with identically-typed columns.
     using RC = typename MatrixTraits<Arg>::RowCoefficients;
     using CC = Axis;
@@ -572,7 +564,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   column(Arg&& arg)
   {
     static_assert(index < MatrixTraits<Arg>::columns, "Column index out of range.");
-    if constexpr (MatrixTraits<Arg>::columns == 1)
+    if constexpr (column_vector<Arg>)
     {
       return std::forward<Arg>(arg);
     }
@@ -588,18 +580,16 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   ////
 
 #ifdef __cpp_concepts
-  template<typed_matrix Arg, typename Function> requires
+  template<typed_matrix Arg, typename Function> requires untyped_columns<Arg> and
     std::is_void_v<std::invoke_result_t<const Function&, std::decay_t<decltype(column(std::declval<Arg&>(), 0))>& >>
 #else
-  template<typename Arg, typename Function, std::enable_if_t<typed_matrix<Arg> and
+  template<typename Arg, typename Function, std::enable_if_t<typed_matrix<Arg> and untyped_columns<Arg> and
     std::is_void_v<std::invoke_result_t<const Function&,
       std::decay_t<decltype(column(std::declval<Arg&>(), 0))>& >>, int> = 0>
 #endif
   inline Arg&
   apply_columnwise(Arg& arg, const Function& f)
   {
-    static_assert(column_vector<Arg>,
-      "Columnwise application requires that all columns be identical column vectors of type Axis.");
     // \todo Make it so this function can accept any typed matrix with identically-typed columns.
     using RC = typename MatrixTraits<Arg>::RowCoefficients;
     const auto f_nested = [&f](auto& col)
@@ -616,18 +606,17 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
 
 
 #ifdef __cpp_concepts
-  template<typed_matrix Arg, typename Function> requires std::is_void_v<std::invoke_result_t<const Function&,
+  template<typed_matrix Arg, typename Function> requires untyped_columns<Arg> and
+    std::is_void_v<std::invoke_result_t<const Function&,
       std::decay_t<decltype(column(std::declval<Arg&>(), 0))>&, std::size_t>>
 #else
-  template<typename Arg, typename Function, std::enable_if_t<typed_matrix<Arg> and
+  template<typename Arg, typename Function, std::enable_if_t<typed_matrix<Arg> and untyped_columns<Arg> and
     std::is_void_v<std::invoke_result_t<Function,
     std::decay_t<decltype(column(std::declval<Arg&>(), 0))>&, std::size_t>>, int> = 0>
 #endif
   inline Arg&
   apply_columnwise(Arg& arg, const Function& f)
   {
-    static_assert(column_vector<Arg>,
-      "Columnwise application requires that all columns be identical column vectors of type Axis.");
     using RC = typename MatrixTraits<Arg>::RowCoefficients;
     const auto f_nested = [&f](auto& col, std::size_t i)
     {
@@ -643,18 +632,18 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
 
 
 #ifdef __cpp_concepts
-  template<typed_matrix Arg, typename Function> requires (not std::is_void_v<std::invoke_result_t<const Function&,
+  template<typed_matrix Arg, typename Function> requires untyped_columns<Arg> and
+    (not std::is_void_v<std::invoke_result_t<const Function&,
       std::decay_t<decltype(column(std::declval<const Arg&>(), 0))>&&>>)
 #else
-  template<typename Arg, typename Function, std::enable_if_t<typed_matrix<Arg> and
+  template<typename Arg, typename Function, std::enable_if_t<typed_matrix<Arg> and untyped_columns<Arg> and
     not std::is_void_v<std::invoke_result_t<const Function&,
       std::decay_t<decltype(column(std::declval<const Arg&>(), 0))>&& >>, int> = 0>
 #endif
   inline auto
   apply_columnwise(const Arg& arg, const Function& f)
   {
-    static_assert(column_vector<Arg>,
-      "Columnwise application requires that all columns be identical column vectors of type Axis.");
+    // \todo Make it so this function can accept any typed matrix with identically-typed columns.
     using ResultType = std::invoke_result_t<Function, decltype(column(std::declval<Arg&>(), 0))>;
     using ResRC = typename MatrixTraits<ResultType>::RowCoefficients;
     using ResCC0 = typename MatrixTraits<ResultType>::ColumnCoefficients;
@@ -669,18 +658,18 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
 
 
 #ifdef __cpp_concepts
-  template<typed_matrix Arg, typename Function> requires (not std::is_void_v<std::invoke_result_t<const Function&,
+  template<typed_matrix Arg, typename Function> requires untyped_columns<Arg> and
+    (not std::is_void_v<std::invoke_result_t<const Function&,
     std::decay_t<decltype(column(std::declval<const Arg&>(), 0))>&&, std::size_t>>)
 #else
-  template<typename Arg, typename Function, std::enable_if_t<typed_matrix<Arg> and
+  template<typename Arg, typename Function, std::enable_if_t<typed_matrix<Arg> and untyped_columns<Arg> and
     not std::is_void_v<std::invoke_result_t<const Function&,
       std::decay_t<decltype(column(std::declval<const Arg&>(), 0))>&&, std::size_t>>, int> = 0>
 #endif
   inline auto
   apply_columnwise(const Arg& arg, const Function& f)
   {
-    static_assert(column_vector<Arg>,
-      "Columnwise application requires that all columns be identical column vectors of type Axis.");
+    // \todo Make it so this function can accept any typed matrix with identically-typed columns.
     using ResultType = std::invoke_result_t<Function, decltype(column(std::declval<Arg&>(), 0)), std::size_t>;
     using ResRC = typename MatrixTraits<ResultType>::RowCoefficients;
     using ResCC0 = typename MatrixTraits<ResultType>::ColumnCoefficients;

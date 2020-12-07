@@ -20,6 +20,10 @@
 
 namespace OpenKalman
 {
+  // =================================================================== //
+  //  Traits that are fully defined independent of the matrix interface  //
+  // =================================================================== //
+
   // ----------------- //
   //  nested_matrix_t  //
   // ----------------- //
@@ -36,6 +40,46 @@ namespace OpenKalman
 #endif
   using nested_matrix_t = typename MatrixTraits<T>::NestedMatrix;
 
+
+  // ----------------- //
+  //  native_matrix_t  //
+  // ----------------- //
+
+  /**
+   * \brief An alias for a self-contained native matrix, based on and equivalent to parameter T.
+   * \tparam T The type from which the native matrix is derived.
+   * \tparam rows Number of rows in the native matrix (defaults to the number of rows in T).
+   * \tparam cols Number of columns in the native matrix (defaults to the number of columns in T).
+   */
+  template<typename T, std::size_t rows = MatrixTraits<T>::dimension, std::size_t cols = MatrixTraits<T>::columns>
+  using native_matrix_t = typename MatrixTraits<T>::template NativeMatrix<rows, cols>;
+
+
+  /**
+   * \brief Make a self-contained, native matrix based on the shape of M from a list of coefficients in row-major order.
+   */
+#ifdef __cpp_concepts
+  template<typename M, std::convertible_to<typename MatrixTraits<M>::Scalar> ... Args> requires
+    (sizeof...(Args) == MatrixTraits<M>::dimension * MatrixTraits<M>::columns)
+#else
+  template<typename M, typename ... Args, std::enable_if_t<
+    (std::is_convertible_v<Args, typename MatrixTraits<M>::Scalar> and ...) and
+    (sizeof...(Args) == MatrixTraits<M>::dimension * MatrixTraits<M>::columns), int> = 0>
+#endif
+  inline auto
+  make_native_matrix(const Args ... args)
+  {
+    return MatrixTraits<native_matrix_t<M>>::make(args...);
+  }
+
+
+  // ========================================================================== //
+  //  Traits for which specializations must be defined in the matrix interface  //
+  // ========================================================================== //
+
+  // ---------------------------------- //
+  //  contains_nested_lvalue_reference  //
+  // ---------------------------------- //
 
   namespace internal
   {
@@ -134,91 +178,6 @@ namespace OpenKalman
 
   } // namespace internal
 
-
-  // ------------------ //
-  //  self_contained_t  //
-  // ------------------ //
-
-  namespace detail
-  {
-#ifdef __cpp_concepts
-    template<typename T>
-#else
-    template<typename T, typename Enable = void>
-#endif
-    struct self_contained_impl { using type = typename MatrixTraits<T>::SelfContained; };
-
-
-#ifdef __cpp_concepts
-    template<distribution T>
-    struct self_contained_impl<T>
-#else
-    template<typename T>
-    struct self_contained_impl<T, std::enable_if_t<distribution<T>>>
-#endif
-    {
-      using type = typename DistributionTraits<T>::SelfContained;
-    };
-  }
-
-
-  /**
-   * \brief An alias for type, derived from and equivalent to parameter T, that is self-contained.
-   * \details Use this alias to obtain a type, equivalent to T, that can safely be returned from a function.
-   */
-  template<typename T>
-  using self_contained_t = std::conditional_t<
-    self_contained<T>, std::decay_t<T>, typename detail::self_contained_impl<T>::type>;
-
-
-  // ------------ //
-  //  passable_t  //
-  // ------------ //
-
-  /**
-   * \brief An alias for a type, derived from and equivalent to parameter T, that can be passed as a function parameter.
-   * \details A passable type is either an lvalue reference or an rvalue reference to a self_contained_t type.
-   */
-  template<typename T>
-  using passable_t = std::conditional_t<std::is_lvalue_reference_v<T>, T, self_contained_t<T>>;
-
-
-  // ----------------- //
-  //  native_matrix_t  //
-  // ----------------- //
-
-
-  /**
-   * \brief An alias for a self-contained native matrix, based on and equivalent to parameter T.
-   * \tparam T The type from which the native matrix is derived.
-   * \tparam rows Number of rows in the native matrix (defaults to the number of rows in T).
-   * \tparam cols Number of columns in the native matrix (defaults to the number of columns in T).
-   */
-  template<typename T, std::size_t rows = MatrixTraits<T>::dimension, std::size_t cols = MatrixTraits<T>::columns>
-  using native_matrix_t = typename MatrixTraits<T>::template NativeMatrix<rows, cols>;
-
-
-  /**
-   * \brief Make a self-contained, native matrix based on the shape of M from a list of coefficients in row-major order.
-   */
-#ifdef __cpp_concepts
-  template<typename M, std::convertible_to<typename MatrixTraits<M>::Scalar> ... Args> requires
-    (sizeof...(Args) == MatrixTraits<M>::dimension * MatrixTraits<M>::columns)
-#else
-  template<typename M, typename ... Args, std::enable_if_t<
-    (std::is_convertible_v<Args, typename MatrixTraits<M>::Scalar> and ...) and
-    (sizeof...(Args) == MatrixTraits<M>::dimension * MatrixTraits<M>::columns), int> = 0>
-#endif
-  inline auto
-  make_native_matrix(const Args ... args)
-  {
-    return MatrixTraits<native_matrix_t<M>>::make(args...);
-  }
-
-
-  // ============================================= //
-  //  Traits to be defined in the matrix interface  //
-  // ============================================= //
 
   // ---------------- //
   //  is_zero_matrix  //
@@ -341,35 +300,6 @@ namespace OpenKalman
       : is_identity_matrix<nested_matrix_t<T>> {};
 #endif
   }
-
-
-  // ------------------- //
-  //  one_by_one_matrix  //
-  // ------------------- //
-
-#ifndef __cpp_concepts
-  namespace detail
-  {
-    template<typename T, typename Enable = void>
-    struct is_1by1 : std::false_type {};
-
-    template<typename T>
-    struct is_1by1<T, std::enable_if_t<(MatrixTraits<T>::dimension == 1) and (MatrixTraits<T>::columns == 1)>>
-      : std::true_type {};
-  }
-#endif
-
-
-  /**
-   * \brief Specifies that a type is a one-by-one matrix (i.e., one row and one column).
-   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept one_by_one_matrix = (MatrixTraits<T>::dimension == 1) and (MatrixTraits<T>::columns == 1);
-#else
-  inline constexpr bool one_by_one_matrix = detail::is_1by1<T>::value;
-#endif
 
 
   // -------------------- //
@@ -684,6 +614,160 @@ namespace OpenKalman
   }
 
 
+  // --------------------- //
+  //  is_element_gettable  //
+  // --------------------- //
+
+  namespace internal
+  {
+    /**
+     * \internal
+     * \brief Type trait testing whether an object has elements that can be retrieved with N indices.
+     * \note This should be specialized for all matrix types usable with OpenKalman.
+     */
+#ifdef __cpp_concepts
+    template<typename T, std::size_t N>
+    struct is_element_gettable : std::false_type {};
+#else
+    template<typename T, std::size_t N, typename Enable = void>
+    struct is_element_gettable : std::false_type {};
+#endif
+  }
+
+
+  /**
+   * \brief Specifies that a type has elements that can be retrieved with N number of indices.
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
+   */
+  template<typename T, std::size_t N>
+#ifdef __cpp_concepts
+  concept element_gettable = internal::is_element_gettable<std::decay_t<T>, N>::value;
+#else
+  inline constexpr bool element_gettable = internal::is_element_gettable<std::decay_t<T>, N>::value;
+#endif
+
+
+  namespace internal
+  {
+    /*
+     * A typed matrix or covariance T is gettable with N indices if its nested matrix is likewise gettable.
+     */
+#ifdef __cpp_concepts
+    template<typename T, std::size_t N> requires (typed_matrix<T> or covariance<T>) and
+      element_gettable<nested_matrix_t<T>, N>
+    struct is_element_gettable<T, N> : std::true_type {};
+#else
+    template<typename T, std::size_t N>
+    struct is_element_gettable<T, N, std::enable_if_t<typed_matrix<T> or covariance<T>>>
+      : is_element_gettable<nested_matrix_t<T>, N> {};
+#endif
+  }
+
+
+  // --------------------- //
+  //  is_element_settable  //
+  // --------------------- //
+
+  namespace internal
+  {
+    /**
+     * \internal
+     * \brief Type trait testing whether an object has elements that can be set with N indices.
+     * \note This should be specialized for all matrix types usable with OpenKalman.
+     */
+#ifdef __cpp_concepts
+    template<typename T, std::size_t N>
+    struct is_element_settable : std::false_type {};
+#else
+    template<typename T, std::size_t N, typename Enable = void>
+    struct is_element_settable : std::false_type {};
+#endif
+  }
+
+  /**
+   * \brief Specifies that a type has elements that can be set with N number of indices.
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
+   */
+  template<typename T, std::size_t N>
+#ifdef __cpp_concepts
+  concept element_settable = internal::is_element_settable<T, N>::value and
+    (not std::is_const_v<std::remove_reference_t<T>>);
+#else
+  inline constexpr bool element_settable = internal::is_element_settable<T, N>::value and
+    (not std::is_const_v<std::remove_reference_t<T>>);
+#endif
+
+
+  namespace internal
+  {
+    /*
+     * A typed matrix or covariance T is settable with N indices if its nested matrix is likewise settable.
+     */
+#ifdef __cpp_concepts
+    template<typename T, std::size_t N> requires (typed_matrix<T> or covariance<T>) and
+      element_settable<nested_matrix_t<T>, N>
+    struct is_element_settable<T, N> : std::true_type {};
+#else
+    template<typename T, std::size_t N>
+    struct is_element_settable<T, N, std::enable_if_t<(typed_matrix<T> or covariance<T>) and
+      element_settable<nested_matrix_t<T>, N>>>
+      : std::true_type {};
+#endif
+  }
+
+
+  // ======================================================================================= //
+  //  Traits that are fully defined here, but depend on definitions in the matrix interface  //
+  // ======================================================================================= //
+
+  // ------------------ //
+  //  self_contained_t  //
+  // ------------------ //
+
+  namespace detail
+  {
+#ifdef __cpp_concepts
+    template<typename T>
+#else
+    template<typename T, typename Enable = void>
+#endif
+    struct self_contained_impl { using type = typename MatrixTraits<T>::SelfContained; };
+
+
+#ifdef __cpp_concepts
+    template<distribution T>
+    struct self_contained_impl<T>
+#else
+      template<typename T>
+    struct self_contained_impl<T, std::enable_if_t<distribution<T>>>
+#endif
+    {
+      using type = typename DistributionTraits<T>::SelfContained;
+    };
+  }
+
+
+  /**
+   * \brief An alias for type, derived from and equivalent to parameter T, that is self-contained.
+   * \details Use this alias to obtain a type, equivalent to T, that can safely be returned from a function.
+   */
+  template<typename T>
+  using self_contained_t = std::conditional_t<
+    self_contained<T>, std::decay_t<T>, typename detail::self_contained_impl<T>::type>;
+
+
+  // ------------ //
+  //  passable_t  //
+  // ------------ //
+
+  /**
+   * \brief An alias for a type, derived from and equivalent to parameter T, that can be passed as a function parameter.
+   * \details A passable type is either an lvalue reference or an rvalue reference to a self_contained_t type.
+   */
+  template<typename T>
+  using passable_t = std::conditional_t<std::is_lvalue_reference_v<T>, T, self_contained_t<T>>;
+
+
   // ------------------- //
   //  triangular_matrix  //
   // ------------------- //
@@ -796,7 +880,7 @@ namespace OpenKalman
     struct is_cholesky_form<T, std::enable_if_t<distribution<T>>>
       : is_cholesky_form<typename DistributionTraits<T>::Covariance> {};
 #endif
-  }
+  } // namespace internal
 
 
   // -------------------------------- //
@@ -806,7 +890,11 @@ namespace OpenKalman
   /**
    * \brief The type of a triangular matrix, either lower, upper, or diagonal.
    */
-  enum struct TriangleType { lower, upper, diagonal };
+  enum struct TriangleType {
+    lower, ///< The lower-left triangle.
+    upper, ///< The upper-right triangle.
+    diagonal ///< The diagonal elements of the matrix.
+    };
 
 
   namespace detail
@@ -860,108 +948,6 @@ namespace OpenKalman
   template<typename T>
 #endif
   inline constexpr TriangleType triangle_type_of = detail::triangle_type_of_impl<T>::value;
-
-
-  // --------------------- //
-  //  is_element_gettable  //
-  // --------------------- //
-
-  namespace internal
-  {
-    /**
-     * \internal
-     * \brief Type trait testing whether an object has elements that can be retrieved with N indices.
-     * \note This should be specialized for all matrix types usable with OpenKalman.
-     */
-#ifdef __cpp_concepts
-    template<typename T, std::size_t N>
-    struct is_element_gettable : std::false_type {};
-#else
-    template<typename T, std::size_t N, typename Enable = void>
-    struct is_element_gettable : std::false_type {};
-#endif
-  }
-
-
-  /**
-   * \brief Specifies that a type has elements that can be retrieved with N number of indices.
-   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
-   */
-  template<typename T, std::size_t N>
-#ifdef __cpp_concepts
-  concept element_gettable = internal::is_element_gettable<std::decay_t<T>, N>::value;
-#else
-  inline constexpr bool element_gettable = internal::is_element_gettable<std::decay_t<T>, N>::value;
-#endif
-
-
-  namespace internal
-  {
-    /*
-     * A typed matrix or covariance T is gettable with N indices if its nested matrix is likewise gettable.
-     */
-#ifdef __cpp_concepts
-    template<typename T, std::size_t N> requires (typed_matrix<T> or covariance<T>) and
-      element_gettable<nested_matrix_t<T>, N>
-    struct is_element_gettable<T, N> : std::true_type {};
-#else
-    template<typename T, std::size_t N>
-    struct is_element_gettable<T, N, std::enable_if_t<typed_matrix<T> or covariance<T>>>
-      : is_element_gettable<nested_matrix_t<T>, N> {};
-#endif
-  }
-
-
-  // --------------------- //
-  //  is_element_settable  //
-  // --------------------- //
-
-  namespace internal
-  {
-    /**
-     * \internal
-     * \brief Type trait testing whether an object has elements that can be set with N indices.
-     * \note This should be specialized for all matrix types usable with OpenKalman.
-     */
-#ifdef __cpp_concepts
-    template<typename T, std::size_t N>
-    struct is_element_settable : std::false_type {};
-#else
-    template<typename T, std::size_t N, typename Enable = void>
-    struct is_element_settable : std::false_type {};
-#endif
-  }
-
-  /**
-   * \brief Specifies that a type has elements that can be set with N number of indices.
-   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
-   */
-  template<typename T, std::size_t N>
-#ifdef __cpp_concepts
-  concept element_settable = internal::is_element_settable<T, N>::value and
-    (not std::is_const_v<std::remove_reference_t<T>>);
-#else
-  inline constexpr bool element_settable = internal::is_element_settable<T, N>::value and
-    (not std::is_const_v<std::remove_reference_t<T>>);
-#endif
-
-
-  namespace internal
-  {
-    /*
-     * A typed matrix or covariance T is settable with N indices if its nested matrix is likewise settable.
-     */
-#ifdef __cpp_concepts
-    template<typename T, std::size_t N> requires (typed_matrix<T> or covariance<T>) and
-      element_settable<nested_matrix_t<T>, N>
-    struct is_element_settable<T, N> : std::true_type {};
-#else
-    template<typename T, std::size_t N>
-    struct is_element_settable<T, N, std::enable_if_t<(typed_matrix<T> or covariance<T>) and
-      element_settable<nested_matrix_t<T>, N>>>
-      : std::true_type {};
-#endif
-  }
 
 }
 

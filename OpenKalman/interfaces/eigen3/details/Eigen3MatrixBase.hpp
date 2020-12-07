@@ -63,7 +63,7 @@ namespace OpenKalman::Eigen3::internal
     {
       if constexpr(Eigen3::eigen_self_adjoint_expr<Arg>)
       {
-        if constexpr (MatrixTraits<Arg>::storage_type == TriangleType::diagonal) return std::forward<Arg>(arg);
+        if constexpr (MatrixTraits<Arg>::storage_triangle == TriangleType::diagonal) return std::forward<Arg>(arg);
         else return get_ultimate_nested_matrix_impl(std::forward<Arg>(arg));
       }
       else if constexpr(Eigen3::eigen_triangular_expr<Arg>)

@@ -293,8 +293,8 @@ TEST_F(matrices, TypedMatrix_traits)
   static_assert(not euclidean_transformed<Matrix<C2, Axes<2>, I22>>);
   static_assert(not wrapped_mean<Mat23>);
   static_assert(not wrapped_mean<Matrix<C2, Axes<2>, I22>>);
-  static_assert(not column_vector<Mat23>);
-  static_assert(column_vector<Matrix<C2, Axes<2>, I22>>);
+  static_assert(not untyped_columns<Mat23>);
+  static_assert(untyped_columns<Matrix<C2, Axes<2>, I22>>);
 
   static_assert(not identity_matrix<Mat23>);
   static_assert(identity_matrix<Matrix<C2, C2, I22>>);

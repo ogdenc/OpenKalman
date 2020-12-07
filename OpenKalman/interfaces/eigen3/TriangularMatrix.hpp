@@ -17,12 +17,12 @@ namespace OpenKalman::Eigen3
   struct TriangularMatrix
     : OpenKalman::internal::MatrixBase<TriangularMatrix<NestedMatrix, triangle_type>, NestedMatrix>
   {
+    static_assert(square_matrix<NestedMatrix>);
     using Base = OpenKalman::internal::MatrixBase<TriangularMatrix, NestedMatrix>;
     static constexpr auto uplo = triangle_type == TriangleType::upper ? Eigen::Upper : Eigen::Lower;
     using View = Eigen::TriangularView<std::remove_reference_t<NestedMatrix>, uplo>;
     using Scalar = typename MatrixTraits<NestedMatrix>::Scalar;
     static constexpr auto dimension = MatrixTraits<NestedMatrix>::dimension;
-    static_assert(dimension == MatrixTraits<NestedMatrix>::columns);
 
 
     /// Default constructor
@@ -397,7 +397,7 @@ namespace OpenKalman::Eigen3
   template<typename M, std::enable_if_t<eigen_self_adjoint_expr<M>, int> = 0>
 #endif
   TriangularMatrix(M&&) -> TriangularMatrix<
-    native_matrix_t<nested_matrix_t<M>>, MatrixTraits<M>::storage_type>;
+    native_matrix_t<nested_matrix_t<M>>, MatrixTraits<M>::storage_triangle>;
 
 
   template<typename Arg, unsigned int UpLo>
@@ -468,10 +468,10 @@ namespace OpenKalman
   {
     static constexpr TriangleType triangle_type = triangle;
     using NestedMatrix = ArgType;
+    static_assert(square_matrix<NestedMatrix>);
     using Scalar = typename MatrixTraits<NestedMatrix>::Scalar;
     static constexpr auto dimension = MatrixTraits<NestedMatrix>::dimension;
     static constexpr auto columns = MatrixTraits<NestedMatrix>::columns;
-    static_assert(dimension == columns, "A triangular matrix must be square.");
 
     template<typename Derived>
     using MatrixBaseType = Eigen3::internal::Eigen3MatrixBase<Derived, Eigen3::TriangularMatrix<ArgType, triangle>>;

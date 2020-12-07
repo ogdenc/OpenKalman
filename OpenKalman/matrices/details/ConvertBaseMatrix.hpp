@@ -14,9 +14,7 @@
 namespace OpenKalman::internal
 {
 #ifdef __cpp_concepts
-  template<covariance_nestable T, typename Arg>
-  requires covariance<Arg> or (typed_matrix<Arg> and equivalent_to<typename MatrixTraits<Arg>::RowCoefficients,
-    typename MatrixTraits<Arg>::ColumnCoefficients>)
+  template<covariance_nestable T, typename Arg> requires covariance<Arg> or (typed_matrix<Arg> and square_matrix<Arg>)
 #else
   template<typename T, typename Arg, typename>
 #endif
@@ -29,7 +27,6 @@ namespace OpenKalman::internal
     // Typed matrices:
     if constexpr(typed_matrix<Arg>)
     {
-      static_assert(equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, typename MatrixTraits<Arg>::ColumnCoefficients>);
       using SA = typename MatrixTraits<ArgBase>::template SelfAdjointBaseType<>;
       return MatrixTraits<T>::make(nested_matrix(MatrixTraits<SA>::make(std::forward<Arg>(arg).nested_matrix())));
     }
@@ -89,15 +86,13 @@ namespace OpenKalman::internal
 
 #ifdef __cpp_concepts
   template<typename Arg>
-  requires covariance<Arg> or (typed_matrix<Arg> and equivalent_to<typename MatrixTraits<Arg>::RowCoefficients,
-    typename MatrixTraits<Arg>::ColumnCoefficients>)
+  requires covariance<Arg> or (typed_matrix<Arg> and square_matrix<Arg>)
 #else
   template<typename Arg, typename>
 #endif
   constexpr decltype(auto)
   convert_nested_matrix(Arg&& arg) noexcept
   {
-    // Typed matrices:
     if constexpr(typed_matrix<Arg>)
     {
       return std::forward<Arg>(arg).nested_matrix();

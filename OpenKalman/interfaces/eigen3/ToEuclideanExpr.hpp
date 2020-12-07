@@ -212,8 +212,8 @@ namespace OpenKalman::Eigen3
     /// Identity.
     static auto identity()
     {
-      static_assert(MatrixTraits<NestedMatrix>::dimension == columns, "Identity requires a square matrix.");
-      using ST = native_matrix_t<NestedMatrix, Coefficients::dimension>;
+      static_assert(Coefficients::dimension == columns, "Cannot call the identity(0 function on a non-square matrix.");
+      using ST = native_matrix_t<NestedMatrix, Coefficients::dimension, columns>;
       return MatrixTraits<ST>::identity();
     }
 

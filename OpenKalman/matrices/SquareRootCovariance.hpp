@@ -123,7 +123,7 @@ namespace OpenKalman
     {
       static_assert(equivalent_to<typename MatrixTraits<M>::RowCoefficients, Coefficients>);
       if constexpr(diagonal_matrix<NestedMatrix>)
-        static_assert(MatrixTraits<M>::columns == 1);
+        static_assert(column_vector<M>);
       else
         static_assert(equivalent_to<typename MatrixTraits<M>::ColumnCoefficients, Coefficients>);
     }
@@ -490,13 +490,11 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<TriangleType triangle_type = TriangleType::lower, typed_matrix_nestable Arg> requires
     (not covariance_nestable<Arg>) and
-    (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
-    (MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns)
+    (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and square_matrix<Arg>
 #else
   template<TriangleType triangle_type = TriangleType::lower, typename Arg, std::enable_if_t<
     typed_matrix_nestable<Arg> and (not covariance_nestable<Arg>) and
-    (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
-    (MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns), int> = 0>
+    (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and square_matrix<Arg>, int> = 0>
 #endif
   inline auto
   make_square_root_covariance(Arg&& arg) noexcept
@@ -511,12 +509,10 @@ namespace OpenKalman
    * \brief Make a writable, uninitialized SquareRootCovariance from a typed_matrix_nestable.
    */
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, TriangleType triangle_type, typed_matrix_nestable Arg>
-    requires (MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns)
+  template<coefficients Coefficients, TriangleType triangle_type, typed_matrix_nestable Arg> requires square_matrix<Arg>
 #else
   template<typename Coefficients, TriangleType triangle_type, typename Arg,
-    std::enable_if_t<coefficients<Coefficients> and typed_matrix_nestable<Arg> and
-      (MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns), int> = 0>
+    std::enable_if_t<coefficients<Coefficients> and typed_matrix_nestable<Arg> and square_matrix<Arg>, int> = 0>
 #endif
   inline auto
   make_square_root_covariance()
@@ -534,12 +530,10 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<coefficients Coefficients, typename Arg> requires
-    (covariance_nestable<Arg> or typed_matrix_nestable<Arg>) and
-    (MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns)
+    (covariance_nestable<Arg> or typed_matrix_nestable<Arg>) and square_matrix<Arg>
 #else
   template<typename Coefficients, typename Arg, std::enable_if_t<
-    (covariance_nestable<Arg> or typed_matrix_nestable<Arg>) and
-    (MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns), int> = 0>
+    (covariance_nestable<Arg> or typed_matrix_nestable<Arg>) and square_matrix<Arg>, int> = 0>
 #endif
   inline auto
   make_square_root_covariance()
@@ -560,11 +554,10 @@ namespace OpenKalman
  * \details The coefficients will be Axis.
  */
 #ifdef __cpp_concepts
-  template<typename Arg> requires (covariance_nestable<Arg> or typed_matrix_nestable<Arg>) and
-    (MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns)
+  template<typename Arg> requires (covariance_nestable<Arg> or typed_matrix_nestable<Arg>) and square_matrix<Arg>
 #else
   template<typename Arg, std::enable_if_t<(covariance_nestable<Arg> or typed_matrix_nestable<Arg>) and
-    (MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns), int> = 0>
+    square_matrix<Arg>, int> = 0>
 #endif
   inline auto
   make_square_root_covariance()
@@ -579,11 +572,10 @@ namespace OpenKalman
    * \brief Make a writable, uninitialized SquareRootCovariance, with default Axis coefficients.
    */
 #ifdef __cpp_concepts
-  template<TriangleType triangle_type, typed_matrix_nestable Arg> requires
-    (MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns)
+  template<TriangleType triangle_type, typed_matrix_nestable Arg> requires square_matrix<Arg>
 #else
   template<TriangleType triangle_type, typename Arg, std::enable_if_t<
-    typed_matrix_nestable<Arg> and (MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns), int> = 0>
+    typed_matrix_nestable<Arg> and square_matrix<Arg>, int> = 0>
 #endif
   inline auto
   make_square_root_covariance()
@@ -634,13 +626,10 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<TriangleType triangle_type = TriangleType::lower, typed_matrix Arg> requires
-    (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
-    (equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, typename MatrixTraits<Arg>::ColumnCoefficients>)
+    (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and square_matrix<Arg>
 #else
   template<TriangleType triangle_type = TriangleType::lower, typename Arg, std::enable_if_t<typed_matrix<Arg> and
-    (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
-    (equivalent_to<typename MatrixTraits<Arg>::RowCoefficients,
-      typename MatrixTraits<Arg>::ColumnCoefficients>), int> = 0>
+    (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and square_matrix<Arg>, int> = 0>
 #endif
   inline auto
   make_square_root_covariance(Arg&& arg) noexcept
@@ -655,12 +644,10 @@ namespace OpenKalman
    * \brief Make a writable, uninitialized SquareRootCovariance based on a typed_matrix.
    */
 #ifdef __cpp_concepts
-  template<TriangleType triangle_type, typed_matrix Arg> requires
-    (equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, typename MatrixTraits<Arg>::ColumnCoefficients>)
+  template<TriangleType triangle_type, typed_matrix Arg> requires square_matrix<Arg>
 #else
-  template<TriangleType triangle_type, typename Arg, std::enable_if_t<typed_matrix<Arg> and
-    (equivalent_to<typename MatrixTraits<Arg>::RowCoefficients,
-      typename MatrixTraits<Arg>::ColumnCoefficients>), int> = 0>
+  template<TriangleType triangle_type, typename Arg, std::enable_if_t<
+    typed_matrix<Arg> and square_matrix<Arg>, int> = 0>
 #endif
   inline auto
   make_square_root_covariance()
@@ -676,12 +663,9 @@ namespace OpenKalman
    * \brief Make a writable, uninitialized SquareRootCovariance based on a typed_matrix.
    */
 #ifdef __cpp_concepts
-  template<typed_matrix Arg> requires
-    (equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, typename MatrixTraits<Arg>::ColumnCoefficients>)
+  template<typed_matrix Arg> requires square_matrix<Arg>
 #else
-  template<typename Arg, std::enable_if_t<typed_matrix<Arg> and
-    (equivalent_to<typename MatrixTraits<Arg>::RowCoefficients,
-      typename MatrixTraits<Arg>::ColumnCoefficients>), int> = 0>
+  template<typename Arg, std::enable_if_t<typed_matrix<Arg> and square_matrix<Arg>, int> = 0>
 #endif
   inline auto
   make_square_root_covariance()

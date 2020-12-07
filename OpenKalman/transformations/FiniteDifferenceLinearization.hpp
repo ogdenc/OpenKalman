@@ -18,8 +18,8 @@ namespace OpenKalman
   template<typename Trans, typename InDelta, typename ... PsDelta>
   struct FiniteDifferenceLinearization
   {
-    static_assert(column_vector<InDelta>);
-    static_assert((column_vector<PsDelta> and ...));
+    static_assert((typed_matrix<InDelta> and ... and typed_matrix<PsDelta>));
+    static_assert((untyped_columns<InDelta> and ... and untyped_columns<PsDelta>));
     static_assert(MatrixTraits<InDelta>::columns == 1);
     static_assert(((MatrixTraits<PsDelta>::columns == 1) and ...));
     static_assert(std::is_invocable_v<Trans, std::decay_t<InDelta>, std::decay_t<PsDelta>...>);

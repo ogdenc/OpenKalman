@@ -148,14 +148,13 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-  template<euclidean_expr Arg>
+  template<euclidean_expr Arg> requires column_vector<Arg>
 #else
-  template<typename Arg, std::enable_if_t<euclidean_expr<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<euclidean_expr<Arg> and column_vector<Arg>, int> = 0>
 #endif
   inline auto
   to_diagonal(Arg&& arg) noexcept
   {
-    static_assert(MatrixTraits<Arg>::columns == 1);
     return DiagonalMatrix(make_native_matrix(std::forward<Arg>(arg)));
   }
 
@@ -185,27 +184,25 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-  template<euclidean_expr Arg>
+  template<euclidean_expr Arg> requires square_matrix<Arg>
 #else
-  template<typename Arg, std::enable_if_t<euclidean_expr<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<euclidean_expr<Arg> and square_matrix<Arg>, int> = 0>
 #endif
   inline auto
   determinant(Arg&& arg) noexcept
   {
-    static_assert(MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns);
     return make_native_matrix(std::forward<Arg>(arg)).determinant();
   }
 
 
 #ifdef __cpp_concepts
-  template<euclidean_expr Arg>
+  template<euclidean_expr Arg> requires square_matrix<Arg>
 #else
-  template<typename Arg, std::enable_if_t<euclidean_expr<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<euclidean_expr<Arg> and square_matrix<Arg>, int> = 0>
 #endif
   inline auto
   trace(Arg&& arg) noexcept
   {
-    static_assert(MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns);
     return make_native_matrix(std::forward<Arg>(arg)).trace();
   }
 
@@ -213,13 +210,13 @@ namespace OpenKalman::Eigen3
   /// Solves AX = B for X (A is a regular matrix type, and B is a Euclidean expression).
   /// A must be invertible. (Does not check.)
 #ifdef __cpp_concepts
-  template<euclidean_expr A, eigen_matrix B>
+  template<euclidean_expr A, eigen_matrix B> requires square_matrix<A>
 #else
-  template<typename A, typename B, std::enable_if_t<euclidean_expr<A> and eigen_matrix<B>, int> = 0>
+  template<typename A, typename B, std::enable_if_t<euclidean_expr<A> and square_matrix<A> and
+    eigen_matrix<B>, int> = 0>
 #endif
   inline auto solve(A&& a, B&& b) noexcept
   {
-    static_assert(MatrixTraits<A>::dimension == MatrixTraits<A>::columns);
     static_assert(MatrixTraits<A>::dimension == MatrixTraits<B>::dimension);
     return solve(make_native_matrix(std::forward<A>(a)), std::forward<B>(b));
   }
@@ -465,16 +462,15 @@ namespace OpenKalman::Eigen3
 
   /// Split into one or more Euclidean expressions diagonally. The valuated expression must be square.
 #ifdef __cpp_concepts
-  template<typename F, typename...Cs, euclidean_expr Arg> requires (not coefficients<F>)
+  template<typename F, typename...Cs, euclidean_expr Arg> requires square_matrix<Arg> and (not coefficients<F>)
 #else
   template<typename F, typename...Cs, typename Arg, std::enable_if_t<
-    euclidean_expr<Arg> and not coefficients<F>, int> = 0>
+    euclidean_expr<Arg> and square_matrix<Arg> and (not coefficients<F>), int> = 0>
 #endif
   inline auto
   split_diagonal(Arg&& arg) noexcept
   {
     static_assert(prefix_of<Concatenate<Cs...>, typename MatrixTraits<Arg>::RowCoefficients>);
-    static_assert(MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns);
     constexpr auto euclidean = from_euclidean_expr<Arg>;
     return split_diagonal<internal::SplitEuclideanDiagF<F, Arg>, euclidean, Cs...>(
       nested_matrix(std::forward<Arg>(arg)));
@@ -482,31 +478,29 @@ namespace OpenKalman::Eigen3
 
   /// Split into one or more Euclidean expressions diagonally. The valuated expression must be square.
 #ifdef __cpp_concepts
-  template<typename F, bool, typename...Cs, euclidean_expr Arg> requires (not coefficients<F>)
+  template<typename F, bool, typename...Cs, euclidean_expr Arg> requires square_matrix<Arg> and (not coefficients<F>)
 #else
   template<typename F, bool, typename...Cs, typename Arg, std::enable_if_t<
-    euclidean_expr<Arg> and not coefficients<F>, int> = 0>
+    euclidean_expr<Arg> and square_matrix<Arg> and (not coefficients<F>), int> = 0>
 #endif
   inline auto
   split_diagonal(Arg&& arg) noexcept
   {
     static_assert(prefix_of<Concatenate<Cs...>, typename MatrixTraits<Arg>::RowCoefficients>);
-    static_assert(MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns);
     return split_diagonal<F, Cs...>(std::forward<Arg>(arg));
   }
 
   /// Split into one or more Euclidean expressions diagonally. The valuated expression must be square.
 #ifdef __cpp_concepts
-  template<coefficients...Cs, euclidean_expr Arg>
+  template<coefficients...Cs, euclidean_expr Arg> requires square_matrix<Arg>
 #else
   template<typename...Cs, typename Arg, std::enable_if_t<
-    euclidean_expr<Arg> and (coefficients<Cs> and ...), int> = 0>
+    euclidean_expr<Arg> and square_matrix<Arg> and (coefficients<Cs> and ...), int> = 0>
 #endif
   inline auto
   split_diagonal(Arg&& arg) noexcept
   {
     static_assert(prefix_of<Concatenate<Cs...>, typename MatrixTraits<Arg>::RowCoefficients>);
-    static_assert(MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns);
     return split_diagonal<OpenKalman::internal::default_split_function, false, Cs...>(std::forward<Arg>(arg));
   }
 
@@ -515,14 +509,14 @@ namespace OpenKalman::Eigen3
   /// \tparam cut Number of rows in the first cut.
   /// \tparam cuts Number of rows in the second and subsequent cuts.
 #ifdef __cpp_concepts
-  template<std::size_t cut, std::size_t ... cuts, euclidean_expr Arg>
+  template<std::size_t cut, std::size_t ... cuts, euclidean_expr Arg> requires square_matrix<Arg>
 #else
-  template<std::size_t cut, std::size_t ... cuts, typename Arg, std::enable_if_t<euclidean_expr<Arg>, int> = 0>
+  template<std::size_t cut, std::size_t ... cuts, typename Arg, std::enable_if_t<
+    euclidean_expr<Arg> and square_matrix<Arg>, int> = 0>
 #endif
   inline auto
   split_diagonal(Arg&& arg) noexcept
   {
-    static_assert(MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns);
     static_assert((cut + ... + cuts) <= MatrixTraits<Arg>::dimension);
     if constexpr(cut == MatrixTraits<Arg>::dimension and sizeof...(cuts) == 0)
     {
@@ -554,7 +548,6 @@ namespace OpenKalman::Eigen3
     else
     {
       using Coeffs = typename MatrixTraits<Arg>::RowCoefficients;
-      using Scalar = typename MatrixTraits<Arg>::Scalar;
       const auto get_coeff = [j, &arg] (const std::size_t row)
         {
           return get_element(nested_matrix(std::forward<Arg>(arg)), row, j);
@@ -590,7 +583,6 @@ namespace OpenKalman::Eigen3
     else
     {
       using Coeffs = typename MatrixTraits<Arg>::RowCoefficients;
-      using Scalar = typename MatrixTraits<Arg>::Scalar;
       const auto get_coeff = [&arg] (const std::size_t row)
         {
           return get_element(nested_matrix(std::forward<Arg>(arg)), row);

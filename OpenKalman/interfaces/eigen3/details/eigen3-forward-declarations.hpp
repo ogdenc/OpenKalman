@@ -9,6 +9,9 @@
  */
 
 /**
+ * \dir details
+ * \brief Support files for the Eigen3 interface
+ *
  * \file
  * \brief Forward declarations for OpenKalman's Eigen3 interface.
  */
@@ -42,29 +45,44 @@ namespace OpenKalman::Eigen3
   // ---------------------------- //
 
   /**
-   * \brief A self-adjoint matrix, based on an Eigen matrix.
-   * \tparam NestedMatrix The Eigen matrix on which the self-adjoint matrix is based.
-   * \tparam storage_triangle The triangle (TriangleType::upper or TriangleType::lower) in which the data is stored.
-   * The other triangle is not used, and coefficients are mapped from the other triangle to ensure that the
-   * matrix is always self-adjoint.
+   * \brief A self-adjoint matrix.
+   * \details The matrix is guaranteed to be self-adjoint. It is ::self_contained iff NestedMatrix is ::self_contained.
+   * It may \em also be a diagonal matrix if storage_triangle is TriangleType::diagonal.
+   * \tparam NestedMatrix A nested Eigen matrix expression, on which the self-adjoint matrix is based.
+   * \tparam storage_triangle The TriangleType (\ref TriangleType::lower "lower", \ref TriangleType::upper "upper", or
+   * \ref TriangleType::diagonal "diagonal") in which the data is stored.
+   * Matrix elements outside this triangle/diagonal are ignored. If the matrix is lower or upper triangular,
+   * elements are mapped from this selected triangle to the elements in the other triangle to ensure that the matrix
+   * is self-adjoint. If the matrix is diagonal, 0 is automatically mapped to each matrix element outside the diagonal.
    */
+#ifdef __cpp_concepts
+  template<square_matrix NestedMatrix, TriangleType storage_triangle = TriangleType::lower>
+#else
   template<typename NestedMatrix, TriangleType storage_triangle = TriangleType::lower>
+#endif
   struct SelfAdjointMatrix;
 
 
   /**
-   * \brief A triangular matrix, based on an Eigen matrix.
-   * \tparam NestedMatrix The Eigen matrix on which the triangular matrix is based.
-   * \tparam triangle_type The triangle (TriangleType::upper or TriangleType::lower).
+   * \brief A triangular matrix.
+   * \details The matrix is guaranteed to be triangular. It is ::self_contained iff NestedMatrix is ::self_contained.
+   * It may \em also be a diagonal matrix if triangle_type is TriangleType::diagonal.
+   * \tparam NestedMatrix A nested Eigen matrix expression, on which the triangular matrix is based.
+   * \tparam triangle_type The TriangleType (\ref TriangleType::lower "lower", \ref TriangleType::upper "upper", or
+   * \ref TriangleType::diagonal "diagonal") in which the data is stored.
+   * Matrix elements outside this triangle/diagonal are ignored. Instead, 0 is automatically mapped to each element
+   * not within the selected triangle or diagonal, to ensure that the matrix is triangular.
    */
   template<typename NestedMatrix, TriangleType triangle_type = TriangleType::lower>
   struct TriangularMatrix;
 
 
   /**
-   * \brief A diagonal matrix, based on an Eigen matrix.
-   * \note This has the same name as Eigen::DiagonalMatrix, and is intended as an improved replacement.
-   * \tparam NestedMatrix A single-column matrix defining the diagonal.
+   * \brief A diagonal matrix.
+   * \details The matrix is guaranteed to be diagonal. It is ::self_contained iff NestedMatrix is ::self_contained.
+   * \tparam NestedMatrix A single-column matrix expression defining the diagonal elements.
+   * Elements outside the diagonal are automatically 0.
+   * \note This has the same name as Eigen::DiagonalMatrix, and is intended as a replacement.
    */
   template<typename NestedMatrix>
   struct DiagonalMatrix;

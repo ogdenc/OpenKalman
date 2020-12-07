@@ -231,7 +231,7 @@ TEST_F(matrices, EuclideanMean_traits)
   static_assert(euclidean_transformed<Mat23>);
   static_assert(not euclidean_transformed<EuclideanMean<Axes<2>, I22>>);
   static_assert(not wrapped_mean<Mat23>);
-  static_assert(column_vector<Mat23>);
+  static_assert(untyped_columns<Mat23>);
 
   static_assert(not identity_matrix<Mat23>);
   static_assert(identity_matrix<EuclideanMean<Axes<2>, I22>>);
@@ -286,9 +286,9 @@ TEST_F(matrices, EuclideanMean_overloads)
   static_assert(equivalent_to<typename MatrixTraits<decltype(adjoint(EuclideanMean<Axes<2>, M23> {1, 2, 3, 4, 5, 6}))>::RowCoefficients, Axes<3>>);
   static_assert(equivalent_to<typename MatrixTraits<decltype(adjoint(EuclideanMean<Axes<2>, M23> {1, 2, 3, 4, 5, 6}))>::ColumnCoefficients, Axes<2>>);
 
-  EXPECT_NEAR(determinant(Mat23 {1, 2, 3, 4, 5, 6, 1, 5, 1}), 24, 1e-6);
+  EXPECT_NEAR(determinant(EuclideanMean<Axes<3>, M33> {1, 2, 3, 4, 5, 6, 1, 5, 1}), 24, 1e-6);
 
-  EXPECT_NEAR(trace(Mat23 {1, 2, 3, 4, 5, 6, 7, 8, 9}), 15, 1e-6);
+  EXPECT_NEAR(trace(EuclideanMean<Axes<3>, M33> {1, 2, 3, 4, 5, 6, 7, 8, 9}), 15, 1e-6);
 
   EXPECT_TRUE(is_near(solve(EuclideanMean<Axes<2>, M22> {9., 3, 3, 10}, EuclideanMean<Axes<2>, M21> {15, 23}), EuclideanMean<Axes<2>, M21> {1, 2}));
 

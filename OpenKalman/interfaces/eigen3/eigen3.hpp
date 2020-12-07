@@ -9,6 +9,9 @@
  */
 
 /**
+ * \dir
+ * \brief Files relating to the interface to the Eigen3 library
+ *
  * \file
  * \brief The comprehensive header file for OpenKalman's interface to the Eigen3 library.
  * \details This should be included ''before'' OpenKalman.hpp.

@@ -119,7 +119,7 @@ namespace OpenKalman::Eigen3
   {
     using NestedMatrix = nested_matrix_t<Arg>;
     using Scalar = typename MatrixTraits<Arg>::Scalar;
-    static_assert(diagonal_matrix<NestedMatrix> or MatrixTraits<Arg>::storage_type == TriangleType::diagonal);
+    static_assert(diagonal_matrix<NestedMatrix> or MatrixTraits<Arg>::storage_triangle == TriangleType::diagonal);
 
     if constexpr(identity_matrix<NestedMatrix>)
     {
@@ -137,7 +137,7 @@ namespace OpenKalman::Eigen3
     {
       return nested_matrix(std::forward<Arg>(arg)).array().square().matrix();
     }
-    else // if constexpr (not diagonal_matrix<NestedMatrix> and MatrixTraits<Arg>::storage_type == TriangleType::diagonal)
+    else // if constexpr (not diagonal_matrix<NestedMatrix> and MatrixTraits<Arg>::storage_triangle == TriangleType::diagonal)
     {
       constexpr auto dimension = MatrixTraits<Arg>::dimension;
       using M = Eigen::Matrix<Scalar, dimension, 1>;
@@ -177,7 +177,7 @@ namespace OpenKalman::Eigen3
     {
       return make_self_contained(nested_matrix(std::forward<Arg>(arg)).cwiseSqrt());
     }
-    else if constexpr (MatrixTraits<Arg>::storage_type == TriangleType::diagonal)
+    else if constexpr (MatrixTraits<Arg>::storage_triangle == TriangleType::diagonal)
     {
       using M1 = Eigen::Matrix<Scalar, dimension, 1>;
       M1 b = nested_matrix(std::forward<Arg>(arg)).diagonal();
@@ -217,7 +217,7 @@ namespace OpenKalman::Eigen3
       auto LL_x = arg.nested_view().llt();
       if (LL_x.info() == Eigen::Success)
       {
-        if constexpr(triangle_type == MatrixTraits<Arg>::storage_type)
+        if constexpr(triangle_type == MatrixTraits<Arg>::storage_triangle)
         {
           b = std::move(LL_x.matrixLLT());
         }
@@ -271,7 +271,7 @@ namespace OpenKalman::Eigen3
   inline auto
   Cholesky_factor(Arg&& arg) noexcept
   {
-    return Cholesky_factor<MatrixTraits<Arg>::storage_type>(std::forward<Arg>(arg));
+    return Cholesky_factor<MatrixTraits<Arg>::storage_triangle>(std::forward<Arg>(arg));
   }
 
 

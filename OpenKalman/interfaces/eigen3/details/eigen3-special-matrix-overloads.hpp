@@ -155,7 +155,7 @@ namespace OpenKalman::Eigen3
     {
       if constexpr (
         (eigen_self_adjoint_expr<V> and
-          ((upper_storage_triangle<V> == upper_storage_triangle<Vs>) and ...)) or
+          ((upper_triangular_storage<V> == upper_triangular_storage<Vs>) and ...)) or
         (eigen_triangular_expr<V> and ((upper_triangular_matrix<V> == upper_triangular_matrix<Vs>) and ...)))
       {
         return MatrixTraits<V>::make(
@@ -163,7 +163,7 @@ namespace OpenKalman::Eigen3
       }
       else if constexpr (eigen_self_adjoint_expr<V>)
       {
-        constexpr auto t = MatrixTraits<V>::storage_type;
+        constexpr auto t = MatrixTraits<V>::storage_triangle;
         return concatenate_diagonal(std::forward<V>(v), make_EigenSelfAdjointMatrix<t>(std::forward<Vs>(vs))...);
       }
       else // eigen_triangular_expr<V> and there is a mixture of upper and lower triangles.
@@ -358,7 +358,7 @@ namespace OpenKalman::Eigen3
   inline auto
   get_element(Arg&& arg, const std::size_t i, const std::size_t j)
   {
-    if constexpr(lower_storage_triangle<Arg>)
+    if constexpr(lower_triangular_storage<Arg>)
     {
       if (i >= j) return get_element(nested_matrix(arg), i, j);
       else return get_element(nested_matrix(std::forward<Arg>(arg)), j, i);
@@ -461,7 +461,7 @@ namespace OpenKalman::Eigen3
   inline void
   set_element(Arg& arg, const Scalar s, const std::size_t i, const std::size_t j)
   {
-    if constexpr(lower_storage_triangle<Arg>)
+    if constexpr(lower_triangular_storage<Arg>)
     {
       if (i >= j) set_element(nested_matrix(arg), s, i, j);
       else set_element(nested_matrix(arg), s, j, i);

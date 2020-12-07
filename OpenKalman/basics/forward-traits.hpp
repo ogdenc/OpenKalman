@@ -464,7 +464,7 @@ namespace OpenKalman
    * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
    *   <tr><td class="memTemplParams" colspan="2">
    * template&lt;\ref OpenKalman::coefficients "coefficients" C = <a href="afwtraitsDRC">Coefficients</a>,
-   * \ref mean M, \ref OpenKalman::covariance "covariance" Cov&gt; requires (MatrixTraits&lt;M&gt;::columns == 1) and
+   * \ref mean M, \ref OpenKalman::covariance "covariance" Cov&gt; requires column_vector&lt;M&gt; and
    * (MatrixTraits&lt;Mean&gt;::dimension == MatrixTraits&lt;Cov&gt;::dimension)</td></tr>
    * <tr><td class="memTemplItemLeft" align="right" valign="top">static auto&nbsp;</td>
    * <td class="memTemplItemRight" valign="bottom"><b>make</b> (M&& mean, Cov&& covariance) noexcept</td></tr>

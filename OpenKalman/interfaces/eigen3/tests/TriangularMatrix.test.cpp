@@ -417,8 +417,8 @@ TEST_F(eigen3, TriangularMatrix_overloads)
   //
   EXPECT_TRUE(is_near(Cholesky_square(Lower {3., 0, 1, 3}), mat22(9., 3, 3, 10)));
   EXPECT_TRUE(is_near(Cholesky_square(Upper {3., 1, 0, 3}), mat22(9., 3, 3, 10)));
-  static_assert(lower_storage_triangle<decltype(Cholesky_square(Lower {3, 0, 1, 3}))>);
-  static_assert(upper_storage_triangle<decltype(Cholesky_square(Upper {3, 1, 0, 3}))>);
+  static_assert(lower_triangular_storage<decltype(Cholesky_square(Lower {3, 0, 1, 3}))>);
+  static_assert(upper_triangular_storage<decltype(Cholesky_square(Upper {3, 1, 0, 3}))>);
   //
   EXPECT_TRUE(is_near(Cholesky_square(TriangularMatrix<native_matrix_t<double, 1, 1>, TriangleType::lower>(native_matrix_t<double, 1, 1>(9))), native_matrix_t<double, 1, 1>(81)));
   EXPECT_TRUE(is_near(Cholesky_square(TriangularMatrix<native_matrix_t<double, 1, 1>, TriangleType::upper>(native_matrix_t<double, 1, 1>(9))), native_matrix_t<double, 1, 1>(81)));

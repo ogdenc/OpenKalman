@@ -47,7 +47,7 @@ namespace OpenKalman
   struct MatrixTraits<Eigen3::ZeroMatrix<V>>
     : MatrixTraits<typename std::decay_t<V>::ConstantReturnType>
   {
-  protected:
+  private:
     using Base = MatrixTraits<typename std::decay_t<V>::ConstantReturnType>;
     using Matrix = Eigen3::ZeroMatrix<V>;
 
@@ -89,14 +89,13 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-  template<Eigen3::eigen_zero_expr Arg>
+  template<Eigen3::eigen_zero_expr Arg> requires column_vector<Arg>
 #else
-  template<typename Arg, std::enable_if_t<Eigen3::eigen_zero_expr<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<Eigen3::eigen_zero_expr<Arg> and column_vector<Arg>, int> = 0>
 #endif
   inline auto
   to_diagonal(Arg&& arg) noexcept
   {
-    static_assert(MatrixTraits<Arg>::columns == 1);
     constexpr auto dim = MatrixTraits<Arg>::dimension;
     using B = native_matrix_t<Arg, dim, dim>;
     return Eigen3::ZeroMatrix<B>();
@@ -131,27 +130,25 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-  template<Eigen3::eigen_zero_expr Arg>
+  template<Eigen3::eigen_zero_expr Arg> requires square_matrix<Arg>
 #else
-  template<typename Arg, std::enable_if_t<Eigen3::eigen_zero_expr<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<Eigen3::eigen_zero_expr<Arg> and square_matrix<Arg>, int> = 0>
 #endif
   constexpr auto
   determinant(Arg&& arg) noexcept
   {
-    static_assert(MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns);
     return static_cast<typename MatrixTraits<Arg>::Scalar>(0);
   }
 
 
 #ifdef __cpp_concepts
-  template<Eigen3::eigen_zero_expr Arg>
+  template<Eigen3::eigen_zero_expr Arg> requires square_matrix<Arg>
 #else
-  template<typename Arg, std::enable_if_t<Eigen3::eigen_zero_expr<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<Eigen3::eigen_zero_expr<Arg> and square_matrix<Arg>, int> = 0>
 #endif
   constexpr auto
   trace(Arg&& arg) noexcept
   {
-    static_assert(MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns);
     return static_cast<typename MatrixTraits<Arg>::Scalar>(0);
   }
 
@@ -165,7 +162,7 @@ namespace OpenKalman::Eigen3
   constexpr decltype(auto)
   reduce_columns(Arg&& arg) noexcept
   {
-    if constexpr(MatrixTraits<Arg>::columns == 1)
+    if constexpr(column_vector<Arg>)
     {
       return std::forward<Arg>(arg);
     }
@@ -228,9 +225,9 @@ namespace OpenKalman::Eigen3
 
   /// Get an element of a one-column ZeroMatrix matrix. Always 0.
 #ifdef __cpp_concepts
-  template<Eigen3::eigen_zero_expr Arg> requires (MatrixTraits<Arg>::columns == 1)
+  template<Eigen3::eigen_zero_expr Arg> requires column_vector<Arg>
 #else
-  template<typename Arg, std::enable_if_t<Eigen3::eigen_zero_expr<Arg> and MatrixTraits<Arg>::columns == 1, int> = 0>
+  template<typename Arg, std::enable_if_t<Eigen3::eigen_zero_expr<Arg> and column_vector<Arg>, int> = 0>
 #endif
   constexpr auto
   get_element(const Arg&, const std::size_t)
@@ -263,7 +260,7 @@ namespace OpenKalman::Eigen3
   column(Arg&& arg)
   {
     using Scalar = typename MatrixTraits<Arg>::Scalar;
-    if constexpr(MatrixTraits<Arg>::columns == 1)
+    if constexpr(column_vector<Arg>)
       return std::forward<Arg>(arg);
     else
       return Eigen3::ZeroMatrix<Eigen::Matrix<Scalar, MatrixTraits<Arg>::dimension, 1>>();

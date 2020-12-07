@@ -93,7 +93,7 @@ namespace OpenKalman
     static auto
     weighted_means(const YMeans& y_means)
     {
-      static_assert(column_vector<YMeans>);
+      static_assert(typed_matrix<YMeans> and untyped_columns<YMeans>);
       constexpr auto count = MatrixTraits<YMeans>::columns;
       static_assert(count == SigmaPointsType::template sigma_point_count<dim>(), "Wrong number of sigma points.");
       using Weights = Matrix<Axes<count>, Axis, native_matrix_t<YMeans, count, 1>>;

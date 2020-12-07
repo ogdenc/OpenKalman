@@ -185,14 +185,13 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-  template<eigen_native Arg>
+  template<eigen_native Arg> requires column_vector<Arg>
 #else
-  template<typename Arg, std::enable_if_t<eigen_native<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<eigen_native<Arg> and column_vector<Arg>, int> = 0>
 #endif
   inline auto
   to_diagonal(Arg&& arg) noexcept
   {
-    static_assert(MatrixTraits<Arg>::columns == 1);
     if constexpr (one_by_one_matrix<Arg>)
       return std::forward<Arg>(arg);
     else
@@ -231,14 +230,13 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-  template<eigen_native Arg>
+  template<eigen_native Arg> requires square_matrix<Arg>
 #else
-  template<typename Arg, std::enable_if_t<eigen_native<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<eigen_native<Arg> and square_matrix<Arg>, int> = 0>
 #endif
   inline auto
   determinant(Arg&& arg) noexcept
   {
-    static_assert(MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns);
     if constexpr (one_by_one_matrix<Arg>)
       return std::forward<Arg>(arg)(0, 0);
     else
@@ -247,14 +245,13 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-  template<eigen_native Arg>
+  template<eigen_native Arg> requires square_matrix<Arg>
 #else
-  template<typename Arg, std::enable_if_t<eigen_native<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<eigen_native<Arg> and square_matrix<Arg>, int> = 0>
 #endif
   inline auto
   trace(Arg&& arg) noexcept
   {
-    static_assert(MatrixTraits<Arg>::dimension == MatrixTraits<Arg>::columns);
     if constexpr (one_by_one_matrix<Arg>)
       return std::forward<Arg>(arg)(0, 0);
     else
@@ -265,15 +262,14 @@ namespace OpenKalman::Eigen3
   /// Solve the equation AX = B for X. A is an invertible square matrix. (Does not check that A is invertible.)
   /// Uses the square LU decomposition.
 #ifdef __cpp_concepts
-  template<eigen_matrix A, eigen_matrix B>
+  template<eigen_matrix A, eigen_matrix B> requires square_matrix<A>
 #else
   template<typename A, typename B,
-    std::enable_if_t<eigen_matrix<A> and eigen_matrix<B>, int> = 0>
+    std::enable_if_t<eigen_matrix<A> and square_matrix<A> and eigen_matrix<B>, int> = 0>
 #endif
   inline auto
   solve(const A& a, const B& b)
   {
-    static_assert(MatrixTraits<A>::dimension == MatrixTraits<A>::columns);
     static_assert(MatrixTraits<A>::dimension == MatrixTraits<B>::dimension);
     using M = Eigen::Matrix<typename MatrixTraits<B>::Scalar, MatrixTraits<A>::dimension, MatrixTraits<B>::columns>;
     if constexpr (one_by_one_matrix<A>)
@@ -296,7 +292,7 @@ namespace OpenKalman::Eigen3
   constexpr decltype(auto)
   reduce_columns(Arg&& arg) noexcept
   {
-    if constexpr (MatrixTraits<Arg>::columns == 1)
+    if constexpr (column_vector<Arg>)
     {
       return std::forward<Arg>(arg);
     }
@@ -837,10 +833,9 @@ namespace OpenKalman::Eigen3
 
   /// Get element (i) of one-column matrix arg
 #ifdef __cpp_concepts
-  template<eigen_native Arg> requires (MatrixTraits<Arg>::columns == 1)
+  template<eigen_native Arg> requires column_vector<Arg>
 #else
-  template<typename Arg, std::enable_if_t<
-    eigen_native<Arg> and MatrixTraits<Arg>::columns == 1, int> = 0>
+  template<typename Arg, std::enable_if_t<eigen_native<Arg> and column_vector<Arg>, int> = 0>
 #endif
   inline auto
   get_element(const Arg& arg, const std::size_t i)
@@ -868,12 +863,11 @@ namespace OpenKalman::Eigen3
   /// Set element (i) of one-column matrix arg to s.
 #ifdef __cpp_concepts
   template<eigen_native Arg, typename Scalar> requires (not std::is_const_v<std::remove_reference_t<Arg>>) and
-    (MatrixTraits<Arg>::columns == 1) and (static_cast<bool>(std::decay_t<Arg>::Flags & Eigen::LvalueBit))
+    column_vector<Arg> and (static_cast<bool>(std::decay_t<Arg>::Flags & Eigen::LvalueBit))
 #else
   template<typename Arg, typename Scalar,
     std::enable_if_t<eigen_native<Arg> and not std::is_const_v<std::remove_reference_t<Arg>> and
-      MatrixTraits<Arg>::columns == 1 and
-    static_cast<bool>(std::decay_t<Arg>::Flags & Eigen::LvalueBit), int> = 0>
+      column_vector<Arg> and static_cast<bool>(std::decay_t<Arg>::Flags & Eigen::LvalueBit), int> = 0>
 #endif
   inline void
   set_element(Arg& arg, const Scalar s, const std::size_t i)
@@ -905,7 +899,7 @@ namespace OpenKalman::Eigen3
   column(Arg&& arg)
   {
     static_assert(index < MatrixTraits<Arg>::columns, "Column index out of range.");
-    if constexpr (MatrixTraits<Arg>::columns == 1)
+    if constexpr (column_vector<Arg>)
       return std::forward<Arg>(arg);
     else if constexpr (index == 0)
       return std::forward<Arg>(arg).template leftCols<1>();

@@ -103,7 +103,7 @@ namespace OpenKalman
     static auto
     weighted_means(const Arg& y_means)
     {
-      static_assert(column_vector<Arg>);
+      static_assert(typed_matrix<Arg> and untyped_columns<Arg>);
       static_assert(MatrixTraits<Arg>::columns == dim * 2, "Wrong number of cubature points.");
       return reduce_columns(y_means);
     };

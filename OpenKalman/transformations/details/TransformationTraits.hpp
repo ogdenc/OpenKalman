@@ -73,11 +73,11 @@ namespace OpenKalman
   /// T is a perturbation.
   template<typename T>
   concept perturbation = gaussian_distribution<T> or
-    (typed_matrix<T> and column_vector<T> and not euclidean_transformed<T>);
+    (typed_matrix<T> and untyped_columns<T> and not euclidean_transformed<T>);
 #else
   template<typename T>
   struct is_perturbation : std::bool_constant<gaussian_distribution<T> or
-    (typed_matrix<T> and column_vector<T> and not euclidean_transformed<T>)> {};
+    (typed_matrix<T> and untyped_columns<T> and not euclidean_transformed<T>)> {};
 
   /// Helper template for is_perturbation.
   template<typename T>
@@ -133,12 +133,12 @@ namespace OpenKalman
     template<typename In, typename ... Perturbations>
 #ifdef __cpp_concepts
     concept transformation_args =
-      ((MatrixTraits<In>::columns == 1) and ... and (internal::PerturbationTraits<Perturbations>::columns == 1)) and
+      (column_vector<In> and ... and (internal::PerturbationTraits<Perturbations>::columns == 1)) and
       (equivalent_to<typename internal::PerturbationTraits<Perturbations>::RowCoefficients,
         typename MatrixTraits<In>::RowCoefficients> and ...);
 #else
     inline constexpr bool transformation_args =
-      ((MatrixTraits<In>::columns == 1) and ... and (internal::PerturbationTraits<Perturbations>::columns == 1)) and
+      (column_vector<In> and ... and (internal::PerturbationTraits<Perturbations>::columns == 1)) and
       (equivalent_to<typename internal::PerturbationTraits<Perturbations>::RowCoefficients,
         typename MatrixTraits<In>::RowCoefficients> and ...);
 #endif
@@ -169,7 +169,7 @@ namespace OpenKalman
   template<typename OutputCoefficients, typename In, typename ... Perturbations>
   inline auto zero_hessian()
   {
-    static_assert(column_vector<In>);
+    static_assert(typed_matrix<In> and untyped_columns<In>);
     static_assert((perturbation<Perturbations> and ...));
     return std::tuple {detail::zero_hessian_impl<OutputCoefficients, In>(),
       detail::zero_hessian_impl<OutputCoefficients, Perturbations>()...};

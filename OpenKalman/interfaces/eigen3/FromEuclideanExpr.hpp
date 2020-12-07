@@ -208,7 +208,7 @@ namespace OpenKalman::Eigen3
       static_assert(MatrixTraits<Arg>::columns == MatrixTraits<NestedMatrix>::columns);
       static_assert(MatrixTraits<Arg>::dimension == Coefficients::size);
       if constexpr(from_euclidean_expr < Arg >)
-        static_assert(equivalent_to < typename MatrixTraits<Arg>::RowCoefficients, Coefficients > );
+        static_assert(equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>);
       this->nested_matrix() = make_self_contained(to_euclidean<Coefficients>(*this - std::forward<Arg>(other)));
       return *this;
     }
@@ -262,9 +262,8 @@ namespace OpenKalman::Eigen3
      */
     static auto identity()
     {
-      static_assert(MatrixTraits<NestedMatrix>::dimension == columns,
-        "Cannot call the identity() function on a non-square matrix.");
-      using ST = native_matrix_t<NestedMatrix, Coefficients::size>;
+      static_assert(Coefficients::size == columns, "Cannot call the identity() function on a non-square matrix.");
+      using ST = native_matrix_t<NestedMatrix, Coefficients::size, columns>;
       return MatrixTraits<ST>::identity();
     }
 

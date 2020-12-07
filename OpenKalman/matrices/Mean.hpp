@@ -392,9 +392,9 @@ namespace OpenKalman
    * \tparam Arg A typed_matrix (i.e., Matrix, Mean, or EuclideanMean).
    */
 #ifdef __cpp_concepts
-  template<typed_matrix Arg> requires column_vector<Arg>
+  template<typed_matrix Arg> requires untyped_columns<Arg>
 #else
-  template<typename Arg, std::enable_if_t<typed_matrix<Arg> and column_vector<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<typed_matrix<Arg> and untyped_columns<Arg>, int> = 0>
 #endif
   inline auto make_mean(Arg&& arg) noexcept
   {

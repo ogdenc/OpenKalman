@@ -251,7 +251,7 @@ TEST_F(matrices, Mean_traits)
   static_assert(not euclidean_transformed<Mat23>);
   static_assert(wrapped_mean<Mat23>);
   static_assert(not wrapped_mean<Mean<Axes<2>, I22>>);
-  static_assert(column_vector<Mat23>);
+  static_assert(untyped_columns<Mat23>);
 
   static_assert(not identity_matrix<Mat23>);
   static_assert(identity_matrix<Mean<Axes<2>, I22>>);
@@ -316,9 +316,9 @@ TEST_F(matrices, Mean_overloads)
   static_assert(std::is_same_v<std::decay_t<decltype(make_self_contained(adjoint(Mat23 {1, 2, 3, 4, 5, 6})))>,
     Matrix<Axes<3>, C2, M32>>);
 
-  EXPECT_NEAR(determinant(Mat22 {1, 2, 3, 4}), w_4 - 6, 1e-6);
+  EXPECT_NEAR(determinant(Mean<Axes<2>, M22> {1, 2, 3, 4}), -2, 1e-6);
 
-  EXPECT_NEAR(trace(Mat22 {1, 2, 3, 4}), 1 + w_4, 1e-6);
+  EXPECT_NEAR(trace(Mean<Axes<2>, M22> {1, 2, 3, 4}), 5, 1e-6);
 
   EXPECT_TRUE(is_near(solve(Mean<Axes<2>, M22> {9., 3, 3, 10}, Mean<Axes<2>, M21> {15, 23}), Mean<Axes<2>, M21> {1, 2}));
 

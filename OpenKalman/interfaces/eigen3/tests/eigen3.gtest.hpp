@@ -3,6 +3,14 @@
  * https://creativecommons.org/publicdomain/zero/1.0/
  */
 
+/**
+ * \dir
+ * \brief Tests for the Eigen3 interface.
+ *
+ * \file
+ * \brief Header file for Eigen3 tests.
+ */
+
 #ifndef EIGEN3_GTEST_HPP
 #define EIGEN3_GTEST_HPP
 

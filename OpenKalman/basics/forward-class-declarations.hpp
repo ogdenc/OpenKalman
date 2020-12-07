@@ -156,7 +156,7 @@ namespace OpenKalman
 
 
   /**
-   * \brief T is a mean (i.e., is a specialization of the class Mean).
+   * \brief Specifies that T is a mean (i.e., is a specialization of the class Mean).
    * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T>
@@ -181,7 +181,7 @@ namespace OpenKalman
 
 
   /**
-   * \brief T is a wrapped mean (i.e., its row coefficients have at least one type that requires wrapping).
+   * \brief Specifies that T is a wrapped mean (i.e., its row coefficients have at least one type that requires wrapping).
    * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
 #ifdef __cpp_concepts
@@ -208,7 +208,7 @@ namespace OpenKalman
 
 
   /**
-   * \brief T is a Euclidean mean (i.e., is a specialization of the class EuclideanMean).
+   * \brief Specifies that T is a Euclidean mean (i.e., is a specialization of the class EuclideanMean).
    * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T>
@@ -234,7 +234,7 @@ namespace OpenKalman
 
 
   /**
-   * \brief T is a Euclidean mean that actually has coefficients that are transformed to Euclidean space.
+   * \brief Specifies that T is a Euclidean mean that actually has coefficients that are transformed to Euclidean space.
    * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
 #ifdef __cpp_concepts
@@ -261,7 +261,7 @@ namespace OpenKalman
 
 
   /**
-   * \brief T is a typed matrix (i.e., is a specialization of Matrix, Mean, or EuclideanMean).
+   * \brief Specifies that T is a typed matrix (i.e., is a specialization of Matrix, Mean, or EuclideanMean).
    * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T>
@@ -276,25 +276,117 @@ namespace OpenKalman
   namespace detail
   {
     template<typename T, typename Enable = void>
-    struct is_column_vector : std::false_type {};
+    struct has_untyped_columns : std::false_type {};
 
     template<typename T>
-    struct is_column_vector<T, std::enable_if_t<typed_matrix<T> and MatrixTraits<T>::ColumnCoefficients::axes_only>>
+    struct has_untyped_columns<T, std::enable_if_t<typed_matrix<T> and MatrixTraits<T>::ColumnCoefficients::axes_only>>
+      : std::true_type {};
+
+    template<typename T>
+    struct has_untyped_columns<T, std::enable_if_t<
+      (not typed_matrix<T>) and std::is_integral_v<decltype(MatrixTraits<T>::columns)>>>
       : std::true_type {};
   }
 #endif
 
 
   /**
-   * \brief T is a column vector or set of column vectors (i.e., the columns all have type Axis).
+   * \brief Specifies that T has untyped (or Axis typed) column coefficients.
+   * \details T must be either a native matrix or its columns must all have type Axis.
    * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
 #ifdef __cpp_concepts
   template<typename T>
-  concept column_vector = typed_matrix<T> and MatrixTraits<T>::ColumnCoefficients::axes_only;
+  concept untyped_columns = (typed_matrix<T> and MatrixTraits<T>::ColumnCoefficients::axes_only) or
+    (not typed_matrix<T> and requires {MatrixTraits<T>::columns;});
 #else
   template<typename T>
-  inline constexpr bool column_vector = detail::is_column_vector<std::decay_t<T>>::value;
+  inline constexpr bool untyped_columns = detail::has_untyped_columns<std::decay_t<T>>::value;
+#endif
+
+
+#ifndef __cpp_concepts
+  namespace detail
+  {
+    template<typename T, typename Enable = void>
+    struct has_one_column : std::false_type {};
+
+    template<typename T>
+    struct has_one_column<T, std::enable_if_t<MatrixTraits<T>::columns == 1>> : std::true_type {};
+  }
+#endif
+
+
+  /**
+   * \brief Specifies that T is a column vector (i.e., has one untyped or Axis-typed column).
+   * \details If T is a typed_matrix, its column must be of type Axis.
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
+   */
+#ifdef __cpp_concepts
+  template<typename T>
+  concept column_vector = untyped_columns<T> and (MatrixTraits<T>::columns == 1);
+#else
+  template<typename T>
+  inline constexpr bool column_vector = untyped_columns<T> and detail::has_one_column<std::decay_t<T>>::value;
+#endif
+
+
+#ifndef __cpp_concepts
+  namespace detail
+  {
+    template<typename T, typename Enable = void>
+    struct is_1by1 : std::false_type {};
+
+    template<typename T>
+    struct is_1by1<T, std::enable_if_t<(MatrixTraits<T>::dimension == 1) and (MatrixTraits<T>::columns == 1)>>
+      : std::true_type {};
+  }
+#endif
+
+
+  /**
+   * \brief Specifies that a type is a one-by-one matrix (i.e., one row and one column).
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept one_by_one_matrix = (MatrixTraits<T>::dimension == 1) and (MatrixTraits<T>::columns == 1);
+#else
+  inline constexpr bool one_by_one_matrix = detail::is_1by1<T>::value;
+#endif
+
+
+#ifndef __cpp_concepts
+  namespace detail
+  {
+    template<typename T, typename Enable = void>
+    struct is_square_matrix : std::false_type {};
+
+    template<typename T>
+    struct is_square_matrix<T, std::enable_if_t<
+      (not typed_matrix<T>) and (MatrixTraits<T>::dimension == MatrixTraits<T>::columns)>>
+      : std::true_type {};
+
+    template<typename T>
+    struct is_square_matrix<T, std::enable_if_t<typed_matrix<T> and
+      (MatrixTraits<T>::dimension == MatrixTraits<T>::columns) and
+      equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>>>
+      : std::true_type {};
+  }
+#endif
+
+
+  /**
+   * \brief Specifies that a matrix is square (i.e., has the same number and type of rows and column).
+   * \details If T is a \ref typed_matrix, the row coefficients must also be \ref equivalent_to the column coefficients.
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept square_matrix = (MatrixTraits<T>::dimension == MatrixTraits<T>::columns) and (not typed_matrix<T> or
+    equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>);
+#else
+  inline constexpr bool square_matrix = detail::is_square_matrix<T>::value;
 #endif
 
 
@@ -400,12 +492,10 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<covariance_nestable T, typename Arg>
-    requires covariance<Arg> or (typed_matrix<Arg> and equivalent_to<typename MatrixTraits<Arg>::RowCoefficients,
-      typename MatrixTraits<Arg>::ColumnCoefficients>)
+    requires covariance<Arg> or (typed_matrix<Arg> and square_matrix<Arg>)
 #else
     template<typename T, typename Arg, typename = std::enable_if_t<covariance<Arg> or
-      (typed_matrix<Arg> and equivalent_to<typename MatrixTraits<Arg>::RowCoefficients,
-      typename MatrixTraits<Arg>::ColumnCoefficients>)>>
+      (typed_matrix<Arg> and square_matrix<Arg>)>>
 #endif
     constexpr decltype(auto)
     convert_nested_matrix(Arg&&) noexcept;
@@ -418,12 +508,9 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<typename Arg>
-    requires covariance<Arg> or (typed_matrix<Arg> and equivalent_to<typename MatrixTraits<Arg>::RowCoefficients,
-      typename MatrixTraits<Arg>::ColumnCoefficients>)
+    requires covariance<Arg> or (typed_matrix<Arg> and square_matrix<Arg>)
 #else
-    template<typename Arg, typename = std::enable_if_t<covariance<Arg> or
-      (typed_matrix<Arg> and equivalent_to<typename MatrixTraits<Arg>::RowCoefficients,
-      typename MatrixTraits<Arg>::ColumnCoefficients>)>>
+    template<typename Arg, typename = std::enable_if_t<covariance<Arg> or (typed_matrix<Arg> and square_matrix<Arg>)>>
 #endif
     constexpr decltype(auto)
     convert_nested_matrix(Arg&&) noexcept;
