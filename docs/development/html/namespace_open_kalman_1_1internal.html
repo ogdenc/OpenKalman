@@ -90,6 +90,9 @@ $(document).ready(function(){initNavTree('namespace_open_kalman_1_1internal.html
 <div class="title">OpenKalman::internal Namespace Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
+
+<p>Namespace for internal definitions, not intended for use outside of <a class="el" href="namespace_open_kalman.html" title="The root namespace for OpenKalman.">OpenKalman</a> development.  
+</p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
 Variables</h2></td></tr>
@@ -144,6 +147,22 @@ Functions</h2></td></tr>
 <tr class="memitem:a1eb076c1ccda659ec9f6b9e955bf2dae"><td class="memTemplItemLeft" align="right" valign="top">constexpr auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1internal.html#a1eb076c1ccda659ec9f6b9e955bf2dae">tuple_replicate</a> (T &amp;&amp;t)</td></tr>
 <tr class="memdesc:a1eb076c1ccda659ec9f6b9e955bf2dae"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a tuple that replicates a value N number of times.  <a href="namespace_open_kalman_1_1internal.html#a1eb076c1ccda659ec9f6b9e955bf2dae">More...</a><br /></td></tr>
 <tr class="separator:a1eb076c1ccda659ec9f6b9e955bf2dae"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaa4f2082a3e8968bedfc2ceda61109e9"><td class="memTemplParams" colspan="2">template&lt;typename Coeffs , typename F , typename  = std::enable_if_t&lt;    coefficients&lt;Coeffs&gt; and std::is_invocable_v&lt;F, const std::size_t&gt; and    std::is_arithmetic_v&lt;std::invoke_result_t&lt;F, const std::size_t&gt;&gt;&gt;&gt; </td></tr>
+<tr class="memitem:aaa4f2082a3e8968bedfc2ceda61109e9"><td class="memTemplItemLeft" align="right" valign="top">std::invoke_result_t&lt; F, const std::size_t &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1internal.html#aaa4f2082a3e8968bedfc2ceda61109e9">to_euclidean_coeff</a> (const std::size_t row, const F &amp;get_coeff)</td></tr>
+<tr class="memdesc:aaa4f2082a3e8968bedfc2ceda61109e9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a coordinate in Euclidean space corresponding to a coefficient in a matrix with typed coefficients.  <a href="namespace_open_kalman_1_1internal.html#aaa4f2082a3e8968bedfc2ceda61109e9">More...</a><br /></td></tr>
+<tr class="separator:aaa4f2082a3e8968bedfc2ceda61109e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acbfe0e290c67c2597b22b1e308ec8748"><td class="memTemplParams" colspan="2">template&lt;typename Coeffs , typename F , typename  = std::enable_if_t&lt;    coefficients&lt;Coeffs&gt; and std::is_invocable_v&lt;F, const std::size_t&gt; and    std::is_arithmetic_v&lt;std::invoke_result_t&lt;F, const std::size_t&gt;&gt;&gt;&gt; </td></tr>
+<tr class="memitem:acbfe0e290c67c2597b22b1e308ec8748"><td class="memTemplItemLeft" align="right" valign="top">std::invoke_result_t&lt; F, const std::size_t &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1internal.html#acbfe0e290c67c2597b22b1e308ec8748">from_euclidean_coeff</a> (const std::size_t row, const F &amp;get_coeff)</td></tr>
+<tr class="memdesc:acbfe0e290c67c2597b22b1e308ec8748"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a typed coefficient corresponding to its corresponding coordinate in Euclidean space.  <a href="namespace_open_kalman_1_1internal.html#acbfe0e290c67c2597b22b1e308ec8748">More...</a><br /></td></tr>
+<tr class="separator:acbfe0e290c67c2597b22b1e308ec8748"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1bb5189beb193b164ecd64555f77652f"><td class="memTemplParams" colspan="2">template&lt;typename Coeffs , typename F , typename  = std::enable_if_t&lt;    coefficients&lt;Coeffs&gt; and std::is_invocable_v&lt;F, const std::size_t&gt; and    std::is_arithmetic_v&lt;std::invoke_result_t&lt;F, const std::size_t&gt;&gt;&gt;&gt; </td></tr>
+<tr class="memitem:a1bb5189beb193b164ecd64555f77652f"><td class="memTemplItemLeft" align="right" valign="top">std::invoke_result_t&lt; F, const std::size_t &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1internal.html#a1bb5189beb193b164ecd64555f77652f">wrap_get</a> (const std::size_t row, const F &amp;get_coeff)</td></tr>
+<tr class="memdesc:a1bb5189beb193b164ecd64555f77652f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wrap a given coefficient and return its wrapped, scalar value.  <a href="namespace_open_kalman_1_1internal.html#a1bb5189beb193b164ecd64555f77652f">More...</a><br /></td></tr>
+<tr class="separator:a1bb5189beb193b164ecd64555f77652f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad8998a156055ed41512ca22a174a1d58"><td class="memTemplParams" colspan="2">template&lt;typename Coeffs , typename Scalar , typename FS , typename FG , typename  = std::enable_if_t&lt;    coefficients&lt;Coeffs&gt; and std::is_arithmetic_v&lt;Scalar&gt; and std::is_invocable_v&lt;FG, const std::size_t&gt; and    std::is_invocable_v&lt;FS, const std::size_t, const Scalar&gt; and    std::is_arithmetic_v&lt;std::invoke_result_t&lt;FG, const std::size_t&gt;&gt;&gt;&gt; </td></tr>
+<tr class="memitem:ad8998a156055ed41512ca22a174a1d58"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1internal.html#ad8998a156055ed41512ca22a174a1d58">wrap_set</a> (const std::size_t row, const Scalar s, const FS &amp;set_coeff, const FG &amp;get_coeff)</td></tr>
+<tr class="memdesc:ad8998a156055ed41512ca22a174a1d58"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the scalar value of a given typed coefficient in a matrix, and wrap the matrix column.  <a href="namespace_open_kalman_1_1internal.html#ad8998a156055ed41512ca22a174a1d58">More...</a><br /></td></tr>
+<tr class="separator:ad8998a156055ed41512ca22a174a1d58"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
@@ -212,9 +231,7 @@ Classes</h2></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Base class for means or matrices.  <a href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Internal definitions, not intended for use outside of <a class="el" href="namespace_open_kalman.html" title="The root namespace for OpenKalman.">OpenKalman</a>. </p>
-</div><h2 class="groupheader">Variable Documentation</h2>
+<h2 class="groupheader">Variable Documentation</h2>
 <a id="a21b0d5cafdda4517d6b87ed8be8e35cc"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a21b0d5cafdda4517d6b87ed8be8e35cc">&#9670;&nbsp;</a></span>coefficient_class</h2>
 
@@ -237,9 +254,7 @@ template&lt;typename T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p>A sufficiently-defined class representing an atomic or composite group of coefficients. </p>
-
-<p class="definition">Definition at line <a class="el" href="coefficient__forward-declarations_8hpp_source.html#l00317">317</a> of file <a class="el" href="coefficient__forward-declarations_8hpp_source.html">coefficient_forward-declarations.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="coefficient__forward-declarations_8hpp_source.html#l00357">357</a> of file <a class="el" href="coefficient__forward-declarations_8hpp_source.html">coefficient_forward-declarations.hpp</a>.</p>
 
 </div>
 </div>
@@ -264,8 +279,6 @@ template&lt;typename T &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Specifies that a matrix type contains an internal reference. </p>
 
 <p class="definition">Definition at line <a class="el" href="traits_8hpp_source.html#l00064">64</a> of file <a class="el" href="traits_8hpp_source.html">traits.hpp</a>.</p>
 
@@ -295,9 +308,7 @@ template&lt;typename T , typename U &gt; </div>
 <b>Initial value:</b><div class="fragment"><div class="line">=</div>
 <div class="line">      (upper_triangular_matrix&lt;T&gt; and upper_triangular_matrix&lt;U&gt;) or</div>
 <div class="line">      (lower_triangular_matrix&lt;T&gt; and lower_triangular_matrix&lt;U&gt;)</div>
-</div><!-- fragment -->
-<p>Specifies that two types have the same triangular type (upper or lower). </p>
-<dl class="section note"><dt>Note</dt><dd>This is a concept when compiled with c++20, and a constexpr bool in c++17. </dd></dl>
+</div><!-- fragment --><dl class="section note"><dt>Note</dt><dd>This is a concept when compiled with c++20, and a constexpr bool in c++17. </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="traits_8hpp_source.html#l00734">734</a> of file <a class="el" href="traits_8hpp_source.html">traits.hpp</a>.</p>
 
@@ -329,8 +340,6 @@ template&lt;typename Scalar &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>A constexpr square root function. </p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">Scalar</td><td>The scalar type. </td></tr>
@@ -374,8 +383,6 @@ template&lt;typename T , typename Arg , typename  = std::enable_if_t&lt;covarian
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Convert covariance matrix to a covariance_nestable of type T. </p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">T</td><td><a class="el" href="namespace_open_kalman.html#a19898d83f3f0b722b834acac97f7c17e">covariance_nestable</a> to which Arg is to be converted. </td></tr>
@@ -420,11 +427,64 @@ template&lt;typename Arg , typename  = std::enable_if_t&lt;covariance&lt;Arg&gt;
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Convert to a triangular matrix if Arg is a square root, or otherwise convert to a self-adjoint matrix. </p>
 <p>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </p>
 
 <p class="definition">Definition at line <a class="el" href="_convert_base_matrix_8hpp_source.html#l00098">98</a> of file <a class="el" href="_convert_base_matrix_8hpp_source.html">ConvertBaseMatrix.hpp</a>.</p>
+
+</div>
+</div>
+<a id="acbfe0e290c67c2597b22b1e308ec8748"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acbfe0e290c67c2597b22b1e308ec8748">&#9670;&nbsp;</a></span>from_euclidean_coeff()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Coeffs , typename F , typename  = std::enable_if_t&lt;    coefficients&lt;Coeffs&gt; and std::is_invocable_v&lt;F, const std::size_t&gt; and    std::is_arithmetic_v&lt;std::invoke_result_t&lt;F, const std::size_t&gt;&gt;&gt;&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::invoke_result_t&lt;F, const std::size_t&gt; OpenKalman::internal::from_euclidean_coeff </td>
+          <td>(</td>
+          <td class="paramtype">const std::size_t&#160;</td>
+          <td class="paramname"><em>row</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const F &amp;&#160;</td>
+          <td class="paramname"><em>get_coeff</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">Coeffs</td><td>The row coefficients for the transformed matrix. </td></tr>
+    <tr><td class="paramname">F</td><td>A function that takes a column index of a matrix and returns its unwrapped, scalar value. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">row</td><td>The applicable row of the transformed matrix. </td></tr>
+    <tr><td class="paramname">get_coeff</td><td>A function taking an index to a column in the transformed matrix and returning its scalar value. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The scalar value of the typed coefficient corresponding to the provided row and column (the column is an input into get_coeff). </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="coefficient-functions_8hpp_source.html#l00073">73</a> of file <a class="el" href="coefficient-functions_8hpp_source.html">coefficient-functions.hpp</a>.</p>
 
 </div>
 </div>
@@ -463,8 +523,6 @@ template&lt;typename T , std::size_t size_L, std::size_t size_R&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Joins two arrays. </p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">T</td><td>The type of the array elements. </td></tr>
@@ -525,8 +583,6 @@ template&lt;bool read_only, typename T &gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Make an <a class="el" href="struct_open_kalman_1_1internal_1_1_element_setter.html" title="An interface to a matrix, to be used for getting and setting the individual matrix elements.">ElementSetter</a> that takes one index (i.e., is a vector). </p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">read_only</td><td>Whether the matrix elements are read-only. </td></tr>
@@ -591,8 +647,6 @@ template&lt;bool read_only, typename T &gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Make an <a class="el" href="struct_open_kalman_1_1internal_1_1_element_setter.html" title="An interface to a matrix, to be used for getting and setting the individual matrix elements.">ElementSetter</a> that takes two indices. </p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">read_only</td><td>Whether the matrix elements are read-only. </td></tr>
@@ -647,8 +701,6 @@ template&lt;typename T , std::size_t size_R&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Prepends an element to an array. </p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">T</td><td>The type of the array elements. </td></tr>
@@ -666,6 +718,61 @@ template&lt;typename T , std::size_t size_R&gt; </div>
 <dl class="section return"><dt>Returns</dt><dd>An array with left prepended to right. </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="utils_8hpp_source.html#l00127">127</a> of file <a class="el" href="utils_8hpp_source.html">utils.hpp</a>.</p>
+
+</div>
+</div>
+<a id="aaa4f2082a3e8968bedfc2ceda61109e9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaa4f2082a3e8968bedfc2ceda61109e9">&#9670;&nbsp;</a></span>to_euclidean_coeff()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Coeffs , typename F , typename  = std::enable_if_t&lt;    coefficients&lt;Coeffs&gt; and std::is_invocable_v&lt;F, const std::size_t&gt; and    std::is_arithmetic_v&lt;std::invoke_result_t&lt;F, const std::size_t&gt;&gt;&gt;&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::invoke_result_t&lt;F, const std::size_t&gt; OpenKalman::internal::to_euclidean_coeff </td>
+          <td>(</td>
+          <td class="paramtype">const std::size_t&#160;</td>
+          <td class="paramname"><em>row</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const F &amp;&#160;</td>
+          <td class="paramname"><em>get_coeff</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">Coeffs</td><td>The row coefficients for the transformed matrix. </td></tr>
+    <tr><td class="paramname">F</td><td>A function that takes a column index of a matrix and returns its unwrapped, scalar value. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">row</td><td>The applicable row of the transformed matrix. </td></tr>
+    <tr><td class="paramname">get_coeff</td><td>A function taking an index to a column in the transformed matrix and returning its scalar value. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The scalar value of the transformed coordinate in Euclidean space corresponding to the provided row and column (the column is an input into get_coeff). </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="coefficient-functions_8hpp_source.html#l00047">47</a> of file <a class="el" href="coefficient-functions_8hpp_source.html">coefficient-functions.hpp</a>.</p>
 
 </div>
 </div>
@@ -694,8 +801,6 @@ template&lt;std::size_t N, typename T &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Creates a tuple that replicates a value N number of times. </p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">N</td><td>The number of times to replicate. </td></tr>
@@ -740,8 +845,6 @@ template&lt;std::size_t index1, std::size_t index2, typename T &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Takes a slice of a tuple, given an index range. </p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">index1</td><td>The index of the beginning of the slice. </td></tr>
@@ -762,13 +865,134 @@ template&lt;std::size_t index1, std::size_t index2, typename T &gt; </div>
 
 </div>
 </div>
+<a id="a1bb5189beb193b164ecd64555f77652f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1bb5189beb193b164ecd64555f77652f">&#9670;&nbsp;</a></span>wrap_get()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Coeffs , typename F , typename  = std::enable_if_t&lt;    coefficients&lt;Coeffs&gt; and std::is_invocable_v&lt;F, const std::size_t&gt; and    std::is_arithmetic_v&lt;std::invoke_result_t&lt;F, const std::size_t&gt;&gt;&gt;&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::invoke_result_t&lt;F, const std::size_t&gt; OpenKalman::internal::wrap_get </td>
+          <td>(</td>
+          <td class="paramtype">const std::size_t&#160;</td>
+          <td class="paramname"><em>row</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const F &amp;&#160;</td>
+          <td class="paramname"><em>get_coeff</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">Coeffs</td><td>The row coefficients for the typed matrix. </td></tr>
+    <tr><td class="paramname">F</td><td>A function that takes a column index of a matrix and returns its unwrapped, scalar value. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">row</td><td>The applicable row of the matrix. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The scalar value of the wrapped coefficient corresponding to the provided row and column (the column is an input into get_coeff). </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="coefficient-functions_8hpp_source.html#l00098">98</a> of file <a class="el" href="coefficient-functions_8hpp_source.html">coefficient-functions.hpp</a>.</p>
+
+</div>
+</div>
+<a id="ad8998a156055ed41512ca22a174a1d58"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad8998a156055ed41512ca22a174a1d58">&#9670;&nbsp;</a></span>wrap_set()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Coeffs , typename Scalar , typename FS , typename FG , typename  = std::enable_if_t&lt;    coefficients&lt;Coeffs&gt; and std::is_arithmetic_v&lt;Scalar&gt; and std::is_invocable_v&lt;FG, const std::size_t&gt; and    std::is_invocable_v&lt;FS, const std::size_t, const Scalar&gt; and    std::is_arithmetic_v&lt;std::invoke_result_t&lt;FG, const std::size_t&gt;&gt;&gt;&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void OpenKalman::internal::wrap_set </td>
+          <td>(</td>
+          <td class="paramtype">const std::size_t&#160;</td>
+          <td class="paramname"><em>row</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const Scalar&#160;</td>
+          <td class="paramname"><em>s</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const FS &amp;&#160;</td>
+          <td class="paramname"><em>set_coeff</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const FG &amp;&#160;</td>
+          <td class="paramname"><em>get_coeff</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">Coeffs</td><td>The row coefficients for the typed matrix. </td></tr>
+    <tr><td class="paramname">Scalar</td><td>The scalar type of the matrix. </td></tr>
+    <tr><td class="paramname">FS</td><td>A function that takes an index and a Scalar value, and uses that value to set a coefficient in a matrix, without any wrapping. </td></tr>
+    <tr><td class="paramname">FG</td><td>A function that takes an index to a column in a matrix and returns an unwrapped scalar value corresponding to a matrix coefficient. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">row</td><td>The applicable row of the matrix. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="coefficient-functions_8hpp_source.html#l00128">128</a> of file <a class="el" href="coefficient-functions_8hpp_source.html">coefficient-functions.hpp</a>.</p>
+
+</div>
+</div>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="namespace_open_kalman.html">OpenKalman</a></li><li class="navelem"><a class="el" href="namespace_open_kalman_1_1internal.html">internal</a></li>
-    <li class="footer">Generated on Sat Dec 5 2020 03:00:23 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
+    <li class="footer">Generated on Sun Dec 6 2020 19:54:45 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
   </ul>
 </div>
 </body>

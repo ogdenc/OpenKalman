@@ -8,6 +8,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+/**
+ * \file
+ * \brief Tests for coefficient functions
+ */
+
 #include <array>
 #include "coefficients.hpp"
 
@@ -30,160 +35,160 @@ inline auto g(const Ss...ss)
 
 TEST_F(coefficients, toEuclidean_axis_angle)
 {
-  EXPECT_NEAR((internal::to_euclidean_coeff<Axis, double>(0, g(3.))), 3., 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<angle::Radians, double>(0, g(pi/3))), 0.5, 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<angle::Radians, double>(1, g(pi/3))), std::sqrt(3)/2, 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<angle::Degrees, double>(0, g(60))), 0.5, 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<angle::Degrees, double>(1, g(30))), 0.5, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Axis>(0, g(3.))), 3., 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<angle::Radians>(0, g(pi/3))), 0.5, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<angle::Radians>(1, g(pi/3))), std::sqrt(3)/2, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<angle::Degrees>(0, g(60.))), 0.5, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<angle::Degrees>(1, g(30.))), 0.5, 1e-6);
 
-  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Axis>, double>(0, g(3.))), 3., 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Axis, Axis>, double>(0, g(3., 2.))), 3., 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Axis, Axis>, double>(1, g(3., 2.))), 2., 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Axis>>(0, g(3.))), 3., 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Axis, Axis>>(0, g(3., 2.))), 3., 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Axis, Axis>>(1, g(3., 2.))), 2., 1e-6);
 
-  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<angle::Degrees>, double>(0, g(-60))), 0.5, 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<angle::Degrees>, double>(1, g(-30))), -0.5, 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<angle::Radians, angle::PositiveRadians>, double>(0, g(pi / 3, pi / 6))), 0.5, 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<angle::Radians, angle::PositiveRadians>, double>(1, g(pi / 3, pi / 6))), std::sqrt(3) / 2, 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<angle::Radians, angle::Radians>, double>(2, g(pi / 3, pi / 6))), std::sqrt(3) / 2, 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<angle::Radians, angle::Radians>, double>(3, g(pi / 3, pi / 6))), 0.5, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<angle::Degrees>>(0, g(-60.))), 0.5, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<angle::Degrees>>(1, g(-30.))), -0.5, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<angle::Radians, angle::PositiveRadians>>(0, g(pi / 3, pi / 6))), 0.5, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<angle::Radians, angle::PositiveRadians>>(1, g(pi / 3, pi / 6))), std::sqrt(3) / 2, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<angle::Radians, angle::Radians>>(2, g(pi / 3, pi / 6))), std::sqrt(3) / 2, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<angle::Radians, angle::Radians>>(3, g(pi / 3, pi / 6))), 0.5, 1e-6);
 
-  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Axis, angle::Radians>, double>(0, g(3., pi / 3))), 3., 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Axis, angle::Radians>, double>(1, g(3., pi / 3))), 0.5, 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Axis, angle::Radians>, double>(2, g(3., pi / 3))), std::sqrt(3) / 2, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Axis, angle::Radians>>(0, g(3., pi / 3))), 3., 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Axis, angle::Radians>>(1, g(3., pi / 3))), 0.5, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Axis, angle::Radians>>(2, g(3., pi / 3))), std::sqrt(3) / 2, 1e-6);
 }
 
 
 TEST_F(coefficients, toEuclidean_distance_inclination)
 {
-  EXPECT_NEAR((internal::to_euclidean_coeff<Distance, double>(0, g(3.))), 3., 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<Distance, double>(0, g(-3.))), -3., 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<angle::Radians, double>(0, g(pi/3))), 0.5, 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<angle::Radians, double>(1, g(pi/3))), std::sqrt(3)/2, 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<angle::Degrees, double>(0, g(60))), 0.5, 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<angle::Degrees, double>(1, g(30))), 0.5, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Distance>(0, g(3.))), 3., 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Distance>(0, g(-3.))), -3., 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<angle::Radians>(0, g(pi/3))), 0.5, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<angle::Radians>(1, g(pi/3))), std::sqrt(3)/2, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<angle::Degrees>(0, g(60.))), 0.5, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<angle::Degrees>(1, g(30.))), 0.5, 1e-6);
 
-  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Distance>, double>(0, g(-3.))), -3., 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Distance, Distance>, double>(0, g(3., -2.))), 3., 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Distance, Distance>, double>(1, g(3., -2.))), -2., 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Distance>>(0, g(-3.))), -3., 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Distance, Distance>>(0, g(3., -2.))), 3., 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Distance, Distance>>(1, g(3., -2.))), -2., 1e-6);
 
-  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<inclination::Degrees>, double>(0, g(-60))), 0.5, 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<inclination::Degrees>, double>(1, g(-30))), -0.5, 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<inclination::Radians, inclination::Radians>, double>(0, g(pi / 3, pi / 6))), 0.5, 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<inclination::Radians, inclination::Radians>, double>(1, g(pi / 3, pi / 6))), std::sqrt(3) / 2, 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<inclination::Radians, inclination::Radians>, double>(2, g(pi / 3, pi / 6))), std::sqrt(3) / 2, 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<inclination::Radians, inclination::Radians>, double>(3, g(pi / 3, pi / 6))), 0.5, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<inclination::Degrees>>(0, g(-60.))), 0.5, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<inclination::Degrees>>(1, g(-30.))), -0.5, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<inclination::Radians, inclination::Radians>>(0, g(pi / 3, pi / 6))), 0.5, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<inclination::Radians, inclination::Radians>>(1, g(pi / 3, pi / 6))), std::sqrt(3) / 2, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<inclination::Radians, inclination::Radians>>(2, g(pi / 3, pi / 6))), std::sqrt(3) / 2, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<inclination::Radians, inclination::Radians>>(3, g(pi / 3, pi / 6))), 0.5, 1e-6);
 
-  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Distance, inclination::Radians>, double>(0, g(3., pi / 3))), 3., 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Distance, inclination::Radians>, double>(1, g(3., pi / 3))), 0.5, 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Distance, inclination::Radians>, double>(2, g(3., pi / 3))), std::sqrt(3) / 2, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Distance, inclination::Radians>>(0, g(3., pi / 3))), 3., 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Distance, inclination::Radians>>(1, g(3., pi / 3))), 0.5, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Distance, inclination::Radians>>(2, g(3., pi / 3))), std::sqrt(3) / 2, 1e-6);
 }
 
 
 TEST_F(coefficients, toEuclidean_polar)
 {
-  EXPECT_NEAR((internal::to_euclidean_coeff<Polar<Distance, angle::Radians>, double>(0, g(3., pi/3))), 3., 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<Polar<Distance, angle::Radians>, double>(1, g(3., pi/3))), 0.5, 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<Polar<Distance, angle::Radians>, double>(2, g(3., pi/3))), std::sqrt(3)/2, 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<Polar<angle::Radians, Distance>, double>(0, g(pi/3, 3.))), 0.5, 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<Polar<angle::Radians, Distance>, double>(1, g(pi/3, 3.))), std::sqrt(3)/2, 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<Polar<angle::Radians, Distance>, double>(2, g(pi/3, 3.))), 3., 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Polar<Distance, angle::Radians>>(0, g(3., pi/3))), 3., 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Polar<Distance, angle::Radians>>(1, g(3., pi/3))), 0.5, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Polar<Distance, angle::Radians>>(2, g(3., pi/3))), std::sqrt(3)/2, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Polar<angle::Radians, Distance>>(0, g(pi/3, 3.))), 0.5, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Polar<angle::Radians, Distance>>(1, g(pi/3, 3.))), std::sqrt(3)/2, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Polar<angle::Radians, Distance>>(2, g(pi/3, 3.))), 3., 1e-6);
 
-  EXPECT_NEAR((internal::to_euclidean_coeff<Polar<Distance, angle::Degrees>, double>(0, g(3., 60.))), 3., 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<Polar<Distance, angle::Degrees>, double>(1, g(3., 60.))), 0.5, 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<Polar<Distance, angle::Degrees>, double>(2, g(3., 60.))), std::sqrt(3)/2, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Polar<Distance, angle::Degrees>>(0, g(3., 60.))), 3., 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Polar<Distance, angle::Degrees>>(1, g(3., 60.))), 0.5, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Polar<Distance, angle::Degrees>>(2, g(3., 60.))), std::sqrt(3)/2, 1e-6);
 
-  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Axis, Polar<Distance, angle::Degrees>>, double>(0, g(1.1, 3., 60.))), 1.1, 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Axis, Polar<Distance, angle::Degrees>>, double>(1, g(1.1, 3., 60.))), 3., 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Axis, Polar<Distance, angle::Degrees>>, double>(2, g(1.1, 3., 60.))), 0.5, 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Axis, Polar<Distance, angle::Degrees>>, double>(3, g(1.1, 3., 60.))), std::sqrt(3)/2, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Axis, Polar<Distance, angle::Degrees>>>(0, g(1.1, 3., 60.))), 1.1, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Axis, Polar<Distance, angle::Degrees>>>(1, g(1.1, 3., 60.))), 3., 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Axis, Polar<Distance, angle::Degrees>>>(2, g(1.1, 3., 60.))), 0.5, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Axis, Polar<Distance, angle::Degrees>>>(3, g(1.1, 3., 60.))), std::sqrt(3)/2, 1e-6);
 }
 
 
 TEST_F(coefficients, toEuclidean_spherical)
 {
-  EXPECT_NEAR((internal::to_euclidean_coeff<Spherical<Distance, angle::Radians, inclination::Radians>, double>(0, g(2., pi/6, pi/3))), 2., 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<Spherical<Distance, angle::Radians, inclination::Radians>, double>(1, g(2., pi/6, pi/3))), std::sqrt(3)/4, 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<Spherical<Distance, angle::Radians, inclination::Radians>, double>(2, g(2., pi/6, pi/3))), 0.25, 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<Spherical<Distance, angle::Radians, inclination::Radians>, double>(3, g(2., pi/6, pi/3))), std::sqrt(3)/2, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Spherical<Distance, angle::Radians, inclination::Radians>>(0, g(2., pi/6, pi/3))), 2., 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Spherical<Distance, angle::Radians, inclination::Radians>>(1, g(2., pi/6, pi/3))), std::sqrt(3)/4, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Spherical<Distance, angle::Radians, inclination::Radians>>(2, g(2., pi/6, pi/3))), 0.25, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Spherical<Distance, angle::Radians, inclination::Radians>>(3, g(2., pi/6, pi/3))), std::sqrt(3)/2, 1e-6);
 
-  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Axis, Spherical<Distance, angle::Radians, inclination::Radians>>, double>(0, g(3., 2., pi/6, pi/3))), 3., 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Axis, Spherical<Distance, angle::Radians, inclination::Radians>>, double>(1, g(3., 2., pi/6, pi/3))), 2., 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Axis, Spherical<Distance, angle::Radians, inclination::Radians>>, double>(2, g(3., 2., pi/6, pi/3))), std::sqrt(3)/4, 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Axis, Spherical<Distance, angle::Radians, inclination::Radians>>, double>(3, g(3., 2., pi/6, pi/3))), 0.25, 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Axis, Spherical<Distance, angle::Radians, inclination::Radians>>, double>(4, g(3., 2., pi/6, pi/3))), std::sqrt(3)/2, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Axis, Spherical<Distance, angle::Radians, inclination::Radians>>>(0, g(3., 2., pi/6, pi/3))), 3., 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Axis, Spherical<Distance, angle::Radians, inclination::Radians>>>(1, g(3., 2., pi/6, pi/3))), 2., 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Axis, Spherical<Distance, angle::Radians, inclination::Radians>>>(2, g(3., 2., pi/6, pi/3))), std::sqrt(3)/4, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Axis, Spherical<Distance, angle::Radians, inclination::Radians>>>(3, g(3., 2., pi/6, pi/3))), 0.25, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Axis, Spherical<Distance, angle::Radians, inclination::Radians>>>(4, g(3., 2., pi/6, pi/3))), std::sqrt(3)/2, 1e-6);
 
-  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Spherical<Distance, angle::Radians, inclination::Radians>, Axis>, double>(0, g(2., pi/6, pi/3, 3.))), 2., 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Spherical<Distance, angle::Radians, inclination::Radians>, Axis>, double>(1, g(2., pi/6, pi/3, 3.))), std::sqrt(3)/4, 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Spherical<Distance, angle::Radians, inclination::Radians>, Axis>, double>(2, g(2., pi/6, pi/3, 3.))), 0.25, 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Spherical<Distance, angle::Radians, inclination::Radians>, Axis>, double>(3, g(2., pi/6, pi/3, 3.))), std::sqrt(3)/2, 1e-6);
-  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Spherical<Distance, angle::Radians, inclination::Radians>, Axis>, double>(4, g(2., pi/6, pi/3, 3.))), 3., 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Spherical<Distance, angle::Radians, inclination::Radians>, Axis>>(0, g(2., pi/6, pi/3, 3.))), 2., 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Spherical<Distance, angle::Radians, inclination::Radians>, Axis>>(1, g(2., pi/6, pi/3, 3.))), std::sqrt(3)/4, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Spherical<Distance, angle::Radians, inclination::Radians>, Axis>>(2, g(2., pi/6, pi/3, 3.))), 0.25, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Spherical<Distance, angle::Radians, inclination::Radians>, Axis>>(3, g(2., pi/6, pi/3, 3.))), std::sqrt(3)/2, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff<Coefficients<Spherical<Distance, angle::Radians, inclination::Radians>, Axis>>(4, g(2., pi/6, pi/3, 3.))), 3., 1e-6);
 }
 
 
 TEST_F(coefficients, fromEuclidean_axis_angle)
 {
-  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Axis>, double>(0, g(3.))), 3, 1e-6);
-  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Axis>, double>(0, g(-3.))), -3, 1e-6);
-  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<angle::Radians>, double>(0, g(0.5, std::sqrt(3) / 2))), pi / 3, 1e-6);
-  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<angle::Degrees>, double>(0, g(0.5, std::sqrt(3) / 2))), 60, 1e-6);
-  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Axis, angle::Radians>, double>(0, g(3, 0.5, -std::sqrt(3) / 2))), 3, 1e-6);
-  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Axis, angle::Radians>, double>(1, g(3, 0.5, -std::sqrt(3) / 2))), -pi/3, 1e-6);
-  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<angle::Radians, Axis>, double>(0, g(0.5, std::sqrt(3) / 2, 3))), pi/3, 1e-6);
-  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<angle::Radians, Axis>, double>(1, g(0.5, std::sqrt(3) / 2, 3))), 3, 1e-6);
+  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Axis>>(0, g(3.))), 3, 1e-6);
+  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Axis>>(0, g(-3.))), -3, 1e-6);
+  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<angle::Radians>>(0, g(0.5, std::sqrt(3) / 2))), pi / 3, 1e-6);
+  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<angle::Degrees>>(0, g(0.5, std::sqrt(3) / 2))), 60, 1e-6);
+  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Axis, angle::Radians>>(0, g(3, 0.5, -std::sqrt(3) / 2))), 3, 1e-6);
+  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Axis, angle::Radians>>(1, g(3, 0.5, -std::sqrt(3) / 2))), -pi/3, 1e-6);
+  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<angle::Radians, Axis>>(0, g(0.5, std::sqrt(3) / 2, 3))), pi/3, 1e-6);
+  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<angle::Radians, Axis>>(1, g(0.5, std::sqrt(3) / 2, 3))), 3, 1e-6);
 }
 
 
 TEST_F(coefficients, fromEuclidean_distance_inclination)
 {
-  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Distance>, double>(0, g(3.))), 3, 1e-6);
-  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Distance>, double>(0, g(-3.))), 3, 1e-6);
-  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<inclination::Radians>, double>(0, g(0.5, std::sqrt(3) / 2))), pi / 3, 1e-6);
-  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<inclination::Degrees>, double>(0, g(0.5, std::sqrt(3) / 2))), 60, 1e-6);
-  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Distance, inclination::Radians>, double>(0, g(3, 0.5, -std::sqrt(3) / 2))), 3, 1e-6);
-  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Distance, inclination::Radians>, double>(1, g(3, 0.5, -std::sqrt(3) / 2))), -pi/3, 1e-6);
-  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<inclination::Radians, Distance>, double>(0, g(0.5, std::sqrt(3) / 2, 3))), pi/3, 1e-6);
-  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<inclination::Radians, Distance>, double>(1, g(0.5, std::sqrt(3) / 2, 3))), 3, 1e-6);
+  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Distance>>(0, g(3.))), 3, 1e-6);
+  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Distance>>(0, g(-3.))), 3, 1e-6);
+  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<inclination::Radians>>(0, g(0.5, std::sqrt(3) / 2))), pi / 3, 1e-6);
+  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<inclination::Degrees>>(0, g(0.5, std::sqrt(3) / 2))), 60, 1e-6);
+  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Distance, inclination::Radians>>(0, g(3, 0.5, -std::sqrt(3) / 2))), 3, 1e-6);
+  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Distance, inclination::Radians>>(1, g(3, 0.5, -std::sqrt(3) / 2))), -pi/3, 1e-6);
+  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<inclination::Radians, Distance>>(0, g(0.5, std::sqrt(3) / 2, 3))), pi/3, 1e-6);
+  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<inclination::Radians, Distance>>(1, g(0.5, std::sqrt(3) / 2, 3))), 3, 1e-6);
 }
 
 
 TEST_F(coefficients, fromEuclidean_polar)
 {
-  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Polar<Distance, angle::Radians>>, double>(0, g(3., 0.5, std::sqrt(3) / 2))), 3., 1e-6);
-  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Polar<Distance, angle::Radians>>, double>(1, g(3., 0.5, std::sqrt(3) / 2))), pi/3, 1e-6);
-  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Axis, Polar<Distance, angle::Radians>>, double>(0, g(1.1, 3, 0.5, -std::sqrt(3) / 2))), 1.1, 1e-6);
-  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Axis, Polar<Distance, angle::Radians>>, double>(1, g(1.1, 3, 0.5, -std::sqrt(3) / 2))), 3., 1e-6);
-  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Axis, Polar<Distance, angle::Radians>>, double>(2, g(1.1, 3, 0.5, -std::sqrt(3) / 2))), -pi/3, 1e-6);
-  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Polar<angle::Degrees, Distance>, Axis>, double>(0, g(0.5, std::sqrt(3)/2, 3, 1.1))), 60, 1e-6);
-  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Polar<angle::Degrees, Distance>, Axis>, double>(1, g(0.5, std::sqrt(3)/2, 3, 1.1))), 3, 1e-6);
-  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Polar<angle::Degrees, Distance>, Axis>, double>(2, g(0.5, std::sqrt(3)/2, 3, 1.1))), 1.1, 1e-6);
+  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Polar<Distance, angle::Radians>>>(0, g(3., 0.5, std::sqrt(3) / 2))), 3., 1e-6);
+  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Polar<Distance, angle::Radians>>>(1, g(3., 0.5, std::sqrt(3) / 2))), pi/3, 1e-6);
+  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Axis, Polar<Distance, angle::Radians>>>(0, g(1.1, 3, 0.5, -std::sqrt(3) / 2))), 1.1, 1e-6);
+  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Axis, Polar<Distance, angle::Radians>>>(1, g(1.1, 3, 0.5, -std::sqrt(3) / 2))), 3., 1e-6);
+  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Axis, Polar<Distance, angle::Radians>>>(2, g(1.1, 3, 0.5, -std::sqrt(3) / 2))), -pi/3, 1e-6);
+  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Polar<angle::Degrees, Distance>, Axis>>(0, g(0.5, std::sqrt(3)/2, 3, 1.1))), 60, 1e-6);
+  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Polar<angle::Degrees, Distance>, Axis>>(1, g(0.5, std::sqrt(3)/2, 3, 1.1))), 3, 1e-6);
+  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Polar<angle::Degrees, Distance>, Axis>>(2, g(0.5, std::sqrt(3)/2, 3, 1.1))), 1.1, 1e-6);
 }
 
 
 TEST_F(coefficients, fromEuclidean_spherical)
 {
-  EXPECT_NEAR((internal::from_euclidean_coeff<Spherical<Distance, angle::Radians, inclination::Radians>, double>(0,
+  EXPECT_NEAR((internal::from_euclidean_coeff<Spherical<Distance, angle::Radians, inclination::Radians>>(0,
     g(2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2))), 2., 1e-6);
-  EXPECT_NEAR((internal::from_euclidean_coeff<Spherical<Distance, angle::Radians, inclination::Radians>, double>(1,
+  EXPECT_NEAR((internal::from_euclidean_coeff<Spherical<Distance, angle::Radians, inclination::Radians>>(1,
     g(2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2))), pi/6, 1e-6);
-  EXPECT_NEAR((internal::from_euclidean_coeff<Spherical<Distance, angle::Radians, inclination::Radians>, double>(2,
+  EXPECT_NEAR((internal::from_euclidean_coeff<Spherical<Distance, angle::Radians, inclination::Radians>>(2,
     g(2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2))), pi/3, 1e-6);
 
-  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Axis, Spherical<Distance, angle::Radians, inclination::Radians>>, double>(0,
+  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Axis, Spherical<Distance, angle::Radians, inclination::Radians>>>(0,
     g(3., 2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2))), 3., 1e-6);
-  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Axis, Spherical<Distance, angle::Radians, inclination::Radians>>, double>(1,
+  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Axis, Spherical<Distance, angle::Radians, inclination::Radians>>>(1,
     g(3., 2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2))), 2., 1e-6);
-  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Axis, Spherical<Distance, angle::Radians, inclination::Radians>>, double>(2,
+  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Axis, Spherical<Distance, angle::Radians, inclination::Radians>>>(2,
     g(3., 2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2))), pi/6, 1e-6);
-  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Axis, Spherical<Distance, angle::Radians, inclination::Radians>>, double>(3,
+  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Axis, Spherical<Distance, angle::Radians, inclination::Radians>>>(3,
     g(3., 2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2))), pi/3, 1e-6);
 
-  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Spherical<Distance, angle::Radians, inclination::Radians>, Axis>, double>(0,
+  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Spherical<Distance, angle::Radians, inclination::Radians>, Axis>>(0,
     g(2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2, 3.))), 2., 1e-6);
-  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Spherical<Distance, angle::Radians, inclination::Radians>, Axis>, double>(1,
+  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Spherical<Distance, angle::Radians, inclination::Radians>, Axis>>(1,
     g(2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2, 3.))), pi/6, 1e-6);
-  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Spherical<Distance, angle::Radians, inclination::Radians>, Axis>, double>(2,
+  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Spherical<Distance, angle::Radians, inclination::Radians>, Axis>>(2,
     g(2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2, 3.))), pi/3, 1e-6);
-  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Spherical<Distance, angle::Radians, inclination::Radians>, Axis>, double>(3,
+  EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Spherical<Distance, angle::Radians, inclination::Radians>, Axis>>(3,
     g(2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2, 3.))), 3., 1e-6);
 }
 

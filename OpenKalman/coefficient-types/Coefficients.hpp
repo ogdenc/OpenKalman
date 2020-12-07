@@ -30,9 +30,16 @@ namespace OpenKalman
   template<>
   struct Coefficients<>
   {
+    /// Number of matrix rows corresponding to these coefficients.
     static constexpr std::size_t size = 0;
+
+    /// Number of matrix rows when these coefficients are converted to Euclidean space.
     static constexpr std::size_t dimension = 0;
+
+    /// Whether all the coefficients are of type Axis.
     static constexpr bool axes_only = true;
+
+    /// The type of the result when subtracting two Coefficients vectors.
     using difference_type = Coefficients<>;
 
     template<typename Scalar>
@@ -63,18 +70,38 @@ namespace OpenKalman
     static constexpr std::array<const SetCoeffFunction<Scalar>, size>
       wrap_array_set = {};
 
+    /**
+     * \brief Prepend a set of new coefficients to the existing set.
+     * \tparam Cnew The set of new coordinates to prepend.
+     */
     template<typename ... Cnew>
     using Prepend = Coefficients<Cnew...>;
 
+    /**
+     * \brief Append a set of new coordinates to the existing set.
+     * \tparam Cnew The set of new coordinates to append.
+     */
     template<typename ... Cnew>
     using Append = Coefficients<Cnew...>;
 
+    /**
+     * \brief Extract a particular coefficient from the set of coefficients.
+     * \tparam i The index of the coefficient.
+     */
     template<std::size_t i>
     using Coefficient = Coefficients;
 
+    /**
+     * \brief Take the first <code>count</code> coefficients.
+     * \tparam count The number of coefficients to take.
+     */
     template<std::size_t count>
     using Take = Coefficients;
 
+    /**
+     * \brief Discard all remaining coefficients after the first <code>count</code>.
+     * \tparam count The index of the first coefficient to discard.
+     */
     template<std::size_t count>
     using Discard = Coefficients;
 
@@ -99,9 +126,10 @@ namespace OpenKalman
 #ifndef __cpp_concepts
     static_assert((coefficients<C> and ... and coefficients<Cs>));
 #endif
-    static constexpr std::size_t size = C::size + Coefficients<Cs...>::size; ///<Aggregate number of coefficients.
+    /// Number of matrix rows corresponding to these coefficients.
+    static constexpr std::size_t size = C::size + Coefficients<Cs...>::size;
 
-    /// Aggregate number of coefficients when converted to Euclidian.
+    /// Number of matrix rows when these coefficients are converted to Euclidean space.
     static constexpr std::size_t dimension = C::dimension + Coefficients<Cs...>::dimension;
 
     /// Whether all the coefficients are of type Axis.
@@ -129,13 +157,13 @@ namespace OpenKalman
     template<typename Scalar>
     using SetCoeff = std::function<void(const std::size_t, const Scalar)>;
 
-    /**
+    /*
      * \brief A pointer to a function (stored in an array) that takes a GetCoeff and returns a scalar value.
      */
     template<typename Scalar>
     using GetCoeffFunction = Scalar(*)(const GetCoeff<Scalar>&);
 
-    /**
+    /*
      * \brief A pointer to a function (stored in an array) that takes a GetCoeff and returns a scalar value.
      */
     template<typename Scalar>
@@ -148,7 +176,7 @@ namespace OpenKalman
      * Cartesian coordinates in a Euclidean space, depending on the type of each coordinate.
      * Each array element is a function taking a ''get coefficient'' function and returning a coordinate value.
      * The ''get coefficient'' function takes the index of a column within a row vector and returns the coefficient.
-     * \note This should be accessed only through \ref internal::to_euclidean_coeff.
+     * \note This should be accessed only through \ref to_euclidean_coeff.
      * \tparam Scalar The scalar type (e.g., double).
      * \tparam i The index of the first spherical coefficient that is being transformed.
      * This may be non-zero if this set of coefficients is part of a larger set of composite coordinates.
@@ -159,13 +187,14 @@ namespace OpenKalman
         Coefficients<Cs...>::template to_euclidean_array<Scalar, i + C::size>);
 
 
-    /**
+    /*
      * \internal
      * \brief An array of functions that convert coordinates in Euclidean space into the typed coordinates.
      * \details The functions in the array take Cartesian coordinates, and convert them to the typed coordinates.
      * The array element is a function taking a ''get coefficient'' function and returning the typed coordinates.
      * The ''get coefficient'' function takes the index of a column within a row vector and returns one of
      * the Cartesian coordinates.
+     * \note This should be accessed only through \ref internal::from_euclidean_coeff.
      * \tparam Scalar The scalar type (e.g., double).
      * \tparam i The index of the first of the Cartesian coordinates being transformed back to their respective types.
      * This may be non-zero if this set of coefficients is part of a larger set of composite coordinates.
@@ -176,11 +205,12 @@ namespace OpenKalman
         Coefficients<Cs...>::template from_euclidean_array<Scalar, i + C::dimension>);
 
 
-    /**
+    /*
      * \internal
      * \brief An array of functions that return a wrapped version of the coefficients.
      * \details Each function in the array takes a ''get coefficient'' function and returns wrapped coefficients.
      * The ''get coefficient'' function takes the index of a column within a row vector and returns a coefficient.
+     * \note This should be accessed only through \ref internal::wrap_get.
      * \tparam Scalar The scalar type (e.g., double).
      * \tparam i The index of the first of the coefficients that are being wrapped.
      * This may be non-zero if this set of coefficients is part of a larger set of composite coordinates.
@@ -191,12 +221,13 @@ namespace OpenKalman
         Coefficients<Cs...>::template wrap_array_get<Scalar, i + C::size>);
 
 
-    /**
+    /*
      * \internal
      * \brief An array of functions that wraps and sets an existing matrix coefficient.
      * \details Each void function in the array takes a scalar value and ''set coefficient'' function.
      * The ''set coefficient'' function takes a scalar value and an index of a column within a row vector and
      * sets the coefficient at that index to a wrapped version of the scalar input.
+     * \note This should be accessed only through \ref internal::wrap_set.
      * \tparam Scalar The scalar type (e.g., double).
      * \tparam i The index of the first of the coefficients that are being wrapped.
      * This may be non-zero if this set of coefficients is part of a larger set of composite coordinates.
@@ -205,6 +236,7 @@ namespace OpenKalman
     static constexpr std::array<const SetCoeffFunction<Scalar>, size>
       wrap_array_set = internal::join(C::template wrap_array_set<Scalar, i>,
         Coefficients<Cs...>::template wrap_array_set<Scalar, i + C::size>);
+
 
     /**
      * \brief Prepend a set of new coefficients to the existing set.

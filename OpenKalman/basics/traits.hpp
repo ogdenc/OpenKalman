@@ -209,7 +209,7 @@ namespace OpenKalman
     (std::is_convertible_v<Args, typename MatrixTraits<M>::Scalar> and ...) and
     (sizeof...(Args) == MatrixTraits<M>::dimension * MatrixTraits<M>::columns), int> = 0>
 #endif
-  static auto
+  inline auto
   make_native_matrix(const Args ... args)
   {
     return MatrixTraits<native_matrix_t<M>>::make(args...);

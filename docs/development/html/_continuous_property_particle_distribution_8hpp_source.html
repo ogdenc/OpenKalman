@@ -96,68 +96,74 @@ $(document).ready(function(){initNavTree('_continuous_property_particle_distribu
 <div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;<span class="comment"> * file, You can obtain one at https://mozilla.org/MPL/2.0/.</span></div>
 <div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;<span class="comment"> */</span></div>
 <div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160; </div>
-<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">ifndef</span> <span class="preprocessor">CONTINUOUSPROPERTYPARTICLEDISTRIBUTION_H</span></div>
-<div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">define</span> <span class="preprocessor">CONTINUOUSPROPERTYPARTICLEDISTRIBUTION_H</span></div>
+<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;<span class="preprocessor">#ifndef CONTINUOUSPROPERTYPARTICLEDISTRIBUTION_H</span></div>
+<div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;<span class="preprocessor">#define CONTINUOUSPROPERTYPARTICLEDISTRIBUTION_H</span></div>
 <div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160; </div>
-<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">include</span> <span class="preprocessor">&lt;</span><span class="preprocessor">vector</span><span class="preprocessor">&gt;</span></div>
-<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">include</span> <span class="preprocessor">&lt;</span><span class="preprocessor">tuple</span><span class="preprocessor">&gt;</span></div>
-<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">include</span> <span class="preprocessor">&lt;</span><span class="preprocessor">numeric</span><span class="preprocessor">&gt;</span></div>
-<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">include</span> <span class="preprocessor">&lt;</span><span class="preprocessor">algorithm</span><span class="preprocessor">&gt;</span></div>
-<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">include</span> <span class="preprocessor">&lt;</span><span class="preprocessor">Eigen</span><span class="preprocessor">/</span><span class="preprocessor">Dense</span><span class="preprocessor">&gt;</span></div>
-<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">include</span> <span class="preprocessor">&quot;distributions/WeightedParticleDistribution.hpp&quot;</span></div>
-<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">include</span> <span class="preprocessor">&quot;distributions/GaussianDistribution.hpp&quot;</span></div>
+<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;<span class="preprocessor">#include &lt;vector&gt;</span></div>
+<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;<span class="preprocessor">#include &lt;tuple&gt;</span></div>
+<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;<span class="preprocessor">#include &lt;numeric&gt;</span></div>
+<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;<span class="preprocessor">#include &lt;algorithm&gt;</span></div>
+<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;<span class="preprocessor">#include &lt;Eigen/Dense&gt;</span></div>
+<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;<span class="preprocessor">#include &quot;distributions/WeightedParticleDistribution.hpp&quot;</span></div>
+<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="_gaussian_distribution_8hpp.html">distributions/GaussianDistribution.hpp</a>&quot;</span></div>
 <div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160; </div>
-<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;<span class="keyword">namespace</span> OpenKalman {</div>
+<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;<span class="keyword">namespace </span><a class="code" href="namespace_open_kalman.html">OpenKalman</a> {</div>
 <div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160; </div>
 <div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">template</span>&lt;<span class="keywordtype">int</span>, <span class="keyword">typename</span>&gt; <span class="keyword">typename</span> ContinuousDistribution,</div>
 <div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;            <span class="keywordtype">int</span> continuous_dimensions,</div>
-<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;            <span class="keyword">typename</span> Scalar = <span class="keywordtype">double</span>,</div>
+<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;            <span class="keyword">typename</span> Scalar = double,</div>
 <div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;            <span class="keyword">typename</span>... OtherProperties&gt;</div>
-<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;    <span class="keyword">struct</span> ContinuousPropertyParticleDistribution:</div>
+<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;    <span class="keyword">struct </span>ContinuousPropertyParticleDistribution:</div>
 <div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;            WeightedParticleDistribution&lt;</div>
 <div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;                    Scalar, <span class="comment">// Weights for each particle</span></div>
 <div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;                    native_matrix_t&lt;Scalar, continuous_dimensions, 1&gt;,</div>
 <div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;                    OtherProperties...&gt;</div>
 <div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;    {</div>
 <div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;    <span class="keyword">public</span>:</div>
-<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;        <span class="keyword">using</span> Mean = native_matrix_t&lt;Scalar, continuous_dimensions, 1&gt;;</div>
-<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;        <span class="keyword">using</span> Covariance = native_matrix_t&lt;Scalar, continuous_dimensions, continuous_dimensions&gt;;</div>
+<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;        <span class="keyword">using</span> <a class="code" href="namespace_open_kalman.html#a4b797c590b3e19ce373b02f7237e4bb1">Mean</a> = native_matrix_t&lt;Scalar, continuous_dimensions, 1&gt;;</div>
+<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;        <span class="keyword">using</span> <a class="code" href="namespace_open_kalman.html#a2c706282524a9765f4fe3cea62fc99c6">Covariance</a> = native_matrix_t&lt;Scalar, continuous_dimensions, continuous_dimensions&gt;;</div>
 <div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160; </div>
 <div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;    <span class="keyword">protected</span>:</div>
 <div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;        <span class="keyword">using</span> Parent = WeightedParticleDistribution&lt;native_matrix_t&lt;Scalar, continuous_dimensions, 1&gt;, OtherProperties...&gt;;</div>
 <div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;        <span class="keyword">using</span> Parent::Properties;</div>
 <div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160; </div>
 <div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;    <span class="keyword">public</span>:</div>
-<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;        <span class="keyword">const</span> <span class="keyword">auto</span> getDistribution() <span class="keyword">const</span></div>
-<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;        {</div>
+<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;        <span class="keyword">const</span> <span class="keyword">auto</span> getDistribution()<span class="keyword"> const</span></div>
+<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;<span class="keyword">        </span>{</div>
 <div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;            <span class="keyword">using</span> Acc = std::tuple&lt;Mean, Mean&gt;;</div>
 <div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;            <span class="keyword">auto</span> acc = std::accumulate(</div>
 <div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;                    begin(),</div>
 <div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;                    end(),</div>
 <div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;                    Acc {Mean::Zero(), Covariance::Zero()},</div>
 <div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;                    [](<span class="keyword">const</span> Acc&amp; a, <span class="keyword">const</span> Properties&amp; p) -&gt; Acc {</div>
-<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;                        Mean x = p.<span class="keyword">template</span> get&lt;0&gt;() * p.<span class="keyword">template</span> get&lt;1&gt;(); <span class="comment">// x == weighted value</span></div>
-<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;                        <span class="keywordflow">return</span> {a.<span class="keyword">template</span> get&lt;0&gt;() + x, a.<span class="keyword">template</span> get&lt;1&gt;() + x * x.transpose()};</div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;                        <a class="code" href="namespace_open_kalman.html#a4b797c590b3e19ce373b02f7237e4bb1">Mean</a> x = p.template get&lt;0&gt;() * p.template get&lt;1&gt;(); <span class="comment">// x == weighted value</span></div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;                        <span class="keywordflow">return</span> {a.template get&lt;0&gt;() + x, a.template get&lt;1&gt;() + x * x.transpose()};</div>
 <div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;                    }</div>
 <div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;            );</div>
 <div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;            <span class="comment">// assume weights are normalized</span></div>
-<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;            Mean mean = acc.<span class="keyword">template</span> get&lt;0&gt;;</div>
-<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;            Covariance covariance = acc.<span class="keyword">template</span> get&lt;1&gt; - mean * mean.transpose();</div>
-<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;            <span class="keywordflow">return</span> ContinuousDistribution&lt;continuous_dimensions, Scalar&gt;(GaussianDistribution(mean, covariance));</div>
+<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;            <a class="code" href="namespace_open_kalman.html#a4b797c590b3e19ce373b02f7237e4bb1">Mean</a> <a class="code" href="namespace_open_kalman.html#a2745b3bfff7250ac8d9e0dc79902508c">mean</a> = acc.template get&lt;0&gt;;</div>
+<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;            <a class="code" href="namespace_open_kalman.html#a2c706282524a9765f4fe3cea62fc99c6">Covariance</a> <a class="code" href="namespace_open_kalman.html#acc62cd53d66b676058de97da3caaca3b">covariance</a> = acc.template get&lt;1&gt; - <a class="code" href="namespace_open_kalman.html#a2745b3bfff7250ac8d9e0dc79902508c">mean</a> * <a class="code" href="namespace_open_kalman.html#a2745b3bfff7250ac8d9e0dc79902508c">mean</a>.transpose();</div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;            <span class="keywordflow">return</span> ContinuousDistribution&lt;continuous_dimensions, Scalar&gt;(GaussianDistribution(<a class="code" href="namespace_open_kalman.html#a2745b3bfff7250ac8d9e0dc79902508c">mean</a>, <a class="code" href="namespace_open_kalman.html#acc62cd53d66b676058de97da3caaca3b">covariance</a>));</div>
 <div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;        }</div>
 <div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160; </div>
 <div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160; </div>
 <div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;    };</div>
 <div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;}</div>
 <div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160; </div>
-<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">endif</span> <span class="comment">//CONTINUOUSPROPERTYPARTICLEDISTRIBUTION_H</span></div>
+<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;<span class="preprocessor">#endif </span><span class="comment">//CONTINUOUSPROPERTYPARTICLEDISTRIBUTION_H</span></div>
+<div class="ttc" id="a_gaussian_distribution_8hpp_html"><div class="ttname"><a href="_gaussian_distribution_8hpp.html">GaussianDistribution.hpp</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html"><div class="ttname"><a href="namespace_open_kalman.html">OpenKalman</a></div><div class="ttdoc">The root namespace for OpenKalman.</div><div class="ttdef"><b>Definition:</b> <a href="forward-class-declarations_8hpp_source.html#l00021">forward-class-declarations.hpp:22</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html_a2745b3bfff7250ac8d9e0dc79902508c"><div class="ttname"><a href="namespace_open_kalman.html#a2745b3bfff7250ac8d9e0dc79902508c">OpenKalman::mean</a></div><div class="ttdeci">constexpr bool mean</div><div class="ttdoc">T is a mean (i.e., is a specialization of the class Mean).</div><div class="ttdef"><b>Definition:</b> <a href="forward-class-declarations_8hpp_source.html#l00166">forward-class-declarations.hpp:166</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html_a2c706282524a9765f4fe3cea62fc99c6"><div class="ttname"><a href="namespace_open_kalman.html#a2c706282524a9765f4fe3cea62fc99c6">OpenKalman::Covariance</a></div><div class="ttdeci">Covariance(Args ...) -&gt; Covariance&lt; Axes&lt; internal::constexpr_sqrt(sizeof...(Args))&gt;, Eigen3::SelfAdjointMatrix&lt; Eigen::Matrix&lt; std::decay_t&lt; std::common_type_t&lt; Args... &gt;&gt;, internal::constexpr_sqrt(sizeof...(Args)), internal::constexpr_sqrt(sizeof...(Args))&gt;&gt;&gt;</div><div class="ttdoc">If the arguments are a sequence of scalars, derive a square, self-adjoint matrix.</div></div>
+<div class="ttc" id="anamespace_open_kalman_html_a4b797c590b3e19ce373b02f7237e4bb1"><div class="ttname"><a href="namespace_open_kalman.html#a4b797c590b3e19ce373b02f7237e4bb1">OpenKalman::Mean</a></div><div class="ttdeci">Mean(Args ...) -&gt; Mean&lt; Axes&lt; sizeof...(Args)&gt;, Eigen::Matrix&lt; std::decay_t&lt; std::common_type_t&lt; Args... &gt;&gt;, sizeof...(Args), 1 &gt;&gt;</div><div class="ttdoc">If the arguments are a sequence of scalars, deduce a single-column mean with all Axis coefficients.</div></div>
+<div class="ttc" id="anamespace_open_kalman_html_acc62cd53d66b676058de97da3caaca3b"><div class="ttname"><a href="namespace_open_kalman.html#acc62cd53d66b676058de97da3caaca3b">OpenKalman::covariance</a></div><div class="ttdeci">constexpr bool covariance</div><div class="ttdoc">T is a specialization of either Covariance or SquareRootCovariance.</div><div class="ttdef"><b>Definition:</b> <a href="forward-class-declarations_8hpp_source.html#l00349">forward-class-declarations.hpp:349</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_bf85a1622761b0afd6fb52adee52cf94.html">OpenKalman</a></li><li class="navelem"><a class="el" href="dir_4df9be8959a377e32e7a35238a89a209.html">distributions</a></li><li class="navelem"><b>ContinuousPropertyParticleDistribution.hpp</b></li>
-    <li class="footer">Generated on Sat Dec 5 2020 03:00:11 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
+    <li class="footer">Generated on Sun Dec 6 2020 19:54:43 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
   </ul>
 </div>
 </body>

@@ -92,11 +92,13 @@ $(document).ready(function(){initNavTree('struct_open_kalman_1_1_eigen3_1_1_from
 <div class="title">OpenKalman::Eigen3::FromEuclideanExpr&lt; Coefficients, NestedMatrix &gt; Struct Template Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
+
+<p>An expression that transforms angular or other modular coefficients back from Euclidean space.  
+ <a href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#details">More...</a></p>
 <a name="details" id="details"></a><h2 class="groupheader">Description</h2>
 <div class="textblock"><h3>template&lt;typename Coefficients, typename NestedMatrix&gt;<br />
 struct OpenKalman::Eigen3::FromEuclideanExpr&lt; Coefficients, NestedMatrix &gt;</h3>
 
-<p>An expression that transforms angular or other modular coefficients back from Euclidean space. </p>
 <p>This is the counterpart expression to <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_to_euclidean_expr.html" title="An expression that transforms coefficients into Euclidean space for proper wrapping.">ToEuclideanExpr</a>. <code><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html" title="An expression that transforms angular or other modular coefficients back from Euclidean space.">FromEuclideanExpr</a>&lt;C, ToEuclideanExpr&lt;C, M&gt;&gt;</code> acts to wrap the angular/modular values in <code>M</code>. </p><dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname"><a class="el" href="struct_open_kalman_1_1_coefficients.html" title="A set of coefficient types.">Coefficients</a></td><td>The coefficient types. </td></tr>
@@ -397,8 +399,6 @@ template&lt;typename Coefficients , typename NestedMatrix &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Get the nested matrix of this covariance matrix. </p>
 <p>The nested matrix will be self-adjoint, triangular, or diagonal. </p><dl class="section return"><dt>Returns</dt><dd>An lvalue reference to the nested matrix. </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="_matrix_base_8hpp_source.html#l00105">105</a> of file <a class="el" href="_matrix_base_8hpp_source.html">MatrixBase.hpp</a>.</p>
@@ -831,7 +831,7 @@ template&lt;typename Arg , std::enable_if_t&lt; eigen_matrix&lt; Arg &gt;, int &
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Assign from a general Eigen matrix. </p>
+<p>Assign from a general <a class="el" href="namespace_eigen.html" title="Eigen3&#39;s native namespace.">Eigen</a> matrix. </p>
 
 <p class="definition">Definition at line <a class="el" href="_from_euclidean_expr_8hpp_source.html#l00159">159</a> of file <a class="el" href="_from_euclidean_expr_8hpp_source.html">FromEuclideanExpr.hpp</a>.</p>
 
@@ -984,7 +984,7 @@ template&lt;typename Coefficients , typename NestedMatrix &gt; </div>
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="namespace_open_kalman.html">OpenKalman</a></li><li class="navelem"><a class="el" href="namespace_open_kalman_1_1_eigen3.html">Eigen3</a></li><li class="navelem"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">FromEuclideanExpr</a></li>
-    <li class="footer">Generated on Sat Dec 5 2020 03:00:23 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
+    <li class="footer">Generated on Sun Dec 6 2020 19:54:45 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
   </ul>
 </div>
 </body>

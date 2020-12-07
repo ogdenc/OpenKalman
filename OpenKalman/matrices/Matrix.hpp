@@ -246,7 +246,7 @@ namespace OpenKalman
 
   /// Deduce template parameters from a Euclidean-transformed typed matrix.
 #if defined(__cpp_concepts) and false
-  // \TODO Unlike SFINAE version, this incorrectly matches V==Mean and V==Matrix in both GCC 10.1.0 and clang 10.0.0:
+  // \todo Unlike SFINAE version, this incorrectly matches V==Mean and V==Matrix in both GCC 10.1.0 and clang 10.0.0:
   template<euclidean_transformed V> requires MatrixTraits<V>::ColumnCoefficients::axes_only
 #else
   template<typename V, std::enable_if_t<typed_matrix<V> and euclidean_transformed<V> and

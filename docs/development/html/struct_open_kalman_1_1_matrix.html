@@ -91,17 +91,19 @@ $(document).ready(function(){initNavTree('struct_open_kalman_1_1_matrix.html',''
 <div class="title">OpenKalman::Matrix&lt; RowCoefficients, ColumnCoefficients, NestedMatrix &gt; Struct Template Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
+
+<p>A matrix with typed rows and columns.  
+ <a href="struct_open_kalman_1_1_matrix.html#details">More...</a></p>
 <a name="details" id="details"></a><h2 class="groupheader">Description</h2>
 <div class="textblock"><h3>template&lt;typename RowCoefficients, typename ColumnCoefficients, typename NestedMatrix&gt;<br />
 struct OpenKalman::Matrix&lt; RowCoefficients, ColumnCoefficients, NestedMatrix &gt;</h3>
 
-<p>A matrix with typed rows and columns. </p>
-<p>It is a wrapper for a native matrix type from a supported matrix library such as Eigen. The matrix can be thought of as a transformation from X to Y, where the coefficients for each of X and Y are typed. Example declarations:</p><ul>
+<p>It is a wrapper for a native matrix type from a supported matrix library such as <a class="el" href="namespace_eigen.html" title="Eigen3&#39;s native namespace.">Eigen</a>. The matrix can be thought of as a transformation from X to Y, where the coefficients for each of X and Y are typed. Example declarations:</p><ul>
 <li><code><a class="el" href="struct_open_kalman_1_1_matrix.html" title="A matrix with typed rows and columns.">Matrix</a>&lt;Coefficients&lt;Axis, Axis, angle::Radians&gt;, Coefficients&lt;Axis, Axis&gt;, native_matrix_t&lt;native_matrix_t&lt;double, 3, 2&gt;&gt; x;</code></li>
 <li><code><a class="el" href="struct_open_kalman_1_1_matrix.html" title="A matrix with typed rows and columns.">Matrix</a>&lt;double, Coefficients&lt;Axis, Axis, angle::Radians&gt;, Coefficients&lt;Axis, Axis&gt;, native_matrix_t&lt;double, 3, 2&gt;&gt; x;</code> <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
-    <tr><td class="paramname">RowCoefficients</td><td>A set of coefficients (e.g., <a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a>, <a class="el" href="struct_open_kalman_1_1_spherical.html" title="An atomic coefficient group reflecting spherical coordinates.">Spherical</a>, etc.) corresponding to the rows. </td></tr>
-    <tr><td class="paramname">ColumnCoefficients</td><td>Another set of coefficients corresponding to the columns. </td></tr>
+    <tr><td class="paramname">RowCoefficients</td><td>A set of <a class="el" href="namespace_open_kalman.html#af847ece5eb2e6d50df847573c505b852">coefficients</a> (e.g., <a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a>, <a class="el" href="struct_open_kalman_1_1_spherical.html" title="An atomic coefficient group reflecting spherical coordinates.">Spherical</a>, etc.) corresponding to the rows. </td></tr>
+    <tr><td class="paramname">ColumnCoefficients</td><td>Another set of <a class="el" href="namespace_open_kalman.html#af847ece5eb2e6d50df847573c505b852">coefficients</a> corresponding to the columns. </td></tr>
     <tr><td class="paramname">NestedMatrix</td><td>The underlying native matrix or matrix expression. </td></tr>
   </table>
   </dd>
@@ -255,8 +257,6 @@ auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Get the nested matrix of this covariance matrix. </p>
 <p>The nested matrix will be self-adjoint, triangular, or diagonal. </p><dl class="section return"><dt>Returns</dt><dd>An lvalue reference to the nested matrix. </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="_matrix_base_8hpp_source.html#l00105">105</a> of file <a class="el" href="_matrix_base_8hpp_source.html">MatrixBase.hpp</a>.</p>
@@ -360,7 +360,7 @@ auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="namespace_open_kalman.html">OpenKalman</a></li><li class="navelem"><a class="el" href="struct_open_kalman_1_1_matrix.html">Matrix</a></li>
-    <li class="footer">Generated on Sat Dec 5 2020 03:00:22 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
+    <li class="footer">Generated on Sun Dec 6 2020 19:54:45 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
   </ul>
 </div>
 </body>

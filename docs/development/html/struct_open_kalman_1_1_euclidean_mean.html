@@ -91,11 +91,13 @@ $(document).ready(function(){initNavTree('struct_open_kalman_1_1_euclidean_mean.
 <div class="title">OpenKalman::EuclideanMean&lt; Coeffs, NestedMatrix &gt; Struct Template Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
+
+<p>Similar to a <a class="el" href="struct_open_kalman_1_1_mean.html" title="A set of one or more column vectors, each representing a statistical mean.">Mean</a>, but the coefficients are transformed into Euclidean space, based on their type.  
+ <a href="struct_open_kalman_1_1_euclidean_mean.html#details">More...</a></p>
 <a name="details" id="details"></a><h2 class="groupheader">Description</h2>
 <div class="textblock"><h3>template&lt;typename Coeffs, typename NestedMatrix&gt;<br />
 struct OpenKalman::EuclideanMean&lt; Coeffs, NestedMatrix &gt;</h3>
 
-<p>Similar to a <a class="el" href="struct_open_kalman_1_1_mean.html" title="A set of one or more column vectors, each representing a statistical mean.">Mean</a>, but the coefficients are transformed into Euclidean space, based on their type. </p>
 <p>Means containing angles should be converted to <a class="el" href="struct_open_kalman_1_1_euclidean_mean.html" title="Similar to a Mean, but the coefficients are transformed into Euclidean space, based on their type.">EuclideanMean</a> before taking an average or weighted average. Example declaration: <code><a class="el" href="struct_open_kalman_1_1_euclidean_mean.html" title="Similar to a Mean, but the coefficients are transformed into Euclidean space, based on their type.">EuclideanMean</a>&lt;Coefficients&lt;Axis, Axis, angle::Radians&gt;, 1, native_matrix_t&lt;double, 4, 1&gt;&gt; x;</code> This declares a 3-dimensional mean <em>x</em>, where the coefficients are, respectively, an <a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a>, an <a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a>, and an <a class="el" href="namespace_open_kalman_1_1angle.html#a83281632e5031d7542ef229623b292a9" title="An angle measured in radians [-π,π).">angle::Radians</a>, all of scalar type <code>double</code>. The underlying representation is a four-dimensional vector in Euclidean space, with the last two of the dimensions representing the <a class="el" href="namespace_open_kalman_1_1angle.html#a83281632e5031d7542ef229623b292a9" title="An angle measured in radians [-π,π).">angle::Radians</a> coefficient transformed to x and y locations on a unit circle associated with the <a class="el" href="namespace_open_kalman_1_1angle.html#a83281632e5031d7542ef229623b292a9" title="An angle measured in radians [-π,π).">angle::Radians</a>-type coefficient. </p><dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname"><a class="el" href="struct_open_kalman_1_1_coefficients.html" title="A set of coefficient types.">Coefficients</a></td><td>A set of coefficients (e.g., <a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a>, <a class="el" href="namespace_open_kalman_1_1angle.html#a83281632e5031d7542ef229623b292a9" title="An angle measured in radians [-π,π).">angle::Radians</a>, <a class="el" href="struct_open_kalman_1_1_polar.html" title="An atomic coefficient group reflecting polar coordinates.">Polar</a>, etc.) </td></tr>
@@ -245,8 +247,6 @@ auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Get the nested matrix of this covariance matrix. </p>
 <p>The nested matrix will be self-adjoint, triangular, or diagonal. </p><dl class="section return"><dt>Returns</dt><dd>An lvalue reference to the nested matrix. </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="_matrix_base_8hpp_source.html#l00105">105</a> of file <a class="el" href="_matrix_base_8hpp_source.html">MatrixBase.hpp</a>.</p>
@@ -350,7 +350,7 @@ auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="namespace_open_kalman.html">OpenKalman</a></li><li class="navelem"><a class="el" href="struct_open_kalman_1_1_euclidean_mean.html">EuclideanMean</a></li>
-    <li class="footer">Generated on Sat Dec 5 2020 03:00:22 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
+    <li class="footer">Generated on Sun Dec 6 2020 19:54:45 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
   </ul>
 </div>
 </body>

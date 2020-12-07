@@ -92,11 +92,13 @@ $(document).ready(function(){initNavTree('struct_open_kalman_1_1_eigen3_1_1_to_e
 <div class="title">OpenKalman::Eigen3::ToEuclideanExpr&lt; Coefficients, NestedMatrix &gt; Struct Template Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
+
+<p>An expression that transforms coefficients into Euclidean space for proper wrapping.  
+ <a href="struct_open_kalman_1_1_eigen3_1_1_to_euclidean_expr.html#details">More...</a></p>
 <a name="details" id="details"></a><h2 class="groupheader">Description</h2>
 <div class="textblock"><h3>template&lt;typename Coefficients, typename NestedMatrix&gt;<br />
 struct OpenKalman::Eigen3::ToEuclideanExpr&lt; Coefficients, NestedMatrix &gt;</h3>
 
-<p>An expression that transforms coefficients into Euclidean space for proper wrapping. </p>
 <p>This is the counterpart expression to <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html" title="An expression that transforms angular or other modular coefficients back from Euclidean space.">FromEuclideanExpr</a>. <code><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html" title="An expression that transforms angular or other modular coefficients back from Euclidean space.">FromEuclideanExpr</a>&lt;C, ToEuclideanExpr&lt;C, M&gt;&gt;</code> acts to wrap the angular/modular values in <code>M</code>. </p><dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname"><a class="el" href="struct_open_kalman_1_1_coefficients.html" title="A set of coefficient types.">Coefficients</a></td><td>The coefficient types. </td></tr>
@@ -118,9 +120,6 @@ static constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><a clas
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
 Public Aliases</h2></td></tr>
-<tr class="memitem:a5c14bb32e5de9b81eb8cfa13c9ad48a5"><td class="memItemLeft" align="right" valign="top"><a id="a5c14bb32e5de9b81eb8cfa13c9ad48a5"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>Base</b> = OpenKalman::internal::MatrixBase&lt; <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_to_euclidean_expr.html">ToEuclideanExpr</a>, NestedMatrix &gt;</td></tr>
-<tr class="separator:a5c14bb32e5de9b81eb8cfa13c9ad48a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afd8a6edcccc5c5ee70551ddeaa9fc636"><td class="memItemLeft" align="right" valign="top"><a id="afd8a6edcccc5c5ee70551ddeaa9fc636"></a>
 using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_to_euclidean_expr.html#afd8a6edcccc5c5ee70551ddeaa9fc636">Scalar</a> = typename <a class="el" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits</a>&lt; NestedMatrix &gt;::<a class="el" href="struct_open_kalman_1_1_eigen3_1_1_to_euclidean_expr.html#afd8a6edcccc5c5ee70551ddeaa9fc636">Scalar</a></td></tr>
 <tr class="memdesc:afd8a6edcccc5c5ee70551ddeaa9fc636"><td class="mdescLeft">&#160;</td><td class="mdescRight">Scalar type for this variable. <br /></td></tr>
@@ -204,24 +203,6 @@ template&lt;typename S , std::enable_if_t&lt; std::is_convertible_v&lt; S, Scala
 <tr class="memitem:a2cdff23bd836049a044544112a387352"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_to_euclidean_expr.html#a2cdff23bd836049a044544112a387352">operator/=</a> (const S <a class="el" href="namespace_open_kalman.html#a77f2335ea8a758c0b229c54cadc27aa1">scale</a>)</td></tr>
 <tr class="memdesc:a2cdff23bd836049a044544112a387352"><td class="mdescLeft">&#160;</td><td class="mdescRight">Divide by a scale factor. <br /></td></tr>
 <tr class="separator:a2cdff23bd836049a044544112a387352"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a62e6f2ee5d7f129cdacecd4e6614207c"><td class="memItemLeft" align="right" valign="top"><a id="a62e6f2ee5d7f129cdacecd4e6614207c"></a>
-auto&#160;</td><td class="memItemRight" valign="bottom"><b>operator()</b> (std::size_t i, std::size_t j)</td></tr>
-<tr class="separator:a62e6f2ee5d7f129cdacecd4e6614207c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a72d6fcbcfce9ced7721ab2327eb08eec"><td class="memItemLeft" align="right" valign="top"><a id="a72d6fcbcfce9ced7721ab2327eb08eec"></a>
-auto&#160;</td><td class="memItemRight" valign="bottom"><b>operator()</b> (std::size_t i, std::size_t j) const noexcept</td></tr>
-<tr class="separator:a72d6fcbcfce9ced7721ab2327eb08eec"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2a22418d0fbbc88d618608ab7811b572"><td class="memItemLeft" align="right" valign="top"><a id="a2a22418d0fbbc88d618608ab7811b572"></a>
-auto&#160;</td><td class="memItemRight" valign="bottom"><b>operator[]</b> (std::size_t i)</td></tr>
-<tr class="separator:a2a22418d0fbbc88d618608ab7811b572"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aca9b99ad40772317c096a24138be4d4e"><td class="memItemLeft" align="right" valign="top"><a id="aca9b99ad40772317c096a24138be4d4e"></a>
-auto&#160;</td><td class="memItemRight" valign="bottom"><b>operator[]</b> (std::size_t i) const noexcept</td></tr>
-<tr class="separator:aca9b99ad40772317c096a24138be4d4e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adebd0286323e5f25fc2b074bc2159544"><td class="memItemLeft" align="right" valign="top"><a id="adebd0286323e5f25fc2b074bc2159544"></a>
-auto&#160;</td><td class="memItemRight" valign="bottom"><b>operator()</b> (std::size_t i)</td></tr>
-<tr class="separator:adebd0286323e5f25fc2b074bc2159544"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa00a1bd7814d8376a1074e60ca5e4020"><td class="memItemLeft" align="right" valign="top"><a id="aa00a1bd7814d8376a1074e60ca5e4020"></a>
-auto&#160;</td><td class="memItemRight" valign="bottom"><b>operator()</b> (std::size_t i) const</td></tr>
-<tr class="separator:aa00a1bd7814d8376a1074e60ca5e4020"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3418b2a4dcfe6e9c62ab1f37ce15503c"><td class="memItemLeft" align="right" valign="top">constexpr auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>nested_matrix</b> () &amp;</td></tr>
 <tr class="memdesc:a3418b2a4dcfe6e9c62ab1f37ce15503c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the nested matrix of this covariance matrix.  <a href="struct_open_kalman_1_1internal_1_1_matrix_base.html#a3418b2a4dcfe6e9c62ab1f37ce15503c">More...</a><br /></td></tr>
 <tr class="separator:a3418b2a4dcfe6e9c62ab1f37ce15503c"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -257,11 +238,9 @@ template&lt;typename Derived , typename NestedMatrix &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Get the nested matrix of this covariance matrix. </p>
 <p>The nested matrix will be self-adjoint, triangular, or diagonal. </p><dl class="section return"><dt>Returns</dt><dd>An lvalue reference to the nested matrix. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="_matrix_base_8hpp_source.html#l00111">111</a> of file <a class="el" href="_matrix_base_8hpp_source.html">MatrixBase.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_matrix_base_8hpp_source.html#l00105">105</a> of file <a class="el" href="_matrix_base_8hpp_source.html">MatrixBase.hpp</a>.</p>
 
 </div>
 </div>
@@ -292,7 +271,7 @@ template&lt;typename Derived , typename NestedMatrix &gt; </div>
 <p>Get the nested matrix of this covariance matrix temporary. </p><dl class="section see"><dt>See also</dt><dd>constexpr auto&amp; nested_matrix() &amp; </dd></dl>
 <dl class="section return"><dt>Returns</dt><dd>An rvalue reference to the nested matrix. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="_matrix_base_8hpp_source.html#l00119">119</a> of file <a class="el" href="_matrix_base_8hpp_source.html">MatrixBase.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_matrix_base_8hpp_source.html#l00113">113</a> of file <a class="el" href="_matrix_base_8hpp_source.html">MatrixBase.hpp</a>.</p>
 
 </div>
 </div>
@@ -323,7 +302,7 @@ template&lt;typename Derived , typename NestedMatrix &gt; </div>
 <p>Get the nested matrix of this constant covariance matrix. </p><dl class="section see"><dt>See also</dt><dd>constexpr auto&amp; nested_matrix() &amp; </dd></dl>
 <dl class="section return"><dt>Returns</dt><dd>A constant lvalue reference to the nested matrix. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="_matrix_base_8hpp_source.html#l00127">127</a> of file <a class="el" href="_matrix_base_8hpp_source.html">MatrixBase.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_matrix_base_8hpp_source.html#l00121">121</a> of file <a class="el" href="_matrix_base_8hpp_source.html">MatrixBase.hpp</a>.</p>
 
 </div>
 </div>
@@ -354,7 +333,7 @@ template&lt;typename Derived , typename NestedMatrix &gt; </div>
 <p>Get the nested matrix of this constant covariance matrix temporary. </p><dl class="section see"><dt>See also</dt><dd>constexpr auto&amp; nested_matrix() &amp; </dd></dl>
 <dl class="section return"><dt>Returns</dt><dd>A constant rvalue reference to the nested matrix. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="_matrix_base_8hpp_source.html#l00135">135</a> of file <a class="el" href="_matrix_base_8hpp_source.html">MatrixBase.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_matrix_base_8hpp_source.html#l00129">129</a> of file <a class="el" href="_matrix_base_8hpp_source.html">MatrixBase.hpp</a>.</p>
 
 </div>
 </div>
@@ -368,7 +347,7 @@ template&lt;typename Derived , typename NestedMatrix &gt; </div>
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="namespace_open_kalman.html">OpenKalman</a></li><li class="navelem"><a class="el" href="namespace_open_kalman_1_1_eigen3.html">Eigen3</a></li><li class="navelem"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_to_euclidean_expr.html">ToEuclideanExpr</a></li>
-    <li class="footer">Generated on Wed Dec 2 2020 15:40:27 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
+    <li class="footer">Generated on Sun Dec 6 2020 19:54:58 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
   </ul>
 </div>
 </body>

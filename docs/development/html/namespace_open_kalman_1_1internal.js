@@ -28,10 +28,14 @@ var namespace_open_kalman_1_1internal =
     [ "constexpr_sqrt", "namespace_open_kalman_1_1internal.html#a0de6ea03b16d31991db9843df173d674", null ],
     [ "convert_nested_matrix", "namespace_open_kalman_1_1internal.html#a124a5fe1dc8b76fe985f55a1497dc150", null ],
     [ "convert_nested_matrix", "namespace_open_kalman_1_1internal.html#aa3bb16dc004f421a9f872f5683ca985d", null ],
+    [ "from_euclidean_coeff", "namespace_open_kalman_1_1internal.html#acbfe0e290c67c2597b22b1e308ec8748", null ],
     [ "join", "namespace_open_kalman_1_1internal.html#ab4c55d1d16722622d8e01a474f69faea", null ],
     [ "make_ElementSetter", "namespace_open_kalman_1_1internal.html#ae90fd2b04252852fbbaceb4ef798bf2b", null ],
     [ "make_ElementSetter", "namespace_open_kalman_1_1internal.html#aeae213e87016b2ab48e3aebeb0d2ef45", null ],
     [ "prepend", "namespace_open_kalman_1_1internal.html#a8acbe50bdd93f93904cb245c9f981db1", null ],
+    [ "to_euclidean_coeff", "namespace_open_kalman_1_1internal.html#aaa4f2082a3e8968bedfc2ceda61109e9", null ],
     [ "tuple_replicate", "namespace_open_kalman_1_1internal.html#a1eb076c1ccda659ec9f6b9e955bf2dae", null ],
-    [ "tuple_slice", "namespace_open_kalman_1_1internal.html#a0fbebd42d3419522aec582110074b5dc", null ]
+    [ "tuple_slice", "namespace_open_kalman_1_1internal.html#a0fbebd42d3419522aec582110074b5dc", null ],
+    [ "wrap_get", "namespace_open_kalman_1_1internal.html#a1bb5189beb193b164ecd64555f77652f", null ],
+    [ "wrap_set", "namespace_open_kalman_1_1internal.html#ad8998a156055ed41512ca22a174a1d58", null ]
 ];

@@ -109,6 +109,7 @@ Namespaces</h2></td></tr>
 <tr class="memdesc:namespace_open_kalman_1_1inclination"><td class="mdescLeft">&#160;</td><td class="mdescRight">Namespace for definitions relating to coefficients representing an inclination. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:namespace_open_kalman_1_1internal"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1internal.html">internal</a></td></tr>
+<tr class="memdesc:namespace_open_kalman_1_1internal"><td class="mdescLeft">&#160;</td><td class="mdescRight">Namespace for internal definitions, not intended for use outside of <a class="el" href="namespace_open_kalman.html" title="The root namespace for OpenKalman.">OpenKalman</a> development. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
@@ -285,6 +286,11 @@ using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="nam
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:ab7f7071cb157c11253798720be5c7542"><td class="memTemplParams" colspan="2"><a id="ab7f7071cb157c11253798720be5c7542"></a>
+template&lt;typename M , typename ... Args, std::enable_if_t&lt;(std::is_convertible_v&lt; Args, typename MatrixTraits&lt; M &gt;::Scalar &gt; and ...) and(sizeof...(Args)==MatrixTraits&lt; M &gt;::dimension *MatrixTraits&lt; M &gt;::columns), int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:ab7f7071cb157c11253798720be5c7542"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#ab7f7071cb157c11253798720be5c7542">make_native_matrix</a> (const Args ... args)</td></tr>
+<tr class="memdesc:ab7f7071cb157c11253798720be5c7542"><td class="mdescLeft">&#160;</td><td class="mdescRight">Make a self-contained, native matrix based on the shape of M from a list of coefficients in row-major order. <br /></td></tr>
+<tr class="separator:ab7f7071cb157c11253798720be5c7542"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a131455a38340a120002aca624717d3d4"><td class="memTemplParams" colspan="2"><a id="a131455a38340a120002aca624717d3d4"></a>
 template&lt;typename D , std::enable_if_t&lt; gaussian_distribution&lt; D &gt;, int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:a131455a38340a120002aca624717d3d4"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#a131455a38340a120002aca624717d3d4">make_GaussianDistribution</a> (D &amp;&amp;dist) noexcept</td></tr>
@@ -516,6 +522,9 @@ template&lt;typename Arg , std::enable_if_t&lt; typed_matrix&lt; Arg &gt; and no
 <tr class="memitem:a4fd804a52e5750b0be9c60a34a1c3323"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#a4fd804a52e5750b0be9c60a34a1c3323">set_element</a> (Arg &amp;arg, const typename <a class="el" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits</a>&lt; Arg &gt;::Scalar s, const std::size_t i)</td></tr>
 <tr class="memdesc:a4fd804a52e5750b0be9c60a34a1c3323"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set element (i) of a typed matrix. <br /></td></tr>
 <tr class="separator:a4fd804a52e5750b0be9c60a34a1c3323"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1b2366114bcb1637da7288fb572e738e"><td class="memTemplParams" colspan="2">template&lt;typename ReturnType , template&lt; typename Scalar &gt; typename distribution_type = std::normal_distribution, typename random_number_engine  = std::mt19937, typename... Params, std::enable_if_t&lt; typed_matrix&lt; ReturnType &gt;, int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:a1b2366114bcb1637da7288fb572e738e"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#a1b2366114bcb1637da7288fb572e738e">randomize</a> (Params...params)</td></tr>
+<tr class="separator:a1b2366114bcb1637da7288fb572e738e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a545052d9d62e60171a20c7704d65b1a0"><td class="memTemplParams" colspan="2"><a id="a545052d9d62e60171a20c7704d65b1a0"></a>
 template&lt;typename V , std::enable_if_t&lt; typed_matrix&lt; V &gt;, int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:a545052d9d62e60171a20c7704d65b1a0"><td class="memTemplItemLeft" align="right" valign="top">std::ostream &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#a545052d9d62e60171a20c7704d65b1a0">operator&lt;&lt;</a> (std::ostream &amp;os, const V &amp;v)</td></tr>
@@ -759,8 +768,7 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>The root namespace for <a class="el" href="namespace_open_kalman.html" title="The root namespace for OpenKalman.">OpenKalman</a>. </p>
-<p>The namespace for all OpenKalman-specific classes and methods. </p>
+<div class="textblock"><p>The namespace for all OpenKalman-specific classes and methods. </p>
 </div><h2 class="groupheader">Variable Documentation</h2>
 <a id="a2562e4c0918dc2cbf74de6a97d9388cf"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a2562e4c0918dc2cbf74de6a97d9388cf">&#9670;&nbsp;</a></span>cholesky_form</h2>
@@ -783,8 +791,6 @@ template&lt;typename T &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Specifies that a type has a nested native matrix that is a Cholesky square root. </p>
 <p>If this is true, then nested_matrix_t&lt;T&gt; is true. </p><dl class="section note"><dt>Note</dt><dd>This is a concept when compiled with c++20, and a constexpr bool in c++17. </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="traits_8hpp_source.html#l00769">769</a> of file <a class="el" href="traits_8hpp_source.html">traits.hpp</a>.</p>
@@ -812,18 +818,15 @@ template&lt;typename T &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>T is a group of atomic or composite coefficients. </p>
 <p>Atomic coefficient groups are coefficients or groups of coefficients that function as a unit, and cannot be separated. They may be combined into composite coefficients by passing them as template parameters to <a class="el" href="struct_open_kalman_1_1_coefficients.html" title="A set of coefficient types.">Coefficients</a>. These include <a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a>, <a class="el" href="struct_open_kalman_1_1_distance.html" title="A non-negative real or integral number, [0,∞], representing a distance.">Distance</a>, <a class="el" href="struct_open_kalman_1_1_angle.html" title="An angle or any other simple modular value.">Angle</a>, <a class="el" href="struct_open_kalman_1_1_inclination.html" title="A positive or negative real number φ representing an inclination or declination from the horizon.">Inclination</a>, <a class="el" href="struct_open_kalman_1_1_polar.html" title="An atomic coefficient group reflecting polar coordinates.">Polar</a>, and <a class="el" href="struct_open_kalman_1_1_spherical.html" title="An atomic coefficient group reflecting spherical coordinates.">Spherical</a>.</p>
-<p>Composite coefficients are specializations of the class <a class="el" href="struct_open_kalman_1_1_coefficients.html" title="A set of coefficient types.">Coefficients</a>, which has the purpose of grouping other atomic or composite coefficients. Composite coefficients can, themselves, comprise groups of other composite components. Composite coefficients are of the form Coefficients&lt;Cs...&gt;.</p>
-<p>Examples of coefficients:</p><ul>
+<p>Composite coefficients are specializations of the class <a class="el" href="struct_open_kalman_1_1_coefficients.html" title="A set of coefficient types.">Coefficients</a>, which has the purpose of grouping other atomic or composite coefficients. Composite coefficients can, themselves, comprise groups of other composite components. Composite coefficients are of the form Coefficients&lt;Cs...&gt;. <b>Examples</b>:</p><ul>
 <li><a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a></li>
 <li>Polar&lt;Distance, angle::Radians&gt;</li>
 <li>Coefficients&lt;Axis, angle::Radians&gt;</li>
 <li><a class="el" href="struct_open_kalman_1_1_coefficients.html" title="A set of coefficient types.">Coefficients</a>&lt;Spherical&lt;angle::Degrees, inclination::degrees, Distance&gt;, <a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a>, <a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a>&gt; </li>
 </ul>
 
-<p class="definition">Definition at line <a class="el" href="forward-traits_8hpp_source.html#l00094">94</a> of file <a class="el" href="forward-traits_8hpp_source.html">forward-traits.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="forward-traits_8hpp_source.html#l00096">96</a> of file <a class="el" href="forward-traits_8hpp_source.html">forward-traits.hpp</a>.</p>
 
 </div>
 </div>
@@ -848,11 +851,9 @@ template&lt;typename T &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>T is a column vector or set of column vectors (i.e., the columns all have type <a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a>). </p>
 <dl class="section note"><dt>Note</dt><dd>This is a concept when compiled with c++20, and a constexpr bool in c++17. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="forward-class-declarations_8hpp_source.html#l00294">294</a> of file <a class="el" href="forward-class-declarations_8hpp_source.html">forward-class-declarations.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="forward-class-declarations_8hpp_source.html#l00297">297</a> of file <a class="el" href="forward-class-declarations_8hpp_source.html">forward-class-declarations.hpp</a>.</p>
 
 </div>
 </div>
@@ -877,11 +878,9 @@ template&lt;typename T &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>T is a specialization of either <a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a> or <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html" title="The upper or lower triangle Cholesky factor (square root) of a covariance matrix.">SquareRootCovariance</a>. </p>
 <dl class="section note"><dt>Note</dt><dd>This is a concept when compiled with c++20, and a constexpr bool in c++17. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="forward-class-declarations_8hpp_source.html#l00346">346</a> of file <a class="el" href="forward-class-declarations_8hpp_source.html">forward-class-declarations.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="forward-class-declarations_8hpp_source.html#l00349">349</a> of file <a class="el" href="forward-class-declarations_8hpp_source.html">forward-class-declarations.hpp</a>.</p>
 
 </div>
 </div>
@@ -906,11 +905,9 @@ template&lt;typename T &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>T is an acceptable nested matrix for a covariance (including square_root_covariance). </p>
 <dl class="section note"><dt>Note</dt><dd>This is a concept when compiled with c++20, and a constexpr bool in c++17. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="forward-traits_8hpp_source.html#l00191">191</a> of file <a class="el" href="forward-traits_8hpp_source.html">forward-traits.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="forward-traits_8hpp_source.html#l00195">195</a> of file <a class="el" href="forward-traits_8hpp_source.html">forward-traits.hpp</a>.</p>
 
 </div>
 </div>
@@ -935,8 +932,6 @@ template&lt;typename T &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Specifies that a type is a diagonal matrix. </p>
 <dl class="section note"><dt>Note</dt><dd>This is a concept when compiled with c++20, and a constexpr bool in c++17. </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="traits_8hpp_source.html#l00419">419</a> of file <a class="el" href="traits_8hpp_source.html">traits.hpp</a>.</p>
@@ -964,11 +959,9 @@ template&lt;typename T &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>T is a statistical distribution of any kind that is defined in <a class="el" href="namespace_open_kalman.html" title="The root namespace for OpenKalman.">OpenKalman</a>. </p>
 <dl class="section note"><dt>Note</dt><dd>This is a concept when compiled with c++20, and a constexpr bool in c++17. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="forward-class-declarations_8hpp_source.html#l00384">384</a> of file <a class="el" href="forward-class-declarations_8hpp_source.html">forward-class-declarations.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="forward-class-declarations_8hpp_source.html#l00387">387</a> of file <a class="el" href="forward-class-declarations_8hpp_source.html">forward-class-declarations.hpp</a>.</p>
 
 </div>
 </div>
@@ -993,8 +986,6 @@ template&lt;typename T , std::size_t N&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Specifies that a type has elements that can be retrieved with N number of indices. </p>
 <dl class="section note"><dt>Note</dt><dd>This is a concept when compiled with c++20, and a constexpr bool in c++17. </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="traits_8hpp_source.html#l00894">894</a> of file <a class="el" href="traits_8hpp_source.html">traits.hpp</a>.</p>
@@ -1024,9 +1015,7 @@ template&lt;typename T , std::size_t N&gt; </div>
 </div><div class="memdoc">
 <b>Initial value:</b><div class="fragment"><div class="line">= internal::is_element_settable&lt;T, N&gt;::value and</div>
 <div class="line">    (not std::is_const_v&lt;std::remove_reference_t&lt;T&gt;&gt;)</div>
-</div><!-- fragment -->
-<p>Specifies that a type has elements that can be set with N number of indices. </p>
-<dl class="section note"><dt>Note</dt><dd>This is a concept when compiled with c++20, and a constexpr bool in c++17. </dd></dl>
+</div><!-- fragment --><dl class="section note"><dt>Note</dt><dd>This is a concept when compiled with c++20, and a constexpr bool in c++17. </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="traits_8hpp_source.html#l00944">944</a> of file <a class="el" href="traits_8hpp_source.html">traits.hpp</a>.</p>
 
@@ -1053,16 +1042,14 @@ template&lt;typename T , typename U &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>T is equivalent to U, where T and U are sets of coefficients. </p>
 <p>Sets of coefficients are equivalent if they are treated functionally the same.</p><ul>
 <li>Any coefficient or group of coefficients is equivalent to itself.</li>
 <li>Coefficient&lt;Ts...&gt; is equivalent to Coefficient&lt;Us...&gt;, if each Ts is equivalent to its respective Us.</li>
-<li>Coefficient&lt;T&gt; is equivalent to T, and vice versa. Example:<div class="fragment"><div class="line">equivalent_to&lt;Axis, Coefficients&lt;Axis&gt;&gt; </div>
-</div><!-- fragment --> returns <code>true</code>. </li>
+<li>Coefficient&lt;T&gt; is equivalent to T, and vice versa. <dl class="section user"><dt>Example:</dt><dd><code>equivalent_to&lt;<a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a>, <a class="el" href="struct_open_kalman_1_1_coefficients.html" title="A set of coefficient types.">Coefficients</a>&lt;<a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a>&gt;&gt; </code></dd></dl>
+</li>
 </ul>
 
-<p class="definition">Definition at line <a class="el" href="forward-traits_8hpp_source.html#l00127">127</a> of file <a class="el" href="forward-traits_8hpp_source.html">forward-traits.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="forward-traits_8hpp_source.html#l00130">130</a> of file <a class="el" href="forward-traits_8hpp_source.html">forward-traits.hpp</a>.</p>
 
 </div>
 </div>
@@ -1087,11 +1074,9 @@ template&lt;typename T &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>T is a Euclidean mean (i.e., is a specialization of the class <a class="el" href="struct_open_kalman_1_1_euclidean_mean.html" title="Similar to a Mean, but the coefficients are transformed into Euclidean space, based on their type.">EuclideanMean</a>). </p>
 <dl class="section note"><dt>Note</dt><dd>This is a concept when compiled with c++20, and a constexpr bool in c++17. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="forward-class-declarations_8hpp_source.html#l00215">215</a> of file <a class="el" href="forward-class-declarations_8hpp_source.html">forward-class-declarations.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="forward-class-declarations_8hpp_source.html#l00218">218</a> of file <a class="el" href="forward-class-declarations_8hpp_source.html">forward-class-declarations.hpp</a>.</p>
 
 </div>
 </div>
@@ -1116,11 +1101,9 @@ template&lt;typename T &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>T is a Euclidean mean that actually has coefficients that are transformed to Euclidean space. </p>
 <dl class="section note"><dt>Note</dt><dd>This is a concept when compiled with c++20, and a constexpr bool in c++17. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="forward-class-declarations_8hpp_source.html#l00242">242</a> of file <a class="el" href="forward-class-declarations_8hpp_source.html">forward-class-declarations.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="forward-class-declarations_8hpp_source.html#l00245">245</a> of file <a class="el" href="forward-class-declarations_8hpp_source.html">forward-class-declarations.hpp</a>.</p>
 
 </div>
 </div>
@@ -1145,11 +1128,9 @@ template&lt;typename T &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>T is a Gaussian distribution. </p>
 <dl class="section note"><dt>Note</dt><dd>This is a concept when compiled with c++20, and a constexpr bool in c++17. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="forward-class-declarations_8hpp_source.html#l00372">372</a> of file <a class="el" href="forward-class-declarations_8hpp_source.html">forward-class-declarations.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="forward-class-declarations_8hpp_source.html#l00375">375</a> of file <a class="el" href="forward-class-declarations_8hpp_source.html">forward-class-declarations.hpp</a>.</p>
 
 </div>
 </div>
@@ -1174,8 +1155,6 @@ template&lt;typename T &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Specifies that a type is an identity matrix. </p>
 <dl class="section note"><dt>Note</dt><dd>This is a concept when compiled with c++20, and a constexpr bool in c++17. </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="traits_8hpp_source.html#l00311">311</a> of file <a class="el" href="traits_8hpp_source.html">traits.hpp</a>.</p>
@@ -1203,8 +1182,6 @@ template&lt;typename T &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Specifies that a type is a lower-triangular matrix. </p>
 <dl class="section note"><dt>Note</dt><dd>This is a concept when compiled with c++20, and a constexpr bool in c++17. </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="traits_8hpp_source.html#l00599">599</a> of file <a class="el" href="traits_8hpp_source.html">traits.hpp</a>.</p>
@@ -1232,11 +1209,9 @@ template&lt;typename T &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>T is a mean (i.e., is a specialization of the class <a class="el" href="struct_open_kalman_1_1_mean.html" title="A set of one or more column vectors, each representing a statistical mean.">Mean</a>). </p>
 <dl class="section note"><dt>Note</dt><dd>This is a concept when compiled with c++20, and a constexpr bool in c++17. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="forward-class-declarations_8hpp_source.html#l00163">163</a> of file <a class="el" href="forward-class-declarations_8hpp_source.html">forward-class-declarations.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="forward-class-declarations_8hpp_source.html#l00166">166</a> of file <a class="el" href="forward-class-declarations_8hpp_source.html">forward-class-declarations.hpp</a>.</p>
 
 </div>
 </div>
@@ -1261,8 +1236,6 @@ template&lt;typename T &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Specifies that a type is a one-by-one matrix (i.e., one row and one column). </p>
 <dl class="section note"><dt>Note</dt><dd>This is a concept when compiled with c++20, and a constexpr bool in c++17. </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="traits_8hpp_source.html#l00371">371</a> of file <a class="el" href="traits_8hpp_source.html">traits.hpp</a>.</p>
@@ -1290,12 +1263,9 @@ template&lt;typename T , typename U &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>If T is a prefix of U, then U is equivalent_to concatenating T with the remaining part of U. C is a prefix of Coefficients&lt;C, Cs...&gt; for any coefficients Cs. T is a prefix of U if equivalent_to&lt;T, U&gt;. <a class="el" href="struct_open_kalman_1_1_coefficients_3_4.html" title="An empty set of Coefficients.">Coefficients&lt;&gt;</a> is a prefix of any set of coefficients. </p><dl class="section user"><dt>Example:</dt><dd><code>prefix_of&lt;<a class="el" href="struct_open_kalman_1_1_coefficients.html" title="A set of coefficient types.">Coefficients</a>&lt;<a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a>&gt;, <a class="el" href="struct_open_kalman_1_1_coefficients.html" title="A set of coefficient types.">Coefficients</a>&lt;<a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a>, <a class="el" href="namespace_open_kalman_1_1angle.html#a83281632e5031d7542ef229623b292a9" title="An angle measured in radians [-π,π).">angle::Radians</a>&gt;&gt; </code></dd></dl>
 
-<p>T is a prefix of U, where T and U are sets of coefficients. </p>
-<p>If T is a prefix of U, then U is equivalent_to concatenating T with the remaining part of U. C is a prefix of Coefficients&lt;C, Cs...&gt; for any coefficients Cs. T is a prefix of U if equivalent_to&lt;T, U&gt;. <a class="el" href="struct_open_kalman_1_1_coefficients_3_4.html" title="An empty set of Coefficients.">Coefficients&lt;&gt;</a> is a prefix of any set of coefficients. Example,</p><div class="fragment"><div class="line">prefix_of&lt;Coefficients&lt;Axis&gt;, Coefficients&lt;Axis, angle::Radians&gt;&gt; </div>
-</div><!-- fragment --><p> returns <code>true</code>. </p>
-
-<p class="definition">Definition at line <a class="el" href="forward-traits_8hpp_source.html#l00160">160</a> of file <a class="el" href="forward-traits_8hpp_source.html">forward-traits.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="forward-traits_8hpp_source.html#l00164">164</a> of file <a class="el" href="forward-traits_8hpp_source.html">forward-traits.hpp</a>.</p>
 
 </div>
 </div>
@@ -1320,8 +1290,6 @@ template&lt;typename T &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Specifies that a type is a self-adjoint matrix. </p>
 <dl class="section note"><dt>Note</dt><dd>This is a concept when compiled with c++20, and a constexpr bool in c++17. </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="traits_8hpp_source.html#l00508">508</a> of file <a class="el" href="traits_8hpp_source.html">traits.hpp</a>.</p>
@@ -1349,8 +1317,6 @@ template&lt;typename T &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Specifies that a type is a self-contained matrix or expression. </p>
 <p>A value is self-contained if it can be created in a function and returned as the result. <a class="el" href="namespace_open_kalman.html" title="The root namespace for OpenKalman.">OpenKalman</a> matrix types are self-contained if their wrapped native matrix is self-contained and is not an lvalue reference. The matrix library interface will specify which native matrices and expressions are self-contained. </p><dl class="section note"><dt>Note</dt><dd>This is a concept when compiled with c++20, and a constexpr bool in c++17. </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="traits_8hpp_source.html#l00101">101</a> of file <a class="el" href="traits_8hpp_source.html">traits.hpp</a>.</p>
@@ -1378,11 +1344,9 @@ template&lt;typename T &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>T is a square root (Cholesky) covariance matrix (i.e., a specialization of <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html" title="The upper or lower triangle Cholesky factor (square root) of a covariance matrix.">SquareRootCovariance</a>). </p>
 <dl class="section note"><dt>Note</dt><dd>This is a concept when compiled with c++20, and a constexpr bool in c++17. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="forward-class-declarations_8hpp_source.html#l00320">320</a> of file <a class="el" href="forward-class-declarations_8hpp_source.html">forward-class-declarations.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="forward-class-declarations_8hpp_source.html#l00323">323</a> of file <a class="el" href="forward-class-declarations_8hpp_source.html">forward-class-declarations.hpp</a>.</p>
 
 </div>
 </div>
@@ -1407,8 +1371,6 @@ template&lt;typename T &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Specifies that a type is a triangular matrix (upper or lower). </p>
 <dl class="section note"><dt>Note</dt><dd>This is a concept when compiled with c++20, and a constexpr bool in c++17. </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="traits_8hpp_source.html#l00713">713</a> of file <a class="el" href="traits_8hpp_source.html">traits.hpp</a>.</p>
@@ -1436,11 +1398,9 @@ template&lt;typename T &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>T is a typed matrix (i.e., is a specialization of <a class="el" href="struct_open_kalman_1_1_matrix.html" title="A matrix with typed rows and columns.">Matrix</a>, <a class="el" href="struct_open_kalman_1_1_mean.html" title="A set of one or more column vectors, each representing a statistical mean.">Mean</a>, or <a class="el" href="struct_open_kalman_1_1_euclidean_mean.html" title="Similar to a Mean, but the coefficients are transformed into Euclidean space, based on their type.">EuclideanMean</a>). </p>
 <dl class="section note"><dt>Note</dt><dd>This is a concept when compiled with c++20, and a constexpr bool in c++17. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="forward-class-declarations_8hpp_source.html#l00268">268</a> of file <a class="el" href="forward-class-declarations_8hpp_source.html">forward-class-declarations.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="forward-class-declarations_8hpp_source.html#l00271">271</a> of file <a class="el" href="forward-class-declarations_8hpp_source.html">forward-class-declarations.hpp</a>.</p>
 
 </div>
 </div>
@@ -1465,11 +1425,9 @@ template&lt;typename T &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Specifies a type that is nestable in a general typed matrix (e.g., matrix, mean, or euclidean_mean) </p>
 <dl class="section note"><dt>Note</dt><dd>This is a concept when compiled with c++20, and a constexpr bool in c++17. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="forward-traits_8hpp_source.html#l00222">222</a> of file <a class="el" href="forward-traits_8hpp_source.html">forward-traits.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="forward-traits_8hpp_source.html#l00226">226</a> of file <a class="el" href="forward-traits_8hpp_source.html">forward-traits.hpp</a>.</p>
 
 </div>
 </div>
@@ -1494,8 +1452,6 @@ template&lt;typename T &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Specifies that a type is an upper-triangular matrix. </p>
 <dl class="section note"><dt>Note</dt><dd>This is a concept when compiled with c++20, and a constexpr bool in c++17. </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="traits_8hpp_source.html#l00664">664</a> of file <a class="el" href="traits_8hpp_source.html">traits.hpp</a>.</p>
@@ -1523,11 +1479,9 @@ template&lt;typename T &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>T is a wrapped mean (i.e., its row coefficients have at least one type that requires wrapping). </p>
 <dl class="section note"><dt>Note</dt><dd>This is a concept when compiled with c++20, and a constexpr bool in c++17. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="forward-class-declarations_8hpp_source.html#l00189">189</a> of file <a class="el" href="forward-class-declarations_8hpp_source.html">forward-class-declarations.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="forward-class-declarations_8hpp_source.html#l00192">192</a> of file <a class="el" href="forward-class-declarations_8hpp_source.html">forward-class-declarations.hpp</a>.</p>
 
 </div>
 </div>
@@ -1552,8 +1506,6 @@ template&lt;typename T &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Specifies that a type is a zero matrix. </p>
 <dl class="section note"><dt>Note</dt><dd>This is a concept when compiled with c++20, and a constexpr bool in c++17. </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="traits_8hpp_source.html#l00250">250</a> of file <a class="el" href="traits_8hpp_source.html">traits.hpp</a>.</p>
@@ -1574,8 +1526,6 @@ template&lt;std::size_t size&gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Alias for <code>Coefficients&lt;Axis...&gt;</code>, where <a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a> is repeated <code>size</code> times. </p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">size</td><td>The number of Axes. </td></tr>
@@ -1583,7 +1533,7 @@ template&lt;std::size_t size&gt; </div>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="coefficient-types_2_coefficients_8hpp_source.html#l00302">302</a> of file <a class="el" href="coefficient-types_2_coefficients_8hpp_source.html">Coefficients.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="coefficient-types_2_coefficients_8hpp_source.html#l00334">334</a> of file <a class="el" href="coefficient-types_2_coefficients_8hpp_source.html">Coefficients.hpp</a>.</p>
 
 </div>
 </div>
@@ -1600,13 +1550,11 @@ template&lt;typename ... Coeffs&gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Concatenate any number of Coefficients&lt;...&gt; types. </p>
 <p>Example:</p><div class="fragment"><div class="line"> Concatenate&lt;Coefficients&lt;angle::Radians&gt;, Coefficients&lt;Axis, Distance&gt;&gt; ==</div>
 <div class="line">Coefficients&lt;angle::Radians, Axis, Distance&gt; </div>
 </div><!-- fragment --><p>. </p>
 
-<p class="definition">Definition at line <a class="el" href="coefficient__forward-declarations_8hpp_source.html#l00360">360</a> of file <a class="el" href="coefficient__forward-declarations_8hpp_source.html">coefficient_forward-declarations.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="coefficient__forward-declarations_8hpp_source.html#l00400">400</a> of file <a class="el" href="coefficient__forward-declarations_8hpp_source.html">coefficient_forward-declarations.hpp</a>.</p>
 
 </div>
 </div>
@@ -1623,8 +1571,6 @@ template&lt;typename T , std::size_t rows = MatrixTraits&lt;T&gt;::dimension, st
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>An alias for a self-contained native matrix, based on and equivalent to parameter T. </p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">T</td><td>The type from which the native matrix is derived. </td></tr>
@@ -1651,8 +1597,6 @@ template&lt;typename T , typename  = typename MatrixTraits&lt;T&gt;::NestedMatri
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>An alias for a type's nested matrix, if it exists. </p>
 <p>Only participates in overload resolution if the type has a nested matrix. </p><dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">T</td><td>A type that is a wrapper for a nested matrix. </td></tr>
@@ -1677,8 +1621,6 @@ template&lt;typename T &gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>An alias for a type, derived from and equivalent to parameter T, that can be passed as a function parameter. </p>
 <p>A passable type is either an lvalue reference or an rvalue reference to a self_contained_t type. </p>
 
 <p class="definition">Definition at line <a class="el" href="traits_8hpp_source.html#l00183">183</a> of file <a class="el" href="traits_8hpp_source.html">traits.hpp</a>.</p>
@@ -1698,8 +1640,6 @@ template&lt;typename C , std::size_t N&gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Alias for <code>Coefficients&lt;C...&gt;</code>, where <code>C</code> is repeated <em>N</em> times. </p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">C</td><td>The coefficient to be repeated. </td></tr>
@@ -1708,7 +1648,7 @@ template&lt;typename C , std::size_t N&gt; </div>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="coefficient-types_2_coefficients_8hpp_source.html#l00294">294</a> of file <a class="el" href="coefficient-types_2_coefficients_8hpp_source.html">Coefficients.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="coefficient-types_2_coefficients_8hpp_source.html#l00326">326</a> of file <a class="el" href="coefficient-types_2_coefficients_8hpp_source.html">Coefficients.hpp</a>.</p>
 
 </div>
 </div>
@@ -1725,8 +1665,6 @@ template&lt;typename T &gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>An alias for type, derived from and equivalent to parameter T, that is self-contained. </p>
 <p>Use this alias to obtain a type, equivalent to T, that can safely be returned from a function. </p>
 
 <p class="definition">Definition at line <a class="el" href="traits_8hpp_source.html#l00170">170</a> of file <a class="el" href="traits_8hpp_source.html">traits.hpp</a>.</p>
@@ -1751,8 +1689,6 @@ template&lt;typename V , std::enable_if_t&lt; typed_matrix_nestable&lt; V &gt;, 
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Deduce template parameters from a typed_matrix_nestable, assuming axis-only coefficients. </p>
 <p>Deduce template parameters from a non-Euclidean-transformed typed matrix.</p>
 <p>Deduce template parameters from a Euclidean-transformed typed matrix. </p>
 
@@ -1830,8 +1766,6 @@ template&lt;typename Arg , std::enable_if_t&lt; covariance&lt; Arg &gt; and((sel
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Get element (i) of a covariance matrix. </p>
 <p>Get element (i) of a typed matrix. </p>
 
 <p class="definition">Definition at line <a class="el" href="covariance-overloads_8hpp_source.html#l00440">440</a> of file <a class="el" href="covariance-overloads_8hpp_source.html">covariance-overloads.hpp</a>.</p>
@@ -1879,8 +1813,6 @@ template&lt;typename Arg , std::enable_if_t&lt; covariance&lt; Arg &gt; and elem
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Get element (i, j) of a covariance matrix. </p>
 <p>Get element (i, j) of a typed matrix. </p>
 
 <p class="definition">Definition at line <a class="el" href="covariance-overloads_8hpp_source.html#l00421">421</a> of file <a class="el" href="covariance-overloads_8hpp_source.html">covariance-overloads.hpp</a>.</p>
@@ -2014,8 +1946,6 @@ template&lt;typename Coefficients , typename Arg , std::enable_if_t&lt;(covarian
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Make a writable, uninitialized <a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a> from a covariance_nestable or typed_matrix_nestable. </p>
 <p>Make a writable, uninitialized <a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a>, with nested triangular type based on a typed_matrix.</p>
 <p>Make a writable, uninitialized <a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a> based on a nested triangle, with default <a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a> coefficients.</p>
 <p>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </p>
@@ -2048,8 +1978,6 @@ template&lt;typename Coefficients , TriangleType triangle_type, typename Arg , s
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Make a writable, uninitialized <a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a> with a nested triangular matrix, from a typed_matrix_nestable. </p>
 <p>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </p>
 
 <p class="definition">Definition at line <a class="el" href="_covariance_8hpp_source.html#l00601">601</a> of file <a class="el" href="_covariance_8hpp_source.html">Covariance.hpp</a>.</p>
@@ -2080,8 +2008,6 @@ template&lt;typename Arg , std::enable_if_t&lt;(covariance_nestable&lt; Arg &gt;
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Make a writable, uninitialized <a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a> from a typed_matrix_nestable or covariance_nestable. </p>
 <p>Make a writable, uninitialized <a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a>, based on a typed_matrix type.</p>
 <p>Make a writable, uninitialized <a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a> from a covariance type.</p>
 <p>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts.  The coefficients will be <a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a>.</p>
@@ -2116,8 +2042,6 @@ template&lt;typename Coefficients , typename Arg , std::enable_if_t&lt; coeffici
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Make a <a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a> from a covariance_nestable, specifying the coefficients. </p>
 <p>Make a <a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a>, with a nested triangular matrix, from a typed matrix.</p>
 <p>Make a default <a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a> <a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a> (with nested triangular matrix) from a self-adjoint typed_matrix_nestable.</p>
 <p>Make a <a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a> from a self-adjoint typed_matrix_nestable, specifying the coefficients.</p>
@@ -2173,8 +2097,6 @@ template&lt;typename Arg , std::enable_if_t&lt; covariance_nestable&lt; Arg &gt;
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Make a <a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a> from a covariance_nestable, with default <a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a> coefficients. </p>
 <p>Make a <a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a> from a typed matrix.</p>
 <p>Make a <a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a> based on another covariance.</p>
 <p>Make a <a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a> from a self-adjoint typed_matrix_nestable, using default <a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a> coefficients.</p>
@@ -2222,8 +2144,6 @@ template&lt;typename Coefficients , TriangleType triangle_type, typename Arg , s
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Make a <a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a> (with nested triangular matrix) from a self-adjoint typed_matrix_nestable. </p>
 <p>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </p><dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname"><a class="el" href="struct_open_kalman_1_1_coefficients.html" title="A set of coefficient types.">Coefficients</a></td><td>The coefficient types corresponding to the rows and columns. </td></tr>
@@ -2253,8 +2173,6 @@ template&lt;typename Coefficients , typename M , std::enable_if_t&lt; coefficien
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Make a default, self-contained <a class="el" href="struct_open_kalman_1_1_euclidean_mean.html" title="Similar to a Mean, but the coefficients are transformed into Euclidean space, based on their type.">EuclideanMean</a>. </p>
 <p>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </p><dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname"><a class="el" href="struct_open_kalman_1_1_coefficients.html" title="A set of coefficient types.">Coefficients</a></td><td>The coefficient types corresponding to the rows. </td></tr>
@@ -2283,8 +2201,6 @@ template&lt;typename M , std::enable_if_t&lt; typed_matrix_nestable&lt; M &gt;, 
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Make a self-contained <a class="el" href="struct_open_kalman_1_1_euclidean_mean.html" title="Similar to a Mean, but the coefficients are transformed into Euclidean space, based on their type.">EuclideanMean</a> with default <a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a> coefficients. </p>
 <p>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </p><dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">M</td><td>a typed_matrix_nestable on which the new Euclidean mean is based. It will be converted to a self_contained type if it is not already self-contained. </td></tr>
@@ -2321,8 +2237,6 @@ template&lt;typename Arg , std::enable_if_t&lt; typed_matrix&lt; Arg &gt; and co
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Make a <a class="el" href="struct_open_kalman_1_1_euclidean_mean.html" title="Similar to a Mean, but the coefficients are transformed into Euclidean space, based on their type.">EuclideanMean</a> from another typed_matrix. </p>
 <p>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </p><dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">Arg</td><td>A typed_matrix (i.e., <a class="el" href="struct_open_kalman_1_1_matrix.html" title="A matrix with typed rows and columns.">Matrix</a>, <a class="el" href="struct_open_kalman_1_1_mean.html" title="A set of one or more column vectors, each representing a statistical mean.">Mean</a>, or <a class="el" href="struct_open_kalman_1_1_euclidean_mean.html" title="Similar to a Mean, but the coefficients are transformed into Euclidean space, based on their type.">EuclideanMean</a>). </td></tr>
@@ -2359,8 +2273,6 @@ template&lt;typename Coefficients , typename M , std::enable_if_t&lt; coefficien
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Make a <a class="el" href="struct_open_kalman_1_1_euclidean_mean.html" title="Similar to a Mean, but the coefficients are transformed into Euclidean space, based on their type.">EuclideanMean</a> from a typed_matrix_nestable, specifying the row coefficients. </p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname"><a class="el" href="struct_open_kalman_1_1_coefficients.html" title="A set of coefficient types.">Coefficients</a></td><td>The coefficient types corresponding to the rows. </td></tr>
@@ -2398,8 +2310,6 @@ template&lt;typename M , std::enable_if_t&lt; typed_matrix_nestable&lt; M &gt;, 
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Make a <a class="el" href="struct_open_kalman_1_1_euclidean_mean.html" title="Similar to a Mean, but the coefficients are transformed into Euclidean space, based on their type.">EuclideanMean</a> from a typed_matrix_nestable object, with default <a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a> coefficients. </p>
 <p>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </p>
 
 <p class="definition">Definition at line <a class="el" href="_euclidean_mean_8hpp_source.html#l00269">269</a> of file <a class="el" href="_euclidean_mean_8hpp_source.html">EuclideanMean.hpp</a>.</p>
@@ -2430,8 +2340,6 @@ template&lt;typename RowCoefficients , typename ColumnCoefficients , typename M 
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Make a default, self-contained <a class="el" href="struct_open_kalman_1_1_matrix.html" title="A matrix with typed rows and columns.">Matrix</a> object. </p>
 <p>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </p><dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">RowCoefficients</td><td>The coefficient types corresponding to the rows. </td></tr>
@@ -2469,8 +2377,6 @@ template&lt;typename M , std::enable_if_t&lt; typed_matrix_nestable&lt; M &gt;, 
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Make a self-contained <a class="el" href="struct_open_kalman_1_1_matrix.html" title="A matrix with typed rows and columns.">Matrix</a> object with default <a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a> coefficients. </p>
 <p>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </p><dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">M</td><td>a typed_matrix_nestable on which the new matrix is based. It will be converted to a self_contained type if it is not already self-contained. </td></tr>
@@ -2507,8 +2413,6 @@ template&lt;typename Arg , std::enable_if_t&lt; typed_matrix&lt; Arg &gt;, int &
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Make a <a class="el" href="struct_open_kalman_1_1_matrix.html" title="A matrix with typed rows and columns.">Matrix</a> object from another typed_matrix. </p>
 <p>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </p><dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">Arg</td><td>A typed_matrix (i.e., <a class="el" href="struct_open_kalman_1_1_matrix.html" title="A matrix with typed rows and columns.">Matrix</a>, <a class="el" href="struct_open_kalman_1_1_mean.html" title="A set of one or more column vectors, each representing a statistical mean.">Mean</a>, or <a class="el" href="struct_open_kalman_1_1_euclidean_mean.html" title="Similar to a Mean, but the coefficients are transformed into Euclidean space, based on their type.">EuclideanMean</a>). </td></tr>
@@ -2545,8 +2449,6 @@ template&lt;typename RowCoefficients , typename ColumnCoefficients , typename M 
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Make a <a class="el" href="struct_open_kalman_1_1_matrix.html" title="A matrix with typed rows and columns.">Matrix</a> object from a typed_matrix_nestable, specifying the row and column coefficients. </p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">RowCoefficients</td><td>The coefficient types corresponding to the rows. </td></tr>
@@ -2585,8 +2487,6 @@ template&lt;typename RowCoefficients , typename M , std::enable_if_t&lt; coeffic
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Make a <a class="el" href="struct_open_kalman_1_1_matrix.html" title="A matrix with typed rows and columns.">Matrix</a> object from a typed_matrix_nestable, specifying only the row coefficients. </p>
 <p>The column coefficients are default <a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a>. </p><dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">RowCoefficients</td><td>The coefficient types corresponding to the rows. </td></tr>
@@ -2624,8 +2524,6 @@ template&lt;typename M , std::enable_if_t&lt; typed_matrix_nestable&lt; M &gt;, 
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Make a <a class="el" href="struct_open_kalman_1_1_matrix.html" title="A matrix with typed rows and columns.">Matrix</a> object from a typed_matrix_nestable object, with default <a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a> coefficients. </p>
 <p>Make a <a class="el" href="struct_open_kalman_1_1_matrix.html" title="A matrix with typed rows and columns.">Matrix</a> object from a covariance object.</p>
 <p>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts.</p>
 <p>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </p><dl class="tparams"><dt>Template Parameters</dt><dd>
@@ -2663,8 +2561,6 @@ template&lt;typename Coefficients , typename M , std::enable_if_t&lt; coefficien
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Make a default, self-contained <a class="el" href="struct_open_kalman_1_1_mean.html" title="A set of one or more column vectors, each representing a statistical mean.">Mean</a>. </p>
 <p>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </p><dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname"><a class="el" href="struct_open_kalman_1_1_coefficients.html" title="A set of coefficient types.">Coefficients</a></td><td>The coefficient types corresponding to the rows. </td></tr>
@@ -2701,8 +2597,6 @@ template&lt;typename M , std::enable_if_t&lt; typed_matrix_nestable&lt; M &gt;, 
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Make a self-contained <a class="el" href="struct_open_kalman_1_1_mean.html" title="A set of one or more column vectors, each representing a statistical mean.">Mean</a> with default <a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a> coefficients. </p>
 <p>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </p><dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">M</td><td>a typed_matrix_nestable on which the new mean is based. It will be converted to a self_contained type if it is not already self-contained. </td></tr>
@@ -2739,8 +2633,6 @@ template&lt;typename Arg , std::enable_if_t&lt; typed_matrix&lt; Arg &gt; and co
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Make a <a class="el" href="struct_open_kalman_1_1_mean.html" title="A set of one or more column vectors, each representing a statistical mean.">Mean</a> from another typed_matrix. </p>
 <p>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </p><dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">Arg</td><td>A typed_matrix (i.e., <a class="el" href="struct_open_kalman_1_1_matrix.html" title="A matrix with typed rows and columns.">Matrix</a>, <a class="el" href="struct_open_kalman_1_1_mean.html" title="A set of one or more column vectors, each representing a statistical mean.">Mean</a>, or <a class="el" href="struct_open_kalman_1_1_euclidean_mean.html" title="Similar to a Mean, but the coefficients are transformed into Euclidean space, based on their type.">EuclideanMean</a>). </td></tr>
@@ -2777,8 +2669,6 @@ template&lt;typename Coefficients , typename M , std::enable_if_t&lt; coefficien
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Make a <a class="el" href="struct_open_kalman_1_1_mean.html" title="A set of one or more column vectors, each representing a statistical mean.">Mean</a> from a typed_matrix_nestable, specifying the row coefficients. </p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname"><a class="el" href="struct_open_kalman_1_1_coefficients.html" title="A set of coefficient types.">Coefficients</a></td><td>The coefficient types corresponding to the rows. </td></tr>
@@ -2816,8 +2706,6 @@ template&lt;typename M , std::enable_if_t&lt; typed_matrix_nestable&lt; M &gt;, 
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Make a <a class="el" href="struct_open_kalman_1_1_mean.html" title="A set of one or more column vectors, each representing a statistical mean.">Mean</a> from a typed_matrix_nestable object, with default <a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a> coefficients. </p>
 <p>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </p>
 
 <p class="definition">Definition at line <a class="el" href="_mean_8hpp_source.html#l00382">382</a> of file <a class="el" href="_mean_8hpp_source.html">Mean.hpp</a>.</p>
@@ -2881,8 +2769,6 @@ template&lt;typename... Ts, typename Arg , std::enable_if_t&lt; gaussian_distrib
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Convert to self-contained version of the distribution. </p>
 <p>Convert vector object to self-contained version (wrapping any angles).</p>
 <p>Convert to self-contained version of the covariance matrix. </p>
 
@@ -2914,8 +2800,6 @@ template&lt;typename Coefficients , TriangleType triangle_type, typename Arg , s
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Make a writable, uninitialized <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html" title="The upper or lower triangle Cholesky factor (square root) of a covariance matrix.">SquareRootCovariance</a> from a typed_matrix_nestable. </p>
 <p>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </p>
 
 <p class="definition">Definition at line <a class="el" href="_square_root_covariance_8hpp_source.html#l00522">522</a> of file <a class="el" href="_square_root_covariance_8hpp_source.html">SquareRootCovariance.hpp</a>.</p>
@@ -2946,8 +2830,6 @@ template&lt;typename Coefficients , typename Arg , std::enable_if_t&lt;(covarian
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Make a writable, uninitialized <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html" title="The upper or lower triangle Cholesky factor (square root) of a covariance matrix.">SquareRootCovariance</a> from a covariance_nestable or typed_matrix_nestable. </p>
 <p>Make a writable, uninitialized <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html" title="The upper or lower triangle Cholesky factor (square root) of a covariance matrix.">SquareRootCovariance</a> based on a typed_matrix.</p>
 <p>Make a writable, uninitialized <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html" title="The upper or lower triangle Cholesky factor (square root) of a covariance matrix.">SquareRootCovariance</a>, with default <a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a> coefficients.</p>
 <p>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </p>
@@ -2980,8 +2862,6 @@ template&lt;typename Arg , std::enable_if_t&lt;(covariance_nestable&lt; Arg &gt;
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Make a writable, uninitialized <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html" title="The upper or lower triangle Cholesky factor (square root) of a covariance matrix.">SquareRootCovariance</a> from a typed_matrix_nestable or covariance_nestable. </p>
 <p>Make a writable, uninitialized <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html" title="The upper or lower triangle Cholesky factor (square root) of a covariance matrix.">SquareRootCovariance</a> based on a typed_matrix.</p>
 <p>Make a writable, uninitialized <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html" title="The upper or lower triangle Cholesky factor (square root) of a covariance matrix.">SquareRootCovariance</a> from a covariance type.</p>
 <p>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts.  The coefficients will be <a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a>.</p>
@@ -3016,8 +2896,6 @@ template&lt;typename Coefficients , typename Arg , std::enable_if_t&lt; coeffici
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Make a <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html" title="The upper or lower triangle Cholesky factor (square root) of a covariance matrix.">SquareRootCovariance</a> from a covariance_nestable, specifying the coefficients. </p>
 <p>Make a <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html" title="The upper or lower triangle Cholesky factor (square root) of a covariance matrix.">SquareRootCovariance</a> from a typed matrix.</p>
 <p>Make a default <a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a> <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html" title="The upper or lower triangle Cholesky factor (square root) of a covariance matrix.">SquareRootCovariance</a> from a self-adjoint typed_matrix_nestable.</p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
@@ -3065,8 +2943,6 @@ template&lt;typename Arg , std::enable_if_t&lt; covariance_nestable&lt; Arg &gt;
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Make a <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html" title="The upper or lower triangle Cholesky factor (square root) of a covariance matrix.">SquareRootCovariance</a> from a covariance_nestable, with default <a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a> coefficients. </p>
 <p>Make a <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html" title="The upper or lower triangle Cholesky factor (square root) of a covariance matrix.">SquareRootCovariance</a> based on another covariance.</p>
 <p>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </p><dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
@@ -3106,8 +2982,6 @@ template&lt;typename Coefficients , TriangleType triangle_type = TriangleType::l
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Make a <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html" title="The upper or lower triangle Cholesky factor (square root) of a covariance matrix.">SquareRootCovariance</a> (with nested triangular matrix) from a self-adjoint typed_matrix_nestable. </p>
 <p>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </p><dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname"><a class="el" href="struct_open_kalman_1_1_coefficients.html" title="A set of coefficient types.">Coefficients</a></td><td>The coefficient types corresponding to the rows and columns. </td></tr>
@@ -3162,8 +3036,6 @@ template&lt;typename V , std::enable_if_t&lt; typed_matrix&lt; V &gt; and not eu
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Deduce template parameters from a non-Euclidean-transformed typed matrix. </p>
 <p>Deduce parameter types from a <a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a>.</p>
 <p>Deduce template parameters from a Euclidean-transformed typed matrix. </p>
 
@@ -3186,8 +3058,6 @@ template&lt;typename V , std::enable_if_t&lt; typed_matrix_nestable&lt; V &gt;, 
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Deduce template parameters from a typed_matrix_nestable, assuming axis-only coefficients. </p>
 <p>Deduce template parameters from a Euclidean-transformed typed matrix.</p>
 <p>Deduce template parameters from a non-Euclidean-transformed typed matrix. </p>
 
@@ -3252,6 +3122,37 @@ template&lt;typename Arg , std::enable_if_t&lt; covariance&lt; Arg &gt;, int &gt
 <p>Perform a QR decomposition of matrix A=Q[U,0], where U is an upper-triangular matrix, and Q is orthogonal. Returns L as an upper-triangular matrix. </p>
 
 <p class="definition">Definition at line <a class="el" href="covariance-overloads_8hpp_source.html#l00264">264</a> of file <a class="el" href="covariance-overloads_8hpp_source.html">covariance-overloads.hpp</a>.</p>
+
+</div>
+</div>
+<a id="a1b2366114bcb1637da7288fb572e738e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1b2366114bcb1637da7288fb572e738e">&#9670;&nbsp;</a></span>randomize()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename ReturnType , template&lt; typename Scalar &gt; typename distribution_type = std::normal_distribution, typename random_number_engine  = std::mt19937, typename... Params, std::enable_if_t&lt; typed_matrix&lt; ReturnType &gt;, int &gt;  = 0&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto OpenKalman::randomize </td>
+          <td>(</td>
+          <td class="paramtype">Params...&#160;</td>
+          <td class="paramname"><em>params</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Fill a typed matrix with random values selected from a random distribution. The Gaussian distribution has zero mean and standard deviation sigma (1, if not specified). </p>
+
+<p class="definition">Definition at line <a class="el" href="typed-matrix-overloads_8hpp_source.html#l00880">880</a> of file <a class="el" href="typed-matrix-overloads_8hpp_source.html">typed-matrix-overloads.hpp</a>.</p>
 
 </div>
 </div>
@@ -3372,8 +3273,6 @@ template&lt;typename A , typename B , std::enable_if_t&lt; covariance&lt; A &gt;
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Solves a x = b for x (A is a <a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a> or <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html" title="The upper or lower triangle Cholesky factor (square root) of a covariance matrix.">SquareRootCovariance</a>, B is a vector type). </p>
 <p>Solves AX = B for X, where X and B are means of the same type, and A is a square matrix with compatible types. If wrapping occurs, it will be both before for B and after for the X result. </p>
 
 <p class="definition">Definition at line <a class="el" href="covariance-overloads_8hpp_source.html#l00219">219</a> of file <a class="el" href="covariance-overloads_8hpp_source.html">covariance-overloads.hpp</a>.</p>
@@ -3405,8 +3304,6 @@ template&lt;typename ... Cs, typename M , std::enable_if_t&lt; covariance&lt; M 
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Split <a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a> or <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html" title="The upper or lower triangle Cholesky factor (square root) of a covariance matrix.">SquareRootCovariance</a> diagonally. </p>
 <p>Split typed matrix into one or more typed matrices diagonally. </p>
 
 <p class="definition">Definition at line <a class="el" href="covariance-overloads_8hpp_source.html#l00376">376</a> of file <a class="el" href="covariance-overloads_8hpp_source.html">covariance-overloads.hpp</a>.</p>
@@ -3438,8 +3335,6 @@ template&lt;typename ... Cs, typename M , std::enable_if_t&lt; covariance&lt; M 
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Split <a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a> or <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html" title="The upper or lower triangle Cholesky factor (square root) of a covariance matrix.">SquareRootCovariance</a> vertically. Result is a tuple of typed matrices. </p>
 <p>Split typed matrix into one or more typed matrices horizontally. Column coefficients must all be <a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a>.</p>
 <p>Split typed matrix into one or more typed matrices horizontally. </p>
 
@@ -3472,8 +3367,6 @@ template&lt;typename ... Cs, typename M , std::enable_if_t&lt; covariance&lt; M 
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Split <a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a> or <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html" title="The upper or lower triangle Cholesky factor (square root) of a covariance matrix.">SquareRootCovariance</a> vertically. Result is a tuple of typed matrices. </p>
 <p>Split typed matrix into one or more typed matrices vertically. </p>
 
 <p class="definition">Definition at line <a class="el" href="covariance-overloads_8hpp_source.html#l00390">390</a> of file <a class="el" href="covariance-overloads_8hpp_source.html">covariance-overloads.hpp</a>.</p>
@@ -3517,7 +3410,7 @@ template&lt;typename Function , typename... TaylorDerivatives&gt; </div>
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="namespace_open_kalman.html">OpenKalman</a></li>
-    <li class="footer">Generated on Sat Dec 5 2020 03:00:22 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
+    <li class="footer">Generated on Sun Dec 6 2020 19:54:45 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
   </ul>
 </div>
 </body>

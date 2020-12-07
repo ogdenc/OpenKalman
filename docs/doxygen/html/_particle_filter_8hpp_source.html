@@ -96,30 +96,30 @@ $(document).ready(function(){initNavTree('_particle_filter_8hpp_source.html','')
 <div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;<span class="comment"> * file, You can obtain one at https://mozilla.org/MPL/2.0/.</span></div>
 <div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;<span class="comment"> */</span></div>
 <div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160; </div>
-<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">ifndef</span> <span class="preprocessor">OPENKALMAN_PARTICLEFILTER_H</span></div>
-<div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">define</span> <span class="preprocessor">OPENKALMAN_PARTICLEFILTER_H</span></div>
+<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;<span class="preprocessor">#ifndef OPENKALMAN_PARTICLEFILTER_H</span></div>
+<div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;<span class="preprocessor">#define OPENKALMAN_PARTICLEFILTER_H</span></div>
 <div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160; </div>
-<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">include</span> <span class="preprocessor">&lt;</span><span class="preprocessor">algorithm</span><span class="preprocessor">&gt;</span></div>
-<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">include</span> <span class="preprocessor">&lt;</span><span class="preprocessor">random</span><span class="preprocessor">&gt;</span></div>
-<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">include</span> <span class="preprocessor">&lt;</span><span class="preprocessor">type_traits</span><span class="preprocessor">&gt;</span></div>
-<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">include</span> <span class="preprocessor">&lt;</span><span class="preprocessor">Eigen</span><span class="preprocessor">/</span><span class="preprocessor">Dense</span><span class="preprocessor">&gt;</span></div>
+<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;<span class="preprocessor">#include &lt;algorithm&gt;</span></div>
+<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;<span class="preprocessor">#include &lt;random&gt;</span></div>
+<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;<span class="preprocessor">#include &lt;type_traits&gt;</span></div>
+<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;<span class="preprocessor">#include &lt;Eigen/Dense&gt;</span></div>
 <div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160; </div>
-<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">include</span> <span class="preprocessor">&quot;distributions/ParticleDistribution.hpp&quot;</span></div>
-<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">include</span> <span class="preprocessor">&quot;transformations/Transformation.h&quot;</span></div>
+<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;<span class="preprocessor">#include &quot;distributions/ParticleDistribution.hpp&quot;</span></div>
+<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;<span class="preprocessor">#include &quot;transformations/Transformation.h&quot;</span></div>
 <div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160; </div>
 <div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160; </div>
-<div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;<span class="keyword">namespace</span> OpenKalman {</div>
+<div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;<span class="keyword">namespace </span><a class="code" href="namespace_open_kalman.html">OpenKalman</a> {</div>
 <div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160; </div>
 <div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> _StateTransitionModel,</div>
 <div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;            <span class="keyword">typename</span> _MeasurementModel&gt;</div>
-<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;    <span class="keyword">struct</span> ParticleFilter</div>
+<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;    <span class="keyword">struct </span>ParticleFilter</div>
 <div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;    {</div>
 <div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;        <span class="keyword">using</span> StateTransitionModel = _StateTransitionModel;</div>
 <div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;        <span class="keyword">using</span> MeasurementModel = _MeasurementModel;</div>
 <div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160; </div>
 <div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;        <span class="keyword">using</span> State = <span class="keyword">typename</span> StateTransitionModel::Input_t;</div>
 <div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;        <span class="keyword">using</span> Measurement = <span class="keyword">typename</span> MeasurementModel::Output_t;</div>
-<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;        <span class="keyword">static_assert</span>(std::is_convertible&lt;<span class="keyword">typename</span> MeasurementModel::Input_t, State&gt;);</div>
+<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;        static_assert(std::is_convertible&lt;typename MeasurementModel::Input_t, State&gt;);</div>
 <div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160; </div>
 <div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160; </div>
 <div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;    <span class="keyword">protected</span>:</div>
@@ -138,8 +138,8 @@ $(document).ready(function(){initNavTree('_particle_filter_8hpp_source.html','')
 <div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160; </div>
 <div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;        <span class="keyword">template</span>&lt;<span class="keyword">typename</span> _Distribution&gt;</div>
 <div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;        _Distribution&amp;</div>
-<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;        predict(_Distribution&amp; x) <span class="keyword">const</span></div>
-<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;        {</div>
+<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;        predict(_Distribution&amp; x)<span class="keyword"> const</span></div>
+<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;<span class="keyword">        </span>{</div>
 <div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;            std::generate(x.begin(), x.end(), state_transition_model);</div>
 <div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;            <span class="keywordflow">return</span> x;</div>
 <div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;        }</div>
@@ -148,8 +148,8 @@ $(document).ready(function(){initNavTree('_particle_filter_8hpp_source.html','')
 <div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;        <span class="keyword">template</span>&lt;<span class="keyword">typename</span> _Distribution, <span class="keyword">typename</span> _Noise&gt;</div>
 <div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;        _Distribution &amp;</div>
 <div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;        predict(_Distribution&amp; x,</div>
-<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;                <span class="keyword">const</span> _Noise&amp; process_noise) <span class="keyword">const</span></div>
-<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;        {</div>
+<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;                <span class="keyword">const</span> _Noise&amp; process_noise)<span class="keyword"> const</span></div>
+<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;<span class="keyword">        </span>{</div>
 <div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;            x = predict(x);</div>
 <div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160; </div>
 <div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;            std::random_device rd;</div>
@@ -172,40 +172,25 @@ $(document).ready(function(){initNavTree('_particle_filter_8hpp_source.html','')
 <div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;        }</div>
 <div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160; </div>
 <div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160; </div>
-<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;        <span class="comment">/**</span></div>
-<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;<span class="comment">         * \brief Update the state, using prior state possibly augmented with measurement noise, propagating variable as Gaussian</span></div>
-<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;<span class="comment">         * \tparam Args type of measurement noise (Gaussian or square root form, same dimension as measurement variable)</span></div>
-<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;<span class="comment">         * \param x the current state variable (Gaussian), possibly augmented with measurement noise</span></div>
-<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;<span class="comment">         * \param z The measurement vector</span></div>
-<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;<span class="comment">         * \param args the optional additive process noise</span></div>
-<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;<span class="comment">         * \return updated state variable</span></div>
-<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;<span class="comment">         */</span></div>
 <div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;        <span class="keyword">template</span>&lt;<span class="keyword">typename</span> ... Args&gt;</div>
 <div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;        <span class="keyword">auto</span> update(</div>
 <div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;                <span class="keyword">const</span> <span class="keyword">typename</span> measurement_transform_t::Input_variable_t&amp; x,</div>
 <div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;                <span class="keyword">const</span> measurement_t&amp; z,</div>
-<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;                <span class="keyword">const</span> Args&amp; ... args) <span class="keyword">const</span></div>
-<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;        {</div>
-<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;            <span class="keyword">const</span> <span class="keyword">auto</span>&amp; result = measurement_transform.<span class="keyword">template</span> transform&lt;<span class="keyword">true</span>&gt;(x, args...);</div>
+<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;                <span class="keyword">const</span> Args&amp; ... args)<span class="keyword"> const</span></div>
+<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;<span class="keyword">        </span>{</div>
+<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;            <span class="keyword">const</span> <span class="keyword">auto</span>&amp; result = measurement_transform.template transform&lt;true&gt;(x, args...);</div>
 <div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;            <span class="keyword">const</span> <span class="keyword">auto</span>&amp; y = std::get&lt;0&gt;(result);</div>
 <div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;            <span class="keyword">const</span> <span class="keyword">auto</span>&amp; P_xy = std::get&lt;1&gt;(result);</div>
 <div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;            <span class="keywordflow">return</span> x.unaugment().kalmanUpdate(y, P_xy, z);</div>
 <div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;        }</div>
 <div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160; </div>
 <div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160; </div>
-<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;        <span class="comment">/**</span></div>
-<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;<span class="comment">         * \brief Update the state, using prior state possibly augmented with measurement noise, propagating variable as Gaussian</span></div>
-<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;<span class="comment">         * \param x the current state variable (Gaussian), possibly augmented with measurement noise</span></div>
-<div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;<span class="comment">         * \param z The measurement vector</span></div>
-<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;<span class="comment">         * \param aug the measurement noise for augmentation</span></div>
-<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;<span class="comment">         * \return updated state variable</span></div>
-<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;<span class="comment">         */</span></div>
 <div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;        <span class="keyword">auto</span> update(</div>
 <div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;                <span class="keyword">typename</span> measurement_transform_t::Input_variable_t::unaugmented_t&amp; x,</div>
 <div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;                <span class="keyword">const</span> measurement_t&amp; z,</div>
-<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;                <span class="keyword">const</span> <span class="keyword">typename</span> measurement_transform_t::Input_variable_t::augmentation_t&amp; aug) <span class="keyword">const</span></div>
-<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;        {</div>
-<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;            <span class="keyword">const</span> <span class="keyword">auto</span>&amp; result = measurement_transform.<span class="keyword">template</span> transform&lt;<span class="keyword">true</span>&gt;(<span class="keyword">typename</span> measurement_transform_t::Input_variable_t(x, aug));</div>
+<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;                <span class="keyword">const</span> <span class="keyword">typename</span> measurement_transform_t::Input_variable_t::augmentation_t&amp; aug)<span class="keyword"> const</span></div>
+<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;<span class="keyword">        </span>{</div>
+<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;            <span class="keyword">const</span> <span class="keyword">auto</span>&amp; result = measurement_transform.template transform&lt;true&gt;(<span class="keyword">typename</span> measurement_transform_t::Input_variable_t(x, aug));</div>
 <div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;            <span class="keyword">const</span> <span class="keyword">auto</span>&amp; y = std::get&lt;0&gt;(result);</div>
 <div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;            <span class="keyword">const</span> <span class="keyword">auto</span>&amp; P_xy = std::get&lt;1&gt;(result);</div>
 <div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;            <span class="keywordflow">return</span> x.kalmanUpdate(y, P_xy, z);</div>
@@ -216,14 +201,15 @@ $(document).ready(function(){initNavTree('_particle_filter_8hpp_source.html','')
 <div class="line"><a name="l00128"></a><span class="lineno">  128</span>&#160;}</div>
 <div class="line"><a name="l00129"></a><span class="lineno">  129</span>&#160; </div>
 <div class="line"><a name="l00130"></a><span class="lineno">  130</span>&#160; </div>
-<div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">endif</span> <span class="comment">//OPENKALMAN_PARTICLEFILTER_H</span></div>
+<div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160;<span class="preprocessor">#endif </span><span class="comment">//OPENKALMAN_PARTICLEFILTER_H</span></div>
+<div class="ttc" id="anamespace_open_kalman_html"><div class="ttname"><a href="namespace_open_kalman.html">OpenKalman</a></div><div class="ttdoc">The root namespace for OpenKalman.</div><div class="ttdef"><b>Definition:</b> <a href="forward-class-declarations_8hpp_source.html#l00021">forward-class-declarations.hpp:22</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_bf85a1622761b0afd6fb52adee52cf94.html">OpenKalman</a></li><li class="navelem"><a class="el" href="dir_2c99081b69ea8dab6f5b2328103a728e.html">filters</a></li><li class="navelem"><b>ParticleFilter.hpp</b></li>
-    <li class="footer">Generated on Wed Dec 2 2020 15:40:14 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
+    <li class="footer">Generated on Sun Dec 6 2020 19:54:56 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
   </ul>
 </div>
 </body>

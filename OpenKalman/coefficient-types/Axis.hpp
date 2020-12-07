@@ -66,7 +66,7 @@ namespace OpenKalman
      * \details Because an axis already represents a point in Euclidean space, this is an identity function.
      * Each array element is a function taking a ''get coefficient'' function and returning a coordinate value.
      * The ''get coefficient'' function takes the index of a column within a row vector and returns the coefficient.
-     * \note This should be accessed only through \ref internal::to_euclidean_coeff.
+     * \note This should be accessed only through \ref to_euclidean_coeff.
      * \tparam Scalar The scalar type (e.g., double).
      * \tparam i The index of the coefficient that is being transformed.
      */

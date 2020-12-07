@@ -90,17 +90,25 @@ $(document).ready(function(){initNavTree('struct_open_kalman_1_1_inclination.htm
 <div class="title">OpenKalman::Inclination&lt; Limits &gt; Struct Template Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
+
+<p>A positive or negative real number &phi; representing an inclination or declination from the horizon.  
+ <a href="struct_open_kalman_1_1_inclination.html#details">More...</a></p>
 <a name="details" id="details"></a><h2 class="groupheader">Description</h2>
 <div class="textblock"><h3>template&lt;template&lt; typename Scalar &gt; typename Limits = inclination::limits::Radians&gt;<br />
 struct OpenKalman::Inclination&lt; Limits &gt;</h3>
 
-<p>A positive or negative real number &phi; representing an inclination or declination from the horizon. </p>
-<p>&phi;<sub>down</sub>&le;&phi;&le;&phi;<sub>up</sub>, where &phi;<sub>down</sub> is a real number representing down, and &phi;<sub>up</sub> is a real number representing up. Normally, the horizon will be zero and &phi;<sub>down</sub>=&minus;&phi;<sub>up</sub>, but in general, the horizon is at (&phi;<sub>down</sub>+&minus;&phi;<sub>up</sub>). The inclinations <a class="el" href="namespace_open_kalman_1_1inclination.html#a1c9ff89f6677584a7a265b6201053dea" title="An inclination measured in radians [-½π,½π].">inclination::Radians</a> and <a class="el" href="namespace_open_kalman_1_1inclination.html#a6395628faa0330b5ae7873e254208d07" title="An inclination measured in degrees [-90,90].">inclination::Degrees</a> are predefined. </p><dl class="tparams"><dt>Template Parameters</dt><dd>
+<p>&phi;<sub>down</sub>&le;&phi;&le;&phi;<sub>up</sub>, where &phi;<sub>down</sub> is a real number representing down, and &phi;<sub>up</sub> is a real number representing up. Normally, the horizon will be zero and &phi;<sub>down</sub>=&minus;&phi;<sub>up</sub>, but in general, the horizon is at &frac12;(&phi;<sub>down</sub>+&minus;&phi;<sub>up</sub>). The inclinations <a class="el" href="namespace_open_kalman_1_1inclination.html#a1c9ff89f6677584a7a265b6201053dea" title="An inclination measured in radians [-½π,½π].">inclination::Radians</a> and <a class="el" href="namespace_open_kalman_1_1inclination.html#a6395628faa0330b5ae7873e254208d07" title="An inclination measured in degrees [-90,90].">inclination::Degrees</a> are predefined. </p><dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">Limits</td><td>A class template defining the real values <code>down</code> and <code>up</code>, where <code>down</code>=&phi;<sub>down</sub> and <code>up</code>=&phi;<sub>up</sub>. Scalar is a std::floating_point type. </td></tr>
   </table>
   </dd>
 </dl>
+<p><b>See also</b> the following functions for accessing coefficient properties:</p><ul>
+<li><a class="el" href="namespace_open_kalman_1_1internal.html#aaa4f2082a3e8968bedfc2ceda61109e9" title="Get a coordinate in Euclidean space corresponding to a coefficient in a matrix with typed coefficient...">internal::to_euclidean_coeff</a>: Get a coordinate in Euclidean space corresponding to a coefficient in a matrix with typed coefficients.</li>
+<li><a class="el" href="namespace_open_kalman_1_1internal.html#acbfe0e290c67c2597b22b1e308ec8748" title="Get a typed coefficient corresponding to its corresponding coordinate in Euclidean space.">internal::from_euclidean_coeff</a>: Get a typed coefficient corresponding to its corresponding coordinate in Euclidean space.</li>
+<li><a class="el" href="namespace_open_kalman_1_1internal.html#a1bb5189beb193b164ecd64555f77652f" title="Wrap a given coefficient and return its wrapped, scalar value.">internal::wrap_get</a>: Wrap a given coefficient and return its wrapped, scalar value.</li>
+<li><a class="el" href="namespace_open_kalman_1_1internal.html#ad8998a156055ed41512ca22a174a1d58" title="Set the scalar value of a given typed coefficient in a matrix, and wrap the matrix column.">internal::wrap_set</a> Set the scalar value of a given typed coefficient in a matrix, and wrap the matrix column. </li>
+</ul>
 
 <p class="definition">Definition at line <a class="el" href="_inclination_8hpp_source.html#l00079">79</a> of file <a class="el" href="_inclination_8hpp_source.html">Inclination.hpp</a>.</p>
 </div><table class="memberdecls">
@@ -154,7 +162,7 @@ template&lt;template&lt; typename Scalar &gt; typename Limits = inclination::lim
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="namespace_open_kalman.html">OpenKalman</a></li><li class="navelem"><a class="el" href="struct_open_kalman_1_1_inclination.html">Inclination</a></li>
-    <li class="footer">Generated on Sat Dec 5 2020 03:00:22 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
+    <li class="footer">Generated on Sun Dec 6 2020 19:54:45 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
   </ul>
 </div>
 </body>

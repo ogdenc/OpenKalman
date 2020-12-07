@@ -561,11 +561,11 @@ namespace OpenKalman::Eigen3
         };
       if constexpr(to_euclidean_expr<Arg>)
       {
-        return OpenKalman::internal::to_euclidean_coeff<Coeffs, Scalar>(i, get_coeff);
+        return OpenKalman::internal::to_euclidean_coeff<Coeffs>(i, get_coeff);
       }
       else
       {
-        return OpenKalman::internal::from_euclidean_coeff<Coeffs, Scalar>(i, get_coeff);
+        return OpenKalman::internal::from_euclidean_coeff<Coeffs>(i, get_coeff);
       }
     }
   }
@@ -597,11 +597,11 @@ namespace OpenKalman::Eigen3
         };
       if constexpr(to_euclidean_expr<Arg>)
       {
-        return OpenKalman::internal::to_euclidean_coeff<Coeffs, Scalar>((std::size_t) i, get_coeff);
+        return OpenKalman::internal::to_euclidean_coeff<Coeffs>((std::size_t) i, get_coeff);
       }
       else
       {
-        return OpenKalman::internal::from_euclidean_coeff<Coeffs, Scalar>((std::size_t) i, get_coeff);
+        return OpenKalman::internal::from_euclidean_coeff<Coeffs>((std::size_t) i, get_coeff);
       }
     }
   }
@@ -981,7 +981,7 @@ namespace OpenKalman::Eigen3
     typename...Params,
     std::enable_if_t<euclidean_expr<ReturnType>, int> = 0>
 #endif
-  static auto
+  inline auto
   randomize(Params...params)
   {
     using Scalar = typename MatrixTraits<ReturnType>::Scalar;

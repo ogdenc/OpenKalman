@@ -96,12 +96,12 @@ $(document).ready(function(){initNavTree('_scaled_sigma_points_base_8hpp_source.
 <div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;<span class="comment"> * file, You can obtain one at https://mozilla.org/MPL/2.0/.</span></div>
 <div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;<span class="comment"> */</span></div>
 <div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160; </div>
-<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">ifndef</span> <span class="preprocessor">OPENKALMAN_SCALEDSIGMAPOINTSBASE_HPP</span></div>
-<div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">define</span> <span class="preprocessor">OPENKALMAN_SCALEDSIGMAPOINTSBASE_HPP</span></div>
+<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;<span class="preprocessor">#ifndef OPENKALMAN_SCALEDSIGMAPOINTSBASE_HPP</span></div>
+<div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;<span class="preprocessor">#define OPENKALMAN_SCALEDSIGMAPOINTSBASE_HPP</span></div>
 <div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160; </div>
-<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;<span class="keyword">namespace</span> OpenKalman::internal</div>
+<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;<span class="keyword">namespace </span><a class="code" href="namespace_open_kalman_1_1internal.html">OpenKalman::internal</a></div>
 <div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;{</div>
-<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;  <span class="comment">/*************ScaledSigmaPointsBase*********</span></div>
+<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;<span class="comment">  /*************ScaledSigmaPointsBase*********</span></div>
 <div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;<span class="comment">   * \brief Base class that embodies a scaled set of sample (e.g., sigma) points.</span></div>
 <div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;<span class="comment">   *</span></div>
 <div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;<span class="comment">   * Given random variable X:Ω-&gt;ℝⁿ, sample points S⊂ℝⁿ are a finite set of</span></div>
@@ -113,53 +113,32 @@ $(document).ready(function(){initNavTree('_scaled_sigma_points_base_8hpp_source.
 <div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;<span class="comment">   * Control Conference, Evanston, IL, pages 1108–1114, 2002.</span></div>
 <div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;<span class="comment">   */</span></div>
 <div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> Derived, <span class="keyword">typename</span> Parameters&gt;</div>
-<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;  <span class="keyword">struct</span> ScaledSigmaPointsBase</div>
+<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;  <span class="keyword">struct </span>ScaledSigmaPointsBase</div>
 <div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;  {</div>
-<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;    <span class="comment">/**</span></div>
-<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;<span class="comment">     * Weight for the first sigma point when calculating the posterior mean.</span></div>
-<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;<span class="comment">     * See Julier Eq. 15 (not Eq. 24, which appears to be wrong).</span></div>
-<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;<span class="comment">     * \tparam dim Number of dimensions of the input variables (including noise).</span></div>
-<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;<span class="comment">     * \tparam Scalar Scalar type (e.g., double).</span></div>
-<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;<span class="comment">     * \return Weight for the first sigma point.</span></div>
-<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;<span class="comment">     */</span></div>
-<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;    <span class="keyword">template</span>&lt;std::size_t dim, <span class="keyword">typename</span> Scalar = <span class="keywordtype">double</span>&gt;</div>
-<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;    <span class="keyword">static</span> <span class="keyword">constexpr</span> Scalar</div>
+<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;    <span class="keyword">template</span>&lt;std::<span class="keywordtype">size_t</span> dim, <span class="keyword">typename</span> Scalar = <span class="keywordtype">double</span>&gt;</div>
+<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;    <span class="keyword">static</span> constexpr Scalar</div>
 <div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;    W_m0()</div>
 <div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;    {</div>
-<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;      <span class="keyword">constexpr</span> Scalar alpha = Parameters::alpha;</div>
-<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;      <span class="keyword">constexpr</span> Scalar W0 = Derived::<span class="keyword">template</span> unscaled_W0&lt;dim, Scalar&gt;();</div>
+<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;      constexpr Scalar alpha = Parameters::alpha;</div>
+<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;      constexpr Scalar W0 = Derived::template unscaled_W0&lt;dim, Scalar&gt;();</div>
 <div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;      <span class="keywordflow">return</span> (W0 - 1) / (alpha * alpha) + 1;</div>
 <div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;    };</div>
 <div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160; </div>
-<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;    <span class="comment">/**</span></div>
-<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;<span class="comment">     * Weight for the first sigma point when calculating the posterior covariance.</span></div>
-<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;<span class="comment">     * See Julier Eq. 27.</span></div>
-<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;<span class="comment">     * \tparam dim Number of dimensions of the input variables (including noise).</span></div>
-<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;<span class="comment">     * \tparam Scalar Scalar type (e.g., double).</span></div>
-<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;<span class="comment">     * \return Weight for the first sigma point.</span></div>
-<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;<span class="comment">     */</span></div>
-<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;    <span class="keyword">template</span>&lt;std::size_t dim, <span class="keyword">typename</span> Scalar = <span class="keywordtype">double</span>&gt;</div>
-<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;    <span class="keyword">static</span> <span class="keyword">constexpr</span> Scalar</div>
+<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;    <span class="keyword">template</span>&lt;std::<span class="keywordtype">size_t</span> dim, <span class="keyword">typename</span> Scalar = <span class="keywordtype">double</span>&gt;</div>
+<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;    <span class="keyword">static</span> constexpr Scalar</div>
 <div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;    W_c0()</div>
 <div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;    {</div>
-<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;      <span class="keyword">constexpr</span> Scalar alpha = Parameters::alpha;</div>
-<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;      <span class="keyword">constexpr</span> Scalar beta = Parameters::beta;</div>
+<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;      constexpr Scalar alpha = Parameters::alpha;</div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;      constexpr Scalar beta = Parameters::beta;</div>
 <div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;      <span class="keywordflow">return</span> W_m0&lt;dim, Scalar&gt;() + 1 - alpha * alpha + beta;</div>
 <div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;    };</div>
 <div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160; </div>
-<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;    <span class="comment">/**</span></div>
-<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;<span class="comment">     * Weight for each sigma point other than the first one, when calculating posterior mean and covariance.</span></div>
-<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;<span class="comment">     * See Julier Eq. 15 (not Eq. 24, which appears to be wrong), Eq. 27.</span></div>
-<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;<span class="comment">     * \tparam dim Number of dimensions of the input variables (including noise).</span></div>
-<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;<span class="comment">     * \tparam Scalar Scalar type (e.g., double).</span></div>
-<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;<span class="comment">     * \return Weights for each sigma point.</span></div>
-<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;<span class="comment">     */</span></div>
-<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;    <span class="keyword">template</span>&lt;std::size_t dim, <span class="keyword">typename</span> Scalar = <span class="keywordtype">double</span>&gt;</div>
-<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;    <span class="keyword">static</span> <span class="keyword">constexpr</span> Scalar</div>
+<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;    <span class="keyword">template</span>&lt;std::<span class="keywordtype">size_t</span> dim, <span class="keyword">typename</span> Scalar = <span class="keywordtype">double</span>&gt;</div>
+<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;    <span class="keyword">static</span> constexpr Scalar</div>
 <div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;    W()</div>
 <div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;    {</div>
-<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;      <span class="keyword">constexpr</span> Scalar alpha = Parameters::alpha;</div>
-<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;      <span class="keyword">constexpr</span> Scalar W0 = Derived::<span class="keyword">template</span> unscaled_W&lt;dim, Scalar&gt;();</div>
+<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;      constexpr Scalar alpha = Parameters::alpha;</div>
+<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;      constexpr Scalar W0 = Derived::template unscaled_W&lt;dim, Scalar&gt;();</div>
 <div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;      <span class="keywordflow">return</span> W0 / (alpha * alpha);</div>
 <div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;    };</div>
 <div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160; </div>
@@ -167,14 +146,15 @@ $(document).ready(function(){initNavTree('_scaled_sigma_points_base_8hpp_source.
 <div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160; </div>
 <div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;}</div>
 <div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160; </div>
-<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">endif</span> <span class="comment">//OPENKALMAN_SCALEDSIGMAPOINTSBASE_HPP</span></div>
+<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;<span class="preprocessor">#endif </span><span class="comment">//OPENKALMAN_SCALEDSIGMAPOINTSBASE_HPP</span></div>
+<div class="ttc" id="anamespace_open_kalman_1_1internal_html"><div class="ttname"><a href="namespace_open_kalman_1_1internal.html">OpenKalman::internal</a></div><div class="ttdoc">Namespace for internal definitions, not intended for use outside of OpenKalman development.</div><div class="ttdef"><b>Definition:</b> <a href="forward-class-declarations_8hpp_source.html#l00391">forward-class-declarations.hpp:392</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_bf85a1622761b0afd6fb52adee52cf94.html">OpenKalman</a></li><li class="navelem"><a class="el" href="dir_d697bf626bc20eaa37f991ed39a41e92.html">transforms</a></li><li class="navelem"><a class="el" href="dir_f7fd0de515a4e4d94426d76551ae2031.html">details</a></li><li class="navelem"><b>ScaledSigmaPointsBase.hpp</b></li>
-    <li class="footer">Generated on Sat Dec 5 2020 03:00:19 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
+    <li class="footer">Generated on Sun Dec 6 2020 19:54:44 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
   </ul>
 </div>
 </body>

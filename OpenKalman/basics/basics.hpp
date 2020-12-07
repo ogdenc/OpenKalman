@@ -9,6 +9,9 @@
  */
 
 /**
+ * \dir
+ * \brief Basic definitions for OpenKalman as a whole.
+ *
  * \file
  * \brief Basic forward definitions for OpenKalman as a whole.
  * \details This should be included by any OpenKalman file, including interface files.

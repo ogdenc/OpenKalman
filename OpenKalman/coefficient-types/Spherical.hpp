@@ -257,7 +257,7 @@ namespace OpenKalman
        * Cartesian coordinates representing a distance and a location on unit sphere.
        * Each array element is a function taking a ''get coefficient'' function and returning a coordinate value.
        * The ''get coefficient'' function takes the index of a column within a row vector and returns the coefficient.
-       * \note This should be accessed only through \ref internal::to_euclidean_coeff.
+       * \note This should be accessed only through \ref to_euclidean_coeff.
        * \tparam Scalar The scalar type (e.g., double).
        * \tparam i The index of the first spherical coefficient that is being transformed.
        */

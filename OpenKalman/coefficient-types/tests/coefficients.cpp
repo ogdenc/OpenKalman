@@ -8,6 +8,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+/**
+ * \file
+ * \brief Tests for coefficient types
+ */
+
 #include "coefficients.hpp"
 
 

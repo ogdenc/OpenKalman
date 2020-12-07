@@ -30,7 +30,7 @@ namespace OpenKalman::Eigen3
     std::is_arithmetic_v<Scalar> and (std::is_convertible_v<Args, Scalar> and ...) and
     (sizeof...(Args) == dimension * columns), int> = 0>
 #endif
-  static auto
+  inline auto
   make_native_matrix(const Args ... args)
   {
     using M = Eigen::Matrix<Scalar, dimension, columns>;
@@ -49,7 +49,7 @@ namespace OpenKalman::Eigen3
   template<std::size_t dimension, std::size_t columns = 1, typename ... Args, std::enable_if_t<
     (std::is_arithmetic_v<Args> and ...) and (sizeof...(Args) == dimension * columns), int> = 0>
 #endif
-  static auto
+  inline auto
   make_native_matrix(const Args ... args)
   {
     using Scalar = std::common_type_t<Args...>;
@@ -63,7 +63,7 @@ namespace OpenKalman::Eigen3
 #else
   template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
 #endif
-  static auto
+  inline auto
   make_native_matrix(const Args ... args)
   {
     using Scalar = std::common_type_t<Args...>;
@@ -174,7 +174,7 @@ namespace OpenKalman::Eigen3
   {
     if constexpr (Coefficients::axes_only or identity_matrix<Arg> or zero_matrix<Arg>)
     {
-      /// \TODO: Add functionality to conditionally wrap zero and identity, depending on wrap min and max.
+      /// \todo: Add functionality to conditionally wrap zero and identity, depending on wrap min and max.
       return std::forward<Arg>(arg);
     }
     else
@@ -451,7 +451,7 @@ namespace OpenKalman::Eigen3
 
   namespace detail
   {
-    /// Concatenate one or more Eigen::MatrixBase objects diagonally.
+    // Concatenate one or more Eigen::MatrixBase objects diagonally.
     template<typename M, typename ... Vs, std::size_t ... ints>
     void
     concatenate_diagonal_impl(M& m, const std::tuple<Vs...>& vs, std::index_sequence<ints...>)
@@ -980,7 +980,7 @@ namespace OpenKalman::Eigen3
   }
 
 #ifdef __cpp_concepts
-  // \TODO: use compound requires expression.
+  // \todo: use compound requires expression.
   template<eigen_matrix Arg, typename Function>
   requires std::is_void_v<std::invoke_result_t<Function, std::decay_t<decltype(column(std::declval<Arg>(), 0))>& >>
 #else
@@ -1196,10 +1196,11 @@ namespace OpenKalman::Eigen3
     return ret;
   }
 
+
   namespace detail
   {
     template<typename Scalar, template<typename> typename distribution_type, typename random_number_engine>
-    static auto
+    inline auto
     get_rnd(const typename distribution_type<Scalar>::param_type& params)
     {
       static std::random_device rd;
@@ -1208,14 +1209,17 @@ namespace OpenKalman::Eigen3
       return dist(rng, params);
     }
 
+
 #ifdef __cpp_concepts
     template<typename Scalar, template<typename> typename, typename> requires std::is_arithmetic_v<Scalar>
 #else
     template<typename Scalar, template<typename> typename, typename,
       std::enable_if_t<std::is_arithmetic_v<Scalar>, int> = 0>
 #endif
-    static auto get_rnd(Scalar s) { return s; }
-  }
+    constexpr auto
+    get_rnd(Scalar s) { return s; }
+
+  } // namespace detail
 
 
   /**

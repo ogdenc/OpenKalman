@@ -92,12 +92,14 @@ $(document).ready(function(){initNavTree('struct_open_kalman_1_1internal_1_1_typ
 </div><!--header-->
 <div class="contents">
 
+<p>Base class for means or matrices.  
+ <a href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_typed_matrix_base_8hpp_source.html">TypedMatrixBase.hpp</a>&gt;</code></p>
 <a name="details" id="details"></a><h2 class="groupheader">Description</h2>
 <div class="textblock"><h3>template&lt;typename Derived, typename RowCoeffs, typename ColCoeffs, typename NestedType&gt;<br />
 struct OpenKalman::internal::TypedMatrixBase&lt; Derived, RowCoeffs, ColCoeffs, NestedType &gt;</h3>
 
-<p>Base class for means or matrices. </p>
 
 <p class="definition">Definition at line <a class="el" href="_typed_matrix_base_8hpp_source.html#l00022">22</a> of file <a class="el" href="_typed_matrix_base_8hpp_source.html">TypedMatrixBase.hpp</a>.</p>
 </div><div class="dynheader">
@@ -199,8 +201,6 @@ template&lt;typename S , std::enable_if_t&lt; std::is_convertible_v&lt; S, Scala
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Get the nested matrix of this covariance matrix. </p>
 <p>The nested matrix will be self-adjoint, triangular, or diagonal. </p><dl class="section return"><dt>Returns</dt><dd>An lvalue reference to the nested matrix. </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="_matrix_base_8hpp_source.html#l00105">105</a> of file <a class="el" href="_matrix_base_8hpp_source.html">MatrixBase.hpp</a>.</p>
@@ -303,7 +303,7 @@ template&lt;typename S , std::enable_if_t&lt; std::is_convertible_v&lt; S, Scala
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="namespace_open_kalman.html">OpenKalman</a></li><li class="navelem"><a class="el" href="namespace_open_kalman_1_1internal.html">internal</a></li><li class="navelem"><a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html">TypedMatrixBase</a></li>
-    <li class="footer">Generated on Sat Dec 5 2020 03:00:23 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
+    <li class="footer">Generated on Sun Dec 6 2020 19:54:45 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
   </ul>
 </div>
 </body>

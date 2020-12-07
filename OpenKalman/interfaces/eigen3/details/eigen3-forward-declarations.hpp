@@ -20,8 +20,21 @@
 
 
 /**
+ * \namespace OpenKalman::Eigen3
  * \brief Namespace for all Eigen3 interface definitions.
+ *
+ * \internal
+ * \namespace OpenKalman::Eigen3::internal
+ * \brief Namespace for definitions internal to the Eigen3 interface library.
+ *
+ * \namespace Eigen
+ * \brief Eigen3's native namespace.
+ *
+ * \namespace Eigen::internal
+ * \brief Eigen3's native namespace for internal definitions.
  */
+
+
 namespace OpenKalman::Eigen3
 {
   // ---------------------------- //

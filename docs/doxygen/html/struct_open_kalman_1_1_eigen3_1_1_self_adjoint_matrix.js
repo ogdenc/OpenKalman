@@ -1,8 +1,5 @@
 var struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix =
 [
-    [ "Base", "struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix.html#a538678e6b67afbcfc8a5af54884f6f4d", null ],
-    [ "Scalar", "struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix.html#af3cfdaa2de9b892f8db997fd027a67ce", null ],
-    [ "View", "struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix.html#a55e821f1ddbcb874a3508dd6b29b6e6f", null ],
     [ "SelfAdjointMatrix", "struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix.html#ad9c06ccd8600069f2b70977f821d10b8", null ],
     [ "SelfAdjointMatrix", "struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix.html#a77870148ff17728d70e10a38dc2bf3fc", null ],
     [ "SelfAdjointMatrix", "struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix.html#afedde6fd58b0a00b7b47286ec52e5aec", null ],
@@ -16,26 +13,11 @@ var struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix =
     [ "nested_matrix", "struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix.html#a4503a0ddf37a5c6cd18543bf80f9a065", null ],
     [ "nested_matrix", "struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix.html#a04b892885f61fa451d503325e6c39bcd", null ],
     [ "nested_matrix", "struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix.html#af02e754e6d550efee9ee61bdddaec32b", null ],
-    [ "nested_view", "struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix.html#a61bf031abe983669d37743e1fc651c2a", null ],
-    [ "nested_view", "struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix.html#a7766776606fd153c66c8373fc79dfedd", null ],
-    [ "nested_view", "struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix.html#a07c7496837a3a8042e134457011aaf0e", null ],
-    [ "nested_view", "struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix.html#a03c40dcb498b82862d86ec6ec42b50d5", null ],
-    [ "operator()", "struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix.html#a5e1180fcbe07186c29686c7a4c9512c3", null ],
-    [ "operator()", "struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix.html#ac21b28c6573b1d817e29390e09e95ddd", null ],
-    [ "operator()", "struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix.html#ae560491bd8b749093d9144bb68f9e881", null ],
-    [ "operator()", "struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix.html#a42a09ff834439ff0e642f94fd7991b77", null ],
-    [ "operator*=", "struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix.html#a9803fca0e1fe70ba35521fb8c1ba651d", null ],
-    [ "operator+=", "struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix.html#afa2f7ad0b40639b6015462d3fb787117", null ],
-    [ "operator-=", "struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix.html#a74719583ea76c1e235bc5540ad9711ab", null ],
-    [ "operator/=", "struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix.html#ad37d724c46e72e1c6f2a732dcd0a5222", null ],
     [ "operator=", "struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix.html#af40518af67b984c4bfa6c258562e94d4", null ],
     [ "operator=", "struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix.html#af40518af67b984c4bfa6c258562e94d4", null ],
     [ "operator=", "struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix.html#af40518af67b984c4bfa6c258562e94d4", null ],
     [ "operator=", "struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix.html#a70c13cf2e901c531b0fac371130c9a94", null ],
     [ "operator=", "struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix.html#ab9387ede457804d492320a8aca2f0559", null ],
     [ "operator=", "struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix.html#a59b8855ef9aff1c95f1276152aa0118b", null ],
-    [ "operator=", "struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix.html#ab3b35d8a423259c9ceeb5090839a0b3e", null ],
-    [ "operator[]", "struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix.html#acb1dfc52e5b140819be0c247cb88379a", null ],
-    [ "operator[]", "struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix.html#ad8407028200fe684e74782e0d6a92ee3", null ],
-    [ "solve", "struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix.html#ab8c20a67928154328b94a4fffc8df5ee", null ]
+    [ "operator=", "struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix.html#ab3b35d8a423259c9ceeb5090839a0b3e", null ]
 ];

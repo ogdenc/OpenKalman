@@ -29,5 +29,6 @@ var traits_8hpp =
     [ "native_matrix_t", "traits_8hpp.html#a7fb718bc7a10021ec9a0032e9b3fc92e", null ],
     [ "nested_matrix_t", "traits_8hpp.html#abc8e1017c2a892423e656ba212290b74", null ],
     [ "passable_t", "traits_8hpp.html#ab86f091b16817336eb3f67006cd3a779", null ],
-    [ "self_contained_t", "traits_8hpp.html#a1d08cc520e029d965770641656727893", null ]
+    [ "self_contained_t", "traits_8hpp.html#a1d08cc520e029d965770641656727893", null ],
+    [ "make_native_matrix", "traits_8hpp.html#ab7f7071cb157c11253798720be5c7542", null ]
 ];

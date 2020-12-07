@@ -20,18 +20,21 @@
 
 
 /**
+ * \namespace OpenKalman
  * \brief The root namespace for OpenKalman.
+ *
+ * \internal
+ * \namespace OpenKalman::internal
+ * \brief Namespace for internal definitions, not intended for use outside of OpenKalman development.
  */
+
+
 namespace OpenKalman
 {
   // ---------------- //
   //   Coefficients   //
   // ---------------- //
 
-  /**
-   * \internal
-   * Internal definitions, not intended for use outside of OpenKalman.
-   */
   namespace internal
   {
     /**
@@ -78,8 +81,7 @@ namespace OpenKalman
    * Composite coefficients are specializations of the class Coefficients, which has the purpose of grouping
    * other atomic or composite coefficients. Composite coefficients can, themselves, comprise groups of other
    * composite components. Composite coefficients are of the form Coefficients<Cs...>.
-   *
-   * Examples of coefficients:
+   * <b>Examples</b>:
    * - Axis
    * - Polar<Distance, angle::Radians>
    * - Coefficients<Axis, angle::Radians>
@@ -118,7 +120,8 @@ namespace OpenKalman
    * - Any coefficient or group of coefficients is equivalent to itself.
    * - Coefficient<Ts...> is equivalent to Coefficient<Us...>, if each Ts is equivalent to its respective Us.
    * - Coefficient<T> is equivalent to T, and vice versa.
-   * Example: \code equivalent_to<Axis, Coefficients<Axis>> \endcode returns <code>true</code>.
+   * \par Example:
+   * <code>equivalent_to&lt;Axis, Coefficients&lt;Axis&gt;&gt;
    */
   template<typename T, typename U>
 #ifdef __cpp_concepts
@@ -151,7 +154,8 @@ namespace OpenKalman
    * C is a prefix of Coefficients<C, Cs...> for any coefficients Cs.
    * T is a prefix of U if equivalent_to<T, U>.
    * Coefficients<> is a prefix of any set of coefficients.
-   * Example, \code prefix_of<Coefficients<Axis>, Coefficients<Axis, angle::Radians>> \endcode returns <code>true</code>.
+   * \par Example:
+   * <code>prefix_of&lt;Coefficients&lt;Axis&gt;, Coefficients&lt;Axis, angle::Radians&gt;&gt;
    */
   template<typename T, typename U>
 #ifdef __cpp_concepts

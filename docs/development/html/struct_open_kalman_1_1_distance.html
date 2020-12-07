@@ -91,10 +91,18 @@ $(document).ready(function(){initNavTree('struct_open_kalman_1_1_distance.html',
 </div><!--header-->
 <div class="contents">
 
+<p>A non-negative real or integral number, [0,&infin;], representing a distance.  
+ <a href="struct_open_kalman_1_1_distance.html#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="coefficient__forward-declarations_8hpp_source.html">coefficient_forward-declarations.hpp</a>&gt;</code></p>
 <a name="details" id="details"></a><h2 class="groupheader">Description</h2>
-<div class="textblock"><p>A non-negative real or integral number, [0,&infin;], representing a distance. </p>
-<p>This is similar to <a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a>, but wrapping occurs to ensure that values are never negative. </p>
+<div class="textblock"><p>This is similar to <a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a>, but wrapping occurs to ensure that values are never negative. </p>
+<p><b>See also</b> the following functions for accessing coefficient properties:</p><ul>
+<li><a class="el" href="namespace_open_kalman_1_1internal.html#aaa4f2082a3e8968bedfc2ceda61109e9" title="Get a coordinate in Euclidean space corresponding to a coefficient in a matrix with typed coefficient...">internal::to_euclidean_coeff</a>: Get a coordinate in Euclidean space corresponding to a coefficient in a matrix with typed coefficients.</li>
+<li><a class="el" href="namespace_open_kalman_1_1internal.html#acbfe0e290c67c2597b22b1e308ec8748" title="Get a typed coefficient corresponding to its corresponding coordinate in Euclidean space.">internal::from_euclidean_coeff</a>: Get a typed coefficient corresponding to its corresponding coordinate in Euclidean space.</li>
+<li><a class="el" href="namespace_open_kalman_1_1internal.html#a1bb5189beb193b164ecd64555f77652f" title="Wrap a given coefficient and return its wrapped, scalar value.">internal::wrap_get</a>: Wrap a given coefficient and return its wrapped, scalar value.</li>
+<li><a class="el" href="namespace_open_kalman_1_1internal.html#ad8998a156055ed41512ca22a174a1d58" title="Set the scalar value of a given typed coefficient in a matrix, and wrap the matrix column.">internal::wrap_set</a> Set the scalar value of a given typed coefficient in a matrix, and wrap the matrix column. </li>
+</ul>
 
 <p class="definition">Definition at line <a class="el" href="_distance_8hpp_source.html#l00025">25</a> of file <a class="el" href="_distance_8hpp_source.html">Distance.hpp</a>.</p>
 </div><table class="memberdecls">
@@ -131,8 +139,6 @@ Public Aliases</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>The type of the result when subtracting two <a class="el" href="struct_open_kalman_1_1_distance.html" title="A non-negative real or integral number, [0,∞], representing a distance.">Distance</a> values. </p>
 <p>A difference between two distances can be positive or negative, and is treated as <a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a>. See David Frederic Crouse, Cubature/Unscented/Sigma Point Kalman Filtering with Angular Measurement Models, 18th Int'l Conf. on Information Fusion 1553, 1555 (2015). </p>
 
 <p class="definition">Definition at line <a class="el" href="_distance_8hpp_source.html#l00042">42</a> of file <a class="el" href="_distance_8hpp_source.html">Distance.hpp</a>.</p>
@@ -148,7 +154,7 @@ Public Aliases</h2></td></tr>
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="namespace_open_kalman.html">OpenKalman</a></li><li class="navelem"><a class="el" href="struct_open_kalman_1_1_distance.html">Distance</a></li>
-    <li class="footer">Generated on Sat Dec 5 2020 03:00:22 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
+    <li class="footer">Generated on Sun Dec 6 2020 19:54:45 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
   </ul>
 </div>
 </body>

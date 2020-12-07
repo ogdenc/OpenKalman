@@ -86,6 +86,7 @@ $(document).ready(function(){initNavTree('traits_8hpp.html',''); initResizable()
 <a href="#var-members">Variables</a> &#124;
 <a href="#enum-members">Enumerations</a> &#124;
 <a href="#typedef-members">Typedefs</a> &#124;
+<a href="#func-members">Functions</a> &#124;
 <a href="#namespaces">Namespaces</a>  </div>
   <div class="headertitle">
 <div class="title">traits.hpp File Reference</div>  </div>
@@ -100,10 +101,6 @@ $(document).ready(function(){initNavTree('traits_8hpp.html',''); initResizable()
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
 Variables</h2></td></tr>
-<tr class="memitem:a0f2240261b5fa68286e374b29a8a6283"><td class="memTemplParams" colspan="2"><a id="a0f2240261b5fa68286e374b29a8a6283"></a>
-template&lt;typename T &gt; </td></tr>
-<tr class="memitem:a0f2240261b5fa68286e374b29a8a6283"><td class="memTemplItemLeft" align="right" valign="top">constexpr bool&#160;</td><td class="memTemplItemRight" valign="bottom"><b>OpenKalman::internal::contains_nested_lvalue_reference</b> = detail::is_reference_dependent&lt;T&gt;::value</td></tr>
-<tr class="separator:a0f2240261b5fa68286e374b29a8a6283"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aef8b4f9495a8827f4f2235b3dd17a6aa"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
 <tr class="memitem:aef8b4f9495a8827f4f2235b3dd17a6aa"><td class="memTemplItemLeft" align="right" valign="top">constexpr bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#aef8b4f9495a8827f4f2235b3dd17a6aa">OpenKalman::self_contained</a> = internal::is_self_contained&lt;std::decay_t&lt;T&gt;&gt;::value</td></tr>
 <tr class="memdesc:aef8b4f9495a8827f4f2235b3dd17a6aa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Specifies that a type is a self-contained matrix or expression.  <a href="namespace_open_kalman.html#aef8b4f9495a8827f4f2235b3dd17a6aa">More...</a><br /></td></tr>
@@ -140,9 +137,6 @@ template&lt;typename T &gt; </td></tr>
 <tr class="memitem:ada97c2afb746e33dd806af6f63957fce"><td class="memTemplItemLeft" align="right" valign="top">constexpr bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#ada97c2afb746e33dd806af6f63957fce">OpenKalman::triangular_matrix</a> = detail::is_triangular_matrix_impl&lt;T&gt;::value</td></tr>
 <tr class="memdesc:ada97c2afb746e33dd806af6f63957fce"><td class="mdescLeft">&#160;</td><td class="mdescRight">Specifies that a type is a triangular matrix (upper or lower).  <a href="namespace_open_kalman.html#ada97c2afb746e33dd806af6f63957fce">More...</a><br /></td></tr>
 <tr class="separator:ada97c2afb746e33dd806af6f63957fce"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a35106ced3df898a6d4917e86b57df608"><td class="memTemplParams" colspan="2">template&lt;typename T , typename U &gt; </td></tr>
-<tr class="memitem:a35106ced3df898a6d4917e86b57df608"><td class="memTemplItemLeft" align="right" valign="top">constexpr bool&#160;</td><td class="memTemplItemRight" valign="bottom"><b>OpenKalman::internal::same_triangle_type_as</b></td></tr>
-<tr class="separator:a35106ced3df898a6d4917e86b57df608"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2562e4c0918dc2cbf74de6a97d9388cf"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
 <tr class="memitem:a2562e4c0918dc2cbf74de6a97d9388cf"><td class="memTemplItemLeft" align="right" valign="top">constexpr bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#a2562e4c0918dc2cbf74de6a97d9388cf">OpenKalman::cholesky_form</a> = internal::is_cholesky_form&lt;std::decay_t&lt;T&gt;&gt;::value</td></tr>
 <tr class="memdesc:a2562e4c0918dc2cbf74de6a97d9388cf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Specifies that a type has a nested native matrix that is a Cholesky square root.  <a href="namespace_open_kalman.html#a2562e4c0918dc2cbf74de6a97d9388cf">More...</a><br /></td></tr>
@@ -163,10 +157,7 @@ template&lt;typename T &gt; </td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
 Enumerations</h2></td></tr>
-<tr class="memitem:ab6c606169452d88f33b64e3b1ae18fa2"><td class="memItemLeft" align="right" valign="top"><a id="ab6c606169452d88f33b64e3b1ae18fa2"></a>enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#ab6c606169452d88f33b64e3b1ae18fa2">OpenKalman::TriangleType</a> { <b>lower</b>
-, <b>upper</b>
-, <b>diagonal</b>
- }</td></tr>
+<tr class="memitem:ab6c606169452d88f33b64e3b1ae18fa2"><td class="memItemLeft" align="right" valign="top"><a id="ab6c606169452d88f33b64e3b1ae18fa2"></a>enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#ab6c606169452d88f33b64e3b1ae18fa2">OpenKalman::TriangleType</a> </td></tr>
 <tr class="memdesc:ab6c606169452d88f33b64e3b1ae18fa2"><td class="mdescLeft">&#160;</td><td class="mdescRight">The type of a triangular matrix, either lower, upper, or diagonal. <br /></td></tr>
 <tr class="separator:ab6c606169452d88f33b64e3b1ae18fa2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -189,53 +180,27 @@ Typedefs</h2></td></tr>
 <tr class="memdesc:a7fb718bc7a10021ec9a0032e9b3fc92e"><td class="mdescLeft">&#160;</td><td class="mdescRight">An alias for a self-contained native matrix, based on and equivalent to parameter T.  <a href="namespace_open_kalman.html#a7fb718bc7a10021ec9a0032e9b3fc92e">More...</a><br /></td></tr>
 <tr class="separator:a7fb718bc7a10021ec9a0032e9b3fc92e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:ab7f7071cb157c11253798720be5c7542"><td class="memTemplParams" colspan="2"><a id="ab7f7071cb157c11253798720be5c7542"></a>
+template&lt;typename M , typename ... Args, std::enable_if_t&lt;(std::is_convertible_v&lt; Args, typename MatrixTraits&lt; M &gt;::Scalar &gt; and ...) and(sizeof...(Args)==MatrixTraits&lt; M &gt;::dimension *MatrixTraits&lt; M &gt;::columns), int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:ab7f7071cb157c11253798720be5c7542"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#ab7f7071cb157c11253798720be5c7542">OpenKalman::make_native_matrix</a> (const Args ... args)</td></tr>
+<tr class="memdesc:ab7f7071cb157c11253798720be5c7542"><td class="mdescLeft">&#160;</td><td class="mdescRight">Make a self-contained, native matrix based on the shape of M from a list of coefficients in row-major order. <br /></td></tr>
+<tr class="separator:ab7f7071cb157c11253798720be5c7542"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="namespaces"></a>
 Namespaces</h2></td></tr>
 <tr class="memitem:namespace_open_kalman"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html">OpenKalman</a></td></tr>
 <tr class="memdesc:namespace_open_kalman"><td class="mdescLeft">&#160;</td><td class="mdescRight">The root namespace for <a class="el" href="namespace_open_kalman.html" title="The root namespace for OpenKalman.">OpenKalman</a>. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Declarations for <a class="el" href="namespace_open_kalman.html" title="The root namespace for OpenKalman.">OpenKalman</a> and native-matrix traits. </p>
-
-<p class="definition">Definition in file <a class="el" href="traits_8hpp_source.html">traits.hpp</a>.</p>
-</div><h2 class="groupheader">Variable Documentation</h2>
-<a id="a35106ced3df898a6d4917e86b57df608"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a35106ced3df898a6d4917e86b57df608">&#9670;&nbsp;</a></span>same_triangle_type_as</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename T , typename U &gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr bool OpenKalman::internal::same_triangle_type_as</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">=</div>
-<div class="line">      (upper_triangular_matrix&lt;T&gt; and upper_triangular_matrix&lt;U&gt;) or</div>
-<div class="line">      (lower_triangular_matrix&lt;T&gt; and lower_triangular_matrix&lt;U&gt;)</div>
-</div><!-- fragment -->
-<p class="definition">Definition at line <a class="el" href="traits_8hpp_source.html#l00734">734</a> of file <a class="el" href="traits_8hpp_source.html">traits.hpp</a>.</p>
-
-</div>
-</div>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_bf85a1622761b0afd6fb52adee52cf94.html">OpenKalman</a></li><li class="navelem"><a class="el" href="dir_a4c8436c8b3115862a8863d26709ba0b.html">basics</a></li><li class="navelem"><a class="el" href="traits_8hpp.html">traits.hpp</a></li>
-    <li class="footer">Generated on Wed Dec 2 2020 15:40:26 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
+    <li class="footer">Generated on Sun Dec 6 2020 19:54:57 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
   </ul>
 </div>
 </body>

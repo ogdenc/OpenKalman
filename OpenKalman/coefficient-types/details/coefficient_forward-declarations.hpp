@@ -9,8 +9,11 @@
  */
 
 /**
+ * \dir
+ * \brief Support definitions for coefficient types
+ *
  * \file
- * \brief Forward definitions for coefficients.
+ * \brief Forward definitions for coefficient types.
  */
 
 #ifndef OPENKALMAN_COEFFICIENT_FORWARD_DECLARATIONS_HPP
@@ -65,6 +68,12 @@ namespace OpenKalman
    * \struct Axis
    * \brief A real or integral number, (&minus;&infin;,&infin;).
    * \details This is the default coefficient type. No wrapping occurs, and matrices operate as usual.
+   * \internal
+   * <b>See also</b> the following functions for accessing coefficient properties:
+   * - internal::to_euclidean_coeff: \copybrief internal::to_euclidean_coeff
+   * - internal::from_euclidean_coeff: \copybrief internal::from_euclidean_coeff
+   * - internal::wrap_get: \copybrief internal::wrap_get
+   * - internal::wrap_set \copybrief internal::wrap_set
    */
   struct Axis;
 
@@ -73,6 +82,12 @@ namespace OpenKalman
    * \struct Distance
    * \brief A non-negative real or integral number, [0,&infin;], representing a distance.
    * \details This is similar to Axis, but wrapping occurs to ensure that values are never negative.
+   * \internal
+   * <b>See also</b> the following functions for accessing coefficient properties:
+   * - internal::to_euclidean_coeff: \copybrief internal::to_euclidean_coeff
+   * - internal::from_euclidean_coeff: \copybrief internal::from_euclidean_coeff
+   * - internal::wrap_get: \copybrief internal::wrap_get
+   * - internal::wrap_set \copybrief internal::wrap_set
    */
   struct Distance;
 
@@ -84,6 +99,12 @@ namespace OpenKalman
    * angle::PositiveDegrees, and angle::Circle.
    * \tparam Limits A class template defining the real values <code>min</code> and <code>max</code>, representing
    * minimum and maximum values, respectively, beyond which wrapping occurs. Scalar is a std::floating_point type.
+   * \internal
+   * <b>See also</b> the following functions for accessing coefficient properties:
+   * - internal::to_euclidean_coeff: \copybrief internal::to_euclidean_coeff
+   * - internal::from_euclidean_coeff: \copybrief internal::from_euclidean_coeff
+   * - internal::wrap_get: \copybrief internal::wrap_get
+   * - internal::wrap_set \copybrief internal::wrap_set
    */
   template<template<typename Scalar> typename Limits>
 #ifdef __cpp_concepts
@@ -98,11 +119,17 @@ namespace OpenKalman
    * \details &phi;<sub>down</sub>&le;&phi;&le;&phi;<sub>up</sub>, where &phi;<sub>down</sub> is a real number
    * representing down, and &phi;<sub>up</sub> is a real number representing up. Normally, the horizon will be zero and
    * &phi;<sub>down</sub>=&minus;&phi;<sub>up</sub>, but in general, the horizon is at
-   * &half;(&phi;<sub>down</sub>+&minus;&phi;<sub>up</sub>).
+   * &frac12;(&phi;<sub>down</sub>+&minus;&phi;<sub>up</sub>).
    * The inclinations inclination::Radians and inclination::Degrees are predefined.
    * \tparam Limits A class template defining the real values <code>down</code> and <code>up</code>, where
    * <code>down</code>=&phi;<sub>down</sub> and <code>up</code>=&phi;<sub>up</sub>.
    * Scalar is a std::floating_point type.
+   * \internal
+   * <b>See also</b> the following functions for accessing coefficient properties:
+   * - internal::to_euclidean_coeff: \copybrief internal::to_euclidean_coeff
+   * - internal::from_euclidean_coeff: \copybrief internal::from_euclidean_coeff
+   * - internal::wrap_get: \copybrief internal::wrap_get
+   * - internal::wrap_set \copybrief internal::wrap_set
    */
   template<template<typename Scalar> typename Limits>
 #ifdef __cpp_concepts
@@ -118,6 +145,12 @@ namespace OpenKalman
    * <code>Polar&lt;Distance, angle::Radians&gt; or Polar&lt;angle::Degrees, Distance&gt;</code>.
    * Polar coordinates span two adjacent coefficients in a matrix.
    * \tparam C1, C2 Distance and Angle, in either order. By default, they are Distance and angle::Radians, respectively.
+   * \internal
+   * <b>See also</b> the following functions for accessing coefficient properties:
+   * - internal::to_euclidean_coeff: \copybrief internal::to_euclidean_coeff
+   * - internal::from_euclidean_coeff: \copybrief internal::from_euclidean_coeff
+   * - internal::wrap_get: \copybrief internal::wrap_get
+   * - internal::wrap_set \copybrief internal::wrap_set
    */
   template<typename C1, typename C2>
   struct Polar;
@@ -127,11 +160,18 @@ namespace OpenKalman
    * \brief An atomic coefficient group reflecting spherical coordinates.
    * \details Coefficient1, Coefficient2, and Coefficient3 must be some combination of Distance, Inclination, and Angle
    * in any order, reflecting the distance, inclination, and azimuth, respectively.
-   * Spherical coordinates span three adjacent coefficients in a matrix.
-   * Examples: <code>Spherical&lt;Distance, inclination::Degrees, angle::Radians&gt;,
+   * Spherical coordinates span three adjacent coefficients in a matrix.<br/>
+   * \par Examples
+   * <code>Spherical&lt;Distance, inclination::Degrees, angle::Radians&gt;,<br/>
    * Spherical&lt;angle::PositiveDegrees, Distance, inclination::Radians&gt;</code>
-   * \tparam Coefficient1, Coefficient2, Coefficient3 Distance, inclination, and Angle, in any order.
+   * \tparam C1, C2, C3 Distance, inclination, and Angle, in any order.
    * By default, they are Distance, angle::Radians, and inclination::Radians, respectively.
+   * \internal
+   * <b>See also</b> the following functions for accessing coefficient properties:
+   * - internal::to_euclidean_coeff: \copybrief internal::to_euclidean_coeff
+   * - internal::from_euclidean_coeff: \copybrief internal::from_euclidean_coeff
+   * - internal::wrap_get: \copybrief internal::wrap_get
+   * - internal::wrap_set \copybrief internal::wrap_set
    */
   template<typename C1, typename C2, typename C3>
   struct Spherical;

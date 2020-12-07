@@ -1,4 +1,6 @@
 var searchData=
 [
-  ['wrap_5fangles_552',['wrap_angles',['../namespace_open_kalman_1_1_eigen3.html#a8d390585998024a682e322f235c0c708',1,'OpenKalman::Eigen3']]]
+  ['wrap_5fangles_562',['wrap_angles',['../namespace_open_kalman_1_1_eigen3.html#a8d390585998024a682e322f235c0c708',1,'OpenKalman::Eigen3']]],
+  ['wrap_5fget_563',['wrap_get',['../namespace_open_kalman_1_1internal.html#a1bb5189beb193b164ecd64555f77652f',1,'OpenKalman::internal']]],
+  ['wrap_5fset_564',['wrap_set',['../namespace_open_kalman_1_1internal.html#ad8998a156055ed41512ca22a174a1d58',1,'OpenKalman::internal']]]
 ];

@@ -25,11 +25,14 @@ namespace OpenKalman
    * \details It is a wrapper for a native matrix type from a supported matrix library such as Eigen.
    * The matrix can be thought of as a transformation from X to Y, where the coefficients for each of X and Y are typed.
    * Example declarations:
-   * - <code>Matrix<Coefficients<Axis, Axis, angle::Radians>, Coefficients<Axis, Axis>, native_matrix_t<native_matrix_t<double, 3, 2>> x;</code>
+   * - <code>Matrix<Coefficients<Axis, Axis, angle::Radians>, Coefficients<Axis, Axis>,
+   * native_matrix_t<native_matrix_t<double, 3, 2>> x;</code>
    * - <code>Matrix<double, Coefficients<Axis, Axis, angle::Radians>, Coefficients<Axis, Axis>,
    * native_matrix_t<double, 3, 2>> x;</code>
-   * \tparam RowCoefficients A set of \ref coefficients (e.g., Axis, Spherical, etc.) corresponding to the rows.
-   * \tparam ColumnCoefficients Another set of \ref coefficients corresponding to the columns.
+   * \tparam RowCoefficients A set of \ref OpenKalman::coefficients "coefficients" (e.g., Axis, Spherical, etc.)
+   * corresponding to the rows.
+   * \tparam ColumnCoefficients Another set of \ref OpenKalman::coefficients "coefficients" corresponding
+   * to the columns.
    * \tparam NestedMatrix The underlying native matrix or matrix expression.
    */
 #ifdef __cpp_concepts

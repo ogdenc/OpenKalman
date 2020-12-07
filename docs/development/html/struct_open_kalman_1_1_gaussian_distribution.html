@@ -90,11 +90,13 @@ $(document).ready(function(){initNavTree('struct_open_kalman_1_1_gaussian_distri
 <div class="title">OpenKalman::GaussianDistribution&lt; Coeffs, MatrixBase, CovarianceBase, random_number_engine &gt; Struct Template Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
+
+<p>A Gaussian distribution, defined in terms of a <a class="el" href="struct_open_kalman_1_1_mean.html" title="A set of one or more column vectors, each representing a statistical mean.">Mean</a> and a <a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a>.  
+ <a href="struct_open_kalman_1_1_gaussian_distribution.html#details">More...</a></p>
 <a name="details" id="details"></a><h2 class="groupheader">Description</h2>
 <div class="textblock"><h3>template&lt;typename Coeffs, typename MatrixBase, typename CovarianceBase, typename random_number_engine = std::mt19937&gt;<br />
 struct OpenKalman::GaussianDistribution&lt; Coeffs, MatrixBase, CovarianceBase, random_number_engine &gt;</h3>
 
-<p>A Gaussian distribution, defined in terms of a <a class="el" href="struct_open_kalman_1_1_mean.html" title="A set of one or more column vectors, each representing a statistical mean.">Mean</a> and a <a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a>. </p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname"><a class="el" href="struct_open_kalman_1_1_coefficients.html" title="A set of coefficient types.">Coefficients</a></td><td>Coefficient types. </td></tr>
@@ -214,8 +216,6 @@ template&lt;typename... Z&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Log-likelihood function for a set of i.i.d. observations z. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">z</td><td>One or more i.i.d. observations in the same multivariate space as the mean of the distribution. </td></tr>
@@ -251,8 +251,6 @@ template&lt;typename Coeffs , typename MatrixBase , typename CovarianceBase , ty
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Generate a random value from the distribution. </p>
 <dl class="section return"><dt>Returns</dt><dd>A random, single-column typed matrix with probability based on the distribution </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="_gaussian_distribution_8hpp_source.html#l00256">256</a> of file <a class="el" href="_gaussian_distribution_8hpp_source.html">GaussianDistribution.hpp</a>.</p>
@@ -269,7 +267,7 @@ template&lt;typename Coeffs , typename MatrixBase , typename CovarianceBase , ty
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="namespace_open_kalman.html">OpenKalman</a></li><li class="navelem"><a class="el" href="struct_open_kalman_1_1_gaussian_distribution.html">GaussianDistribution</a></li>
-    <li class="footer">Generated on Sat Dec 5 2020 03:00:22 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
+    <li class="footer">Generated on Sun Dec 6 2020 19:54:45 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
   </ul>
 </div>
 </body>

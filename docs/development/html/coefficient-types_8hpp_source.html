@@ -96,34 +96,38 @@ $(document).ready(function(){initNavTree('coefficient-types_8hpp_source.html',''
 <div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;<span class="comment"> * file, You can obtain one at https://mozilla.org/MPL/2.0/.</span></div>
 <div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;<span class="comment"> */</span></div>
 <div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160; </div>
-<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;<span class="comment">/**</span></div>
-<div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;<span class="comment"> * \file</span></div>
-<div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;<span class="comment"> * \brief Comprehensive header file including all coefficient-related classes and definitions.</span></div>
-<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160; </div>
-<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">ifndef</span> <span class="preprocessor">OPENKALMAN_COEFFICIENT_TYPES_HPP</span></div>
-<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">define</span> <span class="preprocessor">OPENKALMAN_COEFFICIENT_TYPES_HPP</span></div>
-<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160; </div>
-<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">include</span> <span class="preprocessor">&quot;details/coefficient_forward-declarations.hpp&quot;</span></div>
-<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160; </div>
-<div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">include</span> <a class="code" href="_axis_8hpp.html" title="Definition of the Axis class.">&quot;Axis.hpp&quot;</a></div>
-<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">include</span> <a class="code" href="_distance_8hpp.html" title="Definition of the Distance class.">&quot;Distance.hpp&quot;</a></div>
-<div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">include</span> <a class="code" href="_angle_8hpp.html" title="Definition of the Angle class and related limits.">&quot;Angle.hpp&quot;</a></div>
-<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">include</span> <a class="code" href="_inclination_8hpp.html" title="Definition of the Inclination class and related limits.">&quot;Inclination.hpp&quot;</a></div>
-<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">include</span> <a class="code" href="_polar_8hpp.html" title="Definition of Polar class and associated details.">&quot;Polar.hpp&quot;</a></div>
-<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">include</span> <a class="code" href="_spherical_8hpp.html" title="Definition of Spherical class and associated details.">&quot;Spherical.hpp&quot;</a></div>
-<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">include</span> <a class="code" href="coefficient-types_2_coefficients_8hpp.html" title="Definitions for Coefficient class specializations and associated aliases.">&quot;Coefficients.hpp&quot;</a></div>
-<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160; </div>
-<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">include</span> <span class="preprocessor">&quot;details/coefficient-functions.hpp&quot;</span></div>
-<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160; </div>
-<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">endif</span> <span class="comment">//OPENKALMAN_COEFFICIENT_TYPES_HPP</span></div>
+<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;<span class="preprocessor">#ifndef OPENKALMAN_COEFFICIENT_TYPES_HPP</span></div>
+<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;<span class="preprocessor">#define OPENKALMAN_COEFFICIENT_TYPES_HPP</span></div>
+<div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160; </div>
+<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="coefficient__forward-declarations_8hpp.html">details/coefficient_forward-declarations.hpp</a>&quot;</span></div>
+<div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160; </div>
+<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="_axis_8hpp.html">Axis.hpp</a>&quot;</span></div>
+<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="_distance_8hpp.html">Distance.hpp</a>&quot;</span></div>
+<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="_angle_8hpp.html">Angle.hpp</a>&quot;</span></div>
+<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="_inclination_8hpp.html">Inclination.hpp</a>&quot;</span></div>
+<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="_polar_8hpp.html">Polar.hpp</a>&quot;</span></div>
+<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="_spherical_8hpp.html">Spherical.hpp</a>&quot;</span></div>
+<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="coefficient-types_2tests_2_coefficients_8hpp.html">Coefficients.hpp</a>&quot;</span></div>
+<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160; </div>
+<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="coefficient-functions_8hpp.html">details/coefficient-functions.hpp</a>&quot;</span></div>
+<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160; </div>
+<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;<span class="preprocessor">#endif </span><span class="comment">//OPENKALMAN_COEFFICIENT_TYPES_HPP</span></div>
+<div class="ttc" id="a_angle_8hpp_html"><div class="ttname"><a href="_angle_8hpp.html">Angle.hpp</a></div><div class="ttdoc">Definition of the Angle class and related limits.</div></div>
+<div class="ttc" id="a_axis_8hpp_html"><div class="ttname"><a href="_axis_8hpp.html">Axis.hpp</a></div><div class="ttdoc">Definition of the Axis class.</div></div>
+<div class="ttc" id="a_distance_8hpp_html"><div class="ttname"><a href="_distance_8hpp.html">Distance.hpp</a></div><div class="ttdoc">Definition of the Distance class.</div></div>
+<div class="ttc" id="a_inclination_8hpp_html"><div class="ttname"><a href="_inclination_8hpp.html">Inclination.hpp</a></div><div class="ttdoc">Definition of the Inclination class and related limits.</div></div>
+<div class="ttc" id="a_polar_8hpp_html"><div class="ttname"><a href="_polar_8hpp.html">Polar.hpp</a></div><div class="ttdoc">Definition of Polar class and associated details.</div></div>
+<div class="ttc" id="a_spherical_8hpp_html"><div class="ttname"><a href="_spherical_8hpp.html">Spherical.hpp</a></div><div class="ttdoc">Definition of Spherical class and associated details.</div></div>
+<div class="ttc" id="acoefficient-functions_8hpp_html"><div class="ttname"><a href="coefficient-functions_8hpp.html">coefficient-functions.hpp</a></div><div class="ttdoc">Functions for accessing elements of typed arrays, based on typed coefficients.</div></div>
+<div class="ttc" id="acoefficient-types_2tests_2_coefficients_8hpp_html"><div class="ttname"><a href="coefficient-types_2tests_2_coefficients_8hpp.html">coefficients.hpp</a></div><div class="ttdoc">Header file for coefficient tests.</div></div>
+<div class="ttc" id="acoefficient__forward-declarations_8hpp_html"><div class="ttname"><a href="coefficient__forward-declarations_8hpp.html">coefficient_forward-declarations.hpp</a></div><div class="ttdoc">Forward definitions for coefficient types.</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_bf85a1622761b0afd6fb52adee52cf94.html">OpenKalman</a></li><li class="navelem"><a class="el" href="dir_1a0f87da89794a539326ef9d12a2b565.html">coefficient-types</a></li><li class="navelem"><a class="el" href="coefficient-types_8hpp.html">coefficient-types.hpp</a></li>
-    <li class="footer">Generated on Sat Dec 5 2020 02:59:57 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
+    <li class="footer">Generated on Sun Dec 6 2020 19:54:43 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
   </ul>
 </div>
 </body>

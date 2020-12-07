@@ -27,24 +27,33 @@ var NAVTREE =
   [ "OpenKalman", "index.html", [
     [ "Overview", "index.html", null ],
     [ "Getting Started", "gettingstarted.html", null ],
-    [ "Getting Started", "gettingstarted.html", null ],
-    [ "Deprecated List", "deprecated.html", null ],
-    [ "classes", "annotated.html", null ],
-    [ "classlist", "annotated.html", "annotated" ],
-    [ "Namespaces", "namespaces.html", null ],
-    [ "Namespace List", "namespaces.html", "namespaces" ],
-    [ "Namespace Members", "namespacemembers.html", [
-      [ "All", "namespacemembers.html", "namespacemembers_dup" ],
-      [ "Functions", "namespacemembers_func.html", null ],
-      [ "Variables", "namespacemembers_vars.html", null ],
-      [ "Typedefs", "namespacemembers_type.html", null ],
-      [ "Enumerations", "namespacemembers_enum.html", null ]
+    [ "Namespaces", "namespaces.html", [
+      [ "Namespace List", "namespaces.html", "namespaces_dup" ],
+      [ "Namespace Members", "namespacemembers.html", [
+        [ "All", "namespacemembers.html", "namespacemembers_dup" ],
+        [ "Functions", "namespacemembers_func.html", null ],
+        [ "Variables", "namespacemembers_vars.html", null ],
+        [ "Typedefs", "namespacemembers_type.html", null ],
+        [ "Enumerations", "namespacemembers_enum.html", null ]
+      ] ]
     ] ],
-    [ "Files", "files.html", null ],
-    [ "File List", "files.html", "files" ],
-    [ "Globals", "globals.html", [
-      [ "All", "globals.html", null ],
-      [ "Macros", "globals_defs.html", null ]
+    [ "Classes", "annotated.html", [
+      [ "Classlist", "annotated.html", "annotated_dup" ],
+      [ "Class Index", "classes.html", null ],
+      [ "Class Hierarchy", "hierarchy.html", "hierarchy" ],
+      [ "Class Members", "functions.html", [
+        [ "All", "functions.html", "functions_dup" ],
+        [ "Functions", "functions_func.html", "functions_func" ],
+        [ "Variables", "functions_vars.html", null ],
+        [ "Typedefs", "functions_type.html", null ]
+      ] ]
+    ] ],
+    [ "Files", "files.html", [
+      [ "File List", "files.html", "files_dup" ],
+      [ "Globals", "globals.html", [
+        [ "All", "globals.html", null ],
+        [ "Macros", "globals_defs.html", null ]
+      ] ]
     ] ]
   ] ]
 ];
@@ -52,9 +61,9 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "_angle_8hpp.html",
-"namespace_open_kalman.html#a67371d0db0c89c7d13983f48b94d66ea",
-"struct_open_kalman_1_1_eigen3_1_1_diagonal_matrix.html#af02e754e6d550efee9ee61bdddaec32b",
-"struct_open_kalman_1_1_square_root_covariance.html#ae46aad737b7f1f754a6aa3d51260ce61"
+"namespace_open_kalman.html#a0c8ce92ebb39445ad24273396c57ff0b",
+"struct_eigen_1_1_mean_comma_initializer.html",
+"struct_open_kalman_1_1_matrix_traits.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

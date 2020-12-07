@@ -83,6 +83,7 @@ $(document).ready(function(){initNavTree('namespace_open_kalman_1_1_eigen3.html'
 
 <div class="header">
   <div class="summary">
+<a href="#namespaces">Namespaces</a> &#124;
 <a href="#var-members">Variables</a> &#124;
 <a href="#typedef-members">Aliases</a> &#124;
 <a href="#func-members">Functions</a> &#124;
@@ -95,6 +96,12 @@ $(document).ready(function(){initNavTree('namespace_open_kalman_1_1_eigen3.html'
 <p>Namespace for all <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a> interface definitions.  
 <a href="namespace_open_kalman_1_1_eigen3.html#details">More...</a></p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="namespaces"></a>
+Namespaces</h2></td></tr>
+<tr class="memitem:namespace_open_kalman_1_1_eigen3_1_1internal"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1_eigen3_1_1internal.html">internal</a></td></tr>
+<tr class="memdesc:namespace_open_kalman_1_1_eigen3_1_1internal"><td class="mdescLeft">&#160;</td><td class="mdescRight">Namespace for definitions internal to the <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a> interface library. <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
 Variables</h2></td></tr>
 <tr class="memitem:a4213585dbf9ef23d61030a68523a827b"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
@@ -137,7 +144,7 @@ Aliases</h2></td></tr>
 <tr class="memitem:ab5caa435d3ad3fbf96cdf5025dbb1742"><td class="memTemplParams" colspan="2"><a id="ab5caa435d3ad3fbf96cdf5025dbb1742"></a>
 template&lt;typename NestedMatrix &gt; </td></tr>
 <tr class="memitem:ab5caa435d3ad3fbf96cdf5025dbb1742"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1_eigen3.html#ab5caa435d3ad3fbf96cdf5025dbb1742">IdentityMatrix</a> = Eigen::CwiseNullaryOp&lt; Eigen::internal::scalar_identity_op&lt; typename NestedMatrix::Scalar &gt;, NestedMatrix &gt;</td></tr>
-<tr class="memdesc:ab5caa435d3ad3fbf96cdf5025dbb1742"><td class="mdescLeft">&#160;</td><td class="mdescRight">An alias for the Eigen identity matrix. <br /></td></tr>
+<tr class="memdesc:ab5caa435d3ad3fbf96cdf5025dbb1742"><td class="mdescLeft">&#160;</td><td class="mdescRight">An alias for the <a class="el" href="namespace_eigen.html" title="Eigen3&#39;s native namespace.">Eigen</a> identity matrix. <br /></td></tr>
 <tr class="separator:ab5caa435d3ad3fbf96cdf5025dbb1742"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
@@ -257,6 +264,21 @@ template&lt;std::size_t index, typename Arg , std::enable_if_t&lt; euclidean_exp
 <tr class="memitem:a7e6c3b8a617930c6f44f164c6069fa3f"><td class="memTemplItemLeft" align="right" valign="top">decltype(auto)&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1_eigen3.html#a7e6c3b8a617930c6f44f164c6069fa3f">column</a> (Arg &amp;&amp;arg)</td></tr>
 <tr class="memdesc:a7e6c3b8a617930c6f44f164c6069fa3f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return column <code>index</code> of Arg. Constexpr index version. <br /></td></tr>
 <tr class="separator:a7e6c3b8a617930c6f44f164c6069fa3f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a95e10ebc64d6c4cb16307f79fe1dc1d5"><td class="memTemplParams" colspan="2">template&lt;typename ReturnType , template&lt; typename Scalar &gt; typename distribution_type = std::normal_distribution, typename random_number_engine  = std::mt19937, typename... Params, std::enable_if_t&lt; euclidean_expr&lt; ReturnType &gt;, int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:a95e10ebc64d6c4cb16307f79fe1dc1d5"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1_eigen3.html#a95e10ebc64d6c4cb16307f79fe1dc1d5">randomize</a> (Params...params)</td></tr>
+<tr class="separator:a95e10ebc64d6c4cb16307f79fe1dc1d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a89a15d893ae0a0c3f51bdce5cd36cf10"><td class="memTemplParams" colspan="2">template&lt;typename Scalar , std::size_t dimension, std::size_t columns = 1, typename ... Args, std::enable_if_t&lt; std::is_arithmetic_v&lt; Scalar &gt; and(std::is_convertible_v&lt; Args, Scalar &gt; and ...) and(sizeof...(Args)==dimension *columns), int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:a89a15d893ae0a0c3f51bdce5cd36cf10"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1_eigen3.html#a89a15d893ae0a0c3f51bdce5cd36cf10">make_native_matrix</a> (const Args ... args)</td></tr>
+<tr class="separator:a89a15d893ae0a0c3f51bdce5cd36cf10"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aff6d199e3f727fd414240f55358babc0"><td class="memTemplParams" colspan="2">template&lt;std::size_t dimension, std::size_t columns = 1, typename ... Args, std::enable_if_t&lt;(std::is_arithmetic_v&lt; Args &gt; and ...) and(sizeof...(Args)==dimension *columns), int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:aff6d199e3f727fd414240f55358babc0"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1_eigen3.html#aff6d199e3f727fd414240f55358babc0">make_native_matrix</a> (const Args ... args)</td></tr>
+<tr class="memdesc:aff6d199e3f727fd414240f55358babc0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Make a native <a class="el" href="namespace_eigen.html" title="Eigen3&#39;s native namespace.">Eigen</a> matrix from a list of coefficients in row-major order.  <a href="namespace_open_kalman_1_1_eigen3.html#aff6d199e3f727fd414240f55358babc0">More...</a><br /></td></tr>
+<tr class="separator:aff6d199e3f727fd414240f55358babc0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a11a1c726349900040c32f91d5613d242"><td class="memTemplParams" colspan="2"><a id="a11a1c726349900040c32f91d5613d242"></a>
+template&lt;typename ... Args, std::enable_if_t&lt; std::conjunction_v&lt; std::is_arithmetic&lt; Args &gt;... &gt;, int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:a11a1c726349900040c32f91d5613d242"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1_eigen3.html#a11a1c726349900040c32f91d5613d242">make_native_matrix</a> (const Args ... args)</td></tr>
+<tr class="memdesc:a11a1c726349900040c32f91d5613d242"><td class="mdescLeft">&#160;</td><td class="mdescRight">Make a native <a class="el" href="namespace_eigen.html" title="Eigen3&#39;s native namespace.">Eigen</a> 1-column vector from a list of coefficients in row-major order. <br /></td></tr>
+<tr class="separator:a11a1c726349900040c32f91d5613d242"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad8a4e9c73dead8cfb0c7b4053d8f1d61"><td class="memTemplParams" colspan="2">template&lt;typename A , typename B , std::enable_if_t&lt; eigen_matrix&lt; A &gt; and eigen_matrix&lt; B &gt;, int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:ad8a4e9c73dead8cfb0c7b4053d8f1d61"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1_eigen3.html#ad8a4e9c73dead8cfb0c7b4053d8f1d61">solve</a> (const A &amp;a, const B &amp;b)</td></tr>
 <tr class="memdesc:ad8a4e9c73dead8cfb0c7b4053d8f1d61"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solve the equation AX = B for X. A is a diagonal matrix.  <a href="namespace_open_kalman_1_1_eigen3.html#ad8a4e9c73dead8cfb0c7b4053d8f1d61">More...</a><br /></td></tr>
@@ -350,27 +372,26 @@ template&lt;typename Arg , std::enable_if_t&lt; Eigen3::eigen_zero_expr&lt; Arg 
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_diagonal_matrix.html">DiagonalMatrix</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A diagonal matrix, based on an Eigen matrix.  <a href="struct_open_kalman_1_1_eigen3_1_1_diagonal_matrix.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A diagonal matrix, based on an <a class="el" href="namespace_eigen.html" title="Eigen3&#39;s native namespace.">Eigen</a> matrix.  <a href="struct_open_kalman_1_1_eigen3_1_1_diagonal_matrix.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html">FromEuclideanExpr</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">An expression that transforms angular or other modular coefficients back from Euclidean space.  <a href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix.html">SelfAdjointMatrix</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A self-adjoint matrix, based on an Eigen matrix.  <a href="struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A self-adjoint matrix, based on an <a class="el" href="namespace_eigen.html" title="Eigen3&#39;s native namespace.">Eigen</a> matrix.  <a href="struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_to_euclidean_expr.html">ToEuclideanExpr</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">An expression that transforms coefficients into Euclidean space for proper wrapping.  <a href="struct_open_kalman_1_1_eigen3_1_1_to_euclidean_expr.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_triangular_matrix.html">TriangularMatrix</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A triangular matrix, based on an Eigen matrix.  <a href="struct_open_kalman_1_1_eigen3_1_1_triangular_matrix.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A triangular matrix, based on an <a class="el" href="namespace_eigen.html" title="Eigen3&#39;s native namespace.">Eigen</a> matrix.  <a href="struct_open_kalman_1_1_eigen3_1_1_triangular_matrix.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_zero_matrix.html">ZeroMatrix</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A wrapper type for an Eigen zero matrix.  <a href="struct_open_kalman_1_1_eigen3_1_1_zero_matrix.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A wrapper type for an <a class="el" href="namespace_eigen.html" title="Eigen3&#39;s native namespace.">Eigen</a> zero matrix.  <a href="struct_open_kalman_1_1_eigen3_1_1_zero_matrix.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Namespace for all <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a> interface definitions. </p>
-</div><h2 class="groupheader">Variable Documentation</h2>
+<div class="textblock"></div><h2 class="groupheader">Variable Documentation</h2>
 <a id="a8d408b48a797fea59c2b1e5ecd532920"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a8d408b48a797fea59c2b1e5ecd532920">&#9670;&nbsp;</a></span>eigen_diagonal_expr</h2>
 
@@ -392,7 +413,7 @@ template&lt;typename T &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>A diagonal matrix based on the Eigen library. </p><dl class="section note"><dt>Note</dt><dd>This is a concept when compiled with c++20, and a constexpr bool in c++17. </dd></dl>
+<p>A diagonal matrix based on the <a class="el" href="namespace_eigen.html" title="Eigen3&#39;s native namespace.">Eigen</a> library. </p><dl class="section note"><dt>Note</dt><dd>This is a concept when compiled with c++20, and a constexpr bool in c++17. </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="eigen3-traits_8hpp_source.html#l00087">87</a> of file <a class="el" href="eigen3-traits_8hpp_source.html">eigen3-traits.hpp</a>.</p>
 
@@ -419,7 +440,7 @@ template&lt;typename T &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>T is either a native Eigen matrix or a zero Eigen matrix. </p><dl class="section note"><dt>Note</dt><dd>This is a concept when compiled with c++20, and a constexpr bool in c++17. </dd></dl>
+<p>T is either a native <a class="el" href="namespace_eigen.html" title="Eigen3&#39;s native namespace.">Eigen</a> matrix or a zero <a class="el" href="namespace_eigen.html" title="Eigen3&#39;s native namespace.">Eigen</a> matrix. </p><dl class="section note"><dt>Note</dt><dd>This is a concept when compiled with c++20, and a constexpr bool in c++17. </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="eigen3-traits_8hpp_source.html#l00177">177</a> of file <a class="el" href="eigen3-traits_8hpp_source.html">eigen3-traits.hpp</a>.</p>
 
@@ -448,9 +469,7 @@ template&lt;typename T &gt; </div>
 </div><div class="memdoc">
 <b>Initial value:</b><div class="fragment"><div class="line">= std::is_base_of_v&lt;Eigen::MatrixBase&lt;std::decay_t&lt;T&gt;&gt;, std::decay_t&lt;T&gt;&gt; and</div>
 <div class="line">      (not std::is_base_of_v&lt;internal::Eigen3Base&lt;std::decay_t&lt;T&gt;&gt;, std::decay_t&lt;T&gt;&gt;)</div>
-</div><!-- fragment -->
-<p>Specifies a native <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a> matrix. </p>
-<p>This includes any class in the Eigen library descending from Eigen::MatrixBase. </p><dl class="section note"><dt>Note</dt><dd>This is a concept when compiled with c++20, and a constexpr bool in c++17. </dd></dl>
+</div><!-- fragment --><p>This includes any class in the <a class="el" href="namespace_eigen.html" title="Eigen3&#39;s native namespace.">Eigen</a> library descending from Eigen::MatrixBase. </p><dl class="section note"><dt>Note</dt><dd>This is a concept when compiled with c++20, and a constexpr bool in c++17. </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="eigen3-matrix-traits_8hpp_source.html#l00030">30</a> of file <a class="el" href="eigen3-matrix-traits_8hpp_source.html">eigen3-matrix-traits.hpp</a>.</p>
 
@@ -477,7 +496,7 @@ template&lt;typename T &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Type T is a self-adjoint matrix based on the Eigen library. /note This is a concept when compiled with c++20, and a constexpr bool in c++17. </p>
+<p>Type T is a self-adjoint matrix based on the <a class="el" href="namespace_eigen.html" title="Eigen3&#39;s native namespace.">Eigen</a> library. /note This is a concept when compiled with c++20, and a constexpr bool in c++17. </p>
 
 <p class="definition">Definition at line <a class="el" href="eigen3-traits_8hpp_source.html#l00043">43</a> of file <a class="el" href="eigen3-traits_8hpp_source.html">eigen3-traits.hpp</a>.</p>
 
@@ -504,7 +523,7 @@ template&lt;typename T &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>A triangular matrix based on the Eigen library. </p><dl class="section note"><dt>Note</dt><dd>This is a concept when compiled with c++20, and a constexpr bool in c++17. </dd></dl>
+<p>A triangular matrix based on the <a class="el" href="namespace_eigen.html" title="Eigen3&#39;s native namespace.">Eigen</a> library. </p><dl class="section note"><dt>Note</dt><dd>This is a concept when compiled with c++20, and a constexpr bool in c++17. </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="eigen3-traits_8hpp_source.html#l00065">65</a> of file <a class="el" href="eigen3-traits_8hpp_source.html">eigen3-traits.hpp</a>.</p>
 
@@ -531,7 +550,7 @@ template&lt;typename T &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>A zero matrix based on the Eigen library. (All coefficients are zero.) </p><dl class="section note"><dt>Note</dt><dd>This is a concept when compiled with c++20, and a constexpr bool in c++17. </dd></dl>
+<p>A zero matrix based on the <a class="el" href="namespace_eigen.html" title="Eigen3&#39;s native namespace.">Eigen</a> library. (All coefficients are zero.) </p><dl class="section note"><dt>Note</dt><dd>This is a concept when compiled with c++20, and a constexpr bool in c++17. </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="eigen3-traits_8hpp_source.html#l00109">109</a> of file <a class="el" href="eigen3-traits_8hpp_source.html">eigen3-traits.hpp</a>.</p>
 
@@ -585,7 +604,7 @@ template&lt;typename T &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>An expression converting each column vector in a Euclidean Eigen matrix from Euclidean space. </p><dl class="section note"><dt>Note</dt><dd>This is a concept when compiled with c++20, and a constexpr bool in c++17. </dd></dl>
+<p>An expression converting each column vector in a Euclidean <a class="el" href="namespace_eigen.html" title="Eigen3&#39;s native namespace.">Eigen</a> matrix from Euclidean space. </p><dl class="section note"><dt>Note</dt><dd>This is a concept when compiled with c++20, and a constexpr bool in c++17. </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="eigen3-traits_8hpp_source.html#l00131">131</a> of file <a class="el" href="eigen3-traits_8hpp_source.html">eigen3-traits.hpp</a>.</p>
 
@@ -639,7 +658,7 @@ template&lt;typename T &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>An expression converting each column vector in an Eigen matrix to Euclidean space. </p><dl class="section note"><dt>Note</dt><dd>This is a concept when compiled with c++20, and a constexpr bool in c++17. </dd></dl>
+<p>An expression converting each column vector in an <a class="el" href="namespace_eigen.html" title="Eigen3&#39;s native namespace.">Eigen</a> matrix to Euclidean space. </p><dl class="section note"><dt>Note</dt><dd>This is a concept when compiled with c++20, and a constexpr bool in c++17. </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="eigen3-traits_8hpp_source.html#l00153">153</a> of file <a class="el" href="eigen3-traits_8hpp_source.html">eigen3-traits.hpp</a>.</p>
 
@@ -708,8 +727,6 @@ template&lt;typename V , typename ... Vs, std::enable_if_t&lt;((eigen_matrix&lt;
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Concatenate one or more Eigen::MatrixBase objects diagonally. </p>
 <p>Concatenate diagonally. </p>
 
 <p class="definition">Definition at line <a class="el" href="eigen3-matrix-overloads_8hpp_source.html#l00490">490</a> of file <a class="el" href="eigen3-matrix-overloads_8hpp_source.html">eigen3-matrix-overloads.hpp</a>.</p>
@@ -751,8 +768,6 @@ template&lt;typename V , typename ... Vs, std::enable_if_t&lt;(to_euclidean_expr
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Concatenate one or more EuclideanExpr objects horizontally. </p>
 <p>Concatenate one or more Eigen::MatrixBase objects horizontally. </p>
 
 <p class="definition">Definition at line <a class="el" href="eigen3-euclidean-overloads_8hpp_source.html#l00305">305</a> of file <a class="el" href="eigen3-euclidean-overloads_8hpp_source.html">eigen3-euclidean-overloads.hpp</a>.</p>
@@ -794,8 +809,6 @@ template&lt;typename V , typename ... Vs, std::enable_if_t&lt;(to_euclidean_expr
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Concatenate one or more EuclideanExpr objects vertically. </p>
 <p>Concatenate one or more Eigen::MatrixBase objects vertically. </p>
 
 <p class="definition">Definition at line <a class="el" href="eigen3-euclidean-overloads_8hpp_source.html#l00278">278</a> of file <a class="el" href="eigen3-euclidean-overloads_8hpp_source.html">eigen3-euclidean-overloads.hpp</a>.</p>
@@ -837,8 +850,6 @@ template&lt;typename Arg , std::enable_if_t&lt; euclidean_expr&lt; Arg &gt; and 
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Get element (i) of one-column <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_to_euclidean_expr.html" title="An expression that transforms coefficients into Euclidean space for proper wrapping.">ToEuclideanExpr</a> or <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html" title="An expression that transforms angular or other modular coefficients back from Euclidean space.">FromEuclideanExpr</a> matrix arg. </p>
 <p>Get element (i) of diagonal matrix arg.</p>
 <p>Get element (i) of diagonal self-adjoint or triangular matrix.</p>
 <p>Get element (i) of FromEuclideanExpr(ToEuclideanExpr) matrix. </p>
@@ -888,8 +899,6 @@ template&lt;typename Arg , std::enable_if_t&lt; euclidean_expr&lt; Arg &gt; and 
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Get element (i, j) of <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_to_euclidean_expr.html" title="An expression that transforms coefficients into Euclidean space for proper wrapping.">ToEuclideanExpr</a> or <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html" title="An expression that transforms angular or other modular coefficients back from Euclidean space.">FromEuclideanExpr</a> matrix arg. </p>
 <p>Get element (i, j) of diagonal matrix arg.</p>
 <p>Get element (i, j) of a self-adjoint or triangular matrix that is also diagonal.</p>
 <p>Get element (i, j) of triangular matrix arg.</p>
@@ -1010,8 +1019,6 @@ template&lt;typename Coefficients , TriangleType triangle_type, typename Scalar 
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>For <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a>: Make a <a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a>, with nested triangular type, from a list of coefficients. </p>
 <p>For <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a>: Make a writable, uninitialized <a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a>, specifying the coefficients.</p>
 <p>For <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a>: Make a writable, uninitialized <a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a> with nested triangular matrix.</p>
 <p>For <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a>: Make a <a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a> from a list of coefficients, with default <a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a> coefficients.</p>
@@ -1087,8 +1094,6 @@ template&lt;typename Scalar , typename Coefficients , std::size_t cols = 1, std:
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>For <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a>: Make a <a class="el" href="struct_open_kalman_1_1_euclidean_mean.html" title="Similar to a Mean, but the coefficients are transformed into Euclidean space, based on their type.">EuclideanMean</a> based on a scalar type, row coefficients, and a number of columns. </p>
 <p>For <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a>: Make a <a class="el" href="struct_open_kalman_1_1_euclidean_mean.html" title="Similar to a Mean, but the coefficients are transformed into Euclidean space, based on their type.">EuclideanMean</a> from a list of coefficients, specifying the row coefficients.</p>
 <p>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </p><dl class="section note"><dt>Note</dt><dd>This function is imported into the <a class="el" href="namespace_open_kalman.html" title="The root namespace for OpenKalman.">OpenKalman</a> namespace if <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a> is the first-included interface. </dd></dl>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
@@ -1137,8 +1142,6 @@ template&lt;typename ... Args, std::enable_if_t&lt;(sizeof...(Args) &gt; 0) and 
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>For <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a>: Make a one-column <a class="el" href="struct_open_kalman_1_1_euclidean_mean.html" title="Similar to a Mean, but the coefficients are transformed into Euclidean space, based on their type.">EuclideanMean</a> from a list of coefficients, with default <a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a> coefficients. </p>
 <p>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </p><dl class="section note"><dt>Note</dt><dd>This function is imported into the <a class="el" href="namespace_open_kalman.html" title="The root namespace for OpenKalman.">OpenKalman</a> namespace if <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a> is the first-included interface. </dd></dl>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
@@ -1167,8 +1170,6 @@ template&lt;typename Scalar , typename RowCoefficients , typename ColumnCoeffici
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>For <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a>: Make a <a class="el" href="struct_open_kalman_1_1_matrix.html" title="A matrix with typed rows and columns.">Matrix</a> based on a scalar type and row and column coefficients. </p>
 <p>For <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a>: Make a <a class="el" href="struct_open_kalman_1_1_matrix.html" title="A matrix with typed rows and columns.">Matrix</a> from a list of coefficients, specifying the row and column coefficients.</p>
 <p>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </p><dl class="section note"><dt>Note</dt><dd>This function is imported into the <a class="el" href="namespace_open_kalman.html" title="The root namespace for OpenKalman.">OpenKalman</a> namespace if <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a> is the first-included interface. </dd></dl>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
@@ -1210,8 +1211,6 @@ template&lt;typename ... Args, std::enable_if_t&lt;(sizeof...(Args) &gt; 0) and 
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>For <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a>: Make a one-column <a class="el" href="struct_open_kalman_1_1_matrix.html" title="A matrix with typed rows and columns.">Matrix</a> from a list of coefficients, with default <a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a> coefficients. </p>
 <p>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </p><dl class="section note"><dt>Note</dt><dd>This function is imported into the <a class="el" href="namespace_open_kalman.html" title="The root namespace for OpenKalman.">OpenKalman</a> namespace if <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a> is the first-included interface. </dd></dl>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
@@ -1240,8 +1239,6 @@ template&lt;typename Scalar , typename Coefficients , std::size_t cols = 1, std:
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>For <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a>: Make a <a class="el" href="struct_open_kalman_1_1_mean.html" title="A set of one or more column vectors, each representing a statistical mean.">Mean</a> based on a scalar type, a set of row coefficients, and a number of columns. </p>
 <p>For <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a>: Make a <a class="el" href="struct_open_kalman_1_1_mean.html" title="A set of one or more column vectors, each representing a statistical mean.">Mean</a> from a list of coefficients, specifying the row coefficients.</p>
 <p>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </p><dl class="section note"><dt>Note</dt><dd>This function is imported into the <a class="el" href="namespace_open_kalman.html" title="The root namespace for OpenKalman.">OpenKalman</a> namespace if <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a> is the first-included interface. </dd></dl>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
@@ -1282,8 +1279,6 @@ template&lt;typename ... Args, std::enable_if_t&lt;(sizeof...(Args) &gt; 0) and 
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>For <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a>: Make a one-column <a class="el" href="struct_open_kalman_1_1_mean.html" title="A set of one or more column vectors, each representing a statistical mean.">Mean</a> from a list of coefficients, with default <a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a> coefficients. </p>
 <p>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </p><dl class="section note"><dt>Note</dt><dd>This function is imported into the <a class="el" href="namespace_open_kalman.html" title="The root namespace for OpenKalman.">OpenKalman</a> namespace if <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a> is the first-included interface. </dd></dl>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
@@ -1297,7 +1292,7 @@ template&lt;typename ... Args, std::enable_if_t&lt;(sizeof...(Args) &gt; 0) and 
 </div>
 </div>
 <a id="a72cc88064aa1729df7d7b09ae554bebe"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a72cc88064aa1729df7d7b09ae554bebe">&#9670;&nbsp;</a></span>make_native_matrix()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a72cc88064aa1729df7d7b09ae554bebe">&#9670;&nbsp;</a></span>make_native_matrix() <span class="overload">[1/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1327,6 +1322,75 @@ template&lt;typename Arg , std::enable_if_t&lt; euclidean_expr&lt; Arg &gt;, int
 
 </div>
 </div>
+<a id="a89a15d893ae0a0c3f51bdce5cd36cf10"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a89a15d893ae0a0c3f51bdce5cd36cf10">&#9670;&nbsp;</a></span>make_native_matrix() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Scalar , std::size_t dimension, std::size_t columns = 1, typename ... Args, std::enable_if_t&lt; std::is_arithmetic_v&lt; Scalar &gt; and(std::is_convertible_v&lt; Args, Scalar &gt; and ...) and(sizeof...(Args)==dimension *columns), int &gt;  = 0&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto OpenKalman::Eigen3::make_native_matrix </td>
+          <td>(</td>
+          <td class="paramtype">const Args ...&#160;</td>
+          <td class="paramname"><em>args</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Make a native <a class="el" href="namespace_eigen.html" title="Eigen3&#39;s native namespace.">Eigen</a> matrix from a list of coefficients in row-major order. </p><dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">Scalar</td><td>The scalar type of the matrix. </td></tr>
+    <tr><td class="paramname">dimension</td><td>The number of rows. </td></tr>
+    <tr><td class="paramname">columns</td><td>The number of columns. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="eigen3-matrix-overloads_8hpp_source.html#l00034">34</a> of file <a class="el" href="eigen3-matrix-overloads_8hpp_source.html">eigen3-matrix-overloads.hpp</a>.</p>
+
+</div>
+</div>
+<a id="aff6d199e3f727fd414240f55358babc0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aff6d199e3f727fd414240f55358babc0">&#9670;&nbsp;</a></span>make_native_matrix() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;std::size_t dimension, std::size_t columns = 1, typename ... Args, std::enable_if_t&lt;(std::is_arithmetic_v&lt; Args &gt; and ...) and(sizeof...(Args)==dimension *columns), int &gt;  = 0&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto OpenKalman::Eigen3::make_native_matrix </td>
+          <td>(</td>
+          <td class="paramtype">const Args ...&#160;</td>
+          <td class="paramname"><em>args</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </p>
+
+<p class="definition">Definition at line <a class="el" href="eigen3-matrix-overloads_8hpp_source.html#l00053">53</a> of file <a class="el" href="eigen3-matrix-overloads_8hpp_source.html">eigen3-matrix-overloads.hpp</a>.</p>
+
+</div>
+</div>
 <a id="a40e16a8d6ebf133a37fad616756a92cc"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a40e16a8d6ebf133a37fad616756a92cc">&#9670;&nbsp;</a></span>make_self_contained()</h2>
 
@@ -1352,8 +1416,6 @@ template&lt;typename... Ts, typename Arg , std::enable_if_t&lt; euclidean_expr&l
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Convert to self-contained version of the matrix. </p>
 <p>Convert to self-contained version of the special matrix.</p>
 <p>Convert to function-returnable version of the matrix. </p>
 
@@ -1377,8 +1439,6 @@ template&lt;typename Coefficients , TriangleType triangle_type = TriangleType::l
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>For <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a>: Make a <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html" title="The upper or lower triangle Cholesky factor (square root) of a covariance matrix.">SquareRootCovariance</a> from a list of coefficients. </p>
 <p>For <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a>: Make a writable, uninitialized <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html" title="The upper or lower triangle Cholesky factor (square root) of a covariance matrix.">SquareRootCovariance</a>.</p>
 <p>For <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a>: Make a default <a class="el" href="struct_open_kalman_1_1_axis.html" title="A real or integral number, (−∞,∞).">Axis</a> <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html" title="The upper or lower triangle Cholesky factor (square root) of a covariance matrix.">SquareRootCovariance</a> from a list of coefficients.</p>
 <p>Only the coefficients in the associated upper or lower triangle are significant. </p><dl class="section note"><dt>Note</dt><dd>This function is imported into the <a class="el" href="namespace_open_kalman.html" title="The root namespace for OpenKalman.">OpenKalman</a> namespace if <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a> is the first-included interface. </dd></dl>
@@ -1537,7 +1597,7 @@ template&lt;typename Arg , std::enable_if_t&lt; euclidean_expr&lt; Arg &gt;, int
 </div>
 </div>
 <a id="a953012881d72bf25a25a087f3eb52a26"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a953012881d72bf25a25a087f3eb52a26">&#9670;&nbsp;</a></span>randomize()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a953012881d72bf25a25a087f3eb52a26">&#9670;&nbsp;</a></span>randomize() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1561,9 +1621,41 @@ template&lt;typename ReturnType , template&lt; typename &gt; typename distributi
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Fill an Eigen matrix with random values selected from a random distribution. The Gaussian distribution has mean zero and a scalar standard deviation sigma (== 1, if not specified). </p>
+<p>Fill an <a class="el" href="namespace_eigen.html" title="Eigen3&#39;s native namespace.">Eigen</a> matrix with random values selected from a random distribution. The Gaussian distribution has mean zero and a scalar standard deviation sigma (== 1, if not specified). </p>
 
-<p class="definition">Definition at line <a class="el" href="eigen3-matrix-overloads_8hpp_source.html#l01240">1240</a> of file <a class="el" href="eigen3-matrix-overloads_8hpp_source.html">eigen3-matrix-overloads.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="eigen3-matrix-overloads_8hpp_source.html#l01244">1244</a> of file <a class="el" href="eigen3-matrix-overloads_8hpp_source.html">eigen3-matrix-overloads.hpp</a>.</p>
+
+</div>
+</div>
+<a id="a95e10ebc64d6c4cb16307f79fe1dc1d5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a95e10ebc64d6c4cb16307f79fe1dc1d5">&#9670;&nbsp;</a></span>randomize() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename ReturnType , template&lt; typename Scalar &gt; typename distribution_type = std::normal_distribution, typename random_number_engine  = std::mt19937, typename... Params, std::enable_if_t&lt; euclidean_expr&lt; ReturnType &gt;, int &gt;  = 0&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto OpenKalman::Eigen3::randomize </td>
+          <td>(</td>
+          <td class="paramtype">Params...&#160;</td>
+          <td class="paramname"><em>params</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Fill a matrix of to-Euclidean- or from_euclidean-transformed values selected from a random distribution. The Gaussian distribution has zero mean and standard deviation sigma (1, if not specified).</p>
+<p>Fill the diagonal of a square matrix with random values selected from a random distribution. The Gaussian distribution has zero mean and standard deviation sigma (1, if not specified). </p>
+
+<p class="definition">Definition at line <a class="el" href="eigen3-euclidean-overloads_8hpp_source.html#l00985">985</a> of file <a class="el" href="eigen3-euclidean-overloads_8hpp_source.html">eigen3-euclidean-overloads.hpp</a>.</p>
 
 </div>
 </div>
@@ -1592,8 +1684,6 @@ template&lt;typename Arg , std::enable_if_t&lt; eigen_native&lt; Arg &gt;, int &
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Create a column vector by taking the mean of each row in a set of column vectors. </p>
 <p>Create a column vector from a diagnoal matrix. (Same as nested_matrix()). </p>
 
 <p class="definition">Definition at line <a class="el" href="eigen3-matrix-overloads_8hpp_source.html#l00297">297</a> of file <a class="el" href="eigen3-matrix-overloads_8hpp_source.html">eigen3-matrix-overloads.hpp</a>.</p>
@@ -1641,8 +1731,6 @@ template&lt;typename Arg , typename Scalar , std::enable_if_t&lt; euclidean_expr
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Set element (i) of <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_to_euclidean_expr.html" title="An expression that transforms coefficients into Euclidean space for proper wrapping.">ToEuclideanExpr</a> or <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html" title="An expression that transforms angular or other modular coefficients back from Euclidean space.">FromEuclideanExpr</a> matrix arg if coefficients are only axes. </p>
 <p>Set element (i) of matrix arg to s.</p>
 <p>Set element (i) of diagonal self-adjoint or triangular matrix.</p>
 <p>Set element (i) of one-column matrix arg to s.</p>
@@ -1712,8 +1800,6 @@ template&lt;typename Arg , typename Scalar , std::enable_if_t&lt; euclidean_expr
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Set element (i, j) of <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_to_euclidean_expr.html" title="An expression that transforms coefficients into Euclidean space for proper wrapping.">ToEuclideanExpr</a> or <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html" title="An expression that transforms angular or other modular coefficients back from Euclidean space.">FromEuclideanExpr</a> matrix arg if coefficients are only axes. </p>
 <p>Set element (i, j) of a self-adjoint or triangular matrix that is also diagonal.</p>
 <p>Set element (i, j) of triangular matrix arg to s.</p>
 <p>Set element (i, j) of self-adjoint matrix arg to s.</p>
@@ -1814,8 +1900,6 @@ template&lt;typename A , typename B , std::enable_if_t&lt; eigen_matrix&lt; A &g
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Solve the equation AX = B for X. A is a diagonal matrix. </p>
 <p>Solve the equation AX = B for X. A is an invertible square matrix. (Does not check that A is invertible.) Uses the square LU decomposition. </p>
 
 <p class="definition">Definition at line <a class="el" href="eigen3-matrix-overloads_8hpp_source.html#l00274">274</a> of file <a class="el" href="eigen3-matrix-overloads_8hpp_source.html">eigen3-matrix-overloads.hpp</a>.</p>
@@ -1847,8 +1931,6 @@ template&lt;typename F , typename... Cs, typename Arg , std::enable_if_t&lt; euc
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Split into one or more Euclidean expressions diagonally. The valuated expression must be square. </p>
 <p>Split a self-adjoint, triangular, or diagonal matrix diagonally.</p>
 <p>Split a self-adjoint or triangular matrix diagonally.</p>
 <p>Split a diagonal matrix diagonally.</p>
@@ -1905,8 +1987,6 @@ template&lt;typename F , bool , typename... Cs, typename Arg , std::enable_if_t&
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Split into one or more Euclidean expressions diagonally. The valuated expression must be square. </p>
 <p>Split a matrix vertically. </p><dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">F</td><td>A class with a static <code>call</code> member to which the result is applied before creating the tuple. </td></tr>
@@ -1945,8 +2025,6 @@ template&lt;typename... Cs, typename Arg , std::enable_if_t&lt; euclidean_expr&l
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Split into one or more Euclidean expressions diagonally. The valuated expression must be square. </p>
 <p>Split a self-adjoint, triangular, or diagonal matrix diagonally. </p>
 
 <p class="definition">Definition at line <a class="el" href="eigen3-euclidean-overloads_8hpp_source.html#l00506">506</a> of file <a class="el" href="eigen3-euclidean-overloads_8hpp_source.html">eigen3-euclidean-overloads.hpp</a>.</p>
@@ -2016,8 +2094,6 @@ template&lt;typename F , typename... Cs, typename Arg , std::enable_if_t&lt; euc
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Split into one or more Euclidean expressions horizontally. </p>
 <p>Split a self-adjoint, triangular, or diagonal matrix horizontally.</p>
 <p>Split a self-adjoint, triangular, or diagonal matrix horizontally, returning a regular matrix.</p>
 <p>Split into one or more Euclidean expressions horizontally. </p><dl class="tparams"><dt>Template Parameters</dt><dd>
@@ -2072,8 +2148,6 @@ template&lt;typename... Cs, typename Arg , std::enable_if_t&lt; euclidean_expr&l
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Split into one or more Euclidean expressions horizontally. </p>
 <p>Split a self-adjoint, triangular, or diagonal matrix horizontally.</p>
 <p>Split a matrix horizontally (case in which there is no split). </p>
 
@@ -2144,8 +2218,6 @@ template&lt;typename F , typename... Cs, typename Arg , std::enable_if_t&lt; euc
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Split into one or more Euclidean expressions vertically. </p>
 <p>Split a self-adjoint, triangular, or diagonal matrix diagonally.</p>
 <p>Split a self-adjoint, triangular, or diagonal matrix vertically, returning a regular matrix.</p>
 <p>Split a matrix vertically (case in which there is no split).</p>
@@ -2200,8 +2272,6 @@ template&lt;typename F , bool , typename... Cs, typename Arg , std::enable_if_t&
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Split into one or more Euclidean expressions vertically. </p>
 <p>Split a matrix vertically. </p><dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">F</td><td>A class with a static <code>call</code> member to which the result is applied before creating the tuple. </td></tr>
@@ -2239,8 +2309,6 @@ template&lt;typename... Cs, typename Arg , std::enable_if_t&lt; euclidean_expr&l
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Split into one or more Euclidean expressions vertically. </p>
 <p>Split a self-adjoint, triangular, or diagonal matrix diagonally. </p>
 
 <p class="definition">Definition at line <a class="el" href="eigen3-euclidean-overloads_8hpp_source.html#l00392">392</a> of file <a class="el" href="eigen3-euclidean-overloads_8hpp_source.html">eigen3-euclidean-overloads.hpp</a>.</p>
@@ -2342,7 +2410,6 @@ template&lt;typename Coefficients , typename Arg , std::enable_if_t&lt; from_euc
   </tr>
 </table>
 </div><div class="memdoc">
-<p>\TODO: Add functionality to conditionally wrap zero and identity, depending on wrap min and max.</p>
 
 <p class="definition">Definition at line <a class="el" href="eigen3-euclidean-overloads_8hpp_source.html#l00144">144</a> of file <a class="el" href="eigen3-euclidean-overloads_8hpp_source.html">eigen3-euclidean-overloads.hpp</a>.</p>
 
@@ -2354,7 +2421,7 @@ template&lt;typename Coefficients , typename Arg , std::enable_if_t&lt; from_euc
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="namespace_open_kalman.html">OpenKalman</a></li><li class="navelem"><a class="el" href="namespace_open_kalman_1_1_eigen3.html">Eigen3</a></li>
-    <li class="footer">Generated on Sat Dec 5 2020 03:00:23 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
+    <li class="footer">Generated on Sun Dec 6 2020 19:54:45 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
   </ul>
 </div>
 </body>

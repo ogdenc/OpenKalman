@@ -96,40 +96,37 @@ $(document).ready(function(){initNavTree('_open_kalman_8hpp_source.html',''); in
 <div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;<span class="comment"> * file, You can obtain one at https://mozilla.org/MPL/2.0/.</span></div>
 <div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;<span class="comment"> */</span></div>
 <div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160; </div>
-<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;<span class="comment">/**</span></div>
-<div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;<span class="comment"> * \file</span></div>
-<div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;<span class="comment"> * This is the meta-header file for OpenKalman.</span></div>
-<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;<span class="comment"> * Include this file before using any OpenKalman classes or methods.</span></div>
-<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;<span class="comment"> * It should appear *after* an interface header file (e.g., Eigen3.h), for the matrix library.</span></div>
-<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160; </div>
-<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">ifndef</span> <span class="preprocessor">OPENKALMAN_OPENKALMAN_HPP</span></div>
-<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">define</span> <span class="preprocessor">OPENKALMAN_OPENKALMAN_HPP</span></div>
+<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;<span class="preprocessor">#ifndef OPENKALMAN_OPENKALMAN_HPP</span></div>
+<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;<span class="preprocessor">#define OPENKALMAN_OPENKALMAN_HPP</span></div>
 <div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160; </div>
-<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;<span class="comment">/**</span></div>
-<div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;<span class="comment"> * The namespace for all OpenKalman-specific classes and methods.</span></div>
-<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;<span class="keyword">namespace</span> OpenKalman</div>
+<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;<span class="keyword">namespace </span><a class="code" href="namespace_open_kalman.html">OpenKalman</a></div>
 <div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;{}</div>
 <div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160; </div>
-<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">include</span> <span class="preprocessor">&quot;basics/basics.hpp&quot;</span></div>
-<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">include</span> <span class="preprocessor">&quot;coefficient-types/coefficient-types.hpp&quot;</span></div>
-<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">include</span> <span class="preprocessor">&quot;matrices/matrices.hpp&quot;</span></div>
-<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">include</span> <span class="preprocessor">&quot;distributions/distributions.hpp&quot;</span></div>
-<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">include</span> <span class="preprocessor">&quot;transformations/transformations.hpp&quot;</span></div>
-<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">include</span> <span class="preprocessor">&quot;transforms/transforms.hpp&quot;</span></div>
-<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">include</span> <span class="preprocessor">&quot;filters/filters.hpp&quot;</span></div>
+<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="basics_8hpp.html">basics/basics.hpp</a>&quot;</span></div>
+<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="coefficient-types_8hpp.html">coefficient-types/coefficient-types.hpp</a>&quot;</span></div>
+<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="matrices_8hpp.html">matrices/matrices.hpp</a>&quot;</span></div>
+<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="distributions_8hpp.html">distributions/distributions.hpp</a>&quot;</span></div>
+<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="transformations_8hpp.html">transformations/transformations.hpp</a>&quot;</span></div>
+<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="transforms_8hpp.html">transforms/transforms.hpp</a>&quot;</span></div>
+<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="filters_8hpp.html">filters/filters.hpp</a>&quot;</span></div>
 <div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160; </div>
 <div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160; </div>
-<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;<span class="preprocessor">#</span><span class="preprocessor">endif</span> <span class="comment">//OPENKALMAN_OPENKALMAN_HPP</span></div>
+<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;<span class="preprocessor">#endif </span><span class="comment">//OPENKALMAN_OPENKALMAN_HPP</span></div>
+<div class="ttc" id="abasics_8hpp_html"><div class="ttname"><a href="basics_8hpp.html">basics.hpp</a></div><div class="ttdoc">Basic forward definitions for OpenKalman as a whole.</div></div>
+<div class="ttc" id="acoefficient-types_8hpp_html"><div class="ttname"><a href="coefficient-types_8hpp.html">coefficient-types.hpp</a></div><div class="ttdoc">Comprehensive header file including all coefficient-related classes and definitions.</div></div>
+<div class="ttc" id="adistributions_8hpp_html"><div class="ttname"><a href="distributions_8hpp.html">distributions.hpp</a></div></div>
+<div class="ttc" id="afilters_8hpp_html"><div class="ttname"><a href="filters_8hpp.html">filters.hpp</a></div></div>
+<div class="ttc" id="amatrices_8hpp_html"><div class="ttname"><a href="matrices_8hpp.html">matrices.hpp</a></div></div>
+<div class="ttc" id="anamespace_open_kalman_html"><div class="ttname"><a href="namespace_open_kalman.html">OpenKalman</a></div><div class="ttdoc">The root namespace for OpenKalman.</div><div class="ttdef"><b>Definition:</b> <a href="forward-class-declarations_8hpp_source.html#l00021">forward-class-declarations.hpp:22</a></div></div>
+<div class="ttc" id="atransformations_8hpp_html"><div class="ttname"><a href="transformations_8hpp.html">transformations.hpp</a></div></div>
+<div class="ttc" id="atransforms_8hpp_html"><div class="ttname"><a href="transforms_8hpp.html">transforms.hpp</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_bf85a1622761b0afd6fb52adee52cf94.html">OpenKalman</a></li><li class="navelem"><a class="el" href="_open_kalman_8hpp.html">OpenKalman.hpp</a></li>
-    <li class="footer">Generated on Sat Dec 5 2020 03:00:18 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
+    <li class="footer">Generated on Sun Dec 6 2020 19:54:44 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
   </ul>
 </div>
 </body>

@@ -1,11 +1,6 @@
 var struct_open_kalman_1_1_euclidean_mean =
 [
-    [ "Base", "struct_open_kalman_1_1_euclidean_mean.html#a53b22d39ae1d058de675e7823960f753", null ],
-    [ "Base", "struct_open_kalman_1_1_euclidean_mean.html#a39585c1eb794916578c1b66c36a38431", null ],
-    [ "Coefficients", "struct_open_kalman_1_1_euclidean_mean.html#a303af3b368d34123d0f85bb35580b70c", null ],
-    [ "ColumnCoefficients", "struct_open_kalman_1_1_euclidean_mean.html#a68c42d641705aede54335208a81e6d5d", null ],
     [ "NestedMatrix", "struct_open_kalman_1_1_euclidean_mean.html#a7a5b7cbef96464c0b8efcc1a192e00f8", null ],
-    [ "RowCoefficients", "struct_open_kalman_1_1_euclidean_mean.html#a4ff55cdd0cf170757a7115914d929557", null ],
     [ "Scalar", "struct_open_kalman_1_1_euclidean_mean.html#a983e8eff3a1e26987f9d89151ab20f59", null ],
     [ "EuclideanMean", "struct_open_kalman_1_1_euclidean_mean.html#a47db9aecb3fe10eeb40b98b9f963bf1b", null ],
     [ "EuclideanMean", "struct_open_kalman_1_1_euclidean_mean.html#a13fbdd9185f59ed42c36e90feff80418", null ],
@@ -16,12 +11,6 @@ var struct_open_kalman_1_1_euclidean_mean =
     [ "nested_matrix", "struct_open_kalman_1_1_euclidean_mean.html#a4503a0ddf37a5c6cd18543bf80f9a065", null ],
     [ "nested_matrix", "struct_open_kalman_1_1_euclidean_mean.html#a04b892885f61fa451d503325e6c39bcd", null ],
     [ "nested_matrix", "struct_open_kalman_1_1_euclidean_mean.html#af02e754e6d550efee9ee61bdddaec32b", null ],
-    [ "operator()", "struct_open_kalman_1_1_euclidean_mean.html#ab01a435149102865cc2146f9b066f926", null ],
-    [ "operator()", "struct_open_kalman_1_1_euclidean_mean.html#a51493eee9b2e92d3bf58d915fdce0e37", null ],
-    [ "operator()", "struct_open_kalman_1_1_euclidean_mean.html#a4931b07c987b684c181976ffed17dd76", null ],
-    [ "operator()", "struct_open_kalman_1_1_euclidean_mean.html#abaae703086d8f589e940b44ebe7e5ea4", null ],
-    [ "operator()", "struct_open_kalman_1_1_euclidean_mean.html#a5149c61033ea0f3ca6937f068a84dafe", null ],
-    [ "operator()", "struct_open_kalman_1_1_euclidean_mean.html#ae48d60444c637c422d50a15f957b611a", null ],
     [ "operator*=", "struct_open_kalman_1_1_euclidean_mean.html#a69f901067dfc73896807e2bf7cb59bdb", null ],
     [ "operator+=", "struct_open_kalman_1_1_euclidean_mean.html#a5286379ea7c0adc28adf4c2a400a5703", null ],
     [ "operator+=", "struct_open_kalman_1_1_euclidean_mean.html#a84f0d88325a5fb70277ef5f626b3232e", null ],
@@ -32,9 +21,5 @@ var struct_open_kalman_1_1_euclidean_mean =
     [ "operator/=", "struct_open_kalman_1_1_euclidean_mean.html#a2adaf9b31d01bba23bb60f443fd3eac7", null ],
     [ "operator=", "struct_open_kalman_1_1_euclidean_mean.html#a4ea50d0db358cea27e45e3a2c3a06286", null ],
     [ "operator=", "struct_open_kalman_1_1_euclidean_mean.html#a09b531520983963806cd46b66fb50f10", null ],
-    [ "operator=", "struct_open_kalman_1_1_euclidean_mean.html#a880968b1f2cf42df0e4a0cc95357af64", null ],
-    [ "operator[]", "struct_open_kalman_1_1_euclidean_mean.html#ac6cdcd935b8e6d8b9efc1377cf2a6326", null ],
-    [ "operator[]", "struct_open_kalman_1_1_euclidean_mean.html#af049f9825d05df3f20a429affe61d2c6", null ],
-    [ "operator[]", "struct_open_kalman_1_1_euclidean_mean.html#a6db1b379fa5c48a3cb6bc46155871e2d", null ],
-    [ "operator[]", "struct_open_kalman_1_1_euclidean_mean.html#a7b4e9bd73483b4cc83f3f69c1438e309", null ]
+    [ "operator=", "struct_open_kalman_1_1_euclidean_mean.html#a880968b1f2cf42df0e4a0cc95357af64", null ]
 ];

@@ -1,14 +1,6 @@
 var namespace_open_kalman_1_1_eigen3 =
 [
-    [ "detail", null, [
-      [ "concatenate_diagonal_impl", "eigen3-matrix-overloads_8hpp.html#a0aca44985327a24155807938c2542625", null ]
-    ] ],
-    [ "internal", null, [
-      [ "Eigen3Base", "struct_open_kalman_1_1_eigen3_1_1internal_1_1_eigen3_base.html", null ],
-      [ "Eigen3MatrixBase", "struct_open_kalman_1_1_eigen3_1_1internal_1_1_eigen3_matrix_base.html", null ],
-      [ "make_split_tuple", "eigen3-matrix-overloads_8hpp.html#a91474c07132a81b5ebf7eb69d2b88fd3", null ],
-      [ "make_split_tuple", "eigen3-matrix-overloads_8hpp.html#a8ab05bbd13440ea900dd13aa6629d2c0", null ]
-    ] ],
+    [ "internal", "namespace_open_kalman_1_1_eigen3_1_1internal.html", "namespace_open_kalman_1_1_eigen3_1_1internal" ],
     [ "DiagonalMatrix", "struct_open_kalman_1_1_eigen3_1_1_diagonal_matrix.html", "struct_open_kalman_1_1_eigen3_1_1_diagonal_matrix" ],
     [ "FromEuclideanExpr", "struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html", "struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr" ],
     [ "SelfAdjointMatrix", "struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix.html", "struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix" ],
@@ -51,6 +43,9 @@ var namespace_open_kalman_1_1_eigen3 =
     [ "make_mean", "namespace_open_kalman_1_1_eigen3.html#ab958f7a462b5c8a0f8a0b27fcfd8e971", null ],
     [ "make_mean", "namespace_open_kalman_1_1_eigen3.html#a0c9a6b195d8d4fbae6ba1878c1bb335e", null ],
     [ "make_native_matrix", "namespace_open_kalman_1_1_eigen3.html#a72cc88064aa1729df7d7b09ae554bebe", null ],
+    [ "make_native_matrix", "namespace_open_kalman_1_1_eigen3.html#a89a15d893ae0a0c3f51bdce5cd36cf10", null ],
+    [ "make_native_matrix", "namespace_open_kalman_1_1_eigen3.html#aff6d199e3f727fd414240f55358babc0", null ],
+    [ "make_native_matrix", "namespace_open_kalman_1_1_eigen3.html#a11a1c726349900040c32f91d5613d242", null ],
     [ "make_self_contained", "namespace_open_kalman_1_1_eigen3.html#a40e16a8d6ebf133a37fad616756a92cc", null ],
     [ "make_self_contained", "namespace_open_kalman_1_1_eigen3.html#a227224e3e0a35d9498371fc6c137f0cd", null ],
     [ "make_square_root_covariance", "namespace_open_kalman_1_1_eigen3.html#a3c71ab9b79246e22a2834dce8c360c51", null ],
@@ -60,6 +55,7 @@ var namespace_open_kalman_1_1_eigen3 =
     [ "QR_decomposition", "namespace_open_kalman_1_1_eigen3.html#a497d7ef2f9c7ff140038d1e101c11899", null ],
     [ "QR_decomposition", "namespace_open_kalman_1_1_eigen3.html#a012047294017da2ed474b117e95afec4", null ],
     [ "randomize", "namespace_open_kalman_1_1_eigen3.html#a953012881d72bf25a25a087f3eb52a26", null ],
+    [ "randomize", "namespace_open_kalman_1_1_eigen3.html#a95e10ebc64d6c4cb16307f79fe1dc1d5", null ],
     [ "reduce_columns", "namespace_open_kalman_1_1_eigen3.html#a81c2b6e93710caa2a2ad99029271d928", null ],
     [ "SelfAdjointMatrix", "namespace_open_kalman_1_1_eigen3.html#afda54550c3ae101cf184feb9c741a4f1", null ],
     [ "set_element", "namespace_open_kalman_1_1_eigen3.html#aff5c36cca718e6c44e3081778f1d44b9", null ],

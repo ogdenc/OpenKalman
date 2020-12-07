@@ -48,7 +48,7 @@ namespace OpenKalman
     using Scalar = typename M::Scalar;
 
     static constexpr std::size_t dimension = M::RowsAtCompileTime;
-    static constexpr std::size_t columns = M::ColsAtCompileTime; //<\TODO: make columns potentially dynamic (0 = dynamic?)
+    static constexpr std::size_t columns = M::ColsAtCompileTime; //<\todo: make columns potentially dynamic (0 = dynamic?)
     //Note: rows or columns at compile time are -1 if the matrix is dynamic:
     static_assert(dimension > 0);
     static_assert(columns > 0);

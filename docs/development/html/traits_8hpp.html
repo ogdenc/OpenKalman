@@ -86,6 +86,7 @@ $(document).ready(function(){initNavTree('traits_8hpp.html',''); initResizable()
 <a href="#var-members">Variables</a> &#124;
 <a href="#enum-members">Enumerations</a> &#124;
 <a href="#typedef-members">Typedefs</a> &#124;
+<a href="#func-members">Functions</a> &#124;
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#namespaces">Namespaces</a>  </div>
   <div class="headertitle">
@@ -188,6 +189,14 @@ Typedefs</h2></td></tr>
 <tr class="memdesc:a7fb718bc7a10021ec9a0032e9b3fc92e"><td class="mdescLeft">&#160;</td><td class="mdescRight">An alias for a self-contained native matrix, based on and equivalent to parameter T.  <a href="namespace_open_kalman.html#a7fb718bc7a10021ec9a0032e9b3fc92e">More...</a><br /></td></tr>
 <tr class="separator:a7fb718bc7a10021ec9a0032e9b3fc92e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:ab7f7071cb157c11253798720be5c7542"><td class="memTemplParams" colspan="2"><a id="ab7f7071cb157c11253798720be5c7542"></a>
+template&lt;typename M , typename ... Args, std::enable_if_t&lt;(std::is_convertible_v&lt; Args, typename MatrixTraits&lt; M &gt;::Scalar &gt; and ...) and(sizeof...(Args)==MatrixTraits&lt; M &gt;::dimension *MatrixTraits&lt; M &gt;::columns), int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:ab7f7071cb157c11253798720be5c7542"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#ab7f7071cb157c11253798720be5c7542">OpenKalman::make_native_matrix</a> (const Args ... args)</td></tr>
+<tr class="memdesc:ab7f7071cb157c11253798720be5c7542"><td class="mdescLeft">&#160;</td><td class="mdescRight">Make a self-contained, native matrix based on the shape of M from a list of coefficients in row-major order. <br /></td></tr>
+<tr class="separator:ab7f7071cb157c11253798720be5c7542"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1is__self__contained.html">OpenKalman::internal::is_self_contained&lt; T, Enable &gt;</a></td></tr>
@@ -226,19 +235,16 @@ Namespaces</h2></td></tr>
 <tr class="memdesc:namespace_open_kalman"><td class="mdescLeft">&#160;</td><td class="mdescRight">The root namespace for <a class="el" href="namespace_open_kalman.html" title="The root namespace for OpenKalman.">OpenKalman</a>. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:namespace_open_kalman_1_1internal"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1internal.html">OpenKalman::internal</a></td></tr>
+<tr class="memdesc:namespace_open_kalman_1_1internal"><td class="mdescLeft">&#160;</td><td class="mdescRight">Namespace for internal definitions, not intended for use outside of <a class="el" href="namespace_open_kalman.html" title="The root namespace for OpenKalman.">OpenKalman</a> development. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Declarations for <a class="el" href="namespace_open_kalman.html" title="The root namespace for OpenKalman.">OpenKalman</a> and native-matrix traits. </p>
-
-<p class="definition">Definition in file <a class="el" href="traits_8hpp_source.html">traits.hpp</a>.</p>
-</div></div><!-- contents -->
+</div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_bf85a1622761b0afd6fb52adee52cf94.html">OpenKalman</a></li><li class="navelem"><a class="el" href="dir_a4c8436c8b3115862a8863d26709ba0b.html">basics</a></li><li class="navelem"><a class="el" href="traits_8hpp.html">traits.hpp</a></li>
-    <li class="footer">Generated on Sat Dec 5 2020 03:00:22 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
+    <li class="footer">Generated on Sun Dec 6 2020 19:54:45 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
   </ul>
 </div>
 </body>

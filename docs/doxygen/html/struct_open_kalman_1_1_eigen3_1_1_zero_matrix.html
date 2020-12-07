@@ -83,18 +83,18 @@ $(document).ready(function(){initNavTree('struct_open_kalman_1_1_eigen3_1_1_zero
 
 <div class="header">
   <div class="summary">
-<a href="struct_open_kalman_1_1_eigen3_1_1_zero_matrix-members.html">List of all members</a> &#124;
-<a href="#pub-types">Public Aliases</a> &#124;
-<a href="#pub-methods">Public Member Functions</a>  </div>
+<a href="struct_open_kalman_1_1_eigen3_1_1_zero_matrix-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">OpenKalman::Eigen3::ZeroMatrix&lt; ArgType &gt; Struct Template Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
+
+<p>A wrapper type for an Eigen zero matrix.  
+ <a href="struct_open_kalman_1_1_eigen3_1_1_zero_matrix.html#details">More...</a></p>
 <a name="details" id="details"></a><h2 class="groupheader">Description</h2>
 <div class="textblock"><h3>template&lt;typename ArgType&gt;<br />
 struct OpenKalman::Eigen3::ZeroMatrix&lt; ArgType &gt;</h3>
 
-<p>A wrapper type for an Eigen zero matrix. </p>
 <dl class="section note"><dt>Note</dt><dd>This is necessary because <a class="el" href="namespace_open_kalman_1_1_eigen3.html" title="Namespace for all Eigen3 interface definitions.">Eigen3</a> types do not distinguish between a zero matrix and a constant matrix. </dd></dl>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
@@ -106,35 +106,6 @@ struct OpenKalman::Eigen3::ZeroMatrix&lt; ArgType &gt;</h3>
 <p class="definition">Definition at line <a class="el" href="_zero_matrix_8hpp_source.html#l00019">19</a> of file <a class="el" href="_zero_matrix_8hpp_source.html">ZeroMatrix.hpp</a>.</p>
 </div>
 <p>Inherits ConstantReturnType&lt; ArgType &gt;.</p>
-<table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
-Public Aliases</h2></td></tr>
-<tr class="memitem:a8d6c63b33047396cdc02a02bc71392c6"><td class="memItemLeft" align="right" valign="top"><a id="a8d6c63b33047396cdc02a02bc71392c6"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>ConstantReturnType</b> = <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_zero_matrix.html">ZeroMatrix</a></td></tr>
-<tr class="separator:a8d6c63b33047396cdc02a02bc71392c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0ffc210abf7e5449a32343eeefd02ca1"><td class="memItemLeft" align="right" valign="top"><a id="a0ffc210abf7e5449a32343eeefd02ca1"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>NestedMatrix</b> = std::decay_t&lt; ArgType &gt;</td></tr>
-<tr class="separator:a0ffc210abf7e5449a32343eeefd02ca1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1235f8d441db653b6765c8a6f960a478"><td class="memItemLeft" align="right" valign="top"><a id="a1235f8d441db653b6765c8a6f960a478"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>Base</b> = typename NestedMatrix::ConstantReturnType</td></tr>
-<tr class="separator:a1235f8d441db653b6765c8a6f960a478"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
-Public Member Functions</h2></td></tr>
-<tr class="memitem:a2b5536650899f448332b2ddd43fe2583"><td class="memTemplParams" colspan="2"><a id="a2b5536650899f448332b2ddd43fe2583"></a>
-template&lt;typename Arg &gt; </td></tr>
-<tr class="memitem:a2b5536650899f448332b2ddd43fe2583"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><b>ZeroMatrix</b> (const Arg &amp;)</td></tr>
-<tr class="separator:a2b5536650899f448332b2ddd43fe2583"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a174e53574c7ed4d86ade2e5c1c9003f3"><td class="memItemLeft" align="right" valign="top"><a id="a174e53574c7ed4d86ade2e5c1c9003f3"></a>
-auto&#160;</td><td class="memItemRight" valign="bottom"><b>operator()</b> (std::size_t i, std::size_t j) const</td></tr>
-<tr class="separator:a174e53574c7ed4d86ade2e5c1c9003f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acc51850ebf3b824c687189de849b109d"><td class="memItemLeft" align="right" valign="top"><a id="acc51850ebf3b824c687189de849b109d"></a>
-auto&#160;</td><td class="memItemRight" valign="bottom"><b>operator()</b> (std::size_t i) const</td></tr>
-<tr class="separator:acc51850ebf3b824c687189de849b109d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a834b373d1e5d10be04520e11828993e0"><td class="memItemLeft" align="right" valign="top"><a id="a834b373d1e5d10be04520e11828993e0"></a>
-auto&#160;</td><td class="memItemRight" valign="bottom"><b>operator[]</b> (std::size_t i) const</td></tr>
-<tr class="separator:a834b373d1e5d10be04520e11828993e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table>
 <hr/>The documentation for this struct was generated from the following files:<ul>
 <li>C:/Users/cogden/CLionProjects/OpenKalman/OpenKalman/interfaces/eigen3/details/<a class="el" href="eigen3-forward-declarations_8hpp_source.html">eigen3-forward-declarations.hpp</a></li>
 <li>C:/Users/cogden/CLionProjects/OpenKalman/OpenKalman/interfaces/eigen3/<a class="el" href="_zero_matrix_8hpp_source.html">ZeroMatrix.hpp</a></li>
@@ -145,7 +116,7 @@ auto&#160;</td><td class="memItemRight" valign="bottom"><b>operator[]</b> (std::
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="namespace_open_kalman.html">OpenKalman</a></li><li class="navelem"><a class="el" href="namespace_open_kalman_1_1_eigen3.html">Eigen3</a></li><li class="navelem"><a class="el" href="struct_open_kalman_1_1_eigen3_1_1_zero_matrix.html">ZeroMatrix</a></li>
-    <li class="footer">Generated on Wed Dec 2 2020 15:40:27 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
+    <li class="footer">Generated on Sun Dec 6 2020 19:54:58 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
   </ul>
 </div>
 </body>

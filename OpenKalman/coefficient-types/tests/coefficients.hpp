@@ -8,6 +8,14 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+/**
+ * \dir
+ * \brief Coefficient tests
+ *
+ * \file
+ * \brief Header file for coefficient tests
+ */
+
 #include <gtest/gtest.h>
 
 #include "basics/basics.hpp"

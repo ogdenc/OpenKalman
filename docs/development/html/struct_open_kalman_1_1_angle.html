@@ -90,17 +90,25 @@ $(document).ready(function(){initNavTree('struct_open_kalman_1_1_angle.html','')
 <div class="title">OpenKalman::Angle&lt; Limits &gt; Struct Template Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
+
+<p>An angle or any other simple modular value.  
+ <a href="struct_open_kalman_1_1_angle.html#details">More...</a></p>
 <a name="details" id="details"></a><h2 class="groupheader">Description</h2>
 <div class="textblock"><h3>template&lt;template&lt; typename Scalar &gt; typename Limits = angle::limits::Radians&gt;<br />
 struct OpenKalman::Angle&lt; Limits &gt;</h3>
 
-<p>An angle or any other simple modular value. </p>
 <p>An angle wraps to a given interval [max,min) when it increases or decreases outside that range. There are several predefined angles, including <a class="el" href="namespace_open_kalman_1_1angle.html#a83281632e5031d7542ef229623b292a9" title="An angle measured in radians [-π,π).">angle::Radians</a>, <a class="el" href="namespace_open_kalman_1_1angle.html#a43c5ad2855eb42b8ce5d207e0693b09e" title="An angle measured in positive or negative degrees [-180,180).">angle::Degrees</a>, <a class="el" href="namespace_open_kalman_1_1angle.html#aae34d8777386110733617fcd3ec26631" title="An angle measured in positive radians [0,2π).">angle::PositiveRadians</a>, <a class="el" href="namespace_open_kalman_1_1angle.html#ac3976c873d043fc2ffc41480786611ba" title="An angle measured in degrees [0,360).">angle::PositiveDegrees</a>, and <a class="el" href="namespace_open_kalman_1_1angle.html#aa956b4da387b5f3228d761597c9de05b" title="An wrapping circle such as the wrapping interval [0,1).">angle::Circle</a>. </p><dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">Limits</td><td>A class template defining the real values <code>min</code> and <code>max</code>, representing minimum and maximum values, respectively, beyond which wrapping occurs. Scalar is a std::floating_point type. </td></tr>
   </table>
   </dd>
 </dl>
+<p><b>See also</b> the following functions for accessing coefficient properties:</p><ul>
+<li><a class="el" href="namespace_open_kalman_1_1internal.html#aaa4f2082a3e8968bedfc2ceda61109e9" title="Get a coordinate in Euclidean space corresponding to a coefficient in a matrix with typed coefficient...">internal::to_euclidean_coeff</a>: Get a coordinate in Euclidean space corresponding to a coefficient in a matrix with typed coefficients.</li>
+<li><a class="el" href="namespace_open_kalman_1_1internal.html#acbfe0e290c67c2597b22b1e308ec8748" title="Get a typed coefficient corresponding to its corresponding coordinate in Euclidean space.">internal::from_euclidean_coeff</a>: Get a typed coefficient corresponding to its corresponding coordinate in Euclidean space.</li>
+<li><a class="el" href="namespace_open_kalman_1_1internal.html#a1bb5189beb193b164ecd64555f77652f" title="Wrap a given coefficient and return its wrapped, scalar value.">internal::wrap_get</a>: Wrap a given coefficient and return its wrapped, scalar value.</li>
+<li><a class="el" href="namespace_open_kalman_1_1internal.html#ad8998a156055ed41512ca22a174a1d58" title="Set the scalar value of a given typed coefficient in a matrix, and wrap the matrix column.">internal::wrap_set</a> Set the scalar value of a given typed coefficient in a matrix, and wrap the matrix column. </li>
+</ul>
 
 <p class="definition">Definition at line <a class="el" href="_angle_8hpp_source.html#l00147">147</a> of file <a class="el" href="_angle_8hpp_source.html">Angle.hpp</a>.</p>
 </div><table class="memberdecls">
@@ -139,8 +147,6 @@ template&lt;template&lt; typename Scalar &gt; typename Limits = angle::limits::R
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>The type of the result when subtracting two <a class="el" href="struct_open_kalman_1_1_angle.html" title="An angle or any other simple modular value.">Angle</a> values. </p>
 <p>A distance between two points on a circle cannot be more than the circumference of the circle, so it must be wrapped as an <a class="el" href="struct_open_kalman_1_1_angle.html" title="An angle or any other simple modular value.">Angle</a>. See David Frederic Crouse, Cubature/Unscented/Sigma Point Kalman Filtering with Angular Measurement Models, 18th Int'l Conf. on Information Fusion 1550, 1553 (2015). </p>
 
 <p class="definition">Definition at line <a class="el" href="_angle_8hpp_source.html#l00167">167</a> of file <a class="el" href="_angle_8hpp_source.html">Angle.hpp</a>.</p>
@@ -156,7 +162,7 @@ template&lt;template&lt; typename Scalar &gt; typename Limits = angle::limits::R
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="namespace_open_kalman.html">OpenKalman</a></li><li class="navelem"><a class="el" href="struct_open_kalman_1_1_angle.html">Angle</a></li>
-    <li class="footer">Generated on Sat Dec 5 2020 03:00:22 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
+    <li class="footer">Generated on Sun Dec 6 2020 19:54:45 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
   </ul>
 </div>
 </body>

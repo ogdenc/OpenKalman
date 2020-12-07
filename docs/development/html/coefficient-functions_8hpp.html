@@ -83,6 +83,7 @@ $(document).ready(function(){initNavTree('coefficient-functions_8hpp.html',''); 
 
 <div class="header">
   <div class="summary">
+<a href="#func-members">Functions</a> &#124;
 <a href="#namespaces">Namespaces</a>  </div>
   <div class="headertitle">
 <div class="title">coefficient-functions.hpp File Reference</div>  </div>
@@ -92,30 +93,45 @@ $(document).ready(function(){initNavTree('coefficient-functions_8hpp.html',''); 
 <p>Functions for accessing elements of typed arrays, based on typed coefficients.  
 <a href="#details">More...</a></p>
 <div class="textblock"><code>#include &lt;type_traits&gt;</code><br />
-<code>#include &lt;array&gt;</code><br />
 <code>#include &lt;functional&gt;</code><br />
 </div>
 <p><a href="coefficient-functions_8hpp_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:aaa4f2082a3e8968bedfc2ceda61109e9"><td class="memTemplParams" colspan="2">template&lt;typename Coeffs , typename F , typename  = std::enable_if_t&lt;    coefficients&lt;Coeffs&gt; and std::is_invocable_v&lt;F, const std::size_t&gt; and    std::is_arithmetic_v&lt;std::invoke_result_t&lt;F, const std::size_t&gt;&gt;&gt;&gt; </td></tr>
+<tr class="memitem:aaa4f2082a3e8968bedfc2ceda61109e9"><td class="memTemplItemLeft" align="right" valign="top">std::invoke_result_t&lt; F, const std::size_t &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1internal.html#aaa4f2082a3e8968bedfc2ceda61109e9">OpenKalman::internal::to_euclidean_coeff</a> (const std::size_t row, const F &amp;get_coeff)</td></tr>
+<tr class="memdesc:aaa4f2082a3e8968bedfc2ceda61109e9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a coordinate in Euclidean space corresponding to a coefficient in a matrix with typed coefficients.  <a href="namespace_open_kalman_1_1internal.html#aaa4f2082a3e8968bedfc2ceda61109e9">More...</a><br /></td></tr>
+<tr class="separator:aaa4f2082a3e8968bedfc2ceda61109e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acbfe0e290c67c2597b22b1e308ec8748"><td class="memTemplParams" colspan="2">template&lt;typename Coeffs , typename F , typename  = std::enable_if_t&lt;    coefficients&lt;Coeffs&gt; and std::is_invocable_v&lt;F, const std::size_t&gt; and    std::is_arithmetic_v&lt;std::invoke_result_t&lt;F, const std::size_t&gt;&gt;&gt;&gt; </td></tr>
+<tr class="memitem:acbfe0e290c67c2597b22b1e308ec8748"><td class="memTemplItemLeft" align="right" valign="top">std::invoke_result_t&lt; F, const std::size_t &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1internal.html#acbfe0e290c67c2597b22b1e308ec8748">OpenKalman::internal::from_euclidean_coeff</a> (const std::size_t row, const F &amp;get_coeff)</td></tr>
+<tr class="memdesc:acbfe0e290c67c2597b22b1e308ec8748"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a typed coefficient corresponding to its corresponding coordinate in Euclidean space.  <a href="namespace_open_kalman_1_1internal.html#acbfe0e290c67c2597b22b1e308ec8748">More...</a><br /></td></tr>
+<tr class="separator:acbfe0e290c67c2597b22b1e308ec8748"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1bb5189beb193b164ecd64555f77652f"><td class="memTemplParams" colspan="2">template&lt;typename Coeffs , typename F , typename  = std::enable_if_t&lt;    coefficients&lt;Coeffs&gt; and std::is_invocable_v&lt;F, const std::size_t&gt; and    std::is_arithmetic_v&lt;std::invoke_result_t&lt;F, const std::size_t&gt;&gt;&gt;&gt; </td></tr>
+<tr class="memitem:a1bb5189beb193b164ecd64555f77652f"><td class="memTemplItemLeft" align="right" valign="top">std::invoke_result_t&lt; F, const std::size_t &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1internal.html#a1bb5189beb193b164ecd64555f77652f">OpenKalman::internal::wrap_get</a> (const std::size_t row, const F &amp;get_coeff)</td></tr>
+<tr class="memdesc:a1bb5189beb193b164ecd64555f77652f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wrap a given coefficient and return its wrapped, scalar value.  <a href="namespace_open_kalman_1_1internal.html#a1bb5189beb193b164ecd64555f77652f">More...</a><br /></td></tr>
+<tr class="separator:a1bb5189beb193b164ecd64555f77652f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad8998a156055ed41512ca22a174a1d58"><td class="memTemplParams" colspan="2">template&lt;typename Coeffs , typename Scalar , typename FS , typename FG , typename  = std::enable_if_t&lt;    coefficients&lt;Coeffs&gt; and std::is_arithmetic_v&lt;Scalar&gt; and std::is_invocable_v&lt;FG, const std::size_t&gt; and    std::is_invocable_v&lt;FS, const std::size_t, const Scalar&gt; and    std::is_arithmetic_v&lt;std::invoke_result_t&lt;FG, const std::size_t&gt;&gt;&gt;&gt; </td></tr>
+<tr class="memitem:ad8998a156055ed41512ca22a174a1d58"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1internal.html#ad8998a156055ed41512ca22a174a1d58">OpenKalman::internal::wrap_set</a> (const std::size_t row, const Scalar s, const FS &amp;set_coeff, const FG &amp;get_coeff)</td></tr>
+<tr class="memdesc:ad8998a156055ed41512ca22a174a1d58"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the scalar value of a given typed coefficient in a matrix, and wrap the matrix column.  <a href="namespace_open_kalman_1_1internal.html#ad8998a156055ed41512ca22a174a1d58">More...</a><br /></td></tr>
+<tr class="separator:ad8998a156055ed41512ca22a174a1d58"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="namespaces"></a>
 Namespaces</h2></td></tr>
 <tr class="memitem:namespace_open_kalman"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html">OpenKalman</a></td></tr>
 <tr class="memdesc:namespace_open_kalman"><td class="mdescLeft">&#160;</td><td class="mdescRight">The root namespace for <a class="el" href="namespace_open_kalman.html" title="The root namespace for OpenKalman.">OpenKalman</a>. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:namespace_open_kalman_1_1internal"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1internal.html">OpenKalman::internal</a></td></tr>
+<tr class="memdesc:namespace_open_kalman_1_1internal"><td class="mdescLeft">&#160;</td><td class="mdescRight">Namespace for internal definitions, not intended for use outside of <a class="el" href="namespace_open_kalman.html" title="The root namespace for OpenKalman.">OpenKalman</a> development. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Functions for accessing elements of typed arrays, based on typed coefficients. </p>
-
-<p class="definition">Definition in file <a class="el" href="coefficient-functions_8hpp_source.html">coefficient-functions.hpp</a>.</p>
-</div></div><!-- contents -->
+</div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_bf85a1622761b0afd6fb52adee52cf94.html">OpenKalman</a></li><li class="navelem"><a class="el" href="dir_1a0f87da89794a539326ef9d12a2b565.html">coefficient-types</a></li><li class="navelem"><a class="el" href="dir_9e3faae4b4313f27e5225015591aee69.html">details</a></li><li class="navelem"><a class="el" href="coefficient-functions_8hpp.html">coefficient-functions.hpp</a></li>
-    <li class="footer">Generated on Sat Dec 5 2020 03:00:22 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
+    <li class="footer">Generated on Sun Dec 6 2020 19:54:45 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
   </ul>
 </div>
 </body>

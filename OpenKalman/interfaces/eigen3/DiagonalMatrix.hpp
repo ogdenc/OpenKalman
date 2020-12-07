@@ -66,7 +66,7 @@ namespace OpenKalman::Eigen3
     DiagonalMatrix(Arg&& other) noexcept: Base(std::forward<Arg>(other).diagonal()) {}
 
 
-    //\TODO: Add constructor from Eigen::DiagonalMatrix
+    //\todo: Add constructor from Eigen::DiagonalMatrix
 
 
     /// Construct from a square zero matrix.
@@ -303,7 +303,7 @@ namespace OpenKalman::Eigen3
   //        Deduction guides         //
   /////////////////////////////////////
 
-  //\TODO Unlike SFINAE version, th concepts version incorrectly matches M==double in both GCC 10.1.0 and clang 10.0.0:
+  //\todo Unlike SFINAE version, th concepts version incorrectly matches M==double in both GCC 10.1.0 and clang 10.0.0:
 #if defined(__cpp_concepts) and false
   template<eigen_matrix M> requires (MatrixTraits<M>::columns == 1)
 #else
@@ -803,7 +803,7 @@ namespace OpenKalman::Eigen3
     typename...Params,
     std::enable_if_t<Eigen3::eigen_diagonal_expr<ReturnType>, int> = 0>
 #endif
-  static auto
+  inline auto
   randomize(Params...params)
   {
     using Scalar = typename MatrixTraits<ReturnType>::Scalar;

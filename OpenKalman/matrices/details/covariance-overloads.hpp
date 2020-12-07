@@ -315,7 +315,7 @@ template<typename Arg,
   namespace internal
   {
     template<typename Expr, typename F, typename Arg>
-    static auto split_cov_diag_impl(const F& f, Arg&& arg)
+    inline auto split_cov_diag_impl(const F& f, Arg&& arg)
     {
       if constexpr(one_by_one_matrix<Arg> and not square_root_covariance<Expr> and cholesky_form<Expr>)
       {

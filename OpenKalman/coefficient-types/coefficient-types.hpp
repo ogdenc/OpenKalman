@@ -9,8 +9,11 @@
  */
 
 /**
+ * \dir
+ * \brief Definitions relating to coefficient types
+ *
  * \file
- * \brief Comprehensive header file including all coefficient-related classes and definitions.
+ * \brief Comprehensive header file including all coefficient-related classes and definitions
  */
 
 #ifndef OPENKALMAN_COEFFICIENT_TYPES_HPP

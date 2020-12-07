@@ -3,22 +3,43 @@
   <!-- Navigation index tabs for HTML output -->
   <navindex>
     <tab type="mainpage" visible="yes" title="Overview"/>
-    <tab type="user" url="@ref gettingstarted" title="Getting Started" />
-    <tab type="pages" visible="yes" title="Pages" intro=""/>
-    <tab type="modules" visible="yes" title="Modules" intro="Here is a list of all chapters:"/>
-    <tab type="classes" visible="yes" title="classes" intro=""/>
-    <tab type="classlist" visible="yes" title="classlist" intro="Here is a list of all classes and concepts:"/>
-    <tab type="namespaces" visible="yes" title="Namespaces" intro=""/>
+  <!-- <tab type="user" url="@ref gettingstarted" title="Getting Started" />-->
+  <tab type="pages" visible="yes" title="Pages" intro=""/>
+  <tab type="modules" visible="yes" title="Modules" intro="Here is a list of all chapters:"/>
+  <tab type="namespaces" visible="yes" title="">
     <tab type="namespacelist" visible="yes" title="Namespace List" intro=""/>
     <tab type="namespacemembers" visible="yes" title="Namespace Members" intro=""/>
-    <tab type="files" visible="yes" title="Files" intro=""/>
+  </tab>
+  <tab type="interfaces" visible="yes" title="">
+    <tab type="interfacelist" visible="yes" title="" intro=""/>
+    <tab type="interfaceindex" visible="$ALPHABETICAL_INDEX" title=""/>
+    <tab type="interfacehierarchy" visible="yes" title="" intro=""/>
+  </tab>
+  <tab type="classes" visible="yes" title="">
+    <tab type="classlist" visible="yes" title="Classlist" intro="Here is a list of all classes and concepts:"/>
+    <tab type="classindex" visible="$ALPHABETICAL_INDEX" title=""/>
+    <tab type="hierarchy" visible="yes" title="" intro=""/>
+    <tab type="classmembers" visible="yes" title="" intro=""/>
+  </tab>
+  <tab type="structs" visible="yes" title="">
+    <tab type="structlist" visible="yes" title="" intro=""/>
+    <tab type="structindex" visible="$ALPHABETICAL_INDEX" title=""/>
+  </tab>
+  <tab type="exceptions" visible="yes" title="">
+    <tab type="exceptionlist" visible="yes" title="" intro=""/>
+    <tab type="exceptionindex" visible="$ALPHABETICAL_INDEX" title=""/>
+    <tab type="exceptionhierarchy" visible="yes" title="" intro=""/>
+  </tab>
+  <tab type="files" visible="yes" title="">
     <tab type="filelist" visible="yes" title="File List" intro=""/>
     <tab type="globals" visible="yes" title="Globals" intro=""/>
-  </navindex>
+  </tab>
+  <tab type="examples" visible="yes" title="" intro=""/>
+</navindex>
 
-  <!-- Layout definition for a class page -->
+<!-- Layout definition for a class page -->
   <class>
-    <briefdescription visible="no"/>
+    <briefdescription visible="yes"/>
     <includes visible="$SHOW_INCLUDE_FILES"/>
     <detaileddescription title="Description"/>
     <inheritancegraph visible="$CLASS_GRAPH"/>
@@ -126,7 +147,7 @@
 
   <!-- Layout definition for a group page -->
   <group>
-    <briefdescription visible="no"/>
+    <briefdescription visible="yes"/>
     <detaileddescription title=""/>
     <groupgraph visible="$GROUP_GRAPHS"/>
     <memberdecl>

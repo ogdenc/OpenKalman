@@ -556,7 +556,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   {
     static_assert(column_vector<Arg>,
       "Runtime-indexed version of column function requires that all columns be identical and of type Axis.");
-    // \TODO Make it so this function can accept any typed matrix with identically-typed columns.
+    // \todo Make it so this function can accept any typed matrix with identically-typed columns.
     using RC = typename MatrixTraits<Arg>::RowCoefficients;
     using CC = Axis;
     return MatrixTraits<Arg>::template make<RC, CC>(column(nested_matrix(std::forward<Arg>(arg)), index));
@@ -600,7 +600,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   {
     static_assert(column_vector<Arg>,
       "Columnwise application requires that all columns be identical column vectors of type Axis.");
-    // \TODO Make it so this function can accept any typed matrix with identically-typed columns.
+    // \todo Make it so this function can accept any typed matrix with identically-typed columns.
     using RC = typename MatrixTraits<Arg>::RowCoefficients;
     const auto f_nested = [&f](auto& col)
     {
@@ -876,7 +876,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     typename...Params,
     std::enable_if_t<typed_matrix<ReturnType>, int> = 0>
 #endif
-  static auto
+  inline auto
   randomize(Params...params)
   {
     using Scalar = typename MatrixTraits<ReturnType>::Scalar;
