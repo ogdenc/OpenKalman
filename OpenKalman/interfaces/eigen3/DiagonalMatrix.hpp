@@ -13,10 +13,15 @@
 
 namespace OpenKalman::Eigen3
 {
+#ifdef __cpp_concepts
+  template<column_vector NestedMatrix>
+#else
   template<typename NestedMatrix>
+#endif
   struct DiagonalMatrix
     : OpenKalman::internal::MatrixBase<DiagonalMatrix<NestedMatrix>, NestedMatrix>
   {
+    static_assert(column_vector<NestedMatrix>);
     using Base = OpenKalman::internal::MatrixBase<DiagonalMatrix, NestedMatrix>;
     using Scalar = typename MatrixTraits<NestedMatrix>::Scalar;
     static constexpr auto dimension = MatrixTraits<NestedMatrix>::dimension;
@@ -329,7 +334,7 @@ namespace OpenKalman::Eigen3
     (not column_vector<Arg>), int> = 0>
 #endif
   DiagonalMatrix(const Arg&)
-  -> DiagonalMatrix<ZeroMatrix<Eigen::Matrix<typename MatrixTraits<Arg>::Scalar, MatrixTraits<Arg>::dimension, 1>>>;
+  -> DiagonalMatrix<ZeroMatrix<typename MatrixTraits<Arg>::Scalar, MatrixTraits<Arg>::dimension, 1>>;
 
 
 #ifdef __cpp_concepts

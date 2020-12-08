@@ -93,8 +93,8 @@ namespace OpenKalman
       template<typename T>
       struct is_eigen_zero_expr : std::false_type {};
 
-      template<typename NestedMatrix>
-      struct is_eigen_zero_expr<ZeroMatrix<NestedMatrix>> : std::true_type {};
+      template<typename Scalar, std::size_t rows, std::size_t cols>
+      struct is_eigen_zero_expr<ZeroMatrix<Scalar, rows, cols>> : std::true_type {};
     }
 
 

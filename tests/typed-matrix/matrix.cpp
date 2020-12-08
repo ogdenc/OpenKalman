@@ -19,7 +19,7 @@ using M23 = native_matrix_t<double, 2, 3>;
 using M32 = native_matrix_t<double, 3, 2>;
 using M33 = native_matrix_t<double, 3, 3>;
 using I22 = IdentityMatrix<M22>;
-using Z22 = ZeroMatrix<M22>;
+using Z22 = ZeroMatrix<double, 2, 2>;
 using C2 = Coefficients<Axis, angle::Radians>;
 using C3 = Coefficients<Axis, angle::Radians, Axis>;
 using Mat12 = Matrix<Axis, C2, M12>;
@@ -301,7 +301,7 @@ TEST_F(matrices, TypedMatrix_traits)
   static_assert(not identity_matrix<Matrix<C2, Axes<2>, I22>>);
   static_assert(not zero_matrix<Mat23>);
   static_assert(zero_matrix<Matrix<C2, C2, Z22>>);
-  static_assert(zero_matrix<Matrix<C2, C3, ZeroMatrix<M23>>>);
+  static_assert(zero_matrix<Matrix<C2, C3, ZeroMatrix<double, 2, 3>>>);
 
   EXPECT_TRUE(is_near(MatrixTraits<Mat23>::make(
     make_native_matrix<double, 2, 3>(1, 2, 3, 4, 5, 6)).nested_matrix(), Mat23 {1, 2, 3, 4, 5, 6}));

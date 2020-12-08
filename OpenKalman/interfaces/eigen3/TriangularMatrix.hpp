@@ -13,7 +13,11 @@
 
 namespace OpenKalman::Eigen3
 {
+#ifdef __cpp_concepts
+  template<square_matrix NestedMatrix, TriangleType triangle_type>
+#else
   template<typename NestedMatrix, TriangleType triangle_type>
+#endif
   struct TriangularMatrix
     : OpenKalman::internal::MatrixBase<TriangularMatrix<NestedMatrix, triangle_type>, NestedMatrix>
   {

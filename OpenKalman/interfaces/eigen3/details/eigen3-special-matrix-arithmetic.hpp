@@ -530,10 +530,10 @@ namespace OpenKalman::Eigen3
 #endif
   constexpr decltype(auto) operator*(Arg1&& arg1, Arg2&& arg2)
   {
+    using Scalar = typename MatrixTraits<Arg1>::Scalar;
     constexpr auto rows = MatrixTraits<Arg1>::dimension;
     constexpr auto cols = MatrixTraits<Arg2>::columns;
-    using B = native_matrix_t<Arg1, rows, cols>;
-    return Eigen3::ZeroMatrix<B>();
+    return Eigen3::ZeroMatrix<Scalar, rows, cols>();
   }
 
 

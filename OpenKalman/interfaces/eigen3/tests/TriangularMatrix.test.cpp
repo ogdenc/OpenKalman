@@ -710,7 +710,7 @@ TEST_F(eigen3, TriangularMatrix_arithmetic_lower)
   auto m2 = Lower {1., 0, 2, 3};
   auto d = DiagonalMatrix<native_matrix_t<double, 2, 1>> {1, 3};
   auto i = M2::Identity();
-  auto z = ZeroMatrix<M2> {};
+  auto z = ZeroMatrix<double, 2, 2> {};
   EXPECT_TRUE(is_near(m1 + m2, mat22(5, 0, 7, 9))); static_assert(lower_triangular_matrix<decltype(m1 + m2)>);
   EXPECT_TRUE(is_near(m1 + d, mat22(5, 0, 5, 9))); static_assert(lower_triangular_matrix<decltype(m1 + d)>);
   EXPECT_TRUE(is_near(d + m1, mat22(5, 0, 5, 9))); static_assert(lower_triangular_matrix<decltype(d + m1)>);
@@ -751,7 +751,7 @@ TEST_F(eigen3, TriangularMatrix_arithmetic_upper)
   auto m2 = Upper {1., 2, 0, 3};
   auto d = DiagonalMatrix<native_matrix_t<double, 2, 1>> {1, 3};
   auto i = M2::Identity();
-  auto z = ZeroMatrix<M2> {};
+  auto z = ZeroMatrix<double, 2, 2> {};
   EXPECT_TRUE(is_near(m1 + m2, mat22(5, 7, 0, 9))); static_assert(upper_triangular_matrix<decltype(m1 + m2)>);
   EXPECT_TRUE(is_near(m1 + d, mat22(5, 5, 0, 9))); static_assert(upper_triangular_matrix<decltype(m1 + d)>);
   EXPECT_TRUE(is_near(d + m1, mat22(5, 5, 0, 9))); static_assert(upper_triangular_matrix<decltype(d + m1)>);

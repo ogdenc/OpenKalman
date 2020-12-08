@@ -23,7 +23,7 @@ using M33 = native_matrix_t<double, 3, 3>;
 using M42 = native_matrix_t<double, 4, 2>;
 using M43 = native_matrix_t<double, 4, 3>;
 using I22 = IdentityMatrix<M22>;
-using Z22 = ZeroMatrix<M22>;
+using Z22 = ZeroMatrix<double, 2, 2>;
 using C2 = Coefficients<Axis, angle::Radians>;
 using C3 = Coefficients<Axis, angle::Radians, Axis>;
 using Mat12 = EuclideanMean<Axis, M12>;
@@ -240,7 +240,7 @@ TEST_F(matrices, EuclideanMean_traits)
   static_assert(not zero_matrix<Mat23>);
   static_assert(zero_matrix<EuclideanMean<angle::Radians, Z22>>);
   static_assert(zero_matrix<EuclideanMean<Axes<2>, Z22>>);
-  static_assert(zero_matrix<EuclideanMean<C2, ZeroMatrix<M33>>>);
+  static_assert(zero_matrix<EuclideanMean<C2, ZeroMatrix<double, 3, 3>>>);
 
   EXPECT_TRUE(is_near(MatrixTraits<Mat23>::make(
     make_native_matrix<double, 3, 3>(1, 2, 3, 4, 5, 6, 7, 8, 9)).nested_matrix(), TM33 {1, 2, 3, 4, 5, 6, 7, 8, 9}));

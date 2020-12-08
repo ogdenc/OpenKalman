@@ -90,17 +90,17 @@ TEST_F(eigen3, Eigen_Matrix_overloads)
 
 TEST_F(eigen3, ZeroMatrix)
 {
-  EXPECT_NEAR((ZeroMatrix<native_matrix_t<double, 2, 2>>()(0, 0)), 0, 1e-6);
-  EXPECT_NEAR((ZeroMatrix<native_matrix_t<double, 2, 2>>()(0, 1)), 0, 1e-6);
-  EXPECT_TRUE(is_near(make_native_matrix(ZeroMatrix<native_matrix_t<double, 2, 3>>()), native_matrix_t<double, 2, 3>::Zero()));
-  EXPECT_TRUE(is_near(make_self_contained(ZeroMatrix<native_matrix_t<double, 2, 3>>()), native_matrix_t<double, 2, 3>::Zero()));
-  EXPECT_NEAR(determinant(ZeroMatrix<native_matrix_t<double, 2, 2>>()), 0, 1e-6);
-  EXPECT_NEAR(trace(ZeroMatrix<native_matrix_t<double, 2, 2>>()), 0, 1e-6);
-  EXPECT_TRUE(is_near(reduce_columns(ZeroMatrix<native_matrix_t<double, 2, 3>>()), (native_matrix_t<double, 2, 1>::Zero())));
-  EXPECT_NEAR(get_element(ZeroMatrix<native_matrix_t<double, 2, 2>>(), 1, 0), 0, 1e-8);
-  static_assert(not element_settable<ZeroMatrix<native_matrix_t<double, 2, 2>>, 2>);
-  EXPECT_TRUE(is_near(column(ZeroMatrix<native_matrix_t<double, 2, 3>>(), 1), (native_matrix_t<double, 2, 1>::Zero())));
-  EXPECT_TRUE(is_near(column<1>(ZeroMatrix<native_matrix_t<double, 2, 3>>()), (native_matrix_t<double, 2, 1>::Zero())));
+  EXPECT_NEAR((ZeroMatrix<double, 2, 2>()(0, 0)), 0, 1e-6);
+  EXPECT_NEAR((ZeroMatrix<double, 2, 2>()(0, 1)), 0, 1e-6);
+  EXPECT_TRUE(is_near(make_native_matrix(ZeroMatrix<double, 2, 3>()), native_matrix_t<double, 2, 3>::Zero()));
+  EXPECT_TRUE(is_near(make_self_contained(ZeroMatrix<double, 2, 3>()), native_matrix_t<double, 2, 3>::Zero()));
+  EXPECT_NEAR(determinant(ZeroMatrix<double, 2, 2>()), 0, 1e-6);
+  EXPECT_NEAR(trace(ZeroMatrix<double, 2, 2>()), 0, 1e-6);
+  EXPECT_TRUE(is_near(reduce_columns(ZeroMatrix<double, 2, 3>()), (native_matrix_t<double, 2, 1>::Zero())));
+  EXPECT_NEAR(get_element(ZeroMatrix<double, 2, 2>(), 1, 0), 0, 1e-8);
+  static_assert(not element_settable<ZeroMatrix<double, 2, 2>, 2>);
+  EXPECT_TRUE(is_near(column(ZeroMatrix<double, 2, 3>(), 1), (native_matrix_t<double, 2, 1>::Zero())));
+  EXPECT_TRUE(is_near(column<1>(ZeroMatrix<double, 2, 3>()), (native_matrix_t<double, 2, 1>::Zero())));
 }
 
 TEST_F(eigen3, Matrix_blocks)

@@ -39,7 +39,7 @@ using T2l = TriangularMatrix<M2, TriangleType::lower>;
 using T2u = TriangularMatrix<M2, TriangleType::upper>;
 using D2 = DiagonalMatrix<M2col>;
 using I2 = IdentityMatrix<M2>;
-using Z2 = ZeroMatrix<M2>;
+using Z2 = ZeroMatrix<double, 2, 2>;
 using SA4l = SelfAdjointMatrix<M4, TriangleType::lower>;
 using SA4u = SelfAdjointMatrix<M4, TriangleType::upper>;
 using T4l = TriangularMatrix<M4, TriangleType::lower>;
@@ -60,19 +60,19 @@ using DistSA2u = GaussianDistribution<C2, M2col, SA2u>;
 using DistT2l = GaussianDistribution<C2, M2col, T2l>;
 using DistT2u = GaussianDistribution<C2, M2col, T2u>;
 using DistD2 = GaussianDistribution<C2, M2col, D2>;
-using DistI2 = GaussianDistribution<C2, ZeroMatrix<M2col>, I2>;
-using DistZ2 = GaussianDistribution<C2, ZeroMatrix<M2col>, Z2>;
+using DistI2 = GaussianDistribution<C2, ZeroMatrix<double, 2, 1>, I2>;
+using DistZ2 = GaussianDistribution<C2, ZeroMatrix<double, 2, 1>, Z2>;
 using DistSA4l = GaussianDistribution<C4, M4col, SA4l>;
 using DistSA4u = GaussianDistribution<C4, M4col, SA4u>;
 using DistT4l = GaussianDistribution<C4, M4col, T4l>;
 using DistT4u = GaussianDistribution<C4, M4col, T4u>;
 
 inline I2 i2 = M2::Identity();
-inline Z2 z2 = ZeroMatrix<M2>();
+inline Z2 z2 = ZeroMatrix<double, 2, 2>();
 inline auto covi2 = CovI2 {i2};
 inline auto covz2 = CovZ2 {z2};
-inline auto disti2 = DistI2 {ZeroMatrix<M2col>(), covi2};
-inline auto distz2 = DistZ2 {ZeroMatrix<M2col>(), covz2};
+inline auto disti2 = DistI2 {ZeroMatrix<double, 2, 1>(), covi2};
+inline auto distz2 = DistZ2 {ZeroMatrix<double, 2, 1>(), covz2};
 
 TEST_F(matrices, GaussianDistribution_class)
 {
@@ -110,10 +110,10 @@ TEST_F(matrices, GaussianDistribution_class)
   DistSA2l distSA2ld_5(DistD2 {Mean2 {1, 2}, CovD2 {9, 10}});
   EXPECT_TRUE(is_near(mean_of(distSA2ld_5), Mean2 {1, 2}));
   EXPECT_TRUE(is_near(covariance_of(distSA2ld_5), Mat2 {9, 0, 0, 10}));
-  DistSA2l distSA2ld_6(DistI2 {ZeroMatrix<M2col>(), covi2});
+  DistSA2l distSA2ld_6(DistI2 {ZeroMatrix<double, 2, 1>(), covi2});
   EXPECT_TRUE(is_near(mean_of(distSA2ld_6), Mean2 {0, 0}));
   EXPECT_TRUE(is_near(covariance_of(distSA2ld_6), Mat2 {1, 0, 0, 1}));
-  DistSA2l distSA2ld_7(DistZ2 {ZeroMatrix<M2col>(), covz2});
+  DistSA2l distSA2ld_7(DistZ2 {ZeroMatrix<double, 2, 1>(), covz2});
   EXPECT_TRUE(is_near(mean_of(distSA2ld_7), Mean2 {0, 0}));
   EXPECT_TRUE(is_near(covariance_of(distSA2ld_7), Mat2 {0, 0, 0, 0}));
   //
@@ -132,10 +132,10 @@ TEST_F(matrices, GaussianDistribution_class)
   DistSA2u distSA2ud_5(DistD2 {Mean2 {1, 2}, CovD2 {9, 10}});
   EXPECT_TRUE(is_near(mean_of(distSA2ud_5), Mean2 {1, 2}));
   EXPECT_TRUE(is_near(covariance_of(distSA2ud_5), Mat2 {9, 0, 0, 10}));
-  DistSA2u distSA2ud_6(DistI2 {ZeroMatrix<M2col>(), covi2});
+  DistSA2u distSA2ud_6(DistI2 {ZeroMatrix<double, 2, 1>(), covi2});
   EXPECT_TRUE(is_near(mean_of(distSA2ud_6), Mean2 {0, 0}));
   EXPECT_TRUE(is_near(covariance_of(distSA2ud_6), Mat2 {1, 0, 0, 1}));
-  DistSA2u distSA2ud_7(DistZ2 {ZeroMatrix<M2col>(), covz2});
+  DistSA2u distSA2ud_7(DistZ2 {ZeroMatrix<double, 2, 1>(), covz2});
   EXPECT_TRUE(is_near(mean_of(distSA2ud_7), Mean2 {0, 0}));
   EXPECT_TRUE(is_near(covariance_of(distSA2ud_7), Mat2 {0, 0, 0, 0}));
   //
@@ -154,10 +154,10 @@ TEST_F(matrices, GaussianDistribution_class)
   DistT2l distT2ld_5(DistD2 {Mean2 {1, 2}, CovD2 {9, 10}});
   EXPECT_TRUE(is_near(mean_of(distT2ld_5), Mean2 {1, 2}));
   EXPECT_TRUE(is_near(covariance_of(distT2ld_5), Mat2 {9, 0, 0, 10}));
-  DistT2l distT2ld_6(DistI2 {ZeroMatrix<M2col>(), covi2});
+  DistT2l distT2ld_6(DistI2 {ZeroMatrix<double, 2, 1>(), covi2});
   EXPECT_TRUE(is_near(mean_of(distT2ld_6), Mean2 {0, 0}));
   EXPECT_TRUE(is_near(covariance_of(distT2ld_6), Mat2 {1, 0, 0, 1}));
-  DistT2l distT2ld_7(DistZ2 {ZeroMatrix<M2col>(), covz2});
+  DistT2l distT2ld_7(DistZ2 {ZeroMatrix<double, 2, 1>(), covz2});
   EXPECT_TRUE(is_near(mean_of(distT2ld_7), Mean2 {0, 0}));
   EXPECT_TRUE(is_near(covariance_of(distT2ld_7), Mat2 {0, 0, 0, 0}));
   //
@@ -176,10 +176,10 @@ TEST_F(matrices, GaussianDistribution_class)
   DistT2u distT2ud_5(DistD2 {Mean2 {1, 2}, CovD2 {9, 10}});
   EXPECT_TRUE(is_near(mean_of(distT2ud_5), Mean2 {1, 2}));
   EXPECT_TRUE(is_near(covariance_of(distT2ud_5), Mat2 {9, 0, 0, 10}));
-  DistT2u distT2ud_6(DistI2 {ZeroMatrix<M2col>(), covi2});
+  DistT2u distT2ud_6(DistI2 {ZeroMatrix<double, 2, 1>(), covi2});
   EXPECT_TRUE(is_near(mean_of(distT2ud_6), Mean2 {0, 0}));
   EXPECT_TRUE(is_near(covariance_of(distT2ud_6), Mat2 {1, 0, 0, 1}));
-  DistT2u distT2ud_7(DistZ2 {ZeroMatrix<M2col>(), covz2});
+  DistT2u distT2ud_7(DistZ2 {ZeroMatrix<double, 2, 1>(), covz2});
   EXPECT_TRUE(is_near(mean_of(distT2ud_7), Mean2 {0, 0}));
   EXPECT_TRUE(is_near(covariance_of(distT2ud_7), Mat2 {0, 0, 0, 0}));
 
@@ -209,10 +209,10 @@ TEST_F(matrices, GaussianDistribution_class)
   DistD2 distD2e(Mean2 {1, 2}, D2 {9, 10});
   EXPECT_TRUE(is_near(mean_of(distD2e), Mean2 {1, 2}));
   EXPECT_TRUE(is_near(covariance_of(distD2e), Mat2 {9, 0, 0, 10}));
-  DistI2 distI2e(ZeroMatrix<M2col>(), i2);
+  DistI2 distI2e(ZeroMatrix<double, 2, 1>(), i2);
   EXPECT_TRUE(is_near(mean_of(distI2e), Mean2 {0, 0}));
   EXPECT_TRUE(is_near(covariance_of(distI2e), Mat2 {1, 0, 0, 1}));
-  DistZ2 distZ2e(ZeroMatrix<M2col>(), z2);
+  DistZ2 distZ2e(ZeroMatrix<double, 2, 1>(), z2);
   EXPECT_TRUE(is_near(mean_of(distZ2e), Mean2 {0, 0}));
   EXPECT_TRUE(is_near(covariance_of(distZ2e), Mat2 {0, 0, 0, 0}));
 

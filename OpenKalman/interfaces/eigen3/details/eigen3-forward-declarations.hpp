@@ -48,7 +48,7 @@ namespace OpenKalman::Eigen3
    * \brief A self-adjoint matrix.
    * \details The matrix is guaranteed to be self-adjoint. It is ::self_contained iff NestedMatrix is ::self_contained.
    * It may \em also be a diagonal matrix if storage_triangle is TriangleType::diagonal.
-   * \tparam NestedMatrix A nested Eigen matrix expression, on which the self-adjoint matrix is based.
+   * \tparam NestedMatrix A nested \ref square_matrix expression, on which the self-adjoint matrix is based.
    * \tparam storage_triangle The TriangleType (\ref TriangleType::lower "lower", \ref TriangleType::upper "upper", or
    * \ref TriangleType::diagonal "diagonal") in which the data is stored.
    * Matrix elements outside this triangle/diagonal are ignored. If the matrix is lower or upper triangular,
@@ -67,33 +67,43 @@ namespace OpenKalman::Eigen3
    * \brief A triangular matrix.
    * \details The matrix is guaranteed to be triangular. It is ::self_contained iff NestedMatrix is ::self_contained.
    * It may \em also be a diagonal matrix if triangle_type is TriangleType::diagonal.
-   * \tparam NestedMatrix A nested Eigen matrix expression, on which the triangular matrix is based.
+   * \tparam NestedMatrix A nested \ref square_matrix expression, on which the triangular matrix is based.
    * \tparam triangle_type The TriangleType (\ref TriangleType::lower "lower", \ref TriangleType::upper "upper", or
    * \ref TriangleType::diagonal "diagonal") in which the data is stored.
    * Matrix elements outside this triangle/diagonal are ignored. Instead, 0 is automatically mapped to each element
    * not within the selected triangle or diagonal, to ensure that the matrix is triangular.
    */
+#ifdef __cpp_concepts
+  template<square_matrix NestedMatrix, TriangleType triangle_type = TriangleType::lower>
+#else
   template<typename NestedMatrix, TriangleType triangle_type = TriangleType::lower>
+#endif
   struct TriangularMatrix;
 
 
   /**
    * \brief A diagonal matrix.
    * \details The matrix is guaranteed to be diagonal. It is ::self_contained iff NestedMatrix is ::self_contained.
-   * \tparam NestedMatrix A single-column matrix expression defining the diagonal elements.
+   * \tparam NestedMatrix A \ref column_vector expression defining the diagonal elements.
    * Elements outside the diagonal are automatically 0.
    * \note This has the same name as Eigen::DiagonalMatrix, and is intended as a replacement.
    */
+#ifdef __cpp_concepts
+  template<column_vector NestedMatrix>
+#else
   template<typename NestedMatrix>
+#endif
   struct DiagonalMatrix;
 
 
   /**
-   * \brief A wrapper type for an Eigen zero matrix.
+   * \brief A matrix in which all elements are automatically 0.
    * \note This is necessary because Eigen3 types do not distinguish between a zero matrix and a constant matrix.
-   * \tparam NestedMatrix The Eigen matrix type on which the zero matrix is based. Only its shape is relevant.
+   * \tparam Scalar The scalar type.
+   * \tparam rows The number of rows.
+   * \tparam columns The number of columns.
    */
-  template<typename NestedMatrix>
+  template<typename Scalar, std::size_t rows, std::size_t columns = 1>
   struct ZeroMatrix;
 
 

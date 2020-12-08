@@ -23,7 +23,7 @@ using T2u = TriangularMatrix<M2, TriangleType::upper>;
 using D2 = DiagonalMatrix<native_matrix_t<double, 2, 1>>;
 using D1 = native_matrix_t<double, 1, 1>;
 using I2 = IdentityMatrix<native_matrix_t<double, 2, 2>>;
-using Z2 = ZeroMatrix<native_matrix_t<double, 2, 2>>;
+using Z2 = ZeroMatrix<double, 2, 2>;
 using CovSA2l = Covariance<C, SA2l>;
 using CovSA2u = Covariance<C, SA2u>;
 using CovT2l = Covariance<C, T2l>;
@@ -42,7 +42,7 @@ using SqCovI2 = SquareRootCovariance<C, I2>;
 using SqCovZ2 = SquareRootCovariance<C, Z2>;
 
 inline I2 i2 = M2::Identity();
-inline Z2 z2 = ZeroMatrix<M2>();
+inline Z2 z2 = ZeroMatrix<double, 2, 2>();
 inline auto covi2 = CovI2(i2);
 inline auto covz2 = CovZ2(z2);
 inline auto sqcovi2 = SqCovI2(i2);
@@ -767,7 +767,7 @@ TEST_F(covariance_tests, SquareRootCovariance_overloads)
   EXPECT_TRUE(is_near(square(SqCovT2u {3, 1, 0, 3}), Mat2 {9, 3, 3, 10}));
   EXPECT_TRUE(is_near(square(SqCovD2 {2, 3}), Mat2 {4, 0, 0, 9}));
   EXPECT_TRUE(is_near(square(SqCovI2 {i2}), Mat2 {1, 0, 0, 1}));
-  EXPECT_TRUE(is_near(square(SquareRootCovariance<C, ZeroMatrix<native_matrix_t<double, 2, 2>>>()), Mat2 {0, 0, 0, 0}));
+  EXPECT_TRUE(is_near(square(SquareRootCovariance<C, ZeroMatrix<double, 2, 2>>()), Mat2 {0, 0, 0, 0}));
 
   EXPECT_TRUE(is_near(to_Cholesky(SqCovSA2l {3, 0, 1, 3}).nested_matrix(), Mat2 {3, 0, 1, 3}));
   EXPECT_TRUE(is_near(to_Cholesky(SqCovSA2u {3, 1, 0, 3}).nested_matrix(), Mat2 {3, 1, 0, 3}));

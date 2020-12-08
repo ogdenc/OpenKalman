@@ -22,7 +22,7 @@ using T2l = TriangularMatrix<M2, TriangleType::lower>;
 using T2u = TriangularMatrix<M2, TriangleType::upper>;
 using D2 = DiagonalMatrix<native_matrix_t<double, 2, 1>>;
 using I2 = IdentityMatrix<native_matrix_t<double, 2, 2>>;
-using Z2 = ZeroMatrix<native_matrix_t<double, 2, 2>>;
+using Z2 = ZeroMatrix<double, 2, 2>;
 using CovSA2l = Covariance<C, SA2l>;
 using CovSA2u = Covariance<C, SA2u>;
 using CovT2l = Covariance<C, T2l>;
@@ -39,7 +39,7 @@ using SqCovI2 = SquareRootCovariance<C, I2>;
 using SqCovZ2 = SquareRootCovariance<C, Z2>;
 
 inline I2 i2 = M2::Identity();
-inline Z2 z2 = ZeroMatrix<M2>();
+inline Z2 z2 = ZeroMatrix<double, 2, 2>();
 inline auto covi2 = CovI2(i2);
 inline auto covz2 = CovZ2(z2);
 inline auto sqcovi2 = SqCovI2(i2);

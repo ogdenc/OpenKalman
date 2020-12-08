@@ -19,7 +19,7 @@ using M23 = native_matrix_t<double, 2, 3>;
 using M32 = native_matrix_t<double, 3, 2>;
 using M33 = native_matrix_t<double, 3, 3>;
 using I22 = IdentityMatrix<M22>;
-using Z22 = ZeroMatrix<M22>;
+using Z22 = ZeroMatrix<double, 2, 2>;
 using C2 = Coefficients<Axis, angle::Radians>;
 using C3 = Coefficients<Axis, angle::Radians, Axis>;
 

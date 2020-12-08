@@ -805,7 +805,7 @@ TEST_F(eigen3, SelfAdjointMatrix_arithmetic_lower)
   auto m2 = Lower {1., 2, 2, 3};
   auto d = DiagonalMatrix<native_matrix_t<double, 2, 1>> {1, 3};
   auto i = M2::Identity();
-  auto z = ZeroMatrix<M2> {};
+  auto z = ZeroMatrix<double, 2, 2> {};
   EXPECT_TRUE(is_near(m1 + m2, mat22(5, 7, 7, 9))); static_assert(self_adjoint_matrix<decltype(m1 + m2)>);
   EXPECT_TRUE(is_near(m1 + d, mat22(5, 5, 5, 9))); static_assert(self_adjoint_matrix<decltype(m1 + d)>);
   EXPECT_TRUE(is_near(d + m1, mat22(5, 5, 5, 9))); static_assert(self_adjoint_matrix<decltype(d + m1)>);
@@ -852,7 +852,7 @@ TEST_F(eigen3, SelfAdjointMatrix_arithmetic_upper)
   auto m2 = Upper {1., 2, 2, 3};
   auto d = DiagonalMatrix<native_matrix_t<double, 2, 1>> {1, 3};
   auto i = M2::Identity();
-  auto z = ZeroMatrix<M2> {};
+  auto z = ZeroMatrix<double, 2, 2> {};
   EXPECT_TRUE(is_near(m1 + m2, mat22(5, 7, 7, 9))); static_assert(self_adjoint_matrix<decltype(m1 + m2)>);
   EXPECT_TRUE(is_near(m1 + d, mat22(5, 5, 5, 9))); static_assert(self_adjoint_matrix<decltype(m1 + d)>);
   EXPECT_TRUE(is_near(d + m1, mat22(5, 5, 5, 9))); static_assert(self_adjoint_matrix<decltype(d + m1)>);

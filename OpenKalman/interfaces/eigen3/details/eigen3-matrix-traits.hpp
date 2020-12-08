@@ -96,7 +96,7 @@ namespace OpenKalman
       return ((NativeMatrix<dimension, columns>() << arg), ... , args).finished();
     }
 
-    static auto zero() { return Eigen3::ZeroMatrix<NativeMatrix<dimension, columns>>(); }
+    static auto zero() { return Eigen3::ZeroMatrix<Scalar, dimension, columns>(); }
 
     static auto identity() { return NativeMatrix<dimension, dimension>::Identity(); }
 

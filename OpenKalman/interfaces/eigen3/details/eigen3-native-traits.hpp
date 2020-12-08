@@ -99,9 +99,9 @@ namespace Eigen::internal
   };
 
 
-  template<typename ArgType>
-  struct traits<OpenKalman::Eigen3::ZeroMatrix<ArgType>>
-    : traits<typename std::decay_t<ArgType>::ConstantReturnType> {};
+  template<typename Scalar, std::size_t rows, std::size_t cols>
+  struct traits<OpenKalman::Eigen3::ZeroMatrix<Scalar, rows, cols>>
+    : traits<typename Matrix<Scalar, rows, cols>::ConstantReturnType> {};
 
 
   template<typename Coefficients, typename ArgType>

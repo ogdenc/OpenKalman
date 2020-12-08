@@ -35,11 +35,11 @@ TEST_F(eigen3, Diagonal_class)
   EXPECT_TRUE(is_near(d7, native_matrix_t<double, 3, 3>::Identity() * 0.337));
   DiagonalMatrix<native_matrix_t<double, 3, 1>> d8 = ((0.7 * Mat3::Identity()) * (0.3 * Mat3::Identity() * 0.7 + 0.7 * Mat3::Identity()) - Mat3::Identity() * 0.3);
   EXPECT_TRUE(is_near(d8, native_matrix_t<double, 3, 3>::Identity() * 0.337));
-  DiagonalMatrix<native_matrix_t<double, 3, 1>> d9 = ZeroMatrix<native_matrix_t<double, 3, 3>>();
+  DiagonalMatrix<native_matrix_t<double, 3, 1>> d9 = ZeroMatrix<double, 3, 3>();
   EXPECT_TRUE(is_near(d9, native_matrix_t<double, 3, 3>::Zero()));
   DiagonalMatrix<native_matrix_t<double, 3, 1>> d10 = native_matrix_t<double, 3, 3>::Identity();
   EXPECT_TRUE(is_near(d10, native_matrix_t<double, 3, 3>::Identity()));
-  EXPECT_TRUE(is_near(DiagonalMatrix<native_matrix_t<double, 3, 1>>(ZeroMatrix<native_matrix_t<double, 3, 1>>()), native_matrix_t<double, 3, 3>::Zero()));
+  EXPECT_TRUE(is_near(DiagonalMatrix<native_matrix_t<double, 3, 1>>(ZeroMatrix<double, 3, 1>()), native_matrix_t<double, 3, 3>::Zero()));
   d3 = d2;
   EXPECT_TRUE(is_near(d3, d1));
   d4 = DiagonalMatrix {1., 2, 3};
@@ -290,7 +290,7 @@ TEST_F(eigen3, Diagonal_arithmetic)
   auto d1 = DiagonalMatrix {1., 2, 3};
   auto d2 = DiagonalMatrix {4., 5, 6};
   auto i = Mat3::Identity();
-  auto z = ZeroMatrix<Mat3> {};
+  auto z = ZeroMatrix<double, 3, 3> {};
   EXPECT_TRUE(is_near(d1 + d2, DiagonalMatrix {5., 7, 9})); static_assert(eigen_diagonal_expr<decltype(d1 + d2)>);
   EXPECT_TRUE(is_near(d1 + i, DiagonalMatrix {2., 3, 4})); static_assert(eigen_diagonal_expr<decltype(d1 + i)>);
   EXPECT_TRUE(is_near(d1 + z, d1)); static_assert(eigen_diagonal_expr<decltype(d1 + z)>);

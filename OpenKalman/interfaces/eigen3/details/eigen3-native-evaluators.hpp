@@ -328,12 +328,23 @@ namespace Eigen::internal
   };
 
 
-  template<typename Nested>
-  struct evaluator<OpenKalman::Eigen3::ZeroMatrix<Nested>> : evaluator<typename Nested::ConstantReturnType>
+  template<typename Scalar, std::size_t rows, std::size_t cols>
+  struct evaluator<OpenKalman::Eigen3::ZeroMatrix<Scalar, rows, cols>>
+    : evaluator<typename Matrix<Scalar, rows, cols>::ConstantReturnType>
   {
-    using XprType = OpenKalman::Eigen3::ZeroMatrix<Nested>;
-    using Base = evaluator<typename std::decay_t<Nested>::ConstantReturnType>;
+    using XprType = OpenKalman::Eigen3::ZeroMatrix<Scalar, rows, cols>;
+    using Base = evaluator<typename Matrix<Scalar, rows, cols>::ConstantReturnType>;
     explicit evaluator(const XprType& m_arg) : Base {m_arg} {}
+
+    constexpr Scalar coeff(Index row, Index col) const
+    {
+      return static_cast<Scalar>(0);
+    }
+
+    constexpr Scalar coeff(Index row) const
+    {
+      return static_cast<Scalar>(0);
+    }
   };
 
 

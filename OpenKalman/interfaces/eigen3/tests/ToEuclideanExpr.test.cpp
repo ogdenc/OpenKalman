@@ -51,13 +51,13 @@ TEST_F(eigen3, ToEuclideanExpr_class)
   EXPECT_TRUE(is_near(d4, m));
   To3 d5 = MatrixTraits<M3>::zero();
   EXPECT_TRUE(is_near(d5, mat4(0, 0, 1, 1, 0, 0, 0, 0)));
-  To3 d6 = ZeroMatrix<M3>();
+  To3 d6 = ZeroMatrix<double, 3, 2>();
   EXPECT_TRUE(is_near(d6, mat4(0, 0, 1, 1, 0, 0, 0, 0)));
-  To3 d7 = To3(ZeroMatrix<M3>());
+  To3 d7 = To3(ZeroMatrix<double, 3, 2>());
   EXPECT_TRUE(is_near(d7, mat4(0, 0, 1, 1, 0, 0, 0, 0)));
   To3 d8 {1, 2, pi/6, pi/3, 3, 4};
   EXPECT_TRUE(is_near(d8, m));
-  EXPECT_TRUE(is_near(To3(ZeroMatrix<M3>()), mat4(0, 0, 1, 1, 0, 0, 0, 0)));
+  EXPECT_TRUE(is_near(To3(ZeroMatrix<double, 3, 2>()), mat4(0, 0, 1, 1, 0, 0, 0, 0)));
   ToFrom4 d9 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4};
   EXPECT_TRUE(is_near(d9.nested_matrix(), mat3(1, 2, pi/6, pi/3, 3, 4)));
   EXPECT_TRUE(is_near(d9, mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
