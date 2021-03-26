@@ -28,15 +28,17 @@ namespace OpenKalman
     RowCoefficients, Axes<MatrixTraits<NestedMatrix>::columns>, NestedMatrix>
   {
 
-    // Redundant in c++20+:
+#ifndef __cpp_concepts
     static_assert(coefficients<RowCoefficients>);
     static_assert(typed_matrix_nestable<NestedMatrix>);
     static_assert(RowCoefficients::dimension == MatrixTraits<NestedMatrix>::dimension);
     static_assert(not std::is_rvalue_reference_v<NestedMatrix>);
+#endif
+
+    using Scalar = typename MatrixTraits<NestedMatrix>::Scalar; ///< Scalar type for this matrix.
 
   protected:
 
-    using Scalar = typename MatrixTraits<NestedMatrix>::Scalar;
     using ColumnCoefficients = Axes<MatrixTraits<NestedMatrix>::columns>;
 
   private:

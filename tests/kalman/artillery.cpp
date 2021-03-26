@@ -23,7 +23,7 @@ void kalman::artillery_2D(const Trans& transform)
     auto x = GaussianDistribution<Polar<>, M2, Cov> {Polar2 {7.5, 0}, Cov::identity()};
     auto meas_cov = Cov {0.0025, 0, 0, 0.0025};
     auto r = GaussianDistribution<Axes<2>, M2, Cov> {Loc2::zero(), meas_cov};
-    parameter_test(transform, radarP, x, true_state, r, 0.5, 100);
+    parameter_test(transform, radarP, x, true_state, r, 0.7, 100);
   }
 }
 

@@ -29,7 +29,7 @@ void kalman::rotation_2D(const Trans& transform)
     auto x = GaussianDistribution<Axes<2>, M2, Cov> {Mean2 {7.5, 7.5}, Cov::identity()};
     auto meas_cov = Cov {0.01, 0, 0, 0.01};
     auto r = GaussianDistribution<Axes<2>, M2, Cov> {Mean2::zero(), meas_cov};
-    parameter_test(transform, get_t2(), x, true_state, r, 0.1, 100);
+    parameter_test(transform, get_t2(), x, true_state, r, 0.2, 100);
   }
 }
 

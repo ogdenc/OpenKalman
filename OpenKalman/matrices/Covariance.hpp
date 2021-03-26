@@ -28,14 +28,18 @@ namespace OpenKalman
   struct Covariance : internal::CovarianceBase<Covariance<Coefficients, NestedMatrix>, NestedMatrix>
   {
 
+#ifndef __cpp_concepts
+    static_assert(coefficients<Coefficients>);
+    static_assert(covariance_nestable<NestedMatrix>);
+    static_assert(Coefficients::size == MatrixTraits<NestedMatrix>::dimension);
+    static_assert(not std::is_rvalue_reference_v<NestedMatrix>);
+#endif
+
+    using Scalar = typename MatrixTraits<NestedMatrix>::Scalar; ///< Scalar type for this matrix.
+
   private:
 
-    static_assert(covariance_nestable<NestedMatrix> and (not std::is_rvalue_reference_v<NestedMatrix>));
-
     using Base = internal::CovarianceBase<Covariance, NestedMatrix>;
-
-    // May be accessed externally through MatrixTraits:
-    using Scalar = typename MatrixTraits<NestedMatrix>::Scalar;
 
     // May be accessed externally through MatrixTraits:
     static constexpr auto dimension = MatrixTraits<NestedMatrix>::dimension;

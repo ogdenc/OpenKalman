@@ -21,25 +21,6 @@
 namespace OpenKalman
 {
 
-  namespace Eigen3
-  {
-    /**
-     * \brief Specifies a native Eigen3 matrix deriving from Eigen::MatrixBase.
-     * \details This includes any original class in the Eigen library descending from Eigen::MatrixBase.
-     * It does not include new classes added in OpenKalman, such as DiagonalMatrix or ZeroMatrix.
-     * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
-     */
-    template<typename T>
-#ifdef __cpp_concepts
-    concept eigen_native = std::derived_from<std::decay_t<T>, Eigen::MatrixBase<std::decay_t<T>>> and
-      (not std::derived_from<std::decay_t<T>, internal::Eigen3Base<std::decay_t<T>>>);
-#else
-    inline constexpr bool eigen_native = std::is_base_of_v<Eigen::MatrixBase<std::decay_t<T>>, std::decay_t<T>> and
-      (not std::is_base_of_v<internal::Eigen3Base<std::decay_t<T>>, std::decay_t<T>>);
-#endif
-  } // namespace Eigen3
-
-
   /*
    * \internal
    * \brief Default matrix traits for any self-contained \ref eigen_native.

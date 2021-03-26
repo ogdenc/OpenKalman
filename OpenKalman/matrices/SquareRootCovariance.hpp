@@ -23,14 +23,20 @@ namespace OpenKalman
 #endif
   struct SquareRootCovariance : internal::CovarianceBase<SquareRootCovariance<Coefficients, NestedMatrix>, NestedMatrix>
   {
-    static_assert(Coefficients::size == MatrixTraits<NestedMatrix>::dimension and
-      (not std::is_rvalue_reference_v<NestedMatrix>));
 
-  private:
-    using Base = internal::CovarianceBase<SquareRootCovariance, NestedMatrix>;
+#ifndef __cpp_concepts
+    static_assert(coefficients<Coefficients>);
+    static_assert(covariance_nestable<NestedMatrix>);
+    static_assert(Coefficients::size == MatrixTraits<NestedMatrix>::dimension);
+    static_assert(not std::is_rvalue_reference_v<NestedMatrix>);
+#endif
 
     // May be accessed externally through MatrixTraits:
-    using Scalar = typename MatrixTraits<NestedMatrix>::Scalar;
+    using Scalar = typename MatrixTraits<NestedMatrix>::Scalar; ///< Scalar type for this matrix.
+
+  private:
+
+    using Base = internal::CovarianceBase<SquareRootCovariance, NestedMatrix>;
 
     // May be accessed externally through MatrixTraits:
     static constexpr auto dimension = MatrixTraits<NestedMatrix>::dimension;

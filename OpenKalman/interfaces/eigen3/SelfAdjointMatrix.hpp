@@ -26,13 +26,21 @@ namespace OpenKalman::Eigen3
   struct SelfAdjointMatrix
     : OpenKalman::internal::MatrixBase<SelfAdjointMatrix<NestedMatrix, storage_triangle>, NestedMatrix>
   {
+
+#ifndef __cpp_concepts
     static_assert(square_matrix<NestedMatrix>);
+#endif
+
+    using Scalar = typename MatrixTraits<NestedMatrix>::Scalar;
+
+  private:
+
     using Base = OpenKalman::internal::MatrixBase<SelfAdjointMatrix, NestedMatrix>;
     static constexpr auto uplo = storage_triangle == TriangleType::upper ? Eigen::Upper : Eigen::Lower;
     using View = Eigen::SelfAdjointView<std::remove_reference_t<NestedMatrix>, uplo>;
-    using Scalar = typename MatrixTraits<NestedMatrix>::Scalar;
     static constexpr auto dimension = MatrixTraits<NestedMatrix>::dimension;
 
+  public:
 
     /// Default constructor.
 #ifdef __cpp_concepts

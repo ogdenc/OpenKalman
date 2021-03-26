@@ -40,9 +40,129 @@
 
 namespace OpenKalman::Eigen3
 {
+  namespace internal
+  {
+    /**
+     * \internal
+     * \brief The ultimate base for matrix classes in OpenKalman.
+     * \details This class is used solely to distinguish OpenKalman classes from native Eigen classes which are
+     * also derived from Eigen::MatrixBase.
+     */
+    template<typename Derived>
+    struct Eigen3Base : Eigen::MatrixBase<Derived> {};
+
+
+    /*
+     * \internal
+     * \brief Base for matrix classes in OpenKalman.
+     * \details This specializes the comma initializer for OpenKalman classes, and redefines the Zero and Identity
+     * functions.
+     */
+    template<typename Derived, typename Nested>
+    struct Eigen3MatrixBase;
+  } // namespace internal
+
+
+  /**
+   * \brief Specifies a native Eigen3 matrix deriving from Eigen::MatrixBase.
+   * \details This includes any original class in the Eigen library descending from Eigen::MatrixBase.
+   * It does not include new classes added in OpenKalman, such as DiagonalMatrix or ZeroMatrix.
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept eigen_native = std::derived_from<std::decay_t<T>, Eigen::MatrixBase<std::decay_t<T>>> and
+    (not std::derived_from<std::decay_t<T>, internal::Eigen3Base<std::decay_t<T>>>);
+#else
+  inline constexpr bool eigen_native = std::is_base_of_v<Eigen::MatrixBase<std::decay_t<T>>, std::decay_t<T>> and
+      (not std::is_base_of_v<internal::Eigen3Base<std::decay_t<T>>, std::decay_t<T>>);
+#endif
+
+
+  /**
+   * \brief An alias for the Eigen identity matrix.
+   * \details In Eigen, this does not need to be a square matrix.
+   * \NestedMatrix The nested matrix on which the identity is based.
+   */
+  template<typename NestedMatrix>
+  using IdentityMatrix =
+    Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<typename NestedMatrix::Scalar>, NestedMatrix>;
+
+
   // ---------------------------- //
   //    New Eigen matrix types    //
   // ---------------------------- //
+
+  /**
+   * \brief A matrix in which all elements are automatically 0.
+   * \note This is necessary because Eigen3 types do not distinguish between a zero matrix and a constant matrix.
+   * \tparam Scalar The scalar type.
+   * \tparam rows The number of rows.
+   * \tparam columns The number of columns.
+   */
+  template<typename Scalar, std::size_t rows, std::size_t columns = 1>
+  struct ZeroMatrix;
+
+
+  namespace detail
+  {
+    template<typename T>
+    struct is_eigen_zero_expr : std::false_type {};
+
+    template<typename Scalar, std::size_t rows, std::size_t cols>
+    struct is_eigen_zero_expr<ZeroMatrix<Scalar, rows, cols>> : std::true_type {};
+  }
+
+
+  /**
+   * \brief Specifies that T is a zero matrix based on the Eigen library (i.e., ZeroMatrix).
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept eigen_zero_expr = detail::is_eigen_zero_expr<std::decay_t<T>>::value;
+#else
+  inline constexpr bool eigen_zero_expr = detail::is_eigen_zero_expr<std::decay_t<T>>::value;
+#endif
+
+
+  /**
+   * \brief A diagonal matrix.
+   * \details The matrix is guaranteed to be diagonal. It is ::self_contained iff NestedMatrix is ::self_contained.
+   * Implicit conversions are available from any \ref diagonal_matrix of compatible size.
+   * \tparam NestedMatrix A \ref column_vector expression defining the diagonal elements.
+   * Elements outside the diagonal are automatically 0.
+   * \note This has the same name as Eigen::DiagonalMatrix, and is intended as a replacement.
+   */
+#ifdef __cpp_concepts
+  template<column_vector NestedMatrix>
+#else
+  template<typename NestedMatrix>
+#endif
+  struct DiagonalMatrix;
+
+
+  namespace detail
+  {
+    template<typename T>
+    struct is_eigen_diagonal_expr : std::false_type {};
+
+    template<typename NestedMatrix>
+    struct is_eigen_diagonal_expr<DiagonalMatrix<NestedMatrix>> : std::true_type {};
+  }
+
+
+  /**
+   * \brief Specifies that T is a diagonal matrix based on the Eigen library (i.e., DiaginalMatrix).
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept eigen_diagonal_expr = detail::is_eigen_diagonal_expr<std::decay_t<T>>::value;
+#else
+  inline constexpr bool eigen_diagonal_expr = detail::is_eigen_diagonal_expr<std::decay_t<T>>::value;
+#endif
+
 
   /**
    * \brief A self-adjoint matrix.
@@ -64,6 +184,28 @@ namespace OpenKalman::Eigen3
   struct SelfAdjointMatrix;
 
 
+  namespace detail
+  {
+    template<typename T>
+    struct is_eigen_self_adjoint_expr : std::false_type {};
+
+    template<typename NestedMatrix, TriangleType storage_triangle>
+    struct is_eigen_self_adjoint_expr<SelfAdjointMatrix<NestedMatrix, storage_triangle>> : std::true_type {};
+  }
+
+
+  /**
+   * \brief Specifies that T is a self-adjoint matrix based on the Eigen library (i.e., SelfAdjointMatrix).
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept eigen_self_adjoint_expr = detail::is_eigen_self_adjoint_expr<std::decay_t<T>>::value;
+#else
+  inline constexpr bool eigen_self_adjoint_expr = detail::is_eigen_self_adjoint_expr<std::decay_t<T>>::value;
+#endif
+
+
   /**
    * \brief A triangular matrix.
    * \details The matrix is guaranteed to be triangular. It is ::self_contained iff NestedMatrix is ::self_contained.
@@ -83,31 +225,26 @@ namespace OpenKalman::Eigen3
   struct TriangularMatrix;
 
 
+  namespace detail
+  {
+    template<typename T>
+    struct is_eigen_triangular_expr : std::false_type {};
+
+    template<typename NestedMatrix, TriangleType triangle_type>
+    struct is_eigen_triangular_expr<TriangularMatrix<NestedMatrix, triangle_type>> : std::true_type {};
+  }
+
+
   /**
-   * \brief A diagonal matrix.
-   * \details The matrix is guaranteed to be diagonal. It is ::self_contained iff NestedMatrix is ::self_contained.
-   * Implicit conversions are available from any \ref diagonal_matrix of compatible size.
-   * \tparam NestedMatrix A \ref column_vector expression defining the diagonal elements.
-   * Elements outside the diagonal are automatically 0.
-   * \note This has the same name as Eigen::DiagonalMatrix, and is intended as a replacement.
+   * \brief Specifies that T is a triangular matrix based on the Eigen library (i.e., TriangularMatrix).
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
+  template<typename T>
 #ifdef __cpp_concepts
-  template<column_vector NestedMatrix>
+  concept eigen_triangular_expr = detail::is_eigen_triangular_expr<std::decay_t<T>>::value;
 #else
-  template<typename NestedMatrix>
+  inline constexpr bool eigen_triangular_expr = detail::is_eigen_triangular_expr<std::decay_t<T>>::value;
 #endif
-  struct DiagonalMatrix;
-
-
-  /**
-   * \brief A matrix in which all elements are automatically 0.
-   * \note This is necessary because Eigen3 types do not distinguish between a zero matrix and a constant matrix.
-   * \tparam Scalar The scalar type.
-   * \tparam rows The number of rows.
-   * \tparam columns The number of columns.
-   */
-  template<typename Scalar, std::size_t rows, std::size_t columns = 1>
-  struct ZeroMatrix;
 
 
   /**
@@ -125,6 +262,28 @@ namespace OpenKalman::Eigen3
   struct ToEuclideanExpr;
 
 
+  namespace detail
+  {
+    template<typename T>
+    struct is_to_euclidean_expr : std::false_type {};
+
+    template<typename Coefficients, typename NestedMatrix>
+    struct is_to_euclidean_expr<ToEuclideanExpr<Coefficients, NestedMatrix>> : std::true_type {};
+  }
+
+
+  /**
+   * \brief Specifies that T is an expression converting coefficients to Euclidean space (i.e., ToEuclideanExpr).
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept to_euclidean_expr = detail::is_to_euclidean_expr<std::decay_t<T>>::value;
+#else
+  inline constexpr bool to_euclidean_expr = detail::is_to_euclidean_expr<std::decay_t<T>>::value;
+#endif
+
+
   /**
    * \brief An expression that transforms angular or other modular coefficients back from Euclidean space.
    * \details This is the counterpart expression to ToEuclideanExpr.
@@ -140,38 +299,27 @@ namespace OpenKalman::Eigen3
   struct FromEuclideanExpr;
 
 
-  /**
-   * \brief An alias for the Eigen identity matrix.
-   * \details In Eigen, this does not need to be a square matrix.
-   * \NestedMatrix The nested matrix on which the identity is based.
-   */
-  template<typename NestedMatrix>
-  using IdentityMatrix =
-    Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<typename NestedMatrix::Scalar>, NestedMatrix>;
-
-
-  namespace internal
+  namespace detail
   {
-    /**
-     * \internal
-     * \brief The ultimate base for matrix classes in OpenKalman.
-     * \details This class is used solely to distinguish OpenKalman classes from native Eigen classes which are
-     * also derived from Eigen::MatrixBase.
-     */
-    template<typename Derived>
-    struct Eigen3Base : Eigen::MatrixBase<Derived> {};
+    template<typename T>
+    struct is_from_euclidean_expr : std::false_type {};
 
-
-    /*
-     * \internal
-     * \brief Base for matrix classes in OpenKalman.
-     * \details This specializes the comma initializer for OpenKalman classes, and redefines the Zero and Identity
-     * functions.
-     */
-    template<typename Derived, typename Nested>
-    struct Eigen3MatrixBase;
-
+    template<typename Coefficients, typename NestedMatrix>
+    struct is_from_euclidean_expr<FromEuclideanExpr<Coefficients, NestedMatrix>> : std::true_type {};
   }
+
+
+  /**
+   * \brief Specifies that T is an expression converting coefficients from Euclidean space (i.e., FromEuclideanExpr).
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept from_euclidean_expr = detail::is_from_euclidean_expr<std::decay_t<T>>::value;
+#else
+  inline constexpr bool from_euclidean_expr = detail::is_from_euclidean_expr<std::decay_t<T>>::value;
+#endif
+
 
 } // namespace OpenKalman::Eigen3
 
