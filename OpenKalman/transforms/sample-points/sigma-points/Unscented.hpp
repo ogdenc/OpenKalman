@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2017-2020 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2017-2021 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -23,6 +23,7 @@ namespace OpenKalman
   template<typename Parameters>
   struct Unscented;
 
+
   /// Unscented parameters for use in state estimation (the default).
   struct UnscentedParametersStateEstimation
   {
@@ -34,6 +35,7 @@ namespace OpenKalman
     /// This makes it possible to match some of the fourth-order terms when the distribution is Gaussian.
     template<int dim> static constexpr double kappa = 0.0;
   };
+
 
   /// Unscented parameters for use in parameter estimation.
   struct UnscentedParametersParameterEstimation
@@ -61,14 +63,17 @@ namespace OpenKalman
     sigma_point_count() { return dim * 2 + 1; };
 
   private:
-    /// Scale and translate normalized sample points based on mean and (square root) covariance.
-    /// This algorithm decreases the complexity from O(n^3) to O(n^2).
-    /// This steps recursively through a tuple of input and noise distributions.
+
+    /*
+     * Scale and translate normalized sample points based on mean and (square root) covariance.
+     * This algorithm decreases the complexity from O(n^3) to O(n^2).
+     * This steps recursively through a tuple of input and noise distributions.
+     */
     template<
-      std::size_t dim, ///< The total number of dimensions for which sigma points are assigned.
-      std::size_t pos = 0, ///< The writing position during this recursive step.
-      typename D, ///< First input or noise distribution.
-      typename...Ds> ///< Other input or noise distributions.
+      std::size_t dim, //< The total number of dimensions for which sigma points are assigned.
+      std::size_t pos = 0, //< The writing position during this recursive step.
+      typename D, //< First input or noise distribution.
+      typename...Ds> //< Other input or noise distributions.
     static auto
     sigma_points_impl(const D& d, const Ds&...ds)
     {
@@ -81,67 +86,74 @@ namespace OpenKalman
       constexpr Scalar alpha = Parameters::alpha;
       constexpr Scalar kappa = Parameters::template kappa<dim>;
       constexpr Scalar gamma_L = alpha * alpha * (kappa + dim);
-      const auto delta = make_matrix<Coeffs, Axes<dim_i>>(make_native_matrix(square_root(gamma_L * covariance_of(d))));
-      //
-      using M0nested = native_matrix_t<M, dim_i, 1>;
-      const auto m0 = Matrix<Coeffs, Axis, M0nested>::zero();
+      const auto gamma_L_cov = gamma_L * covariance_of(d);
+      const auto delta = make_matrix<Coeffs, Axes<dim_i>>(square_root(gamma_L_cov).get_triangular_nested_matrix());
+
       if constexpr(1 + frame_size == points_count)
       {
-        auto ret = concatenate_horizontal(m0, delta, -delta);
+        // | 0 | delta | -delta |
+        const auto m0 = Matrix<Coeffs, Axis, native_matrix_t<M, dim_i, 1>>::zero();
+        auto ret = make_self_contained(concatenate_horizontal(m0, delta, -delta));
         static_assert(MatrixTraits<decltype(ret)>::columns == points_count);
         return std::tuple {std::move(ret)};
       }
       else if constexpr (pos == 0)
       {
+        // | 0 | delta | -delta | 0 ... |
+        const auto m0 = Matrix<Coeffs, Axis, native_matrix_t<M, dim_i, 1>>::zero();
         constexpr auto width = points_count - (1 + frame_size);
-        using MRnative = native_matrix_t<M, dim_i, width>;
-        const auto mright = Matrix<Coeffs, Axes<width>, MRnative>::zero();
-        auto ret = concatenate_horizontal(m0, delta, -delta, mright);
+        const auto mright = Matrix<Coeffs, Axes<width>, native_matrix_t<M, dim_i, width>>::zero();
+        auto ret = make_self_contained(concatenate_horizontal(m0, delta, -delta, mright));
         static_assert(MatrixTraits<decltype(ret)>::columns == points_count);
         return std::tuple_cat(std::tuple {std::move(ret)}, sigma_points_impl<dim, 1 + frame_size>(ds...));
       }
       else if constexpr (pos + frame_size < points_count)
       {
-        using MLnative = native_matrix_t<M, dim_i, pos>;
-        const auto mleft = Matrix<Coeffs, Axes<pos>, MLnative>::zero();
+        // | 0 | 0 ... | delta | -delta | 0 ... |
+        const auto mleft = Matrix<Coeffs, Axes<pos>, native_matrix_t<M, dim_i, pos>>::zero();
         constexpr auto width = points_count - (pos + frame_size);
-        using MRnative = native_matrix_t<M, dim_i, width>;
-        const auto mright = Matrix<Coeffs, Axes<width>, MRnative>::zero();
-        auto ret = concatenate_horizontal(mleft, delta, -delta, mright);
+        const auto mright = Matrix<Coeffs, Axes<width>, native_matrix_t<M, dim_i, width>>::zero();
+        auto ret = make_self_contained(concatenate_horizontal(mleft, delta, -delta, mright));
         static_assert(MatrixTraits<decltype(ret)>::columns == points_count);
         return std::tuple_cat(std::tuple {std::move(ret)}, sigma_points_impl<dim, pos + frame_size>(ds...));
       }
       else
       {
+        // | 0 | 0 ... | delta | -delta |
         static_assert(sizeof...(ds) == 0);
-        using MLnative = native_matrix_t<M, dim_i, pos>;
-        const auto mleft = Matrix<Coeffs, Axes<pos>, MLnative>::zero();
-        auto ret = concatenate_horizontal(mleft, delta, -delta);
+        const auto mleft = Matrix<Coeffs, Axes<pos>, native_matrix_t<M, dim_i, pos>>::zero();
+        auto ret = make_self_contained(concatenate_horizontal(mleft, delta, -delta));
         static_assert(MatrixTraits<decltype(ret)>::columns == points_count);
         return std::tuple {std::move(ret)};
       }
     }
 
   public:
+
     /**
      * \brief Scale and translate normalized sample points based on mean and (square root) covariance.
      * This algorithm decreases the complexity from O(n^3) to O(n^2).
      * \param x The input distribution.
      * \return A matrix of sigma points (each sigma point in a column).
      */
-    template<typename...Dist>
-    static constexpr auto
+#ifdef __cpp_concepts
+    template<gaussian_distribution ... Dist>
+#else
+    template<typename...Dist, std::enable_if_t<((gaussian_distribution<Dist> and ...)), int> = 0>
+#endif
+    static auto
     sigma_points(const Dist& ...ds)
     {
-      static_assert((gaussian_distribution<Dist> and ...));
       constexpr auto dim = (DistributionTraits<Dist>::dimension + ...);
       return sigma_points_impl<dim>(ds...);
     }
 
   protected:
-    Unscented() {}; // Prevent instantiation.
 
     friend struct internal::ScaledSigmaPointsBase<Unscented<Parameters>, Parameters>;
+
+    Unscented() {}; // Prevent instantiation.
+
 
     template<std::size_t dim, typename Scalar = double>
     static constexpr auto
@@ -150,6 +162,7 @@ namespace OpenKalman
       constexpr Scalar kappa = Parameters::template kappa<dim>;
       return kappa / (dim + kappa);
     }
+
 
     template<std::size_t dim, typename Scalar = double>
     static constexpr auto

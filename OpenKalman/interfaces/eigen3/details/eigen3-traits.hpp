@@ -1,11 +1,16 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2019-2020 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2019-2021 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+/**
+ * \file
+ * \brief Concepts as applied to matrix classes in OpenKalman's Eigen3 interface.
  */
 
 #ifndef OPENKALMAN_EIGEN3_TRAITS_HPP
@@ -16,9 +21,10 @@
 namespace OpenKalman
 {
 
-  // ------------------------------------------------------- //
-  //    Concepts / type traits for new Eigen matrix types    //
-  // ------------------------------------------------------- //
+  // ================================================================== //
+  //   New concepts and type traits for Eigen interface matrix types   //
+  // ================================================================== //
+
   namespace Eigen3
   {
 
@@ -33,8 +39,8 @@ namespace OpenKalman
 
 
     /**
-     * Type T is a self-adjoint matrix based on the Eigen library.
-     * /note This is a concept when compiled with c++20, and a constexpr bool in c++17.
+     * \brief Specifies that T is a self-adjoint matrix based on the Eigen library (i.e., SelfAdjointMatrix).
+     * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
      */
     template<typename T>
 #ifdef __cpp_concepts
@@ -55,7 +61,7 @@ namespace OpenKalman
 
 
     /**
-     * A triangular matrix based on the Eigen library.
+     * \brief Specifies that T is a triangular matrix based on the Eigen library (i.e., TriangularMatrix).
      * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
      */
     template<typename T>
@@ -77,7 +83,7 @@ namespace OpenKalman
 
 
     /**
-     * A diagonal matrix based on the Eigen library.
+     * \brief Specifies that T is a diagonal matrix based on the Eigen library (i.e., DiaginalMatrix).
      * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
      */
     template<typename T>
@@ -99,7 +105,7 @@ namespace OpenKalman
 
 
     /**
-     * A zero matrix based on the Eigen library. (All coefficients are zero.)
+     * \brief Specifies that T is a zero matrix based on the Eigen library (i.e., ZeroMatrix).
      * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
      */
     template<typename T>
@@ -107,28 +113,6 @@ namespace OpenKalman
     concept eigen_zero_expr = detail::is_eigen_zero_expr<std::decay_t<T>>::value;
 #else
     inline constexpr bool eigen_zero_expr = detail::is_eigen_zero_expr<std::decay_t<T>>::value;
-#endif
-
-
-    namespace detail
-    {
-      template<typename T>
-      struct is_from_euclidean_expr : std::false_type {};
-
-      template<typename Coefficients, typename NestedMatrix>
-      struct is_from_euclidean_expr<FromEuclideanExpr<Coefficients, NestedMatrix>> : std::true_type {};
-    }
-
-
-    /**
-     * An expression converting each column vector in a Euclidean Eigen matrix from Euclidean space.
-     * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
-     */
-    template<typename T>
-#ifdef __cpp_concepts
-    concept from_euclidean_expr = detail::is_from_euclidean_expr<std::decay_t<T>>::value;
-#else
-    inline constexpr bool from_euclidean_expr = detail::is_from_euclidean_expr<std::decay_t<T>>::value;
 #endif
 
 
@@ -143,7 +127,7 @@ namespace OpenKalman
 
 
     /**
-     * An expression converting each column vector in an Eigen matrix to Euclidean space.
+     * \brief Specifies that T is an expression converting coefficients to Euclidean space (i.e., ToEuclideanExpr).
      * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
      */
     template<typename T>
@@ -154,20 +138,42 @@ namespace OpenKalman
 #endif
 
 
+    namespace detail
+    {
+      template<typename T>
+      struct is_from_euclidean_expr : std::false_type {};
+
+      template<typename Coefficients, typename NestedMatrix>
+      struct is_from_euclidean_expr<FromEuclideanExpr<Coefficients, NestedMatrix>> : std::true_type {};
+    }
+
+
     /**
-     * Either from_euclidean_expr or to_euclidean_expr.
+     * \brief Specifies that T is an expression converting coefficients from Euclidean space (i.e., FromEuclideanExpr).
      * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
      */
     template<typename T>
 #ifdef __cpp_concepts
-    concept euclidean_expr = from_euclidean_expr<T> or to_euclidean_expr<T>;
+    concept from_euclidean_expr = detail::is_from_euclidean_expr<std::decay_t<T>>::value;
+#else
+    inline constexpr bool from_euclidean_expr = detail::is_from_euclidean_expr<std::decay_t<T>>::value;
+#endif
+
+
+    /**
+     * \brief Specifies that T is either \ref to_euclidean_expr or \ref from_euclidean_expr.
+     * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
+     */
+    template<typename T>
+#ifdef __cpp_concepts
+    concept euclidean_expr = to_euclidean_expr<T> or from_euclidean_expr<T>;
 #else
     inline constexpr bool euclidean_expr = from_euclidean_expr<T> or to_euclidean_expr<T>;
 #endif
 
 
     /**
-     * T is either a native Eigen matrix or a zero Eigen matrix.
+     * \brief Specifies that T is either \ref eigen_native or \ref eigen_zero_expr.
      * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
      */
     template<typename T>
@@ -184,12 +190,22 @@ namespace OpenKalman
       struct is_upper_triangular_storage : std::false_type {};
 
       template<typename NestedMatrix>
-      struct is_upper_triangular_storage<Eigen3::SelfAdjointMatrix<NestedMatrix, TriangleType::upper>> : std::true_type {};
+      struct is_upper_triangular_storage<Eigen3::SelfAdjointMatrix<NestedMatrix, TriangleType::upper>>
+        : std::true_type {};
+
+      template<typename NestedMatrix>
+      struct is_upper_triangular_storage<Eigen3::SelfAdjointMatrix<NestedMatrix, TriangleType::diagonal>>
+        : std::true_type {};
+
+      template<typename MatrixType, unsigned int UpLo>
+      struct is_upper_triangular_storage<Eigen::SelfAdjointView<MatrixType, UpLo>>
+        : std::bool_constant<(UpLo & Eigen::Upper) != 0> {};
     }
 
 
     /**
-     * A self-adjoint matrix that stores data in the upper triangle.
+     * \brief Specifies that T is an \ref eigen_self_adjoint_expr that stores data in the upper-right triangle.
+     * \details This \em includes matrices that store data only along the diagonal.
      * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
      */
     template<typename T>
@@ -206,12 +222,22 @@ namespace OpenKalman
       struct is_lower_triangular_storage : std::false_type {};
 
       template<typename NestedMatrix>
-      struct is_lower_triangular_storage<Eigen3::SelfAdjointMatrix<NestedMatrix, TriangleType::lower>> : std::true_type {};
+      struct is_lower_triangular_storage<Eigen3::SelfAdjointMatrix<NestedMatrix, TriangleType::lower>>
+        : std::true_type {};
+
+      template<typename NestedMatrix>
+      struct is_lower_triangular_storage<Eigen3::SelfAdjointMatrix<NestedMatrix, TriangleType::diagonal>>
+        : std::true_type {};
+
+      template<typename MatrixType, unsigned int UpLo>
+      struct is_lower_triangular_storage<Eigen::SelfAdjointView<MatrixType, UpLo>>
+        : std::bool_constant<(UpLo & Eigen::Lower) != 0> {};
     }
 
 
     /**
-     * A self-adjoint matrix that stores data in the lower triangle.
+     * \brief Specifies that T is an \ref eigen_self_adjoint_expr that stores data in the lower-left triangle.
+     * \details This \em includes matrices that store data only along the diagonal.
      * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
      */
     template<typename T>
@@ -221,6 +247,26 @@ namespace OpenKalman
     inline constexpr bool lower_triangular_storage = detail::is_lower_triangular_storage<std::decay_t<T>>::value;
 #endif
 
+
+    namespace internal
+    {
+      /**
+       * \internal
+       * \brief Specifies that two self-adjoint expressions have the same storage triangle type (upper or lower).
+       * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
+       */
+      template<typename T, typename U>
+#ifdef __cpp_concepts
+      concept same_storage_triangle_as =
+      (upper_triangular_storage<T> and upper_triangular_storage<U>) or
+        (lower_triangular_storage<T> and lower_triangular_storage<U>);
+#else
+      inline constexpr bool same_storage_triangle_as =
+        (upper_triangular_storage<T> and upper_triangular_storage<U>) or
+        (lower_triangular_storage<T> and lower_triangular_storage<U>);
+#endif
+    }
+
   } // namespace Eigen3
 
 
@@ -228,8 +274,7 @@ namespace OpenKalman
   {
     // Defines the is_covariance_nestable type trait specifically for Eigen3.
 #ifdef __cpp_concepts
-    template<typename T>
-    requires
+    template<typename T> requires
       Eigen3::eigen_self_adjoint_expr<T> or
       Eigen3::eigen_triangular_expr<T> or
       Eigen3::eigen_diagonal_expr<T> or
@@ -250,9 +295,8 @@ namespace OpenKalman
 
     // Defines the is_typed_matrix_nestable type trait specifically for Eigen3.
 #ifdef __cpp_concepts
-    template<typename T>
-    requires
-    Eigen3::eigen_self_adjoint_expr<T> or
+    template<typename T> requires
+      Eigen3::eigen_self_adjoint_expr<T> or
       Eigen3::eigen_triangular_expr<T> or
       Eigen3::eigen_diagonal_expr<T> or
       Eigen3::eigen_zero_expr<T> or
@@ -433,14 +477,38 @@ namespace OpenKalman
     // -------------------- //
 
 #ifdef __cpp_concepts
-    template<typename T> requires (Eigen3::eigen_self_adjoint_expr<T> or Eigen3::eigen_triangular_expr<T>) and
-      identity_matrix<nested_matrix_t<T>>
-    struct is_identity_matrix<T> : std::true_type {};
+    template<Eigen3::eigen_diagonal_expr T> requires one_by_one_matrix<T> and identity_matrix<nested_matrix_t<T>>
+    struct is_identity_matrix<T>
 #else
     template<typename T>
-    struct is_identity_matrix<T, std::enable_if_t<(Eigen3::eigen_self_adjoint_expr<T> or Eigen3::eigen_triangular_expr<T>)>>
-      : is_identity_matrix<nested_matrix_t<T>> {};
+    struct is_identity_matrix<T, std::enable_if_t<
+      Eigen3::eigen_diagonal_expr<T> and one_by_one_matrix<T> and identity_matrix<nested_matrix_t<T>>>>
 #endif
+      : std::true_type {};
+
+
+#ifdef __cpp_concepts
+    template<typename T> requires (Eigen3::eigen_self_adjoint_expr<T> or Eigen3::eigen_triangular_expr<T>) and
+      identity_matrix<nested_matrix_t<T>>
+    struct is_identity_matrix<T>
+#else
+    template<typename T>
+    struct is_identity_matrix<T, std::enable_if_t<
+      (Eigen3::eigen_self_adjoint_expr<T> or Eigen3::eigen_triangular_expr<T>) and identity_matrix<nested_matrix_t<T>>>>
+#endif
+      : std::true_type {};
+
+
+#ifdef __cpp_concepts
+    template<Eigen3::euclidean_expr T> requires
+    MatrixTraits<T>::Coefficients::axes_only and identity_matrix<nested_matrix_t<T>>
+    struct is_identity_matrix<T>
+#else
+    template<typename T>
+    struct is_identity_matrix<T, std::enable_if_t<Eigen3::euclidean_expr<T> and
+      MatrixTraits<T>::Coefficients::axes_only and identity_matrix<nested_matrix_t<T>>>>
+#endif
+      : std::true_type {};
 
 
 #ifdef __cpp_concepts
@@ -464,9 +532,9 @@ namespace OpenKalman
 #endif
 
 
-    // ------------- //
-    //  is_diagonal  //
-    // ------------- //
+    // -------------------- //
+    //  is_diagonal_matrix  //
+    // -------------------- //
 
 #ifdef __cpp_concepts
     template<Eigen3::eigen_diagonal_expr T>
@@ -499,6 +567,16 @@ namespace OpenKalman
     struct is_diagonal_matrix<T, std::enable_if_t<Eigen3::eigen_triangular_expr<T>>>
       : std::bool_constant<diagonal_matrix<nested_matrix_t<T>> or
           MatrixTraits<T>::triangle_type == TriangleType::diagonal> {};
+#endif
+
+
+#ifdef __cpp_concepts
+    template<typename Arg> requires std::derived_from<Arg, Eigen::DiagonalBase<Arg>>
+    struct is_diagonal_matrix<Arg> : std::true_type {};
+#else
+    template<typename Arg>
+    struct is_diagonal_matrix<Arg, std::enable_if_t<std::is_base_of_v<Eigen::DiagonalBase<Arg>, Arg>>>
+      : std::true_type {};
 #endif
 
 
@@ -586,13 +664,15 @@ namespace OpenKalman
     //  is_self_adjoint_matrix  //
     // ------------------------ //
 
-#ifdef __cpp_concepts
-    template<Eigen3::eigen_self_adjoint_expr T>
-    struct is_self_adjoint_matrix<T>
-#else
-    template<typename T>
-    struct is_self_adjoint_matrix<T, std::enable_if_t<Eigen3::eigen_self_adjoint_expr<T>>>
-#endif
+    template<typename NestedMatrix, TriangleType storage_triangle>
+    struct is_self_adjoint_matrix<Eigen3::SelfAdjointMatrix<NestedMatrix, storage_triangle>> : std::true_type {};
+
+    template<typename Scalar, typename PlainObjectType>
+    struct is_self_adjoint_matrix<Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<Scalar>, PlainObjectType>>
+      : std::bool_constant<square_matrix<PlainObjectType>> {};
+
+    template<typename MatrixType, unsigned int UpLo>
+    struct is_self_adjoint_matrix<Eigen::SelfAdjointView<MatrixType, UpLo>>
       : std::true_type {};
 
 
@@ -600,28 +680,34 @@ namespace OpenKalman
     //  is_lower_triangular_matrix  //
     // ---------------------------- //
 
-#ifdef __cpp_concepts
-    template<Eigen3::eigen_triangular_expr T> requires (MatrixTraits<T>::triangle_type == TriangleType::lower)
-    struct is_lower_triangular_matrix<T> : std::true_type {};
-#else
-    template<typename T>
-    struct is_lower_triangular_matrix<T, std::enable_if_t<Eigen3::eigen_triangular_expr<T>>>
-      : std::bool_constant<MatrixTraits<T>::triangle_type == TriangleType::lower> {};
-#endif
+    template<typename NestedMatrix>
+    struct is_lower_triangular_matrix<Eigen3::TriangularMatrix<NestedMatrix, TriangleType::lower>>
+      : std::true_type {};
+
+    template<typename NestedMatrix>
+    struct is_lower_triangular_matrix<Eigen3::TriangularMatrix<NestedMatrix, TriangleType::diagonal>>
+      : std::true_type {};
+
+    template<typename MatrixType, unsigned int Mode>
+    struct is_lower_triangular_matrix<Eigen::TriangularView<MatrixType, Mode>>
+      : std::bool_constant<(Mode & Eigen::Lower) != 0> {};
 
 
     // ---------------------------- //
     //  is_upper_triangular_matrix  //
     // ---------------------------- //
 
-#ifdef __cpp_concepts
-    template<Eigen3::eigen_triangular_expr T> requires (MatrixTraits<T>::triangle_type == TriangleType::upper)
-    struct is_upper_triangular_matrix<T> : std::true_type {};
-#else
-    template<typename T>
-    struct is_upper_triangular_matrix<T, std::enable_if_t<Eigen3::eigen_triangular_expr<T>>>
-      : std::bool_constant<MatrixTraits<T>::triangle_type == TriangleType::upper> {};
-#endif
+    template<typename NestedMatrix>
+    struct is_upper_triangular_matrix<Eigen3::TriangularMatrix<NestedMatrix, TriangleType::upper>>
+      : std::true_type {};
+
+    template<typename NestedMatrix>
+    struct is_upper_triangular_matrix<Eigen3::TriangularMatrix<NestedMatrix, TriangleType::diagonal>>
+      : std::true_type {};
+
+    template<typename MatrixType, unsigned int Mode>
+    struct is_upper_triangular_matrix<Eigen::TriangularView<MatrixType, Mode>>
+      : std::bool_constant<(Mode & Eigen::Upper) != 0> {};
 
 
     // ------------------- //
@@ -629,18 +715,23 @@ namespace OpenKalman
     // ------------------- //
 
 #ifdef __cpp_concepts
-    template<typename T> requires (Eigen3::eigen_self_adjoint_expr<T> or Eigen3::eigen_triangular_expr<T> or
-      Eigen3::eigen_diagonal_expr<T> or Eigen3::to_euclidean_expr<T> or Eigen3::from_euclidean_expr<T>) and
-      self_contained<nested_matrix_t<T>> and
-      (not std::is_reference_v<nested_matrix_t<T>>)
+    template<typename T> requires
+      (Eigen3::eigen_self_adjoint_expr<T> or
+        Eigen3::eigen_triangular_expr<T> or
+        Eigen3::eigen_diagonal_expr<T> or
+        Eigen3::to_euclidean_expr<T> or
+        Eigen3::from_euclidean_expr<T>) and
+      self_contained<nested_matrix_t<T>>
     struct is_self_contained<T> : std::true_type {};
 #else
     template<typename T>
     struct is_self_contained<T, std::enable_if_t<
-      Eigen3::eigen_self_adjoint_expr<T> or Eigen3::eigen_triangular_expr<T> or
-      Eigen3::eigen_diagonal_expr<T> or Eigen3::to_euclidean_expr<T> or Eigen3::from_euclidean_expr<T>>>
-      : std::bool_constant<self_contained<nested_matrix_t<T>> and
-          (not std::is_reference_v<nested_matrix_t<T>>)> {};
+      (Eigen3::eigen_self_adjoint_expr<T> or
+        Eigen3::eigen_triangular_expr<T> or
+        Eigen3::eigen_diagonal_expr<T> or
+        Eigen3::to_euclidean_expr<T> or
+        Eigen3::from_euclidean_expr<T>) and
+      self_contained<nested_matrix_t<T>>>> : std::true_type {};
 #endif
 
 
@@ -821,6 +912,122 @@ namespace OpenKalman
       : std::bool_constant<element_settable<nested_matrix_t<nested_matrix_t<T>>, N>> {};
 #endif
 
+
+    // ---------------------- //
+    //  is_modifiable_native  //
+    // ---------------------- //
+
+#ifdef __cpp_concepts
+    template<typename NestedMatrix, TriangleType storage_triangle, typename U> requires
+      //(not self_adjoint_matrix<U>) or
+      //(storage_triangle == TriangleType::diagonal and not diagonal_matrix<U>) or
+      (Eigen3::eigen_self_adjoint_expr<U> and not modifiable<NestedMatrix, typename MatrixTraits<U>::NestedMatrix>) or
+      (not Eigen3::eigen_self_adjoint_expr<U> and not modifiable<NestedMatrix, U>)
+    struct is_modifiable_native<Eigen3::SelfAdjointMatrix<NestedMatrix, storage_triangle>, U> : std::false_type {};
+#else
+    template<typename N1, TriangleType t1, typename N2, TriangleType t2>
+    struct is_modifiable_native<Eigen3::SelfAdjointMatrix<N1, t1>, Eigen3::SelfAdjointMatrix<N2, t2>>
+      : std::bool_constant<modifiable<N1, N2>> {};
+
+    template<typename NestedMatrix, TriangleType t, typename U>
+    struct is_modifiable_native<Eigen3::SelfAdjointMatrix<NestedMatrix, t>, U>
+      : std::bool_constant</*self_adjoint_matrix<U> and (t != TriangleType::diagonal or diagonal_matrix<U>) and
+        */modifiable<NestedMatrix, U>> {};
+#endif
+
+
+#ifdef __cpp_concepts
+    template<typename NestedMatrix, TriangleType triangle_type, typename U> requires
+      //(not triangular_matrix<U>) or
+      //(triangle_type == TriangleType::diagonal and not diagonal_matrix<U>) or
+      (Eigen3::eigen_triangular_expr<U> and not modifiable<NestedMatrix, typename MatrixTraits<U>::NestedMatrix>) or
+      (not Eigen3::eigen_triangular_expr<U> and not modifiable<NestedMatrix, U>)
+    struct is_modifiable_native<Eigen3::TriangularMatrix<NestedMatrix, triangle_type>, U> : std::false_type {};
+#else
+    template<typename N1, TriangleType t1, typename N2, TriangleType t2>
+    struct is_modifiable_native<Eigen3::TriangularMatrix<N1, t1>, Eigen3::TriangularMatrix<N2, t2>>
+      : std::bool_constant<modifiable<N1, N2>> {};
+
+    template<typename NestedMatrix, TriangleType t, typename U>
+    struct is_modifiable_native<Eigen3::TriangularMatrix<NestedMatrix, t>, U>
+      : std::bool_constant</*triangular_matrix<U> and (t != TriangleType::diagonal or diagonal_matrix<U>) and
+        */modifiable<NestedMatrix, U>> {};
+#endif
+
+
+#ifdef __cpp_concepts
+    template<typename NestedMatrix, typename U> requires (not diagonal_matrix<U>) or
+      (Eigen3::eigen_diagonal_expr<U> and not modifiable<NestedMatrix, typename MatrixTraits<U>::NestedMatrix>) or
+      (not Eigen3::eigen_diagonal_expr<U> and
+        not requires { modifiable<NestedMatrix, decltype(std::declval<U>().diagonal())>; })
+    struct is_modifiable_native<Eigen3::DiagonalMatrix<NestedMatrix>, U> : std::false_type {};
+#else
+    template<typename N1, typename N2>
+    struct is_modifiable_native<Eigen3::DiagonalMatrix<N1>, Eigen3::DiagonalMatrix<N2>>
+      : std::bool_constant<modifiable<N1, N2>> {};
+
+    template<typename NestedMatrix, typename U>
+    struct is_modifiable_native<Eigen3::DiagonalMatrix<NestedMatrix>, U>
+      : std::bool_constant</*diagonal_matrix<U> and */modifiable<NestedMatrix, decltype(std::declval<U>().diagonal())>> {};
+#endif
+
+
+    // Note: Eigen3::ZeroMatrix is already covered because it derives from Eigen::internal::no_assignment_operator.
+#ifdef __cpp_concepts
+    template<typename Scalar, std::size_t rows, std::size_t columns, typename U>
+    struct is_modifiable_native<Eigen3::ZeroMatrix<Scalar, rows, columns>, U>
+      : std::false_type {};
+#endif
+
+
+#ifdef __cpp_concepts
+    template<typename C, typename NestedMatrix, typename U> requires
+      (Eigen3::euclidean_expr<U> and (Eigen3::to_euclidean_expr<U> or
+        not modifiable<NestedMatrix, typename MatrixTraits<U>::NestedMatrix> or
+        not equivalent_to<C, typename MatrixTraits<U>::RowCoefficients>)) or
+      (not Eigen3::euclidean_expr<U> and not modifiable<NestedMatrix, Eigen3::ToEuclideanExpr<C, std::decay_t<U>>>)
+    struct is_modifiable_native<Eigen3::FromEuclideanExpr<C, NestedMatrix>, U>
+      : std::false_type {};
+#else
+    template<typename C1, typename N1, typename C2, typename N2>
+    struct is_modifiable_native<Eigen3::FromEuclideanExpr<C1, N1>, Eigen3::FromEuclideanExpr<C2, N2>>
+      : std::bool_constant<modifiable<N1, N2> and equivalent_to<C1, C2>> {};
+
+    template<typename C1, typename N1, typename C2, typename N2>
+    struct is_modifiable_native<Eigen3::FromEuclideanExpr<C1, N1>, Eigen3::ToEuclideanExpr<C2, N2>>
+      : std::false_type {};
+
+    template<typename C, typename NestedMatrix, typename U>
+    struct is_modifiable_native<Eigen3::FromEuclideanExpr<C, NestedMatrix>, U>
+      : std::bool_constant<modifiable<NestedMatrix, native_matrix_t<NestedMatrix>>/* and C::size == MatrixTraits<U>::dimension and
+        MatrixTraits<NestedMatrix>::columns == MatrixTraits<U>::columns and
+        std::is_same_v<typename MatrixTraits<NestedMatrix>::Scalar, typename MatrixTraits<U>::Scalar>*/> {};
+#endif
+
+
+#ifdef __cpp_concepts
+    template<typename C, typename NestedMatrix, typename U> requires
+      (Eigen3::euclidean_expr<U> and (Eigen3::from_euclidean_expr<U> or
+        not modifiable<NestedMatrix, typename MatrixTraits<U>::NestedMatrix> or
+        not equivalent_to<C, typename MatrixTraits<U>::RowCoefficients>)) or
+      (not Eigen3::euclidean_expr<U> and not modifiable<NestedMatrix, Eigen3::FromEuclideanExpr<C, std::decay_t<U>>>)
+    struct is_modifiable_native<Eigen3::ToEuclideanExpr<C, NestedMatrix>, U>
+    : std::false_type {};
+#else
+    template<typename C1, typename N1, typename C2, typename N2>
+    struct is_modifiable_native<Eigen3::ToEuclideanExpr<C1, N1>, Eigen3::ToEuclideanExpr<C2, N2>>
+      : std::bool_constant<modifiable<N1, N2> and equivalent_to<C1, C2>> {};
+
+    template<typename C1, typename N1, typename C2, typename N2>
+    struct is_modifiable_native<Eigen3::ToEuclideanExpr<C1, N1>, Eigen3::FromEuclideanExpr<C2, N2>>
+      : std::false_type {};
+
+    template<typename C, typename NestedMatrix, typename U>
+    struct is_modifiable_native<Eigen3::ToEuclideanExpr<C, NestedMatrix>, U, std::void_t<Eigen3::FromEuclideanExpr<C, std::decay_t<U>>>>
+      : std::bool_constant<modifiable<NestedMatrix, native_matrix_t<NestedMatrix>>/* and C::dimension == MatrixTraits<U>::dimension and
+        MatrixTraits<NestedMatrix>::columns == MatrixTraits<U>::columns and
+        std::is_same_v<typename MatrixTraits<NestedMatrix>::Scalar, typename MatrixTraits<U>::Scalar>*/> {};
+#endif
 
   } // namespace internal
 

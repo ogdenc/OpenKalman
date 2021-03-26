@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2020 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2020-2021 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -12,6 +12,7 @@
 #define OPENKALMAN_ELEMENTSETTER_HPP
 
 #include <functional>
+#include <mutex>
 
 namespace OpenKalman::internal
 {
@@ -19,37 +20,38 @@ namespace OpenKalman::internal
   struct ElementSetter<false, T>
   {
     using Scalar = typename MatrixTraits<T>::Scalar;
-    using OnChange = std::function<void()>;
-    using OnSet = std::function<void()>;
+    using BeforeAccess = std::function<void()>;
+    using AfterSet = std::function<void()>;
 
-    ElementSetter(T& t, std::size_t i, std::size_t j, const OnSet& do_before = []{}, const OnChange& on_set = []{})
-      : getter([i, j, &t, do_before] () -> Scalar
+    ElementSetter(T& t, std::size_t i, std::size_t j,
+      const BeforeAccess& before_access = []{}, const AfterSet& after_set = []{})
+      : getter([i, j, &t, before_access] () -> Scalar
         {
-          do_before();
+          before_access();
           return get_element(t, i, j);
         }),
-        setter([i, j, &t, on_set, do_before] (Scalar s)
+        setter([i, j, &t, after_set, before_access] (Scalar s)
         {
-          do_before();
+          before_access();
           set_element(t, s, i, j);
-          on_set();
+          after_set();
         })
       {
         static_assert(element_gettable<T, 2>, "Two-index element read access is not available.");
         static_assert(element_settable<T, 2>, "Two-index element write access is not available.");
       }
 
-    ElementSetter(T& t, std::size_t i, const OnSet& do_before = []{}, const OnChange& on_set = []{})
-      : getter([i, &t, do_before] () -> Scalar
+    ElementSetter(T& t, std::size_t i, const BeforeAccess& before_access = []{}, const AfterSet& after_set = []{})
+      : getter([i, &t, before_access] () -> Scalar
         {
-          do_before();
+          before_access();
           return get_element(t, i);
         }),
-        setter([i, &t, on_set, do_before] (Scalar s)
+        setter([i, &t, after_set, before_access] (Scalar s)
         {
-          do_before();
+          before_access();
           set_element(t, s, i);
-          on_set();
+          after_set();
         })
       {
         static_assert(element_gettable<T, 1>, "One-index element read access is not available.");
@@ -57,14 +59,18 @@ namespace OpenKalman::internal
       }
 
     /// Get an element.
-    operator Scalar() const { return getter(); }
+    operator Scalar() const { std::scoped_lock lock {setter_mutex}; return getter(); }
 
     /// Set an element.
-    void operator=(Scalar s) { setter(s); }
+    void operator=(Scalar s) { std::scoped_lock lock {setter_mutex}; setter(s); }
 
-  protected:
+  private:
     const std::function<Scalar()> getter;
+
     const std::function<void(Scalar)> setter;
+
+    mutable std::mutex setter_mutex;
+
   };
 
 
@@ -72,22 +78,22 @@ namespace OpenKalman::internal
   struct ElementSetter<true, T>
   {
     using Scalar = typename MatrixTraits<T>::Scalar;
-    using OnChange = std::function<void()>;
+    using BeforeAccess = std::function<void()>;
 
-    ElementSetter(const T& t, std::size_t i, std::size_t j, const OnChange& do_before = []{})
-      : getter([i, j, &t, do_before] () -> Scalar
+    ElementSetter(const T& t, std::size_t i, std::size_t j, const BeforeAccess& before_access = []{})
+      : getter([i, j, &t, before_access] () -> Scalar
         {
-          do_before();
+          before_access();
           return get_element(t, i, j);
         })
       {
         static_assert(element_gettable<T, 2>, "Two-index element read access is not available.");
       }
 
-    ElementSetter(const T& t, std::size_t i, const OnChange& do_before = []{})
-      : getter([i, &t, do_before] () -> Scalar
+    ElementSetter(const T& t, std::size_t i, const BeforeAccess& before_access = []{})
+      : getter([i, &t, before_access] () -> Scalar
         {
-          do_before();
+          before_access();
           return get_element(t, i);
         })
       {
@@ -95,26 +101,29 @@ namespace OpenKalman::internal
       }
 
     /// Get an element.
-    operator Scalar() const { return getter(); }
+    operator Scalar() const { std::scoped_lock lock {setter_mutex}; return getter(); }
 
-  protected:
+  private:
     const std::function<Scalar()> getter;
+
+    mutable std::mutex setter_mutex;
+
   };
 
 
-  template<typename I1, typename I2, typename T, typename OnSet, typename OnChange, std::enable_if_t<
+  template<typename I1, typename I2, typename T, typename BeforeAccess, typename AfterSet, std::enable_if_t<
     element_gettable<T, 2> and
     std::is_integral_v<std::decay_t<I1>> and std::is_integral_v<std::decay_t<I2>> and
-    std::is_invocable_r_v<void, OnSet> and
-    std::is_invocable_r_v<void, OnChange>, int> = 0>
-  ElementSetter(T, I1, I2, OnChange, OnSet) -> ElementSetter<false, std::decay_t<T>>;
+    std::is_invocable_r_v<void, BeforeAccess> and
+    std::is_invocable_r_v<void, AfterSet>, int> = 0>
+  ElementSetter(T, I1, I2, BeforeAccess, AfterSet) -> ElementSetter<false, std::decay_t<T>>;
 
-  template<typename I, typename T, typename OnSet, typename OnChange, std::enable_if_t<
+  template<typename I, typename T, typename BeforeAccess, typename AfterSet, std::enable_if_t<
     element_gettable<T, 1> and
     std::is_integral_v<std::decay_t<I>> and
-    std::is_invocable_r_v<void, OnSet> and
-    std::is_invocable_r_v<void, OnChange>, int> = 0>
-  ElementSetter(T, I, OnChange, OnSet) -> ElementSetter<false, std::decay_t<T>>;
+    std::is_invocable_r_v<void, BeforeAccess> and
+    std::is_invocable_r_v<void, AfterSet>, int> = 0>
+  ElementSetter(T, I, BeforeAccess, AfterSet) -> ElementSetter<false, std::decay_t<T>>;
 
   template<typename I1, typename I2, typename T, typename X, std::enable_if_t<
     element_gettable<T, 2> and
@@ -145,13 +154,13 @@ namespace OpenKalman::internal
     T&& t,
     std::size_t i,
     std::size_t j,
-    const std::function<void()>& do_before, // defaults to []{}
-    const std::function<void()>& on_set) // defaults to []{}
+    const std::function<void()>& before_access, // defaults to []{}
+    const std::function<void()>& after_set) // defaults to []{}
   {
     if constexpr(read_only)
-      return ElementSetter<true, std::decay_t<T>>(std::forward<T>(t), i, j, do_before);
+      return ElementSetter<true, std::decay_t<T>>(std::forward<T>(t), i, j, before_access);
     else
-      return ElementSetter<false, std::decay_t<T>>(std::forward<T>(t), i, j, do_before, on_set);
+      return ElementSetter<false, std::decay_t<T>>(std::forward<T>(t), i, j, before_access, after_set);
   }
 
 
@@ -159,13 +168,13 @@ namespace OpenKalman::internal
   auto make_ElementSetter(
     T&& t,
     std::size_t i,
-    const std::function<void()>& do_before, // defaults to []{}
-    const std::function<void()>& on_set) // defaults to []{}
+    const std::function<void()>& before_access, // defaults to []{}
+    const std::function<void()>& after_set) // defaults to []{}
   {
     if constexpr(read_only)
-      return ElementSetter<true, std::decay_t<T>>(std::forward<T>(t), i, do_before);
+      return ElementSetter<true, std::decay_t<T>>(std::forward<T>(t), i, before_access);
     else
-      return ElementSetter<false, std::decay_t<T>>(std::forward<T>(t), i, do_before, on_set);
+      return ElementSetter<false, std::decay_t<T>>(std::forward<T>(t), i, before_access, after_set);
   }
 
 }

@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2017-2020 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2017-2021 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -67,8 +67,8 @@ namespace OpenKalman
         // Convert input distribution type to output distribution types, and initialize mean and covariance:
         using CovIn = nested_matrix_t<typename DistributionTraits<Dist>::Covariance>;
         using MeanOut = native_matrix_t<CovIn, output_dim, 1>;
-        constexpr TriangleType tri = triangle_type_of<typename MatrixTraits<CovIn>::template TriangularBaseType<>>;
-        using CovOut = typename MatrixTraits<CovIn>::template SelfAdjointBaseType<tri, output_dim>;
+        constexpr TriangleType tri = triangle_type_of<typename MatrixTraits<CovIn>::template TriangularMatrixFrom<>>;
+        using CovOut = typename MatrixTraits<CovIn>::template SelfAdjointMatrixFrom<tri, output_dim>;
 
         const auto P = covariance_of(x);
         const std::make_index_sequence<output_dim> ints;

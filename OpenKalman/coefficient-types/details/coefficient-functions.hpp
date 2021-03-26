@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2020 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2020-2021 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -31,9 +31,9 @@ namespace OpenKalman::internal
    * \tparam Coeffs The row coefficients for the transformed matrix.
    * \tparam F A function that takes a column index of a matrix and returns its unwrapped, scalar value.
    * \param row The applicable row of the transformed matrix.
-   * \param get_coeff A function taking an index to a column in the transformed matrix and returning its scalar value.
-   * \return The scalar value of the transformed coordinate in Euclidean space corresponding to the provided
-   * row and column (the column is an input into get_coeff).
+   * \param get_coeff A function taking an index to a row (given some column) in the transformed matrix
+   * and returning its scalar value.
+   * \return The scalar value of the transformed coordinate in Euclidean space corresponding to the provided row.
    */
 #ifdef __cpp_concepts
   template<coefficients Coeffs, std::invocable<const std::size_t> F>
@@ -57,9 +57,9 @@ namespace OpenKalman::internal
    * \tparam Coeffs The row coefficients for the transformed matrix.
    * \tparam F A function that takes a column index of a matrix and returns its unwrapped, scalar value.
    * \param row The applicable row of the transformed matrix.
-   * \param get_coeff A function taking an index to a column in the transformed matrix and returning its scalar value.
-   * \return The scalar value of the typed coefficient corresponding to the provided
-   * row and column (the column is an input into get_coeff).
+   * \param get_coeff A function taking an index to a row (given some column) in the transformed matrix and
+   * returning its scalar value.
+   * \return The scalar value of the typed coefficient corresponding to the provided row.
    */
 #ifdef __cpp_concepts
   template<coefficients Coeffs, std::invocable<const std::size_t> F>

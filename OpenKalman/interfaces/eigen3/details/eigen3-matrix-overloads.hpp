@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2019-2020 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2019-2021 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -34,7 +34,7 @@ namespace OpenKalman::Eigen3
   make_native_matrix(const Args ... args)
   {
     using M = Eigen::Matrix<Scalar, dimension, columns>;
-    return MatrixTraits<M>::make(args...);
+    return MatrixTraits<M>::make(static_cast<const Scalar>(args)...);
   }
 
 
@@ -99,7 +99,8 @@ namespace OpenKalman::Eigen3
       using S = typename MatrixTraits<Arg>::Scalar;
       constexpr Eigen::Index rows = MatrixTraits<Arg>::dimension;
       constexpr Eigen::Index cols = MatrixTraits<Arg>::columns;
-      return static_cast<Eigen::Matrix<S, rows, cols>>(std::forward<Arg>(arg));
+      Eigen::Matrix<S, rows, cols> ret {std::forward<Arg>(arg)};
+      return ret;
     }
   }
 
@@ -113,7 +114,7 @@ namespace OpenKalman::Eigen3
   constexpr decltype(auto)
   make_self_contained(Arg&& arg) noexcept
   {
-    if constexpr (self_contained<Arg> or (std::is_lvalue_reference_v<Ts> and ... and (sizeof...(Ts) > 0)))
+    if constexpr(self_contained<Arg> or ((sizeof...(Ts) > 0) and ... and std::is_lvalue_reference_v<Ts>))
     {
       return std::forward<Arg>(arg);
     }
@@ -125,14 +126,15 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, eigen_matrix Arg>
+  template<coefficients Coefficients, eigen_matrix Arg> requires (not to_euclidean_expr<Arg>) and
+    (Coefficients::size == MatrixTraits<Arg>::dimension)
 #else
-  template<typename Coefficients, typename Arg, std::enable_if_t<eigen_matrix<Arg>, int> = 0>
+  template<typename Coefficients, typename Arg, std::enable_if_t<coefficients<Coefficients> and eigen_matrix<Arg> and
+    (not to_euclidean_expr<Arg>) and (Coefficients::size == MatrixTraits<Arg>::dimension), int> = 0>
 #endif
   constexpr decltype(auto)
   to_euclidean(Arg&& arg) noexcept
   {
-    static_assert(not to_euclidean_expr<Arg>);
     if constexpr (Coefficients::axes_only)
     {
       return std::forward<Arg>(arg);
@@ -145,14 +147,15 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, eigen_matrix Arg>
+  template<coefficients Coefficients, eigen_matrix Arg> requires (not from_euclidean_expr<Arg>) and
+    (Coefficients::dimension == MatrixTraits<Arg>::dimension)
 #else
-  template<typename Coefficients, typename Arg, std::enable_if_t<eigen_matrix<Arg>, int> = 0>
+  template<typename Coefficients, typename Arg, std::enable_if_t<coefficients<Coefficients> and eigen_matrix<Arg> and
+    (not from_euclidean_expr<Arg>) and (Coefficients::dimension == MatrixTraits<Arg>::dimension), int> = 0>
 #endif
   constexpr decltype(auto)
   from_euclidean(Arg&& arg) noexcept
   {
-    static_assert(not from_euclidean_expr<Arg>);
     if constexpr (Coefficients::axes_only)
     {
       return std::forward<Arg>(arg);
@@ -167,7 +170,8 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<coefficients Coefficients, eigen_matrix Arg>
 #else
-  template<typename Coefficients, typename Arg, std::enable_if_t<eigen_matrix<Arg>, int> = 0>
+  template<typename Coefficients, typename Arg, std::enable_if_t<
+    coefficients<Coefficients> and eigen_matrix<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   wrap_angles(Arg&& arg) noexcept
@@ -189,13 +193,39 @@ namespace OpenKalman::Eigen3
 #else
   template<typename Arg, std::enable_if_t<eigen_native<Arg> and column_vector<Arg>, int> = 0>
 #endif
-  inline auto
+  constexpr decltype(auto)
   to_diagonal(Arg&& arg) noexcept
   {
     if constexpr (one_by_one_matrix<Arg>)
       return std::forward<Arg>(arg);
     else
       return DiagonalMatrix(std::forward<Arg>(arg));
+  }
+
+
+#ifdef __cpp_concepts
+  template<eigen_native Arg> requires square_matrix<Arg>
+#else
+  template<typename Arg, std::enable_if_t<eigen_native<Arg> and square_matrix<Arg>, int> = 0>
+#endif
+  constexpr decltype(auto)
+  diagonal_of(Arg&& arg) noexcept
+  {
+    if constexpr (one_by_one_matrix<Arg>)
+    {
+      return std::forward<Arg>(arg);
+    }
+    else if constexpr (identity_matrix<Arg>)
+    {
+      using S = typename MatrixTraits<Arg>::Scalar;
+      constexpr std::size_t dim = MatrixTraits<Arg>::dimension;
+      return Eigen::Matrix<S, dim, 1>::Constant(1);
+    }
+    else
+    {
+      auto ret = make_self_contained(std::forward<Arg>(arg).diagonal());
+      return ret;
+    }
   }
 
 
@@ -210,7 +240,10 @@ namespace OpenKalman::Eigen3
     if constexpr (one_by_one_matrix<Arg>)
       return std::forward<Arg>(arg);
     else
-      return std::forward<Arg>(arg).transpose();
+    {
+      auto ret = std::forward<Arg>(arg).transpose();
+      return ret;
+    }
   }
 
 
@@ -225,7 +258,10 @@ namespace OpenKalman::Eigen3
     if constexpr (one_by_one_matrix<Arg>)
       return std::forward<Arg>(arg);
     else
-      return std::forward<Arg>(arg).adjoint();
+    {
+      auto ret = std::forward<Arg>(arg).adjoint();
+      return ret;
+    }
   }
 
 
@@ -335,7 +371,7 @@ namespace OpenKalman::Eigen3
       {
         ret = QR.matrixQR().template topRows<dim>().adjoint();
       }
-      using TType = typename MatrixTraits<ResultType>::template TriangularBaseType<TriangleType::lower>;
+      using TType = typename MatrixTraits<ResultType>::template TriangularMatrixFrom<TriangleType::lower>;
       return MatrixTraits<TType>::make(std::move(ret));
     }
   }
@@ -373,7 +409,7 @@ namespace OpenKalman::Eigen3
       {
         ret = QR.matrixQR().template topRows<col>();
       }
-      using TType = typename MatrixTraits<ResultType>::template TriangularBaseType<TriangleType::upper>;
+      using TType = typename MatrixTraits<ResultType>::template TriangularMatrixFrom<TriangleType::upper>;
       return MatrixTraits<TType>::make(std::move(ret));
     }
   }
@@ -422,7 +458,7 @@ namespace OpenKalman::Eigen3
       eigen_diagonal_expr<V> or from_euclidean_expr<V>) and ... and
     (eigen_matrix<Vs> or eigen_self_adjoint_expr<Vs> or eigen_triangular_expr<Vs> or
       eigen_diagonal_expr<Vs> or from_euclidean_expr<Vs>)) and
-      (not (from_euclidean_expr<V> and ... and from_euclidean_expr<Vs>))
+    (not (from_euclidean_expr<V> and ... and from_euclidean_expr<Vs>))
 #ifndef __cpp_concepts
       , int> = 0>
 #endif
@@ -545,11 +581,12 @@ namespace OpenKalman::Eigen3
     using CC = Axes<MatrixTraits<Arg>::columns>;
     constexpr Eigen::Index dim1 = RC_size, dim2 = std::decay_t<Arg>::RowsAtCompileTime - dim1;
     constexpr auto g = [](auto&& m) -> decltype(auto) {
-      if constexpr (std::is_lvalue_reference_v<Arg&&>)
+      if constexpr (std::is_lvalue_reference_v<Arg>)
         return std::forward<decltype(m)>(m);
       else
         return make_native_matrix(std::forward<decltype(m)>(m));
     };
+    // \todo Can g be replaced by make_self_contained?
     if constexpr (sizeof...(RCs) > 0)
     {
       auto split1 = g(arg.template topRows<dim1>());
@@ -891,14 +928,14 @@ namespace OpenKalman::Eigen3
 
   /// Return column <code>index</code> of Arg. Constexpr index version.
 #ifdef __cpp_concepts
-  template<std::size_t index, eigen_native Arg>
+  template<std::size_t index, eigen_native Arg> requires (index < MatrixTraits<Arg>::columns)
 #else
-  template<std::size_t index, typename Arg, std::enable_if_t<eigen_native<Arg>, int> = 0>
+  template<std::size_t index, typename Arg, std::enable_if_t<
+    eigen_native<Arg> and (index < MatrixTraits<Arg>::columns), int> = 0>
 #endif
   inline decltype(auto)
   column(Arg&& arg)
   {
-    static_assert(index < MatrixTraits<Arg>::columns, "Column index out of range.");
     if constexpr (column_vector<Arg>)
       return std::forward<Arg>(arg);
     else if constexpr (index == 0)
@@ -920,11 +957,13 @@ namespace OpenKalman::Eigen3
       return arg;
     };
 
+
     template<bool index, typename Arg, typename Function, std::size_t ... ints>
     inline Arg& do_columnwise_impl(Arg& arg, const Function& f, std::index_sequence<ints...>)
     {
       return (do_one_column<index, ints>(arg, f), ...);
     };
+
 
     template<typename Arg, typename Function, std::size_t ... ints>
     inline auto cat_columnwise_impl(const Arg& arg, const Function& f, std::index_sequence<ints...>)
@@ -941,6 +980,7 @@ namespace OpenKalman::Eigen3
       }
     };
 
+
     template<typename Arg, typename Function, std::size_t ... ints>
     inline auto cat_columnwise_index_impl(const Arg& arg, const Function& f, std::index_sequence<ints...>)
     {
@@ -956,14 +996,17 @@ namespace OpenKalman::Eigen3
       }
     };
 
+
     template<std::size_t i, typename Function>
     constexpr auto cat_columnwise_dummy_function(const Function& f) { return f(); };
+
 
     template<typename Function, std::size_t ... ints>
     inline auto cat_columnwise_impl(const Function& f, std::index_sequence<ints...>)
     {
       return concatenate_horizontal(cat_columnwise_dummy_function<ints>(f)...);
     };
+
 
     template<typename Function, std::size_t ... ints>
     inline auto cat_columnwise_index_impl(const Function& f, std::index_sequence<ints...>)
@@ -1122,7 +1165,13 @@ namespace OpenKalman::Eigen3
   inline auto
   apply_coefficientwise(const Arg& arg, const Function& f)
   {
-    return arg.unaryExpr(std::ref(f));
+#if defined (__clang__) && __cplusplus < 202002L
+    // In clang c++17 mode (but not c++20 mode), the argument to unaryExpr must be default constructible.
+    std::function func {[&f](std::decay_t<typename MatrixTraits<Arg>::Scalar> x) { return f(x); }};
+    return arg.unaryExpr(func);
+#else
+    return arg.unaryExpr(std::cref(f));
+#endif
   }
 
 
@@ -1224,7 +1273,7 @@ namespace OpenKalman::Eigen3
   template<
     eigen_matrix ReturnType,
     template<typename> typename distribution_type = std::normal_distribution,
-    typename random_number_engine = std::mt19937,
+    std::uniform_random_bit_generator random_number_engine = std::mt19937,
     typename...Params>
 #else
   template<

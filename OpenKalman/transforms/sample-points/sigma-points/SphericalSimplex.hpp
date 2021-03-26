@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2017-2020 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2017-2021 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -49,6 +49,7 @@ namespace OpenKalman
     sigma_point_count() { return dim + 2; };
 
   private:
+
     /// Compile time sqrt.
     template<typename Scalar>
     static constexpr Scalar constexpr_sqrt(Scalar x, Scalar guess)
@@ -58,8 +59,10 @@ namespace OpenKalman
         constexpr_sqrt(x, 0.5 * (guess + x / guess));
     }
 
+
     template<typename Scalar>
     static constexpr Scalar constexpr_sqrt(Scalar x) { return constexpr_sqrt(x, 1.); }
+
 
     template<std::size_t j, std::size_t i, std::size_t dim, typename Scalar>
     static constexpr auto
@@ -76,6 +79,7 @@ namespace OpenKalman
         return Scalar(0);
     }
 
+
     template<typename Dist, std::size_t dim, std::size_t pos, std::size_t...ns>
     static constexpr auto
     unscaled_sigma_points(std::index_sequence<ns...>)
@@ -88,6 +92,7 @@ namespace OpenKalman
       Matrix<Coefficients, Axes<count>, Xnative> X {sigma_point_coeff<ns / count + pos, ns % count, dim, Scalar>()...};
       return X;
     }
+
 
     template<std::size_t dim, std::size_t pos = 0, typename D, typename...Ds>
     static auto
@@ -106,19 +111,25 @@ namespace OpenKalman
     }
 
   public:
-    template<typename...Dist>
+
+#ifdef __cpp_concepts
+    template<gaussian_distribution ... Dist>
+#else
+    template<typename...Dist, std::enable_if_t<((gaussian_distribution<Dist> and ...)), int> = 0>
+#endif
     static constexpr auto
     sigma_points(const Dist&...ds)
     {
-      static_assert((gaussian_distribution<Dist> and ...));
       constexpr auto dim = (DistributionTraits<Dist>::dimension + ...);
       return sigma_points_impl<dim>(ds...);
     }
 
   protected:
-    SphericalSimplex() {}; // Prevent instantiation.
 
     friend struct internal::ScaledSigmaPointsBase<SphericalSimplex<Parameters>, Parameters>;
+
+    SphericalSimplex() {}; // Prevent instantiation.
+
 
     template<std::size_t dim, typename Scalar = double>
     static constexpr Scalar
@@ -126,6 +137,7 @@ namespace OpenKalman
     {
       return Parameters::template W0<dim>;
     }
+
 
     template<std::size_t dim, typename Scalar = double>
     static constexpr Scalar

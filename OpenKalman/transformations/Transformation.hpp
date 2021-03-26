@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2018-2020 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2018-2021 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -68,26 +68,22 @@ namespace OpenKalman
     /// Constructs transformation using a reference to a transformation function.
     Transformation(const Function& f = Function()) : function(f) {}
 
-  protected:
-    template<typename In, typename ... Perturbations>
-    static constexpr void check_inputs(In&&, Perturbations&& ...)
-    {
-      static_assert(typed_matrix<In> and column_vector<In>);
-      static_assert((perturbation<Perturbations> and ...));
-      static_assert(((internal::PerturbationTraits<Perturbations>::columns == 1) and ...));
-    }
-
-  public:
     /// Applies the transformation.
-    template<typename In, typename ... Perturbations>
+#ifdef __cpp_concepts
+    template<transformation_input In, perturbation ... Perturbations>
+#else
+    template<typename In, typename ... Perturbations, std::enable_if_t<transformation_input<In> and
+      (perturbation<Perturbations> and ...), int> = 0>
+#endif
     auto operator()(In&& in, Perturbations&& ... ps) const
     {
-      check_inputs(in, ps...);
       return function(std::forward<In>(in), internal::get_perturbation(std::forward<Perturbations>(ps))...);
     }
 
   protected:
+
     const Function function; ///< The transformation function.
+
   };
 
 
@@ -122,18 +118,26 @@ namespace OpenKalman
       : Base(f), jacobian_fun(j) {}
 
     /// Returns a tuple of the Jacobians for the input and each perturbation term.
-    template<typename In, typename ... Perturbations>
+#ifdef __cpp_concepts
+    template<transformation_input In, perturbation ... Perturbations>
+#else
+    template<typename In, typename ... Perturbations, std::enable_if_t<transformation_input<In> and
+      (perturbation<Perturbations> and ...), int> = 0>
+#endif
     auto jacobian(In&& in, Perturbations&&...ps) const
     {
-      Base::check_inputs(in, ps...);
       return jacobian_fun(std::forward<In>(in), internal::get_perturbation(std::forward<Perturbations>(ps))...);
     }
 
     /// Returns a tuple of Hessian matrices for the input and each perturbation term. In this case, they are zero matrices.
-    template<typename In, typename ... Perturbations>
+#ifdef __cpp_concepts
+    template<transformation_input In, perturbation ... Perturbations>
+#else
+    template<typename In, typename ... Perturbations, std::enable_if_t<transformation_input<In> and
+      (perturbation<Perturbations> and ...), int> = 0>
+#endif
     auto hessian(In&& in, Perturbations&&...ps) const
     {
-      Base::check_inputs(in, ps...);
       using Out_Mean = std::invoke_result_t<Function, In&&, decltype(internal::get_perturbation(std::declval<Perturbations&&>()))...>;
       using OutputCoeffs = typename MatrixTraits<Out_Mean>::RowCoefficients;
       return zero_hessian<OutputCoeffs, In, Perturbations...>();
@@ -186,7 +190,6 @@ namespace OpenKalman
     template<typename In, typename ... Perturbations>
     auto hessian(In&& in, Perturbations&&...ps) const
     {
-      Base::check_inputs(in, ps...);
       return hessian_fun(std::forward<In>(in), internal::get_perturbation(std::forward<Perturbations>(ps))...);
     }
 

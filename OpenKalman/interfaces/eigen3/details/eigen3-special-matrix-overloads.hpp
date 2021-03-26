@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2019-2020 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2019-2021 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -33,7 +33,8 @@ namespace OpenKalman::Eigen3
   constexpr decltype(auto)
   make_self_contained(Arg&& arg) noexcept
   {
-    if constexpr(self_contained<Arg> or (std::is_lvalue_reference_v<Ts> and ... and (sizeof...(Ts) > 0)))
+    if constexpr(self_contained<nested_matrix_t<Arg>> or
+      ((sizeof...(Ts) > 0) and ... and std::is_lvalue_reference_v<Ts>))
     {
       return std::forward<Arg>(arg);
     }
@@ -71,42 +72,36 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-  template<eigen_native Arg, typename U> requires one_by_one_matrix<Arg> and
-    (eigen_matrix<U> or eigen_triangular_expr<U> or eigen_self_adjoint_expr<U> or
-      eigen_diagonal_expr<U>)
-    and (not std::is_const_v<std::remove_reference_t<Arg>>)
+  template<eigen_native Arg, typename U> requires one_by_one_matrix<Arg> and (MatrixTraits<U>::dimension == 1) and
+    (eigen_matrix<U> or eigen_triangular_expr<U> or eigen_self_adjoint_expr<U> or eigen_diagonal_expr<U>) and
+    (not std::is_const_v<std::remove_reference_t<Arg>>)
 #else
-  template<typename Arg, typename U,
-    std::enable_if_t<eigen_native<Arg> and one_by_one_matrix<Arg> and
-      (eigen_matrix<U> or eigen_triangular_expr<U> or
-        eigen_self_adjoint_expr<U> or eigen_diagonal_expr<U>) and
-      not std::is_const_v<std::remove_reference_t<Arg>>, int> = 0>
+  template<typename Arg, typename U, std::enable_if_t<
+    eigen_native<Arg> and one_by_one_matrix<Arg> and (MatrixTraits<U>::dimension == 1) and
+    (eigen_matrix<U> or eigen_triangular_expr<U> or eigen_self_adjoint_expr<U> or eigen_diagonal_expr<U>) and
+    not std::is_const_v<std::remove_reference_t<Arg>>, int> = 0>
 #endif
   inline Arg&
   rank_update(Arg& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
   {
-    static_assert(MatrixTraits<U>::dimension == MatrixTraits<Arg>::dimension);
-    arg(0, 0) = std::sqrt(trace(arg) * trace(arg) + alpha * trace(u) * trace(u));
+    arg(0, 0) = std::sqrt(trace(arg) * trace(arg) + alpha * trace(u * adjoint(u)));
     return arg;
   }
 
 
 #ifdef __cpp_concepts
-  template<eigen_native Arg, typename U> requires one_by_one_matrix<Arg> and
-    (eigen_matrix<U> or eigen_triangular_expr<U> or eigen_self_adjoint_expr<U> or
-      eigen_diagonal_expr<U>)
+  template<eigen_native Arg, typename U> requires one_by_one_matrix<Arg> and (MatrixTraits<U>::dimension == 1) and
+    (eigen_matrix<U> or eigen_triangular_expr<U> or eigen_self_adjoint_expr<U> or eigen_diagonal_expr<U>)
 #else
-  template<typename Arg, typename U,
-    std::enable_if_t<eigen_native<Arg> and one_by_one_matrix<Arg> and
-    (eigen_matrix<U> or eigen_triangular_expr<U> or
-      eigen_self_adjoint_expr<U> or eigen_diagonal_expr<U>), int> = 0>
+  template<typename Arg, typename U, std::enable_if_t<
+    eigen_native<Arg> and one_by_one_matrix<Arg> and (MatrixTraits<U>::dimension == 1) and
+    (eigen_matrix<U> or eigen_triangular_expr<U> or eigen_self_adjoint_expr<U> or eigen_diagonal_expr<U>), int> = 0>
 #endif
   inline auto
   rank_update(const Arg& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
   {
-    static_assert(MatrixTraits<U>::dimension == MatrixTraits<Arg>::dimension);
-    auto b = std::sqrt(trace(arg) * trace(arg) + alpha * trace(u) * trace(u));
-    return Eigen::Matrix<typename MatrixTraits<Arg>::Scalar, 1, 1>(b);
+    auto b = std::sqrt(trace(arg) * trace(arg) + alpha * trace(u * adjoint(u)));
+    return Eigen::Matrix<typename MatrixTraits<Arg>::Scalar, 1, 1> {b};
   }
 
 
@@ -153,6 +148,7 @@ namespace OpenKalman::Eigen3
   {
     if constexpr (sizeof...(Vs) > 0)
     {
+      /// \todo Add diagonal case
       if constexpr (
         (eigen_self_adjoint_expr<V> and
           ((upper_triangular_storage<V> == upper_triangular_storage<Vs>) and ...)) or

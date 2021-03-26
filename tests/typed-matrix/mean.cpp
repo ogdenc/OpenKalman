@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2018-2020 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2018-2021 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -492,7 +492,7 @@ TEST_F(matrices, Mean_angles_construct_coefficients)
   EXPECT_TRUE(is_near(v3_2, m3));
   static_assert(std::is_same_v<nested_matrix_t<decltype(v3)>, decltype(m3)>);
   auto v3_3 = make_mean<double, Coefficients<Axis, angle::Radians, Axis>, 3>();
-  v3_3 << v3;
+  v3_3 << make_native_matrix(v3);
   EXPECT_TRUE(is_near(v3_3, m3));
 }
 

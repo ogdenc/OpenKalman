@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2018-2020 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2018-2021 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -50,7 +50,7 @@ struct Trans2
 
   auto hessian(const X& x) const
   {
-    using H = native_matrix_t<typename A::Scalar, A::ColsAtCompileTime, A::ColsAtCompileTime>;
+    using H = native_matrix_t<typename MatrixTraits<A>::Scalar, MatrixTraits<A>::columns, MatrixTraits<A>::columns>;
     using C = typename MatrixTraits<X>::RowCoefficients;
     using MH = Matrix<C, C, H>;
     auto Arr = std::array<MH, A::RowsAtCompileTime>();
@@ -123,15 +123,14 @@ TEST_F(transformations, linearized_lambdas)
   a << 1, 2, 3, 4;
   auto f = [&a] (const M2& x) { return a * x; };
   auto j = [&a] (const M2& x) { return std::tuple(a); };
-  auto h = [] (const M2& x)
-    {
-      using H = native_matrix_t<typename A2::Scalar, A2::ColsAtCompileTime, A2::ColsAtCompileTime>;
-      using C = typename MatrixTraits<M2>::RowCoefficients;
-      using MH = Matrix<C, C, H>;
-      auto Arr = std::array<MH, A2::RowsAtCompileTime>();
-      Arr.fill(MH::zero());
-      return std::tuple {Arr};
-    };
+  auto h = [] (const M2& x) {
+    using H = native_matrix_t<typename MatrixTraits<A2>::Scalar, MatrixTraits<A2>::columns, MatrixTraits<A2>::columns>;
+    using C = typename MatrixTraits<M2>::RowCoefficients;
+    using MH = Matrix<C, C, H>;
+    auto Arr = std::array<MH, A2::RowsAtCompileTime>();
+    Arr.fill(MH::zero());
+    return std::tuple {Arr};
+  };
   auto t = Transformation(f, j, h);
   using F = decltype(f);
   using T = decltype(t);

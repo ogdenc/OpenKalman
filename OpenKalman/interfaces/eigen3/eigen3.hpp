@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2019-2020 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2019-2021 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -50,7 +50,6 @@
 #include "details/eigen3-traits.hpp"
 
 #include "details/eigen3-matrix-overloads.hpp"
-#include "details/eigen3-cholesky-overloads.hpp"
 
 #include "details/Eigen3MatrixBase.hpp"
 
@@ -58,11 +57,12 @@
 #include "DiagonalMatrix.hpp"
 #include "SelfAdjointMatrix.hpp"
 #include "TriangularMatrix.hpp"
-#include "details/eigen3-special-matrix-overloads.hpp"
-#include "details/eigen3-special-matrix-arithmetic.hpp"
-
 #include "ToEuclideanExpr.hpp"
 #include "FromEuclideanExpr.hpp"
+
+#include "details/eigen3-cholesky-overloads.hpp"
+#include "details/eigen3-special-matrix-overloads.hpp"
+#include "details/eigen3-special-matrix-arithmetic.hpp"
 #include "details/eigen3-euclidean-overloads.hpp"
 
 #include "details/eigen3-native-traits.hpp"
@@ -92,12 +92,12 @@ namespace OpenKalman
   using Eigen3::make_EigenTriangularMatrix;
 
   using Eigen3::nested_matrix;
-  using Eigen3::make_native_matrix;
   using Eigen3::make_self_contained;
   using Eigen3::to_euclidean;
   using Eigen3::from_euclidean;
   using Eigen3::wrap_angles;
   using Eigen3::to_diagonal;
+  using Eigen3::diagonal_of;
   using Eigen3::transpose;
   using Eigen3::adjoint;
   using Eigen3::determinant;

@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2019-2020 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2019-2021 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -37,9 +37,9 @@ namespace Eigen::internal
 
   template<typename Coefficients, typename ArgType>
   struct traits<OpenKalman::Covariance<Coefficients, ArgType>>
-    : traits<typename OpenKalman::MatrixTraits<ArgType>::template SelfAdjointBaseType<>>
+    : traits<typename OpenKalman::MatrixTraits<ArgType>::template SelfAdjointMatrixFrom<>>
   {
-    using Base = traits<typename OpenKalman::MatrixTraits<ArgType>::template SelfAdjointBaseType<>>;
+    using Base = traits<typename OpenKalman::MatrixTraits<ArgType>::template SelfAdjointMatrixFrom<>>;
     enum
     {
       Flags = Base::Flags & (OpenKalman::self_adjoint_matrix<ArgType> ? ~0 : ~LvalueBit),
@@ -49,9 +49,9 @@ namespace Eigen::internal
 
   template<typename Coefficients, typename ArgType>
   struct traits<OpenKalman::SquareRootCovariance<Coefficients, ArgType>>
-    : traits<typename OpenKalman::MatrixTraits<ArgType>::template TriangularBaseType<>>
+    : traits<typename OpenKalman::MatrixTraits<ArgType>::template TriangularMatrixFrom<>>
   {
-    using Base = traits<typename OpenKalman::MatrixTraits<ArgType>::template TriangularBaseType<>>;
+    using Base = traits<typename OpenKalman::MatrixTraits<ArgType>::template TriangularMatrixFrom<>>;
     enum
     {
       Flags = Base::Flags & (OpenKalman::triangular_matrix<ArgType> ? ~0 : ~LvalueBit),

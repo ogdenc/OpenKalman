@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2017-2020 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2017-2021 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -70,7 +70,7 @@ inline const auto time_of_arrival = make_Transformation
       static_assert((equivalent_to<typename MatrixTraits<decltype(ps)>::RowCoefficients, Axis> and ...));
       static_assert((equivalent_to<typename MatrixTraits<decltype(ps)>::ColumnCoefficients, Axis> and ...));
 
-      return std::tuple_cat(std::tuple {make_self_contained(adjoint(x) / std::sqrt(trace(x.adjoint() * x)))},
+      return std::tuple_cat(std::tuple {make_self_contained(adjoint(x) / std::sqrt(trace(adjoint(x) * x)))},
         internal::tuple_replicate<sizeof...(ps)>(Mean {1.}));
     },
     [](const auto& x, const auto&...ps) // Hessians

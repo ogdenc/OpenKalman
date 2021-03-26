@@ -1,11 +1,16 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2018-2020 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2018-2021 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+/**
+ * \file
+ * \brief ToEuclideanExpr and related definitions.
  */
 
 #ifndef OPENKALMAN_EIGEN3_TOEUCLIDEANEXPR_HPP
@@ -13,11 +18,7 @@
 
 namespace OpenKalman::Eigen3
 {
-  // ------------------------------ //
-  //        ToEuclideanExpr         //
-  // ------------------------------ //
 
-  // Class documentation is in EigenForwardDeclarations.h
 #ifdef __cpp_concepts
   template<coefficients Coefficients, typename NestedMatrix> requires
     (MatrixTraits<NestedMatrix>::dimension == Coefficients::size)
@@ -33,160 +34,186 @@ namespace OpenKalman::Eigen3
 
 
     /// Default constructor.
-    ToEuclideanExpr() : Base() {}
+#ifdef __cpp_concepts
+    ToEuclideanExpr() requires std::default_initializable<Base>
+#else
+    template<typename T = Base, std::enable_if_t<std::is_default_constructible_v<T>, int> = 0>
+    ToEuclideanExpr()
+#endif
+      : Base {} {}
 
 
     /// Copy constructor.
-    ToEuclideanExpr(const ToEuclideanExpr& other) : Base(other.nested_matrix()) {}
+    ToEuclideanExpr(const ToEuclideanExpr& other) : Base {other} {}
 
 
     /// Move constructor.
-    ToEuclideanExpr(ToEuclideanExpr&& other) noexcept: Base(std::move(other).nested_matrix()) {}
+    ToEuclideanExpr(ToEuclideanExpr&& other) noexcept: Base {std::move(other)} {}
 
 
     /// Construct from a compatible to-Euclidean expression.
 #ifdef __cpp_concepts
-    template<to_euclidean_expr Arg>
+    template<to_euclidean_expr Arg> requires (not std::derived_from<std::decay_t<Arg>, ToEuclideanExpr>) and
+      equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients> and
+      std::is_constructible_v<Base, decltype(nested_matrix(std::declval<Arg>()))>
 #else
-    template<typename Arg, std::enable_if_t<to_euclidean_expr < Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<to_euclidean_expr<Arg> and
+      (not std::is_base_of_v<ToEuclideanExpr, std::decay_t<Arg>>) and
+      equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients> and
+      std::is_constructible_v<Base, decltype(nested_matrix(std::declval<Arg>()))>, int> = 0>
 #endif
-    ToEuclideanExpr(Arg&& other) noexcept: Base(std::forward<Arg>(other).nested_matrix())
-    {
-      static_assert(equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>);
-      static_assert(MatrixTraits<Arg>::columns == columns);
-    }
+    ToEuclideanExpr(Arg&& other) noexcept : Base {nested_matrix(std::forward<Arg>(other))} {}
+
 
     /// Construct from compatible matrix object.
 #ifdef __cpp_concepts
-    template<eigen_matrix Arg>
+    template<eigen_matrix Arg> requires std::is_constructible_v<Base, Arg>
 #else
-    template<typename Arg, std::enable_if_t<eigen_matrix<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<eigen_matrix<Arg> and std::is_constructible_v<Base, Arg>, int> = 0>
 #endif
-    ToEuclideanExpr(Arg&& arg) noexcept : Base(std::forward<Arg>(arg))
-    {
-      static_assert(MatrixTraits<Arg>::dimension == Coefficients::size);
-      static_assert(MatrixTraits<Arg>::columns == columns);
-    }
+    explicit ToEuclideanExpr(Arg&& arg) noexcept : Base {std::forward<Arg>(arg)} {}
+
 
     /// Construct from a list of coefficients.
 #ifdef __cpp_concepts
-    template<std::convertible_to<const Scalar> ... Args> requires
+    template<std::convertible_to<Scalar> ... Args> requires
       (sizeof...(Args) == columns * (from_euclidean_expr<NestedMatrix> ? Coefficients::dimension : Coefficients::size))
 #else
-    template<
-      typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...> and
-        sizeof...(Args) == columns *
-          (from_euclidean_expr < NestedMatrix > ? Coefficients::dimension : Coefficients::size), int> = 0>
+    template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, Scalar>...> and
+      sizeof...(Args) == columns * (from_euclidean_expr<NestedMatrix> ? Coefficients::dimension : Coefficients::size),
+      int> = 0>
 #endif
-    ToEuclideanExpr(Args ... args) : Base(MatrixTraits<NestedMatrix>::make(args...)) {}
+    ToEuclideanExpr(const Args ... args)
+      : Base {MatrixTraits<NestedMatrix>::make(static_cast<const Scalar>(args)...)} {}
+
 
     /// Copy assignment operator.
     auto& operator=(const ToEuclideanExpr& other)
     {
-      if constexpr (not zero_matrix < NestedMatrix > and not identity_matrix<NestedMatrix>)
-        if (this != &other)
-          this->nested_matrix() = other.nested_matrix();
+      Base::operator=(other);
       return *this;
     }
+
 
     /// Move assignment operator.
     auto& operator=(ToEuclideanExpr&& other) noexcept
     {
-      if constexpr (not zero_matrix < NestedMatrix > and not identity_matrix<NestedMatrix>)
-        if (this != &other)
-          this->nested_matrix() = std::move(other).nested_matrix();
+      Base::operator=(std::move(other));
       return *this;
     }
 
+
     /// Assign from a compatible to-Euclidean expression.
 #ifdef __cpp_concepts
-    template<to_euclidean_expr Arg>
+    template<to_euclidean_expr Arg> requires (not std::derived_from<std::decay_t<Arg>, ToEuclideanExpr>) and
+      (equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>) and
+      (MatrixTraits<Arg>::columns == columns) and
+      modifiable<NestedMatrix, nested_matrix_t<Arg>>
 #else
-    template<typename Arg, std::enable_if_t<to_euclidean_expr < Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<to_euclidean_expr<Arg> and
+      (not std::is_base_of_v<ToEuclideanExpr, std::decay_t<Arg>>) and
+      (equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>) and
+      (MatrixTraits<Arg>::columns == columns) and
+      modifiable<NestedMatrix, nested_matrix_t<Arg>>, int> = 0>
 #endif
     auto& operator=(Arg&& other) noexcept
     {
-      static_assert(equivalent_to < typename MatrixTraits<Arg>::RowCoefficients, Coefficients > );
-      static_assert(MatrixTraits<Arg>::columns == columns);
-      if constexpr (zero_matrix < NestedMatrix >)
-      {
-        static_assert(zero_matrix < Arg > );
-      }
-      else if constexpr (identity_matrix<NestedMatrix>)
-      {
-        static_assert(identity_matrix<Arg>);
-      }
-      else
+      if constexpr (not zero_matrix<NestedMatrix> and not identity_matrix<NestedMatrix>)
       {
         this->nested_matrix() = std::forward<Arg>(other).nested_matrix();
       }
       return *this;
     }
 
+
     /// Assign from a general Eigen matrix.
 #ifdef __cpp_concepts
-    template<eigen_matrix Arg>
+    template<eigen_matrix Arg> requires (MatrixTraits<Arg>::dimension == Coefficients::dimension) and
+      (MatrixTraits<Arg>::columns == columns) and
+      modifiable<NestedMatrix, decltype(from_euclidean<Coefficients>(std::declval<Arg>()))>
 #else
-    template<typename Arg, std::enable_if_t<eigen_matrix<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<eigen_matrix<Arg> and
+      (MatrixTraits<Arg>::dimension == Coefficients::dimension) and (MatrixTraits<Arg>::columns == columns) and
+      modifiable<NestedMatrix, decltype(from_euclidean<Coefficients>(std::declval<Arg>()))>, int> = 0>
 #endif
     auto& operator=(Arg&& arg) noexcept
     {
-      static_assert(MatrixTraits<Arg>::dimension == Coefficients::dimension);
-      static_assert(MatrixTraits<Arg>::columns == columns);
-      if constexpr (zero_matrix < NestedMatrix >)
-      {
-        static_assert(zero_matrix < Arg > );
-      }
-      else if constexpr (identity_matrix<NestedMatrix>)
-      {
-        static_assert(identity_matrix<Arg>);
-      }
-      else
+      if constexpr (not zero_matrix<NestedMatrix> and not identity_matrix<NestedMatrix>)
       {
         this->nested_matrix() = from_euclidean<Coefficients>(std::forward<Arg>(arg));
       }
       return *this;
     }
 
-    /// Increment from another expression.
+
+    /// Increment from another \ref to_euclidean_expr.
 #ifdef __cpp_concepts
-    template<typename Arg> requires to_euclidean_expr<Arg> or eigen_matrix<Arg>
+    template<to_euclidean_expr Arg> requires (MatrixTraits<Arg>::columns == columns) and
+      equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>
 #else
-    template<typename Arg, std::enable_if_t<to_euclidean_expr < Arg> or eigen_matrix<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<to_euclidean_expr<Arg> and (MatrixTraits<Arg>::columns == columns) and
+      equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>, int> = 0>
 #endif
-    auto& operator+=(Arg&& other) noexcept
+    auto& operator+=(const Arg& arg) noexcept
     {
-      static_assert(MatrixTraits<Arg>::columns == MatrixTraits<NestedMatrix>::columns);
-      static_assert(MatrixTraits<Arg>::dimension == Coefficients::dimension);
-      if constexpr(to_euclidean_expr < Arg >)
-        static_assert(equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>);
-      this->nested_matrix() = make_self_contained(from_euclidean<Coefficients>(*this + std::forward<Arg>(other)));
+      this->nested_matrix() = from_euclidean<Coefficients>(*this + arg);
       return *this;
     }
 
-    /// Decrement from another expression.
+
+    /// Increment from another \ref eigen_matrix.
 #ifdef __cpp_concepts
-    template<typename Arg> requires to_euclidean_expr<Arg> or eigen_matrix<Arg>
+    template<eigen_matrix Arg> requires (MatrixTraits<Arg>::columns == columns) and
+      (MatrixTraits<Arg>::dimension == Coefficients::dimension)
 #else
-    template<typename Arg, std::enable_if_t<to_euclidean_expr < Arg> or eigen_matrix<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<eigen_matrix<Arg> and (MatrixTraits<Arg>::columns == columns) and
+      (MatrixTraits<Arg>::dimension == Coefficients::dimension), int> = 0>
 #endif
-    auto& operator-=(Arg&& other) noexcept
+    auto& operator+=(const Arg& arg) noexcept
     {
-      static_assert(MatrixTraits<Arg>::columns == MatrixTraits<NestedMatrix>::columns);
-      static_assert(MatrixTraits<Arg>::dimension == Coefficients::dimension);
-      if constexpr(to_euclidean_expr < Arg >)
-        static_assert(equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>);
-      this->nested_matrix() = make_self_contained(from_euclidean<Coefficients>(*this - std::forward<Arg>(other)));
+      this->nested_matrix() = from_euclidean<Coefficients>(*this + arg);
       return *this;
     }
+
+
+    /// Decrement from another \ref to_euclidean_expr.
+#ifdef __cpp_concepts
+    template<to_euclidean_expr Arg> requires (MatrixTraits<Arg>::columns == columns) and
+      equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>
+#else
+    template<typename Arg, std::enable_if_t<to_euclidean_expr<Arg> and (MatrixTraits<Arg>::columns == columns) and
+      equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>, int> = 0>
+#endif
+    auto& operator-=(const Arg& arg) noexcept
+    {
+      this->nested_matrix() = from_euclidean<Coefficients>(*this - arg);
+      return *this;
+    }
+
+
+    /// Decrement from another \ref eigen_matrix.
+#ifdef __cpp_concepts
+    template<eigen_matrix Arg> requires (MatrixTraits<Arg>::columns == columns) and
+      (MatrixTraits<Arg>::dimension == Coefficients::dimension)
+#else
+    template<typename Arg, std::enable_if_t<eigen_matrix<Arg> and (MatrixTraits<Arg>::columns == columns) and
+      (MatrixTraits<Arg>::dimension == Coefficients::dimension), int> = 0>
+#endif
+    auto& operator-=(const Arg& arg) noexcept
+    {
+      this->nested_matrix() = from_euclidean<Coefficients>(*this - arg);
+      return *this;
+    }
+
 
     /// Multiply by a scale factor.
     template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
     auto& operator*=(const S scale)
     {
-      this->nested_matrix() = make_self_contained(from_euclidean<Coefficients>(*this * scale));
+      this->nested_matrix() = from_euclidean<Coefficients>(*this * scale);
       return *this;
     }
+
 
     /// Divide by a scale factor.
 #ifdef __cpp_concepts
@@ -196,7 +223,7 @@ namespace OpenKalman::Eigen3
 #endif
     auto& operator/=(const S scale)
     {
-      this->nested_matrix() = make_self_contained(from_euclidean<Coefficients>(*this / scale));
+      this->nested_matrix() = from_euclidean<Coefficients>(*this / scale);
       return *this;
     }
 
@@ -210,9 +237,13 @@ namespace OpenKalman::Eigen3
 
 
     /// Identity.
+#ifdef __cpp_concepts
+    static auto identity() requires (Coefficients::dimension == columns)
+#else
+    template<std::size_t c = columns, std::enable_if_t<c == columns and c == Coefficients::dimension, int> = 0>
     static auto identity()
+#endif
     {
-      static_assert(Coefficients::dimension == columns, "Cannot call the identity(0 function on a non-square matrix.");
       using ST = native_matrix_t<NestedMatrix, Coefficients::dimension, columns>;
       return MatrixTraits<ST>::identity();
     }
@@ -272,55 +303,52 @@ namespace OpenKalman
     static_assert(Coeffs::size == MatrixTraits<NestedMatrix>::dimension);
 
     template<typename Derived>
-    using MatrixBaseType = Eigen3::internal::Eigen3MatrixBase<Derived, Eigen3::ToEuclideanExpr<Coeffs, ArgType>>;
+    using MatrixBaseFrom = Eigen3::internal::Eigen3MatrixBase<Derived, Eigen3::ToEuclideanExpr<Coeffs, ArgType>>;
 
     template<std::size_t rows = dimension, std::size_t cols = columns, typename S = Scalar>
-    using NativeMatrix = typename MatrixTraits<NestedMatrix>::template NativeMatrix<rows, cols, S>;
+    using NativeMatrixFrom = native_matrix_t<NestedMatrix, rows, cols, S>;
 
-    using SelfContained = Eigen3::ToEuclideanExpr<Coeffs, self_contained_t<NestedMatrix>>;
+    using SelfContainedFrom = Eigen3::ToEuclideanExpr<Coeffs, self_contained_t<NestedMatrix>>;
 
     template<TriangleType storage_triangle = TriangleType::lower, std::size_t dim = dimension, typename S = Scalar>
-    using SelfAdjointBaseType = Eigen3::SelfAdjointMatrix<NativeMatrix<dim, dim, S>, storage_triangle>;
+    using SelfAdjointMatrixFrom = Eigen3::SelfAdjointMatrix<NativeMatrixFrom<dim, dim, S>, storage_triangle>;
 
     template<TriangleType triangle_type = TriangleType::lower, std::size_t dim = dimension, typename S = Scalar>
-    using TriangularBaseType = Eigen3::TriangularMatrix<NativeMatrix<dim, dim, S>, triangle_type>;
+    using TriangularMatrixFrom = Eigen3::TriangularMatrix<NativeMatrixFrom<dim, dim, S>, triangle_type>;
 
     template<std::size_t dim = dimension, typename S = Scalar>
-    using DiagonalBaseType = Eigen3::DiagonalMatrix<NativeMatrix<dim, 1, S>>;
+    using DiagonalMatrixFrom = Eigen3::DiagonalMatrix<NativeMatrixFrom<dim, 1, S>>;
 
 
     // Make from a regular matrix.
 #ifdef __cpp_concepts
     template<typename C = Coeffs, typename Arg> requires
-      Eigen3::eigen_matrix<Arg> or Eigen3::from_euclidean_expr<Arg>
+      (Eigen3::eigen_matrix<Arg> or Eigen3::from_euclidean_expr<Arg>) and (MatrixTraits<Arg>::dimension == C::size)
 #else
-    template<typename C = Coeffs, typename Arg,
-      std::enable_if_t<Eigen3::eigen_matrix<Arg> or Eigen3::from_euclidean_expr<Arg>, int> = 0>
+    template<typename C = Coeffs, typename Arg, std::enable_if_t<
+      (Eigen3::eigen_matrix<Arg> or Eigen3::from_euclidean_expr<Arg>) and
+      (MatrixTraits<Arg>::dimension == C::size), int> = 0>
 #endif
     static auto make(Arg&& arg) noexcept
     {
-      static_assert(MatrixTraits<Arg>::dimension == C::size);
       using namespace Eigen3;
       return to_euclidean<C>(std::forward<Arg>(arg));
     }
 
 
 #ifdef __cpp_concepts
-    template<std::convertible_to<const Scalar> ... Args>
+    template<std::convertible_to<Scalar> ... Args> requires (sizeof...(Args) == Coeffs::size * columns)
 #else
-    template<typename ... Args, std::enable_if_t<
-      std::conjunction_v<std::is_convertible<Args, const Scalar>...>, int> = 0>
+    template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, Scalar>...> and
+      (sizeof...(Args) == Coeffs::size * columns), int> = 0>
 #endif
-    static auto
-    make(Args ... args)
+    static auto make(const Args ... args)
     {
-      static_assert(sizeof...(Args) == Coeffs::size * columns);
-      return make(MatrixTraits<NestedMatrix>::make(args...));
+      return make(MatrixTraits<NestedMatrix>::make(static_cast<const Scalar>(args)...));
     }
 
 
     static auto zero() { return Eigen3::ToEuclideanExpr<Coeffs, NestedMatrix>::zero(); }
-
 
     static auto identity() { return Eigen3::ToEuclideanExpr<Coeffs, NestedMatrix>::identity(); }
   };

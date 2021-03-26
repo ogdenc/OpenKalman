@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2020 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2020-2021 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -54,9 +54,9 @@ TEST_F(eigen3, TriangularMatrix_class)
   d1c.template triangularView<Eigen::Lower>() = make_native_matrix<M2>(2, 5, 6, 2);
   EXPECT_TRUE(is_near(d1c, mat22(2, 0, 0, 2)));
   //
-  Lower l2 = make_native_matrix<M2>(3, 0, 1, 3);
+  Lower l2 {make_native_matrix<M2>(3, 0, 1, 3)};
   EXPECT_TRUE(is_near(l1, l2));
-  Upper u2 = make_native_matrix<M2>(3, 1, 0, 3);
+  Upper u2 {make_native_matrix<M2>(3, 1, 0, 3)};
   EXPECT_TRUE(is_near(u1, u2));
   //
   EXPECT_TRUE(is_near(Lower(DiagonalMatrix {3., 4}), make_native_matrix<M2>(3, 0, 0, 4)));
@@ -80,21 +80,40 @@ TEST_F(eigen3, TriangularMatrix_class)
   Upper u5 = TriangularMatrix<decltype(M2::Zero()), TriangleType::upper>(M2::Zero()); // compatible triangular matrix
   EXPECT_TRUE(is_near(u5, M2::Zero()));
   //
-  Lower l7 = SelfAdjointMatrix<M2, TriangleType::lower>{9, 3, 3, 10}; // compatible self-adjoint matrix
+  Lower l7 {ml.triangularView<Eigen::Lower>()};
   EXPECT_TRUE(is_near(l7, ml));
-  Upper u7 = SelfAdjointMatrix<M2, TriangleType::upper>{9, 3, 3, 10}; // compatible self-adjoint matrix
+  Upper u7 {mu.triangularView<Eigen::Upper>()};
   EXPECT_TRUE(is_near(u7, mu));
   //
-  Lower l8 = SelfAdjointMatrix<M2, TriangleType::upper>{9, 3, 3, 10}; // compatible opposite self-adjoint matrix
-  EXPECT_TRUE(is_near(l8, ml));
-  Upper u8 = SelfAdjointMatrix<M2, TriangleType::lower>{9, 3, 3, 10}; // compatible opposite self-adjoint matrix
-  EXPECT_TRUE(is_near(u8, mu));
-  Diagonal d9 {3, 3}; // Construct from list of scalars.
+  Lower l9 = Diagonal {3., 3}; // Construct from a diagonal triangular matrix.
+  EXPECT_TRUE(is_near(l9, mat22(3, 0, 0, 3)));
+  Upper u9 = Diagonal {3., 3};
+  EXPECT_TRUE(is_near(u9, mat22(3, 0, 0, 3)));
+  Diagonal d9 = Diagonal {3., 3};
   EXPECT_TRUE(is_near(d9, mat22(3, 0, 0, 3)));
-  Diagonal2 d9b {3, 3}; // Construct from list of scalars.
+  Diagonal d9_b = Diagonal2 {3., 3};
+  EXPECT_TRUE(is_near(d9_b, mat22(3, 0, 0, 3)));
+  Diagonal d9_c = Diagonal3 {3., 3};
+  EXPECT_TRUE(is_near(d9_c, mat22(3, 0, 0, 3)));
+  Diagonal2 d9b = Diagonal {3., 3};
   EXPECT_TRUE(is_near(d9b, mat22(3, 0, 0, 3)));
-  Diagonal3 d9c {3, 3}; // Construct from list of scalars.
+  Diagonal2 d9b_b = Diagonal2 {3., 3};
+  EXPECT_TRUE(is_near(d9b_b, mat22(3, 0, 0, 3)));
+  Diagonal2 d9b_c = Diagonal3 {3., 3};
+  EXPECT_TRUE(is_near(d9b_c, mat22(3, 0, 0, 3)));
+  Diagonal3 d9c = Diagonal {3., 3};
   EXPECT_TRUE(is_near(d9c, mat22(3, 0, 0, 3)));
+  Diagonal3 d9c_b = Diagonal2 {3., 3};
+  EXPECT_TRUE(is_near(d9c_b, mat22(3, 0, 0, 3)));
+  Diagonal3 d9c_c = Diagonal3 {3., 3};
+  EXPECT_TRUE(is_near(d9c_c, mat22(3, 0, 0, 3)));
+  //
+  Diagonal d10 {3, 3}; // Construct from list of scalars.
+  EXPECT_TRUE(is_near(d10, mat22(3, 0, 0, 3)));
+  Diagonal2 d10b {3, 3};
+  EXPECT_TRUE(is_near(d10b, mat22(3, 0, 0, 3)));
+  Diagonal3 d10c {3, 3};
+  EXPECT_TRUE(is_near(d10c, mat22(3, 0, 0, 3)));
   //
   l3 = l5; // copy assignment
   EXPECT_TRUE(is_near(l3, M2::Zero()));
@@ -111,42 +130,74 @@ TEST_F(eigen3, TriangularMatrix_class)
   u2 = TriangularMatrix<decltype(M2::Zero()), TriangleType::upper>(M2::Zero()); // copy assignment from compatible triangular matrix
   EXPECT_TRUE(is_near(u2, M2::Zero()));
   //
-  l2 = SelfAdjointMatrix<M2, TriangleType::lower>{9, 3, 3, 10}; // compatible self-adjoint matrix
-  EXPECT_TRUE(is_near(l2, ml));
-  u2 = SelfAdjointMatrix<M2, TriangleType::upper>{9, 3, 3, 10}; // compatible self-adjoint matrix
-  EXPECT_TRUE(is_near(u2, mu));
+  l9 = Diagonal {4., 4}; // copy from a diagonal triangular matrix
+  EXPECT_TRUE(is_near(l9, mat22(4, 0, 0, 4)));
+  l4 = l9;
+  EXPECT_TRUE(is_near(l4, mat22(4, 0, 0, 4)));
+  l9 = Diagonal2 {5., 5};
+  EXPECT_TRUE(is_near(l9, mat22(5, 0, 0, 5)));
+  l9 = Diagonal3 {6., 6};
+  EXPECT_TRUE(is_near(l9, mat22(6, 0, 0, 6)));
+  u9 = Diagonal {4., 4};
+  EXPECT_TRUE(is_near(u9, mat22(4, 0, 0, 4)));
+  u4 = u9;
+  EXPECT_TRUE(is_near(u4, mat22(4, 0, 0, 4)));
+  u9 = Diagonal2 {5., 5};
+  EXPECT_TRUE(is_near(u9, mat22(5, 0, 0, 5)));
+  u9 = Diagonal3 {6., 6};
+  EXPECT_TRUE(is_near(u9, mat22(6, 0, 0, 6)));
+  d9 = Diagonal {4., 4};
+  EXPECT_TRUE(is_near(d9, mat22(4, 0, 0, 4)));
+  d9 = Diagonal2 {5., 5};
+  EXPECT_TRUE(is_near(d9, mat22(5, 0, 0, 5)));
+  d9 = Diagonal3 {6., 6};
+  EXPECT_TRUE(is_near(d9, mat22(6, 0, 0, 6)));
+  d9b_b = Diagonal {7., 7};
+  d9b = d9b_b;
+  EXPECT_TRUE(is_near(d9b, mat22(7, 0, 0, 7)));
+  l4 = d9b;
+  EXPECT_TRUE(is_near(l4, mat22(7, 0, 0, 7)));
+  u4 = d9b;
+  EXPECT_TRUE(is_near(u4, mat22(7, 0, 0, 7)));
+  d9b = Diagonal {4., 4};
+  EXPECT_TRUE(is_near(d9b, mat22(4, 0, 0, 4)));
+  d9b = Diagonal2 {5., 5};
+  EXPECT_TRUE(is_near(d9b, mat22(5, 0, 0, 5)));
+  d9b = Diagonal3 {6., 6};
+  EXPECT_TRUE(is_near(d9b, mat22(6, 0, 0, 6)));
+  d9c = d9b_b;
+  EXPECT_TRUE(is_near(d9c, mat22(7, 0, 0, 7)));
+  l4 = d9c;
+  EXPECT_TRUE(is_near(l4, mat22(7, 0, 0, 7)));
+  u4 = d9c;
+  EXPECT_TRUE(is_near(u4, mat22(7, 0, 0, 7)));
+  d9c = Diagonal {4., 4};
+  EXPECT_TRUE(is_near(d9c, mat22(4, 0, 0, 4)));
+  d9c = Diagonal2 {5., 5};
+  EXPECT_TRUE(is_near(d9c, mat22(5, 0, 0, 5)));
+  d9c = Diagonal3 {6., 6};
+  EXPECT_TRUE(is_near(d9c, mat22(6, 0, 0, 6)));
   //
-  l2 = SelfAdjointMatrix<M2, TriangleType::upper>{9, 3, 3, 10}; // compatible opposite self-adjoint matrix
-  EXPECT_TRUE(is_near(l2, ml));
-  u2 = SelfAdjointMatrix<M2, TriangleType::lower>{9, 3, 3, 10}; // compatible opposite self-adjoint matrix
-  EXPECT_TRUE(is_near(u2, mu));
-  //
-  l3 = make_native_matrix<M2>(3, 0, 1, 3); // assign from regular matrix
-  EXPECT_TRUE(is_near(l3, ml));
-  u3 = make_native_matrix<M2>(3, 1, 0, 3); // assign from regular matrix
-  EXPECT_TRUE(is_near(u3, mu));
+  l3 = MatrixTraits<M2>::zero();
+  EXPECT_TRUE(is_near(l3, MatrixTraits<M2>::zero()));
+  u3 = MatrixTraits<M2>::zero();
+  EXPECT_TRUE(is_near(u3, MatrixTraits<M2>::zero()));
+  l3 = MatrixTraits<M2>::identity();
+  EXPECT_TRUE(is_near(l3, MatrixTraits<M2>::identity()));
+  u3 = MatrixTraits<M2>::identity();
+  EXPECT_TRUE(is_near(u3, MatrixTraits<M2>::identity()));
   //
   auto tl = ml.triangularView<Eigen::Lower>();
   auto tu = mu.triangularView<Eigen::Upper>();
   l2 = tl; // copy from TriangularBase derived object
   EXPECT_TRUE(is_near(l2, ml));
-  u2 = tl; // copy from TriangularBase derived object
+  u2 = tu; // copy from TriangularBase derived object
   EXPECT_TRUE(is_near(u2, mu));
-  //
-  l3 = tu; // copy from TriangularBase derived object
-  EXPECT_TRUE(is_near(l3, ml));
-  u3 = tu; // copy from TriangularBase derived object
-  EXPECT_TRUE(is_near(u3, mu));
   //
   l4 = ml.triangularView<Eigen::Lower>(); // assign from rvalue reference to TriangularBase derived object
   EXPECT_TRUE(is_near(l4, ml));
-  u4 = ml.triangularView<Eigen::Lower>(); // assign from rvalue reference to TriangularBase derived object
+  u4 = mu.triangularView<Eigen::Upper>(); // assign from rvalue reference to TriangularBase derived object
   EXPECT_TRUE(is_near(u4, mu));
-  //
-  l5 = mu.triangularView<Eigen::Upper>(); // assign from rvalue reference to TriangularBase derived object
-  EXPECT_TRUE(is_near(l5, ml));
-  u5 = mu.triangularView<Eigen::Upper>(); // assign from rvalue reference to TriangularBase derived object
-  EXPECT_TRUE(is_near(u5, mu));
   //
   l4 = {3, 0, 1, 3}; // assign from a list of scalars
   EXPECT_TRUE(is_near(l4, ml));
@@ -292,6 +343,7 @@ TEST_F(eigen3, TriangularMatrix_subscripts)
   EXPECT_TRUE(test);
   EXPECT_TRUE(is_near(d9c, mat22(7.1, 0, 0, 8.1)));
   //
+  EXPECT_NEAR((TriangularMatrix<native_matrix_t<double, 1, 1>, TriangleType::diagonal> {7.})(0), 7., 1e-6);
   EXPECT_NEAR((TriangularMatrix<native_matrix_t<double, 1, 1>, TriangleType::lower> {7.})(0), 7., 1e-6);
   EXPECT_NEAR((TriangularMatrix<native_matrix_t<double, 1, 1>, TriangleType::upper> {7.})(0), 7., 1e-6);
   EXPECT_NEAR((Diagonal {2, 3})(0), 2, 1e-6);
@@ -330,6 +382,10 @@ TEST_F(eigen3, TriangularMatrix_subscripts)
   EXPECT_NEAR((Diagonal {3., 3})(1, 1), 3, 1e-6);
   EXPECT_NEAR((Diagonal2 {3., 3})(1, 1), 3, 1e-6);
   EXPECT_NEAR((Diagonal3 {3., 3})(1, 1), 3, 1e-6);
+  //
+  EXPECT_NEAR((Lower {3., 0, 1, 4}).nested_matrix()(0, 0), 3, 1e-6);
+  EXPECT_NEAR((Lower {3., 0, 1, 4}).nested_matrix()(1, 0), 1, 1e-6);
+  EXPECT_NEAR((Lower {3., 0, 1, 4}).nested_matrix()(1, 1), 4, 1e-6);
 }
 
 TEST_F(eigen3, TriangularMatrix_make)
@@ -448,6 +504,9 @@ TEST_F(eigen3, TriangularMatrix_overloads)
   EXPECT_TRUE(is_near(Cholesky_factor(TriangularMatrix<native_matrix_t<double, 1, 1>, TriangleType::lower>(native_matrix_t<double, 1, 1>(9))), native_matrix_t<double, 1, 1>(3)));
   EXPECT_TRUE(is_near(Cholesky_factor(TriangularMatrix<native_matrix_t<double, 1, 1>, TriangleType::upper>(native_matrix_t<double, 1, 1>(9))), native_matrix_t<double, 1, 1>(3)));
   //
+  //
+  EXPECT_TRUE(is_near(diagonal_of(Lower {3., 0, 1, 3}), make_native_matrix<double, 2, 1>(3, 3)));
+  EXPECT_TRUE(is_near(diagonal_of(Upper {3., 1, 0, 3}), make_native_matrix<double, 2, 1>(3, 3)));
   //
   EXPECT_TRUE(is_near(transpose(Lower {3., 0, 1, 3}), mu));
   EXPECT_TRUE(is_near(transpose(Upper {3., 1, 0, 3}), ml));
@@ -711,6 +770,7 @@ TEST_F(eigen3, TriangularMatrix_arithmetic_lower)
   auto d = DiagonalMatrix<native_matrix_t<double, 2, 1>> {1, 3};
   auto i = M2::Identity();
   auto z = ZeroMatrix<double, 2, 2> {};
+
   EXPECT_TRUE(is_near(m1 + m2, mat22(5, 0, 7, 9))); static_assert(lower_triangular_matrix<decltype(m1 + m2)>);
   EXPECT_TRUE(is_near(m1 + d, mat22(5, 0, 5, 9))); static_assert(lower_triangular_matrix<decltype(m1 + d)>);
   EXPECT_TRUE(is_near(d + m1, mat22(5, 0, 5, 9))); static_assert(lower_triangular_matrix<decltype(d + m1)>);
@@ -732,6 +792,13 @@ TEST_F(eigen3, TriangularMatrix_arithmetic_lower)
   EXPECT_TRUE(is_near(m1 / 2, mat22(2, 0, 2.5, 3))); static_assert(lower_triangular_matrix<decltype(m1 / 2)>);
   static_assert(lower_triangular_matrix<decltype(m1 / 0)>);
   EXPECT_TRUE(is_near(-m1, mat22(-4, 0, -5, -6)));  static_assert(lower_triangular_matrix<decltype(-m1)>);
+
+  EXPECT_TRUE(is_near(TriangularMatrix<decltype(i), TriangleType::diagonal> {i} * 2, mat22(2, 0, 0, 2)));
+  static_assert(diagonal_matrix<decltype(TriangularMatrix<decltype(i), TriangleType::diagonal> {i} * 2)>);
+  EXPECT_TRUE(is_near(2 * TriangularMatrix<decltype(i), TriangleType::diagonal> {i}, mat22(2, 0, 0, 2)));
+  static_assert(diagonal_matrix<decltype(2 * TriangularMatrix<decltype(i), TriangleType::diagonal> {i})>);
+  EXPECT_TRUE(is_near(TriangularMatrix<decltype(i), TriangleType::diagonal> {i} / 0.5, mat22(2, 0, 0, 2)));
+  static_assert(diagonal_matrix<decltype(TriangularMatrix<decltype(i), TriangleType::diagonal> {i} / 2)>);
 
   EXPECT_TRUE(is_near(m1 * m2, mat22(4, 0, 17, 18))); static_assert(lower_triangular_matrix<decltype(m1 * m2)>);
   EXPECT_TRUE(is_near(m1 * d, mat22(4, 0, 5, 18))); static_assert(lower_triangular_matrix<decltype(m1 * d)>);
@@ -803,17 +870,15 @@ TEST_F(eigen3, TriangularMatrix_references)
   M2 m, n;
   m << 2, 0, 1, 2;
   n << 3, 0, 1, 3;
-  TriangularMatrix<M2, TriangleType::lower> x = m;
-  TriangularMatrix<M2&, TriangleType::lower> x_lvalue = x;
+  using Tl = TriangularMatrix<M2, TriangleType::lower>;
+  Tl x {m};
+  TriangularMatrix<M2&, TriangleType::lower> x_lvalue {x};
   EXPECT_TRUE(is_near(x_lvalue, m));
-  x = n;
+  x = Tl {n};
   EXPECT_TRUE(is_near(x_lvalue, n));
-  x_lvalue = m;
+  x_lvalue = Tl {m};
   EXPECT_TRUE(is_near(x, m));
-  TriangularMatrix<M2&&, TriangleType::lower> x_rvalue = std::move(x);
-  EXPECT_TRUE(is_near(x_rvalue, m));
-  x_rvalue = n;
-  EXPECT_TRUE(is_near(x_rvalue, n));
+  EXPECT_TRUE(is_near(TriangularMatrix<M2&, TriangleType::lower> {m}.nested_matrix(), mat22(2, 0, 1, 2)));
   //
   using V = TriangularMatrix<native_matrix_t<double, 3, 3>>;
   V v1 {1., 0, 0,
@@ -828,7 +893,7 @@ TEST_F(eigen3, TriangularMatrix_references)
   EXPECT_EQ(v2(1,0), 4.1);
   v2(2, 0) = 5.2;
   EXPECT_EQ(v1(2,0), 5.2);
-  TriangularMatrix<native_matrix_t<double, 3, 3>&&> v3 = std::move(v2);
+  TriangularMatrix<native_matrix_t<double, 3, 3>> v3 = std::move(v2);
   EXPECT_EQ(v3(1,0), 4.1);
   TriangularMatrix<const native_matrix_t<double, 3, 3>&> v4 = v3;
   v3(2,1) = 7.3;

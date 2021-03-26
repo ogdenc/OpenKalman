@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2020 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2020-2021 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -69,23 +69,25 @@ namespace OpenKalman
   };
 
 
+  /// T is a transformation input.
 #ifdef __cpp_concepts
-  /// T is a perturbation.
   template<typename T>
-  concept perturbation = gaussian_distribution<T> or
-    (typed_matrix<T> and untyped_columns<T> and not euclidean_transformed<T>);
+  concept transformation_input = typed_matrix<T> and column_vector<T> and untyped_columns<T> and
+    (not euclidean_transformed<T>);
 #else
   template<typename T>
-  struct is_perturbation : std::bool_constant<gaussian_distribution<T> or
-    (typed_matrix<T> and untyped_columns<T> and not euclidean_transformed<T>)> {};
+  inline constexpr bool transformation_input = typed_matrix<T> and column_vector<T> and untyped_columns<T> and
+    (not euclidean_transformed<T>);
+#endif
 
-  /// Helper template for is_perturbation.
-  template<typename T>
-  inline constexpr bool is_perturbation_v = is_perturbation<T>::value;
 
-  /// Helper template for is_perturbation.
+  /// T is a perturbation.
+#ifdef __cpp_concepts
   template<typename T>
-  inline constexpr bool perturbation = is_perturbation<T>::value;
+  concept perturbation = gaussian_distribution<T> or transformation_input<T>;
+#else
+  template<typename T>
+  inline constexpr bool perturbation = gaussian_distribution<T> or transformation_input<T>;
 #endif
 
 
@@ -117,7 +119,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<perturbation Arg>
 #else
-    template<typename Arg, std::enable_if_t<is_perturbation_v<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<perturbation<Arg>, int> = 0>
 #endif
     inline auto
     get_perturbation(Arg&& arg) noexcept
@@ -130,17 +132,17 @@ namespace OpenKalman
 
 
     // In and Perburbations... are arguments to a transformation.
-    template<typename In, typename ... Perturbations>
+    template<typename InputCoefficients, typename OutputCoefficients, typename In, typename ... Perturbations>
 #ifdef __cpp_concepts
-    concept transformation_args =
-      (column_vector<In> and ... and (internal::PerturbationTraits<Perturbations>::columns == 1)) and
+    concept transformation_args = (column_vector<In> and ... and perturbation<Perturbations>) and
+      equivalent_to<typename MatrixTraits<In>::RowCoefficients, InputCoefficients> and
       (equivalent_to<typename internal::PerturbationTraits<Perturbations>::RowCoefficients,
-        typename MatrixTraits<In>::RowCoefficients> and ...);
+        OutputCoefficients> and ...);
 #else
-    inline constexpr bool transformation_args =
-      (column_vector<In> and ... and (internal::PerturbationTraits<Perturbations>::columns == 1)) and
+    inline constexpr bool transformation_args = (column_vector<In> and ... and perturbation<Perturbations>) and
+      equivalent_to<typename MatrixTraits<In>::RowCoefficients, InputCoefficients> and
       (equivalent_to<typename internal::PerturbationTraits<Perturbations>::RowCoefficients,
-        typename MatrixTraits<In>::RowCoefficients> and ...);
+        OutputCoefficients> and ...);
 #endif
 
   } // namespace internal

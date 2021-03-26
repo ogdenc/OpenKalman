@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2017-2020 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2017-2021 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -40,9 +40,12 @@ namespace OpenKalman
   template<typename SigmaPointsType>
   struct SigmaPoints
   {
+
   private:
+
     template<std::size_t, typename Scalar>
     static constexpr auto cat_dummy_function(const Scalar w) { return w; };
+
 
     template<std::size_t dim, typename Weights, typename Scalar, std::size_t ... ints>
     static auto cat_weights(const Scalar w0, std::index_sequence<ints...>)
@@ -52,7 +55,9 @@ namespace OpenKalman
     };
 
   protected:
+
     SigmaPoints() {} ///< Instantiation is disallowed.
+
 
     template<std::size_t dim, typename Weights>
     static auto mean_weights()
@@ -62,6 +67,7 @@ namespace OpenKalman
       constexpr auto w0 = SigmaPointsType::template W_m0<dim, Scalar>();
       return cat_weights<dim, Weights>(w0, std::make_index_sequence<count - 1>());
     };
+
 
     template<std::size_t dim, typename Weights>
     static auto covariance_weights()
@@ -73,17 +79,22 @@ namespace OpenKalman
     };
 
   public:
+
     /**
      * \brief Scale and translate normalized sample points based on mean and (square root) covariance.
      * \return A tuple of matrices of sample points (each sample point in a column).
      */
-    template<typename...Dist>
+#ifdef __cpp_concepts
+    template<gaussian_distribution ... Dist>
+#else
+    template<typename...Dist, std::enable_if_t<((gaussian_distribution<Dist> and ...)), int> = 0>
+#endif
     static auto
     sample_points(const Dist&...ds)
     {
-      static_assert((gaussian_distribution<Dist> and ...));
       return SigmaPointsType::template sigma_points(ds...);
     }
+
 
 #ifdef __cpp_concepts
     template<std::size_t dim, euclidean_mean YMeans>
@@ -100,18 +111,26 @@ namespace OpenKalman
       return make_self_contained(y_means * mean_weights<dim, Weights>());
     }
 
-    template<std::size_t dim, typename InputDist, bool return_cross = false, typename X, typename Y>
+
+#ifdef __cpp_concepts
+    template<std::size_t dim, typename InputDist, bool return_cross = false, typed_matrix X, typed_matrix Y> requires
+      (MatrixTraits<X>::columns == MatrixTraits<Y>::columns) and
+      (MatrixTraits<X>::columns == SigmaPointsType::template sigma_point_count<dim>()) and
+      equivalent_to<typename MatrixTraits<X>::RowCoefficients, typename DistributionTraits<InputDist>::Coefficients>
+#else
+    template<std::size_t dim, typename InputDist, bool return_cross = false, typename X, typename Y, std::enable_if_t<
+      typed_matrix<X> and typed_matrix<Y> and (MatrixTraits<X>::columns == MatrixTraits<Y>::columns) and
+      (MatrixTraits<X>::columns == SigmaPointsType::template sigma_point_count<dim>()) and
+      equivalent_to<typename MatrixTraits<X>::RowCoefficients, typename DistributionTraits<InputDist>::Coefficients>,
+        int> = 0>
+#endif
     static auto
     covariance(const X& x_deviations, const Y& y_deviations)
     {
-      static_assert(typed_matrix<X> and typed_matrix<Y>);
-      static_assert(equivalent_to<typename MatrixTraits<X>::RowCoefficients,
-        typename DistributionTraits<InputDist>::Coefficients>);
       constexpr auto count = MatrixTraits<X>::columns;
-      static_assert(count == MatrixTraits<Y>::columns);
-      static_assert(count == SigmaPointsType::template sigma_point_count<dim>(), "Wrong number of sigma points.");
       using Weights = Matrix<Axes<count>, Axis, native_matrix_t<X, count, 1>>;
       auto weights = covariance_weights<dim, Weights>();
+
       if constexpr(cholesky_form<InputDist>)
       {
         using Scalar = typename MatrixTraits<X>::Scalar;
@@ -123,8 +142,10 @@ namespace OpenKalman
           const auto [y_deviations_head, y_deviations_tail] = split_horizontal<1, count - 1>(y_deviations);
           const auto [weights_head, weights_tail] = split_vertical<Axis, Axes<count - 1>>(weights);
           const auto sqrt_weights_tail = apply_coefficientwise(weights_tail, [](const auto x){ return std::sqrt(x); });
-          auto out_covariance = LQ_decomposition(y_deviations_tail * to_diagonal(sqrt_weights_tail));
-          rank_update(out_covariance, y_deviations_head, W_c0); ///< Factor back in the first weight, using a rank update.
+          auto out_covariance = square(LQ_decomposition(y_deviations_tail * to_diagonal(sqrt_weights_tail)));
+          static_assert(OpenKalman::covariance<decltype(out_covariance)>);
+          rank_update(out_covariance, y_deviations_head, W_c0); ///< Factor first weight back in, using a rank update.
+
           if constexpr (return_cross)
           {
             auto cross_covariance = make_self_contained(x_deviations * to_diagonal(weights) * adjoint(y_deviations));
@@ -138,7 +159,9 @@ namespace OpenKalman
         else
         {
           const auto sqrt_weights = apply_coefficientwise(weights, [](const auto x){ return std::sqrt(x); });
-          auto out_covariance = Covariance {LQ_decomposition(y_deviations * to_diagonal(sqrt_weights))};
+          auto out_covariance = square(LQ_decomposition(y_deviations * to_diagonal(sqrt_weights)));
+          static_assert(OpenKalman::covariance<decltype(out_covariance)>);
+
           if constexpr (return_cross)
           {
             auto cross_covariance = make_self_contained(x_deviations * to_diagonal(weights) * adjoint(y_deviations));
@@ -154,6 +177,7 @@ namespace OpenKalman
       {
         const auto w_yT = to_diagonal(weights) * adjoint(y_deviations);
         auto out_covariance = make_self_contained(make_covariance(y_deviations * w_yT));
+
         if constexpr (return_cross)
         {
           auto cross_covariance = make_self_contained(x_deviations * w_yT);

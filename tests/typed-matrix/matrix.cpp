@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2019-2020 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2019-2021 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -28,6 +28,11 @@ using Mat22 = Matrix<C2, C2, M22>;
 using Mat23 = Matrix<C2, C3, M23>;
 using Mat32 = Matrix<C3, C2, M32>;
 using Mat33 = Matrix<C3, C3, M33>;
+
+using SA2l = SelfAdjointMatrix<M22, TriangleType::lower>;
+using SA2u = SelfAdjointMatrix<M22, TriangleType::upper>;
+using T2l = TriangularMatrix<M22, TriangleType::lower>;
+using T2u = TriangularMatrix<M22, TriangleType::upper>;
 
 inline I22 i22 = M22::Identity();
 inline Z22 z22 = Z22();
@@ -312,6 +317,12 @@ TEST_F(matrices, TypedMatrix_traits)
 
 TEST_F(matrices, TypedMatrix_overloads)
 {
+  EXPECT_TRUE(is_near(internal::to_covariance_nestable(Mat22 {9, 3, 3, 10}), Mat22 {9, 3, 3, 10}));
+  EXPECT_TRUE(is_near(internal::to_covariance_nestable<SA2l>(Mat22 {9, 3, 3, 10}), Mat22 {9, 3, 3, 10}));
+  EXPECT_TRUE(is_near(internal::to_covariance_nestable<SA2u>(Mat22 {9, 3, 3, 10}), Mat22 {9, 3, 3, 10}));
+  EXPECT_TRUE(is_near(internal::to_covariance_nestable<T2l>(Mat22 {3, 0, 1, 3}), Mat22 {3, 0, 1, 3}));
+  EXPECT_TRUE(is_near(internal::to_covariance_nestable<T2u>(Mat22 {3, 1, 0, 3}), Mat22 {3, 1, 0, 3}));
+
   EXPECT_TRUE(is_near(nested_matrix(Mat23 {1, 2, 3, 4, 5, 6}), Mat23 {1, 2, 3, 4, 5, 6}));
 
   EXPECT_TRUE(is_near(make_native_matrix(Mat23 {1, 2, 3, 4, 5, 6}), Mat23 {1, 2, 3, 4, 5, 6}));

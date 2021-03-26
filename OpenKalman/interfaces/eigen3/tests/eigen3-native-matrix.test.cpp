@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2020 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2020-2021 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -31,10 +31,45 @@ TEST_F(eigen3, Eigen_Matrix_class_traits)
   d1(0) = 5;
   d1(2, 0) = 7;
   EXPECT_TRUE(is_near(d1, make_native_matrix<double, 3, 1>(5, 2, 7)));
+
+  static_assert(self_adjoint_matrix<Eigen::SelfAdjointView<Mat3, Eigen::Upper>>);
+  static_assert(self_adjoint_matrix<Eigen::SelfAdjointView<Mat3, Eigen::Lower>>);
+  static_assert(upper_triangular_storage<Eigen::SelfAdjointView<Mat3, Eigen::Upper>>);
+  static_assert(lower_triangular_storage<Eigen::SelfAdjointView<Mat3, Eigen::Lower>>);
+  static_assert(triangular_matrix<Eigen::TriangularView<Mat3, Eigen::Upper>>);
+  static_assert(triangular_matrix<Eigen::TriangularView<Mat3, Eigen::Lower>>);
+  static_assert(upper_triangular_matrix<Eigen::TriangularView<Mat3, Eigen::Upper>>);
+  static_assert(lower_triangular_matrix<Eigen::TriangularView<Mat3, Eigen::Lower>>);
+  static_assert(diagonal_matrix<Eigen::DiagonalMatrix<double, 3>>);
+  static_assert(self_adjoint_matrix<typename Mat3::ConstantReturnType>);
+  static_assert(self_adjoint_matrix<typename Mat3::IdentityReturnType>);
+  static_assert(upper_triangular_matrix<typename Mat3::IdentityReturnType>);
+  static_assert(lower_triangular_matrix<typename Mat3::IdentityReturnType>);
+  static_assert(diagonal_matrix<typename Mat3::IdentityReturnType>);
+
+  static_assert(self_contained<const Mat2>);
+  static_assert(self_contained<typename Mat3::ConstantReturnType>);
+  static_assert(self_contained<typename Mat3::IdentityReturnType>);
+  static_assert(self_contained<decltype(2 * MatrixTraits<Mat2>::identity() + MatrixTraits<Mat2>::identity())>);
+  static_assert(not self_contained<decltype(2 * MatrixTraits<Mat2>::identity() + Mat2 {1, 2, 3, 4})>);
+  static_assert(MatrixTraits<std::remove_const_t<decltype(2 * MatrixTraits<Mat2>::identity() + MatrixTraits<Mat2>::identity())>>::dimension == 2);
+  static_assert(self_contained<decltype(column<0>(2 * MatrixTraits<Mat2>::identity() + MatrixTraits<Mat2>::identity()))>);
+  static_assert(not self_contained<decltype(column<0>(2 * MatrixTraits<Mat2>::identity() + Mat2 {1, 2, 3, 4}))>);
+  static_assert(self_contained<const Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Mat2>>);
+  static_assert(self_contained<Eigen::CwiseBinaryOp<Eigen::internal::scalar_product_op<double, double>,
+    const Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Mat2>,
+    const Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Mat2>>>);
+  static_assert(self_contained<Eigen::CwiseBinaryOp<Eigen::internal::scalar_product_op<double, double>,
+    const Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<double>, Mat2>,
+    const Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Mat2>>>);
+  static_assert(not self_contained<Eigen::CwiseBinaryOp<Eigen::internal::scalar_product_op<double, double>, const Mat2, const Mat2>>);
+  static_assert(not self_contained<Eigen::CwiseBinaryOp<Eigen::internal::scalar_product_op<double, double>, const Mat2,
+    const Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Mat2>>>);
 }
 
 TEST_F(eigen3, Eigen_Matrix_overloads)
 {
+  EXPECT_TRUE(is_near(diagonal_of(make_native_matrix<double, 2, 2>(1, 2, 3, 4)), make_native_matrix<double, 2, 1>(1, 4)));
   EXPECT_TRUE(is_near(transpose(make_native_matrix<double, 2, 3>(1, 2, 3, 4, 5, 6)),
     make_native_matrix<double, 3, 2>(1, 4, 2, 5, 3, 6)));
   EXPECT_TRUE(is_near(adjoint(make_native_matrix<double, 2, 3>(1, 2, 3, 4, 5, 6)),

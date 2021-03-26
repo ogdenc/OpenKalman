@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2017-2020 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2017-2021 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -43,7 +43,7 @@ namespace OpenKalman
         typename DistributionTraits<InputDistribution>::Mean, InputCoefficients::size, 1>;
       using OutputEuclideanMeanMatrix = native_matrix_t<InputMeanMatrix, OutputCoefficients::size, 1>;
       using OutputCovarianceMatrix = native_matrix_t<InputMeanMatrix, OutputCoefficients::size, OutputCoefficients::size>;
-      using OutputCovarianceSA = typename MatrixTraits<OutputCovarianceMatrix>::template SelfAdjointBaseType<>;
+      using OutputCovarianceSA = typename MatrixTraits<OutputCovarianceMatrix>::template SelfAdjointMatrixFrom<>;
       using CrossCovarianceMatrix = native_matrix_t<InputMeanMatrix, InputCoefficients::size, OutputCoefficients::size>;
 
       using InputMean = Mean<InputCoefficients, InputMeanMatrix>;
@@ -108,7 +108,7 @@ namespace OpenKalman
             const auto y_E = (set1.count * set1.y_E + set2.y_E) / s_count;
             const auto delta = from_euclidean(set2.y_E) - from_euclidean(set1.y_E);
             const auto delta_adj_factor = adjoint(delta) * set1.count / s_count;
-            const auto yy = set1.yy + delta * delta_adj_factor;
+            const OutputCovariance yy {set1.yy + delta * delta_adj_factor};
             if constexpr (return_cross)
             {
               const auto xy = set1.xy + (set2.x - set1.x) * delta_adj_factor;
@@ -127,7 +127,7 @@ namespace OpenKalman
             const auto y_E = (set1.count * set1.y_E + set2.count * set2.y_E) / s_count;
             const auto delta = from_euclidean(set2.y_E) - from_euclidean(set1.y_E);
             const auto delta_adj_factor = adjoint(delta) * set1.count * set2.count / s_count;
-            const auto yy = set1.yy + set2.yy + delta * delta_adj_factor;
+            const OutputCovariance yy {set1.yy + set2.yy + delta * delta_adj_factor};
             if constexpr (return_cross)
             {
               const auto xy = set1.xy + set2.xy + (set2.x - set1.x) * delta_adj_factor;

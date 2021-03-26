@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2020 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2020-2021 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -15,29 +15,30 @@
 
 namespace OpenKalman
 {
+#ifdef __cpp_concepts
+  template<typename Trans, transformation_input InDelta, transformation_input ... PsDelta> requires
+    std::invocable<Trans, InDelta, PsDelta...> and
+    (not wrapped_mean<std::invoke_result_t<Trans, InDelta, PsDelta...>>) and
+    (not std::is_reference_v<InDelta>) and (((not std::is_reference_v<PsDelta>) and ...))
+#else
   template<typename Trans, typename InDelta, typename ... PsDelta>
+#endif
   struct FiniteDifferenceLinearization
   {
-    static_assert((typed_matrix<InDelta> and ... and typed_matrix<PsDelta>));
-    static_assert((untyped_columns<InDelta> and ... and untyped_columns<PsDelta>));
-    static_assert(MatrixTraits<InDelta>::columns == 1);
-    static_assert(((MatrixTraits<PsDelta>::columns == 1) and ...));
-    static_assert(std::is_invocable_v<Trans, std::decay_t<InDelta>, std::decay_t<PsDelta>...>);
-    static_assert(not wrapped_mean<std::invoke_result_t<Trans, std::decay_t<InDelta>, std::decay_t<PsDelta>...>>,
+#ifndef __cpp_concepts
+    static_assert((transformation_input<InDelta> and ... and transformation_input<PsDelta>));
+    static_assert(std::is_invocable_v<Trans, InDelta, PsDelta...>);
+    static_assert(not wrapped_mean<std::invoke_result_t<Trans, InDelta, PsDelta...>>,
       "For finite difference linearization, the transformation function cannot return a wrapped matrix.");
+    static_assert(not std::is_reference_v<InDelta>);
+    static_assert(((not std::is_reference_v<PsDelta>) and ...));
+#endif
 
     FiniteDifferenceLinearization(Trans&& trans, InDelta&& in_delta, PsDelta&& ... ps_delta)
     : transformation(std::forward<Trans>(trans)),
       deltas(std::forward<InDelta>(in_delta), std::forward<PsDelta>(ps_delta)...) {}
 
-  protected:
-    template<typename In, typename ... Perturbations>
-    static constexpr void check_inputs(In&&, Perturbations&& ...)
-    {
-      static_assert(equivalent_to<typename MatrixTraits<In>::RowCoefficients, typename MatrixTraits<InDelta>::RowCoefficients>);
-      static_assert(equivalent_to<typename MatrixTraits<In>::ColumnCoefficients, typename MatrixTraits<InDelta>::ColumnCoefficients>);
-      static_assert((perturbation<Perturbations> and ...));
-    }
+  private:
 
     template<typename T>
     static constexpr auto make_strict_typed_matrix(T&& t)
@@ -46,6 +47,7 @@ namespace OpenKalman
       using CC = typename MatrixTraits<T>::ColumnCoefficients;
       return Matrix<RC, CC, native_matrix_t<T>> {std::move(t)};
     }
+
 
     template<std::size_t term, typename...Inputs>
     auto jac_term(std::tuple<Inputs...>&& inputs) const
@@ -66,12 +68,17 @@ namespace OpenKalman
       });
     }
 
-    template<typename...Inputs, std::size_t...terms>
+
+#ifdef __cpp_concepts
+    template<typename...Inputs, std::size_t...terms> requires (sizeof...(Inputs) == sizeof...(terms))
+#else
+    template<typename...Inputs, std::size_t...terms, std::enable_if_t<sizeof...(Inputs) == sizeof...(terms), int> = 0>
+#endif
     auto jacobian_impl(std::tuple<Inputs...>&& inputs, std::index_sequence<terms...>) const
     {
-      static_assert(sizeof...(Inputs) == sizeof...(terms));
       return std::tuple {jac_term<terms>(std::move(inputs)) ...};
     }
+
 
     template<std::size_t term, std::size_t i, std::size_t j, typename...Inputs>
     auto h_j(std::tuple<Inputs...>&& inputs) const
@@ -112,11 +119,13 @@ namespace OpenKalman
       }
     };
 
+
     template<std::size_t term, std::size_t i, typename...Inputs, std::size_t...js>
     auto h_i(std::tuple<Inputs...>&& inputs, std::index_sequence<js...>) const
     {
       return std::array {h_j<term, i, js>(std::move(inputs))...};
     }
+
 
     template<std::size_t term, typename...Inputs, std::size_t...is>
     auto h_k(std::tuple<Inputs...>&& inputs, std::index_sequence<is...>) const
@@ -125,6 +134,7 @@ namespace OpenKalman
       using A = decltype(h_i<term, 0>(std::move(inputs), std::make_index_sequence<j_size>()));
       return std::array<A, sizeof...(is)> {h_i<term, is>(std::move(inputs), std::make_index_sequence<j_size>())...};
     }
+
 
     template<std::size_t term, typename...Inputs, std::size_t...ks>
     auto h_term(std::tuple<Inputs...>&& inputs, std::index_sequence<ks...>) const
@@ -140,6 +150,7 @@ namespace OpenKalman
       return std::array {apply_coefficientwise<V>([&](std::size_t i, std::size_t j) { return t[i][j][ks]; })...};
     }
 
+
     template<typename...Inputs, std::size_t...terms>
     auto hessian_impl(std::tuple<Inputs...>&& inputs, std::index_sequence<terms...>) const
     {
@@ -149,30 +160,54 @@ namespace OpenKalman
     }
 
   public:
+
     /// Applies the transformation.
-    template<typename In, typename ... Perturbations>
+#ifdef __cpp_concepts
+    template<transformation_input In, perturbation ... Perturbations> requires
+      equivalent_to<typename MatrixTraits<In>::RowCoefficients, typename MatrixTraits<InDelta>::RowCoefficients>
+#else
+    template<typename In, typename ... Perturbations, std::enable_if_t<transformation_input<In> and
+      (perturbation<Perturbations> and ...) and
+      equivalent_to<typename MatrixTraits<In>::RowCoefficients, typename MatrixTraits<InDelta>::RowCoefficients>,
+        int> = 0>
+#endif
     auto operator()(In&& in, Perturbations&& ... ps) const
     {
-      check_inputs(in, ps...);
       return transformation(std::forward<In>(in), std::forward<Perturbations>(ps)...);
     }
 
+
     /// Returns a tuple of the Jacobians for the input and each perturbation term.
-    template<typename In, typename ... Perturbations>
+#ifdef __cpp_concepts
+    template<transformation_input In, perturbation ... Perturbations> requires
+      equivalent_to<typename MatrixTraits<In>::RowCoefficients, typename MatrixTraits<InDelta>::RowCoefficients>
+#else
+    template<typename In, typename ... Perturbations, std::enable_if_t<transformation_input<In> and
+      (perturbation<Perturbations> and ...) and
+        equivalent_to<typename MatrixTraits<In>::RowCoefficients, typename MatrixTraits<InDelta>::RowCoefficients>,
+          int> = 0>
+#endif
     auto jacobian(In&& in, Perturbations&&...ps) const
     {
-      check_inputs(in, ps...);
       return jacobian_impl(
         std::forward_as_tuple(make_strict_typed_matrix(std::forward<In>(in)),
           make_strict_typed_matrix(std::forward<Perturbations>(ps))...),
         std::make_index_sequence<1 + sizeof...(ps)>());
     }
 
+
     /// Returns a tuple of Hessian matrices for the input and each perturbation term.
-    template<typename In, typename ... Perturbations>
+#ifdef __cpp_concepts
+    template<transformation_input In, perturbation ... Perturbations> requires
+      equivalent_to<typename MatrixTraits<In>::RowCoefficients, typename MatrixTraits<InDelta>::RowCoefficients>
+#else
+    template<typename In, typename ... Perturbations, std::enable_if_t<transformation_input<In> and
+      (perturbation<Perturbations> and ...) and
+        equivalent_to<typename MatrixTraits<In>::RowCoefficients, typename MatrixTraits<InDelta>::RowCoefficients>,
+          int> = 0>
+#endif
     auto hessian(In&& in, Perturbations&&...ps) const
     {
-      check_inputs(in, ps...);
       return hessian_impl(
         std::forward_as_tuple(make_strict_typed_matrix(std::forward<In>(in)),
           make_strict_typed_matrix(std::forward<Perturbations>(ps))...),
@@ -180,8 +215,9 @@ namespace OpenKalman
     }
 
   protected:
+
     Trans transformation;
-    const std::tuple<InDelta, PsDelta...> deltas;
+    const std::tuple<const InDelta, const PsDelta...> deltas;
   };
 
 

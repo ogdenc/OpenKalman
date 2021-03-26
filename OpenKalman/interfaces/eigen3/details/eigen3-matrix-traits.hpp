@@ -1,11 +1,16 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2019-2020 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2019-2021 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+/**
+ * \file
+ * \brief Concepts as applied to native Eigen3 matrix classes.
  */
 
 #ifndef OPENKALMAN_EIGEN3_MATRIX_TRAITS_HPP
@@ -15,11 +20,13 @@
 
 namespace OpenKalman
 {
+
   namespace Eigen3
   {
     /**
-     * \brief Specifies a native Eigen3 matrix.
-     * \details This includes any class in the Eigen library descending from Eigen::MatrixBase.
+     * \brief Specifies a native Eigen3 matrix deriving from Eigen::MatrixBase.
+     * \details This includes any original class in the Eigen library descending from Eigen::MatrixBase.
+     * It does not include new classes added in OpenKalman, such as DiagonalMatrix or ZeroMatrix.
      * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
      */
     template<typename T>
@@ -34,15 +41,16 @@ namespace OpenKalman
 
 
   /*
-   * \brief Default matrix traits for any matrix derived from Eigen::MatrixBase.
+   * \internal
+   * \brief Default matrix traits for any self-contained \ref eigen_native.
    * \tparam M The matrix.
    */
 #ifdef __cpp_concepts
-  template<typename M> requires std::same_as<M, std::decay_t<M>> and Eigen3::eigen_native<M>
+  template<Eigen3::eigen_native M> requires std::same_as<M, std::decay_t<M>>
   struct MatrixTraits<M>
 #else
   template<typename M>
-  struct MatrixTraits<M, std::enable_if_t<std::is_same_v<M, std::decay_t<M>> and Eigen3::eigen_native<M>>>
+  struct MatrixTraits<M, std::enable_if_t<Eigen3::eigen_native<M> and std::is_same_v<M, std::decay_t<M>>>>
 #endif
   {
     using Scalar = typename M::Scalar;
@@ -50,64 +58,150 @@ namespace OpenKalman
     static constexpr std::size_t dimension = M::RowsAtCompileTime;
     static constexpr std::size_t columns = M::ColsAtCompileTime; //<\todo: make columns potentially dynamic (0 = dynamic?)
     //Note: rows or columns at compile time are -1 if the matrix is dynamic:
-    static_assert(dimension > 0);
-    static_assert(columns > 0);
+    static_assert(dimension > 0, "Cannot currently use dynamically sized matrices with OpenKalman.");
+    static_assert(columns > 0, "Cannot currently use dynamically sized matrices with OpenKalman.");
+    //static_assert(one_by_one_matrix<M> or identity_matrix<M> or not (zero_matrix<M> or upper_triangular_matrix<M> or
+    //  lower_triangular_matrix<M> or self_adjoint_matrix<M>), "Native Eigen3 matrices other than 1x1 or identity must"
+    //  "have their own MatrixTraits if they are zero, triangular, and self-adjoint.");
 
     template<std::size_t rows = dimension, std::size_t cols = columns, typename S = Scalar>
-    using NativeMatrix = Eigen::Matrix<S, (Eigen::Index) rows, (Eigen::Index) cols>;
+    using NativeMatrixFrom = Eigen::Matrix<S, (Eigen::Index) rows, (Eigen::Index) cols>;
 
-    using SelfContained = typename MatrixTraits<M>::template NativeMatrix<dimension, columns>;
+    using SelfContainedFrom = NativeMatrixFrom<>;
 
     template<TriangleType storage_triangle = TriangleType::lower, std::size_t dim = dimension, typename S = Scalar>
-    using SelfAdjointBaseType = Eigen3::SelfAdjointMatrix<NativeMatrix<dim, dim, S>, storage_triangle>;
+    using SelfAdjointMatrixFrom = Eigen3::SelfAdjointMatrix<NativeMatrixFrom<dim, dim, S>, storage_triangle>;
 
     template<TriangleType triangle_type = TriangleType::lower, std::size_t dim = dimension, typename S = Scalar>
-    using TriangularBaseType = Eigen3::TriangularMatrix<NativeMatrix<dim, dim, S>, triangle_type>;
+    using TriangularMatrixFrom = Eigen3::TriangularMatrix<NativeMatrixFrom<dim, dim, S>, triangle_type>;
 
     template<std::size_t dim = dimension, typename S = Scalar>
-    using DiagonalBaseType = Eigen3::DiagonalMatrix<NativeMatrix<dim, 1, S>>;
+    using DiagonalMatrixFrom = Eigen3::DiagonalMatrix<NativeMatrixFrom<dim, 1, S>>;
 
     template<typename Derived>
-    using MatrixBaseType = Eigen3::internal::Eigen3MatrixBase<Derived, M>;
+    using MatrixBaseFrom = Eigen3::internal::Eigen3MatrixBase<Derived, M>;
 
 #ifdef __cpp_concepts
-    template<typename Arg> requires (not std::convertible_to<Arg, const Scalar>)
+    template<Eigen3::eigen_native Arg>
 #else
-    template<typename Arg, std::enable_if_t<not std::is_convertible_v<Arg, const Scalar>, int> = 0>
+    template<typename Arg, std::enable_if_t<Eigen3::eigen_native<Arg>, int> = 0>
 #endif
-    static decltype(auto)
-    make(Arg&& arg) noexcept
+    static decltype(auto) make(Arg&& arg) noexcept
     {
       return std::forward<Arg>(arg);
     }
 
     // Make matrix from a list of coefficients in row-major order.
 #ifdef __cpp_concepts
-    template<std::convertible_to<const Scalar> Arg, std::convertible_to<const Scalar> ... Args>
+    template<std::convertible_to<Scalar> Arg, std::convertible_to<Scalar> ... Args>
     requires (1 + sizeof...(Args) == dimension * columns)
 #else
     template<typename Arg, typename ... Args,
       std::enable_if_t<std::conjunction_v<std::is_convertible<Arg, Scalar>, std::is_convertible<Args, Scalar>...> and
       1 + sizeof...(Args) == dimension * columns, int> = 0>
 #endif
-    static auto
-    make(const Arg arg, const Args ... args)
+    static auto make(const Arg arg, const Args ... args)
     {
-      return ((NativeMatrix<dimension, columns>() << arg), ... , args).finished();
+      return ((NativeMatrixFrom<dimension, columns>() << arg), ... , args).finished();
     }
 
     static auto zero() { return Eigen3::ZeroMatrix<Scalar, dimension, columns>(); }
 
-    static auto identity() { return NativeMatrix<dimension, dimension>::Identity(); }
+    static auto identity() { return NativeMatrixFrom<dimension, dimension>::Identity(); }
+
+  };
+
+
+  /*
+   * \internal
+   * \brief Matrix traits for Eigen::SelfAdjointView.
+   */
+#ifdef __cpp_concepts
+  template<Eigen3::eigen_native M, unsigned int UpLo>
+  struct MatrixTraits<Eigen::SelfAdjointView<M, UpLo>> : MatrixTraits<M>
+#else
+  template<typename M, unsigned int UpLo>
+  struct MatrixTraits<Eigen::SelfAdjointView<M, UpLo>, std::enable_if_t<Eigen3::eigen_native<M>>> : MatrixTraits<M>
+#endif
+  {
+    using MatrixTraits<M>::dimension;
+    using typename MatrixTraits<M>::Scalar;
+    static constexpr TriangleType storage_triangle = UpLo & Eigen::Upper ? TriangleType::upper : TriangleType::lower;
+
+    template<TriangleType storage_triangle = storage_triangle, std::size_t dim = dimension, typename S = Scalar>
+    using SelfAdjointMatrixFrom = typename MatrixTraits<M>::template SelfAdjointMatrixFrom<storage_triangle, dim, S>;
+
+    template<TriangleType triangle_type = storage_triangle, std::size_t dim = dimension, typename S = Scalar>
+    using TriangularMatrixFrom = typename MatrixTraits<M>::template TriangularMatrixFrom<triangle_type, dim, S>;
+
+#ifdef __cpp_concepts
+    template<Eigen3::eigen_native Arg>
+#else
+    template<typename Arg, std::enable_if_t<Eigen3::eigen_native<Arg>, int> = 0>
+#endif
+    auto make(Arg& arg) noexcept
+    {
+      return Eigen::SelfAdjointView<std::remove_reference_t<Arg>, UpLo>(arg);
+    }
+
+  };
+
+
+  /*
+   * \internal
+   * \brief Matrix traits for Eigen::TriangularView.
+   */
+#ifdef __cpp_concepts
+  template<Eigen3::eigen_native M, unsigned int UpLo>
+  struct MatrixTraits<Eigen::TriangularView<M, UpLo>> : MatrixTraits<M>
+#else
+    template<typename M, unsigned int UpLo>
+  struct MatrixTraits<Eigen::TriangularView<M, UpLo>, std::enable_if_t<Eigen3::eigen_native<M>>> : MatrixTraits<M>
+#endif
+  {
+    using MatrixTraits<M>::dimension;
+    using typename MatrixTraits<M>::Scalar;
+    static constexpr TriangleType triangle_type = UpLo & Eigen::Upper ? TriangleType::upper : TriangleType::lower;
+
+    template<TriangleType storage_triangle = triangle_type, std::size_t dim = dimension, typename S = Scalar>
+    using SelfAdjointMatrixFrom = typename MatrixTraits<M>::template SelfAdjointMatrixFrom<storage_triangle, dim, S>;
+
+    template<TriangleType triangle_type = triangle_type, std::size_t dim = dimension, typename S = Scalar>
+    using TriangularMatrixFrom = typename MatrixTraits<M>::template TriangularMatrixFrom<triangle_type, dim, S>;
+
+#ifdef __cpp_concepts
+    template<Eigen3::eigen_native Arg>
+#else
+    template<typename Arg, std::enable_if_t<Eigen3::eigen_native<Arg>, int> = 0>
+#endif
+    auto make(Arg& arg) noexcept
+    {
+      return Eigen::TriangularView<std::remove_reference_t<Arg>, UpLo>(arg);
+    }
 
   };
 
 
   namespace internal
   {
+
+    namespace detail
+    {
+      // T is self-contained and Eigen stores it by value rather than by reference.
+      template<typename T>
+#ifdef __cpp_concepts
+      concept stores =
+#else
+      static constexpr bool stores =
+#endif
+        self_contained<T> and ((Eigen::internal::traits<T>::Flags & Eigen::NestByRefBit) == 0);
+    }
+
+    ///////  is_self_contained  ///////
+
     template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel>
     struct is_self_contained<Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>>
-      : std::bool_constant<not (Eigen::internal::traits<XprType>::Flags & Eigen::NestByRefBit) and self_contained<XprType>> {};
+      : std::bool_constant<detail::stores<XprType>> {};
 
     template<typename Scalar, typename PlainObjectType>
     struct is_self_contained<Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<Scalar>, PlainObjectType>>
@@ -123,26 +217,19 @@ namespace OpenKalman
 
     template<typename UnaryOp, typename XprType>
     struct is_self_contained<Eigen::CwiseUnaryOp<UnaryOp, XprType>>
-      : std::integral_constant<bool,
-        not (Eigen::internal::traits<XprType>::Flags & Eigen::NestByRefBit) and self_contained<XprType>> {};
+      : std::bool_constant<detail::stores<XprType>> {};
 
     template<typename BinaryOp, typename LhsType, typename RhsType>
     struct is_self_contained<Eigen::CwiseBinaryOp<BinaryOp, LhsType, RhsType>>
-      : std::integral_constant<bool,
-        not (Eigen::internal::traits<LhsType>::Flags & Eigen::NestByRefBit) and self_contained<LhsType> and
-    not (Eigen::internal::traits<RhsType>::Flags & Eigen::NestByRefBit) and self_contained<RhsType>> {};
+      : std::bool_constant<detail::stores<LhsType> and detail::stores<RhsType>> {};
 
     template<typename TernaryOp, typename Arg1, typename Arg2, typename Arg3>
     struct is_self_contained<Eigen::CwiseTernaryOp<TernaryOp, Arg1, Arg2, Arg3>>
-      : std::integral_constant<bool,
-        not (Eigen::internal::traits<Arg1>::Flags & Eigen::NestByRefBit) and self_contained<Arg1> and
-    not (Eigen::internal::traits<Arg2>::Flags & Eigen::NestByRefBit) and self_contained<Arg2> and
-    not (Eigen::internal::traits<Arg3>::Flags & Eigen::NestByRefBit) and self_contained<Arg3>> {};
+      : std::bool_constant<detail::stores<Arg1> and detail::stores<Arg2> and detail::stores<Arg3>> {};
 
     template<typename MatrixType, int DiagIndex>
     struct is_self_contained<Eigen::Diagonal<MatrixType, DiagIndex>>
-      : std::integral_constant<bool,
-        not (Eigen::internal::traits<MatrixType>::Flags & Eigen::NestByRefBit) and self_contained<MatrixType>> {};
+      : std::bool_constant<detail::stores<MatrixType>> {};
 
     template<typename Scalar, int SizeAtCompileTime, int MaxSizeAtCompileTime>
     struct is_self_contained<Eigen::DiagonalMatrix<Scalar, SizeAtCompileTime, MaxSizeAtCompileTime>>
@@ -150,13 +237,11 @@ namespace OpenKalman
 
     template<typename DiagVectorType>
     struct is_self_contained<Eigen::DiagonalWrapper<DiagVectorType>>
-      : std::integral_constant<bool,
-        not (Eigen::internal::traits<DiagVectorType>::Flags & Eigen::NestByRefBit) and self_contained<DiagVectorType>> {};
+      : std::bool_constant<detail::stores<DiagVectorType>> {};
 
     template<typename XprType>
     struct is_self_contained<Eigen::Inverse<XprType>>
-      : std::integral_constant<bool,
-        not (Eigen::internal::traits<XprType>::Flags & Eigen::NestByRefBit) and self_contained<XprType>> {};
+      : std::bool_constant<detail::stores<XprType>> {};
 
     template<typename S, int rows, int cols, int options, int maxrows, int maxcols>
     struct is_self_contained<Eigen::Matrix<S, rows, cols, options, maxrows, maxcols>>
@@ -164,8 +249,7 @@ namespace OpenKalman
 
     template<typename XprType>
     struct is_self_contained<Eigen::MatrixWrapper<XprType>>
-      : std::integral_constant<bool,
-        not (Eigen::internal::traits<XprType>::Flags & Eigen::NestByRefBit) and self_contained<XprType>> {};
+      : std::bool_constant<detail::stores<XprType>> {};
 
     template<int SizeAtCompileTime, int MaxSizeAtCompileTime, typename StorageIndex>
     struct is_self_contained<Eigen::PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, StorageIndex>>
@@ -173,53 +257,85 @@ namespace OpenKalman
 
     template<typename IndicesType>
     struct is_self_contained<Eigen::PermutationWrapper<IndicesType>>
-      : std::integral_constant<bool,
-        not (Eigen::internal::traits<IndicesType>::Flags & Eigen::NestByRefBit) and self_contained<IndicesType>> {};
+      : std::bool_constant<detail::stores<IndicesType>> {};
 
     template<typename LhsType, typename RhsType, int Option>
     struct is_self_contained<Eigen::Product<LhsType, RhsType, Option>>
-      : std::integral_constant<bool,
-        not (Eigen::internal::traits<LhsType>::Flags & Eigen::NestByRefBit) and self_contained<LhsType> and
-    not (Eigen::internal::traits<RhsType>::Flags & Eigen::NestByRefBit) and self_contained<RhsType>> {};
+      : std::bool_constant<detail::stores<LhsType> and detail::stores<RhsType>> {};
 
     template<typename MatrixType, int RowFactor, int ColFactor>
     struct is_self_contained<Eigen::Replicate<MatrixType, RowFactor, ColFactor>>
-      : std::integral_constant<bool,
-        not (Eigen::internal::traits<MatrixType>::Flags & Eigen::NestByRefBit) and self_contained<MatrixType>> {};
+      : std::bool_constant<detail::stores<MatrixType>> {};
 
     template<typename MatrixType, int Direction>
     struct is_self_contained<Eigen::Reverse<MatrixType, Direction>>
-      : std::integral_constant<bool,
-        not (Eigen::internal::traits<MatrixType>::Flags & Eigen::NestByRefBit) and self_contained<MatrixType>> {};
+      : std::bool_constant<detail::stores<MatrixType>> {};
 
     template<typename Arg1, typename Arg2, typename Arg3>
     struct is_self_contained<Eigen::Select<Arg1, Arg2, Arg3>>
-      : std::integral_constant<bool,
-        not (Eigen::internal::traits<Arg1>::Flags & Eigen::NestByRefBit) and self_contained<Arg1> and
-    not (Eigen::internal::traits<Arg2>::Flags & Eigen::NestByRefBit) and self_contained<Arg2> and
-    not (Eigen::internal::traits<Arg3>::Flags & Eigen::NestByRefBit) and self_contained<Arg3>> {};
+      : std::bool_constant<detail::stores<Arg1> and detail::stores<Arg2> and detail::stores<Arg3>> {};
 
     template<typename MatrixType, unsigned int UpLo>
     struct is_self_contained<Eigen::SelfAdjointView<MatrixType, UpLo>>
-      : std::integral_constant<bool,
-        not (Eigen::internal::traits<MatrixType>::Flags & Eigen::NestByRefBit) and self_contained<MatrixType>> {};
+      : std::bool_constant<detail::stores<MatrixType>> {};
 
     template<typename MatrixType>
     struct is_self_contained<Eigen::Transpose<MatrixType>>
-      : std::integral_constant<bool,
-        not (Eigen::internal::traits<MatrixType>::Flags & Eigen::NestByRefBit) and self_contained<MatrixType>> {};
+      : std::bool_constant<detail::stores<MatrixType>> {};
 
-    template<typename MatrixType, unsigned int Mode>
-    struct is_self_contained<Eigen::TriangularView<MatrixType, Mode>>
-      : std::integral_constant<bool,
-        not (Eigen::internal::traits<MatrixType>::Flags & Eigen::NestByRefBit) and self_contained<MatrixType>> {};
+    template<typename MatrixType, unsigned int UpLo>
+    struct is_self_contained<Eigen::TriangularView<MatrixType, UpLo>>
+      : std::bool_constant<detail::stores<MatrixType>> {};
 
     template<typename VectorType, int Size>
     struct is_self_contained<Eigen::VectorBlock<VectorType, Size>>
-      : std::integral_constant<bool,
-        not (Eigen::internal::traits<VectorType>::Flags & Eigen::NestByRefBit) and self_contained<VectorType>> {};
+      : std::bool_constant<detail::stores<VectorType>> {};
+
+
+    ///////  is_modifiable_native  ///////
+
+    // no_assignment_operator is a private base class of Cwise___Operator, Select, DiagonalWrapper, and a few others.
+    // This also includes ZeroMatrix, which derives from CwiseNullaryOperator.
+#ifdef __cpp_concepts
+    template<typename T, typename U> requires std::is_base_of_v<Eigen::internal::no_assignment_operator, T>
+    struct is_modifiable_native<T, U>
+#else
+    template<typename T, typename U>
+    struct is_modifiable_native<T, U, std::enable_if_t<std::is_base_of_v<Eigen::internal::no_assignment_operator, T>>>
+#endif
+      : std::false_type {};
+
+
+    template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel, typename U>
+    struct is_modifiable_native<Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>, U>
+      : std::bool_constant<bool(Eigen::internal::traits<
+          Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>>::Flags & Eigen::LvalueBit) and
+        (not has_const<XprType>::value) and
+        (MatrixTraits<U>::dimension == BlockRows) and (MatrixTraits<U>::columns == BlockCols) and
+        (std::is_same_v<typename MatrixTraits<XprType>::Scalar, typename MatrixTraits<U>::Scalar>)> {};
+
+
+    template<typename XprType, typename U>
+    struct is_modifiable_native<Eigen::Inverse<XprType>, U>
+      : std::false_type {};
+
+
+    template<typename LhsType, typename RhsType, int Option, typename U>
+    struct is_modifiable_native<Eigen::Product<LhsType, RhsType, Option>, U>
+      : std::false_type {};
+
+
+    template<typename MatrixType, int RowFactor, int ColFactor, typename U>
+    struct is_modifiable_native<Eigen::Replicate<MatrixType, RowFactor, ColFactor>, U>
+      : std::false_type {};
+
+
+    template<typename MatrixType, int Direction, typename U>
+    struct is_modifiable_native<Eigen::Reverse<MatrixType, Direction>, U>
+      : std::false_type {};
 
   } // namespace internal
+
 
 } // namespace OpenKalman
 

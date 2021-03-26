@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2019-2020 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2019-2021 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -350,33 +350,33 @@ namespace Eigen::internal
 
   template<typename Coefficients, typename ArgType>
   struct evaluator<OpenKalman::Covariance<Coefficients, ArgType>>
-    : evaluator<std::decay_t<decltype(OpenKalman::internal::convert_nested_matrix(
+    : evaluator<std::decay_t<decltype(OpenKalman::internal::to_covariance_nestable(
       std::declval<const OpenKalman::Covariance<Coefficients, ArgType>&>()))>>
   {
     using XprType = OpenKalman::Covariance<Coefficients, ArgType>;
-    using Base = evaluator<std::decay_t<decltype(OpenKalman::internal::convert_nested_matrix(
+    using Base = evaluator<std::decay_t<decltype(OpenKalman::internal::to_covariance_nestable(
       std::declval<const XprType&>()))>>;
     enum
     {
       Flags = Base::Flags & (OpenKalman::self_adjoint_matrix<ArgType> ? ~0 : ~LvalueBit),
     };
-    explicit evaluator(const XprType& m_arg) : Base(OpenKalman::internal::convert_nested_matrix(m_arg)) {}
+    explicit evaluator(const XprType& m_arg) : Base(OpenKalman::internal::to_covariance_nestable(m_arg)) {}
   };
 
 
   template<typename Coefficients, typename ArgType>
   struct evaluator<OpenKalman::SquareRootCovariance<Coefficients, ArgType>>
-    : evaluator<std::decay_t<decltype(OpenKalman::internal::convert_nested_matrix(
+    : evaluator<std::decay_t<decltype(OpenKalman::internal::to_covariance_nestable(
       std::declval<const OpenKalman::SquareRootCovariance<Coefficients, ArgType>&>()))>>
   {
     using XprType = OpenKalman::SquareRootCovariance<Coefficients, ArgType>;
-    using Base = evaluator<std::decay_t<decltype(OpenKalman::internal::convert_nested_matrix(
+    using Base = evaluator<std::decay_t<decltype(OpenKalman::internal::to_covariance_nestable(
       std::declval<const XprType&>()))>>;
     enum
     {
       Flags = Base::Flags & (OpenKalman::triangular_matrix<ArgType> ? ~0 : ~LvalueBit),
     };
-    explicit evaluator(const XprType& m_arg) : Base(OpenKalman::internal::convert_nested_matrix(m_arg)) {}
+    explicit evaluator(const XprType& m_arg) : Base(OpenKalman::internal::to_covariance_nestable(m_arg)) {}
   };
 
 
@@ -494,6 +494,7 @@ namespace Eigen::internal
         return OpenKalman::internal::to_euclidean_coeff<Coefficients>((std::size_t) row, get_coeff);
       }
     }
+
   };
 
 

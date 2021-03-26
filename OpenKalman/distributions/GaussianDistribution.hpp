@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2017-2020 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2017-2021 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -16,143 +16,244 @@
 #ifndef OPENKALMAN_GAUSSIANDISTRIBUTION_HPP
 #define OPENKALMAN_GAUSSIANDISTRIBUTION_HPP
 
-#include <random>
 #include <iostream>
 
 namespace OpenKalman
 {
+#ifdef __cpp_concepts
   template<
-    typename Coeffs,
-    typename MatrixBase,
-    typename CovarianceBase,
-    typename random_number_engine = std::mt19937>
+    coefficients Coefficients,
+    typed_matrix_nestable MeanNestedMatrix,
+    covariance_nestable CovarianceNestedMatrix,
+    std::uniform_random_bit_generator random_number_engine> requires
+      (MatrixTraits<MeanNestedMatrix>::dimension == MatrixTraits<CovarianceNestedMatrix>::dimension) and
+      (MatrixTraits<MeanNestedMatrix>::columns == 1) and
+      (std::is_same_v<typename MatrixTraits<MeanNestedMatrix>::Scalar,
+        typename MatrixTraits<CovarianceNestedMatrix>::Scalar>)
+#else
+  template<
+    typename Coefficients,
+    typename MeanNestedMatrix,
+    typename CovarianceNestedMatrix,
+    typename random_number_engine>
+#endif
   struct GaussianDistribution
   {
-    using Coefficients = Coeffs;
-    using Mean = Mean<Coefficients, MatrixBase>;
-    using Covariance = Covariance<Coefficients, CovarianceBase>;
-    using Scalar = typename MatrixTraits<Mean>::Scalar;
+
+    // Redundant in c++20+:
+    static_assert(typed_matrix_nestable<MeanNestedMatrix>);
+    static_assert(covariance_nestable<CovarianceNestedMatrix>);
+    static_assert(MatrixTraits<MeanNestedMatrix>::dimension == MatrixTraits<CovarianceNestedMatrix>::dimension);
+    static_assert(MatrixTraits<MeanNestedMatrix>::columns == 1);
+    static_assert(std::is_same_v<typename MatrixTraits<MeanNestedMatrix>::Scalar,
+      typename MatrixTraits<CovarianceNestedMatrix>::Scalar>);
+
+  protected:
+
     static constexpr auto dimension = Coefficients::size;
-    static_assert(self_contained<MatrixBase>, "MatrixBase must be self-contained.");
-    static_assert(self_contained<CovarianceBase>, "CovarianceBase must be self-contained.");
-    static_assert(typed_matrix_nestable<MatrixBase>);
-    static_assert(covariance_nestable<CovarianceBase>);
-    static_assert(MatrixTraits<MatrixBase>::dimension == MatrixTraits<CovarianceBase>::dimension);
-    static_assert(column_vector<MatrixBase>);
-    static_assert(std::is_same_v<Scalar, typename MatrixTraits<Covariance>::Scalar>);
+    using Mean = Mean<Coefficients, MeanNestedMatrix>;
+    using Covariance = Covariance<Coefficients, CovarianceNestedMatrix>;
+    using Scalar = typename MatrixTraits<Mean>::Scalar;
+
+  private:
+
+    template<typename Arg>
+    static decltype(auto) cov_adapter(Arg&& arg)
+    {
+      if constexpr (square_root_covariance<Arg>) return square(std::forward<Arg>(arg));
+      else return std::forward<Arg>(arg);
+    }
+
+  public:
 
     /**************
      * Constructors
      **************/
 
-    /// Default constructor.
+    /*
+     * \brief Default constructor.
+     */
     GaussianDistribution() : mu {}, sigma {} {}
 
-    /// Copy constructor.
+
+    /**
+     * \brief Copy constructor.
+     */
     GaussianDistribution(const GaussianDistribution& other)
       : mu(other.mu), sigma(other.sigma) {}
 
-    /// Move constructor.
+
+    /**
+     * \brief Move constructor.
+     */
     GaussianDistribution(GaussianDistribution&& other) noexcept
       : mu {std::move(other).mu}, sigma {std::move(other).sigma} {}
 
-    /// Construct from related distribution.
-    template<typename Arg, std::enable_if_t<gaussian_distribution<Arg>, int> = 0>
+
+    /**
+     * \brief Construct from related distribution.
+     */
+#ifdef __cpp_concepts
+    template<gaussian_distribution Arg> requires (not std::derived_from<std::decay_t<Arg>, GaussianDistribution>) and
+      equivalent_to<typename DistributionTraits<Arg>::Coefficients, Coefficients>
+#else
+    template<typename Arg, std::enable_if_t<gaussian_distribution<Arg> and
+      not std::is_base_of_v<GaussianDistribution, std::decay_t<Arg>> and
+      equivalent_to<typename DistributionTraits<Arg>::Coefficients, Coefficients>, int> = 0>
+#endif
     GaussianDistribution(Arg&& other) noexcept
-      : mu {std::forward<Arg>(other).mean_of()}, sigma {std::forward<Arg>(other).covariance_of()}
-    {
-      static_assert(equivalent_to<typename DistributionTraits<Arg>::Coefficients, Coefficients>);
-    }
+      : mu {std::forward<Arg>(other).mean_of()}, sigma {std::forward<Arg>(other).covariance_of()} {}
 
 
-    /// Construct from an rvalue of a mean and a covariance.
+    /**
+     * \brief Construct from an rvalue of a mean and a covariance.
+     */
     GaussianDistribution(Mean&& mean, Covariance&& cov) : mu {std::move(mean)}, sigma {std::move(cov)} {}
 
 
-    /// Construct from a typed matrix (or typed_matrix_nestable) and an rvalue of a covariance.
+    /**
+     * \brief Construct from a \ref typed_matrix and an rvalue of a \ref covariance.
+     */
 #ifdef __cpp_concepts
-    template<column_vector M> requires typed_matrix<M> or typed_matrix_nestable<M>
+    template<typed_matrix M> requires column_vector<M> and untyped_columns<M> and
+      equivalent_to<typename MatrixTraits<M>::RowCoefficients, Coefficients>
 #else
-    template<typename M, std::enable_if_t<column_vector<M> and (typed_matrix<M> or typed_matrix_nestable<M>), int> = 0>
+    template<typename M, std::enable_if_t<typed_matrix<M> and column_vector<M> and untyped_columns<M> and
+      equivalent_to<typename MatrixTraits<M>::RowCoefficients, Coefficients>, int> = 0>
 #endif
-    GaussianDistribution(M&& mean, Covariance&& cov) : mu {std::forward<M>(mean)}, sigma {std::move(cov)}
-    {
-      if constexpr(typed_matrix<M>)
-      {
-        static_assert(MatrixTraits<M>::ColumnCoefficients::axes_only);
-        static_assert(equivalent_to<typename MatrixTraits<M>::RowCoefficients, Coefficients>);
-      }
-      else
-      {
-        static_assert(MatrixTraits<M>::dimension == dimension);
-      }
-    }
+    GaussianDistribution(M&& mean, Covariance&& cov) : mu {std::forward<M>(mean)}, sigma {std::move(cov)} {}
 
 
-    /// Construct from an rvalue of a mean and a covariance (or covariance_nestable or symmetric typed matrix).
+    /**
+     * \brief Construct from a \ref typed_matrix_nestable and an rvalue of a \ref covariance.
+     */
 #ifdef __cpp_concepts
-    template<typename Cov> requires covariance<Cov> or covariance_nestable<Cov> or typed_matrix<Cov>
+    template<typed_matrix_nestable M> requires column_vector<M> and (MatrixTraits<M>::dimension == dimension)
+#else
+    template<typename M, std::enable_if_t<typed_matrix_nestable<M> and column_vector<M> and
+      (MatrixTraits<M>::dimension == dimension), int> = 0>
+#endif
+    GaussianDistribution(M&& mean, Covariance&& cov) : mu {std::forward<M>(mean)}, sigma {std::move(cov)} {}
+
+
+    /**
+     * \brief Construct from an rvalue of a \ref mean and a \ref covariance or \ref square_matrix.
+     */
+#ifdef __cpp_concepts
+    template<typename Cov> requires (covariance<Cov> or typed_matrix<Cov>) and
+      square_matrix<Cov> and equivalent_to<typename MatrixTraits<Cov>::RowCoefficients, Coefficients>
+#else
+    template<typename Cov, std::enable_if_t<(covariance<Cov> or typed_matrix<Cov>) and
+      square_matrix<Cov> and equivalent_to<typename MatrixTraits<Cov>::RowCoefficients, Coefficients>, int> = 0>
+#endif
+    GaussianDistribution(Mean&& mean, Cov&& cov) : mu {std::move(mean)}, sigma {cov_adapter(std::forward<Cov>(cov))} {}
+
+
+    /**
+     * \brief Construct from an rvalue of a \ref mean and a \ref covariance_nestable.
+     */
+#ifdef __cpp_concepts
+    template<covariance_nestable Cov> requires (MatrixTraits<Cov>::dimension == dimension)
+#else
+    template<typename Cov, std::enable_if_t<covariance_nestable<Cov> and
+      (MatrixTraits<Cov>::dimension == dimension), int> = 0>
+#endif
+    GaussianDistribution(Mean&& mean, Cov&& cov)
+      : mu {std::move(mean)}, sigma {cov_adapter(std::forward<Cov>(cov))} {}
+
+
+    /**
+     * \brief Construct from matrices representing a mean and a covariance.
+     * \tparam M A \ref typed_matrix.
+     * \tparam Cov A \ref covariance or \ref square_matrix "square" \ref typed_matrix.
+     */
+#ifdef __cpp_concepts
+    template<typed_matrix M, typename Cov> requires column_vector<M> and untyped_columns<M> and
+      equivalent_to<typename MatrixTraits<M>::RowCoefficients, Coefficients> and
+      (covariance<Cov> or typed_matrix<Cov>) and
+      equivalent_to<typename MatrixTraits<Cov>::RowCoefficients, Coefficients>
+#else
+    template<typename M, typename Cov, std::enable_if_t<typed_matrix<M> and column_vector<M> and untyped_columns<M> and
+      equivalent_to<typename MatrixTraits<M>::RowCoefficients, Coefficients> and
+      (covariance<Cov> or typed_matrix<Cov>) and
+      equivalent_to<typename MatrixTraits<Cov>::RowCoefficients, Coefficients>, int> = 0>
+#endif
+    GaussianDistribution(M&& mean, Cov&& cov)
+      : mu {std::forward<M>(mean)}, sigma {cov_adapter(std::forward<Cov>(cov))} {}
+
+
+    /**
+     * \brief Construct from matrices representing a mean and a covariance.
+     * \tparam M A \ref typed_matrix.
+     * \tparam Cov A \ref covariance_nestable.
+     */
+#ifdef __cpp_concepts
+    template<typed_matrix M, typename Cov> requires column_vector<M> and untyped_columns<M> and
+      equivalent_to<typename MatrixTraits<M>::RowCoefficients, Coefficients> and
+      covariance_nestable<Cov> and (MatrixTraits<Cov>::dimension == dimension)
+#else
+    template<typename M, typename Cov, std::enable_if_t<typed_matrix<M> and column_vector<M> and untyped_columns<M> and
+      equivalent_to<typename MatrixTraits<M>::RowCoefficients, Coefficients> and
+      covariance_nestable<Cov> and (MatrixTraits<Cov>::dimension == dimension), int> = 0>
+#endif
+    GaussianDistribution(M&& mean, Cov&& cov) : mu {std::forward<M>(mean)}, sigma {std::forward<Cov>(cov)} {}
+
+
+    /**
+     * \brief Construct from matrices representing a mean and a covariance.
+     * \tparam M A \ref typed_matrix_nestable.
+     * \tparam Cov A \ref covariance or \ref square_matrix "square" \ref typed_matrix.
+     */
+#ifdef __cpp_concepts
+    template<typed_matrix_nestable M, typename Cov> requires column_vector<M> and
+      (MatrixTraits<M>::dimension == dimension) and (covariance<Cov> or typed_matrix<Cov>) and
+      equivalent_to<typename MatrixTraits<Cov>::RowCoefficients, Coefficients>
+#else
+    template<typename M, typename Cov, std::enable_if_t<typed_matrix_nestable<M> and column_vector<M> and
+      (MatrixTraits<M>::dimension == dimension) and (covariance<Cov> or typed_matrix<Cov>) and
+      equivalent_to<typename MatrixTraits<Cov>::RowCoefficients, Coefficients>, int> = 0>
+#endif
+    GaussianDistribution(M&& mean, Cov&& cov)
+      : mu {std::forward<M>(mean)}, sigma {cov_adapter(std::forward<Cov>(cov))} {}
+
+
+    /**
+     * \brief Construct from matrices representing a mean and a covariance.
+     * \tparam M A typed_matrix_nestable.
+     * \tparam Cov A \ref covariance_nestable.
+     */
+#ifdef __cpp_concepts
+    template<typed_matrix_nestable M, typename Cov> requires column_vector<M> and
+      (MatrixTraits<M>::dimension == dimension) and covariance_nestable<Cov> and
+      (MatrixTraits<Cov>::dimension == dimension)
+#else
+    template<typename M, typename Cov, std::enable_if_t<typed_matrix_nestable<M> and column_vector<M> and
+      (MatrixTraits<M>::dimension == dimension) and covariance_nestable<Cov> and
+      (MatrixTraits<Cov>::dimension == dimension), int> = 0>
+#endif
+    GaussianDistribution(M&& mean, Cov&& cov) : mu {std::forward<M>(mean)}, sigma {std::forward<Cov>(cov)} {}
+
+
+    /// Construct with only a \ref covariance or \ref square_matrix "square" \ref typed_matrix (mean is set to zero).
+#ifdef __cpp_concepts
+    template<typename Cov> requires (covariance<Cov> or (typed_matrix<Cov> and square_matrix<Cov>)) and
+      equivalent_to<typename MatrixTraits<Cov>::RowCoefficients, Coefficients>
+#else
+    template<typename Cov, std::enable_if_t<(covariance<Cov> or (typed_matrix<Cov> and square_matrix<Cov>)) and
+      equivalent_to<typename MatrixTraits<Cov>::RowCoefficients, Coefficients>, int> = 0>
+#endif
+    explicit GaussianDistribution(Cov&& cov) : mu {Mean::zero()}, sigma {cov_adapter(std::forward<Cov>(cov))} {}
+
+
+    /// Construct using only a \ref covariance_nestable (the \ref mean is set to zero).
+#ifdef __cpp_concepts
+    template<covariance_nestable Cov> requires (MatrixTraits<Cov>::dimension == dimension)
 #else
     template<typename Cov, std::enable_if_t<
-      covariance<Cov> or covariance_nestable<Cov> or typed_matrix<Cov>, int> = 0>
+      covariance_nestable<Cov> and (MatrixTraits<Cov>::dimension == dimension), int> = 0>
 #endif
-    GaussianDistribution(Mean&& mean, Cov&& cov) : mu {std::move(mean)}, sigma {std::forward<Cov>(cov)}
-    {
-      if constexpr(covariance<Cov>)
-        static_assert(equivalent_to<typename MatrixTraits<Cov>::RowCoefficients, Coefficients>);
-      else if constexpr(typed_matrix<Cov>)
-        static_assert(equivalent_to<typename MatrixTraits<Cov>::RowCoefficients, Coefficients> and
-          equivalent_to<typename MatrixTraits<Cov>::ColumnCoefficients, Coefficients>);
-      else
-        static_assert(MatrixTraits<Cov>::dimension == dimension);
-    }
+    explicit GaussianDistribution(Cov&& cov) : mu {Mean::zero()}, sigma {cov_adapter(std::forward<Cov>(cov))}{}
 
-    /// Construct from a typed matrix (or typed_matrix_nestable) and a covariance (or covariance_nestable or symmetric typed matrix).
-#ifdef __cpp_concepts
-    template<column_vector M, typename Cov> requires (typed_matrix<M> or typed_matrix_nestable<M>) and
-      (covariance<Cov> or covariance_nestable<Cov> or typed_matrix<Cov>)
-#else
-    template<typename M, typename Cov, std::enable_if_t<column_vector<M> and
-      (typed_matrix<M> or typed_matrix_nestable<M>) and
-      (covariance<Cov> or covariance_nestable<Cov> or typed_matrix<Cov>), int> = 0>
-#endif
-    GaussianDistribution(M&& mean, Cov&& cov) : mu {std::forward<M>(mean)}, sigma {std::forward<Cov>(cov)}
-    {
-      if constexpr(typed_matrix<M>)
-      {
-        static_assert(MatrixTraits<M>::ColumnCoefficients::axes_only);
-        static_assert(equivalent_to<typename MatrixTraits<M>::RowCoefficients, Coefficients>);
-      }
-      else
-      {
-        static_assert(MatrixTraits<M>::dimension == dimension);
-      }
-      if constexpr(covariance<Cov>)
-        static_assert(equivalent_to<typename MatrixTraits<Cov>::RowCoefficients, Coefficients>);
-      else if constexpr(typed_matrix<Cov>)
-        static_assert(equivalent_to<typename MatrixTraits<Cov>::RowCoefficients, Coefficients> and
-          equivalent_to<typename MatrixTraits<Cov>::ColumnCoefficients, Coefficients>);
-      else
-        static_assert(MatrixTraits<Cov>::dimension == dimension);
-    }
-
-    /// Construct using only a covariance, covariance_nestable, or symmetric typed matrix (the mean is set to zero).
-#ifdef __cpp_concepts
-    template<typename Cov> requires covariance<Cov> or covariance_nestable<Cov> or typed_matrix<Cov>
-#else
-    template<typename Cov, std::enable_if_t<
-      covariance<Cov> or covariance_nestable<Cov> or typed_matrix<Cov>, int> = 0>
-#endif
-    explicit GaussianDistribution(Cov&& cov) : mu {Mean::zero()}, sigma {std::forward<Cov>(cov)}
-    {
-      if constexpr(covariance<Cov>)
-        static_assert(equivalent_to<typename MatrixTraits<Cov>::RowCoefficients, Coefficients>);
-      else if constexpr(typed_matrix<Cov>)
-        static_assert(equivalent_to<typename MatrixTraits<Cov>::RowCoefficients, Coefficients> and
-          equivalent_to<typename MatrixTraits<Cov>::ColumnCoefficients, Coefficients>);
-      else
-        static_assert(MatrixTraits<Cov>::dimension == dimension);
-    }
 
     /**********************
      * Assignment Operators
@@ -222,7 +323,8 @@ namespace OpenKalman
      * Other
      *********/
 
-  protected:
+  private:
+
     template<typename M, typename C>
     static auto
     make(M&& m, C&& c)
@@ -233,38 +335,43 @@ namespace OpenKalman
     }
 
   public:
+
     static constexpr auto zero() { return make(Mean::zero(), Covariance::zero()); }
 
     static constexpr auto normal() { return make(Mean::zero(), Covariance::identity()); }
 
-    constexpr auto& mean_of() & { return mu; }
 
-    constexpr auto&& mean_of() && { return std::move(mu); }
+    auto& mean_of() & { return mu; }
 
-    constexpr const auto& mean_of() const & { return mu; }
+    auto&& mean_of() && { return std::move(mu); }
 
-    constexpr const auto&& mean_of() const && { return std::move(mu); }
+    const auto& mean_of() const & { return mu; }
 
-    constexpr auto& covariance_of() & { return sigma; }
+    const auto&& mean_of() const && { return std::move(mu); }
 
-    constexpr auto&& covariance_of() && { return std::move(sigma); }
 
-    constexpr const auto& covariance_of() const & { return sigma; }
+    auto& covariance_of() & { return sigma; }
 
-    constexpr const auto&& covariance_of() const && { return std::move(sigma); }
+    auto&& covariance_of() && { return std::move(sigma); }
+
+    const auto& covariance_of() const & { return sigma; }
+
+    const auto&& covariance_of() const && { return std::move(sigma); }
+
 
     /// \brief Generate a random value from the distribution.
     /// \return A random, single-column typed matrix with probability based on the distribution
     auto operator()() const
     {
       auto norm = randomize<
-        Matrix<Coefficients, Axis, MatrixBase>, std::normal_distribution, random_number_engine>(0.0, 1.0);
+        Matrix<Coefficients, Axis, MeanNestedMatrix>, std::normal_distribution, random_number_engine>(0.0, 1.0);
       auto s = square_root(sigma);
-      if constexpr(not lower_triangular_matrix<CovarianceBase>)
+      if constexpr(not lower_triangular_matrix<CovarianceNestedMatrix>)
         return make_self_contained(make_matrix(mu) + transpose(s) * norm);
       else
         return make_self_contained(make_matrix(mu) + s * norm);
     }
+
 
     /// \brief Log-likelihood function for a set of i.i.d. observations z.
     /// \param z One or more i.i.d. observations in the same multivariate space as the mean of the distribution.
@@ -280,6 +387,7 @@ namespace OpenKalman
       return -0.5 * (n * (dimension * std::log(2 * std::numbers::pi_v<Scalar>) + std::log(determinant(sigma))) + sum);
     }
 
+
     /// Entropy of the distribution, in bits.
     auto entropy() const
     {
@@ -288,6 +396,7 @@ namespace OpenKalman
     }
 
   protected:
+
     Mean mu; ///< Mean vector.
     Covariance sigma; ///< Covariance matrix.
 
@@ -297,17 +406,6 @@ namespace OpenKalman
   // ------------------------------- //
   //        Deduction Guides         //
   // ------------------------------- //
-
-#ifdef __cpp_concepts
-  template<gaussian_distribution D>
-#else
-  template<typename D, std::enable_if_t<gaussian_distribution<D>, int> = 0>
-#endif
-  GaussianDistribution(D&&) -> GaussianDistribution<
-    typename DistributionTraits<D>::Coefficients,
-    nested_matrix_t<typename DistributionTraits<passable_t<D>>::Mean>,
-    nested_matrix_t<typename DistributionTraits<passable_t<D>>::Covariance>>;
-
 
 #ifdef __cpp_concepts
   template<typed_matrix M, covariance C> requires (not square_root_covariance<C>)
@@ -344,7 +442,7 @@ namespace OpenKalman
   GaussianDistribution(M&&, C&&) -> GaussianDistribution<
     typename MatrixTraits<M>::RowCoefficients,
     nested_matrix_t<passable_t<M>>,
-    typename MatrixTraits<nested_matrix_t<C>>::template SelfAdjointBaseType<>>;
+    typename MatrixTraits<nested_matrix_t<C>>::template SelfAdjointMatrixFrom<>>;
 
 
 #ifdef __cpp_concepts
@@ -392,7 +490,7 @@ namespace OpenKalman
   GaussianDistribution(M&&, C&&) -> GaussianDistribution<
     typename MatrixTraits<C>::RowCoefficients,
     passable_t<M>,
-    typename MatrixTraits<nested_matrix_t<C>>::template SelfAdjointBaseType<>>;
+    typename MatrixTraits<nested_matrix_t<C>>::template SelfAdjointMatrixFrom<>>;
 
 
 #ifdef __cpp_concepts
@@ -411,9 +509,13 @@ namespace OpenKalman
   //        Make functions         //
   ///////////////////////////////////
 
-  /// Make a Gaussian distribution from another Gaussian distribution.
+  /**
+   * \brief Make a Gaussian distribution
+   * \tparam D Another \ref gaussian_distribution.
+   * \return A \ref gaussian_distribution.
+   */
 #ifdef __cpp_concepts
-  template<typename D> requires gaussian_distribution<D>
+  template<gaussian_distribution D>
 #else
   template<typename D, std::enable_if_t<gaussian_distribution<D>, int> = 0>
 #endif
@@ -424,59 +526,98 @@ namespace OpenKalman
   }
 
 
-  /// Make a Gaussian distribution from a mean and a covariance.
+  /**
+   * \brief Make a Gaussian distribution.
+   * \tparam re A random number engine.
+   * \tparam M A \ref typed_matrix.
+   * \tparam Cov A \ref covariance or \ref typed_matrix.
+   * \return A \ref gaussian_distribution.
+   */
 #ifdef __cpp_concepts
-  template<typename re = std::mt19937, column_vector M, typename Cov> requires
-    (not coefficients<re>) and (typed_matrix<M> or typed_matrix_nestable<M>) and
-    (covariance<Cov> or covariance_nestable<Cov> or typed_matrix<Cov> or typed_matrix_nestable<Cov>)
+  template<std::uniform_random_bit_generator re = std::mt19937, typed_matrix M, typename Cov> requires
+    column_vector<M> and untyped_columns<M> and square_matrix<Cov> and (covariance<Cov> or typed_matrix<Cov>) and
+    (equivalent_to<typename MatrixTraits<M>::RowCoefficients, typename MatrixTraits<Cov>::RowCoefficients>)
 #else
-  template<typename re = std::mt19937, typename M, typename Cov,
-    std::enable_if_t<(not coefficients<re>) and column_vector<M> and (typed_matrix<M> or typed_matrix_nestable<M>) and
-      (covariance<Cov> or covariance_nestable<Cov> or typed_matrix<Cov> or typed_matrix_nestable<Cov>), int> = 0>
+  template<typename re = std::mt19937, typename M, typename Cov, std::enable_if_t<(not coefficients<re>) and
+    typed_matrix<M> and column_vector<M> and untyped_columns<M> and
+    square_matrix<Cov> and (covariance<Cov> or typed_matrix<Cov>) and
+    (equivalent_to<typename MatrixTraits<M>::RowCoefficients, typename MatrixTraits<Cov>::RowCoefficients>), int> = 0>
 #endif
   inline auto
   make_GaussianDistribution(M&& mean, Cov&& cov) noexcept
   {
-    static_assert(MatrixTraits<M>::dimension == MatrixTraits<Cov>::dimension);
-    if constexpr(typed_matrix<M>)
-    {
-      static_assert(MatrixTraits<M>::ColumnCoefficients::axes_only);
-      using C = typename MatrixTraits<M>::RowCoefficients;
-      using Mb = nested_matrix_t<M>;
+    using C = typename MatrixTraits<M>::RowCoefficients;
+    using Mb = passable_t<nested_matrix_t<M>>;
+    using Covb = passable_t<nested_matrix_t<Cov>>;
+    return GaussianDistribution<C, Mb, Covb, re>(std::forward<M>(mean), std::forward<Cov>(cov));
+  }
 
-      if constexpr(covariance<Cov>)
-        static_assert(equivalent_to<C, typename MatrixTraits<Cov>::RowCoefficients>);
-      else if constexpr(typed_matrix<Cov>)
-        static_assert(equivalent_to<C, typename MatrixTraits<Cov>::RowCoefficients> and
-          equivalent_to<C, typename MatrixTraits<Cov>::ColumnCoefficients>);
 
-      if constexpr(covariance<Cov> or typed_matrix<Cov>)
-      {
-        using Covb = nested_matrix_t<Cov>;
-        return GaussianDistribution<C, passable_t<Mb>, passable_t<Covb>, re>(std::forward<M>(mean), std::forward<Cov>(cov));
-      }
-      else
-      {
-        auto c = nested_matrix(make_covariance<C>(std::forward<Cov>(cov)));
-        return GaussianDistribution<C, passable_t<Mb>, self_contained_t<decltype(c)>, re>(std::forward<M>(mean), std::move(c));
-      }
-    }
-    else if constexpr(covariance<Cov>)
+  /**
+   * \brief Make a Gaussian distribution.
+   * \tparam re A random number engine.
+   * \tparam M A \ref typed_matrix.
+   * \tparam Cov A \ref covariance_nestable or \ref typed_matrix_nestable.
+   * \return A \ref gaussian_distribution.
+   */
+#ifdef __cpp_concepts
+  template<std::uniform_random_bit_generator re = std::mt19937, typed_matrix M, typename Cov> requires
+    column_vector<M> and untyped_columns<M> and
+    square_matrix<Cov> and (covariance_nestable<Cov> or typed_matrix_nestable<Cov>) and
+    (MatrixTraits<M>::dimension == MatrixTraits<Cov>::dimension)
+#else
+  template<typename re = std::mt19937, typename M, typename Cov, std::enable_if_t<
+    (not coefficients<re>) and typed_matrix<M> and column_vector<M> and untyped_columns<M> and
+    square_matrix<Cov> and (covariance_nestable<Cov> or typed_matrix_nestable<Cov>) and
+    (MatrixTraits<M>::dimension == MatrixTraits<Cov>::dimension), int> = 0>
+#endif
+  inline auto
+  make_GaussianDistribution(M&& mean, Cov&& cov) noexcept
+  {
+    using C = typename MatrixTraits<M>::RowCoefficients;
+    using Mb = passable_t<nested_matrix_t<M>>;
+    auto c = nested_matrix(make_covariance<C>(std::forward<Cov>(cov)));
+    return GaussianDistribution<C, Mb, self_contained_t<decltype(c)>, re>(std::forward<M>(mean), std::move(c));
+  }
+
+
+  /**
+   * \brief Make a Gaussian distribution.
+   * \tparam re A random number engine.
+   * \tparam M A \ref typed_matrix_nestable.
+   * \tparam Cov A \ref covariance, \ref typed_matrix, \ref covariance_nestable, or \ref typed_matrix_nestable.
+   * \return A \ref gaussian_distribution.
+   */
+#ifdef __cpp_concepts
+  template<std::uniform_random_bit_generator re = std::mt19937, typed_matrix_nestable M, typename Cov> requires
+    column_vector<M> and square_matrix<Cov> and
+    (covariance<Cov> or typed_matrix<Cov> or covariance_nestable<Cov> or typed_matrix_nestable<Cov>) and
+    (MatrixTraits<M>::dimension == MatrixTraits<Cov>::dimension)
+#else
+  template<typename re = std::mt19937, typename M, typename Cov, std::enable_if_t<
+    (not coefficients<re>) and typed_matrix_nestable<M> and column_vector<M> and square_matrix<Cov> and
+    (covariance<Cov> or typed_matrix<Cov> or covariance_nestable<Cov> or typed_matrix_nestable<Cov>) and
+    (MatrixTraits<M>::dimension == MatrixTraits<Cov>::dimension), int> = 0>
+#endif
+  inline auto
+  make_GaussianDistribution(M&& mean, Cov&& cov) noexcept
+  {
+    if constexpr(covariance<Cov>)
     {
       using C = typename MatrixTraits<Cov>::RowCoefficients;
-      using Covb = nested_matrix_t<Cov>;
-      return GaussianDistribution<C, passable_t<M>, passable_t<Covb>, re>(std::forward<M>(mean), std::forward<Cov>(cov));
+      using Covb = passable_t<nested_matrix_t<Cov>>;
+      return GaussianDistribution<C, passable_t<M>, Covb, re>(std::forward<M>(mean), std::forward<Cov>(cov));
     }
     else if constexpr(typed_matrix<Cov>)
     {
       using C = typename MatrixTraits<Cov>::RowCoefficients;
-      static_assert(equivalent_to<C, typename MatrixTraits<Cov>::ColumnCoefficients>);
       auto sc = nested_matrix(make_covariance(std::forward<Cov>(cov)));
       using SC = self_contained_t<decltype(sc)>;
       return GaussianDistribution<C, passable_t<M>, SC, re>(std::forward<M>(mean), std::move(sc));
     }
     else
     {
+      static_assert(covariance_nestable<Cov> or typed_matrix_nestable<Cov>);
       using C = Axes<MatrixTraits<M>::dimension>;
       auto c = nested_matrix(make_covariance<C>(std::forward<Cov>(cov)));
       return GaussianDistribution<C, passable_t<M>, self_contained_t<decltype(c)>, re>(
@@ -485,15 +626,22 @@ namespace OpenKalman
   }
 
 
-  /// Make a Gaussian distribution from a typed_matrix_nestable and a covariance_nestable or
-  /// regular matrix for the covariance.
+  /**
+   * \brief Make a Gaussian distribution.
+   * \tparam Coefficients The types of the \ref coefficients for the distribution.
+   * \tparam re A random number engine.
+   * \tparam M A \ref typed_matrix_nestable.
+   * \tparam Cov A \ref covariance_nestable or \ref typed_matrix_nestable.
+   * \return A \ref gaussian_distribution.
+   */
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, typename re = std::mt19937, typed_matrix_nestable M, typename Cov> requires
+  template<coefficients Coefficients, std::uniform_random_bit_generator re = std::mt19937,
+    typed_matrix_nestable M, typename Cov> requires
     column_vector<M> and (covariance_nestable<Cov> or typed_matrix_nestable<Cov>)
 #else
-  template<typename Coefficients, typename re = std::mt19937, typename M, typename Cov,
-    std::enable_if_t<coefficients<Coefficients> and typed_matrix_nestable<M> and column_vector<M> and
-      (covariance_nestable<Cov> or typed_matrix_nestable<Cov>), int> = 0>
+  template<typename Coefficients, typename re = std::mt19937, typename M, typename Cov, std::enable_if_t<
+    coefficients<Coefficients> and typed_matrix_nestable<M> and column_vector<M> and
+    (covariance_nestable<Cov> or typed_matrix_nestable<Cov>), int> = 0>
 #endif
   inline auto
   make_GaussianDistribution(M&& mean, Cov&& cov) noexcept
@@ -506,6 +654,7 @@ namespace OpenKalman
     }
     else
     {
+      static_assert(typed_matrix_nestable<Cov>);
       auto c = nested_matrix(make_covariance<Coefficients>(std::forward<Cov>(cov)));
       return GaussianDistribution<Coefficients, passable_t<M>, self_contained_t<decltype(c)>, re>(
         std::forward<M>(mean), std::move(c));
@@ -513,33 +662,61 @@ namespace OpenKalman
   }
 
 
-  /// Make a default Gaussian distribution from a typed matrix (or typed_matrix_nestable) and a covariance (or covariance_nestable).
+  /**
+   * \brief Make a default Gaussian distribution.
+   * \tparam M A \ref typed_matrix.
+   * \tparam Cov A \ref covariance.
+   * \tparam re A random number engine.
+   * \return A \ref gaussian_distribution.
+   */
 #ifdef __cpp_concepts
-  template<column_vector M, typename Cov, typename re = std::mt19937> requires
-    (typed_matrix<M> or typed_matrix_nestable<M>) and (covariance<Cov> or covariance_nestable<Cov>)
+  template<typed_matrix M, covariance Cov, std::uniform_random_bit_generator re = std::mt19937> requires
+    column_vector<M> and untyped_columns<M> and
+    equivalent_to<typename MatrixTraits<M>::RowCoefficients, typename MatrixTraits<Cov>::RowCoefficients>
 #else
-  template<typename M, typename Cov, typename re = std::mt19937,
-    std::enable_if_t<column_vector<M> and (typed_matrix<M> or typed_matrix_nestable<M>) and
-      (covariance<Cov> or covariance_nestable<Cov>), int> = 0>
+  template<typename M, typename Cov, typename re = std::mt19937, std::enable_if_t<
+    typed_matrix<M> and column_vector<M> and untyped_columns<M> and covariance<Cov> and
+    equivalent_to<typename MatrixTraits<M>::RowCoefficients, typename MatrixTraits<Cov>::RowCoefficients>, int> = 0>
 #endif
   inline auto
   make_GaussianDistribution()
   {
-    static_assert(MatrixTraits<M>::dimension == MatrixTraits<Cov>::dimension);
+    using C = typename MatrixTraits<M>::RowCoefficients;
+    return GaussianDistribution<C, passable_t<nested_matrix_t<M>>, passable_t<nested_matrix_t<Cov>>, re>();
+  }
+
+
+  /**
+   * \brief Make a default Gaussian distribution.
+   * \tparam M A \ref typed_matrix or \ref typed_matrix_nestable.
+   * \tparam Cov A \ref covariance or \ref covariance_nestable.
+   * \tparam re A random number engine.
+   * \return A \ref gaussian_distribution.
+   * \note This overload excludes the case in which M is \ref typed_matrix \em and Cov is \ref covariance.
+   */
+#ifdef __cpp_concepts
+  template<column_vector M, typename Cov, std::uniform_random_bit_generator re = std::mt19937> requires
+    (typed_matrix<M> or typed_matrix_nestable<M>) and untyped_columns<M> and
+    (covariance<Cov> or covariance_nestable<Cov>) and (not typed_matrix<M> or not covariance<Cov>) and
+    (MatrixTraits<M>::dimension == MatrixTraits<Cov>::dimension)
+#else
+  template<typename M, typename Cov, typename re = std::mt19937, std::enable_if_t<
+    column_vector<M> and (typed_matrix<M> or typed_matrix_nestable<M>) and untyped_columns<M> and
+    (covariance<Cov> or covariance_nestable<Cov>) and (not typed_matrix<M> or not covariance<Cov>) and
+    (MatrixTraits<M>::dimension == MatrixTraits<Cov>::dimension), int> = 0>
+#endif
+  inline auto
+  make_GaussianDistribution()
+  {
     if constexpr(typed_matrix<M>)
     {
-      static_assert(MatrixTraits<M>::ColumnCoefficients::axes_only);
       using C = typename MatrixTraits<M>::RowCoefficients;
-      using Mb = nested_matrix_t<M>;
-      if constexpr(covariance<Cov>) static_assert(equivalent_to<C, typename MatrixTraits<Cov>::RowCoefficients>);
-      using Covb = std::conditional_t<covariance<Cov>, nested_matrix_t<Cov>, std::decay_t<Cov>>;
-      return GaussianDistribution<C, passable_t<Mb>, passable_t<Covb>, re>();
+      return GaussianDistribution<C, passable_t<nested_matrix_t<M>>, passable_t<Cov>, re>();
     }
     else if constexpr(covariance<Cov>)
     {
       using C = typename MatrixTraits<Cov>::RowCoefficients;
-      using Covb = nested_matrix_t<Cov>;
-      return GaussianDistribution<C, passable_t<M>, passable_t<Covb>, re>();
+      return GaussianDistribution<C, passable_t<M>, passable_t<nested_matrix_t<Cov>>, re>();
     }
     else
     {
@@ -549,18 +726,26 @@ namespace OpenKalman
   }
 
 
-  /// Make a default Gaussian distribution from a typed_matrix_nestable and a covariance_nestable or regular matrix for the covariance.
+  /**
+   * \brief Make a default Gaussian distribution.
+   * \tparam Coefficients The types of the \ref coefficients for the distribution.
+   * \tparam M A \ref typed_matrix_nestable
+   * \tparam Cov A \ref covariance_nestable.
+   * \tparam re A random number engine
+   * \return A \ref gaussian_distribution
+   */
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, typed_matrix_nestable M, covariance_nestable Cov, typename re = std::mt19937>
-  requires column_vector<M>
+  template<coefficients Coefficients, typed_matrix_nestable M, covariance_nestable Cov,
+      std::uniform_random_bit_generator re = std::mt19937> requires
+    column_vector<M> and (MatrixTraits<M>::dimension == MatrixTraits<Cov>::dimension)
 #else
-  template<typename Coefficients, typename M, typename Cov, typename re = std::mt19937,
-    std::enable_if_t<typed_matrix_nestable<M> and column_vector<M> and covariance_nestable<Cov>, int> = 0>
+  template<typename Coefficients, typename M, typename Cov, typename re = std::mt19937, std::enable_if_t<
+    typed_matrix_nestable<M> and column_vector<M> and covariance_nestable<Cov> and
+    (MatrixTraits<M>::dimension == MatrixTraits<Cov>::dimension), int> = 0>
 #endif
   inline auto
   make_GaussianDistribution()
   {
-    static_assert(MatrixTraits<M>::dimension == MatrixTraits<Cov>::dimension);
     return GaussianDistribution<Coefficients, passable_t<M>, passable_t<Cov>, re>();
   }
 
@@ -580,8 +765,8 @@ namespace OpenKalman
     template<typename S> using distribution_type = std::normal_distribution<S>;
     using random_number_engine = re;
 
-    using SelfContained = GaussianDistribution<Coefficients, typename MatrixTraits<NestedMean>::SelfContained,
-      typename MatrixTraits<NestedCovariance>::SelfContained>;
+    using SelfContainedFrom = GaussianDistribution<Coefficients, self_contained_t<NestedMean>,
+      self_contained_t<NestedCovariance>>;
 
 
 #ifdef __cpp_concepts
@@ -624,32 +809,15 @@ namespace OpenKalman
   }
 
 
-  template<typename Arg, std::enable_if_t<gaussian_distribution<Arg> and not cholesky_form<Arg> and
-    not diagonal_matrix<Arg>, int> = 0>
-  inline auto
-  to_Cholesky(Arg&& arg) noexcept
-  {
-    auto cov = to_Cholesky(covariance_of(arg));
-    return make_GaussianDistribution(mean_of(std::forward<Arg>(arg)), std::move(cov));
-  }
-
-
-  template<typename Arg, std::enable_if_t<gaussian_distribution<Arg> and cholesky_form<Arg> and
-    not diagonal_matrix<Arg>, int> = 0>
-  inline auto
-  from_Cholesky(Arg&& arg) noexcept
-  {
-    auto cov = from_Cholesky(covariance_of(arg));
-    return make_GaussianDistribution(mean_of(std::forward<Arg>(arg)), std::move(cov));
-  }
-
-
   /// Convert to self-contained version of the distribution.
   template<typename...Ts, typename Arg, std::enable_if_t<gaussian_distribution<Arg>, int> = 0>
   constexpr decltype(auto)
   make_self_contained(Arg&& arg) noexcept
   {
-    if constexpr(self_contained<Arg> or (std::is_lvalue_reference_v<Ts> and ... and (sizeof...(Ts) > 0)))
+    if constexpr(
+      (self_contained<typename DistributionTraits<Arg>::Mean> and
+        self_contained<typename DistributionTraits<Arg>::Covariance>) or
+      ((sizeof...(Ts) > 0) and ... and std::is_lvalue_reference_v<Ts>))
     {
       return std::forward<Arg>(arg);
     }
@@ -755,17 +923,20 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<typed_matrix A, typename D> requires gaussian_distribution<D>
+  template<typed_matrix A, gaussian_distribution D> requires gaussian_distribution<D> and
+    (not euclidean_transformed<A>) and
+    (equivalent_to<typename MatrixTraits<A>::ColumnCoefficients, typename DistributionTraits<D>::Coefficients>)
 #else
-  template<typename A, typename D, std::enable_if_t<
-    typed_matrix<A> and gaussian_distribution<D>, int> = 0>
+  template<typename A, typename D, std::enable_if_t<typed_matrix<A> and gaussian_distribution<D> and
+    (not euclidean_transformed<A>) and
+    (equivalent_to<typename MatrixTraits<A>::ColumnCoefficients, typename DistributionTraits<D>::Coefficients>), int> = 0>
 #endif
   inline auto
-  operator*(const A& a, const D& d)
+  operator*(A&& a, D&& d)
   {
-    static_assert(not euclidean_transformed<A>);
-    static_assert(equivalent_to<typename MatrixTraits<A>::ColumnCoefficients, typename DistributionTraits<D>::Coefficients>);
-    return make_GaussianDistribution(a * mean_of(d), scale(covariance_of(d), a));
+    auto m = make_self_contained(a * mean_of(d));
+    auto c = make_self_contained(scale(covariance_of(std::forward<D>(d)), std::forward<A>(a)));
+    return make_GaussianDistribution(std::move(m), std::move(c));
   }
 
 

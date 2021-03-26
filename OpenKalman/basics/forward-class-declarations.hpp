@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2019-2020 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2019-2021 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -17,6 +17,7 @@
 #define OPENKALMAN_FORWARD_CLASS_DECLARATIONS_HPP
 
 #include <type_traits>
+#include <random>
 
 namespace OpenKalman
 {
@@ -58,10 +59,11 @@ namespace OpenKalman
    * \tparam NestedMatrix The underlying native matrix or matrix expression.
    */
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, typed_matrix_nestable NestedMatrix> requires
-  (Coefficients::size == MatrixTraits<NestedMatrix>::dimension) and (not std::is_rvalue_reference_v<NestedMatrix>)
+  template<coefficients RowCoefficients, typed_matrix_nestable NestedMatrix> requires
+  (RowCoefficients::size == MatrixTraits<NestedMatrix>::dimension) and
+  (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
-  template<typename Coefficients, typename NestedMatrix>
+  template<typename RowCoefficients, typename NestedMatrix>
 #endif
   struct Mean;
 
@@ -118,7 +120,7 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<coefficients Coefficients, covariance_nestable NestedMatrix> requires
-  (Coefficients::size == MatrixTraits<NestedMatrix>::dimension) and (not std::is_rvalue_reference_v<NestedMatrix>)
+    (Coefficients::size == MatrixTraits<NestedMatrix>::dimension) and (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename Coefficients, typename NestedMatrix>
 #endif
@@ -132,11 +134,23 @@ namespace OpenKalman
    * \tparam CovarianceNestedMatrix The underlying native matrix (triangular or self-adjoint) for the Covariance.
    * \tparam random_number_engine A random number engine compatible with the c++ standard library (e.g., std::mt19937).
    */
+#ifdef __cpp_concepts
+  template<
+    coefficients Coefficients,
+    typed_matrix_nestable MeanNestedMatrix,
+    covariance_nestable CovarianceNestedMatrix,
+    std::uniform_random_bit_generator random_number_engine = std::mt19937> requires
+      (MatrixTraits<MeanNestedMatrix>::dimension == MatrixTraits<CovarianceNestedMatrix>::dimension) and
+      (MatrixTraits<MeanNestedMatrix>::columns == 1) and
+      (std::is_same_v<typename MatrixTraits<MeanNestedMatrix>::Scalar,
+        typename MatrixTraits<CovarianceNestedMatrix>::Scalar>)
+#else
   template<
     typename Coefficients,
     typename MeanNestedMatrix,
     typename CovarianceNestedMatrix,
-    typename random_number_engine> // = std::mt19937
+    typename random_number_engine = std::mt19937>
+#endif
   struct GaussianDistribution;
 
 
@@ -331,65 +345,6 @@ namespace OpenKalman
 #endif
 
 
-#ifndef __cpp_concepts
-  namespace detail
-  {
-    template<typename T, typename Enable = void>
-    struct is_1by1 : std::false_type {};
-
-    template<typename T>
-    struct is_1by1<T, std::enable_if_t<(MatrixTraits<T>::dimension == 1) and (MatrixTraits<T>::columns == 1)>>
-      : std::true_type {};
-  }
-#endif
-
-
-  /**
-   * \brief Specifies that a type is a one-by-one matrix (i.e., one row and one column).
-   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept one_by_one_matrix = (MatrixTraits<T>::dimension == 1) and (MatrixTraits<T>::columns == 1);
-#else
-  inline constexpr bool one_by_one_matrix = detail::is_1by1<T>::value;
-#endif
-
-
-#ifndef __cpp_concepts
-  namespace detail
-  {
-    template<typename T, typename Enable = void>
-    struct is_square_matrix : std::false_type {};
-
-    template<typename T>
-    struct is_square_matrix<T, std::enable_if_t<
-      (not typed_matrix<T>) and (MatrixTraits<T>::dimension == MatrixTraits<T>::columns)>>
-      : std::true_type {};
-
-    template<typename T>
-    struct is_square_matrix<T, std::enable_if_t<typed_matrix<T> and
-      (MatrixTraits<T>::dimension == MatrixTraits<T>::columns) and
-      equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>>>
-      : std::true_type {};
-  }
-#endif
-
-
-  /**
-   * \brief Specifies that a matrix is square (i.e., has the same number and type of rows and column).
-   * \details If T is a \ref typed_matrix, the row coefficients must also be \ref equivalent_to the column coefficients.
-   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept square_matrix = (MatrixTraits<T>::dimension == MatrixTraits<T>::columns) and (not typed_matrix<T> or
-    equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>);
-#else
-  inline constexpr bool square_matrix = detail::is_square_matrix<T>::value;
-#endif
-
-
   // ------------------------------------ //
   //  square root (Cholesky) covariances  //
   // ------------------------------------ //
@@ -484,45 +439,15 @@ namespace OpenKalman
   {
     /**
      * \internal
-     * \brief Convert covariance matrix to a covariance_nestable of type T.
-     * \tparam T \ref covariance_nestable to which Arg is to be converted.
-     * \tparam Arg Type of covariance matrix (or square typed matrix) to be converted
-     * \param arg Covariance matrix (or square typed matrix) to be converted.
-     * \return A \ref covariance_nestable.
-     */
-#ifdef __cpp_concepts
-    template<covariance_nestable T, typename Arg>
-    requires covariance<Arg> or (typed_matrix<Arg> and square_matrix<Arg>)
-#else
-    template<typename T, typename Arg, typename = std::enable_if_t<covariance<Arg> or
-      (typed_matrix<Arg> and square_matrix<Arg>)>>
-#endif
-    constexpr decltype(auto)
-    convert_nested_matrix(Arg&&) noexcept;
-
-
-    /**
-     * \overload
-     * \internal
-     * \brief Convert to a triangular matrix if Arg is a square root, or otherwise convert to a self-adjoint matrix.
-     */
-#ifdef __cpp_concepts
-    template<typename Arg>
-    requires covariance<Arg> or (typed_matrix<Arg> and square_matrix<Arg>)
-#else
-    template<typename Arg, typename = std::enable_if_t<covariance<Arg> or (typed_matrix<Arg> and square_matrix<Arg>)>>
-#endif
-    constexpr decltype(auto)
-    convert_nested_matrix(Arg&&) noexcept;
-
-
-    /**
-     * \internal
      * \brief Ultimate base of typed matrices and covariance matrices.
      * \tparam Derived The fully derived matrix type.
-     * \tparam NestedMatrix The nested native matrix.
+     * \tparam NestedMatrix The nested native matrix, which can be const or an lvalue reference, or both, or neither.
      */
+#ifdef __cpp_concepts
+    template<typename Derived, typename NestedMatrix> requires (not std::is_rvalue_reference_v<NestedMatrix>)
+#else
     template<typename Derived, typename NestedMatrix>
+#endif
     struct MatrixBase;
 
 
@@ -530,7 +455,7 @@ namespace OpenKalman
      * \internal
      * \brief Base of Covariance and SquareRootCovariance classes.
      * \tparam Derived The fully derived covariance type.
-     * \tparam NestedMatrix The nested native matrix.
+     * \tparam NestedMatrix The nested native matrix, which can be const or an lvalue reference, or both, or neither.
      */
 #ifdef __cpp_concepts
     template<typename Derived, typename NestedMatrix>

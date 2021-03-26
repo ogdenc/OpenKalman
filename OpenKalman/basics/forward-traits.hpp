@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2019-2020 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2019-2021 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -261,7 +261,7 @@ namespace OpenKalman
    * (optional) If T has a nested matrix, this is an alias for that nested matrix.<br/></td></tr>
    * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
    *   <tr><td class="memItemLeft" align="right" valign="top">using&nbsp;</td>
-   * <td class="memItemRight" valign="bottom"><b>SelfContained</b></td></tr>
+   * <td class="memItemRight" valign="bottom"><b>SelfContainedFrom</b></td></tr>
    * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
    * A \ref self_contained matrix equivalent to T.<br/></td></tr>
    * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
@@ -282,7 +282,7 @@ namespace OpenKalman
    * std::size_t cols = <a href="afwtraitscolumns">columns</a>,
    * typename S = <a href="afwtraitsScalar">Scalar</a>&gt;</td></tr>
    * <tr><td class="memTemplItemLeft" align="right" valign="top">using&nbsp;</td>
-   * <td class="memTemplItemRight" valign="bottom"><b>NativeMatrix</b></td></tr>
+   * <td class="memTemplItemRight" valign="bottom"><b>NativeMatrixFrom</b></td></tr>
    * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
    * A writable, native matrix type equivalent in size and shape to this matrix by default.
    * Alternatively, you can specify the <code>rows</code>, <code>columns</code>, and scalar type <code>S</code> type
@@ -293,7 +293,7 @@ namespace OpenKalman
    * std::size_t size = <a href="afwtraitsdimension">dimension</a>,
    * typename S = <a href="afwtraitsScalar">Scalar</a>&gt;</td></tr>
    * <tr><td class="memTemplItemLeft" align="right" valign="top">using&nbsp;</td>
-   * <td class="memTemplItemRight" valign="bottom"><b>SelfAdjointBaseType</b></td></tr>
+   * <td class="memTemplItemRight" valign="bottom"><b>SelfAdjointMatrixFrom</b></td></tr>
    * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
    * (Available if T is a native matrix.) A writable, native self-adjoint matrix type equivalent to T.
    * Alternatively, you can specify the <code>storage_triangle</code> (upper, lower, diagonal) where the coefficients
@@ -305,7 +305,7 @@ namespace OpenKalman
    * std::size_t size = <a href="afwtraitsdimension">dimension</a>,
    * typename S = <a href="afwtraitsScalar">Scalar</a>&gt;</td></tr>
    * <tr><td class="memTemplItemLeft" align="right" valign="top">using&nbsp;</td>
-   * <td class="memTemplItemRight" valign="bottom"><b>TriangularBaseType</b></td></tr>
+   * <td class="memTemplItemRight" valign="bottom"><b>TriangularMatrixFrom</b></td></tr>
    * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
    * (Available if T is a native matrix.) A writable, native triangular matrix type equivalent to T.
    * Alternatively, you can specify the <code>triangle_type</code> (upper, lower, diagonal) of the triangular matrix,
@@ -316,7 +316,7 @@ namespace OpenKalman
    * template&lt;std::size_t size = <a href="afwtraitsdimension">dimension</a>,
    * typename S = <a href="afwtraitsScalar">Scalar</a>&gt;</td></tr>
    * <tr><td class="memTemplItemLeft" align="right" valign="top">using&nbsp;</td>
-   * <td class="memTemplItemRight" valign="bottom"><b>DiagonalBaseType</b></td></tr>
+   * <td class="memTemplItemRight" valign="bottom"><b>DiagonalMatrixFrom</b></td></tr>
    * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
    * (Available if T is a native matrix.) A writable, native diagonal matrix type equivalent to T.
    * Alternatively, you can specify the <code>size</code> of the matrix and
@@ -325,7 +325,7 @@ namespace OpenKalman
    * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
    *   <tr><td class="memTemplParams" colspan="2">template&lt;typename T&gt;</td></tr>
    * <tr><td class="memTemplItemLeft" align="right" valign="top">using&nbsp;</td>
-   * <td class="memTemplItemRight" valign="bottom"><b>MatrixBaseType</b></td></tr>
+   * <td class="memTemplItemRight" valign="bottom"><b>MatrixBaseFrom</b></td></tr>
    * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
    * A native base type for any class Derived for which T is a nested matrix class.
    * This is the mechanism by which new matrix types can inherit from a base class of the matrix library.<br/></td></tr>
@@ -385,8 +385,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typename T>
 #else
-  /// \tparam Enable A dummy parameter for selection with SFINAE.
-  template<typename T, typename Enable = void>
+  template<typename T, typename = void>
 #endif
   struct MatrixTraits {};
 
@@ -407,6 +406,7 @@ namespace OpenKalman
 
 
   /**
+   * \internal
    * \brief A type trait class for any distribution T.
    * \details This class includes key information about a matrix or matrix expression, such as its dimensions,
    * coefficient types, etc.
@@ -425,7 +425,7 @@ namespace OpenKalman
    * <tr><td id="afwtraitsDScalar" class="mdescLeft">&nbsp;</td><td class="mdescRight">Scalar type of T.<br/></td></tr>
    * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
    *   <tr><td class="memItemLeft" align="right" valign="top">using&nbsp;</td>
-   * <td class="memItemRight" valign="bottom"><b>SelfContained</b></td></tr>
+   * <td class="memItemRight" valign="bottom"><b>SelfContainedFrom</b></td></tr>
    * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
    * A \ref self_contained distribution equivalent to T.<br/></td></tr>
    * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
@@ -497,6 +497,411 @@ namespace OpenKalman
   template<typename T>
   struct DistributionTraits<const T> : DistributionTraits<T> {};
 #endif
+
+
+  // ----------------- //
+  //  nested_matrix_t  //
+  // ----------------- //
+
+  /**
+   * \brief An alias for a type's nested matrix, if it exists.
+   * \details Only participates in overload resolution if the type has a nested matrix.
+   * \tparam T A type that is a wrapper for a nested matrix.
+   */
+#ifdef __cpp_concepts
+  template<typename T> requires (requires {typename MatrixTraits<T>::NestedMatrix;})
+#else
+  template<typename T, typename = typename MatrixTraits<T>::NestedMatrix>
+#endif
+  using nested_matrix_t = typename MatrixTraits<T>::NestedMatrix;
+
+
+  // ----------------- //
+  //  native_matrix_t  //
+  // ----------------- //
+
+  /**
+   * \brief An alias for a self-contained native matrix, based on and equivalent to parameter T.
+   * \tparam T The type from which the native matrix is derived.
+   * \tparam rows Number of rows in the native matrix (defaults to the number of rows in T).
+   * \tparam cols Number of columns in the native matrix (defaults to the number of columns in T).
+   * \tparam Scalar Scalar type of the matrix (defaults to the Scalar type of T).
+   */
+  template<typename T, std::size_t rows = MatrixTraits<T>::dimension, std::size_t cols = MatrixTraits<T>::columns,
+    typename Scalar = typename MatrixTraits<T>::Scalar>
+  using native_matrix_t = typename MatrixTraits<T>::template NativeMatrixFrom<rows, cols, Scalar>;
+
+
+  /**
+   * \brief Make a self-contained, native matrix based on the shape of M from a list of coefficients in row-major order.
+   */
+#ifdef __cpp_concepts
+  template<typename M, std::convertible_to<typename MatrixTraits<M>::Scalar> ... Args> requires
+  (sizeof...(Args) == MatrixTraits<M>::dimension * MatrixTraits<M>::columns)
+#else
+  template<typename M, typename ... Args, std::enable_if_t<
+    (std::is_convertible_v<Args, typename MatrixTraits<M>::Scalar> and ...) and
+    (sizeof...(Args) == MatrixTraits<M>::dimension * MatrixTraits<M>::columns), int> = 0>
+#endif
+  inline auto
+  make_native_matrix(const Args ... args)
+  {
+    return MatrixTraits<native_matrix_t<M>>::make(static_cast<const typename MatrixTraits<M>::Scalar>(args)...);
+  }
+
+
+  // -------------- //
+  //  TriangleType  //
+  // -------------- //
+
+  /**
+   * \brief The type of a triangular matrix, either lower, upper, or diagonal.
+   */
+  enum struct TriangleType {
+    lower, ///< The lower-left triangle.
+    upper, ///< The upper-right triangle.
+    diagonal ///< The diagonal elements of the matrix.
+  };
+
+
+  // ---------------- //
+  //  self_contained  //
+  // ---------------- //
+
+  namespace internal
+  {
+    /**
+     * \internal
+     * \details Type trait testing whether T is self-contained (i.e., can be the return value of a function).
+     */
+#ifdef __cpp_concepts
+    template<typename T>
+#else
+    template<typename T, typename = void>
+#endif
+    struct is_self_contained : std::false_type {};
+  }
+
+
+  /**
+   * \brief Specifies that a type is a self-contained matrix or expression.
+   * \details A value is self-contained if it can be created in a function and returned as the result.
+   * An OpenKalman matrix type is self-contained if it is not an lvalue reference and its wrapped native matrix
+   * is self-contained.
+   * The matrix library interface will specify which native matrices and expressions are self-contained.
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
+   */
+  template<typename T, typename...Ts>
+#ifdef __cpp_concepts
+  concept self_contained =
+#else
+    constexpr bool self_contained =
+#endif
+    internal::is_self_contained<std::decay_t<T>>::value and (not std::is_lvalue_reference_v<T>);
+
+
+  // ------------- //
+  //  zero_matrix  //
+  // ------------- //
+
+  namespace internal
+  {
+    /**
+     * \internal
+     * \brief A type trait testing whether an object is a zero matrix.
+     */
+#ifdef __cpp_concepts
+    template<typename T>
+#else
+    template<typename T, typename Enable = void>
+#endif
+    struct is_zero_matrix : std::false_type {};
+  }
+
+
+  /**
+   * \brief Specifies that a type is a zero matrix.
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept zero_matrix = internal::is_zero_matrix<std::decay_t<T>>::value;
+#else
+  inline constexpr bool zero_matrix = internal::is_zero_matrix<std::decay_t<T>>::value;
+#endif
+
+
+  // ----------------- //
+  //  identity_matrix  //
+  // ----------------- //
+
+  namespace internal
+  {
+    /**
+     * \internal
+     * \brief A type trait testing whether an object is an identity matrix.
+     */
+#ifdef __cpp_concepts
+    template<typename T>
+#else
+    template<typename T, typename = void>
+#endif
+    struct is_identity_matrix : std::false_type {};
+  }
+
+  /**
+   * \brief Specifies that a type is an identity matrix.
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept identity_matrix = internal::is_identity_matrix<std::decay_t<T>>::value;
+#else
+  inline constexpr bool identity_matrix = internal::is_identity_matrix<std::decay_t<T>>::value;
+#endif
+
+
+  // ------------------- //
+  //  one_by_one_matrix  //
+  // ------------------- //
+
+#ifndef __cpp_concepts
+  namespace detail
+  {
+    template<typename T, typename = void>
+    struct is_1by1 : std::false_type {};
+
+    template<typename T>
+    struct is_1by1<T, std::enable_if_t<(MatrixTraits<T>::dimension == 1) and (MatrixTraits<T>::columns == 1)>>
+      : std::true_type {};
+  }
+#endif
+
+
+  /**
+   * \brief Specifies that a type is a one-by-one matrix (i.e., one row and one column).
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept one_by_one_matrix = (MatrixTraits<T>::dimension == 1) and (MatrixTraits<T>::columns == 1);
+#else
+  inline constexpr bool one_by_one_matrix = detail::is_1by1<T>::value;
+#endif
+
+
+  // --------------- //
+  //  square_matrix  //
+  // --------------- //
+
+  namespace internal
+  {
+#ifdef __cpp_concepts
+    template<typename T>
+#else
+    template<typename T, typename = void>
+#endif
+    struct is_square_matrix : std::false_type {};
+  }
+
+  /**
+   * \brief Specifies that a matrix is square (i.e., has the same number and type of rows and column).
+   * \details If T is a \ref typed_matrix, the row coefficients must also be \ref equivalent_to the column coefficients.
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept square_matrix = internal::is_square_matrix<T>::value;
+#else
+  inline constexpr bool square_matrix = internal::is_square_matrix<T>::value;
+#endif
+
+
+  // -------------------- //
+  //  diagonal_matrix  //
+  // -------------------- //
+
+  namespace internal
+  {
+    /**
+     * \internal
+     * \brief A type trait testing whether an object is a diagonal matrix
+     * \note This excludes zero_matrix, identity_matrix, or one_by_one_matrix.
+     */
+#ifdef __cpp_concepts
+    template<typename T>
+#else
+    template<typename T, typename = void>
+#endif
+    struct is_diagonal_matrix : std::false_type {};
+  }
+
+
+#ifndef __cpp_concepts
+  namespace detail
+  {
+    template<typename T, typename Enable = void>
+    struct is_diag_matrix_impl : std::false_type {};
+
+    template<typename T>
+    struct is_diag_matrix_impl<T, std::enable_if_t<internal::is_diagonal_matrix<std::decay_t<T>>::value or
+      (zero_matrix<T> and square_matrix<T>) or identity_matrix<T> or one_by_one_matrix<T>>>
+      : std::true_type {};
+  }
+#endif
+
+
+  /**
+   * \brief Specifies that a type is a diagonal matrix.
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
+   */
+#ifdef __cpp_concepts
+  template<typename T>
+  concept diagonal_matrix = internal::is_diagonal_matrix<std::decay_t<T>>::value or
+    (zero_matrix<T> and square_matrix<T>) or identity_matrix<T> or one_by_one_matrix<T>;
+#else
+  template<typename T>
+  inline constexpr bool diagonal_matrix = detail::is_diag_matrix_impl<T>::value;
+#endif
+
+
+  // ------------------------ //
+  //  is_self_adjoint_matrix  //
+  // ------------------------ //
+
+  namespace internal
+  {
+    /**
+     * \internal
+     * \brief A type trait testing whether an object is a self-adjoint matrix (other than diagonal_matrix).
+     */
+#ifdef __cpp_concepts
+    template<typename T>
+#else
+    template<typename T, typename Enable = void>
+#endif
+    struct is_self_adjoint_matrix : std::false_type {};
+  }
+
+
+#ifndef __cpp_concepts
+  namespace detail
+  {
+    template<typename T, typename Enable = void>
+    struct is_sa_matrix_impl : std::false_type {};
+
+    template<typename T>
+    struct is_sa_matrix_impl<T, std::enable_if_t<
+      internal::is_self_adjoint_matrix<std::decay_t<T>>::value or diagonal_matrix<T>>>
+      : std::true_type {};
+  }
+#endif
+
+
+  /**
+   * \brief Specifies that a type is a self-adjoint matrix.
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
+   */
+#ifdef __cpp_concepts
+  template<typename T>
+  concept self_adjoint_matrix = internal::is_self_adjoint_matrix<std::decay_t<T>>::value or diagonal_matrix<T>;
+#else
+  template<typename T>
+  inline constexpr bool self_adjoint_matrix = detail::is_sa_matrix_impl<T>::value;
+#endif
+
+
+  // ------------------------- //
+  //  lower_triangular_matrix  //
+  // ------------------------- //
+
+  namespace internal
+  {
+    /**
+     * \internal
+     * \brief A type trait testing whether an object is a lower-triangular matrix (other than diagonal_matrix).
+     */
+#ifdef __cpp_concepts
+    template<typename T>
+#else
+    template<typename T, typename Enable = void>
+#endif
+    struct is_lower_triangular_matrix : std::false_type {};
+  }
+
+
+#ifndef __cpp_concepts
+  namespace detail
+  {
+    template<typename T, typename Enable = void>
+    struct is_lt_matrix_impl : std::false_type {};
+
+    template<typename T>
+    struct is_lt_matrix_impl<T, std::enable_if_t<
+      internal::is_lower_triangular_matrix<std::decay_t<T>>::value or diagonal_matrix<T>>>
+      : std::true_type {};
+  }
+#endif
+
+
+  /**
+   * \brief Specifies that a type is a lower-triangular matrix.
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
+   */
+#ifdef __cpp_concepts
+  template<typename T>
+  concept lower_triangular_matrix = internal::is_lower_triangular_matrix<std::decay_t<T>>::value or diagonal_matrix<T>;
+#else
+  template<typename T>
+  inline constexpr bool lower_triangular_matrix = detail::is_lt_matrix_impl<T>::value;
+#endif
+
+
+  // ------------------------- //
+  //  upper_triangular_matrix  //
+  // ------------------------- //
+
+  namespace internal
+  {
+    /**
+     * \internal
+     * \brief A type trait testing whether an object is an upper-triangular matrix (other than diagonal_matrix).
+     */
+#ifdef __cpp_concepts
+    template<typename T>
+#else
+    template<typename T, typename Enable = void>
+#endif
+    struct is_upper_triangular_matrix : std::false_type {};
+  }
+
+
+#ifndef __cpp_concepts
+  namespace detail
+  {
+    template<typename T, typename Enable = void>
+    struct is_ut_matrix_impl : std::false_type {};
+
+    template<typename T>
+    struct is_ut_matrix_impl<T, std::enable_if_t<
+      internal::is_upper_triangular_matrix<std::decay_t<T>>::value or diagonal_matrix<T>>>
+      : std::true_type {};
+  }
+#endif
+
+
+  /**
+   * \brief Specifies that a type is an upper-triangular matrix.
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
+   */
+#ifdef __cpp_concepts
+  template<typename T>
+  concept upper_triangular_matrix = internal::is_upper_triangular_matrix<std::decay_t<T>>::value or diagonal_matrix<T>;
+#else
+  template<typename T>
+  inline constexpr bool upper_triangular_matrix = detail::is_ut_matrix_impl<T>::value;
+#endif
+
 
 
 } // namespace OpenKalman

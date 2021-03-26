@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2020 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2020-2021 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -43,15 +43,15 @@ TEST_F(eigen3, ToEuclideanExpr_class)
   EXPECT_TRUE(is_near(d1b.nested_matrix(), mat3(1, 2, pi/6, pi/3, 3, 4)));
   EXPECT_TRUE(is_near(d1b, mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
   //
-  To3 d2 = (M3() << 1, 2, pi/6, pi/3, 3, 4).finished();
+  To3 d2 {(M3() << 1, 2, pi/6, pi/3, 3, 4).finished()};
   EXPECT_TRUE(is_near(d2, m));
   To3 d3 = d2;
   EXPECT_TRUE(is_near(d3, m));
   To3 d4 = To3{1, 2, pi/6, pi/3, 3, 4};
   EXPECT_TRUE(is_near(d4, m));
-  To3 d5 = MatrixTraits<M3>::zero();
+  To3 d5 {MatrixTraits<M3>::zero()};
   EXPECT_TRUE(is_near(d5, mat4(0, 0, 1, 1, 0, 0, 0, 0)));
-  To3 d6 = ZeroMatrix<double, 3, 2>();
+  To3 d6 {ZeroMatrix<double, 3, 2>()};
   EXPECT_TRUE(is_near(d6, mat4(0, 0, 1, 1, 0, 0, 0, 0)));
   To3 d7 = To3(ZeroMatrix<double, 3, 2>());
   EXPECT_TRUE(is_near(d7, mat4(0, 0, 1, 1, 0, 0, 0, 0)));
@@ -143,6 +143,7 @@ TEST_F(eigen3, ToEuclideanExpr_overloads)
   EXPECT_TRUE(is_near(from_euclidean(To3 {1, 2, 2*pi + pi/6, -4*pi + pi/3, 3, 4}), mat3(1, 2, pi/6, pi/3, 3, 4)));
   EXPECT_TRUE(is_near(from_euclidean<C>(To3 {1, 2, 2*pi + pi/6, -4*pi + pi/3, 3, 4}), mat3(1, 2, pi/6, pi/3, 3, 4)));
   EXPECT_TRUE(is_near(to_diagonal(ToEuclideanExpr<C, native_matrix_t<double, 3, 1>>{1, pi/6, 3}), DiagonalMatrix {1., std::sqrt(3)/2, 0.5, 3}));
+  EXPECT_TRUE(is_near(diagonal_of(To2 {1, 2, 3, pi/6, pi/3, pi/4}), make_native_matrix<double, 3, 1>(1, 0.5, std::sqrt(2.)/2)));
   EXPECT_TRUE(is_near(transpose(To3 {1, 2, pi/6, pi/3, 3, 4}), make_native_matrix<double, 2, 4>(1, std::sqrt(3)/2, 0.5, 3, 2, 0.5, std::sqrt(3)/2, 4)));
   EXPECT_TRUE(is_near(adjoint(To3 {1, 2, pi/6, pi/3, 3, 4}), make_native_matrix<double, 2, 4>(1, std::sqrt(3)/2, 0.5, 3, 2, 0.5, std::sqrt(3)/2, 4)));
   EXPECT_NEAR(determinant(To2 {1, 2, 3, pi/6, pi/3, pi/4}), 0.25 * (3 * std::sqrt(2) - 3 * std::sqrt(6.) + 6), 1e-6);
@@ -400,15 +401,12 @@ TEST_F(eigen3, ToEuclideanExpr_references)
   M3 me, ne;
   me << std::sqrt(3)/2, std::sqrt(2)/2, 0.5, std::sqrt(2)/2, 1, 2;
   ne << std::sqrt(2)/2, 0.5, std::sqrt(2)/2, std::sqrt(3)/2, 3, 4;
-  ToEuclideanExpr<C, M2> x = m;
+  using To = ToEuclideanExpr<C, M2>;
+  To x = To {m};
   ToEuclideanExpr<C, M2&> x_lvalue = x;
   EXPECT_TRUE(is_near(x_lvalue, me));
-  x = ToEuclideanExpr<C, M2>(n);
+  x = To {n};
   EXPECT_TRUE(is_near(x_lvalue, ne));
-  x_lvalue = ToEuclideanExpr<C, M2>(m);
+  x_lvalue = To {m};
   EXPECT_TRUE(is_near(x, me));
-  ToEuclideanExpr<C, M2&&> x_rvalue = std::move(x);
-  EXPECT_TRUE(is_near(x_rvalue, me));
-  x_rvalue = ToEuclideanExpr<C, M2>(n);
-  EXPECT_TRUE(is_near(x_rvalue, ne));
 }

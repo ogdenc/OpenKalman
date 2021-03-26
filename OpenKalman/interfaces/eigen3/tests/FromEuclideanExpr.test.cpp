@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2020 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2021 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -40,15 +40,15 @@ TEST_F(eigen3, FromEuclideanExpr_class)
   EXPECT_TRUE(is_near(d1b.nested_matrix(), mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
   EXPECT_TRUE(is_near(d1b, mat3(1, 2, pi/6, pi/3, 3, 4)));
   //
-  From4 d2 = (M4() << 1, 2, std::sqrt(3.)/2, 0.5, 0.5, std::sqrt(3.)/2, 3, 4).finished();
+  From4 d2 {(M4() << 1, 2, std::sqrt(3.)/2, 0.5, 0.5, std::sqrt(3.)/2, 3, 4).finished()};
   EXPECT_TRUE(is_near(d2, m));
   From4 d3 = d2;
   EXPECT_TRUE(is_near(d3, m));
   From4 d4 = From4{1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4};
   EXPECT_TRUE(is_near(d4, m));
-  From4 d5 = MatrixTraits<M4>::zero();
+  From4 d5 {MatrixTraits<M4>::zero()};
   EXPECT_TRUE(is_near(d5, mat3(0, 0, 0, 0, 0, 0)));
-  From4 d6 = ZeroMatrix<double, 4, 2>();
+  From4 d6 {ZeroMatrix<double, 4, 2>()};
   EXPECT_TRUE(is_near(d6, mat3(0, 0, 0, 0, 0, 0)));
   From4 d7 = From4(ZeroMatrix<double, 4, 2>());
   EXPECT_TRUE(is_near(d7, mat3(0, 0, 0, 0, 0, 0)));
@@ -145,6 +145,7 @@ TEST_F(eigen3, FromEuclideanExpr_overloads)
   EXPECT_TRUE(is_near(to_euclidean(From4 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
   EXPECT_TRUE(is_near(to_euclidean<C>(From4 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
   EXPECT_TRUE(is_near(to_diagonal(FromEuclideanExpr<C, native_matrix_t<double, 4, 1>>{1., std::sqrt(3)/2, 0.5, 3}), DiagonalMatrix {1, pi/6, 3}));
+  EXPECT_TRUE(is_near(diagonal_of(From3 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2}), make_native_matrix<double, 2, 1>(1, pi/3)));
   EXPECT_TRUE(is_near(transpose(From4 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), make_native_matrix<double, 2, 3>(1, pi/6, 3, 2, pi/3, 4)));
   EXPECT_TRUE(is_near(adjoint(From4 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), make_native_matrix<double, 2, 3>(1, pi/6, 3, 2, pi/3, 4)));
   EXPECT_NEAR(determinant(From3 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2}), 0.0, 1e-6);
@@ -304,19 +305,22 @@ TEST_F(eigen3, FromEuclideanExpr_blocks)
                make_native_matrix<double, 1, 1>(pi/6)}));
 
   EXPECT_TRUE(is_near(column(
-    FromEuclideanExpr<Coefficients<Axis, angle::Radians>, native_matrix_t<double, 3, 3>> {1, 2, 3,
-                                                                               std::sqrt(3)/2, 0.5, std::sqrt(2)/2,
-                                                                               0.5, std::sqrt(3)/2, std::sqrt(2)/2}, 2),
+    FromEuclideanExpr<Coefficients<Axis, angle::Radians>, native_matrix_t<double, 3, 3>> {
+      1, 2, 3,
+      std::sqrt(3)/2, 0.5, std::sqrt(2)/2,
+      0.5, std::sqrt(3)/2, std::sqrt(2)/2}, 2),
     make_native_matrix<double, 2, 1>(3, pi/4)));
   EXPECT_TRUE(is_near(column<1>(
-    FromEuclideanExpr<Coefficients<Axis, angle::Radians>, native_matrix_t<double, 3, 3>> {1, 2, 3,
-                                                                               std::sqrt(3)/2, 0.5, std::sqrt(2)/2,
-                                                                               0.5, std::sqrt(3)/2, std::sqrt(2)/2}),
+    FromEuclideanExpr<Coefficients<Axis, angle::Radians>, native_matrix_t<double, 3, 3>> {
+      1, 2, 3,
+      std::sqrt(3)/2, 0.5, std::sqrt(2)/2,
+      0.5, std::sqrt(3)/2, std::sqrt(2)/2}),
     make_native_matrix<double, 2, 1>(2, pi/3)));
   //
-  auto b = FromEuclideanExpr<Coefficients<Axis, angle::Radians>, native_matrix_t<double, 3, 3>> {1, 2, 3,
-                                                                                      std::sqrt(3)/2, 0.5, std::sqrt(2)/2,
-                                                                                      0.5, std::sqrt(3)/2, std::sqrt(2)/2};
+  auto b = FromEuclideanExpr<Coefficients<Axis, angle::Radians>, native_matrix_t<double, 3, 3>> {
+    1, 2, 3,
+    std::sqrt(3)/2, 0.5, std::sqrt(2)/2,
+    0.5, std::sqrt(3)/2, std::sqrt(2)/2};
   EXPECT_TRUE(is_near(b, make_native_matrix<double, 2, 3>(1, 2, 3, pi/6, pi/3, pi/4)));
   EXPECT_TRUE(is_near(apply_columnwise(b,
     [](auto& col){ col *= 3; }),
@@ -324,9 +328,10 @@ TEST_F(eigen3, FromEuclideanExpr_blocks)
       3, 6, 9,
       pi/2, pi, pi*3/4)));
 
-  b = FromEuclideanExpr<Coefficients<Axis, angle::Radians>, native_matrix_t<double, 3, 3>> {1, 2, 3,
-                                                                                 std::sqrt(3)/2, 0.5, std::sqrt(2)/2,
-                                                                                 0.5, std::sqrt(3)/2, std::sqrt(2)/2};
+  b = FromEuclideanExpr<Coefficients<Axis, angle::Radians>, native_matrix_t<double, 3, 3>> {
+    1, 2, 3,
+    std::sqrt(3)/2, 0.5, std::sqrt(2)/2,
+    0.5, std::sqrt(3)/2, std::sqrt(2)/2};
   EXPECT_TRUE(is_near(apply_columnwise(b,
     [](auto& col, std::size_t i){ col *= i + 1; }),
     make_native_matrix<double, 2, 3>(
@@ -414,17 +419,14 @@ TEST_F(eigen3, FromEuclideanExpr_references)
   M3 me, ne;
   me << std::sqrt(3)/2, std::sqrt(2)/2, 0.5, std::sqrt(2)/2, 1, 2;
   ne << std::sqrt(2)/2, 0.5, std::sqrt(2)/2, std::sqrt(3)/2, 3, 4;
-  FromEuclideanExpr<C, M3> x = me;
+  using From = FromEuclideanExpr<C, M3>;
+  From x = From {me};
   FromEuclideanExpr<C, M3&> x_lvalue = x;
   EXPECT_TRUE(is_near(x_lvalue, m));
-  x = FromEuclideanExpr<C, M3>(ne);
+  x = From {ne};
   EXPECT_TRUE(is_near(x_lvalue, n));
-  x_lvalue = FromEuclideanExpr<C, M3>(me);
+  x_lvalue = From {me};
   EXPECT_TRUE(is_near(x, m));
-  FromEuclideanExpr<C, M3&&> x_rvalue = std::move(x);
-  EXPECT_TRUE(is_near(x_rvalue, m));
-  x_rvalue = FromEuclideanExpr<C, M3>(ne);
-  EXPECT_TRUE(is_near(x_rvalue, n));
 }
 
 

@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2017-2020 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2017-2021 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -18,10 +18,17 @@ namespace OpenKalman
 #else
   template<typename M, std::enable_if_t<covariance<M>, int> = 0>
 #endif
-  constexpr decltype(auto)
+  inline decltype(auto)
   nested_matrix(M&& m) noexcept
   {
-    return std::forward<M>(m).nested_matrix();
+    if constexpr (self_adjoint_matrix<nested_matrix_t<M>>)
+    {
+      return std::forward<M>(m).get_self_adjoint_nested_matrix();
+    }
+    else
+    {
+      return std::forward<M>(m).get_triangular_nested_matrix();
+    }
   }
 
 
@@ -33,15 +40,7 @@ namespace OpenKalman
   inline auto
   square_root(Arg&& arg) noexcept
   {
-    using C = typename MatrixTraits<Arg>::RowCoefficients;
-    if constexpr(diagonal_matrix<Arg> and not zero_matrix<Arg>)
-    {
-      return make_square_root_covariance<C>(Cholesky_factor(nested_matrix(std::forward<Arg>(arg))));
-    }
-    else
-    {
-      return make_square_root_covariance<C>(nested_matrix(std::forward<Arg>(arg)));
-    }
+    return std::forward<Arg>(arg).square_root();
   }
 
 
@@ -53,41 +52,7 @@ namespace OpenKalman
   inline auto
   square(Arg&& arg) noexcept
   {
-    using C = typename MatrixTraits<Arg>::RowCoefficients;
-    if constexpr(diagonal_matrix<Arg> and not zero_matrix<Arg>)
-    {
-      return make_covariance<C>(Cholesky_square(nested_matrix(std::forward<Arg>(arg))));
-    }
-    else
-    {
-      return make_covariance<C>(nested_matrix(std::forward<Arg>(arg)));
-    }
-  }
-
-
-#ifdef __cpp_concepts
-  template<covariance Arg> requires (not cholesky_form<Arg>) and (not diagonal_matrix<Arg>)
-#else
-  template<typename Arg,
-    std::enable_if_t<covariance<Arg> and not cholesky_form<Arg> and not diagonal_matrix<Arg>, int> = 0>
-#endif
-  inline auto
-  to_Cholesky(Arg&& arg) noexcept
-  {
-    return MatrixTraits<Arg>::make(Cholesky_factor(nested_matrix(std::forward<Arg>(arg))));
-  }
-
-
-#ifdef __cpp_concepts
-  template<covariance Arg> requires cholesky_form<Arg> and (not diagonal_matrix<Arg>)
-#else
-template<typename Arg,
-    std::enable_if_t<covariance<Arg> and cholesky_form<Arg> and not diagonal_matrix<Arg>, int> = 0>
-#endif
-  inline auto
-  from_Cholesky(Arg&& arg) noexcept
-  {
-    return MatrixTraits<Arg>::make(Cholesky_square(nested_matrix(std::forward<Arg>(arg))));
+    return std::forward<Arg>(arg).square();
   }
 
 
@@ -102,11 +67,16 @@ template<typename Arg,
   constexpr decltype(auto)
   make_native_matrix(Arg&& arg) noexcept
   {
-    return make_native_matrix(internal::convert_nested_matrix(std::forward<Arg>(arg)));
+    return make_native_matrix(internal::to_covariance_nestable(std::forward<Arg>(arg)));
   }
 
 
-  /// Convert to self-contained version of the covariance matrix.
+  /**
+   * \brief Convert to self-contained version of the covariance matrix.
+   * \details If any types Ts are included, Arg is considered self-contained if every Ts is an lvalue reference.
+   * This is to allow a function to return a non-self-contained value so long as it depends on an lvalue reference to
+   * a variable that is accessible to the context in which the function is called.
+   */
 #ifdef __cpp_concepts
   template<typename...Ts, covariance Arg>
 #else
@@ -115,14 +85,31 @@ template<typename Arg,
   constexpr decltype(auto)
   make_self_contained(Arg&& arg) noexcept
   {
-    if constexpr(self_contained<Arg> or (std::is_lvalue_reference_v<Ts> and ... and (sizeof...(Ts) > 0)))
+    if constexpr(self_contained<nested_matrix_t<Arg>> or
+      ((sizeof...(Ts) > 0) and ... and std::is_lvalue_reference_v<Ts>))
     {
       return std::forward<Arg>(arg);
     }
     else
     {
-      return MatrixTraits<Arg>::make(make_self_contained(nested_matrix(std::forward<Arg>(arg))));
+      constexpr auto f = [] (auto&& arg) { return std::forward<decltype(arg)>(arg); };
+      auto ret = std::forward<Arg>(arg).covariance_op(f, f);
+      return ret;
     }
+  }
+
+
+#ifdef __cpp_concepts
+  template<covariance Arg>
+#else
+  template<typename Arg, std::enable_if_t<covariance<Arg>, int> = 0>
+#endif
+  inline auto
+  diagonal_of(Arg&& arg) noexcept
+  {
+    using C = typename MatrixTraits<Arg>::RowCoefficients;
+    auto b = make_self_contained<Arg>(diagonal_of(internal::to_covariance_nestable(std::forward<Arg>(arg))));
+    return Matrix<C, Axis, decltype(b)>(std::move(b));
   }
 
 
@@ -134,7 +121,8 @@ template<typename Arg,
   inline auto
   transpose(Arg&& arg) noexcept
   {
-    return MatrixTraits<Arg>::make(transpose(nested_matrix(std::forward<Arg>(arg))));
+    auto f = [] (auto&& arg) { return transpose(std::forward<decltype(arg)>(arg)); };
+    return std::forward<Arg>(arg).covariance_op(f, f);
   }
 
 
@@ -146,7 +134,8 @@ template<typename Arg,
   inline auto
   adjoint(Arg&& arg) noexcept
   {
-    return MatrixTraits<Arg>::make(adjoint(nested_matrix(std::forward<Arg>(arg))));
+    auto f = [] (auto&& arg) { return adjoint(std::forward<decltype(arg)>(arg)); };
+    return std::forward<Arg>(arg).covariance_op(f, f);
   }
 
 
@@ -177,49 +166,37 @@ template<typename Arg,
   inline auto
   trace(Arg&& arg) noexcept
   {
-    return trace(convert_nested_matrix(std::forward<Arg>(arg)));
+    return trace(to_covariance_nestable(std::forward<Arg>(arg)));
   }
 
 
 #ifdef __cpp_concepts
-  template<covariance Arg, typed_matrix U> requires (not std::is_const_v<std::remove_reference_t<Arg>>)
+  template<covariance Arg, typed_matrix U> requires
+    equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, typename MatrixTraits<U>::RowCoefficients>
 #else
   template<typename Arg, typename U, std::enable_if_t<covariance<Arg> and typed_matrix<U> and
-    not std::is_const_v<std::remove_reference_t<Arg>>, int> = 0>
+    equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, typename MatrixTraits<U>::RowCoefficients>, int> = 0>
 #endif
-  inline Arg&
-  rank_update(Arg& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
-  {
-    static_assert(equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, typename MatrixTraits<U>::RowCoefficients>);
-    rank_update(nested_matrix(arg), nested_matrix(u), alpha);
-    return arg;
-  }
-
-
-#ifdef __cpp_concepts
-  template<covariance Arg, typed_matrix U>
-#else
-  template<typename Arg, typename U, std::enable_if_t<covariance<Arg> and typed_matrix<U>, int> = 0>
-#endif
-  inline auto
+  inline decltype(auto)
   rank_update(Arg&& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
   {
-    static_assert(equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, typename MatrixTraits<U>::RowCoefficients>);
-    return MatrixTraits<Arg>::make(rank_update(nested_matrix(std::forward<Arg>(arg)), nested_matrix(u), alpha));
+    return std::forward<Arg>(arg).rank_update(u, alpha);
   }
 
 
   /// Solves a x = b for x (A is a Covariance or SquareRootCovariance, B is a vector type).
 #ifdef __cpp_concepts
-  template<covariance A, typed_matrix B>
+  template<covariance A, typed_matrix B> requires
+    equivalent_to<typename MatrixTraits<A>::RowCoefficients, typename MatrixTraits<B>::RowCoefficients>
 #else
-  template<typename A, typename B, std::enable_if_t<covariance<A> and typed_matrix<B>, int> = 0>
+  template<typename A, typename B, std::enable_if_t<covariance<A> and typed_matrix<B> and
+    equivalent_to<typename MatrixTraits<A>::RowCoefficients, typename MatrixTraits<B>::RowCoefficients>, int> = 0>
 #endif
   inline auto
   solve(A&& a, B&& b) noexcept
   {
-    static_assert(equivalent_to<typename MatrixTraits<A>::RowCoefficients, typename MatrixTraits<B>::RowCoefficients>);
-    auto x = make_self_contained(solve(convert_nested_matrix(std::forward<A>(a)), nested_matrix(std::forward<B>(b))));
+    auto x = make_self_contained<A, B>(
+      solve(to_covariance_nestable(std::forward<A>(a)), nested_matrix(std::forward<B>(b))));
     return MatrixTraits<B>::template make<typename MatrixTraits<A>::RowCoefficients>(std::move(x));
   }
 
@@ -233,7 +210,7 @@ template<typename Arg,
   reduce_columns(Arg&& arg)
   {
     using RC = typename MatrixTraits<Arg>::RowCoefficients;
-    return make_matrix<RC, Axis>(reduce_columns(convert_nested_matrix(std::forward<Arg>(arg))));
+    return make_matrix<RC, Axis>(reduce_columns(to_covariance_nestable(std::forward<Arg>(arg))));
   }
 
 
@@ -248,7 +225,7 @@ template<typename Arg,
   LQ_decomposition(Arg&& arg)
   {
     using C = typename MatrixTraits<Arg>::RowCoefficients;
-    auto tm = LQ_decomposition(convert_nested_matrix(std::forward<Arg>(arg)));
+    auto tm = LQ_decomposition(to_covariance_nestable(std::forward<Arg>(arg)));
     return make_square_root_covariance<C>(std::move(tm));
   }
 
@@ -264,7 +241,7 @@ template<typename Arg,
   QR_decomposition(Arg&& arg)
   {
     using C = typename MatrixTraits<Arg>::RowCoefficients;
-    auto tm = QR_decomposition(convert_nested_matrix(std::forward<Arg>(arg)));
+    auto tm = QR_decomposition(to_covariance_nestable(std::forward<Arg>(arg)));
     return make_square_root_covariance<C>(std::move(tm));
   }
 
@@ -280,7 +257,8 @@ template<typename Arg,
   {
     if constexpr(sizeof...(Ms) > 0)
     {
-      using Coeffs = Concatenate<typename MatrixTraits<M>::RowCoefficients, typename MatrixTraits<Ms>::RowCoefficients...>;
+      using Coeffs =
+        Concatenate<typename MatrixTraits<M>::RowCoefficients, typename MatrixTraits<Ms>::RowCoefficients...>;
       auto cat = concatenate_diagonal(nested_matrix(std::forward<M>(m)), nested_matrix(std::forward<Ms>(mN))...);
       return MatrixTraits<M>::template make<Coeffs>(std::move(cat));
     }
@@ -303,7 +281,7 @@ template<typename Arg,
       }
       else if constexpr(one_by_one_matrix<Arg> and square_root_covariance<Expr> and not cholesky_form<Expr>)
       {
-        return MatrixTraits<Expr>::template make<C>(Cholesky_factor(std::forward<Arg>(arg)));
+        return MatrixTraits<Expr>::template make<C>(Cholesky_factor<TriangleType::lower>(std::forward<Arg>(arg)));
       }
       else
       {
@@ -323,7 +301,7 @@ template<typename Arg,
       }
       else if constexpr(one_by_one_matrix<Arg> and square_root_covariance<Expr> and not cholesky_form<Expr>)
       {
-        return f(Cholesky_factor(std::forward<Arg>(arg)));
+        return f(Cholesky_factor<TriangleType::lower>(std::forward<Arg>(arg)));
       }
       else
       {
@@ -412,10 +390,9 @@ template<typename Arg,
 
   /// Get element (i, j) of a covariance matrix.
 #ifdef __cpp_concepts
-  template<covariance Arg> requires element_gettable<nested_matrix_t<Arg>, 2>
+  template<covariance Arg> requires element_gettable<Arg, 2>
 #else
-  template<typename Arg, std::enable_if_t<covariance<Arg> and
-    element_gettable<nested_matrix_t<Arg>, 2>, int> = 0>
+  template<typename Arg, std::enable_if_t<covariance<Arg> and element_gettable<Arg, 2>, int> = 0>
 #endif
   inline auto
   get_element(Arg&& arg, const std::size_t i, const std::size_t j)
@@ -426,15 +403,9 @@ template<typename Arg,
 
   /// Get element (i) of a covariance matrix.
 #ifdef __cpp_concepts
-  template<covariance Arg> requires
-    ((self_adjoint_matrix<nested_matrix_t<Arg>> and not square_root_covariance<Arg>) or
-      (triangular_matrix<nested_matrix_t<Arg>> and square_root_covariance<Arg>)) and
-    element_gettable<nested_matrix_t<Arg>, 1>
+  template<covariance Arg> requires element_gettable<Arg, 1>
 #else
-  template<typename Arg, std::enable_if_t<covariance<Arg> and
-    ((self_adjoint_matrix<nested_matrix_t<Arg>> and not square_root_covariance<Arg>) or
-      (triangular_matrix<nested_matrix_t<Arg>> and square_root_covariance<Arg>)) and
-    element_gettable<nested_matrix_t<Arg>, 1>, int> = 0>
+  template<typename Arg, std::enable_if_t<covariance<Arg> and element_gettable<Arg, 1>, int> = 0>
 #endif
   inline auto
   get_element(Arg&& arg, const std::size_t i)
@@ -446,38 +417,30 @@ template<typename Arg,
   /// Set element (i, j) of a covariance matrix.
 #ifdef __cpp_concepts
   template<covariance Arg, typename Scalar> requires
-    (not std::is_const_v<std::remove_reference_t<Arg>>) and
-    element_settable<nested_matrix_t<Arg>, 2>
+    (not std::is_const_v<std::remove_reference_t<Arg>>) and element_settable<Arg, 2>
 #else
-  template<typename Arg, typename Scalar, std::enable_if_t<
-    covariance<Arg> and not std::is_const_v<std::remove_reference_t<Arg>> and
-      element_settable<nested_matrix_t<Arg>, 2>, int> = 0>
+  template<typename Arg, typename Scalar, std::enable_if_t<covariance<Arg> and
+    not std::is_const_v<std::remove_reference_t<Arg>> and element_settable<Arg, 2>, int> = 0>
 #endif
   inline void
   set_element(Arg& arg, const Scalar s, const std::size_t i, const std::size_t j)
   {
-    arg(i, j) = s;
+    arg.set_element(s, i, j);
   }
 
 
   /// Set element (i) of a covariance matrix.
 #ifdef __cpp_concepts
   template<covariance Arg, typename Scalar> requires
-    (not std::is_const_v<std::remove_reference_t<Arg>>) and
-      ((self_adjoint_matrix<nested_matrix_t<Arg>> and not square_root_covariance<Arg>) or
-        (triangular_matrix<nested_matrix_t<Arg>> and square_root_covariance<Arg>)) and
-      element_settable<nested_matrix_t<Arg>, 1>
+    (not std::is_const_v<std::remove_reference_t<Arg>>) and element_settable<Arg, 1>
 #else
-  template<typename Arg, typename Scalar, std::enable_if_t<
-    covariance<Arg> and not std::is_const_v<std::remove_reference_t<Arg>> and
-      ((self_adjoint_matrix<nested_matrix_t<Arg>> and not square_root_covariance<Arg>) or
-        (triangular_matrix<nested_matrix_t<Arg>> and square_root_covariance<Arg>)) and
-      element_settable<nested_matrix_t<Arg>, 1>, int> = 0>
+  template<typename Arg, typename Scalar, std::enable_if_t<covariance<Arg> and
+    not std::is_const_v<std::remove_reference_t<Arg>> and element_settable<Arg, 1>, int> = 0>
 #endif
   inline void
   set_element(Arg& arg, const Scalar s, const std::size_t i)
   {
-    arg[i] = s;
+    arg.set_element(s, i);
   }
 
 
@@ -491,7 +454,7 @@ template<typename Arg,
   column(Arg&& arg, const std::size_t index)
   {
     using C = typename MatrixTraits<Arg>::RowCoefficients;
-    return make_matrix<C, Axis>(column(convert_nested_matrix(std::forward<Arg>(arg)), index));
+    return make_matrix<C, Axis>(column(to_covariance_nestable(std::forward<Arg>(arg)), index));
   }
 
 
@@ -507,7 +470,7 @@ template<typename Arg,
     static_assert(index < MatrixTraits<Arg>::dimension);
     using C = typename MatrixTraits<Arg>::RowCoefficients;
     using CC = typename C::template Coefficient<index>;
-    return make_matrix<C, CC>(column<index>(convert_nested_matrix(std::forward<Arg>(arg))));
+    return make_matrix<C, CC>(column<index>(to_covariance_nestable(std::forward<Arg>(arg))));
   }
 
 
@@ -524,7 +487,7 @@ template<typename Arg,
   {
     using C = typename MatrixTraits<Arg>::RowCoefficients;
     const auto f_nested = [&f](const auto& col) { return nested_matrix(f(make_matrix<C, Axis>(col))); };
-    return make_matrix<C, C>(apply_columnwise(convert_nested_matrix(std::forward<Arg>(arg)), f_nested));
+    return make_matrix<C, C>(apply_columnwise(to_covariance_nestable(std::forward<Arg>(arg)), f_nested));
   }
 
 
@@ -540,8 +503,10 @@ template<typename Arg,
   apply_columnwise(Arg&& arg, const Function& f)
   {
     using C = typename MatrixTraits<Arg>::RowCoefficients;
-    const auto f_nested = [&f](const auto& col, std::size_t i) { return nested_matrix(f(make_matrix<C, Axis>(col), i)); };
-    return make_matrix<C, C>(apply_columnwise(convert_nested_matrix(std::forward<Arg>(arg)), f_nested));
+    const auto f_nested = [&f](const auto& col, std::size_t i) {
+      return nested_matrix(f(make_matrix<C, Axis>(col), i));
+    };
+    return make_matrix<C, C>(apply_columnwise(to_covariance_nestable(std::forward<Arg>(arg)), f_nested));
   }
 
 
@@ -557,7 +522,7 @@ template<typename Arg,
   apply_coefficientwise(Arg&& arg, const Function& f)
   {
     using C = typename MatrixTraits<Arg>::RowCoefficients;
-    return make_matrix<C, C>(apply_coefficientwise(convert_nested_matrix(std::forward<Arg>(arg)), f));
+    return make_matrix<C, C>(apply_coefficientwise(to_covariance_nestable(std::forward<Arg>(arg)), f));
   }
 
 
@@ -574,7 +539,7 @@ template<typename Arg,
   apply_coefficientwise(Arg&& arg, const Function& f)
   {
     using C = typename MatrixTraits<Arg>::RowCoefficients;
-    return make_matrix<C, C>(apply_coefficientwise(convert_nested_matrix(std::forward<Arg>(arg)), f));
+    return make_matrix<C, C>(apply_coefficientwise(to_covariance_nestable(std::forward<Arg>(arg)), f));
   }
 
 

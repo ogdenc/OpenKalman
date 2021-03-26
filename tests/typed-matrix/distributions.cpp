@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2018-2020 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2018-2021 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -467,7 +467,7 @@ TEST_F(matrices, GaussianDistribution_class_Cholesky_random)
     mean_x = (mean_x * i + to_euclidean(x)) / (i + 1);
   }
   EXPECT_NE(from_euclidean(mean_x), true_x);
-  EXPECT_TRUE(is_near(Mean(from_euclidean(mean_x) - true_x), V::zero(), nested_matrix_t<V>::Constant(0.1)));
+  EXPECT_TRUE(is_near(Mean(from_euclidean(mean_x) - true_x), V::zero(), nested_matrix_t<V>::Constant(0.2)));
 }
 
 
@@ -681,11 +681,6 @@ TEST_F(matrices, GaussianDistribution_overloads)
   EXPECT_TRUE(is_near(nested_matrix(covariance_of(DistT2l {{1, 2}, {9, 3, 3, 10}})), Mat2 { 3, 0, 1, 3}));
   EXPECT_TRUE(is_near(nested_matrix(covariance_of(DistT2u {{1, 2}, {9, 3, 3, 10}})), Mat2 { 3, 1, 0, 3}));
 
-  EXPECT_TRUE(is_near(nested_matrix(covariance_of(to_Cholesky(DistSA2l {{1, 2}, {9, 3, 3, 10}}))), Mat2 {3, 0, 1, 3}));
-  EXPECT_TRUE(is_near(nested_matrix(covariance_of(to_Cholesky(DistSA2u {{1, 2}, {9, 3, 3, 10}}))), Mat2 {3, 1, 0, 3}));
-  EXPECT_TRUE(is_near(nested_matrix(covariance_of(from_Cholesky(DistT2l {{1, 2}, {9, 3, 3, 10}}))), Mat2 {9, 3, 3, 10}));
-  EXPECT_TRUE(is_near(nested_matrix(covariance_of(from_Cholesky(DistT2u {{1, 2}, {9, 3, 3, 10}}))), Mat2 {9, 3, 3, 10}));
-
   static_assert(std::is_same_v<std::decay_t<decltype(make_self_contained(DistSA2l {Mean2 {1, 2} * 2, CovSA2l{9, 3, 3, 10} * 2}))>, DistSA2l>);
   static_assert(std::is_same_v<std::decay_t<decltype(make_self_contained(DistSA2u {Mean2 {1, 2} * 2, CovSA2u{9, 3, 3, 10} * 2}))>, DistSA2u>);
   static_assert(std::is_same_v<std::decay_t<decltype(make_self_contained(DistT2l {Mean2 {1, 2} * 2, CovT2l{9, 3, 3, 10} * 2}))>, DistT2l>);
@@ -737,8 +732,8 @@ TEST_F(matrices, GaussianDistribution_addition_subtraction)
   auto diff1 = dist1 - dist2;
   EXPECT_TRUE(is_near(mean_of(diff1), Mean {9., 7.}));
   EXPECT_TRUE(is_near(covariance_of(diff1), Covariance {2., 2, 2, 5}));
-  GaussianDistribution dist1_chol {x_mean, TriangularMatrix(SelfAdjointMatrix {d})};
-  GaussianDistribution dist2_chol {y_mean, TriangularMatrix(SelfAdjointMatrix {e})};
+  GaussianDistribution dist1_chol {x_mean, Cholesky_factor(SelfAdjointMatrix {d})};
+  GaussianDistribution dist2_chol {y_mean, Cholesky_factor(SelfAdjointMatrix {e})};
   auto sum2 = dist1_chol + dist2_chol;
   EXPECT_TRUE(is_near(mean_of(sum2), Mean {31., 53}));
   EXPECT_TRUE(is_near(covariance_of(sum2), Covariance {16., 4, 4, 11}));
@@ -768,11 +763,11 @@ TEST_F(matrices, GaussianDistribution_mult_div)
   auto a_scaled3 = f_matrix * a;
   EXPECT_TRUE(is_near(mean_of(a_scaled3), make_mean<C3>(62., 126, 190)));
   EXPECT_TRUE(is_near(covariance_of(a_scaled3), make_matrix<C3, C3>(40., 92, 144, 92, 216, 340, 144, 340, 536)));
-  static_assert(equivalent_to<typename decltype(a_scaled3)::Coefficients, C3>);
+  static_assert(equivalent_to<typename DistributionTraits<decltype(a_scaled3)>::Coefficients, C3>);
   auto a_chol_scaled3 = f_matrix * a_chol;
   EXPECT_TRUE(is_near(mean_of(a_chol_scaled3), make_mean<C3>(62., 126, 190)));
   EXPECT_TRUE(is_near(covariance_of(a_chol_scaled3), make_matrix<C3, C3>(40., 92, 144, 92, 216, 340, 144, 340, 536)));
-  static_assert(equivalent_to<typename decltype(a_chol_scaled3)::Coefficients, C3>);
+  static_assert(equivalent_to<typename DistributionTraits<decltype(a_chol_scaled3)>::Coefficients, C3>);
 
   native_matrix_t<double, 2, 2> cov_mat; cov_mat << 8, 2, 2, 6;
   decltype(a) a_scaled = a * 2;

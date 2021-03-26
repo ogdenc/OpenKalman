@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2019-2020 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2019-2021 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -48,6 +48,7 @@ namespace OpenKalman::Eigen3
    * \brief A self-adjoint matrix.
    * \details The matrix is guaranteed to be self-adjoint. It is ::self_contained iff NestedMatrix is ::self_contained.
    * It may \em also be a diagonal matrix if storage_triangle is TriangleType::diagonal.
+   * Implicit conversions are available from any \ref self_adjoint_matrix of compatible size.
    * \tparam NestedMatrix A nested \ref square_matrix expression, on which the self-adjoint matrix is based.
    * \tparam storage_triangle The TriangleType (\ref TriangleType::lower "lower", \ref TriangleType::upper "upper", or
    * \ref TriangleType::diagonal "diagonal") in which the data is stored.
@@ -67,6 +68,7 @@ namespace OpenKalman::Eigen3
    * \brief A triangular matrix.
    * \details The matrix is guaranteed to be triangular. It is ::self_contained iff NestedMatrix is ::self_contained.
    * It may \em also be a diagonal matrix if triangle_type is TriangleType::diagonal.
+   * Implicit conversions are available from any \ref triangular_matrix of compatible size.
    * \tparam NestedMatrix A nested \ref square_matrix expression, on which the triangular matrix is based.
    * \tparam triangle_type The TriangleType (\ref TriangleType::lower "lower", \ref TriangleType::upper "upper", or
    * \ref TriangleType::diagonal "diagonal") in which the data is stored.
@@ -84,6 +86,7 @@ namespace OpenKalman::Eigen3
   /**
    * \brief A diagonal matrix.
    * \details The matrix is guaranteed to be diagonal. It is ::self_contained iff NestedMatrix is ::self_contained.
+   * Implicit conversions are available from any \ref diagonal_matrix of compatible size.
    * \tparam NestedMatrix A \ref column_vector expression defining the diagonal elements.
    * Elements outside the diagonal are automatically 0.
    * \note This has the same name as Eigen::DiagonalMatrix, and is intended as a replacement.
@@ -110,16 +113,14 @@ namespace OpenKalman::Eigen3
   /**
    * \brief An expression that transforms coefficients into Euclidean space for proper wrapping.
    * \details This is the counterpart expression to FromEuclideanExpr.
-   * <code>FromEuclideanExpr<C, ToEuclideanExpr<C, M>></code> acts to wrap the angular/modular values in
-   * <code>M</code>.
-   * \tparam Coefficients The coefficient types.
+   * \tparam Coeffs The coefficient types.
    * \tparam NestedMatrix The pre-transformed column vector, or set of column vectors in the form of a matrix.
    */
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, typename NestedMatrix = Eigen::Matrix<double, Coefficients::size, 1>>
-    requires (MatrixTraits<NestedMatrix>::dimension == Coefficients::size)
+  template<coefficients Coeffs, typename NestedMatrix = Eigen::Matrix<double, Coeffs::size, 1>>
+    requires (MatrixTraits<NestedMatrix>::dimension == Coeffs::size)
 #else
-  template<typename Coefficients, typename NestedMatrix = Eigen::Matrix<double, Coefficients::size, 1>>
+  template<typename Coeffs, typename NestedMatrix = Eigen::Matrix<double, Coeffs::size, 1>>
 #endif
   struct ToEuclideanExpr;
 
@@ -127,22 +128,22 @@ namespace OpenKalman::Eigen3
   /**
    * \brief An expression that transforms angular or other modular coefficients back from Euclidean space.
    * \details This is the counterpart expression to ToEuclideanExpr.
-   * <code>FromEuclideanExpr<C, ToEuclideanExpr<C, M>></code> acts to wrap the angular/modular values in
-   * <code>M</code>.
-   * \tparam Coefficients The coefficient types.
+   * \tparam Coeffs The coefficient types.
    * \tparam NestedMatrix The pre-transformed column vector, or set of column vectors in the form of a matrix.
    */
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, typename NestedMatrix = Eigen::Matrix<double, Coefficients::dimension, 1>>
-    requires (MatrixTraits<NestedMatrix>::dimension == Coefficients::dimension)
+  template<coefficients Coeffs, typename NestedMatrix = Eigen::Matrix<double, Coeffs::dimension, 1>>
+    requires (MatrixTraits<NestedMatrix>::dimension == Coeffs::dimension)
 #else
-  template<typename Coefficients, typename NestedMatrix = Eigen::Matrix<double, Coefficients::dimension, 1>>
+  template<typename Coeffs, typename NestedMatrix = Eigen::Matrix<double, Coeffs::dimension, 1>>
 #endif
   struct FromEuclideanExpr;
 
 
   /**
    * \brief An alias for the Eigen identity matrix.
+   * \details In Eigen, this does not need to be a square matrix.
+   * \NestedMatrix The nested matrix on which the identity is based.
    */
   template<typename NestedMatrix>
   using IdentityMatrix =
@@ -153,7 +154,9 @@ namespace OpenKalman::Eigen3
   {
     /**
      * \internal
-     * \brief Ultimate base for matrix classes in OpenKalman.
+     * \brief The ultimate base for matrix classes in OpenKalman.
+     * \details This class is used solely to distinguish OpenKalman classes from native Eigen classes which are
+     * also derived from Eigen::MatrixBase.
      */
     template<typename Derived>
     struct Eigen3Base : Eigen::MatrixBase<Derived> {};
@@ -161,7 +164,9 @@ namespace OpenKalman::Eigen3
 
     /*
      * \internal
-     * \brief Penultimate base for matrix classes in OpenKalman.
+     * \brief Base for matrix classes in OpenKalman.
+     * \details This specializes the comma initializer for OpenKalman classes, and redefines the Zero and Identity
+     * functions.
      */
     template<typename Derived, typename Nested>
     struct Eigen3MatrixBase;

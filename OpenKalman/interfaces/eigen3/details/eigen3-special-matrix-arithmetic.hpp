@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2019-2020 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2019-2021 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -32,18 +32,17 @@ namespace OpenKalman::Eigen3
 #endif
   inline auto operator+(Arg1&& arg1, Arg2&& arg2)
   {
+    /// \todo Add diagonal case
     if constexpr((Eigen3::lower_triangular_storage<Arg1> and Eigen3::lower_triangular_storage<Arg2>) or
       (Eigen3::upper_triangular_storage<Arg1> and Eigen3::upper_triangular_storage<Arg2>))
     {
-      auto ret = MatrixTraits<Arg1>::make(
-        nested_matrix(std::forward<Arg1&&>(arg1)) + nested_matrix(std::forward<Arg2&&>(arg2)));
-      return make_self_contained<Arg1, Arg2>(std::move(ret));
+      auto ret = nested_matrix(std::forward<Arg1>(arg1)) + nested_matrix(std::forward<Arg2>(arg2));
+      return MatrixTraits<Arg1>::make(make_self_contained<Arg1, Arg2>(std::move(ret)));
     }
     else
     {
-      auto ret = MatrixTraits<Arg1>::make(
-        nested_matrix(std::forward<Arg1>(arg1)) + adjoint(nested_matrix(std::forward<Arg2>(arg2))));
-      return make_self_contained<Arg1, Arg2>(std::move(ret));
+      auto ret = nested_matrix(std::forward<Arg1>(arg1)) + adjoint(nested_matrix(std::forward<Arg2>(arg2)));
+      return MatrixTraits<Arg1>::make(make_self_contained<Arg1, Arg2>(std::move(ret)));
     }
   }
 
@@ -53,20 +52,20 @@ namespace OpenKalman::Eigen3
    */
 #ifdef __cpp_concepts
   template<Eigen3::eigen_triangular_expr Arg1, Eigen3::eigen_triangular_expr Arg2> requires
-  (not diagonal_matrix<Arg1>) and (not diagonal_matrix<Arg2>) and
+    (not diagonal_matrix<Arg1>) and (not diagonal_matrix<Arg2>) and
     (MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension)
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<
     Eigen3::eigen_triangular_expr<Arg1> and Eigen3::eigen_triangular_expr<Arg2> and
-      not diagonal_matrix<Arg1> and not diagonal_matrix<Arg2> and
-      (MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension), int> = 0>
+    not diagonal_matrix<Arg1> and not diagonal_matrix<Arg2> and
+    (MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension), int> = 0>
 #endif
   inline auto operator+(Arg1&& arg1, Arg2&& arg2)
   {
-    if constexpr(lower_triangular_matrix<Arg1> == lower_triangular_matrix<Arg2>)
+    if constexpr(OpenKalman::internal::same_triangle_type_as<Arg1, Arg2>)
     {
-      auto ret = MatrixTraits<Arg1>::make(nested_matrix(std::forward<Arg1>(arg1)) + nested_matrix(std::forward<Arg2>(arg2)));
-      return make_self_contained<Arg1, Arg2>(std::move(ret));
+      auto ret = nested_matrix(std::forward<Arg1>(arg1)) + nested_matrix(std::forward<Arg2>(arg2));
+      return MatrixTraits<Arg1>::make(make_self_contained<Arg1, Arg2>(std::move(ret)));
     }
     else
     {
@@ -97,13 +96,13 @@ namespace OpenKalman::Eigen3
   {
     if constexpr(Eigen3::eigen_self_adjoint_expr<Arg1> or Eigen3::eigen_triangular_expr<Arg1>)
     {
-      auto ret = MatrixTraits<Arg1>::make(nested_matrix(std::forward<Arg1>(arg1)) + std::forward<Arg2>(arg2));
-      return make_self_contained<Arg1, Arg2>(std::move(ret));
+      auto ret = nested_matrix(std::forward<Arg1>(arg1)) + std::forward<Arg2>(arg2);
+      return MatrixTraits<Arg1>::make(make_self_contained<Arg1, Arg2>(std::move(ret)));
     }
     else
     {
-      auto ret = MatrixTraits<Arg2>::make(std::forward<Arg1>(arg1) + nested_matrix(std::forward<Arg2>(arg2)));
-      return make_self_contained<Arg1, Arg2>(std::move(ret));
+      auto ret = std::forward<Arg1>(arg1) + nested_matrix(std::forward<Arg2>(arg2));
+      return MatrixTraits<Arg2>::make(make_self_contained<Arg1, Arg2>(std::move(ret)));
     }
   }
 
@@ -126,13 +125,13 @@ namespace OpenKalman::Eigen3
   {
     if constexpr(Eigen3::eigen_self_adjoint_expr<Arg1> or Eigen3::eigen_triangular_expr<Arg1>)
     {
-      auto ret = MatrixTraits<Arg1>::make(nested_matrix(std::forward<Arg1>(arg1)) + std::forward<Arg2>(arg2));
-      return make_self_contained<Arg1, Arg2>(std::move(ret));
+      auto ret = nested_matrix(std::forward<Arg1>(arg1)) + std::forward<Arg2>(arg2);
+      return MatrixTraits<Arg1>::make(make_self_contained<Arg1, Arg2>(std::move(ret)));
     }
     else
     {
-      auto ret = MatrixTraits<Arg2>::make(std::forward<Arg1>(arg1) + nested_matrix(std::forward<Arg2>(arg2)));
-      return make_self_contained<Arg1, Arg2>(std::move(ret));
+      auto ret = std::forward<Arg1>(arg1) + nested_matrix(std::forward<Arg2>(arg2));
+      return MatrixTraits<Arg2>::make(make_self_contained<Arg1, Arg2>(std::move(ret)));
     }
   }
 
@@ -182,18 +181,17 @@ namespace OpenKalman::Eigen3
 #endif
   inline auto operator-(Arg1&& arg1, Arg2&& arg2)
   {
+    /// \todo Add diagonal case
     if constexpr((Eigen3::lower_triangular_storage<Arg1> and Eigen3::lower_triangular_storage<Arg2>) or
       (Eigen3::upper_triangular_storage<Arg1> and Eigen3::upper_triangular_storage<Arg2>))
     {
-      auto ret = MatrixTraits<Arg1>::make(
-        nested_matrix(std::forward<Arg1>(arg1)) - nested_matrix(std::forward<Arg2>(arg2)));
-      return make_self_contained<Arg1, Arg2>(std::move(ret));
+      auto ret = nested_matrix(std::forward<Arg1>(arg1)) - nested_matrix(std::forward<Arg2>(arg2));
+      return MatrixTraits<Arg1>::make(make_self_contained<Arg1, Arg2>(std::move(ret)));
     }
     else
     {
-      auto ret = MatrixTraits<Arg1>::make(
-        nested_matrix(std::forward<Arg1>(arg1)) - adjoint(nested_matrix(std::forward<Arg2>(arg2))));
-      return make_self_contained<Arg1, Arg2>(std::move(ret));
+      auto ret = nested_matrix(std::forward<Arg1>(arg1)) - adjoint(nested_matrix(std::forward<Arg2>(arg2)));
+      return MatrixTraits<Arg1>::make(make_self_contained<Arg1, Arg2>(std::move(ret)));
     }
   }
 
@@ -213,8 +211,8 @@ namespace OpenKalman::Eigen3
   {
     if constexpr(OpenKalman::internal::same_triangle_type_as<Arg1, Arg2>)
     {
-      auto ret = MatrixTraits<Arg1>::make(nested_matrix(std::forward<Arg1>(arg1)) - nested_matrix(std::forward<Arg2>(arg2)));
-      return make_self_contained<Arg1, Arg2>(std::move(ret));
+      auto ret = nested_matrix(std::forward<Arg1>(arg1)) - nested_matrix(std::forward<Arg2>(arg2));
+      return MatrixTraits<Arg1>::make(make_self_contained<Arg1, Arg2>(std::move(ret)));
     }
     else
     {
@@ -347,8 +345,8 @@ namespace OpenKalman::Eigen3
 #endif
   inline auto operator*(Arg&& arg, const S scale) noexcept
   {
-    auto ret = MatrixTraits<Arg>::make(nested_matrix(std::forward<Arg>(arg)) * scale);
-    return make_self_contained<Arg>(std::move(ret));
+    auto ret = make_self_contained<Arg>(nested_matrix(std::forward<Arg>(arg)) * scale);
+    return MatrixTraits<Arg>::make(std::move(ret));
   }
 
 
@@ -365,8 +363,8 @@ namespace OpenKalman::Eigen3
 #endif
   inline auto operator*(const S scale, Arg&& arg) noexcept
   {
-    auto ret = MatrixTraits<Arg>::make(scale * nested_matrix(std::forward<Arg>(arg)));
-    return make_self_contained<Arg>(std::move(ret));
+    auto ret = make_self_contained<Arg>(scale * nested_matrix(std::forward<Arg>(arg)));
+    return MatrixTraits<Arg>::make(std::move(ret));
   }
 
 
@@ -387,8 +385,8 @@ namespace OpenKalman::Eigen3
 #endif
   inline auto operator/(Arg&& arg, const S scale) noexcept
   {
-    auto ret = MatrixTraits<Arg>::make(nested_matrix(std::forward<Arg>(arg)) / scale);
-    return make_self_contained<Arg>(std::move(ret));
+    auto ret = make_self_contained<Arg>(nested_matrix(std::forward<Arg>(arg)) / scale);
+    return MatrixTraits<Arg>::make(std::move(ret));
   }
 
 

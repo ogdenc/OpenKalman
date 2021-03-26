@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2019-2020 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2019-2021 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -30,8 +30,8 @@ namespace OpenKalman
     using CommonV = std::decay_t<std::conditional_t<
       (euclidean_mean<V1> and euclidean_mean<V2>) or (mean<V1> and mean<V2>),
       V1, decltype(Matrix {v1})>>;
-    auto ret = MatrixTraits<CommonV>::make(nested_matrix(std::forward<V1>(v1)) + nested_matrix(std::forward<V2>(v2)));
-    return make_self_contained<V1, V2>(std::move(ret));
+    auto b = nested_matrix(std::forward<V1>(v1)) + nested_matrix(std::forward<V2>(v2));
+    return MatrixTraits<CommonV>::make(make_self_contained<V1, V2>(std::move(b)));
   }
 
 
@@ -55,13 +55,11 @@ namespace OpenKalman
     {
       // WC is the difference type for the coefficients. However, the result should retain coefficient types RC1.
       using WC = typename RC1::difference_type;
-      auto ret = MatrixTraits<CommonV>::make(wrap_angles<WC>(std::move(b)));
-      return make_self_contained<V1, V2>(std::move(ret));
+      return MatrixTraits<CommonV>::make(make_self_contained<V1, V2>(wrap_angles<WC>(std::move(b))));
     }
     else
     {
-      auto ret = MatrixTraits<CommonV>::make(std::move(b));
-      return make_self_contained<V1, V2>(std::move(ret));
+      return MatrixTraits<CommonV>::make(make_self_contained<V1, V2>(std::move(b)));
     }
   }
 
@@ -76,8 +74,8 @@ namespace OpenKalman
   inline auto operator*(V&& v, S scale)
   {
     using Sc = typename MatrixTraits<V>::Scalar;
-    auto ret = MatrixTraits<V>::make(nested_matrix(std::forward<V>(v)) * static_cast<Sc>(scale));
-    return make_self_contained<V>(std::move(ret));
+    auto b = nested_matrix(std::forward<V>(v)) * static_cast<Sc>(scale);
+    return MatrixTraits<V>::make(make_self_contained<V>(std::move(b)));
   }
 
 
@@ -91,8 +89,8 @@ namespace OpenKalman
   inline auto operator*(S scale, V&& v)
   {
     using Sc = const typename MatrixTraits<V>::Scalar;
-    auto ret = MatrixTraits<V>::make(static_cast<Sc>(scale) * nested_matrix(std::forward<V>(v)));
-    return make_self_contained<V>(std::move(ret));
+    auto b = static_cast<Sc>(scale) * nested_matrix(std::forward<V>(v));
+    return MatrixTraits<V>::make(make_self_contained<V>(std::move(b)));
   }
 
 
@@ -106,8 +104,8 @@ namespace OpenKalman
   inline auto operator/(V&& v, S scale)
   {
     using Sc = typename MatrixTraits<V>::Scalar;
-    auto ret = MatrixTraits<V>::make(nested_matrix(std::forward<V>(v)) / static_cast<Sc>(scale));
-    return make_self_contained<V>(std::move(ret));
+    auto b = nested_matrix(std::forward<V>(v)) / static_cast<Sc>(scale);
+    return MatrixTraits<V>::make(make_self_contained<V>(std::move(b)));
   }
 
 
@@ -125,8 +123,7 @@ namespace OpenKalman
     using CC = typename MatrixTraits<V2>::ColumnCoefficients;
     auto b = nested_matrix(std::forward<V1>(v1)) * nested_matrix(std::forward<V2>(v2));
     using CommonV = std::decay_t<std::conditional_t<euclidean_mean<V1>, V1, decltype(Matrix {v1})>>;
-    auto ret = MatrixTraits<CommonV>::template make<RC, CC>(std::move(b));
-    return make_self_contained<V1, V2>(std::move(ret));
+    return MatrixTraits<CommonV>::template make<RC, CC>(make_self_contained<V1, V2>(std::move(b)));
   }
 
 
@@ -139,8 +136,8 @@ namespace OpenKalman
   inline auto operator-(V&& v)
   {
     using Res = std::decay_t<std::conditional_t<euclidean_mean<V>, V, decltype(Matrix {v})>>;
-    auto ret = MatrixTraits<Res>::make(-nested_matrix(std::forward<V>(v)));
-    return make_self_contained<V>(std::move(ret));
+    auto b = -nested_matrix(std::forward<V>(v));
+    return MatrixTraits<Res>::make(make_self_contained<V>(std::move(b)));
   }
 
 

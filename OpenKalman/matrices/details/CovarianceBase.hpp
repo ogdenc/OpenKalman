@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2020 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2020-2021 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -15,120 +15,356 @@
 
 namespace OpenKalman::internal
 {
-  /*
+
+  /**
    * \internal
-   * Base of Covariance and SquareRootCovariance classes, if ArgType is not an lvalue reference and either
-   * (1) Derived is not a square root and the nested matrix is self-adjoint; or
-   * (2) Derived is a square root and the nested matrix is triangular.
+   * \brief Covariance Cov's cholesky nested matrix and nested matrix Nested are both either triangular or self-adjoint.
+   */
+  template<typename Cov, typename Nested = nested_matrix_t<Cov>>
+#ifdef __cpp_concepts
+  concept case1or2 = (not square_root_covariance<Cov> and self_adjoint_matrix<Nested>) or
+    (square_root_covariance<Cov> and triangular_matrix<Nested>);
+#else
+  static constexpr bool case1or2 = (not square_root_covariance<Cov> and self_adjoint_matrix<Nested>) or
+    (square_root_covariance<Cov> and triangular_matrix<Nested>);
+#endif
+
+
+  // =====================================CASE 1=======================================
+  /**
+   * \internal
+   * \anchor CovarianceBaseCase1
+   * \brief Base of Covariance and SquareRootCovariance classes (Case 1).
+   * \details This specialization is operative if NestedMatrix is self-contained and either
+   * # Derived is not a square root and NestedMatrix is self-adjoint; or
+   * # Derived is a square root and NestedMatrix is triangular.
+   * In this case, NestedMatrix and the cholesky nested matrix are the same.
    */
 #ifdef __cpp_concepts
-  template<typename Derived, typename ArgType> requires
-    ((not square_root_covariance<Derived> and self_adjoint_matrix<ArgType>) or
-      (square_root_covariance<Derived> and triangular_matrix<ArgType>)) and
-    (not std::is_lvalue_reference_v<ArgType>) and
-    (not internal::contains_nested_lvalue_reference<ArgType>)
-  struct CovarianceBase<Derived, ArgType>
+  template<typename Derived, typename NestedMatrix> requires
+    case1or2<Derived, NestedMatrix> and self_contained<NestedMatrix>
+  struct CovarianceBase<Derived, NestedMatrix>
 #else
-  template<typename Derived, typename ArgType>
-  struct CovarianceBase<Derived, ArgType, std::enable_if_t<
-    ((not square_root_covariance<Derived> and self_adjoint_matrix<ArgType>) or
-      (square_root_covariance<Derived> and triangular_matrix<ArgType>)) and
-    (not std::is_lvalue_reference_v<ArgType>) and
-    (not internal::contains_nested_lvalue_reference<ArgType>)>>
+  template<typename Derived, typename NestedMatrix>
+  struct CovarianceBase<Derived, NestedMatrix, std::enable_if_t<
+    case1or2<Derived, NestedMatrix> and self_contained<NestedMatrix>>>
 #endif
-    : MatrixBase<Derived, ArgType>
+    : MatrixBase<Derived, NestedMatrix>
   {
-    using NestedMatrix = ArgType;
+  private:
+
     using Base = MatrixBase<Derived, NestedMatrix>;
-    using Base::Base;
-    using Base::operator=;
-    using Base::nested_matrix;
+
     using Scalar = typename MatrixTraits<NestedMatrix>::Scalar;
 
+  protected:
 
+    using CholeskyNestedMatrix = std::conditional_t<triangular_matrix<NestedMatrix>,
+      typename MatrixTraits<NestedMatrix>::template SelfAdjointMatrixFrom<>,
+      typename MatrixTraits<NestedMatrix>::template TriangularMatrixFrom<>>;
+
+    /**
+     * \internal
+     * \brief The cholesky factor or square of the nested matrix.
+     * \details This will be triangular if Covariance or self-adjoint if SquareRootCovariance
+     */
+    CholeskyNestedMatrix cholesky_nested_matrix() const
+    {
+      if constexpr (square_root_covariance<Derived>) return Cholesky_square(Base::nested_matrix());
+      else return Cholesky_factor(Base::nested_matrix());
+    }
+
+
+    /**
+     * \internal
+     * \brief The synchronization direction. 0 == synchronized, 1 = forward, -1 = reverse.
+     */
+    constexpr static auto synchronization_direction = []() -> int { return 0; };
+
+
+    /**
+     * \internal
+     * \brief Synchronize the state from nested_matrix to cholesky_nested_matrix.
+     * \details This is a no-op.
+     */
+    constexpr static auto synchronize_forward = [] {};
+
+
+    /**
+     * \internal
+     * \brief Synchronize the state from cholesky_nested_matrix to nested_matrix.
+     * \details This is a no-op.
+     */
+    constexpr static auto synchronize_reverse = [] {};
+
+
+    /**
+     * \internal
+     * \brief Indicate that the nested matrix has changed.
+     * \details In this specialization of CovarianceBase, this function is a no-op.
+     */
+    constexpr static auto mark_nested_matrix_changed = [] {};
+
+
+    /**
+     * \internal
+     * \brief Indicate that the cholesky nested matrix has changed.
+     * \details In this specialization of CovarianceBase, this function is a no-op.
+     */
+    constexpr static auto mark_cholesky_nested_matrix_changed = [] {};
+
+
+    /**
+     * \internal
+     * \brief Indicate that the covariance is synchronized.
+     * \details In this specialization of CovarianceBase, this function is a no-op.
+     */
+    constexpr static auto mark_synchronized = [] {};
+
+
+  public:
+    /// Default constructor.
+#ifdef __cpp_concepts
+    CovarianceBase() requires std::default_initializable<Base>
+#else
+    template<typename T = Base, std::enable_if_t<std::is_default_constructible_v<T>, int> = 0>
+    CovarianceBase()
+#endif
+      : Base {} {}
+
+
+    /// Copy constructor.
+    CovarianceBase(const CovarianceBase& other) : Base {other} {}
+
+
+    /// Move constructor.
+    CovarianceBase(CovarianceBase&& other) noexcept : Base {std::move(other)} {}
+
+
+    /**
+     * \brief Construct from another \ref covariance.
+     */
+#ifdef __cpp_concepts
+    template<covariance Arg> requires (not std::derived_from<std::decay_t<Arg>, CovarianceBase>) and
+      std::is_constructible_v<Base, decltype(to_covariance_nestable<NestedMatrix>(std::declval<Arg>()))>
+#else
+    template<typename Arg, std::enable_if_t<covariance<Arg> and
+      (not std::is_base_of_v<CovarianceBase, std::decay_t<Arg>>) and
+      std::is_constructible_v<Base, NestedMatrix&&>, int> = 0>
+        // std::is_constructible_v cannot be used here with to_covariance_nestable.
+#endif
+    CovarianceBase(Arg&& arg) noexcept : Base {to_covariance_nestable<NestedMatrix>(std::forward<Arg>(arg))} {}
+
+
+    /**
+     * \brief Construct from a \ref covariance_nestable.
+     */
+#ifdef __cpp_concepts
+    template<covariance_nestable Arg> requires
+      std::is_constructible_v<Base, decltype(to_covariance_nestable<NestedMatrix>(std::declval<Arg>()))>
+#else
+    template<typename Arg, std::enable_if_t<covariance_nestable<Arg> and
+      std::is_constructible_v<Base, NestedMatrix&&>, int> = 0>
+        // std::is_constructible_v cannot be used here with to_covariance_nestable.
+#endif
+    explicit CovarianceBase(Arg&& arg) noexcept : Base {to_covariance_nestable<NestedMatrix>(std::forward<Arg>(arg))} {}
+
+
+    /**
+     * \internal
+     * \brief Copy assignment operator.
+     */
+    auto& operator=(const CovarianceBase& other)
+    {
+      Base::operator=(other);
+      return *this;
+    }
+
+
+    /**
+     * \internal
+     * \brief Move assignment operator.
+     */
+    auto& operator=(CovarianceBase&& other) noexcept
+    {
+      Base::operator=(std::move(other));
+      return *this;
+    }
+
+
+    /**
+     * \internal
+     * \brief Assign from another \ref covariance or a \ref covariance_nestable.
+     */
+#ifdef __cpp_concepts
+    template<typename Arg> requires (covariance<Arg> or covariance_nestable<Arg>) and
+      (not std::derived_from<std::decay_t<Arg>, CovarianceBase>)
+#else
+    template<typename Arg, std::enable_if_t<(covariance<Arg> or covariance_nestable<Arg>) and
+      (not std::is_base_of_v<CovarianceBase, std::decay_t<Arg>>), int> = 0>
+#endif
+    auto& operator=(Arg&& arg) noexcept
+    {
+      Base::operator=(to_covariance_nestable<NestedMatrix>(std::forward<Arg>(arg)));
+      return *this;
+    }
+
+
+    /**
+     * \brief Get or set element (i, j) of the covariance matrix.
+     * \param i The row.
+     * \param j The column.
+     * \return An ElementSetter object.
+     */
     auto operator() (std::size_t i, std::size_t j)
     {
-      return make_ElementSetter<not element_settable<Derived, 2>>(nested_matrix(), i, j);
+      return make_ElementSetter<not element_settable<NestedMatrix, 2>>(Base::nested_matrix(), i, j);
     }
 
-
+    /// \overload
     auto operator() (std::size_t i, std::size_t j) const
     {
-      return make_ElementSetter<true>(nested_matrix(), i, j);
+      return make_ElementSetter<true>(Base::nested_matrix(), i, j);
     }
 
 
+    /**
+     * \brief Get or set element i of the covariance matrix, if it is a vector.
+     * \param i The row.
+     * \param j The column.
+     * \return An ElementSetter object.
+     */
     auto operator[] (std::size_t i)
     {
-      return make_ElementSetter<not element_settable<Derived, 2>>(nested_matrix(), i);
+      return make_ElementSetter<not element_settable<NestedMatrix, 1>>(Base::nested_matrix(), i);
     }
 
 
+    /// \overload
     auto operator[] (std::size_t i) const
     {
-      return make_ElementSetter<true>(nested_matrix(), i);
+      return make_ElementSetter<true>(Base::nested_matrix(), i);
     }
 
-
+    /// \overload
     auto operator() (std::size_t i) { return operator[](i); }
 
-
+    /// \overload
     auto operator() (std::size_t i) const { return operator[](i); }
 
 
-    /// Get the apparent nested matrix.
-    constexpr auto& get_apparent_nested_matrix() & { return nested_matrix(); }
+    /**
+     * \brief Set an element of the cholesky nested matrix.
+     */
+    void set_element(const Scalar s, const std::size_t i, const std::size_t j)
+    {
+      OpenKalman::set_element(Base::nested_matrix(), s, i, j);
+    }
 
 
-    /// Get the apparent nested matrix.
-    constexpr auto&& get_apparent_nested_matrix() && { return std::move(nested_matrix()); }
-
-
-    /// Get the apparent nested matrix.
-    constexpr const auto& get_apparent_nested_matrix() const & { return nested_matrix(); }
-
-
-    /// Get the apparent nested matrix.
-    constexpr const auto&& get_apparent_nested_matrix() const && { return std::move(nested_matrix()); }
-
-
-  protected:
-    constexpr void mark_changed() const {}
+    /**
+     * \brief Set an element of the cholesky nested matrix.
+     */
+    void set_element(const Scalar s, const std::size_t i)
+    {
+      OpenKalman::set_element(Base::nested_matrix(), s, i);
+    }
 
   };
 
 
-  // ============================================================================
-  /*
+  // ======================================CASE 2======================================
+  /**
    * \internal
-   * Base of Covariance and SquareRootCovariance classes, if ArgType is an lvalue reference.
-   * No conversion is necessary if either
-   * (1) Derived is not a square root and the nested matrix is self-adjoint; or
-   * (2) Derived is a square root and the nested matrix is triangular.
+   * \anchor CovarianceBaseCase2
+   * \brief Base of Covariance and SquareRootCovariance classes (Case 2).
+   * \details This specialization is operative if NestedMatrix is not self-contained and either
+   * # Derived is not a square root and NestedMatrix is self-adjoint; or
+   * # Derived is a square root and NestedMatrix is triangular.
+   * In this case, NestedMatrix and the cholesky nested matrix are the same.
    */
 #ifdef __cpp_concepts
-  template<typename Derived, typename ArgType> requires
-    ((not square_root_covariance<Derived> and self_adjoint_matrix<ArgType>) or
-      (square_root_covariance<Derived> and triangular_matrix<ArgType>)) and
-    (std::is_lvalue_reference_v<ArgType> or internal::contains_nested_lvalue_reference<ArgType>)
-  struct CovarianceBase<Derived, ArgType>
+  template<typename Derived, typename NestedMatrix> requires
+    case1or2<Derived, NestedMatrix> and (not self_contained<NestedMatrix>)
+  struct CovarianceBase<Derived, NestedMatrix>
 #else
-  template<typename Derived, typename ArgType>
-  struct CovarianceBase<Derived, ArgType, std::enable_if_t<
-    ((not square_root_covariance<Derived> and self_adjoint_matrix<ArgType>) or
-      (square_root_covariance<Derived> and triangular_matrix<ArgType>)) and
-    (std::is_lvalue_reference_v<ArgType> or internal::contains_nested_lvalue_reference<ArgType>)>>
+  template<typename Derived, typename NestedMatrix>
+  struct CovarianceBase<Derived, NestedMatrix, std::enable_if_t<
+    case1or2<Derived, NestedMatrix> and (not self_contained<NestedMatrix>)>>
 #endif
-  : MatrixBase<Derived, ArgType>
+    : MatrixBase<Derived, NestedMatrix>
   {
-    using NestedMatrix = ArgType;
+  private:
+
     using Base = MatrixBase<Derived, NestedMatrix>;
-    using Base::nested_matrix;
+
     using Scalar = typename MatrixTraits<NestedMatrix>::Scalar;
 
+  protected:
+
+    using CholeskyNestedMatrix = std::conditional_t<triangular_matrix<NestedMatrix>,
+      typename MatrixTraits<NestedMatrix>::template SelfAdjointMatrixFrom<>,
+      typename MatrixTraits<NestedMatrix>::template TriangularMatrixFrom<>>;
+
   private:
-    const bool apparent_nested_linked;
-    bool* const synchronized;
+
+    // The Cholesky square or square root of the nested matrix.
+    const std::function<CholeskyNestedMatrix()> cholesky_nested;
+
+  protected:
+
+    /**
+     * \internal
+     * \brief The Cholesky nested matrix: triangular if Covariance, self-adjoint if SquareRootCovariance
+     */
+    CholeskyNestedMatrix cholesky_nested_matrix() const { return cholesky_nested(); }
+
+
+    /**
+     * \internal
+     * \brief The synchronization direction. 0 == synchronized, 1 = forward, -1 = reverse.
+     */
+    const std::function<int()> synchronization_direction;
+
+
+    /**
+     * \internal
+     * \brief Synchronize the state from nested_matrix to cholesky_nested_matrix.
+     * \details This is a no-op.
+     */
+    const std::function<void()> synchronize_forward;
+
+
+    /**
+     * \internal
+     * \brief Synchronize the state from cholesky_nested_matrix to nested_matrix.
+     * \details This is a no-op.
+     */
+    const std::function<void()> synchronize_reverse;
+
+
+    /**
+     * \internal
+     * \brief Indicate that the nested matrix has changed.
+     */
+    const std::function<void()> mark_nested_matrix_changed;
+
+
+    /**
+     * \internal
+     * \brief Indicate that the cholesky nested matrix has changed.
+     * \details In this specialization of CovarianceBase, this function is a no-op.
+     */
+    constexpr static auto mark_cholesky_nested_matrix_changed = [] {};
+
+
+    /**
+     * \internal
+     * \brief Indicate that the covariance is synchronized.
+     * \details In this specialization of CovarianceBase, this function is a no-op.
+     */
+    constexpr static auto mark_synchronized = [] {};
+
 
   public:
     /// Default constructor.
@@ -137,72 +373,67 @@ namespace OpenKalman::internal
 
     /// Copy constructor.
     CovarianceBase(const CovarianceBase& other)
-      : Base(other.nested_matrix()), synchronized(other.synchronized) {}
+      : Base {other},
+        cholesky_nested {other.cholesky_nested},
+        synchronization_direction {other.synchronization_direction},
+        synchronize_forward {other.synchronize_forward},
+        synchronize_reverse {other.synchronize_reverse},
+        mark_nested_matrix_changed {other.mark_nested_matrix_changed}
+        {}
 
 
     /// Move constructor.
     CovarianceBase(CovarianceBase&& other) noexcept
-      : Base(std::move(other)), synchronized(other.synchronized) {}
+      : Base {std::move(other)},
+        cholesky_nested {std::move(other.cholesky_nested)},
+        synchronization_direction {std::move(other.synchronization_direction)},
+        synchronize_forward {std::move(other.synchronize_forward)},
+        synchronize_reverse {std::move(other.synchronize_reverse)},
+        mark_nested_matrix_changed {std::move(other.mark_nested_matrix_changed)}
+        {}
 
 
-    /// Construct from a covariance_nestable or another covariance that does not store a distinct apparent nested matrix.
+    /**
+     * \brief Construct from another \ref covariance.
+     */
 #ifdef __cpp_concepts
-    template<typename Arg> requires covariance_nestable<Arg> or (covariance<Arg> and
-        ((self_adjoint_matrix<nested_matrix_t<Arg>> and not square_root_covariance<Arg>) or
-        (triangular_matrix<nested_matrix_t<Arg>> and square_root_covariance<Arg>)))
+    template<covariance Arg> requires (not std::derived_from<std::decay_t<Arg>, CovarianceBase>) and
+      std::is_constructible_v<Base, decltype(std::declval<Arg>().nested_matrix())>
 #else
-    template<typename Arg,
-      std::enable_if_t<covariance_nestable<Arg> or (covariance<Arg> and
-        ((self_adjoint_matrix<nested_matrix_t<Arg>> and not square_root_covariance<Arg>) or
-        (triangular_matrix<nested_matrix_t<Arg>> and square_root_covariance<Arg>))), int> = 0>
+    template<typename Arg, std::enable_if_t<covariance<Arg> and
+      (not std::is_base_of_v<CovarianceBase, std::decay_t<Arg>>) and
+      std::is_constructible_v<Base, decltype(std::declval<Arg>().nested_matrix())>, int> = 0>
 #endif
-    CovarianceBase(Arg&& arg) noexcept
-      : Base(std::forward<Arg>(arg)), apparent_nested_linked(false), synchronized(new bool {true}) {}
+    CovarianceBase(Arg&& arg)
+      : Base {std::forward<decltype(arg.nested_matrix())>(arg.nested_matrix())},
+        cholesky_nested {[f = [&] { return arg.cholesky_nested_matrix(); }] { return f(); }},
+        synchronization_direction {arg.synchronization_direction},
+        synchronize_forward {arg.synchronize_forward},
+        synchronize_reverse {arg.synchronize_reverse},
+        mark_nested_matrix_changed {arg.mark_nested_matrix_changed}
+        {}
 
 
-    /// Construct from another covariance that stores a distinct apparent nested matrix (nested matrix is not an lvalue ref).
+    /**
+     * \brief Construct from a \ref covariance_nestable.
+     */
 #ifdef __cpp_concepts
-    template<covariance Arg> requires
-      (not ((self_adjoint_matrix<nested_matrix_t<Arg>> and not square_root_covariance<Arg>) or
-        (triangular_matrix<nested_matrix_t<Arg>> and square_root_covariance<Arg>))) and
-      (not (internal::contains_nested_lvalue_reference<Arg> or
-        internal::contains_nested_lvalue_reference<nested_matrix_t<Arg>>))
+    template<covariance_nestable Arg> requires std::is_constructible_v<Base, Arg> and std::is_constructible_v<Base, Arg>
 #else
-    template<typename Arg, std::enable_if_t<covariance<Arg> and not
-      ((self_adjoint_matrix<nested_matrix_t<Arg>> and not square_root_covariance<Arg>) or
-        (triangular_matrix<nested_matrix_t<Arg>> and square_root_covariance<Arg>)) and not
-      (internal::contains_nested_lvalue_reference<Arg> or
-        internal::contains_nested_lvalue_reference<nested_matrix_t<Arg>>), int> = 0>
+    template<typename Arg, std::enable_if_t<covariance_nestable<Arg> and std::is_constructible_v<Base, Arg> and
+      std::is_constructible_v<Base, Arg>, int> = 0>
 #endif
-    CovarianceBase(Arg&& arg) noexcept
-      : Base(std::forward<Arg>(arg)), apparent_nested_linked(true), synchronized(&arg.synchronized) {}
-
-
-    /// Construct from another covariance that stores a distinct apparent nested matrix (nested matrix is an lvalue ref).
-#ifdef __cpp_concepts
-    template<covariance Arg> requires
-      (not ((self_adjoint_matrix<nested_matrix_t<Arg>> and not square_root_covariance<Arg>) or
-        (triangular_matrix<nested_matrix_t<Arg>> and square_root_covariance<Arg>))) and
-      (internal::contains_nested_lvalue_reference<Arg> or
-        internal::contains_nested_lvalue_reference<nested_matrix_t<Arg>>)
-#else
-    template<typename Arg, std::enable_if_t<covariance<Arg> and not
-      ((self_adjoint_matrix<nested_matrix_t<Arg>> and not square_root_covariance<Arg>) or
-        (triangular_matrix<nested_matrix_t<Arg>> and square_root_covariance<Arg>)) and
-      (internal::contains_nested_lvalue_reference<Arg> or
-        internal::contains_nested_lvalue_reference<nested_matrix_t<Arg>>), int> = 0>
-#endif
-    CovarianceBase(Arg&& arg) noexcept
-      : Base(std::forward<Arg>(arg)), apparent_nested_linked(true), synchronized(arg.synchronized) {}
-
-
-    ~CovarianceBase()
-    {
-      if (not apparent_nested_linked)
-      {
-        delete synchronized;
-      }
-    }
+    explicit CovarianceBase(Arg&& arg) noexcept
+      : Base {std::forward<Arg>(arg)},
+        cholesky_nested {[&n = Base::nested_matrix()] {
+          if constexpr (square_root_covariance<Derived>) return Cholesky_square(n);
+          else return Cholesky_factor(n);
+        }},
+        synchronization_direction {[] { return 0; }},
+        synchronize_forward {[] {}},
+        synchronize_reverse {[] {}},
+        mark_nested_matrix_changed {[] {}}
+        {}
 
 
     /// Copy assignment operator.
@@ -211,7 +442,7 @@ namespace OpenKalman::internal
       if constexpr (not zero_matrix<NestedMatrix> and not identity_matrix<NestedMatrix>) if (this != &other)
       {
         Base::operator=(other);
-        if (apparent_nested_linked) *synchronized = false;
+        mark_nested_matrix_changed();
       }
       return *this;
     }
@@ -223,244 +454,452 @@ namespace OpenKalman::internal
       if constexpr (not zero_matrix<NestedMatrix> and not identity_matrix<NestedMatrix>) if (this != &other)
       {
         Base::operator=(std::move(other));
-        if (apparent_nested_linked) *synchronized = false;
+        mark_nested_matrix_changed();
       }
       return *this;
     }
 
 
-    /// Assign from a covariance_nestable or typed_matrix_nestable.
+    /**
+     * \internal
+     * \brief Assign from another \ref covariance or a \ref covariance_nestable.
+     */
 #ifdef __cpp_concepts
-    template<typename Arg> requires (covariance_nestable<Arg> or typed_matrix_nestable<Arg>) and
-      std::is_assignable_v<NestedMatrix, Arg&&>
+    template<typename Arg> requires (covariance<Arg> or covariance_nestable<Arg>) and
+      (not std::derived_from<std::decay_t<Arg>, CovarianceBase>)
 #else
-    template<typename Arg, std::enable_if_t<(covariance_nestable<Arg> or typed_matrix_nestable<Arg>) and
-      std::is_assignable_v<NestedMatrix, Arg&&>, int> = 0>
+    template<typename Arg, std::enable_if_t<(covariance<Arg> or covariance_nestable<Arg>) and
+      (not std::is_base_of_v<CovarianceBase, std::decay_t<Arg>>), int> = 0>
 #endif
     auto& operator=(Arg&& arg) noexcept
     {
-      if constexpr (zero_matrix<NestedMatrix>)
-      {
-        static_assert(zero_matrix<Arg>);
-      }
-      else if constexpr (identity_matrix<NestedMatrix>)
-      {
-        static_assert(identity_matrix<Arg>);
-      }
-      else
-      {
-        Base::operator=(std::forward<Arg>(arg));
-        if (apparent_nested_linked) *synchronized = false;
-      }
+      Base::operator=(to_covariance_nestable<NestedMatrix>(std::forward<Arg>(arg)));
+      mark_nested_matrix_changed();
       return *this;
     }
 
 
+    /**
+     * \brief Get or set element (i, j) of the covariance matrix.
+     * \param i The row.
+     * \param j The column.
+     * \return An ElementSetter object.
+     */
     auto operator() (std::size_t i, std::size_t j)
     {
-      if constexpr (element_settable<Derived, 2>)
-        return ElementSetter(nested_matrix(), i, j, [] {}, [this] { if (apparent_nested_linked) *synchronized = false; });
+      if constexpr (element_settable<NestedMatrix, 2>)
+        return ElementSetter(Base::nested_matrix(), i, j,
+          [this] { if (synchronization_direction() < 0) synchronize_reverse(); },
+          [this] { mark_nested_matrix_changed(); });
       else
-        return make_ElementSetter<true>(nested_matrix(), i, j);
+        return make_ElementSetter<true>(Base::nested_matrix(), i, j);
     }
 
 
+    /// \overload
     auto operator() (std::size_t i, std::size_t j) const
     {
-      return make_ElementSetter<true>(nested_matrix(), i, j);
+      return make_ElementSetter<true>(Base::nested_matrix(), i, j);
     }
 
 
+    /**
+     * \brief Get or set element i of the covariance matrix, if it is a vector.
+     * \param i The row.
+     * \param j The column.
+     * \return An ElementSetter object.
+     */
     auto operator[] (std::size_t i)
     {
-      if constexpr (element_settable<Derived, 1>)
-        return ElementSetter(nested_matrix(), i, [] {}, [this] { if (apparent_nested_linked) *synchronized = false; });
+      if constexpr (element_settable<NestedMatrix, 1>)
+        return ElementSetter(Base::nested_matrix(), i,
+          [this] { if (synchronization_direction() < 0) synchronize_reverse(); },
+          [this] { mark_nested_matrix_changed(); });
       else
-        return make_ElementSetter<true>(nested_matrix(), i);
+        return make_ElementSetter<true>(Base::nested_matrix(), i);
     }
 
-
+    /// \overload
     auto operator[] (std::size_t i) const
     {
-      return make_ElementSetter<true>(nested_matrix(), i);
+      return make_ElementSetter<true>(Base::nested_matrix(), i);
     }
 
-
+    /// \overload
     auto operator() (std::size_t i) { return operator[](i); }
 
-
+    /// \overload
     auto operator() (std::size_t i) const { return operator[](i); }
 
 
-    /// Get the apparent nested matrix.
-    constexpr auto& get_apparent_nested_matrix() & { return nested_matrix(); }
+    /**
+     * \brief Set an element of the cholesky nested matrix.
+     */
+    void set_element(const Scalar s, const std::size_t i, const std::size_t j)
+    {
+      OpenKalman::set_element(Base::nested_matrix(), s, i, j);
+      mark_nested_matrix_changed();
+    }
 
 
-    /// Get the apparent nested matrix.
-    constexpr auto&& get_apparent_nested_matrix() && { return std::move(nested_matrix()); }
-
-
-    /// Get the apparent nested matrix.
-    constexpr const auto& get_apparent_nested_matrix() const & { return nested_matrix(); }
-
-
-    /// Get the apparent nested matrix.
-    constexpr const auto&& get_apparent_nested_matrix() const && { return std::move(nested_matrix()); }
-
-
-  protected:
-    constexpr void mark_changed() const {}
+    /**
+     * \brief Set an element of the cholesky nested matrix.
+     */
+    void set_element(const Scalar s, const std::size_t i)
+    {
+      OpenKalman::set_element(Base::nested_matrix(), s, i);
+      mark_nested_matrix_changed();
+    }
 
   };
 
 
-  // ============================================================================
-  /*
+  // ======================================CASE 3======================================
+  /**
    * \internal
-   * Base of Covariance and SquareRootCovariance classes, if ArgType is not an lvalue reference, and
-   * # Derived is a square root and the nested matrix is not triangular (i.e., it is self-adjoint but not diagonal); or
-   * # Derived is not a square root and the nested matrix is not self-adjoint (i.e., it is triangular but not diagonal).
+   * \anchor CovarianceBaseCase3
+   * \brief Base of Covariance and SquareRootCovariance classes (Case 3).
+   * \details This specialization is operative if ArgType is self-contained and
+   * # Derived is a square root or NestedMatrix is not self-adjoint; and
+   * # Derived is not a square root or NestedMatrix is not triangular.
+   * In this case, NestedMatrix and the cholesky nested matrix are different.
    */
 #ifdef __cpp_concepts
-  template<typename Derived, typename ArgType> requires
-    (square_root_covariance<Derived> or not self_adjoint_matrix<ArgType>) and
-    (not square_root_covariance<Derived> or not triangular_matrix<ArgType>) and
-    (not std::is_lvalue_reference_v<ArgType>) and
-    (not internal::contains_nested_lvalue_reference<ArgType>)
-  struct CovarianceBase<Derived, ArgType>
+  template<typename Derived, typename NestedMatrix> requires
+    (not case1or2<Derived, NestedMatrix>) and self_contained<NestedMatrix>
+  struct CovarianceBase<Derived, NestedMatrix>
 #else
-  template<typename Derived, typename ArgType>
-  struct CovarianceBase<Derived, ArgType, std::enable_if_t<
-    (square_root_covariance<Derived> or not self_adjoint_matrix<ArgType>) and
-    (not square_root_covariance<Derived> or not triangular_matrix<ArgType>) and
-    (not std::is_lvalue_reference_v<ArgType>) and
-    (not internal::contains_nested_lvalue_reference<ArgType>)>>
+  template<typename Derived, typename NestedMatrix>
+  struct CovarianceBase<Derived, NestedMatrix, std::enable_if_t<
+    (not case1or2<Derived, NestedMatrix>) and self_contained<NestedMatrix>>>
 #endif
-  : MatrixBase<Derived, ArgType>
+    : MatrixBase<Derived, NestedMatrix>
   {
-    using NestedMatrix = ArgType;
+  private:
+
     using Base = MatrixBase<Derived, NestedMatrix>;
-    using Base::nested_matrix;
+
     using Scalar = typename MatrixTraits<NestedMatrix>::Scalar;
 
+  protected:
+
+    using CholeskyNestedMatrix = std::conditional_t<triangular_matrix<NestedMatrix>,
+      typename MatrixTraits<NestedMatrix>::template SelfAdjointMatrixFrom<>,
+      typename MatrixTraits<NestedMatrix>::template TriangularMatrixFrom<>>;
+
   private:
-    using ApparentNestedMatrix = std::conditional_t<triangular_matrix<NestedMatrix>,
-      typename MatrixTraits<NestedMatrix>::template SelfAdjointBaseType<>,
-      typename MatrixTraits<NestedMatrix>::template TriangularBaseType<>>;
 
-    mutable bool synchronized;
+    // The cholesky nested matrix one would expect given whether the covariance is a square root.
+    mutable CholeskyNestedMatrix cholesky_nested;
 
-    mutable ApparentNestedMatrix apparent_nested_matrix; ///< The apparent nested matrix for Covariance or SquareRootCovariance.
+    // The synchronization state. 0 == synchronized, 1 = forward, -1 = reverse.
+    mutable int synch_direction;
 
-    void synchronize() const
+    using MutableNestedMatrix = std::conditional_t<std::is_reference_v<NestedMatrix>, NestedMatrix,
+      std::remove_const_t<NestedMatrix>>;
+
+    // Get a mutable version of the nested matrix.
+    auto& mutable_nested_matrix() const &
     {
-      if constexpr(square_root_covariance<Derived>)
-        apparent_nested_matrix = Cholesky_factor(nested_matrix());
-      else
-        apparent_nested_matrix = Cholesky_square(nested_matrix());
-      synchronized = true;
+      return const_cast<std::add_lvalue_reference_t<MutableNestedMatrix>>(Base::nested_matrix());
     }
+
+    auto&& mutable_nested_matrix() const &&
+    {
+      return const_cast<std::add_rvalue_reference_t<MutableNestedMatrix>>(std::move(Base::nested_matrix()));
+    }
+
+    static constexpr bool nested_is_modifiable = modifiable<MutableNestedMatrix, NestedMatrix> and
+      std::is_default_constructible_v<MutableNestedMatrix>;
+
+#ifdef __cpp_concepts
+    template<typename, typename>
+    friend struct internal::CovarianceBase;
+#else
+    template<typename, typename, typename>
+    friend struct internal::CovarianceBase;
+#endif
+
+  protected:
+
+    /**
+     * \internal
+     * \brief The cholesky nested matrix: self-adjoint if Covariance, triangular if SquareRootCovariance
+     */
+    CholeskyNestedMatrix& cholesky_nested_matrix() & { return cholesky_nested; }
+
+    /// \overload
+    CholeskyNestedMatrix&& cholesky_nested_matrix() && { return std::move(cholesky_nested); }
+
+    /// \overload
+    const CholeskyNestedMatrix& cholesky_nested_matrix() const & { return cholesky_nested; }
+
+    /// \overload
+    const CholeskyNestedMatrix&& cholesky_nested_matrix() const && { return std::move(cholesky_nested); }
+
+
+    /**
+     * \internal
+     * \brief The synchronization direction. 0 == synchronized, 1 = forward, -1 = reverse.
+     */
+    const std::function<int()> synchronization_direction = [this] { return synch_direction; };
+
+
+    /**
+     * \internal
+     * \brief Synchronize from nested_matrix to cholesky_nested_matrix.
+     */
+    const std::function<void()> synchronize_forward = [this] {
+      cholesky_nested = to_covariance_nestable<CholeskyNestedMatrix>(Base::nested_matrix());
+      synch_direction = 0;
+    };
+
+
+    /**
+     * \internal
+     * \brief Synchronize from cholesky_nested_matrix to nested_matrix.
+     */
+    const std::function<void()> synchronize_reverse = [this] {
+      if constexpr (nested_is_modifiable)
+      {
+        mutable_nested_matrix() = to_covariance_nestable<NestedMatrix>(cholesky_nested);
+      }
+      else throw std::logic_error {"Case 3 synchronize_reverse: NestedMatrix is not modifiable."};
+      synch_direction = 0;
+    };
+
+
+    /**
+     * \internal
+     * \brief Indicate that the nested matrix has changed.
+     */
+    const std::function<void()> mark_nested_matrix_changed = [this] { synch_direction = 1; };
+
+
+    /**
+     * \internal
+     * \brief Indicate that the cholesky nested matrix has changed.
+     */
+    const std::function<void()> mark_cholesky_nested_matrix_changed = [this] { synch_direction = -1; };
+
+
+    /**
+     * \internal
+     * \brief Indicate that the covariance is synchronized.
+     */
+    const std::function<void()> mark_synchronized = [this] { synch_direction = 0; };
+
 
   public:
     /// Default constructor.
-    CovarianceBase() : synchronized() {}
+#ifdef __cpp_concepts
+    CovarianceBase() requires std::default_initializable<Base>
+#else
+    template<typename T = Base, std::enable_if_t<std::is_default_constructible_v<T>, int> = 0>
+    CovarianceBase()
+#endif
+      : Base {}, synch_direction {} {}
+
 
     /// Copy constructor.
     CovarianceBase(const CovarianceBase& other)
-      : Base(other),
-        synchronized(other.synchronized),
-        apparent_nested_matrix(other.apparent_nested_matrix) {}
+      : Base {other},
+        cholesky_nested {other.cholesky_nested},
+        synch_direction {other.synch_direction} {}
 
 
     /// Move constructor.
     CovarianceBase(CovarianceBase&& other) noexcept
-      : Base(std::move(other.nested_matrix())),
-        synchronized(other.synchronized),
-        apparent_nested_matrix(std::move(other.apparent_nested_matrix)) {}
+      : Base {std::move(other)},
+        cholesky_nested {std::move(other.cholesky_nested)},
+        synch_direction {other.synch_direction} {}
 
 
-    /// Construct from a general covariance type. Argument matches apparent nested matrix.
+    /**
+     * \brief Construct from another \ref covariance.
+     * \details This overload is operative if Arg's nested matrix and its cholesky nested matrix are the same.
+     * In other words, Arg is a \ref CovarianceBaseCase3 "Case 3" or \ref CovarianceBaseCase4 "Case 4" covariance.
+     */
 #ifdef __cpp_concepts
     template<covariance Arg> requires
-      ((cholesky_form<Arg> or (diagonal_matrix<Arg> and square_root_covariance<Arg>)) ==
-        square_root_covariance<Derived>) and
-      internal::same_triangle_type_as<nested_matrix_t<Arg>, ApparentNestedMatrix>
+      (not std::derived_from<std::decay_t<Arg>, CovarianceBase>) and (not case1or2<Arg>) and
+      std::is_constructible_v<Base, decltype(to_covariance_nestable<NestedMatrix>(std::declval<Arg>()))>
 #else
     template<typename Arg, std::enable_if_t<covariance<Arg> and
-      ((cholesky_form<Arg> or (diagonal_matrix<Arg> and square_root_covariance<Arg>)) ==
-        square_root_covariance<Derived>) and
-      internal::same_triangle_type_as<nested_matrix_t<Arg>, ApparentNestedMatrix>, int> = 0>
+      (not std::is_base_of_v<CovarianceBase, std::decay_t<Arg>>) and (not case1or2<Arg>) and
+      std::is_constructible_v<Base, NestedMatrix&&>, int> = 0>
+        // std::is_constructible_v cannot be used here with to_covariance_nestable.
 #endif
     CovarianceBase(Arg&& arg) noexcept
-      : Base(internal::convert_nested_matrix<NestedMatrix>(arg)),
-        synchronized(true),
-        apparent_nested_matrix(std::forward<Arg>(arg).nested_matrix()) {}
+      : Base {to_covariance_nestable<NestedMatrix>(arg)},
+        cholesky_nested {to_covariance_nestable<CholeskyNestedMatrix>(std::forward<Arg>(arg))},
+        synch_direction {0} {}
 
 
-    /// Construct from a general covariance type. Argument matches kind of apparent nested matrix, but not upper/lower.
+    /**
+     * \brief Construct from another \ref covariance.
+     * \details This overload is operative if Arg's nested matrix is the same as its cholesky nested matrix
+     * as well as NestedMatrix. This only occurs when constructing the square or square_root of a matrix.
+     * In other words, Arg is a \ref CovarianceBaseCase1 "Case 1" or \ref CovarianceBaseCase2 "Case 2" covariance.
+     */
 #ifdef __cpp_concepts
-    template<covariance Arg> requires
-      ((cholesky_form<Arg> or (diagonal_matrix<Arg> and square_root_covariance<Arg>)) == square_root_covariance<Derived>) and
-      (not internal::same_triangle_type_as<nested_matrix_t<Arg>, ApparentNestedMatrix>)
+    template<covariance Arg> requires case1or2<Arg> and
+      (triangular_matrix<nested_matrix_t<Arg>> == triangular_matrix<NestedMatrix>) and (not diagonal_matrix<Arg>) and
+      std::is_constructible_v<Base, decltype(to_covariance_nestable<NestedMatrix>(std::declval<Arg>()))>
 #else
-    template<typename Arg, std::enable_if_t<covariance<Arg> and
-      ((cholesky_form<Arg> or (diagonal_matrix<Arg> and square_root_covariance<Arg>)) == square_root_covariance<Derived>) and
-      (not internal::same_triangle_type_as<nested_matrix_t<Arg>, ApparentNestedMatrix>), int> = 0>
+    template<typename Arg, std::enable_if_t<covariance<Arg> and case1or2<Arg> and
+      (triangular_matrix<nested_matrix_t<Arg>> == triangular_matrix<NestedMatrix>) and
+      (not diagonal_matrix<Arg>) and
+      std::is_constructible_v<Base, NestedMatrix&&>, int> = 0>
+        // std::is_constructible_v cannot be used here with to_covariance_nestable.
 #endif
     CovarianceBase(Arg&& arg) noexcept
-      : Base(internal::convert_nested_matrix<NestedMatrix>(arg)),
-        synchronized(true),
-        apparent_nested_matrix(adjoint(std::forward<Arg>(arg).nested_matrix())) {}
+      : Base {to_covariance_nestable<NestedMatrix>(std::forward<Arg>(arg))},
+        cholesky_nested {},
+        synch_direction {1} {}
 
 
-    /// Construct from a general covariance type. Argument does not match apparent nested matrix.
+    /**
+     * \brief Construct from another \ref covariance.
+     * \details This overload is operative if Arg's nested matrix is the same as its cholesky nested matrix
+     * but not NestedMatrix.
+     * In other words, Arg is a \ref CovarianceBaseCase1 "Case 1" or \ref CovarianceBaseCase2 "Case 2" covariance.
+     */
 #ifdef __cpp_concepts
-    template<covariance Arg> requires
-      ((cholesky_form<Arg> or (diagonal_matrix<Arg> and square_root_covariance<Arg>)) != square_root_covariance<Derived>)
+    template<covariance Arg> requires case1or2<Arg> and
+      (triangular_matrix<nested_matrix_t<Arg>> != triangular_matrix<NestedMatrix> or diagonal_matrix<Arg>) and
+      std::is_constructible_v<Base, NestedMatrix&&>
 #else
-    template<typename Arg, std::enable_if_t<covariance<Arg> and
-      (cholesky_form<Arg> or (diagonal_matrix<Arg> and square_root_covariance<Arg>)) != square_root_covariance<Derived>, int> = 0>
+    template<typename Arg, std::enable_if_t<covariance<Arg> and case1or2<Arg> and
+      (triangular_matrix<nested_matrix_t<Arg>> != triangular_matrix<NestedMatrix> or diagonal_matrix<Arg>) and
+      std::is_constructible_v<Base, NestedMatrix&&>, int> = 0>
 #endif
     CovarianceBase(Arg&& arg) noexcept
-      : Base(internal::convert_nested_matrix<NestedMatrix>(std::forward<Arg>(arg))),
-        synchronized(false) {}
+      : Base {[&] {
+          if constexpr (nested_is_modifiable) return NestedMatrix {};
+          else return NestedMatrix {to_covariance_nestable<NestedMatrix>(arg)};
+          }()},
+        cholesky_nested {to_covariance_nestable<CholeskyNestedMatrix>(std::forward<Arg>(arg))},
+        synch_direction {nested_is_modifiable ? -1 : 0} {}
 
 
-    /// Construct from a covariance nested matrix.
+    /**
+     * \brief Construct from a \ref covariance_nestable of matching triangle/self-adjoint type.
+     */
 #ifdef __cpp_concepts
-    template<covariance_nestable Arg>
+    template<covariance_nestable Arg> requires
+      (triangular_matrix<Arg> == triangular_matrix<NestedMatrix>) and (not diagonal_matrix<Arg>) and
+      std::is_constructible_v<Base, decltype(to_covariance_nestable<NestedMatrix>(std::declval<Arg>()))>
 #else
-    template<typename Arg, std::enable_if_t<covariance_nestable<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<covariance_nestable<Arg> and
+      (triangular_matrix<Arg> == triangular_matrix<NestedMatrix>) and (not diagonal_matrix<Arg>) and
+      std::is_constructible_v<Base, NestedMatrix&&>, int> = 0>
+        // std::is_constructible_v cannot be used here with to_covariance_nestable.
 #endif
-    CovarianceBase(Arg&& arg) noexcept
-      : Base(std::forward<Arg>(arg)),
-        synchronized(false) {}
+    explicit CovarianceBase(Arg&& arg) noexcept
+      : Base {to_covariance_nestable<NestedMatrix>(std::forward<Arg>(arg))},
+        cholesky_nested {},
+        synch_direction {1} {}
+
+
+    /**
+     * \brief Construct from a \ref covariance_nestable of non-matching triangle/self-adjoint type.
+     */
+#ifdef __cpp_concepts
+    template<covariance_nestable Arg> requires
+      (triangular_matrix<Arg> != triangular_matrix<NestedMatrix> or diagonal_matrix<Arg>) and
+      std::is_constructible_v<Base, NestedMatrix&&>
+#else
+    template<typename Arg, std::enable_if_t<covariance_nestable<Arg> and
+      (triangular_matrix<Arg> != triangular_matrix<NestedMatrix> or diagonal_matrix<Arg>) and
+      std::is_constructible_v<Base, NestedMatrix&&>, int> = 0>
+#endif
+    explicit CovarianceBase(Arg&& arg) noexcept
+      : Base {[&] {
+          if constexpr (nested_is_modifiable) return NestedMatrix {};
+          else return NestedMatrix {to_covariance_nestable<NestedMatrix>(arg)};
+        }()},
+        cholesky_nested {to_covariance_nestable<CholeskyNestedMatrix>(std::forward<Arg>(arg))},
+        synch_direction {nested_is_modifiable ? -1 : 0} {}
+
 
     /// Copy assignment operator.
     auto& operator=(const CovarianceBase& other)
     {
       if constexpr (not zero_matrix<NestedMatrix> and not identity_matrix<NestedMatrix>) if (this != &other)
       {
-        synchronized = other.synchronized;
-        if (synchronized) apparent_nested_matrix = other.apparent_nested_matrix;
-        Base::operator=(other).nested_matrix();
+        if (synch_direction >= 0) Base::nested_matrix() = other.nested_matrix();
+        if (synch_direction <= 0) cholesky_nested = other.cholesky_nested_matrix();
+        synch_direction = other.synch_direction;
       }
       return *this;
     }
+
 
     /// Move assignment operator.
     auto& operator=(CovarianceBase&& other) noexcept
     {
       if constexpr (not zero_matrix<NestedMatrix> and not identity_matrix<NestedMatrix>) if (this != &other)
       {
-        synchronized = other.synchronized;
-        if (synchronized) apparent_nested_matrix = std::move(other.apparent_nested_matrix);
-        Base::operator=(std::move(other).nested_matrix());
+        if (synch_direction >= 0) Base::nested_matrix() = std::move(other.nested_matrix());
+        if (synch_direction <= 0) cholesky_nested = std::move(other.cholesky_nested_matrix());
+        synch_direction = other.synch_direction;
       }
       return *this;
     }
 
-    /// Assign from a covariance_nestable.
+
+    /**
+     * \internal
+     * \brief Assign from another \ref covariance.
+     */
+#ifdef __cpp_concepts
+    template<covariance Arg> requires (not std::derived_from<std::decay_t<Arg>, CovarianceBase>)
+#else
+    template<typename Arg, std::enable_if_t<covariance<Arg> and
+      (not std::is_base_of_v<CovarianceBase, std::decay_t<Arg>>), int> = 0>
+#endif
+    auto& operator=(Arg&& arg) noexcept
+    {
+      if constexpr(not (zero_matrix<nested_matrix_t<Arg>> and zero_matrix<NestedMatrix>) and
+        not (identity_matrix<nested_matrix_t<Arg>> and identity_matrix<NestedMatrix>))
+      {
+        if constexpr (case1or2<Arg>)
+        {
+          // Arg is Case 1 or 2
+          if constexpr (triangular_matrix<nested_matrix_t<Arg>> == triangular_matrix<NestedMatrix> and
+            not diagonal_matrix<Arg>)
+          {
+            Base::nested_matrix() = to_covariance_nestable<NestedMatrix>(std::forward<Arg>(arg));
+            mark_nested_matrix_changed();
+          }
+          else
+          {
+            cholesky_nested = to_covariance_nestable<CholeskyNestedMatrix>(std::forward<Arg>(arg));
+            mark_cholesky_nested_matrix_changed();
+          }
+        }
+        else
+        {
+          // Arg is Case 3 or 4
+          if (synch_direction >= 0)
+          {
+            Base::nested_matrix() = to_covariance_nestable<NestedMatrix>(std::forward<Arg>(arg));
+          }
+          if (synch_direction <= 0)
+          {
+            cholesky_nested = to_covariance_nestable<CholeskyNestedMatrix>(std::forward<Arg>(arg));
+          }
+          synch_direction = arg.synchronization_direction();
+        }
+      }
+      return *this;
+    }
+
+
+    /**
+     * \brief Assign from a \ref covariance_nestable.
+     */
 #ifdef __cpp_concepts
     template<covariance_nestable Arg>
 #else
@@ -468,230 +907,340 @@ namespace OpenKalman::internal
 #endif
     auto& operator=(Arg&& arg) noexcept
     {
-      if constexpr (zero_matrix<NestedMatrix>)
+      if constexpr(not (zero_matrix<Arg> and zero_matrix<NestedMatrix>) and
+        not (identity_matrix<Arg> and identity_matrix<NestedMatrix>))
       {
-        static_assert(zero_matrix<Arg>);
-      }
-      else if constexpr (identity_matrix<NestedMatrix>)
-      {
-        static_assert(identity_matrix<Arg>);
-      }
-      else
-      {
-        Base::operator=(std::forward<Arg>(arg));
-        synchronized = false;
+        if constexpr(triangular_matrix<Arg> == triangular_matrix<NestedMatrix> and not diagonal_matrix<Arg>)
+        {
+          Base::nested_matrix() = to_covariance_nestable<NestedMatrix>(std::forward<Arg>(arg));
+          mark_nested_matrix_changed();
+        }
+        else
+        {
+          cholesky_nested = to_covariance_nestable<CholeskyNestedMatrix>(std::forward<Arg>(arg));
+          mark_cholesky_nested_matrix_changed();
+        }
       }
       return *this;
     }
 
+
+    /**
+     * \brief Get or set element (i, j) of the covariance matrix.
+     * \param i The row.
+     * \param j The column.
+     * \return An ElementSetter object.
+     */
     auto operator() (std::size_t i, std::size_t j)
     {
-      if constexpr(element_settable<Derived, 2>)
-        return ElementSetter(
-          apparent_nested_matrix,
-          i, j,
-          [this] { if (not synchronized) synchronize(); },
-          [this]
-          {
-            if constexpr(square_root_covariance<Derived>)
-              nested_matrix() = Cholesky_square(apparent_nested_matrix);
-            else
-              nested_matrix() = Cholesky_factor(apparent_nested_matrix);
-          });
+      if constexpr(element_settable<CholeskyNestedMatrix, 2>)
+        return ElementSetter(cholesky_nested, i, j,
+          [this] { if (synch_direction > 0) synchronize_forward(); },
+          [this] { mark_cholesky_nested_matrix_changed(); });
       else
-        return make_ElementSetter<true>(apparent_nested_matrix, i, j, [] {}, [this] { if (not synchronized) synchronize(); });
+        return make_ElementSetter<true>(cholesky_nested_matrix(), i, j,
+          [this] { if (synch_direction > 0) synchronize_forward(); });
     }
 
+    /// \overload
     auto operator() (std::size_t i, std::size_t j) const
     {
-      return make_ElementSetter<true>(apparent_nested_matrix, i, j, [] {}, [this] { if (not synchronized) synchronize(); });
-    }
-
-    decltype(auto) operator[](std::size_t i) const = delete;
-
-    decltype(auto) operator()(std::size_t i) const = delete;
-
-
-    /// Get the apparent nested matrix.
-    constexpr auto& get_apparent_nested_matrix() &
-    {
-      if (not synchronized) synchronize();
-      return apparent_nested_matrix;
+      return make_ElementSetter<true>(cholesky_nested, i, j,
+        [this] { if (synch_direction > 0) synchronize_forward(); });
     }
 
 
-    /// Get the apparent nested matrix.
-    constexpr auto&& get_apparent_nested_matrix() &&
+    /**
+     * \brief Get or set element i of the covariance matrix.
+     * \param i The row.
+     * \return An ElementSetter object.
+     */
+    auto operator[] (std::size_t i)
     {
-      if (not synchronized) synchronize();
-      return std::move(apparent_nested_matrix);
+      if constexpr(element_settable<CholeskyNestedMatrix, 1>)
+        return ElementSetter(cholesky_nested, i,
+          [this] { if (synch_direction > 0) synchronize_forward(); },
+          [this] { mark_cholesky_nested_matrix_changed(); });
+      else
+        return make_ElementSetter<true>(cholesky_nested, i,
+          [this] { if (synch_direction > 0) synchronize_forward(); });
+    }
+
+    /// \overload
+    auto operator[] (std::size_t i) const
+    {
+      return make_ElementSetter<true>(cholesky_nested, i,
+        [this] { if (synch_direction > 0) synchronize_forward(); });
+    }
+
+    /// \overload
+    auto operator() (std::size_t i) { return operator[](i); }
+
+    /// \overload
+    auto operator() (std::size_t i) const { return operator[](i); }
+
+
+    /**
+     * \brief Set an element of the cholesky nested matrix.
+     */
+    void set_element(const Scalar s, const std::size_t i, const std::size_t j)
+    {
+      if (synch_direction > 0) synchronize_forward();
+      OpenKalman::set_element(cholesky_nested, s, i, j);
+      mark_cholesky_nested_matrix_changed();
     }
 
 
-    /// Get the apparent nested matrix.
-    constexpr const auto& get_apparent_nested_matrix() const &
+    /**
+     * \brief Set an element of the cholesky nested matrix.
+     */
+    void set_element(const Scalar s, const std::size_t i)
     {
-      if (not synchronized) synchronize();
-      return apparent_nested_matrix;
-    }
-
-
-    /// Get the apparent nested matrix.
-    constexpr const auto&& get_apparent_nested_matrix() const &&
-    {
-      if (not synchronized) synchronize();
-      return std::move(apparent_nested_matrix);
-    }
-
-
-  protected:
-#ifdef __cpp_concepts
-    template<typename, typename>
-#else
-    template<typename, typename, typename>
-#endif
-    friend struct CovarianceBase;
-
-
-    void mark_changed()
-    {
-      synchronized = false;
+      if (synch_direction > 0) synchronize_forward();
+      OpenKalman::set_element(cholesky_nested, s, i);
+      mark_cholesky_nested_matrix_changed();
     }
 
   };
 
 
-  // ============================================================================
+  // ======================================CASE 4======================================
   /*
    * \internal
-   * Base of Covariance and SquareRootCovariance classes, if ArgType is an lvalue reference, and
-   * # Derived is a square root and the nested matrix is not triangular (i.e., it is self-adjoint but not diagonal); or
-   * # Derived is not a square root and the nested matrix is not self-adjoint (i.e., it is triangular but not diagonal).
+   * \anchor CovarianceBaseCase4
+   * \brief Base of Covariance and SquareRootCovariance classes (Case 4).
+   * \details This specialization is operative if NestedMatrix is not self-contained and
+   * # Derived is a square root or NestedMatrix is not self-adjoint; and
+   * # Derived is not a square root or NestedMatrix is not triangular.
+   * In this case, NestedMatrix and the cholesky nested matrix are different.
    */
 #ifdef __cpp_concepts
-  template<typename Derived, typename ArgType> requires
-    (square_root_covariance<Derived> or not self_adjoint_matrix<ArgType>) and
-    (not square_root_covariance<Derived> or not triangular_matrix<ArgType>) and
-    (std::is_lvalue_reference_v<ArgType> or internal::contains_nested_lvalue_reference<ArgType>)
-  struct CovarianceBase<Derived, ArgType>
+  template<typename Derived, typename NestedMatrix> requires
+    (not case1or2<Derived, NestedMatrix>) and (not self_contained<NestedMatrix>)
+  struct CovarianceBase<Derived, NestedMatrix>
 #else
-  template<typename Derived, typename ArgType>
-  struct CovarianceBase<Derived, ArgType, std::enable_if_t<
-    (square_root_covariance<Derived> or not self_adjoint_matrix<ArgType>) and
-    (not square_root_covariance<Derived> or not triangular_matrix<ArgType>) and
-    (std::is_lvalue_reference_v<ArgType> or internal::contains_nested_lvalue_reference<ArgType>)>>
+  template<typename Derived, typename NestedMatrix>
+  struct CovarianceBase<Derived, NestedMatrix, std::enable_if_t<
+    (not case1or2<Derived, NestedMatrix>) and (not self_contained<NestedMatrix>)>>
 #endif
-  : MatrixBase<Derived, ArgType>
+  : MatrixBase<Derived, NestedMatrix>
   {
-    using NestedMatrix = ArgType;
+  private:
+
     using Base = MatrixBase<Derived, NestedMatrix>;
-    using Base::nested_matrix;
+
     using Scalar = typename MatrixTraits<NestedMatrix>::Scalar;
 
+  protected:
+
+    using CholeskyNestedMatrix = std::conditional_t<triangular_matrix<NestedMatrix>,
+      typename MatrixTraits<NestedMatrix>::template SelfAdjointMatrixFrom<>,
+      typename MatrixTraits<NestedMatrix>::template TriangularMatrixFrom<>>;
+
   private:
-    using ApparentNestedMatrix = std::conditional_t<triangular_matrix<NestedMatrix>,
-      typename MatrixTraits<NestedMatrix>::template SelfAdjointBaseType<>,
-      typename MatrixTraits<NestedMatrix>::template TriangularBaseType<>>;
 
-    const bool apparent_nested_linked;
+    // The cholesky nested matrix, which is self-adjoint if Covariance, triangular if SquareRootCovariance.
+    const std::function<CholeskyNestedMatrix&()> cholesky_nested;
 
-    bool * const synchronized;
+    using MutableNestedMatrix = std::conditional_t<std::is_reference_v<NestedMatrix>, NestedMatrix,
+      std::remove_const_t<NestedMatrix>>;
 
-    ApparentNestedMatrix * const apparent_nested_matrix; ///< Pointer to the apparent nested matrix in another covariance.
-
-
-    void synchronize() const
+    // Get a mutable version of the nested matrix.
+    constexpr auto& mutable_nested_matrix() const &
     {
-      if constexpr(square_root_covariance<Derived>)
-        *apparent_nested_matrix = Cholesky_factor(nested_matrix());
-      else
-        *apparent_nested_matrix = Cholesky_square(nested_matrix());
-      *synchronized = true;
+      return const_cast<std::add_lvalue_reference_t<MutableNestedMatrix>>(Base::nested_matrix());
     }
+
+    constexpr auto&& mutable_nested_matrix() const &&
+    {
+      return const_cast<std::add_rvalue_reference_t<MutableNestedMatrix>>(std::move(Base::nested_matrix()));
+    }
+
+    static constexpr bool nested_is_modifiable = modifiable<MutableNestedMatrix, NestedMatrix>;
+
+#ifdef __cpp_concepts
+    template<typename, typename>
+    friend struct internal::CovarianceBase;
+#else
+    template<typename, typename, typename>
+    friend struct internal::CovarianceBase;
+#endif
+
+  protected:
+
+    /**
+     * \internal
+     * \brief The cholesky nested matrix: self-adjoint if Covariance, triangular if SquareRootCovariance
+     */
+    CholeskyNestedMatrix& cholesky_nested_matrix() & { return cholesky_nested(); }
+
+    /// \overload
+    CholeskyNestedMatrix& cholesky_nested_matrix() && { return cholesky_nested(); }
+
+    /// \overload
+    const CholeskyNestedMatrix& cholesky_nested_matrix() const & { return cholesky_nested(); }
+
+    /// \overload
+    const CholeskyNestedMatrix& cholesky_nested_matrix() const && { return cholesky_nested(); }
+
+
+    /**
+     * \internal
+     * \brief The synchronization direction. 0 == synchronized, 1 = forward, -1 = reverse.
+     */
+    const std::function<int()> synchronization_direction;
+
+
+    /**
+     * \internal
+     * \brief Synchronize nested_matrix to cholesky_nested_matrix.
+     */
+    const std::function<void()> synchronize_forward;
+
+
+    /**
+     * \internal
+     * \brief Synchronize cholesky_nested_matrix to nested_matrix.
+     */
+    const std::function<void()> synchronize_reverse;
+
+
+    /**
+     * \internal
+     * \brief Indicate that the nested matrix has changed.
+     */
+    const std::function<void()> mark_nested_matrix_changed;
+
+
+    /**
+     * \internal
+     * \brief Indicate that the cholesky nested matrix has changed.
+     */
+    const std::function<void()> mark_cholesky_nested_matrix_changed;
+
+
+    /**
+     * \internal
+     * \brief Indicate that the covariance is synchronized.
+     */
+    const std::function<void()> mark_synchronized;
 
 
   public:
-    /// Default constructor.
-    CovarianceBase() = delete;
-
-
     /// Copy constructor.
     CovarianceBase(const CovarianceBase& other)
-      : Base(other.nested_matrix()), apparent_nested_linked(other.apparent_nested_linked),
-        synchronized(other.synchronized), apparent_nested_matrix(other.apparent_nested_matrix) {}
+      : Base {other},
+        cholesky_nested {[&ch = other.cholesky_nested()]() -> CholeskyNestedMatrix& { return ch; }},
+        synchronization_direction {other.synchronization_direction},
+        synchronize_forward {other.synchronize_forward},
+        synchronize_reverse {other.synchronize_reverse},
+        mark_nested_matrix_changed {other.mark_nested_matrix_changed},
+        mark_cholesky_nested_matrix_changed {other.mark_cholesky_nested_matrix_changed},
+        mark_synchronized {other.mark_synchronized}
+    {}
 
 
     /// Move constructor.
     CovarianceBase(CovarianceBase&& other) noexcept
-      : Base(std::move(other.nested_matrix())), apparent_nested_linked(other.apparent_nested_linked),
-        synchronized(other.synchronized), apparent_nested_matrix(std::move(other.apparent_nested_matrix)) {}
+      : Base {std::move(other)},
+        cholesky_nested {std::move(other.cholesky_nested)},
+        synchronization_direction {std::move(other.synchronization_direction)},
+        synchronize_forward {std::move(other.synchronize_forward)},
+        synchronize_reverse {std::move(other.synchronize_reverse)},
+        mark_nested_matrix_changed {std::move(other.mark_nested_matrix_changed)},
+        mark_cholesky_nested_matrix_changed {std::move(other.mark_cholesky_nested_matrix_changed)},
+        mark_synchronized {std::move(other.mark_synchronized)}
+    {}
 
 
-    /// Construct from another covariance that does not store a distinct apparent nested matrix.
+    /**
+     * \brief Construct from another \ref covariance.
+     * \details This overload is operative if Arg's nested matrix is different from its cholesky nested matrix.
+     * In other words, Arg is a \ref CovarianceBaseCase3 "Case 3" or \ref CovarianceBaseCase4 "Case 4" covariance.
+     */
 #ifdef __cpp_concepts
-    template<typename Arg> requires covariance_nestable<Arg> or (covariance<Arg> and
-        ((self_adjoint_matrix<nested_matrix_t<Arg>> and not square_root_covariance<Arg>) or
-        (triangular_matrix<nested_matrix_t<Arg>> and square_root_covariance<Arg>)))
+    template<covariance Arg> requires (not case1or2<Arg>) and
+      (not std::derived_from<std::decay_t<Arg>, CovarianceBase>) and
+      std::is_constructible_v<Base, decltype(std::declval<Arg>().nested_matrix())>
 #else
-    template<typename Arg, std::enable_if_t<covariance_nestable<Arg> or (covariance<Arg> and
-        ((self_adjoint_matrix<nested_matrix_t<Arg>> and not square_root_covariance<Arg>) or
-        (triangular_matrix<nested_matrix_t<Arg>> and square_root_covariance<Arg>))), int> = 0>
+    template<typename Arg, std::enable_if_t<covariance<Arg> and
+      (not case1or2<Arg>) and (not std::is_base_of_v<CovarianceBase, std::decay_t<Arg>>) and
+      std::is_constructible_v<Base, decltype(std::declval<Arg>().nested_matrix())>, int> = 0>
 #endif
     CovarianceBase(Arg&& arg) noexcept
-      : Base(std::forward<Arg>(arg)),
-        apparent_nested_linked(false),
-        synchronized(new bool {false}),
-        apparent_nested_matrix(new ApparentNestedMatrix) {}
+      : Base {std::forward<decltype(arg.nested_matrix())>(arg.nested_matrix())},
+        cholesky_nested {[&ch = arg.cholesky_nested_matrix()]() -> CholeskyNestedMatrix& { return ch; }},
+        synchronization_direction {arg.synchronization_direction},
+        synchronize_forward {arg.synchronize_forward},
+        synchronize_reverse {arg.synchronize_reverse},
+        mark_nested_matrix_changed {arg.mark_nested_matrix_changed},
+        mark_cholesky_nested_matrix_changed {arg.mark_cholesky_nested_matrix_changed},
+        mark_synchronized {arg.mark_synchronized}
+    {}
 
 
-    /// Construct from a covariance_nestable or another covariance that stores a distinct apparent nested matrix (nested matrix is not an lvalue ref).
+    /**
+     * \brief Construct from another \ref covariance.
+     * \details This overload is operative if Arg's nested matrix is the same kind as its cholesky nested matrix
+     * and the same as NestedMatrix. This only occurs when constructing the square or square_root of a covariance.
+     * In other words, Arg is a \ref CovarianceBaseCase1 "Case 1" or \ref CovarianceBaseCase2 "Case 2" covariance.
+     */
 #ifdef __cpp_concepts
-    template<covariance Arg> requires
-      (not ((self_adjoint_matrix<nested_matrix_t<Arg>> and not square_root_covariance<Arg>) or
-        (triangular_matrix<nested_matrix_t<Arg>> and square_root_covariance<Arg>))) and
-      (not (internal::contains_nested_lvalue_reference<Arg> or
-        internal::contains_nested_lvalue_reference<nested_matrix_t<Arg>>))
+    template<covariance Arg> requires case1or2<Arg> and
+      (triangular_matrix<nested_matrix_t<Arg>> == triangular_matrix<NestedMatrix>) and
+      (not diagonal_matrix<Arg>) and std::is_constructible_v<Base, decltype(std::declval<Arg>().nested_matrix())>
 #else
-    template<typename Arg, std::enable_if_t<covariance<Arg> and not
-        ((self_adjoint_matrix<nested_matrix_t<Arg>> and not square_root_covariance<Arg>) or
-          (triangular_matrix<nested_matrix_t<Arg>> and square_root_covariance<Arg>)) and not
-        (internal::contains_nested_lvalue_reference<Arg> or
-          internal::contains_nested_lvalue_reference<nested_matrix_t<Arg>>), int> = 0>
+    template<typename Arg, std::enable_if_t<covariance<Arg> and case1or2<Arg> and
+      (triangular_matrix<nested_matrix_t<Arg>> == triangular_matrix<NestedMatrix>) and
+      (not diagonal_matrix<Arg>) and std::is_constructible_v<Base, decltype(std::declval<Arg>().nested_matrix())>,
+        int> = 0>
 #endif
     CovarianceBase(Arg&& arg) noexcept
-      : Base(std::forward<decltype(arg.nested_matrix())>(arg.nested_matrix())),
-        apparent_nested_linked(true), synchronized(&arg.synchronized),
-        apparent_nested_matrix(&arg.apparent_nested_matrix) {}
+      : Base {std::forward<decltype(arg.nested_matrix())>(arg.nested_matrix())},
+        cholesky_nested {[a = CholeskyNestedMatrix {}]() mutable -> CholeskyNestedMatrix& { return a; }},
+        synchronization_direction {[] { return 1; }},
+        synchronize_forward {
+          [&ch = cholesky_nested(), s = arg.synchronization_direction,
+            f = arg.synchronize_forward, c = [&] { return arg.cholesky_nested_matrix(); }] {
+          if (s() > 0) f();
+          ch = c();
+        }},
+        synchronize_reverse {[&ch = cholesky_nested(), &m = mutable_nested_matrix()] {
+          if constexpr (nested_is_modifiable) m = to_covariance_nestable<NestedMatrix>(ch);
+          else throw std::logic_error {"Case 4 synchronize_reverse: NestedMatrix is not modifiable."};
+        }},
+        mark_nested_matrix_changed {[] {}},
+        mark_cholesky_nested_matrix_changed {[] {}},
+        mark_synchronized {[] {}}
+    {}
 
 
-    /// Construct from another covariance that stores a distinct apparent nested matrix (nested matrix is an lvalue ref).
+    /**
+     * \brief Construct from a \ref covariance_nestable of matching triangle/self-adjoint type.
+     */
 #ifdef __cpp_concepts
-    template<covariance Arg> requires
-      (not ((self_adjoint_matrix<nested_matrix_t<Arg>> and not square_root_covariance<Arg>) or
-        (triangular_matrix<nested_matrix_t<Arg>> and square_root_covariance<Arg>))) and
-      (internal::contains_nested_lvalue_reference<Arg> or
-        internal::contains_nested_lvalue_reference<nested_matrix_t<Arg>>)
+    template<covariance_nestable Arg> requires (triangular_matrix<Arg> == triangular_matrix<NestedMatrix>) and
+      (not diagonal_matrix<Arg>) and std::is_constructible_v<Base, Arg>
 #else
-    template<typename Arg, std::enable_if_t<covariance<Arg> and not
-      ((self_adjoint_matrix<nested_matrix_t<Arg>> and not square_root_covariance<Arg>) or
-        (triangular_matrix<nested_matrix_t<Arg>> and square_root_covariance<Arg>)) and
-      (internal::contains_nested_lvalue_reference<Arg> or
-        internal::contains_nested_lvalue_reference<nested_matrix_t<Arg>>), int> = 0>
+    template<typename Arg, std::enable_if_t<covariance_nestable<Arg> and
+      (triangular_matrix<Arg> == triangular_matrix<NestedMatrix>) and (not diagonal_matrix<Arg>) and
+      std::is_constructible_v<Base, Arg>, int> = 0>
 #endif
-    CovarianceBase(Arg&& arg) noexcept
-      : Base(std::forward<decltype(arg.nested_matrix())>(arg.nested_matrix())),
-        apparent_nested_linked(true), synchronized(arg.synchronized),
-        apparent_nested_matrix(std::forward<Arg>(arg).apparent_nested_matrix) {}
-
-
-    ~CovarianceBase()
-    {
-      if (not apparent_nested_linked)
-      {
-        delete apparent_nested_matrix;
-        delete synchronized;
-      }
-    }
+    explicit CovarianceBase(Arg&& arg) noexcept
+      : Base {std::forward<Arg>(arg)},
+        cholesky_nested{[a = CholeskyNestedMatrix {}]() mutable -> CholeskyNestedMatrix& { return a; }},
+        synchronization_direction {[] { return 1; }},
+        synchronize_forward {[&ch = cholesky_nested(), &n = Base::nested_matrix()] {
+          ch = to_covariance_nestable<CholeskyNestedMatrix>(n);
+        }},
+        synchronize_reverse {[&ch = cholesky_nested(), &m = mutable_nested_matrix()] {
+          if constexpr (nested_is_modifiable) m = to_covariance_nestable<NestedMatrix>(ch);
+          else throw std::logic_error {"Case 4 synchronize_reverse: NestedMatrix is not modifiable."};
+        }},
+        mark_nested_matrix_changed {[] {}},
+        mark_cholesky_nested_matrix_changed {[] {}},
+        mark_synchronized {[] {}}
+    {}
 
 
     /// Copy assignment operator.
@@ -699,9 +1248,23 @@ namespace OpenKalman::internal
     {
       if constexpr (not zero_matrix<NestedMatrix> and not identity_matrix<NestedMatrix>) if (this != &other)
       {
-        *synchronized = *other.synchronized;
-        if (*synchronized) *apparent_nested_matrix = *other.apparent_nested_matrix;
-        Base::operator=(other).nested_matrix();
+        if (other.synchronization_direction() > 0)
+        {
+          Base::nested_matrix() = other.nested_matrix();
+          mark_nested_matrix_changed();
+        }
+        else if (other.synchronization_direction() < 0)
+        {
+          cholesky_nested() = other.cholesky_nested();
+          mark_cholesky_nested_matrix_changed();
+          if (synchronization_direction() > 0) synchronize_reverse();
+        }
+        else // other.synchronization_direction() == 0
+        {
+          Base::nested_matrix() = other.nested_matrix();
+          mark_synchronized();
+          if (synchronization_direction() <= 0) cholesky_nested() = other.cholesky_nested();
+        }
       }
       return *this;
     }
@@ -712,114 +1275,220 @@ namespace OpenKalman::internal
     {
       if constexpr (not zero_matrix<NestedMatrix> and not identity_matrix<NestedMatrix>) if (this != &other)
       {
-        *synchronized = *other.synchronized;
-        if (*synchronized) *apparent_nested_matrix = std::move(*other.apparent_nested_matrix);
-        Base::operator=(std::move(other).nested_matrix());
+        if (other.synchronization_direction() > 0)
+        {
+          Base::nested_matrix() = std::move(other.nested_matrix());
+          mark_nested_matrix_changed();
+        }
+        else if (other.synchronization_direction() < 0)
+        {
+          cholesky_nested() = std::move(other.cholesky_nested());
+          mark_cholesky_nested_matrix_changed();
+          if (synchronization_direction() > 0) synchronize_reverse();
+        }
+        else // other.synchronization_direction() == 0
+        {
+          Base::nested_matrix() = std::move(other.nested_matrix());
+          mark_synchronized();
+          if (synchronization_direction() <= 0) cholesky_nested() = std::move(other.cholesky_nested());
+        }
       }
       return *this;
     }
 
 
-    /// Assign from a covariance_nestable.
+    /**
+     * \internal
+     * \brief Assign from another \ref covariance.
+     */
+#ifdef __cpp_concepts
+    template<covariance Arg> requires (not std::derived_from<std::decay_t<Arg>, CovarianceBase>)
+#else
+    template<typename Arg, std::enable_if_t<covariance<Arg> and
+      (not std::is_base_of_v<CovarianceBase, std::decay_t<Arg>>), int> = 0>
+#endif
+    auto& operator=(Arg&& arg) noexcept
+    {
+      if constexpr(not (zero_matrix<nested_matrix_t<Arg>> and zero_matrix<NestedMatrix>) and
+        not (identity_matrix<nested_matrix_t<Arg>> and identity_matrix<NestedMatrix>))
+      {
+        if constexpr (triangular_matrix<nested_matrix_t<Arg>> == triangular_matrix<NestedMatrix> and
+          not diagonal_matrix<Arg>)
+        {
+          if (arg.synchronization_direction() > 0)
+          {
+            Base::nested_matrix() = to_covariance_nestable<NestedMatrix>(std::forward<Arg>(arg).nested_matrix());
+            mark_nested_matrix_changed();
+          }
+          else if (arg.synchronization_direction() < 0)
+          {
+            cholesky_nested() = to_covariance_nestable<CholeskyNestedMatrix>(
+              std::forward<Arg>(arg).cholesky_nested_matrix());
+            mark_cholesky_nested_matrix_changed();
+            if (synchronization_direction() > 0) synchronize_reverse();
+          }
+          else // arg.synchronization_direction() == 0
+          {
+            Base::nested_matrix() = to_covariance_nestable<NestedMatrix>(
+              std::forward<decltype(arg.nested_matrix())>(arg.nested_matrix()));
+            mark_synchronized();
+            if (not internal::case1or2<Arg> and synchronization_direction() <= 0)
+            {
+              cholesky_nested() = to_covariance_nestable<CholeskyNestedMatrix>(
+                std::forward<decltype(arg.cholesky_nested_matrix())>(arg.cholesky_nested_matrix()));
+            }
+          }
+        }
+        else
+        {
+          if (arg.synchronization_direction() < 0)
+          {
+            Base::nested_matrix() = to_covariance_nestable<NestedMatrix>(
+              std::forward<Arg>(arg).cholesky_nested_matrix());
+            mark_nested_matrix_changed();
+          }
+          else if (internal::case1or2<Arg> or arg.synchronization_direction() > 0)
+          {
+            cholesky_nested() = to_covariance_nestable<CholeskyNestedMatrix>(std::forward<Arg>(arg).nested_matrix());
+            mark_cholesky_nested_matrix_changed();
+            if (synchronization_direction() > 0) synchronize_reverse();
+          }
+          else // arg.synchronization_direction() == 0 and (Case 3 or 4)
+          {
+            Base::nested_matrix() = to_covariance_nestable<NestedMatrix>(
+              std::forward<decltype(arg.cholesky_nested_matrix())>(arg.cholesky_nested_matrix()));
+            mark_synchronized();
+            if (synchronization_direction() <= 0)
+            {
+              cholesky_nested() = to_covariance_nestable<CholeskyNestedMatrix>(
+                std::forward<decltype(arg.nested_matrix())>(arg.nested_matrix()));
+            }
+          }
+        }
+      }
+      return *this;
+    }
+
+
+    /**
+     * \brief Assign from a \ref covariance_nestable.
+     */
 #ifdef __cpp_concepts
     template<covariance_nestable Arg>
 #else
     template<typename Arg, std::enable_if_t<covariance_nestable<Arg>, int> = 0>
 #endif
-    auto& operator=(Arg&& arg)
+    auto& operator=(Arg&& arg) noexcept
     {
-      if constexpr (zero_matrix<NestedMatrix>)
+      if constexpr(not (zero_matrix<Arg> and zero_matrix<NestedMatrix>) and
+        not (identity_matrix<Arg> and identity_matrix<NestedMatrix>))
       {
-        static_assert(zero_matrix<Arg>);
-      }
-      else if constexpr (identity_matrix<NestedMatrix>)
-      {
-        static_assert(identity_matrix<Arg>);
-      }
-      else
-      {
-        Base::operator=(std::forward<Arg>(arg));
-        *synchronized = false;
+        if constexpr(triangular_matrix<Arg> == triangular_matrix<NestedMatrix> and not diagonal_matrix<Arg>)
+        {
+          Base::nested_matrix() = to_covariance_nestable<NestedMatrix>(std::forward<Arg>(arg));
+          mark_nested_matrix_changed();
+        }
+        else
+        {
+          cholesky_nested() = to_covariance_nestable<CholeskyNestedMatrix>(std::forward<Arg>(arg));
+          mark_cholesky_nested_matrix_changed();
+          if (synchronization_direction() > 0) synchronize_reverse();
+        }
       }
       return *this;
     }
 
 
+    /**
+     * \brief Get or set element (i, j) of the covariance matrix.
+     * \param i The row.
+     * \param j The column.
+     * \return An ElementSetter object.
+     */
     auto operator() (std::size_t i, std::size_t j)
     {
-      if constexpr(element_settable<Derived, 2>)
-        return ElementSetter(
-          *apparent_nested_matrix,
-          i, j,
-          [this] { if (not *synchronized) synchronize(); },
-          [this]
-          {
-            if constexpr(square_root_covariance<Derived>)
-              nested_matrix() = Cholesky_square(*apparent_nested_matrix);
-            else
-              nested_matrix() = Cholesky_factor(*apparent_nested_matrix);
+      if constexpr(element_settable<NestedMatrix, 2> and element_settable<CholeskyNestedMatrix, 2>)
+      {
+        return ElementSetter(cholesky_nested(), i, j,
+          [this] { if (synchronization_direction() > 0) synchronize_forward(); },
+          [this] {
+            mark_cholesky_nested_matrix_changed();
+            if (synchronization_direction() > 0) synchronize_reverse();
           });
+      }
       else
-        return make_ElementSetter<true>(*apparent_nested_matrix, i, j, [] {}, [this] { if (not *synchronized) synchronize(); });
+      {
+        return make_ElementSetter<true>(cholesky_nested(), i, j,
+          [this] { if (synchronization_direction() > 0) synchronize_forward(); });
+      }
     }
 
-
+    /// \overload
     auto operator() (std::size_t i, std::size_t j) const
     {
-      return make_ElementSetter<true>(*apparent_nested_matrix, i, j, [] {}, [this] { if (not *synchronized) synchronize(); });
+      return make_ElementSetter<true>(cholesky_nested(), i, j,
+        [this] { if (synchronization_direction() > 0) synchronize_forward(); });
     }
 
 
-    decltype(auto) operator[](std::size_t i) const = delete;
-
-
-    decltype(auto) operator()(std::size_t i) const = delete;
-
-
-    /// Get the apparent nested matrix.
-    constexpr auto& get_apparent_nested_matrix() &
+    /**
+     * \brief Get or set element i of the covariance matrix.
+     * \param i The row.
+     * \return An ElementSetter object.
+     */
+    auto operator[] (std::size_t i)
     {
-      if (not *synchronized) synchronize();
-      return *apparent_nested_matrix;
+      if constexpr(element_settable<NestedMatrix, 1> and element_settable<CholeskyNestedMatrix, 1>)
+      {
+        return ElementSetter(cholesky_nested(), i,
+          [this] { if (synchronization_direction() > 0) synchronize_forward(); },
+          [this] {
+            mark_cholesky_nested_matrix_changed();
+            if (synchronization_direction() > 0) synchronize_reverse();
+          });
+      }
+      else
+      {
+        return make_ElementSetter<true>(cholesky_nested(), i,
+          [this] { if (synchronization_direction() > 0) synchronize_forward(); });
+      }
+    }
+
+    /// \overload
+    auto operator[] (std::size_t i) const
+    {
+      return make_ElementSetter<true>(cholesky_nested(), i,
+        [this] { if (synchronization_direction() > 0) synchronize_forward(); });
+    }
+
+    /// \overload
+    auto operator() (std::size_t i) { return operator[](i); }
+
+    /// \overload
+    auto operator() (std::size_t i) const { return operator[](i); }
+
+
+    /**
+     * \brief Set an element of the cholesky nested matrix.
+     */
+    void set_element(const Scalar s, const std::size_t i, const std::size_t j)
+    {
+      if (synchronization_direction() > 0) synchronize_forward();
+      OpenKalman::set_element(cholesky_nested(), s, i, j);
+      mark_cholesky_nested_matrix_changed();
+      if (synchronization_direction() > 0) synchronize_reverse();
     }
 
 
-    /// Get the apparent nested matrix.
-    constexpr auto&& get_apparent_nested_matrix() &&
+    /**
+     * \brief Set an element of the cholesky nested matrix.
+     */
+    void set_element(const Scalar s, const std::size_t i)
     {
-      if (not *synchronized) synchronize();
-      return std::move(*apparent_nested_matrix);
-    }
-
-
-    /// Get the apparent nested matrix.
-    constexpr const auto& get_apparent_nested_matrix() const &
-    {
-      if (not *synchronized) synchronize();
-      return *apparent_nested_matrix;
-    }
-
-
-    /// Get the apparent nested matrix.
-    constexpr const auto&& get_apparent_nested_matrix() const &&
-    {
-      if (not *synchronized) synchronize();
-      return std::move(*apparent_nested_matrix);
-    }
-
-
-  protected:
-#ifdef __cpp_concepts
-    template<typename, typename>
-#else
-    template<typename, typename, typename>
-#endif
-    friend struct CovarianceBase;
-
-
-    void mark_changed()
-    {
-      *synchronized = false;
+      if (synchronization_direction() > 0) synchronize_forward();
+      OpenKalman::set_element(cholesky_nested(), s, i);
+      mark_cholesky_nested_matrix_changed();
+      if (synchronization_direction() > 0) synchronize_reverse();
     }
 
   };

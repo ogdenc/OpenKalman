@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2020 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2020-2021 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -24,11 +24,13 @@ namespace OpenKalman
     /// Applies the transformation.
 #ifdef __cpp_concepts
     template<typed_matrix In, perturbation ... Perturbations> requires untyped_columns<In> and
-      internal::transformation_args<In, Perturbations...>
+      (equivalent_to<typename MatrixTraits<In>::RowCoefficients,
+        typename internal::PerturbationTraits<Perturbations>::RowCoefficients> and ...)
 #else
     template<typename In, typename ... Perturbations, std::enable_if_t<
       typed_matrix<In> and untyped_columns<In> and (perturbation<Perturbations> and ...) and
-      internal::transformation_args<In, Perturbations...>, int> = 0>
+      (equivalent_to<typename MatrixTraits<In>::RowCoefficients,
+        typename internal::PerturbationTraits<Perturbations>::RowCoefficients> and ...), int> = 0>
 #endif
     auto operator()(In&& in, Perturbations&& ... ps) const noexcept
     {
@@ -39,11 +41,13 @@ namespace OpenKalman
     /// Returns a tuple of the Jacobians for the input and each perturbation term.
 #ifdef __cpp_concepts
     template<typed_matrix In, perturbation ... Perturbations> requires untyped_columns<In> and
-    internal::transformation_args<In, Perturbations...>
+      (equivalent_to<typename MatrixTraits<In>::RowCoefficients,
+        typename internal::PerturbationTraits<Perturbations>::RowCoefficients> and ...)
 #else
     template<typename In, typename ... Perturbations, std::enable_if_t<
       typed_matrix<In> and untyped_columns<In> and (perturbation<Perturbations> and ...) and
-      internal::transformation_args<In, Perturbations...>, int> = 0>
+      (equivalent_to<typename MatrixTraits<In>::RowCoefficients,
+        typename internal::PerturbationTraits<Perturbations>::RowCoefficients> and ...), int> = 0>
 #endif
     auto jacobian(const In&, const Perturbations&...) const
     {
@@ -56,11 +60,13 @@ namespace OpenKalman
     /// Returns a tuple of Hessian matrices for the input and each perturbation term. In this case, they are zero matrices.
 #ifdef __cpp_concepts
     template<typed_matrix In, perturbation ... Perturbations> requires untyped_columns<In> and
-    internal::transformation_args<In, Perturbations...>
+      (equivalent_to<typename MatrixTraits<In>::RowCoefficients,
+        typename internal::PerturbationTraits<Perturbations>::RowCoefficients> and ...)
 #else
     template<typename In, typename ... Perturbations, std::enable_if_t<
       typed_matrix<In> and untyped_columns<In> and (perturbation<Perturbations> and ...) and
-      internal::transformation_args<In, Perturbations...>, int> = 0>
+      (equivalent_to<typename MatrixTraits<In>::RowCoefficients,
+        typename internal::PerturbationTraits<Perturbations>::RowCoefficients> and ...), int> = 0>
 #endif
     auto hessian(const In&, const Perturbations&...) const
     {

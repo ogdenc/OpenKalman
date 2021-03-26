@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2019-2020 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2019-2021 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -47,11 +47,12 @@ namespace OpenKalman
     std::enable_if_t<(sizeof...(Args) > 0) and std::conjunction_v<std::is_arithmetic<Args>...> and
       (RowCoefficients::size * ColumnCoefficients::size == sizeof...(Args)), int> = 0>
 #endif
-    auto make_matrix(Args ... args)
+    auto make_matrix(const Args ... args)
     {
-      using Scalar = std::common_type_t<Args...>;
+      using Scalar = std::decay_t<std::common_type_t<Args...>>;
       using Mat = Eigen::Matrix<Scalar, RowCoefficients::size, ColumnCoefficients::size>;
-      return Matrix<RowCoefficients, ColumnCoefficients, Mat>(MatrixTraits<Mat>::make(args...));
+      return Matrix<RowCoefficients, ColumnCoefficients, Mat>(MatrixTraits<Mat>::make(
+        static_cast<const Scalar>(args)...));
     }
 
 
@@ -67,7 +68,7 @@ namespace OpenKalman
     template<typename ... Args, std::enable_if_t<
     (sizeof...(Args) > 0) and std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
 #endif
-    auto make_matrix(Args ... args)
+    auto make_matrix(const Args ... args)
     {
       return make_matrix<Axes<sizeof...(Args)>, Axis>(args...);
     }
@@ -112,13 +113,13 @@ namespace OpenKalman
       (sizeof...(Args) > 0) and std::conjunction_v<std::is_arithmetic<Args>...> and
       (sizeof...(Args) % Coefficients::size == 0), int> = 0>
 #endif
-    auto make_mean(Args ... args)
+    auto make_mean(const Args ... args)
     {
-      using Scalar = std::common_type_t<Args...>;
+      using Scalar = std::decay_t<std::common_type_t<Args...>>;
       constexpr std::size_t dim = Coefficients::size;
       constexpr std::size_t cols = sizeof...(Args) / dim;
       using Mat = Eigen::Matrix<Scalar, dim, cols>;
-      return Mean<Coefficients, Mat>(MatrixTraits<Mat>::make(args...));
+      return Mean<Coefficients, Mat>(MatrixTraits<Mat>::make(static_cast<const Scalar>(args)...));
     }
 
 
@@ -134,7 +135,7 @@ namespace OpenKalman
     template<typename ... Args, std::enable_if_t<
       (sizeof...(Args) > 0) and std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
 #endif
-    auto make_mean(Args ... args)
+    auto make_mean(const Args ... args)
     {
       return make_mean<OpenKalman::Axes<sizeof...(Args)>>(args...);
     }
@@ -176,13 +177,13 @@ namespace OpenKalman
       (sizeof...(Args) > 0) and std::conjunction_v<std::is_arithmetic<Args>...> and
       (sizeof...(Args) % Coefficients::dimension == 0), int> = 0>
 #endif
-    auto make_euclidean_mean(Args ... args) noexcept
+    auto make_euclidean_mean(const Args ... args) noexcept
     {
-      using Scalar = std::common_type_t<Args...>;
+      using Scalar = std::decay_t<std::common_type_t<Args...>>;
       constexpr std::size_t dim = Coefficients::dimension;
       constexpr std::size_t cols = sizeof...(Args) / dim;
       using Mat = Eigen::Matrix<Scalar, dim, cols>;
-      return EuclideanMean<Coefficients, Mat>(MatrixTraits<Mat>::make(args...));
+      return EuclideanMean<Coefficients, Mat>(MatrixTraits<Mat>::make(static_cast<const Scalar>(args)...));
     }
 
 
@@ -198,7 +199,7 @@ namespace OpenKalman
     template<typename ... Args, std::enable_if_t<
       (sizeof...(Args) > 0) and std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
 #endif
-    auto make_euclidean_mean(Args ... args) noexcept
+    auto make_euclidean_mean(const Args ... args) noexcept
     {
       return make_euclidean_mean<Axes<sizeof...(Args)>>(args...);
     }
@@ -244,13 +245,13 @@ namespace OpenKalman
       (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
       (sizeof...(Args) > 0) and (sizeof...(Args) == Coefficients::size * Coefficients::size), int> = 0>
 #endif
-    auto make_covariance(Args ... args)
+    auto make_covariance(const Args ... args)
     {
-      using Scalar = std::common_type_t<Args...>;
+      using Scalar = std::decay_t<std::common_type_t<Args...>>;
       using Mat = Eigen::Matrix<Scalar, Coefficients::size, Coefficients::size>;
       using T = Eigen3::TriangularMatrix<Mat, triangle_type>;
       using SA = Eigen3::SelfAdjointMatrix<Mat, triangle_type>;
-      return Covariance<Coefficients, T>(MatrixTraits<SA>::make(args...));
+      return Covariance<Coefficients, T>(MatrixTraits<SA>::make(static_cast<const Scalar>(args)...));
     }
 
 
@@ -271,12 +272,12 @@ namespace OpenKalman
       coefficients<Coefficients> and std::conjunction_v<std::is_arithmetic<Args>...> and
       (sizeof...(Args) > 0) and (sizeof...(Args) == Coefficients::size * Coefficients::size), int> = 0>
 #endif
-    auto make_covariance(Args ... args)
+    auto make_covariance(const Args ... args)
     {
-      using Scalar = std::common_type_t<Args...>;
+      using Scalar = std::decay_t<std::common_type_t<Args...>>;
       using Mat = Eigen::Matrix<Scalar, Coefficients::size, Coefficients::size>;
       using SA = Eigen3::SelfAdjointMatrix<Mat>;
-      return Covariance<Coefficients, SA>(MatrixTraits<SA>::make(args...));
+      return Covariance<Coefficients, SA>(MatrixTraits<SA>::make(static_cast<const Scalar>(args)...));
     }
 
 
@@ -301,7 +302,7 @@ namespace OpenKalman
       (sizeof...(Args) == OpenKalman::internal::constexpr_sqrt(sizeof...(Args)) *
         OpenKalman::internal::constexpr_sqrt(sizeof...(Args))), int> = 0>
 #endif
-    auto make_covariance(Args ... args) noexcept
+    auto make_covariance(const Args ... args) noexcept
     {
       constexpr auto dim = OpenKalman::internal::constexpr_sqrt(sizeof...(Args));
       using Coefficients = OpenKalman::Axes<dim>;
@@ -325,7 +326,7 @@ namespace OpenKalman
     (sizeof...(Args) == OpenKalman::internal::constexpr_sqrt(sizeof...(Args)) *
       OpenKalman::internal::constexpr_sqrt(sizeof...(Args))), int> = 0>
 #endif
-    auto make_covariance(Args ... args) noexcept
+    auto make_covariance(const Args ... args) noexcept
     {
       constexpr auto dim = OpenKalman::internal::constexpr_sqrt(sizeof...(Args));
       using Coefficients = OpenKalman::Axes<dim>;
@@ -401,12 +402,12 @@ namespace OpenKalman
         (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
         (sizeof...(Args) > 0) and (sizeof...(Args) == Coefficients::size * Coefficients::size), int> = 0>
 #endif
-    auto make_square_root_covariance(Args ... args)
+    auto make_square_root_covariance(const Args ... args)
     {
-      using Scalar = std::common_type_t<Args...>;
+      using Scalar = std::decay_t<std::common_type_t<Args...>>;
       using Mat = Eigen::Matrix<Scalar, Coefficients::size, Coefficients::size>;
-      using T = typename MatrixTraits<Mat>::template TriangularBaseType<triangle_type>;
-      return SquareRootCovariance<Coefficients, T>(MatrixTraits<T>::make(args...));
+      using T = typename MatrixTraits<Mat>::template TriangularMatrixFrom<triangle_type>;
+      return SquareRootCovariance<Coefficients, T>(MatrixTraits<T>::make(static_cast<const Scalar>(args)...));
     }
 
 
@@ -431,7 +432,7 @@ namespace OpenKalman
       (sizeof...(Args) == OpenKalman::internal::constexpr_sqrt(sizeof...(Args)) *
         OpenKalman::internal::constexpr_sqrt(sizeof...(Args))), int> = 0>
 #endif
-    auto make_square_root_covariance(Args ... args) noexcept
+    auto make_square_root_covariance(const Args ... args) noexcept
     {
       constexpr auto dim = OpenKalman::internal::constexpr_sqrt(sizeof...(Args));
       using Coefficients = OpenKalman::Axes<dim>;
@@ -528,13 +529,12 @@ namespace OpenKalman
 
   // By default when using Eigen3, a Mean is an Eigen3 column vector corresponding to the Coefficients.
 #ifdef __cpp_concepts
-  template<
-    coefficients Coefficients,
-    typed_matrix_nestable NestedMatrix = Eigen::Matrix<double, Coefficients::size, 1>>
-  requires (Coefficients::size == MatrixTraits<NestedMatrix>::dimension) and
+  template<coefficients RowCoefficients,
+    typed_matrix_nestable NestedMatrix = Eigen::Matrix<double, RowCoefficients::size, 1>>
+  requires (RowCoefficients::size == MatrixTraits<NestedMatrix>::dimension) and
     (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
-  template<typename Coefficients, typename NestedMatrix = Eigen::Matrix<double, Coefficients::size, 1>>
+  template<typename RowCoefficients, typename NestedMatrix = Eigen::Matrix<double, RowCoefficients::size, 1>>
 #endif
   struct Mean;
 
@@ -652,39 +652,37 @@ namespace OpenKalman
     using Scalar = T;
 
     template<std::size_t rows, std::size_t cols = 1, typename S = Scalar>
-    using NativeMatrix = Eigen::Matrix<S, (Eigen::Index) rows, (Eigen::Index) cols>;
+    using NativeMatrixFrom = Eigen::Matrix<S, (Eigen::Index) rows, (Eigen::Index) cols>;
 
     template<TriangleType storage_triangle, std::size_t dim, typename S = Scalar>
-    using SelfAdjointBaseType = Eigen3::SelfAdjointMatrix<NativeMatrix<dim, dim, S>, storage_triangle>;
+    using SelfAdjointMatrixFrom = Eigen3::SelfAdjointMatrix<NativeMatrixFrom<dim, dim, S>, storage_triangle>;
 
     template<TriangleType triangle_type, std::size_t dim, typename S = Scalar>
-    using TriangularBaseType = Eigen3::TriangularMatrix<NativeMatrix<dim, dim, S>, triangle_type>;
+    using TriangularMatrixFrom = Eigen3::TriangularMatrix<NativeMatrixFrom<dim, dim, S>, triangle_type>;
 
     template<std::size_t dim, typename S = Scalar>
-    using DiagonalBaseType = Eigen3::DiagonalMatrix<NativeMatrix<dim, 1, S>>;
+    using DiagonalMatrixFrom = Eigen3::DiagonalMatrix<NativeMatrixFrom<dim, 1, S>>;
 
 #ifdef __cpp_concepts
-    template<typename Arg> requires (not std::convertible_to<Arg, const Scalar>)
+    template<Eigen3::eigen_native Arg>
 #else
-    template<typename Arg, std::enable_if_t<not std::is_convertible_v<Arg, const Scalar>, int> = 0>
+    template<typename Arg, std::enable_if_t<Eigen3::eigen_native<Arg>, int> = 0>
 #endif
-    static decltype(auto)
-    make(Arg&& arg) noexcept
+    static decltype(auto) make(Arg&& arg) noexcept
     {
       return std::forward<Arg>(arg);
     }
 
     // Make matrix from a list of coefficients in row-major order.
 #ifdef __cpp_concepts
-    template<std::convertible_to<const Scalar> Arg, std::convertible_to<const Scalar> ... Args>
+    template<std::convertible_to<Scalar> Arg, std::convertible_to<Scalar> ... Args>
 #else
     template<typename Arg, typename ... Args, std::enable_if_t<
       std::conjunction_v<std::is_convertible<Arg, Scalar>, std::is_convertible<Args, Scalar>...>, int> = 0>
 #endif
-    static auto
-    make(const Arg arg, const Args ... args)
+    static auto make(const Arg arg, const Args ... args)
     {
-      return ((NativeMatrix<sizeof...(Args)>() << arg), ... , args).finished();
+      return ((NativeMatrixFrom<sizeof...(Args)>() << arg), ... , args).finished();
     }
 
   };

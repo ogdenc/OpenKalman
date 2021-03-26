@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2017-2020 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2017-2021 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -39,7 +39,35 @@ namespace OpenKalman
   template<typename SamplePointsType>
   struct SamplePointsTransform : TransformBase<SamplePointsTransform<SamplePointsType>>
   {
+
   private:
+
+    // Count the number of augmented sample points.
+    template<typename D, typename...Ds>
+    static constexpr auto count_dim(const std::tuple<Ds...>&)
+    {
+      return (DistributionTraits<D>::dimension + ... + DistributionTraits<Ds>::dimension);
+    }
+
+
+    // Reconstruct the flattened augmented sample points into a tuple of tuples.
+    template<std::size_t pos = 0, typename FlattenedPs, typename D, typename...Ds>
+    static auto construct_ps(const FlattenedPs& flattened_ps, const D&, const Ds&...ds)
+    {
+      constexpr auto group_size = std::tuple_size_v<D>;
+      auto ps_group = internal::tuple_slice<pos, pos + group_size>(flattened_ps);
+      return std::tuple_cat(std::make_tuple(ps_group), construct_ps<pos + group_size>(flattened_ps, ds...));
+    }
+
+    // \overload
+    template<std::size_t pos = 0, typename FlattenedPs>
+    static constexpr auto construct_ps(const FlattenedPs&)
+    {
+      static_assert(pos == std::tuple_size_v<FlattenedPs>);
+      return std::tuple {};
+    }
+
+
     template<typename Transformation, typename...Points, typename...Dists, std::size_t...ints>
     static constexpr auto y_means_impl(
       const Transformation& g,
@@ -53,38 +81,32 @@ namespace OpenKalman
       });
     }
 
-    template<std::size_t pos = 0, typename FlattenedPs>
-    static constexpr auto construct_ps(const FlattenedPs&)
-    {
-      static_assert(pos == std::tuple_size_v<FlattenedPs>);
-      return std::tuple {};
-    }
 
-    template<std::size_t pos = 0, typename FlattenedPs, typename D, typename...Ds>
-    static auto construct_ps(const FlattenedPs& flattened_ps, const D&, const Ds&...ds)
-    {
-      constexpr auto group_size = std::tuple_size_v<D>;
-      auto ps_group = internal::tuple_slice<pos, pos + group_size>(flattened_ps);
-      return std::tuple_cat(std::make_tuple(ps_group), construct_ps<pos + group_size>(flattened_ps, ds...));
-    }
-
-    template<typename D, typename...Ds>
-    static constexpr auto count_dim(const std::tuple<Ds...>&)
-    {
-      return (DistributionTraits<D>::dimension + ... + DistributionTraits<Ds>::dimension);
-    }
-
-  protected:
-    template<std::size_t dim, typename InputDist, std::size_t i, bool return_cross = false,
-      typename...Gs, typename P, typename...Ps, typename D, typename...Ds>
-    static constexpr auto transform_impl(
+    /*
+     * \brief
+     * \tparam dim The number of augmented sample points.
+     * \tparam InputDist The initial input distribution.
+     * \tparam return_cross Whether the transform must return a cross-covariance.
+     * \tparam i The index of the current transformation in Gs.
+     * \tparam Gs A sequence of transformations.
+     * \tparam D The input distribution for the current transformation in <var>Gs</var>.
+     * \tparam Ds A set comprising, for each transformation in <var>Gs</var>, a tuple of zero or more noise
+     * distributions that correspond to that transformation.
+     * \tparam P The augmented sample points corresponding to the current transformation in <var>Gs</var>.
+     * \tparam Ps The augmented sample points, as a tuple of tuples following the same structure as Ds.
+     * \return The posterior covariance or, if <code>return_cross</cross> is <code>true</code>, a tuple containing
+     * the posterior covariance and the cross-covariance.
+     */
+    template<std::size_t dim, typename InputDist, bool return_cross, std::size_t i = 0,
+      typename...Gs, typename D, typename...Ds, typename P, typename...Ps>
+    static auto transform_impl(
       const std::tuple<Gs...>& gs,
-      const P& xpoints,
-      const std::tuple<Ps...>& ps,
       const D& x,
-      const std::tuple<Ds...>& ds)
+      const std::tuple<Ds...>& ds,
+      const P& xpoints,
+      const std::tuple<Ps...>& ps)
     {
-      static_assert(sizeof...(Gs) == sizeof...(Ps) and sizeof...(Gs) == sizeof...(Ds));
+      static_assert((sizeof...(Gs) == sizeof...(Ds)) and (sizeof...(Gs) == sizeof...(Ps)));
       auto g = std::get<i>(gs);
       auto xpoints_tup = std::tuple_cat(std::tuple {xpoints}, std::get<i>(ps));
       auto xdists_tup = std::tuple_cat(std::tuple {x}, std::get<i>(ds));
@@ -94,6 +116,7 @@ namespace OpenKalman
 
       auto y_means = Mean {y_means_impl(g, xpoints_tup, xdists_tup, std::make_index_sequence<N>())};
       auto y_mean = from_euclidean(SamplePointsType::template weighted_means<dim>(to_euclidean(y_means)));
+
       // Each column is a deviation from y mean for each transformed sigma point:
       auto ypoints = apply_columnwise(y_means, [&](const auto& col) { return make_self_contained(col - y_mean); });
 
@@ -101,15 +124,16 @@ namespace OpenKalman
       {
         auto y_covariance = SamplePointsType::template covariance<dim, InputDist, false>(xpoints, ypoints);
         auto y = GaussianDistribution {make_self_contained(std::move(y_mean)), std::move(y_covariance)};
-        return transform_impl<dim, InputDist, i + 1, return_cross>(gs, ypoints, ps, y, ds);
+        return transform_impl<dim, InputDist, return_cross, i + 1>(gs, y, ds, ypoints, ps);
       }
-      else
+      else // processing for the last transformation in Gs:
       {
         auto y_covariance = SamplePointsType::template covariance<dim, InputDist, return_cross>(xpoints, ypoints);
         if constexpr (return_cross)
         {
           auto [y_cov, cross] = y_covariance;
-          return std::tuple {GaussianDistribution {make_self_contained(std::move(y_mean)), std::move(y_cov)}, std::move(cross)};
+          return std::tuple {GaussianDistribution {make_self_contained(std::move(y_mean)), std::move(y_cov)},
+                             std::move(cross)};
         }
         else
         {
@@ -118,60 +142,81 @@ namespace OpenKalman
       }
     }
 
+  protected:
+
     /**
-     * Perform one or more consecutive sample points transforms.
+     * \internal
+     * \brief Perform one or more consecutive sample points transforms.
+     * \tparam return_cross Whether the transform must return a cross-covariance.
      * \tparam InputDist Input distribution.
-     * \tparam Ts A list of tuples containing (1) a transformation and (2) zero or more noise terms for that transformation.
+     * \tparam Ts A list of tuples, each containing (1) a transformation and (2) zero or more noise terms for that
+     * transformation.
+     * \return The posterior covariance or, if <var>return_cross</var> is <code>true</code>, a tuple containing
+     * the posterior covariance and the cross-covariance.
      **/
-    template<bool return_cross, typename InputDist, typename...Ts>
+    template<bool return_cross = false, typename InputDist, typename...Ts>
     auto transform(const InputDist& x, const Ts&...ts) const
     {
-      auto gs = std::tuple {std::get<0>(ts)...};
-      auto ds = std::make_tuple(internal::tuple_slice<1, std::tuple_size_v<Ts>>(ts)...);
+      auto gs = std::tuple {std::get<0>(ts)...}; //< Extract the transformations.
+      auto ds = std::make_tuple(internal::tuple_slice<1, std::tuple_size_v<Ts>>(ts)...); //< Extract the noise terms.
 
+      // Flatten ds to a 1D tuple of noise terms:
       auto flattened_ds = std::apply([](const auto&...args) {return std::tuple_cat(args...); }, ds);
+
+      // Create a tuple comprising the augmented sample points (based on input x and each noise term in flattened_ds):
       auto points_tuple = std::apply([&x](const auto&...args) {
         return SamplePointsType::sample_points(x, args...);
       }, flattened_ds);
-      constexpr auto dim = count_dim<InputDist>(flattened_ds);
 
-      auto xpoints = std::get<0>(points_tuple);
+      constexpr auto dim = count_dim<InputDist>(flattened_ds); //< Number of augmented sample points.
+      auto xpoints = std::get<0>(points_tuple); //< The augmented sample points corresponding to input x.
+
+      // The augmented sample points corresponding to each noise term in flattened_ds.
       auto flattened_ps = internal::tuple_slice<1, std::tuple_size_v<decltype(points_tuple)>>(points_tuple);
+
+      // The augmented sample points, reconstructed into the same tuple-of-tuples structure as ds.
       auto ps = std::apply([&](const auto&...args) { return construct_ps(flattened_ps, args...); }, ds);
 
-      return transform_impl<dim, InputDist, 0, return_cross>(gs, xpoints, ps, x, ds);
+      return transform_impl<dim, InputDist, return_cross>(gs, x, ds, xpoints, ps);
     }
 
   public:
+
     /**
-     * Perform one or more consecutive sample points transforms.
+     * \brief Perform one or more consecutive sample points transforms.
      * \tparam InputDist Input distribution.
-     * \tparam Ts A list of tuples containing (1) a transformation and (2) zero or more noise terms for that transformation.
+     * \tparam Ts A list of tuples containing (1) a transformation and (2) zero or more noise terms for that
+     * transformation.
+     * \return The posterior covariance.
      **/
     template<typename InputDist, typename...T_args, typename...Ts, std::enable_if_t<distribution<InputDist>, int> = 0>
     auto operator()(const InputDist& x, const std::tuple<T_args...>& t, const Ts&...ts) const
     {
-      return transform<false>(x, t, ts...);
+      return transform(x, t, ts...);
     }
 
+
     /**
-     * Perform one sample points transform.
+     * \brief Perform one sample points transform.
      * \tparam Trans The transformation on which the transform is based.
      * \tparam InputDist Input distribution.
      * \tparam NoiseDist Noise distributions.
+     * \return The posterior covariance.
      **/
     template<typename InputDist, typename Trans, typename ... NoiseDists,
       std::enable_if_t<(distribution<InputDist> and ... and distribution<NoiseDists>) and
         std::is_invocable_v<Trans, typename DistributionTraits<InputDist>::Mean, typename DistributionTraits<NoiseDists>::Mean...>, int> = 0>
     auto operator()(const InputDist& x, const Trans& g, const NoiseDists& ...n) const
     {
-      return transform<false>(x, std::tuple {g, n...});
+      return transform(x, std::tuple {g, n...});
     }
 
+
     /**
-     * Perform one or more consecutive sample points transforms, also returning the cross-covariance.
+     * \brief Perform one or more consecutive sample points transforms, also returning the cross-covariance.
      * \tparam InputDist Input distribution.
      * \tparam Ts A list of tuples containing (1) a transformation and (2) zero or more noise terms for that transformation.
+     * \return A tuple containing the posterior covariance and the cross-covariance.
      **/
     template<typename InputDist, typename...T_args, typename...Ts, std::enable_if_t<distribution<InputDist>, int> = 0>
     auto transform_with_cross_covariance(const InputDist& x, const std::tuple<T_args...>& t, const Ts&...ts) const
@@ -179,11 +224,13 @@ namespace OpenKalman
       return transform<true>(x, t, ts...);
     }
 
+
     /**
-     * Perform one sample points transform, also returning the cross-covariance.
+     * \brief Perform one sample points transform, also returning the cross-covariance.
      * \tparam Trans The transformation on which the transform is based.
      * \tparam InputDist Input distribution.
      * \tparam NoiseDist Noise distributions.
+     * \return A tuple containing the posterior covariance and the cross-covariance.
      **/
     template<typename InputDist, typename Trans, typename ... NoiseDists,
       std::enable_if_t<(distribution<InputDist> and ... and distribution<NoiseDists>), int> = 0>
