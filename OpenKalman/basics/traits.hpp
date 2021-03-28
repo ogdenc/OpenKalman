@@ -24,12 +24,13 @@ namespace OpenKalman
   //  Traits for which specializations must be defined in the matrix interface  //
   // ========================================================================== //
 
-  // ---------------- //
-  //  self_contained  //
-  // ---------------- //
-
   namespace internal
   {
+
+    // ------------------- //
+    //  is_self_contained  //
+    // ------------------- //
+
     /*
      * A typed matrix or covariance is self-contained if its nested matrix is self-contained and not an lvalue ref.
      */
@@ -59,15 +60,11 @@ namespace OpenKalman
       : std::true_type {};
 #endif
 
-  } // namespace internal
 
+    // ---------------- //
+    //  is_zero_matrix  //
+    // ---------------- //
 
-  // ---------------- //
-  //  is_zero_matrix  //
-  // ---------------- //
-
-  namespace internal
-  {
     /*
      * A typed matrix or covariance is a zero matrix if its nested matrix is a zero matrix.
      */
@@ -94,15 +91,12 @@ namespace OpenKalman
       : std::bool_constant<zero_matrix<typename DistributionTraits<T>::Mean> and
         zero_matrix<typename DistributionTraits<T>::Covariance>> {};
 #endif
-  }
 
 
-  // -------------------- //
-  //  is_identity_matrix  //
-  // -------------------- //
+    // -------------------- //
+    //  is_identity_matrix  //
+    // -------------------- //
 
-  namespace internal
-  {
     /*
      * A covariance is an identity matrix if its nested matrix is an identity matrix.
      */
@@ -129,15 +123,12 @@ namespace OpenKalman
       equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>>>
       : is_identity_matrix<nested_matrix_t<T>> {};
 #endif
-  }
 
 
-  // -------------------- //
-  //  is_square_matrix  //
-  // -------------------- //
+    // -------------------- //
+    //  is_square_matrix  //
+    // -------------------- //
 
-  namespace internal
-  {
 #ifdef __cpp_concepts
     template<typed_matrix T> requires (MatrixTraits<T>::dimension == MatrixTraits<T>::columns) and
       equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>
@@ -170,14 +161,12 @@ namespace OpenKalman
     struct is_square_matrix<T, std::enable_if_t<(not typed_matrix<T>) and (not covariance<T>) and
       (MatrixTraits<T>::dimension == MatrixTraits<T>::columns)>> : std::true_type {};
 #endif
-  }
 
-// -------------------- //
-  //  is_diagonal_matrix  //
-  // -------------------- //
 
-  namespace internal
-  {
+    // -------------------- //
+    //  is_diagonal_matrix  //
+    // -------------------- //
+
     /*
      * A covariance is a diagonal matrix if its nested matrix is diagonal
      */
@@ -216,15 +205,12 @@ namespace OpenKalman
     struct is_diagonal_matrix<T, std::enable_if_t<distribution<T>>>
       : std::bool_constant<diagonal_matrix<typename DistributionTraits<T>::Covariance>> {};
 #endif
-  }
 
 
-  // ------------------------ //
-  //  is_self_adjoint_matrix  //
-  // ------------------------ //
+    // ------------------------ //
+    //  is_self_adjoint_matrix  //
+    // ------------------------ //
 
-  namespace internal
-  {
     /*
      * A covariance matrix is self-adjoint if it is not a square root (Cholesky) covariance.
      */
@@ -265,15 +251,12 @@ namespace OpenKalman
     struct is_self_adjoint_matrix<T, std::enable_if_t<distribution<T>>>
       : is_self_adjoint_matrix<typename DistributionTraits<T>::Covariance> {};
 #endif
-  }
 
 
-  // ---------------------------- //
-  //  is_lower_triangular_matrix  //
-  // ---------------------------- //
+    // ---------------------------- //
+    //  is_lower_triangular_matrix  //
+    // ---------------------------- //
 
-  namespace internal
-  {
     /*
      * A square root covariance is lower-triangular based on its MatrixTraits.
      */
@@ -299,15 +282,11 @@ namespace OpenKalman
       : is_lower_triangular_matrix<nested_matrix_t<T>> {};
 #endif
 
-  }
 
+    // ---------------------------- //
+    //  is_upper_triangular_matrix  //
+    // ---------------------------- //
 
-  // ---------------------------- //
-  //  is_upper_triangular_matrix  //
-  // ---------------------------- //
-
-  namespace internal
-  {
     /*
      * A square root covariance is upper-triangular based on its MatrixTraits.
      */
@@ -333,44 +312,41 @@ namespace OpenKalman
       : is_upper_triangular_matrix<nested_matrix_t<T>> {};
 #endif
 
-  }
 
+    // ------------------ //
+    //  is_cholesky_form  //
+    // ------------------ //
 
-  // --------------------- //
-  //  is_element_gettable  //
-  // --------------------- //
-
-  namespace internal
-  {
-    /**
-     * \internal
-     * \brief Type trait testing whether an object has elements that can be retrieved with N indices.
-     * \note This should be specialized for all matrix types usable with OpenKalman.
+    /*
+     * A covariance has a Cholesky form if its nested matrix is not self-adjoint.
      */
 #ifdef __cpp_concepts
-    template<typename T, std::size_t N>
-    struct is_element_gettable : std::false_type {};
+    template<covariance T> requires (not self_adjoint_matrix<nested_matrix_t<T>>)
+    struct is_cholesky_form<T> : std::true_type {};
 #else
-    template<typename T, std::size_t N, typename Enable = void>
-    struct is_element_gettable : std::false_type {};
+    template<typename T>
+    struct is_cholesky_form<T, std::enable_if_t<covariance<T>>>
+      : std::bool_constant<not self_adjoint_matrix<nested_matrix_t<T>>> {};
 #endif
-  }
 
 
-  /**
-   * \brief Specifies that a type has elements that can be retrieved with N number of indices.
-   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
-   */
-  template<typename T, std::size_t N>
+    /*
+     * A distribution has a Cholesky form if its associated Covariance has a Cholesky form.
+     */
 #ifdef __cpp_concepts
-  concept element_gettable = internal::is_element_gettable<std::decay_t<T>, N>::value;
+    template<distribution T> requires cholesky_form<typename DistributionTraits<T>::Covariance>
+    struct is_cholesky_form<T> : std::true_type {};
 #else
-  inline constexpr bool element_gettable = internal::is_element_gettable<std::decay_t<T>, N>::value;
+    template<typename T>
+    struct is_cholesky_form<T, std::enable_if_t<distribution<T>>>
+      : is_cholesky_form<typename DistributionTraits<T>::Covariance> {};
 #endif
 
 
-  namespace internal
-  {
+    // --------------------- //
+    //  is_element_gettable  //
+    // --------------------- //
+
     /*
      * A typed matrix is gettable with N indices if its nested matrix is likewise gettable.
      */
@@ -413,45 +389,11 @@ namespace OpenKalman
       : std::true_type {};
 #endif
 
-  } // namespace internal
 
+    // --------------------- //
+    //  is_element_settable  //
+    // --------------------- //
 
-  // --------------------- //
-  //  is_element_settable  //
-  // --------------------- //
-
-  namespace internal
-  {
-    /**
-     * \internal
-     * \brief Type trait testing whether an object has elements that can be set with N indices.
-     * \note This should be specialized for all matrix types usable with OpenKalman.
-     */
-#ifdef __cpp_concepts
-    template<typename T, std::size_t N>
-    struct is_element_settable : std::false_type {};
-#else
-    template<typename T, std::size_t N, typename Enable = void>
-    struct is_element_settable : std::false_type {};
-#endif
-  }
-
-  /**
-   * \brief Specifies that a type has elements that can be set with N number of indices.
-   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
-   */
-  template<typename T, std::size_t N>
-#ifdef __cpp_concepts
-  concept element_settable = internal::is_element_settable<T, N>::value and
-    (not std::is_const_v<std::remove_reference_t<T>>);
-#else
-  inline constexpr bool element_settable = internal::is_element_settable<T, N>::value and
-    (not std::is_const_v<std::remove_reference_t<T>>);
-#endif
-
-
-  namespace internal
-  {
     /*
      * A typed matrix is settable with N indices if its nested matrix is likewise settable.
      */
@@ -481,9 +423,9 @@ namespace OpenKalman
   } // namespace internal
 
 
-  // ======================================================================================= //
-  //  Traits that are fully defined here, but depend on definitions in the matrix interface  //
-  // ======================================================================================= //
+  // ========= //
+  //  Aliases  //
+  // ========= //
 
   // ------------------ //
   //  self_contained_t  //
@@ -543,7 +485,8 @@ namespace OpenKalman
       static_assert(self_contained<typename DistributionTraits<T>::Mean>);
       static_assert(self_contained<typename DistributionTraits<T>::Covariance>);
     };
-  }
+
+  } // namespace detail
 
 
   /**
@@ -569,120 +512,9 @@ namespace OpenKalman
   using passable_t = std::conditional_t<std::is_lvalue_reference_v<T>, T, self_contained_t<T>>;
 
 
-  // ------------------- //
-  //  triangular_matrix  //
-  // ------------------- //
-
-#ifndef __cpp_concepts
-  namespace detail
-  {
-    template<typename T, typename Enable = void>
-    struct is_triangular_matrix_impl : std::false_type {};
-
-    template<typename T>
-    struct is_triangular_matrix_impl<T, std::enable_if_t<lower_triangular_matrix<T> or upper_triangular_matrix<T>>>
-      : std::true_type {};
-  }
-#endif
-
-
-  /**
-   * \brief Specifies that a type is a triangular matrix (upper or lower).
-   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
-   */
-#ifdef __cpp_concepts
-  template<typename T>
-  concept triangular_matrix = lower_triangular_matrix<T> or upper_triangular_matrix<T>;
-#else
-  template<typename T>
-  inline constexpr bool triangular_matrix = detail::is_triangular_matrix_impl<T>::value;
-#endif
-
-
-  // ----------------------- //
-  //  same_triangle_type_as  //
-  // ----------------------- //
-
-  namespace internal
-  {
-    /**
-     * \internal
-     * \brief Specifies that two types have the same triangular type (upper or lower).
-     * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
-     */
-    template<typename T, typename U>
-#ifdef __cpp_concepts
-    concept same_triangle_type_as =
-      (upper_triangular_matrix<T> and upper_triangular_matrix<U>) or
-      (lower_triangular_matrix<T> and lower_triangular_matrix<U>);
-#else
-    inline constexpr bool same_triangle_type_as =
-      (upper_triangular_matrix<T> and upper_triangular_matrix<U>) or
-      (lower_triangular_matrix<T> and lower_triangular_matrix<U>);
-#endif
-  }
-
-
-  // --------------- //
-  //  cholesky_form  //
-  // --------------- //
-
-  namespace internal
-  {
-    /**
-     * \internal
-     * \brief A type trait testing whether the nested matrix is a Cholesky square root.
-     */
-#ifdef __cpp_concepts
-    template<typename T>
-#else
-    template<typename T, typename Enable = void>
-#endif
-    struct is_cholesky_form : std::false_type {};
-  }
-
-
-  /**
-   * \brief Specifies that a type has a nested native matrix that is a Cholesky square root.
-   * \details If this is true, then nested_matrix_t<T> is true.
-   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept cholesky_form = internal::is_cholesky_form<std::decay_t<T>>::value;
-#else
-  inline constexpr bool cholesky_form = internal::is_cholesky_form<std::decay_t<T>>::value;
-#endif
-
-
-  namespace internal
-  {
-    /*
-     * A covariance has a Cholesky form if its nested matrix is not self-adjoint.
-     */
-#ifdef __cpp_concepts
-    template<covariance T> requires (not self_adjoint_matrix<nested_matrix_t<T>>)
-    struct is_cholesky_form<T> : std::true_type {};
-#else
-    template<typename T>
-    struct is_cholesky_form<T, std::enable_if_t<covariance<T>>>
-      : std::bool_constant<not self_adjoint_matrix<nested_matrix_t<T>>> {};
-#endif
-
-
-    /*
-     * A distribution has a Cholesky form if its associated Covariance has a Cholesky form.
-     */
-#ifdef __cpp_concepts
-    template<distribution T> requires cholesky_form<typename DistributionTraits<T>::Covariance>
-    struct is_cholesky_form<T> : std::true_type {};
-#else
-    template<typename T>
-    struct is_cholesky_form<T, std::enable_if_t<distribution<T>>>
-      : is_cholesky_form<typename DistributionTraits<T>::Covariance> {};
-#endif
-  } // namespace internal
-
+  // ====================== //
+  //  Constant expressions  //
+  // ====================== //
 
   // ------------------ //
   //  triangle_type_of  //
@@ -693,7 +525,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<triangular_matrix T>
 #else
-    template<typename T, typename Enable = void>
+    template<typename T, typename = void>
 #endif
     struct triangle_type_of_impl : std::integral_constant<TriangleType, TriangleType::lower> {};
 
@@ -740,6 +572,10 @@ namespace OpenKalman
 #endif
   inline constexpr TriangleType triangle_type_of = detail::triangle_type_of_impl<T>::value;
 
+
+  // =========== //
+  //  Functions  //
+  // =========== //
 
   namespace internal
   {
@@ -829,12 +665,16 @@ namespace OpenKalman
   } // namespace internal
 
 
-  namespace internal
-  {
     // --------------- //
     //  is_modifiable  //
     // --------------- //
 
+    // --------------- //
+    //  is_modifiable  //
+    // --------------- //
+
+  namespace internal
+  {
 #ifdef __cpp_concepts
     template<typename T>
 #else
@@ -880,15 +720,6 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<typename T, typename U>
-    struct is_modifiable : std::true_type {};
-#else
-    template<typename T, typename U>
-    struct is_modifiable;
-#endif
-
-
-#ifdef __cpp_concepts
     template<typename T, typename U> requires
       has_const<T>::value or
       (not has_same_matrix_shape<T, U>::value) or
@@ -900,47 +731,18 @@ namespace OpenKalman
     struct is_modifiable<T, U> : std::false_type {};
 #else
     template<typename T, typename U>
-    struct is_modifiable
-      : std::bool_constant<
-        (not has_const<T>::value) and
-        (has_same_matrix_shape<T, U>::value) and
-        (not zero_matrix<T> or zero_matrix<U>) and
-        (not identity_matrix<T> or identity_matrix<U>) and
-        (not upper_triangular_matrix<T> or upper_triangular_matrix<U>) and
-        (not lower_triangular_matrix<T> or lower_triangular_matrix<U>) and
-        (not self_adjoint_matrix<T> or self_adjoint_matrix<U>)> {};
-#endif
-
-    // Custom modifiability parameter that can be defined in the native matrix ecosystem.
-#ifdef __cpp_concepts
-    template<typename T, typename U>
-    struct is_modifiable_native : std::true_type {};
-#else
-    template<typename T, typename U, typename = void>
-    struct is_modifiable_native : std::true_type {};
+    struct is_modifiable<T, U, std::enable_if_t<
+      has_const<T>::value or
+      (not has_same_matrix_shape<T, U>::value) or
+      (zero_matrix<T> and not zero_matrix<U>) or
+      (identity_matrix<T> and not identity_matrix<U>) or
+      (upper_triangular_matrix<T> and not upper_triangular_matrix<U>) or
+      (lower_triangular_matrix<T> and not lower_triangular_matrix<U>) or
+      (self_adjoint_matrix<T> and not self_adjoint_matrix<U>)>> : std::false_type {};
 #endif
 
   } // namespace internal
 
-
-  /**
-     * \internal
-     * \brief Specifies that U is not obviously incompatible with T, such that assigning U to T might be possible.
-     * \details The result is true unless there is an incompatibility of some kind that would prevent assignment.
-     * Examples of such incompatibility are if T is constant or has a nested constant type, if T and U have a
-     * different shape or scalar type, or if T and U differ as to being self-adjoint, triangular, diagonal,
-     * zero, or identity. Even if this concept is true, a compile-time error is still possible.
-     * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
-     */
-    template<typename T, typename U>
-#ifdef __cpp_concepts
-    concept modifiable = internal::is_modifiable<T, U>::value and internal::is_modifiable_native<T, U>::value;
-#else
-    inline constexpr bool modifiable = internal::is_modifiable<T, U>::value and
-      internal::is_modifiable_native<T, U>::value;
-#endif
-
-
-}
+} // namespace OpenKalman
 
 #endif //OPENKALMAN_TRAITS_HPP

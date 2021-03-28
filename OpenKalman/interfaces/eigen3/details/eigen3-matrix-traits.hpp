@@ -45,7 +45,9 @@ namespace OpenKalman
     //  lower_triangular_matrix<M> or self_adjoint_matrix<M>), "Native Eigen3 matrices other than 1x1 or identity must"
     //  "have their own MatrixTraits if they are zero, triangular, and self-adjoint.");
 
-    template<std::size_t rows = dimension, std::size_t cols = columns, typename S = Scalar>
+    // Cannot use dimension and columns constant expressions here because of bug in GCC 10.1.0 (but not clang 10.0.0):
+    template<std::size_t rows = std::size_t(M::RowsAtCompileTime),
+      std::size_t cols = std::size_t(M::ColsAtCompileTime), typename S = Scalar>
     using NativeMatrixFrom = Eigen::Matrix<S, (Eigen::Index) rows, (Eigen::Index) cols>;
 
     using SelfContainedFrom = NativeMatrixFrom<>;

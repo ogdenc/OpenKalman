@@ -731,9 +731,15 @@ namespace OpenKalman::internal
         // std::is_constructible_v cannot be used here with to_covariance_nestable.
 #endif
     CovarianceBase(Arg&& arg) noexcept
-      : Base {to_covariance_nestable<NestedMatrix>(arg)},
-        cholesky_nested {to_covariance_nestable<CholeskyNestedMatrix>(std::forward<Arg>(arg))},
-        synch_direction {0} {}
+      : Base {
+          arg.synchronization_direction() >= 0 ?
+          NestedMatrix {to_covariance_nestable<NestedMatrix>(arg)} :
+          NestedMatrix {}},
+        cholesky_nested {
+          arg.synchronization_direction() <= 0 ?
+          CholeskyNestedMatrix {to_covariance_nestable<CholeskyNestedMatrix>(std::forward<Arg>(arg))} :
+          CholeskyNestedMatrix {}},
+        synch_direction {arg.synchronization_direction()} {}
 
 
     /**
@@ -1200,16 +1206,16 @@ namespace OpenKalman::internal
         cholesky_nested {[a = CholeskyNestedMatrix {}]() mutable -> CholeskyNestedMatrix& { return a; }},
         synchronization_direction {[] { return 1; }},
         synchronize_forward {
-          [&ch = cholesky_nested(), s = arg.synchronization_direction,
-            f = arg.synchronize_forward, c = [&] { return arg.cholesky_nested_matrix(); }] {
-          if (s() > 0) f();
+          [&ch = cholesky_nested(), s = arg.synchronization_direction, fr = arg.synchronize_reverse,
+            c = [&] { return arg.cholesky_nested_matrix(); }] {
+          if (s() < 0) fr();
           ch = c();
         }},
         synchronize_reverse {[&ch = cholesky_nested(), &m = mutable_nested_matrix()] {
           if constexpr (nested_is_modifiable) m = to_covariance_nestable<NestedMatrix>(ch);
           else throw std::logic_error {"Case 4 synchronize_reverse: NestedMatrix is not modifiable."};
         }},
-        mark_nested_matrix_changed {[] {}},
+        mark_nested_matrix_changed {arg.mark_nested_matrix_changed},
         mark_cholesky_nested_matrix_changed {[] {}},
         mark_synchronized {[] {}}
     {}

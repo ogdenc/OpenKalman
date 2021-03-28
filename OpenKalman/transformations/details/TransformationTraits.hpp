@@ -16,7 +16,7 @@
 namespace OpenKalman
 {
   /// Whether an object is a linearized function (with defined Jacobian and optionally Hessian functions).
-  template<typename T, std::size_t order = 1, typename Enable = void>
+  template<typename T, std::size_t order = 1, typename = void>
   struct is_linearized_function : std::false_type {};
 
   template<typename T, std::size_t order>
@@ -103,7 +103,7 @@ namespace OpenKalman
     template<typed_matrix Noise>
     struct PerturbationTraits<Noise> : MatrixTraits<Noise> {};
 #else
-    template<typename Noise, typename Enable = void>
+    template<typename Noise, typename = void>
     struct PerturbationTraits;
 
     template<typename Noise>

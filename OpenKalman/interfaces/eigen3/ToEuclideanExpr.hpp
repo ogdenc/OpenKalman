@@ -20,18 +20,28 @@ namespace OpenKalman::Eigen3
 {
 
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, typename NestedMatrix> requires
+  template<coefficients Coefficients, eigen_matrix NestedMatrix> requires
     (MatrixTraits<NestedMatrix>::dimension == Coefficients::size)
 #else
   template<typename Coefficients, typename NestedMatrix>
 #endif
   struct ToEuclideanExpr : OpenKalman::internal::MatrixBase<ToEuclideanExpr<Coefficients, NestedMatrix>, NestedMatrix>
   {
+
+#ifndef __cpp_concepts
+    static_assert(coefficients<Coefficients>);
+    static_assert(eigen_matrix<NestedMatrix>);
     static_assert(MatrixTraits<NestedMatrix>::dimension == Coefficients::size);
-    using Base = OpenKalman::internal::MatrixBase<ToEuclideanExpr, NestedMatrix>;
+#endif
+
     using Scalar = typename MatrixTraits<NestedMatrix>::Scalar; ///< Scalar type for this variable.
+
+  private:
+
+    using Base = OpenKalman::internal::MatrixBase<ToEuclideanExpr, NestedMatrix>;
     static constexpr auto columns = MatrixTraits<NestedMatrix>::columns; ///< Number of columns.
 
+  public:
 
     /// Default constructor.
 #ifdef __cpp_concepts

@@ -89,9 +89,9 @@ namespace OpenKalman::Eigen3
     Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<typename NestedMatrix::Scalar>, NestedMatrix>;
 
 
-  // ---------------------------- //
-  //    New Eigen matrix types    //
-  // ---------------------------- //
+  // ------------------------------------------- //
+  //  ZeroMatrix, eigen_zero_expr, eigen_matrix  //
+  // ------------------------------------------- //
 
   /**
    * \brief A matrix in which all elements are automatically 0.
@@ -127,6 +127,22 @@ namespace OpenKalman::Eigen3
 
 
   /**
+   * \brief Specifies that T is a suitable nested matrix for OpenKalman's new Eigen matrix classes.
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept eigen_matrix = eigen_native<T> or eigen_zero_expr<T>;
+#else
+  inline constexpr bool eigen_matrix = eigen_native<T> or eigen_zero_expr<T>;
+#endif
+
+
+  // ------------------------------------- //
+  //  DiagonalMatrix, eigen_diagonal_expr  //
+  // ------------------------------------- //
+
+  /**
    * \brief A diagonal matrix.
    * \details The matrix is guaranteed to be diagonal. It is ::self_contained iff NestedMatrix is ::self_contained.
    * Implicit conversions are available from any \ref diagonal_matrix of compatible size.
@@ -135,7 +151,7 @@ namespace OpenKalman::Eigen3
    * \note This has the same name as Eigen::DiagonalMatrix, and is intended as a replacement.
    */
 #ifdef __cpp_concepts
-  template<column_vector NestedMatrix>
+  template<column_vector NestedMatrix> requires eigen_matrix<NestedMatrix>
 #else
   template<typename NestedMatrix>
 #endif
@@ -164,6 +180,10 @@ namespace OpenKalman::Eigen3
 #endif
 
 
+  // -------------------------------------------- //
+  //  SelfAdjointMatrix, eigen_self_adjoint_expr  //
+  // -------------------------------------------- //
+
   /**
    * \brief A self-adjoint matrix.
    * \details The matrix is guaranteed to be self-adjoint. It is ::self_contained iff NestedMatrix is ::self_contained.
@@ -177,7 +197,8 @@ namespace OpenKalman::Eigen3
    * is self-adjoint. If the matrix is diagonal, 0 is automatically mapped to each matrix element outside the diagonal.
    */
 #ifdef __cpp_concepts
-  template<square_matrix NestedMatrix, TriangleType storage_triangle = TriangleType::lower>
+  template<square_matrix NestedMatrix, TriangleType storage_triangle = TriangleType::lower> requires
+    eigen_matrix<NestedMatrix> or eigen_diagonal_expr<NestedMatrix>
 #else
   template<typename NestedMatrix, TriangleType storage_triangle = TriangleType::lower>
 #endif
@@ -206,6 +227,70 @@ namespace OpenKalman::Eigen3
 #endif
 
 
+  // ---------------------------------------------------------------------------------------------- //
+  //  is_upper_triangular_storage, is_lower_triangular_storage, internal::same_storage_triangle_as  //
+  // ---------------------------------------------------------------------------------------------- //
+
+  namespace internal
+  {
+    template<typename T>
+    struct is_upper_triangular_storage : std::false_type {};
+
+    template<typename T>
+    struct is_lower_triangular_storage : std::false_type {};
+  }
+
+
+  /**
+   * \brief Specifies that T is an \ref eigen_self_adjoint_expr that stores data in the upper-right triangle.
+   * \details This \em includes matrices that store data only along the diagonal.
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept upper_triangular_storage = internal::is_upper_triangular_storage<std::decay_t<T>>::value;
+#else
+  inline constexpr bool upper_triangular_storage = internal::is_upper_triangular_storage<std::decay_t<T>>::value;
+#endif
+
+
+  /**
+   * \brief Specifies that T is an \ref eigen_self_adjoint_expr that stores data in the lower-left triangle.
+   * \details This \em includes matrices that store data only along the diagonal.
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept lower_triangular_storage = internal::is_lower_triangular_storage<std::decay_t<T>>::value;
+#else
+  inline constexpr bool lower_triangular_storage = internal::is_lower_triangular_storage<std::decay_t<T>>::value;
+#endif
+
+
+  namespace internal
+  {
+    /**
+     * \internal
+     * \brief Specifies that two self-adjoint expressions have the same storage triangle type (upper or lower).
+     * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
+     */
+    template<typename T, typename U>
+#ifdef __cpp_concepts
+    concept same_storage_triangle_as =
+    (upper_triangular_storage<T> and upper_triangular_storage<U>) or
+      (lower_triangular_storage<T> and lower_triangular_storage<U>);
+#else
+    inline constexpr bool same_storage_triangle_as =
+        (upper_triangular_storage<T> and upper_triangular_storage<U>) or
+        (lower_triangular_storage<T> and lower_triangular_storage<U>);
+#endif
+  }
+
+
+  // ----------------------------------------- //
+  //  TriangularMatrix, eigen_triangular_expr  //
+  // ----------------------------------------- //
+
   /**
    * \brief A triangular matrix.
    * \details The matrix is guaranteed to be triangular. It is ::self_contained iff NestedMatrix is ::self_contained.
@@ -218,7 +303,8 @@ namespace OpenKalman::Eigen3
    * not within the selected triangle or diagonal, to ensure that the matrix is triangular.
    */
 #ifdef __cpp_concepts
-  template<square_matrix NestedMatrix, TriangleType triangle_type = TriangleType::lower>
+  template<square_matrix NestedMatrix, TriangleType triangle_type = TriangleType::lower> requires
+    eigen_matrix<NestedMatrix> or eigen_diagonal_expr<NestedMatrix>
 #else
   template<typename NestedMatrix, TriangleType triangle_type = TriangleType::lower>
 #endif
@@ -247,6 +333,10 @@ namespace OpenKalman::Eigen3
 #endif
 
 
+  // ------------------------------------ //
+  //  ToEuclideanExpr, to_euclidean_expr  //
+  // ------------------------------------ //
+
   /**
    * \brief An expression that transforms coefficients into Euclidean space for proper wrapping.
    * \details This is the counterpart expression to FromEuclideanExpr.
@@ -254,8 +344,8 @@ namespace OpenKalman::Eigen3
    * \tparam NestedMatrix The pre-transformed column vector, or set of column vectors in the form of a matrix.
    */
 #ifdef __cpp_concepts
-  template<coefficients Coeffs, typename NestedMatrix = Eigen::Matrix<double, Coeffs::size, 1>>
-    requires (MatrixTraits<NestedMatrix>::dimension == Coeffs::size)
+  template<coefficients Coeffs, eigen_matrix NestedMatrix = Eigen::Matrix<double, Coeffs::size, 1>> requires
+    (MatrixTraits<NestedMatrix>::dimension == Coeffs::size)
 #else
   template<typename Coeffs, typename NestedMatrix = Eigen::Matrix<double, Coeffs::size, 1>>
 #endif
@@ -284,6 +374,10 @@ namespace OpenKalman::Eigen3
 #endif
 
 
+  // -------------------------------------------------------- //
+  //  FromEuclideanExpr, from_euclidean_expr, euclidean_expr  //
+  // -------------------------------------------------------- //
+
   /**
    * \brief An expression that transforms angular or other modular coefficients back from Euclidean space.
    * \details This is the counterpart expression to ToEuclideanExpr.
@@ -291,8 +385,9 @@ namespace OpenKalman::Eigen3
    * \tparam NestedMatrix The pre-transformed column vector, or set of column vectors in the form of a matrix.
    */
 #ifdef __cpp_concepts
-  template<coefficients Coeffs, typename NestedMatrix = Eigen::Matrix<double, Coeffs::dimension, 1>>
-    requires (MatrixTraits<NestedMatrix>::dimension == Coeffs::dimension)
+  template<coefficients Coeffs, typename NestedMatrix = Eigen::Matrix<double, Coeffs::dimension, 1>> requires
+    (eigen_matrix<NestedMatrix> or to_euclidean_expr<NestedMatrix>) and
+    (MatrixTraits<NestedMatrix>::dimension == Coeffs::dimension)
 #else
   template<typename Coeffs, typename NestedMatrix = Eigen::Matrix<double, Coeffs::dimension, 1>>
 #endif
@@ -318,6 +413,18 @@ namespace OpenKalman::Eigen3
   concept from_euclidean_expr = detail::is_from_euclidean_expr<std::decay_t<T>>::value;
 #else
   inline constexpr bool from_euclidean_expr = detail::is_from_euclidean_expr<std::decay_t<T>>::value;
+#endif
+
+
+  /**
+   * \brief Specifies that T is either \ref to_euclidean_expr or \ref from_euclidean_expr.
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept euclidean_expr = to_euclidean_expr<T> or from_euclidean_expr<T>;
+#else
+  inline constexpr bool euclidean_expr = from_euclidean_expr<T> or to_euclidean_expr<T>;
 #endif
 
 

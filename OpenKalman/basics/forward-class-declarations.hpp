@@ -184,7 +184,7 @@ namespace OpenKalman
 #ifndef __cpp_concepts
   namespace detail
   {
-    template<typename T, typename Enable = void>
+    template<typename T, typename = void>
     struct is_wrapped_mean : std::false_type {};
 
     template<typename T>
@@ -236,7 +236,7 @@ namespace OpenKalman
 #ifndef __cpp_concepts
   namespace detail
   {
-    template<typename T, typename Enable = void>
+    template<typename T, typename = void>
     struct is_euclidean_transformed : std::false_type {};
 
     template<typename T>
@@ -289,7 +289,7 @@ namespace OpenKalman
 #ifndef __cpp_concepts
   namespace detail
   {
-    template<typename T, typename Enable = void>
+    template<typename T, typename = void>
     struct has_untyped_columns : std::false_type {};
 
     template<typename T>
@@ -322,7 +322,7 @@ namespace OpenKalman
 #ifndef __cpp_concepts
   namespace detail
   {
-    template<typename T, typename Enable = void>
+    template<typename T, typename = void>
     struct has_one_column : std::false_type {};
 
     template<typename T>
@@ -460,7 +460,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<typename Derived, typename NestedMatrix>
 #else
-    template<typename Derived, typename NestedMatrix, typename Enable = void>
+    template<typename Derived, typename NestedMatrix, typename = void>
 #endif
     struct CovarianceBase;
 

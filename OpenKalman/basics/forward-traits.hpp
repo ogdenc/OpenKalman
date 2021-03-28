@@ -107,8 +107,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<coefficients T, coefficients U>
 #else
-    /// \tparam Enable A dummy parameter for selection with SFINAE.
-    template<typename T, typename U, typename Enable = void>
+    template<typename T, typename U, typename = void>
 #endif
     struct is_equivalent_to;
   }
@@ -141,8 +140,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<coefficients T, coefficients U>
 #else
-    /// \tparam Enable A dummy parameter for selection with SFINAE.
-    template<typename T, typename U, typename Enable = void>
+    template<typename T, typename U, typename = void>
 #endif
     struct is_prefix_of;
   }
@@ -179,7 +177,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<typename T>
 #else
-    template<typename T, typename Enable = void>
+    template<typename T, typename = void>
 #endif
     struct is_covariance_nestable : std::false_type {};
   }
@@ -210,7 +208,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<typename T>
 #else
-    template<typename T, typename Enable = void>
+    template<typename T, typename = void>
 #endif
     struct is_typed_matrix_nestable : std::false_type {};
   }
@@ -478,8 +476,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typename T>
 #else
-  /// \tparam Enable A dummy parameter for selection with SFINAE.
-  template<typename T, typename Enable = void>
+  template<typename T, typename = void>
 #endif
   struct DistributionTraits {};
 
@@ -613,7 +610,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<typename T>
 #else
-    template<typename T, typename Enable = void>
+    template<typename T, typename = void>
 #endif
     struct is_zero_matrix : std::false_type {};
   }
@@ -740,7 +737,7 @@ namespace OpenKalman
 #ifndef __cpp_concepts
   namespace detail
   {
-    template<typename T, typename Enable = void>
+    template<typename T, typename = void>
     struct is_diag_matrix_impl : std::false_type {};
 
     template<typename T>
@@ -778,24 +775,10 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<typename T>
 #else
-    template<typename T, typename Enable = void>
+    template<typename T, typename = void>
 #endif
     struct is_self_adjoint_matrix : std::false_type {};
   }
-
-
-#ifndef __cpp_concepts
-  namespace detail
-  {
-    template<typename T, typename Enable = void>
-    struct is_sa_matrix_impl : std::false_type {};
-
-    template<typename T>
-    struct is_sa_matrix_impl<T, std::enable_if_t<
-      internal::is_self_adjoint_matrix<std::decay_t<T>>::value or diagonal_matrix<T>>>
-      : std::true_type {};
-  }
-#endif
 
 
   /**
@@ -807,7 +790,8 @@ namespace OpenKalman
   concept self_adjoint_matrix = internal::is_self_adjoint_matrix<std::decay_t<T>>::value or diagonal_matrix<T>;
 #else
   template<typename T>
-  inline constexpr bool self_adjoint_matrix = detail::is_sa_matrix_impl<T>::value;
+  inline constexpr bool self_adjoint_matrix =
+    internal::is_self_adjoint_matrix<std::decay_t<T>>::value or diagonal_matrix<T>;
 #endif
 
 
@@ -824,7 +808,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<typename T>
 #else
-    template<typename T, typename Enable = void>
+    template<typename T, typename = void>
 #endif
     struct is_lower_triangular_matrix : std::false_type {};
   }
@@ -833,7 +817,7 @@ namespace OpenKalman
 #ifndef __cpp_concepts
   namespace detail
   {
-    template<typename T, typename Enable = void>
+    template<typename T, typename = void>
     struct is_lt_matrix_impl : std::false_type {};
 
     template<typename T>
@@ -870,7 +854,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<typename T>
 #else
-    template<typename T, typename Enable = void>
+    template<typename T, typename = void>
 #endif
     struct is_upper_triangular_matrix : std::false_type {};
   }
@@ -879,7 +863,7 @@ namespace OpenKalman
 #ifndef __cpp_concepts
   namespace detail
   {
-    template<typename T, typename Enable = void>
+    template<typename T, typename = void>
     struct is_ut_matrix_impl : std::false_type {};
 
     template<typename T>
@@ -902,6 +886,190 @@ namespace OpenKalman
   inline constexpr bool upper_triangular_matrix = detail::is_ut_matrix_impl<T>::value;
 #endif
 
+
+  // ------------------- //
+  //  triangular_matrix  //
+  // ------------------- //
+
+  /**
+   * \brief Specifies that a type is a triangular matrix (upper or lower).
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
+   */
+#ifdef __cpp_concepts
+  template<typename T>
+  concept triangular_matrix = lower_triangular_matrix<T> or upper_triangular_matrix<T>;
+#else
+  template<typename T>
+  inline constexpr bool triangular_matrix = lower_triangular_matrix<T> or upper_triangular_matrix<T>;
+#endif
+
+
+  // --------------------------------- //
+  //  internal::same_triangle_type_as  //
+  // --------------------------------- //
+
+  namespace internal
+  {
+    /**
+     * \internal
+     * \brief Specifies that two types have the same triangular type (upper or lower).
+     * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
+     */
+    template<typename T, typename U>
+#ifdef __cpp_concepts
+    concept same_triangle_type_as =
+      (upper_triangular_matrix<T> and upper_triangular_matrix<U>) or
+      (lower_triangular_matrix<T> and lower_triangular_matrix<U>);
+#else
+    inline constexpr bool same_triangle_type_as =
+      (upper_triangular_matrix<T> and upper_triangular_matrix<U>) or
+        (lower_triangular_matrix<T> and lower_triangular_matrix<U>);
+#endif
+  }
+
+
+  // --------------- //
+  //  cholesky_form  //
+  // --------------- //
+
+  namespace internal
+  {
+    /**
+     * \internal
+     * \brief A type trait testing whether the nested matrix is a Cholesky square root.
+     */
+#ifdef __cpp_concepts
+    template<typename T>
+#else
+    template<typename T, typename = void>
+#endif
+    struct is_cholesky_form : std::false_type {};
+  }
+
+
+  /**
+   * \brief Specifies that a type has a nested native matrix that is a Cholesky square root.
+   * \details If this is true, then nested_matrix_t<T> is true.
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept cholesky_form = internal::is_cholesky_form<std::decay_t<T>>::value;
+#else
+  inline constexpr bool cholesky_form = internal::is_cholesky_form<std::decay_t<T>>::value;
+#endif
+
+
+  // --------------------- //
+  //  is_element_gettable  //
+  // --------------------- //
+
+  namespace internal
+  {
+    /**
+     * \internal
+     * \brief Type trait testing whether an object has elements that can be retrieved with N indices.
+     * \note This should be specialized for all matrix types usable with OpenKalman.
+     */
+#ifdef __cpp_concepts
+    template<typename T, std::size_t N>
+    struct is_element_gettable : std::false_type {};
+#else
+    template<typename T, std::size_t N, typename = void>
+    struct is_element_gettable : std::false_type {};
+#endif
+  }
+
+
+  /**
+   * \brief Specifies that a type has elements that can be retrieved with N number of indices.
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
+   */
+  template<typename T, std::size_t N>
+#ifdef __cpp_concepts
+  concept element_gettable = internal::is_element_gettable<std::decay_t<T>, N>::value;
+#else
+  inline constexpr bool element_gettable = internal::is_element_gettable<std::decay_t<T>, N>::value;
+#endif
+
+
+  // --------------------- //
+  //  is_element_settable  //
+  // --------------------- //
+
+  namespace internal
+  {
+    /**
+     * \internal
+     * \brief Type trait testing whether an object has elements that can be set with N indices.
+     * \note This should be specialized for all matrix types usable with OpenKalman.
+     */
+#ifdef __cpp_concepts
+    template<typename T, std::size_t N>
+    struct is_element_settable : std::false_type {};
+#else
+    template<typename T, std::size_t N, typename = void>
+    struct is_element_settable : std::false_type {};
+#endif
+  }
+
+  /**
+   * \brief Specifies that a type has elements that can be set with N number of indices.
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
+   */
+  template<typename T, std::size_t N>
+#ifdef __cpp_concepts
+  concept element_settable = internal::is_element_settable<T, N>::value and
+    (not std::is_const_v<std::remove_reference_t<T>>);
+#else
+  inline constexpr bool element_settable = internal::is_element_settable<T, N>::value and
+    (not std::is_const_v<std::remove_reference_t<T>>);
+#endif
+
+
+  // ------------ //
+  //  modifiable  //
+  // ------------ //
+
+  namespace internal
+  {
+#ifdef __cpp_concepts
+    template<typename T, typename U>
+    struct is_modifiable : std::true_type {};
+#else
+    template<typename T, typename U, typename = void>
+    struct is_modifiable : std::true_type {};
+#endif
+
+
+    // Custom modifiability parameter that can be defined in the native matrix ecosystem.
+#ifdef __cpp_concepts
+    template<typename T, typename U>
+    struct is_modifiable_native : std::true_type {};
+#else
+    template<typename T, typename U, typename = void>
+    struct is_modifiable_native : std::true_type {};
+#endif
+
+  } // namespace internal
+
+
+  /**
+   * \internal
+   * \brief Specifies that U is not obviously incompatible with T, such that assigning U to T might be possible.
+   * \details The result is true unless there is an incompatibility of some kind that would prevent assignment.
+   * Examples of such incompatibility are if T is constant or has a nested constant type, if T and U have a
+   * different shape or scalar type, or if T and U differ as to being self-adjoint, triangular, diagonal,
+   * zero, or identity. Even if this concept is true, a compile-time error is still possible.
+   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
+   */
+  template<typename T, typename U>
+#ifdef __cpp_concepts
+  concept modifiable = internal::is_modifiable<T, U>::value and internal::is_modifiable_native<T, U>::value;
+#else
+  inline constexpr bool modifiable =
+    internal::is_modifiable<T, U>::value and internal::is_modifiable_native<T, U>::value;
+#endif
 
 
 } // namespace OpenKalman

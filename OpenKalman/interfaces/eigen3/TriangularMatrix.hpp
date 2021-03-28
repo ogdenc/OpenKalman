@@ -14,20 +14,30 @@
 namespace OpenKalman::Eigen3
 {
 #ifdef __cpp_concepts
-  template<square_matrix NestedMatrix, TriangleType triangle_type>
+  template<square_matrix NestedMatrix, TriangleType triangle_type> requires
+    eigen_matrix<NestedMatrix> or eigen_diagonal_expr<NestedMatrix>
 #else
   template<typename NestedMatrix, TriangleType triangle_type>
 #endif
   struct TriangularMatrix
     : OpenKalman::internal::MatrixBase<TriangularMatrix<NestedMatrix, triangle_type>, NestedMatrix>
   {
+
+#ifndef __cpp_concepts
     static_assert(square_matrix<NestedMatrix>);
+    static_assert(eigen_matrix<NestedMatrix> or eigen_diagonal_expr<NestedMatrix>);
+#endif
+
+    using Scalar = typename MatrixTraits<NestedMatrix>::Scalar;
+
+  private:
+
     using Base = OpenKalman::internal::MatrixBase<TriangularMatrix, NestedMatrix>;
     static constexpr auto uplo = triangle_type == TriangleType::upper ? Eigen::Upper : Eigen::Lower;
     using View = Eigen::TriangularView<std::remove_reference_t<NestedMatrix>, uplo>;
-    using Scalar = typename MatrixTraits<NestedMatrix>::Scalar;
     static constexpr auto dimension = MatrixTraits<NestedMatrix>::dimension;
 
+  public:
 
     /// Default constructor.
 #ifdef __cpp_concepts

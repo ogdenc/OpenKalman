@@ -208,7 +208,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<coefficients T, coefficients U>
 #else
-    template<typename T, typename U, typename Enable>
+    template<typename T, typename U, typename>
 #endif
     struct is_equivalent_to : std::false_type {};
 
@@ -282,7 +282,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<coefficients T, coefficients U>
 #else
-    template<typename T, typename U, typename Enable>
+    template<typename T, typename U, typename>
 #endif
     struct is_prefix_of : std::false_type {};
 

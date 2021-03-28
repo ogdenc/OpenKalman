@@ -14,7 +14,7 @@
 namespace OpenKalman::Eigen3
 {
 #ifdef __cpp_concepts
-  template<column_vector NestedMatrix>
+  template<column_vector NestedMatrix> requires eigen_matrix<NestedMatrix>
 #else
   template<typename NestedMatrix>
 #endif
@@ -24,6 +24,7 @@ namespace OpenKalman::Eigen3
 
 #ifndef __cpp_concepts
     static_assert(column_vector<NestedMatrix>);
+    static_assert(eigen_matrix<NestedMatrix>);
 #endif
 
     using Base = OpenKalman::internal::MatrixBase<DiagonalMatrix, NestedMatrix>;
@@ -108,10 +109,10 @@ namespace OpenKalman::Eigen3
     /// Construct from a \ref column_vector \ref eigen_matrix.
 #ifdef __cpp_concepts
     template<eigen_matrix Arg> requires (not diagonal_matrix<Arg>) and column_vector<Arg> and
-      std::is_constructible_v<Base, Arg>
+      (not zero_matrix<Arg>) and std::is_constructible_v<Base, Arg>
 #else
     template<typename Arg, std::enable_if_t<eigen_matrix<Arg> and (not diagonal_matrix<Arg>) and
-      column_vector<Arg> and std::is_constructible_v<Base, Arg>, int> = 0>
+      column_vector<Arg> and (not zero_matrix<Arg>) and std::is_constructible_v<Base, Arg>, int> = 0>
 #endif
     explicit DiagonalMatrix(Arg&& arg) noexcept : Base {std::forward<Arg>(arg)} {}
 

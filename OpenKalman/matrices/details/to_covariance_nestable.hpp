@@ -45,7 +45,7 @@ namespace OpenKalman::internal
     else if constexpr (diagonal_matrix<T>)
     {
       // diagonal -> diagonal
-      if constexpr (column_vector<Arg>)
+      if constexpr (column_vector<Arg> and not one_by_one_matrix<Arg>)
       {
         return MatrixTraits<T>::make(std::forward<Arg>(arg));
       }

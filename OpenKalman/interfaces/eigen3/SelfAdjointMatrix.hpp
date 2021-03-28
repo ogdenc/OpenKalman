@@ -19,7 +19,8 @@
 namespace OpenKalman::Eigen3
 {
 #ifdef __cpp_concepts
-  template<square_matrix NestedMatrix, TriangleType storage_triangle>
+  template<square_matrix NestedMatrix, TriangleType storage_triangle> requires
+    eigen_matrix<NestedMatrix> or eigen_diagonal_expr<NestedMatrix>
 #else
   template<typename NestedMatrix, TriangleType storage_triangle>
 #endif
@@ -29,6 +30,7 @@ namespace OpenKalman::Eigen3
 
 #ifndef __cpp_concepts
     static_assert(square_matrix<NestedMatrix>);
+    static_assert(eigen_matrix<NestedMatrix> or eigen_diagonal_expr<NestedMatrix>);
 #endif
 
     using Scalar = typename MatrixTraits<NestedMatrix>::Scalar;

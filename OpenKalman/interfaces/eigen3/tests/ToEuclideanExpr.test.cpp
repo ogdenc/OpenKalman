@@ -18,7 +18,6 @@ using M4 = native_matrix_t<double, 4, 2>;
 using C = Coefficients<Axis, angle::Radians, Axis>;
 using To2 = ToEuclideanExpr<Coefficients<Axis, angle::Radians>, M2>;
 using To3 = ToEuclideanExpr<C, M3>;
-using ToFrom4 = ToEuclideanExpr<C, FromEuclideanExpr<C, M4>>;
 
 template<typename...Args>
 inline auto mat2(Args...args) { return MatrixTraits<M2>::make(args...); }
@@ -38,10 +37,6 @@ TEST_F(eigen3, ToEuclideanExpr_class)
   d1 << 1, 2, pi/6, pi/3, 3, 4;
   EXPECT_TRUE(is_near(d1.nested_matrix(), mat3(1, 2, pi/6, pi/3, 3, 4)));
   EXPECT_TRUE(is_near(d1, m));
-  ToFrom4 d1b;
-  d1b << 1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4;
-  EXPECT_TRUE(is_near(d1b.nested_matrix(), mat3(1, 2, pi/6, pi/3, 3, 4)));
-  EXPECT_TRUE(is_near(d1b, mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
   //
   To3 d2 {(M3() << 1, 2, pi/6, pi/3, 3, 4).finished()};
   EXPECT_TRUE(is_near(d2, m));
@@ -58,9 +53,6 @@ TEST_F(eigen3, ToEuclideanExpr_class)
   To3 d8 {1, 2, pi/6, pi/3, 3, 4};
   EXPECT_TRUE(is_near(d8, m));
   EXPECT_TRUE(is_near(To3(ZeroMatrix<double, 3, 2>()), mat4(0, 0, 1, 1, 0, 0, 0, 0)));
-  ToFrom4 d9 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4};
-  EXPECT_TRUE(is_near(d9.nested_matrix(), mat3(1, 2, pi/6, pi/3, 3, 4)));
-  EXPECT_TRUE(is_near(d9, mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
   //
   d5 = d1;
   EXPECT_TRUE(is_near(d5, m));
@@ -71,9 +63,6 @@ TEST_F(eigen3, ToEuclideanExpr_class)
   d7 = M4::Zero();
   d7 = {1, 2, pi/6, pi/3, 3, 4};
   EXPECT_TRUE(is_near(d7, m));
-  d9 = M4::Zero();
-  d9 = {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4};
-  EXPECT_TRUE(is_near(d9, m));
   //
   d1 += d2;
   EXPECT_TRUE(is_near(d1, mat4(2, 4, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 6, 8)));

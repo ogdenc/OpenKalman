@@ -396,6 +396,10 @@ TEST_F(covariance_tests, References_2from3_SqCov_1)
   EXPECT_TRUE(is_near(v3a, v3));
   Covariance<C, const Tl<M>> v3ac = v2.square();
   EXPECT_TRUE(is_near(v3ac, v3));
+  V3 v3b = SquareRootCovariance<C, Tl<M>&> {v2}.square();
+  EXPECT_TRUE(is_near(v3b, v3));
+  Covariance<C, const Tl<M>> v3bc = SquareRootCovariance<C, const Tl<M>&> {v2}.square();
+  EXPECT_TRUE(is_near(v3bc, v3));
   EXPECT_TRUE(is_near(adjoint(v2.square()), adjoint(v3)));
 
   // case 2 from case 2:
@@ -454,6 +458,10 @@ TEST_F(covariance_tests, References_2from3_Cov_2)
   EXPECT_TRUE(is_near(v3a, v3));
   SquareRootCovariance<C, SAu<const M>> v3ac = v2.square_root();
   EXPECT_TRUE(is_near(v3ac, v3));
+  V3 v3b = Covariance<C, SAu<M&>> {v2}.square_root();
+  EXPECT_TRUE(is_near(v3b, v3));
+  SquareRootCovariance<C, SAu<const M>> v3bc = Covariance<C, const SAu<M&>> {v2}.square_root();
+  EXPECT_TRUE(is_near(v3bc, v3));
   EXPECT_TRUE(is_near(adjoint(v3a), adjoint(v2.square_root())));
 }
 
