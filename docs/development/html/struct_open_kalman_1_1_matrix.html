@@ -84,9 +84,9 @@ $(document).ready(function(){initNavTree('struct_open_kalman_1_1_matrix.html',''
 <div class="header">
   <div class="summary">
 <a href="struct_open_kalman_1_1_matrix-members.html">List of all members</a> &#124;
-<a href="#pub-static-attribs">Static Public Attributes</a> &#124;
 <a href="#pub-types">Public Aliases</a> &#124;
-<a href="#pub-methods">Public Member Functions</a>  </div>
+<a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pro-static-attribs">Static Protected Attributes</a>  </div>
   <div class="headertitle">
 <div class="title">OpenKalman::Matrix&lt; RowCoefficients, ColumnCoefficients, NestedMatrix &gt; Struct Template Reference</div>  </div>
 </div><!--header-->
@@ -123,27 +123,12 @@ Inheritance diagram for OpenKalman::Matrix&lt; RowCoefficients, ColumnCoefficien
   </map>
 </div></div>
 <table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-attribs"></a>
-Static Public Attributes</h2></td></tr>
-<tr class="memitem:a86cb60bc4e0b683b0f307347ce33c859"><td class="memItemLeft" align="right" valign="top"><a id="a86cb60bc4e0b683b0f307347ce33c859"></a>
-static constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a86cb60bc4e0b683b0f307347ce33c859">dimension</a></td></tr>
-<tr class="memdesc:a86cb60bc4e0b683b0f307347ce33c859"><td class="mdescLeft">&#160;</td><td class="mdescRight">Dimension of the vector. <br /></td></tr>
-<tr class="separator:a86cb60bc4e0b683b0f307347ce33c859"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a48a773ce459d0b82b58adeec382b995e"><td class="memItemLeft" align="right" valign="top"><a id="a48a773ce459d0b82b58adeec382b995e"></a>
-static constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a48a773ce459d0b82b58adeec382b995e">columns</a></td></tr>
-<tr class="memdesc:a48a773ce459d0b82b58adeec382b995e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of columns. <br /></td></tr>
-<tr class="separator:a48a773ce459d0b82b58adeec382b995e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
 Public Aliases</h2></td></tr>
-<tr class="memitem:a7a5b7cbef96464c0b8efcc1a192e00f8"><td class="memItemLeft" align="right" valign="top"><a id="a7a5b7cbef96464c0b8efcc1a192e00f8"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a7a5b7cbef96464c0b8efcc1a192e00f8">NestedMatrix</a> = <a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a7a5b7cbef96464c0b8efcc1a192e00f8">NestedMatrix</a></td></tr>
-<tr class="memdesc:a7a5b7cbef96464c0b8efcc1a192e00f8"><td class="mdescLeft">&#160;</td><td class="mdescRight">The nested class. <br /></td></tr>
-<tr class="separator:a7a5b7cbef96464c0b8efcc1a192e00f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a983e8eff3a1e26987f9d89151ab20f59"><td class="memItemLeft" align="right" valign="top"><a id="a983e8eff3a1e26987f9d89151ab20f59"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a983e8eff3a1e26987f9d89151ab20f59">Scalar</a> = typename <a class="el" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits</a>&lt; <a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a7a5b7cbef96464c0b8efcc1a192e00f8">NestedMatrix</a> &gt;::<a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a983e8eff3a1e26987f9d89151ab20f59">Scalar</a></td></tr>
-<tr class="memdesc:a983e8eff3a1e26987f9d89151ab20f59"><td class="mdescLeft">&#160;</td><td class="mdescRight">Scalar type for this variable. <br /></td></tr>
-<tr class="separator:a983e8eff3a1e26987f9d89151ab20f59"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab979227982ddbf642a5db5bc6717a31b"><td class="memItemLeft" align="right" valign="top"><a id="ab979227982ddbf642a5db5bc6717a31b"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_matrix.html#ab979227982ddbf642a5db5bc6717a31b">Scalar</a> = typename <a class="el" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits</a>&lt; NestedMatrix &gt;::<a class="el" href="struct_open_kalman_1_1_matrix.html#ab979227982ddbf642a5db5bc6717a31b">Scalar</a></td></tr>
+<tr class="memdesc:ab979227982ddbf642a5db5bc6717a31b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Scalar type for this matrix. <br /></td></tr>
+<tr class="separator:ab979227982ddbf642a5db5bc6717a31b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -155,25 +140,25 @@ Public Member Functions</h2></td></tr>
 &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_matrix.html#aa1dc8aa146b6de45e7d1a17af5548f4c">Matrix</a> (<a class="el" href="struct_open_kalman_1_1_matrix.html">Matrix</a> &amp;&amp;other) noexcept</td></tr>
 <tr class="memdesc:aa1dc8aa146b6de45e7d1a17af5548f4c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Move constructor. <br /></td></tr>
 <tr class="separator:aa1dc8aa146b6de45e7d1a17af5548f4c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7398f7fce7e6650a38262b2cf8b1f04f"><td class="memTemplParams" colspan="2"><a id="a7398f7fce7e6650a38262b2cf8b1f04f"></a>
-template&lt;typename Arg , std::enable_if_t&lt; typed_matrix&lt; Arg &gt; and not euclidean_transformed&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a7398f7fce7e6650a38262b2cf8b1f04f"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_matrix.html#a7398f7fce7e6650a38262b2cf8b1f04f">Matrix</a> (Arg &amp;&amp;other) noexcept</td></tr>
-<tr class="memdesc:a7398f7fce7e6650a38262b2cf8b1f04f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct from a compatible matrix. <br /></td></tr>
-<tr class="separator:a7398f7fce7e6650a38262b2cf8b1f04f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7398f7fce7e6650a38262b2cf8b1f04f"><td class="memTemplParams" colspan="2"><a id="a7398f7fce7e6650a38262b2cf8b1f04f"></a>
-template&lt;typename Arg , std::enable_if_t&lt; typed_matrix&lt; Arg &gt; and euclidean_transformed&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a7398f7fce7e6650a38262b2cf8b1f04f"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_matrix.html#a7398f7fce7e6650a38262b2cf8b1f04f">Matrix</a> (Arg &amp;&amp;other) noexcept</td></tr>
-<tr class="memdesc:a7398f7fce7e6650a38262b2cf8b1f04f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct from a compatible Euclidean-transformed matrix. <br /></td></tr>
-<tr class="separator:a7398f7fce7e6650a38262b2cf8b1f04f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a44df0b652fb87656f9489323997fcfbf"><td class="memTemplParams" colspan="2"><a id="a44df0b652fb87656f9489323997fcfbf"></a>
+template&lt;typename Arg , std::enable_if_t&lt; typed_matrix&lt; Arg &gt; and not std::is_base_of_v&lt; Matrix, std::decay_t&lt; Arg &gt;&gt; and not euclidean_transformed&lt; Arg &gt; and equivalent_to&lt; typename MatrixTraits&lt; Arg &gt;::RowCoefficients, RowCoefficients &gt; and equivalent_to&lt; typename MatrixTraits&lt; Arg &gt;::ColumnCoefficients, ColumnCoefficients &gt; and std::is_constructible_v&lt; Base, decltype(nested_matrix(std::declval&lt; Arg &gt;()))&gt; , int &gt; </td></tr>
+<tr class="memitem:a44df0b652fb87656f9489323997fcfbf"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_matrix.html#a44df0b652fb87656f9489323997fcfbf">Matrix</a> (Arg &amp;&amp;other) noexcept</td></tr>
+<tr class="memdesc:a44df0b652fb87656f9489323997fcfbf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct from a compatible <a class="el" href="namespace_open_kalman.html#ae19962a38a87cd8c8003e48f42150145">typed_matrix</a>. <br /></td></tr>
+<tr class="separator:a44df0b652fb87656f9489323997fcfbf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a44df0b652fb87656f9489323997fcfbf"><td class="memTemplParams" colspan="2"><a id="a44df0b652fb87656f9489323997fcfbf"></a>
+template&lt;typename Arg , std::enable_if_t&lt; typed_matrix&lt; Arg &gt; and euclidean_transformed&lt; Arg &gt; and equivalent_to&lt; typename MatrixTraits&lt; Arg &gt;::RowCoefficients, RowCoefficients &gt; and equivalent_to&lt; typename MatrixTraits&lt; Arg &gt;::ColumnCoefficients, ColumnCoefficients &gt; and std::is_constructible_v&lt; Base, decltype(from_euclidean&lt; RowCoefficients &gt;(nested_matrix(std::declval&lt; Arg &gt;())))&gt; , int &gt; </td></tr>
+<tr class="memitem:a44df0b652fb87656f9489323997fcfbf"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_matrix.html#a44df0b652fb87656f9489323997fcfbf">Matrix</a> (Arg &amp;&amp;other) noexcept</td></tr>
+<tr class="memdesc:a44df0b652fb87656f9489323997fcfbf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct from a compatible <a class="el" href="namespace_open_kalman.html#a434bc44aa1de7faf3cac40cca8944b44">euclidean_transformed</a>. <br /></td></tr>
+<tr class="separator:a44df0b652fb87656f9489323997fcfbf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae0d14c187e0939aa34e1563a8bd57a0d"><td class="memTemplParams" colspan="2"><a id="ae0d14c187e0939aa34e1563a8bd57a0d"></a>
-template&lt;typename Arg , std::enable_if_t&lt; typed_matrix_nestable&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
+template&lt;typename Arg , std::enable_if_t&lt; typed_matrix_nestable&lt; Arg &gt; and(MatrixTraits&lt; Arg &gt;::dimension==Base::dimension) and(MatrixTraits&lt; Arg &gt;::columns==Base::columns) and std::is_constructible_v&lt; Base, Arg &gt;, int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:ae0d14c187e0939aa34e1563a8bd57a0d"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_matrix.html#ae0d14c187e0939aa34e1563a8bd57a0d">Matrix</a> (Arg &amp;&amp;arg) noexcept</td></tr>
-<tr class="memdesc:ae0d14c187e0939aa34e1563a8bd57a0d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct from compatible typed_matrix_nestable. <br /></td></tr>
+<tr class="memdesc:ae0d14c187e0939aa34e1563a8bd57a0d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct from compatible <a class="el" href="namespace_open_kalman.html#a5245fbf912b12a279acb815fcf7650d9">typed_matrix_nestable</a>. <br /></td></tr>
 <tr class="separator:ae0d14c187e0939aa34e1563a8bd57a0d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae0d14c187e0939aa34e1563a8bd57a0d"><td class="memTemplParams" colspan="2"><a id="ae0d14c187e0939aa34e1563a8bd57a0d"></a>
-template&lt;typename Arg , std::enable_if_t&lt; covariance&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
+template&lt;typename Arg , std::enable_if_t&lt; covariance&lt; Arg &gt; and equivalent_to&lt; typename MatrixTraits&lt; Arg &gt;::RowCoefficients, RowCoefficients &gt; and equivalent_to&lt; typename MatrixTraits&lt; Arg &gt;::RowCoefficients, ColumnCoefficients &gt; and std::is_constructible_v&lt; Base, native_matrix_t&lt; Arg &gt;&gt;, int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:ae0d14c187e0939aa34e1563a8bd57a0d"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_matrix.html#ae0d14c187e0939aa34e1563a8bd57a0d">Matrix</a> (Arg &amp;&amp;arg) noexcept</td></tr>
-<tr class="memdesc:ae0d14c187e0939aa34e1563a8bd57a0d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct from compatible covariance. <br /></td></tr>
+<tr class="memdesc:ae0d14c187e0939aa34e1563a8bd57a0d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct from compatible <a class="el" href="namespace_open_kalman.html#acc62cd53d66b676058de97da3caaca3b">covariance</a>. <br /></td></tr>
 <tr class="separator:ae0d14c187e0939aa34e1563a8bd57a0d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5cde4c532002821f866dec35c616a4f4"><td class="memItemLeft" align="right" valign="top"><a id="a5cde4c532002821f866dec35c616a4f4"></a>
 auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_matrix.html#a5cde4c532002821f866dec35c616a4f4">operator=</a> (const <a class="el" href="struct_open_kalman_1_1_matrix.html">Matrix</a> &amp;other)</td></tr>
@@ -184,21 +169,31 @@ auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href
 <tr class="memdesc:abf6b4b69b79694a84dafa85df30845a4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Move assignment operator. <br /></td></tr>
 <tr class="separator:abf6b4b69b79694a84dafa85df30845a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a34b8c834b60f46f987361b3105aef5f2"><td class="memTemplParams" colspan="2"><a id="a34b8c834b60f46f987361b3105aef5f2"></a>
-template&lt;typename Arg , std::enable_if_t&lt; typed_matrix&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
+template&lt;typename Arg , std::enable_if_t&lt; typed_matrix&lt; Arg &gt; and(not euclidean_transformed&lt; Arg &gt;) and(not std::is_base_of_v&lt; Matrix, std::decay_t&lt; Arg &gt;&gt;) and equivalent_to&lt; typename MatrixTraits&lt; Arg &gt;::RowCoefficients, RowCoefficients &gt; and equivalent_to&lt; typename MatrixTraits&lt; Arg &gt;::ColumnCoefficients, ColumnCoefficients &gt; and modifiable&lt; NestedMatrix, nested_matrix_t&lt; Arg &gt;&gt;, int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:a34b8c834b60f46f987361b3105aef5f2"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_matrix.html#a34b8c834b60f46f987361b3105aef5f2">operator=</a> (Arg &amp;&amp;other) noexcept</td></tr>
-<tr class="memdesc:a34b8c834b60f46f987361b3105aef5f2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Assign from a compatible typed matrix. <br /></td></tr>
+<tr class="memdesc:a34b8c834b60f46f987361b3105aef5f2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Assign from a compatible <a class="el" href="namespace_open_kalman.html#ae19962a38a87cd8c8003e48f42150145">typed_matrix</a>. <br /></td></tr>
 <tr class="separator:a34b8c834b60f46f987361b3105aef5f2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6372851912dd673a6c617078da9e208e"><td class="memTemplParams" colspan="2"><a id="a6372851912dd673a6c617078da9e208e"></a>
+template&lt;typename Arg , std::enable_if_t&lt; euclidean_transformed&lt; Arg &gt; and equivalent_to&lt; typename MatrixTraits&lt; Arg &gt;::RowCoefficients, RowCoefficients &gt; and equivalent_to&lt; typename MatrixTraits&lt; Arg &gt;::ColumnCoefficients, ColumnCoefficients &gt; and modifiable&lt; NestedMatrix, decltype(from_euclidean&lt; RowCoefficients &gt;(std::declval&lt; nested_matrix_t&lt; Arg &gt;&gt;()))&gt; , int &gt; </td></tr>
+<tr class="memitem:a6372851912dd673a6c617078da9e208e"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_matrix.html#a6372851912dd673a6c617078da9e208e">operator=</a> (Arg &amp;&amp;other) noexcept</td></tr>
+<tr class="memdesc:a6372851912dd673a6c617078da9e208e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Assign from a compatible <a class="el" href="namespace_open_kalman.html#a434bc44aa1de7faf3cac40cca8944b44">euclidean_transformed</a> matrix. <br /></td></tr>
+<tr class="separator:a6372851912dd673a6c617078da9e208e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2dbeb008cf815c41010b8f1c96ab4a6d"><td class="memTemplParams" colspan="2"><a id="a2dbeb008cf815c41010b8f1c96ab4a6d"></a>
+template&lt;typename Arg , std::enable_if_t&lt; typed_matrix_nestable&lt; Arg &gt; and modifiable&lt; NestedMatrix, Arg &gt;, int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:a2dbeb008cf815c41010b8f1c96ab4a6d"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_matrix.html#a2dbeb008cf815c41010b8f1c96ab4a6d">operator=</a> (Arg &amp;&amp;arg) noexcept</td></tr>
+<tr class="memdesc:a2dbeb008cf815c41010b8f1c96ab4a6d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Assign from a compatible <a class="el" href="namespace_open_kalman.html#a5245fbf912b12a279acb815fcf7650d9">typed_matrix_nestable</a>. <br /></td></tr>
+<tr class="separator:a2dbeb008cf815c41010b8f1c96ab4a6d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad50915d1b7cf3896fdef6c557a7ae354"><td class="memItemLeft" align="right" valign="top"><a id="ad50915d1b7cf3896fdef6c557a7ae354"></a>
 auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_matrix.html#ad50915d1b7cf3896fdef6c557a7ae354">operator+=</a> (const <a class="el" href="struct_open_kalman_1_1_matrix.html">Matrix</a> &amp;other)</td></tr>
 <tr class="memdesc:ad50915d1b7cf3896fdef6c557a7ae354"><td class="mdescLeft">&#160;</td><td class="mdescRight">Increment from another <a class="el" href="struct_open_kalman_1_1_matrix.html" title="A matrix with typed rows and columns.">Matrix</a>. <br /></td></tr>
 <tr class="separator:ad50915d1b7cf3896fdef6c557a7ae354"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a78cdcbfec6dd9ca3f80f7e1a64a8e50b"><td class="memTemplParams" colspan="2"><a id="a78cdcbfec6dd9ca3f80f7e1a64a8e50b"></a>
-template&lt;typename Arg , std::enable_if_t&lt; typed_matrix&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
+template&lt;typename Arg , std::enable_if_t&lt; typed_matrix&lt; Arg &gt; and equivalent_to&lt; typename MatrixTraits&lt; Arg &gt;::RowCoefficients, RowCoefficients &gt; and equivalent_to&lt; typename MatrixTraits&lt; Arg &gt;::ColumnCoefficients, ColumnCoefficients &gt;, int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:a78cdcbfec6dd9ca3f80f7e1a64a8e50b"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_matrix.html#a78cdcbfec6dd9ca3f80f7e1a64a8e50b">operator+=</a> (Arg &amp;&amp;other) noexcept</td></tr>
 <tr class="memdesc:a78cdcbfec6dd9ca3f80f7e1a64a8e50b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Increment from another typed matrix. <br /></td></tr>
 <tr class="separator:a78cdcbfec6dd9ca3f80f7e1a64a8e50b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae765b22e3666666a3b43072ec09068c8"><td class="memTemplParams" colspan="2"><a id="ae765b22e3666666a3b43072ec09068c8"></a>
-template&lt;typename Arg , std::enable_if_t&lt; distribution&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
+template&lt;typename Arg , std::enable_if_t&lt; distribution&lt; Arg &gt; and(ColumnCoefficients::axes_only) and(equivalent_to&lt; typename DistributionTraits&lt; Arg &gt;::Coefficients, RowCoefficients &gt;), int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:ae765b22e3666666a3b43072ec09068c8"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_matrix.html#ae765b22e3666666a3b43072ec09068c8">operator+=</a> (const Arg &amp;arg) noexcept</td></tr>
 <tr class="memdesc:ae765b22e3666666a3b43072ec09068c8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add a stochastic value to each column of the matrix, based on a distribution. <br /></td></tr>
 <tr class="separator:ae765b22e3666666a3b43072ec09068c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -207,149 +202,91 @@ auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href
 <tr class="memdesc:ac457e62bc777af3fb321de9f78b02729"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decrement from another <a class="el" href="struct_open_kalman_1_1_matrix.html" title="A matrix with typed rows and columns.">Matrix</a>. <br /></td></tr>
 <tr class="separator:ac457e62bc777af3fb321de9f78b02729"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad99a46e5bdbbaa85f79d6ed4656e5e72"><td class="memTemplParams" colspan="2"><a id="ad99a46e5bdbbaa85f79d6ed4656e5e72"></a>
-template&lt;typename Arg , std::enable_if_t&lt; typed_matrix&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
+template&lt;typename Arg , std::enable_if_t&lt; typed_matrix&lt; Arg &gt; and equivalent_to&lt; typename MatrixTraits&lt; Arg &gt;::RowCoefficients, RowCoefficients &gt; and equivalent_to&lt; typename MatrixTraits&lt; Arg &gt;::ColumnCoefficients, ColumnCoefficients &gt;, int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:ad99a46e5bdbbaa85f79d6ed4656e5e72"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_matrix.html#ad99a46e5bdbbaa85f79d6ed4656e5e72">operator-=</a> (Arg &amp;&amp;other) noexcept</td></tr>
 <tr class="memdesc:ad99a46e5bdbbaa85f79d6ed4656e5e72"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decrement from another typed matrix. <br /></td></tr>
 <tr class="separator:ad99a46e5bdbbaa85f79d6ed4656e5e72"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a04aa39452f872fbb819a3adcc616812c"><td class="memTemplParams" colspan="2"><a id="a04aa39452f872fbb819a3adcc616812c"></a>
-template&lt;typename Arg , std::enable_if_t&lt; distribution&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
+template&lt;typename Arg , std::enable_if_t&lt; distribution&lt; Arg &gt; and(ColumnCoefficients::axes_only) and(equivalent_to&lt; typename DistributionTraits&lt; Arg &gt;::Coefficients, RowCoefficients &gt;), int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:a04aa39452f872fbb819a3adcc616812c"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_matrix.html#a04aa39452f872fbb819a3adcc616812c">operator-=</a> (const Arg &amp;arg) noexcept</td></tr>
 <tr class="memdesc:a04aa39452f872fbb819a3adcc616812c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Subtract a stochastic value to each column of the matrix, based on a distribution. <br /></td></tr>
 <tr class="separator:a04aa39452f872fbb819a3adcc616812c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a69f901067dfc73896807e2bf7cb59bdb"><td class="memItemLeft" align="right" valign="top"><a id="a69f901067dfc73896807e2bf7cb59bdb"></a>
-auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a69f901067dfc73896807e2bf7cb59bdb">operator*=</a> (const S s)</td></tr>
-<tr class="memdesc:a69f901067dfc73896807e2bf7cb59bdb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Multiply by a scale factor. <br /></td></tr>
-<tr class="separator:a69f901067dfc73896807e2bf7cb59bdb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2adaf9b31d01bba23bb60f443fd3eac7"><td class="memItemLeft" align="right" valign="top"><a id="a2adaf9b31d01bba23bb60f443fd3eac7"></a>
-auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a2adaf9b31d01bba23bb60f443fd3eac7">operator/=</a> (const S s)</td></tr>
-<tr class="memdesc:a2adaf9b31d01bba23bb60f443fd3eac7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Divide by a scale factor. <br /></td></tr>
-<tr class="separator:a2adaf9b31d01bba23bb60f443fd3eac7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3418b2a4dcfe6e9c62ab1f37ce15503c"><td class="memItemLeft" align="right" valign="top">constexpr auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1_matrix_base.html#a3418b2a4dcfe6e9c62ab1f37ce15503c">nested_matrix</a> () &amp;</td></tr>
-<tr class="memdesc:a3418b2a4dcfe6e9c62ab1f37ce15503c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the nested matrix of this covariance matrix.  <a href="struct_open_kalman_1_1internal_1_1_matrix_base.html#a3418b2a4dcfe6e9c62ab1f37ce15503c">More...</a><br /></td></tr>
-<tr class="separator:a3418b2a4dcfe6e9c62ab1f37ce15503c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4503a0ddf37a5c6cd18543bf80f9a065"><td class="memItemLeft" align="right" valign="top">constexpr auto &amp;&amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1_matrix_base.html#a4503a0ddf37a5c6cd18543bf80f9a065">nested_matrix</a> () &amp;&amp;</td></tr>
-<tr class="separator:a4503a0ddf37a5c6cd18543bf80f9a065"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a04b892885f61fa451d503325e6c39bcd"><td class="memItemLeft" align="right" valign="top">constexpr const auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1_matrix_base.html#a04b892885f61fa451d503325e6c39bcd">nested_matrix</a> () const &amp;</td></tr>
-<tr class="separator:a04b892885f61fa451d503325e6c39bcd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af02e754e6d550efee9ee61bdddaec32b"><td class="memItemLeft" align="right" valign="top">constexpr const auto &amp;&amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1_matrix_base.html#af02e754e6d550efee9ee61bdddaec32b">nested_matrix</a> () const &amp;&amp;</td></tr>
-<tr class="separator:af02e754e6d550efee9ee61bdddaec32b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad4776946942706b1e665b232a01077af"><td class="memItemLeft" align="right" valign="top"><a id="ad4776946942706b1e665b232a01077af"></a>
+auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#ad4776946942706b1e665b232a01077af">operator*=</a> (const S s)</td></tr>
+<tr class="memdesc:ad4776946942706b1e665b232a01077af"><td class="mdescLeft">&#160;</td><td class="mdescRight">Multiply by a scale factor. <br /></td></tr>
+<tr class="separator:ad4776946942706b1e665b232a01077af"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a088199001e2ecdb4775396f96d225563"><td class="memItemLeft" align="right" valign="top"><a id="a088199001e2ecdb4775396f96d225563"></a>
+auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a088199001e2ecdb4775396f96d225563">operator/=</a> (const S s)</td></tr>
+<tr class="memdesc:a088199001e2ecdb4775396f96d225563"><td class="mdescLeft">&#160;</td><td class="mdescRight">Divide by a scale factor. <br /></td></tr>
+<tr class="separator:a088199001e2ecdb4775396f96d225563"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af12240922f062f4e9a13a8e8aeb5837a"><td class="memItemLeft" align="right" valign="top"><a id="af12240922f062f4e9a13a8e8aeb5837a"></a>
+auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#af12240922f062f4e9a13a8e8aeb5837a">operator()</a> (std::size_t i, std::size_t j) &amp;</td></tr>
+<tr class="memdesc:af12240922f062f4e9a13a8e8aeb5837a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Subscript (two indices) <br /></td></tr>
+<tr class="separator:af12240922f062f4e9a13a8e8aeb5837a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a77cf81d053823fe8ce2452e1e0f947f8"><td class="memItemLeft" align="right" valign="top"><a id="a77cf81d053823fe8ce2452e1e0f947f8"></a>
+auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a77cf81d053823fe8ce2452e1e0f947f8">operator()</a> (std::size_t i, std::size_t j) &amp;&amp;</td></tr>
+<tr class="memdesc:a77cf81d053823fe8ce2452e1e0f947f8"><td class="mdescLeft">&#160;</td><td class="mdescRight">This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. <br /></td></tr>
+<tr class="separator:a77cf81d053823fe8ce2452e1e0f947f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9e2ee0aca8e5616a664cd4fc3cd6834a"><td class="memItemLeft" align="right" valign="top"><a id="a9e2ee0aca8e5616a664cd4fc3cd6834a"></a>
+auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a9e2ee0aca8e5616a664cd4fc3cd6834a">operator()</a> (std::size_t i, std::size_t j) const &amp;</td></tr>
+<tr class="memdesc:a9e2ee0aca8e5616a664cd4fc3cd6834a"><td class="mdescLeft">&#160;</td><td class="mdescRight">This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. <br /></td></tr>
+<tr class="separator:a9e2ee0aca8e5616a664cd4fc3cd6834a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a19a91e3be0d73f7101954d3190e7a33d"><td class="memItemLeft" align="right" valign="top"><a id="a19a91e3be0d73f7101954d3190e7a33d"></a>
+auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a19a91e3be0d73f7101954d3190e7a33d">operator()</a> (std::size_t i, std::size_t j) const &amp;&amp;</td></tr>
+<tr class="memdesc:a19a91e3be0d73f7101954d3190e7a33d"><td class="mdescLeft">&#160;</td><td class="mdescRight">This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. <br /></td></tr>
+<tr class="separator:a19a91e3be0d73f7101954d3190e7a33d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad46103cb9b9798026b3eb7e9af76424d"><td class="memItemLeft" align="right" valign="top"><a id="ad46103cb9b9798026b3eb7e9af76424d"></a>
+auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#ad46103cb9b9798026b3eb7e9af76424d">operator()</a> (std::size_t i)</td></tr>
+<tr class="memdesc:ad46103cb9b9798026b3eb7e9af76424d"><td class="mdescLeft">&#160;</td><td class="mdescRight">This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. <br /></td></tr>
+<tr class="separator:ad46103cb9b9798026b3eb7e9af76424d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a11072cc4d4df5ad8165f37f1d3d19613"><td class="memItemLeft" align="right" valign="top"><a id="a11072cc4d4df5ad8165f37f1d3d19613"></a>
+auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a11072cc4d4df5ad8165f37f1d3d19613">operator()</a> (std::size_t i) const</td></tr>
+<tr class="memdesc:a11072cc4d4df5ad8165f37f1d3d19613"><td class="mdescLeft">&#160;</td><td class="mdescRight">This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. <br /></td></tr>
+<tr class="separator:a11072cc4d4df5ad8165f37f1d3d19613"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab7222aeea76a0a603d0fecf0b171153c"><td class="memItemLeft" align="right" valign="top"><a id="ab7222aeea76a0a603d0fecf0b171153c"></a>
+auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#ab7222aeea76a0a603d0fecf0b171153c">operator[]</a> (std::size_t i) &amp;</td></tr>
+<tr class="memdesc:ab7222aeea76a0a603d0fecf0b171153c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Subscript (one index) <br /></td></tr>
+<tr class="separator:ab7222aeea76a0a603d0fecf0b171153c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a79837aabee15f77c8b64ec857c8e9d6a"><td class="memItemLeft" align="right" valign="top"><a id="a79837aabee15f77c8b64ec857c8e9d6a"></a>
+auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a79837aabee15f77c8b64ec857c8e9d6a">operator[]</a> (std::size_t i) &amp;&amp;</td></tr>
+<tr class="memdesc:a79837aabee15f77c8b64ec857c8e9d6a"><td class="mdescLeft">&#160;</td><td class="mdescRight">This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. <br /></td></tr>
+<tr class="separator:a79837aabee15f77c8b64ec857c8e9d6a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afc5c9f07b9b2cb515c9c05f66498d982"><td class="memItemLeft" align="right" valign="top"><a id="afc5c9f07b9b2cb515c9c05f66498d982"></a>
+auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#afc5c9f07b9b2cb515c9c05f66498d982">operator[]</a> (std::size_t i) const &amp;</td></tr>
+<tr class="memdesc:afc5c9f07b9b2cb515c9c05f66498d982"><td class="mdescLeft">&#160;</td><td class="mdescRight">This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. <br /></td></tr>
+<tr class="separator:afc5c9f07b9b2cb515c9c05f66498d982"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af5d7111ecde9e63d284bfad746b0a5f1"><td class="memItemLeft" align="right" valign="top"><a id="af5d7111ecde9e63d284bfad746b0a5f1"></a>
+auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#af5d7111ecde9e63d284bfad746b0a5f1">operator[]</a> (std::size_t i) const &amp;&amp;</td></tr>
+<tr class="memdesc:af5d7111ecde9e63d284bfad746b0a5f1"><td class="mdescLeft">&#160;</td><td class="mdescRight">This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. <br /></td></tr>
+<tr class="separator:af5d7111ecde9e63d284bfad746b0a5f1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0905dc534b5439a96adf184f5419bc23"><td class="memItemLeft" align="right" valign="top"><a id="a0905dc534b5439a96adf184f5419bc23"></a>
+auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1_matrix_base.html#a0905dc534b5439a96adf184f5419bc23">nested_matrix</a> () &amp;</td></tr>
+<tr class="memdesc:a0905dc534b5439a96adf184f5419bc23"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the nested matrix. <br /></td></tr>
+<tr class="separator:a0905dc534b5439a96adf184f5419bc23"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a35c5c698bbcdd1aec1bcff3822e9a8c1"><td class="memItemLeft" align="right" valign="top"><a id="a35c5c698bbcdd1aec1bcff3822e9a8c1"></a>
+decltype(auto)&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1_matrix_base.html#a35c5c698bbcdd1aec1bcff3822e9a8c1">nested_matrix</a> () &amp;&amp;</td></tr>
+<tr class="memdesc:a35c5c698bbcdd1aec1bcff3822e9a8c1"><td class="mdescLeft">&#160;</td><td class="mdescRight">This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. <br /></td></tr>
+<tr class="separator:a35c5c698bbcdd1aec1bcff3822e9a8c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2071e5183ae0608ef3a4fc0d9d69c5a0"><td class="memItemLeft" align="right" valign="top"><a id="a2071e5183ae0608ef3a4fc0d9d69c5a0"></a>
+const auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1_matrix_base.html#a2071e5183ae0608ef3a4fc0d9d69c5a0">nested_matrix</a> () const &amp;</td></tr>
+<tr class="memdesc:a2071e5183ae0608ef3a4fc0d9d69c5a0"><td class="mdescLeft">&#160;</td><td class="mdescRight">This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. <br /></td></tr>
+<tr class="separator:a2071e5183ae0608ef3a4fc0d9d69c5a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaf1952c5cf1a436d768bac386be6b69f"><td class="memItemLeft" align="right" valign="top"><a id="aaf1952c5cf1a436d768bac386be6b69f"></a>
+decltype(auto)&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1_matrix_base.html#aaf1952c5cf1a436d768bac386be6b69f">nested_matrix</a> () const &amp;&amp;</td></tr>
+<tr class="memdesc:aaf1952c5cf1a436d768bac386be6b69f"><td class="mdescLeft">&#160;</td><td class="mdescRight">This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. <br /></td></tr>
+<tr class="separator:aaf1952c5cf1a436d768bac386be6b69f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-static-attribs"></a>
+Static Protected Attributes</h2></td></tr>
+<tr class="memitem:a6f6927478466b2c2b407d1b1e597fed9"><td class="memItemLeft" align="right" valign="top"><a id="a6f6927478466b2c2b407d1b1e597fed9"></a>
+static constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a6f6927478466b2c2b407d1b1e597fed9">dimension</a></td></tr>
+<tr class="memdesc:a6f6927478466b2c2b407d1b1e597fed9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Dimension of the vector. <br /></td></tr>
+<tr class="separator:a6f6927478466b2c2b407d1b1e597fed9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1c9ba1d46f32d73896f7796183ea7177"><td class="memItemLeft" align="right" valign="top"><a id="a1c9ba1d46f32d73896f7796183ea7177"></a>
+static constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a1c9ba1d46f32d73896f7796183ea7177">columns</a></td></tr>
+<tr class="memdesc:a1c9ba1d46f32d73896f7796183ea7177"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of columns. <br /></td></tr>
+<tr class="separator:a1c9ba1d46f32d73896f7796183ea7177"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Function Documentation</h2>
-<a id="a3418b2a4dcfe6e9c62ab1f37ce15503c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3418b2a4dcfe6e9c62ab1f37ce15503c">&#9670;&nbsp;</a></span>nested_matrix() <span class="overload">[1/4]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr auto&amp; <a class="el" href="struct_open_kalman_1_1internal_1_1_matrix_base.html">OpenKalman::internal::MatrixBase</a>&lt; <a class="el" href="struct_open_kalman_1_1_matrix.html">Matrix</a>&lt; RowCoefficients, ColumnCoefficients, <a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a7a5b7cbef96464c0b8efcc1a192e00f8">NestedMatrix</a> &gt; , <a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a7a5b7cbef96464c0b8efcc1a192e00f8">NestedMatrix</a> &gt;::nested_matrix </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> &amp;</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">inherited</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>The nested matrix will be self-adjoint, triangular, or diagonal. </p><dl class="section return"><dt>Returns</dt><dd>An lvalue reference to the nested matrix. </dd></dl>
-
-<p class="definition">Definition at line <a class="el" href="_matrix_base_8hpp_source.html#l00105">105</a> of file <a class="el" href="_matrix_base_8hpp_source.html">MatrixBase.hpp</a>.</p>
-
-</div>
-</div>
-<a id="a4503a0ddf37a5c6cd18543bf80f9a065"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4503a0ddf37a5c6cd18543bf80f9a065">&#9670;&nbsp;</a></span>nested_matrix() <span class="overload">[2/4]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr auto&amp;&amp; <a class="el" href="struct_open_kalman_1_1internal_1_1_matrix_base.html">OpenKalman::internal::MatrixBase</a>&lt; <a class="el" href="struct_open_kalman_1_1_matrix.html">Matrix</a>&lt; RowCoefficients, ColumnCoefficients, <a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a7a5b7cbef96464c0b8efcc1a192e00f8">NestedMatrix</a> &gt; , <a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a7a5b7cbef96464c0b8efcc1a192e00f8">NestedMatrix</a> &gt;::nested_matrix </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> &amp;&amp;</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">inherited</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>Get the nested matrix of this covariance matrix temporary. </p><dl class="section see"><dt>See also</dt><dd>constexpr auto&amp; <a class="el" href="struct_open_kalman_1_1internal_1_1_matrix_base.html#a3418b2a4dcfe6e9c62ab1f37ce15503c" title="Get the nested matrix of this covariance matrix.">nested_matrix()</a> &amp; </dd></dl>
-<dl class="section return"><dt>Returns</dt><dd>An rvalue reference to the nested matrix. </dd></dl>
-
-<p class="definition">Definition at line <a class="el" href="_matrix_base_8hpp_source.html#l00113">113</a> of file <a class="el" href="_matrix_base_8hpp_source.html">MatrixBase.hpp</a>.</p>
-
-</div>
-</div>
-<a id="a04b892885f61fa451d503325e6c39bcd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a04b892885f61fa451d503325e6c39bcd">&#9670;&nbsp;</a></span>nested_matrix() <span class="overload">[3/4]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr const auto&amp; <a class="el" href="struct_open_kalman_1_1internal_1_1_matrix_base.html">OpenKalman::internal::MatrixBase</a>&lt; <a class="el" href="struct_open_kalman_1_1_matrix.html">Matrix</a>&lt; RowCoefficients, ColumnCoefficients, <a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a7a5b7cbef96464c0b8efcc1a192e00f8">NestedMatrix</a> &gt; , <a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a7a5b7cbef96464c0b8efcc1a192e00f8">NestedMatrix</a> &gt;::nested_matrix </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const &amp;</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">inherited</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>Get the nested matrix of this constant covariance matrix. </p><dl class="section see"><dt>See also</dt><dd>constexpr auto&amp; <a class="el" href="struct_open_kalman_1_1internal_1_1_matrix_base.html#a3418b2a4dcfe6e9c62ab1f37ce15503c" title="Get the nested matrix of this covariance matrix.">nested_matrix()</a> &amp; </dd></dl>
-<dl class="section return"><dt>Returns</dt><dd>A constant lvalue reference to the nested matrix. </dd></dl>
-
-<p class="definition">Definition at line <a class="el" href="_matrix_base_8hpp_source.html#l00121">121</a> of file <a class="el" href="_matrix_base_8hpp_source.html">MatrixBase.hpp</a>.</p>
-
-</div>
-</div>
-<a id="af02e754e6d550efee9ee61bdddaec32b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af02e754e6d550efee9ee61bdddaec32b">&#9670;&nbsp;</a></span>nested_matrix() <span class="overload">[4/4]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr const auto&amp;&amp; <a class="el" href="struct_open_kalman_1_1internal_1_1_matrix_base.html">OpenKalman::internal::MatrixBase</a>&lt; <a class="el" href="struct_open_kalman_1_1_matrix.html">Matrix</a>&lt; RowCoefficients, ColumnCoefficients, <a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a7a5b7cbef96464c0b8efcc1a192e00f8">NestedMatrix</a> &gt; , <a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a7a5b7cbef96464c0b8efcc1a192e00f8">NestedMatrix</a> &gt;::nested_matrix </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const &amp;&amp;</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span><span class="mlabel">inherited</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>Get the nested matrix of this constant covariance matrix temporary. </p><dl class="section see"><dt>See also</dt><dd>constexpr auto&amp; <a class="el" href="struct_open_kalman_1_1internal_1_1_matrix_base.html#a3418b2a4dcfe6e9c62ab1f37ce15503c" title="Get the nested matrix of this covariance matrix.">nested_matrix()</a> &amp; </dd></dl>
-<dl class="section return"><dt>Returns</dt><dd>A constant rvalue reference to the nested matrix. </dd></dl>
-
-<p class="definition">Definition at line <a class="el" href="_matrix_base_8hpp_source.html#l00129">129</a> of file <a class="el" href="_matrix_base_8hpp_source.html">MatrixBase.hpp</a>.</p>
-
-</div>
-</div>
 <hr/>The documentation for this struct was generated from the following files:<ul>
 <li>C:/Users/cogden/CLionProjects/OpenKalman/OpenKalman/basics/<a class="el" href="forward-class-declarations_8hpp_source.html">forward-class-declarations.hpp</a></li>
 <li>C:/Users/cogden/CLionProjects/OpenKalman/OpenKalman/matrices/<a class="el" href="_matrix_8hpp_source.html">Matrix.hpp</a></li>
@@ -360,7 +297,7 @@ auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="namespace_open_kalman.html">OpenKalman</a></li><li class="navelem"><a class="el" href="struct_open_kalman_1_1_matrix.html">Matrix</a></li>
-    <li class="footer">Generated on Sun Dec 6 2020 19:54:45 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
+    <li class="footer">Generated on Sat Mar 27 2021 20:52:53 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
   </ul>
 </div>
 </body>

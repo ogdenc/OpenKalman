@@ -90,37 +90,31 @@ $(document).ready(function(){initNavTree('_gaussian_distribution_8hpp.html','');
 <div class="title">GaussianDistribution.hpp File Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &lt;random&gt;</code><br />
-<code>#include &lt;iostream&gt;</code><br />
+<div class="textblock"><code>#include &lt;iostream&gt;</code><br />
 </div>
 <p><a href="_gaussian_distribution_8hpp_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a131455a38340a120002aca624717d3d4"><td class="memTemplParams" colspan="2"><a id="a131455a38340a120002aca624717d3d4"></a>
-template&lt;typename D , std::enable_if_t&lt; gaussian_distribution&lt; D &gt;, int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:a131455a38340a120002aca624717d3d4"><td class="memTemplParams" colspan="2">template&lt;typename D , std::enable_if_t&lt; gaussian_distribution&lt; D &gt;, int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:a131455a38340a120002aca624717d3d4"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#a131455a38340a120002aca624717d3d4">OpenKalman::make_GaussianDistribution</a> (D &amp;&amp;dist) noexcept</td></tr>
-<tr class="memdesc:a131455a38340a120002aca624717d3d4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Make a Gaussian distribution from another Gaussian distribution. <br /></td></tr>
+<tr class="memdesc:a131455a38340a120002aca624717d3d4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Make a Gaussian distribution.  <a href="namespace_open_kalman.html#a131455a38340a120002aca624717d3d4">More...</a><br /></td></tr>
 <tr class="separator:a131455a38340a120002aca624717d3d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac2d0c0d4d3f9bab0130dbcd6654617c0"><td class="memTemplParams" colspan="2"><a id="ac2d0c0d4d3f9bab0130dbcd6654617c0"></a>
-template&lt;typename re  = std::mt19937, typename M , typename Cov , std::enable_if_t&lt; not coefficients&lt; re &gt; and(typed_matrix&lt; M &gt; or typed_matrix_nestable&lt; M &gt;) and(covariance&lt; Cov &gt; or covariance_nestable&lt; Cov &gt; or typed_matrix&lt; Cov &gt; or typed_matrix_nestable&lt; Cov &gt;), int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:ac2d0c0d4d3f9bab0130dbcd6654617c0"><td class="memTemplParams" colspan="2">template&lt;typename re  = std::mt19937, typename M , typename Cov , std::enable_if_t&lt;(not coefficients&lt; re &gt;) and typed_matrix&lt; M &gt; and column_vector&lt; M &gt; and untyped_columns&lt; M &gt; and square_matrix&lt; Cov &gt; and(covariance&lt; Cov &gt; or typed_matrix&lt; Cov &gt;) and(equivalent_to&lt; typename MatrixTraits&lt; M &gt;::RowCoefficients, typename MatrixTraits&lt; Cov &gt;::RowCoefficients &gt;), int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:ac2d0c0d4d3f9bab0130dbcd6654617c0"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#ac2d0c0d4d3f9bab0130dbcd6654617c0">OpenKalman::make_GaussianDistribution</a> (M &amp;&amp;mean, Cov &amp;&amp;cov) noexcept</td></tr>
-<tr class="memdesc:ac2d0c0d4d3f9bab0130dbcd6654617c0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Make a Gaussian distribution from a mean and a covariance. <br /></td></tr>
+<tr class="memdesc:ac2d0c0d4d3f9bab0130dbcd6654617c0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Make a Gaussian distribution.  <a href="namespace_open_kalman.html#ac2d0c0d4d3f9bab0130dbcd6654617c0">More...</a><br /></td></tr>
 <tr class="separator:ac2d0c0d4d3f9bab0130dbcd6654617c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a87f53ae8006d8068435df09f99c8baf0"><td class="memTemplParams" colspan="2"><a id="a87f53ae8006d8068435df09f99c8baf0"></a>
-template&lt;typename Coefficients , typename re  = std::mt19937, typename M , typename Cov , std::enable_if_t&lt; coefficients&lt; Coefficients &gt; and typed_matrix_nestable&lt; M &gt; and(covariance_nestable&lt; Cov &gt; or typed_matrix_nestable&lt; Cov &gt;), int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:a87f53ae8006d8068435df09f99c8baf0"><td class="memTemplParams" colspan="2">template&lt;typename Coefficients , typename re  = std::mt19937, typename M , typename Cov , std::enable_if_t&lt; coefficients&lt; Coefficients &gt; and typed_matrix_nestable&lt; M &gt; and column_vector&lt; M &gt; and(covariance_nestable&lt; Cov &gt; or typed_matrix_nestable&lt; Cov &gt;), int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:a87f53ae8006d8068435df09f99c8baf0"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#a87f53ae8006d8068435df09f99c8baf0">OpenKalman::make_GaussianDistribution</a> (M &amp;&amp;mean, Cov &amp;&amp;cov) noexcept</td></tr>
-<tr class="memdesc:a87f53ae8006d8068435df09f99c8baf0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Make a Gaussian distribution from a typed_matrix_nestable and a covariance_nestable or regular matrix for the covariance. <br /></td></tr>
+<tr class="memdesc:a87f53ae8006d8068435df09f99c8baf0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Make a Gaussian distribution.  <a href="namespace_open_kalman.html#a87f53ae8006d8068435df09f99c8baf0">More...</a><br /></td></tr>
 <tr class="separator:a87f53ae8006d8068435df09f99c8baf0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a30a419b046972de2b566cc220dcae618"><td class="memTemplParams" colspan="2"><a id="a30a419b046972de2b566cc220dcae618"></a>
-template&lt;typename M , typename Cov , typename re  = std::mt19937, std::enable_if_t&lt;(typed_matrix&lt; M &gt; or typed_matrix_nestable&lt; M &gt;) and(covariance&lt; Cov &gt; or covariance_nestable&lt; Cov &gt;), int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:a30a419b046972de2b566cc220dcae618"><td class="memTemplParams" colspan="2">template&lt;typename M , typename Cov , typename re  = std::mt19937, std::enable_if_t&lt; typed_matrix&lt; M &gt; and column_vector&lt; M &gt; and untyped_columns&lt; M &gt; and covariance&lt; Cov &gt; and equivalent_to&lt; typename MatrixTraits&lt; M &gt;::RowCoefficients, typename MatrixTraits&lt; Cov &gt;::RowCoefficients &gt;, int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:a30a419b046972de2b566cc220dcae618"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#a30a419b046972de2b566cc220dcae618">OpenKalman::make_GaussianDistribution</a> ()</td></tr>
-<tr class="memdesc:a30a419b046972de2b566cc220dcae618"><td class="mdescLeft">&#160;</td><td class="mdescRight">Make a default Gaussian distribution from a typed matrix (or typed_matrix_nestable) and a covariance (or covariance_nestable). <br /></td></tr>
+<tr class="memdesc:a30a419b046972de2b566cc220dcae618"><td class="mdescLeft">&#160;</td><td class="mdescRight">Make a default Gaussian distribution.  <a href="namespace_open_kalman.html#a30a419b046972de2b566cc220dcae618">More...</a><br /></td></tr>
 <tr class="separator:a30a419b046972de2b566cc220dcae618"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8c01a83c83d3a23aafb59dcd527daed1"><td class="memTemplParams" colspan="2"><a id="a8c01a83c83d3a23aafb59dcd527daed1"></a>
-template&lt;typename Coefficients , typename M , typename Cov , typename re  = std::mt19937, std::enable_if_t&lt; typed_matrix_nestable&lt; M &gt; and covariance_nestable&lt; Cov &gt;, int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:a8c01a83c83d3a23aafb59dcd527daed1"><td class="memTemplParams" colspan="2">template&lt;typename Coefficients , typename M , typename Cov , typename re  = std::mt19937, std::enable_if_t&lt; typed_matrix_nestable&lt; M &gt; and column_vector&lt; M &gt; and covariance_nestable&lt; Cov &gt; and(MatrixTraits&lt; M &gt;::dimension==MatrixTraits&lt; Cov &gt;::dimension), int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:a8c01a83c83d3a23aafb59dcd527daed1"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#a8c01a83c83d3a23aafb59dcd527daed1">OpenKalman::make_GaussianDistribution</a> ()</td></tr>
-<tr class="memdesc:a8c01a83c83d3a23aafb59dcd527daed1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Make a default Gaussian distribution from a typed_matrix_nestable and a covariance_nestable or regular matrix for the covariance. <br /></td></tr>
+<tr class="memdesc:a8c01a83c83d3a23aafb59dcd527daed1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Make a default Gaussian distribution.  <a href="namespace_open_kalman.html#a8c01a83c83d3a23aafb59dcd527daed1">More...</a><br /></td></tr>
 <tr class="separator:a8c01a83c83d3a23aafb59dcd527daed1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad137ac22381d6cd2d06a57b96a3f4a83"><td class="memTemplParams" colspan="2">template&lt;typename... Ts, typename Arg , std::enable_if_t&lt; gaussian_distribution&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:ad137ac22381d6cd2d06a57b96a3f4a83"><td class="memTemplItemLeft" align="right" valign="top">constexpr decltype(auto)&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#ad137ac22381d6cd2d06a57b96a3f4a83">OpenKalman::make_self_contained</a> (Arg &amp;&amp;arg) noexcept</td></tr>
@@ -134,7 +128,7 @@ template&lt;typename ... Cs, typename D , std::enable_if_t&lt; gaussian_distribu
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_gaussian_distribution.html">OpenKalman::GaussianDistribution&lt; Coeffs, MatrixBase, CovarianceBase, random_number_engine &gt;</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_gaussian_distribution.html">OpenKalman::GaussianDistribution&lt; Coefficients, MeanNestedMatrix, CovarianceNestedMatrix, random_number_engine &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A Gaussian distribution, defined in terms of a <a class="el" href="struct_open_kalman_1_1_mean.html" title="A set of one or more column vectors, each representing a statistical mean.">Mean</a> and a <a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a>.  <a href="struct_open_kalman_1_1_gaussian_distribution.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -154,7 +148,7 @@ Namespaces</h2></td></tr>
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_bf85a1622761b0afd6fb52adee52cf94.html">OpenKalman</a></li><li class="navelem"><a class="el" href="dir_4df9be8959a377e32e7a35238a89a209.html">distributions</a></li><li class="navelem"><a class="el" href="_gaussian_distribution_8hpp.html">GaussianDistribution.hpp</a></li>
-    <li class="footer">Generated on Sun Dec 6 2020 19:54:45 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
+    <li class="footer">Generated on Sat Mar 27 2021 20:52:53 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
   </ul>
 </div>
 </body>

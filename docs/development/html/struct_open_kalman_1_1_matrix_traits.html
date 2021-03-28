@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.0"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>OpenKalman: OpenKalman::MatrixTraits&lt; T, Enable &gt; Struct Template Reference</title>
+<title>OpenKalman: OpenKalman::MatrixTraits&lt; T, typename &gt; Struct Template Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -83,7 +83,7 @@ $(document).ready(function(){initNavTree('struct_open_kalman_1_1_matrix_traits.h
 
 <div class="header">
   <div class="headertitle">
-<div class="title">OpenKalman::MatrixTraits&lt; T, Enable &gt; Struct Template Reference</div>  </div>
+<div class="title">OpenKalman::MatrixTraits&lt; T, typename &gt; Struct Template Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
 
@@ -92,8 +92,8 @@ $(document).ready(function(){initNavTree('struct_open_kalman_1_1_matrix_traits.h
 
 <p><code>#include &lt;<a class="el" href="forward-traits_8hpp_source.html">forward-traits.hpp</a>&gt;</code></p>
 <a name="details" id="details"></a><h2 class="groupheader">Description</h2>
-<div class="textblock"><h3>template&lt;typename T, typename Enable = void&gt;<br />
-struct OpenKalman::MatrixTraits&lt; T, Enable &gt;</h3>
+<div class="textblock"><h3>template&lt;typename T, typename = void&gt;<br />
+struct OpenKalman::MatrixTraits&lt; T, typename &gt;</h3>
 
 <p>This class includes key information about a matrix or matrix expression, such as its dimensions, coefficient types, etc. </p><table class="memberdecls">
 <tr class="heading">
@@ -135,9 +135,9 @@ struct OpenKalman::MatrixTraits&lt; T, Enable &gt;</h3>
 <tr>
 <td class="memSeparator" colspan="2">&#160; </td></tr>
 <tr>
-<td class="memItemLeft" align="right" valign="top">using&#160; </td><td class="memItemRight" valign="bottom"><b>SelfContained</b> </td></tr>
+<td class="memItemLeft" align="right" valign="top">using&#160; </td><td class="memItemRight" valign="bottom"><b>SelfContainedFrom</b> </td></tr>
 <tr>
-<td class="mdescLeft">&#160;</td><td class="mdescRight">A <a class="el" href="namespace_open_kalman.html#aef8b4f9495a8827f4f2235b3dd17a6aa">self_contained</a> matrix equivalent to T.<br  />
+<td class="mdescLeft">&#160;</td><td class="mdescRight">A <a class="el" href="namespace_open_kalman.html#a8b841cd9db4d9a19b89529d1aed58b03">self_contained</a> matrix equivalent to T.<br  />
  </td></tr>
 <tr>
 <td class="memSeparator" colspan="2">&#160; </td></tr>
@@ -158,25 +158,25 @@ struct OpenKalman::MatrixTraits&lt; T, Enable &gt;</h3>
 <tr>
 <td class="memTemplParams" colspan="2">template&lt;std::size_t rows = <a href="afwtraitsdimension">dimension</a>, std::size_t cols = <a href="afwtraitscolumns">columns</a>, typename S = <a href="afwtraitsScalar">Scalar</a>&gt; </td></tr>
 <tr>
-<td class="memTemplItemLeft" align="right" valign="top">using&#160; </td><td class="memTemplItemRight" valign="bottom"><b>NativeMatrix</b> </td></tr>
+<td class="memTemplItemLeft" align="right" valign="top">using&#160; </td><td class="memTemplItemRight" valign="bottom"><b>NativeMatrixFrom</b> </td></tr>
 <tr>
 <td class="mdescLeft">&#160;</td><td class="mdescRight">A writable, native matrix type equivalent in size and shape to this matrix by default. Alternatively, you can specify the <code>rows</code>, <code>columns</code>, and scalar type <code>S</code> type of the new matrix.<br  />
  </td></tr>
 <tr>
 <td class="memSeparator" colspan="2">&#160; </td></tr>
 <tr>
-<td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespace_open_kalman.html#ab6c606169452d88f33b64e3b1ae18fa2">TriangleType</a> storage_triangle = TriangleType::lower, std::size_t size = <a href="afwtraitsdimension">dimension</a>, typename S = <a href="afwtraitsScalar">Scalar</a>&gt; </td></tr>
+<td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespace_open_kalman.html#ab6c606169452d88f33b64e3b1ae18fa2">TriangleType</a> storage_triangle = <a class="el" href="namespace_open_kalman.html#ab6c606169452d88f33b64e3b1ae18fa2a81e073b428b50247daba38531dcf412a">TriangleType::lower</a>, std::size_t size = <a href="afwtraitsdimension">dimension</a>, typename S = <a href="afwtraitsScalar">Scalar</a>&gt; </td></tr>
 <tr>
-<td class="memTemplItemLeft" align="right" valign="top">using&#160; </td><td class="memTemplItemRight" valign="bottom"><b>SelfAdjointBaseType</b> </td></tr>
+<td class="memTemplItemLeft" align="right" valign="top">using&#160; </td><td class="memTemplItemRight" valign="bottom"><b>SelfAdjointMatrixFrom</b> </td></tr>
 <tr>
 <td class="mdescLeft">&#160;</td><td class="mdescRight">(Available if T is a native matrix.) A writable, native self-adjoint matrix type equivalent to T. Alternatively, you can specify the <code>storage_triangle</code> (upper, lower, diagonal) where the coefficients are stored, the <code>size</code> of the matrix, and the scalar type <code>S</code> type (integral or floating-point) of the new matrix.<br  />
  </td></tr>
 <tr>
 <td class="memSeparator" colspan="2">&#160; </td></tr>
 <tr>
-<td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespace_open_kalman.html#ab6c606169452d88f33b64e3b1ae18fa2">TriangleType</a> triangle_type = TriangleType::lower, std::size_t size = <a href="afwtraitsdimension">dimension</a>, typename S = <a href="afwtraitsScalar">Scalar</a>&gt; </td></tr>
+<td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespace_open_kalman.html#ab6c606169452d88f33b64e3b1ae18fa2">TriangleType</a> triangle_type = <a class="el" href="namespace_open_kalman.html#ab6c606169452d88f33b64e3b1ae18fa2a81e073b428b50247daba38531dcf412a">TriangleType::lower</a>, std::size_t size = <a href="afwtraitsdimension">dimension</a>, typename S = <a href="afwtraitsScalar">Scalar</a>&gt; </td></tr>
 <tr>
-<td class="memTemplItemLeft" align="right" valign="top">using&#160; </td><td class="memTemplItemRight" valign="bottom"><b>TriangularBaseType</b> </td></tr>
+<td class="memTemplItemLeft" align="right" valign="top">using&#160; </td><td class="memTemplItemRight" valign="bottom"><b>TriangularMatrixFrom</b> </td></tr>
 <tr>
 <td class="mdescLeft">&#160;</td><td class="mdescRight">(Available if T is a native matrix.) A writable, native triangular matrix type equivalent to T. Alternatively, you can specify the <code>triangle_type</code> (upper, lower, diagonal) of the triangular matrix, the <code>size</code> of the matrix, and the scalar type <code>S</code> type (integral or floating-point) of the new matrix.<br  />
  </td></tr>
@@ -185,7 +185,7 @@ struct OpenKalman::MatrixTraits&lt; T, Enable &gt;</h3>
 <tr>
 <td class="memTemplParams" colspan="2">template&lt;std::size_t size = <a href="afwtraitsdimension">dimension</a>, typename S = <a href="afwtraitsScalar">Scalar</a>&gt; </td></tr>
 <tr>
-<td class="memTemplItemLeft" align="right" valign="top">using&#160; </td><td class="memTemplItemRight" valign="bottom"><b>DiagonalBaseType</b> </td></tr>
+<td class="memTemplItemLeft" align="right" valign="top">using&#160; </td><td class="memTemplItemRight" valign="bottom"><b>DiagonalMatrixFrom</b> </td></tr>
 <tr>
 <td class="mdescLeft">&#160;</td><td class="mdescRight">(Available if T is a native matrix.) A writable, native diagonal matrix type equivalent to T. Alternatively, you can specify the <code>size</code> of the matrix and the scalar type <code>S</code> type (integral or floating-point) of the new matrix.<br  />
  </td></tr>
@@ -194,7 +194,7 @@ struct OpenKalman::MatrixTraits&lt; T, Enable &gt;</h3>
 <tr>
 <td class="memTemplParams" colspan="2">template&lt;typename T&gt; </td></tr>
 <tr>
-<td class="memTemplItemLeft" align="right" valign="top">using&#160; </td><td class="memTemplItemRight" valign="bottom"><b>MatrixBaseType</b> </td></tr>
+<td class="memTemplItemLeft" align="right" valign="top">using&#160; </td><td class="memTemplItemRight" valign="bottom"><b>MatrixBaseFrom</b> </td></tr>
 <tr>
 <td class="mdescLeft">&#160;</td><td class="mdescRight">A native base type for any class Derived for which T is a nested matrix class. This is the mechanism by which new matrix types can inherit from a base class of the matrix library.<br  />
  </td></tr>
@@ -260,12 +260,11 @@ struct OpenKalman::MatrixTraits&lt; T, Enable &gt;</h3>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">T</td><td>The matrix type. The type is treated as non-qualified, even if it is const or a reference. </td></tr>
-    <tr><td class="paramname">Enable</td><td>A dummy parameter for selection with SFINAE. </td></tr>
   </table>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="forward-traits_8hpp_source.html#l00391">391</a> of file <a class="el" href="forward-traits_8hpp_source.html">forward-traits.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="forward-traits_8hpp_source.html#l00388">388</a> of file <a class="el" href="forward-traits_8hpp_source.html">forward-traits.hpp</a>.</p>
 </div>
 <p>Inherited by OpenKalman::MatrixTraits&lt; T &amp; &gt;, OpenKalman::MatrixTraits&lt; T &amp;&amp; &gt;, and OpenKalman::MatrixTraits&lt; const T &gt;.</p>
 <hr/>The documentation for this struct was generated from the following file:<ul>
@@ -277,7 +276,7 @@ struct OpenKalman::MatrixTraits&lt; T, Enable &gt;</h3>
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="namespace_open_kalman.html">OpenKalman</a></li><li class="navelem"><a class="el" href="struct_open_kalman_1_1_matrix_traits.html">MatrixTraits</a></li>
-    <li class="footer">Generated on Sun Dec 6 2020 19:54:45 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
+    <li class="footer">Generated on Sat Mar 27 2021 20:52:53 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
   </ul>
 </div>
 </body>

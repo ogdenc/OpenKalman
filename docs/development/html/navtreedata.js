@@ -61,9 +61,10 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "_angle_8hpp.html",
-"namespace_open_kalman.html#a0c8ce92ebb39445ad24273396c57ff0b",
-"struct_eigen_1_1_mean_comma_initializer.html",
-"struct_open_kalman_1_1_matrix_traits.html"
+"functions_func_j.html",
+"namespace_open_kalman_1_1angle.html#aae34d8777386110733617fcd3ec26631",
+"struct_open_kalman_1_1_euclidean_mean.html#a41231959c74bd40f1848e187f802c179",
+"struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_nested_matrix_00_01std_1_140b10e2d94bdd984b10c5028cc94eb1a.html#ab57f7858bc263b8479ae2a719d90b8fd"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

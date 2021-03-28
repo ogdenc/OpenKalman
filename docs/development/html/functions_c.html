@@ -88,6 +88,11 @@ $(document).ready(function(){initNavTree('functions_c.html',''); initResizable()
 <li>call()
 : <a class="el" href="struct_open_kalman_1_1internal_1_1default__split__function.html#a63e5b05ed2629083d9681250a0db066a">OpenKalman::internal::default_split_function</a>
 </li>
+<li>cholesky_nested_matrix()
+: <a class="el" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_nested_matrix_00_01std_1_1de90ce7a7fbe8695140a7eff85c685f2.html#a8b4bf9b56715632604f3b3e810f45e19">OpenKalman::internal::CovarianceBase&lt; Derived, NestedMatrix, std::enable_if_t&lt; case1or2&lt; Derived, NestedMatrix &gt; and self_contained&lt; NestedMatrix &gt; &gt; &gt;</a>
+, <a class="el" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_nested_matrix_00_01std_1_140b10e2d94bdd984b10c5028cc94eb1a.html#a22f1269706f32e38a0ce8f688793ea8b">OpenKalman::internal::CovarianceBase&lt; Derived, NestedMatrix, std::enable_if_t&lt; case1or2&lt; Derived, NestedMatrix &gt; and(not self_contained&lt; NestedMatrix &gt;)&gt; &gt;</a>
+, <a class="el" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_nested_matrix_00_01std_1_152503e0e2fdd8a717653d68b8871d849.html#a579713862ccc78bad774450b13c15dbf">OpenKalman::internal::CovarianceBase&lt; Derived, NestedMatrix, std::enable_if_t&lt;(not case1or2&lt; Derived, NestedMatrix &gt;) and self_contained&lt; NestedMatrix &gt; &gt; &gt;</a>
+</li>
 <li>Coefficient
 : <a class="el" href="struct_open_kalman_1_1_coefficients_3_01_c_00_01_cs_01_8_8_8_01_4.html#a28871593f2d9d829b49617d264e9dd04">OpenKalman::Coefficients&lt; C, Cs ... &gt;</a>
 , <a class="el" href="struct_open_kalman_1_1_coefficients_3_4.html#a734f6b72f948194627e697245997f9b1">OpenKalman::Coefficients&lt;&gt;</a>
@@ -96,12 +101,19 @@ $(document).ready(function(){initNavTree('functions_c.html',''); initResizable()
 : <a class="el" href="struct_open_kalman_1_1_eigen3_1_1internal_1_1_eigen3_matrix_base.html#ae8a13f4777ea3f9f59cfad59a94d82df">OpenKalman::Eigen3::internal::Eigen3MatrixBase&lt; Derived, ArgType &gt;</a>
 </li>
 <li>columns
-: <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#adf48c1d5caf0080040d05464e9275d19">OpenKalman::Eigen3::FromEuclideanExpr&lt; Coefficients, NestedMatrix &gt;</a>
-, <a class="el" href="struct_open_kalman_1_1_eigen3_1_1_to_euclidean_expr.html#ae23b9552d495d086aee428700d995472">OpenKalman::Eigen3::ToEuclideanExpr&lt; Coefficients, NestedMatrix &gt;</a>
-, <a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a48a773ce459d0b82b58adeec382b995e">OpenKalman::internal::TypedMatrixBase&lt; Derived, RowCoeffs, ColCoeffs, NestedType &gt;</a>
+: <a class="el" href="struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a1c9ba1d46f32d73896f7796183ea7177">OpenKalman::internal::TypedMatrixBase&lt; Derived, RowCoefficients, ColumnCoefficients, NestedMatrix &gt;</a>
 </li>
 <li>Covariance()
-: <a class="el" href="struct_open_kalman_1_1_covariance.html#afb7dab6788e4c3487bb4e13fb4870793">OpenKalman::Covariance&lt; Coeffs, ArgType &gt;</a>
+: <a class="el" href="struct_open_kalman_1_1_covariance.html#ada367d73d42f9830e6fae98a1513e498">OpenKalman::Covariance&lt; Coefficients, NestedMatrix &gt;</a>
+</li>
+<li>covariance_op()
+: <a class="el" href="struct_open_kalman_1_1_covariance.html#ab923c77be5e8c0e80de7dc013f73df41">OpenKalman::Covariance&lt; Coefficients, NestedMatrix &gt;</a>
+, <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#a2adb35cc97a478813b5e69d30d4e7bf4">OpenKalman::SquareRootCovariance&lt; Coefficients, NestedMatrix &gt;</a>
+</li>
+<li>CovarianceBase()
+: <a class="el" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_nested_matrix_00_01std_1_1de90ce7a7fbe8695140a7eff85c685f2.html#a51e163d2561a39ae7c280ed4d536f4eb">OpenKalman::internal::CovarianceBase&lt; Derived, NestedMatrix, std::enable_if_t&lt; case1or2&lt; Derived, NestedMatrix &gt; and self_contained&lt; NestedMatrix &gt; &gt; &gt;</a>
+, <a class="el" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_nested_matrix_00_01std_1_140b10e2d94bdd984b10c5028cc94eb1a.html#a80ae48254d26b837c3b91a32b364ab0a">OpenKalman::internal::CovarianceBase&lt; Derived, NestedMatrix, std::enable_if_t&lt; case1or2&lt; Derived, NestedMatrix &gt; and(not self_contained&lt; NestedMatrix &gt;)&gt; &gt;</a>
+, <a class="el" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_nested_matrix_00_01std_1_152503e0e2fdd8a717653d68b8871d849.html#a295de3fa43594db406f3e822dcee95de">OpenKalman::internal::CovarianceBase&lt; Derived, NestedMatrix, std::enable_if_t&lt;(not case1or2&lt; Derived, NestedMatrix &gt;) and self_contained&lt; NestedMatrix &gt; &gt; &gt;</a>
 </li>
 </ul>
 </div><!-- contents -->
@@ -109,7 +121,7 @@ $(document).ready(function(){initNavTree('functions_c.html',''); initResizable()
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Sun Dec 6 2020 19:54:46 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
+    <li class="footer">Generated on Sat Mar 27 2021 20:52:54 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
   </ul>
 </div>
 </body>

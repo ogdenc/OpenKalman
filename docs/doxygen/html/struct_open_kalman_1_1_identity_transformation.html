@@ -101,17 +101,17 @@ $(document).ready(function(){initNavTree('struct_open_kalman_1_1_identity_transf
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a4d4733397e73e3f85d2ddd1b5ab0997a"><td class="memTemplParams" colspan="2"><a id="a4d4733397e73e3f85d2ddd1b5ab0997a"></a>
-template&lt;typename In , typename ... Perturbations, std::enable_if_t&lt; column_vector&lt; In &gt; and(perturbation&lt; Perturbations &gt; and ...) and internal::transformation_args&lt; In, Perturbations... &gt;, int &gt;  = 0&gt; </td></tr>
+template&lt;typename In , typename ... Perturbations, std::enable_if_t&lt; typed_matrix&lt; In &gt; and untyped_columns&lt; In &gt; and(perturbation&lt; Perturbations &gt; and ...) and(equivalent_to&lt; typename MatrixTraits&lt; In &gt;::RowCoefficients, typename internal::PerturbationTraits&lt; Perturbations &gt;::RowCoefficients &gt; and ...), int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:a4d4733397e73e3f85d2ddd1b5ab0997a"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_identity_transformation.html#a4d4733397e73e3f85d2ddd1b5ab0997a">operator()</a> (In &amp;&amp;in, Perturbations &amp;&amp;... ps) const noexcept</td></tr>
 <tr class="memdesc:a4d4733397e73e3f85d2ddd1b5ab0997a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Applies the transformation. <br /></td></tr>
 <tr class="separator:a4d4733397e73e3f85d2ddd1b5ab0997a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad88e2351a1b0c63265391d709b1ae86c"><td class="memTemplParams" colspan="2"><a id="ad88e2351a1b0c63265391d709b1ae86c"></a>
-template&lt;typename In , typename ... Perturbations, std::enable_if_t&lt; column_vector&lt; In &gt; and(perturbation&lt; Perturbations &gt; and ...) and internal::transformation_args&lt; In, Perturbations... &gt;, int &gt;  = 0&gt; </td></tr>
+template&lt;typename In , typename ... Perturbations, std::enable_if_t&lt; typed_matrix&lt; In &gt; and untyped_columns&lt; In &gt; and(perturbation&lt; Perturbations &gt; and ...) and(equivalent_to&lt; typename MatrixTraits&lt; In &gt;::RowCoefficients, typename internal::PerturbationTraits&lt; Perturbations &gt;::RowCoefficients &gt; and ...), int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:ad88e2351a1b0c63265391d709b1ae86c"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_identity_transformation.html#ad88e2351a1b0c63265391d709b1ae86c">jacobian</a> (const In &amp;, const Perturbations &amp;...) const</td></tr>
 <tr class="memdesc:ad88e2351a1b0c63265391d709b1ae86c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a tuple of the Jacobians for the input and each perturbation term. <br /></td></tr>
 <tr class="separator:ad88e2351a1b0c63265391d709b1ae86c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a241613e175cff421ede114e2ef65b9da"><td class="memTemplParams" colspan="2"><a id="a241613e175cff421ede114e2ef65b9da"></a>
-template&lt;typename In , typename ... Perturbations, std::enable_if_t&lt; column_vector&lt; In &gt; and(perturbation&lt; Perturbations &gt; and ...) and internal::transformation_args&lt; In, Perturbations... &gt;, int &gt;  = 0&gt; </td></tr>
+template&lt;typename In , typename ... Perturbations, std::enable_if_t&lt; typed_matrix&lt; In &gt; and untyped_columns&lt; In &gt; and(perturbation&lt; Perturbations &gt; and ...) and(equivalent_to&lt; typename MatrixTraits&lt; In &gt;::RowCoefficients, typename internal::PerturbationTraits&lt; Perturbations &gt;::RowCoefficients &gt; and ...), int &gt;  = 0&gt; </td></tr>
 <tr class="memitem:a241613e175cff421ede114e2ef65b9da"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_identity_transformation.html#a241613e175cff421ede114e2ef65b9da">hessian</a> (const In &amp;, const Perturbations &amp;...) const</td></tr>
 <tr class="memdesc:a241613e175cff421ede114e2ef65b9da"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a tuple of Hessian matrices for the input and each perturbation term. In this case, they are zero matrices. <br /></td></tr>
 <tr class="separator:a241613e175cff421ede114e2ef65b9da"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -125,7 +125,7 @@ template&lt;typename In , typename ... Perturbations, std::enable_if_t&lt; colum
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="namespace_open_kalman.html">OpenKalman</a></li><li class="navelem"><a class="el" href="struct_open_kalman_1_1_identity_transformation.html">IdentityTransformation</a></li>
-    <li class="footer">Generated on Sun Dec 6 2020 19:54:57 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
+    <li class="footer">Generated on Sat Mar 27 2021 20:52:23 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
   </ul>
 </div>
 </body>

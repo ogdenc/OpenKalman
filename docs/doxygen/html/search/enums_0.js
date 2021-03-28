@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['triangletype_509',['TriangleType',['../namespace_open_kalman.html#ab6c606169452d88f33b64e3b1ae18fa2',1,'OpenKalman']]]
+  ['triangletype_507',['TriangleType',['../namespace_open_kalman.html#ab6c606169452d88f33b64e3b1ae18fa2',1,'OpenKalman']]]
 ];

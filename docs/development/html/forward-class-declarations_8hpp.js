@@ -9,9 +9,8 @@ var forward_class_declarations_8hpp =
     [ "mean", "forward-class-declarations_8hpp.html#a2745b3bfff7250ac8d9e0dc79902508c", null ],
     [ "square_root_covariance", "forward-class-declarations_8hpp.html#a4bf939b25b2e4bfc1162f21533ae490e", null ],
     [ "typed_matrix", "forward-class-declarations_8hpp.html#ae19962a38a87cd8c8003e48f42150145", null ],
+    [ "untyped_columns", "forward-class-declarations_8hpp.html#a11e454bc99a03d730955077ca215479e", null ],
     [ "wrapped_mean", "forward-class-declarations_8hpp.html#ae2d3de4ef2635e290fd9640db5721563", null ],
-    [ "convert_nested_matrix", "forward-class-declarations_8hpp.html#a124a5fe1dc8b76fe985f55a1497dc150", null ],
-    [ "convert_nested_matrix", "forward-class-declarations_8hpp.html#aa3bb16dc004f421a9f872f5683ca985d", null ],
     [ "make_ElementSetter", "forward-class-declarations_8hpp.html#ae90fd2b04252852fbbaceb4ef798bf2b", null ],
     [ "make_ElementSetter", "forward-class-declarations_8hpp.html#aeae213e87016b2ab48e3aebeb0d2ef45", null ]
 ];

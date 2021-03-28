@@ -38,10 +38,7 @@ var annotated_dup =
         ] ]
       ] ],
       [ "internal", null, [
-        [ "is_equivalent_to", "struct_open_kalman_1_1internal_1_1is__equivalent__to.html", null ],
-        [ "is_prefix_of", "struct_open_kalman_1_1internal_1_1is__prefix__of.html", null ],
-        [ "LinearTransformBase", "struct_open_kalman_1_1internal_1_1_linear_transform_base.html", "struct_open_kalman_1_1internal_1_1_linear_transform_base" ],
-        [ "TypedMatrixBase", "struct_open_kalman_1_1internal_1_1_typed_matrix_base.html", "struct_open_kalman_1_1internal_1_1_typed_matrix_base" ]
+        [ "LinearTransformBase", "struct_open_kalman_1_1internal_1_1_linear_transform_base.html", "struct_open_kalman_1_1internal_1_1_linear_transform_base" ]
       ] ],
       [ "Angle", "struct_open_kalman_1_1_angle.html", "struct_open_kalman_1_1_angle" ],
       [ "Axis", "struct_open_kalman_1_1_axis.html", "struct_open_kalman_1_1_axis" ],
@@ -50,7 +47,6 @@ var annotated_dup =
       [ "Coefficients<>", "struct_open_kalman_1_1_coefficients_3_4.html", "struct_open_kalman_1_1_coefficients_3_4" ],
       [ "Covariance", "struct_open_kalman_1_1_covariance.html", "struct_open_kalman_1_1_covariance" ],
       [ "Distance", "struct_open_kalman_1_1_distance.html", "struct_open_kalman_1_1_distance" ],
-      [ "DistributionTraits", "struct_open_kalman_1_1_distribution_traits.html", null ],
       [ "EuclideanMean", "struct_open_kalman_1_1_euclidean_mean.html", "struct_open_kalman_1_1_euclidean_mean" ],
       [ "GaussianDistribution", "struct_open_kalman_1_1_gaussian_distribution.html", "struct_open_kalman_1_1_gaussian_distribution" ],
       [ "IdentityTransform", "struct_open_kalman_1_1_identity_transform.html", "struct_open_kalman_1_1_identity_transform" ],
@@ -64,7 +60,6 @@ var annotated_dup =
       [ "LinearTransform", "struct_open_kalman_1_1_linear_transform.html", "struct_open_kalman_1_1_linear_transform" ],
       [ "LinearTransformation", "struct_open_kalman_1_1_linear_transformation.html", null ],
       [ "Matrix", "struct_open_kalman_1_1_matrix.html", "struct_open_kalman_1_1_matrix" ],
-      [ "MatrixTraits", "struct_open_kalman_1_1_matrix_traits.html", null ],
       [ "Mean", "struct_open_kalman_1_1_mean.html", "struct_open_kalman_1_1_mean" ],
       [ "MixtureOfContinuousDistributions", "struct_open_kalman_1_1_mixture_of_continuous_distributions.html", "struct_open_kalman_1_1_mixture_of_continuous_distributions" ],
       [ "MonteCarloTransform", "struct_open_kalman_1_1_monte_carlo_transform.html", "struct_open_kalman_1_1_monte_carlo_transform" ],

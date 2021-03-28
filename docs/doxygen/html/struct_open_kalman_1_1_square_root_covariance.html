@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.0"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>OpenKalman: OpenKalman::SquareRootCovariance&lt; Coeffs, ArgType &gt; Struct Template Reference</title>
+<title>OpenKalman: OpenKalman::SquareRootCovariance&lt; Coefficients, NestedMatrix &gt; Struct Template Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -84,17 +84,18 @@ $(document).ready(function(){initNavTree('struct_open_kalman_1_1_square_root_cov
 <div class="header">
   <div class="summary">
 <a href="struct_open_kalman_1_1_square_root_covariance-members.html">List of all members</a> &#124;
+<a href="#pub-types">Public Aliases</a> &#124;
 <a href="#pub-methods">Public Member Functions</a>  </div>
   <div class="headertitle">
-<div class="title">OpenKalman::SquareRootCovariance&lt; Coeffs, ArgType &gt; Struct Template Reference</div>  </div>
+<div class="title">OpenKalman::SquareRootCovariance&lt; Coefficients, NestedMatrix &gt; Struct Template Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
 
 <p>The upper or lower triangle Cholesky factor (square root) of a covariance matrix.  
  <a href="struct_open_kalman_1_1_square_root_covariance.html#details">More...</a></p>
 <a name="details" id="details"></a><h2 class="groupheader">Description</h2>
-<div class="textblock"><h3>template&lt;typename Coeffs, typename ArgType&gt;<br />
-struct OpenKalman::SquareRootCovariance&lt; Coeffs, ArgType &gt;</h3>
+<div class="textblock"><h3>template&lt;typename Coefficients, typename NestedMatrix&gt;<br />
+struct OpenKalman::SquareRootCovariance&lt; Coefficients, NestedMatrix &gt;</h3>
 
 <p>If S is a <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html" title="The upper or lower triangle Cholesky factor (square root) of a covariance matrix.">SquareRootCovariance</a>, S*transpose(S) is a <a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a>. If NestedMatrix is triangular, the <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html" title="The upper or lower triangle Cholesky factor (square root) of a covariance matrix.">SquareRootCovariance</a> has the same triangle type (upper or lower). If NestedMatrix is self-adjoint, the triangle type of <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html" title="The upper or lower triangle Cholesky factor (square root) of a covariance matrix.">SquareRootCovariance</a> is considered either upper ''or'' lower. </p><dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
@@ -104,105 +105,430 @@ struct OpenKalman::SquareRootCovariance&lt; Coeffs, ArgType &gt;</h3>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="_square_root_covariance_8hpp_source.html#l00022">22</a> of file <a class="el" href="_square_root_covariance_8hpp_source.html">SquareRootCovariance.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_square_root_covariance_8hpp_source.html#l00024">24</a> of file <a class="el" href="_square_root_covariance_8hpp_source.html">SquareRootCovariance.hpp</a>.</p>
 </div>
-<p>Inherits OpenKalman::internal::CovarianceBase&lt; Derived, NestedMatrix, Enable &gt;.</p>
+<p>Inherits OpenKalman::internal::CovarianceBase&lt; Derived, NestedMatrix, typename &gt;.</p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
+Public Aliases</h2></td></tr>
+<tr class="memitem:aae2c4379a0d2f4938861e2a5084c7f30"><td class="memItemLeft" align="right" valign="top"><a id="aae2c4379a0d2f4938861e2a5084c7f30"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#aae2c4379a0d2f4938861e2a5084c7f30">Scalar</a> = typename MatrixTraits&lt; NestedMatrix &gt;::<a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#aae2c4379a0d2f4938861e2a5084c7f30">Scalar</a></td></tr>
+<tr class="memdesc:aae2c4379a0d2f4938861e2a5084c7f30"><td class="mdescLeft">&#160;</td><td class="mdescRight">Scalar type for this matrix. <br /></td></tr>
+<tr class="separator:aae2c4379a0d2f4938861e2a5084c7f30"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a50b370c851faa6e1b338c1ae67343a0b"><td class="memItemLeft" align="right" valign="top"><a id="a50b370c851faa6e1b338c1ae67343a0b"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#a50b370c851faa6e1b338c1ae67343a0b">SquareRootCovariance</a> ()</td></tr>
-<tr class="memdesc:a50b370c851faa6e1b338c1ae67343a0b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default constructor. <br /></td></tr>
-<tr class="separator:a50b370c851faa6e1b338c1ae67343a0b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac594530a6c004cdd3c696b005ed6452f"><td class="memItemLeft" align="right" valign="top"><a id="ac594530a6c004cdd3c696b005ed6452f"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#ac594530a6c004cdd3c696b005ed6452f">SquareRootCovariance</a> (const <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">SquareRootCovariance</a> &amp;other)</td></tr>
-<tr class="memdesc:ac594530a6c004cdd3c696b005ed6452f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy constructor. <br /></td></tr>
-<tr class="separator:ac594530a6c004cdd3c696b005ed6452f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8653b7d721f6531fda09adf4152b49d7"><td class="memItemLeft" align="right" valign="top"><a id="a8653b7d721f6531fda09adf4152b49d7"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#a8653b7d721f6531fda09adf4152b49d7">SquareRootCovariance</a> (<a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">SquareRootCovariance</a> &amp;&amp;other)</td></tr>
-<tr class="memdesc:a8653b7d721f6531fda09adf4152b49d7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Move constructor. <br /></td></tr>
-<tr class="separator:a8653b7d721f6531fda09adf4152b49d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa07f787a44d7e0a0c64baccef5fd6350"><td class="memTemplParams" colspan="2"><a id="aa07f787a44d7e0a0c64baccef5fd6350"></a>
-template&lt;typename M , std::enable_if_t&lt; covariance&lt; M &gt; and(not(diagonal_matrix&lt; M &gt; and not square_root_covariance&lt; M &gt; and diagonal_matrix&lt; NestedMatrix &gt;)), int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:aa07f787a44d7e0a0c64baccef5fd6350"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#aa07f787a44d7e0a0c64baccef5fd6350">SquareRootCovariance</a> (M &amp;&amp;m) noexcept</td></tr>
-<tr class="memdesc:aa07f787a44d7e0a0c64baccef5fd6350"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct from a general covariance type. <br /></td></tr>
-<tr class="separator:aa07f787a44d7e0a0c64baccef5fd6350"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa07f787a44d7e0a0c64baccef5fd6350"><td class="memTemplParams" colspan="2"><a id="aa07f787a44d7e0a0c64baccef5fd6350"></a>
-template&lt;typename M , std::enable_if_t&lt; covariance&lt; M &gt; and diagonal_matrix&lt; M &gt; and not square_root_covariance&lt; M &gt; and diagonal_matrix&lt; NestedMatrix &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:aa07f787a44d7e0a0c64baccef5fd6350"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#aa07f787a44d7e0a0c64baccef5fd6350">SquareRootCovariance</a> (M &amp;&amp;m) noexcept</td></tr>
-<tr class="memdesc:aa07f787a44d7e0a0c64baccef5fd6350"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct from a general covariance type. <br /></td></tr>
-<tr class="separator:aa07f787a44d7e0a0c64baccef5fd6350"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa07f787a44d7e0a0c64baccef5fd6350"><td class="memTemplParams" colspan="2"><a id="aa07f787a44d7e0a0c64baccef5fd6350"></a>
-template&lt;typename M , std::enable_if_t&lt; covariance_nestable&lt; M &gt; and(not diagonal_matrix&lt; M &gt; or triangular_matrix&lt; NestedMatrix &gt;), int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:aa07f787a44d7e0a0c64baccef5fd6350"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#aa07f787a44d7e0a0c64baccef5fd6350">SquareRootCovariance</a> (M &amp;&amp;m) noexcept</td></tr>
-<tr class="memdesc:aa07f787a44d7e0a0c64baccef5fd6350"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct from a non-diagonal covariance_nestable. <br /></td></tr>
-<tr class="separator:aa07f787a44d7e0a0c64baccef5fd6350"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa07f787a44d7e0a0c64baccef5fd6350"><td class="memTemplParams" colspan="2"><a id="aa07f787a44d7e0a0c64baccef5fd6350"></a>
-template&lt;typename M , std::enable_if_t&lt; covariance_nestable&lt; M &gt; and diagonal_matrix&lt; M &gt; and not triangular_matrix&lt; NestedMatrix &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:aa07f787a44d7e0a0c64baccef5fd6350"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#aa07f787a44d7e0a0c64baccef5fd6350">SquareRootCovariance</a> (M &amp;&amp;m) noexcept</td></tr>
-<tr class="memdesc:aa07f787a44d7e0a0c64baccef5fd6350"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct from a diagonal covariance_nestable. <br /></td></tr>
-<tr class="separator:aa07f787a44d7e0a0c64baccef5fd6350"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa07f787a44d7e0a0c64baccef5fd6350"><td class="memTemplParams" colspan="2"><a id="aa07f787a44d7e0a0c64baccef5fd6350"></a>
-template&lt;typename M , std::enable_if_t&lt; typed_matrix&lt; M &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:aa07f787a44d7e0a0c64baccef5fd6350"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#aa07f787a44d7e0a0c64baccef5fd6350">SquareRootCovariance</a> (M &amp;&amp;m) noexcept</td></tr>
-<tr class="memdesc:aa07f787a44d7e0a0c64baccef5fd6350"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct from a typed matrix (assumed to be triangular). <br /></td></tr>
-<tr class="separator:aa07f787a44d7e0a0c64baccef5fd6350"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa07f787a44d7e0a0c64baccef5fd6350"><td class="memTemplParams" colspan="2"><a id="aa07f787a44d7e0a0c64baccef5fd6350"></a>
-template&lt;typename M , std::enable_if_t&lt; typed_matrix_nestable&lt; M &gt; and not covariance_nestable&lt; M &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:aa07f787a44d7e0a0c64baccef5fd6350"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#aa07f787a44d7e0a0c64baccef5fd6350">SquareRootCovariance</a> (M &amp;&amp;m) noexcept</td></tr>
-<tr class="memdesc:aa07f787a44d7e0a0c64baccef5fd6350"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct from a typed_matrix_nestable (assumed to be triangular). <br /></td></tr>
-<tr class="separator:aa07f787a44d7e0a0c64baccef5fd6350"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae46aad737b7f1f754a6aa3d51260ce61"><td class="memTemplParams" colspan="2"><a id="ae46aad737b7f1f754a6aa3d51260ce61"></a>
-template&lt;typename ... Args, std::enable_if_t&lt; std::conjunction_v&lt; std::is_convertible&lt; Args, const Scalar &gt;... &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:ae46aad737b7f1f754a6aa3d51260ce61"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#ae46aad737b7f1f754a6aa3d51260ce61">SquareRootCovariance</a> (Args ... args)</td></tr>
-<tr class="memdesc:ae46aad737b7f1f754a6aa3d51260ce61"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct from Scalar coefficients. Assumes matrix is triangular, and only reads lower left triangle. <br /></td></tr>
-<tr class="separator:ae46aad737b7f1f754a6aa3d51260ce61"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae974b898695733f79de4a4791fc65cde"><td class="memItemLeft" align="right" valign="top"><a id="ae974b898695733f79de4a4791fc65cde"></a>
-auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#ae974b898695733f79de4a4791fc65cde">operator=</a> (const <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">SquareRootCovariance</a> &amp;other)</td></tr>
-<tr class="memdesc:ae974b898695733f79de4a4791fc65cde"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy assignment operator. <br /></td></tr>
-<tr class="separator:ae974b898695733f79de4a4791fc65cde"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4068321656e0729b75fcd55ed32fbef4"><td class="memItemLeft" align="right" valign="top"><a id="a4068321656e0729b75fcd55ed32fbef4"></a>
-auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#a4068321656e0729b75fcd55ed32fbef4">operator=</a> (<a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">SquareRootCovariance</a> &amp;&amp;other) noexcept</td></tr>
-<tr class="memdesc:a4068321656e0729b75fcd55ed32fbef4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Move assignment operator. <br /></td></tr>
-<tr class="separator:a4068321656e0729b75fcd55ed32fbef4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a37b128c431a27fa3f5c5a9f720720e76"><td class="memTemplParams" colspan="2"><a id="a37b128c431a27fa3f5c5a9f720720e76"></a>
-template&lt;typename Arg , std::enable_if_t&lt; covariance&lt; Arg &gt; or typed_matrix&lt; Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a37b128c431a27fa3f5c5a9f720720e76"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#a37b128c431a27fa3f5c5a9f720720e76">operator=</a> (Arg &amp;&amp;other) noexcept</td></tr>
-<tr class="memdesc:a37b128c431a27fa3f5c5a9f720720e76"><td class="mdescLeft">&#160;</td><td class="mdescRight">Assign from a compatible covariance or typed matrix object. <br /></td></tr>
-<tr class="separator:a37b128c431a27fa3f5c5a9f720720e76"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aed212d6a69324ede3385bcde7d6d9cae"><td class="memTemplParams" colspan="2">template&lt;typename Arg , std::enable_if_t&lt; square_root_covariance&lt; Arg &gt; and equivalent_to&lt; typename MatrixTraits&lt; Arg &gt;::RowCoefficients, Coefficients &gt; and internal::same_triangle_type_as&lt; SquareRootCovariance, Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:aed212d6a69324ede3385bcde7d6d9cae"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#aed212d6a69324ede3385bcde7d6d9cae">operator+=</a> (Arg &amp;&amp;arg) noexcept</td></tr>
-<tr class="separator:aed212d6a69324ede3385bcde7d6d9cae"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aedff1ed83a554307ab0348e1cd2fcd7a"><td class="memItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#aedff1ed83a554307ab0348e1cd2fcd7a">operator+=</a> (const <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">SquareRootCovariance</a> &amp;arg)</td></tr>
-<tr class="separator:aedff1ed83a554307ab0348e1cd2fcd7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa1cdc25b8caf95abaf3fb9b260ae9123"><td class="memTemplParams" colspan="2">template&lt;typename Arg , std::enable_if_t&lt; square_root_covariance&lt; Arg &gt; and equivalent_to&lt; typename MatrixTraits&lt; Arg &gt;::RowCoefficients, Coefficients &gt; and internal::same_triangle_type_as&lt; SquareRootCovariance, Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:aa1cdc25b8caf95abaf3fb9b260ae9123"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#aa1cdc25b8caf95abaf3fb9b260ae9123">operator-=</a> (Arg &amp;&amp;arg) noexcept</td></tr>
-<tr class="separator:aa1cdc25b8caf95abaf3fb9b260ae9123"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab98b09cb3137ae3dc7525c4138193671"><td class="memItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#ab98b09cb3137ae3dc7525c4138193671">operator-=</a> (const <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">SquareRootCovariance</a> &amp;arg)</td></tr>
-<tr class="separator:ab98b09cb3137ae3dc7525c4138193671"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5037e1fff466866805c05e31a5a1077c"><td class="memTemplParams" colspan="2">template&lt;typename Arg , std::enable_if_t&lt; square_root_covariance&lt; Arg &gt; and internal::same_triangle_type_as&lt; SquareRootCovariance, Arg &gt;, int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:a5037e1fff466866805c05e31a5a1077c"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#a5037e1fff466866805c05e31a5a1077c">operator*=</a> (Arg &amp;&amp;arg)</td></tr>
-<tr class="memdesc:a5037e1fff466866805c05e31a5a1077c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Multiply by another square-root covariance matrix.  <a href="struct_open_kalman_1_1_square_root_covariance.html#a5037e1fff466866805c05e31a5a1077c">More...</a><br /></td></tr>
-<tr class="separator:a5037e1fff466866805c05e31a5a1077c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab2585b6884618b767e51599c1290fec4"><td class="memTemplParams" colspan="2"><a id="ab2585b6884618b767e51599c1290fec4"></a>
+template&lt;typename T  = Base, std::enable_if_t&lt; std::is_default_constructible_v&lt; T &gt;, int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:ab2585b6884618b767e51599c1290fec4"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#ab2585b6884618b767e51599c1290fec4">SquareRootCovariance</a> ()</td></tr>
+<tr class="memdesc:ab2585b6884618b767e51599c1290fec4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default constructor. <br /></td></tr>
+<tr class="separator:ab2585b6884618b767e51599c1290fec4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a127a9af95462b17dce5ad9e1587be11f"><td class="memItemLeft" align="right" valign="top"><a id="a127a9af95462b17dce5ad9e1587be11f"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#a127a9af95462b17dce5ad9e1587be11f">SquareRootCovariance</a> (<a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">SquareRootCovariance</a> &amp;other)</td></tr>
+<tr class="memdesc:a127a9af95462b17dce5ad9e1587be11f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Non-const copy constructor. <br /></td></tr>
+<tr class="separator:a127a9af95462b17dce5ad9e1587be11f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a58ad642191c367f48cc36cbd9a8ed63c"><td class="memItemLeft" align="right" valign="top"><a id="a58ad642191c367f48cc36cbd9a8ed63c"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#a58ad642191c367f48cc36cbd9a8ed63c">SquareRootCovariance</a> (const <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">SquareRootCovariance</a> &amp;other)</td></tr>
+<tr class="memdesc:a58ad642191c367f48cc36cbd9a8ed63c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Const copy constructor. <br /></td></tr>
+<tr class="separator:a58ad642191c367f48cc36cbd9a8ed63c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4a7d9552e7b2ba0a30dc24410ff3e247"><td class="memItemLeft" align="right" valign="top"><a id="a4a7d9552e7b2ba0a30dc24410ff3e247"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#a4a7d9552e7b2ba0a30dc24410ff3e247">SquareRootCovariance</a> (<a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">SquareRootCovariance</a> &amp;&amp;other)</td></tr>
+<tr class="memdesc:a4a7d9552e7b2ba0a30dc24410ff3e247"><td class="mdescLeft">&#160;</td><td class="mdescRight">Move constructor. <br /></td></tr>
+<tr class="separator:a4a7d9552e7b2ba0a30dc24410ff3e247"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a14e19de4e64e92efba571348bd9772df"><td class="memTemplParams" colspan="2"><a id="a14e19de4e64e92efba571348bd9772df"></a>
+template&lt;typename M , std::enable_if_t&lt; square_root_covariance&lt; M &gt; and(not std::is_base_of_v&lt; SquareRootCovariance, std::decay_t&lt; M &gt;&gt;) and internal::same_triangle_type_as&lt; M, SquareRootCovariance &gt; and std::is_constructible_v&lt; Base, M &gt;, int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:a14e19de4e64e92efba571348bd9772df"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#a14e19de4e64e92efba571348bd9772df">SquareRootCovariance</a> (M &amp;&amp;m) noexcept</td></tr>
+<tr class="memdesc:a14e19de4e64e92efba571348bd9772df"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct from another <a class="el" href="namespace_open_kalman.html#a4bf939b25b2e4bfc1162f21533ae490e">square_root_covariance</a>. <br /></td></tr>
+<tr class="separator:a14e19de4e64e92efba571348bd9772df"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a14e19de4e64e92efba571348bd9772df"><td class="memTemplParams" colspan="2"><a id="a14e19de4e64e92efba571348bd9772df"></a>
+template&lt;typename M , std::enable_if_t&lt; covariance_nestable&lt; M &gt; and std::is_constructible_v&lt; Base, M &gt;, int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:a14e19de4e64e92efba571348bd9772df"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#a14e19de4e64e92efba571348bd9772df">SquareRootCovariance</a> (M &amp;&amp;m) noexcept</td></tr>
+<tr class="memdesc:a14e19de4e64e92efba571348bd9772df"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct from a <a class="el" href="namespace_open_kalman.html#a19898d83f3f0b722b834acac97f7c17e">covariance_nestable</a>. <br /></td></tr>
+<tr class="separator:a14e19de4e64e92efba571348bd9772df"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae974849b2b9fc15f848054979cad09c7"><td class="memTemplParams" colspan="2">template&lt;typename M , std::enable_if_t&lt; typed_matrix&lt; M &gt; and(square_matrix&lt; M &gt; or(diagonal_matrix&lt; NestedMatrix &gt; and column_vector&lt; M &gt;)) and equivalent_to&lt; typename MatrixTraits&lt; M &gt;::RowCoefficients, Coefficients &gt; and std::is_constructible_v&lt; Base, decltype(internal::to_covariance_nestable&lt; NestedTriangular &gt;(std::declval&lt; M &gt;()))&gt; , int &gt; </td></tr>
+<tr class="memitem:ae974849b2b9fc15f848054979cad09c7"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#ae974849b2b9fc15f848054979cad09c7">SquareRootCovariance</a> (M &amp;&amp;m) noexcept</td></tr>
+<tr class="memdesc:ae974849b2b9fc15f848054979cad09c7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct from a <a class="el" href="namespace_open_kalman.html#ae19962a38a87cd8c8003e48f42150145">typed_matrix</a>.  <a href="struct_open_kalman_1_1_square_root_covariance.html#ae974849b2b9fc15f848054979cad09c7">More...</a><br /></td></tr>
+<tr class="separator:ae974849b2b9fc15f848054979cad09c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae974849b2b9fc15f848054979cad09c7"><td class="memTemplParams" colspan="2">template&lt;typename M , std::enable_if_t&lt; typed_matrix_nestable&lt; M &gt; and(not covariance_nestable&lt; M &gt;) and(square_matrix&lt; M &gt; or(diagonal_matrix&lt; NestedMatrix &gt; and column_vector&lt; M &gt;)) and std::is_constructible_v&lt; Base, decltype(internal::to_covariance_nestable&lt; NestedTriangular &gt;(std::declval&lt; M &gt;()))&gt; , int &gt; </td></tr>
+<tr class="memitem:ae974849b2b9fc15f848054979cad09c7"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#ae974849b2b9fc15f848054979cad09c7">SquareRootCovariance</a> (M &amp;&amp;m) noexcept</td></tr>
+<tr class="memdesc:ae974849b2b9fc15f848054979cad09c7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct from a <a class="el" href="namespace_open_kalman.html#a5245fbf912b12a279acb815fcf7650d9">typed_matrix_nestable</a>.  <a href="struct_open_kalman_1_1_square_root_covariance.html#ae974849b2b9fc15f848054979cad09c7">More...</a><br /></td></tr>
+<tr class="separator:ae974849b2b9fc15f848054979cad09c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab367299b9bbb203391a26f56ec1cb0ef"><td class="memTemplParams" colspan="2"><a id="ab367299b9bbb203391a26f56ec1cb0ef"></a>
+template&lt;typename ... Args, std::enable_if_t&lt;(std::is_convertible_v&lt; Args, Scalar &gt; and ...) and(sizeof...(Args)==dimension) and diagonal_matrix&lt; NestedMatrix &gt; and std::is_constructible_v&lt; Base, NestedTriangular &amp;&amp; &gt;, int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:ab367299b9bbb203391a26f56ec1cb0ef"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#ab367299b9bbb203391a26f56ec1cb0ef">SquareRootCovariance</a> (const Args ... args)</td></tr>
+<tr class="memdesc:ab367299b9bbb203391a26f56ec1cb0ef"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct from Scalar coefficients. Assumes matrix is triangular, and only reads lower left triangle. <br /></td></tr>
+<tr class="separator:ab367299b9bbb203391a26f56ec1cb0ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acac777e88394d2dd8307c005e21a4846"><td class="memItemLeft" align="right" valign="top"><a id="acac777e88394d2dd8307c005e21a4846"></a>
+auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#acac777e88394d2dd8307c005e21a4846">operator=</a> (const <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">SquareRootCovariance</a> &amp;other)</td></tr>
+<tr class="memdesc:acac777e88394d2dd8307c005e21a4846"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy assignment operator. <br /></td></tr>
+<tr class="separator:acac777e88394d2dd8307c005e21a4846"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a514466a93b5cf1702440e78b90b66f1c"><td class="memItemLeft" align="right" valign="top"><a id="a514466a93b5cf1702440e78b90b66f1c"></a>
+auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#a514466a93b5cf1702440e78b90b66f1c">operator=</a> (<a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">SquareRootCovariance</a> &amp;&amp;other) noexcept</td></tr>
+<tr class="memdesc:a514466a93b5cf1702440e78b90b66f1c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Move assignment operator. <br /></td></tr>
+<tr class="separator:a514466a93b5cf1702440e78b90b66f1c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a828c871d27d0fe3a286a12aa52e799a8"><td class="memTemplParams" colspan="2">template&lt;typename Arg , std::enable_if_t&lt; square_root_covariance&lt; Arg &gt; and(not std::is_base_of_v&lt; SquareRootCovariance, std::decay_t&lt; Arg &gt;&gt;) and internal::same_triangle_type_as&lt; Arg, SquareRootCovariance &gt; and equivalent_to&lt; typename MatrixTraits&lt; Arg &gt;::RowCoefficients, Coefficients &gt; and modifiable&lt; NestedMatrix, nested_matrix_t&lt; Arg &gt;&gt;, int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:a828c871d27d0fe3a286a12aa52e799a8"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#a828c871d27d0fe3a286a12aa52e799a8">operator=</a> (Arg &amp;&amp;other) noexcept</td></tr>
+<tr class="memdesc:a828c871d27d0fe3a286a12aa52e799a8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Assign from a compatible <a class="el" href="namespace_open_kalman.html#a4bf939b25b2e4bfc1162f21533ae490e">square_root_covariance</a>.  <a href="struct_open_kalman_1_1_square_root_covariance.html#a828c871d27d0fe3a286a12aa52e799a8">More...</a><br /></td></tr>
+<tr class="separator:a828c871d27d0fe3a286a12aa52e799a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a828c871d27d0fe3a286a12aa52e799a8"><td class="memTemplParams" colspan="2"><a id="a828c871d27d0fe3a286a12aa52e799a8"></a>
+template&lt;typename Arg , std::enable_if_t&lt; typed_matrix&lt; Arg &gt; and square_matrix&lt; Arg &gt; and equivalent_to&lt; typename MatrixTraits&lt; Arg &gt;::RowCoefficients, Coefficients &gt; and modifiable&lt; NestedMatrix, NestedTriangular &gt;, int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:a828c871d27d0fe3a286a12aa52e799a8"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#a828c871d27d0fe3a286a12aa52e799a8">operator=</a> (Arg &amp;&amp;other) noexcept</td></tr>
+<tr class="memdesc:a828c871d27d0fe3a286a12aa52e799a8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Assign from a compatible <a class="el" href="namespace_open_kalman.html#ae19962a38a87cd8c8003e48f42150145">typed_matrix</a> (assumed, without checking, to be triangular). <br /></td></tr>
+<tr class="separator:a828c871d27d0fe3a286a12aa52e799a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a828c871d27d0fe3a286a12aa52e799a8"><td class="memTemplParams" colspan="2"><a id="a828c871d27d0fe3a286a12aa52e799a8"></a>
+template&lt;typename Arg , std::enable_if_t&lt; covariance_nestable&lt; Arg &gt; and modifiable&lt; NestedMatrix, Arg &gt;, int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:a828c871d27d0fe3a286a12aa52e799a8"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#a828c871d27d0fe3a286a12aa52e799a8">operator=</a> (Arg &amp;&amp;other) noexcept</td></tr>
+<tr class="memdesc:a828c871d27d0fe3a286a12aa52e799a8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Assign from a compatible <a class="el" href="namespace_open_kalman.html#a19898d83f3f0b722b834acac97f7c17e">covariance_nestable</a>. <br /></td></tr>
+<tr class="separator:a828c871d27d0fe3a286a12aa52e799a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a828c871d27d0fe3a286a12aa52e799a8"><td class="memTemplParams" colspan="2"><a id="a828c871d27d0fe3a286a12aa52e799a8"></a>
+template&lt;typename Arg , std::enable_if_t&lt; typed_matrix_nestable&lt; Arg &gt; and(not covariance_nestable&lt; Arg &gt;) and square_matrix&lt; Arg &gt; and modifiable&lt; NestedMatrix, NestedTriangular &gt;, int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:a828c871d27d0fe3a286a12aa52e799a8"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#a828c871d27d0fe3a286a12aa52e799a8">operator=</a> (Arg &amp;&amp;other) noexcept</td></tr>
+<tr class="memdesc:a828c871d27d0fe3a286a12aa52e799a8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Assign from a compatible <a class="el" href="namespace_open_kalman.html#a5245fbf912b12a279acb815fcf7650d9">typed_matrix_nestable</a> (assumed, without checking, to be triangular). <br /></td></tr>
+<tr class="separator:a828c871d27d0fe3a286a12aa52e799a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab11b9846d9e3fa57d88110278693dfb3"><td class="memTemplParams" colspan="2">template&lt;typename Arg , std::enable_if_t&lt;(not std::is_const_v&lt; std::remove_reference_t&lt; NestedMatrix &gt;&gt;) and((square_root_covariance&lt; Arg &gt; and internal::same_triangle_type_as&lt; Arg, SquareRootCovariance &gt;) or(typed_matrix&lt; Arg &gt; and square_matrix&lt; Arg &gt;)) and equivalent_to&lt; typename MatrixTraits&lt; Arg &gt;::RowCoefficients, Coefficients &gt;, int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:ab11b9846d9e3fa57d88110278693dfb3"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#ab11b9846d9e3fa57d88110278693dfb3">operator+=</a> (const Arg &amp;arg)</td></tr>
+<tr class="separator:ab11b9846d9e3fa57d88110278693dfb3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5b0918da1dacd782d6cb2078f495bfcf"><td class="memTemplParams" colspan="2">template&lt;typename T  = NestedMatrix, std::enable_if_t&lt;(not std::is_const_v&lt; std::remove_reference_t&lt; T &gt;&gt;), int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:a5b0918da1dacd782d6cb2078f495bfcf"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#a5b0918da1dacd782d6cb2078f495bfcf">operator+=</a> (const <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">SquareRootCovariance</a> &amp;arg)</td></tr>
+<tr class="separator:a5b0918da1dacd782d6cb2078f495bfcf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a442b18dc79986ff7274814ef8e4ab1f7"><td class="memTemplParams" colspan="2">template&lt;typename Arg , std::enable_if_t&lt;(not std::is_const_v&lt; std::remove_reference_t&lt; NestedMatrix &gt;&gt;) and((square_root_covariance&lt; Arg &gt; and internal::same_triangle_type_as&lt; Arg, SquareRootCovariance &gt;) or(typed_matrix&lt; Arg &gt; and square_matrix&lt; Arg &gt;)) and equivalent_to&lt; typename MatrixTraits&lt; Arg &gt;::RowCoefficients, Coefficients &gt;, int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:a442b18dc79986ff7274814ef8e4ab1f7"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#a442b18dc79986ff7274814ef8e4ab1f7">operator-=</a> (const Arg &amp;arg)</td></tr>
+<tr class="separator:a442b18dc79986ff7274814ef8e4ab1f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a48572d6548580e218e8f74921fda697f"><td class="memTemplParams" colspan="2">template&lt;typename T  = NestedMatrix, std::enable_if_t&lt;(not std::is_const_v&lt; std::remove_reference_t&lt; T &gt;&gt;), int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:a48572d6548580e218e8f74921fda697f"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#a48572d6548580e218e8f74921fda697f">operator-=</a> (const <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">SquareRootCovariance</a> &amp;arg)</td></tr>
+<tr class="separator:a48572d6548580e218e8f74921fda697f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac45d90d9e39a9779108e83abe56ddb13"><td class="memTemplParams" colspan="2">template&lt;typename Arg , std::enable_if_t&lt; square_root_covariance&lt; Arg &gt; and internal::same_triangle_type_as&lt; SquareRootCovariance, Arg &gt; and(not std::is_const_v&lt; std::remove_reference_t&lt; NestedMatrix &gt;&gt;), int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:ac45d90d9e39a9779108e83abe56ddb13"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#ac45d90d9e39a9779108e83abe56ddb13">operator*=</a> (const Arg &amp;arg)</td></tr>
+<tr class="memdesc:ac45d90d9e39a9779108e83abe56ddb13"><td class="mdescLeft">&#160;</td><td class="mdescRight">Multiply by another <a class="el" href="namespace_open_kalman.html#a4bf939b25b2e4bfc1162f21533ae490e">square_root_covariance</a>.  <a href="struct_open_kalman_1_1_square_root_covariance.html#ac45d90d9e39a9779108e83abe56ddb13">More...</a><br /></td></tr>
+<tr class="separator:ac45d90d9e39a9779108e83abe56ddb13"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1fc3885d92d886384fdd4d242093256f"><td class="memTemplParams" colspan="2">template&lt;typename T  = NestedMatrix, std::enable_if_t&lt;(not diagonal_matrix&lt; T &gt;) or identity_matrix&lt; NestedMatrix &gt; or zero_matrix&lt; NestedMatrix &gt;, int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:a1fc3885d92d886384fdd4d242093256f"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#a1fc3885d92d886384fdd4d242093256f">square</a> () &amp;</td></tr>
+<tr class="memdesc:a1fc3885d92d886384fdd4d242093256f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Take the Cholesky square of *this.  <a href="struct_open_kalman_1_1_square_root_covariance.html#a1fc3885d92d886384fdd4d242093256f">More...</a><br /></td></tr>
+<tr class="separator:a1fc3885d92d886384fdd4d242093256f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac33ca319bfd65fbce95ee81f274c1bec"><td class="memTemplParams" colspan="2">template&lt;typename T  = NestedMatrix, std::enable_if_t&lt;(not diagonal_matrix&lt; T &gt;) or identity_matrix&lt; NestedMatrix &gt; or zero_matrix&lt; NestedMatrix &gt;, int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:ac33ca319bfd65fbce95ee81f274c1bec"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#ac33ca319bfd65fbce95ee81f274c1bec">square</a> () &amp;&amp;</td></tr>
+<tr class="separator:ac33ca319bfd65fbce95ee81f274c1bec"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac5efbf26c687062ac75d3ac0ae63b165"><td class="memTemplParams" colspan="2">template&lt;typename T  = NestedMatrix, std::enable_if_t&lt;(not diagonal_matrix&lt; T &gt;) or identity_matrix&lt; NestedMatrix &gt; or zero_matrix&lt; NestedMatrix &gt;, int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:ac5efbf26c687062ac75d3ac0ae63b165"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#ac5efbf26c687062ac75d3ac0ae63b165">square</a> () const &amp;</td></tr>
+<tr class="separator:ac5efbf26c687062ac75d3ac0ae63b165"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:affc3e98fc8872dd519c302d3cd84e5d6"><td class="memTemplParams" colspan="2">template&lt;typename T  = NestedMatrix, std::enable_if_t&lt;(not diagonal_matrix&lt; T &gt;) or identity_matrix&lt; NestedMatrix &gt; or zero_matrix&lt; NestedMatrix &gt;, int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:affc3e98fc8872dd519c302d3cd84e5d6"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#affc3e98fc8872dd519c302d3cd84e5d6">square</a> () const &amp;&amp;</td></tr>
+<tr class="separator:affc3e98fc8872dd519c302d3cd84e5d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac5efbf26c687062ac75d3ac0ae63b165"><td class="memTemplParams" colspan="2">template&lt;typename T  = NestedMatrix, std::enable_if_t&lt; diagonal_matrix&lt; T &gt; and(not identity_matrix&lt; NestedMatrix &gt;) and(not zero_matrix&lt; NestedMatrix &gt;), int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:ac5efbf26c687062ac75d3ac0ae63b165"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#ac5efbf26c687062ac75d3ac0ae63b165">square</a> () const &amp;</td></tr>
+<tr class="separator:ac5efbf26c687062ac75d3ac0ae63b165"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:affc3e98fc8872dd519c302d3cd84e5d6"><td class="memTemplParams" colspan="2">template&lt;typename T  = NestedMatrix, std::enable_if_t&lt; diagonal_matrix&lt; T &gt; and(not identity_matrix&lt; NestedMatrix &gt;) and(not zero_matrix&lt; NestedMatrix &gt;), int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:affc3e98fc8872dd519c302d3cd84e5d6"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#affc3e98fc8872dd519c302d3cd84e5d6">square</a> () const &amp;&amp;</td></tr>
+<tr class="separator:affc3e98fc8872dd519c302d3cd84e5d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2adb35cc97a478813b5e69d30d4e7bf4"><td class="memTemplParams" colspan="2">template&lt;typename F1 , typename F2 , std::enable_if_t&lt; std::is_invocable_v&lt; F1, const NestedMatrix &amp; &gt; and std::is_invocable_v&lt; F2, const NestedTriangular &amp; &gt;, int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:a2adb35cc97a478813b5e69d30d4e7bf4"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#a2adb35cc97a478813b5e69d30d4e7bf4">covariance_op</a> (F1 &amp;&amp;f1, F2 &amp;&amp;f2) const</td></tr>
+<tr class="memdesc:a2adb35cc97a478813b5e69d30d4e7bf4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Make a <a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a> based on an operation on the nested matrices.  <a href="struct_open_kalman_1_1_square_root_covariance.html#a2adb35cc97a478813b5e69d30d4e7bf4">More...</a><br /></td></tr>
+<tr class="separator:a2adb35cc97a478813b5e69d30d4e7bf4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a18e73d8c8faeaf9f342f3bb6d7244d97"><td class="memTemplParams" colspan="2"><a id="a18e73d8c8faeaf9f342f3bb6d7244d97"></a>
+template&lt;typename U , std::enable_if_t&lt; typed_matrix&lt; U &gt; and equivalent_to&lt; typename MatrixTraits&lt; U &gt;::RowCoefficients, Coefficients &gt; and(not std::is_const_v&lt; std::remove_reference_t&lt; NestedMatrix &gt;&gt;), int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:a18e73d8c8faeaf9f342f3bb6d7244d97"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#a18e73d8c8faeaf9f342f3bb6d7244d97">rank_update</a> (const U &amp;u, const <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#aae2c4379a0d2f4938861e2a5084c7f30">Scalar</a> alpha=1) &amp;</td></tr>
+<tr class="memdesc:a18e73d8c8faeaf9f342f3bb6d7244d97"><td class="mdescLeft">&#160;</td><td class="mdescRight">Perform a rank update. <br /></td></tr>
+<tr class="separator:a18e73d8c8faeaf9f342f3bb6d7244d97"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a244a5c91cbd3a0203ffa63667397d7e1"><td class="memTemplParams" colspan="2"><a id="a244a5c91cbd3a0203ffa63667397d7e1"></a>
+template&lt;typename U , std::enable_if_t&lt; typed_matrix&lt; U &gt; and equivalent_to&lt; typename MatrixTraits&lt; U &gt;::RowCoefficients, Coefficients &gt;, int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:a244a5c91cbd3a0203ffa63667397d7e1"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#a244a5c91cbd3a0203ffa63667397d7e1">rank_update</a> (const U &amp;u, const <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#aae2c4379a0d2f4938861e2a5084c7f30">Scalar</a> alpha=1) const</td></tr>
+<tr class="memdesc:a244a5c91cbd3a0203ffa63667397d7e1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Perform a rank update. <br /></td></tr>
+<tr class="separator:a244a5c91cbd3a0203ffa63667397d7e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a664be63865241323b711d04077992716"><td class="memItemLeft" align="right" valign="top">decltype(auto)&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#a664be63865241323b711d04077992716">get_triangular_nested_matrix</a> () const &amp;</td></tr>
+<tr class="separator:a664be63865241323b711d04077992716"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3e8dc5e92125b6bc4d2c224b500aa0fc"><td class="memItemLeft" align="right" valign="top"><a id="a3e8dc5e92125b6bc4d2c224b500aa0fc"></a>
+decltype(auto)&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#a3e8dc5e92125b6bc4d2c224b500aa0fc">get_triangular_nested_matrix</a> () const &amp;&amp;</td></tr>
+<tr class="memdesc:a3e8dc5e92125b6bc4d2c224b500aa0fc"><td class="mdescLeft">&#160;</td><td class="mdescRight">This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. <br /></td></tr>
+<tr class="separator:a3e8dc5e92125b6bc4d2c224b500aa0fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7dd2785665c2b4bd86a411b659036b3d"><td class="memItemLeft" align="right" valign="top">decltype(auto)&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#a7dd2785665c2b4bd86a411b659036b3d">get_self_adjoint_nested_matrix</a> () const &amp;</td></tr>
+<tr class="separator:a7dd2785665c2b4bd86a411b659036b3d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae1b17f3617adaa7c62fa8b4425ff8a10"><td class="memItemLeft" align="right" valign="top"><a id="ae1b17f3617adaa7c62fa8b4425ff8a10"></a>
+decltype(auto)&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#ae1b17f3617adaa7c62fa8b4425ff8a10">get_self_adjoint_nested_matrix</a> () const &amp;&amp;</td></tr>
+<tr class="memdesc:ae1b17f3617adaa7c62fa8b4425ff8a10"><td class="mdescLeft">&#160;</td><td class="mdescRight">This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. <br /></td></tr>
+<tr class="separator:ae1b17f3617adaa7c62fa8b4425ff8a10"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad01c505dfdbb474111ec193574f16b55"><td class="memTemplParams" colspan="2">template&lt;typename T  = NestedMatrix, std::enable_if_t&lt; element_gettable&lt; T, 2 &gt;, int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:ad01c505dfdbb474111ec193574f16b55"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#ad01c505dfdbb474111ec193574f16b55">operator()</a> (std::size_t i, std::size_t j)</td></tr>
+<tr class="memdesc:ad01c505dfdbb474111ec193574f16b55"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get or set element (i, j) of the covariance matrix.  <a href="struct_open_kalman_1_1_square_root_covariance.html#ad01c505dfdbb474111ec193574f16b55">More...</a><br /></td></tr>
+<tr class="separator:ad01c505dfdbb474111ec193574f16b55"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1c9eb7dbec7129b26274503f2a98ec48"><td class="memTemplParams" colspan="2"><a id="a1c9eb7dbec7129b26274503f2a98ec48"></a>
+template&lt;typename T  = NestedMatrix, std::enable_if_t&lt; element_gettable&lt; T, 2 &gt;, int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:a1c9eb7dbec7129b26274503f2a98ec48"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#a1c9eb7dbec7129b26274503f2a98ec48">operator()</a> (std::size_t i, std::size_t j) const</td></tr>
+<tr class="memdesc:a1c9eb7dbec7129b26274503f2a98ec48"><td class="mdescLeft">&#160;</td><td class="mdescRight">This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. <br /></td></tr>
+<tr class="separator:a1c9eb7dbec7129b26274503f2a98ec48"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa4a0503b483f083349833bff29b07f67"><td class="memTemplParams" colspan="2">template&lt;typename T  = NestedMatrix, std::enable_if_t&lt; element_gettable&lt; T, 1 &gt;, int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:aa4a0503b483f083349833bff29b07f67"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#aa4a0503b483f083349833bff29b07f67">operator[]</a> (std::size_t i)</td></tr>
+<tr class="memdesc:aa4a0503b483f083349833bff29b07f67"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get or set element i of the covariance matrix, if it is a vector.  <a href="struct_open_kalman_1_1_square_root_covariance.html#aa4a0503b483f083349833bff29b07f67">More...</a><br /></td></tr>
+<tr class="separator:aa4a0503b483f083349833bff29b07f67"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afdfc98960548b64526c53b39539960c2"><td class="memTemplParams" colspan="2"><a id="afdfc98960548b64526c53b39539960c2"></a>
+template&lt;typename T  = NestedMatrix, std::enable_if_t&lt; element_gettable&lt; T, 1 &gt;, int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:afdfc98960548b64526c53b39539960c2"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#afdfc98960548b64526c53b39539960c2">operator[]</a> (std::size_t i) const</td></tr>
+<tr class="memdesc:afdfc98960548b64526c53b39539960c2"><td class="mdescLeft">&#160;</td><td class="mdescRight">This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. <br /></td></tr>
+<tr class="separator:afdfc98960548b64526c53b39539960c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa03078c39e7523c13df93d9be8e0f54a"><td class="memTemplParams" colspan="2"><a id="aa03078c39e7523c13df93d9be8e0f54a"></a>
+template&lt;typename T  = NestedMatrix, std::enable_if_t&lt; element_gettable&lt; T, 1 &gt;, int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:aa03078c39e7523c13df93d9be8e0f54a"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#aa03078c39e7523c13df93d9be8e0f54a">operator()</a> (std::size_t i)</td></tr>
+<tr class="memdesc:aa03078c39e7523c13df93d9be8e0f54a"><td class="mdescLeft">&#160;</td><td class="mdescRight">This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. <br /></td></tr>
+<tr class="separator:aa03078c39e7523c13df93d9be8e0f54a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a92ead8450d4e64850795103941e8cfd3"><td class="memTemplParams" colspan="2"><a id="a92ead8450d4e64850795103941e8cfd3"></a>
+template&lt;typename T  = NestedMatrix, std::enable_if_t&lt; element_gettable&lt; T, 1 &gt;, int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:a92ead8450d4e64850795103941e8cfd3"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#a92ead8450d4e64850795103941e8cfd3">operator()</a> (std::size_t i) const</td></tr>
+<tr class="memdesc:a92ead8450d4e64850795103941e8cfd3"><td class="mdescLeft">&#160;</td><td class="mdescRight">This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. <br /></td></tr>
+<tr class="separator:a92ead8450d4e64850795103941e8cfd3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae9298843aa21105be069a949b0e789e8"><td class="memTemplParams" colspan="2"><a id="ae9298843aa21105be069a949b0e789e8"></a>
+template&lt;typename T  = NestedMatrix, std::enable_if_t&lt; element_settable&lt; T, 2 &gt;, int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:ae9298843aa21105be069a949b0e789e8"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#ae9298843aa21105be069a949b0e789e8">set_element</a> (const <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#aae2c4379a0d2f4938861e2a5084c7f30">Scalar</a> s, const std::size_t i, const std::size_t j)</td></tr>
+<tr class="memdesc:ae9298843aa21105be069a949b0e789e8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set an element of the cholesky nested matrix. <br /></td></tr>
+<tr class="separator:ae9298843aa21105be069a949b0e789e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a76e768b004b3d610bd37f9e704985c36"><td class="memTemplParams" colspan="2"><a id="a76e768b004b3d610bd37f9e704985c36"></a>
+template&lt;typename T  = NestedMatrix, std::enable_if_t&lt; element_settable&lt; T, 1 &gt;, int &gt;  = 0&gt; </td></tr>
+<tr class="memitem:a76e768b004b3d610bd37f9e704985c36"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#a76e768b004b3d610bd37f9e704985c36">set_element</a> (const <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html#aae2c4379a0d2f4938861e2a5084c7f30">Scalar</a> s, const std::size_t i)</td></tr>
+<tr class="memdesc:a76e768b004b3d610bd37f9e704985c36"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set an element of the cholesky nested matrix. <br /></td></tr>
+<tr class="separator:a76e768b004b3d610bd37f9e704985c36"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a id="ae974849b2b9fc15f848054979cad09c7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae974849b2b9fc15f848054979cad09c7">&#9670;&nbsp;</a></span>SquareRootCovariance() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Coefficients , typename NestedMatrix &gt; </div>
+<div class="memtemplate">
+template&lt;typename M , std::enable_if_t&lt; typed_matrix&lt; M &gt; and(square_matrix&lt; M &gt; or(diagonal_matrix&lt; NestedMatrix &gt; and column_vector&lt; M &gt;)) and equivalent_to&lt; typename MatrixTraits&lt; M &gt;::RowCoefficients, Coefficients &gt; and std::is_constructible_v&lt; Base, decltype(internal::to_covariance_nestable&lt; NestedTriangular &gt;(std::declval&lt; M &gt;()))&gt; , int &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">OpenKalman::SquareRootCovariance</a>&lt; <a class="el" href="struct_open_kalman_1_1_coefficients.html">Coefficients</a>, NestedMatrix &gt;::<a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">SquareRootCovariance</a> </td>
+          <td>(</td>
+          <td class="paramtype">M &amp;&amp;&#160;</td>
+          <td class="paramname"><em>m</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">explicit</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>M must be a <a class="el" href="namespace_open_kalman.html#a4fc1aa6874bf00181847d0bc6228514b">square_matrix</a>, unless NestedMatrix is a <a class="el" href="namespace_open_kalman.html#acda49202b6dd92195051ed9db5fcdcaf">diagonal_matrix</a> in which case M can be a column vector. M is assumed (without enforcement) to be triangular, and the data in only one of the triangles is significant. </p>
+
+<p class="definition">Definition at line <a class="el" href="_square_root_covariance_8hpp_source.html#l00159">159</a> of file <a class="el" href="_square_root_covariance_8hpp_source.html">SquareRootCovariance.hpp</a>.</p>
+
+</div>
+</div>
+<a id="ae974849b2b9fc15f848054979cad09c7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae974849b2b9fc15f848054979cad09c7">&#9670;&nbsp;</a></span>SquareRootCovariance() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Coefficients , typename NestedMatrix &gt; </div>
+<div class="memtemplate">
+template&lt;typename M , std::enable_if_t&lt; typed_matrix_nestable&lt; M &gt; and(not covariance_nestable&lt; M &gt;) and(square_matrix&lt; M &gt; or(diagonal_matrix&lt; NestedMatrix &gt; and column_vector&lt; M &gt;)) and std::is_constructible_v&lt; Base, decltype(internal::to_covariance_nestable&lt; NestedTriangular &gt;(std::declval&lt; M &gt;()))&gt; , int &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">OpenKalman::SquareRootCovariance</a>&lt; <a class="el" href="struct_open_kalman_1_1_coefficients.html">Coefficients</a>, NestedMatrix &gt;::<a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">SquareRootCovariance</a> </td>
+          <td>(</td>
+          <td class="paramtype">M &amp;&amp;&#160;</td>
+          <td class="paramname"><em>m</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">explicit</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>M must be a <a class="el" href="namespace_open_kalman.html#a4fc1aa6874bf00181847d0bc6228514b">square_matrix</a>, unless NestedMatrix is a <a class="el" href="namespace_open_kalman.html#acda49202b6dd92195051ed9db5fcdcaf">diagonal_matrix</a> in which case M can be a column vector. M is assumed (without enforcement) to be triangular, and the data in only one of the triangles is significant. </p>
+
+<p class="definition">Definition at line <a class="el" href="_square_root_covariance_8hpp_source.html#l00179">179</a> of file <a class="el" href="_square_root_covariance_8hpp_source.html">SquareRootCovariance.hpp</a>.</p>
+
+</div>
+</div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a5037e1fff466866805c05e31a5a1077c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5037e1fff466866805c05e31a5a1077c">&#9670;&nbsp;</a></span>operator*=()</h2>
+<a id="a2adb35cc97a478813b5e69d30d4e7bf4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2adb35cc97a478813b5e69d30d4e7bf4">&#9670;&nbsp;</a></span>covariance_op()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename Coeffs , typename ArgType &gt; </div>
+template&lt;typename Coefficients , typename NestedMatrix &gt; </div>
 <div class="memtemplate">
-template&lt;typename Arg , std::enable_if_t&lt; square_root_covariance&lt; Arg &gt; and internal::same_triangle_type_as&lt; SquareRootCovariance, Arg &gt;, int &gt;  = 0&gt; </div>
+template&lt;typename F1 , typename F2 , std::enable_if_t&lt; std::is_invocable_v&lt; F1, const NestedMatrix &amp; &gt; and std::is_invocable_v&lt; F2, const NestedTriangular &amp; &gt;, int &gt;  = 0&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">auto&amp; <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">OpenKalman::SquareRootCovariance</a>&lt; Coeffs, ArgType &gt;::operator*= </td>
+          <td class="memname">auto <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">OpenKalman::SquareRootCovariance</a>&lt; <a class="el" href="struct_open_kalman_1_1_coefficients.html">Coefficients</a>, NestedMatrix &gt;::covariance_op </td>
           <td>(</td>
-          <td class="paramtype">Arg &amp;&amp;&#160;</td>
+          <td class="paramtype">F1 &amp;&amp;&#160;</td>
+          <td class="paramname"><em>f1</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">F2 &amp;&amp;&#160;</td>
+          <td class="paramname"><em>f2</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">F1</td><td>Operation on NestedMatrix. </td></tr>
+    <tr><td class="paramname">F2</td><td>Operation on the return value of cholesky_nested_matrix </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="_square_root_covariance_8hpp_source.html#l00655">655</a> of file <a class="el" href="_square_root_covariance_8hpp_source.html">SquareRootCovariance.hpp</a>.</p>
+
+</div>
+</div>
+<a id="a7dd2785665c2b4bd86a411b659036b3d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7dd2785665c2b4bd86a411b659036b3d">&#9670;&nbsp;</a></span>get_self_adjoint_nested_matrix()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Coefficients , typename NestedMatrix &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">decltype(auto) <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">OpenKalman::SquareRootCovariance</a>&lt; <a class="el" href="struct_open_kalman_1_1_coefficients.html">Coefficients</a>, NestedMatrix &gt;::get_self_adjoint_nested_matrix </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const &amp;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<dl class="section return"><dt>Returns</dt><dd>The nested matrix, potentially converted to self-adjoint form. </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="_square_root_covariance_8hpp_source.html#l00763">763</a> of file <a class="el" href="_square_root_covariance_8hpp_source.html">SquareRootCovariance.hpp</a>.</p>
+
+</div>
+</div>
+<a id="a664be63865241323b711d04077992716"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a664be63865241323b711d04077992716">&#9670;&nbsp;</a></span>get_triangular_nested_matrix()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Coefficients , typename NestedMatrix &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">decltype(auto) <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">OpenKalman::SquareRootCovariance</a>&lt; <a class="el" href="struct_open_kalman_1_1_coefficients.html">Coefficients</a>, NestedMatrix &gt;::get_triangular_nested_matrix </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const &amp;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<dl class="section return"><dt>Returns</dt><dd>The nested matrix, potentially converted to triangular form. </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="_square_root_covariance_8hpp_source.html#l00726">726</a> of file <a class="el" href="_square_root_covariance_8hpp_source.html">SquareRootCovariance.hpp</a>.</p>
+
+</div>
+</div>
+<a id="ad01c505dfdbb474111ec193574f16b55"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad01c505dfdbb474111ec193574f16b55">&#9670;&nbsp;</a></span>operator()()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Coefficients , typename NestedMatrix &gt; </div>
+<div class="memtemplate">
+template&lt;typename T  = NestedMatrix, std::enable_if_t&lt; element_gettable&lt; T, 2 &gt;, int &gt;  = 0&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">OpenKalman::SquareRootCovariance</a>&lt; <a class="el" href="struct_open_kalman_1_1_coefficients.html">Coefficients</a>, NestedMatrix &gt;::operator() </td>
+          <td>(</td>
+          <td class="paramtype">std::size_t&#160;</td>
+          <td class="paramname"><em>i</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::size_t&#160;</td>
+          <td class="paramname"><em>j</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">i</td><td>The row. </td></tr>
+    <tr><td class="paramname">j</td><td>The column. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>An ElementSetter object. </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="_square_root_covariance_8hpp_source.html#l00808">808</a> of file <a class="el" href="_square_root_covariance_8hpp_source.html">SquareRootCovariance.hpp</a>.</p>
+
+</div>
+</div>
+<a id="ac45d90d9e39a9779108e83abe56ddb13"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac45d90d9e39a9779108e83abe56ddb13">&#9670;&nbsp;</a></span>operator*=()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Coefficients , typename NestedMatrix &gt; </div>
+<div class="memtemplate">
+template&lt;typename Arg , std::enable_if_t&lt; square_root_covariance&lt; Arg &gt; and internal::same_triangle_type_as&lt; SquareRootCovariance, Arg &gt; and(not std::is_const_v&lt; std::remove_reference_t&lt; NestedMatrix &gt;&gt;), int &gt;  = 0&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto&amp; <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">OpenKalman::SquareRootCovariance</a>&lt; <a class="el" href="struct_open_kalman_1_1_coefficients.html">Coefficients</a>, NestedMatrix &gt;::operator*= </td>
+          <td>(</td>
+          <td class="paramtype">const Arg &amp;&#160;</td>
           <td class="paramname"><em>arg</em></td><td>)</td>
           <td></td>
         </tr>
@@ -213,30 +539,162 @@ template&lt;typename Arg , std::enable_if_t&lt; square_root_covariance&lt; Arg &
   </tr>
 </table>
 </div><div class="memdoc">
-<p>If the underlying triangle type (upper or lower) of Arg is different from the nested matrix, it will be transposed. </p><dl class="section warning"><dt>Warning</dt><dd>This is computationally expensive unless *this and Arg are both the same triangular kind. </dd></dl>
+<p>The underlying triangle type (upper or lower) of Arg much match that of the nested matrix. </p><dl class="section warning"><dt>Warning</dt><dd>This is computationally expensive unless the nested matrices of *this and Arg are both either triangular or self-adjoint. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="_square_root_covariance_8hpp_source.html#l00341">341</a> of file <a class="el" href="_square_root_covariance_8hpp_source.html">SquareRootCovariance.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_square_root_covariance_8hpp_source.html#l00503">503</a> of file <a class="el" href="_square_root_covariance_8hpp_source.html">SquareRootCovariance.hpp</a>.</p>
 
 </div>
 </div>
-<a id="aed212d6a69324ede3385bcde7d6d9cae"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aed212d6a69324ede3385bcde7d6d9cae">&#9670;&nbsp;</a></span>operator+=() <span class="overload">[1/2]</span></h2>
+<a id="ab11b9846d9e3fa57d88110278693dfb3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab11b9846d9e3fa57d88110278693dfb3">&#9670;&nbsp;</a></span>operator+=() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename Coeffs , typename ArgType &gt; </div>
+template&lt;typename Coefficients , typename NestedMatrix &gt; </div>
 <div class="memtemplate">
-template&lt;typename Arg , std::enable_if_t&lt; square_root_covariance&lt; Arg &gt; and equivalent_to&lt; typename MatrixTraits&lt; Arg &gt;::RowCoefficients, Coefficients &gt; and internal::same_triangle_type_as&lt; SquareRootCovariance, Arg &gt;, int &gt;  = 0&gt; </div>
+template&lt;typename Arg , std::enable_if_t&lt;(not std::is_const_v&lt; std::remove_reference_t&lt; NestedMatrix &gt;&gt;) and((square_root_covariance&lt; Arg &gt; and internal::same_triangle_type_as&lt; Arg, SquareRootCovariance &gt;) or(typed_matrix&lt; Arg &gt; and square_matrix&lt; Arg &gt;)) and equivalent_to&lt; typename MatrixTraits&lt; Arg &gt;::RowCoefficients, Coefficients &gt;, int &gt;  = 0&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">auto&amp; <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">OpenKalman::SquareRootCovariance</a>&lt; Coeffs, ArgType &gt;::operator+= </td>
+          <td class="memname">auto&amp; <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">OpenKalman::SquareRootCovariance</a>&lt; <a class="el" href="struct_open_kalman_1_1_coefficients.html">Coefficients</a>, NestedMatrix &gt;::operator+= </td>
+          <td>(</td>
+          <td class="paramtype">const Arg &amp;&#160;</td>
+          <td class="paramname"><em>arg</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Increment by another <a class="el" href="namespace_open_kalman.html#a4bf939b25b2e4bfc1162f21533ae490e">square_root_covariance</a> or triangular <a class="el" href="namespace_open_kalman.html#ae19962a38a87cd8c8003e48f42150145">typed_matrix</a>. </p><dl class="section warning"><dt>Warning</dt><dd>This is computationally expensive if the nested matrix is not <a class="el" href="namespace_open_kalman.html#ada97c2afb746e33dd806af6f63957fce">triangular_matrix</a>. This can generally be avoided. </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="_square_root_covariance_8hpp_source.html#l00345">345</a> of file <a class="el" href="_square_root_covariance_8hpp_source.html">SquareRootCovariance.hpp</a>.</p>
+
+</div>
+</div>
+<a id="a5b0918da1dacd782d6cb2078f495bfcf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5b0918da1dacd782d6cb2078f495bfcf">&#9670;&nbsp;</a></span>operator+=() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Coefficients , typename NestedMatrix &gt; </div>
+<div class="memtemplate">
+template&lt;typename T  = NestedMatrix, std::enable_if_t&lt;(not std::is_const_v&lt; std::remove_reference_t&lt; T &gt;&gt;), int &gt;  = 0&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto&amp; <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">OpenKalman::SquareRootCovariance</a>&lt; <a class="el" href="struct_open_kalman_1_1_coefficients.html">Coefficients</a>, NestedMatrix &gt;::operator+= </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">SquareRootCovariance</a>&lt; <a class="el" href="struct_open_kalman_1_1_coefficients.html">Coefficients</a>, NestedMatrix &gt; &amp;&#160;</td>
+          <td class="paramname"><em>arg</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Increment by another <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html" title="The upper or lower triangle Cholesky factor (square root) of a covariance matrix.">SquareRootCovariance</a> of the same type. </p><dl class="section warning"><dt>Warning</dt><dd>This is computationally expensive if the nested matrix is self-adjoint. This can generally be avoided. </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="_square_root_covariance_8hpp_source.html#l00379">379</a> of file <a class="el" href="_square_root_covariance_8hpp_source.html">SquareRootCovariance.hpp</a>.</p>
+
+</div>
+</div>
+<a id="a442b18dc79986ff7274814ef8e4ab1f7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a442b18dc79986ff7274814ef8e4ab1f7">&#9670;&nbsp;</a></span>operator-=() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Coefficients , typename NestedMatrix &gt; </div>
+<div class="memtemplate">
+template&lt;typename Arg , std::enable_if_t&lt;(not std::is_const_v&lt; std::remove_reference_t&lt; NestedMatrix &gt;&gt;) and((square_root_covariance&lt; Arg &gt; and internal::same_triangle_type_as&lt; Arg, SquareRootCovariance &gt;) or(typed_matrix&lt; Arg &gt; and square_matrix&lt; Arg &gt;)) and equivalent_to&lt; typename MatrixTraits&lt; Arg &gt;::RowCoefficients, Coefficients &gt;, int &gt;  = 0&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto&amp; <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">OpenKalman::SquareRootCovariance</a>&lt; <a class="el" href="struct_open_kalman_1_1_coefficients.html">Coefficients</a>, NestedMatrix &gt;::operator-= </td>
+          <td>(</td>
+          <td class="paramtype">const Arg &amp;&#160;</td>
+          <td class="paramname"><em>arg</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Decrement by another <a class="el" href="namespace_open_kalman.html#a4bf939b25b2e4bfc1162f21533ae490e">square_root_covariance</a> or triangular <a class="el" href="namespace_open_kalman.html#ae19962a38a87cd8c8003e48f42150145">typed_matrix</a>. </p><dl class="section warning"><dt>Warning</dt><dd>This is computationally expensive if the nested matrix is not <a class="el" href="namespace_open_kalman.html#ada97c2afb746e33dd806af6f63957fce">triangular_matrix</a>. This can generally be avoided. </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="_square_root_covariance_8hpp_source.html#l00402">402</a> of file <a class="el" href="_square_root_covariance_8hpp_source.html">SquareRootCovariance.hpp</a>.</p>
+
+</div>
+</div>
+<a id="a48572d6548580e218e8f74921fda697f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a48572d6548580e218e8f74921fda697f">&#9670;&nbsp;</a></span>operator-=() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Coefficients , typename NestedMatrix &gt; </div>
+<div class="memtemplate">
+template&lt;typename T  = NestedMatrix, std::enable_if_t&lt;(not std::is_const_v&lt; std::remove_reference_t&lt; T &gt;&gt;), int &gt;  = 0&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto&amp; <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">OpenKalman::SquareRootCovariance</a>&lt; <a class="el" href="struct_open_kalman_1_1_coefficients.html">Coefficients</a>, NestedMatrix &gt;::operator-= </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">SquareRootCovariance</a>&lt; <a class="el" href="struct_open_kalman_1_1_coefficients.html">Coefficients</a>, NestedMatrix &gt; &amp;&#160;</td>
+          <td class="paramname"><em>arg</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Decrement by another <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html" title="The upper or lower triangle Cholesky factor (square root) of a covariance matrix.">SquareRootCovariance</a> of the same type. </p><dl class="section warning"><dt>Warning</dt><dd>This is computationally expensive if the nested matrix is self-adjoint. This can generally be avoided. </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="_square_root_covariance_8hpp_source.html#l00436">436</a> of file <a class="el" href="_square_root_covariance_8hpp_source.html">SquareRootCovariance.hpp</a>.</p>
+
+</div>
+</div>
+<a id="a828c871d27d0fe3a286a12aa52e799a8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a828c871d27d0fe3a286a12aa52e799a8">&#9670;&nbsp;</a></span>operator=()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Coefficients , typename NestedMatrix &gt; </div>
+<div class="memtemplate">
+template&lt;typename Arg , std::enable_if_t&lt; square_root_covariance&lt; Arg &gt; and(not std::is_base_of_v&lt; SquareRootCovariance, std::decay_t&lt; Arg &gt;&gt;) and internal::same_triangle_type_as&lt; Arg, SquareRootCovariance &gt; and equivalent_to&lt; typename MatrixTraits&lt; Arg &gt;::RowCoefficients, Coefficients &gt; and modifiable&lt; NestedMatrix, nested_matrix_t&lt; Arg &gt;&gt;, int &gt;  = 0&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto&amp; <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">OpenKalman::SquareRootCovariance</a>&lt; <a class="el" href="struct_open_kalman_1_1_coefficients.html">Coefficients</a>, NestedMatrix &gt;::operator= </td>
           <td>(</td>
           <td class="paramtype">Arg &amp;&amp;&#160;</td>
-          <td class="paramname"><em>arg</em></td><td>)</td>
+          <td class="paramname"><em>other</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -246,28 +704,30 @@ template&lt;typename Arg , std::enable_if_t&lt; square_root_covariance&lt; Arg &
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Increment by another square-root (Cholesky) covariance. </p><dl class="section warning"><dt>Warning</dt><dd>This is computationally expensive if the nested matrix is self-adjoint. This can generally be avoided. </dd></dl>
+<dl class="section note"><dt>Note</dt><dd>the triangle types must match. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="_square_root_covariance_8hpp_source.html#l00224">224</a> of file <a class="el" href="_square_root_covariance_8hpp_source.html">SquareRootCovariance.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_square_root_covariance_8hpp_source.html#l00255">255</a> of file <a class="el" href="_square_root_covariance_8hpp_source.html">SquareRootCovariance.hpp</a>.</p>
 
 </div>
 </div>
-<a id="aedff1ed83a554307ab0348e1cd2fcd7a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aedff1ed83a554307ab0348e1cd2fcd7a">&#9670;&nbsp;</a></span>operator+=() <span class="overload">[2/2]</span></h2>
+<a id="aa4a0503b483f083349833bff29b07f67"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa4a0503b483f083349833bff29b07f67">&#9670;&nbsp;</a></span>operator[]()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename Coeffs , typename ArgType &gt; </div>
+template&lt;typename Coefficients , typename NestedMatrix &gt; </div>
+<div class="memtemplate">
+template&lt;typename T  = NestedMatrix, std::enable_if_t&lt; element_gettable&lt; T, 1 &gt;, int &gt;  = 0&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">auto&amp; <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">OpenKalman::SquareRootCovariance</a>&lt; Coeffs, ArgType &gt;::operator+= </td>
+          <td class="memname">auto <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">OpenKalman::SquareRootCovariance</a>&lt; <a class="el" href="struct_open_kalman_1_1_coefficients.html">Coefficients</a>, NestedMatrix &gt;::operator[] </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">SquareRootCovariance</a>&lt; Coeffs, ArgType &gt; &amp;&#160;</td>
-          <td class="paramname"><em>arg</em></td><td>)</td>
+          <td class="paramtype">std::size_t&#160;</td>
+          <td class="paramname"><em>i</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -277,62 +737,37 @@ template&lt;typename Coeffs , typename ArgType &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Increment by another square-root (Cholesky) covariance of the same type. </p><dl class="section warning"><dt>Warning</dt><dd>This is computationally expensive if the nested matrix is self-adjoint. This can generally be avoided. </dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">i</td><td>The row. </td></tr>
+    <tr><td class="paramname">j</td><td>The column. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>An ElementSetter object. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="_square_root_covariance_8hpp_source.html#l00245">245</a> of file <a class="el" href="_square_root_covariance_8hpp_source.html">SquareRootCovariance.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_square_root_covariance_8hpp_source.html#l00838">838</a> of file <a class="el" href="_square_root_covariance_8hpp_source.html">SquareRootCovariance.hpp</a>.</p>
 
 </div>
 </div>
-<a id="aa1cdc25b8caf95abaf3fb9b260ae9123"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa1cdc25b8caf95abaf3fb9b260ae9123">&#9670;&nbsp;</a></span>operator-=() <span class="overload">[1/2]</span></h2>
+<a id="a1fc3885d92d886384fdd4d242093256f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1fc3885d92d886384fdd4d242093256f">&#9670;&nbsp;</a></span>square() <span class="overload">[1/6]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename Coeffs , typename ArgType &gt; </div>
+template&lt;typename Coefficients , typename NestedMatrix &gt; </div>
 <div class="memtemplate">
-template&lt;typename Arg , std::enable_if_t&lt; square_root_covariance&lt; Arg &gt; and equivalent_to&lt; typename MatrixTraits&lt; Arg &gt;::RowCoefficients, Coefficients &gt; and internal::same_triangle_type_as&lt; SquareRootCovariance, Arg &gt;, int &gt;  = 0&gt; </div>
+template&lt;typename T  = NestedMatrix, std::enable_if_t&lt;(not diagonal_matrix&lt; T &gt;) or identity_matrix&lt; NestedMatrix &gt; or zero_matrix&lt; NestedMatrix &gt;, int &gt;  = 0&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">auto&amp; <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">OpenKalman::SquareRootCovariance</a>&lt; Coeffs, ArgType &gt;::operator-= </td>
+          <td class="memname">auto <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">OpenKalman::SquareRootCovariance</a>&lt; <a class="el" href="struct_open_kalman_1_1_coefficients.html">Coefficients</a>, NestedMatrix &gt;::square </td>
           <td>(</td>
-          <td class="paramtype">Arg &amp;&amp;&#160;</td>
-          <td class="paramname"><em>arg</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>Decrement by another square-root (Cholesky) covariance. </p><dl class="section warning"><dt>Warning</dt><dd>This is computationally expensive if the nested matrix is self-adjoint. This can generally be avoided. </dd></dl>
-
-<p class="definition">Definition at line <a class="el" href="_square_root_covariance_8hpp_source.html#l00264">264</a> of file <a class="el" href="_square_root_covariance_8hpp_source.html">SquareRootCovariance.hpp</a>.</p>
-
-</div>
-</div>
-<a id="ab98b09cb3137ae3dc7525c4138193671"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab98b09cb3137ae3dc7525c4138193671">&#9670;&nbsp;</a></span>operator-=() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename Coeffs , typename ArgType &gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">auto&amp; <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">OpenKalman::SquareRootCovariance</a>&lt; Coeffs, ArgType &gt;::operator-= </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">SquareRootCovariance</a>&lt; Coeffs, ArgType &gt; &amp;&#160;</td>
-          <td class="paramname"><em>arg</em></td><td>)</td>
-          <td></td>
+          <td class="paramname"></td><td>)</td>
+          <td> &amp;</td>
         </tr>
       </table>
   </td>
@@ -341,9 +776,169 @@ template&lt;typename Coeffs , typename ArgType &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Decrement by another square-root (Cholesky) covariance of the same type. </p><dl class="section warning"><dt>Warning</dt><dd>This is computationally expensive if the nested matrix is self-adjoint. This can generally be avoided. </dd></dl>
+<p>If *this is an lvalue reference, this creates a reference to the nested matrix rather than a copy. </p><dl class="section return"><dt>Returns</dt><dd>A <a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a> based on *this. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="_square_root_covariance_8hpp_source.html#l00284">284</a> of file <a class="el" href="_square_root_covariance_8hpp_source.html">SquareRootCovariance.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_square_root_covariance_8hpp_source.html#l00548">548</a> of file <a class="el" href="_square_root_covariance_8hpp_source.html">SquareRootCovariance.hpp</a>.</p>
+
+</div>
+</div>
+<a id="ac33ca319bfd65fbce95ee81f274c1bec"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac33ca319bfd65fbce95ee81f274c1bec">&#9670;&nbsp;</a></span>square() <span class="overload">[2/6]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Coefficients , typename NestedMatrix &gt; </div>
+<div class="memtemplate">
+template&lt;typename T  = NestedMatrix, std::enable_if_t&lt;(not diagonal_matrix&lt; T &gt;) or identity_matrix&lt; NestedMatrix &gt; or zero_matrix&lt; NestedMatrix &gt;, int &gt;  = 0&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">OpenKalman::SquareRootCovariance</a>&lt; <a class="el" href="struct_open_kalman_1_1_coefficients.html">Coefficients</a>, NestedMatrix &gt;::square </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> &amp;&amp;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts.  This overload is operative if the matrix is diagonal. </p>
+
+<p class="definition">Definition at line <a class="el" href="_square_root_covariance_8hpp_source.html#l00565">565</a> of file <a class="el" href="_square_root_covariance_8hpp_source.html">SquareRootCovariance.hpp</a>.</p>
+
+</div>
+</div>
+<a id="ac5efbf26c687062ac75d3ac0ae63b165"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac5efbf26c687062ac75d3ac0ae63b165">&#9670;&nbsp;</a></span>square() <span class="overload">[3/6]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Coefficients , typename NestedMatrix &gt; </div>
+<div class="memtemplate">
+template&lt;typename T  = NestedMatrix, std::enable_if_t&lt;(not diagonal_matrix&lt; T &gt;) or identity_matrix&lt; NestedMatrix &gt; or zero_matrix&lt; NestedMatrix &gt;, int &gt;  = 0&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">OpenKalman::SquareRootCovariance</a>&lt; <a class="el" href="struct_open_kalman_1_1_coefficients.html">Coefficients</a>, NestedMatrix &gt;::square </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const &amp;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts.  This overload is operative if the matrix is diagonal. </p>
+
+<p class="definition">Definition at line <a class="el" href="_square_root_covariance_8hpp_source.html#l00582">582</a> of file <a class="el" href="_square_root_covariance_8hpp_source.html">SquareRootCovariance.hpp</a>.</p>
+
+</div>
+</div>
+<a id="ac5efbf26c687062ac75d3ac0ae63b165"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac5efbf26c687062ac75d3ac0ae63b165">&#9670;&nbsp;</a></span>square() <span class="overload">[4/6]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Coefficients , typename NestedMatrix &gt; </div>
+<div class="memtemplate">
+template&lt;typename T  = NestedMatrix, std::enable_if_t&lt; diagonal_matrix&lt; T &gt; and(not identity_matrix&lt; NestedMatrix &gt;) and(not zero_matrix&lt; NestedMatrix &gt;), int &gt;  = 0&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">OpenKalman::SquareRootCovariance</a>&lt; <a class="el" href="struct_open_kalman_1_1_coefficients.html">Coefficients</a>, NestedMatrix &gt;::square </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const &amp;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts.  This overload is operative if the matrix is diagonal. </p>
+
+<p class="definition">Definition at line <a class="el" href="_square_root_covariance_8hpp_source.html#l00616">616</a> of file <a class="el" href="_square_root_covariance_8hpp_source.html">SquareRootCovariance.hpp</a>.</p>
+
+</div>
+</div>
+<a id="affc3e98fc8872dd519c302d3cd84e5d6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#affc3e98fc8872dd519c302d3cd84e5d6">&#9670;&nbsp;</a></span>square() <span class="overload">[5/6]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Coefficients , typename NestedMatrix &gt; </div>
+<div class="memtemplate">
+template&lt;typename T  = NestedMatrix, std::enable_if_t&lt;(not diagonal_matrix&lt; T &gt;) or identity_matrix&lt; NestedMatrix &gt; or zero_matrix&lt; NestedMatrix &gt;, int &gt;  = 0&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">OpenKalman::SquareRootCovariance</a>&lt; <a class="el" href="struct_open_kalman_1_1_coefficients.html">Coefficients</a>, NestedMatrix &gt;::square </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const &amp;&amp;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts.  This overload is operative if the matrix is diagonal. </p>
+
+<p class="definition">Definition at line <a class="el" href="_square_root_covariance_8hpp_source.html#l00599">599</a> of file <a class="el" href="_square_root_covariance_8hpp_source.html">SquareRootCovariance.hpp</a>.</p>
+
+</div>
+</div>
+<a id="affc3e98fc8872dd519c302d3cd84e5d6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#affc3e98fc8872dd519c302d3cd84e5d6">&#9670;&nbsp;</a></span>square() <span class="overload">[6/6]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Coefficients , typename NestedMatrix &gt; </div>
+<div class="memtemplate">
+template&lt;typename T  = NestedMatrix, std::enable_if_t&lt; diagonal_matrix&lt; T &gt; and(not identity_matrix&lt; NestedMatrix &gt;) and(not zero_matrix&lt; NestedMatrix &gt;), int &gt;  = 0&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">OpenKalman::SquareRootCovariance</a>&lt; <a class="el" href="struct_open_kalman_1_1_coefficients.html">Coefficients</a>, NestedMatrix &gt;::square </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const &amp;&amp;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts.  This overload is operative if the matrix is diagonal. </p>
+
+<p class="definition">Definition at line <a class="el" href="_square_root_covariance_8hpp_source.html#l00634">634</a> of file <a class="el" href="_square_root_covariance_8hpp_source.html">SquareRootCovariance.hpp</a>.</p>
 
 </div>
 </div>
@@ -357,7 +952,7 @@ template&lt;typename Coeffs , typename ArgType &gt; </div>
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="namespace_open_kalman.html">OpenKalman</a></li><li class="navelem"><a class="el" href="struct_open_kalman_1_1_square_root_covariance.html">SquareRootCovariance</a></li>
-    <li class="footer">Generated on Sun Dec 6 2020 19:54:58 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
+    <li class="footer">Generated on Sat Mar 27 2021 20:52:24 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
   </ul>
 </div>
 </body>

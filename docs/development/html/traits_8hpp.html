@@ -84,10 +84,8 @@ $(document).ready(function(){initNavTree('traits_8hpp.html',''); initResizable()
 <div class="header">
   <div class="summary">
 <a href="#var-members">Variables</a> &#124;
-<a href="#enum-members">Enumerations</a> &#124;
 <a href="#typedef-members">Typedefs</a> &#124;
 <a href="#func-members">Functions</a> &#124;
-<a href="#nested-classes">Classes</a> &#124;
 <a href="#namespaces">Namespaces</a>  </div>
   <div class="headertitle">
 <div class="title">traits.hpp File Reference</div>  </div>
@@ -102,132 +100,36 @@ $(document).ready(function(){initNavTree('traits_8hpp.html',''); initResizable()
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
 Variables</h2></td></tr>
-<tr class="memitem:a0f2240261b5fa68286e374b29a8a6283"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
-<tr class="memitem:a0f2240261b5fa68286e374b29a8a6283"><td class="memTemplItemLeft" align="right" valign="top">constexpr bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1internal.html#a0f2240261b5fa68286e374b29a8a6283">OpenKalman::internal::contains_nested_lvalue_reference</a> = detail::is_reference_dependent&lt;T&gt;::value</td></tr>
-<tr class="memdesc:a0f2240261b5fa68286e374b29a8a6283"><td class="mdescLeft">&#160;</td><td class="mdescRight">Specifies that a matrix type contains an internal reference.  <a href="namespace_open_kalman_1_1internal.html#a0f2240261b5fa68286e374b29a8a6283">More...</a><br /></td></tr>
-<tr class="separator:a0f2240261b5fa68286e374b29a8a6283"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aef8b4f9495a8827f4f2235b3dd17a6aa"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
-<tr class="memitem:aef8b4f9495a8827f4f2235b3dd17a6aa"><td class="memTemplItemLeft" align="right" valign="top">constexpr bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#aef8b4f9495a8827f4f2235b3dd17a6aa">OpenKalman::self_contained</a> = internal::is_self_contained&lt;std::decay_t&lt;T&gt;&gt;::value</td></tr>
-<tr class="memdesc:aef8b4f9495a8827f4f2235b3dd17a6aa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Specifies that a type is a self-contained matrix or expression.  <a href="namespace_open_kalman.html#aef8b4f9495a8827f4f2235b3dd17a6aa">More...</a><br /></td></tr>
-<tr class="separator:aef8b4f9495a8827f4f2235b3dd17a6aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae46b30e35dee139fe206951335c1b4ec"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
-<tr class="memitem:ae46b30e35dee139fe206951335c1b4ec"><td class="memTemplItemLeft" align="right" valign="top">constexpr bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#ae46b30e35dee139fe206951335c1b4ec">OpenKalman::zero_matrix</a> = internal::is_zero_matrix&lt;std::decay_t&lt;T&gt;&gt;::value</td></tr>
-<tr class="memdesc:ae46b30e35dee139fe206951335c1b4ec"><td class="mdescLeft">&#160;</td><td class="mdescRight">Specifies that a type is a zero matrix.  <a href="namespace_open_kalman.html#ae46b30e35dee139fe206951335c1b4ec">More...</a><br /></td></tr>
-<tr class="separator:ae46b30e35dee139fe206951335c1b4ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a79246e358d47951c68ade232002bdecb"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
-<tr class="memitem:a79246e358d47951c68ade232002bdecb"><td class="memTemplItemLeft" align="right" valign="top">constexpr bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#a79246e358d47951c68ade232002bdecb">OpenKalman::identity_matrix</a> = internal::is_identity_matrix&lt;std::decay_t&lt;T&gt;&gt;::value</td></tr>
-<tr class="memdesc:a79246e358d47951c68ade232002bdecb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Specifies that a type is an identity matrix.  <a href="namespace_open_kalman.html#a79246e358d47951c68ade232002bdecb">More...</a><br /></td></tr>
-<tr class="separator:a79246e358d47951c68ade232002bdecb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a65caec2881ed038f08fbf632355bfbf4"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
-<tr class="memitem:a65caec2881ed038f08fbf632355bfbf4"><td class="memTemplItemLeft" align="right" valign="top">constexpr bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#a65caec2881ed038f08fbf632355bfbf4">OpenKalman::one_by_one_matrix</a> = detail::is_1by1&lt;T&gt;::value</td></tr>
-<tr class="memdesc:a65caec2881ed038f08fbf632355bfbf4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Specifies that a type is a one-by-one matrix (i.e., one row and one column).  <a href="namespace_open_kalman.html#a65caec2881ed038f08fbf632355bfbf4">More...</a><br /></td></tr>
-<tr class="separator:a65caec2881ed038f08fbf632355bfbf4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acda49202b6dd92195051ed9db5fcdcaf"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
-<tr class="memitem:acda49202b6dd92195051ed9db5fcdcaf"><td class="memTemplItemLeft" align="right" valign="top">constexpr bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#acda49202b6dd92195051ed9db5fcdcaf">OpenKalman::diagonal_matrix</a> = detail::is_diag_matrix_impl&lt;T&gt;::value</td></tr>
-<tr class="memdesc:acda49202b6dd92195051ed9db5fcdcaf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Specifies that a type is a diagonal matrix.  <a href="namespace_open_kalman.html#acda49202b6dd92195051ed9db5fcdcaf">More...</a><br /></td></tr>
-<tr class="separator:acda49202b6dd92195051ed9db5fcdcaf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a63114cb8862cdcff4b5f0660b16a5bec"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
-<tr class="memitem:a63114cb8862cdcff4b5f0660b16a5bec"><td class="memTemplItemLeft" align="right" valign="top">constexpr bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#a63114cb8862cdcff4b5f0660b16a5bec">OpenKalman::self_adjoint_matrix</a> = detail::is_sa_matrix_impl&lt;T&gt;::value</td></tr>
-<tr class="memdesc:a63114cb8862cdcff4b5f0660b16a5bec"><td class="mdescLeft">&#160;</td><td class="mdescRight">Specifies that a type is a self-adjoint matrix.  <a href="namespace_open_kalman.html#a63114cb8862cdcff4b5f0660b16a5bec">More...</a><br /></td></tr>
-<tr class="separator:a63114cb8862cdcff4b5f0660b16a5bec"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a05da5d495bfe6445599208b60bf12d69"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
-<tr class="memitem:a05da5d495bfe6445599208b60bf12d69"><td class="memTemplItemLeft" align="right" valign="top">constexpr bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#a05da5d495bfe6445599208b60bf12d69">OpenKalman::lower_triangular_matrix</a> = detail::is_lt_matrix_impl&lt;T&gt;::value</td></tr>
-<tr class="memdesc:a05da5d495bfe6445599208b60bf12d69"><td class="mdescLeft">&#160;</td><td class="mdescRight">Specifies that a type is a lower-triangular matrix.  <a href="namespace_open_kalman.html#a05da5d495bfe6445599208b60bf12d69">More...</a><br /></td></tr>
-<tr class="separator:a05da5d495bfe6445599208b60bf12d69"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5456de7a2e027daca692a5c72dc3540e"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
-<tr class="memitem:a5456de7a2e027daca692a5c72dc3540e"><td class="memTemplItemLeft" align="right" valign="top">constexpr bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#a5456de7a2e027daca692a5c72dc3540e">OpenKalman::upper_triangular_matrix</a> = detail::is_ut_matrix_impl&lt;T&gt;::value</td></tr>
-<tr class="memdesc:a5456de7a2e027daca692a5c72dc3540e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Specifies that a type is an upper-triangular matrix.  <a href="namespace_open_kalman.html#a5456de7a2e027daca692a5c72dc3540e">More...</a><br /></td></tr>
-<tr class="separator:a5456de7a2e027daca692a5c72dc3540e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ada97c2afb746e33dd806af6f63957fce"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
-<tr class="memitem:ada97c2afb746e33dd806af6f63957fce"><td class="memTemplItemLeft" align="right" valign="top">constexpr bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#ada97c2afb746e33dd806af6f63957fce">OpenKalman::triangular_matrix</a> = detail::is_triangular_matrix_impl&lt;T&gt;::value</td></tr>
-<tr class="memdesc:ada97c2afb746e33dd806af6f63957fce"><td class="mdescLeft">&#160;</td><td class="mdescRight">Specifies that a type is a triangular matrix (upper or lower).  <a href="namespace_open_kalman.html#ada97c2afb746e33dd806af6f63957fce">More...</a><br /></td></tr>
-<tr class="separator:ada97c2afb746e33dd806af6f63957fce"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a35106ced3df898a6d4917e86b57df608"><td class="memTemplParams" colspan="2">template&lt;typename T , typename U &gt; </td></tr>
-<tr class="memitem:a35106ced3df898a6d4917e86b57df608"><td class="memTemplItemLeft" align="right" valign="top">constexpr bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1internal.html#a35106ced3df898a6d4917e86b57df608">OpenKalman::internal::same_triangle_type_as</a></td></tr>
-<tr class="memdesc:a35106ced3df898a6d4917e86b57df608"><td class="mdescLeft">&#160;</td><td class="mdescRight">Specifies that two types have the same triangular type (upper or lower).  <a href="namespace_open_kalman_1_1internal.html#a35106ced3df898a6d4917e86b57df608">More...</a><br /></td></tr>
-<tr class="separator:a35106ced3df898a6d4917e86b57df608"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2562e4c0918dc2cbf74de6a97d9388cf"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
-<tr class="memitem:a2562e4c0918dc2cbf74de6a97d9388cf"><td class="memTemplItemLeft" align="right" valign="top">constexpr bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#a2562e4c0918dc2cbf74de6a97d9388cf">OpenKalman::cholesky_form</a> = internal::is_cholesky_form&lt;std::decay_t&lt;T&gt;&gt;::value</td></tr>
-<tr class="memdesc:a2562e4c0918dc2cbf74de6a97d9388cf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Specifies that a type has a nested native matrix that is a Cholesky square root.  <a href="namespace_open_kalman.html#a2562e4c0918dc2cbf74de6a97d9388cf">More...</a><br /></td></tr>
-<tr class="separator:a2562e4c0918dc2cbf74de6a97d9388cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad82301b5eacb294f1e37d3d90624921b"><td class="memTemplParams" colspan="2"><a id="ad82301b5eacb294f1e37d3d90624921b"></a>
 template&lt;typename T &gt; </td></tr>
 <tr class="memitem:ad82301b5eacb294f1e37d3d90624921b"><td class="memTemplItemLeft" align="right" valign="top">constexpr TriangleType&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#ad82301b5eacb294f1e37d3d90624921b">OpenKalman::triangle_type_of</a> = detail::triangle_type_of_impl&lt;T&gt;::value</td></tr>
 <tr class="memdesc:ad82301b5eacb294f1e37d3d90624921b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Derive the TriangleType from the type of the triangular_matrix. <br /></td></tr>
 <tr class="separator:ad82301b5eacb294f1e37d3d90624921b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4a95b16bcf85246cc892ddf51cc9ddfa"><td class="memTemplParams" colspan="2">template&lt;typename T , std::size_t N&gt; </td></tr>
-<tr class="memitem:a4a95b16bcf85246cc892ddf51cc9ddfa"><td class="memTemplItemLeft" align="right" valign="top">constexpr bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#a4a95b16bcf85246cc892ddf51cc9ddfa">OpenKalman::element_gettable</a> = internal::is_element_gettable&lt;std::decay_t&lt;T&gt;, N&gt;::value</td></tr>
-<tr class="memdesc:a4a95b16bcf85246cc892ddf51cc9ddfa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Specifies that a type has elements that can be retrieved with N number of indices.  <a href="namespace_open_kalman.html#a4a95b16bcf85246cc892ddf51cc9ddfa">More...</a><br /></td></tr>
-<tr class="separator:a4a95b16bcf85246cc892ddf51cc9ddfa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac77329c3cd71568cac6bd18c3add8d0c"><td class="memTemplParams" colspan="2">template&lt;typename T , std::size_t N&gt; </td></tr>
-<tr class="memitem:ac77329c3cd71568cac6bd18c3add8d0c"><td class="memTemplItemLeft" align="right" valign="top">constexpr bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#ac77329c3cd71568cac6bd18c3add8d0c">OpenKalman::element_settable</a></td></tr>
-<tr class="memdesc:ac77329c3cd71568cac6bd18c3add8d0c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Specifies that a type has elements that can be set with N number of indices.  <a href="namespace_open_kalman.html#ac77329c3cd71568cac6bd18c3add8d0c">More...</a><br /></td></tr>
-<tr class="separator:ac77329c3cd71568cac6bd18c3add8d0c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
-Enumerations</h2></td></tr>
-<tr class="memitem:ab6c606169452d88f33b64e3b1ae18fa2"><td class="memItemLeft" align="right" valign="top"><a id="ab6c606169452d88f33b64e3b1ae18fa2"></a>enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#ab6c606169452d88f33b64e3b1ae18fa2">OpenKalman::TriangleType</a> </td></tr>
-<tr class="memdesc:ab6c606169452d88f33b64e3b1ae18fa2"><td class="mdescLeft">&#160;</td><td class="mdescRight">The type of a triangular matrix, either lower, upper, or diagonal. <br /></td></tr>
-<tr class="separator:ab6c606169452d88f33b64e3b1ae18fa2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr class="memitem:abc8e1017c2a892423e656ba212290b74"><td class="memTemplParams" colspan="2">template&lt;typename T , typename  = typename MatrixTraits&lt;T&gt;::NestedMatrix&gt; </td></tr>
-<tr class="memitem:abc8e1017c2a892423e656ba212290b74"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#abc8e1017c2a892423e656ba212290b74">OpenKalman::nested_matrix_t</a> = typename MatrixTraits&lt; T &gt;::NestedMatrix</td></tr>
-<tr class="memdesc:abc8e1017c2a892423e656ba212290b74"><td class="mdescLeft">&#160;</td><td class="mdescRight">An alias for a type's nested matrix, if it exists.  <a href="namespace_open_kalman.html#abc8e1017c2a892423e656ba212290b74">More...</a><br /></td></tr>
-<tr class="separator:abc8e1017c2a892423e656ba212290b74"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1d08cc520e029d965770641656727893"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
-<tr class="memitem:a1d08cc520e029d965770641656727893"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#a1d08cc520e029d965770641656727893">OpenKalman::self_contained_t</a> = std::conditional_t&lt; self_contained&lt; T &gt;, std::decay_t&lt; T &gt;, typename detail::self_contained_impl&lt; T &gt;::type &gt;</td></tr>
-<tr class="memdesc:a1d08cc520e029d965770641656727893"><td class="mdescLeft">&#160;</td><td class="mdescRight">An alias for type, derived from and equivalent to parameter T, that is self-contained.  <a href="namespace_open_kalman.html#a1d08cc520e029d965770641656727893">More...</a><br /></td></tr>
-<tr class="separator:a1d08cc520e029d965770641656727893"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab86f091b16817336eb3f67006cd3a779"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
-<tr class="memitem:ab86f091b16817336eb3f67006cd3a779"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#ab86f091b16817336eb3f67006cd3a779">OpenKalman::passable_t</a> = std::conditional_t&lt; std::is_lvalue_reference_v&lt; T &gt;, T, self_contained_t&lt; T &gt; &gt;</td></tr>
-<tr class="memdesc:ab86f091b16817336eb3f67006cd3a779"><td class="mdescLeft">&#160;</td><td class="mdescRight">An alias for a type, derived from and equivalent to parameter T, that can be passed as a function parameter.  <a href="namespace_open_kalman.html#ab86f091b16817336eb3f67006cd3a779">More...</a><br /></td></tr>
-<tr class="separator:ab86f091b16817336eb3f67006cd3a779"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7fb718bc7a10021ec9a0032e9b3fc92e"><td class="memTemplParams" colspan="2">template&lt;typename T , std::size_t rows = MatrixTraits&lt;T&gt;::dimension, std::size_t cols = MatrixTraits&lt;T&gt;::columns&gt; </td></tr>
-<tr class="memitem:a7fb718bc7a10021ec9a0032e9b3fc92e"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#a7fb718bc7a10021ec9a0032e9b3fc92e">OpenKalman::native_matrix_t</a> = typename MatrixTraits&lt; T &gt;::template NativeMatrix&lt; rows, cols &gt;</td></tr>
-<tr class="memdesc:a7fb718bc7a10021ec9a0032e9b3fc92e"><td class="mdescLeft">&#160;</td><td class="mdescRight">An alias for a self-contained native matrix, based on and equivalent to parameter T.  <a href="namespace_open_kalman.html#a7fb718bc7a10021ec9a0032e9b3fc92e">More...</a><br /></td></tr>
-<tr class="separator:a7fb718bc7a10021ec9a0032e9b3fc92e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a46e7a86630ddacf5420ddc348fbffa2d"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:a46e7a86630ddacf5420ddc348fbffa2d"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#a46e7a86630ddacf5420ddc348fbffa2d">OpenKalman::self_contained_t</a> = typename detail::self_contained_impl&lt; std::remove_reference_t&lt; T &gt; &gt;::type</td></tr>
+<tr class="memdesc:a46e7a86630ddacf5420ddc348fbffa2d"><td class="mdescLeft">&#160;</td><td class="mdescRight">An alias for type, derived from and equivalent to parameter T, that is self-contained.  <a href="namespace_open_kalman.html#a46e7a86630ddacf5420ddc348fbffa2d">More...</a><br /></td></tr>
+<tr class="separator:a46e7a86630ddacf5420ddc348fbffa2d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa6babcf2fe72766cbfef2c7082b606b2"><td class="memTemplParams" colspan="2">template&lt;typename T , typename... Ts&gt; </td></tr>
+<tr class="memitem:aa6babcf2fe72766cbfef2c7082b606b2"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#aa6babcf2fe72766cbfef2c7082b606b2">OpenKalman::passable_t</a> = std::conditional_t&lt; std::is_lvalue_reference_v&lt; T &gt;, T, self_contained_t&lt; T &gt; &gt;</td></tr>
+<tr class="memdesc:aa6babcf2fe72766cbfef2c7082b606b2"><td class="mdescLeft">&#160;</td><td class="mdescRight">An alias for a type, derived from and equivalent to parameter T, that can be passed as a function parameter.  <a href="namespace_open_kalman.html#aa6babcf2fe72766cbfef2c7082b606b2">More...</a><br /></td></tr>
+<tr class="separator:aa6babcf2fe72766cbfef2c7082b606b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:ab7f7071cb157c11253798720be5c7542"><td class="memTemplParams" colspan="2"><a id="ab7f7071cb157c11253798720be5c7542"></a>
-template&lt;typename M , typename ... Args, std::enable_if_t&lt;(std::is_convertible_v&lt; Args, typename MatrixTraits&lt; M &gt;::Scalar &gt; and ...) and(sizeof...(Args)==MatrixTraits&lt; M &gt;::dimension *MatrixTraits&lt; M &gt;::columns), int &gt;  = 0&gt; </td></tr>
-<tr class="memitem:ab7f7071cb157c11253798720be5c7542"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman.html#ab7f7071cb157c11253798720be5c7542">OpenKalman::make_native_matrix</a> (const Args ... args)</td></tr>
-<tr class="memdesc:ab7f7071cb157c11253798720be5c7542"><td class="mdescLeft">&#160;</td><td class="mdescRight">Make a self-contained, native matrix based on the shape of M from a list of coefficients in row-major order. <br /></td></tr>
-<tr class="separator:ab7f7071cb157c11253798720be5c7542"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
-Classes</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1is__self__contained.html">OpenKalman::internal::is_self_contained&lt; T, Enable &gt;</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1is__zero__matrix.html">OpenKalman::internal::is_zero_matrix&lt; T, Enable &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A type trait testing whether an object is a zero matrix.  <a href="struct_open_kalman_1_1internal_1_1is__zero__matrix.html#details">More...</a><br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1is__identity__matrix.html">OpenKalman::internal::is_identity_matrix&lt; T, Enable &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A type trait testing whether an object is an identity matrix.  <a href="struct_open_kalman_1_1internal_1_1is__identity__matrix.html#details">More...</a><br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1is__diagonal__matrix.html">OpenKalman::internal::is_diagonal_matrix&lt; T, Enable &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A type trait testing whether an object is a diagonal matrix.  <a href="struct_open_kalman_1_1internal_1_1is__diagonal__matrix.html#details">More...</a><br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1is__self__adjoint__matrix.html">OpenKalman::internal::is_self_adjoint_matrix&lt; T, Enable &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A type trait testing whether an object is a self-adjoint matrix (other than diagonal_matrix).  <a href="struct_open_kalman_1_1internal_1_1is__self__adjoint__matrix.html#details">More...</a><br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1is__lower__triangular__matrix.html">OpenKalman::internal::is_lower_triangular_matrix&lt; T, Enable &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A type trait testing whether an object is a lower-triangular matrix (other than diagonal_matrix).  <a href="struct_open_kalman_1_1internal_1_1is__lower__triangular__matrix.html#details">More...</a><br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1is__upper__triangular__matrix.html">OpenKalman::internal::is_upper_triangular_matrix&lt; T, Enable &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A type trait testing whether an object is an upper-triangular matrix (other than diagonal_matrix).  <a href="struct_open_kalman_1_1internal_1_1is__upper__triangular__matrix.html#details">More...</a><br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1is__cholesky__form.html">OpenKalman::internal::is_cholesky_form&lt; T, Enable &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A type trait testing whether the nested matrix is a Cholesky square root.  <a href="struct_open_kalman_1_1internal_1_1is__cholesky__form.html#details">More...</a><br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1is__element__gettable.html">OpenKalman::internal::is_element_gettable&lt; T, N, Enable &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type trait testing whether an object has elements that can be retrieved with N indices.  <a href="struct_open_kalman_1_1internal_1_1is__element__gettable.html#details">More...</a><br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1is__element__settable.html">OpenKalman::internal::is_element_settable&lt; T, N, Enable &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type trait testing whether an object has elements that can be set with N indices.  <a href="struct_open_kalman_1_1internal_1_1is__element__settable.html#details">More...</a><br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aecf6f9b0d08d54738c237ec145a86b2c"><td class="memTemplParams" colspan="2">template&lt;typename T , typename Arg , typename  = std::enable_if_t&lt;      (not std::is_same_v&lt;T, Arg&gt;) and covariance_nestable&lt;T&gt; and      (covariance_nestable&lt;Arg&gt; or (typed_matrix_nestable&lt;Arg&gt; and (square_matrix&lt;Arg&gt; or column_vector&lt;Arg&gt;))) and      (MatrixTraits&lt;Arg&gt;::dimension == MatrixTraits&lt;T&gt;::dimension) and      (not zero_matrix&lt;T&gt; or zero_matrix&lt;Arg&gt;) and (not identity_matrix&lt;T&gt; or identity_matrix&lt;Arg&gt;) and      (not diagonal_matrix&lt;T&gt; or diagonal_matrix&lt;Arg&gt; or column_vector&lt;Arg&gt;)&gt;&gt; </td></tr>
+<tr class="memitem:aecf6f9b0d08d54738c237ec145a86b2c"><td class="memTemplItemLeft" align="right" valign="top">constexpr decltype(auto)&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1internal.html#aecf6f9b0d08d54738c237ec145a86b2c">OpenKalman::internal::to_covariance_nestable</a> (Arg &amp;&amp;) noexcept</td></tr>
+<tr class="memdesc:aecf6f9b0d08d54738c237ec145a86b2c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert a <a class="el" href="namespace_open_kalman.html#a19898d83f3f0b722b834acac97f7c17e">covariance_nestable</a> matrix or <a class="el" href="namespace_open_kalman.html#a5245fbf912b12a279acb815fcf7650d9">typed_matrix_nestable</a> to a <a class="el" href="namespace_open_kalman.html#a19898d83f3f0b722b834acac97f7c17e">covariance_nestable</a>.  <a href="namespace_open_kalman_1_1internal.html#aecf6f9b0d08d54738c237ec145a86b2c">More...</a><br /></td></tr>
+<tr class="separator:aecf6f9b0d08d54738c237ec145a86b2c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a615e8507d55f38735b37b0705a3256af"><td class="memTemplParams" colspan="2">template&lt;typename T , typename Arg , typename  = void, typename  = std::enable_if_t&lt;      (not std::is_same_v&lt;T, Arg&gt;) and covariance_nestable&lt;T&gt; and (not std::is_void_v&lt;Arg&gt;) and      (covariance&lt;Arg&gt; or (typed_matrix&lt;Arg&gt; and (square_matrix&lt;Arg&gt; or column_vector&lt;Arg&gt;))) and      (MatrixTraits&lt;Arg&gt;::dimension == MatrixTraits&lt;T&gt;::dimension) and      (not zero_matrix&lt;T&gt; or zero_matrix&lt;Arg&gt;) and (not identity_matrix&lt;T&gt; or identity_matrix&lt;Arg&gt;) and      (not diagonal_matrix&lt;T&gt; or diagonal_matrix&lt;Arg&gt; or column_vector&lt;Arg&gt;)&gt;&gt; </td></tr>
+<tr class="memitem:a615e8507d55f38735b37b0705a3256af"><td class="memTemplItemLeft" align="right" valign="top">constexpr decltype(auto)&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1internal.html#a615e8507d55f38735b37b0705a3256af">OpenKalman::internal::to_covariance_nestable</a> (Arg &amp;&amp;) noexcept</td></tr>
+<tr class="memdesc:a615e8507d55f38735b37b0705a3256af"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert <a class="el" href="namespace_open_kalman.html#acc62cd53d66b676058de97da3caaca3b">covariance</a> or <a class="el" href="namespace_open_kalman.html#ae19962a38a87cd8c8003e48f42150145">typed_matrix</a> to a <a class="el" href="namespace_open_kalman.html#a19898d83f3f0b722b834acac97f7c17e">covariance_nestable</a> of type T.  <a href="namespace_open_kalman_1_1internal.html#a615e8507d55f38735b37b0705a3256af">More...</a><br /></td></tr>
+<tr class="separator:a615e8507d55f38735b37b0705a3256af"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1f3447bcf690da26978fbe2716312b67"><td class="memTemplParams" colspan="2">template&lt;typename Arg , typename  = std::enable_if_t&lt;covariance_nestable&lt;Arg&gt; or        (typed_matrix_nestable&lt;Arg&gt; and (square_matrix&lt;Arg&gt; or column_vector&lt;Arg&gt;))&gt;&gt; </td></tr>
+<tr class="memitem:a1f3447bcf690da26978fbe2716312b67"><td class="memTemplItemLeft" align="right" valign="top">constexpr decltype(auto)&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1internal.html#a1f3447bcf690da26978fbe2716312b67">OpenKalman::internal::to_covariance_nestable</a> (Arg &amp;&amp;) noexcept</td></tr>
+<tr class="separator:a1f3447bcf690da26978fbe2716312b67"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="namespaces"></a>
 Namespaces</h2></td></tr>
@@ -244,7 +146,7 @@ Namespaces</h2></td></tr>
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_bf85a1622761b0afd6fb52adee52cf94.html">OpenKalman</a></li><li class="navelem"><a class="el" href="dir_a4c8436c8b3115862a8863d26709ba0b.html">basics</a></li><li class="navelem"><a class="el" href="traits_8hpp.html">traits.hpp</a></li>
-    <li class="footer">Generated on Sun Dec 6 2020 19:54:45 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
+    <li class="footer">Generated on Sat Mar 27 2021 20:52:53 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
   </ul>
 </div>
 </body>

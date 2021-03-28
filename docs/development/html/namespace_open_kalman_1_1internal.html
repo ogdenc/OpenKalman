@@ -96,10 +96,6 @@ $(document).ready(function(){initNavTree('namespace_open_kalman_1_1internal.html
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
 Variables</h2></td></tr>
-<tr class="memitem:a0f2240261b5fa68286e374b29a8a6283"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
-<tr class="memitem:a0f2240261b5fa68286e374b29a8a6283"><td class="memTemplItemLeft" align="right" valign="top">constexpr bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1internal.html#a0f2240261b5fa68286e374b29a8a6283">contains_nested_lvalue_reference</a> = detail::is_reference_dependent&lt;T&gt;::value</td></tr>
-<tr class="memdesc:a0f2240261b5fa68286e374b29a8a6283"><td class="mdescLeft">&#160;</td><td class="mdescRight">Specifies that a matrix type contains an internal reference.  <a href="namespace_open_kalman_1_1internal.html#a0f2240261b5fa68286e374b29a8a6283">More...</a><br /></td></tr>
-<tr class="separator:a0f2240261b5fa68286e374b29a8a6283"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a35106ced3df898a6d4917e86b57df608"><td class="memTemplParams" colspan="2">template&lt;typename T , typename U &gt; </td></tr>
 <tr class="memitem:a35106ced3df898a6d4917e86b57df608"><td class="memTemplItemLeft" align="right" valign="top">constexpr bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1internal.html#a35106ced3df898a6d4917e86b57df608">same_triangle_type_as</a></td></tr>
 <tr class="memdesc:a35106ced3df898a6d4917e86b57df608"><td class="mdescLeft">&#160;</td><td class="mdescRight">Specifies that two types have the same triangular type (upper or lower).  <a href="namespace_open_kalman_1_1internal.html#a35106ced3df898a6d4917e86b57df608">More...</a><br /></td></tr>
@@ -111,14 +107,6 @@ Variables</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a124a5fe1dc8b76fe985f55a1497dc150"><td class="memTemplParams" colspan="2">template&lt;typename T , typename Arg , typename  = std::enable_if_t&lt;covariance&lt;Arg&gt; or      (typed_matrix&lt;Arg&gt; and equivalent_to&lt;typename MatrixTraits&lt;Arg&gt;::RowCoefficients,      typename MatrixTraits&lt;Arg&gt;::ColumnCoefficients&gt;)&gt;&gt; </td></tr>
-<tr class="memitem:a124a5fe1dc8b76fe985f55a1497dc150"><td class="memTemplItemLeft" align="right" valign="top">constexpr decltype(auto)&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1internal.html#a124a5fe1dc8b76fe985f55a1497dc150">convert_nested_matrix</a> (Arg &amp;&amp;) noexcept</td></tr>
-<tr class="memdesc:a124a5fe1dc8b76fe985f55a1497dc150"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert covariance matrix to a covariance_nestable of type T.  <a href="namespace_open_kalman_1_1internal.html#a124a5fe1dc8b76fe985f55a1497dc150">More...</a><br /></td></tr>
-<tr class="separator:a124a5fe1dc8b76fe985f55a1497dc150"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa3bb16dc004f421a9f872f5683ca985d"><td class="memTemplParams" colspan="2">template&lt;typename Arg , typename  = std::enable_if_t&lt;covariance&lt;Arg&gt; or      (typed_matrix&lt;Arg&gt; and equivalent_to&lt;typename MatrixTraits&lt;Arg&gt;::RowCoefficients,      typename MatrixTraits&lt;Arg&gt;::ColumnCoefficients&gt;)&gt;&gt; </td></tr>
-<tr class="memitem:aa3bb16dc004f421a9f872f5683ca985d"><td class="memTemplItemLeft" align="right" valign="top">constexpr decltype(auto)&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1internal.html#aa3bb16dc004f421a9f872f5683ca985d">convert_nested_matrix</a> (Arg &amp;&amp;) noexcept</td></tr>
-<tr class="memdesc:aa3bb16dc004f421a9f872f5683ca985d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert to a triangular matrix if Arg is a square root, or otherwise convert to a self-adjoint matrix.  <a href="namespace_open_kalman_1_1internal.html#aa3bb16dc004f421a9f872f5683ca985d">More...</a><br /></td></tr>
-<tr class="separator:aa3bb16dc004f421a9f872f5683ca985d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aeae213e87016b2ab48e3aebeb0d2ef45"><td class="memTemplParams" colspan="2">template&lt;bool read_only, typename T &gt; </td></tr>
 <tr class="memitem:aeae213e87016b2ab48e3aebeb0d2ef45"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1internal.html#aeae213e87016b2ab48e3aebeb0d2ef45">make_ElementSetter</a> (T &amp;&amp;t, std::size_t i, std::size_t j, const std::function&lt; void()&gt; &amp;do_before=[]{}, const std::function&lt; void()&gt; &amp;on_set=[]{})</td></tr>
 <tr class="memdesc:aeae213e87016b2ab48e3aebeb0d2ef45"><td class="mdescLeft">&#160;</td><td class="mdescRight">Make an <a class="el" href="struct_open_kalman_1_1internal_1_1_element_setter.html" title="An interface to a matrix, to be used for getting and setting the individual matrix elements.">ElementSetter</a> that takes two indices.  <a href="namespace_open_kalman_1_1internal.html#aeae213e87016b2ab48e3aebeb0d2ef45">More...</a><br /></td></tr>
@@ -127,6 +115,17 @@ Functions</h2></td></tr>
 <tr class="memitem:ae90fd2b04252852fbbaceb4ef798bf2b"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1internal.html#ae90fd2b04252852fbbaceb4ef798bf2b">make_ElementSetter</a> (T &amp;&amp;t, std::size_t i, const std::function&lt; void()&gt; &amp;do_before=[]{}, const std::function&lt; void()&gt; &amp;on_set=[]{})</td></tr>
 <tr class="memdesc:ae90fd2b04252852fbbaceb4ef798bf2b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Make an <a class="el" href="struct_open_kalman_1_1internal_1_1_element_setter.html" title="An interface to a matrix, to be used for getting and setting the individual matrix elements.">ElementSetter</a> that takes one index (i.e., is a vector).  <a href="namespace_open_kalman_1_1internal.html#ae90fd2b04252852fbbaceb4ef798bf2b">More...</a><br /></td></tr>
 <tr class="separator:ae90fd2b04252852fbbaceb4ef798bf2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aecf6f9b0d08d54738c237ec145a86b2c"><td class="memTemplParams" colspan="2">template&lt;typename T , typename Arg , typename  = std::enable_if_t&lt;      (not std::is_same_v&lt;T, Arg&gt;) and covariance_nestable&lt;T&gt; and      (covariance_nestable&lt;Arg&gt; or (typed_matrix_nestable&lt;Arg&gt; and (square_matrix&lt;Arg&gt; or column_vector&lt;Arg&gt;))) and      (MatrixTraits&lt;Arg&gt;::dimension == MatrixTraits&lt;T&gt;::dimension) and      (not zero_matrix&lt;T&gt; or zero_matrix&lt;Arg&gt;) and (not identity_matrix&lt;T&gt; or identity_matrix&lt;Arg&gt;) and      (not diagonal_matrix&lt;T&gt; or diagonal_matrix&lt;Arg&gt; or column_vector&lt;Arg&gt;)&gt;&gt; </td></tr>
+<tr class="memitem:aecf6f9b0d08d54738c237ec145a86b2c"><td class="memTemplItemLeft" align="right" valign="top">constexpr decltype(auto)&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1internal.html#aecf6f9b0d08d54738c237ec145a86b2c">to_covariance_nestable</a> (Arg &amp;&amp;) noexcept</td></tr>
+<tr class="memdesc:aecf6f9b0d08d54738c237ec145a86b2c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert a <a class="el" href="namespace_open_kalman.html#a19898d83f3f0b722b834acac97f7c17e">covariance_nestable</a> matrix or <a class="el" href="namespace_open_kalman.html#a5245fbf912b12a279acb815fcf7650d9">typed_matrix_nestable</a> to a <a class="el" href="namespace_open_kalman.html#a19898d83f3f0b722b834acac97f7c17e">covariance_nestable</a>.  <a href="namespace_open_kalman_1_1internal.html#aecf6f9b0d08d54738c237ec145a86b2c">More...</a><br /></td></tr>
+<tr class="separator:aecf6f9b0d08d54738c237ec145a86b2c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a615e8507d55f38735b37b0705a3256af"><td class="memTemplParams" colspan="2">template&lt;typename T , typename Arg , typename  = void, typename  = std::enable_if_t&lt;      (not std::is_same_v&lt;T, Arg&gt;) and covariance_nestable&lt;T&gt; and (not std::is_void_v&lt;Arg&gt;) and      (covariance&lt;Arg&gt; or (typed_matrix&lt;Arg&gt; and (square_matrix&lt;Arg&gt; or column_vector&lt;Arg&gt;))) and      (MatrixTraits&lt;Arg&gt;::dimension == MatrixTraits&lt;T&gt;::dimension) and      (not zero_matrix&lt;T&gt; or zero_matrix&lt;Arg&gt;) and (not identity_matrix&lt;T&gt; or identity_matrix&lt;Arg&gt;) and      (not diagonal_matrix&lt;T&gt; or diagonal_matrix&lt;Arg&gt; or column_vector&lt;Arg&gt;)&gt;&gt; </td></tr>
+<tr class="memitem:a615e8507d55f38735b37b0705a3256af"><td class="memTemplItemLeft" align="right" valign="top">constexpr decltype(auto)&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1internal.html#a615e8507d55f38735b37b0705a3256af">to_covariance_nestable</a> (Arg &amp;&amp;) noexcept</td></tr>
+<tr class="memdesc:a615e8507d55f38735b37b0705a3256af"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert <a class="el" href="namespace_open_kalman.html#acc62cd53d66b676058de97da3caaca3b">covariance</a> or <a class="el" href="namespace_open_kalman.html#ae19962a38a87cd8c8003e48f42150145">typed_matrix</a> to a <a class="el" href="namespace_open_kalman.html#a19898d83f3f0b722b834acac97f7c17e">covariance_nestable</a> of type T.  <a href="namespace_open_kalman_1_1internal.html#a615e8507d55f38735b37b0705a3256af">More...</a><br /></td></tr>
+<tr class="separator:a615e8507d55f38735b37b0705a3256af"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1f3447bcf690da26978fbe2716312b67"><td class="memTemplParams" colspan="2">template&lt;typename Arg , typename  = std::enable_if_t&lt;covariance_nestable&lt;Arg&gt; or        (typed_matrix_nestable&lt;Arg&gt; and (square_matrix&lt;Arg&gt; or column_vector&lt;Arg&gt;))&gt;&gt; </td></tr>
+<tr class="memitem:a1f3447bcf690da26978fbe2716312b67"><td class="memTemplItemLeft" align="right" valign="top">constexpr decltype(auto)&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1internal.html#a1f3447bcf690da26978fbe2716312b67">to_covariance_nestable</a> (Arg &amp;&amp;) noexcept</td></tr>
+<tr class="separator:a1f3447bcf690da26978fbe2716312b67"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab4c55d1d16722622d8e01a474f69faea"><td class="memTemplParams" colspan="2">template&lt;typename T , std::size_t size_L, std::size_t size_R&gt; </td></tr>
 <tr class="memitem:ab4c55d1d16722622d8e01a474f69faea"><td class="memTemplItemLeft" align="right" valign="top">constexpr std::array&lt; T, size_L+size_R &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_open_kalman_1_1internal.html#ab4c55d1d16722622d8e01a474f69faea">join</a> (const std::array&lt; T, size_L &gt; &amp;left, const std::array&lt; T, size_R &gt; &amp;right)</td></tr>
 <tr class="memdesc:ab4c55d1d16722622d8e01a474f69faea"><td class="mdescLeft">&#160;</td><td class="mdescRight">Joins two arrays.  <a href="namespace_open_kalman_1_1internal.html#ab4c55d1d16722622d8e01a474f69faea">More...</a><br /></td></tr>
@@ -169,6 +168,15 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1_covariance_base.html">CovarianceBase</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Base of <a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a> and <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html" title="The upper or lower triangle Cholesky factor (square root) of a covariance matrix.">SquareRootCovariance</a> classes.  <a href="struct_open_kalman_1_1internal_1_1_covariance_base.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_nested_matrix_00_01std_1_1de90ce7a7fbe8695140a7eff85c685f2.html">CovarianceBase&lt; Derived, NestedMatrix, std::enable_if_t&lt; case1or2&lt; Derived, NestedMatrix &gt; and self_contained&lt; NestedMatrix &gt; &gt; &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Base of <a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a> and <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html" title="The upper or lower triangle Cholesky factor (square root) of a covariance matrix.">SquareRootCovariance</a> classes (Case 1).  <a href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_nested_matrix_00_01std_1_1de90ce7a7fbe8695140a7eff85c685f2.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_nested_matrix_00_01std_1_140b10e2d94bdd984b10c5028cc94eb1a.html">CovarianceBase&lt; Derived, NestedMatrix, std::enable_if_t&lt; case1or2&lt; Derived, NestedMatrix &gt; and(not self_contained&lt; NestedMatrix &gt;)&gt; &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Base of <a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a> and <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html" title="The upper or lower triangle Cholesky factor (square root) of a covariance matrix.">SquareRootCovariance</a> classes (Case 2).  <a href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_nested_matrix_00_01std_1_140b10e2d94bdd984b10c5028cc94eb1a.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_nested_matrix_00_01std_1_152503e0e2fdd8a717653d68b8871d849.html">CovarianceBase&lt; Derived, NestedMatrix, std::enable_if_t&lt;(not case1or2&lt; Derived, NestedMatrix &gt;) and self_contained&lt; NestedMatrix &gt; &gt; &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Base of <a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a> and <a class="el" href="struct_open_kalman_1_1_square_root_covariance.html" title="The upper or lower triangle Cholesky factor (square root) of a covariance matrix.">SquareRootCovariance</a> classes (Case 3).  <a href="struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_nested_matrix_00_01std_1_152503e0e2fdd8a717653d68b8871d849.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1default__split__function.html">default_split_function</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The default wrapper function object for matrix splitting operations.  <a href="struct_open_kalman_1_1internal_1_1default__split__function.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -186,6 +194,8 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1is__covariance__nestable.html">is_covariance_nestable</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A type trait testing whether T can be wrapped in a covariance.  <a href="struct_open_kalman_1_1internal_1_1is__covariance__nestable.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1is__covariance__nestable_3_01_t_00_01std_1_1enable__if__t_3_019f9c9e8bc026e92da6357639d2d62b62.html">is_covariance_nestable&lt; T, std::enable_if_t&lt; Eigen3::eigen_self_adjoint_expr&lt; T &gt; or Eigen3::eigen_triangular_expr&lt; T &gt; or Eigen3::eigen_diagonal_expr&lt; T &gt; or Eigen3::eigen_zero_expr&lt; T &gt; or(Eigen3::eigen_native&lt; T &gt; and(triangular_matrix&lt; T &gt; or self_adjoint_matrix&lt; T &gt;))&gt; &gt;</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1is__diagonal__matrix.html">is_diagonal_matrix</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A type trait testing whether an object is a diagonal matrix.  <a href="struct_open_kalman_1_1internal_1_1is__diagonal__matrix.html#details">More...</a><br /></td></tr>
@@ -215,6 +225,8 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1is__typed__matrix__nestable.html">is_typed_matrix_nestable</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A type trait testing whether T is acceptable to be nested in a typed_matrix.  <a href="struct_open_kalman_1_1internal_1_1is__typed__matrix__nestable.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1is__typed__matrix__nestable_3_01_t_00_01std_1_1enable__if__t_32dbed0aa175715214ab738f9650787c2.html">is_typed_matrix_nestable&lt; T, std::enable_if_t&lt; Eigen3::eigen_self_adjoint_expr&lt; T &gt; or Eigen3::eigen_triangular_expr&lt; T &gt; or Eigen3::eigen_diagonal_expr&lt; T &gt; or Eigen3::eigen_zero_expr&lt; T &gt; or Eigen3::to_euclidean_expr&lt; T &gt; or Eigen3::from_euclidean_expr&lt; T &gt; or Eigen3::eigen_native&lt; T &gt; &gt; &gt;</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_open_kalman_1_1internal_1_1is__upper__triangular__matrix.html">is_upper_triangular_matrix</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A type trait testing whether an object is an upper-triangular matrix (other than diagonal_matrix).  <a href="struct_open_kalman_1_1internal_1_1is__upper__triangular__matrix.html#details">More...</a><br /></td></tr>
@@ -258,32 +270,6 @@ template&lt;typename T &gt; </div>
 
 </div>
 </div>
-<a id="a0f2240261b5fa68286e374b29a8a6283"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0f2240261b5fa68286e374b29a8a6283">&#9670;&nbsp;</a></span>contains_nested_lvalue_reference</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename T &gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr bool OpenKalman::internal::contains_nested_lvalue_reference = detail::is_reference_dependent&lt;T&gt;::value</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="traits_8hpp_source.html#l00064">64</a> of file <a class="el" href="traits_8hpp_source.html">traits.hpp</a>.</p>
-
-</div>
-</div>
 <a id="a35106ced3df898a6d4917e86b57df608"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a35106ced3df898a6d4917e86b57df608">&#9670;&nbsp;</a></span>same_triangle_type_as</h2>
 
@@ -307,10 +293,10 @@ template&lt;typename T , typename U &gt; </div>
 </div><div class="memdoc">
 <b>Initial value:</b><div class="fragment"><div class="line">=</div>
 <div class="line">      (upper_triangular_matrix&lt;T&gt; and upper_triangular_matrix&lt;U&gt;) or</div>
-<div class="line">      (lower_triangular_matrix&lt;T&gt; and lower_triangular_matrix&lt;U&gt;)</div>
+<div class="line">        (lower_triangular_matrix&lt;T&gt; and lower_triangular_matrix&lt;U&gt;)</div>
 </div><!-- fragment --><dl class="section note"><dt>Note</dt><dd>This is a concept when compiled with c++20, and a constexpr bool in c++17. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="traits_8hpp_source.html#l00734">734</a> of file <a class="el" href="traits_8hpp_source.html">traits.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="forward-traits_8hpp_source.html#l00924">924</a> of file <a class="el" href="forward-traits_8hpp_source.html">forward-traits.hpp</a>.</p>
 
 </div>
 </div>
@@ -355,81 +341,6 @@ template&lt;typename Scalar &gt; </div>
 <dl class="section return"><dt>Returns</dt><dd>The square root of x. </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="utils_8hpp_source.html#l00153">153</a> of file <a class="el" href="utils_8hpp_source.html">utils.hpp</a>.</p>
-
-</div>
-</div>
-<a id="a124a5fe1dc8b76fe985f55a1497dc150"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a124a5fe1dc8b76fe985f55a1497dc150">&#9670;&nbsp;</a></span>convert_nested_matrix() <span class="overload">[1/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename T , typename Arg , typename  = std::enable_if_t&lt;covariance&lt;Arg&gt; or      (typed_matrix&lt;Arg&gt; and equivalent_to&lt;typename MatrixTraits&lt;Arg&gt;::RowCoefficients,      typename MatrixTraits&lt;Arg&gt;::ColumnCoefficients&gt;)&gt;&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr decltype(auto) OpenKalman::internal::convert_nested_matrix </td>
-          <td>(</td>
-          <td class="paramtype">Arg &amp;&amp;&#160;</td>
-          <td class="paramname"><em>arg</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<dl class="tparams"><dt>Template Parameters</dt><dd>
-  <table class="tparams">
-    <tr><td class="paramname">T</td><td><a class="el" href="namespace_open_kalman.html#a19898d83f3f0b722b834acac97f7c17e">covariance_nestable</a> to which Arg is to be converted. </td></tr>
-    <tr><td class="paramname">Arg</td><td>Type of covariance matrix (or square typed matrix) to be converted </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">arg</td><td><a class="el" href="struct_open_kalman_1_1_covariance.html" title="A self-adjoint Covariance matrix.">Covariance</a> matrix (or square typed matrix) to be converted. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>A <a class="el" href="namespace_open_kalman.html#a19898d83f3f0b722b834acac97f7c17e">covariance_nestable</a>. </dd></dl>
-
-<p class="definition">Definition at line <a class="el" href="_convert_base_matrix_8hpp_source.html#l00024">24</a> of file <a class="el" href="_convert_base_matrix_8hpp_source.html">ConvertBaseMatrix.hpp</a>.</p>
-
-</div>
-</div>
-<a id="aa3bb16dc004f421a9f872f5683ca985d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa3bb16dc004f421a9f872f5683ca985d">&#9670;&nbsp;</a></span>convert_nested_matrix() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename Arg , typename  = std::enable_if_t&lt;covariance&lt;Arg&gt; or      (typed_matrix&lt;Arg&gt; and equivalent_to&lt;typename MatrixTraits&lt;Arg&gt;::RowCoefficients,      typename MatrixTraits&lt;Arg&gt;::ColumnCoefficients&gt;)&gt;&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr decltype(auto) OpenKalman::internal::convert_nested_matrix </td>
-          <td>(</td>
-          <td class="paramtype">Arg &amp;&amp;&#160;</td>
-          <td class="paramname"><em>arg</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </p>
-
-<p class="definition">Definition at line <a class="el" href="_convert_base_matrix_8hpp_source.html#l00098">98</a> of file <a class="el" href="_convert_base_matrix_8hpp_source.html">ConvertBaseMatrix.hpp</a>.</p>
 
 </div>
 </div>
@@ -478,11 +389,11 @@ template&lt;typename Coeffs , typename F , typename  = std::enable_if_t&lt;    c
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">row</td><td>The applicable row of the transformed matrix. </td></tr>
-    <tr><td class="paramname">get_coeff</td><td>A function taking an index to a column in the transformed matrix and returning its scalar value. </td></tr>
+    <tr><td class="paramname">get_coeff</td><td>A function taking an index to a row (given some column) in the transformed matrix and returning its scalar value. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>The scalar value of the typed coefficient corresponding to the provided row and column (the column is an input into get_coeff). </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>The scalar value of the typed coefficient corresponding to the provided row. </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="coefficient-functions_8hpp_source.html#l00073">73</a> of file <a class="el" href="coefficient-functions_8hpp_source.html">coefficient-functions.hpp</a>.</p>
 
@@ -598,7 +509,7 @@ template&lt;bool read_only, typename T &gt; </div>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="_element_setter_8hpp_source.html#l00159">159</a> of file <a class="el" href="_element_setter_8hpp_source.html">ElementSetter.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_element_setter_8hpp_source.html#l00168">168</a> of file <a class="el" href="_element_setter_8hpp_source.html">ElementSetter.hpp</a>.</p>
 
 </div>
 </div>
@@ -662,7 +573,7 @@ template&lt;bool read_only, typename T &gt; </div>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="_element_setter_8hpp_source.html#l00144">144</a> of file <a class="el" href="_element_setter_8hpp_source.html">ElementSetter.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_element_setter_8hpp_source.html#l00153">153</a> of file <a class="el" href="_element_setter_8hpp_source.html">ElementSetter.hpp</a>.</p>
 
 </div>
 </div>
@@ -721,6 +632,116 @@ template&lt;typename T , std::size_t size_R&gt; </div>
 
 </div>
 </div>
+<a id="aecf6f9b0d08d54738c237ec145a86b2c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aecf6f9b0d08d54738c237ec145a86b2c">&#9670;&nbsp;</a></span>to_covariance_nestable() <span class="overload">[1/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T , typename Arg , typename  = std::enable_if_t&lt;      (not std::is_same_v&lt;T, Arg&gt;) and covariance_nestable&lt;T&gt; and      (covariance_nestable&lt;Arg&gt; or (typed_matrix_nestable&lt;Arg&gt; and (square_matrix&lt;Arg&gt; or column_vector&lt;Arg&gt;))) and      (MatrixTraits&lt;Arg&gt;::dimension == MatrixTraits&lt;T&gt;::dimension) and      (not zero_matrix&lt;T&gt; or zero_matrix&lt;Arg&gt;) and (not identity_matrix&lt;T&gt; or identity_matrix&lt;Arg&gt;) and      (not diagonal_matrix&lt;T&gt; or diagonal_matrix&lt;Arg&gt; or column_vector&lt;Arg&gt;)&gt;&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr decltype(auto) OpenKalman::internal::to_covariance_nestable </td>
+          <td>(</td>
+          <td class="paramtype">Arg &amp;&amp;&#160;</td>
+          <td class="paramname"><em>arg</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">T</td><td><a class="el" href="namespace_open_kalman.html#a19898d83f3f0b722b834acac97f7c17e">covariance_nestable</a> to which Arg is to be converted. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A <a class="el" href="namespace_open_kalman.html#a19898d83f3f0b722b834acac97f7c17e">covariance_nestable</a> of type T.</dd></dl>
+<p>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </p>
+<p>/return A <a class="el" href="namespace_open_kalman.html#ada97c2afb746e33dd806af6f63957fce">triangular_matrix</a> if Arg is a <a class="el" href="namespace_open_kalman.html#a4bf939b25b2e4bfc1162f21533ae490e">square_root_covariance</a> or otherwise a <a class="el" href="namespace_open_kalman.html#a63114cb8862cdcff4b5f0660b16a5bec">self_adjoint_matrix</a>. </p>
+
+<p class="definition">Definition at line <a class="el" href="to__covariance__nestable_8hpp_source.html#l00031">31</a> of file <a class="el" href="to__covariance__nestable_8hpp_source.html">to_covariance_nestable.hpp</a>.</p>
+
+</div>
+</div>
+<a id="a615e8507d55f38735b37b0705a3256af"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a615e8507d55f38735b37b0705a3256af">&#9670;&nbsp;</a></span>to_covariance_nestable() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T , typename Arg , typename  = void, typename  = std::enable_if_t&lt;      (not std::is_same_v&lt;T, Arg&gt;) and covariance_nestable&lt;T&gt; and (not std::is_void_v&lt;Arg&gt;) and      (covariance&lt;Arg&gt; or (typed_matrix&lt;Arg&gt; and (square_matrix&lt;Arg&gt; or column_vector&lt;Arg&gt;))) and      (MatrixTraits&lt;Arg&gt;::dimension == MatrixTraits&lt;T&gt;::dimension) and      (not zero_matrix&lt;T&gt; or zero_matrix&lt;Arg&gt;) and (not identity_matrix&lt;T&gt; or identity_matrix&lt;Arg&gt;) and      (not diagonal_matrix&lt;T&gt; or diagonal_matrix&lt;Arg&gt; or column_vector&lt;Arg&gt;)&gt;&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr decltype(auto) OpenKalman::internal::to_covariance_nestable </td>
+          <td>(</td>
+          <td class="paramtype">Arg &amp;&amp;&#160;</td>
+          <td class="paramname"><em>arg</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">T</td><td><a class="el" href="namespace_open_kalman.html#a19898d83f3f0b722b834acac97f7c17e">covariance_nestable</a> to which Arg is to be converted. </td></tr>
+    <tr><td class="paramname">Arg</td><td>A <a class="el" href="namespace_open_kalman.html#acc62cd53d66b676058de97da3caaca3b">covariance</a> or <a class="el" href="namespace_open_kalman.html#ae19962a38a87cd8c8003e48f42150145">typed_matrix</a>. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A <a class="el" href="namespace_open_kalman.html#a19898d83f3f0b722b834acac97f7c17e">covariance_nestable</a> of type T. </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="to__covariance__nestable_8hpp_source.html#l00110">110</a> of file <a class="el" href="to__covariance__nestable_8hpp_source.html">to_covariance_nestable.hpp</a>.</p>
+
+</div>
+</div>
+<a id="a1f3447bcf690da26978fbe2716312b67"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1f3447bcf690da26978fbe2716312b67">&#9670;&nbsp;</a></span>to_covariance_nestable() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Arg , typename  = std::enable_if_t&lt;covariance_nestable&lt;Arg&gt; or        (typed_matrix_nestable&lt;Arg&gt; and (square_matrix&lt;Arg&gt; or column_vector&lt;Arg&gt;))&gt;&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr decltype(auto) OpenKalman::internal::to_covariance_nestable </td>
+          <td>(</td>
+          <td class="paramtype">Arg &amp;&amp;&#160;</td>
+          <td class="paramname"><em>arg</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </p>
+<p>/return The result of converting Arg to a <a class="el" href="namespace_open_kalman.html#a19898d83f3f0b722b834acac97f7c17e">covariance_nestable</a>. </p>
+
+<p class="definition">Definition at line <a class="el" href="to__covariance__nestable_8hpp_source.html#l00145">145</a> of file <a class="el" href="to__covariance__nestable_8hpp_source.html">to_covariance_nestable.hpp</a>.</p>
+
+</div>
+</div>
 <a id="aaa4f2082a3e8968bedfc2ceda61109e9"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aaa4f2082a3e8968bedfc2ceda61109e9">&#9670;&nbsp;</a></span>to_euclidean_coeff()</h2>
 
@@ -766,11 +787,11 @@ template&lt;typename Coeffs , typename F , typename  = std::enable_if_t&lt;    c
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">row</td><td>The applicable row of the transformed matrix. </td></tr>
-    <tr><td class="paramname">get_coeff</td><td>A function taking an index to a column in the transformed matrix and returning its scalar value. </td></tr>
+    <tr><td class="paramname">get_coeff</td><td>A function taking an index to a row (given some column) in the transformed matrix and returning its scalar value. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>The scalar value of the transformed coordinate in Euclidean space corresponding to the provided row and column (the column is an input into get_coeff). </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>The scalar value of the transformed coordinate in Euclidean space corresponding to the provided row. </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="coefficient-functions_8hpp_source.html#l00047">47</a> of file <a class="el" href="coefficient-functions_8hpp_source.html">coefficient-functions.hpp</a>.</p>
 
@@ -992,7 +1013,7 @@ template&lt;typename Coeffs , typename Scalar , typename FS , typename FG , type
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="namespace_open_kalman.html">OpenKalman</a></li><li class="navelem"><a class="el" href="namespace_open_kalman_1_1internal.html">internal</a></li>
-    <li class="footer">Generated on Sun Dec 6 2020 19:54:45 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
+    <li class="footer">Generated on Sat Mar 27 2021 20:52:54 for OpenKalman by <a href="http://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.0 </li>
   </ul>
 </div>
 </body>
