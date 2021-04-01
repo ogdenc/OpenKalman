@@ -56,9 +56,10 @@ namespace OpenKalman
   }
 
 
-/**
- * Convert to a self-contained Eigen3 matrix.
- */
+  /**
+   * \brief Convert to a writable native matrix.
+   * \details The resulting matrix is not expected to be self-adjoint, diagonal, or zero.
+   */
 #ifdef __cpp_concepts
   template<covariance Arg>
 #else

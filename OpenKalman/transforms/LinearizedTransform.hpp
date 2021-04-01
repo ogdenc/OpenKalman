@@ -16,8 +16,9 @@ namespace OpenKalman
 {
   /**
    * \brief A linearized transform, using a 1st or 2nd order Taylor approximation of a linear transformation.
+   * \tparam order The order of the Taylor approximation (1 or 2).
    */
-  template<unsigned int order = 1> ///< Order of the Taylor approximation (1 or 2).
+  template<unsigned int order = 1>
   struct LinearizedTransform : internal::LinearTransformBase<LinearizedTransform<order>>
   {
 
@@ -55,27 +56,25 @@ namespace OpenKalman
         return std::make_from_tuple<CovType>(std::move(mat));
       }
 
-    protected:
 
-      const Transformation& transformation;
-
-      /**
-       * Add second-order moment terms, based on Hessian matrices.
+      /*
+       * \brief Add second-order moment terms, based on Hessian matrices.
        * \tparam Hessian An array of Hessian matrices. Must be accessible by bracket index, as in hessian[i].
        * Each matrix is a regular matrix type.
        * \tparam Dist Input or noise distribution.
        * \return
        */
 #ifdef __cpp_concepts
-      template<typename OutputCoeffs, typename Hessian, typename Dist> requires (order >= 2)
+      template<coefficients OutputCoeffs, typename Hessian, typename Dist> requires (order >= 2) and
+        (std::tuple_size_v<Hessian> == OutputCoeffs::size)
 #else
-      template<typename OutputCoeffs, typename Hessian, typename Dist, std::enable_if_t<(order >= 2), int> = 0>
+      template<typename OutputCoeffs, typename Hessian, typename Dist, std::enable_if_t<(order >= 2) and
+        (std::tuple_size_v<Hessian> == OutputCoeffs::size), int> = 0>
 #endif
       static auto second_order_term(const Hessian& hessian, const Dist& x)
       {
         constexpr auto output_dim = std::tuple_size_v<Hessian>;
-        static_assert(OutputCoeffs::size == output_dim);
-        //
+
         // Convert input distribution type to output distribution types, and initialize mean and covariance:
         using CovIn = nested_matrix_t<typename DistributionTraits<Dist>::Covariance>;
         using MeanOut = native_matrix_t<CovIn, output_dim, 1>;
@@ -106,10 +105,19 @@ namespace OpenKalman
 
     public:
 
+      /**
+       * \brief Constructor
+       * \param t A transformation.
+       */
       TransformFunction(const Transformation& t) : transformation(t) {}
 
 
-      template<typename InputMean, typename ... NoiseMean>
+#ifdef __cpp_concepts
+      template<transformation_input InputMean, perturbation ... NoiseMean>
+#else
+      template<typename InputMean, typename ... NoiseMean, std::enable_if_t<transformation_input<InputMean> and
+        perturbation<NoiseMean>, int> = 0>
+#endif
       auto operator()(const InputMean& x, const NoiseMean& ... n) const
       {
         return std::tuple {transformation(x, n...), transformation.jacobian(x, n...)};
@@ -117,9 +125,10 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-      template<typename InputDist, typename ... Noise> requires (order >= 2)
+      template<gaussian_distribution InputDist, gaussian_distribution ... Noise> requires (order >= 2)
 #else
-      template<typename InputDist, typename ... Noise, std::enable_if_t<(order >= 2), int> = 0>
+      template<typename InputDist, typename ... Noise, std::enable_if_t<
+        gaussian_distribution<InputDist> and (gaussian_distribution<Noise> and ...) and (order >= 2), int> = 0>
 #endif
       auto add_correction(const InputDist& x, const Noise& ... n) const
       {
@@ -129,6 +138,11 @@ namespace OpenKalman
         const auto hessians = transformation.hessian(mean_of(x), mean_of(n)...);
         return zip_tuples<OutputCoeffs>(hessians, std::tuple {x, n...});
       }
+
+    private:
+
+      const Transformation& transformation;
+
     };
 
   };
