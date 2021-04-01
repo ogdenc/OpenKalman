@@ -58,7 +58,7 @@ TEST_F(transformations, Mult_additive_axis)
   using M = Mean<Axes<2>>;
   using A = Matrix<Axes<2>, Axes<2>>;
   const auto f = [](const M& x) -> M { return A {1, 2, 3, 4} * x; };
-  auto t = make_Transformation(f);
+  auto t = Transformation {f};
   EXPECT_TRUE(is_near(t(M(1, 0.5)) + M(0.1, 0.1), M(2.1, 5.1)));
 }
 
@@ -68,7 +68,7 @@ TEST_F(transformations, Mult_additive_angle)
   using M = Mean<C>;
   using A = Matrix<C, C>;
   const auto f = [](const M& x) -> M { return A {1, 2, 3, 4} * x; };
-  auto t = make_Transformation(f);
+  auto t = Transformation {f};
   EXPECT_TRUE(is_near(t(M(1, 0.5)), M(2, 5 - pi*2)));
   EXPECT_TRUE(is_near(t(M(1, 0.5)) + M(0.1, 0.1), M(2.1, 5.1 - pi*2)));
 }
@@ -81,7 +81,7 @@ TEST_F(transformations, Mult_augmented_axis)
   an << 3, 4,
     2, 1;
   const auto f = [&](const auto& in, const auto& ... n) { return make_self_contained(((a * in) + ... + (an * n))); };
-  auto t = make_Transformation(f);
+  auto t = Transformation {f};
   EXPECT_EQ(t(M_int2(2, 3), M_int2(1, 1)), M_int2(15, 20));
   EXPECT_EQ(t(M_int2(2, 3), M_int2(3, 3)), M_int2(29, 26));
 }
@@ -97,7 +97,7 @@ TEST_F(transformations, Mult_augmented_angle)
   an << 3, 4,
     2, 1;
   const auto f = [&](const auto& in, const auto& ... n) { return make_self_contained(((a * in) + ... + (an * n))); };
-  auto t = make_Transformation(f);
+  auto t = Transformation {f};
   EXPECT_TRUE(is_near(M(t(M(1, 0.5), M(0.1, 0.1))), M(2.7, 5.8 - pi*2)));
 }
 
@@ -109,6 +109,5 @@ TEST_F(transformations, Identity)
   EXPECT_EQ(std::get<0>(t.jacobian(M_int2 {2, 3})), A_int2::identity());
   EXPECT_EQ(std::get<0>(t.jacobian(M_int2 {2, 3}, M_int2 {1, 1})), A_int2::identity());
   EXPECT_EQ(std::get<1>(t.jacobian(M_int2 {2, 3}, M_int2 {1, 1})), A_int2::zero());
-  EXPECT_EQ(std::get<0>(t.hessian(M_int2 {2, 3}, M_int2 {1, 1}))[0], A_int2::zero());
 }
 

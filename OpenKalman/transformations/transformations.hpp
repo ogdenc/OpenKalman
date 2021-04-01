@@ -9,7 +9,13 @@
  */
 
 /**
- * \file transformations.hpp
+ * \dir
+ * \brief Files relating to transformations.
+ *
+ * \dir transformations/details
+ * \brief Support files for transformations.
+ *
+ * \file
  * A meta-header file including all the headers relating to OpenKalman transformations.
  */
 

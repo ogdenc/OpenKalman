@@ -9,7 +9,7 @@
  */
 
 /**
- * \file KalmanFilter.hpp
+ * \file
  * A header file for the class KalmanFilter, relating to all Kalman-type recursive filters.
  */
 

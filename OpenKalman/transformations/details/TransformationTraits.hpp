@@ -8,6 +8,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+/**
+ * \file
+ * \brief Defines traits relating to transformations.
+ */
+
 #ifndef OPENKALMAN_TRANSFORMATIONTRAITS_HPP
 #define OPENKALMAN_TRANSFORMATIONTRAITS_HPP
 
@@ -15,107 +20,180 @@
 
 namespace OpenKalman
 {
-  /// Whether an object is a linearized function (with defined Jacobian and optionally Hessian functions).
-  template<typename T, std::size_t order = 1, typename = void>
-  struct is_linearized_function : std::false_type {};
 
-  template<typename T, std::size_t order>
-  struct is_linearized_function<T&, order> : is_linearized_function<T, order> {};
-
-  template<typename T, std::size_t order>
-  struct is_linearized_function<T&&, order> : is_linearized_function<T, order> {};
-
-  template<typename T, std::size_t order>
-  struct is_linearized_function<const T, order> : is_linearized_function<T, order> {};
-
-  /// Helper template for is_linearized_function.
-  template<typename T, std::size_t order>
-  inline constexpr bool is_linearized_function_v = is_linearized_function<T, order>::value;
-
-  template<typename T>
-  struct is_linearized_function<T, 0,
-    std::enable_if_t<
-      not std::is_reference_v<T> and not std::is_const_v<T> and
-      (std::is_member_function_pointer_v<decltype(&std::decay_t<T>::operator())> or
-      std::is_function_v<T>)>>
-    : std::true_type {};
-
-  template<typename T>
-  struct is_linearized_function<T, 1,
-    std::enable_if_t<
-      not std::is_reference_v<T> and not std::is_const_v<T> and
-      (std::is_member_function_pointer_v<decltype(&T::jacobian)> and
-      is_linearized_function_v<T, 0>)>>
-    : std::true_type
+  namespace internal
   {
-    static constexpr auto get_lambda(const T& t)
-    {
-      return [&t] (auto&&...inputs) { return t.jacobian(std::forward<decltype(inputs)>(inputs)...); };
-    }
-  };
-
-  template<typename T>
-  struct is_linearized_function<T, 2,
-    std::enable_if_t<
-      not std::is_reference_v<T> and not std::is_const_v<T> and
-      (std::is_member_function_pointer_v<decltype(&T::hessian)> and
-      is_linearized_function_v<T, 1>)>>
-    : std::true_type
-  {
-    static constexpr auto get_lambda(const T& t)
-    {
-      return [&t] (auto&&...inputs) { return t.hessian(std::forward<decltype(inputs)>(inputs)...); };
-    }
-  };
-
-
-  /// T is a transformation input.
+    /**
+     * \internal
+     * \brief Whether an object is a linearized function (with defined Jacobian and optionally Hessian functions).
+     * \tparam T The function.
+     * \tparam order The maximum order in which T's Taylor series is defined.
+     */
 #ifdef __cpp_concepts
-  template<typename T>
-  concept transformation_input = typed_matrix<T> and column_vector<T> and untyped_columns<T> and
-    (not euclidean_transformed<T>);
+    template<typename T, std::size_t order = 1>
 #else
-  template<typename T>
-  inline constexpr bool transformation_input = typed_matrix<T> and column_vector<T> and untyped_columns<T> and
-    (not euclidean_transformed<T>);
+    template<typename T, std::size_t order = 1, typename = void>
 #endif
+    struct is_linearized_function : std::false_type {};
+  }
 
 
-  /// T is a perturbation.
+  /**
+   * \brief A linearized function (with defined Jacobian and optionally Hessian functions).
+   * \details If order == 1, then the Jacobian is defined. If order == 2, then the Hessian is defined.
+   * \tparam T The function.
+   * \tparam order The maximum order in which T's Taylor series is defined.
+   */
+  template<typename T, std::size_t order = 1>
 #ifdef __cpp_concepts
-  template<typename T>
-  concept perturbation = gaussian_distribution<T> or transformation_input<T>;
+  concept linearized_function = internal::is_linearized_function<std::decay_t<T>, order>::value;
 #else
-  template<typename T>
-  inline constexpr bool perturbation = gaussian_distribution<T> or transformation_input<T>;
+  inline constexpr bool linearized_function = internal::is_linearized_function<std::decay_t<T>, order>::value;
 #endif
 
 
   namespace internal
   {
+
 #ifdef __cpp_concepts
-    template<typename Noise>
-    struct PerturbationTraits;
-
-    template<typename Noise> requires gaussian_distribution<Noise>
-    struct PerturbationTraits<Noise> : MatrixTraits<typename DistributionTraits<Noise>::Mean> {};
-
-    template<typed_matrix Noise>
-    struct PerturbationTraits<Noise> : MatrixTraits<Noise> {};
+    template<typename T> requires
+      (std::is_member_function_pointer_v<decltype(&T::operator())> or std::is_function_v<T>)
+    struct is_linearized_function<T, 0> : std::true_type {};
 #else
-    template<typename Noise, typename = void>
-    struct PerturbationTraits;
-
-    template<typename Noise>
-    struct PerturbationTraits<Noise, std::enable_if_t<gaussian_distribution<Noise>>>
-      : MatrixTraits<typename DistributionTraits<Noise>::Mean> {};
-
-    template<typename Noise>
-    struct PerturbationTraits<Noise, std::enable_if_t<typed_matrix<Noise>>>
-      : MatrixTraits<Noise> {};
+    template<typename T>
+    struct is_linearized_function<T, 0, std::enable_if_t<
+      (std::is_member_function_pointer_v<decltype(&T::operator())> or std::is_function_v<T>)>> : std::true_type {};
 #endif
 
 
+#ifdef __cpp_concepts
+    template<typename T> requires
+      (std::is_member_function_pointer_v<decltype(&T::jacobian)> and linearized_function<T, 0>)
+    struct is_linearized_function<T, 1> : std::true_type {};
+#else
+    template<typename T>
+    struct is_linearized_function<T, 1, std::enable_if_t<
+      (std::is_member_function_pointer_v<decltype(&T::jacobian)> and linearized_function<T, 0>)>> : std::true_type {};
+#endif
+
+
+#ifdef __cpp_concepts
+    template<typename T> requires
+      (std::is_member_function_pointer_v<decltype(&T::hessian)> and linearized_function<T, 1>)
+    struct is_linearized_function<T, 2> : std::true_type {};
+#else
+    template<typename T>
+    struct is_linearized_function<T, 2, std::enable_if_t<
+      (std::is_member_function_pointer_v<decltype(&T::hessian)> and linearized_function<T, 1>)>> : std::true_type {};
+#endif
+
+
+    /**
+     * \internal
+     * \brief Get term <code>order</code> of the Taylor expansion of T.
+     */
+#ifdef __cpp_concepts
+    template<std::size_t order = 1, typename T> requires (order > 0) and (order <= 2)
+#else
+    template<std::size_t order = 1, typename T, std::enable_if_t<(order > 0) and (order <= 2), int> = 0>
+#endif
+    static constexpr auto get_Taylor_term(const T& t)
+    {
+      if constexpr (order == 1)
+      {
+        return [&t](auto&& ...inputs) { return t.jacobian(std::forward<decltype(inputs)>(inputs)...); };
+      }
+      else if constexpr (order == 2)
+      {
+        return [&t](auto&& ...inputs) { return t.hessian(std::forward<decltype(inputs)>(inputs)...); };
+      }
+    }
+
+
+  } // namespace internal
+
+
+  namespace internal
+  {
+    /**
+     * \internal
+     * \brief The MatrixTraits of a noise perturbation.
+     */
+#ifdef __cpp_concepts
+    template<typename T>
+    struct PerturbationTraits;
+
+    template<typename T> requires gaussian_distribution<T>
+    struct PerturbationTraits<T> : MatrixTraits<typename DistributionTraits<T>::Mean> {};
+
+    template<typed_matrix T>
+    struct PerturbationTraits<T> : MatrixTraits<T> {};
+#else
+    template<typename T, typename = void>
+    struct PerturbationTraits;
+
+    template<typename T>
+    struct PerturbationTraits<T, std::enable_if_t<gaussian_distribution<T>>>
+      : MatrixTraits<typename DistributionTraits<T>::Mean> {};
+
+    template<typename T>
+    struct PerturbationTraits<T, std::enable_if_t<typed_matrix<T>>>
+      : MatrixTraits<T> {};
+#endif
+
+  } // namespace internal
+
+
+  /**
+   * \brief T is an acceptable input to a transformation.
+   * \tparam Coeffs The expected coefficients of the transformation input.
+   */
+#ifdef __cpp_concepts
+  template<typename T, typename Coeffs = typename MatrixTraits<T>::RowCoefficients>
+  concept transformation_input = typed_matrix<T> and column_vector<T> and untyped_columns<T> and
+    (not euclidean_transformed<T>) and equivalent_to<typename MatrixTraits<T>::RowCoefficients, Coeffs>;
+#else
+  template<typename T, typename Coeffs = typename internal::PerturbationTraits<T>::RowCoefficients>
+  inline constexpr bool transformation_input = typed_matrix<T> and column_vector<T> and untyped_columns<T> and
+     (not euclidean_transformed<T>) and equivalent_to<typename internal::PerturbationTraits<T>::RowCoefficients, Coeffs>;
+#endif
+
+
+  /**
+   * \brief T is an acceptable noise perturbation input to a transformation.
+   * \tparam OutputCoefficients The expected coefficients of the transformation output.
+   */
+#ifdef __cpp_concepts
+  template<typename T, typename Coeffs = typename internal::PerturbationTraits<T>::RowCoefficients>
+  concept perturbation =
+    (gaussian_distribution<T> and equivalent_to<typename internal::PerturbationTraits<T>::RowCoefficients, Coeffs>) or
+    transformation_input<T, Coeffs>;
+#else
+  namespace detail
+  {
+    template<typename T, typename Coeffs, typename = void>
+    struct is_perturbation : std::false_type {};
+
+    template<typename T, typename Coeffs>
+    struct is_perturbation<T, Coeffs, std::enable_if_t<gaussian_distribution<T> and
+      equivalent_to<typename internal::PerturbationTraits<T>::RowCoefficients, Coeffs>>> : std::true_type {};
+
+    template<typename T, typename Coeffs>
+    struct is_perturbation<T, Coeffs, std::enable_if_t<
+      (not gaussian_distribution<T>) and transformation_input<T, Coeffs>>> : std::true_type {};
+  }
+
+  template<typename T, typename Coeffs = typename internal::PerturbationTraits<T>::RowCoefficients>
+  inline constexpr bool perturbation = detail::is_perturbation<T, Coeffs>::value;
+#endif
+
+
+  namespace internal
+  {
+    /**
+     * \internal
+     * \return If Arg is a distribution, return a random perturbation. Otherwise, return the fixed perturbation.
+     */
 #ifdef __cpp_concepts
     template<perturbation Arg>
 #else
@@ -129,23 +207,7 @@ namespace OpenKalman
       else
         return std::forward<Arg>(arg);
     }
-
-
-    // In and Perburbations... are arguments to a transformation.
-    template<typename InputCoefficients, typename OutputCoefficients, typename In, typename ... Perturbations>
-#ifdef __cpp_concepts
-    concept transformation_args = (column_vector<In> and ... and perturbation<Perturbations>) and
-      equivalent_to<typename MatrixTraits<In>::RowCoefficients, InputCoefficients> and
-      (equivalent_to<typename internal::PerturbationTraits<Perturbations>::RowCoefficients,
-        OutputCoefficients> and ...);
-#else
-    inline constexpr bool transformation_args = (column_vector<In> and ... and perturbation<Perturbations>) and
-      equivalent_to<typename MatrixTraits<In>::RowCoefficients, InputCoefficients> and
-      (equivalent_to<typename internal::PerturbationTraits<Perturbations>::RowCoefficients,
-        OutputCoefficients> and ...);
-#endif
-
-  } // namespace internal
+  }
 
 
   namespace detail

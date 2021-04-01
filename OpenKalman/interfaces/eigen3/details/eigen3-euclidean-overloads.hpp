@@ -343,6 +343,7 @@ namespace OpenKalman::Eigen3
       }
     };
 
+
     template<typename G, typename Expr, typename RC>
     struct SplitEuclideanHorizF
     {
@@ -352,6 +353,7 @@ namespace OpenKalman::Eigen3
         return G::template call<RC, CC>(MatrixTraits<Expr>::template make<RC>(std::forward<Arg>(arg)));
       }
     };
+
 
     template<typename G, typename Expr>
     struct SplitEuclideanDiagF
@@ -363,6 +365,7 @@ namespace OpenKalman::Eigen3
       }
     };
   } // internal
+
 
   /// Split into one or more Euclidean expressions vertically.
 #ifdef __cpp_concepts
@@ -381,6 +384,7 @@ namespace OpenKalman::Eigen3
       nested_matrix(std::forward<Arg>(arg)));
   }
 
+
   /// Split into one or more Euclidean expressions vertically.
 #ifdef __cpp_concepts
   template<typename F, bool, typename...Cs, euclidean_expr Arg> requires (not coefficients<F>)
@@ -393,6 +397,7 @@ namespace OpenKalman::Eigen3
   {
     return split_vertical<F, Cs...>(std::forward<Arg>(arg));
   }
+
 
   /// Split into one or more Euclidean expressions vertically.
 #ifdef __cpp_concepts
@@ -408,9 +413,13 @@ namespace OpenKalman::Eigen3
     return split_vertical<OpenKalman::internal::default_split_function, Cs...>(std::forward<Arg>(arg));
   }
 
-  /// Split into one or more Euclidean expressions vertically. The expression is evaluated to a self_contained matrix first.
-  /// \tparam cut Number of rows in the first cut.
-  /// \tparam cuts Number of rows in the second and subsequent cuts.
+
+  /**
+   * \brief Split into one or more Euclidean expressions vertically.
+   * \details The expression is evaluated to a self_contained matrix first.
+   * \tparam cut Number of rows in the first cut.
+   * \tparam cuts Number of rows in the second and subsequent cuts.
+   */
 #ifdef __cpp_concepts
   template<std::size_t cut, std::size_t ... cuts, euclidean_expr Arg>
 #else
@@ -447,6 +456,7 @@ namespace OpenKalman::Eigen3
       nested_matrix(std::forward<Arg>(arg)));
   }
 
+
   /// Split into one or more Euclidean expressions horizontally.
 #ifdef __cpp_concepts
   template<coefficients...Cs, euclidean_expr Arg>
@@ -460,9 +470,12 @@ namespace OpenKalman::Eigen3
     return split_horizontal<OpenKalman::internal::default_split_function, Cs...>(std::forward<Arg>(arg));
   }
 
-  /// Split into one or more Euclidean expressions horizontally.
-  /// \tparam cut Number of columns in the first cut.
-  /// \tparam cuts Number of columns in the second and subsequent cuts.
+
+  /**
+   * \brief Split into one or more Euclidean expressions horizontally.
+   * \tparam cut Number of columns in the first cut.
+   * \tparam cuts Number of columns in the second and subsequent cuts.
+   */
 #ifdef __cpp_concepts
   template<std::size_t cut, std::size_t ... cuts, euclidean_expr Arg>
 #else
@@ -476,7 +489,9 @@ namespace OpenKalman::Eigen3
   }
 
 
-  /// Split into one or more Euclidean expressions diagonally. The valuated expression must be square.
+  /**
+   * \brief Split into one or more Euclidean expressions diagonally. The valuated expression must be square.
+   */
 #ifdef __cpp_concepts
   template<typename F, typename...Cs, euclidean_expr Arg> requires square_matrix<Arg> and (not coefficients<F>)
 #else
@@ -492,6 +507,7 @@ namespace OpenKalman::Eigen3
       nested_matrix(std::forward<Arg>(arg)));
   }
 
+
   /// Split into one or more Euclidean expressions diagonally. The valuated expression must be square.
 #ifdef __cpp_concepts
   template<typename F, bool, typename...Cs, euclidean_expr Arg> requires square_matrix<Arg> and (not coefficients<F>)
@@ -505,6 +521,7 @@ namespace OpenKalman::Eigen3
     static_assert(prefix_of<Concatenate<Cs...>, typename MatrixTraits<Arg>::RowCoefficients>);
     return split_diagonal<F, Cs...>(std::forward<Arg>(arg));
   }
+
 
   /// Split into one or more Euclidean expressions diagonally. The valuated expression must be square.
 #ifdef __cpp_concepts
@@ -716,9 +733,8 @@ namespace OpenKalman::Eigen3
 
 
   /**
-   * Set element (i, j) of arg in FromEuclideanExpr(ToEuclideanExpr(arg)) to s.
-   *
-   * This function sets the nested matrix, not the wrapped resulting matrix.
+   * \brief Set element (i, j) of arg in FromEuclideanExpr(ToEuclideanExpr(arg)) to s.
+   * \details This function sets the nested matrix, not the wrapped resulting matrix.
    * For example, if the coefficient is Polar<Distance, angle::Radians> and the initial value of a
    * single-column vector is {-1., pi/2}, then set_element(arg, pi/4, 1, 0) will replace p/2 with pi/4 to
    * yield {-1., pi/4} in the nested matrix. The resulting wrapped expression will yield {1., -3*pi/4}.
@@ -761,9 +777,8 @@ namespace OpenKalman::Eigen3
 
 
   /**
-   * Set element (i) of arg in FromEuclideanExpr(ToEuclideanExpr(arg)) to s, where arg is a single-column vector.
-   *
-   * This function sets the nested matrix, not the wrapped resulting matrix.
+   * \brief Set element (i) of arg in FromEuclideanExpr(ToEuclideanExpr(arg)) to s, where arg is a single-column vector.
+   * \details This function sets the nested matrix, not the wrapped resulting matrix.
    * For example, if the coefficient is Polar<Distance, angle::Radians> and the initial value of a
    * single-column vector is {-1., pi/2}, then set_element(arg, pi/4, 1) will replace p/2 with pi/4 to
    * yield {-1., pi/4} in the nested matrix. The resulting wrapped expression will yield {1., -3*pi/4}.

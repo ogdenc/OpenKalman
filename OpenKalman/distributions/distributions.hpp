@@ -9,7 +9,10 @@
  */
 
 /**
- * \file distributions.hpp
+ * \dir
+ * \brief Files relating to statistical distributions.
+ *
+ * \file
  * A meta-header file including all the headers relating to OpenKalman distributions.
  */
 

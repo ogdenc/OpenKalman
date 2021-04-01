@@ -9,9 +9,6 @@
  */
 
 /**
- * \dir details
- * \brief Support files for the Eigen3 interface
- *
  * \file
  * \brief Forward declarations for OpenKalman's Eigen3 interface.
  */
@@ -81,8 +78,8 @@ namespace OpenKalman::Eigen3
 
   /**
    * \brief An alias for the Eigen identity matrix.
-   * \details In Eigen, this does not need to be a square matrix.
-   * \NestedMatrix The nested matrix on which the identity is based.
+   * \details In Eigen, this does not need to be a \ref square_matrix.
+   * \tparam NestedMatrix The nested matrix on which the identity is based.
    */
   template<typename NestedMatrix>
   using IdentityMatrix =

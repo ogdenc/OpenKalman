@@ -19,29 +19,33 @@ namespace OpenKalman
    */
   struct LinearTransform : internal::LinearTransformBase<LinearTransform>
   {
-  protected:
+
+  private:
 
     using Base = internal::LinearTransformBase<LinearTransform>;
     friend Base;
+
+  protected:
 
     /// The underlying transform function model for LinearTransform.
     template<typename LinTransformation>
     struct TransformFunction
     {
+
     protected:
+
       const LinTransformation& transformation;
 
     public:
+
       TransformFunction(const LinTransformation& t) : transformation(t) {}
 
       template<typename InputMean, typename ... NoiseMean>
       auto operator()(const InputMean& x, const NoiseMean& ... n) const
       {
-        return std::tuple {transformation(x, n...),
-        is_linearized_function<LinTransformation, 1>::get_lambda(transformation)(x, n...)};
+        return std::tuple {transformation(x, n...), internal::get_Taylor_term<1>(transformation)(x, n...)};
       }
 
-      static constexpr bool correction = false;
     };
 
 

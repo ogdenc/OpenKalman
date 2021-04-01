@@ -231,7 +231,6 @@ namespace OpenKalman::internal
     /**
      * \brief Get or set element i of the covariance matrix, if it is a vector.
      * \param i The row.
-     * \param j The column.
      * \return An ElementSetter object.
      */
     auto operator[] (std::size_t i)
@@ -506,7 +505,6 @@ namespace OpenKalman::internal
     /**
      * \brief Get or set element i of the covariance matrix, if it is a vector.
      * \param i The row.
-     * \param j The column.
      * \return An ElementSetter object.
      */
     auto operator[] (std::size_t i)

@@ -9,9 +9,6 @@
  */
 
 /**
- * \dir
- * \brief Support definitions for coefficient types
- *
  * \file
  * \brief Forward definitions for coefficient types.
  */

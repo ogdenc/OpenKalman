@@ -12,6 +12,12 @@
  * \dir
  * \brief Definitions relating to coefficient types
  *
+ * \dir coefficient-types/details
+ * \brief Files implementing details regarding coefficient types.
+ *
+ * \dir coefficient-types/tests
+ * \brief Test files for coefficient types.
+ *
  * \file
  * \brief Comprehensive header file including all coefficient-related classes and definitions
  */

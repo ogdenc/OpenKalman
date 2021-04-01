@@ -669,10 +669,6 @@ namespace OpenKalman
     //  is_modifiable  //
     // --------------- //
 
-    // --------------- //
-    //  is_modifiable  //
-    // --------------- //
-
   namespace internal
   {
 #ifdef __cpp_concepts

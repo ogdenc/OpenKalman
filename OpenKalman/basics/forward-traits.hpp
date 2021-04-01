@@ -120,7 +120,7 @@ namespace OpenKalman
    * - Coefficient<Ts...> is equivalent to Coefficient<Us...>, if each Ts is equivalent to its respective Us.
    * - Coefficient<T> is equivalent to T, and vice versa.
    * \par Example:
-   * <code>equivalent_to&lt;Axis, Coefficients&lt;Axis&gt;&gt;
+   * <code>equivalent_to&lt;Axis, Coefficients&lt;Axis&gt;&gt;</code>
    */
   template<typename T, typename U>
 #ifdef __cpp_concepts
@@ -153,7 +153,7 @@ namespace OpenKalman
    * T is a prefix of U if equivalent_to<T, U>.
    * Coefficients<> is a prefix of any set of coefficients.
    * \par Example:
-   * <code>prefix_of&lt;Coefficients&lt;Axis&gt;, Coefficients&lt;Axis, angle::Radians&gt;&gt;
+   * <code>prefix_of&lt;Coefficients&lt;Axis&gt;, Coefficients&lt;Axis, angle::Radians&gt;&gt;</code>
    */
   template<typename T, typename U>
 #ifdef __cpp_concepts

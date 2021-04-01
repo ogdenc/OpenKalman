@@ -9,7 +9,16 @@
  */
 
 /**
- * \file transforms.hpp
+ * \dir
+ * \brief Files relating to transforms.
+ *
+ * \dir transforms/details
+ * \brief Support files for transforms.
+ *
+ * \dir sample-points
+ * \brief Files relating to calculating sample points.
+ *
+ * \file
  * A meta-header file including all the headers relating to OpenKalman transforms.
  */
 

@@ -17,8 +17,8 @@ namespace OpenKalman::internal
    * \internal
    * \brief Base class for means or matrices.
    * \tparam Derived The derived class (e.g., Matrix, Mean, EuclideanMean).
-   * \tparam RowCoefficients The \ref coefficients representing the rows of the matrix.
-   * \tparam ColumnCoefficients The \ref coefficients representing the columns of the matrix.
+   * \tparam RowCoefficients The \ref OpenKalman::coefficients "coefficients" representing the rows of the matrix.
+   * \tparam ColumnCoefficients The \ref OpenKalman::coefficients "coefficients" representing the columns of the matrix.
    * \tparam NestedMatrix The nested matrix.
    */
 #ifdef __cpp_concepts

@@ -238,7 +238,7 @@ namespace OpenKalman
 
     /**
      * \brief Assign from a compatible \ref square_root_covariance.
-     * \note \ref the triangle types must match.
+     * \note the triangle types must match.
      */
 #ifdef __cpp_concepts
     template<square_root_covariance Arg> requires (not std::derived_from<std::decay_t<Arg>, SquareRootCovariance>) and
@@ -643,7 +643,7 @@ namespace OpenKalman
     /**
      * \brief Make a Covariance based on an operation on the nested matrices.
      * \tparam F1 Operation on NestedMatrix.
-     * \tparam F2 Operation on the return value of \ref cholesky_nested_matrix
+     * \tparam F2 Operation on the return value of cholesky_nested_matrix
      */
 #ifdef __cpp_concepts
     template<typename F1, typename F2> requires
@@ -827,7 +827,6 @@ namespace OpenKalman
     /**
      * \brief Get or set element i of the covariance matrix, if it is a vector.
      * \param i The row.
-     * \param j The column.
      * \return An ElementSetter object.
      */
 #ifdef __cpp_concepts

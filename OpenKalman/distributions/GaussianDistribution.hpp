@@ -628,7 +628,7 @@ namespace OpenKalman
 
   /**
    * \brief Make a Gaussian distribution.
-   * \tparam Coefficients The types of the \ref coefficients for the distribution.
+   * \tparam Coefficients The types of the \ref OpenKalman::coefficients "coefficients" for the distribution.
    * \tparam re A random number engine.
    * \tparam M A \ref typed_matrix_nestable.
    * \tparam Cov A \ref covariance_nestable or \ref typed_matrix_nestable.
@@ -728,7 +728,7 @@ namespace OpenKalman
 
   /**
    * \brief Make a default Gaussian distribution.
-   * \tparam Coefficients The types of the \ref coefficients for the distribution.
+   * \tparam Coefficients The types of the \ref OpenKalman::coefficients "coefficients" for the distribution.
    * \tparam M A \ref typed_matrix_nestable
    * \tparam Cov A \ref covariance_nestable.
    * \tparam re A random number engine

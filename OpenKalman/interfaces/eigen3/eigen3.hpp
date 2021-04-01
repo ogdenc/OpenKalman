@@ -10,7 +10,13 @@
 
 /**
  * \dir
- * \brief Files relating to the interface to the Eigen3 library
+ * \brief Files relating to the interface to the Eigen3 library.
+ *
+ * \dir interfaces/eigen3/details
+ * \brief Support files for the Eigen3 interface.
+ *
+ * \dir interfaces/eigen3/tests coefficient-types/tests
+ * \brief Test files for coefficient types.
  *
  * \file
  * \brief The comprehensive header file for OpenKalman's interface to the Eigen3 library.
@@ -19,6 +25,8 @@
 
 #ifndef OPENKALMAN_EIGEN3_HPP
 #define OPENKALMAN_EIGEN3_HPP
+
+#include "../interfaces.hpp"
 
 #include <Eigen/Dense>
 
@@ -41,9 +49,6 @@
 #endif
 #endif
 
-
-#include "basics/basics.hpp"
-#include "coefficient-types/coefficient-types.hpp"
 
 #include "details/eigen3-forward-declarations.hpp"
 #include "details/eigen3-matrix-traits.hpp"

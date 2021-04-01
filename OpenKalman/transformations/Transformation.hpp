@@ -17,56 +17,52 @@ namespace OpenKalman
 {
   /**
    * \brief A transformation from one single-column vector to another.
-   *
-   * Models a transformation (linear or nonlinear) from one single-column vector to another.
+   * \details Models a transformation (linear or nonlinear) from one single-column vector to another.
    * The transformation takes an input vector, and optionally one or more perturbation terms. These can be
    * associated with noise, or translation, etc. The perturbation terms can either be constant single-column
    * vectors, or statistical distributions (in which case, the perturbation will be stochastic).
    * \tparam Function The transformation function, in the following exemplary form:
-   *   (Mean<InputCoefficients,...>, Mean<OutputCoefficients,...>, ...) -> Mean<OutputCoefficients,...>.
-   *   The first term is the input, the next term(s) represent perturbation(s), and the final term is the output.
+   * (Mean<InputCoefficients,...>, Mean<OutputCoefficients,...>, ...) -> Mean<OutputCoefficients,...>.
+   * The first term is the input, the next term(s) represent perturbation(s), and the final term is the output.
    * \tparam TaylorDerivatives Optional Taylor-series derivative functions, including the Jacobian and Hessian
-   *   for the input and each perturbation.
+   * for the input and each perturbation.
    */
-  template<
-    typename Function,
-    typename...TaylorDerivatives>
+  template<typename Function, typename ... TaylorDerivatives>
   struct Transformation;
 
 
-  template<typename Function, typename...TaylorDerivatives>
-  struct is_linearized_function<Transformation<Function, TaylorDerivatives...>, 0> : std::true_type {};
-
-  template<typename Function, typename Jacobian, typename...TaylorDerivatives>
-  struct is_linearized_function<Transformation<Function, Jacobian, TaylorDerivatives...>, 1> : std::true_type
+  namespace internal
   {
-    static constexpr auto get_lambda(const Transformation<Function, Jacobian, TaylorDerivatives...>& t)
-    {
-      return [&t] (auto&&...inputs) { return t.jacobian(std::forward<decltype(inputs)>(inputs)...); };
-    }
-  };
+#ifdef __cpp_concepts
+    template<typename Function, std::size_t order, typename...TaylorDerivatives> requires
+      (order <= sizeof...(TaylorDerivatives))
+    struct is_linearized_function<Transformation<Function, TaylorDerivatives...>, order> : std::true_type {};
+#else
+    template<typename Function, std::size_t order, typename...TaylorDerivatives>
+    struct is_linearized_function<Transformation<Function, TaylorDerivatives...>, order, std::enable_if_t<
+      (order <= sizeof...(TaylorDerivatives))>> : std::true_type {};
+#endif
 
-  template<typename Function, typename Jacobian, typename...TaylorDerivatives>
-  struct is_linearized_function<Transformation<Function, Jacobian, TaylorDerivatives...>, 2> : std::true_type
-  {
-    static constexpr auto get_lambda(const Transformation<Function, Jacobian, TaylorDerivatives...>& t)
-    {
-      return [&t] (auto&&...inputs) { return t.hessian(std::forward<decltype(inputs)>(inputs)...); };
-    }
-  };
+  } // namespace internal
 
 
-  /////////////////////////////////////
+  // ------------------------------  //
   //  Non-linearized Transformation  //
-  /////////////////////////////////////
+  // ------------------------------  //
 
-  template<typename Func>
-  struct Transformation<Func>
+  template<typename Function>
+  struct Transformation<Function>
   {
-    using Function = Func; ///< Transformation function type.
 
-    /// Constructs transformation using a reference to a transformation function.
-    Transformation(const Function& f = Function()) : function(f) {}
+    /// Default constructor.
+    Transformation()
+      : function {Function()} {}
+
+
+    /// Constructor from a transformation function.
+    template<typename F>
+    Transformation(F&& f) : function {std::forward<F>(f)} {}
+
 
     /// Applies the transformation.
 #ifdef __cpp_concepts
@@ -80,42 +76,51 @@ namespace OpenKalman
       return function(std::forward<In>(in), internal::get_perturbation(std::forward<Perturbations>(ps))...);
     }
 
-  protected:
+  private:
 
     const Function function; ///< The transformation function.
 
   };
 
 
-  /////////////////////////////////////////////
+  // --------------------------------------  //
   //  First-Order Linearized Transformation  //
-  /////////////////////////////////////////////
+  // --------------------------------------  //
 
-  template<typename Function, typename JacobianFunc>
-  struct Transformation<Function, JacobianFunc> : Transformation<Function>
+  template<typename Function, typename JacobianFunction>
+  struct Transformation<Function, JacobianFunction> : Transformation<Function>
   {
-    using JacobianFunction = JacobianFunc;
+
+  private:
+
     using Base = Transformation<Function>;
 
   protected:
+
     static auto default_Jacobian(const Function& f)
     {
-      if constexpr (is_linearized_function_v<Function, 1>) return is_linearized_function<Function, 1>::get_lambda(f);
-      else return JacobianFunc();
+      if constexpr (linearized_function<Function, 1>) return internal::get_Taylor_term<1>(f);
+      else return JacobianFunction();
     }
 
   public:
+
     /// Default constructor.
     Transformation()
-      : Base(Function()), jacobian_fun(JacobianFunc()) {}
+      : Base {Function()}, jacobian_fun {JacobianFunction()} {}
+
 
     /// Constructs transformation using a transformation function.
-    Transformation(const Function& f)
-      : Base(f), jacobian_fun(default_Jacobian(f)) {}
+    template<typename F>
+    Transformation(const F& f)
+      : Base {f}, jacobian_fun {default_Jacobian(f)} {}
+
 
     /// Constructs transformation using a transformation function and a Jacobian function.
-    Transformation(const Function& f, const JacobianFunction& j)
-      : Base(f), jacobian_fun(j) {}
+    template<typename F, typename J>
+    Transformation(const F& f, const J& j)
+      : Base {f}, jacobian_fun {j} {}
+
 
     /// Returns a tuple of the Jacobians for the input and each perturbation term.
 #ifdef __cpp_concepts
@@ -124,26 +129,13 @@ namespace OpenKalman
     template<typename In, typename ... Perturbations, std::enable_if_t<transformation_input<In> and
       (perturbation<Perturbations> and ...), int> = 0>
 #endif
-    auto jacobian(In&& in, Perturbations&&...ps) const
+    auto jacobian(In&& in, Perturbations&& ... ps) const
     {
       return jacobian_fun(std::forward<In>(in), internal::get_perturbation(std::forward<Perturbations>(ps))...);
     }
 
-    /// Returns a tuple of Hessian matrices for the input and each perturbation term. In this case, they are zero matrices.
-#ifdef __cpp_concepts
-    template<transformation_input In, perturbation ... Perturbations>
-#else
-    template<typename In, typename ... Perturbations, std::enable_if_t<transformation_input<In> and
-      (perturbation<Perturbations> and ...), int> = 0>
-#endif
-    auto hessian(In&& in, Perturbations&&...ps) const
-    {
-      using Out_Mean = std::invoke_result_t<Function, In&&, decltype(internal::get_perturbation(std::declval<Perturbations&&>()))...>;
-      using OutputCoeffs = typename MatrixTraits<Out_Mean>::RowCoefficients;
-      return zero_hessian<OutputCoeffs, In, Perturbations...>();
-    }
+  private:
 
-  //protected:
     const JacobianFunction jacobian_fun;
   };
 
@@ -155,109 +147,106 @@ namespace OpenKalman
   template<
     typename Function,
     typename JacobianFunction,
-    typename HessianFunc>
-  struct Transformation<Function, JacobianFunction, HessianFunc> : Transformation<Function, JacobianFunction>
+    typename HessianFunction>
+  struct Transformation<Function, JacobianFunction, HessianFunction> : Transformation<Function, JacobianFunction>
   {
-    using HessianFunction = HessianFunc;
+
+  private:
+
     using Base = Transformation<Function, JacobianFunction>;
 
   protected:
+
     static auto default_Hessian(const Function& f)
     {
-      if constexpr (is_linearized_function_v<Function, 2>) return is_linearized_function<Function, 2>::get_lambda(f);
-      else return HessianFunc();
+      if constexpr (linearized_function<Function, 2>) return internal::get_Taylor_term<2>(f);
+      else return HessianFunction();
     }
 
   public:
+
     /// Constructs transformation using a transformation function and a Jacobian and Hessian functions.
     /// Default constructor.
     Transformation()
-      : Base(), hessian_fun(HessianFunc()) {}
+      : Base(), hessian_fun(HessianFunction()) {}
+
 
     /// Constructs transformation using a transformation function.
-    Transformation(const Function& f)
-      : Base(f), hessian_fun(default_Hessian(f)) {}
+    template<typename F>
+    Transformation(const F& f)
+      : Base {f}, hessian_fun {default_Hessian(f)} {}
+
 
     /// Constructs transformation using a transformation function and a Jacobian function.
-    Transformation(const Function& f, const JacobianFunction& j)
+    template<typename F, typename J>
+    Transformation(const F& f, const JacobianFunction& j)
       : Base(f, j), hessian_fun(default_Hessian(f)) {}
 
+
     /// Constructs transformation using a transformation function and a Jacobian function.
-    Transformation(const Function& f, const JacobianFunction& j, const HessianFunction& h)
+    template<typename F, typename J, typename H>
+    Transformation(const F& f, const J& j, const H& h)
       : Base(f, j), hessian_fun(h) {}
 
+
     /// Returns a tuple of Hessian matrices for the input and each perturbation term.
-    template<typename In, typename ... Perturbations>
-    auto hessian(In&& in, Perturbations&&...ps) const
+#ifdef __cpp_concepts
+    template<transformation_input In, perturbation ... Perturbations>
+#else
+    template<typename In, typename ... Perturbations, std::enable_if_t<transformation_input<In> and
+      (perturbation<Perturbations> and ...), int> = 0>
+#endif
+    auto hessian(In&& in, Perturbations&& ... ps) const
     {
       return hessian_fun(std::forward<In>(in), internal::get_perturbation(std::forward<Perturbations>(ps))...);
     }
 
-  protected:
+  private:
+
     const HessianFunction hessian_fun;
+
   };
 
 
-  /**
-   * Deduction guides
-   */
+  // ------------------ //
+  //  Deduction guides  //
+  // ------------------ //
 
-  template<typename Function, typename...TaylorDerivatives>
-  Transformation(Function&&, TaylorDerivatives&&...) -> Transformation<Function, TaylorDerivatives...>;
-
-  template<typename Function,
-    std::enable_if_t<is_linearized_function_v<Function, 0> and not is_linearized_function_v<Function, 1>, int> = 0>
-  Transformation(Function&&) -> Transformation<Function>;
-
-  template<typename Function,
-    std::enable_if_t<is_linearized_function_v<Function, 1> and not is_linearized_function_v<Function, 2>, int> = 0>
-  Transformation(Function&&)
-  -> Transformation<Function,
-    decltype(is_linearized_function<Function, 1>::get_lambda(std::declval<Function>()))>;
-
-  template<typename Function, std::enable_if_t<is_linearized_function_v<Function, 2>, int> = 0>
-  Transformation(Function&&)
-  -> Transformation<Function,
-    decltype(is_linearized_function<Function, 1>::get_lambda(std::declval<Function>())),
-    decltype(is_linearized_function<Function, 2>::get_lambda(std::declval<Function>()))>;
+  template<typename Function, typename ... TaylorDerivatives>
+  Transformation(Function&&, TaylorDerivatives&& ...)
+    -> Transformation<std::decay_t<Function>, std::decay_t<TaylorDerivatives> ...>;
 
 
-  //////////////////////
-  //  Make functions  //
-  //////////////////////
+#ifdef __cpp_concepts
+  template<linearized_function<0> Function> requires (not linearized_function<Function, 1>)
+#else
+  template<typename Function, std::enable_if_t<
+    linearized_function<Function, 0> and (not linearized_function<Function, 1>), int> = 0>
+#endif
+  Transformation(Function&&) -> Transformation<std::decay_t<Function>>;
 
-  /// Make a Transformation from a transformation function (and optionally one or more Taylor series derivatives).
-  template<
-    typename Function,
-    typename...TaylorDerivatives,
-    std::enable_if_t<not is_linearized_function_v<Function, 1>, int> = 0>
-  auto make_Transformation(const Function& f, const TaylorDerivatives&...ds)
-  {
-    return Transformation<Function, TaylorDerivatives...>(f, ds...);
-  };
 
-  /// Make a transformation from a first-order linearized transformation defining a Jacobian function.
-  /// Substitution failure if the transformation function is polymorphic.
-  template<
-    typename Function,
-    std::enable_if_t<is_linearized_function_v<Function, 1> and not is_linearized_function_v<Function, 2>, int> = 0>
-  auto make_Transformation(const Function& f)
-  {
-    return Transformation<Function,
-      decltype(is_linearized_function<Function, 1>::get_lambda(std::declval<Function>()))>(f);
-  };
+#if defined(__cpp_concepts) and false
+  template<linearized_function<1> Function> requires (not linearized_function<Function, 2>)
+  // \todo Unlike SFINAE version, this incorrectly matches linearized_function<0> in both GCC 10.1.0 and clang 10.0.0:
+#else
+  template<typename Function, std::enable_if_t<
+    linearized_function<Function, 1> and (not linearized_function<Function, 2>), int> = 0>
+#endif
+  Transformation(Function&&) -> Transformation<std::decay_t<Function>,
+    std::decay_t<decltype(internal::get_Taylor_term<1>(std::declval<Function>()))>>;
 
-  /// Make a transformation from a second-order linearized transformation defining Jacobian and Hessian functions.
-  /// Substitution failure if the transformation function is polymorphic.
-  template<
-    typename Function,
-    std::enable_if_t<is_linearized_function_v<Function, 2>, int> = 0>
-  auto make_Transformation(const Function& f)
-  {
-    return Transformation<Function,
-      decltype(is_linearized_function<Function, 1>::get_lambda(std::declval<Function>())),
-      decltype(is_linearized_function<Function, 2>::get_lambda(std::declval<Function>()))>(f);
-  };
+
+#if defined(__cpp_concepts) and false
+  template<linearized_function<2> Function>
+  // \todo Unlike SFINAE version, this incorrectly matches linearized_function<0> in both GCC 10.1.0 and clang 10.0.0:
+#else
+  template<typename Function, std::enable_if_t<linearized_function<Function, 2>, int> = 0>
+#endif
+  Transformation(Function&&) -> Transformation<std::decay_t<Function>,
+    std::decay_t<decltype(internal::get_Taylor_term<1>(std::declval<Function>()))>,
+    std::decay_t<decltype(internal::get_Taylor_term<2>(std::declval<Function>()))>>;
+
 
 }
 

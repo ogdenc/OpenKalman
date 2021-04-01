@@ -9,7 +9,10 @@
  */
 
 /**
- * \file filters.hpp
+ * \dir
+ * \brief Files relating to filters.
+
+ * \file
  * A meta-header file including all the headers relating to OpenKalman filters.
  */
 

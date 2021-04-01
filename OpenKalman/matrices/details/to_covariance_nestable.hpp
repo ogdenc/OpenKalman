@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Definitions for \ref to_covariance_nestable.
+ * \brief Definitions for \ref OpenKalman::internal::to_covariance_nestable "to_covariance_nestable".
  */
 
 #ifndef OPENKALMAN_TOCOVARIANCENESTABLE_H

@@ -20,26 +20,33 @@ namespace OpenKalman
   template<unsigned int order = 1> ///< Order of the Taylor approximation (1 or 2).
   struct LinearizedTransform : internal::LinearTransformBase<LinearizedTransform<order>>
   {
-  protected:
+
+  private:
+
     using Base = internal::LinearTransformBase<LinearizedTransform>;
     friend Base;
 
-    //-----------------------------------------------
+  protected:
+
     template<typename Transformation>
     struct TransformFunction
     {
+
     private:
+
       template<typename MeanType, typename Hessian, typename Cov, std::size_t...ints>
       static auto construct_mean(const Hessian& hessian, const Cov& P, std::index_sequence<ints...>)
       {
         return MeanType {0.5 * trace(P * hessian[ints])...};
       }
 
+
       template<std::size_t i, std::size_t...js, typename Hessian, typename Cov>
       static constexpr auto construct_cov_row(const Hessian& hessian, const Cov& P)
       {
         return std::tuple {0.5 * trace(P * hessian[i] * P * hessian[js])...};
       }
+
 
       template<typename CovType, typename Hessian, typename Cov, std::size_t...is, std::size_t...js>
       static auto construct_cov(const Hessian& hessian, const Cov& P, std::index_sequence<is...>, std::index_sequence<js...>)
@@ -49,6 +56,7 @@ namespace OpenKalman
       }
 
     protected:
+
       const Transformation& transformation;
 
       /**
@@ -58,7 +66,11 @@ namespace OpenKalman
        * \tparam Dist Input or noise distribution.
        * \return
        */
-      template<typename OutputCoeffs, typename Hessian, typename Dist>
+#ifdef __cpp_concepts
+      template<typename OutputCoeffs, typename Hessian, typename Dist> requires (order >= 2)
+#else
+      template<typename OutputCoeffs, typename Hessian, typename Dist, std::enable_if_t<(order >= 2), int> = 0>
+#endif
       static auto second_order_term(const Hessian& hessian, const Dist& x)
       {
         constexpr auto output_dim = std::tuple_size_v<Hessian>;
@@ -77,11 +89,13 @@ namespace OpenKalman
         return GaussianDistribution(mean_terms, cov_terms);
       }
 
+
       template<typename OutputCoeffs, typename T1, typename T2, std::size_t...I>
       static auto zip_tuples_impl(const T1& t1, const T2& t2, std::index_sequence<I...>)
       {
         return make_self_contained((second_order_term<OutputCoeffs>(std::get<I>(t1), std::get<I>(t2)) + ...));
       }
+
 
       template<typename OutputCoeffs, typename T1, typename T2>
       static constexpr auto zip_tuples(const T1& t1, const T2& t2)
@@ -91,7 +105,9 @@ namespace OpenKalman
       }
 
     public:
+
       TransformFunction(const Transformation& t) : transformation(t) {}
+
 
       template<typename InputMean, typename ... NoiseMean>
       auto operator()(const InputMean& x, const NoiseMean& ... n) const
@@ -99,9 +115,12 @@ namespace OpenKalman
         return std::tuple {transformation(x, n...), transformation.jacobian(x, n...)};
       }
 
-      static constexpr bool correction = order > 1;
 
-      template<typename InputDist, typename ... Noise>
+#ifdef __cpp_concepts
+      template<typename InputDist, typename ... Noise> requires (order >= 2)
+#else
+      template<typename InputDist, typename ... Noise, std::enable_if_t<(order >= 2), int> = 0>
+#endif
       auto add_correction(const InputDist& x, const Noise& ... n) const
       {
         using In_Mean = typename DistributionTraits<InputDist>::Mean;
@@ -111,7 +130,6 @@ namespace OpenKalman
         return zip_tuples<OutputCoeffs>(hessians, std::tuple {x, n...});
       }
     };
-    //-----------------------------------------------
 
   };
 

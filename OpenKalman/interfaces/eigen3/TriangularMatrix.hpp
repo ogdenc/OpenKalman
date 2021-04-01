@@ -140,7 +140,7 @@ namespace OpenKalman::Eigen3
     /**
      * \brief Construct from a list of scalar coefficients, in row-major order.
      * \details This assumes, without checking, that the coefficients represent a triangular matrix.
-     * \note Operative if \ref triangle_type is not TriangleType::diagonal.
+     * \note Operative if triangle_type is not TriangleType::diagonal.
      * \tparam Args List of scalar values.
      */
 #ifdef __cpp_concepts
@@ -162,7 +162,7 @@ namespace OpenKalman::Eigen3
     /**
      * \brief Construct from a list of scalar coefficients, in row-major order.
      * \details This assumes, without checking, that the coefficients represent a triangular matrix.
-     * \note Operative if NestedMatrix is not \ref eigen_diagonal_expr but \ref triangle_type is
+     * \note Operative if NestedMatrix is not \ref eigen_diagonal_expr but triangle_type is
      * TriangleType::diagonal.
      * \tparam Args List of scalar values.
      */
@@ -529,7 +529,10 @@ namespace OpenKalman
 #endif
     static auto make(Arg&& arg) noexcept
     {
-      return Eigen3::TriangularMatrix<std::decay_t<Arg>, t>(std::forward<Arg>(arg));
+      if constexpr (Eigen3::eigen_triangular_expr<Arg>)
+        return Eigen3::TriangularMatrix<std::decay_t<nested_matrix_t<Arg>>, t> {std::forward<Arg>(arg)};
+      else
+        return Eigen3::TriangularMatrix<std::decay_t<Arg>, t> {std::forward<Arg>(arg)};
     }
 
 

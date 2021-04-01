@@ -454,7 +454,10 @@ namespace OpenKalman
 #endif
     static auto make(Arg&& arg) noexcept
     {
-      return Eigen3::DiagonalMatrix<std::decay_t<Arg>>(std::forward<Arg>(arg));
+      if constexpr (Eigen3::eigen_diagonal_expr<Arg>)
+        return Eigen3::DiagonalMatrix<std::decay_t<nested_matrix_t<Arg>>> {std::forward<Arg>(arg)};
+      else
+        return Eigen3::DiagonalMatrix<std::decay_t<Arg>> {std::forward<Arg>(arg)};
     }
 
 

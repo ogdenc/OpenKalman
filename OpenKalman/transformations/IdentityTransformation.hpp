@@ -8,6 +8,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+/**
+ * \file
+ * \brief Definitions for IdentityTransformation.
+ */
+
 #ifndef OPENKALMAN_IDENTITYTRANSFORMATION_HPP
 #define OPENKALMAN_IDENTITYTRANSFORMATION_HPP
 
@@ -17,20 +22,31 @@ namespace OpenKalman
 
   /**
    * \brief The identity transformation from one single-column vector to another.
-   * Perturbation terms are treated as additive.
+   * \details Perturbation terms are treated as additive.
    */
+  struct IdentityTransformation;
+
+
+  namespace internal
+  {
+#ifdef __cpp_concepts
+    template<std::size_t order> requires (order <= 1)
+    struct is_linearized_function<IdentityTransformation, order> : std::true_type {};
+#else
+  template<std::size_t order>
+    struct is_linearized_function<IdentityTransformation, order, std::enable_if_t<order <= 1>> : std::true_type {};
+#endif
+  }
+
+
   struct IdentityTransformation
   {
     /// Applies the transformation.
 #ifdef __cpp_concepts
-    template<typed_matrix In, perturbation ... Perturbations> requires untyped_columns<In> and
-      (equivalent_to<typename MatrixTraits<In>::RowCoefficients,
-        typename internal::PerturbationTraits<Perturbations>::RowCoefficients> and ...)
+    template<transformation_input In, perturbation<typename MatrixTraits<In>::RowCoefficients> ... Perturbations>
 #else
-    template<typename In, typename ... Perturbations, std::enable_if_t<
-      typed_matrix<In> and untyped_columns<In> and (perturbation<Perturbations> and ...) and
-      (equivalent_to<typename MatrixTraits<In>::RowCoefficients,
-        typename internal::PerturbationTraits<Perturbations>::RowCoefficients> and ...), int> = 0>
+    template<typename In, typename ... Perturbations, std::enable_if_t<transformation_input<In> and
+      (perturbation<Perturbations, typename MatrixTraits<In>::RowCoefficients> and ...), int> = 0>
 #endif
     auto operator()(In&& in, Perturbations&& ... ps) const noexcept
     {
@@ -40,38 +56,16 @@ namespace OpenKalman
 
     /// Returns a tuple of the Jacobians for the input and each perturbation term.
 #ifdef __cpp_concepts
-    template<typed_matrix In, perturbation ... Perturbations> requires untyped_columns<In> and
-      (equivalent_to<typename MatrixTraits<In>::RowCoefficients,
-        typename internal::PerturbationTraits<Perturbations>::RowCoefficients> and ...)
+    template<transformation_input In, perturbation<typename MatrixTraits<In>::RowCoefficients> ... Perturbations>
 #else
-    template<typename In, typename ... Perturbations, std::enable_if_t<
-      typed_matrix<In> and untyped_columns<In> and (perturbation<Perturbations> and ...) and
-      (equivalent_to<typename MatrixTraits<In>::RowCoefficients,
-        typename internal::PerturbationTraits<Perturbations>::RowCoefficients> and ...), int> = 0>
+    template<typename In, typename ... Perturbations, std::enable_if_t<transformation_input<In> and
+      (perturbation<Perturbations, typename MatrixTraits<In>::RowCoefficients> and ...), int> = 0>
 #endif
-    auto jacobian(const In&, const Perturbations&...) const
+    auto jacobian(In&&, Perturbations&&...) const
     {
       auto jacobian0 = MatrixTraits<In>::identity();
       auto jacobians = MatrixTraits<decltype(jacobian0)>::zero();
       return std::tuple_cat(std::tuple {jacobian0}, internal::tuple_replicate<sizeof...(Perturbations)>(jacobians));
-    }
-
-
-    /// Returns a tuple of Hessian matrices for the input and each perturbation term. In this case, they are zero matrices.
-#ifdef __cpp_concepts
-    template<typed_matrix In, perturbation ... Perturbations> requires untyped_columns<In> and
-      (equivalent_to<typename MatrixTraits<In>::RowCoefficients,
-        typename internal::PerturbationTraits<Perturbations>::RowCoefficients> and ...)
-#else
-    template<typename In, typename ... Perturbations, std::enable_if_t<
-      typed_matrix<In> and untyped_columns<In> and (perturbation<Perturbations> and ...) and
-      (equivalent_to<typename MatrixTraits<In>::RowCoefficients,
-        typename internal::PerturbationTraits<Perturbations>::RowCoefficients> and ...), int> = 0>
-#endif
-    auto hessian(const In&, const Perturbations&...) const
-    {
-      using Coeffs = typename MatrixTraits<In>::RowCoefficients;
-      return zero_hessian<Coeffs, In, Perturbations...>();
     }
 
   };

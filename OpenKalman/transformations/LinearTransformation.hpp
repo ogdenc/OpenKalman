@@ -17,7 +17,6 @@ namespace OpenKalman
 
   /**
    * \brief A linear transformation from one single-column vector to another.
-   *
    * \tparam InputCoefficients Coefficient types for the input.
    * \tparam OutputCoefficients Coefficient types for the output.
    * \tparam TransformationMatrix Transformation matrix. It is a native matrix type with rows corresponding to
@@ -34,9 +33,17 @@ namespace OpenKalman
   struct LinearTransformation;
 
 
-  template<typename In, typename Out, typename Tm, typename...Pm, std::size_t order>
-  struct is_linearized_function<LinearTransformation<In, Out, Tm, Pm...>, order,
-    std::enable_if_t<order <= 2>> : std::true_type {};
+  namespace internal
+  {
+#ifdef __cpp_concepts
+    template<typename In, typename Out, typename Tm, typename...Pm, std::size_t order> requires (order <= 1)
+    struct is_linearized_function<LinearTransformation<In, Out, Tm, Pm...>, order> : std::true_type {};
+#else
+    template<typename In, typename Out, typename Tm, typename...Pm, std::size_t order>
+    struct is_linearized_function<LinearTransformation<In, Out, Tm, Pm...>, order, std::enable_if_t<order <= 1>>
+      : std::true_type {};
+#endif
+  }
 
 
   template<
@@ -56,6 +63,7 @@ namespace OpenKalman
     static_assert(((MatrixTraits<PerturbationTransformationMatrices>::columns == OutputCoefficients::size) and ...));
 
   protected:
+
     template<typename T, typename ColumnCoefficients = OutputCoefficients>
     static constexpr bool is_valid_input_matrix_v()
     {
@@ -70,6 +78,7 @@ namespace OpenKalman
           MatrixTraits<T>::columns == ColumnCoefficients::size;
     }
 
+
     template<typename Jacobians, typename InputTuple, std::size_t...ints>
     constexpr auto sumprod(Jacobians&& js, InputTuple&& inputs, std::index_sequence<ints...>) const
     {
@@ -77,14 +86,17 @@ namespace OpenKalman
         ((std::get<ints>(std::forward<Jacobians>(js)) * std::get<ints>(std::forward<InputTuple>(inputs))) + ...));
     }
 
+
     using TransformationMatricesTuple = std::tuple<
       const Matrix<OutputCoefficients, InputCoefficients, self_contained_t<TransformationMatrix>>,
       const Matrix<OutputCoefficients, OutputCoefficients, self_contained_t<PerturbationTransformationMatrices>>...>;
     const TransformationMatricesTuple transformation_matrices;
 
   public:
+
     LinearTransformation(const TransformationMatrix& mat, const PerturbationTransformationMatrices& ... p_mats)
       : transformation_matrices(mat, p_mats...) {}
+
 
 #ifdef __cpp_concepts
     template<typename T, typename ... Ps> requires
@@ -101,14 +113,13 @@ namespace OpenKalman
       static_assert((is_valid_input_matrix_v<Ps, OutputCoefficients>() and ...));
     }
 
+
     /// Applies the transformation.
 #ifdef __cpp_concepts
-    template<typed_matrix In, perturbation ... Perturbations> requires untyped_columns<In> and
-    internal::transformation_args<InputCoefficients, OutputCoefficients, In, Perturbations...>
+    template<transformation_input<InputCoefficients> In, perturbation<OutputCoefficients> ... Perturbations>
 #else
-    template<typename In, typename ... Perturbations, std::enable_if_t<
-      typed_matrix<In> and untyped_columns<In> and (perturbation<Perturbations> and ...) and
-      internal::transformation_args<InputCoefficients, OutputCoefficients, In, Perturbations...>, int> = 0>
+    template<typename In, typename ... Perturbations, std::enable_if_t<transformation_input<In, InputCoefficients> and
+      (perturbation<Perturbations, OutputCoefficients> and ...), int> = 0>
 #endif
     auto operator()(const In& in, const Perturbations& ... ps) const
     {
@@ -118,14 +129,13 @@ namespace OpenKalman
         std::make_index_sequence<sizeof...(Perturbations) + 1>{});
     }
 
+
     /// Returns a tuple of the Jacobians for the input and each perturbation term.
 #ifdef __cpp_concepts
-    template<typed_matrix In, perturbation ... Perturbations> requires untyped_columns<In> and
-      internal::transformation_args<InputCoefficients, OutputCoefficients, In, Perturbations...>
+    template<transformation_input<InputCoefficients> In, perturbation<OutputCoefficients> ... Perturbations>
 #else
-    template<typename In, typename ... Perturbations, std::enable_if_t<
-      typed_matrix<In> and untyped_columns<In> and (perturbation<Perturbations> and ...) and
-      internal::transformation_args<InputCoefficients, OutputCoefficients, In, Perturbations...>, int> = 0>
+    template<typename In, typename ... Perturbations, std::enable_if_t<transformation_input<In, InputCoefficients> and
+      (perturbation<Perturbations, OutputCoefficients> and ...), int> = 0>
 #endif
     auto jacobian(const In&, const Perturbations&...) const
     {
@@ -142,20 +152,6 @@ namespace OpenKalman
       {
         return internal::tuple_slice<0, sizeof...(Perturbations) + 1>(transformation_matrices);
       }
-    }
-
-    /// Returns a tuple of Hessian matrices for the input and each perturbation term. In this case, they are zero matrices.
-#ifdef __cpp_concepts
-    template<typed_matrix In, perturbation ... Perturbations> requires untyped_columns<In> and
-      internal::transformation_args<InputCoefficients, OutputCoefficients, In, Perturbations...>
-#else
-    template<typename In, typename ... Perturbations, std::enable_if_t<
-      typed_matrix<In> and untyped_columns<In> and (perturbation<Perturbations> and ...) and
-      internal::transformation_args<InputCoefficients, OutputCoefficients, In, Perturbations...>, int> = 0>
-#endif
-    auto hessian(const In&, const Perturbations&...) const
-    {
-      return zero_hessian<OutputCoefficients, In, Perturbations...>();
     }
 
   };
@@ -201,17 +197,15 @@ namespace OpenKalman
    * Traits
    */
 
-  template<typename InC, typename OutC, typename T, typename ... Ps>
-  struct is_linearized_function<LinearTransformation<InC, OutC, T, Ps...>, 0> : std::true_type {};
-
-  template<typename InC, typename OutC, typename T, typename ... Ps>
-  struct is_linearized_function<LinearTransformation<InC, OutC, T, Ps...>, 1> : std::true_type
+  namespace internal
   {
-    static constexpr auto get_lambda(const LinearTransformation<InC, OutC, T, Ps...>& t)
-    {
-      return [&t] (auto&&...inputs) { return t.jacobian(std::forward<decltype(inputs)>(inputs)...); };
-    }
-  };
+    template<typename InC, typename OutC, typename T, typename ... Ps>
+    struct is_linearized_function<LinearTransformation<InC, OutC, T, Ps...>, 0> : std::true_type {};
+
+    template<typename InC, typename OutC, typename T, typename ... Ps>
+    struct is_linearized_function<LinearTransformation<InC, OutC, T, Ps...>, 1> : std::true_type {};
+
+  } // namespace internal
 
 }
 

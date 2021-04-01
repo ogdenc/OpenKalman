@@ -677,9 +677,10 @@ namespace OpenKalman
 
 
     /**
+     * \internal
      * \brief Make a Covariance based on an operation on the nested matrices.
      * \tparam F1 Operation on NestedMatrix.
-     * \tparam F2 Operation on the return value of \ref cholesky_nested_matrix
+     * \tparam F2 Operation on the return value of cholesky_nested_matrix
      */
 #ifdef __cpp_concepts
     template<typename F1, typename F2> requires
@@ -877,7 +878,6 @@ namespace OpenKalman
     /**
      * \brief Get or set element i of the covariance matrix, if it is a vector.
      * \param i The row.
-     * \param j The column.
      * \return An ElementSetter object.
      */
 #ifdef __cpp_concepts

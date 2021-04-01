@@ -15,9 +15,6 @@
  * \file
  * \brief Basic forward definitions for OpenKalman as a whole.
  * \details This should be included by any OpenKalman file, including interface files.
- *
- * \dir interfaces
- * \brief Files relating to interfaces to matrix libraries.
  */
 
 #ifndef OPENKALMAN_BASICS_HPP

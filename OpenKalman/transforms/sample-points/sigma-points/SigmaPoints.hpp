@@ -8,6 +8,14 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+/**
+ * \dir
+ * \brief Files relating to sigma points for unscented and related transforms.
+ *
+ * \file
+ * Base class for sigma points.
+ */
+
 #ifndef OPENKALMAN_SIGMAPOINTS_HPP
 #define OPENKALMAN_SIGMAPOINTS_HPP
 

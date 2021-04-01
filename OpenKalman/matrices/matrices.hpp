@@ -9,6 +9,12 @@
  */
 
 /**
+ * \dir
+ * \brief Files relating to matrices.
+ *
+ * \dir matrices/details
+ * \brief Support files for matrices.
+ *
  * \file
  * A meta-header file including all the headers relating to OpenKalman typed matrices.
  */
