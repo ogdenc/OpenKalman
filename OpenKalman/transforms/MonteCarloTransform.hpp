@@ -25,7 +25,7 @@ namespace OpenKalman
    * Technical Report STAN-CS-79-773, Department of Computer Science, Stanford University.
    * http://i.stanford.edu/pub/cstr/reports/cs/tr/79/773/CS-TR-79-773.pdf
    */
-  struct MonteCarloTransform : TransformBase<MonteCarloTransform>
+  struct MonteCarloTransform : internal::TransformBase<MonteCarloTransform>
   {
   protected:
     template<bool return_cross, typename TransformationType, typename InputDistribution, typename...NoiseDistributions>

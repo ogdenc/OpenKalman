@@ -17,29 +17,39 @@ namespace OpenKalman
   /**
    * \brief A linear transformation from one statistical distribution to another.
    */
-  struct LinearTransform : internal::LinearTransformBase<LinearTransform>
+  class LinearTransform : public internal::LinearTransformBase<LinearTransform>
   {
-
-  private:
-
     using Base = internal::LinearTransformBase<LinearTransform>;
     friend Base;
 
-  protected:
 
-    /// The underlying transform function model for LinearTransform.
-    template<typename LinTransformation>
-    struct TransformFunction
+    /**
+     * \internal
+     * \brief The underlying transform model for LinearTransform.
+     * \tparam Trans The transformation function.
+     */
+    template<typename Trans>
+    struct TransformModel
     {
 
-    protected:
+    private:
 
-      const LinTransformation& transformation;
+      const Trans& transformation;
 
     public:
 
-      TransformFunction(const LinTransformation& t) : transformation(t) {}
+      /**
+       * \brief Constructor
+       * \param t A transformation function.
+       */
+      TransformModel(const Trans& t) : transformation(t) {}
 
+
+      /**
+       * \tparam InputMean The input mean.
+       * \tparam NoiseMean Zero or more noise means.
+       * \return A tuple comprising the output mean and the Jacobians corresponding to the input mean and noise terms.
+       */
       template<typename InputMean, typename ... NoiseMean>
       auto operator()(const InputMean& x, const NoiseMean& ... n) const
       {
@@ -50,7 +60,6 @@ namespace OpenKalman
 
 
   };
-
 
 }
 

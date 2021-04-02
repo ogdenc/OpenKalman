@@ -15,14 +15,8 @@
 
 namespace OpenKalman
 {
-  /*************SphericalSimplexSigmaPoints************
-   * \brief Spherical simplex sigma points, as implemented in, e.g.,
-   * Simon J. Julier. The spherical simplex unscented transformation.
-   * In Proceedings of American Control Conference, Denver, Colorado, pages 2430–2434, 2003.
-   */
   template<typename Parameters>
   struct SphericalSimplex;
-
 
   struct SphericalSimplexParameters
   {
@@ -36,6 +30,14 @@ namespace OpenKalman
   };
 
 
+  using SphericalSimplexSigmaPoints = SigmaPoints<SphericalSimplex<SphericalSimplexParameters>>;
+
+
+  /*************SphericalSimplexSigmaPoints************
+   * \brief Spherical simplex sigma points, as implemented in, e.g.,
+   * Simon J. Julier. The spherical simplex unscented transformation.
+   * In Proceedings of American Control Conference, Denver, Colorado, pages 2430–2434, 2003.
+   */
   template<typename Parameters = SphericalSimplexParameters>
   struct SphericalSimplex : internal::ScaledSigmaPointsBase<SphericalSimplex<Parameters>, Parameters>
   {

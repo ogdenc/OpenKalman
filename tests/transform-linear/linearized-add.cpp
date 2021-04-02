@@ -66,9 +66,8 @@ TEST_F(transform_linear, linearized_dual)
   LinearizedTransform t;
   GaussianDistribution input {M2(1, 2), Covariance(Mat2::identity())};
   GaussianDistribution noise {M2::zero(), Covariance(Mat2::identity())};
-  auto [out1, cross, y] = t.transform_with_cross_covariance(input, std::tuple {g}, std::tuple {g});
+  auto [out1, cross] = t.transform_with_cross_covariance(input, std::tuple {g}, std::tuple {g});
   EXPECT_TRUE(is_near(mean_of(out1), M2(27, 59)));
   EXPECT_TRUE(is_near(covariance_of(out1), Mat2 {149, 325, 325, 709}));
   EXPECT_TRUE(is_near(cross, Mat2 {27, 59, 61, 133}));
-  EXPECT_TRUE(is_near(covariance_of(y), Mat2 {5, 11, 11, 25}));
 }

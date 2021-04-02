@@ -18,15 +18,14 @@ namespace OpenKalman
 {
   /**
    * \brief Scaled points transform. Compatible with unscented transform and cubature transform.
-   * As implemented in, e.g.,
+   * \details As implemented in, e.g.,
    * E. Wan & R. van der Merwe, "The unscented Kalman filter for nonlinear estimation,"
    * in Proc. of IEEE Symposium (AS-SPCC), pp. 153-158.
    * See also R. van der Merwe & E. Wan, "The Square-Root Unscented Kalman Filter for State and
    * Parameter-Estimation in Proc. Acoustics, Speech, and Signal Processing (ICASSP'01), 2001, pp. 3461-64.
+   * \tparam SamplePointsType The type of sample points on which the transform is based.
    */
-  template<
-    /// The type of sample points on which the transform is based.
-    typename SamplePointsType>
+  template<typename SamplePointsType>
   struct SamplePointsTransform;
 
 
@@ -37,7 +36,7 @@ namespace OpenKalman
 
 
   template<typename SamplePointsType>
-  struct SamplePointsTransform : TransformBase<SamplePointsTransform<SamplePointsType>>
+  struct SamplePointsTransform : internal::TransformBase<SamplePointsTransform<SamplePointsType>>
   {
 
   private:
@@ -154,7 +153,7 @@ namespace OpenKalman
      * \return The posterior covariance or, if <var>return_cross</var> is <code>true</code>, a tuple containing
      * the posterior covariance and the cross-covariance.
      **/
-    template<bool return_cross = false, typename InputDist, typename...Ts>
+    template<bool return_cross, typename InputDist, typename...Ts>
     auto transform(const InputDist& x, const Ts&...ts) const
     {
       auto gs = std::tuple {std::get<0>(ts)...}; //< Extract the transformations.
@@ -185,55 +184,79 @@ namespace OpenKalman
     /**
      * \brief Perform one or more consecutive sample points transforms.
      * \tparam InputDist Input distribution.
-     * \tparam Ts A list of tuples containing (1) a transformation and (2) zero or more noise terms for that
-     * transformation.
+     * \tparam Ts A list of tuple-like structures, each containing arguments to the second, third, etc. transform.
+     * These arguments each include a transformation and zero or more noise distributions.
      * \return The posterior covariance.
      **/
-    template<typename InputDist, typename...T_args, typename...Ts, std::enable_if_t<distribution<InputDist>, int> = 0>
-    auto operator()(const InputDist& x, const std::tuple<T_args...>& t, const Ts&...ts) const
+#ifdef __cpp_concepts
+    template<gaussian_distribution InputDist, internal::tuple_like...Ts>
+#else
+    template<typename InputDist, typename T, typename...Ts, std::enable_if_t<
+      gaussian_distribution<InputDist> and (internal::tuple_like<Ts> and ...), int> = 0>
+#endif
+    auto operator()(const InputDist& x, Ts&...ts) const
     {
-      return transform(x, t, ts...);
+      return transform<false>(x, ts...);
     }
 
 
     /**
      * \brief Perform one sample points transform.
-     * \tparam Trans The transformation on which the transform is based.
      * \tparam InputDist Input distribution.
-     * \tparam NoiseDist Noise distributions.
+     * \tparam Trans The transformation on which the transform is based.
+     * \tparam NoiseDist Zero or more noise distributions.
      * \return The posterior covariance.
      **/
-    template<typename InputDist, typename Trans, typename ... NoiseDists,
-      std::enable_if_t<(distribution<InputDist> and ... and distribution<NoiseDists>) and
-        std::is_invocable_v<Trans, typename DistributionTraits<InputDist>::Mean, typename DistributionTraits<NoiseDists>::Mean...>, int> = 0>
+#ifdef __cpp_concepts
+    template<gaussian_distribution InputDist, typename Trans, gaussian_distribution ... NoiseDists> requires
+      requires(Trans g, InputDist x, NoiseDists...n) { g(mean_of(x), mean_of(n)...); }
+#else
+    template<typename InputDist, typename Trans, typename ... NoiseDists, std::enable_if_t<
+      (gaussian_distribution<InputDist> and ... and gaussian_distribution<NoiseDists>) and
+      std::is_invocable_v<Trans, typename DistributionTraits<InputDist>::Mean,
+        typename DistributionTraits<NoiseDists>::Mean...>, int> = 0>
+#endif
     auto operator()(const InputDist& x, const Trans& g, const NoiseDists& ...n) const
     {
-      return transform(x, std::tuple {g, n...});
+      return transform<false>(x, std::forward_as_tuple(g, n...));
     }
 
 
     /**
      * \brief Perform one or more consecutive sample points transforms, also returning the cross-covariance.
      * \tparam InputDist Input distribution.
-     * \tparam Ts A list of tuples containing (1) a transformation and (2) zero or more noise terms for that transformation.
+     * \tparam Ts A list of tuple-like structures, each containing arguments to the second, third, etc. transform.
+     * These arguments each include a transformation and zero or more noise distributions.
      * \return A tuple containing the posterior covariance and the cross-covariance.
      **/
-    template<typename InputDist, typename...T_args, typename...Ts, std::enable_if_t<distribution<InputDist>, int> = 0>
-    auto transform_with_cross_covariance(const InputDist& x, const std::tuple<T_args...>& t, const Ts&...ts) const
+#ifdef __cpp_concepts
+    template<gaussian_distribution InputDist, internal::tuple_like...Ts>
+#else
+    template<typename InputDist, typename T, typename...Ts, std::enable_if_t<
+      gaussian_distribution<InputDist> and (internal::tuple_like<Ts> and ...), int> = 0>
+#endif
+    auto transform_with_cross_covariance(const InputDist& x, const Ts&...ts) const
     {
-      return transform<true>(x, t, ts...);
+      return transform<true>(x, ts...);
     }
 
 
     /**
      * \brief Perform one sample points transform, also returning the cross-covariance.
-     * \tparam Trans The transformation on which the transform is based.
      * \tparam InputDist Input distribution.
-     * \tparam NoiseDist Noise distributions.
+     * \tparam Trans The transformation on which the transform is based.
+     * \tparam NoiseDist Zero or more noise distributions.
      * \return A tuple containing the posterior covariance and the cross-covariance.
      **/
-    template<typename InputDist, typename Trans, typename ... NoiseDists,
-      std::enable_if_t<(distribution<InputDist> and ... and distribution<NoiseDists>), int> = 0>
+#ifdef __cpp_concepts
+    template<gaussian_distribution InputDist, typename Trans, gaussian_distribution ... NoiseDists> requires
+      requires(Trans g, InputDist x, NoiseDists...n) { g(mean_of(x), mean_of(n)...); }
+#else
+    template<typename InputDist, typename Trans, typename ... NoiseDists, std::enable_if_t<
+      (gaussian_distribution<InputDist> and ... and gaussian_distribution<NoiseDists>) and
+      std::is_invocable_v<Trans, typename DistributionTraits<InputDist>::Mean,
+        typename DistributionTraits<NoiseDists>::Mean...>, int> = 0>
+#endif
     auto transform_with_cross_covariance(const InputDist& x, const Trans& g, const NoiseDists& ...n) const
     {
       return transform<true>(x, std::forward_as_tuple(g, n...));

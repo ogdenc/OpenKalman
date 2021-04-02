@@ -12,28 +12,63 @@
 #define OPENKALMAN_TRANSFORMBASE_HPP
 
 
-namespace OpenKalman
+namespace OpenKalman::internal
 {
-  /// The base for all transforms.
+  /**
+   * \internal
+   * \brief The base for all transforms.
+   * \tparam Derived The derived class.
+   */
+  template<typename Derived>
+  struct TransformBase;
+
+
+  /**
+   * \internal
+   * \brief T is a non-empty tuple, pair, array, or other type that can be an argument to std::apply.
+   */
+#ifdef __cpp_concepts
+  template<typename T>
+  concept tuple_like = requires { std::tuple_size<T>() == 0; } or requires (T t) { std::get<0>(t); };
+#else
+  namespace detail
+  {
+    template<typename T, typename = void>
+    struct is_tuple_like : std::false_type {};
+
+    template<typename T>
+    struct is_tuple_like<T, std::enable_if_t<(std::tuple_size<T>() == 0)>> : std::true_type {};
+
+    template<typename T>
+    struct is_tuple_like<T, std::void_t<decltype(std::get<0>(std::declval<T>()))>> : std::true_type {};
+  }
+
+  template<typename T>
+  inline constexpr bool tuple_like = detail::is_tuple_like<T>::value;
+#endif
+
+
   template<typename Derived>
   struct TransformBase
   {
+
    /**
-    * Perform one or more consecutive linearized transforms.
+    * \brief Perform one or more consecutive transforms.
     * \tparam InputDist Input distribution.
-    * \tparam T The first tuple containing (1) a LinearTransformation (depending on transform) and
-    * (2) zero or more noise terms for that transformation.
-    * \tparam Ts A list of tuples containing (1) a LinearTransformation (depending on transform) and
-    * (2) zero or more noise terms for that transformation.
+    * \tparam T A tuple-like structure containing zero or more arguments (beyond the input distribution) to the
+    * first transform (e.g., a transformation and zero or more noise distributions).
+    * \tparam Ts A list of tuple-like structures, each containing arguments to the second, third, etc. transform.
+    * \return The posterior covariance.
     **/
 #ifdef __cpp_concepts
-    template<distribution InputDist, typename...T_args, typename...Ts>
+    template<distribution InputDist, tuple_like T, tuple_like...Ts>
 #else
-    template<typename InputDist, typename...T_args, typename...Ts, std::enable_if_t<distribution<InputDist>, int> = 0>
+    template<typename InputDist, typename T, typename...Ts, std::enable_if_t<
+      distribution<InputDist> and (tuple_like<T> and ... and tuple_like<Ts>), int> = 0>
 #endif
-    auto operator()(const InputDist& x, const std::tuple<T_args...>& t, const Ts&...ts) const
+    auto operator()(const InputDist& x, const T& t, const Ts&...ts) const
     {
-      auto y = std::apply([&](const auto&...args) { return this->operator()(x, args...); }, t);
+      auto y = std::apply([&](const auto&...args) { return static_cast<const Derived&>(*this)(x, args...); }, t);
 
       if constexpr (sizeof...(Ts) > 0)
       {
@@ -47,38 +82,31 @@ namespace OpenKalman
 
 
     /**
-     * Perform one or more consecutive linearized transforms, also returning the cross-covariance.
+     * \brief Perform one or more consecutive transforms, also returning the cross-covariance.
      * \tparam InputDist Input distribution.
-     * \tparam T The first tuple containing (1) a LinearTransformation (depending on transform) and
-     * (2) zero or more noise terms for that transformation.
-     * \tparam Ts A list of tuples containing (1) a LinearTransformation (depending on transform) and
-     * (2) zero or more noise terms for that transformation.
+     * \tparam T A tuple-like structure containing zero or more arguments (beyond the input distribution) to the
+     * first transform (e.g., a transformation and zero or more noise distributions).
+     * \tparam Ts A list of tuple-like structures, each containing arguments to the second, third, etc. transform.
+     * \return A tuple containing the posterior covariance and the cross-covariance.
      **/
 #ifdef __cpp_concepts
-    template<distribution InputDist, typename...T_args, typename...Ts>
+    template<distribution InputDist, tuple_like T, tuple_like...Ts>
 #else
-    template<typename InputDist, typename...T_args, typename...Ts, std::enable_if_t<distribution<InputDist>, int> = 0>
+    template<typename InputDist, typename T, typename...Ts, std::enable_if_t<
+      distribution<InputDist> and (tuple_like<T> and ... and tuple_like<Ts>), int> = 0>
 #endif
-    auto transform_with_cross_covariance(const InputDist& x, const std::tuple<T_args...>& t, const Ts&...ts) const
+    auto transform_with_cross_covariance(const InputDist& x, const T& t, const Ts&...ts) const
     {
       if constexpr (sizeof...(Ts) > 0)
       {
         auto y = std::apply([&](const auto&...args) { return static_cast<const Derived&>(*this)(x, args...); }, t);
-
-        if constexpr (sizeof...(Ts) > 1)
-        {
-          return static_cast<const Derived&>(*this).transform_with_cross_covariance(y, ts...);
-        }
-        else
-        {
-          auto [z, cross] = static_cast<const Derived&>(*this).transform_with_cross_covariance(y, ts...);
-          return std::tuple {std::move(z), std::move(cross), std::move(y)};
-        }
+        return static_cast<const Derived&>(*this).transform_with_cross_covariance(y, ts...);
       }
       else
       {
         return std::apply([&](const auto&...args) {
-          return static_cast<const Derived&>(*this).transform_with_cross_covariance(x, args...); }, t);
+          return static_cast<const Derived&>(*this).transform_with_cross_covariance(x, args...);
+        }, t);
       }
     }
 

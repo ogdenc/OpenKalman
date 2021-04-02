@@ -16,7 +16,7 @@
  * \brief Support files for transforms.
  *
  * \dir sample-points
- * \brief Files relating to calculating sample points.
+ * \brief Files relating to alternative sample point schemes for use with SamplePointsTransform.
  *
  * \file
  * A meta-header file including all the headers relating to OpenKalman transforms.
@@ -25,19 +25,28 @@
 #ifndef OPENKALMAN_TRANSFORMS_HPP
 #define OPENKALMAN_TRANSFORMS_HPP
 
-#include "details/ScaledSigmaPointsBase.hpp"
-#include "sample-points/sigma-points/Unscented.hpp"
-#include "sample-points/sigma-points/SphericalSimplex.hpp"
-#include "sample-points/sigma-points/SigmaPoints.hpp"
-#include "sample-points/CubaturePoints.hpp"
 
 #include "details/TransformBase.hpp"
+
+#include "IdentityTransform.hpp"
+
 #include "details/LinearTransformBase.hpp"
+
 #include "LinearTransform.hpp"
 #include "LinearizedTransform.hpp"
-#include "sample-points/SamplePointsTransform.hpp"
+
+#include "details/ScaledSigmaPointsBase.hpp"
+#include "details/SigmaPoints.hpp"
+
+#include "sample-points/Unscented.hpp"
+#include "sample-points/SphericalSimplex.hpp"
+#include "sample-points/CubaturePoints.hpp"
+
+#include "SamplePointsTransform.hpp"
+
 #include "MonteCarloTransform.hpp"
-#include "IdentityTransform.hpp"
+
 #include "RecursiveLeastSquaresTransform.hpp"
+
 
 #endif //OPENKALMAN_TRANSFORMS_HPP

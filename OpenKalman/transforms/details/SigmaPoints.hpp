@@ -39,12 +39,6 @@ namespace OpenKalman
   struct SigmaPoints;
 
 
-  using UnscentedSigmaPointsStateEstimation = SigmaPoints<Unscented<UnscentedParametersStateEstimation>>;
-  using UnscentedSigmaPointsParameterEstimation = SigmaPoints<Unscented<UnscentedParametersParameterEstimation>>;
-  using UnscentedSigmaPoints = SigmaPoints<Unscented<>>; ///< Same as UnscentedSigmaPointsStateEstimation.
-  using SphericalSimplexSigmaPoints = SigmaPoints<SphericalSimplex<>>;
-
-
   template<typename SigmaPointsType>
   struct SigmaPoints
   {

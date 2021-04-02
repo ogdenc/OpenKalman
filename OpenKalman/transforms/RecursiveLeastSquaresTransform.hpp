@@ -19,7 +19,7 @@ namespace OpenKalman
    * \tparam Scalar The scalar type.
    */
   template<typename Scalar = double>
-  struct RecursiveLeastSquaresTransform : TransformBase<RecursiveLeastSquaresTransform<Scalar>>
+  struct RecursiveLeastSquaresTransform : internal::TransformBase<RecursiveLeastSquaresTransform<Scalar>>
   {
     explicit RecursiveLeastSquaresTransform(const Scalar lambda = 0.9995)
      : inv_lambda(1/lambda) {}

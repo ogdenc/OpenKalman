@@ -19,15 +19,30 @@ namespace OpenKalman::internal
 {
 
   /**
-   * Internal base class for linear or linearized transformations from one statistical distribution to another.
+   * \brief Whether transformation T needs an additive correction when F is the transformation function.
+   * \details This is true for LinearizedTransform<order> where order >= 2.
+   */
+  template<typename T, typename F>
+  struct needs_additive_correction : std::false_type {};
+
+
+  /**
+   * \internal
+   * /brief Base class for linear or linearized transformations from one statistical distribution to another.
+   * /details Each class deriving from LinearTransformBase must define TransformModel within class scope.
+   * TransformModel is the underlying transform function for the derived class, which takes an input distribution
+   * and an optional set of noise distributions and returns a tuple comprising the following, used in constructing the
+   * output distribution and cross-covariance:
+   * -# the output mean, and
+   * -# a tuple of Jacobians corresponding to each input and noise term.
    **/
   template<typename Derived>
-  struct LinearTransformBase : TransformBase<Derived>
+  struct LinearTransformBase : internal::TransformBase<Derived>
   {
 
   private:
 
-    using Base = TransformBase<Derived>;
+    using Base = internal::TransformBase<Derived>;
 
     template<std::size_t return_cross, typename J, typename Dist, std::size_t...ints>
     static auto sum_noise_terms(const J& j, const Dist& dist, std::index_sequence<ints...>)
@@ -70,31 +85,35 @@ namespace OpenKalman::internal
       }
     }
 
-  protected:
 
-    /**
+    /*
      * Linearly transform one statistical distribution to another.
-     * \tparam TransformFunction Underlying transform function that takes an input distribution and an optional set of
-     * noise distributions and returns the following information used in constructing the output distribution
-     * and cross-covariance:
-     * -# the output mean, and
-     * -# a tuple of Jacobians corresponding to each input and noise term,
+     * \tparam Trans The linear or linearized transformation on which the transform is based
+     * (e.g., LinearTransformation).
      * \tparam InputDist Input distribution.
-     * \tparam NoiseDist Noise distribution.
+     * \tparam NoiseDist Zero or more noise distributions.
      **/
-    template<std::size_t return_cross, typename TransformFunction, typename InputDist, typename ... NoiseDists,
-      std::enable_if_t<(distribution<InputDist> and ... and distribution<NoiseDists>), int> = 0>
-    auto transform(const TransformFunction& f, const InputDist& in, const NoiseDists& ...n) const
+#ifdef __cpp_concepts
+    template<std::size_t return_cross, linearized_function<1> Trans,
+      gaussian_distribution InputDist, gaussian_distribution ... NoiseDists>
+#else
+    template<std::size_t return_cross, typename  Trans, typename InputDist, typename ... NoiseDists, std::enable_if_t<
+      (gaussian_distribution<InputDist> and ... and gaussian_distribution<NoiseDists>) and
+      linearized_function<Trans, 1>, int> = 0>
+#endif
+    auto transform(const Trans& g, const InputDist& in, const NoiseDists& ...n) const
     {
-      auto[mean_output, jacobians] = f(mean_of(in), mean_of(n)...);
+      typename Derived::template TransformModel<Trans> transform_model {g};
+      auto[mean_output, jacobians] = transform_model(mean_of(in), mean_of(n)...);
+
       if constexpr (return_cross)
       {
         auto [cov_out, cross_covariance] = sum_noise_terms<true>(jacobians, std::tuple {in, n...},
           std::make_index_sequence<std::min(sizeof...(NoiseDists), std::tuple_size_v<decltype(jacobians)> - 1)>{});
         auto out = make_GaussianDistribution(mean_output, cov_out);
 
-        if constexpr (linearized_function<TransformFunction, 2>)
-          return std::tuple {make_self_contained(out + f.add_correction(in, n...)), cross_covariance};
+        if constexpr(needs_additive_correction<Derived, Trans>::value)
+          return std::tuple {make_self_contained(out + transform_model.add_correction(in, n...)), cross_covariance};
         else
           return std::tuple {out, cross_covariance};
       }
@@ -104,8 +123,8 @@ namespace OpenKalman::internal
           std::make_index_sequence<std::min(sizeof...(NoiseDists), std::tuple_size_v<decltype(jacobians)> - 1)>{});
         auto out = make_GaussianDistribution(mean_output, cov_out);
 
-        if constexpr(linearized_function<TransformFunction, 2>)
-          return make_self_contained(out + f.add_correction(in, n...));
+        if constexpr(needs_additive_correction<Derived, Trans>::value)
+          return make_self_contained(out + transform_model.add_correction(in, n...));
         else
           return out;
       }
@@ -115,34 +134,51 @@ namespace OpenKalman::internal
 
     using Base::operator();
 
-    using Base::transform_with_cross_covariance;
-
 
     /**
      * Perform a linear(ized) transform from one statistical distribution to another.
      * \tparam InputDist Input distribution.
-     * \tparam Transformation The transformation on which the transform is based (e.g., LinearTransformation).
-     * \tparam NoiseDists Noise distributions.
+     * \tparam Trans The linear or linearized transformation on which the transform is based
+     * (e.g., LinearTransformation).
+     * \tparam NoiseDists Zero or more noise distributions.
      **/
+#ifdef __cpp_concepts
+    template<gaussian_distribution InputDist, linearized_function<1> Trans, gaussian_distribution ... NoiseDists>
+      requires requires(Trans g, InputDist x, NoiseDists...n) { g(mean_of(x), mean_of(n)...); }
+#else
     template<typename InputDist, typename Trans, typename ... NoiseDists, std::enable_if_t<
-      (distribution<InputDist> and ... and distribution<NoiseDists>) and linearized_function<Trans, 1>, int> = 0>
+      (gaussian_distribution<InputDist> and ... and gaussian_distribution<NoiseDists>) and
+      linearized_function<Trans, 1> and std::is_invocable_v<Trans, typename DistributionTraits<InputDist>::Mean,
+        typename DistributionTraits<NoiseDists>::Mean...>, int> = 0>
+#endif
     auto operator()(const InputDist& x, const Trans& g, const NoiseDists&...ns) const
     {
-      return transform<false>(typename Derived::template TransformFunction<Trans> {g}, x, ns...);
+      return transform<false>(g, x, ns...);
     }
+
+
+    using Base::transform_with_cross_covariance;
 
 
     /**
      * Perform a linear(ized) transform, also returning the cross-covariance.
      * \tparam InputDist Input distribution.
-     * \tparam Transformation The transformation on which the transform is based (e.g., LinearTransformation).
-     * \tparam NoiseDists Noise distributions.
+     * \tparam Trans The linear or linearized transformation on which the transform is based
+     * (e.g., LinearTransformation).
+     * \tparam NoiseDists Zero or more noise distributions.
      **/
+#ifdef __cpp_concepts
+    template<gaussian_distribution InputDist, linearized_function<1> Trans, gaussian_distribution ... NoiseDists>
+      requires requires(Trans g, InputDist x, NoiseDists...n) { g(mean_of(x), mean_of(n)...); }
+#else
     template<typename InputDist, typename Trans, typename ... NoiseDists, std::enable_if_t<
-      (distribution<InputDist> and ... and distribution<NoiseDists>) and linearized_function<Trans, 1>, int> = 0>
+      (gaussian_distribution<InputDist> and ... and gaussian_distribution<NoiseDists>) and
+      linearized_function<Trans, 1> and std::is_invocable_v<Trans, typename DistributionTraits<InputDist>::Mean,
+        typename DistributionTraits<NoiseDists>::Mean...>, int> = 0>
+#endif
     auto transform_with_cross_covariance(const InputDist& x, const Trans& g, const NoiseDists&...ns) const
     {
-      return transform<true>(typename Derived::template TransformFunction<Trans> {g}, x, ns...);
+      return transform<true>(g, x, ns...);
     }
 
   };

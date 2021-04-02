@@ -13,13 +13,6 @@
 
 namespace OpenKalman
 {
-  /*************SymmetricSigmaPoints************
-   * \brief Scaled symmetric sigma points, as implemented in, e.g.,
-   * E. Wan & R. van der Merwe, "The unscented Kalman filter for nonlinear estimation,"
-   * in Proc. of IEEE Symposium (AS-SPCC), pp. 153-158.
-   * S. Julier. The scaled unscented transformation. In Proceedings of the American
-   * Control Conference, Evanston, IL, pages 1108–1114, 2002.
-   */
   template<typename Parameters>
   struct Unscented;
 
@@ -50,6 +43,21 @@ namespace OpenKalman
   };
 
 
+  using UnscentedSigmaPointsStateEstimation = SigmaPoints<Unscented<UnscentedParametersStateEstimation>>;
+
+  using UnscentedSigmaPointsParameterEstimation = SigmaPoints<Unscented<UnscentedParametersParameterEstimation>>;
+
+  /// Same as UnscentedSigmaPointsStateEstimation.
+  using UnscentedSigmaPoints = SigmaPoints<Unscented<UnscentedParametersStateEstimation>>;
+
+
+  /*************SymmetricSigmaPoints************
+   * \brief Scaled symmetric sigma points, as implemented in, e.g.,
+   * E. Wan & R. van der Merwe, "The unscented Kalman filter for nonlinear estimation,"
+   * in Proc. of IEEE Symposium (AS-SPCC), pp. 153-158.
+   * S. Julier. The scaled unscented transformation. In Proceedings of the American
+   * Control Conference, Evanston, IL, pages 1108–1114, 2002.
+   */
   template<typename Parameters = UnscentedParametersStateEstimation>
   struct Unscented : internal::ScaledSigmaPointsBase<Unscented<Parameters>, Parameters>
   {

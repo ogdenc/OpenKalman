@@ -14,9 +14,21 @@
 namespace OpenKalman
 {
 
-  /// An identity transform from one statistical distribution to another.
-  struct IdentityTransform : TransformBase<IdentityTransform>
+  /**
+   * \brief An identity transform from one statistical distribution to another.
+   */
+  struct IdentityTransform : internal::TransformBase<IdentityTransform>
   {
+
+  private:
+
+    using Base = internal::TransformBase<IdentityTransform>;
+
+  public:
+
+    using Base::operator();
+
+
     /**
      * Apply the identity transform on an input distribution. Any noise distributions are treated as additive.
      * \tparam InputDist Input distribution.
@@ -32,10 +44,14 @@ namespace OpenKalman
         (equivalent_to<typename DistributionTraits<InputDist>::Coefficients,
         typename DistributionTraits<NoiseDists>::Coefficients> and ...), int> = 0>
 #endif
-    auto operator()(const InputDist& x, const NoiseDists&...ns) const
+    auto operator()(const InputDist& x, const NoiseDists& ... ns) const
     {
       return make_self_contained((x + ... + ns));
     }
+
+
+    using Base::transform_with_cross_covariance;
+
 
     /**
      * Perform identity transform, also returning the cross-covariance.
@@ -52,7 +68,7 @@ namespace OpenKalman
         (equivalent_to<typename DistributionTraits<InputDist>::Coefficients,
         typename DistributionTraits<NoiseDists>::Coefficients> and ...), int> = 0>
 #endif
-    auto transform_with_cross_covariance(const InputDist& x, const NoiseDists&...ns) const
+    auto transform_with_cross_covariance(const InputDist& x, const NoiseDists& ... ns) const
     {
       auto cross = Matrix {covariance_of(x)};
       return std::tuple {make_self_contained((x + ... + ns)), std::move(cross)};
