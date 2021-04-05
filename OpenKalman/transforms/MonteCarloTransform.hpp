@@ -8,6 +8,10 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+/**
+ * \file Definition of MonteCarloTransform.
+ */
+
 #ifndef OPENKALMAN_MONTECARLOTRANSFORM_HPP
 #define OPENKALMAN_MONTECARLOTRANSFORM_HPP
 
@@ -20,18 +24,23 @@ namespace OpenKalman
 {
   /**
    * \brief A Monte Carlo transform from one Gaussian distribution to another.
-   * Uses ideas from Chan, Tony F.; Golub, Gene H.; LeVeque, Randall J. (1979),
+   * \details Uses ideas from Chan, Tony F.; Golub, Gene H.; LeVeque, Randall J. (1979),
    * "Updating Formulae and a Pairwise Algorithm for Computing Sample Variances."
    * Technical Report STAN-CS-79-773, Department of Computer Science, Stanford University.
    * http://i.stanford.edu/pub/cstr/reports/cs/tr/79/773/CS-TR-79-773.pdf
    */
   struct MonteCarloTransform : internal::TransformBase<MonteCarloTransform>
   {
-  protected:
+  private:
+
+    using Base = internal::TransformBase<MonteCarloTransform>;
+
+
     template<bool return_cross, typename TransformationType, typename InputDistribution, typename...NoiseDistributions>
     struct MonteCarloSet
     {
-    protected:
+    private:
+
       using In_Mean = typename DistributionTraits<InputDistribution>::Mean;
       using Out_Mean = std::invoke_result_t<TransformationType, In_Mean>;
       using InputCoefficients = typename MatrixTraits<In_Mean>::RowCoefficients;
@@ -51,6 +60,7 @@ namespace OpenKalman
       using OutputCovariance = Covariance<OutputCoefficients, OutputCovarianceSA>;
       using CrossCovariance = Matrix<InputCoefficients, OutputCoefficients, CrossCovarianceMatrix>;
 
+
       struct MonteCarloSum0
       {
         std::size_t count;
@@ -58,6 +68,7 @@ namespace OpenKalman
         OutputEuclideanMean y_E;
         OutputCovariance yy;
       };
+
 
       struct MonteCarloSum1
       {
@@ -69,7 +80,9 @@ namespace OpenKalman
       };
 
     public:
+
       using MonteCarloSum = std::conditional_t<return_cross, MonteCarloSum1, MonteCarloSum0>;
+
 
       static constexpr auto
       zero()
@@ -84,6 +97,7 @@ namespace OpenKalman
             MatrixTraits<OutputCovariance>::zero()};
       }
 
+
       static auto
       one(const TransformationType& trans, const InputDistribution& dist, const NoiseDistributions&...noise)
       {
@@ -94,6 +108,7 @@ namespace OpenKalman
         else
           return MonteCarloSum {1, x, to_euclidean(y), OutputCovariance::zero()};
       }
+
 
       struct MonteCarloBinaryOp
       {
@@ -141,6 +156,7 @@ namespace OpenKalman
         }
       };
 
+
       struct iterator
       {
         iterator(const std::function<MonteCarloSum()>& g, std::size_t initial_position = 0)
@@ -162,32 +178,63 @@ namespace OpenKalman
         auto operator==(const iterator& other) const { return position == other.position; }
         auto operator!=(const iterator& other) const { return position != other.position; }
 
-      protected:
+      private:
+
         const std::function<MonteCarloSum()>& one_sum_generator;
+
         std::size_t position;
+
       };
 
-      MonteCarloSet(
-        const TransformationType& trans, std::size_t s, const InputDistribution& dist, const NoiseDistributions&...noise)
+
+      MonteCarloSet(const TransformationType& trans, std::size_t s, const InputDistribution& dist,
+                    const NoiseDistributions&...noise)
         : samples(s),
           one_sum_generator([&trans, &dist, &noise...] { return one(trans, dist, noise...); })
       {}
 
+
       auto begin() { return iterator(one_sum_generator, 0); }
+
 
       auto end() { return iterator(one_sum_generator, samples); }
 
-    protected:
+    private:
+
       const std::size_t samples;
+
       const std::function<MonteCarloSum()> one_sum_generator;
+
     };
 
   public:
-    explicit MonteCarloTransform(const std::size_t samples = 100000) : size(samples) {}
 
-    template<typename InputDist, typename Trans, typename ... NoiseDists,
-      std::enable_if_t<(distribution<InputDist> and ... and distribution<NoiseDists>) and
-        std::is_invocable_v<Trans, typename DistributionTraits<InputDist>::Mean, typename DistributionTraits<NoiseDists>::Mean...>, int> = 0>
+    /**
+     * \brief Constructor
+     * \param samples The number of random samples taken from the prior distribution.
+     */
+    explicit MonteCarloTransform(const std::size_t samples = 100000) : size {samples} {}
+
+
+    using Base::operator();
+
+
+    /**
+     * \brief Perform a Monte Carlo transform from one statistical distribution to another.
+     * \tparam InputDist The prior distribution.
+     * \tparam Trans The transformation on which the transform is based.
+     * \tparam NoiseDists Zero or more noise distributions.
+     * \return The posterior distribution.
+     **/
+#ifdef __cpp_concepts
+    template<gaussian_distribution InputDist, linearized_function<1> Trans, gaussian_distribution ... NoiseDists>
+    requires requires(Trans g, InputDist x, NoiseDists...n) { g(mean_of(x), mean_of(n)...); }
+#else
+    template<typename InputDist, typename Trans, typename ... NoiseDists, std::enable_if_t<
+      (gaussian_distribution<InputDist> and ... and gaussian_distribution<NoiseDists>) and
+      linearized_function<Trans, 1> and std::is_invocable_v<Trans, typename DistributionTraits<InputDist>::Mean,
+        typename DistributionTraits<NoiseDists>::Mean...>, int> = 0>
+#endif
     auto operator()(const InputDist& x, const Trans& transformation, const NoiseDists& ...n) const
     {
       using MSet = MonteCarloSet<false, Trans, InputDist, NoiseDists...>;
@@ -201,9 +248,26 @@ namespace OpenKalman
       return GaussianDistribution {mean_output, out_covariance};
     }
 
-    template<typename InputDist, typename Trans, typename ... NoiseDists,
-      std::enable_if_t<(distribution<InputDist> and ... and distribution<NoiseDists>) and
-        std::is_invocable_v<Trans, typename DistributionTraits<InputDist>::Mean, typename DistributionTraits<NoiseDists>::Mean...>, int> = 0>
+
+    using Base::transform_with_cross_covariance;
+
+
+    /**
+     * \brief Perform a Monte Carlo transform, also returning the cross-covariance.
+     * \tparam InputDist The prior distribution.
+     * \tparam Trans The transformation on which the transform is based.
+     * \tparam NoiseDists Zero or more noise distributions.
+     * \return A tuple comprising the posterior distribution and the cross-covariance.
+     **/
+#ifdef __cpp_concepts
+    template<gaussian_distribution InputDist, linearized_function<1> Trans, gaussian_distribution ... NoiseDists>
+    requires requires(Trans g, InputDist x, NoiseDists...n) { g(mean_of(x), mean_of(n)...); }
+#else
+    template<typename InputDist, typename Trans, typename ... NoiseDists, std::enable_if_t<
+      (gaussian_distribution<InputDist> and ... and gaussian_distribution<NoiseDists>) and
+      linearized_function<Trans, 1> and std::is_invocable_v<Trans, typename DistributionTraits<InputDist>::Mean,
+        typename DistributionTraits<NoiseDists>::Mean...>, int> = 0>
+#endif
     auto transform_with_cross_covariance(const InputDist& x, const Trans& transformation, const NoiseDists& ...n) const
     {
       using MSet = MonteCarloSet<true, Trans, InputDist, NoiseDists...>;
@@ -219,7 +283,8 @@ namespace OpenKalman
       return std::tuple {std::move(out), std::move(cross_covariance)};
     }
 
-  protected:
+  private:
+
     const std::size_t size;
 
   };

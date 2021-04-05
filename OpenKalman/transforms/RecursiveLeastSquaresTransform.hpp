@@ -8,6 +8,10 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+/**
+ * \file Definition of RecursiveLeastSquaresTransform.
+ */
+
 #ifndef OPENKALMAN_RLSTRANSFORM_H
 #define OPENKALMAN_RLSTRANSFORM_H
 
@@ -21,13 +25,24 @@ namespace OpenKalman
   template<typename Scalar = double>
   struct RecursiveLeastSquaresTransform : internal::TransformBase<RecursiveLeastSquaresTransform<Scalar>>
   {
-    explicit RecursiveLeastSquaresTransform(const Scalar lambda = 0.9995)
-     : inv_lambda(1/lambda) {}
+  private:
+
+    using Base = internal::TransformBase<RecursiveLeastSquaresTransform<Scalar>>;
+
+  public:
+
+    explicit RecursiveLeastSquaresTransform(const Scalar lambda = 0.9995) : inv_lambda {1/lambda} {}
+
+
+    using Base::operator();
+
 
     /**
-     * Apply the RLS transform on an input distribution. Any noise distributions are treated as additive.
-     * \tparam InputDist Input distribution.
-     * \tparam NoiseDists Noise distribution.
+     * \brief Apply the RLS transform on an input distribution.
+     * \details Any noise distributions are treated as additive.
+     * \tparam InputDist The prior distribution.
+     * \tparam NoiseDists Zero or more noise distribution.
+     * \return The posterior distribution.
      **/
 #ifdef __cpp_concepts
     template<distribution InputDist, distribution ... NoiseDists> requires
@@ -45,10 +60,15 @@ namespace OpenKalman
       return make_self_contained((scaled_x + ... + ns));
     }
 
+
+    using Base::transform_with_cross_covariance;
+
+
     /**
-     * Perform RLS transform, also returning the cross-covariance.
-     * \tparam InputDist Input distribution.
-     * \tparam NoiseDist Noise distributions.
+     * \brief Perform RLS transform, also returning the cross-covariance.
+     * \tparam InputDist The prior distribution.
+     * \tparam NoiseDists Zero or more noise distribution.
+     * \return A tuple comprising the posterior distribution and the cross-covariance.
      **/
 #ifdef __cpp_concepts
     template<distribution InputDist, distribution ... NoiseDists> requires
@@ -69,7 +89,8 @@ namespace OpenKalman
       return std::tuple {std::move(y), std::move(cross)};
     }
 
-  protected:
+  private:
+
     const Scalar inv_lambda;
 
   };

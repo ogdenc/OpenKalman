@@ -37,7 +37,7 @@ inline namespace
     template<int dim> static constexpr double kappa = 3 - dim;
   };
 
-  using UnscentedSigmaPoints2 = SigmaPoints<Unscented<Params>>;
+  using UnscentedSigmaPoints2 = Unscented<Params>;
 }
 
 

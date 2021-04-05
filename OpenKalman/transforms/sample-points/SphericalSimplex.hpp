@@ -8,6 +8,10 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+/**
+ * \file Definitions for the spherical simplex unscented transform.
+ */
+
 #ifndef OPENKALMAN_SPHERICALSIMPLEX_HPP
 #define OPENKALMAN_SPHERICALSIMPLEX_HPP
 
@@ -26,31 +30,73 @@ namespace OpenKalman
     static constexpr double beta = 2.0;
     /// The first weight, 0 <= W0 <= 1. It is a free parameter that affects the fourth and higher moments of the sigma point set.
     /// Here, for simplicity, it is equal to the other weights.
-    template<int dim> static constexpr double W0 = 1 / (dim + 2);
+    template<std::size_t dim>
+    static constexpr double W0 = 1. / (double(dim) + 2.);
   };
 
 
-  using SphericalSimplexSigmaPoints = SigmaPoints<SphericalSimplex<SphericalSimplexParameters>>;
+  using SphericalSimplexSigmaPoints = SphericalSimplex<SphericalSimplexParameters>;
 
 
-  /*************SphericalSimplexSigmaPoints************
+  /**
    * \brief Spherical simplex sigma points, as implemented in, e.g.,
    * Simon J. Julier. The spherical simplex unscented transformation.
    * In Proceedings of American Control Conference, Denver, Colorado, pages 2430–2434, 2003.
    */
   template<typename Parameters = SphericalSimplexParameters>
-  struct SphericalSimplex : internal::ScaledSigmaPointsBase<SphericalSimplex<Parameters>, Parameters>
+  struct SphericalSimplex : internal::ScaledSigmaPointsBase<SphericalSimplex<Parameters>>
   {
     /**
-     * Number of sigma points.
+     * \brief Number of sigma points.
      * \tparam dim Number of dimensions of the input variable.
-     * \return Number of sigma points.
+     * \note Used by base class.
      */
     template<std::size_t dim>
-    static constexpr size_t
-    sigma_point_count() { return dim + 2; };
+    static constexpr size_t sigma_point_count = dim + 2;
+
+
+    /**
+     * \brief The alpha parameter
+     * \note Used by base class.
+     */
+    static constexpr auto alpha = Parameters::alpha;
+
+
+    /**
+     * \brief The beta parameter
+     * \note Used by base class.
+     */
+    static constexpr auto beta = Parameters::beta;
+
+
+    /*
+     * \brief The unscaled W0 parameter.
+     * \tparam dim The total number of dimensions of all inputs.
+     * \note Used by base class.
+     */
+    template<std::size_t dim>
+    static constexpr auto unscaled_W0()
+    {
+      return Parameters::template W0<dim>;
+    }
+
+
+    /*
+     * \brief The unscaled W parameter.
+     * \tparam dim The total number of dimensions of all inputs.
+     * \note Used by base class.
+     */
+    template<std::size_t dim>
+    static constexpr auto unscaled_W()
+    {
+      return (1 - Parameters::template W0<dim>) / (sigma_point_count<dim> - 1);
+    }
 
   private:
+
+    /// Prevent instantiation.
+    SphericalSimplex() {};
+
 
     /// Compile time sqrt.
     template<typename Scalar>
@@ -70,7 +116,7 @@ namespace OpenKalman
     static constexpr auto
     sigma_point_coeff()
     {
-      constexpr auto denom = 1 / constexpr_sqrt((j + 1) * (j + 2) * unscaled_W<dim, Scalar>());
+      constexpr auto denom = 1 / constexpr_sqrt((j + 1) * (j + 2) * unscaled_W<dim>());
       if constexpr(i == 0)
         return Scalar(0);
       else if constexpr(i < j + 2)
@@ -89,7 +135,7 @@ namespace OpenKalman
       using Coefficients = typename DistributionTraits<Dist>::Coefficients;
       using Scalar = typename DistributionTraits<Dist>::Scalar;
       constexpr auto rows = DistributionTraits<Dist>::dimension;
-      constexpr auto count = sigma_point_count<dim>();
+      constexpr auto count = sigma_point_count<dim>;
       using Xnative = native_matrix_t<typename DistributionTraits<Dist>::Mean, rows, count>;
       Matrix<Coefficients, Axes<count>, Xnative> X {sigma_point_coeff<ns / count + pos, ns % count, dim, Scalar>()...};
       return X;
@@ -101,10 +147,10 @@ namespace OpenKalman
     sigma_points_impl(const D& d, const Ds&...ds)
     {
       constexpr auto rows = DistributionTraits<D>::dimension;
-      constexpr auto count = sigma_point_count<dim>();
+      constexpr auto count = sigma_point_count<dim>;
       auto X = unscaled_sigma_points<D, dim, pos>(std::make_index_sequence<count * rows>());
       // Scale based on covariance:
-      auto ret = make_self_contained(square_root(covariance_of(d)) * Parameters::alpha * X);
+      auto ret = make_self_contained(square_root(covariance_of(d)) * alpha * X);
       //
       if constexpr(sizeof...(ds) > 0)
         return std::tuple_cat(std::tuple {std::move(ret)}, sigma_points_impl<dim, pos + rows>(ds...));
@@ -114,38 +160,24 @@ namespace OpenKalman
 
   public:
 
+    /**
+     * \brief Calculate the scaled and translated sigma points, given a prior distribution and noise terms.
+     * \details The mean of the sample points is effectively translated the origin.
+     * \tparam Dist The prior distribution and any optional noise distributions.
+     * \return A tuple of sigma point matrices, one matrix for each input and noise distribution.
+     * Each column of these matrices corresponds to a sigma point.
+     */
 #ifdef __cpp_concepts
-    template<gaussian_distribution ... Dist>
+    template<gaussian_distribution ... Dist> requires (sizeof...(Dist) > 0)
 #else
-    template<typename...Dist, std::enable_if_t<((gaussian_distribution<Dist> and ...)), int> = 0>
+    template<typename...Dist, std::enable_if_t<
+      (gaussian_distribution<Dist> and ...) and (sizeof...(Dist) > 0), int> = 0>
 #endif
     static constexpr auto
-    sigma_points(const Dist&...ds)
+    sample_points(const Dist&...ds)
     {
       constexpr auto dim = (DistributionTraits<Dist>::dimension + ...);
       return sigma_points_impl<dim>(ds...);
-    }
-
-  protected:
-
-    friend struct internal::ScaledSigmaPointsBase<SphericalSimplex<Parameters>, Parameters>;
-
-    SphericalSimplex() {}; // Prevent instantiation.
-
-
-    template<std::size_t dim, typename Scalar = double>
-    static constexpr Scalar
-    unscaled_W0()
-    {
-      return Parameters::template W0<dim>;
-    }
-
-
-    template<std::size_t dim, typename Scalar = double>
-    static constexpr Scalar
-    unscaled_W()
-    {
-      return (1 - unscaled_W0<dim, Scalar>()) / (sigma_point_count<dim>() - 1);
     }
 
   };

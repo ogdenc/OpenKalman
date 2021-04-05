@@ -8,6 +8,10 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+/**
+ * \file Definition of SamplePointsTransform and related aliases.
+ */
+
 #ifndef OPENKALMAN_SAMPLEPOINTSTRANSFORM_HPP
 #define OPENKALMAN_SAMPLEPOINTSTRANSFORM_HPP
 
@@ -23,7 +27,7 @@ namespace OpenKalman
    * in Proc. of IEEE Symposium (AS-SPCC), pp. 153-158.
    * See also R. van der Merwe & E. Wan, "The Square-Root Unscented Kalman Filter for State and
    * Parameter-Estimation in Proc. Acoustics, Speech, and Signal Processing (ICASSP'01), 2001, pp. 3461-64.
-   * \tparam SamplePointsType The type of sample points on which the transform is based.
+   * \tparam SamplePointsType The type of sample points on which the transform is based (e.g., CubaturePoints).
    */
   template<typename SamplePointsType>
   struct SamplePointsTransform;
@@ -41,7 +45,7 @@ namespace OpenKalman
 
   private:
 
-    // Count the number of augmented sample points.
+    // Count the number of augmented input dimensions.
     template<typename D, typename...Ds>
     static constexpr auto count_dim(const std::tuple<Ds...>&)
     {
@@ -141,17 +145,16 @@ namespace OpenKalman
       }
     }
 
-  protected:
 
-    /**
+    /*
      * \internal
      * \brief Perform one or more consecutive sample points transforms.
      * \tparam return_cross Whether the transform must return a cross-covariance.
-     * \tparam InputDist Input distribution.
+     * \tparam InputDist The prior distribution.
      * \tparam Ts A list of tuples, each containing (1) a transformation and (2) zero or more noise terms for that
      * transformation.
-     * \return The posterior covariance or, if <var>return_cross</var> is <code>true</code>, a tuple containing
-     * the posterior covariance and the cross-covariance.
+     * \return The posterior distribution or, if <var>return_cross</var> is <code>true</code>, a tuple containing
+     * the posterior distribution and the cross-covariance.
      **/
     template<bool return_cross, typename InputDist, typename...Ts>
     auto transform(const InputDist& x, const Ts&...ts) const
@@ -167,7 +170,7 @@ namespace OpenKalman
         return SamplePointsType::sample_points(x, args...);
       }, flattened_ds);
 
-      constexpr auto dim = count_dim<InputDist>(flattened_ds); //< Number of augmented sample points.
+      constexpr auto dim = count_dim<InputDist>(flattened_ds); //< Number of augmented input dimensions.
       auto xpoints = std::get<0>(points_tuple); //< The augmented sample points corresponding to input x.
 
       // The augmented sample points corresponding to each noise term in flattened_ds.
@@ -183,10 +186,10 @@ namespace OpenKalman
 
     /**
      * \brief Perform one or more consecutive sample points transforms.
-     * \tparam InputDist Input distribution.
+     * \tparam InputDist The prior distribution.
      * \tparam Ts A list of tuple-like structures, each containing arguments to the second, third, etc. transform.
      * These arguments each include a transformation and zero or more noise distributions.
-     * \return The posterior covariance.
+     * \return The posterior distribution.
      **/
 #ifdef __cpp_concepts
     template<gaussian_distribution InputDist, internal::tuple_like...Ts>
@@ -202,10 +205,10 @@ namespace OpenKalman
 
     /**
      * \brief Perform one sample points transform.
-     * \tparam InputDist Input distribution.
+     * \tparam InputDist The prior distribution.
      * \tparam Trans The transformation on which the transform is based.
      * \tparam NoiseDist Zero or more noise distributions.
-     * \return The posterior covariance.
+     * \return The posterior distribution.
      **/
 #ifdef __cpp_concepts
     template<gaussian_distribution InputDist, typename Trans, gaussian_distribution ... NoiseDists> requires
@@ -224,10 +227,10 @@ namespace OpenKalman
 
     /**
      * \brief Perform one or more consecutive sample points transforms, also returning the cross-covariance.
-     * \tparam InputDist Input distribution.
+     * \tparam InputDist The prior distribution.
      * \tparam Ts A list of tuple-like structures, each containing arguments to the second, third, etc. transform.
      * These arguments each include a transformation and zero or more noise distributions.
-     * \return A tuple containing the posterior covariance and the cross-covariance.
+     * \return A tuple comprising the posterior distribution and the cross-covariance.
      **/
 #ifdef __cpp_concepts
     template<gaussian_distribution InputDist, internal::tuple_like...Ts>
@@ -243,10 +246,10 @@ namespace OpenKalman
 
     /**
      * \brief Perform one sample points transform, also returning the cross-covariance.
-     * \tparam InputDist Input distribution.
+     * \tparam InputDist The prior distribution.
      * \tparam Trans The transformation on which the transform is based.
      * \tparam NoiseDist Zero or more noise distributions.
-     * \return A tuple containing the posterior covariance and the cross-covariance.
+     * \return A tuple comprising the posterior distribution and the cross-covariance.
      **/
 #ifdef __cpp_concepts
     template<gaussian_distribution InputDist, typename Trans, gaussian_distribution ... NoiseDists> requires

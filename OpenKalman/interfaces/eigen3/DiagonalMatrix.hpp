@@ -63,7 +63,7 @@ namespace OpenKalman::Eigen3
 
 
     /// Construct from a zero matrix.
-#ifdef __cpp_concepts
+#if defined(__cpp_concepts) and defined(__cpp_conditional_explicit)
     template<zero_matrix Arg> requires (not eigen_diagonal_expr<Arg>) and
       (column_vector<Arg> or square_matrix<Arg>) and std::is_constructible_v<Base, ZeroMatrix<Scalar, dimension, 1>&&>
     explicit (column_vector<Arg> and not square_matrix<Arg>)
@@ -71,14 +71,14 @@ namespace OpenKalman::Eigen3
 #else
     template<typename Arg, std::enable_if_t<zero_matrix<Arg> and (not eigen_diagonal_expr<Arg>) and
       std::is_constructible_v<Base, ZeroMatrix<Scalar, dimension, 1>&&> and
-      (not column_vector<Arg> or square_matrix<Arg>), int> = 0>
-    DiagonalMatrix(Arg&&) : Base {ZeroMatrix<Scalar, dimension, 1> {}} {}
+      column_vector<Arg> and (not square_matrix<Arg>), int> = 0>
+    explicit DiagonalMatrix(Arg&&) : Base {ZeroMatrix<Scalar, dimension, 1> {}} {}
 
     /// \overload
     template<typename Arg, std::enable_if_t<zero_matrix<Arg> and (not eigen_diagonal_expr<Arg>) and
       std::is_constructible_v<Base, ZeroMatrix<Scalar, dimension, 1>&&> and
-      column_vector<Arg> and (not square_matrix<Arg>), int> = 0>
-    explicit DiagonalMatrix(Arg&&) : Base {ZeroMatrix<Scalar, dimension, 1> {}} {}
+      (not column_vector<Arg> or square_matrix<Arg>), int> = 0>
+    DiagonalMatrix(Arg&&) : Base {ZeroMatrix<Scalar, dimension, 1> {}} {}
 #endif
 
 

@@ -8,6 +8,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+/**
+ * \internal
+ * \brief Definition of internal::LinearTransformBase and internal::needs_additive_correction
+ */
+
 #ifndef OPENKALMAN_LINEARTRANSFORMBASE_HPP
 #define OPENKALMAN_LINEARTRANSFORMBASE_HPP
 
@@ -90,7 +95,7 @@ namespace OpenKalman::internal
      * Linearly transform one statistical distribution to another.
      * \tparam Trans The linear or linearized transformation on which the transform is based
      * (e.g., LinearTransformation).
-     * \tparam InputDist Input distribution.
+     * \tparam InputDist The prior distribution.
      * \tparam NoiseDist Zero or more noise distributions.
      **/
 #ifdef __cpp_concepts
@@ -136,11 +141,12 @@ namespace OpenKalman::internal
 
 
     /**
-     * Perform a linear(ized) transform from one statistical distribution to another.
-     * \tparam InputDist Input distribution.
+     * \brief Perform a linear(ized) transform from one statistical distribution to another.
+     * \tparam InputDist The prior distribution.
      * \tparam Trans The linear or linearized transformation on which the transform is based
      * (e.g., LinearTransformation).
      * \tparam NoiseDists Zero or more noise distributions.
+     * \return The posterior distribution.
      **/
 #ifdef __cpp_concepts
     template<gaussian_distribution InputDist, linearized_function<1> Trans, gaussian_distribution ... NoiseDists>
@@ -161,11 +167,12 @@ namespace OpenKalman::internal
 
 
     /**
-     * Perform a linear(ized) transform, also returning the cross-covariance.
-     * \tparam InputDist Input distribution.
+     * \brief Perform a linear(ized) transform, also returning the cross-covariance.
+     * \tparam InputDist The prior distribution.
      * \tparam Trans The linear or linearized transformation on which the transform is based
      * (e.g., LinearTransformation).
      * \tparam NoiseDists Zero or more noise distributions.
+     * \return A tuple comprising the posterior distribution and the cross-covariance.
      **/
 #ifdef __cpp_concepts
     template<gaussian_distribution InputDist, linearized_function<1> Trans, gaussian_distribution ... NoiseDists>

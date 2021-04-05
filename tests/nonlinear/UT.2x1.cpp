@@ -36,7 +36,7 @@ struct UT1p
   static constexpr double beta = 0;
   template<int dim> static constexpr double kappa = 3 - dim;
 };
-using UT1 = SigmaPoints<Unscented<UT1p>>;
+using UT1 = Unscented<UT1p>;
 
 using UT2 = UnscentedSigmaPointsStateEstimation; // alpha = 1e-3, beta = 2, kappa = 0;
 

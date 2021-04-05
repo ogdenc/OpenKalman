@@ -8,6 +8,10 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+/**
+ * \file Definition of LinearizedTransform.
+ */
+
 #ifndef OPENKALMAN_LINEARIZEDTRANSFORM_HPP
 #define OPENKALMAN_LINEARIZEDTRANSFORM_HPP
 
@@ -16,7 +20,8 @@ namespace OpenKalman
 {
   /**
    * \brief A linearized transform, using a 1st or 2nd order Taylor approximation of a linear transformation.
-   * \tparam order The order of the Taylor approximation (1 or 2).
+   * \tparam order The maximum order of the Taylor approximation (1 or 2). If a transformation function does not
+   * define a Hessian matrix, the order will be treated as 1, even if it is defined here as 2.
    */
   template<unsigned int order = 1>
   class LinearizedTransform;

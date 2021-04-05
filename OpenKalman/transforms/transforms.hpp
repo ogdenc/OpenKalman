@@ -36,7 +36,6 @@
 #include "LinearizedTransform.hpp"
 
 #include "details/ScaledSigmaPointsBase.hpp"
-#include "details/SigmaPoints.hpp"
 
 #include "sample-points/Unscented.hpp"
 #include "sample-points/SphericalSimplex.hpp"

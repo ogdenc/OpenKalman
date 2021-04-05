@@ -8,6 +8,10 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+/**
+ * \file Definition of LinearTransform.
+ */
+
 #ifndef OPENKALMAN_LINEARTRANSFORM_HPP
 #define OPENKALMAN_LINEARTRANSFORM_HPP
 

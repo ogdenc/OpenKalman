@@ -8,6 +8,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+/**
+ * \internal
+ * \file Definition of internal::TransformBase and internal::tuple_like.
+ */
+
 #ifndef OPENKALMAN_TRANSFORMBASE_HPP
 #define OPENKALMAN_TRANSFORMBASE_HPP
 
@@ -54,11 +59,11 @@ namespace OpenKalman::internal
 
    /**
     * \brief Perform one or more consecutive transforms.
-    * \tparam InputDist Input distribution.
+    * \tparam InputDist The prior distribution.
     * \tparam T A tuple-like structure containing zero or more arguments (beyond the input distribution) to the
     * first transform (e.g., a transformation and zero or more noise distributions).
     * \tparam Ts A list of tuple-like structures, each containing arguments to the second, third, etc. transform.
-    * \return The posterior covariance.
+    * \return The posterior distribution.
     **/
 #ifdef __cpp_concepts
     template<distribution InputDist, tuple_like T, tuple_like...Ts>
@@ -83,11 +88,11 @@ namespace OpenKalman::internal
 
     /**
      * \brief Perform one or more consecutive transforms, also returning the cross-covariance.
-     * \tparam InputDist Input distribution.
+     * \tparam InputDist The prior distribution.
      * \tparam T A tuple-like structure containing zero or more arguments (beyond the input distribution) to the
      * first transform (e.g., a transformation and zero or more noise distributions).
      * \tparam Ts A list of tuple-like structures, each containing arguments to the second, third, etc. transform.
-     * \return A tuple containing the posterior covariance and the cross-covariance.
+     * \return A tuple containing the posterior distribution and the cross-covariance.
      **/
 #ifdef __cpp_concepts
     template<distribution InputDist, tuple_like T, tuple_like...Ts>

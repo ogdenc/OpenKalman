@@ -8,6 +8,10 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+/**
+ * \file Definition of IdentityTransform.
+ */
+
 #ifndef OPENKALMAN_IDENTITYTRANSFORM_HPP
 #define OPENKALMAN_IDENTITYTRANSFORM_HPP
 
@@ -31,8 +35,9 @@ namespace OpenKalman
 
     /**
      * Apply the identity transform on an input distribution. Any noise distributions are treated as additive.
-     * \tparam InputDist Input distribution.
+     * \tparam InputDist The prior distribution.
      * \tparam NoiseDists Noise distribution.
+     * \return The posterior distribution.
      **/
 #ifdef __cpp_concepts
     template<distribution InputDist, distribution ... NoiseDists> requires
@@ -55,8 +60,9 @@ namespace OpenKalman
 
     /**
      * Perform identity transform, also returning the cross-covariance.
-     * \tparam InputDist Input distribution.
+     * \tparam InputDist The prior distribution.
      * \tparam NoiseDists Noise distributions.
+     * \return A tuple comprising the posterior distribution and the cross-covariance.
      **/
 #ifdef __cpp_concepts
     template<distribution InputDist, distribution ... NoiseDists> requires

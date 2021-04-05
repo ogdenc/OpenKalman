@@ -8,6 +8,10 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+/**
+ * \file Definitions for the unscented transform.
+ */
+
 #ifndef OPENKALMAN_UNSCENTED_HPP
 #define OPENKALMAN_UNSCENTED_HPP
 
@@ -26,7 +30,8 @@ namespace OpenKalman
     static constexpr double beta = 2.0;
     /// Secondary scaling parameter. Usually 0 for state estimation and 3-dim for parameter estimation.
     /// This makes it possible to match some of the fourth-order terms when the distribution is Gaussian.
-    template<int dim> static constexpr double kappa = 0.0;
+    template<std::size_t dim>
+    static constexpr double kappa = 0.0;
   };
 
 
@@ -39,38 +44,85 @@ namespace OpenKalman
     static constexpr double beta = 2.0;
     /// Secondary scaling parameter. Usually 0 for state estimation and kurtosis-dim for parameter estimation.
     /// This makes it possible to match some of the fourth-order terms. (For Gaussian, kurtosis = 3).
-    template<int dim> static constexpr double kappa = 3 - dim;
+    template<std::size_t dim>
+    static constexpr double kappa = 3. - double(dim);
   };
 
 
-  using UnscentedSigmaPointsStateEstimation = SigmaPoints<Unscented<UnscentedParametersStateEstimation>>;
+  using UnscentedSigmaPointsStateEstimation = Unscented<UnscentedParametersStateEstimation>;
 
-  using UnscentedSigmaPointsParameterEstimation = SigmaPoints<Unscented<UnscentedParametersParameterEstimation>>;
+  using UnscentedSigmaPointsParameterEstimation = Unscented<UnscentedParametersParameterEstimation>;
 
   /// Same as UnscentedSigmaPointsStateEstimation.
-  using UnscentedSigmaPoints = SigmaPoints<Unscented<UnscentedParametersStateEstimation>>;
+  using UnscentedSigmaPoints = Unscented<UnscentedParametersStateEstimation>;
 
 
-  /*************SymmetricSigmaPoints************
-   * \brief Scaled symmetric sigma points, as implemented in, e.g.,
-   * E. Wan & R. van der Merwe, "The unscented Kalman filter for nonlinear estimation,"
-   * in Proc. of IEEE Symposium (AS-SPCC), pp. 153-158.
+  /**
+   * \brief Scaled symmetric sigma points
+   * \details As implemented in, e.g., E. Wan & R. van der Merwe,
+   * "The unscented Kalman filter for nonlinear estimation," in Proc. of IEEE Symposium (AS-SPCC), pp. 153-158.
    * S. Julier. The scaled unscented transformation. In Proceedings of the American
    * Control Conference, Evanston, IL, pages 1108–1114, 2002.
    */
+#if __cpp_nontype_template_args >= 201911L
+  template<typename Parameters = UnscentedParametersStateEstimation> // \@todo add as floating-point parameters: alpha, beta, kappa
+#else
   template<typename Parameters = UnscentedParametersStateEstimation>
-  struct Unscented : internal::ScaledSigmaPointsBase<Unscented<Parameters>, Parameters>
+#endif
+  struct Unscented : internal::ScaledSigmaPointsBase<Unscented<Parameters>>
   {
+
     /**
-     * Number of sigma points.
+     * \brief Number of sigma points.
      * \tparam dim Number of dimensions of the input variable.
-     * \return Number of sigma points.
+     * \note Used by base class.
      */
     template<std::size_t dim>
-    static constexpr std::size_t
-    sigma_point_count() { return dim * 2 + 1; };
+    static constexpr std::size_t sigma_point_count = dim * 2 + 1;
+
+
+    /**
+     * \brief The alpha parameter.
+     * \note Used by base class.
+     */
+    static constexpr auto alpha = Parameters::alpha;
+
+
+    /**
+     * \brief The beta parameter.
+     * \note Used by base class.
+     */
+    static constexpr auto beta = Parameters::beta;
+
+
+    /**
+     * \brief The unscaled W0 parameter.
+     * \tparam dim The total number of dimensions of all inputs.
+     * \note Used by base class.
+     */
+    template<std::size_t dim>
+    static constexpr auto unscaled_W0()
+    {
+      return Parameters::template kappa<dim> / (dim + Parameters::template kappa<dim>);
+    }
+
+
+    /**
+     * \brief The unscaled W parameter.
+     * \tparam dim The total number of dimensions of all inputs.
+     * \note Used by base class.
+     */
+    template<std::size_t dim>
+    static constexpr auto unscaled_W()
+    {
+      return 0.5 / (dim + Parameters::template kappa<dim>);
+    }
 
   private:
+
+    /// Prevent instantiation.
+    Unscented() {};
+
 
     /*
      * Scale and translate normalized sample points based on mean and (square root) covariance.
@@ -88,12 +140,10 @@ namespace OpenKalman
       using Scalar = typename DistributionTraits<D>::Scalar;
       using Coeffs = typename DistributionTraits<D>::Coefficients;
       using M = typename DistributionTraits<D>::Mean;
-      constexpr auto points_count = sigma_point_count<dim>();
+      constexpr auto points_count = sigma_point_count<dim>;
       constexpr auto dim_i = DistributionTraits<D>::dimension;
       constexpr auto frame_size = dim_i * 2;
-      constexpr Scalar alpha = Parameters::alpha;
-      constexpr Scalar kappa = Parameters::template kappa<dim>;
-      constexpr Scalar gamma_L = alpha * alpha * (kappa + dim);
+      constexpr Scalar gamma_L = alpha * alpha * (Parameters::template kappa<dim> + dim);
       const auto gamma_L_cov = gamma_L * covariance_of(d);
       const auto delta = make_matrix<Coeffs, Axes<dim_i>>(square_root(gamma_L_cov).get_triangular_nested_matrix());
 
@@ -139,47 +189,24 @@ namespace OpenKalman
   public:
 
     /**
-     * \brief Scale and translate normalized sample points based on mean and (square root) covariance.
-     * This algorithm decreases the complexity from O(n^3) to O(n^2).
-     * \param x The input distribution.
-     * \return A matrix of sigma points (each sigma point in a column).
+     * \brief Calculate the scaled and translated sigma points, given a prior distribution and noise terms.
+     * \details The mean of the sample points is effectively translated the origin.
+     * \tparam Dist The prior distribution and any optional noise distributions.
+     * \return A tuple of sigma point matrices, one matrix for each input and noise distribution.
+     * Each column of these matrices corresponds to a sigma point.
      */
 #ifdef __cpp_concepts
-    template<gaussian_distribution ... Dist>
+    template<gaussian_distribution ... Dist> requires (sizeof...(Dist) > 0)
 #else
-    template<typename...Dist, std::enable_if_t<((gaussian_distribution<Dist> and ...)), int> = 0>
+    template<typename...Dist, std::enable_if_t<
+      (gaussian_distribution<Dist> and ...) and (sizeof...(Dist) > 0), int> = 0>
 #endif
     static auto
-    sigma_points(const Dist& ...ds)
+    sample_points(const Dist& ...ds)
     {
       constexpr auto dim = (DistributionTraits<Dist>::dimension + ...);
       return sigma_points_impl<dim>(ds...);
     }
-
-  protected:
-
-    friend struct internal::ScaledSigmaPointsBase<Unscented<Parameters>, Parameters>;
-
-    Unscented() {}; // Prevent instantiation.
-
-
-    template<std::size_t dim, typename Scalar = double>
-    static constexpr auto
-    unscaled_W0()
-    {
-      constexpr Scalar kappa = Parameters::template kappa<dim>;
-      return kappa / (dim + kappa);
-    }
-
-
-    template<std::size_t dim, typename Scalar = double>
-    static constexpr auto
-    unscaled_W()
-    {
-      constexpr Scalar kappa = Parameters::template kappa<dim>;
-      return 0.5 / (dim + kappa);
-    }
-
   };
 
 
