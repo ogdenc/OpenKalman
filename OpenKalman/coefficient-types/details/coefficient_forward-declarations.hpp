@@ -337,7 +337,7 @@ namespace OpenKalman
     template<typename T>
 #ifdef __cpp_concepts
     concept coefficient_class =
-    std::integral<decltype(T::size)> and std::integral<decltype(T::dimension)> and
+    std::integral<decltype(T::size)> and std::integral<decltype(T::euclidean_dimension)> and
       (T::axes_only or not T::axes_only) and
       (internal::is_atomic_coefficient_group<typename T::difference_type>::value or
         internal::is_composite_coefficients<typename T::difference_type>::value) and
@@ -346,7 +346,7 @@ namespace OpenKalman
       requires {T::template wrap_array_get<double, 0>[0](std::function<double(const std::size_t)>()) == 0.;} and
       requires {T::template wrap_array_set<double, 0>[0](0., std::function<void(const double, const std::size_t)>(),
           std::function<double(const std::size_t)>());} and
-      (std::tuple_size_v<decltype(T::template to_euclidean_array<double, 0>)> == T::dimension) and
+      (std::tuple_size_v<decltype(T::template to_euclidean_array<double, 0>)> == T::euclidean_dimension) and
       (std::tuple_size_v<decltype(T::template from_euclidean_array<double, 0>)> == T::size) and
       (std::tuple_size_v<decltype(T::template wrap_array_get<double, 0>)> == T::size) and
       (std::tuple_size_v<decltype(T::template wrap_array_set<double, 0>)> == T::size);

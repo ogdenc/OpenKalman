@@ -84,7 +84,7 @@ namespace OpenKalman
     static constexpr std::size_t size = 1;
 
     /// Inclination is represented by two coordinates in Euclidean space.
-    static constexpr std::size_t dimension = 2;
+    static constexpr std::size_t euclidean_dimension = 2;
 
     /// Inclination is not composed of only axes.
     static constexpr bool axes_only = false;
@@ -135,7 +135,7 @@ namespace OpenKalman
 #if defined (__cpp_concepts) && defined (__clang__) // Because of compiler issue in at least GCC version 10.1.0
     requires std::floating_point<Scalar>
 #endif
-    static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), dimension>
+    static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), euclidean_dimension>
       to_euclidean_array =
       {
         [](const GetCoeff<Scalar>& get_coeff) { return std::cos(get_coeff(i) * cf<Scalar>); },

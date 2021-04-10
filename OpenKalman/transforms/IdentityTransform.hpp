@@ -9,7 +9,8 @@
  */
 
 /**
- * \file Definition of IdentityTransform.
+ * \file
+ * \brief Definition of IdentityTransform.
  */
 
 #ifndef OPENKALMAN_IDENTITYTRANSFORM_HPP

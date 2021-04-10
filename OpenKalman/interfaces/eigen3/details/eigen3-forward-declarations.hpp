@@ -382,11 +382,11 @@ namespace OpenKalman::Eigen3
    * \tparam NestedMatrix The pre-transformed column vector, or set of column vectors in the form of a matrix.
    */
 #ifdef __cpp_concepts
-  template<coefficients Coeffs, typename NestedMatrix = Eigen::Matrix<double, Coeffs::dimension, 1>> requires
+  template<coefficients Coeffs, typename NestedMatrix = Eigen::Matrix<double, Coeffs::euclidean_dimension, 1>> requires
     (eigen_matrix<NestedMatrix> or to_euclidean_expr<NestedMatrix>) and
-    (MatrixTraits<NestedMatrix>::dimension == Coeffs::dimension)
+    (MatrixTraits<NestedMatrix>::dimension == Coeffs::euclidean_dimension)
 #else
-  template<typename Coeffs, typename NestedMatrix = Eigen::Matrix<double, Coeffs::dimension, 1>>
+  template<typename Coeffs, typename NestedMatrix = Eigen::Matrix<double, Coeffs::euclidean_dimension, 1>>
 #endif
   struct FromEuclideanExpr;
 

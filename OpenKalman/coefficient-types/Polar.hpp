@@ -147,7 +147,7 @@ namespace OpenKalman
       static constexpr std::size_t size = 2;
 
       /// Polar is represented by three coordinates in Euclidean space.
-      static constexpr std::size_t dimension = 3;
+      static constexpr std::size_t euclidean_dimension = 3;
 
       /// Polar is not composed of only axes.
       static constexpr bool axes_only = false;
@@ -193,7 +193,7 @@ namespace OpenKalman
        * \tparam i The index of the first polar coefficient that is being transformed.
        */
       template<typename Scalar, std::size_t i>
-      static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), dimension>
+      static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), euclidean_dimension>
         to_euclidean_array = internal::join(
         detail::PolarImpl<Limits, C1, Scalar>::template to_euclidean_array<i, d_i, a_i>,
         detail::PolarImpl<Limits, C2, Scalar>::template to_euclidean_array<i, d_i, a_i>

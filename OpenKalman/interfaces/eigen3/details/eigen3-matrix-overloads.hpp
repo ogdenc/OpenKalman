@@ -148,10 +148,10 @@ namespace OpenKalman::Eigen3
 
 #ifdef __cpp_concepts
   template<coefficients Coefficients, eigen_matrix Arg> requires (not from_euclidean_expr<Arg>) and
-    (Coefficients::dimension == MatrixTraits<Arg>::dimension)
+    (Coefficients::euclidean_dimension == MatrixTraits<Arg>::dimension)
 #else
   template<typename Coefficients, typename Arg, std::enable_if_t<coefficients<Coefficients> and eigen_matrix<Arg> and
-    (not from_euclidean_expr<Arg>) and (Coefficients::dimension == MatrixTraits<Arg>::dimension), int> = 0>
+    (not from_euclidean_expr<Arg>) and (Coefficients::euclidean_dimension == MatrixTraits<Arg>::dimension), int> = 0>
 #endif
   constexpr decltype(auto)
   from_euclidean(Arg&& arg) noexcept
@@ -576,8 +576,8 @@ namespace OpenKalman::Eigen3
   inline auto
   split_vertical(Arg&& arg) noexcept
   {
-    constexpr auto RC_size = euclidean ? RC::dimension : RC::size;
-    static_assert((RC_size + ... + (euclidean ? RCs::dimension : RCs::size)) <= MatrixTraits<Arg>::dimension);
+    constexpr auto RC_size = euclidean ? RC::euclidean_dimension : RC::size;
+    static_assert((RC_size + ... + (euclidean ? RCs::euclidean_dimension : RCs::size)) <= MatrixTraits<Arg>::dimension);
     using CC = Axes<MatrixTraits<Arg>::columns>;
     constexpr Eigen::Index dim1 = RC_size, dim2 = std::decay_t<Arg>::RowsAtCompileTime - dim1;
     constexpr auto g = [](auto&& m) -> decltype(auto) {
@@ -763,8 +763,8 @@ namespace OpenKalman::Eigen3
   inline auto
   split_diagonal(Arg&& arg) noexcept
   {
-    constexpr auto RC_size = euclidean ? C::dimension : C::size;
-    static_assert((RC_size + ... + (euclidean ? Cs::dimension : Cs::size)) <= MatrixTraits<Arg>::dimension);
+    constexpr auto RC_size = euclidean ? C::euclidean_dimension : C::size;
+    static_assert((RC_size + ... + (euclidean ? Cs::euclidean_dimension : Cs::size)) <= MatrixTraits<Arg>::dimension);
     static_assert((C::size + ... + Cs::size) <= MatrixTraits<Arg>::columns);
     constexpr Eigen::Index rdim1 = RC_size, rdim2 = std::decay_t<Arg>::RowsAtCompileTime - rdim1;
     constexpr Eigen::Index cdim1 = C::size, cdim2 = std::decay_t<Arg>::RowsAtCompileTime - cdim1;

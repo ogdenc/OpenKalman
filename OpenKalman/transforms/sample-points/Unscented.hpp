@@ -9,7 +9,8 @@
  */
 
 /**
- * \file Definitions for the unscented transform.
+ * \file
+ * \brief Definitions for the unscented transform.
  */
 
 #ifndef OPENKALMAN_UNSCENTED_HPP

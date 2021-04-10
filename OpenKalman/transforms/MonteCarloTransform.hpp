@@ -9,7 +9,8 @@
  */
 
 /**
- * \file Definition of MonteCarloTransform.
+ * \file
+ * \brief Definition of MonteCarloTransform.
  */
 
 #ifndef OPENKALMAN_MONTECARLOTRANSFORM_HPP

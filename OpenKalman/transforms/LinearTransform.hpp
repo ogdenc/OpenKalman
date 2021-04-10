@@ -9,7 +9,8 @@
  */
 
 /**
- * \file Definition of LinearTransform.
+ * \file
+ * \brief Definition of LinearTransform.
  */
 
 #ifndef OPENKALMAN_LINEARTRANSFORM_HPP

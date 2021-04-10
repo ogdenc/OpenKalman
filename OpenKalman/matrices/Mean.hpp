@@ -161,7 +161,7 @@ namespace OpenKalman
 
 
     /**
-     * \brief Assign from a compatible \ref mean.
+     * \brief Assign from a compatible \ref OpenKalman::mean "mean".
      */
 #ifdef __cpp_concepts
     template<mean Arg> requires (not std::derived_from<std::decay_t<Arg>, Mean>) and
@@ -183,7 +183,7 @@ namespace OpenKalman
 
 
     /**
-     * \brief Assign from a compatible \ref euclidean_transformed.
+     * \brief Assign from a compatible \ref OpenKalman::euclidean_transformed "euclidean_transformed".
      */
 #ifdef __cpp_concepts
     template<euclidean_transformed Arg> requires
@@ -205,7 +205,8 @@ namespace OpenKalman
 
 
     /**
-     * \brief Assign from a compatible \ref typed_matrix that is not \ref mean or \ref euclidean_transformed.
+     * \brief Assign from a compatible \ref OpenKalman::typed_matrix "typed_matrix" that is not
+     * \ref OpenKalman::mean "mean" or \ref OpenKalman::euclidean_transformed "euclidean_transformed".
      */
 #ifdef __cpp_concepts
     template<typed_matrix Arg> requires (not mean<Arg>) and (not euclidean_transformed<Arg>) and

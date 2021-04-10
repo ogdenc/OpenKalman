@@ -114,7 +114,7 @@ namespace Eigen::internal
       Flags = Coefficients::axes_only ?
         NestedTraits::Flags :
         ColMajor | (NestedTraits::ColsAtCompileTime == 1 ? LinearAccessBit : 0),
-      RowsAtCompileTime = static_cast<Index>(Coefficients::dimension),
+      RowsAtCompileTime = static_cast<Index>(Coefficients::euclidean_dimension),
       MaxRowsAtCompileTime = RowsAtCompileTime,
     };
   };

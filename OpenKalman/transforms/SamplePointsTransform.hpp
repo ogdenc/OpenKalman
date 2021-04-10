@@ -9,7 +9,8 @@
  */
 
 /**
- * \file Definition of SamplePointsTransform and related aliases.
+ * \file
+ * \brief Definition of SamplePointsTransform and related aliases.
  */
 
 #ifndef OPENKALMAN_SAMPLEPOINTSTRANSFORM_HPP
@@ -187,14 +188,14 @@ namespace OpenKalman
     /**
      * \brief Perform one or more consecutive sample points transforms.
      * \tparam InputDist The prior distribution.
-     * \tparam Ts A list of tuple-like structures, each containing arguments to the second, third, etc. transform.
+     * \tparam Ts A list of tuple-like structures, each containing arguments to a transform.
      * These arguments each include a transformation and zero or more noise distributions.
      * \return The posterior distribution.
      **/
 #ifdef __cpp_concepts
     template<gaussian_distribution InputDist, internal::tuple_like...Ts>
 #else
-    template<typename InputDist, typename T, typename...Ts, std::enable_if_t<
+    template<typename InputDist, typename...Ts, std::enable_if_t<
       gaussian_distribution<InputDist> and (internal::tuple_like<Ts> and ...), int> = 0>
 #endif
     auto operator()(const InputDist& x, Ts&...ts) const
@@ -228,14 +229,14 @@ namespace OpenKalman
     /**
      * \brief Perform one or more consecutive sample points transforms, also returning the cross-covariance.
      * \tparam InputDist The prior distribution.
-     * \tparam Ts A list of tuple-like structures, each containing arguments to the second, third, etc. transform.
+     * \tparam Ts A list of tuple-like structures, each containing arguments to a transform.
      * These arguments each include a transformation and zero or more noise distributions.
      * \return A tuple comprising the posterior distribution and the cross-covariance.
      **/
 #ifdef __cpp_concepts
     template<gaussian_distribution InputDist, internal::tuple_like...Ts>
 #else
-    template<typename InputDist, typename T, typename...Ts, std::enable_if_t<
+    template<typename InputDist, typename...Ts, std::enable_if_t<
       gaussian_distribution<InputDist> and (internal::tuple_like<Ts> and ...), int> = 0>
 #endif
     auto transform_with_cross_covariance(const InputDist& x, const Ts&...ts) const

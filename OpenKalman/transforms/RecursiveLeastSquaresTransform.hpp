@@ -9,7 +9,8 @@
  */
 
 /**
- * \file Definition of RecursiveLeastSquaresTransform.
+ * \file
+ * \brief Definition of RecursiveLeastSquaresTransform.
  */
 
 #ifndef OPENKALMAN_RLSTRANSFORM_H

@@ -205,7 +205,7 @@ namespace OpenKalman
       static constexpr std::size_t size = 3;
 
       /// Spherical is represented by four coordinates in Euclidean space.
-      static constexpr std::size_t dimension = 4;
+      static constexpr std::size_t euclidean_dimension = 4;
 
       /// Spherical is not composed of only axes.
       static constexpr bool axes_only = false;
@@ -262,7 +262,7 @@ namespace OpenKalman
        * \tparam i The index of the first spherical coefficient that is being transformed.
        */
       template<typename Scalar, std::size_t i>
-      static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), dimension>
+      static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), euclidean_dimension>
         to_euclidean_array = {
         [](const GetCoeff<Scalar>& get_coeff) constexpr { return get_coeff(i + d_i); },
         [](const GetCoeff<Scalar>& get_coeff) constexpr {

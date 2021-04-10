@@ -9,7 +9,8 @@
  */
 
 /**
- * \file Definitions for the spherical simplex unscented transform.
+ * \file
+ * \brief Definitions for the spherical simplex unscented transform.
  */
 
 #ifndef OPENKALMAN_SPHERICALSIMPLEX_HPP

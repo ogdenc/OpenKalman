@@ -10,7 +10,8 @@
 
 /**
  * \internal
- * \file Definition of internal::TransformBase and internal::tuple_like.
+ * \file
+ * \brief Definition of internal::TransformBase and internal::tuple_like.
  */
 
 #ifndef OPENKALMAN_TRANSFORMBASE_HPP

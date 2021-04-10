@@ -686,7 +686,12 @@ namespace OpenKalman::Eigen3
   }
 
 
-  /// Set element (i, j) of ToEuclideanExpr or FromEuclideanExpr matrix arg if coefficients are only axes.
+  /**
+   * \brief Set element (i, j) of ToEuclideanExpr or FromEuclideanExpr matrix arg if coefficients are only axes.
+   * \param s A scalar value.
+   * \param i An index.
+   * \param j An index.
+   */
 #ifdef __cpp_concepts
   template<euclidean_expr Arg, std::convertible_to<typename MatrixTraits<Arg>::Scalar> Scalar> requires
     (not to_euclidean_expr<nested_matrix_t<Arg>>) and
@@ -709,7 +714,11 @@ namespace OpenKalman::Eigen3
   }
 
 
-  /// Set element (i) of ToEuclideanExpr or FromEuclideanExpr matrix arg if coefficients are only axes.
+  /**
+   * \brief Set element (i) of ToEuclideanExpr or FromEuclideanExpr matrix arg if coefficients are only axes.
+   * \param s A scalar value.
+   * \param i An index.
+   */
 #ifdef __cpp_concepts
   template<euclidean_expr Arg, std::convertible_to<typename MatrixTraits<Arg>::Scalar> Scalar> requires
     (not to_euclidean_expr<nested_matrix_t<Arg>>) and

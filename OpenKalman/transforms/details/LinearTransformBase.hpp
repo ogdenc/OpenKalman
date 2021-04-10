@@ -137,7 +137,23 @@ namespace OpenKalman::internal
 
   public:
 
-    using Base::operator();
+    /**
+     * \brief Perform one or more consecutive linear(ized) transforms.
+     * \tparam InputDist The prior distribution.
+     * \tparam Ts A list of tuple-like structures, each containing arguments to a transform.
+     * These arguments each include a transformation and zero or more noise distributions.
+     * \return The posterior distribution.
+     **/
+#ifdef __cpp_concepts
+    template<gaussian_distribution InputDist, tuple_like...Ts>
+#else
+    template<typename InputDist, typename...Ts, std::enable_if_t<
+      gaussian_distribution<InputDist> and (tuple_like<Ts> and ...), int> = 0>
+#endif
+    auto operator()(const InputDist& x, const Ts&...ts) const
+    {
+      return Base::operator()(x, ts...);
+    }
 
 
     /**
@@ -163,7 +179,23 @@ namespace OpenKalman::internal
     }
 
 
-    using Base::transform_with_cross_covariance;
+    /**
+     * \brief Perform one or more consecutive linear(ized) transforms, also returning the cross-covariance.
+     * \tparam InputDist The prior distribution.
+     * \tparam Ts A list of tuple-like structures, each containing arguments to a transform.
+     * These arguments each include a transformation and zero or more noise distributions.
+     * \return A tuple containing the posterior distribution and the cross-covariance.
+     **/
+#ifdef __cpp_concepts
+    template<gaussian_distribution InputDist, tuple_like...Ts>
+#else
+    template<typename InputDist, typename...Ts, std::enable_if_t<
+      gaussian_distribution<InputDist> and (tuple_like<Ts> and ...), int> = 0>
+#endif
+    auto transform_with_cross_covariance(const InputDist& x, const Ts&...ts) const
+    {
+      return Base::transform_with_cross_covariance(x, ts...);
+    }
 
 
     /**

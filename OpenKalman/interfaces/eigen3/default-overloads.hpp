@@ -167,20 +167,20 @@ namespace OpenKalman
      * \note This function is imported into the OpenKalman namespace if Eigen3 is the first-included interface.
      * \tparam Coefficients The coefficient types corresponding to the rows.
      * \tparam Args A list of numerical coefficients (either integral or floating-point). The number of coefficients
-     * must be divisible by Coefficients::dimension.
+     * must be divisible by Coefficients::euclidean_dimension.
      */
 #ifdef __cpp_concepts
     template<coefficients Coefficients, typename ... Args> requires
-    (sizeof...(Args) > 0) and (std::is_arithmetic_v<Args> and ...) and (sizeof...(Args) % Coefficients::dimension == 0)
+    (sizeof...(Args) > 0) and (std::is_arithmetic_v<Args> and ...) and (sizeof...(Args) % Coefficients::euclidean_dimension == 0)
 #else
     template<typename Coefficients, typename ... Args, std::enable_if_t<
       (sizeof...(Args) > 0) and std::conjunction_v<std::is_arithmetic<Args>...> and
-      (sizeof...(Args) % Coefficients::dimension == 0), int> = 0>
+      (sizeof...(Args) % Coefficients::euclidean_dimension == 0), int> = 0>
 #endif
     auto make_euclidean_mean(const Args ... args) noexcept
     {
       using Scalar = std::decay_t<std::common_type_t<Args...>>;
-      constexpr std::size_t dim = Coefficients::dimension;
+      constexpr std::size_t dim = Coefficients::euclidean_dimension;
       constexpr std::size_t cols = sizeof...(Args) / dim;
       using Mat = Eigen::Matrix<Scalar, dim, cols>;
       return EuclideanMean<Coefficients, Mat>(MatrixTraits<Mat>::make(static_cast<const Scalar>(args)...));
@@ -221,7 +221,7 @@ namespace OpenKalman
 #endif
     auto make_euclidean_mean()
     {
-      return EuclideanMean<Coefficients,  Eigen::Matrix<Scalar, Coefficients::dimension, cols>>();
+      return EuclideanMean<Coefficients,  Eigen::Matrix<Scalar, Coefficients::euclidean_dimension, cols>>();
     }
 
 
@@ -557,12 +557,12 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<
     coefficients Coefficients,
-    typed_matrix_nestable NestedMatrix = Eigen::Matrix<double, Coefficients::dimension, 1>>
+    typed_matrix_nestable NestedMatrix = Eigen::Matrix<double, Coefficients::euclidean_dimension, 1>>
   requires
-    (Coefficients::dimension == MatrixTraits<NestedMatrix>::dimension) and
+    (Coefficients::euclidean_dimension == MatrixTraits<NestedMatrix>::dimension) and
     (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
-  template<typename Coefficients, typename NestedMatrix = Eigen::Matrix<double, Coefficients::dimension, 1>>
+  template<typename Coefficients, typename NestedMatrix = Eigen::Matrix<double, Coefficients::euclidean_dimension, 1>>
 #endif
   struct EuclideanMean;
 

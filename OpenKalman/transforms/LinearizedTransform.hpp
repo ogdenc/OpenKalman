@@ -9,7 +9,8 @@
  */
 
 /**
- * \file Definition of LinearizedTransform.
+ * \file
+ * \brief Definition of LinearizedTransform.
  */
 
 #ifndef OPENKALMAN_LINEARIZEDTRANSFORM_HPP

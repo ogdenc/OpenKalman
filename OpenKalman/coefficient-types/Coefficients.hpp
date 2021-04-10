@@ -34,7 +34,7 @@ namespace OpenKalman
     static constexpr std::size_t size = 0;
 
     /// Number of matrix rows when these coefficients are converted to Euclidean space.
-    static constexpr std::size_t dimension = 0;
+    static constexpr std::size_t euclidean_dimension = 0;
 
     /// Whether all the coefficients are of type Axis.
     static constexpr bool axes_only = true;
@@ -55,7 +55,7 @@ namespace OpenKalman
     using SetCoeffFunction = void(*)(const Scalar, const SetCoeff<Scalar>&, const GetCoeff<Scalar>&);
 
     template<typename Scalar, std::size_t i>
-    static constexpr std::array<const GetCoeffFunction<Scalar>, dimension>
+    static constexpr std::array<const GetCoeffFunction<Scalar>, euclidean_dimension>
       to_euclidean_array = {};
 
     template<typename Scalar, std::size_t i>
@@ -130,7 +130,7 @@ namespace OpenKalman
     static constexpr std::size_t size = C::size + Coefficients<Cs...>::size;
 
     /// Number of matrix rows when these coefficients are converted to Euclidean space.
-    static constexpr std::size_t dimension = C::dimension + Coefficients<Cs...>::dimension;
+    static constexpr std::size_t euclidean_dimension = C::euclidean_dimension + Coefficients<Cs...>::euclidean_dimension;
 
     /// Whether all the coefficients are of type Axis.
     static constexpr bool axes_only = C::axes_only and Coefficients<Cs...>::axes_only;
@@ -182,7 +182,7 @@ namespace OpenKalman
      * This may be non-zero if this set of coefficients is part of a larger set of composite coordinates.
      */
     template<typename Scalar, std::size_t i>
-    static constexpr std::array<const GetCoeffFunction<Scalar>, dimension>
+    static constexpr std::array<const GetCoeffFunction<Scalar>, euclidean_dimension>
       to_euclidean_array = internal::join(C::template to_euclidean_array<Scalar, i>,
         Coefficients<Cs...>::template to_euclidean_array<Scalar, i + C::size>);
 
@@ -202,7 +202,7 @@ namespace OpenKalman
     template<typename Scalar, std::size_t i>
     static constexpr std::array<const GetCoeffFunction<Scalar>, size>
       from_euclidean_array = internal::join(C::template from_euclidean_array<Scalar, i>,
-        Coefficients<Cs...>::template from_euclidean_array<Scalar, i + C::dimension>);
+        Coefficients<Cs...>::template from_euclidean_array<Scalar, i + C::euclidean_dimension>);
 
 
     /*

@@ -10,7 +10,8 @@
 
 /**
  * \internal
- * \file Definition of internal::ScaledSigmaPointsBase.
+ * \file
+ * \brief Definition of internal::ScaledSigmaPointsBase.
  */
 
 #ifndef OPENKALMAN_SCALEDSIGMAPOINTSBASE_HPP
@@ -114,10 +115,10 @@ namespace OpenKalman::internal
 
 #ifdef __cpp_concepts
     template<std::size_t dim, typed_matrix YMeans> requires untyped_columns<YMeans> and
-      (MatrixTraits<YMeans>::dimension == MatrixTraits<YMeans>::RowCoefficients::dimension)
+      (MatrixTraits<YMeans>::dimension == MatrixTraits<YMeans>::RowCoefficients::euclidean_dimension)
 #else
     template<std::size_t dim, typename YMeans, std::enable_if_t<typed_matrix<YMeans> and untyped_columns<YMeans> and
-      (MatrixTraits<YMeans>::dimension == MatrixTraits<YMeans>::RowCoefficients::dimension), int> = 0>
+      (MatrixTraits<YMeans>::dimension == MatrixTraits<YMeans>::RowCoefficients::euclidean_dimension), int> = 0>
 #endif
     static auto
     weighted_means(const YMeans& y_means)

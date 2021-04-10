@@ -812,7 +812,7 @@ namespace OpenKalman::internal
 
   template<typename C, typename NestedMatrix, typename U>
   struct is_modifiable_native<Eigen3::ToEuclideanExpr<C, NestedMatrix>, U, std::void_t<Eigen3::FromEuclideanExpr<C, std::decay_t<U>>>>
-    : std::bool_constant<modifiable<NestedMatrix, native_matrix_t<NestedMatrix>>/* and C::dimension == MatrixTraits<U>::dimension and
+    : std::bool_constant<modifiable<NestedMatrix, native_matrix_t<NestedMatrix>>/* and C::euclidean_dimension == MatrixTraits<U>::dimension and
       MatrixTraits<NestedMatrix>::columns == MatrixTraits<U>::columns and
       std::is_same_v<typename MatrixTraits<NestedMatrix>::Scalar, typename MatrixTraits<U>::Scalar>*/> {};
 #endif
