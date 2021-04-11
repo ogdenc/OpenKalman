@@ -463,7 +463,7 @@ namespace OpenKalman
    *   <tr><td class="memTemplParams" colspan="2">
    * template&lt;\ref OpenKalman::coefficients "coefficients" C = <a href="afwtraitsDRC">Coefficients</a>,
    * \ref mean M, \ref OpenKalman::covariance "covariance" Cov&gt; requires column_vector&lt;M&gt; and
-   * (MatrixTraits&lt;Mean&gt;::dimension == MatrixTraits&lt;Cov&gt;::dimension)</td></tr>
+   * (MatrixTraits&lt;Mean&gt;::rows == MatrixTraits&lt;Cov&gt;::rows)</td></tr>
    * <tr><td class="memTemplItemLeft" align="right" valign="top">static auto&nbsp;</td>
    * <td class="memTemplItemRight" valign="bottom"><b>make</b> (M&& mean, Cov&& covariance) noexcept</td></tr>
    * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
@@ -524,7 +524,7 @@ namespace OpenKalman
    * \tparam cols Number of columns in the native matrix (defaults to the number of columns in T).
    * \tparam Scalar Scalar type of the matrix (defaults to the Scalar type of T).
    */
-  template<typename T, std::size_t rows = MatrixTraits<T>::dimension, std::size_t cols = MatrixTraits<T>::columns,
+  template<typename T, std::size_t rows = MatrixTraits<T>::rows, std::size_t cols = MatrixTraits<T>::columns,
     typename Scalar = typename MatrixTraits<T>::Scalar>
   using native_matrix_t = typename MatrixTraits<T>::template NativeMatrixFrom<rows, cols, Scalar>;
 
@@ -534,11 +534,11 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<typename M, std::convertible_to<typename MatrixTraits<M>::Scalar> ... Args> requires
-  (sizeof...(Args) == MatrixTraits<M>::dimension * MatrixTraits<M>::columns)
+  (sizeof...(Args) == MatrixTraits<M>::rows * MatrixTraits<M>::columns)
 #else
   template<typename M, typename ... Args, std::enable_if_t<
     (std::is_convertible_v<Args, typename MatrixTraits<M>::Scalar> and ...) and
-    (sizeof...(Args) == MatrixTraits<M>::dimension * MatrixTraits<M>::columns), int> = 0>
+    (sizeof...(Args) == MatrixTraits<M>::rows * MatrixTraits<M>::columns), int> = 0>
 #endif
   inline auto
   make_native_matrix(const Args ... args)
@@ -669,7 +669,7 @@ namespace OpenKalman
     struct is_1by1 : std::false_type {};
 
     template<typename T>
-    struct is_1by1<T, std::enable_if_t<(MatrixTraits<T>::dimension == 1) and (MatrixTraits<T>::columns == 1)>>
+    struct is_1by1<T, std::enable_if_t<(MatrixTraits<T>::rows == 1) and (MatrixTraits<T>::columns == 1)>>
       : std::true_type {};
   }
 #endif
@@ -681,7 +681,7 @@ namespace OpenKalman
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept one_by_one_matrix = (MatrixTraits<T>::dimension == 1) and (MatrixTraits<T>::columns == 1);
+  concept one_by_one_matrix = (MatrixTraits<T>::rows == 1) and (MatrixTraits<T>::columns == 1);
 #else
   inline constexpr bool one_by_one_matrix = detail::is_1by1<T>::value;
 #endif

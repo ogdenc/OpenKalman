@@ -19,21 +19,21 @@ namespace OpenKalman::Eigen3
   /**
    * Make a native Eigen matrix from a list of coefficients in row-major order.
    * \tparam Scalar The scalar type of the matrix.
-   * \tparam dimension The number of rows.
+   * \tparam rows The number of rows.
    * \tparam columns The number of columns.
    */
 #ifdef __cpp_concepts
-  template<typename Scalar, std::size_t dimension, std::size_t columns = 1, std::convertible_to<Scalar> ... Args>
-    requires std::is_arithmetic_v<Scalar> and (sizeof...(Args) == dimension * columns)
+  template<typename Scalar, std::size_t rows, std::size_t columns = 1, std::convertible_to<Scalar> ... Args>
+    requires std::is_arithmetic_v<Scalar> and (sizeof...(Args) == rows * columns)
 #else
-  template<typename Scalar, std::size_t dimension, std::size_t columns = 1, typename ... Args, std::enable_if_t<
+  template<typename Scalar, std::size_t rows, std::size_t columns = 1, typename ... Args, std::enable_if_t<
     std::is_arithmetic_v<Scalar> and (std::is_convertible_v<Args, Scalar> and ...) and
-    (sizeof...(Args) == dimension * columns), int> = 0>
+    (sizeof...(Args) == rows * columns), int> = 0>
 #endif
   inline auto
   make_native_matrix(const Args ... args)
   {
-    using M = Eigen::Matrix<Scalar, dimension, columns>;
+    using M = Eigen::Matrix<Scalar, rows, columns>;
     return MatrixTraits<M>::make(static_cast<const Scalar>(args)...);
   }
 
@@ -43,17 +43,17 @@ namespace OpenKalman::Eigen3
    * \brief Make a native Eigen matrix from a list of coefficients in row-major order.
    */
 #ifdef __cpp_concepts
-  template<std::size_t dimension, std::size_t columns = 1, typename ... Args> requires
-    (std::is_arithmetic_v<Args> and ...) and (sizeof...(Args) == dimension * columns)
+  template<std::size_t rows, std::size_t columns = 1, typename ... Args> requires
+    (std::is_arithmetic_v<Args> and ...) and (sizeof...(Args) == rows * columns)
 #else
-  template<std::size_t dimension, std::size_t columns = 1, typename ... Args, std::enable_if_t<
-    (std::is_arithmetic_v<Args> and ...) and (sizeof...(Args) == dimension * columns), int> = 0>
+  template<std::size_t rows, std::size_t columns = 1, typename ... Args, std::enable_if_t<
+    (std::is_arithmetic_v<Args> and ...) and (sizeof...(Args) == rows * columns), int> = 0>
 #endif
   inline auto
   make_native_matrix(const Args ... args)
   {
     using Scalar = std::common_type_t<Args...>;
-    return make_native_matrix<Scalar, dimension, columns>(args...);
+    return make_native_matrix<Scalar, rows, columns>(args...);
   }
 
 
@@ -97,7 +97,7 @@ namespace OpenKalman::Eigen3
     else
     {
       using S = typename MatrixTraits<Arg>::Scalar;
-      constexpr Eigen::Index rows = MatrixTraits<Arg>::dimension;
+      constexpr Eigen::Index rows = MatrixTraits<Arg>::rows;
       constexpr Eigen::Index cols = MatrixTraits<Arg>::columns;
       Eigen::Matrix<S, rows, cols> ret {std::forward<Arg>(arg)};
       return ret;
@@ -127,10 +127,10 @@ namespace OpenKalman::Eigen3
 
 #ifdef __cpp_concepts
   template<coefficients Coefficients, eigen_matrix Arg> requires (not to_euclidean_expr<Arg>) and
-    (Coefficients::size == MatrixTraits<Arg>::dimension)
+    (Coefficients::size == MatrixTraits<Arg>::rows)
 #else
   template<typename Coefficients, typename Arg, std::enable_if_t<coefficients<Coefficients> and eigen_matrix<Arg> and
-    (not to_euclidean_expr<Arg>) and (Coefficients::size == MatrixTraits<Arg>::dimension), int> = 0>
+    (not to_euclidean_expr<Arg>) and (Coefficients::size == MatrixTraits<Arg>::rows), int> = 0>
 #endif
   constexpr decltype(auto)
   to_euclidean(Arg&& arg) noexcept
@@ -148,10 +148,10 @@ namespace OpenKalman::Eigen3
 
 #ifdef __cpp_concepts
   template<coefficients Coefficients, eigen_matrix Arg> requires (not from_euclidean_expr<Arg>) and
-    (Coefficients::euclidean_dimension == MatrixTraits<Arg>::dimension)
+    (Coefficients::euclidean_dimension == MatrixTraits<Arg>::rows)
 #else
   template<typename Coefficients, typename Arg, std::enable_if_t<coefficients<Coefficients> and eigen_matrix<Arg> and
-    (not from_euclidean_expr<Arg>) and (Coefficients::euclidean_dimension == MatrixTraits<Arg>::dimension), int> = 0>
+    (not from_euclidean_expr<Arg>) and (Coefficients::euclidean_dimension == MatrixTraits<Arg>::rows), int> = 0>
 #endif
   constexpr decltype(auto)
   from_euclidean(Arg&& arg) noexcept
@@ -218,7 +218,7 @@ namespace OpenKalman::Eigen3
     else if constexpr (identity_matrix<Arg>)
     {
       using S = typename MatrixTraits<Arg>::Scalar;
-      constexpr std::size_t dim = MatrixTraits<Arg>::dimension;
+      constexpr std::size_t dim = MatrixTraits<Arg>::rows;
       return Eigen::Matrix<S, dim, 1>::Constant(1);
     }
     else
@@ -306,8 +306,8 @@ namespace OpenKalman::Eigen3
   inline auto
   solve(const A& a, const B& b)
   {
-    static_assert(MatrixTraits<A>::dimension == MatrixTraits<B>::dimension);
-    using M = Eigen::Matrix<typename MatrixTraits<B>::Scalar, MatrixTraits<A>::dimension, MatrixTraits<B>::columns>;
+    static_assert(MatrixTraits<A>::rows == MatrixTraits<B>::rows);
+    using M = Eigen::Matrix<typename MatrixTraits<B>::Scalar, MatrixTraits<A>::rows, MatrixTraits<B>::columns>;
     if constexpr (one_by_one_matrix<A>)
     {
       return M(b(0, 0)/a(0, 0));
@@ -358,7 +358,7 @@ namespace OpenKalman::Eigen3
     else
     {
       using Scalar = typename MatrixTraits<A>::Scalar;
-      constexpr auto dim = MatrixTraits<A>::dimension, col = MatrixTraits<A>::columns;
+      constexpr auto dim = MatrixTraits<A>::rows, col = MatrixTraits<A>::columns;
       using MatrixType = Eigen::Matrix<Scalar, col, dim>;
       using ResultType = Eigen::Matrix<Scalar, dim, dim>;
       Eigen::HouseholderQR<MatrixType> QR(std::forward<A>(a).adjoint());
@@ -396,7 +396,7 @@ namespace OpenKalman::Eigen3
     else
     {
       using Scalar = typename MatrixTraits<A>::Scalar;
-      constexpr auto dim = MatrixTraits<A>::dimension, col = MatrixTraits<A>::columns;
+      constexpr auto dim = MatrixTraits<A>::rows, col = MatrixTraits<A>::columns;
       using MatrixType = Eigen::Matrix<Scalar, dim, col>;
       using ResultType = Eigen::Matrix<Scalar, col, col>;
       Eigen::HouseholderQR<MatrixType> QR(std::forward<A>(a));
@@ -434,7 +434,7 @@ namespace OpenKalman::Eigen3
   {
     if constexpr (sizeof...(Vs) > 0)
     {
-      constexpr auto rows = (MatrixTraits<V>::dimension + ... + MatrixTraits<Vs>::dimension);
+      constexpr auto rows = (MatrixTraits<V>::rows + ... + MatrixTraits<Vs>::rows);
       constexpr auto cols = MatrixTraits<V>::columns;
       static_assert(((cols == MatrixTraits<Vs>::columns) and ...));
       Eigen::Matrix<typename MatrixTraits<V>::Scalar, rows, cols> m;
@@ -467,8 +467,8 @@ namespace OpenKalman::Eigen3
   {
     if constexpr (sizeof...(Vs) > 0)
     {
-      constexpr auto rows = MatrixTraits<V>::dimension;
-      static_assert(((rows == MatrixTraits<Vs>::dimension) and ...));
+      constexpr auto rows = MatrixTraits<V>::rows;
+      static_assert(((rows == MatrixTraits<Vs>::rows) and ...));
       constexpr auto cols = (MatrixTraits<V>::columns + ... + MatrixTraits<Vs>::columns);
       Eigen::Matrix<typename MatrixTraits<V>::Scalar, rows, cols> m;
       ((m << std::forward<V>(v)), ..., std::forward<Vs>(vs));
@@ -492,7 +492,7 @@ namespace OpenKalman::Eigen3
       {
         constexpr auto row = (ints + 1) / sizeof...(Vs);
         constexpr auto col = (ints + 1) % sizeof...(Vs);
-        constexpr auto row_size = MatrixTraits<decltype(std::get<row>(vs))>::dimension;
+        constexpr auto row_size = MatrixTraits<decltype(std::get<row>(vs))>::rows;
         constexpr auto col_size = MatrixTraits<decltype(std::get<col>(vs))>::columns;
         if constexpr (row == col) return std::get<row>(vs);
         else return Eigen::Matrix<typename M::Scalar, row_size, col_size>::Zero();
@@ -523,7 +523,7 @@ namespace OpenKalman::Eigen3
   {
     if constexpr (sizeof...(Vs) > 0)
     {
-      constexpr auto rows = (MatrixTraits<V>::dimension + ... + MatrixTraits<Vs>::dimension);
+      constexpr auto rows = (MatrixTraits<V>::rows + ... + MatrixTraits<Vs>::rows);
       constexpr auto cols = (MatrixTraits<V>::columns + ... + MatrixTraits<Vs>::columns);
       Eigen::Matrix<typename MatrixTraits<V>::Scalar, rows, cols> m;
       detail::concatenate_diagonal_impl(m, std::forward_as_tuple(v, vs...),
@@ -577,7 +577,7 @@ namespace OpenKalman::Eigen3
   split_vertical(Arg&& arg) noexcept
   {
     constexpr auto RC_size = euclidean ? RC::euclidean_dimension : RC::size;
-    static_assert((RC_size + ... + (euclidean ? RCs::euclidean_dimension : RCs::size)) <= MatrixTraits<Arg>::dimension);
+    static_assert((RC_size + ... + (euclidean ? RCs::euclidean_dimension : RCs::size)) <= MatrixTraits<Arg>::rows);
     using CC = Axes<MatrixTraits<Arg>::columns>;
     constexpr Eigen::Index dim1 = RC_size, dim2 = std::decay_t<Arg>::RowsAtCompileTime - dim1;
     constexpr auto g = [](auto&& m) -> decltype(auto) {
@@ -660,7 +660,7 @@ namespace OpenKalman::Eigen3
   inline auto
   split_vertical(Arg&& arg) noexcept
   {
-    static_assert((cut + ... + cuts) <= MatrixTraits<Arg>::dimension);
+    static_assert((cut + ... + cuts) <= MatrixTraits<Arg>::rows);
     return split_vertical<Axes<cut>, Axes<cuts>...>(std::forward<Arg>(arg));
   }
 
@@ -679,7 +679,7 @@ namespace OpenKalman::Eigen3
   split_horizontal(Arg&& arg) noexcept
   {
     static_assert((CC::size + ... + CCs::size) <= MatrixTraits<Arg>::columns);
-    using RC = Axes<MatrixTraits<Arg>::dimension>;
+    using RC = Axes<MatrixTraits<Arg>::rows>;
     constexpr Eigen::Index dim1 = CC::size, dim2 = std::decay_t<Arg>::ColsAtCompileTime - dim1;
     constexpr auto g = [](auto&& m) -> decltype(auto) {
       if constexpr (std::is_lvalue_reference_v<Arg&&>)
@@ -764,7 +764,7 @@ namespace OpenKalman::Eigen3
   split_diagonal(Arg&& arg) noexcept
   {
     constexpr auto RC_size = euclidean ? C::euclidean_dimension : C::size;
-    static_assert((RC_size + ... + (euclidean ? Cs::euclidean_dimension : Cs::size)) <= MatrixTraits<Arg>::dimension);
+    static_assert((RC_size + ... + (euclidean ? Cs::euclidean_dimension : Cs::size)) <= MatrixTraits<Arg>::rows);
     static_assert((C::size + ... + Cs::size) <= MatrixTraits<Arg>::columns);
     constexpr Eigen::Index rdim1 = RC_size, rdim2 = std::decay_t<Arg>::RowsAtCompileTime - rdim1;
     constexpr Eigen::Index cdim1 = C::size, cdim2 = std::decay_t<Arg>::RowsAtCompileTime - cdim1;
@@ -1121,7 +1121,7 @@ namespace OpenKalman::Eigen3
   {
     for (std::size_t j = 0; j < MatrixTraits<Arg>::columns; j++)
     {
-      for (std::size_t i = 0; i < MatrixTraits<Arg>::dimension; i++)
+      for (std::size_t i = 0; i < MatrixTraits<Arg>::rows; i++)
       {
         f(arg(i, j));
       }
@@ -1144,7 +1144,7 @@ namespace OpenKalman::Eigen3
   {
     for (std::size_t j = 0; j < MatrixTraits<Arg>::columns; j++)
     {
-      for (std::size_t i = 0; i < MatrixTraits<Arg>::dimension; i++)
+      for (std::size_t i = 0; i < MatrixTraits<Arg>::rows; i++)
       {
         f(arg(i, j), i, j);
       }
@@ -1192,7 +1192,7 @@ namespace OpenKalman::Eigen3
     Arg ret;
     for (std::size_t j = 0; j < MatrixTraits<Arg>::columns; j++)
     {
-      for (std::size_t i = 0; i < MatrixTraits<Arg>::dimension; i++)
+      for (std::size_t i = 0; i < MatrixTraits<Arg>::rows; i++)
       {
         ret(i, j) = f(arg(i, j), i, j);
       }
@@ -1287,7 +1287,7 @@ namespace OpenKalman::Eigen3
   randomize(Params&&...params)
   {
     using Scalar = typename MatrixTraits<ReturnType>::Scalar;
-    constexpr auto rows = MatrixTraits<ReturnType>::dimension;
+    constexpr auto rows = MatrixTraits<ReturnType>::rows;
     constexpr auto cols = MatrixTraits<ReturnType>::columns;
     using Ps = typename distribution_type<Scalar>::param_type;
     if constexpr (std::is_constructible_v<Ps, Params...>)

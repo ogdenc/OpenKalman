@@ -128,11 +128,11 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<std::size_t dim, typed_matrix YMeans> requires untyped_columns<YMeans> and
-      (MatrixTraits<YMeans>::dimension == MatrixTraits<YMeans>::RowCoefficients::euclidean_dimension) and
+      (MatrixTraits<YMeans>::rows == MatrixTraits<YMeans>::RowCoefficients::euclidean_dimension) and
       (MatrixTraits<YMeans>::columns == dim * 2)
 #else
     template<std::size_t dim, typename YMeans, std::enable_if_t<typed_matrix<YMeans> and untyped_columns<YMeans> and
-      (MatrixTraits<YMeans>::dimension == MatrixTraits<YMeans>::RowCoefficients::euclidean_dimension) and
+      (MatrixTraits<YMeans>::rows == MatrixTraits<YMeans>::RowCoefficients::euclidean_dimension) and
       (MatrixTraits<YMeans>::columns == dim * 2), int> = 0>
 #endif
     static auto

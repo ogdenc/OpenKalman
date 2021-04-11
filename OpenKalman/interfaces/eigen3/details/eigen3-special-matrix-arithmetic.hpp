@@ -23,12 +23,12 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<Eigen3::eigen_self_adjoint_expr Arg1, Eigen3::eigen_self_adjoint_expr Arg2> requires
     (not diagonal_matrix<Arg1>) and (not diagonal_matrix<Arg2>) and
-    (MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension)
+    (MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows)
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<
     Eigen3::eigen_self_adjoint_expr<Arg1> and Eigen3::eigen_self_adjoint_expr<Arg2> and
     (not diagonal_matrix<Arg1>) and (not diagonal_matrix<Arg2>) and
-    (MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension), int> = 0>
+    (MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows), int> = 0>
 #endif
   inline auto operator+(Arg1&& arg1, Arg2&& arg2)
   {
@@ -53,12 +53,12 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<Eigen3::eigen_triangular_expr Arg1, Eigen3::eigen_triangular_expr Arg2> requires
     (not diagonal_matrix<Arg1>) and (not diagonal_matrix<Arg2>) and
-    (MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension)
+    (MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows)
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<
     Eigen3::eigen_triangular_expr<Arg1> and Eigen3::eigen_triangular_expr<Arg2> and
     not diagonal_matrix<Arg1> and not diagonal_matrix<Arg2> and
-    (MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension), int> = 0>
+    (MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows), int> = 0>
 #endif
   inline auto operator+(Arg1&& arg1, Arg2&& arg2)
   {
@@ -88,7 +88,7 @@ namespace OpenKalman::Eigen3
     (((Eigen3::eigen_self_adjoint_expr<Arg1> or Eigen3::eigen_triangular_expr<Arg1>) and diagonal_matrix<Arg2> ) or
       (diagonal_matrix<Arg1> and (Eigen3::eigen_self_adjoint_expr<Arg2> or Eigen3::eigen_triangular_expr<Arg2>))) and
     (not zero_matrix<Arg1>) and (not zero_matrix<Arg2>) and (not identity_matrix<Arg1>) and
-    (not identity_matrix<Arg2>) and (MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension)
+    (not identity_matrix<Arg2>) and (MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows)
 #ifndef __cpp_concepts
     , int> = 0>
 #endif
@@ -117,7 +117,7 @@ namespace OpenKalman::Eigen3
 #endif
     (((Eigen3::eigen_self_adjoint_expr<Arg1> or Eigen3::eigen_triangular_expr<Arg1>) and identity_matrix<Arg2>) or
       (identity_matrix<Arg1> and (Eigen3::eigen_self_adjoint_expr<Arg2> or Eigen3::eigen_triangular_expr<Arg2>))) and
-    (MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension)
+    (MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows)
 #ifndef __cpp_concepts
     , int> = 0>
 #endif
@@ -146,7 +146,7 @@ namespace OpenKalman::Eigen3
 #endif
     (((Eigen3::eigen_self_adjoint_expr<Arg1> or Eigen3::eigen_triangular_expr<Arg1>) and zero_matrix<Arg2>) or
       (zero_matrix<Arg1> and (Eigen3::eigen_self_adjoint_expr<Arg2> or Eigen3::eigen_triangular_expr<Arg2>))) and
-    (MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension) and
+    (MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows) and
     (MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns)
 #ifndef __cpp_concepts
     , int> = 0>
@@ -173,11 +173,11 @@ namespace OpenKalman::Eigen3
    */
 #ifdef __cpp_concepts
   template<Eigen3::eigen_self_adjoint_expr Arg1, Eigen3::eigen_self_adjoint_expr Arg2> requires
-    (MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension)
+    (MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows)
 #else
   template<typename Arg1, typename Arg2,
     std::enable_if_t<Eigen3::eigen_self_adjoint_expr<Arg1> and Eigen3::eigen_self_adjoint_expr<Arg2> and
-      (MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension), int> = 0>
+      (MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows), int> = 0>
 #endif
   inline auto operator-(Arg1&& arg1, Arg2&& arg2)
   {
@@ -201,11 +201,11 @@ namespace OpenKalman::Eigen3
    */
 #ifdef __cpp_concepts
   template<Eigen3::eigen_triangular_expr Arg1, Eigen3::eigen_triangular_expr Arg2> requires
-    (MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension)
+    (MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows)
 #else
   template<typename Arg1, typename Arg2,
     std::enable_if_t<Eigen3::eigen_triangular_expr<Arg1> and Eigen3::eigen_triangular_expr<Arg2> and
-      (MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension), int> = 0>
+      (MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows), int> = 0>
 #endif
   inline auto operator-(Arg1&& arg1, Arg2&& arg2)
   {
@@ -235,13 +235,13 @@ namespace OpenKalman::Eigen3
     (((Eigen3::eigen_self_adjoint_expr<Arg1> or Eigen3::eigen_triangular_expr<Arg1>) and diagonal_matrix<Arg2>) or
       (diagonal_matrix<Arg1> and (Eigen3::eigen_self_adjoint_expr<Arg2> or Eigen3::eigen_triangular_expr<Arg2>))) and
     (not zero_matrix<Arg1>) and (not zero_matrix<Arg2>) and (not identity_matrix<Arg1>)
-    and (not identity_matrix<Arg2>) and (MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension)
+    and (not identity_matrix<Arg2>) and (MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows)
 #ifndef __cpp_concepts
     , int> = 0>
 #endif
   inline auto operator-(Arg1&& arg1, Arg2&& arg2)
   {
-    static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
+    static_assert(MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows);
     if constexpr(Eigen3::eigen_self_adjoint_expr<Arg1> or Eigen3::eigen_triangular_expr<Arg1>)
     {
       auto ret = MatrixTraits<Arg1>::make(nested_matrix(std::forward<Arg1>(arg1)) - std::forward<Arg2>(arg2));
@@ -265,7 +265,7 @@ namespace OpenKalman::Eigen3
 #endif
     (((Eigen3::eigen_self_adjoint_expr<Arg1> or Eigen3::eigen_triangular_expr<Arg1>) and identity_matrix<Arg2>) or
       (identity_matrix<Arg1> and (Eigen3::eigen_self_adjoint_expr<Arg2> or Eigen3::eigen_triangular_expr<Arg2>))) and
-    (MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension)
+    (MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows)
 #ifndef __cpp_concepts
     , int> = 0>
 #endif
@@ -294,7 +294,7 @@ namespace OpenKalman::Eigen3
 #endif
     (((Eigen3::eigen_self_adjoint_expr<Arg1> or Eigen3::eigen_triangular_expr<Arg1>) and zero_matrix<Arg2>) or
       (zero_matrix<Arg1> and (Eigen3::eigen_self_adjoint_expr<Arg2> or Eigen3::eigen_triangular_expr<Arg2>))) and
-    (MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension) and
+    (MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows) and
     (MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns)
 #ifndef __cpp_concepts
     , int> = 0>
@@ -405,7 +405,7 @@ namespace OpenKalman::Eigen3
     ((Eigen3::eigen_self_adjoint_expr<Arg1> or Eigen3::eigen_triangular_expr<Arg1>) and
       (Eigen3::eigen_self_adjoint_expr<Arg2> or Eigen3::eigen_triangular_expr<Arg2>)) and
     (not diagonal_matrix<Arg1>) and (not diagonal_matrix<Arg2>) and
-    (MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension)
+    (MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows)
 #ifndef __cpp_concepts
     , int> = 0>
 #endif
@@ -436,7 +436,7 @@ namespace OpenKalman::Eigen3
     ((Eigen3::eigen_self_adjoint_expr<Arg1> and diagonal_matrix<Arg2>) or
       (diagonal_matrix<Arg1> and Eigen3::eigen_self_adjoint_expr<Arg2>)) and
     (not identity_matrix<Arg1>) and (not identity_matrix<Arg2>) and (not zero_matrix<Arg1>) and
-    (not zero_matrix<Arg2>) and (MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension)
+    (not zero_matrix<Arg2>) and (MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows)
 #ifndef __cpp_concepts
     , int> = 0>
 #endif
@@ -466,7 +466,7 @@ namespace OpenKalman::Eigen3
     ((Eigen3::eigen_triangular_expr<Arg1> and diagonal_matrix<Arg2>) or
       (diagonal_matrix<Arg1> and Eigen3::eigen_triangular_expr<Arg2>)) and
     (not identity_matrix<Arg1>) and (not identity_matrix<Arg2>) and (not zero_matrix<Arg1>) and (not zero_matrix<Arg2>)
-    and (MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension)
+    and (MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows)
 #ifndef __cpp_concepts
     , int> = 0>
 #endif
@@ -495,7 +495,7 @@ namespace OpenKalman::Eigen3
 #endif
     (((Eigen3::eigen_self_adjoint_expr<Arg1> or Eigen3::eigen_triangular_expr<Arg1>) and identity_matrix<Arg2>) or
       (identity_matrix<Arg1> and (Eigen3::eigen_self_adjoint_expr<Arg2> or Eigen3::eigen_triangular_expr<Arg2>))) and
-    (MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension)
+    (MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows)
 #ifndef __cpp_concepts
     , int> = 0>
 #endif
@@ -522,14 +522,14 @@ namespace OpenKalman::Eigen3
 #endif
     (((Eigen3::eigen_self_adjoint_expr<Arg1> or Eigen3::eigen_triangular_expr<Arg1>) and zero_matrix<Arg2>) or
       (zero_matrix<Arg1> and (Eigen3::eigen_self_adjoint_expr<Arg2> or Eigen3::eigen_triangular_expr<Arg2>))) and
-    (MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::dimension)
+    (MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::rows)
 #ifndef __cpp_concepts
     , int> = 0>
 #endif
   constexpr decltype(auto) operator*(Arg1&& arg1, Arg2&& arg2)
   {
     using Scalar = typename MatrixTraits<Arg1>::Scalar;
-    constexpr auto rows = MatrixTraits<Arg1>::dimension;
+    constexpr auto rows = MatrixTraits<Arg1>::rows;
     constexpr auto cols = MatrixTraits<Arg2>::columns;
     return Eigen3::ZeroMatrix<Scalar, rows, cols>();
   }
@@ -546,7 +546,7 @@ namespace OpenKalman::Eigen3
     (((Eigen3::eigen_self_adjoint_expr<Arg1> or Eigen3::eigen_triangular_expr<Arg1>) and Eigen3::eigen_matrix<Arg2>) or
       (Eigen3::eigen_matrix<Arg1> and (Eigen3::eigen_self_adjoint_expr<Arg2> or Eigen3::eigen_triangular_expr<Arg2>))) and
     (not identity_matrix<Arg1>) and (not identity_matrix<Arg2>) and (not zero_matrix<Arg1>) and
-    (not zero_matrix<Arg2>) and (MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::dimension)
+    (not zero_matrix<Arg2>) and (MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::rows)
 #ifndef __cpp_concepts
     , int> = 0>
 #endif

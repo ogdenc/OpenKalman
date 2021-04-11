@@ -118,7 +118,7 @@ namespace OpenKalman
   inline auto operator*(V1&& v1, V2&& v2)
   {
     static_assert(equivalent_to<typename MatrixTraits<V1>::ColumnCoefficients, typename MatrixTraits<V2>::RowCoefficients>);
-    static_assert(MatrixTraits<V1>::columns == MatrixTraits<V2>::dimension);
+    static_assert(MatrixTraits<V1>::columns == MatrixTraits<V2>::rows);
     using RC = typename MatrixTraits<V1>::RowCoefficients;
     using CC = typename MatrixTraits<V2>::ColumnCoefficients;
     auto b = nested_matrix(std::forward<V1>(v1)) * nested_matrix(std::forward<V2>(v2));

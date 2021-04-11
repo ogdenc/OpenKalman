@@ -96,7 +96,7 @@ namespace OpenKalman
     {
       using Traits = MatrixTraits<decltype(std::get<term>(inputs))>;
       using Scalar = typename Traits::Scalar;
-      constexpr auto width = Traits::dimension;
+      constexpr auto width = Traits::rows;
       auto& col = std::get<term>(inputs);
       return apply_columnwise<width>([&](std::size_t i) {
         const Scalar h = std::get<term>(deltas)[i];
@@ -175,7 +175,7 @@ namespace OpenKalman
     template<std::size_t term, typename...Inputs, std::size_t...is>
     auto h_k(const std::tuple<Inputs...>& inputs, std::index_sequence<is...>) const
     {
-      constexpr auto j_size = MatrixTraits<decltype(std::get<term>(inputs))>::dimension;
+      constexpr auto j_size = MatrixTraits<decltype(std::get<term>(inputs))>::rows;
       using A = decltype(h_i<term, 0>(std::move(inputs), std::make_index_sequence<j_size>()));
       return std::array<A, sizeof...(is)> {h_i<term, is>(inputs, std::make_index_sequence<j_size>())...};
     }
@@ -187,9 +187,9 @@ namespace OpenKalman
     {
       using Term = decltype(std::get<term>(inputs));
       using TermTrait = MatrixTraits<Term>;
-      constexpr auto i_size = TermTrait::dimension;
+      constexpr auto i_size = TermTrait::rows;
       const auto t = h_k<term>(inputs, std::make_index_sequence<i_size>());
-      constexpr auto width = TermTrait::dimension;
+      constexpr auto width = TermTrait::rows;
       using C = typename TermTrait::RowCoefficients;
       using Vb = native_matrix_t<Term, width, width>;
       using V = Matrix<C, C, Vb>;
@@ -202,7 +202,7 @@ namespace OpenKalman
     auto hessian_impl(const std::tuple<Inputs...>& inputs, std::index_sequence<terms...>) const
     {
       static_assert(sizeof...(Inputs) == sizeof...(terms));
-      constexpr auto k_size = MatrixTraits<std::invoke_result_t<Function, Inputs...>>::dimension;
+      constexpr auto k_size = MatrixTraits<std::invoke_result_t<Function, Inputs...>>::rows;
       return std::tuple {h_term<terms>(inputs, std::make_index_sequence<k_size>())...};
     }
 

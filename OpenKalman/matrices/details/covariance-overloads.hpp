@@ -468,7 +468,7 @@ namespace OpenKalman
   inline decltype(auto)
   column(Arg&& arg)
   {
-    static_assert(index < MatrixTraits<Arg>::dimension);
+    static_assert(index < MatrixTraits<Arg>::rows);
     using C = typename MatrixTraits<Arg>::RowCoefficients;
     using CC = typename C::template Coefficient<index>;
     return make_matrix<C, CC>(column<index>(to_covariance_nestable(std::forward<Arg>(arg))));

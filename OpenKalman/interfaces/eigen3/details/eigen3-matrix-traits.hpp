@@ -36,29 +36,26 @@ namespace OpenKalman
   {
     using Scalar = typename M::Scalar;
 
-    static constexpr std::size_t dimension = M::RowsAtCompileTime;
+    static constexpr std::size_t rows = M::RowsAtCompileTime;
     static constexpr std::size_t columns = M::ColsAtCompileTime; //<\todo: make columns potentially dynamic (0 = dynamic?)
     //Note: rows or columns at compile time are -1 if the matrix is dynamic:
-    static_assert(dimension > 0, "Cannot currently use dynamically sized matrices with OpenKalman.");
+    static_assert(rows > 0, "Cannot currently use dynamically sized matrices with OpenKalman.");
     static_assert(columns > 0, "Cannot currently use dynamically sized matrices with OpenKalman.");
-    //static_assert(one_by_one_matrix<M> or identity_matrix<M> or not (zero_matrix<M> or upper_triangular_matrix<M> or
-    //  lower_triangular_matrix<M> or self_adjoint_matrix<M>), "Native Eigen3 matrices other than 1x1 or identity must"
-    //  "have their own MatrixTraits if they are zero, triangular, and self-adjoint.");
 
     // Cannot use dimension and columns constant expressions here because of bug in GCC 10.1.0 (but not clang 10.0.0):
-    template<std::size_t rows = std::size_t(M::RowsAtCompileTime),
-      std::size_t cols = std::size_t(M::ColsAtCompileTime), typename S = Scalar>
-    using NativeMatrixFrom = Eigen::Matrix<S, (Eigen::Index) rows, (Eigen::Index) cols>;
+    template<std::size_t r = std::size_t(M::RowsAtCompileTime),
+      std::size_t c = std::size_t(M::ColsAtCompileTime), typename S = Scalar>
+    using NativeMatrixFrom = Eigen::Matrix<S, (Eigen::Index) r, (Eigen::Index) c>;
 
     using SelfContainedFrom = NativeMatrixFrom<>;
 
-    template<TriangleType storage_triangle = TriangleType::lower, std::size_t dim = dimension, typename S = Scalar>
+    template<TriangleType storage_triangle = TriangleType::lower, std::size_t dim = rows, typename S = Scalar>
     using SelfAdjointMatrixFrom = Eigen3::SelfAdjointMatrix<NativeMatrixFrom<dim, dim, S>, storage_triangle>;
 
-    template<TriangleType triangle_type = TriangleType::lower, std::size_t dim = dimension, typename S = Scalar>
+    template<TriangleType triangle_type = TriangleType::lower, std::size_t dim = rows, typename S = Scalar>
     using TriangularMatrixFrom = Eigen3::TriangularMatrix<NativeMatrixFrom<dim, dim, S>, triangle_type>;
 
-    template<std::size_t dim = dimension, typename S = Scalar>
+    template<std::size_t dim = rows, typename S = Scalar>
     using DiagonalMatrixFrom = Eigen3::DiagonalMatrix<NativeMatrixFrom<dim, 1, S>>;
 
     template<typename Derived>
@@ -77,20 +74,20 @@ namespace OpenKalman
     // Make matrix from a list of coefficients in row-major order.
 #ifdef __cpp_concepts
     template<std::convertible_to<Scalar> Arg, std::convertible_to<Scalar> ... Args>
-    requires (1 + sizeof...(Args) == dimension * columns)
+    requires (1 + sizeof...(Args) == rows * columns)
 #else
     template<typename Arg, typename ... Args,
       std::enable_if_t<std::conjunction_v<std::is_convertible<Arg, Scalar>, std::is_convertible<Args, Scalar>...> and
-      1 + sizeof...(Args) == dimension * columns, int> = 0>
+      1 + sizeof...(Args) == rows * columns, int> = 0>
 #endif
     static auto make(const Arg arg, const Args ... args)
     {
-      return ((NativeMatrixFrom<dimension, columns>() << arg), ... , args).finished();
+      return ((NativeMatrixFrom<rows, columns>() << arg), ... , args).finished();
     }
 
-    static auto zero() { return Eigen3::ZeroMatrix<Scalar, dimension, columns>(); }
+    static auto zero() { return Eigen3::ZeroMatrix<Scalar, rows, columns>(); }
 
-    static auto identity() { return NativeMatrixFrom<dimension, dimension>::Identity(); }
+    static auto identity() { return NativeMatrixFrom<rows, rows>::Identity(); }
 
   };
 
@@ -107,14 +104,14 @@ namespace OpenKalman
   struct MatrixTraits<Eigen::SelfAdjointView<M, UpLo>, std::enable_if_t<Eigen3::eigen_native<M>>> : MatrixTraits<M>
 #endif
   {
-    using MatrixTraits<M>::dimension;
+    using MatrixTraits<M>::rows;
     using typename MatrixTraits<M>::Scalar;
     static constexpr TriangleType storage_triangle = UpLo & Eigen::Upper ? TriangleType::upper : TriangleType::lower;
 
-    template<TriangleType storage_triangle = storage_triangle, std::size_t dim = dimension, typename S = Scalar>
+    template<TriangleType storage_triangle = storage_triangle, std::size_t dim = rows, typename S = Scalar>
     using SelfAdjointMatrixFrom = typename MatrixTraits<M>::template SelfAdjointMatrixFrom<storage_triangle, dim, S>;
 
-    template<TriangleType triangle_type = storage_triangle, std::size_t dim = dimension, typename S = Scalar>
+    template<TriangleType triangle_type = storage_triangle, std::size_t dim = rows, typename S = Scalar>
     using TriangularMatrixFrom = typename MatrixTraits<M>::template TriangularMatrixFrom<triangle_type, dim, S>;
 
 #ifdef __cpp_concepts
@@ -142,14 +139,14 @@ namespace OpenKalman
   struct MatrixTraits<Eigen::TriangularView<M, UpLo>, std::enable_if_t<Eigen3::eigen_native<M>>> : MatrixTraits<M>
 #endif
   {
-    using MatrixTraits<M>::dimension;
+    using MatrixTraits<M>::rows;
     using typename MatrixTraits<M>::Scalar;
     static constexpr TriangleType triangle_type = UpLo & Eigen::Upper ? TriangleType::upper : TriangleType::lower;
 
-    template<TriangleType storage_triangle = triangle_type, std::size_t dim = dimension, typename S = Scalar>
+    template<TriangleType storage_triangle = triangle_type, std::size_t dim = rows, typename S = Scalar>
     using SelfAdjointMatrixFrom = typename MatrixTraits<M>::template SelfAdjointMatrixFrom<storage_triangle, dim, S>;
 
-    template<TriangleType triangle_type = triangle_type, std::size_t dim = dimension, typename S = Scalar>
+    template<TriangleType triangle_type = triangle_type, std::size_t dim = rows, typename S = Scalar>
     using TriangularMatrixFrom = typename MatrixTraits<M>::template TriangularMatrixFrom<triangle_type, dim, S>;
 
 #ifdef __cpp_concepts
@@ -294,7 +291,7 @@ namespace OpenKalman
       : std::bool_constant<bool(Eigen::internal::traits<
           Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>>::Flags & Eigen::LvalueBit) and
         (not has_const<XprType>::value) and
-        (MatrixTraits<U>::dimension == BlockRows) and (MatrixTraits<U>::columns == BlockCols) and
+        (MatrixTraits<U>::rows == BlockRows) and (MatrixTraits<U>::columns == BlockCols) and
         (std::is_same_v<typename MatrixTraits<XprType>::Scalar, typename MatrixTraits<U>::Scalar>)> {};
 
 

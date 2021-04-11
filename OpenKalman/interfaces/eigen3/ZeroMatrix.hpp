@@ -41,13 +41,13 @@ namespace OpenKalman
   //  Traits  //
   //////////////
 
-  template<typename Scalar_, std::size_t rows, std::size_t cols>
-  struct MatrixTraits<Eigen3::ZeroMatrix<Scalar_, rows, cols>>
+  template<typename Scalar_, std::size_t rows_, std::size_t columns_>
+  struct MatrixTraits<Eigen3::ZeroMatrix<Scalar_, rows_, columns_>>
   {
     using Scalar = Scalar_;
 
-    static constexpr std::size_t dimension = rows;
-    static constexpr std::size_t columns = cols;
+    static constexpr std::size_t rows = rows_;
+    static constexpr std::size_t columns = columns_;
 
   private:
 
@@ -66,7 +66,7 @@ namespace OpenKalman
     template<TriangleType triangle_type = TriangleType::diagonal>
     using TriangularMatrixFrom = Eigen3::TriangularMatrix<Matrix, triangle_type>;
 
-    template<std::size_t dim = dimension, typename S = Scalar>
+    template<std::size_t dim = rows, typename S = Scalar>
     using DiagonalMatrixFrom = Eigen3::DiagonalMatrix<NativeMatrixFrom<dim, 1, S>>;
 
     template<typename Derived>
@@ -74,7 +74,7 @@ namespace OpenKalman
 
     static auto zero() { return Matrix {}; }
 
-    static auto identity() { return NativeMatrixFrom<dimension, dimension>::Identity(); }
+    static auto identity() { return NativeMatrixFrom<rows, rows>::Identity(); }
 
   };
 
@@ -109,7 +109,7 @@ namespace OpenKalman::Eigen3
   to_diagonal(Arg&& arg) noexcept
   {
     using Scalar = typename MatrixTraits<Arg>::Scalar;
-    constexpr auto dim = MatrixTraits<Arg>::dimension;
+    constexpr auto dim = MatrixTraits<Arg>::rows;
     return ZeroMatrix<Scalar, dim, dim>();
   }
 
@@ -122,7 +122,7 @@ namespace OpenKalman::Eigen3
   inline auto
   diagonal_of(Arg&& arg) noexcept
   {
-    return ZeroMatrix<typename MatrixTraits<Arg>::Scalar, MatrixTraits<Arg>::dimension, 1> {};
+    return ZeroMatrix<typename MatrixTraits<Arg>::Scalar, MatrixTraits<Arg>::rows, 1> {};
   }
 
 
@@ -135,7 +135,7 @@ namespace OpenKalman::Eigen3
   transpose(Arg&& arg) noexcept
   {
     using Scalar = typename MatrixTraits<Arg>::Scalar;
-    constexpr auto rows = MatrixTraits<Arg>::dimension;
+    constexpr auto rows = MatrixTraits<Arg>::rows;
     constexpr auto cols = MatrixTraits<Arg>::columns;
     if constexpr (rows == cols)
       return std::forward<Arg>(arg);
@@ -196,7 +196,7 @@ namespace OpenKalman::Eigen3
     else
     {
       using Scalar = typename MatrixTraits<Arg>::Scalar;
-      constexpr auto rows = MatrixTraits<Arg>::dimension;
+      constexpr auto rows = MatrixTraits<Arg>::rows;
       return ZeroMatrix<Scalar, rows, 1>();
     }
   }
@@ -215,7 +215,7 @@ namespace OpenKalman::Eigen3
   LQ_decomposition(A&& a)
   {
     using Scalar = typename MatrixTraits<A>::Scalar;
-    constexpr auto dim = MatrixTraits<A>::dimension;
+    constexpr auto dim = MatrixTraits<A>::rows;
     return ZeroMatrix<Scalar, dim, dim>();
   }
 
@@ -274,7 +274,7 @@ namespace OpenKalman::Eigen3
   column(Arg&& arg, const std::size_t index)
   {
     using Scalar = typename MatrixTraits<Arg>::Scalar;
-    constexpr auto rows = MatrixTraits<Arg>::dimension;
+    constexpr auto rows = MatrixTraits<Arg>::rows;
     return ZeroMatrix<Scalar, rows, 1>();
   }
 
@@ -289,7 +289,7 @@ namespace OpenKalman::Eigen3
   column(Arg&& arg)
   {
     using Scalar = typename MatrixTraits<Arg>::Scalar;
-    constexpr auto rows = MatrixTraits<Arg>::dimension;
+    constexpr auto rows = MatrixTraits<Arg>::rows;
     if constexpr(column_vector<Arg>)
       return std::forward<Arg>(arg);
     else
@@ -311,7 +311,7 @@ namespace OpenKalman::Eigen3
 #endif
   constexpr decltype(auto) operator+(Arg1&& arg1, Arg2&& arg2)
   {
-    static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
+    static_assert(MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows);
     static_assert(MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns);
     if constexpr(zero_matrix<Arg1> and zero_matrix<Arg2>)
     {
@@ -338,7 +338,7 @@ namespace OpenKalman::Eigen3
 #endif
   constexpr decltype(auto) operator-(Arg1&& arg1, Arg2&& arg2)
   {
-    static_assert(MatrixTraits<Arg1>::dimension == MatrixTraits<Arg2>::dimension);
+    static_assert(MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows);
     static_assert(MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns);
     if constexpr(zero_matrix<Arg2>)
     {
@@ -348,7 +348,7 @@ namespace OpenKalman::Eigen3
     else if constexpr(identity_matrix<Arg2>)
     {
       using D = typename MatrixTraits<Arg2>::template DiagonalMatrixFrom<>;
-      constexpr auto dim = MatrixTraits<Arg2>::dimension;
+      constexpr auto dim = MatrixTraits<Arg2>::rows;
       using B = native_matrix_t<D, dim, 1>;
       return MatrixTraits<D>::make(B::Constant(-1));
     }
@@ -369,9 +369,9 @@ namespace OpenKalman::Eigen3
 #endif
   inline auto operator*(const Arg1& arg1, const Arg2& arg2)
   {
-    static_assert(MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::dimension);
+    static_assert(MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::rows);
     using Scalar = typename MatrixTraits<Arg1>::Scalar;
-    constexpr auto rows = MatrixTraits<Arg1>::dimension;
+    constexpr auto rows = MatrixTraits<Arg1>::rows;
     constexpr auto cols = MatrixTraits<Arg2>::columns;
     return ZeroMatrix<Scalar, rows, cols>();
   }

@@ -130,13 +130,13 @@ namespace OpenKalman
     // -------------------- //
 
 #ifdef __cpp_concepts
-    template<typed_matrix T> requires (MatrixTraits<T>::dimension == MatrixTraits<T>::columns) and
+    template<typed_matrix T> requires (MatrixTraits<T>::rows == MatrixTraits<T>::columns) and
       equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>
     struct is_square_matrix<T> : std::true_type {};
 #else
     template<typename T>
     struct is_square_matrix<T, std::enable_if_t<typed_matrix<T> and
-      (MatrixTraits<T>::dimension == MatrixTraits<T>::columns) and
+      (MatrixTraits<T>::rows == MatrixTraits<T>::columns) and
       equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>>>
       : std::true_type {};
 #endif
@@ -154,12 +154,12 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
     template<typename T> requires (not typed_matrix<T>) and (not covariance<T>) and
-      (MatrixTraits<T>::dimension == MatrixTraits<T>::columns)
+      (MatrixTraits<T>::rows == MatrixTraits<T>::columns)
     struct is_square_matrix<T> : std::true_type {};
 #else
     template<typename T>
     struct is_square_matrix<T, std::enable_if_t<(not typed_matrix<T>) and (not covariance<T>) and
-      (MatrixTraits<T>::dimension == MatrixTraits<T>::columns)>> : std::true_type {};
+      (MatrixTraits<T>::rows == MatrixTraits<T>::columns)>> : std::true_type {};
 #endif
 
 
@@ -593,14 +593,14 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<covariance_nestable T, typename Arg> requires
       (covariance_nestable<Arg> or (typed_matrix_nestable<Arg> and (square_matrix<Arg> or column_vector<Arg>))) and
-      (MatrixTraits<Arg>::dimension == MatrixTraits<T>::dimension) and
+      (MatrixTraits<Arg>::rows == MatrixTraits<T>::rows) and
       (not zero_matrix<T> or zero_matrix<Arg>) and (not identity_matrix<T> or identity_matrix<Arg>) and
       (not diagonal_matrix<T> or diagonal_matrix<Arg> or column_vector<Arg>)
 #else
     template<typename T, typename Arg, typename = std::enable_if_t<
       (not std::is_same_v<T, Arg>) and covariance_nestable<T> and
       (covariance_nestable<Arg> or (typed_matrix_nestable<Arg> and (square_matrix<Arg> or column_vector<Arg>))) and
-      (MatrixTraits<Arg>::dimension == MatrixTraits<T>::dimension) and
+      (MatrixTraits<Arg>::rows == MatrixTraits<T>::rows) and
       (not zero_matrix<T> or zero_matrix<Arg>) and (not identity_matrix<T> or identity_matrix<Arg>) and
       (not diagonal_matrix<T> or diagonal_matrix<Arg> or column_vector<Arg>)>>
 #endif
@@ -618,14 +618,14 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<covariance_nestable T, typename Arg> requires
       (covariance<Arg> or (typed_matrix<Arg> and (square_matrix<Arg> or column_vector<Arg>))) and
-      (MatrixTraits<Arg>::dimension == MatrixTraits<T>::dimension) and
+      (MatrixTraits<Arg>::rows == MatrixTraits<T>::rows) and
       (not zero_matrix<T> or zero_matrix<Arg>) and (not identity_matrix<T> or identity_matrix<Arg>) and
       (not diagonal_matrix<T> or diagonal_matrix<Arg> or column_vector<Arg>)
 #else
     template<typename T, typename Arg, typename = void, typename = std::enable_if_t<
       (not std::is_same_v<T, Arg>) and covariance_nestable<T> and (not std::is_void_v<Arg>) and
       (covariance<Arg> or (typed_matrix<Arg> and (square_matrix<Arg> or column_vector<Arg>))) and
-      (MatrixTraits<Arg>::dimension == MatrixTraits<T>::dimension) and
+      (MatrixTraits<Arg>::rows == MatrixTraits<T>::rows) and
       (not zero_matrix<T> or zero_matrix<Arg>) and (not identity_matrix<T> or identity_matrix<Arg>) and
       (not diagonal_matrix<T> or diagonal_matrix<Arg> or column_vector<Arg>)>>
 #endif
@@ -702,14 +702,14 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<typename T, typename U> requires (MatrixTraits<T>::dimension == MatrixTraits<U>::dimension) and
+    template<typename T, typename U> requires (MatrixTraits<T>::rows == MatrixTraits<U>::rows) and
       (MatrixTraits<T>::columns == MatrixTraits<U>::columns) and
       (std::same_as<typename MatrixTraits<T>::Scalar, typename MatrixTraits<U>::Scalar>)
     struct has_same_matrix_shape<T, U> : std::true_type {};
 #else
     template<typename T, typename U>
     struct has_same_matrix_shape<T, U, std::enable_if_t<
-      (MatrixTraits<T>::dimension == MatrixTraits<U>::dimension) and
+      (MatrixTraits<T>::rows == MatrixTraits<U>::rows) and
       (MatrixTraits<T>::columns == MatrixTraits<U>::columns) and
       (std::is_same_v<typename MatrixTraits<T>::Scalar, typename MatrixTraits<U>::Scalar>)>> : std::true_type {};
 #endif

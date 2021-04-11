@@ -841,7 +841,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   inline auto
   apply_coefficientwise(const Function& f)
   {
-    constexpr auto rows = MatrixTraits<V>::dimension;
+    constexpr auto rows = MatrixTraits<V>::rows;
     constexpr auto columns = MatrixTraits<V>::columns;
     using Scalar = typename MatrixTraits<V>::Scalar;
     if constexpr(std::is_same_v<
@@ -868,7 +868,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   inline auto
   apply_coefficientwise(const Function& f)
   {
-    constexpr auto rows = MatrixTraits<V>::dimension;
+    constexpr auto rows = MatrixTraits<V>::rows;
     constexpr auto columns = MatrixTraits<V>::columns;
     using Scalar = typename MatrixTraits<V>::Scalar;
     if constexpr(std::is_same_v<
@@ -907,7 +907,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   randomize(Params...params)
   {
     using Scalar = typename MatrixTraits<ReturnType>::Scalar;
-    constexpr auto rows = MatrixTraits<ReturnType>::dimension;
+    constexpr auto rows = MatrixTraits<ReturnType>::rows;
     constexpr auto cols = MatrixTraits<ReturnType>::columns;
     using Ps = typename distribution_type<Scalar>::param_type;
     static_assert(std::is_constructible_v<Ps, Params...> or sizeof...(Params) == rows or sizeof...(Params) == rows * cols,

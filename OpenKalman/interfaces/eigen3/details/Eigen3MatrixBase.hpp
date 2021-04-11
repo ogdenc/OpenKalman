@@ -219,7 +219,7 @@ namespace Eigen
   struct DiagonalCommaInitializer
   {
     using Scalar = typename OpenKalman::MatrixTraits<XprType>::Scalar;
-    static constexpr auto dim = OpenKalman::MatrixTraits<XprType>::dimension;
+    static constexpr auto dim = OpenKalman::MatrixTraits<XprType>::rows;
     using NestedMatrix = OpenKalman::native_matrix_t<typename OpenKalman::nested_matrix_t<XprType>, dim, 1>;
     using Nested = CommaInitializer<NestedMatrix>;
 
@@ -286,7 +286,7 @@ namespace Eigen
     using Scalar = typename OpenKalman::MatrixTraits<CovarianceType>::Scalar;
     using CovNest = typename OpenKalman::nested_matrix_t<CovarianceType>;
     using NestedMatrix = std::conditional_t<OpenKalman::diagonal_matrix<CovNest>,
-      OpenKalman::native_matrix_t<CovNest, OpenKalman::MatrixTraits<CovNest>::dimension, 1>,
+      OpenKalman::native_matrix_t<CovNest, OpenKalman::MatrixTraits<CovNest>::rows, 1>,
       OpenKalman::native_matrix_t<CovNest>>;
     using Nested = CommaInitializer<NestedMatrix>;
 

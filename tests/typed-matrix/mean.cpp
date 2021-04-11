@@ -223,7 +223,7 @@ TEST_F(matrices, Mean_deduction_guides)
   auto b3 = EuclideanMean<C2, M33> {1, 2, 3, std::sqrt(3)/2, 0.5, std::sqrt(2)/2, 0.5, std::sqrt(3)/2, std::sqrt(2)/2};
   EXPECT_TRUE(is_near(Mean(b3), Mat23 {1, 2, 3, pi/6, pi/3, pi/4}));
   static_assert(equivalent_to<typename MatrixTraits<decltype(Mean(b3))>::RowCoefficients, C2>);
-  static_assert(MatrixTraits<decltype(Mean(b3))>::dimension == 2);
+  static_assert(MatrixTraits<decltype(Mean(b3))>::rows == 2);
 }
 
 

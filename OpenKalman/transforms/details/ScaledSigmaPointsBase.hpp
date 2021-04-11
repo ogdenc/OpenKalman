@@ -98,7 +98,7 @@ namespace OpenKalman::internal
     static auto mean_weights()
     {
       using Scalar = typename MatrixTraits<Weights>::Scalar;
-      constexpr auto count = MatrixTraits<Weights>::dimension;
+      constexpr auto count = MatrixTraits<Weights>::rows;
       return cat_weights<dim, Weights, Scalar>(W_m0<dim>(), std::make_index_sequence<count - 1>());
     };
 
@@ -107,7 +107,7 @@ namespace OpenKalman::internal
     static auto covariance_weights()
     {
       using Scalar = typename MatrixTraits<Weights>::Scalar;
-      constexpr auto count = MatrixTraits<Weights>::dimension;
+      constexpr auto count = MatrixTraits<Weights>::rows;
       return cat_weights<dim, Weights, Scalar>(W_c0<dim>(), std::make_index_sequence<count - 1>());
     };
 
@@ -115,10 +115,10 @@ namespace OpenKalman::internal
 
 #ifdef __cpp_concepts
     template<std::size_t dim, typed_matrix YMeans> requires untyped_columns<YMeans> and
-      (MatrixTraits<YMeans>::dimension == MatrixTraits<YMeans>::RowCoefficients::euclidean_dimension)
+      (MatrixTraits<YMeans>::rows == MatrixTraits<YMeans>::RowCoefficients::euclidean_dimension)
 #else
     template<std::size_t dim, typename YMeans, std::enable_if_t<typed_matrix<YMeans> and untyped_columns<YMeans> and
-      (MatrixTraits<YMeans>::dimension == MatrixTraits<YMeans>::RowCoefficients::euclidean_dimension), int> = 0>
+      (MatrixTraits<YMeans>::rows == MatrixTraits<YMeans>::RowCoefficients::euclidean_dimension), int> = 0>
 #endif
     static auto
     weighted_means(const YMeans& y_means)

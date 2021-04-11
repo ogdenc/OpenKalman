@@ -52,7 +52,7 @@ TEST_F(eigen3, Eigen_Matrix_class_traits)
   static_assert(self_contained<typename Mat3::IdentityReturnType>);
   static_assert(self_contained<decltype(2 * MatrixTraits<Mat2>::identity() + MatrixTraits<Mat2>::identity())>);
   static_assert(not self_contained<decltype(2 * MatrixTraits<Mat2>::identity() + Mat2 {1, 2, 3, 4})>);
-  static_assert(MatrixTraits<std::remove_const_t<decltype(2 * MatrixTraits<Mat2>::identity() + MatrixTraits<Mat2>::identity())>>::dimension == 2);
+  static_assert(MatrixTraits<std::remove_const_t<decltype(2 * MatrixTraits<Mat2>::identity() + MatrixTraits<Mat2>::identity())>>::rows == 2);
   static_assert(self_contained<decltype(column<0>(2 * MatrixTraits<Mat2>::identity() + MatrixTraits<Mat2>::identity()))>);
   static_assert(not self_contained<decltype(column<0>(2 * MatrixTraits<Mat2>::identity() + Mat2 {1, 2, 3, 4}))>);
   static_assert(self_contained<const Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Mat2>>);

@@ -28,9 +28,9 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<coefficients InputCoefficients, coefficients OutputCoefficients, typed_matrix_nestable TransformationMatrix,
       typed_matrix_nestable ... PerturbationTransformationMatrices> requires
-    (MatrixTraits<TransformationMatrix>::dimension == OutputCoefficients::size) and
+    (MatrixTraits<TransformationMatrix>::rows == OutputCoefficients::size) and
     (MatrixTraits<TransformationMatrix>::columns == InputCoefficients::size) and
-    ((MatrixTraits<PerturbationTransformationMatrices>::dimension == OutputCoefficients::size) and ...) and
+    ((MatrixTraits<PerturbationTransformationMatrices>::rows == OutputCoefficients::size) and ...) and
     (square_matrix<PerturbationTransformationMatrices> and ...)
 #else
   template<typename InputCoefficients, typename OutputCoefficients, typename TransformationMatrix,
@@ -64,7 +64,7 @@ namespace OpenKalman
 
       template<typename T, typename R, typename C>
       struct is_linear_transformation_input<T, R, C, std::enable_if_t<
-        typed_matrix_nestable<T> and (MatrixTraits<T>::dimension == R::size) and
+        typed_matrix_nestable<T> and (MatrixTraits<T>::rows == R::size) and
         (MatrixTraits<T>::columns == C::size)>> : std::true_type {};
     }
 #endif
@@ -84,7 +84,7 @@ namespace OpenKalman
       coefficients<RowCoefficients> and coefficients<ColumnCoefficients> and
       (not typed_matrix<T> or (equivalent_to<typename MatrixTraits<T>::RowCoefficients, RowCoefficients> and
           equivalent_to<typename MatrixTraits<T>::ColumnCoefficients, ColumnCoefficients>)) and
-      (not typed_matrix_nestable<T> or (MatrixTraits<T>::dimension == RowCoefficients::size and
+      (not typed_matrix_nestable<T> or (MatrixTraits<T>::rows == RowCoefficients::size and
         MatrixTraits<T>::columns == ColumnCoefficients::size));
 #else
     template<typename T, typename RowCoefficients, typename ColumnCoefficients = RowCoefficients>
@@ -99,9 +99,9 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<coefficients InputCoefficients, coefficients OutputCoefficients, typed_matrix_nestable TransformationMatrix,
     typed_matrix_nestable ... PerturbationTransformationMatrices> requires
-  (MatrixTraits<TransformationMatrix>::dimension == OutputCoefficients::size) and
+  (MatrixTraits<TransformationMatrix>::rows == OutputCoefficients::size) and
     (MatrixTraits<TransformationMatrix>::columns == InputCoefficients::size) and
-    ((MatrixTraits<PerturbationTransformationMatrices>::dimension == OutputCoefficients::size) and ...) and
+    ((MatrixTraits<PerturbationTransformationMatrices>::rows == OutputCoefficients::size) and ...) and
     (square_matrix<PerturbationTransformationMatrices> and ...)
 #else
   template<typename InputCoefficients, typename OutputCoefficients, typename TransformationMatrix,
@@ -115,9 +115,9 @@ namespace OpenKalman
     static_assert(coefficients<OutputCoefficients>);
     static_assert(typed_matrix_nestable<TransformationMatrix>);
     static_assert((typed_matrix_nestable<PerturbationTransformationMatrices> and ...));
-    static_assert(MatrixTraits<TransformationMatrix>::dimension == OutputCoefficients::size);
+    static_assert(MatrixTraits<TransformationMatrix>::rows == OutputCoefficients::size);
     static_assert(MatrixTraits<TransformationMatrix>::columns == InputCoefficients::size);
-    static_assert(((MatrixTraits<PerturbationTransformationMatrices>::dimension == OutputCoefficients::size) and ...));
+    static_assert(((MatrixTraits<PerturbationTransformationMatrices>::rows == OutputCoefficients::size) and ...));
     static_assert((square_matrix<PerturbationTransformationMatrices> and ...));
 #endif
 
@@ -226,16 +226,16 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<typed_matrix_nestable T, internal::linear_transformation_input<Axes<MatrixTraits<T>::dimension>> ... Ps>
+  template<typed_matrix_nestable T, internal::linear_transformation_input<Axes<MatrixTraits<T>::rows>> ... Ps>
 #else
   template<typename T, typename ... Ps, std::enable_if_t<
-    (typed_matrix_nestable<T> and ... and internal::linear_transformation_input<Ps, Axes<MatrixTraits<T>::dimension>>),
+    (typed_matrix_nestable<T> and ... and internal::linear_transformation_input<Ps, Axes<MatrixTraits<T>::rows>>),
     int> = 0>
 #endif
   LinearTransformation(T&&, Ps&& ...)
   -> LinearTransformation<
     Axes<MatrixTraits<T>::columns>,
-    Axes<MatrixTraits<T>::dimension>,
+    Axes<MatrixTraits<T>::rows>,
     self_contained_t<T>,
     self_contained_t<Ps>...>;
 

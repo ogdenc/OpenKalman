@@ -342,7 +342,7 @@ namespace OpenKalman::Eigen3
    */
 #ifdef __cpp_concepts
   template<coefficients Coeffs, eigen_matrix NestedMatrix = Eigen::Matrix<double, Coeffs::size, 1>> requires
-    (MatrixTraits<NestedMatrix>::dimension == Coeffs::size)
+    (MatrixTraits<NestedMatrix>::rows == Coeffs::size)
 #else
   template<typename Coeffs, typename NestedMatrix = Eigen::Matrix<double, Coeffs::size, 1>>
 #endif
@@ -384,7 +384,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<coefficients Coeffs, typename NestedMatrix = Eigen::Matrix<double, Coeffs::euclidean_dimension, 1>> requires
     (eigen_matrix<NestedMatrix> or to_euclidean_expr<NestedMatrix>) and
-    (MatrixTraits<NestedMatrix>::dimension == Coeffs::euclidean_dimension)
+    (MatrixTraits<NestedMatrix>::rows == Coeffs::euclidean_dimension)
 #else
   template<typename Coeffs, typename NestedMatrix = Eigen::Matrix<double, Coeffs::euclidean_dimension, 1>>
 #endif

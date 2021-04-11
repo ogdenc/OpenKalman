@@ -40,7 +40,7 @@ namespace OpenKalman::Eigen3
     using Base = OpenKalman::internal::MatrixBase<SelfAdjointMatrix, NestedMatrix>;
     static constexpr auto uplo = storage_triangle == TriangleType::upper ? Eigen::Upper : Eigen::Lower;
     using View = Eigen::SelfAdjointView<std::remove_reference_t<NestedMatrix>, uplo>;
-    static constexpr auto dimension = MatrixTraits<NestedMatrix>::dimension;
+    static constexpr auto dimension = MatrixTraits<NestedMatrix>::rows;
 
   public:
 
@@ -159,7 +159,7 @@ namespace OpenKalman::Eigen3
 #else
     template<typename Arg, std::enable_if_t<eigen_matrix<Arg> and eigen_diagonal_expr<NestedMatrix> and
       square_matrix<Arg> and
-      std::is_constructible_v<Base, native_matrix_t<Arg, MatrixTraits<Arg>::dimension, 1>>, int> = 0>
+      std::is_constructible_v<Base, native_matrix_t<Arg, MatrixTraits<Arg>::rows, 1>>, int> = 0>
 #endif
     explicit SelfAdjointMatrix(Arg&& arg) noexcept
       : Base {diagonal_of(std::forward<Arg>(arg))}, view {this->nested_matrix()} {}
@@ -253,12 +253,12 @@ namespace OpenKalman::Eigen3
     /// Assign from another self-adjoint matrix.
 #ifdef __cpp_concepts
     template<eigen_self_adjoint_expr Arg> requires (not std::derived_from<std::decay_t<Arg>, SelfAdjointMatrix>) and
-      (MatrixTraits<Arg>::dimension == dimension) and
+      (MatrixTraits<Arg>::rows == dimension) and
       modifiable<NestedMatrix, nested_matrix_t<Arg>> and
       (not (eigen_diagonal_expr<NestedMatrix> and storage_triangle == TriangleType::diagonal) or diagonal_matrix<Arg>)
 #else
     template<typename Arg, std::enable_if_t<eigen_self_adjoint_expr<Arg> and
-      (not std::is_base_of_v<SelfAdjointMatrix, std::decay_t<Arg>>) and (MatrixTraits<Arg>::dimension == dimension) and
+      (not std::is_base_of_v<SelfAdjointMatrix, std::decay_t<Arg>>) and (MatrixTraits<Arg>::rows == dimension) and
       modifiable<NestedMatrix, nested_matrix_t<Arg>> and
       ((not eigen_diagonal_expr<NestedMatrix> and storage_triangle != TriangleType::diagonal) or diagonal_matrix<Arg>),
       int> = 0>
@@ -294,10 +294,10 @@ namespace OpenKalman::Eigen3
     /// Assign from a general \ref self_adjoint_matrix.
 #ifdef __cpp_concepts
     template<self_adjoint_matrix Arg> requires (not eigen_self_adjoint_expr<Arg>) and
-      (MatrixTraits<Arg>::dimension == dimension) and modifiable<NestedMatrix, Arg>
+      (MatrixTraits<Arg>::rows == dimension) and modifiable<NestedMatrix, Arg>
 #else
     template<typename Arg, std::enable_if_t<self_adjoint_matrix<Arg> and (not eigen_self_adjoint_expr<Arg>) and
-      (MatrixTraits<Arg>::dimension == dimension) and modifiable<NestedMatrix, Arg>, int> = 0>
+      (MatrixTraits<Arg>::rows == dimension) and modifiable<NestedMatrix, Arg>, int> = 0>
 #endif
     auto& operator=(Arg&& arg)
     {
@@ -340,7 +340,7 @@ namespace OpenKalman::Eigen3
     template<typename Arg, TriangleType t>
     auto& operator+=(const SelfAdjointMatrix<Arg, t>& arg)
     {
-      static_assert(MatrixTraits<Arg>::dimension == dimension);
+      static_assert(MatrixTraits<Arg>::rows == dimension);
       if constexpr(t == storage_triangle)
         this->nested_matrix().template triangularView<uplo>() += arg.nested_matrix();
       else
@@ -352,7 +352,7 @@ namespace OpenKalman::Eigen3
     template<typename Arg, TriangleType t>
     auto& operator-=(const SelfAdjointMatrix<Arg, t>& arg)
     {
-      static_assert(MatrixTraits<Arg>::dimension == dimension);
+      static_assert(MatrixTraits<Arg>::rows == dimension);
       if constexpr(t == storage_triangle)
         this->nested_matrix().template triangularView<uplo>() -= arg.nested_matrix();
       else
@@ -568,25 +568,25 @@ namespace OpenKalman
     static constexpr TriangleType storage_triangle = triangle_type;
     using NestedMatrix = ArgType;
     using Scalar = typename MatrixTraits<NestedMatrix>::Scalar;
-    static constexpr auto dimension = MatrixTraits<NestedMatrix>::dimension;
+    static constexpr auto rows = MatrixTraits<NestedMatrix>::rows;
     static constexpr auto columns = MatrixTraits<NestedMatrix>::columns;
 
     template<typename Derived>
     using MatrixBaseFrom =
       Eigen3::internal::Eigen3MatrixBase<Derived, Eigen3::SelfAdjointMatrix<ArgType, storage_triangle>>;
 
-    template<std::size_t rows = dimension, std::size_t cols = dimension, typename S = Scalar>
-    using NativeMatrixFrom = native_matrix_t<NestedMatrix, rows, cols, S>;
+    template<std::size_t r = rows, std::size_t c = rows, typename S = Scalar>
+    using NativeMatrixFrom = native_matrix_t<NestedMatrix, r, c, S>;
 
     using SelfContainedFrom = Eigen3::SelfAdjointMatrix<self_contained_t<NestedMatrix>, storage_triangle>;
 
-    template<TriangleType t = storage_triangle, std::size_t dim = dimension, typename S = Scalar>
+    template<TriangleType t = storage_triangle, std::size_t dim = rows, typename S = Scalar>
     using SelfAdjointMatrixFrom = Eigen3::SelfAdjointMatrix<NativeMatrixFrom<dim, dim, S>, t>;
 
-    template<TriangleType t = storage_triangle, std::size_t dim = dimension, typename S = Scalar>
+    template<TriangleType t = storage_triangle, std::size_t dim = rows, typename S = Scalar>
     using TriangularMatrixFrom = Eigen3::TriangularMatrix<NativeMatrixFrom<dim, dim, S>, t>;
 
-    template<std::size_t dim = dimension, typename S = Scalar>
+    template<std::size_t dim = rows, typename S = Scalar>
     using DiagonalMatrixFrom = Eigen3::DiagonalMatrix<NativeMatrixFrom<dim, 1, S>>;
 
 
@@ -678,14 +678,14 @@ namespace OpenKalman::Eigen3
   template<Eigen3::eigen_self_adjoint_expr Arg, typename U> requires
     (Eigen3::eigen_matrix<U> or Eigen3::eigen_triangular_expr<U> or Eigen3::eigen_self_adjoint_expr<U> or
     Eigen3::eigen_diagonal_expr<U> or Eigen3::euclidean_expr<U>) and
-    (MatrixTraits<U>::dimension == MatrixTraits<Arg>::dimension) and
+    (MatrixTraits<U>::rows == MatrixTraits<Arg>::rows) and
     (not std::is_const_v<std::remove_reference_t<Arg>>)
 #else
   template<typename Arg, typename U, std::enable_if_t<
     Eigen3::eigen_self_adjoint_expr<Arg> and
     (Eigen3::eigen_matrix<U> or Eigen3::eigen_triangular_expr<U> or Eigen3::eigen_self_adjoint_expr<U> or
     Eigen3::eigen_diagonal_expr<U> or Eigen3::euclidean_expr<U>) and
-    (MatrixTraits<U>::dimension == MatrixTraits<Arg>::dimension) and
+    (MatrixTraits<U>::rows == MatrixTraits<Arg>::rows) and
     (not std::is_const_v<std::remove_reference_t<Arg>>), int> = 0>
 #endif
   inline Arg&
@@ -700,13 +700,13 @@ namespace OpenKalman::Eigen3
   template<Eigen3::eigen_self_adjoint_expr Arg, typename U> requires
     (Eigen3::eigen_matrix<U> or Eigen3::eigen_triangular_expr<U> or Eigen3::eigen_self_adjoint_expr<U> or
     Eigen3::eigen_diagonal_expr<U> or Eigen3::euclidean_expr<U>) and
-    (MatrixTraits<U>::dimension == MatrixTraits<Arg>::dimension)
+    (MatrixTraits<U>::rows == MatrixTraits<Arg>::rows)
 #else
   template<typename Arg, typename U, std::enable_if_t<
     Eigen3::eigen_self_adjoint_expr<Arg> and
     (Eigen3::eigen_matrix<U> or Eigen3::eigen_triangular_expr<U> or Eigen3::eigen_self_adjoint_expr<U> or
     Eigen3::eigen_diagonal_expr<U> or Eigen3::euclidean_expr<U>) and
-    (MatrixTraits<U>::dimension == MatrixTraits<Arg>::dimension), int> = 0>
+    (MatrixTraits<U>::rows == MatrixTraits<Arg>::rows), int> = 0>
 #endif
   inline auto
   rank_update(Arg && arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)

@@ -500,7 +500,7 @@ namespace OpenKalman
     coefficients ColumnCoefficients = RowCoefficients,
     typed_matrix_nestable NestedMatrix = Eigen::Matrix<double, RowCoefficients::size, ColumnCoefficients::size>>
   requires
-    (RowCoefficients::size == MatrixTraits<NestedMatrix>::dimension) and
+    (RowCoefficients::size == MatrixTraits<NestedMatrix>::rows) and
     (ColumnCoefficients::size == MatrixTraits<NestedMatrix>::columns) and
     (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
@@ -531,7 +531,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<coefficients RowCoefficients,
     typed_matrix_nestable NestedMatrix = Eigen::Matrix<double, RowCoefficients::size, 1>>
-  requires (RowCoefficients::size == MatrixTraits<NestedMatrix>::dimension) and
+  requires (RowCoefficients::size == MatrixTraits<NestedMatrix>::rows) and
     (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename RowCoefficients, typename NestedMatrix = Eigen::Matrix<double, RowCoefficients::size, 1>>
@@ -559,7 +559,7 @@ namespace OpenKalman
     coefficients Coefficients,
     typed_matrix_nestable NestedMatrix = Eigen::Matrix<double, Coefficients::euclidean_dimension, 1>>
   requires
-    (Coefficients::euclidean_dimension == MatrixTraits<NestedMatrix>::dimension) and
+    (Coefficients::euclidean_dimension == MatrixTraits<NestedMatrix>::rows) and
     (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename Coefficients, typename NestedMatrix = Eigen::Matrix<double, Coefficients::euclidean_dimension, 1>>
@@ -585,7 +585,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<coefficients Coefficients, covariance_nestable NestedMatrix =
     Eigen3::SelfAdjointMatrix<Eigen::Matrix<double, Coefficients::size, Coefficients::size>>>
-  requires (Coefficients::size == MatrixTraits<NestedMatrix>::dimension) and
+  requires (Coefficients::size == MatrixTraits<NestedMatrix>::rows) and
     (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename Coefficients, typename NestedMatrix =
@@ -613,7 +613,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<coefficients Coefficients, covariance_nestable NestedMatrix =
   Eigen3::SelfAdjointMatrix<Eigen::Matrix<double, Coefficients::size, Coefficients::size>>> requires
-  (Coefficients::size == MatrixTraits<NestedMatrix>::dimension) and (not std::is_rvalue_reference_v<NestedMatrix>)
+  (Coefficients::size == MatrixTraits<NestedMatrix>::rows) and (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename Coefficients, typename NestedMatrix =
     Eigen3::SelfAdjointMatrix<Eigen::Matrix<double, Coefficients::size, Coefficients::size>>>

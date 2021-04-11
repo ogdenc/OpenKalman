@@ -202,7 +202,7 @@ TEST_F(matrices, EuclideanMean_deduction_guides)
   auto b3 = Mean<Axes<2>, M23> {1, 2, 3, 4, 5, 6};
   EXPECT_TRUE(is_near(EuclideanMean(b3), TM23 {1, 2, 3, 4, 5, 6}));
   static_assert(equivalent_to<typename MatrixTraits<decltype(EuclideanMean(b3))>::RowCoefficients, Axes<2>>);
-  static_assert(MatrixTraits<decltype(EuclideanMean(b3))>::dimension == 2);
+  static_assert(MatrixTraits<decltype(EuclideanMean(b3))>::rows == 2);
 }
 
 

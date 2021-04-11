@@ -18,7 +18,7 @@ namespace OpenKalman::Eigen3
     template<typename Arg>
     inline auto extracted_diagonal_square(Arg&& arg)
     {
-      using M = Eigen::Matrix<typename MatrixTraits<Arg>::Scalar, MatrixTraits<Arg>::dimension, 1>;
+      using M = Eigen::Matrix<typename MatrixTraits<Arg>::Scalar, MatrixTraits<Arg>::rows, 1>;
       M b {std::forward<Arg>(arg).diagonal()};
       M ret {(b.array() * b.array()).matrix()};
       return DiagonalMatrix<M> {std::move(ret)};
@@ -27,7 +27,7 @@ namespace OpenKalman::Eigen3
     template<typename Arg>
     inline auto extracted_diagonal_sqrt(Arg&& arg)
     {
-      using M = Eigen::Matrix<typename MatrixTraits<Arg>::Scalar, MatrixTraits<Arg>::dimension, 1>;
+      using M = Eigen::Matrix<typename MatrixTraits<Arg>::Scalar, MatrixTraits<Arg>::rows, 1>;
       M b {std::forward<Arg>(arg).diagonal()};
       M ret {(b.array().sqrt()).matrix()};
       return DiagonalMatrix<M> {std::move(ret)};
@@ -188,7 +188,7 @@ namespace OpenKalman::Eigen3
   {
     using NestedMatrix = std::decay_t<nested_matrix_t<Arg>>;
     using Scalar = typename MatrixTraits<Arg>::Scalar;
-    constexpr auto dimension = MatrixTraits<Arg>::dimension;
+    constexpr auto dimension = MatrixTraits<Arg>::rows;
     using M = Eigen::Matrix<Scalar, dimension, dimension>;
 
     if constexpr(identity_matrix<NestedMatrix> or zero_matrix<NestedMatrix>)
@@ -304,7 +304,7 @@ namespace OpenKalman::Eigen3
   Cholesky_square(Arg&& arg) noexcept
   {
     constexpr auto triangle_type = MatrixTraits<Arg>::triangle_type;
-    constexpr auto dim = MatrixTraits<Arg>::dimension;
+    constexpr auto dim = MatrixTraits<Arg>::rows;
     using M = Eigen::Matrix<typename MatrixTraits<Arg>::Scalar, dim, dim>;
 
     if constexpr(identity_matrix<nested_matrix_t<Arg>> or zero_matrix<nested_matrix_t<Arg>>)

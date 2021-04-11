@@ -72,12 +72,12 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-  template<eigen_native Arg, typename U> requires one_by_one_matrix<Arg> and (MatrixTraits<U>::dimension == 1) and
+  template<eigen_native Arg, typename U> requires one_by_one_matrix<Arg> and (MatrixTraits<U>::rows == 1) and
     (eigen_matrix<U> or eigen_triangular_expr<U> or eigen_self_adjoint_expr<U> or eigen_diagonal_expr<U>) and
     (not std::is_const_v<std::remove_reference_t<Arg>>)
 #else
   template<typename Arg, typename U, std::enable_if_t<
-    eigen_native<Arg> and one_by_one_matrix<Arg> and (MatrixTraits<U>::dimension == 1) and
+    eigen_native<Arg> and one_by_one_matrix<Arg> and (MatrixTraits<U>::rows == 1) and
     (eigen_matrix<U> or eigen_triangular_expr<U> or eigen_self_adjoint_expr<U> or eigen_diagonal_expr<U>) and
     not std::is_const_v<std::remove_reference_t<Arg>>, int> = 0>
 #endif
@@ -90,11 +90,11 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-  template<eigen_native Arg, typename U> requires one_by_one_matrix<Arg> and (MatrixTraits<U>::dimension == 1) and
+  template<eigen_native Arg, typename U> requires one_by_one_matrix<Arg> and (MatrixTraits<U>::rows == 1) and
     (eigen_matrix<U> or eigen_triangular_expr<U> or eigen_self_adjoint_expr<U> or eigen_diagonal_expr<U>)
 #else
   template<typename Arg, typename U, std::enable_if_t<
-    eigen_native<Arg> and one_by_one_matrix<Arg> and (MatrixTraits<U>::dimension == 1) and
+    eigen_native<Arg> and one_by_one_matrix<Arg> and (MatrixTraits<U>::rows == 1) and
     (eigen_matrix<U> or eigen_triangular_expr<U> or eigen_self_adjoint_expr<U> or eigen_diagonal_expr<U>), int> = 0>
 #endif
   inline auto
@@ -129,7 +129,7 @@ namespace OpenKalman::Eigen3
   constexpr auto
   reduce_columns(Arg&& arg)
   {
-    return make_native_matrix(make_native_matrix(std::forward<Arg>(arg)).rowwise().sum() / MatrixTraits<Arg>::dimension);
+    return make_native_matrix(make_native_matrix(std::forward<Arg>(arg)).rowwise().sum() / MatrixTraits<Arg>::rows);
   }
 
 
@@ -197,7 +197,7 @@ namespace OpenKalman::Eigen3
   inline auto
   split_diagonal(Arg&& arg)
   {
-    static_assert((0 + ... + Cs::size) <= MatrixTraits<Arg>::dimension);
+    static_assert((0 + ... + Cs::size) <= MatrixTraits<Arg>::rows);
     return split_vertical<internal::SplitSpecF<F, Arg>, Cs...>(nested_matrix(std::forward<Arg>(arg)));
   }
 
@@ -213,7 +213,7 @@ namespace OpenKalman::Eigen3
   inline auto
   split_diagonal(Arg&& arg)
   {
-    static_assert((0 + ... + Cs::size) <= MatrixTraits<Arg>::dimension);
+    static_assert((0 + ... + Cs::size) <= MatrixTraits<Arg>::rows);
     return split_diagonal<internal::SplitSpecF<F, Arg>, Cs...>(nested_matrix(std::forward<Arg>(arg)));
   }
 
@@ -228,7 +228,7 @@ namespace OpenKalman::Eigen3
   inline auto
   split_diagonal(Arg&& arg)
   {
-    static_assert((0 + ... + Cs::size) <= MatrixTraits<Arg>::dimension);
+    static_assert((0 + ... + Cs::size) <= MatrixTraits<Arg>::rows);
     return split_diagonal<OpenKalman::internal::default_split_function, Cs...>(std::forward<Arg>(arg));
   }
 
@@ -243,7 +243,7 @@ namespace OpenKalman::Eigen3
   inline auto
   split_diagonal(Arg&& arg)
   {
-    static_assert((cut + ... + cuts) <= MatrixTraits<Arg>::dimension);
+    static_assert((cut + ... + cuts) <= MatrixTraits<Arg>::rows);
     return split_diagonal<Axes<cut>, Axes<cuts>...>(std::forward<Arg>(arg));
   }
 
@@ -260,7 +260,7 @@ namespace OpenKalman::Eigen3
   inline auto
   split_vertical(Arg&& arg)
   {
-    static_assert((0 + ... + Cs::size) <= MatrixTraits<Arg>::dimension);
+    static_assert((0 + ... + Cs::size) <= MatrixTraits<Arg>::rows);
     return split_vertical<internal::SplitSpecF<F, native_matrix_t<Arg>>, Cs...>(make_native_matrix(std::forward<Arg>(arg)));
   }
 
@@ -275,7 +275,7 @@ namespace OpenKalman::Eigen3
   inline auto
   split_vertical(Arg&& arg)
   {
-    static_assert((0 + ... + Cs::size) <= MatrixTraits<Arg>::dimension);
+    static_assert((0 + ... + Cs::size) <= MatrixTraits<Arg>::rows);
     return split_vertical<OpenKalman::internal::default_split_function, Cs...>(std::forward<Arg>(arg));
   }
 
@@ -290,7 +290,7 @@ namespace OpenKalman::Eigen3
   inline auto
   split_vertical(Arg&& arg)
   {
-    static_assert((cut + ... + cuts) <= MatrixTraits<Arg>::dimension);
+    static_assert((cut + ... + cuts) <= MatrixTraits<Arg>::rows);
     return split_vertical<Axes<cut>, Axes<cuts>...>(std::forward<Arg>(arg));
   }
 
@@ -307,7 +307,7 @@ namespace OpenKalman::Eigen3
   inline auto
   split_horizontal(Arg&& arg)
   {
-    static_assert((0 + ... + Cs::size) <= MatrixTraits<Arg>::dimension);
+    static_assert((0 + ... + Cs::size) <= MatrixTraits<Arg>::rows);
     return split_horizontal<internal::SplitSpecF<F, native_matrix_t<Arg>>, Cs...>(make_native_matrix(std::forward<Arg>(arg)));
   }
 
@@ -323,7 +323,7 @@ namespace OpenKalman::Eigen3
   inline auto
   split_horizontal(Arg&& arg)
   {
-    static_assert((0 + ... + Cs::size) <= MatrixTraits<Arg>::dimension);
+    static_assert((0 + ... + Cs::size) <= MatrixTraits<Arg>::rows);
     return split_horizontal<OpenKalman::internal::default_split_function, Cs...>(std::forward<Arg>(arg));
   }
 
@@ -338,7 +338,7 @@ namespace OpenKalman::Eigen3
   inline auto
   split_horizontal(Arg&& arg)
   {
-    static_assert((cut + ... + cuts) <= MatrixTraits<Arg>::dimension);
+    static_assert((cut + ... + cuts) <= MatrixTraits<Arg>::rows);
     return split_horizontal<Axes<cut>, Axes<cuts>...>(std::forward<Arg>(arg));
   }
 

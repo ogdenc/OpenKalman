@@ -44,7 +44,7 @@ namespace OpenKalman::Eigen3
     else
     {
       using S = typename MatrixTraits<Arg>::Scalar;
-      constexpr Eigen::Index rows = MatrixTraits<Arg>::dimension;
+      constexpr Eigen::Index rows = MatrixTraits<Arg>::rows;
       constexpr Eigen::Index cols = MatrixTraits<Arg>::columns;
       return static_cast<Eigen::Matrix<S, rows, cols>>(std::forward<Arg>(arg));
     }
@@ -233,7 +233,7 @@ namespace OpenKalman::Eigen3
 #endif
   inline auto solve(A&& a, B&& b) noexcept
   {
-    static_assert(MatrixTraits<A>::dimension == MatrixTraits<B>::dimension);
+    static_assert(MatrixTraits<A>::rows == MatrixTraits<B>::rows);
     return solve(make_native_matrix(std::forward<A>(a)), std::forward<B>(b));
   }
 
@@ -428,8 +428,8 @@ namespace OpenKalman::Eigen3
   inline auto
   split_vertical(Arg&& arg) noexcept
   {
-    static_assert((cut + ... + cuts) <= MatrixTraits<Arg>::dimension);
-    if constexpr(cut == MatrixTraits<Arg>::dimension and sizeof...(cuts) == 0)
+    static_assert((cut + ... + cuts) <= MatrixTraits<Arg>::rows);
+    if constexpr(cut == MatrixTraits<Arg>::rows and sizeof...(cuts) == 0)
     {
       return std::tuple {std::forward<Arg>(arg)};
     }
@@ -550,8 +550,8 @@ namespace OpenKalman::Eigen3
   inline auto
   split_diagonal(Arg&& arg) noexcept
   {
-    static_assert((cut + ... + cuts) <= MatrixTraits<Arg>::dimension);
-    if constexpr(cut == MatrixTraits<Arg>::dimension and sizeof...(cuts) == 0)
+    static_assert((cut + ... + cuts) <= MatrixTraits<Arg>::rows);
+    if constexpr(cut == MatrixTraits<Arg>::rows and sizeof...(cuts) == 0)
     {
       return std::tuple {std::forward<Arg>(arg)};
     }
@@ -1030,7 +1030,7 @@ namespace OpenKalman::Eigen3
   {
     using Scalar = typename MatrixTraits<ReturnType>::Scalar;
     using B = nested_matrix_t<ReturnType>;
-    constexpr auto rows = MatrixTraits<B>::dimension;
+    constexpr auto rows = MatrixTraits<B>::rows;
     constexpr auto cols = MatrixTraits<B>::columns;
     using Ps = typename distribution_type<Scalar>::param_type;
     static_assert(std::is_constructible_v<Ps, Params...> or sizeof...(Params) == rows or sizeof...(Params) == rows * cols,
