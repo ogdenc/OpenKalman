@@ -686,7 +686,7 @@ TEST_F(covariance_tests, Covariance_make)
   static_assert(lower_triangular_matrix<decltype(make_covariance<C, TriangleType::lower>().get_triangular_nested_matrix())>);
   static_assert(upper_triangular_matrix<decltype(make_covariance<C, TriangleType::upper>().get_triangular_nested_matrix())>);
   static_assert(Eigen3::lower_triangular_storage<decltype(make_covariance<C>().get_self_adjoint_nested_matrix())>);
-  static_assert(MatrixTraits<decltype(make_covariance<C>())>::RowCoefficients::size == 2);
+  static_assert(MatrixTraits<decltype(make_covariance<C>())>::RowCoefficients::dimensions == 2);
 }
 
 

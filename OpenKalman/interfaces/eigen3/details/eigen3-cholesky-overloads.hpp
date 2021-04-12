@@ -188,8 +188,8 @@ namespace OpenKalman::Eigen3
   {
     using NestedMatrix = std::decay_t<nested_matrix_t<Arg>>;
     using Scalar = typename MatrixTraits<Arg>::Scalar;
-    constexpr auto dimension = MatrixTraits<Arg>::rows;
-    using M = Eigen::Matrix<Scalar, dimension, dimension>;
+    constexpr auto dimensions = MatrixTraits<Arg>::rows;
+    using M = Eigen::Matrix<Scalar, dimensions, dimensions>;
 
     if constexpr(identity_matrix<NestedMatrix> or zero_matrix<NestedMatrix>)
     {
@@ -216,17 +216,17 @@ namespace OpenKalman::Eigen3
       M b;
       if constexpr(triangle_type == TriangleType::lower)
       {
-        using Mat = Eigen::Matrix<Scalar, 1, dimension>;
+        using Mat = Eigen::Matrix<Scalar, 1, dimensions>;
         Mat mat = Mat::Zero();
         mat(0, 0) = std::sqrt(s);
-        b.template triangularView<Eigen::Lower>() = mat.template replicate<dimension, 1>();
+        b.template triangularView<Eigen::Lower>() = mat.template replicate<dimensions, 1>();
       }
       else
       {
-        using Mat = Eigen::Matrix<Scalar, dimension, 1>;
+        using Mat = Eigen::Matrix<Scalar, dimensions, 1>;
         Mat mat = Mat::Zero();
         mat(0, 0) = std::sqrt(s);
-        b.template triangularView<Eigen::Upper>() = mat.template replicate<1, dimension>();
+        b.template triangularView<Eigen::Upper>() = mat.template replicate<1, dimensions>();
       }
       return TriangularMatrix<M, triangle_type> {std::move(b)};
     }

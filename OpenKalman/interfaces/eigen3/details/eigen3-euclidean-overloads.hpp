@@ -450,7 +450,7 @@ namespace OpenKalman::Eigen3
   inline auto
   split_horizontal(Arg&& arg) noexcept
   {
-    static_assert((0 + ... + Cs::size) <= MatrixTraits<Arg>::columns);
+    static_assert((0 + ... + Cs::dimensions) <= MatrixTraits<Arg>::columns);
     using RC = typename MatrixTraits<Arg>::RowCoefficients;
     return split_horizontal<internal::SplitEuclideanHorizF<F, Arg, RC>, Cs...>(
       nested_matrix(std::forward<Arg>(arg)));

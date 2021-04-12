@@ -42,7 +42,7 @@ namespace OpenKalman
     static_assert(rows > 0, "Cannot currently use dynamically sized matrices with OpenKalman.");
     static_assert(columns > 0, "Cannot currently use dynamically sized matrices with OpenKalman.");
 
-    // Cannot use dimension and columns constant expressions here because of bug in GCC 10.1.0 (but not clang 10.0.0):
+    // Cannot use dimensions and columns constant expressions here because of bug in GCC 10.1.0 (but not clang 10.0.0):
     template<std::size_t r = std::size_t(M::RowsAtCompileTime),
       std::size_t c = std::size_t(M::ColsAtCompileTime), typename S = Scalar>
     using NativeMatrixFrom = Eigen::Matrix<S, (Eigen::Index) r, (Eigen::Index) c>;

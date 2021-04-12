@@ -25,10 +25,10 @@ namespace OpenKalman
   struct Distance
   {
     /// Distance is associated with one matrix element.
-    static constexpr std::size_t size = 1;
+    static constexpr std::size_t dimensions = 1;
 
     /// Distance is represented by one coordinate in Euclidean space.
-    static constexpr std::size_t euclidean_dimension = 1;
+    static constexpr std::size_t euclidean_dimensions = 1;
 
     /// Distance is not composed of only axes.
     static constexpr bool axes_only = false;
@@ -73,7 +73,7 @@ namespace OpenKalman
 #if defined (__cpp_concepts) && defined (__clang__) // Because of compiler issue in at least GCC version 10.1.0
       requires std::is_arithmetic_v<Scalar>
 #endif
-    static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), euclidean_dimension>
+    static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), euclidean_dimensions>
       to_euclidean_array =
       {
         [](const GetCoeff<Scalar>& get_coeff) { return get_coeff(i); }
@@ -94,7 +94,7 @@ namespace OpenKalman
 #if defined (__cpp_concepts) && defined (__clang__) // Because of compiler issue in at least GCC version 10.1.0
       requires std::is_arithmetic_v<Scalar>
 #endif
-    static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), size>
+    static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), dimensions>
       from_euclidean_array =
       {
         [](const GetCoeff<Scalar>& get_coeff) { return std::abs(get_coeff(i)); }
@@ -114,7 +114,7 @@ namespace OpenKalman
 #if defined (__cpp_concepts) && defined (__clang__) // Because of compiler issue in at least GCC version 10.1.0
       requires std::is_arithmetic_v<Scalar>
 #endif
-    static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), size>
+    static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), dimensions>
       wrap_array_get =
       {
         [](const GetCoeff<Scalar>& get_coeff) { return std::abs(get_coeff(i)); }
@@ -135,7 +135,8 @@ namespace OpenKalman
 #if defined (__cpp_concepts) && defined (__clang__) // Because of compiler issue in at least GCC version 10.1.0
       requires std::is_arithmetic_v<Scalar>
 #endif
-    static constexpr std::array<void (*const)(const Scalar, const SetCoeff<Scalar>&, const GetCoeff<Scalar>&), size>
+    static constexpr
+      std::array<void (*const)(const Scalar, const SetCoeff<Scalar>&, const GetCoeff<Scalar>&), dimensions>
       wrap_array_set =
       {
         [](const Scalar s, const SetCoeff<Scalar>& set_coeff, const GetCoeff<Scalar>&) { set_coeff(i, std::abs(s)); }

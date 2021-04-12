@@ -50,7 +50,7 @@ namespace OpenKalman
     template<typename D, typename...Ds>
     static constexpr auto count_dim(const std::tuple<Ds...>&)
     {
-      return (DistributionTraits<D>::dimension + ... + DistributionTraits<Ds>::dimension);
+      return (DistributionTraits<D>::dimensions + ... + DistributionTraits<Ds>::dimensions);
     }
 
 

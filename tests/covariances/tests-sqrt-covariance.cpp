@@ -747,7 +747,7 @@ TEST_F(covariance_tests, SquareRootCovariance_make)
   static_assert(lower_triangular_matrix<decltype(make_square_root_covariance<C, TriangleType::lower>().get_triangular_nested_matrix())>);
   static_assert(upper_triangular_matrix<decltype(make_square_root_covariance<C, TriangleType::upper>().get_triangular_nested_matrix())>);
   static_assert(lower_triangular_matrix<decltype(make_square_root_covariance<C>().get_triangular_nested_matrix())>);
-  static_assert(MatrixTraits<decltype(make_square_root_covariance<C>())>::RowCoefficients::size == 2);
+  static_assert(MatrixTraits<decltype(make_square_root_covariance<C>())>::RowCoefficients::dimensions == 2);
 }
 
 TEST_F(covariance_tests, SquareRootCovariance_traits)

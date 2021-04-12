@@ -149,10 +149,10 @@ namespace OpenKalman
     static_assert(Limits<double>::min < Limits<double>::max);
 
     /// Angle is associated with one matrix element.
-    static constexpr std::size_t size = 1;
+    static constexpr std::size_t dimensions = 1;
 
     /// Angle is represented by two coordinates in Euclidean space.
-    static constexpr std::size_t euclidean_dimension = 2;
+    static constexpr std::size_t euclidean_dimensions = 2;
 
     /// Angle is not composed of only axes.
     static constexpr bool axes_only = false;
@@ -204,7 +204,7 @@ namespace OpenKalman
 #if defined (__cpp_concepts) && defined (__clang__) // Because of compiler issue in at least GCC version 10.1.0
     requires std::floating_point<Scalar>
 #endif
-    static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), euclidean_dimension>
+    static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), euclidean_dimensions>
       to_euclidean_array =
       {
         [](const GetCoeff<Scalar>& get_coeff) { return std::cos(get_coeff(i) * cf<Scalar>); },
@@ -229,7 +229,7 @@ namespace OpenKalman
 #if defined (__cpp_concepts) && defined (__clang__) // Because of compiler issue in at least GCC version 10.1.0
     requires std::floating_point<Scalar>
 #endif
-    static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), size>
+    static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), dimensions>
       from_euclidean_array =
       {
         [](const GetCoeff<Scalar>& get_coeff) {
@@ -279,7 +279,7 @@ namespace OpenKalman
 #if defined (__cpp_concepts) && defined (__clang__) // Because of compiler issue in at least GCC version 10.1.0
     requires std::floating_point<Scalar>
 #endif
-    static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), size>
+    static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), dimensions>
       wrap_array_get =
       {
         [](const GetCoeff<Scalar>& get_coeff) { return wrap_impl(get_coeff(i)); }
@@ -300,7 +300,8 @@ namespace OpenKalman
 #if defined (__cpp_concepts) && defined (__clang__) // Because of compiler issue in at least GCC version 10.1.0
     requires std::floating_point<Scalar>
 #endif
-    static constexpr std::array<void (*const)(const Scalar, const SetCoeff<Scalar>&, const GetCoeff<Scalar>&), size>
+    static constexpr
+      std::array<void (*const)(const Scalar, const SetCoeff<Scalar>&, const GetCoeff<Scalar>&), dimensions>
       wrap_array_set =
       {
         [](const Scalar s, const SetCoeff<Scalar>& set_coeff, const GetCoeff<Scalar>&) { set_coeff(i, wrap_impl(s)); }

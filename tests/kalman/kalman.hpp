@@ -61,7 +61,7 @@ public:
       const auto z = meas_dist();
       x = filter.predict(x);
       x = filter.update(z, x, t, r);
-      norm = nested_matrix(mean_of(x) - true_state).norm() / std::sqrt(DistributionTraits<StateDist>::dimension);
+      norm = nested_matrix(mean_of(x) - true_state).norm() / std::sqrt(DistributionTraits<StateDist>::dimensions);
     }
     if (count >= iterations)
     {

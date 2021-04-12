@@ -197,7 +197,7 @@ namespace OpenKalman::Eigen3
   inline auto
   split_diagonal(Arg&& arg)
   {
-    static_assert((0 + ... + Cs::size) <= MatrixTraits<Arg>::rows);
+    static_assert((0 + ... + Cs::dimensions) <= MatrixTraits<Arg>::rows);
     return split_vertical<internal::SplitSpecF<F, Arg>, Cs...>(nested_matrix(std::forward<Arg>(arg)));
   }
 
@@ -213,7 +213,7 @@ namespace OpenKalman::Eigen3
   inline auto
   split_diagonal(Arg&& arg)
   {
-    static_assert((0 + ... + Cs::size) <= MatrixTraits<Arg>::rows);
+    static_assert((0 + ... + Cs::dimensions) <= MatrixTraits<Arg>::rows);
     return split_diagonal<internal::SplitSpecF<F, Arg>, Cs...>(nested_matrix(std::forward<Arg>(arg)));
   }
 
@@ -228,7 +228,7 @@ namespace OpenKalman::Eigen3
   inline auto
   split_diagonal(Arg&& arg)
   {
-    static_assert((0 + ... + Cs::size) <= MatrixTraits<Arg>::rows);
+    static_assert((0 + ... + Cs::dimensions) <= MatrixTraits<Arg>::rows);
     return split_diagonal<OpenKalman::internal::default_split_function, Cs...>(std::forward<Arg>(arg));
   }
 
@@ -260,7 +260,7 @@ namespace OpenKalman::Eigen3
   inline auto
   split_vertical(Arg&& arg)
   {
-    static_assert((0 + ... + Cs::size) <= MatrixTraits<Arg>::rows);
+    static_assert((0 + ... + Cs::dimensions) <= MatrixTraits<Arg>::rows);
     return split_vertical<internal::SplitSpecF<F, native_matrix_t<Arg>>, Cs...>(make_native_matrix(std::forward<Arg>(arg)));
   }
 
@@ -275,7 +275,7 @@ namespace OpenKalman::Eigen3
   inline auto
   split_vertical(Arg&& arg)
   {
-    static_assert((0 + ... + Cs::size) <= MatrixTraits<Arg>::rows);
+    static_assert((0 + ... + Cs::dimensions) <= MatrixTraits<Arg>::rows);
     return split_vertical<OpenKalman::internal::default_split_function, Cs...>(std::forward<Arg>(arg));
   }
 
@@ -307,7 +307,7 @@ namespace OpenKalman::Eigen3
   inline auto
   split_horizontal(Arg&& arg)
   {
-    static_assert((0 + ... + Cs::size) <= MatrixTraits<Arg>::rows);
+    static_assert((0 + ... + Cs::dimensions) <= MatrixTraits<Arg>::rows);
     return split_horizontal<internal::SplitSpecF<F, native_matrix_t<Arg>>, Cs...>(make_native_matrix(std::forward<Arg>(arg)));
   }
 
@@ -323,7 +323,7 @@ namespace OpenKalman::Eigen3
   inline auto
   split_horizontal(Arg&& arg)
   {
-    static_assert((0 + ... + Cs::size) <= MatrixTraits<Arg>::rows);
+    static_assert((0 + ... + Cs::dimensions) <= MatrixTraits<Arg>::rows);
     return split_horizontal<OpenKalman::internal::default_split_function, Cs...>(std::forward<Arg>(arg));
   }
 

@@ -31,10 +31,10 @@ namespace OpenKalman
   /**
    * \brief A set of coefficient types.
    * \details This is the key to the wrapping functionality of OpenKalman. Each of the coefficients Cs... matches-up with
-   * one or more of the rows or columns of a matrix. The number of coefficients per coefficient depends on the size
-   * of the coefficient. For example, Axis, Distance, Angle, and Inclination are size 1, and each correspond to a
-   * single coefficient. Polar is size 2 and corresponds to two coefficients (e.g., a distance and an angle).
-   * Spherical is size 3 and corresponds to three coefficients.
+   * one or more of the rows or columns of a matrix. The number of coefficients per coefficient depends on the dimensions
+   * of the coefficient. For example, Axis, Distance, Angle, and Inclination are dimensions 1, and each correspond to a
+   * single coefficient. Polar is dimensions 2 and corresponds to two coefficients (e.g., a distance and an angle).
+   * Spherical is dimensions 3 and corresponds to three coefficients.
    * Example: <code>Coefficients&lt;Axis, angle::Radians&gt;</code>
    * \sa Specializations: Coefficients<>, \ref CoefficientsCCs "Coefficients<C, Cs...>"
    * \tparam Cs Any types within the concept coefficients (internal bool variable coefficients in c++17).
@@ -337,7 +337,7 @@ namespace OpenKalman
     template<typename T>
 #ifdef __cpp_concepts
     concept coefficient_class =
-    std::integral<decltype(T::size)> and std::integral<decltype(T::euclidean_dimension)> and
+    std::integral<decltype(T::dimensions)> and std::integral<decltype(T::euclidean_dimensions)> and
       (T::axes_only or not T::axes_only) and
       (internal::is_atomic_coefficient_group<typename T::difference_type>::value or
         internal::is_composite_coefficients<typename T::difference_type>::value) and
@@ -346,10 +346,10 @@ namespace OpenKalman
       requires {T::template wrap_array_get<double, 0>[0](std::function<double(const std::size_t)>()) == 0.;} and
       requires {T::template wrap_array_set<double, 0>[0](0., std::function<void(const double, const std::size_t)>(),
           std::function<double(const std::size_t)>());} and
-      (std::tuple_size_v<decltype(T::template to_euclidean_array<double, 0>)> == T::euclidean_dimension) and
-      (std::tuple_size_v<decltype(T::template from_euclidean_array<double, 0>)> == T::size) and
-      (std::tuple_size_v<decltype(T::template wrap_array_get<double, 0>)> == T::size) and
-      (std::tuple_size_v<decltype(T::template wrap_array_set<double, 0>)> == T::size);
+      (std::tuple_size_v<decltype(T::template to_euclidean_array<double, 0>)> == T::euclidean_dimensions) and
+      (std::tuple_size_v<decltype(T::template from_euclidean_array<double, 0>)> == T::dimensions) and
+      (std::tuple_size_v<decltype(T::template wrap_array_get<double, 0>)> == T::dimensions) and
+      (std::tuple_size_v<decltype(T::template wrap_array_set<double, 0>)> == T::dimensions);
 #else
     inline constexpr bool coefficient_class = true;
 #endif

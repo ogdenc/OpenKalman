@@ -86,7 +86,7 @@ namespace OpenKalman {
 
         /**
          * \brief Update the state, using prior state possibly augmented with measurement noise, propagating variable as Gaussian
-         * \tparam Args type of measurement noise (Gaussian or square root form, same dimension as measurement variable)
+         * \tparam Args type of measurement noise (Gaussian or square root form, same dimensions as measurement variable)
          * \param x the current state variable (Gaussian), possibly augmented with measurement noise
          * \param z The measurement vector
          * \param args the optional additive process noise

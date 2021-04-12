@@ -142,7 +142,7 @@ namespace OpenKalman
       using Coeffs = typename DistributionTraits<D>::Coefficients;
       using M = typename DistributionTraits<D>::Mean;
       constexpr auto points_count = sigma_point_count<dim>;
-      constexpr auto dim_i = DistributionTraits<D>::dimension;
+      constexpr auto dim_i = DistributionTraits<D>::dimensions;
       constexpr auto frame_size = dim_i * 2;
       constexpr Scalar gamma_L = alpha * alpha * (Parameters::template kappa<dim> + dim);
       const auto gamma_L_cov = gamma_L * covariance_of(d);
@@ -205,7 +205,7 @@ namespace OpenKalman
     static auto
     sample_points(const Dist& ...ds)
     {
-      constexpr auto dim = (DistributionTraits<Dist>::dimension + ...);
+      constexpr auto dim = (DistributionTraits<Dist>::dimensions + ...);
       return sigma_points_impl<dim>(ds...);
     }
   };

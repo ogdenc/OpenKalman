@@ -115,10 +115,10 @@ namespace OpenKalman::internal
 
 #ifdef __cpp_concepts
     template<std::size_t dim, typed_matrix YMeans> requires untyped_columns<YMeans> and
-      (MatrixTraits<YMeans>::rows == MatrixTraits<YMeans>::RowCoefficients::euclidean_dimension)
+      (MatrixTraits<YMeans>::rows == MatrixTraits<YMeans>::RowCoefficients::euclidean_dimensions)
 #else
     template<std::size_t dim, typename YMeans, std::enable_if_t<typed_matrix<YMeans> and untyped_columns<YMeans> and
-      (MatrixTraits<YMeans>::rows == MatrixTraits<YMeans>::RowCoefficients::euclidean_dimension), int> = 0>
+      (MatrixTraits<YMeans>::rows == MatrixTraits<YMeans>::RowCoefficients::euclidean_dimensions), int> = 0>
 #endif
     static auto
     weighted_means(const YMeans& y_means)

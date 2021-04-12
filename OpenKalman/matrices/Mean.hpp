@@ -24,7 +24,7 @@ namespace OpenKalman
   /// A typed vector.
 #ifdef __cpp_concepts
   template<coefficients RowCoefficients, typed_matrix_nestable NestedMatrix> requires
-    (RowCoefficients::size == MatrixTraits<NestedMatrix>::rows) and
+    (RowCoefficients::dimensions == MatrixTraits<NestedMatrix>::rows) and
     (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename RowCoefficients, typename NestedMatrix>
@@ -36,7 +36,7 @@ namespace OpenKalman
 #ifndef __cpp_concepts
     static_assert(coefficients<RowCoefficients>);
     static_assert(typed_matrix_nestable<NestedMatrix>);
-    static_assert(RowCoefficients::size == MatrixTraits<NestedMatrix>::rows);
+    static_assert(RowCoefficients::dimensions == MatrixTraits<NestedMatrix>::rows);
     static_assert(not std::is_rvalue_reference_v<NestedMatrix>);
 #endif
 
@@ -443,10 +443,10 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<coefficients Coefficients, typed_matrix_nestable M> requires
-    (Coefficients::size == MatrixTraits<M>::rows)
+    (Coefficients::dimensions == MatrixTraits<M>::rows)
 #else
   template<typename Coefficients, typename M, std::enable_if_t<coefficients<Coefficients> and
-    typed_matrix_nestable<M> and (Coefficients::size == MatrixTraits<M>::rows), int> = 0>
+    typed_matrix_nestable<M> and (Coefficients::dimensions == MatrixTraits<M>::rows), int> = 0>
 #endif
   inline auto make_mean(M&& m) noexcept
   {
@@ -502,11 +502,11 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<coefficients Coefficients, typed_matrix_nestable M> requires
-    (MatrixTraits<M>::rows == Coefficients::size)
+    (MatrixTraits<M>::rows == Coefficients::dimensions)
 #else
   template<typename Coefficients, typename M, std::enable_if_t<
     coefficients<Coefficients> and typed_matrix_nestable<M> and
-    (MatrixTraits<M>::rows == Coefficients::size), int> = 0>
+    (MatrixTraits<M>::rows == Coefficients::dimensions), int> = 0>
 #endif
   inline auto make_mean()
   {
@@ -544,7 +544,7 @@ namespace OpenKalman
     using RowCoefficients = Coeffs;
     using ColumnCoefficients = Axes<columns>;
     using Scalar = typename MatrixTraits<NestedMatrix>::Scalar;
-    static_assert(RowCoefficients::size == rows);
+    static_assert(RowCoefficients::dimensions == rows);
 
     template<std::size_t r = rows, std::size_t c = columns, typename S = Scalar>
     using NativeMatrixFrom = native_matrix_t<NestedMatrix, r, c, S>;
@@ -556,11 +556,11 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<coefficients RC = RowCoefficients, typename CC = void, typed_matrix_nestable Arg> requires
       (std::is_void_v<CC> or equivalent_to<CC, Axes<MatrixTraits<Arg>::columns>>) and
-      (MatrixTraits<Arg>::rows == RC::size)
+      (MatrixTraits<Arg>::rows == RC::dimensions)
 #else
     template<typename RC = RowCoefficients, typename CC = void, typename Arg, std::enable_if_t<
       (std::is_void_v<CC> or equivalent_to<CC, Axes<MatrixTraits<Arg>::columns>>) and
-      typed_matrix_nestable<Arg> and (MatrixTraits<Arg>::rows == RC::size), int> = 0>
+      typed_matrix_nestable<Arg> and (MatrixTraits<Arg>::rows == RC::dimensions), int> = 0>
 #endif
     static auto make(Arg&& arg) noexcept
     {

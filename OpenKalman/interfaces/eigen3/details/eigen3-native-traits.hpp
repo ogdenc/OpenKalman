@@ -114,7 +114,7 @@ namespace Eigen::internal
       Flags = Coefficients::axes_only ?
         NestedTraits::Flags :
         ColMajor | (NestedTraits::ColsAtCompileTime == 1 ? LinearAccessBit : 0),
-      RowsAtCompileTime = static_cast<Index>(Coefficients::euclidean_dimension),
+      RowsAtCompileTime = static_cast<Index>(Coefficients::euclidean_dimensions),
       MaxRowsAtCompileTime = RowsAtCompileTime,
     };
   };
@@ -130,7 +130,7 @@ namespace Eigen::internal
       Flags = Coefficients::axes_only ?
         NestedTraits::Flags :
         ColMajor | (NestedTraits::ColsAtCompileTime == 1 ? LinearAccessBit : 0),
-      RowsAtCompileTime = static_cast<Index>(Coefficients::size),
+      RowsAtCompileTime = static_cast<Index>(Coefficients::dimensions),
       MaxRowsAtCompileTime = RowsAtCompileTime,
     };
   };
@@ -148,7 +148,7 @@ namespace Eigen::internal
       Flags = (NestedTraits::ColsAtCompileTime == 1 ? LinearAccessBit : 0) | (Coefficients::axes_only ?
         NestedTraits::Flags :
         (unsigned int) ColMajor),
-      RowsAtCompileTime = static_cast<Index>(Coefficients::size),
+      RowsAtCompileTime = static_cast<Index>(Coefficients::dimensions),
       MaxRowsAtCompileTime = RowsAtCompileTime,
     };
   };

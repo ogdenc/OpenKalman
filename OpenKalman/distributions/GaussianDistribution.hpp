@@ -50,7 +50,7 @@ namespace OpenKalman
 
   protected:
 
-    static constexpr auto dimension = Coefficients::size;
+    static constexpr auto dimensions = Coefficients::dimensions;
     using Mean = Mean<Coefficients, MeanNestedMatrix>;
     using Covariance = Covariance<Coefficients, CovarianceNestedMatrix>;
     using Scalar = typename MatrixTraits<Mean>::Scalar;
@@ -128,10 +128,10 @@ namespace OpenKalman
      * \brief Construct from a \ref typed_matrix_nestable and an rvalue of a \ref covariance.
      */
 #ifdef __cpp_concepts
-    template<typed_matrix_nestable M> requires column_vector<M> and (MatrixTraits<M>::rows == dimension)
+    template<typed_matrix_nestable M> requires column_vector<M> and (MatrixTraits<M>::rows == dimensions)
 #else
     template<typename M, std::enable_if_t<typed_matrix_nestable<M> and column_vector<M> and
-      (MatrixTraits<M>::rows == dimension), int> = 0>
+      (MatrixTraits<M>::rows == dimensions), int> = 0>
 #endif
     GaussianDistribution(M&& mean, Covariance&& cov) : mu {std::forward<M>(mean)}, sigma {std::move(cov)} {}
 
@@ -153,10 +153,10 @@ namespace OpenKalman
      * \brief Construct from an rvalue of a \ref mean and a \ref covariance_nestable.
      */
 #ifdef __cpp_concepts
-    template<covariance_nestable Cov> requires (MatrixTraits<Cov>::rows == dimension)
+    template<covariance_nestable Cov> requires (MatrixTraits<Cov>::rows == dimensions)
 #else
     template<typename Cov, std::enable_if_t<covariance_nestable<Cov> and
-      (MatrixTraits<Cov>::rows == dimension), int> = 0>
+      (MatrixTraits<Cov>::rows == dimensions), int> = 0>
 #endif
     GaussianDistribution(Mean&& mean, Cov&& cov)
       : mu {std::move(mean)}, sigma {cov_adapter(std::forward<Cov>(cov))} {}
@@ -190,11 +190,11 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<typed_matrix M, typename Cov> requires column_vector<M> and untyped_columns<M> and
       equivalent_to<typename MatrixTraits<M>::RowCoefficients, Coefficients> and
-      covariance_nestable<Cov> and (MatrixTraits<Cov>::rows == dimension)
+      covariance_nestable<Cov> and (MatrixTraits<Cov>::rows == dimensions)
 #else
     template<typename M, typename Cov, std::enable_if_t<typed_matrix<M> and column_vector<M> and untyped_columns<M> and
       equivalent_to<typename MatrixTraits<M>::RowCoefficients, Coefficients> and
-      covariance_nestable<Cov> and (MatrixTraits<Cov>::rows == dimension), int> = 0>
+      covariance_nestable<Cov> and (MatrixTraits<Cov>::rows == dimensions), int> = 0>
 #endif
     GaussianDistribution(M&& mean, Cov&& cov) : mu {std::forward<M>(mean)}, sigma {std::forward<Cov>(cov)} {}
 
@@ -206,11 +206,11 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<typed_matrix_nestable M, typename Cov> requires column_vector<M> and
-      (MatrixTraits<M>::rows == dimension) and (covariance<Cov> or typed_matrix<Cov>) and
+      (MatrixTraits<M>::rows == dimensions) and (covariance<Cov> or typed_matrix<Cov>) and
       equivalent_to<typename MatrixTraits<Cov>::RowCoefficients, Coefficients>
 #else
     template<typename M, typename Cov, std::enable_if_t<typed_matrix_nestable<M> and column_vector<M> and
-      (MatrixTraits<M>::rows == dimension) and (covariance<Cov> or typed_matrix<Cov>) and
+      (MatrixTraits<M>::rows == dimensions) and (covariance<Cov> or typed_matrix<Cov>) and
       equivalent_to<typename MatrixTraits<Cov>::RowCoefficients, Coefficients>, int> = 0>
 #endif
     GaussianDistribution(M&& mean, Cov&& cov)
@@ -224,12 +224,12 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<typed_matrix_nestable M, typename Cov> requires column_vector<M> and
-      (MatrixTraits<M>::rows == dimension) and covariance_nestable<Cov> and
-      (MatrixTraits<Cov>::rows == dimension)
+      (MatrixTraits<M>::rows == dimensions) and covariance_nestable<Cov> and
+      (MatrixTraits<Cov>::rows == dimensions)
 #else
     template<typename M, typename Cov, std::enable_if_t<typed_matrix_nestable<M> and column_vector<M> and
-      (MatrixTraits<M>::rows == dimension) and covariance_nestable<Cov> and
-      (MatrixTraits<Cov>::rows == dimension), int> = 0>
+      (MatrixTraits<M>::rows == dimensions) and covariance_nestable<Cov> and
+      (MatrixTraits<Cov>::rows == dimensions), int> = 0>
 #endif
     GaussianDistribution(M&& mean, Cov&& cov) : mu {std::forward<M>(mean)}, sigma {std::forward<Cov>(cov)} {}
 
@@ -247,10 +247,10 @@ namespace OpenKalman
 
     /// Construct using only a \ref covariance_nestable (the \ref mean is set to zero).
 #ifdef __cpp_concepts
-    template<covariance_nestable Cov> requires (MatrixTraits<Cov>::rows == dimension)
+    template<covariance_nestable Cov> requires (MatrixTraits<Cov>::rows == dimensions)
 #else
     template<typename Cov, std::enable_if_t<
-      covariance_nestable<Cov> and (MatrixTraits<Cov>::rows == dimension), int> = 0>
+      covariance_nestable<Cov> and (MatrixTraits<Cov>::rows == dimensions), int> = 0>
 #endif
     explicit GaussianDistribution(Cov&& cov) : mu {Mean::zero()}, sigma {cov_adapter(std::forward<Cov>(cov))}{}
 
@@ -380,18 +380,18 @@ namespace OpenKalman
     {
       static_assert((typed_matrix<Z> and ...));
       static_assert((column_vector<Z> and ...));
-      static_assert(((MatrixTraits<Z>::rows == dimension) and ...));
+      static_assert(((MatrixTraits<Z>::rows == dimensions) and ...));
       static constexpr auto n = sizeof...(Z);
       static_assert(n >= 1);
       auto sum = (trace(transpose(z - mu) * solve(sigma, z - mu)) + ...);
-      return -0.5 * (n * (dimension * std::log(2 * std::numbers::pi_v<Scalar>) + std::log(determinant(sigma))) + sum);
+      return -0.5 * (n * (dimensions * std::log(2 * std::numbers::pi_v<Scalar>) + std::log(determinant(sigma))) + sum);
     }
 
 
     /// Entropy of the distribution, in bits.
     auto entropy() const
     {
-      return 0.5 * (dimension * (1 + std::log2(std::numbers::pi_v<Scalar>) + std::numbers::log2e_v<Scalar>)
+      return 0.5 * (dimensions * (1 + std::log2(std::numbers::pi_v<Scalar>) + std::numbers::log2e_v<Scalar>)
         + std::log2(determinant(sigma)));
     }
 
@@ -758,7 +758,7 @@ namespace OpenKalman
   struct DistributionTraits<GaussianDistribution<Coeffs, NestedMean, NestedCovariance, re>>
   {
     using Coefficients = Coeffs;
-    static constexpr auto dimension = Coefficients::size;
+    static constexpr auto dimensions = Coefficients::dimensions;
     using Mean = Mean<Coefficients, NestedMean>;
     using Covariance = Covariance<Coefficients, NestedCovariance>;
     using Scalar = typename MatrixTraits<Mean>::Scalar;

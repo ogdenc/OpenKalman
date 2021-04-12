@@ -87,7 +87,7 @@ namespace OpenKalman
       static auto second_order_term(const Hessian& hessian, const Dist& x)
       {
         constexpr auto output_dim = std::tuple_size_v<Hessian>;
-        static_assert(output_dim == OutputCoeffs::size);
+        static_assert(output_dim == OutputCoeffs::dimensions);
         static_assert(order >= 2);
 
         // Convert input distribution type to output distribution types, and initialize mean and covariance:

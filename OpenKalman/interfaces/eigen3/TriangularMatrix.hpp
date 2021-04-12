@@ -35,7 +35,7 @@ namespace OpenKalman::Eigen3
     using Base = OpenKalman::internal::MatrixBase<TriangularMatrix, NestedMatrix>;
     static constexpr auto uplo = triangle_type == TriangleType::upper ? Eigen::Upper : Eigen::Lower;
     using View = Eigen::TriangularView<std::remove_reference_t<NestedMatrix>, uplo>;
-    static constexpr auto dimension = MatrixTraits<NestedMatrix>::rows;
+    static constexpr auto dimensions = MatrixTraits<NestedMatrix>::rows;
 
   public:
 
@@ -152,7 +152,7 @@ namespace OpenKalman::Eigen3
     template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, Scalar>...> and
       (triangle_type != TriangleType::diagonal or diagonal_matrix<NestedMatrix>) and
       (not zero_matrix<NestedMatrix>) and (not identity_matrix<NestedMatrix>) and
-      ((diagonal_matrix<NestedMatrix> and sizeof...(Args) == dimension) or sizeof...(Args) == dimension * dimension),
+      ((diagonal_matrix<NestedMatrix> and sizeof...(Args) == dimensions) or sizeof...(Args) == dimensions * dimensions),
         int> = 0>
 #endif
     TriangularMatrix(const Args ... args)
@@ -176,8 +176,8 @@ namespace OpenKalman::Eigen3
     template<typename ... Args, std::enable_if_t<(sizeof...(Args) > 0) and
       std::conjunction_v<std::is_convertible<Args, Scalar>...> and
       (triangle_type == TriangleType::diagonal) and (not diagonal_matrix<NestedMatrix>) and
-      (diagonal_matrix<NestedMatrix> or sizeof...(Args) == dimension or
-        sizeof...(Args) == dimension * dimension), int> = 0>
+      (diagonal_matrix<NestedMatrix> or sizeof...(Args) == dimensions or
+        sizeof...(Args) == dimensions * dimensions), int> = 0>
 #endif
     TriangularMatrix(const Args ... args)
       : Base {MatrixTraits<typename MatrixTraits<NestedMatrix>::template DiagonalMatrixFrom<>>::make(
@@ -207,14 +207,14 @@ namespace OpenKalman::Eigen3
     /// Assign from another triangular matrix (must be the same triangle)
 #ifdef __cpp_concepts
     template<eigen_triangular_expr Arg> requires (not std::derived_from<std::decay_t<Arg>, TriangularMatrix>) and
-      (MatrixTraits<Arg>::rows == dimension) and
+      (MatrixTraits<Arg>::rows == dimensions) and
       OpenKalman::internal::same_triangle_type_as<Arg, TriangularMatrix> and
       modifiable<NestedMatrix, nested_matrix_t<Arg>> and
       (not (eigen_diagonal_expr<NestedMatrix> or triangle_type == TriangleType::diagonal) or diagonal_matrix<Arg>)
 #else
     template<typename Arg, std::enable_if_t<eigen_triangular_expr<Arg> and
       (not std::is_base_of_v<TriangularMatrix, std::decay_t<Arg>>) and
-      (MatrixTraits<Arg>::rows == dimension) and
+      (MatrixTraits<Arg>::rows == dimensions) and
       OpenKalman::internal::same_triangle_type_as<Arg, TriangularMatrix> and
       modifiable<NestedMatrix, nested_matrix_t<Arg>> and
       (not (eigen_diagonal_expr<NestedMatrix> and triangle_type == TriangleType::diagonal) or diagonal_matrix<Arg>),
@@ -247,11 +247,11 @@ namespace OpenKalman::Eigen3
     /// Assign from a general \ref triangular_matrix.
 #ifdef __cpp_concepts
     template<triangular_matrix Arg> requires (not eigen_triangular_expr<Arg>) and
-      OpenKalman::internal::same_triangle_type_as<Arg, TriangularMatrix> and (MatrixTraits<Arg>::rows == dimension) and
+      OpenKalman::internal::same_triangle_type_as<Arg, TriangularMatrix> and (MatrixTraits<Arg>::rows == dimensions) and
       modifiable<NestedMatrix, Arg>
 #else
     template<typename Arg, std::enable_if_t<triangular_matrix<Arg> and (not eigen_triangular_expr<Arg>) and
-      OpenKalman::internal::same_triangle_type_as<Arg, TriangularMatrix> and (MatrixTraits<Arg>::rows == dimension) and
+      OpenKalman::internal::same_triangle_type_as<Arg, TriangularMatrix> and (MatrixTraits<Arg>::rows == dimensions) and
       modifiable<NestedMatrix, Arg>, int> = 0>
 #endif
     auto& operator=(Arg&& arg)
@@ -288,7 +288,7 @@ namespace OpenKalman::Eigen3
     template<typename Arg>
     auto& operator+=(const TriangularMatrix<Arg, triangle_type>& arg)
     {
-      static_assert(MatrixTraits<Arg>::rows == dimension);
+      static_assert(MatrixTraits<Arg>::rows == dimensions);
       this->nested_view() += arg.nested_matrix();
       return *this;
     }
@@ -297,7 +297,7 @@ namespace OpenKalman::Eigen3
     template<typename Arg>
     auto& operator-=(const TriangularMatrix<Arg, triangle_type>& arg)
     {
-      static_assert(MatrixTraits<Arg>::rows == dimension);
+      static_assert(MatrixTraits<Arg>::rows == dimensions);
       this->nested_view() -= arg.nested_matrix();
       return *this;
     }
@@ -330,7 +330,7 @@ namespace OpenKalman::Eigen3
     template<typename Arg>
     auto& operator*=(const TriangularMatrix<Arg, triangle_type>& arg)
     {
-      static_assert(MatrixTraits<Arg>::rows == dimension);
+      static_assert(MatrixTraits<Arg>::rows == dimensions);
       this->nested_view() = this->nested_view() * make_native_matrix(arg);
       return *this;
     }

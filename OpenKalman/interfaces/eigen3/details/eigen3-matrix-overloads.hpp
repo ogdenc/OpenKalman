@@ -127,10 +127,10 @@ namespace OpenKalman::Eigen3
 
 #ifdef __cpp_concepts
   template<coefficients Coefficients, eigen_matrix Arg> requires (not to_euclidean_expr<Arg>) and
-    (Coefficients::size == MatrixTraits<Arg>::rows)
+    (Coefficients::dimensions == MatrixTraits<Arg>::rows)
 #else
   template<typename Coefficients, typename Arg, std::enable_if_t<coefficients<Coefficients> and eigen_matrix<Arg> and
-    (not to_euclidean_expr<Arg>) and (Coefficients::size == MatrixTraits<Arg>::rows), int> = 0>
+    (not to_euclidean_expr<Arg>) and (Coefficients::dimensions == MatrixTraits<Arg>::rows), int> = 0>
 #endif
   constexpr decltype(auto)
   to_euclidean(Arg&& arg) noexcept
@@ -148,10 +148,10 @@ namespace OpenKalman::Eigen3
 
 #ifdef __cpp_concepts
   template<coefficients Coefficients, eigen_matrix Arg> requires (not from_euclidean_expr<Arg>) and
-    (Coefficients::euclidean_dimension == MatrixTraits<Arg>::rows)
+    (Coefficients::euclidean_dimensions == MatrixTraits<Arg>::rows)
 #else
   template<typename Coefficients, typename Arg, std::enable_if_t<coefficients<Coefficients> and eigen_matrix<Arg> and
-    (not from_euclidean_expr<Arg>) and (Coefficients::euclidean_dimension == MatrixTraits<Arg>::rows), int> = 0>
+    (not from_euclidean_expr<Arg>) and (Coefficients::euclidean_dimensions == MatrixTraits<Arg>::rows), int> = 0>
 #endif
   constexpr decltype(auto)
   from_euclidean(Arg&& arg) noexcept
@@ -576,8 +576,8 @@ namespace OpenKalman::Eigen3
   inline auto
   split_vertical(Arg&& arg) noexcept
   {
-    constexpr auto RC_size = euclidean ? RC::euclidean_dimension : RC::size;
-    static_assert((RC_size + ... + (euclidean ? RCs::euclidean_dimension : RCs::size)) <= MatrixTraits<Arg>::rows);
+    constexpr auto RC_size = euclidean ? RC::euclidean_dimensions : RC::dimensions;
+    static_assert((RC_size + ... + (euclidean ? RCs::euclidean_dimensions : RCs::dimensions)) <= MatrixTraits<Arg>::rows);
     using CC = Axes<MatrixTraits<Arg>::columns>;
     constexpr Eigen::Index dim1 = RC_size, dim2 = std::decay_t<Arg>::RowsAtCompileTime - dim1;
     constexpr auto g = [](auto&& m) -> decltype(auto) {
@@ -678,9 +678,9 @@ namespace OpenKalman::Eigen3
   inline auto
   split_horizontal(Arg&& arg) noexcept
   {
-    static_assert((CC::size + ... + CCs::size) <= MatrixTraits<Arg>::columns);
+    static_assert((CC::dimensions + ... + CCs::dimensions) <= MatrixTraits<Arg>::columns);
     using RC = Axes<MatrixTraits<Arg>::rows>;
-    constexpr Eigen::Index dim1 = CC::size, dim2 = std::decay_t<Arg>::ColsAtCompileTime - dim1;
+    constexpr Eigen::Index dim1 = CC::dimensions, dim2 = std::decay_t<Arg>::ColsAtCompileTime - dim1;
     constexpr auto g = [](auto&& m) -> decltype(auto) {
       if constexpr (std::is_lvalue_reference_v<Arg&&>)
         return std::forward<decltype(m)>(m);
@@ -763,11 +763,11 @@ namespace OpenKalman::Eigen3
   inline auto
   split_diagonal(Arg&& arg) noexcept
   {
-    constexpr auto RC_size = euclidean ? C::euclidean_dimension : C::size;
-    static_assert((RC_size + ... + (euclidean ? Cs::euclidean_dimension : Cs::size)) <= MatrixTraits<Arg>::rows);
-    static_assert((C::size + ... + Cs::size) <= MatrixTraits<Arg>::columns);
+    constexpr auto RC_size = euclidean ? C::euclidean_dimensions : C::dimensions;
+    static_assert((RC_size + ... + (euclidean ? Cs::euclidean_dimensions : Cs::dimensions)) <= MatrixTraits<Arg>::rows);
+    static_assert((C::dimensions + ... + Cs::dimensions) <= MatrixTraits<Arg>::columns);
     constexpr Eigen::Index rdim1 = RC_size, rdim2 = std::decay_t<Arg>::RowsAtCompileTime - rdim1;
-    constexpr Eigen::Index cdim1 = C::size, cdim2 = std::decay_t<Arg>::RowsAtCompileTime - cdim1;
+    constexpr Eigen::Index cdim1 = C::dimensions, cdim2 = std::decay_t<Arg>::RowsAtCompileTime - cdim1;
     constexpr auto g = [](auto&& m) -> decltype(auto) {
       if constexpr (std::is_lvalue_reference_v<Arg&&>)
         return std::forward<decltype(m)>(m);

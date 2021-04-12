@@ -181,7 +181,7 @@ namespace OpenKalman
     }
 
 
-    // For each hessian term, construct an array of Hessian matrices, one for each output dimension ks.
+    // For each hessian term, construct an array of Hessian matrices, one for each output dimensions ks.
     template<std::size_t term, typename...Inputs, std::size_t...ks>
     auto h_term(const std::tuple<Inputs...>& inputs, std::index_sequence<ks...>) const
     {

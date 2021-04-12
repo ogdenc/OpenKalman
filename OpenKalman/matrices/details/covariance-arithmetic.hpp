@@ -217,7 +217,7 @@ namespace OpenKalman
   {
     using CC = typename MatrixTraits<Cov>::RowCoefficients;
     using RC = typename MatrixTraits<M>::RowCoefficients;
-    using Mat = native_matrix_t<M, RC::size, CC::size>;
+    using Mat = native_matrix_t<M, RC::dimensions, CC::dimensions>;
 
     if constexpr (zero_matrix<M> or zero_matrix<Cov>)
     {
@@ -260,7 +260,7 @@ namespace OpenKalman
   {
     using RC = typename MatrixTraits<Cov>::RowCoefficients;
     using CC = typename MatrixTraits<M>::ColumnCoefficients;
-    using Mat = native_matrix_t<M, RC::size, CC::size>;
+    using Mat = native_matrix_t<M, RC::dimensions, CC::dimensions>;
 
     if constexpr (zero_matrix<Cov> or zero_matrix<M>)
     {

@@ -237,13 +237,13 @@ namespace OpenKalman
    * <table class = "memberdecls">
    * <tr class="heading"><td colspan="2"><h2 class="groupheader">Static Public Attributes</h2></td></tr>
    * <tr><td class="memItemLeft" align="right" valign="top">static constexpr std::size_t&nbsp;</td>
-   * <td id="afwtraitsdimension" class="memItemRight" valign="bottom"><b>dimension</b></td></tr>
+   * <td id="afwtraitsrows" class="memItemRight" valign="bottom"><b>rows</b></td></tr>
    * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">The number of rows of the matrix.<br/></td></tr>
    * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
    * <tr><td class="memItemLeft" align="right" valign="top">static constexpr std::size_t&nbsp;</td>
    * <td id="afwtraitscolumns" class="memItemRight" valign="bottom"><b>columns</b></td></tr>
    * <tr><td class="mdescLeft">&nbsp;</td>
-   * <td class="mdescRight">The number fo columns in the matrix. <br /></td></tr>
+   * <td class="mdescRight">The number of columns in the matrix. <br /></td></tr>
    * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
    * </table>
    *
@@ -276,7 +276,7 @@ namespace OpenKalman
    * This is only applicable for matrices with typed coefficients.<br/></td></tr>
    * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
    *  <tr><td class="memTemplParams" colspan="2">
-   * template&lt;std::size_t rows = <a href="afwtraitsdimension">dimension</a>,
+   * template&lt;std::size_t rows = <a href="afwtraitsrows">rows</a>,
    * std::size_t cols = <a href="afwtraitscolumns">columns</a>,
    * typename S = <a href="afwtraitsScalar">Scalar</a>&gt;</td></tr>
    * <tr><td class="memTemplItemLeft" align="right" valign="top">using&nbsp;</td>
@@ -288,7 +288,7 @@ namespace OpenKalman
    * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
    *   <tr><td class="memTemplParams" colspan="2">
    * template&lt;\ref TriangleType storage_triangle = \ref TriangleType::lower,
-   * std::size_t size = <a href="afwtraitsdimension">dimension</a>,
+   * std::size_t size = <a href="afwtraitsrows">rows</a>,
    * typename S = <a href="afwtraitsScalar">Scalar</a>&gt;</td></tr>
    * <tr><td class="memTemplItemLeft" align="right" valign="top">using&nbsp;</td>
    * <td class="memTemplItemRight" valign="bottom"><b>SelfAdjointMatrixFrom</b></td></tr>
@@ -300,7 +300,7 @@ namespace OpenKalman
    * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
    *   <tr><td class="memTemplParams" colspan="2">
    * template&lt;\ref TriangleType triangle_type = \ref TriangleType::lower,
-   * std::size_t size = <a href="afwtraitsdimension">dimension</a>,
+   * std::size_t size = <a href="afwtraitsrows">rows</a>,
    * typename S = <a href="afwtraitsScalar">Scalar</a>&gt;</td></tr>
    * <tr><td class="memTemplItemLeft" align="right" valign="top">using&nbsp;</td>
    * <td class="memTemplItemRight" valign="bottom"><b>TriangularMatrixFrom</b></td></tr>
@@ -311,7 +311,7 @@ namespace OpenKalman
    * of the new matrix.<br/></td></tr>
    * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
    *   <tr><td class="memTemplParams" colspan="2">
-   * template&lt;std::size_t size = <a href="afwtraitsdimension">dimension</a>,
+   * template&lt;std::size_t size = <a href="afwtraitsrows">rows</a>,
    * typename S = <a href="afwtraitsScalar">Scalar</a>&gt;</td></tr>
    * <tr><td class="memTemplItemLeft" align="right" valign="top">using&nbsp;</td>
    * <td class="memTemplItemRight" valign="bottom"><b>DiagonalMatrixFrom</b></td></tr>
@@ -341,7 +341,7 @@ namespace OpenKalman
    * <td class="memItemRight" valign="bottom"><b>identity</b> ()</td></tr>
    * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
    * Make an identity matrix based on T. The resulting type will be a
-   * square matrix of size <a href="afwtraitsdimension">dimension</a>.<br/></td></tr>
+   * square matrix of size <a href="afwtraitsrows">rows</a>.<br/></td></tr>
    * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
    *   <tr><td class="memTemplParams" colspan="2">template&lt;typename Arg&gt;</td></tr>
    * <tr><td class="memTemplItemLeft" align="right" valign="top">static auto&nbsp;</td>
@@ -369,7 +369,7 @@ namespace OpenKalman
    * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
    *   <tr><td class="memTemplParams" colspan="2">
    * template&lt;std::convertible_to&lt;const <a href="afwtraitsScalar">Scalar</a>&gt; ... Args&gt;
-   * requires (sizeof...(Args) == <a href="afwtraitsdimension">dimension</a> * <a href="afwtraitscolumns">columns</a>)
+   * requires (sizeof...(Args) == <a href="afwtraitsrows">rows</a> * <a href="afwtraitscolumns">columns</a>)
    * </td></tr>
    * <tr><td class="memTemplItemLeft" align="right" valign="top">static auto&nbsp;</td>
    * <td class="memTemplItemRight" valign="bottom"><b>make</b> (const Args ... args) noexcept</td></tr>
@@ -411,7 +411,7 @@ namespace OpenKalman
    * <table class = "memberdecls">
    * <tr class="heading"><td colspan="2"><h2 class="groupheader">Static Public Attributes</h2></td></tr>
    *   <tr><td class="memItemLeft" align="right" valign="top">static constexpr std::size_t&nbsp;</td>
-   * <td id="afwtraitsDdimension" class="memItemRight" valign="bottom"><b>dimension</b></td></tr>
+   * <td id="afwtraitsDdimension" class="memItemRight" valign="bottom"><b>dimensions</b></td></tr>
    * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">The number of rows of the matrix.<br/></td></tr>
    * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
    * </table>

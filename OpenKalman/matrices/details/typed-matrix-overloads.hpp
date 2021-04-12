@@ -685,7 +685,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     using ResultType = std::invoke_result_t<Function, decltype(column(std::declval<Arg&>(), 0))>;
     using ResRC = typename MatrixTraits<ResultType>::RowCoefficients;
     using ResCC0 = typename MatrixTraits<ResultType>::ColumnCoefficients;
-    static_assert(ResCC0::size == 1, "Function argument of apply_columnwise must return a column vector.");
+    static_assert(ResCC0::dimensions == 1, "Function argument of apply_columnwise must return a column vector.");
     using ResCC = Replicate<ResCC0, MatrixTraits<Arg>::columns>;
     using RC = typename MatrixTraits<Arg>::RowCoefficients;
     const auto f_nested = [&f](const auto& col) {
@@ -711,7 +711,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     using ResultType = std::invoke_result_t<Function, decltype(column(std::declval<Arg&>(), 0)), std::size_t>;
     using ResRC = typename MatrixTraits<ResultType>::RowCoefficients;
     using ResCC0 = typename MatrixTraits<ResultType>::ColumnCoefficients;
-    static_assert(ResCC0::size == 1, "Function argument of apply_columnwise must return a column vector.");
+    static_assert(ResCC0::dimensions == 1, "Function argument of apply_columnwise must return a column vector.");
     using ResCC = Replicate<ResCC0, MatrixTraits<Arg>::columns>;
     const auto f_nested = [&f](const auto& col, std::size_t i) {
       using RC = typename MatrixTraits<Arg>::RowCoefficients;
@@ -734,7 +734,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     using ResultType = std::invoke_result_t<Function>;
     using RC = typename MatrixTraits<ResultType>::RowCoefficients;
     using CC0 = typename MatrixTraits<ResultType>::ColumnCoefficients;
-    static_assert(CC0::size == 1, "Function argument of apply_columnwise must return a column vector.");
+    static_assert(CC0::dimensions == 1, "Function argument of apply_columnwise must return a column vector.");
     using CC = Replicate<CC0, count>;
     return MatrixTraits<ResultType>::template make<RC, CC>(apply_columnwise<count>(f_nested));
   }
@@ -754,7 +754,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     using ResultType = std::invoke_result_t<Function, std::size_t>;
     using RC = typename MatrixTraits<ResultType>::RowCoefficients;
     using CC0 = typename MatrixTraits<ResultType>::ColumnCoefficients;
-    static_assert(CC0::size == 1, "Function argument of apply_columnwise must return a column vector.");
+    static_assert(CC0::dimensions == 1, "Function argument of apply_columnwise must return a column vector.");
     using CC = Replicate<CC0, count>;
     return MatrixTraits<ResultType>::template make<RC, CC>(apply_columnwise<count>(f_nested));
   }

@@ -29,7 +29,7 @@ namespace OpenKalman::Eigen3
 
     using Base = OpenKalman::internal::MatrixBase<DiagonalMatrix, NestedMatrix>;
     using Scalar = typename MatrixTraits<NestedMatrix>::Scalar;
-    static constexpr auto dimension = MatrixTraits<NestedMatrix>::rows;
+    static constexpr auto dimensions = MatrixTraits<NestedMatrix>::rows;
 
 
     /// Default constructor.
@@ -65,33 +65,33 @@ namespace OpenKalman::Eigen3
     /// Construct from a zero matrix.
 #if defined(__cpp_concepts) and defined(__cpp_conditional_explicit)
     template<zero_matrix Arg> requires (not eigen_diagonal_expr<Arg>) and
-      (column_vector<Arg> or square_matrix<Arg>) and std::is_constructible_v<Base, ZeroMatrix<Scalar, dimension, 1>&&>
+      (column_vector<Arg> or square_matrix<Arg>) and std::is_constructible_v<Base, ZeroMatrix<Scalar, dimensions, 1>&&>
     explicit (column_vector<Arg> and not square_matrix<Arg>)
-    DiagonalMatrix(Arg&&) : Base {ZeroMatrix<Scalar, dimension, 1> {}} {}
+    DiagonalMatrix(Arg&&) : Base {ZeroMatrix<Scalar, dimensions, 1> {}} {}
 #else
     template<typename Arg, std::enable_if_t<zero_matrix<Arg> and (not eigen_diagonal_expr<Arg>) and
-      std::is_constructible_v<Base, ZeroMatrix<Scalar, dimension, 1>&&> and
+      std::is_constructible_v<Base, ZeroMatrix<Scalar, dimensions, 1>&&> and
       column_vector<Arg> and (not square_matrix<Arg>), int> = 0>
-    explicit DiagonalMatrix(Arg&&) : Base {ZeroMatrix<Scalar, dimension, 1> {}} {}
+    explicit DiagonalMatrix(Arg&&) : Base {ZeroMatrix<Scalar, dimensions, 1> {}} {}
 
     /// \overload
     template<typename Arg, std::enable_if_t<zero_matrix<Arg> and (not eigen_diagonal_expr<Arg>) and
-      std::is_constructible_v<Base, ZeroMatrix<Scalar, dimension, 1>&&> and
+      std::is_constructible_v<Base, ZeroMatrix<Scalar, dimensions, 1>&&> and
       (not column_vector<Arg> or square_matrix<Arg>), int> = 0>
-    DiagonalMatrix(Arg&&) : Base {ZeroMatrix<Scalar, dimension, 1> {}} {}
+    DiagonalMatrix(Arg&&) : Base {ZeroMatrix<Scalar, dimensions, 1> {}} {}
 #endif
 
 
     /// Construct from an identity matrix.
 #ifdef __cpp_concepts
     template<identity_matrix Arg> requires (not eigen_diagonal_expr<Arg>) and (not one_by_one_matrix<Arg>) and
-      requires { std::is_constructible_v<Base, typename Eigen::Matrix<Scalar, dimension, 1>::ConstantReturnType&&>; }
+      requires { std::is_constructible_v<Base, typename Eigen::Matrix<Scalar, dimensions, 1>::ConstantReturnType&&>; }
 #else
     template<typename Arg, std::enable_if_t<identity_matrix<Arg> and
       (not eigen_diagonal_expr<Arg>) and (not one_by_one_matrix<Arg>) and
-      std::is_constructible_v<Base, typename Eigen::Matrix<Scalar, dimension, 1>::ConstantReturnType&&>, int> = 0>
+      std::is_constructible_v<Base, typename Eigen::Matrix<Scalar, dimensions, 1>::ConstantReturnType&&>, int> = 0>
 #endif
-    DiagonalMatrix(const Arg&) : Base {Eigen::Matrix<Scalar, dimension, 1>::Constant(1)} {}
+    DiagonalMatrix(const Arg&) : Base {Eigen::Matrix<Scalar, dimensions, 1>::Constant(1)} {}
 
 
     /// Construct from a compatible \ref diagonal_matrix, general case.
@@ -133,12 +133,12 @@ namespace OpenKalman::Eigen3
      * \brief Construct from a list of scalar coefficients that define the diagonal.
      */
 #ifdef __cpp_concepts
-    template<std::convertible_to<Scalar> ... Args> requires (sizeof...(Args) == dimension) and
+    template<std::convertible_to<Scalar> ... Args> requires (sizeof...(Args) == dimensions) and
       requires { std::is_constructible_v<Base,
         decltype(MatrixTraits<NestedMatrix>::make(static_cast<const Scalar>(std::declval<const Args>())...))>; }
 #else
     template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, Scalar>...> and
-        sizeof...(Args) == dimension, int> = 0>
+        sizeof...(Args) == dimensions, int> = 0>
 #endif
     DiagonalMatrix(const Args ... args) : Base {MatrixTraits<NestedMatrix>::make(static_cast<const Scalar>(args)...)} {}
 
@@ -148,16 +148,16 @@ namespace OpenKalman::Eigen3
      * \details Only the diagonal elements are extracted.
      */
 #if defined (__cpp_concepts) && defined (__clang__) // Because of compiler issue in at least GCC version 10.1.0
-    template<std::convertible_to<Scalar> ... Args> requires (sizeof...(Args) == dimension * dimension) and
-      (dimension > 1) and requires { std::is_constructible_v<Base, decltype(diagonal_of(
-        MatrixTraits<native_matrix_t<Scalar, dimension, dimension>>::make(
+    template<std::convertible_to<Scalar> ... Args> requires (sizeof...(Args) == dimensions * dimensions) and
+      (dimensions > 1) and requires { std::is_constructible_v<Base, decltype(diagonal_of(
+        MatrixTraits<native_matrix_t<Scalar, dimensions, dimensions>>::make(
         static_cast<const Scalar>(std::declval<const Args>())...)))>; }
 #else
     template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, Scalar>...> and
-        (sizeof...(Args) == dimension * dimension) and (dimension > 1), int> = 0>
+        (sizeof...(Args) == dimensions * dimensions) and (dimensions > 1), int> = 0>
 #endif
     DiagonalMatrix(const Args ... args) : Base {diagonal_of(
-      MatrixTraits<native_matrix_t<Scalar, dimension, dimension>>::make(static_cast<const Scalar>(args)...))} {}
+      MatrixTraits<native_matrix_t<Scalar, dimensions, dimensions>>::make(static_cast<const Scalar>(args)...))} {}
 
 
     /// Copy assignment operator.
@@ -179,11 +179,11 @@ namespace OpenKalman::Eigen3
     /// Assign from another \ref eigen_diagonal_expr.
 #ifdef __cpp_concepts
     template<eigen_diagonal_expr Arg> requires (not std::derived_from<std::decay_t<Arg>, DiagonalMatrix>) and
-      (MatrixTraits<Arg>::rows == dimension) and modifiable<NestedMatrix, nested_matrix_t<Arg>>
+      (MatrixTraits<Arg>::rows == dimensions) and modifiable<NestedMatrix, nested_matrix_t<Arg>>
 #else
     template<typename Arg, std::enable_if_t<eigen_diagonal_expr<Arg> and
       (not std::is_base_of_v<DiagonalMatrix, std::decay_t<Arg>>) and
-      (MatrixTraits<Arg>::rows == dimension) and modifiable<NestedMatrix, nested_matrix_t<Arg>>, int> = 0>
+      (MatrixTraits<Arg>::rows == dimensions) and modifiable<NestedMatrix, nested_matrix_t<Arg>>, int> = 0>
 #endif
     auto& operator=(Arg&& other)
     {
@@ -198,16 +198,16 @@ namespace OpenKalman::Eigen3
     /// Assign from a \ref zero_matrix, other than \ref eigen_diagonal_expr.
 #ifdef __cpp_concepts
     template<zero_matrix Arg> requires (not eigen_diagonal_expr<Arg>) and
-      (not identity_matrix<NestedMatrix>) and (MatrixTraits<Arg>::rows == dimension)
+      (not identity_matrix<NestedMatrix>) and (MatrixTraits<Arg>::rows == dimensions)
 #else
     template<typename Arg, std::enable_if_t<zero_matrix<Arg> and (not eigen_diagonal_expr<Arg>) and
-      (not identity_matrix<NestedMatrix>) and (MatrixTraits<Arg>::rows == dimension), int> = 0>
+      (not identity_matrix<NestedMatrix>) and (MatrixTraits<Arg>::rows == dimensions), int> = 0>
 #endif
     auto& operator=(Arg&& other)
     {
       if constexpr (not zero_matrix<NestedMatrix>)
       {
-        this->nested_matrix() = ZeroMatrix<Scalar, dimension, 1>();
+        this->nested_matrix() = ZeroMatrix<Scalar, dimensions, 1>();
       }
       return *this;
     }
@@ -216,10 +216,10 @@ namespace OpenKalman::Eigen3
     /// Assign from an \ref identity_matrix, other than \ref eigen_diagonal_expr.
 #ifdef __cpp_concepts
     template<identity_matrix Arg> requires (not eigen_diagonal_expr<Arg>) and
-      (not zero_matrix<NestedMatrix>) and (MatrixTraits<Arg>::rows == dimension)
+      (not zero_matrix<NestedMatrix>) and (MatrixTraits<Arg>::rows == dimensions)
 #else
     template<typename Arg, std::enable_if_t<identity_matrix<Arg> and (not eigen_diagonal_expr<Arg>) and
-      (not zero_matrix<NestedMatrix>) and (MatrixTraits<Arg>::rows == dimension), int> = 0>
+      (not zero_matrix<NestedMatrix>) and (MatrixTraits<Arg>::rows == dimensions), int> = 0>
 #endif
     auto& operator=(Arg&& other)
     {
@@ -228,7 +228,7 @@ namespace OpenKalman::Eigen3
         if constexpr (one_by_one_matrix<Arg>)
           this->nested_matrix() = Eigen::Matrix<Scalar, 1, 1>::Identity();
         else
-          this->nested_matrix() = Eigen::Matrix<Scalar, dimension, 1>::Constant(1);
+          this->nested_matrix() = Eigen::Matrix<Scalar, dimensions, 1>::Constant(1);
       }
       return *this;
     }
@@ -237,11 +237,11 @@ namespace OpenKalman::Eigen3
     /// Assign from a general diagonal matrix, other than \ref eigen_diagonal_expr.
 #ifdef __cpp_concepts
     template<diagonal_matrix Arg> requires (not eigen_diagonal_expr<Arg>) and
-      (not zero_matrix<Arg>) and (not identity_matrix<Arg>) and (MatrixTraits<Arg>::rows == dimension) and
+      (not zero_matrix<Arg>) and (not identity_matrix<Arg>) and (MatrixTraits<Arg>::rows == dimensions) and
       modifiable<NestedMatrix, decltype(diagonal_of(std::declval<Arg>()))>
 #else
     template<typename Arg, std::enable_if_t<diagonal_matrix<Arg> and (not eigen_diagonal_expr<Arg>) and
-      (not zero_matrix<Arg>) and (not identity_matrix<Arg>) and (MatrixTraits<Arg>::rows == dimension) and
+      (not zero_matrix<Arg>) and (not identity_matrix<Arg>) and (MatrixTraits<Arg>::rows == dimensions) and
       modifiable<NestedMatrix, decltype(diagonal_of(std::declval<Arg>()))>, int> = 0>
 #endif
     auto& operator=(Arg&& other)
@@ -255,9 +255,9 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-    template<typename Arg> requires (MatrixTraits<Arg>::rows == dimension)
+    template<typename Arg> requires (MatrixTraits<Arg>::rows == dimensions)
 #else
-    template<typename Arg, std::enable_if_t<(MatrixTraits<Arg>::rows == dimension), int> = 0>
+    template<typename Arg, std::enable_if_t<(MatrixTraits<Arg>::rows == dimensions), int> = 0>
 #endif
     auto& operator+=(const DiagonalMatrix<Arg>& arg)
     {
@@ -267,9 +267,9 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-    template<typename Arg> requires (MatrixTraits<Arg>::rows == dimension)
+    template<typename Arg> requires (MatrixTraits<Arg>::rows == dimensions)
 #else
-    template<typename Arg, std::enable_if_t<(MatrixTraits<Arg>::rows == dimension), int> = 0>
+    template<typename Arg, std::enable_if_t<(MatrixTraits<Arg>::rows == dimensions), int> = 0>
 #endif
     auto& operator-=(const DiagonalMatrix<Arg>& arg)
     {
@@ -303,13 +303,13 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-    template<typename Arg> requires (MatrixTraits<Arg>::rows == dimension)
+    template<typename Arg> requires (MatrixTraits<Arg>::rows == dimensions)
 #else
-    template<typename Arg, std::enable_if_t<(MatrixTraits<Arg>::rows == dimension), int> = 0>
+    template<typename Arg, std::enable_if_t<(MatrixTraits<Arg>::rows == dimensions), int> = 0>
 #endif
     auto& operator*=(const DiagonalMatrix<Arg>& arg)
     {
-      static_assert(MatrixTraits<Arg>::rows == dimension);
+      static_assert(MatrixTraits<Arg>::rows == dimensions);
       this->nested_matrix() = this->nested_matrix().array() * arg.nested_matrix().array();
       return *this;
     }
@@ -362,10 +362,10 @@ namespace OpenKalman::Eigen3
     auto operator()(std::size_t i) const { return operator[](i); }
 
 
-    static auto zero() { return MatrixTraits<Eigen::Matrix<Scalar, dimension, dimension>>::zero(); }
+    static auto zero() { return MatrixTraits<Eigen::Matrix<Scalar, dimensions, dimensions>>::zero(); }
 
 
-    static auto identity() { return MatrixTraits<Eigen::Matrix<Scalar, dimension, dimension>>::identity(); }
+    static auto identity() { return MatrixTraits<Eigen::Matrix<Scalar, dimensions, dimensions>>::identity(); }
 
   };
 

@@ -216,8 +216,8 @@ namespace OpenKalman
     inline auto zero_hessian_impl()
     {
       using InputCoefficients = typename MatrixTraits<In>::RowCoefficients;
-      constexpr std::size_t input_size = InputCoefficients::size;
-      constexpr std::size_t output_size = OutputCoefficients::size;
+      constexpr std::size_t input_size = InputCoefficients::dimensions;
+      constexpr std::size_t output_size = OutputCoefficients::dimensions;
       using HessianMatrixInBase = native_matrix_t<In, input_size, input_size>;
       using HessianMatrixIn = Matrix<InputCoefficients, InputCoefficients, HessianMatrixInBase>;
       using HessianArrayIn = std::array<HessianMatrixIn, output_size>;

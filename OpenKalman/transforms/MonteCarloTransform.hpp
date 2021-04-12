@@ -50,11 +50,11 @@ namespace OpenKalman
         typename DistributionTraits<NoiseDistributions>::Coefficients> and ...));
 
       using InputMeanMatrix = native_matrix_t<
-        typename DistributionTraits<InputDistribution>::Mean, InputCoefficients::size, 1>;
-      using OutputEuclideanMeanMatrix = native_matrix_t<InputMeanMatrix, OutputCoefficients::size, 1>;
-      using OutputCovarianceMatrix = native_matrix_t<InputMeanMatrix, OutputCoefficients::size, OutputCoefficients::size>;
+        typename DistributionTraits<InputDistribution>::Mean, InputCoefficients::dimensions, 1>;
+      using OutputEuclideanMeanMatrix = native_matrix_t<InputMeanMatrix, OutputCoefficients::dimensions, 1>;
+      using OutputCovarianceMatrix = native_matrix_t<InputMeanMatrix, OutputCoefficients::dimensions, OutputCoefficients::dimensions>;
       using OutputCovarianceSA = typename MatrixTraits<OutputCovarianceMatrix>::template SelfAdjointMatrixFrom<>;
-      using CrossCovarianceMatrix = native_matrix_t<InputMeanMatrix, InputCoefficients::size, OutputCoefficients::size>;
+      using CrossCovarianceMatrix = native_matrix_t<InputMeanMatrix, InputCoefficients::dimensions, OutputCoefficients::dimensions>;
 
       using InputMean = Mean<InputCoefficients, InputMeanMatrix>;
       using OutputEuclideanMean = EuclideanMean<OutputCoefficients, OutputEuclideanMeanMatrix>;

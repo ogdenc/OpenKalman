@@ -148,7 +148,8 @@ namespace OpenKalman
         wrap_array_set =
         {
           [](const Scalar s, const SetCoeff& set_coeff, const GetCoeff&) {
-            set_coeff(i + a_i, azimuth_wrap_impl<CircleLimits>(false, s)); // Assume distance and inclination are correct.
+            // Assume distance and inclination are correct:
+            set_coeff(i + a_i, azimuth_wrap_impl<CircleLimits>(false, s));
           }
         };
 
@@ -202,10 +203,10 @@ namespace OpenKalman
     struct SphericalBase
     {
       /// Spherical is associated with three matrix elements.
-      static constexpr std::size_t size = 3;
+      static constexpr std::size_t dimensions = 3;
 
       /// Spherical is represented by four coordinates in Euclidean space.
-      static constexpr std::size_t euclidean_dimension = 4;
+      static constexpr std::size_t euclidean_dimensions = 4;
 
       /// Spherical is not composed of only axes.
       static constexpr bool axes_only = false;
@@ -262,7 +263,7 @@ namespace OpenKalman
        * \tparam i The index of the first spherical coefficient that is being transformed.
        */
       template<typename Scalar, std::size_t i>
-      static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), euclidean_dimension>
+      static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), euclidean_dimensions>
         to_euclidean_array = {
         [](const GetCoeff<Scalar>& get_coeff) constexpr { return get_coeff(i + d_i); },
         [](const GetCoeff<Scalar>& get_coeff) constexpr {
@@ -288,12 +289,15 @@ namespace OpenKalman
        * \tparam i The index of the first of the four Cartesian coordinates being transformed back to spherical.
        */
       template<typename Scalar, std::size_t i>
-      static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), size>
+      static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), dimensions>
         from_euclidean_array = internal::join(
         internal::join(
-          detail::SphericalImpl<C1, CircleLimits, InclinationLimits, Scalar>::template from_euclidean_array<i, 0, 1, 2, 3>,
-          detail::SphericalImpl<C2, CircleLimits, InclinationLimits, Scalar>::template from_euclidean_array<i, 0, 1, 2, 3>),
-          detail::SphericalImpl<C3, CircleLimits, InclinationLimits, Scalar>::template from_euclidean_array<i, 0, 1, 2, 3>
+          detail::SphericalImpl<
+            C1, CircleLimits, InclinationLimits, Scalar>::template from_euclidean_array<i, 0, 1, 2, 3>,
+          detail::SphericalImpl<
+            C2, CircleLimits, InclinationLimits, Scalar>::template from_euclidean_array<i, 0, 1, 2, 3>),
+          detail::SphericalImpl<
+            C3, CircleLimits, InclinationLimits, Scalar>::template from_euclidean_array<i, 0, 1, 2, 3>
       );
 
 
@@ -307,12 +311,15 @@ namespace OpenKalman
        * \tparam i The index of the first of three spherical coordinates that are being wrapped.
        */
       template<typename Scalar, std::size_t i>
-      static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), size>
+      static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), dimensions>
         wrap_array_get = internal::join(
         internal::join(
-          detail::SphericalImpl<C1, CircleLimits, InclinationLimits, Scalar>::template wrap_array_get<i, d_i, a_i, i_i>,
-          detail::SphericalImpl<C2, CircleLimits, InclinationLimits, Scalar>::template wrap_array_get<i, d_i, a_i, i_i>),
-          detail::SphericalImpl<C3, CircleLimits, InclinationLimits, Scalar>::template wrap_array_get<i, d_i, a_i, i_i>
+          detail::SphericalImpl<
+            C1, CircleLimits, InclinationLimits, Scalar>::template wrap_array_get<i, d_i, a_i, i_i>,
+          detail::SphericalImpl<
+            C2, CircleLimits, InclinationLimits, Scalar>::template wrap_array_get<i, d_i, a_i, i_i>),
+          detail::SphericalImpl<
+            C3, CircleLimits, InclinationLimits, Scalar>::template wrap_array_get<i, d_i, a_i, i_i>
       );
 
 
@@ -327,12 +334,16 @@ namespace OpenKalman
        * \tparam i The index of the first of the three spherical coordinates that are being wrapped.
        */
       template<typename Scalar, std::size_t i>
-      static constexpr std::array<void (*const)(const Scalar, const SetCoeff<Scalar>&, const GetCoeff<Scalar>&), size>
+      static constexpr
+      std::array<void (*const)(const Scalar, const SetCoeff<Scalar>&, const GetCoeff<Scalar>&), dimensions>
         wrap_array_set = internal::join(
         internal::join(
-          detail::SphericalImpl<C1, CircleLimits, InclinationLimits, Scalar>::template wrap_array_set<i, d_i, a_i, i_i>,
-          detail::SphericalImpl<C2, CircleLimits, InclinationLimits, Scalar>::template wrap_array_set<i, d_i, a_i, i_i>),
-          detail::SphericalImpl<C3, CircleLimits, InclinationLimits, Scalar>::template wrap_array_set<i, d_i, a_i, i_i>
+          detail::SphericalImpl<
+            C1, CircleLimits, InclinationLimits, Scalar>::template wrap_array_set<i, d_i, a_i, i_i>,
+          detail::SphericalImpl<
+            C2, CircleLimits, InclinationLimits, Scalar>::template wrap_array_set<i, d_i, a_i, i_i>),
+          detail::SphericalImpl<
+            C3, CircleLimits, InclinationLimits, Scalar>::template wrap_array_set<i, d_i, a_i, i_i>
       );
 
     };

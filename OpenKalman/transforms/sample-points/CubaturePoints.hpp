@@ -54,7 +54,7 @@ namespace OpenKalman
       using Coeffs = typename DistributionTraits<D>::Coefficients;
       using M = typename DistributionTraits<D>::Mean;
       constexpr auto points_count = dim * 2;
-      constexpr auto dim_i = DistributionTraits<D>::dimension;
+      constexpr auto dim_i = DistributionTraits<D>::dimensions;
       constexpr auto frame_size = dim_i * 2;
       constexpr Scalar n = dim;
       const auto delta = make_matrix<Coeffs, Axes<dim_i>>(make_native_matrix(square_root(n * covariance_of(d))));
@@ -114,7 +114,7 @@ namespace OpenKalman
     static auto
     sample_points(const Dist&...ds)
     {
-      constexpr auto dim = (DistributionTraits<Dist>::dimension + ...);
+      constexpr auto dim = (DistributionTraits<Dist>::dimensions + ...);
       return sample_points_impl<dim>(ds...);
     }
 
@@ -128,11 +128,11 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<std::size_t dim, typed_matrix YMeans> requires untyped_columns<YMeans> and
-      (MatrixTraits<YMeans>::rows == MatrixTraits<YMeans>::RowCoefficients::euclidean_dimension) and
+      (MatrixTraits<YMeans>::rows == MatrixTraits<YMeans>::RowCoefficients::euclidean_dimensions) and
       (MatrixTraits<YMeans>::columns == dim * 2)
 #else
     template<std::size_t dim, typename YMeans, std::enable_if_t<typed_matrix<YMeans> and untyped_columns<YMeans> and
-      (MatrixTraits<YMeans>::rows == MatrixTraits<YMeans>::RowCoefficients::euclidean_dimension) and
+      (MatrixTraits<YMeans>::rows == MatrixTraits<YMeans>::RowCoefficients::euclidean_dimensions) and
       (MatrixTraits<YMeans>::columns == dim * 2), int> = 0>
 #endif
     static auto

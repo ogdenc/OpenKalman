@@ -28,9 +28,9 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<coefficients InputCoefficients, coefficients OutputCoefficients, typed_matrix_nestable TransformationMatrix,
       typed_matrix_nestable ... PerturbationTransformationMatrices> requires
-    (MatrixTraits<TransformationMatrix>::rows == OutputCoefficients::size) and
-    (MatrixTraits<TransformationMatrix>::columns == InputCoefficients::size) and
-    ((MatrixTraits<PerturbationTransformationMatrices>::rows == OutputCoefficients::size) and ...) and
+    (MatrixTraits<TransformationMatrix>::rows == OutputCoefficients::dimensions) and
+    (MatrixTraits<TransformationMatrix>::columns == InputCoefficients::dimensions) and
+    ((MatrixTraits<PerturbationTransformationMatrices>::rows == OutputCoefficients::dimensions) and ...) and
     (square_matrix<PerturbationTransformationMatrices> and ...)
 #else
   template<typename InputCoefficients, typename OutputCoefficients, typename TransformationMatrix,
@@ -64,8 +64,8 @@ namespace OpenKalman
 
       template<typename T, typename R, typename C>
       struct is_linear_transformation_input<T, R, C, std::enable_if_t<
-        typed_matrix_nestable<T> and (MatrixTraits<T>::rows == R::size) and
-        (MatrixTraits<T>::columns == C::size)>> : std::true_type {};
+        typed_matrix_nestable<T> and (MatrixTraits<T>::rows == R::dimensions) and
+        (MatrixTraits<T>::columns == C::dimensions)>> : std::true_type {};
     }
 #endif
 
@@ -84,8 +84,8 @@ namespace OpenKalman
       coefficients<RowCoefficients> and coefficients<ColumnCoefficients> and
       (not typed_matrix<T> or (equivalent_to<typename MatrixTraits<T>::RowCoefficients, RowCoefficients> and
           equivalent_to<typename MatrixTraits<T>::ColumnCoefficients, ColumnCoefficients>)) and
-      (not typed_matrix_nestable<T> or (MatrixTraits<T>::rows == RowCoefficients::size and
-        MatrixTraits<T>::columns == ColumnCoefficients::size));
+      (not typed_matrix_nestable<T> or (MatrixTraits<T>::rows == RowCoefficients::dimensions and
+        MatrixTraits<T>::columns == ColumnCoefficients::dimensions));
 #else
     template<typename T, typename RowCoefficients, typename ColumnCoefficients = RowCoefficients>
     inline constexpr bool linear_transformation_input =
@@ -99,9 +99,9 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<coefficients InputCoefficients, coefficients OutputCoefficients, typed_matrix_nestable TransformationMatrix,
     typed_matrix_nestable ... PerturbationTransformationMatrices> requires
-  (MatrixTraits<TransformationMatrix>::rows == OutputCoefficients::size) and
-    (MatrixTraits<TransformationMatrix>::columns == InputCoefficients::size) and
-    ((MatrixTraits<PerturbationTransformationMatrices>::rows == OutputCoefficients::size) and ...) and
+  (MatrixTraits<TransformationMatrix>::rows == OutputCoefficients::dimensions) and
+    (MatrixTraits<TransformationMatrix>::columns == InputCoefficients::dimensions) and
+    ((MatrixTraits<PerturbationTransformationMatrices>::rows == OutputCoefficients::dimensions) and ...) and
     (square_matrix<PerturbationTransformationMatrices> and ...)
 #else
   template<typename InputCoefficients, typename OutputCoefficients, typename TransformationMatrix,
@@ -115,9 +115,9 @@ namespace OpenKalman
     static_assert(coefficients<OutputCoefficients>);
     static_assert(typed_matrix_nestable<TransformationMatrix>);
     static_assert((typed_matrix_nestable<PerturbationTransformationMatrices> and ...));
-    static_assert(MatrixTraits<TransformationMatrix>::rows == OutputCoefficients::size);
-    static_assert(MatrixTraits<TransformationMatrix>::columns == InputCoefficients::size);
-    static_assert(((MatrixTraits<PerturbationTransformationMatrices>::rows == OutputCoefficients::size) and ...));
+    static_assert(MatrixTraits<TransformationMatrix>::rows == OutputCoefficients::dimensions);
+    static_assert(MatrixTraits<TransformationMatrix>::columns == InputCoefficients::dimensions);
+    static_assert(((MatrixTraits<PerturbationTransformationMatrices>::rows == OutputCoefficients::dimensions) and ...));
     static_assert((square_matrix<PerturbationTransformationMatrices> and ...));
 #endif
 
