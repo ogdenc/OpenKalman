@@ -3,8 +3,8 @@
  * https://creativecommons.org/publicdomain/zero/1.0/
  */
 
-#ifndef TRANSFORMATION_TESTS_H
-#define TRANSFORMATION_TESTS_H
+#ifndef TRANSFORMATION_TESTS_HPP
+#define TRANSFORMATION_TESTS_HPP
 
 #include "../tests.hpp"
 #include "../test-transformations.hpp"
@@ -20,4 +20,4 @@ struct transformations : public ::testing::Test
   ~transformations() override {}
 };
 
-#endif //TRANSFORMATION_TESTS_H
+#endif //TRANSFORMATION_TESTS_HPP

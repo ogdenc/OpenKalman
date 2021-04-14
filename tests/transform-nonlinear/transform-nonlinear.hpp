@@ -8,8 +8,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#ifndef TRANSFORM_NONLINEAR_TESTS_H
-#define TRANSFORM_NONLINEAR_TESTS_H
+#ifndef TRANSFORM_NONLINEAR_TESTS_HPP
+#define TRANSFORM_NONLINEAR_TESTS_HPP
 
 #include "../tests.hpp"
 #include "../test-transformations.hpp"
@@ -90,4 +90,4 @@ struct transform_nonlinear : public ::testing::Test
 };
 
 
-#endif //TRANSFORM_NONLINEAR_TESTS_H
+#endif //TRANSFORM_NONLINEAR_TESTS_HPP

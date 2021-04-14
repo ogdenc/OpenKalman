@@ -13,8 +13,8 @@
  * \brief Defines various utilities used in OpenKalman.
  */
 
-#ifndef OPENKALMAN_UTILS_H
-#define OPENKALMAN_UTILS_H
+#ifndef OPENKALMAN_UTILS_HPP
+#define OPENKALMAN_UTILS_HPP
 
 #include <array>
 #include <tuple>
@@ -225,4 +225,4 @@ namespace OpenKalman::internal
 
 } // namespace OpenKalman::internal
 
-#endif //OPENKALMAN_UTILS_H
+#endif //OPENKALMAN_UTILS_HPP

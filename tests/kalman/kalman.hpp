@@ -8,8 +8,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#ifndef KALMAN_TESTS_H
-#define KALMAN_TESTS_H
+#ifndef KALMAN_TESTS_HPP
+#define KALMAN_TESTS_HPP
 
 #include "../tests.hpp"
 #include "../test-transformations.hpp"
@@ -89,4 +89,4 @@ public:
 };
 
 
-#endif //KALMAN_TESTS_H
+#endif //KALMAN_TESTS_HPP

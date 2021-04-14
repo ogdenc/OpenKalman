@@ -13,13 +13,18 @@
  * \brief Definition of Spherical class and associated details.
  */
 
-#ifndef OPENKALMAN_SPHERICAL_H
-#define OPENKALMAN_SPHERICAL_H
+#ifndef OPENKALMAN_SPHERICAL_HPP
+#define OPENKALMAN_SPHERICAL_HPP
 
 
 namespace OpenKalman
 {
-  template<typename C1 = Distance, typename C2 = angle::Radians, typename C3 = inclination::Radians>
+#ifdef __cpp_concepts
+  template<fixed_coefficients C1 = Distance, fixed_coefficients C2 = angle::Radians,
+    fixed_coefficients C3 = inclination::Radians>
+#else
+  template<typename C1 = Distance, typename C2 = angle::Radians, typename C3 = inclination::Radians, typename>
+#endif
   struct Spherical;
 
 
@@ -89,16 +94,21 @@ namespace OpenKalman
     struct SphericalImpl<Distance, CircleLimits, InclinationLimits, Scalar>
     {
       static_assert(InclinationLimits<double>::up > InclinationLimits<double>::down);
+
       using GetCoeff = std::function<Scalar(const std::size_t)>;
+
       using SetCoeff = std::function<void(const std::size_t, const Scalar)>;
+
 
       template<std::size_t i, std::size_t d_i, std::size_t x_i, std::size_t y_i, std::size_t z_i>
       static constexpr std::array<Scalar (*const)(const GetCoeff&), 1>
         from_euclidean_array = {[](const GetCoeff& get_coeff) constexpr {return std::abs(get_coeff(i + d_i)); }};
 
+
       template<std::size_t i, std::size_t d_i, std::size_t a_i, std::size_t i_i>
       static constexpr std::array<Scalar (*const)(const GetCoeff&), 1>
         wrap_array_get = {[](const GetCoeff& get_coeff) constexpr { return std::abs(get_coeff(i + d_i)); }};
+
 
       template<std::size_t i, std::size_t d_i, std::size_t a_i, std::size_t i_i>
       static constexpr std::array<void (*const)(const Scalar, const SetCoeff&, const GetCoeff&), 1>
@@ -116,16 +126,21 @@ namespace OpenKalman
 
     };
 
+
     template<template<typename Scalar> typename CircleLimits, template<typename Scalar> typename InclinationLimits,
       typename Scalar>
     struct SphericalImpl<Angle<CircleLimits>, CircleLimits, InclinationLimits, Scalar>
     {
       static_assert(InclinationLimits<double>::up > InclinationLimits<double>::down);
+
       using GetCoeff = std::function<Scalar(const std::size_t)>;
+
       using SetCoeff = std::function<void(const std::size_t, const Scalar)>;
+
 
       static constexpr Scalar cf_cir = 2 * std::numbers::pi_v<Scalar> /
         (CircleLimits<Scalar>::max - CircleLimits<Scalar>::min);
+
 
       template<std::size_t i, std::size_t d_i, std::size_t x_i, std::size_t y_i, std::size_t z_i>
       static constexpr std::array<Scalar (*const)(const GetCoeff&), 1>
@@ -135,6 +150,7 @@ namespace OpenKalman
         return std::atan2(y, x) / cf_cir;
       }};
 
+
       template<std::size_t i, std::size_t d_i, std::size_t a_i, std::size_t i_i>
       static constexpr std::array<Scalar (*const)(const GetCoeff&), 1>
         wrap_array_get = {[](const GetCoeff& get_coeff) {
@@ -142,6 +158,7 @@ namespace OpenKalman
           const bool reflect_azimuth = b != std::signbit(get_coeff(i + d_i));
           return azimuth_wrap_impl<CircleLimits>(reflect_azimuth, get_coeff(i + a_i));
       }};
+
 
       template<std::size_t i, std::size_t d_i, std::size_t a_i, std::size_t i_i>
       static constexpr std::array<void (*const)(const Scalar, const SetCoeff&, const GetCoeff&), 1>
@@ -155,16 +172,21 @@ namespace OpenKalman
 
     };
 
+
     template<template<typename Scalar> typename CircleLimits, template<typename Scalar> typename InclinationLimits,
       typename Scalar>
     struct SphericalImpl<Inclination<InclinationLimits>, CircleLimits, InclinationLimits, Scalar>
     {
       static_assert(InclinationLimits<double>::up > InclinationLimits<double>::down);
+
       using GetCoeff = std::function<Scalar(const std::size_t)>;
+
       using SetCoeff = std::function<void(const std::size_t, const Scalar)>;
+
 
       static constexpr Scalar cf_inc = std::numbers::pi_v<Scalar> /
         (InclinationLimits<Scalar>::up - InclinationLimits<Scalar>::down);
+
 
       template<std::size_t i, std::size_t d_i, std::size_t x_i, std::size_t y_i, std::size_t z_i>
       static constexpr std::array<Scalar (*const)(const GetCoeff&), 1>
@@ -175,12 +197,14 @@ namespace OpenKalman
         else return std::signbit(get_coeff(i + d_i)) ? -ret : ret;
       }};
 
+
       template<std::size_t i, std::size_t d_i, std::size_t a_i, std::size_t i_i>
       static constexpr std::array<Scalar (*const)(const GetCoeff&), 1>
         wrap_array_get =  {[](const GetCoeff& get_coeff) constexpr {
         const auto [new_i, b] = inclination_wrap_impl<InclinationLimits>(get_coeff(i + i_i));
         return std::signbit(get_coeff(i + d_i)) ? -new_i : new_i;
       }};
+
 
       template<std::size_t i, std::size_t d_i, std::size_t a_i, std::size_t i_i>
       static constexpr std::array<void (*const)(const Scalar, const SetCoeff&, const GetCoeff&), 1>
@@ -194,6 +218,7 @@ namespace OpenKalman
         };
 
     };
+
 
     // Implementation of polar coordinates.
     template<typename Derived,
@@ -221,7 +246,7 @@ namespace OpenKalman
         Concatenate<typename C1::difference_type, typename C2::difference_type, typename C3::difference_type>;
 
 
-      /*
+      /**
        * \internal
        * \brief A function taking a row index and returning a corresponding matrix element.
        * \details A separate function will be constructed for each column in the matrix.
@@ -231,7 +256,7 @@ namespace OpenKalman
       using GetCoeff = std::function<Scalar(const std::size_t)>;
 
 
-      /*
+      /**
        * \internal
        * \brief A function that sets a matrix element corresponding to a row index to a scalar value.
        * \details A separate function will be constructed for each column in the matrix.
@@ -240,8 +265,8 @@ namespace OpenKalman
       template<typename Scalar>
       using SetCoeff = std::function<void(const std::size_t, const Scalar)>;
 
-
     private:
+
       template<typename Scalar>
       static constexpr Scalar cf_cir = 2 * std::numbers::pi_v<Scalar> /
         (CircleLimits<Scalar>::max - CircleLimits<Scalar>::min);
@@ -251,14 +276,15 @@ namespace OpenKalman
         (InclinationLimits<Scalar>::up - InclinationLimits<Scalar>::down);
 
     public:
-      /*
+
+      /**
        * \internal
        * \brief An array of functions that convert spherical coordinates to coordinates in Euclidean space.
        * \details The functions in the array take the spherical coordinates and convert them to four
        * Cartesian coordinates representing a distance and a location on unit sphere.
        * Each array element is a function taking a ''get coefficient'' function and returning a coordinate value.
        * The ''get coefficient'' function takes the index of a column within a row vector and returns the coefficient.
-       * \note This should be accessed only through \ref to_euclidean_coeff.
+       * \note This should generally be accessed only through \ref to_euclidean_coeff.
        * \tparam Scalar The scalar type (e.g., double).
        * \tparam i The index of the first spherical coefficient that is being transformed.
        */
@@ -276,7 +302,7 @@ namespace OpenKalman
       };
 
 
-      /*
+      /**
        * \internal
        * \brief An array of functions that convert four coordinates in Euclidean space into spherical coordinates.
        * \details The functions in the array take four Cartesian coordinates representing a distance and a location
@@ -284,7 +310,7 @@ namespace OpenKalman
        * The array element is a function taking a ''get coefficient'' function and returning spherical coordinates.
        * The ''get coefficient'' function takes the index of a column within a row vector and returns one of
        * the four coordinates.
-       * \note This should be accessed only through \ref internal::from_euclidean_coeff.
+       * \note This should generally be accessed only through \ref internal::from_euclidean_coeff.
        * \tparam Scalar The scalar type (e.g., double).
        * \tparam i The index of the first of the four Cartesian coordinates being transformed back to spherical.
        */
@@ -306,7 +332,7 @@ namespace OpenKalman
        * \brief An array of functions that return a wrapped version of spherical coordinates.
        * \details Each function in the array takes a ''get coefficient'' function and returns spherical coordinates.
        * The ''get coefficient'' function takes the index of a column within a row vector and returns a coefficient.
-       * \note This should be accessed only through \ref internal::wrap_get.
+       * \note This should generally be accessed only through \ref internal::wrap_get.
        * \tparam Scalar The scalar type (e.g., double).
        * \tparam i The index of the first of three spherical coordinates that are being wrapped.
        */
@@ -329,7 +355,7 @@ namespace OpenKalman
        * \details Each void function in the array takes a scalar value and ''set coefficient'' function.
        * The ''set coefficient'' function takes a scalar value and an index of a column within a row vector and
        * sets the coefficient at that index to a wrapped version of the scalar input.
-       * \note This should be accessed only through \ref internal::wrap_set.
+       * \note This should generally be accessed only through \ref internal::wrap_set.
        * \tparam Scalar The scalar type (e.g., double).
        * \tparam i The index of the first of the three spherical coordinates that are being wrapped.
        */
@@ -411,6 +437,41 @@ namespace OpenKalman
   };
 
 
+  // Alternate cases:
+
+#ifdef __cpp_concepts
+  template<fixed_coefficients T1, fixed_coefficients T2, fixed_coefficients T3>
+  struct Spherical<Coefficients<T1>, T2, T3>
+#else
+  template<typename T1, typename T2, typename T3>
+    struct Spherical<Coefficients<T1>, T2, T3, std::enable_if_t<fixed_coefficients<T1> and fixed_coefficients<T2> and
+      fixed_coefficients<T3>>>
+#endif
+    : Spherical<T1, T2, T3> {};
+
+
+#ifdef __cpp_concepts
+  template<atomic_coefficient_group T1, fixed_coefficients T2, fixed_coefficients T3>
+  struct Spherical<T1, Coefficients<T2>, T3>
+#else
+  template<typename T1, typename T2, typename T3>
+    struct Spherical<T1, Coefficients<T2>, T3, std::enable_if_t<
+      atomic_coefficient_group<T1> and fixed_coefficients<T2> and fixed_coefficients<T3>>>
+#endif
+    : Spherical<T1, T2, T3> {};
+
+
+#ifdef __cpp_concepts
+  template<atomic_coefficient_group T1, atomic_coefficient_group T2, fixed_coefficients T3>
+  struct Spherical<T1, T2, Coefficients<T3>>
+#else
+  template<typename T1, typename T2, typename T3>
+    struct Spherical<T1, T2, Coefficients<T3>, std::enable_if_t<
+      atomic_coefficient_group<T1> and atomic_coefficient_group<T2> and fixed_coefficients<T3>>>
+#endif
+    : Spherical<T1, T2, T3> {};
+
+
 }// namespace OpenKalman
 
-#endif //OPENKALMAN_SPHERICAL_H
+#endif //OPENKALMAN_SPHERICAL_HPP

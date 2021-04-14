@@ -161,4 +161,4 @@ namespace OpenKalman::internal
 
 }
 
-#endif //OPENKALMAN_BASEMATRIX_H
+#endif //OPENKALMAN_BASEMATRIX_HPP

@@ -13,8 +13,8 @@
  * \brief Definition of RecursiveLeastSquaresTransform.
  */
 
-#ifndef OPENKALMAN_RLSTRANSFORM_H
-#define OPENKALMAN_RLSTRANSFORM_H
+#ifndef OPENKALMAN_RLSTRANSFORM_HPP
+#define OPENKALMAN_RLSTRANSFORM_HPP
 
 namespace OpenKalman
 {
@@ -99,4 +99,4 @@ namespace OpenKalman
 }
 
 
-#endif //OPENKALMAN_RLSTRANSFORM_H
+#endif //OPENKALMAN_RLSTRANSFORM_HPP

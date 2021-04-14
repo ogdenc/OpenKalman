@@ -125,6 +125,32 @@ TEST_F(coefficients, toEuclidean_spherical)
 }
 
 
+TEST_F(coefficients, toEuclidean_dynamic)
+{
+  EXPECT_EQ(internal::to_euclidean_coeff(DynamicCoefficients<int> {Axis {}}, 0, g(3)), 3);
+  EXPECT_NEAR((internal::to_euclidean_coeff(DynamicCoefficients<double> {Axis {}}, 0, g(3.))), 3., 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff(DynamicCoefficients<double> {Axis {}, Axis {}}, 0, g(3., 4.))), 3., 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff(DynamicCoefficients<double> {Axis {}, Axis {}}, 1, g(3., 4.))), 4., 1e-6);
+
+  EXPECT_NEAR((internal::to_euclidean_coeff(DynamicCoefficients<double> {Axis {}, angle::Degrees {}}, 0, g(3., 60.))), 3., 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff(DynamicCoefficients<double> {Axis {}, angle::Degrees {}}, 1, g(3., 60.))), 0.5, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff(DynamicCoefficients<double> {Axis {}, angle::Degrees {}}, 2, g(3., 60.))), std::sqrt(3)/2, 1e-6);
+
+  EXPECT_NEAR((internal::to_euclidean_coeff(DynamicCoefficients {Coefficients<Axis> {}}, 0, g(3.))), 3., 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff(DynamicCoefficients {Coefficients<Axis, Axis> {}}, 0, g(3., 2.))), 3., 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff(DynamicCoefficients {Coefficients<Axis, Axis> {}}, 1, g(3., 2.))), 2., 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff(DynamicCoefficients {Coefficients<angle::PositiveRadians, Axis> {}}, 0, g(pi/3, 2.))), 0.5, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff(DynamicCoefficients {Coefficients<angle::PositiveRadians, Axis> {}}, 1, g(pi/3, 2.))), std::sqrt(3)/2, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff(DynamicCoefficients {Coefficients<angle::PositiveRadians, Axis> {}}, 2, g(pi/3, 2.))), 2., 1e-6);
+
+  EXPECT_NEAR((internal::to_euclidean_coeff(DynamicCoefficients {Coefficients<Spherical<Distance, angle::Radians, inclination::Radians>, Axis> {}}, 0, g(2., pi/6, pi/3, 3.))), 2., 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff(DynamicCoefficients {Coefficients<Spherical<Distance, angle::Radians, inclination::Radians>, Axis> {}}, 1, g(2., pi/6, pi/3, 3.))), std::sqrt(3)/4, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff(DynamicCoefficients {Coefficients<Spherical<Distance, angle::Radians, inclination::Radians>, Axis> {}}, 2, g(2., pi/6, pi/3, 3.))), 0.25, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff(DynamicCoefficients {Coefficients<Spherical<Distance, angle::Radians, inclination::Radians>, Axis> {}}, 3, g(2., pi/6, pi/3, 3.))), std::sqrt(3)/2, 1e-6);
+  EXPECT_NEAR((internal::to_euclidean_coeff(DynamicCoefficients {Coefficients<Spherical<Distance, angle::Radians, inclination::Radians>, Axis> {}}, 4, g(2., pi/6, pi/3, 3.))), 3., 1e-6);
+}
+
+
 TEST_F(coefficients, fromEuclidean_axis_angle)
 {
   EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Axis>>(0, g(3.))), 3, 1e-6);
@@ -190,6 +216,25 @@ TEST_F(coefficients, fromEuclidean_spherical)
     g(2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2, 3.))), pi/3, 1e-6);
   EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Spherical<Distance, angle::Radians, inclination::Radians>, Axis>>(3,
     g(2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2, 3.))), 3., 1e-6);
+}
+
+
+TEST_F(coefficients, fromEuclidean_dynamic)
+{
+  EXPECT_NEAR((internal::from_euclidean_coeff(DynamicCoefficients<int> {Axis {}}, 0, g(3))), 3, 1e-6);
+  EXPECT_NEAR((internal::from_euclidean_coeff(DynamicCoefficients {Axis {}}, 0, g(3.))), 3., 1e-6);
+  EXPECT_NEAR((internal::from_euclidean_coeff(DynamicCoefficients {Axis {}, Axis {}}, 0, g(3., 2.))), 3., 1e-6);
+  EXPECT_NEAR((internal::from_euclidean_coeff(DynamicCoefficients {Axis {}, Axis {}}, 1, g(3., 2.))), 2., 1e-6);
+  EXPECT_NEAR((internal::from_euclidean_coeff(DynamicCoefficients {Coefficients<Axis> {}}, 0, g(3.))), 3., 1e-6);
+
+  EXPECT_NEAR((internal::from_euclidean_coeff(DynamicCoefficients {Coefficients<Axis, Spherical<Distance, angle::Radians, inclination::Radians>> {}},
+    0, g(3., 2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2))), 3., 1e-6);
+  EXPECT_NEAR((internal::from_euclidean_coeff(DynamicCoefficients {Coefficients<Axis, Spherical<Distance, angle::Radians, inclination::Radians>> {}},
+    1, g(3., 2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2))), 2., 1e-6);
+  EXPECT_NEAR((internal::from_euclidean_coeff(DynamicCoefficients {Coefficients<Axis, Spherical<Distance, angle::Radians, inclination::Radians>> {}},
+    2, g(3., 2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2))), pi/6, 1e-6);
+  EXPECT_NEAR((internal::from_euclidean_coeff(DynamicCoefficients {Coefficients<Axis, Spherical<Distance, angle::Radians, inclination::Radians>> {}},
+    3, g(3., 2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2))), pi/3, 1e-6);
 }
 
 
@@ -271,6 +316,25 @@ TEST_F(coefficients, wrap_get_spherical)
 
   EXPECT_NEAR((internal::wrap_get<Coefficients<Axis, Spherical<Distance, angle::Radians, inclination::Radians>>>(3,
     g(3., -2., 1.1*pi, 0.6*pi))), -0.4*pi, 1e-6);
+}
+
+
+TEST_F(coefficients, wrap_get_dynamic)
+{
+  EXPECT_NEAR((internal::wrap_get(DynamicCoefficients<int> {Axis {}}, 0, g(3))), 3, 1e-6);
+  EXPECT_NEAR((internal::wrap_get(DynamicCoefficients {Axis {}}, 0, g(3.))), 3., 1e-6);
+  EXPECT_NEAR((internal::wrap_get(DynamicCoefficients {Axis {}, Axis {}}, 0, g(3., 2.))), 3., 1e-6);
+  EXPECT_NEAR((internal::wrap_get(DynamicCoefficients {Axis {}, Axis {}}, 1, g(3., 2.))), 2., 1e-6);
+  EXPECT_NEAR((internal::wrap_get(DynamicCoefficients {Coefficients<Axis> {}}, 0, g(3.))), 3., 1e-6);
+
+  EXPECT_NEAR((internal::wrap_get(DynamicCoefficients {Coefficients<Polar<Distance, angle::PositiveRadians>, Axis> {}},
+    0, g(-2., -0.1*pi, 4.))), 2, 1e-6);
+  EXPECT_NEAR((internal::wrap_get(DynamicCoefficients {Coefficients<Polar<Distance, angle::PositiveRadians>, Axis> {}},
+    1, g(2., -0.1*pi, 4.))), 1.9*pi, 1e-6);
+  EXPECT_NEAR((internal::wrap_get(DynamicCoefficients {Coefficients<Polar<Distance, angle::PositiveRadians>, Axis> {}},
+    1, g(-2., -0.1*pi, 4.))), 0.9*pi, 1e-6);
+  EXPECT_NEAR((internal::wrap_get(DynamicCoefficients {Coefficients<Polar<Distance, angle::PositiveRadians>, Axis> {}},
+    2, g(-2., -0.1*pi, -4.))), -4, 1e-6);
 }
 
 
@@ -413,3 +477,50 @@ TEST_F(coefficients, wrap_set_spherical)
 }
 
 
+TEST_F(coefficients, wrap_set_dynamic)
+{
+  std::array<double, 4> a1 = {0, 0, 0, 0};
+  auto set_coeff = [&](const std::size_t i, double s) {a1[i] = s; };
+  auto get_coeff = [&](const std::size_t i) {return a1[i]; };
+
+  internal::wrap_set(DynamicCoefficients {Coefficients<Axis, Axis, Axis, Axis> {}},
+    1, 2.1, set_coeff, get_coeff);
+  EXPECT_NEAR(a1[1], 2.1, 1e-6);
+  internal::wrap_set(DynamicCoefficients {Coefficients<Axis, angle::Radians, Axis, Axis> {}},
+      1, 1.2*pi, set_coeff, get_coeff);
+  EXPECT_NEAR(a1[1], -0.8*pi, 1e-6);
+  internal::wrap_set(DynamicCoefficients {Coefficients<angle::PositiveRadians, Axis, Axis, Axis> {}},
+    0, -0.2*pi, set_coeff, get_coeff);
+  EXPECT_NEAR(a1[0], 1.8*pi, 1e-6);
+
+  a1 = {0, 0, 0, 0};
+
+  internal::wrap_set(DynamicCoefficients {Coefficients<Axis, Spherical<Distance, angle::Radians, inclination::Radians>> {}},
+    0, -3.1, set_coeff, get_coeff);
+  EXPECT_NEAR(a1[0], -3.1, 1e-6);
+  internal::wrap_set(DynamicCoefficients {Coefficients<Axis, Spherical<Distance, angle::Radians, inclination::Radians>> {}},
+    1, -2., set_coeff, get_coeff);
+  EXPECT_NEAR(a1[1], 2, 1e-6);
+  internal::wrap_set(DynamicCoefficients {Coefficients<Axis, Spherical<Distance, angle::Radians, inclination::Radians>> {}},
+    2, 1.1*pi, set_coeff, get_coeff);
+  EXPECT_NEAR(a1[2], -0.9*pi, 1e-6);
+  internal::wrap_set(DynamicCoefficients {Coefficients<Axis, Spherical<Distance, angle::Radians, inclination::Radians>> {}},
+    3, 0.6*pi, set_coeff, get_coeff);
+  EXPECT_NEAR(a1[2], 0.1*pi, 1e-6);
+  EXPECT_NEAR(a1[3], 0.4*pi, 1e-6);
+  internal::wrap_set(DynamicCoefficients {Coefficients<Axis, Spherical<Distance, angle::Radians, inclination::Radians>> {}},
+    1, -3., set_coeff, get_coeff);
+  EXPECT_NEAR(a1[1], 3, 1e-6);
+  EXPECT_NEAR(a1[2], -0.9*pi, 1e-6);
+  EXPECT_NEAR(a1[3], -0.4*pi, 1e-6);
+  internal::wrap_set(DynamicCoefficients {Coefficients<Axis, Spherical<Distance, angle::Radians, inclination::Radians>> {}},
+    3, -0.6*pi, set_coeff, get_coeff);
+  EXPECT_NEAR(a1[1], 3, 1e-6);
+  EXPECT_NEAR(a1[2], 0.1*pi, 1e-6);
+  EXPECT_NEAR(a1[3], -0.4*pi, 1e-6);
+  internal::wrap_set(DynamicCoefficients {Coefficients<Axis, Spherical<Distance, angle::Radians, inclination::Radians>> {}},
+    3, -2.6*pi, set_coeff, get_coeff);
+  EXPECT_NEAR(a1[1], 3, 1e-6);
+  EXPECT_NEAR(a1[2], -0.9*pi, 1e-6);
+  EXPECT_NEAR(a1[3], -0.4*pi, 1e-6);
+}

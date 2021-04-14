@@ -8,8 +8,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#ifndef OPENKALMAN_TYPEDMATRIXBASE_H
-#define OPENKALMAN_TYPEDMATRIXBASE_H
+#ifndef OPENKALMAN_TYPEDMATRIXBASE_HPP
+#define OPENKALMAN_TYPEDMATRIXBASE_HPP
 
 namespace OpenKalman::internal
 {
@@ -236,4 +236,4 @@ namespace OpenKalman::internal
 } // namespace OpenKalman
 
 
-#endif //OPENKALMAN_TYPEDMATRIXBASE_H
+#endif //OPENKALMAN_TYPEDMATRIXBASE_HPP

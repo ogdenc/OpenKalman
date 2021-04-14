@@ -8,8 +8,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#ifndef NONLINEAR_TESTS_H
-#define NONLINEAR_TESTS_H
+#ifndef NONLINEAR_TESTS_HPP
+#define NONLINEAR_TESTS_HPP
 
 #include "../tests.hpp"
 #include "../test-transformations.hpp"
@@ -39,4 +39,4 @@ public:
 };
 
 
-#endif //NONLINEAR_TESTS_H
+#endif //NONLINEAR_TESTS_HPP

@@ -8,8 +8,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#ifndef OPENKALMAN_COVARIANCEBASE_H
-#define OPENKALMAN_COVARIANCEBASE_H
+#ifndef OPENKALMAN_COVARIANCEBASE_HPP
+#define OPENKALMAN_COVARIANCEBASE_HPP
 
 #include <utility>
 
@@ -1499,4 +1499,4 @@ namespace OpenKalman::internal
 
 }
 
-#endif //OPENKALMAN_COVARIANCEBASE_H
+#endif //OPENKALMAN_COVARIANCEBASE_HPP

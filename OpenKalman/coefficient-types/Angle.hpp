@@ -13,8 +13,8 @@
  * \brief Definition of the Angle class and related limits.
  */
 
-#ifndef OPENKALMAN_ANGLE_H
-#define OPENKALMAN_ANGLE_H
+#ifndef OPENKALMAN_ANGLE_HPP
+#define OPENKALMAN_ANGLE_HPP
 
 #include <array>
 #include <functional>
@@ -94,20 +94,7 @@ namespace OpenKalman
       /**
        * The limits of a wrapping circle, such as the wrapping interval [0,1).
        * \tparam Scalar The scalar type (e.g., <code>double</code>).
-       * \tparam a_min The minimum value before wrapping. (Available in c++20+).
-       * \tparam a_max The maximum value before wrapping. (Available in c++20+).
        */
-#if __cpp_nontype_template_args >= 201911L
-      template<typename Scalar = double, Scalar a_min = 0, Scalar a_max = 1>
-#ifdef __cpp_concepts
-      requires std::floating_point<Scalar>
-#endif
-      struct Circle
-      {
-        static constexpr Scalar min = a_min;
-        static constexpr Scalar max = a_max;
-      };
-#else
       template<typename Scalar = double>
 #ifdef __cpp_concepts
       requires std::floating_point<Scalar>
@@ -117,21 +104,25 @@ namespace OpenKalman
         static constexpr Scalar min = 0;
         static constexpr Scalar max = 1;
       };
-#endif
 
     } // namespace limits
+
 
     /// An angle measured in radians [-&pi;,&pi;).
     using Radians = Angle<limits::Radians>;
 
+
     /// An angle measured in positive radians [0,2&pi;).
     using PositiveRadians = Angle<limits::PositiveRadians>;
+
 
     /// An angle measured in degrees [0,360).
     using PositiveDegrees = Angle<limits::PositiveDegrees>;
 
+
     /// An angle measured in positive or negative degrees [-180,180).
     using Degrees = Angle<limits::Degrees>;
+
 
     /// An wrapping circle such as the wrapping interval [0,1).
     using Circle = Angle<limits::Circle>;
@@ -166,7 +157,7 @@ namespace OpenKalman
      */
     using difference_type = Angle;
 
-    /*
+    /**
      * \internal
      * \brief A function taking a row index and returning a corresponding matrix element.
      * \details A separate function will be constructed for each column in the matrix.
@@ -175,7 +166,7 @@ namespace OpenKalman
     template<typename Scalar>
     using GetCoeff = std::function<Scalar(const std::size_t)>;
 
-    /*
+    /**
      * \internal
      * \brief A function that sets a matrix element corresponding to a row index to a scalar value.
      * \details A separate function will be constructed for each column in the matrix.
@@ -185,18 +176,20 @@ namespace OpenKalman
     using SetCoeff = std::function<void(const std::size_t, const Scalar)>;
 
   private:
+
     template<typename Scalar>
     static constexpr Scalar cf = 2 * std::numbers::pi_v<Scalar> / (Limits<Scalar>::max - Limits<Scalar>::min);
 
   public:
-    /*
+
+    /**
      * \internal
      * \brief An array of functions that convert an angle coefficient to coordinates in Euclidean space.
      * \details The functions in the array each take the angle and convert it to one of the x or y coordinates
      * representing a location on a unit circle.
      * Each array element is a function taking a ''get coefficient'' function and returning a coordinate value.
      * The ''get coefficient'' function takes the index of a column within a row vector and returns the coefficient.
-     * \note This should be accessed only through \ref to_euclidean_coeff.
+     * \note This should generally be accessed only through \ref to_euclidean_coeff.
      * \tparam Scalar The scalar type (e.g., double).
      * \tparam i The index of the angle coefficient that is being transformed.
      */
@@ -212,7 +205,7 @@ namespace OpenKalman
       };
 
 
-    /*
+    /**
      * \internal
      * \brief An array of functions (here, just one) that convert coordinates in Euclidean space into an angle.
      * \details The function in the array takes x and y coordinates representing a location on a
@@ -220,7 +213,7 @@ namespace OpenKalman
      * The array element is a function taking a ''get coefficient'' function and returning an angle.
      * The ''get coefficient'' function takes the index of a column within a row vector and returns either
      * x (index i) or y (index i+1).
-     * \note This should be accessed only through \ref internal::from_euclidean_coeff.
+     * \note This should generally be accessed only through \ref internal::from_euclidean_coeff.
      * \tparam Scalar The scalar type (e.g., double).
      * \tparam i The index within the Euclidean matrix of the x coefficient corresponding to the angle.
      * The index of the corresponding y coefficient is i+1.
@@ -247,6 +240,7 @@ namespace OpenKalman
 
 
   private:
+
     template<typename Scalar>
     static Scalar wrap_impl(const Scalar a)
     {
@@ -266,12 +260,13 @@ namespace OpenKalman
     }
 
   public:
-    /*
+
+    /**
      * \internal
      * \brief An array of functions (here, just one) that return a wrapped version of an angle.
      * \details Each function in the array takes a ''get coefficient'' function and returns a wrapped angle.
      * The ''get coefficient'' function takes the index of a column within a row vector and returns the coefficient.
-     * \note This should be accessed only through \ref internal::wrap_get.
+     * \note This should generally be accessed only through \ref internal::wrap_get.
      * \tparam Scalar The scalar type (e.g., double).
      * \tparam i The index of the angle coefficient that is being wrapped.
      */
@@ -286,13 +281,13 @@ namespace OpenKalman
       };
 
 
-    /*
+    /**
      * \internal
      * \brief An array of functions (here, just one) that set a matrix coefficient to a wrapped angle.
      * \details Each void function in the array takes a scalar value and ''set coefficient'' function.
      * The ''set coefficient'' function takes a scalar value and an index of a column within a row vector and
      * sets the coefficient at that index to a wrapped version of the scalar input.
-     * \note This should be accessed only through \ref internal::wrap_set.
+     * \note This should generally be accessed only through \ref internal::wrap_set.
      * \tparam Scalar The scalar type (e.g., double).
      * \tparam i The index of the angle coefficient that is being wrapped.
      */
@@ -309,10 +304,11 @@ namespace OpenKalman
 
 
     static_assert(internal::coefficient_class<Angle>);
+
   };
 
 
 } // namespace OpenKalman
 
 
-#endif //OPENKALMAN_ANGLE_H
+#endif //OPENKALMAN_ANGLE_HPP

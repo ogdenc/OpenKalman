@@ -8,8 +8,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#ifndef OPENKALMAN_EIGEN3_CHOLESKY_H
-#define OPENKALMAN_EIGEN3_CHOLESKY_H
+#ifndef OPENKALMAN_EIGEN3_CHOLESKY_HPP
+#define OPENKALMAN_EIGEN3_CHOLESKY_HPP
 
 namespace OpenKalman::Eigen3
 {
@@ -365,4 +365,4 @@ namespace OpenKalman::Eigen3
 }
 
 
-#endif //OPENKALMAN_EIGEN3_CHOLESKY_H
+#endif //OPENKALMAN_EIGEN3_CHOLESKY_HPP

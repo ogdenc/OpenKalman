@@ -8,8 +8,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#ifndef OPENKALMAN_PARTICLEFILTER_H
-#define OPENKALMAN_PARTICLEFILTER_H
+#ifndef OPENKALMAN_PARTICLEFILTER_HPP
+#define OPENKALMAN_PARTICLEFILTER_HPP
 
 #include <algorithm>
 #include <random>
@@ -128,4 +128,4 @@ namespace OpenKalman {
 }
 
 
-#endif //OPENKALMAN_PARTICLEFILTER_H
+#endif //OPENKALMAN_PARTICLEFILTER_HPP

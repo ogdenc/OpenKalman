@@ -8,8 +8,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#ifndef OPENKALMAN_TYPED_MATRIX_OVERLOADS_H
-#define OPENKALMAN_TYPED_MATRIX_OVERLOADS_H
+#ifndef OPENKALMAN_TYPED_MATRIX_OVERLOADS_HPP
+#define OPENKALMAN_TYPED_MATRIX_OVERLOADS_HPP
 
 
 namespace OpenKalman

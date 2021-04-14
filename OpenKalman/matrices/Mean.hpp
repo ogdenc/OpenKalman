@@ -583,4 +583,4 @@ namespace OpenKalman
 } // namespace OpenKalman
 
 
-#endif //OPENKALMAN_wrap_angles(MEAN_H
+#endif //OPENKALMAN_wrap_angles(MEAN_HPP

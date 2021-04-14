@@ -8,8 +8,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#ifndef OPENKALMAN_COVARIANCEARITHMETIC_H
-#define OPENKALMAN_COVARIANCEARITHMETIC_H
+#ifndef OPENKALMAN_COVARIANCEARITHMETIC_HPP
+#define OPENKALMAN_COVARIANCEARITHMETIC_HPP
 
 namespace OpenKalman
 {
@@ -487,6 +487,7 @@ namespace OpenKalman
   }
 
 
+#ifndef __cpp_impl_three_way_comparison
   /*
    * covariance != covariance
    */
@@ -499,6 +500,7 @@ namespace OpenKalman
   {
     return not (arg1 == arg2);
   }
+#endif
 
 
   /// Scale a covariance by a factor. Equivalent to multiplication by the square of a scalar.
@@ -609,4 +611,4 @@ namespace OpenKalman
 
 }
 
-#endif //OPENKALMAN_COVARIANCEARITHMETIC_H
+#endif //OPENKALMAN_COVARIANCEARITHMETIC_HPP

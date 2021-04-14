@@ -13,8 +13,8 @@
  * \brief Definition of the Axis class.
  */
 
-#ifndef OPENKALMAN_AXIS_H
-#define OPENKALMAN_AXIS_H
+#ifndef OPENKALMAN_AXIS_HPP
+#define OPENKALMAN_AXIS_HPP
 
 #include <cmath>
 #include <array>
@@ -40,7 +40,7 @@ namespace OpenKalman
     using difference_type = Axis;
 
 
-    /*
+    /**
      * \internal
      * \brief A function taking a row index and returning a corresponding matrix element.
      * \details A separate function will be constructed for each column in the matrix.
@@ -50,7 +50,7 @@ namespace OpenKalman
     using GetCoeff = std::function<Scalar(const std::size_t)>;
 
 
-    /*
+    /**
      * \internal
      * \brief A function that sets a matrix element corresponding to a row index to a scalar value.
      * \details A separate function will be constructed for each column in the matrix.
@@ -60,13 +60,13 @@ namespace OpenKalman
     using SetCoeff = std::function<void(const std::size_t, const Scalar)>;
 
 
-    /*
+    /**
      * \internal
      * \brief An array of functions (here, just one) that transform an axis coefficient to Euclidean space.
      * \details Because an axis already represents a point in Euclidean space, this is an identity function.
      * Each array element is a function taking a ''get coefficient'' function and returning a coordinate value.
      * The ''get coefficient'' function takes the index of a column within a row vector and returns the coefficient.
-     * \note This should be accessed only through \ref to_euclidean_coeff.
+     * \note This should generally be accessed only through \ref to_euclidean_coeff.
      * \tparam Scalar The scalar type (e.g., double).
      * \tparam i The index of the coefficient that is being transformed.
      */
@@ -75,19 +75,19 @@ namespace OpenKalman
       requires std::is_arithmetic_v<Scalar>
 #endif
     static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), euclidean_dimensions>
-      to_euclidean_array =
-      {
-        [](const GetCoeff<Scalar>& get_coeff) { return get_coeff(i); }
-      };
+    to_euclidean_array =
+    {
+      [](const GetCoeff<Scalar>& get_coeff) { return get_coeff(i); }
+    };
 
 
-    /*
+    /**
      * \internal
      * \brief An array of functions (here, just one) that transform a coordinate in Euclidean space into an axis.
      * \details Because an axis already represents a point in Euclidean space, this is an identity function.
      * The array element is a function taking a ''get coefficient'' function and returning an axis.
      * The ''get coefficient'' function takes the index of a column within a row vector and returns the value.
-     * \note This should be accessed only through \ref internal::from_euclidean_coeff.
+     * \note This should generally be accessed only through \ref internal::from_euclidean_coeff.
      * \tparam Scalar The scalar type (e.g., double).
      * \tparam i The index of the coefficient that is being transformed.
      */
@@ -102,12 +102,12 @@ namespace OpenKalman
       };
 
 
-    /*
+    /**
      * \internal
      * \brief An array of functions (here, just one) that return a wrapped version of an axis.
      * \details Each function in the array takes a ''get coefficient'' function and returning an (unchanged) axis.
      * The ''get coefficient'' function takes the index of a column within a row vector and returns the coefficient.
-     * \note This should be accessed only through \ref internal::wrap_get.
+     * \note This should generally be accessed only through \ref internal::wrap_get.
      * \tparam Scalar The scalar type (e.g., double).
      * \tparam i The index of the axis coefficient that is being wrapped.
      */
@@ -122,13 +122,13 @@ namespace OpenKalman
       };
 
 
-    /*
+    /**
      * \internal
      * \brief An array of functions (here, just one) that sets a matrix coefficient to an axis value.
      * \details Each void function in the array takes a scalar value and ''set coefficient'' function.
      * The ''set coefficient'' function takes a scalar value and an index of a column within a row vector and
      * sets the coefficient at that index to that (unchanged) scalar input.
-     * \note This should be accessed only through \ref internal::wrap_set.
+     * \note This should generally be accessed only through \ref internal::wrap_set.
      * \tparam Scalar The scalar type (e.g., double).
      * \tparam i The index of the axis coefficient that is being wrapped.
      */
@@ -151,4 +151,4 @@ namespace OpenKalman
 } // namespace OpenKalman
 
 
-#endif //OPENKALMAN_AXIS_H
+#endif //OPENKALMAN_AXIS_HPP

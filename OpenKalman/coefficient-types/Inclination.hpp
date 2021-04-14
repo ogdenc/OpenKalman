@@ -13,8 +13,8 @@
  * \brief Definition of the Inclination class and related limits.
  */
 
-#ifndef OPENKALMAN_COEFFICIENTS_INCLINATION_H
-#define OPENKALMAN_COEFFICIENTS_INCLINATION_H
+#ifndef OPENKALMAN_COEFFICIENTS_INCLINATION_HPP
+#define OPENKALMAN_COEFFICIENTS_INCLINATION_HPP
 
 #include <array>
 #include <functional>
@@ -80,14 +80,18 @@ namespace OpenKalman
   {
     static_assert(Limits<double>::down < Limits<double>::up);
 
+
     /// Inclination is associated with one matrix element.
     static constexpr std::size_t dimensions = 1;
+
 
     /// Inclination is represented by two coordinates in Euclidean space.
     static constexpr std::size_t euclidean_dimensions = 2;
 
+
     /// Inclination is not composed of only axes.
     static constexpr bool axes_only = false;
+
 
     /**
      * \internal
@@ -97,6 +101,7 @@ namespace OpenKalman
      */
     using difference_type = Coefficients<Axis>;
 
+
     /*
      * \internal
      * \brief A function taking a row index and returning a corresponding matrix element.
@@ -105,6 +110,7 @@ namespace OpenKalman
      */
     template<typename Scalar>
     using GetCoeff = std::function<Scalar(const std::size_t)>;
+
 
     /*
      * \internal
@@ -116,18 +122,20 @@ namespace OpenKalman
     using SetCoeff = std::function<void(const std::size_t, const Scalar)>;
 
   private:
+
     template<typename Scalar>
     static constexpr Scalar cf = std::numbers::pi_v<Scalar> / (Limits<Scalar>::up - Limits<Scalar>::down);
 
   public:
-    /*
+
+    /**
      * \internal
      * \brief An array of functions that convert an inclination coefficient to coordinates in Euclidean space.
      * \details The functions in the array each take the inclination angle and convert to one of the x or y coordinates
      * representing location in quadrants I or IV of the unit circle.
      * Each array element is a function taking a ''get coefficient'' function and returning a coordinate value.
      * The ''get coefficient'' function takes the index of a column within a row vector and returns the coefficient.
-     * \note This should be accessed only through \ref to_euclidean_coeff.
+     * \note This should generally be accessed only through \ref to_euclidean_coeff.
      * \tparam Scalar The scalar type (e.g., double).
      * \tparam i The index of the inclination coefficient that is being transformed.
      */
@@ -143,7 +151,7 @@ namespace OpenKalman
       };
 
 
-    /*
+    /**
      * \internal
      * \brief An array of functions (here, just one) that convert coordinates in Euclidean space into an inclination.
      * \details The function in the array takes x and y coordinates representing a location in quadrants I or IV of the
@@ -151,7 +159,7 @@ namespace OpenKalman
      * The array element is a function taking a ''get coefficient'' function and returning an inclination.
      * The ''get coefficient'' function takes the index of a column within a row vector and returns either
      * x (index i) or y (index i+1).
-     * \note This should be accessed only through \ref internal::from_euclidean_coeff.
+     * \note This should generally be accessed only through \ref internal::from_euclidean_coeff.
      * \tparam Scalar The scalar type (e.g., double).
      * \tparam i The index of the inclination coefficient that is being transformed.
      */
@@ -184,8 +192,8 @@ namespace OpenKalman
           }
       };
 
-
   private:
+
     template<typename Scalar>
 #if defined (__cpp_concepts) && defined (__clang__) // Because of compiler issue in at least GCC version 10.1.0
     requires std::floating_point<Scalar>
@@ -209,14 +217,14 @@ namespace OpenKalman
       }
     }
 
-
   public:
-    /*
+
+    /**
      * \internal
      * \brief An array of functions (here, just one) that return a wrapped version of an inclination.
      * \details Each function in the array takes a ''get coefficient'' function and returning a non-wrapped inclination.
      * The ''get coefficient'' function takes the index of a column within a row vector and returns the coefficient.
-     * \note This should be accessed only through \ref internal::wrap_get.
+     * \note This should generally be accessed only through \ref internal::wrap_get.
      * \tparam Scalar The scalar type (e.g., double).
      * \tparam i The index of the inclination coefficient that is being wrapped.
      */
@@ -231,13 +239,13 @@ namespace OpenKalman
       };
 
 
-    /*
+    /**
      * \internal
      * \brief An array of functions (here, just one) that sets a matrix coefficient to a wrapped inclination.
      * \details Each void function in the array takes a scalar value and ''set coefficient'' function.
      * The ''set coefficient'' function takes a scalar value and an index of a column within a row vector and
      * sets the coefficient at that index to a wrapped version of the scalar input.
-     * \note This should be accessed only through \ref internal::wrap_set.
+     * \note This should generally be accessed only through \ref internal::wrap_set.
      * \tparam Scalar The scalar type (e.g., double).
      * \tparam i The index of the inclination coefficient that is being wrapped.
      */
@@ -259,4 +267,4 @@ namespace OpenKalman
 } // namespace OpenKalman
 
 
-#endif //OPENKALMAN_COEFFICIENTS_INCLINATION_H
+#endif //OPENKALMAN_COEFFICIENTS_INCLINATION_HPP

@@ -8,8 +8,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#ifndef OPENKALMAN_TYPED_MATRIX_ARITHMETIC_H
-#define OPENKALMAN_TYPED_MATRIX_ARITHMETIC_H
+#ifndef OPENKALMAN_TYPED_MATRIX_ARITHMETIC_HPP
+#define OPENKALMAN_TYPED_MATRIX_ARITHMETIC_HPP
 
 
 namespace OpenKalman
@@ -162,6 +162,7 @@ namespace OpenKalman
   }
 
 
+#ifndef __cpp_impl_three_way_comparison
   /// Inequality operator.
 #ifdef __cpp_concepts
   template<typed_matrix V1, typed_matrix V2>
@@ -172,6 +173,7 @@ namespace OpenKalman
   {
     return not (std::forward<V1>(v1) == std::forward<V2>(v2));
   }
+#endif
 
 
 }

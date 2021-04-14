@@ -13,8 +13,8 @@
  * \brief Definitions for \ref OpenKalman::internal::to_covariance_nestable "to_covariance_nestable".
  */
 
-#ifndef OPENKALMAN_TOCOVARIANCENESTABLE_H
-#define OPENKALMAN_TOCOVARIANCENESTABLE_H
+#ifndef OPENKALMAN_TOCOVARIANCENESTABLE_HPP
+#define OPENKALMAN_TOCOVARIANCENESTABLE_HPP
 
 namespace OpenKalman::internal
 {
@@ -191,4 +191,4 @@ namespace OpenKalman::internal
 
 } // namespace OpenKalman::internal
 
-#endif //OPENKALMAN_TOCOVARIANCENESTABLE_H
+#endif //OPENKALMAN_TOCOVARIANCENESTABLE_HPP

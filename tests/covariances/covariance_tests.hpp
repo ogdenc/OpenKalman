@@ -3,8 +3,8 @@
  * https://creativecommons.org/publicdomain/zero/1.0/
  */
 
-#ifndef COVARIANCE_TESTS_H
-#define COVARIANCE_TESTS_H
+#ifndef COVARIANCE_TESTS_HPP
+#define COVARIANCE_TESTS_HPP
 
 #include "../tests.hpp"
 
@@ -19,4 +19,4 @@ struct covariance_tests : public ::testing::Test
   ~covariance_tests() override {}
 };
 
-#endif //COVARIANCE_TESTS_H
+#endif //COVARIANCE_TESTS_HPP

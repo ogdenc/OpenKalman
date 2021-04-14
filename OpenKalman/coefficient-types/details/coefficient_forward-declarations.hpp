@@ -49,9 +49,6 @@ namespace OpenKalman
 
   namespace internal
   {
-    template<typename T>
-    struct is_composite_coefficients : std::false_type {};
-
     template<typename...C>
     struct is_composite_coefficients<Coefficients<C...>> : std::true_type {};
   }
@@ -149,7 +146,11 @@ namespace OpenKalman
    * - internal::wrap_get: \copybrief internal::wrap_get
    * - internal::wrap_set \copybrief internal::wrap_set
    */
-  template<typename C1, typename C2>
+#ifdef __cpp_concepts
+  template<fixed_coefficients C1, fixed_coefficients C2>
+#else
+  template<typename C1, typename C2, typename = void>
+#endif
   struct Polar;
 
 
@@ -170,15 +171,16 @@ namespace OpenKalman
    * - internal::wrap_get: \copybrief internal::wrap_get
    * - internal::wrap_set \copybrief internal::wrap_set
    */
-  template<typename C1, typename C2, typename C3>
+#ifdef __cpp_concepts
+  template<fixed_coefficients C1, fixed_coefficients C2, fixed_coefficients C3>
+#else
+  template<typename C1, typename C2, typename C3, typename = void>
+#endif
   struct Spherical;
 
 
   namespace internal
   {
-    template<typename T>
-    struct is_atomic_coefficient_group : std::false_type {};
-
     template<>
     struct is_atomic_coefficient_group<Axis> : std::true_type {};
 
@@ -197,93 +199,100 @@ namespace OpenKalman
     template<typename C1, typename C2, typename C3>
     struct is_atomic_coefficient_group<Spherical<C1, C2, C3>> : std::true_type {};
 
+  } // namespace internal
 
-    // -------------------- //
-    //   is_equivalent_to   //
-    // -------------------- //
 
+  // ------------------------ //
+  //   Dynamic coefficients   //
+  // ------------------------ //
+
+  /**
+   * \brief A list of coefficients defined at runtime.
+   * \details At compile time, the structure is treated if it has zero dimensions.
+   * \internal
+   * <b>See also</b> the following functions for accessing coefficient properties:
+   * - internal::to_euclidean_coeff(Coeffs&& coeffs, const std::size_t row, const F& get_coeff):
+   * \copybrief internal::to_euclidean_coeff(Coeffs&& coeffs, const std::size_t row, const F& get_coeff)
+   * - internal::from_euclidean_coeff(Coeffs&& coeffs, const std::size_t row, const F& get_coeff):
+   * \copybrief internal::from_euclidean_coeff(Coeffs&& coeffs, const std::size_t row, const F& get_coeff)
+   * - internal::wrap_get(Coeffs&& coeffs, const std::size_t row, const F& get_coeff):
+   * \copybrief internal::wrap_get(Coeffs&& coeffs, const std::size_t row, const F& get_coeff)
+   * - internal::wrap_set(Coeffs&& coeffs, const std::size_t row, const Scalar s, const FS& set_coeff,
+   * const FG& get_coeff)
+   * \copybrief internal::wrap_set(Coeffs&& coeffs, const std::size_t row, const Scalar s, const FS& set_coeff,
+   * const FG& get_coeff)
+   */
+  template<typename Scalar = double>
+  struct DynamicCoefficients;
+
+
+  namespace internal
+  {
+    template<typename Scalar>
+    struct is_dynamic_coefficients<DynamicCoefficients<Scalar>> : std::true_type {};
+  }
+
+
+  // ------------------------------ //
+  //   internal::is_equivalent_to   //
+  // ------------------------------ //
+
+  namespace internal
+  {
 #ifdef __cpp_concepts
-    template<coefficients T, coefficients U>
+    template<fixed_coefficients T>
+    struct is_equivalent_to<T, T>
 #else
-    template<typename T, typename U, typename>
-#endif
-    struct is_equivalent_to : std::false_type {};
-
-
-    template<>
-    struct is_equivalent_to<Axis, Axis> : std::true_type {};
-
-
-    template<>
-    struct is_equivalent_to<Distance, Distance> : std::true_type {};
-
-
-    template<template<typename Scalar> typename Limits>
-    struct is_equivalent_to<Angle<Limits>, Angle<Limits>> : std::true_type {};
-
-
-    template<template<typename Scalar> typename Limits>
-    struct is_equivalent_to<Inclination<Limits>, Inclination<Limits>> : std::true_type {};
-
-
-    template<typename C1a, typename C2a, typename C1b, typename C2b>
-    struct is_equivalent_to<Polar<C1a, C2a>, Polar<C1b, C2b>>
-      : std::bool_constant<equivalent_to<C1a, C1b> and equivalent_to<C2a, C2b>> {};
-
-
-    template<typename C1a, typename C2a, typename C3a, typename C1b, typename C2b, typename C3b>
-    struct is_equivalent_to<Spherical<C1a, C2a, C3a>, Spherical<C1b, C2b, C3b>>
-      : std::bool_constant<equivalent_to<C1a, C1b> and
-        equivalent_to<C2a, C2b> and equivalent_to<C3a, C3b>> {};
-
-
-#ifdef __cpp_concepts
-    template<coefficients...C1, coefficients...C2> requires
-      (sizeof...(C1) == 0 and sizeof...(C2) == 0) or
-      (sizeof...(C1) > 1 and sizeof...(C2) > 1 and (equivalent_to<C1, C2> and ...))
-    struct is_equivalent_to<Coefficients<C1...>, Coefficients<C2...>>
-#else
-    template<typename...C1, typename...C2>
-    struct is_equivalent_to<Coefficients<C1...>, Coefficients<C2...>, std::enable_if_t<
-      (sizeof...(C1) == 0 and sizeof...(C2) == 0) or
-      (sizeof...(C1) > 1 and sizeof...(C2) > 1 and (equivalent_to<C1, C2> and ...))>>
+    template<typename T>
+    struct is_equivalent_to<T, T>
 #endif
       : std::true_type {};
 
 
 #ifdef __cpp_concepts
-    template<typename T, typename U> requires equivalent_to<T, U>
+    template<template<typename...> typename T, fixed_coefficients...C1, fixed_coefficients...C2> requires
+      (not std::is_same_v<T<C1...>, T<C2...>>) and (equivalent_to<C1, C2> and ...) and
+      (sizeof...(C1) == sizeof...(C2)) and fixed_coefficients<T<C1...>> and fixed_coefficients<T<C2...>>
+    struct is_equivalent_to<T<C1...>, T<C2...>>
+#else
+    template<template<typename...> typename T, typename...C1, typename...C2>
+    struct is_equivalent_to<T<C1...>, T<C2...>, std::enable_if_t<
+      (not std::is_same_v<T<C1...>, T<C2...>>) and (equivalent_to<C1, C2> and ...) and
+      (sizeof...(C1) == sizeof...(C2)) and fixed_coefficients<T<C1...>> and fixed_coefficients<T<C2...>>>>
+#endif
+      : std::true_type {};
+
+
+#ifdef __cpp_concepts
+    template<atomic_coefficient_group T, fixed_coefficients U> requires equivalent_to<T, U>
     struct is_equivalent_to<T, Coefficients<U>>
 #else
     template<typename T, typename U>
-    struct is_equivalent_to<T, Coefficients<U>, std::enable_if_t<equivalent_to<T, U>>>
+    struct is_equivalent_to<T, Coefficients<U>, std::enable_if_t<
+      atomic_coefficient_group<T> and fixed_coefficients<U> and equivalent_to<T, U>>>
 #endif
       : std::true_type {};
 
 
 #ifdef __cpp_concepts
-    template<typename T, typename U> requires equivalent_to<T, U> and internal::is_atomic_coefficient_group<U>::value
+    template<fixed_coefficients T, atomic_coefficient_group U> requires equivalent_to<T, U>
     struct is_equivalent_to<Coefficients<T>, U>
 #else
     template<typename T, typename U>
     struct is_equivalent_to<Coefficients<T>, U, std::enable_if_t<
-      equivalent_to<T, U> and internal::is_atomic_coefficient_group<U>::value>>
+      fixed_coefficients<T> and atomic_coefficient_group<U> and equivalent_to<T, U>>>
 #endif
     : std::true_type {};
 
-
-    // ---------------- //
-    //   is_prefix_of   //
-    // ---------------- //
-
-#ifdef __cpp_concepts
-    template<coefficients T, coefficients U>
-#else
-    template<typename T, typename U, typename>
-#endif
-    struct is_prefix_of : std::false_type {};
+  } // namespace internal
 
 
+  // -------------------------- //
+  //   internal::is_prefix_of   //
+  // -------------------------- //
+
+  namespace internal
+  {
 #ifdef __cpp_concepts
     template<coefficients C1, coefficients C2> requires equivalent_to<C1, C2>
     struct is_prefix_of<C1, C2>
@@ -329,7 +338,16 @@ namespace OpenKalman
 #endif
       : std::true_type {};
 
+  } // namespace internal
 
+
+
+  // ------------------------------- //
+  //   internal::coefficient_class   //
+  // ------------------------------- //
+
+  namespace internal
+  {
     /**
      * \internal
      * \brief A sufficiently-defined class representing an atomic or composite group of coefficients.
@@ -339,17 +357,17 @@ namespace OpenKalman
     concept coefficient_class =
     std::integral<decltype(T::dimensions)> and std::integral<decltype(T::euclidean_dimensions)> and
       (T::axes_only or not T::axes_only) and
-      (internal::is_atomic_coefficient_group<typename T::difference_type>::value or
-        internal::is_composite_coefficients<typename T::difference_type>::value) and
-      requires {T::template to_euclidean_array<double, 0>[0](std::function<double(const std::size_t)>()) == 0.;} and
-      requires {T::template from_euclidean_array<double, 0>[0](std::function<double(const std::size_t)>()) == 0.;} and
-      requires {T::template wrap_array_get<double, 0>[0](std::function<double(const std::size_t)>()) == 0.;} and
-      requires {T::template wrap_array_set<double, 0>[0](0., std::function<void(const double, const std::size_t)>(),
+      coefficients<typename T::difference_type> and
+      (not fixed_coefficients<T> or
+        (requires {T::template to_euclidean_array<double, 0>[0](std::function<double(const std::size_t)>()) == 0.;} and
+        requires {T::template from_euclidean_array<double, 0>[0](std::function<double(const std::size_t)>()) == 0.;} and
+        requires {T::template wrap_array_get<double, 0>[0](std::function<double(const std::size_t)>()) == 0.;} and
+        requires {T::template wrap_array_set<double, 0>[0](0., std::function<void(const double, const std::size_t)>(),
           std::function<double(const std::size_t)>());} and
-      (std::tuple_size_v<decltype(T::template to_euclidean_array<double, 0>)> == T::euclidean_dimensions) and
-      (std::tuple_size_v<decltype(T::template from_euclidean_array<double, 0>)> == T::dimensions) and
-      (std::tuple_size_v<decltype(T::template wrap_array_get<double, 0>)> == T::dimensions) and
-      (std::tuple_size_v<decltype(T::template wrap_array_set<double, 0>)> == T::dimensions);
+        (std::tuple_size_v<decltype(T::template to_euclidean_array<double, 0>)> == T::euclidean_dimensions) and
+        (std::tuple_size_v<decltype(T::template from_euclidean_array<double, 0>)> == T::dimensions) and
+        (std::tuple_size_v<decltype(T::template wrap_array_get<double, 0>)> == T::dimensions) and
+        (std::tuple_size_v<decltype(T::template wrap_array_set<double, 0>)> == T::dimensions)));
 #else
     inline constexpr bool coefficient_class = true;
 #endif

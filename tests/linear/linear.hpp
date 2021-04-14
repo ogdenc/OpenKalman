@@ -8,8 +8,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#ifndef LINEAR_TESTS_H
-#define LINEAR_TESTS_H
+#ifndef LINEAR_TESTS_HPP
+#define LINEAR_TESTS_HPP
 
 #include "../tests.hpp"
 
@@ -130,4 +130,4 @@ public:
 };
 
 
-#endif //LINEAR_TESTS_H
+#endif //LINEAR_TESTS_HPP

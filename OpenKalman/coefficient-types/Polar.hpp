@@ -13,13 +13,17 @@
  * \brief Definition of Polar class and associated details.
  */
 
-#ifndef OPENKALMAN_POLAR_H
-#define OPENKALMAN_POLAR_H
+#ifndef OPENKALMAN_POLAR_HPP
+#define OPENKALMAN_POLAR_HPP
 
 
 namespace OpenKalman
 {
-  template<typename C1 = Distance, typename C2 = angle::Radians>
+#ifdef __cpp_concepts
+  template<fixed_coefficients C1 = Distance, fixed_coefficients C2 = angle::Radians>
+#else
+  template<typename C1 = Distance, typename C2 = angle::Radians, typename>
+#endif
   struct Polar;
 
 
@@ -122,7 +126,7 @@ namespace OpenKalman
       static constexpr std::array<Scalar (*const)(const GetCoeff&), 1>
         wrap_array_get = {[](const GetCoeff& get_coeff)
       {
-        return polar_angle_wrap_impl<Limits>(std::signbit(get_coeff(i + d_i)), get_coeff(i + a_i));
+        return polar_angle_wrap_impl<Limits, Scalar>(std::signbit(get_coeff(i + d_i)), get_coeff(i + a_i));
       }};
 
       template<std::size_t i, std::size_t d_i, std::size_t a_i>
@@ -130,7 +134,7 @@ namespace OpenKalman
         wrap_array_set =
         {
           [](const Scalar s, const SetCoeff& set_coeff, const GetCoeff&) {
-            set_coeff(i + a_i, polar_angle_wrap_impl<Limits>(false, s));
+            set_coeff(i + a_i, polar_angle_wrap_impl<Limits, Scalar>(false, s));
             // Assumes that the corresponding distance is positive.
           }
         };
@@ -146,11 +150,14 @@ namespace OpenKalman
       /// Polar is associated with two matrix elements.
       static constexpr std::size_t dimensions = 2;
 
+
       /// Polar is represented by three coordinates in Euclidean space.
       static constexpr std::size_t euclidean_dimensions = 3;
 
+
       /// Polar is not composed of only axes.
       static constexpr bool axes_only = false;
+
 
       /**
        * \brief The type of the result when subtracting two Polar vectors.
@@ -161,7 +168,7 @@ namespace OpenKalman
       using difference_type = Concatenate<typename C1::difference_type, typename C2::difference_type>;
 
 
-      /*
+      /**
        * \internal
        * \brief A function taking a row index and returning a corresponding matrix element.
        * \details A separate function will be constructed for each column in the matrix.
@@ -171,7 +178,7 @@ namespace OpenKalman
       using GetCoeff = std::function<Scalar(const std::size_t)>;
 
 
-      /*
+      /**
        * \internal
        * \brief A function that sets a matrix element corresponding to a row index to a scalar value.
        * \details A separate function will be constructed for each column in the matrix.
@@ -181,14 +188,14 @@ namespace OpenKalman
       using SetCoeff = std::function<void(const std::size_t, const Scalar)>;
 
 
-      /*
+      /**
        * \internal
        * \brief An array of functions that convert polar coordinates to coordinates in Euclidean space.
        * \details The functions in the array take the polar coordinates and convert them to x, y, and z
        * Cartesian coordinates representing a location on a unit half-cylinder.
        * Each array element is a function taking a ''get coefficient'' function and returning a coordinate value.
        * The ''get coefficient'' function takes the index of a column within a row vector and returns the coefficient.
-       * \note This should be accessed only through \ref to_euclidean_coeff.
+       * \note This should generally be accessed only through \ref to_euclidean_coeff.
        * \tparam Scalar The scalar type (e.g., double).
        * \tparam i The index of the first polar coefficient that is being transformed.
        */
@@ -200,7 +207,7 @@ namespace OpenKalman
       );
 
 
-      /*
+      /**
        * \internal
        * \brief An array of functions that convert three coordinates in Euclidean space into a distance and angle.
        * \details The functions in the array take x, y, and z Cartesian coordinates representing a location on a
@@ -208,7 +215,7 @@ namespace OpenKalman
        * The array element is a function taking a ''get coefficient'' function and returning a distance or angle.
        * The ''get coefficient'' function takes the index of a column within a row vector and returns one of the
        * three coordinates.
-       * \note This should be accessed only through \ref internal::from_euclidean_coeff.
+       * \note This should generally be accessed only through \ref internal::from_euclidean_coeff.
        * \tparam Scalar The scalar type (e.g., double).
        * \tparam i The index of the first of the three Cartesian coordinates being transformed back to polar.
        */
@@ -220,13 +227,13 @@ namespace OpenKalman
       );
 
 
-      /*
+      /**
        * \internal
        * \brief An array of functions that return a wrapped version of polar coordinates.
        * \details Each function in the array takes a ''get coefficient'' function and returns a distance and
        * wrapped angle.
        * The ''get coefficient'' function takes the index of a column within a row vector and returns a coefficient.
-       * \note This should be accessed only through \ref internal::wrap_get.
+       * \note This should generally be accessed only through \ref internal::wrap_get.
        * \tparam Scalar The scalar type (e.g., double).
        * \tparam i The index of the first of two polar coordinates that are being wrapped.
        */
@@ -238,13 +245,13 @@ namespace OpenKalman
       );
 
 
-      /*
+      /**
        * \internal
        * \brief An array of functions that set a matrix coefficient to wrapped polar coordinates.
        * \details Each void function in the array takes a scalar value and ''set coefficient'' function.
        * The ''set coefficient'' function takes a scalar value and an index of a column within a row vector and
        * sets the coefficient at that index to a wrapped version of the scalar input.
-       * \note This should be accessed only through \ref internal::wrap_set.
+       * \note This should generally be accessed only through \ref internal::wrap_set.
        * \tparam Scalar The scalar type (e.g., double).
        * \tparam i The index of the first of the two polar coordinates that are being wrapped.
        */
@@ -278,6 +285,29 @@ namespace OpenKalman
     static_assert(internal::coefficient_class<Polar>);
   };
 
+
+  // Alternate cases:
+
+#ifdef __cpp_concepts
+  template<fixed_coefficients T1, fixed_coefficients T2>
+  struct Polar<Coefficients<T1>, T2>
+#else
+  template<typename T1, typename T2>
+  struct Polar<Coefficients<T1>, T2, std::enable_if_t<fixed_coefficients<T1> and fixed_coefficients<T2>>>
+#endif
+    : Polar<T1, T2> {};
+
+
+#ifdef __cpp_concepts
+  template<atomic_coefficient_group T1, fixed_coefficients T2>
+  struct Polar<T1, Coefficients<T2>>
+#else
+  template<typename T1, typename T2>
+  struct Polar<T1, Coefficients<T2>, std::enable_if_t<atomic_coefficient_group<T1> and fixed_coefficients<T2>>>
+#endif
+    : Polar<T1, T2> {};
+
+
 }// namespace OpenKalman
 
-#endif //OPENKALMAN_POLAR_H
+#endif //OPENKALMAN_POLAR_HPP

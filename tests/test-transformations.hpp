@@ -8,8 +8,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#ifndef OPENKALMAN_TESTS_TRANSFORMATIONS_H
-#define OPENKALMAN_TESTS_TRANSFORMATIONS_H
+#ifndef OPENKALMAN_TESTS_TRANSFORMATIONS_HPP
+#define OPENKALMAN_TESTS_TRANSFORMATIONS_HPP
 
 #include <array>
 #include <iostream>
@@ -225,4 +225,4 @@ inline const auto Cylindrical2spherical = Transformation
   };
 
 
-#endif //OPENKALMAN_TESTS_TRANSFORMATIONS_H
+#endif //OPENKALMAN_TESTS_TRANSFORMATIONS_HPP

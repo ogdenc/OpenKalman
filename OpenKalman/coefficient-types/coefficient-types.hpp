@@ -26,6 +26,7 @@
 #define OPENKALMAN_COEFFICIENT_TYPES_HPP
 
 #include "details/coefficient_forward-declarations.hpp"
+#include "details/coefficient-functions.hpp"
 
 #include "Axis.hpp"
 #include "Distance.hpp"
@@ -35,6 +36,6 @@
 #include "Spherical.hpp"
 #include "Coefficients.hpp"
 
-#include "details/coefficient-functions.hpp"
+#include "DynamicCoefficients.hpp"
 
 #endif //OPENKALMAN_COEFFICIENT_TYPES_HPP

@@ -3,8 +3,8 @@
  * https://creativecommons.org/publicdomain/zero/1.0/
  */
 
-#ifndef TYPED_MATRIX_TESTS_H
-#define TYPED_MATRIX_TESTS_H
+#ifndef TYPED_MATRIX_TESTS_HPP
+#define TYPED_MATRIX_TESTS_HPP
 
 #include "../tests.hpp"
 
@@ -19,4 +19,4 @@ struct matrices : public ::testing::Test
   ~matrices() override {}
 };
 
-#endif //TYPED_MATRIX_TESTS_H
+#endif //TYPED_MATRIX_TESTS_HPP

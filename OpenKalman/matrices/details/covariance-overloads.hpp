@@ -8,8 +8,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#ifndef OPENKALMAN_COVARIANCEOVERLOADS_H
-#define OPENKALMAN_COVARIANCEOVERLOADS_H
+#ifndef OPENKALMAN_COVARIANCEOVERLOADS_HPP
+#define OPENKALMAN_COVARIANCEOVERLOADS_HPP
 
 namespace OpenKalman
 {
@@ -558,4 +558,4 @@ namespace OpenKalman
 
 }
 
-#endif //OPENKALMAN_COVARIANCEOVERLOADS_H
+#endif //OPENKALMAN_COVARIANCEOVERLOADS_HPP

@@ -8,8 +8,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#ifndef OPENKALMAN_PARTICLEDISTRIBUTION_H
-#define OPENKALMAN_PARTICLEDISTRIBUTION_H
+#ifndef OPENKALMAN_PARTICLEDISTRIBUTION_HPP
+#define OPENKALMAN_PARTICLEDISTRIBUTION_HPP
 
 #include <vector>
 #include <tuple>
@@ -32,4 +32,4 @@ namespace OpenKalman {
 
 }
 
-#endif //OPENKALMAN_PARTICLEDISTRIBUTION_H
+#endif //OPENKALMAN_PARTICLEDISTRIBUTION_HPP
