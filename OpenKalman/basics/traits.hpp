@@ -130,13 +130,12 @@ namespace OpenKalman
     // -------------------- //
 
 #ifdef __cpp_concepts
-    template<typed_matrix T> requires (MatrixTraits<T>::rows == MatrixTraits<T>::columns) and
+    template<typed_matrix T> requires
       equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>
     struct is_square_matrix<T> : std::true_type {};
 #else
     template<typename T>
     struct is_square_matrix<T, std::enable_if_t<typed_matrix<T> and
-      (MatrixTraits<T>::rows == MatrixTraits<T>::columns) and
       equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>>>
       : std::true_type {};
 #endif
@@ -175,7 +174,8 @@ namespace OpenKalman
     struct is_diagonal_matrix<T> : std::true_type {};
 #else
     template<typename T>
-    struct is_diagonal_matrix<T, std::enable_if_t<covariance<T>>> : is_diagonal_matrix<nested_matrix_t<T>> {};
+    struct is_diagonal_matrix<T, std::enable_if_t<covariance<T> and diagonal_matrix<nested_matrix_t<T>>>>
+      : std::true_type {};
 #endif
 
 
@@ -188,9 +188,9 @@ namespace OpenKalman
     struct is_diagonal_matrix<T> : std::true_type {};
 #else
     template<typename T>
-    struct is_diagonal_matrix<T, std::enable_if_t<typed_matrix<T> and
+    struct is_diagonal_matrix<T, std::enable_if_t<typed_matrix<T> and diagonal_matrix<nested_matrix_t<T>> and
       equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>>>
-      : is_diagonal_matrix<nested_matrix_t<T>> {};
+      : std::true_type {};
 #endif
 
 
@@ -235,8 +235,9 @@ namespace OpenKalman
 #else
     template<typename T>
     struct is_self_adjoint_matrix<T, std::enable_if_t<typed_matrix<T> and
-      equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>>>
-      : is_self_adjoint_matrix<nested_matrix_t<T>> {};
+      equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients> and
+      self_adjoint_matrix<nested_matrix_t<T>>>>
+      : std::true_type {};
 #endif
 
 
@@ -427,6 +428,22 @@ namespace OpenKalman
   //  Aliases  //
   // ========= //
 
+  // ----------------- //
+  //  native_matrix_t  //
+  // ----------------- //
+
+  /**
+   * \brief An alias for a self-contained native matrix, based on and equivalent to parameter T.
+   * \tparam T The type from which the native matrix is derived.
+   * \tparam rows Number of rows in the native matrix (defaults to the number of rows in T).
+   * \tparam cols Number of columns in the native matrix (defaults to the number of columns in T).
+   * \tparam Scalar Scalar type of the matrix (defaults to the Scalar type of T).
+   */
+  template<typename T, std::size_t rows = MatrixTraits<T>::rows, std::size_t cols = MatrixTraits<T>::columns,
+    typename Scalar = typename MatrixTraits<T>::Scalar>
+  using native_matrix_t = typename MatrixTraits<T>::template NativeMatrixFrom<rows, cols, Scalar>;
+
+
   // ------------------ //
   //  self_contained_t  //
   // ------------------ //
@@ -452,17 +469,6 @@ namespace OpenKalman
     private:
 
       using non_const_type = typename MatrixTraits<T>::SelfContainedFrom;
-
-      static_assert(not zero_matrix<T> or zero_matrix<non_const_type>,
-        "If T is a zero_matrix, then MatrixTraits<T>::SelfContainedFrom must also be a zero_matrix.");
-      static_assert(not identity_matrix<T> or identity_matrix<non_const_type>,
-        "If T is an identity_matrix, then MatrixTraits<T>::SelfContainedFrom must also be an identity_matrix.");
-      static_assert(not upper_triangular_matrix<T> or upper_triangular_matrix<non_const_type>, "If T is an "
-        "upper_triangular_matrix, then MatrixTraits<T>::SelfContainedFrom must also be an upper_triangular_matrix.");
-      static_assert(not lower_triangular_matrix<T> or lower_triangular_matrix<non_const_type>, "If T is a "
-        "lower_triangular_matrix, then MatrixTraits<T>::SelfContainedFrom must also be a lower_triangular_matrix.");
-      static_assert(not self_adjoint_matrix<T> or self_adjoint_matrix<non_const_type>,
-        "If T is a self_adjoint_matrix, then MatrixTraits<T>::SelfContainedFrom must also be a self_adjoint_matrix.");
 
     public:
 
@@ -576,6 +582,28 @@ namespace OpenKalman
   // =========== //
   //  Functions  //
   // =========== //
+
+  // -------------------- //
+  //  make_native_matrix  //
+  // -------------------- //
+
+  /**
+   * \brief Make a self-contained, native matrix based on the shape of M from a list of coefficients in row-major order.
+   */
+#ifdef __cpp_concepts
+  template<typename M, std::convertible_to<typename MatrixTraits<M>::Scalar> ... Args> requires
+  (sizeof...(Args) == MatrixTraits<M>::rows * MatrixTraits<M>::columns)
+#else
+  template<typename M, typename ... Args, std::enable_if_t<
+  (std::is_convertible_v<Args, typename MatrixTraits<M>::Scalar> and ...) and
+    (sizeof...(Args) == MatrixTraits<M>::rows * MatrixTraits<M>::columns), int> = 0>
+#endif
+  inline auto
+  make_native_matrix(const Args ... args)
+  {
+    return MatrixTraits<native_matrix_t<M>>::make(static_cast<const typename MatrixTraits<M>::Scalar>(args)...);
+  }
+
 
   namespace internal
   {
@@ -702,15 +730,16 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<typename T, typename U> requires (MatrixTraits<T>::rows == MatrixTraits<U>::rows) and
-      (MatrixTraits<T>::columns == MatrixTraits<U>::columns) and
+    template<typename T, typename U> requires
+      (dynamic_rows<T> or dynamic_rows<U> or MatrixTraits<T>::rows == MatrixTraits<U>::rows) and
+      (dynamic_columns<T> or dynamic_columns<U> or MatrixTraits<T>::columns == MatrixTraits<U>::columns) and
       (std::same_as<typename MatrixTraits<T>::Scalar, typename MatrixTraits<U>::Scalar>)
     struct has_same_matrix_shape<T, U> : std::true_type {};
 #else
     template<typename T, typename U>
     struct has_same_matrix_shape<T, U, std::enable_if_t<
-      (MatrixTraits<T>::rows == MatrixTraits<U>::rows) and
-      (MatrixTraits<T>::columns == MatrixTraits<U>::columns) and
+      (dynamic_rows<T> or dynamic_rows<U> or MatrixTraits<T>::rows == MatrixTraits<U>::rows) and
+      (dynamic_columns<T> or dynamic_columns<U> or MatrixTraits<T>::columns == MatrixTraits<U>::columns) and
       (std::is_same_v<typename MatrixTraits<T>::Scalar, typename MatrixTraits<U>::Scalar>)>> : std::true_type {};
 #endif
 

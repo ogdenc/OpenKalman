@@ -48,13 +48,49 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<typename Arg> requires eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>
 #else
+  template<typename Arg, std::enable_if_t<eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>, int> = 0>
+#endif
+  constexpr std::size_t row_count(Arg&& arg)
+  {
+    if constexpr (dynamic_rows<Arg>)
+      return row_count(nested_matrix(std::forward<Arg>(arg)));
+    else
+      return MatrixTraits<Arg>::rows;
+  }
+
+
+#ifdef __cpp_concepts
+  template<typename Arg> requires eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>
+#else
+  template<typename Arg, std::enable_if_t<eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>, int> = 0>
+#endif
+  constexpr std::size_t column_count(Arg&& arg)
+  {
+    if constexpr (dynamic_columns<Arg>)
+      return column_count(nested_matrix(std::forward<Arg>(arg)));
+    else
+      return MatrixTraits<Arg>::columns;
+  }
+
+
+#ifdef __cpp_concepts
+  template<typename Arg> requires eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>
+#else
   template<typename Arg, std::enable_if_t<
     eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>, int> = 0>
 #endif
   inline auto
   determinant(Arg&& arg) noexcept
   {
-    return make_native_matrix(std::forward<Arg>(arg)).determinant();
+    if constexpr (diagonal_matrix<nested_matrix_t<Arg>>)
+    {
+      return determinant(nested_matrix(std::forward<Arg>(arg)));
+    }
+    else
+    {
+      static_assert(eigen_native<nested_matrix_t<Arg>>);
+      return determinant(make_native_matrix(std::forward<Arg>(arg)));
+    }
   }
 
 

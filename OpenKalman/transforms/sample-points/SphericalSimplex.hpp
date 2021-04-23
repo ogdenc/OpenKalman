@@ -99,25 +99,11 @@ namespace OpenKalman
     SphericalSimplex() {};
 
 
-    /// Compile time sqrt.
-    template<typename Scalar>
-    static constexpr Scalar constexpr_sqrt(Scalar x, Scalar guess)
-    {
-      return (0.25 * (guess + x / guess) * (guess + x / guess)/x - 1 <= std::numeric_limits<Scalar>::epsilon()) ?
-        (0.5 * (guess + x / guess)) :
-        constexpr_sqrt(x, 0.5 * (guess + x / guess));
-    }
-
-
-    template<typename Scalar>
-    static constexpr Scalar constexpr_sqrt(Scalar x) { return constexpr_sqrt(x, 1.); }
-
-
     template<std::size_t j, std::size_t i, std::size_t dim, typename Scalar>
     static constexpr auto
     sigma_point_coeff()
     {
-      constexpr auto denom = 1 / constexpr_sqrt((j + 1) * (j + 2) * unscaled_W<dim>());
+      constexpr auto denom = 1 / internal::constexpr_sqrt((j + 1) * (j + 2) * unscaled_W<dim>());
       if constexpr(i == 0)
         return Scalar(0);
       else if constexpr(i < j + 2)

@@ -20,8 +20,8 @@ namespace OpenKalman::Eigen3
 {
 
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, eigen_matrix NestedMatrix> requires
-    (MatrixTraits<NestedMatrix>::rows == Coefficients::dimensions)
+  template<coefficients Coefficients, typename NestedMatrix> requires
+    eigen_matrix<NestedMatrix> or eigen_diagonal_expr<NestedMatrix>
 #else
   template<typename Coefficients, typename NestedMatrix>
 #endif
@@ -30,18 +30,26 @@ namespace OpenKalman::Eigen3
 
 #ifndef __cpp_concepts
     static_assert(coefficients<Coefficients>);
-    static_assert(eigen_matrix<NestedMatrix>);
-    static_assert(MatrixTraits<NestedMatrix>::rows == Coefficients::dimensions);
+    static_assert(eigen_matrix<NestedMatrix> or eigen_diagonal_expr<NestedMatrix>);
 #endif
 
-    using Scalar = typename MatrixTraits<NestedMatrix>::Scalar; ///< Scalar type for this variable.
+    static_assert([] {
+      if constexpr (dynamic_rows<NestedMatrix>)
+        return dynamic_coefficients<Coefficients>;
+      else
+        return fixed_coefficients<Coefficients> and (MatrixTraits<NestedMatrix>::rows == Coefficients::dimensions);
+    }());
 
   private:
 
     using Base = OpenKalman::internal::MatrixBase<ToEuclideanExpr, NestedMatrix>;
+
     static constexpr auto columns = MatrixTraits<NestedMatrix>::columns; ///< Number of columns.
 
   public:
+
+    using typename Base::Scalar;
+
 
     /// Default constructor.
 #ifdef __cpp_concepts
@@ -306,25 +314,35 @@ namespace OpenKalman
   {
     using NestedMatrix = ArgType;
     using Scalar = typename MatrixTraits<NestedMatrix>::Scalar;
+
+
     static constexpr auto rows = Coeffs::euclidean_dimensions;
     static constexpr auto columns = MatrixTraits<NestedMatrix>::columns;
+
+
     using RowCoefficients = Coeffs;
     using ColumnCoefficients = Axes<columns>;
     static_assert(Coeffs::dimensions == MatrixTraits<NestedMatrix>::rows);
 
+
     template<typename Derived>
     using MatrixBaseFrom = Eigen3::internal::Eigen3MatrixBase<Derived, Eigen3::ToEuclideanExpr<Coeffs, ArgType>>;
+
 
     template<std::size_t r = rows, std::size_t c = columns, typename S = Scalar>
     using NativeMatrixFrom = native_matrix_t<NestedMatrix, r, c, S>;
 
+
     using SelfContainedFrom = Eigen3::ToEuclideanExpr<Coeffs, self_contained_t<NestedMatrix>>;
+
 
     template<TriangleType storage_triangle = TriangleType::lower, std::size_t dim = rows, typename S = Scalar>
     using SelfAdjointMatrixFrom = Eigen3::SelfAdjointMatrix<NativeMatrixFrom<dim, dim, S>, storage_triangle>;
 
+
     template<TriangleType triangle_type = TriangleType::lower, std::size_t dim = rows, typename S = Scalar>
     using TriangularMatrixFrom = Eigen3::TriangularMatrix<NativeMatrixFrom<dim, dim, S>, triangle_type>;
+
 
     template<std::size_t dim = rows, typename S = Scalar>
     using DiagonalMatrixFrom = Eigen3::DiagonalMatrix<NativeMatrixFrom<dim, 1, S>>;

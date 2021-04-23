@@ -59,6 +59,44 @@ namespace Eigen::internal
   };
 
 
+  template<typename Scalar_, auto constant, std::size_t rows, std::size_t cols>
+  struct traits<OpenKalman::Eigen3::ConstantMatrix<Scalar_, constant, rows, cols>>
+  {
+    using StorageKind = Eigen::Dense;
+    using XprKind = Eigen::MatrixXpr;
+    using StorageIndex = Eigen::Index;
+    using Scalar = Scalar_;
+    enum
+    {
+      Flags = NoPreferredStorageOrderBit | EvalBeforeNestingBit | LinearAccessBit |
+        (packet_traits<Scalar>::Vectorizable ? PacketAccessBit : 0),
+      RowsAtCompileTime = rows,
+      MaxRowsAtCompileTime = rows,
+      ColsAtCompileTime = cols,
+      MaxColsAtCompileTime = cols
+    };
+  };
+
+
+  template<typename Scalar_, std::size_t rows, std::size_t cols>
+  struct traits<OpenKalman::Eigen3::ZeroMatrix<Scalar_, rows, cols>>
+  {
+    using StorageKind = Eigen::Dense;
+    using XprKind = Eigen::MatrixXpr;
+    using StorageIndex = Eigen::Index;
+    using Scalar = Scalar_;
+    enum
+    {
+      Flags = NoPreferredStorageOrderBit | EvalBeforeNestingBit | LinearAccessBit |
+        (packet_traits<Scalar>::Vectorizable ? PacketAccessBit : 0),
+      RowsAtCompileTime = rows,
+      MaxRowsAtCompileTime = rows,
+      ColsAtCompileTime = cols,
+      MaxColsAtCompileTime = cols
+    };
+  };
+
+
   template<typename NestedMatrix, OpenKalman::TriangleType storage_triangle>
   struct traits<OpenKalman::Eigen3::SelfAdjointMatrix<NestedMatrix, storage_triangle>>
     : traits<std::decay_t<NestedMatrix>>
@@ -97,11 +135,6 @@ namespace Eigen::internal
       MaxColsAtCompileTime = NestedTraits::MaxRowsAtCompileTime
     };
   };
-
-
-  template<typename Scalar, std::size_t rows, std::size_t cols>
-  struct traits<OpenKalman::Eigen3::ZeroMatrix<Scalar, rows, cols>>
-    : traits<typename Matrix<Scalar, rows, cols>::ConstantReturnType> {};
 
 
   template<typename Coefficients, typename ArgType>

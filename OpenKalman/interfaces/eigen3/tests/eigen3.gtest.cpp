@@ -13,10 +13,10 @@ int main(int argc, char **argv)
 
 using namespace OpenKalman;
 
-using M = native_matrix_t<double, 3, 3>;
-using M1 = native_matrix_t<double, 3, 1>;
-using M3 = native_matrix_t<double, 3, 2>;
-using M4 = native_matrix_t<double, 4, 2>;
+using M = eigen_matrix_t<double, 3, 3>;
+using M1 = eigen_matrix_t<double, 3, 1>;
+using M3 = eigen_matrix_t<double, 3, 2>;
+using M4 = eigen_matrix_t<double, 4, 2>;
 template<typename Mat> using SAl = SelfAdjointMatrix<Mat, TriangleType::lower>;
 template<typename Mat> using SAu = SelfAdjointMatrix<Mat, TriangleType::upper>;
 template<typename Mat> using Tl = TriangularMatrix<Mat, TriangleType::lower>;
@@ -31,7 +31,7 @@ static_assert(modifiable<M, M>);
 static_assert(modifiable<M, ZeroMatrix<double, 3, 3>>);
 static_assert(modifiable<M, IdentityMatrix<M>>);
 static_assert(not modifiable<M, M1>);
-static_assert(not modifiable<M, native_matrix_t<int, 3, 3>>);
+static_assert(not modifiable<M, eigen_matrix_t<int, 3, 3>>);
 static_assert(not modifiable<const M, M>);
 static_assert(not modifiable<M::ConstantReturnType, M>);
 static_assert(not modifiable<M::IdentityReturnType, M>);
@@ -51,6 +51,10 @@ static_assert(OpenKalman::internal::has_const<SAl<const M>>::value);
 static_assert(OpenKalman::internal::has_same_matrix_shape<SAl<M>, ZeroMatrix<double, 3, 3>>::value);
 static_assert(not OpenKalman::internal::has_same_matrix_shape<SAl<M>, ZeroMatrix<double, 2, 2>>::value);
 
+static_assert(modifiable<M1, ConstantMatrix<double, 7, 3, 1>>);
+static_assert(modifiable<SAl<M>, ConstantMatrix<double, 7, 3, 3>>);
+static_assert(modifiable<SAu<M>, ConstantMatrix<double, 7, 3, 3>>);
+
 static_assert(modifiable<SAl<M>, ZeroMatrix<double, 3, 3>>);
 static_assert(modifiable<SAu<M>, ZeroMatrix<double, 3, 3>>);
 static_assert(modifiable<Tl<M>, ZeroMatrix<double, 3, 3>>);
@@ -63,6 +67,9 @@ static_assert(modifiable<SAl<M>, IdentityMatrix<M>>);
 static_assert(modifiable<SAu<M>, IdentityMatrix<M>>);
 static_assert(modifiable<Tl<M>, IdentityMatrix<M>>);
 static_assert(modifiable<Tu<M>, IdentityMatrix<M>>);
+static_assert(MatrixTraits<decltype(diagonal_of(std::declval<IdentityMatrix<M>>()))>::rows == 3);
+static_assert(MatrixTraits<decltype(diagonal_of(std::declval<IdentityMatrix<M>>()))>::columns == 1);
+static_assert(eigen_constant_expr<decltype(diagonal_of(std::declval<IdentityMatrix<M>>()))>);
 static_assert(modifiable<D<M1>, IdentityMatrix<M>>);
 
 static_assert(modifiable<SAl<M>, D<M1>>);
@@ -123,11 +130,11 @@ static_assert(not modifiable<Tl<M>, SAl<M>>);
 static_assert(not modifiable<Tu<M>, SAu<M>>);
 static_assert(not modifiable<D<M1>, SAu<M>>);
 
-static_assert(not modifiable<SAl<M>, SAl<native_matrix_t<double, 2, 2>>>);
-static_assert(not modifiable<SAu<M>, SAu<native_matrix_t<double, 2, 2>>>);
-static_assert(not modifiable<Tl<M>, Tl<native_matrix_t<double, 2, 2>>>);
-static_assert(not modifiable<Tu<M>, Tu<native_matrix_t<double, 2, 2>>>);
-static_assert(not modifiable<D<M1>, D<native_matrix_t<double, 2, 1>>>);
+static_assert(not modifiable<SAl<M>, SAl<eigen_matrix_t<double, 2, 2>>>);
+static_assert(not modifiable<SAu<M>, SAu<eigen_matrix_t<double, 2, 2>>>);
+static_assert(not modifiable<Tl<M>, Tl<eigen_matrix_t<double, 2, 2>>>);
+static_assert(not modifiable<Tu<M>, Tu<eigen_matrix_t<double, 2, 2>>>);
+static_assert(not modifiable<D<M1>, D<eigen_matrix_t<double, 2, 1>>>);
 static_assert(not modifiable<To<Axes<3>, M3>, To<Axes<4>, M4>>);
 static_assert(not modifiable<From<Axes<3>, M3>, From<Axes<4>, M4>>);
 

@@ -76,6 +76,45 @@ namespace OpenKalman::Eigen3
   }
 
 
+#ifdef __cpp_concepts
+  template<euclidean_expr Arg>
+#else
+  template<typename Arg, std::enable_if_t<euclidean_expr<Arg>, int> = 0>
+#endif
+  constexpr std::size_t row_count(Arg&& arg)
+  {
+    if constexpr (dynamic_rows<Arg>)
+    {
+      if constexpr (from_euclidean_expr<Arg>)
+        return std::forward<Arg>(arg).row_coefficients.dimensions;
+      else
+        return std::forward<Arg>(arg).row_coefficients.euclidean_dimensions;
+    }
+    else
+    {
+      return MatrixTraits<Arg>::rows;
+    }
+  }
+
+
+#ifdef __cpp_concepts
+  template<euclidean_expr Arg>
+#else
+  template<typename Arg, std::enable_if_t<euclidean_expr<Arg>, int> = 0>
+#endif
+  constexpr std::size_t column_count(Arg&& arg)
+  {
+    if constexpr (dynamic_columns<Arg>)
+    {
+      return column_count(nested_matrix(std::forward<Arg>(arg)));
+    }
+    else
+    {
+      return MatrixTraits<Arg>::columns;
+    }
+  }
+
+
   /// Special case for converting a matrix to Euclidean form. This is a shortcut.
   /// Returns the nested matrix of the argument, because ToEuclideanExpr<FromEuclideanExpr<M>> reduces to M.
 #ifdef __cpp_concepts
@@ -200,14 +239,15 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-  template<euclidean_expr Arg> requires square_matrix<Arg>
+  template<euclidean_expr Arg> requires dynamic_shape<Arg> or square_matrix<Arg>
 #else
-  template<typename Arg, std::enable_if_t<euclidean_expr<Arg> and square_matrix<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<euclidean_expr<Arg> and
+    (dynamic_shape<Arg> or square_matrix<Arg>), int> = 0>
 #endif
   inline auto
   determinant(Arg&& arg) noexcept
   {
-    return make_native_matrix(std::forward<Arg>(arg)).determinant();
+    return determinant(make_native_matrix(std::forward<Arg>(arg)));
   }
 
 

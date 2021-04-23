@@ -27,9 +27,9 @@ namespace OpenKalman
    * The matrix can be thought of as a transformation from X to Y, where the coefficients for each of X and Y are typed.
    * Example declarations:
    * - <code>Matrix<Coefficients<Axis, Axis, angle::Radians>, Coefficients<Axis, Axis>,
-   * native_matrix_t<native_matrix_t<double, 3, 2>> x;</code>
+   * eigen_matrix_t<double, 3, 2>> x;</code>
    * - <code>Matrix<double, Coefficients<Axis, Axis, angle::Radians>, Coefficients<Axis, Axis>,
-   * native_matrix_t<double, 3, 2>> x;</code>
+   * eigen_matrix_t<double, 3, 2>> x;</code>
    * \tparam RowCoefficients A set of \ref OpenKalman::coefficients "coefficients" (e.g., Axis, Spherical, etc.)
    * corresponding to the rows.
    * \tparam ColumnCoefficients Another set of \ref OpenKalman::coefficients "coefficients" corresponding
@@ -39,7 +39,8 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<coefficients RowCoefficients, coefficients ColumnCoefficients, typed_matrix_nestable NestedMatrix> requires
     (RowCoefficients::dimensions == MatrixTraits<NestedMatrix>::rows) and
-    (ColumnCoefficients::dimensions == MatrixTraits<NestedMatrix>::columns) and (not std::is_rvalue_reference_v<NestedMatrix>)
+    (ColumnCoefficients::dimensions == MatrixTraits<NestedMatrix>::columns) and
+    (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename RowCoefficients, typename ColumnCoefficients, typename NestedMatrix>
 #endif
@@ -51,7 +52,7 @@ namespace OpenKalman
    * \details Unlike OpenKalman::Matrix, the columns of a Mean are untyped. When a Mean is converted to an
    * OpenKalman::Matrix, the columns are assigned type Axis.
    * Example declaration:
-   * <code>Mean<Coefficients<Axis, Axis, angle::Radians>, 1, native_matrix_t<double, 3, 1>> x;</code>
+   * <code>Mean<Coefficients<Axis, Axis, angle::Radians>, 1, eigen_matrix_t<double, 3, 1>> x;</code>
    * This declares a 3-dimensional vector <var>x</var>, where the coefficients are, respectively, an Axis,
    * an Axis, and an angle::Radians, all of scalar type <code>double</code>. The underlying representation is an
    * Eigen3 column vector.
@@ -72,7 +73,7 @@ namespace OpenKalman
    * \brief Similar to a Mean, but the coefficients are transformed into Euclidean space, based on their type.
    * \details Means containing angles should be converted to EuclideanMean before taking an average or weighted average.
    * Example declaration:
-   * <code>EuclideanMean<Coefficients<Axis, Axis, angle::Radians>, 1, native_matrix_t<double, 4, 1>> x;</code>
+   * <code>EuclideanMean<Coefficients<Axis, Axis, angle::Radians>, 1, eigen_matrix_t<double, 4, 1>> x;</code>
    * This declares a 3-dimensional mean <var>x</var>, where the coefficients are, respectively, an Axis,
    * an Axis, and an angle::Radians, all of scalar type <code>double</code>. The underlying representation is a
    * four-dimensional vector in Euclidean space, with the last two of the dimensions representing the angle::Radians coefficient
@@ -171,7 +172,6 @@ namespace OpenKalman
 
   /**
    * \brief Specifies that T is a mean (i.e., is a specialization of the class Mean).
-   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T>
 #ifdef __cpp_concepts
@@ -196,7 +196,6 @@ namespace OpenKalman
 
   /**
    * \brief Specifies that T is a wrapped mean (i.e., its row coefficients have at least one type that requires wrapping).
-   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
 #ifdef __cpp_concepts
   template<typename T>
@@ -223,7 +222,6 @@ namespace OpenKalman
 
   /**
    * \brief Specifies that T is a Euclidean mean (i.e., is a specialization of the class EuclideanMean).
-   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T>
 #ifdef __cpp_concepts
@@ -249,7 +247,6 @@ namespace OpenKalman
 
   /**
    * \brief Specifies that T is a Euclidean mean that actually has coefficients that are transformed to Euclidean space.
-   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
 #ifdef __cpp_concepts
   template<typename T>
@@ -270,13 +267,12 @@ namespace OpenKalman
     struct is_matrix : std::false_type {};
 
     template<typename RowCoefficients, typename ColumnCoefficients, typename NestedMatrix>
-    struct is_matrix<Matrix<RowCoefficients, ColumnCoefficients, NestedMatrix>> : std::true_type {};
+    struct is_matrix<OpenKalman::Matrix<RowCoefficients, ColumnCoefficients, NestedMatrix>> : std::true_type {};
   }
 
 
   /**
    * \brief Specifies that T is a typed matrix (i.e., is a specialization of Matrix, Mean, or EuclideanMean).
-   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T>
 #ifdef __cpp_concepts
@@ -307,7 +303,6 @@ namespace OpenKalman
   /**
    * \brief Specifies that T has untyped (or Axis typed) column coefficients.
    * \details T must be either a native matrix or its columns must all have type Axis.
-   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
 #ifdef __cpp_concepts
   template<typename T>
@@ -334,7 +329,6 @@ namespace OpenKalman
   /**
    * \brief Specifies that T is a column vector (i.e., has one untyped or Axis-typed column).
    * \details If T is a typed_matrix, its column must be of type Axis.
-   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
 #ifdef __cpp_concepts
   template<typename T>
@@ -361,7 +355,6 @@ namespace OpenKalman
 
   /**
    * \brief T is a square root (Cholesky) covariance matrix (i.e., a specialization of SquareRootCovariance).
-   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T>
 #ifdef __cpp_concepts
@@ -387,7 +380,6 @@ namespace OpenKalman
 
   /**
    * \brief T is a specialization of either Covariance or SquareRootCovariance.
-   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T>
 #ifdef __cpp_concepts
@@ -413,7 +405,6 @@ namespace OpenKalman
 
   /**
    * \brief T is a Gaussian distribution.
-   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T>
 #ifdef __cpp_concepts
@@ -425,7 +416,6 @@ namespace OpenKalman
 
   /**
    * \brief T is a statistical distribution of any kind that is defined in OpenKalman.
-   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T>
 #ifdef __cpp_concepts

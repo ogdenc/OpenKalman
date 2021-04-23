@@ -1,12 +1,14 @@
 var namespace_open_kalman_1_1_eigen3 =
 [
     [ "internal", "namespace_open_kalman_1_1_eigen3_1_1internal.html", "namespace_open_kalman_1_1_eigen3_1_1internal" ],
+    [ "ConstantMatrix", "struct_open_kalman_1_1_eigen3_1_1_constant_matrix.html", "struct_open_kalman_1_1_eigen3_1_1_constant_matrix" ],
     [ "DiagonalMatrix", "struct_open_kalman_1_1_eigen3_1_1_diagonal_matrix.html", "struct_open_kalman_1_1_eigen3_1_1_diagonal_matrix" ],
     [ "FromEuclideanExpr", "struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html", "struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr" ],
     [ "SelfAdjointMatrix", "struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix.html", "struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix" ],
     [ "ToEuclideanExpr", "struct_open_kalman_1_1_eigen3_1_1_to_euclidean_expr.html", "struct_open_kalman_1_1_eigen3_1_1_to_euclidean_expr" ],
     [ "TriangularMatrix", "struct_open_kalman_1_1_eigen3_1_1_triangular_matrix.html", "struct_open_kalman_1_1_eigen3_1_1_triangular_matrix" ],
-    [ "ZeroMatrix", "struct_open_kalman_1_1_eigen3_1_1_zero_matrix.html", null ],
+    [ "ZeroMatrix", "struct_open_kalman_1_1_eigen3_1_1_zero_matrix.html", "struct_open_kalman_1_1_eigen3_1_1_zero_matrix" ],
+    [ "eigen_constant_expr", "namespace_open_kalman_1_1_eigen3.html#a1cc1cad9398ecaadd89edce5170b9c31", null ],
     [ "eigen_diagonal_expr", "namespace_open_kalman_1_1_eigen3.html#a8d408b48a797fea59c2b1e5ecd532920", null ],
     [ "eigen_matrix", "namespace_open_kalman_1_1_eigen3.html#a75cd699ad3fe06896706df1346cc4152", null ],
     [ "eigen_native", "namespace_open_kalman_1_1_eigen3.html#a4213585dbf9ef23d61030a68523a827b", null ],
@@ -18,6 +20,7 @@ var namespace_open_kalman_1_1_eigen3 =
     [ "lower_triangular_storage", "namespace_open_kalman_1_1_eigen3.html#a974808d28711fedbd160ad5c02bdfced", null ],
     [ "to_euclidean_expr", "namespace_open_kalman_1_1_eigen3.html#a1a369957b46435f66ac4cfd93eaa7f3e", null ],
     [ "upper_triangular_storage", "namespace_open_kalman_1_1_eigen3.html#a09c496030189ca9962086c11cc19ef41", null ],
+    [ "eigen_matrix_t", "namespace_open_kalman_1_1_eigen3.html#aa1c3c6ccd00dd35c5c4813836ca4ea67", null ],
     [ "IdentityMatrix", "namespace_open_kalman_1_1_eigen3.html#ab5caa435d3ad3fbf96cdf5025dbb1742", null ],
     [ "column", "namespace_open_kalman_1_1_eigen3.html#a7e6c3b8a617930c6f44f164c6069fa3f", null ],
     [ "column", "namespace_open_kalman_1_1_eigen3.html#a8dfa4d456e05849bb9ab3b0e56dfc65d", null ],
@@ -26,8 +29,8 @@ var namespace_open_kalman_1_1_eigen3 =
     [ "concatenate_vertical", "namespace_open_kalman_1_1_eigen3.html#a28af8b2669223699d2f4a19903cb2d48", null ],
     [ "get_element", "namespace_open_kalman_1_1_eigen3.html#a1af4344acb6f825cd4692282765fe1d5", null ],
     [ "get_element", "namespace_open_kalman_1_1_eigen3.html#a3586bb1bfaaeb0c2ca362c2b77a167f0", null ],
-    [ "get_element", "namespace_open_kalman_1_1_eigen3.html#a2e581a715b4bff7ac0a91dfcfe546caf", null ],
-    [ "get_element", "namespace_open_kalman_1_1_eigen3.html#a1517656da29a76c8f164b04e058ce012", null ],
+    [ "get_element", "namespace_open_kalman_1_1_eigen3.html#a88836f2b41f8af399d035eea4a6c83b9", null ],
+    [ "get_element", "namespace_open_kalman_1_1_eigen3.html#a1ff23ef43ab29e5e5da54f93ff3609a3", null ],
     [ "get_element", "namespace_open_kalman_1_1_eigen3.html#aa6477e1613fd22aae58dbfc57c117841", null ],
     [ "get_element", "namespace_open_kalman_1_1_eigen3.html#a9a3b22f8f4edac3d594f13fa11f83444", null ],
     [ "LQ_decomposition", "namespace_open_kalman_1_1_eigen3.html#a1e68e2f00653ec30dffdea1a77853f2f", null ],
@@ -50,8 +53,9 @@ var namespace_open_kalman_1_1_eigen3 =
     [ "make_square_root_covariance", "namespace_open_kalman_1_1_eigen3.html#a3c71ab9b79246e22a2834dce8c360c51", null ],
     [ "operator+", "namespace_open_kalman_1_1_eigen3.html#a22f50549734d3edab52a91b4c5dd2df2", null ],
     [ "operator-", "namespace_open_kalman_1_1_eigen3.html#aa9d03f3fece3212c171b640479b2f390", null ],
-    [ "QR_decomposition", "namespace_open_kalman_1_1_eigen3.html#a8a173007a7a7b04da8c85533ed38a210", null ],
+    [ "operator/", "namespace_open_kalman_1_1_eigen3.html#a2ba8de3cb0110c26284a05fec2886351", null ],
     [ "QR_decomposition", "namespace_open_kalman_1_1_eigen3.html#a5a30b32549d0a5f1e8138643ef13071b", null ],
+    [ "QR_decomposition", "namespace_open_kalman_1_1_eigen3.html#a8a173007a7a7b04da8c85533ed38a210", null ],
     [ "QR_decomposition", "namespace_open_kalman_1_1_eigen3.html#ad57174029ea3969f2e57da1c8cc5b3fc", null ],
     [ "QR_decomposition", "namespace_open_kalman_1_1_eigen3.html#a497d7ef2f9c7ff140038d1e101c11899", null ],
     [ "QR_decomposition", "namespace_open_kalman_1_1_eigen3.html#a012047294017da2ed474b117e95afec4", null ],
@@ -76,5 +80,6 @@ var namespace_open_kalman_1_1_eigen3 =
     [ "split_vertical", "namespace_open_kalman_1_1_eigen3.html#a81be6a4f7c1dd83cc9e7bed633b29433", null ],
     [ "to_euclidean", "namespace_open_kalman_1_1_eigen3.html#af5fa7ebc6d79d4db4418c65e9603b4cf", null ],
     [ "TriangularMatrix", "namespace_open_kalman_1_1_eigen3.html#a466f50444e32f4a9cb1c1afc9da259bd", null ],
-    [ "wrap_angles", "namespace_open_kalman_1_1_eigen3.html#a8d390585998024a682e322f235c0c708", null ]
+    [ "wrap_angles", "namespace_open_kalman_1_1_eigen3.html#a8d390585998024a682e322f235c0c708", null ],
+    [ "ZeroMatrix", "namespace_open_kalman_1_1_eigen3.html#af30b19b99175af13243295d308e93a97", null ]
 ];

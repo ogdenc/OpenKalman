@@ -27,9 +27,15 @@ namespace OpenKalman::Eigen3
     static_assert(eigen_matrix<NestedMatrix>);
 #endif
 
+  private:
+
     using Base = OpenKalman::internal::MatrixBase<DiagonalMatrix, NestedMatrix>;
-    using Scalar = typename MatrixTraits<NestedMatrix>::Scalar;
+
     static constexpr auto dimensions = MatrixTraits<NestedMatrix>::rows;
+
+  public:
+
+    using typename Base::Scalar;
 
 
     /// Default constructor.
@@ -85,13 +91,13 @@ namespace OpenKalman::Eigen3
     /// Construct from an identity matrix.
 #ifdef __cpp_concepts
     template<identity_matrix Arg> requires (not eigen_diagonal_expr<Arg>) and (not one_by_one_matrix<Arg>) and
-      requires { std::is_constructible_v<Base, typename Eigen::Matrix<Scalar, dimensions, 1>::ConstantReturnType&&>; }
+      requires { std::is_constructible_v<Base, ConstantMatrix<Scalar, 1, dimensions, 1>&&>; }
 #else
     template<typename Arg, std::enable_if_t<identity_matrix<Arg> and
       (not eigen_diagonal_expr<Arg>) and (not one_by_one_matrix<Arg>) and
-      std::is_constructible_v<Base, typename Eigen::Matrix<Scalar, dimensions, 1>::ConstantReturnType&&>, int> = 0>
+      std::is_constructible_v<Base, ConstantMatrix<Scalar, 1, dimensions, 1>&&>, int> = 0>
 #endif
-    DiagonalMatrix(const Arg&) : Base {Eigen::Matrix<Scalar, dimensions, 1>::Constant(1)} {}
+    DiagonalMatrix(const Arg&) : Base {ConstantMatrix<Scalar, 1, dimensions, 1> {}} {}
 
 
     /// Construct from a compatible \ref diagonal_matrix, general case.
@@ -150,14 +156,14 @@ namespace OpenKalman::Eigen3
 #if defined (__cpp_concepts) && defined (__clang__) // Because of compiler issue in at least GCC version 10.1.0
     template<std::convertible_to<Scalar> ... Args> requires (sizeof...(Args) == dimensions * dimensions) and
       (dimensions > 1) and requires { std::is_constructible_v<Base, decltype(diagonal_of(
-        MatrixTraits<native_matrix_t<Scalar, dimensions, dimensions>>::make(
+        MatrixTraits<eigen_matrix_t<Scalar, dimensions, dimensions>>::make(
         static_cast<const Scalar>(std::declval<const Args>())...)))>; }
 #else
     template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, Scalar>...> and
         (sizeof...(Args) == dimensions * dimensions) and (dimensions > 1), int> = 0>
 #endif
     DiagonalMatrix(const Args ... args) : Base {diagonal_of(
-      MatrixTraits<native_matrix_t<Scalar, dimensions, dimensions>>::make(static_cast<const Scalar>(args)...))} {}
+      MatrixTraits<eigen_matrix_t<Scalar, dimensions, dimensions>>::make(static_cast<const Scalar>(args)...))} {}
 
 
     /// Copy assignment operator.
@@ -225,10 +231,7 @@ namespace OpenKalman::Eigen3
     {
       if constexpr (not identity_matrix<NestedMatrix>)
       {
-        if constexpr (one_by_one_matrix<Arg>)
-          this->nested_matrix() = Eigen::Matrix<Scalar, 1, 1>::Identity();
-        else
-          this->nested_matrix() = Eigen::Matrix<Scalar, dimensions, 1>::Constant(1);
+        this->nested_matrix() = ConstantMatrix<Scalar, 1, dimensions, 1> {};
       }
       return *this;
     }
@@ -370,9 +373,9 @@ namespace OpenKalman::Eigen3
   };
 
 
-  /////////////////////////////////////
+  // ------------------------------- //
   //        Deduction guides         //
-  /////////////////////////////////////
+  // ------------------------------- //
 
 #ifdef __cpp_concepts
   template<diagonal_matrix Arg> requires (not eigen_diagonal_expr<Arg>) and (not column_vector<Arg>)
@@ -523,9 +526,9 @@ namespace OpenKalman::Eigen3
 
   /// Convert to self_contained version
 #ifdef __cpp_concepts
-  template<typename...Ts, Eigen3::eigen_diagonal_expr Arg>
+  template<typename...Ts, eigen_diagonal_expr Arg>
 #else
-  template<typename...Ts, typename Arg, std::enable_if_t<Eigen3::eigen_diagonal_expr<Arg>, int> = 0>
+  template<typename...Ts, typename Arg, std::enable_if_t<eigen_diagonal_expr<Arg>, int> = 0>
 #endif
   inline decltype(auto)
   make_self_contained(Arg&& arg) noexcept
@@ -537,15 +540,40 @@ namespace OpenKalman::Eigen3
     }
     else
     {
-      return Eigen3::DiagonalMatrix(make_self_contained(nested_matrix(std::forward<Arg>(arg))));
+      return DiagonalMatrix(make_self_contained(nested_matrix(std::forward<Arg>(arg))));
     }
   }
 
 
 #ifdef __cpp_concepts
-  template<Eigen3::eigen_diagonal_expr Arg>
+  template<eigen_diagonal_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<Eigen3::eigen_diagonal_expr<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<eigen_diagonal_expr<Arg>, int> = 0>
+#endif
+  constexpr std::size_t row_count(Arg&& arg)
+  {
+    if constexpr (dynamic_rows<Arg>)
+      return row_count(nested_matrix(std::forward<Arg>(arg)));
+    else
+      return MatrixTraits<Arg>::rows;
+  }
+
+
+#ifdef __cpp_concepts
+  template<eigen_diagonal_expr Arg>
+#else
+  template<typename Arg, std::enable_if_t<eigen_diagonal_expr<Arg>, int> = 0>
+#endif
+  constexpr std::size_t column_count(Arg&& arg)
+  {
+    return row_count(std::forward<Arg>(arg));
+  }
+
+
+#ifdef __cpp_concepts
+  template<eigen_diagonal_expr Arg>
+#else
+  template<typename Arg, std::enable_if_t<eigen_diagonal_expr<Arg>, int> = 0>
 #endif
   inline decltype(auto)
   diagonal_of(Arg&& arg) noexcept
@@ -555,9 +583,9 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-  template<Eigen3::eigen_diagonal_expr Arg>
+  template<eigen_diagonal_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<Eigen3::eigen_diagonal_expr<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<eigen_diagonal_expr<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   transpose(Arg&& arg) noexcept
@@ -567,33 +595,46 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-  template<Eigen3::eigen_diagonal_expr Arg>
+  template<eigen_diagonal_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<Eigen3::eigen_diagonal_expr<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<eigen_diagonal_expr<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   adjoint(Arg&& arg) noexcept
   {
-    return Eigen3::DiagonalMatrix(nested_matrix(std::forward<Arg>(arg)).conjugate());
+    return DiagonalMatrix(nested_matrix(std::forward<Arg>(arg)).conjugate());
   }
 
 
 #ifdef __cpp_concepts
-  template<Eigen3::eigen_diagonal_expr Arg> requires square_matrix<Arg>
+  template<eigen_diagonal_expr Arg> requires dynamic_shape<Arg> or square_matrix<Arg>
 #else
-  template<typename Arg, std::enable_if_t<Eigen3::eigen_diagonal_expr<Arg> and square_matrix<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<
+    eigen_diagonal_expr<Arg> and (dynamic_shape<Arg> or square_matrix<Arg>), int> = 0>
 #endif
-  inline auto
+  constexpr auto
   determinant(Arg&& arg) noexcept
   {
-    return nested_matrix(std::forward<Arg>(arg)).prod();
+    if constexpr (eigen_constant_expr<nested_matrix_t<Arg>>)
+    {
+      return OpenKalman::internal::constexpr_pow(MatrixTraits<Arg>::constant, MatrixTraits<Arg>::rows);
+    }
+    else if constexpr (zero_matrix<nested_matrix_t<Arg>>)
+    {
+      return static_cast<typename MatrixTraits<Arg>::Scalar>(0);
+    }
+    else
+    {
+      static_assert(eigen_native<nested_matrix_t<Arg>>);
+      return nested_matrix(std::forward<Arg>(arg)).prod();
+    }
   }
 
 
 #ifdef __cpp_concepts
-  template<Eigen3::eigen_diagonal_expr Arg> requires square_matrix<Arg>
+  template<eigen_diagonal_expr Arg> requires square_matrix<Arg>
 #else
-  template<typename Arg, std::enable_if_t<Eigen3::eigen_diagonal_expr<Arg> and square_matrix<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<eigen_diagonal_expr<Arg> and square_matrix<Arg>, int> = 0>
 #endif
   inline auto
   trace(Arg&& arg) noexcept
@@ -603,11 +644,11 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-  template<Eigen3::eigen_diagonal_expr Arg, Eigen3::eigen_diagonal_expr U> requires
+  template<eigen_diagonal_expr Arg, eigen_diagonal_expr U> requires
     (not std::is_const_v<std::remove_reference_t<Arg>>) and (MatrixTraits<U>::rows == MatrixTraits<Arg>::rows)
 #else
   template<typename Arg, typename U, std::enable_if_t<
-    Eigen3::eigen_diagonal_expr<Arg> and Eigen3::eigen_diagonal_expr<U> and
+    eigen_diagonal_expr<Arg> and eigen_diagonal_expr<U> and
     (not std::is_const_v<std::remove_reference_t<Arg>>) and
     (MatrixTraits<U>::rows == MatrixTraits<Arg>::rows), int> = 0>
 #endif
@@ -621,80 +662,78 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-  template<Eigen3::eigen_diagonal_expr Arg, diagonal_matrix U> requires (not Eigen3::eigen_diagonal_expr<U>) and
+  template<eigen_diagonal_expr Arg, diagonal_matrix U> requires (not eigen_diagonal_expr<U>) and
     (MatrixTraits<U>::rows == MatrixTraits<Arg>::rows) and (not std::is_const_v<std::remove_reference_t<Arg>>)
 #else
-  template<typename Arg, typename U, std::enable_if_t<Eigen3::eigen_diagonal_expr<Arg> and diagonal_matrix<U> and
-    (not Eigen3::eigen_diagonal_expr<U>) and (MatrixTraits<U>::rows == MatrixTraits<Arg>::rows) and
+  template<typename Arg, typename U, std::enable_if_t<eigen_diagonal_expr<Arg> and diagonal_matrix<U> and
+    (not eigen_diagonal_expr<U>) and (MatrixTraits<U>::rows == MatrixTraits<Arg>::rows) and
     (not std::is_const_v<std::remove_reference_t<Arg>>), int> = 0>
 #endif
   inline Arg&
   rank_update(Arg& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
   {
-    auto sa = Eigen3::TriangularMatrix {make_native_matrix(arg)};
+    auto sa = TriangularMatrix {make_native_matrix(arg)};
     rank_update(sa, u, alpha);
-    arg = Eigen3::DiagonalMatrix {make_native_matrix(diagonal_of(nested_matrix(sa)))};
+    arg = DiagonalMatrix {make_native_matrix(diagonal_of(nested_matrix(sa)))};
     return arg;
   }
 
 
 #ifdef __cpp_concepts
-  template<Eigen3::eigen_diagonal_expr Arg, Eigen3::eigen_diagonal_expr U> requires
+  template<eigen_diagonal_expr Arg, eigen_diagonal_expr U> requires
     (MatrixTraits<U>::rows == MatrixTraits<Arg>::rows)
 #else
   template<typename Arg, typename U, std::enable_if_t<
-    Eigen3::eigen_diagonal_expr<Arg> and Eigen3::eigen_diagonal_expr<U> and
+    eigen_diagonal_expr<Arg> and eigen_diagonal_expr<U> and
       (MatrixTraits<U>::rows == MatrixTraits<Arg>::rows), int> = 0>
 #endif
   inline auto
   rank_update(const Arg& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
   {
     auto sa = (nested_matrix(arg).array().square() + alpha * nested_matrix(u).array().square()).sqrt().matrix();
-    return Eigen3::DiagonalMatrix {make_self_contained(std::move(sa))};
+    return DiagonalMatrix {make_self_contained(std::move(sa))};
   }
 
 
 #ifdef __cpp_concepts
-  template<Eigen3::eigen_diagonal_expr Arg, diagonal_matrix U> requires (not Eigen3::eigen_diagonal_expr<U>) and
+  template<eigen_diagonal_expr Arg, diagonal_matrix U> requires (not eigen_diagonal_expr<U>) and
     (MatrixTraits<U>::rows == MatrixTraits<Arg>::rows)
 #else
   template<typename Arg, typename U, std::enable_if_t<
-    Eigen3::eigen_diagonal_expr<Arg> and diagonal_matrix<U> and (not Eigen3::eigen_diagonal_expr<U>) and
+    eigen_diagonal_expr<Arg> and diagonal_matrix<U> and (not eigen_diagonal_expr<U>) and
       (MatrixTraits<U>::rows == MatrixTraits<Arg>::rows), int> = 0>
 #endif
   inline auto
   rank_update(const Arg& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
   {
-    Eigen3::TriangularMatrix sa {make_native_matrix(arg)};
+    TriangularMatrix sa {make_native_matrix(arg)};
     rank_update(sa, u, alpha);
-    using DiagT = Eigen3::TriangularMatrix<nested_matrix_t<decltype(sa)>, TriangleType::diagonal>;
+    using DiagT = TriangularMatrix<nested_matrix_t<decltype(sa)>, TriangleType::diagonal>;
     return DiagT {nested_matrix(std::move(sa))};
   }
 
 
 #ifdef __cpp_concepts
-  template<Eigen3::eigen_diagonal_expr Arg, typename U> requires (not diagonal_matrix<U>) and
+  template<eigen_diagonal_expr Arg, typename U> requires (not diagonal_matrix<U>) and
     (MatrixTraits<U>::rows == MatrixTraits<Arg>::rows)
 #else
-  template<typename Arg, typename U, std::enable_if_t<Eigen3::eigen_diagonal_expr<Arg> and not diagonal_matrix<U> and
+  template<typename Arg, typename U, std::enable_if_t<eigen_diagonal_expr<Arg> and not diagonal_matrix<U> and
     (MatrixTraits<U>::rows == MatrixTraits<Arg>::rows), int> = 0>
 #endif
   inline auto
   rank_update(const Arg& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
   {
-    Eigen3::TriangularMatrix sa {make_native_matrix(arg)};
+    TriangularMatrix sa {make_native_matrix(arg)};
     return rank_update(std::move(sa), u, alpha);
   }
 
 
   /// Solve the equation AX = B for X. A is a diagonal matrix.
 #ifdef __cpp_concepts
-  template<Eigen3::eigen_diagonal_expr A, Eigen3::eigen_matrix B> requires
-    (MatrixTraits<A>::rows == MatrixTraits<B>::rows)
+  template<eigen_diagonal_expr A, eigen_matrix B> requires (MatrixTraits<A>::rows == MatrixTraits<B>::rows)
 #else
-  template<typename A, typename B, std::enable_if_t<
-    Eigen3::eigen_diagonal_expr<A> and Eigen3::eigen_matrix<B> and
-      (MatrixTraits<A>::rows == MatrixTraits<B>::rows), int> = 0>
+  template<typename A, typename B, std::enable_if_t<eigen_diagonal_expr<A> and eigen_matrix<B> and
+    (MatrixTraits<A>::rows == MatrixTraits<B>::rows), int> = 0>
 #endif
   inline auto
   solve(const A& a, const B& b)
@@ -705,9 +744,9 @@ namespace OpenKalman::Eigen3
 
   /// Create a column vector from a diagnoal matrix. (Same as nested_matrix()).
 #ifdef __cpp_concepts
-  template<Eigen3::eigen_diagonal_expr Arg>
+  template<eigen_diagonal_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<Eigen3::eigen_diagonal_expr<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<eigen_diagonal_expr<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   reduce_columns(Arg&& arg) noexcept
@@ -718,9 +757,9 @@ namespace OpenKalman::Eigen3
 
   /// Perform an LQ decomposition. Since it is diagonal, it returns the matrix unchanged.
 #ifdef __cpp_concepts
-  template<Eigen3::eigen_diagonal_expr Arg>
+  template<eigen_diagonal_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<Eigen3::eigen_diagonal_expr<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<eigen_diagonal_expr<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   LQ_decomposition(Arg&& arg)
@@ -731,9 +770,9 @@ namespace OpenKalman::Eigen3
 
   /// Perform a QR decomposition. Since it is diagonal, it returns the matrix unchanged.
 #ifdef __cpp_concepts
-  template<Eigen3::eigen_diagonal_expr Arg>
+  template<eigen_diagonal_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<Eigen3::eigen_diagonal_expr<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<eigen_diagonal_expr<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   QR_decomposition(Arg&& arg)
@@ -744,10 +783,10 @@ namespace OpenKalman::Eigen3
 
   /// Concatenate diagonally.
 #ifdef __cpp_concepts
-  template<Eigen3::eigen_diagonal_expr V, Eigen3::eigen_diagonal_expr ... Vs>
+  template<eigen_diagonal_expr V, eigen_diagonal_expr ... Vs>
 #else
   template<typename V, typename ... Vs, std::enable_if_t<
-    (Eigen3::eigen_diagonal_expr<V> and ... and Eigen3::eigen_diagonal_expr<Vs>), int> = 0>
+    (eigen_diagonal_expr<V> and ... and eigen_diagonal_expr<Vs>), int> = 0>
 #endif
   constexpr decltype(auto)
   concatenate_diagonal(V&& v, Vs&& ... vs)
@@ -769,10 +808,10 @@ namespace OpenKalman::Eigen3
 
   /// Get element (i) of diagonal matrix arg.
 #ifdef __cpp_concepts
-  template<Eigen3::eigen_diagonal_expr Arg> requires (element_gettable<nested_matrix_t<Arg>, 1> or
+  template<eigen_diagonal_expr Arg> requires (element_gettable<nested_matrix_t<Arg>, 1> or
     element_gettable<nested_matrix_t<Arg>, 2>)
 #else
-  template<typename Arg, std::enable_if_t<Eigen3::eigen_diagonal_expr<Arg> and
+  template<typename Arg, std::enable_if_t<eigen_diagonal_expr<Arg> and
     (element_gettable<nested_matrix_t<Arg>, 1> or
     element_gettable<nested_matrix_t<Arg>, 2>), int> = 0>
 #endif
@@ -788,10 +827,10 @@ namespace OpenKalman::Eigen3
 
   /// Get element (i, j) of diagonal matrix arg.
 #ifdef __cpp_concepts
-  template<Eigen3::eigen_diagonal_expr Arg> requires (element_gettable<nested_matrix_t<Arg>, 1> or
+  template<eigen_diagonal_expr Arg> requires (element_gettable<nested_matrix_t<Arg>, 1> or
     element_gettable<nested_matrix_t<Arg>, 2>)
 #else
-  template<typename Arg, std::enable_if_t<Eigen3::eigen_diagonal_expr<Arg> and
+  template<typename Arg, std::enable_if_t<eigen_diagonal_expr<Arg> and
     (element_gettable<nested_matrix_t<Arg>, 1> or
     element_gettable<nested_matrix_t<Arg>, 2>), int> = 0>
 #endif
@@ -812,13 +851,13 @@ namespace OpenKalman::Eigen3
 
   /// Set element (i) of matrix arg to s.
 #ifdef __cpp_concepts
-  template<Eigen3::eigen_diagonal_expr Arg, typename Scalar> requires
+  template<eigen_diagonal_expr Arg, typename Scalar> requires
     (not std::is_const_v<std::remove_reference_t<Arg>>) and
     (element_settable<nested_matrix_t<Arg>, 1> or
       element_settable<nested_matrix_t<Arg>, 2>)
 #else
   template<typename Arg, typename Scalar, std::enable_if_t<
-    Eigen3::eigen_diagonal_expr<Arg> and not std::is_const_v<std::remove_reference_t<Arg>> and
+    eigen_diagonal_expr<Arg> and not std::is_const_v<std::remove_reference_t<Arg>> and
       (element_settable<nested_matrix_t<Arg>, 1> or
         element_settable<nested_matrix_t<Arg>, 2>), int> = 0>
 #endif
@@ -834,13 +873,13 @@ namespace OpenKalman::Eigen3
 
   /// Set element (i, j) of matrix arg to s.
 #ifdef __cpp_concepts
-  template<Eigen3::eigen_diagonal_expr Arg, typename Scalar> requires
+  template<eigen_diagonal_expr Arg, typename Scalar> requires
     (not std::is_const_v<std::remove_reference_t<Arg>>) and
     (element_settable<nested_matrix_t<Arg>, 1> or
       element_settable<nested_matrix_t<Arg>, 2>)
 #else
   template<typename Arg, typename Scalar, std::enable_if_t<
-    Eigen3::eigen_diagonal_expr<Arg> and not std::is_const_v<std::remove_reference_t<Arg>> and
+    eigen_diagonal_expr<Arg> and not std::is_const_v<std::remove_reference_t<Arg>> and
       (element_settable<nested_matrix_t<Arg>, 1> or
         element_settable<nested_matrix_t<Arg>, 2>), int> = 0>
 #endif
@@ -865,7 +904,7 @@ namespace OpenKalman::Eigen3
    **/
 #ifdef __cpp_concepts
   template<
-    Eigen3::eigen_diagonal_expr ReturnType,
+    eigen_diagonal_expr ReturnType,
     template<typename Scalar> typename distribution_type = std::normal_distribution,
     std::uniform_random_bit_generator random_number_engine = std::mt19937,
     typename...Params>
@@ -875,7 +914,7 @@ namespace OpenKalman::Eigen3
     template<typename Scalar> typename distribution_type = std::normal_distribution,
     typename random_number_engine = std::mt19937,
     typename...Params,
-    std::enable_if_t<Eigen3::eigen_diagonal_expr<ReturnType>, int> = 0>
+    std::enable_if_t<eigen_diagonal_expr<ReturnType>, int> = 0>
 #endif
   inline auto
   randomize(Params...params)
@@ -897,12 +936,12 @@ namespace OpenKalman::Eigen3
   ///////////////////////////////
 
 #ifdef __cpp_concepts
-  template<Eigen3::eigen_diagonal_expr Arg1, Eigen3::eigen_diagonal_expr Arg2> requires
+  template<eigen_diagonal_expr Arg1, eigen_diagonal_expr Arg2> requires
     (not zero_matrix<Arg1>) and (not zero_matrix<Arg2>) and (not identity_matrix<Arg1>) and
     (not identity_matrix<Arg2>) and (MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows)
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<
-    Eigen3::eigen_diagonal_expr<Arg1> and Eigen3::eigen_diagonal_expr<Arg2> and
+    eigen_diagonal_expr<Arg1> and eigen_diagonal_expr<Arg2> and
     (not zero_matrix<Arg1>) and (not zero_matrix<Arg2>) and (not identity_matrix<Arg1>) and
     (not identity_matrix<Arg2>) and (MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows), int> = 0>
 #endif
@@ -915,39 +954,45 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-  template<typename Arg1, typename Arg2> requires
-    ((Eigen3::eigen_diagonal_expr<Arg1> and identity_matrix<Arg2>) or
-      (identity_matrix<Arg1> and Eigen3::eigen_diagonal_expr<Arg2>)) and
+  template<eigen_diagonal_expr Arg1, identity_matrix Arg2> requires
     (MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows) and
     (MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns)
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<
-    ((Eigen3::eigen_diagonal_expr<Arg1> and identity_matrix<Arg2>) or
-      (identity_matrix<Arg1> and Eigen3::eigen_diagonal_expr<Arg2>)) and
+    (eigen_diagonal_expr<Arg1> and identity_matrix<Arg2>) and
     (MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows) and
     (MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns), int> = 0>
 #endif
-  inline auto operator+(Arg1&& arg1, Arg2&& arg2)
+  inline auto operator+(Arg1&& arg1, Arg2&&)
   {
-    if constexpr(Eigen3::eigen_diagonal_expr<Arg1>)
-    {
-      using B = nested_matrix_t<Arg1>;
-      auto ret = MatrixTraits<Arg1>::make(nested_matrix(std::forward<Arg1>(arg1)) + B::Constant(1));
-      return make_self_contained<Arg1, Arg2>(std::move(ret));
-    }
-    else
-    {
-      using B = nested_matrix_t<Arg2>;
-      auto ret = MatrixTraits<Arg2>::make(B::Constant(1) + nested_matrix(std::forward<Arg2>(arg2)));
-      return make_self_contained<Arg1, Arg2>(std::move(ret));
-    }
+    using Scalar = typename MatrixTraits<Arg1>::Scalar;
+    ConstantMatrix<Scalar, 1, MatrixTraits<Arg1>::rows, 1> c;
+    return make_self_contained<Arg1>(MatrixTraits<Arg1>::make(nested_matrix(std::forward<Arg1>(arg1)) + c));
+  }
+
+
+#ifdef __cpp_concepts
+  template<identity_matrix Arg1, eigen_diagonal_expr Arg2> requires
+    (MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows) and
+    (MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns)
+#else
+  template<typename Arg1, typename Arg2, std::enable_if_t<
+    (identity_matrix<Arg1> and eigen_diagonal_expr<Arg2>) and
+    (MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows) and
+    (MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns), int> = 0>
+#endif
+  inline auto operator+(Arg1&&, Arg2&& arg2)
+  {
+    using Scalar = typename MatrixTraits<Arg2>::Scalar;
+    ConstantMatrix<Scalar, 1, MatrixTraits<Arg2>::rows, 1> c;
+    return make_self_contained<Arg2>(MatrixTraits<Arg2>::make(c + nested_matrix(std::forward<Arg2>(arg2))));
   }
 
 
 #ifdef __cpp_concepts
   template<typename Arg1, typename Arg2> requires
-    ((Eigen3::eigen_diagonal_expr<Arg1> and zero_matrix<Arg2>) or
-      (zero_matrix<Arg1> and Eigen3::eigen_diagonal_expr<Arg2>)) and
+    ((eigen_diagonal_expr<Arg1> and zero_matrix<Arg2>) or
+      (zero_matrix<Arg1> and eigen_diagonal_expr<Arg2>)) and
     (MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows) and
     (MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns)
 #else
@@ -959,7 +1004,7 @@ namespace OpenKalman::Eigen3
 #endif
   constexpr decltype(auto) operator+(Arg1&& arg1, Arg2&& arg2)
   {
-    if constexpr(Eigen3::eigen_diagonal_expr<Arg1>)
+    if constexpr(eigen_diagonal_expr<Arg1>)
     {
       return std::forward<Arg1>(arg1);
     }
@@ -973,12 +1018,12 @@ namespace OpenKalman::Eigen3
   ////
 
 #ifdef __cpp_concepts
-  template<Eigen3::eigen_diagonal_expr Arg1, Eigen3::eigen_diagonal_expr Arg2> requires
+  template<eigen_diagonal_expr Arg1, eigen_diagonal_expr Arg2> requires
     (not zero_matrix<Arg1>) and (not zero_matrix<Arg2>) and (not identity_matrix<Arg1>) and
     (not identity_matrix<Arg2>) and (MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows)
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<
-    Eigen3::eigen_diagonal_expr<Arg1> and Eigen3::eigen_diagonal_expr<Arg2> and
+    eigen_diagonal_expr<Arg1> and eigen_diagonal_expr<Arg2> and
       (not zero_matrix<Arg1>) and (not zero_matrix<Arg2>) and (not identity_matrix<Arg1>) and
       (not identity_matrix<Arg2>) and (MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows), int> = 0>
 #endif
@@ -991,45 +1036,51 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-  template<typename Arg1, typename Arg2> requires
-    ((Eigen3::eigen_diagonal_expr<Arg1> and identity_matrix<Arg2>) or
-      (identity_matrix<Arg1> and Eigen3::eigen_diagonal_expr<Arg2>)) and
+  template<eigen_diagonal_expr Arg1, identity_matrix Arg2> requires
     (MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows) and
     (MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns)
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<
-    ((Eigen3::eigen_diagonal_expr<Arg1> and identity_matrix<Arg2>) or
-      (identity_matrix<Arg1> and Eigen3::eigen_diagonal_expr<Arg2>)) and
+    (eigen_diagonal_expr<Arg1> and identity_matrix<Arg2>) and
     (MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows) and
     (MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns), int> = 0>
 #endif
-  inline auto operator-(Arg1&& arg1, Arg2&& arg2)
+  inline auto operator-(Arg1&& arg1, Arg2&&)
   {
-    if constexpr(Eigen3::eigen_diagonal_expr<Arg1>)
-    {
-      using B = nested_matrix_t<Arg1>;
-      auto ret = MatrixTraits<Arg1>::make(std::forward<Arg1>(arg1).nested_matrix() - B::Constant(1));
-      return make_self_contained<Arg1, Arg2>(std::move(ret));
-    }
-    else
-    {
-      using B = nested_matrix_t<Arg2>;
-      auto ret = MatrixTraits<Arg2>::make(B::Constant(1) - std::forward<Arg2>(arg2).nested_matrix());
-      return make_self_contained<Arg1, Arg2>(std::move(ret));
-    }
+    using Scalar = typename MatrixTraits<Arg1>::Scalar;
+    ConstantMatrix<Scalar, 1, MatrixTraits<Arg1>::rows, 1> c;
+    return make_self_contained<Arg1>(MatrixTraits<Arg1>::make(std::forward<Arg1>(arg1).nested_matrix() - c));
+  }
+
+
+#ifdef __cpp_concepts
+  template<identity_matrix Arg1, eigen_diagonal_expr Arg2> requires
+    (MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows) and
+    (MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns)
+#else
+  template<typename Arg1, typename Arg2, std::enable_if_t<
+    (identity_matrix<Arg1> and eigen_diagonal_expr<Arg2>) and
+    (MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows) and
+    (MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns), int> = 0>
+#endif
+  inline auto operator-(Arg1&&, Arg2&& arg2)
+  {
+    using Scalar = typename MatrixTraits<Arg2>::Scalar;
+    ConstantMatrix<Scalar, 1, MatrixTraits<Arg2>::rows, 1> c;
+    return make_self_contained<Arg2>(MatrixTraits<Arg2>::make(c - std::forward<Arg2>(arg2).nested_matrix()));
   }
 
 
 #ifdef __cpp_concepts
   template<typename Arg1, typename Arg2> requires
-    ((Eigen3::eigen_diagonal_expr<Arg1> and zero_matrix<Arg2>) or
-      (zero_matrix<Arg1> and Eigen3::eigen_diagonal_expr<Arg2>)) and
+    ((eigen_diagonal_expr<Arg1> and zero_matrix<Arg2>) or
+      (zero_matrix<Arg1> and eigen_diagonal_expr<Arg2>)) and
     (MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows) and
     (MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns)
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<
-    ((Eigen3::eigen_diagonal_expr<Arg1> and zero_matrix<Arg2>) or
-      (zero_matrix<Arg1> and Eigen3::eigen_diagonal_expr<Arg2>)) and
+    ((eigen_diagonal_expr<Arg1> and zero_matrix<Arg2>) or
+      (zero_matrix<Arg1> and eigen_diagonal_expr<Arg2>)) and
     (MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows) and
     (MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns), int> = 0>
 #endif
@@ -1049,10 +1100,10 @@ namespace OpenKalman::Eigen3
   ////
 
 #ifdef __cpp_concepts
-  template<Eigen3::eigen_diagonal_expr Arg, std::convertible_to<typename MatrixTraits<Arg>::Scalar> S>
+  template<eigen_diagonal_expr Arg, std::convertible_to<typename MatrixTraits<Arg>::Scalar> S>
 #else
   template<typename Arg, typename S, std::enable_if_t<
-    Eigen3::eigen_diagonal_expr<Arg> and std::is_convertible_v<S, typename MatrixTraits<Arg>::Scalar>, int> = 0>
+    eigen_diagonal_expr<Arg> and std::is_convertible_v<S, typename MatrixTraits<Arg>::Scalar>, int> = 0>
 #endif
   inline auto operator*(Arg&& arg, const S scale)
   {
@@ -1062,10 +1113,10 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-  template<Eigen3::eigen_diagonal_expr Arg, std::convertible_to<typename MatrixTraits<Arg>::Scalar> S>
+  template<eigen_diagonal_expr Arg, std::convertible_to<typename MatrixTraits<Arg>::Scalar> S>
 #else
   template<typename Arg, typename S, std::enable_if_t<
-    Eigen3::eigen_diagonal_expr<Arg> and std::is_convertible_v<S, typename MatrixTraits<Arg>::Scalar>, int> = 0>
+    eigen_diagonal_expr<Arg> and std::is_convertible_v<S, typename MatrixTraits<Arg>::Scalar>, int> = 0>
 #endif
   inline auto operator*(const S scale, Arg&& arg)
   {
@@ -1075,10 +1126,10 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-  template<Eigen3::eigen_diagonal_expr Arg, std::convertible_to<typename MatrixTraits<Arg>::Scalar> S>
+  template<eigen_diagonal_expr Arg, std::convertible_to<typename MatrixTraits<Arg>::Scalar> S>
 #else
   template<typename Arg, typename S, std::enable_if_t<
-    Eigen3::eigen_diagonal_expr<Arg> and std::is_convertible_v<S, typename MatrixTraits<Arg>::Scalar>, int> = 0>
+    eigen_diagonal_expr<Arg> and std::is_convertible_v<S, typename MatrixTraits<Arg>::Scalar>, int> = 0>
 #endif
   inline auto operator/(Arg&& arg, const S scale)
   {
@@ -1090,12 +1141,12 @@ namespace OpenKalman::Eigen3
   ////
 
 #ifdef __cpp_concepts
-  template<Eigen3::eigen_diagonal_expr Arg1, Eigen3::eigen_diagonal_expr Arg2> requires
+  template<eigen_diagonal_expr Arg1, eigen_diagonal_expr Arg2> requires
     (not zero_matrix<Arg1>) and (not zero_matrix<Arg2>) and (not identity_matrix<Arg1>) and
     (not identity_matrix<Arg2>) and (MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows)
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<
-    Eigen3::eigen_diagonal_expr<Arg1> and Eigen3::eigen_diagonal_expr<Arg2> and
+    eigen_diagonal_expr<Arg1> and eigen_diagonal_expr<Arg2> and
     (not zero_matrix<Arg1>) and (not zero_matrix<Arg2>) and (not identity_matrix<Arg1>) and
     (not identity_matrix<Arg2>) and (MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows), int> = 0>
 #endif
@@ -1109,20 +1160,20 @@ namespace OpenKalman::Eigen3
 
 #ifdef __cpp_concepts
   template<typename Arg1, typename Arg2> requires
-    ((Eigen3::eigen_diagonal_expr<Arg1> and identity_matrix<Arg2>) or
-      (identity_matrix<Arg1> and Eigen3::eigen_diagonal_expr<Arg2>)) and
+    ((eigen_diagonal_expr<Arg1> and identity_matrix<Arg2>) or
+      (identity_matrix<Arg1> and eigen_diagonal_expr<Arg2>)) and
     (MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows) and
     (MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns)
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<
-    ((Eigen3::eigen_diagonal_expr<Arg1> and identity_matrix<Arg2>) or
-      (identity_matrix<Arg1> and Eigen3::eigen_diagonal_expr<Arg2>)) and
+    ((eigen_diagonal_expr<Arg1> and identity_matrix<Arg2>) or
+      (identity_matrix<Arg1> and eigen_diagonal_expr<Arg2>)) and
     (MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows) and
     (MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns), int> = 0>
 #endif
   inline auto operator*(Arg1&& arg1, Arg2&& arg2)
   {
-    if constexpr(Eigen3::eigen_diagonal_expr<Arg1>)
+    if constexpr(eigen_diagonal_expr<Arg1>)
     {
       return std::forward<Arg1>(arg1);
     }
@@ -1135,13 +1186,13 @@ namespace OpenKalman::Eigen3
 
 #ifdef __cpp_concepts
   template<typename Arg1, typename Arg2> requires
-    ((Eigen3::eigen_diagonal_expr<Arg1> and zero_matrix<Arg2>) or
-      (zero_matrix<Arg1> and Eigen3::eigen_diagonal_expr<Arg2>)) and
+    ((eigen_diagonal_expr<Arg1> and zero_matrix<Arg2>) or
+      (zero_matrix<Arg1> and eigen_diagonal_expr<Arg2>)) and
     (MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::rows)
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<
-    ((Eigen3::eigen_diagonal_expr<Arg1> and zero_matrix<Arg2>) or
-      (zero_matrix<Arg1> and Eigen3::eigen_diagonal_expr<Arg2>)) and
+    ((eigen_diagonal_expr<Arg1> and zero_matrix<Arg2>) or
+      (zero_matrix<Arg1> and eigen_diagonal_expr<Arg2>)) and
     (MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::rows), int> = 0>
 #endif
   constexpr decltype(auto) operator*(Arg1&& arg1, Arg2&& arg2)
@@ -1161,20 +1212,20 @@ namespace OpenKalman::Eigen3
 
 #ifdef __cpp_concepts
   template<typename Arg1, typename Arg2> requires
-    ((Eigen3::eigen_diagonal_expr<Arg1> and Eigen3::eigen_matrix<Arg2>) or
-      (Eigen3::eigen_matrix<Arg1> and Eigen3::eigen_diagonal_expr<Arg2>)) and
+    ((eigen_diagonal_expr<Arg1> and eigen_matrix<Arg2>) or
+      (eigen_matrix<Arg1> and eigen_diagonal_expr<Arg2>)) and
     (not identity_matrix<Arg1>) and (not identity_matrix<Arg2>) and (not zero_matrix<Arg1>) and
     (not zero_matrix<Arg2>) and (MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::rows)
 #else
   template<typename Arg1, typename Arg2,
-    std::enable_if_t<((Eigen3::eigen_diagonal_expr<Arg1> and Eigen3::eigen_matrix<Arg2>) or
-      (Eigen3::eigen_matrix<Arg1> and Eigen3::eigen_diagonal_expr<Arg2>)) and
+    std::enable_if_t<((eigen_diagonal_expr<Arg1> and eigen_matrix<Arg2>) or
+      (eigen_matrix<Arg1> and eigen_diagonal_expr<Arg2>)) and
       (not identity_matrix<Arg1>) and (not identity_matrix<Arg2>) and (not zero_matrix<Arg1>) and
       (not zero_matrix<Arg2>) and (MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::rows), int> = 0>
 #endif
   inline auto operator*(Arg1&& arg1, Arg2&& arg2)
   {
-    if constexpr(Eigen3::eigen_diagonal_expr<Arg1>)
+    if constexpr(eigen_diagonal_expr<Arg1>)
     {
       return make_self_contained<Arg1, Arg2>(std::forward<Arg1>(arg1).nested_matrix().asDiagonal() * std::forward<Arg2>(arg2));
     }
@@ -1186,9 +1237,9 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-  template<Eigen3::eigen_diagonal_expr Arg>
+  template<eigen_diagonal_expr Arg>
 #else
-  template<typename Arg, std::enable_if_t<Eigen3::eigen_diagonal_expr<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<eigen_diagonal_expr<Arg>, int> = 0>
 #endif
   inline auto operator-(Arg&& arg)
   {

@@ -240,7 +240,6 @@ namespace OpenKalman
 
   /**
    * \brief T is an acceptable nested matrix for a covariance (including square_root_covariance).
-   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T>
 #ifdef __cpp_concepts
@@ -271,7 +270,6 @@ namespace OpenKalman
 
   /**
    * \brief Specifies a type that is nestable in a general typed matrix (e.g., matrix, mean, or euclidean_mean)
-   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T>
 #ifdef __cpp_concepts
@@ -294,12 +292,13 @@ namespace OpenKalman
    * <tr class="heading"><td colspan="2"><h2 class="groupheader">Static Public Attributes</h2></td></tr>
    * <tr><td class="memItemLeft" align="right" valign="top">static constexpr std::size_t&nbsp;</td>
    * <td id="afwtraitsrows" class="memItemRight" valign="bottom"><b>rows</b></td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">The number of rows of the matrix.<br/></td></tr>
+   * <tr><td class="mdescLeft">&nbsp;</td>
+   * <td class="mdescRight">The number of rows of the matrix (or 0 if dynamic).<br/></td></tr>
    * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
    * <tr><td class="memItemLeft" align="right" valign="top">static constexpr std::size_t&nbsp;</td>
    * <td id="afwtraitscolumns" class="memItemRight" valign="bottom"><b>columns</b></td></tr>
    * <tr><td class="mdescLeft">&nbsp;</td>
-   * <td class="mdescRight">The number of columns in the matrix. <br /></td></tr>
+   * <td class="mdescRight">The number of columns in the matrix (or 0 if dynamic). <br /></td></tr>
    * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
    * </table>
    *
@@ -446,7 +445,7 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
   template<typename T> requires std::is_reference_v<T> or std::is_const_v<std::remove_reference_t<T>>
-  struct MatrixTraits<T> : public MatrixTraits<std::decay_t<T>> {};
+  struct MatrixTraits<T> : MatrixTraits<std::decay_t<T>> {};
 #else
   template<typename T>
   struct MatrixTraits<T&> : MatrixTraits<T> {};
@@ -569,40 +568,6 @@ namespace OpenKalman
   using nested_matrix_t = typename MatrixTraits<T>::NestedMatrix;
 
 
-  // ----------------- //
-  //  native_matrix_t  //
-  // ----------------- //
-
-  /**
-   * \brief An alias for a self-contained native matrix, based on and equivalent to parameter T.
-   * \tparam T The type from which the native matrix is derived.
-   * \tparam rows Number of rows in the native matrix (defaults to the number of rows in T).
-   * \tparam cols Number of columns in the native matrix (defaults to the number of columns in T).
-   * \tparam Scalar Scalar type of the matrix (defaults to the Scalar type of T).
-   */
-  template<typename T, std::size_t rows = MatrixTraits<T>::rows, std::size_t cols = MatrixTraits<T>::columns,
-    typename Scalar = typename MatrixTraits<T>::Scalar>
-  using native_matrix_t = typename MatrixTraits<T>::template NativeMatrixFrom<rows, cols, Scalar>;
-
-
-  /**
-   * \brief Make a self-contained, native matrix based on the shape of M from a list of coefficients in row-major order.
-   */
-#ifdef __cpp_concepts
-  template<typename M, std::convertible_to<typename MatrixTraits<M>::Scalar> ... Args> requires
-  (sizeof...(Args) == MatrixTraits<M>::rows * MatrixTraits<M>::columns)
-#else
-  template<typename M, typename ... Args, std::enable_if_t<
-    (std::is_convertible_v<Args, typename MatrixTraits<M>::Scalar> and ...) and
-    (sizeof...(Args) == MatrixTraits<M>::rows * MatrixTraits<M>::columns), int> = 0>
-#endif
-  inline auto
-  make_native_matrix(const Args ... args)
-  {
-    return MatrixTraits<native_matrix_t<M>>::make(static_cast<const typename MatrixTraits<M>::Scalar>(args)...);
-  }
-
-
   // -------------- //
   //  TriangleType  //
   // -------------- //
@@ -617,6 +582,84 @@ namespace OpenKalman
   };
 
 
+  // -------------- //
+  //  dynamic_rows  //
+  // -------------- //
+
+  namespace internal
+  {
+    /**
+     * \internal
+     * \brief Tests whether the number of row dimensions of T is defined at run time (as opposed to compile time).
+     */
+#ifdef __cpp_concepts
+    template<typename T>
+#else
+    template<typename T, typename = void>
+#endif
+    struct has_dynamic_rows : std::false_type {};
+  }
+
+
+  /**
+   * \brief Specifies that T has is a number of row dimensions that is defined at run time.
+   * \details The matrix library interface will specify this for native matrices and expressions.
+   */
+  template<typename T, typename...Ts>
+#ifdef __cpp_concepts
+  concept dynamic_rows = internal::has_dynamic_rows<std::decay_t<T>>::value;
+#else
+  constexpr bool dynamic_rows = internal::has_dynamic_rows<std::decay_t<T>>::value;
+#endif
+
+
+  // ----------------- //
+  //  dynamic_columns  //
+  // ----------------- //
+
+  namespace internal
+  {
+    /**
+     * \internal
+     * \brief Tests whether the number of column dimensions of T is defined at run time (as opposed to compile time).
+     */
+#ifdef __cpp_concepts
+    template<typename T>
+#else
+    template<typename T, typename = void>
+#endif
+    struct has_dynamic_columns : std::false_type {};
+  }
+
+
+  /**
+   * \brief Specifies that T has is a number of column dimensions that is defined at run time.
+   * \details The matrix library interface will specify this for native matrices and expressions.
+   */
+  template<typename T, typename...Ts>
+#ifdef __cpp_concepts
+  concept dynamic_columns = internal::has_dynamic_columns<std::decay_t<T>>::value;
+#else
+  constexpr bool dynamic_columns = internal::has_dynamic_columns<std::decay_t<T>>::value;
+#endif
+
+
+  // --------------- //
+  //  dynamic_shape  //
+  // --------------- //
+
+  /**
+   * \brief Specifies that T's row or column dimensions are defined at run time.
+   * \details The matrix library interface will specify this for native matrices and expressions.
+   */
+  template<typename T, typename...Ts>
+#ifdef __cpp_concepts
+  concept dynamic_shape = dynamic_rows<T> or dynamic_columns<T>;
+#else
+  constexpr bool dynamic_shape = dynamic_rows<T> or dynamic_columns<T>;
+#endif
+
+
   // ---------------- //
   //  self_contained  //
   // ---------------- //
@@ -625,7 +668,7 @@ namespace OpenKalman
   {
     /**
      * \internal
-     * \details Type trait testing whether T is self-contained (i.e., can be the return value of a function).
+     * \brief Type trait testing whether T is self-contained (i.e., can be the return value of a function).
      */
 #ifdef __cpp_concepts
     template<typename T>
@@ -642,13 +685,12 @@ namespace OpenKalman
    * An OpenKalman matrix type is self-contained if it is not an lvalue reference and its wrapped native matrix
    * is self-contained.
    * The matrix library interface will specify which native matrices and expressions are self-contained.
-   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T, typename...Ts>
 #ifdef __cpp_concepts
   concept self_contained =
 #else
-    constexpr bool self_contained =
+  constexpr bool self_contained =
 #endif
     internal::is_self_contained<std::decay_t<T>>::value and (not std::is_lvalue_reference_v<T>);
 
@@ -674,13 +716,66 @@ namespace OpenKalman
 
   /**
    * \brief Specifies that a type is a zero matrix.
-   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T>
 #ifdef __cpp_concepts
   concept zero_matrix = internal::is_zero_matrix<std::decay_t<T>>::value;
 #else
   inline constexpr bool zero_matrix = internal::is_zero_matrix<std::decay_t<T>>::value;
+#endif
+
+
+  // --------------- //
+  //  square_matrix  //
+  // --------------- //
+
+  namespace internal
+  {
+#ifdef __cpp_concepts
+    template<typename T>
+#else
+    template<typename T, typename = void>
+#endif
+    struct is_square_matrix : std::false_type {};
+  }
+
+  /**
+   * \brief Specifies that a matrix is square (i.e., has the same number and type of rows and column).
+   * \details If T is a \ref typed_matrix, the row coefficients must also be \ref equivalent_to the column coefficients.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept square_matrix = internal::is_square_matrix<T>::value;
+#else
+  inline constexpr bool square_matrix = internal::is_square_matrix<T>::value;
+#endif
+
+
+  // ------------------- //
+  //  one_by_one_matrix  //
+  // ------------------- //
+
+#ifndef __cpp_concepts
+  namespace detail
+  {
+    template<typename T, typename = void>
+    struct is_1by1 : std::false_type {};
+
+    template<typename T>
+    struct is_1by1<T, std::enable_if_t<(MatrixTraits<T>::rows == 1) and (MatrixTraits<T>::columns == 1)>>
+      : std::true_type {};
+  }
+#endif
+
+
+  /**
+   * \brief Specifies that a type is a one-by-one matrix (i.e., one row and one column).
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept one_by_one_matrix = (MatrixTraits<T>::rows == 1) and (MatrixTraits<T>::columns == 1);
+#else
+  inline constexpr bool one_by_one_matrix = detail::is_1by1<T>::value;
 #endif
 
 
@@ -704,69 +799,12 @@ namespace OpenKalman
 
   /**
    * \brief Specifies that a type is an identity matrix.
-   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T>
 #ifdef __cpp_concepts
   concept identity_matrix = internal::is_identity_matrix<std::decay_t<T>>::value;
 #else
   inline constexpr bool identity_matrix = internal::is_identity_matrix<std::decay_t<T>>::value;
-#endif
-
-
-  // ------------------- //
-  //  one_by_one_matrix  //
-  // ------------------- //
-
-#ifndef __cpp_concepts
-  namespace detail
-  {
-    template<typename T, typename = void>
-    struct is_1by1 : std::false_type {};
-
-    template<typename T>
-    struct is_1by1<T, std::enable_if_t<(MatrixTraits<T>::rows == 1) and (MatrixTraits<T>::columns == 1)>>
-      : std::true_type {};
-  }
-#endif
-
-
-  /**
-   * \brief Specifies that a type is a one-by-one matrix (i.e., one row and one column).
-   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept one_by_one_matrix = (MatrixTraits<T>::rows == 1) and (MatrixTraits<T>::columns == 1);
-#else
-  inline constexpr bool one_by_one_matrix = detail::is_1by1<T>::value;
-#endif
-
-
-  // --------------- //
-  //  square_matrix  //
-  // --------------- //
-
-  namespace internal
-  {
-#ifdef __cpp_concepts
-    template<typename T>
-#else
-    template<typename T, typename = void>
-#endif
-    struct is_square_matrix : std::false_type {};
-  }
-
-  /**
-   * \brief Specifies that a matrix is square (i.e., has the same number and type of rows and column).
-   * \details If T is a \ref typed_matrix, the row coefficients must also be \ref equivalent_to the column coefficients.
-   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept square_matrix = internal::is_square_matrix<T>::value;
-#else
-  inline constexpr bool square_matrix = internal::is_square_matrix<T>::value;
 #endif
 
 
@@ -790,31 +828,17 @@ namespace OpenKalman
   }
 
 
-#ifndef __cpp_concepts
-  namespace detail
-  {
-    template<typename T, typename = void>
-    struct is_diag_matrix_impl : std::false_type {};
-
-    template<typename T>
-    struct is_diag_matrix_impl<T, std::enable_if_t<internal::is_diagonal_matrix<std::decay_t<T>>::value or
-      (zero_matrix<T> and square_matrix<T>) or identity_matrix<T> or one_by_one_matrix<T>>>
-      : std::true_type {};
-  }
-#endif
-
-
   /**
    * \brief Specifies that a type is a diagonal matrix.
-   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
 #ifdef __cpp_concepts
   template<typename T>
-  concept diagonal_matrix = internal::is_diagonal_matrix<std::decay_t<T>>::value or
-    (zero_matrix<T> and square_matrix<T>) or identity_matrix<T> or one_by_one_matrix<T>;
+  concept diagonal_matrix = internal::is_diagonal_matrix<std::decay_t<T>>::value or identity_matrix<T> or
+    (zero_matrix<T> and square_matrix<T>) or one_by_one_matrix<T>;
 #else
   template<typename T>
-  inline constexpr bool diagonal_matrix = detail::is_diag_matrix_impl<T>::value;
+  inline constexpr bool diagonal_matrix = internal::is_diagonal_matrix<std::decay_t<T>>::value or
+    identity_matrix<T> or (zero_matrix<T> and square_matrix<T>) or one_by_one_matrix<T>;
 #endif
 
 
@@ -839,7 +863,6 @@ namespace OpenKalman
 
   /**
    * \brief Specifies that a type is a self-adjoint matrix.
-   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
 #ifdef __cpp_concepts
   template<typename T>
@@ -886,7 +909,6 @@ namespace OpenKalman
 
   /**
    * \brief Specifies that a type is a lower-triangular matrix.
-   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
 #ifdef __cpp_concepts
   template<typename T>
@@ -932,7 +954,6 @@ namespace OpenKalman
 
   /**
    * \brief Specifies that a type is an upper-triangular matrix.
-   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
 #ifdef __cpp_concepts
   template<typename T>
@@ -949,7 +970,6 @@ namespace OpenKalman
 
   /**
    * \brief Specifies that a type is a triangular matrix (upper or lower).
-   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
 #ifdef __cpp_concepts
   template<typename T>
@@ -969,7 +989,6 @@ namespace OpenKalman
     /**
      * \internal
      * \brief Specifies that two types have the same triangular type (upper or lower).
-     * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
      */
     template<typename T, typename U>
 #ifdef __cpp_concepts
@@ -1006,7 +1025,6 @@ namespace OpenKalman
   /**
    * \brief Specifies that a type has a nested native matrix that is a Cholesky square root.
    * \details If this is true, then nested_matrix_t<T> is true.
-   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T>
 #ifdef __cpp_concepts
@@ -1039,7 +1057,6 @@ namespace OpenKalman
 
   /**
    * \brief Specifies that a type has elements that can be retrieved with N number of indices.
-   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T, std::size_t N>
 #ifdef __cpp_concepts
@@ -1071,7 +1088,6 @@ namespace OpenKalman
 
   /**
    * \brief Specifies that a type has elements that can be set with N number of indices.
-   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T, std::size_t N>
 #ifdef __cpp_concepts
@@ -1117,7 +1133,6 @@ namespace OpenKalman
    * Examples of such incompatibility are if T is constant or has a nested constant type, if T and U have a
    * different shape or scalar type, or if T and U differ as to being self-adjoint, triangular, diagonal,
    * zero, or identity. Even if this concept is true, a compile-time error is still possible.
-   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T, typename U>
 #ifdef __cpp_concepts

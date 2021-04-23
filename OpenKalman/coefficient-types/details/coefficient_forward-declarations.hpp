@@ -37,7 +37,7 @@ namespace OpenKalman
    * Spherical is dimensions 3 and corresponds to three coefficients.
    * Example: <code>Coefficients&lt;Axis, angle::Radians&gt;</code>
    * \sa Specializations: Coefficients<>, \ref CoefficientsCCs "Coefficients<C, Cs...>"
-   * \tparam Cs Any types within the concept coefficients (internal bool variable coefficients in c++17).
+   * \tparam Cs Any types within the concept coefficients.
    */
 #ifdef __cpp_concepts
   template<coefficients...Cs>

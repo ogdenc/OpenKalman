@@ -24,8 +24,9 @@
 #include <numbers>
 #endif
 
-// These are re-creations of the c++20 standard constant, in case they are not defined.
 #ifndef __cpp_lib_math_constants
+
+// These are re-creations of some of the c++20 standard constants, if they are not already defined.
 namespace std::numbers
 {
   template<typename T>
@@ -43,6 +44,7 @@ namespace std::numbers
 
   inline constexpr double sqrt2 = sqrt2_v<double>;
 }
+
 #endif
 
 
@@ -130,18 +132,6 @@ namespace OpenKalman::internal
   }
 
 
-  namespace detail
-  {
-    template<typename T>
-    constexpr T sqrt_impl(T x, T lo, T hi)
-    {
-      if (lo == hi) return lo;
-      const T mid = (lo + hi + 1) / 2;
-      if (x / mid < mid) return sqrt_impl<T>(x, lo, mid - 1);
-      else return sqrt_impl(x, mid, hi);
-    }
-  }
-
   /**
    * \internal
    * \brief A constexpr square root function.
@@ -152,7 +142,39 @@ namespace OpenKalman::internal
   template<typename Scalar>
   constexpr Scalar constexpr_sqrt(Scalar x)
   {
-    return detail::sqrt_impl<Scalar>(x, 0, x / 2 + 1);
+    if constexpr(std::is_integral_v<Scalar>)
+    {
+      Scalar lo = 0;
+      Scalar hi = x / 2 + 1;
+      while (lo != hi)
+      {
+        const Scalar mid = (lo + hi + 1) / 2;
+        if (x / mid < mid) hi = mid - 1;
+        else lo = mid;
+      }
+      return lo;
+    }
+    else
+    {
+      Scalar cur = 0.5 * x;
+      Scalar old = 0.0;
+      while (cur != old)
+      {
+        old = cur;
+        cur = 0.5 * (old + x / old);
+      }
+      return cur;
+    }
+  }
+
+
+  /**
+   * Compile time power.
+   */
+  template<typename Scalar>
+  constexpr Scalar constexpr_pow(Scalar a, std::size_t n) {
+    constexpr auto b = constexpr_pow(a, n / 2);
+    return n == 0 ? 1 : b * b * (n % 2 == 0 ?  1 : a);
   }
 
 

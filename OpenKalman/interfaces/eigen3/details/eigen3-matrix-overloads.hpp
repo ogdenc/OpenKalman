@@ -90,17 +90,20 @@ namespace OpenKalman::Eigen3
   constexpr decltype(auto)
   make_native_matrix(Arg&& arg) noexcept
   {
-    if constexpr (eigen_native<Arg> and self_contained<Arg>)
+    using Nat = typename MatrixTraits<Arg>::template NativeMatrixFrom<>;
+    if constexpr (std::is_same_v<std::decay_t<Arg>, Nat>)
     {
       return std::forward<Arg>(arg);
     }
+    else if constexpr (dynamic_shape<Arg>)
+    {
+      Nat ret {row_count(arg), column_count(arg)};
+      ret = std::forward<Arg>(arg);
+      return ret;
+    }
     else
     {
-      using S = typename MatrixTraits<Arg>::Scalar;
-      constexpr Eigen::Index rows = MatrixTraits<Arg>::rows;
-      constexpr Eigen::Index cols = MatrixTraits<Arg>::columns;
-      Eigen::Matrix<S, rows, cols> ret {std::forward<Arg>(arg)};
-      return ret;
+      return Nat {std::forward<Arg>(arg)};
     }
   }
 
@@ -122,6 +125,34 @@ namespace OpenKalman::Eigen3
     {
       return make_native_matrix(std::forward<Arg>(arg));
     }
+  }
+
+
+#ifdef __cpp_concepts
+  template<eigen_native Arg>
+#else
+  template<typename Arg, std::enable_if_t<eigen_native<Arg>, int> = 0>
+#endif
+  constexpr std::size_t row_count(Arg&& arg)
+  {
+    if constexpr (dynamic_rows<Arg>)
+      return arg.rows();
+    else
+      return MatrixTraits<Arg>::rows;
+  }
+
+
+#ifdef __cpp_concepts
+  template<eigen_native Arg>
+#else
+  template<typename Arg, std::enable_if_t<eigen_native<Arg>, int> = 0>
+#endif
+  constexpr std::size_t column_count(Arg&& arg)
+  {
+    if constexpr (dynamic_columns<Arg>)
+      return arg.cols();
+    else
+      return MatrixTraits<Arg>::columns;
   }
 
 
@@ -204,9 +235,10 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-  template<eigen_native Arg> requires square_matrix<Arg>
+  template<eigen_native Arg> requires dynamic_shape<Arg> or square_matrix<Arg>
 #else
-  template<typename Arg, std::enable_if_t<eigen_native<Arg> and square_matrix<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<eigen_native<Arg> and
+    (dynamic_shape<Arg> or square_matrix<Arg>), int> = 0>
 #endif
   constexpr decltype(auto)
   diagonal_of(Arg&& arg) noexcept
@@ -217,9 +249,18 @@ namespace OpenKalman::Eigen3
     }
     else if constexpr (identity_matrix<Arg>)
     {
-      using S = typename MatrixTraits<Arg>::Scalar;
-      constexpr std::size_t dim = MatrixTraits<Arg>::rows;
-      return Eigen::Matrix<S, dim, 1>::Constant(1);
+      using Scalar = typename MatrixTraits<Arg>::Scalar;
+      if constexpr (dynamic_rows<Arg>)
+      {
+        using Mat = Eigen::Matrix<Scalar, Eigen::internal::traits<std::decay_t<Arg>>::RowsAtCompileTime, 1>;
+        assert(row_count(arg) == column_count(arg));
+        return Mat::Constant(row_count(arg), 1, 1);
+      }
+      else
+      {
+        constexpr std::size_t dim = MatrixTraits<Arg>::rows;
+        return ConstantMatrix<Scalar, 1, dim, 1> {};
+      }
     }
     else
     {
@@ -425,7 +466,8 @@ namespace OpenKalman::Eigen3
       eigen_diagonal_expr<V> or from_euclidean_expr<V>) and ... and
     (eigen_matrix<Vs> or eigen_self_adjoint_expr<Vs> or eigen_triangular_expr<Vs> or
       eigen_diagonal_expr<Vs> or from_euclidean_expr<Vs>)) and
-    (not (from_euclidean_expr<V> and ... and from_euclidean_expr<Vs>))
+    (not (from_euclidean_expr<V> and ... and from_euclidean_expr<Vs>)) and
+    ((MatrixTraits<V>::columns == MatrixTraits<Vs>::columns) and ...)
 #ifndef __cpp_concepts
     , int> = 0>
 #endif
@@ -436,7 +478,6 @@ namespace OpenKalman::Eigen3
     {
       constexpr auto rows = (MatrixTraits<V>::rows + ... + MatrixTraits<Vs>::rows);
       constexpr auto cols = MatrixTraits<V>::columns;
-      static_assert(((cols == MatrixTraits<Vs>::columns) and ...));
       Eigen::Matrix<typename MatrixTraits<V>::Scalar, rows, cols> m;
       ((m << std::forward<V>(v)), ..., std::forward<Vs>(vs));
       return m;
@@ -458,7 +499,8 @@ namespace OpenKalman::Eigen3
       eigen_diagonal_expr<V> or from_euclidean_expr<V>) and ... and
     (eigen_matrix<Vs> or eigen_self_adjoint_expr<Vs> or eigen_triangular_expr<Vs> or
       eigen_diagonal_expr<Vs> or from_euclidean_expr<Vs>)) and
-    (not (from_euclidean_expr<V> and ... and from_euclidean_expr<Vs>))
+    (not (from_euclidean_expr<V> and ... and from_euclidean_expr<Vs>)) and
+    ((MatrixTraits<V>::rows == MatrixTraits<Vs>::rows) and ...)
 #ifndef __cpp_concepts
       , int> = 0>
 #endif
@@ -468,7 +510,6 @@ namespace OpenKalman::Eigen3
     if constexpr (sizeof...(Vs) > 0)
     {
       constexpr auto rows = MatrixTraits<V>::rows;
-      static_assert(((rows == MatrixTraits<Vs>::rows) and ...));
       constexpr auto cols = (MatrixTraits<V>::columns + ... + MatrixTraits<Vs>::columns);
       Eigen::Matrix<typename MatrixTraits<V>::Scalar, rows, cols> m;
       ((m << std::forward<V>(v)), ..., std::forward<Vs>(vs));

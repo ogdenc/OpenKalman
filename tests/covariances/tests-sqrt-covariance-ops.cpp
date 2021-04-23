@@ -12,16 +12,16 @@
 
 using namespace OpenKalman;
 
-using M2 = native_matrix_t<double, 2, 2>;
+using M2 = eigen_matrix_t<double, 2, 2>;
 using C = Coefficients<angle::Radians, Axis>;
 using Mat2 = Matrix<C, C, M2>;
-using Mat2col = Matrix<C, Axis, native_matrix_t<double, 2, 1>>;
+using Mat2col = Matrix<C, Axis, eigen_matrix_t<double, 2, 1>>;
 using SA2l = SelfAdjointMatrix<M2, TriangleType::lower>;
 using SA2u = SelfAdjointMatrix<M2, TriangleType::upper>;
 using T2l = TriangularMatrix<M2, TriangleType::lower>;
 using T2u = TriangularMatrix<M2, TriangleType::upper>;
-using D2 = DiagonalMatrix<native_matrix_t<double, 2, 1>>;
-using I2 = IdentityMatrix<native_matrix_t<double, 2, 2>>;
+using D2 = DiagonalMatrix<eigen_matrix_t<double, 2, 1>>;
+using I2 = IdentityMatrix<eigen_matrix_t<double, 2, 2>>;
 using Z2 = ZeroMatrix<double, 2, 2>;
 using CovSA2l = Covariance<C, SA2l>;
 using CovSA2u = Covariance<C, SA2u>;
@@ -789,7 +789,7 @@ TEST_F(covariance_tests, SquareRootCovariance_scale)
   static_assert(diagonal_matrix<decltype(inverse_scale(SqCovD2 {1, 2}, 2).get_triangular_nested_matrix())>);
 
   // Rank-deficient case
-  using M3 = native_matrix_t<double, 3, 3>;
+  using M3 = eigen_matrix_t<double, 3, 3>;
   using Mat3 = Matrix<Coefficients<angle::Radians, Axis, angle::Radians>, Coefficients<angle::Radians, Axis, angle::Radians>, M3>;
   EXPECT_TRUE(is_near(square(scale(SqCovSA2l {2, 0, 1, 2}, a1)), Mat3 {32, 72, 112, 72, 164, 256, 112, 256, 400}));
   EXPECT_TRUE(is_near(square(scale(SqCovSA2u {2, 1, 0, 2}, a1)), Mat3 {32, 72, 112, 72, 164, 256, 112, 256, 400}));
@@ -807,7 +807,7 @@ TEST_F(covariance_tests, SquareRootCovariance_scale)
   using SqCovSA3u = SquareRootCovariance<Coefficients<angle::Radians, Axis, angle::Radians>, SelfAdjointMatrix<M3, TriangleType::upper>>;
   using SqCovT3l = SquareRootCovariance<Coefficients<angle::Radians, Axis, angle::Radians>, TriangularMatrix<M3, TriangleType::lower>>;
   using SqCovT3u = SquareRootCovariance<Coefficients<angle::Radians, Axis, angle::Radians>, TriangularMatrix<M3, TriangleType::upper>>;
-  using SqCovD3 = SquareRootCovariance<Coefficients<angle::Radians, Axis, angle::Radians>, DiagonalMatrix<native_matrix_t<double, 3, 1>>>;
+  using SqCovD3 = SquareRootCovariance<Coefficients<angle::Radians, Axis, angle::Radians>, DiagonalMatrix<eigen_matrix_t<double, 3, 1>>>;
   Mat3 q1l {4, 0, 0,
             2, 5, 0,
             2, 3, 6};

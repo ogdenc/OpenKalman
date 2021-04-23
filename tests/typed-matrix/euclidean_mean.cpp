@@ -12,16 +12,16 @@
 
 using namespace OpenKalman;
 
-using M12 = native_matrix_t<double, 1, 2>;
-using M13 = native_matrix_t<double, 1, 3>;
-using M21 = native_matrix_t<double, 2, 1>;
-using M22 = native_matrix_t<double, 2, 2>;
-using M23 = native_matrix_t<double, 2, 3>;
-using M31 = native_matrix_t<double, 3, 1>;
-using M32 = native_matrix_t<double, 3, 2>;
-using M33 = native_matrix_t<double, 3, 3>;
-using M42 = native_matrix_t<double, 4, 2>;
-using M43 = native_matrix_t<double, 4, 3>;
+using M12 = eigen_matrix_t<double, 1, 2>;
+using M13 = eigen_matrix_t<double, 1, 3>;
+using M21 = eigen_matrix_t<double, 2, 1>;
+using M22 = eigen_matrix_t<double, 2, 2>;
+using M23 = eigen_matrix_t<double, 2, 3>;
+using M31 = eigen_matrix_t<double, 3, 1>;
+using M32 = eigen_matrix_t<double, 3, 2>;
+using M33 = eigen_matrix_t<double, 3, 3>;
+using M42 = eigen_matrix_t<double, 4, 2>;
+using M43 = eigen_matrix_t<double, 4, 3>;
 using I22 = IdentityMatrix<M22>;
 using Z22 = ZeroMatrix<double, 2, 2>;
 using C2 = Coefficients<Axis, angle::Radians>;
@@ -244,8 +244,8 @@ TEST_F(matrices, EuclideanMean_traits)
 
   EXPECT_TRUE(is_near(MatrixTraits<Mat23>::make(
     make_native_matrix<double, 3, 3>(1, 2, 3, 4, 5, 6, 7, 8, 9)).nested_matrix(), TM33 {1, 2, 3, 4, 5, 6, 7, 8, 9}));
-  EXPECT_TRUE(is_near(MatrixTraits<Mat23>::zero(), native_matrix_t<double, 3, 3>::Zero()));
-  EXPECT_TRUE(is_near(MatrixTraits<EuclideanMean<Axes<2>, I22>>::identity(), native_matrix_t<double, 2, 2>::Identity()));
+  EXPECT_TRUE(is_near(MatrixTraits<Mat23>::zero(), eigen_matrix_t<double, 3, 3>::Zero()));
+  EXPECT_TRUE(is_near(MatrixTraits<EuclideanMean<Axes<2>, I22>>::identity(), eigen_matrix_t<double, 2, 2>::Identity()));
 }
 
 
@@ -270,7 +270,7 @@ TEST_F(matrices, EuclideanMean_overloads)
 
   using A3 = Coefficients<angle::Radians, Axis, angle::Radians>;
   const auto m2 = make_euclidean_mean<A3>(std::sqrt(3) / 2, 0.5, 5, 0.5, -std::sqrt(3) / 2);
-  const auto x2 = (native_matrix_t<double, 3, 1> {} << pi / 6, 5, -pi / 3).finished();
+  const auto x2 = (eigen_matrix_t<double, 3, 1> {} << pi / 6, 5, -pi / 3).finished();
   EXPECT_TRUE(is_near(from_euclidean(m2).nested_matrix(), x2));
 
   EXPECT_TRUE(is_near(to_diagonal(EuclideanMean<Axes<2>, M21> {2, 3}).nested_matrix(), TM22 {2, 0, 0, 3}));

@@ -64,7 +64,6 @@ namespace OpenKalman::Eigen3
    * \brief Specifies a native Eigen3 matrix deriving from Eigen::MatrixBase.
    * \details This includes any original class in the Eigen library descending from Eigen::MatrixBase.
    * It does not include new classes added in OpenKalman, such as DiagonalMatrix or ZeroMatrix.
-   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T>
 #ifdef __cpp_concepts
@@ -72,13 +71,13 @@ namespace OpenKalman::Eigen3
     (not std::derived_from<std::decay_t<T>, internal::Eigen3Base<std::decay_t<T>>>);
 #else
   inline constexpr bool eigen_native = std::is_base_of_v<Eigen::MatrixBase<std::decay_t<T>>, std::decay_t<T>> and
-      (not std::is_base_of_v<internal::Eigen3Base<std::decay_t<T>>, std::decay_t<T>>);
+    (not std::is_base_of_v<internal::Eigen3Base<std::decay_t<T>>, std::decay_t<T>>);
 #endif
 
 
   /**
    * \brief An alias for the Eigen identity matrix.
-   * \details In Eigen, this does not need to be a \ref square_matrix.
+   * \note In Eigen, this does not need to be a \ref square_matrix.
    * \tparam NestedMatrix The nested matrix on which the identity is based.
    */
   template<typename NestedMatrix>
@@ -86,16 +85,55 @@ namespace OpenKalman::Eigen3
     Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<typename NestedMatrix::Scalar>, NestedMatrix>;
 
 
-  // ------------------------------------------- //
-  //  ZeroMatrix, eigen_zero_expr, eigen_matrix  //
-  // ------------------------------------------- //
+  // ------------------------------------- //
+  //  ConstantMatrix, eigen_constant_expr  //
+  // ------------------------------------- //
+
+  /**
+   * \brief A matrix in which all elements are a constant at compile time.
+   * \note This is necessary because Eigen3 types do not provide for compile-time constant matrices.
+   * \tparam Scalar The scalar type.
+   * \tparam rows The number of rows (0 if \ref dynamic_rows).
+   * \tparam columns The number of columns (0 if \ref dynamic_columns).
+   */
+  template<typename Scalar, auto constant, std::size_t rows, std::size_t columns = 1>
+#ifdef __cpp_concepts
+    requires (rows > 0) and (columns > 0) and std::is_arithmetic_v<Scalar>
+#endif
+  struct ConstantMatrix;
+
+
+  namespace detail
+  {
+    template<typename T>
+    struct is_eigen_constant_expr : std::false_type {};
+
+    template<typename Scalar, auto constant, std::size_t rows, std::size_t cols>
+    struct is_eigen_constant_expr<ConstantMatrix<Scalar, constant, rows, cols>> : std::true_type {};
+  }
+
+
+  /**
+   * \brief Specifies that T is a constant matrix based on the Eigen library (i.e., ConstantMatrix).
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept eigen_constant_expr = detail::is_eigen_constant_expr<std::decay_t<T>>::value;
+#else
+  inline constexpr bool eigen_constant_expr = detail::is_eigen_constant_expr<std::decay_t<T>>::value;
+#endif
+
+
+  // ----------------------------- //
+  //  ZeroMatrix, eigen_zero_expr  //
+  // ----------------------------- //
 
   /**
    * \brief A matrix in which all elements are automatically 0.
    * \note This is necessary because Eigen3 types do not distinguish between a zero matrix and a constant matrix.
    * \tparam Scalar The scalar type.
-   * \tparam rows The number of rows.
-   * \tparam columns The number of columns.
+   * \tparam rows The number of rows (0 if \ref dynamic_rows).
+   * \tparam columns The number of columns (0 if \ref dynamic_columns).
    */
   template<typename Scalar, std::size_t rows, std::size_t columns = 1>
   struct ZeroMatrix;
@@ -113,7 +151,6 @@ namespace OpenKalman::Eigen3
 
   /**
    * \brief Specifies that T is a zero matrix based on the Eigen library (i.e., ZeroMatrix).
-   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T>
 #ifdef __cpp_concepts
@@ -123,15 +160,18 @@ namespace OpenKalman::Eigen3
 #endif
 
 
+  // -------------- //
+  //  eigen_matrix  //
+  // -------------- //
+
   /**
    * \brief Specifies that T is a suitable nested matrix for OpenKalman's new Eigen matrix classes.
-   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept eigen_matrix = eigen_native<T> or eigen_zero_expr<T>;
+  concept eigen_matrix = eigen_native<T> or eigen_zero_expr<T> or eigen_constant_expr<T>;
 #else
-  inline constexpr bool eigen_matrix = eigen_native<T> or eigen_zero_expr<T>;
+  inline constexpr bool eigen_matrix = eigen_native<T> or eigen_zero_expr<T> or eigen_constant_expr<T>;
 #endif
 
 
@@ -167,7 +207,6 @@ namespace OpenKalman::Eigen3
 
   /**
    * \brief Specifies that T is a diagonal matrix based on the Eigen library (i.e., DiaginalMatrix).
-   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T>
 #ifdef __cpp_concepts
@@ -194,8 +233,8 @@ namespace OpenKalman::Eigen3
    * is self-adjoint. If the matrix is diagonal, 0 is automatically mapped to each matrix element outside the diagonal.
    */
 #ifdef __cpp_concepts
-  template<square_matrix NestedMatrix, TriangleType storage_triangle = TriangleType::lower> requires
-    eigen_matrix<NestedMatrix> or eigen_diagonal_expr<NestedMatrix>
+  template<typename NestedMatrix, TriangleType storage_triangle = TriangleType::lower> requires
+    (eigen_matrix<NestedMatrix> or eigen_diagonal_expr<NestedMatrix>)
 #else
   template<typename NestedMatrix, TriangleType storage_triangle = TriangleType::lower>
 #endif
@@ -214,7 +253,6 @@ namespace OpenKalman::Eigen3
 
   /**
    * \brief Specifies that T is a self-adjoint matrix based on the Eigen library (i.e., SelfAdjointMatrix).
-   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T>
 #ifdef __cpp_concepts
@@ -241,7 +279,6 @@ namespace OpenKalman::Eigen3
   /**
    * \brief Specifies that T is an \ref eigen_self_adjoint_expr that stores data in the upper-right triangle.
    * \details This \em includes matrices that store data only along the diagonal.
-   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T>
 #ifdef __cpp_concepts
@@ -254,7 +291,6 @@ namespace OpenKalman::Eigen3
   /**
    * \brief Specifies that T is an \ref eigen_self_adjoint_expr that stores data in the lower-left triangle.
    * \details This \em includes matrices that store data only along the diagonal.
-   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T>
 #ifdef __cpp_concepts
@@ -269,7 +305,6 @@ namespace OpenKalman::Eigen3
     /**
      * \internal
      * \brief Specifies that two self-adjoint expressions have the same storage triangle type (upper or lower).
-     * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
      */
     template<typename T, typename U>
 #ifdef __cpp_concepts
@@ -300,8 +335,8 @@ namespace OpenKalman::Eigen3
    * not within the selected triangle or diagonal, to ensure that the matrix is triangular.
    */
 #ifdef __cpp_concepts
-  template<square_matrix NestedMatrix, TriangleType triangle_type = TriangleType::lower> requires
-    eigen_matrix<NestedMatrix> or eigen_diagonal_expr<NestedMatrix>
+  template<typename NestedMatrix, TriangleType triangle_type = TriangleType::lower> requires
+    (eigen_matrix<NestedMatrix> or eigen_diagonal_expr<NestedMatrix>)
 #else
   template<typename NestedMatrix, TriangleType triangle_type = TriangleType::lower>
 #endif
@@ -320,7 +355,6 @@ namespace OpenKalman::Eigen3
 
   /**
    * \brief Specifies that T is a triangular matrix based on the Eigen library (i.e., TriangularMatrix).
-   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T>
 #ifdef __cpp_concepts
@@ -337,14 +371,14 @@ namespace OpenKalman::Eigen3
   /**
    * \brief An expression that transforms coefficients into Euclidean space for proper wrapping.
    * \details This is the counterpart expression to FromEuclideanExpr.
-   * \tparam Coeffs The coefficient types.
+   * \tparam Coefficients The coefficient types.
    * \tparam NestedMatrix The pre-transformed column vector, or set of column vectors in the form of a matrix.
    */
 #ifdef __cpp_concepts
-  template<coefficients Coeffs, eigen_matrix NestedMatrix = Eigen::Matrix<double, Coeffs::dimensions, 1>> requires
-    (MatrixTraits<NestedMatrix>::rows == Coeffs::dimensions)
+  template<coefficients Coefficients, typename NestedMatrix = Eigen::Matrix<double, Coefficients::dimensions, 1>>
+    requires eigen_matrix<NestedMatrix> or eigen_diagonal_expr<NestedMatrix>
 #else
-  template<typename Coeffs, typename NestedMatrix = Eigen::Matrix<double, Coeffs::dimensions, 1>>
+  template<typename Coefficients, typename NestedMatrix = Eigen::Matrix<double, Coefficients::dimensions, 1>>
 #endif
   struct ToEuclideanExpr;
 
@@ -361,7 +395,6 @@ namespace OpenKalman::Eigen3
 
   /**
    * \brief Specifies that T is an expression converting coefficients to Euclidean space (i.e., ToEuclideanExpr).
-   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T>
 #ifdef __cpp_concepts
@@ -378,15 +411,15 @@ namespace OpenKalman::Eigen3
   /**
    * \brief An expression that transforms angular or other modular coefficients back from Euclidean space.
    * \details This is the counterpart expression to ToEuclideanExpr.
-   * \tparam Coeffs The coefficient types.
+   * \tparam Coefficients The coefficient types.
    * \tparam NestedMatrix The pre-transformed column vector, or set of column vectors in the form of a matrix.
    */
 #ifdef __cpp_concepts
-  template<coefficients Coeffs, typename NestedMatrix = Eigen::Matrix<double, Coeffs::euclidean_dimensions, 1>> requires
-    (eigen_matrix<NestedMatrix> or to_euclidean_expr<NestedMatrix>) and
-    (MatrixTraits<NestedMatrix>::rows == Coeffs::euclidean_dimensions)
+  template<coefficients Coefficients,
+    typename NestedMatrix = Eigen::Matrix<double, Coefficients::euclidean_dimensions, 1>> requires
+     eigen_matrix<NestedMatrix> or to_euclidean_expr<NestedMatrix> or eigen_diagonal_expr<NestedMatrix>
 #else
-  template<typename Coeffs, typename NestedMatrix = Eigen::Matrix<double, Coeffs::euclidean_dimensions, 1>>
+  template<typename Coefficients, typename NestedMatrix = Eigen::Matrix<double, Coefficients::euclidean_dimensions, 1>>
 #endif
   struct FromEuclideanExpr;
 
@@ -403,7 +436,6 @@ namespace OpenKalman::Eigen3
 
   /**
    * \brief Specifies that T is an expression converting coefficients from Euclidean space (i.e., FromEuclideanExpr).
-   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T>
 #ifdef __cpp_concepts
@@ -415,7 +447,6 @@ namespace OpenKalman::Eigen3
 
   /**
    * \brief Specifies that T is either \ref to_euclidean_expr or \ref from_euclidean_expr.
-   * \note This is a concept when compiled with c++20, and a constexpr bool in c++17.
    */
   template<typename T>
 #ifdef __cpp_concepts
@@ -423,6 +454,21 @@ namespace OpenKalman::Eigen3
 #else
   inline constexpr bool euclidean_expr = from_euclidean_expr<T> or to_euclidean_expr<T>;
 #endif
+
+
+  // ---------------- //
+  //  eigen_matrix_t  //
+  // ---------------- //
+
+  /**
+   * \brief An alias for a self-contained, writable, native Eigen matrix.
+   * \tparam Scalar Scalar type of the matrix (defaults to the Scalar type of T).
+   * \tparam rows Number of rows in the native matrix (0 if not fixed at compile time).
+   * \tparam cols Number of columns in the native matrix (0 if not fixed at compile time).
+   */
+  template<typename Scalar, std::size_t rows, std::size_t columns = 1>
+  using eigen_matrix_t = Eigen::Matrix<Scalar, rows == 0 ? Eigen::Dynamic : (Eigen::Index) rows,
+    columns == 0 ? Eigen::Dynamic : (Eigen::Index) columns>;
 
 
 } // namespace OpenKalman::Eigen3

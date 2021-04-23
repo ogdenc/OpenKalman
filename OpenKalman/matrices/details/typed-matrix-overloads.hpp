@@ -60,6 +60,34 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
+  template<typed_matrix Arg>
+#else
+  template<typename Arg, std::enable_if_t<typed_matrix<Arg>, int> = 0>
+#endif
+  constexpr std::size_t row_count(Arg&& arg)
+  {
+    if constexpr (dynamic_rows<Arg>)
+      return row_count(nested_matrix(std::forward<Arg>(arg)));
+    else
+      return MatrixTraits<Arg>::rows;
+  }
+
+
+#ifdef __cpp_concepts
+  template<typed_matrix Arg>
+#else
+  template<typename Arg, std::enable_if_t<typed_matrix<Arg>, int> = 0>
+#endif
+  constexpr std::size_t column_count(Arg&& arg)
+  {
+    if constexpr (dynamic_columns<Arg>)
+      return column_count(nested_matrix(std::forward<Arg>(arg)));
+    else
+      return MatrixTraits<Arg>::columns;
+  }
+
+
+#ifdef __cpp_concepts
   template<typed_matrix Arg> requires untyped_columns<Arg>
 #else
   template<typename Arg, std::enable_if_t<typed_matrix<Arg> and untyped_columns<Arg>, int> = 0>
@@ -178,9 +206,9 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<typed_matrix Arg> requires square_matrix<Arg>
+  template<typed_matrix Arg> requires dynamic_shape<Arg> or square_matrix<Arg>
 #else
-  template<typename Arg, std::enable_if_t<typed_matrix<Arg> and square_matrix<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<typed_matrix<Arg> and (dynamic_shape<Arg> or square_matrix<Arg>), int> = 0>
 #endif
   inline auto
   determinant(Arg&& arg) noexcept

@@ -1,6 +1,5 @@
 var struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr =
 [
-    [ "Scalar", "struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#a6e06ffd63d8d4d64d192142642e90c65", null ],
     [ "FromEuclideanExpr", "struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#a5bebf335a08a31a900cfb2a69fcbef12", null ],
     [ "FromEuclideanExpr", "struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#aca287ff0ad797e182a4d77df3a698203", null ],
     [ "FromEuclideanExpr", "struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html#a9819dcf33ff9cd68807c0658f79e95b8", null ],

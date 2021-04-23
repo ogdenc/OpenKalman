@@ -6,5 +6,5 @@ var _mean_8hpp =
     [ "make_mean", "_mean_8hpp.html#a342c91bcf1ffd94505e1c4336f95d43e", null ],
     [ "make_mean", "_mean_8hpp.html#ad74553d9027b3d93c5020f13c0570a8b", null ],
     [ "make_mean", "_mean_8hpp.html#ab6cb56942738ea287feeb456de8a1ee8", null ],
-    [ "Mean", "_mean_8hpp.html#a4811b89985f03ba5fe3b5c6a54b9e49b", null ]
+    [ "Mean", "_mean_8hpp.html#a2e030ef4687cfaa89224d20c5a43ee9b", null ]
 ];

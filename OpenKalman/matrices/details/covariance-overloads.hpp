@@ -105,6 +105,31 @@ namespace OpenKalman
 #else
   template<typename Arg, std::enable_if_t<covariance<Arg>, int> = 0>
 #endif
+  constexpr std::size_t row_count(Arg&& arg)
+  {
+    if constexpr (dynamic_rows<Arg>)
+      return row_count(nested_matrix(std::forward<Arg>(arg)));
+    else
+      return MatrixTraits<Arg>::rows;
+  }
+
+
+#ifdef __cpp_concepts
+  template<covariance Arg>
+#else
+  template<typename Arg, std::enable_if_t<covariance<Arg>, int> = 0>
+#endif
+  constexpr std::size_t column_count(Arg&& arg)
+  {
+    return row_count(std::forward<Arg>(arg));
+  }
+
+
+#ifdef __cpp_concepts
+  template<covariance Arg>
+#else
+  template<typename Arg, std::enable_if_t<covariance<Arg>, int> = 0>
+#endif
   inline auto
   diagonal_of(Arg&& arg) noexcept
   {

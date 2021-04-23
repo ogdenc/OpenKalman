@@ -1,6 +1,7 @@
 var utils_8hpp =
 [
     [ "default_split_function", "struct_open_kalman_1_1internal_1_1default__split__function.html", null ],
+    [ "constexpr_pow", "utils_8hpp.html#a982fc700c836a265f7420152f79a4b81", null ],
     [ "constexpr_sqrt", "utils_8hpp.html#a0de6ea03b16d31991db9843df173d674", null ],
     [ "join", "utils_8hpp.html#ab4c55d1d16722622d8e01a474f69faea", null ],
     [ "prepend", "utils_8hpp.html#a8acbe50bdd93f93904cb245c9f981db1", null ],

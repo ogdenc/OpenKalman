@@ -633,61 +633,6 @@ namespace OpenKalman
     OpenKalman::internal::constexpr_sqrt(sizeof...(Args)), OpenKalman::internal::constexpr_sqrt(sizeof...(Args))>>>;
 
 
-  // -------------- //
-  //  MatrixTraits  //
-  // -------------- //
-
-  /*
-   * \internal
-   * \brief Type traits for deriving Eigen matrices based on an arithmetic type.
-   */
-#ifdef __cpp_concepts
-  template<typename T> requires std::is_arithmetic_v<T> and (not std::is_const_v<std::remove_reference_t<T>>)
-  struct MatrixTraits<T>
-#else
-    template<typename T>
-  struct MatrixTraits<T, std::enable_if_t<std::is_arithmetic_v<T> and not std::is_const_v<std::remove_reference_t<T>>>>
-#endif
-  {
-    using Scalar = T;
-
-    template<std::size_t rows, std::size_t cols = 1, typename S = Scalar>
-    using NativeMatrixFrom = Eigen::Matrix<S, (Eigen::Index) rows, (Eigen::Index) cols>;
-
-    template<TriangleType storage_triangle, std::size_t dim, typename S = Scalar>
-    using SelfAdjointMatrixFrom = Eigen3::SelfAdjointMatrix<NativeMatrixFrom<dim, dim, S>, storage_triangle>;
-
-    template<TriangleType triangle_type, std::size_t dim, typename S = Scalar>
-    using TriangularMatrixFrom = Eigen3::TriangularMatrix<NativeMatrixFrom<dim, dim, S>, triangle_type>;
-
-    template<std::size_t dim, typename S = Scalar>
-    using DiagonalMatrixFrom = Eigen3::DiagonalMatrix<NativeMatrixFrom<dim, 1, S>>;
-
-#ifdef __cpp_concepts
-    template<Eigen3::eigen_native Arg>
-#else
-    template<typename Arg, std::enable_if_t<Eigen3::eigen_native<Arg>, int> = 0>
-#endif
-    static decltype(auto) make(Arg&& arg) noexcept
-    {
-      return std::forward<Arg>(arg);
-    }
-
-    // Make matrix from a list of coefficients in row-major order.
-#ifdef __cpp_concepts
-    template<std::convertible_to<Scalar> Arg, std::convertible_to<Scalar> ... Args>
-#else
-    template<typename Arg, typename ... Args, std::enable_if_t<
-      std::conjunction_v<std::is_convertible<Arg, Scalar>, std::is_convertible<Args, Scalar>...>, int> = 0>
-#endif
-    static auto make(const Arg arg, const Args ... args)
-    {
-      return ((NativeMatrixFrom<sizeof...(Args)>() << arg), ... , args).finished();
-    }
-
-  };
-
-
 } // namespace OpenKalman
 
 #endif // OPENKALMAN_FIRST_INTERFACE

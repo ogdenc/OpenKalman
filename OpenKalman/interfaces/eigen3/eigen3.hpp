@@ -58,6 +58,7 @@
 
 #include "details/Eigen3MatrixBase.hpp"
 
+#include "ConstantMatrix.hpp"
 #include "ZeroMatrix.hpp"
 #include "DiagonalMatrix.hpp"
 #include "SelfAdjointMatrix.hpp"
@@ -84,13 +85,14 @@ namespace OpenKalman
   using Eigen3::Cholesky_square;
   using Eigen3::Cholesky_factor;
 
+  using Eigen3::ConstantMatrix;
+  using Eigen3::ZeroMatrix;
+  using Eigen3::IdentityMatrix;
   using Eigen3::SelfAdjointMatrix;
   using Eigen3::TriangularMatrix;
   using Eigen3::DiagonalMatrix;
-  using Eigen3::ZeroMatrix;
   using Eigen3::FromEuclideanExpr;
   using Eigen3::ToEuclideanExpr;
-  using Eigen3::IdentityMatrix;
 
   using Eigen3::make_native_matrix;
   using Eigen3::make_EigenSelfAdjointMatrix;
@@ -98,6 +100,8 @@ namespace OpenKalman
 
   using Eigen3::nested_matrix;
   using Eigen3::make_self_contained;
+  using Eigen3::row_count;
+  using Eigen3::column_count;
   using Eigen3::to_euclidean;
   using Eigen3::from_euclidean;
   using Eigen3::wrap_angles;
@@ -124,6 +128,8 @@ namespace OpenKalman
   using Eigen3::apply_columnwise;
   using Eigen3::apply_coefficientwise;
   using Eigen3::randomize;
+
+  using Eigen3::eigen_matrix_t;
 }
 
 #ifdef EIGEN_IS_NOT_CPLUSPLUS20_COMPATIBLE

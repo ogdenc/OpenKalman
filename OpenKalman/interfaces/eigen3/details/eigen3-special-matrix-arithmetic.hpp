@@ -474,13 +474,13 @@ namespace OpenKalman::Eigen3
   {
     if constexpr(Eigen3::eigen_triangular_expr<Arg1>)
     {
-      auto ret = MatrixTraits<Arg1>::make(std::forward<Arg1>(arg1).nested_view() * std::forward<Arg2>(arg2));
-      return make_self_contained<Arg1, Arg2>(std::move(ret));
+      auto ret = std::forward<Arg1>(arg1).nested_view() * std::forward<Arg2>(arg2);
+      return MatrixTraits<Arg1>::make(make_self_contained<Arg1, Arg2>(std::move(ret)));
     }
     else
     {
-      auto ret = MatrixTraits<Arg2>::make(std::forward<Arg1>(arg1) * std::forward<Arg2>(arg2).nested_view());
-      return make_self_contained<Arg1, Arg2>(std::move(ret));
+      auto ret = std::forward<Arg1>(arg1) * std::forward<Arg2>(arg2).nested_view();
+      return MatrixTraits<Arg2>::make(make_self_contained<Arg1, Arg2>(std::move(ret)));
     }
   }
 

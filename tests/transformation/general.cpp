@@ -12,8 +12,8 @@
 
 using namespace OpenKalman;
 
-using M_int2 = Mean<Axes<2>, native_matrix_t<int, 2, 1>>;
-using A_int2 = Matrix<Axes<2>, Axes<2>, native_matrix_t<int, 2, 2>>;
+using M_int2 = Mean<Axes<2>, eigen_matrix_t<int, 2, 1>>;
+using A_int2 = Matrix<Axes<2>, Axes<2>, eigen_matrix_t<int, 2, 2>>;
 
 template<auto t, auto tn = t>
 struct Scale
@@ -27,7 +27,7 @@ struct Scale
 
 TEST_F(transformations, Scale_no_noise_1D)
 {
-  using M_int1 = Mean<Coefficients<Axis>, native_matrix_t<int, 1, 1>>;
+  using M_int1 = Mean<Coefficients<Axis>, eigen_matrix_t<int, 1, 1>>;
   Transformation<Scale<3>> t;
   EXPECT_EQ(t(M_int1 {2}), M_int1 {6});
 }

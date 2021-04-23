@@ -25,17 +25,11 @@ namespace OpenKalman
   template<typename Scalar>
   struct DynamicCoefficients
   {
-    /// Treated as if there are zero dimensions.
-    static constexpr std::size_t dimensions = 0;
-
-    /// Treated as if there are zero coordinates in Euclidean space.
-    static constexpr std::size_t euclidean_dimensions = 0;
-
     /// The number of dimensions at runtime.
-    const std::size_t current_dimensions;
+    const std::size_t dimensions;
 
     /// The number of coordinates in Euclidean space at runtime.
-    const std::size_t current_euclidean_dimensions;
+    const std::size_t euclidean_dimensions;
 
     /// May consist of coefficients other than Axis.
     static constexpr bool axes_only = false;
@@ -159,8 +153,8 @@ namespace OpenKalman
     template<typename C, std::enable_if_t<fixed_coefficients<C>, int> = 0>
 #endif
     DynamicCoefficients(C&&) :
-      current_dimensions {C::dimensions},
-      current_euclidean_dimensions {C::euclidean_dimensions},
+      dimensions {C::dimensions},
+      euclidean_dimensions {C::euclidean_dimensions},
       id {typeid(typename reduce_coeffs<C>::type)},
       to_euclidean_coeff {[] (const std::size_t row, const GetCoeff& get_coeff) {
         return C::template to_euclidean_array<Scalar, 0>[row](get_coeff);
@@ -189,11 +183,11 @@ namespace OpenKalman
 
 
     /// \brief Compares for equivalence. \sa \ref equivalent_to
-    auto operator==(const DynamicCoefficients& other) const { return id == other.id; }
+    bool operator==(const DynamicCoefficients& other) const { return id == other.id; }
 
 #ifndef __cpp_impl_three_way_comparison
     /// Compares for non-equivalence. \sa \ref equivalent_to
-    auto operator!=(const DynamicCoefficients& other) const { return id != other.id; }
+    bool operator!=(const DynamicCoefficients& other) const { return id != other.id; }
 #endif
 
 

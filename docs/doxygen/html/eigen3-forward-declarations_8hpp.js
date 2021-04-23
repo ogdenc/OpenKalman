@@ -1,5 +1,6 @@
 var eigen3_forward_declarations_8hpp =
 [
+    [ "eigen_constant_expr", "eigen3-forward-declarations_8hpp.html#a1cc1cad9398ecaadd89edce5170b9c31", null ],
     [ "eigen_diagonal_expr", "eigen3-forward-declarations_8hpp.html#a8d408b48a797fea59c2b1e5ecd532920", null ],
     [ "eigen_matrix", "eigen3-forward-declarations_8hpp.html#a75cd699ad3fe06896706df1346cc4152", null ],
     [ "eigen_native", "eigen3-forward-declarations_8hpp.html#a4213585dbf9ef23d61030a68523a827b", null ],
@@ -11,5 +12,6 @@ var eigen3_forward_declarations_8hpp =
     [ "lower_triangular_storage", "eigen3-forward-declarations_8hpp.html#a974808d28711fedbd160ad5c02bdfced", null ],
     [ "to_euclidean_expr", "eigen3-forward-declarations_8hpp.html#a1a369957b46435f66ac4cfd93eaa7f3e", null ],
     [ "upper_triangular_storage", "eigen3-forward-declarations_8hpp.html#a09c496030189ca9962086c11cc19ef41", null ],
+    [ "eigen_matrix_t", "eigen3-forward-declarations_8hpp.html#aa1c3c6ccd00dd35c5c4813836ca4ea67", null ],
     [ "IdentityMatrix", "eigen3-forward-declarations_8hpp.html#ab5caa435d3ad3fbf96cdf5025dbb1742", null ]
 ];

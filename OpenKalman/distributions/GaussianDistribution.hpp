@@ -40,13 +40,14 @@ namespace OpenKalman
   struct GaussianDistribution
   {
 
-    // Redundant in c++20+:
+#ifndef __cpp_concepts
     static_assert(typed_matrix_nestable<MeanNestedMatrix>);
     static_assert(covariance_nestable<CovarianceNestedMatrix>);
     static_assert(MatrixTraits<MeanNestedMatrix>::rows == MatrixTraits<CovarianceNestedMatrix>::rows);
     static_assert(MatrixTraits<MeanNestedMatrix>::columns == 1);
     static_assert(std::is_same_v<typename MatrixTraits<MeanNestedMatrix>::Scalar,
       typename MatrixTraits<CovarianceNestedMatrix>::Scalar>);
+#endif
 
   protected:
 

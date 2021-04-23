@@ -203,32 +203,51 @@ namespace OpenKalman::Eigen3
     {
       return detail::extracted_diagonal_sqrt(nested_matrix(std::forward<Arg>(arg)));
     }
+    else if constexpr (eigen_constant_expr<NestedMatrix>)
+    {
+      // If nested matrix is a positive constant matrix, construct the Cholesky factor using a shortcut.
+      constexpr auto s = MatrixTraits<NestedMatrix>::constant;
+
+      // Check that Cholesky factor elements are real:
+      static_assert(s >= Scalar(0), "Cholesky_factor of constant SelfAdjointMatrix: covariance is indefinite");
+
+      if constexpr(triangle_type == TriangleType::lower)
+      {
+        auto col0 = Eigen::Matrix<Scalar, dimensions, 1>::Constant(OpenKalman::internal::constexpr_sqrt(s));
+        ConstantMatrix<Scalar, 0, dimensions, dimensions - 1> othercols;
+        return TriangularMatrix<M, triangle_type> {concatenate_horizontal(col0, othercols)};
+      }
+      else
+      {
+        auto row0 = Eigen::Matrix<Scalar, 1, dimensions>::Constant(OpenKalman::internal::constexpr_sqrt(s));
+        ConstantMatrix<Scalar, 0, dimensions - 1, dimensions> otherrows;
+        return TriangularMatrix<M, triangle_type> {concatenate_vertical(row0, otherrows)};
+      }
+    }
     else if constexpr (std::is_same_v<
       const NestedMatrix, const typename Eigen::MatrixBase<NestedMatrix>::ConstantReturnType>)
     {
       // If nested matrix is a positive constant matrix, construct the Cholesky factor using a shortcut.
       auto s = nested_matrix(std::forward<Arg>(arg)).functor()();
+
       if (s < Scalar(0))
       {
-        // Cholesky factors are complex, so throw an exception.
+        // Cholesky factor elements are complex, so throw an exception.
         throw (std::runtime_error("Cholesky_factor of constant SelfAdjointMatrix: covariance is indefinite"));
       }
-      M b;
+
       if constexpr(triangle_type == TriangleType::lower)
       {
-        using Mat = Eigen::Matrix<Scalar, 1, dimensions>;
-        Mat mat = Mat::Zero();
-        mat(0, 0) = std::sqrt(s);
-        b.template triangularView<Eigen::Lower>() = mat.template replicate<dimensions, 1>();
+        auto col0 = Eigen::Matrix<Scalar, dimensions, 1>::Constant(std::sqrt(s));
+        ConstantMatrix<Scalar, 0, dimensions, dimensions - 1> othercols;
+        return TriangularMatrix<M, triangle_type> {concatenate_horizontal(col0, othercols)};
       }
       else
       {
-        using Mat = Eigen::Matrix<Scalar, dimensions, 1>;
-        Mat mat = Mat::Zero();
-        mat(0, 0) = std::sqrt(s);
-        b.template triangularView<Eigen::Upper>() = mat.template replicate<1, dimensions>();
+        auto row0 = Eigen::Matrix<Scalar, 1, dimensions>::Constant(std::sqrt(s));
+        ConstantMatrix<Scalar, 0, dimensions - 1, dimensions> otherrows;
+        return TriangularMatrix<M, triangle_type> {concatenate_vertical(row0, otherrows)};
       }
-      return TriangularMatrix<M, triangle_type> {std::move(b)};
     }
     else
     {
@@ -326,8 +345,9 @@ namespace OpenKalman::Eigen3
       ret.template triangularView<Eigen::Upper>() = v.adjoint() * M {v};
       return SelfAdjointMatrix<M, triangle_type> {std::move(ret)};
     }
-    else // if constexpr (triangle_type == TriangleType::lower)
+    else
     {
+      static_assert(triangle_type == TriangleType::lower);
       auto v = std::forward<Arg>(arg).nested_view();
       M ret;
       ret.template triangularView<Eigen::Lower>() = v * M {v.adjoint()};
@@ -355,8 +375,9 @@ namespace OpenKalman::Eigen3
     {
       return Cholesky_factor(nested_matrix(std::forward<Arg>(arg)));
     }
-    else // if constexpr (MatrixTraits<Arg>::triangle_type == TriangleType::diagonal)
+    else
     {
+      static_assert(MatrixTraits<Arg>::triangle_type == TriangleType::diagonal);
       return detail::extracted_diagonal_sqrt(nested_matrix(std::forward<Arg>(arg)));
     }
 

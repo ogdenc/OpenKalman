@@ -16,13 +16,13 @@
  */
 
 template<std::size_t n>
-using M = native_matrix_t<double, n, 1>;
+using M = eigen_matrix_t<double, n, 1>;
 
 template<std::size_t n>
-using SA = SelfAdjointMatrix<native_matrix_t<double, n, n>>;
+using SA = SelfAdjointMatrix<eigen_matrix_t<double, n, n>>;
 
 template<std::size_t n>
-using TR = TriangularMatrix<native_matrix_t<double, n, n>>;
+using TR = TriangularMatrix<eigen_matrix_t<double, n, n>>;
 
 template<std::size_t n>
 using G = GaussianDistribution<Axes<n>, M<n>, SA<n>>;

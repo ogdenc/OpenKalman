@@ -10,8 +10,8 @@
 
 #include "transformations.hpp"
 
-using M2 = Mean<Axes<2>, native_matrix_t<int, 2, 1>>;
-using A2 = Matrix<Axes<2>, Axes<2>, native_matrix_t<int, 2, 2>>;
+using M2 = Mean<Axes<2>, eigen_matrix_t<int, 2, 1>>;
+using A2 = Matrix<Axes<2>, Axes<2>, eigen_matrix_t<int, 2, 2>>;
 
 template<typename A, typename X>
 struct Trans1
@@ -50,7 +50,7 @@ struct Trans2
 
   auto hessian(const X& x) const
   {
-    using H = native_matrix_t<typename MatrixTraits<A>::Scalar, MatrixTraits<A>::columns, MatrixTraits<A>::columns>;
+    using H = eigen_matrix_t<typename MatrixTraits<A>::Scalar, MatrixTraits<A>::columns, MatrixTraits<A>::columns>;
     using C = typename MatrixTraits<X>::RowCoefficients;
     using MH = Matrix<C, C, H>;
     auto Arr = std::array<MH, A::RowsAtCompileTime>();
@@ -124,7 +124,7 @@ TEST_F(transformations, linearized_lambdas)
   auto f = [&a] (const M2& x) { return a * x; };
   auto j = [&a] (const M2& x) { return std::tuple(a); };
   auto h = [] (const M2& x) {
-    using H = native_matrix_t<typename MatrixTraits<A2>::Scalar, MatrixTraits<A2>::columns, MatrixTraits<A2>::columns>;
+    using H = eigen_matrix_t<typename MatrixTraits<A2>::Scalar, MatrixTraits<A2>::columns, MatrixTraits<A2>::columns>;
     using C = typename MatrixTraits<M2>::RowCoefficients;
     using MH = Matrix<C, C, H>;
     auto Arr = std::array<MH, A2::RowsAtCompileTime>();

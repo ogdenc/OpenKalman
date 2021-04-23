@@ -11,6 +11,9 @@ var dir_1a0f87da89794a539326ef9d12a2b565 =
     [ "Distance.hpp", "_distance_8hpp.html", [
       [ "Distance", "struct_open_kalman_1_1_distance.html", "struct_open_kalman_1_1_distance" ]
     ] ],
+    [ "DynamicCoefficients.hpp", "_dynamic_coefficients_8hpp.html", [
+      [ "DynamicCoefficients", "struct_open_kalman_1_1_dynamic_coefficients.html", "struct_open_kalman_1_1_dynamic_coefficients" ]
+    ] ],
     [ "Inclination.hpp", "_inclination_8hpp.html", "_inclination_8hpp" ],
     [ "Polar.hpp", "_polar_8hpp.html", null ],
     [ "Spherical.hpp", "_spherical_8hpp.html", null ]

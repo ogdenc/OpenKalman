@@ -12,16 +12,16 @@
 
 using namespace OpenKalman;
 
-using M2 = native_matrix_t<double, 2, 2>;
+using M2 = eigen_matrix_t<double, 2, 2>;
 using C = Coefficients<angle::Radians, Axis>;
 using Mat2 = Matrix<C, C, M2>;
-using Mat2col = Matrix<C, Axis, native_matrix_t<double, 2, 1>>;
+using Mat2col = Matrix<C, Axis, eigen_matrix_t<double, 2, 1>>;
 using SA2l = SelfAdjointMatrix<M2, TriangleType::lower>;
 using SA2u = SelfAdjointMatrix<M2, TriangleType::upper>;
 using T2l = TriangularMatrix<M2, TriangleType::lower>;
 using T2u = TriangularMatrix<M2, TriangleType::upper>;
-using D2 = DiagonalMatrix<native_matrix_t<double, 2, 1>>;
-using D1 = native_matrix_t<double, 1, 1>;
+using D2 = DiagonalMatrix<eigen_matrix_t<double, 2, 1>>;
+using D1 = eigen_matrix_t<double, 1, 1>;
 using I2 = IdentityMatrix<M2>;
 using Z2 = ZeroMatrix<double, 2, 2>;
 using CovSA2l = Covariance<C, SA2l>;
@@ -317,7 +317,7 @@ TEST_F(covariance_tests, Covariance_class)
   CovSA2u cusa6(Mat2 {4, 2, 7, 5}); EXPECT_TRUE(is_near(cusa6, Mat2 {4, 2, 2, 5}));
   CovT2l clt6(Mat2 {9, 7, 3, 10}); EXPECT_TRUE(is_near(clt6, Mat2 {9, 3, 3, 10}));
   CovT2u cut6(Mat2 {4, 2, 7, 5}); EXPECT_TRUE(is_near(cut6, Mat2 {4, 2, 2, 5}));
-  CovD2 cd6(Matrix<C, Axis, native_matrix_t<double, 2, 1>> {1, 2}); EXPECT_TRUE(is_near(cd6, Mat2 {1, 0, 0, 2}));
+  CovD2 cd6(Matrix<C, Axis, eigen_matrix_t<double, 2, 1>> {1, 2}); EXPECT_TRUE(is_near(cd6, Mat2 {1, 0, 0, 2}));
 
   // Construct from a regular matrix
   CovSA2l clsa7(make_native_matrix<M2>(9, 7, 3, 10)); EXPECT_TRUE(is_near(clsa7, Mat2 {9, 3, 3, 10}));
@@ -751,14 +751,14 @@ TEST_F(covariance_tests, Covariance_traits)
   EXPECT_TRUE(is_near(MatrixTraits<CovSA2u>::make(SA2u {9, 3, 3, 10}).get_self_adjoint_nested_matrix(), Mat2 {9, 3, 3, 10}));
   EXPECT_TRUE(is_near(MatrixTraits<CovSA2l>::make(T2l {3, 0, 1, 3}).get_triangular_nested_matrix(), Mat2 {3, 0, 1, 3}));
   EXPECT_TRUE(is_near(MatrixTraits<CovSA2u>::make(T2u {3, 1, 0, 3}).get_triangular_nested_matrix(), Mat2 {3, 1, 0, 3}));
-  EXPECT_TRUE(is_near(MatrixTraits<CovSA2l>::zero(), native_matrix_t<double, 2, 2>::Zero()));
-  EXPECT_TRUE(is_near(MatrixTraits<CovSA2l>::identity(), native_matrix_t<double, 2, 2>::Identity()));
+  EXPECT_TRUE(is_near(MatrixTraits<CovSA2l>::zero(), eigen_matrix_t<double, 2, 2>::Zero()));
+  EXPECT_TRUE(is_near(MatrixTraits<CovSA2l>::identity(), eigen_matrix_t<double, 2, 2>::Identity()));
   EXPECT_TRUE(is_near(MatrixTraits<CovT2l>::make(SA2l {9, 3, 3, 10}).get_self_adjoint_nested_matrix(), Mat2 {9, 3, 3, 10}));
   EXPECT_TRUE(is_near(MatrixTraits<CovT2u>::make(SA2u {9, 3, 3, 10}).get_self_adjoint_nested_matrix(), Mat2 {9, 3, 3, 10}));
   EXPECT_TRUE(is_near(MatrixTraits<CovT2l>::make(T2l {3, 0, 1, 3}).get_triangular_nested_matrix(), Mat2 {3, 0, 1, 3}));
   EXPECT_TRUE(is_near(MatrixTraits<CovT2u>::make(T2u {3, 1, 0, 3}).get_triangular_nested_matrix(), Mat2 {3, 1, 0, 3}));
-  EXPECT_TRUE(is_near(MatrixTraits<CovT2l>::zero(), native_matrix_t<double, 2, 2>::Zero()));
-  EXPECT_TRUE(is_near(MatrixTraits<CovT2l>::identity(), native_matrix_t<double, 2, 2>::Identity()));
+  EXPECT_TRUE(is_near(MatrixTraits<CovT2l>::zero(), eigen_matrix_t<double, 2, 2>::Zero()));
+  EXPECT_TRUE(is_near(MatrixTraits<CovT2l>::identity(), eigen_matrix_t<double, 2, 2>::Identity()));
 }
 
 
@@ -883,7 +883,7 @@ TEST_F(covariance_tests, Covariance_overloads)
 TEST_F(covariance_tests, Covariance_blocks)
 {
   using C4 = Concatenate<C, C>;
-  using M4 = native_matrix_t<double, 4, 4>;
+  using M4 = eigen_matrix_t<double, 4, 4>;
   using Mat4 = Matrix<C4, C4, M4>;
   using CovSA4l = Covariance<C4, SelfAdjointMatrix<M4, TriangleType::lower>>;
   using CovSA4u = Covariance<C4, SelfAdjointMatrix<M4, TriangleType::upper>>;

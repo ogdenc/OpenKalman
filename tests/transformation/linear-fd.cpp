@@ -10,17 +10,17 @@
 
 #include "transformations.hpp"
 
-using M1 = Mean<Axis, native_matrix_t<double, 1, 1>>;
-using M2 = Mean<Axes<2>, native_matrix_t<double, 2, 1>>;
-using MP = Mean<Polar<>, native_matrix_t<double, 2, 1>>;
-using M3 = Mean<Axes<3>, native_matrix_t<double, 3, 1>>;
-using MC = Mean<Coefficients<Polar<>, Axis>, native_matrix_t<double, 3, 1>>;
-using MS = Mean<Spherical<>, native_matrix_t<double, 3, 1>>;
-using A22 = Matrix<Axes<2>, Axes<2>, native_matrix_t<double, 2, 2>>;
-using AP2 = Matrix<Polar<>, Axes<2>, native_matrix_t<double, 2, 2>>;
-using APP = Matrix<Polar<>, Polar<>, native_matrix_t<double, 2, 2>>;
-using A32 = Matrix<Axes<3>, Axes<2>, native_matrix_t<double, 3, 2>>;
-using A33 = Matrix<Axes<3>, Axes<3>, native_matrix_t<double, 3, 3>>;
+using M1 = Mean<Axis, eigen_matrix_t<double, 1, 1>>;
+using M2 = Mean<Axes<2>, eigen_matrix_t<double, 2, 1>>;
+using MP = Mean<Polar<>, eigen_matrix_t<double, 2, 1>>;
+using M3 = Mean<Axes<3>, eigen_matrix_t<double, 3, 1>>;
+using MC = Mean<Coefficients<Polar<>, Axis>, eigen_matrix_t<double, 3, 1>>;
+using MS = Mean<Spherical<>, eigen_matrix_t<double, 3, 1>>;
+using A22 = Matrix<Axes<2>, Axes<2>, eigen_matrix_t<double, 2, 2>>;
+using AP2 = Matrix<Polar<>, Axes<2>, eigen_matrix_t<double, 2, 2>>;
+using APP = Matrix<Polar<>, Polar<>, eigen_matrix_t<double, 2, 2>>;
+using A32 = Matrix<Axes<3>, Axes<2>, eigen_matrix_t<double, 3, 2>>;
+using A33 = Matrix<Axes<3>, Axes<3>, eigen_matrix_t<double, 3, 3>>;
 
 TEST_F(transformations, finite_diff_linear_2by2)
 {

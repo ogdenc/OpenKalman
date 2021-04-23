@@ -147,7 +147,7 @@ namespace OpenKalman
 #else
   template<typename V1, typename V2, std::enable_if_t<typed_matrix<V1> and typed_matrix<V2>, int> = 0>
 #endif
-  constexpr auto operator==(V1&& v1, V2&& v2)
+  constexpr bool operator==(V1&& v1, V2&& v2)
   {
     if constexpr(
       equivalent_to<typename MatrixTraits<V1>::RowCoefficients, typename MatrixTraits<V2>::RowCoefficients> and
@@ -169,7 +169,7 @@ namespace OpenKalman
 #else
   template<typename V1, typename V2, std::enable_if_t<typed_matrix<V1> and typed_matrix<V2>, int> = 0>
 #endif
-  constexpr auto operator!=(V1&& v1, V2&& v2)
+  constexpr bool operator!=(V1&& v1, V2&& v2)
   {
     return not (std::forward<V1>(v1) == std::forward<V2>(v2));
   }

@@ -11,7 +11,7 @@
 #include "linear.hpp"
 
 using C3 = Axes<3>;
-using M33 = native_matrix_t<double, 3, 3>;
+using M33 = eigen_matrix_t<double, 3, 3>;
 using CovSA3 = Covariance<C3, SelfAdjointMatrix<M33>>;
 using CovT3 = Covariance<C3, TriangularMatrix<M33>>;
 inline SamplePointsTransform<UnscentedSigmaPoints> UT1;

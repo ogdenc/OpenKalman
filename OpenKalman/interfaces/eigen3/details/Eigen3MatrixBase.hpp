@@ -33,11 +33,13 @@ namespace OpenKalman::Eigen3::internal
   template<typename Derived, typename ArgType>
   struct Eigen3MatrixBase : Eigen3Base<Derived>
   {
-    using Nested = ArgType;
-    using Scalar = typename MatrixTraits<Nested>::Scalar;
-    using Base = Eigen3Base<Derived>;
+    using Nested = ArgType; ///< Required by Eigen3.
+
+    using Scalar = typename MatrixTraits<Nested>::Scalar; ///< Required by Eigen3.
 
   private:
+
+    using Base = Eigen3Base<Derived>;
 
     template<typename Arg>
     auto& get_ultimate_nested_matrix_impl(Arg& arg)
@@ -145,16 +147,62 @@ namespace OpenKalman::Eigen3::internal
 
     /**
      * \internal
-     * \return The number of rows. (Required by Eigen::EigenBase).
+     * \return The number of fixed rows. (Required by Eigen::EigenBase).
      */
-    static constexpr Eigen::Index rows() { return Eigen::internal::traits<Derived>::RowsAtCompileTime; }
+#ifdef __cpp_concepts
+    static constexpr Eigen::Index rows() requires (not dynamic_rows<Derived>)
+#else
+    template<typename D = Derived, std::enable_if_t<(not dynamic_rows<D>), int> = 0>
+    static constexpr Eigen::Index rows()
+#endif
+    {
+      return MatrixTraits<Derived>::rows;
+    }
 
 
     /**
      * \internal
-     * \return The number of columns. (Required by Eigen::EigenBase).
+     * \return The number of dynamic rows. (Required by Eigen::EigenBase).
      */
-    static constexpr Eigen::Index cols() { return Eigen::internal::traits<Derived>::ColsAtCompileTime; }
+#ifdef __cpp_concepts
+    constexpr Eigen::Index rows() const requires dynamic_rows<Derived>
+#else
+    template<typename D = Derived, std::enable_if_t<dynamic_rows<D>, int> = 0>
+    constexpr Eigen::Index rows() const
+#endif
+    {
+      return row_count(static_cast<Derived&>(*this));
+    }
+
+
+    /**
+     * \internal
+     * \return The number of fixed columns. (Required by Eigen::EigenBase).
+     */
+#ifdef __cpp_concepts
+    static constexpr Eigen::Index cols() requires (not dynamic_columns<Derived>)
+#else
+    template<typename D = Derived, std::enable_if_t<(not dynamic_columns<D>), int> = 0>
+    static constexpr Eigen::Index cols()
+#endif
+    {
+      return MatrixTraits<Derived>::columns;
+    }
+
+
+    /**
+     * \internal
+     * \return The number of dynamic rows. (Required by Eigen::EigenBase).
+     */
+#ifdef __cpp_concepts
+    constexpr Eigen::Index cols() const requires dynamic_columns<Derived>
+#else
+    template<typename D = Derived, std::enable_if_t<dynamic_columns<D>, int> = 0>
+    constexpr Eigen::Index cols() const
+#endif
+    {
+      return column_count(static_cast<Derived&>(*this));
+    }
 
 
     /**

@@ -12,13 +12,13 @@
 
 using namespace OpenKalman;
 
-using M1 = native_matrix_t<double, 1, 1>;
-using M2 = native_matrix_t<double, 2, 2>;
-using M2col = native_matrix_t<double, 2, 1>;
-using M3 = native_matrix_t<double, 3, 3>;
-using M3col = native_matrix_t<double, 3, 1>;
-using M4 = native_matrix_t<double, 4, 4>;
-using M4col = native_matrix_t<double, 4, 1>;
+using M1 = eigen_matrix_t<double, 1, 1>;
+using M2 = eigen_matrix_t<double, 2, 2>;
+using M2col = eigen_matrix_t<double, 2, 1>;
+using M3 = eigen_matrix_t<double, 3, 3>;
+using M3col = eigen_matrix_t<double, 3, 1>;
+using M4 = eigen_matrix_t<double, 4, 4>;
+using M4col = eigen_matrix_t<double, 4, 1>;
 using C2 = Coefficients<angle::Radians, Axis>;
 using C3 = Coefficients<angle::Radians, Axis, Axis>;
 using C4 = Concatenate<C2, C2>;
@@ -769,7 +769,7 @@ TEST_F(matrices, GaussianDistribution_mult_div)
   EXPECT_TRUE(is_near(covariance_of(a_chol_scaled3), make_matrix<C3, C3>(40., 92, 144, 92, 216, 340, 144, 340, 536)));
   static_assert(equivalent_to<typename DistributionTraits<decltype(a_chol_scaled3)>::Coefficients, C3>);
 
-  native_matrix_t<double, 2, 2> cov_mat; cov_mat << 8, 2, 2, 6;
+  eigen_matrix_t<double, 2, 2> cov_mat; cov_mat << 8, 2, 2, 6;
   decltype(a) a_scaled = a * 2;
   EXPECT_TRUE(is_near(mean_of(a_scaled), mean_of(a) * 2));
   EXPECT_TRUE(is_near(covariance_of(a_scaled), covariance_of(a) * 4));

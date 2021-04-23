@@ -415,12 +415,20 @@ namespace OpenKalman
   struct MatrixTraits<EuclideanMean<Coeffs, NestedType>>
   {
     using NestedMatrix = NestedType;
+
+
     static constexpr std::size_t rows = MatrixTraits<NestedMatrix>::rows;
     static constexpr std::size_t columns = MatrixTraits<NestedMatrix>::columns;
+
+
     using RowCoefficients = Coeffs;
-    using ColumnCoefficients = Axes<columns>;
-    using Scalar = typename MatrixTraits<NestedMatrix>::Scalar;
     static_assert(RowCoefficients::euclidean_dimensions == rows);
+
+    using ColumnCoefficients = Axes<columns>;
+
+
+    using Scalar = typename MatrixTraits<NestedMatrix>::Scalar;
+
 
     template<std::size_t r = rows, std::size_t c = columns, typename S = Scalar>
     using NativeMatrixFrom = native_matrix_t<NestedMatrix, r, c, S>;

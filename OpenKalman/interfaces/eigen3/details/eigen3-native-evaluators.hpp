@@ -45,6 +45,88 @@ namespace Eigen::internal
   };
 
 
+  template<typename Scalar_, auto constant, std::size_t rows, std::size_t cols>
+  struct evaluator<OpenKalman::Eigen3::ConstantMatrix<Scalar_, constant, rows, cols>>
+    : evaluator_base<OpenKalman::Eigen3::ConstantMatrix<Scalar_, constant, rows, cols>>
+  {
+    using Scalar = Scalar_;
+    using XprType = OpenKalman::Eigen3::ConstantMatrix<Scalar, constant, rows, cols>;
+
+    enum {
+      CoeffReadCost = 0,
+      Flags = NoPreferredStorageOrderBit | EvalBeforeNestingBit | LinearAccessBit |
+        (packet_traits<Scalar>::Vectorizable ? PacketAccessBit : 0),
+      Alignment = AlignedMax
+    };
+
+    explicit evaluator(const XprType&) {}
+
+    constexpr Scalar coeff(Index row, Index col) const
+    {
+      return constant;
+    }
+
+    constexpr Scalar coeff(Index row) const
+    {
+      return constant;
+    }
+
+    template<int LoadMode, typename PacketType>
+    PacketType packet(Index row, Index col) const
+    {
+      return internal::pset1<PacketType>(constant);
+    }
+
+    template<int LoadMode, typename PacketType>
+    PacketType packet(Index row) const
+    {
+      return internal::pset1<PacketType>(constant);
+    }
+
+  };
+
+
+  template<typename Scalar_, std::size_t rows, std::size_t cols>
+  struct evaluator<OpenKalman::Eigen3::ZeroMatrix<Scalar_, rows, cols>>
+    : evaluator_base<OpenKalman::Eigen3::ZeroMatrix<Scalar_, rows, cols>>
+  {
+    using Scalar = Scalar_;
+    using XprType = OpenKalman::Eigen3::ZeroMatrix<Scalar, rows, cols>;
+
+    enum {
+      CoeffReadCost = 0,
+      Flags = NoPreferredStorageOrderBit | EvalBeforeNestingBit | LinearAccessBit |
+        (packet_traits<Scalar>::Vectorizable ? PacketAccessBit : 0),
+      Alignment = AlignedMax
+    };
+
+    explicit evaluator(const XprType&) {}
+
+    constexpr Scalar coeff(Index row, Index col) const
+    {
+      return 0;
+    }
+
+    constexpr Scalar coeff(Index row) const
+    {
+      return 0;
+    }
+
+    template<int LoadMode, typename PacketType>
+    PacketType packet(Index row, Index col) const
+    {
+      return internal::pset1<PacketType>(0);
+    }
+
+    template<int LoadMode, typename PacketType>
+    PacketType packet(Index row) const
+    {
+      return internal::pset1<PacketType>(0);
+    }
+
+  };
+
+
   template<typename ArgType, OpenKalman::TriangleType storage_triangle>
   struct evaluator<OpenKalman::Eigen3::SelfAdjointMatrix<ArgType, storage_triangle>>
     : evaluator_base<OpenKalman::Eigen3::SelfAdjointMatrix<ArgType, storage_triangle>>
@@ -325,26 +407,6 @@ namespace Eigen::internal
 
   protected:
     NestedEvaluator m_argImpl;
-  };
-
-
-  template<typename Scalar, std::size_t rows, std::size_t cols>
-  struct evaluator<OpenKalman::Eigen3::ZeroMatrix<Scalar, rows, cols>>
-    : evaluator<typename Matrix<Scalar, rows, cols>::ConstantReturnType>
-  {
-    using XprType = OpenKalman::Eigen3::ZeroMatrix<Scalar, rows, cols>;
-    using Base = evaluator<typename Matrix<Scalar, rows, cols>::ConstantReturnType>;
-    explicit evaluator(const XprType& m_arg) : Base {m_arg} {}
-
-    constexpr Scalar coeff(Index row, Index col) const
-    {
-      return static_cast<Scalar>(0);
-    }
-
-    constexpr Scalar coeff(Index row) const
-    {
-      return static_cast<Scalar>(0);
-    }
   };
 
 
