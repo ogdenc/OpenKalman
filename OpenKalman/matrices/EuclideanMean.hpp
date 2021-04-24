@@ -114,7 +114,10 @@ namespace OpenKalman
     }
 
 
-    /// Assign from a compatible \ref typed_matrix, where no transformation to Euclidean space is required.
+    /**
+     * \brief Assign from a compatible \ref OpenKalman::typed_matrix "typed_matrix".
+     * \details This is operable where no transformation to Euclidean space is required.
+     */
 #ifdef __cpp_concepts
     template<typed_matrix Arg> requires (not std::derived_from<std::decay_t<Arg>, EuclideanMean>) and
       (euclidean_transformed<Arg> or RowCoefficients::axes_only) and
@@ -137,7 +140,10 @@ namespace OpenKalman
     }
 
 
-    /// Assign from a compatible \ref typed_matrix, where a transformation to Euclidean space is required.
+    /**
+     * \brief Assign from a compatible \ref OpenKalman::typed_matrix "typed_matrix".
+     * \details This is operable where a transformation to Euclidean space is required.
+     */
 #ifdef __cpp_concepts
     template<typed_matrix Arg> requires (not std::derived_from<std::decay_t<Arg>, EuclideanMean>) and
       (not euclidean_transformed<Arg> and not RowCoefficients::axes_only) and
@@ -160,7 +166,9 @@ namespace OpenKalman
     }
 
 
-    /// Assign from a compatible \ref typed_matrix_nestable.
+    /**
+     * \brief Assign from a compatible \ref OpenKalman::typed_matrix_nestable "typed_matrix_nestable".
+     */
 #ifdef __cpp_concepts
     template<typed_matrix_nestable Arg> requires modifiable<NestedMatrix, Arg>
 #else
@@ -176,7 +184,9 @@ namespace OpenKalman
     }
 
 
-    /// Increment from another EuclideanMean.
+    /**
+     * \brief Increment from another EuclideanMean.
+     */
     auto& operator+=(const EuclideanMean& other)
     {
       this->nested_matrix() += other.nested_matrix();

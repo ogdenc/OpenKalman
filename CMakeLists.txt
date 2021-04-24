@@ -6,7 +6,7 @@
 # https://creativecommons.org/publicdomain/zero/1.0/
 
 
-cmake_minimum_required(VERSION 3.9)
+cmake_minimum_required(VERSION 3.10)
 
 project(OpenKalman
         DESCRIPTION "An open-source, heading-only library for Kalman filters and other recursive filters"
@@ -14,13 +14,13 @@ project(OpenKalman
 
 include_directories(${PROJECT_SOURCE_DIR}/OpenKalman)
 
-#find_package(Threads REQUIRED)
+find_package(Threads)
 
 find_package(OpenMP)
-if(OpenMP_FOUND)
+if(OpenMP_CXX_FOUND)
   include_directories(SYSTEM ${OpenMP_CXX_INCLUDE_DIRS})
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-endif(OpenMP_FOUND)
+endif()
 
 #find_package(OpenCV REQUIRED)
 #include_directories(SYSTEM ${OPENCV_INCLUDE_DIRS})
@@ -34,7 +34,6 @@ set(MyCXX_FLAGS "-g -O2 -Wall -ftemplate-backtrace-limit=0")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MyCXX_FLAGS}")
 
-enable_testing()
 
 add_subdirectory(OpenKalman)
 add_subdirectory(tests)

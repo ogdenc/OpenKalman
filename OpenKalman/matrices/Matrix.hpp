@@ -56,7 +56,7 @@ namespace OpenKalman
     Matrix(Matrix&& other) noexcept : Base(std::move(other).nested_matrix()) {}
 
 
-    /// Construct from a compatible \ref typed_matrix.
+    /// Construct from a compatible \ref OpenKalman::typed_matrix "typed_matrix".
 #ifdef __cpp_concepts
     template<typed_matrix Arg> requires (not std::derived_from<std::decay_t<Arg>, Matrix>) and
       (not euclidean_transformed<Arg>) and
@@ -73,7 +73,7 @@ namespace OpenKalman
     Matrix(Arg&& other) noexcept : Base {nested_matrix(std::forward<Arg>(other))} {}
 
 
-    /// Construct from a compatible \ref euclidean_transformed.
+    /// Construct from a compatible \ref OpenKalman::euclidean_transformed "euclidean_transformed".
 #ifdef __cpp_concepts
     template<euclidean_transformed Arg> requires
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients> and
@@ -90,7 +90,7 @@ namespace OpenKalman
       : Base {from_euclidean<RowCoefficients>(nested_matrix(std::forward<Arg>(other)))} {}
 
 
-    /// Construct from compatible \ref typed_matrix_nestable.
+    /// Construct from compatible \ref OpenKalman::typed_matrix_nestable "typed_matrix_nestable".
 #ifdef __cpp_concepts
     template<typed_matrix_nestable Arg> requires (MatrixTraits<Arg>::rows == MatrixTraits<NestedMatrix>::rows) and
       (MatrixTraits<Arg>::columns == MatrixTraits<NestedMatrix>::columns) and std::is_constructible_v<Base, Arg>
@@ -103,7 +103,7 @@ namespace OpenKalman
     explicit Matrix(Arg&& arg) noexcept : Base {std::forward<Arg>(arg)} {}
 
 
-    /// Construct from compatible \ref covariance.
+    /// Construct from compatible \ref OpenKalman::covariance "covariance".
 #ifdef __cpp_concepts
     template<covariance Arg> requires
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients> and
@@ -134,7 +134,7 @@ namespace OpenKalman
     }
 
 
-    /// Assign from a compatible \ref typed_matrix.
+    /// Assign from a compatible \ref OpenKalman::typed_matrix "typed_matrix".
 #ifdef __cpp_concepts
     template<typed_matrix Arg> requires (not euclidean_transformed<Arg>) and
       (not std::derived_from<std::decay_t<Arg>, Matrix>) and
@@ -158,7 +158,7 @@ namespace OpenKalman
     }
 
 
-    /// Assign from a compatible \ref euclidean_transformed matrix.
+    /// Assign from a compatible \ref OpenKalman::euclidean_transformed "euclidean_transformed" matrix.
 #ifdef __cpp_concepts
     template<euclidean_transformed Arg> requires
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients> and
@@ -181,7 +181,7 @@ namespace OpenKalman
     }
 
 
-    /// Assign from a compatible \ref typed_matrix_nestable.
+    /// Assign from a compatible \ref OpenKalman::typed_matrix_nestable "typed_matrix_nestable".
 #ifdef __cpp_concepts
     template<typed_matrix_nestable Arg> requires modifiable<NestedMatrix, Arg>
 #else

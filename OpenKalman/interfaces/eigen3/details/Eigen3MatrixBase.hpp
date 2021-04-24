@@ -8,6 +8,12 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+/**
+ * \internal
+ * \file
+ * \brief Definitions for Eigen3::Eigen3MatrixBase and extensions to Eigen::CommaInitializer
+ */
+
 #ifndef OPENKALMAN_EIGEN3MATRIXBASE_HPP
 #define OPENKALMAN_EIGEN3MATRIXBASE_HPP
 
@@ -27,7 +33,8 @@ namespace Eigen
 namespace OpenKalman::Eigen3::internal
 {
   /**
-   * Ultimate base of OpenKalman matrix types.
+   * \internal
+   * \brief Ultimate base of OpenKalman matrix types.
    * \todo Specialize for Matrix, Covariance, etc., so that they do not derive from Eigen::MatrixBase.
    */
   template<typename Derived, typename ArgType>
@@ -101,7 +108,8 @@ namespace OpenKalman::Eigen3::internal
         {
           return Eigen::MeanCommaInitializer<Derived, Xpr> {xpr, static_cast<const Scalar&>(s)};
         }
-        else if constexpr(Eigen3::eigen_self_adjoint_expr<Xpr> or Eigen3::eigen_triangular_expr<Xpr>)
+        else if constexpr((Eigen3::eigen_self_adjoint_expr<Xpr> or Eigen3::eigen_triangular_expr<Xpr>)
+          and diagonal_matrix<Xpr>)
         {
           return Eigen::DiagonalCommaInitializer {xpr, static_cast<const Scalar&>(s)};
         }
@@ -129,11 +137,12 @@ namespace OpenKalman::Eigen3::internal
       {
         auto& xpr = get_ultimate_nested_matrix(static_cast<Derived&>(*this));
         using Xpr = std::decay_t<decltype(xpr)>;
-        if constexpr(mean<Derived>)
+        if constexpr (mean<Derived>)
         {
           return Eigen::MeanCommaInitializer<Derived, Xpr> {xpr, other};
         }
-        else if constexpr(Eigen3::eigen_self_adjoint_expr<Xpr> or Eigen3::eigen_triangular_expr<Xpr>)
+        else if constexpr ((Eigen3::eigen_self_adjoint_expr<Xpr> or Eigen3::eigen_triangular_expr<Xpr>)
+          and diagonal_matrix<Xpr>)
         {
           return Eigen::DiagonalCommaInitializer {xpr, other};
         }
@@ -230,7 +239,7 @@ namespace OpenKalman::Eigen3::internal
 namespace Eigen
 {
   /**
-   * Alternative version of CommaInitializer for Mean.
+   * \brief Alternative version of Eigen::CommaInitializer for Mean.
    */
   template<typename Derived, typename XprType>
   struct MeanCommaInitializer : CommaInitializer<XprType>
@@ -261,7 +270,7 @@ namespace Eigen
 
 
   /**
-   * Alternative version of CommaInitializer for diagonal versions of SelfAdjointMatrix and TriangularMatrix.
+   * \brief Version of Eigen::CommaInitializer for diagonal versions of SelfAdjointMatrix and TriangularMatrix.
    */
   template<typename XprType>
   struct DiagonalCommaInitializer
@@ -326,7 +335,7 @@ namespace Eigen
 
 
   /**
-   * Alternative version of CommaInitializer for Covariance and SquareRootCovariance.
+   * \brief Alternative version of Eigen::CommaInitializer for Covariance and SquareRootCovariance.
    */
   template<typename CovarianceType>
   struct CovarianceCommaInitializer

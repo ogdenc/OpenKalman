@@ -8,6 +8,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+/**
+ * \file
+ * \brief Definitions for Eigen3::DiagonalMatrix
+ */
+
 #ifndef OPENKALMAN_EIGEN3_DIAGONALMATRIX_HPP
 #define OPENKALMAN_EIGEN3_DIAGONALMATRIX_HPP
 

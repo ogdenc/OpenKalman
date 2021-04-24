@@ -6,21 +6,23 @@
 # https://creativecommons.org/publicdomain/zero/1.0/
 
 
-find_package(Eigen3 REQUIRED)
-include_directories(SYSTEM ${EIGEN3_INCLUDE_DIRS})
+cmake_minimum_required(VERSION 3.10)
 
-find_package(GTest)
-if (GTest_FOUND)
-    include_directories(SYSTEM ${GTEST_INCLUDE_DIRS})
+find_package(Eigen3 REQUIRED CONFIG)
 
-    add_executable(typed-matrix
-        matrices.cpp
-        matrix.cpp
-        mean.cpp
-        euclidean_mean.cpp
-        matrix-refs.cpp
-        distributions.cpp
-        )
-    target_link_libraries(typed-matrix ${GTEST_BOTH_LIBRARIES} Threads::Threads)
-    add_test(typed-matrix 0)
-ENDIF()
+enable_testing()
+find_package(GTest REQUIRED)
+include(GoogleTest)
+
+add_executable(typed-matrix
+    matrices.cpp
+    matrix.cpp
+    mean.cpp
+    euclidean_mean.cpp
+    matrix-refs.cpp
+    distributions.cpp
+    )
+
+target_link_libraries(typed-matrix ${GTEST_BOTH_LIBRARIES} Eigen3::Eigen Threads::Threads)
+
+gtest_discover_tests(typed-matrix)

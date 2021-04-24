@@ -8,6 +8,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+/**
+ * \file
+ * \brief Overloaded functions relating to Eigen3::euclidean_expr types
+ */
+
 #ifndef OPENKALMAN_EIGEN3_EUCLIDEAN_OVERLOADS_HPP
 #define OPENKALMAN_EIGEN3_EUCLIDEAN_OVERLOADS_HPP
 
@@ -728,6 +733,7 @@ namespace OpenKalman::Eigen3
 
   /**
    * \brief Set element (i, j) of ToEuclideanExpr or FromEuclideanExpr matrix arg if coefficients are only axes.
+   * \param arg The matrix whose element is to be set.
    * \param s A scalar value.
    * \param i An index.
    * \param j An index.
@@ -755,9 +761,10 @@ namespace OpenKalman::Eigen3
 
 
   /**
-   * \brief Set element (i) of ToEuclideanExpr or FromEuclideanExpr matrix arg if coefficients are only axes.
+   * \brief Set an element of ToEuclideanExpr or FromEuclideanExpr matrix arg if coefficients are only axes.
+   * \param arg The matrix whose element is to be set.
    * \param s A scalar value.
-   * \param i An index.
+   * \param i Index of the element.
    */
 #ifdef __cpp_concepts
   template<euclidean_expr Arg, std::convertible_to<typename MatrixTraits<Arg>::Scalar> Scalar> requires

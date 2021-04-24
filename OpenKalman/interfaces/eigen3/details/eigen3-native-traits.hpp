@@ -8,6 +8,12 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+/**
+ * \internal
+ * \file
+ * \brief Native Eigen3 traits for Eigen3 extensions
+ */
+
 #ifndef OPENKALMAN_EIGEN3_NATIVE_TRAITS_HPP
 #define OPENKALMAN_EIGEN3_NATIVE_TRAITS_HPP
 

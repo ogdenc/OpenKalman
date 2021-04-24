@@ -229,7 +229,7 @@ namespace OpenKalman
     }
 
 
-    /// Assign from a compatible \ref typed_matrix_nestable.
+    /// Assign from a compatible \ref OpenKalman::typed_matrix_nestable "typed_matrix_nestable".
 #ifdef __cpp_concepts
     template<typed_matrix_nestable Arg> requires modifiable<NestedMatrix, Arg>
 #else

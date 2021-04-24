@@ -8,6 +8,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+/**
+ * \file
+ * \brief Overloaded functions relating to various Eigen3 types
+ */
+
 #ifndef OPENKALMAN_EIGEN3_MATRIX_OVERLOADS_HPP
 #define OPENKALMAN_EIGEN3_MATRIX_OVERLOADS_HPP
 

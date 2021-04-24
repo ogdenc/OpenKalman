@@ -24,6 +24,7 @@ namespace OpenKalman::internal
 {
 
   /**
+   * \internal
    * \brief Whether transformation T needs an additive correction when F is the transformation function.
    * \details This is true for LinearizedTransform<order> where order >= 2.
    */

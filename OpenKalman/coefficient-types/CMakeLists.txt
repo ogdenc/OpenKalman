@@ -6,14 +6,17 @@
 # https://creativecommons.org/publicdomain/zero/1.0/
 
 
-find_package(GTest)
-if (GTest_FOUND)
-    include_directories(SYSTEM ${GTEST_INCLUDE_DIRS})
+cmake_minimum_required(VERSION 3.10)
 
-    add_executable(coefficients
-            tests/coefficients.cpp
-        tests/coefficient-functions.cpp
-        )
-    target_link_libraries(coefficients ${GTEST_BOTH_LIBRARIES} Threads::Threads)
-    add_test(coefficients 0)
-ENDIF()
+enable_testing()
+find_package(GTest REQUIRED)
+include(GoogleTest)
+
+add_executable(coefficients
+    tests/coefficients.cpp
+    tests/coefficient-functions.cpp
+    )
+
+target_link_libraries(coefficients ${GTEST_BOTH_LIBRARIES} Threads::Threads)
+
+gtest_discover_tests(coefficients)

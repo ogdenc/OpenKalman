@@ -8,6 +8,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+/**
+ * \file
+ * \brief Definitions for Eigen3::ConstantMatrix
+ */
+
 #ifndef OPENKALMAN_EIGEN3_CONSTANTMATRIX_HPP
 #define OPENKALMAN_EIGEN3_CONSTANTMATRIX_HPP
 

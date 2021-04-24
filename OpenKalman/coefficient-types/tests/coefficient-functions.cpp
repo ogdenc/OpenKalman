@@ -13,8 +13,13 @@
  * \brief Tests for coefficient functions
  */
 
-#include <array>
-#include "coefficients.hpp"
+#include <gtest/gtest.h>
+#include "basics/basics.hpp"
+#include "coefficient-types/coefficient-types.hpp"
+
+
+using namespace OpenKalman;
+
 
 
 using std::numbers::pi;
@@ -33,7 +38,7 @@ inline auto g(const Ss...ss)
 }
 
 
-TEST_F(coefficients, toEuclidean_axis_angle)
+TEST(coefficients, toEuclidean_axis_angle)
 {
   EXPECT_NEAR((internal::to_euclidean_coeff<Axis>(0, g(3.))), 3., 1e-6);
   EXPECT_NEAR((internal::to_euclidean_coeff<angle::Radians>(0, g(pi/3))), 0.5, 1e-6);
@@ -58,7 +63,7 @@ TEST_F(coefficients, toEuclidean_axis_angle)
 }
 
 
-TEST_F(coefficients, toEuclidean_distance_inclination)
+TEST(coefficients, toEuclidean_distance_inclination)
 {
   EXPECT_NEAR((internal::to_euclidean_coeff<Distance>(0, g(3.))), 3., 1e-6);
   EXPECT_NEAR((internal::to_euclidean_coeff<Distance>(0, g(-3.))), -3., 1e-6);
@@ -84,7 +89,7 @@ TEST_F(coefficients, toEuclidean_distance_inclination)
 }
 
 
-TEST_F(coefficients, toEuclidean_polar)
+TEST(coefficients, toEuclidean_polar)
 {
   EXPECT_NEAR((internal::to_euclidean_coeff<Polar<Distance, angle::Radians>>(0, g(3., pi/3))), 3., 1e-6);
   EXPECT_NEAR((internal::to_euclidean_coeff<Polar<Distance, angle::Radians>>(1, g(3., pi/3))), 0.5, 1e-6);
@@ -104,7 +109,7 @@ TEST_F(coefficients, toEuclidean_polar)
 }
 
 
-TEST_F(coefficients, toEuclidean_spherical)
+TEST(coefficients, toEuclidean_spherical)
 {
   EXPECT_NEAR((internal::to_euclidean_coeff<Spherical<Distance, angle::Radians, inclination::Radians>>(0, g(2., pi/6, pi/3))), 2., 1e-6);
   EXPECT_NEAR((internal::to_euclidean_coeff<Spherical<Distance, angle::Radians, inclination::Radians>>(1, g(2., pi/6, pi/3))), std::sqrt(3)/4, 1e-6);
@@ -125,7 +130,7 @@ TEST_F(coefficients, toEuclidean_spherical)
 }
 
 
-TEST_F(coefficients, toEuclidean_dynamic)
+TEST(coefficients, toEuclidean_dynamic)
 {
   EXPECT_EQ(internal::to_euclidean_coeff(DynamicCoefficients<int> {Axis {}}, 0, g(3)), 3);
   EXPECT_NEAR((internal::to_euclidean_coeff(DynamicCoefficients<double> {Axis {}}, 0, g(3.))), 3., 1e-6);
@@ -151,7 +156,7 @@ TEST_F(coefficients, toEuclidean_dynamic)
 }
 
 
-TEST_F(coefficients, fromEuclidean_axis_angle)
+TEST(coefficients, fromEuclidean_axis_angle)
 {
   EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Axis>>(0, g(3.))), 3, 1e-6);
   EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Axis>>(0, g(-3.))), -3, 1e-6);
@@ -164,7 +169,7 @@ TEST_F(coefficients, fromEuclidean_axis_angle)
 }
 
 
-TEST_F(coefficients, fromEuclidean_distance_inclination)
+TEST(coefficients, fromEuclidean_distance_inclination)
 {
   EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Distance>>(0, g(3.))), 3, 1e-6);
   EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Distance>>(0, g(-3.))), 3, 1e-6);
@@ -177,7 +182,7 @@ TEST_F(coefficients, fromEuclidean_distance_inclination)
 }
 
 
-TEST_F(coefficients, fromEuclidean_polar)
+TEST(coefficients, fromEuclidean_polar)
 {
   EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Polar<Distance, angle::Radians>>>(0, g(3., 0.5, std::sqrt(3) / 2))), 3., 1e-6);
   EXPECT_NEAR((internal::from_euclidean_coeff<Coefficients<Polar<Distance, angle::Radians>>>(1, g(3., 0.5, std::sqrt(3) / 2))), pi/3, 1e-6);
@@ -190,7 +195,7 @@ TEST_F(coefficients, fromEuclidean_polar)
 }
 
 
-TEST_F(coefficients, fromEuclidean_spherical)
+TEST(coefficients, fromEuclidean_spherical)
 {
   EXPECT_NEAR((internal::from_euclidean_coeff<Spherical<Distance, angle::Radians, inclination::Radians>>(0,
     g(2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2))), 2., 1e-6);
@@ -219,7 +224,7 @@ TEST_F(coefficients, fromEuclidean_spherical)
 }
 
 
-TEST_F(coefficients, fromEuclidean_dynamic)
+TEST(coefficients, fromEuclidean_dynamic)
 {
   EXPECT_NEAR((internal::from_euclidean_coeff(DynamicCoefficients<int> {Axis {}}, 0, g(3))), 3, 1e-6);
   EXPECT_NEAR((internal::from_euclidean_coeff(DynamicCoefficients {Axis {}}, 0, g(3.))), 3., 1e-6);
@@ -238,7 +243,7 @@ TEST_F(coefficients, fromEuclidean_dynamic)
 }
 
 
-TEST_F(coefficients, wrap_get_axis_angle)
+TEST(coefficients, wrap_get_axis_angle)
 {
   EXPECT_NEAR((internal::wrap_get<Coefficients<Axis>>(0, g(3.))), 3., 1e-6);
   EXPECT_NEAR((internal::wrap_get<Coefficients<Axis>>(0, g(-3.))), -3., 1e-6);
@@ -254,7 +259,7 @@ TEST_F(coefficients, wrap_get_axis_angle)
 }
 
 
-TEST_F(coefficients, wrap_get_distance_inclination)
+TEST(coefficients, wrap_get_distance_inclination)
 {
   EXPECT_NEAR((internal::wrap_get<Coefficients<Distance>>(0, g(3.))), 3., 1e-6);
   EXPECT_NEAR((internal::wrap_get<Coefficients<Distance>>(0, g(-3.))), 3., 1e-6);
@@ -269,7 +274,7 @@ TEST_F(coefficients, wrap_get_distance_inclination)
 }
 
 
-TEST_F(coefficients, wrap_get_polar)
+TEST(coefficients, wrap_get_polar)
 {
   EXPECT_NEAR((internal::wrap_get<Coefficients<Axis, Polar<Distance, angle::Radians>>>(0, g(3., -2., 1.1*pi))), 3., 1e-6);
   EXPECT_NEAR((internal::wrap_get<Coefficients<Axis, Polar<Distance, angle::Radians>>>(1, g(3., -2., 1.1*pi))), 2., 1e-6);
@@ -293,7 +298,7 @@ TEST_F(coefficients, wrap_get_polar)
 }
 
 
-TEST_F(coefficients, wrap_get_spherical)
+TEST(coefficients, wrap_get_spherical)
 {
   EXPECT_NEAR((internal::wrap_get<Spherical<Distance, angle::Radians, inclination::Radians>>(0,
     g(2., 1.1*pi, 0.6*pi))), 2., 1e-6);
@@ -319,7 +324,7 @@ TEST_F(coefficients, wrap_get_spherical)
 }
 
 
-TEST_F(coefficients, wrap_get_dynamic)
+TEST(coefficients, wrap_get_dynamic)
 {
   EXPECT_NEAR((internal::wrap_get(DynamicCoefficients<int> {Axis {}}, 0, g(3))), 3, 1e-6);
   EXPECT_NEAR((internal::wrap_get(DynamicCoefficients {Axis {}}, 0, g(3.))), 3., 1e-6);
@@ -338,7 +343,7 @@ TEST_F(coefficients, wrap_get_dynamic)
 }
 
 
-TEST_F(coefficients, wrap_set_axis_angle)
+TEST(coefficients, wrap_set_axis_angle)
 {
   std::array<double, 2> a1 = {0, 0};
   auto set_coeff = [&](const std::size_t i, double s) {a1[i] = s; };
@@ -359,7 +364,7 @@ TEST_F(coefficients, wrap_set_axis_angle)
 }
 
 
-TEST_F(coefficients, wrap_set_distance_inclination)
+TEST(coefficients, wrap_set_distance_inclination)
 {
   std::array<double, 2> a1 = {0, 0};
   auto set_coeff = [&](const std::size_t i, double s) {a1[i] = s; };
@@ -380,7 +385,7 @@ TEST_F(coefficients, wrap_set_distance_inclination)
 }
 
 
-TEST_F(coefficients, wrap_set_polar)
+TEST(coefficients, wrap_set_polar)
 {
   std::array<double, 4> a1 = {0, 0, 0, 0};
   auto set_coeff = [&](const std::size_t i, double s) {a1[i] = s; };
@@ -409,7 +414,7 @@ TEST_F(coefficients, wrap_set_polar)
 }
 
 
-TEST_F(coefficients, wrap_set_spherical)
+TEST(coefficients, wrap_set_spherical)
 {
   std::array<double, 4> a1 = {0, 0, 0, 0};
   auto set_coeff = [&](const std::size_t i, double s) {a1[i] = s; };
@@ -477,7 +482,7 @@ TEST_F(coefficients, wrap_set_spherical)
 }
 
 
-TEST_F(coefficients, wrap_set_dynamic)
+TEST(coefficients, wrap_set_dynamic)
 {
   std::array<double, 4> a1 = {0, 0, 0, 0};
   auto set_coeff = [&](const std::size_t i, double s) {a1[i] = s; };

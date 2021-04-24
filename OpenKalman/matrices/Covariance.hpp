@@ -117,7 +117,7 @@ namespace OpenKalman
 
 
     /**
-     * \brief Construct from another non-square-root \ref covariance.
+     * \brief Construct from another non-square-root \ref OpenKalman::covariance "covariance".
      */
 #ifdef __cpp_concepts
     template<covariance M> requires (not square_root_covariance<M>) and
@@ -130,7 +130,7 @@ namespace OpenKalman
 
 
     /**
-     * \brief Construct from a \ref covariance_nestable.
+     * \brief Construct from a \ref OpenKalman::covariance_nestable "covariance_nestable".
      */
 #ifdef __cpp_concepts
     template<covariance_nestable M> requires std::is_constructible_v<Base, M>
@@ -141,7 +141,7 @@ namespace OpenKalman
 
 
     /**
-     * \brief Construct from a \ref typed_matrix.
+     * \brief Construct from a \ref OpenKalman::typed_matrix "typed_matrix".
      * \details M must be a \ref square_matrix, unless NestedMatrix is a \ref diagonal_matrix in which case M can be
      * a column vector.
      * M is assumed (without enforcement) to be self-adjoint, and the data in only one of the triangles is significant.
@@ -162,7 +162,7 @@ namespace OpenKalman
 
 
     /**
-     * \brief Construct from a \ref typed_matrix_nestable.
+     * \brief Construct from a \ref OpenKalman::typed_matrix_nestable "typed_matrix_nestable".
      * \details M must be a \ref square_matrix, unless NestedMatrix is a \ref diagonal_matrix in which case M can be
      * a column vector.
      * M is assumed (without enforcement) to be self-adjoint, and the data in only one of the triangles is significant.
@@ -244,7 +244,7 @@ namespace OpenKalman
     }
 
 
-    /// Assign from a compatible \ref covariance.
+    /// Assign from a compatible \ref OpenKalman::covariance "covariance".
 #ifdef __cpp_concepts
     template<covariance Arg> requires (not square_root_covariance<Arg>) and
       (not std::derived_from<std::decay_t<Arg>, Covariance>) and
@@ -267,7 +267,10 @@ namespace OpenKalman
     }
 
 
-    /// Assign from a compatible square \ref typed_matrix (assumed, without checking, to be self-adjoint).
+    /**
+     * \brief Assign from a compatible square \ref OpenKalman::typed_matrix "typed_matrix".
+     * \note This assumes, without checking, that it is self-adjoint.
+     */
 #ifdef __cpp_concepts
     template<typed_matrix Arg> requires square_matrix<Arg> and
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients> and
@@ -288,7 +291,7 @@ namespace OpenKalman
     }
 
 
-    /// Assign from a compatible \ref covariance_nestable.
+    /// Assign from a compatible \ref OpenKalman::covariance_nestable "covariance_nestable".
 #ifdef __cpp_concepts
     template<covariance_nestable Arg> requires modifiable<NestedMatrix, Arg>
 #else
@@ -305,7 +308,10 @@ namespace OpenKalman
     }
 
 
-    /// Assign from a compatible \ref typed_matrix_nestable (assumed, without checking, to be self-adjoint).
+    /**
+     * \brief Assign from a compatible square \ref OpenKalman::typed_matrix_nestable "typed_matrix_nestable".
+     * \note This assumes, without checking, that it is self-adjoint.
+     */
 #ifdef __cpp_concepts
     template<typed_matrix_nestable Arg> requires (not covariance_nestable<Arg>) and square_matrix<Arg> and
       modifiable<NestedMatrix, NestedSelfAdjoint>
@@ -325,7 +331,8 @@ namespace OpenKalman
 
 
     /**
-     * \brief Increment by another non-square-root \ref covariance or square \ref typed_matrix.
+     * \brief Increment by another non-square-root \ref OpenKalman::covariance "covariance" or
+     * square \ref OpenKalman::typed_matrix "typed_matrix".
      */
 #ifdef __cpp_concepts
     template<typename Arg> requires (not std::is_const_v<std::remove_reference_t<NestedMatrix>>) and

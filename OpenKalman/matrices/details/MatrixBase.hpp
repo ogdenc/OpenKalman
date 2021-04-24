@@ -9,6 +9,7 @@
  */
 
 /**
+ * \internal
  * \file
  * \brief Definition of MatrixBase.
  */

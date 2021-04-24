@@ -13,10 +13,14 @@
  * \brief Tests for coefficient types
  */
 
-#include "coefficients.hpp"
+#include <gtest/gtest.h>
+#include "basics/basics.hpp"
+#include "coefficient-types/coefficient-types.hpp"
+
+using namespace OpenKalman;
 
 
-TEST_F(coefficients, typedefs)
+TEST(coefficients, typedefs)
 {
   static_assert(Coefficients<Axis, Axis>::dimensions == 2);
   static_assert(Coefficients<Axis, Axis>::euclidean_dimensions == 2);
@@ -28,7 +32,7 @@ TEST_F(coefficients, typedefs)
 }
 
 
-TEST_F(coefficients, prepend_append)
+TEST(coefficients, prepend_append)
 {
   static_assert(std::is_same_v<Coefficients<angle::Radians, Axis>::Prepend<Axis>, Coefficients<Axis, angle::Radians, Axis>>);
   static_assert(!std::is_same_v<Coefficients<Axis, angle::Radians>::Prepend<Axis>, Coefficients<Axis, angle::Radians, Axis>>);
@@ -38,7 +42,7 @@ TEST_F(coefficients, prepend_append)
 }
 
 
-TEST_F(coefficients, Coefficients)
+TEST(coefficients, Coefficients)
 {
   static_assert(std::is_same_v<Coefficients<Axis, angle::Radians, Axis>::Coefficient<0>, Axis>);
   static_assert(std::is_same_v<Coefficients<Axis, angle::Radians, Axis>::Coefficient<1>, angle::Radians>);
@@ -46,7 +50,7 @@ TEST_F(coefficients, Coefficients)
 }
 
 
-TEST_F(coefficients, Take)
+TEST(coefficients, Take)
 {
   // Take
   static_assert(std::is_same_v<Coefficients<>::Take<0>, Coefficients<>>);
@@ -56,7 +60,7 @@ TEST_F(coefficients, Take)
 }
 
 
-TEST_F(coefficients, Discard)
+TEST(coefficients, Discard)
 {
   // Discard
   static_assert(std::is_same_v<Coefficients<Axis>::Discard<0>, Coefficients<Axis>>);
@@ -66,7 +70,7 @@ TEST_F(coefficients, Discard)
 }
 
 
-TEST_F(coefficients, Replicate)
+TEST(coefficients, Replicate)
 {
   // Replicate
   static_assert(std::is_same_v<Replicate<angle::Radians, 0>, Coefficients<>>);
@@ -78,7 +82,7 @@ TEST_F(coefficients, Replicate)
 }
 
 
-TEST_F(coefficients, Concatenate)
+TEST(coefficients, Concatenate)
 {
   // Concatenate
   static_assert(std::is_same_v<Concatenate<Coefficients<>>, Coefficients<>>);
@@ -100,7 +104,7 @@ TEST_F(coefficients, Concatenate)
 }
 
 
-TEST_F(coefficients, equivalent_to)
+TEST(coefficients, equivalent_to)
 {
   static_assert(equivalent_to<Coefficients<>, Coefficients<>>);
   static_assert(equivalent_to<Axis, Axis>);
@@ -120,7 +124,7 @@ TEST_F(coefficients, equivalent_to)
 }
 
 
-TEST_F(coefficients, equal_dynamic)
+TEST(coefficients, equal_dynamic)
 {
   EXPECT_TRUE(DynamicCoefficients {Coefficients<> {}} == DynamicCoefficients {Coefficients<> {}});
   EXPECT_TRUE(DynamicCoefficients {Coefficients<> {}} == DynamicCoefficients {});
@@ -143,7 +147,7 @@ TEST_F(coefficients, equal_dynamic)
 }
 
 
-TEST_F(coefficients, prefix_of)
+TEST(coefficients, prefix_of)
 {
   static_assert(prefix_of<Coefficients<>, Axis>);
   static_assert(prefix_of<Coefficients<>, Coefficients<Axis>>);

@@ -8,6 +8,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+/**
+ * \file
+ * \brief Arithmetic definitions for Eigen3 extensions
+ */
+
 #ifndef OPENKALMAN_EIGEN3_SPECIAL_MATRIX_ARITHMETIC_HPP
 #define OPENKALMAN_EIGEN3_SPECIAL_MATRIX_ARITHMETIC_HPP
 

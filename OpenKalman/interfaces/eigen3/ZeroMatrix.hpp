@@ -8,6 +8,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+/**
+ * \file
+ * \brief Definitions for Eigen3::ZeroMatrix
+ */
+
 #ifndef OPENKALMAN_EIGEN3_ZEROMATRIX_HPP
 #define OPENKALMAN_EIGEN3_ZEROMATRIX_HPP
 
@@ -41,7 +46,7 @@ namespace OpenKalman::Eigen3
 
     public:
 
-      /**
+      /*
        * \brief Construct a ZeroMatrix with dynamic rows and dynamic columns.
        * \param r Number of rows.
        * \param c Number of columns.
@@ -49,15 +54,15 @@ namespace OpenKalman::Eigen3
       ZeroMatrixDynamicBase(std::size_t r, std::size_t c) : rows_ {r}, cols_ {c} {}
 
 
-      /**
+      /*
        * \brief Construct a ZeroMatrix based on the shape of another matrix M.
        * \details This is designed to work with the ZeroMatrix deduction guide.
        * \tparam M The matrix to be used as a shape template. M must have the same shape as the ZeroMatrix.
        */
 #ifdef __cpp_concepts
-      template<eigen_native M>
+      template<typename M> requires (MatrixTraits<M>::rows == 0) and (MatrixTraits<M>::columns == 0)
 #else
-      template<typename M, std::enable_if_t<eigen_native<M>, int> = 0>
+      template<typename M, std::enable_if_t<(MatrixTraits<M>::rows == 0) and (MatrixTraits<M>::columns == 0), int> = 0>
 #endif
       ZeroMatrixDynamicBase(M&& m) : rows_ {m.rows()}, cols_ {m.cols()} {}
 
@@ -91,23 +96,22 @@ namespace OpenKalman::Eigen3
 
     public:
 
-      /**
+      /*
        * \brief Construct a ZeroMatrix with dynamic rows and dynamic columns.
        * \param r Number of rows.
        */
       ZeroMatrixDynamicBase(std::size_t r) : rows_ {r} {}
 
 
-      /**
+      /*
        * \brief Construct a ZeroMatrix based on the shape of another matrix M.
        * \details This is designed to work with the ZeroMatrix deduction guide.
        * \tparam M The matrix to be used as a shape template. M must have the same shape as the ZeroMatrix.
        */
 #ifdef __cpp_concepts
-      template<eigen_native M> requires dynamic_rows<M> and (MatrixTraits<M>::columns == columns)
+      template<typename M> requires dynamic_rows<M> and (MatrixTraits<M>::columns == columns)
 #else
-      template<typename M, std::enable_if_t<
-        eigen_native<M> and dynamic_rows<M> and (MatrixTraits<M>::columns == columns), int> = 0>
+      template<typename M, std::enable_if_t<dynamic_rows<M> and (MatrixTraits<M>::columns == columns), int> = 0>
 #endif
       ZeroMatrixDynamicBase(M&& m) : rows_ {m.rows()} {}
 
@@ -141,23 +145,22 @@ namespace OpenKalman::Eigen3
 
     public:
 
-      /**
+      /*
        * \brief Construct a ZeroMatrix with dynamic rows and dynamic columns.
        * \param c Number of columns.
        */
       ZeroMatrixDynamicBase(std::size_t c) : cols_ {c} {}
 
 
-      /**
+      /*
        * \brief Construct a ZeroMatrix based on the shape of another matrix M.
        * \details This is designed to work with the ZeroMatrix deduction guide.
        * \tparam M The matrix to be used as a shape template. M must have the same shape as the ZeroMatrix.
        */
 #ifdef __cpp_concepts
-      template<eigen_native M> requires (MatrixTraits<M>::rows == rows_) and dynamic_columns<M>
+      template<typename M> requires (MatrixTraits<M>::rows == rows_) and dynamic_columns<M>
 #else
-      template<typename M, std::enable_if_t<
-        eigen_native<M> and (MatrixTraits<M>::rows == rows_) and dynamic_columns<M>, int> = 0>
+      template<typename M, std::enable_if_t<(MatrixTraits<M>::rows == rows_) and dynamic_columns<M>, int> = 0>
 #endif
       ZeroMatrixDynamicBase(M&& m) : cols_ {m.cols()} {}
 
@@ -185,22 +188,22 @@ namespace OpenKalman::Eigen3
       : Eigen3::internal::Eigen3Base<Derived>
     {
 
-      /**
+      /*
        * \brief Default constructor.
        */
       ZeroMatrixDynamicBase() {};
 
 
-      /**
+      /*
        * \brief Construct a ZeroMatrix based on the shape of another matrix M.
        * \details This is designed to work with the ZeroMatrix deduction guide.
        * \tparam M The matrix to be used as a shape template. M must have the same shape as the ZeroMatrix.
        */
 #ifdef __cpp_concepts
-      template<eigen_native M> requires (MatrixTraits<M>::rows == rows_) and (MatrixTraits<M>::columns == columns)
+      template<typename M> requires (MatrixTraits<M>::rows == rows_) and (MatrixTraits<M>::columns == columns)
 #else
       template<typename M, std::enable_if_t<
-        eigen_native<M> and (MatrixTraits<M>::rows == rows_) and (MatrixTraits<M>::columns == columns), int> = 0>
+        (MatrixTraits<M>::rows == rows_) and (MatrixTraits<M>::columns == columns), int> = 0>
 #endif
       ZeroMatrixDynamicBase(M&& m) {}
 
@@ -232,7 +235,34 @@ namespace OpenKalman::Eigen3
 
   public:
 
-    using Base::Base;
+    /**
+     * \brief Construct a ZeroMatrix.
+     * \details The constructor can take a number of arguments representing the number of dynamic dimensions.
+     * For example, ZeroMatrix {2, 3} constructs a 2-by-3 dynamic matrix, ZeroMatrix {3} constructs a
+     * 2-by-3 matrix in which there are two fixed row dimensions and three dynamic column dimensions, and
+     * ZeroMatrix {} constructs a fixed matrix.
+     */
+#ifdef __cpp_concepts
+    template<std::integral ... Args> requires (sizeof...(Args) == (rows == 0 ? 1 : 0) + (columns == 0 ? 1 : 0))
+#else
+    template<typename...Args, std::enable_if_t<(std::is_integral_v<Args> and ...) and
+      (sizeof...(Args) == (rows == 0 ? 1 : 0) + (columns == 0 ? 1 : 0)), int> = 0>
+#endif
+    ZeroMatrix(const Args&... args) : Base {static_cast<std::size_t>(args)...} {}
+
+
+    /**
+     * \brief Construct a ZeroMatrix based on the shape of another matrix.
+     * \tparam M The matrix to be used as a shape template. M must have the same shape as the ZeroMatrix.
+     */
+#ifdef __cpp_concepts
+    template<typename M> requires (MatrixTraits<M>::rows == rows) and (MatrixTraits<M>::columns == columns)
+#else
+    template<typename M, std::enable_if_t<
+      (MatrixTraits<M>::rows == rows) and (MatrixTraits<M>::columns == columns), int> = 0>
+#endif
+    ZeroMatrix(M&& m) : Base {std::forward<M>(m)} {}
+
 
     /**
      * \brief Element accessor.
@@ -413,7 +443,7 @@ namespace OpenKalman::Eigen3
 #else
   template<typename...Ts, typename Arg, std::enable_if_t<eigen_zero_expr<Arg>, int> = 0>
 #endif
-  constexpr decltype(auto)
+  constexpr Arg&&
   make_self_contained(Arg&& arg) noexcept
   {
     return std::forward<Arg>(arg);
@@ -703,9 +733,9 @@ namespace OpenKalman::Eigen3
   }
 
 
-  ///////////////////////////////
+  // ------------------------- //
   //        Arithmetic         //
-  ///////////////////////////////
+  // ------------------------- //
 
 #ifdef __cpp_concepts
   template<eigen_matrix Arg1, eigen_matrix Arg2> requires (zero_matrix<Arg1> or zero_matrix<Arg2>) and
@@ -823,7 +853,7 @@ namespace OpenKalman::Eigen3
   template<typename Arg1, typename Arg2, std::enable_if_t<
     eigen_zero_expr<Arg1> and std::is_arithmetic_v<Arg2>, int> = 0>
   #endif
-  constexpr decltype(auto) operator/(Arg1&& arg1, Arg2&& arg2)
+  constexpr Arg1&& operator/(Arg1&& arg1, Arg2&& arg2)
   {
     if (arg2 == 0) throw std::runtime_error("ZeroMatrix / 0: divide by zero error");
     return std::forward<Arg1>(arg1);
@@ -835,7 +865,7 @@ namespace OpenKalman::Eigen3
 #else
   template<typename Arg, std::enable_if_t<eigen_zero_expr<Arg>, int> = 0>
 #endif
-  constexpr decltype(auto) operator-(Arg&& arg)
+  constexpr Arg&& operator-(Arg&& arg)
   {
     return std::forward<Arg>(arg);
   }
