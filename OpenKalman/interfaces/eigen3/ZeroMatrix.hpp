@@ -243,12 +243,13 @@ namespace OpenKalman::Eigen3
      * ZeroMatrix {} constructs a fixed matrix.
      */
 #ifdef __cpp_concepts
-    template<std::integral ... Args> requires (sizeof...(Args) == (rows == 0 ? 1 : 0) + (columns == 0 ? 1 : 0))
+    template<std::convertible_to<std::size_t> ... Args> requires
+      (sizeof...(Args) == (rows == 0 ? 1 : 0) + (columns == 0 ? 1 : 0))
 #else
-    template<typename...Args, std::enable_if_t<(std::is_integral_v<Args> and ...) and
+    template<typename...Args, std::enable_if_t<(std::is_convertible_v<Args, std::size_t> and ...) and
       (sizeof...(Args) == (rows == 0 ? 1 : 0) + (columns == 0 ? 1 : 0)), int> = 0>
 #endif
-    ZeroMatrix(const Args&... args) : Base {static_cast<std::size_t>(args)...} {}
+    ZeroMatrix(const Args...args) : Base {static_cast<std::size_t>(args)...} {}
 
 
     /**
@@ -331,6 +332,30 @@ namespace OpenKalman::Eigen3
   ZeroMatrix(M&&) -> ZeroMatrix<typename MatrixTraits<M>::Scalar, MatrixTraits<M>::rows, MatrixTraits<M>::columns>;
 
 
+  /**
+   * \brief Make a ZeroMatrix of a given fixed or dynamic shape.
+   * \tparam Scalar The scalar type.
+   * \tparam rows The number of rows (or 0 if the rows are dynamic).
+   * \tparam columns The number of columns (or 0 if the columns are dynamic).
+   * \param arg Row or column (or both) arguments (in that order if both are given) necessary to define any
+   * dynamic dimensions. Unnecessary parameters are discarded.
+   * \return A ZeroMatrix<Scalar, rows, columns>.
+   */
+#ifdef __cpp_concepts
+  template<typename Scalar, std::size_t rows, std::size_t columns, std::convertible_to<std::size_t>...Args> requires
+    (sizeof...(Args) <= 2)
+#else
+  template<typename Scalar, std::size_t rows, std::size_t columns, typename...Args, std::enable_if_t<
+    (std::is_convertible_v<Args, std::size_t> and ... and (sizeof...(Args) <= 2)), int> = 0>
+#endif
+  inline auto make_ZeroMatrix(const Args...args)
+  {
+    constexpr std::size_t arg_count = (rows == 0 ? 1 : 0) + (columns == 0 ? 1 : 0);
+    return std::apply([] (auto...as) {
+      return ZeroMatrix<Scalar, rows, columns> {as...};
+      }, OpenKalman::internal::tuple_slice<0, arg_count>(std::forward_as_tuple(args...)));
+  }
+
 } // OpenKalman::Eigen3
 
 
@@ -382,46 +407,27 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    static auto zero() requires (rows > 0) and (columns > 0)
+    template<std::convertible_to<std::size_t> ... Args> requires
+      (sizeof...(Args) == (rows == 0 ? 1 : 0) + (columns == 0 ? 1 : 0))
 #else
-    template<std::size_t rw = rows_, std::enable_if_t<(rw > 0) and (columns > 0), int> = 0>
-    static auto zero()
+    template<typename...Args, std::enable_if_t<(std::is_convertible_v<Args, std::size_t> and ...) and
+      (sizeof...(Args) == (rows == 0 ? 1 : 0) + (columns == 0 ? 1 : 0)), int> = 0>
 #endif
+    static auto zero(const Args...args)
     {
-      return Eigen3::ZeroMatrix<Scalar, rows, columns> {};
+      return Eigen3::ZeroMatrix<Scalar, rows, columns> {static_cast<std::size_t>(args)...};
     }
 
 
 #ifdef __cpp_concepts
-    static auto zero(std::size_t r, std::size_t c) requires (rows == 0) or (columns == 0)
+    template<std::convertible_to<Eigen::Index> ... Args> requires (sizeof...(Args) == (rows == 0 ? 1 : 0))
 #else
-    template<std::size_t rw = rows_, std::enable_if_t<(rw == 0) or (columns == 0), int> = 0>
-    static auto zero(std::size_t r, std::size_t c)
+    template<typename...Args, std::enable_if_t<(std::is_convertible_v<Args, Eigen::Index> and ...) and
+      (sizeof...(Args) == (rows == 0 ? 1 : 0)), int> = 0>
 #endif
+    static auto identity(const Args...args)
     {
-      return Eigen3::ZeroMatrix<Scalar, rows, columns> {r, c};
-    }
-
-
-#ifdef __cpp_concepts
-    static auto identity() requires (rows > 0)
-#else
-    template<std::size_t rw = rows_, std::enable_if_t<(rw > 0), int> = 0>
-    static auto identity()
-#endif
-    {
-      return Nat<Scalar, rows, rows>::Identity();
-    }
-
-
-#ifdef __cpp_concepts
-    static auto identity(std::size_t i) requires (rows == 0)
-#else
-    template<std::size_t rw = rows_, std::enable_if_t<(rw == 0), int> = 0>
-    static auto identity(std::size_t i)
-#endif
-    {
-      return Nat<Scalar, 0, 0>::Identity(i, i);
+      return Nat<Scalar, rows, rows>::Identity(static_cast<Eigen::Index>(args)..., static_cast<Eigen::Index>(args)...);
     }
 
 
@@ -429,448 +435,5 @@ namespace OpenKalman
 
 } // namespace OpenKalman
 
-
-namespace OpenKalman::Eigen3
-{
-
-  // ----------- //
-  //  Overloads  //
-  // ----------- //
-
-  /// Convert to self-contained version of the matrix.
-#ifdef __cpp_concepts
-  template<typename...Ts, eigen_zero_expr Arg>
-#else
-  template<typename...Ts, typename Arg, std::enable_if_t<eigen_zero_expr<Arg>, int> = 0>
-#endif
-  constexpr Arg&&
-  make_self_contained(Arg&& arg) noexcept
-  {
-    return std::forward<Arg>(arg);
-  }
-
-
-#ifdef __cpp_concepts
-  template<eigen_zero_expr Arg>
-#else
-  template<typename Arg, std::enable_if_t<eigen_zero_expr<Arg>, int> = 0>
-#endif
-  constexpr std::size_t row_count(Arg&& arg)
-  {
-    if constexpr (dynamic_rows<Arg>)
-      return arg.rows();
-    else
-      return MatrixTraits<Arg>::rows;
-  }
-
-
-#ifdef __cpp_concepts
-  template<eigen_zero_expr Arg>
-#else
-  template<typename Arg, std::enable_if_t<eigen_zero_expr<Arg>, int> = 0>
-#endif
-  constexpr std::size_t column_count(Arg&& arg)
-  {
-    if constexpr (dynamic_columns<Arg>)
-      return arg.cols();
-    else
-      return MatrixTraits<Arg>::columns;
-  }
-
-
-#ifdef __cpp_concepts
-  template<eigen_zero_expr Arg> requires column_vector<Arg>
-#else
-  template<typename Arg, std::enable_if_t<eigen_zero_expr<Arg> and column_vector<Arg>, int> = 0>
-#endif
-  inline auto
-  to_diagonal(Arg&& arg) noexcept
-  {
-    using Scalar = typename MatrixTraits<Arg>::Scalar;
-    if constexpr (dynamic_rows<Arg>)
-    {
-      const std::size_t dim = row_count(arg);
-      return ZeroMatrix<Scalar, 0, 0>(dim, dim);
-    }
-    else
-    {
-      constexpr auto dim = MatrixTraits<Arg>::rows;
-      return ZeroMatrix<Scalar, dim, dim>();
-    }
-  }
-
-
-#ifdef __cpp_concepts
-  template<eigen_zero_expr Arg> requires dynamic_shape<Arg> or square_matrix<Arg>
-#else
-  template<typename Arg, std::enable_if_t<eigen_zero_expr<Arg> and
-    (dynamic_shape<Arg> or square_matrix<Arg>), int> = 0>
-#endif
-  inline auto
-  diagonal_of(Arg&& arg) noexcept
-  {
-    using Scalar = typename MatrixTraits<Arg>::Scalar;
-    if constexpr (dynamic_rows<Arg>)
-    {
-      return ZeroMatrix<Scalar, 0, 1> {row_count(arg)};
-    }
-    else
-    {
-      return ZeroMatrix<Scalar, MatrixTraits<Arg>::rows, 1> {};
-    }
-  }
-
-
-#ifdef __cpp_concepts
-  template<eigen_zero_expr Arg>
-#else
-  template<typename Arg, std::enable_if_t<eigen_zero_expr<Arg>, int> = 0>
-#endif
-  constexpr decltype(auto)
-  transpose(Arg&& arg) noexcept
-  {
-    using Scalar = typename MatrixTraits<Arg>::Scalar;
-    if constexpr (dynamic_rows<Arg> and dynamic_columns<Arg>)
-    {
-      return ZeroMatrix<Scalar, 0, 0> {column_count(arg), row_count(arg)};
-    }
-    else if constexpr (dynamic_rows<Arg> and not dynamic_columns<Arg>)
-    {
-      constexpr auto cols = MatrixTraits<Arg>::columns;
-      return ZeroMatrix<Scalar, cols, 0> {cols, row_count(arg)};
-    }
-    else if constexpr (not dynamic_rows<Arg> and dynamic_columns<Arg>)
-    {
-      constexpr auto rows = MatrixTraits<Arg>::rows;
-      return ZeroMatrix<Scalar, 0, rows> {column_count(arg), rows};
-    }
-    else // if constexpr (not dynamic_rows<Arg> and not dynamic_columns<Arg>)
-    {
-      constexpr auto rows = MatrixTraits<Arg>::rows;
-      constexpr auto cols = MatrixTraits<Arg>::columns;
-      if constexpr (rows == cols)
-        return std::forward<Arg>(arg);
-      else
-        return ZeroMatrix<Scalar, cols, rows> {};
-    }
-  }
-
-
-#ifdef __cpp_concepts
-  template<eigen_zero_expr Arg>
-#else
-  template<typename Arg, std::enable_if_t<eigen_zero_expr<Arg>, int> = 0>
-#endif
-  constexpr decltype(auto)
-  adjoint(Arg&& arg) noexcept
-  {
-    return transpose(std::forward<Arg>(arg));
-  }
-
-
-#ifdef __cpp_concepts
-  template<eigen_zero_expr Arg> requires dynamic_shape<Arg> or square_matrix<Arg>
-#else
-  template<typename Arg, std::enable_if_t<eigen_zero_expr<Arg> and
-    (dynamic_shape<Arg> or square_matrix<Arg>), int> = 0>
-#endif
-  constexpr auto
-  determinant(Arg&& arg) noexcept
-  {
-    return static_cast<typename MatrixTraits<Arg>::Scalar>(0);
-  }
-
-
-#ifdef __cpp_concepts
-  template<eigen_zero_expr Arg> requires dynamic_shape<Arg> or square_matrix<Arg>
-#else
-  template<typename Arg, std::enable_if_t<eigen_zero_expr<Arg> and
-    (dynamic_shape<Arg> or square_matrix<Arg>), int> = 0>
-#endif
-  constexpr auto
-  trace(Arg&& arg) noexcept
-  {
-    return static_cast<typename MatrixTraits<Arg>::Scalar>(0);
-  }
-
-
-  /// Create a column vector by taking the mean of each row in a set of column vectors.
-#ifdef __cpp_concepts
-  template<eigen_zero_expr Arg>
-#else
-  template<typename Arg, std::enable_if_t<eigen_zero_expr<Arg>, int> = 0>
-#endif
-  constexpr decltype(auto)
-  reduce_columns(Arg&& arg) noexcept
-  {
-    using Scalar = typename MatrixTraits<Arg>::Scalar;
-    if constexpr (column_vector<Arg>)
-    {
-      return std::forward<Arg>(arg);
-    }
-    else if constexpr (dynamic_rows<Arg>)
-    {
-      return ZeroMatrix<Scalar, 0, 1> {row_count(arg)};
-    }
-    else
-    {
-      constexpr auto rows = MatrixTraits<Arg>::rows;
-      return ZeroMatrix<Scalar, rows, 1> {};
-    }
-  }
-
-
-  /**
-   * Perform an LQ decomposition of matrix A=[L,0]Q, L is a lower-triangular matrix, and Q is orthogonal.
-   * Returns L as a lower-triangular matrix.
-   */
-#ifdef __cpp_concepts
-  template<eigen_zero_expr A>
-#else
-  template<typename A, std::enable_if_t<eigen_zero_expr<A>, int> = 0>
-#endif
-  inline auto
-  LQ_decomposition(A&& a)
-  {
-    using Scalar = typename MatrixTraits<A>::Scalar;
-    if constexpr (dynamic_rows<A>)
-    {
-      auto dim = row_count(a);
-      return ZeroMatrix<Scalar, 0, 0> {dim, dim};
-    }
-    else
-    {
-      constexpr auto dim = MatrixTraits<A>::rows;
-      return ZeroMatrix<Scalar, dim, dim> {};
-    }
-  }
-
-
-  /**
-   * Perform a QR decomposition of matrix A=Q[U,0], U is a upper-triangular matrix, and Q is orthogonal.
-   * Returns U as an upper-triangular matrix.
-   */
-#ifdef __cpp_concepts
-  template<eigen_zero_expr A>
-#else
-  template<typename A, std::enable_if_t<eigen_zero_expr<A>, int> = 0>
-#endif
-  inline auto
-  QR_decomposition(A&& a)
-  {
-    using Scalar = typename MatrixTraits<A>::Scalar;
-    if constexpr (dynamic_columns<A>)
-    {
-      auto dim = column_count(a);
-      return ZeroMatrix<Scalar, 0, 0> {dim, dim};
-    }
-    else
-    {
-      constexpr auto dim = MatrixTraits<A>::columns;
-      return ZeroMatrix<Scalar, dim, dim> {};
-    }
-  }
-
-
-  /// Get an element of a ZeroMatrix matrix. Always 0.
-#ifdef __cpp_concepts
-  template<eigen_zero_expr Arg>
-#else
-  template<typename Arg, std::enable_if_t<eigen_zero_expr<Arg>, int> = 0>
-#endif
-  constexpr auto
-  get_element(const Arg& arg, const std::size_t row, const std::size_t col)
-  {
-    assert(row < row_count(arg));
-    assert(col < column_count(arg));
-    return static_cast<typename MatrixTraits<Arg>::Scalar>(0);
-  }
-
-
-  /// Get an element of a one-column ZeroMatrix matrix. Always 0.
-#ifdef __cpp_concepts
-  template<eigen_zero_expr Arg> requires column_vector<Arg>
-#else
-  template<typename Arg, std::enable_if_t<eigen_zero_expr<Arg> and column_vector<Arg>, int> = 0>
-#endif
-  constexpr auto
-  get_element(const Arg& arg, const std::size_t row)
-  {
-    assert(row < row_count(arg));
-    return static_cast<typename MatrixTraits<Arg>::Scalar>(0);
-  }
-
-
-  /// Return column <code>index</code> of Arg.
-#ifdef __cpp_concepts
-  template<eigen_zero_expr Arg>
-#else
-  template<typename Arg, std::enable_if_t<eigen_zero_expr<Arg>, int> = 0>
-#endif
-  inline auto
-  column(Arg&& arg, const std::size_t index)
-  {
-    assert(index < column_count(arg));
-    return reduce_columns(std::forward<Arg>(arg));
-  }
-
-
-  /// Return column <code>index</code> of Arg. Constexpr index version.
-#ifdef __cpp_concepts
-  template<std::size_t index, eigen_zero_expr Arg> requires (not dynamic_columns<Arg>) and
-    (index < MatrixTraits<Arg>::columns)
-#else
-  template<std::size_t index, typename Arg, std::enable_if_t<
-    eigen_zero_expr<Arg> and (not dynamic_columns<Arg>) and (index < MatrixTraits<Arg>::columns), int> = 0>
-#endif
-  inline decltype(auto)
-  column(Arg&& arg)
-  {
-    if constexpr(column_vector<Arg>)
-      return std::forward<Arg>(arg);
-    else
-      return reduce_columns(std::forward<Arg>(arg));
-  }
-
-
-  // ------------------------- //
-  //        Arithmetic         //
-  // ------------------------- //
-
-#ifdef __cpp_concepts
-  template<eigen_matrix Arg1, eigen_matrix Arg2> requires (zero_matrix<Arg1> or zero_matrix<Arg2>) and
-    (dynamic_rows<Arg1> or dynamic_rows<Arg2> or MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows) and
-    (dynamic_columns<Arg1> or dynamic_columns<Arg2> or MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns)
-#else
-  template<typename Arg1, typename Arg2, std::enable_if_t<
-    eigen_matrix<Arg1> and eigen_matrix<Arg2> and (zero_matrix<Arg1> or zero_matrix<Arg2>) and
-    (dynamic_rows<Arg1> or dynamic_rows<Arg2> or MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows) and
-    (dynamic_columns<Arg1> or dynamic_columns<Arg2> or MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns),
-    int> = 0>
-#endif
-  constexpr decltype(auto) operator+(Arg1&& arg1, Arg2&& arg2)
-  {
-    if constexpr (zero_matrix<Arg2>)
-    {
-      return std::forward<Arg1>(arg1);
-    }
-    else
-    {
-      static_assert((zero_matrix<Arg1>));
-      return std::forward<Arg2>(arg2);
-    }
-  }
-
-
-#ifdef __cpp_concepts
-  template<eigen_matrix Arg1, eigen_matrix Arg2> requires (zero_matrix<Arg1> or zero_matrix<Arg2>) and
-    (dynamic_rows<Arg1> or dynamic_rows<Arg2> or MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows) and
-    (dynamic_columns<Arg1> or dynamic_columns<Arg2> or MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns)
-#else
-  template<typename Arg1, typename Arg2, std::enable_if_t<
-    eigen_matrix<Arg1> and eigen_matrix<Arg2> and (zero_matrix<Arg1> or zero_matrix<Arg2>) and
-    (dynamic_rows<Arg1> or dynamic_rows<Arg2> or MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows) and
-    (dynamic_columns<Arg1> or dynamic_columns<Arg2> or MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns),
-    int> = 0>
-#endif
-  constexpr decltype(auto) operator-(Arg1&& arg1, Arg2&& arg2)
-  {
-    if constexpr(zero_matrix<Arg2>)
-    {
-      return std::forward<Arg1>(arg1);
-    }
-    else
-    {
-      static_assert((zero_matrix<Arg1>));
-      return -std::forward<Arg2>(arg2);
-    }
-  }
-
-
-#ifdef __cpp_concepts
-  template<eigen_matrix Arg1, eigen_matrix Arg2> requires (zero_matrix<Arg1> or zero_matrix<Arg2>) and
-    (dynamic_rows<Arg1> or dynamic_rows<Arg2> or MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::rows)
-#else
-  template<typename Arg1, typename Arg2, std::enable_if_t<
-    eigen_matrix<Arg1> and eigen_matrix<Arg2> and (zero_matrix<Arg1> or zero_matrix<Arg2>) and
-    (dynamic_rows<Arg1> or dynamic_rows<Arg2> or MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::rows), int> = 0>
-#endif
-  inline auto operator*(const Arg1& arg1, const Arg2& arg2)
-  {
-    using Scalar = typename MatrixTraits<Arg1>::Scalar;
-    constexpr auto rows = MatrixTraits<Arg1>::rows;
-    constexpr auto cols = MatrixTraits<Arg2>::columns;
-    if constexpr (dynamic_rows<Arg1> and dynamic_columns<Arg2>)
-    {
-      return ZeroMatrix<Scalar, 0, 0> {row_count(arg1), column_count(arg2)};
-    }
-    else if constexpr (dynamic_rows<Arg1> and not dynamic_columns<Arg2>)
-    {
-      return ZeroMatrix<Scalar, rows, cols> {row_count(arg1)};
-    }
-    else if constexpr (not dynamic_rows<Arg1> and dynamic_columns<Arg2>)
-    {
-      return ZeroMatrix<Scalar, rows, cols> {column_count(arg2)};
-    }
-    else
-    {
-      static_assert((not dynamic_rows<Arg1> and not dynamic_columns<Arg2>));
-      return ZeroMatrix<Scalar, rows, cols> {};
-    }
-  }
-
-
-#ifdef __cpp_concepts
-  template<typename Arg1, typename Arg2> requires (eigen_zero_expr<Arg1> and std::is_arithmetic_v<Arg2>) or
-    (std::is_arithmetic_v<Arg1> and eigen_zero_expr<Arg2>)
-#else
-  template<typename Arg1, typename Arg2, std::enable_if_t<(eigen_zero_expr<Arg1> and std::is_arithmetic_v<Arg2>) or
-    (std::is_arithmetic_v<Arg1> and eigen_zero_expr<Arg2>), int> = 0>
-#endif
-  constexpr decltype(auto) operator*(Arg1&& arg1, Arg2&& arg2)
-  {
-    if constexpr(eigen_zero_expr<Arg1>)
-    {
-      return std::forward<Arg1>(arg1);
-    }
-    else
-    {
-      return std::forward<Arg2>(arg2);
-    }
-  }
-
-
-
-  /**
-   * \brief Divide an \ref eigen_zero_expr by a scalar.
-   * \tparam Arg1 An \ref eigen_zero_expr.
-   * \tparam Arg2 An arithmetic scalar type.
-   * \return If it does not throw a divide-by-zero exception, the result will be \ref eigen_zero_expr.
-   */
-  #ifdef __cpp_concepts
-  template<typename Arg1, typename Arg2> requires eigen_zero_expr<Arg1> and std::is_arithmetic_v<Arg2>
-  #else
-  template<typename Arg1, typename Arg2, std::enable_if_t<
-    eigen_zero_expr<Arg1> and std::is_arithmetic_v<Arg2>, int> = 0>
-  #endif
-  constexpr Arg1&& operator/(Arg1&& arg1, Arg2&& arg2)
-  {
-    if (arg2 == 0) throw std::runtime_error("ZeroMatrix / 0: divide by zero error");
-    return std::forward<Arg1>(arg1);
-  }
-
-
-#ifdef __cpp_concepts
-  template<eigen_zero_expr Arg>
-#else
-  template<typename Arg, std::enable_if_t<eigen_zero_expr<Arg>, int> = 0>
-#endif
-  constexpr Arg&& operator-(Arg&& arg)
-  {
-    return std::forward<Arg>(arg);
-  }
-
-
-}
 
 #endif //OPENKALMAN_EIGEN3_ZEROMATRIX_HPP

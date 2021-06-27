@@ -76,10 +76,10 @@ namespace Eigen::internal
     {
       Flags = NoPreferredStorageOrderBit | EvalBeforeNestingBit | LinearAccessBit |
         (packet_traits<Scalar>::Vectorizable ? PacketAccessBit : 0),
-      RowsAtCompileTime = rows,
-      MaxRowsAtCompileTime = rows,
-      ColsAtCompileTime = cols,
-      MaxColsAtCompileTime = cols
+      RowsAtCompileTime = (rows == 0 ? Eigen::Dynamic : (Eigen::Index) rows),
+      MaxRowsAtCompileTime = RowsAtCompileTime,
+      ColsAtCompileTime = (cols == 0 ? Eigen::Dynamic : (Eigen::Index) cols),
+      MaxColsAtCompileTime = ColsAtCompileTime
     };
   };
 
@@ -95,10 +95,10 @@ namespace Eigen::internal
     {
       Flags = NoPreferredStorageOrderBit | EvalBeforeNestingBit | LinearAccessBit |
         (packet_traits<Scalar>::Vectorizable ? PacketAccessBit : 0),
-      RowsAtCompileTime = rows,
-      MaxRowsAtCompileTime = rows,
-      ColsAtCompileTime = cols,
-      MaxColsAtCompileTime = cols
+      RowsAtCompileTime = (rows == 0 ? Eigen::Dynamic : (Eigen::Index) rows),
+      MaxRowsAtCompileTime = RowsAtCompileTime,
+      ColsAtCompileTime = (cols == 0 ? Eigen::Dynamic : (Eigen::Index) cols),
+      MaxColsAtCompileTime = ColsAtCompileTime
     };
   };
 
@@ -143,51 +143,63 @@ namespace Eigen::internal
   };
 
 
-  template<typename Coefficients, typename ArgType>
-  struct traits<OpenKalman::Eigen3::ToEuclideanExpr<Coefficients, ArgType>> : traits<std::decay_t<ArgType>>
+  template<typename Coeffs, typename ArgType>
+  struct traits<OpenKalman::Eigen3::ToEuclideanExpr<Coeffs, ArgType>> : traits<std::decay_t<ArgType>>
   {
     using Nested = std::decay_t<ArgType>;
     using NestedTraits = traits<Nested>;
     enum
     {
-      Flags = Coefficients::axes_only ?
-        NestedTraits::Flags :
-        ColMajor | (NestedTraits::ColsAtCompileTime == 1 ? LinearAccessBit : 0),
-      RowsAtCompileTime = static_cast<Index>(Coefficients::euclidean_dimensions),
+      Flags = Coeffs::axes_only ?
+              NestedTraits::Flags :
+              NestedTraits::Flags & (~DirectAccessBit) & (~PacketAccessBit) & (~LvalueBit) &
+                (~(OpenKalman::MatrixTraits<ArgType>::columns == 1 ? 0 : LinearAccessBit)),
+      RowsAtCompileTime = [] {
+        if constexpr (OpenKalman::dynamic_coefficients<Coeffs>) return Eigen::Dynamic;
+        else return static_cast<Index>(Coeffs::euclidean_dimensions);
+      }(),
       MaxRowsAtCompileTime = RowsAtCompileTime,
     };
   };
 
 
-  template<typename Coefficients, typename ArgType>
-  struct traits<OpenKalman::Eigen3::FromEuclideanExpr<Coefficients, ArgType>> : traits<std::decay_t<ArgType>>
+  template<typename Coeffs, typename ArgType>
+  struct traits<OpenKalman::Eigen3::FromEuclideanExpr<Coeffs, ArgType>> : traits<std::decay_t<ArgType>>
   {
     using Nested = std::decay_t<ArgType>;
     using NestedTraits = traits<Nested>;
     enum
     {
-      Flags = Coefficients::axes_only ?
-        NestedTraits::Flags :
-        ColMajor | (NestedTraits::ColsAtCompileTime == 1 ? LinearAccessBit : 0),
-      RowsAtCompileTime = static_cast<Index>(Coefficients::dimensions),
+      Flags = Coeffs::axes_only ?
+              NestedTraits::Flags :
+              NestedTraits::Flags & (~DirectAccessBit) & (~PacketAccessBit) & (~LvalueBit) &
+                (~(OpenKalman::MatrixTraits<ArgType>::columns == 1 ? 0 : LinearAccessBit)),
+      RowsAtCompileTime = [] {
+        if constexpr (OpenKalman::dynamic_coefficients<Coeffs>) return Eigen::Dynamic;
+        else return static_cast<Index>(Coeffs::dimensions);
+      }(),
       MaxRowsAtCompileTime = RowsAtCompileTime,
     };
   };
 
 
-  template<typename Coefficients, typename ArgType>
+  template<typename Coeffs, typename ArgType>
   struct traits<
-    OpenKalman::Eigen3::FromEuclideanExpr<Coefficients, OpenKalman::Eigen3::ToEuclideanExpr<Coefficients, ArgType>>>
+    OpenKalman::Eigen3::FromEuclideanExpr<Coeffs, OpenKalman::Eigen3::ToEuclideanExpr<Coeffs, ArgType>>>
       : traits<std::decay_t<ArgType>>
   {
     using Nested = std::decay_t<ArgType>;
     using NestedTraits = traits<Nested>;
     enum
     {
-      Flags = (NestedTraits::ColsAtCompileTime == 1 ? LinearAccessBit : 0) | (Coefficients::axes_only ?
-        NestedTraits::Flags :
-        (unsigned int) ColMajor),
-      RowsAtCompileTime = static_cast<Index>(Coefficients::dimensions),
+      Flags = Coeffs::axes_only ?
+              NestedTraits::Flags :
+              NestedTraits::Flags & (~DirectAccessBit) & (~PacketAccessBit) & (~LvalueBit) &
+                (~(OpenKalman::MatrixTraits<ArgType>::columns == 1 ? 0 : LinearAccessBit)),
+      RowsAtCompileTime = [] {
+        if constexpr (OpenKalman::dynamic_coefficients<Coeffs>) return Eigen::Dynamic;
+        else return static_cast<Index>(Coeffs::dimensions);
+      }(),
       MaxRowsAtCompileTime = RowsAtCompileTime,
     };
   };

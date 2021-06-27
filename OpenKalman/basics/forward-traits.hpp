@@ -17,6 +17,7 @@
 #define OPENKALMAN_FORWARD_TRAITS_HPP
 
 #include <type_traits>
+#include <complex>
 
 
 /**
@@ -31,6 +32,74 @@
 
 namespace OpenKalman
 {
+  // --------------------- //
+  //    algebraic_field    //
+  // --------------------- //
+
+#ifndef __cpp_concepts
+  namespace detail
+  {
+    template<typename T, typename = void>
+    struct is_algebraic_field : std::false_type {};
+
+
+    template<typename T>
+    struct is_algebraic_field<T, std::enable_if_t<
+      std::is_convertible_v<decltype(std::declval<T>() + std::declval<T>()), const std::decay_t<T>> and
+      std::is_convertible_v<decltype(std::declval<T>() - std::declval<T>()), const std::decay_t<T>> and
+      std::is_convertible_v<decltype(std::declval<T>() * std::declval<T>()), const std::decay_t<T>> and
+      std::is_convertible_v<decltype(std::declval<T>() / std::declval<T>()), const std::decay_t<T>>>> : std::true_type {};
+  }
+#endif
+
+
+  /**
+   * \brief T is an algebraic field (i.e., + - * and / are defined).
+   * \details OpenKalman presumes that elements of an algebraic field may be the entries of a matrix.
+   * This includes integral, floating point, and complex values.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept algebraic_ring =
+    requires(T t1, T t2) { {t1 + t2} -> std::convertible_to<const std::decay_t<T>>; } and
+    requires(T t1, T t2) { {t1 - t2} -> std::convertible_to<const std::decay_t<T>>; } and
+    requires(T t1, T t2) { {t1 * t2} -> std::convertible_to<const std::decay_t<T>>; } and
+    requires(T t1, T t2) { {t1 / t2} -> std::convertible_to<const std::decay_t<T>>; };
+#else
+  inline constexpr bool algebraic_field = detail::is_algebraic_field<std::decay_t<T>>::value;
+#endif
+
+
+  // -------------------- //
+  //    complex_number    //
+  // -------------------- //
+
+  namespace internal
+  {
+#ifdef __cpp_concepts
+    template<typename T>
+#else
+    template<typename T, typename = void>
+#endif
+    struct is_complex_number : std::false_type {};
+
+
+    template<typename T>
+    struct is_complex_number<std::complex<T>> : std::true_type {};
+  }
+
+
+  /**
+   * \brief T is a std::complex.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept complex_number = internal::is_complex_number<std::decay_t<T>>::value;
+#else
+  inline constexpr bool complex_number = internal::is_complex_number<std::decay_t<T>>::value;
+#endif
+
+
   // ---------------- //
   //   Coefficients   //
   // ---------------- //
@@ -249,9 +318,9 @@ namespace OpenKalman
 #endif
 
 
-  // ----------------------- //
+  // --------------------------- //
   //    typed_matrix_nestable    //
-  // ----------------------- //
+  // --------------------------- //
 
   namespace internal
   {
@@ -1034,9 +1103,9 @@ namespace OpenKalman
 #endif
 
 
-  // --------------------- //
-  //  is_element_gettable  //
-  // --------------------- //
+  // ------------------ //
+  //  element_gettable  //
+  // ------------------ //
 
   namespace internal
   {
@@ -1066,9 +1135,9 @@ namespace OpenKalman
 #endif
 
 
-  // --------------------- //
-  //  is_element_settable  //
-  // --------------------- //
+  // ------------------ //
+  //  element_settable  //
+  // ------------------ //
 
   namespace internal
   {
@@ -1085,6 +1154,7 @@ namespace OpenKalman
     struct is_element_settable : std::false_type {};
 #endif
   }
+
 
   /**
    * \brief Specifies that a type has elements that can be set with N number of indices.

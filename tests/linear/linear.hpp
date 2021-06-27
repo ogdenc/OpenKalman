@@ -11,7 +11,11 @@
 #ifndef LINEAR_TESTS_HPP
 #define LINEAR_TESTS_HPP
 
-#include "../tests.hpp"
+#include <tuple>
+#include <gtest/gtest.h>
+#include "OpenKalman-Eigen3.hpp"
+
+#include "basics/tests/tests.hpp"
 
 using namespace OpenKalman;
 
@@ -47,7 +51,7 @@ public:
     auto [a] = g.jacobian(x);
     auto cross_cov = p*adjoint(a);
     auto jacobians = g.jacobian(x, mean_of(noise)...);
-    auto covariances = std::forward_as_tuple(p, covariance_of(noise)...);
+    auto covariances = std::tuple {p, covariance_of(noise)...};
     auto cov = sumprod(jacobians, covariances, std::make_index_sequence<sizeof...(Noise) + 1>{});
     std::tuple out_true {GaussianDistribution {y, cov}, cross_cov};
     auto out = t.transform_with_cross_covariance(in, g, noise...);
@@ -73,7 +77,7 @@ public:
     auto [a] = g.jacobian(x);
     auto cross_cov = p*adjoint(a);
     auto jacobians = g.jacobian(x, mean_of(noise)...);
-    auto covariances = std::forward_as_tuple(p, covariance_of(noise)...);
+    auto covariances = std::tuple {p, covariance_of(noise)...};
     auto cov = sumprod(jacobians, covariances, std::make_index_sequence<sizeof...(Noise) + 1>{});
     std::tuple out_true {GaussianDistribution {y, cov}, cross_cov};
     auto out = t.transform_with_cross_covariance(in, noise...);

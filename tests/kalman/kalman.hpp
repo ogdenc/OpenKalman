@@ -11,8 +11,14 @@
 #ifndef KALMAN_TESTS_HPP
 #define KALMAN_TESTS_HPP
 
-#include "../tests.hpp"
-#include "../test-transformations.hpp"
+#include <tuple>
+#include <iostream>
+#include <random>
+#include <gtest/gtest.h>
+#include "OpenKalman-Eigen3.hpp"
+
+#include "basics/tests/tests.hpp"
+#include "basics/tests/test-transformations.hpp"
 
 
 using namespace OpenKalman;

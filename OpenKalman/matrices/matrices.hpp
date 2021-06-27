@@ -22,7 +22,10 @@
 #ifndef OPENKALMAN_MATRICES_HPP
 #define OPENKALMAN_MATRICES_HPP
 
-#include "details/ElementSetter.hpp"
+#include "basics/basics.hpp"
+#include "coefficient-types/coefficient-types.hpp"
+
+#include "details/ElementAccessor.hpp"
 //
 #include "details/MatrixBase.hpp"
 #include "details/TypedMatrixBase.hpp"
@@ -33,7 +36,13 @@
 #include "details/typed-matrix-arithmetic.hpp"
 //
 #include "details/to_covariance_nestable.hpp"
-#include "details/CovarianceBase.hpp"
+#include "details/CovarianceBase1.hpp"
+#include "details/CovarianceBase2.hpp"
+#include "details/CovarianceBase3Impl.hpp"
+#include "details/CovarianceBase3-1.hpp"
+#include "details/CovarianceBase3-2.hpp"
+#include "details/CovarianceBase4.hpp"
+#include "details/CovarianceImpl.hpp"
 #include "Covariance.hpp"
 #include "SquareRootCovariance.hpp"
 #include "details/covariance-overloads.hpp"

@@ -13,8 +13,8 @@ find_package(GTest REQUIRED)
 include(GoogleTest)
 
 add_executable(coefficients
-    tests/coefficients.cpp
-    tests/coefficient-functions.cpp
+        coefficients.cpp
+        coefficient-functions.cpp
     )
 
 target_link_libraries(coefficients ${GTEST_BOTH_LIBRARIES} Threads::Threads)

@@ -22,9 +22,12 @@
 
 namespace OpenKalman
 {
-  template<typename Scalar>
+  template<typename Scalar_>
   struct DynamicCoefficients
   {
+    /// The scalar type of the coefficients
+    using Scalar = Scalar_;
+
     /// The number of dimensions at runtime.
     const std::size_t dimensions;
 
@@ -193,8 +196,8 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<dynamic_coefficients Coeffs, std::invocable<const std::size_t> F>
-    requires std::is_arithmetic_v<std::invoke_result_t<F, const std::size_t>>
+    template<dynamic_coefficients Coeffs, typename F> requires
+      requires(F& f, std::size_t& i) { {f(i)} -> std::convertible_to<const typename Coeffs::Scalar>; }
 #else
     template<typename Coeffs, typename F, typename>
 #endif
@@ -202,8 +205,8 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<dynamic_coefficients Coeffs, std::invocable<const std::size_t> F>
-    requires std::is_arithmetic_v<std::invoke_result_t<F, const std::size_t>>
+    template<dynamic_coefficients Coeffs, typename F> requires
+      requires(F& f, std::size_t& i) { {f(i)} -> std::convertible_to<const typename Coeffs::Scalar>; }
 #else
     template<typename Coeffs, typename F, typename>
 #endif
@@ -211,8 +214,8 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<dynamic_coefficients Coeffs, std::invocable<const std::size_t> F>
-    requires std::is_arithmetic_v<std::invoke_result_t<F, const std::size_t>>
+    template<dynamic_coefficients Coeffs, typename F> requires
+      requires(F& f, std::size_t& i) { {f(i)} -> std::convertible_to<const typename Coeffs::Scalar>; }
 #else
     template<typename Coeffs, typename F, typename>
 #endif
@@ -220,14 +223,15 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<dynamic_coefficients Coeffs, typename S,
-      std::invocable<const std::size_t, const S> FS, std::invocable<const std::size_t> FG>
-    requires std::is_arithmetic_v<S> and std::is_arithmetic_v<std::invoke_result_t<FG, const std::size_t>>
+    template<dynamic_coefficients Coeffs, typename FS, typename FG> requires
+      requires(FS& f, std::size_t& i, typename Coeffs::Scalar& s) { f(i, s); } and
+      requires(FG& f, std::size_t& i) { {f(i)} -> std::convertible_to<const typename Coeffs::Scalar>; }
 #else
-    template<typename Coeffs, typename S, typename FS, typename FG, typename>
+    template<typename Coeffs, typename FS, typename FG, typename>
 #endif
     friend void
-    internal::wrap_set(Coeffs&& coeffs, const std::size_t row, const S s, const FS& set_coeff, const FG& get_coeff);
+    internal::wrap_set(Coeffs&& coeffs, const std::size_t row, const typename Coeffs::Scalar s,
+                       const FS& set_coeff, const FG& get_coeff);
 
 
     static_assert(internal::coefficient_class<DynamicCoefficients>);

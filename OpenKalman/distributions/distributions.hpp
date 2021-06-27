@@ -19,6 +19,10 @@
 #ifndef OPENKALMAN_DISTRIBUTIONS_HPP
 #define OPENKALMAN_DISTRIBUTIONS_HPP
 
+#include "basics/basics.hpp"
+#include "coefficient-types/coefficient-types.hpp"
+#include "matrices/matrices.hpp"
+
 #include "GaussianDistribution.hpp"
 
 #endif //OPENKALMAN_DISTRIBUTIONS_HPP

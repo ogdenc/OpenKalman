@@ -14,104 +14,67 @@
 #ifndef EIGEN3_GTEST_HPP
 #define EIGEN3_GTEST_HPP
 
-#include <tuple>
-#include <iostream>
 #include <gtest/gtest.h>
+#include "basics/tests/tests.hpp"
+
 #include "interfaces/eigen3/eigen3.hpp"
+
 
 namespace OpenKalman
 {
   using namespace OpenKalman::Eigen3;
 }
-
 using namespace OpenKalman;
 
-using std::numbers::pi;
 
-
-template<typename Arg>
-static constexpr bool is_test_trait = typed_matrix_nestable<Arg> or covariance_nestable<Arg>;
-
-template<typename ArgA, typename ArgB, std::enable_if_t<is_test_trait<ArgA> and is_test_trait<ArgB>, int> = 0>
-::testing::AssertionResult is_near(ArgA&& A, ArgB&& B, const double err = 1e-6)
+namespace OpenKalman::test
 {
-  auto A_n = make_native_matrix(std::forward<ArgA>(A));
-  auto B_n = make_native_matrix(std::forward<ArgB>(B));
-
-  if (A_n.isApprox(B_n, err) or (A_n.isMuchSmallerThan(1., err) and B_n.isMuchSmallerThan(1., err)))
+  namespace detail
   {
-    return ::testing::AssertionSuccess();
-  }
-  else
+    template<typename Arg>
+#ifdef __cpp_concepts
+    concept eigen_type = typed_matrix_nestable<Arg> or covariance_nestable<Arg>;
+#else
+    static constexpr bool eigen_type = typed_matrix_nestable<Arg> or covariance_nestable<Arg>;
+#endif
+  } // namespace detail
+
+
+#ifdef __cpp_concepts
+  template<detail::eigen_type Arg1, detail::eigen_type Arg2, typename Err>
+  struct TestComparison<Arg1, Arg2, Err>
+#else
+  template<typename Arg1, typename Arg2, typename Err>
+  struct TestComparison<Arg1, Arg2, Err, std::enable_if_t<detail::eigen_type<Arg1> and detail::eigen_type<Arg2>>>
+#endif
+    : ::testing::AssertionResult
   {
-    return ::testing::AssertionFailure() << std::endl << A_n << std::endl << "is not near" << std::endl << B_n << std::endl;
-  }
-}
-
-
-template<typename ArgA, typename ArgB, typename Err,
-  std::enable_if_t<is_test_trait<ArgA> and is_test_trait<ArgB> and Eigen3::eigen_matrix<Err>, int> = 0>
-inline ::testing::AssertionResult is_near(ArgA&& A, ArgB&& B, const Err& err)
-{
-  auto A_n = make_native_matrix(std::forward<ArgA>(A));
-  auto B_n = make_native_matrix(std::forward<ArgB>(B));
-
-  if (((A_n - B_n).cwiseAbs().array() - make_native_matrix(err).array()).maxCoeff() <= 0)
-  {
-    return ::testing::AssertionSuccess();
-  }
-  else
-  {
-    return ::testing::AssertionFailure() << std::endl << A_n << std::endl << "is not near" << std::endl << B_n << std::endl;
-  }
-}
-
-
-inline ::testing::AssertionResult is_near(const std::tuple<>&, const std::tuple<>&, const double e = 1e-6)
-{
-  return ::testing::AssertionSuccess();
-}
-
-
-template<typename Arg1, typename Arg2, typename ... Rest1, typename ... Rest2>
-::testing::AssertionResult is_near(
-  const std::tuple<Arg1, Rest1...>& A,
-  const std::tuple<Arg2, Rest2...>& B,
-  const double e = 1e-6)
-{
-  static_assert(sizeof...(Rest1) == sizeof...(Rest2));
-  auto a = std::get<0>(A);
-  auto b = std::get<0>(B);
-  if constexpr (sizeof...(Rest1) == 0)
-  {
-    return is_near(a, b, e);
-  }
-  else
-  {
-    const auto a_tail = OpenKalman::internal::tuple_slice<1, sizeof...(Rest1)>(A);
-    const auto b_tail = OpenKalman::internal::tuple_slice<1, sizeof...(Rest2)>(B);
-    if (is_near(a, b, e))
+    static ::testing::AssertionResult
+    compare(const Arg1& A, const Arg2& B, const Err& err)
     {
-      return is_near(a_tail, b_tail, e);
+      if constexpr (std::is_arithmetic_v<Err>)
+      if (A.isApprox(B, err) or (A.isMuchSmallerThan(1., err) and B.isMuchSmallerThan(1., err)))
+      {
+        return ::testing::AssertionSuccess();
+      }
+
+      if constexpr (detail::eigen_type<Err>)
+      if (((A - B).cwiseAbs().array() - make_native_matrix(err).array()).maxCoeff() <= 0)
+      {
+        return ::testing::AssertionSuccess();
+      }
+
+      return ::testing::AssertionFailure() << std::endl << A << std::endl << "is not near" << std::endl <<
+        B << std::endl;
     }
-    else
-    {
-      return ::testing::AssertionFailure() << is_near(a, b, e).message() << is_near(a_tail, b_tail, e).message();
-    }
-  }
-}
 
 
-struct eigen3 : public ::testing::Test
-{
-  eigen3() {}
+    TestComparison(const Arg1& A, const Arg2& B, const Err& err = 1e-6)
+      : ::testing::AssertionResult {compare(A, B, err)} {};
 
-  void SetUp() override {}
+   };
 
-  void TearDown() override {}
 
-  ~eigen3() override {}
-};
-
+} // namespace OpenKalman::test
 
 #endif //EIGEN3_GTEST_HPP

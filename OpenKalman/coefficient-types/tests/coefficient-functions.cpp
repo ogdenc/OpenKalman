@@ -20,8 +20,6 @@
 
 using namespace OpenKalman;
 
-
-
 using std::numbers::pi;
 
 template<typename...Ss>

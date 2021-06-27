@@ -10,7 +10,7 @@
 
 #include "matrices.hpp"
 
-using namespace OpenKalman;
+using std::numbers::pi;
 
 using M12 = eigen_matrix_t<double, 1, 2>;
 using M21 = eigen_matrix_t<double, 2, 1>;
@@ -24,7 +24,7 @@ using C2 = Coefficients<Axis, angle::Radians>;
 using C3 = Coefficients<Axis, angle::Radians, Axis>;
 
 
-TEST_F(matrices, References_TypedMatrix_lvalue)
+TEST(matrices, References_TypedMatrix_lvalue)
 {
   using V = Matrix<C3, C3, M33>;
   V v1 {1, 2, 3,
@@ -49,7 +49,7 @@ TEST_F(matrices, References_TypedMatrix_lvalue)
 }
 
 
-TEST_F(matrices, References_TypedMatrix_const_lvalue)
+TEST(matrices, References_TypedMatrix_const_lvalue)
 {
   Matrix<C3, C3, M33> v1 {1, 2, 3,
                                4, 5, 6,
@@ -67,7 +67,7 @@ TEST_F(matrices, References_TypedMatrix_const_lvalue)
 }
 
 
-TEST_F(matrices, References_Mean_lvalue)
+TEST(matrices, References_Mean_lvalue)
 {
   using V = Mean<C3, M33>;
   V v1 {1, 2, 3,
@@ -93,7 +93,7 @@ TEST_F(matrices, References_Mean_lvalue)
 }
 
 
-TEST_F(matrices, References_Mean_const_lvalue)
+TEST(matrices, References_Mean_const_lvalue)
 {
   Mean<C3, M33> v1 {1, 2, 3,
                     4, 5, 6,
@@ -117,7 +117,7 @@ TEST_F(matrices, References_Mean_const_lvalue)
 }
 
 
-TEST_F(matrices, References_Mean_lvalue_axes)
+TEST(matrices, References_Mean_lvalue_axes)
 {
   using V = Mean<Axes<3>, M33>;
   V v1 {1, 2, 3,
@@ -142,7 +142,7 @@ TEST_F(matrices, References_Mean_lvalue_axes)
 }
 
 
-TEST_F(matrices, References_Mean_const_lvalue_axes)
+TEST(matrices, References_Mean_const_lvalue_axes)
 {
   Mean<Axes<3>, M33> v1 {1, 2, 3,
                     4, 5, 6,
@@ -160,7 +160,7 @@ TEST_F(matrices, References_Mean_const_lvalue_axes)
 }
 
 
-TEST_F(matrices, References_EuclideanMean_lvalue)
+TEST(matrices, References_EuclideanMean_lvalue)
 {
   using V = EuclideanMean<C2, M33>;
   V v1 {1, 2, 3,
@@ -185,7 +185,7 @@ TEST_F(matrices, References_EuclideanMean_lvalue)
 }
 
 
-TEST_F(matrices, References_EuclideanMean_const_lvalue)
+TEST(matrices, References_EuclideanMean_const_lvalue)
 {
   EuclideanMean<C2, M33> v1 {1, 2, 3,
                              4, 5, 6,

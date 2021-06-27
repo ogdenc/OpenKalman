@@ -6,17 +6,10 @@
 #ifndef TYPED_MATRIX_TESTS_HPP
 #define TYPED_MATRIX_TESTS_HPP
 
-#include "../tests.hpp"
+#include <gtest/gtest.h>
 
-struct matrices : public ::testing::Test
-{
-  matrices() {}
+#include "matrices/tests/matrix.gtest.hpp"
+#include "distributions/tests/distributions.gtest.hpp"
 
-  void SetUp() override {}
-
-  void TearDown() override {}
-
-  ~matrices() override {}
-};
 
 #endif //TYPED_MATRIX_TESTS_HPP

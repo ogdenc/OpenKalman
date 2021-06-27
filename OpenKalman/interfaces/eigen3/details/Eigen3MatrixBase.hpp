@@ -32,10 +32,8 @@ namespace Eigen
 
 namespace OpenKalman::Eigen3::internal
 {
-  /**
-   * \internal
-   * \brief Ultimate base of OpenKalman matrix types.
-   * \todo Specialize for Matrix, Covariance, etc., so that they do not derive from Eigen::MatrixBase.
+  /*
+   * Implementation
    */
   template<typename Derived, typename ArgType>
   struct Eigen3MatrixBase : Eigen3Base<Derived>
@@ -43,6 +41,8 @@ namespace OpenKalman::Eigen3::internal
     using Nested = ArgType; ///< Required by Eigen3.
 
     using Scalar = typename MatrixTraits<Nested>::Scalar; ///< Required by Eigen3.
+
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(bool {dynamic_shape<ArgType>})
 
   private:
 
@@ -153,83 +153,6 @@ namespace OpenKalman::Eigen3::internal
       }
     }
 
-
-    /**
-     * \internal
-     * \return The number of fixed rows. (Required by Eigen::EigenBase).
-     */
-#ifdef __cpp_concepts
-    static constexpr Eigen::Index rows() requires (not dynamic_rows<Derived>)
-#else
-    template<typename D = Derived, std::enable_if_t<(not dynamic_rows<D>), int> = 0>
-    static constexpr Eigen::Index rows()
-#endif
-    {
-      return MatrixTraits<Derived>::rows;
-    }
-
-
-    /**
-     * \internal
-     * \return The number of dynamic rows. (Required by Eigen::EigenBase).
-     */
-#ifdef __cpp_concepts
-    constexpr Eigen::Index rows() const requires dynamic_rows<Derived>
-#else
-    template<typename D = Derived, std::enable_if_t<dynamic_rows<D>, int> = 0>
-    constexpr Eigen::Index rows() const
-#endif
-    {
-      return row_count(static_cast<Derived&>(*this));
-    }
-
-
-    /**
-     * \internal
-     * \return The number of fixed columns. (Required by Eigen::EigenBase).
-     */
-#ifdef __cpp_concepts
-    static constexpr Eigen::Index cols() requires (not dynamic_columns<Derived>)
-#else
-    template<typename D = Derived, std::enable_if_t<(not dynamic_columns<D>), int> = 0>
-    static constexpr Eigen::Index cols()
-#endif
-    {
-      return MatrixTraits<Derived>::columns;
-    }
-
-
-    /**
-     * \internal
-     * \return The number of dynamic rows. (Required by Eigen::EigenBase).
-     */
-#ifdef __cpp_concepts
-    constexpr Eigen::Index cols() const requires dynamic_columns<Derived>
-#else
-    template<typename D = Derived, std::enable_if_t<dynamic_columns<D>, int> = 0>
-    constexpr Eigen::Index cols() const
-#endif
-    {
-      return column_count(static_cast<Derived&>(*this));
-    }
-
-
-    /**
-     * \brief Synonym for zero().
-     * \deprecated Use zero() instead. Provided to avoid confusion with native Eigen member function.
-     * \return A matrix, of the same size and shape, containing only zero coefficients.
-     */
-    [[deprecated("Use zero() instead.")]]
-    static decltype(auto) Zero() { return Derived::zero(); }
-
-
-    /**
-     * \brief Synonym for identity().
-     * \deprecated Use identity() instead. Provided to avoid confusion with native Eigen member function.
-     * \return A square identity matrix with the same number of rows.
-     */
-    [[deprecated("Use identity() instead.")]]
-    static decltype(auto) Identity() { return Derived::identity(); }
 
   };
 

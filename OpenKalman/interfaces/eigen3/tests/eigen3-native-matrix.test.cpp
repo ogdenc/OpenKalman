@@ -16,7 +16,7 @@ using Mat2 = eigen_matrix_t<double, 2, 2>;
 using Mat3 = eigen_matrix_t<double, 3, 3>;
 using Axis2 = Coefficients<Axis, Axis>;
 
-TEST_F(eigen3, Eigen_Matrix_class_traits)
+TEST(eigen3, Eigen_Matrix_class_traits)
 {
   static_assert(eigen_native<Mat2>);
   static_assert(not eigen_native<double>);
@@ -54,7 +54,7 @@ TEST_F(eigen3, Eigen_Matrix_class_traits)
   static_assert(not self_contained<decltype(2 * MatrixTraits<Mat2>::identity() + Mat2 {1, 2, 3, 4})>);
   static_assert(MatrixTraits<std::remove_const_t<decltype(2 * MatrixTraits<Mat2>::identity() + MatrixTraits<Mat2>::identity())>>::rows == 2);
   static_assert(self_contained<decltype(column<0>(2 * MatrixTraits<Mat2>::identity() + MatrixTraits<Mat2>::identity()))>);
-  static_assert(not self_contained<decltype(column<0>(2 * MatrixTraits<Mat2>::identity() + Mat2 {1, 2, 3, 4}))>);
+  static_assert(self_contained<decltype(column<0>(2 * MatrixTraits<Mat2>::identity() + Mat2 {1, 2, 3, 4}))>);
   static_assert(self_contained<const Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Mat2>>);
   static_assert(self_contained<Eigen::CwiseBinaryOp<Eigen::internal::scalar_product_op<double, double>,
     const Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Mat2>,
@@ -87,7 +87,7 @@ TEST_F(eigen3, Eigen_Matrix_class_traits)
 }
 
 
-TEST_F(eigen3, Eigen_Matrix_overloads)
+TEST(eigen3, Eigen_Matrix_overloads)
 {
   EXPECT_TRUE(is_near(diagonal_of(make_native_matrix<double, 2, 2>(1, 2, 3, 4)), make_native_matrix<double, 2, 1>(1, 4)));
   EXPECT_TRUE(is_near(transpose(make_native_matrix<double, 2, 3>(1, 2, 3, 4, 5, 6)),
@@ -144,7 +144,7 @@ TEST_F(eigen3, Eigen_Matrix_overloads)
 }
 
 
-TEST_F(eigen3, ConstantMatrix)
+TEST(eigen3, ConstantMatrix)
 {
   ConstantMatrix<double, 3, 2, 2> cm322;
   EXPECT_TRUE(is_near(cm322, eigen_matrix_t<double, 2, 2>::Constant(3)));
@@ -154,6 +154,7 @@ TEST_F(eigen3, ConstantMatrix)
   EXPECT_TRUE(is_near(make_self_contained(ConstantMatrix<double, 3, 2, 3> {}), eigen_matrix_t<double, 2, 3>::Constant(3)));
   EXPECT_NEAR(determinant(ConstantMatrix<double, 3, 4, 4> {}), 0, 1e-6);
   EXPECT_NEAR(trace(ConstantMatrix<double, 3, 10, 10> {}), 30, 1e-6);
+  /// \todo: add solve
   EXPECT_TRUE(is_near(reduce_columns(ConstantMatrix<double, 3, 2, 3> ()), (eigen_matrix_t<double, 2, 1>::Constant(3))));
   EXPECT_TRUE(is_near(LQ_decomposition(ConstantMatrix<double, 3, 3, 2> ()), LQ_decomposition(make_native_matrix<double, 3, 2>(3, 3, 3, 3, 3, 3)).cwiseAbs()));
   EXPECT_TRUE(is_near(LQ_decomposition(ConstantMatrix<double, 7, 5, 3> ()), LQ_decomposition(make_native_matrix<double, 5, 3>(7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7)).cwiseAbs()));
@@ -185,10 +186,15 @@ TEST_F(eigen3, ConstantMatrix)
   EXPECT_TRUE(is_near(ConstantMatrix<double, 4, 3, 4> {} * eigen_matrix_t<double, 4, 2>::Constant(7), ConstantMatrix<double, 112, 3, 2> {}));
   EXPECT_TRUE(is_near(eigen_matrix_t<double, 2, 3>::Constant(3) * ConstantMatrix<double, 5, 3, 2> {}, ConstantMatrix<double, 45, 2, 2> {}));
   EXPECT_TRUE(is_near(eigen_matrix_t<double, 3, 4>::Constant(4) * ConstantMatrix<double, 7, 4, 2> {}, ConstantMatrix<double, 112, 3, 2> {}));
+
+  EXPECT_EQ((ConstantMatrix<double, 3, 4, 3>::rows()), 4);
+  EXPECT_EQ((ConstantMatrix<double, 3, 4, 3>::cols()), 3);
+  EXPECT_TRUE(is_near(ConstantMatrix<double, 3, 2, 3>::zero(), eigen_matrix_t<double, 2, 3>::Zero()));
+  EXPECT_TRUE(is_near(ConstantMatrix<double, 3, 2, 3>::identity(), Mat2::Identity()));
 }
 
 
-TEST_F(eigen3, ZeroMatrix)
+TEST(eigen3, ZeroMatrix)
 {
   EXPECT_NEAR((ZeroMatrix<double, 2, 2>()(0, 0)), 0, 1e-6);
   EXPECT_NEAR((ZeroMatrix<double, 2, 2>()(0, 1)), 0, 1e-6);
@@ -196,6 +202,7 @@ TEST_F(eigen3, ZeroMatrix)
   EXPECT_TRUE(is_near(make_self_contained(ZeroMatrix<double, 2, 3>()), eigen_matrix_t<double, 2, 3>::Zero()));
   EXPECT_NEAR(determinant(ZeroMatrix<double, 2, 2>()), 0, 1e-6);
   EXPECT_NEAR(trace(ZeroMatrix<double, 2, 2>()), 0, 1e-6);
+  /// \todo: add solve
   EXPECT_TRUE(is_near(reduce_columns(ZeroMatrix<double, 2, 3>()), (eigen_matrix_t<double, 2, 1>::Zero())));
   EXPECT_NEAR(get_element(ZeroMatrix<double, 2, 2>(), 1, 0), 0, 1e-8);
   static_assert(element_gettable<ZeroMatrix<double, 2, 2>, 2>);
@@ -289,9 +296,14 @@ TEST_F(eigen3, ZeroMatrix)
   EXPECT_TRUE(is_near(2 * z00, z00, 1e-6));
   EXPECT_TRUE(is_near(z00 / 2, z00, 1e-6));
   EXPECT_TRUE(is_near(-z00, z00, 1e-6));
+
+  EXPECT_EQ((ZeroMatrix<double, 4, 3>::rows()), 4);
+  EXPECT_EQ((ZeroMatrix<double, 4, 3>::cols()), 3);
+  EXPECT_TRUE(is_near(ZeroMatrix<double, 2, 3>::zero(), eigen_matrix_t<double, 2, 3>::Zero()));
+  EXPECT_TRUE(is_near(ZeroMatrix<double, 2, 3>::identity(), Mat2::Identity()));
 }
 
-TEST_F(eigen3, Matrix_blocks)
+TEST(eigen3, Matrix_blocks)
 {
   EXPECT_TRUE(is_near(concatenate_vertical(make_native_matrix<double, 2, 2>(1, 2, 3, 4),
     make_native_matrix<double, 1, 2>(5, 6)), make_native_matrix<double, 3, 2>(1, 2, 3, 4, 5, 6)));
@@ -299,7 +311,7 @@ TEST_F(eigen3, Matrix_blocks)
     make_native_matrix<double, 2, 1>(5, 6)), make_native_matrix<double, 2, 3>(1, 2, 5, 3, 4, 6)));
   EXPECT_TRUE(is_near(concatenate_diagonal(make_native_matrix<double, 2, 2>(1, 2, 3, 4),
     make_native_matrix<double, 2, 2>(5, 6, 7, 8)), make_native_matrix<double, 4, 4>(1, 2, 0, 0, 3, 4, 0, 0, 0, 0, 5, 6, 0, 0, 7, 8)));
-  EXPECT_TRUE(is_near(split_vertical(make_native_matrix<double, 2, 2>(1, 0, 0, 2)), std::tuple{}));
+  EXPECT_TRUE(is_near(split_vertical(make_native_matrix<double, 2, 2>(1, 0, 0, 2)), std::tuple {}));
   eigen_matrix_t<double, 5, 3> x1;
   x1 <<
     1, 0, 0,
@@ -308,7 +320,7 @@ TEST_F(eigen3, Matrix_blocks)
     4, 0, 0,
     0, 5, 0;
   auto a1 = split_vertical<3, 2>(x1);
-  EXPECT_TRUE(is_near(a1, std::tuple{make_native_matrix<double, 3, 3>(
+  EXPECT_TRUE(is_near(a1, std::tuple {make_native_matrix<double, 3, 3>(
       1, 0, 0,
       0, 2, 0,
       0, 0, 3),
@@ -322,7 +334,7 @@ TEST_F(eigen3, Matrix_blocks)
       4, 0, 0,
       0, 5, 0));
   EXPECT_TRUE(is_near(a2,
-    std::tuple{make_native_matrix<double, 3, 3>(
+    std::tuple {make_native_matrix<double, 3, 3>(
       1, 0, 0,
       0, 2, 0,
       0, 0, 3),
@@ -335,7 +347,7 @@ TEST_F(eigen3, Matrix_blocks)
       0, 0, 3,
       4, 0, 0,
       0, 5, 0)),
-    std::tuple{make_native_matrix<double, 2, 3>(
+    std::tuple {make_native_matrix<double, 2, 3>(
       1, 0, 0,
       0, 2, 0),
     make_native_matrix<double, 2, 3>(
@@ -343,12 +355,12 @@ TEST_F(eigen3, Matrix_blocks)
                  4, 0, 0)}));
   EXPECT_TRUE(is_near(split_vertical<3, 2>(MatrixTraits<eigen_matrix_t<double, 5, 3>>::zero()),
     std::tuple {eigen_matrix_t<double, 3, 3>::Zero(), eigen_matrix_t<double, 2, 3>::Zero()}));
-  EXPECT_TRUE(is_near(split_horizontal(make_native_matrix<double, 2, 2>(1, 0, 0, 2)), std::tuple{}));
+  EXPECT_TRUE(is_near(split_horizontal(make_native_matrix<double, 2, 2>(1, 0, 0, 2)), std::tuple {}));
   EXPECT_TRUE(is_near(split_horizontal<3, 2>(make_native_matrix<double, 3, 5>(
       1, 0, 0, 0, 0,
       0, 2, 0, 4, 0,
       0, 0, 3, 0, 5)),
-    std::tuple{make_native_matrix<double, 3, 3>(
+    std::tuple {make_native_matrix<double, 3, 3>(
       1, 0, 0,
       0, 2, 0,
       0, 0, 3),
@@ -361,7 +373,7 @@ TEST_F(eigen3, Matrix_blocks)
     0, 2, 0, 4, 0,
     0, 0, 3, 0, 5);
   EXPECT_TRUE(is_near(split_horizontal<3, 2>(b1),
-    std::tuple{make_native_matrix<double, 3, 3>(
+    std::tuple {make_native_matrix<double, 3, 3>(
       1, 0, 0,
       0, 2, 0,
       0, 0, 3),
@@ -373,7 +385,7 @@ TEST_F(eigen3, Matrix_blocks)
       1, 0, 0, 0, 0,
       0, 2, 0, 4, 0,
       0, 0, 3, 0, 5)),
-    std::tuple{make_native_matrix<double, 3, 2>(
+    std::tuple {make_native_matrix<double, 3, 2>(
       1, 0,
       0, 2,
       0, 0),
@@ -383,14 +395,14 @@ TEST_F(eigen3, Matrix_blocks)
                  3, 0)}));
   EXPECT_TRUE(is_near(split_horizontal<3, 2>(MatrixTraits<eigen_matrix_t<double, 3, 5>>::zero()),
     std::tuple {eigen_matrix_t<double, 3, 3>::Zero(), eigen_matrix_t<double, 3, 2>::Zero()}));
-  EXPECT_TRUE(is_near(split_diagonal(make_native_matrix<double, 2, 2>(1, 0, 0, 2)), std::tuple{}));
+  EXPECT_TRUE(is_near(split_diagonal(make_native_matrix<double, 2, 2>(1, 0, 0, 2)), std::tuple {}));
   EXPECT_TRUE(is_near(split_diagonal<3, 2>(make_native_matrix<double, 5, 5>(
       1, 0, 0, 0, 0,
       0, 2, 0, 0, 0,
       0, 0, 3, 0, 0,
       0, 0, 0, 4, 0,
       0, 0, 0, 0, 5)),
-    std::tuple{make_native_matrix<double, 3, 3>(
+    std::tuple {make_native_matrix<double, 3, 3>(
         1, 0, 0,
         0, 2, 0,
         0, 0, 3),
@@ -403,7 +415,7 @@ TEST_F(eigen3, Matrix_blocks)
       0, 0, 3, 0, 0,
       0, 0, 0, 4, 0,
       0, 0, 0, 0, 5)),
-    std::tuple{make_native_matrix<double, 2, 2>(
+    std::tuple {make_native_matrix<double, 2, 2>(
       1, 0,
       0, 2),
     make_native_matrix<double, 2, 2>(
@@ -451,13 +463,13 @@ TEST_F(eigen3, Matrix_blocks)
   EXPECT_TRUE(is_near(apply_columnwise(make_native_matrix<double, 3, 3>(
       1, 0, 0,
       0, 2, 0,
-      0, 0, 3), [](const auto& col){ return col + col.Constant(1); }),
+      0, 0, 3), [](const auto& col){ return make_self_contained(col + col.Constant(1)); }),
     make_native_matrix<double, 3, 3>(
       2, 1, 1,
       1, 3, 1,
       1, 1, 4)));
   EXPECT_TRUE(is_near(apply_columnwise(MatrixTraits<eigen_matrix_t<double, 3, 3>>::zero(),
-    [](const auto& col){ return col + col.Constant(1); }), eigen_matrix_t<double, 3, 3>::Constant(1)));
+    [](const auto& col){ return make_self_contained(col + col.Constant(1)); }), eigen_matrix_t<double, 3, 3>::Constant(1)));
   d1 = d_reset;
   apply_columnwise(d1, [](auto& col, std::size_t i){ col += col.Constant(i); });
   EXPECT_TRUE(is_near(d1,
@@ -468,7 +480,7 @@ TEST_F(eigen3, Matrix_blocks)
   EXPECT_TRUE(is_near(apply_columnwise(make_native_matrix<double, 3, 3>(
       1, 0, 0,
       0, 2, 0,
-      0, 0, 3), [](const auto& col, std::size_t i){ return col + col.Constant(i); }),
+      0, 0, 3), [](const auto& col, std::size_t i){ return make_self_contained(col + col.Constant(i)); }),
     make_native_matrix<double, 3, 3>(
       1, 1, 2,
       0, 3, 2,
@@ -493,7 +505,7 @@ TEST_F(eigen3, Matrix_blocks)
   EXPECT_TRUE(is_near(apply_coefficientwise(make_native_matrix<double, 3, 3>(
       1, 0, 0,
       0, 2, 0,
-      0, 0, 3), [](const auto& x){ return x + 1; }),
+      0, 0, 3), [](double& x){ return x + 1; }),
     make_native_matrix<double, 3, 3>(
       2, 1, 1,
       1, 3, 1,

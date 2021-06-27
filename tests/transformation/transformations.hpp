@@ -6,8 +6,11 @@
 #ifndef TRANSFORMATION_TESTS_HPP
 #define TRANSFORMATION_TESTS_HPP
 
-#include "../tests.hpp"
-#include "../test-transformations.hpp"
+#include <gtest/gtest.h>
+#include "OpenKalman-Eigen3.hpp"
+
+#include "basics/tests/tests.hpp"
+#include "basics/tests/test-transformations.hpp"
 
 struct transformations : public ::testing::Test
 {

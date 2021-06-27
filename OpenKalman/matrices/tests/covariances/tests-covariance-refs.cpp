@@ -26,15 +26,15 @@ template<typename Mat> using D = DiagonalMatrix<Mat>;
 
 // -----------Case 2 from Case 1----------- //
 
-TEST_F(covariance_tests, References_2from1_Cov_SAl_1)
+TEST(covariance_tests, References_2from1_Cov_SAl_1)
 {
   using V = Covariance<C, SAl<M>>;
   V v1 {16, 8, 4,
         8, 29, -13,
         4, -13, 46};
-  Covariance<C, SAl<M>&> v2 = v1;
+  Covariance<C, SAl<M>&> v2 {v1};
   EXPECT_TRUE(is_near(v1, v2));
-  Covariance<C, const SAl<M>&> v2c = v1;
+  Covariance<C, const SAl<M>&> v2c {v1};
   EXPECT_TRUE(is_near(v1, v2c));
   EXPECT_EQ(v2(1,0), 8);
   EXPECT_EQ(v2c(1,0), 8);
@@ -56,12 +56,12 @@ TEST_F(covariance_tests, References_2from1_Cov_SAl_1)
   // case 1 from case 2:
   V v1a = v2;
   EXPECT_TRUE(is_near(v1a, v1));
-  Covariance<C, const SAl<M>> v1ac = v2;
+  Covariance<C, const SAl<M>> v1ac {v2};
   EXPECT_TRUE(is_near(v1ac, v1));
   EXPECT_TRUE(is_near(adjoint(v1), v1));
 
   // case 2 from case 2
-  Covariance<C, SAl<M>&> v2a = v2;
+  Covariance<C, SAl<M>&> v2a {v2};
   EXPECT_TRUE(is_near(v1, v2a));
   Covariance<C, const SAl<M>&> v2ac = v2;
   EXPECT_TRUE(is_near(v1, v2ac));
@@ -81,15 +81,15 @@ TEST_F(covariance_tests, References_2from1_Cov_SAl_1)
 }
 
 
-TEST_F(covariance_tests, References_2from1_Cov_SAl_2)
+TEST(covariance_tests, References_2from1_Cov_SAl_2)
 {
   using V = Covariance<C, SAu<M>>;
   V v1 {16, 8, 4,
         8, 29, -13,
         4, -13, 46};
-  Covariance<C, SAu<M&>> v2 = v1;
+  Covariance<C, SAu<M&>> v2 {v1};
   EXPECT_TRUE(is_near(v1, v2));
-  Covariance<C, SAu<const M&>> v2c = v1;
+  Covariance<C, SAu<const M&>> v2c {v1};
   EXPECT_TRUE(is_near(v1, v2c));
   EXPECT_EQ(v2(1,0), 8);
   EXPECT_EQ(v2c(1,0), 8);
@@ -111,22 +111,22 @@ TEST_F(covariance_tests, References_2from1_Cov_SAl_2)
   // case 1 from case 2:
   V v1a = v2;
   EXPECT_TRUE(is_near(v1a, v1));
-  Covariance<C, SAu<const M>> v1ac = v2;
+  Covariance<C, SAu<const M>> v1ac {v2};
   EXPECT_TRUE(is_near(v1ac, v1));
   EXPECT_TRUE(is_near(adjoint(v1), v1));
   EXPECT_TRUE(is_near(adjoint(v2), v1));
 }
 
 
-TEST_F(covariance_tests, References_2from1_SqCov_Tl_1)
+TEST(covariance_tests, References_2from1_SqCov_Tl_1)
 {
   using V = SquareRootCovariance<C, Tl<M>>;
   V v1 {4, 0, 0,
         2, 5, 0,
         1, -3, 6};
-  SquareRootCovariance<C, Tl<M>&> v2 = v1;
+  SquareRootCovariance<C, Tl<M>&> v2 {v1};
   EXPECT_TRUE(is_near(v1, v2));
-  SquareRootCovariance<C, const Tl<M>&> v2c = v1;
+  SquareRootCovariance<C, const Tl<M>&> v2c {v1};
   EXPECT_TRUE(is_near(v1, v2c));
   EXPECT_EQ(v2(1,0), 2);
   EXPECT_EQ(v2c(1,0), 2);
@@ -148,13 +148,13 @@ TEST_F(covariance_tests, References_2from1_SqCov_Tl_1)
   // case 1 from case 2:
   V v1a = v2;
   EXPECT_TRUE(is_near(v1a, v1));
-  SquareRootCovariance<C, const Tl<M>> v1ac = v2;
+  SquareRootCovariance<C, const Tl<M>> v1ac {v2};
   EXPECT_TRUE(is_near(v1ac, v1));
   EXPECT_TRUE(is_near(adjoint(v1), adjoint(v2)));
 }
 
 
-TEST_F(covariance_tests, References_2from1_SqCov_Tu_2)
+TEST(covariance_tests, References_2from1_SqCov_Tu_2)
 {
   using V = SquareRootCovariance<C, Tu<M>>;
   V v1 {4, 2, 1,
@@ -209,7 +209,7 @@ TEST_F(covariance_tests, References_2from1_SqCov_Tu_2)
 }
 
 
-TEST_F(covariance_tests, References_2from1_Cov_D_1)
+TEST(covariance_tests, References_2from1_Cov_D_1)
 {
   using V = Covariance<C, D<M1>>;
   V v1 {1, 2, 3};
@@ -239,7 +239,7 @@ TEST_F(covariance_tests, References_2from1_Cov_D_1)
 }
 
 
-TEST_F(covariance_tests, References_2from1_Cov_D_2)
+TEST(covariance_tests, References_2from1_Cov_D_2)
 {
   using V = Covariance<C, D<M1>>;
   V v1 {1, 2, 3};
@@ -269,7 +269,7 @@ TEST_F(covariance_tests, References_2from1_Cov_D_2)
 }
 
 
-TEST_F(covariance_tests, References_2from1_SqCov_TuD_2)
+TEST(covariance_tests, References_2from1_SqCov_TuD_2)
 {
   using V = SquareRootCovariance<C, Tu<D<M1>>>;
   V v1 {1, 2, 3};
@@ -299,7 +299,7 @@ TEST_F(covariance_tests, References_2from1_SqCov_TuD_2)
 }
 
 
-TEST_F(covariance_tests, References_2from1_SqCov_D_1)
+TEST(covariance_tests, References_2from1_SqCov_D_1)
 {
   using V = SquareRootCovariance<C, D<M1>>;
   V v1 {1, 2, 3};
@@ -329,7 +329,7 @@ TEST_F(covariance_tests, References_2from1_SqCov_D_1)
 }
 
 
-TEST_F(covariance_tests, References_2from1_SqCov_D_2)
+TEST(covariance_tests, References_2from1_SqCov_D_2)
 {
   using V = SquareRootCovariance<C, D<M1>>;
   V v1 {1, 2, 3};
@@ -361,7 +361,7 @@ TEST_F(covariance_tests, References_2from1_SqCov_D_2)
 
 // -----------Case 2 from Case 3----------- //
 
-TEST_F(covariance_tests, References_2from3_SqCov_1)
+TEST(covariance_tests, References_2from3_SqCov_1)
 {
   using V3 = Covariance<C, Tl<M>>; // case 3
   V3 v3 {16, 8, 4,
@@ -396,11 +396,11 @@ TEST_F(covariance_tests, References_2from3_SqCov_1)
   EXPECT_TRUE(is_near(v3a, v3));
   Covariance<C, const Tl<M>> v3ac = v2.square();
   EXPECT_TRUE(is_near(v3ac, v3));
-  V3 v3b = SquareRootCovariance<C, Tl<M>&> {v2}.square();
+  V3 v3b = SquareRootCovariance<C, Tl<M>&> {v2}.square(); // case 2 -> case 3
   EXPECT_TRUE(is_near(v3b, v3));
   Covariance<C, const Tl<M>> v3bc = SquareRootCovariance<C, const Tl<M>&> {v2}.square();
   EXPECT_TRUE(is_near(v3bc, v3));
-  EXPECT_TRUE(is_near(adjoint(v2.square()), adjoint(v3)));
+  EXPECT_TRUE(is_near(adjoint(v2.square()), adjoint(v3))); // adjoint(case 4 from case 2) == adjoint(case 3)
 
   // case 2 from case 2:
   SquareRootCovariance<C, Tl<M>&> v2a = v2; // case 2
@@ -422,7 +422,7 @@ TEST_F(covariance_tests, References_2from3_SqCov_1)
   EXPECT_TRUE(is_near(v2a, v2));
 }
 
-TEST_F(covariance_tests, References_2from3_Cov_2)
+TEST(covariance_tests, References_2from3_Cov_2)
 {
   using V3 = SquareRootCovariance<C, SAu<M>>; // case 3
   V3 v3 {4, 2, 1,
@@ -468,7 +468,7 @@ TEST_F(covariance_tests, References_2from3_Cov_2)
 
 // -----------Case 2 from nestable----------- //
 
-TEST_F(covariance_tests, References_2from_nestable_SAl_1)
+TEST(covariance_tests, References_2from_nestable_SAl_1)
 {
   using V = SAl<M>;
   V v1 {16, 8, 4,
@@ -523,7 +523,7 @@ TEST_F(covariance_tests, References_2from_nestable_SAl_1)
 }
 
 
-TEST_F(covariance_tests, References_2from_nestable_Tu_2)
+TEST(covariance_tests, References_2from_nestable_Tu_2)
 {
   using V = Tu<M>;
   V v1 {4, 2, 1,
@@ -580,7 +580,7 @@ TEST_F(covariance_tests, References_2from_nestable_Tu_2)
 
 // -----------Case 4 from Case 3----------- //
 
-TEST_F(covariance_tests, References_4from3_Cov_Tl_1)
+TEST(covariance_tests, References_4from3_Cov_Tl_1)
 {
   using V = Covariance<C, Tl<M>>;
   V v3 {16, 8, 4,
@@ -631,7 +631,7 @@ TEST_F(covariance_tests, References_4from3_Cov_Tl_1)
   EXPECT_TRUE(is_near(v3, v4a));
 }
 
-TEST_F(covariance_tests, References_4from3_Cov_Tu_2)
+TEST(covariance_tests, References_4from3_Cov_Tu_2)
 {
   using V = Covariance<C, Tu<M>>;
   V v3 {16, 8, 4,
@@ -685,7 +685,7 @@ TEST_F(covariance_tests, References_4from3_Cov_Tu_2)
 }
 
 
-TEST_F(covariance_tests, References_4from3_SqCov_SAl_1)
+TEST(covariance_tests, References_4from3_SqCov_SAl_1)
 {
   using V = SquareRootCovariance<C, SAl<M>>;
   V v3 {4, 0, 0,
@@ -737,7 +737,7 @@ TEST_F(covariance_tests, References_4from3_SqCov_SAl_1)
 }
 
 
-TEST_F(covariance_tests, References_4from3_SqCov_SAu_2)
+TEST(covariance_tests, References_4from3_SqCov_SAu_2)
 {
   using V = SquareRootCovariance<C, SAu<M>>;
   V v3 {4, 2, 1,
@@ -791,7 +791,7 @@ TEST_F(covariance_tests, References_4from3_SqCov_SAu_2)
 
 // -----------Case 4 from Case 1----------- //
 
-TEST_F(covariance_tests, References_4from1_Cov_l_1)
+TEST(covariance_tests, References_4from1_Cov_l_1)
 {
   using V = SquareRootCovariance<C, Tl<M>>; // case 1
   V v1 {4, 0, 0,
@@ -836,7 +836,7 @@ TEST_F(covariance_tests, References_4from1_Cov_l_1)
   Mat3 m1849 {18.49, 9.89, 5.59, 9.89, 33.38, -14.5, 5.59, -14.5, 52.27};
   Covariance<C, Tl<M>&> v4a = v4; // case 4
   EXPECT_TRUE(is_near(v4a, m1849));
-  Covariance<C, const Tl<M>&> v4ac = v4; // case 4
+  Covariance<C, const Tl<M>&> v4ac = v4; // case 4 -> const case 4
   EXPECT_TRUE(is_near(v4ac, m1849));
   v1 = {4.4, 0, 0,
         2.4, 5.4, 0,
@@ -854,7 +854,7 @@ TEST_F(covariance_tests, References_4from1_Cov_l_1)
 }
 
 
-TEST_F(covariance_tests, References_4from1_SqCov_l_1)
+TEST(covariance_tests, References_4from1_SqCov_l_1)
 {
   using V = Covariance<C, SAl<M>>; // case 1
   V v1 {16, 8, 4,
@@ -909,7 +909,7 @@ TEST_F(covariance_tests, References_4from1_SqCov_l_1)
 
 // -----------Case 4 from Case 2----------- //
 
-TEST_F(covariance_tests, References_4from2_Cov_l_1)
+TEST(covariance_tests, References_4from2_Cov_l_1)
 {
   using V1 = SquareRootCovariance<C, Tl<M>>; // case 1
   V1 v1 {4, 0, 0,
@@ -940,9 +940,9 @@ TEST_F(covariance_tests, References_4from2_Cov_l_1)
   EXPECT_TRUE(is_near(adjoint(v2.square()), v2.square()));
 
   // Case 2 from Case 4
-  SquareRootCovariance<C, Tl<M>&> v2a = v4.square_root(); // case 2
+  SquareRootCovariance<C, Tl<M>&> v2a {v4.square_root()}; // case 4 & -> case 2
   EXPECT_TRUE(is_near(v2a, v2));
-  SquareRootCovariance<C, const Tl<M>&> v2ac = v4c.square_root(); // case 2
+  SquareRootCovariance<C, const Tl<M>&> v2ac = v4c.square_root(); // const case 4 & -> const case 4 && -> const case 2
   EXPECT_TRUE(is_near(v2ac, v2));
   EXPECT_TRUE(is_near(adjoint(v2a), adjoint(v4.square_root())));
 
@@ -966,7 +966,7 @@ TEST_F(covariance_tests, References_4from2_Cov_l_1)
 
 // -----------Case 4 from nestable----------- //
 
-TEST_F(covariance_tests, References_4from_nestable_Cov_l_1)
+TEST(covariance_tests, References_4from_nestable_Cov_l_1)
 {
   using V1 = Tl<M>;
   V1 v1 {4, 0, 0,
@@ -1026,7 +1026,7 @@ TEST_F(covariance_tests, References_4from_nestable_Cov_l_1)
 }
 
 
-TEST_F(covariance_tests, References_4from_nestable_SqCov_l_2)
+TEST(covariance_tests, References_4from_nestable_SqCov_l_2)
 {
   using V = SAl<M>;
   V v1 {16, 8, 4,

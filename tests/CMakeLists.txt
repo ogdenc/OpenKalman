@@ -1,4 +1,3 @@
-add_subdirectory(covariances)
 add_subdirectory(typed-matrix)
 add_subdirectory(transformation)
 add_subdirectory(transform-linear)

@@ -11,8 +11,13 @@
 #ifndef TRANSFORM_NONLINEAR_TESTS_HPP
 #define TRANSFORM_NONLINEAR_TESTS_HPP
 
-#include "../tests.hpp"
-#include "../test-transformations.hpp"
+#include <gtest/gtest.h>
+#include "OpenKalman-Eigen3.hpp"
+
+#include "basics/tests/tests.hpp"
+#include "basics/tests/test-transformations.hpp"
+
+using namespace OpenKalman;
 
 struct transform_nonlinear : public ::testing::Test
 {

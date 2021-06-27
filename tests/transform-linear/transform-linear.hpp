@@ -6,7 +6,12 @@
 #ifndef TRANSFORM_LINEAR_TESTS_HPP
 #define TRANSFORM_LINEAR_TESTS_HPP
 
-#include "../tests.hpp"
+#include <gtest/gtest.h>
+#include "OpenKalman-Eigen3.hpp"
+
+#include "basics/tests/tests.hpp"
+
+using namespace OpenKalman;
 
 struct transform_linear : public ::testing::Test
 {

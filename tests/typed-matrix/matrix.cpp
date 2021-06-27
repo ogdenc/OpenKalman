@@ -10,7 +10,8 @@
 
 #include "matrices.hpp"
 
-using namespace OpenKalman;
+using std::numbers::pi;
+using std::numbers::sqrt2;
 
 using M12 = eigen_matrix_t<double, 1, 2>;
 using M21 = eigen_matrix_t<double, 2, 1>;
@@ -42,7 +43,7 @@ inline auto sqcovi22 = SquareRootCovariance<C2, I22>(i22);
 inline auto sqcovz22 = SquareRootCovariance<C2, Z22>(z22);
 
 
-TEST_F(matrices, TypedMatrix_class)
+TEST(matrices, TypedMatrix_class)
 {
   // Default constructor and Eigen3 construction
   Mat23 mat23a;
@@ -189,7 +190,7 @@ TEST_F(matrices, TypedMatrix_class)
 }
 
 
-TEST_F(matrices, TypedMatrix_subscripts)
+TEST(matrices, TypedMatrix_subscripts)
 {
   static_assert(element_gettable<Mat23, 2>);
   static_assert(not element_gettable<Mat23, 1>);
@@ -230,7 +231,7 @@ TEST_F(matrices, TypedMatrix_subscripts)
 }
 
 
-TEST_F(matrices, TypedMatrix_deduction_guides)
+TEST(matrices, TypedMatrix_deduction_guides)
 {
   auto a = make_native_matrix<M23>(1, 2, 3, 4, 5, 6);
   EXPECT_TRUE(is_near(Matrix(a), a));
@@ -261,7 +262,7 @@ TEST_F(matrices, TypedMatrix_deduction_guides)
 }
 
 
-TEST_F(matrices, TypedMatrix_make_functions)
+TEST(matrices, TypedMatrix_make_functions)
 {
   auto a = make_native_matrix<M23>(1, 2, 3, 4, 5, 6);
   EXPECT_TRUE(is_near(make_matrix<C2, C3>(a), a));
@@ -288,7 +289,7 @@ TEST_F(matrices, TypedMatrix_make_functions)
 }
 
 
-TEST_F(matrices, TypedMatrix_traits)
+TEST(matrices, TypedMatrix_traits)
 {
   static_assert(typed_matrix<Mat23>);
   static_assert(not mean<Mat23>);
@@ -315,13 +316,14 @@ TEST_F(matrices, TypedMatrix_traits)
 }
 
 
-TEST_F(matrices, TypedMatrix_overloads)
+TEST(matrices, TypedMatrix_overloads)
 {
-  EXPECT_TRUE(is_near(internal::to_covariance_nestable(Mat22 {9, 3, 3, 10}), Mat22 {9, 3, 3, 10}));
-  EXPECT_TRUE(is_near(internal::to_covariance_nestable<SA2l>(Mat22 {9, 3, 3, 10}), Mat22 {9, 3, 3, 10}));
-  EXPECT_TRUE(is_near(internal::to_covariance_nestable<SA2u>(Mat22 {9, 3, 3, 10}), Mat22 {9, 3, 3, 10}));
-  EXPECT_TRUE(is_near(internal::to_covariance_nestable<T2l>(Mat22 {3, 0, 1, 3}), Mat22 {3, 0, 1, 3}));
-  EXPECT_TRUE(is_near(internal::to_covariance_nestable<T2u>(Mat22 {3, 1, 0, 3}), Mat22 {3, 1, 0, 3}));
+  using namespace OpenKalman::internal;
+  EXPECT_TRUE(is_near(to_covariance_nestable(Mat22 {9, 3, 3, 10}), Mat22 {9, 3, 3, 10}));
+  EXPECT_TRUE(is_near(to_covariance_nestable<SA2l>(Mat22 {9, 3, 3, 10}), Mat22 {9, 3, 3, 10}));
+  EXPECT_TRUE(is_near(to_covariance_nestable<SA2u>(Mat22 {9, 3, 3, 10}), Mat22 {9, 3, 3, 10}));
+  EXPECT_TRUE(is_near(to_covariance_nestable<T2l>(Mat22 {3, 0, 1, 3}), Mat22 {3, 0, 1, 3}));
+  EXPECT_TRUE(is_near(to_covariance_nestable<T2u>(Mat22 {3, 1, 0, 3}), Mat22 {3, 1, 0, 3}));
 
   EXPECT_TRUE(is_near(nested_matrix(Mat23 {1, 2, 3, 4, 5, 6}), Mat23 {1, 2, 3, 4, 5, 6}));
 
@@ -370,7 +372,7 @@ TEST_F(matrices, TypedMatrix_overloads)
 }
 
 
-TEST_F(matrices, TypedMatrix_blocks)
+TEST(matrices, TypedMatrix_blocks)
 {
   using Mat22x = Matrix<C2, Axes<2>, M22>;
   EXPECT_TRUE(is_near(concatenate_vertical(Mat22 {1, 2, 3, 4}, Mat12 {5, 6}), Mat32 {1, 2, 3, 4, 5, 6}));
@@ -406,15 +408,15 @@ TEST_F(matrices, TypedMatrix_blocks)
   EXPECT_TRUE(is_near(apply_columnwise(m, [](auto& col){ col *= 2; }), Mat22 {2, 4, 6, 8}));
   EXPECT_TRUE(is_near(apply_columnwise(m, [](auto& col, std::size_t i){ col *= i; }), Mat22 {0, 4, 0, 8}));
 
-  EXPECT_TRUE(is_near(apply_columnwise(Mat22x {1, 2, 3, 4}, [](auto col){ return col * 2; }), Mat22 {2, 4, 6, 8}));
-  EXPECT_TRUE(is_near(apply_columnwise(Mat22x {1, 2, 3, 4}, [](const auto col){ return col * 2; }), Mat22 {2, 4, 6, 8}));
-  EXPECT_TRUE(is_near(apply_columnwise(Mat22x {1, 2, 3, 4}, [](auto&& col){ return col * 2; }), Mat22 {2, 4, 6, 8}));
-  EXPECT_TRUE(is_near(apply_columnwise(Mat22x {1, 2, 3, 4}, [](const auto& col){ return col * 2; }), Mat22 {2, 4, 6, 8}));
+  EXPECT_TRUE(is_near(apply_columnwise(Mat22x {1, 2, 3, 4}, [](auto col){ return make_self_contained(col * 2); }), Mat22 {2, 4, 6, 8}));
+  EXPECT_TRUE(is_near(apply_columnwise(Mat22x {1, 2, 3, 4}, [](const auto col){ return make_self_contained(col * 2); }), Mat22 {2, 4, 6, 8}));
+  EXPECT_TRUE(is_near(apply_columnwise(Mat22x {1, 2, 3, 4}, [](auto&& col){ return make_self_contained(col * 2); }), Mat22 {2, 4, 6, 8}));
+  EXPECT_TRUE(is_near(apply_columnwise(Mat22x {1, 2, 3, 4}, [](const auto& col){ return make_self_contained(col * 2); }), Mat22 {2, 4, 6, 8}));
 
-  EXPECT_TRUE(is_near(apply_columnwise(Mat22x {1, 2, 3, 4}, [](auto col, std::size_t i){ return col * i; }), Mat22 {0, 2, 0, 4}));
-  EXPECT_TRUE(is_near(apply_columnwise(Mat22x {1, 2, 3, 4}, [](const auto col, std::size_t i){ return col * i; }), Mat22 {0, 2, 0, 4}));
-  EXPECT_TRUE(is_near(apply_columnwise(Mat22x {1, 2, 3, 4}, [](auto&& col, std::size_t i){ return col * i; }), Mat22 {0, 2, 0, 4}));
-  EXPECT_TRUE(is_near(apply_columnwise(Mat22x {1, 2, 3, 4}, [](const auto& col, std::size_t i){ return col * i; }), Mat22 {0, 2, 0, 4}));
+  EXPECT_TRUE(is_near(apply_columnwise(Mat22x {1, 2, 3, 4}, [](auto col, std::size_t i){ return make_self_contained(col * i); }), Mat22 {0, 2, 0, 4}));
+  EXPECT_TRUE(is_near(apply_columnwise(Mat22x {1, 2, 3, 4}, [](const auto col, std::size_t i){ return make_self_contained(col * i); }), Mat22 {0, 2, 0, 4}));
+  EXPECT_TRUE(is_near(apply_columnwise(Mat22x {1, 2, 3, 4}, [](auto&& col, std::size_t i){ return make_self_contained(col * i); }), Mat22 {0, 2, 0, 4}));
+  EXPECT_TRUE(is_near(apply_columnwise(Mat22x {1, 2, 3, 4}, [](const auto& col, std::size_t i){ return make_self_contained(col * i); }), Mat22 {0, 2, 0, 4}));
 
   EXPECT_TRUE(is_near(apply_columnwise<2>([] { return Matrix<C2, angle::Radians> {1., 2}; }), Mat22 {1, 1, 2, 2}));
   EXPECT_TRUE(is_near(apply_columnwise<2>([](std::size_t i){ return Matrix<C2, angle::Radians> {i + 1., 2*i + 1}; }), Mat22 {1, 2, 1, 3}));
@@ -442,7 +444,7 @@ TEST_F(matrices, TypedMatrix_blocks)
 }
 
 
-TEST_F(matrices, TypedMatrix_arithmetic)
+TEST(matrices, TypedMatrix_arithmetic)
 {
   EXPECT_TRUE(is_near(Mat32 {7, 6, 5, 4, 3, 2} + Mat32 {1, 2, 3, 4, 5, 6}, Mat32 {8, 8, 8, 8, 8, 8}));
   EXPECT_TRUE(is_near(Matrix<C3, Axes<2>, M32> {7, 6, 5, 4, 3, 2} + Mean<C3, M32> {1, 2, 3, 4, 5, 6}, Mat32 {8, 8, 8, 8 - 2*pi, 8, 8}));

@@ -10,6 +10,9 @@
 
 #include "kalman.hpp"
 
+using std::numbers::pi;
+
+
 inline auto get_t2()
 {
   auto theta = trace(randomize<Mean<Axis, eigen_matrix_t<double, 1, 1>>, std::uniform_real_distribution>(-pi, pi));

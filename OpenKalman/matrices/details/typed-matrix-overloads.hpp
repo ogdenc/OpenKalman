@@ -20,7 +20,10 @@ namespace OpenKalman
   template<typename Arg, std::enable_if_t<typed_matrix<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
-  nested_matrix(Arg&& arg) noexcept { return std::forward<Arg>(arg).nested_matrix(); }
+  nested_matrix(Arg&& arg) noexcept
+  {
+    return std::forward<Arg>(arg).nested_matrix();
+  }
 
 
 /**
@@ -47,8 +50,8 @@ namespace OpenKalman
   constexpr decltype(auto)
   make_self_contained(Arg&& arg) noexcept
   {
-    if constexpr(self_contained<nested_matrix_t<Arg>> or
-      (std::is_lvalue_reference_v<Ts> and ... and (sizeof...(Ts) > 0)))
+    if constexpr(self_contained<Arg> or std::is_lvalue_reference_v<nested_matrix_t<Arg>> or
+      ((sizeof...(Ts) > 0) and ... and std::is_lvalue_reference_v<Ts>))
     {
       return std::forward<Arg>(arg);
     }
@@ -99,7 +102,8 @@ namespace OpenKalman
     if constexpr(not euclidean_transformed<Arg>)
     {
       decltype(auto) e = OpenKalman::to_euclidean<Coefficients>(nested_matrix(std::forward<Arg>(arg)));
-      return EuclideanMean<Coefficients, std::remove_reference_t<decltype(e)>>(e);
+      using E = decltype((e));
+      return EuclideanMean<Coefficients, std::remove_reference_t<E>>(std::forward<E>(e));
     }
     else
     {
@@ -120,7 +124,8 @@ namespace OpenKalman
     if constexpr(euclidean_transformed<Arg>)
     {
       decltype(auto) e = OpenKalman::from_euclidean<Coefficients>(nested_matrix(std::forward<Arg>(arg)));
-      return Mean<Coefficients, std::remove_reference_t<decltype(e)>>(e);
+      using E = decltype((e));
+      return Mean<Coefficients, std::remove_reference_t<E>>(std::forward<E>(e));
     }
     else
     {
@@ -269,8 +274,8 @@ namespace OpenKalman
     else if constexpr(mean<Arg>)
     {
       using C = typename MatrixTraits<Arg>::RowCoefficients;
-      auto b = from_euclidean<C>(reduce_columns(nested_matrix(to_euclidean(std::forward<Arg>(arg)))));
-      return MatrixTraits<Arg>::make(make_self_contained<Arg>(std::move(b)));
+      return MatrixTraits<Arg>::make(from_euclidean<C>(
+        make_self_contained<Arg>(reduce_columns(nested_matrix(to_euclidean(std::forward<Arg>(arg)))))));
     }
     else
     {
@@ -329,8 +334,8 @@ namespace OpenKalman
     if constexpr(sizeof...(Vs) > 0)
     {
       using RC = Concatenate<typename MatrixTraits<V>::RowCoefficients, typename MatrixTraits<Vs>::RowCoefficients...>;
-      decltype(auto) cat = concatenate_vertical(nested_matrix(std::forward<V>(v)), nested_matrix(std::forward<Vs>(vs))...);
-      return MatrixTraits<V>::template make<RC>(std::move(cat));
+      return MatrixTraits<V>::template make<RC>(
+        concatenate_vertical(nested_matrix(std::forward<V>(v)), nested_matrix(std::forward<Vs>(vs))...));
     }
     else
     {
@@ -367,8 +372,10 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     if constexpr(sizeof...(Vs) > 0)
     {
       using RC = typename MatrixTraits<V>::RowCoefficients;
-      using CC = Concatenate<typename MatrixTraits<V>::ColumnCoefficients, typename MatrixTraits<Vs>::ColumnCoefficients...>;
-      decltype(auto) cat = concatenate_horizontal(nested_matrix(std::forward<V>(v)), nested_matrix(std::forward<Vs>(vs))...);
+      using CC = Concatenate<typename MatrixTraits<V>::ColumnCoefficients,
+      typename MatrixTraits<Vs>::ColumnCoefficients...>;
+      decltype(auto) cat = concatenate_horizontal(nested_matrix(std::forward<V>(v)),
+        nested_matrix(std::forward<Vs>(vs))...);
       if constexpr(CC::axes_only)
       {
         return MatrixTraits<V>::template make<RC, CC>(std::move(cat));
@@ -396,9 +403,10 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     if constexpr(sizeof...(Vs) > 0)
     {
       using RC = Concatenate<typename MatrixTraits<V>::RowCoefficients, typename MatrixTraits<Vs>::RowCoefficients...>;
-      using CC = Concatenate<typename MatrixTraits<V>::ColumnCoefficients, typename MatrixTraits<Vs>::ColumnCoefficients...>;
-      decltype(auto) cat = concatenate_diagonal(nested_matrix(std::forward<V>(v)), nested_matrix(std::forward<Vs>(vs))...);
-      return MatrixTraits<V>::template make<RC, CC>(std::move(cat));
+      using CC = Concatenate<typename MatrixTraits<V>::ColumnCoefficients,
+        typename MatrixTraits<Vs>::ColumnCoefficients...>;
+      return MatrixTraits<V>::template make<RC, CC>(
+        concatenate_diagonal(nested_matrix(std::forward<V>(v)), nested_matrix(std::forward<Vs>(vs))...));
     }
     else
     {
@@ -415,7 +423,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
       template<typename RC, typename, typename Arg>
       static auto call(Arg&& arg)
       {
-        return MatrixTraits<Expr>::template make<RC, CC>(std::forward<decltype(arg)>(arg));
+        return MatrixTraits<Expr>::template make<RC, CC>(std::forward<Arg>(arg));
       }
     };
 
@@ -426,7 +434,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
       template<typename, typename CC, typename Arg>
       static auto call(Arg&& arg)
       {
-        return MatrixTraits<Expr>::template make<RC, CC>(std::forward<decltype(arg)>(arg));
+        return MatrixTraits<Expr>::template make<RC, CC>(std::forward<Arg>(arg));
       }
     };
 
@@ -438,7 +446,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
       static auto call(Arg&& arg)
       {
         static_assert(equivalent_to<RC, CC>);
-        return MatrixTraits<Expr>::template make<RC, CC>(std::forward<decltype(arg)>(arg));
+        return MatrixTraits<Expr>::template make<RC, CC>(std::forward<Arg>(arg));
       }
     };
   }
@@ -457,7 +465,8 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   {
     using CC = typename MatrixTraits<M>::ColumnCoefficients;
     constexpr auto euclidean = euclidean_transformed<M>;
-    return split_vertical<internal::SplitMatVertF<M, CC>, euclidean, Cs...>(nested_matrix(std::forward<M>(m)));
+    return split_vertical<
+      OpenKalman::internal::SplitMatVertF<M, CC>, euclidean, Cs...>(nested_matrix(std::forward<M>(m)));
   }
 
 
@@ -473,7 +482,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   split_horizontal(M&& m) noexcept
   {
     using RC = typename MatrixTraits<M>::RowCoefficients;
-    return split_horizontal<internal::SplitMatHorizF<M, RC>, Cs...>(nested_matrix(std::forward<M>(m)));
+    return split_horizontal<OpenKalman::internal::SplitMatHorizF<M, RC>, Cs...>(nested_matrix(std::forward<M>(m)));
   }
 
 
@@ -504,7 +513,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   {
     static_assert(prefix_of<Concatenate<Cs...>, typename MatrixTraits<M>::RowCoefficients>);
     static_assert(equivalent_to<typename MatrixTraits<M>::ColumnCoefficients, typename MatrixTraits<M>::RowCoefficients>);
-    return split_diagonal<internal::SplitMatDiagF<M>, Cs...>(nested_matrix(std::forward<M>(m)));
+    return split_diagonal<OpenKalman::internal::SplitMatDiagF<M>, Cs...>(nested_matrix(std::forward<M>(m)));
   }
 
 
@@ -557,7 +566,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
       const auto set_coeff = [&arg, j](const std::size_t row, const typename MatrixTraits<Arg>::Scalar value) {
         set_element(nested_matrix(arg), value, row, j);
       };
-      internal::wrap_set<Coeffs>(i, s, set_coeff, get_coeff);
+      OpenKalman::internal::wrap_set<Coeffs>(i, s, set_coeff, get_coeff);
     }
     else
     {
@@ -587,7 +596,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
       const auto set_coeff = [&arg](const std::size_t row, const typename MatrixTraits<Arg>::Scalar value) {
         set_element(nested_matrix(arg), value, row);
       };
-      internal::wrap_set<Coeffs>(i, s, set_coeff, get_coeff);
+      OpenKalman::internal::wrap_set<Coeffs>(i, s, set_coeff, get_coeff);
     }
     else
     {
@@ -637,13 +646,13 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
 
 #ifdef __cpp_concepts
   template<typed_matrix Arg, typename Function> requires untyped_columns<Arg> and
-    std::is_void_v<std::invoke_result_t<const Function&, std::decay_t<decltype(column(std::declval<Arg&>(), 0))>& >> and
+    requires(const Function& f, std::decay_t<decltype(column(std::declval<Arg>(), 0))>& col) { f(col); } and
     (not std::is_const_v<std::remove_reference_t<nested_matrix_t<Arg>>>) and
     modifiable<nested_matrix_t<Arg>, nested_matrix_t<Arg>>
 #else
   template<typename Arg, typename Function, std::enable_if_t<typed_matrix<Arg> and untyped_columns<Arg> and
-    std::is_void_v<std::invoke_result_t<const Function&,
-      std::decay_t<decltype(column(std::declval<Arg&>(), 0))>& >> and
+    std::is_invocable_v<const Function&,
+      std::decay_t<decltype(column(std::declval<Arg&>(), 0))>& > and
     (not std::is_const_v<std::remove_reference_t<nested_matrix_t<Arg>>>) and
     modifiable<nested_matrix_t<Arg>, nested_matrix_t<Arg>>, int> = 0>
 #endif
@@ -654,8 +663,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     using RC = typename MatrixTraits<Arg>::RowCoefficients;
     const auto f_nested = [&f](auto& col)
     {
-      auto mc = MatrixTraits<Arg>::template make<RC, Axis>(make_self_contained(std::move(col)));
-      // note: mc needs to be self-contained to be successfully returned by f.
+      auto mc = MatrixTraits<Arg>::template make<RC, Axis>(std::move(col));
       f(mc);
       col = std::move(nested_matrix(mc));
     };
@@ -668,14 +676,15 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
 
 #ifdef __cpp_concepts
   template<typed_matrix Arg, typename Function> requires untyped_columns<Arg> and
-    std::is_void_v<std::invoke_result_t<const Function&,
-      std::decay_t<decltype(column(std::declval<Arg&>(), 0))>&, std::size_t>> and
+    requires(const Function& f, std::decay_t<decltype(column(std::declval<Arg>(), 0))>& col, std::size_t i) {
+      f(col, i);
+    } and
     (not std::is_const_v<std::remove_reference_t<nested_matrix_t<Arg>>>) and
     modifiable<nested_matrix_t<Arg>, nested_matrix_t<Arg>>
 #else
   template<typename Arg, typename Function, std::enable_if_t<typed_matrix<Arg> and untyped_columns<Arg> and
-    std::is_void_v<std::invoke_result_t<Function,
-    std::decay_t<decltype(column(std::declval<Arg&>(), 0))>&, std::size_t>> and
+    std::is_invocable_v<Function,
+    std::decay_t<decltype(column(std::declval<Arg&>(), 0))>&, std::size_t> and
     (not std::is_const_v<std::remove_reference_t<nested_matrix_t<Arg>>>) and
     modifiable<nested_matrix_t<Arg>, nested_matrix_t<Arg>>, int> = 0>
 #endif
@@ -685,8 +694,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     using RC = typename MatrixTraits<Arg>::RowCoefficients;
     const auto f_nested = [&f](auto& col, std::size_t i)
     {
-      auto mc = MatrixTraits<Arg>::template make<RC, Axis>(make_self_contained(std::move(col)));
-      // note: mc needs to be self-contained to be successfully returned by f.
+      auto mc = MatrixTraits<Arg>::template make<RC, Axis>(std::move(col));
       f(mc, i);
       col = std::move(nested_matrix(mc));
     };
@@ -699,11 +707,13 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
 
 #ifdef __cpp_concepts
   template<typed_matrix Arg, typename Function> requires untyped_columns<Arg> and
-    (not std::is_void_v<std::invoke_result_t<const Function&,
-      std::decay_t<decltype(column(std::declval<const Arg&>(), 0))>&&>>)
+    requires(const Arg& arg, const Function& f) {
+      {f(column<0>(arg))} -> typed_matrix;
+      {f(column<0>(arg))} -> column_vector;
+    }
 #else
   template<typename Arg, typename Function, std::enable_if_t<typed_matrix<Arg> and untyped_columns<Arg> and
-    not std::is_void_v<std::invoke_result_t<const Function&,
+    typed_matrix<std::invoke_result_t<const Function&,
       std::decay_t<decltype(column(std::declval<const Arg&>(), 0))>&& >>, int> = 0>
 #endif
   inline auto
@@ -716,8 +726,9 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     static_assert(ResCC0::dimensions == 1, "Function argument of apply_columnwise must return a column vector.");
     using ResCC = Replicate<ResCC0, MatrixTraits<Arg>::columns>;
     using RC = typename MatrixTraits<Arg>::RowCoefficients;
-    const auto f_nested = [&f](const auto& col) {
-      return nested_matrix(f(MatrixTraits<Arg>::template make<RC, Axis>(col)));
+    const auto f_nested = [&f](auto&& col) -> auto {
+      return make_self_contained(
+        nested_matrix(f(MatrixTraits<Arg>::template make<RC, Axis>(std::forward<decltype(col)>(col)))));
     };
     return MatrixTraits<ResultType>::template make<ResRC, ResCC>(apply_columnwise(nested_matrix(arg), f_nested));
   }
@@ -725,11 +736,13 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
 
 #ifdef __cpp_concepts
   template<typed_matrix Arg, typename Function> requires untyped_columns<Arg> and
-    (not std::is_void_v<std::invoke_result_t<const Function&,
-    std::decay_t<decltype(column(std::declval<const Arg&>(), 0))>&&, std::size_t>>)
+    requires(const Arg& arg, const Function& f, std::size_t i) {
+      {f(column<0>(arg), i)} -> typed_matrix;
+      {f(column<0>(arg), i)} -> column_vector;
+    }
 #else
   template<typename Arg, typename Function, std::enable_if_t<typed_matrix<Arg> and untyped_columns<Arg> and
-    not std::is_void_v<std::invoke_result_t<const Function&,
+    typed_matrix<std::invoke_result_t<const Function&,
       std::decay_t<decltype(column(std::declval<const Arg&>(), 0))>&&, std::size_t>>, int> = 0>
 #endif
   inline auto
@@ -741,16 +754,21 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     using ResCC0 = typename MatrixTraits<ResultType>::ColumnCoefficients;
     static_assert(ResCC0::dimensions == 1, "Function argument of apply_columnwise must return a column vector.");
     using ResCC = Replicate<ResCC0, MatrixTraits<Arg>::columns>;
-    const auto f_nested = [&f](const auto& col, std::size_t i) {
+    const auto f_nested = [&f](auto&& col, std::size_t i) -> auto {
       using RC = typename MatrixTraits<Arg>::RowCoefficients;
-      return nested_matrix(f(MatrixTraits<Arg>::template make<RC, Axis>(col), i));
+      return make_self_contained(
+        nested_matrix(f(MatrixTraits<Arg>::template make<RC, Axis>(std::forward<decltype(col)>(col)), i)));
     };
     return MatrixTraits<ResultType>::template make<ResRC, ResCC>(apply_columnwise(nested_matrix(arg), f_nested));
   }
 
 
 #ifdef __cpp_concepts
-  template<std::size_t count, typename Function> requires typed_matrix<std::invoke_result_t<const Function&>>
+  template<std::size_t count, typename Function> requires
+    requires(const Function& f) {
+      {f()} -> typed_matrix;
+      {f()} -> column_vector;
+    }
 #else
   template<std::size_t count, typename Function, std::enable_if_t<
     typed_matrix<std::invoke_result_t<const Function&>>, int> = 0>
@@ -770,7 +788,10 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
 
 #ifdef __cpp_concepts
   template<std::size_t count, typename Function> requires
-    typed_matrix<std::invoke_result_t<const Function&, std::size_t>>
+    requires(const Function& f, std::size_t i) {
+      {f(i)} -> typed_matrix;
+      {f(i)} -> column_vector;
+    }
 #else
   template<std::size_t count, typename Function, std::enable_if_t<
     typed_matrix<std::invoke_result_t<const Function&, std::size_t>>, int> = 0>

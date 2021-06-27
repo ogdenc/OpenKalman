@@ -46,7 +46,7 @@ inline auto sqcovi2 = SqCovI2(i2);
 inline auto sqcovz2 = SqCovZ2(z2);
 
 
-TEST_F(covariance_tests, SquareRootCovariance_addition)
+TEST(covariance_tests, SquareRootCovariance_addition)
 {
   EXPECT_TRUE(is_near(SqCovSA2l {3, 0, 1, 3} + SqCovSA2l {2, 0, 1, 2}, Mat2 {5, 0, 2, 5}));
   EXPECT_TRUE(is_near(SqCovSA2l {3, 0, 1, 3} + SqCovSA2u {2, 1, 0, 2}, Mat2 {5, 1, 1, 5}));
@@ -147,7 +147,7 @@ TEST_F(covariance_tests, SquareRootCovariance_addition)
 }
 
 
-TEST_F(covariance_tests, SquareRootCovariance_addition_mixed)
+TEST(covariance_tests, SquareRootCovariance_addition_mixed)
 {
   EXPECT_TRUE(is_near(SqCovSA2l {2, 0, 1, 2} + CovSA2l {9, 3, 3, 10}, Mat2 {11, 3, 4, 12}));
   EXPECT_TRUE(is_near(SqCovSA2u {2, 1, 0, 2} + CovSA2l {9, 3, 3, 10}, Mat2 {11, 4, 3, 12}));
@@ -244,7 +244,7 @@ TEST_F(covariance_tests, SquareRootCovariance_addition_mixed)
 }
 
 
-TEST_F(covariance_tests, SquareRootCovariance_subtraction)
+TEST(covariance_tests, SquareRootCovariance_subtraction)
 {
   EXPECT_TRUE(is_near(SqCovSA2l {3, 0, 1, 3} - SqCovSA2l {2, 0, 1, 2}, Mat2 {1, 0, 0, 1}));
   EXPECT_TRUE(is_near(SqCovSA2l {3, 0, 1, 3} - SqCovSA2u {2, 1, 0, 2}, Mat2 {1, -1, 1, 1}));
@@ -344,7 +344,7 @@ TEST_F(covariance_tests, SquareRootCovariance_subtraction)
   static_assert(zero_matrix<decltype(sqcovz2 - sqcovz2)>);}
 
 
-TEST_F(covariance_tests, SquareRootCovariance_subtraction_mixed)
+TEST(covariance_tests, SquareRootCovariance_subtraction_mixed)
 {
   EXPECT_TRUE(is_near(SqCovSA2l {2, 0, 1, 2} - CovSA2l {9, 3, 3, 10}, -Mat2 {7, 3, 2, 8}));
   EXPECT_TRUE(is_near(SqCovSA2u {2, 1, 0, 2} - CovSA2l {9, 3, 3, 10}, -Mat2 {7, 2, 3, 8}));
@@ -441,7 +441,7 @@ TEST_F(covariance_tests, SquareRootCovariance_subtraction_mixed)
 }
 
 
-TEST_F(covariance_tests, SquareRootCovariance_mult_covariance)
+TEST(covariance_tests, SquareRootCovariance_mult_covariance)
 {
   auto sqcovsa2l = SqCovSA2l {3, 0, 1, 3};
   auto sqcovsa2u = SqCovSA2u {3, 1, 0, 3};
@@ -632,7 +632,7 @@ TEST_F(covariance_tests, SquareRootCovariance_mult_covariance)
 }
 
 
-TEST_F(covariance_tests, SquareRootCovariance_mult_TypedMatrix)
+TEST(covariance_tests, SquareRootCovariance_mult_TypedMatrix)
 {
   using MatI2 = Matrix<C, C, I2>;
   using MatZ2 = Matrix<C, C, Z2>;
@@ -705,7 +705,7 @@ TEST_F(covariance_tests, SquareRootCovariance_mult_TypedMatrix)
 }
 
 
-TEST_F(covariance_tests, SquareRootCovariance_mult_scalar)
+TEST(covariance_tests, SquareRootCovariance_mult_scalar)
 {
   EXPECT_TRUE(is_near(SqCovSA2l {2, 0, 1, 2} * 2, Mat2 {4, 0, 2, 4}));
   EXPECT_TRUE(is_near(SqCovSA2u {2, 1, 0, 2} * 2, Mat2 {4, 2, 0, 4}));
@@ -763,7 +763,7 @@ TEST_F(covariance_tests, SquareRootCovariance_mult_scalar)
 }
 
 
-TEST_F(covariance_tests, SquareRootCovariance_scale)
+TEST(covariance_tests, SquareRootCovariance_scale)
 {
   Matrix<Coefficients<angle::Radians, Axis, angle::Radians>, C> a1 {1, 2, 3, 4, 5, 6};
   EXPECT_TRUE(is_near(scale(SqCovSA2l {2, 0, 1, 2}, 2), Mat2 {4, 0, 2, 4}));
@@ -833,7 +833,7 @@ TEST_F(covariance_tests, SquareRootCovariance_scale)
 }
 
 
-TEST_F(covariance_tests, TypedMatrix_mult_SquareRootCovariance)
+TEST(covariance_tests, TypedMatrix_mult_SquareRootCovariance)
 {
   using MatI2 = Matrix<C, C, I2>;
   using MatZ2 = Matrix<C, C, Z2>;
@@ -906,7 +906,7 @@ TEST_F(covariance_tests, TypedMatrix_mult_SquareRootCovariance)
 }
 
 
-TEST_F(covariance_tests, SquareRootCovariance_other_operations)
+TEST(covariance_tests, SquareRootCovariance_other_operations)
 {
   EXPECT_TRUE(is_near(-SqCovT2l {2, 0, 1, 2}, Mat2 {-2, 0, -1, -2}));
   EXPECT_TRUE(is_near(-SqCovT2u {2, 1, 0, 2}, Mat2 {-2, -1, 0, -2}));

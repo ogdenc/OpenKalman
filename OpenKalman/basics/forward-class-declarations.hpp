@@ -457,38 +457,27 @@ namespace OpenKalman
 
     /**
      * \internal
+     * \brief Implementations for Covariance and SquareRootCovariance classes.
+     * \tparam Derived The fully derived covariance type.
+     * \tparam NestedMatrix The nested native matrix, which can be const or an lvalue reference, or both, or neither.
+     */
+#ifdef __cpp_concepts
+    template<typename Derived, typename NestedMatrix>
+#else
+    template<typename Derived, typename NestedMatrix>
+#endif
+    struct CovarianceImpl;
+
+
+    /**
+     * \internal
      * \brief An interface to a matrix, to be used for getting and setting the individual matrix elements.
-     * \tparam read_only Whether the matrix elements are read-only (as opposed to writable).
-     * \tparam T The matrix type.
+     * \tparam settable Whether the matrix elements can be set (as opposed to being read-only).
+     * \tparam Scalar the scalar type of the elements.
      */
-    template<bool read_only, typename T>
-    struct ElementSetter;
+    template<bool settable, typename Scalar = double>
+    struct ElementAccessor;
 
-
-    /**
-     * \internal
-     * \brief Make an ElementSetter that takes two indices.
-     * \tparam read_only Whether the matrix elements are read-only.
-     * \tparam T The matrix type
-     * \param do_before The action, if any, taken before getting or setting an element.
-     * \param on_set The action, if any, taken after setting an element.
-     */
-    template<bool read_only, typename T>
-    auto make_ElementSetter(T&& t, std::size_t i, std::size_t j,
-      const std::function<void()>& do_before = []{}, const std::function<void()>& on_set = []{});
-
-
-    /**
-     * \internal
-     * \brief Make an ElementSetter that takes one index (i.e., is a vector).
-     * \tparam read_only Whether the matrix elements are read-only.
-     * \tparam T The matrix type
-     * \param do_before The action, if any, taken before getting or setting an element.
-     * \param on_set The action, if any, taken after setting an element.
-     */
-    template<bool read_only, typename T>
-    auto make_ElementSetter(T&& t, std::size_t i,
-      const std::function<void()>& do_before = []{}, const std::function<void()>& on_set = []{});
 
   } // namespace internal
 

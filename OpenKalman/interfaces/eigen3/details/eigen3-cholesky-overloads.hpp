@@ -16,31 +16,9 @@
 #ifndef OPENKALMAN_EIGEN3_CHOLESKY_HPP
 #define OPENKALMAN_EIGEN3_CHOLESKY_HPP
 
+
 namespace OpenKalman::Eigen3
 {
-  namespace detail
-  {
-    template<typename Arg>
-    inline auto extracted_diagonal_square(Arg&& arg)
-    {
-      using M = Eigen::Matrix<typename MatrixTraits<Arg>::Scalar, MatrixTraits<Arg>::rows, 1>;
-      M b {std::forward<Arg>(arg).diagonal()};
-      M ret {(b.array() * b.array()).matrix()};
-      return DiagonalMatrix<M> {std::move(ret)};
-    }
-
-    template<typename Arg>
-    inline auto extracted_diagonal_sqrt(Arg&& arg)
-    {
-      using M = Eigen::Matrix<typename MatrixTraits<Arg>::Scalar, MatrixTraits<Arg>::rows, 1>;
-      M b {std::forward<Arg>(arg).diagonal()};
-      M ret {(b.array().sqrt()).matrix()};
-      return DiagonalMatrix<M> {std::move(ret)};
-    }
-
-  } // namespace detail
-
-
   /**
    * \brief Take the Cholesky square (AA<sup>T</sup>) of an Eigen::ZeroMatrix.
    * \param z A zero matrix.
@@ -94,13 +72,12 @@ namespace OpenKalman::Eigen3
     }
     else if constexpr(one_by_one_matrix<D>)
     {
-      return make_self_contained(std::forward<D>(d).array().square().matrix());
+      return make_self_contained<D>(std::forward<D>(d).array().square().matrix());
     }
     else
     {
-      auto dd = make_self_contained(std::forward<D>(d).diagonal().array().square().matrix());
-      using DD = std::decay_t<decltype(dd)>;
-      return DiagonalMatrix<DD> {std::move(dd)};
+      auto n = make_self_contained<D>(std::forward<D>(d).diagonal().array().square().matrix());
+      return DiagonalMatrix<decltype(n)> {std::move(n)};
     }
   }
 
@@ -129,9 +106,8 @@ namespace OpenKalman::Eigen3
     }
     else
     {
-      auto e = make_self_contained(std::forward<D>(d).diagonal().cwiseSqrt());
-      using E = std::decay_t<decltype(e)>;
-      return DiagonalMatrix<E> {std::move(e)};
+      auto n = make_self_contained<D>(std::forward<D>(d).diagonal().cwiseSqrt());
+      return DiagonalMatrix<decltype(n)> {std::move(n)};
     }
   }
 
@@ -149,15 +125,14 @@ namespace OpenKalman::Eigen3
   constexpr decltype(auto)
   Cholesky_square(D&& d) noexcept
   {
-    if constexpr(identity_matrix<nested_matrix_t<D>> or zero_matrix<nested_matrix_t<D>>)
+    if constexpr(identity_matrix<D> or zero_matrix<D>)
     {
       return std::forward<D>(d);
     }
     else
     {
-      auto dd = make_self_contained(nested_matrix(std::forward<D>(d)).array().square().matrix());
-      using DD = std::decay_t<decltype(dd)>;
-      return DiagonalMatrix<DD> {std::move(dd)};
+      auto n = make_self_contained<D>(nested_matrix(std::forward<D>(d)).array().square().matrix());
+      return DiagonalMatrix<decltype(n)> {std::move(n)};
     }
   }
 
@@ -175,35 +150,32 @@ namespace OpenKalman::Eigen3
   constexpr decltype(auto)
   Cholesky_factor(D&& d) noexcept
   {
-    if constexpr(identity_matrix<nested_matrix_t<D>> or zero_matrix<nested_matrix_t<D>>)
+    if constexpr(identity_matrix<D> or zero_matrix<D>)
     {
       return std::forward<D>(d);
     }
     else
     {
-      auto e = make_self_contained(nested_matrix(std::forward<D>(d)).cwiseSqrt());
-      using E = std::decay_t<decltype(e)>;
-      return DiagonalMatrix<E> {std::move(e)};
+      auto n = make_self_contained<D>(nested_matrix(std::forward<D>(d)).cwiseSqrt());
+      return DiagonalMatrix<decltype(n)> {std::move(n)};
     }
   }
 
 
   /**
-   * \brief Take the Cholesky square of an Eigen::SelfAdjointMatrix.
+   * \brief Take the Cholesky square of a diagonal Eigen::SelfAdjointMatrix.
    * \param a An Eigen::SelfAdjointMatrix.
    * \return aa<sup>T</sup>
    */
 #ifdef __cpp_concepts
-  template<eigen_self_adjoint_expr A> requires
-    diagonal_matrix<nested_matrix_t<A>> or (MatrixTraits<A>::storage_triangle == TriangleType::diagonal)
+  template<eigen_self_adjoint_expr A> requires diagonal_matrix<A>
 #else
-  template<typename A, std::enable_if_t<eigen_self_adjoint_expr<A> and
-    (diagonal_matrix<nested_matrix_t<A>> or (MatrixTraits<A>::storage_triangle == TriangleType::diagonal)), int> = 0>
+  template<typename A, std::enable_if_t<eigen_self_adjoint_expr<A> and diagonal_matrix<A>, int> = 0>
 #endif
   constexpr decltype(auto)
   Cholesky_square(A&& a) noexcept
   {
-    if constexpr(identity_matrix<nested_matrix_t<A>> or zero_matrix<nested_matrix_t<A>>)
+    if constexpr(identity_matrix<A> or zero_matrix<A>)
     {
       return std::forward<A>(a);
     }
@@ -214,20 +186,24 @@ namespace OpenKalman::Eigen3
     else
     {
       static_assert(MatrixTraits<A>::storage_triangle == TriangleType::diagonal);
-      return detail::extracted_diagonal_square(nested_matrix(std::forward<A>(a)));
+      auto n = make_self_contained<A>(nested_matrix(std::forward<A>(a)).diagonal().array().square().matrix());
+      return DiagonalMatrix<decltype(n)> {std::move(n)};
     }
   }
 
 
   /**
    * \brief Take the Cholesky factor of an Eigen::SelfAdjointMatrix.
+   * \tparam triangle_type The triangle type of the result. This can only be TriangleType::diagonal if a is diagonal.
    * \param a An Eigen::SelfAdjointMatrix.
-   * \return A triangle t (upper or lower, depending on triangle_type), where tt<sup>T</sup> = a or t<sup>T</sup>t = a.
+   * \return A triangle t (upper or lower), depending on triangle_type), where tt<sup>T</sup> = a or t<sup>T</sup>t = a.
    */
 #ifdef __cpp_concepts
-  template<TriangleType triangle_type, eigen_self_adjoint_expr A>
+  template<TriangleType triangle_type, eigen_self_adjoint_expr A> requires
+    (triangle_type != TriangleType::diagonal or diagonal_matrix<A>)
 #else
-  template<TriangleType triangle_type, typename A, std::enable_if_t<eigen_self_adjoint_expr<A>, int> = 0>
+  template<TriangleType triangle_type, typename A, std::enable_if_t<
+    eigen_self_adjoint_expr<A> and (triangle_type != TriangleType::diagonal or diagonal_matrix<A>), int> = 0>
 #endif
   constexpr decltype(auto)
   Cholesky_factor(A&& a)
@@ -237,43 +213,46 @@ namespace OpenKalman::Eigen3
     constexpr auto dimensions = MatrixTraits<A>::rows;
     using M = Eigen::Matrix<Scalar, dimensions, dimensions>;
 
-    if constexpr(identity_matrix<NestedMatrix> or zero_matrix<NestedMatrix>)
+    if constexpr(identity_matrix<A> or zero_matrix<A>)
     {
       return std::forward<A>(a);
-    }
-    else if constexpr (diagonal_matrix<NestedMatrix>)
-    {
-      return Cholesky_factor<triangle_type>(nested_matrix(std::forward<A>(a)));
-    }
-    else if constexpr (MatrixTraits<A>::storage_triangle == TriangleType::diagonal)
-    {
-      return detail::extracted_diagonal_sqrt(nested_matrix(std::forward<A>(a)));
     }
     else if constexpr (eigen_constant_expr<NestedMatrix>)
     {
       // If nested matrix is a positive constant matrix, construct the Cholesky factor using a shortcut.
-      constexpr auto s = MatrixTraits<NestedMatrix>::constant;
 
       // Check that Cholesky factor elements are real:
+      constexpr auto s = MatrixTraits<NestedMatrix>::constant;
       static_assert(s >= Scalar(0), "Cholesky_factor of constant SelfAdjointMatrix: covariance is indefinite");
+      constexpr auto sqrt_s = OpenKalman::internal::constexpr_sqrt(s);
 
-      if constexpr(triangle_type == TriangleType::lower)
+      if constexpr (triangle_type == TriangleType::diagonal)
       {
-        auto col0 = Eigen::Matrix<Scalar, dimensions, 1>::Constant(OpenKalman::internal::constexpr_sqrt(s));
-        ConstantMatrix<Scalar, 0, dimensions, dimensions - 1> othercols;
-        return TriangularMatrix<M, triangle_type> {concatenate_horizontal(col0, othercols)};
+        static_assert(diagonal_matrix<A>);
+        using CM = ConstantMatrix<Scalar, sqrt_s, dimensions, 1>;
+        return DiagonalMatrix<CM> {CM {}};
+      }
+      else if constexpr (triangle_type == TriangleType::lower)
+      {
+        ConstantMatrix<Scalar, sqrt_s, dimensions, 1> col0;
+        ZeroMatrix<Scalar, dimensions, dimensions - 1> othercols;
+        auto m = concatenate_horizontal(col0, othercols);
+        return TriangularMatrix<std::decay_t<decltype(m)>, triangle_type> {std::move(m)};
       }
       else
       {
-        auto row0 = Eigen::Matrix<Scalar, 1, dimensions>::Constant(OpenKalman::internal::constexpr_sqrt(s));
-        ConstantMatrix<Scalar, 0, dimensions - 1, dimensions> otherrows;
-        return TriangularMatrix<M, triangle_type> {concatenate_vertical(row0, otherrows)};
+        static_assert(triangle_type == TriangleType::upper);
+        ConstantMatrix<Scalar, sqrt_s, 1, dimensions> row0;
+        ZeroMatrix<Scalar, dimensions - 1, dimensions> otherrows;
+        auto m = concatenate_vertical(row0, otherrows);
+        return TriangularMatrix<std::decay_t<decltype(m)>, triangle_type> {std::move(m)};
       }
     }
     else if constexpr (std::is_same_v<
       const NestedMatrix, const typename Eigen::MatrixBase<NestedMatrix>::ConstantReturnType>)
     {
       // If nested matrix is a positive constant matrix, construct the Cholesky factor using a shortcut.
+
       auto s = nested_matrix(std::forward<A>(a)).functor()();
 
       if (s < Scalar(0))
@@ -282,24 +261,40 @@ namespace OpenKalman::Eigen3
         throw (std::runtime_error("Cholesky_factor of constant SelfAdjointMatrix: covariance is indefinite"));
       }
 
-      if constexpr(triangle_type == TriangleType::lower)
+      if constexpr(triangle_type == TriangleType::diagonal)
+      {
+        static_assert(diagonal_matrix<A>);
+        auto vec = Eigen::Matrix<Scalar, dimensions, 1>::Constant(std::sqrt(s));
+        return DiagonalMatrix<decltype(vec)> {vec};
+      }
+      else if constexpr(triangle_type == TriangleType::lower)
       {
         auto col0 = Eigen::Matrix<Scalar, dimensions, 1>::Constant(std::sqrt(s));
-        ConstantMatrix<Scalar, 0, dimensions, dimensions - 1> othercols;
+        ZeroMatrix<Scalar, dimensions, dimensions - 1> othercols;
         return TriangularMatrix<M, triangle_type> {concatenate_horizontal(col0, othercols)};
       }
       else
       {
+        static_assert(triangle_type == TriangleType::upper);
         auto row0 = Eigen::Matrix<Scalar, 1, dimensions>::Constant(std::sqrt(s));
-        ConstantMatrix<Scalar, 0, dimensions - 1, dimensions> otherrows;
+        ZeroMatrix<Scalar, dimensions - 1, dimensions> otherrows;
         return TriangularMatrix<M, triangle_type> {concatenate_vertical(row0, otherrows)};
       }
+    }
+    else if constexpr (diagonal_matrix<NestedMatrix>)
+    {
+      return Cholesky_factor<triangle_type>(nested_matrix(std::forward<A>(a)));
+    }
+    else if constexpr (MatrixTraits<A>::storage_triangle == TriangleType::diagonal)
+    {
+      auto n = make_self_contained<A>(nested_matrix(std::forward<A>(a)).diagonal().cwiseSqrt());
+      return DiagonalMatrix<decltype(n)> {std::move(n)};
     }
     else
     {
       // For the general case, perform an LLT Cholesky decomposition.
       M b;
-      auto LL_x = a.nested_view().llt();
+      auto LL_x = a.view().llt();
       if (LL_x.info() == Eigen::Success)
       {
         if constexpr(triangle_type == MatrixTraits<A>::storage_triangle)
@@ -349,7 +344,7 @@ namespace OpenKalman::Eigen3
 
 
  /**
-  * \brief Take the Cholesky factor of a diagonal native Eigen matrix.
+  * \brief Take the Cholesky factor of a Eigen::SelfAdjointMatrix.
   * \param a An Eigen::SelfAdjointMatrix.
   * \return Triangle t (upper or lower, depending on a's storage type), where tt<sup>T</sup> = a or t<sup>T</sup>t = a.
   */
@@ -379,10 +374,8 @@ namespace OpenKalman::Eigen3
   Cholesky_square(T&& t) noexcept
   {
     constexpr auto triangle_type = MatrixTraits<T>::triangle_type;
-    constexpr auto dim = MatrixTraits<T>::rows;
-    using M = Eigen::Matrix<typename MatrixTraits<T>::Scalar, dim, dim>;
 
-    if constexpr(identity_matrix<nested_matrix_t<T>> or zero_matrix<nested_matrix_t<T>>)
+    if constexpr(identity_matrix<T> or zero_matrix<T>)
     {
       return std::forward<T>(t);
     }
@@ -392,22 +385,21 @@ namespace OpenKalman::Eigen3
     }
     else if constexpr (triangle_type == TriangleType::diagonal)
     {
-      return detail::extracted_diagonal_square(nested_matrix(std::forward<T>(t)));
+      return DiagonalMatrix {
+        make_self_contained<T>(nested_matrix(std::forward<T>(t)).diagonal().array().square().matrix())};
     }
     else if constexpr (triangle_type == TriangleType::upper)
     {
-      auto v = std::forward<T>(t).nested_view();
-      M ret;
-      ret.template triangularView<Eigen::Upper>() = v.adjoint() * M {v};
-      return SelfAdjointMatrix<M, triangle_type> {std::move(ret)};
+      auto adj = make_native_matrix(adjoint(t));
+      auto prod {make_self_contained(std::move(adj) * std::forward<T>(t))};
+      return SelfAdjointMatrix<decltype(prod), triangle_type> {std::move(prod)};
     }
     else
     {
       static_assert(triangle_type == TriangleType::lower);
-      auto v = std::forward<T>(t).nested_view();
-      M ret;
-      ret.template triangularView<Eigen::Lower>() = v * M {v.adjoint()};
-      return SelfAdjointMatrix<M, triangle_type> {std::move(ret)};
+      auto adj = make_native_matrix(adjoint(t));
+      auto prod {make_self_contained(std::forward<T>(t) * std::move(adj))};
+      return SelfAdjointMatrix<decltype(prod), triangle_type> {std::move(prod)};
     }
 
   }
@@ -419,16 +411,15 @@ namespace OpenKalman::Eigen3
    * \return A diagonal matrix d, where dd<sup>T</sup> = a.
    */
 #ifdef __cpp_concepts
-  template<TriangleType = TriangleType::diagonal, eigen_triangular_expr T> requires
-    diagonal_matrix<nested_matrix_t<T>> or (MatrixTraits<T>::triangle_type == TriangleType::diagonal)
+  template<TriangleType = TriangleType::diagonal, eigen_triangular_expr T> requires diagonal_matrix<T>
 #else
-  template<TriangleType = TriangleType::diagonal, typename T, std::enable_if_t<eigen_triangular_expr<T> and
-    (diagonal_matrix<nested_matrix_t<T>> or (MatrixTraits<T>::triangle_type == TriangleType::diagonal)), int> = 0>
+  template<TriangleType = TriangleType::diagonal, typename T, std::enable_if_t<
+    eigen_triangular_expr<T> and diagonal_matrix<T>, int> = 0>
 #endif
   constexpr decltype(auto)
   Cholesky_factor(T&& t) noexcept
   {
-    if constexpr(identity_matrix<nested_matrix_t<T>> or zero_matrix<nested_matrix_t<T>>)
+    if constexpr(identity_matrix<T> or zero_matrix<T>)
     {
       return std::forward<T>(t);
     }
@@ -439,7 +430,8 @@ namespace OpenKalman::Eigen3
     else
     {
       static_assert(MatrixTraits<T>::triangle_type == TriangleType::diagonal);
-      return detail::extracted_diagonal_sqrt(nested_matrix(std::forward<T>(t)));
+      auto n = make_self_contained<T>(nested_matrix(std::forward<T>(t)).diagonal().cwiseSqrt());
+      return DiagonalMatrix<decltype(n)> {std::move(n)};
     }
 
   }

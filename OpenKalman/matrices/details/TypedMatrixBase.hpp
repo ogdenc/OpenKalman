@@ -27,7 +27,7 @@ namespace OpenKalman::internal
 #else
   template<typename Derived, typename RowCoefficients, typename ColumnCoefficients, typename NestedMatrix>
 #endif
-  struct TypedMatrixBase : internal::MatrixBase<Derived, NestedMatrix>
+  struct TypedMatrixBase : OpenKalman::internal::MatrixBase<Derived, NestedMatrix>
   {
 
 #ifndef __cpp_concepts
@@ -39,7 +39,7 @@ namespace OpenKalman::internal
 
   private:
 
-    using Base = internal::MatrixBase<Derived, NestedMatrix>;
+    using Base = OpenKalman::internal::MatrixBase<Derived, NestedMatrix>;
 
   protected:
 
@@ -53,9 +53,9 @@ namespace OpenKalman::internal
 
     /// Default constructor.
 #ifdef __cpp_concepts
-    TypedMatrixBase() requires std::default_initializable<Base> : Base {} {}
+    TypedMatrixBase() requires std::default_initializable<NestedMatrix> : Base {} {}
 #else
-    template<typename T = Base, std::enable_if_t<std::is_default_constructible_v<T>, int> = 0>
+    template<typename T = NestedMatrix, std::enable_if_t<std::is_default_constructible_v<T>, int> = 0>
     TypedMatrixBase() : Base {} {}
 #endif
 
@@ -71,43 +71,38 @@ namespace OpenKalman::internal
     /// Construct from a typed_matrix_nestable.
 #ifdef __cpp_concepts
     template<typed_matrix_nestable Arg> requires (MatrixTraits<Arg>::rows == MatrixTraits<NestedMatrix>::rows) and
-      (MatrixTraits<Arg>::columns == MatrixTraits<NestedMatrix>::columns) and std::is_constructible_v<Base, Arg>
+      (MatrixTraits<Arg>::columns == MatrixTraits<NestedMatrix>::columns) and
+      std::constructible_from<NestedMatrix, Arg&&>
 #else
     template<typename Arg, std::enable_if_t<typed_matrix_nestable<Arg> and
       (MatrixTraits<Arg>::rows == MatrixTraits<NestedMatrix>::rows) and
       (MatrixTraits<Arg>::columns == MatrixTraits<NestedMatrix>::columns) and
-      std::is_constructible_v<Base, Arg>, int> = 0>
+      std::is_constructible_v<NestedMatrix, Arg&&>, int> = 0>
 #endif
     TypedMatrixBase(Arg&& arg) noexcept : Base {std::forward<Arg>(arg)} {}
 
 
     /// Construct from a list of coefficients.
 #ifdef __cpp_concepts
-    template<std::convertible_to<Scalar> ... Args> requires (sizeof...(Args) > 0) and
-      requires {std::is_constructible_v<Base,
-        decltype(MatrixTraits<NestedMatrix>::make(static_cast<const Scalar>(std::declval<const Args>())...))>; }
-    TypedMatrixBase(const Args ... args)
-      : Base {MatrixTraits<NestedMatrix>::make(static_cast<const Scalar>(args)...)} {}
+    template<std::convertible_to<const Scalar> ... Args> requires (sizeof...(Args) > 0) and
+      requires(Args ... args) { NestedMatrix {MatrixTraits<NestedMatrix>::make(static_cast<const Scalar>(args)...)}; }
 #else
-    // Note: std::is_constructible_v cannot be used here with ::make.
-    template<typename ... Args, std::enable_if_t<(std::is_convertible_v<Args, Scalar> and ...) and
-      (sizeof...(Args) == MatrixTraits<NestedMatrix>::rows) and diagonal_matrix<NestedMatrix> and
-      std::is_constructible_v<Base, NestedMatrix&&>, int> = 0>
-    TypedMatrixBase(const Args ... args)
-      : Base {MatrixTraits<NestedMatrix>::make(static_cast<const Scalar>(args)...)} {}
-
-    template<typename ... Args, std::enable_if_t<(std::is_convertible_v<Args, Scalar> and ...) and
-      (not one_by_one_matrix<NestedMatrix>) and
-      (sizeof...(Args) == MatrixTraits<NestedMatrix>::rows * MatrixTraits<NestedMatrix>::columns) and
-      std::is_constructible_v<Base, NestedMatrix&&>, int> = 0>
-    TypedMatrixBase(const Args ... args)
-      : Base {MatrixTraits<NestedMatrix>::make(static_cast<const Scalar>(args)...)} {}
+    template<typename ... Args, std::enable_if_t<
+      (std::is_convertible_v<Args, const Scalar> and ...) and (sizeof...(Args) > 0) and
+      ((diagonal_matrix<NestedMatrix> and std::is_constructible_v<NestedMatrix,
+          typename MatrixTraits<NestedMatrix>::template NativeMatrixFrom<sizeof...(Args), 1>>) or
+       (sizeof...(Args) == MatrixTraits<NestedMatrix>::rows * MatrixTraits<NestedMatrix>::columns and
+          std::is_constructible_v<NestedMatrix,
+          typename MatrixTraits<NestedMatrix>::template NativeMatrixFrom<MatrixTraits<NestedMatrix>::rows,
+            MatrixTraits<NestedMatrix>::columns>>)), int> = 0>
 #endif
+    TypedMatrixBase(Args ... args)
+      : Base {MatrixTraits<NestedMatrix>::make(static_cast<const Scalar>(args)...)} {}
 
 
-    /**********************
-     * Assignment Operators
-     **********************/
+    // ---------------------- //
+    //  Assignment Operators  //
+    // ---------------------- //
 
     /// Copy assignment operator.
     auto& operator=(const TypedMatrixBase& other)
@@ -170,56 +165,56 @@ namespace OpenKalman::internal
     /// Subscript (two indices)
     auto operator()(std::size_t i, std::size_t j) &
     {
-      return make_ElementSetter<not element_settable<Derived, 2>>(static_cast<Derived&>(*this), i, j);
+      return ElementAccessor(static_cast<Derived&>(*this), i, j);
     }
 
 
     /// \overload
     auto operator()(std::size_t i, std::size_t j) &&
     {
-      return make_ElementSetter<true>(static_cast<Derived&&>(*this), i, j);
+      return ElementAccessor(static_cast<Derived&&>(*this), i, j);
     }
 
 
     /// \overload
     auto operator()(std::size_t i, std::size_t j) const &
     {
-      return make_ElementSetter<true>(static_cast<const Derived&>(*this), i, j);
+      return ElementAccessor(static_cast<const Derived&>(*this), i, j);
     }
 
 
     /// \overload
     auto operator()(std::size_t i, std::size_t j) const &&
     {
-      return make_ElementSetter<true>(static_cast<const Derived&&>(*this), i, j);
+      return ElementAccessor(static_cast<const Derived&&>(*this), i, j);
     }
 
 
     /// Subscript (one index)
     auto operator[](std::size_t i) &
     {
-      return make_ElementSetter<not element_settable<Derived, 1>>(static_cast<Derived&>(*this), i);
+      return ElementAccessor(static_cast<Derived&>(*this), i);
     }
 
 
     /// \overload
     auto operator[](std::size_t i) &&
     {
-      return make_ElementSetter<true>(static_cast<Derived&&>(*this), i);
+      return ElementAccessor(static_cast<Derived&&>(*this), i);
     }
 
 
     /// \overload
     auto operator[](std::size_t i) const &
     {
-      return make_ElementSetter<true>(static_cast<const Derived&>(*this), i);
+      return ElementAccessor(static_cast<const Derived&>(*this), i);
     }
 
 
     /// \overload
     auto operator[](std::size_t i) const &&
     {
-      return make_ElementSetter<true>(static_cast<const Derived&&>(*this), i);
+      return ElementAccessor(static_cast<const Derived&&>(*this), i);
     }
 
 

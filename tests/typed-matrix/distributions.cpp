@@ -10,7 +10,7 @@
 
 #include "matrices.hpp"
 
-using namespace OpenKalman;
+using std::numbers::pi;
 
 using M1 = eigen_matrix_t<double, 1, 1>;
 using M2 = eigen_matrix_t<double, 2, 2>;
@@ -74,7 +74,7 @@ inline auto covz2 = CovZ2 {z2};
 inline auto disti2 = DistI2 {ZeroMatrix<double, 2, 1>(), covi2};
 inline auto distz2 = DistZ2 {ZeroMatrix<double, 2, 1>(), covz2};
 
-TEST_F(matrices, GaussianDistribution_class)
+TEST(matrices, GaussianDistribution_class)
 {
   // Default constructor
   DistSA2l distSA2la;
@@ -403,7 +403,7 @@ TEST_F(matrices, GaussianDistribution_class)
 }
 
 
-TEST_F(matrices, GaussianDistribution_class_random)
+TEST(matrices, GaussianDistribution_class_random)
 {
   using V = Mean<C3>;
   M3 d;
@@ -427,7 +427,7 @@ TEST_F(matrices, GaussianDistribution_class_random)
 }
 
 
-TEST_F(matrices, GaussianDistribution_class_random_axis)
+TEST(matrices, GaussianDistribution_class_random_axis)
 {
   using Mat = Mean<Coefficients<Axis, Axis>>;
   const Mat true_x {20, 30};
@@ -447,7 +447,7 @@ TEST_F(matrices, GaussianDistribution_class_random_axis)
 }
 
 
-TEST_F(matrices, GaussianDistribution_class_Cholesky_random)
+TEST(matrices, GaussianDistribution_class_Cholesky_random)
 {
   using V = Mean<C3>;
   M3 d;
@@ -471,7 +471,7 @@ TEST_F(matrices, GaussianDistribution_class_Cholesky_random)
 }
 
 
-TEST_F(matrices, GaussianDistribution_class_Cholesky_random_axis)
+TEST(matrices, GaussianDistribution_class_Cholesky_random_axis)
 {
   using Mat = Mean<Coefficients<Axis, Axis>>;
   M2 m2;
@@ -493,7 +493,7 @@ TEST_F(matrices, GaussianDistribution_class_Cholesky_random_axis)
 }
 
 
-TEST_F(matrices, GaussianDistribution_class_statistics)
+TEST(matrices, GaussianDistribution_class_statistics)
 {
   GaussianDistribution<Axis, M1, SA1l> x1 = {M1(2), SA1l(M1(9))};
   EXPECT_NEAR(x1.log_likelihood(Mean{M1(1)}), -2.07310637743, 1e-6);
@@ -516,7 +516,7 @@ TEST_F(matrices, GaussianDistribution_class_statistics)
 }
 
 
-TEST_F(matrices, GaussianDistribution_deduction_guides)
+TEST(matrices, GaussianDistribution_deduction_guides)
 {
   EXPECT_TRUE(is_near(GaussianDistribution(DistSA2l {{1, 2}, {9, 3, 3, 10}}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
   static_assert(equivalent_to<typename DistributionTraits<decltype(GaussianDistribution(DistSA2l {{1, 2}, {9, 3, 3, 10}}))>::Coefficients, C2>);
@@ -548,7 +548,7 @@ TEST_F(matrices, GaussianDistribution_deduction_guides)
 }
 
 
-TEST_F(matrices, GaussianDistribution_make)
+TEST(matrices, GaussianDistribution_make)
 {
   EXPECT_TRUE(is_near(make_GaussianDistribution(DistSA2l {{1, 2}, {9, 3, 3, 10}}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
   static_assert(equivalent_to<typename DistributionTraits<decltype(make_GaussianDistribution(DistSA2l {{1, 2}, {9, 3, 3, 10}}))>::Coefficients, C2>);
@@ -608,7 +608,7 @@ TEST_F(matrices, GaussianDistribution_make)
 }
 
 
-TEST_F(matrices, GaussianDistribution_traits)
+TEST(matrices, GaussianDistribution_traits)
 {
   static_assert(not square_root_covariance<DistSA2l>);
   static_assert(not diagonal_matrix<DistSA2l>);
@@ -667,7 +667,7 @@ TEST_F(matrices, GaussianDistribution_traits)
 }
 
 
-TEST_F(matrices, GaussianDistribution_overloads)
+TEST(matrices, GaussianDistribution_overloads)
 {
   // mean
   EXPECT_TRUE(is_near(mean_of(DistSA2l {{1, 2}, {9, 3, 3, 10}}), Mean2 {1, 2}));
@@ -688,7 +688,7 @@ TEST_F(matrices, GaussianDistribution_overloads)
 }
 
 
-TEST_F(matrices, GaussianDistribution_blocks)
+TEST(matrices, GaussianDistribution_blocks)
 {
   Mean2 a1 {1, 2}, a2 {3, 4};
   Mean4 b {1, 2, 3, 4};
@@ -714,7 +714,7 @@ TEST_F(matrices, GaussianDistribution_blocks)
 }
 
 
-TEST_F(matrices, GaussianDistribution_addition_subtraction)
+TEST(matrices, GaussianDistribution_addition_subtraction)
 {
   Mean<Axes<2>> x_mean {20, 30};
   M2 d;
@@ -755,7 +755,7 @@ TEST_F(matrices, GaussianDistribution_addition_subtraction)
 }
 
 
-TEST_F(matrices, GaussianDistribution_mult_div)
+TEST(matrices, GaussianDistribution_mult_div)
 {
   auto a = GaussianDistribution(make_mean<C2>(2., 30), make_covariance<C2>(8., 2, 2, 6));
   auto a_chol = GaussianDistribution(make_mean<C2>(2., 30), make_covariance<C2, TriangleType::lower>(8., 2, 2, 6));

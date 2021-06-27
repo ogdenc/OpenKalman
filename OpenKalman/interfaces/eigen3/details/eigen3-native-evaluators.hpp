@@ -19,6 +19,10 @@
 
 namespace Eigen::internal
 {
+  // ------------------ //
+  //  OpenKalman::Mean  //
+  // ------------------ //
+
   template<typename Coefficients, typename ArgType>
   struct evaluator<OpenKalman::Mean<Coefficients, ArgType>> : evaluator<std::decay_t<ArgType>>
   {
@@ -32,6 +36,10 @@ namespace Eigen::internal
   };
 
 
+  // -------------------- //
+  //  OpenKalman::Matrix  //
+  // -------------------- //
+
   template<typename RowCoeffs, typename ColCoeffs, typename ArgType>
   struct evaluator<OpenKalman::Matrix<RowCoeffs, ColCoeffs, ArgType>> : evaluator<std::decay_t<ArgType>>
   {
@@ -40,6 +48,10 @@ namespace Eigen::internal
     explicit evaluator(const XprType& m) : Base {m.nested_matrix()} {}
   };
 
+
+  // --------------------------- //
+  //  OpenKalman::EuclideanMean  //
+  // --------------------------- //
 
   template<typename Coeffs, typename ArgType>
   struct evaluator<OpenKalman::EuclideanMean<Coeffs, ArgType>> : evaluator<std::decay_t<ArgType>>
@@ -50,6 +62,10 @@ namespace Eigen::internal
     explicit evaluator(const XprType& expression) : Base {expression.nested_matrix()} {}
   };
 
+
+  // ------------------------------------ //
+  //  OpenKalman::Eigen3::ConstantMatrix  //
+  // ------------------------------------ //
 
   template<typename Scalar_, auto constant, std::size_t rows, std::size_t cols>
   struct evaluator<OpenKalman::Eigen3::ConstantMatrix<Scalar_, constant, rows, cols>>
@@ -92,6 +108,10 @@ namespace Eigen::internal
   };
 
 
+  // -------------------------------- //
+  //  OpenKalman::Eigen3::ZeroMatrix  //
+  // -------------------------------- //
+
   template<typename Scalar_, std::size_t rows, std::size_t cols>
   struct evaluator<OpenKalman::Eigen3::ZeroMatrix<Scalar_, rows, cols>>
     : evaluator_base<OpenKalman::Eigen3::ZeroMatrix<Scalar_, rows, cols>>
@@ -133,6 +153,10 @@ namespace Eigen::internal
   };
 
 
+  // --------------------------------------- //
+  //  OpenKalman::Eigen3::SelfAdjointMatrix  //
+  // --------------------------------------- //
+
   template<typename ArgType, OpenKalman::TriangleType storage_triangle>
   struct evaluator<OpenKalman::Eigen3::SelfAdjointMatrix<ArgType, storage_triangle>>
     : evaluator_base<OpenKalman::Eigen3::SelfAdjointMatrix<ArgType, storage_triangle>>
@@ -148,45 +172,33 @@ namespace Eigen::internal
       Alignment = NestedEvaluator::Alignment
     };
 
-    explicit evaluator(const XprType& m_arg) : m_argImpl(nested_matrix(m_arg)) {}
+
+    explicit evaluator(const XprType& m_arg) : m_argImpl(m_arg.nested_matrix()) {}
+
 
     auto& coeffRef(Index row, Index col)
     {
       if constexpr(storage_triangle == OpenKalman::TriangleType::diagonal)
       {
-        if (row != col)
-        {
-          static Scalar dummy;
-          dummy = 0;
-          return dummy;
-        }
-        else
-          return m_argImpl.coeffRef(col, row);
+        if (row != col) { static Scalar dummy; dummy = 0; return dummy; }
       }
       else if constexpr(storage_triangle == OpenKalman::TriangleType::upper)
       {
-        if (row > col)
-          return m_argImpl.coeffRef(col, row);
-        else
-          return m_argImpl.coeffRef(row, col);
+        if (row > col) return m_argImpl.coeffRef(col, row);
       }
       else if constexpr(storage_triangle == OpenKalman::TriangleType::lower)
       {
-        if (row < col)
-          return m_argImpl.coeffRef(col, row);
-        else
-          return m_argImpl.coeffRef(row, col);
+        if (row < col) return m_argImpl.coeffRef(col, row);
       }
-      else
-      {
-        return m_argImpl.coeffRef(row, col);
-      }
+      return m_argImpl.coeffRef(row, col);
     }
+
 
     auto& coeffRef(Index i)
     {
       return m_argImpl.coeffRef(i);
     }
+
 
     CoeffReturnType coeff(Index row, Index col) const
     {
@@ -196,35 +208,23 @@ namespace Eigen::internal
         {
           if constexpr(std::is_lvalue_reference_v<CoeffReturnType>)
           {
-            static Scalar dummy;
-            dummy = 0;
+            static constexpr Scalar dummy = 0;
             return dummy;
           }
-          else
-            return Scalar(0);
+          else return Scalar(0);
         }
-        else
-          return m_argImpl.coeff(col, row);
       }
       else if constexpr(storage_triangle == OpenKalman::TriangleType::upper)
       {
-        if (row > col)
-          return m_argImpl.coeff(col, row);
-        else
-          return m_argImpl.coeff(row, col);
+        if (row > col) return m_argImpl.coeff(col, row);
       }
       else if constexpr(storage_triangle == OpenKalman::TriangleType::lower)
       {
-        if (row < col)
-          return m_argImpl.coeff(col, row);
-        else
-          return m_argImpl.coeff(row, col);
+        if (row < col) return m_argImpl.coeff(col, row);
       }
-      else
-      {
-        return m_argImpl.coeff(row, col);
-      }
+      return m_argImpl.coeff(row, col);
     }
+
 
     CoeffReturnType coeff(Index i) const
     {
@@ -232,9 +232,14 @@ namespace Eigen::internal
     }
 
   protected:
+
     NestedEvaluator m_argImpl;
   };
 
+
+  // -------------------------------------- //
+  //  OpenKalman::Eigen3::TriangularMatrix  //
+  // -------------------------------------- //
 
   template<typename ArgType, OpenKalman::TriangleType triangle_type>
   struct evaluator<OpenKalman::Eigen3::TriangularMatrix<ArgType, triangle_type>>
@@ -251,109 +256,46 @@ namespace Eigen::internal
       Alignment = NestedEvaluator::Alignment
     };
 
-    explicit evaluator(const XprType& m_arg) : m_argImpl(nested_matrix(m_arg)) {}
+    //static constexpr bool is_row_major = static_cast<bool>(NestedEvaluator::Flags & RowMajorBit);
+
+
+    explicit evaluator(const XprType& m_arg) : m_argImpl {m_arg.nested_matrix()} {}
+
 
     auto& coeffRef(Index row, Index col)
     {
-      if constexpr(triangle_type == OpenKalman::TriangleType::diagonal)
-      {
-        if (row != col)
-        {
-          static Scalar dummy;
-          dummy = 0;
-          return dummy;
-        }
-        else
-          return m_argImpl.coeffRef(col, row);
-      }
-      else if constexpr(triangle_type == OpenKalman::TriangleType::upper)
-      {
-        if (row > col)
-        {
-          static Scalar dummy;
-          dummy = 0;
-          return dummy;
-        }
-        else
-          return m_argImpl.coeffRef(row, col);
-      }
-      else if constexpr(triangle_type == OpenKalman::TriangleType::lower)
-      {
-        if (row < col)
-        {
-          static Scalar dummy;
-          dummy = 0;
-          return dummy;
-        }
-        else
-          return m_argImpl.coeffRef(row, col);
-      }
-      else
-      {
-        return m_argImpl.coeffRef(row, col);
-      }
+      static Scalar dummy;
+      if constexpr(triangle_type == OpenKalman::TriangleType::diagonal) {if (row != col) { dummy = 0; return dummy; }}
+      else if constexpr(triangle_type == OpenKalman::TriangleType::upper) {if (row > col) { dummy = 0; return dummy; }}
+      else if constexpr(triangle_type == OpenKalman::TriangleType::lower) {if (row < col) { dummy = 0; return dummy; }}
+      return m_argImpl.coeffRef(row, col);
     }
+
 
     auto& coeffRef(Index i)
     {
       return m_argImpl.coeffRef(i);
     }
 
+
     CoeffReturnType coeff(Index row, Index col) const
     {
-      if constexpr(triangle_type == OpenKalman::TriangleType::diagonal)
+      if constexpr(std::is_lvalue_reference_v<CoeffReturnType>)
       {
-        if (row != col)
-        {
-          if constexpr(std::is_lvalue_reference_v<CoeffReturnType>)
-          {
-            static Scalar dummy;
-            dummy = 0;
-            return dummy;
-          }
-          else
-            return Scalar(0);
-        }
-        else
-          return m_argImpl.coeff(col, row);
-      }
-      else if constexpr(triangle_type == OpenKalman::TriangleType::upper)
-      {
-        if (row > col)
-        {
-          if constexpr(std::is_lvalue_reference_v<CoeffReturnType>)
-          {
-            static Scalar dummy;
-            dummy = 0;
-            return dummy;
-          }
-          else
-            return Scalar(0);
-        }
-        else
-          return m_argImpl.coeff(row, col);
-      }
-      else if constexpr(triangle_type == OpenKalman::TriangleType::lower)
-      {
-        if (row < col)
-        {
-          if constexpr(std::is_lvalue_reference_v<CoeffReturnType>)
-          {
-            static Scalar dummy;
-            dummy = 0;
-            return dummy;
-          }
-          else
-            return Scalar(0);
-        }
-        else
-          return m_argImpl.coeff(row, col);
+        static constexpr Scalar dummy = 0;
+        if constexpr(triangle_type == OpenKalman::TriangleType::diagonal) {if (row != col) return dummy;}
+        else if constexpr(triangle_type == OpenKalman::TriangleType::upper) {if (row > col) return dummy;}
+        else if constexpr(triangle_type == OpenKalman::TriangleType::lower) {if (row < col) return dummy;}
       }
       else
       {
-        return m_argImpl.coeff(row, col);
+        if constexpr(triangle_type == OpenKalman::TriangleType::diagonal) {if (row != col) return Scalar(0);}
+        else if constexpr(triangle_type == OpenKalman::TriangleType::upper) {if (row > col) return Scalar(0);}
+        else if constexpr(triangle_type == OpenKalman::TriangleType::lower) {if (row < col) return Scalar(0);}
       }
+      return m_argImpl.coeff(row, col);
     }
+
 
     CoeffReturnType coeff(Index i) const
     {
@@ -361,9 +303,15 @@ namespace Eigen::internal
     }
 
   protected:
+
     NestedEvaluator m_argImpl;
+
   };
 
+
+  // ------------------------------------ //
+  //  OpenKalman::Eigen3::DiagonalMatrix  //
+  // ------------------------------------ //
 
   template<typename ArgType>
   struct evaluator<OpenKalman::Eigen3::DiagonalMatrix<ArgType>>
@@ -380,7 +328,7 @@ namespace Eigen::internal
       Alignment = NestedEvaluator::Alignment
     };
 
-    explicit evaluator(const XprType& m_arg) : m_argImpl(nested_matrix(m_arg)) {}
+    explicit evaluator(const XprType& m_arg) : m_argImpl(m_arg.nested_matrix()) {}
 
     auto& coeffRef(Index row, Index col)
     {
@@ -412,9 +360,14 @@ namespace Eigen::internal
     }
 
   protected:
+
     NestedEvaluator m_argImpl;
   };
 
+
+  // ------------------------ //
+  //  OpenKalman::Covariance  //
+  // ------------------------ //
 
   template<typename Coefficients, typename ArgType>
   struct evaluator<OpenKalman::Covariance<Coefficients, ArgType>>
@@ -432,6 +385,10 @@ namespace Eigen::internal
   };
 
 
+  // ---------------------------------- //
+  //  OpenKalman::SquareRootCovariance  //
+  // ---------------------------------- //
+
   template<typename Coefficients, typename ArgType>
   struct evaluator<OpenKalman::SquareRootCovariance<Coefficients, ArgType>>
     : evaluator<std::decay_t<decltype(OpenKalman::internal::to_covariance_nestable(
@@ -448,255 +405,276 @@ namespace Eigen::internal
   };
 
 
-  /////////////////////////
-  //// ToEuclideanExpr ////
-  /////////////////////////
+  // --------------------------------------- //
+  //  Base classes for euclidean evaluators  //
+  // --------------------------------------- //
 
   namespace detail
   {
-    // Base class for FromEuclideanExpr evaluators.
+#ifdef __cpp_concepts
+    template<coefficients Coefficients, typename XprType, typename Nested, typename NestedEvaluator>
+#else
+    template<typename Coefficients, typename XprType, typename Nested, typename NestedEvaluator, typename = void>
+#endif
+    struct Evaluator_EuclideanExpr_Base;
+
+
+#ifdef __cpp_concepts
+    template<coefficients Coefficients, typename XprType, typename Nested, typename NestedEvaluator> requires
+      (not Coefficients::axes_only)
+    struct Evaluator_EuclideanExpr_Base<Coefficients, XprType, Nested, NestedEvaluator>
+#else
     template<typename Coefficients, typename XprType, typename Nested, typename NestedEvaluator>
-    struct Evaluator_EuclideanExpr_Base : evaluator_base<XprType>
+    struct Evaluator_EuclideanExpr_Base<Coefficients, XprType, Nested, NestedEvaluator,
+      std::enable_if_t<coefficients<Coefficients> and not Coefficients::axes_only>>
+#endif
+      : evaluator_base<XprType>
     {
-      using Scalar = typename Nested::Scalar;
+      using CoeffReturnType = typename Nested::Scalar;
+
+      enum
+      {
+        Flags = NestedEvaluator::Flags & (~DirectAccessBit) & (~PacketAccessBit) & (~LvalueBit) &
+          (~(OpenKalman::MatrixTraits<Nested>::columns == 1 ? 0 : LinearAccessBit)),
+        Alignment = NestedEvaluator::Alignment
+      };
 
       explicit Evaluator_EuclideanExpr_Base(const Nested& t) : m_argImpl {t} {}
 
-      Scalar& coeffRef(Index row, Index col)
-      {
-        static_assert(Coefficients::axes_only, "Direct access not available for means containing angles.");
-        return m_argImpl.coeffRef(row, col);
-      }
-
-      Scalar& coeffRef(Index row)
-      {
-        static_assert(Coefficients::axes_only, "Direct access not available for means containing angles.");
-        return m_argImpl.coeffRef(row);
-      }
-
-      template<int LoadMode, typename PacketType>
-      PacketType packet(Index row, Index col) const
-      {
-        static_assert(Coefficients::axes_only, "Packet access not available for means containing angles.");
-        return m_argImpl.template packet<LoadMode, PacketType>(col, row);
-      }
-
-      template<int LoadMode, typename PacketType>
-      PacketType packet(Index index) const
-      {
-        static_assert(Coefficients::axes_only, "Packet access not available for means containing angles.");
-        return m_argImpl.template packet<LoadMode, PacketType>(index);
-      }
-
-      template<int StoreMode, typename PacketType>
-      void writePacket(Index row, Index col, const PacketType& x)
-      {
-        static_assert(Coefficients::axes_only, "Packet access not available for means containing angles.");
-        m_argImpl.template writePacket<StoreMode, PacketType>(col, row, x);
-      }
-
-      template<int StoreMode, typename PacketType>
-      void writePacket(Index index, const PacketType& x)
-      {
-        static_assert(Coefficients::axes_only, "Packet access not available for means containing angles.");
-        m_argImpl.template writePacket<StoreMode, PacketType>(index, x);
-      }
-
     protected:
+
       NestedEvaluator m_argImpl;
+    };
+
+
+#ifdef __cpp_concepts
+    template<coefficients Coefficients, typename XprType, typename Nested, typename NestedEvaluator> requires
+      Coefficients::axes_only
+    struct Evaluator_EuclideanExpr_Base<Coefficients, XprType, Nested, NestedEvaluator>
+#else
+    template<typename Coefficients, typename XprType, typename Nested, typename NestedEvaluator>
+    struct Evaluator_EuclideanExpr_Base<Coefficients, XprType, Nested, NestedEvaluator,
+      std::enable_if_t<coefficients<Coefficients> and Coefficients::axes_only>>
+#endif
+      : NestedEvaluator
+    {
+      explicit Evaluator_EuclideanExpr_Base(const Nested& t) : NestedEvaluator {t} {}
     };
 
   }
 
-  /// Evaluator for ToEuclideanExpr
-  /// \tparam Coefficients Coefficient types
-  /// \tparam Nested Type of the nested expression
-  template<typename Coefficients, typename ArgType>
-  struct evaluator<OpenKalman::Eigen3::ToEuclideanExpr<Coefficients, ArgType>>
-    : detail::Evaluator_EuclideanExpr_Base<Coefficients, OpenKalman::Eigen3::ToEuclideanExpr<Coefficients, ArgType>,
+
+  // ------------------------------------- //
+  //  OpenKalman::Eigen3::ToEuclideanExpr  //
+  // ------------------------------------- //
+
+  /**
+   * \internal
+   * \brief Evaluator for ToEuclideanExpr
+   * \tparam Coeffs Coefficient types
+   * \tparam ArgType Type of the nested expression
+   */
+  template<typename Coeffs, typename ArgType>
+  struct evaluator<OpenKalman::Eigen3::ToEuclideanExpr<Coeffs, ArgType>>
+    : detail::Evaluator_EuclideanExpr_Base<Coeffs, OpenKalman::Eigen3::ToEuclideanExpr<Coeffs, ArgType>,
     std::decay_t<ArgType>, evaluator<std::decay_t<ArgType>>>
   {
-    using XprType = OpenKalman::Eigen3::ToEuclideanExpr<Coefficients, ArgType>;
-    using CoeffReturnType = typename XprType::CoeffReturnType;
+    using XprType = OpenKalman::Eigen3::ToEuclideanExpr<Coeffs, ArgType>;
     using Nested = std::decay_t<ArgType>;
     using NestedEvaluator = evaluator<Nested>;
-    using Base = detail::Evaluator_EuclideanExpr_Base<Coefficients, XprType, Nested, NestedEvaluator>;
+    using Base = detail::Evaluator_EuclideanExpr_Base<Coeffs, XprType, Nested, NestedEvaluator>;
+    using typename Base::CoeffReturnType;
     using Scalar = typename XprType::Scalar;
     static constexpr auto count = Nested::ColsAtCompileTime;
+
     enum
     {
       CoeffReadCost = NestedEvaluator::CoeffReadCost + (
-        Coefficients::axes_only ? 0 :
+        Coeffs::axes_only ? 0 :
         (int) Eigen::internal::functor_traits<Eigen::internal::scalar_sin_op<Scalar>>::Cost +
-          (int) Eigen::internal::functor_traits<Eigen::internal::scalar_cos_op<Scalar>>::Cost),
-      Flags = Coefficients::axes_only ?
-        NestedEvaluator::Flags :
-        ColMajor | (count == 1 ? LinearAccessBit : 0),
-      Alignment = NestedEvaluator::Alignment
+          (int) Eigen::internal::functor_traits<Eigen::internal::scalar_cos_op<Scalar>>::Cost)
     };
 
-    explicit evaluator(const XprType& t) : Base {nested_matrix(t)} {}
+    explicit evaluator(const XprType& t) : Base {t.nested_matrix()} {}
 
     CoeffReturnType coeff(Index row, Index col) const
     {
-      if constexpr (Coefficients::axes_only)
+      if constexpr (Coeffs::axes_only)
       {
-        return this->m_argImpl.coeff(row, col);
+        return Base::coeff(row, col);
       }
       else
       {
-        const auto get_coeff = [col, this](const Index i) { return this->m_argImpl.coeff(i, col); };
-        return OpenKalman::internal::to_euclidean_coeff<Coefficients>((std::size_t) row, get_coeff);
+        const auto get_coeff = [col, this] (const Index i) { return this->m_argImpl.coeff(i, col); };
+        return OpenKalman::internal::to_euclidean_coeff<Coeffs>((std::size_t) row, get_coeff);
       }
     }
 
     CoeffReturnType coeff(Index row) const
     {
-      if constexpr (Coefficients::axes_only)
+      if constexpr (Coeffs::axes_only)
       {
-        return this->m_argImpl.coeff(row);
+        return Base::coeff(row);
       }
       else
       {
-        const auto get_coeff = [this](const Index i) { return this->m_argImpl.coeff(i); };
-        return OpenKalman::internal::to_euclidean_coeff<Coefficients>((std::size_t) row, get_coeff);
+        const auto get_coeff = [this] (const Index i) { return this->m_argImpl.coeff(i); };
+        return OpenKalman::internal::to_euclidean_coeff<Coeffs>((std::size_t) row, get_coeff);
       }
     }
 
   };
 
 
-  ///////////////////////////
-  //// FromEuclideanExpr ////
-  ///////////////////////////
+  // --------------------------------------- //
+  //  OpenKalman::Eigen3::FromEuclideanExpr  //
+  // --------------------------------------- //
 
-  /// General evaluator for FromEuclideanExpr
-  /// \tparam Coefficients Coefficient types
-  /// \tparam Nested Type of the nested expression
-  template<typename Coefficients, typename ArgType>
-  struct evaluator<OpenKalman::Eigen3::FromEuclideanExpr<Coefficients, ArgType>>
-    : detail::Evaluator_EuclideanExpr_Base<Coefficients, OpenKalman::Eigen3::FromEuclideanExpr<Coefficients, ArgType>,
+  /**
+   * \internal
+   * \brief General evaluator for FromEuclideanExpr
+   * \tparam Coeffs Coefficient types
+   * \tparam ArgType Type of the nested expression
+   */
+  template<typename Coeffs, typename ArgType>
+  struct evaluator<OpenKalman::Eigen3::FromEuclideanExpr<Coeffs, ArgType>>
+    : detail::Evaluator_EuclideanExpr_Base<Coeffs, OpenKalman::Eigen3::FromEuclideanExpr<Coeffs, ArgType>,
     std::decay_t<ArgType>, evaluator<std::decay_t<ArgType>>>
   {
-    using XprType = OpenKalman::Eigen3::FromEuclideanExpr<Coefficients, ArgType>;
-    using CoeffReturnType = typename XprType::CoeffReturnType;
+    using XprType = OpenKalman::Eigen3::FromEuclideanExpr<Coeffs, ArgType>;
     using Nested = std::decay_t<ArgType>;
     using NestedEvaluator = evaluator<Nested>;
-    using Base = detail::Evaluator_EuclideanExpr_Base<Coefficients, XprType, Nested, NestedEvaluator>;
+    using Base = detail::Evaluator_EuclideanExpr_Base<Coeffs, XprType, Nested, NestedEvaluator>;
+    using typename Base::CoeffReturnType;
     using Scalar = typename XprType::Scalar;
     static constexpr auto count = Nested::ColsAtCompileTime;
+
     enum
     {
       CoeffReadCost = NestedEvaluator::CoeffReadCost + (
-        Coefficients::axes_only ? 0 :
-        Eigen::internal::functor_traits<Eigen::internal::scalar_atan_op<Scalar>>::Cost),
-      Flags = Coefficients::axes_only ?
-        NestedEvaluator::Flags :
-        ColMajor | (count == 1 ? LinearAccessBit : 0),
-      Alignment = NestedEvaluator::Alignment
+        Coeffs::axes_only ? 0 :
+        Eigen::internal::functor_traits<Eigen::internal::scalar_atan_op<Scalar>>::Cost)
     };
 
-    explicit evaluator(const XprType& t) : Base {nested_matrix(t)} {}
+    explicit evaluator(const XprType& t) : Base {t.nested_matrix()} {}
 
     CoeffReturnType coeff(Index row, Index col) const
     {
-      if constexpr (Coefficients::axes_only)
+      if constexpr (Coeffs::axes_only)
       {
-        return this->m_argImpl.coeff(row, col);
+        return Base::coeff(row, col);
       }
       else
       {
-        const auto get_coeff = [col, this](const Index i) { return this->m_argImpl.coeff(i, col); };
-        return OpenKalman::internal::from_euclidean_coeff<Coefficients>((std::size_t) row, get_coeff);
+        const auto get_coeff = [col, this] (const Index i) { return this->m_argImpl.coeff(i, col); };
+        return OpenKalman::internal::from_euclidean_coeff<Coeffs>((std::size_t) row, get_coeff);
       }
     }
 
     CoeffReturnType coeff(Index row) const
     {
-      if constexpr (Coefficients::axes_only)
+      if constexpr (Coeffs::axes_only)
       {
-        return this->m_argImpl.coeff(row);
+        return Base::coeff(row);
       }
       else
       {
-        const auto get_coeff = [this](const Index i) { return this->m_argImpl.coeff(i); };
-        return OpenKalman::internal::from_euclidean_coeff<Coefficients>((std::size_t) row, get_coeff);
+        const auto get_coeff = [this] (const Index i) { return this->m_argImpl.coeff(i); };
+        return OpenKalman::internal::from_euclidean_coeff<Coeffs>((std::size_t) row, get_coeff);
       }
     }
   };
 
 
-  /// Specialized evaluator for FromEuclideanExpr that has a nested ToEuclideanExpr.
-  /// This amounts to wrapping angles.
-  /// \tparam Coefficients Coefficient types
-  /// \tparam Nested Type of the nested expression
-  template<typename Coefficients, typename ArgType>
-  struct evaluator<OpenKalman::Eigen3::FromEuclideanExpr<Coefficients, OpenKalman::Eigen3::ToEuclideanExpr<Coefficients, ArgType>>>
-    : detail::Evaluator_EuclideanExpr_Base<Coefficients, OpenKalman::Eigen3::FromEuclideanExpr<Coefficients,
-    OpenKalman::Eigen3::ToEuclideanExpr<Coefficients, ArgType>>, std::decay_t<ArgType>, evaluator<std::decay_t<ArgType>>>
+  /**
+   * \internal
+   * \brief Specialized evaluator for FromEuclideanExpr that has a nested ToEuclideanExpr.
+   * \details This amounts to wrapping angles.
+   * \tparam Coeffs Coefficient types
+   * \tparam ArgType Type of the nested expression
+   */
+  template<typename Coeffs, typename ArgType>
+  struct evaluator<
+    OpenKalman::Eigen3::FromEuclideanExpr<Coeffs, OpenKalman::Eigen3::ToEuclideanExpr<Coeffs, ArgType>>>
+      : detail::Evaluator_EuclideanExpr_Base<Coeffs,
+        OpenKalman::Eigen3::FromEuclideanExpr<Coeffs, OpenKalman::Eigen3::ToEuclideanExpr<Coeffs, ArgType>>,
+        std::decay_t<ArgType>, evaluator<std::decay_t<ArgType>>>
   {
-    using XprType = OpenKalman::Eigen3::FromEuclideanExpr<Coefficients, OpenKalman::Eigen3::ToEuclideanExpr<Coefficients, ArgType>>;
-    using CoeffReturnType = typename XprType::CoeffReturnType;
+    using XprType = OpenKalman::Eigen3::FromEuclideanExpr<Coeffs, OpenKalman::Eigen3::ToEuclideanExpr<Coeffs, ArgType>>;
     using Nested = std::decay_t<ArgType>;
     using NestedEvaluator = evaluator<Nested>;
-    using Base = detail::Evaluator_EuclideanExpr_Base<Coefficients, XprType, Nested, NestedEvaluator>;
+    using Base = detail::Evaluator_EuclideanExpr_Base<Coeffs, XprType, Nested, NestedEvaluator>;
+    using typename Base::CoeffReturnType;
     using Scalar = typename XprType::Scalar;
     static constexpr auto count = Nested::ColsAtCompileTime;
+
     enum
     {
-      CoeffReadCost = NestedEvaluator::CoeffReadCost,
-      Flags = (count == 1 ? LinearAccessBit : 0) | (Coefficients::axes_only ? NestedEvaluator::Flags : (unsigned int) ColMajor),
-      Alignment = NestedEvaluator::Alignment
+      CoeffReadCost = NestedEvaluator::CoeffReadCost
     };
 
-    explicit evaluator(const XprType& t) : Base {nested_matrix(nested_matrix(t))} {}
+    template<typename Arg>
+    explicit evaluator(const Arg& t) : Base {t.nested_matrix().nested_matrix()} {}
 
     CoeffReturnType coeff(Index row, Index col) const
     {
-      if constexpr (Coefficients::axes_only)
+      if constexpr (Coeffs::axes_only)
       {
-        return this->m_argImpl.coeff(row, col);
+        return Base::coeff(row, col);
       }
       else
       {
-        const auto get_coeff = [col, this](const Index i) { return this->m_argImpl.coeff(i, col); };
-        return OpenKalman::internal::wrap_get<Coefficients>((std::size_t) row, get_coeff);
+        const auto get_coeff = [col, this] (const Index i) { return this->m_argImpl.coeff(i, col); };
+        return OpenKalman::internal::wrap_get<Coeffs>((std::size_t) row, get_coeff);
       }
     }
 
     CoeffReturnType coeff(Index row) const
     {
-      if constexpr (Coefficients::axes_only)
+      if constexpr (Coeffs::axes_only)
       {
-        return this->m_argImpl.coeff(row);
+        return Base::coeff(row);
       }
       else
       {
-        const auto get_coeff = [this](const Index i) { return this->m_argImpl.coeff(i); };
-        return OpenKalman::internal::wrap_get<Coefficients>((std::size_t) row, get_coeff);
+        const auto get_coeff = [this] (const Index i) { return this->m_argImpl.coeff(i); };
+        return OpenKalman::internal::wrap_get<Coeffs>((std::size_t) row, get_coeff);
       }
     }
   };
 
-  template<typename Coefficients, typename ArgType>
-  struct evaluator<OpenKalman::Eigen3::FromEuclideanExpr<Coefficients, const OpenKalman::Eigen3::ToEuclideanExpr<Coefficients, ArgType>>>
-    : evaluator<OpenKalman::Eigen3::FromEuclideanExpr<Coefficients, OpenKalman::Eigen3::ToEuclideanExpr<Coefficients, ArgType>>> {};
 
-  template<typename Coefficients, typename ArgType>
-  struct evaluator<OpenKalman::Eigen3::FromEuclideanExpr<Coefficients, OpenKalman::Eigen3::ToEuclideanExpr<Coefficients, ArgType>&>>
-    : evaluator<OpenKalman::Eigen3::FromEuclideanExpr<Coefficients, OpenKalman::Eigen3::ToEuclideanExpr<Coefficients, ArgType>>> {};
+  template<typename Coeffs, typename ArgType>
+  struct evaluator<
+    OpenKalman::Eigen3::FromEuclideanExpr<Coeffs, const OpenKalman::Eigen3::ToEuclideanExpr<Coeffs, ArgType>>>
+    : evaluator<OpenKalman::Eigen3::FromEuclideanExpr<Coeffs, OpenKalman::Eigen3::ToEuclideanExpr<Coeffs, ArgType>>>
+  {
+    using Base = evaluator<OpenKalman::Eigen3::FromEuclideanExpr<Coeffs,
+      OpenKalman::Eigen3::ToEuclideanExpr<Coeffs, ArgType>>>;
+    using Base::Base;
+  };
 
-  template<typename Coefficients, typename ArgType>
-  struct evaluator<OpenKalman::Eigen3::FromEuclideanExpr<Coefficients, OpenKalman::Eigen3::ToEuclideanExpr<Coefficients, ArgType>&&>>
-    : evaluator<OpenKalman::Eigen3::FromEuclideanExpr<Coefficients, OpenKalman::Eigen3::ToEuclideanExpr<Coefficients, ArgType>>> {};
 
-  template<typename Coefficients, typename ArgType>
-  struct evaluator<OpenKalman::Eigen3::FromEuclideanExpr<Coefficients, const OpenKalman::Eigen3::ToEuclideanExpr<Coefficients, ArgType>&>>
-    : evaluator<OpenKalman::Eigen3::FromEuclideanExpr<Coefficients, OpenKalman::Eigen3::ToEuclideanExpr<Coefficients, ArgType>>> {};
+  template<typename Coeffs, typename ArgType>
+  struct evaluator<
+    OpenKalman::Eigen3::FromEuclideanExpr<Coeffs, OpenKalman::Eigen3::ToEuclideanExpr<Coeffs, ArgType>&>>
+    : evaluator<OpenKalman::Eigen3::FromEuclideanExpr<Coeffs, OpenKalman::Eigen3::ToEuclideanExpr<Coeffs, ArgType>>>
+  {
+    using Base = evaluator<OpenKalman::Eigen3::FromEuclideanExpr<Coeffs,
+      OpenKalman::Eigen3::ToEuclideanExpr<Coeffs, ArgType>>>;
+    using Base::Base;
+  };
 
-  template<typename Coefficients, typename ArgType>
-  struct evaluator<OpenKalman::Eigen3::FromEuclideanExpr<Coefficients, const OpenKalman::Eigen3::ToEuclideanExpr<Coefficients, ArgType>&&>>
-    : evaluator<OpenKalman::Eigen3::FromEuclideanExpr<Coefficients, OpenKalman::Eigen3::ToEuclideanExpr<Coefficients, ArgType>>> {};
+
+  template<typename Coeffs, typename ArgType>
+  struct evaluator<
+    OpenKalman::Eigen3::FromEuclideanExpr<Coeffs, const OpenKalman::Eigen3::ToEuclideanExpr<Coeffs, ArgType>&>>
+    : evaluator<OpenKalman::Eigen3::FromEuclideanExpr<Coeffs, OpenKalman::Eigen3::ToEuclideanExpr<Coeffs, ArgType>>>
+  {
+    using Base = evaluator<OpenKalman::Eigen3::FromEuclideanExpr<Coeffs,
+      OpenKalman::Eigen3::ToEuclideanExpr<Coeffs, ArgType>>>;
+    using Base::Base;
+  };
 
 
 } // namespace Eigen::internal

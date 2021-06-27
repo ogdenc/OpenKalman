@@ -61,9 +61,13 @@ namespace OpenKalman
 
   private:
 
+    // Identify the correct Eigen::Matrix based on template parameters and the traits of M.
     template<typename S, std::size_t r, std::size_t c>
     using Nat =
-      Eigen::Matrix<S, r == 0 ? Eigen::Dynamic : (Eigen::Index) r, c == 0 ? Eigen::Dynamic : (Eigen::Index) c>;
+      Eigen::Matrix<S, r == 0 ? Eigen::Dynamic : (Eigen::Index) r, c == 0 ? Eigen::Dynamic : (Eigen::Index) c,
+        (Eigen::internal::traits<M>::Flags & Eigen::RowMajorBit ? Eigen::RowMajor : Eigen::ColMajor) | Eigen::AutoAlign,
+        r == 0 ? Eigen::internal::traits<M>::MaxRowsAtCompileTime : (Eigen::Index) r,
+        c == 0 ? Eigen::internal::traits<M>::MaxColsAtCompileTime : (Eigen::Index) c>;
 
   public:
 
@@ -117,46 +121,27 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    static auto zero() requires (rows > 0) and (columns > 0)
+    template<std::convertible_to<std::size_t> ... Args> requires
+      (sizeof...(Args) == (rows == 0 ? 1 : 0) + (columns == 0 ? 1 : 0))
 #else
-    template<std::size_t rows_ = rows, std::enable_if_t<(rows_ > 0) and (columns > 0), int> = 0>
-    static auto zero()
+    template<typename...Args, std::enable_if_t<(std::is_convertible_v<Args, std::size_t> and ...) and
+      (sizeof...(Args) == (rows == 0 ? 1 : 0) + (columns == 0 ? 1 : 0)), int> = 0>
 #endif
+    static auto zero(const Args...args)
     {
-      return Eigen3::ZeroMatrix<Scalar, rows, columns> {};
+      return Eigen3::ZeroMatrix<Scalar, rows, columns> {static_cast<std::size_t>(args)...};
     }
 
 
 #ifdef __cpp_concepts
-    static auto zero(std::size_t r, std::size_t c) requires (rows == 0) or (columns == 0)
+    template<std::convertible_to<Eigen::Index> ... Args> requires (sizeof...(Args) == (rows == 0 ? 1 : 0))
 #else
-    template<std::size_t rows_ = rows, std::enable_if_t<(rows_ == 0) or (columns == 0), int> = 0>
-    static auto zero(std::size_t r, std::size_t c)
+    template<typename...Args, std::enable_if_t<(std::is_convertible_v<Args, Eigen::Index> and ...) and
+      (sizeof...(Args) == (rows == 0 ? 1 : 0)), int> = 0>
 #endif
+    static auto identity(const Args...args)
     {
-      return Eigen3::ZeroMatrix<Scalar, rows, columns> {r, c};
-    }
-
-
-#ifdef __cpp_concepts
-    static auto identity() requires (rows > 0)
-#else
-    template<std::size_t rows_ = rows, std::enable_if_t<(rows_ > 0), int> = 0>
-    static auto identity()
-#endif
-    {
-      return Nat<Scalar, rows, rows>::Identity();
-    }
-
-
-#ifdef __cpp_concepts
-    static auto identity(std::size_t i) requires (rows == 0)
-#else
-    template<std::size_t rows_ = rows, std::enable_if_t<(rows_ == 0), int> = 0>
-    static auto identity(std::size_t i)
-#endif
-    {
-      return Nat<Scalar, 0, 0>::Identity(i, i);
+      return Nat<Scalar, rows, rows>::Identity(static_cast<Eigen::Index>(args)..., static_cast<Eigen::Index>(args)...);
     }
 
   };

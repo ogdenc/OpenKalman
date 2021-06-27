@@ -163,7 +163,7 @@ namespace OpenKalman
         using Out_Mean = std::invoke_result_t<Trans, In_Mean>;
         using OutputCoeffs = typename MatrixTraits<Out_Mean>::RowCoefficients;
         const auto hessians = transformation.hessian(mean_of(x), mean_of(n)...);
-        return zip_tuples<OutputCoeffs>(hessians, std::tuple {x, n...});
+        return zip_tuples<OutputCoeffs>(hessians, std::forward_as_tuple(x, n...));
       }
 
     private:

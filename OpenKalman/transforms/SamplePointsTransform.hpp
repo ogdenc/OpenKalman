@@ -112,8 +112,8 @@ namespace OpenKalman
     {
       static_assert((sizeof...(Gs) == sizeof...(Ds)) and (sizeof...(Gs) == sizeof...(Ps)));
       auto g = std::get<i>(gs);
-      auto xpoints_tup = std::tuple_cat(std::tuple {xpoints}, std::get<i>(ps));
-      auto xdists_tup = std::tuple_cat(std::tuple {x}, std::get<i>(ds));
+      auto xpoints_tup = std::tuple_cat(std::forward_as_tuple(xpoints), std::get<i>(ps));
+      auto xdists_tup = std::tuple_cat(std::forward_as_tuple(x), std::get<i>(ds));
 
       constexpr std::size_t N = std::tuple_size_v<decltype(xpoints_tup)>;
       static_assert(N == std::tuple_size_v<decltype(xdists_tup)>);
@@ -160,8 +160,8 @@ namespace OpenKalman
     template<bool return_cross, typename InputDist, typename...Ts>
     auto transform(const InputDist& x, const Ts&...ts) const
     {
-      auto gs = std::tuple {std::get<0>(ts)...}; //< Extract the transformations.
-      auto ds = std::make_tuple(internal::tuple_slice<1, std::tuple_size_v<Ts>>(ts)...); //< Extract the noise terms.
+      auto gs = std::forward_as_tuple(std::get<0>(ts)...); //< Extract the transformations.
+      auto ds = std::tuple {internal::tuple_slice<1, std::tuple_size_v<Ts>>(ts)...}; //< Extract the noise terms.
 
       // Flatten ds to a 1D tuple of noise terms:
       auto flattened_ds = std::apply([](const auto&...args) {return std::tuple_cat(args...); }, ds);

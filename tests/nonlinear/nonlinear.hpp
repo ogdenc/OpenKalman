@@ -11,8 +11,12 @@
 #ifndef NONLINEAR_TESTS_HPP
 #define NONLINEAR_TESTS_HPP
 
-#include "../tests.hpp"
-#include "../test-transformations.hpp"
+#include <tuple>
+#include <iostream>
+#include <gtest/gtest.h>
+#include "OpenKalman-Eigen3.hpp"
+
+#include "basics/tests/test-transformations.hpp"
 
 using namespace OpenKalman;
 

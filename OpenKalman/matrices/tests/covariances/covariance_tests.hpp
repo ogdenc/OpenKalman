@@ -6,17 +6,9 @@
 #ifndef COVARIANCE_TESTS_HPP
 #define COVARIANCE_TESTS_HPP
 
-#include "../tests.hpp"
+#include <gtest/gtest.h>
 
-struct covariance_tests : public ::testing::Test
-{
-  covariance_tests() {}
+#include "matrices/tests/matrix.gtest.hpp"
 
-  void SetUp() override {}
-
-  void TearDown() override {}
-
-  ~covariance_tests() override {}
-};
 
 #endif //COVARIANCE_TESTS_HPP

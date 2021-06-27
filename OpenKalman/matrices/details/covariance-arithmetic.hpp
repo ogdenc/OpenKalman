@@ -20,7 +20,7 @@ namespace OpenKalman
     {
       if constexpr (covariance<Arg>)
       {
-        return internal::to_covariance_nestable(std::forward<Arg>(arg));
+        return OpenKalman::internal::to_covariance_nestable(std::forward<Arg>(arg));
       }
       else
       {
@@ -60,30 +60,34 @@ namespace OpenKalman
     else if constexpr (cholesky_form<Arg1> and cholesky_form<Arg2> and
       not square_root_covariance<Arg1> and not square_root_covariance<Arg2>)
     {
-      decltype(auto) e1 = nested_matrix(std::forward<Arg1>(arg1)); using E1 = decltype(e1);
-      decltype(auto) e2 = nested_matrix(std::forward<Arg2>(arg2)); using E2 = decltype(e2);
+      decltype(auto) e1 = nested_matrix(std::forward<Arg1>(arg1)); using E1 = decltype((e1));
+      decltype(auto) e2 = nested_matrix(std::forward<Arg2>(arg2)); using E2 = decltype((e2));
       if constexpr (upper_triangular_matrix<E1> and upper_triangular_matrix<E2>)
       {
-        return make_covariance<C>(make_self_contained<E1,E2>(QR_decomposition(concatenate_vertical(e1, e2))));
+        return make_covariance<C>(make_self_contained<E1, E2>(
+          QR_decomposition(concatenate_vertical(std::forward<E1>(e1), std::forward<E2>(e2)))));
       }
       else if constexpr (upper_triangular_matrix<E1> and lower_triangular_matrix<E2>)
       {
-        return make_covariance<C>(make_self_contained<E1,E2>(QR_decomposition(concatenate_vertical(e1, adjoint(e2)))));
+        return make_covariance<C>(make_self_contained<E1, E2>(
+          QR_decomposition(concatenate_vertical(std::forward<E1>(e1), adjoint(std::forward<E2>(e2))))));
       }
       else if constexpr (lower_triangular_matrix<E1> and upper_triangular_matrix<E2>)
       {
-        return make_covariance<C>(make_self_contained<E1,E2>(LQ_decomposition(concatenate_horizontal(e1, adjoint(e2)))));
+        return make_covariance<C>(make_self_contained<E1, E2>(
+          LQ_decomposition(concatenate_horizontal(std::forward<E1>(e1), adjoint(std::forward<E2>(e2))))));
       }
       else
       {
-        return make_covariance<C>(make_self_contained<E1,E2>(LQ_decomposition(concatenate_horizontal(e1, e2))));
+        return make_covariance<C>(make_self_contained<E1, E2>(
+          LQ_decomposition(concatenate_horizontal(std::forward<E1>(e1), std::forward<E2>(e2)))));
       }
     }
     else
     {
-      decltype(auto) b1 = detail::to_nestable(std::forward<Arg1>(arg1));
-      decltype(auto) b2 = detail::to_nestable(std::forward<Arg2>(arg2));
-      auto sum = make_self_contained<decltype(b1), decltype(b2)>(b1 + b2);
+      decltype(auto) b1 = OpenKalman::detail::to_nestable(std::forward<Arg1>(arg1)); using B1 = decltype((b1));
+      decltype(auto) b2 = OpenKalman::detail::to_nestable(std::forward<Arg2>(arg2)); using B2 = decltype((b2));
+      auto sum = make_self_contained<decltype(b1), decltype(b2)>(std::forward<B1>(b1) + std::forward<B2>(b2));
       if constexpr (self_adjoint_matrix<decltype(sum)>)
       {
         return make_covariance<C>(std::move(sum));
@@ -128,18 +132,26 @@ namespace OpenKalman
       using Scalar = typename MatrixTraits<Arg1>::Scalar;
       using B = nested_matrix_t<Arg2>;
 
-      const auto a = nested_matrix(std::forward<Arg1>(arg1));
-      const auto b = upper_triangular_matrix<B> ?
-        make_native_matrix(adjoint(nested_matrix(std::forward<Arg2>(arg2)))) :
-        make_native_matrix(nested_matrix(std::forward<Arg2>(arg2)));
+      auto a = nested_matrix(std::forward<Arg1>(arg1));
 
-      return make_covariance<C>(make_self_contained(rank_update(std::move(a), std::move(b), Scalar(-1))));
+      if constexpr (upper_triangular_matrix<B>)
+      {
+        auto b = make_native_matrix(adjoint(nested_matrix(std::forward<Arg2>(arg2))));
+        return make_covariance<C>(make_self_contained(rank_update(std::move(a), std::move(b), Scalar(-1))));
+      }
+      else
+      {
+        auto b = make_native_matrix(nested_matrix(std::forward<Arg2>(arg2)));
+        return make_covariance<C>(make_self_contained(rank_update(std::move(a), std::move(b), Scalar(-1))));
+      }
     }
     else
     {
-      decltype(auto) b1 = detail::to_nestable(std::forward<Arg1>(arg1));
-      decltype(auto) b2 = detail::to_nestable(std::forward<Arg2>(arg2));
-      auto diff = make_self_contained<decltype(b1), decltype(b2)>(b1 - b2);
+      decltype(auto) b1 = OpenKalman::detail::to_nestable(std::forward<Arg1>(arg1)); using B1 = decltype((b1));
+      decltype(auto) b2 = OpenKalman::detail::to_nestable(std::forward<Arg2>(arg2)); using B2 = decltype((b2));
+
+      auto diff = make_self_contained<B1, B2>(std::forward<B1>(b1) - std::forward<B2>(b2));
+
       if constexpr (self_adjoint_matrix<decltype(diff)>)
       {
         return make_covariance<C>(std::move(diff));
@@ -184,9 +196,13 @@ namespace OpenKalman
     else
     {
       using C = typename MatrixTraits<Arg1>::RowCoefficients;
-      decltype(auto) b1 = internal::to_covariance_nestable(std::forward<Arg1>(arg1));
-      decltype(auto) b2 = internal::to_covariance_nestable(std::forward<Arg2>(arg2));
-      auto prod = make_self_contained<decltype(b1), decltype(b2)>(b1 * b2);
+
+      decltype(auto) b1 = OpenKalman::internal::to_covariance_nestable(std::forward<Arg1>(arg1));
+      decltype(auto) b2 = OpenKalman::internal::to_covariance_nestable(std::forward<Arg2>(arg2));
+      using B1 = decltype((b1)); using B2 = decltype((b2));
+
+      auto prod = make_self_contained<B1, B2>(std::forward<B1>(b1) * std::forward<B2>(b2));
+
       if constexpr (self_adjoint_matrix<decltype(prod)>)
       {
         return make_covariance<C>(std::move(prod));
@@ -233,14 +249,15 @@ namespace OpenKalman
     }
     else if constexpr (identity_matrix<nested_matrix_t<M>>)
     {
-      return make_matrix<RC, CC>(internal::to_covariance_nestable(std::forward<Cov>(cov)));
+      return make_matrix<RC, CC>(OpenKalman::internal::to_covariance_nestable(std::forward<Cov>(cov)));
     }
     else
     {
       decltype(auto) mb = nested_matrix(std::forward<M>(m));
-      decltype(auto) cb = internal::to_covariance_nestable(std::forward<Cov>(cov));
-      auto prod = make_self_contained<decltype(mb), decltype(cb)>(mb * cb);
-      return make_matrix<RC, CC>(std::move(prod));
+      decltype(auto) cb = OpenKalman::internal::to_covariance_nestable(std::forward<Cov>(cov));
+      using Mb = decltype((mb)); using Cb = decltype((cb));
+      auto prod = make_self_contained<Mb, Cb>(std::forward<Mb>(mb) * std::forward<Cb>(cb));
+      return Matrix<RC, CC, decltype(prod)> {std::move(prod)};
     }
   }
 
@@ -276,14 +293,15 @@ namespace OpenKalman
     }
     else if constexpr (identity_matrix<nested_matrix_t<M>>)
     {
-      return make_matrix<RC, CC>(internal::to_covariance_nestable(std::forward<Cov>(cov)));
+      return make_matrix<RC, CC>(OpenKalman::internal::to_covariance_nestable(std::forward<Cov>(cov)));
     }
     else
     {
-      decltype(auto) cb = internal::to_covariance_nestable(std::forward<Cov>(cov));
+      decltype(auto) cb = OpenKalman::internal::to_covariance_nestable(std::forward<Cov>(cov));
       decltype(auto) mb = nested_matrix(std::forward<M>(m));
-      auto prod = make_self_contained<decltype(cb), decltype(mb)>(cb * mb);
-      return make_matrix<RC, CC>(std::move(prod));
+      using Cb = decltype((cb)); using Mb = decltype((mb));
+      auto prod = make_self_contained<Cb, Mb>(std::forward<Cb>(cb) * std::forward<Mb>(mb));
+      return Matrix<RC, CC, decltype(prod)> {std::move(prod)};
     }
   }
 
@@ -586,24 +604,24 @@ namespace OpenKalman
 
       if constexpr(square_root_covariance<M>)
       {
-        auto b = make_self_contained<M, A>(nested_matrix(a * (square(m) * adjoint(a))));
+        auto b = make_self_contained<M, A>(nested_matrix(a * (square(std::forward<M>(m)) * adjoint(a))));
         return make_square_root_covariance<AC>(MatrixTraits<SABaseType>::make(std::move(b)));
       }
       else
       {
-        auto b = make_self_contained<M, A>(nested_matrix(a * (m * adjoint(a))));
+        auto b = make_self_contained<M, A>(nested_matrix(a * (std::forward<M>(m) * adjoint(a))));
         return make_covariance<AC>(MatrixTraits<SABaseType>::make(std::move(b)));
       }
     }
     else if constexpr (upper_triangular_matrix<NestedMatrix>)
     {
-      auto b = QR_decomposition(nested_matrix(m) * adjoint(nested_matrix(a)));
+      auto b = QR_decomposition(nested_matrix(std::forward<M>(m)) * adjoint(nested_matrix(std::forward<A>(a))));
       return MatrixTraits<M>::template make<AC>(make_self_contained<M, A>(std::move(b)));
     }
     else
     {
       static_assert(lower_triangular_matrix<NestedMatrix>);
-      auto b = LQ_decomposition(nested_matrix(a) * nested_matrix(m));
+      auto b = LQ_decomposition(nested_matrix(std::forward<A>(a)) * nested_matrix(std::forward<M>(m)));
       return MatrixTraits<M>::template make<AC>(make_self_contained<M, A>(std::move(b)));
     }
   }

@@ -11,6 +11,8 @@
 #include "nonlinear.hpp"
 #include "transforms/LinearizedTransform.hpp"
 
+using std::numbers::pi;
+
 /*
  * Test data from Gustafsson & Hendeby. Some Relations Between Extended and Unscented Kalman Filters.
  * IEEE Transactions on Signal Processing, (60), 2, 545-555. 2012 (TT2 data appears to be in error, and is omitted).

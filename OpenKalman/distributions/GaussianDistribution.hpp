@@ -18,6 +18,8 @@
 
 #include <iostream>
 
+using std::numbers::log2e;
+
 namespace OpenKalman
 {
 #ifdef __cpp_concepts
@@ -102,8 +104,9 @@ namespace OpenKalman
       not std::is_base_of_v<GaussianDistribution, std::decay_t<Arg>> and
       equivalent_to<typename DistributionTraits<Arg>::Coefficients, Coefficients>, int> = 0>
 #endif
-    GaussianDistribution(Arg&& other) noexcept
-      : mu {std::forward<Arg>(other).mean_of()}, sigma {std::forward<Arg>(other).covariance_of()} {}
+    GaussianDistribution(Arg&& arg) noexcept
+      : mu {std::forward<decltype(arg.mu)>(arg.mu)},
+        sigma {std::forward<decltype(arg.sigma)>(arg.sigma)} {}
 
 
     /**
@@ -285,22 +288,22 @@ namespace OpenKalman
     {
       static_assert(equivalent_to<typename DistributionTraits<Arg>::Coefficients, Coefficients>);
       if constexpr (std::is_same_v<std::decay_t<Arg>, GaussianDistribution>) if (this == &other) return *this;
-      mu = std::forward<Arg>(other).mean_of();
-      sigma = std::forward<Arg>(other).covariance_of();
+      mu = std::forward<decltype(other.mu)>(other.mu);
+      sigma = std::forward<decltype(other.sigma)>(other.sigma);
       return *this;
     }
 
     auto& operator+=(const GaussianDistribution& arg)
     {
-      mu += arg.mean_of();
-      sigma += arg.covariance_of();
+      mu += arg.mu;
+      sigma += arg.sigma;
       return *this;
     };
 
     auto& operator-=(const GaussianDistribution& arg)
     {
-      mu -= arg.mean_of();
-      sigma -= arg.covariance_of();
+      mu -= arg.mu;
+      sigma -= arg.sigma;
       return *this;
     };
 
@@ -337,27 +340,9 @@ namespace OpenKalman
 
   public:
 
-    static constexpr auto zero() { return make(Mean::zero(), Covariance::zero()); }
+    static auto zero() { return make(Mean::zero(), Covariance::zero()); }
 
-    static constexpr auto normal() { return make(Mean::zero(), Covariance::identity()); }
-
-
-    auto& mean_of() & { return mu; }
-
-    auto&& mean_of() && { return std::move(mu); }
-
-    const auto& mean_of() const & { return mu; }
-
-    const auto&& mean_of() const && { return std::move(mu); }
-
-
-    auto& covariance_of() & { return sigma; }
-
-    auto&& covariance_of() && { return std::move(sigma); }
-
-    const auto& covariance_of() const & { return sigma; }
-
-    const auto&& covariance_of() const && { return std::move(sigma); }
+    static auto normal() { return make(Mean::zero(), Covariance::identity()); }
 
 
     /// \brief Generate a random value from the distribution.
@@ -396,10 +381,17 @@ namespace OpenKalman
         + std::log2(determinant(sigma)));
     }
 
-  protected:
 
-    Mean mu; ///< Mean vector.
-    Covariance sigma; ///< Covariance matrix.
+    /**
+     * \brief The mean of the distribution.
+     */
+    Mean mu;
+
+
+    /**
+     * \brief The Covariance matrix of the distribution.
+     */
+    Covariance sigma;
 
   };
 
@@ -506,9 +498,9 @@ namespace OpenKalman
     passable_t<C>>;
 
 
-  ///////////////////////////////////
+  // ----------------------------- //
   //        Make functions         //
-  ///////////////////////////////////
+  // ----------------------------- //
 
   /**
    * \brief Make a Gaussian distribution
@@ -790,15 +782,15 @@ namespace OpenKalman
   };
 
 
-  //////////////////////////////
+  // ------------------------ //
   //        Overloads         //
-  //////////////////////////////
+  // ------------------------ //
 
   template<typename Arg, std::enable_if_t<gaussian_distribution<Arg>, int> = 0>
   constexpr decltype(auto)
   mean_of(Arg&& arg) noexcept
   {
-    return std::forward<Arg>(arg).mean_of();
+    return std::forward<Arg>(arg).mu;
   }
 
 
@@ -806,7 +798,7 @@ namespace OpenKalman
   constexpr decltype(auto)
   covariance_of(Arg&& arg) noexcept
   {
-    return std::forward<Arg>(arg).covariance_of();
+    return std::forward<Arg>(arg).sigma;
   }
 
 
@@ -815,12 +807,23 @@ namespace OpenKalman
   constexpr decltype(auto)
   make_self_contained(Arg&& arg) noexcept
   {
-    if constexpr(
-      (self_contained<typename DistributionTraits<Arg>::Mean> and
-        self_contained<typename DistributionTraits<Arg>::Covariance>) or
+    if constexpr(self_contained<Arg> or
+      (std::is_lvalue_reference_v<typename DistributionTraits<Arg>::Mean> and
+        std::is_lvalue_reference_v<typename DistributionTraits<Arg>::Covariance>) or
       ((sizeof...(Ts) > 0) and ... and std::is_lvalue_reference_v<Ts>))
     {
       return std::forward<Arg>(arg);
+    }
+    /// \todo Check this:
+    else if constexpr(std::is_lvalue_reference_v<typename DistributionTraits<Arg>::Mean> and
+        not std::is_lvalue_reference_v<typename DistributionTraits<Arg>::Covariance>)
+    {
+      return make_GaussianDistribution(mean_of(arg), make_self_contained(covariance_of(arg)));
+    }
+    else if constexpr(not std::is_lvalue_reference_v<typename DistributionTraits<Arg>::Mean> and
+      std::is_lvalue_reference_v<typename DistributionTraits<Arg>::Covariance>)
+    {
+      return make_GaussianDistribution(make_self_contained(mean_of(arg)), covariance_of(arg));
     }
     else
     {
@@ -874,7 +877,7 @@ namespace OpenKalman
     {
       auto means = split_vertical<Cs...>(mean_of(d));
       auto covariances = split_diagonal<Cs...>(covariance_of(std::forward<D>(d)));
-      return detail::zip_dist<D>(means, covariances, std::make_index_sequence<sizeof...(Cs)>());
+      return OpenKalman::detail::zip_dist<D>(means, covariances, std::make_index_sequence<sizeof...(Cs)>());
     }
   }
 

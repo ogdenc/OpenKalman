@@ -175,7 +175,7 @@ namespace OpenKalman::internal
           if constexpr (return_cross)
           {
             auto cross_covariance = make_self_contained(x_deviations * to_diagonal(weights) * adjoint(y_deviations));
-            return std::tuple{std::move(out_covariance), std::move(cross_covariance)};
+            return std::tuple {std::move(out_covariance), std::move(cross_covariance)};
           }
           else
           {
@@ -191,7 +191,7 @@ namespace OpenKalman::internal
           if constexpr (return_cross)
           {
             auto cross_covariance = make_self_contained(x_deviations * to_diagonal(weights) * adjoint(y_deviations));
-            return std::tuple{std::move(out_covariance), std::move(cross_covariance)};
+            return std::tuple {std::move(out_covariance), std::move(cross_covariance)};
           }
           else
           {
@@ -207,7 +207,7 @@ namespace OpenKalman::internal
         if constexpr (return_cross)
         {
           auto cross_covariance = make_self_contained(x_deviations * w_yT);
-          return std::tuple{std::move(out_covariance), std::move(cross_covariance)};
+          return std::tuple {std::move(out_covariance), std::move(cross_covariance)};
         }
         else
         {

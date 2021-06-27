@@ -8,6 +8,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+/**
+ * \file
+ * \brief Tests relating to Eigen3::DiagonalMatrix.
+ */
+
 #include "eigen3.gtest.hpp"
 
 using namespace OpenKalman;
@@ -16,7 +21,7 @@ using Mat2 = eigen_matrix_t<double, 2, 2>;
 using Mat3 = eigen_matrix_t<double, 3, 3>;
 using Axis2 = Coefficients<Axis, Axis>;
 
-TEST_F(eigen3, Diagonal_class)
+TEST(eigen3, Diagonal_class)
 {
   DiagonalMatrix<eigen_matrix_t<double, 3, 1>> d1; // default constructor
   d1 << 1, 2, 3;
@@ -96,9 +101,14 @@ TEST_F(eigen3, Diagonal_class)
   EXPECT_TRUE(is_near(d1, DiagonalMatrix {1., 4, 9}));
   EXPECT_TRUE(is_near(d1.square_root(), DiagonalMatrix {1., 2, 3}));
   EXPECT_TRUE(is_near(d1.square(), DiagonalMatrix {1., 16, 81}));
+
+  EXPECT_EQ((DiagonalMatrix<eigen_matrix_t<double, 3, 1>>::rows()), 3);
+  EXPECT_EQ((DiagonalMatrix<eigen_matrix_t<double, 3, 1>>::cols()), 3);
+  EXPECT_TRUE(is_near(DiagonalMatrix<eigen_matrix_t<double, 3, 1>>::zero(), Mat3::Zero()));
+  EXPECT_TRUE(is_near(DiagonalMatrix<eigen_matrix_t<double, 3, 1>>::identity(), Mat3::Identity()));
 }
 
-TEST_F(eigen3, Diagonal_subscripts)
+TEST(eigen3, Diagonal_subscripts)
 {
   auto el = DiagonalMatrix {1., 2, 3};
   set_element(el, 5.5, 1);
@@ -151,7 +161,7 @@ TEST_F(eigen3, Diagonal_subscripts)
   EXPECT_NEAR((DiagonalMatrix {1., 2, 3}).nested_matrix()[2], 3, 1e-6);
 }
 
-TEST_F(eigen3, Diagonal_traits)
+TEST(eigen3, Diagonal_traits)
 {
   static_assert(diagonal_matrix<decltype(DiagonalMatrix{2.})>);
   static_assert(diagonal_matrix<decltype(DiagonalMatrix{2, 3})>);
@@ -189,7 +199,7 @@ TEST_F(eigen3, Diagonal_traits)
   EXPECT_TRUE(is_near(MatrixTraits<D>::identity(), eigen_matrix_t<double, 3, 3>::Identity()));
 }
 
-TEST_F(eigen3, Diagonal_overloads)
+TEST(eigen3, Diagonal_overloads)
 {
   EXPECT_TRUE(is_near(make_native_matrix(DiagonalMatrix(1., 2, 3)), make_native_matrix<double, 3, 3>(
     1, 0, 0,
@@ -248,21 +258,21 @@ TEST_F(eigen3, Diagonal_overloads)
   EXPECT_FALSE(is_near(m, offset, 1e-6));
 }
 
-TEST_F(eigen3, Diagonal_blocks)
+TEST(eigen3, Diagonal_blocks)
 {
   EXPECT_TRUE(is_near(concatenate_diagonal(DiagonalMatrix {1., 2, 3}, DiagonalMatrix {4., 5}), DiagonalMatrix {1., 2, 3, 4, 5}));
   EXPECT_TRUE(is_near(concatenate_vertical(DiagonalMatrix {1., 2}, DiagonalMatrix {3., 4}),
     make_native_matrix<4,2>(1., 0, 0, 2, 3, 0, 0, 4)));
   EXPECT_TRUE(is_near(concatenate_horizontal(DiagonalMatrix {1., 2}, DiagonalMatrix {3., 4}),
     make_native_matrix<2,4>(1., 0, 3, 0, 0, 2, 0, 4)));
-  EXPECT_TRUE(is_near(split_diagonal(DiagonalMatrix{1., 2, 3, 4, 5}), std::tuple{}));
-  EXPECT_TRUE(is_near(split_diagonal<3, 2>(DiagonalMatrix{1., 2, 3, 4, 5}), std::tuple{DiagonalMatrix{1., 2, 3}, DiagonalMatrix{4., 5}}));
+  EXPECT_TRUE(is_near(split_diagonal(DiagonalMatrix{1., 2, 3, 4, 5}), std::tuple {}));
+  EXPECT_TRUE(is_near(split_diagonal<3, 2>(DiagonalMatrix{1., 2, 3, 4, 5}), std::tuple {DiagonalMatrix{1., 2, 3}, DiagonalMatrix{4., 5}}));
   const auto a1 = DiagonalMatrix<const eigen_matrix_t<double, 5, 1>>{1., 2, 3, 4, 5};
-  EXPECT_TRUE(is_near(split_diagonal<3, 2>(a1), std::tuple{DiagonalMatrix{1., 2, 3}, DiagonalMatrix{4., 5}}));
-  EXPECT_TRUE(is_near(split_diagonal<2, 2>(DiagonalMatrix{1., 2, 3, 4, 5}), std::tuple{DiagonalMatrix{1., 2}, DiagonalMatrix{3., 4}}));
-  EXPECT_TRUE(is_near(split_vertical(DiagonalMatrix{1., 2, 3, 4, 5}), std::tuple{}));
+  EXPECT_TRUE(is_near(split_diagonal<3, 2>(a1), std::tuple {DiagonalMatrix{1., 2, 3}, DiagonalMatrix{4., 5}}));
+  EXPECT_TRUE(is_near(split_diagonal<2, 2>(DiagonalMatrix{1., 2, 3, 4, 5}), std::tuple {DiagonalMatrix{1., 2}, DiagonalMatrix{3., 4}}));
+  EXPECT_TRUE(is_near(split_vertical(DiagonalMatrix{1., 2, 3, 4, 5}), std::tuple {}));
   EXPECT_TRUE(is_near(split_vertical<3, 2>(DiagonalMatrix{1., 2, 3, 4, 5}),
-    std::tuple{make_native_matrix<double, 3, 5>(
+    std::tuple {make_native_matrix<double, 3, 5>(
       1, 0, 0, 0, 0,
       0, 2, 0, 0, 0,
       0, 0, 3, 0, 0),
@@ -270,15 +280,15 @@ TEST_F(eigen3, Diagonal_blocks)
                  0, 0, 0, 4, 0,
                  0, 0, 0, 0, 5)}));
   EXPECT_TRUE(is_near(split_vertical<2, 2>(DiagonalMatrix{1., 2, 3, 4, 5}),
-    std::tuple{make_native_matrix<double, 2, 5>(
+    std::tuple {make_native_matrix<double, 2, 5>(
       1, 0, 0, 0, 0,
       0, 2, 0, 0, 0),
                make_native_matrix<double, 2, 5>(
                  0, 0, 3, 0, 0,
                  0, 0, 0, 4, 0)}));
-  EXPECT_TRUE(is_near(split_horizontal(DiagonalMatrix{1., 2, 3, 4, 5}), std::tuple{}));
+  EXPECT_TRUE(is_near(split_horizontal(DiagonalMatrix{1., 2, 3, 4, 5}), std::tuple {}));
   EXPECT_TRUE(is_near(split_horizontal<3, 2>(DiagonalMatrix{1., 2, 3, 4, 5}),
-    std::tuple{make_native_matrix<double, 5, 3>(
+    std::tuple {make_native_matrix<double, 5, 3>(
       1, 0, 0,
       0, 2, 0,
       0, 0, 3,
@@ -291,7 +301,7 @@ TEST_F(eigen3, Diagonal_blocks)
                  4, 0,
                  0, 5)}));
   EXPECT_TRUE(is_near(split_horizontal<2, 2>(DiagonalMatrix{1., 2, 3, 4, 5}),
-    std::tuple{make_native_matrix<double, 5, 2>(
+    std::tuple {make_native_matrix<double, 5, 2>(
       1, 0,
       0, 2,
       0, 0,
@@ -306,12 +316,12 @@ TEST_F(eigen3, Diagonal_blocks)
 
   EXPECT_TRUE(is_near(column(DiagonalMatrix{1., 2, 3}, 2), make_native_matrix(0., 0, 3)));
   EXPECT_TRUE(is_near(column<1>(DiagonalMatrix{1., 2, 3}), make_native_matrix(0., 2, 0)));
-  EXPECT_TRUE(is_near(apply_columnwise(DiagonalMatrix{1., 2, 3}, [](const auto& col){ return col + col.Constant(1); }),
+  EXPECT_TRUE(is_near(apply_columnwise(DiagonalMatrix{1., 2, 3}, [](const auto& col){ return make_self_contained(col + col.Constant(1)); }),
     make_native_matrix<double, 3, 3>(
       2, 1, 1,
       1, 3, 1,
       1, 1, 4)));
-  EXPECT_TRUE(is_near(apply_columnwise(DiagonalMatrix{1., 2, 3}, [](const auto& col, std::size_t i){ return col + col.Constant(i); }),
+  EXPECT_TRUE(is_near(apply_columnwise(DiagonalMatrix{1., 2, 3}, [](const auto& col, std::size_t i){ return make_self_contained(col + col.Constant(i)); }),
     make_native_matrix<double, 3, 3>(
       1, 1, 2,
       0, 3, 2,
@@ -328,7 +338,7 @@ TEST_F(eigen3, Diagonal_blocks)
       2, 3, 7)));
 }
 
-TEST_F(eigen3, Diagonal_arithmetic)
+TEST(eigen3, Diagonal_arithmetic)
 {
   auto d1 = DiagonalMatrix {1., 2, 3};
   auto d2 = DiagonalMatrix {4., 5, 6};
@@ -425,7 +435,7 @@ TEST_F(eigen3, Diagonal_arithmetic)
     7, 16, 27)));
 }
 
-TEST_F(eigen3, Diagonal_references)
+TEST(eigen3, Diagonal_references)
 {
   using M3 = eigen_matrix_t<double, 3, 1>;
   DiagonalMatrix<M3> m {1, 2, 3};

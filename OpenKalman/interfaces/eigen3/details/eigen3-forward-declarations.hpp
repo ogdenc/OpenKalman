@@ -42,11 +42,11 @@ namespace OpenKalman::Eigen3
     /**
      * \internal
      * \brief The ultimate base for matrix classes in OpenKalman.
-     * \details This class is used solely to distinguish OpenKalman classes from native Eigen classes which are
+     * \details This class is used mainly to distinguish OpenKalman classes from native Eigen classes which are
      * also derived from Eigen::MatrixBase.
      */
     template<typename Derived>
-    struct Eigen3Base : Eigen::MatrixBase<Derived> {};
+    struct Eigen3Base;
 
 
     /*
@@ -67,7 +67,7 @@ namespace OpenKalman::Eigen3
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept eigen_native = std::derived_from<std::decay_t<T>, Eigen::MatrixBase<std::decay_t<T>>> and
+  concept eigen_native = std::derived_from<std::decay_t<T>, Eigen::DenseBase<std::decay_t<T>>> and
     (not std::derived_from<std::decay_t<T>, internal::Eigen3Base<std::decay_t<T>>>);
 #else
   inline constexpr bool eigen_native = std::is_base_of_v<Eigen::MatrixBase<std::decay_t<T>>, std::decay_t<T>> and
@@ -472,5 +472,6 @@ namespace OpenKalman::Eigen3
 
 
 } // namespace OpenKalman::Eigen3
+
 
 #endif //OPENKALMAN_EIGEN3_FORWARD_DECLARATIONS_HPP

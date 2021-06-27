@@ -56,6 +56,7 @@
 
 #include "details/eigen3-matrix-overloads.hpp"
 
+#include "details/Eigen3Base.hpp"
 #include "details/Eigen3MatrixBase.hpp"
 
 #include "ConstantMatrix.hpp"
@@ -95,6 +96,7 @@ namespace OpenKalman
   using Eigen3::ToEuclideanExpr;
 
   using Eigen3::make_native_matrix;
+  using Eigen3::make_ZeroMatrix;
   using Eigen3::make_EigenSelfAdjointMatrix;
   using Eigen3::make_EigenTriangularMatrix;
 
@@ -138,7 +140,7 @@ namespace OpenKalman
 
 #include "default-overloads.hpp"
 
-#include "matrices/details/ElementSetter.hpp"
+#include "matrices/details/ElementAccessor.hpp"
 #include "matrices/details/MatrixBase.hpp"
 
 

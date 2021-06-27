@@ -36,12 +36,10 @@ namespace OpenKalman::internal
    * \return The scalar value of the transformed coordinate in Euclidean space corresponding to the provided row.
    */
 #ifdef __cpp_concepts
-  template<fixed_coefficients Coeffs, std::invocable<const std::size_t> F> requires
-    std::is_arithmetic_v<std::invoke_result_t<F, const std::size_t>>
+  template<fixed_coefficients Coeffs, std::invocable<const std::size_t> F>
 #else
   template<typename Coeffs, typename F, typename = std::enable_if_t<
-    fixed_coefficients<Coeffs> and std::is_invocable_v<F, const std::size_t> and
-    std::is_arithmetic_v<std::invoke_result_t<F, const std::size_t>>>>
+    fixed_coefficients<Coeffs> and std::is_invocable_v<F, const std::size_t>>>
 #endif
   inline auto
   to_euclidean_coeff(const std::size_t row, const F& get_coeff)
@@ -63,12 +61,11 @@ namespace OpenKalman::internal
    * \return The scalar value of the transformed coordinate in Euclidean space corresponding to the provided row.
    */
 #ifdef __cpp_concepts
-  template<dynamic_coefficients Coeffs, std::invocable<const std::size_t> F> requires
-    std::is_arithmetic_v<std::invoke_result_t<F, const std::size_t>>
+  template<dynamic_coefficients Coeffs, typename F> requires
+    requires(F& f, std::size_t& i) { {f(i)} -> std::convertible_to<const typename Coeffs::Scalar>; }
 #else
-  template<typename Coeffs, typename F, typename = std::enable_if_t<
-    dynamic_coefficients<Coeffs> and std::is_invocable_v<F, const std::size_t> and
-    std::is_arithmetic_v<std::invoke_result_t<F, const std::size_t>>>>
+  template<typename Coeffs, typename F, typename = std::enable_if_t<dynamic_coefficients<Coeffs> and
+    std::is_convertible_v<std::invoke_result_t<F&, std::size_t&>, const typename Coeffs::Scalar>>>
 #endif
   inline auto
   to_euclidean_coeff(Coeffs&& coeffs, const std::size_t row, const F& get_coeff)
@@ -88,12 +85,10 @@ namespace OpenKalman::internal
    * \return The scalar value of the typed coefficient corresponding to the provided row.
    */
 #ifdef __cpp_concepts
-  template<fixed_coefficients Coeffs, std::invocable<const std::size_t> F> requires
-    std::is_arithmetic_v<std::invoke_result_t<F, const std::size_t>>
+  template<fixed_coefficients Coeffs, std::invocable<const std::size_t> F>
 #else
   template<typename Coeffs, typename F, typename = std::enable_if_t<
-    fixed_coefficients<Coeffs> and std::is_invocable_v<F, const std::size_t> and
-    std::is_arithmetic_v<std::invoke_result_t<F, const std::size_t>>>>
+    fixed_coefficients<Coeffs> and std::is_invocable_v<F, const std::size_t>>>
 #endif
   inline auto
   from_euclidean_coeff(const std::size_t row, const F& get_coeff)
@@ -115,12 +110,11 @@ namespace OpenKalman::internal
    * \return The scalar value of the typed coefficient corresponding to the provided row.
    */
 #ifdef __cpp_concepts
-  template<dynamic_coefficients Coeffs, std::invocable<const std::size_t> F> requires
-    std::is_arithmetic_v<std::invoke_result_t<F, const std::size_t>>
+  template<dynamic_coefficients Coeffs, typename F> requires
+    requires(F& f, std::size_t& i) { {f(i)} -> std::convertible_to<const typename Coeffs::Scalar>; }
 #else
-  template<typename Coeffs, typename F, typename = std::enable_if_t<
-      dynamic_coefficients<Coeffs> and std::is_invocable_v<F, const std::size_t> and
-      std::is_arithmetic_v<std::invoke_result_t<F, const std::size_t>>>>
+  template<typename Coeffs, typename F, typename = std::enable_if_t<dynamic_coefficients<Coeffs> and
+    std::is_convertible_v<std::invoke_result_t<F&, std::size_t&>, const typename Coeffs::Scalar>>>
 #endif
   inline auto
   from_euclidean_coeff(Coeffs&& coeffs, const std::size_t row, const F& get_coeff)
@@ -139,12 +133,10 @@ namespace OpenKalman::internal
    * row and column (the column is an input into get_coeff).
    */
 #ifdef __cpp_concepts
-  template<fixed_coefficients Coeffs, std::invocable<const std::size_t> F> requires
-    std::is_arithmetic_v<std::invoke_result_t<F, const std::size_t>>
+  template<fixed_coefficients Coeffs, std::invocable<const std::size_t> F>
 #else
   template<typename Coeffs, typename F, typename = std::enable_if_t<
-    fixed_coefficients<Coeffs> and std::is_invocable_v<F, const std::size_t> and
-    std::is_arithmetic_v<std::invoke_result_t<F, const std::size_t>>>>
+    fixed_coefficients<Coeffs> and std::is_invocable_v<F, const std::size_t>>>
 #endif
   inline auto
   wrap_get(const std::size_t row, const F& get_coeff)
@@ -165,12 +157,11 @@ namespace OpenKalman::internal
    * row and column (the column is an input into get_coeff).
    */
 #ifdef __cpp_concepts
-  template<dynamic_coefficients Coeffs, std::invocable<const std::size_t> F> requires
-    std::is_arithmetic_v<std::invoke_result_t<F, const std::size_t>>
+  template<dynamic_coefficients Coeffs, typename F> requires
+    requires(F& f, std::size_t& i) { {f(i)} -> std::convertible_to<const typename Coeffs::Scalar>; }
 #else
-  template<typename Coeffs, typename F, typename = std::enable_if_t<
-      dynamic_coefficients<Coeffs> and std::is_invocable_v<F, const std::size_t> and
-      std::is_arithmetic_v<std::invoke_result_t<F, const std::size_t>>>>
+  template<typename Coeffs, typename F, typename = std::enable_if_t<dynamic_coefficients<Coeffs> and
+    std::is_convertible_v<std::invoke_result_t<F&, std::size_t&>, const typename Coeffs::Scalar>>>
 #endif
   inline auto
   wrap_get(Coeffs&& coeffs, const std::size_t row, const F& get_coeff)
@@ -191,14 +182,13 @@ namespace OpenKalman::internal
    * \param row The applicable row of the matrix.
    */
 #ifdef __cpp_concepts
-  template<fixed_coefficients Coeffs, typename Scalar,
-      std::invocable<const std::size_t, const Scalar> FS, std::invocable<const std::size_t> FG>
-    requires std::is_arithmetic_v<Scalar> and std::is_arithmetic_v<std::invoke_result_t<FG, const std::size_t>>
+  template<fixed_coefficients Coeffs, typename Scalar, typename FS, typename FG> requires
+    requires(FS& f, std::size_t& i, Scalar& s) { f(i, s); } and
+    requires(FG& f, std::size_t& i) { {f(i)} -> std::convertible_to<const Scalar>; }
 #else
   template<typename Coeffs, typename Scalar, typename FS, typename FG, typename = std::enable_if_t<
-    fixed_coefficients<Coeffs> and std::is_arithmetic_v<Scalar> and std::is_invocable_v<FG, const std::size_t> and
-    std::is_invocable_v<FS, const std::size_t, const Scalar> and
-    std::is_arithmetic_v<std::invoke_result_t<FG, const std::size_t>>>>
+    fixed_coefficients<Coeffs> and std::is_invocable_v<FS, std::size_t&, Scalar&> and
+    std::is_convertible_v<std::invoke_result_t<FG&, std::size_t&>, const Scalar>>>
 #endif
   inline void
   wrap_set(const std::size_t row, const Scalar s, const FS& set_coeff, const FG& get_coeff)
@@ -220,17 +210,17 @@ namespace OpenKalman::internal
    * \param row The applicable row of the matrix.
    */
 #ifdef __cpp_concepts
-  template<dynamic_coefficients Coeffs, typename Scalar,
-      std::invocable<const std::size_t, const Scalar> FS, std::invocable<const std::size_t> FG>
-    requires std::is_arithmetic_v<Scalar> and std::is_arithmetic_v<std::invoke_result_t<FG, const std::size_t>>
+  template<dynamic_coefficients Coeffs, typename FS, typename FG> requires
+    requires(FS& f, std::size_t& i, typename Coeffs::Scalar& s) { f(i, s); } and
+    requires(FG& f, std::size_t& i) { {f(i)} -> std::convertible_to<const typename Coeffs::Scalar>; }
 #else
-  template<typename Coeffs, typename Scalar, typename FS, typename FG, typename = std::enable_if_t<
-      dynamic_coefficients<Coeffs> and std::is_arithmetic_v<Scalar> and std::is_invocable_v<FG, const std::size_t> and
-      std::is_invocable_v<FS, const std::size_t, const Scalar> and
-      std::is_arithmetic_v<std::invoke_result_t<FG, const std::size_t>>>>
+  template<typename Coeffs, typename FS, typename FG, typename = std::enable_if_t<dynamic_coefficients<Coeffs> and
+    std::is_invocable_v<FS, std::size_t&, typename Coeffs::Scalar&> and
+    std::is_convertible_v<std::invoke_result_t<FG&, std::size_t&>, const typename Coeffs::Scalar>>>
 #endif
   inline void
-  wrap_set(Coeffs&& coeffs, const std::size_t row, const Scalar s, const FS& set_coeff, const FG& get_coeff)
+  wrap_set(Coeffs&& coeffs, const std::size_t row, const typename Coeffs::Scalar s,
+           const FS& set_coeff, const FG& get_coeff)
   {
     coeffs.wrap_set(row, s, set_coeff, get_coeff);
   }

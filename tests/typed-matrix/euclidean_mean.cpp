@@ -10,7 +10,8 @@
 
 #include "matrices.hpp"
 
-using namespace OpenKalman;
+using std::numbers::pi;
+using std::numbers::sqrt2;
 
 using M12 = eigen_matrix_t<double, 1, 2>;
 using M13 = eigen_matrix_t<double, 1, 3>;
@@ -47,7 +48,7 @@ inline auto sqcovi22 = SquareRootCovariance<C2, I22>(i22);
 inline auto sqcovz22 = SquareRootCovariance<C2, Z22>(z22);
 
 
-TEST_F(matrices, EuclideanMean_class)
+TEST(matrices, EuclideanMean_class)
 {
   // Default constructor and Eigen3 construction
   Mat23 mat23a;
@@ -141,7 +142,7 @@ TEST_F(matrices, EuclideanMean_class)
 }
 
 
-TEST_F(matrices, EuclideanMean_subscripts)
+TEST(matrices, EuclideanMean_subscripts)
 {
   static_assert(element_gettable<Mat23, 2>);
   static_assert(not element_gettable<Mat23, 1>);
@@ -185,7 +186,7 @@ TEST_F(matrices, EuclideanMean_subscripts)
 }
 
 
-TEST_F(matrices, EuclideanMean_deduction_guides)
+TEST(matrices, EuclideanMean_deduction_guides)
 {
   auto a = make_native_matrix<M23>(1, 2, 3, 4, 5, 6);
   EXPECT_TRUE(is_near(EuclideanMean(a), a));
@@ -206,7 +207,7 @@ TEST_F(matrices, EuclideanMean_deduction_guides)
 }
 
 
-TEST_F(matrices, EuclideanMean_make_functions)
+TEST(matrices, EuclideanMean_make_functions)
 {
   auto a = make_native_matrix<M33>(1, 2, 3, 4, 5, 6, 7, 8, 9);
   EXPECT_TRUE(is_near(make_euclidean_mean<C2>(a), a));
@@ -223,7 +224,7 @@ TEST_F(matrices, EuclideanMean_make_functions)
 }
 
 
-TEST_F(matrices, EuclideanMean_traits)
+TEST(matrices, EuclideanMean_traits)
 {
   static_assert(typed_matrix<Mat23>);
   static_assert(not mean<Mat23>);
@@ -249,7 +250,7 @@ TEST_F(matrices, EuclideanMean_traits)
 }
 
 
-TEST_F(matrices, EuclideanMean_overloads)
+TEST(matrices, EuclideanMean_overloads)
 {
   EXPECT_TRUE(is_near(nested_matrix(Mat23 {1, 2, 3, 4, 5, 6, 7, 8, 9}), TM33 {1, 2, 3, 4, 5, 6, 7, 8, 9}));
 
@@ -310,7 +311,7 @@ TEST_F(matrices, EuclideanMean_overloads)
 }
 
 
-TEST_F(matrices, EuclideanMean_blocks)
+TEST(matrices, EuclideanMean_blocks)
 {
   EXPECT_TRUE(is_near(concatenate_vertical(Mat22 {1, 2, 3, 4, 5, 6}, Mat12 {7, 8}), TM42 {1, 2, 3, 4, 5, 6, 7, 8}));
   static_assert(euclidean_mean<decltype(concatenate_vertical(Mat22 {1, 2, 3, 4, 5, 6}, Mat12 {7, 8}))>);
@@ -341,15 +342,15 @@ TEST_F(matrices, EuclideanMean_blocks)
   EXPECT_TRUE(is_near(apply_columnwise(m, [](auto& col){ col *= 2; }), Mat22 {2, 4, 6, 8, 10, 12}));
   EXPECT_TRUE(is_near(apply_columnwise(m, [](auto& col, std::size_t i){ col *= i; }), Mat22 {0, 4, 0, 8, 0, 12}));
 
-  EXPECT_TRUE(is_near(apply_columnwise(Mat22 {1, 2, 3, 4, 5, 6}, [](auto col){ return col * 2; }), Mat22 {2, 4, 6, 8, 10, 12}));
-  EXPECT_TRUE(is_near(apply_columnwise(Mat22 {1, 2, 3, 4, 5, 6}, [](const auto col){ return col * 2; }), Mat22 {2, 4, 6, 8, 10, 12}));
-  EXPECT_TRUE(is_near(apply_columnwise(Mat22 {1, 2, 3, 4, 5, 6}, [](auto&& col){ return col * 2; }), Mat22 {2, 4, 6, 8, 10, 12}));
-  EXPECT_TRUE(is_near(apply_columnwise(Mat22 {1, 2, 3, 4, 5, 6}, [](const auto& col){ return col * 2; }), Mat22 {2, 4, 6, 8, 10, 12}));
+  EXPECT_TRUE(is_near(apply_columnwise(Mat22 {1, 2, 3, 4, 5, 6}, [](auto col){ return make_self_contained(col * 2); }), Mat22 {2, 4, 6, 8, 10, 12}));
+  EXPECT_TRUE(is_near(apply_columnwise(Mat22 {1, 2, 3, 4, 5, 6}, [](const auto col){ return make_self_contained(col * 2); }), Mat22 {2, 4, 6, 8, 10, 12}));
+  EXPECT_TRUE(is_near(apply_columnwise(Mat22 {1, 2, 3, 4, 5, 6}, [](auto&& col){ return make_self_contained(col * 2); }), Mat22 {2, 4, 6, 8, 10, 12}));
+  EXPECT_TRUE(is_near(apply_columnwise(Mat22 {1, 2, 3, 4, 5, 6}, [](const auto& col){ return make_self_contained(col * 2); }), Mat22 {2, 4, 6, 8, 10, 12}));
 
-  EXPECT_TRUE(is_near(apply_columnwise(Mat22 {1, 2, 3, 4, 5, 6}, [](auto col, std::size_t i){ return col * i; }), Mat22 {0, 2, 0, 4, 0, 6}));
-  EXPECT_TRUE(is_near(apply_columnwise(Mat22 {1, 2, 3, 4, 5, 6}, [](const auto col, std::size_t i){ return col * i; }), Mat22 {0, 2, 0, 4, 0, 6}));
-  EXPECT_TRUE(is_near(apply_columnwise(Mat22 {1, 2, 3, 4, 5, 6}, [](auto&& col, std::size_t i){ return col * i; }), Mat22 {0, 2, 0, 4, 0, 6}));
-  EXPECT_TRUE(is_near(apply_columnwise(Mat22 {1, 2, 3, 4, 5, 6}, [](const auto& col, std::size_t i){ return col * i; }), Mat22 {0, 2, 0, 4, 0, 6}));
+  EXPECT_TRUE(is_near(apply_columnwise(Mat22 {1, 2, 3, 4, 5, 6}, [](auto col, std::size_t i){ return make_self_contained(col * i); }), Mat22 {0, 2, 0, 4, 0, 6}));
+  EXPECT_TRUE(is_near(apply_columnwise(Mat22 {1, 2, 3, 4, 5, 6}, [](const auto col, std::size_t i){ return make_self_contained(col * i); }), Mat22 {0, 2, 0, 4, 0, 6}));
+  EXPECT_TRUE(is_near(apply_columnwise(Mat22 {1, 2, 3, 4, 5, 6}, [](auto&& col, std::size_t i){ return make_self_contained(col * i); }), Mat22 {0, 2, 0, 4, 0, 6}));
+  EXPECT_TRUE(is_near(apply_columnwise(Mat22 {1, 2, 3, 4, 5, 6}, [](const auto& col, std::size_t i){ return make_self_contained(col * i); }), Mat22 {0, 2, 0, 4, 0, 6}));
 
   EXPECT_TRUE(is_near(apply_columnwise<2>([] { return Mat21 {1, 2, 3}; }), Mat22 {1, 1, 2, 2, 3, 3}));
   EXPECT_TRUE(is_near(apply_columnwise<2>([](std::size_t i){ return Mat21 {i + 1., 2*i + 1, 2*i + 2}; }), Mat22 {1, 2, 1, 3, 2, 4}));
@@ -377,7 +378,7 @@ TEST_F(matrices, EuclideanMean_blocks)
 }
 
 
-TEST_F(matrices, EuclideanMean_arithmetic)
+TEST(matrices, EuclideanMean_arithmetic)
 {
   EXPECT_TRUE(is_near(Mat32 {7, 6, 5, 4, 3, 2, 1, 0} + Mat32 {1, 2, 3, 4, 5, 6, 7, 8}, TM42 {8, 8, 8, 8, 8, 8, 8, 8}));
   EXPECT_TRUE(is_near(EuclideanMean<Axes<3>, M32> {7, 6, 5, 4, 3, 2} + Mean<Axes<3>, M32> {1, 2, 3, 4, 5, 6}, TM32 {8, 8, 8, 8, 8, 8}));
@@ -422,7 +423,7 @@ TEST_F(matrices, EuclideanMean_arithmetic)
 }
 
 
-TEST_F(matrices, Polar_Spherical_toEuclideanExpr)
+TEST(matrices, Polar_Spherical_toEuclideanExpr)
 {
   using P1 = Polar<Distance, angle::Radians>;
   const Mean<P1> m1 {2, pi / 6};
@@ -466,7 +467,7 @@ TEST_F(matrices, Polar_Spherical_toEuclideanExpr)
 }
 
 
-TEST_F(matrices, Polar_Spherical_fromEuclideanExpr)
+TEST(matrices, Polar_Spherical_fromEuclideanExpr)
 {
   using P1 = Polar<Distance, angle::Radians>;
   const Mean<P1> m1 {2, pi / 6};

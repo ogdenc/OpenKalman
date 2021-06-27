@@ -140,7 +140,12 @@ namespace OpenKalman::internal
    * \return The square root of x.
    */
   template<typename Scalar>
-  constexpr Scalar constexpr_sqrt(Scalar x)
+#ifdef __cpp_consteval
+  consteval
+#else
+  constexpr
+#endif
+  Scalar constexpr_sqrt(Scalar x)
   {
     if constexpr(std::is_integral_v<Scalar>)
     {
@@ -172,7 +177,12 @@ namespace OpenKalman::internal
    * Compile time power.
    */
   template<typename Scalar>
-  constexpr Scalar constexpr_pow(Scalar a, std::size_t n) {
+#ifdef __cpp_consteval
+  consteval
+#else
+  constexpr
+#endif
+  Scalar constexpr_pow(Scalar a, std::size_t n) {
     constexpr auto b = constexpr_pow(a, n / 2);
     return n == 0 ? 1 : b * b * (n % 2 == 0 ?  1 : a);
   }
@@ -186,6 +196,7 @@ namespace OpenKalman::internal
       return std::forward_as_tuple(std::get<begin + I>(std::forward<T>(t))...);
     }
   }
+
 
   /**
    * \internal
@@ -226,7 +237,8 @@ namespace OpenKalman::internal
     }
     else
     {
-      return std::tuple_cat(std::make_tuple(t), tuple_replicate<N - 1>(std::forward<T>(t)));
+      auto r = std::make_tuple(t);
+      return std::tuple_cat(std::move(r), tuple_replicate<N - 1>(std::forward<T>(t)));
     }
   }
 
@@ -241,8 +253,8 @@ namespace OpenKalman::internal
      * \brief The identity function.
      * \return The input, unchanged.
      */
-    template<typename, typename, typename Arg>
-    static constexpr Arg&& call(Arg&& arg) { return std::forward<Arg>(arg); }
+    template<typename, typename, typename T>
+    static constexpr T&& call(T&& t) { return std::forward<T>(t); }
   };
 
 } // namespace OpenKalman::internal

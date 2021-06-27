@@ -14,15 +14,16 @@ enable_testing()
 find_package(GTest REQUIRED)
 include(GoogleTest)
 
-add_executable(covariances
-    covariance_tests.cpp
-    tests-covariance.cpp
-    tests-covariance-ops.cpp
-    tests-sqrt-covariance.cpp
-    tests-sqrt-covariance-ops.cpp
-    tests-covariance-refs.cpp
+add_executable(eigen3
+        eigen3.gtest.cpp
+        eigen3-native-matrix.test.cpp
+        DiagonalMatrix.test.cpp
+        SelfAdjointMatrix.test.cpp
+        TriangularMatrix.test.cpp
+        ToEuclideanExpr.test.cpp
+        FromEuclideanExpr.test.cpp
     )
 
-target_link_libraries(covariances ${GTEST_BOTH_LIBRARIES} Eigen3::Eigen Threads::Threads)
+target_link_libraries(eigen3 ${GTEST_BOTH_LIBRARIES} Eigen3::Eigen Threads::Threads)
 
-gtest_discover_tests(covariances)
+gtest_discover_tests(eigen3)

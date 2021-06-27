@@ -19,6 +19,8 @@
 
 namespace OpenKalman::internal
 {
+  using namespace OpenKalman::internal;
+
 #ifdef __cpp_concepts
   template<covariance_nestable T, typename Arg>
   requires (covariance_nestable<Arg> or (typed_matrix_nestable<Arg> and (square_matrix<Arg> or column_vector<Arg>))) and
@@ -31,16 +33,26 @@ namespace OpenKalman::internal
   constexpr decltype(auto)
   to_covariance_nestable(Arg&& arg) noexcept
   {
-    if constexpr(zero_matrix<T> or identity_matrix<T>)
+    if constexpr(zero_matrix<T>)
     {
+      // Pass through because Arg is already zero.
+      static_assert(zero_matrix<Arg>);
+      return std::forward<Arg>(arg);
+    }
+    else if constexpr(identity_matrix<T>)
+    {
+      // Pass through because Arg is already identity.
+      static_assert(identity_matrix<Arg>);
       return std::forward<Arg>(arg);
     }
     else if constexpr (zero_matrix<Arg>)
     {
+      static_assert(not zero_matrix<T>);
       return MatrixTraits<T>::zero();
     }
     else if constexpr (identity_matrix<Arg>)
     {
+      static_assert(not identity_matrix<T>);
       return MatrixTraits<T>::identity();
     }
     else if constexpr (diagonal_matrix<T>)
@@ -48,51 +60,51 @@ namespace OpenKalman::internal
       // diagonal -> diagonal
       if constexpr (column_vector<Arg> and not one_by_one_matrix<Arg>)
       {
-        return MatrixTraits<T>::make(std::forward<Arg>(arg));
+        return MatrixTraits<T>::make(make_self_contained<Arg>(std::forward<Arg>(arg)));
       }
       else
       {
-        static_assert(diagonal_matrix<Arg>); // Arg is already diagonal.
+        // Pass through because Arg is already diagonal.
+        static_assert(diagonal_matrix<Arg>);
         return std::forward<Arg>(arg);
       }
     }
     else if constexpr (diagonal_matrix<Arg>)
     {
-      return MatrixTraits<T>::make(std::forward<Arg>(arg));
+      return MatrixTraits<T>::make(make_self_contained<Arg>(std::forward<Arg>(arg)));
     }
     else if constexpr (self_adjoint_matrix<T> and triangular_matrix<Arg>)
     {
-      // non-diagonal triangular --> self-adjoint
-      auto sa = Cholesky_square(std::forward<Arg>(arg));
-      static_assert(self_adjoint_matrix<decltype(sa)>);
-      return sa;
+      // non-diagonal triangular --> non-diagonal self-adjoint
+      static_assert(self_adjoint_matrix<decltype(Cholesky_square(std::declval<Arg&&>()))>);
+      return Cholesky_square(std::forward<Arg>(arg));
     }
     else if constexpr (triangular_matrix<T> and self_adjoint_matrix<Arg>)
     {
-      // non-diagonal self-adjoint --> triangular
-      auto tri = Cholesky_factor<triangle_type_of<T>>(std::forward<Arg>(arg));
-      static_assert(triangular_matrix<decltype(tri)> and internal::same_triangle_type_as<T, decltype(tri)>);
-      return tri;
+      // non-diagonal self-adjoint --> non-diagonal triangular
+      static_assert(same_triangle_type_as<T, decltype(Cholesky_factor<triangle_type_of<T>>(std::declval<Arg&&>()))>);
+      return Cholesky_factor<triangle_type_of<T>>(std::forward<Arg>(arg));
     }
-    else if constexpr (triangular_matrix<T> and triangular_matrix<Arg> and not internal::same_triangle_type_as<T, Arg>)
+    else if constexpr (triangular_matrix<T> and triangular_matrix<Arg> and (not same_triangle_type_as<T, Arg>))
     {
       // upper triangular <--> lower triangular
-      auto atri = make_self_contained(adjoint(std::forward<Arg>(arg)));
-      static_assert(internal::same_triangle_type_as<T, decltype(atri)>);
-      return atri;
+      static_assert(same_triangle_type_as<T, decltype(transpose(std::declval<Arg&&>()))>);
+      return transpose(std::forward<Arg>(arg));
     }
     else if constexpr (typed_matrix_nestable<Arg> and not covariance_nestable<Arg>)
     {
-      // typed_matrix_nestable:
-      return MatrixTraits<T>::make(std::forward<Arg>(arg));
+      // typed_matrix_nestable -> covariance_nestable:
+      return MatrixTraits<T>::make(make_self_contained<Arg>(std::forward<Arg>(arg)));
     }
     else
     {
       // Pass through if no conversion is necessary.
-      static_assert(covariance_nestable<Arg> and (self_adjoint_matrix<T> == self_adjoint_matrix<Arg>) and
-        (triangular_matrix<T> == triangular_matrix<Arg>) and (diagonal_matrix<T> == diagonal_matrix<Arg>) and
-        (lower_triangular_matrix<Arg> == lower_triangular_matrix<Arg>) and
-        (upper_triangular_matrix<Arg> == upper_triangular_matrix<Arg>));
+      static_assert(covariance_nestable<Arg>);
+      static_assert(self_adjoint_matrix<T> == self_adjoint_matrix<Arg>);
+      static_assert(triangular_matrix<T> == triangular_matrix<Arg>);
+      static_assert(diagonal_matrix<T> == diagonal_matrix<Arg>);
+      static_assert(lower_triangular_matrix<Arg> == lower_triangular_matrix<Arg>);
+      static_assert(upper_triangular_matrix<Arg> == upper_triangular_matrix<Arg>);
       return std::forward<Arg>(arg);
     }
   }
@@ -129,8 +141,9 @@ namespace OpenKalman::internal
     {
       return to_covariance_nestable<T>(std::forward<Arg>(arg).get_self_adjoint_nested_matrix());
     }
-    else // if constexpr (triangular_matrix<T>)
+    else
     {
+      static_assert(triangular_matrix<T>);
       return to_covariance_nestable<T>(std::forward<Arg>(arg).get_triangular_nested_matrix());
     }
   }
@@ -152,17 +165,15 @@ namespace OpenKalman::internal
     else if constexpr (square_matrix<Arg>)
     {
       using SA = typename MatrixTraits<Arg>::template SelfAdjointMatrixFrom<>;
-      auto sa = MatrixTraits<SA>::make(std::forward<Arg>(arg));
-      static_assert(covariance_nestable<decltype(sa)> and self_adjoint_matrix<decltype(sa)>);
-      return sa;
+      static_assert(self_adjoint_matrix<decltype(MatrixTraits<SA>::make(std::forward<Arg>(arg)))>);
+      return MatrixTraits<SA>::make(std::forward<Arg>(arg));
     }
     else
     {
       static_assert(column_vector<Arg>);
       using D = typename MatrixTraits<Arg>::template DiagonalMatrixFrom<>;
-      auto d = MatrixTraits<D>::make(std::forward<Arg>(arg));
-      static_assert(covariance_nestable<decltype(d)> and diagonal_matrix<decltype(d)>);
-      return d;
+      static_assert(diagonal_matrix<decltype(MatrixTraits<D>::make(std::forward<Arg>(arg)))>);
+      return MatrixTraits<D>::make(std::forward<Arg>(arg));
     }
   }
 

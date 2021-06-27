@@ -466,14 +466,10 @@ namespace OpenKalman
     struct self_contained_impl<T, std::enable_if_t<(not self_contained<T>) and (not distribution<T>)>>
 #endif
     {
-    private:
-
-      using non_const_type = typename MatrixTraits<T>::SelfContainedFrom;
-
-    public:
-
-      using type = std::conditional_t<std::is_const_v<T>, const non_const_type, non_const_type>;
-
+      using type = std::conditional_t<
+        std::is_const_v<T>,
+        const typename MatrixTraits<T>::SelfContainedFrom,
+        typename MatrixTraits<T>::SelfContainedFrom>;
     };
 
 
@@ -485,11 +481,10 @@ namespace OpenKalman
     struct self_contained_impl<T, std::enable_if_t<distribution<T> and (not self_contained<T>)>>
 #endif
     {
-      using type = typename DistributionTraits<T>::SelfContainedFrom;
-
-    private:
-      static_assert(self_contained<typename DistributionTraits<T>::Mean>);
-      static_assert(self_contained<typename DistributionTraits<T>::Covariance>);
+      using type = std::conditional_t<
+        std::is_const_v<T>,
+        const typename DistributionTraits<T>::SelfContainedFrom,
+        typename DistributionTraits<T>::SelfContainedFrom>;
     };
 
   } // namespace detail
@@ -657,7 +652,8 @@ namespace OpenKalman
       (not zero_matrix<T> or zero_matrix<Arg>) and (not identity_matrix<T> or identity_matrix<Arg>) and
       (not diagonal_matrix<T> or diagonal_matrix<Arg> or column_vector<Arg>)>>
 #endif
-    constexpr decltype(auto) to_covariance_nestable(Arg&&) noexcept;
+    constexpr decltype(auto)
+    to_covariance_nestable(Arg&&) noexcept;
 
 
     /**
@@ -688,7 +684,8 @@ namespace OpenKalman
     template<typename Arg, typename = void, typename = std::enable_if_t<covariance<Arg> or
       (typed_matrix<Arg> and (square_matrix<Arg> or column_vector<Arg>))>>
 #endif
-    constexpr decltype(auto) to_covariance_nestable(Arg&&) noexcept;
+    constexpr decltype(auto)
+    to_covariance_nestable(Arg&&) noexcept;
 
   } // namespace internal
 

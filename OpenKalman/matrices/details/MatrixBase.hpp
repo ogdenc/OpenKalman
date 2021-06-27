@@ -33,18 +33,25 @@ namespace OpenKalman::internal
 #endif
 
 
+  private:
+
+    NestedMatrix m_arg; //< The nested matrix.
+
+
+  public:
+
     /**
      * \internal
      * \brief Default constructor.
      */
 #ifdef __cpp_concepts
     MatrixBase() requires self_contained<NestedMatrix> and std::default_initializable<NestedMatrix>
-      : m_arg {} {}
 #else
     template<typename T = NestedMatrix, std::enable_if_t<
       self_contained<T> and std::is_default_constructible_v<T>, int> = 0>
-    MatrixBase() : m_arg {} {}
+    MatrixBase()
 #endif
+      : m_arg {} {}
 
 
     /**
@@ -73,18 +80,19 @@ namespace OpenKalman::internal
       (not lower_triangular_matrix<NestedMatrix> or lower_triangular_matrix<Arg>) and
       (not zero_matrix<NestedMatrix> or zero_matrix<Arg>) and
       (not identity_matrix<NestedMatrix> or identity_matrix<Arg>) and
-      std::is_constructible_v<NestedMatrix, Arg>
+      std::constructible_from<NestedMatrix, Arg&&>
 #else
-    template<typename Arg, std::enable_if_t<not std::is_base_of_v<MatrixBase, std::decay_t<Arg>>, int> = 0,
-      std::enable_if_t<has_same_matrix_shape<Arg, NestedMatrix>::value and
+    template<typename Arg, std::enable_if_t<(not std::is_base_of_v<MatrixBase, std::decay_t<Arg>>) and
+      has_same_matrix_shape<Arg, NestedMatrix>::value and
       (not self_adjoint_matrix<NestedMatrix> or self_adjoint_matrix<Arg>) and
       (not upper_triangular_matrix<NestedMatrix> or upper_triangular_matrix<Arg>) and
       (not lower_triangular_matrix<NestedMatrix> or lower_triangular_matrix<Arg>) and
       (not zero_matrix<NestedMatrix> or zero_matrix<Arg>) and
       (not identity_matrix<NestedMatrix> or identity_matrix<Arg>) and
-      std::is_constructible_v<NestedMatrix, Arg>, int> = 0>
+      std::is_constructible_v<NestedMatrix, Arg&&>, int> = 0>
 #endif
-    explicit MatrixBase(Arg&& arg) noexcept : m_arg {std::forward<Arg>(arg)} {}
+    explicit MatrixBase(Arg&& arg) noexcept
+      : m_arg {std::forward<Arg>(arg)} {}
 
 
     /**
@@ -93,8 +101,11 @@ namespace OpenKalman::internal
      */
     auto& operator=(const MatrixBase& other)
     {
+      static_assert(not std::is_const_v<std::remove_reference_t<NestedMatrix>>, "Nested matrix cannot be modified.");
       if constexpr (not zero_matrix<NestedMatrix> and not identity_matrix<NestedMatrix>) if (this != &other)
-        m_arg = other.m_arg;
+      {
+        return operator=(other.m_arg);
+      }
       return *this;
     }
 
@@ -105,8 +116,11 @@ namespace OpenKalman::internal
      */
     auto& operator=(MatrixBase&& other) noexcept
     {
+      static_assert(not std::is_const_v<std::remove_reference_t<NestedMatrix>>, "Nested matrix cannot be modified.");
       if constexpr (not zero_matrix<NestedMatrix> and not identity_matrix<NestedMatrix>) if (this != &other)
+      {
         m_arg = std::move(other).m_arg;
+      }
       return *this;
     }
 
@@ -123,6 +137,7 @@ namespace OpenKalman::internal
 #endif
     auto& operator=(Arg&& arg) noexcept
     {
+      static_assert(not std::is_const_v<std::remove_reference_t<NestedMatrix>>, "Nested matrix cannot be modified.");
       if constexpr (not zero_matrix<NestedMatrix> and not identity_matrix<NestedMatrix>)
       {
         m_arg = std::forward<Arg>(arg);
@@ -134,29 +149,51 @@ namespace OpenKalman::internal
     /**
      * \brief Get the nested matrix.
      */
-    auto& nested_matrix() & { return m_arg; }
+    decltype(auto) nested_matrix() & { return (m_arg); }
+
 
     /// \overload
-    decltype(auto) nested_matrix() &&
+    decltype(auto) nested_matrix() const & { return (m_arg); }
+
+
+    /// \overload
+    decltype(auto) nested_matrix() && { return (std::move(*this).m_arg); }
+
+
+    /// \overload
+    decltype(auto) nested_matrix() const && { return (std::move(*this).m_arg); }
+
+
+    /**
+     * \return A matrix, of the same size and shape, containing only zero coefficients.
+     */
+#ifdef __cpp_concepts
+    template<std::convertible_to<std::size_t> ... Args> requires
+      (sizeof...(Args) == (dynamic_rows<Derived> ? 1 : 0) + (dynamic_columns<Derived> ? 1 : 0))
+#else
+    template<typename D = Derived, typename...Args, std::enable_if_t<
+      (std::is_convertible_v<Args, std::size_t> and ...) and
+      (sizeof...(Args) == (dynamic_rows<D> ? 1 : 0) + (dynamic_columns<D> ? 1 : 0)), int> = 0>
+#endif
+    static decltype(auto) zero(const Args...args)
     {
-      if constexpr (std::is_lvalue_reference_v<NestedMatrix>) return m_arg;
-      else return std::move(m_arg);
+      return MatrixTraits<Derived>::zero(static_cast<std::size_t>(args)...);
     }
 
-    /// \overload
-    const auto& nested_matrix() const & { return m_arg; }
 
-    /// \overload
-    decltype(auto) nested_matrix() const &&
+    /**
+     * \return A square identity matrix with the same number of rows.
+     */
+#ifdef __cpp_concepts
+    template<std::convertible_to<Eigen::Index> ... Args> requires (sizeof...(Args) == (dynamic_shape<Derived> ? 1 : 0))
+#else
+    template<typename D = Derived, typename...Args, std::enable_if_t<
+      (std::is_convertible_v<Args, Eigen::Index> and ...) and (sizeof...(Args) == (dynamic_shape<D> ? 1 : 0)), int> = 0>
+#endif
+    static decltype(auto) identity(const Args...args)
     {
-      if constexpr (std::is_lvalue_reference_v<NestedMatrix>) return m_arg;
-      else return std::move(m_arg);
+      return MatrixTraits<Derived>::identity(static_cast<std::size_t>(args)...);
     }
-
-
-  private:
-
-    NestedMatrix m_arg; //< The nested matrix.
 
   };
 

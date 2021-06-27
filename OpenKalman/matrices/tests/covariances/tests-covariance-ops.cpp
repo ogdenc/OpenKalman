@@ -46,7 +46,7 @@ inline SqCovI2 sqcovi2 {i2};
 inline SqCovZ2 sqcovz2;
 
 
-TEST_F(covariance_tests, Covariance_addition)
+TEST(covariance_tests, Covariance_addition)
 {
   EXPECT_TRUE(is_near(CovSA2l {9, 3, 3, 10} + CovSA2l {4, 2, 2, 5}, Mat2 {13, 5, 5, 15}));
   EXPECT_TRUE(is_near(CovSA2l {9, 3, 3, 10} + CovSA2u {4, 2, 2, 5}, Mat2 {13, 5, 5, 15}));
@@ -155,7 +155,7 @@ TEST_F(covariance_tests, Covariance_addition)
 }
 
 
-TEST_F(covariance_tests, Covariance_addition_mixed)
+TEST(covariance_tests, Covariance_addition_mixed)
 {
   EXPECT_TRUE(is_near(CovSA2l {9, 3, 3, 10} + SqCovSA2l {2, 0, 1, 2}, Mat2 {11, 3, 4, 12}));
   EXPECT_TRUE(is_near(CovSA2l {9, 3, 3, 10} + SqCovSA2u {2, 1, 0, 2}, Mat2 {11, 4, 3, 12}));
@@ -252,7 +252,7 @@ TEST_F(covariance_tests, Covariance_addition_mixed)
 }
 
 
-TEST_F(covariance_tests, Covariance_subtraction)
+TEST(covariance_tests, Covariance_subtraction)
 {
   EXPECT_TRUE(is_near(CovSA2l {9, 3, 3, 10} - CovSA2l {4, 2, 2, 5}, Mat2 {5, 1, 1, 5}));
   EXPECT_TRUE(is_near(CovSA2l {9, 3, 3, 10} - CovSA2u {4, 2, 2, 5}, Mat2 {5, 1, 1, 5}));
@@ -362,7 +362,7 @@ TEST_F(covariance_tests, Covariance_subtraction)
 }
 
 
-TEST_F(covariance_tests, Covariance_subtraction_mixed)
+TEST(covariance_tests, Covariance_subtraction_mixed)
 {
   EXPECT_TRUE(is_near(CovSA2l {9, 3, 3, 10} - SqCovSA2l {2, 0, 1, 2}, Mat2 {7, 3, 2, 8}));
   EXPECT_TRUE(is_near(CovSA2l {9, 3, 3, 10} - SqCovSA2u {2, 1, 0, 2}, Mat2 {7, 2, 3, 8}));
@@ -460,7 +460,7 @@ TEST_F(covariance_tests, Covariance_subtraction_mixed)
 }
 
 
-TEST_F(covariance_tests, Covariance_mult_covariance)
+TEST(covariance_tests, Covariance_mult_covariance)
 {
   EXPECT_TRUE(is_near(CovSA2l {9, 3, 3, 10} * CovSA2l {9, 3, 3, 10}, Mat2 {90, 57, 57, 109}));
   EXPECT_TRUE(is_near(CovSA2l {9, 3, 3, 10} * CovSA2u {9, 3, 3, 10}, Mat2 {90, 57, 57, 109}));
@@ -626,7 +626,7 @@ TEST_F(covariance_tests, Covariance_mult_covariance)
 }
 
 
-TEST_F(covariance_tests, Covariance_mult_TypedMatrix)
+TEST(covariance_tests, Covariance_mult_TypedMatrix)
 {
   using MatI2 = Matrix<C, C, I2>;
   using MatZ2 = Matrix<C, C, Z2>;
@@ -700,7 +700,7 @@ TEST_F(covariance_tests, Covariance_mult_TypedMatrix)
 }
 
 
-TEST_F(covariance_tests, Covariance_mult_scalar)
+TEST(covariance_tests, Covariance_mult_scalar)
 {
   Mat2 p1 {4, 2, 2, 5};
   EXPECT_TRUE(is_near(CovSA2l(p1) * 2, Mat2 {8, 4, 4, 10}));
@@ -797,7 +797,7 @@ TEST_F(covariance_tests, Covariance_mult_scalar)
 }
 
 
-TEST_F(covariance_tests, Covariance_scale)
+TEST(covariance_tests, Covariance_scale)
 {
   Mat2 p1 {4, 2, 2, 5};
   EXPECT_TRUE(is_near(scale(CovSA2l(p1), 2), Mat2 {16, 8, 8, 20}));
@@ -865,7 +865,7 @@ TEST_F(covariance_tests, Covariance_scale)
 }
 
 
-TEST_F(covariance_tests, TypedMatrix_mult_Covariance)
+TEST(covariance_tests, TypedMatrix_mult_Covariance)
 {
   using MatI2 = Matrix<C, C, I2>;
   using MatZ2 = Matrix<C, C, Z2>;
@@ -940,7 +940,7 @@ TEST_F(covariance_tests, TypedMatrix_mult_Covariance)
 }
 
 
-TEST_F(covariance_tests, Covariance_other_operations)
+TEST(covariance_tests, Covariance_other_operations)
 {
   EXPECT_TRUE(is_near(-CovSA2l {9, 3, 3, 10}, Mat2 {-9, -3, -3, -10}));
   EXPECT_TRUE(is_near(-CovSA2u {9, 3, 3, 10}, Mat2 {-9, -3, -3, -10}));

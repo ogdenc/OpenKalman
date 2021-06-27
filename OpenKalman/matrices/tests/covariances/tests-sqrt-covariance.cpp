@@ -49,59 +49,60 @@ inline SqCovI2 sqcovi2 {i2};
 inline SqCovZ2 sqcovz2 {z2};
 
 
-TEST_F(covariance_tests, SquareRootCovariance_convert_nested_matrix)
+TEST(covariance_tests, SquareRootCovariance_convert_nested_matrix)
 {
-  EXPECT_TRUE(is_near(internal::to_covariance_nestable(SqCovSA2l {3, 0, 1, 3}), Mat2 {3, 0, 1, 3}));
-  EXPECT_TRUE(is_near(internal::to_covariance_nestable<SA2l>(SqCovSA2l {3, 0, 1, 3}), Mat2 {9, 3, 3, 10}));
-  EXPECT_TRUE(is_near(internal::to_covariance_nestable<SA2u>(SqCovSA2l {3, 0, 1, 3}), Mat2 {9, 3, 3, 10}));
-  EXPECT_TRUE(is_near(internal::to_covariance_nestable<T2l>(SqCovSA2l {3, 0, 1, 3}), Mat2 {3, 0, 1, 3}));
-  EXPECT_TRUE(is_near(internal::to_covariance_nestable<T2u>(SqCovSA2l {3, 0, 1, 3}), Mat2 {3, 1, 0, 3}));
+  using namespace OpenKalman::internal;
+  EXPECT_TRUE(is_near(to_covariance_nestable(SqCovSA2l {3, 0, 1, 3}), Mat2 {3, 0, 1, 3}));
+  EXPECT_TRUE(is_near(to_covariance_nestable<SA2l>(SqCovSA2l {3, 0, 1, 3}), Mat2 {9, 3, 3, 10}));
+  EXPECT_TRUE(is_near(to_covariance_nestable<SA2u>(SqCovSA2l {3, 0, 1, 3}), Mat2 {9, 3, 3, 10}));
+  EXPECT_TRUE(is_near(to_covariance_nestable<T2l>(SqCovSA2l {3, 0, 1, 3}), Mat2 {3, 0, 1, 3}));
+  EXPECT_TRUE(is_near(to_covariance_nestable<T2u>(SqCovSA2l {3, 0, 1, 3}), Mat2 {3, 1, 0, 3}));
 
-  EXPECT_TRUE(is_near(internal::to_covariance_nestable(SqCovSA2u {3, 1, 0, 3}), Mat2 {3, 1, 0, 3}));
-  EXPECT_TRUE(is_near(internal::to_covariance_nestable<SA2l>(SqCovSA2u {3, 1, 0, 3}), Mat2 {9, 3, 3, 10}));
-  EXPECT_TRUE(is_near(internal::to_covariance_nestable<SA2u>(SqCovSA2u {3, 1, 0, 3}), Mat2 {9, 3, 3, 10}));
-  EXPECT_TRUE(is_near(internal::to_covariance_nestable<T2l>(SqCovSA2u {3, 1, 0, 3}), Mat2 {3, 0, 1, 3}));
-  EXPECT_TRUE(is_near(internal::to_covariance_nestable<T2u>(SqCovSA2u {3, 1, 0, 3}), Mat2 {3, 1, 0, 3}));
+  EXPECT_TRUE(is_near(to_covariance_nestable(SqCovSA2u {3, 1, 0, 3}), Mat2 {3, 1, 0, 3}));
+  EXPECT_TRUE(is_near(to_covariance_nestable<SA2l>(SqCovSA2u {3, 1, 0, 3}), Mat2 {9, 3, 3, 10}));
+  EXPECT_TRUE(is_near(to_covariance_nestable<SA2u>(SqCovSA2u {3, 1, 0, 3}), Mat2 {9, 3, 3, 10}));
+  EXPECT_TRUE(is_near(to_covariance_nestable<T2l>(SqCovSA2u {3, 1, 0, 3}), Mat2 {3, 0, 1, 3}));
+  EXPECT_TRUE(is_near(to_covariance_nestable<T2u>(SqCovSA2u {3, 1, 0, 3}), Mat2 {3, 1, 0, 3}));
 
-  EXPECT_TRUE(is_near(internal::to_covariance_nestable(SqCovT2l {3, 0, 1, 3}), Mat2 {3, 0, 1, 3}));
-  EXPECT_TRUE(is_near(internal::to_covariance_nestable<SA2l>(SqCovT2l {3, 0, 1, 3}), Mat2 {9, 3, 3, 10}));
-  EXPECT_TRUE(is_near(internal::to_covariance_nestable<SA2u>(SqCovT2l {3, 0, 1, 3}), Mat2 {9, 3, 3, 10}));
-  EXPECT_TRUE(is_near(internal::to_covariance_nestable<T2l>(SqCovT2l {3, 0, 1, 3}), Mat2 {3, 0, 1, 3}));
-  EXPECT_TRUE(is_near(internal::to_covariance_nestable<T2u>(SqCovT2l {3, 0, 1, 3}), Mat2 {3, 1, 0, 3}));
+  EXPECT_TRUE(is_near(to_covariance_nestable(SqCovT2l {3, 0, 1, 3}), Mat2 {3, 0, 1, 3}));
+  EXPECT_TRUE(is_near(to_covariance_nestable<SA2l>(SqCovT2l {3, 0, 1, 3}), Mat2 {9, 3, 3, 10}));
+  EXPECT_TRUE(is_near(to_covariance_nestable<SA2u>(SqCovT2l {3, 0, 1, 3}), Mat2 {9, 3, 3, 10}));
+  EXPECT_TRUE(is_near(to_covariance_nestable<T2l>(SqCovT2l {3, 0, 1, 3}), Mat2 {3, 0, 1, 3}));
+  EXPECT_TRUE(is_near(to_covariance_nestable<T2u>(SqCovT2l {3, 0, 1, 3}), Mat2 {3, 1, 0, 3}));
 
-  EXPECT_TRUE(is_near(internal::to_covariance_nestable(SqCovT2u {3, 1, 0, 3}), Mat2 {3, 1, 0, 3}));
-  EXPECT_TRUE(is_near(internal::to_covariance_nestable<SA2l>(SqCovT2u {3, 1, 0, 3}), Mat2 {9, 3, 3, 10}));
-  EXPECT_TRUE(is_near(internal::to_covariance_nestable<SA2u>(SqCovT2u {3, 1, 0, 3}), Mat2 {9, 3, 3, 10}));
-  EXPECT_TRUE(is_near(internal::to_covariance_nestable<T2l>(SqCovT2u {3, 1, 0, 3}), Mat2 {3, 0, 1, 3}));
-  EXPECT_TRUE(is_near(internal::to_covariance_nestable<T2u>(SqCovT2u {3, 1, 0, 3}), Mat2 {3, 1, 0, 3}));
+  EXPECT_TRUE(is_near(to_covariance_nestable(SqCovT2u {3, 1, 0, 3}), Mat2 {3, 1, 0, 3}));
+  EXPECT_TRUE(is_near(to_covariance_nestable<SA2l>(SqCovT2u {3, 1, 0, 3}), Mat2 {9, 3, 3, 10}));
+  EXPECT_TRUE(is_near(to_covariance_nestable<SA2u>(SqCovT2u {3, 1, 0, 3}), Mat2 {9, 3, 3, 10}));
+  EXPECT_TRUE(is_near(to_covariance_nestable<T2l>(SqCovT2u {3, 1, 0, 3}), Mat2 {3, 0, 1, 3}));
+  EXPECT_TRUE(is_near(to_covariance_nestable<T2u>(SqCovT2u {3, 1, 0, 3}), Mat2 {3, 1, 0, 3}));
 
-  EXPECT_TRUE(is_near(internal::to_covariance_nestable(SqCovD2 {1, 2}), Mat2 {1, 0, 0, 2}));
-  EXPECT_TRUE(is_near(internal::to_covariance_nestable(SqCovD2 {1, 2}).nested_matrix(), Mean {1., 2}));
-  EXPECT_TRUE(is_near(internal::to_covariance_nestable<SA2l>(SqCovD2 {2, 3}), Mat2 {2, 0, 0, 3}));
-  EXPECT_TRUE(is_near(internal::to_covariance_nestable<SA2u>(SqCovD2 {2, 3}), Mat2 {2, 0, 0, 3}));
-  EXPECT_TRUE(is_near(internal::to_covariance_nestable<T2l>(SqCovD2 {1, 2}), Mat2 {1, 0, 0, 2}));
-  EXPECT_TRUE(is_near(internal::to_covariance_nestable<T2u>(SqCovD2 {1, 2}), Mat2 {1, 0, 0, 2}));
-  EXPECT_TRUE(is_near(internal::to_covariance_nestable<D2>(SqCovD2 {2, 3}), Mat2 {2, 0, 0, 3}));
+  EXPECT_TRUE(is_near(to_covariance_nestable(SqCovD2 {1, 2}), Mat2 {1, 0, 0, 2}));
+  EXPECT_TRUE(is_near(to_covariance_nestable(SqCovD2 {1, 2}).nested_matrix(), Mean {1., 2}));
+  EXPECT_TRUE(is_near(to_covariance_nestable<SA2l>(SqCovD2 {2, 3}), Mat2 {2, 0, 0, 3}));
+  EXPECT_TRUE(is_near(to_covariance_nestable<SA2u>(SqCovD2 {2, 3}), Mat2 {2, 0, 0, 3}));
+  EXPECT_TRUE(is_near(to_covariance_nestable<T2l>(SqCovD2 {1, 2}), Mat2 {1, 0, 0, 2}));
+  EXPECT_TRUE(is_near(to_covariance_nestable<T2u>(SqCovD2 {1, 2}), Mat2 {1, 0, 0, 2}));
+  EXPECT_TRUE(is_near(to_covariance_nestable<D2>(SqCovD2 {2, 3}), Mat2 {2, 0, 0, 3}));
 
-  EXPECT_TRUE(is_near(internal::to_covariance_nestable(sqcovi2), Mat2 {1, 0, 0, 1}));
-  EXPECT_TRUE(is_near(internal::to_covariance_nestable<SA2l>(sqcovi2), Mat2 {1, 0, 0, 1}));
-  EXPECT_TRUE(is_near(internal::to_covariance_nestable<SA2u>(sqcovi2), Mat2 {1, 0, 0, 1}));
-  EXPECT_TRUE(is_near(internal::to_covariance_nestable<T2l>(sqcovi2), Mat2 {1, 0, 0, 1}));
-  EXPECT_TRUE(is_near(internal::to_covariance_nestable<T2u>(sqcovi2), Mat2 {1, 0, 0, 1}));
-  EXPECT_TRUE(is_near(internal::to_covariance_nestable<D2>(sqcovi2), Mat2 {1, 0, 0, 1}));
-  EXPECT_TRUE(is_near(internal::to_covariance_nestable<I2>(sqcovi2), Mat2 {1, 0, 0, 1}));
+  EXPECT_TRUE(is_near(to_covariance_nestable(sqcovi2), Mat2 {1, 0, 0, 1}));
+  EXPECT_TRUE(is_near(to_covariance_nestable<SA2l>(sqcovi2), Mat2 {1, 0, 0, 1}));
+  EXPECT_TRUE(is_near(to_covariance_nestable<SA2u>(sqcovi2), Mat2 {1, 0, 0, 1}));
+  EXPECT_TRUE(is_near(to_covariance_nestable<T2l>(sqcovi2), Mat2 {1, 0, 0, 1}));
+  EXPECT_TRUE(is_near(to_covariance_nestable<T2u>(sqcovi2), Mat2 {1, 0, 0, 1}));
+  EXPECT_TRUE(is_near(to_covariance_nestable<D2>(sqcovi2), Mat2 {1, 0, 0, 1}));
+  EXPECT_TRUE(is_near(to_covariance_nestable<I2>(sqcovi2), Mat2 {1, 0, 0, 1}));
 
-  EXPECT_TRUE(is_near(internal::to_covariance_nestable(sqcovz2), Mat2 {0, 0, 0, 0}));
-  EXPECT_TRUE(is_near(internal::to_covariance_nestable<SA2l>(sqcovz2), Mat2 {0, 0, 0, 0}));
-  EXPECT_TRUE(is_near(internal::to_covariance_nestable<SA2u>(sqcovz2), Mat2 {0, 0, 0, 0}));
-  EXPECT_TRUE(is_near(internal::to_covariance_nestable<T2l>(sqcovz2), Mat2 {0, 0, 0, 0}));
-  EXPECT_TRUE(is_near(internal::to_covariance_nestable<T2u>(sqcovz2), Mat2 {0, 0, 0, 0}));
-  EXPECT_TRUE(is_near(internal::to_covariance_nestable<D2>(sqcovz2), Mat2 {0, 0, 0, 0}));
-  EXPECT_TRUE(is_near(internal::to_covariance_nestable<Z2>(sqcovz2), Mat2 {0, 0, 0, 0}));
+  EXPECT_TRUE(is_near(to_covariance_nestable(sqcovz2), Mat2 {0, 0, 0, 0}));
+  EXPECT_TRUE(is_near(to_covariance_nestable<SA2l>(sqcovz2), Mat2 {0, 0, 0, 0}));
+  EXPECT_TRUE(is_near(to_covariance_nestable<SA2u>(sqcovz2), Mat2 {0, 0, 0, 0}));
+  EXPECT_TRUE(is_near(to_covariance_nestable<T2l>(sqcovz2), Mat2 {0, 0, 0, 0}));
+  EXPECT_TRUE(is_near(to_covariance_nestable<T2u>(sqcovz2), Mat2 {0, 0, 0, 0}));
+  EXPECT_TRUE(is_near(to_covariance_nestable<D2>(sqcovz2), Mat2 {0, 0, 0, 0}));
+  EXPECT_TRUE(is_near(to_covariance_nestable<Z2>(sqcovz2), Mat2 {0, 0, 0, 0}));
 }
 
 
-TEST_F(covariance_tests, SquareRootCovariance_class)
+TEST(covariance_tests, SquareRootCovariance_class)
 {
   // Default constructor and Eigen3 construction
   SqCovSA2l clsa1;
@@ -200,42 +201,25 @@ TEST_F(covariance_tests, SquareRootCovariance_class)
   EXPECT_TRUE(is_near(SqCovI2 {i2}.get_triangular_nested_matrix(), Mat2 {1, 0, 0, 1}));
 
   // Convert from different square-root covariance type
-  SqCovSA2l clsasa4 {adjoint(SqCovSA2u {3, 1, 0, 3})};
-  EXPECT_TRUE(is_near(clsasa4, Mat2 {3, 0, 1, 3}));
-  SqCovSA2u cusasa4 {adjoint(SqCovSA2l {2, 0, 1, 2})};
-  EXPECT_TRUE(is_near(cusasa4, Mat2 {2, 1, 0, 2}));
-  SqCovSA2l clsat4 {adjoint(SqCovT2u {3, 1, 0, 3})};
-  EXPECT_TRUE(is_near(clsat4, Mat2 {3, 0, 1, 3}));
-  SqCovSA2u cusat4 {adjoint(SqCovT2l {2, 0, 1, 2})};
-  EXPECT_TRUE(is_near(cusat4, Mat2 {2, 1, 0, 2}));
-  SqCovSA2l clsat4s {SqCovT2l {3, 0, 1, 3}};
-  EXPECT_TRUE(is_near(clsat4s, Mat2 {3, 0, 1, 3}));
-  SqCovSA2u cusat4s {SqCovT2u {2, 1, 0, 2}};
-  EXPECT_TRUE(is_near(cusat4s, Mat2 {2, 1, 0, 2}));
-  SqCovT2l cltt4 {adjoint(SqCovT2u {3, 1, 0, 3})};
-  EXPECT_TRUE(is_near(cltt4, Mat2 {3, 0, 1, 3}));
-  SqCovT2u cutt4 {adjoint(SqCovT2l {2, 0, 1, 2})};
-  EXPECT_TRUE(is_near(cutt4, Mat2 {2, 1, 0, 2}));
-  SqCovT2l cltsa4 {adjoint(SqCovSA2u {3, 1, 0, 3})};
-  EXPECT_TRUE(is_near(cltsa4, Mat2 {3, 0, 1, 3}));
-  SqCovT2u cutsa4 {adjoint(SqCovSA2l {2, 0, 1, 2})};
-  EXPECT_TRUE(is_near(cutsa4, Mat2 {2, 1, 0, 2}));
-  SqCovT2l cltsa4s {SqCovSA2l {3, 0, 1, 3}};
-  EXPECT_TRUE(is_near(cltsa4s, Mat2 {3, 0, 1, 3}));
-  SqCovT2u cutsa4s {SqCovSA2u {2, 1, 0, 2}};
-  EXPECT_TRUE(is_near(cutsa4s, Mat2 {2, 1, 0, 2}));
-  SqCovSA2l clsa4d {SqCovD2 {1, 2}};
-  EXPECT_TRUE(is_near(clsa4d, Mat2 {1, 0, 0, 2}));
-  SqCovSA2u cusa4d {SqCovD2 {1, 2}};
-  EXPECT_TRUE(is_near(cusa4d, Mat2 {1, 0, 0, 2}));
-  SqCovT2l clt4d {SqCovD2 {1, 2}};
-  EXPECT_TRUE(is_near(clt4d, Mat2 {1, 0, 0, 2}));
+  SqCovSA2l clsasa4 {adjoint(SqCovSA2u {3, 1, 0, 3})}; EXPECT_TRUE(is_near(clsasa4, Mat2 {3, 0, 1, 3}));
+  SqCovSA2u cusasa4 {adjoint(SqCovSA2l {2, 0, 1, 2})}; EXPECT_TRUE(is_near(cusasa4, Mat2 {2, 1, 0, 2}));
+  SqCovSA2l clsat4 {adjoint(SqCovT2u {3, 1, 0, 3})}; EXPECT_TRUE(is_near(clsat4, Mat2 {3, 0, 1, 3}));
+  SqCovSA2u cusat4 {adjoint(SqCovT2l {2, 0, 1, 2})}; EXPECT_TRUE(is_near(cusat4, Mat2 {2, 1, 0, 2}));
+  SqCovSA2l clsat4s {SqCovT2l {3, 0, 1, 3}}; EXPECT_TRUE(is_near(clsat4s, Mat2 {3, 0, 1, 3}));
+  SqCovSA2u cusat4s {SqCovT2u {2, 1, 0, 2}}; EXPECT_TRUE(is_near(cusat4s, Mat2 {2, 1, 0, 2}));
+  SqCovT2l cltt4 {adjoint(SqCovT2u {3, 1, 0, 3})}; EXPECT_TRUE(is_near(cltt4, Mat2 {3, 0, 1, 3}));
+  SqCovT2u cutt4 {adjoint(SqCovT2l {2, 0, 1, 2})}; EXPECT_TRUE(is_near(cutt4, Mat2 {2, 1, 0, 2}));
+  SqCovT2l cltsa4 {adjoint(SqCovSA2u {3, 1, 0, 3})}; EXPECT_TRUE(is_near(cltsa4, Mat2 {3, 0, 1, 3}));
+  SqCovT2u cutsa4 {adjoint(SqCovSA2l {2, 0, 1, 2})}; EXPECT_TRUE(is_near(cutsa4, Mat2 {2, 1, 0, 2}));
+  SqCovT2l cltsa4s {SqCovSA2l {3, 0, 1, 3}}; EXPECT_TRUE(is_near(cltsa4s, Mat2 {3, 0, 1, 3}));
+  SqCovT2u cutsa4s {SqCovSA2u {2, 1, 0, 2}}; EXPECT_TRUE(is_near(cutsa4s, Mat2 {2, 1, 0, 2}));
+  SqCovSA2l clsa4d {SqCovD2 {1, 2}}; EXPECT_TRUE(is_near(clsa4d, Mat2 {1, 0, 0, 2}));
+  SqCovSA2u cusa4d {SqCovD2 {1, 2}}; EXPECT_TRUE(is_near(cusa4d, Mat2 {1, 0, 0, 2}));
+  SqCovT2l clt4d {SqCovD2 {1, 2}}; EXPECT_TRUE(is_near(clt4d, Mat2 {1, 0, 0, 2}));
   EXPECT_TRUE(is_near(clt4d.get_triangular_nested_matrix(), Mat2 {1, 0, 0, 2}));
-  SqCovT2u cut4d {SqCovD2 {1, 2}};
-  EXPECT_TRUE(is_near(cut4d, Mat2 {1, 0, 0, 2}));
+  SqCovT2u cut4d {SqCovD2 {1, 2}}; EXPECT_TRUE(is_near(cut4d, Mat2 {1, 0, 0, 2}));
   EXPECT_TRUE(is_near(cut4d.get_triangular_nested_matrix(), Mat2 {1, 0, 0, 2}));
-  SqCovT2u cut4i {SqCovI2 {i2}};
-  EXPECT_TRUE(is_near(cut4i, Mat2 {1, 0, 0, 1}));
+  SqCovT2u cut4i {SqCovI2 {i2}}; EXPECT_TRUE(is_near(cut4i, Mat2 {1, 0, 0, 1}));
 
   /*// Convert from different non-square-root covariance type
   SqCovSA2l clsasa4X(CovSA2u {9, 3, 3, 10});
@@ -558,7 +542,7 @@ TEST_F(covariance_tests, SquareRootCovariance_class)
   EXPECT_TRUE(is_near(square(SqCovD2::identity()), M2::Identity()));
 }
 
-TEST_F(covariance_tests, SquareRootCovariance_subscripts)
+TEST(covariance_tests, SquareRootCovariance_subscripts)
 {
   EXPECT_NEAR((SqCovSA2l {3, 0, 1, 3})(0, 0), 3, 1e-6);
   EXPECT_NEAR((SqCovSA2l {3, 0, 1, 3})(0, 1), 0, 1e-6);
@@ -609,7 +593,7 @@ TEST_F(covariance_tests, SquareRootCovariance_subscripts)
   set_element(d2, 3.2, 0); EXPECT_NEAR(d2(0), 3.2, 1e-6);
 }
 
-TEST_F(covariance_tests, SquareRootCovariance_deduction_guides)
+TEST(covariance_tests, SquareRootCovariance_deduction_guides)
 {
   EXPECT_TRUE(is_near(SquareRootCovariance(SqCovSA2l {3, 0, 1, 3}), Mat2 {3, 0, 1, 3}));
   static_assert(equivalent_to<typename MatrixTraits<decltype(SquareRootCovariance(SqCovSA2l {3, 0, 1, 3}))>::RowCoefficients, C>);
@@ -636,7 +620,7 @@ TEST_F(covariance_tests, SquareRootCovariance_deduction_guides)
   static_assert(equivalent_to<typename MatrixTraits<decltype(SquareRootCovariance {3., 0, 1, 3})>::RowCoefficients, Axes<2>>);
 }
 
-TEST_F(covariance_tests, SquareRootCovariance_make)
+TEST(covariance_tests, SquareRootCovariance_make)
 {
   // Other covariance:
   EXPECT_TRUE(is_near(make_square_root_covariance(SqCovSA2l {3, 0, 1, 3}).get_self_adjoint_nested_matrix(), Mat2 {9, 3, 3, 10}));
@@ -686,8 +670,8 @@ TEST_F(covariance_tests, SquareRootCovariance_make)
   static_assert(upper_triangular_matrix<decltype(make_square_root_covariance<C>(T2u {3, 1, 0, 3}).get_triangular_nested_matrix())>);
   static_assert(diagonal_matrix<decltype(make_square_root_covariance<C>(D2 {1, 2}).get_triangular_nested_matrix())>);
 
-  static_assert(Eigen3::upper_triangular_storage<decltype(make_square_root_covariance<C>(adjoint(SA2l {9, 3, 3, 10})).get_self_adjoint_nested_matrix())>);
-  static_assert(Eigen3::lower_triangular_storage<decltype(make_square_root_covariance<C>(adjoint(SA2u {9, 3, 3, 10})).get_self_adjoint_nested_matrix())>);
+  static_assert(Eigen3::lower_triangular_storage<decltype(make_square_root_covariance<C>(adjoint(SA2l {9, 3, 3, 10})).get_self_adjoint_nested_matrix())>);
+  static_assert(Eigen3::upper_triangular_storage<decltype(make_square_root_covariance<C>(adjoint(SA2u {9, 3, 3, 10})).get_self_adjoint_nested_matrix())>);
   static_assert(upper_triangular_matrix<decltype(make_square_root_covariance<C>(adjoint(T2l {3, 0, 1, 3})).get_triangular_nested_matrix())>);
   static_assert(lower_triangular_matrix<decltype(make_square_root_covariance<C>(adjoint(T2u {3, 1, 0, 3})).get_triangular_nested_matrix())>);
   static_assert(diagonal_matrix<decltype(make_square_root_covariance<C>(adjoint(D2 {1, 2})).get_triangular_nested_matrix())>);
@@ -750,7 +734,7 @@ TEST_F(covariance_tests, SquareRootCovariance_make)
   static_assert(MatrixTraits<decltype(make_square_root_covariance<C>())>::RowCoefficients::dimensions == 2);
 }
 
-TEST_F(covariance_tests, SquareRootCovariance_traits)
+TEST(covariance_tests, SquareRootCovariance_traits)
 {
   static_assert(square_root_covariance<SqCovSA2l>);
   static_assert(not diagonal_matrix<SqCovSA2l>);
@@ -820,7 +804,7 @@ TEST_F(covariance_tests, SquareRootCovariance_traits)
   EXPECT_TRUE(is_near(MatrixTraits<SqCovT2l>::identity(), eigen_matrix_t<double, 2, 2>::Identity()));
 }
 
-TEST_F(covariance_tests, SquareRootCovariance_overloads)
+TEST(covariance_tests, SquareRootCovariance_overloads)
 {
   EXPECT_TRUE(is_near(nested_matrix(SqCovSA2l {3, 0, 1, 3}), Mat2 {9, 3, 3, 10}));
   EXPECT_TRUE(is_near(nested_matrix(SqCovSA2u {3, 1, 0, 3}), Mat2 {9, 3, 3, 10}));
@@ -864,19 +848,11 @@ TEST_F(covariance_tests, SquareRootCovariance_overloads)
   EXPECT_TRUE(is_near(transpose(SqCovSA2u {3, 1, 0, 3}).get_self_adjoint_nested_matrix(), Mat2 {9, 3, 3, 10}));
   EXPECT_TRUE(is_near(transpose(SqCovT2l {3, 0, 1, 3}).get_triangular_nested_matrix(), Mat2 {3, 1, 0, 3}));
   EXPECT_TRUE(is_near(transpose(SqCovT2u {3, 1, 0, 3}).get_triangular_nested_matrix(), Mat2 {3, 0, 1, 3}));
-  static_assert(std::is_same_v<std::decay_t<decltype(make_self_contained(transpose(SqCovSA2l {3, 0, 1, 3})))>, SqCovSA2u>);
-  static_assert(std::is_same_v<std::decay_t<decltype(make_self_contained(transpose(SqCovSA2u {3, 1, 0, 3})))>, SqCovSA2l>);
-  static_assert(std::is_same_v<std::decay_t<decltype(make_self_contained(transpose(SqCovT2l {3, 0, 1, 3})))>, SqCovT2u>);
-  static_assert(std::is_same_v<std::decay_t<decltype(make_self_contained(transpose(SqCovT2u {3, 1, 0, 3})))>, SqCovT2l>);
 
   EXPECT_TRUE(is_near(adjoint(SqCovSA2l {3, 0, 1, 3}).get_self_adjoint_nested_matrix(), Mat2 {9, 3, 3, 10}));
   EXPECT_TRUE(is_near(adjoint(SqCovSA2u {3, 1, 0, 3}).get_self_adjoint_nested_matrix(), Mat2 {9, 3, 3, 10}));
   EXPECT_TRUE(is_near(adjoint(SqCovT2l {3, 0, 1, 3}).get_triangular_nested_matrix(), Mat2 {3, 1, 0, 3}));
   EXPECT_TRUE(is_near(adjoint(SqCovT2u {3, 1, 0, 3}).get_triangular_nested_matrix(), Mat2 {3, 0, 1, 3}));
-  static_assert(std::is_same_v<std::decay_t<decltype(make_self_contained(adjoint(SqCovSA2l {3, 0, 1, 3})))>, SqCovSA2u>);
-  static_assert(std::is_same_v<std::decay_t<decltype(make_self_contained(adjoint(SqCovSA2u {3, 1, 0, 3})))>, SqCovSA2l>);
-  static_assert(std::is_same_v<std::decay_t<decltype(make_self_contained(adjoint(SqCovT2l {3, 0, 1, 3})))>, SqCovT2u>);
-  static_assert(std::is_same_v<std::decay_t<decltype(make_self_contained(adjoint(SqCovT2u {3, 1, 0, 3})))>, SqCovT2l>);
 
   EXPECT_NEAR(determinant(SqCovSA2l {3, 0, 1, 3}), 9, 1e-6);
   EXPECT_NEAR(determinant(SqCovSA2u {3, 1, 0, 3}), 9, 1e-6);
@@ -926,7 +902,7 @@ TEST_F(covariance_tests, SquareRootCovariance_overloads)
   EXPECT_TRUE(is_near(square(QR_decomposition(SqCovT2u {3, 1, 0, 3})), Mat2 {9, 3, 3, 10}));
 }
 
-TEST_F(covariance_tests, SquareRootCovariance_blocks)
+TEST(covariance_tests, SquareRootCovariance_blocks)
 {
   using C4 = Concatenate<C, C>;
   using M4 = eigen_matrix_t<double, 4, 4>;

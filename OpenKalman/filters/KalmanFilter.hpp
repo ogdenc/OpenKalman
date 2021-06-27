@@ -53,7 +53,9 @@ namespace OpenKalman
 
       const auto y = mean_of(Ny);
       const auto P_yy = covariance_of(Ny);
-      const auto K = adjoint(solve(adjoint(P_yy), adjoint(P_xy))); // K * P_yy == P_xy, or K == P_xy * inverse(P_yy)
+      const auto K_adj = solve(adjoint(P_yy), adjoint(P_xy));
+      const auto K = adjoint(K_adj);
+      // K * P_yy == P_xy, or K == P_xy * inverse(P_yy)
       auto out_x_mean = make_self_contained(mean_of(Nx) + K * (Mean {z} - y));
 
       if constexpr (cholesky_form<YDistribution>)
@@ -67,7 +69,7 @@ namespace OpenKalman
       {
         // K == P_xy * inverse(P_yy), so
         // P_xy * adjoint(K) == P_xy * adjoint(inverse(P_yy)) * adjoint(P_xy)
-        auto out_x_cov = covariance_of(Nx) - Covariance(P_xy * adjoint(K));
+        auto out_x_cov = covariance_of(Nx) - Covariance(P_xy * K_adj);
         return make_GaussianDistribution(out_x_mean, out_x_cov);
       }
     }

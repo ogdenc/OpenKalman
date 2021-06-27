@@ -10,6 +10,9 @@
 
 #include "transformations.hpp"
 
+using std::numbers::pi;
+
+
 using M1 = Mean<Axis, eigen_matrix_t<double, 1, 1>>;
 using M2 = Mean<Axes<2>, eigen_matrix_t<double, 2, 1>>;
 using MP = Mean<Polar<>, eigen_matrix_t<double, 2, 1>>;

@@ -37,7 +37,7 @@ namespace OpenKalman
 #else
   template<typename Arg, std::enable_if_t<covariance<Arg> and not square_root_covariance<Arg>, int> = 0>
 #endif
-  inline auto
+  inline decltype(auto)
   square_root(Arg&& arg) noexcept
   {
     return std::forward<Arg>(arg).square_root();
@@ -49,7 +49,7 @@ namespace OpenKalman
 #else
   template<typename Arg, std::enable_if_t<square_root_covariance<Arg>, int> = 0>
 #endif
-  inline auto
+  inline decltype(auto)
   square(Arg&& arg) noexcept
   {
     return std::forward<Arg>(arg).square();
@@ -65,10 +65,10 @@ namespace OpenKalman
 #else
   template<typename Arg, std::enable_if_t<covariance<Arg>, int> = 0>
 #endif
-  constexpr decltype(auto)
+  constexpr auto
   make_native_matrix(Arg&& arg) noexcept
   {
-    return make_native_matrix(internal::to_covariance_nestable(std::forward<Arg>(arg)));
+    return make_native_matrix(OpenKalman::internal::to_covariance_nestable(std::forward<Arg>(arg)));
   }
 
 
@@ -86,16 +86,22 @@ namespace OpenKalman
   constexpr decltype(auto)
   make_self_contained(Arg&& arg) noexcept
   {
-    if constexpr(self_contained<nested_matrix_t<Arg>> or
+    if constexpr(self_contained<Arg> or std::is_lvalue_reference_v<nested_matrix_t<Arg>> or
       ((sizeof...(Ts) > 0) and ... and std::is_lvalue_reference_v<Ts>))
     {
       return std::forward<Arg>(arg);
     }
     else
     {
-      constexpr auto f = [] (auto&& arg) { return std::forward<decltype(arg)>(arg); };
-      auto ret = std::forward<Arg>(arg).covariance_op(f, f);
-      return ret;
+      using C = typename MatrixTraits<Arg>::RowCoefficients;
+      if constexpr (square_root_covariance<Arg>)
+      {
+        return SquareRootCovariance<C, self_contained_t<nested_matrix_t<Arg>>> {std::forward<Arg>(arg)};
+      }
+      else
+      {
+        return Covariance<C, self_contained_t<nested_matrix_t<Arg>>> {std::forward<Arg>(arg)};
+      }
     }
   }
 
@@ -134,7 +140,8 @@ namespace OpenKalman
   diagonal_of(Arg&& arg) noexcept
   {
     using C = typename MatrixTraits<Arg>::RowCoefficients;
-    auto b = make_self_contained<Arg>(diagonal_of(internal::to_covariance_nestable(std::forward<Arg>(arg))));
+    auto b = make_self_contained<Arg>(
+      diagonal_of(OpenKalman::internal::to_covariance_nestable(std::forward<Arg>(arg))));
     return Matrix<C, Axis, decltype(b)>(std::move(b));
   }
 
@@ -144,11 +151,22 @@ namespace OpenKalman
 #else
   template<typename Arg, std::enable_if_t<covariance<Arg>, int> = 0>
 #endif
-  inline auto
+  inline decltype(auto)
   transpose(Arg&& arg) noexcept
   {
-    auto f = [] (auto&& arg) { return transpose(std::forward<decltype(arg)>(arg)); };
-    return std::forward<Arg>(arg).covariance_op(f, f);
+    /// \todo optimize this
+    if constexpr (square_root_covariance<Arg>)
+    {
+      return MatrixTraits<Arg>::make(transpose(std::forward<Arg>(arg).get_triangular_nested_matrix()));
+    }
+    else
+    {
+      if constexpr (cholesky_form<Arg>)
+      {
+        return MatrixTraits<Arg>::make(transpose(std::forward<Arg>(arg).get_triangular_nested_matrix()));
+      }
+      else return std::forward<Arg>(arg);
+    }
   }
 
 
@@ -157,11 +175,18 @@ namespace OpenKalman
 #else
   template<typename Arg, std::enable_if_t<covariance<Arg>, int> = 0>
 #endif
-  inline auto
+  inline decltype(auto)
   adjoint(Arg&& arg) noexcept
   {
-    auto f = [] (auto&& arg) { return adjoint(std::forward<decltype(arg)>(arg)); };
-    return std::forward<Arg>(arg).covariance_op(f, f);
+    /// \todo optimize this
+    if constexpr (complex_number<typename MatrixTraits<Arg>::Scalar>)
+    {
+      return MatrixTraits<Arg>::make(adjoint(std::forward<Arg>(arg).get_triangular_nested_matrix()));
+    }
+    else
+    {
+      return transpose(std::forward<Arg>(arg));
+    }
   }
 
 
@@ -206,7 +231,15 @@ namespace OpenKalman
   inline decltype(auto)
   rank_update(Arg&& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
   {
-    return std::forward<Arg>(arg).rank_update(u, alpha);
+    if constexpr (std::is_same_v<Arg&&, std::decay_t<Arg>&>)
+    {
+      return arg.rank_update(u, alpha);
+    }
+    else
+    {
+      auto ret = std::forward<Arg>(arg).rank_update(u, alpha);
+      return ret;
+    }
   }
 
 
@@ -380,7 +413,7 @@ namespace OpenKalman
   split_diagonal(M&& m) noexcept
   {
     static_assert(prefix_of<Concatenate<Cs...>, typename MatrixTraits<M>::RowCoefficients>);
-    return split_diagonal<internal::SplitCovDiagF<M>, Cs...>(nested_matrix(std::forward<M>(m)));
+    return split_diagonal<OpenKalman::internal::SplitCovDiagF<M>, Cs...>(nested_matrix(std::forward<M>(m)));
   }
 
 
@@ -395,7 +428,7 @@ namespace OpenKalman
   {
     using CC = typename MatrixTraits<M>::RowCoefficients;
     static_assert(prefix_of<Concatenate<Cs...>, CC>);
-    return split_vertical<internal::SplitCovVertF<M, CC>, Cs...>(make_native_matrix(std::forward<M>(m)));
+    return split_vertical<OpenKalman::internal::SplitCovVertF<M, CC>, Cs...>(make_native_matrix(std::forward<M>(m)));
   }
 
 
@@ -410,7 +443,7 @@ namespace OpenKalman
   {
     using RC = typename MatrixTraits<M>::RowCoefficients;
     static_assert(prefix_of<Concatenate<Cs...>, RC>);
-    return split_horizontal<internal::SplitCovHorizF<M, RC>, Cs...>(make_native_matrix(std::forward<M>(m)));
+    return split_horizontal<OpenKalman::internal::SplitCovHorizF<M, RC>, Cs...>(make_native_matrix(std::forward<M>(m)));
   }
 
 
@@ -484,16 +517,16 @@ namespace OpenKalman
   }
 
 
-  /// Return column <code>index</code> of Arg. Constexpr index version.
+  /// Return column <code>index</code> of Arg, where the index is constexpr.
 #ifdef __cpp_concepts
-  template<std::size_t index, covariance Arg>
+  template<std::size_t index, covariance Arg> requires (index < MatrixTraits<Arg>::rows)
 #else
-  template<std::size_t index, typename Arg, std::enable_if_t<covariance<Arg>, int> = 0>
+  template<std::size_t index, typename Arg, std::enable_if_t<
+    covariance<Arg> and (index < MatrixTraits<Arg>::rows), int> = 0>
 #endif
   inline decltype(auto)
   column(Arg&& arg)
   {
-    static_assert(index < MatrixTraits<Arg>::rows);
     using C = typename MatrixTraits<Arg>::RowCoefficients;
     using CC = typename C::template Coefficient<index>;
     return make_matrix<C, CC>(column<index>(to_covariance_nestable(std::forward<Arg>(arg))));
@@ -502,7 +535,10 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
   template<covariance Arg, typename Function> requires
-    typed_matrix<std::invoke_result_t<Function, std::decay_t<decltype(column<0>(std::declval<Arg>()))>>>
+    requires(Arg&& arg, const Function& f) {
+      {f(column<0>(arg))} -> typed_matrix;
+      MatrixTraits<decltype(f(column<0>(arg)))>::columns == 1;
+    }
 #else
   template<typename Arg, typename Function, std::enable_if_t<
     covariance<Arg> and typed_matrix<std::invoke_result_t<
@@ -512,14 +548,19 @@ namespace OpenKalman
   apply_columnwise(Arg&& arg, const Function& f)
   {
     using C = typename MatrixTraits<Arg>::RowCoefficients;
-    const auto f_nested = [&f](const auto& col) { return nested_matrix(f(make_matrix<C, Axis>(col))); };
+    const auto f_nested = [&f] (auto&& col) -> auto {
+      return make_self_contained(nested_matrix(f(make_matrix<C, Axis>(std::forward<decltype(col)>(col)))));
+    };
     return make_matrix<C, C>(apply_columnwise(to_covariance_nestable(std::forward<Arg>(arg)), f_nested));
   }
 
 
 #ifdef __cpp_concepts
   template<covariance Arg, typename Function> requires
-    typed_matrix<std::invoke_result_t<Function, std::decay_t<decltype(column<0>(std::declval<Arg>()))>, std::size_t>>
+    requires(Arg&& arg, const Function& f, std::size_t i) {
+      {f(column<0>(arg), i)} -> typed_matrix;
+      MatrixTraits<decltype(f(column<0>(arg), i))>::columns == 1;
+    }
 #else
   template<typename Arg, typename Function, std::enable_if_t<
     covariance<Arg> and typed_matrix<std::invoke_result_t<
@@ -529,8 +570,8 @@ namespace OpenKalman
   apply_columnwise(Arg&& arg, const Function& f)
   {
     using C = typename MatrixTraits<Arg>::RowCoefficients;
-    const auto f_nested = [&f](const auto& col, std::size_t i) {
-      return nested_matrix(f(make_matrix<C, Axis>(col), i));
+    const auto f_nested = [&f] (auto&& col, std::size_t i) -> auto {
+      return make_self_contained(nested_matrix(f(make_matrix<C, Axis>(std::forward<decltype(col)>(col)), i)));
     };
     return make_matrix<C, C>(apply_columnwise(to_covariance_nestable(std::forward<Arg>(arg)), f_nested));
   }

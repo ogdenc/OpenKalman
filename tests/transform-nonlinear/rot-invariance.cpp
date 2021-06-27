@@ -10,6 +10,9 @@
 
 #include "transform-nonlinear.hpp"
 
+using std::numbers::pi;
+
+
 inline namespace
 {
   using C2 = Coefficients<Axis, Axis>;

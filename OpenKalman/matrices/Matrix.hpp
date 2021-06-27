@@ -24,7 +24,7 @@ namespace OpenKalman
 #else
   template<typename RowCoefficients, typename ColumnCoefficients, typename NestedMatrix>
 #endif
-  struct Matrix : internal::TypedMatrixBase<Matrix<RowCoefficients, ColumnCoefficients, NestedMatrix>,
+  struct Matrix : OpenKalman::internal::TypedMatrixBase<Matrix<RowCoefficients, ColumnCoefficients, NestedMatrix>,
     RowCoefficients, ColumnCoefficients, NestedMatrix>
   {
 
@@ -41,7 +41,7 @@ namespace OpenKalman
 
   private:
 
-    using Base = internal::TypedMatrixBase<Matrix, RowCoefficients, ColumnCoefficients, NestedMatrix>;
+    using Base = OpenKalman::internal::TypedMatrixBase<Matrix, RowCoefficients, ColumnCoefficients, NestedMatrix>;
 
   public:
 
@@ -62,15 +62,15 @@ namespace OpenKalman
       (not euclidean_transformed<Arg>) and
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients> and
       equivalent_to<typename MatrixTraits<Arg>::ColumnCoefficients, ColumnCoefficients> and
-      std::is_constructible_v<Base, decltype(nested_matrix(std::declval<Arg>()))>
+      requires(Arg&& arg) { NestedMatrix {nested_matrix(std::forward<Arg>(arg))}; }
 #else
     template<typename Arg, std::enable_if_t<typed_matrix<Arg> and not std::is_base_of_v<Matrix, std::decay_t<Arg>> and
       not euclidean_transformed<Arg> and
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients> and
       equivalent_to<typename MatrixTraits<Arg>::ColumnCoefficients, ColumnCoefficients> and
-      std::is_constructible_v<Base, decltype(nested_matrix(std::declval<Arg>()))>, int> = 0>
+      std::is_constructible_v<NestedMatrix, decltype(nested_matrix(std::declval<Arg&&>()))>, int> = 0>
 #endif
-    Matrix(Arg&& other) noexcept : Base {nested_matrix(std::forward<Arg>(other))} {}
+    Matrix(Arg&& arg) noexcept : Base {nested_matrix(std::forward<Arg>(arg))} {}
 
 
     /// Construct from a compatible \ref OpenKalman::euclidean_transformed "euclidean_transformed".
@@ -78,13 +78,13 @@ namespace OpenKalman
     template<euclidean_transformed Arg> requires
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients> and
       equivalent_to<typename MatrixTraits<Arg>::ColumnCoefficients, ColumnCoefficients> and
-      std::is_constructible_v<Base, decltype(from_euclidean<RowCoefficients>(nested_matrix(std::declval<Arg>())))>
+      requires(Arg&& arg) { NestedMatrix {from_euclidean<RowCoefficients>(nested_matrix(std::forward<Arg>(arg)))}; }
 #else
     template<typename Arg, std::enable_if_t<typed_matrix<Arg> and euclidean_transformed<Arg> and
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients> and
       equivalent_to<typename MatrixTraits<Arg>::ColumnCoefficients, ColumnCoefficients> and
-      std::is_constructible_v<Base, decltype(from_euclidean<RowCoefficients>(nested_matrix(std::declval<Arg>())))>,
-        int> = 0>
+      std::is_constructible_v<NestedMatrix,
+        decltype(from_euclidean<RowCoefficients>(nested_matrix(std::declval<Arg&&>())))>, int> = 0>
 #endif
     Matrix(Arg&& other) noexcept
       : Base {from_euclidean<RowCoefficients>(nested_matrix(std::forward<Arg>(other)))} {}
@@ -93,12 +93,13 @@ namespace OpenKalman
     /// Construct from compatible \ref OpenKalman::typed_matrix_nestable "typed_matrix_nestable".
 #ifdef __cpp_concepts
     template<typed_matrix_nestable Arg> requires (MatrixTraits<Arg>::rows == MatrixTraits<NestedMatrix>::rows) and
-      (MatrixTraits<Arg>::columns == MatrixTraits<NestedMatrix>::columns) and std::is_constructible_v<Base, Arg>
+      (MatrixTraits<Arg>::columns == MatrixTraits<NestedMatrix>::columns) and
+      std::constructible_from<NestedMatrix, Arg&&>
 #else
     template<typename Arg, std::enable_if_t<typed_matrix_nestable<Arg> and
       (MatrixTraits<Arg>::rows == MatrixTraits<NestedMatrix>::rows) and
       (MatrixTraits<Arg>::columns == MatrixTraits<NestedMatrix>::columns) and
-      std::is_constructible_v<Base, Arg>, int> = 0>
+      std::is_constructible_v<NestedMatrix, Arg&&>, int> = 0>
 #endif
     explicit Matrix(Arg&& arg) noexcept : Base {std::forward<Arg>(arg)} {}
 
@@ -108,12 +109,12 @@ namespace OpenKalman
     template<covariance Arg> requires
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients> and
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, ColumnCoefficients> and
-      std::is_constructible_v<Base, native_matrix_t<Arg>>
+      requires(Arg&& arg) { NestedMatrix {make_native_matrix(std::forward<Arg>(arg))}; }
 #else
     template<typename Arg, std::enable_if_t<covariance<Arg> and
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients> and
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, ColumnCoefficients> and
-      std::is_constructible_v<Base, native_matrix_t<Arg>>, int> = 0>
+      std::is_constructible_v<NestedMatrix, native_matrix_t<Arg>>, int> = 0>
 #endif
     Matrix(Arg&& arg) noexcept : Base {make_native_matrix(std::forward<Arg>(arg))} {}
 
@@ -152,7 +153,7 @@ namespace OpenKalman
     {
       if constexpr (not zero_matrix<NestedMatrix> and not identity_matrix<NestedMatrix>)
       {
-        Base::operator=(std::forward<Arg>(other).nested_matrix());
+        Base::operator=(nested_matrix(std::forward<Arg>(other)));
       }
       return *this;
     }
@@ -175,7 +176,7 @@ namespace OpenKalman
     {
       if constexpr (not zero_matrix<NestedMatrix> and not identity_matrix<NestedMatrix>)
       {
-        Base::operator=(from_euclidean<RowCoefficients>(std::forward<Arg>(other).nested_matrix()));
+        Base::operator=(from_euclidean<RowCoefficients>(nested_matrix(std::forward<Arg>(other))));
       }
       return *this;
     }
@@ -216,7 +217,7 @@ namespace OpenKalman
 #endif
     auto& operator+=(Arg&& other) noexcept
     {
-      this->nested_matrix() += std::forward<Arg>(other).nested_matrix();
+      this->nested_matrix() += nested_matrix(std::forward<Arg>(other));
       return *this;
     }
 
@@ -256,7 +257,7 @@ namespace OpenKalman
 #endif
     auto& operator-=(Arg&& other) noexcept
     {
-      this->nested_matrix() -= std::forward<Arg>(other).nested_matrix();
+      this->nested_matrix() -= nested_matrix(std::forward<Arg>(other));
       return *this;
     }
 
@@ -282,12 +283,6 @@ namespace OpenKalman
     {
       return Matrix<CR, CC, std::decay_t<Arg>>(std::forward<Arg>(arg));
     }
-
-  public:
-
-    static auto zero() { return make(MatrixTraits<NestedMatrix>::zero()); }
-
-    static auto identity() { return make(MatrixTraits<NestedMatrix>::identity()); }
 
   };
 
@@ -328,7 +323,8 @@ namespace OpenKalman
   Matrix(V&&) -> Matrix<
     typename MatrixTraits<V>::RowCoefficients,
     typename MatrixTraits<V>::ColumnCoefficients,
-    decltype(from_euclidean<typename MatrixTraits<V>::RowCoefficients>(std::forward<V>(std::declval<V>()).nested_matrix()))>;
+    decltype(from_euclidean<typename MatrixTraits<V>::RowCoefficients>(
+      nested_matrix(std::forward<V>(std::declval<V>()))))>;
 
 
   /// Deduce parameter types from a Covariance.
@@ -525,9 +521,30 @@ namespace OpenKalman
     }
 
 
-    static auto zero() { return make(MatrixTraits<NestedMatrix>::zero()); }
+#ifdef __cpp_concepts
+    template<std::convertible_to<std::size_t> ... Args> requires
+    (sizeof...(Args) == (rows == 0 ? 1 : 0) + (columns == 0 ? 1 : 0))
+#else
+    template<typename...Args, std::enable_if_t<(std::is_convertible_v<Args, std::size_t> and ...) and
+      (sizeof...(Args) == (rows == 0 ? 1 : 0) + (columns == 0 ? 1 : 0)), int> = 0>
+#endif
+    static auto zero(const Args...args)
+    {
+      return make(MatrixTraits<NestedMatrix>::zero(static_cast<std::size_t>(args)...));
+    }
 
-    static auto identity() { return make<RowCoefficients, RowCoefficients>(MatrixTraits<NestedMatrix>::identity()); }
+
+#ifdef __cpp_concepts
+    template<std::convertible_to<std::size_t> ... Args> requires (sizeof...(Args) == (rows == 0 ? 1 : 0))
+#else
+    template<typename...Args, std::enable_if_t<(std::is_convertible_v<Args, std::size_t> and ...) and
+      (sizeof...(Args) == (rows == 0 ? 1 : 0)), int> = 0>
+#endif
+    static auto identity(const Args...args)
+    {
+      auto b = MatrixTraits<NestedMatrix>::identity(args...);
+      return make<RowCoefficients, RowCoefficients>(std::move(b));
+    }
 
   };
 

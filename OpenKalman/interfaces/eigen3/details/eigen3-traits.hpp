@@ -196,7 +196,13 @@ namespace OpenKalman::internal
     : std::bool_constant<zero_matrix<Arg>> {};
 
 
-  // The product of two zero matrices is zero.
+  // The conjugate of a zero matrix is zero.
+  template<typename Scalar, typename Arg>
+  struct is_zero_matrix<Eigen::CwiseUnaryOp<Eigen::internal::scalar_conjugate_op<Scalar>, Arg>>
+    : std::bool_constant<zero_matrix<Arg>> {};
+
+
+// The product of two zero matrices is zero.
   template<typename Arg1, typename Arg2>
   struct is_zero_matrix<Eigen::Product<Arg1, Arg2>> : std::bool_constant<zero_matrix<Arg1> or zero_matrix<Arg2>> {};
 
@@ -236,6 +242,12 @@ namespace OpenKalman::internal
   // -------------------- //
   //  is_identity_matrix  //
   // -------------------- //
+
+  // The conjugate of an identity matrix is also identity.
+  template<typename Scalar, typename Arg>
+  struct is_identity_matrix<Eigen::CwiseUnaryOp<Eigen::internal::scalar_conjugate_op<Scalar>, Arg>>
+    : std::bool_constant<identity_matrix<Arg>> {};
+
 
   template<typename Scalar, typename Arg>
   struct is_identity_matrix<Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<Scalar>, Arg>>
@@ -327,9 +339,15 @@ namespace OpenKalman::internal
     : std::bool_constant<diagonal_matrix<Arg1> and diagonal_matrix<Arg2>> {};
 
 
-  // The negation of an identity matrix is diagonal.
+  // The negation of a diagonal matrix is also diagonal.
   template<typename Scalar, typename Arg>
   struct is_diagonal_matrix<Eigen::CwiseUnaryOp<Eigen::internal::scalar_opposite_op<Scalar>, Arg>>
+    : std::bool_constant<diagonal_matrix<Arg>> {};
+
+
+  // The conjugate of a diagonal matrix is also diagonal.
+  template<typename Scalar, typename Arg>
+  struct is_diagonal_matrix<Eigen::CwiseUnaryOp<Eigen::internal::scalar_conjugate_op<Scalar>, Arg>>
     : std::bool_constant<diagonal_matrix<Arg>> {};
 
 
@@ -388,9 +406,9 @@ namespace OpenKalman::internal
     : std::bool_constant<self_adjoint_matrix<Arg1> and self_adjoint_matrix<Arg2>> {};
 
 
-  // The negation of a self-adjoint matrix is self-adjoint.
-  template<typename Scalar, typename Arg>
-  struct is_self_adjoint_matrix<Eigen::CwiseUnaryOp<Eigen::internal::scalar_opposite_op<Scalar>, Arg>>
+  // A unary operation on a self-adjoint matrix is also self-adjoint.
+  template<typename UnaryOp, typename Arg>
+  struct is_self_adjoint_matrix<Eigen::CwiseUnaryOp<UnaryOp, Arg>>
     : std::bool_constant<self_adjoint_matrix<Arg>> {};
 
 
@@ -417,12 +435,12 @@ namespace OpenKalman::internal
   struct is_self_adjoint_matrix<Eigen3::DiagonalMatrix<NestedMatrix>> : std::true_type {};
 
 
-  template<typename NestedMatrix>
-  struct is_self_adjoint_matrix<Eigen3::TriangularMatrix<NestedMatrix, TriangleType::diagonal>> : std::true_type {};
-
-
   template<typename NestedMatrix, TriangleType storage_triangle>
   struct is_self_adjoint_matrix<Eigen3::SelfAdjointMatrix<NestedMatrix, storage_triangle>> : std::true_type {};
+
+
+  template<typename NestedMatrix>
+  struct is_self_adjoint_matrix<Eigen3::TriangularMatrix<NestedMatrix, TriangleType::diagonal>> : std::true_type {};
 
 
   template<typename Coefficients, typename NestedMatrix>
@@ -438,6 +456,16 @@ namespace OpenKalman::internal
   // ---------------------------- //
   //  is_lower_triangular_matrix  //
   // ---------------------------- //
+
+  template<typename Scalar, typename Arg>
+  struct is_lower_triangular_matrix<Eigen::CwiseUnaryOp<Eigen::internal::scalar_opposite_op<Scalar>, Arg>>
+    : std::bool_constant<lower_triangular_matrix<Arg>> {};
+
+
+  template<typename Scalar, typename Arg>
+  struct is_lower_triangular_matrix<Eigen::CwiseUnaryOp<Eigen::internal::scalar_conjugate_op<Scalar>, Arg>>
+    : std::bool_constant<lower_triangular_matrix<Arg>> {};
+
 
   template<typename MatrixType, unsigned int Mode>
   struct is_lower_triangular_matrix<Eigen::TriangularView<MatrixType, Mode>>
@@ -476,6 +504,16 @@ namespace OpenKalman::internal
   // ---------------------------- //
   //  is_upper_triangular_matrix  //
   // ---------------------------- //
+
+  template<typename Scalar, typename Arg>
+  struct is_upper_triangular_matrix<Eigen::CwiseUnaryOp<Eigen::internal::scalar_opposite_op<Scalar>, Arg>>
+    : std::bool_constant<upper_triangular_matrix<Arg>> {};
+
+
+  template<typename Scalar, typename Arg>
+  struct is_upper_triangular_matrix<Eigen::CwiseUnaryOp<Eigen::internal::scalar_conjugate_op<Scalar>, Arg>>
+    : std::bool_constant<upper_triangular_matrix<Arg>> {};
+
 
   template<typename MatrixType, unsigned int Mode>
   struct is_upper_triangular_matrix<Eigen::TriangularView<MatrixType, Mode>>
@@ -529,6 +567,34 @@ namespace OpenKalman::internal
   struct has_dynamic_rows<Eigen3::ZeroMatrix<Scalar, 0, columns>> : std::true_type {};
 
 
+  template<typename Scalar, auto constant, std::size_t columns>
+  struct has_dynamic_rows<Eigen3::ConstantMatrix<Scalar, constant, 0, columns>> : std::true_type {};
+
+
+  template<typename NestedMatrix>
+  struct has_dynamic_rows<Eigen3::DiagonalMatrix<NestedMatrix>> : std::bool_constant<dynamic_rows<NestedMatrix>> {};
+
+
+  template<typename NestedMatrix, TriangleType storage_triangle>
+  struct has_dynamic_rows<Eigen3::SelfAdjointMatrix<NestedMatrix, storage_triangle>>
+    : std::bool_constant<dynamic_rows<NestedMatrix>> {};
+
+
+  template<typename NestedMatrix>
+  struct has_dynamic_rows<Eigen3::TriangularMatrix<NestedMatrix, TriangleType::diagonal>>
+    : std::bool_constant<dynamic_rows<NestedMatrix>> {};
+
+
+  template<typename Coefficients, typename NestedMatrix>
+  struct has_dynamic_rows<Eigen3::ToEuclideanExpr<Coefficients, NestedMatrix>>
+    : std::bool_constant<dynamic_rows<NestedMatrix>> {};
+
+
+  template<typename Coefficients, typename NestedMatrix>
+  struct has_dynamic_rows<Eigen3::FromEuclideanExpr<Coefficients, NestedMatrix>>
+    : std::bool_constant<dynamic_rows<NestedMatrix>> {};
+
+
   // --------------------- //
   //  has_dynamic_columns  //
   // --------------------- //
@@ -546,6 +612,34 @@ namespace OpenKalman::internal
 
   template<typename Scalar, std::size_t rows>
   struct has_dynamic_columns<Eigen3::ZeroMatrix<Scalar, rows, 0>> : std::true_type {};
+
+
+  template<typename Scalar, auto constant, std::size_t rows>
+  struct has_dynamic_columns<Eigen3::ConstantMatrix<Scalar, constant, rows, 0>> : std::true_type {};
+
+
+  template<typename NestedMatrix>
+  struct has_dynamic_columns<Eigen3::DiagonalMatrix<NestedMatrix>> : std::bool_constant<dynamic_rows<NestedMatrix>> {};
+
+
+  template<typename NestedMatrix, TriangleType storage_triangle>
+  struct has_dynamic_columns<Eigen3::SelfAdjointMatrix<NestedMatrix, storage_triangle>>
+    : std::bool_constant<dynamic_columns<NestedMatrix>> {};
+
+
+  template<typename NestedMatrix>
+  struct has_dynamic_columns<Eigen3::TriangularMatrix<NestedMatrix, TriangleType::diagonal>>
+    : std::bool_constant<dynamic_columns<NestedMatrix>> {};
+
+
+  template<typename Coefficients, typename NestedMatrix>
+  struct has_dynamic_columns<Eigen3::ToEuclideanExpr<Coefficients, NestedMatrix>>
+    : std::bool_constant<dynamic_columns<NestedMatrix>> {};
+
+
+  template<typename Coefficients, typename NestedMatrix>
+  struct has_dynamic_columns<Eigen3::FromEuclideanExpr<Coefficients, NestedMatrix>>
+    : std::bool_constant<dynamic_columns<NestedMatrix>> {};
 
 
   // ------------------- //
@@ -612,7 +706,7 @@ namespace OpenKalman::internal
 
   template<typename DiagVectorType>
   struct is_self_contained<Eigen::DiagonalWrapper<DiagVectorType>>
-    : std::bool_constant<detail::stores<DiagVectorType>> {};
+    : std::false_type {};
 
 
   template<typename XprType>
@@ -658,6 +752,11 @@ namespace OpenKalman::internal
   template<typename MatrixType, unsigned int UpLo>
   struct is_self_contained<Eigen::SelfAdjointView<MatrixType, UpLo>>
     : std::false_type {};
+
+
+  template<typename Decomposition, typename RhsType>
+  struct is_self_contained<Eigen::Solve<Decomposition, RhsType>>
+    : std::bool_constant<detail::stores<Decomposition> and detail::stores<RhsType>> {};
 
 
   template<typename MatrixType>

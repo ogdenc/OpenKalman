@@ -11,17 +11,20 @@
 #ifndef OPENKALMAN_SQUAREROOTCOVARIANCE_HPP
 #define OPENKALMAN_SQUAREROOTCOVARIANCE_HPP
 
-#include <mutex>
 
 namespace OpenKalman
 {
+  // ---------------------- //
+  //  SquareRootCovariance  //
+  // ---------------------- //
+
 #ifdef __cpp_concepts
   template<coefficients Coefficients, covariance_nestable NestedMatrix> requires
     (Coefficients::dimensions == MatrixTraits<NestedMatrix>::rows) and (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename Coefficients, typename NestedMatrix>
 #endif
-  struct SquareRootCovariance : internal::CovarianceBase<SquareRootCovariance<Coefficients, NestedMatrix>, NestedMatrix>
+  struct SquareRootCovariance : OpenKalman::internal::CovarianceImpl<SquareRootCovariance<Coefficients, NestedMatrix>, NestedMatrix>
   {
 
 #ifndef __cpp_concepts
@@ -36,28 +39,7 @@ namespace OpenKalman
 
   private:
 
-    using Base = internal::CovarianceBase<SquareRootCovariance, NestedMatrix>;
-
-    // May be accessed externally through MatrixTraits:
-    static constexpr auto dimensions = MatrixTraits<NestedMatrix>::rows;
-
-    // May be accessed externally through MatrixTraits:
-    static constexpr TriangleType triangle_type =
-      triangle_type_of<typename MatrixTraits<NestedMatrix>::template TriangularMatrixFrom<>>;
-
-    // A triangular nested matrix type.
-    using NestedTriangular = std::conditional_t<diagonal_matrix<NestedMatrix>, NestedMatrix,
-      typename MatrixTraits<NestedMatrix>::template TriangularMatrixFrom<triangle_type>>;
-
-
-    // A function that makes a self-contained covariance from a nested matrix.
-    template<typename C = Coefficients, typename Arg>
-    static constexpr auto make(Arg&& arg) noexcept
-    {
-      return SquareRootCovariance<C, std::decay_t<Arg>>(std::forward<Arg>(arg));
-    }
-
-
+    using Base = OpenKalman::internal::CovarianceImpl<SquareRootCovariance, NestedMatrix>;
     using typename Base::CholeskyNestedMatrix;
     using Base::nested_matrix;
     using Base::cholesky_nested_matrix;
@@ -68,8 +50,25 @@ namespace OpenKalman
     using Base::mark_cholesky_nested_matrix_changed;
     using Base::mark_synchronized;
 
-    // Mutex for all updates to the nested matrices.
-    mutable std::mutex nested_mutex;
+
+    // May be accessed externally through MatrixTraits:
+    static constexpr auto dimensions = MatrixTraits<NestedMatrix>::rows;
+
+    // May be accessed externally through MatrixTraits:
+    static constexpr TriangleType triangle_type =
+      triangle_type_of<typename MatrixTraits<NestedMatrix>::template TriangularMatrixFrom<>>;
+
+    // A triangular nested matrix type.
+    using NestedTriangular = std::conditional_t<triangular_matrix<NestedMatrix>, NestedMatrix,
+      typename MatrixTraits<NestedMatrix>::template TriangularMatrixFrom<triangle_type>>;
+
+
+    // A function that makes a self-contained covariance from a nested matrix.
+    template<typename C = Coefficients, typename Arg>
+    static auto make(Arg&& arg) noexcept
+    {
+      return SquareRootCovariance<C, std::decay_t<Arg>>(std::forward<Arg>(arg));
+    }
 
 
     /**
@@ -119,11 +118,13 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<square_root_covariance M> requires (not std::derived_from<std::decay_t<M>, SquareRootCovariance>) and
-      internal::same_triangle_type_as<M, SquareRootCovariance> and std::is_constructible_v<Base, M>
+      OpenKalman::internal::same_triangle_type_as<M, SquareRootCovariance> and
+      requires(M&& m) { Base {std::forward<M>(m)}; }
 #else
     template<typename M, std::enable_if_t<
       square_root_covariance<M> and (not std::is_base_of_v<SquareRootCovariance, std::decay_t<M>>) and
-      internal::same_triangle_type_as<M, SquareRootCovariance> and std::is_constructible_v<Base, M>, int> = 0>
+      OpenKalman::internal::same_triangle_type_as<M, SquareRootCovariance> and
+      std::is_constructible_v<Base, M&&>, int> = 0>
 #endif
     SquareRootCovariance(M&& m) noexcept : Base {std::forward<M>(m)} {}
 
@@ -132,9 +133,10 @@ namespace OpenKalman
      * \brief Construct from a \ref covariance_nestable.
      */
 #ifdef __cpp_concepts
-    template<covariance_nestable M> requires std::is_constructible_v<Base, M>
+    template<covariance_nestable M> requires requires(M&& m) { Base {std::forward<M>(m)}; }
 #else
-    template<typename M, std::enable_if_t<covariance_nestable<M> and std::is_constructible_v<Base, M>, int> = 0>
+    template<typename M, std::enable_if_t<covariance_nestable<M> and
+      std::is_constructible_v<Base, M&&>, int> = 0>
 #endif
     explicit SquareRootCovariance(M&& m) noexcept : Base {std::forward<M>(m)} {}
 
@@ -148,16 +150,16 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<typed_matrix M> requires (square_matrix<M> or (diagonal_matrix<NestedMatrix> and column_vector<M>)) and
       equivalent_to<typename MatrixTraits<M>::RowCoefficients, Coefficients> and
-      std::is_constructible_v<Base, decltype(internal::to_covariance_nestable<NestedTriangular>(std::declval<M>()))>
+      requires(M&& m) { Base {OpenKalman::internal::to_covariance_nestable<NestedTriangular>(std::forward<M>(m))}; }
 #else
     template<typename M, std::enable_if_t<typed_matrix<M> and
       (square_matrix<M> or (diagonal_matrix<NestedMatrix> and column_vector<M>)) and
       equivalent_to<typename MatrixTraits<M>::RowCoefficients, Coefficients> and
-      std::is_constructible_v<Base, decltype(internal::to_covariance_nestable<NestedTriangular>(std::declval<M>()))>,
-        int> = 0>
+      std::is_constructible_v<Base,
+        decltype(OpenKalman::internal::to_covariance_nestable<NestedTriangular>(std::declval<M&&>()))>, int> = 0>
 #endif
     explicit SquareRootCovariance(M&& m) noexcept
-      : Base {internal::to_covariance_nestable<NestedTriangular>(std::forward<M>(m))} {}
+      : Base {OpenKalman::internal::to_covariance_nestable<NestedTriangular>(std::forward<M>(m))} {}
 
 
     /**
@@ -169,43 +171,34 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<typed_matrix_nestable M> requires (not covariance_nestable<M>) and
       (square_matrix<M> or (diagonal_matrix<NestedMatrix> and column_vector<M>)) and
-      std::is_constructible_v<Base, decltype(internal::to_covariance_nestable<NestedTriangular>(std::declval<M>()))>
+      requires(M&& m) { Base {OpenKalman::internal::to_covariance_nestable<NestedTriangular>(std::forward<M>(m))}; }
 #else
     template<typename M, std::enable_if_t<typed_matrix_nestable<M> and (not covariance_nestable<M>) and
       (square_matrix<M> or (diagonal_matrix<NestedMatrix> and column_vector<M>)) and
-      std::is_constructible_v<Base, decltype(internal::to_covariance_nestable<NestedTriangular>(std::declval<M>()))>,
-        int> = 0>
+      std::is_constructible_v<Base,
+        decltype(OpenKalman::internal::to_covariance_nestable<NestedTriangular>(std::declval<M&&>()))>, int> = 0>
 #endif
     explicit SquareRootCovariance(M&& m) noexcept
-      : Base {internal::to_covariance_nestable<NestedTriangular>(std::forward<M>(m))} {}
+      : Base {OpenKalman::internal::to_covariance_nestable<NestedTriangular>(std::forward<M>(m))} {}
 
 
     /// Construct from Scalar coefficients. Assumes matrix is triangular, and only reads lower left triangle.
 #ifdef __cpp_concepts
-    template<std::convertible_to<Scalar> ... Args> requires (sizeof...(Args) > 0) and
-      (sizeof...(Args) != dimensions or diagonal_matrix<NestedMatrix>) and
-      requires { std::is_constructible_v<Base,
-        decltype(MatrixTraits<NestedTriangular>::make(static_cast<const Scalar>(std::declval<const Args>())...))>; }
-    SquareRootCovariance(const Args ... args)
-      : Base {MatrixTraits<NestedTriangular>::make(static_cast<const Scalar>(args)...)} {}
+    template<std::convertible_to<const Scalar> ... Args> requires (sizeof...(Args) > 0) and
+      requires(Args ... args) { Base {MatrixTraits<NestedTriangular>::make(static_cast<const Scalar>(args)...)};
+      }
 #else
-    // Note: std::is_constructible_v cannot be used here with ::make.
-    template<typename ... Args, std::enable_if_t<(std::is_convertible_v<Args, Scalar> and ...) and
-      (sizeof...(Args) == dimensions) and diagonal_matrix<NestedMatrix> and
-      std::is_constructible_v<Base, NestedTriangular&&>, int> = 0>
-    SquareRootCovariance(const Args ... args)
-      : Base {MatrixTraits<NestedTriangular>::make(static_cast<const Scalar>(args)...)} {}
-
-    template<typename ... Args, std::enable_if_t<(std::is_convertible_v<Args, Scalar> and ...) and
-      (sizeof...(Args) == dimensions * dimensions) and std::is_constructible_v<Base, NestedTriangular&&>, int> = 0>
-    SquareRootCovariance(const Args ... args)
-      : Base {MatrixTraits<NestedTriangular>::make(static_cast<const Scalar>(args)...)} {}
+    template<typename ... Args, std::enable_if_t<(std::is_convertible_v<Args, const Scalar> and ...) and
+      ((diagonal_matrix<NestedMatrix> and sizeof...(Args) == dimensions) or
+        (sizeof...(Args) == dimensions * dimensions)) and std::is_constructible_v<Base, NestedTriangular&&>, int> = 0>
 #endif
+    SquareRootCovariance(Args ... args)
+      : Base {MatrixTraits<NestedTriangular>::make(static_cast<const Scalar>(args)...)} {}
 
 
-    /**********************
-     * Assignment Operators
-     **********************/
+    // ---------------------- //
+    //  Assignment Operators  //
+    // ---------------------- //
 
     /// Copy assignment operator.
     auto& operator=(const SquareRootCovariance& other)
@@ -215,7 +208,6 @@ namespace OpenKalman
     {
       static_assert(not std::is_const_v<std::remove_reference_t<NestedMatrix>>,
         "Assignment is not allowed because NestedMatrix is const.");
-      std::scoped_lock lock {nested_mutex};
       if constexpr(not zero_matrix<NestedMatrix> and not identity_matrix<NestedMatrix>)
         Base::operator=(other);
       return *this;
@@ -229,7 +221,6 @@ namespace OpenKalman
     {
       static_assert(not std::is_const_v<std::remove_reference_t<NestedMatrix>>,
         "Assignment is not allowed because NestedMatrix is const.");
-      std::scoped_lock lock {nested_mutex};
       if constexpr(not zero_matrix<NestedMatrix> and not identity_matrix<NestedMatrix>)
         Base::operator=(std::move(other));
       return *this;
@@ -242,13 +233,13 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<square_root_covariance Arg> requires (not std::derived_from<std::decay_t<Arg>, SquareRootCovariance>) and
-      internal::same_triangle_type_as<Arg, SquareRootCovariance> and
+      OpenKalman::internal::same_triangle_type_as<Arg, SquareRootCovariance> and
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients> and
       modifiable<NestedMatrix, nested_matrix_t<Arg>>
 #else
     template<typename Arg, std::enable_if_t<square_root_covariance<Arg> and
       (not std::is_base_of_v<SquareRootCovariance, std::decay_t<Arg>>) and
-      internal::same_triangle_type_as<Arg, SquareRootCovariance> and
+      OpenKalman::internal::same_triangle_type_as<Arg, SquareRootCovariance> and
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients> and
       modifiable<NestedMatrix, nested_matrix_t<Arg>>, int> = 0>
 #endif
@@ -256,7 +247,6 @@ namespace OpenKalman
     {
       if constexpr (not zero_matrix<NestedMatrix> and not identity_matrix<NestedMatrix>)
       {
-        std::scoped_lock lock {nested_mutex};
         Base::operator=(std::forward<Arg>(other));
       }
       return *this;
@@ -279,8 +269,7 @@ namespace OpenKalman
     {
       if constexpr (not zero_matrix<NestedMatrix> and not identity_matrix<NestedMatrix>)
       {
-        std::scoped_lock lock {nested_mutex};
-        Base::operator=(internal::to_covariance_nestable<NestedTriangular>(std::forward<Arg>(other)));
+        Base::operator=(OpenKalman::internal::to_covariance_nestable<NestedTriangular>(std::forward<Arg>(other)));
       }
       return *this;
     }
@@ -298,7 +287,6 @@ namespace OpenKalman
     {
       if constexpr (not zero_matrix<NestedMatrix> and not identity_matrix<NestedMatrix>)
       {
-        std::scoped_lock lock {nested_mutex};
         Base::operator=(std::forward<Arg>(other));
       }
       return *this;
@@ -319,8 +307,7 @@ namespace OpenKalman
     {
       if constexpr (not zero_matrix<NestedMatrix> and not identity_matrix<NestedMatrix>)
       {
-        std::scoped_lock lock {nested_mutex};
-        Base::operator=(internal::to_covariance_nestable<NestedTriangular>(std::forward<Arg>(other)));
+        Base::operator=(OpenKalman::internal::to_covariance_nestable<NestedTriangular>(std::forward<Arg>(other)));
       }
       return *this;
     }
@@ -333,27 +320,26 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<typename Arg> requires (not std::is_const_v<std::remove_reference_t<NestedMatrix>>) and
-      ((square_root_covariance<Arg> and internal::same_triangle_type_as<Arg, SquareRootCovariance>) or
+      ((square_root_covariance<Arg> and OpenKalman::internal::same_triangle_type_as<Arg, SquareRootCovariance>) or
         (typed_matrix<Arg> and square_matrix<Arg>)) and
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>
 #else
     template<typename Arg, std::enable_if_t<(not std::is_const_v<std::remove_reference_t<NestedMatrix>>) and
-      ((square_root_covariance<Arg> and internal::same_triangle_type_as<Arg, SquareRootCovariance>) or
+      ((square_root_covariance<Arg> and OpenKalman::internal::same_triangle_type_as<Arg, SquareRootCovariance>) or
         (typed_matrix<Arg> and square_matrix<Arg>)) and
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>, int> = 0>
 #endif
     auto& operator+=(const Arg& arg)
     {
-      std::scoped_lock lock {nested_mutex};
       if constexpr(triangular_matrix<NestedMatrix>) // Case 1 or 2
       {
-        nested_matrix() += internal::to_covariance_nestable<NestedMatrix>(arg);
+        nested_matrix() += OpenKalman::internal::to_covariance_nestable<NestedMatrix>(arg);
         mark_nested_matrix_changed();
       }
       else // Case 3 or 4
       {
         if (synchronization_direction() > 0) synchronize_forward();
-        cholesky_nested_matrix() += internal::to_covariance_nestable<NestedTriangular>(arg);
+        cholesky_nested_matrix() += OpenKalman::internal::to_covariance_nestable<NestedTriangular>(arg);
         if (synchronization_direction() > 0)
         {
           synchronize_reverse();
@@ -390,27 +376,26 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<typename Arg> requires (not std::is_const_v<std::remove_reference_t<NestedMatrix>>) and
-    ((square_root_covariance<Arg> and internal::same_triangle_type_as<Arg, SquareRootCovariance>) or
+    ((square_root_covariance<Arg> and OpenKalman::internal::same_triangle_type_as<Arg, SquareRootCovariance>) or
       (typed_matrix<Arg> and square_matrix<Arg>)) and
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>
 #else
     template<typename Arg, std::enable_if_t<(not std::is_const_v<std::remove_reference_t<NestedMatrix>>) and
-      ((square_root_covariance<Arg> and internal::same_triangle_type_as<Arg, SquareRootCovariance>) or
+      ((square_root_covariance<Arg> and OpenKalman::internal::same_triangle_type_as<Arg, SquareRootCovariance>) or
         (typed_matrix<Arg> and square_matrix<Arg>)) and
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>, int> = 0>
 #endif
     auto& operator-=(const Arg& arg)
     {
-      std::scoped_lock lock {nested_mutex};
       if constexpr(triangular_matrix<NestedMatrix>)
       {
-        nested_matrix() -= internal::to_covariance_nestable<NestedMatrix>(arg);
+        nested_matrix() -= OpenKalman::internal::to_covariance_nestable<NestedMatrix>(arg);
         mark_nested_matrix_changed();
       }
       else
       {
         if (synchronization_direction() > 0) synchronize_forward();
-        cholesky_nested_matrix() -= internal::to_covariance_nestable<NestedTriangular>(arg);
+        cholesky_nested_matrix() -= OpenKalman::internal::to_covariance_nestable<NestedTriangular>(arg);
         if (synchronization_direction() > 0)
         {
           synchronize_reverse();
@@ -448,7 +433,6 @@ namespace OpenKalman
 #endif
     auto& operator*=(const S s)
     {
-      std::scoped_lock lock {nested_mutex};
       if constexpr(triangular_matrix<NestedMatrix>)
       {
         nested_matrix() *= static_cast<const Scalar>(s);
@@ -471,7 +455,6 @@ namespace OpenKalman
 #endif
     auto& operator/=(const S s)
     {
-      std::scoped_lock lock {nested_mutex};
       if constexpr(triangular_matrix<NestedMatrix>)
       {
         nested_matrix() /= static_cast<const Scalar>(s);
@@ -493,25 +476,24 @@ namespace OpenKalman
      * triangular or self-adjoint.
      */
 #ifdef __cpp_concepts
-    template<square_root_covariance Arg> requires internal::same_triangle_type_as<SquareRootCovariance, Arg> and
+    template<square_root_covariance Arg> requires OpenKalman::internal::same_triangle_type_as<SquareRootCovariance, Arg> and
       (not std::is_const_v<std::remove_reference_t<NestedMatrix>>)
 #else
     template<typename Arg, std::enable_if_t<square_root_covariance<Arg> and
-      internal::same_triangle_type_as<SquareRootCovariance, Arg> and
+      OpenKalman::internal::same_triangle_type_as<SquareRootCovariance, Arg> and
       (not std::is_const_v<std::remove_reference_t<NestedMatrix>>), int> = 0>
 #endif
     auto& operator*=(const Arg& arg)
     {
-      std::scoped_lock lock {nested_mutex};
       if constexpr(triangular_matrix<NestedMatrix>)
       {
-        nested_matrix() *= internal::to_covariance_nestable<NestedMatrix>(arg);
+        nested_matrix() *= OpenKalman::internal::to_covariance_nestable<NestedMatrix>(arg);
         mark_nested_matrix_changed();
       }
       else
       {
         if (synchronization_direction() > 0) synchronize_forward();
-        cholesky_nested_matrix() *= internal::to_covariance_nestable<NestedTriangular>(arg);
+        cholesky_nested_matrix() *= OpenKalman::internal::to_covariance_nestable<NestedTriangular>(arg);
         if (synchronization_direction() > 0)
         {
           synchronize_reverse();
@@ -529,155 +511,66 @@ namespace OpenKalman
      * Other
      *********/
 
-    static auto zero() { return make(MatrixTraits<NestedMatrix>::zero()); }
-
-    static auto identity() { return make(MatrixTraits<NestedMatrix>::identity()); }
-
-
     /**
      * \brief Take the Cholesky square of *this.
      * \details If *this is an lvalue reference, this creates a reference to the nested matrix rather than a copy.
      * \return A Covariance based on *this.
      */
-#ifdef __cpp_concepts
-    auto square() & requires (not diagonal_matrix<NestedMatrix>) or identity_matrix<NestedMatrix> or
-      zero_matrix<NestedMatrix>
-#else
-    template<typename T = NestedMatrix, std::enable_if_t<(not diagonal_matrix<T>) or identity_matrix<NestedMatrix> or
-      zero_matrix<NestedMatrix>, int> = 0>
     auto square() &
-#endif
     {
-      return Covariance<Coefficients, std::add_lvalue_reference_t<NestedMatrix>>(*this);
-    }
-
-
-    /**
-     * \overload
-     * \details This overload is operative if the matrix is diagonal.
-     */
-#ifdef __cpp_concepts
-    auto square() && requires (not diagonal_matrix<NestedMatrix>) or identity_matrix<NestedMatrix> or
-      zero_matrix<NestedMatrix>
-#else
-    template<typename T = NestedMatrix, std::enable_if_t<(not diagonal_matrix<T>) or identity_matrix<NestedMatrix> or
-      zero_matrix<NestedMatrix>, int> = 0>
-    auto square() &&
-#endif
-    {
-      return Covariance<Coefficients, self_contained_t<NestedMatrix>>(std::move(*this));
-    }
-
-
-    /**
-     * \overload
-     * \details This overload is operative if the matrix is diagonal.
-     */
-#ifdef __cpp_concepts
-    auto square() const & requires (not diagonal_matrix<NestedMatrix>) or identity_matrix<NestedMatrix> or
-      zero_matrix<NestedMatrix>
-#else
-    template<typename T = NestedMatrix, std::enable_if_t<(not diagonal_matrix<T>) or identity_matrix<NestedMatrix> or
-      zero_matrix<NestedMatrix>, int> = 0>
-    auto square() const &
-#endif
-    {
-      return Covariance<Coefficients, std::add_lvalue_reference_t<const NestedMatrix>>(*this);
-    }
-
-
-    /**
-     * \overload
-     * \details This overload is operative if the matrix is diagonal.
-     */
-#ifdef __cpp_concepts
-    auto square() const && requires (not diagonal_matrix<NestedMatrix>) or identity_matrix<NestedMatrix> or
-      zero_matrix<NestedMatrix>
-#else
-    template<typename T = NestedMatrix, std::enable_if_t<(not diagonal_matrix<T>) or identity_matrix<NestedMatrix> or
-      zero_matrix<NestedMatrix>, int> = 0>
-    auto square() const &&
-#endif
-    {
-      return Covariance<Coefficients, const self_contained_t<NestedMatrix>>(std::move(*this));
-    }
-
-
-    /**
-     * \overload
-     * \details This overload is operative if the matrix is diagonal.
-     */
-#ifdef __cpp_concepts
-    auto square() const & requires diagonal_matrix<NestedMatrix> and (not identity_matrix<NestedMatrix>) and
-      (not zero_matrix<NestedMatrix>)
-#else
-    template<typename T = NestedMatrix, std::enable_if_t<diagonal_matrix<T> and (not identity_matrix<NestedMatrix>) and
-      (not zero_matrix<NestedMatrix>), int> = 0>
-    auto square() const &
-#endif
-    {
-      auto n = make_self_contained(Cholesky_square(nested_matrix()));
-      return Covariance<Coefficients, decltype(n)> {std::move(n)};
-    }
-
-
-    /**
-     * \overload
-     * \details This overload is operative if the matrix is diagonal.
-     */
-#ifdef __cpp_concepts
-    auto square() const && requires diagonal_matrix<NestedMatrix> and (not identity_matrix<NestedMatrix>) and
-      (not zero_matrix<NestedMatrix>)
-#else
-    template<typename T = NestedMatrix, std::enable_if_t<diagonal_matrix<T> and (not identity_matrix<NestedMatrix>) and
-      (not zero_matrix<NestedMatrix>), int> = 0>
-    auto square() const &&
-#endif
-    {
-      constexpr decltype(auto) fw = [] (auto&& n) { return std::forward<decltype(n)>(n); };
-      auto n = make_self_contained(Cholesky_square(fw(nested_matrix())));
-      return Covariance<Coefficients, decltype(n)> {std::move(n)};
-    }
-
-
-    /**
-     * \brief Make a Covariance based on an operation on the nested matrices.
-     * \tparam F1 Operation on NestedMatrix.
-     * \tparam F2 Operation on the return value of cholesky_nested_matrix
-     */
-#ifdef __cpp_concepts
-    template<typename F1, typename F2> requires
-      std::invocable<F1, const NestedMatrix&> and std::invocable<F2, const NestedTriangular&>
-#else
-    template<typename F1, typename F2, std::enable_if_t<
-      std::is_invocable_v<F1, const NestedMatrix&> and std::is_invocable_v<F2, const NestedTriangular&>, int> = 0>
-#endif
-    auto covariance_op(F1&& f1, F2&& f2) const
-    {
-      auto n = make_self_contained(f1(nested_matrix()));
-      using N = decltype(n);
-      if constexpr (internal::case1or2<SquareRootCovariance, N>)
+      if constexpr ((not diagonal_matrix<NestedMatrix>) or identity_matrix<NestedMatrix> or zero_matrix<NestedMatrix>)
       {
-        return make(std::move(n));
+        return Covariance<Coefficients, std::remove_reference_t<NestedMatrix>&> {*this};
       }
       else
       {
-        std::scoped_lock lock {nested_mutex};
-        if (synchronization_direction() >= 0)
-        {
-          auto r = make(std::move(n));
-          if (synchronization_direction() == 0)
-          {
-            r.mark_synchronized();
-            if (r.synchronization_direction() <= 0) r.cholesky_nested_matrix() = f2(cholesky_nested_matrix());
-          }
-          return r;
-        }
-        else
-        {
-          return SquareRootCovariance<Coefficients, N> {
-            internal::to_covariance_nestable<N>(f2(cholesky_nested_matrix()))};
-        }
+        auto n = make_self_contained(Cholesky_square(nested_matrix()));
+        return Covariance<Coefficients, decltype(n)> {std::move(n)};
+      }
+    }
+
+
+    /// \overload
+    auto square() const &
+    {
+      if constexpr ((not diagonal_matrix<NestedMatrix>) or identity_matrix<NestedMatrix> or zero_matrix<NestedMatrix>)
+      {
+        return Covariance<Coefficients, const std::remove_reference_t<NestedMatrix>&> {*this};
+      }
+      else
+      {
+        auto n = make_self_contained(Cholesky_square(nested_matrix()));
+        return Covariance<Coefficients, decltype(n)> {std::move(n)};
+      }
+    }
+
+
+    /// \overload
+    auto square() &&
+    {
+      if constexpr ((not diagonal_matrix<NestedMatrix>) or identity_matrix<NestedMatrix> or zero_matrix<NestedMatrix>)
+      {
+        return Covariance<Coefficients, self_contained_t<NestedMatrix>> {std::move(*this)};
+      }
+      else
+      {
+        auto n = make_self_contained(Cholesky_square(std::move(*this).nested_matrix()));
+        return Covariance<Coefficients, decltype(n)> {std::move(n)};
+      }
+    }
+
+
+    /// \overload
+    auto square() const &&
+    {
+      if constexpr ((not diagonal_matrix<NestedMatrix>) or identity_matrix<NestedMatrix> or zero_matrix<NestedMatrix>)
+      {
+        return Covariance<Coefficients, self_contained_t<NestedMatrix>> {std::move(*this)};
+      }
+      else
+      {
+        auto n = make_self_contained(Cholesky_square(std::move(*this).nested_matrix()));
+        return Covariance<Coefficients, decltype(n)> {std::move(n)};
       }
     }
 
@@ -695,7 +588,6 @@ namespace OpenKalman
 #endif
     auto& rank_update(const U& u, const Scalar alpha = 1) &
     {
-      std::scoped_lock lock {nested_mutex};
       if (synchronization_direction() < 0) synchronize_reverse();
       OpenKalman::rank_update(nested_matrix(), OpenKalman::nested_matrix(u), alpha);
       mark_nested_matrix_changed();
@@ -712,213 +604,28 @@ namespace OpenKalman
     template<typename U, std::enable_if_t<typed_matrix<U> and
       equivalent_to<typename MatrixTraits<U>::RowCoefficients, Coefficients>, int> = 0>
 #endif
-    auto rank_update(const U& u, const Scalar alpha = 1) const
+    auto rank_update(const U& u, const Scalar alpha = 1) &&
     {
-      std::scoped_lock lock {nested_mutex};
       if (synchronization_direction() < 0) synchronize_reverse();
       return make(OpenKalman::rank_update(nested_matrix(), OpenKalman::nested_matrix(u), alpha));
     }
-
-
-    /**
-     * \return The nested matrix, potentially converted to triangular form.
-     */
-    decltype(auto) get_triangular_nested_matrix() const &
-    {
-      std::scoped_lock lock {nested_mutex};
-      if constexpr (triangular_matrix<NestedMatrix>)
-      {
-        if (synchronization_direction() < 0) synchronize_reverse();
-        return nested_matrix();
-      }
-      else
-      {
-        if (synchronization_direction() > 0) synchronize_forward();
-        return cholesky_nested_matrix();
-      }
-    }
-
-    /// \overload
-    decltype(auto) get_triangular_nested_matrix() const &&
-    {
-      std::scoped_lock lock {nested_mutex};
-      if constexpr (triangular_matrix<NestedMatrix>)
-      {
-        if (synchronization_direction() < 0) synchronize_reverse();
-        if constexpr (std::is_lvalue_reference_v<NestedMatrix>) return nested_matrix();
-        else return std::move(nested_matrix());
-      }
-      else
-      {
-        if (synchronization_direction() > 0) synchronize_forward();
-        auto ret = cholesky_nested_matrix();
-        return ret;
-      }
-    }
-
-
-    /**
-     * \return The nested matrix, potentially converted to self-adjoint form.
-     */
-    decltype(auto) get_self_adjoint_nested_matrix() const &
-    {
-      std::scoped_lock lock {nested_mutex};
-      if constexpr (self_adjoint_matrix<NestedMatrix>)
-      {
-        if (synchronization_direction() < 0) synchronize_reverse();
-        return nested_matrix();
-      }
-      else
-      {
-        if (synchronization_direction() > 0) synchronize_forward();
-        return cholesky_nested_matrix();
-      }
-    }
-
-    /// \overload
-    decltype(auto) get_self_adjoint_nested_matrix() const &&
-    {
-      std::scoped_lock lock {nested_mutex};
-      if constexpr (self_adjoint_matrix<NestedMatrix>)
-      {
-        if (synchronization_direction() < 0) synchronize_reverse();
-        if constexpr (std::is_lvalue_reference_v<NestedMatrix>) return nested_matrix();
-        else return std::move(nested_matrix());
-      }
-      else
-      {
-        if (synchronization_direction() > 0) synchronize_forward();
-        auto ret = cholesky_nested_matrix();
-        return ret;
-      }
-    }
-
-
-    /**
-     * \brief Get or set element (i, j) of the covariance matrix.
-     * \param i The row.
-     * \param j The column.
-     * \return An ElementSetter object.
-     */
-#ifdef __cpp_concepts
-    auto operator() (std::size_t i, std::size_t j)
-    requires element_gettable<NestedMatrix, 2>
-#else
-    template<typename T = NestedMatrix, std::enable_if_t<element_gettable<T, 2>, int> = 0>
-    auto operator() (std::size_t i, std::size_t j)
-#endif
-    {
-      return Base::operator()(i, j);
-    }
-
-    /// \overload
-#ifdef __cpp_concepts
-    auto operator() (std::size_t i, std::size_t j) const
-    requires element_gettable<NestedMatrix, 2>
-#else
-    template<typename T = NestedMatrix, std::enable_if_t<element_gettable<T, 2>, int> = 0>
-    auto operator() (std::size_t i, std::size_t j) const
-#endif
-    {
-      return Base::operator()(i, j);
-    }
-
-
-    /**
-     * \brief Get or set element i of the covariance matrix, if it is a vector.
-     * \param i The row.
-     * \return An ElementSetter object.
-     */
-#ifdef __cpp_concepts
-    auto operator[] (std::size_t i)
-    requires element_gettable<NestedMatrix, 1>
-#else
-    template<typename T = NestedMatrix, std::enable_if_t<element_gettable<T, 1>, int> = 0>
-    auto operator[] (std::size_t i)
-#endif
-    {
-      return Base::operator[](i);
-    }
-
-
-    /// \overload
-#ifdef __cpp_concepts
-    auto operator[] (std::size_t i) const
-    requires element_gettable<NestedMatrix, 1>
-#else
-    template<typename T = NestedMatrix, std::enable_if_t<element_gettable<T, 1>, int> = 0>
-    auto operator[] (std::size_t i) const
-#endif
-    {
-      return Base::operator[](i);
-    }
-
-    /// \overload
-#ifdef __cpp_concepts
-    auto operator() (std::size_t i)
-    requires element_gettable<NestedMatrix, 1>
-#else
-    template<typename T = NestedMatrix, std::enable_if_t<element_gettable<T, 1>, int> = 0>
-    auto operator() (std::size_t i)
-#endif
-    {
-      return operator[](i);
-    }
-
-    /// \overload
-#ifdef __cpp_concepts
-    auto operator() (std::size_t i) const
-    requires element_gettable<NestedMatrix, 1>
-#else
-    template<typename T = NestedMatrix, std::enable_if_t<element_gettable<T, 1>, int> = 0>
-    auto operator() (std::size_t i) const
-#endif
-    {
-      return operator[](i);
-    }
-
-
-    /**
-     * \brief Set an element of the cholesky nested matrix.
-     */
-#ifdef __cpp_concepts
-    void set_element(const Scalar s, const std::size_t i, const std::size_t j)
-    requires element_settable<NestedMatrix, 2>
-#else
-    template<typename T = NestedMatrix, std::enable_if_t<element_settable<T, 2>, int> = 0>
-    void set_element(const Scalar s, const std::size_t i, const std::size_t j)
-#endif
-    {
-      std::scoped_lock lock {nested_mutex};
-      Base::set_element(s, i, j);
-    }
-
-
-    /**
-     * \brief Set an element of the cholesky nested matrix.
-     */
-#ifdef __cpp_concepts
-    void set_element(const Scalar s, const std::size_t i)
-    requires element_settable<NestedMatrix, 1>
-#else
-    template<typename T = NestedMatrix, std::enable_if_t<element_settable<T, 1>, int> = 0>
-    void set_element(const Scalar s, const std::size_t i)
-#endif
-    {
-      std::scoped_lock lock {nested_mutex};
-      Base::set_element(s, i);
-    }
-
 
   private:
 
 #ifdef __cpp_concepts
     template<typename, typename>
-    friend struct internal::CovarianceBase;
 #else
     template<typename, typename, typename>
-    friend struct internal::CovarianceBase;
 #endif
+    friend struct OpenKalman::internal::CovarianceBase;
+
+
+    template<typename, typename>
+    friend struct OpenKalman::internal::CovarianceImpl;
+
+
+    template<typename, typename>
+    friend struct OpenKalman::internal::CovarianceBase3Impl;
 
 
 #ifdef __cpp_concepts
@@ -1245,9 +952,9 @@ namespace OpenKalman
   }
 
 
-  ////////////////////////////
+  // ---------------------- //
   //        Traits          //
-  ////////////////////////////
+  // ---------------------- //
 
   template<typename Coeffs, typename ArgType>
   struct MatrixTraits<SquareRootCovariance<Coeffs, ArgType>>
@@ -1260,8 +967,8 @@ namespace OpenKalman
     using ColumnCoefficients = Coeffs;
     using Scalar = typename MatrixTraits<NestedMatrix>::Scalar; ///< Scalar type for this vector.
 
-    static constexpr TriangleType
-    triangle_type = triangle_type_of<typename MatrixTraits<ArgType>::template TriangularMatrixFrom<>>;
+    static constexpr TriangleType triangle_type =
+      triangle_type_of<typename MatrixTraits<ArgType>::template TriangularMatrixFrom<>>;
 
     template<std::size_t r = rows, std::size_t c = rows, typename S = Scalar>
     using NativeMatrixFrom = native_matrix_t<NestedMatrix, r, c, S>;
@@ -1281,9 +988,31 @@ namespace OpenKalman
     }
 
 
-    static auto zero() { return SquareRootCovariance<Coeffs, std::decay_t<NestedMatrix>>::zero(); }
+#ifdef __cpp_concepts
+    template<std::convertible_to<std::size_t> ... Args> requires
+      (sizeof...(Args) == (dynamic_coefficients<Coeffs> ? 2 : 0))
+#else
+    template<typename...Args, std::enable_if_t<(std::is_convertible_v<Args, std::size_t> and ...) and
+      (sizeof...(Args) == (dynamic_coefficients<Coeffs> ? 2 : 0)), int> = 0>
+#endif
+    static auto zero(const Args...args)
+    {
+      return make(MatrixTraits<NestedMatrix>::zero(static_cast<std::size_t>(args)...));
+    }
 
-    static auto identity() { return SquareRootCovariance<Coeffs, std::decay_t<NestedMatrix>>::identity(); }
+
+#ifdef __cpp_concepts
+    template<std::convertible_to<std::size_t> ... Args> requires
+      (sizeof...(Args) == (dynamic_coefficients<Coeffs> ? 1 : 0))
+#else
+    template<typename...Args, std::enable_if_t<(std::is_convertible_v<Args, std::size_t> and ...) and
+      (sizeof...(Args) == (dynamic_coefficients<Coeffs> ? 1 : 0)), int> = 0>
+#endif
+    static auto identity(const Args...args)
+    {
+      return make(MatrixTraits<NestedMatrix>::identity(args...));
+    }
+
   };
 
 
