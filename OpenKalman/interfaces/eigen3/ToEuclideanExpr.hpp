@@ -55,9 +55,9 @@ namespace OpenKalman::Eigen3
 
     /// Default constructor.
 #ifdef __cpp_concepts
-    ToEuclideanExpr() requires std::default_initializable<Base>
+    ToEuclideanExpr() requires std::default_initializable<NestedMatrix>
 #else
-    template<typename T = Base, std::enable_if_t<std::is_default_constructible_v<T>, int> = 0>
+    template<typename T = NestedMatrix, std::enable_if_t<std::is_default_constructible_v<T>, int> = 0>
     ToEuclideanExpr()
 #endif
       : Base {} {}

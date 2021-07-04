@@ -388,17 +388,18 @@ namespace OpenKalman::Eigen3
       return DiagonalMatrix {
         make_self_contained<T>(nested_matrix(std::forward<T>(t)).diagonal().array().square().matrix())};
     }
-    else if constexpr (triangle_type == TriangleType::upper)
-    {
-      auto adj = make_native_matrix(adjoint(t));
-      auto prod {make_self_contained(std::move(adj) * std::forward<T>(t))};
-      return SelfAdjointMatrix<decltype(prod), triangle_type> {std::move(prod)};
-    }
     else
     {
-      static_assert(triangle_type == TriangleType::lower);
-      auto adj = make_native_matrix(adjoint(t));
-      auto prod {make_self_contained(std::forward<T>(t) * std::move(adj))};
+      auto prod {make_native_matrix(adjoint(t))};
+      if constexpr (triangle_type == TriangleType::upper)
+      {
+        prod.applyOnTheRight(std::forward<T>(t).view());
+      }
+      else
+      {
+        static_assert(triangle_type == TriangleType::lower);
+        prod.applyOnTheLeft(std::forward<T>(t).view());
+      }
       return SelfAdjointMatrix<decltype(prod), triangle_type> {std::move(prod)};
     }
 

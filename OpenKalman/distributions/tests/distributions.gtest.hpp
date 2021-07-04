@@ -55,7 +55,7 @@ namespace OpenKalman::test
     TestComparison(const Arg1& A, const Arg2& B, const Err& err = 1e-6)
       : ::testing::AssertionResult {compare(A, B, err)} {};
 
-  }
+  };
 
 } // namespace OpenKalman::test
 

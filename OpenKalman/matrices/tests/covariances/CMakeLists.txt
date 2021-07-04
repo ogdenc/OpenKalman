@@ -16,11 +16,11 @@ include(GoogleTest)
 
 add_executable(covariances
         covariance_tests.cpp
-        #tests-covariance.cpp
-        #tests-covariance-ops.cpp
+        tests-covariance.cpp
+        tests-covariance-ops.cpp
         tests-sqrt-covariance.cpp
-        #tests-sqrt-covariance-ops.cpp
-        #tests-covariance-refs.cpp
+        tests-sqrt-covariance-ops.cpp
+        tests-covariance-refs.cpp
     )
 
 target_link_libraries(covariances ${GTEST_BOTH_LIBRARIES} Eigen3::Eigen Threads::Threads)

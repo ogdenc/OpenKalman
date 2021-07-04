@@ -105,7 +105,8 @@ namespace OpenKalman::internal
 #ifdef __cpp_concepts
     CovarianceBase() requires self_contained<NestedMatrix> and std::default_initializable<NestedMatrix>
 #else
-    template<typename T = Base, std::enable_if_t<self_contained<T> and std::is_default_constructible_v<T>, int> = 0>
+    template<typename T = NestedMatrix, std::enable_if_t<
+      self_contained<T> and std::is_default_constructible_v<T>, int> = 0>
     CovarianceBase()
 #endif
       : Base {} {}
