@@ -345,7 +345,7 @@ namespace OpenKalman
         {
           decltype(auto) e1 = nested_matrix();
           decltype(auto) e2 = OpenKalman::internal::to_covariance_nestable<NestedMatrix>(arg);
-          using E1 = decltype((e1)); using E2 = decltype((e2));
+          using E1 = decltype(e1); using E2 = decltype(e2);
 
           if constexpr(upper_triangular_matrix<NestedMatrix>)
             nested_matrix() = QR_decomposition(concatenate_vertical(std::forward<E1>(e1), std::forward<E2>(e2)));
@@ -562,6 +562,7 @@ namespace OpenKalman
      * \brief Take the Cholesky square root of *this.
      * \details If *this is an lvalue reference, this creates a reference to the nested matrix rather than a copy.
      * \return A SquareRootCovariance based on *this.
+     * \note One cannot assume that the lifetime of the result is longer than the lifetime of the object.
      */
     auto square_root() &
     {
@@ -571,7 +572,8 @@ namespace OpenKalman
       }
       else
       {
-        auto n = make_self_contained(Cholesky_factor<storage_triangle>(nested_matrix()));
+        static_assert(diagonal_matrix<NestedMatrix>);
+        auto n = Cholesky_factor<storage_triangle>(nested_matrix());
         return SquareRootCovariance<Coefficients, decltype(n)> {std::move(n)};
       }
     }
@@ -586,7 +588,8 @@ namespace OpenKalman
       }
       else
       {
-        auto n = make_self_contained(Cholesky_factor<storage_triangle>(nested_matrix()));
+        static_assert(diagonal_matrix<NestedMatrix>);
+        auto n = Cholesky_factor<storage_triangle>(nested_matrix());
         return SquareRootCovariance<Coefficients, decltype(n)> {std::move(n)};
       }
     }
@@ -597,11 +600,12 @@ namespace OpenKalman
     {
       if constexpr ((not diagonal_matrix<NestedMatrix>) or identity_matrix<NestedMatrix> or zero_matrix<NestedMatrix>)
       {
-        return SquareRootCovariance<Coefficients, self_contained_t<NestedMatrix>> {std::move(*this)};
+        return SquareRootCovariance<Coefficients, std::remove_reference_t<NestedMatrix>> {std::move(*this)};
       }
       else
       {
-        auto n = make_self_contained(Cholesky_factor<storage_triangle>(std::move(*this).nested_matrix()));
+        static_assert(diagonal_matrix<NestedMatrix>);
+        auto n = Cholesky_factor<storage_triangle>(std::move(*this).nested_matrix());
         return SquareRootCovariance<Coefficients, decltype(n)> {std::move(n)};
       }
     }
@@ -612,11 +616,12 @@ namespace OpenKalman
     {
       if constexpr ((not diagonal_matrix<NestedMatrix>) or identity_matrix<NestedMatrix> or zero_matrix<NestedMatrix>)
       {
-        return SquareRootCovariance<Coefficients, self_contained_t<NestedMatrix>> {std::move(*this)};
+        return SquareRootCovariance<Coefficients, std::remove_reference_t<NestedMatrix>> {std::move(*this)};
       }
       else
       {
-        auto n = make_self_contained(Cholesky_factor<storage_triangle>(std::move(*this).nested_matrix()));
+        static_assert(diagonal_matrix<NestedMatrix>);
+        auto n = Cholesky_factor<storage_triangle>(std::move(*this).nested_matrix());
         return SquareRootCovariance<Coefficients, decltype(n)> {std::move(n)};
       }
     }

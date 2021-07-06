@@ -342,7 +342,7 @@ namespace OpenKalman
     static decltype(auto) make(Arg&& arg) noexcept
     {
       using namespace Eigen3;
-      return to_euclidean<C>(make_self_contained<Arg>(std::forward<Arg>(arg)));
+      return to_euclidean<C>(std::forward<Arg>(arg));
     }
 
 

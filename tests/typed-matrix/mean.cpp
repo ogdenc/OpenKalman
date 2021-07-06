@@ -283,7 +283,7 @@ TEST(matrices, Mean_overloads)
 
   EXPECT_TRUE(is_near(make_self_contained(Mat23 {1, 2, 3, 4, 5, 6} * 2), Mat23 {2, 4, 6, 8-2*pi, 10-4*pi, 12-4*pi}));
   static_assert(std::is_same_v<std::decay_t<decltype(make_self_contained(Mat23 {1, 2, 3, 4, 5, 6} * 2))>,
-    Mean<C2, decltype(wrap_angles<C2>(std::declval<M23>()))>>);
+    Mean<C2, std::decay_t<decltype(wrap_angles<C2>(std::declval<M23>()))>>>);
 
   EXPECT_TRUE(is_near(to_euclidean(
     Mean<C2, M23> {1, 2, 3, pi*7/3, pi*13/6, -pi*7/4}),
@@ -310,12 +310,7 @@ TEST(matrices, Mean_overloads)
   static_assert(equivalent_to<typename MatrixTraits<decltype(to_diagonal(Mat21 {5, 6}))>::ColumnCoefficients, C2>);
 
   EXPECT_TRUE(is_near(transpose(Mat23 {1, 2, 3, 4, 5, 6}).nested_matrix(), TMat32 {1, w_4, 2, w_5, 3, w_6}));
-  static_assert(std::is_same_v<std::decay_t<decltype(make_self_contained(transpose(Mat23 {1, 2, 3, 4, 5, 6})))>,
-    Matrix<Axes<3>, C2, M32>>);
-
   EXPECT_TRUE(is_near(adjoint(Mat23 {1, 2, 3, 4, 5, 6}).nested_matrix(), TMat32 {1, w_4, 2, w_5, 3, w_6}));
-  static_assert(std::is_same_v<std::decay_t<decltype(make_self_contained(adjoint(Mat23 {1, 2, 3, 4, 5, 6})))>,
-    Matrix<Axes<3>, C2, M32>>);
 
   EXPECT_NEAR(determinant(Mean<Axes<2>, M22> {1, 2, 3, 4}), -2, 1e-6);
 
@@ -560,7 +555,8 @@ TEST(matrices, Mean_angle_mult_TypedMatrix)
 
 TEST(matrices, Mean_angle_arithmetic)
 {
-  using Var3 = Mean<Coefficients<angle::Radians, Axis, angle::Radians, Axis, Axis>>;
+  using C = Coefficients<angle::Radians, Axis, angle::Radians, Axis, Axis>;
+  using Var3 = Mean<C>;
   Var3 v1 {1, 2, 3, 4, 5};
   Var3 v2 {2, 4, -6, 8, -10};
   Var3 v3 {3, 6, -3, 12, -5};
@@ -589,11 +585,11 @@ TEST(matrices, Mean_angle_arithmetic)
   EXPECT_TRUE(is_near(v7, Var3 {6 - pi*2, 12, -6 + pi*2, 24, -10}));
   v7 -= v6;
   EXPECT_TRUE(is_near(v7, v6));
-  using T0 = decltype(v5);
-  using T3 = decltype(v5.nested_matrix());
-  static_assert(std::is_same_v<nested_matrix_t<T0>&, T3>);
-  static_assert(std::is_same_v<std::decay_t<decltype((v5 + v2).nested_matrix().nested_matrix().nested_matrix())>, std::decay_t<decltype(v5.nested_matrix() + v2.nested_matrix())>>);
-  static_assert(std::is_same_v<nested_matrix_t<decltype(make_self_contained(v5))>, std::remove_reference_t<decltype(make_native_matrix(v5))>>);
+  static_assert(std::is_same_v<nested_matrix_t<decltype(v5)>&, decltype(v5.nested_matrix())>);
+  static_assert(std::is_same_v<self_contained_t<decltype((v5 + v2).nested_matrix())>,
+    self_contained_t<self_contained_t<decltype(wrap_angles<C>(v5.nested_matrix()))>>>);
+  static_assert(std::is_same_v<self_contained_t<nested_matrix_t<decltype(make_self_contained(v5))>>,
+    self_contained_t<self_contained_t<decltype(wrap_angles<C>(v5.nested_matrix()))>>>);
 }
 
 

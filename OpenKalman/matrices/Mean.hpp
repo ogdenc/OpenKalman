@@ -17,9 +17,9 @@
 
 namespace OpenKalman
 {
-  /////////////////////////
+  // ------------------- //
   //        Mean         //
-  /////////////////////////
+  // ------------------- //
 
   /// A typed vector.
 #ifdef __cpp_concepts
@@ -401,9 +401,9 @@ namespace OpenKalman
   };
 
 
-  /////////////////////////////////////
+  // ------------------------------- //
   //        Deduction guides         //
-  /////////////////////////////////////
+  // ------------------------------- //
 
   /// Deduce template parameters from a typed_matrix_nestable, assuming axis-only coefficients.
 #ifdef __cpp_concepts
@@ -436,9 +436,9 @@ namespace OpenKalman
     from_euclidean<typename MatrixTraits<V>::RowCoefficients>(nested_matrix(std::forward<V>(std::declval<V>()))))>>;
 
 
-  ///////////////////////////////////
+  // ----------------------------- //
   //        Make functions         //
-  ///////////////////////////////////
+  // ----------------------------- //
 
   /**
    * \brief Make a Mean from a typed_matrix_nestable, specifying the row coefficients.
@@ -456,7 +456,7 @@ namespace OpenKalman
   {
     constexpr auto rows = MatrixTraits<M>::rows;
     using Coeffs = std::conditional_t<std::is_void_v<Coefficients>, Axes<rows>, Coefficients>;
-    decltype(auto) b = wrap_angles<Coeffs>(std::forward<M>(m)); using B = decltype((b));
+    decltype(auto) b = wrap_angles<Coeffs>(std::forward<M>(m)); using B = decltype(b);
     return Mean<Coeffs, passable_t<B>>(std::forward<B>(b));
   }
 
@@ -568,7 +568,7 @@ namespace OpenKalman
 #endif
     static auto make(Arg&& arg) noexcept
     {
-      decltype(auto) b = wrap_angles<RC>(std::forward<Arg>(arg)); using B = decltype((b));
+      decltype(auto) b = wrap_angles<RC>(std::forward<Arg>(arg)); using B = decltype(b);
       return Mean<RC, std::decay_t<B>>(std::forward<B>(b));
     }
 
@@ -604,4 +604,4 @@ namespace OpenKalman
 } // namespace OpenKalman
 
 
-#endif //OPENKALMAN_wrap_angles(MEAN_HPP
+#endif //OPENKALMAN_MEAN_HPP

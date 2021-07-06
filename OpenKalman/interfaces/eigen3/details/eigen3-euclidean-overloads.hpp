@@ -35,7 +35,7 @@ namespace OpenKalman::Eigen3
 
 
   /**
-   * Convert to a self-contained Eigen3 matrix.
+   * \brief Convert to a self-contained Eigen3 matrix.
    */
 #ifdef __cpp_concepts
   template<euclidean_expr Arg>

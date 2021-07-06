@@ -211,7 +211,7 @@ namespace OpenKalman::Eigen3
     }
     else
     {
-      return make_self_contained<Arg>(from_euclidean<Coefficients>(to_euclidean<Coefficients>(std::forward<Arg>(arg))));
+      return from_euclidean<Coefficients>(to_euclidean<Coefficients>(std::forward<Arg>(arg)));
     }
   }
 
@@ -253,7 +253,7 @@ namespace OpenKalman::Eigen3
     }
     else
     {
-      return DiagonalMatrix<std::decay_t<Arg>> {std::forward<Arg>(arg)};
+      return DiagonalMatrix<Arg> {std::forward<Arg>(arg)};
     }
   }
 
@@ -296,7 +296,7 @@ namespace OpenKalman::Eigen3
     }
     else
     {
-      return make_self_contained<Arg>(std::forward<Arg>(arg).diagonal());
+      return std::forward<Arg>(arg).diagonal();
     }
   }
 
@@ -1340,7 +1340,7 @@ namespace OpenKalman::Eigen3
   {
     using Scalar = std::invoke_result_t<Function>;
     using Mat = eigen_matrix_t<Scalar, static_cast<Eigen::Index>(rows), static_cast<Eigen::Index>(columns)>;
-    return native_matrix_t<Mat>::NullaryExpr([fun = std::forward<Function>(f)] { return fun(); });
+    return native_matrix_t<Mat>::NullaryExpr(std::cref(f));
   }
 
 
@@ -1356,9 +1356,7 @@ namespace OpenKalman::Eigen3
   {
     using Scalar = std::invoke_result_t<Function, std::size_t, std::size_t>;
     using Mat = eigen_matrix_t<Scalar, static_cast<Eigen::Index>(rows), static_cast<Eigen::Index>(columns)>;
-    return native_matrix_t<Mat>::NullaryExpr([fun = std::forward<Function>(f)] (Eigen::Index i, Eigen::Index j) {
-      return fun((std::size_t) i, (std::size_t) j);
-    });
+    return native_matrix_t<Mat>::NullaryExpr(std::cref(f));
   }
 
 

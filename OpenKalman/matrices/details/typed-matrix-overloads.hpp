@@ -101,9 +101,8 @@ namespace OpenKalman
     using Coefficients = typename MatrixTraits<Arg>::RowCoefficients;
     if constexpr(not euclidean_transformed<Arg>)
     {
-      decltype(auto) e = OpenKalman::to_euclidean<Coefficients>(nested_matrix(std::forward<Arg>(arg)));
-      using E = decltype((e));
-      return EuclideanMean<Coefficients, std::remove_reference_t<E>>(std::forward<E>(e));
+      auto n = OpenKalman::to_euclidean<Coefficients>(nested_matrix(std::forward<Arg>(arg)));
+      return EuclideanMean<Coefficients, decltype(n)> {std::move(n)};
     }
     else
     {
@@ -123,9 +122,8 @@ namespace OpenKalman
     using Coefficients = typename MatrixTraits<Arg>::RowCoefficients;
     if constexpr(euclidean_transformed<Arg>)
     {
-      decltype(auto) e = OpenKalman::from_euclidean<Coefficients>(nested_matrix(std::forward<Arg>(arg)));
-      using E = decltype((e));
-      return Mean<Coefficients, std::remove_reference_t<E>>(std::forward<E>(e));
+      auto n = OpenKalman::from_euclidean<Coefficients>(nested_matrix(std::forward<Arg>(arg)));
+      return Mean<Coefficients, decltype(n)> {std::move(n)};
     }
     else
     {
@@ -145,7 +143,7 @@ namespace OpenKalman
   to_diagonal(Arg&& arg) noexcept
   {
     using C = typename MatrixTraits<Arg>::RowCoefficients;
-    auto b = make_self_contained(to_diagonal(nested_matrix(std::forward<Arg>(arg))));
+    auto b = to_diagonal(nested_matrix(std::forward<Arg>(arg)));
     return Matrix<C, C, decltype(b)>(std::move(b));
   }
 
@@ -159,7 +157,7 @@ namespace OpenKalman
   diagonal_of(Arg&& arg) noexcept
   {
     using C = typename MatrixTraits<Arg>::RowCoefficients;
-    auto b = make_self_contained(diagonal_of(nested_matrix(std::forward<Arg>(arg))));
+    auto b = diagonal_of(nested_matrix(std::forward<Arg>(arg)));
     return Matrix<C, Axis, decltype(b)>(std::move(b));
   }
 
@@ -177,12 +175,12 @@ namespace OpenKalman
     if constexpr(euclidean_transformed<Arg>)
     {
       auto b = transpose(nested_matrix(from_euclidean(std::forward<Arg>(arg))));
-      return make_matrix<CCols, CRows>(make_self_contained<Arg>(std::move(b)));
+      return Matrix<CCols, CRows, decltype(b)>(std::move(b));
     }
     else
     {
       auto b = transpose(nested_matrix(std::forward<Arg>(arg)));
-      return make_matrix<CCols, CRows>(make_self_contained<Arg>(std::move(b)));
+      return Matrix<CCols, CRows, decltype(b)>(std::move(b));
     }
   }
 
@@ -200,12 +198,12 @@ namespace OpenKalman
     if constexpr(euclidean_transformed<Arg>)
     {
       auto b = adjoint(nested_matrix(from_euclidean(std::forward<Arg>(arg))));
-      return make_matrix<CCols, CRows>(make_self_contained<Arg>(std::move(b)));
+      return Matrix<CCols, CRows, decltype(b)>(std::move(b));
     }
     else
     {
       auto b = adjoint(nested_matrix(std::forward<Arg>(arg)));
-      return make_matrix<CCols, CRows>(make_self_contained<Arg>(std::move(b)));
+      return Matrix<CCols, CRows, decltype(b)>(std::move(b));
     }
   }
 
@@ -262,6 +260,8 @@ namespace OpenKalman
   reduce_columns(Arg&& arg) noexcept
   {
     /// \todo add an option where all the column coefficients are the same, but not Axis.
+    using C = typename MatrixTraits<Arg>::RowCoefficients;
+
     if constexpr(MatrixTraits<Arg>::columns == 1)
     {
       return std::forward<Arg>(arg);
@@ -269,19 +269,17 @@ namespace OpenKalman
     else if constexpr(euclidean_transformed<Arg>)
     {
       auto b = reduce_columns(nested_matrix(std::forward<Arg>(arg)));
-      return MatrixTraits<Arg>::make(make_self_contained<Arg>(std::move(b)));
+      return EuclideanMean<C, decltype(b)> {std::move(b)};
     }
     else if constexpr(mean<Arg>)
     {
-      using C = typename MatrixTraits<Arg>::RowCoefficients;
-      return MatrixTraits<Arg>::make(from_euclidean<C>(
-        make_self_contained<Arg>(reduce_columns(nested_matrix(to_euclidean(std::forward<Arg>(arg)))))));
+      auto b = from_euclidean<C>(reduce_columns(nested_matrix(to_euclidean(std::forward<Arg>(arg)))));
+      return Mean<C, decltype(b)> {std::move(b)};
     }
     else
     {
-      using C = typename MatrixTraits<Arg>::RowCoefficients;
       auto b = reduce_columns(nested_matrix(std::forward<Arg>(arg)));
-      return make_matrix<C, Axis>(make_self_contained<Arg>(std::move(b)));
+      return Matrix<C, Axis, decltype(b)> {std::move(b)};
     }
   }
 
@@ -378,10 +376,10 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
         nested_matrix(std::forward<Vs>(vs))...);
       if constexpr(CC::axes_only)
       {
-        return MatrixTraits<V>::template make<RC, CC>(std::move(cat));
+        return MatrixTraits<V>::template make<RC, CC>(std::forward<decltype(cat)>(cat));
       }
       else
-        return make_matrix<RC, CC>(std::move(cat));
+        return make_matrix<RC, CC>(std::forward<decltype(cat)>(cat));
     }
     else
     {
@@ -767,7 +765,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   template<std::size_t count, typename Function> requires
     requires(const Function& f) {
       {f()} -> typed_matrix;
-      {f()} -> column_vector;
+      {nested_matrix(f())} -> column_vector;
     }
 #else
   template<std::size_t count, typename Function, std::enable_if_t<
@@ -790,7 +788,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   template<std::size_t count, typename Function> requires
     requires(const Function& f, std::size_t i) {
       {f(i)} -> typed_matrix;
-      {f(i)} -> column_vector;
+      {nested_matrix(f(i))} -> column_vector;
     }
 #else
   template<std::size_t count, typename Function, std::enable_if_t<

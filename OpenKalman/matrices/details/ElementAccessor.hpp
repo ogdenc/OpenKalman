@@ -18,6 +18,7 @@ namespace OpenKalman::internal
   /**
    * \internal
    * \brief Settable ElementAccessor specialization.
+   * \todo Add a template parameter for number of coefficients, and provide distinct template instances.
    */
   template<typename Scalar>
   struct ElementAccessor<true, Scalar>
@@ -112,7 +113,7 @@ namespace OpenKalman::internal
       std::is_constructible_v<std::function<void()>, PreAccess&&> and
       std::is_same_v<Scalar, typename MatrixTraits<T>::Scalar> and element_gettable<T, 2>, int> = 0>
 #endif
-    ElementAccessor(T& t, std::size_t i, std::size_t j, PreAccess&& pre_access = []{})
+    ElementAccessor(const T& t, std::size_t i, std::size_t j, PreAccess&& pre_access = []{})
       : before_access {std::forward<PreAccess>(pre_access)},
         getter {[&t, i, j] () -> Scalar { return get_element(t, i, j); }} {}
 
@@ -126,7 +127,7 @@ namespace OpenKalman::internal
       std::is_constructible_v<std::function<void()>, PreAccess&&> and
       std::is_same_v<Scalar, typename MatrixTraits<T>::Scalar> and element_gettable<T, 1>, int> = 0>
 #endif
-    ElementAccessor(T& t, std::size_t i, PreAccess&& pre_access = []{})
+    ElementAccessor(const T& t, std::size_t i, PreAccess&& pre_access = []{})
       : before_access {std::forward<PreAccess>(pre_access)},
         getter {[&t, i] () -> Scalar { return get_element(t, i); }} {}
 

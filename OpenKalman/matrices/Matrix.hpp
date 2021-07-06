@@ -13,9 +13,9 @@
 
 namespace OpenKalman
 {
-  ///////////////////////////
+  // --------------------- //
   //        Matrix         //
-  ///////////////////////////
+  // --------------------- //
 
 #ifdef __cpp_concepts
   template<coefficients RowCoefficients, coefficients ColumnCoefficients, typed_matrix_nestable NestedMatrix> requires
@@ -86,8 +86,8 @@ namespace OpenKalman
       std::is_constructible_v<NestedMatrix,
         decltype(from_euclidean<RowCoefficients>(nested_matrix(std::declval<Arg&&>())))>, int> = 0>
 #endif
-    Matrix(Arg&& other) noexcept
-      : Base {from_euclidean<RowCoefficients>(nested_matrix(std::forward<Arg>(other)))} {}
+    Matrix(Arg&& arg) noexcept
+      : Base {from_euclidean<RowCoefficients>(nested_matrix(std::forward<Arg>(arg)))} {}
 
 
     /// Construct from compatible \ref OpenKalman::typed_matrix_nestable "typed_matrix_nestable".

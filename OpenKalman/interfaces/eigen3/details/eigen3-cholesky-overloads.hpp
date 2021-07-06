@@ -72,11 +72,11 @@ namespace OpenKalman::Eigen3
     }
     else if constexpr(one_by_one_matrix<D>)
     {
-      return make_self_contained<D>(std::forward<D>(d).array().square().matrix());
+      return std::forward<D>(d).array().square().matrix();
     }
     else
     {
-      auto n = make_self_contained<D>(std::forward<D>(d).diagonal().array().square().matrix());
+      auto n = std::forward<D>(d).diagonal().array().square().matrix();
       return DiagonalMatrix<decltype(n)> {std::move(n)};
     }
   }
@@ -102,11 +102,11 @@ namespace OpenKalman::Eigen3
     }
     else if constexpr(one_by_one_matrix<D>)
     {
-      return make_self_contained(std::forward<D>(d).cwiseSqrt());
+      return std::forward<D>(d).cwiseSqrt();
     }
     else
     {
-      auto n = make_self_contained<D>(std::forward<D>(d).diagonal().cwiseSqrt());
+      auto n = std::forward<D>(d).diagonal().cwiseSqrt();
       return DiagonalMatrix<decltype(n)> {std::move(n)};
     }
   }
@@ -131,7 +131,7 @@ namespace OpenKalman::Eigen3
     }
     else
     {
-      auto n = make_self_contained<D>(nested_matrix(std::forward<D>(d)).array().square().matrix());
+      auto n = nested_matrix(std::forward<D>(d)).array().square().matrix();
       return DiagonalMatrix<decltype(n)> {std::move(n)};
     }
   }
@@ -156,7 +156,7 @@ namespace OpenKalman::Eigen3
     }
     else
     {
-      auto n = make_self_contained<D>(nested_matrix(std::forward<D>(d)).cwiseSqrt());
+      auto n = nested_matrix(std::forward<D>(d)).cwiseSqrt();
       return DiagonalMatrix<decltype(n)> {std::move(n)};
     }
   }
@@ -186,7 +186,7 @@ namespace OpenKalman::Eigen3
     else
     {
       static_assert(MatrixTraits<A>::storage_triangle == TriangleType::diagonal);
-      auto n = make_self_contained<A>(nested_matrix(std::forward<A>(a)).diagonal().array().square().matrix());
+      auto n = nested_matrix(std::forward<A>(a)).diagonal().array().square().matrix();
       return DiagonalMatrix<decltype(n)> {std::move(n)};
     }
   }
@@ -237,7 +237,7 @@ namespace OpenKalman::Eigen3
         ConstantMatrix<Scalar, sqrt_s, dimensions, 1> col0;
         ZeroMatrix<Scalar, dimensions, dimensions - 1> othercols;
         auto m = concatenate_horizontal(col0, othercols);
-        return TriangularMatrix<std::decay_t<decltype(m)>, triangle_type> {std::move(m)};
+        return TriangularMatrix<decltype(m), triangle_type> {std::move(m)};
       }
       else
       {
@@ -245,7 +245,7 @@ namespace OpenKalman::Eigen3
         ConstantMatrix<Scalar, sqrt_s, 1, dimensions> row0;
         ZeroMatrix<Scalar, dimensions - 1, dimensions> otherrows;
         auto m = concatenate_vertical(row0, otherrows);
-        return TriangularMatrix<std::decay_t<decltype(m)>, triangle_type> {std::move(m)};
+        return TriangularMatrix<decltype(m), triangle_type> {std::move(m)};
       }
     }
     else if constexpr (std::is_same_v<
@@ -287,7 +287,7 @@ namespace OpenKalman::Eigen3
     }
     else if constexpr (MatrixTraits<A>::storage_triangle == TriangleType::diagonal)
     {
-      auto n = make_self_contained<A>(nested_matrix(std::forward<A>(a)).diagonal().cwiseSqrt());
+      auto n = nested_matrix(std::forward<A>(a)).diagonal().cwiseSqrt();
       return DiagonalMatrix<decltype(n)> {std::move(n)};
     }
     else
@@ -385,8 +385,8 @@ namespace OpenKalman::Eigen3
     }
     else if constexpr (triangle_type == TriangleType::diagonal)
     {
-      return DiagonalMatrix {
-        make_self_contained<T>(nested_matrix(std::forward<T>(t)).diagonal().array().square().matrix())};
+      auto n = nested_matrix(std::forward<T>(t)).diagonal().array().square().matrix();
+      return DiagonalMatrix<decltype(n)> {std::move(n)};
     }
     else
     {
@@ -431,7 +431,7 @@ namespace OpenKalman::Eigen3
     else
     {
       static_assert(MatrixTraits<T>::triangle_type == TriangleType::diagonal);
-      auto n = make_self_contained<T>(nested_matrix(std::forward<T>(t)).diagonal().cwiseSqrt());
+      auto n = nested_matrix(std::forward<T>(t)).diagonal().cwiseSqrt();
       return DiagonalMatrix<decltype(n)> {std::move(n)};
     }
 

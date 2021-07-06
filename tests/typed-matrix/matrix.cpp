@@ -343,10 +343,8 @@ TEST(matrices, TypedMatrix_overloads)
   static_assert(equivalent_to<typename MatrixTraits<decltype(to_diagonal(Mat21 {2, 3}))>::ColumnCoefficients, C2>);
 
   EXPECT_TRUE(is_near(transpose(Mat23 {1, 2, 3, 4, 5, 6}).nested_matrix(), Mat32 {1, 4, 2, 5, 3, 6}));
-  static_assert(std::is_same_v<std::decay_t<decltype(make_self_contained(transpose(Mat23 {1, 2, 3, 4, 5, 6})))>, Mat32>);
 
   EXPECT_TRUE(is_near(adjoint(Mat23 {1, 2, 3, 4, 5, 6}).nested_matrix(), Mat32 {1, 4, 2, 5, 3, 6}));
-  static_assert(std::is_same_v<std::decay_t<decltype(make_self_contained(adjoint(Mat23 {1, 2, 3, 4, 5, 6})))>, Mat32>);
 
   EXPECT_NEAR(determinant(Mat22 {1, 2, 3, 4}), -2, 1e-6);
 

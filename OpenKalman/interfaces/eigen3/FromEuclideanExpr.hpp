@@ -426,7 +426,7 @@ namespace OpenKalman
     static auto make(Arg&& arg) noexcept
     {
       using namespace Eigen3;
-      return from_euclidean<C>(make_self_contained<Arg>(std::forward<Arg>(arg)));
+      return from_euclidean<C>(std::forward<Arg>(arg));
     }
 
 

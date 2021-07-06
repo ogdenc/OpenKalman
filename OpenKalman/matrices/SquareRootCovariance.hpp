@@ -507,14 +507,15 @@ namespace OpenKalman
     }
 
 
-    /*********
-     * Other
-     *********/
+    // ------- //
+    //  Other  //
+    // ------- //
 
     /**
      * \brief Take the Cholesky square of *this.
      * \details If *this is an lvalue reference, this creates a reference to the nested matrix rather than a copy.
      * \return A Covariance based on *this.
+     * \note One cannot assume that the lifetime of the result is longer than the lifetime of the object.
      */
     auto square() &
     {
@@ -524,7 +525,7 @@ namespace OpenKalman
       }
       else
       {
-        auto n = make_self_contained(Cholesky_square(nested_matrix()));
+        auto n = Cholesky_square(nested_matrix());
         return Covariance<Coefficients, decltype(n)> {std::move(n)};
       }
     }
@@ -539,7 +540,7 @@ namespace OpenKalman
       }
       else
       {
-        auto n = make_self_contained(Cholesky_square(nested_matrix()));
+        auto n = Cholesky_square(nested_matrix());
         return Covariance<Coefficients, decltype(n)> {std::move(n)};
       }
     }
@@ -550,11 +551,11 @@ namespace OpenKalman
     {
       if constexpr ((not diagonal_matrix<NestedMatrix>) or identity_matrix<NestedMatrix> or zero_matrix<NestedMatrix>)
       {
-        return Covariance<Coefficients, self_contained_t<NestedMatrix>> {std::move(*this)};
+        return Covariance<Coefficients, std::remove_reference_t<NestedMatrix>> {std::move(*this)};
       }
       else
       {
-        auto n = make_self_contained(Cholesky_square(std::move(*this).nested_matrix()));
+        auto n = Cholesky_square(std::move(*this).nested_matrix());
         return Covariance<Coefficients, decltype(n)> {std::move(n)};
       }
     }
@@ -565,11 +566,11 @@ namespace OpenKalman
     {
       if constexpr ((not diagonal_matrix<NestedMatrix>) or identity_matrix<NestedMatrix> or zero_matrix<NestedMatrix>)
       {
-        return Covariance<Coefficients, self_contained_t<NestedMatrix>> {std::move(*this)};
+        return Covariance<Coefficients, std::remove_reference_t<NestedMatrix>> {std::move(*this)};
       }
       else
       {
-        auto n = make_self_contained(Cholesky_square(std::move(*this).nested_matrix()));
+        auto n = Cholesky_square(std::move(*this).nested_matrix());
         return Covariance<Coefficients, decltype(n)> {std::move(n)};
       }
     }

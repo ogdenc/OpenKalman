@@ -60,8 +60,8 @@ namespace OpenKalman
     else if constexpr (cholesky_form<Arg1> and cholesky_form<Arg2> and
       not square_root_covariance<Arg1> and not square_root_covariance<Arg2>)
     {
-      decltype(auto) e1 = nested_matrix(std::forward<Arg1>(arg1)); using E1 = decltype((e1));
-      decltype(auto) e2 = nested_matrix(std::forward<Arg2>(arg2)); using E2 = decltype((e2));
+      decltype(auto) e1 = nested_matrix(std::forward<Arg1>(arg1)); using E1 = decltype(e1);
+      decltype(auto) e2 = nested_matrix(std::forward<Arg2>(arg2)); using E2 = decltype(e2);
       if constexpr (upper_triangular_matrix<E1> and upper_triangular_matrix<E2>)
       {
         return make_covariance<C>(make_self_contained<E1, E2>(
@@ -85,8 +85,8 @@ namespace OpenKalman
     }
     else
     {
-      decltype(auto) b1 = OpenKalman::detail::to_nestable(std::forward<Arg1>(arg1)); using B1 = decltype((b1));
-      decltype(auto) b2 = OpenKalman::detail::to_nestable(std::forward<Arg2>(arg2)); using B2 = decltype((b2));
+      decltype(auto) b1 = OpenKalman::detail::to_nestable(std::forward<Arg1>(arg1)); using B1 = decltype(b1);
+      decltype(auto) b2 = OpenKalman::detail::to_nestable(std::forward<Arg2>(arg2)); using B2 = decltype(b2);
       auto sum = make_self_contained<decltype(b1), decltype(b2)>(std::forward<B1>(b1) + std::forward<B2>(b2));
       if constexpr (self_adjoint_matrix<decltype(sum)>)
       {
@@ -147,8 +147,8 @@ namespace OpenKalman
     }
     else
     {
-      decltype(auto) b1 = OpenKalman::detail::to_nestable(std::forward<Arg1>(arg1)); using B1 = decltype((b1));
-      decltype(auto) b2 = OpenKalman::detail::to_nestable(std::forward<Arg2>(arg2)); using B2 = decltype((b2));
+      decltype(auto) b1 = OpenKalman::detail::to_nestable(std::forward<Arg1>(arg1)); using B1 = decltype(b1);
+      decltype(auto) b2 = OpenKalman::detail::to_nestable(std::forward<Arg2>(arg2)); using B2 = decltype(b2);
 
       auto diff = make_self_contained<B1, B2>(std::forward<B1>(b1) - std::forward<B2>(b2));
 
@@ -199,7 +199,7 @@ namespace OpenKalman
 
       decltype(auto) b1 = OpenKalman::internal::to_covariance_nestable(std::forward<Arg1>(arg1));
       decltype(auto) b2 = OpenKalman::internal::to_covariance_nestable(std::forward<Arg2>(arg2));
-      using B1 = decltype((b1)); using B2 = decltype((b2));
+      using B1 = decltype(b1); using B2 = decltype(b2);
 
       auto prod = make_self_contained<B1, B2>(std::forward<B1>(b1) * std::forward<B2>(b2));
 
@@ -255,7 +255,7 @@ namespace OpenKalman
     {
       decltype(auto) mb = nested_matrix(std::forward<M>(m));
       decltype(auto) cb = OpenKalman::internal::to_covariance_nestable(std::forward<Cov>(cov));
-      using Mb = decltype((mb)); using Cb = decltype((cb));
+      using Mb = decltype(mb); using Cb = decltype(cb);
       auto prod = make_self_contained<Mb, Cb>(std::forward<Mb>(mb) * std::forward<Cb>(cb));
       return Matrix<RC, CC, decltype(prod)> {std::move(prod)};
     }
@@ -299,7 +299,7 @@ namespace OpenKalman
     {
       decltype(auto) cb = OpenKalman::internal::to_covariance_nestable(std::forward<Cov>(cov));
       decltype(auto) mb = nested_matrix(std::forward<M>(m));
-      using Cb = decltype((cb)); using Mb = decltype((mb));
+      using Cb = decltype(cb); using Mb = decltype(mb);
       auto prod = make_self_contained<Cb, Mb>(std::forward<Cb>(cb) * std::forward<Mb>(mb));
       return Matrix<RC, CC, decltype(prod)> {std::move(prod)};
     }

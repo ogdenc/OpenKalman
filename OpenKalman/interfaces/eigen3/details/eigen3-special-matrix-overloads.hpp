@@ -690,8 +690,8 @@ namespace OpenKalman::Eigen3
   inline auto
   rank_update(const Arg& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
   {
-    auto sa = (nested_matrix(arg).array().square() + alpha * u.diagonal().array().square()).sqrt().matrix();
-    return DiagonalMatrix {make_self_contained(std::move(sa))};
+    auto d = (nested_matrix(arg).array().square() + alpha * u.diagonal().array().square()).sqrt().matrix();
+    return DiagonalMatrix<decltype(d)> {std::move(d)};
   }
 
 
@@ -1463,7 +1463,7 @@ namespace OpenKalman::Eigen3
   inline auto
   get_element(Arg&& arg, const std::size_t i, const std::size_t j)
   {
-    decltype(auto) n = nested_matrix(std::forward<Arg>(arg)); using N = decltype((n));
+    decltype(auto) n = nested_matrix(std::forward<Arg>(arg)); using N = decltype(n);
 
     if constexpr(lower_triangular_storage<Arg>)
     {
@@ -1877,8 +1877,7 @@ namespace OpenKalman::Eigen3
     static_assert(std::is_constructible_v<Ps, Params...> or sizeof...(Params) == rows or sizeof...(Params) == rows * cols,
       "Params... must be (1) a parameter set or list of parameter sets, or "
       "(2) a list of parameter sets, one for each diagonal coefficient.");
-    return MatrixTraits<ReturnType>::make(
-      make_self_contained(randomize<B, distribution_type, random_number_engine>(params...)));
+    return MatrixTraits<ReturnType>::make(randomize<B, distribution_type, random_number_engine>(params...));
   }
 
 

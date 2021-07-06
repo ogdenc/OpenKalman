@@ -60,7 +60,7 @@ namespace OpenKalman::internal
       // diagonal -> diagonal
       if constexpr (column_vector<Arg> and not one_by_one_matrix<Arg>)
       {
-        return MatrixTraits<T>::make(make_self_contained<Arg>(std::forward<Arg>(arg)));
+        return MatrixTraits<T>::make(std::forward<Arg>(arg));
       }
       else
       {
@@ -71,7 +71,7 @@ namespace OpenKalman::internal
     }
     else if constexpr (diagonal_matrix<Arg>)
     {
-      return MatrixTraits<T>::make(make_self_contained<Arg>(std::forward<Arg>(arg)));
+      return MatrixTraits<T>::make(std::forward<Arg>(arg));
     }
     else if constexpr (self_adjoint_matrix<T> and triangular_matrix<Arg>)
     {
@@ -94,7 +94,7 @@ namespace OpenKalman::internal
     else if constexpr (typed_matrix_nestable<Arg> and not covariance_nestable<Arg>)
     {
       // typed_matrix_nestable -> covariance_nestable:
-      return MatrixTraits<T>::make(make_self_contained<Arg>(std::forward<Arg>(arg)));
+      return MatrixTraits<T>::make(std::forward<Arg>(arg));
     }
     else
     {

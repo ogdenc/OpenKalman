@@ -825,8 +825,8 @@ namespace OpenKalman::Eigen3
 #endif
   inline auto operator*(Arg1&& arg1, Arg2&& arg2)
   {
-    auto prod = make_self_contained(std::forward<Arg1>(arg1).view() * make_native_matrix(std::forward<Arg2>(arg2)));
-    static_assert(eigen_matrix<decltype(prod)> or eigen_diagonal_expr<decltype(prod)>);
+    auto prod = make_native_matrix(std::forward<Arg2>(arg2));
+    prod.applyOnTheLeft(std::forward<Arg1>(arg1).view());
     if constexpr(OpenKalman::internal::same_triangle_type_as<Arg1, Arg2>)
     {
       return MatrixTraits<Arg1>::make(std::move(prod));
