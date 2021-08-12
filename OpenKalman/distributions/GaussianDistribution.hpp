@@ -69,21 +69,28 @@ namespace OpenKalman
 
   public:
 
-    /**************
-     * Constructors
-     **************/
+    // -------------- //
+    //  Constructors  //
+    // -------------- //
 
     /*
      * \brief Default constructor.
      */
-    GaussianDistribution() : mu {}, sigma {} {}
+#ifdef __cpp_concepts
+    GaussianDistribution() requires std::default_initializable<Mean> and std::default_initializable<Covariance>
+#else
+    template<typename T = Mean, typename U = Covariance, std::enable_if_t<
+      std::is_default_constructible_v<T> and std::is_default_constructible_v<U>, int> = 0>
+    GaussianDistribution()
+#endif
+      : mu {}, sigma {} {}
 
 
     /**
      * \brief Copy constructor.
      */
     GaussianDistribution(const GaussianDistribution& other)
-      : mu(other.mu), sigma(other.sigma) {}
+      : mu {other.mu}, sigma {other.sigma} {}
 
 
     /**
@@ -105,8 +112,7 @@ namespace OpenKalman
       equivalent_to<typename DistributionTraits<Arg>::Coefficients, Coefficients>, int> = 0>
 #endif
     GaussianDistribution(Arg&& arg) noexcept
-      : mu {std::forward<decltype(arg.mu)>(arg.mu)},
-        sigma {std::forward<decltype(arg.sigma)>(arg.sigma)} {}
+      : mu {std::forward<Arg>(arg).mu}, sigma {std::forward<Arg>(arg).sigma} {}
 
 
     /**
@@ -141,29 +147,22 @@ namespace OpenKalman
 
 
     /**
-     * \brief Construct from an rvalue of a \ref mean and a \ref covariance or \ref square_matrix.
+     * \brief Construct from an rvalue of a \ref mean and a \ref covariance, \ref typed_matrix,
+     * or \ref covariance_nestable.
      */
 #ifdef __cpp_concepts
-    template<typename Cov> requires (covariance<Cov> or typed_matrix<Cov>) and
-      square_matrix<Cov> and equivalent_to<typename MatrixTraits<Cov>::RowCoefficients, Coefficients>
+    template<typename Cov> requires ((covariance<Cov> or (typed_matrix<Cov> and square_matrix<Cov>)) and
+        equivalent_to<typename MatrixTraits<Cov>::RowCoefficients, Coefficients>) or
+      (covariance_nestable<Cov> and MatrixTraits<Cov>::rows == dimensions)
 #else
-    template<typename Cov, std::enable_if_t<(covariance<Cov> or typed_matrix<Cov>) and
-      square_matrix<Cov> and equivalent_to<typename MatrixTraits<Cov>::RowCoefficients, Coefficients>, int> = 0>
-#endif
+    template<typename Cov, std::enable_if_t<(covariance<Cov> or (typed_matrix<Cov> and square_matrix<Cov>)) and
+        equivalent_to<typename MatrixTraits<Cov>::RowCoefficients, Coefficients>, int> = 0>
     GaussianDistribution(Mean&& mean, Cov&& cov) : mu {std::move(mean)}, sigma {cov_adapter(std::forward<Cov>(cov))} {}
 
-
-    /**
-     * \brief Construct from an rvalue of a \ref mean and a \ref covariance_nestable.
-     */
-#ifdef __cpp_concepts
-    template<covariance_nestable Cov> requires (MatrixTraits<Cov>::rows == dimensions)
-#else
-    template<typename Cov, std::enable_if_t<covariance_nestable<Cov> and
-      (MatrixTraits<Cov>::rows == dimensions), int> = 0>
+    template<typename Cov, std::enable_if_t<
+      covariance_nestable<Cov> and (MatrixTraits<Cov>::rows == dimensions), int> = 0>
 #endif
-    GaussianDistribution(Mean&& mean, Cov&& cov)
-      : mu {std::move(mean)}, sigma {cov_adapter(std::forward<Cov>(cov))} {}
+    GaussianDistribution(Mean&& mean, Cov&& cov) : mu {std::move(mean)}, sigma {cov_adapter(std::forward<Cov>(cov))} {}
 
 
     /**
@@ -258,10 +257,9 @@ namespace OpenKalman
 #endif
     explicit GaussianDistribution(Cov&& cov) : mu {Mean::zero()}, sigma {cov_adapter(std::forward<Cov>(cov))}{}
 
-
-    /**********************
-     * Assignment Operators
-     **********************/
+    // ---------------------- //
+    //  Assignment Operators  //
+    // ---------------------- //
 
     /// Copy assignment operator.
     GaussianDistribution& operator=(const GaussianDistribution& other)
@@ -270,6 +268,7 @@ namespace OpenKalman
       sigma = other.sigma;
       return *this;
     }
+
 
     /// Move assignment operator.
     GaussianDistribution& operator=(GaussianDistribution&& other) noexcept
@@ -282,16 +281,23 @@ namespace OpenKalman
       return *this;
     }
 
+
     /// Assign from another compatible distribution.
-    template<typename Arg, std::enable_if_t<gaussian_distribution<Arg>, int> = 0>
-    GaussianDistribution& operator=(Arg&& other) noexcept
+#ifdef __cpp_concepts
+    template<gaussian_distribution Arg> requires
+      equivalent_to<typename DistributionTraits<Arg>::Coefficients, Coefficients>
+#else
+    template<typename Arg, std::enable_if_t<gaussian_distribution<Arg> and
+      equivalent_to<typename DistributionTraits<Arg>::Coefficients, Coefficients>, int> = 0>
+#endif
+    GaussianDistribution& operator=(Arg&& arg) noexcept
     {
-      static_assert(equivalent_to<typename DistributionTraits<Arg>::Coefficients, Coefficients>);
-      if constexpr (std::is_same_v<std::decay_t<Arg>, GaussianDistribution>) if (this == &other) return *this;
-      mu = std::forward<decltype(other.mu)>(other.mu);
-      sigma = std::forward<decltype(other.sigma)>(other.sigma);
+      if constexpr (std::is_same_v<std::decay_t<Arg>, GaussianDistribution>) if (this == &arg) return *this;
+      mu = std::forward<Arg>(arg).mu;
+      sigma = std::forward<Arg>(arg).sigma;
       return *this;
     }
+
 
     auto& operator+=(const GaussianDistribution& arg)
     {
@@ -300,12 +306,14 @@ namespace OpenKalman
       return *this;
     };
 
+
     auto& operator-=(const GaussianDistribution& arg)
     {
       mu -= arg.mu;
       sigma -= arg.sigma;
       return *this;
     };
+
 
     template<typename S, std::enable_if_t<std::is_convertible_v<S, const Scalar>, int> = 0>
     auto& operator*=(const S scale)
@@ -315,6 +323,7 @@ namespace OpenKalman
       return *this;
     };
 
+
     template<typename S, std::enable_if_t<std::is_convertible_v<S, const Scalar>, int> = 0>
     auto& operator/=(const S scale)
     {
@@ -323,9 +332,9 @@ namespace OpenKalman
       return *this;
     };
 
-    /*********
-     * Other
-     *********/
+    // ------- //
+    //  Other  //
+    // ------- //
 
   private:
 
@@ -345,30 +354,36 @@ namespace OpenKalman
     static auto normal() { return make(Mean::zero(), Covariance::identity()); }
 
 
-    /// \brief Generate a random value from the distribution.
-    /// \return A random, single-column typed matrix with probability based on the distribution
+    /**
+     * \brief Generate a random value from the distribution.
+     * \return A random, single-column typed matrix with probability based on the distribution
+     */
     auto operator()() const
     {
-      auto norm = randomize<
-        Matrix<Coefficients, Axis, MeanNestedMatrix>, std::normal_distribution, random_number_engine>(0.0, 1.0);
+      auto norm = randomize<Matrix<Coefficients, Axis, MeanNestedMatrix>,
+        std::normal_distribution, random_number_engine>(0.0, 1.0);
       auto s = square_root(sigma);
-      if constexpr(not lower_triangular_matrix<CovarianceNestedMatrix>)
-        return make_self_contained(make_matrix(mu) + transpose(s) * norm);
+      if constexpr(upper_triangular_matrix<decltype(s)>)
+        return make_self_contained(Matrix {mu} + transpose(std::move(s)) * std::move(norm));
       else
-        return make_self_contained(make_matrix(mu) + s * norm);
+        return make_self_contained(Matrix {mu} + std::move(s) * std::move(norm));
     }
 
 
-    /// \brief Log-likelihood function for a set of i.i.d. observations z.
-    /// \param z One or more i.i.d. observations in the same multivariate space as the mean of the distribution.
-    template<typename...Z>
+    /**
+     * \brief \brief Log-likelihood function for a set of i.i.d. observations z.
+     * \param z One or more i.i.d. observations in the same multivariate space as the mean of the distribution.
+     */
+#ifdef __cpp_concepts
+    template<typed_matrix...Z> requires (sizeof...(Z) > 0) and
+      ((column_vector<Z> and equivalent_to<typename MatrixTraits<Z>::RowCoefficients, Coefficients>) and ...)
+#else
+    template<typename...Z, std::enable_if_t<(sizeof...(Z) > 0) and ((typed_matrix<Z> and column_vector<Z> and
+      equivalent_to<typename MatrixTraits<Z>::RowCoefficients, Coefficients>) and ...), int> = 0>
+#endif
     auto log_likelihood(const Z&...z) const
     {
-      static_assert((typed_matrix<Z> and ...));
-      static_assert((column_vector<Z> and ...));
-      static_assert(((MatrixTraits<Z>::rows == dimensions) and ...));
       static constexpr auto n = sizeof...(Z);
-      static_assert(n >= 1);
       auto sum = (trace(transpose(z - mu) * solve(sigma, z - mu)) + ...);
       return -0.5 * (n * (dimensions * std::log(2 * std::numbers::pi_v<Scalar>) + std::log(determinant(sigma))) + sum);
     }
@@ -743,9 +758,9 @@ namespace OpenKalman
   }
 
 
-  ///////////////////////////
+  // --------------------- //
   //        Traits         //
-  ///////////////////////////
+  // --------------------- //
 
   template<typename Coeffs, typename NestedMean, typename NestedCovariance, typename re>
   struct DistributionTraits<GaussianDistribution<Coeffs, NestedMean, NestedCovariance, re>>
@@ -763,22 +778,22 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<typename C = Coefficients, typed_matrix_nestable M, covariance_nestable Cov> requires
+    template<coefficients C = Coefficients, typed_matrix_nestable M, covariance_nestable Cov> requires
       column_vector<M> and (MatrixTraits<M>::rows == MatrixTraits<Cov>::rows)
 #else
     template<typename C = Coefficients, typename M, typename Cov,
-      std::enable_if_t<typed_matrix_nestable<M> and covariance_nestable<Cov> and
+      std::enable_if_t<coefficients<C> and typed_matrix_nestable<M> and covariance_nestable<Cov> and
       column_vector<M> and (MatrixTraits<M>::rows == MatrixTraits<Cov>::rows), int> = 0>
 #endif
     static auto make(M&& mean, Cov&& covariance) noexcept
     {
-      return make_GaussianDistribution<C, random_number_engine>(
-        std::forward<M>(mean), std::forward<Cov>(covariance));
+      return make_GaussianDistribution<C, random_number_engine>(std::forward<M>(mean), std::forward<Cov>(covariance));
     }
 
     static auto zero() { return make(MatrixTraits<NestedMean>::zero(), MatrixTraits<NestedCovariance>::zero()); }
 
     static auto normal() { return make(MatrixTraits<NestedMean>::zero(), MatrixTraits<NestedCovariance>::identity()); }
+
   };
 
 
@@ -786,27 +801,41 @@ namespace OpenKalman
   //        Overloads         //
   // ------------------------ //
 
+#ifdef __cpp_concepts
+  template<gaussian_distribution Arg>
+#else
   template<typename Arg, std::enable_if_t<gaussian_distribution<Arg>, int> = 0>
+#endif
   constexpr decltype(auto)
   mean_of(Arg&& arg) noexcept
   {
-    return std::forward<Arg>(arg).mu;
+    return (std::forward<Arg>(arg).mu);
   }
 
 
+#ifdef __cpp_concepts
+  template<gaussian_distribution Arg>
+#else
   template<typename Arg, std::enable_if_t<gaussian_distribution<Arg>, int> = 0>
+#endif
   constexpr decltype(auto)
   covariance_of(Arg&& arg) noexcept
   {
-    return std::forward<Arg>(arg).sigma;
+    return (std::forward<Arg>(arg).sigma);
   }
 
 
   /// Convert to self-contained version of the distribution.
+#ifdef __cpp_concepts
+  template<typename...Ts, gaussian_distribution Arg>
+#else
   template<typename...Ts, typename Arg, std::enable_if_t<gaussian_distribution<Arg>, int> = 0>
+#endif
   constexpr decltype(auto)
   make_self_contained(Arg&& arg) noexcept
   {
+    using re = typename DistributionTraits<Arg>::random_number_engine;
+
     if constexpr(self_contained<Arg> or
       (std::is_lvalue_reference_v<typename DistributionTraits<Arg>::Mean> and
         std::is_lvalue_reference_v<typename DistributionTraits<Arg>::Covariance>) or
@@ -814,34 +843,45 @@ namespace OpenKalman
     {
       return std::forward<Arg>(arg);
     }
+
     /// \todo Check this:
     else if constexpr(std::is_lvalue_reference_v<typename DistributionTraits<Arg>::Mean> and
         not std::is_lvalue_reference_v<typename DistributionTraits<Arg>::Covariance>)
     {
-      return make_GaussianDistribution(mean_of(arg), make_self_contained(covariance_of(arg)));
+      return make_GaussianDistribution<re>(mean_of(std::forward<Arg>(arg)),
+        make_self_contained(covariance_of(std::forward<Arg>(arg))));
     }
+
     else if constexpr(not std::is_lvalue_reference_v<typename DistributionTraits<Arg>::Mean> and
       std::is_lvalue_reference_v<typename DistributionTraits<Arg>::Covariance>)
     {
-      return make_GaussianDistribution(make_self_contained(mean_of(arg)), covariance_of(arg));
+      return make_GaussianDistribution<re>(make_self_contained(mean_of(std::forward<Arg>(arg))),
+        covariance_of(std::forward<Arg>(arg)));
     }
+
     else
     {
-      return make_GaussianDistribution(make_self_contained(mean_of(arg)), make_self_contained(covariance_of(arg)));
+      return make_GaussianDistribution<re>(make_self_contained(mean_of(std::forward<Arg>(arg))),
+        make_self_contained(covariance_of(std::forward<Arg>(arg))));
     }
   }
 
 
+#ifdef __cpp_concepts
+  template<gaussian_distribution D, gaussian_distribution ... Ds>
+#else
   template<typename D, typename ... Ds,
     std::enable_if_t<(gaussian_distribution<D> and ... and gaussian_distribution<Ds>), int> = 0>
+#endif
   auto
-  concatenate(const D& d, const Ds& ... ds)
+  concatenate(D&& d, Ds&& ... ds)
   {
     if constexpr(sizeof...(Ds) > 0)
     {
-      auto m = concatenate(mean_of(d), mean_of(ds)...);
-      auto cov = concatenate(covariance_of(d), covariance_of(ds)...);
-      return make_GaussianDistribution(std::move(m), std::move(cov));
+      using re = typename DistributionTraits<D>::random_number_engine;
+      auto m = concatenate(mean_of(std::forward<D>(d)), mean_of(std::forward<Ds>(ds))...);
+      auto cov = concatenate(covariance_of(std::forward<D>(d)), covariance_of(std::forward<Ds>(ds))...);
+      return make_GaussianDistribution<re>(std::move(m), std::move(cov));
     }
     else
     {
@@ -855,7 +895,8 @@ namespace OpenKalman
     template<typename Dist, typename Means, typename Covariances, std::size_t ... ints>
     inline auto zip_dist(Means&& ms, Covariances&& cs, std::index_sequence<ints...>)
     {
-      return std::tuple {make_GaussianDistribution(
+      using re = typename DistributionTraits<Dist>::random_number_engine;
+      return std::tuple {make_GaussianDistribution<re>(
         std::get<ints>(std::forward<Means>(ms)),
         std::get<ints>(std::forward<Covariances>(cs)))...};
     };
@@ -863,12 +904,18 @@ namespace OpenKalman
 
 
   /// Split distribution.
-  template<typename ... Cs, typename D, std::enable_if_t<gaussian_distribution<D>, int> = 0>
+#ifdef __cpp_concepts
+  template<coefficients ... Cs, gaussian_distribution D> requires
+    prefix_of<Concatenate<Cs...>, typename DistributionTraits<D>::Coefficients>
+#else
+  template<typename ... Cs, typename D, std::enable_if_t<
+    (coefficients<Cs> and ...) and gaussian_distribution<D> and
+    prefix_of<Concatenate<Cs...>, typename DistributionTraits<D>::Coefficients>, int> = 0>
+#endif
   inline auto
   split(D&& d) noexcept
   {
     using Coeffs = typename DistributionTraits<D>::Coefficients;
-    static_assert(prefix_of<Concatenate<Cs...>, Coeffs>);
     if constexpr(sizeof...(Cs) == 1 and equivalent_to<Concatenate<Cs...>, Coeffs>)
     {
       return std::tuple(std::forward<D>(d));
@@ -882,7 +929,11 @@ namespace OpenKalman
   }
 
 
+#ifdef __cpp_concepts
+  template<gaussian_distribution Dist>
+#else
   template<typename Dist, std::enable_if_t<gaussian_distribution<Dist>, int> = 0>
+#endif
   inline std::ostream&
   operator<<(std::ostream& os, const Dist& d)
   {
@@ -892,37 +943,45 @@ namespace OpenKalman
   }
 
 
-  ////////////////////////////////
-  //    Arithmetic Operators    //
-  ////////////////////////////////
+  // ---------------------- //
+  //  Arithmetic Operators  //
+  // ---------------------- //
 
-  template<
-    typename Dist1,
-    typename Dist2,
-    std::enable_if_t<gaussian_distribution<Dist1> and gaussian_distribution<Dist2> and
-      equivalent_to<typename DistributionTraits<Dist1>::Coefficients,
-        typename DistributionTraits<Dist2>::Coefficients>, int> = 0>
+#ifdef __cpp_concepts
+  template<gaussian_distribution Dist1, gaussian_distribution Dist2> requires
+    equivalent_to<typename DistributionTraits<Dist1>::Coefficients, typename DistributionTraits<Dist2>::Coefficients>
+#else
+  template<typename Dist1, typename Dist2, std::enable_if_t<
+    gaussian_distribution<Dist1> and gaussian_distribution<Dist2> and
+    equivalent_to<typename DistributionTraits<Dist1>::Coefficients,
+      typename DistributionTraits<Dist2>::Coefficients>, int> = 0>
+#endif
   inline auto
-  operator+(const Dist1& d1, const Dist2& d2)
+  operator+(Dist1&& d1, Dist2&& d2)
   {
-    auto m1 = mean_of(d1) + mean_of(d2);
-    auto m2 = covariance_of(d1) + covariance_of(d2);
-    return make_GaussianDistribution(std::move(m1), std::move(m2));
+    using re = typename DistributionTraits<Dist1>::random_number_engine;
+    auto m1 = mean_of(std::forward<Dist1>(d1)) + mean_of(std::forward<Dist2>(d2));
+    auto m2 = covariance_of(std::forward<Dist1>(d1)) + covariance_of(std::forward<Dist2>(d2));
+    return make_GaussianDistribution<re>(std::move(m1), std::move(m2));
   };
 
 
-  template<
-    typename Dist1,
-    typename Dist2,
-    std::enable_if_t<gaussian_distribution<Dist1> and gaussian_distribution<Dist2> and
-      equivalent_to<typename DistributionTraits<Dist1>::Coefficients,
-        typename DistributionTraits<Dist2>::Coefficients>, int> = 0>
+#ifdef __cpp_concepts
+  template<gaussian_distribution Dist1, gaussian_distribution Dist2> requires
+    equivalent_to<typename DistributionTraits<Dist1>::Coefficients, typename DistributionTraits<Dist2>::Coefficients>
+#else
+  template<typename Dist1, typename Dist2, std::enable_if_t<
+    gaussian_distribution<Dist1> and gaussian_distribution<Dist2> and
+    equivalent_to<typename DistributionTraits<Dist1>::Coefficients,
+      typename DistributionTraits<Dist2>::Coefficients>, int> = 0>
+#endif
   inline auto
-  operator-(const Dist1& d1, const Dist2& d2)
+  operator-(Dist1&& d1, Dist2&& d2)
   {
-    auto m1 = mean_of(d1) - mean_of(d2);
-    auto m2 = covariance_of(d1) - covariance_of(d2);
-    return make_GaussianDistribution(std::move(m1), std::move(m2));
+    using re = typename DistributionTraits<Dist1>::random_number_engine;
+    auto m1 = mean_of(std::forward<Dist1>(d1)) - mean_of(std::forward<Dist2>(d2));
+    auto m2 = covariance_of(std::forward<Dist1>(d1)) - covariance_of(std::forward<Dist2>(d2));
+    return make_GaussianDistribution<re>(std::move(m1), std::move(m2));
   };
 
 
@@ -938,48 +997,58 @@ namespace OpenKalman
   inline auto
   operator*(A&& a, D&& d)
   {
-    auto m = make_self_contained(a * mean_of(d));
-    auto c = make_self_contained(scale(covariance_of(std::forward<D>(d)), std::forward<A>(a)));
-    return make_GaussianDistribution(std::move(m), std::move(c));
+    using re = typename DistributionTraits<D>::random_number_engine;
+    auto m = a * mean_of(std::forward<D>(d));
+    auto c = scale(covariance_of(std::forward<D>(d)), std::forward<A>(a));
+    return make_GaussianDistribution<re>(std::move(m), std::move(c));
   }
 
 
-  template<
-    typename Dist, typename S,
-    std::enable_if_t<gaussian_distribution<Dist> and
-      std::is_convertible_v<S, typename DistributionTraits<Dist>::Scalar>, int> = 0>
+#ifdef __cpp_concepts
+  template<gaussian_distribution Dist, std::convertible_to<const typename DistributionTraits<Dist>::Scalar> S>
+#else
+  template<typename Dist, typename S, std::enable_if_t<
+    gaussian_distribution<Dist> and std::is_convertible_v<S, const typename DistributionTraits<Dist>::Scalar>, int> = 0>
+#endif
   inline auto
-  operator*(Dist&& d, const S s)
+  operator*(Dist&& d, S s)
   {
-    auto m = mean_of(d) * s;
-    auto c = scale(covariance_of(d), s);
-    return make_GaussianDistribution(std::move(m), std::move(c));
+    using re = typename DistributionTraits<Dist>::random_number_engine;
+    auto m = mean_of(std::forward<Dist>(d)) * s;
+    auto c = scale(covariance_of(std::forward<Dist>(d)), s);
+    return make_GaussianDistribution<re>(std::move(m), std::move(c));
   };
 
 
-  template<
-    typename Dist, typename S,
-    std::enable_if_t<gaussian_distribution<Dist> and
-      std::is_convertible_v<S, typename DistributionTraits<Dist>::Scalar>, int> = 0>
+#ifdef __cpp_concepts
+  template<gaussian_distribution Dist, std::convertible_to<const typename DistributionTraits<Dist>::Scalar> S>
+#else
+  template<typename Dist, typename S, std::enable_if_t<
+    gaussian_distribution<Dist> and std::is_convertible_v<S, const typename DistributionTraits<Dist>::Scalar>, int> = 0>
+#endif
   inline auto
-  operator*(const S s, Dist&& d)
+  operator*(S s, Dist&& d)
   {
-    auto m = s * mean_of(d);
-    auto c = scale(covariance_of(d), s);
-    return make_GaussianDistribution(std::move(m), std::move(c));
+    using re = typename DistributionTraits<Dist>::random_number_engine;
+    auto m = s * mean_of(std::forward<Dist>(d));
+    auto c = scale(covariance_of(std::forward<Dist>(d)), s);
+    return make_GaussianDistribution<re>(std::move(m), std::move(c));
   };
 
 
-  template<
-    typename Dist, typename S,
-    std::enable_if_t<gaussian_distribution<Dist> and
-      std::is_convertible_v<S, typename DistributionTraits<Dist>::Scalar>, int> = 0>
+#ifdef __cpp_concepts
+  template<gaussian_distribution Dist, std::convertible_to<const typename DistributionTraits<Dist>::Scalar> S>
+#else
+  template<typename Dist, typename S, std::enable_if_t<
+    gaussian_distribution<Dist> and std::is_convertible_v<S, const typename DistributionTraits<Dist>::Scalar>, int> = 0>
+#endif
   inline auto
-  operator/(Dist&& d, const S s)
+  operator/(Dist&& d, S s)
   {
-    auto m = mean_of(d) / s;
-    auto c = inverse_scale(covariance_of(d), s);
-    return make_GaussianDistribution(std::move(m), std::move(c));
+    using re = typename DistributionTraits<Dist>::random_number_engine;
+    auto m = mean_of(std::forward<Dist>(d)) / s;
+    auto c = inverse_scale(covariance_of(std::forward<Dist>(d)), s);
+    return make_GaussianDistribution<re>(std::move(m), std::move(c));
   };
 
 }

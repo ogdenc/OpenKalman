@@ -15,7 +15,7 @@ find_package(GTest REQUIRED)
 include(GoogleTest)
 
 add_executable(covariances
-        covariance_tests.cpp
+        covariances.gtest.cpp
         tests-covariance.cpp
         tests-covariance-ops.cpp
         tests-sqrt-covariance.cpp

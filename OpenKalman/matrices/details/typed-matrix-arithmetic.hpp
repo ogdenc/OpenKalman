@@ -141,7 +141,7 @@ namespace OpenKalman
   }
 
 
-  /// Equality operator.
+  /// typed_matrix == typed_matrix.
 #ifdef __cpp_concepts
   template<typed_matrix V1, typed_matrix V2>
 #else
@@ -163,7 +163,7 @@ namespace OpenKalman
 
 
 #ifndef __cpp_impl_three_way_comparison
-  /// Inequality operator.
+  /// typed_matrix != typed_matrix.
 #ifdef __cpp_concepts
   template<typed_matrix V1, typed_matrix V2>
 #else

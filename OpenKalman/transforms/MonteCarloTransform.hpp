@@ -23,6 +23,8 @@
 
 namespace OpenKalman
 {
+  namespace oin = OpenKalman::internal;
+
   /**
    * \brief A Monte Carlo transform from one Gaussian distribution to another.
    * \details Uses ideas from Chan, Tony F.; Golub, Gene H.; LeVeque, Randall J. (1979),
@@ -30,11 +32,11 @@ namespace OpenKalman
    * Technical Report STAN-CS-79-773, Department of Computer Science, Stanford University.
    * http://i.stanford.edu/pub/cstr/reports/cs/tr/79/773/CS-TR-79-773.pdf
    */
-  struct MonteCarloTransform : internal::TransformBase<MonteCarloTransform>
+  struct MonteCarloTransform : oin::TransformBase<MonteCarloTransform>
   {
   private:
 
-    using Base = internal::TransformBase<MonteCarloTransform>;
+    using Base = oin::TransformBase<MonteCarloTransform>;
 
 
     template<bool return_cross, typename TransformationType, typename InputDistribution, typename...NoiseDistributions>
@@ -52,9 +54,11 @@ namespace OpenKalman
       using InputMeanMatrix = native_matrix_t<
         typename DistributionTraits<InputDistribution>::Mean, InputCoefficients::dimensions, 1>;
       using OutputEuclideanMeanMatrix = native_matrix_t<InputMeanMatrix, OutputCoefficients::dimensions, 1>;
-      using OutputCovarianceMatrix = native_matrix_t<InputMeanMatrix, OutputCoefficients::dimensions, OutputCoefficients::dimensions>;
+      using OutputCovarianceMatrix = native_matrix_t<InputMeanMatrix, OutputCoefficients::dimensions,
+        OutputCoefficients::dimensions>;
       using OutputCovarianceSA = typename MatrixTraits<OutputCovarianceMatrix>::template SelfAdjointMatrixFrom<>;
-      using CrossCovarianceMatrix = native_matrix_t<InputMeanMatrix, InputCoefficients::dimensions, OutputCoefficients::dimensions>;
+      using CrossCovarianceMatrix = native_matrix_t<InputMeanMatrix, InputCoefficients::dimensions,
+        OutputCoefficients::dimensions>;
 
       using InputMean = Mean<InputCoefficients, InputMeanMatrix>;
       using OutputEuclideanMean = EuclideanMean<OutputCoefficients, OutputEuclideanMeanMatrix>;
@@ -223,7 +227,7 @@ namespace OpenKalman
     /**
      * \brief Perform a Monte Carlo transform from one statistical distribution to another.
      * \tparam InputDist The prior distribution.
-     * \tparam Trans The transformation on which the transform is based.
+     * \tparam Trans The tests on which the transform is based.
      * \tparam NoiseDists Zero or more noise distributions.
      * \return The posterior distribution.
      **/
@@ -256,7 +260,7 @@ namespace OpenKalman
     /**
      * \brief Perform a Monte Carlo transform, also returning the cross-covariance.
      * \tparam InputDist The prior distribution.
-     * \tparam Trans The transformation on which the transform is based.
+     * \tparam Trans The tests on which the transform is based.
      * \tparam NoiseDists Zero or more noise distributions.
      * \return A tuple comprising the posterior distribution and the cross-covariance.
      **/

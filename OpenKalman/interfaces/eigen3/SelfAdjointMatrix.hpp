@@ -44,7 +44,7 @@ namespace OpenKalman::Eigen3
 
   public:
 
-    using Scalar = typename Base::Scalar;
+    using Scalar = typename MatrixTraits<NestedMatrix>::Scalar;
 
 
     /// Default constructor.
@@ -71,7 +71,8 @@ namespace OpenKalman::Eigen3
       ((eigen_self_adjoint_expr<Arg> and internal::same_storage_triangle_as<Arg, SelfAdjointMatrix>) or
        (eigen_triangular_expr<Arg> and diagonal_matrix<Arg>)) and
       (not eigen_diagonal_expr<NestedMatrix> or diagonal_matrix<nested_matrix_t<Arg>>) and
-      requires(Arg&& arg) { NestedMatrix {nested_matrix(std::forward<Arg>(arg))}; }
+      std::constructible_from<NestedMatrix, decltype(nested_matrix(std::declval<Arg&&>()))>
+      //alt: requires(Arg&& arg) { NestedMatrix {nested_matrix(std::forward<Arg>(arg))}; } -- not accepted in GCC 10
 #else
     template<typename Arg, std::enable_if_t<(not std::is_base_of_v<SelfAdjointMatrix, std::decay_t<Arg>>) and
       ((eigen_self_adjoint_expr<Arg> and internal::same_storage_triangle_as<Arg, SelfAdjointMatrix>) or
@@ -148,29 +149,39 @@ namespace OpenKalman::Eigen3
       (not internal::same_storage_triangle_as<Arg, SelfAdjointMatrix>) and
       std::is_constructible_v<NestedMatrix, decltype(transpose(std::declval<Arg&&>().nestedExpression()))>, int> = 0>
 #endif
-    SelfAdjointMatrix(Arg&& arg)
-      : Base {transpose(arg.nestedExpression())} {}
+    SelfAdjointMatrix(Arg&& arg) : Base {transpose(arg.nestedExpression())} {}
 
 
-    /// Construct from a square \ref eigen_matrix if NestedMatrix is \ref eigen_diagonal_expr.
+    /// Construct from a \ref self_adjoint_matrix "self-adjoint" \ref eigen_matrix
 #ifdef __cpp_concepts
-    template<eigen_matrix Arg> requires eigen_diagonal_expr<NestedMatrix> and square_matrix<Arg> and
-      requires(Arg&& arg) { NestedMatrix {diagonal_of(std::forward<Arg>(arg))}; }
+    template<eigen_matrix Arg> requires self_adjoint_matrix<Arg> and std::constructible_from<NestedMatrix, Arg&&>
 #else
-    template<typename Arg, std::enable_if_t<
-      eigen_matrix<Arg> and eigen_diagonal_expr<NestedMatrix> and square_matrix<Arg> and
+    template<typename Arg, std::enable_if_t<eigen_matrix<Arg> and self_adjoint_matrix<Arg> and
+      std::is_constructible_v<NestedMatrix, Arg&&>, int> = 0>
+#endif
+    SelfAdjointMatrix(Arg&& arg) noexcept : Base {std::forward<Arg>(arg)} {}
+
+
+    /// Construct from a non-self-adjoint \ref eigen_matrix if NestedMatrix is \ref eigen_diagonal_expr.
+#ifdef __cpp_concepts
+    template<eigen_matrix Arg> requires (not self_adjoint_matrix<Arg>) and eigen_diagonal_expr<NestedMatrix> and
+      square_matrix<Arg> and requires(Arg&& arg) { NestedMatrix {diagonal_of(std::forward<Arg>(arg))}; }
+#else
+    template<typename Arg, std::enable_if_t< eigen_matrix<Arg> and (not self_adjoint_matrix<Arg>) and
+      eigen_diagonal_expr<NestedMatrix> and square_matrix<Arg> and
       std::is_constructible_v<NestedMatrix, decltype(diagonal_of(std::declval<Arg&&>()))>, int> = 0>
 #endif
     explicit SelfAdjointMatrix(Arg&& arg) noexcept : Base {diagonal_of(std::forward<Arg>(arg))} {}
 
 
-    /// Construct from a \ref eigen_matrix if NestedMatrix is not \ref eigen_diagonal_expr.
+    /// Construct from a non-self-adjoint \ref eigen_matrix if NestedMatrix is not \ref eigen_diagonal_expr.
 #ifdef __cpp_concepts
-    template<eigen_matrix Arg> requires (not eigen_diagonal_expr<NestedMatrix>) and
+    template<eigen_matrix Arg> requires (not self_adjoint_matrix<Arg>) and (not eigen_diagonal_expr<NestedMatrix>) and
       square_matrix<Arg> and std::constructible_from<NestedMatrix, Arg&&>
 #else
-    template<typename Arg, std::enable_if_t<eigen_matrix<Arg> and (not eigen_diagonal_expr<NestedMatrix>) and
-      square_matrix<Arg> and std::is_constructible_v<NestedMatrix, Arg&&>, int> = 0>
+    template<typename Arg, std::enable_if_t<eigen_matrix<Arg> and (not self_adjoint_matrix<Arg>) and
+      (not eigen_diagonal_expr<NestedMatrix>) and square_matrix<Arg> and
+      std::is_constructible_v<NestedMatrix, Arg&&>, int> = 0>
 #endif
     explicit SelfAdjointMatrix(Arg&& arg) noexcept : Base {std::forward<Arg>(arg)} {}
 
@@ -429,12 +440,14 @@ namespace OpenKalman::Eigen3
 
     auto view()
     {
+      static_assert(not Eigen3::eigen_diagonal_expr<NestedMatrix>);
       return this->nested_matrix().template selfadjointView<uplo>();
     }
 
 
     const auto view() const
     {
+      static_assert(not Eigen3::eigen_diagonal_expr<NestedMatrix>);
       return this->nested_matrix().template selfadjointView<uplo>();
     }
 
@@ -538,6 +551,7 @@ namespace OpenKalman::Eigen3
   }
 
 } // OpenKalman::Eigen3
+
 
 namespace OpenKalman
 {

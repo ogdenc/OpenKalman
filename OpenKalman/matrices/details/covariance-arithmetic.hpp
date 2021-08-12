@@ -13,6 +13,9 @@
 
 namespace OpenKalman
 {
+  namespace oin = OpenKalman::internal;
+
+
   namespace detail
   {
     template<typename Arg>
@@ -20,7 +23,7 @@ namespace OpenKalman
     {
       if constexpr (covariance<Arg>)
       {
-        return OpenKalman::internal::to_covariance_nestable(std::forward<Arg>(arg));
+        return oin::to_covariance_nestable(std::forward<Arg>(arg));
       }
       else
       {
@@ -29,6 +32,7 @@ namespace OpenKalman
       }
     }
   } // namespace detail
+  namespace okd = OpenKalman::detail;
 
 
   /*
@@ -85,8 +89,8 @@ namespace OpenKalman
     }
     else
     {
-      decltype(auto) b1 = OpenKalman::detail::to_nestable(std::forward<Arg1>(arg1)); using B1 = decltype(b1);
-      decltype(auto) b2 = OpenKalman::detail::to_nestable(std::forward<Arg2>(arg2)); using B2 = decltype(b2);
+      decltype(auto) b1 = okd::to_nestable(std::forward<Arg1>(arg1)); using B1 = decltype(b1);
+      decltype(auto) b2 = okd::to_nestable(std::forward<Arg2>(arg2)); using B2 = decltype(b2);
       auto sum = make_self_contained<decltype(b1), decltype(b2)>(std::forward<B1>(b1) + std::forward<B2>(b2));
       if constexpr (self_adjoint_matrix<decltype(sum)>)
       {
@@ -147,8 +151,8 @@ namespace OpenKalman
     }
     else
     {
-      decltype(auto) b1 = OpenKalman::detail::to_nestable(std::forward<Arg1>(arg1)); using B1 = decltype(b1);
-      decltype(auto) b2 = OpenKalman::detail::to_nestable(std::forward<Arg2>(arg2)); using B2 = decltype(b2);
+      decltype(auto) b1 = okd::to_nestable(std::forward<Arg1>(arg1)); using B1 = decltype(b1);
+      decltype(auto) b2 = okd::to_nestable(std::forward<Arg2>(arg2)); using B2 = decltype(b2);
 
       auto diff = make_self_contained<B1, B2>(std::forward<B1>(b1) - std::forward<B2>(b2));
 
@@ -197,8 +201,8 @@ namespace OpenKalman
     {
       using C = typename MatrixTraits<Arg1>::RowCoefficients;
 
-      decltype(auto) b1 = OpenKalman::internal::to_covariance_nestable(std::forward<Arg1>(arg1));
-      decltype(auto) b2 = OpenKalman::internal::to_covariance_nestable(std::forward<Arg2>(arg2));
+      decltype(auto) b1 = oin::to_covariance_nestable(std::forward<Arg1>(arg1));
+      decltype(auto) b2 = oin::to_covariance_nestable(std::forward<Arg2>(arg2));
       using B1 = decltype(b1); using B2 = decltype(b2);
 
       auto prod = make_self_contained<B1, B2>(std::forward<B1>(b1) * std::forward<B2>(b2));
@@ -249,12 +253,12 @@ namespace OpenKalman
     }
     else if constexpr (identity_matrix<nested_matrix_t<M>>)
     {
-      return make_matrix<RC, CC>(OpenKalman::internal::to_covariance_nestable(std::forward<Cov>(cov)));
+      return make_matrix<RC, CC>(oin::to_covariance_nestable(std::forward<Cov>(cov)));
     }
     else
     {
       decltype(auto) mb = nested_matrix(std::forward<M>(m));
-      decltype(auto) cb = OpenKalman::internal::to_covariance_nestable(std::forward<Cov>(cov));
+      decltype(auto) cb = oin::to_covariance_nestable(std::forward<Cov>(cov));
       using Mb = decltype(mb); using Cb = decltype(cb);
       auto prod = make_self_contained<Mb, Cb>(std::forward<Mb>(mb) * std::forward<Cb>(cb));
       return Matrix<RC, CC, decltype(prod)> {std::move(prod)};
@@ -293,11 +297,11 @@ namespace OpenKalman
     }
     else if constexpr (identity_matrix<nested_matrix_t<M>>)
     {
-      return make_matrix<RC, CC>(OpenKalman::internal::to_covariance_nestable(std::forward<Cov>(cov)));
+      return make_matrix<RC, CC>(oin::to_covariance_nestable(std::forward<Cov>(cov)));
     }
     else
     {
-      decltype(auto) cb = OpenKalman::internal::to_covariance_nestable(std::forward<Cov>(cov));
+      decltype(auto) cb = oin::to_covariance_nestable(std::forward<Cov>(cov));
       decltype(auto) mb = nested_matrix(std::forward<M>(m));
       using Cb = decltype(cb); using Mb = decltype(mb);
       auto prod = make_self_contained<Cb, Mb>(std::forward<Cb>(cb) * std::forward<Mb>(mb));
@@ -327,22 +331,23 @@ namespace OpenKalman
       }
       else
       {
-        auto b = make_self_contained(nested_matrix(std::forward<M>(m))); using B = decltype(b);
+        using B = typename MatrixTraits<nested_matrix_t<M>>::template TriangularMatrixFrom<>;
+
         if (s > Scalar(0))
         {
-          b *= std::sqrt(static_cast<Scalar>(s));
+          return MatrixTraits<M>::make(B {nested_matrix(std::forward<M>(m)) * std::sqrt(static_cast<Scalar>(s))});
         }
         else if (s < Scalar(0))
         {
-          const auto u = make_native_matrix(b);
-          b = MatrixTraits<B>::zero();
-          rank_update(b, u, static_cast<Scalar>(s));
+          return MatrixTraits<M>::make(B {rank_update(
+            MatrixTraits<nested_matrix_t<M>>::zero(),
+            make_native_matrix(nested_matrix(std::forward<M>(m))),
+            static_cast<Scalar>(s))});
         }
         else
         {
-          b = MatrixTraits<B>::zero();
+          return MatrixTraits<M>::make(B {MatrixTraits<B>::zero()});
         }
-        return MatrixTraits<M>::make(std::move(b));
       }
     }
     else
@@ -449,36 +454,19 @@ namespace OpenKalman
 #endif
   constexpr auto operator-(M&& m) noexcept
   {
-    static_assert(not cholesky_form<M> or square_root_covariance<M>,
-      "Cannot negate a Cholesky-based Covariance because the square root would be complex.");
-    if constexpr(cholesky_form<M>)
+    if constexpr (zero_matrix<M>)
     {
-      if constexpr (square_root_covariance<M>)
-      {
-        auto ret = -nested_matrix(std::forward<M>(m));
-        return MatrixTraits<M>::make(make_self_contained<M>(std::move(ret)));
-      }
-      else
-      {
-        auto res = make_self_contained(std::forward<M>(m));
-        res *= MatrixTraits<M>::Scalar(-1);
-        return res;
-      }
+      return MatrixTraits<M>::zero();
     }
     else
     {
-      if constexpr (zero_matrix<M>)
-      {
-        return MatrixTraits<M>::zero();
-      }
-      else
-      {
-        static_assert(not square_root_covariance<M> or diagonal_matrix<M>,
-          "With real numbers, it is impossible to represent the negation of a non-diagonal, non-Cholesky-form "
-          "square-root covariance.");
-        auto ret = -nested_matrix(std::forward<M>(m));
-        return MatrixTraits<M>::make(make_self_contained<M>(std::move(ret)));
-      }
+      static_assert(not cholesky_form<M> or square_root_covariance<M>,
+        "Cannot negate a Cholesky-form Covariance because the square root would be complex.");
+      static_assert(cholesky_form<M> or not square_root_covariance<M> or diagonal_matrix<M>,
+        "With real numbers, it is impossible to represent the negation of a non-diagonal, non-Cholesky-form "
+        "square-root covariance.");
+      auto ret = -nested_matrix(std::forward<M>(m));
+      return MatrixTraits<M>::make(make_self_contained<M>(std::move(ret)));
     }
   }
 
@@ -491,12 +479,12 @@ namespace OpenKalman
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<covariance<Arg1> and covariance<Arg2>, int> = 0>
 #endif
-  constexpr bool operator==(const Arg1& arg1, const Arg2& arg2)
+  constexpr bool operator==(Arg1&& arg1, Arg2&& arg2)
   {
     if constexpr (std::is_same_v<native_matrix_t<Arg1>, native_matrix_t<Arg2>> and
       equivalent_to<typename MatrixTraits<Arg1>::RowCoefficients, typename MatrixTraits<Arg2>::RowCoefficients>)
     {
-      return make_native_matrix(arg1) == make_native_matrix(arg2);
+      return make_native_matrix(std::forward<Arg1>(arg1)) == make_native_matrix(std::forward<Arg2>(arg2));
     }
     else
     {
@@ -514,9 +502,9 @@ namespace OpenKalman
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<covariance<Arg1> and covariance<Arg2>, int> = 0>
 #endif
-  constexpr bool operator!=(const Arg1& arg1, const Arg2& arg2)
+  constexpr bool operator!=(Arg1&& arg1, Arg2&& arg2)
   {
-    return not (arg1 == arg2);
+    return not (std::forward<Arg1>(arg1) == std::forward<Arg2>(arg2));
   }
 #endif
 

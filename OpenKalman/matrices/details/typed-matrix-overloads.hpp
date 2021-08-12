@@ -14,7 +14,10 @@
 
 namespace OpenKalman
 {
-#ifdef __cpp_concepts
+  namespace oin = OpenKalman::internal;
+
+
+  #ifdef __cpp_concepts
   template<typed_matrix Arg>
 #else
   template<typename Arg, std::enable_if_t<typed_matrix<Arg>, int> = 0>
@@ -463,8 +466,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   {
     using CC = typename MatrixTraits<M>::ColumnCoefficients;
     constexpr auto euclidean = euclidean_transformed<M>;
-    return split_vertical<
-      OpenKalman::internal::SplitMatVertF<M, CC>, euclidean, Cs...>(nested_matrix(std::forward<M>(m)));
+    return split_vertical<oin::SplitMatVertF<M, CC>, euclidean, Cs...>(nested_matrix(std::forward<M>(m)));
   }
 
 
@@ -480,7 +482,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   split_horizontal(M&& m) noexcept
   {
     using RC = typename MatrixTraits<M>::RowCoefficients;
-    return split_horizontal<OpenKalman::internal::SplitMatHorizF<M, RC>, Cs...>(nested_matrix(std::forward<M>(m)));
+    return split_horizontal<oin::SplitMatHorizF<M, RC>, Cs...>(nested_matrix(std::forward<M>(m)));
   }
 
 
@@ -511,7 +513,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   {
     static_assert(prefix_of<Concatenate<Cs...>, typename MatrixTraits<M>::RowCoefficients>);
     static_assert(equivalent_to<typename MatrixTraits<M>::ColumnCoefficients, typename MatrixTraits<M>::RowCoefficients>);
-    return split_diagonal<OpenKalman::internal::SplitMatDiagF<M>, Cs...>(nested_matrix(std::forward<M>(m)));
+    return split_diagonal<oin::SplitMatDiagF<M>, Cs...>(nested_matrix(std::forward<M>(m)));
   }
 
 
@@ -564,7 +566,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
       const auto set_coeff = [&arg, j](const std::size_t row, const typename MatrixTraits<Arg>::Scalar value) {
         set_element(nested_matrix(arg), value, row, j);
       };
-      OpenKalman::internal::wrap_set<Coeffs>(i, s, set_coeff, get_coeff);
+      oin::wrap_set<Coeffs>(i, s, set_coeff, get_coeff);
     }
     else
     {
@@ -594,7 +596,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
       const auto set_coeff = [&arg](const std::size_t row, const typename MatrixTraits<Arg>::Scalar value) {
         set_element(nested_matrix(arg), value, row);
       };
-      OpenKalman::internal::wrap_set<Coeffs>(i, s, set_coeff, get_coeff);
+      oin::wrap_set<Coeffs>(i, s, set_coeff, get_coeff);
     }
     else
     {
@@ -913,7 +915,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     std::invoke_result_t<const Function&, std::size_t, std::size_t>, typename MatrixTraits<V>::Scalar>, int> = 0>
 #endif
   inline auto
-  apply_coefficientwise(const Function& f)
+  apply_coefficientwise(Function&& f)
   {
     constexpr auto rows = MatrixTraits<V>::rows;
     constexpr auto columns = MatrixTraits<V>::columns;
@@ -922,12 +924,22 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
       std::decay_t<std::invoke_result_t<Function, std::size_t, std::size_t>>,
       std::decay_t<typename MatrixTraits<V>::Scalar>>)
     {
-      return MatrixTraits<V>::make(apply_coefficientwise<rows, columns>(f));
+      return MatrixTraits<V>::make(apply_coefficientwise<rows, columns>(std::forward<Function>(f)));
     }
     else
     {
-      const auto f_conv = [&f](size_t i, size_t j){ return static_cast<Scalar>(f(i, j)); };
-      return MatrixTraits<V>::make(apply_coefficientwise<rows, columns>(f_conv));
+      if constexpr (std::is_lvalue_reference_v<Function>)
+      {
+        auto f_conv = [&f](size_t i, size_t j){ return static_cast<Scalar>(f(i, j)); };
+        return MatrixTraits<V>::make(apply_coefficientwise<rows, columns>(std::move(f_conv)));
+      }
+      else
+      {
+        auto f_conv = [f = std::move(f)](size_t i, size_t j){ return static_cast<Scalar>(f(i, j)); };
+        return MatrixTraits<V>::make(apply_coefficientwise<rows, columns>(std::move(f_conv)));
+      }
+
+
     }
   }
 

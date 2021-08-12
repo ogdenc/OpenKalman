@@ -12,6 +12,8 @@ int main(int argc, char **argv)
 }
 
 using namespace OpenKalman;
+using namespace OpenKalman::Eigen3;
+
 
 using M = eigen_matrix_t<double, 3, 3>;
 using M1 = eigen_matrix_t<double, 3, 1>;

@@ -24,8 +24,7 @@
 /**
  * The namespace for all OpenKalman-specific classes and methods.
  */
-namespace OpenKalman
-{}
+namespace OpenKalman {}
 
 #include "basics/basics.hpp"
 #include "coefficient-types/coefficient-types.hpp"

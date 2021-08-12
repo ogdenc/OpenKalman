@@ -19,19 +19,21 @@
 
 namespace OpenKalman
 {
+  namespace oin = OpenKalman::internal;
+
   /**
-   * \brief A linear transformation from one statistical distribution to another.
+   * \brief A linear tests from one statistical distribution to another.
    */
-  class LinearTransform : public internal::LinearTransformBase<LinearTransform>
+  class LinearTransform : public oin::LinearTransformBase<LinearTransform>
   {
-    using Base = internal::LinearTransformBase<LinearTransform>;
+    using Base = oin::LinearTransformBase<LinearTransform>;
     friend Base;
 
 
     /**
      * \internal
      * \brief The underlying transform model for LinearTransform.
-     * \tparam Trans The transformation function.
+     * \tparam Trans The tests function.
      */
     template<typename Trans>
     struct TransformModel
@@ -45,7 +47,7 @@ namespace OpenKalman
 
       /**
        * \brief Constructor
-       * \param t A transformation function.
+       * \param t A tests function.
        */
       TransformModel(const Trans& t) : transformation(t) {}
 
@@ -58,7 +60,7 @@ namespace OpenKalman
       template<typename InputMean, typename ... NoiseMean>
       auto operator()(const InputMean& x, const NoiseMean& ... n) const
       {
-        return std::tuple {transformation(x, n...), internal::get_Taylor_term<1>(transformation)(x, n...)};
+        return std::tuple {transformation(x, n...), oin::get_Taylor_term<1>(transformation)(x, n...)};
       }
 
     };

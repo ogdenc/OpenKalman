@@ -17,6 +17,8 @@
 
 namespace OpenKalman
 {
+  namespace oin = OpenKalman::internal;
+
   // ------------------- //
   //        Mean         //
   // ------------------- //
@@ -29,7 +31,7 @@ namespace OpenKalman
 #else
   template<typename RowCoefficients, typename NestedMatrix>
 #endif
-  struct Mean : OpenKalman::internal::TypedMatrixBase<
+  struct Mean : oin::TypedMatrixBase<
     Mean<RowCoefficients, NestedMatrix>, RowCoefficients, Axes<MatrixTraits<NestedMatrix>::columns>, NestedMatrix>
   {
 
@@ -48,7 +50,7 @@ namespace OpenKalman
 
   private:
 
-    using Base = OpenKalman::internal::TypedMatrixBase<Mean, RowCoefficients, ColumnCoefficients, NestedMatrix>;
+    using Base = oin::TypedMatrixBase<Mean, RowCoefficients, ColumnCoefficients, NestedMatrix>;
 
   public:
 
@@ -68,7 +70,8 @@ namespace OpenKalman
     template<mean Arg> requires
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients> and
       equivalent_to<typename MatrixTraits<Arg>::ColumnCoefficients, ColumnCoefficients> and
-      requires(Arg&& arg) { NestedMatrix {nested_matrix(std::forward<Arg>(arg))}; }
+      //requires(Arg&& arg) { NestedMatrix {nested_matrix(std::forward<Arg>(arg))}; } // \todo doesn't work in GCC 10
+      std::constructible_from<NestedMatrix, decltype(nested_matrix(std::declval<Arg&&>()))>
 #else
     template<typename Arg, std::enable_if_t<mean<Arg> and
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients> and
@@ -103,9 +106,7 @@ namespace OpenKalman
 #else
     template<typename Arg, std::enable_if_t<typed_matrix<Arg> and not euclidean_transformed<Arg> and not mean<Arg> and
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients> and
-      equivalent_to<typename MatrixTraits<Arg>::ColumnCoefficients, ColumnCoefficients> and
-      std::is_constructible_v<NestedMatrix,
-        decltype(wrap_angles<RowCoefficients>(nested_matrix(std::declval<Arg&&>())))>, int> = 0>
+      equivalent_to<typename MatrixTraits<Arg>::ColumnCoefficients, ColumnCoefficients>, int> = 0>
 #endif
     Mean(Arg&& arg) noexcept : Base {wrap_angles<RowCoefficients>(nested_matrix(std::forward<Arg>(arg)))} {}
 
@@ -122,20 +123,6 @@ namespace OpenKalman
       std::is_constructible_v<NestedMatrix, decltype(wrap_angles<RowCoefficients>(std::declval<Arg>()))>, int> = 0>
 #endif
     explicit Mean(Arg&& arg) noexcept : Base {wrap_angles<RowCoefficients>(std::forward<Arg>(arg))} {}
-
-
-    /// Construct from a typed_matrix_nestable. For situations when angle wrapping should not occur.
-#ifdef __cpp_concepts
-    template<typed_matrix_nestable Arg> requires (MatrixTraits<Arg>::rows == MatrixTraits<NestedMatrix>::rows) and
-      (MatrixTraits<Arg>::columns == MatrixTraits<NestedMatrix>::columns) and
-      (not requires(Arg&& arg) { NestedMatrix {wrap_angles<RowCoefficients>(std::declval<Arg>())}; })
-#else
-    template<typename Arg, std::enable_if_t<typed_matrix_nestable<Arg> and
-      (MatrixTraits<Arg>::rows == MatrixTraits<NestedMatrix>::rows) and
-      (MatrixTraits<Arg>::columns == MatrixTraits<NestedMatrix>::columns) and
-      (not std::is_constructible_v<NestedMatrix, decltype(wrap_angles<RowCoefficients>(std::declval<Arg>()))>), int> = 0>
-#endif
-    Mean(Arg&& arg) noexcept : Base {std::forward<Arg>(arg)} {}
 
 
     /// Construct from a list of coefficients.

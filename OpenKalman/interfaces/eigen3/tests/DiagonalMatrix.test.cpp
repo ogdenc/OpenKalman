@@ -16,6 +16,8 @@
 #include "eigen3.gtest.hpp"
 
 using namespace OpenKalman;
+using namespace OpenKalman::Eigen3;
+using namespace OpenKalman::test;
 
 using Mat2 = eigen_matrix_t<double, 2, 2>;
 using Mat3 = eigen_matrix_t<double, 3, 3>;

@@ -1,7 +1,0 @@
-add_subdirectory(typed-matrix)
-add_subdirectory(transformation)
-add_subdirectory(transform-linear)
-add_subdirectory(transform-nonlinear)
-add_subdirectory(linear)
-add_subdirectory(nonlinear)
-add_subdirectory(kalman)

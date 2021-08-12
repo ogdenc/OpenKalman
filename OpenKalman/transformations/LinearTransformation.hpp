@@ -14,15 +14,17 @@
 
 namespace OpenKalman
 {
+  namespace oin = OpenKalman::internal;
+
 
   /**
-   * \brief A linear transformation from one single-column vector to another.
+   * \brief A linear tests from one single-column vector to another.
    * \tparam InputCoefficients Coefficient types for the input.
    * \tparam OutputCoefficients Coefficient types for the output.
    * \tparam TransformationMatrix Transformation matrix. It is a native matrix type with rows corresponding to
    * OutputCoefficients and columns corresponding to InputCoefficients.
    * \tparam PerturbationTransformationMatrices Transformation matrices for each potential perturbation term.
-   * if the parameter is not given, the transformation matrix is assumed to be identity (i.e., it is a translation).
+   * if the parameter is not given, the tests matrix is assumed to be identity (i.e., it is a translation).
    * It is a native matrix type with both rows and columns corresponding to OutputCoefficients.
    */
 #ifdef __cpp_concepts
@@ -72,9 +74,9 @@ namespace OpenKalman
 
     /**
      * \internal
-     * \brief T is a suitable input to a linear transformation constructor.
-     * \tparam RowCoefficients The row \ref OpenKalman::coefficients "coefficients" of the linear transformation matrix.
-     * \tparam ColumnCoefficients The column \ref OpenKalman::coefficients "coefficients" of the linear transformation
+     * \brief T is a suitable input to a linear tests constructor.
+     * \tparam RowCoefficients The row \ref OpenKalman::coefficients "coefficients" of the linear tests matrix.
+     * \tparam ColumnCoefficients The column \ref OpenKalman::coefficients "coefficients" of the linear tests
      * matrix.
      */
 #ifdef __cpp_concepts
@@ -152,18 +154,18 @@ namespace OpenKalman
      * \tparam Ps
      */
 #ifdef __cpp_concepts
-    template<internal::linear_transformation_input<OutputCoefficients, InputCoefficients> T,
-      internal::linear_transformation_input<OutputCoefficients> ... Ps>
+    template<oin::linear_transformation_input<OutputCoefficients, InputCoefficients> T,
+      oin::linear_transformation_input<OutputCoefficients> ... Ps>
 #else
     template<typename T, typename ... Ps, std::enable_if_t<
-      internal::linear_transformation_input<T, OutputCoefficients, InputCoefficients> and
-      (internal::linear_transformation_input<Ps, OutputCoefficients> and ...), int> = 0>
+      oin::linear_transformation_input<T, OutputCoefficients, InputCoefficients> and
+      (oin::linear_transformation_input<Ps, OutputCoefficients> and ...), int> = 0>
 #endif
     LinearTransformation(T&& mat, Ps&& ... p_mats) noexcept
       : transformation_matrices {std::forward<T>(mat), std::forward<Ps>(p_mats)...} {}
 
 
-    /// Applies the transformation.
+    /// Applies the tests.
 #ifdef __cpp_concepts
     template<transformation_input<InputCoefficients> In, perturbation<OutputCoefficients> ... Perturbations>
 #else
@@ -174,7 +176,7 @@ namespace OpenKalman
     {
       return sumprod(
         jacobian(in, ps...),
-        std::forward_as_tuple(std::forward<In>(in), internal::get_perturbation(std::forward<Perturbations>(ps))...),
+        std::forward_as_tuple(std::forward<In>(in), oin::get_perturbation(std::forward<Perturbations>(ps))...),
         std::make_index_sequence<sizeof...(Perturbations) + 1>{});
     }
 
@@ -190,16 +192,16 @@ namespace OpenKalman
     {
       constexpr auto mat_count = std::tuple_size_v<TransformationMatricesTuple>;
 
-      // If there are more inputs than transformation matrices, pad the tuple with extra identity matrices.
+      // If there are more inputs than tests matrices, pad the tuple with extra identity matrices.
       if constexpr(sizeof...(Perturbations) + 1 > mat_count)
       {
         constexpr auto pad_size = sizeof...(Perturbations) + 1 - mat_count;
         auto id = make_matrix<OutputCoefficients, OutputCoefficients>(MatrixTraits<TransformationMatrix>::identity());
-        return std::tuple_cat(transformation_matrices, internal::tuple_replicate<pad_size>(id));
+        return std::tuple_cat(transformation_matrices, oin::tuple_replicate<pad_size>(id));
       }
       else
       {
-        return internal::tuple_slice<0, sizeof...(Perturbations) + 1>(transformation_matrices);
+        return oin::tuple_slice<0, sizeof...(Perturbations) + 1>(transformation_matrices);
       }
     }
 
@@ -211,10 +213,10 @@ namespace OpenKalman
    */
 
 #ifdef __cpp_concepts
-  template<typed_matrix T, internal::linear_transformation_input<typename MatrixTraits<T>::RowCoefficients> ... Ps>
+  template<typed_matrix T, oin::linear_transformation_input<typename MatrixTraits<T>::RowCoefficients> ... Ps>
 #else
   template<typename T, typename ... Ps, std::enable_if_t<
-    (typed_matrix<T> and ... and internal::linear_transformation_input<Ps, typename MatrixTraits<T>::RowCoefficients>),
+    (typed_matrix<T> and ... and oin::linear_transformation_input<Ps, typename MatrixTraits<T>::RowCoefficients>),
     int> = 0>
 #endif
   LinearTransformation(T&&, Ps&& ...)
@@ -226,11 +228,10 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<typed_matrix_nestable T, internal::linear_transformation_input<Axes<MatrixTraits<T>::rows>> ... Ps>
+  template<typed_matrix_nestable T, oin::linear_transformation_input<Axes<MatrixTraits<T>::rows>> ... Ps>
 #else
   template<typename T, typename ... Ps, std::enable_if_t<
-    (typed_matrix_nestable<T> and ... and internal::linear_transformation_input<Ps, Axes<MatrixTraits<T>::rows>>),
-    int> = 0>
+    (typed_matrix_nestable<T> and ... and oin::linear_transformation_input<Ps, Axes<MatrixTraits<T>::rows>>), int> = 0>
 #endif
   LinearTransformation(T&&, Ps&& ...)
   -> LinearTransformation<

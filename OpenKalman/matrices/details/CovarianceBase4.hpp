@@ -148,6 +148,16 @@ namespace OpenKalman::internal
      */
     const std::function<void()> mark_synchronized;
 
+  private:
+
+    void maybe_synchronize_reverse()
+    {
+      if constexpr (modifiable<NestedMatrix, decltype(to_covariance_nestable<NestedMatrix>(cholesky_nested_store))>)
+        Base::nested_matrix() = to_covariance_nestable<NestedMatrix>(cholesky_nested_store);
+      else
+        throw (std::logic_error("CovarianceBase4 maybe_synchronize_reverse: NestedMatrix is not modifiable"));
+    }
+
   public:
 
     /// Copy constructor.
@@ -183,10 +193,7 @@ namespace OpenKalman::internal
         synchronize_forward {[this] {
           cholesky_nested_store = to_covariance_nestable<CholeskyNestedMatrix>(Base::nested_matrix());
         }},
-        synchronize_reverse {[this] {
-          const_cast<std::decay_t<NestedMatrix>&>(Base::nested_matrix()) =
-            to_covariance_nestable<NestedMatrix>(cholesky_nested_store);
-        }},
+        synchronize_reverse {[this] { maybe_synchronize_reverse(); }},
         mark_nested_matrix_changed {[] {}},
         mark_cholesky_nested_matrix_changed {[] {}},
         mark_synchronized {[] {}}
@@ -220,8 +227,7 @@ namespace OpenKalman::internal
           cholesky_nested_store = arg.cholesky_nested_matrix();
         }},
         synchronize_reverse {[this] {
-          const_cast<std::decay_t<NestedMatrix>&>(Base::nested_matrix()) =
-            to_covariance_nestable<NestedMatrix>(cholesky_nested_store);
+          maybe_synchronize_reverse();
           mark_nested_matrix_changed();
         }},
         mark_nested_matrix_changed {arg.mark_nested_matrix_changed},
@@ -259,8 +265,7 @@ namespace OpenKalman::internal
           cholesky_nested_store = to_covariance_nestable<CholeskyNestedMatrix>(Base::nested_matrix());
         }},
         synchronize_reverse {[this] {
-          const_cast<std::decay_t<NestedMatrix>&>(Base::nested_matrix()) =
-            to_covariance_nestable<NestedMatrix>(cholesky_nested_store);
+          maybe_synchronize_reverse();
           mark_nested_matrix_changed();
         }},
         mark_nested_matrix_changed {std::move(arg).mark_nested_matrix_changed},
@@ -354,11 +359,10 @@ namespace OpenKalman::internal
           std::move(arg).synchronize_forward
         },
         synchronize_reverse {
-          owns_cholesky_nested ? [this] {
-            const_cast<std::decay_t<NestedMatrix>&>(Base::nested_matrix()) =
-              to_covariance_nestable<NestedMatrix>(cholesky_nested_store);
+          owns_cholesky_nested ? std::function<void()> {[this] {
+            maybe_synchronize_reverse();
             mark_nested_matrix_changed();
-          } : std::move(arg).synchronize_reverse},
+          }} : std::move(arg).synchronize_reverse},
         mark_nested_matrix_changed {std::move(arg).mark_nested_matrix_changed},
         mark_cholesky_nested_matrix_changed {std::move(arg).mark_cholesky_nested_matrix_changed},
         mark_synchronized {std::move(arg).mark_synchronized}
@@ -384,10 +388,7 @@ namespace OpenKalman::internal
         synchronize_forward {[this] {
           cholesky_nested_store = to_covariance_nestable<CholeskyNestedMatrix>(Base::nested_matrix());
         }},
-        synchronize_reverse {[this] {
-          const_cast<std::decay_t<NestedMatrix>&>(Base::nested_matrix()) =
-            to_covariance_nestable<NestedMatrix>(cholesky_nested_store);
-        }},
+        synchronize_reverse {[this] { maybe_synchronize_reverse(); }},
         mark_nested_matrix_changed {[] {}},
         mark_cholesky_nested_matrix_changed {[] {}},
         mark_synchronized {[] {}}
@@ -484,7 +485,7 @@ namespace OpenKalman::internal
           {
             Base::nested_matrix() = to_covariance_nestable<NestedMatrix>(std::forward<Arg>(arg).nested_matrix());
             mark_synchronized();
-            if (not OpenKalman::internal::case1or2<Arg> and synchronization_direction() <= 0)
+            if (not case1or2<Arg> and synchronization_direction() <= 0)
             {
               cholesky_nested_link = to_covariance_nestable<CholeskyNestedMatrix>(
                 std::forward<Arg>(arg).cholesky_nested_matrix());

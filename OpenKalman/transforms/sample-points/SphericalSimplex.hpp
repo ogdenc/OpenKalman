@@ -20,6 +20,8 @@
 
 namespace OpenKalman
 {
+  namespace oin = OpenKalman::internal;
+
   template<typename Parameters>
   struct SphericalSimplex;
 
@@ -41,11 +43,11 @@ namespace OpenKalman
 
   /**
    * \brief Spherical simplex sigma points, as implemented in, e.g.,
-   * Simon J. Julier. The spherical simplex unscented transformation.
+   * Simon J. Julier. The spherical simplex unscented tests.
    * In Proceedings of American Control Conference, Denver, Colorado, pages 2430–2434, 2003.
    */
   template<typename Parameters = SphericalSimplexParameters>
-  struct SphericalSimplex : internal::ScaledSigmaPointsBase<SphericalSimplex<Parameters>>
+  struct SphericalSimplex : oin::ScaledSigmaPointsBase<SphericalSimplex<Parameters>>
   {
     /**
      * \brief Number of sigma points.
@@ -103,7 +105,7 @@ namespace OpenKalman
     static constexpr auto
     sigma_point_coeff()
     {
-      constexpr auto denom = 1 / internal::constexpr_sqrt((j + 1) * (j + 2) * unscaled_W<dim>());
+      constexpr auto denom = 1 / oin::constexpr_sqrt((j + 1) * (j + 2) * unscaled_W<dim>());
       if constexpr(i == 0)
         return Scalar(0);
       else if constexpr(i < j + 2)

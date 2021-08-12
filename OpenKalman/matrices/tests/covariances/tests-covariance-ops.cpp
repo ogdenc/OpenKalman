@@ -8,9 +8,10 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#include "covariance_tests.hpp"
+#include "covariances.gtest.hpp"
 
 using namespace OpenKalman;
+using namespace OpenKalman::test;
 
 using M2 = eigen_matrix_t<double, 2, 2>;
 using C = Coefficients<angle::Radians, Axis>;

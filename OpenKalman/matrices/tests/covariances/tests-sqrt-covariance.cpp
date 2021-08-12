@@ -8,9 +8,10 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#include "covariance_tests.hpp"
+#include "covariances.gtest.hpp"
 
 using namespace OpenKalman;
+using namespace OpenKalman::test;
 
 using M2 = eigen_matrix_t<double, 2, 2>;
 using C = Coefficients<angle::Radians, Axis>;
@@ -806,6 +807,11 @@ TEST(covariance_tests, SquareRootCovariance_traits)
 
 TEST(covariance_tests, SquareRootCovariance_overloads)
 {
+  SqCovSA2l sqcovsa2l {3, 0, 1, 3};
+  SqCovSA2u sqcovsa2u {3, 1, 0, 3};
+  SqCovT2l sqcovt2l {3, 0, 1, 3};
+  SqCovT2u sqcovt2u {3, 1, 0, 3};
+
   EXPECT_TRUE(is_near(nested_matrix(SqCovSA2l {3, 0, 1, 3}), Mat2 {9, 3, 3, 10}));
   EXPECT_TRUE(is_near(nested_matrix(SqCovSA2u {3, 1, 0, 3}), Mat2 {9, 3, 3, 10}));
   EXPECT_TRUE(is_near(nested_matrix(SqCovT2l {3, 0, 1, 3}), Mat2 {3, 0, 1, 3}));
@@ -814,7 +820,7 @@ TEST(covariance_tests, SquareRootCovariance_overloads)
   EXPECT_TRUE(is_near(square(SqCovSA2l {3, 0, 1, 3}), Mat2 {9, 3, 3, 10}));
   EXPECT_TRUE(is_near(square(SqCovSA2l {3, 0, 1, 3}).get_self_adjoint_nested_matrix(), Mat2 {9, 3, 3, 10}));
   EXPECT_TRUE(is_near(square(SqCovSA2l {3, 0, 1, 3}).get_triangular_nested_matrix(), Mat2 {3, 0, 1, 3}));
-  SqCovSA2l sqcovsa2l {3, 0, 1, 3}; EXPECT_TRUE(is_near(square(sqcovsa2l).get_self_adjoint_nested_matrix(), Mat2 {9, 3, 3, 10}));
+  EXPECT_TRUE(is_near(square(sqcovsa2l).get_self_adjoint_nested_matrix(), Mat2 {9, 3, 3, 10}));
   EXPECT_TRUE(is_near(square(sqcovsa2l).get_triangular_nested_matrix(), Mat2 {3, 0, 1, 3}));
   auto squaresqcovsa2l = square(SqCovSA2l {3, 0, 1, 3}); EXPECT_TRUE(is_near(squaresqcovsa2l.get_self_adjoint_nested_matrix(), Mat2 {9, 3, 3, 10}));
   EXPECT_TRUE(is_near(squaresqcovsa2l.get_triangular_nested_matrix(), Mat2 {3, 0, 1, 3}));
@@ -824,7 +830,7 @@ TEST(covariance_tests, SquareRootCovariance_overloads)
   EXPECT_TRUE(is_near(square(SqCovT2l {3, 0, 1, 3}), Mat2 {9, 3, 3, 10}));
   EXPECT_TRUE(is_near(square(SqCovT2l {3, 0, 1, 3}).get_self_adjoint_nested_matrix(), Mat2 {9, 3, 3, 10}));
   EXPECT_TRUE(is_near(square(SqCovT2l {3, 0, 1, 3}).get_triangular_nested_matrix(), Mat2 {3, 0, 1, 3}));
-  SqCovT2l sqcovt2l {3, 0, 1, 3}; EXPECT_TRUE(is_near(square(sqcovt2l).get_self_adjoint_nested_matrix(), Mat2 {9, 3, 3, 10}));
+  EXPECT_TRUE(is_near(square(sqcovt2l).get_self_adjoint_nested_matrix(), Mat2 {9, 3, 3, 10}));
   EXPECT_TRUE(is_near(square(sqcovt2l).get_triangular_nested_matrix(), Mat2 {3, 0, 1, 3}));
   auto squaresqcovt2l = square(SqCovT2l {3, 0, 1, 3}); EXPECT_TRUE(is_near(squaresqcovt2l.get_self_adjoint_nested_matrix(), Mat2 {9, 3, 3, 10}));
   EXPECT_TRUE(is_near(squaresqcovt2l.get_triangular_nested_matrix(), Mat2 {3, 0, 1, 3}));
@@ -858,6 +864,10 @@ TEST(covariance_tests, SquareRootCovariance_overloads)
   EXPECT_NEAR(determinant(SqCovSA2u {3, 1, 0, 3}), 9, 1e-6);
   EXPECT_NEAR(determinant(SqCovT2l {3, 0, 1, 3}), 9, 1e-6);
   EXPECT_NEAR(determinant(SqCovT2u {3, 1, 0, 3}), 9, 1e-6);
+  EXPECT_NEAR(determinant(square(sqcovsa2l)), 81, 1e-6);
+  EXPECT_NEAR(determinant(square(sqcovsa2u)), 81, 1e-6);
+  EXPECT_NEAR(determinant(square(sqcovt2l)), 81, 1e-6);
+  EXPECT_NEAR(determinant(square(sqcovt2u)), 81, 1e-6);
 
   EXPECT_NEAR(trace(SqCovSA2l {3, 0, 1, 3}), 6, 1e-6);
   EXPECT_NEAR(trace(SqCovSA2u {3, 1, 0, 3}), 6, 1e-6);

@@ -13,6 +13,8 @@
 
 namespace OpenKalman
 {
+  namespace oin = OpenKalman::internal;
+
   // --------------- //
   //  EuclideanMean  //
   // --------------- //
@@ -24,7 +26,7 @@ namespace OpenKalman
 #else
   template<typename RowCoefficients, typename NestedMatrix>
 #endif
-  struct EuclideanMean : OpenKalman::internal::TypedMatrixBase<EuclideanMean<RowCoefficients, NestedMatrix>,
+  struct EuclideanMean : oin::TypedMatrixBase<EuclideanMean<RowCoefficients, NestedMatrix>,
     RowCoefficients, Axes<MatrixTraits<NestedMatrix>::columns>, NestedMatrix>
   {
 
@@ -43,7 +45,7 @@ namespace OpenKalman
 
   private:
 
-    using Base = OpenKalman::internal::TypedMatrixBase<EuclideanMean, RowCoefficients, ColumnCoefficients, NestedMatrix>;
+    using Base = oin::TypedMatrixBase<EuclideanMean, RowCoefficients, ColumnCoefficients, NestedMatrix>;
 
   public:
 
@@ -63,7 +65,8 @@ namespace OpenKalman
     template<euclidean_transformed Arg> requires
       (equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients>) and
       (equivalent_to<typename MatrixTraits<Arg>::ColumnCoefficients, ColumnCoefficients>) and
-      requires(Arg&& arg) { NestedMatrix {nested_matrix(std::forward<Arg>(arg))}; }
+      //requires(Arg&& arg) { NestedMatrix {nested_matrix(std::forward<Arg>(arg))}; } // \todo doesn't work in GCC 10
+      std::constructible_from<NestedMatrix, decltype(nested_matrix(std::declval<Arg&&>()))>
 #else
     template<typename Arg, std::enable_if_t<euclidean_transformed<Arg> and
       (equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients>) and
@@ -122,7 +125,7 @@ namespace OpenKalman
 
     /**
      * \brief Assign from a compatible \ref OpenKalman::typed_matrix "typed_matrix".
-     * \details This is operable where no transformation to Euclidean space is required.
+     * \details This is operable where no tests to Euclidean space is required.
      */
 #ifdef __cpp_concepts
     template<typed_matrix Arg> requires (not std::derived_from<std::decay_t<Arg>, EuclideanMean>) and
@@ -148,7 +151,7 @@ namespace OpenKalman
 
     /**
      * \brief Assign from a compatible \ref OpenKalman::typed_matrix "typed_matrix".
-     * \details This is operable where a transformation to Euclidean space is required.
+     * \details This is operable where a tests to Euclidean space is required.
      */
 #ifdef __cpp_concepts
     template<typed_matrix Arg> requires (not std::derived_from<std::decay_t<Arg>, EuclideanMean>) and
@@ -286,9 +289,9 @@ namespace OpenKalman
   };
 
 
-  /////////////////////////////////////
-  //        Deduction guides         //
-  /////////////////////////////////////
+  // ------------------ //
+  //  Deduction guides  //
+  // ------------------ //
 
   /// Deduce template parameters from a non-Euclidean-transformed typed matrix.
 #if defined(__cpp_concepts) and false
@@ -299,8 +302,9 @@ namespace OpenKalman
   template<typename V, std::enable_if_t<typed_matrix<V> and not euclidean_transformed<V> and untyped_columns<V> and
     MatrixTraits<V>::RowCoefficients::euclidean_dimensions == MatrixTraits<V>::rows, int> = 0>
 #endif
-  EuclideanMean(V&&) -> EuclideanMean<typename MatrixTraits<V>::RowCoefficients, decltype(
-      to_euclidean<typename MatrixTraits<V>::RowCoefficients>(nested_matrix(std::forward<V>(std::declval<V>()))))>;
+  EuclideanMean(V&&)
+    -> EuclideanMean<typename MatrixTraits<V>::RowCoefficients, std::remove_reference_t<
+      decltype(to_euclidean<typename MatrixTraits<V>::RowCoefficients>(nested_matrix(std::declval<V&&>())))>>;
 
 
   /// Deduce template parameters from a Euclidean-transformed typed matrix.

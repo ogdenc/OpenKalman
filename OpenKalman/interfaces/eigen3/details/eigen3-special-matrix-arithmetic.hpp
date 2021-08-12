@@ -25,7 +25,7 @@ namespace OpenKalman::Eigen3
   // ---------- //
 
   /**
-   * \brief negation of eigen_zero_expr
+   * \brief Negation of /ref eigen_zero_expr.
    */
 #ifdef __cpp_concepts
   template<eigen_zero_expr Arg>
@@ -39,7 +39,7 @@ namespace OpenKalman::Eigen3
 
 
   /**
-   * \brief negation of eigen_constant_expr
+   * \brief Negation of /ref eigen_constant_expr.
    */
 #ifdef __cpp_concepts
   template<eigen_constant_expr Arg>
@@ -59,7 +59,7 @@ namespace OpenKalman::Eigen3
 
 
   /**
-   * \brief negation of eigen_diagonal_expr, eigen_self_adjoint_expr or eigen_triangular_expr
+   * \brief Negation of /ref eigen_diagonal_expr, /ref eigen_self_adjoint_expr or /ref eigen_triangular_expr
    */
 #ifdef __cpp_concepts
   template<typename Arg> requires eigen_diagonal_expr<Arg> or eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>
@@ -954,8 +954,10 @@ namespace OpenKalman::Eigen3
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<
 #endif
-    (((eigen_self_adjoint_expr<Arg1> or eigen_triangular_expr<Arg1>) and eigen_matrix<Arg2>) or
-      (eigen_matrix<Arg1> and (eigen_self_adjoint_expr<Arg2> or eigen_triangular_expr<Arg2>))) and
+    (((eigen_self_adjoint_expr<Arg1> or eigen_triangular_expr<Arg1>) and
+        eigen_matrix<Arg2> and not diagonal_matrix<Arg2>) or
+     (eigen_matrix<Arg1> and not diagonal_matrix<Arg1> and
+        (eigen_self_adjoint_expr<Arg2> or eigen_triangular_expr<Arg2>))) and
     (not identity_matrix<Arg1>) and (not identity_matrix<Arg2>) and (not zero_matrix<Arg1>) and
     (not zero_matrix<Arg2>) and (MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::rows)
 #ifndef __cpp_concepts

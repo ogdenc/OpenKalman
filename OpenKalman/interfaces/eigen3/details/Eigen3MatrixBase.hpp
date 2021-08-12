@@ -306,6 +306,7 @@ namespace Eigen
     ~CovarianceCommaInitializer()
     {
       using namespace OpenKalman;
+
       if constexpr (diagonal_matrix<CovNest>)
       {
         cov = MatrixTraits<CovNest>::make(std::move(comma_initializer.finished()));
@@ -327,6 +328,7 @@ namespace Eigen
     auto& finished()
     {
       using namespace OpenKalman;
+
       if constexpr (diagonal_matrix<CovNest>)
       {
         cov = MatrixTraits<CovNest>::make(comma_initializer.finished());

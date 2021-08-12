@@ -18,16 +18,17 @@
 
 namespace OpenKalman
 {
+  namespace oin = OpenKalman::internal;
 
   /**
    * \brief An identity transform from one statistical distribution to another.
    */
-  struct IdentityTransform : internal::TransformBase<IdentityTransform>
+  struct IdentityTransform : oin::TransformBase<IdentityTransform>
   {
 
   private:
 
-    using Base = internal::TransformBase<IdentityTransform>;
+    using Base = oin::TransformBase<IdentityTransform>;
 
   public:
 

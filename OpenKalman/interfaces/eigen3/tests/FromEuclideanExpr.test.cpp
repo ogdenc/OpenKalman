@@ -16,6 +16,8 @@
 #include "eigen3.gtest.hpp"
 
 using namespace OpenKalman;
+using namespace OpenKalman::Eigen3;
+using namespace OpenKalman::test;
 
 using std::numbers::pi;
 

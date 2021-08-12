@@ -16,6 +16,9 @@
 #include "eigen3.gtest.hpp"
 
 using namespace OpenKalman;
+using namespace OpenKalman::Eigen3;
+using namespace OpenKalman::test;
+
 
 using M2 = eigen_matrix_t<double, 2, 2>;
 using D2 = DiagonalMatrix<eigen_matrix_t<double, 2, 1>>;
@@ -34,6 +37,7 @@ TEST(eigen3, TriangularMatrix_class)
   M2 ml, mu;
   ml << 3, 0, 1, 3;
   mu << 3, 1, 0, 3;
+  D2 d2 {3, 3};
   //
   Lower l1;
   l1 << 3, 0, 1, 3;
@@ -211,6 +215,21 @@ TEST(eigen3, TriangularMatrix_class)
   EXPECT_TRUE(is_near(l4, ml));
   u4 = mu.triangularView<Eigen::Upper>(); // assign from rvalue reference to TriangularBase derived object
   EXPECT_TRUE(is_near(u4, mu));
+  //
+  l4 = ZeroMatrix<double, 2, 2> {};
+  EXPECT_TRUE(is_near(l4, ZeroMatrix<double, 2, 2> {}));
+  u4 = ZeroMatrix<double, 2, 2> {};
+  EXPECT_TRUE(is_near(u4, ZeroMatrix<double, 2, 2> {}));
+  //
+  l4 = M2::Identity();
+  EXPECT_TRUE(is_near(l4, M2::Identity()));
+  u4 = M2::Identity();
+  EXPECT_TRUE(is_near(u4, M2::Identity()));
+  //
+  l4 = d2;
+  EXPECT_TRUE(is_near(l4, d2));
+  u4 = d2;
+  EXPECT_TRUE(is_near(u4, d2));
   //
   l4 = {3, 0, 1, 3}; // assign from a list of scalars
   EXPECT_TRUE(is_near(l4, ml));
@@ -595,6 +614,9 @@ TEST(eigen3, TriangularMatrix_overloads)
   //
   EXPECT_TRUE(is_near(rank_update(Lower {3., 0, 1, 3}, make_native_matrix<M2>(2, 0, 1, 2), 4), mat22(5., 0, 2.2, std::sqrt(25.16))));
   EXPECT_TRUE(is_near(rank_update(Upper {3., 1, 0, 3}, make_native_matrix<M2>(2, 0, 1, 2), 4), mat22(5., 2.2, 0, std::sqrt(25.16))));
+  EXPECT_TRUE(is_near(rank_update(Diagonal {3., 3}, make_native_matrix<M2>(2, 0, 1, 2), 4), mat22(5., 0, 1.6, std::sqrt(26.44))));
+  EXPECT_TRUE(is_near(rank_update(Diagonal2 {3., 3}, make_native_matrix<M2>(2, 0, 1, 2), 4), mat22(5., 0, 1.6, std::sqrt(26.44))));
+  EXPECT_TRUE(is_near(rank_update(Diagonal3 {3., 3}, make_native_matrix<M2>(2, 0, 1, 2), 4), mat22(5., 0, 1.6, std::sqrt(26.44))));
   //
   EXPECT_TRUE(is_near(solve(Lower {3., 0, 1, 3}, make_native_matrix<double, 2, 1>(3, 7)), make_native_matrix<double, 2, 1>(1, 2)));
   EXPECT_TRUE(is_near(solve(Upper {3., 1, 0, 3}, make_native_matrix<double, 2, 1>(3, 9)), make_native_matrix<double, 2, 1>(0, 3)));

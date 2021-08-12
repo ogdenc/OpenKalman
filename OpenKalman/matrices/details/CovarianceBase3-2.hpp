@@ -34,13 +34,13 @@ namespace OpenKalman::internal
 #ifdef __cpp_concepts
   template<typename Derived, typename NestedMatrix> requires
     (not case1or2<Derived, NestedMatrix>) and self_contained<NestedMatrix> and
-    (not std::is_default_constructible_v<NestedMatrix> or OpenKalman::internal::has_const<NestedMatrix>::value)
+    (not std::is_default_constructible_v<NestedMatrix> or not modifiable<std::decay_t<NestedMatrix>&, NestedMatrix>)
   struct CovarianceBase<Derived, NestedMatrix>
 #else
   template<typename Derived, typename NestedMatrix>
   struct CovarianceBase<Derived, NestedMatrix, std::enable_if_t<
     (not case1or2<Derived, NestedMatrix>) and self_contained<NestedMatrix> and
-    (not std::is_default_constructible_v<NestedMatrix> or OpenKalman::internal::has_const<NestedMatrix>::value)>>
+    (not std::is_default_constructible_v<NestedMatrix> or has_const<NestedMatrix>::value)>>
 #endif
     : CovarianceBase3Impl<Derived, NestedMatrix>
   {
@@ -66,15 +66,11 @@ namespace OpenKalman::internal
 
     using typename Base::CholeskyNestedMatrix;
 
-
     /**
      * \internal
      * \brief Synchronize from cholesky_nested_matrix to nested_matrix.
      */
-    void synchronize_reverse() const
-    {
-      throw std::logic_error {"Case 3 synchronize_reverse: NestedMatrix is not assignable."};
-    }
+    static constexpr void synchronize_reverse() {}
 
   public:
 
@@ -129,7 +125,7 @@ namespace OpenKalman::internal
       (not diagonal_matrix<Arg>), int> = 0>
 #endif
     CovarianceBase(Arg&& arg) noexcept
-      : Base {/*(std::cout << "arg" << std::endl << arg << std::endl << std::flush, */to_covariance_nestable<NestedMatrix>(std::forward<Arg>(arg))/*)*/, 1} {}
+      : Base {to_covariance_nestable<NestedMatrix>(std::forward<Arg>(arg)), 1} {}
 
 
     /**

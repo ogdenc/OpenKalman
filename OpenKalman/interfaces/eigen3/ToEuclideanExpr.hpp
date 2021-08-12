@@ -50,7 +50,7 @@ namespace OpenKalman::Eigen3
 
     using Nested = ToEuclideanExpr; ///< Required by Eigen3.
 
-    using typename Base::Scalar;
+    using Scalar = typename MatrixTraits<NestedMatrix>::Scalar;
 
 
     /// Default constructor.
@@ -75,7 +75,8 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
     template<to_euclidean_expr Arg> requires (not std::derived_from<std::decay_t<Arg>, ToEuclideanExpr>) and
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients> and
-      requires(Arg&& arg) { NestedMatrix {nested_matrix(std::forward<Arg>(arg))}; }
+      std::constructible_from<NestedMatrix, decltype(nested_matrix(std::declval<Arg&&>()))>
+      //alt: requires(Arg&& arg) { NestedMatrix {nested_matrix(std::forward<Arg>(arg))}; } -- not accepted in GCC 10
 #else
     template<typename Arg, std::enable_if_t<to_euclidean_expr<Arg> and
       (not std::is_base_of_v<ToEuclideanExpr, std::decay_t<Arg>>) and

@@ -15,13 +15,15 @@
 
 namespace OpenKalman
 {
+  namespace oin = OpenKalman::internal;
+
   /**
-   * \brief A transformation from one single-column vector to another.
-   * \details Models a transformation (linear or nonlinear) from one single-column vector to another.
-   * The transformation takes an input vector, and optionally one or more perturbation terms. These can be
+   * \brief A tests from one single-column vector to another.
+   * \details Models a tests (linear or nonlinear) from one single-column vector to another.
+   * The tests takes an input vector, and optionally one or more perturbation terms. These can be
    * associated with noise, or translation, etc. The perturbation terms can either be constant single-column
    * vectors, or statistical distributions (in which case, the perturbation will be stochastic).
-   * \tparam Function The transformation function, in the following exemplary form:
+   * \tparam Function The tests function, in the following exemplary form:
    * (Mean<InputCoefficients,...>, Mean<OutputCoefficients,...>, ...) -> Mean<OutputCoefficients,...>.
    * The first term is the input, the next term(s) represent perturbation(s), and the final term is the output.
    * \tparam TaylorDerivatives Optional Taylor-series derivative functions, including the Jacobian and Hessian
@@ -59,12 +61,12 @@ namespace OpenKalman
       : function {Function()} {}
 
 
-    /// Constructor from a transformation function.
+    /// Constructor from a tests function.
     template<typename F>
     Transformation(F&& f) : function {std::forward<F>(f)} {}
 
 
-    /// Applies the transformation.
+    /// Applies the tests.
 #ifdef __cpp_concepts
     template<transformation_input In, perturbation ... Perturbations>
 #else
@@ -73,12 +75,12 @@ namespace OpenKalman
 #endif
     auto operator()(In&& in, Perturbations&& ... ps) const
     {
-      return function(std::forward<In>(in), internal::get_perturbation(std::forward<Perturbations>(ps))...);
+      return function(std::forward<In>(in), oin::get_perturbation(std::forward<Perturbations>(ps))...);
     }
 
   private:
 
-    const Function function; ///< The transformation function.
+    const Function function; ///< The tests function.
 
   };
 
@@ -99,7 +101,7 @@ namespace OpenKalman
 
     static auto default_Jacobian(const Function& f)
     {
-      if constexpr (linearized_function<Function, 1>) return internal::get_Taylor_term<1>(f);
+      if constexpr (linearized_function<Function, 1>) return oin::get_Taylor_term<1>(f);
       else return JacobianFunction();
     }
 
@@ -110,13 +112,13 @@ namespace OpenKalman
       : Base {Function()}, jacobian_fun {JacobianFunction()} {}
 
 
-    /// Constructs transformation using a transformation function.
+    /// Constructs tests using a tests function.
     template<typename F>
     Transformation(const F& f)
       : Base {f}, jacobian_fun {default_Jacobian(f)} {}
 
 
-    /// Constructs transformation using a transformation function and a Jacobian function.
+    /// Constructs tests using a tests function and a Jacobian function.
     template<typename F, typename J>
     Transformation(const F& f, const J& j)
       : Base {f}, jacobian_fun {j} {}
@@ -131,7 +133,7 @@ namespace OpenKalman
 #endif
     auto jacobian(In&& in, Perturbations&& ... ps) const
     {
-      return jacobian_fun(std::forward<In>(in), internal::get_perturbation(std::forward<Perturbations>(ps))...);
+      return jacobian_fun(std::forward<In>(in), oin::get_perturbation(std::forward<Perturbations>(ps))...);
     }
 
   private:
@@ -140,9 +142,9 @@ namespace OpenKalman
   };
 
 
-  //////////////////////////////////////////////
+  // ---------------------------------------- //
   //  Second-Order Linearized Transformation  //
-  //////////////////////////////////////////////
+  // ---------------------------------------- //
 
   template<
     typename Function,
@@ -159,31 +161,31 @@ namespace OpenKalman
 
     static auto default_Hessian(const Function& f)
     {
-      if constexpr (linearized_function<Function, 2>) return internal::get_Taylor_term<2>(f);
+      if constexpr (linearized_function<Function, 2>) return oin::get_Taylor_term<2>(f);
       else return HessianFunction();
     }
 
   public:
 
-    /// Constructs transformation using a transformation function and a Jacobian and Hessian functions.
+    /// Constructs tests using a tests function and a Jacobian and Hessian functions.
     /// Default constructor.
     Transformation()
       : Base(), hessian_fun(HessianFunction()) {}
 
 
-    /// Constructs transformation using a transformation function.
+    /// Constructs tests using a tests function.
     template<typename F>
     Transformation(const F& f)
       : Base {f}, hessian_fun {default_Hessian(f)} {}
 
 
-    /// Constructs transformation using a transformation function and a Jacobian function.
+    /// Constructs tests using a tests function and a Jacobian function.
     template<typename F, typename J>
     Transformation(const F& f, const JacobianFunction& j)
       : Base(f, j), hessian_fun(default_Hessian(f)) {}
 
 
-    /// Constructs transformation using a transformation function and a Jacobian function.
+    /// Constructs tests using a tests function and a Jacobian function.
     template<typename F, typename J, typename H>
     Transformation(const F& f, const J& j, const H& h)
       : Base(f, j), hessian_fun(h) {}
@@ -198,7 +200,7 @@ namespace OpenKalman
 #endif
     auto hessian(In&& in, Perturbations&& ... ps) const
     {
-      return hessian_fun(std::forward<In>(in), internal::get_perturbation(std::forward<Perturbations>(ps))...);
+      return hessian_fun(std::forward<In>(in), oin::get_perturbation(std::forward<Perturbations>(ps))...);
     }
 
   private:
@@ -234,7 +236,7 @@ namespace OpenKalman
     linearized_function<Function, 1> and (not linearized_function<Function, 2>), int> = 0>
 #endif
   Transformation(Function&&) -> Transformation<std::decay_t<Function>,
-    std::decay_t<decltype(internal::get_Taylor_term<1>(std::declval<Function>()))>>;
+    std::decay_t<decltype(oin::get_Taylor_term<1>(std::declval<Function>()))>>;
 
 
 #if defined(__cpp_concepts) and false
@@ -244,8 +246,8 @@ namespace OpenKalman
   template<typename Function, std::enable_if_t<linearized_function<Function, 2>, int> = 0>
 #endif
   Transformation(Function&&) -> Transformation<std::decay_t<Function>,
-    std::decay_t<decltype(internal::get_Taylor_term<1>(std::declval<Function>()))>,
-    std::decay_t<decltype(internal::get_Taylor_term<2>(std::declval<Function>()))>>;
+    std::decay_t<decltype(oin::get_Taylor_term<1>(std::declval<Function>()))>,
+    std::decay_t<decltype(oin::get_Taylor_term<2>(std::declval<Function>()))>>;
 
 
 }

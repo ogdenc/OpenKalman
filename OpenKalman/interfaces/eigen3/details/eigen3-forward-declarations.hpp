@@ -233,10 +233,12 @@ namespace OpenKalman::Eigen3
    * is self-adjoint. If the matrix is diagonal, 0 is automatically mapped to each matrix element outside the diagonal.
    */
 #ifdef __cpp_concepts
-  template<typename NestedMatrix, TriangleType storage_triangle = TriangleType::lower> requires
+  template<typename NestedMatrix, TriangleType storage_triangle =
+      (diagonal_matrix<NestedMatrix> ? TriangleType::diagonal : TriangleType::lower)> requires
     (eigen_matrix<NestedMatrix> or eigen_diagonal_expr<NestedMatrix>)
 #else
-  template<typename NestedMatrix, TriangleType storage_triangle = TriangleType::lower>
+  template<typename NestedMatrix, TriangleType storage_triangle =
+    (diagonal_matrix<NestedMatrix> ? TriangleType::diagonal : TriangleType::lower)>
 #endif
   struct SelfAdjointMatrix;
 
@@ -335,10 +337,12 @@ namespace OpenKalman::Eigen3
    * not within the selected triangle or diagonal, to ensure that the matrix is triangular.
    */
 #ifdef __cpp_concepts
-  template<typename NestedMatrix, TriangleType triangle_type = TriangleType::lower> requires
+  template<typename NestedMatrix, TriangleType triangle_type = (diagonal_matrix<NestedMatrix> ? TriangleType::diagonal :
+      (upper_triangular_matrix<NestedMatrix> ? TriangleType::upper : TriangleType::lower))> requires
     (eigen_matrix<NestedMatrix> or eigen_diagonal_expr<NestedMatrix>)
 #else
-  template<typename NestedMatrix, TriangleType triangle_type = TriangleType::lower>
+  template<typename NestedMatrix, TriangleType triangle_type = (diagonal_matrix<NestedMatrix> ? TriangleType::diagonal :
+      (upper_triangular_matrix<NestedMatrix> ? TriangleType::upper : TriangleType::lower))>
 #endif
   struct TriangularMatrix;
 

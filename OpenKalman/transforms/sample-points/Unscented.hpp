@@ -18,6 +18,9 @@
 
 namespace OpenKalman
 {
+  namespace oin = OpenKalman::internal;
+
+
   template<typename Parameters>
   struct Unscented;
 
@@ -62,7 +65,7 @@ namespace OpenKalman
    * \brief Scaled symmetric sigma points
    * \details As implemented in, e.g., E. Wan & R. van der Merwe,
    * "The unscented Kalman filter for nonlinear estimation," in Proc. of IEEE Symposium (AS-SPCC), pp. 153-158.
-   * S. Julier. The scaled unscented transformation. In Proceedings of the American
+   * S. Julier. The scaled unscented tests. In Proceedings of the American
    * Control Conference, Evanston, IL, pages 1108–1114, 2002.
    */
 #if __cpp_nontype_template_args >= 201911L
@@ -70,7 +73,7 @@ namespace OpenKalman
 #else
   template<typename Parameters = UnscentedParametersStateEstimation>
 #endif
-  struct Unscented : internal::ScaledSigmaPointsBase<Unscented<Parameters>>
+  struct Unscented : oin::ScaledSigmaPointsBase<Unscented<Parameters>>
   {
 
     /**

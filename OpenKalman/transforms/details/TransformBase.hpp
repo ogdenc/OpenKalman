@@ -62,7 +62,7 @@ namespace OpenKalman::internal
     * \brief Perform one or more consecutive transforms.
     * \tparam InputDist The prior distribution.
     * \tparam T A tuple-like structure containing zero or more arguments (beyond the input distribution) to the
-    * first transform (e.g., a transformation and zero or more noise distributions).
+    * first transform (e.g., a tests and zero or more noise distributions).
     * \tparam Ts A list of tuple-like structures, each containing arguments to the second, third, etc. transform.
     * \return The posterior distribution.
     **/
@@ -91,7 +91,7 @@ namespace OpenKalman::internal
      * \brief Perform one or more consecutive transforms, also returning the cross-covariance.
      * \tparam InputDist The prior distribution.
      * \tparam T A tuple-like structure containing zero or more arguments (beyond the input distribution) to the
-     * first transform (e.g., a transformation and zero or more noise distributions).
+     * first transform (e.g., a tests and zero or more noise distributions).
      * \tparam Ts A list of tuple-like structures, each containing arguments to the second, third, etc. transform.
      * \return A tuple containing the posterior distribution and the cross-covariance.
      **/

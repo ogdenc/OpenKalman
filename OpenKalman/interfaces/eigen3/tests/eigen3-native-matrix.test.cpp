@@ -11,6 +11,8 @@
 #include "eigen3.gtest.hpp"
 
 using namespace OpenKalman;
+using namespace OpenKalman::Eigen3;
+using namespace OpenKalman::test;
 
 using Mat2 = eigen_matrix_t<double, 2, 2>;
 using Mat3 = eigen_matrix_t<double, 3, 3>;
@@ -202,7 +204,15 @@ TEST(eigen3, ZeroMatrix)
   EXPECT_TRUE(is_near(make_self_contained(ZeroMatrix<double, 2, 3>()), eigen_matrix_t<double, 2, 3>::Zero()));
   EXPECT_NEAR(determinant(ZeroMatrix<double, 2, 2>()), 0, 1e-6);
   EXPECT_NEAR(trace(ZeroMatrix<double, 2, 2>()), 0, 1e-6);
+
+  ZeroMatrix<double, 2, 2> z22;
+  auto m1234 = make_native_matrix<double, 2, 2>(1, 2, 3, 4);
+  EXPECT_TRUE(is_near(rank_update(z22, m1234, 0.25), 0.5*m1234));
+  auto di5 = eigen_matrix_t<double, 2, 2>::Identity() * 5;
+  EXPECT_TRUE(is_near(rank_update(z22, di5, 0.25), 0.5*di5));
+
   /// \todo: add solve
+
   EXPECT_TRUE(is_near(reduce_columns(ZeroMatrix<double, 2, 3>()), (eigen_matrix_t<double, 2, 1>::Zero())));
   EXPECT_NEAR(get_element(ZeroMatrix<double, 2, 2>(), 1, 0), 0, 1e-8);
   static_assert(element_gettable<ZeroMatrix<double, 2, 2>, 2>);

@@ -20,6 +20,8 @@
 
 namespace OpenKalman
 {
+  namespace oin = OpenKalman::internal;
+
 
   namespace internal
   {
@@ -46,10 +48,11 @@ namespace OpenKalman
    */
   template<typename T, std::size_t order = 1>
 #ifdef __cpp_concepts
-  concept linearized_function = internal::is_linearized_function<std::decay_t<T>, order>::value;
+  concept linearized_function =
 #else
-  inline constexpr bool linearized_function = internal::is_linearized_function<std::decay_t<T>, order>::value;
+  inline constexpr bool linearized_function =
 #endif
+    oin::is_linearized_function<std::decay_t<T>, order>::value;
 
 
   namespace internal
@@ -145,29 +148,27 @@ namespace OpenKalman
 
 
   /**
-   * \brief T is an acceptable input to a transformation.
-   * \tparam Coeffs The expected coefficients of the transformation input.
+   * \brief T is an acceptable input to a tests.
+   * \tparam Coeffs The expected coefficients of the tests input.
    */
+  template<typename T, typename Coeffs = typename oin::PerturbationTraits<T>::RowCoefficients>
 #ifdef __cpp_concepts
-  template<typename T, typename Coeffs = typename MatrixTraits<T>::RowCoefficients>
-  concept transformation_input = typed_matrix<T> and column_vector<T> and untyped_columns<T> and
-    (not euclidean_transformed<T>) and equivalent_to<typename MatrixTraits<T>::RowCoefficients, Coeffs>;
+  concept transformation_input =
 #else
-  template<typename T, typename Coeffs = typename internal::PerturbationTraits<T>::RowCoefficients>
-  inline constexpr bool transformation_input = typed_matrix<T> and column_vector<T> and untyped_columns<T> and
-     (not euclidean_transformed<T>) and equivalent_to<typename internal::PerturbationTraits<T>::RowCoefficients, Coeffs>;
+  inline constexpr bool transformation_input =
 #endif
+    typed_matrix<T> and column_vector<T> and untyped_columns<T> and (not euclidean_transformed<T>) and
+    equivalent_to<typename oin::PerturbationTraits<T>::RowCoefficients, Coeffs>;
 
 
   /**
-   * \brief T is an acceptable noise perturbation input to a transformation.
-   * \tparam OutputCoefficients The expected coefficients of the transformation output.
+   * \brief T is an acceptable noise perturbation input to a tests.
+   * \tparam OutputCoefficients The expected coefficients of the tests output.
    */
 #ifdef __cpp_concepts
-  template<typename T, typename Coeffs = typename internal::PerturbationTraits<T>::RowCoefficients>
-  concept perturbation =
-    (gaussian_distribution<T> and equivalent_to<typename internal::PerturbationTraits<T>::RowCoefficients, Coeffs>) or
-    transformation_input<T, Coeffs>;
+  template<typename T, typename Coeffs = typename oin::PerturbationTraits<T>::RowCoefficients>
+  concept perturbation = (gaussian_distribution<T> and
+    equivalent_to<typename oin::PerturbationTraits<T>::RowCoefficients, Coeffs>) or transformation_input<T, Coeffs>;
 #else
   namespace detail
   {
@@ -176,15 +177,15 @@ namespace OpenKalman
 
     template<typename T, typename Coeffs>
     struct is_perturbation<T, Coeffs, std::enable_if_t<gaussian_distribution<T> and
-      equivalent_to<typename internal::PerturbationTraits<T>::RowCoefficients, Coeffs>>> : std::true_type {};
+      equivalent_to<typename oin::PerturbationTraits<T>::RowCoefficients, Coeffs>>> : std::true_type {};
 
     template<typename T, typename Coeffs>
     struct is_perturbation<T, Coeffs, std::enable_if_t<
       (not gaussian_distribution<T>) and transformation_input<T, Coeffs>>> : std::true_type {};
   }
 
-  template<typename T, typename Coeffs = typename internal::PerturbationTraits<T>::RowCoefficients>
-  inline constexpr bool perturbation = detail::is_perturbation<T, Coeffs>::value;
+  template<typename T, typename Coeffs = typename oin::PerturbationTraits<T>::RowCoefficients>
+  inline constexpr bool perturbation = OpenKalman::detail::is_perturbation<T, Coeffs>::value;
 #endif
 
 
@@ -235,8 +236,8 @@ namespace OpenKalman
   {
     static_assert(typed_matrix<In> and untyped_columns<In>);
     static_assert((perturbation<Perturbations> and ...));
-    return std::tuple {detail::zero_hessian_impl<OutputCoefficients, In>(),
-      detail::zero_hessian_impl<OutputCoefficients, Perturbations>()...};
+    return std::tuple {OpenKalman::detail::zero_hessian_impl<OutputCoefficients, In>(),
+      OpenKalman::detail::zero_hessian_impl<OutputCoefficients, Perturbations>()...};
   }
 
 

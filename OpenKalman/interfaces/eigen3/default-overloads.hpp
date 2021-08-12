@@ -595,14 +595,16 @@ namespace OpenKalman
 
 
   /// If the arguments are a sequence of scalars, derive a square, self-adjoint matrix.
-#ifdef __cpp_concepts
-  template<typename ... Args> requires (sizeof...(Args) > 0) and (std::is_arithmetic_v<Args> and ...)
+#if defined(__cpp_concepts) and not defined (__clang__) // Does not appear to work with clang 10.1.0.
+  template<typename ... Args> requires (std::is_arithmetic_v<Args> and ...) and (sizeof...(Args) > 0) and
+    (sizeof...(Args) == internal::constexpr_sqrt(sizeof...(Args)) * internal::constexpr_sqrt(sizeof...(Args)))
 #else
-  template<typename ... Args,
-    std::enable_if_t<(sizeof...(Args) > 0) and std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
+  template<typename ... Args, std::enable_if_t<
+    std::conjunction_v<std::is_arithmetic<Args>...> and (sizeof...(Args) > 0) and
+    (sizeof...(Args) == internal::constexpr_sqrt(sizeof...(Args)) * internal::constexpr_sqrt(sizeof...(Args))), int> = 0>
 #endif
-  Covariance(Args ...) -> Covariance<Axes<internal::constexpr_sqrt(sizeof...(Args))>,
-  Eigen3::SelfAdjointMatrix<Eigen::Matrix<std::decay_t<std::common_type_t<Args...>>,
+  explicit Covariance(const Args& ...) -> Covariance<Axes<internal::constexpr_sqrt(sizeof...(Args))>,
+  Eigen3::SelfAdjointMatrix<Eigen::Matrix<std::common_type_t<Args...>,
     internal::constexpr_sqrt(sizeof...(Args)), internal::constexpr_sqrt(sizeof...(Args))>>>;
 
 
@@ -622,13 +624,15 @@ namespace OpenKalman
 
 
   /// If the arguments are a sequence of scalars, derive a square, lower triangular matrix.
-#ifdef __cpp_concepts
-  template<typename ... Args> requires (sizeof...(Args) > 0) and (std::is_arithmetic_v<Args> and ...)
+#if defined(__cpp_concepts) and not defined (__clang__) // Does not appear to work with clang 10.1.0.
+  template<typename ... Args> requires (std::is_arithmetic_v<Args> and ...) and (sizeof...(Args) > 0) and
+  (sizeof...(Args) == internal::constexpr_sqrt(sizeof...(Args)) * internal::constexpr_sqrt(sizeof...(Args)))
 #else
   template<typename ... Args, std::enable_if_t<
-    (sizeof...(Args) > 0) and std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
+    std::conjunction_v<std::is_arithmetic<Args>...> and (sizeof...(Args) > 0) and
+    (sizeof...(Args) == internal::constexpr_sqrt(sizeof...(Args)) * internal::constexpr_sqrt(sizeof...(Args))), int> = 0>
 #endif
-  SquareRootCovariance(Args ...) -> SquareRootCovariance<Axes<internal::constexpr_sqrt(sizeof...(Args))>,
+  explicit SquareRootCovariance(Args ...) -> SquareRootCovariance<Axes<internal::constexpr_sqrt(sizeof...(Args))>,
   Eigen3::TriangularMatrix<Eigen::Matrix<std::decay_t<std::common_type_t<Args...>>,
     OpenKalman::internal::constexpr_sqrt(sizeof...(Args)), OpenKalman::internal::constexpr_sqrt(sizeof...(Args))>>>;
 

@@ -18,17 +18,19 @@
 
 namespace OpenKalman
 {
+  namespace oin = OpenKalman::internal;
+
   /**
    * \brief Propagates a recursive least squares error distribution of parameters, with a forgetting factor λ.
    * Useful for parameter estimation, where the parameter is expected to possibly drift over time
    * \tparam Scalar The scalar type.
    */
   template<typename Scalar = double>
-  struct RecursiveLeastSquaresTransform : internal::TransformBase<RecursiveLeastSquaresTransform<Scalar>>
+  struct RecursiveLeastSquaresTransform : oin::TransformBase<RecursiveLeastSquaresTransform<Scalar>>
   {
   private:
 
-    using Base = internal::TransformBase<RecursiveLeastSquaresTransform<Scalar>>;
+    using Base = oin::TransformBase<RecursiveLeastSquaresTransform<Scalar>>;
 
   public:
 

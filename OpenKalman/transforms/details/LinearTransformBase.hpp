@@ -22,10 +22,9 @@
 
 namespace OpenKalman::internal
 {
-
   /**
    * \internal
-   * \brief Whether transformation T needs an additive correction when F is the transformation function.
+   * \brief Whether tests T needs an additive correction when F is the tests function.
    * \details This is true for LinearizedTransform<order> where order >= 2.
    */
   template<typename T, typename F>
@@ -43,12 +42,12 @@ namespace OpenKalman::internal
    * -# a tuple of Jacobians corresponding to each input and noise term.
    **/
   template<typename Derived>
-  struct LinearTransformBase : internal::TransformBase<Derived>
+  struct LinearTransformBase : TransformBase<Derived>
   {
 
   private:
 
-    using Base = internal::TransformBase<Derived>;
+    using Base = TransformBase<Derived>;
 
     template<std::size_t return_cross, typename J, typename Dist, std::size_t...ints>
     static auto sum_noise_terms(const J& j, const Dist& dist, std::index_sequence<ints...>)
@@ -94,7 +93,7 @@ namespace OpenKalman::internal
 
     /*
      * Linearly transform one statistical distribution to another.
-     * \tparam Trans The linear or linearized transformation on which the transform is based
+     * \tparam Trans The linear or linearized tests on which the transform is based
      * (e.g., LinearTransformation).
      * \tparam InputDist The prior distribution.
      * \tparam NoiseDist Zero or more noise distributions.
@@ -111,12 +110,13 @@ namespace OpenKalman::internal
     {
       typename Derived::template TransformModel<Trans> transform_model {g};
       auto[mean_output, jacobians] = transform_model(mean_of(in), mean_of(n)...);
+      using re = typename DistributionTraits<InputDist>::random_number_engine;
 
       if constexpr (return_cross)
       {
         auto [cov_out, cross_covariance] = sum_noise_terms<true>(jacobians, std::forward_as_tuple(in, n...),
           std::make_index_sequence<std::min(sizeof...(NoiseDists), std::tuple_size_v<decltype(jacobians)> - 1)>{});
-        auto out = make_GaussianDistribution(mean_output, cov_out);
+        auto out = make_GaussianDistribution<re>(std::move(mean_output), std::move(cov_out));
 
         if constexpr(needs_additive_correction<Derived, Trans>::value)
           return std::tuple {make_self_contained(out + transform_model.add_correction(in, n...)), cross_covariance};
@@ -127,7 +127,7 @@ namespace OpenKalman::internal
       {
         auto cov_out = sum_noise_terms<false>(jacobians, std::forward_as_tuple(in, n...),
           std::make_index_sequence<std::min(sizeof...(NoiseDists), std::tuple_size_v<decltype(jacobians)> - 1)>{});
-        auto out = make_GaussianDistribution(mean_output, cov_out);
+        auto out = make_GaussianDistribution<re>(std::move(mean_output), std::move(cov_out));
 
         if constexpr(needs_additive_correction<Derived, Trans>::value)
           return make_self_contained(out + transform_model.add_correction(in, n...));
@@ -142,7 +142,7 @@ namespace OpenKalman::internal
      * \brief Perform one or more consecutive linear(ized) transforms.
      * \tparam InputDist The prior distribution.
      * \tparam Ts A list of tuple-like structures, each containing arguments to a transform.
-     * These arguments each include a transformation and zero or more noise distributions.
+     * These arguments each include a tests and zero or more noise distributions.
      * \return The posterior distribution.
      **/
 #ifdef __cpp_concepts
@@ -160,7 +160,7 @@ namespace OpenKalman::internal
     /**
      * \brief Perform a linear(ized) transform from one statistical distribution to another.
      * \tparam InputDist The prior distribution.
-     * \tparam Trans The linear or linearized transformation on which the transform is based
+     * \tparam Trans The linear or linearized tests on which the transform is based
      * (e.g., LinearTransformation).
      * \tparam NoiseDists Zero or more noise distributions.
      * \return The posterior distribution.
@@ -184,7 +184,7 @@ namespace OpenKalman::internal
      * \brief Perform one or more consecutive linear(ized) transforms, also returning the cross-covariance.
      * \tparam InputDist The prior distribution.
      * \tparam Ts A list of tuple-like structures, each containing arguments to a transform.
-     * These arguments each include a transformation and zero or more noise distributions.
+     * These arguments each include a tests and zero or more noise distributions.
      * \return A tuple containing the posterior distribution and the cross-covariance.
      **/
 #ifdef __cpp_concepts
@@ -202,7 +202,7 @@ namespace OpenKalman::internal
     /**
      * \brief Perform a linear(ized) transform, also returning the cross-covariance.
      * \tparam InputDist The prior distribution.
-     * \tparam Trans The linear or linearized transformation on which the transform is based
+     * \tparam Trans The linear or linearized tests on which the transform is based
      * (e.g., LinearTransformation).
      * \tparam NoiseDists Zero or more noise distributions.
      * \return A tuple comprising the posterior distribution and the cross-covariance.

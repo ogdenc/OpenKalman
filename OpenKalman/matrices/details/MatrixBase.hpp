@@ -185,7 +185,7 @@ namespace OpenKalman::internal
      * \return A square identity matrix with the same number of rows.
      */
 #ifdef __cpp_concepts
-    template<std::convertible_to<Eigen::Index> ... Args> requires (sizeof...(Args) == (dynamic_shape<Derived> ? 1 : 0))
+    template<std::convertible_to<std::size_t> ... Args> requires (sizeof...(Args) == (dynamic_shape<Derived> ? 1 : 0))
 #else
     template<typename D = Derived, typename...Args, std::enable_if_t<
       (std::is_convertible_v<Args, Eigen::Index> and ...) and (sizeof...(Args) == (dynamic_shape<D> ? 1 : 0)), int> = 0>

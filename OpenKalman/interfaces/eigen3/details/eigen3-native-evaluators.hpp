@@ -412,7 +412,7 @@ namespace Eigen::internal
   namespace detail
   {
 #ifdef __cpp_concepts
-    template<coefficients Coefficients, typename XprType, typename Nested, typename NestedEvaluator>
+    template<OpenKalman::coefficients Coefficients, typename XprType, typename Nested, typename NestedEvaluator>
 #else
     template<typename Coefficients, typename XprType, typename Nested, typename NestedEvaluator, typename = void>
 #endif
@@ -420,13 +420,13 @@ namespace Eigen::internal
 
 
 #ifdef __cpp_concepts
-    template<coefficients Coefficients, typename XprType, typename Nested, typename NestedEvaluator> requires
-      (not Coefficients::axes_only)
+    template<OpenKalman::coefficients Coefficients, typename XprType, typename Nested, typename NestedEvaluator>
+      requires (not Coefficients::axes_only)
     struct Evaluator_EuclideanExpr_Base<Coefficients, XprType, Nested, NestedEvaluator>
 #else
     template<typename Coefficients, typename XprType, typename Nested, typename NestedEvaluator>
     struct Evaluator_EuclideanExpr_Base<Coefficients, XprType, Nested, NestedEvaluator,
-      std::enable_if_t<coefficients<Coefficients> and not Coefficients::axes_only>>
+      std::enable_if_t<OpenKalman::coefficients<Coefficients> and not Coefficients::axes_only>>
 #endif
       : evaluator_base<XprType>
     {
@@ -448,13 +448,13 @@ namespace Eigen::internal
 
 
 #ifdef __cpp_concepts
-    template<coefficients Coefficients, typename XprType, typename Nested, typename NestedEvaluator> requires
-      Coefficients::axes_only
+    template<OpenKalman::coefficients Coefficients, typename XprType, typename Nested, typename NestedEvaluator>
+      requires Coefficients::axes_only
     struct Evaluator_EuclideanExpr_Base<Coefficients, XprType, Nested, NestedEvaluator>
 #else
     template<typename Coefficients, typename XprType, typename Nested, typename NestedEvaluator>
     struct Evaluator_EuclideanExpr_Base<Coefficients, XprType, Nested, NestedEvaluator,
-      std::enable_if_t<coefficients<Coefficients> and Coefficients::axes_only>>
+      std::enable_if_t<OpenKalman::coefficients<Coefficients> and Coefficients::axes_only>>
 #endif
       : NestedEvaluator
     {

@@ -15,6 +15,11 @@
 
 #include "eigen3.gtest.hpp"
 
+using namespace OpenKalman;
+using namespace OpenKalman::Eigen3;
+using namespace OpenKalman::test;
+
+
 using M2 = eigen_matrix_t<double, 2, 2>;
 using D2 = DiagonalMatrix<eigen_matrix_t<double, 2, 1>>;
 using Lower = SelfAdjointMatrix<M2, TriangleType::lower>;
@@ -30,6 +35,7 @@ inline auto mat22(Args...args) { return MatrixTraits<M2>::make(args...); }
 TEST(eigen3, SelfAdjointMatrix_class)
 {
   auto m = mat22(9, 3, 3, 10);
+  D2 d2 {9, 9};
   //
   Lower l1;
   l1 << 9, 7, 3, 10;
@@ -235,6 +241,21 @@ TEST(eigen3, SelfAdjointMatrix_class)
   m1 = mat22(9, 3, 3, 10);
   u4 = m1.selfadjointView<Eigen::Upper>(); // assign from rvalue of TriangularBase derived object
   EXPECT_TRUE(is_near(u4, m));
+  //
+  l4 = M2::Zero();
+  EXPECT_TRUE(is_near(l4, M2::Zero()));
+  u4 = M2::Zero();
+  EXPECT_TRUE(is_near(u4, M2::Zero()));
+  //
+  l4 = M2::Identity();
+  EXPECT_TRUE(is_near(l4, M2::Identity()));
+  u4 = M2::Identity();
+  EXPECT_TRUE(is_near(u4, M2::Identity()));
+  //
+  l4 = d2;
+  EXPECT_TRUE(is_near(l4, d2));
+  u4 = d2;
+  EXPECT_TRUE(is_near(u4, d2));
   //
   l4 = {9., 3, 3, 10}; // assign from a list of scalars
   EXPECT_TRUE(is_near(l4, m));
@@ -610,6 +631,9 @@ TEST(eigen3, SelfAdjointMatrix_overloads)
   //
   EXPECT_TRUE(is_near(rank_update(Lower {9., 3, 3, 10}, make_native_matrix<M2>(2, 0, 1, 2), 4), mat22(25., 11, 11, 30)));
   EXPECT_TRUE(is_near(rank_update(Upper {9., 3, 3, 10}, make_native_matrix<M2>(2, 1, 0, 2), 4), mat22(29., 11, 11, 26)));
+  EXPECT_TRUE(is_near(rank_update(Diagonal {9., 10}, make_native_matrix<M2>(2, 0, 1, 2), 4), mat22(25., 8, 8, 30)));
+  EXPECT_TRUE(is_near(rank_update(Diagonal2 {9., 10}, make_native_matrix<M2>(2, 0, 1, 2), 4), mat22(25., 8, 8, 30)));
+  EXPECT_TRUE(is_near(rank_update(Diagonal3 {9., 10}, make_native_matrix<M2>(2, 0, 1, 2), 4), mat22(25., 8, 8, 30)));
   //
   EXPECT_TRUE(is_near(solve(Lower {9., 3, 3, 10}, make_native_matrix<double, 2, 1>(15, 23)), make_native_matrix<double, 2, 1>(1, 2)));
   EXPECT_TRUE(is_near(solve(Upper {9., 3, 3, 10}, make_native_matrix<double, 2, 1>(15, 23)), make_native_matrix<double, 2, 1>(1, 2)));

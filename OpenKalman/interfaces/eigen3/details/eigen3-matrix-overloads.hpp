@@ -1336,11 +1336,14 @@ namespace OpenKalman::Eigen3
     std::enable_if_t<std::is_void_v<std::void_t<Eigen::NumTraits<std::invoke_result_t<Function>>>>, int> = 0>
 #endif
   inline auto
-  apply_coefficientwise(const Function& f)
+  apply_coefficientwise(Function&& f)
   {
     using Scalar = std::invoke_result_t<Function>;
     using Mat = eigen_matrix_t<Scalar, static_cast<Eigen::Index>(rows), static_cast<Eigen::Index>(columns)>;
-    return native_matrix_t<Mat>::NullaryExpr(std::cref(f));
+    if constexpr (std::is_lvalue_reference_v<Function>)
+      return native_matrix_t<Mat>::NullaryExpr(std::cref(f));
+    else
+      return native_matrix_t<Mat>::NullaryExpr([f = std::move(f)] () { return f(); });
   }
 
 
@@ -1352,11 +1355,14 @@ namespace OpenKalman::Eigen3
     typename = std::void_t<Eigen::NumTraits<std::invoke_result_t<Function, std::size_t&, std::size_t&>>>>
 #endif
   inline auto
-  apply_coefficientwise(const Function& f)
+  apply_coefficientwise(Function&& f)
   {
     using Scalar = std::invoke_result_t<Function, std::size_t, std::size_t>;
     using Mat = eigen_matrix_t<Scalar, static_cast<Eigen::Index>(rows), static_cast<Eigen::Index>(columns)>;
-    return native_matrix_t<Mat>::NullaryExpr(std::cref(f));
+    if constexpr (std::is_lvalue_reference_v<Function>)
+      return native_matrix_t<Mat>::NullaryExpr(std::cref(f));
+    else
+      return native_matrix_t<Mat>::NullaryExpr([f = std::move(f)] (std::size_t i, std::size_t j) { return f(i, j); });
   }
 
 

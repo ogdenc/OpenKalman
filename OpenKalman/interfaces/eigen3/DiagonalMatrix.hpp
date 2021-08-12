@@ -40,7 +40,7 @@ namespace OpenKalman::Eigen3
 
   public:
 
-    using typename Base::Scalar;
+    using Scalar = typename MatrixTraits<NestedMatrix>::Scalar;
 
 
     /// Default constructor.
@@ -64,7 +64,8 @@ namespace OpenKalman::Eigen3
     /// Construct from a compatible \ref eigen_diagonal_expr.
 #ifdef __cpp_concepts
     template<eigen_diagonal_expr Arg> requires (not std::derived_from<std::decay_t<Arg>, DiagonalMatrix>) and
-      requires(Arg&& arg) { NestedMatrix {nested_matrix(std::forward<Arg>(arg))}; }
+      std::constructible_from<NestedMatrix, decltype(nested_matrix(std::declval<Arg&&>()))>
+      //alt: requires(Arg&& arg) { NestedMatrix {nested_matrix(std::forward<Arg>(arg))}; } -- not accepted in GCC 10
 #else
     template<typename Arg, std::enable_if_t<eigen_diagonal_expr<Arg> and
       (not std::is_base_of_v<DiagonalMatrix, std::decay_t<Arg>>) and
@@ -96,7 +97,7 @@ namespace OpenKalman::Eigen3
     /// Construct from an identity matrix.
 #ifdef __cpp_concepts
     template<identity_matrix Arg> requires (not eigen_diagonal_expr<Arg>) and (not one_by_one_matrix<Arg>) and
-      requires { std::constructible_from<NestedMatrix, ConstantMatrix<Scalar, 1, dimensions, 1>&&>; }
+      std::constructible_from<NestedMatrix, ConstantMatrix<Scalar, 1, dimensions, 1>&&>
 #else
     template<typename Arg, std::enable_if_t<identity_matrix<Arg> and
       (not eigen_diagonal_expr<Arg>) and (not one_by_one_matrix<Arg>) and

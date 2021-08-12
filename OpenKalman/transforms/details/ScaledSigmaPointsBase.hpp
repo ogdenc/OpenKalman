@@ -28,7 +28,7 @@ namespace OpenKalman::internal
    * weighted distribution of S encodes approximate statistical information
    * (e.g., mean, standard deviation, etc.) about the distribution of X.
    * As implemented in
-   * S. Julier. The scaled unscented transformation. In Proceedings of the American
+   * S. Julier. The scaled unscented tests. In Proceedings of the American
    * Control Conference, Evanston, IL, pages 1108–1114, 2002.
    * \tparam Derived The derived class
    * constant expressions.

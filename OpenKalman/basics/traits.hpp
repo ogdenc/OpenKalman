@@ -505,12 +505,25 @@ namespace OpenKalman
   /**
    * \brief An alias for a type, derived from and equivalent to parameter T, that can be passed as a function parameter.
    * \tparam T The type in question.
-   * \tparam Ts Other types (optional) that must also be lvalue references if T is not self-contained.
-   * \details A passable type T is either an lvalue reference (and all other Ts are also lvalue references) or
-   * is \ref self_contained_t.
+   * \details A passable type T is either an lvalue reference or is \ref self_contained_t.
    */
-  template<typename T, typename...Ts>
+  template<typename T>
   using passable_t = std::conditional_t<std::is_lvalue_reference_v<T>, T, self_contained_t<T>>;
+
+
+  // --------------------------- //
+  //  remove_rvalue_reference_t  //
+  // --------------------------- //
+
+  namespace internal
+  {
+    /**
+     * \brief If T is an rvalue reference, remove the reference.
+     * \todo Unused?
+     */
+    template<typename T>
+    using remove_rvalue_reference_t = std::conditional_t<std::is_rvalue_reference_v<T>, std::remove_reference_t<T>, T>;
+  }
 
 
   // ====================== //

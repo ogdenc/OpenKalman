@@ -17,7 +17,7 @@
 #include <algorithm>
 #include <Eigen/Dense>
 #include "distributions/WeightedParticleDistribution.hpp"
-#include "distributions/GaussianDistribution.hpp"
+#include "distributions/distributions.hpp"
 
 namespace OpenKalman {
 

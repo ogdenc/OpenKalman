@@ -13,6 +13,8 @@
 
 namespace OpenKalman
 {
+  namespace oin = OpenKalman::internal;
+
   // --------------------- //
   //        Matrix         //
   // --------------------- //
@@ -24,7 +26,7 @@ namespace OpenKalman
 #else
   template<typename RowCoefficients, typename ColumnCoefficients, typename NestedMatrix>
 #endif
-  struct Matrix : OpenKalman::internal::TypedMatrixBase<Matrix<RowCoefficients, ColumnCoefficients, NestedMatrix>,
+  struct Matrix : oin::TypedMatrixBase<Matrix<RowCoefficients, ColumnCoefficients, NestedMatrix>,
     RowCoefficients, ColumnCoefficients, NestedMatrix>
   {
 
@@ -41,7 +43,7 @@ namespace OpenKalman
 
   private:
 
-    using Base = OpenKalman::internal::TypedMatrixBase<Matrix, RowCoefficients, ColumnCoefficients, NestedMatrix>;
+    using Base = oin::TypedMatrixBase<Matrix, RowCoefficients, ColumnCoefficients, NestedMatrix>;
 
   public:
 
@@ -62,7 +64,8 @@ namespace OpenKalman
       (not euclidean_transformed<Arg>) and
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients> and
       equivalent_to<typename MatrixTraits<Arg>::ColumnCoefficients, ColumnCoefficients> and
-      requires(Arg&& arg) { NestedMatrix {nested_matrix(std::forward<Arg>(arg))}; }
+      //requires(Arg&& arg) { NestedMatrix {nested_matrix(std::forward<Arg>(arg))}; } // \todo 't work in GCC 10
+      std::constructible_from<NestedMatrix, decltype(nested_matrix(std::declval<Arg&&>()))>
 #else
     template<typename Arg, std::enable_if_t<typed_matrix<Arg> and not std::is_base_of_v<Matrix, std::decay_t<Arg>> and
       not euclidean_transformed<Arg> and
@@ -297,8 +300,7 @@ namespace OpenKalman
 #else
   template<typename M, std::enable_if_t<typed_matrix_nestable<M>, int> = 0>
 #endif
-  explicit Matrix(M&&)
-  -> Matrix<Axes<MatrixTraits<M>::rows>, Axes<MatrixTraits<M>::columns>, passable_t<M>>;
+  explicit Matrix(M&&) -> Matrix<Axes<MatrixTraits<M>::rows>, Axes<MatrixTraits<M>::columns>, passable_t<M>>;
 
 
   /// Deduce template parameters from a non-Euclidean-transformed typed matrix.

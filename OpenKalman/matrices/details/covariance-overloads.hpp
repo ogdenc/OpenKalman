@@ -13,6 +13,9 @@
 
 namespace OpenKalman
 {
+  namespace oin = OpenKalman::internal;
+
+
 #ifdef __cpp_concepts
   template<covariance M>
 #else
@@ -68,7 +71,7 @@ namespace OpenKalman
   constexpr auto
   make_native_matrix(Arg&& arg) noexcept
   {
-    return make_native_matrix(OpenKalman::internal::to_covariance_nestable(std::forward<Arg>(arg)));
+    return make_native_matrix(oin::to_covariance_nestable(std::forward<Arg>(arg)));
   }
 
 
@@ -141,7 +144,7 @@ namespace OpenKalman
   {
     using C = typename MatrixTraits<Arg>::RowCoefficients;
     auto b = make_self_contained<Arg>(
-      diagonal_of(OpenKalman::internal::to_covariance_nestable(std::forward<Arg>(arg))));
+      diagonal_of(oin::to_covariance_nestable(std::forward<Arg>(arg))));
     return Matrix<C, Axis, decltype(b)>(std::move(b));
   }
 
@@ -198,14 +201,7 @@ namespace OpenKalman
   inline auto
   determinant(Arg&& arg) noexcept
   {
-    auto d = determinant(nested_matrix(std::forward<Arg>(arg)));
-    using ArgBase = nested_matrix_t<Arg>;
-    if constexpr(triangular_matrix<ArgBase> and not self_adjoint_matrix<ArgBase> and not square_root_covariance<Arg>)
-      return d * d;
-    else if constexpr(not triangular_matrix<ArgBase> and self_adjoint_matrix<ArgBase> and square_root_covariance<Arg>)
-      return std::sqrt(d);
-    else
-      return d;
+    return std::forward<Arg>(arg).determinant();
   }
 
 
@@ -413,7 +409,7 @@ namespace OpenKalman
   split_diagonal(M&& m) noexcept
   {
     static_assert(prefix_of<Concatenate<Cs...>, typename MatrixTraits<M>::RowCoefficients>);
-    return split_diagonal<OpenKalman::internal::SplitCovDiagF<M>, Cs...>(nested_matrix(std::forward<M>(m)));
+    return split_diagonal<oin::SplitCovDiagF<M>, Cs...>(nested_matrix(std::forward<M>(m)));
   }
 
 
@@ -428,7 +424,7 @@ namespace OpenKalman
   {
     using CC = typename MatrixTraits<M>::RowCoefficients;
     static_assert(prefix_of<Concatenate<Cs...>, CC>);
-    return split_vertical<OpenKalman::internal::SplitCovVertF<M, CC>, Cs...>(make_native_matrix(std::forward<M>(m)));
+    return split_vertical<oin::SplitCovVertF<M, CC>, Cs...>(make_native_matrix(std::forward<M>(m)));
   }
 
 
@@ -443,7 +439,7 @@ namespace OpenKalman
   {
     using RC = typename MatrixTraits<M>::RowCoefficients;
     static_assert(prefix_of<Concatenate<Cs...>, RC>);
-    return split_horizontal<OpenKalman::internal::SplitCovHorizF<M, RC>, Cs...>(make_native_matrix(std::forward<M>(m)));
+    return split_horizontal<oin::SplitCovHorizF<M, RC>, Cs...>(make_native_matrix(std::forward<M>(m)));
   }
 
 

@@ -14,21 +14,16 @@
 #ifndef EIGEN3_GTEST_HPP
 #define EIGEN3_GTEST_HPP
 
-#include <gtest/gtest.h>
-#include "basics/tests/tests.hpp"
-
 #include "interfaces/eigen3/eigen3.hpp"
 
-
-namespace OpenKalman
-{
-  using namespace OpenKalman::Eigen3;
-}
-using namespace OpenKalman;
+#include "basics/tests/tests.hpp"
 
 
 namespace OpenKalman::test
 {
+  using namespace OpenKalman;
+
+
   namespace detail
   {
     template<typename Arg>
@@ -49,6 +44,9 @@ namespace OpenKalman::test
 #endif
     : ::testing::AssertionResult
   {
+
+  private:
+
     static ::testing::AssertionResult
     compare(const Arg1& A, const Arg2& B, const Err& err)
     {
@@ -68,8 +66,9 @@ namespace OpenKalman::test
         B << std::endl;
     }
 
+  public:
 
-    TestComparison(const Arg1& A, const Arg2& B, const Err& err = 1e-6)
+    TestComparison(const Arg1& A, const Arg2& B, const Err& err)
       : ::testing::AssertionResult {compare(A, B, err)} {};
 
    };

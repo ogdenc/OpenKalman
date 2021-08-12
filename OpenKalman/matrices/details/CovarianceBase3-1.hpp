@@ -30,17 +30,18 @@ namespace OpenKalman::internal
    * # Derived is not a square root or NestedMatrix is not triangular; and
    * # NestedMatrix is assignable in that it is not constant and does not have any constant nested matrices.
    * In this case, NestedMatrix and the cholesky nested matrix are different.
+   * \todo add an std::assignable_from constraint
    */
 #ifdef __cpp_concepts
   template<typename Derived, typename NestedMatrix> requires
     (not case1or2<Derived, NestedMatrix>) and self_contained<NestedMatrix> and
-    std::is_default_constructible_v<NestedMatrix> and (not OpenKalman::internal::has_const<NestedMatrix>::value)
+    std::is_default_constructible_v<NestedMatrix> and modifiable<std::decay_t<NestedMatrix>&, NestedMatrix>
   struct CovarianceBase<Derived, NestedMatrix>
 #else
   template<typename Derived, typename NestedMatrix>
   struct CovarianceBase<Derived, NestedMatrix, std::enable_if_t<
     (not case1or2<Derived, NestedMatrix>) and self_contained<NestedMatrix> and
-    std::is_default_constructible_v<NestedMatrix> and (not OpenKalman::internal::has_const<NestedMatrix>::value)>>
+    std::is_default_constructible_v<NestedMatrix> and (not has_const<NestedMatrix>::value)>>
 #endif
     : CovarianceBase3Impl<Derived, NestedMatrix>
   {
@@ -66,6 +67,7 @@ namespace OpenKalman::internal
 
     using typename Base::CholeskyNestedMatrix;
 
+    static constexpr bool reverse_synchronizable = true;
 
     /**
      * \internal
@@ -87,16 +89,17 @@ namespace OpenKalman::internal
 
 
     /// \internal \overload
-    void synchronize_reverse() const &
-    {
-      throw std::logic_error {"Case 3 synchronize_reverse: Covariance is constant."};
+    constexpr void synchronize_reverse() const & {
+      const_cast<CovarianceBase&>(*this).nested_matrix() = to_covariance_nestable<NestedMatrix>(cholesky_nested);
+      synch_direction = 0;
     }
 
 
     /// \internal \overload
-    void synchronize_reverse() const &&
-    {
-      throw std::logic_error {"Case 3 synchronize_reverse: Covariance is constant."};
+    constexpr void synchronize_reverse() const && {
+      const_cast<CovarianceBase&>(*this).nested_matrix() =
+        to_covariance_nestable<NestedMatrix>(std::move(cholesky_nested));
+      synch_direction = 1;
     }
 
   public:

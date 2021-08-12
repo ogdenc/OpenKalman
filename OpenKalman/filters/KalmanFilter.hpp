@@ -57,20 +57,21 @@ namespace OpenKalman
       const auto K = adjoint(K_adj);
       // K * P_yy == P_xy, or K == P_xy * inverse(P_yy)
       auto out_x_mean = make_self_contained(mean_of(Nx) + K * (Mean {z} - y));
+      using re = typename DistributionTraits<XDistribution>::random_number_engine;
 
       if constexpr (cholesky_form<YDistribution>)
       {
         // P_xy * adjoint(K) == K * P_yy * adjoint(K) == K * square_root(P_yy) * adjoint(K * square_root(P_yy))
         // == square(LQ(K * square_root(P_yy)))
         auto out_x_cov = covariance_of(Nx) - square(LQ_decomposition(K * square_root(P_yy)));
-        return make_GaussianDistribution(out_x_mean, out_x_cov);
+        return make_GaussianDistribution<re>(std::move(out_x_mean), std::move(out_x_cov));
       }
       else
       {
         // K == P_xy * inverse(P_yy), so
         // P_xy * adjoint(K) == P_xy * adjoint(inverse(P_yy)) * adjoint(P_xy)
         auto out_x_cov = covariance_of(Nx) - Covariance(P_xy * K_adj);
-        return make_GaussianDistribution(out_x_mean, out_x_cov);
+        return make_GaussianDistribution<re>(std::move(out_x_mean), std::move(out_x_cov));
       }
     }
 

@@ -19,9 +19,11 @@
 
 namespace OpenKalman
 {
+  namespace oin = OpenKalman::internal;
+
   /**
-   * \brief A linearized transform, using a 1st or 2nd order Taylor approximation of a linear transformation.
-   * \tparam order The maximum order of the Taylor approximation (1 or 2). If a transformation function does not
+   * \brief A linearized transform, using a 1st or 2nd order Taylor approximation of a linear tests.
+   * \tparam order The maximum order of the Taylor approximation (1 or 2). If a tests function does not
    * define a Hessian matrix, the order will be treated as 1, even if it is defined here as 2.
    */
   template<unsigned int order = 1>
@@ -37,16 +39,16 @@ namespace OpenKalman
 
 
   template<unsigned int order>
-  class LinearizedTransform : public internal::LinearTransformBase<LinearizedTransform<order>>
+  class LinearizedTransform : public oin::LinearTransformBase<LinearizedTransform<order>>
   {
-    using Base = internal::LinearTransformBase<LinearizedTransform>;
+    using Base = oin::LinearTransformBase<LinearizedTransform>;
     friend Base;
 
 
     /**
      * \internal
      * \brief The underlying transform model for LinearizedTransform.
-     * \tparam Trans The transformation function.
+     * \tparam Trans The tests function.
      */
     template<typename Trans>
     struct TransformModel
@@ -124,7 +126,7 @@ namespace OpenKalman
 
       /**
        * \brief Constructor
-       * \param t A transformation function.
+       * \param t A tests function.
        */
       TransformModel(const Trans& t) : transformation(t) {}
 

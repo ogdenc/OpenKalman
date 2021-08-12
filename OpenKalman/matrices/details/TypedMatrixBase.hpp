@@ -27,7 +27,7 @@ namespace OpenKalman::internal
 #else
   template<typename Derived, typename RowCoefficients, typename ColumnCoefficients, typename NestedMatrix>
 #endif
-  struct TypedMatrixBase : OpenKalman::internal::MatrixBase<Derived, NestedMatrix>
+  struct TypedMatrixBase : MatrixBase<Derived, NestedMatrix>
   {
 
 #ifndef __cpp_concepts
@@ -39,7 +39,7 @@ namespace OpenKalman::internal
 
   private:
 
-    using Base = OpenKalman::internal::MatrixBase<Derived, NestedMatrix>;
+    using Base = MatrixBase<Derived, NestedMatrix>;
 
   protected:
 
@@ -47,9 +47,9 @@ namespace OpenKalman::internal
 
   public:
 
-    /***************
-     * Constructors
-     ***************/
+    // -------------- //
+    //  Constructors  //
+    // -------------- //
 
     /// Default constructor.
 #ifdef __cpp_concepts

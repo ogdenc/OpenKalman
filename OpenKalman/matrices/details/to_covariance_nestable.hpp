@@ -19,8 +19,6 @@
 
 namespace OpenKalman::internal
 {
-  using namespace OpenKalman::internal;
-
 #ifdef __cpp_concepts
   template<covariance_nestable T, typename Arg>
   requires (covariance_nestable<Arg> or (typed_matrix_nestable<Arg> and (square_matrix<Arg> or column_vector<Arg>))) and

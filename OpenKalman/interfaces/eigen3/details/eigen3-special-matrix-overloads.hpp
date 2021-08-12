@@ -629,6 +629,34 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
+  template<eigen_zero_expr Arg, diagonal_matrix U> requires (dynamic_shape<Arg> or square_matrix<Arg>) and
+    (MatrixTraits<U>::rows == MatrixTraits<Arg>::rows)
+#else
+  template<typename Arg, typename U, std::enable_if_t<eigen_zero_expr<Arg> and diagonal_matrix<U> and
+    (dynamic_shape<Arg> or square_matrix<Arg>) and (MatrixTraits<U>::rows == MatrixTraits<Arg>::rows), int> = 0>
+#endif
+  inline auto
+  rank_update(const Arg&, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
+  {
+    return DiagonalMatrix {std::sqrt(alpha) * u.diagonal()};
+  }
+
+
+#ifdef __cpp_concepts
+  template<eigen_zero_expr Arg, typename U> requires (not diagonal_matrix<U>) and
+    (dynamic_shape<Arg> or square_matrix<Arg>) and (MatrixTraits<U>::rows == MatrixTraits<Arg>::rows)
+#else
+  template<typename Arg, typename U, std::enable_if_t<eigen_zero_expr<Arg> and not diagonal_matrix<U> and
+    (dynamic_shape<Arg> or square_matrix<Arg>) and (MatrixTraits<U>::rows == MatrixTraits<Arg>::rows), int> = 0>
+#endif
+  inline auto
+  rank_update(Arg&& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
+  {
+    return std::sqrt(alpha) * u;
+  }
+
+
+#ifdef __cpp_concepts
   template<eigen_diagonal_expr Arg, eigen_diagonal_expr U> requires
     (not std::is_const_v<std::remove_reference_t<Arg>>) and (MatrixTraits<U>::rows == MatrixTraits<Arg>::rows)
 #else
@@ -779,10 +807,31 @@ namespace OpenKalman::Eigen3
   inline auto
   rank_update(Arg&& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
   {
-    // We want sa to be a non-const lvalue reference:
-    std::decay_t<Arg> sa {std::forward<Arg>(arg)};
-    rank_update(sa, u, alpha);
-    return sa;
+    if constexpr (diagonal_matrix<Arg>)
+    {
+      if constexpr (Eigen3::eigen_triangular_expr<Arg>)
+      {
+        return rank_update(DiagonalMatrix {diagonal_of(std::forward<Arg>(arg))}, u, alpha);
+      }
+      else
+      {
+        static_assert(Eigen3::eigen_self_adjoint_expr<Arg>);
+        constexpr TriangleType t =
+          MatrixTraits<Arg>::storage_triangle == TriangleType::upper ? TriangleType::upper : TriangleType::lower;
+        constexpr unsigned int uplo = t == TriangleType::upper ? Eigen::Upper : Eigen::Lower;
+        std::decay_t<native_matrix_t<Arg>> m;
+        m.template triangularView<uplo>() = std::forward<Arg>(arg);
+        Eigen::SelfAdjointView<decltype(m), uplo> {m}.rankUpdate(u, alpha);
+        return SelfAdjointMatrix<decltype(m), t> {std::move(m)};
+      }
+    }
+    else
+    {
+      // We want sa to be a non-const lvalue reference:
+      std::decay_t<Arg> sa {std::forward<Arg>(arg)};
+      rank_update(sa, u, alpha);
+      return sa;
+    }
   }
 
 
@@ -1099,15 +1148,30 @@ namespace OpenKalman::Eigen3
   {
     if constexpr(sizeof...(Vs) > 0)
     {
-      auto ret {MatrixTraits<V>::make(make_self_contained<V, Vs...>(
-        concatenate_vertical(nested_matrix(std::forward<V>(v)), nested_matrix(std::forward<Vs>(vs))...)))};
-      return ret;
+      return MatrixTraits<V>::make(
+        concatenate_vertical(nested_matrix(std::forward<V>(v)), nested_matrix(std::forward<Vs>(vs))...));
     }
     else
     {
       return std::forward<V>(v);
     }
   };
+
+
+  namespace detail
+  {
+#ifdef __cpp_concepts
+    template<TriangleType t, eigen_self_adjoint_expr M>
+#else
+    template<TriangleType t, typename M, std::enable_if_t<eigen_self_adjoint_expr<M>, int> = 0>
+#endif
+    decltype(auto)
+    maybe_transpose(M&& m)
+    {
+      if constexpr(t == MatrixTraits<M>::storage_triangle) return nested_matrix(std::forward<M>(m));
+      else return transpose(nested_matrix(std::forward<M>(m)));
+    }
+  }
 
 
   /// Concatenate diagonally.
@@ -1123,18 +1187,9 @@ namespace OpenKalman::Eigen3
     if constexpr (sizeof...(Vs) > 0)
     {
       /// \todo Add diagonal case
-      if constexpr (((upper_triangular_storage<V> == upper_triangular_storage<Vs>) and ...))
-      {
-        auto ret {MatrixTraits<V>::make(make_self_contained<V, Vs...>(
-          concatenate_diagonal(nested_matrix(std::forward<V>(v)), nested_matrix(std::forward<Vs>(vs))...)))};
-        return ret;
-      }
-      else
-      {
-        constexpr auto t = MatrixTraits<V>::storage_triangle;
-        auto ret {concatenate_diagonal(std::forward<V>(v), make_EigenSelfAdjointMatrix<t>(std::forward<Vs>(vs))...)};
-        return ret;
-      }
+      constexpr auto t = MatrixTraits<V>::storage_triangle;
+      return MatrixTraits<V>::make(
+        concatenate_diagonal(nested_matrix(std::forward<V>(v)), detail::maybe_transpose<t>(std::forward<Vs>(vs))...));
     }
     else
     {
@@ -1158,15 +1213,13 @@ namespace OpenKalman::Eigen3
       /// \todo Add diagonal case
       if constexpr (((upper_triangular_matrix<V> == upper_triangular_matrix<Vs>) and ...))
       {
-        auto ret {MatrixTraits<V>::make(make_self_contained<V, Vs...>(
-          concatenate_diagonal(nested_matrix(std::forward<V>(v)), nested_matrix(std::forward<Vs>(vs))...)))};
-        return ret;
+        return MatrixTraits<V>::make(
+          concatenate_diagonal(nested_matrix(std::forward<V>(v)), nested_matrix(std::forward<Vs>(vs))...));
       }
       else // There is a mixture of upper and lower triangles.
       {
-        auto ret {concatenate_diagonal(
-          make_native_matrix(std::forward<V>(v)), make_native_matrix(std::forward<Vs>(vs))...)};
-        return ret;
+        return concatenate_diagonal(
+          make_native_matrix(std::forward<V>(v)), make_native_matrix(std::forward<Vs>(vs))...);
       }
     }
     else

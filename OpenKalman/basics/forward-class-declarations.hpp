@@ -24,7 +24,7 @@ namespace OpenKalman
   /**
    * \brief A matrix with typed rows and columns.
    * \details It is a wrapper for a native matrix type from a supported matrix library such as Eigen.
-   * The matrix can be thought of as a transformation from X to Y, where the coefficients for each of X and Y are typed.
+   * The matrix can be thought of as a tests from X to Y, where the coefficients for each of X and Y are typed.
    * Example declarations:
    * - <code>Matrix<Coefficients<Axis, Axis, angle::Radians>, Coefficients<Axis, Axis>,
    * eigen_matrix_t<double, 3, 2>> x;</code>

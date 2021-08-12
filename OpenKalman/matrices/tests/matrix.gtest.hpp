@@ -16,18 +16,16 @@
 #ifndef OPENKALMAN_MATRIX_GTEST_HPP
 #define OPENKALMAN_MATRIX_GTEST_HPP
 
-#include <gtest/gtest.h>
-#include "basics/tests/tests.hpp"
 #include "interfaces/eigen3/tests/eigen3.gtest.hpp"
 
 #include "matrices/matrices.hpp"
 
 
-using namespace OpenKalman;
-
-
 namespace OpenKalman::test
 {
+  using namespace OpenKalman;
+
+
   namespace detail
   {
     template<typename Arg>
@@ -57,7 +55,7 @@ namespace OpenKalman::test
 #endif
     : ::testing::AssertionResult
   {
-    TestComparison(const Arg1& A, const Arg2& B, const Err& err = 1e-6)
+    TestComparison(const Arg1& A, const Arg2& B, const Err& err)
       : ::testing::AssertionResult {is_near(make_native_matrix(A), B, err)} {};
   };
 
@@ -71,7 +69,7 @@ namespace OpenKalman::test
 #endif
     : ::testing::AssertionResult
   {
-    TestComparison(const Arg1& A, const Arg2& B, const Err& err = 1e-6)
+    TestComparison(const Arg1& A, const Arg2& B, const Err& err)
       : ::testing::AssertionResult {is_near(A, make_native_matrix(B), err)} {};
   };
 
@@ -85,7 +83,7 @@ namespace OpenKalman::test
 #endif
     : ::testing::AssertionResult
   {
-    TestComparison(const Arg1& A, const Arg2& B, const Err& err = 1e-6)
+    TestComparison(const Arg1& A, const Arg2& B, const Err& err)
       : ::testing::AssertionResult {is_near(make_native_matrix(A), make_native_matrix(B), err)} {};
   };
 

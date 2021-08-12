@@ -17,6 +17,7 @@
 #define OPENKALMAN_COEFFICIENT_FORWARD_DECLARATIONS_HPP
 
 #include <type_traits>
+#include <functional>
 
 #ifdef __cpp_concepts
 #include <concepts>

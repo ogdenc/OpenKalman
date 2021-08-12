@@ -24,15 +24,13 @@
 
 #include "basics/basics.hpp"
 
-using namespace OpenKalman;
 
 namespace OpenKalman::test
 {
-
 #ifdef __cpp_concepts
-  template<typename Arg1, typename Arg2, typename Err = double>
+  template<typename Arg1, typename Arg2, typename Err>
 #else
-  template<typename Arg1, typename Arg2, typename Err = double, typename = void>
+  template<typename Arg1, typename Arg2, typename Err, typename = void>
 #endif
   struct TestComparison;
 
@@ -43,14 +41,7 @@ namespace OpenKalman::test
     return TestComparison<Arg1, Arg2, Err> {arg1, arg2, err};
   }
 
-} // namespace OpenKalman::test
 
-
-using namespace OpenKalman::test;
-
-
-namespace OpenKalman::test
-{
   namespace detail
   {
     template<typename T>
@@ -64,7 +55,6 @@ namespace OpenKalman::test
   } // namespace detail
 
 
-
 #ifdef __cpp_concepts
   template<typename Arg1, typename Arg2, typename Err> requires
     detail::is_std_array_v<Arg1> and detail::is_std_array_v<Arg2> and std::is_arithmetic_v<Err>
@@ -76,9 +66,12 @@ namespace OpenKalman::test
 #endif
     : ::testing::AssertionResult
   {
-    template<std::size_t N>
+
+  private:
+
+    template<typename A1, typename A2, std::size_t N>
     static ::testing::AssertionResult
-    compare(const std::array<Arg1, N>& A, const std::array<Arg2, N>& B, const Err& e, const std::size_t i)
+    compare(const std::array<A1, N>& A, const std::array<A2, N>& B, const Err& e, const std::size_t i)
     {
       auto res_i = is_near(A[i], B[i], e);
       if (res_i)
@@ -104,8 +97,9 @@ namespace OpenKalman::test
       }
     };
 
+  public:
 
-    TestComparison(const Arg1& A, const Arg2& B, const Err& e = 1e-6)
+    TestComparison(const Arg1& A, const Arg2& B, const Err& e)
       : ::testing::AssertionResult {compare(A, B, e, 0)} {}
   };
 
@@ -135,6 +129,9 @@ namespace OpenKalman::test
 #endif
     : ::testing::AssertionResult
   {
+
+  private:
+
     static ::testing::AssertionResult compare(const std::tuple<>&, const std::tuple<>&, const Err& e)
     {
       return ::testing::AssertionSuccess();
@@ -164,8 +161,9 @@ namespace OpenKalman::test
       }
     }
 
+  public:
 
-    TestComparison(const Arg1& A, const Arg2& B, const Err& e = 1e-6)
+    TestComparison(const Arg1& A, const Arg2& B, const Err& e)
       : ::testing::AssertionResult {compare(A, B, e)} {}
   };
 
