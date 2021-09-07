@@ -36,130 +36,90 @@ inline namespace
 TEST(transform_nonlinear, Transform_rev_rotation_cubature1)
 {
   CubatureTransform t;
-  EXPECT_TRUE(reverse_rotational_invariance_test(
-    t, Cartesian2polar, radarP, input1, input1_rot));
-  EXPECT_TRUE(reverse_rotational_invariance_test(
-    t, Cartesian2polar, radarP, input1_tri, input1_rot_tri));
-  EXPECT_TRUE(reverse_rotational_invariance_test(
-    t, Cartesian2polar, radarP, input1, input1_rot, noise));
-  EXPECT_TRUE(reverse_rotational_invariance_test(
-    t, Cartesian2polar, radarP, input1_tri, input1_rot_tri, noise_tri));
+  EXPECT_TRUE(reverse_rotational_invariance_test(t, Cartesian2polar, radarP, input1, input1_rot));
+  EXPECT_TRUE(reverse_rotational_invariance_test(t, Cartesian2polar, radarP, input1_tri, input1_rot_tri));
+  EXPECT_TRUE(reverse_rotational_invariance_test(t, Cartesian2polar, radarP, input1, input1_rot, noise));
+  EXPECT_TRUE(reverse_rotational_invariance_test(t, Cartesian2polar, radarP, input1_tri, input1_rot_tri, noise_tri));
 }
 
 TEST(transform_nonlinear, Transform_rev_rotation_cubature2)
 {
   CubatureTransform t;
-  EXPECT_TRUE(reverse_rotational_invariance_test(
-    t, Cartesian2polar, radarP, input2, input2_rot));
-  EXPECT_TRUE(reverse_rotational_invariance_test(
-    t, Cartesian2polar, radarP, input2_tri, input2_rot_tri));
-  EXPECT_TRUE(reverse_rotational_invariance_test(
-    t, Cartesian2polar, radarP, input2, input2_rot, noise));
-  EXPECT_TRUE(reverse_rotational_invariance_test(
-    t, Cartesian2polar, radarP, input2_tri, input2_rot_tri, noise_tri));
+  EXPECT_TRUE(reverse_rotational_invariance_test(t, Cartesian2polar, radarP, input2, input2_rot));
+  EXPECT_TRUE(reverse_rotational_invariance_test(t, Cartesian2polar, radarP, input2_tri, input2_rot_tri));
+  EXPECT_TRUE(reverse_rotational_invariance_test(t, Cartesian2polar, radarP, input2, input2_rot, noise));
+  EXPECT_TRUE(reverse_rotational_invariance_test(t, Cartesian2polar, radarP, input2_tri, input2_rot_tri, noise_tri));
 }
 
 TEST(transform_nonlinear, Transform_rev_rotation_unscented1)
 {
   UnscentedTransformParameterEstimation t;
-  EXPECT_TRUE(reverse_rotational_invariance_test(
-    t, Cartesian2polar, radarP, input1, input1_rot));
-  EXPECT_TRUE(reverse_rotational_invariance_test(
-    t, Cartesian2polar, radarP, input1_tri, input1_rot_tri));
-  EXPECT_TRUE(reverse_rotational_invariance_test(
-    t, Cartesian2polar, radarP, input1, input1_rot, noise));
-  EXPECT_TRUE(reverse_rotational_invariance_test(
-    t, Cartesian2polar, radarP, input1_tri, input1_rot_tri, noise_tri));
+  EXPECT_TRUE(reverse_rotational_invariance_test(t, Cartesian2polar, radarP, input1, input1_rot));
+  EXPECT_TRUE(reverse_rotational_invariance_test(t, Cartesian2polar, radarP, input1_tri, input1_rot_tri));
+  EXPECT_TRUE(reverse_rotational_invariance_test(t, Cartesian2polar, radarP, input1, input1_rot, noise));
+  EXPECT_TRUE(reverse_rotational_invariance_test(t, Cartesian2polar, radarP, input1_tri, input1_rot_tri, noise_tri));
 }
 
 TEST(transform_nonlinear, Transform_rev_rotation_unscented2)
 {
   UnscentedTransform t;
-  EXPECT_TRUE(reverse_rotational_invariance_test(
-    t, Cartesian2polar, radarP, input2, input2_rot));
-  EXPECT_TRUE(reverse_rotational_invariance_test(
-    t, Cartesian2polar, radarP, input2_tri, input2_rot_tri));
-  EXPECT_TRUE(reverse_rotational_invariance_test(
-    t, Cartesian2polar, radarP, input2, input2_rot, noise));
-  EXPECT_TRUE(reverse_rotational_invariance_test(
-    t, Cartesian2polar, radarP, input2_tri, input2_rot_tri, noise_tri));
+  EXPECT_TRUE(reverse_rotational_invariance_test(t, Cartesian2polar, radarP, input2, input2_rot));
+  EXPECT_TRUE(reverse_rotational_invariance_test(t, Cartesian2polar, radarP, input2_tri, input2_rot_tri));
+  EXPECT_TRUE(reverse_rotational_invariance_test(t, Cartesian2polar, radarP, input2, input2_rot, noise));
+  EXPECT_TRUE(reverse_rotational_invariance_test(t, Cartesian2polar, radarP, input2_tri, input2_rot_tri, noise_tri));
 }
 
 TEST(transform_nonlinear, Transform_rev_rotation_spherical_simplex1)
 {
   SamplePointsTransform<SphericalSimplexSigmaPoints> t;
-  EXPECT_TRUE(reverse_rotational_invariance_test(
-    t, Cartesian2polar, radarP, input1, input1_rot));
-  EXPECT_TRUE(reverse_rotational_invariance_test(
-    t, Cartesian2polar, radarP, input1_tri, input1_rot_tri));
-  EXPECT_TRUE(reverse_rotational_invariance_test(
-    t, Cartesian2polar, radarP, input1, input1_rot, noise));
-  EXPECT_TRUE(reverse_rotational_invariance_test(
-    t, Cartesian2polar, radarP, input1_tri, input1_rot_tri, noise_tri));
+  EXPECT_TRUE(reverse_rotational_invariance_test(t, Cartesian2polar, radarP, input1, input1_rot));
+  EXPECT_TRUE(reverse_rotational_invariance_test(t, Cartesian2polar, radarP, input1_tri, input1_rot_tri));
+  EXPECT_TRUE(reverse_rotational_invariance_test(t, Cartesian2polar, radarP, input1, input1_rot, noise));
+  EXPECT_TRUE(reverse_rotational_invariance_test(t, Cartesian2polar, radarP, input1_tri, input1_rot_tri, noise_tri));
 }
 
 TEST(transform_nonlinear, Transform_rev_rotation_spherical_simplex2)
 {
   SamplePointsTransform<SphericalSimplexSigmaPoints> t;
-  EXPECT_TRUE(reverse_rotational_invariance_test(
-    t, Cartesian2polar, radarP, input2, input2_rot));
-  EXPECT_TRUE(reverse_rotational_invariance_test(
-    t, Cartesian2polar, radarP, input2_tri, input2_rot_tri));
-  EXPECT_TRUE(reverse_rotational_invariance_test(
-    t, Cartesian2polar, radarP, input2, input2_rot, noise));
-  EXPECT_TRUE(reverse_rotational_invariance_test(
-    t, Cartesian2polar, radarP, input2_tri, input2_rot_tri, noise_tri));
+  EXPECT_TRUE(reverse_rotational_invariance_test(t, Cartesian2polar, radarP, input2, input2_rot));
+  EXPECT_TRUE(reverse_rotational_invariance_test(t, Cartesian2polar, radarP, input2_tri, input2_rot_tri));
+  EXPECT_TRUE(reverse_rotational_invariance_test(t, Cartesian2polar, radarP, input2, input2_rot, noise));
+  EXPECT_TRUE(reverse_rotational_invariance_test(t, Cartesian2polar, radarP, input2_tri, input2_rot_tri, noise_tri));
 }
 
 TEST(transform_nonlinear, Transform_rev_rotation_linearized1_1)
 {
   LinearizedTransform<1> t;
-  EXPECT_TRUE(reverse_rotational_invariance_test(
-    t, Cartesian2polar, radarP, input1, input1_rot));
-  EXPECT_TRUE(reverse_rotational_invariance_test(
-    t, Cartesian2polar, radarP, input1_tri, input1_rot_tri));
-  EXPECT_TRUE(reverse_rotational_invariance_test(
-    t, Cartesian2polar, radarP, input1, input1_rot, noise));
-  EXPECT_TRUE(reverse_rotational_invariance_test(
-    t, Cartesian2polar, radarP, input1_tri, input1_rot_tri, noise_tri));
+  EXPECT_TRUE(reverse_rotational_invariance_test(t, Cartesian2polar, radarP, input1, input1_rot));
+  EXPECT_TRUE(reverse_rotational_invariance_test(t, Cartesian2polar, radarP, input1_tri, input1_rot_tri));
+  EXPECT_TRUE(reverse_rotational_invariance_test(t, Cartesian2polar, radarP, input1, input1_rot, noise));
+  EXPECT_TRUE(reverse_rotational_invariance_test(t, Cartesian2polar, radarP, input1_tri, input1_rot_tri, noise_tri));
 }
 
 TEST(transform_nonlinear, Transform_rev_rotation_linearized1_2)
 {
   LinearizedTransform<1> t;
-  EXPECT_TRUE(reverse_rotational_invariance_test(
-    t, Cartesian2polar, radarP, input2, input2_rot));
-  EXPECT_TRUE(reverse_rotational_invariance_test(
-    t, Cartesian2polar, radarP, input2_tri, input2_rot_tri));
-  EXPECT_TRUE(reverse_rotational_invariance_test(
-    t, Cartesian2polar, radarP, input2, input2_rot, noise));
-  EXPECT_TRUE(reverse_rotational_invariance_test(
-    t, Cartesian2polar, radarP, input2_tri, input2_rot_tri, noise_tri));
+  EXPECT_TRUE(reverse_rotational_invariance_test(t, Cartesian2polar, radarP, input2, input2_rot));
+  EXPECT_TRUE(reverse_rotational_invariance_test(t, Cartesian2polar, radarP, input2_tri, input2_rot_tri));
+  EXPECT_TRUE(reverse_rotational_invariance_test(t, Cartesian2polar, radarP, input2, input2_rot, noise));
+  EXPECT_TRUE(reverse_rotational_invariance_test(t, Cartesian2polar, radarP, input2_tri, input2_rot_tri, noise_tri));
 }
 
 TEST(transform_nonlinear, Transform_rev_rotation_linearized2_1)
 {
   LinearizedTransform<2> t;
-  EXPECT_TRUE(reverse_rotational_invariance_test(
-    t, Cartesian2polar, radarP, input1, input1_rot));
-  EXPECT_TRUE(reverse_rotational_invariance_test(
-    t, Cartesian2polar, radarP, input1_tri, input1_rot_tri));
-  EXPECT_TRUE(reverse_rotational_invariance_test(
-    t, Cartesian2polar, radarP, input1, input1_rot, noise));
-  EXPECT_TRUE(reverse_rotational_invariance_test(
-    t, Cartesian2polar, radarP, input1_tri, input1_rot_tri, noise_tri));
+  EXPECT_TRUE(reverse_rotational_invariance_test(t, Cartesian2polar, radarP, input1, input1_rot));
+  EXPECT_TRUE(reverse_rotational_invariance_test(t, Cartesian2polar, radarP, input1_tri, input1_rot_tri));
+  EXPECT_TRUE(reverse_rotational_invariance_test(t, Cartesian2polar, radarP, input1, input1_rot, noise));
+  EXPECT_TRUE(reverse_rotational_invariance_test(t, Cartesian2polar, radarP, input1_tri, input1_rot_tri, noise_tri));
 }
 
 TEST(transform_nonlinear, Transform_rev_rotation_linearized2_2)
 {
   LinearizedTransform<2> t;
-  EXPECT_TRUE(reverse_rotational_invariance_test(
-    t, Cartesian2polar, radarP, input2, input2_rot));
-  EXPECT_TRUE(reverse_rotational_invariance_test(
-    t, Cartesian2polar, radarP, input2_tri, input2_rot_tri));
-  EXPECT_TRUE(reverse_rotational_invariance_test(
-    t, Cartesian2polar, radarP, input2, input2_rot, noise));
-  EXPECT_TRUE(reverse_rotational_invariance_test(
-    t, Cartesian2polar, radarP, input2_tri, input2_rot_tri, noise_tri));
+  EXPECT_TRUE(reverse_rotational_invariance_test(t, Cartesian2polar, radarP, input2, input2_rot));
+  EXPECT_TRUE(reverse_rotational_invariance_test(t, Cartesian2polar, radarP, input2_tri, input2_rot_tri));
+  EXPECT_TRUE(reverse_rotational_invariance_test(t, Cartesian2polar, radarP, input2, input2_rot, noise));
+  EXPECT_TRUE(reverse_rotational_invariance_test(t, Cartesian2polar, radarP, input2_tri, input2_rot_tri, noise_tri));
 }
 

@@ -57,36 +57,39 @@ namespace OpenKalman
 
 
     // Reconstruct the flattened augmented sample points into a tuple of tuples.
-    template<std::size_t pos = 0, typename FlattenedPs, typename D, typename...Ds>
-    static auto construct_ps(FlattenedPs&& flattened_ps, const D&, const Ds&...ds)
+    template<typename Ds, std::size_t pos = 0, std::size_t i = 0, typename FlattenedPs>
+    static auto construct_ps(FlattenedPs&& flattened_ps)
     {
-      constexpr auto group_size = std::tuple_size_v<D>;
-      auto ps_group = oin::tuple_slice<pos, pos + group_size>(std::move(flattened_ps));
-      return std::tuple_cat(
-        std::make_tuple(std::move(ps_group)),
-        construct_ps<pos + group_size>(std::move(flattened_ps), ds...));
+      if constexpr (i < std::tuple_size_v<Ds>)
+      {
+        constexpr auto group_size = std::tuple_size_v<std::decay_t<std::tuple_element_t<i, Ds>>>;
+        auto ps_group = oin::tuple_slice<pos, pos + group_size>(std::forward<FlattenedPs>(flattened_ps));
+        return std::tuple_cat(
+          std::make_tuple(std::move(ps_group)),
+          construct_ps<Ds, pos + group_size, i + 1>(std::forward<FlattenedPs>(flattened_ps)));
+      }
+      else // We hare reached the end of flattened_ps.
+      {
+        static_assert(pos == std::tuple_size_v<FlattenedPs>);
+        return std::tuple {};
+      }
     }
 
 
-    // \overload
-    template<std::size_t pos = 0, typename FlattenedPs>
-    static constexpr auto construct_ps(const FlattenedPs&)
+    template<std::size_t...ints, typename G, typename Dists, typename Points>
+    static constexpr auto y_means_column(const G& g, Dists&& dists, Points&& points, std::size_t i)
     {
-      static_assert(pos == std::tuple_size_v<FlattenedPs>);
-      return std::tuple {};
+      return g((column(std::get<ints>(std::forward<Points>(points)), i) +
+        mean_of(std::get<ints>(std::forward<Dists>(dists))))...);
     }
 
 
-    template<typename Transformation, typename...Points, typename...Dists, std::size_t...ints>
-    static constexpr auto y_means_impl(
-      const Transformation& g,
-      const std::tuple<Points...>& points,
-      const std::tuple<Dists...>& dists,
-      std::index_sequence<ints...>)
+    template<typename G, typename Dists, typename Points, std::size_t...ints>
+    static constexpr auto y_means_impl(const G& g, Dists&& dists, Points&& points, std::index_sequence<ints...>)
     {
       constexpr auto count = MatrixTraits<decltype(std::get<0>(points))>::columns;
-      return apply_columnwise<count>([&](size_t i) {
-        return g((column(std::get<ints>(points), i) + mean_of(std::get<ints>(dists)))...);
+      return apply_columnwise<count>([&](std::size_t i) {
+        return y_means_column<ints...>(g, std::forward<Dists>(dists), std::forward<Points>(points), i);
       });
     }
 
@@ -109,51 +112,53 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<std::size_t dim, typename InputDist, bool return_cross, std::size_t i = 0,
-      typename...Gs, typename D, typename...Ds, typename P, typename...Ps> requires
-        (sizeof...(Gs) == sizeof...(Ds)) and (sizeof...(Gs) == sizeof...(Ps))
+      typename Gs, typename D, typename Ds, typename P, typename Ps> requires
+        (std::tuple_size_v<std::decay_t<Gs>> == std::tuple_size_v<std::decay_t<Ds>>) and
+        (std::tuple_size_v<std::decay_t<Gs>> == std::tuple_size_v<std::decay_t<Ps>>)
 #else
     template<std::size_t dim, typename InputDist, bool return_cross, std::size_t i = 0,
-      typename...Gs, typename D, typename...Ds, typename P, typename...Ps, std::enable_if_t<
-        (sizeof...(Gs) == sizeof...(Ds)) and (sizeof...(Gs) == sizeof...(Ps)), int> = 0>
+      typename Gs, typename D, typename Ds, typename P, typename Ps, std::enable_if_t<
+        (std::tuple_size_v<std::decay_t<Gs>> == std::tuple_size_v<std::decay_t<Ds>>) and
+        (std::tuple_size_v<std::decay_t<Gs>> == std::tuple_size_v<std::decay_t<Ps>>), int> = 0>
 #endif
-    static auto transform_impl(
-      const std::tuple<Gs...>& gs,
-      const D& x,
-      const std::tuple<Ds...>& ds,
-      const P& xpoints,
-      const std::tuple<Ps...>& ps)
+    static auto transform_impl(Gs&& gs, D&& d, Ds&& ds, P&& p, Ps&& ps)
     {
-      auto g = std::get<i>(gs);
-      auto xpoints_tup = std::tuple_cat(std::forward_as_tuple(xpoints), std::get<i>(ps));
-      auto xdists_tup = std::tuple_cat(std::forward_as_tuple(x), std::get<i>(ds));
+      auto g = std::get<i>(std::forward<Gs>(gs));
+      auto xdists_tup = std::tuple_cat(std::make_tuple(std::forward<D>(d)), std::get<i>(std::forward<Ds>(ds)));
+      auto xpoints_tup = std::tuple_cat(std::forward_as_tuple(p), std::get<i>(std::forward<Ps>(ps)));
 
       constexpr std::size_t N = std::tuple_size_v<decltype(xpoints_tup)>;
       static_assert(N == std::tuple_size_v<decltype(xdists_tup)>);
 
-      auto y_means = Mean {y_means_impl(g, xpoints_tup, xdists_tup, std::make_index_sequence<N>())};
-      auto y_mean = from_euclidean(SamplePointsType::template weighted_means<dim>(to_euclidean(y_means)));
+      auto y_means = Mean {
+        y_means_impl(g, std::move(xdists_tup), std::move(xpoints_tup), std::make_index_sequence<N>())};
+
+      const auto y_mean = from_euclidean(SamplePointsType::template weighted_means<dim>(to_euclidean(y_means)));
 
       // Each column is a deviation from y mean for each transformed sigma point:
-      auto ypoints = apply_columnwise(y_means, [&](const auto& col) { return make_self_contained(col - y_mean); });
+      auto ypoints = apply_columnwise(
+        std::move(y_means), [&](const auto& col) { return make_self_contained(col - y_mean);});
 
-      if constexpr (i + 1 < sizeof...(Gs))
+      if constexpr (i + 1 < std::tuple_size_v<std::decay_t<Gs>>)
       {
-        auto y_covariance = SamplePointsType::template covariance<dim, InputDist, false>(xpoints, ypoints);
+        auto y_covariance = SamplePointsType::template covariance<dim, InputDist, false>(std::forward<P>(p), ypoints);
         auto y = GaussianDistribution {make_self_contained(std::move(y_mean)), std::move(y_covariance)};
-        return transform_impl<dim, InputDist, return_cross, i + 1>(gs, y, ds, ypoints, ps);
+        return transform_impl<dim, InputDist, return_cross, i + 1>(
+          std::forward<Gs>(gs), std::move(y), std::forward<Ds>(ds), std::move(ypoints), std::forward<Ps>(ps));
       }
-      else // processing for the last tests in Gs:
+      else // processing for the last transformation in Gs:
       {
-        auto y_covariance = SamplePointsType::template covariance<dim, InputDist, return_cross>(xpoints, ypoints);
+        auto y_covariance = SamplePointsType::template covariance<dim, InputDist, return_cross>(
+          std::forward<P>(p), std::move(ypoints));
         if constexpr (return_cross)
         {
-          auto [y_cov, cross] = y_covariance;
+          auto [y_cov, cross] = std::move(y_covariance);
           return std::tuple {GaussianDistribution {make_self_contained(std::move(y_mean)), std::move(y_cov)},
                              std::move(cross)};
         }
         else
         {
-          return GaussianDistribution {std::move(y_mean), std::move(y_covariance)};
+          return GaussianDistribution {make_self_contained(std::move(y_mean)), std::move(y_covariance)};
         }
       }
     }
@@ -170,29 +175,37 @@ namespace OpenKalman
      * the posterior distribution and the cross-covariance.
      **/
     template<bool return_cross, typename InputDist, typename...Ts>
-    auto transform(const InputDist& x, const Ts&...ts) const
+    auto transform(InputDist&& x, Ts&&...ts) const
     {
-      auto gs = std::forward_as_tuple(std::get<0>(ts)...); //< Extract the transformations.
-      auto ds = std::make_tuple(oin::tuple_slice<1, std::tuple_size_v<Ts>>(ts)...); //< Extract the noise terms.
+      // Extract the transformations.
+      auto gs = std::make_tuple(std::get<0>(std::forward<Ts>(ts))...);
 
-      // Flatten ds to a 1D tuple of noise terms:
-      auto flattened_ds = std::apply([](const auto&...args) {return std::tuple_cat(args...); }, ds);
+      // Extract the noise terms.
+      auto ds = std::make_tuple(oin::tuple_slice<1, std::tuple_size_v<std::decay_t<Ts>>>(std::forward<Ts>(ts))...);
+
+      // Flatten ds to a 1D tuple of noise terms.
+      auto flattened_ds = std::apply([](auto&&...args) {
+        return std::tuple_cat(std::forward<decltype(args)>(args)...); }, std::move(ds));
 
       // Create a tuple comprising the augmented sample points (based on input x and each noise term in flattened_ds):
-      auto points_tuple = std::apply([&x](const auto&...args) {
-        return SamplePointsType::sample_points(x, args...);
-      }, flattened_ds);
+      auto points_tuple = std::apply([&x](auto&&...args) {
+        return SamplePointsType::sample_points(x, std::forward<decltype(args)>(args)...);
+      }, std::move(flattened_ds));
 
-      constexpr auto dim = count_dim<InputDist>(flattened_ds); //< Number of augmented input dimensions.
-      auto xpoints = std::get<0>(points_tuple); //< The augmented sample points corresponding to input x.
+      // The augmented sample points corresponding to input x.
+      auto p = std::get<0>(std::move(points_tuple));
 
       // The augmented sample points corresponding to each noise term in flattened_ds.
-      auto flattened_ps = oin::tuple_slice<1, std::tuple_size_v<decltype(points_tuple)>>(points_tuple);
+      auto flattened_ps = oin::tuple_slice<1, std::tuple_size_v<decltype(points_tuple)>>(std::move(points_tuple));
 
       // The augmented sample points, reconstructed into the same tuple-of-tuples structure as ds.
-      auto ps = std::apply([&](const auto&...args) { return construct_ps(flattened_ps, args...); }, ds);
+      auto ps = construct_ps<decltype(ds)>(std::move(flattened_ps));
 
-      return SamplePointsTransform::transform_impl<dim, InputDist, return_cross>(std::move(gs), x, ds, xpoints, ps);
+      // Number of augmented input dimensions.
+      constexpr auto dim = count_dim<InputDist>(flattened_ds);
+
+      return SamplePointsTransform::transform_impl<dim, InputDist, return_cross>(
+        std::move(gs), std::forward<InputDist>(x), std::move(ds), std::move(p), std::move(ps));
     }
 
   public:
@@ -208,11 +221,11 @@ namespace OpenKalman
     template<gaussian_distribution InputDist, oin::tuple_like...Ts>
 #else
     template<typename InputDist, typename...Ts, std::enable_if_t<
-      gaussian_distribution<InputDist> and (internal::tuple_like<Ts> and ...), int> = 0>
+      gaussian_distribution<InputDist> and (oin::tuple_like<Ts> and ...), int> = 0>
 #endif
-    auto operator()(const InputDist& x, Ts&...ts) const
+    auto operator()(InputDist&& x, Ts&&...ts) const
     {
-      return transform<false>(x, ts...);
+      return transform<false>(std::forward<InputDist>(x), std::forward<Ts>(ts)...);
     }
 
 
@@ -232,9 +245,10 @@ namespace OpenKalman
       std::is_invocable_v<Trans, typename DistributionTraits<InputDist>::Mean,
         typename DistributionTraits<NoiseDists>::Mean...>, int> = 0>
 #endif
-    auto operator()(const InputDist& x, const Trans& g, const NoiseDists& ...n) const
+    auto operator()(InputDist&& x, Trans&& g, NoiseDists&&...n) const
     {
-      return transform<false>(x, std::forward_as_tuple(g, n...));
+      return transform<false>(
+        std::forward<InputDist>(x), std::forward_as_tuple(std::forward<Trans>(g), std::forward<NoiseDists>(n)...));
     }
 
 
@@ -249,11 +263,11 @@ namespace OpenKalman
     template<gaussian_distribution InputDist, oin::tuple_like...Ts>
 #else
     template<typename InputDist, typename...Ts, std::enable_if_t<
-      gaussian_distribution<InputDist> and (internal::tuple_like<Ts> and ...), int> = 0>
+      gaussian_distribution<InputDist> and (oin::tuple_like<Ts> and ...), int> = 0>
 #endif
-    auto transform_with_cross_covariance(const InputDist& x, const Ts&...ts) const
+    auto transform_with_cross_covariance(InputDist&& x, Ts&&...ts) const
     {
-      return transform<true>(x, ts...);
+      return transform<true>(std::forward<InputDist>(x), std::forward<Ts>(ts)...);
     }
 
 
@@ -273,9 +287,10 @@ namespace OpenKalman
       std::is_invocable_v<Trans, typename DistributionTraits<InputDist>::Mean,
         typename DistributionTraits<NoiseDists>::Mean...>, int> = 0>
 #endif
-    auto transform_with_cross_covariance(const InputDist& x, const Trans& g, const NoiseDists& ...n) const
+    auto transform_with_cross_covariance(InputDist&& x, Trans&& g, NoiseDists&& ...n) const
     {
-      return transform<true>(x, std::forward_as_tuple(g, n...));
+      return transform<true>(
+        std::forward<InputDist>(x), std::forward_as_tuple(std::forward<Trans>(g), std::forward<NoiseDists>(n)...));
     }
 
   };

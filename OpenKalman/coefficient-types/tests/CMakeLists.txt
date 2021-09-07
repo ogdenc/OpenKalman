@@ -19,4 +19,4 @@ add_executable(coefficients
 
 target_link_libraries(coefficients ${GTEST_BOTH_LIBRARIES} Threads::Threads)
 
-gtest_discover_tests(coefficients)
+gtest_discover_tests(coefficients DISCOVERY_TIMEOUT 10)

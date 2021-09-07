@@ -48,7 +48,7 @@ namespace OpenKalman
      */
     template<std::size_t dim, std::size_t pos = 0, typename D, typename...Ds>
     static auto
-    sample_points_impl(const D& d, const Ds&...ds)
+    sample_points_impl(D&& d, Ds&&...ds)
     {
       using Scalar = typename DistributionTraits<D>::Scalar;
       using Coeffs = typename DistributionTraits<D>::Coefficients;
@@ -57,7 +57,8 @@ namespace OpenKalman
       constexpr auto dim_i = DistributionTraits<D>::dimensions;
       constexpr auto frame_size = dim_i * 2;
       constexpr Scalar n = dim;
-      const auto delta = make_matrix<Coeffs, Axes<dim_i>>(make_native_matrix(square_root(n * covariance_of(d))));
+      const auto delta = make_matrix<Coeffs, Axes<dim_i>>(
+        make_native_matrix(square_root(n * covariance_of(std::forward<D>(d)))));
 
       if constexpr(frame_size == points_count)
       {
@@ -73,7 +74,8 @@ namespace OpenKalman
         const auto mright = Matrix<Coeffs, Axes<width>, native_matrix_t<M, dim_i, width>>::zero();
         auto ret = concatenate_horizontal(delta, -delta, mright);
         static_assert(MatrixTraits<decltype(ret)>::columns == points_count);
-        return std::tuple_cat(std::tuple {std::move(ret)}, sample_points_impl<dim, frame_size>(ds...));
+        return std::tuple_cat(std::tuple {std::move(ret)},
+          sample_points_impl<dim, frame_size>(std::forward<Ds>(ds)...));
       }
       else if constexpr (pos + frame_size < points_count)
       {
@@ -83,7 +85,8 @@ namespace OpenKalman
         const auto mright = Matrix<Coeffs, Axes<width>, native_matrix_t<M, dim_i, width>>::zero();
         auto ret = concatenate_horizontal(mleft, delta, -delta, mright);
         static_assert(MatrixTraits<decltype(ret)>::columns == points_count);
-        return std::tuple_cat(std::tuple {std::move(ret)}, sample_points_impl<dim, pos + frame_size>(ds...));
+        return std::tuple_cat(std::tuple {std::move(ret)},
+          sample_points_impl<dim, pos + frame_size>(std::forward<Ds>(ds)...));
       }
       else
       {
@@ -112,10 +115,10 @@ namespace OpenKalman
       (gaussian_distribution<Dist> and ...) and (sizeof...(Dist) > 0), int> = 0>
 #endif
     static auto
-    sample_points(const Dist&...ds)
+    sample_points(Dist&&...ds)
     {
       constexpr auto dim = (DistributionTraits<Dist>::dimensions + ...);
-      return sample_points_impl<dim>(ds...);
+      return sample_points_impl<dim>(std::forward<Dist>(ds)...);
     }
 
 
@@ -136,9 +139,9 @@ namespace OpenKalman
       (MatrixTraits<YMeans>::columns == dim * 2), int> = 0>
 #endif
     static auto
-    weighted_means(const YMeans& y_means)
+    weighted_means(YMeans&& y_means)
     {
-      return reduce_columns(y_means);
+      return make_self_contained(reduce_columns(std::forward<YMeans>(y_means)));
     };
 
 

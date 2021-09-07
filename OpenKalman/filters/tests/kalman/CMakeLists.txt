@@ -24,4 +24,4 @@ add_executable(kalman
 
 target_link_libraries(kalman ${GTEST_BOTH_LIBRARIES} Eigen3::Eigen Threads::Threads)
 
-gtest_discover_tests(kalman)
+gtest_discover_tests(kalman DISCOVERY_TIMEOUT 10)

@@ -26,4 +26,4 @@ add_executable(eigen3
 
 target_link_libraries(eigen3 ${GTEST_BOTH_LIBRARIES} Eigen3::Eigen Threads::Threads)
 
-gtest_discover_tests(eigen3)
+gtest_discover_tests(eigen3 DISCOVERY_TIMEOUT 10)

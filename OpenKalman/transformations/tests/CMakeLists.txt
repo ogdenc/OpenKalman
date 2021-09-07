@@ -24,4 +24,4 @@ add_executable(transformation
 
 target_link_libraries(transformation ${GTEST_BOTH_LIBRARIES} Eigen3::Eigen Threads::Threads)
 
-gtest_discover_tests(transformation)
+gtest_discover_tests(transformation DISCOVERY_TIMEOUT 10)

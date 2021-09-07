@@ -28,4 +28,4 @@ add_executable(linear
 
 target_link_libraries(linear ${GTEST_BOTH_LIBRARIES} Eigen3::Eigen Threads::Threads)
 
-gtest_discover_tests(linear)
+gtest_discover_tests(linear DISCOVERY_TIMEOUT 10)

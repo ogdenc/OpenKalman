@@ -121,12 +121,12 @@ namespace OpenKalman::internal
       (MatrixTraits<YMeans>::rows == MatrixTraits<YMeans>::RowCoefficients::euclidean_dimensions), int> = 0>
 #endif
     static auto
-    weighted_means(const YMeans& y_means)
+    weighted_means(YMeans&& y_means)
     {
       static_assert(MatrixTraits<YMeans>::columns == Derived::template sigma_point_count<dim>);
       constexpr auto count = MatrixTraits<YMeans>::columns;
       using Weights = Matrix<Axes<count>, Axis, native_matrix_t<YMeans, count, 1>>;
-      return make_self_contained(y_means * mean_weights<dim, Weights>());
+      return make_self_contained(std::forward<YMeans>(y_means) * mean_weights<dim, Weights>());
     }
 
 
