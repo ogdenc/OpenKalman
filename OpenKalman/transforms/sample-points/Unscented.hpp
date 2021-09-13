@@ -148,14 +148,14 @@ namespace OpenKalman
       constexpr auto dim_i = DistributionTraits<D>::dimensions;
       constexpr auto frame_size = dim_i * 2;
       constexpr Scalar gamma_L = alpha * alpha * (Parameters::template kappa<dim> + dim);
-      const auto gamma_L_cov = gamma_L * covariance_of(d);
-      const auto delta = make_matrix<Coeffs, Axes<dim_i>>(square_root(gamma_L_cov).get_triangular_nested_matrix());
+      const auto delta = make_matrix<Coeffs, Axes<dim_i>>(make_native_matrix(square_root(gamma_L * covariance_of(d))));
 
       if constexpr(1 + frame_size == points_count)
       {
         // | 0 | delta | -delta |
+        static_assert(sizeof...(ds) == 0);
         const auto m0 = Matrix<Coeffs, Axis, native_matrix_t<M, dim_i, 1>>::zero();
-        auto ret = make_self_contained(concatenate_horizontal(m0, delta, -delta));
+        auto ret = make_self_contained(concatenate_horizontal(std::move(m0), delta, -delta));
         static_assert(MatrixTraits<decltype(ret)>::columns == points_count);
         return std::tuple {std::move(ret)};
       }
@@ -165,7 +165,7 @@ namespace OpenKalman
         const auto m0 = Matrix<Coeffs, Axis, native_matrix_t<M, dim_i, 1>>::zero();
         constexpr auto width = points_count - (1 + frame_size);
         const auto mright = Matrix<Coeffs, Axes<width>, native_matrix_t<M, dim_i, width>>::zero();
-        auto ret = make_self_contained(concatenate_horizontal(m0, delta, -delta, mright));
+        auto ret = make_self_contained(concatenate_horizontal(std::move(m0), delta, -delta, std::move(mright)));
         static_assert(MatrixTraits<decltype(ret)>::columns == points_count);
         return std::tuple_cat(std::tuple {std::move(ret)}, sigma_points_impl<dim, 1 + frame_size>(ds...));
       }
@@ -175,7 +175,7 @@ namespace OpenKalman
         const auto mleft = Matrix<Coeffs, Axes<pos>, native_matrix_t<M, dim_i, pos>>::zero();
         constexpr auto width = points_count - (pos + frame_size);
         const auto mright = Matrix<Coeffs, Axes<width>, native_matrix_t<M, dim_i, width>>::zero();
-        auto ret = make_self_contained(concatenate_horizontal(mleft, delta, -delta, mright));
+        auto ret = make_self_contained(concatenate_horizontal(std::move(mleft), delta, -delta, std::move(mright)));
         static_assert(MatrixTraits<decltype(ret)>::columns == points_count);
         return std::tuple_cat(std::tuple {std::move(ret)}, sigma_points_impl<dim, pos + frame_size>(ds...));
       }
@@ -184,7 +184,7 @@ namespace OpenKalman
         // | 0 | 0 ... | delta | -delta |
         static_assert(sizeof...(ds) == 0);
         const auto mleft = Matrix<Coeffs, Axes<pos>, native_matrix_t<M, dim_i, pos>>::zero();
-        auto ret = make_self_contained(concatenate_horizontal(mleft, delta, -delta));
+        auto ret = make_self_contained(concatenate_horizontal(std::move(mleft), delta, -delta));
         static_assert(MatrixTraits<decltype(ret)>::columns == points_count);
         return std::tuple {std::move(ret)};
       }

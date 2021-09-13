@@ -15,15 +15,15 @@ find_package(GTest REQUIRED)
 include(GoogleTest)
 
 add_executable(linear
-        linear.gtest.cpp
-    linear.2x2.cpp
-    linear.2x3.cpp
-    sample.2x2.cpp
-    sample.2x3.cpp
-    sample.3x2.cpp
-    sample.4x3.cpp
-    identity.cpp
+    linear.gtest.cpp
     MCT.cpp
+    identity.cpp
+    sample.4x3.cpp
+    sample.3x2.cpp
+    sample.2x3.cpp
+    sample.2x2.cpp
+    linear.2x3.cpp
+    linear.2x2.cpp
     )
 
 target_link_libraries(linear ${GTEST_BOTH_LIBRARIES} Eigen3::Eigen Threads::Threads)

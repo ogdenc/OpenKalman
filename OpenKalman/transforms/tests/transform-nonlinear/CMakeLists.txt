@@ -24,4 +24,4 @@ add_executable(transform-nonlinear
 
 target_link_libraries(transform-nonlinear ${GTEST_BOTH_LIBRARIES} Eigen3::Eigen Threads::Threads)
 
-gtest_discover_tests(transform-nonlinear DISCOVERY_TIMEOUT 30)
+gtest_discover_tests(transform-nonlinear DISCOVERY_TIMEOUT 60)

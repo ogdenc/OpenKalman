@@ -75,8 +75,7 @@ namespace OpenKalman::Eigen3
     }
     else
     {
-      auto ret {MatrixTraits<Arg>::make(make_self_contained<Arg>(nested_matrix(std::forward<Arg>(arg))))};
-      return ret;
+      return MatrixTraits<Arg>::make(make_self_contained<Arg>(nested_matrix(std::forward<Arg>(arg))));
     }
   }
 

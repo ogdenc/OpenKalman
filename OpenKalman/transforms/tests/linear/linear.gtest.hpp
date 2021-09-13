@@ -16,42 +16,37 @@
 #include "transforms/transforms.hpp"
 
 
-struct linear_tests : public ::testing::Test
+namespace OpenKalman::test
 {
-  linear_tests() {}
-
-  void SetUp() override {}
-
-  void TearDown() override {}
-
-  ~linear_tests() override {}
-
-protected:
-  template<typename Jacobians, typename Covs, std::size_t...ints>
-  constexpr auto sumprod(const Jacobians& j, const Covs& c, std::index_sequence<ints...>) const
+  namespace detail
   {
-    return make_self_contained(((std::get<ints>(j) * std::get<ints>(c) * adjoint(std::get<ints>(j))) + ...));
+    template<typename Jacobians, typename Covs, std::size_t...ints>
+    constexpr auto sumprod(const Jacobians& j, const Covs& c, std::index_sequence<ints...>)
+    {
+      return make_self_contained(((std::get<ints>(j) * std::get<ints>(c) * adjoint(std::get<ints>(j))) + ...));
+    }
   }
 
-public:
+
   template<typename Transformation, typename Transform, typename InputDist, typename ... Noise>
   ::testing::AssertionResult run_linear_test(
     double err,
     const Transformation& g,
     const Transform& t,
-    const InputDist& in,
-    const Noise& ... noise)
+    InputDist&& in,
+    Noise&& ... noise)
   {
     auto x = mean_of(in);
-    const auto p = covariance_of(in);
+    auto p = covariance_of(in);
     auto y = g(x, mean_of(noise)...);
     auto [a] = g.jacobian(x);
     auto cross_cov = p*adjoint(a);
     auto jacobians = g.jacobian(x, mean_of(noise)...);
-    auto covariances = std::tuple {p, covariance_of(noise)...};
-    auto cov = sumprod(jacobians, covariances, std::make_index_sequence<sizeof...(Noise) + 1>{});
+    std::tuple covariances {p, covariance_of(noise)...};
+    auto cov = detail::sumprod(jacobians, covariances, std::make_index_sequence<sizeof...(Noise) + 1>{});
     std::tuple out_true {GaussianDistribution {y, cov}, cross_cov};
-    auto out = t.transform_with_cross_covariance(in, g, noise...);
+
+    auto out = t.transform_with_cross_covariance(std::forward<InputDist>(in), g, std::forward<Noise>(noise)...);
     auto res = is_near(out, out_true, err);
     if (res)
       return ::testing::AssertionSuccess();
@@ -65,19 +60,20 @@ public:
     double err,
     const Transformation& g,
     const Transform& t,
-    const InputDist& in,
-    const Noise& ... noise)
+    InputDist&& in,
+    Noise&& ... noise)
   {
     auto x = mean_of(in);
-    const auto p = covariance_of(in);
+    auto p = covariance_of(in);
     auto y = g(x, mean_of(noise)...);
     auto [a] = g.jacobian(x);
     auto cross_cov = p*adjoint(a);
     auto jacobians = g.jacobian(x, mean_of(noise)...);
-    auto covariances = std::tuple {p, covariance_of(noise)...};
-    auto cov = sumprod(jacobians, covariances, std::make_index_sequence<sizeof...(Noise) + 1>{});
+    std::tuple covariances {p, covariance_of(noise)...};
+    auto cov = detail::sumprod(jacobians, covariances, std::make_index_sequence<sizeof...(Noise) + 1>{});
     std::tuple out_true {GaussianDistribution {y, cov}, cross_cov};
-    auto out = t.transform_with_cross_covariance(in, noise...);
+
+    auto out = t.transform_with_cross_covariance(std::forward<InputDist>(in), std::forward<Noise>(noise)...);
     auto res = is_near(out, out_true, err);
     if (res)
       return ::testing::AssertionSuccess();
@@ -108,7 +104,7 @@ public:
 
 
   template<std::size_t DIM, typename Cov>
-  void run_multiple_identity_tests(Cov cov, double err = 1e-6, int N = 5)
+  void run_multiple_identity_tests(Cov&& cov, double err = 1e-6, int N = 5)
   {
     using MatIn = Matrix<Axes<DIM>, Axes<DIM>, eigen_matrix_t<double, DIM, DIM>>;
     using MatNoise = Matrix<Axes<DIM>, Axes<DIM>, eigen_matrix_t<double, DIM, DIM>>;
@@ -120,7 +116,7 @@ public:
       auto n = MatNoise::identity();
       auto g = LinearTransformation(a, n);
       auto t = IdentityTransform();
-      auto in = GaussianDistribution {MIn::zero(), make_self_contained(i * cov)};
+      auto in = GaussianDistribution {MIn::zero(), make_self_contained(i * std::forward<Cov>(cov))};
       auto b = randomize<MNoise, std::normal_distribution>(0., i*2.);
       auto noise_cov = Covariance {i / 5. * eigen_matrix_t<double, DIM, DIM>::Identity()};
       auto noise = GaussianDistribution {b, noise_cov};
@@ -128,7 +124,7 @@ public:
     }
   }
 
-};
+}
 
 
 #endif //LINEAR_GTEST_HPP

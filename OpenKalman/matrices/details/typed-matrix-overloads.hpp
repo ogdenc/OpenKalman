@@ -375,14 +375,15 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
       using RC = typename MatrixTraits<V>::RowCoefficients;
       using CC = Concatenate<typename MatrixTraits<V>::ColumnCoefficients,
       typename MatrixTraits<Vs>::ColumnCoefficients...>;
-      decltype(auto) cat = concatenate_horizontal(nested_matrix(std::forward<V>(v)),
-        nested_matrix(std::forward<Vs>(vs))...);
+      auto cat = concatenate_horizontal(nested_matrix(std::forward<V>(v)), nested_matrix(std::forward<Vs>(vs))...);
       if constexpr(CC::axes_only)
       {
-        return MatrixTraits<V>::template make<RC, CC>(std::forward<decltype(cat)>(cat));
+        return MatrixTraits<V>::template make<RC, CC>(std::move(cat));
       }
       else
-        return make_matrix<RC, CC>(std::forward<decltype(cat)>(cat));
+      {
+        return make_matrix<RC, CC>(std::move(cat));
+      }
     }
     else
     {

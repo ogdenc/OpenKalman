@@ -49,47 +49,49 @@ namespace OpenKalman
   private:
 
     // Count the number of augmented input dimensions.
-    template<typename D, typename...Ds>
-    static constexpr auto count_dim(const std::tuple<Ds...>&)
+    template<typename T, std::size_t...ints>
+    static constexpr auto count_dim_impl(std::index_sequence<ints...>)
     {
-      return (DistributionTraits<D>::dimensions + ... + DistributionTraits<Ds>::dimensions);
+      return (0 + ... + DistributionTraits<std::tuple_element_t<1 + ints, T>>::dimensions);
+    }
+
+
+    // Count the number of augmented input dimensions.
+    template<typename In, typename...Ts>
+    static constexpr auto count_dim()
+    {
+      return (DistributionTraits<In>::dimensions + ... +
+        count_dim_impl<Ts>(std::make_index_sequence<std::tuple_size_v<Ts> - 1>()));
     }
 
 
     // Reconstruct the flattened augmented sample points into a tuple of tuples.
-    template<typename Ds, std::size_t pos = 0, std::size_t i = 0, typename FlattenedPs>
+    template<std::size_t pos = 0, typename T, typename...Ts, typename FlattenedPs>
     static auto construct_ps(FlattenedPs&& flattened_ps)
     {
-      if constexpr (i < std::tuple_size_v<Ds>)
-      {
-        constexpr auto group_size = std::tuple_size_v<std::decay_t<std::tuple_element_t<i, Ds>>>;
-        auto ps_group = oin::tuple_slice<pos, pos + group_size>(std::forward<FlattenedPs>(flattened_ps));
-        return std::tuple_cat(
-          std::make_tuple(std::move(ps_group)),
-          construct_ps<Ds, pos + group_size, i + 1>(std::forward<FlattenedPs>(flattened_ps)));
-      }
-      else // We hare reached the end of flattened_ps.
-      {
-        static_assert(pos == std::tuple_size_v<FlattenedPs>);
-        return std::tuple {};
-      }
+      constexpr auto group_size = std::tuple_size_v<std::decay_t<T>> - 1; // The size of the noise terms only
+      auto ps_group = oin::tuple_slice<pos, pos + group_size>(std::forward<FlattenedPs>(flattened_ps));
+      return std::tuple_cat(
+        std::make_tuple(std::move(ps_group)),
+        construct_ps<pos + group_size, Ts...>(std::forward<FlattenedPs>(flattened_ps)));
     }
 
 
-    template<std::size_t...ints, typename G, typename Dists, typename Points>
-    static constexpr auto y_means_column(const G& g, Dists&& dists, Points&& points, std::size_t i)
+    // Reconstruct the flattened augmented sample points into a tuple of tuples.
+    template<std::size_t pos = 0, typename FlattenedPs>
+    static auto construct_ps(FlattenedPs&& flattened_ps)
     {
-      return g((column(std::get<ints>(std::forward<Points>(points)), i) +
-        mean_of(std::get<ints>(std::forward<Dists>(dists))))...);
+      static_assert(pos == std::tuple_size_v<FlattenedPs>);
+      return std::tuple {};
     }
 
 
     template<typename G, typename Dists, typename Points, std::size_t...ints>
-    static constexpr auto y_means_impl(const G& g, Dists&& dists, Points&& points, std::index_sequence<ints...>)
+    static constexpr auto y_means_impl(const G& g, const Dists& dists, const Points& points, std::index_sequence<ints...>)
     {
       constexpr auto count = MatrixTraits<decltype(std::get<0>(points))>::columns;
       return apply_columnwise<count>([&](std::size_t i) {
-        return y_means_column<ints...>(g, std::forward<Dists>(dists), std::forward<Points>(points), i);
+        return g((column(std::get<ints>(points), i) + mean_of(std::get<ints>(dists)))...);
       });
     }
 
@@ -124,14 +126,15 @@ namespace OpenKalman
     static auto transform_impl(Gs&& gs, D&& d, Ds&& ds, P&& p, Ps&& ps)
     {
       auto g = std::get<i>(std::forward<Gs>(gs));
-      auto xdists_tup = std::tuple_cat(std::make_tuple(std::forward<D>(d)), std::get<i>(std::forward<Ds>(ds)));
+
+      auto xdists_tup = std::tuple_cat(std::forward_as_tuple(std::forward<D>(d)), std::get<i>(std::forward<Ds>(ds)));
+
       auto xpoints_tup = std::tuple_cat(std::forward_as_tuple(p), std::get<i>(std::forward<Ps>(ps)));
 
       constexpr std::size_t N = std::tuple_size_v<decltype(xpoints_tup)>;
       static_assert(N == std::tuple_size_v<decltype(xdists_tup)>);
 
-      auto y_means = Mean {
-        y_means_impl(g, std::move(xdists_tup), std::move(xpoints_tup), std::make_index_sequence<N>())};
+      auto y_means = Mean { y_means_impl(g, std::move(xdists_tup), std::move(xpoints_tup), std::make_index_sequence<N>())};
 
       const auto y_mean = from_euclidean(SamplePointsType::template weighted_means<dim>(to_euclidean(y_means)));
 
@@ -177,20 +180,15 @@ namespace OpenKalman
     template<bool return_cross, typename InputDist, typename...Ts>
     auto transform(InputDist&& x, Ts&&...ts) const
     {
-      // Extract the transformations.
-      auto gs = std::make_tuple(std::get<0>(std::forward<Ts>(ts))...);
+      static_assert(sizeof...(Ts) > 0);
 
-      // Extract the noise terms.
-      auto ds = std::make_tuple(oin::tuple_slice<1, std::tuple_size_v<std::decay_t<Ts>>>(std::forward<Ts>(ts))...);
+      // Extract a flattened 1D tuple of noise terms.
+      auto flattened_ds = std::tuple_cat(oin::tuple_slice<1, std::tuple_size_v<std::decay_t<Ts>>>(ts)...);
 
-      // Flatten ds to a 1D tuple of noise terms.
-      auto flattened_ds = std::apply([](auto&&...args) {
-        return std::tuple_cat(std::forward<decltype(args)>(args)...); }, std::move(ds));
-
-      // Create a tuple comprising the augmented sample points (based on input x and each noise term in flattened_ds):
-      auto points_tuple = std::apply([&x](auto&&...args) {
-        return SamplePointsType::sample_points(x, std::forward<decltype(args)>(args)...);
-      }, std::move(flattened_ds));
+      // Create a tuple comprising the augmented sample points (based on input x and each noise term in flattened ds):
+      auto points_tuple = std::apply([](const auto&...args) {
+        return SamplePointsType::sample_points(args...);
+      }, std::tuple_cat(std::forward_as_tuple(x), std::move(flattened_ds)));
 
       // The augmented sample points corresponding to input x.
       auto p = std::get<0>(std::move(points_tuple));
@@ -199,10 +197,16 @@ namespace OpenKalman
       auto flattened_ps = oin::tuple_slice<1, std::tuple_size_v<decltype(points_tuple)>>(std::move(points_tuple));
 
       // The augmented sample points, reconstructed into the same tuple-of-tuples structure as ds.
-      auto ps = construct_ps<decltype(ds)>(std::move(flattened_ps));
+      auto ps = construct_ps<0, Ts...>(std::move(flattened_ps));
+
+      // Extract the transformations.
+      auto gs = std::forward_as_tuple(std::get<0>(std::forward<Ts>(ts))...);
+
+      // Extract the noise terms.
+      auto ds = std::make_tuple(oin::tuple_slice<1, std::tuple_size_v<std::decay_t<Ts>>>(std::forward<Ts>(ts))...);
 
       // Number of augmented input dimensions.
-      constexpr auto dim = count_dim<InputDist>(flattened_ds);
+      constexpr auto dim = count_dim<InputDist, Ts...>();
 
       return SamplePointsTransform::transform_impl<dim, InputDist, return_cross>(
         std::move(gs), std::forward<InputDist>(x), std::move(ds), std::move(p), std::move(ps));
@@ -287,7 +291,7 @@ namespace OpenKalman
       std::is_invocable_v<Trans, typename DistributionTraits<InputDist>::Mean,
         typename DistributionTraits<NoiseDists>::Mean...>, int> = 0>
 #endif
-    auto transform_with_cross_covariance(InputDist&& x, Trans&& g, NoiseDists&& ...n) const
+    auto transform_with_cross_covariance(InputDist&& x, Trans&& g, NoiseDists&&...n) const
     {
       return transform<true>(
         std::forward<InputDist>(x), std::forward_as_tuple(std::forward<Trans>(g), std::forward<NoiseDists>(n)...));

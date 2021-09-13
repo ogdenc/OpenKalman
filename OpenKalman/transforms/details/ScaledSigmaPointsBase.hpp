@@ -166,7 +166,7 @@ namespace OpenKalman::internal
           const auto [y_deviations_head, y_deviations_tail] = split_horizontal<1, count - 1>(y_deviations);
           const auto [weights_head, weights_tail] = split_vertical<Axis, Axes<count - 1>>(weights);
           const auto sqrt_weights_tail = apply_coefficientwise(weights_tail, [](const auto x){ return std::sqrt(x); });
-          auto out_covariance = square(LQ_decomposition(y_deviations_tail * to_diagonal(sqrt_weights_tail)));
+          auto out_covariance = make_self_contained(square(LQ_decomposition(y_deviations_tail * to_diagonal(sqrt_weights_tail))));
           static_assert(OpenKalman::covariance<decltype(out_covariance)>);
 
           // Factor first weight back in, using a rank update:
@@ -185,7 +185,7 @@ namespace OpenKalman::internal
         else
         {
           const auto sqrt_weights = apply_coefficientwise(weights, [](const auto x){ return std::sqrt(x); });
-          auto out_covariance = square(LQ_decomposition(y_deviations * to_diagonal(sqrt_weights)));
+          auto out_covariance = make_self_contained(square(LQ_decomposition(y_deviations * to_diagonal(sqrt_weights))));
           static_assert(OpenKalman::covariance<decltype(out_covariance)>);
 
           if constexpr (return_cross)

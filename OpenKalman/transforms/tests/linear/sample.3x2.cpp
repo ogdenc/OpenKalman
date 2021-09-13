@@ -10,51 +10,57 @@
 
 #include "linear.gtest.hpp"
 
-using C3 = Axes<3>;
-using M33 = eigen_matrix_t<double, 3, 3>;
-using CovSA3 = Covariance<C3, SelfAdjointMatrix<M33>>;
-using CovT3 = Covariance<C3, TriangularMatrix<M33>>;
-inline SamplePointsTransform<UnscentedSigmaPoints> UT1;
-inline SamplePointsTransform<UnscentedSigmaPointsParameterEstimation> UT2;
-inline SamplePointsTransform<SphericalSimplexSigmaPoints> UTS;
-inline CubatureTransform CT;
+using namespace OpenKalman;
+using namespace OpenKalman::test;
 
-TEST_F(linear_tests, Linear3x2UnscentedSA)
+inline namespace
+{
+  using C3 = Axes<3>;
+  using M33 = eigen_matrix_t<double, 3, 3>;
+  using CovSA3 = Covariance <C3, SelfAdjointMatrix<M33>>;
+  using CovT3 = Covariance <C3, TriangularMatrix<M33>>;
+  inline SamplePointsTransform <UnscentedSigmaPoints> UT1;
+  inline SamplePointsTransform <UnscentedSigmaPointsParameterEstimation> UT2;
+  inline SamplePointsTransform <SphericalSimplexSigmaPoints> UTS;
+  inline CubatureTransform CT;
+}
+
+TEST(linear_tests, Linear3x2UnscentedSA)
 {
   run_multiple_linear_tests<3, 2>(CovSA3 {1.2, 0.2, 0.1, 0.2, 2.1, 0.3, 0.1, 0.3, 3.1}, UT1);
 }
 
-TEST_F(linear_tests, Linear3x2UnscentedT)
+TEST(linear_tests, Linear3x2UnscentedT)
 {
   run_multiple_linear_tests<3, 2>(CovT3 {1.2, 0.2, 0.1, 0.2, 2.1, 0.3, 0.1, 0.3, 3.1}, UT1);
 }
 
-TEST_F(linear_tests, Linear3x2UnscentedParamSA)
+TEST(linear_tests, Linear3x2UnscentedParamSA)
 {
   run_multiple_linear_tests<3, 2>(CovSA3 {1.2, 0.2, 0.1, 0.2, 2.1, 0.3, 0.1, 0.3, 3.1}, UT2);
 }
 
-TEST_F(linear_tests, Linear3x2UnscentedParamT)
+TEST(linear_tests, Linear3x2UnscentedParamT)
 {
   run_multiple_linear_tests<3, 2>(CovT3 {1.2, 0.2, 0.1, 0.2, 2.1, 0.3, 0.1, 0.3, 3.1}, UT2);
 }
 
-TEST_F(linear_tests, Linear3x2UnscentedSphericalSA)
+TEST(linear_tests, Linear3x2UnscentedSphericalSA)
 {
   run_multiple_linear_tests<3, 2>(CovSA3 {1.2, 0.2, 0.1, 0.2, 2.1, 0.3, 0.1, 0.3, 3.1}, UTS);
 }
 
-TEST_F(linear_tests, Linear3x2UnscentedSphericalT)
+TEST(linear_tests, Linear3x2UnscentedSphericalT)
 {
   run_multiple_linear_tests<3, 2>(CovT3 {1.2, 0.2, 0.1, 0.2, 2.1, 0.3, 0.1, 0.3, 3.1}, UTS);
 }
 
-TEST_F(linear_tests, Linear3x2CubatureSA)
+TEST(linear_tests, Linear3x2CubatureSA)
 {
   run_multiple_linear_tests<3, 2>(CovSA3 {1.2, 0.2, 0.1, 0.2, 2.1, 0.3, 0.1, 0.3, 3.1}, CT);
 }
 
-TEST_F(linear_tests, Linear3x2CubatureT)
+TEST(linear_tests, Linear3x2CubatureT)
 {
   run_multiple_linear_tests<3, 2>(CovT3 {1.2, 0.2, 0.1, 0.2, 2.1, 0.3, 0.1, 0.3, 3.1}, CT);
 }
