@@ -100,6 +100,9 @@ namespace OpenKalman::internal
      * \brief Copy assignment operator.
      */
     auto& operator=(const MatrixBase& other)
+#ifdef __cpp_concepts
+      requires (not std::is_const_v<std::remove_reference_t<NestedMatrix>>)
+#endif
     {
       static_assert(not std::is_const_v<std::remove_reference_t<NestedMatrix>>, "Nested matrix cannot be modified.");
       if constexpr (not zero_matrix<NestedMatrix> and not identity_matrix<NestedMatrix>) if (this != &other)
