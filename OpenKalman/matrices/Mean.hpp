@@ -57,14 +57,6 @@ namespace OpenKalman
     using Base::Base;
 
 
-    /// Copy constructor.
-    Mean(const Mean& other) : Base {other.nested_matrix()} {}
-
-
-    /// Move constructor.
-    Mean(Mean&& other) noexcept : Base {std::move(other).nested_matrix()} {}
-
-
     /// Construct from a compatible mean.
 #ifdef __cpp_concepts
     template<mean Arg> requires
@@ -139,22 +131,6 @@ namespace OpenKalman
 #endif
     Mean(Args ... args)
       : Base {wrap_angles<RowCoefficients>(MatrixTraits<NestedMatrix>::make(static_cast<const Scalar>(args)...))} {}
-
-
-    /// Copy assignment operator.
-    auto& operator=(const Mean& other)
-    {
-      Base::operator=(other);
-      return *this;
-    }
-
-
-    /// Move assignment operator.
-    auto& operator=(Mean&& other)
-    {
-      Base::operator=(std::move(other));
-      return *this;
-    }
 
 
     /**

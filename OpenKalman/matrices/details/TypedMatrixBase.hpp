@@ -60,14 +60,6 @@ namespace OpenKalman::internal
 #endif
 
 
-    /// Copy constructor.
-    TypedMatrixBase(const TypedMatrixBase& other) : Base {other.nested_matrix()} {}
-
-
-    /// Move constructor.
-    TypedMatrixBase(TypedMatrixBase&& other) noexcept : Base {std::move(other).nested_matrix()} {}
-
-
     /// Construct from a typed_matrix_nestable.
 #ifdef __cpp_concepts
     template<typed_matrix_nestable Arg> requires (MatrixTraits<Arg>::rows == MatrixTraits<NestedMatrix>::rows) and
@@ -104,27 +96,11 @@ namespace OpenKalman::internal
     //  Assignment Operators  //
     // ---------------------- //
 
-    /// Copy assignment operator.
-    auto& operator=(const TypedMatrixBase& other)
-    {
-      Base::operator=(other);
-      return *this;
-    }
-
-
-    /// Move assignment operator.
-    auto& operator=(TypedMatrixBase&& other)
-    {
-      Base::operator=(std::move(other));
-      return *this;
-    }
-
-
     /// Assign from a \ref typed_matrix_nestable.
 #ifdef __cpp_concepts
-    template<typed_matrix_nestable Arg> requires modifiable<NestedMatrix, Arg>
+    template<typed_matrix_nestable Arg>
 #else
-    template<typename Arg, std::enable_if_t<typed_matrix_nestable<Arg> and modifiable<NestedMatrix, Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<typed_matrix_nestable<Arg>, int> = 0>
 #endif
     auto& operator=(Arg&& arg)
     {

@@ -65,14 +65,6 @@ namespace OpenKalman::Eigen3
       : Base {} {}
 
 
-    /// Copy constructor.
-    FromEuclideanExpr(const FromEuclideanExpr& other) : Base {other} {}
-
-
-    /// Move constructor.
-    FromEuclideanExpr(FromEuclideanExpr&& other) noexcept : Base {std::move(other)} {}
-
-
     /**
      * Convert from a compatible from-euclidean expression.
      */
@@ -130,22 +122,6 @@ namespace OpenKalman::Eigen3
 #endif
     FromEuclideanExpr(Args ... args)
       : Base {MatrixTraits<NestedMatrix>::make(static_cast<const Scalar>(args)...)} {}
-
-
-    /// Copy assignment operator.
-    auto& operator=(const FromEuclideanExpr& other)
-    {
-      Base::operator=(other);
-      return *this;
-    }
-
-
-    /// Move assignment operator.
-    auto& operator=(FromEuclideanExpr&& other) noexcept
-    {
-      Base::operator=(std::move(other));
-      return *this;
-    }
 
 
     /**

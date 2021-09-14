@@ -101,18 +101,6 @@ namespace OpenKalman
       : Base {} {}
 
 
-    /// Non-const copy constructor.
-    Covariance(Covariance& other) : Base {other} {}
-
-
-    /// Const copy constructor.
-    Covariance(const Covariance& other) : Base {other} {}
-
-
-    /// Move constructor.
-    Covariance(Covariance&& other) noexcept : Base {std::move(other)} {}
-
-
     /**
      * \brief Construct from another non-square-root \ref OpenKalman::covariance "covariance".
      */
@@ -202,42 +190,6 @@ namespace OpenKalman
     // ---------------------- //
     //  Assignment Operators  //
     // ---------------------- //
-
-    /// Copy assignment operator.
-    auto& operator=(const Covariance& other)
-#ifdef __cpp_concepts
-      requires (not std::is_const_v<std::remove_reference_t<NestedMatrix>>)
-#endif
-    {
-#ifndef __cpp_concepts
-      static_assert(not std::is_const_v<std::remove_reference_t<NestedMatrix>>,
-        "Assignment is not allowed because NestedMatrix is const.");
-#endif
-      if constexpr (not zero_matrix<NestedMatrix> and not identity_matrix<NestedMatrix>)
-      {
-        Base::operator=(other);
-      }
-      return *this;
-    }
-
-
-    /// Move assignment operator.
-    auto& operator=(Covariance&& other) noexcept
-#ifdef __cpp_concepts
-      requires (not std::is_const_v<std::remove_reference_t<NestedMatrix>>)
-#endif
-    {
-#ifndef __cpp_concepts
-      static_assert(not std::is_const_v<std::remove_reference_t<NestedMatrix>>,
-        "Assignment is not allowed because NestedMatrix is const.");
-#endif
-      if constexpr (not zero_matrix<NestedMatrix> and not identity_matrix<NestedMatrix>)
-      {
-        Base::operator=(std::move(other));
-      }
-      return *this;
-    }
-
 
     /// Assign from a compatible \ref OpenKalman::covariance "covariance".
 #ifdef __cpp_concepts

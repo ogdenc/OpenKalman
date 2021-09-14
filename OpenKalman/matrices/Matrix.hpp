@@ -50,14 +50,6 @@ namespace OpenKalman
     using Base::Base;
 
 
-    /// Copy constructor.
-    Matrix(const Matrix& other) : Base {other.nested_matrix()} {}
-
-
-    /// Move constructor.
-    Matrix(Matrix&& other) noexcept : Base(std::move(other).nested_matrix()) {}
-
-
     /// Construct from a compatible \ref OpenKalman::typed_matrix "typed_matrix".
 #ifdef __cpp_concepts
     template<typed_matrix Arg> requires (not std::derived_from<std::decay_t<Arg>, Matrix>) and
@@ -120,22 +112,6 @@ namespace OpenKalman
       std::is_constructible_v<NestedMatrix, native_matrix_t<Arg>>, int> = 0>
 #endif
     Matrix(Arg&& arg) noexcept : Base {make_native_matrix(std::forward<Arg>(arg))} {}
-
-
-    /// Copy assignment operator.
-    auto& operator=(const Matrix& other)
-    {
-      Base::operator=(other);
-      return *this;
-    }
-
-
-    /// Move assignment operator.
-    auto& operator=(Matrix&& other)
-    {
-      Base::operator=(std::move(other));
-      return *this;
-    }
 
 
     /// Assign from a compatible \ref OpenKalman::typed_matrix "typed_matrix".

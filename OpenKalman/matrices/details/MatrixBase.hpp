@@ -132,11 +132,9 @@ namespace OpenKalman::internal
      * \brief Assign from a nestable type.
      */
 #ifdef __cpp_concepts
-    template<typename Arg> requires (not std::derived_from<std::decay_t<Arg>, MatrixBase>) and
-      modifiable<NestedMatrix, Arg>
+    template<typename Arg> requires (not std::derived_from<std::decay_t<Arg>, MatrixBase>)
 #else
-    template<typename Arg, std::enable_if_t<not std::is_base_of_v<MatrixBase, std::decay_t<Arg>>, int> = 0,
-      std::enable_if_t<modifiable<NestedMatrix, Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<not std::is_base_of_v<MatrixBase, std::decay_t<Arg>>, int> = 0>
 #endif
     auto& operator=(Arg&& arg) noexcept
     {

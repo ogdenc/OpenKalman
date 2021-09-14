@@ -53,14 +53,6 @@ namespace OpenKalman::Eigen3
       : Base {} {}
 
 
-    /// Copy constructor.
-    DiagonalMatrix(const DiagonalMatrix& other) : Base {other} {}
-
-
-    /// Move constructor.
-    DiagonalMatrix(DiagonalMatrix&& other) noexcept: Base {std::move(other)} {}
-
-
     /// Construct from a compatible \ref eigen_diagonal_expr.
 #ifdef __cpp_concepts
     template<eigen_diagonal_expr Arg> requires (not std::derived_from<std::decay_t<Arg>, DiagonalMatrix>) and
@@ -177,22 +169,6 @@ namespace OpenKalman::Eigen3
 #endif
     DiagonalMatrix(Args ... args) : Base {diagonal_of(
       MatrixTraits<eigen_matrix_t<Scalar, dimensions, dimensions>>::make(static_cast<const Scalar>(args)...))} {}
-
-
-    /// Copy assignment operator.
-    auto& operator=(const DiagonalMatrix& other)
-    {
-      Base::operator=(other);
-      return *this;
-    }
-
-
-    /// Move assignment operator.
-    auto& operator=(DiagonalMatrix&& other) noexcept
-    {
-      Base::operator=(std::move(other));
-      return *this;
-    }
 
 
     /// Assign from another \ref eigen_diagonal_expr.

@@ -52,14 +52,6 @@ namespace OpenKalman
     using Base::Base;
 
 
-    /// Copy constructor.
-    EuclideanMean(const EuclideanMean& other) : Base {nested_matrix(other)} {}
-
-
-    /// Move constructor.
-    EuclideanMean(EuclideanMean&& other) noexcept : Base {nested_matrix(std::move(other))} {}
-
-
     /// Construct from a compatible Euclidean-transformed matrix.
 #ifdef __cpp_concepts
     template<euclidean_transformed Arg> requires
@@ -105,22 +97,6 @@ namespace OpenKalman
       std::is_constructible_v<NestedMatrix, Arg&&>, int> = 0>
 #endif
     EuclideanMean(Arg&& arg) noexcept : Base {std::forward<Arg>(arg)} {}
-
-
-    /// Copy assignment operator.
-    auto& operator=(const EuclideanMean& other)
-    {
-      Base::operator=(other);
-      return *this;
-    }
-
-
-    /// Move assignment operator.
-    auto& operator=(EuclideanMean&& other)
-    {
-      Base::operator=(std::move(other));
-      return *this;
-    }
 
 
     /**

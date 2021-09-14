@@ -87,20 +87,6 @@ namespace OpenKalman
 
 
     /**
-     * \brief Copy constructor.
-     */
-    GaussianDistribution(const GaussianDistribution& other)
-      : mu {other.mu}, sigma {other.sigma} {}
-
-
-    /**
-     * \brief Move constructor.
-     */
-    GaussianDistribution(GaussianDistribution&& other) noexcept
-      : mu {std::move(other).mu}, sigma {std::move(other).sigma} {}
-
-
-    /**
      * \brief Construct from related distribution.
      */
 #ifdef __cpp_concepts
@@ -260,27 +246,6 @@ namespace OpenKalman
     // ---------------------- //
     //  Assignment Operators  //
     // ---------------------- //
-
-    /// Copy assignment operator.
-    GaussianDistribution& operator=(const GaussianDistribution& other)
-    {
-      mu = other.mu;
-      sigma = other.sigma;
-      return *this;
-    }
-
-
-    /// Move assignment operator.
-    GaussianDistribution& operator=(GaussianDistribution&& other) noexcept
-    {
-      if (this != &other)
-      {
-        mu = std::move(other).mu;
-        sigma = std::move(other).sigma;
-      }
-      return *this;
-    }
-
 
     /// Assign from another compatible distribution.
 #ifdef __cpp_concepts

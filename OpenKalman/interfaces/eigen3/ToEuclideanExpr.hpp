@@ -63,14 +63,6 @@ namespace OpenKalman::Eigen3
       : Base {} {}
 
 
-    /// Copy constructor.
-    ToEuclideanExpr(const ToEuclideanExpr& other) : Base {other} {}
-
-
-    /// Move constructor.
-    ToEuclideanExpr(ToEuclideanExpr&& other) noexcept: Base {std::move(other)} {}
-
-
     /// Construct from a compatible to-Euclidean expression.
 #ifdef __cpp_concepts
     template<to_euclidean_expr Arg> requires (not std::derived_from<std::decay_t<Arg>, ToEuclideanExpr>) and
@@ -107,22 +99,6 @@ namespace OpenKalman::Eigen3
 #endif
     ToEuclideanExpr(Args ... args)
       : Base {MatrixTraits<NestedMatrix>::make(static_cast<const Scalar>(args)...)} {}
-
-
-    /// Copy assignment operator.
-    auto& operator=(const ToEuclideanExpr& other)
-    {
-      Base::operator=(other);
-      return *this;
-    }
-
-
-    /// Move assignment operator.
-    auto& operator=(ToEuclideanExpr&& other) noexcept
-    {
-      Base::operator=(std::move(other));
-      return *this;
-    }
 
 
     /// Assign from a compatible to-Euclidean expression.
