@@ -238,9 +238,11 @@ namespace OpenKalman::internal
     else
     {
       auto r = std::make_tuple(t);
-      return std::tuple_cat(std::move(r), tuple_replicate<N - 1>(std::forward<T>(t)));
+      auto rs = tuple_replicate<N - 1>(std::forward<T>(t));
+      return std::tuple_cat(std::move(r), std::move(rs));
     }
   }
+
 
   /**
    * \internal

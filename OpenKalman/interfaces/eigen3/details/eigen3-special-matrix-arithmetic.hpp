@@ -18,6 +18,8 @@
 
 #include "eigen3-forward-declarations.hpp"
 
+#include <iostream>
+
 namespace OpenKalman::Eigen3
 {
   // ---------- //
@@ -248,7 +250,8 @@ namespace OpenKalman::Eigen3
     }
     else if constexpr (diagonal_matrix<Arg1> and diagonal_matrix<Arg2>)
     {
-      return to_diagonal(diagonal_of(std::forward<Arg1>(arg1)) + diagonal_of(std::forward<Arg2>(arg2)));
+      return make_self_contained(
+        to_diagonal(diagonal_of(std::forward<Arg1>(arg1)) + diagonal_of(std::forward<Arg2>(arg2))));
     }
     else if constexpr (eigen_self_adjoint_expr<Arg1> or eigen_triangular_expr<Arg1>)
     {
@@ -438,7 +441,8 @@ namespace OpenKalman::Eigen3
     }
     else if constexpr (diagonal_matrix<Arg1> and diagonal_matrix<Arg2>)
     {
-      return to_diagonal(diagonal_of(std::forward<Arg1>(arg1)) - diagonal_of(std::forward<Arg2>(arg2)));
+      return make_self_contained(
+        to_diagonal(diagonal_of(std::forward<Arg1>(arg1)) - diagonal_of(std::forward<Arg2>(arg2))));
     }
     else if constexpr(eigen_self_adjoint_expr<Arg1> or eigen_triangular_expr<Arg1>)
     {

@@ -65,9 +65,9 @@ namespace OpenKalman
 #endif
     auto jacobian(In&&, Perturbations&&...) const
     {
-      auto jacobian0 = MatrixTraits<In>::identity();
-      auto jacobians = MatrixTraits<decltype(jacobian0)>::zero();
-      return std::tuple_cat(std::tuple {jacobian0}, oin::tuple_replicate<sizeof...(Perturbations)>(jacobians));
+      return std::make_tuple(
+        MatrixTraits<In>::identity(),
+        MatrixTraits<decltype(MatrixTraits<Perturbations>::identity())>::zero()...);
     }
 
   };

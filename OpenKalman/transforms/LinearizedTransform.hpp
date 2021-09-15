@@ -98,28 +98,30 @@ namespace OpenKalman
         constexpr TriangleType tri = triangle_type_of<typename MatrixTraits<CovIn>::template TriangularMatrixFrom<>>;
         using CovOut = typename MatrixTraits<CovIn>::template SelfAdjointMatrixFrom<tri, output_dim>;
 
-        const auto P = covariance_of(x);
+        auto P = covariance_of(x);
         const std::make_index_sequence<output_dim> ints;
         auto mean_terms = construct_mean<Mean<OutputCoeffs, MeanOut>>(hessian, P, ints);
         auto cov_terms = construct_cov<Covariance<OutputCoeffs, CovOut>>(hessian, P, ints, ints);
-        return GaussianDistribution(mean_terms, cov_terms);
+        return GaussianDistribution {std::move(mean_terms), std::move(cov_terms)};
       }
 
 
       template<typename OutputCoeffs, typename T1, typename T2, std::size_t...I>
-      static auto zip_tuples_impl(const T1& t1, const T2& t2, std::index_sequence<I...>)
+      static auto zip_tuples_impl(T1&& t1, T2&& t2, std::index_sequence<I...>)
       {
         static_assert(order >= 2);
-        return make_self_contained((second_order_term<OutputCoeffs>(std::get<I>(t1), std::get<I>(t2)) + ...));
+        return make_self_contained((second_order_term<OutputCoeffs>(
+          std::get<I>(std::forward<T1>(t1)), std::get<I>(std::forward<T2>(t2))) + ...));
       }
 
 
       template<typename OutputCoeffs, typename T1, typename T2>
-      static constexpr auto zip_tuples(const T1& t1, const T2& t2)
+      static constexpr auto zip_tuples(T1&& t1, T2&& t2)
       {
         static_assert(order >= 2);
-        static_assert(std::tuple_size_v<T1> == std::tuple_size_v<T2>);
-        return zip_tuples_impl<OutputCoeffs>(t1, t2, std::make_index_sequence<std::tuple_size_v<T1>>());
+        constexpr auto s = std::tuple_size_v<std::decay_t<T1>>;
+        static_assert(s == std::tuple_size_v<std::decay_t<T2>>);
+        return zip_tuples_impl<OutputCoeffs>(std::forward<T1>(t1), std::forward<T2>(t2), std::make_index_sequence<s>());
       }
 
     public:
@@ -164,8 +166,9 @@ namespace OpenKalman
         using In_Mean = typename DistributionTraits<InputDist>::Mean;
         using Out_Mean = std::invoke_result_t<Trans, In_Mean>;
         using OutputCoeffs = typename MatrixTraits<Out_Mean>::RowCoefficients;
-        const auto hessians = transformation.hessian(mean_of(x), mean_of(n)...);
-        return zip_tuples<OutputCoeffs>(hessians, std::forward_as_tuple(x, n...));
+        auto hessians = transformation.hessian(mean_of(x), mean_of(n)...);
+
+        return make_self_contained(zip_tuples<OutputCoeffs>(std::move(hessians), std::forward_as_tuple(x, n...)));
       }
 
     private:

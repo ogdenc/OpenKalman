@@ -8,20 +8,28 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#include "nonlinear.gtest.hpp"
-
-/*
- * Test data from Gustafsson & Hendeby. Some Relations Between Extended and Unscented Kalman Filters.
+/**
+ * \file
+ * \details Test data from Gustafsson & Hendeby. Some Relations Between Extended and Unscented Kalman Filters.
  * IEEE Transactions on Signal Processing, (60), 2, 545-555. 2012.
  */
 
-using M2 = eigen_matrix_t<double, 2, 1>;
-using SA = SelfAdjointMatrix<eigen_matrix_t<double, 2, 2>>;
-using TR = TriangularMatrix<eigen_matrix_t<double, 2, 2>>;
-using G2 = GaussianDistribution<Polar<>, M2, SA>;
-using G2T = GaussianDistribution<Polar<>, M2, TR>;
+#include "nonlinear.gtest.hpp"
 
-TEST_F(nonlinear, CTRadar1SelfAdjoint)
+using namespace OpenKalman;
+using namespace OpenKalman::test;
+
+inline namespace
+{
+  using M2 = eigen_matrix_t<double, 2, 1>;
+  using SA = SelfAdjointMatrix<eigen_matrix_t<double, 2, 2>>;
+  using TR = TriangularMatrix<eigen_matrix_t<double, 2, 2>>;
+  using G2 = GaussianDistribution<Polar<>, M2, SA>;
+  using G2T = GaussianDistribution<Polar<>, M2, TR>;
+}
+
+
+TEST(nonlinear, CTRadar1SelfAdjoint)
 {
   SamplePointsTransform<CubaturePoints> t;
   auto in = G2 {{3.0, 0.0}, SA::identity()};
@@ -34,7 +42,7 @@ TEST_F(nonlinear, CTRadar1SelfAdjoint)
   EXPECT_NEAR(covariance_of(out)(1,1), 4.39, 1e-2);
 }
 
-TEST_F(nonlinear, CTRadar1Triangular)
+TEST(nonlinear, CTRadar1Triangular)
 {
   SamplePointsTransform<CubaturePoints> t;
   auto in = G2T {{3.0, 0.0}, SA::identity()};
@@ -47,7 +55,7 @@ TEST_F(nonlinear, CTRadar1Triangular)
   EXPECT_NEAR(covariance_of(out)(1,1), 4.39, 1e-2);
 }
 
-TEST_F(nonlinear, CTRadar2SelfAdjoint)
+TEST(nonlinear, CTRadar2SelfAdjoint)
 {
   SamplePointsTransform<CubaturePoints> t;
   auto in = G2 {{3.0, 0.5}, SA::identity()};
@@ -60,7 +68,7 @@ TEST_F(nonlinear, CTRadar2SelfAdjoint)
   EXPECT_NEAR(covariance_of(out)(1,1), 3.98, 1e-2);
 }
 
-TEST_F(nonlinear, CTRadar2Triangular)
+TEST(nonlinear, CTRadar2Triangular)
 {
   SamplePointsTransform<CubaturePoints> t;
   auto in = G2T {{3.0, 0.5}, SA::identity()};
@@ -73,7 +81,7 @@ TEST_F(nonlinear, CTRadar2Triangular)
   EXPECT_NEAR(covariance_of(out)(1,1), 3.98, 1e-2);
 }
 
-TEST_F(nonlinear, CTRadar3SelfAdjoint)
+TEST(nonlinear, CTRadar3SelfAdjoint)
 {
   SamplePointsTransform<CubaturePoints> t;
   auto in = G2 {{3.0, 0.8}, SA::identity()};
@@ -86,7 +94,7 @@ TEST_F(nonlinear, CTRadar3SelfAdjoint)
   EXPECT_NEAR(covariance_of(out)(1,1), 3.47, 1e-2);
 }
 
-TEST_F(nonlinear, CTRadar3Triangular)
+TEST(nonlinear, CTRadar3Triangular)
 {
   SamplePointsTransform<CubaturePoints> t;
   auto in = G2T {{3.0, 0.8}, SA::identity()};

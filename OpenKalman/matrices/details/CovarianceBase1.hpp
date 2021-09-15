@@ -172,14 +172,6 @@ namespace OpenKalman::internal
       : Base {} {}
 
 
-    /// Copy constructor.
-    CovarianceBase(const CovarianceBase& other) : Base {other} {}
-
-
-    /// Move constructor.
-    CovarianceBase(CovarianceBase&& other) noexcept : Base {std::move(other)} {}
-
-
     /**
      * \brief Construct from another \ref covariance.
      */
@@ -201,28 +193,6 @@ namespace OpenKalman::internal
     template<typename Arg, std::enable_if_t<covariance_nestable<Arg>, int> = 0>
 #endif
     explicit CovarianceBase(Arg&& arg) noexcept : Base {to_covariance_nestable<NestedMatrix>(std::forward<Arg>(arg))} {}
-
-
-    /**
-     * \internal
-     * \brief Copy assignment operator.
-     */
-    auto& operator=(const CovarianceBase& other)
-    {
-      Base::operator=(other);
-      return *this;
-    }
-
-
-    /**
-     * \internal
-     * \brief Move assignment operator.
-     */
-    auto& operator=(CovarianceBase&& other) noexcept
-    {
-      Base::operator=(std::move(other));
-      return *this;
-    }
 
 
     /**

@@ -20,7 +20,7 @@ namespace OpenKalman::test
   using namespace OpenKalman;
 
   template<int n>
-  inline const auto sum_of_squares = Transformation
+  inline auto sum_of_squares = Transformation
     {
       [](const auto& x, const auto& ...ps) // function
       {
@@ -55,7 +55,7 @@ namespace OpenKalman::test
     };
 
   template<int n>
-  inline const auto time_of_arrival = Transformation
+  inline auto time_of_arrival = Transformation
     {
       [](const auto& x, const auto& ...ps) // function
       {
@@ -74,8 +74,8 @@ namespace OpenKalman::test
         static_assert((equivalent_to<typename MatrixTraits<decltype(ps)>::RowCoefficients, Axis > and ...));
         static_assert((equivalent_to<typename MatrixTraits<decltype(ps)>::ColumnCoefficients, Axis > and ...));
 
-        return std::tuple_cat(std::tuple {make_self_contained(adjoint(x) / std::sqrt(trace(adjoint(x) * x)))},
-          OpenKalman::internal::tuple_replicate<sizeof...(ps)>(Mean {1.}));
+        return std::make_tuple(make_self_contained(adjoint(x) / std::sqrt(trace(adjoint(x) * x))),
+          Matrix<Axis, Axis, native_matrix_t<decltype(ps), 1, 1>> {1.}...);
       },
       [](const auto& x, const auto& ...ps) // Hessians
       {
@@ -87,15 +87,18 @@ namespace OpenKalman::test
         std::array<Matrix<Axes<n>, Axes<n>, eigen_matrix_t<double, n, n>>, 1> ret;
         double sq = trace(adjoint(x) * x);
         ret[0] = pow(sq, -1.5) * (-x * adjoint(x) + sq * MatrixTraits<decltype(ret[0])>::identity());
-        return std::tuple {std::move(ret), std::get<0>(zero_hessian<Axis>(ps))...};
+        return std::make_tuple(std::move(ret), std::get<0>(zero_hessian<Axis>(ps))...);
       }
     };
 
-  using C2t = Coefficients<Axis, Axis>;
-  using M2t = Mean<C2t, eigen_matrix_t<double, 2, 1>>;
-  using M22t = Matrix<C2t, C2t, eigen_matrix_t<double, 2, 2>>;
+  namespace
+  {
+    using C2t = Coefficients<Axis, Axis>;
+    using M2t = Mean<C2t, eigen_matrix_t < double, 2, 1>>;
+    using M22t = Matrix <C2t, C2t, eigen_matrix_t<double, 2, 2>>;
+  }
 
-  inline const auto radar = Transformation
+  inline auto radar = Transformation
     {
       [](const M2t& x, const auto& ...ps) // function
       {
@@ -126,7 +129,7 @@ namespace OpenKalman::test
   using M2Pt = Matrix<Axes<2>, Polar<>, eigen_matrix_t<double, 2, 2>>;
   using MPPt = Matrix<Polar<>, Polar<>, eigen_matrix_t<double, 2, 2>>;
 
-  inline const auto radarP = Transformation
+  inline auto radarP = Transformation
     {
       [](const MP1t& x, const auto& ...ps) // function
       {
@@ -151,7 +154,7 @@ namespace OpenKalman::test
       }
     };
 
-  inline const auto Cartesian2polar = Transformation
+  inline auto Cartesian2polar = Transformation
     {
       [](const M2t& x, const auto& ...ps)
       {
@@ -185,14 +188,17 @@ namespace OpenKalman::test
       }
     };
 
-  using Cyl = Coefficients<Polar<>, Axis>;
-  using MC1t = Matrix<Cyl, Axis, eigen_matrix_t<double, 3, 1>>;
-  using MS1t = Matrix<Spherical<>, Axis, eigen_matrix_t<double, 3, 1>>;
-  using MSCt = Matrix<Spherical<>, Cyl, eigen_matrix_t<double, 3, 3>>;
-  using MSSt = Matrix<Spherical<>, Spherical<>, eigen_matrix_t<double, 3, 3>>;
-  using MCCt = Matrix<Cyl, Cyl, eigen_matrix_t<double, 3, 3>>;
+  namespace
+  {
+    using Cyl = Coefficients<Polar<>, Axis>;
+    using MC1t = Matrix <Cyl, Axis, eigen_matrix_t<double, 3, 1>>;
+    using MS1t = Matrix <Spherical<>, Axis, eigen_matrix_t<double, 3, 1>>;
+    using MSCt = Matrix <Spherical<>, Cyl, eigen_matrix_t<double, 3, 3>>;
+    using MSSt = Matrix <Spherical<>, Spherical<>, eigen_matrix_t<double, 3, 3>>;
+    using MCCt = Matrix <Cyl, Cyl, eigen_matrix_t<double, 3, 3>>;
+  }
 
-  inline const auto Cylindrical2spherical = Transformation
+  inline auto Cylindrical2spherical = Transformation
     {
       [](const MC1t& x, const auto& ...ps)
       {

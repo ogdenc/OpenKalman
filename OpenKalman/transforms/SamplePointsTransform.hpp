@@ -153,6 +153,7 @@ namespace OpenKalman
       {
         auto y_covariance = SamplePointsType::template covariance<dim, InputDist, return_cross>(
           std::forward<P>(p), std::move(ypoints));
+
         if constexpr (return_cross)
         {
           auto [y_cov, cross] = std::move(y_covariance);

@@ -8,20 +8,31 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#include "nonlinear.gtest.hpp"
-
-/*
- * Test data from Gustafsson & Hendeby. Some Relations Between Extended and Unscented Kalman Filters.
+/**
+ * \file
+ * \details Test data from Gustafsson & Hendeby. Some Relations Between Extended and Unscented Kalman Filters.
  * IEEE Transactions on Signal Processing, (60), 2, 545-555. 2012.
  */
 
-using M2 = eigen_matrix_t<double, 2, 1>;
-using SA = SelfAdjointMatrix<eigen_matrix_t<double, 2, 2>>;
-using TR = TriangularMatrix<eigen_matrix_t<double, 2, 2>>;
-using G2 = GaussianDistribution<Polar<>, M2, SA>;
-using G2T = GaussianDistribution<Polar<>, M2, TR>;
+#include "nonlinear.gtest.hpp"
 
-TEST_F(nonlinear, MCTRadarA1SelfAdjoint)
+using namespace OpenKalman;
+using namespace OpenKalman::test;
+
+using std::numbers::pi;
+
+
+inline namespace
+{
+  using M2 = eigen_matrix_t<double, 2, 1>;
+  using SA = SelfAdjointMatrix<eigen_matrix_t<double, 2, 2>>;
+  using TR = TriangularMatrix<eigen_matrix_t<double, 2, 2>>;
+  using G2 = GaussianDistribution<Polar<>, M2, SA>;
+  using G2T = GaussianDistribution<Polar<>, M2, TR>;
+}
+
+
+TEST(nonlinear, MCTRadarA1SelfAdjoint)
 {
   MonteCarloTransform t;
   auto in = G2 {{3.0, 0.0}, SA::identity()};
@@ -34,7 +45,7 @@ TEST_F(nonlinear, MCTRadarA1SelfAdjoint)
   EXPECT_NEAR(covariance_of(out)(1,1), 4.4, 2e-1);
 }
 
-TEST_F(nonlinear, MCTRadarA1Triangular)
+TEST(nonlinear, MCTRadarA1Triangular)
 {
   MonteCarloTransform t;
   auto in = G2T {{3.0, 0.0}, SA::identity()};
@@ -47,7 +58,7 @@ TEST_F(nonlinear, MCTRadarA1Triangular)
   EXPECT_NEAR(covariance_of(out)(1,1), 4.4, 2e-1);
 }
 
-TEST_F(nonlinear, MCTRadarA2SelfAdjoint)
+TEST(nonlinear, MCTRadarA2SelfAdjoint)
 {
   MonteCarloTransform t;
   auto in = G2 {{3.0, pi/6}, SA::identity()};
@@ -60,7 +71,7 @@ TEST_F(nonlinear, MCTRadarA2SelfAdjoint)
   EXPECT_NEAR(covariance_of(out)(1,1), 3.9, 1e-1);
 }
 
-TEST_F(nonlinear, MCTRadarA2Triangular)
+TEST(nonlinear, MCTRadarA2Triangular)
 {
   MonteCarloTransform t;
   auto in = G2T {{3.0, pi/6}, SA::identity()};
@@ -73,7 +84,7 @@ TEST_F(nonlinear, MCTRadarA2Triangular)
   EXPECT_NEAR(covariance_of(out)(1,1), 3.9, 1e-1);
 }
 
-TEST_F(nonlinear, MCTRadarA3SelfAdjoint)
+TEST(nonlinear, MCTRadarA3SelfAdjoint)
 {
   MonteCarloTransform t;
   auto in = G2 {{3.0, pi/4}, SA::identity()};
@@ -86,7 +97,7 @@ TEST_F(nonlinear, MCTRadarA3SelfAdjoint)
   EXPECT_NEAR(covariance_of(out)(1,1), 3.4, 1e-1);
 }
 
-TEST_F(nonlinear, MCTRadarA3Triangular)
+TEST(nonlinear, MCTRadarA3Triangular)
 {
   MonteCarloTransform t;
   auto in = G2T {{3.0, pi/4}, SA::identity()};
@@ -105,7 +116,7 @@ TEST_F(nonlinear, MCTRadarA3Triangular)
  * to Nonlinear Filtering. International Conference on Acoustics, Speech, and Signal Processing (ICASSP). 2007:
  */
 
-TEST_F(nonlinear, MCTRadarB1SelfAdjoint)
+TEST(nonlinear, MCTRadarB1SelfAdjoint)
 {
   MonteCarloTransform t;
   auto in = G2 {{20.0, 0.0}, {1.0, 0.0, 0.0, 0.1}};
@@ -118,7 +129,7 @@ TEST_F(nonlinear, MCTRadarB1SelfAdjoint)
   EXPECT_NEAR(covariance_of(out)(1,1), 36.3, 4e-1); // Reference says 36.6
 }
 
-TEST_F(nonlinear, MCTRadarB1Triangular)
+TEST(nonlinear, MCTRadarB1Triangular)
 {
   MonteCarloTransform t;
   auto in = G2T {{20.0, 0.0}, {1.0, 0.0, 0.0, 0.1}};
@@ -131,7 +142,7 @@ TEST_F(nonlinear, MCTRadarB1Triangular)
   EXPECT_NEAR(covariance_of(out)(1,1), 36.3, 4e-1); // Reference says 36.6
 }
 
-TEST_F(nonlinear, MCTRadarB2SelfAdjoint)
+TEST(nonlinear, MCTRadarB2SelfAdjoint)
 {
   MonteCarloTransform t;
   auto in = G2 {{20.0, pi/6}, {1.0, 0.0, 0.0, 0.1}};
@@ -144,7 +155,7 @@ TEST_F(nonlinear, MCTRadarB2SelfAdjoint)
   EXPECT_NEAR(covariance_of(out)(1,1), 27.9, 3e-1); // Reference says 27.9
 }
 
-TEST_F(nonlinear, MCTRadarB2Triangular)
+TEST(nonlinear, MCTRadarB2Triangular)
 {
   MonteCarloTransform t;
   auto in = G2T {{20.0, pi/6}, {1.0, 0.0, 0.0, 0.1}};
@@ -157,7 +168,7 @@ TEST_F(nonlinear, MCTRadarB2Triangular)
   EXPECT_NEAR(covariance_of(out)(1,1), 27.9, 3e-1); // Reference says 27.9
 }
 
-TEST_F(nonlinear, MCTRadarB3SelfAdjoint)
+TEST(nonlinear, MCTRadarB3SelfAdjoint)
 {
   MonteCarloTransform t;
   auto in = G2 {{20.0, pi/4}, {1.0, 0.0, 0.0, 0.1}};
@@ -170,7 +181,7 @@ TEST_F(nonlinear, MCTRadarB3SelfAdjoint)
   EXPECT_NEAR(covariance_of(out)(1,1), 19.45, 3e-1); // Reference says 20.0
 }
 
-TEST_F(nonlinear, MCTRadarB3Triangular)
+TEST(nonlinear, MCTRadarB3Triangular)
 {
   MonteCarloTransform t;
   auto in = G2T {{20.0, pi/4}, {1.0, 0.0, 0.0, 0.1}};

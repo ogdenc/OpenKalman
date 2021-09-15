@@ -16,28 +16,4 @@
 #include "transforms/transforms.hpp"
 
 
-struct nonlinear : ::testing::Test {
-    nonlinear() {}
-
-    void SetUp() override
-    {
-      // code here will execute just before the test ensues
-    }
-
-    void TearDown() override
-    {
-      // code here will be called just after the test completes
-      // ok to throw exceptions from here if need be
-    }
-
-    ~nonlinear() override
-    {
-      // cleanup any pending stuff, but no exceptions allowed
-    }
-
-    // put in any custom members that you need
-
-};
-
-
 #endif //NONLINEAR_GTEST_HPP

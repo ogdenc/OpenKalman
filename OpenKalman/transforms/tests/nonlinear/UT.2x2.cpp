@@ -8,31 +8,42 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#include "nonlinear.gtest.hpp"
-
-/*
- * Test data from Gustafsson & Hendeby. Some Relations Between Extended and Unscented Kalman Filters.
+/**
+ * \file
+ * \details Test data from Gustafsson & Hendeby. Some Relations Between Extended and Unscented Kalman Filters.
  * IEEE Transactions on Signal Processing, (60), 2, 545-555. 2012.
  */
 
-using M2 = eigen_matrix_t<double, 2, 1>;
-using SA = SelfAdjointMatrix<eigen_matrix_t<double, 2, 2>>;
-using TR = TriangularMatrix<eigen_matrix_t<double, 2, 2>>;
-using G2 = GaussianDistribution<Polar<>, M2, SA>;
-using G2T = GaussianDistribution<Polar<>, M2, TR>;
+#include "nonlinear.gtest.hpp"
 
-struct UT1p
+using namespace OpenKalman;
+using namespace OpenKalman::test;
+
+using std::numbers::pi;
+
+
+inline namespace
 {
-  static constexpr double alpha = 1;
-  static constexpr double beta = 0;
-  template<int dim> static constexpr double kappa = 3 - dim;
-};
-using UT1 = Unscented<UT1p>;
+  using M2 = eigen_matrix_t<double, 2, 1>;
+  using SA = SelfAdjointMatrix<eigen_matrix_t<double, 2, 2>>;
+  using TR = TriangularMatrix<eigen_matrix_t<double, 2, 2>>;
+  using G2 = GaussianDistribution<Polar<>, M2, SA>;
+  using G2T = GaussianDistribution<Polar<>, M2, TR>;
 
-using UT2 = UnscentedSigmaPointsStateEstimation; // alpha = 1e-3, beta = 2, kappa = 0;
+  struct UT1p
+  {
+    static constexpr double alpha = 1;
+    static constexpr double beta = 0;
+    template<int dim> static constexpr double kappa = 3 - dim;
+  };
+
+  using UT1 = Unscented<UT1p>;
+
+  using UT2 = UnscentedSigmaPointsStateEstimation; // alpha = 1e-3, beta = 2, kappa = 0;
+}
 
 
-TEST_F(nonlinear, UT1Radar1ASelfAdjoint)
+TEST(nonlinear, UT1Radar1ASelfAdjoint)
 {
   SamplePointsTransform<UT1> t;
   auto in = G2 {{3.0, 0.0}, SA::identity()};
@@ -45,7 +56,7 @@ TEST_F(nonlinear, UT1Radar1ASelfAdjoint)
   EXPECT_NEAR(covariance_of(out)(1,1), 2.9, 1e-1);
 }
 
-TEST_F(nonlinear, UT1Radar1ATriangular)
+TEST(nonlinear, UT1Radar1ATriangular)
 {
   SamplePointsTransform<UT1> t;
   auto in = G2T {{3.0, 0.0}, SA::identity()};
@@ -58,7 +69,7 @@ TEST_F(nonlinear, UT1Radar1ATriangular)
   EXPECT_NEAR(covariance_of(out)(1,1), 2.9, 1e-1);
 }
 
-TEST_F(nonlinear, UT1Radar2ASelfAdjoint)
+TEST(nonlinear, UT1Radar2ASelfAdjoint)
 {
   SamplePointsTransform<UT1> t;
   auto in = G2 {{3.0, pi/6}, SA::identity()};
@@ -71,7 +82,7 @@ TEST_F(nonlinear, UT1Radar2ASelfAdjoint)
   EXPECT_NEAR(covariance_of(out)(1,1), 3.1, 1e-1);
 }
 
-TEST_F(nonlinear, UT1Radar2ATriangular)
+TEST(nonlinear, UT1Radar2ATriangular)
 {
   SamplePointsTransform<UT1> t;
   auto in = G2T {{3.0, pi/6}, SA::identity()};
@@ -84,7 +95,7 @@ TEST_F(nonlinear, UT1Radar2ATriangular)
   EXPECT_NEAR(covariance_of(out)(1,1), 3.1, 1e-1);
 }
 
-TEST_F(nonlinear, UT1Radar3ASelfAdjoint)
+TEST(nonlinear, UT1Radar3ASelfAdjoint)
 {
   SamplePointsTransform<UT1> t;
   auto in = G2 {{3.0, pi/4}, SA::identity()};
@@ -97,7 +108,7 @@ TEST_F(nonlinear, UT1Radar3ASelfAdjoint)
   EXPECT_NEAR(covariance_of(out)(1,1), 3.3, 1e-1);
 }
 
-TEST_F(nonlinear, UT1Radar3ATriangular)
+TEST(nonlinear, UT1Radar3ATriangular)
 {
   SamplePointsTransform<UT1> t;
   auto in = G2T {{3.0, pi/4}, SA::identity()};
@@ -110,7 +121,7 @@ TEST_F(nonlinear, UT1Radar3ATriangular)
   EXPECT_NEAR(covariance_of(out)(1,1), 3.3, 1e-1);
 }
 
-TEST_F(nonlinear, UT2Radar1ASelfAdjoint)
+TEST(nonlinear, UT2Radar1ASelfAdjoint)
 {
   SamplePointsTransform<UT2> t;
   auto in = G2 {{3.0, 0.0}, SA::identity()};
@@ -123,7 +134,7 @@ TEST_F(nonlinear, UT2Radar1ASelfAdjoint)
   EXPECT_NEAR(covariance_of(out)(1,1), 9.0, 1e-1);
 }
 
-TEST_F(nonlinear, UT2Radar1ATriangular)
+TEST(nonlinear, UT2Radar1ATriangular)
 {
   SamplePointsTransform<UT2> t;
   auto in = G2T {{3.0, 0.0}, SA::identity()};
@@ -136,7 +147,7 @@ TEST_F(nonlinear, UT2Radar1ATriangular)
   EXPECT_NEAR(covariance_of(out)(1,1), 9.0, 1e-1);
 }
 
-TEST_F(nonlinear, UT2Radar2ASelfAdjoint)
+TEST(nonlinear, UT2Radar2ASelfAdjoint)
 {
   SamplePointsTransform<UT2> t;
   auto in = G2 {{3.0, pi/6}, SA::identity()};
@@ -149,7 +160,7 @@ TEST_F(nonlinear, UT2Radar2ASelfAdjoint)
   EXPECT_NEAR(covariance_of(out)(1,1), 8.1, 1e-1);
 }
 
-TEST_F(nonlinear, UT2Radar2ATriangular)
+TEST(nonlinear, UT2Radar2ATriangular)
 {
   SamplePointsTransform<UT2> t;
   auto in = G2T {{3.0, pi/6}, SA::identity()};
@@ -162,7 +173,7 @@ TEST_F(nonlinear, UT2Radar2ATriangular)
   EXPECT_NEAR(covariance_of(out)(1,1), 8.1, 1e-1);
 }
 
-TEST_F(nonlinear, UT2Radar3ASelfAdjoint)
+TEST(nonlinear, UT2Radar3ASelfAdjoint)
 {
   SamplePointsTransform<UT2> t;
   auto in = G2 {{3.0, pi/4}, SA::identity()};
@@ -175,7 +186,7 @@ TEST_F(nonlinear, UT2Radar3ASelfAdjoint)
   EXPECT_NEAR(covariance_of(out)(1,1), 7.2, 1e-1);
 }
 
-TEST_F(nonlinear, UT2Radar3ATriangular)
+TEST(nonlinear, UT2Radar3ATriangular)
 {
   SamplePointsTransform<UT2> t;
   auto in = G2T {{3.0, pi/4}, SA::identity()};
@@ -195,7 +206,7 @@ TEST_F(nonlinear, UT2Radar3ATriangular)
  */
 
 /* These do not appear to be accurate in the paper:
-TEST_F(nonlinear_tests, UT1Radar1BSelfAdjoint)
+TEST(nonlinear_tests, UT1Radar1BSelfAdjoint)
 {
   SamplePointsTransform<UT1> t;
   auto in = G2 {{20.0, 0.0}, {1.0, 0.0, 0.0, 0.1}};
@@ -208,7 +219,7 @@ TEST_F(nonlinear_tests, UT1Radar1BSelfAdjoint)
   EXPECT_NEAR(covariance_of(out)(1,1), 40.0, 1e-1); // should be 36.2
 }
 
-TEST_F(nonlinear_tests, UT1Radar1BTriangular)
+TEST(nonlinear_tests, UT1Radar1BTriangular)
 {
   SamplePointsTransform<UT1> t;
   auto in = G2T {{20.0, 0.0}, {1.0, 0.0, 0.0, 0.1}};
@@ -221,7 +232,7 @@ TEST_F(nonlinear_tests, UT1Radar1BTriangular)
   EXPECT_NEAR(covariance_of(out)(1,1), 40.0, 1e-1); // should be 36.2
 }*/
 
-TEST_F(nonlinear, UT1Radar2BSelfAdjoint)
+TEST(nonlinear, UT1Radar2BSelfAdjoint)
 {
   SamplePointsTransform<UT1> t;
   auto in = G2 {{20.0, pi/6}, {1.0, 0.0, 0.0, 0.1}};
@@ -234,7 +245,7 @@ TEST_F(nonlinear, UT1Radar2BSelfAdjoint)
   EXPECT_NEAR(covariance_of(out)(1,1), 27.8, 1e-1);
 }
 
-TEST_F(nonlinear, UT1Radar2BTriangular)
+TEST(nonlinear, UT1Radar2BTriangular)
 {
   SamplePointsTransform<UT1> t;
   auto in = G2T {{20.0, pi/6}, {1.0, 0.0, 0.0, 0.1}};
@@ -247,7 +258,7 @@ TEST_F(nonlinear, UT1Radar2BTriangular)
   EXPECT_NEAR(covariance_of(out)(1,1), 27.8, 1e-1);
 }
 
-TEST_F(nonlinear, UT1Radar3BSelfAdjoint)
+TEST(nonlinear, UT1Radar3BSelfAdjoint)
 {
   SamplePointsTransform<UT1> t;
   auto in = G2 {{20.0, pi/4}, {1.0, 0.0, 0.0, 0.1}};
@@ -260,7 +271,7 @@ TEST_F(nonlinear, UT1Radar3BSelfAdjoint)
   EXPECT_NEAR(covariance_of(out)(1,1), 19.5, 1e-1);
 }
 
-TEST_F(nonlinear, UT1Radar3BTriangular)
+TEST(nonlinear, UT1Radar3BTriangular)
 {
   SamplePointsTransform<UT1> t;
   auto in = G2T {{20.0, pi/4}, {1.0, 0.0, 0.0, 0.1}};
@@ -273,7 +284,7 @@ TEST_F(nonlinear, UT1Radar3BTriangular)
   EXPECT_NEAR(covariance_of(out)(1,1), 19.5, 1e-1);
 }
 
-TEST_F(nonlinear, UT2Radar1BSelfAdjoint)
+TEST(nonlinear, UT2Radar1BSelfAdjoint)
 {
   SamplePointsTransform<UT2> t;
   auto in = G2 {{20.0, 0.0}, {1.0, 0.0, 0.0, 0.1}};
@@ -286,7 +297,7 @@ TEST_F(nonlinear, UT2Radar1BSelfAdjoint)
   EXPECT_NEAR(covariance_of(out)(1,1), 40.1, 2e-1);
 }
 
-TEST_F(nonlinear, UT2Radar1BTriangular)
+TEST(nonlinear, UT2Radar1BTriangular)
 {
   SamplePointsTransform<UT2> t;
   auto in = G2T {{20.0, 0.0}, {1.0, 0.0, 0.0, 0.1}};
@@ -299,7 +310,7 @@ TEST_F(nonlinear, UT2Radar1BTriangular)
   EXPECT_NEAR(covariance_of(out)(1,1), 40.1, 2e-1);
 }
 
-TEST_F(nonlinear, UT2Radar2BSelfAdjoint)
+TEST(nonlinear, UT2Radar2BSelfAdjoint)
 {
   SamplePointsTransform<UT2> t;
   auto in = G2 {{20.0, pi/6}, {1.0, 0.0, 0.0, 0.1}};
@@ -312,7 +323,7 @@ TEST_F(nonlinear, UT2Radar2BSelfAdjoint)
   EXPECT_NEAR(covariance_of(out)(1,1), 30.7, 1e-1);
 }
 
-TEST_F(nonlinear, UT2Radar2BTriangular)
+TEST(nonlinear, UT2Radar2BTriangular)
 {
   SamplePointsTransform<UT2> t;
   auto in = G2T {{20.0, pi/6}, {1.0, 0.0, 0.0, 0.1}};
@@ -325,7 +336,7 @@ TEST_F(nonlinear, UT2Radar2BTriangular)
   EXPECT_NEAR(covariance_of(out)(1,1), 30.7, 1e-1);
 }
 
-TEST_F(nonlinear, UT2Radar3BSelfAdjoint)
+TEST(nonlinear, UT2Radar3BSelfAdjoint)
 {
   SamplePointsTransform<UT2> t;
   auto in = G2 {{20.0, pi/4}, {1.0, 0.0, 0.0, 0.1}};
@@ -338,7 +349,7 @@ TEST_F(nonlinear, UT2Radar3BSelfAdjoint)
   EXPECT_NEAR(covariance_of(out)(1,1), 21.5, 1e-1);
 }
 
-TEST_F(nonlinear, UT2Radar3BTriangular)
+TEST(nonlinear, UT2Radar3BTriangular)
 {
   SamplePointsTransform<UT2> t;
   auto in = G2T {{20.0, pi/4}, {1.0, 0.0, 0.0, 0.1}};

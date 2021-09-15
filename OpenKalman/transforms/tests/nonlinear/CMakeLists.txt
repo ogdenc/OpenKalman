@@ -16,13 +16,13 @@ include(GoogleTest)
 
 add_executable(nonlinear
         nonlinear.gtest.cpp
-    TT.2x1.cpp
-    TT.2x2.cpp
-    CT.2x1.cpp
-    CT.2x2.cpp
-    UT.2x1.cpp
-    UT.2x2.cpp
     MCT.2x2.cpp
+    TT.2x2.cpp
+    TT.2x1.cpp
+    UT.2x2.cpp
+    UT.2x1.cpp
+    CT.2x2.cpp
+    CT.2x1.cpp
     )
 
 target_link_libraries(nonlinear ${GTEST_BOTH_LIBRARIES} Eigen3::Eigen Threads::Threads)

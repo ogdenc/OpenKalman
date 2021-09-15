@@ -40,7 +40,7 @@ namespace OpenKalman
 #else
   template<typename Arg, std::enable_if_t<covariance<Arg> and not square_root_covariance<Arg>, int> = 0>
 #endif
-  inline decltype(auto)
+  inline auto
   square_root(Arg&& arg) noexcept
   {
     return std::forward<Arg>(arg).square_root();
@@ -52,7 +52,7 @@ namespace OpenKalman
 #else
   template<typename Arg, std::enable_if_t<square_root_covariance<Arg>, int> = 0>
 #endif
-  inline decltype(auto)
+  inline auto
   square(Arg&& arg) noexcept
   {
     return std::forward<Arg>(arg).square();

@@ -11,6 +11,8 @@
 #ifndef OPENKALMAN_COVARIANCEARITHMETIC_HPP
 #define OPENKALMAN_COVARIANCEARITHMETIC_HPP
 
+#include <interfaces/eigen3/details/eigen3-forward-declarations.hpp>
+
 namespace OpenKalman
 {
   namespace oin = OpenKalman::internal;
@@ -91,7 +93,9 @@ namespace OpenKalman
     {
       decltype(auto) b1 = okd::to_nestable(std::forward<Arg1>(arg1)); using B1 = decltype(b1);
       decltype(auto) b2 = okd::to_nestable(std::forward<Arg2>(arg2)); using B2 = decltype(b2);
+
       auto sum = make_self_contained<decltype(b1), decltype(b2)>(std::forward<B1>(b1) + std::forward<B2>(b2));
+
       if constexpr (self_adjoint_matrix<decltype(sum)>)
       {
         return make_covariance<C>(std::move(sum));

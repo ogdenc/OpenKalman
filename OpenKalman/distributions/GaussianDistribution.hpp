@@ -799,26 +799,25 @@ namespace OpenKalman
   constexpr decltype(auto)
   make_self_contained(Arg&& arg) noexcept
   {
+    using NestedMean = nested_matrix_t<typename DistributionTraits<Arg>::Mean>;
+    using NestedCovariance = nested_matrix_t<typename DistributionTraits<Arg>::Covariance>;
     using re = typename DistributionTraits<Arg>::random_number_engine;
 
     if constexpr(self_contained<Arg> or
-      (std::is_lvalue_reference_v<typename DistributionTraits<Arg>::Mean> and
-        std::is_lvalue_reference_v<typename DistributionTraits<Arg>::Covariance>) or
+      (std::is_lvalue_reference_v<NestedMean> and std::is_lvalue_reference_v<NestedCovariance>) or
       ((sizeof...(Ts) > 0) and ... and std::is_lvalue_reference_v<Ts>))
     {
       return std::forward<Arg>(arg);
     }
 
     /// \todo Check this:
-    else if constexpr(std::is_lvalue_reference_v<typename DistributionTraits<Arg>::Mean> and
-        not std::is_lvalue_reference_v<typename DistributionTraits<Arg>::Covariance>)
+    else if constexpr(std::is_lvalue_reference_v<NestedMean> and not std::is_lvalue_reference_v<NestedCovariance>)
     {
       return make_GaussianDistribution<re>(mean_of(std::forward<Arg>(arg)),
         make_self_contained(covariance_of(std::forward<Arg>(arg))));
     }
 
-    else if constexpr(not std::is_lvalue_reference_v<typename DistributionTraits<Arg>::Mean> and
-      std::is_lvalue_reference_v<typename DistributionTraits<Arg>::Covariance>)
+    else if constexpr(not std::is_lvalue_reference_v<NestedMean> and std::is_lvalue_reference_v<NestedCovariance>)
     {
       return make_GaussianDistribution<re>(make_self_contained(mean_of(std::forward<Arg>(arg))),
         covariance_of(std::forward<Arg>(arg)));

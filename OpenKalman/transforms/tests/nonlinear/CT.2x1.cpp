@@ -8,29 +8,38 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#include "nonlinear.gtest.hpp"
-
-/*
+/**
+ * \file
+ * \details
  * Test data from Gustafsson & Hendeby. Some Relations Between Extended and Unscented Kalman Filters.
  * IEEE Transactions on Signal Processing, (60), 2, 545-555. 2012.
  */
 
-template<std::size_t n>
-using M = eigen_matrix_t<double, n, 1>;
+#include "nonlinear.gtest.hpp"
 
-template<std::size_t n>
-using SA = SelfAdjointMatrix<eigen_matrix_t<double, n, n>>;
+using namespace OpenKalman;
+using namespace OpenKalman::test;
 
-template<std::size_t n>
-using TR = TriangularMatrix<eigen_matrix_t<double, n, n>>;
+inline namespace
+{
+  template<std::size_t n>
+  using M = eigen_matrix_t<double, n, 1>;
 
-template<std::size_t n>
-using G = GaussianDistribution<Axes<n>, M<n>, SA<n>>;
+  template<std::size_t n>
+  using SA = SelfAdjointMatrix<eigen_matrix_t<double, n, n>>;
 
-template<std::size_t n>
-using GT = GaussianDistribution<Axes<n>, M<n>, TR<n>>;
+  template<std::size_t n>
+  using TR = TriangularMatrix<eigen_matrix_t<double, n, n>>;
 
-TEST_F(nonlinear, CTSumOfSquares2SelfAdjoint)
+  template<std::size_t n>
+  using G = GaussianDistribution<Axes<n>, M<n>, SA<n>>;
+
+  template<std::size_t n>
+  using GT = GaussianDistribution<Axes<n>, M<n>, TR<n>>;
+}
+
+
+TEST(nonlinear, CTSumOfSquares2SelfAdjoint)
 {
   constexpr std::size_t n = 2;
   auto g = sum_of_squares<n>;
@@ -41,7 +50,7 @@ TEST_F(nonlinear, CTSumOfSquares2SelfAdjoint)
   EXPECT_NEAR(covariance_of(out)(0,0), 0., 1e-6);
 }
 
-TEST_F(nonlinear, CTSumOfSquares2Triangular)
+TEST(nonlinear, CTSumOfSquares2Triangular)
 {
   constexpr std::size_t n = 2;
   auto g = sum_of_squares<n>;
@@ -52,7 +61,7 @@ TEST_F(nonlinear, CTSumOfSquares2Triangular)
   EXPECT_NEAR(covariance_of(out)(0,0), 0., 1e-6);
 }
 
-TEST_F(nonlinear, CTSumOfSquares5SelfAdjoint)
+TEST(nonlinear, CTSumOfSquares5SelfAdjoint)
 {
   constexpr std::size_t n = 5;
   auto g = sum_of_squares<n>;
@@ -63,7 +72,7 @@ TEST_F(nonlinear, CTSumOfSquares5SelfAdjoint)
   EXPECT_NEAR(covariance_of(out)(0,0), 0., 1e-6);
 }
 
-TEST_F(nonlinear, CTSumOfSquares5Triangular)
+TEST(nonlinear, CTSumOfSquares5Triangular)
 {
   constexpr std::size_t n = 5;
   auto g = sum_of_squares<n>;
@@ -74,7 +83,7 @@ TEST_F(nonlinear, CTSumOfSquares5Triangular)
   EXPECT_NEAR(covariance_of(out)(0,0), 0., 1e-6);
 }
 
-TEST_F(nonlinear, CTTOA2SelfAdjoint)
+TEST(nonlinear, CTTOA2SelfAdjoint)
 {
   constexpr std::size_t n = 2;
   auto g = time_of_arrival<n>;
@@ -85,7 +94,7 @@ TEST_F(nonlinear, CTTOA2SelfAdjoint)
   EXPECT_NEAR(covariance_of(out)(0,0), 2.42, 1e-2);
 }
 
-TEST_F(nonlinear, CTTOA2Triangular)
+TEST(nonlinear, CTTOA2Triangular)
 {
   constexpr std::size_t n = 2;
   auto g = time_of_arrival<n>;
@@ -96,7 +105,7 @@ TEST_F(nonlinear, CTTOA2Triangular)
   EXPECT_NEAR(covariance_of(out)(0,0), 2.42, 1e-2);
 }
 
-TEST_F(nonlinear, CTTOA3SelfAdjoint)
+TEST(nonlinear, CTTOA3SelfAdjoint)
 {
   constexpr std::size_t n = 3;
   auto g = time_of_arrival<n>;
@@ -107,7 +116,7 @@ TEST_F(nonlinear, CTTOA3SelfAdjoint)
   EXPECT_NEAR(covariance_of(out)(0,0), 3.34, 1e-2);
 }
 
-TEST_F(nonlinear, CTTOA3Triangular)
+TEST(nonlinear, CTTOA3Triangular)
 {
   constexpr std::size_t n = 3;
   auto g = time_of_arrival<n>;

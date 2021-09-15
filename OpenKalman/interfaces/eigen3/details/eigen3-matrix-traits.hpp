@@ -65,7 +65,8 @@ namespace OpenKalman
     template<typename S, std::size_t r, std::size_t c>
     using Nat =
       Eigen::Matrix<S, r == 0 ? Eigen::Dynamic : (Eigen::Index) r, c == 0 ? Eigen::Dynamic : (Eigen::Index) c,
-        (Eigen::internal::traits<M>::Flags & Eigen::RowMajorBit ? Eigen::RowMajor : Eigen::ColMajor) | Eigen::AutoAlign,
+        (Eigen::internal::traits<M>::Flags & Eigen::RowMajorBit and (c != 1) ?
+          Eigen::RowMajor : Eigen::ColMajor) | Eigen::AutoAlign,
         r == 0 ? Eigen::internal::traits<M>::MaxRowsAtCompileTime : (Eigen::Index) r,
         c == 0 ? Eigen::internal::traits<M>::MaxColsAtCompileTime : (Eigen::Index) c>;
 

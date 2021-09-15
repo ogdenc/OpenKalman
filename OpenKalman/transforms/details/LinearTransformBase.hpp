@@ -49,43 +49,43 @@ namespace OpenKalman::internal
 
     using Base = TransformBase<Derived>;
 
-    template<std::size_t return_cross, typename J, typename Dist, std::size_t...ints>
-    static auto sum_noise_terms(const J& j, const Dist& dist, std::index_sequence<ints...>)
+    template<std::size_t return_cross, typename J, typename D, std::size_t...ints>
+    static auto sum_noise_terms(const J& j, D&& d, std::index_sequence<ints...>)
     {
-      using InputDist = std::tuple_element<0, Dist>;
+      using InputDist = std::tuple_element<0, D>;
       if constexpr(cholesky_form<InputDist>)
       {
         if constexpr (return_cross)
         {
-          auto sqrt_c0 =square_root(covariance_of(std::get<0>(dist)));
+          auto sqrt_c0 =square_root(covariance_of(std::get<0>(std::forward<D>(d))));
           auto term0 = std::get<0>(j) * sqrt_c0;
           return std::tuple {
-            LQ_decomposition(concatenate_horizontal(term0, Matrix(
-              (std::get<ints+1>(j) * (square_root(covariance_of(std::get<ints+1>(dist))))))...)),
-            make_self_contained(sqrt_c0 * adjoint(term0))};
+            make_self_contained(LQ_decomposition(concatenate_horizontal(term0, Matrix(
+              (std::get<ints+1>(j) * (square_root(covariance_of(std::get<ints+1>(std::forward<D>(d)))))))...))),
+            make_self_contained(std::move(sqrt_c0) * adjoint(term0))};
         }
         else
         {
-          auto term0 = std::get<0>(j) * square_root(covariance_of(std::get<0>(dist)));
-          return LQ_decomposition(concatenate_horizontal(term0, Matrix(
-              (std::get<ints+1>(j) * (square_root(covariance_of(std::get<ints+1>(dist))))))...));
+          return make_self_contained(LQ_decomposition(concatenate_horizontal(
+            std::get<0>(j) * square_root(covariance_of(std::get<0>(std::forward<D>(d)))),
+            Matrix((std::get<ints+1>(j) * (square_root(covariance_of(std::get<ints+1>(std::forward<D>(d)))))))...)));
         }
       }
       else
       {
         if constexpr (return_cross)
         {
-          auto cross = make_self_contained(covariance_of(std::get<0>(dist)) * adjoint(std::get<0>(j)));
-          auto cov = make_covariance((
+          auto cross = make_self_contained(covariance_of(std::get<0>(std::forward<D>(d))) * adjoint(std::get<0>(j)));
+          auto cov = make_covariance(make_self_contained((
             (std::get<0>(j) * cross) +
-              ... + (std::get<ints+1>(j) * (covariance_of(std::get<ints+1>(dist)) * adjoint(std::get<ints+1>(j))))));
+              ... + (std::get<ints+1>(j) * (covariance_of(std::get<ints+1>(std::forward<D>(d))) * adjoint(std::get<ints+1>(j)))))));
           return std::tuple {std::move(cov), std::move(cross)};
         }
         else
         {
-          return make_covariance((
-            (std::get<0>(j) * covariance_of(std::get<0>(dist)) * adjoint(std::get<0>(j))) +
-              ... + (std::get<ints+1>(j) * (covariance_of(std::get<ints+1>(dist)) * adjoint(std::get<ints+1>(j))))));
+          return make_covariance(make_self_contained((
+            (std::get<0>(j) * covariance_of(std::get<0>(std::forward<D>(d))) * adjoint(std::get<0>(j))) + ... +
+            (std::get<ints+1>(j) * (covariance_of(std::get<ints+1>(std::forward<D>(d))) * adjoint(std::get<ints+1>(j)))))));
         }
       }
     }
@@ -109,13 +109,14 @@ namespace OpenKalman::internal
     auto transform(const Trans& g, const InputDist& in, const NoiseDists& ...n) const
     {
       typename Derived::template TransformModel<Trans> transform_model {g};
-      auto[mean_output, jacobians] = transform_model(mean_of(in), mean_of(n)...);
+      auto [mean_output, jacobians] = transform_model(mean_of(in), mean_of(n)...);
       using re = typename DistributionTraits<InputDist>::random_number_engine;
 
       if constexpr (return_cross)
       {
         auto [cov_out, cross_covariance] = sum_noise_terms<true>(jacobians, std::forward_as_tuple(in, n...),
           std::make_index_sequence<std::min(sizeof...(NoiseDists), std::tuple_size_v<decltype(jacobians)> - 1)>{});
+
         auto out = make_GaussianDistribution<re>(std::move(mean_output), std::move(cov_out));
 
         if constexpr(needs_additive_correction<Derived, Trans>::value)
@@ -127,12 +128,17 @@ namespace OpenKalman::internal
       {
         auto cov_out = sum_noise_terms<false>(jacobians, std::forward_as_tuple(in, n...),
           std::make_index_sequence<std::min(sizeof...(NoiseDists), std::tuple_size_v<decltype(jacobians)> - 1)>{});
+
         auto out = make_GaussianDistribution<re>(std::move(mean_output), std::move(cov_out));
 
         if constexpr(needs_additive_correction<Derived, Trans>::value)
+        {
           return make_self_contained(out + transform_model.add_correction(in, n...));
+        }
         else
+        {
           return out;
+        }
       }
     }
 
