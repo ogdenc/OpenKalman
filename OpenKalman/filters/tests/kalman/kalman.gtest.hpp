@@ -13,25 +13,11 @@
 
 #include "transformations/tests/transformations.gtest.hpp"
 
-#include "transforms/transforms.hpp"
+#include "filters/filters.hpp"
 
 
-struct kalman : public ::testing::Test
+namespace OpenKalman::test
 {
-  std::random_device rd;
-  std::mt19937 gen;
-
-  kalman()
-  {
-    gen = std::mt19937(rd());
-  }
-
-  void SetUp() override {}
-
-  void TearDown() override {}
-
-  ~kalman() override {}
-
   template<
     typename MeasurementTransform,
     typename MeasurementFunc,
@@ -73,20 +59,6 @@ struct kalman : public ::testing::Test
     EXPECT_LT(count - 1, iterations);
   }
 
-  template<typename Cov, typename Trans>
-  inline void rotation_2D(const Trans& transform);
-
-  template<typename Cov, typename Trans>
-  void rotation_3D(const Trans& transform);
-
-  template<typename Cov, typename Trans>
-  void artillery_2D(const Trans& transform);
-
-  template<typename Cov, typename Trans>
-  void radar_2D(const Trans& transform);
-
-
-};
-
+}
 
 #endif //KALMAN_GTEST_HPP

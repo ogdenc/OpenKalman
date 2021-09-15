@@ -19,6 +19,8 @@
 #ifndef OPENKALMAN_FILTERS_HPP
 #define OPENKALMAN_FILTERS_HPP
 
+#include "transforms/transforms.hpp"
+
 #include "KalmanFilter.hpp"
 
 #endif //OPENKALMAN_FILTERS_HPP
