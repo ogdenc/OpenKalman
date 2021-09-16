@@ -1,10 +1,10 @@
 var _mean_8hpp =
 [
-    [ "Mean", "struct_open_kalman_1_1_mean.html", "struct_open_kalman_1_1_mean" ],
-    [ "make_mean", "_mean_8hpp.html#a258fd14762cd857444878183fc128c73", null ],
-    [ "make_mean", "_mean_8hpp.html#a6abae6f929b546e22c34d58a1595303f", null ],
-    [ "make_mean", "_mean_8hpp.html#a342c91bcf1ffd94505e1c4336f95d43e", null ],
-    [ "make_mean", "_mean_8hpp.html#ad74553d9027b3d93c5020f13c0570a8b", null ],
-    [ "make_mean", "_mean_8hpp.html#ab6cb56942738ea287feeb456de8a1ee8", null ],
-    [ "Mean", "_mean_8hpp.html#a2e030ef4687cfaa89224d20c5a43ee9b", null ]
+    [ "OpenKalman::Mean< RowCoefficients, NestedMatrix >", "struct_open_kalman_1_1_mean.html", "struct_open_kalman_1_1_mean" ],
+    [ "make_mean", "_mean_8hpp.html#a5de0ddeb24315904aa815a9623fc330a", null ],
+    [ "make_mean", "_mean_8hpp.html#a5b34fbabbe7b5ab3293412cf4bd24d80", null ],
+    [ "make_mean", "_mean_8hpp.html#a0a11f7aaf595e03cb35b488b7f35dbdb", null ],
+    [ "make_mean", "_mean_8hpp.html#adc24dc64d0f4e56507bdee0824304c10", null ],
+    [ "make_mean", "_mean_8hpp.html#aff521c105d41cefd1f2fa0aa37a9f4c2", null ],
+    [ "Mean", "_mean_8hpp.html#a1264ba9b7b7e5b4c6dbdfe9ef0e7bafd", null ]
 ];

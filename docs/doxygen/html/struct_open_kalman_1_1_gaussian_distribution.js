@@ -1,25 +1,12 @@
 var struct_open_kalman_1_1_gaussian_distribution =
 [
+    [ "__pad0__", "struct_open_kalman_1_1_gaussian_distribution.html#a4015f45eec008bcaab8ce511e7f86673", null ],
     [ "mu", "struct_open_kalman_1_1_gaussian_distribution.html#a7a76400dfec28069879578eebec3cd10", null ],
     [ "sigma", "struct_open_kalman_1_1_gaussian_distribution.html#a01a5e7ef2272c66f6ec9d2539fddff1e", null ],
-    [ "GaussianDistribution", "struct_open_kalman_1_1_gaussian_distribution.html#a96b38f359394fafa2b3a1a7adca645ad", null ],
-    [ "GaussianDistribution", "struct_open_kalman_1_1_gaussian_distribution.html#a5af26c3d1e71ef1ad25dd951cbeedb54", null ],
-    [ "GaussianDistribution", "struct_open_kalman_1_1_gaussian_distribution.html#abf1c08692d95955c27e5adb272278ee3", null ],
+    [ "GaussianDistribution", "struct_open_kalman_1_1_gaussian_distribution.html#a48b1fcfb9dd235c1bec5183b62c0cabf", null ],
     [ "GaussianDistribution", "struct_open_kalman_1_1_gaussian_distribution.html#ab67886e2794c7bc988b2ab649fe34c61", null ],
-    [ "GaussianDistribution", "struct_open_kalman_1_1_gaussian_distribution.html#a4831d6bdd3de5825137d41597f406b61", null ],
-    [ "GaussianDistribution", "struct_open_kalman_1_1_gaussian_distribution.html#a4831d6bdd3de5825137d41597f406b61", null ],
-    [ "GaussianDistribution", "struct_open_kalman_1_1_gaussian_distribution.html#a9f99c9f6af44b7ae39eab91fd5f1c8f3", null ],
-    [ "GaussianDistribution", "struct_open_kalman_1_1_gaussian_distribution.html#a9f99c9f6af44b7ae39eab91fd5f1c8f3", null ],
-    [ "GaussianDistribution", "struct_open_kalman_1_1_gaussian_distribution.html#a1be53d02c822e03320c6715afe4b13c4", null ],
-    [ "GaussianDistribution", "struct_open_kalman_1_1_gaussian_distribution.html#a1be53d02c822e03320c6715afe4b13c4", null ],
-    [ "GaussianDistribution", "struct_open_kalman_1_1_gaussian_distribution.html#a1be53d02c822e03320c6715afe4b13c4", null ],
-    [ "GaussianDistribution", "struct_open_kalman_1_1_gaussian_distribution.html#a1be53d02c822e03320c6715afe4b13c4", null ],
-    [ "GaussianDistribution", "struct_open_kalman_1_1_gaussian_distribution.html#a1f79c67e3b9bfcc18f8190b675efdcda", null ],
-    [ "GaussianDistribution", "struct_open_kalman_1_1_gaussian_distribution.html#a1f79c67e3b9bfcc18f8190b675efdcda", null ],
+    [ "GaussianDistribution", "struct_open_kalman_1_1_gaussian_distribution.html#ae289bcb394f9fcbae539b1a2fa7c813d", null ],
     [ "entropy", "struct_open_kalman_1_1_gaussian_distribution.html#ac6151c1e8ee4aad9fd257a3efe3874ad", null ],
-    [ "log_likelihood", "struct_open_kalman_1_1_gaussian_distribution.html#a5130e90b1884e22c4705efab2f43d0c8", null ],
-    [ "operator()", "struct_open_kalman_1_1_gaussian_distribution.html#a2bc1d89f435ce5c9e2c6a6b00381cd71", null ],
-    [ "operator=", "struct_open_kalman_1_1_gaussian_distribution.html#aef7da640f92ca5179e8d10c7dfc31226", null ],
-    [ "operator=", "struct_open_kalman_1_1_gaussian_distribution.html#a067c59843ec2df29926c7dc955d9d241", null ],
-    [ "operator=", "struct_open_kalman_1_1_gaussian_distribution.html#a059b119ce7ddfc0fd5b2dfc075ceb672", null ]
+    [ "log_likelihood", "struct_open_kalman_1_1_gaussian_distribution.html#ae9c1c63362929874553e6d2f5c8e6376", null ],
+    [ "operator()", "struct_open_kalman_1_1_gaussian_distribution.html#a2bc1d89f435ce5c9e2c6a6b00381cd71", null ]
 ];

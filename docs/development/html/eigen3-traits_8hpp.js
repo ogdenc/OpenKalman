@@ -1,5 +1,0 @@
-var eigen3_traits_8hpp =
-[
-    [ "is_covariance_nestable< T, std::enable_if_t< Eigen3::eigen_constant_expr< T > or Eigen3::eigen_zero_expr< T > or Eigen3::eigen_diagonal_expr< T > or Eigen3::eigen_self_adjoint_expr< T > or Eigen3::eigen_triangular_expr< T > or(Eigen3::eigen_native< T > and(triangular_matrix< T > or self_adjoint_matrix< T >))> >", "struct_open_kalman_1_1internal_1_1is__covariance__nestable_3_01_t_00_01std_1_1enable__if__t_3_01c47377a228ad51eac5b416a1811fda2e.html", null ],
-    [ "is_typed_matrix_nestable< T, std::enable_if_t< Eigen3::eigen_matrix< T > or Eigen3::eigen_diagonal_expr< T > or Eigen3::eigen_self_adjoint_expr< T > or Eigen3::eigen_triangular_expr< T > or Eigen3::to_euclidean_expr< T > or Eigen3::from_euclidean_expr< T > > >", "struct_open_kalman_1_1internal_1_1is__typed__matrix__nestable_3_01_t_00_01std_1_1enable__if__t_35f48abdcd7dea897d2587a0f9fafd9b8.html", null ]
-];

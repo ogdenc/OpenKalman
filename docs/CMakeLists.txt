@@ -31,17 +31,19 @@ if (DOXYGEN_FOUND)
     set(DOXYGEN_HTML_TIMESTAMP YES)
     set(DOXYGEN_GENERATE_TREEVIEW YES)
     set(DOXYGEN_GENERATE_LATEX NO)
-    #set(DOXYGEN_PREDEFINED "__cpp_concepts=201907L __cpp_nontype_template_args=201911L")
+    set(DOXYGEN_PREDEFINED "__cpp_concepts=201907L __cpp_nontype_template_args=201911L __clang__")
 
     set(DOXYGEN_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/doxygen)
     set(DOXYGEN_INTERNAL_DOCS NO)
-    doxygen_add_docs(generate_doxygen ../OpenKalman ALL COMMENT "Generating API documentation")
+
+    doxygen_add_docs(generate_doxygen ../OpenKalman COMMENT "Generating API documentation")
 
     set(DOXYGEN_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/development)
     set(DOXYGEN_INTERNAL_DOCS YES)
-    doxygen_add_docs(generate_doxygen_dev ../OpenKalman ALL COMMENT "Generating API documentation for developers")
 
-else (DOXYGEN_FOUND)
+    doxygen_add_docs(generate_doxygen_dev ../OpenKalman COMMENT "Generating API documentation for developers")
+
+else()
     message("Doxygen must be installed to generate the Doxygen documentation.")
 
-endif (DOXYGEN_FOUND)
+endif()

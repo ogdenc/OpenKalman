@@ -55,7 +55,7 @@ namespace OpenKalman::Eigen3
 
   /**
    * \brief Take the Cholesky square of a diagonal native Eigen matrix.
-   * \param d A native Eigen diagonal matrix.
+   * \tparam D A native Eigen diagonal matrix.
    * \return dd<sup>T</sup>
    */
 #ifdef __cpp_concepts
@@ -84,7 +84,7 @@ namespace OpenKalman::Eigen3
 
   /**
    * \brief Take the Cholesky factor of a diagonal native Eigen matrix.
-   * \param d A native Eigen diagonal matrix.
+   * \tparam D A native Eigen diagonal matrix.
    * \return e, where ee<sup>T</sup> = d.
    */
 #ifdef __cpp_concepts
@@ -408,8 +408,8 @@ namespace OpenKalman::Eigen3
 
   /**
    * \brief Take the Cholesky factor of a diagonal Eigen::TriangularMatrix.
-   * \param a A diagonal Eigen::TriangularMatrix.
-   * \return A diagonal matrix d, where dd<sup>T</sup> = a.
+   * \param t A diagonal Eigen::TriangularMatrix.
+   * \return A diagonal matrix d, where dd<sup>T</sup> = t.
    */
 #ifdef __cpp_concepts
   template<TriangleType = TriangleType::diagonal, eigen_triangular_expr T> requires diagonal_matrix<T>

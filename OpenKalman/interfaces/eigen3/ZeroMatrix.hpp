@@ -337,7 +337,7 @@ namespace OpenKalman::Eigen3
    * \tparam Scalar The scalar type.
    * \tparam rows The number of rows (or 0 if the rows are dynamic).
    * \tparam columns The number of columns (or 0 if the columns are dynamic).
-   * \param arg Row or column (or both) arguments (in that order if both are given) necessary to define any
+   * \tparam Args Row or column (or both) arguments (in that order if both are given) necessary to define any
    * dynamic dimensions. Unnecessary parameters are discarded.
    * \return A ZeroMatrix<Scalar, rows, columns>.
    */
