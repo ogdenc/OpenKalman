@@ -513,7 +513,7 @@ namespace OpenKalman::Eigen3
       using Scalar = typename MatrixTraits<Arg>::Scalar;
       constexpr std::size_t r = MatrixTraits<Arg>::rows;
       constexpr std::size_t c = MatrixTraits<Arg>::columns;
-      return Eigen::Matrix<Scalar, r, c>::Constant(MatrixTraits<Arg>::constant * scale);
+      return Eigen3::eigen_matrix_t<Scalar, r, c>::Constant(MatrixTraits<Arg>::constant * scale);
     }
   }
 
@@ -540,7 +540,7 @@ namespace OpenKalman::Eigen3
       using Scalar = typename MatrixTraits<Arg>::Scalar;
       constexpr std::size_t r = MatrixTraits<Arg>::rows;
       constexpr std::size_t c = MatrixTraits<Arg>::columns;
-      return Eigen::Matrix<Scalar, r, c>::Constant(scale * MatrixTraits<Arg>::constant);
+      return Eigen3::eigen_matrix_t<Scalar, r, c>::Constant(scale * MatrixTraits<Arg>::constant);
     }
   }
 
@@ -624,7 +624,7 @@ namespace OpenKalman::Eigen3
       using Scalar = typename MatrixTraits<Arg>::Scalar;
       constexpr std::size_t r = MatrixTraits<Arg>::rows;
       constexpr std::size_t c = MatrixTraits<Arg>::columns;
-      return Eigen::Matrix<Scalar, r, c>::Constant(MatrixTraits<Arg>::constant / s);
+      return Eigen3::eigen_matrix_t<Scalar, r, c>::Constant(MatrixTraits<Arg>::constant / s);
     }
   }
 

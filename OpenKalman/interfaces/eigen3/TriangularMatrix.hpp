@@ -472,7 +472,7 @@ namespace OpenKalman::Eigen3
     (std::is_arithmetic_v<std::decay_t<Arg>> and ... and std::is_arithmetic_v<std::decay_t<Args>>), int> = 0>
 #endif
   TriangularMatrix(Arg, Args ...) -> TriangularMatrix<
-    Eigen::Matrix<
+    Eigen3::eigen_matrix_t<
       std::common_type_t<std::decay_t<Arg>, std::decay_t<Args>...>,
       OpenKalman::internal::constexpr_sqrt(1 + sizeof...(Args)),
       OpenKalman::internal::constexpr_sqrt(1 + sizeof...(Args))>,

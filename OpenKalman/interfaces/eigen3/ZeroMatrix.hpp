@@ -377,14 +377,10 @@ namespace OpenKalman
 
     using Matrix = Eigen3::ZeroMatrix<Scalar, rows, columns>;
 
-    template<typename S, std::size_t r, std::size_t c>
-    using Nat =
-    Eigen::Matrix<S, r == 0 ? Eigen::Dynamic : (Eigen::Index) r, c == 0 ? Eigen::Dynamic : (Eigen::Index) c>;
-
   public:
 
     template<std::size_t r = rows, std::size_t c = columns, typename S = Scalar>
-    using NativeMatrixFrom = Nat<S, r, c>;
+    using NativeMatrixFrom = Eigen3::eigen_matrix_t<S, r, c>;
 
 
     using SelfContainedFrom = Matrix;
@@ -399,7 +395,7 @@ namespace OpenKalman
 
 
     template<std::size_t dim = rows, typename S = Scalar>
-    using DiagonalMatrixFrom = Eigen3::DiagonalMatrix<Nat<S, dim, 1>>;
+    using DiagonalMatrixFrom = Eigen3::DiagonalMatrix<Eigen3::eigen_matrix_t<S, dim, 1>>;
 
 
     template<typename Derived>
@@ -427,7 +423,8 @@ namespace OpenKalman
 #endif
     static auto identity(const Args...args)
     {
-      return Nat<Scalar, rows, rows>::Identity(static_cast<Eigen::Index>(args)..., static_cast<Eigen::Index>(args)...);
+      return Eigen3::eigen_matrix_t<Scalar, rows, rows>::Identity(
+        static_cast<Eigen::Index>(args)..., static_cast<Eigen::Index>(args)...);
     }
 
 

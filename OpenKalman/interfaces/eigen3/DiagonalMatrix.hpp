@@ -396,7 +396,7 @@ namespace OpenKalman::Eigen3
     (std::is_arithmetic_v<std::decay_t<Arg>> and ... and std::is_arithmetic_v<std::decay_t<Args>>), int> = 0>
 #endif
     DiagonalMatrix(Arg&&, Args&& ...) -> DiagonalMatrix<
-      Eigen::Matrix<std::common_type_t<std::decay_t<Arg>, std::decay_t<Args>...>, 1 + sizeof...(Args), 1>>;
+      Eigen3::eigen_matrix_t<std::common_type_t<std::decay_t<Arg>, std::decay_t<Args>...>, 1 + sizeof...(Args), 1>>;
 
 } // OpenKalman::Eigen3
 

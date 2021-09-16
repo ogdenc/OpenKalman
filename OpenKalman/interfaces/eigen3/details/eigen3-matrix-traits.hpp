@@ -21,7 +21,7 @@
 namespace OpenKalman
 {
 
-  /*
+  /**
    * \internal
    * \brief Default matrix traits for any \ref eigen_native.
    * \tparam M The matrix.
@@ -106,14 +106,14 @@ namespace OpenKalman
     }
 
 
-    // Make matrix of size M from a list of coefficients in row-major order. Fixed matrix.
+    /// Make matrix of size M from a list of coefficients in row-major order. Fixed matrix.
 #ifdef __cpp_concepts
     template<std::convertible_to<Scalar> Arg, std::convertible_to<Scalar> ... Args> requires
-      (1 + sizeof...(Args) == rows * columns) and (not dynamic_rows<M>) and (not dynamic_columns<M>)
+      (not dynamic_rows<M>) and (not dynamic_columns<M>) and (1 + sizeof...(Args) == rows * columns)
 #else
     template<typename Arg, typename ... Args,
       std::enable_if_t<std::conjunction_v<std::is_convertible<Arg, Scalar>, std::is_convertible<Args, Scalar>...> and
-      (1 + sizeof...(Args) == rows * columns) and (not dynamic_rows<M>) and (not dynamic_columns<M>), int> = 0>
+      (not dynamic_rows<M>) and (not dynamic_columns<M>) and (1 + sizeof...(Args) == rows * columns), int> = 0>
 #endif
     static auto make(const Arg arg, const Args ... args)
     {
@@ -121,10 +121,44 @@ namespace OpenKalman
     }
 
 
+    /// Make matrix with the same number of rows as M from a list of coefficients in row-major order. Fixed rows and dynamic columns.
+#ifdef __cpp_concepts
+    template<std::convertible_to<Scalar> Arg, std::convertible_to<Scalar> ... Args> requires
+    (not dynamic_rows<M>) and (dynamic_columns<M>) and ((1 + sizeof...(Args)) % rows == 0)
+#else
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdiv-by-zero"
+    template<typename Arg, typename ... Args,
+      std::enable_if_t<std::conjunction_v<std::is_convertible<Arg, Scalar>, std::is_convertible<Args, Scalar>...> and
+      (not dynamic_rows<M>) and (dynamic_columns<M>) and ((1 + sizeof...(Args)) % rows == 0), int> = 0>
+// See below for pragma pop...
+#endif
+    static auto make(const Arg arg, const Args ... args)
+    {
+      return ((Nat<Scalar, rows, columns> {rows, (1 + sizeof...(Args)) / rows} << arg), ... , args).finished();
+    }
+
+
+    /// Make matrix with the same number of columns as M from a list of coefficients in row-major order. Dynamic rows and fixed columns.
+#ifdef __cpp_concepts
+    template<std::convertible_to<Scalar> Arg, std::convertible_to<Scalar> ... Args> requires
+      (dynamic_rows<M>) and (not dynamic_columns<M>) and ((1 + sizeof...(Args)) % columns == 0)
+#else
+    template<typename Arg, typename ... Args,
+      std::enable_if_t<std::conjunction_v<std::is_convertible<Arg, Scalar>, std::is_convertible<Args, Scalar>...> and
+      (dynamic_rows<M>) and (not dynamic_columns<M>) and ((1 + sizeof...(Args)) % columns == 0), int> = 0>
+#endif
+    static auto make(const Arg arg, const Args ... args)
+    {
+      return ((Nat<Scalar, rows, columns> {(1 + sizeof...(Args)) / columns, columns} << arg), ... , args).finished();
+    }
+
+
 #ifdef __cpp_concepts
     template<std::convertible_to<std::size_t> ... Args> requires
       (sizeof...(Args) == (rows == 0 ? 1 : 0) + (columns == 0 ? 1 : 0))
 #else
+#pragma GCC diagnostic pop
     template<typename...Args, std::enable_if_t<(std::is_convertible_v<Args, std::size_t> and ...) and
       (sizeof...(Args) == (rows == 0 ? 1 : 0) + (columns == 0 ? 1 : 0)), int> = 0>
 #endif
@@ -148,7 +182,7 @@ namespace OpenKalman
   };
 
 
-  /*
+  /**
    * \internal
    * \brief Matrix traits for Eigen::SelfAdjointView.
    */
@@ -186,7 +220,7 @@ namespace OpenKalman
   };
 
 
-  /*
+  /**
    * \internal
    * \brief Matrix traits for Eigen::TriangularView.
    */

@@ -49,7 +49,7 @@ namespace OpenKalman::Eigen3
     struct Eigen3Base;
 
 
-    /*
+    /**
      * \internal
      * \brief Base for matrix classes in OpenKalman.
      * \details This specializes the comma initializer for OpenKalman classes, and redefines the Zero and Identity
@@ -368,6 +368,21 @@ namespace OpenKalman::Eigen3
 #endif
 
 
+  // ---------------- //
+  //  eigen_matrix_t  //
+  // ---------------- //
+
+  /**
+   * \brief An alias for a self-contained, writable, native Eigen matrix.
+   * \tparam Scalar Scalar type of the matrix (defaults to the Scalar type of T).
+   * \tparam rows Number of rows in the native matrix (0 if not fixed at compile time).
+   * \tparam cols Number of columns in the native matrix (0 if not fixed at compile time).
+   */
+  template<typename Scalar, std::size_t rows, std::size_t columns = 1>
+  using eigen_matrix_t = Eigen::Matrix<Scalar, rows == 0 ? Eigen::Dynamic : (Eigen::Index) rows,
+    columns == 0 ? Eigen::Dynamic : (Eigen::Index) columns>;
+
+
   // ------------------------------------ //
   //  ToEuclideanExpr, to_euclidean_expr  //
   // ------------------------------------ //
@@ -379,10 +394,10 @@ namespace OpenKalman::Eigen3
    * \tparam NestedMatrix The pre-transformed column vector, or set of column vectors in the form of a matrix.
    */
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, typename NestedMatrix = Eigen::Matrix<double, Coefficients::dimensions, 1>>
+  template<coefficients Coefficients, typename NestedMatrix = eigen_matrix_t<double, Coefficients::dimensions, 1>>
     requires eigen_matrix<NestedMatrix> or eigen_diagonal_expr<NestedMatrix>
 #else
-  template<typename Coefficients, typename NestedMatrix = Eigen::Matrix<double, Coefficients::dimensions, 1>>
+  template<typename Coefficients, typename NestedMatrix = Eigen3::eigen_matrix_t<double, Coefficients::dimensions, 1>>
 #endif
   struct ToEuclideanExpr;
 
@@ -420,10 +435,11 @@ namespace OpenKalman::Eigen3
    */
 #ifdef __cpp_concepts
   template<coefficients Coefficients,
-    typename NestedMatrix = Eigen::Matrix<double, Coefficients::euclidean_dimensions, 1>> requires
+    typename NestedMatrix = eigen_matrix_t<double, Coefficients::euclidean_dimensions, 1>> requires
      eigen_matrix<NestedMatrix> or to_euclidean_expr<NestedMatrix> or eigen_diagonal_expr<NestedMatrix>
 #else
-  template<typename Coefficients, typename NestedMatrix = Eigen::Matrix<double, Coefficients::euclidean_dimensions, 1>>
+  template<typename Coefficients,
+    typename NestedMatrix = Eigen3::eigen_matrix_t<double, Coefficients::euclidean_dimensions, 1>>
 #endif
   struct FromEuclideanExpr;
 
@@ -458,21 +474,6 @@ namespace OpenKalman::Eigen3
 #else
   inline constexpr bool euclidean_expr = from_euclidean_expr<T> or to_euclidean_expr<T>;
 #endif
-
-
-  // ---------------- //
-  //  eigen_matrix_t  //
-  // ---------------- //
-
-  /**
-   * \brief An alias for a self-contained, writable, native Eigen matrix.
-   * \tparam Scalar Scalar type of the matrix (defaults to the Scalar type of T).
-   * \tparam rows Number of rows in the native matrix (0 if not fixed at compile time).
-   * \tparam cols Number of columns in the native matrix (0 if not fixed at compile time).
-   */
-  template<typename Scalar, std::size_t rows, std::size_t columns = 1>
-  using eigen_matrix_t = Eigen::Matrix<Scalar, rows == 0 ? Eigen::Dynamic : (Eigen::Index) rows,
-    columns == 0 ? Eigen::Dynamic : (Eigen::Index) columns>;
 
 
 } // namespace OpenKalman::Eigen3

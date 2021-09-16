@@ -28,11 +28,17 @@ namespace OpenKalman
     /// The scalar type of the coefficients
     using Scalar = Scalar_;
 
+    /// The number of dimensions at compile time (0 because it is dynamic).
+    static constexpr std::size_t dimensions = 0;
+
+    /// The number of coordinates in Euclidean space at compile time (0 because it is dynamic).
+    static constexpr std::size_t euclidean_dimensions = 0;
+
     /// The number of dimensions at runtime.
-    const std::size_t dimensions;
+    const std::size_t runtime_dimensions;
 
     /// The number of coordinates in Euclidean space at runtime.
-    const std::size_t euclidean_dimensions;
+    const std::size_t runtime_euclidean_dimensions;
 
     /// May consist of coefficients other than Axis.
     static constexpr bool axes_only = false;
@@ -48,7 +54,7 @@ namespace OpenKalman
 
   private:
 
-    /*
+    /**
      * \internal
      * \brief A function taking a row index and returning a corresponding matrix element.
      * \details A separate function will be constructed for each column in the matrix.
@@ -56,14 +62,14 @@ namespace OpenKalman
     using GetCoeff = std::function<Scalar(const std::size_t)>;
 
 
-    /*
+    /**
      * \internal
      * \brief A function that sets a matrix element corresponding to a row index to a scalar value.
      * \details A separate function will be constructed for each column in the matrix.
      */
     using SetCoeff = std::function<void(const std::size_t, const Scalar)>;
 
-    /*
+    /**
      * \internal
      * \brief Get a coordinate in Euclidean space corresponding to a coefficient in a matrix with typed coefficients.
      * \param row The applicable row of the transformed matrix.
@@ -74,7 +80,7 @@ namespace OpenKalman
     std::function<Scalar(const std::size_t row, const GetCoeff& get_coeff)> to_euclidean_coeff;
 
 
-    /*
+    /**
      * \internal
      * \brief Get a typed coefficient corresponding to its corresponding coordinate in Euclidean space.
      * \param row The applicable row of the transformed matrix.
@@ -85,7 +91,7 @@ namespace OpenKalman
     std::function<Scalar(const std::size_t row, const GetCoeff& get_coeff)> from_euclidean_coeff;
 
 
-    /*
+    /**
      * \internal
      * \brief Wrap a given coefficient and return its wrapped, scalar value.
      * \param row The applicable row of the matrix.
@@ -97,7 +103,7 @@ namespace OpenKalman
     std::function<Scalar(const std::size_t row, const GetCoeff& get_coeff)> wrap_get;
 
 
-    /*
+    /**
      * \internal
      * \brief Set the scalar value of a given typed coefficient in a matrix, and wrap the matrix column.
      * \param row The applicable row of the matrix.
@@ -156,15 +162,15 @@ namespace OpenKalman
     template<typename C, std::enable_if_t<fixed_coefficients<C>, int> = 0>
 #endif
     DynamicCoefficients(C&&) :
-      dimensions {C::dimensions},
-      euclidean_dimensions {C::euclidean_dimensions},
+      runtime_dimensions {C::dimensions},
+      runtime_euclidean_dimensions {C::euclidean_dimensions},
       id {typeid(typename reduce_coeffs<C>::type)},
       to_euclidean_coeff {[] (const std::size_t row, const GetCoeff& get_coeff) {
         return C::template to_euclidean_array<Scalar, 0>[row](get_coeff);
       }},
       from_euclidean_coeff {[] (const std::size_t row, const GetCoeff& get_coeff) {
           return C::template from_euclidean_array<Scalar, 0>[row](get_coeff);
-        }},
+      }},
       wrap_get {[] (const std::size_t row, const GetCoeff& get_coeff) {
         return C::template wrap_array_get<Scalar, 0>[row](get_coeff);
       }},

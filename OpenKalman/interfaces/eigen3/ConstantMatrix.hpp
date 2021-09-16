@@ -169,7 +169,7 @@ namespace OpenKalman
 #endif
     static constexpr auto identity(const Args...args)
     {
-      return Eigen::Matrix<Scalar, rows, rows>::Identity(
+      return Eigen3::eigen_matrix_t<Scalar, rows, rows>::Identity(
         static_cast<Eigen::Index>(args)..., static_cast<Eigen::Index>(args)...);
     }
 

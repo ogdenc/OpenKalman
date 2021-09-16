@@ -29,16 +29,22 @@ namespace OpenKalman::Eigen3
    */
 #ifdef __cpp_concepts
   template<typename Scalar, std::size_t rows, std::size_t columns = 1, std::convertible_to<Scalar> ... Args>
-    requires std::is_arithmetic_v<Scalar> and (sizeof...(Args) == rows * columns)
+    requires std::is_arithmetic_v<Scalar> and
+      ((rows != 0 and columns != 0 and sizeof...(Args) == rows * columns) or
+        (columns == 0 and sizeof...(Args) % rows == 0) or (rows == 0 and sizeof...(Args) % columns == 0))
 #else
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdiv-by-zero"
   template<typename Scalar, std::size_t rows, std::size_t columns = 1, typename ... Args, std::enable_if_t<
     std::is_arithmetic_v<Scalar> and (std::is_convertible_v<Args, Scalar> and ...) and
-    (sizeof...(Args) == rows * columns), int> = 0>
+    ((rows != 0 and columns != 0 and sizeof...(Args) == rows * columns) or
+      (columns == 0 and sizeof...(Args) % rows == 0) or (rows == 0 and sizeof...(Args) % columns == 0)), int> = 0>
+// See below for pragma pop...
 #endif
   inline auto
   make_native_matrix(const Args ... args)
   {
-    using M = Eigen::Matrix<Scalar, rows, columns>;
+    using M = Eigen3::eigen_matrix_t<Scalar, rows, columns>;
     return MatrixTraits<M>::make(static_cast<const Scalar>(args)...);
   }
 
@@ -49,10 +55,12 @@ namespace OpenKalman::Eigen3
    */
 #ifdef __cpp_concepts
   template<std::size_t rows, std::size_t columns = 1, typename ... Args> requires
-    (std::is_arithmetic_v<Args> and ...) and (sizeof...(Args) == rows * columns)
+    (std::is_arithmetic_v<Args> and ...) and ((rows != 0 and columns != 0 and sizeof...(Args) == rows * columns) or
+  (columns == 0 and sizeof...(Args) % rows == 0) or (rows == 0 and sizeof...(Args) % columns == 0))
 #else
   template<std::size_t rows, std::size_t columns = 1, typename ... Args, std::enable_if_t<
-    (std::is_arithmetic_v<Args> and ...) and (sizeof...(Args) == rows * columns), int> = 0>
+    (std::is_arithmetic_v<Args> and ...) and ((rows != 0 and columns != 0 and sizeof...(Args) == rows * columns) or
+        (columns == 0 and sizeof...(Args) % rows == 0) or (rows == 0 and sizeof...(Args) % columns == 0)), int> = 0>
 #endif
   inline auto
   make_native_matrix(const Args ... args)
@@ -66,6 +74,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<typename ... Args> requires(std::is_arithmetic_v<Args> and ...)
 #else
+#pragma GCC diagnostic pop
   template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
 #endif
   inline auto
@@ -465,13 +474,13 @@ namespace OpenKalman::Eigen3
     {
       using Scalar = typename MatrixTraits<A>::Scalar;
       constexpr auto dim = MatrixTraits<A>::rows, col = MatrixTraits<A>::columns;
-      using MatrixType = Eigen::Matrix<Scalar, col, dim>;
-      using ResultType = Eigen::Matrix<Scalar, dim, dim>;
+      using MatrixType = Eigen3::eigen_matrix_t<Scalar, col, dim>;
+      using ResultType = Eigen3::eigen_matrix_t<Scalar, dim, dim>;
       Eigen::HouseholderQR<MatrixType> QR(adjoint(std::forward<A>(a)));
       ResultType ret;
       if constexpr(col < dim)
       {
-        ret << adjoint(QR.matrixQR().template topRows<col>()), Eigen::Matrix<Scalar, dim, dim - col>::Zero();
+        ret << adjoint(QR.matrixQR().template topRows<col>()), Eigen3::eigen_matrix_t<Scalar, dim, dim - col>::Zero();
       }
       else
       {
@@ -503,13 +512,13 @@ namespace OpenKalman::Eigen3
     {
       using Scalar = typename MatrixTraits<A>::Scalar;
       constexpr auto dim = MatrixTraits<A>::rows, col = MatrixTraits<A>::columns;
-      using MatrixType = Eigen::Matrix<Scalar, dim, col>;
-      using ResultType = Eigen::Matrix<Scalar, col, col>;
+      using MatrixType = Eigen3::eigen_matrix_t<Scalar, dim, col>;
+      using ResultType = Eigen3::eigen_matrix_t<Scalar, col, col>;
       Eigen::HouseholderQR<MatrixType> QR(std::forward<A>(a));
       ResultType ret;
       if constexpr(dim < col)
       {
-        ret << QR.matrixQR().template topRows<dim>(), Eigen::Matrix<Scalar, col - dim, col>::Zero();
+        ret << QR.matrixQR().template topRows<dim>(), Eigen3::eigen_matrix_t<Scalar, col - dim, col>::Zero();
       }
       else
       {
@@ -546,7 +555,7 @@ namespace OpenKalman::Eigen3
     {
       constexpr auto rows = (MatrixTraits<V>::rows + ... + MatrixTraits<Vs>::rows);
       constexpr auto cols = MatrixTraits<V>::columns;
-      Eigen::Matrix<typename MatrixTraits<V>::Scalar, rows, cols> m;
+      Eigen3::eigen_matrix_t<typename MatrixTraits<V>::Scalar, rows, cols> m;
       ((m << std::forward<V>(v)), ..., std::forward<Vs>(vs));
       return m;
     }
@@ -582,7 +591,7 @@ namespace OpenKalman::Eigen3
     {
       constexpr auto rows = MatrixTraits<V>::rows;
       constexpr auto cols = (MatrixTraits<V>::columns + ... + MatrixTraits<Vs>::columns);
-      Eigen::Matrix<typename MatrixTraits<V>::Scalar, rows, cols> m;
+      Eigen3::eigen_matrix_t<typename MatrixTraits<V>::Scalar, rows, cols> m;
       ((m << std::forward<V>(v)), ..., std::forward<Vs>(vs));
       return m;
     }
@@ -607,7 +616,7 @@ namespace OpenKalman::Eigen3
         constexpr auto row_size = MatrixTraits<decltype(std::get<row>(vs))>::rows;
         constexpr auto col_size = MatrixTraits<decltype(std::get<col>(vs))>::columns;
         if constexpr (row == col) return std::get<row>(vs);
-        else return Eigen::Matrix<typename M::Scalar, row_size, col_size>::Zero();
+        else return Eigen3::eigen_matrix_t<typename M::Scalar, row_size, col_size>::Zero();
       }());
     }
   }
@@ -640,7 +649,7 @@ namespace OpenKalman::Eigen3
     {
       constexpr auto rows = (MatrixTraits<V>::rows + ... + MatrixTraits<Vs>::rows);
       constexpr auto cols = (MatrixTraits<V>::columns + ... + MatrixTraits<Vs>::columns);
-      Eigen::Matrix<typename MatrixTraits<V>::Scalar, rows, cols> m;
+      Eigen3::eigen_matrix_t<typename MatrixTraits<V>::Scalar, rows, cols> m;
       detail::concatenate_diagonal_impl(m, std::forward_as_tuple(v, vs...),
         std::make_index_sequence<(sizeof...(vs) + 1) * (sizeof...(vs) + 1) - 1> {});
       return m;

@@ -16,6 +16,9 @@ using namespace OpenKalman::test;
 
 using Mat2 = eigen_matrix_t<double, 2, 2>;
 using Mat3 = eigen_matrix_t<double, 3, 3>;
+using Mat00 = eigen_matrix_t<double, 0, 0>;
+using Mat20 = eigen_matrix_t<double, 2, 0>;
+using Mat02 = eigen_matrix_t<double, 0, 2>;
 using Axis2 = Coefficients<Axis, Axis>;
 
 TEST(eigen3, Eigen_Matrix_class_traits)
@@ -86,6 +89,47 @@ TEST(eigen3, Eigen_Matrix_class_traits)
   auto cm4 = eigen_matrix_t<double, 1, 0> {4};
   static_assert(row_count(cm4) == 1);
   EXPECT_EQ(column_count(cm4), 4);
+}
+
+
+TEST(eigen3, Eigen_Matrix_construction)
+{
+  Mat2 m22; m22 << 1, 2, 3, 4;
+  Mat20 m20_1 {2,1}; m20_1 << 1, 2;
+  Mat20 m20_2 {2,2}; m20_2 << 1, 2, 3, 4;
+  Mat20 m20_3 {2,3}; m20_3 << 1, 2, 3, 4, 5, 6;
+  Mat02 m02_1 {1,2}; m02_1 << 1, 2;
+  Mat02 m02_2 {2,2}; m02_2 << 1, 2, 3, 4;
+  Mat02 m02_3 {3,2}; m02_3 << 1, 2, 3, 4, 5, 6;
+
+  EXPECT_TRUE(is_near(MatrixTraits<Mat2>::make(1, 2, 3, 4), m22));
+  EXPECT_TRUE(is_near(MatrixTraits<Mat20>::make(1, 2), m20_1));
+  EXPECT_TRUE(is_near(MatrixTraits<Mat20>::make(1, 2, 3, 4), m20_2));
+  EXPECT_TRUE(is_near(MatrixTraits<Mat20>::make(1, 2, 3, 4, 5, 6), m20_3));
+  EXPECT_TRUE(is_near(MatrixTraits<Mat02>::make(1, 2), m02_1));
+  EXPECT_TRUE(is_near(MatrixTraits<Mat02>::make(1, 2, 3, 4), m02_2));
+  EXPECT_TRUE(is_near(MatrixTraits<Mat02>::make(1, 2, 3, 4, 5, 6), m02_3));
+
+  EXPECT_TRUE(is_near(make_native_matrix<double, 2, 2>(1, 2, 3, 4), m22));
+  EXPECT_TRUE(is_near(make_native_matrix<double, 2, 0>(1, 2), m20_1));
+  EXPECT_TRUE(is_near(make_native_matrix<double, 2, 0>(1, 2, 3, 4), m20_2));
+  EXPECT_TRUE(is_near(make_native_matrix<double, 2, 0>(1, 2, 3, 4, 5, 6), m20_3));
+  EXPECT_TRUE(is_near(make_native_matrix<double, 0, 2>(1, 2), m02_1));
+  EXPECT_TRUE(is_near(make_native_matrix<double, 0, 2>(1, 2, 3, 4), m02_2));
+  EXPECT_TRUE(is_near(make_native_matrix<double, 0, 2>(1, 2, 3, 4, 5, 6), m02_3));
+
+  EXPECT_TRUE(is_near(make_native_matrix<2, 2>(1., 2, 3, 4), m22));
+  EXPECT_TRUE(is_near(make_native_matrix<2, 0>(1., 2), m20_1));
+  EXPECT_TRUE(is_near(make_native_matrix<2, 0>(1., 2, 3, 4), m20_2));
+  EXPECT_TRUE(is_near(make_native_matrix<2, 0>(1., 2, 3, 4, 5, 6), m20_3));
+  EXPECT_TRUE(is_near(make_native_matrix<0, 2>(1., 2), m02_1));
+  EXPECT_TRUE(is_near(make_native_matrix<0, 2>(1., 2, 3, 4), m02_2));
+  EXPECT_TRUE(is_near(make_native_matrix<0, 2>(1., 2, 3, 4, 5, 6), m02_3));
+
+  EXPECT_TRUE(is_near(make_native_matrix(1., 2), (eigen_matrix_t<double, 2, 1> {} << 1, 2).finished()));
+  EXPECT_TRUE(is_near(make_native_matrix(1., 2, 3, 4), (eigen_matrix_t<double, 4, 1> {} << 1, 2, 3, 4).finished()));
+
+  EXPECT_TRUE(is_near(make_native_matrix(m22), m22));
 }
 
 

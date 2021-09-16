@@ -211,7 +211,7 @@ namespace OpenKalman::Eigen3
     using NestedMatrix = std::decay_t<nested_matrix_t<A>>;
     using Scalar = typename MatrixTraits<A>::Scalar;
     constexpr auto dimensions = MatrixTraits<A>::rows;
-    using M = Eigen::Matrix<Scalar, dimensions, dimensions>;
+    using M = Eigen3::eigen_matrix_t<Scalar, dimensions, dimensions>;
 
     if constexpr(identity_matrix<A> or zero_matrix<A>)
     {
@@ -264,19 +264,19 @@ namespace OpenKalman::Eigen3
       if constexpr(triangle_type == TriangleType::diagonal)
       {
         static_assert(diagonal_matrix<A>);
-        auto vec = Eigen::Matrix<Scalar, dimensions, 1>::Constant(std::sqrt(s));
+        auto vec = Eigen3::eigen_matrix_t<Scalar, dimensions, 1>::Constant(std::sqrt(s));
         return DiagonalMatrix<decltype(vec)> {vec};
       }
       else if constexpr(triangle_type == TriangleType::lower)
       {
-        auto col0 = Eigen::Matrix<Scalar, dimensions, 1>::Constant(std::sqrt(s));
+        auto col0 = Eigen3::eigen_matrix_t<Scalar, dimensions, 1>::Constant(std::sqrt(s));
         ZeroMatrix<Scalar, dimensions, dimensions - 1> othercols;
         return TriangularMatrix<M, triangle_type> {concatenate_horizontal(col0, othercols)};
       }
       else
       {
         static_assert(triangle_type == TriangleType::upper);
-        auto row0 = Eigen::Matrix<Scalar, 1, dimensions>::Constant(std::sqrt(s));
+        auto row0 = Eigen3::eigen_matrix_t<Scalar, 1, dimensions>::Constant(std::sqrt(s));
         ZeroMatrix<Scalar, dimensions - 1, dimensions> otherrows;
         return TriangularMatrix<M, triangle_type> {concatenate_vertical(row0, otherrows)};
       }

@@ -623,7 +623,7 @@ namespace OpenKalman::Eigen3
   rank_update(const Arg& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
   {
     auto b = std::sqrt(trace(arg) * trace(arg) + alpha * trace(u * adjoint(u)));
-    return Eigen::Matrix<typename MatrixTraits<Arg>::Scalar, 1, 1> {b};
+    return Eigen3::eigen_matrix_t<typename MatrixTraits<Arg>::Scalar, 1, 1> {b};
   }
 
 
@@ -895,7 +895,7 @@ namespace OpenKalman::Eigen3
     static_assert(std::is_same_v<Scalar, typename MatrixTraits<B>::Scalar>);
 
     auto v {std::forward<A>(a).view()};
-    using M = Eigen::Matrix<Scalar, MatrixTraits<A>::rows, MatrixTraits<B>::columns>;
+    using M = Eigen3::eigen_matrix_t<Scalar, MatrixTraits<A>::rows, MatrixTraits<B>::columns>;
     auto llt {v.llt()};
 
     M ret;
@@ -1045,7 +1045,7 @@ namespace OpenKalman::Eigen3
     constexpr auto constant = MatrixTraits<A>::constant;
     constexpr auto dim = MatrixTraits<A>::rows;
     Scalar elem = constant * OpenKalman::internal::constexpr_sqrt(Scalar {MatrixTraits<A>::columns});
-    auto col1 = Eigen::Matrix<Scalar, dim, 1>::Constant(elem);
+    auto col1 = Eigen3::eigen_matrix_t<Scalar, dim, 1>::Constant(elem);
     ConstantMatrix<Scalar, 0, dim, dim - 1> othercols;
     return concatenate_horizontal(col1, othercols);
   }
@@ -1111,7 +1111,7 @@ namespace OpenKalman::Eigen3
     constexpr auto constant = MatrixTraits<A>::constant;
     constexpr auto dim = MatrixTraits<A>::columns;
     Scalar elem = constant * OpenKalman::internal::constexpr_sqrt(Scalar {MatrixTraits<A>::rows});
-    auto row1 = Eigen::Matrix<Scalar, 1, dim>::Constant(elem);
+    auto row1 = Eigen3::eigen_matrix_t<Scalar, 1, dim>::Constant(elem);
     ConstantMatrix<Scalar, 0, dim - 1, dim> otherrows;
     return concatenate_vertical(row1, otherrows);
   }
