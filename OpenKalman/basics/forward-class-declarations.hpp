@@ -339,6 +339,63 @@ namespace OpenKalman
 #endif
 
 
+#ifndef __cpp_concepts
+  namespace detail
+  {
+    template<typename T, typename = void>
+    struct has_untyped_rows : std::false_type {};
+
+    template<typename T>
+    struct has_untyped_rows<T, std::enable_if_t<typed_matrix<T> and MatrixTraits<T>::RowCoefficients::axes_only>>
+      : std::true_type {};
+
+    template<typename T>
+    struct has_untyped_rows<T, std::enable_if_t<
+      (not typed_matrix<T>) and std::is_integral_v<decltype(MatrixTraits<T>::rows)>>>
+      : std::true_type {};
+  }
+#endif
+
+
+  /**
+   * \brief Specifies that T has untyped (or Axis typed) row coefficients.
+   * \details T must be either a native matrix or its rows must all have type Axis.
+   */
+#ifdef __cpp_concepts
+  template<typename T>
+  concept untyped_rows = (typed_matrix<T> and MatrixTraits<T>::RowCoefficients::axes_only) or
+    (not typed_matrix<T> and requires {MatrixTraits<T>::rows;});
+#else
+  template<typename T>
+  inline constexpr bool untyped_rows = detail::has_untyped_rows<std::decay_t<T>>::value;
+#endif
+
+
+#ifndef __cpp_concepts
+  namespace detail
+  {
+    template<typename T, typename = void>
+    struct has_one_row : std::false_type {};
+
+    template<typename T>
+    struct has_one_row<T, std::enable_if_t<MatrixTraits<T>::rows == 1>> : std::true_type {};
+  }
+#endif
+
+
+  /**
+   * \brief Specifies that T is a row vector (i.e., has one untyped or Axis-typed row).
+   * \details If T is a typed_matrix, its row must be of type Axis.
+   */
+#ifdef __cpp_concepts
+  template<typename T>
+  concept row_vector = untyped_rows<T> and (MatrixTraits<T>::rows == 1);
+#else
+  template<typename T>
+  inline constexpr bool row_vector = untyped_rows<T> and detail::has_one_row<std::decay_t<T>>::value;
+#endif
+
+
   // ------------------------------------ //
   //  square root (Cholesky) covariances  //
   // ------------------------------------ //

@@ -331,10 +331,22 @@ namespace OpenKalman::Eigen3
   }
 
 
-  /**
-   * Perform an LQ decomposition of matrix A=[L,0]Q, L is a lower-triangular matrix, and Q is orthogonal.
-   * Returns L as a triangular matrix.
-   */
+#ifdef __cpp_concepts
+  template<euclidean_expr Arg>
+#else
+  template<typename Arg, std::enable_if_t<euclidean_expr<Arg>, int> = 0>
+#endif
+  constexpr auto
+  reduce_rows(Arg&& arg) noexcept
+  {
+    return make_native_matrix(reduce_rows(make_native_matrix(std::forward<Arg>(arg))));
+  }
+
+
+/**
+ * Perform an LQ decomposition of matrix A=[L,0]Q, L is a lower-triangular matrix, and Q is orthogonal.
+ * Returns L as a triangular matrix.
+ */
 #ifdef __cpp_concepts
   template<euclidean_expr A>
 #else
@@ -963,6 +975,48 @@ namespace OpenKalman::Eigen3
 
 
   /**
+   * \tparam Arg A Euclidean expression
+   * \param index The index of the row
+   * \return The row at the specified index.
+   */
+#ifdef __cpp_concepts
+  template<euclidean_expr Arg>
+#else
+  template<typename Arg, std::enable_if_t<euclidean_expr<Arg>, int> = 0>
+#endif
+  inline decltype(auto)
+  row(Arg&& arg, const std::size_t index)
+  {
+    return row(make_native_matrix(std::forward<Arg>(arg)), index);
+  }
+
+
+  /**
+   * \tparam index The index of the row
+   * \tparam Arg A Euclidean expression
+   * \return The row at the specified index.
+   */
+#ifdef __cpp_concepts
+  template<std::size_t index, euclidean_expr Arg> requires (index < MatrixTraits<Arg>::columns)
+#else
+  template<std::size_t index, typename Arg, std::enable_if_t<
+      euclidean_expr<Arg> and (index < MatrixTraits<Arg>::columns), int> = 0>
+#endif
+  inline decltype(auto)
+  row(Arg&& arg)
+  {
+    if constexpr (row_vector<Arg>)
+    {
+      return std::forward<Arg>(arg);
+    }
+    else
+    {
+      return row<index>(make_native_matrix(std::forward<Arg>(arg)));
+    }
+  }
+
+
+  /**
    * \brief Apply a function to each column of a matrix.
    * \tparam Arg An lvalue reference to the matrix.
    * \tparam Function The function, which takes a column and returns a column.
@@ -1110,6 +1164,66 @@ namespace OpenKalman::Eigen3
   }
 
 
+  /**
+   * \brief Apply a function to each row of a matrix.
+   * \tparam Arg A constant lvalue reference or rvalue reference to the matrix.
+   * \tparam Function The function, which takes a row (and optionally an index) and returns a row.
+   */
+  #ifdef __cpp_concepts
+  template<euclidean_expr Arg, typename Function> requires
+    requires(const Arg& arg, const Function& f) { {f(row(arg, 0))} -> row_vector; } or
+    requires(const Arg& arg, const Function& f, std::size_t i) { {f(row(arg, 0), i)} -> row_vector; }
+  #else
+  template<typename Arg, typename Function, std::enable_if_t<euclidean_expr<Arg> and
+  row_vector<std::invoke_result_t<Function, std::decay_t<decltype(row(std::declval<const Arg&>(), 0))>&&>>, int> = 0>
+  inline auto
+  apply_rowwise(Arg&& arg, const Function& f)
+  {
+    return apply_rowwise(make_native_matrix(std::forward<Arg>(arg)), f);
+  }
+
+  template<typename Arg, typename Function, std::enable_if_t<euclidean_expr<Arg> and
+    row_vector<std::invoke_result_t<Function,
+      std::decay_t<decltype(row(std::declval<const Arg&>(), 0))>&&, std::size_t>>, int> = 0>
+  #endif
+  inline auto
+  apply_rowwise(Arg&& arg, const Function& f)
+  {
+    return apply_rowwise(make_native_matrix(std::forward<Arg>(arg)), f);
+  }
+
+
+  #ifdef __cpp_concepts
+  template<std::size_t count, typename Function> requires
+    requires(const Function& f) { {f()} -> euclidean_expr; {f()} -> row_vector; }
+  #else
+  template<std::size_t count, typename Function, std::enable_if_t<
+    euclidean_expr<std::invoke_result_t<Function>> and row_vector<std::invoke_result_t<Function>>, int> = 0>
+  #endif
+  inline auto
+  apply_rowwise(const Function& f)
+  {
+    const auto f_nested = [&f] () -> auto { return make_native_matrix(f()); };
+    return apply_rowwise<count>(f_nested);
+  }
+
+
+#ifdef __cpp_concepts
+  template<std::size_t count, typename Function> requires
+    requires(const Function& f, std::size_t i) { {f(i)} -> euclidean_expr; {f(i)} -> row_vector; }
+#else
+  template<std::size_t count, typename Function, std::enable_if_t<
+    euclidean_expr<std::invoke_result_t<Function, std::size_t>> and
+      row_vector<std::invoke_result_t<Function, std::size_t>>, int> = 0>
+#endif
+  inline auto
+  apply_rowwise(const Function& f)
+  {
+    const auto f_nested = [&f](std::size_t i) -> auto { return make_native_matrix(f(i)); };
+    return apply_rowwise<count>(f_nested);
+  }
+
+
 #ifdef __cpp_concepts
   template<euclidean_expr Arg, typename Function> requires
     requires(Function& f, typename MatrixTraits<Arg>::Scalar& s) {
@@ -1145,31 +1259,17 @@ namespace OpenKalman::Eigen3
    * \details The Gaussian distribution has zero mean and standard deviation sigma (1, if not specified).
    **/
 #ifdef __cpp_concepts
-  template<
-    euclidean_expr ReturnType,
-    template<typename Scalar> typename distribution_type = std::normal_distribution,
-    std::uniform_random_bit_generator random_number_engine = std::mt19937,
-    typename...Params>
+  template<euclidean_expr ReturnType,
+    std::uniform_random_bit_generator random_number_engine = std::mt19937, typename...Dists>
 #else
-  template<
-    typename ReturnType,
-    template<typename Scalar> typename distribution_type = std::normal_distribution,
-    typename random_number_engine = std::mt19937,
-    typename...Params,
+  template<typename ReturnType, typename random_number_engine = std::mt19937, typename...Dists,
     std::enable_if_t<euclidean_expr<ReturnType>, int> = 0>
 #endif
   inline auto
-  randomize(Params...params)
+  randomize(Dists...dists)
   {
-    using Scalar = typename MatrixTraits<ReturnType>::Scalar;
     using B = nested_matrix_t<ReturnType>;
-    constexpr auto rows = MatrixTraits<B>::rows;
-    constexpr auto cols = MatrixTraits<B>::columns;
-    using Ps = typename distribution_type<Scalar>::param_type;
-    static_assert(std::is_constructible_v<Ps, Params...> or sizeof...(Params) == rows or sizeof...(Params) == rows * cols,
-      "Params... must be (1) a parameter set or list of parameter sets, "
-      "(2) a list of parameter sets, one for each row, or (3) a list of parameter sets, one for each coefficient.");
-    return MatrixTraits<ReturnType>::make(randomize<B, distribution_type, random_number_engine>(params...));
+    return MatrixTraits<ReturnType>::make(randomize<B, random_number_engine>(std::forward<Dists>(dists)...));
   }
 
 } // namespace OpenKalman::eigen3

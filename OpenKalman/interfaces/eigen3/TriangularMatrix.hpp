@@ -139,25 +139,28 @@ namespace OpenKalman::Eigen3
     /// Construct from a non-triangular \ref eigen_matrix if NestedMatrix is \ref eigen_diagonal_expr.
 #ifdef __cpp_concepts
     template<eigen_matrix Arg> requires (not triangular_matrix<Arg>) and eigen_diagonal_expr<NestedMatrix> and
-      square_matrix<Arg> and requires(Arg&& arg) { NestedMatrix {diagonal_of(std::forward<Arg>(arg))}; }
+      (dynamic_shape<Arg> or square_matrix<Arg>) and
+      requires(Arg&& arg) { NestedMatrix {diagonal_of(std::forward<Arg>(arg))}; }
 #else
     template<typename Arg, std::enable_if_t<eigen_matrix<Arg> and (not triangular_matrix<Arg>) and
-      eigen_diagonal_expr<NestedMatrix> and square_matrix<Arg> and
+      eigen_diagonal_expr<NestedMatrix> and (dynamic_shape<Arg> or square_matrix<Arg>) and
       std::is_constructible_v<NestedMatrix, decltype(diagonal_of(std::declval<Arg&&>()))>, int> = 0>
 #endif
-    explicit TriangularMatrix(Arg&& arg) noexcept : Base {diagonal_of(std::forward<Arg>(arg))} {}
+    explicit TriangularMatrix(Arg&& arg) noexcept : Base {diagonal_of(std::forward<Arg>(
+      (dynamic_shape<Arg> ? (assert(row_count(arg) == column_count(arg)), arg) : arg)))} {}
 
 
     /// Construct from a non-triangular \ref eigen_matrix if NestedMatrix is not \ref eigen_diagonal_expr.
 #ifdef __cpp_concepts
     template<eigen_matrix Arg> requires (not triangular_matrix<Arg>) and (not eigen_diagonal_expr<NestedMatrix>) and
-      square_matrix<Arg> and std::constructible_from<NestedMatrix, Arg&&>
+      (dynamic_shape<Arg> or square_matrix<Arg>) and std::constructible_from<NestedMatrix, Arg&&>
 #else
     template<typename Arg, std::enable_if_t<eigen_matrix<Arg> and (not triangular_matrix<Arg>) and
-      (not eigen_diagonal_expr<NestedMatrix>) and square_matrix<Arg> and
+      (not eigen_diagonal_expr<NestedMatrix>) and (dynamic_shape<Arg> or square_matrix<Arg>) and
       std::is_constructible_v<NestedMatrix, Arg&&>, int> = 0>
 #endif
-    explicit TriangularMatrix(Arg&& arg) noexcept : Base {std::forward<Arg>(arg)} {}
+    explicit TriangularMatrix(Arg&& arg) noexcept : Base {std::forward<Arg>(
+      (dynamic_shape<Arg> ? (assert(row_count(arg) == column_count(arg)), arg) : arg))} {}
 
 
     /**
@@ -532,7 +535,6 @@ namespace OpenKalman
   {
     static constexpr TriangleType triangle_type = triangle;
     using NestedMatrix = ArgType;
-    static_assert(square_matrix<NestedMatrix>);
     using Scalar = typename MatrixTraits<NestedMatrix>::Scalar;
     static constexpr auto rows = MatrixTraits<NestedMatrix>::rows;
     static constexpr auto columns = MatrixTraits<NestedMatrix>::columns;

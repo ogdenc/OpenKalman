@@ -12,6 +12,7 @@
  * \internal
  * \file
  * \brief Definition of MatrixBase.
+ * \todo Move to basics directory?
  */
 
 #ifndef OPENKALMAN_MATRIXBASE_HPP

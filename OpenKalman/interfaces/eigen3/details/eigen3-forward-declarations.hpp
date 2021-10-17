@@ -98,7 +98,7 @@ namespace OpenKalman::Eigen3
    */
   template<typename Scalar, auto constant, std::size_t rows, std::size_t columns = 1>
 #ifdef __cpp_concepts
-    requires (rows > 0) and (columns > 0) and std::is_arithmetic_v<Scalar>
+    requires std::is_arithmetic_v<Scalar>
 #endif
   struct ConstantMatrix;
 

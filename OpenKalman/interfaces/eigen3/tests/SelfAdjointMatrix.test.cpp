@@ -617,6 +617,9 @@ TEST(eigen3, SelfAdjointMatrix_overloads)
   EXPECT_TRUE(is_near(reduce_columns(Lower {9., 3, 3, 10}), make_native_matrix(6., 6.5)));
   EXPECT_TRUE(is_near(reduce_columns(Upper {9., 3, 3, 10}), make_native_matrix(6., 6.5)));
   //
+  EXPECT_TRUE(is_near(reduce_rows(Lower {9., 3, 3, 10}), make_native_matrix<double, 1, 2>(6., 6.5)));
+  EXPECT_TRUE(is_near(reduce_rows(Upper {9., 3, 3, 10}), make_native_matrix<double, 1, 2>(6., 6.5)));
+  //
   auto sl1 = Lower {9., 3, 3, 10};
   rank_update(sl1, make_native_matrix<M2>(2, 0, 1, 2), 4);
   EXPECT_TRUE(is_near(sl1, mat22(25., 11, 11, 30)));
@@ -737,6 +740,9 @@ TEST(eigen3, SelfAdjointMatrix_blocks_lower)
 
   EXPECT_TRUE(is_near(column(m1, 2), make_native_matrix(6., 8, 9)));
   EXPECT_TRUE(is_near(column<1>(m1), make_native_matrix(5., 7, 8)));
+  EXPECT_TRUE(is_near(row(m1, 2), make_native_matrix<double, 1, 3>(6., 8, 9)));
+  EXPECT_TRUE(is_near(row<1>(m1), make_native_matrix<double, 1, 3>(5., 7, 8)));
+
   EXPECT_TRUE(is_near(apply_columnwise(m1, [](const auto& col){ return make_self_contained(col + col.Constant(1)); }),
     make_native_matrix<double, 3, 3>(
       5, 6, 7,
@@ -747,6 +753,18 @@ TEST(eigen3, SelfAdjointMatrix_blocks_lower)
       4, 6, 8,
       5, 8, 10,
       6, 9, 11)));
+
+  EXPECT_TRUE(is_near(apply_rowwise(m1, [](const auto& row){ return make_self_contained(row + row.Constant(1)); }),
+    make_native_matrix<double, 3, 3>(
+      5, 6, 7,
+      6, 8, 9,
+      7, 9, 10)));
+  EXPECT_TRUE(is_near(apply_rowwise(m1, [](const auto& row, std::size_t i){ return make_self_contained(row + row.Constant(i)); }),
+    make_native_matrix<double, 3, 3>(
+      4, 5, 6,
+      6, 8, 9,
+      8, 10, 11)));
+
   EXPECT_TRUE(is_near(apply_coefficientwise(m1, [](const auto& x){ return x + 1; }),
     make_native_matrix<double, 3, 3>(
       5, 6, 7,

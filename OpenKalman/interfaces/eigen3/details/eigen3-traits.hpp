@@ -580,8 +580,8 @@ namespace OpenKalman::internal
     : std::bool_constant<dynamic_rows<NestedMatrix>> {};
 
 
-  template<typename NestedMatrix>
-  struct has_dynamic_rows<Eigen3::TriangularMatrix<NestedMatrix, TriangleType::diagonal>>
+  template<typename NestedMatrix, TriangleType triangle_type>
+  struct has_dynamic_rows<Eigen3::TriangularMatrix<NestedMatrix, triangle_type>>
     : std::bool_constant<dynamic_rows<NestedMatrix>> {};
 
 
@@ -627,8 +627,8 @@ namespace OpenKalman::internal
     : std::bool_constant<dynamic_columns<NestedMatrix>> {};
 
 
-  template<typename NestedMatrix>
-  struct has_dynamic_columns<Eigen3::TriangularMatrix<NestedMatrix, TriangleType::diagonal>>
+  template<typename NestedMatrix, TriangleType triangle_type>
+  struct has_dynamic_columns<Eigen3::TriangularMatrix<NestedMatrix, triangle_type>>
     : std::bool_constant<dynamic_columns<NestedMatrix>> {};
 
 

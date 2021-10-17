@@ -243,21 +243,34 @@ TEST(eigen3, Diagonal_overloads)
   EXPECT_TRUE(is_near(solve(DiagonalMatrix {1., 2, 3}, make_native_matrix<double, 3, 1>(4., 10, 18)),
     make_native_matrix(4., 5, 6)));
   EXPECT_TRUE(is_near(reduce_columns(DiagonalMatrix {1., 2, 3}), make_native_matrix(1., 2, 3)));
+  EXPECT_TRUE(is_near(reduce_rows(DiagonalMatrix {1., 2, 3}), make_native_matrix(1., 2, 3)));
   EXPECT_TRUE(is_near(LQ_decomposition(DiagonalMatrix {1., 2, 3}), DiagonalMatrix {1., 2, 3}));
   EXPECT_TRUE(is_near(QR_decomposition(DiagonalMatrix {1., 2, 3}), DiagonalMatrix {1., 2, 3}));
   EXPECT_TRUE(is_near(LQ_decomposition(M1by1 {4}), DiagonalMatrix {4.}));
   EXPECT_TRUE(is_near(QR_decomposition(M1by1 {4}), DiagonalMatrix {4.}));
 
-  using N = std::normal_distribution<double>::param_type;
-  using Mat = DiagonalMatrix<eigen_matrix_t<double, 2, 1>>;
-  Mat m = MatrixTraits<Mat>::zero();
+  using N = std::normal_distribution<double>;
+  using D2 = DiagonalMatrix<eigen_matrix_t<double, 2, 1>>;
+  using D3 = DiagonalMatrix<eigen_matrix_t<double, 3, 1>>;
+  using D0 = DiagonalMatrix<eigen_matrix_t<double, 0, 1>>;
+
+  D2 d2 = MatrixTraits<D2>::zero();
+  D0 d0_2 {MatrixTraits<D0>::zero(2, 2)};
+  D0 d0_3 {MatrixTraits<D0>::zero(3, 3)};
   for (int i=0; i<100; i++)
   {
-    m = (m * i + randomize<Mat>(N {1.0, 0.3}, 2.0)) / (i + 1);
+    d2 = (d2 * i + randomize<D2>(N {1.0, 0.3}, 2.0)) / (i + 1);
+    d0_2 = (d0_2 * i + randomize<D2>(N {1.0, 0.3}, N {2.0, 0.3})) / (i + 1);
+    d0_3 = (d0_3 * i + randomize<D0>(3, 3, N {1.0, 0.3})) / (i + 1);
   }
-  Mat offset = {1, 2};
-  EXPECT_TRUE(is_near(m, offset, 0.1));
-  EXPECT_FALSE(is_near(m, offset, 1e-6));
+  D2 d2_offset = {1, 2};
+  D3 d0_3_offset = {1, 1, 1};
+  EXPECT_TRUE(is_near(d2, d2_offset, 0.1));
+  EXPECT_FALSE(is_near(d2, d2_offset, 1e-6));
+  EXPECT_TRUE(is_near(d0_2, d2_offset, 0.1));
+  EXPECT_FALSE(is_near(d0_2, d2_offset, 1e-6));
+  EXPECT_TRUE(is_near(d0_3, d0_3_offset, 0.1));
+  EXPECT_FALSE(is_near(d0_3, d0_3_offset, 1e-6));
 }
 
 TEST(eigen3, Diagonal_blocks)
@@ -318,6 +331,9 @@ TEST(eigen3, Diagonal_blocks)
 
   EXPECT_TRUE(is_near(column(DiagonalMatrix{1., 2, 3}, 2), make_native_matrix(0., 0, 3)));
   EXPECT_TRUE(is_near(column<1>(DiagonalMatrix{1., 2, 3}), make_native_matrix(0., 2, 0)));
+  EXPECT_TRUE(is_near(row(DiagonalMatrix{1., 2, 3}, 2), eigen_matrix_t<double, 1, 3>(0., 0, 3)));
+  EXPECT_TRUE(is_near(row<1>(DiagonalMatrix{1., 2, 3}), eigen_matrix_t<double, 1, 3>(0., 2, 0)));
+
   EXPECT_TRUE(is_near(apply_columnwise(DiagonalMatrix{1., 2, 3}, [](const auto& col){ return make_self_contained(col + col.Constant(1)); }),
     make_native_matrix<double, 3, 3>(
       2, 1, 1,
@@ -328,6 +344,18 @@ TEST(eigen3, Diagonal_blocks)
       1, 1, 2,
       0, 3, 2,
       0, 1, 5)));
+
+  EXPECT_TRUE(is_near(apply_rowwise(DiagonalMatrix{1., 2, 3}, [](const auto& row){ return make_self_contained(row + row.Constant(1)); }),
+    make_native_matrix<double, 3, 3>(
+      2, 1, 1,
+      1, 3, 1,
+      1, 1, 4)));
+  EXPECT_TRUE(is_near(apply_rowwise(DiagonalMatrix{1., 2, 3}, [](const auto& row, std::size_t i){ return make_self_contained(row + row.Constant(i)); }),
+    make_native_matrix<double, 3, 3>(
+      1, 0, 0,
+      1, 3, 1,
+      2, 2, 5)));
+
   EXPECT_TRUE(is_near(apply_coefficientwise(DiagonalMatrix{1., 2, 3}, [](const auto& x){ return x + 1; }),
     make_native_matrix<double, 3, 3>(
       2, 1, 1,

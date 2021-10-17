@@ -17,6 +17,8 @@
 #ifndef OPENKALMAN_EIGEN3_NATIVE_EVALUATORS_HPP
 #define OPENKALMAN_EIGEN3_NATIVE_EVALUATORS_HPP
 
+#include <complex>
+
 namespace Eigen::internal
 {
   // ------------------ //
@@ -76,7 +78,8 @@ namespace Eigen::internal
 
     enum {
       CoeffReadCost = 0,
-      Flags = NoPreferredStorageOrderBit | EvalBeforeNestingBit | LinearAccessBit |
+      Flags = NoPreferredStorageOrderBit | LinearAccessBit |
+        (traits<OpenKalman::Eigen3::eigen_matrix_t<Scalar, rows, cols>>::Flags & RowMajorBit) |
         (packet_traits<Scalar>::Vectorizable ? PacketAccessBit : 0),
       Alignment = AlignedMax
     };
@@ -122,6 +125,7 @@ namespace Eigen::internal
     enum {
       CoeffReadCost = 0,
       Flags = NoPreferredStorageOrderBit | EvalBeforeNestingBit | LinearAccessBit |
+        (traits<OpenKalman::Eigen3::eigen_matrix_t<Scalar, rows, cols>>::Flags & RowMajorBit) |
         (packet_traits<Scalar>::Vectorizable ? PacketAccessBit : 0),
       Alignment = AlignedMax
     };
@@ -184,11 +188,19 @@ namespace Eigen::internal
       }
       else if constexpr(storage_triangle == OpenKalman::TriangleType::upper)
       {
-        if (row > col) return m_argImpl.coeffRef(col, row);
+        if (row > col)
+        {
+          if constexpr (OpenKalman::complex_number<Scalar>) return std::conj(m_argImpl.coeffRef(col, row));
+          else return m_argImpl.coeffRef(col, row);
+        }
       }
       else if constexpr(storage_triangle == OpenKalman::TriangleType::lower)
       {
-        if (row < col) return m_argImpl.coeffRef(col, row);
+        if (row < col)
+        {
+          if constexpr (OpenKalman::complex_number<Scalar>) return std::conj(m_argImpl.coeffRef(col, row));
+          else return m_argImpl.coeffRef(col, row);
+        }
       }
       return m_argImpl.coeffRef(row, col);
     }
@@ -216,11 +228,19 @@ namespace Eigen::internal
       }
       else if constexpr(storage_triangle == OpenKalman::TriangleType::upper)
       {
-        if (row > col) return m_argImpl.coeff(col, row);
+        if (row > col)
+        {
+          if constexpr (OpenKalman::complex_number<Scalar>) return std::conj(m_argImpl.coeff(col, row));
+          else return m_argImpl.coeff(col, row);
+        }
       }
       else if constexpr(storage_triangle == OpenKalman::TriangleType::lower)
       {
-        if (row < col) return m_argImpl.coeff(col, row);
+        if (row < col)
+        {
+          if constexpr (OpenKalman::complex_number<Scalar>) return std::conj(m_argImpl.coeff(col, row));
+          else return m_argImpl.coeff(col, row);
+        }
       }
       return m_argImpl.coeff(row, col);
     }

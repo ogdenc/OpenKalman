@@ -12,6 +12,7 @@
  * \internal
  * \file
  * \brief Definitions for Eigen3::Eigen3Base
+ * \todo Specialize for Matrix, Covariance, etc., so that they do not derive from Eigen::MatrixBase?
  */
 
 #ifndef OPENKALMAN_EIGEN3BASE_HPP
@@ -19,10 +20,6 @@
 
 namespace OpenKalman::Eigen3::internal
 {
-  /*
-   * Implementation
-   * \todo Specialize for Matrix, Covariance, etc., so that they do not derive from Eigen::MatrixBase?
-   */
   template<typename Derived>
   struct Eigen3Base : Eigen::MatrixBase<Derived>
   {
@@ -51,13 +48,13 @@ namespace OpenKalman::Eigen3::internal
      * \return The number of dynamic rows. (Required by Eigen::EigenBase).
      */
 #ifdef __cpp_concepts
-    constexpr Eigen::Index rows() const requires dynamic_rows<Derived>
+    Eigen::Index rows() const requires dynamic_rows<Derived>
 #else
     template<typename D = Derived, std::enable_if_t<dynamic_rows<D>, int> = 0>
-    constexpr Eigen::Index rows() const
+    Eigen::Index rows() const
 #endif
     {
-      return row_count(static_cast<Derived&>(*this));
+      return row_count(static_cast<const Derived&>(*this));
     }
 
 
@@ -81,13 +78,13 @@ namespace OpenKalman::Eigen3::internal
      * \return The number of dynamic rows. (Required by Eigen::EigenBase).
      */
 #ifdef __cpp_concepts
-    constexpr Eigen::Index cols() const requires dynamic_columns<Derived>
+    Eigen::Index cols() const requires dynamic_columns<Derived>
 #else
     template<typename D = Derived, std::enable_if_t<dynamic_columns<D>, int> = 0>
-    constexpr Eigen::Index cols() const
+    Eigen::Index cols() const
 #endif
     {
-      return column_count(static_cast<Derived&>(*this));
+      return column_count(static_cast<const Derived&>(*this));
     }
 
 

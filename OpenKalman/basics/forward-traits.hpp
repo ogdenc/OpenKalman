@@ -671,10 +671,10 @@ namespace OpenKalman
 
 
   /**
-   * \brief Specifies that T has is a number of row dimensions that is defined at run time.
+   * \brief Specifies that T has row dimensions that are defined at run time.
    * \details The matrix library interface will specify this for native matrices and expressions.
    */
-  template<typename T, typename...Ts>
+  template<typename T>
 #ifdef __cpp_concepts
   concept dynamic_rows = internal::has_dynamic_rows<std::decay_t<T>>::value;
 #else
@@ -702,10 +702,10 @@ namespace OpenKalman
 
 
   /**
-   * \brief Specifies that T has is a number of column dimensions that is defined at run time.
+   * \brief Specifies that T has column dimensions that are defined at run time.
    * \details The matrix library interface will specify this for native matrices and expressions.
    */
-  template<typename T, typename...Ts>
+  template<typename T>
 #ifdef __cpp_concepts
   concept dynamic_columns = internal::has_dynamic_columns<std::decay_t<T>>::value;
 #else
@@ -721,7 +721,7 @@ namespace OpenKalman
    * \brief Specifies that T's row or column dimensions are defined at run time.
    * \details The matrix library interface will specify this for native matrices and expressions.
    */
-  template<typename T, typename...Ts>
+  template<typename T>
 #ifdef __cpp_concepts
   concept dynamic_shape = dynamic_rows<T> or dynamic_columns<T>;
 #else
@@ -1067,7 +1067,7 @@ namespace OpenKalman
 #else
     inline constexpr bool same_triangle_type_as =
       (upper_triangular_matrix<T> and upper_triangular_matrix<U>) or
-        (lower_triangular_matrix<T> and lower_triangular_matrix<U>);
+      (lower_triangular_matrix<T> and lower_triangular_matrix<U>);
 #endif
   }
 

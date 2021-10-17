@@ -58,6 +58,7 @@
 
 #include "details/Eigen3Base.hpp"
 #include "details/Eigen3MatrixBase.hpp"
+#include "details/EigenDynamicBase.hpp"
 
 #include "ConstantMatrix.hpp"
 #include "ZeroMatrix.hpp"
@@ -116,6 +117,7 @@ namespace OpenKalman
   using Eigen3::rank_update;
   using Eigen3::solve;
   using Eigen3::reduce_columns;
+  using Eigen3::reduce_rows;
   using Eigen3::LQ_decomposition;
   using Eigen3::QR_decomposition;
   using Eigen3::concatenate_vertical;
@@ -127,7 +129,9 @@ namespace OpenKalman
   using Eigen3::get_element;
   using Eigen3::set_element;
   using Eigen3::column;
+  using Eigen3::row;
   using Eigen3::apply_columnwise;
+  using Eigen3::apply_rowwise;
   using Eigen3::apply_coefficientwise;
   using Eigen3::randomize;
 

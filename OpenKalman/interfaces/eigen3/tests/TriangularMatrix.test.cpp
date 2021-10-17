@@ -600,6 +600,9 @@ TEST(eigen3, TriangularMatrix_overloads)
   EXPECT_TRUE(is_near(reduce_columns(Lower {3., 0, 1, 3}), make_native_matrix(1.5, 2)));
   EXPECT_TRUE(is_near(reduce_columns(Upper {3., 1, 0, 3}), make_native_matrix(2, 1.5)));
   //
+  EXPECT_TRUE(is_near(reduce_rows(Lower {3., 0, 1, 3}), make_native_matrix<double, 1, 2>(2, 1.5)));
+  EXPECT_TRUE(is_near(reduce_rows(Upper {3., 1, 0, 3}), make_native_matrix<double, 1, 2>(1.5, 2)));
+  //
   auto sl1 = Lower {3., 0, 1, 3};
   rank_update(sl1, make_native_matrix<M2>(2, 0, 1, 2), 4);
   EXPECT_TRUE(is_near(sl1, mat22(5., 0, 2.2, std::sqrt(25.16))));
@@ -713,6 +716,9 @@ TEST(eigen3, TriangularMatrix_blocks_lower)
 
   EXPECT_TRUE(is_near(column(m1, 2), make_native_matrix(0., 0, 9)));
   EXPECT_TRUE(is_near(column<1>(m1), make_native_matrix(0., 7, 8)));
+  EXPECT_TRUE(is_near(row(m1, 2), make_native_matrix<double, 1, 3>(6., 8, 9)));
+  EXPECT_TRUE(is_near(row<1>(m1), make_native_matrix<double, 1, 3>(5., 7, 0)));
+
   EXPECT_TRUE(is_near(apply_columnwise(m1, [](const auto& col){ return make_self_contained(col + col.Constant(1)); }),
     make_native_matrix<double, 3, 3>(
       5, 1, 1,
@@ -723,6 +729,18 @@ TEST(eigen3, TriangularMatrix_blocks_lower)
       4, 1, 2,
       5, 8, 2,
       6, 9, 11)));
+
+  EXPECT_TRUE(is_near(apply_rowwise(m1, [](const auto& row){ return make_self_contained(row + row.Constant(1)); }),
+    make_native_matrix<double, 3, 3>(
+      5, 1, 1,
+      6, 8, 1,
+      7, 9, 10)));
+  EXPECT_TRUE(is_near(apply_rowwise(m1, [](const auto& row, std::size_t i){ return make_self_contained(row + row.Constant(i)); }),
+    make_native_matrix<double, 3, 3>(
+      4, 0, 0,
+      6, 8, 1,
+      8, 10, 11)));
+
   EXPECT_TRUE(is_near(apply_coefficientwise(m1, [](const auto& x){ return x + 1; }),
     make_native_matrix<double, 3, 3>(
       5, 1, 1,
@@ -818,8 +836,13 @@ TEST(eigen3, TriangularMatrix_blocks_upper)
                                                                              0, 0, 0, 0, 9}),
     std::tuple {make_native_matrix<5,2>(1., 2, 0, 3, 0, 0, 0, 0, 0, 0),
                make_native_matrix<5,2>(0., 0, 0, 0, 4, 5, 0, 7, 0, 0)}));
+
   EXPECT_TRUE(is_near(column(m1, 2), make_native_matrix(6., 8, 9)));
   EXPECT_TRUE(is_near(column<1>(m1), make_native_matrix(5., 7, 0)));
+
+  EXPECT_TRUE(is_near(row(m1, 2), make_native_matrix<double, 1, 3>(0., 0, 9)));
+  EXPECT_TRUE(is_near(row<1>(m1), make_native_matrix<double, 1, 3>(0., 7, 8)));
+
   EXPECT_TRUE(is_near(apply_columnwise(m1, [](const auto& col){ return make_self_contained(col + col.Constant(1)); }),
     make_native_matrix<double, 3, 3>(
       5, 6, 7,

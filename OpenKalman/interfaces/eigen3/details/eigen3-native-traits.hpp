@@ -74,12 +74,13 @@ namespace Eigen::internal
     using Scalar = Scalar_;
     enum
     {
-      Flags = NoPreferredStorageOrderBit | EvalBeforeNestingBit | LinearAccessBit |
-        (packet_traits<Scalar>::Vectorizable ? PacketAccessBit : 0),
       RowsAtCompileTime = (rows == 0 ? Eigen::Dynamic : (Eigen::Index) rows),
       MaxRowsAtCompileTime = RowsAtCompileTime,
       ColsAtCompileTime = (cols == 0 ? Eigen::Dynamic : (Eigen::Index) cols),
-      MaxColsAtCompileTime = ColsAtCompileTime
+      MaxColsAtCompileTime = ColsAtCompileTime,
+      Flags = NoPreferredStorageOrderBit | LinearAccessBit |
+        (traits<Matrix<Scalar, RowsAtCompileTime, ColsAtCompileTime>>::Flags & RowMajorBit) |
+        (packet_traits<Scalar>::Vectorizable ? PacketAccessBit : 0),
     };
   };
 
@@ -93,12 +94,13 @@ namespace Eigen::internal
     using Scalar = Scalar_;
     enum
     {
-      Flags = NoPreferredStorageOrderBit | EvalBeforeNestingBit | LinearAccessBit |
-        (packet_traits<Scalar>::Vectorizable ? PacketAccessBit : 0),
       RowsAtCompileTime = (rows == 0 ? Eigen::Dynamic : (Eigen::Index) rows),
       MaxRowsAtCompileTime = RowsAtCompileTime,
       ColsAtCompileTime = (cols == 0 ? Eigen::Dynamic : (Eigen::Index) cols),
-      MaxColsAtCompileTime = ColsAtCompileTime
+      MaxColsAtCompileTime = ColsAtCompileTime,
+      Flags = NoPreferredStorageOrderBit | EvalBeforeNestingBit | LinearAccessBit |
+        (traits<Matrix<Scalar, RowsAtCompileTime, ColsAtCompileTime>>::Flags & RowMajorBit) |
+        (packet_traits<Scalar>::Vectorizable ? PacketAccessBit : 0),
     };
   };
 

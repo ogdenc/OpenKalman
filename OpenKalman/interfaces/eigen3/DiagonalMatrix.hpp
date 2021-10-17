@@ -66,24 +66,32 @@ namespace OpenKalman::Eigen3
     DiagonalMatrix(Arg&& other) noexcept : Base {nested_matrix(std::forward<Arg>(other))} {}
 
 
-    /// Construct from a zero matrix.
-#if defined(__cpp_concepts) and defined(__cpp_conditional_explicit)
-    template<zero_matrix Arg> requires (not eigen_diagonal_expr<Arg>) and (column_vector<Arg> or square_matrix<Arg>) and
+    /// Construct from a fixed zero square matrix.
+#if defined(__cpp_concepts)
+    template<zero_matrix Arg> requires (not eigen_diagonal_expr<Arg>) and square_matrix<Arg> and
       std::constructible_from<NestedMatrix, ZeroMatrix<Scalar, dimensions, 1>&&>
-    explicit (column_vector<Arg> and not square_matrix<Arg>)
-    DiagonalMatrix(Arg&&) : Base {ZeroMatrix<Scalar, dimensions, 1> {}} {}
 #else
-    template<typename Arg, std::enable_if_t<zero_matrix<Arg> and (not eigen_diagonal_expr<Arg>) and
-      column_vector<Arg> and (not square_matrix<Arg>) and
+    template<typename Arg, std::enable_if_t<
+      zero_matrix<Arg> and (not eigen_diagonal_expr<Arg>) and square_matrix<Arg> and
       std::is_constructible_v<NestedMatrix, ZeroMatrix<Scalar, dimensions, 1>&&>, int> = 0>
-    explicit DiagonalMatrix(Arg&&) : Base {ZeroMatrix<Scalar, dimensions, 1> {}} {}
-
-    /// \overload
-    template<typename Arg, std::enable_if_t<zero_matrix<Arg> and (not eigen_diagonal_expr<Arg>) and
-      (not column_vector<Arg> or square_matrix<Arg>) and
-      std::is_constructible_v<NestedMatrix, ZeroMatrix<Scalar, dimensions, 1>&&>, int> = 0>
-    DiagonalMatrix(Arg&&) : Base {ZeroMatrix<Scalar, dimensions, 1> {}} {}
 #endif
+    DiagonalMatrix(Arg&& arg) : Base {reduce_columns(std::forward<Arg>(arg))} {}
+
+
+    /// Construct from a zero column matrix or a square matrix if either Arg or NestedMatrix is dynamic.
+#if defined(__cpp_concepts)
+    template<zero_matrix Arg> requires (not eigen_diagonal_expr<Arg>) and
+      (column_vector<Arg> or dynamic_shape<Arg> or dynamic_rows<NestedMatrix>) and
+      std::constructible_from<NestedMatrix, ZeroMatrix<Scalar, dimensions, 1>&&>
+#else
+    template<typename Arg, std::enable_if_t<
+      zero_matrix<Arg> and (not eigen_diagonal_expr<Arg>) and
+      (column_vector<Arg> or dynamic_shape<Arg> or dynamic_rows<NestedMatrix>) and
+      std::is_constructible_v<NestedMatrix, ZeroMatrix<Scalar, dimensions, 1>&&>, int> = 0>
+#endif
+    explicit DiagonalMatrix(Arg&& arg) : Base {reduce_columns(std::forward<Arg>(
+      (dynamic_shape<Arg> ? (assert(column_count(arg) == 1 or row_count(arg) == column_count(arg)), arg) : arg)))}
+    {}
 
 
     /// Construct from an identity matrix.

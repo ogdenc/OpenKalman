@@ -102,7 +102,10 @@ namespace OpenKalman::Eigen3
   constexpr std::size_t
   row_count(Arg&& arg)
   {
-    return MatrixTraits<Arg>::rows;
+    if constexpr (dynamic_rows<Arg>)
+      return arg.rows();
+    else
+      return MatrixTraits<Arg>::rows;
   }
 
 
@@ -145,7 +148,10 @@ namespace OpenKalman::Eigen3
   constexpr std::size_t
   column_count(Arg&& arg)
   {
-    return MatrixTraits<Arg>::columns;
+    if constexpr (dynamic_columns<Arg>)
+      return arg.cols();
+    else
+      return MatrixTraits<Arg>::columns;
   }
 
 
@@ -186,6 +192,7 @@ namespace OpenKalman::Eigen3
   diagonal_of(Arg&& arg) noexcept
   {
     using Scalar = typename MatrixTraits<Arg>::Scalar;
+
     if constexpr (dynamic_rows<Arg>)
     {
       return ZeroMatrix<Scalar, 0, 1> {row_count(arg)};
@@ -198,17 +205,26 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-  template<eigen_constant_expr Arg> requires square_matrix<Arg> and (not one_by_one_matrix<Arg>)
+  template<eigen_constant_expr Arg> requires dynamic_shape<Arg> or (square_matrix<Arg> and not one_by_one_matrix<Arg>)
 #else
   template<typename Arg, std::enable_if_t<eigen_constant_expr<Arg> and
-    square_matrix<Arg> and (not one_by_one_matrix<Arg>), int> = 0>
+    (dynamic_shape<Arg> or (square_matrix<Arg> and not one_by_one_matrix<Arg>)), int> = 0>
 #endif
   inline auto
   diagonal_of(Arg&& arg) noexcept
   {
     using Scalar = typename MatrixTraits<Arg>::Scalar;
     constexpr auto constant = MatrixTraits<Arg>::constant;
-    return ConstantMatrix<Scalar, constant, MatrixTraits<Arg>::rows, 1> {};
+
+    if constexpr (dynamic_rows<Arg>)
+    {
+      return ConstantMatrix<Scalar, constant, 0, 1> {row_count(arg)};
+    }
+    else
+    {
+      return ConstantMatrix<Scalar, constant, MatrixTraits<Arg>::rows, 1> {};
+    }
+
   }
 
 
@@ -271,6 +287,39 @@ namespace OpenKalman::Eigen3
   }
 
 
+  namespace detail
+  {
+    template<auto constant, typename Arg>
+    constexpr decltype(auto)
+    eigen_constant_transpose_impl(Arg&& arg) noexcept
+    {
+      using Scalar = typename MatrixTraits<Arg>::Scalar;
+      if constexpr (dynamic_rows<Arg> and dynamic_columns<Arg>)
+      {
+        return ConstantMatrix<Scalar, constant, 0, 0> {column_count(arg), row_count(arg)};
+      }
+      else if constexpr (dynamic_rows<Arg> and not dynamic_columns<Arg>)
+      {
+        constexpr auto cols = MatrixTraits<Arg>::columns;
+        return ConstantMatrix<Scalar, constant, cols, 0> {cols, row_count(arg)};
+      }
+      else if constexpr (not dynamic_rows<Arg> and dynamic_columns<Arg>)
+      {
+        constexpr auto rows = MatrixTraits<Arg>::rows;
+        return ConstantMatrix<Scalar, constant, 0, rows> {column_count(arg), rows};
+      }
+      else // if constexpr (not dynamic_rows<Arg> and not dynamic_columns<Arg>)
+      {
+        constexpr auto rows = MatrixTraits<Arg>::rows;
+        constexpr auto cols = MatrixTraits<Arg>::columns;
+
+        if constexpr (rows == cols) return std::forward<Arg>(arg);
+        else return ConstantMatrix<Scalar, constant, cols, rows> {};
+      }
+    }
+  }
+
+
 #ifdef __cpp_concepts
   template<eigen_constant_expr Arg>
 #else
@@ -279,18 +328,7 @@ namespace OpenKalman::Eigen3
   constexpr decltype(auto)
   transpose(Arg&& arg) noexcept
   {
-    constexpr auto rows = MatrixTraits<Arg>::rows;
-    constexpr auto cols = MatrixTraits<Arg>::columns;
-    if constexpr (rows == cols)
-    {
-      return std::forward<Arg>(arg);
-    }
-    else
-    {
-      using Scalar = typename MatrixTraits<Arg>::Scalar;
-      constexpr auto constant = MatrixTraits<Arg>::constant;
-      return ConstantMatrix<Scalar, constant, cols, rows> {};
-    }
+    return detail::eigen_constant_transpose_impl<MatrixTraits<Arg>::constant>(std::forward<Arg>(arg));
   }
 
 
@@ -307,25 +345,50 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-  template<typename Arg> requires eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>
+  template<typename Arg> requires eigen_self_adjoint_expr<Arg>
 #else
-  template<typename Arg, std::enable_if_t<
-    Eigen3::eigen_self_adjoint_expr<Arg> or Eigen3::eigen_triangular_expr<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<eigen_self_adjoint_expr<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   transpose(Arg&& arg)
   {
-    if constexpr (self_adjoint_matrix<nested_matrix_t<Arg>>)
-    {
-      return nested_matrix(std::forward<Arg>(arg));
-    }
-    else if constexpr (self_adjoint_matrix<Arg>)
+    if constexpr (diagonal_matrix<Arg> or not complex_number<typename MatrixTraits<Arg>::Scalar>)
     {
       return std::forward<Arg>(arg);
     }
+    else if constexpr (self_adjoint_matrix<nested_matrix_t<Arg>>)
+    {
+      static_assert(internal::same_storage_triangle_as<Arg, nested_matrix_t<Arg>>);
+      return transpose(nested_matrix(std::forward<Arg>(arg)));
+    }
     else
     {
-      static_assert(eigen_triangular_expr<Arg>);
+      constexpr auto t = (lower_triangular_storage<Arg> ? TriangleType::upper : TriangleType::lower);
+      return MatrixTraits<Arg>::template make<t>(
+        make_self_contained<Arg>(transpose(nested_matrix(std::forward<Arg>(arg)))));
+    }
+  }
+
+
+#ifdef __cpp_concepts
+  template<typename Arg> requires eigen_triangular_expr<Arg>
+#else
+  template<typename Arg, std::enable_if_t<eigen_triangular_expr<Arg>, int> = 0>
+#endif
+  constexpr decltype(auto)
+  transpose(Arg&& arg)
+  {
+    if constexpr (diagonal_matrix<Arg>)
+    {
+      return std::forward<Arg>(arg);
+    }
+    else if constexpr (triangular_matrix<nested_matrix_t<Arg>>)
+    {
+      static_assert(OpenKalman::internal::same_triangle_type_as<Arg, nested_matrix_t<Arg>>);
+      return transpose(nested_matrix(std::forward<Arg>(arg)));
+    }
+    else
+    {
       constexpr auto t = lower_triangular_matrix<Arg> ? TriangleType::upper : TriangleType::lower;
       return MatrixTraits<Arg>::template make<t>(
         make_self_contained<Arg>(transpose(nested_matrix(std::forward<Arg>(arg)))));
@@ -354,21 +417,20 @@ namespace OpenKalman::Eigen3
   adjoint(Arg&& arg) noexcept
   {
     using Scalar = typename MatrixTraits<Arg>::Scalar;
+    constexpr auto constant = MatrixTraits<Arg>::constant;
+
     if constexpr (complex_number<Scalar>)
     {
-      constexpr auto rows = MatrixTraits<Arg>::rows;
-      constexpr auto cols = MatrixTraits<Arg>::columns;
-      constexpr auto constant = MatrixTraits<Arg>::constant;
 #ifdef __cpp_lib_constexpr_complex
-      return ConstantMatrix<Scalar, std::conj(constant), cols, rows> {};
+      constexpr auto adj = std::conj(constant);
 #else
       constexpr auto adj = std::complex(constant.real, -constant.imag);
-      return ConstantMatrix<Scalar, adj, cols, rows> {};
 #endif
+      return detail::eigen_constant_transpose_impl<adj>(std::forward<Arg>(arg));
     }
     else
     {
-      return transpose(std::forward<Arg>(arg));
+      return detail::eigen_constant_transpose_impl<constant>(std::forward<Arg>(arg));
     }
   }
 
@@ -402,23 +464,29 @@ namespace OpenKalman::Eigen3
   constexpr decltype(auto)
   adjoint(Arg&& arg)
   {
-    if constexpr (not complex_number<typename MatrixTraits<Arg>::Scalar>)
+    if constexpr (self_adjoint_matrix<Arg>)
+    {
+      return std::forward<Arg>(arg);
+    }
+    else if constexpr (not complex_number<typename MatrixTraits<Arg>::Scalar>)
     {
       return transpose(std::forward<Arg>(arg));
     }
     else if constexpr (self_adjoint_matrix<nested_matrix_t<Arg>>)
     {
-      auto ret = nested_matrix(std::forward<Arg>(arg)).conjugate();
-      static_assert(self_adjoint_matrix<decltype(ret)>);
-      return ret;
+      // Arg is eigen_triangular_expr, but its nested matrix is already self-adjoint.
+      return nested_matrix(std::forward<Arg>(arg));
     }
     else if constexpr (diagonal_matrix<Arg>)
     {
+      // Arg is a complex, diagonal eigen_triangular_expr.
       auto col = make_self_contained<Arg>(diagonal_of(nested_matrix(std::forward<Arg>(arg))).conjugate());
       return DiagonalMatrix<std::decay_t<decltype(col)>> {std::move(col)};
     }
     else
     {
+      // Arg is a complex, non-diagonal eigen_triangular_expr.
+      static_assert(eigen_triangular_expr<Arg>);
       constexpr auto t = lower_triangular_storage<Arg> or lower_triangular_matrix<Arg> ?
         TriangleType::upper : TriangleType::lower;
       return MatrixTraits<Arg>::template make<t>(
@@ -436,18 +504,23 @@ namespace OpenKalman::Eigen3
   constexpr auto
   determinant(Arg&& arg) noexcept
   {
+    if constexpr (dynamic_shape<Arg>)
+      assert(row_count(arg) == column_count(arg));
     return static_cast<typename MatrixTraits<Arg>::Scalar>(0);
   }
 
 
 #ifdef __cpp_concepts
-  template<eigen_constant_expr Arg> requires square_matrix<Arg>
+  template<eigen_constant_expr Arg> requires dynamic_shape<Arg> or square_matrix<Arg>
 #else
-  template<typename Arg, std::enable_if_t<eigen_constant_expr<Arg> and square_matrix<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<eigen_constant_expr<Arg> and
+    (dynamic_shape<Arg> or square_matrix<Arg>), int> = 0>
 #endif
   constexpr auto
   determinant(Arg&& arg) noexcept
   {
+    if constexpr (dynamic_shape<Arg>)
+      assert(row_count(arg) == column_count(arg));
     return static_cast<typename MatrixTraits<Arg>::Scalar>(0);
   }
 
@@ -521,19 +594,22 @@ namespace OpenKalman::Eigen3
   constexpr auto
   trace(Arg&& arg) noexcept
   {
+    if constexpr (dynamic_shape<Arg>) assert(row_count(arg) == column_count(arg));
     return static_cast<typename MatrixTraits<Arg>::Scalar>(0);
   }
 
 
 #ifdef __cpp_concepts
-  template<eigen_constant_expr Arg> requires square_matrix<Arg>
+  template<eigen_constant_expr Arg> requires dynamic_shape<Arg> or square_matrix<Arg>
 #else
-  template<typename Arg, std::enable_if_t<eigen_constant_expr<Arg> and square_matrix<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<eigen_constant_expr<Arg> and
+    (dynamic_shape<Arg> or square_matrix<Arg>), int> = 0>
 #endif
   constexpr auto
   trace(Arg&& arg) noexcept
   {
-    return static_cast<decltype(MatrixTraits<Arg>::constant)>(MatrixTraits<Arg>::constant * MatrixTraits<Arg>::rows);
+    if constexpr (dynamic_shape<Arg>) assert(row_count(arg) == column_count(arg));
+    return static_cast<decltype(MatrixTraits<Arg>::constant)>(MatrixTraits<Arg>::constant * row_count(arg));
   }
 
 
@@ -939,6 +1015,7 @@ namespace OpenKalman::Eigen3
   reduce_columns(Arg&& arg) noexcept
   {
     using Scalar = typename MatrixTraits<Arg>::Scalar;
+
     if constexpr (column_vector<Arg>)
     {
       return std::forward<Arg>(arg);
@@ -964,14 +1041,19 @@ namespace OpenKalman::Eigen3
   constexpr decltype(auto)
   reduce_columns(Arg&& arg) noexcept
   {
+    using Scalar = typename MatrixTraits<Arg>::Scalar;
+    constexpr auto constant = MatrixTraits<Arg>::constant;
+
     if constexpr (column_vector<Arg>)
     {
       return std::forward<Arg>(arg);
     }
+    else if constexpr (dynamic_rows<Arg>)
+    {
+      return ConstantMatrix<Scalar, constant, 0, 1> {row_count(arg)};
+    }
     else
     {
-      using Scalar = typename MatrixTraits<Arg>::Scalar;
-      constexpr auto constant = MatrixTraits<Arg>::constant;
       return ConstantMatrix<Scalar, constant, MatrixTraits<Arg>::rows, 1> {};
     }
   }
@@ -1000,6 +1082,85 @@ namespace OpenKalman::Eigen3
   reduce_columns(Arg&& arg)
   {
     return make_native_matrix(make_native_matrix(std::forward<Arg>(arg)).rowwise().sum() / MatrixTraits<Arg>::rows);
+  }
+
+
+  /// Create a row vector by taking the mean of each column in a set of row vectors.
+#ifdef __cpp_concepts
+  template<eigen_zero_expr Arg>
+#else
+  template<typename Arg, std::enable_if_t<eigen_zero_expr<Arg>, int> = 0>
+#endif
+  constexpr decltype(auto)
+  reduce_rows(Arg&& arg) noexcept
+  {
+    using Scalar = typename MatrixTraits<Arg>::Scalar;
+
+    if constexpr (row_vector<Arg>)
+    {
+      return std::forward<Arg>(arg);
+    }
+    else if constexpr (dynamic_columns<Arg>)
+    {
+      return ZeroMatrix<Scalar, 1, 0> {column_count(arg)};
+    }
+    else
+    {
+      return ZeroMatrix<Scalar, 1, MatrixTraits<Arg>::columns> {};
+    }
+  }
+
+
+  /// Create a row vector by taking the mean of each column in a set of row vectors.
+#ifdef __cpp_concepts
+  template<eigen_constant_expr Arg>
+#else
+  template<typename Arg, std::enable_if_t<eigen_constant_expr<Arg>, int> = 0>
+#endif
+  constexpr decltype(auto)
+  reduce_rows(Arg&& arg) noexcept
+  {
+    using Scalar = typename MatrixTraits<Arg>::Scalar;
+    constexpr auto constant = MatrixTraits<Arg>::constant;
+
+    if constexpr (row_vector<Arg>)
+    {
+      return std::forward<Arg>(arg);
+    }
+    else if constexpr (dynamic_columns<Arg>)
+    {
+      return ConstantMatrix<Scalar, constant, 1, 0> {column_count(arg)};
+    }
+    else
+    {
+      return ConstantMatrix<Scalar, constant, 1, MatrixTraits<Arg>::columns> {};
+    }
+  }
+
+
+  /// Create a row vector from a diagonal matrix. (Same as nested_matrix()).
+#ifdef __cpp_concepts
+  template<eigen_diagonal_expr Arg>
+#else
+  template<typename Arg, std::enable_if_t<eigen_diagonal_expr<Arg>, int> = 0>
+#endif
+  constexpr decltype(auto)
+  reduce_rows(Arg&& arg) noexcept
+  {
+    return nested_matrix(std::forward<Arg>(arg));
+  }
+
+
+#ifdef __cpp_concepts
+  template<typename Arg> requires eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>
+#else
+  template<typename Arg,
+      std::enable_if_t<eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>, int> = 0>
+#endif
+  constexpr auto
+  reduce_rows(Arg&& arg)
+  {
+    return make_native_matrix(make_native_matrix(std::forward<Arg>(arg)).colwise().sum() / column_count(arg));
   }
 
 
@@ -1043,11 +1204,35 @@ namespace OpenKalman::Eigen3
   {
     using Scalar = typename MatrixTraits<A>::Scalar;
     constexpr auto constant = MatrixTraits<A>::constant;
-    constexpr auto dim = MatrixTraits<A>::rows;
-    Scalar elem = constant * OpenKalman::internal::constexpr_sqrt(Scalar {MatrixTraits<A>::columns});
-    auto col1 = Eigen3::eigen_matrix_t<Scalar, dim, 1>::Constant(elem);
-    ConstantMatrix<Scalar, 0, dim, dim - 1> othercols;
-    return concatenate_horizontal(col1, othercols);
+
+    const Scalar elem = constant * (
+      dynamic_columns<A> ?
+      std::sqrt((Scalar) column_count(a)) :
+      OpenKalman::internal::constexpr_sqrt((Scalar) MatrixTraits<A>::columns));
+
+    if constexpr (dynamic_rows<A>)
+    {
+      auto dim = row_count(a);
+      auto col1 = Eigen3::eigen_matrix_t<Scalar, 0, 1>::Constant(dim, elem);
+
+      eigen_matrix_t<Scalar, 0, 0> ret {dim, dim};
+
+      if (dim == 1)
+        ret = std::move(col1);
+      else
+        ret = concatenate_horizontal(std::move(col1), ZeroMatrix<Scalar, 0, 0> {dim, dim - 1});
+      return ret;
+    }
+    else
+    {
+      constexpr auto dim = MatrixTraits<A>::rows;
+      auto col1 = Eigen3::eigen_matrix_t<Scalar, dim, 1>::Constant(elem);
+
+      if constexpr (dim > 1)
+        return concatenate_horizontal(col1, ZeroMatrix<Scalar, dim, dim - 1> {});
+      else
+        return col1;
+    }
   }
 
 
@@ -1109,11 +1294,42 @@ namespace OpenKalman::Eigen3
   {
     using Scalar = typename MatrixTraits<A>::Scalar;
     constexpr auto constant = MatrixTraits<A>::constant;
-    constexpr auto dim = MatrixTraits<A>::columns;
-    Scalar elem = constant * OpenKalman::internal::constexpr_sqrt(Scalar {MatrixTraits<A>::rows});
-    auto row1 = Eigen3::eigen_matrix_t<Scalar, 1, dim>::Constant(elem);
-    ConstantMatrix<Scalar, 0, dim - 1, dim> otherrows;
-    return concatenate_vertical(row1, otherrows);
+
+    const Scalar elem = constant * (
+      dynamic_rows<A> ?
+      std::sqrt((Scalar) row_count(a)) :
+      OpenKalman::internal::constexpr_sqrt((Scalar) MatrixTraits<A>::rows));
+
+    if constexpr (dynamic_columns<A>)
+    {
+      auto dim = column_count(a);
+      auto row1 = Eigen3::eigen_matrix_t<Scalar, 1, 0>::Constant(dim, elem);
+
+      eigen_matrix_t<Scalar, 0, 0> ret {dim, dim};
+
+      if (dim == 1)
+      {
+        ret = std::move(row1);
+      }
+      else
+      {
+        ret = concatenate_vertical(std::move(row1), ZeroMatrix<Scalar, 0, 0> {dim - 1, dim});
+      }
+      return ret;
+    }
+    else
+    {
+      constexpr auto dim = MatrixTraits<A>::columns;
+      auto row1 = Eigen3::eigen_matrix_t<Scalar, 1, dim>::Constant(elem);
+      if constexpr (dim > 1)
+      {
+        return concatenate_vertical(row1, ZeroMatrix<Scalar, dim - 1, dim> {});
+      }
+      else
+      {
+        return row1;
+      }
+    }
   }
 
 
@@ -1401,7 +1617,7 @@ namespace OpenKalman::Eigen3
   }
 
 
-  /// Get an element of a ZeroMatrix matrix. Always 0.
+  /// Get an element of a ZeroMatrix. Always 0.
 #ifdef __cpp_concepts
   template<eigen_zero_expr Arg>
 #else
@@ -1416,7 +1632,7 @@ namespace OpenKalman::Eigen3
   }
 
 
-  /// Get an element of a one-column ZeroMatrix matrix. Always 0.
+  /// Get an element of a one-column ZeroMatrix. Always 0.
 #ifdef __cpp_concepts
   template<eigen_zero_expr Arg> requires column_vector<Arg>
 #else
@@ -1430,31 +1646,31 @@ namespace OpenKalman::Eigen3
   }
 
 
-  /// Get an element of a ZeroMatrix matrix. Always 0.
+  /// Get an element of a ConstantMatrix. Always the constant.
 #ifdef __cpp_concepts
   template<eigen_constant_expr Arg>
 #else
   template<typename Arg, std::enable_if_t<eigen_constant_expr<Arg>, int> = 0>
 #endif
   constexpr auto
-  get_element(const Arg&, const std::size_t row, const std::size_t col)
+  get_element(const Arg& arg, const std::size_t row, const std::size_t col)
   {
-    assert(row < MatrixTraits<Arg>::rows);
-    assert(col < MatrixTraits<Arg>::columns);
+    assert(row < row_count(arg));
+    assert(col < column_count(arg));
     return MatrixTraits<Arg>::constant;
   }
 
 
-  /// Get an element of a one-column ZeroMatrix matrix. Always 0.
+  /// Get an element of a one-column ConstantMatrix. Always the constant.
 #ifdef __cpp_concepts
   template<eigen_constant_expr Arg> requires column_vector<Arg>
 #else
   template<typename Arg, std::enable_if_t<eigen_constant_expr<Arg> and column_vector<Arg>, int> = 0>
 #endif
   constexpr auto
-  get_element(const Arg&, const std::size_t row)
+  get_element(const Arg& arg, const std::size_t row)
   {
-    assert(row < MatrixTraits<Arg>::rows);
+    assert(row < row_count(arg));
     return MatrixTraits<Arg>::constant;
   }
 
@@ -1768,8 +1984,8 @@ namespace OpenKalman::Eigen3
   inline auto
   column(Arg&& arg, const std::size_t index)
   {
-  assert(index < column_count(arg));
-  return reduce_columns(std::forward<Arg>(arg));
+    assert(index < column_count(arg));
+    return reduce_columns(std::forward<Arg>(arg));
   }
 
 
@@ -1800,7 +2016,7 @@ namespace OpenKalman::Eigen3
   inline auto
   column(Arg&& arg, const std::size_t index)
   {
-    assert(index < MatrixTraits<Arg>::columns);
+    assert(index < column_count(arg));
     return reduce_columns(std::forward<Arg>(arg));
   }
 
@@ -1849,6 +2065,96 @@ namespace OpenKalman::Eigen3
   }
 
 
+  /// Return row <code>index</code> of Arg.
+#ifdef __cpp_concepts
+  template<eigen_zero_expr Arg>
+#else
+  template<typename Arg, std::enable_if_t<eigen_zero_expr<Arg>, int> = 0>
+#endif
+  inline auto
+  row(Arg&& arg, const std::size_t index)
+  {
+    assert(index < row_count(arg));
+    return reduce_rows(std::forward<Arg>(arg));
+  }
+
+
+  /// Return row <code>index</code> of Arg. Constexpr index version.
+#ifdef __cpp_concepts
+  template<std::size_t index, eigen_zero_expr Arg> requires (not dynamic_rows<Arg>) and
+    (index < MatrixTraits<Arg>::rows)
+#else
+  template<std::size_t index, typename Arg, std::enable_if_t<
+    eigen_zero_expr<Arg> and (not dynamic_rows<Arg>) and (index < MatrixTraits<Arg>::rows), int> = 0>
+#endif
+  inline decltype(auto)
+  row(Arg&& arg)
+  {
+    if constexpr(row_vector<Arg>)
+      return std::forward<Arg>(arg);
+    else
+      return reduce_rows(std::forward<Arg>(arg));
+  }
+
+
+  /// Return row <code>index</code> of Arg.
+#ifdef __cpp_concepts
+  template<eigen_constant_expr Arg>
+#else
+  template<typename Arg, std::enable_if_t<eigen_constant_expr<Arg>, int> = 0>
+#endif
+  inline auto
+  row(Arg&& arg, const std::size_t index)
+  {
+    assert(index < row_count(arg));
+    return reduce_rows(std::forward<Arg>(arg));
+  }
+
+
+  /// Return row <code>index</code> of Arg. Constexpr index version.
+#ifdef __cpp_concepts
+  template<std::size_t index, eigen_constant_expr Arg> requires (index < MatrixTraits<Arg>::rows)
+#else
+  template<std::size_t index, typename Arg, std::enable_if_t<
+      eigen_constant_expr<Arg> and (index < MatrixTraits<Arg>::rows), int> = 0>
+#endif
+  inline decltype(auto)
+  row(Arg&& arg)
+  {
+    return reduce_rows(std::forward<Arg>(arg));
+  }
+
+
+  /// Return row <code>index</code> of Arg.
+#ifdef __cpp_concepts
+  template<typename Arg> requires eigen_self_adjoint_expr<Arg> or
+    eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>
+#else
+  template<typename Arg, std::enable_if_t<eigen_self_adjoint_expr<Arg> or
+      eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>, int> = 0>
+#endif
+  inline auto
+  row(Arg&& arg, const std::size_t index)
+  {
+    return row(make_native_matrix(std::forward<Arg>(arg)), index);
+  }
+
+
+  /// Return row <code>index</code> of Arg. Constexpr index version.
+#ifdef __cpp_concepts
+  template<std::size_t index, typename Arg> requires (eigen_self_adjoint_expr<Arg> or
+    eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>) and (index < MatrixTraits<Arg>::rows)
+#else
+  template<std::size_t index, typename Arg, std::enable_if_t<(eigen_self_adjoint_expr<Arg> or
+      eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>) and (index < MatrixTraits<Arg>::rows), int> = 0>
+#endif
+  inline decltype(auto)
+  row(Arg&& arg)
+  {
+    return row<index>(make_native_matrix(std::forward<Arg>(arg)));
+  }
+
+
 #ifdef __cpp_concepts
   template<typename Arg, typename Function> requires
     (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>) and
@@ -1862,6 +2168,22 @@ namespace OpenKalman::Eigen3
   apply_columnwise(Arg&& arg, const Function& f)
   {
     return apply_columnwise(make_native_matrix(std::forward<Arg>(arg)), f);
+  }
+
+
+#ifdef __cpp_concepts
+  template<typename Arg, typename Function> requires
+  (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>) and
+    (requires(Arg&& arg, const Function& f) { {f(row(arg, 0))} -> row_vector; } or
+      requires(Arg&& arg, const Function& f, std::size_t i) { {f(row(arg, 0), i)} -> row_vector; })
+#else
+  template<typename Arg, typename Function, std::enable_if_t<eigen_self_adjoint_expr<Arg> or
+      eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>, int> = 0>
+#endif
+  inline auto
+  apply_rowwise(Arg&& arg, const Function& f)
+  {
+    return apply_rowwise(make_native_matrix(std::forward<Arg>(arg)), f);
   }
 
 
@@ -1901,35 +2223,71 @@ namespace OpenKalman::Eigen3
 
 
   /**
-   * \brief Fill the diagonal of a square matrix with random values selected from a random distribution.
-   * \details The Gaussian distribution has zero mean and standard deviation sigma (1, if not specified).
+   * \brief Fill a fixed diagonal matrix with random values selected from one or more random distributions.
+   * \details The following example constructs 2-by-2 diagonal matrices in which each diagonal element is
+   * a random value selected as indicated:
+   *   \code
+   *     using N = std::normal_distribution<double>;
+   *     using D2 = DiagonalMatrix<eigen_matrix_t<double, 2, 1>>;
+   *     D2 m = randomize<D2>(N {1.0, 0.3})); // Both diagonal elements have mean 1.0, s.d. 0.3
+   *     D2 n = randomize<D2>(N {1.0, 0.3}, N {2.0, 0.2})); // Second diagonal element has mean 2.0, s.d. 0.2.
+   *     D2 p = randomize<D2>(N {1.0, 0.3}, 2.0)); // Second diagonal element is exactly 2.0
+   *   \endcode
+   * \tparam ReturnType The type of the matrix to be filled.
+   * \tparam random_number_engine The random number engine (e.g., std::mt19937).
+   * \tparam Dists A set of distributions (e.g., std::normal_distribution<double>) or, alternatively,
+   * means (a definite, non-stochastic value).
    **/
 #ifdef __cpp_concepts
-  template<
-    eigen_diagonal_expr ReturnType,
-    template<typename Scalar> typename distribution_type = std::normal_distribution,
-    std::uniform_random_bit_generator random_number_engine = std::mt19937,
-    typename...Params>
+  template<eigen_diagonal_expr ReturnType,
+    std::uniform_random_bit_generator random_number_engine = std::mt19937, typename...Dists>
+  requires (not dynamic_shape<ReturnType>)
 #else
-  template<
-    typename ReturnType,
-    template<typename Scalar> typename distribution_type = std::normal_distribution,
-    typename random_number_engine = std::mt19937,
-    typename...Params,
-    std::enable_if_t<eigen_diagonal_expr<ReturnType>, int> = 0>
+  template<typename ReturnType, typename random_number_engine = std::mt19937, typename...Dists,
+    std::enable_if_t<eigen_diagonal_expr<ReturnType> and (not dynamic_shape<ReturnType>), int> = 0>
 #endif
   inline auto
-  randomize(Params...params)
+  randomize(Dists&&...dists)
   {
-    using Scalar = typename MatrixTraits<ReturnType>::Scalar;
     using B = nested_matrix_t<ReturnType>;
-    constexpr auto rows = MatrixTraits<B>::rows;
-    constexpr auto cols = MatrixTraits<B>::columns;
-    using Ps = typename distribution_type<Scalar>::param_type;
-    static_assert(std::is_constructible_v<Ps, Params...> or sizeof...(Params) == rows or sizeof...(Params) == rows * cols,
-      "Params... must be (1) a parameter set or list of parameter sets, or "
-      "(2) a list of parameter sets, one for each diagonal coefficient.");
-    return MatrixTraits<ReturnType>::make(randomize<B, distribution_type, random_number_engine>(params...));
+    return MatrixTraits<ReturnType>::make(randomize<B, random_number_engine>(std::forward<Dists>(dists)...));
+  }
+
+
+  /**
+   * \overload
+   * \brief Fill a dynamic-shape Eigen matrix with random values selected from a single random distribution.
+   * \details The following example constructs matrices (m, and n) in which each element is a
+   * random value selected based on a distribution with mean 1.0 and standard deviation 0.3:
+   *   \code
+   *     using D0 = DiagonalMatrix<eigen_matrix_t<double, 0, 1>>;
+   *     auto m = randomize(D0, 2, 2, std::normal_distribution<double> {1.0, 0.3})); // constructs a 2-by-2 matrix
+   *     auto n = randomize(D0, 3, 3, std::normal_distribution<double> {1.0, 0.3}); // constructs a 3-by-2 matrix
+   *   \endcode
+   * \tparam ReturnType The type of the matrix to be filled.
+   * \tparam random_number_engine The random number engine (e.g., std::mt19937).
+   * \param rows Number of rows, decided at runtime.
+   * \param columns Number of columns, decided at runtime. Columns must equal rows.
+   * \tparam Dist A distribution (type distribution_type).
+   **/
+#ifdef __cpp_concepts
+  template<eigen_diagonal_expr ReturnType,
+    std::uniform_random_bit_generator random_number_engine = std::mt19937, typename Dist>
+  requires
+    dynamic_shape<ReturnType> and
+    requires { typename std::decay_t<Dist>::result_type; typename std::decay_t<Dist>::param_type; } and
+    (not std::is_const_v<std::remove_reference_t<Dist>>)
+#else
+  template<typename ReturnType, typename random_number_engine = std::mt19937, typename Dist, std::enable_if_t<
+    eigen_diagonal_expr<ReturnType> and dynamic_shape<ReturnType> and
+    (not std::is_const_v<std::remove_reference_t<Dist>>), int> = 0>
+#endif
+  inline auto
+  randomize(const std::size_t rows, const std::size_t columns, Dist&& dist)
+  {
+    assert(rows == columns);
+    using B = nested_matrix_t<ReturnType>;
+    return MatrixTraits<ReturnType>::make(randomize<B, random_number_engine>(rows, 1, std::forward<Dist>(dist)));
   }
 
 

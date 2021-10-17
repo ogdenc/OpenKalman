@@ -130,12 +130,12 @@ namespace OpenKalman
     // -------------------- //
 
 #ifdef __cpp_concepts
-    template<typed_matrix T> requires
+    template<typed_matrix T> requires (not dynamic_shape<T>) and
       equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>
     struct is_square_matrix<T> : std::true_type {};
 #else
     template<typename T>
-    struct is_square_matrix<T, std::enable_if_t<typed_matrix<T> and
+    struct is_square_matrix<T, std::enable_if_t<typed_matrix<T> and (not dynamic_shape<T>) and
       equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>>>
       : std::true_type {};
 #endif
@@ -152,12 +152,13 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<typename T> requires (not typed_matrix<T>) and (not covariance<T>) and
+    template<typename T> requires (not typed_matrix<T>) and (not covariance<T>) and (not dynamic_shape<T>) and
       (MatrixTraits<T>::rows == MatrixTraits<T>::columns)
     struct is_square_matrix<T> : std::true_type {};
 #else
     template<typename T>
-    struct is_square_matrix<T, std::enable_if_t<(not typed_matrix<T>) and (not covariance<T>) and
+    struct is_square_matrix<T, std::enable_if_t<
+      (not typed_matrix<T>) and (not covariance<T>) and (not dynamic_shape<T>) and
       (MatrixTraits<T>::rows == MatrixTraits<T>::columns)>> : std::true_type {};
 #endif
 

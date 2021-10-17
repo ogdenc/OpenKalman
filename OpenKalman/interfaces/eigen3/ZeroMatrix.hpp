@@ -20,220 +20,26 @@
 
 namespace OpenKalman::Eigen3
 {
-
-  namespace detail
-  {
-
-#ifdef __cpp_concepts
-    template<typename Derived, typename Scalar, std::size_t rows, std::size_t columns>
-#else
-    template<typename Derived, typename Scalar, std::size_t rows, std::size_t columns, typename = void>
-#endif
-    struct ZeroMatrixDynamicBase {};
-
-
-    /*
-     * Dynamic rows and Dynamic columns
-     */
-    template<typename Derived, typename Scalar>
-    struct ZeroMatrixDynamicBase<Derived, Scalar, 0, 0> : Eigen3::internal::Eigen3Base<Derived>
-    {
-
-    private:
-
-      const std::size_t rows_;
-      const std::size_t cols_;
-
-    public:
-
-      /*
-       * \brief Construct a ZeroMatrix with dynamic rows and dynamic columns.
-       * \param r Number of rows.
-       * \param c Number of columns.
-       */
-      ZeroMatrixDynamicBase(std::size_t r, std::size_t c) : rows_ {r}, cols_ {c} {}
-
-
-      /*
-       * \brief Construct a ZeroMatrix based on the shape of another matrix M.
-       * \details This is designed to work with the ZeroMatrix deduction guide.
-       * \tparam M The matrix to be used as a shape template. M must have the same shape as the ZeroMatrix.
-       */
-#ifdef __cpp_concepts
-      template<typename M> requires (MatrixTraits<M>::rows == 0) and (MatrixTraits<M>::columns == 0)
-#else
-      template<typename M, std::enable_if_t<(MatrixTraits<M>::rows == 0) and (MatrixTraits<M>::columns == 0), int> = 0>
-#endif
-      ZeroMatrixDynamicBase(M&& m) : rows_ {m.rows()}, cols_ {m.cols()} {}
-
-
-      /// \internal \return The number of fixed rows. \note Required by Eigen::EigenBase.
-      Eigen::Index rows() const { return rows_; }
-
-
-      /// \internal \return The number of fixed columns. \note Required by Eigen::EigenBase.
-      Eigen::Index cols() const { return cols_; }
-
-    };
-
-
-    /*
-     * Dynamic rows and fixed columns
-     */
-    template<typename Derived, typename Scalar, std::size_t columns>
-#ifdef __cpp_concepts
-      requires (columns > 0)
-    struct ZeroMatrixDynamicBase<Derived, Scalar, 0, columns>
-#else
-    struct ZeroMatrixDynamicBase<Derived, Scalar, 0, columns, std::enable_if_t<(columns > 0)>>
-#endif
-      : Eigen3::internal::Eigen3Base<Derived>
-    {
-
-    private:
-
-      const std::size_t rows_;
-
-    public:
-
-      /*
-       * \brief Construct a ZeroMatrix with dynamic rows and dynamic columns.
-       * \param r Number of rows.
-       */
-      ZeroMatrixDynamicBase(std::size_t r) : rows_ {r} {}
-
-
-      /*
-       * \brief Construct a ZeroMatrix based on the shape of another matrix M.
-       * \details This is designed to work with the ZeroMatrix deduction guide.
-       * \tparam M The matrix to be used as a shape template. M must have the same shape as the ZeroMatrix.
-       */
-#ifdef __cpp_concepts
-      template<typename M> requires dynamic_rows<M> and (MatrixTraits<M>::columns == columns)
-#else
-      template<typename M, std::enable_if_t<dynamic_rows<M> and (MatrixTraits<M>::columns == columns), int> = 0>
-#endif
-      ZeroMatrixDynamicBase(M&& m) : rows_ {m.rows()} {}
-
-
-      /// \internal \return The number of fixed rows. \note Required by Eigen::EigenBase.
-      Eigen::Index rows() const { return rows_; }
-
-
-      /// \internal \return The number of fixed columns. \note Required by Eigen::EigenBase.
-      static constexpr Eigen::Index cols() { return columns; }
-
-    };
-
-
-    /*
-     * Fixed rows and dynamic columns
-     */
-    template<typename Derived, typename Scalar, std::size_t rows_>
-#ifdef __cpp_concepts
-      requires (rows_ > 0)
-    struct ZeroMatrixDynamicBase<Derived, Scalar, rows_, 0>
-#else
-      struct ZeroMatrixDynamicBase<Derived, Scalar, rows_, 0, std::enable_if_t<(rows_ > 0)>>
-#endif
-      : Eigen3::internal::Eigen3Base<Derived>
-    {
-
-    private:
-
-      const std::size_t cols_;
-
-    public:
-
-      /*
-       * \brief Construct a ZeroMatrix with dynamic rows and dynamic columns.
-       * \param c Number of columns.
-       */
-      ZeroMatrixDynamicBase(std::size_t c) : cols_ {c} {}
-
-
-      /*
-       * \brief Construct a ZeroMatrix based on the shape of another matrix M.
-       * \details This is designed to work with the ZeroMatrix deduction guide.
-       * \tparam M The matrix to be used as a shape template. M must have the same shape as the ZeroMatrix.
-       */
-#ifdef __cpp_concepts
-      template<typename M> requires (MatrixTraits<M>::rows == rows_) and dynamic_columns<M>
-#else
-      template<typename M, std::enable_if_t<(MatrixTraits<M>::rows == rows_) and dynamic_columns<M>, int> = 0>
-#endif
-      ZeroMatrixDynamicBase(M&& m) : cols_ {m.cols()} {}
-
-
-      /// \internal \return The number of fixed rows. \note Required by Eigen::EigenBase.
-      static constexpr Eigen::Index rows() { return rows_; }
-
-
-      /// \internal \return The number of fixed columns. \note Required by Eigen::EigenBase.
-      Eigen::Index cols() const { return cols_; }
-
-    };
-
-
-    /*
-     * Fixed rows and fixed columns
-     */
-    template<typename Derived, typename Scalar, std::size_t rows_, std::size_t columns>
-#ifdef __cpp_concepts
-    requires (rows_ > 0) and (columns > 0)
-    struct ZeroMatrixDynamicBase<Derived, Scalar, rows_, columns>
-#else
-    struct ZeroMatrixDynamicBase<Derived, Scalar, rows_, columns, std::enable_if_t<(rows_ > 0) and (columns > 0)>>
-#endif
-      : Eigen3::internal::Eigen3Base<Derived>
-    {
-
-      /*
-       * \brief Default constructor.
-       */
-      ZeroMatrixDynamicBase() {};
-
-
-      /*
-       * \brief Construct a ZeroMatrix based on the shape of another matrix M.
-       * \details This is designed to work with the ZeroMatrix deduction guide.
-       * \tparam M The matrix to be used as a shape template. M must have the same shape as the ZeroMatrix.
-       */
-#ifdef __cpp_concepts
-      template<typename M> requires (MatrixTraits<M>::rows == rows_) and (MatrixTraits<M>::columns == columns)
-#else
-      template<typename M, std::enable_if_t<
-        (MatrixTraits<M>::rows == rows_) and (MatrixTraits<M>::columns == columns), int> = 0>
-#endif
-      ZeroMatrixDynamicBase(M&& m) {}
-
-
-      /// \internal \return The number of fixed rows. \note Required by Eigen::EigenBase.
-      static constexpr Eigen::Index rows() { return rows_; }
-
-
-      /// \internal \return The number of fixed columns. \note Required by Eigen::EigenBase.
-      static constexpr Eigen::Index cols() { return columns; }
-
-    };
-
-  } // namespace detail
-
-
   // ------------ //
   //  ZeroMatrix  //
   // ------------ //
 
   // ZeroMatrix is declared in eigen3-forward-declarations.hpp.
-  template<typename Scalar, std::size_t rows, std::size_t columns>
-  struct ZeroMatrix : detail::ZeroMatrixDynamicBase<ZeroMatrix<Scalar, rows, columns>, Scalar, rows, columns>
+
+  template<typename Scalar, std::size_t rows_, std::size_t columns>
+  struct ZeroMatrix : Eigen3::internal::Eigen3Base<ZeroMatrix<Scalar, rows_, columns>>,
+    Eigen3::internal::EigenDynamicBase<Scalar, rows_, columns>
   {
 
   private:
 
-    using Base = detail::ZeroMatrixDynamicBase<ZeroMatrix, Scalar, rows, columns>;
+    using Base = Eigen3::internal::EigenDynamicBase<Scalar, rows_, columns>;
 
   public:
+
+    using Base::rows;
+
+    using Base::cols;
 
     /**
      * \brief Construct a ZeroMatrix.
@@ -244,10 +50,10 @@ namespace OpenKalman::Eigen3
      */
 #ifdef __cpp_concepts
     template<std::convertible_to<std::size_t> ... Args> requires
-      (sizeof...(Args) == (rows == 0 ? 1 : 0) + (columns == 0 ? 1 : 0))
+      (sizeof...(Args) == (rows_ == 0 ? 1 : 0) + (columns == 0 ? 1 : 0))
 #else
     template<typename...Args, std::enable_if_t<(std::is_convertible_v<Args, std::size_t> and ...) and
-      (sizeof...(Args) == (rows == 0 ? 1 : 0) + (columns == 0 ? 1 : 0)), int> = 0>
+      (sizeof...(Args) == (rows_ == 0 ? 1 : 0) + (columns == 0 ? 1 : 0)), int> = 0>
 #endif
     ZeroMatrix(const Args...args) : Base {static_cast<std::size_t>(args)...} {}
 
@@ -257,10 +63,10 @@ namespace OpenKalman::Eigen3
      * \tparam M The matrix to be used as a shape template. M must have the same shape as the ZeroMatrix.
      */
 #ifdef __cpp_concepts
-    template<typename M> requires (MatrixTraits<M>::rows == rows) and (MatrixTraits<M>::columns == columns)
+    template<typename M> requires (MatrixTraits<M>::rows == rows_) and (MatrixTraits<M>::columns == columns)
 #else
     template<typename M, std::enable_if_t<
-      (MatrixTraits<M>::rows == rows) and (MatrixTraits<M>::columns == columns), int> = 0>
+      (MatrixTraits<M>::rows == rows_) and (MatrixTraits<M>::columns == columns), int> = 0>
 #endif
     ZeroMatrix(M&& m) : Base {std::forward<M>(m)} {}
 
@@ -273,8 +79,8 @@ namespace OpenKalman::Eigen3
      */
     constexpr Scalar operator()(std::size_t r, std::size_t c) const
     {
-      assert(Eigen::Index(r) < this->rows());
-      assert(Eigen::Index(c) < this->cols());
+      assert(Eigen::Index(r) < rows());
+      assert(Eigen::Index(c) < cols());
       return 0;
     }
 
@@ -285,14 +91,14 @@ namespace OpenKalman::Eigen3
      * \return The element at row or column i (always zero of type Scalar).
      */
 #ifdef __cpp_concepts
-    constexpr Scalar operator[](std::size_t i) const requires (rows == 1) or (columns == 1)
+    constexpr Scalar operator[](std::size_t i) const requires (rows_ == 1) or (columns == 1)
 #else
-    template<std::size_t rows_ = rows, std::enable_if_t<(rows_ == 1) or (columns == 1), int> = 0>
+    template<std::size_t r = rows_, std::enable_if_t<(r == 1) or (columns == 1), int> = 0>
       constexpr Scalar operator[](std::size_t i) const
 #endif
     {
-      assert(rows == 1 or Eigen::Index(i) < this->rows());
-      assert(columns == 1 or Eigen::Index(i) < this->cols());
+      assert(rows_ == 1 or Eigen::Index(i) < rows());
+      assert(columns == 1 or Eigen::Index(i) < cols());
       return 0;
     }
 
@@ -303,19 +109,19 @@ namespace OpenKalman::Eigen3
      * \return The element at row or column i (always zero of type Scalar).
      */
 #ifdef __cpp_concepts
-    constexpr Scalar operator()(std::size_t i) const requires (rows == 1) or (columns == 1)
+    constexpr Scalar operator()(std::size_t i) const requires (rows_ == 1) or (columns == 1)
 #else
-    template<std::size_t rows_ = rows, std::enable_if_t<(rows_ == 1) or (columns == 1), int> = 0>
+    template<std::size_t r = rows_, std::enable_if_t<(r == 1) or (columns == 1), int> = 0>
       constexpr Scalar operator()(std::size_t i) const
 #endif
     {
-      assert(rows == 1 or Eigen::Index(i) < this->rows());
-      assert(columns == 1 or Eigen::Index(i) < this->cols());
+      assert(rows_ == 1 or Eigen::Index(i) < rows());
+      assert(columns == 1 or Eigen::Index(i) < cols());
       return 0;
     }
 
 
-    /// \internal \note Required by Eigen 3 for this to be used in an Eigen::CwiseBinaryOp.
+    /// \internal \note Eigen 3 requires this for it to be used in an Eigen::CwiseBinaryOp.
     using Nested = ZeroMatrix;
 
   };

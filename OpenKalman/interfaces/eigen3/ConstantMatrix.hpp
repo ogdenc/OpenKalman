@@ -25,25 +25,41 @@ namespace OpenKalman::Eigen3
 
   template<typename Scalar, auto constant, std::size_t rows_, std::size_t columns>
 #ifdef __cpp_concepts
-    requires (rows_ > 0) and (columns > 0) and std::is_arithmetic_v<Scalar>
+    requires std::is_arithmetic_v<Scalar>
 #endif
-  struct ConstantMatrix : Eigen3::internal::Eigen3Base<ConstantMatrix<Scalar, constant, rows_, columns>>
+  struct ConstantMatrix : Eigen3::internal::Eigen3Base<ConstantMatrix<Scalar, constant, rows_, columns>>,
+    Eigen3::internal::EigenDynamicBase<Scalar, rows_, columns>
   {
 
   private:
 
 #ifndef __cpp_concepts
-    static_assert((rows_ > 0) and (columns > 0) and std::is_arithmetic_v<Scalar>);
+    static_assert(std::is_arithmetic_v<Scalar>);
 #endif
 
-    /// \todo: Add constructors for a dynamically-sized ConstantMatrix
+    using Base = Eigen3::internal::EigenDynamicBase<Scalar, rows_, columns>;
 
   public:
 
+    using Base::rows;
+
+    using Base::cols;
+
     /**
-     * \brief Default constructor.
+     * \brief Construct a ConstantMatrix.
+     * \details The constructor can take a number of arguments representing the number of dynamic dimensions.
+     * For example, ConstantMatrix {2, 3} constructs a 2-by-3 dynamic matrix, ConstantMatrix {3} constructs a
+     * 2-by-3 matrix in which there are two fixed row dimensions and three dynamic column dimensions, and
+     * ConstantMatrix {} constructs a fixed matrix.
      */
-    ConstantMatrix() {}
+#ifdef __cpp_concepts
+    template<std::convertible_to<std::size_t> ... Args> requires
+    (sizeof...(Args) == (rows_ == 0 ? 1 : 0) + (columns == 0 ? 1 : 0))
+#else
+    template<typename...Args, std::enable_if_t<(std::is_convertible_v<Args, std::size_t> and ...) and
+      (sizeof...(Args) == (rows_ == 0 ? 1 : 0) + (columns == 0 ? 1 : 0)), int> = 0>
+#endif
+    ConstantMatrix(const Args...args) : Base {static_cast<std::size_t>(args)...} {}
 
 
     /**
@@ -55,8 +71,8 @@ namespace OpenKalman::Eigen3
      */
     constexpr Scalar operator()(std::size_t r, std::size_t c) const
     {
-      assert(r < rows_);
-      assert(c < columns);
+      assert(Eigen::Index(r) < this->rows());
+      assert(Eigen::Index(c) < this->cols());
       return constant;
     }
 
@@ -73,8 +89,8 @@ namespace OpenKalman::Eigen3
     constexpr Scalar operator[](std::size_t i) const
 #endif
     {
-      assert(rows_ == 1 or i < rows_);
-      assert(columns == 1 or i < columns);
+      assert(rows_ == 1 or Eigen::Index(i) < this->rows());
+      assert(columns == 1 or Eigen::Index(i) < this->cols());
       return constant;
     }
 
@@ -91,10 +107,14 @@ namespace OpenKalman::Eigen3
     constexpr Scalar operator()(std::size_t i) const
 #endif
     {
-      assert(rows_ == 1 or i < rows_);
-      assert(columns == 1 or i < columns);
+      assert(rows_ == 1 or Eigen::Index(i) < this->rows());
+      assert(columns == 1 or Eigen::Index(i) < this->cols());
       return constant;
     }
+
+
+    /// \internal \note Eigen 3 requires this for it to be used in an Eigen::CwiseBinaryOp.
+    using Nested = ConstantMatrix;
 
   };
 

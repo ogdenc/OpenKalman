@@ -173,16 +173,17 @@ TEST(eigen3, FromEuclideanExpr_overloads)
     make_native_matrix<double, 2, 1>(5, pi*5/6)),
     make_native_matrix<double, 2, 1>(1, 2)));
   EXPECT_TRUE(is_near(reduce_columns(From4 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), make_native_matrix<double, 3, 1>(1.5, pi/4, 3.5)));
+  EXPECT_TRUE(is_near(reduce_rows(From4 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), make_native_matrix<double, 1, 2>(4./3 + pi/18, 2 + pi/9)));
   EXPECT_TRUE(is_near(LQ_decomposition(From3 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2}),
     LQ_decomposition(make_native_matrix<double, 2, 2>(1, 2, pi/6, pi/3))));
   EXPECT_TRUE(is_near(QR_decomposition(From3 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2}),
     QR_decomposition(make_native_matrix<double, 2, 2>(1, 2, pi/6, pi/3))));
 
-  using N = std::normal_distribution<double>::param_type;
+  using N = std::normal_distribution<double>;
   auto m = make_native_matrix(MatrixTraits<eigen_matrix_t<double, 4, 2>>::zero());
   for (int i=0; i<100; i++)
   {
-    m = (m * i + to_euclidean(randomize<From4>(1.0, 0.3))) / (i + 1);
+    m = (m * i + to_euclidean(randomize<From4>(N {1.0, 0.3}))) / (i + 1);
   }
   auto offset = eigen_matrix_t<double, 4, 2>::Constant(1);
   EXPECT_TRUE(is_near(m, offset, 0.1));
@@ -334,7 +335,20 @@ TEST(eigen3, FromEuclideanExpr_blocks)
       std::sqrt(3)/2, 0.5, std::sqrt(2)/2,
       0.5, std::sqrt(3)/2, std::sqrt(2)/2}),
     make_native_matrix<double, 2, 1>(2, pi/3)));
-  //
+
+  EXPECT_TRUE(is_near(row(
+    FromEuclideanExpr<Coefficients<Axis, angle::Radians>, eigen_matrix_t<double, 3, 3>> {
+      1, 2, 3,
+      std::sqrt(3)/2, 0.5, std::sqrt(2)/2,
+      0.5, std::sqrt(3)/2, std::sqrt(2)/2}, 1),
+    make_native_matrix<double, 1, 3>(pi/6, pi/3, pi/4)));
+  EXPECT_TRUE(is_near(row<0>(
+    FromEuclideanExpr<Coefficients<Axis, angle::Radians>, eigen_matrix_t<double, 3, 3>> {
+      1, 2, 3,
+      std::sqrt(3)/2, 0.5, std::sqrt(2)/2,
+      0.5, std::sqrt(3)/2, std::sqrt(2)/2}),
+    make_native_matrix<double, 1, 3>(1, 2, 3)));
+
   auto b = FromEuclideanExpr<Coefficients<Axis, angle::Radians>, eigen_matrix_t<double, 3, 3>> {
     1, 2, 3,
     std::sqrt(3)/2, 0.5, std::sqrt(2)/2,
@@ -389,6 +403,43 @@ TEST(eigen3, FromEuclideanExpr_blocks)
     make_native_matrix<double, 2, 3>(
       1, 2, 3,
       pi/6, pi/3, pi/2)));
+
+
+  EXPECT_TRUE(is_near(apply_rowwise(
+    FromEuclideanExpr<Coefficients<Axis, angle::Radians>, eigen_matrix_t<double, 3, 3>> {
+      1, 2, 3,
+      std::sqrt(3)/2, 0.5, std::sqrt(2)/2,
+      0.5, std::sqrt(3)/2, std::sqrt(2)/2},
+    f2),
+    make_native_matrix<double, 2, 3>(
+      2, 4, 6,
+      pi/3, pi*2/3, pi/2)));
+  EXPECT_TRUE(is_near(apply_rowwise(
+    FromEuclideanExpr<Coefficients<Axis, angle::Radians>, ToEuclideanExpr<Coefficients<Axis, angle::Radians>, eigen_matrix_t<double, 2, 3>>>
+      {1., 2, 3, pi/6, pi/3, pi/4}, f2),
+    make_native_matrix<double, 2, 3>(2., 4, 6, pi/3, pi*2/3, pi/2)));
+
+  EXPECT_TRUE(is_near(apply_rowwise(
+    FromEuclideanExpr<Coefficients<Axis, angle::Radians>, eigen_matrix_t<double, 3, 3>> {1, 2, 3,
+                                                                                         std::sqrt(3)/2, 0.5, std::sqrt(2)/2,
+                                                                                         0.5, std::sqrt(3)/2, std::sqrt(2)/2},
+    [](const auto& row, std::size_t i){ return make_self_contained(row * (i + 1)); }),
+    make_native_matrix<double, 2, 3>(
+      1, 2, 3,
+      pi/3, pi*2/3, pi/2)));
+  EXPECT_TRUE(is_near(apply_rowwise<3>(
+    [](){ return FromEuclideanExpr<Axis, eigen_matrix_t<double, 1, 3>> {1, 2, 3}; }),
+    make_native_matrix<double, 3, 3>(
+      1, 2, 3,
+      1, 2, 3,
+      1, 2, 3)));
+  EXPECT_TRUE(is_near(apply_rowwise<3>(
+    [](std::size_t i){ return make_self_contained(FromEuclideanExpr<Axis, eigen_matrix_t<double, 1, 3>> {1, 2, 3} * (i + 1)); }),
+    make_native_matrix<double, 3, 3>(
+      1, 2, 3,
+      2, 4, 6,
+      3, 6, 9)));
+
   //
   EXPECT_TRUE(is_near(apply_coefficientwise(
     FromEuclideanExpr<Coefficients<Axis, angle::Radians>, eigen_matrix_t<double, 3, 3>> {1, 2, 3,
