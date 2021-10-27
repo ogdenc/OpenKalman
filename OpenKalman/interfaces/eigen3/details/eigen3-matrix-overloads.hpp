@@ -28,15 +28,14 @@ namespace OpenKalman::Eigen3
    * \tparam columns The number of columns.
    */
 #ifdef __cpp_concepts
-  template<typename Scalar, std::size_t rows, std::size_t columns = 1, std::convertible_to<Scalar> ... Args>
-    requires std::is_arithmetic_v<Scalar> and
-      ((rows != 0 and columns != 0 and sizeof...(Args) == rows * columns) or
-        (columns == 0 and sizeof...(Args) % rows == 0) or (rows == 0 and sizeof...(Args) % columns == 0))
+  template<arithmetic_or_complex Scalar, std::size_t rows, std::size_t columns = 1, std::convertible_to<Scalar> ... Args>
+  requires ((rows != 0 and columns != 0 and sizeof...(Args) == rows * columns) or
+    (columns == 0 and sizeof...(Args) % rows == 0) or (rows == 0 and sizeof...(Args) % columns == 0))
 #else
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdiv-by-zero"
   template<typename Scalar, std::size_t rows, std::size_t columns = 1, typename ... Args, std::enable_if_t<
-    std::is_arithmetic_v<Scalar> and (std::is_convertible_v<Args, Scalar> and ...) and
+    arithmetic_or_complex<Scalar> and (std::is_convertible_v<Args, Scalar> and ...) and
     ((rows != 0 and columns != 0 and sizeof...(Args) == rows * columns) or
       (columns == 0 and sizeof...(Args) % rows == 0) or (rows == 0 and sizeof...(Args) % columns == 0)), int> = 0>
 // See below for pragma pop...
@@ -54,12 +53,12 @@ namespace OpenKalman::Eigen3
    * \brief Make a native Eigen matrix from a list of coefficients in row-major order.
    */
 #ifdef __cpp_concepts
-  template<std::size_t rows, std::size_t columns = 1, typename ... Args> requires
-    (std::is_arithmetic_v<Args> and ...) and ((rows != 0 and columns != 0 and sizeof...(Args) == rows * columns) or
-  (columns == 0 and sizeof...(Args) % rows == 0) or (rows == 0 and sizeof...(Args) % columns == 0))
+  template<std::size_t rows, std::size_t columns = 1, arithmetic_or_complex ... Args>
+  requires ((rows != 0 and columns != 0 and sizeof...(Args) == rows * columns) or
+    (columns == 0 and sizeof...(Args) % rows == 0) or (rows == 0 and sizeof...(Args) % columns == 0))
 #else
   template<std::size_t rows, std::size_t columns = 1, typename ... Args, std::enable_if_t<
-    (std::is_arithmetic_v<Args> and ...) and ((rows != 0 and columns != 0 and sizeof...(Args) == rows * columns) or
+    (arithmetic_or_complex<Args> and ...) and ((rows != 0 and columns != 0 and sizeof...(Args) == rows * columns) or
         (columns == 0 and sizeof...(Args) % rows == 0) or (rows == 0 and sizeof...(Args) % columns == 0)), int> = 0>
 #endif
   inline auto
@@ -72,10 +71,10 @@ namespace OpenKalman::Eigen3
 
   /// Make a native Eigen 1-column vector from a list of coefficients in row-major order.
 #ifdef __cpp_concepts
-  template<typename ... Args> requires(std::is_arithmetic_v<Args> and ...)
+  template<arithmetic_or_complex ... Args>
 #else
 #pragma GCC diagnostic pop
-  template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
+  template<typename ... Args, std::enable_if_t<(arithmetic_or_complex<Args> and ...), int> = 0>
 #endif
   inline auto
   make_native_matrix(const Args ... args)

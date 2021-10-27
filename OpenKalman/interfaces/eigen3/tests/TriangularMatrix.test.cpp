@@ -20,10 +20,15 @@ using namespace OpenKalman::Eigen3;
 using namespace OpenKalman::test;
 
 
+using cdouble = std::complex<double>;
+
 using M2 = eigen_matrix_t<double, 2, 2>;
+using CM2 = eigen_matrix_t<std::complex<double>, 2, 2>;
 using D2 = DiagonalMatrix<eigen_matrix_t<double, 2, 1>>;
 using Lower = TriangularMatrix<M2, TriangleType::lower>;
 using Upper = TriangularMatrix<M2, TriangleType::upper>;
+using CLower = TriangularMatrix<CM2, TriangleType::lower>;
+using CUpper = TriangularMatrix<CM2, TriangleType::upper>;
 using Diagonal = TriangularMatrix<M2, TriangleType::diagonal>;
 using Diagonal2 = TriangularMatrix<D2, TriangleType::diagonal>;
 using Diagonal3 = TriangularMatrix<D2, TriangleType::lower>;
@@ -584,9 +589,13 @@ TEST(eigen3, TriangularMatrix_overloads)
   //
   EXPECT_TRUE(is_near(transpose(Lower {3., 0, 1, 3}), mu));
   EXPECT_TRUE(is_near(transpose(Upper {3., 1, 0, 3}), ml));
+  EXPECT_TRUE(is_near(transpose(CLower {cdouble(3,1), 0, cdouble(1,2), cdouble(3,-1)}), CUpper {cdouble(3,1), cdouble(1,2), 0, cdouble(3,-1)}));
+  EXPECT_TRUE(is_near(transpose(CUpper {cdouble(3,1), cdouble(1,2), 0, cdouble(3,-1)}), CLower {cdouble(3,1), 0, cdouble(1,2), cdouble(3,-1)}));
   //
   EXPECT_TRUE(is_near(adjoint(Lower {3., 0, 1, 3}), mu));
   EXPECT_TRUE(is_near(adjoint(Upper {3., 1, 0, 3}), ml));
+  EXPECT_TRUE(is_near(adjoint(CLower {cdouble(3,1), 0, cdouble(1,2), cdouble(3,-1)}), CUpper {cdouble(3,-1), cdouble(1,-2), 0, cdouble(3,1)}));
+  EXPECT_TRUE(is_near(adjoint(CUpper {cdouble(3,1), cdouble(1,2), 0, cdouble(3,-1)}), CLower {cdouble(3,-1), 0, cdouble(1,-2), cdouble(3,1)}));
   //
   EXPECT_NEAR(determinant(Lower {3., 0, 1, 3}), 9, 1e-6);
   EXPECT_NEAR(determinant(Upper {3., 1, 0, 3}), 9, 1e-6);

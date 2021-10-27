@@ -96,9 +96,10 @@ namespace OpenKalman::Eigen3
    * \tparam rows The number of rows (0 if \ref dynamic_rows).
    * \tparam columns The number of columns (0 if \ref dynamic_columns).
    */
-  template<typename Scalar, auto constant, std::size_t rows, std::size_t columns = 1>
 #ifdef __cpp_concepts
-    requires std::is_arithmetic_v<Scalar>
+  template<arithmetic_or_complex Scalar, auto constant, std::size_t rows, std::size_t columns = 1>
+#else
+  template<typename Scalar, auto constant, std::size_t rows, std::size_t columns = 1>
 #endif
   struct ConstantMatrix;
 

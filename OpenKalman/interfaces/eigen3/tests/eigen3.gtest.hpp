@@ -51,16 +51,16 @@ namespace OpenKalman::test
     compare(const Arg1& A, const Arg2& B, const Err& err)
     {
       if constexpr (std::is_arithmetic_v<Err>)
-      if (A.isApprox(B, err) or (A.isMuchSmallerThan(1., err) and B.isMuchSmallerThan(1., err)))
-      {
-        return ::testing::AssertionSuccess();
-      }
+        if (A.isApprox(B, err) or (A.isMuchSmallerThan(1., err) and B.isMuchSmallerThan(1., err)))
+        {
+          return ::testing::AssertionSuccess();
+        }
 
       if constexpr (detail::eigen_type<Err>)
-      if (((A - B).cwiseAbs().array() - make_native_matrix(err).array()).maxCoeff() <= 0)
-      {
-        return ::testing::AssertionSuccess();
-      }
+        if (((A - B).cwiseAbs().array() - make_native_matrix(err).array()).maxCoeff() <= 0)
+        {
+          return ::testing::AssertionSuccess();
+        }
 
       return ::testing::AssertionFailure() << std::endl << A << std::endl << "is not near" << std::endl <<
         B << std::endl;

@@ -100,6 +100,21 @@ namespace OpenKalman
 #endif
 
 
+  // --------------------------- //
+  //    arithmetic_or_complex    //
+  // --------------------------- //
+
+  /**
+   * \brief T is an std::arithmetic number or std::complex number.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept arithmetic_or_complex = std::is_arithmetic_v<T> or complex_number<T>;
+#else
+  inline constexpr bool arithmetic_or_complex = std::is_arithmetic_v<T> or complex_number<T>;
+#endif
+
+
   // ---------------- //
   //   Coefficients   //
   // ---------------- //

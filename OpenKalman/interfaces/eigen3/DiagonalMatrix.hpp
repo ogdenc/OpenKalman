@@ -396,15 +396,13 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-  template<typename Arg, typename ... Args> requires
-    (std::is_arithmetic_v<std::decay_t<Arg>> and ... and std::is_arithmetic_v<std::decay_t<Args>>) and
-    (std::common_with<Arg, Args> and ...)
+  template<arithmetic_or_complex Arg, arithmetic_or_complex ... Args> requires (std::common_with<Arg, Args> and ...)
 #else
   template<typename Arg, typename ... Args, std::enable_if_t<
-    (std::is_arithmetic_v<std::decay_t<Arg>> and ... and std::is_arithmetic_v<std::decay_t<Args>>), int> = 0>
+    (arithmetic_or_complex<Arg> and ... and arithmetic_or_complex<Args>), int> = 0>
 #endif
-    DiagonalMatrix(Arg&&, Args&& ...) -> DiagonalMatrix<
-      Eigen3::eigen_matrix_t<std::common_type_t<std::decay_t<Arg>, std::decay_t<Args>...>, 1 + sizeof...(Args), 1>>;
+    DiagonalMatrix(const Arg&, const Args& ...) -> DiagonalMatrix<
+      Eigen3::eigen_matrix_t<std::common_type_t<Arg, Args...>, 1 + sizeof...(Args), 1>>;
 
 } // OpenKalman::Eigen3
 

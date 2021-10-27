@@ -15,6 +15,8 @@
 
 #include "eigen3.gtest.hpp"
 
+#include <complex>
+
 using namespace OpenKalman;
 using namespace OpenKalman::Eigen3;
 using namespace OpenKalman::test;
@@ -22,6 +24,7 @@ using namespace OpenKalman::test;
 using Mat2 = eigen_matrix_t<double, 2, 2>;
 using Mat3 = eigen_matrix_t<double, 3, 3>;
 using Axis2 = Coefficients<Axis, Axis>;
+using cdouble = std::complex<double>;
 
 TEST(eigen3, Diagonal_class)
 {
@@ -217,9 +220,15 @@ TEST(eigen3, Diagonal_overloads)
   EXPECT_TRUE(is_near(Cholesky_factor(DiagonalMatrix {9.}), eigen_matrix_t<double, 1, 1>(3)));
 
   EXPECT_TRUE(is_near(diagonal_of(DiagonalMatrix {1., 2, 3}), make_native_matrix<double, 3, 1>(1., 2, 3)));
+
   EXPECT_TRUE(is_near(transpose(DiagonalMatrix {1., 2, 3}), DiagonalMatrix {1., 2, 3}));
+  EXPECT_TRUE(is_near(transpose(DiagonalMatrix {cdouble(1,2), cdouble(2,3), 3}), DiagonalMatrix {cdouble(1,2), cdouble(2,3), 3}));
+
   EXPECT_TRUE(is_near(adjoint(DiagonalMatrix {1., 2, 3}), DiagonalMatrix {1., 2, 3}));
+  EXPECT_TRUE(is_near(adjoint(DiagonalMatrix {cdouble(1,2), cdouble(2,3), 3}), DiagonalMatrix {cdouble(1,-2), cdouble(2,-3), 3}));
+
   EXPECT_NEAR(determinant(DiagonalMatrix {2., 3, 4}), 24, 1e-6);
+
   EXPECT_NEAR(trace(DiagonalMatrix {2., 3, 4}), 9, 1e-6);
   //
   auto s2 = DiagonalMatrix {3., 3};
@@ -246,6 +255,8 @@ TEST(eigen3, Diagonal_overloads)
   EXPECT_TRUE(is_near(reduce_rows(DiagonalMatrix {1., 2, 3}), make_native_matrix(1., 2, 3)));
   EXPECT_TRUE(is_near(LQ_decomposition(DiagonalMatrix {1., 2, 3}), DiagonalMatrix {1., 2, 3}));
   EXPECT_TRUE(is_near(QR_decomposition(DiagonalMatrix {1., 2, 3}), DiagonalMatrix {1., 2, 3}));
+  EXPECT_TRUE(is_near(LQ_decomposition(DiagonalMatrix {cdouble(1,2), cdouble(2,3), 3}), DiagonalMatrix {cdouble(1,2), cdouble(2,3), 3}));
+  EXPECT_TRUE(is_near(QR_decomposition(DiagonalMatrix {cdouble(1,2), cdouble(2,3), 3}), DiagonalMatrix {cdouble(1,2), cdouble(2,3), 3}));
   EXPECT_TRUE(is_near(LQ_decomposition(M1by1 {4}), DiagonalMatrix {4.}));
   EXPECT_TRUE(is_near(QR_decomposition(M1by1 {4}), DiagonalMatrix {4.}));
 

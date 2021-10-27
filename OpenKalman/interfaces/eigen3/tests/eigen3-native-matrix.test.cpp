@@ -9,6 +9,7 @@
  */
 
 #include "eigen3.gtest.hpp"
+#include <complex>
 
 using namespace OpenKalman;
 using namespace OpenKalman::Eigen3;
@@ -20,6 +21,11 @@ namespace
   using Mat3 = eigen_matrix_t<double, 3, 3>;
   using Mat23 = eigen_matrix_t<double, 2, 3>;
   using Mat32 = eigen_matrix_t<double, 3, 2>;
+
+  using cdouble = std::complex<double>;
+  using CMat2 = eigen_matrix_t<cdouble, 2, 2>;
+  using CMat23 = eigen_matrix_t<cdouble, 2, 3>;
+  using CMat32 = eigen_matrix_t<cdouble, 3, 2>;
 
   using Mat00 = eigen_matrix_t<double, 0, 0>;
   using Mat20 = eigen_matrix_t<double, 2, 0>;
@@ -117,6 +123,8 @@ TEST(eigen3, Eigen_Matrix_construction)
   Mat02 m02_2 {2,2}; m02_2 << 1, 2, 3, 4;
   Mat02 m02_3 {3,2}; m02_3 << 1, 2, 3, 4, 5, 6;
 
+  CMat2 cm22; cm22 << cdouble {1,4}, cdouble {2,3}, cdouble {3,2}, cdouble {4,1};
+
   EXPECT_TRUE(is_near(MatrixTraits<Mat2>::make(1, 2, 3, 4), m22));
   EXPECT_TRUE(is_near(MatrixTraits<Mat20>::make(1, 2), m20_1));
   EXPECT_TRUE(is_near(MatrixTraits<Mat20>::make(1, 2, 3, 4), m20_2));
@@ -124,6 +132,7 @@ TEST(eigen3, Eigen_Matrix_construction)
   EXPECT_TRUE(is_near(MatrixTraits<Mat02>::make(1, 2), m02_1));
   EXPECT_TRUE(is_near(MatrixTraits<Mat02>::make(1, 2, 3, 4), m02_2));
   EXPECT_TRUE(is_near(MatrixTraits<Mat02>::make(1, 2, 3, 4, 5, 6), m02_3));
+  EXPECT_TRUE(is_near(MatrixTraits<CMat2>::make(cdouble {1,4}, cdouble {2,3}, cdouble {3,2}, cdouble {4,1}), cm22));
 
   EXPECT_TRUE(is_near(make_native_matrix<double, 2, 2>(1, 2, 3, 4), m22));
   EXPECT_TRUE(is_near(make_native_matrix<double, 2, 0>(1, 2), m20_1));
@@ -132,6 +141,7 @@ TEST(eigen3, Eigen_Matrix_construction)
   EXPECT_TRUE(is_near(make_native_matrix<double, 0, 2>(1, 2), m02_1));
   EXPECT_TRUE(is_near(make_native_matrix<double, 0, 2>(1, 2, 3, 4), m02_2));
   EXPECT_TRUE(is_near(make_native_matrix<double, 0, 2>(1, 2, 3, 4, 5, 6), m02_3));
+  EXPECT_TRUE(is_near(make_native_matrix<cdouble, 2, 2>(cdouble {1,4}, cdouble {2,3}, cdouble {3,2}, cdouble {4,1}), cm22));
 
   EXPECT_TRUE(is_near(make_native_matrix<2, 2>(1., 2, 3, 4), m22));
   EXPECT_TRUE(is_near(make_native_matrix<2, 0>(1., 2), m20_1));
@@ -140,6 +150,7 @@ TEST(eigen3, Eigen_Matrix_construction)
   EXPECT_TRUE(is_near(make_native_matrix<0, 2>(1., 2), m02_1));
   EXPECT_TRUE(is_near(make_native_matrix<0, 2>(1., 2, 3, 4), m02_2));
   EXPECT_TRUE(is_near(make_native_matrix<0, 2>(1., 2, 3, 4, 5, 6), m02_3));
+  EXPECT_TRUE(is_near(make_native_matrix<2, 2>(cdouble {1,4}, cdouble {2,3}, cdouble {3,2}, cdouble {4,1}), cm22));
 
   EXPECT_TRUE(is_near(make_native_matrix(1., 2), (eigen_matrix_t<double, 2, 1> {} << 1, 2).finished()));
   EXPECT_TRUE(is_near(make_native_matrix(1., 2, 3, 4), (eigen_matrix_t<double, 4, 1> {} << 1, 2, 3, 4).finished()));
@@ -165,6 +176,11 @@ TEST(eigen3, Eigen_Matrix_overloads)
   Mat00 m00_22 {2,2}; m00_22 << 1, 2, 3, 4;
   Mat00 m00_23 {2,3}; m00_23 << 1, 2, 3, 4, 5, 6;
 
+  CMat2 cm22; cm22 << cdouble {1,4}, cdouble {2,3}, cdouble {3,2}, cdouble {4,1};
+  CMat23 cm23; cm23 << cdouble {1,6}, cdouble {2,5}, cdouble {3,4}, cdouble {4,3}, cdouble {5,2}, cdouble {6,1};
+  CMat32 cm32; cm32 << cdouble {1,6}, cdouble {4,3}, cdouble {2,5}, cdouble {5,2}, cdouble {3,4}, cdouble {6,1};
+  CMat32 cm32conj; cm32conj << cdouble {1,-6}, cdouble {4,-3}, cdouble {2,-5}, cdouble {5,-2}, cdouble {3,-4}, cdouble {6,-1};
+
   eigen_matrix_t<double, 2, 1> c21; c21 << 1, 1;
   auto z21 = eigen_matrix_t<double, 2, 1>::Zero();
 
@@ -187,23 +203,29 @@ TEST(eigen3, Eigen_Matrix_overloads)
   EXPECT_TRUE(is_near(transpose(m02_3), m23));
   EXPECT_TRUE(is_near(transpose(m20_3), m32));
   EXPECT_TRUE(is_near(transpose(m00_23), m32));
+  EXPECT_TRUE(is_near(transpose(cm23), cm32));
 
   EXPECT_TRUE(is_near(adjoint(m23), m32));
   EXPECT_TRUE(is_near(adjoint(m02_3), m23));
   EXPECT_TRUE(is_near(adjoint(m20_3), m32));
   EXPECT_TRUE(is_near(adjoint(m00_23), m32));
+  EXPECT_TRUE(is_near(adjoint(cm23), cm32conj));
 
   EXPECT_NEAR(determinant(m22), -2, 1e-6);
   EXPECT_NEAR(determinant(eigen_matrix_t<double, 1, 1> {2}), 2, 1e-6);
   EXPECT_NEAR(determinant(m02_2), -2, 1e-6);
   EXPECT_NEAR(determinant(m20_2), -2, 1e-6);
   EXPECT_NEAR(determinant(m00_22), -2, 1e-6);
+  EXPECT_NEAR(std::real(determinant(cm22)), 0, 1e-6);
+  EXPECT_NEAR(std::imag(determinant(cm22)), 4, 1e-6);
 
   EXPECT_NEAR(trace(m22), 5, 1e-6);
   EXPECT_NEAR(trace(eigen_matrix_t<double, 1, 1> {3}), 3, 1e-6);
   EXPECT_NEAR(trace(m02_2), 5, 1e-6);
   EXPECT_NEAR(trace(m20_2), 5, 1e-6);
   EXPECT_NEAR(trace(m00_22), 5, 1e-6);
+  EXPECT_NEAR(std::real(trace(cm22)), 5, 1e-6);
+  EXPECT_NEAR(std::imag(trace(cm22)), 5, 1e-6);
 
   EXPECT_TRUE(is_near(solve(m22, make_native_matrix<double, 2, 1>(5, 6)), make_native_matrix<double, 2, 1>(-4, 4.5)));
   EXPECT_TRUE(is_near(solve(eigen_matrix_t<double, 1, 1>(2), eigen_matrix_t<double, 1, 1>(6)), eigen_matrix_t<double, 1, 1>(3)));
@@ -219,12 +241,14 @@ TEST(eigen3, Eigen_Matrix_overloads)
   EXPECT_TRUE(is_near(reduce_columns(m03_2), make_native_matrix<double, 2, 1>(2, 5)));
   EXPECT_TRUE(is_near(reduce_columns(m20_3), make_native_matrix<double, 2, 1>(2, 5)));
   EXPECT_TRUE(is_near(reduce_columns(m00_23), make_native_matrix<double, 2, 1>(2, 5)));
+  EXPECT_TRUE(is_near(reduce_columns(cm23), make_native_matrix<cdouble, 2, 1>(cdouble {2,5}, cdouble {5,2})));
 
   EXPECT_TRUE(is_near(reduce_rows(make_native_matrix<double, 1, 3>(1, 2, 3)), make_native_matrix<double, 1, 3>(1, 2, 3)));
   EXPECT_TRUE(is_near(reduce_rows(m23), make_native_matrix<double, 1, 3>(2.5, 3.5, 4.5)));
   EXPECT_TRUE(is_near(reduce_rows(m03_2), make_native_matrix<double, 1, 3>(2.5, 3.5, 4.5)));
   EXPECT_TRUE(is_near(reduce_rows(m20_3), make_native_matrix<double, 1, 3>(2.5, 3.5, 4.5)));
   EXPECT_TRUE(is_near(reduce_rows(m00_23), make_native_matrix<double, 1, 3>(2.5, 3.5, 4.5)));
+  EXPECT_TRUE(is_near(reduce_rows(cm23), make_native_matrix<cdouble, 1, 3>(cdouble {2.5,4.5}, cdouble{3.5,3.5}, cdouble {4.5,2.5})));
 
   Mat2 m22_lq_decomp = make_native_matrix<double, 2, 2>(-0.1, 0, 1.096, -1.272);
   EXPECT_TRUE(is_near(LQ_decomposition(make_native_matrix<double, 2, 2>(0.06, 0.08, 0.36, -1.640)), m22_lq_decomp));
@@ -243,6 +267,11 @@ TEST(eigen3, Eigen_Matrix_overloads)
   EXPECT_TRUE(is_near(QR_decomposition(m20_2_qr_decomp), m22_qr_decomp));
   Mat00 m00_22_qr_decomp {2,2}; m00_22_qr_decomp << 0.06, 0.36, 0.08, -1.640;
   EXPECT_TRUE(is_near(QR_decomposition(m00_22_qr_decomp), m22_qr_decomp));
+
+  EXPECT_TRUE(is_near(LQ_decomposition(m23), adjoint(QR_decomposition(m32))));
+  EXPECT_TRUE(is_near(LQ_decomposition(m32), adjoint(QR_decomposition(m23))));
+  EXPECT_TRUE(is_near(LQ_decomposition(cm23), adjoint(QR_decomposition(cm32conj))));
+  EXPECT_TRUE(is_near(LQ_decomposition(cm32conj), adjoint(QR_decomposition(cm23))));
 }
 
 
@@ -339,8 +368,13 @@ TEST(eigen3, ConstantMatrix)
   EXPECT_TRUE(is_near(cm322, eigen_matrix_t<double, 2, 2>::Constant(3)));
   EXPECT_NEAR((ConstantMatrix<double, 3, 2, 2> {}(0, 0)), 3, 1e-6);
   EXPECT_NEAR((ConstantMatrix<double, 3, 2, 2> {}(0, 1)), 3, 1e-6);
+  EXPECT_NEAR(std::real(ConstantMatrix<cdouble, 3, 2, 2> {}(0, 1)), 3, 1e-6);
+
   EXPECT_TRUE(is_near(make_native_matrix(ConstantMatrix<double, 3, 2, 3> {}), eigen_matrix_t<double, 2, 3>::Constant(3)));
+  EXPECT_TRUE(is_near(make_native_matrix(ConstantMatrix<cdouble, 3, 2, 3> {}), eigen_matrix_t<cdouble, 2, 3>::Constant(cdouble(3,0))));
+
   EXPECT_TRUE(is_near(make_self_contained(ConstantMatrix<double, 3, 2, 3> {}), eigen_matrix_t<double, 2, 3>::Constant(3)));
+
   EXPECT_NEAR(get_element(ConstantMatrix<double, 5, 2, 2> {}, 1, 0), 5, 1e-8);
   static_assert(element_gettable<ConstantMatrix<double, 3, 2, 2>, 2>);
   static_assert(not element_settable<ConstantMatrix<double, 3, 2, 2>, 2>);

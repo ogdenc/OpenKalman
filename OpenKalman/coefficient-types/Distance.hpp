@@ -61,7 +61,7 @@ namespace OpenKalman
 
     /**
      * \internal
-     * \brief An array of functions (here, just one) that transform an distance coefficient to Euclidean space.
+     * \brief An array of functions (here, just one) that transform a distance coefficient to Euclidean space.
      * \details Because a distance already represents a point in Euclidean space, this is an identity function.
      * Each array element is a function taking a ''get coefficient'' function and returning a coordinate value.
      * The ''get coefficient'' function takes the index of a column within a row vector and returns the coefficient.

@@ -23,9 +23,10 @@ namespace OpenKalman::Eigen3
 
   // ConstantMatrix is declared in eigen3-forward-declarations.hpp.
 
-  template<typename Scalar, auto constant, std::size_t rows_, std::size_t columns>
 #ifdef __cpp_concepts
-    requires std::is_arithmetic_v<Scalar>
+  template<arithmetic_or_complex Scalar, auto constant, std::size_t rows_, std::size_t columns>
+#else
+  template<typename Scalar, auto constant, std::size_t rows_, std::size_t columns>
 #endif
   struct ConstantMatrix : Eigen3::internal::Eigen3Base<ConstantMatrix<Scalar, constant, rows_, columns>>,
     Eigen3::internal::EigenDynamicBase<Scalar, rows_, columns>
@@ -34,7 +35,7 @@ namespace OpenKalman::Eigen3
   private:
 
 #ifndef __cpp_concepts
-    static_assert(std::is_arithmetic_v<Scalar>);
+    static_assert(arithmetic_or_complex<Scalar>);
 #endif
 
     using Base = Eigen3::internal::EigenDynamicBase<Scalar, rows_, columns>;

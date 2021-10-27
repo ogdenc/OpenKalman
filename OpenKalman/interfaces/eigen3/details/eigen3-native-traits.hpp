@@ -19,6 +19,8 @@
 
 namespace Eigen::internal
 {
+  using namespace OpenKalman;
+
   template<typename Coefficients, typename ArgType>
   struct traits<OpenKalman::Mean<Coefficients, ArgType>>
     : traits<std::decay_t<ArgType>>
@@ -109,11 +111,17 @@ namespace Eigen::internal
   struct traits<OpenKalman::Eigen3::SelfAdjointMatrix<NestedMatrix, storage_triangle>>
     : traits<std::decay_t<NestedMatrix>>
   {
+    using Scalar = typename std::decay_t<NestedMatrix>::Scalar;
     using Nested = std::decay_t<NestedMatrix>;
     using NestedTraits = traits<Nested>;
     enum
     {
-      Flags = NestedTraits::Flags & (~DirectAccessBit) & (~LinearAccessBit) & (~PacketAccessBit),
+      Flags = NestedTraits::Flags &
+        (~DirectAccessBit) &
+        (~(storage_triangle == TriangleType::diagonal or one_by_one_matrix<NestedMatrix> ? 0 : LinearAccessBit)) &
+        (~PacketAccessBit) &
+        (~((storage_triangle == TriangleType::diagonal and not one_by_one_matrix<NestedMatrix>) or
+          OpenKalman::complex_number<Scalar> ? LvalueBit : 0)),
     };
   };
 

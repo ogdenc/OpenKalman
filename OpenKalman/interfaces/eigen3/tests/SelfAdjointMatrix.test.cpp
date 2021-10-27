@@ -15,15 +15,22 @@
 
 #include "eigen3.gtest.hpp"
 
+#include <complex>
+
 using namespace OpenKalman;
 using namespace OpenKalman::Eigen3;
 using namespace OpenKalman::test;
 
 
+using cdouble = std::complex<double>;
+
 using M2 = eigen_matrix_t<double, 2, 2>;
+using CM2 = eigen_matrix_t<cdouble, 2, 2>;
 using D2 = DiagonalMatrix<eigen_matrix_t<double, 2, 1>>;
 using Lower = SelfAdjointMatrix<M2, TriangleType::lower>;
+using CLower = SelfAdjointMatrix<CM2, TriangleType::lower>;
 using Upper = SelfAdjointMatrix<M2, TriangleType::upper>;
+using CUpper = SelfAdjointMatrix<CM2, TriangleType::upper>;
 using Diagonal = SelfAdjointMatrix<M2, TriangleType::diagonal>;
 using Diagonal2 = SelfAdjointMatrix<D2, TriangleType::diagonal>;
 using Diagonal3 = SelfAdjointMatrix<D2, TriangleType::lower>;
@@ -49,14 +56,10 @@ TEST(eigen3, SelfAdjointMatrix_class)
   d1 << 9, 10;
   EXPECT_TRUE(is_near(d1.nested_matrix(), mat22(9, 0, 0, 10)));
   EXPECT_TRUE(is_near(d1, mat22(9, 0, 0, 10)));
-  d1.template triangularView<Eigen::Lower>() = mat22(7, 5, 6, 12);
-  EXPECT_TRUE(is_near(d1, mat22(7, 0, 0, 12)));
   Diagonal2 d1b;
   d1b << 9, 10;
   EXPECT_TRUE(is_near(d1b.nested_matrix(), mat22(9, 0, 0, 10)));
   EXPECT_TRUE(is_near(d1b, mat22(9, 0, 0, 10)));
-  d1b.template triangularView<Eigen::Lower>() = mat22(7, 5, 6, 12);
-  EXPECT_TRUE(is_near(d1b, mat22(7, 0, 0, 12)));
   Diagonal3 d1c;
   d1c << 9, 10;
   EXPECT_TRUE(is_near(d1c.nested_matrix(), mat22(9, 0, 0, 10)));
@@ -601,9 +604,13 @@ TEST(eigen3, SelfAdjointMatrix_overloads)
   //
   EXPECT_TRUE(is_near(transpose(Lower {9., 3, 3, 10}), mat22(9., 3, 3, 10)));
   EXPECT_TRUE(is_near(transpose(Upper {9., 3, 3, 10}), mat22(9., 3, 3, 10)));
+  EXPECT_TRUE(is_near(transpose(CLower {9., cdouble(3,-1), cdouble(3,1), 10}), MatrixTraits<CM2>::make(9., cdouble(3,1), cdouble(3,-1), 10)));
+  EXPECT_TRUE(is_near(transpose(CUpper {9., cdouble(3,-1), cdouble(3,1), 10}), MatrixTraits<CM2>::make(9., cdouble(3,1), cdouble(3,-1), 10)));
   //
   EXPECT_TRUE(is_near(adjoint(Lower {9., 3, 3, 10}), mat22(9., 3, 3, 10)));
   EXPECT_TRUE(is_near(adjoint(Upper {9., 3, 3, 10}), mat22(9., 3, 3, 10)));
+  EXPECT_TRUE(is_near(adjoint(CLower {9., cdouble(3,-1), cdouble(3,1), 10}), MatrixTraits<CM2>::make(9., cdouble(3,-1), cdouble(3,1), 10)));
+  EXPECT_TRUE(is_near(adjoint(CUpper {9., cdouble(3,-1), cdouble(3,1), 10}), MatrixTraits<CM2>::make(9., cdouble(3,-1), cdouble(3,1), 10)));
   //
   EXPECT_NEAR(determinant(Lower {9., 3, 3, 10}), 81, 1e-6);
   EXPECT_NEAR(determinant(Upper {9., 3, 3, 10}), 81, 1e-6);

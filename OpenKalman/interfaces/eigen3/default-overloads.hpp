@@ -39,17 +39,17 @@ namespace OpenKalman
      * must equal RowCoefficients::dimensions * ColumnCoefficients::dimensions.
      */
 #ifdef __cpp_concepts
-    template<coefficients RowCoefficients, coefficients ColumnCoefficients = RowCoefficients, typename ... Args>
-    requires (sizeof...(Args) > 0) and (std::is_arithmetic_v<Args> and ...) and
-    (RowCoefficients::dimensions * ColumnCoefficients::dimensions == sizeof...(Args))
+    template<coefficients RowCoefficients, coefficients ColumnCoefficients = RowCoefficients,
+      arithmetic_or_complex ... Args>
+    requires (sizeof...(Args) > 0) and (RowCoefficients::dimensions * ColumnCoefficients::dimensions == sizeof...(Args))
 #else
     template<typename RowCoefficients, typename ColumnCoefficients = RowCoefficients, typename ... Args,
-    std::enable_if_t<(sizeof...(Args) > 0) and std::conjunction_v<std::is_arithmetic<Args>...> and
+    std::enable_if_t<(sizeof...(Args) > 0) and (arithmetic_or_complex<Args> and ...) and
       (RowCoefficients::dimensions * ColumnCoefficients::dimensions == sizeof...(Args)), int> = 0>
 #endif
     auto make_matrix(const Args ... args)
     {
-      using Scalar = std::decay_t<std::common_type_t<Args...>>;
+      using Scalar = std::common_type_t<Args...>;
       using Mat = Eigen3::eigen_matrix_t<Scalar, RowCoefficients::dimensions, ColumnCoefficients::dimensions>;
       return Matrix<RowCoefficients, ColumnCoefficients, Mat>(MatrixTraits<Mat>::make(
         static_cast<const Scalar>(args)...));
@@ -63,10 +63,10 @@ namespace OpenKalman
      * \tparam Args A list of numerical coefficients (either integral or floating-point).
      */
 #ifdef __cpp_concepts
-    template<typename ... Args> requires (sizeof...(Args) > 0) and (std::is_arithmetic_v<Args> and ...)
+    template<arithmetic_or_complex ... Args> requires (sizeof...(Args) > 0)
 #else
     template<typename ... Args, std::enable_if_t<
-    (sizeof...(Args) > 0) and std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
+    (sizeof...(Args) > 0) and (arithmetic_or_complex<Args> and ...), int> = 0>
 #endif
     auto make_matrix(const Args ... args)
     {
@@ -83,11 +83,11 @@ namespace OpenKalman
      * \tparam ColumnCoefficients The coefficient types corresponding to the columns.
      */
 #ifdef __cpp_concepts
-    template<typename Scalar, coefficients RowCoefficients, coefficients ColumnCoefficients = RowCoefficients> requires
-    std::is_arithmetic_v<Scalar>
+    template<arithmetic_or_complex Scalar, coefficients RowCoefficients,
+      coefficients ColumnCoefficients = RowCoefficients>
 #else
     template<typename Scalar, typename RowCoefficients, typename ColumnCoefficients = RowCoefficients,
-    std::enable_if_t<std::is_arithmetic_v<Scalar> and
+    std::enable_if_t<arithmetic_or_complex<Scalar> and
       coefficients<RowCoefficients> and coefficients<ColumnCoefficients>, int> = 0>
 #endif
     auto make_matrix()
@@ -106,11 +106,11 @@ namespace OpenKalman
      * must be divisible by Coefficients::dimensions.
      */
 #ifdef __cpp_concepts
-    template<coefficients Coefficients, typename ... Args> requires
-      (sizeof...(Args) > 0) and (std::is_arithmetic_v<Args> and ...) and (sizeof...(Args) % Coefficients::dimensions == 0)
+    template<coefficients Coefficients, arithmetic_or_complex ... Args> requires
+      (sizeof...(Args) > 0) and (sizeof...(Args) % Coefficients::dimensions == 0)
 #else
     template<typename Coefficients, typename ... Args, std::enable_if_t<coefficients<Coefficients> and
-      (sizeof...(Args) > 0) and std::conjunction_v<std::is_arithmetic<Args>...> and
+      (sizeof...(Args) > 0) and (arithmetic_or_complex<Args> and ...) and
       (sizeof...(Args) % Coefficients::dimensions == 0), int> = 0>
 #endif
     auto make_mean(const Args ... args)
@@ -130,10 +130,10 @@ namespace OpenKalman
      * \tparam Args A list of numerical coefficients (either integral or floating-point).
      */
 #ifdef __cpp_concepts
-    template<typename ... Args> requires (sizeof...(Args) > 0) and (std::is_arithmetic_v<Args> and ...)
+    template<arithmetic_or_complex ... Args> requires (sizeof...(Args) > 0)
 #else
     template<typename ... Args, std::enable_if_t<
-      (sizeof...(Args) > 0) and std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
+      (sizeof...(Args) > 0) and (arithmetic_or_complex<Args> and ...), int> = 0>
 #endif
     auto make_mean(const Args ... args)
     {
@@ -150,10 +150,10 @@ namespace OpenKalman
      * \tparam cols The number of columns.
      */
 #ifdef __cpp_concepts
-    template<typename Scalar, coefficients Coefficients, std::size_t cols = 1> requires std::is_arithmetic_v<Scalar>
+    template<arithmetic_or_complex Scalar, coefficients Coefficients, std::size_t cols = 1>
 #else
     template<typename Scalar, typename Coefficients, std::size_t cols = 1, std::enable_if_t<
-    std::is_arithmetic_v<Scalar> and coefficients<Coefficients>, int> = 0>
+    arithmetic_or_complex<Scalar> and coefficients<Coefficients>, int> = 0>
 #endif
     auto make_mean()
     {
@@ -170,11 +170,11 @@ namespace OpenKalman
      * must be divisible by Coefficients::euclidean_dimensions.
      */
 #ifdef __cpp_concepts
-    template<coefficients Coefficients, typename ... Args> requires
-    (sizeof...(Args) > 0) and (std::is_arithmetic_v<Args> and ...) and (sizeof...(Args) % Coefficients::euclidean_dimensions == 0)
+    template<coefficients Coefficients, arithmetic_or_complex ... Args> requires
+    (sizeof...(Args) > 0) and (sizeof...(Args) % Coefficients::euclidean_dimensions == 0)
 #else
     template<typename Coefficients, typename ... Args, std::enable_if_t<
-      (sizeof...(Args) > 0) and std::conjunction_v<std::is_arithmetic<Args>...> and
+      (sizeof...(Args) > 0) and (arithmetic_or_complex<Args> and ...) and
       (sizeof...(Args) % Coefficients::euclidean_dimensions == 0), int> = 0>
 #endif
     auto make_euclidean_mean(const Args ... args) noexcept
@@ -194,10 +194,10 @@ namespace OpenKalman
      * \tparam Args A list of numerical coefficients (either integral or floating-point).
      */
 #ifdef __cpp_concepts
-    template<typename ... Args> requires (sizeof...(Args) > 0) and (std::is_arithmetic_v<Args> and ...)
+    template<arithmetic_or_complex ... Args> requires (sizeof...(Args) > 0)
 #else
     template<typename ... Args, std::enable_if_t<
-      (sizeof...(Args) > 0) and std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
+      (sizeof...(Args) > 0) and (arithmetic_or_complex<Args> and ...), int> = 0>
 #endif
     auto make_euclidean_mean(const Args ... args) noexcept
     {
@@ -214,10 +214,10 @@ namespace OpenKalman
      * \tparam cols The number of columns.
      */
 #ifdef __cpp_concepts
-    template<typename Scalar, coefficients Coefficients, std::size_t cols = 1> requires std::is_arithmetic_v<Scalar>
+    template<arithmetic_or_complex Scalar, coefficients Coefficients, std::size_t cols = 1>
 #else
     template<typename Scalar, typename Coefficients, std::size_t cols = 1, std::enable_if_t<
-    std::is_arithmetic_v<Scalar> and coefficients<Coefficients>, int> = 0>
+    arithmetic_or_complex<Scalar> and coefficients<Coefficients>, int> = 0>
 #endif
     auto make_euclidean_mean()
     {
@@ -235,13 +235,12 @@ namespace OpenKalman
      * must equal Coefficients::dimensions * Coefficients::dimensions.
      */
 #ifdef __cpp_concepts
-    template<coefficients Coefficients, TriangleType triangle_type, typename ... Args> requires
-    (std::is_arithmetic_v<Args> and ...) and
+    template<coefficients Coefficients, TriangleType triangle_type, arithmetic_or_complex ... Args> requires
     (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
     (sizeof...(Args) > 0) and (sizeof...(Args) == Coefficients::dimensions * Coefficients::dimensions)
 #else
     template<typename Coefficients, TriangleType triangle_type, typename ... Args, std::enable_if_t<
-      coefficients<Coefficients> and std::conjunction_v<std::is_arithmetic<Args>...> and
+      coefficients<Coefficients> and (arithmetic_or_complex<Args> and ...) and
       (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
       (sizeof...(Args) > 0) and (sizeof...(Args) == Coefficients::dimensions * Coefficients::dimensions), int> = 0>
 #endif
@@ -264,12 +263,11 @@ namespace OpenKalman
      * must equal Coefficients::dimensions * Coefficients::dimensions.
      */
 #ifdef __cpp_concepts
-    template<coefficients Coefficients, typename ... Args> requires
-    (std::is_arithmetic_v<Args> and ...) and
+    template<coefficients Coefficients, arithmetic_or_complex ... Args> requires
     (sizeof...(Args) > 0) and (sizeof...(Args) == Coefficients::dimensions * Coefficients::dimensions)
 #else
     template<typename Coefficients, typename ... Args, std::enable_if_t<
-      coefficients<Coefficients> and std::conjunction_v<std::is_arithmetic<Args>...> and
+      coefficients<Coefficients> and (arithmetic_or_complex<Args> and ...) and
       (sizeof...(Args) > 0) and (sizeof...(Args) == Coefficients::dimensions * Coefficients::dimensions), int> = 0>
 #endif
     auto make_covariance(const Args ... args)
@@ -290,14 +288,13 @@ namespace OpenKalman
      * must be the square of an integer.
      */
 #ifdef __cpp_concepts
-    template<TriangleType triangle_type, typename ... Args> requires
-      (sizeof...(Args) > 0) and (std::is_arithmetic_v<Args> and ...) and
-      (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
+    template<TriangleType triangle_type, arithmetic_or_complex ... Args> requires
+      (sizeof...(Args) > 0) and (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
       (sizeof...(Args) == OpenKalman::internal::constexpr_sqrt(sizeof...(Args)) *
         OpenKalman::internal::constexpr_sqrt(sizeof...(Args)))
 #else
     template<TriangleType triangle_type, typename ... Args, std::enable_if_t<
-      (sizeof...(Args) > 0) and (std::is_arithmetic_v<Args> and ...) and
+      (sizeof...(Args) > 0) and (arithmetic_or_complex<Args> and ...) and
       (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
       (sizeof...(Args) == OpenKalman::internal::constexpr_sqrt(sizeof...(Args)) *
         OpenKalman::internal::constexpr_sqrt(sizeof...(Args))), int> = 0>
@@ -318,11 +315,11 @@ namespace OpenKalman
      * must be the square of an integer.
      */
 #ifdef __cpp_concepts
-    template<typename ... Args> requires (sizeof...(Args) > 0) and (std::is_arithmetic_v<Args> and ...) and
+    template<arithmetic_or_complex ... Args> requires (sizeof...(Args) > 0) and
       (sizeof...(Args) == OpenKalman::internal::constexpr_sqrt(sizeof...(Args)) *
         OpenKalman::internal::constexpr_sqrt(sizeof...(Args)))
 #else
-    template<typename ... Args, std::enable_if_t<(sizeof...(Args) > 0) and (std::is_arithmetic_v<Args> and ...) and
+    template<typename ... Args, std::enable_if_t<(sizeof...(Args) > 0) and (arithmetic_or_complex<Args> and ...) and
     (sizeof...(Args) == OpenKalman::internal::constexpr_sqrt(sizeof...(Args)) *
       OpenKalman::internal::constexpr_sqrt(sizeof...(Args))), int> = 0>
 #endif
@@ -343,14 +340,13 @@ namespace OpenKalman
      * \tparam Scalar The scalar type (integral or floating-point).
      */
 #ifdef __cpp_concepts
-    template<coefficients Coefficients, TriangleType triangle_type, typename Scalar = double> requires
-      (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
-      std::is_arithmetic_v<Scalar>
+    template<coefficients Coefficients, TriangleType triangle_type, arithmetic_or_complex Scalar = double>
+    requires (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper)
 #else
     template<typename Coefficients, TriangleType triangle_type, typename Scalar = double, std::enable_if_t<
       coefficients<Coefficients> and
       (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
-      std::is_arithmetic_v<Scalar>, int> = 0>
+      arithmetic_or_complex<Scalar>, int> = 0>
 #endif
     auto make_covariance()
     {
@@ -368,10 +364,10 @@ namespace OpenKalman
      * \tparam Scalar The scalar type (integral or floating-point).
      */
 #ifdef __cpp_concepts
-    template<coefficients Coefficients, typename Scalar = double> requires std::is_arithmetic_v<Scalar>
+    template<coefficients Coefficients, arithmetic_or_complex Scalar = double>
 #else
     template<typename Coefficients, typename Scalar = double, std::enable_if_t<
-      coefficients<Coefficients> and std::is_arithmetic_v<Scalar>, int> = 0>
+      coefficients<Coefficients> and arithmetic_or_complex<Scalar>, int> = 0>
 #endif
     auto make_covariance()
     {
@@ -392,13 +388,13 @@ namespace OpenKalman
      * must equal Coefficients::dimensions * Coefficients::dimensions.
      */
 #ifdef __cpp_concepts
-    template<coefficients Coefficients, TriangleType triangle_type = TriangleType::lower, typename ... Args> requires
-      (std::is_arithmetic_v<Args> and ...) and
-      (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
+    template<coefficients Coefficients, TriangleType triangle_type = TriangleType::lower,
+      arithmetic_or_complex ... Args>
+    requires (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
       (sizeof...(Args) > 0) and (sizeof...(Args) == Coefficients::dimensions * Coefficients::dimensions)
 #else
     template<typename Coefficients, TriangleType triangle_type = TriangleType::lower, typename ... Args,
-      std::enable_if_t<coefficients<Coefficients> and std::conjunction_v<std::is_arithmetic<Args>...> and
+      std::enable_if_t<coefficients<Coefficients> and (arithmetic_or_complex<Args> and ...) and
         (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
         (sizeof...(Args) > 0) and (sizeof...(Args) == Coefficients::dimensions * Coefficients::dimensions), int> = 0>
 #endif
@@ -420,14 +416,13 @@ namespace OpenKalman
      * must be the square of an integer.
      */
 #ifdef __cpp_concepts
-    template<TriangleType triangle_type = TriangleType::lower, typename ... Args> requires
-    (sizeof...(Args) > 0) and (std::is_arithmetic_v<Args> and ...) and
-      (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
+    template<TriangleType triangle_type = TriangleType::lower, arithmetic_or_complex ... Args> requires
+    (sizeof...(Args) > 0) and (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
       (sizeof...(Args) == OpenKalman::internal::constexpr_sqrt(sizeof...(Args)) *
         OpenKalman::internal::constexpr_sqrt(sizeof...(Args)))
 #else
     template<TriangleType triangle_type = TriangleType::lower, typename ... Args, std::enable_if_t<
-      (sizeof...(Args) > 0) and (std::is_arithmetic_v<Args> and ...) and
+      (sizeof...(Args) > 0) and (arithmetic_or_complex<Args> and ...) and
       (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
       (sizeof...(Args) == OpenKalman::internal::constexpr_sqrt(sizeof...(Args)) *
         OpenKalman::internal::constexpr_sqrt(sizeof...(Args))), int> = 0>
@@ -449,14 +444,14 @@ namespace OpenKalman
      * \tparam Scalar The scalar type (integral or floating-point).
      */
 #ifdef __cpp_concepts
-    template<coefficients Coefficients, TriangleType triangle_type = TriangleType::lower, typename Scalar = double>
-    requires (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
-    std::is_arithmetic_v<Scalar>
+    template<coefficients Coefficients, TriangleType triangle_type = TriangleType::lower,
+      arithmetic_or_complex Scalar = double>
+    requires (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper)
 #else
     template<typename Coefficients, TriangleType triangle_type = TriangleType::lower, typename Scalar = double,
       std::enable_if_t<coefficients<Coefficients> and
       (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
-      std::is_arithmetic_v<Scalar>, int> = 0>
+      arithmetic_or_complex<Scalar>, int> = 0>
 #endif
     auto make_square_root_covariance()
     {
@@ -515,13 +510,13 @@ namespace OpenKalman
 
   // If the arguments are a sequence of scalars, deduce a single-column matrix.
 #ifdef __cpp_concepts
-  template<typename ... Args> requires (sizeof...(Args) > 0) and (std::is_arithmetic_v<Args> and ...)
+  template<arithmetic_or_complex ... Args> requires (sizeof...(Args) > 0)
 #else
   template<typename ... Args,
-    std::enable_if_t<(sizeof...(Args) > 0) and std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
+    std::enable_if_t<(sizeof...(Args) > 0) and (arithmetic_or_complex<Args> and ...), int> = 0>
 #endif
-  Matrix(Args ...) -> Matrix<Axes<sizeof...(Args)>, Axis,
-    Eigen3::eigen_matrix_t<std::decay_t<std::common_type_t<Args...>>, sizeof...(Args), 1>>;
+  Matrix(const Args ...) -> Matrix<Axes<sizeof...(Args)>, Axis,
+    Eigen3::eigen_matrix_t<std::common_type_t<Args...>, sizeof...(Args), 1>>;
 
 
   // ---------- //
@@ -543,13 +538,13 @@ namespace OpenKalman
 
   /// If the arguments are a sequence of scalars, deduce a single-column mean with all Axis coefficients.
 #ifdef __cpp_concepts
-  template<typename ... Args> requires (sizeof...(Args) > 0) and (std::is_arithmetic_v<Args> and ...)
+  template<arithmetic_or_complex ... Args> requires (sizeof...(Args) > 0)
 #else
   template<typename ... Args,
-    std::enable_if_t<(sizeof...(Args) > 0) and std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
+    std::enable_if_t<(sizeof...(Args) > 0) and (arithmetic_or_complex<Args> and ...), int> = 0>
 #endif
-  Mean(Args ...) -> Mean<Axes<sizeof...(Args)>,
-    Eigen3::eigen_matrix_t<std::decay_t<std::common_type_t<Args...>>, sizeof...(Args), 1>>;
+  Mean(const Args ...) -> Mean<Axes<sizeof...(Args)>,
+    Eigen3::eigen_matrix_t<std::common_type_t<Args...>, sizeof...(Args), 1>>;
 
 
   // ------------------- //
@@ -572,13 +567,13 @@ namespace OpenKalman
 
   /// If the arguments are a sequence of scalars, construct a single-column Euclidean mean.
 #ifdef __cpp_concepts
-  template<typename ... Args> requires (sizeof...(Args) > 0) and (std::is_arithmetic_v<Args> and ...)
+  template<arithmetic_or_complex ... Args> requires (sizeof...(Args) > 0)
 #else
   template<typename ... Args, std::enable_if_t<
-    (sizeof...(Args) > 0) and std::conjunction_v<std::is_arithmetic<Args>...>, int> = 0>
+    (sizeof...(Args) > 0) and (arithmetic_or_complex<Args> and ...), int> = 0>
 #endif
-  EuclideanMean(Args ...) -> EuclideanMean<OpenKalman::Axes<sizeof...(Args)>,
-    Eigen3::eigen_matrix_t<std::decay_t<std::common_type_t<Args...>>, sizeof...(Args), 1>>;
+  EuclideanMean(const Args ...) -> EuclideanMean<OpenKalman::Axes<sizeof...(Args)>,
+    Eigen3::eigen_matrix_t<std::common_type_t<Args...>, sizeof...(Args), 1>>;
 
 
   // ---------------- //
@@ -598,12 +593,11 @@ namespace OpenKalman
 
 
   /// If the arguments are a sequence of scalars, derive a square, self-adjoint matrix.
-#if defined(__cpp_concepts) and not defined (__clang__) // Does not appear to work with clang 10.1.0.
-  template<typename ... Args> requires (std::is_arithmetic_v<Args> and ...) and (sizeof...(Args) > 0) and
+#ifdef __cpp_concepts
+  template<arithmetic_or_complex ... Args> requires (sizeof...(Args) > 0) and
     (sizeof...(Args) == internal::constexpr_sqrt(sizeof...(Args)) * internal::constexpr_sqrt(sizeof...(Args)))
 #else
-  template<typename ... Args, std::enable_if_t<
-    std::conjunction_v<std::is_arithmetic<Args>...> and (sizeof...(Args) > 0) and
+  template<typename ... Args, std::enable_if_t<(arithmetic_or_complex<Args> and ...) and (sizeof...(Args) > 0) and
     (sizeof...(Args) == internal::constexpr_sqrt(sizeof...(Args)) * internal::constexpr_sqrt(sizeof...(Args))), int> = 0>
 #endif
   explicit Covariance(const Args& ...) -> Covariance<Axes<internal::constexpr_sqrt(sizeof...(Args))>,
@@ -628,16 +622,15 @@ namespace OpenKalman
 
 
   /// If the arguments are a sequence of scalars, derive a square, lower triangular matrix.
-#if defined(__cpp_concepts) and not defined (__clang__) // Does not appear to work with clang 10.1.0.
-  template<typename ... Args> requires (std::is_arithmetic_v<Args> and ...) and (sizeof...(Args) > 0) and
+#ifdef __cpp_concepts
+  template<arithmetic_or_complex ... Args> requires (sizeof...(Args) > 0) and
   (sizeof...(Args) == internal::constexpr_sqrt(sizeof...(Args)) * internal::constexpr_sqrt(sizeof...(Args)))
 #else
-  template<typename ... Args, std::enable_if_t<
-    std::conjunction_v<std::is_arithmetic<Args>...> and (sizeof...(Args) > 0) and
+  template<typename ... Args, std::enable_if_t<(arithmetic_or_complex<Args> and ...) and (sizeof...(Args) > 0) and
     (sizeof...(Args) == internal::constexpr_sqrt(sizeof...(Args)) * internal::constexpr_sqrt(sizeof...(Args))), int> = 0>
 #endif
-  explicit SquareRootCovariance(Args ...) -> SquareRootCovariance<Axes<internal::constexpr_sqrt(sizeof...(Args))>,
-  Eigen3::TriangularMatrix<Eigen3::eigen_matrix_t<std::decay_t<std::common_type_t<Args...>>,
+  explicit SquareRootCovariance(const Args& ...) -> SquareRootCovariance<Axes<internal::constexpr_sqrt(sizeof...(Args))>,
+  Eigen3::TriangularMatrix<Eigen3::eigen_matrix_t<std::common_type_t<Args...>,
     OpenKalman::internal::constexpr_sqrt(sizeof...(Args)), OpenKalman::internal::constexpr_sqrt(sizeof...(Args))>>>;
 
 
