@@ -361,7 +361,7 @@ TEST(matrices, TypedMatrix_overloads)
 
   EXPECT_TRUE(is_near(square(QR_decomposition(Matrix<Axes<3>, C2, M32> {1, 4, 2, 5, 3, 6})), Mat22 {14, 32, 32, 77}));
 
-  using N = std::normal_distribution<double>::param_type;
+  using N = std::normal_distribution<double>;
   Mat23 m = Mat23::zero();
   for (int i=0; i<100; i++)
   {

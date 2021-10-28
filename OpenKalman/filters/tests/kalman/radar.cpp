@@ -30,7 +30,7 @@ namespace
     using Polar2 = Mean<Polar<>, M2>;
     for (int i = 0; i < 5; i++)
     {
-      auto true_state = randomize<Loc2, std::uniform_real_distribution>(5.0, 10.0);
+      auto true_state = randomize<Loc2>(std::uniform_real_distribution {5.0, 10.0});
       auto x = GaussianDistribution < Axes<2>, M2, Cov> { Loc2 {7.5, 7.5}, Cov::identity() };
       auto meas_cov = Cov {0.01, 0, 0, std::numbers::pi / 360};
       auto r = GaussianDistribution < Polar<>, M2, Cov> { Polar2::zero(), meas_cov };

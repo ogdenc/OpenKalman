@@ -31,8 +31,8 @@ namespace
     using Polar2 = Mean<Polar<>, M2>;
     for (int i = 0; i < 5; i++)
     {
-      using U = std::uniform_real_distribution<double>::param_type;
-      auto true_state = randomize<Polar2, std::uniform_real_distribution>(U {5, 10}, U {-pi, pi});
+      using U = std::uniform_real_distribution<double>;
+      auto true_state = randomize<Polar2>(U {5, 10}, U {-pi, pi});
       auto x = GaussianDistribution < Polar<>, M2, Cov> { Polar2 {7.5, 0}, Cov::identity() };
       auto meas_cov = Cov {0.0025, 0, 0, 0.0025};
       auto r = GaussianDistribution < Axes<2>, M2, Cov> { Loc2::zero(), meas_cov };

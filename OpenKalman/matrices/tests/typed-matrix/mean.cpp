@@ -329,7 +329,7 @@ TEST(matrices, Mean_overloads)
 
   EXPECT_TRUE(is_near(square(QR_decomposition(Mean<Axes<3>, M32> {1, 4, 2, 5, 3, 6})), TMat22 {14, 32, 32, 77}));
 
-  using N = std::normal_distribution<double>::param_type;
+  using N = std::normal_distribution<double>;
   EMat23 m = EMat23::zero();
   for (int i=0; i<100; i++)
   {

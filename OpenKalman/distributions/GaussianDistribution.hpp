@@ -325,8 +325,8 @@ namespace OpenKalman
      */
     auto operator()() const
     {
-      auto norm = randomize<Matrix<Coefficients, Axis, MeanNestedMatrix>,
-        std::normal_distribution, random_number_engine>(0.0, 1.0);
+      auto norm = randomize<Matrix<Coefficients, Axis, MeanNestedMatrix>, random_number_engine>(
+        std::normal_distribution {0.0, 1.0});
       auto s = square_root(sigma);
       if constexpr(upper_triangular_matrix<decltype(s)>)
         return make_self_contained(Matrix {mu} + transpose(std::move(s)) * std::move(norm));

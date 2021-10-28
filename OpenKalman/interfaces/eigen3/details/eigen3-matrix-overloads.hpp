@@ -1815,12 +1815,12 @@ namespace OpenKalman::Eigen3
    * \tparam Dist A distribution (e.g., std::normal_distribution<double>).
    **/
 #ifdef __cpp_concepts
-  template<eigen_matrix ReturnType,
-    std::uniform_random_bit_generator random_number_engine = std::mt19937, typename Dist>
+  template<eigen_matrix ReturnType, std::uniform_random_bit_generator random_number_engine = std::mt19937,
+    typename Dist>
   requires
     (not dynamic_shape<ReturnType>) and
     requires { typename std::decay_t<Dist>::result_type; typename std::decay_t<Dist>::param_type; } and
-    (not std::is_const_v<std::remove_reference_t<Dist>>)
+      (not std::is_const_v<std::remove_reference_t<Dist>>)
 #else
   template<typename ReturnType, typename random_number_engine = std::mt19937, typename Dist,
     std::enable_if_t<eigen_matrix<ReturnType> and (not dynamic_shape<ReturnType>)and
@@ -1853,8 +1853,8 @@ namespace OpenKalman::Eigen3
    * \tparam Dist A distribution (type distribution_type).
    **/
 #ifdef __cpp_concepts
-  template<eigen_matrix ReturnType,
-    std::uniform_random_bit_generator random_number_engine = std::mt19937, typename Dist>
+  template<eigen_matrix ReturnType, std::uniform_random_bit_generator random_number_engine = std::mt19937,
+    typename Dist>
   requires
     dynamic_shape<ReturnType> and
     requires { typename std::decay_t<Dist>::result_type; typename std::decay_t<Dist>::param_type; } and
@@ -1889,34 +1889,31 @@ namespace OpenKalman::Eigen3
    *     auto m = randomize<Eigen::Matrix<double, 2, 2>>(N {1.0, 0.3}, N {2.0, 0.3}, 3.0, N {4.0, 0.3})));
    *   \endcode
    *
-   *  - One distribution for each row. The following code constructs a 3-by-2 (m) or 2-by-2 (p) matrices
-   *  in which elements in each row are selected according to the three (m) or two (p) listed distribution
+   *  - One distribution for each row. The following code constructs a 3-by-2 (n) or 2-by-2 (o) matrices
+   *  in which elements in each row are selected according to the three (n) or two (o) listed distribution
    *  parameters:
    *   \code
-   *     using N = std::normal_distribution<double>;
-   *     auto m = randomize<Eigen::Matrix<double, 3, 2>>(N {1.0, 0.3}, 2.0, N {3.0, 0.3})));
-   *     auto p = randomize<Eigen::Matrix<double, 2, 2>>(N {1.0, 0.3}, N {2.0, 0.3})));
+   *     auto n = randomize<Eigen::Matrix<double, 3, 2>>(N {1.0, 0.3}, 2.0, N {3.0, 0.3})));
+   *     auto o = randomize<Eigen::Matrix<double, 2, 2>>(N {1.0, 0.3}, N {2.0, 0.3})));
    *   \endcode
-   *   Note that in the case of p, there is an ambiguity as to whether the listed distributions correspond to rows
+   *   Note that in the case of o, there is an ambiguity as to whether the listed distributions correspond to rows
    *   or columns. In case of such an ambiguity, this function assumes that the parameters correspond to the rows.
    *
-   *  - One distribution for each column. The following code constructs 2-by-3 matrix m
+   *  - One distribution for each column. The following code constructs 2-by-3 matrix p
    *  in which elements in each column are selected according to the three listed distribution parameters:
    *   \code
-   *     using N = std::normal_distribution<double>;
-   *     auto m = randomize<Eigen::Matrix<double, 2, 3>>(N {1.0, 0.3}, 2.0, N {3.0, 0.3})));
+   *     auto p = randomize<Eigen::Matrix<double, 2, 3>>(N {1.0, 0.3}, 2.0, N {3.0, 0.3})));
    *   \endcode
    *
    * \tparam ReturnType The return type reflecting the size of the matrix to be filled. The actual result will be
-   * a fixed type matrix.
+   * a fixed shape matrix.
    * \tparam random_number_engine The random number engine.
    * \tparam Dists A set of distributions (e.g., std::normal_distribution<double>) or, alternatively,
    * means (a definite, non-stochastic value).
    **/
 #ifdef __cpp_concepts
-  template<
-    eigen_matrix ReturnType,
-    std::uniform_random_bit_generator random_number_engine = std::mt19937, typename...Dists>
+  template<eigen_matrix ReturnType, std::uniform_random_bit_generator random_number_engine = std::mt19937,
+    typename...Dists>
   requires
   (not dynamic_shape<ReturnType>) and (sizeof...(Dists) > 1) and
     (((requires { typename std::decay_t<Dists>::result_type;  typename std::decay_t<Dists>::param_type; } or

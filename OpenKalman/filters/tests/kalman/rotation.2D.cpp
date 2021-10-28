@@ -20,7 +20,7 @@ namespace
 {
   inline auto get_t2()
   {
-    auto theta = trace(randomize<Mean<Axis, eigen_matrix_t<double, 1, 1>>, std::uniform_real_distribution>(-pi, pi));
+    auto theta = trace(randomize<Mean<Axis, eigen_matrix_t<double, 1, 1>>>(std::uniform_real_distribution {-pi, pi}));
     using M22 = eigen_matrix_t<double, 2, 2>;
     auto a = Matrix < Axes<2>, Axes<2>, M22> { std::cos(theta), -std::sin(theta), std::sin(theta), std::cos(theta) };
     return LinearTransformation(a);
@@ -34,7 +34,7 @@ namespace
     using Mean2 = Mean<Axes<2>, M2>;
     for (int i = 0; i < 5; i++)
     {
-      auto true_state = randomize<Mean2, std::uniform_real_distribution>(5.0, 10.0);
+      auto true_state = randomize<Mean2>(std::uniform_real_distribution {5.0, 10.0});
       auto x = GaussianDistribution < Axes<2>, M2, Cov> { Mean2 {7.5, 7.5}, Cov::identity() };
       auto meas_cov = Cov {0.01, 0, 0, 0.01};
       auto r = GaussianDistribution < Axes<2>, M2, Cov> { Mean2::zero(), meas_cov };

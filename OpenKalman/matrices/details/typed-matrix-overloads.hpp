@@ -946,35 +946,69 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
 
 
   /**
-   * Fill a typed  matrix with random values selected from a random distribution.
-   * The Gaussian distribution has zero mean and standard deviation sigma (1, if not specified).
-   **/
+   * \brief Fill a fixed-shape typed matrix with random values selected from a random distribution.
+   * \details The distributions are allocated to each element of the matrix, according to one of the following options:
+   *
+   *  - One distribution for the entire matrix. The following example constructs a 2-by-2 matrix (m) in which each
+   *  element is a random value selected based on a distribution with mean 1.0 and standard deviation 0.3:
+   *   \code
+   *     using N = std::normal_distribution<double>;
+   *     auto m = randomize<Matrix<Axes<2>, Axes<2>, Eigen::Matrix<double, 2, 2>>>(N {1.0, 0.3}));
+   *   \endcode
+   *
+   *  - One distribution for each matrix element. The following code constructs a 2-by-2 matrix n containing
+   *  random values around mean 1.0, 2.0, 3.0, and 4.0 (in row-major order), with standard deviations of
+   *  0.3, 0.3, 0.0 (by default, since no s.d. is specified as a parameter), and 0.3:
+   *   \code
+   *     auto n = randomize<Matrix<Axes<2>, Axes<2>, Eigen::Matrix<double, 2, 2>>>(N {1.0, 0.3}, N {2.0, 0.3}, 3.0, N {4.0, 0.3})));
+   *   \endcode
+   *
+   *  - One distribution for each row. The following code constructs a 3-by-2 (o) or 2-by-2 (p) matrices
+   *  in which elements in each row are selected according to the three (o) or two (p) listed distribution
+   *  parameters:
+   *   \code
+   *     auto o = randomize<Matrix<Axes<3>, Coefficients<angle::Radians, angle::Radians>, Eigen::Matrix<double, 3, 2>>>(N {1.0, 0.3}, 2.0, N {3.0, 0.3})));
+   *     auto p = randomize<Matrix<Axes<2>, Coefficients<angle::Radians, angle::Radians>, Eigen::Matrix<double, 2, 2>>>(N {1.0, 0.3}, N {2.0, 0.3})));
+   *   \endcode
+   *   Note that in the case of p, there is an ambiguity as to whether the listed distributions correspond to rows
+   *   or columns. In case of such an ambiguity, this function assumes that the parameters correspond to the rows.
+   *
+   *  - One distribution for each column. The following code constructs 2-by-3 matrix m
+   *  in which elements in each column are selected according to the three listed distribution parameters:
+   *   \code
+   *     auto m = randomize<Matrix<Coefficients<angle::Radians, angle::Radians>, Axes<3>, Eigen::Matrix<double, 2, 3>>>(N {1.0, 0.3}, 2.0, N {3.0, 0.3})));
+   *   \endcode
+   *
+   * \tparam ReturnType The return type reflecting the size of the matrix to be filled. The actual result will be
+   * a fixed typed matrix.
+   * \tparam random_number_engine The random number engine.
+   * \tparam Dists A set of distributions (e.g., std::normal_distribution<double>) or, alternatively,
+   * means (a definite, non-stochastic value).
+  **/
 #ifdef __cpp_concepts
-  template<
-    typed_matrix ReturnType,
-    template<typename Scalar> typename distribution_type = std::normal_distribution,
-    std::uniform_random_bit_generator random_number_engine = std::mt19937,
-    typename...Params>
+  template<typed_matrix ReturnType, std::uniform_random_bit_generator random_number_engine = std::mt19937,
+    typename...Dists>
+  requires
+    (not dynamic_shape<ReturnType>) and (sizeof...(Dists) > 0) and
+    (((requires { typename std::decay_t<Dists>::result_type;  typename std::decay_t<Dists>::param_type; } or
+      std::is_arithmetic_v<std::decay_t<Dists>>) and ... )) and
+    ((not std::is_const_v<std::remove_reference_t<Dists>>) and ...) and
+    (sizeof...(Dists) == 1 or MatrixTraits<ReturnType>::rows * MatrixTraits<ReturnType>::columns == sizeof...(Dists) or
+      MatrixTraits<ReturnType>::rows == sizeof...(Dists) or MatrixTraits<ReturnType>::columns == sizeof...(Dists))
 #else
-  template<
-    typename ReturnType,
-    template<typename Scalar> typename distribution_type = std::normal_distribution,
-    typename random_number_engine = std::mt19937,
-    typename...Params,
-    std::enable_if_t<typed_matrix<ReturnType>, int> = 0>
+  template<typename ReturnType, typename random_number_engine = std::mt19937, typename...Dists,
+    std::enable_if_t<typed_matrix<ReturnType> and (not dynamic_shape<ReturnType>) and (sizeof...(Dists) > 0) and
+      ((not std::is_const_v<std::remove_reference_t<Dists>>) and ...) and
+      (sizeof...(Dists) == 1 or
+        MatrixTraits<ReturnType>::rows * MatrixTraits<ReturnType>::columns == sizeof...(Dists) or
+        MatrixTraits<ReturnType>::rows == sizeof...(Dists) or
+        MatrixTraits<ReturnType>::columns == sizeof...(Dists)), int> = 0>
 #endif
   inline auto
-  randomize(Params...params)
+  randomize(Dists&& ... dists)
   {
-    using Scalar = typename MatrixTraits<ReturnType>::Scalar;
-    constexpr auto rows = MatrixTraits<ReturnType>::rows;
-    constexpr auto cols = MatrixTraits<ReturnType>::columns;
-    using Ps = typename distribution_type<Scalar>::param_type;
-    static_assert(std::is_constructible_v<Ps, Params...> or sizeof...(Params) == rows or sizeof...(Params) == rows * cols,
-      "Params... must be (1) a parameter set or list of parameter sets, "
-      "(2) a list of parameter sets, one for each row, or (3) a list of parameter sets, one for each coefficient.");
     using B = nested_matrix_t<ReturnType>;
-    return MatrixTraits<ReturnType>::template make(randomize<B, distribution_type, random_number_engine>(params...));
+    return MatrixTraits<ReturnType>::template make(randomize<B, random_number_engine>(std::forward<Dists>(dists)...));
   }
 
 

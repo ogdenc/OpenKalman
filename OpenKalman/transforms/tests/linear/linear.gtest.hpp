@@ -91,11 +91,11 @@ namespace OpenKalman::test
     using MNoise = Mean<Axes<OUT>, eigen_matrix_t<double, OUT, 1>>;
     for (int i=1; i<=N; i++)
     {
-      auto a = randomize<MatIn, std::uniform_real_distribution>(-double(i), double(i));
-      auto n = randomize<MatNoise, std::uniform_real_distribution>(-0.1 * i, 0.1 * i);
+      auto a = randomize<MatIn>(std::uniform_real_distribution<double> {-i, i});
+      auto n = randomize<MatNoise>(std::uniform_real_distribution<double> {-0.1 * i, 0.1 * i});
       auto g = LinearTransformation(a, n);
       auto in = GaussianDistribution {MIn::zero(), cov};
-      auto b = randomize<MNoise, std::normal_distribution>(0., i*2.);
+      auto b = randomize<MNoise>(std::normal_distribution<double> {0., i*2.});
       auto noise_cov = Covariance {0.5 * eigen_matrix_t<double, OUT, OUT>::Identity()};
       auto noise = GaussianDistribution {b, noise_cov};
       EXPECT_TRUE(run_linear_test(err, g, t, in, noise));
@@ -117,7 +117,7 @@ namespace OpenKalman::test
       auto g = LinearTransformation(a, n);
       auto t = IdentityTransform();
       auto in = GaussianDistribution {MIn::zero(), make_self_contained(i * std::forward<Cov>(cov))};
-      auto b = randomize<MNoise, std::normal_distribution>(0., i*2.);
+      auto b = randomize<MNoise>(std::normal_distribution {0., i*2.});
       auto noise_cov = Covariance {i / 5. * eigen_matrix_t<double, DIM, DIM>::Identity()};
       auto noise = GaussianDistribution {b, noise_cov};
       EXPECT_TRUE(run_identity_test(err, g, t, in, noise));

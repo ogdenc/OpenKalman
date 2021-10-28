@@ -22,7 +22,7 @@ namespace
     using M3 = eigen_matrix_t<double, 3, 1>;
     using Mean3 = Mean<Axes<3>, M3>;
     using M33 = eigen_matrix_t<double, 3, 3>;
-    auto angles = randomize<Mean3, std::uniform_real_distribution>(-pi, pi);
+    auto angles = randomize<Mean3>(std::uniform_real_distribution {-pi, pi});
     auto ax = Matrix < Axes<3>, Axes<3>, M33> {
       1, 0, 0,
         0, std::cos(angles[0]), -std::sin(angles[0]),
@@ -49,11 +49,11 @@ namespace
     using Mean3 = Mean<Axes<3>, M3>;
     for (int i = 0; i < 5; i++)
     {
-      auto true_state = randomize<Mean3, std::uniform_real_distribution>(5.0, 10.0);
+      auto true_state = randomize<Mean3>(std::uniform_real_distribution {5.0, 10.0});
       auto x = GaussianDistribution < Axes<3>, M3, Cov> { Mean3 {7.5, 7.5, 7.5}, Cov::identity() };
       auto meas_cov = Cov {0.01, 0, 0, 0, 0.01, 0, 0, 0, 0.1};
       auto r = GaussianDistribution < Axes<3>, M3, Cov> { Mean3::zero(), meas_cov };
-      parameter_test(transform, get_t3(), x, true_state, r, 0.1, 100);
+      parameter_test(transform, get_t3(), x, true_state, r, 1.0, 1000);
     }
   }
 
