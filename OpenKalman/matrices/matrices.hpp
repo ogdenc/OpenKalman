@@ -27,8 +27,6 @@
 
 #include "details/ElementAccessor.hpp"
 //
-#include "details/MatrixBase.hpp"
-#include "details/TypedMatrixBase.hpp"
 #include "Mean.hpp"
 #include "EuclideanMean.hpp"
 #include "Matrix.hpp"

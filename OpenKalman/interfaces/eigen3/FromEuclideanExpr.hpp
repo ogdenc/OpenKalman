@@ -20,46 +20,49 @@ namespace OpenKalman::Eigen3
 {
 
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, typename NestedMatrix> requires
-    eigen_matrix<NestedMatrix> or to_euclidean_expr<NestedMatrix> or eigen_diagonal_expr<NestedMatrix>
+  template<coefficients Coefficients, typename NestedMatrix>
+  requires (eigen_matrix<NestedMatrix> or to_euclidean_expr<NestedMatrix> or eigen_diagonal_expr<NestedMatrix>) and
+    (dynamic_coefficients<Coefficients> == dynamic_rows<NestedMatrix>) and
+    (Coefficients::euclidean_dimensions == MatrixTraits<NestedMatrix>::rows) and
+    (not dynamic_coefficients<Coefficients> or
+      std::same_as<typename Coefficients::Scalar, typename MatrixTraits<NestedMatrix>::Scalar>)
 #else
   template<typename Coefficients, typename NestedMatrix>
 #endif
-  struct FromEuclideanExpr
-    : OpenKalman::internal::MatrixBase<FromEuclideanExpr<Coefficients, NestedMatrix>, NestedMatrix>
+  struct FromEuclideanExpr : OpenKalman::internal::TypedMatrixBase<
+    FromEuclideanExpr<Coefficients, NestedMatrix>, NestedMatrix, Coefficients, std::conditional_t<
+      dynamic_columns<NestedMatrix>, DynamicCoefficients<typename MatrixTraits<NestedMatrix>::Scalar>,
+      Axes<MatrixTraits<NestedMatrix>::columns>>>
   {
 
 #ifndef __cpp_concepts
     static_assert(coefficients<Coefficients>);
     static_assert(eigen_matrix<NestedMatrix> or to_euclidean_expr<NestedMatrix> or eigen_diagonal_expr<NestedMatrix>);
+    static_assert(dynamic_coefficients<Coefficients> == dynamic_rows<NestedMatrix>);
+    static_assert(Coefficients::euclidean_dimensions == MatrixTraits<NestedMatrix>::rows);
 #endif
-
-    static_assert([] {
-      if constexpr (dynamic_rows<NestedMatrix>)
-        return dynamic_coefficients<Coefficients>;
-      else
-        return fixed_coefficients<Coefficients> and
-          (MatrixTraits<NestedMatrix>::rows == Coefficients::euclidean_dimensions);
-    }());
-
-  private:
-
-    using Base = OpenKalman::internal::MatrixBase<FromEuclideanExpr, NestedMatrix>;
-
-    static constexpr auto columns = MatrixTraits<NestedMatrix>::columns; ///< Number of columns.
-
-  public:
 
     using Nested = FromEuclideanExpr; ///< Required by Eigen3.
 
     using Scalar = typename MatrixTraits<NestedMatrix>::Scalar;
 
+  private:
 
-    /// Default constructor.
+    static constexpr auto columns = MatrixTraits<NestedMatrix>::columns; ///< Number of columns.
+
+    using Base = OpenKalman::internal::TypedMatrixBase<FromEuclideanExpr, NestedMatrix, Coefficients,
+      std::conditional_t<dynamic_columns<NestedMatrix>, DynamicCoefficients<Scalar>, Axes<columns>>>;
+
+  public:
+
+    /**
+     * \brief Default constructor.
+     */
 #ifdef __cpp_concepts
-    FromEuclideanExpr() requires std::default_initializable<NestedMatrix>
+    FromEuclideanExpr() requires std::default_initializable<NestedMatrix> and (not dynamic_shape<NestedMatrix>)
 #else
-    template<typename T = NestedMatrix, std::enable_if_t<std::is_default_constructible_v<T>, int> = 0>
+    template<typename T = NestedMatrix, std::enable_if_t<
+      std::is_default_constructible_v<T> and (not dynamic_shape<T>), int> = 0>
     FromEuclideanExpr()
 #endif
       : Base {} {}
@@ -285,7 +288,7 @@ namespace OpenKalman::Eigen3
      */
     auto operator()(std::size_t i, std::size_t j)
     {
-      if constexpr (element_settable < FromEuclideanExpr, 2 >)
+      if constexpr (element_settable<FromEuclideanExpr, 2>)
         return OpenKalman::internal::ElementAccessor(*this, i, j);
       else
         return std::as_const(*this)(i, j);
@@ -298,7 +301,11 @@ namespace OpenKalman::Eigen3
      * \param j The column.
      * \return The value of the coefficient.
      */
-    auto operator()(std::size_t i, std::size_t j) const { return OpenKalman::internal::ElementAccessor(*this, i, j); }
+    auto operator()(std::size_t i, std::size_t j) const
+    {
+      return OpenKalman::internal::ElementAccessor(*this, i, j);
+    }
+
 
     /**
      * Access the coefficient at row i
@@ -309,7 +316,7 @@ namespace OpenKalman::Eigen3
      */
     auto operator[](std::size_t i)
     {
-      if constexpr (element_settable < FromEuclideanExpr, 1 >)
+      if constexpr (element_settable<FromEuclideanExpr, 1>)
         return OpenKalman::internal::ElementAccessor(*this, i);
       else
         return std::as_const(*this)[i];

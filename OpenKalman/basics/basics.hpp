@@ -25,4 +25,7 @@
 #include "traits.hpp"
 #include "utils.hpp"
 
+#include "MatrixBase.hpp"
+#include "TypedMatrixBase.hpp"
+
 #endif //OPENKALMAN_BASICS_HPP

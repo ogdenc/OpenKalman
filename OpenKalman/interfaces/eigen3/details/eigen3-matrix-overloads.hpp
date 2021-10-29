@@ -1842,9 +1842,9 @@ namespace OpenKalman::Eigen3
    * \details The following example constructs two 2-by-2 matrices (m, n, and p) in which each element is a
    * random value selected based on a distribution with mean 1.0 and standard deviation 0.3:
    *   \code
-   *     auto m = randomize(Eigen::Matrix<float, 2, Eigen::Dynamic>, 2, 2, std::normal_distribution<float> {1.0, 0.3}));
-   *     auto n = randomize(Eigen::Matrix<double, Eigen::Dynamic, 2>, 2, 2, std::normal_distribution<double> {1.0, 0.3}));
-   *     auto p = randomize(Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>, 2, 2, std::normal_distribution<double> {1.0, 0.3});
+   *     auto m = randomize<Eigen::Matrix<float, 2, Eigen::Dynamic>>(2, 2, std::normal_distribution<float> {1.0, 0.3}));
+   *     auto n = randomize<Eigen::Matrix<double, Eigen::Dynamic, 2>>(2, 2, std::normal_distribution<double> {1.0, 0.3}));
+   *     auto p = randomize<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>>(2, 2, std::normal_distribution<double> {1.0, 0.3});
    *   \endcode
    * \tparam ReturnType The type of the matrix to be filled.
    * \tparam random_number_engine The random number engine (e.g., std::mt19937).

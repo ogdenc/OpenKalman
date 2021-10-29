@@ -37,10 +37,12 @@ namespace OpenKalman
    * \tparam NestedMatrix The underlying native matrix or matrix expression.
    */
 #ifdef __cpp_concepts
-  template<coefficients RowCoefficients, coefficients ColumnCoefficients, typed_matrix_nestable NestedMatrix> requires
-    (RowCoefficients::dimensions == MatrixTraits<NestedMatrix>::rows) and
+  template<coefficients RowCoefficients, coefficients ColumnCoefficients, typed_matrix_nestable NestedMatrix>
+  requires (RowCoefficients::dimensions == MatrixTraits<NestedMatrix>::rows) and
     (ColumnCoefficients::dimensions == MatrixTraits<NestedMatrix>::columns) and
-    (not std::is_rvalue_reference_v<NestedMatrix>)
+    (not std::is_rvalue_reference_v<NestedMatrix>) and
+    (dynamic_coefficients<RowCoefficients> == dynamic_rows<NestedMatrix>) and
+    (dynamic_coefficients<ColumnCoefficients> == dynamic_columns<NestedMatrix>)
 #else
   template<typename RowCoefficients, typename ColumnCoefficients, typename NestedMatrix>
 #endif
@@ -496,6 +498,23 @@ namespace OpenKalman
     template<typename Derived, typename NestedMatrix>
 #endif
     struct MatrixBase;
+
+
+    /**
+     * \internal
+     * \brief Base class for means or matrices.
+     * \tparam Derived The derived class (e.g., Matrix, Mean, EuclideanMean).
+     * \tparam NestedMatrix The nested matrix.
+     * \tparam RowCoefficients The \ref OpenKalman::coefficients "coefficients" representing the rows of the matrix.
+     * \tparam ColumnCoefficients The \ref OpenKalman::coefficients "coefficients" representing the columns of the matrix.
+     */
+#ifdef __cpp_concepts
+    template<typename Derived, typename NestedMatrix, coefficients RowCoefficients, coefficients ColumnCoefficients>
+    requires (not std::is_rvalue_reference_v<NestedMatrix>)
+#else
+    template<typename Derived, typename NestedMatrix, typename RowCoefficients, typename ColumnCoefficients = void>
+#endif
+    struct TypedMatrixBase;
 
 
     /**

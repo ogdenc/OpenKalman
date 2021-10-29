@@ -12,7 +12,6 @@
  * \internal
  * \file
  * \brief Definition of MatrixBase.
- * \todo Move to basics directory?
  */
 
 #ifndef OPENKALMAN_MATRIXBASE_HPP
@@ -190,7 +189,7 @@ namespace OpenKalman::internal
     template<std::convertible_to<std::size_t> ... Args> requires (sizeof...(Args) == (dynamic_shape<Derived> ? 1 : 0))
 #else
     template<typename D = Derived, typename...Args, std::enable_if_t<
-      (std::is_convertible_v<Args, Eigen::Index> and ...) and (sizeof...(Args) == (dynamic_shape<D> ? 1 : 0)), int> = 0>
+      (std::is_convertible_v<Args, std::size_t> and ...) and (sizeof...(Args) == (dynamic_shape<D> ? 1 : 0)), int> = 0>
 #endif
     static decltype(auto) identity(const Args...args)
     {

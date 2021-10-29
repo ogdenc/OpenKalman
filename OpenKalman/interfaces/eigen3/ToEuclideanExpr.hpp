@@ -20,38 +20,40 @@ namespace OpenKalman::Eigen3
 {
 
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, typename NestedMatrix> requires
-    eigen_matrix<NestedMatrix> or eigen_diagonal_expr<NestedMatrix>
+  template<coefficients Coefficients, typename NestedMatrix>
+  requires (eigen_matrix<NestedMatrix> or eigen_diagonal_expr<NestedMatrix>) and
+    (dynamic_coefficients<Coefficients> == dynamic_rows<NestedMatrix>) and
+    (Coefficients::dimensions == MatrixTraits<NestedMatrix>::rows) and
+    (not dynamic_coefficients<Coefficients> or
+      std::same_as<typename Coefficients::Scalar, typename MatrixTraits<NestedMatrix>::Scalar>)
 #else
   template<typename Coefficients, typename NestedMatrix>
 #endif
-  struct ToEuclideanExpr : OpenKalman::internal::MatrixBase<ToEuclideanExpr<Coefficients, NestedMatrix>, NestedMatrix>
+  struct ToEuclideanExpr : OpenKalman::internal::TypedMatrixBase<
+    ToEuclideanExpr<Coefficients, NestedMatrix>, NestedMatrix, Coefficients,
+      std::conditional_t<dynamic_columns<NestedMatrix>,
+        DynamicCoefficients<typename MatrixTraits<NestedMatrix>::Scalar>, Axes<MatrixTraits<NestedMatrix>::columns>>>
   {
 
 #ifndef __cpp_concepts
     static_assert(coefficients<Coefficients>);
     static_assert(eigen_matrix<NestedMatrix> or eigen_diagonal_expr<NestedMatrix>);
+    static_assert(dynamic_coefficients<Coefficients> == dynamic_rows<NestedMatrix>);
+    static_assert(Coefficients::dimensions == MatrixTraits<NestedMatrix>::rows);
 #endif
-
-    static_assert([] {
-      if constexpr (dynamic_rows<NestedMatrix>)
-        return dynamic_coefficients<Coefficients>;
-      else
-        return fixed_coefficients<Coefficients> and (MatrixTraits<NestedMatrix>::rows == Coefficients::dimensions);
-    }());
-
-  private:
-
-    using Base = OpenKalman::internal::MatrixBase<ToEuclideanExpr, NestedMatrix>;
-
-    static constexpr auto columns = MatrixTraits<NestedMatrix>::columns; ///< Number of columns.
-
-  public:
 
     using Nested = ToEuclideanExpr; ///< Required by Eigen3.
 
     using Scalar = typename MatrixTraits<NestedMatrix>::Scalar;
 
+  private:
+
+    static constexpr auto columns = MatrixTraits<NestedMatrix>::columns; ///< Number of columns.
+
+    using Base = OpenKalman::internal::TypedMatrixBase<ToEuclideanExpr, NestedMatrix, Coefficients,
+      std::conditional_t<dynamic_columns<NestedMatrix>, DynamicCoefficients<Scalar>, Axes<columns>>>;
+
+  public:
 
     /// Default constructor.
 #ifdef __cpp_concepts

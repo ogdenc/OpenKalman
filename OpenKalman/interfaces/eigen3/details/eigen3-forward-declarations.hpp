@@ -235,8 +235,9 @@ namespace OpenKalman::Eigen3
    */
 #ifdef __cpp_concepts
   template<typename NestedMatrix, TriangleType storage_triangle =
-      (diagonal_matrix<NestedMatrix> ? TriangleType::diagonal : TriangleType::lower)> requires
-    (eigen_matrix<NestedMatrix> or eigen_diagonal_expr<NestedMatrix>)
+      (diagonal_matrix<NestedMatrix> ? TriangleType::diagonal : TriangleType::lower)>
+  requires (eigen_matrix<NestedMatrix> or eigen_diagonal_expr<NestedMatrix>) and
+    (dynamic_shape<NestedMatrix> or square_matrix<NestedMatrix>)
 #else
   template<typename NestedMatrix, TriangleType storage_triangle =
     (diagonal_matrix<NestedMatrix> ? TriangleType::diagonal : TriangleType::lower)>
@@ -339,11 +340,12 @@ namespace OpenKalman::Eigen3
    */
 #ifdef __cpp_concepts
   template<typename NestedMatrix, TriangleType triangle_type = (diagonal_matrix<NestedMatrix> ? TriangleType::diagonal :
-      (upper_triangular_matrix<NestedMatrix> ? TriangleType::upper : TriangleType::lower))> requires
-    (eigen_matrix<NestedMatrix> or eigen_diagonal_expr<NestedMatrix>)
+      (upper_triangular_matrix<NestedMatrix> ? TriangleType::upper : TriangleType::lower))>
+  requires (eigen_matrix<NestedMatrix> or eigen_diagonal_expr<NestedMatrix>) and
+    (dynamic_shape<NestedMatrix> or square_matrix<NestedMatrix>)
 #else
   template<typename NestedMatrix, TriangleType triangle_type = (diagonal_matrix<NestedMatrix> ? TriangleType::diagonal :
-      (upper_triangular_matrix<NestedMatrix> ? TriangleType::upper : TriangleType::lower))>
+    (upper_triangular_matrix<NestedMatrix> ? TriangleType::upper : TriangleType::lower))>
 #endif
   struct TriangularMatrix;
 
@@ -396,7 +398,11 @@ namespace OpenKalman::Eigen3
    */
 #ifdef __cpp_concepts
   template<coefficients Coefficients, typename NestedMatrix = eigen_matrix_t<double, Coefficients::dimensions, 1>>
-    requires eigen_matrix<NestedMatrix> or eigen_diagonal_expr<NestedMatrix>
+  requires (eigen_matrix<NestedMatrix> or eigen_diagonal_expr<NestedMatrix>) and
+    (dynamic_coefficients<Coefficients> == dynamic_rows<NestedMatrix>) and
+    (Coefficients::dimensions == MatrixTraits<NestedMatrix>::rows) and
+    (not dynamic_coefficients<Coefficients> or
+      std::same_as<typename Coefficients::Scalar, typename MatrixTraits<NestedMatrix>::Scalar>)
 #else
   template<typename Coefficients, typename NestedMatrix = Eigen3::eigen_matrix_t<double, Coefficients::dimensions, 1>>
 #endif
@@ -436,8 +442,12 @@ namespace OpenKalman::Eigen3
    */
 #ifdef __cpp_concepts
   template<coefficients Coefficients,
-    typename NestedMatrix = eigen_matrix_t<double, Coefficients::euclidean_dimensions, 1>> requires
-     eigen_matrix<NestedMatrix> or to_euclidean_expr<NestedMatrix> or eigen_diagonal_expr<NestedMatrix>
+    typename NestedMatrix = eigen_matrix_t<double, Coefficients::euclidean_dimensions, 1>>
+  requires (eigen_matrix<NestedMatrix> or to_euclidean_expr<NestedMatrix> or eigen_diagonal_expr<NestedMatrix>) and
+    (dynamic_coefficients<Coefficients> == dynamic_rows<NestedMatrix>) and
+    (Coefficients::euclidean_dimensions == MatrixTraits<NestedMatrix>::rows) and
+    (not dynamic_coefficients<Coefficients> or
+      std::same_as<typename Coefficients::Scalar, typename MatrixTraits<NestedMatrix>::Scalar>)
 #else
   template<typename Coefficients,
     typename NestedMatrix = Eigen3::eigen_matrix_t<double, Coefficients::euclidean_dimensions, 1>>

@@ -26,8 +26,8 @@ namespace OpenKalman
 #else
   template<typename RowCoefficients, typename NestedMatrix>
 #endif
-  struct EuclideanMean : oin::TypedMatrixBase<EuclideanMean<RowCoefficients, NestedMatrix>,
-    RowCoefficients, Axes<MatrixTraits<NestedMatrix>::columns>, NestedMatrix>
+  struct EuclideanMean : oin::TypedMatrixBase<EuclideanMean<RowCoefficients, NestedMatrix>, NestedMatrix,
+    RowCoefficients, Axes<MatrixTraits<NestedMatrix>::columns>>
   {
 
 #ifndef __cpp_concepts
@@ -45,7 +45,7 @@ namespace OpenKalman
 
   private:
 
-    using Base = oin::TypedMatrixBase<EuclideanMean, RowCoefficients, ColumnCoefficients, NestedMatrix>;
+    using Base = oin::TypedMatrixBase<EuclideanMean, NestedMatrix, RowCoefficients, ColumnCoefficients>;
 
   public:
 

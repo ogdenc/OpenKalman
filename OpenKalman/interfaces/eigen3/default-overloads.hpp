@@ -498,7 +498,9 @@ namespace OpenKalman
   requires
     (RowCoefficients::dimensions == MatrixTraits<NestedMatrix>::rows) and
     (ColumnCoefficients::dimensions == MatrixTraits<NestedMatrix>::columns) and
-    (not std::is_rvalue_reference_v<NestedMatrix>)
+    (not std::is_rvalue_reference_v<NestedMatrix>) and
+    (dynamic_coefficients<RowCoefficients> == dynamic_rows<NestedMatrix>) and
+    (dynamic_coefficients<ColumnCoefficients> == dynamic_columns<NestedMatrix>)
 #else
   template<
     typename RowCoefficients,

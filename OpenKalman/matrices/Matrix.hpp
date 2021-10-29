@@ -20,14 +20,17 @@ namespace OpenKalman
   // --------------------- //
 
 #ifdef __cpp_concepts
-  template<coefficients RowCoefficients, coefficients ColumnCoefficients, typed_matrix_nestable NestedMatrix> requires
-    (RowCoefficients::dimensions == MatrixTraits<NestedMatrix>::rows) and
-    (ColumnCoefficients::dimensions == MatrixTraits<NestedMatrix>::columns) and (not std::is_rvalue_reference_v<NestedMatrix>)
+  template<coefficients RowCoefficients, coefficients ColumnCoefficients, typed_matrix_nestable NestedMatrix>
+  requires (RowCoefficients::dimensions == MatrixTraits<NestedMatrix>::rows) and
+    (ColumnCoefficients::dimensions == MatrixTraits<NestedMatrix>::columns) and
+    (not std::is_rvalue_reference_v<NestedMatrix>) and
+    (dynamic_coefficients<RowCoefficients> == dynamic_rows<NestedMatrix>) and
+    (dynamic_coefficients<ColumnCoefficients> == dynamic_columns<NestedMatrix>)
 #else
   template<typename RowCoefficients, typename ColumnCoefficients, typename NestedMatrix>
 #endif
-  struct Matrix : oin::TypedMatrixBase<Matrix<RowCoefficients, ColumnCoefficients, NestedMatrix>,
-    RowCoefficients, ColumnCoefficients, NestedMatrix>
+  struct Matrix : oin::TypedMatrixBase<Matrix<RowCoefficients, ColumnCoefficients, NestedMatrix>, NestedMatrix,
+    RowCoefficients, ColumnCoefficients>
   {
 
 #ifndef __cpp_concepts
@@ -37,13 +40,15 @@ namespace OpenKalman
     static_assert(RowCoefficients::dimensions == MatrixTraits<NestedMatrix>::rows);
     static_assert(ColumnCoefficients::dimensions == MatrixTraits<NestedMatrix>::columns);
     static_assert(not std::is_rvalue_reference_v<NestedMatrix>);
+    static_assert(dynamic_coefficients<RowCoefficients> == dynamic_rows<NestedMatrix>);
+    static_assert(dynamic_coefficients<ColumnCoefficients> == dynamic_columns<NestedMatrix>);
 #endif
 
     using Scalar = typename MatrixTraits<NestedMatrix>::Scalar; ///< Scalar type for this matrix.
 
   private:
 
-    using Base = oin::TypedMatrixBase<Matrix, RowCoefficients, ColumnCoefficients, NestedMatrix>;
+    using Base = oin::TypedMatrixBase<Matrix, NestedMatrix, RowCoefficients, ColumnCoefficients>;
 
   public:
 

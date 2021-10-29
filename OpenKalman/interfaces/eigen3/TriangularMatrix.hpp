@@ -19,8 +19,9 @@
 namespace OpenKalman::Eigen3
 {
 #ifdef __cpp_concepts
-  template<typename NestedMatrix, TriangleType triangle_type> requires
-    (eigen_matrix<NestedMatrix> or eigen_diagonal_expr<NestedMatrix>)
+  template<typename NestedMatrix, TriangleType triangle_type>
+  requires (eigen_matrix<NestedMatrix> or eigen_diagonal_expr<NestedMatrix>) and
+    (dynamic_shape<NestedMatrix> or square_matrix<NestedMatrix>)
 #else
   template<typename NestedMatrix, TriangleType triangle_type>
 #endif
@@ -30,9 +31,8 @@ namespace OpenKalman::Eigen3
 
 #ifndef __cpp_concepts
     static_assert(eigen_matrix<NestedMatrix> or eigen_diagonal_expr<NestedMatrix>);
-#endif
-
     static_assert(dynamic_shape<NestedMatrix> or square_matrix<NestedMatrix>);
+#endif
 
   private:
 

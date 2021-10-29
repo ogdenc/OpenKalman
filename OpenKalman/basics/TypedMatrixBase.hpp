@@ -8,24 +8,22 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+/**
+ * \internal
+ * \file
+ * \brief Definition of TypedMatrixBase.
+ */
+
 #ifndef OPENKALMAN_TYPEDMATRIXBASE_HPP
 #define OPENKALMAN_TYPEDMATRIXBASE_HPP
 
 namespace OpenKalman::internal
 {
-  /**
-   * \internal
-   * \brief Base class for means or matrices.
-   * \tparam Derived The derived class (e.g., Matrix, Mean, EuclideanMean).
-   * \tparam RowCoefficients The \ref OpenKalman::coefficients "coefficients" representing the rows of the matrix.
-   * \tparam ColumnCoefficients The \ref OpenKalman::coefficients "coefficients" representing the columns of the matrix.
-   * \tparam NestedMatrix The nested matrix.
-   */
 #ifdef __cpp_concepts
-  template<typename Derived, coefficients RowCoefficients, coefficients ColumnCoefficients,
-    typed_matrix_nestable NestedMatrix> requires (not std::is_rvalue_reference_v<NestedMatrix>)
+  template<typename Derived, typename NestedMatrix, coefficients RowCoefficients, coefficients ColumnCoefficients>
+  requires (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
-  template<typename Derived, typename RowCoefficients, typename ColumnCoefficients, typename NestedMatrix>
+  template<typename Derived, typename NestedMatrix, typename RowCoefficients, typename ColumnCoefficients>
 #endif
   struct TypedMatrixBase : MatrixBase<Derived, NestedMatrix>
   {
@@ -33,7 +31,6 @@ namespace OpenKalman::internal
 #ifndef __cpp_concepts
     static_assert(coefficients<RowCoefficients>);
     static_assert(coefficients<ColumnCoefficients>);
-    static_assert(typed_matrix_nestable<NestedMatrix>);
     static_assert(not std::is_rvalue_reference_v<NestedMatrix>);
 #endif
 
@@ -138,58 +135,93 @@ namespace OpenKalman::internal
     }
 
 
-    /// Subscript (two indices)
+    /**
+     * Access the coefficient at row i and column j
+     * \param i The row.
+     * \param j The column.
+     * \return If <code>element_settable<Derived&, 2></code>, the element is settable. Therefore,
+     * this function returns an object that can be assigned the coefficient to be set.
+     * Otherwise, it will return the (non-settable) coefficient as a value.
+     */
     auto operator()(std::size_t i, std::size_t j) &
     {
-      return ElementAccessor(static_cast<Derived&>(*this), i, j);
+      static_assert(element_gettable<Derived, 2>);
+
+      if constexpr (element_settable<Derived&, 2>)
+        return ElementAccessor(static_cast<Derived&>(*this), i, j);
+      else
+        return get_element(static_cast<Derived&>(*this), i, j);
     }
 
 
     /// \overload
     auto operator()(std::size_t i, std::size_t j) &&
     {
-      return ElementAccessor(static_cast<Derived&&>(*this), i, j);
+      static_assert(element_gettable<Derived, 2>);
+
+      if constexpr (element_settable<Derived&&, 2>)
+        return ElementAccessor(static_cast<Derived&&>(*this), i, j);
+      else
+        return get_element(static_cast<Derived&&>(*this), i, j);
     }
 
 
     /// \overload
     auto operator()(std::size_t i, std::size_t j) const &
     {
-      return ElementAccessor(static_cast<const Derived&>(*this), i, j);
+      static_assert(element_gettable<Derived, 2>);
+
+      return get_element(static_cast<const Derived&>(*this), i, j);
     }
 
 
     /// \overload
     auto operator()(std::size_t i, std::size_t j) const &&
     {
-      return ElementAccessor(static_cast<const Derived&&>(*this), i, j);
+      static_assert(element_gettable<Derived, 2>);
+
+      return get_element(static_cast<const Derived&&>(*this), i, j);
     }
 
 
     /// Subscript (one index)
     auto operator[](std::size_t i) &
     {
-      return ElementAccessor(static_cast<Derived&>(*this), i);
+      static_assert(element_gettable<Derived, 1>);
+
+      if constexpr (element_settable<Derived&, 1>)
+        return ElementAccessor(static_cast<Derived&>(*this), i);
+      else
+        return get_element(static_cast<Derived&>(*this), i);
     }
 
 
     /// \overload
     auto operator[](std::size_t i) &&
     {
-      return ElementAccessor(static_cast<Derived&&>(*this), i);
+      static_assert(element_gettable<Derived, 1>);
+
+      if constexpr (element_settable<Derived&&, 1>)
+        return ElementAccessor(static_cast<Derived&&>(*this), i);
+      else
+        return get_element(static_cast<Derived&&>(*this), i);
     }
 
 
     /// \overload
     auto operator[](std::size_t i) const &
     {
-      return ElementAccessor(static_cast<const Derived&>(*this), i);
+      static_assert(element_gettable<Derived, 1>);
+
+      return get_element(static_cast<const Derived&>(*this), i);
     }
 
 
     /// \overload
     auto operator[](std::size_t i) const &&
     {
+      static_assert(element_gettable<Derived, 1>);
+
       return ElementAccessor(static_cast<const Derived&&>(*this), i);
     }
 

@@ -32,7 +32,7 @@ namespace OpenKalman
   template<typename RowCoefficients, typename NestedMatrix>
 #endif
   struct Mean : oin::TypedMatrixBase<
-    Mean<RowCoefficients, NestedMatrix>, RowCoefficients, Axes<MatrixTraits<NestedMatrix>::columns>, NestedMatrix>
+    Mean<RowCoefficients, NestedMatrix>, NestedMatrix, RowCoefficients, Axes<MatrixTraits<NestedMatrix>::columns>>
   {
 
 #ifndef __cpp_concepts
@@ -50,7 +50,7 @@ namespace OpenKalman
 
   private:
 
-    using Base = oin::TypedMatrixBase<Mean, RowCoefficients, ColumnCoefficients, NestedMatrix>;
+    using Base = oin::TypedMatrixBase<Mean, NestedMatrix, RowCoefficients, ColumnCoefficients>;
 
   public:
 

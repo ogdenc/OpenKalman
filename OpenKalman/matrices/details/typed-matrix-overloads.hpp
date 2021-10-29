@@ -988,8 +988,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
 #ifdef __cpp_concepts
   template<typed_matrix ReturnType, std::uniform_random_bit_generator random_number_engine = std::mt19937,
     typename...Dists>
-  requires
-    (not dynamic_shape<ReturnType>) and (sizeof...(Dists) > 0) and
+  requires (not dynamic_shape<ReturnType>) and (sizeof...(Dists) > 0) and
     (((requires { typename std::decay_t<Dists>::result_type;  typename std::decay_t<Dists>::param_type; } or
       std::is_arithmetic_v<std::decay_t<Dists>>) and ... )) and
     ((not std::is_const_v<std::remove_reference_t<Dists>>) and ...) and
@@ -1009,6 +1008,44 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   {
     using B = nested_matrix_t<ReturnType>;
     return MatrixTraits<ReturnType>::template make(randomize<B, random_number_engine>(std::forward<Dists>(dists)...));
+  }
+
+
+  /**
+   * \overload
+   * \brief Fill a dynamic-shape typed_matrix with random values selected from a single random distribution.
+   * \details The following example constructs two 2-by-2 matrices (m, n, and p) in which each element is a
+   * random value selected based on a distribution with mean 1.0 and standard deviation 0.3:
+   *   \code
+   *     auto m = randomize<Matrix<Axes<2>, Axes<2>, Eigen::Matrix<float, 2, Eigen::Dynamic>>>(2, 2, std::normal_distribution<float> {1.0, 0.3}));
+   *     auto n = randomize<Matrix<Axes<2>, Axes<2>, Eigen::Matrix<double, Eigen::Dynamic, 2>>>(2, 2, std::normal_distribution<double> {1.0, 0.3}));
+   *     auto p = randomize<Matrix<Axes<2>, Axes<2>, Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>>>(2, 2, std::normal_distribution<double> {1.0, 0.3});
+   *   \endcode
+   * \tparam ReturnType The type of the matrix to be filled.
+   * \tparam random_number_engine The random number engine (e.g., std::mt19937).
+   * \param rows Number of rows, decided at runtime. Must match rows of ReturnType if they are fixed.
+   * \param columns Number of columns, decided at runtime. Must match columns of ReturnType if they are fixed.
+   * \tparam Dist A distribution (type distribution_type).
+   **/
+#ifdef __cpp_concepts
+  template<typed_matrix ReturnType, std::uniform_random_bit_generator random_number_engine = std::mt19937,
+    typename Dist>
+  requires dynamic_shape<ReturnType> and
+    requires { typename std::decay_t<Dist>::result_type; typename std::decay_t<Dist>::param_type; } and
+    (not std::is_const_v<std::remove_reference_t<Dist>>)
+#else
+  template<typename ReturnType, typename random_number_engine = std::mt19937, typename Dist, std::enable_if_t<
+      typed_matrix<ReturnType> and dynamic_shape<ReturnType> and
+      (not std::is_const_v<std::remove_reference_t<Dist>>), int> = 0>
+#endif
+  inline auto
+  randomize(const std::size_t rows, const std::size_t columns, Dist&& dist)
+  {
+    if constexpr (not dynamic_rows<ReturnType>) assert(rows == MatrixTraits<ReturnType>::rows);
+    if constexpr (not dynamic_columns<ReturnType>) assert(columns == MatrixTraits<ReturnType>::columns);
+    using B = nested_matrix_t<ReturnType>;
+    return MatrixTraits<ReturnType>::template make(randomize<B, random_number_engine>(
+      rows, columns, std::forward<Dist>(dist)));
   }
 
 

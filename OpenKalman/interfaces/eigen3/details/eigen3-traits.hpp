@@ -89,9 +89,9 @@ namespace OpenKalman::internal
   : std::true_type {};
 
 
-  // ------------------------ //
+  // -------------------------- //
   //  is_typed_matrix_nestable  //
-  // ------------------------ //
+  // -------------------------- //
 
   /// \internal Defines a type in Eigen3 that is nestable within a \ref typed_matrix.
 #ifdef __cpp_concepts
@@ -114,57 +114,6 @@ namespace OpenKalman::internal
     Eigen3::from_euclidean_expr<T>>>
 #endif
   : std::true_type {};
-
-
-  // ------------------------------------------ //
-  //  is_element_gettable, is_element_settable  //
-  // ------------------------------------------ //
-
-#ifdef __cpp_concepts
-  template<Eigen3::eigen_native T>
-  struct is_element_gettable<T, 2>
-#else
-  template<typename T>
-  struct is_element_gettable<T, 2, std::enable_if_t<Eigen3::eigen_native<T>>>
-#endif
-    : std::true_type {};
-
-
-#ifdef __cpp_concepts
-  template<Eigen3::eigen_native T> requires column_vector<T>
-  struct is_element_gettable<T, 1>
-#else
-  template<typename T>
-  struct is_element_gettable<T, 1, std::enable_if_t<Eigen3::eigen_native<T> and column_vector<T>>>
-#endif
-    : std::true_type {};
-
-
-#ifdef __cpp_concepts
-  template<Eigen3::eigen_native T> requires (not std::is_const_v<std::remove_reference_t<T>>) and
-    (static_cast<bool>(std::decay_t<T>::Flags & Eigen::LvalueBit))
-  struct is_element_settable<T, 2>
-#else
-  template<typename T>
-  struct is_element_settable<T, 2, std::enable_if_t<
-    Eigen3::eigen_native<T> and (not std::is_const_v<std::remove_reference_t<T>>) and
-    (static_cast<bool>(std::decay_t<T>::Flags & Eigen::LvalueBit))>>
-#endif
-    : std::true_type {};
-
-
-#ifdef __cpp_concepts
-  template<Eigen3::eigen_native T> requires column_vector<T> and
-    (not std::is_const_v<std::remove_reference_t<T>>) and
-    (static_cast<bool>(std::decay_t<T>::Flags & Eigen::LvalueBit))
-  struct is_element_settable<T, 1>
-#else
-  template<typename T>
-  struct is_element_settable<T, 1, std::enable_if_t<Eigen3::eigen_native<T> and column_vector<T> and
-    (not std::is_const_v<std::remove_reference_t<T>>) and
-    (static_cast<bool>(std::decay_t<T>::Flags & Eigen::LvalueBit))>>
-#endif
-    : std::true_type {};
 
 
   // ---------------- //
@@ -807,6 +756,26 @@ namespace OpenKalman::internal
   // --------------------- //
 
 #ifdef __cpp_concepts
+  template<Eigen3::eigen_native T>
+  struct is_element_gettable<T, 2>
+#else
+  template<typename T>
+  struct is_element_gettable<T, 2, std::enable_if_t<Eigen3::eigen_native<T>>>
+#endif
+    : std::true_type {};
+
+
+#ifdef __cpp_concepts
+  template<Eigen3::eigen_native T> requires column_vector<T>
+  struct is_element_gettable<T, 1>
+#else
+  template<typename T>
+  struct is_element_gettable<T, 1, std::enable_if_t<Eigen3::eigen_native<T> and column_vector<T>>>
+#endif
+    : std::true_type {};
+
+
+#ifdef __cpp_concepts
   template<Eigen3::eigen_constant_expr T, std::size_t N> requires (N == 2) or (N == 1 and column_vector<T>)
   struct is_element_gettable<T, N>
 #else
@@ -896,6 +865,33 @@ namespace OpenKalman::internal
   // --------------------- //
   //  is_element_settable  //
   // --------------------- //
+
+#ifdef __cpp_concepts
+  template<Eigen3::eigen_native T> requires (not std::is_const_v<std::remove_reference_t<T>>) and
+    (static_cast<bool>(std::decay_t<T>::Flags & Eigen::LvalueBit))
+  struct is_element_settable<T, 2>
+#else
+  template<typename T>
+  struct is_element_settable<T, 2, std::enable_if_t<
+    Eigen3::eigen_native<T> and (not std::is_const_v<std::remove_reference_t<T>>) and
+    (static_cast<bool>(std::decay_t<T>::Flags & Eigen::LvalueBit))>>
+#endif
+    : std::true_type {};
+
+
+#ifdef __cpp_concepts
+  template<Eigen3::eigen_native T> requires column_vector<T> and
+    (not std::is_const_v<std::remove_reference_t<T>>) and
+    (static_cast<bool>(std::decay_t<T>::Flags & Eigen::LvalueBit))
+  struct is_element_settable<T, 1>
+#else
+  template<typename T>
+  struct is_element_settable<T, 1, std::enable_if_t<Eigen3::eigen_native<T> and column_vector<T> and
+    (not std::is_const_v<std::remove_reference_t<T>>) and
+    (static_cast<bool>(std::decay_t<T>::Flags & Eigen::LvalueBit))>>
+#endif
+    : std::true_type {};
+
 
 #ifdef __cpp_concepts
   template<Eigen3::eigen_constant_expr T, std::size_t N>
