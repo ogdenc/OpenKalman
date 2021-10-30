@@ -505,14 +505,13 @@ namespace OpenKalman
      * \brief Base class for means or matrices.
      * \tparam Derived The derived class (e.g., Matrix, Mean, EuclideanMean).
      * \tparam NestedMatrix The nested matrix.
-     * \tparam RowCoefficients The \ref OpenKalman::coefficients "coefficients" representing the rows of the matrix.
-     * \tparam ColumnCoefficients The \ref OpenKalman::coefficients "coefficients" representing the columns of the matrix.
+     * \tparam Coefficients The \ref OpenKalman::coefficients "coefficients" representing the rows and columns of the matrix.
      */
 #ifdef __cpp_concepts
-    template<typename Derived, typename NestedMatrix, coefficients RowCoefficients, coefficients ColumnCoefficients>
-    requires (not std::is_rvalue_reference_v<NestedMatrix>)
+    template<typename Derived, typename NestedMatrix, coefficients...Coefficients>
+    requires (not std::is_rvalue_reference_v<NestedMatrix>) and (sizeof...(Coefficients) <= 2)
 #else
-    template<typename Derived, typename NestedMatrix, typename RowCoefficients, typename ColumnCoefficients = void>
+    template<typename Derived, typename NestedMatrix, typename...Coefficients>
 #endif
     struct TypedMatrixBase;
 

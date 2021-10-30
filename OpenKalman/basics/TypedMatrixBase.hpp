@@ -20,18 +20,18 @@
 namespace OpenKalman::internal
 {
 #ifdef __cpp_concepts
-  template<typename Derived, typename NestedMatrix, coefficients RowCoefficients, coefficients ColumnCoefficients>
-  requires (not std::is_rvalue_reference_v<NestedMatrix>)
+  template<typename Derived, typename NestedMatrix, coefficients...Coefficients>
+  requires (not std::is_rvalue_reference_v<NestedMatrix>) and (sizeof...(Coefficients) <= 2)
 #else
-  template<typename Derived, typename NestedMatrix, typename RowCoefficients, typename ColumnCoefficients>
+  template<typename Derived, typename NestedMatrix, typename...Coefficients>
 #endif
   struct TypedMatrixBase : MatrixBase<Derived, NestedMatrix>
   {
 
 #ifndef __cpp_concepts
-    static_assert(coefficients<RowCoefficients>);
-    static_assert(coefficients<ColumnCoefficients>);
+    static_assert((coefficients<Coefficients> and ...));
     static_assert(not std::is_rvalue_reference_v<NestedMatrix>);
+    static_assert(sizeof...(Coefficients) <= 2);
 #endif
 
   private:
@@ -50,11 +50,13 @@ namespace OpenKalman::internal
 
     /// Default constructor.
 #ifdef __cpp_concepts
-    TypedMatrixBase() requires std::default_initializable<NestedMatrix> : Base {} {}
+    TypedMatrixBase() requires std::default_initializable<NestedMatrix> and (not dynamic_shape<NestedMatrix>)
 #else
-    template<typename T = NestedMatrix, std::enable_if_t<std::is_default_constructible_v<T>, int> = 0>
-    TypedMatrixBase() : Base {} {}
+    template<typename T = NestedMatrix, std::enable_if_t<
+      std::is_default_constructible_v<T> and (not dynamic_shape<NestedMatrix>), int> = 0>
+    TypedMatrixBase()
 #endif
+      : Base {} {}
 
 
     /// Construct from a typed_matrix_nestable.
@@ -184,7 +186,13 @@ namespace OpenKalman::internal
     }
 
 
-    /// Subscript (one index)
+    /**
+     * Access the coefficient at row i
+     * \param i The row.
+     * \return If <code>element_settable<Derived, 1></code>, the element is settable. Therefore,
+     * this function returns an object that can be assigned the coefficient to be set.
+     * Otherwise, it will return the (non-settable) coefficient as a value.
+     */
     auto operator[](std::size_t i) &
     {
       static_assert(element_gettable<Derived, 1>);

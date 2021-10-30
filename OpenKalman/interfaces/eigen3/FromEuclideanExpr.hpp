@@ -30,9 +30,7 @@ namespace OpenKalman::Eigen3
   template<typename Coefficients, typename NestedMatrix>
 #endif
   struct FromEuclideanExpr : OpenKalman::internal::TypedMatrixBase<
-    FromEuclideanExpr<Coefficients, NestedMatrix>, NestedMatrix, Coefficients, std::conditional_t<
-      dynamic_columns<NestedMatrix>, DynamicCoefficients<typename MatrixTraits<NestedMatrix>::Scalar>,
-      Axes<MatrixTraits<NestedMatrix>::columns>>>
+    FromEuclideanExpr<Coefficients, NestedMatrix>, NestedMatrix, Coefficients>
   {
 
 #ifndef __cpp_concepts
@@ -50,23 +48,11 @@ namespace OpenKalman::Eigen3
 
     static constexpr auto columns = MatrixTraits<NestedMatrix>::columns; ///< Number of columns.
 
-    using Base = OpenKalman::internal::TypedMatrixBase<FromEuclideanExpr, NestedMatrix, Coefficients,
-      std::conditional_t<dynamic_columns<NestedMatrix>, DynamicCoefficients<Scalar>, Axes<columns>>>;
+    using Base = OpenKalman::internal::TypedMatrixBase<FromEuclideanExpr, NestedMatrix, Coefficients>;
 
   public:
 
-    /**
-     * \brief Default constructor.
-     */
-#ifdef __cpp_concepts
-    FromEuclideanExpr() requires std::default_initializable<NestedMatrix> and (not dynamic_shape<NestedMatrix>)
-#else
-    template<typename T = NestedMatrix, std::enable_if_t<
-      std::is_default_constructible_v<T> and (not dynamic_shape<T>), int> = 0>
-    FromEuclideanExpr()
-#endif
-      : Base {} {}
-
+    using Base::Base;
 
     /**
      * Convert from a compatible from-euclidean expression.
@@ -112,19 +98,16 @@ namespace OpenKalman::Eigen3
     explicit FromEuclideanExpr(Arg&& arg) noexcept : Base {std::forward<Arg>(arg)} {}
 
 
+#ifndef __cpp_concepts
     /**
-     * Construct from a list of coefficients.
+     * /brief Construct from a list of coefficients.
+     * /note If c++ concepts are available, this functionality is inherited from the base class.
      */
-#ifdef __cpp_concepts
-    template<std::convertible_to<const Scalar> ... Args> requires
-      requires(Args ... args) { NestedMatrix {MatrixTraits<NestedMatrix>::make(static_cast<const Scalar>(args)...)}; }
-#else
     template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...> and
       sizeof...(Args) == columns *
         (to_euclidean_expr<NestedMatrix> ? Coefficients::dimensions : Coefficients::euclidean_dimensions), int> = 0>
+    FromEuclideanExpr(Args ... args) : Base {MatrixTraits<NestedMatrix>::make(static_cast<const Scalar>(args)...)} {}
 #endif
-    FromEuclideanExpr(Args ... args)
-      : Base {MatrixTraits<NestedMatrix>::make(static_cast<const Scalar>(args)...)} {}
 
 
     /**
@@ -277,76 +260,6 @@ namespace OpenKalman::Eigen3
       return *this;
     }
 
-
-    /**
-     * Access the coefficient at row i and column j
-     * \param i The row.
-     * \param j The column.
-     * \return If <code>element_settable<FromEuclideanExpr, 2></code>, the element is settable. Therefore,
-     * this function returns an object that can be assigned the coefficient to be set.
-     * Otherwise, it will return the (non-settable) coefficient as a value.
-     */
-    auto operator()(std::size_t i, std::size_t j)
-    {
-      if constexpr (element_settable<FromEuclideanExpr, 2>)
-        return OpenKalman::internal::ElementAccessor(*this, i, j);
-      else
-        return std::as_const(*this)(i, j);
-    }
-
-
-    /**
-     * Access the coefficient at row i and column j
-     * \param i The row.
-     * \param j The column.
-     * \return The value of the coefficient.
-     */
-    auto operator()(std::size_t i, std::size_t j) const
-    {
-      return OpenKalman::internal::ElementAccessor(*this, i, j);
-    }
-
-
-    /**
-     * Access the coefficient at row i
-     * \param i The row.
-     * \return If <code>element_settable<FromEuclideanExpr, 1></code>, the element is settable. Therefore,
-     * this function returns an object that can be assigned the coefficient to be set.
-     * Otherwise, it will return the (non-settable) coefficient as a value.
-     */
-    auto operator[](std::size_t i)
-    {
-      if constexpr (element_settable<FromEuclideanExpr, 1>)
-        return OpenKalman::internal::ElementAccessor(*this, i);
-      else
-        return std::as_const(*this)[i];
-    }
-
-
-    /**
-     * Access the coefficient at row i
-     * \param i The row.
-     * \return The value of the coefficient.
-     */
-    auto operator[](std::size_t i) const { return OpenKalman::internal::ElementAccessor(*this, i); }
-
-
-    /**
-     * Synonym for operator[](std::size_t)
-     * \param i The row.
-     * \return If <code>element_settable<FromEuclideanExpr, 1></code>, the element is settable. Therefore,
-     * this function returns an object that can be assigned the coefficient to be set.
-     * Otherwise, it will return the (non-settable) coefficient as a value.
-     */
-    auto operator()(std::size_t i) { return operator[](i); }
-
-
-    /**
-     * Synonym for operator[](std::size_t) const.
-     * \param i The row.
-     * \return The value of the coefficient.
-     */
-    auto operator()(std::size_t i) const { return operator[](i); }
   };
 
 } // OpenKalman::Eigen3

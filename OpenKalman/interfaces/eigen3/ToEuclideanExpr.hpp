@@ -30,9 +30,7 @@ namespace OpenKalman::Eigen3
   template<typename Coefficients, typename NestedMatrix>
 #endif
   struct ToEuclideanExpr : OpenKalman::internal::TypedMatrixBase<
-    ToEuclideanExpr<Coefficients, NestedMatrix>, NestedMatrix, Coefficients,
-      std::conditional_t<dynamic_columns<NestedMatrix>,
-        DynamicCoefficients<typename MatrixTraits<NestedMatrix>::Scalar>, Axes<MatrixTraits<NestedMatrix>::columns>>>
+    ToEuclideanExpr<Coefficients, NestedMatrix>, NestedMatrix, Coefficients>
   {
 
 #ifndef __cpp_concepts
@@ -50,20 +48,11 @@ namespace OpenKalman::Eigen3
 
     static constexpr auto columns = MatrixTraits<NestedMatrix>::columns; ///< Number of columns.
 
-    using Base = OpenKalman::internal::TypedMatrixBase<ToEuclideanExpr, NestedMatrix, Coefficients,
-      std::conditional_t<dynamic_columns<NestedMatrix>, DynamicCoefficients<Scalar>, Axes<columns>>>;
+    using Base = OpenKalman::internal::TypedMatrixBase<ToEuclideanExpr, NestedMatrix, Coefficients>;
 
   public:
 
-    /// Default constructor.
-#ifdef __cpp_concepts
-    ToEuclideanExpr() requires std::default_initializable<NestedMatrix>
-#else
-    template<typename T = NestedMatrix, std::enable_if_t<std::is_default_constructible_v<T>, int> = 0>
-    ToEuclideanExpr()
-#endif
-      : Base {} {}
-
+    using Base::Base;
 
     /// Construct from a compatible to-Euclidean expression.
 #ifdef __cpp_concepts
@@ -90,17 +79,15 @@ namespace OpenKalman::Eigen3
     explicit ToEuclideanExpr(Arg&& arg) noexcept : Base {std::forward<Arg>(arg)} {}
 
 
-    /// Construct from a list of coefficients.
-#ifdef __cpp_concepts
-    template<std::convertible_to<const Scalar> ... Args> requires (sizeof...(Args) > 0) and
-      requires(Args ... args) { NestedMatrix {MatrixTraits<NestedMatrix>::make(static_cast<const Scalar>(args)...)}; }
-#else
+#ifndef __cpp_concepts
+    /**
+     * /brief Construct from a list of coefficients.
+     * /note If c++ concepts are available, this functionality is inherited from the base class.
+     */
     template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...> and
-      sizeof...(Args) == columns *
-        (from_euclidean_expr<NestedMatrix> ? Coefficients::euclidean_dimensions : Coefficients::dimensions), int> = 0>
+      (sizeof...(Args) == columns * Coefficients::dimensions), int> = 0>
+    ToEuclideanExpr(Args ... args) : Base {MatrixTraits<NestedMatrix>::make(static_cast<const Scalar>(args)...)} {}
 #endif
-    ToEuclideanExpr(Args ... args)
-      : Base {MatrixTraits<NestedMatrix>::make(static_cast<const Scalar>(args)...)} {}
 
 
     /// Assign from a compatible to-Euclidean expression.
@@ -227,38 +214,6 @@ namespace OpenKalman::Eigen3
       return *this;
     }
 
-
-    auto operator()(std::size_t i, std::size_t j)
-    {
-      if constexpr (element_settable < ToEuclideanExpr, 2 >)
-        return OpenKalman::internal::ElementAccessor(*this, i, j);
-      else
-        return std::as_const(*this)(i, j);
-    }
-
-
-    auto operator()(std::size_t i, std::size_t j) const noexcept
-    {
-      return OpenKalman::internal::ElementAccessor(*this, i, j);
-    }
-
-
-    auto operator[](std::size_t i)
-    {
-      if constexpr (element_settable < ToEuclideanExpr, 1 >)
-        return OpenKalman::internal::ElementAccessor(*this, i);
-      else
-        return std::as_const(*this)[i];
-    }
-
-
-    auto operator[](std::size_t i) const noexcept { return OpenKalman::internal::ElementAccessor(*this, i); }
-
-
-    auto operator()(std::size_t i) { return operator[](i); }
-
-
-    auto operator()(std::size_t i) const { return operator[](i); }
   };
 
 } // OpenKalman::Eigen3

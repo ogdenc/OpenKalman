@@ -25,7 +25,6 @@
 #include "basics/basics.hpp"
 #include "coefficient-types/coefficient-types.hpp"
 
-#include "details/ElementAccessor.hpp"
 //
 #include "Mean.hpp"
 #include "EuclideanMean.hpp"

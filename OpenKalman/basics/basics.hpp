@@ -27,5 +27,6 @@
 
 #include "MatrixBase.hpp"
 #include "TypedMatrixBase.hpp"
+#include "ElementAccessor.hpp"
 
 #endif //OPENKALMAN_BASICS_HPP

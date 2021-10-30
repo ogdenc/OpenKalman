@@ -144,7 +144,5 @@ namespace OpenKalman
 
 #include "default-overloads.hpp"
 
-#include "matrices/details/ElementAccessor.hpp"
-
 
 #endif //OPENKALMAN_EIGEN3_HPP

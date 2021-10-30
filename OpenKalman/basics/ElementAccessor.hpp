@@ -8,6 +8,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+/**
+ * \file
+ * \brief Definition of OpenKalman::internal::ElementAccessor
+ */
+
 #ifndef OPENKALMAN_ELEMENTACCESSOR_HPP
 #define OPENKALMAN_ELEMENTACCESSOR_HPP
 
