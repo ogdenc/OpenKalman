@@ -910,37 +910,180 @@ namespace OpenKalman::Eigen3
   }
 
 
-  /// Solve the equation AX = B for X. A is an invertible square matrix.
+  /**
+   * \brief Solve the equation AX = B for X. A is an invertible square zero matrix.
+   * \note These solutions, if they exist, are non-unique.
+   * \returns A zero matrix.
+   */
 #ifdef __cpp_concepts
-  template<eigen_constant_expr A, eigen_matrix B> requires square_matrix<A> and
-  (MatrixTraits<A>::rows == MatrixTraits<B>::rows)
+  template<zero_matrix A, eigen_matrix B>
+  requires (dynamic_shape<A> or square_matrix<A>) and
+    (dynamic_rows<A> or dynamic_rows<B> or MatrixTraits<A>::rows == MatrixTraits<B>::rows)
 #else
-  template<typename A, typename B, std::enable_if_t<eigen_constant_expr<A> and eigen_matrix<B> and square_matrix<A> and
-    (MatrixTraits<A>::rows == MatrixTraits<B>::rows), int> = 0>
+  template<typename A, typename B, std::enable_if_t<zero_matrix<A> and eigen_matrix<B> and
+      (dynamic_shape<A> or square_matrix<A>) and
+      (dynamic_rows<A> or dynamic_rows<B> or MatrixTraits<A>::rows == MatrixTraits<B>::rows), int> = 0>
 #endif
   constexpr auto
   solve(const A& a, const B& b)
   {
     using Scalar = typename MatrixTraits<A>::Scalar;
-    using M = eigen_matrix_t<typename MatrixTraits<B>::Scalar, MatrixTraits<A>::rows, MatrixTraits<B>::columns>;
-    if constexpr (eigen_constant_expr<B>)
+
+    //if constexpr (not zero_matrix<B>)
+    //  assert(b.isZero());
+
+    if constexpr (one_by_one_matrix<A>)
     {
-      constexpr auto c = MatrixTraits<B>::constant / (MatrixTraits<A>::columns * MatrixTraits<A>::constant);
-      /// \todo Add options for a dynamically-sized ConstantMatrix.
-      return ConstantMatrix<Scalar, c, MatrixTraits<A>::rows, MatrixTraits<B>::columns> {};
+      return ZeroMatrix<Scalar, 1, 1> {};
     }
-    else if constexpr (zero_matrix<B>)
+    else // solution is non-unique
     {
-      return make_ZeroMatrix<Scalar, MatrixTraits<A>::rows, MatrixTraits<B>::columns>(row_count(a), column_count(b));
+      if constexpr (dynamic_shape<A>)
+        assert(row_count(a) == column_count(a));
+      if constexpr (dynamic_rows<A> or dynamic_rows<B>)
+        assert(row_count(a) == row_count(b));
+
+      constexpr std::size_t dim = dynamic_rows<A> ?
+        (dynamic_rows<B> ? (dynamic_columns<A> ? 0 : MatrixTraits<A>::columns): MatrixTraits<B>::rows) :
+        MatrixTraits<A>::rows;
+
+      if constexpr (dim == 0)
+      {
+        if constexpr (dynamic_columns<B>)
+          return ZeroMatrix<Scalar, 0, 0> {row_count(b), column_count(b)};
+        else
+          return ZeroMatrix<Scalar, 0, MatrixTraits<B>::columns> {row_count(b)};
+      }
+      else
+      {
+        if constexpr (dynamic_columns<B>)
+          return ZeroMatrix<Scalar, dim, 0> {column_count(b)};
+        else
+          return ZeroMatrix<Scalar, dim, MatrixTraits<B>::columns> {};
+      }
     }
-    else if constexpr (one_by_one_matrix<A>)
+  }
+
+
+  /// Solve the equation AX = B for X. A is an invertible square matrix.
+#ifdef __cpp_concepts
+  template<eigen_constant_expr A, eigen_matrix B>
+  requires (dynamic_shape<A> or square_matrix<A>) and
+    (dynamic_rows<A> or dynamic_rows<B> or MatrixTraits<A>::rows == MatrixTraits<B>::rows)
+#else
+  template<typename A, typename B, std::enable_if_t<eigen_constant_expr<A> and eigen_matrix<B> and
+    (dynamic_shape<A> or square_matrix<A>) and
+    (dynamic_rows<A> or dynamic_rows<B> or MatrixTraits<A>::rows == MatrixTraits<B>::rows), int> = 0>
+#endif
+  constexpr auto
+  solve(const A& a, const B& b)
+  {
+    using Scalar = typename MatrixTraits<A>::Scalar;
+
+    if constexpr (one_by_one_matrix<A>)
     {
-      static_assert(one_by_one_matrix<B>);
-      return b / MatrixTraits<A>::constant;
+      if constexpr (dynamic_shape<B>)
+      {
+        assert(row_count(b) == 1 and column_count(b) == 1);
+        using M = eigen_matrix_t<typename MatrixTraits<B>::Scalar, 1, 1>;
+        return M {b / MatrixTraits<A>::constant};
+      }
+      else
+      {
+        static_assert(one_by_one_matrix<B>);
+        return make_self_contained(b / MatrixTraits<A>::constant);
+      }
     }
-    else
+    else // solution is non-unique
     {
-      return M {a.lu().solve(b)};
+      if constexpr (dynamic_shape<A>)
+        assert(row_count(a) == column_count(a));
+      if constexpr (dynamic_rows<A> or dynamic_rows<B>)
+        assert(row_count(a) == row_count(b));
+
+      constexpr std::size_t dim = dynamic_rows<A> ?
+        (dynamic_rows<B> ? (dynamic_columns<A> ? 0 : MatrixTraits<A>::columns): MatrixTraits<B>::rows) :
+        MatrixTraits<A>::rows;
+
+      if constexpr (eigen_constant_expr<B>)
+      {
+        if constexpr (dim == 0)
+        {
+          auto c = static_cast<Scalar>(MatrixTraits<B>::constant) / (row_count(b) * MatrixTraits<A>::constant);
+
+          if constexpr (dynamic_columns<B>)
+            return eigen_matrix_t<Scalar, 0, 0>::Constant(row_count(b), column_count(b), c);
+          else
+            return eigen_matrix_t<Scalar, 0, MatrixTraits<B>::columns>::Constant(row_count(b), column_count(b), c);
+        }
+        else
+        {
+#if __cpp_nontype_template_args >= 201911L
+          constexpr auto c = static_cast<Scalar>(MatrixTraits<B>::constant) / (dim * MatrixTraits<A>::constant);
+
+          if constexpr (dynamic_columns<B>)
+            return ConstantMatrix<Scalar, c, dim, 0> {column_count(b)};
+          else
+            return ConstantMatrix<Scalar, c, dim, MatrixTraits<B>::columns> {};
+#else
+          if constexpr(MatrixTraits<B>::constant % (dim * MatrixTraits<A>::constant) == 0)
+          {
+            constexpr auto c = MatrixTraits<B>::constant / (dim * MatrixTraits<A>::constant);
+
+            if constexpr (dynamic_columns<B>)
+              return ConstantMatrix<Scalar, c, dim, 0> {column_count(b)};
+            else
+              return ConstantMatrix<Scalar, c, dim, MatrixTraits<B>::columns> {};
+          }
+          else
+          {
+            auto c = static_cast<Scalar>(MatrixTraits<B>::constant) / (row_count(b) * MatrixTraits<A>::constant);
+
+            if constexpr (dynamic_columns<B>)
+              return eigen_matrix_t<Scalar, dim, 0>::Constant(row_count(b), column_count(b), c);
+            else
+              return eigen_matrix_t<Scalar, dim, MatrixTraits<B>::columns>::Constant(row_count(b), column_count(b), c);
+          }
+#endif
+        }
+      }
+      else if constexpr (zero_matrix<B>)
+      {
+        if constexpr (dim == 0)
+        {
+          if constexpr (dynamic_columns<B>)
+            return ZeroMatrix<Scalar, 0, 0> {row_count(b), column_count(b)};
+          else
+            return ZeroMatrix<Scalar, 0, MatrixTraits<B>::columns> {row_count(b)};
+        }
+        else
+        {
+          if constexpr (dynamic_columns<B>)
+            return ZeroMatrix<Scalar, dim, 0> {column_count(b)};
+          else
+            return ZeroMatrix<Scalar, dim, MatrixTraits<B>::columns> {};
+        }
+      }
+      else
+      {
+        // In this general case, there is only an exact solution if all coefficients in each column are the same.
+        // We select a good approximate solution.
+
+        if constexpr (dim == 0 or not dynamic_rows<B>)
+        {
+          return make_self_contained(b / (row_count(b) * MatrixTraits<A>::constant));
+        }
+        else if constexpr (dynamic_columns<B>)
+        {
+          using M = eigen_matrix_t<Scalar, dim, 0>;
+          return M {b / (row_count(b) * MatrixTraits<A>::constant)};
+        }
+        else
+        {
+          using M = eigen_matrix_t<Scalar, dim, MatrixTraits<B>::columns>;
+          return M {b / (row_count(b) * MatrixTraits<A>::constant)};
+        }
+      }
     }
   }
 
@@ -1728,20 +1871,27 @@ namespace OpenKalman::Eigen3
   template<typename Arg, std::enable_if_t<eigen_self_adjoint_expr<Arg> and not diagonal_matrix<Arg> and
     element_gettable<nested_matrix_t<Arg>, 2>, int> = 0>
 #endif
-  inline auto
+  inline typename MatrixTraits<Arg>::Scalar
   get_element(Arg&& arg, const std::size_t i, const std::size_t j)
   {
-    decltype(auto) n = nested_matrix(std::forward<Arg>(arg)); using N = decltype(n);
+    decltype(auto) n = nested_matrix(std::forward<Arg>(arg));
+    using N = decltype(n);
+    using Scalar = typename MatrixTraits<Arg>::Scalar;
 
-    if constexpr(lower_triangular_storage<Arg>)
+    if (lower_triangular_storage<Arg> ? i >= j : i <= j)
     {
-      if (i >= j) return get_element(std::forward<N>(n), i, j);
-      else return get_element(std::forward<N>(n), j, i);
+      if constexpr (complex_number<Scalar>)
+      {
+        if (i == j) return std::real(get_element(std::forward<N>(n), i, j));
+      }
+      return get_element(std::forward<N>(n), i, j);
     }
     else
     {
-      if (i <= j) return get_element(std::forward<N>(n), i, j);
-      else return get_element(std::forward<N>(n), j, i);
+      if constexpr (complex_number<Scalar>)
+        return std::conj(get_element(std::forward<N>(n), j, i));
+      else
+        return get_element(std::forward<N>(n), j, i);
     }
   }
 
@@ -1757,16 +1907,10 @@ namespace OpenKalman::Eigen3
   inline auto
   get_element(Arg&& arg, const std::size_t i, const std::size_t j)
   {
-    if constexpr(lower_triangular_matrix<Arg>)
-    {
-      if (i >= j) return get_element(nested_matrix(std::forward<Arg>(arg)), i, j);
-      else return typename MatrixTraits<Arg>::Scalar(0);
-    }
+    if (lower_triangular_matrix<Arg> ? i >= j : i <= j)
+      return get_element(nested_matrix(std::forward<Arg>(arg)), i, j);
     else
-    {
-      if (i <= j) return get_element(nested_matrix(std::forward<Arg>(arg)), i, j);
-      else return typename MatrixTraits<Arg>::Scalar(0);
-    }
+      return typename MatrixTraits<Arg>::Scalar(0);
   }
 
 
@@ -1863,8 +2007,8 @@ namespace OpenKalman::Eigen3
       else
         set_element(nested_matrix(arg), s, i, 1);
     }
-    else
-      throw std::out_of_range("Only diagonal elements of a diagonal matrix may be set.");
+    else if (s != 0)
+      throw std::out_of_range("Cannot set non-diagonal element of a diagonal matrix to a non-zero value.");
   }
 
 
@@ -1881,15 +2025,16 @@ namespace OpenKalman::Eigen3
   inline void
   set_element(Arg& arg, const Scalar s, const std::size_t i, const std::size_t j)
   {
-    if constexpr(lower_triangular_storage<Arg>)
+    if (lower_triangular_storage<Arg> ? i >= j : i <= j)
     {
-      if (i >= j) set_element(nested_matrix(arg), s, i, j);
-      else set_element(nested_matrix(arg), s, j, i);
+      set_element(nested_matrix(arg), s, i, j);
     }
     else
     {
-      if (i <= j) set_element(nested_matrix(arg), s, i, j);
-      else set_element(nested_matrix(arg), s, j, i);
+      if constexpr (complex_number<Scalar>)
+        set_element(nested_matrix(arg), std::conj(s), j, i);
+      else
+        set_element(nested_matrix(arg), s, j, i);
     }
   }
 
@@ -1907,16 +2052,10 @@ namespace OpenKalman::Eigen3
   inline void
   set_element(Arg& arg, const Scalar s, const std::size_t i, const std::size_t j)
   {
-    if constexpr(lower_triangular_matrix<Arg>)
-    {
-      if (i >= j) set_element(nested_matrix(arg), s, i, j);
-      else throw std::out_of_range("Only lower-triangle elements of a lower-triangular matrix may be set.");
-    }
-    else
-    {
-      if (i <= j) set_element(nested_matrix(arg), s, i, j);
-      else throw std::out_of_range("Only upper-triangle elements of an upper-triangular matrix may be set.");
-    }
+    if (lower_triangular_matrix<Arg> ? i >= j : i <= j)
+      set_element(nested_matrix(arg), s, i, j);
+    else if (s != 0)
+      throw std::out_of_range("Cannot set elements of a triangular matrix to non-zero values outside the triangle.");
   }
 
 
@@ -1925,8 +2064,7 @@ namespace OpenKalman::Eigen3
   template<typename Arg, typename Scalar> requires
     (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>) and
     (not std::is_const_v<std::remove_reference_t<Arg>>) and diagonal_matrix<Arg> and
-    (element_settable<nested_matrix_t<Arg>, 2> or
-      element_settable<nested_matrix_t<Arg>, 1>)
+    (element_settable<nested_matrix_t<Arg>, 2> or element_settable<nested_matrix_t<Arg>, 1>)
 #else
   template<typename Arg, typename Scalar, std::enable_if_t<
     (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>) and
@@ -1944,7 +2082,8 @@ namespace OpenKalman::Eigen3
       else
         set_element(nested_matrix(arg), s, i, i);
     }
-    else throw std::out_of_range("Only diagonal elements of a diagonal matrix may be set.");
+    else if (s != 0)
+      throw std::out_of_range("Cannot set non-diagonal element of a diagonal matrix to a non-zero value.");
   }
 
 
@@ -1952,8 +2091,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<typename Arg, typename Scalar> requires diagonal_matrix<Arg> and
     (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>) and
-    (element_settable<nested_matrix_t<Arg>, 1> or
-      element_settable<nested_matrix_t<Arg>, 2>)
+    (element_settable<nested_matrix_t<Arg>, 1> or element_settable<nested_matrix_t<Arg>, 2>)
 #else
   template<typename Arg, typename Scalar, std::enable_if_t<diagonal_matrix<Arg> and
     (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>) and
@@ -1965,13 +2103,9 @@ namespace OpenKalman::Eigen3
   {
     using NestedMatrix = nested_matrix_t<Arg>;
     if constexpr(element_settable<NestedMatrix, 1>)
-    {
       set_element(nested_matrix(arg), s, i);
-    }
     else
-    {
       set_element(nested_matrix(arg), s, i, i);
-    }
   }
 
 

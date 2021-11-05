@@ -253,9 +253,7 @@ namespace Eigen::internal
       {
         if (row == col)
         {
-          auto s = m_argImpl.coeff(row, col);
-          assert(std::imag(s) == 0);
-          return s;
+          return std::real(m_argImpl.coeff(row, col));
         }
       }
 

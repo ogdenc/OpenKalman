@@ -26,12 +26,16 @@ namespace OpenKalman::Eigen3
    */
 #ifdef __cpp_concepts
   template<eigen_zero_expr Z>
+  requires dynamic_shape<Z> or square_matrix<Z>
 #else
-  template<typename Z, std::enable_if_t<eigen_zero_expr<Z>, int> = 0>
+  template<typename Z, std::enable_if_t<
+    eigen_zero_expr<Z> and (dynamic_shape<Z> or square_matrix<Z>), int> = 0>
 #endif
   constexpr Z&&
   Cholesky_square(Z&& z) noexcept
   {
+    if constexpr (dynamic_shape<Z>)
+      assert(row_count(z) == column_count(z));
     return std::forward<Z>(z);
   }
 
@@ -43,12 +47,16 @@ namespace OpenKalman::Eigen3
    */
 #ifdef __cpp_concepts
   template<TriangleType = TriangleType::diagonal, eigen_zero_expr Z>
+  requires dynamic_shape<Z> or square_matrix<Z>
 #else
-  template<TriangleType = TriangleType::diagonal, typename Z, std::enable_if_t<eigen_zero_expr<Z>, int> = 0>
+  template<TriangleType = TriangleType::diagonal, typename Z, std::enable_if_t<
+    eigen_zero_expr<Z> and (dynamic_shape<Z> or square_matrix<Z>), int> = 0>
 #endif
   constexpr Z&&
   Cholesky_factor(Z&& z) noexcept
   {
+    if constexpr (dynamic_shape<Z>)
+      assert(row_count(z) == column_count(z));
     return std::forward<Z>(z);
   }
 
@@ -59,20 +67,25 @@ namespace OpenKalman::Eigen3
    * \return dd<sup>T</sup>
    */
 #ifdef __cpp_concepts
-  template<eigen_native D> requires diagonal_matrix<D>
+  template<eigen_native D>
+  requires dynamic_shape<D> or diagonal_matrix<D>
 #else
-  template<typename D, std::enable_if_t<eigen_native<D> and diagonal_matrix<D>, int> = 0>
+  template<typename D, std::enable_if_t<
+    eigen_native<D> and (dynamic_shape<D> or diagonal_matrix<D>), int> = 0>
 #endif
   constexpr decltype(auto)
   Cholesky_square(D&& d) noexcept
   {
-    if constexpr(identity_matrix<D> or zero_matrix<D>)
+    if constexpr ((dynamic_shape<D> and not diagonal_matrix<D>) or one_by_one_matrix<D>)
+    {
+      if constexpr (dynamic_shape<D> and not diagonal_matrix<D>)
+        assert(row_count(d) == 1 and column_count(d) == 1);
+
+      return std::forward<D>(d).array().square().matrix();
+    }
+    else if constexpr (identity_matrix<D> or zero_matrix<D>)
     {
       return std::forward<D>(d);
-    }
-    else if constexpr(one_by_one_matrix<D>)
-    {
-      return std::forward<D>(d).array().square().matrix();
     }
     else
     {
@@ -88,21 +101,25 @@ namespace OpenKalman::Eigen3
    * \return e, where ee<sup>T</sup> = d.
    */
 #ifdef __cpp_concepts
-  template<TriangleType = TriangleType::diagonal, eigen_native D> requires diagonal_matrix<D>
+  template<TriangleType = TriangleType::diagonal, eigen_native D>
+  requires dynamic_shape<D> or diagonal_matrix<D>
 #else
   template<TriangleType = TriangleType::diagonal,
-    typename D, std::enable_if_t<eigen_native<D> and diagonal_matrix<D>, int> = 0>
+    typename D, std::enable_if_t<eigen_native<D> and (dynamic_shape<D> or diagonal_matrix<D>), int> = 0>
 #endif
   constexpr decltype(auto)
   Cholesky_factor(D&& d) noexcept
   {
-    if constexpr(identity_matrix<D> or zero_matrix<D>)
+    if constexpr((dynamic_shape<D> and not diagonal_matrix<D>) or one_by_one_matrix<D>)
+    {
+      if constexpr (dynamic_shape<D> and not diagonal_matrix<D>)
+        assert(row_count(d) == 1 and column_count(d) == 1);
+
+      return std::forward<D>(d).cwiseSqrt();
+    }
+    else if constexpr(identity_matrix<D> or zero_matrix<D>)
     {
       return std::forward<D>(d);
-    }
-    else if constexpr(one_by_one_matrix<D>)
-    {
-      return std::forward<D>(d).cwiseSqrt();
     }
     else
     {

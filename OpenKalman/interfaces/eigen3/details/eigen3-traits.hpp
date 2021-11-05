@@ -263,7 +263,6 @@ namespace OpenKalman::internal
     : std::true_type {};
 #endif
 
-
   // A diagonal matrix times a scalar (or vice versa) is also diagonal.
   template<typename Scalar1, typename Scalar2, typename Arg1, typename Arg2>
   struct is_diagonal_matrix<Eigen::CwiseBinaryOp<Eigen::internal::scalar_product_op<Scalar1, Scalar2>, Arg1, Arg2>>
@@ -306,12 +305,13 @@ namespace OpenKalman::internal
     : std::bool_constant<diagonal_matrix<Arg1> and diagonal_matrix<Arg2>> {};
 
 
-  template<typename Scalar, std::size_t rows, std::size_t columns>
-  struct is_diagonal_matrix<Eigen3::ConstantMatrix<Scalar, 0, rows, columns>> : std::true_type {};
+  template<typename Scalar, auto constant, std::size_t dim>
+  struct is_diagonal_matrix<Eigen3::ConstantMatrix<Scalar, constant, dim, dim>>
+    : std::bool_constant<(dim > 0) and (dim == 1 or constant == 0)> {};
 
 
-  template<typename Scalar, std::size_t rows, std::size_t columns>
-  struct is_diagonal_matrix<Eigen3::ZeroMatrix<Scalar, rows, columns>> : std::true_type {};
+  template<typename Scalar, std::size_t dim>
+  struct is_diagonal_matrix<Eigen3::ZeroMatrix<Scalar, dim, dim>> : std::bool_constant<(dim > 0)> {};
 
 
   template<typename NestedMatrix>
@@ -361,10 +361,10 @@ namespace OpenKalman::internal
     : std::bool_constant<self_adjoint_matrix<Arg>> {};
 
 
-  // A constant square matrix is self-adjoint.
+  // A constant square matrix is self-adjoint if it is not complex.
   template<typename Scalar, typename PlainObjectType>
   struct is_self_adjoint_matrix<Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<Scalar>, PlainObjectType>>
-    : std::bool_constant<square_matrix<PlainObjectType>> {};
+    : std::bool_constant<square_matrix<PlainObjectType> and not complex_number<Scalar>> {};
 
 
   template<typename MatrixType, unsigned int UpLo>
@@ -373,23 +373,28 @@ namespace OpenKalman::internal
 
 
   template<typename Scalar, auto constant, std::size_t dim>
-  struct is_self_adjoint_matrix<Eigen3::ConstantMatrix<Scalar, constant, dim, dim>> : std::true_type {};
+  struct is_self_adjoint_matrix<Eigen3::ConstantMatrix<Scalar, constant, dim, dim>>
+    : std::bool_constant<(dim > 0) and not complex_number<decltype(constant)>> {};
 
 
-  template<typename Scalar, std::size_t rows, std::size_t columns>
-  struct is_self_adjoint_matrix<Eigen3::ZeroMatrix<Scalar, rows, columns>> : std::true_type {};
+  template<typename Scalar, std::size_t dim>
+  struct is_self_adjoint_matrix<Eigen3::ZeroMatrix<Scalar, dim, dim>>
+    : std::bool_constant<(dim > 0)> {};
 
 
   template<typename NestedMatrix>
-  struct is_self_adjoint_matrix<Eigen3::DiagonalMatrix<NestedMatrix>> : std::true_type {};
+  struct is_self_adjoint_matrix<Eigen3::DiagonalMatrix<NestedMatrix>>
+    : std::bool_constant<not complex_number<typename MatrixTraits<NestedMatrix>::Scalar>> {};
 
 
   template<typename NestedMatrix, TriangleType storage_triangle>
-  struct is_self_adjoint_matrix<Eigen3::SelfAdjointMatrix<NestedMatrix, storage_triangle>> : std::true_type {};
+  struct is_self_adjoint_matrix<Eigen3::SelfAdjointMatrix<NestedMatrix, storage_triangle>>
+    : std::true_type {};
 
 
   template<typename NestedMatrix>
-  struct is_self_adjoint_matrix<Eigen3::TriangularMatrix<NestedMatrix, TriangleType::diagonal>> : std::true_type {};
+  struct is_self_adjoint_matrix<Eigen3::TriangularMatrix<NestedMatrix, TriangleType::diagonal>>
+    : std::bool_constant<not complex_number<typename MatrixTraits<NestedMatrix>::Scalar>> {};
 
 
   template<typename Coefficients, typename NestedMatrix>
@@ -423,11 +428,11 @@ namespace OpenKalman::internal
 
   template<typename Scalar, auto constant, std::size_t dim>
   struct is_lower_triangular_matrix<Eigen3::ConstantMatrix<Scalar, constant, dim, dim>>
-    : std::bool_constant<constant == 0 or dim == 1> {};
+    : std::bool_constant<(dim > 0) and (dim == 1 or constant == 0)> {};
 
 
-  template<typename Scalar, std::size_t rows, std::size_t columns>
-  struct is_lower_triangular_matrix<Eigen3::ZeroMatrix<Scalar, rows, columns>> : std::true_type {};
+  template<typename Scalar, std::size_t dim>
+  struct is_lower_triangular_matrix<Eigen3::ZeroMatrix<Scalar, dim, dim>> : std::bool_constant<(dim > 0)> {};
 
 
   template<typename NestedMatrix>
@@ -474,8 +479,8 @@ namespace OpenKalman::internal
     : std::bool_constant<constant == 0 or dim == 1> {};
 
 
-  template<typename Scalar, std::size_t rows, std::size_t columns>
-  struct is_upper_triangular_matrix<Eigen3::ZeroMatrix<Scalar, rows, columns>> : std::true_type {};
+  template<typename Scalar, std::size_t dim>
+  struct is_upper_triangular_matrix<Eigen3::ZeroMatrix<Scalar, dim, dim>> : std::bool_constant<(dim > 0)> {};
 
 
   template<typename NestedMatrix>
@@ -671,6 +676,11 @@ namespace OpenKalman::internal
   template<typename XprType>
   struct is_self_contained<Eigen::MatrixWrapper<XprType>>
     : std::bool_constant<detail::stores<XprType>> {};
+
+
+  template<typename MatrixType, typename MemberOp, int Direction>
+  struct is_self_contained<Eigen::PartialReduxExpr<MatrixType, MemberOp, Direction>>
+    : std::bool_constant<detail::stores<MatrixType>> {};
 
 
   template<int SizeAtCompileTime, int MaxSizeAtCompileTime, typename StorageIndex>

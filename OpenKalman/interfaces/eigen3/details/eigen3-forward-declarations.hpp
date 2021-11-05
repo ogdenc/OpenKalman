@@ -236,8 +236,8 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<typename NestedMatrix, TriangleType storage_triangle =
       (diagonal_matrix<NestedMatrix> ? TriangleType::diagonal : TriangleType::lower)>
-  requires (eigen_matrix<NestedMatrix> or eigen_diagonal_expr<NestedMatrix>) and
-    (dynamic_shape<NestedMatrix> or square_matrix<NestedMatrix>)
+  requires eigen_diagonal_expr<NestedMatrix> or
+    (eigen_matrix<NestedMatrix>  and (dynamic_shape<NestedMatrix> or square_matrix<NestedMatrix>))
 #else
   template<typename NestedMatrix, TriangleType storage_triangle =
     (diagonal_matrix<NestedMatrix> ? TriangleType::diagonal : TriangleType::lower)>
@@ -341,8 +341,8 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<typename NestedMatrix, TriangleType triangle_type = (diagonal_matrix<NestedMatrix> ? TriangleType::diagonal :
       (upper_triangular_matrix<NestedMatrix> ? TriangleType::upper : TriangleType::lower))>
-  requires (eigen_matrix<NestedMatrix> or eigen_diagonal_expr<NestedMatrix>) and
-    (dynamic_shape<NestedMatrix> or square_matrix<NestedMatrix>)
+  requires eigen_diagonal_expr<NestedMatrix> or
+    (eigen_matrix<NestedMatrix> and (dynamic_shape<NestedMatrix> or square_matrix<NestedMatrix>))
 #else
   template<typename NestedMatrix, TriangleType triangle_type = (diagonal_matrix<NestedMatrix> ? TriangleType::diagonal :
     (upper_triangular_matrix<NestedMatrix> ? TriangleType::upper : TriangleType::lower))>

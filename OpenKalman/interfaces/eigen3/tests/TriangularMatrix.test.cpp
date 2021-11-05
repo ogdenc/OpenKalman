@@ -315,8 +315,10 @@ TEST(eigen3, TriangularMatrix_subscripts)
   auto l1 = Lower {3, 0, 1, 3};
   set_element(l1, 1.1, 1, 0);
   EXPECT_NEAR(get_element(l1, 1, 0), 1.1, 1e-8);
-  bool test = false; try { set_element(l1, 2.1, 0, 1); } catch (const std::out_of_range& e) { test = true; }
+  bool test = false;
+  try { set_element(l1, 2.1, 0, 1); } catch (const std::out_of_range& e) { test = true; }
   EXPECT_TRUE(test);
+  set_element(l1, 0, 0, 1);
   EXPECT_NEAR(get_element(l1, 0, 1), 0, 1e-8);
 
   auto u1 = Upper {3, 1, 0, 3};
@@ -325,6 +327,7 @@ TEST(eigen3, TriangularMatrix_subscripts)
   test = false;
   try { set_element(u1, 2.1, 1, 0); } catch (const std::out_of_range& e) { test = true; }
   EXPECT_TRUE(test);
+  set_element(u1, 0, 1, 0);
   EXPECT_NEAR(get_element(u1, 1, 0), 0, 1e-8);
 
   EXPECT_EQ(l1(0, 1), 0);
@@ -338,8 +341,10 @@ TEST(eigen3, TriangularMatrix_subscripts)
   l1(1, 0) = 6;
   EXPECT_NEAR(l1(1, 0), 6, 1e-8);
   l1(1, 1) = 8;
-  test = false; try { l1(0, 1) = 7; } catch (const std::out_of_range& e) { test = true; }
+  test = false;
+  try { l1(0, 1) = 7; } catch (const std::out_of_range& e) { test = true; }
   EXPECT_TRUE(test);
+  l1(0, 1) = 0;
   EXPECT_TRUE(is_near(l1, mat22(5, 0, 6, 8)));
 
   u1(0, 0) = 5;
@@ -347,8 +352,10 @@ TEST(eigen3, TriangularMatrix_subscripts)
   u1(0, 1) = 6;
   EXPECT_NEAR(u1(0, 1), 6, 1e-8);
   u1(1, 1) = 8;
-  test = false; try { u1(1, 0) = 7; } catch (const std::out_of_range& e) { test = true; }
+  test = false;
+  try { u1(1, 0) = 7; } catch (const std::out_of_range& e) { test = true; }
   EXPECT_TRUE(test);
+  u1(1, 0) = 0;
   EXPECT_TRUE(is_near(u1, mat22(5, 6, 0, 8)));
   //
   auto d9 = Diagonal {9, 10};
@@ -356,8 +363,10 @@ TEST(eigen3, TriangularMatrix_subscripts)
   EXPECT_NEAR(d9(0), 7.1, 1e-8);
   d9(1) = 8.1;
   EXPECT_NEAR(d9(1, 1), 8.1, 1e-8);
-  test = false; try { d9(1, 0) = 9.1; } catch (const std::out_of_range& e) { test = true; }
+  test = false;
+  try { d9(1, 0) = 9.1; } catch (const std::out_of_range& e) { test = true; }
   EXPECT_TRUE(test);
+  d9(1, 0) = 0;
   EXPECT_TRUE(is_near(d9, mat22(7.1, 0, 0, 8.1)));
 
   auto d9b = Diagonal2 {9, 10};
@@ -365,8 +374,10 @@ TEST(eigen3, TriangularMatrix_subscripts)
   EXPECT_NEAR(d9b(0, 0), 7.1, 1e-8);
   d9b(1, 1) = 8.1;
   EXPECT_NEAR(d9b(1, 1), 8.1, 1e-8);
-  test = false; try { d9b(1, 0) = 9.1; } catch (const std::out_of_range& e) { test = true; }
+  test = false;
+  try { d9b(1, 0) = 9.1; } catch (const std::out_of_range& e) { test = true; }
   EXPECT_TRUE(test);
+  d9b(1, 0) = 0;
   EXPECT_TRUE(is_near(d9b, mat22(7.1, 0, 0, 8.1)));
 
   auto d9c = Diagonal3 {9, 10};
@@ -374,8 +385,10 @@ TEST(eigen3, TriangularMatrix_subscripts)
   EXPECT_NEAR(d9c(0, 0), 7.1, 1e-8);
   d9c(1, 1) = 8.1;
   EXPECT_NEAR(d9c(1, 1), 8.1, 1e-8);
-  test = false; try { d9c(1, 0) = 9.1; } catch (const std::out_of_range& e) { test = true; }
+  test = false;
+  try { d9c(1, 0) = 9.1; } catch (const std::out_of_range& e) { test = true; }
   EXPECT_TRUE(test);
+  d9c(1, 0) = 0;
   EXPECT_TRUE(is_near(d9c, mat22(7.1, 0, 0, 8.1)));
   //
   EXPECT_NEAR((TriangularMatrix<eigen_matrix_t<double, 1, 1>, TriangleType::diagonal> {7.})(0), 7., 1e-6);
@@ -999,8 +1012,10 @@ TEST(eigen3, TriangularMatrix_references)
   V v1 {1., 0, 0,
         2, 4, 0,
         3, -6, -3};
-  bool test = false; try { v1(0, 1) = 3.2; } catch (const std::out_of_range& e) { test = true; }
+  bool test = false;
+  try { v1(0, 1) = 3.2; } catch (const std::out_of_range& e) { test = true; }
   EXPECT_TRUE(test);
+  v1(0, 1) = 0;
   EXPECT_EQ(v1(1,0), 2);
   TriangularMatrix<eigen_matrix_t<double, 3, 3>&> v2 = v1;
   EXPECT_TRUE(is_near(v1, v2));

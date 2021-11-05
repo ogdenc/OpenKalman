@@ -17,17 +17,20 @@ using namespace OpenKalman::test;
 
 namespace
 {
-  using Mat2 = eigen_matrix_t<double, 2, 2>;
-  using Mat3 = eigen_matrix_t<double, 3, 3>;
+  using Mat11 = eigen_matrix_t<double, 1, 1>;
+  using Mat21 = eigen_matrix_t<double, 2, 1>;
+  using Mat22 = eigen_matrix_t<double, 2, 2>;
   using Mat23 = eigen_matrix_t<double, 2, 3>;
   using Mat32 = eigen_matrix_t<double, 3, 2>;
+  using Mat33 = eigen_matrix_t<double, 3, 3>;
 
   using cdouble = std::complex<double>;
-  using CMat2 = eigen_matrix_t<cdouble, 2, 2>;
+  using CMat22 = eigen_matrix_t<cdouble, 2, 2>;
   using CMat23 = eigen_matrix_t<cdouble, 2, 3>;
   using CMat32 = eigen_matrix_t<cdouble, 3, 2>;
 
   using Mat00 = eigen_matrix_t<double, 0, 0>;
+  using Mat01 = eigen_matrix_t<double, 0, 1>;
   using Mat20 = eigen_matrix_t<double, 2, 0>;
   using Mat02 = eigen_matrix_t<double, 0, 2>;
   using Mat30 = eigen_matrix_t<double, 3, 0>;
@@ -39,57 +42,50 @@ namespace
 
 TEST(eigen3, Eigen_Matrix_class_traits)
 {
-  static_assert(eigen_native<Mat2>);
+  static_assert(eigen_native<Mat22>);
   static_assert(not eigen_native<double>);
-  static_assert(eigen_matrix<Mat2>);
+  static_assert(eigen_matrix<Mat22>);
   static_assert(not eigen_matrix<double>);
   EXPECT_TRUE(is_near(MatrixTraits<eigen_matrix_t<double, 2, 3>>::zero(), make_native_matrix<double, 2, 3>(0, 0, 0, 0, 0, 0)));
-  EXPECT_TRUE(is_near(MatrixTraits<Mat3>::identity(), make_native_matrix<Mat3>(1, 0, 0, 0, 1, 0, 0, 0, 1)));
-  EXPECT_NEAR((make_native_matrix<double, 2, 2>(1, 2, 3, 4))(0, 0), 1, 1e-6);
-  EXPECT_NEAR((make_native_matrix<double, 2, 2>(1, 2, 3, 4))(0, 1), 2, 1e-6);
-  auto d1 = make_native_matrix<double, 3, 1>(1, 2, 3);
-  EXPECT_NEAR(d1(1), 2, 1e-6);
-  d1(0) = 5;
-  d1(2, 0) = 7;
-  EXPECT_TRUE(is_near(d1, make_native_matrix<double, 3, 1>(5, 2, 7)));
+  EXPECT_TRUE(is_near(MatrixTraits<Mat33>::identity(), make_native_matrix<Mat33>(1, 0, 0, 0, 1, 0, 0, 0, 1)));
 
-  static_assert(self_adjoint_matrix<Eigen::SelfAdjointView<Mat3, Eigen::Upper>>);
-  static_assert(self_adjoint_matrix<Eigen::SelfAdjointView<Mat3, Eigen::Lower>>);
-  static_assert(upper_triangular_storage<Eigen::SelfAdjointView<Mat3, Eigen::Upper>>);
-  static_assert(lower_triangular_storage<Eigen::SelfAdjointView<Mat3, Eigen::Lower>>);
-  static_assert(triangular_matrix<Eigen::TriangularView<Mat3, Eigen::Upper>>);
-  static_assert(triangular_matrix<Eigen::TriangularView<Mat3, Eigen::Lower>>);
-  static_assert(upper_triangular_matrix<Eigen::TriangularView<Mat3, Eigen::Upper>>);
-  static_assert(lower_triangular_matrix<Eigen::TriangularView<Mat3, Eigen::Lower>>);
+  static_assert(self_adjoint_matrix<Eigen::SelfAdjointView<Mat33, Eigen::Upper>>);
+  static_assert(self_adjoint_matrix<Eigen::SelfAdjointView<Mat33, Eigen::Lower>>);
+  static_assert(upper_triangular_storage<Eigen::SelfAdjointView<Mat33, Eigen::Upper>>);
+  static_assert(lower_triangular_storage<Eigen::SelfAdjointView<Mat33, Eigen::Lower>>);
+  static_assert(triangular_matrix<Eigen::TriangularView<Mat33, Eigen::Upper>>);
+  static_assert(triangular_matrix<Eigen::TriangularView<Mat33, Eigen::Lower>>);
+  static_assert(upper_triangular_matrix<Eigen::TriangularView<Mat33, Eigen::Upper>>);
+  static_assert(lower_triangular_matrix<Eigen::TriangularView<Mat33, Eigen::Lower>>);
   static_assert(diagonal_matrix<Eigen::DiagonalMatrix<double, 3>>);
-  static_assert(self_adjoint_matrix<typename Mat3::ConstantReturnType>);
-  static_assert(self_adjoint_matrix<typename Mat3::IdentityReturnType>);
-  static_assert(upper_triangular_matrix<typename Mat3::IdentityReturnType>);
-  static_assert(lower_triangular_matrix<typename Mat3::IdentityReturnType>);
-  static_assert(diagonal_matrix<typename Mat3::IdentityReturnType>);
+  static_assert(self_adjoint_matrix<typename Mat33::ConstantReturnType>);
+  static_assert(self_adjoint_matrix<typename Mat33::IdentityReturnType>);
+  static_assert(upper_triangular_matrix<typename Mat33::IdentityReturnType>);
+  static_assert(lower_triangular_matrix<typename Mat33::IdentityReturnType>);
+  static_assert(diagonal_matrix<typename Mat33::IdentityReturnType>);
 
-  auto id2 = MatrixTraits<Mat2>::identity();
+  auto id2 = MatrixTraits<Mat22>::identity();
 
-  static_assert(self_contained<const Mat2>);
-  static_assert(self_contained<typename Mat3::ConstantReturnType>);
-  static_assert(self_contained<typename Mat3::IdentityReturnType>);
+  static_assert(self_contained<const Mat22>);
+  static_assert(self_contained<typename Mat33::ConstantReturnType>);
+  static_assert(self_contained<typename Mat33::IdentityReturnType>);
   static_assert(self_contained<decltype(2 * id2 + id2)>);
-  static_assert(not self_contained<decltype(2 * id2 + Mat2 {1, 2, 3, 4})>);
+  static_assert(not self_contained<decltype(2 * id2 + Mat22 {1, 2, 3, 4})>);
   static_assert(MatrixTraits<std::remove_const_t<decltype(2 * id2 + id2)>>::rows == 2);
   static_assert(self_contained<decltype(column<0>(2 * id2 + id2))>);
-  static_assert(self_contained<decltype(column<0>(2 * id2 + Mat2 {1, 2, 3, 4}))>);
+  static_assert(self_contained<decltype(column<0>(2 * id2 + Mat22 {1, 2, 3, 4}))>);
   static_assert(self_contained<decltype(row<0>(2 * id2 + id2))>);
-  static_assert(self_contained<decltype(row<0>(2 * id2 + Mat2 {1, 2, 3, 4}))>);
-  static_assert(self_contained<const Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Mat2>>);
+  static_assert(self_contained<decltype(row<0>(2 * id2 + Mat22 {1, 2, 3, 4}))>);
+  static_assert(self_contained<const Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Mat22>>);
   static_assert(self_contained<Eigen::CwiseBinaryOp<Eigen::internal::scalar_product_op<double, double>,
-    const Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Mat2>,
-    const Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Mat2>>>);
+    const Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Mat22>,
+    const Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Mat22>>>);
   static_assert(self_contained<Eigen::CwiseBinaryOp<Eigen::internal::scalar_product_op<double, double>,
-    const Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<double>, Mat2>,
-    const Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Mat2>>>);
-  static_assert(not self_contained<Eigen::CwiseBinaryOp<Eigen::internal::scalar_product_op<double, double>, const Mat2, const Mat2>>);
-  static_assert(not self_contained<Eigen::CwiseBinaryOp<Eigen::internal::scalar_product_op<double, double>, const Mat2,
-    const Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Mat2>>>);
+    const Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<double>, Mat22>,
+    const Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Mat22>>>);
+  static_assert(not self_contained<Eigen::CwiseBinaryOp<Eigen::internal::scalar_product_op<double, double>, const Mat22, const Mat22>>);
+  static_assert(not self_contained<Eigen::CwiseBinaryOp<Eigen::internal::scalar_product_op<double, double>, const Mat22,
+    const Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Mat22>>>);
 
   static_assert(dynamic_rows<eigen_matrix_t<double, 0, 0>>);
   static_assert(dynamic_columns<eigen_matrix_t<double, 0, 0>>);
@@ -115,7 +111,7 @@ TEST(eigen3, Eigen_Matrix_class_traits)
 
 TEST(eigen3, Eigen_Matrix_construction)
 {
-  Mat2 m22; m22 << 1, 2, 3, 4;
+  Mat22 m22; m22 << 1, 2, 3, 4;
   Mat20 m20_1 {2,1}; m20_1 << 1, 2;
   Mat20 m20_2 {2,2}; m20_2 << 1, 2, 3, 4;
   Mat20 m20_3 {2,3}; m20_3 << 1, 2, 3, 4, 5, 6;
@@ -123,16 +119,16 @@ TEST(eigen3, Eigen_Matrix_construction)
   Mat02 m02_2 {2,2}; m02_2 << 1, 2, 3, 4;
   Mat02 m02_3 {3,2}; m02_3 << 1, 2, 3, 4, 5, 6;
 
-  CMat2 cm22; cm22 << cdouble {1,4}, cdouble {2,3}, cdouble {3,2}, cdouble {4,1};
+  CMat22 cm22; cm22 << cdouble {1,4}, cdouble {2,3}, cdouble {3,2}, cdouble {4,1};
 
-  EXPECT_TRUE(is_near(MatrixTraits<Mat2>::make(1, 2, 3, 4), m22));
+  EXPECT_TRUE(is_near(MatrixTraits<Mat22>::make(1, 2, 3, 4), m22));
   EXPECT_TRUE(is_near(MatrixTraits<Mat20>::make(1, 2), m20_1));
   EXPECT_TRUE(is_near(MatrixTraits<Mat20>::make(1, 2, 3, 4), m20_2));
   EXPECT_TRUE(is_near(MatrixTraits<Mat20>::make(1, 2, 3, 4, 5, 6), m20_3));
   EXPECT_TRUE(is_near(MatrixTraits<Mat02>::make(1, 2), m02_1));
   EXPECT_TRUE(is_near(MatrixTraits<Mat02>::make(1, 2, 3, 4), m02_2));
   EXPECT_TRUE(is_near(MatrixTraits<Mat02>::make(1, 2, 3, 4, 5, 6), m02_3));
-  EXPECT_TRUE(is_near(MatrixTraits<CMat2>::make(cdouble {1,4}, cdouble {2,3}, cdouble {3,2}, cdouble {4,1}), cm22));
+  EXPECT_TRUE(is_near(MatrixTraits<CMat22>::make(cdouble {1,4}, cdouble {2,3}, cdouble {3,2}, cdouble {4,1}), cm22));
 
   EXPECT_TRUE(is_near(make_native_matrix<double, 2, 2>(1, 2, 3, 4), m22));
   EXPECT_TRUE(is_near(make_native_matrix<double, 2, 0>(1, 2), m20_1));
@@ -161,40 +157,70 @@ TEST(eigen3, Eigen_Matrix_construction)
 
 TEST(eigen3, Eigen_Matrix_overloads)
 {
-  Mat2 m22; m22 << 1, 2, 3, 4;
-  eigen_matrix_t<double, 2, 1> m21; m21 << 1, 4;
-  Mat23 m23; m23 << 1, 2, 3, 4, 5, 6;
-  Mat32 m32; m32 << 1, 4, 2, 5, 3, 6;
-  Mat20 m20_1 {2,1}; m20_1 << 1, 2;
-  Mat02 m02_1 {1,2}; m02_1 << 1, 2;
+  Mat22 m22; m22 << 1, 2, 3, 4;
+
+  Mat21 m21; m21 << 1, 4;
+  Mat20 m20_1 {2,1}; m20_1 << 1, 4;
+  Mat01 m01_2 {2,1}; m01_2 << 1, 4;
+  Mat02 m02_1 {1,2}; m02_1 << 1, 4;
+  Mat00 m00_21 {2,1}; m00_21 << 1, 4;
+
   Mat20 m20_2 {2,2}; m20_2 << 1, 2, 3, 4;
   Mat02 m02_2 {2,2}; m02_2 << 1, 2, 3, 4;
-  Mat20 m20_3 {2,3}; m20_3 << 1, 2, 3, 4, 5, 6;
-  Mat20 m03_2 {2,3}; m03_2 << 1, 2, 3, 4, 5, 6;
-  Mat02 m02_3 {3,2}; m02_3 << 1, 4, 2, 5, 3, 6;
-  Mat02 m30_2 {3,2}; m30_2 << 1, 4, 3, 5, 3, 6;
   Mat00 m00_22 {2,2}; m00_22 << 1, 2, 3, 4;
+
+  Mat23 m23; m23 << 1, 2, 3, 4, 5, 6;
+  Mat03 m03_2 {2,3}; m03_2 << 1, 2, 3, 4, 5, 6;
+  Mat20 m20_3 {2,3}; m20_3 << 1, 2, 3, 4, 5, 6;
   Mat00 m00_23 {2,3}; m00_23 << 1, 2, 3, 4, 5, 6;
 
-  CMat2 cm22; cm22 << cdouble {1,4}, cdouble {2,3}, cdouble {3,2}, cdouble {4,1};
+  Mat32 m32; m32 << 1, 4, 2, 5, 3, 6;
+  Mat02 m02_3 {3,2}; m02_3 << 1, 4, 2, 5, 3, 6;
+  Mat30 m30_2 {3,2}; m30_2 << 1, 4, 3, 5, 3, 6;
+
+  CMat22 cm22; cm22 << cdouble {1,4}, cdouble {2,3}, cdouble {3,2}, cdouble {4,1};
   CMat23 cm23; cm23 << cdouble {1,6}, cdouble {2,5}, cdouble {3,4}, cdouble {4,3}, cdouble {5,2}, cdouble {6,1};
   CMat32 cm32; cm32 << cdouble {1,6}, cdouble {4,3}, cdouble {2,5}, cdouble {5,2}, cdouble {3,4}, cdouble {6,1};
   CMat32 cm32conj; cm32conj << cdouble {1,-6}, cdouble {4,-3}, cdouble {2,-5}, cdouble {5,-2}, cdouble {3,-4}, cdouble {6,-1};
 
-  eigen_matrix_t<double, 2, 1> c21; c21 << 1, 1;
-  auto z21 = eigen_matrix_t<double, 2, 1>::Zero();
+  EXPECT_NEAR((make_native_matrix<double, 2, 2>(1, 2, 3, 4))(0, 0), 1, 1e-6);
+  EXPECT_NEAR((make_native_matrix<double, 2, 2>(1, 2, 3, 4))(0, 1), 2, 1e-6);
+  auto d1 = make_native_matrix<double, 3, 1>(1, 2, 3);
+  EXPECT_NEAR(d1(1), 2, 1e-6);
+  d1(0) = 5;
+  d1(2, 0) = 7;
+  EXPECT_TRUE(is_near(d1, make_native_matrix<double, 3, 1>(5, 2, 7)));
+  EXPECT_TRUE(is_near(make_native_matrix<double, 0, 0>(5, 2, 7), d1));
+  EXPECT_TRUE(is_near(make_native_matrix<double, 2, 0>(1, 2, 3, 4, 5, 6), make_native_matrix<double, 2, 3>(1, 2, 3, 4, 5, 6)));
+  EXPECT_TRUE(is_near(make_native_matrix<double, 0, 2>(1, 2, 3, 4, 5, 6), make_native_matrix<double, 3, 2>(1, 2, 3, 4, 5, 6)));
+  EXPECT_TRUE(is_near(make_native_matrix<double, 1, 1>(4), eigen_matrix_t<double, 1, 1>(4)));
+  EXPECT_TRUE(is_near(make_native_matrix<double, 1, 0>(4), eigen_matrix_t<double, 1, 1>(4)));
+  EXPECT_TRUE(is_near(make_native_matrix<double, 0, 1>(4), eigen_matrix_t<double, 1, 1>(4)));
+  EXPECT_TRUE(is_near(make_native_matrix<double, 0, 0>(4), eigen_matrix_t<double, 1, 1>(4)));
+
+  Mat21 c21; c21 << 1, 1;
+  auto z21 = Mat21::Zero();
+
+  static_assert(not dynamic_shape<decltype(make_native_matrix(SelfAdjointMatrix<Mat02> {m02_2}))>);
+  static_assert(not dynamic_shape<decltype(make_native_matrix(SelfAdjointMatrix<Mat20> {m20_2}))>);
+
+  EXPECT_TRUE(is_near(to_diagonal(Mat11 {4}), Mat11 {4}));
+  EXPECT_TRUE(is_near(to_diagonal(m21), make_native_matrix<Mat22>(1,0,0,4)));
+  EXPECT_TRUE(is_near(to_diagonal(m20_1), make_native_matrix<Mat22>(1,0,0,4))); static_assert(not dynamic_shape<decltype(to_diagonal(m20_1))>);
+  EXPECT_TRUE(is_near(to_diagonal(m01_2), make_native_matrix<Mat22>(1,0,0,4))); static_assert(dynamic_shape<decltype(to_diagonal(m01_2))>);
+  EXPECT_TRUE(is_near(to_diagonal(m00_21), make_native_matrix<Mat22>(1,0,0,4))); static_assert(dynamic_shape<decltype(to_diagonal(m00_21))>);
 
   EXPECT_TRUE(is_near(diagonal_of(m22), m21)); static_assert(not dynamic_shape<decltype(diagonal_of(m22))>);
   EXPECT_TRUE(is_near(diagonal_of(m20_2), m21)); static_assert(not dynamic_shape<decltype(diagonal_of(m20_2))>);
   EXPECT_TRUE(is_near(diagonal_of(m02_2), m21)); static_assert(not dynamic_shape<decltype(diagonal_of(m02_2))>);
   EXPECT_TRUE(is_near(diagonal_of(m00_22), m21)); static_assert(dynamic_shape<decltype(diagonal_of(m00_22))>);
 
-  EXPECT_TRUE(is_near(diagonal_of(Mat2::Identity()), c21)); static_assert(not dynamic_shape<decltype(diagonal_of(Mat2::Identity()))>);
+  EXPECT_TRUE(is_near(diagonal_of(Mat22::Identity()), c21)); static_assert(not dynamic_shape<decltype(diagonal_of(Mat22::Identity()))>);
   EXPECT_TRUE(is_near(diagonal_of(Mat20::Identity(2, 2)), c21)); static_assert(not dynamic_shape<decltype(diagonal_of(Mat20::Identity(2, 2)))>);
   EXPECT_TRUE(is_near(diagonal_of(Mat02::Identity(2, 2)), c21)); static_assert(not dynamic_shape<decltype(diagonal_of(Mat02::Identity(2, 2)))>);
   EXPECT_TRUE(is_near(diagonal_of(Mat00::Identity(2, 2)), c21)); static_assert(dynamic_shape<decltype(diagonal_of(Mat00::Identity(2, 2)))>);
 
-  EXPECT_TRUE(is_near(diagonal_of(Mat2::Zero()), z21)); static_assert(not dynamic_shape<decltype(diagonal_of(Mat2::Zero()))>);
+  EXPECT_TRUE(is_near(diagonal_of(Mat22::Zero()), z21)); static_assert(not dynamic_shape<decltype(diagonal_of(Mat22::Zero()))>);
   EXPECT_TRUE(is_near(diagonal_of(Mat20::Zero(2, 2)), z21)); static_assert(not dynamic_shape<decltype(diagonal_of(Mat20::Zero(2, 2)))>);
   EXPECT_TRUE(is_near(diagonal_of(Mat02::Zero(2, 2)), z21)); static_assert(not dynamic_shape<decltype(diagonal_of(Mat02::Zero(2, 2)))>);
   EXPECT_TRUE(is_near(diagonal_of(Mat00::Zero(2, 2)), z21)); static_assert(dynamic_shape<decltype(diagonal_of(Mat00::Zero(2, 2)))>);
@@ -227,30 +253,62 @@ TEST(eigen3, Eigen_Matrix_overloads)
   EXPECT_NEAR(std::real(trace(cm22)), 5, 1e-6);
   EXPECT_NEAR(std::imag(trace(cm22)), 5, 1e-6);
 
-  EXPECT_TRUE(is_near(solve(m22, make_native_matrix<double, 2, 1>(5, 6)), make_native_matrix<double, 2, 1>(-4, 4.5)));
-  EXPECT_TRUE(is_near(solve(eigen_matrix_t<double, 1, 1>(2), eigen_matrix_t<double, 1, 1>(6)), eigen_matrix_t<double, 1, 1>(3)));
-  EXPECT_TRUE(is_near(solve(m02_2, make_native_matrix<double, 2, 1>(5, 6)), make_native_matrix<double, 2, 1>(-4, 4.5)));
-  EXPECT_TRUE(is_near(solve(m20_2, make_native_matrix<double, 2, 1>(5, 6)), make_native_matrix<double, 2, 1>(-4, 4.5)));
-  EXPECT_TRUE(is_near(solve(m00_22, make_native_matrix<double, 2, 1>(5, 6)), make_native_matrix<double, 2, 1>(-4, 4.5)));
-  Mat00 m00_21_56 {2,1}; m00_21_56 << 5, 6;
-  Mat00 m00_21_445 {2,1}; m00_21_445 << -4, 4.5;
-  EXPECT_TRUE(is_near(solve(m00_22, m00_21_56), m00_21_445));
+  auto m23_56 = make_native_matrix<double, 2, 3>(5, 7, 9, 6, 8, 10);
+  auto m23_445 = make_native_matrix<double, 2, 3>(-4, -6, -8, 4.5, 6.5, 8.5);
+  Mat20 m20_3_56 {2,3}; m20_3_56 = m23_56;
+  Mat03 m03_2_56 {2,3}; m03_2_56 = m23_56;
+  Mat00 m00_23_56 {2,3}; m00_23_56 = m23_56;
+  EXPECT_TRUE(is_near(solve(m22, m23_56), m23_445));
+  EXPECT_TRUE(is_near(solve(m22, m20_3_56), m23_445));
+  EXPECT_TRUE(is_near(solve(m22, m03_2_56), m23_445));
+  EXPECT_TRUE(is_near(solve(m22, m00_23_56), m23_445));
+  EXPECT_TRUE(is_near(solve(m02_2, m23_56), m23_445));
+  EXPECT_TRUE(is_near(solve(m02_2, m20_3_56), m23_445));
+  EXPECT_TRUE(is_near(solve(m02_2, m03_2_56), m23_445));
+  EXPECT_TRUE(is_near(solve(m02_2, m00_23_56), m23_445));
+  EXPECT_TRUE(is_near(solve(m20_2, m23_56), m23_445));
+  EXPECT_TRUE(is_near(solve(m20_2, m20_3_56), m23_445));
+  EXPECT_TRUE(is_near(solve(m20_2, m03_2_56), m23_445));
+  EXPECT_TRUE(is_near(solve(m20_2, m00_23_56), m23_445));
+  EXPECT_TRUE(is_near(solve(m00_22, m23_56), m23_445));
+  EXPECT_TRUE(is_near(solve(m00_22, m20_3_56), m23_445));
+  EXPECT_TRUE(is_near(solve(m00_22, m03_2_56), m23_445));
+  EXPECT_TRUE(is_near(solve(m00_22, m00_23_56), m23_445));
 
+  EXPECT_TRUE(is_near(solve(make_native_matrix<double, 1, 1>(2), make_native_matrix<double, 1, 1>(6)), eigen_matrix_t<double, 1, 1>(3)));
+  EXPECT_TRUE(is_near(solve(make_native_matrix<double, 1, 1>(2), make_native_matrix<double, 1, 0>(6)), eigen_matrix_t<double, 1, 1>(3)));
+  EXPECT_TRUE(is_near(solve(make_native_matrix<double, 1, 1>(2), make_native_matrix<double, 0, 1>(6)), eigen_matrix_t<double, 1, 1>(3)));
+  EXPECT_TRUE(is_near(solve(make_native_matrix<double, 1, 1>(2), make_native_matrix<double, 0, 0>(6)), eigen_matrix_t<double, 1, 1>(3)));
+  EXPECT_TRUE(is_near(solve(make_native_matrix<double, 1, 0>(2), make_native_matrix<double, 1, 1>(6)), eigen_matrix_t<double, 1, 1>(3)));
+  EXPECT_TRUE(is_near(solve(make_native_matrix<double, 1, 0>(2), make_native_matrix<double, 1, 0>(6)), eigen_matrix_t<double, 1, 1>(3)));
+  EXPECT_TRUE(is_near(solve(make_native_matrix<double, 1, 0>(2), make_native_matrix<double, 0, 1>(6)), eigen_matrix_t<double, 1, 1>(3)));
+  EXPECT_TRUE(is_near(solve(make_native_matrix<double, 1, 0>(2), make_native_matrix<double, 0, 0>(6)), eigen_matrix_t<double, 1, 1>(3)));
+  EXPECT_TRUE(is_near(solve(make_native_matrix<double, 0, 1>(2), make_native_matrix<double, 1, 1>(6)), eigen_matrix_t<double, 1, 1>(3)));
+  EXPECT_TRUE(is_near(solve(make_native_matrix<double, 0, 1>(2), make_native_matrix<double, 1, 0>(6)), eigen_matrix_t<double, 1, 1>(3)));
+  EXPECT_TRUE(is_near(solve(make_native_matrix<double, 0, 1>(2), make_native_matrix<double, 0, 1>(6)), eigen_matrix_t<double, 1, 1>(3)));
+  EXPECT_TRUE(is_near(solve(make_native_matrix<double, 0, 1>(2), make_native_matrix<double, 0, 0>(6)), eigen_matrix_t<double, 1, 1>(3)));
+  EXPECT_TRUE(is_near(solve(make_native_matrix<double, 0, 0>(2), make_native_matrix<double, 1, 1>(6)), eigen_matrix_t<double, 1, 1>(3)));
+  EXPECT_TRUE(is_near(solve(make_native_matrix<double, 0, 0>(2), make_native_matrix<double, 1, 0>(6)), eigen_matrix_t<double, 1, 1>(3)));
+  EXPECT_TRUE(is_near(solve(make_native_matrix<double, 0, 0>(2), make_native_matrix<double, 0, 1>(6)), eigen_matrix_t<double, 1, 1>(3)));
+  EXPECT_TRUE(is_near(solve(make_native_matrix<double, 0, 0>(2), make_native_matrix<double, 0, 0>(6)), eigen_matrix_t<double, 1, 1>(3)));
+
+  auto m21_25 = make_native_matrix<double, 2, 1>(2, 5);
   EXPECT_TRUE(is_near(reduce_columns(m21), m21));
-  EXPECT_TRUE(is_near(reduce_columns(m23), make_native_matrix<double, 2, 1>(2, 5)));
-  EXPECT_TRUE(is_near(reduce_columns(m03_2), make_native_matrix<double, 2, 1>(2, 5)));
-  EXPECT_TRUE(is_near(reduce_columns(m20_3), make_native_matrix<double, 2, 1>(2, 5)));
-  EXPECT_TRUE(is_near(reduce_columns(m00_23), make_native_matrix<double, 2, 1>(2, 5)));
+  EXPECT_TRUE(is_near(reduce_columns(m23), m21_25));
+  EXPECT_TRUE(is_near(reduce_columns(m03_2), m21_25));
+  EXPECT_TRUE(is_near(reduce_columns(m20_3), m21_25));
+  EXPECT_TRUE(is_near(reduce_columns(m00_23), m21_25));
   EXPECT_TRUE(is_near(reduce_columns(cm23), make_native_matrix<cdouble, 2, 1>(cdouble {2,5}, cdouble {5,2})));
 
+  auto m13_234 = make_native_matrix<double, 1, 3>(2.5, 3.5, 4.5);
   EXPECT_TRUE(is_near(reduce_rows(make_native_matrix<double, 1, 3>(1, 2, 3)), make_native_matrix<double, 1, 3>(1, 2, 3)));
-  EXPECT_TRUE(is_near(reduce_rows(m23), make_native_matrix<double, 1, 3>(2.5, 3.5, 4.5)));
-  EXPECT_TRUE(is_near(reduce_rows(m03_2), make_native_matrix<double, 1, 3>(2.5, 3.5, 4.5)));
-  EXPECT_TRUE(is_near(reduce_rows(m20_3), make_native_matrix<double, 1, 3>(2.5, 3.5, 4.5)));
-  EXPECT_TRUE(is_near(reduce_rows(m00_23), make_native_matrix<double, 1, 3>(2.5, 3.5, 4.5)));
+  EXPECT_TRUE(is_near(reduce_rows(m23), m13_234));
+  EXPECT_TRUE(is_near(reduce_rows(m03_2), m13_234));
+  EXPECT_TRUE(is_near(reduce_rows(m20_3), m13_234));
+  EXPECT_TRUE(is_near(reduce_rows(m00_23), m13_234));
   EXPECT_TRUE(is_near(reduce_rows(cm23), make_native_matrix<cdouble, 1, 3>(cdouble {2.5,4.5}, cdouble{3.5,3.5}, cdouble {4.5,2.5})));
 
-  Mat2 m22_lq_decomp = make_native_matrix<double, 2, 2>(-0.1, 0, 1.096, -1.272);
+  Mat22 m22_lq_decomp = make_native_matrix<double, 2, 2>(-0.1, 0, 1.096, -1.272);
   EXPECT_TRUE(is_near(LQ_decomposition(make_native_matrix<double, 2, 2>(0.06, 0.08, 0.36, -1.640)), m22_lq_decomp));
   Mat20 m20_2_lq_decomp {2,2}; m20_2_lq_decomp << 0.06, 0.08, 0.36, -1.640;
   EXPECT_TRUE(is_near(LQ_decomposition(m20_2_lq_decomp), m22_lq_decomp));
@@ -259,7 +317,7 @@ TEST(eigen3, Eigen_Matrix_overloads)
   Mat00 m00_22_lq_decomp {2,2}; m00_22_lq_decomp << 0.06, 0.08, 0.36, -1.640;
   EXPECT_TRUE(is_near(LQ_decomposition(m00_22_lq_decomp), m22_lq_decomp));
 
-  Mat2 m22_qr_decomp = make_native_matrix<double, 2, 2>(-0.1, 1.096, 0, -1.272);
+  Mat22 m22_qr_decomp = make_native_matrix<double, 2, 2>(-0.1, 1.096, 0, -1.272);
   EXPECT_TRUE(is_near(QR_decomposition(make_native_matrix<double, 2, 2>(0.06, 0.36, 0.08, -1.640)), m22_qr_decomp));
   Mat02 m02_2_qr_decomp {2,2}; m02_2_qr_decomp << 0.06, 0.36, 0.08, -1.640;
   EXPECT_TRUE(is_near(QR_decomposition(m02_2_qr_decomp), m22_qr_decomp));
@@ -279,7 +337,7 @@ TEST(eigen3, Eigen_Matrix_randomize)
 {
   using N = std::normal_distribution<double>;
 
-  Mat2 m22, m22_true;
+  Mat22 m22, m22_true;
   Mat23 m23, m23_true;
   Mat32 m32, m32_true;
   Mat20 m20_2 {2, 2};
@@ -291,7 +349,7 @@ TEST(eigen3, Eigen_Matrix_randomize)
   Mat00 m00 {2, 2};
 
   // Test just using the parameters, rather than a constructed distribution.
-  m22 = randomize<Mat2>(N {0.0, 0.7});
+  m22 = randomize<Mat22>(N {0.0, 0.7});
   m20_2 = randomize<Mat20>(2, 2, N {0.0, 1.0});
   m20_3 = randomize<Mat20>(2, 3, N {0.0, 0.7});
   m02_2 = randomize<Mat02>(2, 2, N {0.0, 1.0});
@@ -299,18 +357,18 @@ TEST(eigen3, Eigen_Matrix_randomize)
   m00 = randomize<Mat00>(2, 2, N {0.0, 1.0});
 
   // Single distribution for the entire matrix.
-  m22 = Mat2::Zero();
+  m22 = Mat22::Zero();
   m20_2 = Mat20::Zero(2, 2);
   m02_2 = Mat02::Zero(2, 2);
   m00 = Mat00::Zero(2, 2);
   for (int i=0; i<100; i++)
   {
-    m22 = (m22 * i + randomize<Mat2>(N {1.0, 0.3})) / (i + 1);
+    m22 = (m22 * i + randomize<Mat22>(N {1.0, 0.3})) / (i + 1);
     m20_2 = (m20_2 * i + randomize<Mat20>(2, 2, N {1.0, 0.3})) / (i + 1);
     m02_2 = (m02_2 * i + randomize<Mat02>(2, 2, N {1.0, 0.3})) / (i + 1);
     m00 = (m00 * i + randomize<Mat00>(2, 2, N {1.0, 0.3})) / (i + 1);
   }
-  m22_true = Mat2::Constant(1);
+  m22_true = Mat22::Constant(1);
   EXPECT_TRUE(is_near(m22, m22_true, 0.1));
   EXPECT_FALSE(is_near(m22, m22_true, 1e-8));
   EXPECT_TRUE(is_near(m20_2, m22_true, 0.1));
@@ -321,25 +379,25 @@ TEST(eigen3, Eigen_Matrix_randomize)
   EXPECT_FALSE(is_near(m00, m22_true, 1e-8));
 
   // A distribution for each element.
-  m22 = Mat2::Zero();
+  m22 = Mat22::Zero();
   for (int i=0; i<100; i++)
   {
-    m22 = (m22 * i + randomize<Mat2>(N {1.0, 0.3}, N {2.0, 0.3}, 3.0, N {4.0, 0.3})) / (i + 1);
+    m22 = (m22 * i + randomize<Mat22>(N {1.0, 0.3}, N {2.0, 0.3}, 3.0, N {4.0, 0.3})) / (i + 1);
   }
-  m22_true = MatrixTraits<Mat2>::make(1, 2, 3, 4);
+  m22_true = MatrixTraits<Mat22>::make(1, 2, 3, 4);
   EXPECT_TRUE(is_near(m22, m22_true, 0.1));
   EXPECT_FALSE(is_near(m22, m22_true, 1e-8));
 
   // One distribution for each row.
   m32 = Mat32::Zero();
-  m22 = Mat2::Zero();
+  m22 = Mat22::Zero();
   for (int i=0; i<100; i++)
   {
     m32 = (m32 * i + randomize<Mat32>(N {1.0, 0.3}, 2.0, N {3.0, 0.3})) / (i + 1);
-    m22 = (m22 * i + randomize<Mat2>(N {1.0, 0.3}, N {2.0, 0.3})) / (i + 1);
+    m22 = (m22 * i + randomize<Mat22>(N {1.0, 0.3}, N {2.0, 0.3})) / (i + 1);
   }
   m32_true = MatrixTraits<Mat32>::make(1, 1, 2, 2, 3, 3);
-  m22_true = MatrixTraits<Mat2>::make(1, 1, 2, 2);
+  m22_true = MatrixTraits<Mat22>::make(1, 1, 2, 2);
   EXPECT_TRUE(is_near(m32, m32_true, 0.1));
   EXPECT_FALSE(is_near(m32, m32_true, 1e-8));
   EXPECT_TRUE(is_near(m22, m22_true, 0.1));
@@ -364,6 +422,39 @@ TEST(eigen3, Eigen_Matrix_randomize)
 
 TEST(eigen3, ConstantMatrix)
 {
+  static_assert(zero_matrix<ConstantMatrix<double, 0, 2, 2>>);
+  static_assert(zero_matrix<ConstantMatrix<double, 0, 0, 0>>);
+  static_assert(not zero_matrix<ConstantMatrix<double, 1, 2, 2>>);
+
+  static_assert(diagonal_matrix<ConstantMatrix<double, 0, 2, 2>>);
+  static_assert(diagonal_matrix<ConstantMatrix<double, 5, 1, 1>>);
+  static_assert(not diagonal_matrix<ConstantMatrix<double, 5, 0, 0>>);
+  static_assert(not diagonal_matrix<ConstantMatrix<cdouble, 5, 2, 2>>);
+
+  static_assert(self_adjoint_matrix<ConstantMatrix<double, 0, 2, 2>>);
+  static_assert(self_adjoint_matrix<ConstantMatrix<double, 5, 1, 1>>);
+  static_assert(self_adjoint_matrix<ConstantMatrix<cdouble, 5, 1, 1>>);
+  static_assert(self_adjoint_matrix<ConstantMatrix<double, 5, 2, 2>>);
+  static_assert(self_adjoint_matrix<ConstantMatrix<cdouble, 5, 2, 2>>);
+  static_assert(not self_adjoint_matrix<ConstantMatrix<double, 5, 3, 4>>);
+  static_assert(not self_adjoint_matrix<ConstantMatrix<cdouble, 5, 3, 4>>);
+
+  static_assert(triangular_matrix<ConstantMatrix<double, 0, 2, 2>>);
+  static_assert(triangular_matrix<ConstantMatrix<double, 5, 1, 1>>);
+  static_assert(not triangular_matrix<ConstantMatrix<double, 5, 2, 2>>);
+  static_assert(not triangular_matrix<ConstantMatrix<double, 5, 0, 0>>);
+  static_assert(not triangular_matrix<ConstantMatrix<double, 5, 3, 4>>);
+  static_assert(not triangular_matrix<ConstantMatrix<double, 0, 3, 4>>);
+
+  static_assert(square_matrix<ConstantMatrix<double, 0, 2, 2>>);
+  static_assert(square_matrix<ConstantMatrix<double, 5, 2, 2>>);
+  static_assert(not square_matrix<ConstantMatrix<double, 5, 0, 0>>);
+  static_assert(not square_matrix<ConstantMatrix<double, 5, 3, 4>>);
+
+  static_assert(one_by_one_matrix<ConstantMatrix<double, 5, 1, 1>>);
+  static_assert(not one_by_one_matrix<ConstantMatrix<double, 5, 1, 0>>);
+  static_assert(not one_by_one_matrix<ConstantMatrix<double, 5, 0, 0>>);
+
   ConstantMatrix<double, 3, 2, 2> cm322;
   EXPECT_TRUE(is_near(cm322, eigen_matrix_t<double, 2, 2>::Constant(3)));
   EXPECT_NEAR((ConstantMatrix<double, 3, 2, 2> {}(0, 0)), 3, 1e-6);
@@ -431,14 +522,97 @@ TEST(eigen3, ConstantMatrix)
   EXPECT_EQ(column_count(transpose(c500_34)), 3);
   static_assert(eigen_constant_expr<decltype(transpose(c500_34))>);
 
-
   EXPECT_NEAR(determinant(ConstantMatrix<double, 3, 4, 4> {}), 0, 1e-6);
   EXPECT_EQ(determinant(ConstantMatrix<double, 5, 0, 0> {3, 3}), 0);
 
   EXPECT_NEAR(trace(ConstantMatrix<double, 3, 10, 10> {}), 30, 1e-6);
   EXPECT_EQ(trace(ConstantMatrix<double, 5, 0, 0> {3, 3}), 15);
 
-  /// \todo: add solve
+  Mat23 m23_66 = make_native_matrix<double, 2, 3>(6, 14, 22, 6, 14, 22);
+  Mat20 m20_3_66 {2,3}; m20_3_66 = m23_66;
+  Mat03 m03_2_66 {2,3}; m03_2_66 = m23_66;
+  Mat00 m00_23_66 {2,3}; m00_23_66 = m23_66;
+  auto m23_12 = make_native_matrix<double, 2, 3>(1.5, 3.5, 5.5, 1.5, 3.5, 5.5);
+
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 2, 2> {}, m23_66), m23_12));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 2, 2> {}, m00_23_66), m23_12));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 2, 2> {}, m20_3_66), m23_12));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 2, 2> {}, m03_2_66), m23_12));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 2, 0> {2}, m23_66), m23_12));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 2, 0> {2}, m00_23_66), m23_12));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 2, 0> {2}, m20_3_66), m23_12));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 2, 0> {2}, m03_2_66), m23_12));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 0, 2> {2}, m23_66), m23_12));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 0, 2> {2}, m20_3_66), m23_12));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 0, 2> {2}, m03_2_66), m23_12));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 0, 2> {2}, m00_23_66), m23_12));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 0, 0> {2, 2}, m23_66), m23_12));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 0, 0> {2, 2}, m20_3_66), m23_12));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 0, 0> {2, 2}, m03_2_66), m23_12));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 0, 0> {2, 2}, m00_23_66), m23_12));
+
+  ConstantMatrix<double, 8, 2, 3> c23_8;
+  ConstantMatrix<double, 8, 2, 0> c20_3_8 {3};
+  ConstantMatrix<double, 8, 0, 3> c03_2_8 {2};
+  ConstantMatrix<double, 8, 0, 0> c00_23_8 {2, 3};
+  ConstantMatrix<double, 2, 2, 3> c23_2;
+
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 2, 2> {}, c23_8), c23_2));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 2, 2> {}, c00_23_8), c23_2));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 2, 2> {}, c20_3_8), c23_2));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 2, 2> {}, c03_2_8), c23_2));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 2, 0> {2}, c23_8), c23_2));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 2, 0> {2}, c00_23_8), c23_2));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 2, 0> {2}, c20_3_8), c23_2));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 2, 0> {2}, c03_2_8), c23_2));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 0, 2> {2}, c23_8), c23_2));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 0, 2> {2}, c20_3_8), c23_2));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 0, 2> {2}, c03_2_8), c23_2));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 0, 2> {2}, c00_23_8), c23_2));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 0, 0> {2, 2}, c23_8), c23_2));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 0, 0> {2, 2}, c20_3_8), c23_2));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 0, 0> {2, 2}, c03_2_8), c23_2));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 0, 0> {2, 2}, c00_23_8), c23_2));
+
+  ConstantMatrix<double, 6, 2, 3> c23_6;
+  ConstantMatrix<double, 6, 2, 0> c20_3_6 {3};
+  ConstantMatrix<double, 6, 0, 3> c03_2_6 {2};
+  ConstantMatrix<double, 6, 0, 0> c00_23_6 {2, 3};
+  auto m23_15 = make_native_matrix<double, 2, 3>(1.5, 1.5, 1.5, 1.5, 1.5, 1.5);
+
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 2, 2> {}, c23_6), m23_15));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 2, 2> {}, c00_23_6), m23_15));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 2, 2> {}, c20_3_6), m23_15));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 2, 2> {}, c03_2_6), m23_15));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 2, 0> {2}, c23_6), m23_15));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 2, 0> {2}, c00_23_6), m23_15));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 2, 0> {2}, c20_3_6), m23_15));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 2, 0> {2}, c03_2_6), m23_15));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 0, 2> {2}, c23_6), m23_15));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 0, 2> {2}, c20_3_6), m23_15));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 0, 2> {2}, c03_2_6), m23_15));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 0, 2> {2}, c00_23_6), m23_15));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 0, 0> {2, 2}, c23_6), m23_15));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 0, 0> {2, 2}, c20_3_6), m23_15));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 0, 0> {2, 2}, c03_2_6), m23_15));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 0, 0> {2, 2}, c00_23_6), m23_15));
+
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 1, 1> {}, make_native_matrix<double, 1, 1>(8)), make_native_matrix<double, 1, 1>(4)));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 1, 1> {}, make_native_matrix<double, 1, 0>(8)), make_native_matrix<double, 1, 1>(4)));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 1, 1> {}, make_native_matrix<double, 0, 1>(8)), make_native_matrix<double, 1, 1>(4)));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 1, 1> {}, make_native_matrix<double, 0, 0>(8)), make_native_matrix<double, 1, 1>(4)));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 1, 0> {1}, make_native_matrix<double, 1, 1>(8)), make_native_matrix<double, 1, 1>(4)));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 1, 0> {1}, make_native_matrix<double, 1, 0>(8)), make_native_matrix<double, 1, 1>(4)));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 1, 0> {1}, make_native_matrix<double, 0, 1>(8)), make_native_matrix<double, 1, 1>(4)));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 1, 0> {1}, make_native_matrix<double, 0, 0>(8)), make_native_matrix<double, 1, 1>(4)));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 0, 1> {1}, make_native_matrix<double, 1, 1>(8)), make_native_matrix<double, 1, 1>(4)));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 0, 1> {1}, make_native_matrix<double, 1, 0>(8)), make_native_matrix<double, 1, 1>(4)));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 0, 1> {1}, make_native_matrix<double, 0, 1>(8)), make_native_matrix<double, 1, 1>(4)));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 0, 1> {1}, make_native_matrix<double, 0, 0>(8)), make_native_matrix<double, 1, 1>(4)));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 0, 0> {1, 1}, make_native_matrix<double, 1, 1>(8)), make_native_matrix<double, 1, 1>(4)));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 0, 0> {1, 1}, make_native_matrix<double, 1, 0>(8)), make_native_matrix<double, 1, 1>(4)));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 0, 0> {1, 1}, make_native_matrix<double, 0, 1>(8)), make_native_matrix<double, 1, 1>(4)));
+  EXPECT_TRUE(is_near(solve(ConstantMatrix<double, 2, 0, 0> {1, 1}, make_native_matrix<double, 0, 0>(8)), make_native_matrix<double, 1, 1>(4)));
 
   auto colzc34 = reduce_columns(c500_34);
   EXPECT_TRUE(is_near(reduce_columns(ConstantMatrix<double, 3, 2, 3> ()), (eigen_matrix_t<double, 2, 1>::Constant(3))));
@@ -532,12 +706,39 @@ TEST(eigen3, ConstantMatrix)
   EXPECT_EQ((ConstantMatrix<double, 3, 4, 3>::rows()), 4);
   EXPECT_EQ((ConstantMatrix<double, 3, 4, 3>::cols()), 3);
   EXPECT_TRUE(is_near(ConstantMatrix<double, 3, 2, 3>::zero(), eigen_matrix_t<double, 2, 3>::Zero()));
-  EXPECT_TRUE(is_near(ConstantMatrix<double, 3, 2, 3>::identity(), Mat2::Identity()));
+  EXPECT_TRUE(is_near(ConstantMatrix<double, 3, 2, 3>::identity(), Mat22::Identity()));
 }
 
 
 TEST(eigen3, ZeroMatrix)
 {
+  static_assert(zero_matrix<ZeroMatrix<double, 3, 1>>);
+
+  static_assert(diagonal_matrix<ZeroMatrix<double, 3, 3>>);
+  static_assert(not diagonal_matrix<ZeroMatrix<double, 3, 1>>);
+  static_assert(not diagonal_matrix<ZeroMatrix<double, 0, 0>>);
+
+  static_assert(self_adjoint_matrix<ZeroMatrix<double, 3, 3>>);
+  static_assert(self_adjoint_matrix<ZeroMatrix<cdouble, 3, 3>>);
+  static_assert(not self_adjoint_matrix<ZeroMatrix<double, 3, 1>>);
+  static_assert(not self_adjoint_matrix<ZeroMatrix<double, 0, 0>>);
+
+  static_assert(upper_triangular_matrix<ZeroMatrix<double, 3, 3>>);
+  static_assert(not upper_triangular_matrix<ZeroMatrix<double, 3, 1>>);
+  static_assert(not upper_triangular_matrix<ZeroMatrix<double, 0, 0>>);
+
+  static_assert(lower_triangular_matrix<ZeroMatrix<double, 3, 3>>);
+  static_assert(not lower_triangular_matrix<ZeroMatrix<double, 3, 1>>);
+  static_assert(not lower_triangular_matrix<ZeroMatrix<double, 0, 0>>);
+
+  static_assert(square_matrix<ZeroMatrix<double, 3, 3>>);
+  static_assert(not square_matrix<ZeroMatrix<double, 3, 1>>);
+  static_assert(not square_matrix<ZeroMatrix<double, 0, 0>>);
+
+  static_assert(one_by_one_matrix<ZeroMatrix<double, 1, 1>>);
+  static_assert(not one_by_one_matrix<ZeroMatrix<double, 1, 0>>);
+  static_assert(not one_by_one_matrix<ZeroMatrix<double, 0, 0>>);
+
   EXPECT_NEAR((ZeroMatrix<double, 2, 2>()(0, 0)), 0, 1e-6);
   EXPECT_NEAR((ZeroMatrix<double, 2, 2>()(0, 1)), 0, 1e-6);
   EXPECT_TRUE(is_near(make_native_matrix(ZeroMatrix<double, 2, 3>()), eigen_matrix_t<double, 2, 3>::Zero()));
@@ -559,7 +760,27 @@ TEST(eigen3, ZeroMatrix)
   auto di5 = eigen_matrix_t<double, 2, 2>::Identity() * 5;
   EXPECT_TRUE(is_near(rank_update(z22, di5, 0.25), 0.5*di5));
 
-  /// \todo: add solve
+  ZeroMatrix<double, 2, 3> z23;
+  ZeroMatrix<double, 2, 0> z20_3 {3};
+  ZeroMatrix<double, 0, 3> z03_2 {2};
+  ZeroMatrix<double, 0, 0> z00_23 {2, 3};
+
+  EXPECT_TRUE(is_near(solve(ZeroMatrix<double, 2, 2> {}, z23), z23));
+  EXPECT_TRUE(is_near(solve(ZeroMatrix<double, 2, 2> {}, z00_23), z23));
+  EXPECT_TRUE(is_near(solve(ZeroMatrix<double, 2, 2> {}, z20_3), z23));
+  EXPECT_TRUE(is_near(solve(ZeroMatrix<double, 2, 2> {}, z03_2), z23));
+  EXPECT_TRUE(is_near(solve(ZeroMatrix<double, 2, 0> {2}, z23), z23));
+  EXPECT_TRUE(is_near(solve(ZeroMatrix<double, 2, 0> {2}, z00_23), z23));
+  EXPECT_TRUE(is_near(solve(ZeroMatrix<double, 2, 0> {2}, z20_3), z23));
+  EXPECT_TRUE(is_near(solve(ZeroMatrix<double, 2, 0> {2}, z03_2), z23));
+  EXPECT_TRUE(is_near(solve(ZeroMatrix<double, 0, 2> {2}, z23), z23));
+  EXPECT_TRUE(is_near(solve(ZeroMatrix<double, 0, 2> {2}, z20_3), z23));
+  EXPECT_TRUE(is_near(solve(ZeroMatrix<double, 0, 2> {2}, z03_2), z23));
+  EXPECT_TRUE(is_near(solve(ZeroMatrix<double, 0, 2> {2}, z00_23), z23));
+  EXPECT_TRUE(is_near(solve(ZeroMatrix<double, 0, 0> {2, 2}, z23), z23));
+  EXPECT_TRUE(is_near(solve(ZeroMatrix<double, 0, 0> {2, 2}, z20_3), z23));
+  EXPECT_TRUE(is_near(solve(ZeroMatrix<double, 0, 0> {2, 2}, z03_2), z23));
+  EXPECT_TRUE(is_near(solve(ZeroMatrix<double, 0, 0> {2, 2}, z00_23), z23));
 
   EXPECT_TRUE(is_near(reduce_columns(ZeroMatrix<double, 2, 3>()), (eigen_matrix_t<double, 2, 1>::Zero())));
   EXPECT_TRUE(is_near(reduce_rows(ZeroMatrix<double, 2, 3>()), (eigen_matrix_t<double, 1, 3>::Zero())));
@@ -613,6 +834,8 @@ TEST(eigen3, ZeroMatrix)
 
   static_assert(column_vector<decltype(diagonal_of(z00))>);
   EXPECT_EQ(row_count(diagonal_of(z00)), 2);
+
+  static_assert(diagonal_matrix<decltype(to_diagonal(ZeroMatrix<double, 0, 0> {3, 1}))>);
 
   ZeroMatrix<double, 0, 0> zc34 {3, 4};
 
@@ -683,7 +906,7 @@ TEST(eigen3, ZeroMatrix)
   EXPECT_EQ((ZeroMatrix<double, 4, 3>::rows()), 4);
   EXPECT_EQ((ZeroMatrix<double, 4, 3>::cols()), 3);
   EXPECT_TRUE(is_near(ZeroMatrix<double, 2, 3>::zero(), eigen_matrix_t<double, 2, 3>::Zero()));
-  EXPECT_TRUE(is_near(ZeroMatrix<double, 2, 3>::identity(), Mat2::Identity()));
+  EXPECT_TRUE(is_near(ZeroMatrix<double, 2, 3>::identity(), Mat22::Identity()));
 }
 
 TEST(eigen3, Matrix_blocks)

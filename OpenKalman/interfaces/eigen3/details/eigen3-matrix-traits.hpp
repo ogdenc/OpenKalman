@@ -34,8 +34,19 @@ namespace OpenKalman
   struct MatrixTraits<M, std::enable_if_t<Eigen3::eigen_native<M> and std::is_same_v<M, std::decay_t<M>>>>
 #endif
   {
-    using Scalar = typename M::Scalar;
+  private:
 
+    // Identify the correct Eigen::Matrix based on template parameters and the traits of M.
+    template<typename S, std::size_t r, std::size_t c>
+    using Nat =
+      Eigen::Matrix<
+        S,
+        r == 0 ? Eigen::Dynamic : (Eigen::Index) r,
+        c == 0 ? Eigen::Dynamic : (Eigen::Index) c,
+        (Eigen::internal::traits<M>::Flags & Eigen::RowMajorBit ?
+          Eigen::RowMajor : Eigen::ColMajor) | Eigen::AutoAlign>;
+
+  public:
 
     /** \todo Currently, c_rows and c_cols are necessary to avoid a bug in GCC 10.1.0 when "rows" is used
      * as a default template parameter. Might be worth updating later.
@@ -54,23 +65,14 @@ namespace OpenKalman
     }
 
 
+    using Scalar = typename M::Scalar;
+
+
     static constexpr std::size_t rows = c_rows();
 
 
     static constexpr std::size_t columns = c_cols();
 
-  private:
-
-    // Identify the correct Eigen::Matrix based on template parameters and the traits of M.
-    template<typename S, std::size_t r, std::size_t c>
-    using Nat =
-      Eigen::Matrix<S, r == 0 ? Eigen::Dynamic : (Eigen::Index) r, c == 0 ? Eigen::Dynamic : (Eigen::Index) c,
-        (Eigen::internal::traits<M>::Flags & Eigen::RowMajorBit and (c != 1) ?
-          Eigen::RowMajor : Eigen::ColMajor) | Eigen::AutoAlign,
-        r == 0 ? Eigen::internal::traits<M>::MaxRowsAtCompileTime : (Eigen::Index) r,
-        c == 0 ? Eigen::internal::traits<M>::MaxColsAtCompileTime : (Eigen::Index) c>;
-
-  public:
 
     template<std::size_t r = c_rows(), std::size_t c = c_cols(), typename S = Scalar>
     using NativeMatrixFrom = Nat<S, r, c>;
@@ -100,57 +102,51 @@ namespace OpenKalman
 #else
     template<typename Arg, std::enable_if_t<Eigen3::eigen_native<Arg>, int> = 0>
 #endif
-    static decltype(auto) make(Arg&& arg) noexcept
+    static Arg&& make(Arg&& arg) noexcept
     {
       return std::forward<Arg>(arg);
     }
 
 
-    /// Make matrix of size M from a list of coefficients in row-major order. Fixed matrix.
+    /**
+     * \brief Make a fixed matrix of size M from a list of coefficients in row-major order.
+     * \details Makes a matrix using size information from matrix M, based on the following rules:
+     *  - If M has fixed shape, there must be one input for each element.
+     *  - If M has fixed rows and dynamic columns, the number of inputs must be a multiple of the number of rows.
+     *  - If M has fixed columns and dynamic rows, the number of inputs must be a multiple of the number of columns.
+     *  - Otherwise, if both rows and columns are dynamic, the result will be a fixed column vector.
+     */
 #ifdef __cpp_concepts
-    template<std::convertible_to<Scalar> Arg, std::convertible_to<Scalar> ... Args> requires
-      (not dynamic_rows<M>) and (not dynamic_columns<M>) and (1 + sizeof...(Args) == rows * columns)
-#else
-    template<typename Arg, typename ... Args,
-      std::enable_if_t<std::conjunction_v<std::is_convertible<Arg, Scalar>, std::is_convertible<Args, Scalar>...> and
-      (not dynamic_rows<M>) and (not dynamic_columns<M>) and (1 + sizeof...(Args) == rows * columns), int> = 0>
-#endif
-    static auto make(const Arg arg, const Args ... args)
-    {
-      return ((Nat<Scalar, rows, columns> {} << arg), ... , args).finished();
-    }
-
-
-    /// Make matrix with the same number of rows as M from a list of coefficients in row-major order. Fixed rows and dynamic columns.
-#ifdef __cpp_concepts
-    template<std::convertible_to<Scalar> Arg, std::convertible_to<Scalar> ... Args> requires
-    (not dynamic_rows<M>) and (dynamic_columns<M>) and ((1 + sizeof...(Args)) % rows == 0)
+    template<std::convertible_to<Scalar> Arg, std::convertible_to<Scalar> ... Args>
+    requires
+      (dynamic_rows<M> or dynamic_columns<M> or (1 + sizeof...(Args) == rows * columns)) and
+      (dynamic_rows<M> or (not dynamic_columns<M>) or ((1 + sizeof...(Args)) % rows == 0)) and
+      ((not dynamic_rows<M>) or dynamic_columns<M> or ((1 + sizeof...(Args)) % columns == 0))
 #else
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdiv-by-zero"
-    template<typename Arg, typename ... Args,
-      std::enable_if_t<std::conjunction_v<std::is_convertible<Arg, Scalar>, std::is_convertible<Args, Scalar>...> and
-      (not dynamic_rows<M>) and (dynamic_columns<M>) and ((1 + sizeof...(Args)) % rows == 0), int> = 0>
-// See below for pragma pop...
+    template<typename Arg, typename ... Args, std::enable_if_t<
+      std::conjunction_v<std::is_convertible<Arg, Scalar>, std::is_convertible<Args, Scalar>...> and
+      (dynamic_rows<M> or dynamic_columns<M> or (1 + sizeof...(Args) == rows * columns)) and
+      (dynamic_rows<M> or (not dynamic_columns<M>) or ((1 + sizeof...(Args)) % rows == 0)) and
+      ((not dynamic_rows<M>) or dynamic_columns<M> or ((1 + sizeof...(Args)) % columns == 0)), int> = 0>
+// See below for #pragma GCC diagnostic pop
 #endif
     static auto make(const Arg arg, const Args ... args)
     {
-      return ((Nat<Scalar, rows, columns> {rows, (1 + sizeof...(Args)) / rows} << arg), ... , args).finished();
-    }
+      using namespace Eigen3;
 
-
-    /// Make matrix with the same number of columns as M from a list of coefficients in row-major order. Dynamic rows and fixed columns.
-#ifdef __cpp_concepts
-    template<std::convertible_to<Scalar> Arg, std::convertible_to<Scalar> ... Args> requires
-      (dynamic_rows<M>) and (not dynamic_columns<M>) and ((1 + sizeof...(Args)) % columns == 0)
-#else
-    template<typename Arg, typename ... Args,
-      std::enable_if_t<std::conjunction_v<std::is_convertible<Arg, Scalar>, std::is_convertible<Args, Scalar>...> and
-      (dynamic_rows<M>) and (not dynamic_columns<M>) and ((1 + sizeof...(Args)) % columns == 0), int> = 0>
-#endif
-    static auto make(const Arg arg, const Args ... args)
-    {
-      return ((Nat<Scalar, rows, columns> {(1 + sizeof...(Args)) / columns, columns} << arg), ... , args).finished();
+      if constexpr (not dynamic_rows<M> and not dynamic_columns<M>)
+        return ((eigen_matrix_t<Scalar, rows, columns> {} << arg), ... , args).finished();
+      else if constexpr (not dynamic_rows<M> and dynamic_columns<M>)
+        return ((eigen_matrix_t<Scalar, rows, (1 + sizeof...(Args)) / rows> {} << arg), ... , args).finished();
+      else if constexpr (dynamic_rows<M> and not dynamic_columns<M>)
+        return ((eigen_matrix_t<Scalar, (1 + sizeof...(Args)) / columns, columns> {} << arg), ... , args).finished();
+      else
+      {
+        static_assert(dynamic_rows<M> and dynamic_columns<M>);
+        return ((eigen_matrix_t<Scalar, 1 + sizeof...(Args), 1> {} << arg), ... , args).finished();
+      }
     }
 
 

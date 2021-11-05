@@ -20,8 +20,8 @@ namespace OpenKalman::Eigen3
 {
 #ifdef __cpp_concepts
   template<typename NestedMatrix, TriangleType triangle_type>
-  requires (eigen_matrix<NestedMatrix> or eigen_diagonal_expr<NestedMatrix>) and
-    (dynamic_shape<NestedMatrix> or square_matrix<NestedMatrix>)
+  requires eigen_diagonal_expr<NestedMatrix> or
+    (eigen_matrix<NestedMatrix> and (dynamic_shape<NestedMatrix> or square_matrix<NestedMatrix>))
 #else
   template<typename NestedMatrix, TriangleType triangle_type>
 #endif
@@ -30,7 +30,7 @@ namespace OpenKalman::Eigen3
   {
 
 #ifndef __cpp_concepts
-    static_assert(eigen_matrix<NestedMatrix> or eigen_diagonal_expr<NestedMatrix>);
+    static_assert(eigen_diagonal_expr<NestedMatrix> or eigen_matrix<NestedMatrix>);
     static_assert(dynamic_shape<NestedMatrix> or square_matrix<NestedMatrix>);
 #endif
 
@@ -49,9 +49,10 @@ namespace OpenKalman::Eigen3
 
     /// Default constructor.
 #ifdef __cpp_concepts
-    TriangularMatrix() requires std::default_initializable<NestedMatrix>
+    TriangularMatrix() requires std::default_initializable<NestedMatrix> and (not dynamic_shape<NestedMatrix>)
 #else
-    template<typename T = NestedMatrix, std::enable_if_t<std::is_default_constructible_v<T>, int> = 0>
+    template<typename T = NestedMatrix, std::enable_if_t<
+      std::is_default_constructible_v<T> and (not dynamic_shape<NestedMatrix>), int> = 0>
     TriangularMatrix()
 #endif
       : Base {} {}
@@ -146,8 +147,8 @@ namespace OpenKalman::Eigen3
       eigen_diagonal_expr<NestedMatrix> and (dynamic_shape<Arg> or square_matrix<Arg>) and
       std::is_constructible_v<NestedMatrix, decltype(diagonal_of(std::declval<Arg&&>()))>, int> = 0>
 #endif
-    explicit TriangularMatrix(Arg&& arg) noexcept : Base {diagonal_of(std::forward<Arg>(
-      (dynamic_shape<Arg> ? (assert(row_count(arg) == column_count(arg)), arg) : arg)))} {}
+    explicit TriangularMatrix(Arg&& arg) noexcept : Base {DiagonalMatrix {diagonal_of(std::forward<Arg>(
+      (dynamic_shape<Arg> ? (assert(row_count(arg) == column_count(arg)), arg) : arg)))}} {}
 
 
     /// Construct from a non-triangular \ref eigen_matrix if NestedMatrix is not \ref eigen_diagonal_expr.
@@ -372,47 +373,6 @@ namespace OpenKalman::Eigen3
       v = v * make_native_matrix(arg);
       return *this;
     }
-
-
-    auto operator()(std::size_t i, std::size_t j)
-    {
-      if constexpr (element_settable<TriangularMatrix, 2>)
-        return OpenKalman::internal::ElementAccessor(*this, i, j);
-      else
-        return std::as_const(*this)(i, j);
-    }
-
-
-    auto operator()(std::size_t i, std::size_t j) const noexcept
-    {
-      return OpenKalman::internal::ElementAccessor(*this, i, j);
-    }
-
-
-    auto operator[](std::size_t i)
-    {
-      if constexpr(element_gettable<TriangularMatrix,1>)
-        return OpenKalman::internal::ElementAccessor(*this, i);
-      else if constexpr(element_gettable<TriangularMatrix, 2>)
-        return OpenKalman::internal::ElementAccessor(*this, i, i);
-      else
-        return std::as_const(*this)[i];
-    }
-
-
-    auto operator[](std::size_t i) const
-    {
-      if constexpr(element_gettable<TriangularMatrix, 1>)
-        return OpenKalman::internal::ElementAccessor(*this, i);
-      else
-        return OpenKalman::internal::ElementAccessor(*this, i, i);
-    }
-
-
-    auto operator()(std::size_t i) { return operator[](i); }
-
-
-    auto operator()(std::size_t i) const { return operator[](i); }
 
 
     auto view()

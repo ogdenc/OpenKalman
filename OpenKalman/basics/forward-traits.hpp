@@ -809,60 +809,6 @@ namespace OpenKalman
 #endif
 
 
-  // --------------- //
-  //  square_matrix  //
-  // --------------- //
-
-  namespace internal
-  {
-#ifdef __cpp_concepts
-    template<typename T>
-#else
-    template<typename T, typename = void>
-#endif
-    struct is_square_matrix : std::false_type {};
-  }
-
-  /**
-   * \brief Specifies that a matrix is square (i.e., has the same number and type of rows and column).
-   * \details If T is a \ref typed_matrix, the row coefficients must also be \ref equivalent_to the column coefficients.
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept square_matrix = internal::is_square_matrix<T>::value;
-#else
-  inline constexpr bool square_matrix = internal::is_square_matrix<T>::value;
-#endif
-
-
-  // ------------------- //
-  //  one_by_one_matrix  //
-  // ------------------- //
-
-#ifndef __cpp_concepts
-  namespace detail
-  {
-    template<typename T, typename = void>
-    struct is_1by1 : std::false_type {};
-
-    template<typename T>
-    struct is_1by1<T, std::enable_if_t<(MatrixTraits<T>::rows == 1) and (MatrixTraits<T>::columns == 1)>>
-      : std::true_type {};
-  }
-#endif
-
-
-  /**
-   * \brief Specifies that a type is a one-by-one matrix (i.e., one row and one column).
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept one_by_one_matrix = (MatrixTraits<T>::rows == 1) and (MatrixTraits<T>::columns == 1);
-#else
-  inline constexpr bool one_by_one_matrix = detail::is_1by1<T>::value;
-#endif
-
-
   // ----------------- //
   //  identity_matrix  //
   // ----------------- //
@@ -892,9 +838,35 @@ namespace OpenKalman
 #endif
 
 
-  // -------------------- //
+  // ----------------- //
   //  diagonal_matrix  //
-  // -------------------- //
+  // ----------------- //
+
+#ifndef __cpp_concepts
+  namespace detail
+  {
+    template<typename T, std::size_t i, typename = void> struct has_rows : std::false_type {};
+
+    template<typename T, std::size_t i>
+    struct has_rows<T, i, std::enable_if_t<MatrixTraits<T>::rows == i>> : std::true_type {};
+
+    template<typename T, std::size_t i, typename = void> struct has_cols : std::false_type {};
+
+    template<typename T, std::size_t i>
+    struct has_cols<T, i, std::enable_if_t<MatrixTraits<T>::columns == i>> : std::true_type {};
+
+    template<typename T, typename = void> struct is_sq : std::false_type {};
+
+    template<typename T>
+    struct is_sq<T, std::enable_if_t<MatrixTraits<T>::rows == MatrixTraits<T>::columns>> : std::true_type {};
+
+    template<typename T, typename = void> struct is_cplx : std::false_type {};
+
+    template<typename T>
+    struct is_cplx<T, std::enable_if_t<complex_number<typename MatrixTraits<T>::Scalar>>> : std::true_type {};
+  }
+#endif
+
 
   namespace internal
   {
@@ -915,19 +887,21 @@ namespace OpenKalman
   /**
    * \brief Specifies that a type is a diagonal matrix.
    */
+  template<typename T>
 #ifdef __cpp_concepts
-  template<typename T>
   concept diagonal_matrix = internal::is_diagonal_matrix<std::decay_t<T>>::value or identity_matrix<T> or
-    (zero_matrix<T> and square_matrix<T>) or one_by_one_matrix<T>;
+    (zero_matrix<T> and MatrixTraits<T>::rows == MatrixTraits<T>::columns and MatrixTraits<T>::rows > 0) or
+    (MatrixTraits<T>::rows == 1 and MatrixTraits<T>::columns == 1);
 #else
-  template<typename T>
-  inline constexpr bool diagonal_matrix = internal::is_diagonal_matrix<std::decay_t<T>>::value or
-    identity_matrix<T> or (zero_matrix<T> and square_matrix<T>) or one_by_one_matrix<T>;
+  inline constexpr bool diagonal_matrix =
+    internal::is_diagonal_matrix<std::decay_t<T>>::value or identity_matrix<T> or
+    (zero_matrix<T> and detail::is_sq<T>::value and not detail::has_rows<T, 0>::value) or
+    (detail::has_rows<T, 1>::value and detail::has_cols<T, 1>::value);
 #endif
 
 
   // ------------------------ //
-  //  is_self_adjoint_matrix  //
+  //  self_adjoint_matrix  //
   // ------------------------ //
 
   namespace internal
@@ -948,13 +922,16 @@ namespace OpenKalman
   /**
    * \brief Specifies that a type is a self-adjoint matrix.
    */
+  template<typename T>
 #ifdef __cpp_concepts
-  template<typename T>
-  concept self_adjoint_matrix = internal::is_self_adjoint_matrix<std::decay_t<T>>::value or diagonal_matrix<T>;
+  concept self_adjoint_matrix = internal::is_self_adjoint_matrix<std::decay_t<T>>::value or
+    (zero_matrix<T> and MatrixTraits<T>::rows == MatrixTraits<T>::columns and MatrixTraits<T>::rows > 0) or
+    (diagonal_matrix<T> and not complex_number<typename MatrixTraits<T>::Scalar>);
 #else
-  template<typename T>
   inline constexpr bool self_adjoint_matrix =
-    internal::is_self_adjoint_matrix<std::decay_t<T>>::value or diagonal_matrix<T>;
+    internal::is_self_adjoint_matrix<std::decay_t<T>>::value or
+    (zero_matrix<T> and detail::is_sq<T>::value and not detail::has_rows<T, 0>::value) or
+    (diagonal_matrix<T> and not detail::is_cplx<T>::value);
 #endif
 
 
@@ -994,11 +971,10 @@ namespace OpenKalman
   /**
    * \brief Specifies that a type is a lower-triangular matrix.
    */
-#ifdef __cpp_concepts
   template<typename T>
+#ifdef __cpp_concepts
   concept lower_triangular_matrix = internal::is_lower_triangular_matrix<std::decay_t<T>>::value or diagonal_matrix<T>;
 #else
-  template<typename T>
   inline constexpr bool lower_triangular_matrix = detail::is_lt_matrix_impl<T>::value;
 #endif
 
@@ -1039,11 +1015,10 @@ namespace OpenKalman
   /**
    * \brief Specifies that a type is an upper-triangular matrix.
    */
-#ifdef __cpp_concepts
   template<typename T>
+#ifdef __cpp_concepts
   concept upper_triangular_matrix = internal::is_upper_triangular_matrix<std::decay_t<T>>::value or diagonal_matrix<T>;
 #else
-  template<typename T>
   inline constexpr bool upper_triangular_matrix = detail::is_ut_matrix_impl<T>::value;
 #endif
 
@@ -1055,12 +1030,57 @@ namespace OpenKalman
   /**
    * \brief Specifies that a type is a triangular matrix (upper or lower).
    */
-#ifdef __cpp_concepts
   template<typename T>
+#ifdef __cpp_concepts
   concept triangular_matrix = lower_triangular_matrix<T> or upper_triangular_matrix<T>;
 #else
-  template<typename T>
   inline constexpr bool triangular_matrix = lower_triangular_matrix<T> or upper_triangular_matrix<T>;
+#endif
+
+
+  // --------------- //
+  //  square_matrix  //
+  // --------------- //
+
+  namespace internal
+  {
+#ifdef __cpp_concepts
+    template<typename T>
+#else
+    template<typename T, typename = void>
+#endif
+    struct is_square_matrix : std::false_type {};
+  }
+
+
+  /**
+   * \brief Specifies that a matrix is square (i.e., has the same number and type of rows and column).
+   * \details If T is a \ref typed_matrix, the row coefficients must also be \ref equivalent_to the column coefficients.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept square_matrix = internal::is_square_matrix<T>::value or self_adjoint_matrix<T> or triangular_matrix<T> or
+    (not dynamic_shape<T> and MatrixTraits<T>::rows == MatrixTraits<T>::columns);
+#else
+  inline constexpr bool square_matrix =
+    internal::is_square_matrix<T>::value or self_adjoint_matrix<T> or triangular_matrix<T> or
+    (not dynamic_shape<T> and detail::is_sq<T>::value);
+#endif
+
+
+  // ------------------- //
+  //  one_by_one_matrix  //
+  // ------------------- //
+
+  /**
+   * \brief Specifies that a type is a one-by-one matrix (i.e., one row and one column).
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept one_by_one_matrix = square_matrix<T> and (MatrixTraits<T>::rows == 1 or MatrixTraits<T>::columns == 1);
+#else
+  inline constexpr bool one_by_one_matrix = square_matrix<T> and
+    (detail::has_rows<T, 1>::value or detail::has_cols<T, 1>::value);
 #endif
 
 
