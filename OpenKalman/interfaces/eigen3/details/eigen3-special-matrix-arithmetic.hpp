@@ -50,7 +50,7 @@ namespace OpenKalman::Eigen3
 #endif
   constexpr decltype(auto) operator-(Arg&& arg)
   {
-    constexpr auto constant = MatrixTraits<Arg>::constant;
+    constexpr auto constant = constant_coefficient_v<Arg>;
     using Scalar = typename MatrixTraits<Arg>::Scalar;
     constexpr std::size_t r = MatrixTraits<Arg>::rows;
     constexpr std::size_t c = MatrixTraits<Arg>::columns;
@@ -80,15 +80,15 @@ namespace OpenKalman::Eigen3
   // ---------- //
 
   /**
-   * \brief eigen_matrix + eigen_matrix where one of them is zero_matrix
+   * \brief eigen_matrix + eigen_matrix where at least one of them is a eigen_zero_expr
    */
 #ifdef __cpp_concepts
-  template<eigen_matrix Arg1, eigen_matrix Arg2> requires (zero_matrix<Arg1> or zero_matrix<Arg2>) and
+  template<eigen_matrix Arg1, eigen_matrix Arg2> requires (eigen_zero_expr<Arg1> or eigen_zero_expr<Arg2>) and
     (dynamic_rows<Arg1> or dynamic_rows<Arg2> or MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows) and
     (dynamic_columns<Arg1> or dynamic_columns<Arg2> or MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns)
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<
-    eigen_matrix<Arg1> and eigen_matrix<Arg2> and (zero_matrix<Arg1> or zero_matrix<Arg2>) and
+    eigen_matrix<Arg1> and eigen_matrix<Arg2> and (eigen_zero_expr<Arg1> or eigen_zero_expr<Arg2>) and
     (dynamic_rows<Arg1> or dynamic_rows<Arg2> or MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows) and
     (dynamic_columns<Arg1> or dynamic_columns<Arg2> or MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns),
     int> = 0>
@@ -108,16 +108,18 @@ namespace OpenKalman::Eigen3
 
 
   /**
-   * \brief eigen_constant_expr + eigen_constant_expr
+   * \brief constant_matrix + constant_matrix, where at least one of them is eigen_constant_expr
    */
 #ifdef __cpp_concepts
-  template<eigen_constant_expr Arg1, eigen_constant_expr Arg2> requires
+  template<constant_matrix Arg1, constant_matrix Arg2> requires
+    (eigen_constant_expr<Arg1> or eigen_constant_expr<Arg2>) and
     (not zero_matrix<Arg1>) and (not zero_matrix<Arg2>) and
     (MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows) and
     (MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns) and
     std::same_as<typename MatrixTraits<Arg1>::Scalar, typename MatrixTraits<Arg2>::Scalar>
 #else
-  template<typename Arg1, typename Arg2, std::enable_if_t<eigen_constant_expr<Arg1> and eigen_constant_expr<Arg2> and
+  template<typename Arg1, typename Arg2, std::enable_if_t<constant_matrix<Arg1> and constant_matrix<Arg2> and
+    (eigen_constant_expr<Arg1> or eigen_constant_expr<Arg2>) and
     (not zero_matrix<Arg1>) and (not zero_matrix<Arg2>) and
     (MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows) and
     (MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns) and
@@ -125,7 +127,7 @@ namespace OpenKalman::Eigen3
 #endif
   constexpr auto operator+(Arg1&& arg1, Arg2&& arg2)
   {
-    constexpr auto newconst = MatrixTraits<Arg1>::constant + MatrixTraits<Arg2>::constant;
+    constexpr auto newconst = constant_coefficient_v<Arg1> + constant_coefficient_v<Arg2>;
     using Scalar = typename MatrixTraits<Arg1>::Scalar;
     return ConstantMatrix<Scalar, newconst, MatrixTraits<Arg1>::rows, MatrixTraits<Arg1>::columns> {};
   }
@@ -180,8 +182,8 @@ namespace OpenKalman::Eigen3
 #endif
   inline auto operator+(Arg1&& arg1, Arg2&& arg2)
   {
-    if constexpr((lower_triangular_storage<Arg1> and lower_triangular_storage<Arg2>) or
-      (upper_triangular_storage<Arg1> and upper_triangular_storage<Arg2>))
+    if constexpr((lower_self_adjoint_matrix<Arg1> and lower_self_adjoint_matrix<Arg2>) or
+      (upper_self_adjoint_matrix<Arg1> and upper_self_adjoint_matrix<Arg2>))
     {
       auto ret = nested_matrix(std::forward<Arg1>(arg1)) + nested_matrix(std::forward<Arg2>(arg2));
       return MatrixTraits<Arg1>::make(make_self_contained<Arg1, Arg2>(std::move(ret)));
@@ -209,7 +211,7 @@ namespace OpenKalman::Eigen3
 #endif
   inline auto operator+(Arg1&& arg1, Arg2&& arg2)
   {
-    if constexpr(OpenKalman::internal::same_triangle_type_as<Arg1, Arg2>)
+    if constexpr(triangle_type_of_v<Arg1> == triangle_type_of_v<Arg2>)
     {
       auto ret = nested_matrix(std::forward<Arg1>(arg1)) + nested_matrix(std::forward<Arg2>(arg2));
       return MatrixTraits<Arg1>::make(make_self_contained<Arg1, Arg2>(std::move(ret)));
@@ -271,15 +273,15 @@ namespace OpenKalman::Eigen3
   // ------------- //
 
   /**
-   * \brief eigen_matrix - eigen_matrix where one of them is zero_matrix
+   * \brief eigen_matrix - eigen_matrix where at least one of them is eigen_zero_expr
    */
 #ifdef __cpp_concepts
-  template<eigen_matrix Arg1, eigen_matrix Arg2> requires (zero_matrix<Arg1> or zero_matrix<Arg2>) and
+  template<eigen_matrix Arg1, eigen_matrix Arg2> requires (eigen_zero_expr<Arg1> or eigen_zero_expr<Arg2>) and
     (dynamic_rows<Arg1> or dynamic_rows<Arg2> or MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows) and
     (dynamic_columns<Arg1> or dynamic_columns<Arg2> or MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns)
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<
-    eigen_matrix<Arg1> and eigen_matrix<Arg2> and (zero_matrix<Arg1> or zero_matrix<Arg2>) and
+    eigen_matrix<Arg1> and eigen_matrix<Arg2> and (eigen_zero_expr<Arg1> or eigen_zero_expr<Arg2>) and
     (dynamic_rows<Arg1> or dynamic_rows<Arg2> or MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows) and
     (dynamic_columns<Arg1> or dynamic_columns<Arg2> or MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns),
     int> = 0>
@@ -299,16 +301,18 @@ namespace OpenKalman::Eigen3
 
 
   /**
-   * \brief eigen_constant_expr - eigen_constant_expr
+   * \brief constant_matrix - constant_matrix where at least one of them is eigen_constant_expr
    */
 #ifdef __cpp_concepts
-  template<eigen_constant_expr Arg1, eigen_constant_expr Arg2> requires
+  template<constant_matrix Arg1, constant_matrix Arg2> requires
+    (eigen_constant_expr<Arg1> or eigen_constant_expr<Arg2>) and
     (not zero_matrix<Arg1>) and (not zero_matrix<Arg2>) and
     (MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows) and
     (MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns) and
     std::same_as<typename MatrixTraits<Arg1>::Scalar, typename MatrixTraits<Arg2>::Scalar>
 #else
-  template<typename Arg1, typename Arg2, std::enable_if_t<eigen_constant_expr<Arg1> and eigen_constant_expr<Arg2> and
+  template<typename Arg1, typename Arg2, std::enable_if_t<constant_matrix<Arg1> and constant_matrix<Arg2> and
+    (eigen_constant_expr<Arg1> or eigen_constant_expr<Arg2>) and
     (not zero_matrix<Arg1>) and (not zero_matrix<Arg2>) and
     (MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows) and
     (MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns) and
@@ -316,7 +320,7 @@ namespace OpenKalman::Eigen3
 #endif
   constexpr auto operator-(Arg1&& arg1, Arg2&& arg2)
   {
-    constexpr auto newconst = MatrixTraits<Arg1>::constant - MatrixTraits<Arg2>::constant;
+    constexpr auto newconst = constant_coefficient_v<Arg1> - constant_coefficient_v<Arg2>;
     using Scalar = typename MatrixTraits<Arg1>::Scalar;
     return ConstantMatrix<Scalar, newconst, MatrixTraits<Arg1>::rows, MatrixTraits<Arg1>::columns> {};
   }
@@ -371,8 +375,8 @@ namespace OpenKalman::Eigen3
 #endif
   inline auto operator-(Arg1&& arg1, Arg2&& arg2)
   {
-    if constexpr((lower_triangular_storage<Arg1> and lower_triangular_storage<Arg2>) or
-      (upper_triangular_storage<Arg1> and upper_triangular_storage<Arg2>))
+    if constexpr((lower_self_adjoint_matrix<Arg1> and lower_self_adjoint_matrix<Arg2>) or
+      (upper_self_adjoint_matrix<Arg1> and upper_self_adjoint_matrix<Arg2>))
     {
       return MatrixTraits<Arg1>::make(make_self_contained<Arg1, Arg2>(
         nested_matrix(std::forward<Arg1>(arg1)) - nested_matrix(std::forward<Arg2>(arg2))));
@@ -400,7 +404,7 @@ namespace OpenKalman::Eigen3
 #endif
   inline auto operator-(Arg1&& arg1, Arg2&& arg2)
   {
-    if constexpr(OpenKalman::internal::same_triangle_type_as<Arg1, Arg2>)
+    if constexpr(triangle_type_of_v<Arg1> == triangle_type_of_v<Arg2>)
     {
       auto ret = nested_matrix(std::forward<Arg1>(arg1)) - nested_matrix(std::forward<Arg2>(arg2));
       return MatrixTraits<Arg1>::make(make_self_contained<Arg1, Arg2>(std::move(ret)));
@@ -502,7 +506,7 @@ namespace OpenKalman::Eigen3
 #endif
   constexpr decltype(auto) operator*(Arg&& arg, const S scale)
   {
-    constexpr auto constant = MatrixTraits<Arg>::constant;
+    constexpr auto constant = constant_coefficient_v<Arg>;
 
     if constexpr (constant == 0)
     {
@@ -513,7 +517,7 @@ namespace OpenKalman::Eigen3
       using Scalar = typename MatrixTraits<Arg>::Scalar;
       constexpr std::size_t r = MatrixTraits<Arg>::rows;
       constexpr std::size_t c = MatrixTraits<Arg>::columns;
-      return Eigen3::eigen_matrix_t<Scalar, r, c>::Constant(MatrixTraits<Arg>::constant * scale);
+      return Eigen3::eigen_matrix_t<Scalar, r, c>::Constant(constant * scale);
     }
   }
 
@@ -529,7 +533,7 @@ namespace OpenKalman::Eigen3
 #endif
   constexpr decltype(auto) operator*(const S scale, Arg&& arg)
   {
-    constexpr auto constant = MatrixTraits<Arg>::constant;
+    constexpr auto constant = constant_coefficient_v<Arg>;
 
     if constexpr (constant == 0)
     {
@@ -540,7 +544,7 @@ namespace OpenKalman::Eigen3
       using Scalar = typename MatrixTraits<Arg>::Scalar;
       constexpr std::size_t r = MatrixTraits<Arg>::rows;
       constexpr std::size_t c = MatrixTraits<Arg>::columns;
-      return Eigen3::eigen_matrix_t<Scalar, r, c>::Constant(scale * MatrixTraits<Arg>::constant);
+      return Eigen3::eigen_matrix_t<Scalar, r, c>::Constant(scale * constant_coefficient_v<Arg>);
     }
   }
 
@@ -613,7 +617,7 @@ namespace OpenKalman::Eigen3
 #endif
   constexpr decltype(auto) operator/(Arg&& arg, const S s)
   {
-    constexpr auto constant = MatrixTraits<Arg>::constant;
+    constexpr auto constant = constant_coefficient_v<Arg>;
 
     if constexpr (constant == 0)
     {
@@ -624,7 +628,7 @@ namespace OpenKalman::Eigen3
       using Scalar = typename MatrixTraits<Arg>::Scalar;
       constexpr std::size_t r = MatrixTraits<Arg>::rows;
       constexpr std::size_t c = MatrixTraits<Arg>::columns;
-      return Eigen3::eigen_matrix_t<Scalar, r, c>::Constant(MatrixTraits<Arg>::constant / s);
+      return Eigen3::eigen_matrix_t<Scalar, r, c>::Constant(constant / s);
     }
   }
 
@@ -651,15 +655,14 @@ namespace OpenKalman::Eigen3
   // ----------------------- //
 
   /**
-   * \brief eigen_matrix * eigen_matrix where one of them is zero_matrix
+   * \brief A matrix product, where one of the arguments is eigen_zero_expr
    */
 #ifdef __cpp_concepts
-  template<eigen_matrix Arg1, eigen_matrix Arg2> requires (zero_matrix<Arg1> or zero_matrix<Arg2>) and
-  (dynamic_rows<Arg1> or dynamic_rows<Arg2> or MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::rows)
+  template<typename Arg1, typename Arg2> requires (eigen_zero_expr<Arg1> or eigen_zero_expr<Arg2>) and
+  (dynamic_columns<Arg1> or dynamic_rows<Arg2> or MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::rows)
 #else
-  template<typename Arg1, typename Arg2, std::enable_if_t<
-    eigen_matrix<Arg1> and eigen_matrix<Arg2> and (zero_matrix<Arg1> or zero_matrix<Arg2>) and
-    (dynamic_rows<Arg1> or dynamic_rows<Arg2> or MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::rows), int> = 0>
+  template<typename Arg1, typename Arg2, std::enable_if_t<(eigen_zero_expr<Arg1> or eigen_zero_expr<Arg2>) and
+    (dynamic_columns<Arg1> or dynamic_rows<Arg2> or MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::rows), int> = 0>
 #endif
   inline auto operator*(const Arg1& arg1, const Arg2& arg2)
   {
@@ -687,16 +690,18 @@ namespace OpenKalman::Eigen3
 
 
   /**
-   * \brief eigen_constant_expr * eigen_constant_expr
+   * \brief constant_matrix * constant_matrix, where at least one of them is eigen_constant_expr
    */
 #ifdef __cpp_concepts
-  template<eigen_constant_expr Arg1, eigen_constant_expr Arg2> requires
+  template<constant_matrix Arg1, constant_matrix Arg2> requires
+    (eigen_constant_expr<Arg1> or eigen_constant_expr<Arg2>) and
     (not zero_matrix<Arg1>) and (not zero_matrix<Arg2>) and
     (not identity_matrix<Arg1>) and (not identity_matrix<Arg2>) and
     (MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::rows) and
     std::same_as<typename MatrixTraits<Arg1>::Scalar, typename MatrixTraits<Arg2>::Scalar>
 #else
-  template<typename Arg1, typename Arg2, std::enable_if_t<eigen_constant_expr<Arg1> and eigen_constant_expr<Arg2> and
+  template<typename Arg1, typename Arg2, std::enable_if_t<constant_matrix<Arg1> and constant_matrix<Arg2> and
+    (eigen_constant_expr<Arg1> or eigen_constant_expr<Arg2>) and
     (not zero_matrix<Arg1>) and (not zero_matrix<Arg2>) and
     (not identity_matrix<Arg1>) and (not identity_matrix<Arg2>) and
     (MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::rows) and
@@ -704,7 +709,7 @@ namespace OpenKalman::Eigen3
 #endif
   inline auto operator*(Arg1&& arg1, Arg2&& arg2)
   {
-    constexpr auto newconst = MatrixTraits<Arg1>::constant * MatrixTraits<Arg2>::constant * MatrixTraits<Arg2>::rows;
+    constexpr auto newconst = constant_coefficient_v<Arg1> * constant_coefficient_v<Arg2> * MatrixTraits<Arg2>::rows;
     using Scalar = typename MatrixTraits<Arg1>::Scalar;
     return ConstantMatrix<Scalar, newconst, MatrixTraits<Arg1>::rows, MatrixTraits<Arg2>::columns> {};
   }
@@ -758,7 +763,7 @@ namespace OpenKalman::Eigen3
 
 
   /**
-   * \brief eigen_diagonal_expr * eigen_matrix or eigen_matrix * eigen_diagonal_expr
+   * \brief (eigen_diagonal_expr * eigen_matrix) or (eigen_matrix * eigen_diagonal_expr)
    */
 #ifdef __cpp_concepts
   template<typename Arg1, typename Arg2> requires
@@ -773,41 +778,47 @@ namespace OpenKalman::Eigen3
 #endif
   constexpr decltype(auto) operator*(Arg1&& arg1, Arg2&& arg2)
   {
-    if constexpr(zero_matrix<Arg1>)
+    if constexpr (zero_matrix<Arg1>)
     {
       return std::forward<Arg1>(arg1);
     }
-    else if constexpr(zero_matrix<Arg2>)
+    else if constexpr (zero_matrix<Arg2>)
     {
       return std::forward<Arg2>(arg2);
     }
-    else if constexpr(identity_matrix<Arg2>)
+    else if constexpr (identity_matrix<Arg2>)
     {
       return std::forward<Arg1>(arg1);
     }
-    else if constexpr(identity_matrix<Arg1>)
+    else if constexpr (identity_matrix<Arg1>)
     {
       return std::forward<Arg2>(arg2);
     }
-    else if constexpr(eigen_constant_expr<Arg1>)
+    else if constexpr (constant_matrix<Arg2>)
     {
-      return (MatrixTraits<Arg1>::constant *
-        transpose(native_matrix(std::forward<Arg2>(arg2)))).template replicate<MatrixTraits<Arg2>::rows, 1>();
+      auto column0 = diagonal_of(std::forward<Arg1>(arg1)) * constant_coefficient_v<Arg2>;
+      return make_self_contained((std::move(column0)).template replicate<1, MatrixTraits<Arg2>::columns>());
     }
-    else if constexpr(eigen_constant_expr<Arg2>)
+    else if constexpr(constant_matrix<Arg1>)
     {
-      return (native_matrix(std::forward<Arg1>(arg1)) *
-        MatrixTraits<Arg2>::constant).template replicate<1, MatrixTraits<Arg2>::columns>();
+      auto row0 = transpose(diagonal_of(std::forward<Arg2>(arg2))) * constant_coefficient_v<Arg1>;
+      return make_self_contained((std::move(row0)).template replicate<MatrixTraits<Arg2>::rows, 1>());
     }
-    else if constexpr(eigen_diagonal_expr<Arg1>)
+    else if constexpr (diagonal_matrix<Arg1> and diagonal_matrix<Arg2>)
     {
-      // This operation result will never be self-contained because Eigen::DiagonalWrapper does not store its vector.
-      return nested_matrix(std::forward<Arg1>(arg1)).asDiagonal() * std::forward<Arg2>(arg2);
+      return make_self_contained<Arg1, Arg2>(
+        to_diagonal(diagonal_of(std::forward<Arg1>(arg1)) + diagonal_of(std::forward<Arg2>(arg2))));
+    }
+    else if constexpr (eigen_diagonal_expr<Arg1>)
+    {
+      return make_self_contained<Arg1, Arg2>(
+        diagonal_of(std::forward<Arg1>(arg1)).asDiagonal() * std::forward<Arg2>(arg2));
     }
     else
     {
-      // See comment above.
-      return std::forward<Arg1>(arg1) * nested_matrix(std::forward<Arg2>(arg2)).asDiagonal();
+      static_assert(eigen_diagonal_expr<Arg2>);
+      return make_self_contained<Arg1, Arg2>(
+        std::forward<Arg1>(arg1) * diagonal_of(std::forward<Arg2>(arg2)).asDiagonal());
     }
   }
 
@@ -831,7 +842,8 @@ namespace OpenKalman::Eigen3
   {
     auto prod = make_native_matrix(std::forward<Arg2>(arg2));
     prod.applyOnTheLeft(std::forward<Arg1>(arg1).view());
-    if constexpr(OpenKalman::internal::same_triangle_type_as<Arg1, Arg2>)
+
+    if constexpr(triangle_type_of_v<Arg1> == triangle_type_of_v<Arg2>)
     {
       return MatrixTraits<Arg1>::make(std::move(prod));
     }

@@ -178,13 +178,34 @@ namespace OpenKalman
             const auto y = get_coeff(i + 1);
             if constexpr (up != -down)
             {
-              return std::atan2(y, std::abs(x)) / cf<Scalar>;
+              if constexpr (std::numeric_limits<Scalar>::is_iec559)
+                return std::atan2(y, std::abs(x)) / cf<Scalar>;
+              else
+              {
+                if (x == 0)
+                  return 0;
+                else
+                  return std::atan2(y, std::abs(x)) / cf<Scalar>;
+              }
             }
             else
             {
               constexpr Scalar range = up - down;
               constexpr Scalar period = range * 2;
-              auto a = std::atan2(y, x) / cf<Scalar>;
+
+              Scalar a;
+              if constexpr (std::numeric_limits<Scalar>::is_iec559)
+              {
+                a = std::atan2(y, x) / cf<Scalar>;
+              }
+              else
+              {
+                if (x == 0)
+                  a = 0;
+                else
+                  a = std::atan2(y, x) / cf<Scalar>;
+              }
+
               if (a < down) return down - a;
               if (a > range) a = down + period - a;
               return a;

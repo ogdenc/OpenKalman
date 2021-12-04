@@ -65,12 +65,101 @@ namespace OpenKalman
   }
 
 
+  /// Get element (i, j) of a typed matrix.
+#ifdef __cpp_concepts
+  template<typed_matrix Arg> requires element_gettable<nested_matrix_t<Arg>, 2>
+#else
+  template<typename Arg, std::enable_if_t<typed_matrix<Arg> and
+    element_gettable<nested_matrix_t<Arg>, 2>, int> = 0>
+#endif
+  inline auto
+  get_element(Arg&& arg, const std::size_t i, const std::size_t j)
+  {
+    return get_element(nested_matrix(std::forward<Arg>(arg)), i, j);
+  }
+
+
+  /// Get element (i) of a typed matrix.
+#ifdef __cpp_concepts
+  template<typed_matrix Arg> requires element_gettable<nested_matrix_t<Arg>, 1>
+#else
+  template<typename Arg, std::enable_if_t<typed_matrix<Arg> and
+    element_gettable<nested_matrix_t<Arg>, 1>, int> = 0>
+#endif
+  inline auto
+  get_element(Arg&& arg, const std::size_t i)
+  {
+    return get_element(nested_matrix(std::forward<Arg>(arg)), i);
+  }
+
+
+  /// Set element (i, j) of a typed matrix.
+#ifdef __cpp_concepts
+  template<typed_matrix Arg> requires (not std::is_const_v<std::remove_reference_t<Arg>>) and
+    element_settable<nested_matrix_t<Arg>, 2>
+#else
+  template<typename Arg, std::enable_if_t<
+    typed_matrix<Arg> and not std::is_const_v<std::remove_reference_t<Arg>> and
+      element_settable<nested_matrix_t<Arg>, 2>, int> = 0>
+#endif
+  inline void
+  set_element(Arg& arg, const typename MatrixTraits<Arg>::Scalar s, const std::size_t i, const std::size_t j)
+  {
+    if constexpr(wrapped_mean<Arg>)
+    {
+      using Coeffs = typename MatrixTraits<Arg>::RowCoefficients;
+      const auto get_coeff = [&arg, j] (const std::size_t row) {
+        return get_element(nested_matrix(arg), row, j);
+      };
+      const auto set_coeff = [&arg, j](const std::size_t row, const typename MatrixTraits<Arg>::Scalar value) {
+        set_element(nested_matrix(arg), value, row, j);
+      };
+      oin::wrap_set<Coeffs>(i, s, set_coeff, get_coeff);
+    }
+    else
+    {
+      set_element(nested_matrix(arg), s, i, j);
+    }
+  }
+
+
+  /// Set element (i) of a typed matrix.
+#ifdef __cpp_concepts
+  template<typed_matrix Arg> requires (not std::is_const_v<std::remove_reference_t<Arg>>) and
+    element_settable<nested_matrix_t<Arg>, 1>
+#else
+  template<typename Arg, std::enable_if_t<
+    typed_matrix<Arg> and not std::is_const_v<std::remove_reference_t<Arg>> and
+      element_settable<nested_matrix_t<Arg>, 1>, int> = 0>
+#endif
+  inline void
+  set_element(Arg& arg, const typename MatrixTraits<Arg>::Scalar s, const std::size_t i)
+  {
+    if constexpr(wrapped_mean<Arg>)
+    {
+      using Coeffs = typename MatrixTraits<Arg>::RowCoefficients;
+      const auto get_coeff = [&arg] (const std::size_t row) {
+        return get_element(nested_matrix(arg), row);
+      };
+      const auto set_coeff = [&arg](const std::size_t row, const typename MatrixTraits<Arg>::Scalar value) {
+        set_element(nested_matrix(arg), value, row);
+      };
+      oin::wrap_set<Coeffs>(i, s, set_coeff, get_coeff);
+    }
+    else
+    {
+      set_element(nested_matrix(arg), s, i);
+    }
+  }
+
+
 #ifdef __cpp_concepts
   template<typed_matrix Arg>
 #else
   template<typename Arg, std::enable_if_t<typed_matrix<Arg>, int> = 0>
 #endif
-  constexpr std::size_t row_count(Arg&& arg)
+  constexpr std::size_t
+  row_count(Arg&& arg)
   {
     if constexpr (dynamic_rows<Arg>)
       return row_count(nested_matrix(std::forward<Arg>(arg)));
@@ -84,12 +173,87 @@ namespace OpenKalman
 #else
   template<typename Arg, std::enable_if_t<typed_matrix<Arg>, int> = 0>
 #endif
-  constexpr std::size_t column_count(Arg&& arg)
+  constexpr std::size_t
+  column_count(Arg&& arg)
   {
     if constexpr (dynamic_columns<Arg>)
       return column_count(nested_matrix(std::forward<Arg>(arg)));
     else
       return MatrixTraits<Arg>::columns;
+  }
+
+
+#ifdef __cpp_concepts
+  template<typed_matrix Arg> requires uniform_coefficients<typename MatrixTraits<Arg>::RowCoefficients>
+#else
+  template<typename Arg, std::enable_if_t<typed_matrix<Arg> and
+    uniform_coefficients<typename MatrixTraits<Arg>::RowCoefficients>, int> = 0>
+#endif
+  inline auto
+  row(Arg&& arg, const std::size_t index)
+  {
+    using RC = typename has_uniform_coefficients<typename MatrixTraits<Arg>::RowCoefficients>::common_coefficient;
+    using CC = typename MatrixTraits<Arg>::ColumnCoefficients;
+    return MatrixTraits<Arg>::template make<RC, CC>(column(nested_matrix(std::forward<Arg>(arg)), index));
+  }
+
+
+#ifdef __cpp_concepts
+  template<std::size_t index, typed_matrix Arg> requires (index < MatrixTraits<Arg>::rows)
+#else
+  template<std::size_t index, typename Arg, std::enable_if_t<typed_matrix<Arg> and
+    (index < MatrixTraits<Arg>::rows), int> = 0>
+#endif
+  constexpr decltype(auto)
+  row(Arg&& arg)
+  {
+    if constexpr (column_vector<Arg>)
+    {
+      return std::forward<Arg>(arg);
+    }
+    else
+    {
+      using RC = typename MatrixTraits<Arg>::RowCoefficients;
+      using CC = typename MatrixTraits<Arg>::ColumnCoefficients::template Coefficient<index>;
+      return MatrixTraits<Arg>::template make<RC, CC>(column<index>(nested_matrix(std::forward<Arg>(arg))));
+    }
+  }
+
+
+#ifdef __cpp_concepts
+  template<typed_matrix Arg> requires uniform_coefficients<typename MatrixTraits<Arg>::ColumnCoefficients>
+#else
+  template<typename Arg, std::enable_if_t<typed_matrix<Arg> and
+    uniform_coefficients<typename MatrixTraits<Arg>::ColumnCoefficients>, int> = 0>
+#endif
+  inline auto
+  column(Arg&& arg, const std::size_t index)
+  {
+    using RC = typename MatrixTraits<Arg>::RowCoefficients;
+    using CC = typename has_uniform_coefficients<typename MatrixTraits<Arg>::ColumnCoefficients>::common_coefficient;
+    return MatrixTraits<Arg>::template make<RC, CC>(column(nested_matrix(std::forward<Arg>(arg)), index));
+  }
+
+
+#ifdef __cpp_concepts
+  template<std::size_t index, typed_matrix Arg> requires (index < MatrixTraits<Arg>::columns)
+#else
+  template<std::size_t index, typename Arg, std::enable_if_t<typed_matrix<Arg> and
+    (index < MatrixTraits<Arg>::columns), int> = 0>
+#endif
+  constexpr decltype(auto)
+  column(Arg&& arg)
+  {
+    if constexpr (column_vector<Arg>)
+    {
+      return std::forward<Arg>(arg);
+    }
+    else
+    {
+      using RC = typename MatrixTraits<Arg>::RowCoefficients;
+      using CC = typename MatrixTraits<Arg>::ColumnCoefficients::template Coefficient<index>;
+      return MatrixTraits<Arg>::template make<RC, CC>(column<index>(nested_matrix(std::forward<Arg>(arg))));
+    }
   }
 
 
@@ -515,131 +679,6 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     static_assert(prefix_of<Concatenate<Cs...>, typename MatrixTraits<M>::RowCoefficients>);
     static_assert(equivalent_to<typename MatrixTraits<M>::ColumnCoefficients, typename MatrixTraits<M>::RowCoefficients>);
     return split_diagonal<oin::SplitMatDiagF<M>, Cs...>(nested_matrix(std::forward<M>(m)));
-  }
-
-
-  /// Get element (i, j) of a typed matrix.
-#ifdef __cpp_concepts
-  template<typed_matrix Arg> requires element_gettable<nested_matrix_t<Arg>, 2>
-#else
-  template<typename Arg, std::enable_if_t<typed_matrix<Arg> and
-    element_gettable<nested_matrix_t<Arg>, 2>, int> = 0>
-#endif
-  inline auto
-  get_element(Arg&& arg, const std::size_t i, const std::size_t j)
-  {
-    return get_element(nested_matrix(std::forward<Arg>(arg)), i, j);
-  }
-
-
-  /// Get element (i) of a typed matrix.
-#ifdef __cpp_concepts
-  template<typed_matrix Arg> requires element_gettable<nested_matrix_t<Arg>, 1>
-#else
-  template<typename Arg, std::enable_if_t<typed_matrix<Arg> and
-    element_gettable<nested_matrix_t<Arg>, 1>, int> = 0>
-#endif
-  inline auto
-  get_element(Arg&& arg, const std::size_t i)
-  {
-    return get_element(nested_matrix(std::forward<Arg>(arg)), i);
-  }
-
-
-  /// Set element (i, j) of a typed matrix.
-#ifdef __cpp_concepts
-  template<typed_matrix Arg> requires (not std::is_const_v<std::remove_reference_t<Arg>>) and
-    element_settable<nested_matrix_t<Arg>, 2>
-#else
-  template<typename Arg, std::enable_if_t<
-    typed_matrix<Arg> and not std::is_const_v<std::remove_reference_t<Arg>> and
-      element_settable<nested_matrix_t<Arg>, 2>, int> = 0>
-#endif
-  inline void
-  set_element(Arg& arg, const typename MatrixTraits<Arg>::Scalar s, const std::size_t i, const std::size_t j)
-  {
-    if constexpr(wrapped_mean<Arg>)
-    {
-      using Coeffs = typename MatrixTraits<Arg>::RowCoefficients;
-      const auto get_coeff = [&arg, j] (const std::size_t row) {
-        return get_element(nested_matrix(arg), row, j);
-      };
-      const auto set_coeff = [&arg, j](const std::size_t row, const typename MatrixTraits<Arg>::Scalar value) {
-        set_element(nested_matrix(arg), value, row, j);
-      };
-      oin::wrap_set<Coeffs>(i, s, set_coeff, get_coeff);
-    }
-    else
-    {
-      set_element(nested_matrix(arg), s, i, j);
-    }
-  }
-
-
-  /// Set element (i) of a typed matrix.
-#ifdef __cpp_concepts
-  template<typed_matrix Arg> requires (not std::is_const_v<std::remove_reference_t<Arg>>) and
-    element_settable<nested_matrix_t<Arg>, 1>
-#else
-  template<typename Arg, std::enable_if_t<
-    typed_matrix<Arg> and not std::is_const_v<std::remove_reference_t<Arg>> and
-      element_settable<nested_matrix_t<Arg>, 1>, int> = 0>
-#endif
-  inline void
-  set_element(Arg& arg, const typename MatrixTraits<Arg>::Scalar s, const std::size_t i)
-  {
-    if constexpr(wrapped_mean<Arg>)
-    {
-      using Coeffs = typename MatrixTraits<Arg>::RowCoefficients;
-      const auto get_coeff = [&arg] (const std::size_t row) {
-        return get_element(nested_matrix(arg), row);
-      };
-      const auto set_coeff = [&arg](const std::size_t row, const typename MatrixTraits<Arg>::Scalar value) {
-        set_element(nested_matrix(arg), value, row);
-      };
-      oin::wrap_set<Coeffs>(i, s, set_coeff, get_coeff);
-    }
-    else
-    {
-      set_element(nested_matrix(arg), s, i);
-    }
-  }
-
-
-#ifdef __cpp_concepts
-  template<typed_matrix Arg> requires untyped_columns<Arg>
-#else
-  template<typename Arg, std::enable_if_t<typed_matrix<Arg> and untyped_columns<Arg>, int> = 0>
-#endif
-  inline auto
-  column(Arg&& arg, const std::size_t index)
-  {
-    // \todo Make it so this function can accept any typed matrix with identically-typed columns.
-    using RC = typename MatrixTraits<Arg>::RowCoefficients;
-    using CC = Axis;
-    return MatrixTraits<Arg>::template make<RC, CC>(column(nested_matrix(std::forward<Arg>(arg)), index));
-  }
-
-
-#ifdef __cpp_concepts
-  template<std::size_t index, typed_matrix Arg>
-#else
-  template<std::size_t index, typename Arg, std::enable_if_t<typed_matrix<Arg>, int> = 0>
-#endif
-  constexpr decltype(auto)
-  column(Arg&& arg)
-  {
-    static_assert(index < MatrixTraits<Arg>::columns, "Column index out of range.");
-    if constexpr (column_vector<Arg>)
-    {
-      return std::forward<Arg>(arg);
-    }
-    else
-    {
-      using RC = typename MatrixTraits<Arg>::RowCoefficients;
-      using CC = typename MatrixTraits<Arg>::ColumnCoefficients::template Coefficient<index>;
-      return MatrixTraits<Arg>::template make<RC, CC>(column<index>(nested_matrix(std::forward<Arg>(arg))));
-    }
   }
 
 

@@ -23,7 +23,7 @@ namespace OpenKalman::Eigen3
   template<coefficients Coefficients, typename NestedMatrix>
   requires (eigen_matrix<NestedMatrix> or to_euclidean_expr<NestedMatrix> or eigen_diagonal_expr<NestedMatrix>) and
     (dynamic_coefficients<Coefficients> == dynamic_rows<NestedMatrix>) and
-    (Coefficients::euclidean_dimensions == MatrixTraits<NestedMatrix>::rows) and
+    (not fixed_coefficients<Coefficients> or Coefficients::euclidean_dimensions == MatrixTraits<NestedMatrix>::rows) and
     (not dynamic_coefficients<Coefficients> or
       std::same_as<typename Coefficients::Scalar, typename MatrixTraits<NestedMatrix>::Scalar>)
 #else
@@ -37,7 +37,7 @@ namespace OpenKalman::Eigen3
     static_assert(coefficients<Coefficients>);
     static_assert(eigen_matrix<NestedMatrix> or to_euclidean_expr<NestedMatrix> or eigen_diagonal_expr<NestedMatrix>);
     static_assert(dynamic_coefficients<Coefficients> == dynamic_rows<NestedMatrix>);
-    static_assert(Coefficients::euclidean_dimensions == MatrixTraits<NestedMatrix>::rows);
+    static_assert(not fixed_coefficients<Coefficients> or Coefficients::euclidean_dimensions == MatrixTraits<NestedMatrix>::rows);
 #endif
 
     using Nested = FromEuclideanExpr; ///< Required by Eigen3.

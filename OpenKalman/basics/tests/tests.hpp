@@ -35,12 +35,31 @@ namespace OpenKalman::test
   struct TestComparison;
 
 
-  template<typename Arg1, typename Arg2, typename Err = double>
+  // ---------- //
+  //  Matrices  //
+  // ---------- //
+
+#ifdef __cpp_concepts
+  template<typename Arg1, typename Arg2, typename Err = double> requires
+    (dynamic_rows<Arg1> or dynamic_rows<Arg2> or MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows) and
+    (dynamic_columns<Arg1> or dynamic_columns<Arg2> or MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns)
+#else
+  template<typename Arg1, typename Arg2, typename Err = double, std::enable_if_t<
+    (dynamic_rows<Arg1> or dynamic_rows<Arg2> or MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows) and
+    (dynamic_columns<Arg1> or dynamic_columns<Arg2> or MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns), int> = 0>
+#endif
   inline ::testing::AssertionResult is_near(const Arg1& arg1, const Arg2& arg2, const Err& err = 1e-6)
   {
+    if constexpr (dynamic_rows<Arg1> or dynamic_rows<Arg2>) assert(row_count(arg1) == row_count(arg2));
+    if constexpr (dynamic_columns<Arg1> or dynamic_columns<Arg2>) assert(column_count(arg1) == column_count(arg2));
+
     return TestComparison<Arg1, Arg2, Err> {arg1, arg2, err};
   }
 
+
+  // -------- //
+  //  Arrays  //
+  // -------- //
 
   namespace detail
   {
@@ -56,8 +75,37 @@ namespace OpenKalman::test
 
 
 #ifdef __cpp_concepts
-  template<typename Arg1, typename Arg2, typename Err> requires
-    detail::is_std_array_v<Arg1> and detail::is_std_array_v<Arg2> and std::is_arithmetic_v<Err>
+  template<typename Arg1, typename Arg2, typename Err = double>
+  requires detail::is_std_array_v<Arg1> and detail::is_std_array_v<Arg2> and std::is_arithmetic_v<Err> and
+    (std::tuple_size_v<Arg1> == std::tuple_size_v<Arg2>) and
+    (dynamic_rows<std::tuple_element_t<0, Arg1>> or dynamic_rows<std::tuple_element_t<0, Arg2>> or
+      MatrixTraits<std::tuple_element_t<0, Arg1>>::rows == MatrixTraits<std::tuple_element_t<0, Arg2>>::rows) and
+    (dynamic_columns<std::tuple_element_t<0, Arg1>> or dynamic_columns<std::tuple_element_t<0, Arg2>> or
+      MatrixTraits<std::tuple_element_t<0, Arg1>>::columns == MatrixTraits<std::tuple_element_t<0, Arg2>>::columns)
+#else
+  template<typename Arg1, typename Arg2, typename Err = double, std::enable_if_t<
+    detail::is_std_array_v<Arg1> and detail::is_std_array_v<Arg2> and std::is_arithmetic_v<Err> and
+    (std::tuple_size_v<Arg1> == std::tuple_size_v<Arg2>) and
+    (dynamic_rows<std::tuple_element_t<0, Arg1>> or dynamic_rows<std::tuple_element_t<0, Arg2>> or
+      MatrixTraits<std::tuple_element_t<0, Arg1>>::rows == MatrixTraits<std::tuple_element_t<0, Arg2>>::rows) and
+    (dynamic_columns<std::tuple_element_t<0, Arg1>> or dynamic_columns<std::tuple_element_t<0, Arg2>> or
+      MatrixTraits<std::tuple_element_t<0, Arg1>>::columns == MatrixTraits<std::tuple_element_t<0, Arg2>>::columns), int> = 0>
+#endif
+  inline ::testing::AssertionResult is_near(const Arg1& arg1, const Arg2& arg2, const Err& err = 1e-6)
+  {
+    if constexpr (dynamic_rows<std::tuple_element_t<0, Arg1>> or dynamic_rows<std::tuple_element_t<0, Arg2>>)
+      assert(row_count(std::get<0>(arg1)) == row_count(std::get<0>(arg2)));
+
+    if constexpr (dynamic_columns<std::tuple_element_t<0, Arg1>> or dynamic_columns<std::tuple_element_t<0, Arg2>>)
+      assert(column_count(std::get<0>(arg1)) == column_count(std::get<0>(arg2)));
+
+    return TestComparison<Arg1, Arg2, Err> {arg1, arg2, err};
+  }
+
+
+#ifdef __cpp_concepts
+  template<typename Arg1, typename Arg2, typename Err>
+  requires detail::is_std_array_v<Arg1> and detail::is_std_array_v<Arg2> and std::is_arithmetic_v<Err>
   struct TestComparison<Arg1, Arg2, Err>
 #else
   template<typename Arg1, typename Arg2, typename Err>
@@ -104,6 +152,10 @@ namespace OpenKalman::test
   };
 
 
+  // -------- //
+  //  Tuples  //
+  // -------- //
+
   namespace detail
   {
     template<typename T>
@@ -115,12 +167,42 @@ namespace OpenKalman::test
     template<typename T>
     static constexpr bool is_std_tuple_v = is_std_tuple<std::decay_t<T>>::value;
 
+    template<typename T1, typename T2>
+    struct tuple_sizes_match;
+
+    template<>
+    struct tuple_sizes_match<std::tuple<>, std::tuple<>> { static constexpr bool value = true; };
+
+    template<typename Arg1, typename...Args1, typename Arg2, typename...Args2>
+    struct tuple_sizes_match<std::tuple<Arg1, Args1...>, std::tuple<Arg2, Args2...>>
+    {
+      static constexpr bool value =
+        (dynamic_rows<Arg1> or dynamic_rows<Arg2> or MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows) and
+        (dynamic_columns<Arg1> or dynamic_columns<Arg2> or MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns) and
+        tuple_sizes_match<std::tuple<Args1...>, std::tuple<Args2...>>::value;
+    };
+
   } // namespace detail
 
 
 #ifdef __cpp_concepts
-  template<typename Arg1, typename Arg2, typename Err> requires
-  detail::is_std_tuple_v<Arg1> and detail::is_std_tuple_v<Arg2> and std::is_arithmetic_v<Err>
+  template<typename Arg1, typename Arg2, typename Err = double>
+  requires detail::is_std_tuple_v<Arg1> and detail::is_std_tuple_v<Arg2> and std::is_arithmetic_v<Err> and
+    detail::tuple_sizes_match<Arg1, Arg2>::value
+#else
+  template<typename Arg1, typename Arg2, typename Err = double, std::enable_if_t<
+    detail::is_std_tuple_v<Arg1> and detail::is_std_tuple_v<Arg2> and std::is_arithmetic_v<Err> and
+    detail::tuple_sizes_match<Arg1, Arg2>::value, int> = 0>
+#endif
+  inline ::testing::AssertionResult is_near(const Arg1& arg1, const Arg2& arg2, const Err& err = 1e-6)
+  {
+    return TestComparison<Arg1, Arg2, Err> {arg1, arg2, err};
+  }
+
+
+#ifdef __cpp_concepts
+  template<typename Arg1, typename Arg2, typename Err>
+  requires detail::is_std_tuple_v<Arg1> and detail::is_std_tuple_v<Arg2> and std::is_arithmetic_v<Err>
   struct TestComparison<Arg1, Arg2, Err>
 #else
     template<typename Arg1, typename Arg2, typename Err>

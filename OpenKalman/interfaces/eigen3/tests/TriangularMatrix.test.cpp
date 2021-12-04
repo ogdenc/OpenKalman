@@ -561,12 +561,12 @@ TEST(eigen3, TriangularMatrix_overloads)
   Lower lower {3., 0, 1, 3};
   EXPECT_TRUE(is_near(Cholesky_square(lower), mat22(9., 3, 3, 10)));
   EXPECT_TRUE(is_near(Cholesky_square(Lower {3., 0, 1, 3}), mat22(9., 3, 3, 10)));
-  static_assert(lower_triangular_storage<decltype(Cholesky_square(Lower {3, 0, 1, 3}))>);
+  static_assert(lower_self_adjoint_matrix<decltype(Cholesky_square(Lower {3, 0, 1, 3}))>);
   //
   Upper upper {3., 1, 0, 3};
   EXPECT_TRUE(is_near(Cholesky_square(upper), mat22(9., 3, 3, 10)));
   EXPECT_TRUE(is_near(Cholesky_square(Upper {3., 1, 0, 3}), mat22(9., 3, 3, 10)));
-  static_assert(upper_triangular_storage<decltype(Cholesky_square(Upper {3, 1, 0, 3}))>);
+  static_assert(upper_self_adjoint_matrix<decltype(Cholesky_square(Upper {3, 1, 0, 3}))>);
   //
   EXPECT_TRUE(is_near(Cholesky_square(TriangularMatrix<eigen_matrix_t<double, 1, 1>, TriangleType::lower>(eigen_matrix_t<double, 1, 1>(9))), eigen_matrix_t<double, 1, 1>(81)));
   EXPECT_TRUE(is_near(Cholesky_square(TriangularMatrix<eigen_matrix_t<double, 1, 1>, TriangleType::upper>(eigen_matrix_t<double, 1, 1>(9))), eigen_matrix_t<double, 1, 1>(81)));

@@ -36,9 +36,9 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<covariance Arg> requires (not square_root_covariance<Arg>)
+  template<self_adjoint_covariance Arg>
 #else
-  template<typename Arg, std::enable_if_t<covariance<Arg> and not square_root_covariance<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<self_adjoint_covariance<Arg>, int> = 0>
 #endif
   inline auto
   square_root(Arg&& arg) noexcept
@@ -48,9 +48,9 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<square_root_covariance Arg>
+  template<triangular_covariance Arg>
 #else
-  template<typename Arg, std::enable_if_t<square_root_covariance<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<triangular_covariance<Arg>, int> = 0>
 #endif
   inline auto
   square(Arg&& arg) noexcept
@@ -97,7 +97,7 @@ namespace OpenKalman
     else
     {
       using C = typename MatrixTraits<Arg>::RowCoefficients;
-      if constexpr (square_root_covariance<Arg>)
+      if constexpr (triangular_covariance<Arg>)
       {
         return SquareRootCovariance<C, self_contained_t<nested_matrix_t<Arg>>> {std::forward<Arg>(arg)};
       }
@@ -109,12 +109,69 @@ namespace OpenKalman
   }
 
 
+  /// Get element (i, j) of a covariance matrix.
+#ifdef __cpp_concepts
+  template<covariance Arg> requires element_gettable<Arg, 2>
+#else
+  template<typename Arg, std::enable_if_t<covariance<Arg> and element_gettable<Arg, 2>, int> = 0>
+#endif
+  inline auto
+  get_element(Arg&& arg, const std::size_t i, const std::size_t j)
+  {
+    return std::forward<Arg>(arg)(i, j);
+  }
+
+
+  /// Get element (i) of a covariance matrix.
+#ifdef __cpp_concepts
+  template<covariance Arg> requires element_gettable<Arg, 1>
+#else
+  template<typename Arg, std::enable_if_t<covariance<Arg> and element_gettable<Arg, 1>, int> = 0>
+#endif
+  inline auto
+  get_element(Arg&& arg, const std::size_t i)
+  {
+    return std::forward<Arg>(arg)[i];
+  }
+
+
+  /// Set element (i, j) of a covariance matrix.
+#ifdef __cpp_concepts
+  template<covariance Arg, typename Scalar> requires
+    (not std::is_const_v<std::remove_reference_t<Arg>>) and element_settable<Arg, 2>
+#else
+  template<typename Arg, typename Scalar, std::enable_if_t<covariance<Arg> and
+    not std::is_const_v<std::remove_reference_t<Arg>> and element_settable<Arg, 2>, int> = 0>
+#endif
+  inline void
+  set_element(Arg& arg, const Scalar s, const std::size_t i, const std::size_t j)
+  {
+    arg.set_element(s, i, j);
+  }
+
+
+  /// Set element (i) of a covariance matrix.
+#ifdef __cpp_concepts
+  template<covariance Arg, typename Scalar> requires
+    (not std::is_const_v<std::remove_reference_t<Arg>>) and element_settable<Arg, 1>
+#else
+  template<typename Arg, typename Scalar, std::enable_if_t<covariance<Arg> and
+    not std::is_const_v<std::remove_reference_t<Arg>> and element_settable<Arg, 1>, int> = 0>
+#endif
+  inline void
+  set_element(Arg& arg, const Scalar s, const std::size_t i)
+  {
+    arg.set_element(s, i);
+  }
+
+
 #ifdef __cpp_concepts
   template<covariance Arg>
 #else
   template<typename Arg, std::enable_if_t<covariance<Arg>, int> = 0>
 #endif
-  constexpr std::size_t row_count(Arg&& arg)
+  constexpr std::size_t
+  row_count(Arg&& arg)
   {
     if constexpr (dynamic_rows<Arg>)
       return row_count(nested_matrix(std::forward<Arg>(arg)));
@@ -128,9 +185,73 @@ namespace OpenKalman
 #else
   template<typename Arg, std::enable_if_t<covariance<Arg>, int> = 0>
 #endif
-  constexpr std::size_t column_count(Arg&& arg)
+  constexpr std::size_t
+  column_count(Arg&& arg)
   {
     return row_count(std::forward<Arg>(arg));
+  }
+
+
+  /// Return row <code>index</code> of Arg.
+#ifdef __cpp_concepts
+  template<covariance Arg> requires uniform_coefficients<typename MatrixTraits<Arg>::RowCoefficients>
+#else
+  template<typename Arg, std::enable_if_t<covariance<Arg>, int> = 0>
+#endif
+  inline auto
+  row(Arg&& arg, const std::size_t index)
+  {
+    using RC = typename has_uniform_coefficients<typename MatrixTraits<Arg>::RowCoefficients>::common_coefficient;
+    using CC = typename MatrixTraits<Arg>::ColumnCoefficients;
+    return make_matrix<RC, CC>(row(to_covariance_nestable(std::forward<Arg>(arg)), index));
+  }
+
+
+  /// Return row <code>index</code> of Arg, where the index is constexpr.
+#ifdef __cpp_concepts
+  template<std::size_t index, covariance Arg> requires (index < MatrixTraits<Arg>::rows)
+#else
+  template<std::size_t index, typename Arg, std::enable_if_t<
+    covariance<Arg> and (index < MatrixTraits<Arg>::rows), int> = 0>
+#endif
+  inline decltype(auto)
+  row(Arg&& arg)
+  {
+    using RC = typename MatrixTraits<Arg>::RowCoefficients::template Coefficient<index>;
+    using CC = typename MatrixTraits<Arg>::ColumnCoefficients;
+    return make_matrix<RC, CC>(row<index>(to_covariance_nestable(std::forward<Arg>(arg))));
+  }
+
+
+  /// Return column <code>index</code> of Arg.
+#ifdef __cpp_concepts
+  template<covariance Arg> requires uniform_coefficients<typename MatrixTraits<Arg>::ColumnCoefficients>
+#else
+  template<typename Arg, std::enable_if_t<covariance<Arg> and
+    uniform_coefficients<typename MatrixTraits<Arg>::ColumnCoefficients>, int> = 0>
+#endif
+  inline auto
+  column(Arg&& arg, const std::size_t index)
+  {
+    using RC = typename MatrixTraits<Arg>::RowCoefficients;
+    using CC = typename has_uniform_coefficients<typename MatrixTraits<Arg>::ColumnCoefficients>::common_coefficient;
+    return make_matrix<RC, CC>(column(to_covariance_nestable(std::forward<Arg>(arg)), index));
+  }
+
+
+  /// Return column <code>index</code> of Arg, where the index is constexpr.
+#ifdef __cpp_concepts
+  template<std::size_t index, covariance Arg> requires (index < MatrixTraits<Arg>::columns)
+#else
+  template<std::size_t index, typename Arg, std::enable_if_t<
+    covariance<Arg> and (index < MatrixTraits<Arg>::columns), int> = 0>
+#endif
+  inline decltype(auto)
+  column(Arg&& arg)
+  {
+    using RC = typename MatrixTraits<Arg>::RowCoefficients;
+    using CC = typename MatrixTraits<Arg>::ColumnCoefficients::template Coefficient<index>;
+    return make_matrix<RC, CC>(column<index>(to_covariance_nestable(std::forward<Arg>(arg))));
   }
 
 
@@ -158,7 +279,7 @@ namespace OpenKalman
   transpose(Arg&& arg) noexcept
   {
     /// \todo optimize this
-    if constexpr (square_root_covariance<Arg>)
+    if constexpr (triangular_covariance<Arg>)
     {
       return MatrixTraits<Arg>::make(transpose(std::forward<Arg>(arg).get_triangular_nested_matrix()));
     }
@@ -330,11 +451,11 @@ namespace OpenKalman
     inline auto
     split_item_impl(Arg&& arg)
     {
-      if constexpr(one_by_one_matrix<Arg> and not square_root_covariance<Expr> and cholesky_form<Expr>)
+      if constexpr(one_by_one_matrix<Arg> and self_adjoint_covariance<Expr> and cholesky_form<Expr>)
       {
         return MatrixTraits<Expr>::template make<C>(Cholesky_square(std::forward<Arg>(arg)));
       }
-      else if constexpr(one_by_one_matrix<Arg> and square_root_covariance<Expr> and not cholesky_form<Expr>)
+      else if constexpr(one_by_one_matrix<Arg> and triangular_covariance<Expr> and not cholesky_form<Expr>)
       {
         return MatrixTraits<Expr>::template make<C>(Cholesky_factor<TriangleType::lower>(std::forward<Arg>(arg)));
       }
@@ -350,11 +471,11 @@ namespace OpenKalman
     template<typename Expr, typename F, typename Arg>
     inline auto split_cov_diag_impl(const F& f, Arg&& arg)
     {
-      if constexpr(one_by_one_matrix<Arg> and not square_root_covariance<Expr> and cholesky_form<Expr>)
+      if constexpr(one_by_one_matrix<Arg> and self_adjoint_covariance<Expr> and cholesky_form<Expr>)
       {
         return f(Cholesky_square(std::forward<Arg>(arg)));
       }
-      else if constexpr(one_by_one_matrix<Arg> and square_root_covariance<Expr> and not cholesky_form<Expr>)
+      else if constexpr(one_by_one_matrix<Arg> and triangular_covariance<Expr> and not cholesky_form<Expr>)
       {
         return f(Cholesky_factor<TriangleType::lower>(std::forward<Arg>(arg)));
       }
@@ -440,92 +561,6 @@ namespace OpenKalman
     using RC = typename MatrixTraits<M>::RowCoefficients;
     static_assert(prefix_of<Concatenate<Cs...>, RC>);
     return split_horizontal<oin::SplitCovHorizF<M, RC>, Cs...>(make_native_matrix(std::forward<M>(m)));
-  }
-
-
-  /// Get element (i, j) of a covariance matrix.
-#ifdef __cpp_concepts
-  template<covariance Arg> requires element_gettable<Arg, 2>
-#else
-  template<typename Arg, std::enable_if_t<covariance<Arg> and element_gettable<Arg, 2>, int> = 0>
-#endif
-  inline auto
-  get_element(Arg&& arg, const std::size_t i, const std::size_t j)
-  {
-    return std::forward<Arg>(arg)(i, j);
-  }
-
-
-  /// Get element (i) of a covariance matrix.
-#ifdef __cpp_concepts
-  template<covariance Arg> requires element_gettable<Arg, 1>
-#else
-  template<typename Arg, std::enable_if_t<covariance<Arg> and element_gettable<Arg, 1>, int> = 0>
-#endif
-  inline auto
-  get_element(Arg&& arg, const std::size_t i)
-  {
-    return std::forward<Arg>(arg)[i];
-  }
-
-
-  /// Set element (i, j) of a covariance matrix.
-#ifdef __cpp_concepts
-  template<covariance Arg, typename Scalar> requires
-    (not std::is_const_v<std::remove_reference_t<Arg>>) and element_settable<Arg, 2>
-#else
-  template<typename Arg, typename Scalar, std::enable_if_t<covariance<Arg> and
-    not std::is_const_v<std::remove_reference_t<Arg>> and element_settable<Arg, 2>, int> = 0>
-#endif
-  inline void
-  set_element(Arg& arg, const Scalar s, const std::size_t i, const std::size_t j)
-  {
-    arg.set_element(s, i, j);
-  }
-
-
-  /// Set element (i) of a covariance matrix.
-#ifdef __cpp_concepts
-  template<covariance Arg, typename Scalar> requires
-    (not std::is_const_v<std::remove_reference_t<Arg>>) and element_settable<Arg, 1>
-#else
-  template<typename Arg, typename Scalar, std::enable_if_t<covariance<Arg> and
-    not std::is_const_v<std::remove_reference_t<Arg>> and element_settable<Arg, 1>, int> = 0>
-#endif
-  inline void
-  set_element(Arg& arg, const Scalar s, const std::size_t i)
-  {
-    arg.set_element(s, i);
-  }
-
-
-  /// Return column <code>index</code> of Arg.
-#ifdef __cpp_concepts
-  template<covariance Arg>
-#else
-  template<typename Arg, std::enable_if_t<covariance<Arg>, int> = 0>
-#endif
-  inline auto
-  column(Arg&& arg, const std::size_t index)
-  {
-    using C = typename MatrixTraits<Arg>::RowCoefficients;
-    return make_matrix<C, Axis>(column(to_covariance_nestable(std::forward<Arg>(arg)), index));
-  }
-
-
-  /// Return column <code>index</code> of Arg, where the index is constexpr.
-#ifdef __cpp_concepts
-  template<std::size_t index, covariance Arg> requires (index < MatrixTraits<Arg>::rows)
-#else
-  template<std::size_t index, typename Arg, std::enable_if_t<
-    covariance<Arg> and (index < MatrixTraits<Arg>::rows), int> = 0>
-#endif
-  inline decltype(auto)
-  column(Arg&& arg)
-  {
-    using C = typename MatrixTraits<Arg>::RowCoefficients;
-    using CC = typename C::template Coefficient<index>;
-    return make_matrix<C, CC>(column<index>(to_covariance_nestable(std::forward<Arg>(arg))));
   }
 
 

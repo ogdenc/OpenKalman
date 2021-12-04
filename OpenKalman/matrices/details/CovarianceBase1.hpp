@@ -26,11 +26,11 @@ namespace OpenKalman::internal
    */
   template<typename Cov, typename Nested = nested_matrix_t<Cov>>
 #ifdef __cpp_concepts
-  concept case1or2 = (not square_root_covariance<Cov> and self_adjoint_matrix<Nested>) or
-    (square_root_covariance<Cov> and triangular_matrix<Nested>);
+  concept case1or2 = (self_adjoint_covariance<Cov> and self_adjoint_matrix<Nested>) or
+    (triangular_covariance<Cov> and triangular_matrix<Nested>);
 #else
-  static constexpr bool case1or2 = (not square_root_covariance<Cov> and self_adjoint_matrix<Nested>) or
-    (square_root_covariance<Cov> and triangular_matrix<Nested>);
+  static constexpr bool case1or2 = (self_adjoint_covariance<Cov> and self_adjoint_matrix<Nested>) or
+    (triangular_covariance<Cov> and triangular_matrix<Nested>);
 #endif
 
 
@@ -85,7 +85,7 @@ namespace OpenKalman::internal
      */
     decltype(auto) cholesky_nested_matrix() &
     {
-      if constexpr (square_root_covariance<Derived>) return Cholesky_square(this->nested_matrix());
+      if constexpr (triangular_covariance<Derived>) return Cholesky_square(this->nested_matrix());
       else return Cholesky_factor(this->nested_matrix());
     }
 
@@ -93,7 +93,7 @@ namespace OpenKalman::internal
     /// \internal \overload
     decltype(auto) cholesky_nested_matrix() const &
     {
-      if constexpr (square_root_covariance<Derived>) return Cholesky_square(this->nested_matrix());
+      if constexpr (triangular_covariance<Derived>) return Cholesky_square(this->nested_matrix());
       else return Cholesky_factor(this->nested_matrix());
     }
 
@@ -101,7 +101,7 @@ namespace OpenKalman::internal
     /// \internal \overload
     decltype(auto) cholesky_nested_matrix() &&
     {
-      if constexpr (square_root_covariance<Derived>) return Cholesky_square(std::move(*this).nested_matrix());
+      if constexpr (triangular_covariance<Derived>) return Cholesky_square(std::move(*this).nested_matrix());
       else return Cholesky_factor(std::move(*this).nested_matrix());
     }
 
@@ -109,7 +109,7 @@ namespace OpenKalman::internal
     /// \internal \overload
     decltype(auto) cholesky_nested_matrix() const &&
     {
-      if constexpr (square_root_covariance<Derived>) return Cholesky_square(std::move(*this).nested_matrix());
+      if constexpr (triangular_covariance<Derived>) return Cholesky_square(std::move(*this).nested_matrix());
       else return Cholesky_factor(std::move(*this).nested_matrix());
     }
 

@@ -22,6 +22,7 @@
 
 namespace OpenKalman
 {
+  using namespace OpenKalman::internal;
 
   namespace Eigen3
   {
@@ -600,11 +601,11 @@ namespace OpenKalman
     (sizeof...(Args) == internal::constexpr_sqrt(sizeof...(Args)) * internal::constexpr_sqrt(sizeof...(Args)))
 #else
   template<typename ... Args, std::enable_if_t<(arithmetic_or_complex<Args> and ...) and (sizeof...(Args) > 0) and
-    (sizeof...(Args) == internal::constexpr_sqrt(sizeof...(Args)) * internal::constexpr_sqrt(sizeof...(Args))), int> = 0>
+    (sizeof...(Args) == constexpr_sqrt(sizeof...(Args)) * constexpr_sqrt(sizeof...(Args))), int> = 0>
 #endif
-  explicit Covariance(const Args& ...) -> Covariance<Axes<internal::constexpr_sqrt(sizeof...(Args))>,
+  explicit Covariance(const Args& ...) -> Covariance<Axes<constexpr_sqrt(sizeof...(Args))>,
   Eigen3::SelfAdjointMatrix<Eigen3::eigen_matrix_t<std::common_type_t<Args...>,
-    internal::constexpr_sqrt(sizeof...(Args)), internal::constexpr_sqrt(sizeof...(Args))>>>;
+    constexpr_sqrt(sizeof...(Args)), constexpr_sqrt(sizeof...(Args))>>>;
 
 
   // --------------------- //
@@ -629,11 +630,11 @@ namespace OpenKalman
   (sizeof...(Args) == internal::constexpr_sqrt(sizeof...(Args)) * internal::constexpr_sqrt(sizeof...(Args)))
 #else
   template<typename ... Args, std::enable_if_t<(arithmetic_or_complex<Args> and ...) and (sizeof...(Args) > 0) and
-    (sizeof...(Args) == internal::constexpr_sqrt(sizeof...(Args)) * internal::constexpr_sqrt(sizeof...(Args))), int> = 0>
+    (sizeof...(Args) == constexpr_sqrt(sizeof...(Args)) * constexpr_sqrt(sizeof...(Args))), int> = 0>
 #endif
-  explicit SquareRootCovariance(const Args& ...) -> SquareRootCovariance<Axes<internal::constexpr_sqrt(sizeof...(Args))>,
+  explicit SquareRootCovariance(const Args& ...) -> SquareRootCovariance<Axes<constexpr_sqrt(sizeof...(Args))>,
   Eigen3::TriangularMatrix<Eigen3::eigen_matrix_t<std::common_type_t<Args...>,
-    OpenKalman::internal::constexpr_sqrt(sizeof...(Args)), OpenKalman::internal::constexpr_sqrt(sizeof...(Args))>>>;
+    constexpr_sqrt(sizeof...(Args)), constexpr_sqrt(sizeof...(Args))>>>;
 
 
 } // namespace OpenKalman

@@ -22,6 +22,74 @@
 namespace OpenKalman::test
 {
   using namespace OpenKalman;
+  using namespace OpenKalman::Eigen3;
+
+
+#ifdef __cpp_concepts
+  template<native_eigen_matrix Arg1, native_eigen_matrix Arg2, typename Err>
+  struct TestComparison<Arg1, Arg2, Err>
+#else
+  template<typename Arg1, typename Arg2, typename Err>
+  struct TestComparison<Arg1, Arg2, Err, std::enable_if_t<native_eigen_matrix<Arg1> and native_eigen_matrix<Arg2>>>
+#endif
+    : ::testing::AssertionResult
+  {
+
+  private:
+
+    static ::testing::AssertionResult
+    compare(const Arg1& arg1, const Arg2& arg2, const Err& err)
+    {
+      if constexpr (std::is_arithmetic_v<Err>)
+        if (arg1.isApprox(arg2, err) or (arg1.isMuchSmallerThan(1., err) and arg2.isMuchSmallerThan(1., err)))
+        {
+          return ::testing::AssertionSuccess();
+        }
+
+      if constexpr (native_eigen_matrix<Err>)
+        if (((arg1 - arg2).cwiseAbs().array() - make_native_matrix(err).array()).maxCoeff() <= 0)
+        {
+          return ::testing::AssertionSuccess();
+        }
+
+      return ::testing::AssertionFailure() << std::endl << arg1 << std::endl << "is not near" << std::endl <<
+        arg2 << std::endl;
+    }
+
+  public:
+
+    TestComparison(const Arg1& arg1, const Arg2& arg2, const Err& err)
+      : ::testing::AssertionResult {compare(arg1, arg2, err)} {};
+
+   };
+
+
+#ifdef __cpp_concepts
+  template<eigen_native_general Arg1, eigen_native_general Arg2, typename Err>
+  requires (not native_eigen_matrix<Arg1>) or (not native_eigen_matrix<Arg2>)
+  struct TestComparison<Arg1, Arg2, Err>
+#else
+  template<typename Arg1, typename Arg2, typename Err>
+  struct TestComparison<Arg1, Arg2, Err, std::enable_if_t<eigen_native_general<Arg1> and eigen_native_general<Arg2> and
+    (not native_eigen_matrix<Arg1>) or (not native_eigen_matrix<Arg2>)>>
+#endif
+    : ::testing::AssertionResult
+  {
+  private:
+    template<typename Arg>
+    decltype(auto) convert_impl(const Arg& arg)
+    {
+      if constexpr (native_eigen_matrix<Arg>)
+        return arg;
+      else
+        return make_native_matrix(arg);
+    }
+
+  public:
+    TestComparison(const Arg1& arg1, const Arg2& arg2, const Err& err)
+      : ::testing::AssertionResult {is_near(convert_impl(arg1), convert_impl(arg2), err)} {};
+
+  };
 
 
   namespace detail
@@ -37,41 +105,30 @@ namespace OpenKalman::test
 
 #ifdef __cpp_concepts
   template<detail::eigen_type Arg1, detail::eigen_type Arg2, typename Err>
+  requires (not eigen_native_general<Arg1>) or (not eigen_native_general<Arg2>)
   struct TestComparison<Arg1, Arg2, Err>
 #else
   template<typename Arg1, typename Arg2, typename Err>
-  struct TestComparison<Arg1, Arg2, Err, std::enable_if_t<detail::eigen_type<Arg1> and detail::eigen_type<Arg2>>>
+  struct TestComparison<Arg1, Arg2, Err, std::enable_if_t<detail::eigen_type<Arg1> and detail::eigen_type<Arg2> and
+    (not eigen_native_general<Arg1>) or (not eigen_native_general<Arg2>)>>
 #endif
     : ::testing::AssertionResult
   {
-
   private:
-
-    static ::testing::AssertionResult
-    compare(const Arg1& A, const Arg2& B, const Err& err)
+    template<typename Arg>
+    decltype(auto) convert_impl(const Arg& arg)
     {
-      if constexpr (std::is_arithmetic_v<Err>)
-        if (A.isApprox(B, err) or (A.isMuchSmallerThan(1., err) and B.isMuchSmallerThan(1., err)))
-        {
-          return ::testing::AssertionSuccess();
-        }
-
-      if constexpr (detail::eigen_type<Err>)
-        if (((A - B).cwiseAbs().array() - make_native_matrix(err).array()).maxCoeff() <= 0)
-        {
-          return ::testing::AssertionSuccess();
-        }
-
-      return ::testing::AssertionFailure() << std::endl << A << std::endl << "is not near" << std::endl <<
-        B << std::endl;
+      if constexpr (native_eigen_matrix<Arg>)
+        return arg;
+      else
+        return make_native_matrix(arg);
     }
 
   public:
+    TestComparison(const Arg1& arg1, const Arg2& arg2, const Err& err)
+      : ::testing::AssertionResult {is_near(convert_impl(arg1), convert_impl(arg2), err)} {};
 
-    TestComparison(const Arg1& A, const Arg2& B, const Err& err)
-      : ::testing::AssertionResult {compare(A, B, err)} {};
-
-   };
+  };
 
 
 } // namespace OpenKalman::test

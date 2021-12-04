@@ -63,7 +63,7 @@ namespace OpenKalman
     template<typename Arg>
     static decltype(auto) cov_adapter(Arg&& arg)
     {
-      if constexpr (square_root_covariance<Arg>) return square(std::forward<Arg>(arg));
+      if constexpr (triangular_covariance<Arg>) return square(std::forward<Arg>(arg));
       else return std::forward<Arg>(arg);
     }
 
@@ -381,10 +381,9 @@ namespace OpenKalman
   // ------------------------------- //
 
 #ifdef __cpp_concepts
-  template<typed_matrix M, covariance C> requires (not square_root_covariance<C>)
+  template<typed_matrix M, self_adjoint_covariance C>
 #else
-  template<typename M, typename C, std::enable_if_t<
-    typed_matrix<M> and covariance<C> and not square_root_covariance<C>, int> = 0>
+  template<typename M, typename C, std::enable_if_t<typed_matrix<M> and self_adjoint_covariance<C>, int> = 0>
 #endif
   GaussianDistribution(M&&, C&&) -> GaussianDistribution<
     typename MatrixTraits<M>::RowCoefficients,
@@ -393,10 +392,10 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<typed_matrix M, square_root_covariance C>
+  template<typed_matrix M, triangular_covariance C>
 #else
   template<typename M, typename C, std::enable_if_t<
-    typed_matrix<M> and square_root_covariance<C>, int> = 0>
+    typed_matrix<M> and triangular_covariance<C>, int> = 0>
 #endif
   GaussianDistribution(M&&, C&&) -> GaussianDistribution<
     typename MatrixTraits<M>::RowCoefficients,
@@ -430,10 +429,9 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<typed_matrix_nestable M, covariance C> requires (not square_root_covariance<C>)
+  template<typed_matrix_nestable M, self_adjoint_covariance C>
 #else
-  template<typename M, typename C, std::enable_if_t<
-    typed_matrix_nestable<M> and covariance<C> and not square_root_covariance<C>, int> = 0>
+  template<typename M, typename C, std::enable_if_t<typed_matrix_nestable<M> and self_adjoint_covariance<C>, int> = 0>
 #endif
   GaussianDistribution(M&&, C&&) -> GaussianDistribution<
     typename MatrixTraits<C>::RowCoefficients,
@@ -442,10 +440,10 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<typed_matrix_nestable M, square_root_covariance C>
+  template<typed_matrix_nestable M, triangular_covariance C>
 #else
   template<typename M, typename C, std::enable_if_t<
-    typed_matrix_nestable<M> and square_root_covariance<C>, int> = 0>
+    typed_matrix_nestable<M> and triangular_covariance<C>, int> = 0>
 #endif
   GaussianDistribution(M&&, C&&) -> GaussianDistribution<
     typename MatrixTraits<C>::RowCoefficients,

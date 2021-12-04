@@ -49,6 +49,13 @@ namespace OpenKalman
   struct Matrix;
 
 
+  namespace internal
+  {
+    template<typename RowCoefficients, typename ColumnCoefficients, typename NestedMatrix>
+    struct is_matrix<OpenKalman::Matrix<RowCoefficients, ColumnCoefficients, NestedMatrix>> : std::true_type {};
+  }
+
+
   /**
    * \brief A set of one or more column vectors, each representing a statistical mean.
    * \details Unlike OpenKalman::Matrix, the columns of a Mean are untyped. When a Mean is converted to an
@@ -69,6 +76,13 @@ namespace OpenKalman
   template<typename RowCoefficients, typename NestedMatrix>
 #endif
   struct Mean;
+
+
+  namespace internal
+  {
+    template<typename Coefficients, typename NestedMatrix>
+    struct is_mean<Mean<Coefficients, NestedMatrix>> : std::true_type {};
+  }
 
 
   /**
@@ -92,6 +106,13 @@ namespace OpenKalman
   struct EuclideanMean;
 
 
+  namespace internal
+  {
+    template<typename Coefficients, typename NestedMatrix>
+    struct is_euclidean_mean<EuclideanMean<Coefficients, NestedMatrix>> : std::true_type {};
+  }
+
+
   /**
    * \brief A self-adjoint Covariance matrix.
    * \details The coefficient types for the rows are the same as for the columns.
@@ -108,6 +129,21 @@ namespace OpenKalman
   template<typename Coefficients, typename NestedMatrix>
 #endif
   struct Covariance;
+
+
+  namespace internal
+  {
+    template<typename Coefficients, typename NestedMatrix>
+    struct is_covariance<Covariance<Coefficients, NestedMatrix>> : std::true_type {};
+
+    template<typename Coefficients, typename NestedMatrix>
+    struct is_upper_self_adjoint_matrix<Covariance<Coefficients, NestedMatrix>>
+      : std::bool_constant<upper_self_adjoint_matrix<NestedMatrix> or upper_triangular_matrix<NestedMatrix>> {};
+
+    template<typename Coefficients, typename NestedMatrix>
+    struct is_lower_self_adjoint_matrix<Covariance<Coefficients, NestedMatrix>>
+      : std::bool_constant<lower_self_adjoint_matrix<NestedMatrix> or lower_triangular_matrix<NestedMatrix>> {};
+  }
 
 
   /**
@@ -128,6 +164,21 @@ namespace OpenKalman
   template<typename Coefficients, typename NestedMatrix>
 #endif
   struct SquareRootCovariance;
+
+
+  namespace internal
+  {
+    template<typename Coefficients, typename NestedMatrix>
+    struct is_covariance<SquareRootCovariance<Coefficients, NestedMatrix>> : std::true_type {};
+
+    template<typename Coefficients, typename NestedMatrix>
+    struct is_upper_triangular_matrix<SquareRootCovariance<Coefficients, NestedMatrix>>
+      : std::bool_constant<upper_triangular_matrix<NestedMatrix> or upper_self_adjoint_matrix<NestedMatrix>> {};
+
+    template<typename Coefficients, typename NestedMatrix>
+    struct is_lower_triangular_matrix<SquareRootCovariance<Coefficients, NestedMatrix>>
+      : std::bool_constant<lower_triangular_matrix<NestedMatrix> or lower_self_adjoint_matrix<NestedMatrix>> {};
+  }
 
 
   /**
@@ -157,331 +208,12 @@ namespace OpenKalman
   struct GaussianDistribution;
 
 
-  // --------- //
-  //   Means   //
-  // --------- //
-
-
-  namespace detail
+  namespace internal
   {
-    template<typename T>
-    struct is_mean : std::false_type {};
-
-    template<typename Coefficients, typename NestedMatrix>
-    struct is_mean<Mean<Coefficients, NestedMatrix>> : std::true_type {};
-  }
-
-
-  /**
-   * \brief Specifies that T is a mean (i.e., is a specialization of the class Mean).
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept mean = detail::is_mean<std::decay_t<T>>::value;
-#else
-  inline constexpr bool mean = detail::is_mean<std::decay_t<T>>::value;
-#endif
-
-
-#ifndef __cpp_concepts
-  namespace detail
-  {
-    template<typename T, typename = void>
-    struct is_wrapped_mean : std::false_type {};
-
-    template<typename T>
-    struct is_wrapped_mean<T, std::enable_if_t<mean<T> and (not MatrixTraits<T>::RowCoefficients::axes_only)>>
-      : std::true_type {};
-  }
-#endif
-
-
-  /**
-   * \brief Specifies that T is a wrapped mean (i.e., its row coefficients have at least one type that requires wrapping).
-   */
-#ifdef __cpp_concepts
-  template<typename T>
-  concept wrapped_mean = mean<T> and (not MatrixTraits<T>::RowCoefficients::axes_only);
-#else
-  template<typename T>
-  inline constexpr bool wrapped_mean = detail::is_wrapped_mean<T>::value;
-#endif
-
-
-  // ------------------- //
-  //   Euclidean means   //
-  // ------------------- //
-
-  namespace detail
-  {
-    template<typename T>
-    struct is_euclidean_mean : std::false_type {};
-
-    template<typename Coefficients, typename NestedMatrix>
-    struct is_euclidean_mean<EuclideanMean<Coefficients, NestedMatrix>> : std::true_type {};
-  }
-
-
-  /**
-   * \brief Specifies that T is a Euclidean mean (i.e., is a specialization of the class EuclideanMean).
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept euclidean_mean = detail::is_euclidean_mean<std::decay_t<T>>::value;
-#else
-  inline constexpr bool euclidean_mean = detail::is_euclidean_mean<std::decay_t<T>>::value;
-#endif
-
-
-#ifndef __cpp_concepts
-  namespace detail
-  {
-    template<typename T, typename = void>
-    struct is_euclidean_transformed : std::false_type {};
-
-    template<typename T>
-    struct is_euclidean_transformed<T, std::enable_if_t<
-      euclidean_mean<T> and (not MatrixTraits<T>::RowCoefficients::axes_only)>>
-      : std::true_type {};
-  }
-#endif
-
-
-  /**
-   * \brief Specifies that T is a Euclidean mean that actually has coefficients that are transformed to Euclidean space.
-   */
-#ifdef __cpp_concepts
-  template<typename T>
-  concept euclidean_transformed = euclidean_mean<T> and (not MatrixTraits<T>::RowCoefficients::axes_only);
-#else
-  template<typename T>
-  inline constexpr bool euclidean_transformed = detail::is_euclidean_transformed<T>::value;
-#endif
-
-
-  // ------------------ //
-  //   typed matrices   //
-  // ------------------ //
-
-  namespace detail
-  {
-    template<typename T>
-    struct is_matrix : std::false_type {};
-
-    template<typename RowCoefficients, typename ColumnCoefficients, typename NestedMatrix>
-    struct is_matrix<OpenKalman::Matrix<RowCoefficients, ColumnCoefficients, NestedMatrix>> : std::true_type {};
-  }
-
-
-  /**
-   * \brief Specifies that T is a typed matrix (i.e., is a specialization of Matrix, Mean, or EuclideanMean).
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept typed_matrix = mean<T> or euclidean_mean<T> or detail::is_matrix<std::decay_t<T>>::value;
-#else
-  inline constexpr bool typed_matrix = mean<T> or euclidean_mean<T> or detail::is_matrix<std::decay_t<T>>::value;
-#endif
-
-
-#ifndef __cpp_concepts
-  namespace detail
-  {
-    template<typename T, typename = void>
-    struct has_untyped_columns : std::false_type {};
-
-    template<typename T>
-    struct has_untyped_columns<T, std::enable_if_t<typed_matrix<T> and MatrixTraits<T>::ColumnCoefficients::axes_only>>
-      : std::true_type {};
-
-    template<typename T>
-    struct has_untyped_columns<T, std::enable_if_t<
-      (not typed_matrix<T>) and std::is_integral_v<decltype(MatrixTraits<T>::columns)>>>
-      : std::true_type {};
-  }
-#endif
-
-
-  /**
-   * \brief Specifies that T has untyped (or Axis typed) column coefficients.
-   * \details T must be either a native matrix or its columns must all have type Axis.
-   */
-#ifdef __cpp_concepts
-  template<typename T>
-  concept untyped_columns = (typed_matrix<T> and MatrixTraits<T>::ColumnCoefficients::axes_only) or
-    (not typed_matrix<T> and requires {MatrixTraits<T>::columns;});
-#else
-  template<typename T>
-  inline constexpr bool untyped_columns = detail::has_untyped_columns<std::decay_t<T>>::value;
-#endif
-
-
-#ifndef __cpp_concepts
-  namespace detail
-  {
-    template<typename T, typename = void>
-    struct has_one_column : std::false_type {};
-
-    template<typename T>
-    struct has_one_column<T, std::enable_if_t<MatrixTraits<T>::columns == 1>> : std::true_type {};
-  }
-#endif
-
-
-  /**
-   * \brief Specifies that T is a column vector (i.e., has one untyped or Axis-typed column).
-   * \details If T is a typed_matrix, its column must be of type Axis.
-   */
-#ifdef __cpp_concepts
-  template<typename T>
-  concept column_vector = untyped_columns<T> and (MatrixTraits<T>::columns == 1);
-#else
-  template<typename T>
-  inline constexpr bool column_vector = untyped_columns<T> and detail::has_one_column<std::decay_t<T>>::value;
-#endif
-
-
-#ifndef __cpp_concepts
-  namespace detail
-  {
-    template<typename T, typename = void>
-    struct has_untyped_rows : std::false_type {};
-
-    template<typename T>
-    struct has_untyped_rows<T, std::enable_if_t<typed_matrix<T> and MatrixTraits<T>::RowCoefficients::axes_only>>
-      : std::true_type {};
-
-    template<typename T>
-    struct has_untyped_rows<T, std::enable_if_t<
-      (not typed_matrix<T>) and std::is_integral_v<decltype(MatrixTraits<T>::rows)>>>
-      : std::true_type {};
-  }
-#endif
-
-
-  /**
-   * \brief Specifies that T has untyped (or Axis typed) row coefficients.
-   * \details T must be either a native matrix or its rows must all have type Axis.
-   */
-#ifdef __cpp_concepts
-  template<typename T>
-  concept untyped_rows = (typed_matrix<T> and MatrixTraits<T>::RowCoefficients::axes_only) or
-    (not typed_matrix<T> and requires {MatrixTraits<T>::rows;});
-#else
-  template<typename T>
-  inline constexpr bool untyped_rows = detail::has_untyped_rows<std::decay_t<T>>::value;
-#endif
-
-
-#ifndef __cpp_concepts
-  namespace detail
-  {
-    template<typename T, typename = void>
-    struct has_one_row : std::false_type {};
-
-    template<typename T>
-    struct has_one_row<T, std::enable_if_t<MatrixTraits<T>::rows == 1>> : std::true_type {};
-  }
-#endif
-
-
-  /**
-   * \brief Specifies that T is a row vector (i.e., has one untyped or Axis-typed row).
-   * \details If T is a typed_matrix, its row must be of type Axis.
-   */
-#ifdef __cpp_concepts
-  template<typename T>
-  concept row_vector = untyped_rows<T> and (MatrixTraits<T>::rows == 1);
-#else
-  template<typename T>
-  inline constexpr bool row_vector = untyped_rows<T> and detail::has_one_row<std::decay_t<T>>::value;
-#endif
-
-
-  // ------------------------------------ //
-  //  square root (Cholesky) covariances  //
-  // ------------------------------------ //
-
-  namespace detail
-  {
-    template<typename T>
-    struct is_square_root_covariance : std::false_type {};
-
-    template<typename Coefficients, typename NestedMatrix>
-    struct is_square_root_covariance<SquareRootCovariance<Coefficients, NestedMatrix>> : std::true_type {};
-  }
-
-
-  /**
-   * \brief T is a square root (Cholesky) covariance matrix (i.e., a specialization of SquareRootCovariance).
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept square_root_covariance = detail::is_square_root_covariance<std::decay_t<T>>::value;
-#else
-  inline constexpr bool square_root_covariance = detail::is_square_root_covariance<std::decay_t<T>>::value;
-#endif
-
-
-  // ------------------------ //
-  //  covariances in general  //
-  // ------------------------ //
-
-  namespace detail
-  {
-    template<typename T>
-    struct is_sa_covariance : std::false_type {};
-
-    template<typename Coefficients, typename NestedMatrix>
-    struct is_sa_covariance<Covariance<Coefficients, NestedMatrix>> : std::true_type {};
-  }
-
-
-  /**
-   * \brief T is a specialization of either Covariance or SquareRootCovariance.
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept covariance = square_root_covariance<T> or detail::is_sa_covariance<std::decay_t<T>>::value;
-#else
-  inline constexpr bool covariance = square_root_covariance<T> or detail::is_sa_covariance<std::decay_t<T>>::value;
-#endif
-
-
-  // --------------- //
-  //  distributions  //
-  // --------------- //
-
-  namespace detail
-  {
-    template<typename T>
-    struct is_gaussian_distribution : std::false_type {};
-
     template<typename Coefficients, typename MeanNestedMatrix, typename CovarianceNestedMatrix, typename re>
     struct is_gaussian_distribution<GaussianDistribution<Coefficients, MeanNestedMatrix, CovarianceNestedMatrix, re>>
       : std::true_type {};
   }
-
-  /**
-   * \brief T is a Gaussian distribution.
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept gaussian_distribution = detail::is_gaussian_distribution<std::decay_t<T>>::value;
-#else
-  inline constexpr bool gaussian_distribution = detail::is_gaussian_distribution<std::decay_t<T>>::value;
-#endif
-
-
-  /**
-   * \brief T is a statistical distribution of any kind that is defined in OpenKalman.
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept distribution = gaussian_distribution<T>;
-#else
-  inline constexpr bool distribution = gaussian_distribution<T>;
-#endif
 
 
   namespace internal

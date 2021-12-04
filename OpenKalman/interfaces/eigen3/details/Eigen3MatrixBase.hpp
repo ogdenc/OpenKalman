@@ -42,6 +42,199 @@ namespace OpenKalman::Eigen3::internal
 
     using Scalar = typename MatrixTraits<Nested>::Scalar; ///< Required by Eigen3.
 
+    /**
+     * \internal
+     * \return The number of fixed rows. (Required by Eigen::EigenBase).
+     */
+#ifdef __cpp_concepts
+    static constexpr Eigen::Index rows() requires (not dynamic_rows<ArgType>)
+#else
+    template<typename D = ArgType, std::enable_if_t<(not dynamic_rows<D>), int> = 0>
+    static constexpr Eigen::Index rows()
+#endif
+    {
+      return MatrixTraits<Derived>::rows;
+    }
+
+
+    /**
+     * \internal
+     * \return The number of dynamic rows. (Required by Eigen::EigenBase).
+     */
+#ifdef __cpp_concepts
+    Eigen::Index rows() const requires dynamic_rows<ArgType>
+#else
+    template<typename D = ArgType, std::enable_if_t<dynamic_rows<D>, int> = 0>
+    Eigen::Index rows() const
+#endif
+    {
+      return row_count(static_cast<const Derived&>(*this));
+    }
+
+
+    /**
+     * \internal
+     * \return The number of fixed columns. (Required by Eigen::EigenBase).
+     */
+#ifdef __cpp_concepts
+    static constexpr Eigen::Index cols() requires (not dynamic_columns<ArgType>)
+#else
+    template<typename D = ArgType, std::enable_if_t<(not dynamic_columns<D>), int> = 0>
+    static constexpr Eigen::Index cols()
+#endif
+    {
+      return MatrixTraits<Derived>::columns;
+    }
+
+
+    /**
+     * \internal
+     * \return The number of dynamic rows. (Required by Eigen::EigenBase).
+     */
+#ifdef __cpp_concepts
+    Eigen::Index cols() const requires dynamic_columns<ArgType>
+#else
+    template<typename D = ArgType, std::enable_if_t<dynamic_columns<D>, int> = 0>
+    Eigen::Index cols() const
+#endif
+    {
+      return column_count(static_cast<const Derived&>(*this));
+    }
+
+
+    /**
+     * \return A matrix, of the same size and shape, containing only zero coefficients.
+     */
+#ifdef __cpp_concepts
+    template<std::convertible_to<std::size_t> ... Args>
+    requires (sizeof...(Args) == (dynamic_rows<ArgType> ? 1 : 0) + (dynamic_columns<ArgType> ? 1 : 0))
+#else
+    template<typename D = ArgType, typename...Args, std::enable_if_t<
+      (std::is_convertible_v<Args, std::size_t> and ...) and
+      (sizeof...(Args) == (dynamic_rows<D> ? 1 : 0) + (dynamic_columns<D> ? 1 : 0)), int> = 0>
+#endif
+    static auto zero(const Args...args)
+    {
+      return MatrixTraits<Derived>::zero(static_cast<std::size_t>(args)...);
+    }
+
+
+    /**
+     * \brief Synonym for zero().
+     * \deprecated Use zero() instead. Provided for compatibility with Eigen Zero() member.
+     * \return A matrix, of the same size and shape, containing only zero coefficients.
+     */
+    [[deprecated("Use zero() instead.")]]
+#ifdef __cpp_concepts
+    static auto Zero()
+    requires (not dynamic_shape<ArgType>)
+#else
+    template<typename D = ArgType, std::enable_if_t<not dynamic_shape<ArgType>, int> = 0>
+    static auto Zero()
+#endif
+    {
+      return zero();
+    }
+
+
+    /**
+     * \brief Synonym for zero().
+     * \deprecated Use zero() instead. Provided for compatibility with Eigen Zero() member.
+     * \return A matrix, of the same size and shape, containing only zero coefficients.
+     */
+    [[deprecated("Use zero() instead.")]]
+#ifdef __cpp_concepts
+    static auto Zero(const Eigen::Index r, const Eigen::Index c)
+    requires dynamic_shape<ArgType>
+#else
+    template<typename D = ArgType, std::enable_if_t<dynamic_shape<D>, int> = 0>
+    static auto Zero(const Eigen::Index r, const Eigen::Index c)
+#endif
+    {
+      if constexpr (dynamic_rows<Derived> and dynamic_columns<Derived>)
+      {
+        return zero(r, c);
+      }
+      else if constexpr (dynamic_rows<Derived>)
+      {
+        assert(c == MatrixTraits<Derived>::columns);
+        return zero(r);
+      }
+      else
+      {
+        static_assert(dynamic_columns<Derived>);
+        assert(r == MatrixTraits<Derived>::rows);
+        return zero(c);
+      }
+    }
+
+
+    /**
+     * \return A square identity matrix with the same number of rows.
+     */
+#ifdef __cpp_concepts
+    template<std::convertible_to<std::size_t> ... Args>
+    requires (sizeof...(Args) == (dynamic_rows<ArgType> ? 1 : 0) + (dynamic_columns<ArgType> ? 1 : 0))
+#else
+    template<typename D = ArgType, typename...Args, std::enable_if_t<
+      (std::is_convertible_v<Args, std::size_t> and ...) and
+      (sizeof...(Args) == (dynamic_rows<D> ? 1 : 0) + (dynamic_columns<D> ? 1 : 0)), int> = 0>
+#endif
+    static auto identity(const Args...args)
+    {
+      return MatrixTraits<Derived>::identity(static_cast<std::size_t>(args)...);
+    }
+
+
+    /**
+     * \brief Synonym for identity().
+     * \deprecated Use identity() instead. Provided for compatibility with Eigen Identity() member.
+     * \return An identity matrix with the same or identified number of rows and columns.
+     */
+    [[deprecated("Use identity() instead.")]]
+#ifdef __cpp_concepts
+    static auto Identity() requires (not dynamic_shape<ArgType>)
+#else
+    template<typename D = ArgType, std::enable_if_t<not dynamic_shape<D>, int> = 0>
+    static auto Identity()
+#endif
+    {
+      return identity();
+    }
+
+
+    /**
+     * \brief Synonym for identity().
+     * \deprecated Use identity() instead. Provided for compatibility with Eigen Identity() member.
+     * \return An identity matrix with the same or identified number of rows and columns.
+     */
+    [[deprecated("Use identity() instead.")]]
+#ifdef __cpp_concepts
+    static decltype(auto) Identity(const Eigen::Index r, const Eigen::Index c)
+    requires dynamic_shape<ArgType>
+#else
+    template<typename D = ArgType, std::enable_if_t<dynamic_shape<D>, int> = 0>
+    static decltype(auto) Identity(const Eigen::Index r, const Eigen::Index c)
+#endif
+    {
+      if constexpr (dynamic_rows<Derived> and dynamic_columns<Derived>)
+      {
+        return identity(r, c);
+      }
+      else if constexpr (dynamic_rows<Derived>)
+      {
+        assert(c == MatrixTraits<Derived>::columns);
+        return identity(r);
+      }
+      else
+      {
+        static_assert(dynamic_columns<Derived>);
+        assert(r == MatrixTraits<Derived>::rows);
+        return identity(c);
+      }
+    }
+
+
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(bool {dynamic_shape<ArgType>})
 
   private:
@@ -71,12 +264,12 @@ namespace OpenKalman::Eigen3::internal
     {
       if constexpr(Eigen3::eigen_self_adjoint_expr<Arg>)
       {
-        if constexpr (MatrixTraits<Arg>::storage_triangle == TriangleType::diagonal) return arg;
+        if constexpr (self_adjoint_triangle_type_of_v<Arg> == TriangleType::diagonal) return arg;
         else return get_ultimate_nested_matrix_impl(arg);
       }
       else if constexpr(Eigen3::eigen_triangular_expr<Arg>)
       {
-        if constexpr(MatrixTraits<Arg>::triangle_type == TriangleType::diagonal) return arg;
+        if constexpr(triangle_type_of_v<Arg> == TriangleType::diagonal) return arg;
         else return get_ultimate_nested_matrix_impl(arg);
       }
       else
@@ -311,7 +504,7 @@ namespace Eigen
       {
         cov = MatrixTraits<CovNest>::make(std::move(comma_initializer.finished()));
       }
-      else if constexpr (square_root_covariance<CovarianceType>)
+      else if constexpr (triangular_covariance<CovarianceType>)
       {
         using T = typename MatrixTraits<CovNest>::template TriangularMatrixFrom<>;
         auto b = OpenKalman::internal::to_covariance_nestable<T>(std::move(comma_initializer.finished()));
@@ -333,7 +526,7 @@ namespace Eigen
       {
         cov = MatrixTraits<CovNest>::make(comma_initializer.finished());
       }
-      else if constexpr (square_root_covariance<CovarianceType>)
+      else if constexpr (triangular_covariance<CovarianceType>)
       {
         using T = typename MatrixTraits<CovNest>::template TriangularMatrixFrom<>;
         auto b = OpenKalman::internal::to_covariance_nestable<T>(comma_initializer.finished());

@@ -119,7 +119,16 @@ namespace OpenKalman
       {
         const auto x = std::signbit(get_coeff(i + d_i)) ? -get_coeff(i + x_i) : get_coeff(i + x_i);
         const auto y = std::signbit(get_coeff(i + d_i)) ? -get_coeff(i + y_i) : get_coeff(i + y_i);
-        return std::atan2(y, x) / cf;
+
+        if constexpr (std::numeric_limits<Scalar>::is_iec559)
+          return std::atan2(y, x) / cf;
+        else
+        {
+          if (x == 0)
+            return 0;
+          else
+            return std::atan2(y, x) / cf;
+        }
       }};
 
       template<std::size_t i, std::size_t d_i, std::size_t a_i>

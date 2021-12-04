@@ -29,6 +29,62 @@ template<typename C, typename Mat> using To = ToEuclideanExpr<C, Mat>;
 template<typename C, typename Mat> using From = FromEuclideanExpr<C, Mat>;
 
 
+static_assert(not writable<M::ConstantReturnType>);
+static_assert(not writable<M::IdentityReturnType>);
+static_assert(not writable<decltype(-std::declval<M>())>);
+static_assert(not writable<decltype(std::declval<M>() + std::declval<M>())>);
+static_assert(not writable<decltype(M::Identity() * 2)>);
+static_assert(writable<Eigen::Block<M, 3, 1, true>>);
+static_assert(writable<Eigen::Block<M, 3, 2, true>>);
+
+static_assert(writable<M>);
+static_assert(writable<M&>);
+static_assert(not writable<const M>);
+static_assert(not writable<const M&>);
+
+static_assert(writable<eigen_matrix_t<double, 0, 0>>);
+static_assert(writable<eigen_matrix_t<double, 3, 0>>);
+static_assert(writable<eigen_matrix_t<double, 0, 3>>);
+
+static_assert(not writable<ConstantMatrix<double, 7, 3, 3>>);
+static_assert(not writable<ZeroMatrix<double, 3, 3>>);
+
+static_assert(writable<SAl<M>>);
+static_assert(writable<SAl<M&>>);
+static_assert(not writable<SAl<const M>>);
+static_assert(not writable<SAl<const M&>>);
+
+static_assert(writable<SAu<M>>);
+static_assert(writable<SAu<M&>>);
+static_assert(not writable<SAu<const M>>);
+static_assert(not writable<SAu<const M&>>);
+
+static_assert(writable<Tl<M>>);
+static_assert(writable<Tl<M&>>);
+static_assert(not writable<Tl<const M>>);
+static_assert(not writable<Tl<const M&>>);
+
+static_assert(writable<SAu<M>>);
+static_assert(writable<SAu<M&>>);
+static_assert(not writable<Tu<const M>>);
+static_assert(not writable<Tu<const M&>>);
+
+static_assert(writable<D<M1>>);
+static_assert(writable<D<M1&>>);
+static_assert(not writable<D<const M1>>);
+static_assert(not writable<D<const M1&>>);
+
+static_assert(writable<To<C3, M3>>);
+static_assert(writable<To<C3, M3&>>);
+static_assert(not writable<To<C3, const M3>>);
+static_assert(not writable<To<C3, const M3&>>);
+
+static_assert(writable<From<C3, M4>>);
+static_assert(writable<From<C3, M4&>>);
+static_assert(not writable<From<C3, const M4>>);
+static_assert(not writable<From<C3, const M4&>>);
+
+
 static_assert(modifiable<M, M>);
 static_assert(modifiable<M, ZeroMatrix<double, 3, 3>>);
 static_assert(modifiable<M, IdentityMatrix<M>>);

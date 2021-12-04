@@ -25,6 +25,8 @@ namespace
 {
   using cdouble = std::complex<double>;
 
+  using M51 = eigen_matrix_t<double, 5, 1>;
+  using M50 = eigen_matrix_t<double, 5, 0>;
   using M31 = eigen_matrix_t<double, 3, 1>;
   using M33 = eigen_matrix_t<double, 3, 3>;
   using M30 = eigen_matrix_t<double, 3, 0>;
@@ -37,6 +39,7 @@ namespace
   using M01 = eigen_matrix_t<double, 0, 1>;
   using M00 = eigen_matrix_t<double, 0, 0>;
 
+  M51 m51 {make_native_matrix<double, 5, 1>(1, 2, 3, 4, 5)};
   M31 m31 {make_native_matrix<double, 3, 1>(1, 2, 3)};
   M01 m01_3 {m31};
   M00 m00_31 {m31};
@@ -44,10 +47,21 @@ namespace
   M33 m33b = make_native_matrix<double, 3, 3>(4, 0, 0, 0, 5, 0, 0, 0, 6);
   M03 m03_3 {m33};
   M00 m00_33 {m33};
+  M21 m21 {make_native_matrix<double, 2, 1>(1, 2)};
+  M21 m01_2 {m21};
 
+  using D5 = DiagonalMatrix<M51>;
   using D3 = DiagonalMatrix<M31>;
   using D2 = DiagonalMatrix<M21>;
   using D0 = DiagonalMatrix<M01>;
+
+  D2 d2 {m21};
+  D0 d0_2 {m21};
+  D3 d3 {m31};
+  D0 d0_3 {m31};
+  D5 d5 {m51};
+  D0 d0_5 {m51};
+  DiagonalMatrix<const M51> d5_const {m51};
 }
 
 
@@ -243,9 +257,9 @@ TEST(eigen3, Diagonal_class)
   d0b_3 += M00::Identity(3, 3);
   EXPECT_TRUE(is_near(d0b_3, D3 {2., 3, 4}));
 
-  d3a -= D3 {1, 2, 3};
+  d3a -= d3;
   EXPECT_TRUE(is_near(d3a, m33));
-  d0a_3 -= D3 {1, 2, 3};
+  d0a_3 -= d3;
   EXPECT_TRUE(is_near(d0a_3, m33));
   d3b -= M33::Identity();
   EXPECT_TRUE(is_near(d3b, m33));
@@ -274,8 +288,8 @@ TEST(eigen3, Diagonal_class)
 
   EXPECT_EQ((D3::rows()), 3);
   EXPECT_EQ((D3::cols()), 3);
-  EXPECT_EQ((D0 {1, 2, 3}.rows()), 3);
-  EXPECT_EQ((D0 {1, 2, 3}.cols()), 3);
+  EXPECT_EQ((d0_3.rows()), 3);
+  EXPECT_EQ((d0_3.cols()), 3);
 
   EXPECT_TRUE(is_near(D3::zero(), M33::Zero()));
   EXPECT_TRUE(is_near(D3::identity(), M33::Identity()));
@@ -413,17 +427,17 @@ TEST(eigen3, Diagonal_traits)
 
 TEST(eigen3, Diagonal_overloads)
 {
-  EXPECT_TRUE(is_near(make_native_matrix(D3 {1, 2, 3}), m33));
-  EXPECT_TRUE(is_near(make_native_matrix(D0 {1, 2, 3}), m33));
+  EXPECT_TRUE(is_near(make_native_matrix(d3), m33));
+  EXPECT_TRUE(is_near(make_native_matrix(d0_3), m33));
 
-  EXPECT_EQ(row_count(D3 {1, 2, 3}), 3);
-  EXPECT_EQ(row_count(D0 {1, 2, 3}), 3);
+  EXPECT_EQ(row_count(d3), 3);
+  EXPECT_EQ(row_count(d0_3), 3);
 
-  EXPECT_EQ(column_count(D3 {1, 2, 3}), 3);
-  EXPECT_EQ(column_count(D0 {1, 2, 3}), 3);
+  EXPECT_EQ(column_count(d3), 3);
+  EXPECT_EQ(column_count(d0_3), 3);
 
-  EXPECT_TRUE(is_near(Cholesky_square(D3 {1, 2, 3}), D3 {1, 4, 9}));
-  EXPECT_TRUE(is_near(Cholesky_square(D0 {1, 2, 3}), D3 {1, 4, 9}));
+  EXPECT_TRUE(is_near(Cholesky_square(d3), D3 {1, 4, 9}));
+  EXPECT_TRUE(is_near(Cholesky_square(d0_3), D3 {1, 4, 9}));
   EXPECT_TRUE(is_near(Cholesky_factor(D3 {1., 4, 9}), m33));
   EXPECT_TRUE(is_near(Cholesky_factor(D0 {1., 4, 9}), m33));
   EXPECT_TRUE(is_near(Cholesky_square(M11 {4}), M11 {16}));
@@ -439,13 +453,13 @@ TEST(eigen3, Diagonal_overloads)
   EXPECT_TRUE(is_near(Cholesky_factor(DiagonalMatrix {9.}), M11 {3}));
   EXPECT_TRUE(is_near(Cholesky_factor(D0 {M11 {9}}), M11 {3}));
 
-  EXPECT_TRUE(is_near(diagonal_of(D3 {1, 2, 3}), m31));
-  EXPECT_TRUE(is_near(diagonal_of(D0 {1, 2, 3}), m31));
+  EXPECT_TRUE(is_near(diagonal_of(d3), m31));
+  EXPECT_TRUE(is_near(diagonal_of(d0_3), m31));
 
-  EXPECT_TRUE(is_near(transpose(DiagonalMatrix {1., 2, 3}), DiagonalMatrix {1., 2, 3}));
+  EXPECT_TRUE(is_near(transpose(d3), d3));
   EXPECT_TRUE(is_near(transpose(DiagonalMatrix {cdouble(1,2), cdouble(2,3), 3}), DiagonalMatrix {cdouble(1,2), cdouble(2,3), 3}));
 
-  EXPECT_TRUE(is_near(adjoint(DiagonalMatrix {1., 2, 3}), DiagonalMatrix {1., 2, 3}));
+  EXPECT_TRUE(is_near(adjoint(d3), d3));
   EXPECT_TRUE(is_near(adjoint(DiagonalMatrix {cdouble(1,2), cdouble(2,3), 3}), DiagonalMatrix {cdouble(1,-2), cdouble(2,-3), 3}));
 
   EXPECT_NEAR(determinant(DiagonalMatrix {2., 3, 4}), 24, 1e-6);
@@ -470,12 +484,12 @@ TEST(eigen3, Diagonal_overloads)
   //
   EXPECT_TRUE(is_near(rank_update(M1by1 {3.}, M1by1 {2.}, 4), M1by1 {5.}));
   //
-  EXPECT_TRUE(is_near(solve(DiagonalMatrix {1., 2, 3}, make_native_matrix<double, 3, 1>(4., 10, 18)),
+  EXPECT_TRUE(is_near(solve(d3, make_native_matrix<double, 3, 1>(4., 10, 18)),
     make_native_matrix(4., 5, 6)));
-  EXPECT_TRUE(is_near(reduce_columns(DiagonalMatrix {1., 2, 3}), make_native_matrix(1., 2, 3)));
-  EXPECT_TRUE(is_near(reduce_rows(DiagonalMatrix {1., 2, 3}), make_native_matrix(1., 2, 3)));
-  EXPECT_TRUE(is_near(LQ_decomposition(DiagonalMatrix {1., 2, 3}), DiagonalMatrix {1., 2, 3}));
-  EXPECT_TRUE(is_near(QR_decomposition(DiagonalMatrix {1., 2, 3}), DiagonalMatrix {1., 2, 3}));
+  EXPECT_TRUE(is_near(reduce_columns(d3), make_native_matrix(1., 2, 3)));
+  EXPECT_TRUE(is_near(reduce_rows(d3), make_native_matrix(1., 2, 3)));
+  EXPECT_TRUE(is_near(LQ_decomposition(d3), d3));
+  EXPECT_TRUE(is_near(QR_decomposition(d3), d3));
   EXPECT_TRUE(is_near(LQ_decomposition(DiagonalMatrix {cdouble(1,2), cdouble(2,3), 3}), DiagonalMatrix {cdouble(1,2), cdouble(2,3), 3}));
   EXPECT_TRUE(is_near(QR_decomposition(DiagonalMatrix {cdouble(1,2), cdouble(2,3), 3}), DiagonalMatrix {cdouble(1,2), cdouble(2,3), 3}));
   EXPECT_TRUE(is_near(LQ_decomposition(M1by1 {4}), DiagonalMatrix {4.}));
@@ -504,18 +518,34 @@ TEST(eigen3, Diagonal_overloads)
 
 TEST(eigen3, Diagonal_blocks)
 {
-  EXPECT_TRUE(is_near(concatenate_diagonal(DiagonalMatrix {1., 2, 3}, DiagonalMatrix {4., 5}), DiagonalMatrix {1., 2, 3, 4, 5}));
-  EXPECT_TRUE(is_near(concatenate_vertical(DiagonalMatrix {1., 2}, DiagonalMatrix {3., 4}),
-    make_native_matrix<4,2>(1., 0, 0, 2, 3, 0, 0, 4)));
-  EXPECT_TRUE(is_near(concatenate_horizontal(DiagonalMatrix {1., 2}, DiagonalMatrix {3., 4}),
-    make_native_matrix<2,4>(1., 0, 3, 0, 0, 2, 0, 4)));
-  EXPECT_TRUE(is_near(split_diagonal(DiagonalMatrix{1., 2, 3, 4, 5}), std::tuple {}));
-  EXPECT_TRUE(is_near(split_diagonal<3, 2>(DiagonalMatrix{1., 2, 3, 4, 5}), std::tuple {DiagonalMatrix{1., 2, 3}, DiagonalMatrix{4., 5}}));
-  const auto a1 = DiagonalMatrix<const eigen_matrix_t<double, 5, 1>>{1., 2, 3, 4, 5};
-  EXPECT_TRUE(is_near(split_diagonal<3, 2>(a1), std::tuple {DiagonalMatrix{1., 2, 3}, DiagonalMatrix{4., 5}}));
-  EXPECT_TRUE(is_near(split_diagonal<2, 2>(DiagonalMatrix{1., 2, 3, 4, 5}), std::tuple {DiagonalMatrix{1., 2}, DiagonalMatrix{3., 4}}));
-  EXPECT_TRUE(is_near(split_vertical(DiagonalMatrix{1., 2, 3, 4, 5}), std::tuple {}));
-  EXPECT_TRUE(is_near(split_vertical<3, 2>(DiagonalMatrix{1., 2, 3, 4, 5}),
+  EXPECT_TRUE(is_near(concatenate_diagonal(d3, D2 {4, 5}), d5));
+  EXPECT_TRUE(is_near(concatenate_diagonal(d3, D0 {4, 5}), d5));
+  EXPECT_TRUE(is_near(concatenate_diagonal(d0_3, D2 {4, 5}), d5));
+  EXPECT_TRUE(is_near(concatenate_diagonal(d0_3, D0 {4, 5}), d5));
+
+  auto m_1234vert = make_native_matrix<4,2>(1., 0, 0, 2, 3, 0, 0, 4);
+  EXPECT_TRUE(is_near(concatenate_vertical(D2 {1, 2}, D2 {3, 4}), m_1234vert));
+  EXPECT_TRUE(is_near(concatenate_vertical(D2 {1, 2}, D0 {3, 4}), m_1234vert));
+  EXPECT_TRUE(is_near(concatenate_vertical(D0 {1, 2}, D2 {3, 4}), m_1234vert));
+  EXPECT_TRUE(is_near(concatenate_vertical(D0 {1, 2}, D0 {3, 4}), m_1234vert));
+
+  auto m_1234horiz = make_native_matrix<2,4>(1., 0, 3, 0, 0, 2, 0, 4);
+  EXPECT_TRUE(is_near(concatenate_horizontal(D2 {1, 2}, D2 {3, 4}), m_1234horiz));
+  EXPECT_TRUE(is_near(concatenate_horizontal(D2 {1, 2}, D0 {3, 4}), m_1234horiz));
+  EXPECT_TRUE(is_near(concatenate_horizontal(D0 {1, 2}, D2 {3, 4}), m_1234horiz));
+  EXPECT_TRUE(is_near(concatenate_horizontal(D0 {1, 2}, D0 {3, 4}), m_1234horiz));
+
+  EXPECT_TRUE(is_near(split_diagonal(d5), std::tuple {}));
+  EXPECT_TRUE(is_near(split_diagonal(d0_5), std::tuple {}));
+  EXPECT_TRUE(is_near(split_diagonal<3, 2>(d5), std::tuple {d3, D2 {4, 5}}));
+  EXPECT_TRUE(is_near(split_diagonal<3, 2>(d5_const), std::tuple {d3, D2 {4, 5}}));
+  //EXPECT_TRUE(is_near(split_diagonal<3, 2>(d0_5), std::tuple {d3, D2 {4, 5}}));
+  EXPECT_TRUE(is_near(split_diagonal<2, 2>(d5), std::tuple {D2 {1, 2}, D2 {3, 4}}));
+  //EXPECT_TRUE(is_near(split_diagonal<2, 2>(d0_5), std::tuple {D2 {1, 2}, D2 {3, 4}}));
+
+  EXPECT_TRUE(is_near(split_vertical(d5), std::tuple {}));
+  EXPECT_TRUE(is_near(split_vertical(d0_5), std::tuple {}));
+  EXPECT_TRUE(is_near(split_vertical<3, 2>(d5),
     std::tuple {make_native_matrix<double, 3, 5>(
       1, 0, 0, 0, 0,
       0, 2, 0, 0, 0,
@@ -523,15 +553,32 @@ TEST(eigen3, Diagonal_blocks)
                make_native_matrix<double, 2, 5>(
                  0, 0, 0, 4, 0,
                  0, 0, 0, 0, 5)}));
-  EXPECT_TRUE(is_near(split_vertical<2, 2>(DiagonalMatrix{1., 2, 3, 4, 5}),
+  /*EXPECT_TRUE(is_near(split_vertical<3, 2>(d0_5),
+    std::tuple {make_native_matrix<double, 3, 5>(
+      1, 0, 0, 0, 0,
+      0, 2, 0, 0, 0,
+      0, 0, 3, 0, 0),
+                make_native_matrix<double, 2, 5>(
+                  0, 0, 0, 4, 0,
+                  0, 0, 0, 0, 5)}));*/
+  EXPECT_TRUE(is_near(split_vertical<2, 2>(d5),
     std::tuple {make_native_matrix<double, 2, 5>(
       1, 0, 0, 0, 0,
       0, 2, 0, 0, 0),
                make_native_matrix<double, 2, 5>(
                  0, 0, 3, 0, 0,
                  0, 0, 0, 4, 0)}));
-  EXPECT_TRUE(is_near(split_horizontal(DiagonalMatrix{1., 2, 3, 4, 5}), std::tuple {}));
-  EXPECT_TRUE(is_near(split_horizontal<3, 2>(DiagonalMatrix{1., 2, 3, 4, 5}),
+  /*EXPECT_TRUE(is_near(split_vertical<2, 2>(d0_5),
+    std::tuple {make_native_matrix<double, 2, 5>(
+      1, 0, 0, 0, 0,
+      0, 2, 0, 0, 0),
+                make_native_matrix<double, 2, 5>(
+                  0, 0, 3, 0, 0,
+                  0, 0, 0, 4, 0)}));*/
+
+  EXPECT_TRUE(is_near(split_horizontal(d5), std::tuple {}));
+  EXPECT_TRUE(is_near(split_horizontal(d0_5), std::tuple {}));
+  EXPECT_TRUE(is_near(split_horizontal<3, 2>(d5),
     std::tuple {make_native_matrix<double, 5, 3>(
       1, 0, 0,
       0, 2, 0,
@@ -544,7 +591,20 @@ TEST(eigen3, Diagonal_blocks)
                  0, 0,
                  4, 0,
                  0, 5)}));
-  EXPECT_TRUE(is_near(split_horizontal<2, 2>(DiagonalMatrix{1., 2, 3, 4, 5}),
+  /*EXPECT_TRUE(is_near(split_horizontal<3, 2>(d0_5),
+    std::tuple {make_native_matrix<double, 5, 3>(
+      1, 0, 0,
+      0, 2, 0,
+      0, 0, 3,
+      0, 0, 0,
+      0, 0, 0),
+                make_native_matrix<double, 5, 2>(
+                  0, 0,
+                  0, 0,
+                  0, 0,
+                  4, 0,
+                  0, 5)}));*/
+  EXPECT_TRUE(is_near(split_horizontal<2, 2>(d5),
     std::tuple {make_native_matrix<double, 5, 2>(
       1, 0,
       0, 2,
@@ -557,40 +617,54 @@ TEST(eigen3, Diagonal_blocks)
                  3, 0,
                  0, 4,
                  0, 0)}));
+  /*EXPECT_TRUE(is_near(split_horizontal<2, 2>(d0_5),
+    std::tuple {make_native_matrix<double, 5, 2>(
+      1, 0,
+      0, 2,
+      0, 0,
+      0, 0,
+      0, 0),
+                make_native_matrix<double, 5, 2>(
+                  0, 0,
+                  0, 0,
+                  3, 0,
+                  0, 4,
+                  0, 0)}));*/
 
-  EXPECT_TRUE(is_near(column(DiagonalMatrix{1., 2, 3}, 2), make_native_matrix(0., 0, 3)));
-  EXPECT_TRUE(is_near(column<1>(DiagonalMatrix{1., 2, 3}), make_native_matrix(0., 2, 0)));
-  EXPECT_TRUE(is_near(row(DiagonalMatrix{1., 2, 3}, 2), eigen_matrix_t<double, 1, 3>(0., 0, 3)));
-  EXPECT_TRUE(is_near(row<1>(DiagonalMatrix{1., 2, 3}), eigen_matrix_t<double, 1, 3>(0., 2, 0)));
+  EXPECT_TRUE(is_near(column(d3, 2), make_native_matrix(0., 0, 3)));
+  EXPECT_TRUE(is_near(column<1>(d3), make_native_matrix(0., 2, 0)));
+  
+  EXPECT_TRUE(is_near(row(d3, 2), eigen_matrix_t<double, 1, 3>(0., 0, 3)));
+  EXPECT_TRUE(is_near(row<1>(d3), eigen_matrix_t<double, 1, 3>(0., 2, 0)));
 
-  EXPECT_TRUE(is_near(apply_columnwise(DiagonalMatrix{1., 2, 3}, [](const auto& col){ return make_self_contained(col + col.Constant(1)); }),
+  EXPECT_TRUE(is_near(apply_columnwise(d3, [](const auto& col){ return make_self_contained(col + col.Constant(1)); }),
     make_native_matrix<double, 3, 3>(
       2, 1, 1,
       1, 3, 1,
       1, 1, 4)));
-  EXPECT_TRUE(is_near(apply_columnwise(DiagonalMatrix{1., 2, 3}, [](const auto& col, std::size_t i){ return make_self_contained(col + col.Constant(i)); }),
+  EXPECT_TRUE(is_near(apply_columnwise(d3, [](const auto& col, std::size_t i){ return make_self_contained(col + col.Constant(i)); }),
     make_native_matrix<double, 3, 3>(
       1, 1, 2,
       0, 3, 2,
       0, 1, 5)));
 
-  EXPECT_TRUE(is_near(apply_rowwise(DiagonalMatrix{1., 2, 3}, [](const auto& row){ return make_self_contained(row + row.Constant(1)); }),
+  EXPECT_TRUE(is_near(apply_rowwise(d3, [](const auto& row){ return make_self_contained(row + row.Constant(1)); }),
     make_native_matrix<double, 3, 3>(
       2, 1, 1,
       1, 3, 1,
       1, 1, 4)));
-  EXPECT_TRUE(is_near(apply_rowwise(DiagonalMatrix{1., 2, 3}, [](const auto& row, std::size_t i){ return make_self_contained(row + row.Constant(i)); }),
+  EXPECT_TRUE(is_near(apply_rowwise(d3, [](const auto& row, std::size_t i){ return make_self_contained(row + row.Constant(i)); }),
     make_native_matrix<double, 3, 3>(
       1, 0, 0,
       1, 3, 1,
       2, 2, 5)));
 
-  EXPECT_TRUE(is_near(apply_coefficientwise(DiagonalMatrix{1., 2, 3}, [](const auto& x){ return x + 1; }),
+  EXPECT_TRUE(is_near(apply_coefficientwise(d3, [](const auto& x){ return x + 1; }),
     make_native_matrix<double, 3, 3>(
       2, 1, 1,
       1, 3, 1,
       1, 1, 4)));
-  EXPECT_TRUE(is_near(apply_coefficientwise(DiagonalMatrix{1., 2, 3}, [](const auto& x, std::size_t i, std::size_t j){ return x + i + j; }),
+  EXPECT_TRUE(is_near(apply_coefficientwise(d3, [](const auto& x, std::size_t i, std::size_t j){ return x + i + j; }),
     make_native_matrix<double, 3, 3>(
       1, 1, 2,
       1, 4, 3,
@@ -599,7 +673,7 @@ TEST(eigen3, Diagonal_blocks)
 
 TEST(eigen3, Diagonal_arithmetic)
 {
-  auto d3a = DiagonalMatrix {1., 2, 3};
+  auto d3a = d3;
   auto d3b = DiagonalMatrix {4., 5, 6};
   auto i = M33::Identity();
   auto z = ZeroMatrix<double, 3, 3> {};
@@ -643,6 +717,8 @@ TEST(eigen3, Diagonal_arithmetic)
   EXPECT_TRUE(is_near(-z, z)); static_assert(eigen_zero_expr<decltype(z)>);
 
   EXPECT_TRUE(is_near(d3a * d3b, DiagonalMatrix {4., 10, 18})); static_assert(eigen_diagonal_expr<decltype(d3a * d3b)>);
+  EXPECT_TRUE(is_near(d3a * ConstantMatrix<double, 4, 3, 3> {}, make_native_matrix<M33>(4, 4, 4, 8, 8, 8, 12, 12, 12)));
+  EXPECT_TRUE(is_near(ConstantMatrix<double, 4, 3, 3> {} * d3a, make_native_matrix<M33>(4, 8, 12, 4, 8, 12, 4, 8, 12)));
   EXPECT_TRUE(is_near(d3a * i, d3a)); static_assert(eigen_diagonal_expr<decltype(d3a * i)>);
   EXPECT_TRUE(is_near(i * d3a, d3a)); static_assert(eigen_diagonal_expr<decltype(i * d3a)>);
   EXPECT_TRUE(is_near(d3a * z, z)); static_assert(eigen_zero_expr<decltype(d3a * z)>);
@@ -660,11 +736,11 @@ TEST(eigen3, Diagonal_arithmetic)
   EXPECT_TRUE(is_near(SelfAdjointMatrix {
     1., 2, 3,
     2, 4, 5,
-    3, 5, 6} * DiagonalMatrix {1., 2, 3}, make_native_matrix<3,3>(
+    3, 5, 6} * d3, make_native_matrix<3,3>(
     1., 4, 9,
     2, 8, 15,
     3, 10, 18)));
-  EXPECT_TRUE(is_near(DiagonalMatrix {1., 2, 3} * TriangularMatrix {
+  EXPECT_TRUE(is_near(d3 * TriangularMatrix {
     1., 0, 0,
     2, 3, 0,
     4, 5, 6}, make_native_matrix<3,3>(
@@ -674,11 +750,11 @@ TEST(eigen3, Diagonal_arithmetic)
   EXPECT_TRUE(is_near(TriangularMatrix {
     1., 0, 0,
     2, 3, 0,
-    4, 5, 6} * DiagonalMatrix {1., 2, 3}, make_native_matrix<3,3>(
+    4, 5, 6} * d3, make_native_matrix<3,3>(
     1., 0, 0,
     2, 6, 0,
     4, 10, 18)));
-  EXPECT_TRUE(is_near(DiagonalMatrix {1., 2, 3} * make_native_matrix<double, 3, 3>(
+  EXPECT_TRUE(is_near(d3 * make_native_matrix<double, 3, 3>(
     1, 2, 3,
     4, 5, 6,
     7, 8, 9), make_native_matrix<3,3>(
@@ -688,7 +764,7 @@ TEST(eigen3, Diagonal_arithmetic)
   EXPECT_TRUE(is_near(make_native_matrix<double, 3, 3>(
     1, 2, 3,
     4, 5, 6,
-    7, 8, 9) * DiagonalMatrix {1., 2, 3}, make_native_matrix<3,3>(
+    7, 8, 9) * d3, make_native_matrix<3,3>(
     1., 4, 9,
     4, 10, 18,
     7, 16, 27)));
@@ -696,16 +772,15 @@ TEST(eigen3, Diagonal_arithmetic)
 
 TEST(eigen3, Diagonal_references)
 {
-  DiagonalMatrix<M31> m {1, 2, 3};
   DiagonalMatrix<const M31> n {4, 5, 6};
-  DiagonalMatrix<M31> x = m;
+  DiagonalMatrix<M31> x = d3;
   DiagonalMatrix<M31&> x_l {x};
-  EXPECT_TRUE(is_near(x_l, m));
+  EXPECT_TRUE(is_near(x_l, d3));
   DiagonalMatrix x_l2 {x_l};
   static_assert(std::is_lvalue_reference_v<nested_matrix_t<decltype(x_l2)>>);
-  EXPECT_TRUE(is_near(x_l, m));
+  EXPECT_TRUE(is_near(x_l, d3));
   DiagonalMatrix<const M31&> x_lc = x_l;
-  EXPECT_TRUE(is_near(x_lc, m));
+  EXPECT_TRUE(is_near(x_lc, d3));
   x = n;
   EXPECT_TRUE(is_near(x_l, n));
   EXPECT_TRUE(is_near(x_l2, n));
@@ -713,10 +788,10 @@ TEST(eigen3, Diagonal_references)
   x_l2[0] = 1;
   x_l2[1] = 2;
   x_l2[2] = 3;
-  EXPECT_TRUE(is_near(x, m));
-  EXPECT_TRUE(is_near(x_l, m));
-  EXPECT_TRUE(is_near(x_lc, m));
-  EXPECT_TRUE(is_near(DiagonalMatrix<M31&> {m}.nested_matrix(), (M31 {} << 1, 2, 3).finished() ));
+  EXPECT_TRUE(is_near(x, d3));
+  EXPECT_TRUE(is_near(x_l, d3));
+  EXPECT_TRUE(is_near(x_lc, d3));
+  EXPECT_TRUE(is_near(DiagonalMatrix<M31&> {d3}.nested_matrix(), (M31 {} << 1, 2, 3).finished() ));
 
   M31 p; p << 10, 11, 12;
   M31 q; q << 13, 14, 15;

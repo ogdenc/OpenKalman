@@ -80,13 +80,15 @@ namespace OpenKalman::internal
     else if constexpr (triangular_matrix<T> and self_adjoint_matrix<Arg>)
     {
       // non-diagonal self-adjoint --> non-diagonal triangular
-      static_assert(same_triangle_type_as<T, decltype(Cholesky_factor<triangle_type_of<T>>(std::declval<Arg&&>()))>);
-      return Cholesky_factor<triangle_type_of<T>>(std::forward<Arg>(arg));
+      static_assert(triangle_type_of_v<T> ==
+        triangle_type_of_v<decltype(Cholesky_factor<triangle_type_of_v<T>>(std::declval<Arg&&>()))>);
+      return Cholesky_factor<triangle_type_of_v<T>>(std::forward<Arg>(arg));
     }
-    else if constexpr (triangular_matrix<T> and triangular_matrix<Arg> and (not same_triangle_type_as<T, Arg>))
+    else if constexpr (triangular_matrix<T> and triangular_matrix<Arg> and
+      (not triangle_type_of_v<T> == triangle_type_of_v<Arg>))
     {
       // upper triangular <--> lower triangular
-      static_assert(same_triangle_type_as<T, decltype(transpose(std::declval<Arg&&>()))>);
+      static_assert(triangle_type_of_v<T> == triangle_type_of_v<decltype(transpose(std::declval<Arg&&>()))>);
       return transpose(std::forward<Arg>(arg));
     }
     else if constexpr (typed_matrix_nestable<Arg> and not covariance_nestable<Arg>)
@@ -126,7 +128,7 @@ namespace OpenKalman::internal
     }
     else if constexpr (diagonal_matrix<T>) // In this case, diagonal_matrix<Arg> or column_vector<Arg>.
     {
-      if constexpr (square_root_covariance<Arg>)
+      if constexpr (triangular_covariance<Arg>)
       {
         return to_covariance_nestable<T>(std::forward<Arg>(arg).get_triangular_nested_matrix());
       }
@@ -188,7 +190,7 @@ namespace OpenKalman::internal
     {
       return to_covariance_nestable(std::forward<Arg>(arg).nested_matrix());
     }
-    else if constexpr (square_root_covariance<Arg>)
+    else if constexpr (triangular_covariance<Arg>)
     {
       return std::forward<Arg>(arg).get_triangular_nested_matrix();
     }

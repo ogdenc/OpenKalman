@@ -57,7 +57,7 @@ namespace OpenKalman
 
     // May be accessed externally through MatrixTraits:
     static constexpr TriangleType storage_triangle =
-      triangle_type_of<typename MatrixTraits<NestedMatrix>::template TriangularMatrixFrom<>>;
+      triangle_type_of_v<typename MatrixTraits<NestedMatrix>::template TriangularMatrixFrom<>>;
 
     // A self-adjoint nested matrix type.
     using NestedSelfAdjoint = std::conditional_t<self_adjoint_matrix<NestedMatrix>, NestedMatrix,
@@ -73,13 +73,13 @@ namespace OpenKalman
 
 
     /**
-     * \brief Construct from a non-diagonal \ref square_root_covariance.
+     * \brief Construct from a non-diagonal \ref triangular_covariance.
      */
 #ifdef __cpp_concepts
-    template<square_root_covariance M> requires (not diagonal_matrix<M> or identity_matrix<M> or zero_matrix<M>) and
+    template<triangular_covariance M> requires (not diagonal_matrix<M> or identity_matrix<M> or zero_matrix<M>) and
       (self_adjoint_matrix<nested_matrix_t<M>> == self_adjoint_matrix<NestedMatrix>)
 #else
-    template<typename M, std::enable_if_t<square_root_covariance<M> and
+    template<typename M, std::enable_if_t<triangular_covariance<M> and
       (not diagonal_matrix<M> or identity_matrix<M> or zero_matrix<M>) and
       (self_adjoint_matrix<nested_matrix_t<M>> == self_adjoint_matrix<NestedMatrix>), int> = 0>
 #endif
@@ -105,10 +105,10 @@ namespace OpenKalman
      * \brief Construct from another non-square-root \ref OpenKalman::covariance "covariance".
      */
 #ifdef __cpp_concepts
-    template<covariance M> requires (not square_root_covariance<M>) and
-      (not std::derived_from<std::decay_t<M>, Covariance>) and requires(M&& m) { Base {std::forward<M>(m)}; }
+    template<self_adjoint_covariance M> requires (not std::derived_from<std::decay_t<M>, Covariance>) and
+      requires(M&& m) { Base {std::forward<M>(m)}; }
 #else
-    template<typename M, std::enable_if_t<covariance<M> and (not square_root_covariance<M>) and
+    template<typename M, std::enable_if_t<self_adjoint_covariance<M> and
       (not std::is_base_of_v<Covariance, std::decay_t<M>>) and std::is_constructible_v<Base, M&&>, int> = 0>
 #endif
     Covariance(M&& m) noexcept : Base {std::forward<M>(m)} {}
@@ -193,14 +193,13 @@ namespace OpenKalman
 
     /// Assign from a compatible \ref OpenKalman::covariance "covariance".
 #ifdef __cpp_concepts
-    template<covariance Arg> requires (not square_root_covariance<Arg>) and
-      (not std::derived_from<std::decay_t<Arg>, Covariance>) and
+    template<self_adjoint_covariance Arg>
+    requires (not std::derived_from<std::decay_t<Arg>, Covariance>) and
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients> and
       modifiable<NestedMatrix, nested_matrix_t<Arg>>
 #else
     template<typename Arg, std::enable_if_t<(not std::is_base_of_v<Covariance, std::decay_t<Arg>>) and
-      (covariance<Arg> and not square_root_covariance<Arg>) and
-      equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients> and
+      (self_adjoint_covariance<Arg> and equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients> and
       modifiable<NestedMatrix, nested_matrix_t<Arg>>, int> = 0>
 #endif
     auto& operator=(Arg&& arg) noexcept
@@ -279,11 +278,11 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<typename Arg> requires (not std::is_const_v<std::remove_reference_t<NestedMatrix>>) and
-      ((covariance<Arg> and not square_root_covariance<Arg>) or (typed_matrix<Arg> and square_matrix<Arg>)) and
+      (self_adjoint_covariance<Arg> or (typed_matrix<Arg> and square_matrix<Arg>)) and
         equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>
 #else
     template<typename Arg, std::enable_if_t<(not std::is_const_v<std::remove_reference_t<NestedMatrix>>) and
-      ((covariance<Arg> and not square_root_covariance<Arg>) or (typed_matrix<Arg> and square_matrix<Arg>)) and
+      (self_adjoint_covariance<Arg> or (typed_matrix<Arg> and square_matrix<Arg>)) and
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>, int> = 0>
 #endif
     auto& operator+=(Arg&& arg)
@@ -335,11 +334,11 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
     template<typename Arg> requires (not std::is_const_v<std::remove_reference_t<NestedMatrix>>) and
-    ((covariance<Arg> and not square_root_covariance<Arg>) or (typed_matrix<Arg> and square_matrix<Arg>)) and
+      (self_adjoint_covariance<Arg> or (typed_matrix<Arg> and square_matrix<Arg>)) and
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>
 #else
     template<typename Arg, std::enable_if_t<(not std::is_const_v<std::remove_reference_t<NestedMatrix>>) and
-      ((covariance<Arg> and not square_root_covariance<Arg>) or (typed_matrix<Arg> and square_matrix<Arg>)) and
+      (self_adjoint_covariance<Arg> or (typed_matrix<Arg> and square_matrix<Arg>)) and
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>, int> = 0>
 #endif
     auto& operator-=(const Arg& arg)
@@ -887,7 +886,7 @@ namespace OpenKalman
   inline auto
   make_covariance()
   {
-    constexpr TriangleType triangle_type = triangle_type_of<typename MatrixTraits<Arg>::template TriangularMatrixFrom<>>;
+    constexpr TriangleType triangle_type = triangle_type_of_v<typename MatrixTraits<Arg>::template TriangularMatrixFrom<>>;
     using B = std::conditional_t<diagonal_matrix<Arg>,
       typename MatrixTraits<Arg>::template DiagonalMatrixFrom<>,
       std::conditional_t<triangular_matrix<Arg>,
@@ -960,9 +959,9 @@ namespace OpenKalman
    * \brief Make a Covariance based on another non-square-root \ref covariance.
    */
 #ifdef __cpp_concepts
-  template<covariance Arg> requires (not square_root_covariance<Arg>)
+  template<self_adjoint_covariance Arg>
 #else
-  template<typename Arg, std::enable_if_t<covariance<Arg> and (not square_root_covariance<Arg>), int> = 0>
+  template<typename Arg, std::enable_if_t<self_adjoint_covariance<Arg>, int> = 0>
 #endif
   inline auto
   make_covariance(Arg&& arg) noexcept
@@ -977,9 +976,9 @@ namespace OpenKalman
    * \brief Make a writable, uninitialized Covariance from a non-square-root \ref covariance.
    */
 #ifdef __cpp_concepts
-  template<covariance T> requires (not square_root_covariance<T>)
+  template<self_adjoint_covariance T>
 #else
-  template<typename T, std::enable_if_t<covariance<T> and (not square_root_covariance<T>), int> = 0>
+  template<typename T, std::enable_if_t<self_adjoint_covariance<T>, int> = 0>
 #endif
   inline auto
   make_covariance()

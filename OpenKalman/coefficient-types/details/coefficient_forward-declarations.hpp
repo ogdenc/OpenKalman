@@ -416,6 +416,48 @@ namespace OpenKalman
   template<typename ... Coeffs> using Concatenate = typename detail::ConcatenateImpl<Coeffs...>::type;
 #endif
 
+
+#ifdef __cpp_concepts
+  template<typename C>
+  struct has_uniform_coefficients : std::false_type {};
+#else
+  template<typename C, typename = void>
+  struct has_uniform_coefficients : std::false_type {};
+#endif
+
+
+#ifdef __cpp_concepts
+  template<atomic_coefficient_group C> requires (C::dimensions == 1)
+  struct has_uniform_coefficients<C>
+#else
+  template<typename C>
+  struct has_uniform_coefficients<C, std::enable_if_t<atomic_coefficient_group<C> and (C::dimensions == 1)>>
+#endif
+    : std::true_type { using common_coefficient = C; };
+
+
+#ifdef __cpp_concepts
+  template<atomic_coefficient_group C, coefficients...Cs> requires (C::dimensions == 1) and
+    equivalent_to<C, typename has_uniform_coefficients<Coefficients<Cs...>>::common_type>
+  struct has_uniform_coefficients<Coefficients<C, Cs...>>
+#else
+  template<typename C, typename...Cs>
+  struct has_uniform_coefficients<Coefficients<C, Cs...>, std::enable_if_t<
+    atomic_coefficient_group<C> and (... and coefficients<Cs>) and (C::dimensions == 1) and
+    equivalent_to<C, typename has_uniform_coefficients<Coefficients<Cs...>>::common_type>>>
+#endif
+    : std::true_type { using common_coefficient = C; };
+
+
+#ifdef __cpp_concepts
+  template<typename C>
+  concept uniform_coefficients = has_uniform_coefficients<C>::type;
+#else
+  template<typename C, typename = void>
+  constexpr bool uniform_coefficients = has_uniform_coefficients<C>::type;
+#endif
+
+
 } // namespace OpenKalman
 
 #endif //OPENKALMAN_COEFFICIENT_FORWARD_DECLARATIONS_HPP

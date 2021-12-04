@@ -228,7 +228,22 @@ namespace OpenKalman
         [](const GetCoeff<Scalar>& get_coeff) {
           constexpr Scalar max = Limits<Scalar>::max;
           constexpr Scalar min = Limits<Scalar>::min;
-          auto a = std::atan2(get_coeff(i + 1), get_coeff(i)) / cf<Scalar>;
+
+          Scalar a;
+          if constexpr (std::numeric_limits<Scalar>::is_iec559)
+          {
+            a = std::atan2(get_coeff(i + 1), get_coeff(i)) / cf<Scalar>;
+          }
+          else
+          {
+            auto x = get_coeff(i);
+
+            if (x == 0)
+              a = 0;
+            else
+              a = std::atan2(get_coeff(i + 1), x) / cf<Scalar>;
+          }
+
           if constexpr (max != -min)
           {
             constexpr Scalar period = max - min;

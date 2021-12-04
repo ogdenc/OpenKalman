@@ -53,12 +53,9 @@
 #include "details/eigen3-forward-declarations.hpp"
 #include "details/eigen3-matrix-traits.hpp"
 #include "details/eigen3-traits.hpp"
+#include "details/eigen3-special_matrix-traits.hpp"
 
 #include "details/eigen3-matrix-overloads.hpp"
-
-#include "details/Eigen3Base.hpp"
-#include "details/Eigen3MatrixBase.hpp"
-#include "details/EigenDynamicBase.hpp"
 
 #include "ConstantMatrix.hpp"
 #include "ZeroMatrix.hpp"
@@ -72,6 +69,10 @@
 #include "details/eigen3-special-matrix-overloads.hpp"
 #include "details/eigen3-special-matrix-arithmetic.hpp"
 #include "details/eigen3-euclidean-overloads.hpp"
+
+#include "details/Eigen3Base.hpp"
+#include "details/Eigen3MatrixBase.hpp"
+#include "details/EigenDynamicBase.hpp"
 
 #include "details/eigen3-native-traits.hpp"
 #include "details/eigen3-native-evaluators.hpp"
@@ -97,14 +98,17 @@ namespace OpenKalman
   using Eigen3::ToEuclideanExpr;
 
   using Eigen3::make_native_matrix;
-  using Eigen3::make_ZeroMatrix;
   using Eigen3::make_EigenSelfAdjointMatrix;
   using Eigen3::make_EigenTriangularMatrix;
 
   using Eigen3::nested_matrix;
   using Eigen3::make_self_contained;
+  using Eigen3::get_element;
+  using Eigen3::set_element;
   using Eigen3::row_count;
   using Eigen3::column_count;
+  using Eigen3::row;
+  using Eigen3::column;
   using Eigen3::to_euclidean;
   using Eigen3::from_euclidean;
   using Eigen3::wrap_angles;
@@ -126,10 +130,6 @@ namespace OpenKalman
   using Eigen3::split_vertical;
   using Eigen3::split_horizontal;
   using Eigen3::split_diagonal;
-  using Eigen3::get_element;
-  using Eigen3::set_element;
-  using Eigen3::column;
-  using Eigen3::row;
   using Eigen3::apply_columnwise;
   using Eigen3::apply_rowwise;
   using Eigen3::apply_coefficientwise;

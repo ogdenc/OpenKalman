@@ -613,7 +613,6 @@ TEST(matrices, GaussianDistribution_make)
 
 TEST(matrices, GaussianDistribution_traits)
 {
-  static_assert(not square_root_covariance<DistSA2l>);
   static_assert(not diagonal_matrix<DistSA2l>);
   static_assert(self_adjoint_matrix<DistSA2l>);
   static_assert(not cholesky_form<DistSA2l>);
@@ -622,7 +621,6 @@ TEST(matrices, GaussianDistribution_traits)
   static_assert(not upper_triangular_matrix<DistSA2l>);
   static_assert(not zero_matrix<DistSA2l>);
 
-  static_assert(not square_root_covariance<DistT2l>);
   static_assert(not diagonal_matrix<DistT2l>);
   static_assert(self_adjoint_matrix<DistT2l>);
   static_assert(cholesky_form<DistT2l>);
@@ -632,7 +630,6 @@ TEST(matrices, GaussianDistribution_traits)
   static_assert(not upper_triangular_matrix<DistT2l>);
   static_assert(not zero_matrix<DistT2l>);
 
-  static_assert(not square_root_covariance<DistD2>);
   static_assert(diagonal_matrix<DistD2>);
   static_assert(self_adjoint_matrix<DistD2>);
   static_assert(not cholesky_form<DistD2>);
@@ -642,7 +639,6 @@ TEST(matrices, GaussianDistribution_traits)
   static_assert(upper_triangular_matrix<DistD2>);
   static_assert(not zero_matrix<DistD2>);
 
-  static_assert(not square_root_covariance<DistI2>);
   static_assert(diagonal_matrix<DistI2>);
   static_assert(self_adjoint_matrix<DistI2>);
   static_assert(not cholesky_form<DistI2>);
@@ -652,7 +648,6 @@ TEST(matrices, GaussianDistribution_traits)
   static_assert(upper_triangular_matrix<DistI2>);
   static_assert(not zero_matrix<DistI2>);
 
-  static_assert(not square_root_covariance<DistZ2>);
   static_assert(diagonal_matrix<DistZ2>);
   static_assert(self_adjoint_matrix<DistZ2>);
   static_assert(not cholesky_form<DistZ2>);

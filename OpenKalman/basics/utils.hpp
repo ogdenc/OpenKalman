@@ -182,9 +182,9 @@ namespace OpenKalman::internal
 #else
   constexpr
 #endif
-  Scalar constexpr_pow(Scalar a, std::size_t n) {
-    constexpr auto b = constexpr_pow(a, n / 2);
-    return n == 0 ? 1 : b * b * (n % 2 == 0 ?  1 : a);
+  Scalar constexpr_pow(Scalar a, std::size_t n)
+  {
+    return n == 0 ? 1 : constexpr_pow(a, n / 2) * constexpr_pow(a, n / 2) * (n % 2 == 0 ?  1 : a);
   }
 
 

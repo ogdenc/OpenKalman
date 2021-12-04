@@ -21,215 +21,461 @@
 
 namespace OpenKalman::Eigen3::internal
 {
-
   /**
    * \internal
-   * \brief Base class for library-defined dynamic Eigen matrices.
+   * \brief Specialization for dynamic rows and Dynamic columns
+   */
+  template<typename Scalar>
+  struct EigenDynamicBase<Scalar, 0, 0>
+  {
+    /**
+     * \internal
+     * \brief Construct an EigenDynamicBase with dynamic rows and dynamic columns.
+     * \param r Number of rows.
+     * \param c Number of columns.
+     */
+    EigenDynamicBase(std::size_t r, std::size_t c) : m_rows {r}, m_cols {c} {}
+
+
+    /**
+     * \internal
+     * \brief Construct an EigenDynamicBase based on the shape of another matrix M.
+     * \tparam M The matrix to be used as a shape template. M must have a compatible shape.
+     */
+#ifdef __cpp_concepts
+    template<typename M>
+    requires (not std::same_as<M, EigenDynamicBase>)
+#else
+    template<typename M, std::enable_if_t<not std::is_same_v<M, EigenDynamicBase>, int> = 0>
+#endif
+    EigenDynamicBase(M&& m) : m_rows {row_count(m)}, m_cols {column_count(m)} {}
+
+
+    EigenDynamicBase(const EigenDynamicBase&) = default;
+    EigenDynamicBase(EigenDynamicBase&&) = default;
+
+
+    /**
+     * \internal
+     * \brief Copy constructor
+     */
+    EigenDynamicBase& operator=(const EigenDynamicBase& m)
+    {
+      assert(m.m_rows == m_rows);
+      assert(m.m_cols == m_cols);
+      return *this;
+    }
+
+
+    /**
+     * \internal
+     * \brief Move constructor
+     */
+    EigenDynamicBase& operator=(EigenDynamicBase&& m)
+    {
+      assert(m.m_rows == m_rows);
+      assert(m.m_cols == m_cols);
+      return *this;
+    }
+
+
+    /**
+     * \internal
+     * \brief Assign from another compatible EigenDynamicBase.
+     */
+#ifdef __cpp_concepts
+    template<typename M>
+    requires (not std::same_as<M, EigenDynamicBase>)
+#else
+    template<typename M, std::enable_if_t<not std::is_same_v<M, EigenDynamicBase>, int> = 0>
+#endif
+    auto& operator=(M&& m)
+    {
+      assert(row_count(m) == m_rows);
+      assert(column_count(m) == m_cols);
+      return *this;
+    }
+
+
+    /// \internal \return The number of fixed rows. \note Required by Eigen::EigenBase.
+    Eigen::Index rows() const { return m_rows; }
+
+
+    /// \internal \return The number of fixed columns. \note Required by Eigen::EigenBase.
+    Eigen::Index cols() const { return m_cols; }
+
+
+    /**
+     * \return A matrix, of the same size and shape, containing only zero coefficients.
+     */
+    static decltype(auto) zero(const std::size_t r, const std::size_t c)
+    {
+      return ZeroMatrix<Scalar, 0, 0> {r, c};
+    }
+
+
+    /**
+     * \brief Synonym for zero().
+     * \deprecated Use zero() instead. Provided for compatibility with Eigen Zero() member.
+     * \return A matrix, of the same size and shape, containing only zero coefficients.
+     */
+    [[deprecated("Use zero() instead.")]]
+    static decltype(auto) Zero(const Eigen::Index r, Eigen::Index c)
+    {
+      return zero(r, c);
+    }
+
+  private:
+
+    const std::size_t m_rows;
+    const std::size_t m_cols;
+
+  };
+
+
+  // ----------------------------- //
+
+
+  /**
+   * \overload \internal
+   * \brief Specialization for dynamic rows and fixed columns
    */
 #ifdef __cpp_concepts
-    template<typename Scalar, std::size_t rows, std::size_t columns>
+  template<typename Scalar, std::size_t columns>
+  requires (columns > 0)
+  struct EigenDynamicBase<Scalar, 0, columns>
 #else
-    template<typename Scalar, std::size_t rows, std::size_t columns, typename = void>
+  template<typename Scalar, std::size_t columns>
+  struct EigenDynamicBase<Scalar, 0, columns, std::enable_if_t<(columns > 0)>>
 #endif
-    struct EigenDynamicBase {};
-
-
-    // ----------------------------- //
+  {
+    /**
+     * \internal
+     * \brief Construct an EigenDynamicBase with dynamic rows and dynamic columns.
+     * \param r Number of rows.
+     */
+    EigenDynamicBase(std::size_t r) : m_rows {r} {}
 
 
     /**
-     * \overload \internal
-     * \brief Specialization for dynamic rows and Dynamic columns
+     * \internal
+     * \brief Construct an EigenDynamicBase based on the shape of another matrix M.
+     * \tparam M The matrix to be used as a shape template. M must have a compatible shape.
      */
-    template<typename Scalar>
-    struct EigenDynamicBase<Scalar, 0, 0>
-    {
-      /**
-       * \internal
-       * \brief Construct a ZeroMatrix with dynamic rows and dynamic columns.
-       * \param r Number of rows.
-       * \param c Number of columns.
-       */
-      EigenDynamicBase(std::size_t r, std::size_t c) : rows_ {r}, cols_ {c} {}
-
-
-      /**
-       * \internal
-       * \brief Construct a ZeroMatrix based on the shape of another matrix M.
-       * \details This is designed to work with the ZeroMatrix deduction guide.
-       * \tparam M The matrix to be used as a shape template. M must have the same shape as the ZeroMatrix.
-       */
 #ifdef __cpp_concepts
-      template<typename M> requires (MatrixTraits<M>::rows == 0) and (MatrixTraits<M>::columns == 0)
+    template<typename M>
+    requires (not std::same_as<M, EigenDynamicBase>) and
+      (dynamic_columns<M> or MatrixTraits<M>::columns == columns)
 #else
-      template<typename M, std::enable_if_t<(MatrixTraits<M>::rows == 0) and (MatrixTraits<M>::columns == 0), int> = 0>
+    template<typename M, std::enable_if_t<(not std::is_same_v<M, EigenDynamicBase>) and
+      (dynamic_columns<M> or MatrixTraits<M>::columns == columns), int> = 0>
 #endif
-      EigenDynamicBase(M&& m) : rows_ {m.rows()}, cols_ {m.cols()} {}
+    EigenDynamicBase(M&& m) : m_rows {row_count(m)}
+    {
+      if constexpr (dynamic_columns<M>) assert(column_count(m) == columns);
+    }
 
 
-      /// \internal \return The number of fixed rows. \note Required by Eigen::EigenBase.
-      Eigen::Index rows() const { return rows_; }
-
-
-      /// \internal \return The number of fixed columns. \note Required by Eigen::EigenBase.
-      Eigen::Index cols() const { return cols_; }
-
-    private:
-
-      const std::size_t rows_;
-      const std::size_t cols_;
-
-    };
-
-
-    // ----------------------------- //
+    EigenDynamicBase(const EigenDynamicBase&) = default;
+    EigenDynamicBase(EigenDynamicBase&&) = default;
 
 
     /**
-     * \overload \internal
-     * \brief Specialization for dynamic rows and fixed columns
+     * \internal
+     * \brief Copy constructor
      */
-#ifdef __cpp_concepts
-    template<typename Scalar, std::size_t columns> requires (columns > 0)
-    struct EigenDynamicBase<Scalar, 0, columns>
-#else
-    template<typename Scalar, std::size_t columns>
-    struct EigenDynamicBase<Scalar, 0, columns, std::enable_if_t<(columns > 0)>>
-#endif
+    EigenDynamicBase& operator=(const EigenDynamicBase& m)
     {
-      /**
-       * \internal
-       * \brief Construct a ZeroMatrix with dynamic rows and dynamic columns.
-       * \param r Number of rows.
-       */
-      EigenDynamicBase(std::size_t r) : rows_ {r} {}
-
-
-      /**
-       * \internal
-       * \brief Construct a ZeroMatrix based on the shape of another matrix M.
-       * \details This is designed to work with the ZeroMatrix deduction guide.
-       * \tparam M The matrix to be used as a shape template. M must have the same shape as the ZeroMatrix.
-       */
-#ifdef __cpp_concepts
-      template<typename M> requires dynamic_rows<M> and (MatrixTraits<M>::columns == columns)
-#else
-      template<typename M, std::enable_if_t<dynamic_rows<M> and (MatrixTraits<M>::columns == columns), int> = 0>
-#endif
-      EigenDynamicBase(M&& m) : rows_ {m.rows()} {}
-
-
-      /// \internal \return The number of fixed rows. \note Required by Eigen::EigenBase.
-      Eigen::Index rows() const { return rows_; }
-
-
-      /// \internal \return The number of fixed columns. \note Required by Eigen::EigenBase.
-      static constexpr Eigen::Index cols() { return columns; }
-
-    private:
-
-      const std::size_t rows_;
-
-    };
-
-
-    // ----------------------------- //
+      assert(m.m_rows == m_rows);
+      return *this;
+    }
 
 
     /**
-     * \overload \internal
-     * \brief Specialization for fixed rows and dynamic columns
+     * \internal
+     * \brief Move constructor
      */
-#ifdef __cpp_concepts
-    template<typename Scalar, std::size_t rows_> requires (rows_ > 0)
-    struct EigenDynamicBase<Scalar, rows_, 0>
-#else
-    template<typename Scalar, std::size_t rows_>
-      struct EigenDynamicBase<Scalar, rows_, 0, std::enable_if_t<(rows_ > 0)>>
-#endif
+    EigenDynamicBase& operator=(EigenDynamicBase&& m)
     {
-      /**
-       * \internal
-       * \brief Construct a ZeroMatrix with dynamic rows and dynamic columns.
-       * \param c Number of columns.
-       */
-      EigenDynamicBase(std::size_t c) : cols_ {c} {}
-
-
-      /**
-       * \internal
-       * \brief Construct a ZeroMatrix based on the shape of another matrix M.
-       * \details This is designed to work with the ZeroMatrix deduction guide.
-       * \tparam M The matrix to be used as a shape template. M must have the same shape as the ZeroMatrix.
-       */
-#ifdef __cpp_concepts
-      template<typename M> requires (MatrixTraits<M>::rows == rows_) and dynamic_columns<M>
-#else
-      template<typename M, std::enable_if_t<(MatrixTraits<M>::rows == rows_) and dynamic_columns<M>, int> = 0>
-#endif
-      EigenDynamicBase(M&& m) : cols_ {m.cols()} {}
-
-
-      /// \internal \return The number of fixed rows. \note Required by Eigen::EigenBase.
-      static constexpr Eigen::Index rows() { return rows_; }
-
-
-      /// \internal \return The number of fixed columns. \note Required by Eigen::EigenBase.
-      Eigen::Index cols() const { return cols_; }
-
-    private:
-
-      const std::size_t cols_;
-
-    };
-
-
-    // ----------------------------- //
+      assert(m.m_rows == m_rows);
+      return *this;
+    }
 
 
     /**
-     * \overload \internal
-     * \brief Specialization for fixed rows and fixed columns
+     * \internal
+     * \brief Assign from another compatible EigenDynamicBase.
      */
 #ifdef __cpp_concepts
-    template<typename Scalar, std::size_t rows_, std::size_t columns> requires (rows_ > 0) and (columns > 0)
-    struct EigenDynamicBase<Scalar, rows_, columns>
+    template<typename M>
+    requires (not std::same_as<M, EigenDynamicBase>) and
+      (dynamic_columns<M> or MatrixTraits<M>::columns == columns)
 #else
-    template<typename Scalar, std::size_t rows_, std::size_t columns>
-    struct EigenDynamicBase<Scalar, rows_, columns, std::enable_if_t<(rows_ > 0) and (columns > 0)>>
+    template<typename M, std::enable_if_t<(not std::is_same_v<M, EigenDynamicBase>) and
+      (dynamic_columns<M> or MatrixTraits<M>::columns == columns), int> = 0>
 #endif
+    auto& operator=(M&& m)
     {
-      /**
-       * \internal
-       * \internal
-       * \brief Default constructor.
-       */
-      EigenDynamicBase() {};
+      if constexpr (dynamic_columns<M>) assert(column_count(m) == columns);
+      assert(row_count(m) == m_rows);
+      return *this;
+    }
 
 
-      /**
-       * \internal
-       * \brief Construct a ZeroMatrix based on the shape of another matrix M.
-       * \details This is designed to work with the ZeroMatrix deduction guide.
-       * \tparam M The matrix to be used as a shape template. M must have the same shape as the ZeroMatrix.
-       */
+    /// \internal \return The number of fixed rows. \note Required by Eigen::EigenBase.
+    Eigen::Index rows() const { return m_rows; }
+
+
+    /// \internal \return The number of fixed columns. \note Required by Eigen::EigenBase.
+    static constexpr Eigen::Index cols() { return columns; }
+
+
+    /**
+     * \return A matrix, of the same size and shape, containing only zero coefficients.
+     */
+    static decltype(auto) zero(const std::size_t r)
+    {
+      return ZeroMatrix<Scalar, 0, columns> {r};
+    }
+
+
+    /**
+     * \brief Synonym for zero().
+     * \deprecated Use zero() instead. Provided for compatibility with Eigen Zero() member.
+     * \return A matrix, of the same size and shape, containing only zero coefficients.
+     */
+    [[deprecated("Use zero() instead.")]]
+    static decltype(auto) Zero(const Eigen::Index r, Eigen::Index c)
+    {
+      assert(c == columns);
+      return zero(r);
+    }
+
+  private:
+
+    const std::size_t m_rows;
+
+  };
+
+
+  // ----------------------------- //
+
+
+  /**
+   * \overload \internal
+   * \brief Specialization for fixed rows and dynamic columns
+   */
 #ifdef __cpp_concepts
-      template<typename M> requires (MatrixTraits<M>::rows == rows_) and (MatrixTraits<M>::columns == columns)
+  template<typename Scalar, std::size_t rows_>
+  requires (rows_ > 0)
+  struct EigenDynamicBase<Scalar, rows_, 0>
 #else
-      template<typename M, std::enable_if_t<
-        (MatrixTraits<M>::rows == rows_) and (MatrixTraits<M>::columns == columns), int> = 0>
+  template<typename Scalar, std::size_t rows_>
+    struct EigenDynamicBase<Scalar, rows_, 0, std::enable_if_t<(rows_ > 0)>>
 #endif
-      EigenDynamicBase(M&& m) {}
+  {
+    /**
+     * \internal
+     * \brief Construct a ZeroMatrix with dynamic rows and dynamic columns.
+     * \param c Number of columns.
+     */
+    EigenDynamicBase(std::size_t c) : m_cols {c} {}
 
 
-      /// \internal \return The number of fixed rows. \note Required by Eigen::EigenBase.
-      static constexpr Eigen::Index rows() { return rows_; }
+    /**
+     * \internal
+     * \brief Construct an EigenDynamicBase based on the shape of another matrix M.
+     * \tparam M The matrix to be used as a shape template. M must have a compatible shape.
+     */
+#ifdef __cpp_concepts
+    template<typename M>
+    requires (not std::same_as<M, EigenDynamicBase>) and (dynamic_rows<M> or MatrixTraits<M>::rows == rows_)
+#else
+    template<typename M, std::enable_if_t<(not std::is_same_v<M, EigenDynamicBase>) and
+      (dynamic_rows<M> or MatrixTraits<M>::rows == rows_), int> = 0>
+#endif
+    EigenDynamicBase(M&& m) : m_cols {column_count(m)}
+    {
+      if constexpr (dynamic_rows<M>) assert(row_count(m) == rows_);
+    }
 
 
-      /// \internal \return The number of fixed columns. \note Required by Eigen::EigenBase.
-      static constexpr Eigen::Index cols() { return columns; }
+    EigenDynamicBase(const EigenDynamicBase&) = default;
+    EigenDynamicBase(EigenDynamicBase&&) = default;
 
-    };
+
+    /**
+     * \internal
+     * \brief Copy constructor
+     */
+    EigenDynamicBase& operator=(const EigenDynamicBase& m)
+    {
+      assert(m.m_cols == m_cols);
+      return *this;
+    }
+
+
+    /**
+     * \internal
+     * \brief Move constructor
+     */
+    EigenDynamicBase& operator=(EigenDynamicBase&& m)
+    {
+      assert(m.m_cols == m_cols);
+      return *this;
+    }
+
+
+    /**
+     * \internal
+     * \brief Assign from another compatible EigenDynamicBase.
+     */
+#ifdef __cpp_concepts
+    template<typename M>
+    requires (not std::same_as<M, EigenDynamicBase>) and (dynamic_rows<M> or MatrixTraits<M>::rows == rows_)
+#else
+    template<typename M, std::enable_if_t<(not std::is_same_v<M, EigenDynamicBase>) and
+      (dynamic_rows<M> or MatrixTraits<M>::rows == rows_), int> = 0>
+#endif
+    auto& operator=(M&& m)
+    {
+      if constexpr (dynamic_rows<M>) assert(row_count(m) == rows_);
+      assert(column_count(m) == m_cols);
+      return *this;
+    }
+
+
+    /// \internal \return The number of fixed rows. \note Required by Eigen::EigenBase.
+    static constexpr Eigen::Index rows() { return rows_; }
+
+
+    /// \internal \return The number of fixed columns. \note Required by Eigen::EigenBase.
+    Eigen::Index cols() const { return m_cols; }
+
+
+    /**
+     * \return A matrix, of the same size and shape, containing only zero coefficients.
+     */
+    static decltype(auto) zero(const std::size_t c)
+    {
+      return ZeroMatrix<Scalar, rows_, 0> {c};
+    }
+
+
+    /**
+     * \brief Synonym for zero().
+     * \deprecated Use zero() instead. Provided for compatibility with Eigen Zero() member.
+     * \return A matrix, of the same size and shape, containing only zero coefficients.
+     */
+    [[deprecated("Use zero() instead.")]]
+    static decltype(auto) Zero(const Eigen::Index r, Eigen::Index c)
+    {
+      assert(r == rows_);
+      return zero(c);
+    }
+
+  private:
+
+    const std::size_t m_cols;
+
+  };
+
+
+  // ----------------------------- //
+
+
+  /**
+   * \overload \internal
+   * \brief Specialization for fixed rows and fixed columns
+   */
+#ifdef __cpp_concepts
+  template<typename Scalar, std::size_t rows_, std::size_t columns>
+  requires (rows_ > 0) and (columns > 0)
+  struct EigenDynamicBase<Scalar, rows_, columns>
+#else
+  template<typename Scalar, std::size_t rows_, std::size_t columns>
+  struct EigenDynamicBase<Scalar, rows_, columns, std::enable_if_t<(rows_ > 0) and (columns > 0)>>
+#endif
+  {
+    /**
+     * \internal
+     * \internal
+     * \brief Default constructor.
+     */
+    EigenDynamicBase() {};
+
+
+    /**
+     * \internal
+     * \brief Construct an EigenDynamicBase based on the shape of another matrix M.
+     * \tparam M The matrix to be used as a shape template. M must have a compatible shape.
+     */
+#ifdef __cpp_concepts
+    template<typename M>
+    requires (not std::same_as<M, EigenDynamicBase>) and (dynamic_rows<M> or MatrixTraits<M>::rows == rows_) and
+      (dynamic_columns<M> or MatrixTraits<M>::columns == columns)
+#else
+    template<typename M, std::enable_if_t<(not std::is_same_v<M, EigenDynamicBase>) and
+      (dynamic_rows<M> or MatrixTraits<M>::rows == rows_) and
+      (dynamic_columns<M> or MatrixTraits<M>::columns == columns), int> = 0>
+#endif
+    EigenDynamicBase(M&& m)
+    {
+      if constexpr (dynamic_rows<M>) assert(row_count(m) == rows_);
+      if constexpr (dynamic_columns<M>) assert(column_count(m) == columns);
+    }
+
+
+    /**
+     * \internal
+     * \brief Assign from another compatible EigenDynamicBase.
+     */
+#ifdef __cpp_concepts
+    template<typename M>
+    requires (not std::same_as<M, EigenDynamicBase>) and (dynamic_rows<M> or MatrixTraits<M>::rows == rows_) and
+      (dynamic_columns<M> or MatrixTraits<M>::columns == columns)
+#else
+    template<typename M, std::enable_if_t<(not std::is_same_v<M, EigenDynamicBase>) and
+      (dynamic_rows<M> or MatrixTraits<M>::rows == rows_) and
+      (dynamic_columns<M> or MatrixTraits<M>::columns == columns), int> = 0>
+#endif
+    auto& operator=(M&& m)
+    {
+      if constexpr (dynamic_rows<M>) assert(row_count(m) == rows_);
+      if constexpr (dynamic_columns<M>) assert(column_count(m) == columns);
+      return *this;
+    }
+
+
+    /// \internal \return The number of fixed rows. \note Required by Eigen::EigenBase.
+    static constexpr Eigen::Index rows() { return rows_; }
+
+
+    /// \internal \return The number of fixed columns. \note Required by Eigen::EigenBase.
+    static constexpr Eigen::Index cols() { return columns; }
+
+
+    /**
+     * \return A matrix, of the same size and shape, containing only zero coefficients.
+     */
+    static decltype(auto) zero()
+    {
+      return ZeroMatrix<Scalar, rows_, columns> {};
+    }
+
+
+    /**
+     * \brief Synonym for zero().
+     * \deprecated Use zero() instead. Provided for compatibility with Eigen Zero() member.
+     * \return A matrix, of the same size and shape, containing only zero coefficients.
+     */
+    [[deprecated("Use zero() instead.")]]
+    static decltype(auto) Zero()
+    {
+      return zero();
+    }
+
+  };
 
 
 } // OpenKalman::Eigen3::internal

@@ -17,11 +17,13 @@ include(GoogleTest)
 add_executable(eigen3
         eigen3.gtest.cpp
         eigen3-native-matrix.test.cpp
-        DiagonalMatrix.test.cpp
-        SelfAdjointMatrix.test.cpp
-        TriangularMatrix.test.cpp
-        ToEuclideanExpr.test.cpp
-        FromEuclideanExpr.test.cpp
+        #ZeroMatrix.test.cpp
+        #ConstantMatrix.test.cpp
+        #DiagonalMatrix.test.cpp
+        #SelfAdjointMatrix.test.cpp
+        #TriangularMatrix.test.cpp
+        #ToEuclideanExpr.test.cpp
+        #FromEuclideanExpr.test.cpp
     )
 
 target_link_libraries(eigen3 ${GTEST_BOTH_LIBRARIES} Eigen3::Eigen Threads::Threads)

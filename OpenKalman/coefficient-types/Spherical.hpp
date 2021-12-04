@@ -147,7 +147,16 @@ namespace OpenKalman
         from_euclidean_array = {[](const GetCoeff& get_coeff) constexpr {
         const auto x = std::signbit(get_coeff(i + d_i)) ? -get_coeff(i + x_i) : get_coeff(i + x_i);
         const auto y = std::signbit(get_coeff(i + d_i)) ? -get_coeff(i + y_i) : get_coeff(i + y_i);
-        return std::atan2(y, x) / cf_cir;
+
+        if constexpr (std::numeric_limits<Scalar>::is_iec559)
+          return std::atan2(y, x) / cf_cir;
+        else
+        {
+          if (x == 0)
+            return 0;
+          else
+            return std::atan2(y, x) / cf_cir;
+        }
       }};
 
 

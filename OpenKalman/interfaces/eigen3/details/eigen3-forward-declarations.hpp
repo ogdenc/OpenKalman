@@ -57,21 +57,80 @@ namespace OpenKalman::Eigen3
      */
     template<typename Derived, typename Nested>
     struct Eigen3MatrixBase;
+
+
+    /**
+     * \internal
+     * \brief Base class for library-defined dynamic Eigen matrices.
+     */
+#ifdef __cpp_concepts
+    template<typename Scalar, std::size_t rows, std::size_t columns>
+#else
+    template<typename Scalar, std::size_t rows, std::size_t columns, typename = void>
+#endif
+    struct EigenDynamicBase;
+
   } // namespace internal
 
 
+  namespace internal
+  {
+    /**
+     * \internal
+     * \brief A type trait that must be instantiated for each native Eigen class deriving from Eigen::MatrixBase.
+     * \tparam T
+     */
+    template<typename T>
+    struct is_native_eigen_matrix : std::false_type {};
+  }
+
+
   /**
-   * \brief Specifies a native Eigen3 matrix deriving from Eigen::MatrixBase.
-   * \details This includes any original class in the Eigen library descending from Eigen::MatrixBase.
-   * It does not include new classes added in OpenKalman, such as DiagonalMatrix or ZeroMatrix.
+   * \brief Specifies a native Eigen3 matrix or expression class deriving from Eigen::MatrixBase.
+   * \details This includes any original class in the Eigen library descending from Eigen::DenseBase.
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept eigen_native = std::derived_from<std::decay_t<T>, Eigen::DenseBase<std::decay_t<T>>> and
-    (not std::derived_from<std::decay_t<T>, internal::Eigen3Base<std::decay_t<T>>>);
+  concept native_eigen_matrix = internal::is_native_eigen_matrix<std::decay_t<T>>::value;
+    // or (std::is_base_of_v<Eigen::MatrixBase<std::decay_t<T>>, std::decay_t<T>> and
+    //(not std::is_base_of_v<internal::Eigen3Base<std::decay_t<T>>, std::decay_t<T>>));
 #else
-  inline constexpr bool eigen_native = std::is_base_of_v<Eigen::MatrixBase<std::decay_t<T>>, std::decay_t<T>> and
-    (not std::is_base_of_v<internal::Eigen3Base<std::decay_t<T>>, std::decay_t<T>>);
+  inline constexpr bool native_eigen_matrix = internal::is_native_eigen_matrix<std::decay_t<T>>::value;
+    // or (std::is_base_of_v<Eigen::MatrixBase<std::decay_t<T>>, std::decay_t<T>> and
+    //(not std::is_base_of_v<internal::Eigen3Base<std::decay_t<T>>, std::decay_t<T>>));
+#endif
+
+
+  namespace internal
+  {
+    /**
+     * \internal
+     * \brief A type trait that must be instantiated for each native Eigen class that is convertible to Eigen::Matrix.
+     * \tparam T
+     */
+    template<typename T>
+    struct is_convertible_to_native_eigen_matrix : std::false_type {};
+  }
+
+
+  /**
+   * \brief Specifies a native Eigen3 class that can be converted to Eigen::Matrix.
+   * \details This should include any class in the Eigen library descending from Eigen::EigenBase.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept convertible_to_native_eigen_matrix =
+    std::is_base_of_v<Eigen::EigenBase<std::decay_t<T>>, std::decay_t<T>> and
+    requires(const std::decay_t<T>& t) {
+      Eigen::Matrix<typename Eigen::internal::traits<T>::Scalar, Eigen::internal::traits<T>::RowsAtCompileTime,
+            Eigen::internal::traits<T>::ColsAtCompileTime> {t};
+    };
+#else
+  inline constexpr bool convertible_to_native_eigen_matrix =
+    std::is_base_of_v<Eigen::EigenBase<std::decay_t<T>>, std::decay_t<T>> and
+    std::is_constructible_v<Eigen::Matrix<typename Eigen::internal::traits<T>::Scalar,
+      Eigen::internal::traits<T>::RowsAtCompileTime, Eigen::internal::traits<T>::ColsAtCompileTime>,
+      const std::decay_t<T>&>;
 #endif
 
 
@@ -95,9 +154,11 @@ namespace OpenKalman::Eigen3
    * \tparam Scalar The scalar type.
    * \tparam rows The number of rows (0 if \ref dynamic_rows).
    * \tparam columns The number of columns (0 if \ref dynamic_columns).
+   * \todo Demote Scalar to an optional parameter defaulting to decltype(auto), and possibly remove it conditionally with "__cpp_nontype_template_args >= 201911L"
    */
 #ifdef __cpp_concepts
   template<arithmetic_or_complex Scalar, auto constant, std::size_t rows, std::size_t columns = 1>
+  requires std::convertible_to<decltype(constant), Scalar>
 #else
   template<typename Scalar, auto constant, std::size_t rows, std::size_t columns = 1>
 #endif
@@ -170,9 +231,9 @@ namespace OpenKalman::Eigen3
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept eigen_matrix = eigen_native<T> or eigen_zero_expr<T> or eigen_constant_expr<T>;
+  concept eigen_matrix = native_eigen_matrix<T> or eigen_zero_expr<T> or eigen_constant_expr<T>;
 #else
-  inline constexpr bool eigen_matrix = eigen_native<T> or eigen_zero_expr<T> or eigen_constant_expr<T>;
+  inline constexpr bool eigen_matrix = native_eigen_matrix<T> or eigen_zero_expr<T> or eigen_constant_expr<T>;
 #endif
 
 
@@ -189,7 +250,7 @@ namespace OpenKalman::Eigen3
    * \note This has the same name as Eigen::DiagonalMatrix, and is intended as a replacement.
    */
 #ifdef __cpp_concepts
-  template<column_vector NestedMatrix> requires eigen_matrix<NestedMatrix>
+  template<eigen_matrix NestedMatrix> requires dynamic_columns<NestedMatrix> or column_vector<NestedMatrix>
 #else
   template<typename NestedMatrix>
 #endif
@@ -236,7 +297,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<typename NestedMatrix, TriangleType storage_triangle =
       (diagonal_matrix<NestedMatrix> ? TriangleType::diagonal : TriangleType::lower)>
-  requires eigen_diagonal_expr<NestedMatrix> or
+  requires (eigen_diagonal_expr<NestedMatrix> and not complex_number<typename MatrixTraits<NestedMatrix>::Scalar>) or
     (eigen_matrix<NestedMatrix>  and (dynamic_shape<NestedMatrix> or square_matrix<NestedMatrix>))
 #else
   template<typename NestedMatrix, TriangleType storage_triangle =
@@ -264,63 +325,6 @@ namespace OpenKalman::Eigen3
 #else
   inline constexpr bool eigen_self_adjoint_expr = detail::is_eigen_self_adjoint_expr<std::decay_t<T>>::value;
 #endif
-
-
-  // ---------------------------------------------------------------------------------------------- //
-  //  is_upper_triangular_storage, is_lower_triangular_storage, internal::same_storage_triangle_as  //
-  // ---------------------------------------------------------------------------------------------- //
-
-  namespace internal
-  {
-    template<typename T>
-    struct is_upper_triangular_storage : std::false_type {};
-
-    template<typename T>
-    struct is_lower_triangular_storage : std::false_type {};
-  }
-
-
-  /**
-   * \brief Specifies that T is an \ref eigen_self_adjoint_expr that stores data in the upper-right triangle.
-   * \details This \em includes matrices that store data only along the diagonal.
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept upper_triangular_storage = internal::is_upper_triangular_storage<std::decay_t<T>>::value;
-#else
-  inline constexpr bool upper_triangular_storage = internal::is_upper_triangular_storage<std::decay_t<T>>::value;
-#endif
-
-
-  /**
-   * \brief Specifies that T is an \ref eigen_self_adjoint_expr that stores data in the lower-left triangle.
-   * \details This \em includes matrices that store data only along the diagonal.
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept lower_triangular_storage = internal::is_lower_triangular_storage<std::decay_t<T>>::value;
-#else
-  inline constexpr bool lower_triangular_storage = internal::is_lower_triangular_storage<std::decay_t<T>>::value;
-#endif
-
-
-  namespace internal
-  {
-    /**
-     * \internal
-     * \brief Specifies that two self-adjoint expressions have the same storage triangle type (upper or lower).
-     */
-    template<typename T, typename U>
-#ifdef __cpp_concepts
-    concept same_storage_triangle_as =
-    (upper_triangular_storage<T> and upper_triangular_storage<U>) or
-      (lower_triangular_storage<T> and lower_triangular_storage<U>);
-#else
-    inline constexpr bool same_storage_triangle_as =
-        (upper_triangular_storage<T> and upper_triangular_storage<U>) or
-        (lower_triangular_storage<T> and lower_triangular_storage<U>);
-#endif
-  }
 
 
   // ----------------------------------------- //
@@ -400,7 +404,7 @@ namespace OpenKalman::Eigen3
   template<coefficients Coefficients, typename NestedMatrix = eigen_matrix_t<double, Coefficients::dimensions, 1>>
   requires (eigen_matrix<NestedMatrix> or eigen_diagonal_expr<NestedMatrix>) and
     (dynamic_coefficients<Coefficients> == dynamic_rows<NestedMatrix>) and
-    (Coefficients::dimensions == MatrixTraits<NestedMatrix>::rows) and
+    (not fixed_coefficients<Coefficients> or Coefficients::dimensions == MatrixTraits<NestedMatrix>::rows) and
     (not dynamic_coefficients<Coefficients> or
       std::same_as<typename Coefficients::Scalar, typename MatrixTraits<NestedMatrix>::Scalar>)
 #else
@@ -445,7 +449,7 @@ namespace OpenKalman::Eigen3
     typename NestedMatrix = eigen_matrix_t<double, Coefficients::euclidean_dimensions, 1>>
   requires (eigen_matrix<NestedMatrix> or to_euclidean_expr<NestedMatrix> or eigen_diagonal_expr<NestedMatrix>) and
     (dynamic_coefficients<Coefficients> == dynamic_rows<NestedMatrix>) and
-    (Coefficients::euclidean_dimensions == MatrixTraits<NestedMatrix>::rows) and
+    (not fixed_coefficients<Coefficients> or Coefficients::euclidean_dimensions == MatrixTraits<NestedMatrix>::rows) and
     (not dynamic_coefficients<Coefficients> or
       std::same_as<typename Coefficients::Scalar, typename MatrixTraits<NestedMatrix>::Scalar>)
 #else

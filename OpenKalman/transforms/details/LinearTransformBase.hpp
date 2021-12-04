@@ -52,7 +52,7 @@ namespace OpenKalman::internal
     template<std::size_t return_cross, typename J, typename D, std::size_t...ints>
     static auto sum_noise_terms(const J& j, D&& d, std::index_sequence<ints...>)
     {
-      using InputDist = std::tuple_element<0, D>;
+      using InputDist = std::tuple_element_t<0, D>;
       if constexpr(cholesky_form<InputDist>)
       {
         if constexpr (return_cross)

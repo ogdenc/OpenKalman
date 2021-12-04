@@ -59,16 +59,40 @@ namespace OpenKalman::Eigen3
 
 
     /**
-     * \brief Construct a ZeroMatrix based on the shape of another matrix.
-     * \tparam M The matrix to be used as a shape template. M must have the same shape as the ZeroMatrix.
+     * \internal
+     * \brief Construct a ZeroMatrix from another zero_matrix.
+     * \tparam M A zero_matrix with a compatible shape.
      */
 #ifdef __cpp_concepts
-    template<typename M> requires (MatrixTraits<M>::rows == rows_) and (MatrixTraits<M>::columns == columns)
+    template<zero_matrix M>
+    requires (not std::same_as<M, ZeroMatrix>) and (dynamic_rows<M> or rows_ == 0 or MatrixTraits<M>::rows == rows_) and
+      (dynamic_columns<M> or columns == 0 or MatrixTraits<M>::columns == columns)
 #else
-    template<typename M, std::enable_if_t<
-      (MatrixTraits<M>::rows == rows_) and (MatrixTraits<M>::columns == columns), int> = 0>
+    template<typename M, std::enable_if_t<zero_matrix<M> and (not std::is_same_v<M, ZeroMatrix>) and
+      (dynamic_rows<M> or rows_ == 0 or MatrixTraits<M>::rows == rows_) and
+      (dynamic_columns<M> or columns == 0 or MatrixTraits<M>::columns == columns), int> = 0>
 #endif
     ZeroMatrix(M&& m) : Base {std::forward<M>(m)} {}
+
+
+    /**
+     * \internal
+     * \brief Assign from another compatible zero_matrix.
+     */
+#ifdef __cpp_concepts
+    template<zero_matrix M>
+    requires (not std::same_as<M, ZeroMatrix>) and (dynamic_rows<M> or rows_ == 0 or MatrixTraits<M>::rows == rows_) and
+      (dynamic_columns<M> or columns == 0 or MatrixTraits<M>::columns == columns)
+#else
+    template<typename M, std::enable_if_t<zero_matrix<M> and (not std::is_same_v<M, ZeroMatrix>) and
+      (dynamic_rows<M> or rows_ == 0 or MatrixTraits<M>::rows == rows_) and
+      (dynamic_columns<M> or columns == 0 or MatrixTraits<M>::columns == columns), int> = 0>
+#endif
+    auto& operator=(M&& m)
+    {
+      Base::operator=(std::forward<M>(m));
+      return *this;
+    }
 
 
     /**
@@ -91,7 +115,8 @@ namespace OpenKalman::Eigen3
      * \return The element at row or column i (always zero of type Scalar).
      */
 #ifdef __cpp_concepts
-    constexpr Scalar operator[](std::size_t i) const requires (rows_ == 1) or (columns == 1)
+    constexpr Scalar operator[](std::size_t i) const
+    requires (rows_ == 1) or (columns == 1)
 #else
     template<std::size_t r = rows_, std::enable_if_t<(r == 1) or (columns == 1), int> = 0>
       constexpr Scalar operator[](std::size_t i) const
@@ -109,7 +134,8 @@ namespace OpenKalman::Eigen3
      * \return The element at row or column i (always zero of type Scalar).
      */
 #ifdef __cpp_concepts
-    constexpr Scalar operator()(std::size_t i) const requires (rows_ == 1) or (columns == 1)
+    constexpr Scalar operator()(std::size_t i) const
+    requires (rows_ == 1) or (columns == 1)
 #else
     template<std::size_t r = rows_, std::enable_if_t<(r == 1) or (columns == 1), int> = 0>
       constexpr Scalar operator()(std::size_t i) const
@@ -127,40 +153,18 @@ namespace OpenKalman::Eigen3
   };
 
 
-  /**
-   * \brief Deduction guide for constructing a ZeroMatrix based on the shape of M.
-   */
-#ifdef __cpp_concepts
-  template<eigen_native M>
-#else
-  template<typename M, std::enable_if_t<eigen_native<M>, int> = 0>
-#endif
-  ZeroMatrix(M&&) -> ZeroMatrix<typename MatrixTraits<M>::Scalar, MatrixTraits<M>::rows, MatrixTraits<M>::columns>;
+  // ------------------------------ //
+  //        Deduction guide         //
+  // ------------------------------ //
 
-
-  /**
-   * \brief Make a ZeroMatrix of a given fixed or dynamic shape.
-   * \tparam Scalar The scalar type.
-   * \tparam rows The number of rows (or 0 if the rows are dynamic).
-   * \tparam columns The number of columns (or 0 if the columns are dynamic).
-   * \tparam Args Row or column (or both) arguments (in that order if both are given) necessary to define any
-   * dynamic dimensions. Unnecessary parameters are discarded.
-   * \return A ZeroMatrix<Scalar, rows, columns>.
-   */
 #ifdef __cpp_concepts
-  template<typename Scalar, std::size_t rows, std::size_t columns, std::convertible_to<std::size_t>...Args> requires
-    (sizeof...(Args) <= 2)
+  template<zero_matrix Arg>
 #else
-  template<typename Scalar, std::size_t rows, std::size_t columns, typename...Args, std::enable_if_t<
-    (std::is_convertible_v<Args, std::size_t> and ... and (sizeof...(Args) <= 2)), int> = 0>
+  template<typename Arg, std::enable_if_t<zero_matrix<Arg>, int> = 0>
 #endif
-  inline auto make_ZeroMatrix(const Args...args)
-  {
-    constexpr std::size_t arg_count = (rows == 0 ? 1 : 0) + (columns == 0 ? 1 : 0);
-    return std::apply([] (auto...as) {
-      return ZeroMatrix<Scalar, rows, columns> {as...};
-      }, OpenKalman::internal::tuple_slice<0, arg_count>(std::forward_as_tuple(args...)));
-  }
+  ZeroMatrix(Arg&&)
+    -> ZeroMatrix<typename MatrixTraits<Arg>::Scalar, MatrixTraits<Arg>::rows, MatrixTraits<Arg>::columns>;
+
 
 } // OpenKalman::Eigen3
 
@@ -222,14 +226,17 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<std::convertible_to<Eigen::Index> ... Args> requires (sizeof...(Args) == (rows == 0 ? 1 : 0))
+    template<std::convertible_to<Eigen::Index> ... Args>
+    requires (sizeof...(Args) >= (rows == 0 and columns == 0 ? 1 : 0)) and (sizeof...(Args) <= 1)
 #else
     template<typename...Args, std::enable_if_t<(std::is_convertible_v<Args, Eigen::Index> and ...) and
-      (sizeof...(Args) == (rows == 0 ? 1 : 0)), int> = 0>
+      (sizeof...(Args) >= (rows == 0 and columns == 0 ? 1 : 0)) and (sizeof...(Args) <= 1), int> = 0>
 #endif
     static auto identity(const Args...args)
     {
-      return Eigen3::eigen_matrix_t<Scalar, rows, rows>::Identity(
+      constexpr auto r = sizeof...(Args) == 0 ? (rows == 0 ? columns : rows) : 0;
+
+      return Eigen3::eigen_matrix_t<Scalar, r, r>::Identity(
         static_cast<Eigen::Index>(args)..., static_cast<Eigen::Index>(args)...);
     }
 
