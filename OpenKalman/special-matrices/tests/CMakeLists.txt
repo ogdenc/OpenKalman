@@ -14,13 +14,16 @@ enable_testing()
 find_package(GTest REQUIRED)
 include(GoogleTest)
 
-add_executable(typed-matrix
-    matrix.cpp
-    mean.cpp
-    euclidean_mean.cpp
-    matrix-refs.cpp
+add_executable(special-matrices
+        ZeroMatrix.test.cpp
+        ConstantMatrix.test.cpp
+        DiagonalMatrix.test.cpp
+        SelfAdjointMatrix.test.cpp
+        TriangularMatrix.test.cpp
+        ToEuclideanExpr.test.cpp
+        FromEuclideanExpr.test.cpp
     )
 
-target_link_libraries(typed-matrix ${GTEST_BOTH_LIBRARIES} Eigen3::Eigen Threads::Threads)
+target_link_libraries(special-matrices ${GTEST_BOTH_LIBRARIES} Eigen3::Eigen Threads::Threads)
 
-gtest_discover_tests(typed-matrix DISCOVERY_TIMEOUT 60)
+gtest_discover_tests(special-matrices DISCOVERY_TIMEOUT 20)

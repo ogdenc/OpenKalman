@@ -50,8 +50,13 @@ namespace OpenKalman::test
 #endif
   inline ::testing::AssertionResult is_near(const Arg1& arg1, const Arg2& arg2, const Err& err = 1e-6)
   {
-    if constexpr (dynamic_rows<Arg1> or dynamic_rows<Arg2>) assert(row_count(arg1) == row_count(arg2));
-    if constexpr (dynamic_columns<Arg1> or dynamic_columns<Arg2>) assert(column_count(arg1) == column_count(arg2));
+    if constexpr (dynamic_shape<Arg1> or dynamic_shape<Arg2>)
+      if (row_count(arg1) != row_count(arg2) or column_count(arg1) != column_count(arg2))
+    {
+      return ::testing::AssertionFailure() << std::endl << arg1 << std::endl <<
+      "(rows " << row_count(arg1) << ", cols " << column_count(arg1) << "), is not near" << std::endl <<
+      arg2 << std::endl << "(rows " << row_count(arg2) << ", cols " << column_count(arg2) << ")" << std::endl;
+    }
 
     return TestComparison<Arg1, Arg2, Err> {arg1, arg2, err};
   }
@@ -78,28 +83,43 @@ namespace OpenKalman::test
   template<typename Arg1, typename Arg2, typename Err = double>
   requires detail::is_std_array_v<Arg1> and detail::is_std_array_v<Arg2> and std::is_arithmetic_v<Err> and
     (std::tuple_size_v<Arg1> == std::tuple_size_v<Arg2>) and
-    (dynamic_rows<std::tuple_element_t<0, Arg1>> or dynamic_rows<std::tuple_element_t<0, Arg2>> or
-      MatrixTraits<std::tuple_element_t<0, Arg1>>::rows == MatrixTraits<std::tuple_element_t<0, Arg2>>::rows) and
-    (dynamic_columns<std::tuple_element_t<0, Arg1>> or dynamic_columns<std::tuple_element_t<0, Arg2>> or
-      MatrixTraits<std::tuple_element_t<0, Arg1>>::columns == MatrixTraits<std::tuple_element_t<0, Arg2>>::columns)
+    (dynamic_rows<typename Arg1::value_type> or dynamic_rows<typename Arg2::value_type> or
+      MatrixTraits<typename Arg1::value_type>::rows == MatrixTraits<typename Arg2::value_type>::rows) and
+    (dynamic_columns<typename Arg1::value_type> or dynamic_columns<typename Arg2::value_type> or
+      MatrixTraits<typename Arg1::value_type>::columns == MatrixTraits<typename Arg2::value_type>::columns)
 #else
   template<typename Arg1, typename Arg2, typename Err = double, std::enable_if_t<
     detail::is_std_array_v<Arg1> and detail::is_std_array_v<Arg2> and std::is_arithmetic_v<Err> and
-    (std::tuple_size_v<Arg1> == std::tuple_size_v<Arg2>) and
-    (dynamic_rows<std::tuple_element_t<0, Arg1>> or dynamic_rows<std::tuple_element_t<0, Arg2>> or
-      MatrixTraits<std::tuple_element_t<0, Arg1>>::rows == MatrixTraits<std::tuple_element_t<0, Arg2>>::rows) and
-    (dynamic_columns<std::tuple_element_t<0, Arg1>> or dynamic_columns<std::tuple_element_t<0, Arg2>> or
-      MatrixTraits<std::tuple_element_t<0, Arg1>>::columns == MatrixTraits<std::tuple_element_t<0, Arg2>>::columns), int> = 0>
+    (std::tuple_size<Arg1>::value == std::tuple_size<Arg2>::value) and
+    (dynamic_rows<typename Arg1::value_type> or dynamic_rows<typename Arg2::value_type> or
+      MatrixTraits<typename Arg1::value_type>::rows == MatrixTraits<typename Arg2::value_type>::rows) and
+    (dynamic_columns<typename Arg1::value_type> or dynamic_columns<typename Arg2::value_type> or
+      MatrixTraits<typename Arg1::value_type>::columns == MatrixTraits<typename Arg2::value_type>::columns), int> = 0>
 #endif
   inline ::testing::AssertionResult is_near(const Arg1& arg1, const Arg2& arg2, const Err& err = 1e-6)
   {
+    if constexpr (std::tuple_size_v<Arg1> != std::tuple_size_v<Arg2>)
+    {
+      return ::testing::AssertionFailure() << std::endl << "Size of first array (" <<
+        std::tuple_size_v<Arg1> << " elements) does not match size of second array (" <<
+        std::tuple_size_v<Arg2> << " elements)" << std::endl;
+    }
+    else
+    {
+      return TestComparison<Arg1, Arg2, Err> {arg1, arg2, err};
+    }
+
+
+
     if constexpr (dynamic_rows<std::tuple_element_t<0, Arg1>> or dynamic_rows<std::tuple_element_t<0, Arg2>>)
-      assert(row_count(std::get<0>(arg1)) == row_count(std::get<0>(arg2)));
+      if (row_count(std::get<0>(arg1)) != row_count(std::get<0>(arg2)))
+        throw std::logic_error {"Row dimension mismatch: " + std::to_string(row_count(std::get<0>(arg1))) + " != " +
+          std::to_string(row_count(std::get<0>(arg2))) + " in is_near(array) of " + std::string {__FILE__}};
 
     if constexpr (dynamic_columns<std::tuple_element_t<0, Arg1>> or dynamic_columns<std::tuple_element_t<0, Arg2>>)
-      assert(column_count(std::get<0>(arg1)) == column_count(std::get<0>(arg2)));
-
-    return TestComparison<Arg1, Arg2, Err> {arg1, arg2, err};
+      if (column_count(std::get<0>(arg1)) != column_count(std::get<0>(arg2)))
+        throw std::logic_error {"Column dimension mismatch: " + std::to_string(column_count(std::get<0>(arg1))) + " != " +
+          std::to_string(column_count(std::get<0>(arg2))) + " in is_near(array) of " + std::string {__FILE__}};
   }
 
 

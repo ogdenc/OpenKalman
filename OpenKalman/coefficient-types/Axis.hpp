@@ -70,7 +70,7 @@ namespace OpenKalman
      * \tparam Scalar The scalar type (e.g., double).
      * \tparam i The index of the coefficient that is being transformed.
      */
-#if defined (__cpp_concepts) && defined (__clang__) // Because of compiler issue in at least GCC version 10.1.0
+#if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS
     template<arithmetic_or_complex Scalar, std::size_t i>
 #else
     template<typename Scalar, std::size_t i>
@@ -92,7 +92,7 @@ namespace OpenKalman
      * \tparam Scalar The scalar type (e.g., double).
      * \tparam i The index of the coefficient that is being transformed.
      */
-#if defined (__cpp_concepts) && defined (__clang__) // Because of compiler issue in at least GCC version 10.1.0
+#if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS
     template<arithmetic_or_complex Scalar, std::size_t i>
 #else
     template<typename Scalar, std::size_t i>
@@ -113,7 +113,7 @@ namespace OpenKalman
      * \tparam Scalar The scalar type (e.g., double).
      * \tparam i The index of the axis coefficient that is being wrapped.
      */
-#if defined (__cpp_concepts) && defined (__clang__) // Because of compiler issue in at least GCC version 10.1.0
+#if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS
     template<arithmetic_or_complex Scalar, std::size_t i>
 #else
     template<typename Scalar, std::size_t i>
@@ -135,7 +135,7 @@ namespace OpenKalman
      * \tparam Scalar The scalar type (e.g., double).
      * \tparam i The index of the axis coefficient that is being wrapped.
      */
-#if defined (__cpp_concepts) && defined (__clang__) // Because of compiler issue in at least GCC version 10.1.0
+#if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS
     template<arithmetic_or_complex Scalar, std::size_t i>
 #else
     template<typename Scalar, std::size_t i>

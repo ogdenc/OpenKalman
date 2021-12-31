@@ -108,13 +108,14 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<zero_matrix NestedMatrix>
+  template<constant_matrix NestedMatrix> requires zero_matrix<NestedMatrix> or one_by_one_matrix<NestedMatrix>
   struct constant_coefficient<DiagonalMatrix<NestedMatrix>>
 #else
   template<typename NestedMatrix>
-  struct constant_coefficient<DiagonalMatrix<NestedMatrix>, std::enable_if_t<zero_matrix<NestedMatrix>>
+  struct constant_coefficient<DiagonalMatrix<NestedMatrix>, std::enable_if_t<constant_matrix<NestedMatrix> and
+    (zero_matrix<NestedMatrix> or one_by_one_matrix<NestedMatrix>)>>
 #endif
-    : constant_coefficient_type<short {0}, typename MatrixTraits<NestedMatrix>::Scalar> {};
+    : constant_coefficient_type<constant_coefficient_v<NestedMatrix>> {};
 
 
 #ifdef __cpp_concepts
@@ -179,9 +180,9 @@ namespace OpenKalman
   struct constant_diagonal_coefficient<DiagonalMatrix<NestedMatrix>>
 #else
   template<typename NestedMatrix>
-  struct constant_diagonal_coefficient<DiagonalMatrix<NestedMatrix>, std::enable_if_t<constant_matrix<NestedMatrix>>
+  struct constant_diagonal_coefficient<DiagonalMatrix<NestedMatrix>, std::enable_if_t<constant_matrix<NestedMatrix>>>
 #endif
-    : constant_coefficient_type<constant_diagonal_coefficient_v<NestedMatrix>> {};
+    : constant_coefficient_type<constant_coefficient_v<NestedMatrix>> {};
 
 
 #ifdef __cpp_concepts
@@ -221,7 +222,7 @@ namespace OpenKalman
   template<constant_matrix NestedMatrix>
   struct constant_diagonal_coefficient<SelfAdjointMatrix<NestedMatrix, TriangleType::diagonal>>
 #else
-  template<typename NestedMatrix, TriangleType storage_type>
+  template<typename NestedMatrix>
   struct constant_diagonal_coefficient<SelfAdjointMatrix<NestedMatrix, TriangleType::diagonal>, std::enable_if_t<
     constant_matrix<NestedMatrix>>>
 #endif
@@ -256,12 +257,12 @@ namespace OpenKalman
 
   template<typename Scalar, auto constant, std::size_t dim>
   struct is_diagonal_matrix<ConstantMatrix<Scalar, constant, dim, dim>>
-    : std::bool_constant<(dim > 0) and (dim == 1 or constant == 0)> {};
+    : std::bool_constant<(dim != dynamic_extent) and (dim == 1 or constant == 0)> {};
 
 
   template<typename Scalar, std::size_t dim>
   struct is_diagonal_matrix<ZeroMatrix<Scalar, dim, dim>>
-    : std::bool_constant<(dim > 0)> {};
+    : std::bool_constant<dim != dynamic_extent> {};
 
 
   template<typename NestedMatrix>
@@ -295,12 +296,12 @@ namespace OpenKalman
 
   template<typename Scalar, auto constant, std::size_t dim>
   struct is_lower_self_adjoint_matrix<ConstantMatrix<Scalar, constant, dim, dim>>
-    : std::bool_constant<(dim > 0) and not complex_number<decltype(constant)>> {};
+    : std::bool_constant<(dim != dynamic_extent) and not complex_number<decltype(constant)>> {};
 
 
   template<typename Scalar, std::size_t dim>
   struct is_lower_self_adjoint_matrix<ZeroMatrix<Scalar, dim, dim>>
-    : std::bool_constant<(dim > 0)> {};
+    : std::bool_constant<(dim != dynamic_extent)> {};
 
 
   template<typename NestedMatrix>
@@ -334,12 +335,12 @@ namespace OpenKalman
 
   template<typename Scalar, auto constant, std::size_t dim>
   struct is_upper_self_adjoint_matrix<ConstantMatrix<Scalar, constant, dim, dim>>
-    : std::bool_constant<(dim > 0) and not complex_number<decltype(constant)>> {};
+    : std::bool_constant<(dim != dynamic_extent) and not complex_number<decltype(constant)>> {};
 
 
   template<typename Scalar, std::size_t dim>
   struct is_upper_self_adjoint_matrix<ZeroMatrix<Scalar, dim, dim>>
-    : std::bool_constant<(dim > 0)> {};
+    : std::bool_constant<(dim != dynamic_extent)> {};
 
 
   template<typename NestedMatrix>
@@ -373,12 +374,12 @@ namespace OpenKalman
 
   template<typename Scalar, auto constant, std::size_t dim>
   struct is_lower_triangular_matrix<ConstantMatrix<Scalar, constant, dim, dim>>
-    : std::bool_constant<(dim > 0) and (dim == 1 or constant == 0)> {};
+    : std::bool_constant<(dim != dynamic_extent) and (dim == 1 or constant == 0)> {};
 
 
   template<typename Scalar, std::size_t dim>
   struct is_lower_triangular_matrix<ZeroMatrix<Scalar, dim, dim>>
-    : std::bool_constant<(dim > 0)> {};
+    : std::bool_constant<(dim != dynamic_extent)> {};
 
 
   template<typename NestedMatrix>
@@ -413,7 +414,7 @@ namespace OpenKalman
 
   template<typename Scalar, std::size_t dim>
   struct is_upper_triangular_matrix<ZeroMatrix<Scalar, dim, dim>>
-    : std::bool_constant<(dim > 0)> {};
+    : std::bool_constant<dim != dynamic_extent> {};
 
 
   template<typename NestedMatrix>
@@ -517,7 +518,7 @@ namespace OpenKalman
   template<typename T, std::size_t N>
   struct is_element_gettable<T, N, std::enable_if_t<eigen_self_adjoint_expr<T>>>
     : std::bool_constant<(element_gettable<nested_matrix_t<T>, 2> and
-        (N == 2 or self_adjoint_triangle_type_of_v<T> == TriangleType::diagonal)) or
+        (N == 2 or self_adjoint_triangle_type_of<T>::value == TriangleType::diagonal)) or
         element_gettable<nested_matrix_t<T>, 1>> {};
 #endif
 
@@ -531,7 +532,7 @@ namespace OpenKalman
   template<typename T, std::size_t N>
   struct is_element_gettable<T, N, std::enable_if_t<eigen_triangular_expr<T>>>
     : std::bool_constant<(element_gettable<nested_matrix_t<T>, 2> and
-        (N == 2 or triangle_type_of_v<T> == TriangleType::diagonal)) or
+        (N == 2 or triangle_type_of<T>::value == TriangleType::diagonal)) or
         element_gettable<nested_matrix_t<T>, 1>> {};
 #endif
 
@@ -603,7 +604,7 @@ namespace OpenKalman
   template<typename T, std::size_t N>
   struct is_element_settable<T, N, std::enable_if_t<eigen_self_adjoint_expr<T>>>
     : std::bool_constant<(element_settable<nested_matrix_t<T>, 2> and
-        (N == 2 or self_adjoint_triangle_type_of_v<T> == TriangleType::diagonal)) or
+        (N == 2 or self_adjoint_triangle_type_of<T>::value == TriangleType::diagonal)) or
         element_settable<nested_matrix_t<T>, 1>> {};
 #endif
 
@@ -617,7 +618,7 @@ namespace OpenKalman
   template<typename T, std::size_t N>
   struct is_element_settable<T, N, std::enable_if_t<eigen_triangular_expr<T>>>
     : std::bool_constant<(element_settable<nested_matrix_t<T>, 2> and
-        (N == 2 or triangle_type_of_v<T> == TriangleType::diagonal)) or
+        (N == 2 or triangle_type_of<T>::value == TriangleType::diagonal)) or
         element_settable<nested_matrix_t<T>, 1>> {};
 #endif
 
@@ -698,7 +699,7 @@ namespace OpenKalman
   template<typename NestedMatrix, TriangleType storage_triangle, typename U> requires
     //(not self_adjoint_matrix<U>) or
     //(storage_triangle == TriangleType::diagonal and not diagonal_matrix<U>) or
-    (eigen_self_adjoint_expr<U> and not modifiable<NestedMatrix, typename MatrixTraits<U>::NestedMatrix>) or
+    (eigen_self_adjoint_expr<U> and not modifiable<NestedMatrix, nested_matrix_t<U>>) or
     (not eigen_self_adjoint_expr<U> and not modifiable<NestedMatrix, U>)
   struct is_modifiable_native<SelfAdjointMatrix<NestedMatrix, storage_triangle>, U> : std::false_type {};
 #else
@@ -717,7 +718,7 @@ namespace OpenKalman
   template<typename NestedMatrix, TriangleType triangle_type, typename U> requires
     //(not triangular_matrix<U>) or
     //(triangle_type == TriangleType::diagonal and not diagonal_matrix<U>) or
-    (eigen_triangular_expr<U> and not modifiable<NestedMatrix, typename MatrixTraits<U>::NestedMatrix>) or
+    (eigen_triangular_expr<U> and not modifiable<NestedMatrix, nested_matrix_t<U>>) or
     (not eigen_triangular_expr<U> and not modifiable<NestedMatrix, U>)
   struct is_modifiable_native<TriangularMatrix<NestedMatrix, triangle_type>, U> : std::false_type {};
 #else
@@ -735,7 +736,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typename C, typename NestedMatrix, typename U> requires
     (euclidean_expr<U> and (to_euclidean_expr<U> or
-      not modifiable<NestedMatrix, typename MatrixTraits<U>::NestedMatrix> or
+      not modifiable<NestedMatrix, nested_matrix_t<U>> or
       not equivalent_to<C, typename MatrixTraits<U>::RowCoefficients>)) or
     (not euclidean_expr<U> and not modifiable<NestedMatrix, ToEuclideanExpr<C, std::decay_t<U>>>)
   struct is_modifiable_native<FromEuclideanExpr<C, NestedMatrix>, U>
@@ -760,7 +761,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typename C, typename NestedMatrix, typename U> requires
     (euclidean_expr<U> and (from_euclidean_expr<U> or
-      not modifiable<NestedMatrix, typename MatrixTraits<U>::NestedMatrix> or
+      not modifiable<NestedMatrix, nested_matrix_t<U>> or
       not equivalent_to<C, typename MatrixTraits<U>::RowCoefficients>)) or
     (not euclidean_expr<U> and not modifiable<NestedMatrix, FromEuclideanExpr<C, std::decay_t<U>>>)
   struct is_modifiable_native<ToEuclideanExpr<C, NestedMatrix>, U>

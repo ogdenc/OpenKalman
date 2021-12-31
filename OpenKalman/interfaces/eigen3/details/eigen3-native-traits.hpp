@@ -76,9 +76,9 @@ namespace Eigen::internal
     using Scalar = Scalar_;
     enum
     {
-      RowsAtCompileTime = (rows == 0 ? Eigen::Dynamic : (Eigen::Index) rows),
+      RowsAtCompileTime = (rows == OpenKalman::dynamic_extent ? Eigen::Dynamic : (Eigen::Index) rows),
       MaxRowsAtCompileTime = RowsAtCompileTime,
-      ColsAtCompileTime = (cols == 0 ? Eigen::Dynamic : (Eigen::Index) cols),
+      ColsAtCompileTime = (cols == OpenKalman::dynamic_extent ? Eigen::Dynamic : (Eigen::Index) cols),
       MaxColsAtCompileTime = ColsAtCompileTime,
       Flags = NoPreferredStorageOrderBit | LinearAccessBit |
         (traits<Matrix<Scalar, RowsAtCompileTime, ColsAtCompileTime>>::Flags & RowMajorBit) |
@@ -96,9 +96,9 @@ namespace Eigen::internal
     using Scalar = Scalar_;
     enum
     {
-      RowsAtCompileTime = (rows == 0 ? Eigen::Dynamic : (Eigen::Index) rows),
+      RowsAtCompileTime = (rows == OpenKalman::dynamic_extent ? Eigen::Dynamic : (Eigen::Index) rows),
       MaxRowsAtCompileTime = RowsAtCompileTime,
-      ColsAtCompileTime = (cols == 0 ? Eigen::Dynamic : (Eigen::Index) cols),
+      ColsAtCompileTime = (cols == OpenKalman::dynamic_extent ? Eigen::Dynamic : (Eigen::Index) cols),
       MaxColsAtCompileTime = ColsAtCompileTime,
       Flags = NoPreferredStorageOrderBit | EvalBeforeNestingBit | LinearAccessBit |
         (traits<Matrix<Scalar, RowsAtCompileTime, ColsAtCompileTime>>::Flags & RowMajorBit) |
@@ -113,10 +113,9 @@ namespace Eigen::internal
   {
     using Scalar = typename std::decay_t<NestedMatrix>::Scalar;
     using Nested = std::decay_t<NestedMatrix>;
-    using NestedTraits = traits<Nested>;
     enum
     {
-      Flags = NestedTraits::Flags &
+      Flags = traits<Nested>::Flags &
         (~DirectAccessBit) &
         (~(storage_triangle == TriangleType::diagonal or one_by_one_matrix<NestedMatrix> ? 0 : LinearAccessBit)) &
         (~PacketAccessBit) &
@@ -131,10 +130,9 @@ namespace Eigen::internal
     : traits<std::decay_t<NestedMatrix>>
   {
     using Nested = std::decay_t<NestedMatrix>;
-    using NestedTraits = traits<Nested>;
     enum
     {
-      Flags = NestedTraits::Flags & (~DirectAccessBit) & (~LinearAccessBit) & (~PacketAccessBit),
+      Flags = traits<Nested>::Flags & (~DirectAccessBit) & (~LinearAccessBit) & (~PacketAccessBit),
     };
   };
 
@@ -143,12 +141,11 @@ namespace Eigen::internal
   struct traits<OpenKalman::Eigen3::DiagonalMatrix<ArgType>> : traits<std::decay_t<ArgType>>
   {
     using Nested = std::decay_t<ArgType>;
-    using NestedTraits = traits<Nested>;
     enum
     {
-      Flags = NestedTraits::Flags & (~DirectAccessBit) & (~LinearAccessBit) & (~PacketAccessBit),
-      ColsAtCompileTime = NestedTraits::RowsAtCompileTime,
-      MaxColsAtCompileTime = NestedTraits::MaxRowsAtCompileTime
+      Flags = traits<Nested>::Flags & (~DirectAccessBit) & (~LinearAccessBit) & (~PacketAccessBit),
+      ColsAtCompileTime = traits<Nested>::RowsAtCompileTime,
+      MaxColsAtCompileTime = traits<Nested>::MaxRowsAtCompileTime,
     };
   };
 
@@ -157,12 +154,11 @@ namespace Eigen::internal
   struct traits<OpenKalman::Eigen3::ToEuclideanExpr<Coeffs, ArgType>> : traits<std::decay_t<ArgType>>
   {
     using Nested = std::decay_t<ArgType>;
-    using NestedTraits = traits<Nested>;
     enum
     {
       Flags = Coeffs::axes_only ?
-              NestedTraits::Flags :
-              NestedTraits::Flags & (~DirectAccessBit) & (~PacketAccessBit) & (~LvalueBit) &
+              traits<Nested>::Flags :
+              traits<Nested>::Flags & (~DirectAccessBit) & (~PacketAccessBit) & (~LvalueBit) &
                 (~(OpenKalman::MatrixTraits<ArgType>::columns == 1 ? 0 : LinearAccessBit)),
       RowsAtCompileTime = [] {
         if constexpr (OpenKalman::dynamic_coefficients<Coeffs>) return Eigen::Dynamic;
@@ -177,12 +173,11 @@ namespace Eigen::internal
   struct traits<OpenKalman::Eigen3::FromEuclideanExpr<Coeffs, ArgType>> : traits<std::decay_t<ArgType>>
   {
     using Nested = std::decay_t<ArgType>;
-    using NestedTraits = traits<Nested>;
     enum
     {
       Flags = Coeffs::axes_only ?
-              NestedTraits::Flags :
-              NestedTraits::Flags & (~DirectAccessBit) & (~PacketAccessBit) & (~LvalueBit) &
+              traits<Nested>::Flags :
+              traits<Nested>::Flags & (~DirectAccessBit) & (~PacketAccessBit) & (~LvalueBit) &
                 (~(OpenKalman::MatrixTraits<ArgType>::columns == 1 ? 0 : LinearAccessBit)),
       RowsAtCompileTime = [] {
         if constexpr (OpenKalman::dynamic_coefficients<Coeffs>) return Eigen::Dynamic;
@@ -199,12 +194,11 @@ namespace Eigen::internal
       : traits<std::decay_t<ArgType>>
   {
     using Nested = std::decay_t<ArgType>;
-    using NestedTraits = traits<Nested>;
     enum
     {
       Flags = Coeffs::axes_only ?
-              NestedTraits::Flags :
-              NestedTraits::Flags & (~DirectAccessBit) & (~PacketAccessBit) & (~LvalueBit) &
+              traits<Nested>::Flags :
+              traits<Nested>::Flags & (~DirectAccessBit) & (~PacketAccessBit) & (~LvalueBit) &
                 (~(OpenKalman::MatrixTraits<ArgType>::columns == 1 ? 0 : LinearAccessBit)),
       RowsAtCompileTime = [] {
         if constexpr (OpenKalman::dynamic_coefficients<Coeffs>) return Eigen::Dynamic;

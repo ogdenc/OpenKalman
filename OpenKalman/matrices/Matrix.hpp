@@ -216,7 +216,7 @@ namespace OpenKalman
 #endif
     auto& operator+=(const Arg& arg) noexcept
     {
-      apply_columnwise(this->nested_matrix(), [&arg](auto& col) { col += arg().nested_matrix(); });
+      apply_columnwise([&arg](auto& col) { col += arg().nested_matrix(); }, this->nested_matrix());
       return *this;
     }
 
@@ -256,7 +256,7 @@ namespace OpenKalman
 #endif
     auto& operator-=(const Arg& arg) noexcept
     {
-      apply_columnwise(this->nested_matrix(), [&arg](auto& col){ col -= arg().nested_matrix(); });
+      apply_columnwise([&arg](auto& col){ col -= arg().nested_matrix(); }, this->nested_matrix());
       return *this;
     }
 
@@ -297,7 +297,7 @@ namespace OpenKalman
 
 
   /// Deduce template parameters from a Euclidean-transformed typed matrix.
-#if defined(__cpp_concepts) and false
+#if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS_2
   // \todo Unlike SFINAE version, this incorrectly matches V==Mean and V==Matrix in both GCC 10.1.0 and clang 10.0.0:
   template<euclidean_transformed V> requires untyped_columns<V>
 #else
@@ -471,10 +471,20 @@ namespace OpenKalman
   //  MatrixTraits  //
   // -------------- //
 
-  template<typename RowCoeffs, typename ColCoeffs, typename NestedType>
-  struct MatrixTraits<Matrix<RowCoeffs, ColCoeffs, NestedType>>
+
+  namespace internal
   {
-    using NestedMatrix = NestedType;
+    template<typename RowCoeffs, typename ColCoeffs, typename NestedMatrix>
+    struct nested_matrix_type<Matrix<RowCoeffs, ColCoeffs, NestedMatrix>>
+    {
+      using type = NestedMatrix;
+    };
+  }
+
+
+  template<typename RowCoeffs, typename ColCoeffs, typename NestedMatrix>
+  struct MatrixTraits<Matrix<RowCoeffs, ColCoeffs, NestedMatrix>>
+  {
     using Coefficients = RowCoeffs;
     using RowCoefficients = RowCoeffs;
     using ColumnCoefficients = ColCoeffs;

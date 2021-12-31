@@ -13,7 +13,7 @@
  * \brief Tests relating to Eigen3::SelfAdjointMatrix.
  */
 
-#include "eigen3.gtest.hpp"
+#include "special-matrices.gtest.hpp"
 
 #include <complex>
 
@@ -27,20 +27,20 @@ namespace
 
   using M21 = eigen_matrix_t<double, 2, 1>;
   using M22 = eigen_matrix_t<double, 2, 2>;
-  using M20 = eigen_matrix_t<double, 2, 0>;
-  using M02 = eigen_matrix_t<double, 0, 2>;
-  using M01 = eigen_matrix_t<double, 0, 1>;
-  using M00 = eigen_matrix_t<double, 0, 0>;
+  using M20 = eigen_matrix_t<double, 2, dynamic_extent>;
+  using M02 = eigen_matrix_t<double, dynamic_extent, 2>;
+  using M01 = eigen_matrix_t<double, dynamic_extent, 1>;
+  using M00 = eigen_matrix_t<double, dynamic_extent, dynamic_extent>;
 
   using C21 = eigen_matrix_t<cdouble, 2, 1>;
   using C22 = eigen_matrix_t<cdouble, 2, 2>;
-  using C20 = eigen_matrix_t<cdouble, 2, 0>;
-  using C02 = eigen_matrix_t<cdouble, 0, 2>;
-  using C01 = eigen_matrix_t<cdouble, 0, 1>;
-  using C00 = eigen_matrix_t<cdouble, 0, 0>;
+  using C20 = eigen_matrix_t<cdouble, 2, dynamic_extent>;
+  using C02 = eigen_matrix_t<cdouble, dynamic_extent, 2>;
+  using C01 = eigen_matrix_t<cdouble, dynamic_extent, 1>;
+  using C00 = eigen_matrix_t<cdouble, dynamic_extent, dynamic_extent>;
 
   using D2 = DiagonalMatrix<eigen_matrix_t<double, 2, 1>>;
-  using D0 = DiagonalMatrix<eigen_matrix_t<double, 0, 1>>;
+  using D0 = DiagonalMatrix<eigen_matrix_t<double, dynamic_extent, 1>>;
 
   using L22 = SelfAdjointMatrix<M22, TriangleType::lower>;
   using L20 = SelfAdjointMatrix<M20, TriangleType::lower>;
@@ -71,6 +71,69 @@ namespace
 
   auto m_93310 = make_native_matrix<M22>(9, 3, 3, 10);
   auto m_4225 = make_native_matrix<M22>(4, 2, 2, 5);
+
+  template<typename T> using SAl = SelfAdjointMatrix<T, TriangleType::lower>;
+  template<typename T> using SAu = SelfAdjointMatrix<T, TriangleType::upper>;
+}
+
+TEST(eigen3, SelfAdjointMatrix_static_checks)
+{
+  static_assert(writable<SAl<M22>>);
+  static_assert(writable<SAl<M22&>>);
+  static_assert(not writable<SAl<const M22>>);
+  static_assert(not writable<SAl<const M22&>>);
+  
+  static_assert(writable<SAu<M22>>);
+  static_assert(writable<SAu<M22&>>);
+  static_assert(not writable<SAu<const M22>>);
+  static_assert(not writable<SAu<const M22&>>);
+
+  static_assert(not OpenKalman::internal::has_const<SAl<M22>>::value);
+  static_assert(OpenKalman::internal::has_const<SAl<const M22>>::value);
+  static_assert(OpenKalman::internal::has_same_matrix_shape<SAl<M22>, ZeroMatrix<double, 3, 3>>::value);
+  static_assert(not OpenKalman::internal::has_same_matrix_shape<SAl<M22>, ZeroMatrix<double, 2, 2>>::value);
+  
+  static_assert(modifiable<SAl<M22>, ConstantMatrix<double, 7, 3, 3>>);
+  static_assert(modifiable<SAu<M22>, ConstantMatrix<double, 7, 3, 3>>);
+  
+  static_assert(modifiable<SAl<M22>, ZeroMatrix<double, 3, 3>>);
+  static_assert(modifiable<SAu<M22>, ZeroMatrix<double, 3, 3>>);
+  static_assert(modifiable<SAl<M22>, IdentityMatrix<M22>>);
+  static_assert(modifiable<SAu<M22>, IdentityMatrix<M22>>);
+  static_assert(modifiable<SAl<M22>, D<M1>>);
+  static_assert(modifiable<SAu<M22>, D<M1>>);
+  static_assert(not modifiable<SAl<M22>, M22>);
+  static_assert(not modifiable<SAu<M22>, M22>);
+  static_assert(modifiable<SAl<M22>, SAl<M22>>);
+  static_assert(modifiable<SAu<M22>, SAu<M22>>);
+  static_assert(not modifiable<SAl<M22::ConstantReturnType>, SAl<M22::ConstantReturnType>>);
+  static_assert(not modifiable<SAu<decltype(M22::Identity() * 2)>, SAu<decltype(M22::Identity() * 2)>>);
+  static_assert(modifiable<SAl<M22>, const SAl<M22>>);
+  static_assert(modifiable<SAu<M22>, const SAu<M22>>);
+  static_assert(modifiable<SAl<M22>, SAl<const M22>>);
+  static_assert(modifiable<SAu<M22>, SAu<const M22>>);
+  static_assert(not modifiable<SAl<const M22>, SAl<M22>>);
+  static_assert(not modifiable<SAu<const M22>, SAu<M22>>);
+  static_assert(not modifiable<SAl<decltype(M22::Constant(9))>, M22>);
+  static_assert(not modifiable<SAl<M22>, Tl<M22>>);
+  static_assert(not modifiable<SAu<M22>, Tu<M22>>);
+  static_assert(not modifiable<Tl<M22>, SAl<M22>>);
+  static_assert(not modifiable<Tu<M22>, SAu<M22>>);
+  static_assert(not modifiable<D<M1>, SAu<M22>>);
+  static_assert(not modifiable<SAl<M22>, SAl<eigen_matrix_t<double, 2, 2>>>);
+  static_assert(not modifiable<SAu<M22>, SAu<eigen_matrix_t<double, 2, 2>>>);
+  static_assert(modifiable<SAl<M22>&, SAl<M22>>);
+  static_assert(modifiable<SAu<M22>&, SAu<M22>>);
+  static_assert(modifiable<SAl<M22&>, SAl<M22>>);
+  static_assert(modifiable<SAu<M22&>, SAu<M22>>);
+  static_assert(not modifiable<SAl<M22&>, M22>);
+  static_assert(not modifiable<SAu<M22&>, M22>);
+  static_assert(not modifiable<const SAl<M22>&, SAl<M22>>);
+  static_assert(not modifiable<const SAu<M22>&, SAu<M22>>);
+  static_assert(not modifiable<SAl<const M22&>, SAl<M22>>);
+  static_assert(not modifiable<SAu<const M22&>, SAu<M22>>);
+  static_assert(not modifiable<SAl<const M22>&, SAl<M22>>);
+  static_assert(not modifiable<SAu<const M22>&, SAu<M22>>);
 }
 
 
@@ -782,34 +845,34 @@ TEST(eigen3, SelfAdjointMatrix_blocks_lower)
   EXPECT_TRUE(is_near(row(m1, 2), make_native_matrix<double, 1, 3>(6., 8, 9)));
   EXPECT_TRUE(is_near(row<1>(m1), make_native_matrix<double, 1, 3>(5., 7, 8)));
 
-  EXPECT_TRUE(is_near(apply_columnwise(m1, [](const auto& col){ return make_self_contained(col + col.Constant(1)); }),
+  EXPECT_TRUE(is_near(apply_columnwise([](const auto& col){ return make_self_contained(col + col.Constant(1)); }, m1),
     make_native_matrix<double, 3, 3>(
       5, 6, 7,
       6, 8, 9,
       7, 9, 10)));
-  EXPECT_TRUE(is_near(apply_columnwise(m1, [](const auto& col, std::size_t i){ return make_self_contained(col + col.Constant(i)); }),
+  EXPECT_TRUE(is_near(apply_columnwise([](const auto& col, std::size_t i){ return make_self_contained(col + col.Constant(i)); }, m1),
     make_native_matrix<double, 3, 3>(
       4, 6, 8,
       5, 8, 10,
       6, 9, 11)));
 
-  EXPECT_TRUE(is_near(apply_rowwise(m1, [](const auto& row){ return make_self_contained(row + row.Constant(1)); }),
+  EXPECT_TRUE(is_near(apply_rowwise([](const auto& row){ return make_self_contained(row + row.Constant(1)); }, m1),
     make_native_matrix<double, 3, 3>(
       5, 6, 7,
       6, 8, 9,
       7, 9, 10)));
-  EXPECT_TRUE(is_near(apply_rowwise(m1, [](const auto& row, std::size_t i){ return make_self_contained(row + row.Constant(i)); }),
+  EXPECT_TRUE(is_near(apply_rowwise([](const auto& row, std::size_t i){ return make_self_contained(row + row.Constant(i)); }, m1),
     make_native_matrix<double, 3, 3>(
       4, 5, 6,
       6, 8, 9,
       8, 10, 11)));
 
-  EXPECT_TRUE(is_near(apply_coefficientwise(m1, [](const auto& x){ return x + 1; }),
+  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto& x){ return x + 1; }, m1),
     make_native_matrix<double, 3, 3>(
       5, 6, 7,
       6, 8, 9,
       7, 9, 10)));
-  EXPECT_TRUE(is_near(apply_coefficientwise(m1, [](const auto& x, std::size_t i, std::size_t j){ return x + i + j; }),
+  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto& x, std::size_t i, std::size_t j){ return x + i + j; }, m1),
     make_native_matrix<double, 3, 3>(
       4, 6, 8,
       6, 9, 11,
@@ -907,22 +970,22 @@ TEST(eigen3, SelfAdjointMatrix_blocks_upper)
                make_native_matrix<5,2>(0., 0, 0, 0, 4, 5, 5, 7, 6, 8)}));
   EXPECT_TRUE(is_near(column(m1, 2), make_native_matrix(6., 8, 9)));
   EXPECT_TRUE(is_near(column<1>(m1), make_native_matrix(5., 7, 8)));
-  EXPECT_TRUE(is_near(apply_columnwise(m1, [](const auto& col){ return make_self_contained(col + col.Constant(1)); }),
+  EXPECT_TRUE(is_near(apply_columnwise([](const auto& col){ return make_self_contained(col + col.Constant(1)); }, m1),
     make_native_matrix<double, 3, 3>(
       5, 6, 7,
       6, 8, 9,
       7, 9, 10)));
-  EXPECT_TRUE(is_near(apply_columnwise(m1, [](const auto& col, std::size_t i){ return make_self_contained(col + col.Constant(i)); }),
+  EXPECT_TRUE(is_near(apply_columnwise([](const auto& col, std::size_t i){ return make_self_contained(col + col.Constant(i)); }, m1),
     make_native_matrix<double, 3, 3>(
       4, 6, 8,
       5, 8, 10,
       6, 9, 11)));
-  EXPECT_TRUE(is_near(apply_coefficientwise(m1, [](const auto& x){ return x + 1; }),
+  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto& x){ return x + 1; }, m1),
     make_native_matrix<double, 3, 3>(
       5, 6, 7,
       6, 8, 9,
       7, 9, 10)));
-  EXPECT_TRUE(is_near(apply_coefficientwise(m1, [](const auto& x, std::size_t i, std::size_t j){ return x + i + j; }),
+  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto& x, std::size_t i, std::size_t j){ return x + i + j; }, m1),
     make_native_matrix<double, 3, 3>(
       4, 6, 8,
       6, 9, 11,

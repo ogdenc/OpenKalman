@@ -18,6 +18,7 @@
 
 namespace OpenKalman::Eigen3
 {
+
 #ifdef __cpp_concepts
   template<eigen_matrix NestedMatrix> requires dynamic_columns<NestedMatrix> or column_vector<NestedMatrix>
 #else
@@ -38,20 +39,18 @@ namespace OpenKalman::Eigen3
 
     static constexpr auto dimensions = MatrixTraits<NestedMatrix>::rows;
 
+#ifndef __cpp_concepts
+    template<typename T, typename = void>
+    struct is_constructible_from_diagonal : std::false_type {};
+
+    template<typename T>
+    struct is_constructible_from_diagonal<T, std::void_t<decltype(NestedMatrix {diagonal_of(std::declval<T>())})>>
+      : std::true_type {};
+#endif
+
   public:
 
     using Scalar = typename MatrixTraits<NestedMatrix>::Scalar;
-
-
-    /// Default constructor.
-#ifdef __cpp_concepts
-    DiagonalMatrix() requires std::default_initializable<NestedMatrix> and (not dynamic_shape<NestedMatrix>)
-#else
-    template<typename T = NestedMatrix, std::enable_if_t<
-      std::is_default_constructible_v<T> and (not dynamic_shape<NestedMatrix>), int> = 0>
-    DiagonalMatrix()
-#endif
-      : Base {} {}
 
 
     /// Construct from a \ref diagonal_matrix, including eigen_diagonal_expr.
@@ -68,72 +67,48 @@ namespace OpenKalman::Eigen3
       std::is_constructible_v<NestedMatrix, decltype(diagonal_of(std::declval<Arg>()))>, int> = 0>
 #endif
     DiagonalMatrix(Arg&& arg) noexcept
-      : Base {diagonal_of(std::forward<Arg>((
-        assert(not dynamic_rows<Arg> or dynamic_rows<NestedMatrix> or row_count(arg) == dimensions),
-        arg)))} {}
+      : Base {[](Arg&& arg) -> decltype(auto) {
+        if constexpr (dynamic_rows<Arg> and not dynamic_rows<NestedMatrix>)
+        {
+          auto r = row_count(std::forward<Arg>(arg));
+          if (r != dimensions) throw std::domain_error {"Dynamic size of diagonal argument (" + std::to_string(r) +
+            ") does not match the fixed DiagonalMatrix size (" + std::to_string(dimensions) + ") in " + __func__ +
+            " at line " + std::to_string(__LINE__) + " of " + __FILE__};
+        }
+        return diagonal_of(std::forward<Arg>(arg));
+    }(std::forward<Arg>(arg))} {}
 
 
     /// Construct from a \ref column_vector.
-#if defined (__cpp_concepts) && defined (__clang__) // Because of compiler issue in at least GCC version 10.1.0
-    template<column_vector Arg> requires (not diagonal_matrix<Arg>) and
+#if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS
+    template<typename Arg> requires (not diagonal_matrix<Arg>) and (column_vector<Arg> or dynamic_columns<Arg>) and
       (dynamic_rows<Arg> or dynamic_rows<NestedMatrix> or MatrixTraits<Arg>::rows == dimensions) and
       requires(Arg&& arg) { NestedMatrix {std::forward<Arg>(arg)}; }
 #else
-    template<typename Arg, std::enable_if_t<column_vector<Arg> and (not diagonal_matrix<Arg>) and
+    template<typename Arg, std::enable_if_t<
+      (not diagonal_matrix<Arg>) and (column_vector<Arg> or dynamic_columns<Arg>) and
       (dynamic_rows<Arg> or dynamic_rows<NestedMatrix> or MatrixTraits<Arg>::rows == dimensions) and
-      std::is_constructible_v<NestedMatrix, decltype(std::declval<Arg>())>, int> = 0>
-#endif
-    DiagonalMatrix(Arg&& arg) noexcept
-      : Base {std::forward<Arg>((
-      assert(not dynamic_rows<Arg> or dynamic_rows<NestedMatrix> or row_count(arg) == dimensions),
-      arg))} {}
-
-
-    /// Construct from an \ref eigen_matrix that is neither diagonal or a column_vector.
-#ifdef __cpp_concepts
-    template<eigen_matrix Arg> requires (not diagonal_matrix<Arg>) and (not column_vector<Arg>) and
-      (dynamic_rows<Arg> or dynamic_rows<NestedMatrix> or MatrixTraits<Arg>::rows == dimensions) and
-      (dynamic_columns<Arg> or dynamic_rows<NestedMatrix> or MatrixTraits<Arg>::columns == dimensions) and
-      (requires(Arg&& arg) { NestedMatrix {diagonal_of(std::forward<Arg>(arg))}; } or
-        requires(Arg&& arg) { NestedMatrix {std::forward<Arg>(arg)}; })
-#else
-    template<typename Arg, std::enable_if_t<eigen_matrix<Arg> and
-      (not diagonal_matrix<Arg>) and (not column_vector<Arg>) and
-      (dynamic_rows<Arg> or dynamic_rows<NestedMatrix> or MatrixTraits<Arg>::rows == dimensions) and
-      (dynamic_columns<Arg> or dynamic_rows<NestedMatrix> or MatrixTraits<Arg>::columns == dimensions) and
-      (std::is_constructible_v<NestedMatrix, decltype(diagonal_of(std::declval<Arg&&>()))> or
-        std::is_constructible_v<NestedMatrix, decltype(std::declval<Arg>())>), int> = 0>
+      std::is_constructible_v<NestedMatrix, Arg&&>, int> = 0>
 #endif
     explicit DiagonalMatrix(Arg&& arg) noexcept
-      : Base {(
-        [](auto&& arg) {
-          if constexpr (dynamic_columns<Arg>)
-          {
-            auto cols = column_count(arg);
+      : Base {[](Arg&& arg) -> decltype(auto) {
+        if constexpr (dynamic_rows<Arg> and not dynamic_rows<NestedMatrix>)
+        {
+          auto r = row_count(std::forward<Arg>(arg));
+          if (r != dimensions) throw std::domain_error {"DiagonalMatrix argument has " + std::to_string(r) +
+            " rows, but should have " + std::to_string(dimensions) + " at line " + std::to_string(__LINE__) +
+            " of " + __FILE__};
+        }
 
-            if (cols == 1)
-            {
-              if constexpr (dynamic_rows<Arg> and not dynamic_rows<NestedMatrix>) assert(row_count(arg) == dimensions);
+        if constexpr (dynamic_columns<Arg>)
+        {
+          auto c = column_count(std::forward<Arg>(arg));
+          if (c != 1) throw std::domain_error {"DiagonalMatrix argument has " + std::to_string(c) +
+            " columns, but should have 1 at line " + std::to_string(__LINE__) + " of " + __FILE__};
+        }
 
-              return NestedMatrix {std::forward<Arg>(arg)};
-            }
-            else
-            {
-              if constexpr (dynamic_rows<NestedMatrix>) assert(cols == row_count(arg));
-              else assert(cols == dimensions and row_count(arg) == dimensions);
-
-              return NestedMatrix {diagonal_of(std::forward<Arg>(arg))};
-            }
-          }
-          else
-          {
-            if constexpr (dynamic_rows<Arg>) assert(row_count(arg) == MatrixTraits<Arg>::columns);
-
-            return NestedMatrix {diagonal_of(std::forward<Arg>(arg))};
-          }
-      }(std::forward<Arg>(arg))
-      )}
-    {}
+        return std::forward<Arg>(arg);
+    }(std::forward<Arg>(arg))} {}
 
 
     /**
@@ -157,7 +132,7 @@ namespace OpenKalman::Eigen3
      * \brief Construct from a list of scalar coefficients defining a square matrix.
      * \details Only the diagonal elements are extracted.
      */
-#if defined (__cpp_concepts) && defined (__clang__) // Because of compiler issue in at least GCC version 10.1.0
+#if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS
     template<std::convertible_to<const Scalar> ... Args> requires (sizeof...(Args) == dimensions * dimensions) and
       (dimensions > 1) and requires(Args ... args) {
         NestedMatrix {diagonal_of(MatrixTraits<eigen_matrix_t<Scalar, dimensions, dimensions>>::make(
@@ -215,7 +190,7 @@ namespace OpenKalman::Eigen3
         if constexpr (dynamic_rows<NestedMatrix>)
         {
           assert(row_count(this->nested_matrix()) == row_count(arg));
-          this->nested_matrix() = ZeroMatrix<Scalar, 0, 1> {row_count(arg)};
+          this->nested_matrix() = ZeroMatrix<Scalar, dynamic_extent, 1> {row_count(arg)};
         }
         else
         {
@@ -248,7 +223,7 @@ namespace OpenKalman::Eigen3
         if constexpr (dynamic_rows<NestedMatrix>)
         {
           assert(row_count(this->nested_matrix()) == row_count(arg));
-          this->nested_matrix() = ConstantMatrix<Scalar, 1, 0, 1> {row_count(arg)};
+          this->nested_matrix() = ConstantMatrix<Scalar, 1, dynamic_extent, 1> {row_count(arg)};
         }
         else
         {
@@ -372,35 +347,21 @@ namespace OpenKalman::Eigen3
   //        Deduction guides         //
   // ------------------------------- //
 
-  // Unlike SFINAE version, the concepts version incorrectly matches M==double in both GCC 10.1.0 and clang 10.0.0:
-#if defined(__cpp_concepts) and false
-  template<column_vector Arg>
+#if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS
+  template<diagonal_matrix Arg>
 #else
-  template<typename Arg, std::enable_if_t<column_vector<Arg>, int> = 0>
-#endif
-  explicit DiagonalMatrix(Arg&&) -> DiagonalMatrix<passable_t<Arg>>;
-
-
-#ifdef __cpp_concepts
-  template<square_matrix Arg> requires (not column_vector<Arg>)
-  explicit (not diagonal_matrix<Arg>)
-#else
-  template<typename Arg, std::enable_if_t<square_matrix<Arg> and (not column_vector<Arg>) and
-    (not diagonal_matrix<Arg>), int> = 0>
-  explicit DiagonalMatrix(Arg&&) -> DiagonalMatrix<passable_t<decltype(diagonal_of(std::declval<Arg&&>()))>>;
-
-  template<typename Arg, std::enable_if_t<diagonal_matrix<Arg> and (not column_vector<Arg>), int> = 0>
+  template<typename Arg, std::enable_if_t<diagonal_matrix<Arg>, int> = 0>
 #endif
   DiagonalMatrix(Arg&&) -> DiagonalMatrix<passable_t<decltype(diagonal_of(std::declval<Arg&&>()))>>;
 
 
-#ifdef __cpp_concepts
-  template<eigen_matrix Arg> requires (not square_matrix<Arg>) and (not column_vector<Arg>) and (dynamic_shape<Arg>)
+#if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS
+  template<typename Arg> requires (column_vector<Arg> or dynamic_columns<Arg>) and (not diagonal_matrix<Arg>)
 #else
   template<typename Arg, std::enable_if_t<
-    eigen_matrix<Arg> and (not square_matrix<Arg>) and (not column_vector<Arg>) and (dynamic_shape<Arg>), int> = 0>
+    (column_vector<Arg> or dynamic_columns<Arg>) and not diagonal_matrix<Arg>, int> = 0>
 #endif
-  explicit DiagonalMatrix(Arg&&) -> DiagonalMatrix<native_matrix_t<decltype(reduce_columns(std::declval<Arg&&>()))>>;
+  explicit DiagonalMatrix(Arg&&) -> DiagonalMatrix<passable_t<Arg>>;
 
 
 #ifdef __cpp_concepts
@@ -421,16 +382,25 @@ namespace OpenKalman
   //        MatrixTraits         //
   // --------------------------- //
 
-  template<typename ArgType>
-  struct MatrixTraits<Eigen3::DiagonalMatrix<ArgType>>
+  namespace internal
   {
-    using NestedMatrix = ArgType;
+    template<typename ColumnVector>
+    struct nested_matrix_type<Eigen3::DiagonalMatrix<ColumnVector>>
+    {
+      using type = ColumnVector;
+    };
+  }
+
+
+  template<typename NestedMatrix>
+  struct MatrixTraits<Eigen3::DiagonalMatrix<NestedMatrix>>
+  {
     using Scalar = typename MatrixTraits<NestedMatrix>::Scalar;
     static constexpr auto rows = MatrixTraits<NestedMatrix>::rows;
     static constexpr auto columns = rows;
 
     template<typename Derived>
-    using MatrixBaseFrom = Eigen3::internal::Eigen3MatrixBase<Derived, Eigen3::DiagonalMatrix<ArgType>>;
+    using MatrixBaseFrom = Eigen3::internal::Eigen3MatrixBase<Derived, Eigen3::DiagonalMatrix<NestedMatrix>>;
 
     template<std::size_t r = rows, std::size_t c = columns, typename S = Scalar>
     using NativeMatrixFrom = native_matrix_t<NestedMatrix, r, c, S>;
@@ -466,10 +436,10 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<std::convertible_to<Scalar> ... Args>
-    requires (rows == 0) or (sizeof...(Args) == rows)
+    requires (rows == dynamic_extent) or (sizeof...(Args) == rows)
 #else
     template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, Scalar>...> and
-      ((rows == 0) or (sizeof...(Args) == rows)), int> = 0>
+      ((rows == dynamic_extent) or (sizeof...(Args) == rows)), int> = 0>
 #endif
     static auto make(const Args ... args)
     {
@@ -482,10 +452,10 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<std::convertible_to<Scalar> ... Args>
-    requires (rows > 1) and (sizeof...(Args) == rows * rows)
+    requires (rows != dynamic_extent) and (rows > 1) and (sizeof...(Args) == rows * rows)
 #else
     template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, Scalar>...> and
-      (rows > 1) and (sizeof...(Args) == rows * rows), int> = 0>
+      (rows != dynamic_extent) and (rows > 1) and (sizeof...(Args) == rows * rows), int> = 0>
 #endif
     static auto
     make(const Args ... args)
@@ -497,10 +467,10 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
     template<std::convertible_to<std::size_t> ... Args>
-    requires (sizeof...(Args) == (rows == 0 ? 1 : 0))
+    requires (sizeof...(Args) == (rows == dynamic_extent ? 1 : 0))
 #else
     template<typename...Args, std::enable_if_t<(std::is_convertible_v<Args, std::size_t> and ...) and
-      (sizeof...(Args) == (rows == 0 ? 1 : 0)), int> = 0>
+      (sizeof...(Args) == (rows == dynamic_extent ? 1 : 0)), int> = 0>
 #endif
     static auto zero(const Args...args)
     {
@@ -510,10 +480,10 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
     template<std::convertible_to<Eigen::Index> ... Args>
-    requires (sizeof...(Args) == (rows == 0 ? 1 : 0))
+    requires (sizeof...(Args) == (rows == dynamic_extent ? 1 : 0))
 #else
     template<typename...Args, std::enable_if_t<(std::is_convertible_v<Args, Eigen::Index> and ...) and
-      (sizeof...(Args) == (rows == 0 ? 1 : 0)), int> = 0>
+      (sizeof...(Args) == (rows == dynamic_extent ? 1 : 0)), int> = 0>
 #endif
     static auto identity(const Args...args)
     {

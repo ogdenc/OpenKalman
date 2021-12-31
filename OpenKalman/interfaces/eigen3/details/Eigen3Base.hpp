@@ -23,10 +23,7 @@ namespace OpenKalman::Eigen3::internal
   template<typename Derived>
   struct Eigen3Base : Eigen::MatrixBase<Derived>
   {
-    /// \internal \note Required by Eigen 3 for this to be used in an Eigen::CwiseBinaryOp.
-    using Nested = Eigen3Base;
-
-
+    using Nested = Derived; ///< \internal \note Eigen3 requires this.
   };
 
 } // namespace OpenKalman::Eigen3::internal

@@ -73,44 +73,48 @@ namespace OpenKalman::Eigen3
   } // namespace internal
 
 
-  namespace internal
-  {
-    /**
-     * \internal
-     * \brief A type trait that must be instantiated for each native Eigen class deriving from Eigen::MatrixBase.
-     * \tparam T
-     */
-    template<typename T>
-    struct is_native_eigen_matrix : std::false_type {};
-  }
-
-
   /**
    * \brief Specifies a native Eigen3 matrix or expression class deriving from Eigen::MatrixBase.
-   * \details This includes any original class in the Eigen library descending from Eigen::DenseBase.
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept native_eigen_matrix = internal::is_native_eigen_matrix<std::decay_t<T>>::value;
-    // or (std::is_base_of_v<Eigen::MatrixBase<std::decay_t<T>>, std::decay_t<T>> and
-    //(not std::is_base_of_v<internal::Eigen3Base<std::decay_t<T>>, std::decay_t<T>>));
+  concept native_eigen_matrix =
 #else
-  inline constexpr bool native_eigen_matrix = internal::is_native_eigen_matrix<std::decay_t<T>>::value;
-    // or (std::is_base_of_v<Eigen::MatrixBase<std::decay_t<T>>, std::decay_t<T>> and
-    //(not std::is_base_of_v<internal::Eigen3Base<std::decay_t<T>>, std::decay_t<T>>));
+  inline constexpr bool native_eigen_matrix =
 #endif
+    (not std::is_base_of_v<internal::Eigen3Base<std::decay_t<T>>, std::decay_t<T>>) and
+    std::is_base_of_v<Eigen::MatrixBase<std::decay_t<T>>, std::decay_t<T>>;
 
 
-  namespace internal
+  /**
+   * \brief Specifies a native Eigen3 array or expression class deriving from Eigen::ArrayBase.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept native_eigen_array =
+#else
+  inline constexpr bool native_eigen_array =
+#endif
+    (not std::is_base_of_v<internal::Eigen3Base<std::decay_t<T>>, std::decay_t<T>>) and
+    std::is_base_of_v<Eigen::ArrayBase<std::decay_t<T>>, std::decay_t<T>>;
+
+
+#ifndef __cpp_concepts
+  namespace detail
   {
-    /**
-     * \internal
-     * \brief A type trait that must be instantiated for each native Eigen class that is convertible to Eigen::Matrix.
-     * \tparam T
-     */
-    template<typename T>
+    template<typename T, typename = void>
     struct is_convertible_to_native_eigen_matrix : std::false_type {};
+
+    template<typename T>
+    struct is_convertible_to_native_eigen_matrix<T, std::enable_if_t<
+      std::is_constructible_v<Eigen::Matrix<
+        typename Eigen::internal::traits<std::decay_t<T>>::Scalar,
+        Eigen::internal::traits<std::decay_t<T>>::RowsAtCompileTime,
+        Eigen::internal::traits<std::decay_t<T>>::ColsAtCompileTime>,
+        const std::decay_t<T>&>>>
+      : std::true_type {};
   }
+#endif
 
 
   /**
@@ -120,17 +124,14 @@ namespace OpenKalman::Eigen3
   template<typename T>
 #ifdef __cpp_concepts
   concept convertible_to_native_eigen_matrix =
-    std::is_base_of_v<Eigen::EigenBase<std::decay_t<T>>, std::decay_t<T>> and
     requires(const std::decay_t<T>& t) {
-      Eigen::Matrix<typename Eigen::internal::traits<T>::Scalar, Eigen::internal::traits<T>::RowsAtCompileTime,
-            Eigen::internal::traits<T>::ColsAtCompileTime> {t};
+      Eigen::Matrix<
+        typename Eigen::internal::traits<std::decay_t<T>>::Scalar,
+        Eigen::internal::traits<std::decay_t<T>>::RowsAtCompileTime,
+        Eigen::internal::traits<std::decay_t<T>>::ColsAtCompileTime> {t};
     };
 #else
-  inline constexpr bool convertible_to_native_eigen_matrix =
-    std::is_base_of_v<Eigen::EigenBase<std::decay_t<T>>, std::decay_t<T>> and
-    std::is_constructible_v<Eigen::Matrix<typename Eigen::internal::traits<T>::Scalar,
-      Eigen::internal::traits<T>::RowsAtCompileTime, Eigen::internal::traits<T>::ColsAtCompileTime>,
-      const std::decay_t<T>&>;
+  inline constexpr bool convertible_to_native_eigen_matrix = detail::is_convertible_to_native_eigen_matrix<T>::value;
 #endif
 
 
@@ -386,8 +387,8 @@ namespace OpenKalman::Eigen3
    * \tparam cols Number of columns in the native matrix (0 if not fixed at compile time).
    */
   template<typename Scalar, std::size_t rows, std::size_t columns = 1>
-  using eigen_matrix_t = Eigen::Matrix<Scalar, rows == 0 ? Eigen::Dynamic : (Eigen::Index) rows,
-    columns == 0 ? Eigen::Dynamic : (Eigen::Index) columns>;
+  using eigen_matrix_t = Eigen::Matrix<Scalar, rows == dynamic_extent ? Eigen::Dynamic : (Eigen::Index) rows,
+    columns == dynamic_extent ? Eigen::Dynamic : (Eigen::Index) columns>;
 
 
   // ------------------------------------ //

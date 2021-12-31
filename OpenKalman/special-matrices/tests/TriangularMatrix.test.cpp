@@ -13,28 +13,79 @@
  * \brief Tests relating to Eigen3::TriangularMatrix.
  */
 
-#include "eigen3.gtest.hpp"
+#include "special-matrices.gtest.hpp"
 
 using namespace OpenKalman;
 using namespace OpenKalman::Eigen3;
 using namespace OpenKalman::test;
 
 
-using cdouble = std::complex<double>;
+namespace
+{
+  using cdouble = std::complex<double>;
 
-using M2 = eigen_matrix_t<double, 2, 2>;
-using CM2 = eigen_matrix_t<std::complex<double>, 2, 2>;
-using D2 = DiagonalMatrix<eigen_matrix_t<double, 2, 1>>;
-using Lower = TriangularMatrix<M2, TriangleType::lower>;
-using Upper = TriangularMatrix<M2, TriangleType::upper>;
-using CLower = TriangularMatrix<CM2, TriangleType::lower>;
-using CUpper = TriangularMatrix<CM2, TriangleType::upper>;
-using Diagonal = TriangularMatrix<M2, TriangleType::diagonal>;
-using Diagonal2 = TriangularMatrix<D2, TriangleType::diagonal>;
-using Diagonal3 = TriangularMatrix<D2, TriangleType::lower>;
+  using M2 = eigen_matrix_t<double, 2, 2>;
+  using CM2 = eigen_matrix_t<std::complex<double>, 2, 2>;
+  using D2 = DiagonalMatrix<eigen_matrix_t<double, 2, 1>>;
+  using Lower = TriangularMatrix<M2, TriangleType::lower>;
+  using Upper = TriangularMatrix<M2, TriangleType::upper>;
+  using CLower = TriangularMatrix<CM2, TriangleType::lower>;
+  using CUpper = TriangularMatrix<CM2, TriangleType::upper>;
+  using Diagonal = TriangularMatrix<M2, TriangleType::diagonal>;
+  using Diagonal2 = TriangularMatrix<D2, TriangleType::diagonal>;
+  using Diagonal3 = TriangularMatrix<D2, TriangleType::lower>;
 
-template<typename...Args>
-inline auto mat22(Args...args) { return MatrixTraits<M2>::make(args...); }
+  template<typename...Args>
+  inline auto mat22(Args...args) { return MatrixTraits<M2>::make(args...); }
+
+  template<typename T> using Tl = TriangularMatrix<T, TriangleType::lower>;
+  template<typename T> using Tu = TriangularMatrix<T, TriangleType::upper>;
+}
+
+
+TEST(eigen3, TriangularMatrix_static_checks)
+{
+  static_assert(writable<Tl<M2>>);
+  static_assert(writable<Tl<M2&>>);
+  static_assert(not writable<Tl<const M2>>);
+  static_assert(not writable<Tl<const M2&>>);
+
+  static_assert(writable<Tu<M2>>);
+  static_assert(writable<Tu<M2&>>);
+  static_assert(not writable<Tu<const M2>>);
+  static_assert(not writable<Tu<const M2&>>);
+  static_assert(modifiable<Tl<M2>, ZeroMatrix<double, 2, 2>>);
+  static_assert(modifiable<Tu<M2>, ZeroMatrix<double, 2, 2>>);
+  static_assert(modifiable<Tl<M2>, IdentityMatrix<M2>>);
+  static_assert(modifiable<Tu<M2>, IdentityMatrix<M2>>);
+  static_assert(not modifiable<Tu<M2::IdentityReturnType>, Tu<M2::IdentityReturnType>>);
+  static_assert(modifiable<Tl<M2>, D2>);
+  static_assert(modifiable<Tu<M2>, D2>);
+  static_assert(not modifiable<Tl<M2>, M2>);
+  static_assert(not modifiable<Tu<M2>, M2>);
+  static_assert(modifiable<Tl<M2>, Tl<M2>>);
+  static_assert(modifiable<Tu<M2>, Tu<M2>>);
+  static_assert(modifiable<Tl<M2>, const Tl<M2>>);
+  static_assert(modifiable<Tu<M2>, const Tu<M2>>);
+  static_assert(modifiable<Tl<M2>, Tl<const M2>>);
+  static_assert(modifiable<Tu<M2>, Tu<const M2>>);
+  static_assert(not modifiable<Tl<const M2>, Tl<M2>>);
+  static_assert(not modifiable<Tu<const M2>, Tu<M2>>);
+  static_assert(not modifiable<Tl<M2>, Tl<eigen_matrix_t<double, 3, 3>>>);
+  static_assert(not modifiable<Tu<M2>, Tu<eigen_matrix_t<double, 3, 3>>>);
+  static_assert(modifiable<Tl<M2>&, Tl<M2>>);
+  static_assert(modifiable<Tu<M2>&, Tu<M2>>);
+  static_assert(modifiable<Tl<M2&>, Tl<M2>>);
+  static_assert(modifiable<Tu<M2&>, Tu<M2>>);
+  static_assert(not modifiable<Tl<M2&>, M2>);
+  static_assert(not modifiable<Tu<M2&>, M2>);
+  static_assert(not modifiable<const Tl<M2>&, Tl<M2>>);
+  static_assert(not modifiable<const Tu<M2>&, Tu<M2>>);
+  static_assert(not modifiable<Tl<const M2&>, Tl<M2>>);
+  static_assert(not modifiable<Tu<const M2&>, Tu<M2>>);
+  static_assert(not modifiable<Tl<const M2>&, Tl<M2>>);
+  static_assert(not modifiable<Tu<const M2>&, Tu<M2>>);
+}
 
 
 TEST(eigen3, TriangularMatrix_class)
@@ -741,34 +792,34 @@ TEST(eigen3, TriangularMatrix_blocks_lower)
   EXPECT_TRUE(is_near(row(m1, 2), make_native_matrix<double, 1, 3>(6., 8, 9)));
   EXPECT_TRUE(is_near(row<1>(m1), make_native_matrix<double, 1, 3>(5., 7, 0)));
 
-  EXPECT_TRUE(is_near(apply_columnwise(m1, [](const auto& col){ return make_self_contained(col + col.Constant(1)); }),
+  EXPECT_TRUE(is_near(apply_columnwise([](const auto& col){ return make_self_contained(col + col.Constant(1)); }, m1),
     make_native_matrix<double, 3, 3>(
       5, 1, 1,
       6, 8, 1,
       7, 9, 10)));
-  EXPECT_TRUE(is_near(apply_columnwise(m1, [](const auto& col, std::size_t i){ return make_self_contained(col + col.Constant(i)); }),
+  EXPECT_TRUE(is_near(apply_columnwise([](const auto& col, std::size_t i){ return make_self_contained(col + col.Constant(i)); }, m1),
     make_native_matrix<double, 3, 3>(
       4, 1, 2,
       5, 8, 2,
       6, 9, 11)));
 
-  EXPECT_TRUE(is_near(apply_rowwise(m1, [](const auto& row){ return make_self_contained(row + row.Constant(1)); }),
+  EXPECT_TRUE(is_near(apply_rowwise([](const auto& row){ return make_self_contained(row + row.Constant(1)); }, m1),
     make_native_matrix<double, 3, 3>(
       5, 1, 1,
       6, 8, 1,
       7, 9, 10)));
-  EXPECT_TRUE(is_near(apply_rowwise(m1, [](const auto& row, std::size_t i){ return make_self_contained(row + row.Constant(i)); }),
+  EXPECT_TRUE(is_near(apply_rowwise([](const auto& row, std::size_t i){ return make_self_contained(row + row.Constant(i)); }, m1),
     make_native_matrix<double, 3, 3>(
       4, 0, 0,
       6, 8, 1,
       8, 10, 11)));
 
-  EXPECT_TRUE(is_near(apply_coefficientwise(m1, [](const auto& x){ return x + 1; }),
+  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto& x){ return x + 1; }, m1),
     make_native_matrix<double, 3, 3>(
       5, 1, 1,
       6, 8, 1,
       7, 9, 10)));
-  EXPECT_TRUE(is_near(apply_coefficientwise(m1, [](const auto& x, std::size_t i, std::size_t j){ return x + i + j; }),
+  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto& x, std::size_t i, std::size_t j){ return x + i + j; }, m1),
     make_native_matrix<double, 3, 3>(
       4, 1, 2,
       6, 9, 3,
@@ -865,22 +916,22 @@ TEST(eigen3, TriangularMatrix_blocks_upper)
   EXPECT_TRUE(is_near(row(m1, 2), make_native_matrix<double, 1, 3>(0., 0, 9)));
   EXPECT_TRUE(is_near(row<1>(m1), make_native_matrix<double, 1, 3>(0., 7, 8)));
 
-  EXPECT_TRUE(is_near(apply_columnwise(m1, [](const auto& col){ return make_self_contained(col + col.Constant(1)); }),
+  EXPECT_TRUE(is_near(apply_columnwise([](const auto& col){ return make_self_contained(col + col.Constant(1)); }, m1),
     make_native_matrix<double, 3, 3>(
       5, 6, 7,
       1, 8, 9,
       1, 1, 10)));
-  EXPECT_TRUE(is_near(apply_columnwise(m1, [](const auto& col, std::size_t i){ return make_self_contained(col + col.Constant(i)); }),
+  EXPECT_TRUE(is_near(apply_columnwise([](const auto& col, std::size_t i){ return make_self_contained(col + col.Constant(i)); }, m1),
     make_native_matrix<double, 3, 3>(
       4, 6, 8,
       0, 8, 10,
       0, 1, 11)));
-  EXPECT_TRUE(is_near(apply_coefficientwise(m1, [](const auto& x){ return x + 1; }),
+  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto& x){ return x + 1; }, m1),
     make_native_matrix<double, 3, 3>(
       5, 6, 7,
       1, 8, 9,
       1, 1, 10)));
-  EXPECT_TRUE(is_near(apply_coefficientwise(m1, [](const auto& x, std::size_t i, std::size_t j){ return x + i + j; }),
+  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto& x, std::size_t i, std::size_t j){ return x + i + j; }, m1),
     make_native_matrix<double, 3, 3>(
       4, 6, 8,
       1, 9, 11,

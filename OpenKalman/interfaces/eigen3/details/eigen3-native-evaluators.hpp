@@ -226,7 +226,7 @@ namespace Eigen::internal
         {
           if constexpr(std::is_lvalue_reference_v<CoeffReturnType>)
           {
-            static constexpr Scalar dummy = 0;
+            static std::remove_reference_t<CoeffReturnType> dummy = 0;
             return dummy;
           }
           else return Scalar {0};
@@ -320,7 +320,7 @@ namespace Eigen::internal
     {
       if constexpr(std::is_lvalue_reference_v<CoeffReturnType>)
       {
-        static constexpr Scalar dummy = 0;
+        static std::remove_reference_t<CoeffReturnType> dummy = 0;
         if constexpr(triangle_type == TriangleType::diagonal) {if (row != col) return dummy;}
         else if constexpr(triangle_type == TriangleType::upper) {if (row > col) return dummy;}
         else if constexpr(triangle_type == TriangleType::lower) {if (row < col) return dummy;}
@@ -388,8 +388,7 @@ namespace Eigen::internal
       {
         if constexpr(std::is_lvalue_reference_v<CoeffReturnType>)
         {
-          static Scalar dummy;
-          dummy = 0;
+          static std::remove_reference_t<CoeffReturnType> dummy = 0;
           return dummy;
         }
         else

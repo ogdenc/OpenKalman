@@ -228,7 +228,7 @@ namespace OpenKalman
   Transformation(Function&&) -> Transformation<std::decay_t<Function>>;
 
 
-#if defined(__cpp_concepts) and false
+#if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS_2
   template<linearized_function<1> Function> requires (not linearized_function<Function, 2>)
   // \todo Unlike SFINAE version, this incorrectly matches linearized_function<0> in both GCC 10.1.0 and clang 10.0.0:
 #else
@@ -239,7 +239,7 @@ namespace OpenKalman
     std::decay_t<decltype(oin::get_Taylor_term<1>(std::declval<Function>()))>>;
 
 
-#if defined(__cpp_concepts) and false
+#if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS_2
   template<linearized_function<2> Function>
   // \todo Unlike SFINAE version, this incorrectly matches linearized_function<0> in both GCC 10.1.0 and clang 10.0.0:
 #else

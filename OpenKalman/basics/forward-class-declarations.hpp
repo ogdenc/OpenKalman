@@ -134,15 +134,15 @@ namespace OpenKalman
   namespace internal
   {
     template<typename Coefficients, typename NestedMatrix>
-    struct is_covariance<Covariance<Coefficients, NestedMatrix>> : std::true_type {};
+    struct is_self_adjoint_covariance<Covariance<Coefficients, NestedMatrix>> : std::true_type {};
 
-    template<typename Coefficients, typename NestedMatrix>
-    struct is_upper_self_adjoint_matrix<Covariance<Coefficients, NestedMatrix>>
-      : std::bool_constant<upper_self_adjoint_matrix<NestedMatrix> or upper_triangular_matrix<NestedMatrix>> {};
+    //template<typename Coefficients, typename NestedMatrix>
+    //struct is_upper_self_adjoint_matrix<Covariance<Coefficients, NestedMatrix>>
+    //  : std::bool_constant<upper_self_adjoint_matrix<NestedMatrix> or upper_triangular_matrix<NestedMatrix>> {};
 
-    template<typename Coefficients, typename NestedMatrix>
-    struct is_lower_self_adjoint_matrix<Covariance<Coefficients, NestedMatrix>>
-      : std::bool_constant<lower_self_adjoint_matrix<NestedMatrix> or lower_triangular_matrix<NestedMatrix>> {};
+    //template<typename Coefficients, typename NestedMatrix>
+    //struct is_lower_self_adjoint_matrix<Covariance<Coefficients, NestedMatrix>>
+    //  : std::bool_constant<lower_self_adjoint_matrix<NestedMatrix> or lower_triangular_matrix<NestedMatrix>> {};
   }
 
 
@@ -169,15 +169,15 @@ namespace OpenKalman
   namespace internal
   {
     template<typename Coefficients, typename NestedMatrix>
-    struct is_covariance<SquareRootCovariance<Coefficients, NestedMatrix>> : std::true_type {};
+    struct is_triangular_covariance<SquareRootCovariance<Coefficients, NestedMatrix>> : std::true_type {};
 
-    template<typename Coefficients, typename NestedMatrix>
-    struct is_upper_triangular_matrix<SquareRootCovariance<Coefficients, NestedMatrix>>
-      : std::bool_constant<upper_triangular_matrix<NestedMatrix> or upper_self_adjoint_matrix<NestedMatrix>> {};
+    //template<typename Coefficients, typename NestedMatrix>
+    //struct is_upper_triangular_matrix<SquareRootCovariance<Coefficients, NestedMatrix>>
+    //  : std::bool_constant<upper_triangular_matrix<NestedMatrix> or upper_self_adjoint_matrix<NestedMatrix>> {};
 
-    template<typename Coefficients, typename NestedMatrix>
-    struct is_lower_triangular_matrix<SquareRootCovariance<Coefficients, NestedMatrix>>
-      : std::bool_constant<lower_triangular_matrix<NestedMatrix> or lower_self_adjoint_matrix<NestedMatrix>> {};
+    //template<typename Coefficients, typename NestedMatrix>
+    //struct is_lower_triangular_matrix<SquareRootCovariance<Coefficients, NestedMatrix>>
+    //  : std::bool_constant<lower_triangular_matrix<NestedMatrix> or lower_self_adjoint_matrix<NestedMatrix>> {};
   }
 
 

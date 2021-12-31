@@ -8,7 +8,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#include "eigen3.gtest.hpp"
+#include "special-matrices.gtest.hpp"
 #include <complex>
 
 using namespace OpenKalman;
@@ -33,17 +33,17 @@ namespace
   using M44 = eigen_matrix_t<double, 4, 4>;
   using M55 = eigen_matrix_t<double, 5, 5>;
 
-  using M00 = eigen_matrix_t<double, 0, 0>;
-  using M10 = eigen_matrix_t<double, 1, 0>;
-  using M01 = eigen_matrix_t<double, 0, 1>;
-  using M20 = eigen_matrix_t<double, 2, 0>;
-  using M02 = eigen_matrix_t<double, 0, 2>;
-  using M30 = eigen_matrix_t<double, 3, 0>;
-  using M03 = eigen_matrix_t<double, 0, 3>;
-  using M04 = eigen_matrix_t<double, 0, 4>;
-  using M40 = eigen_matrix_t<double, 4, 0>;
-  using M50 = eigen_matrix_t<double, 5, 0>;
-  using M05 = eigen_matrix_t<double, 0, 5>;
+  using M00 = eigen_matrix_t<double, dynamic_extent, dynamic_extent>;
+  using M10 = eigen_matrix_t<double, 1, dynamic_extent>;
+  using M01 = eigen_matrix_t<double, dynamic_extent, 1>;
+  using M20 = eigen_matrix_t<double, 2, dynamic_extent>;
+  using M02 = eigen_matrix_t<double, dynamic_extent, 2>;
+  using M30 = eigen_matrix_t<double, 3, dynamic_extent>;
+  using M03 = eigen_matrix_t<double, dynamic_extent, 3>;
+  using M04 = eigen_matrix_t<double, dynamic_extent, 4>;
+  using M40 = eigen_matrix_t<double, 4, dynamic_extent>;
+  using M50 = eigen_matrix_t<double, 5, dynamic_extent>;
+  using M05 = eigen_matrix_t<double, dynamic_extent, 5>;
 
   using cdouble = std::complex<double>;
 
@@ -53,9 +53,9 @@ namespace
   using CM34 = eigen_matrix_t<cdouble, 3, 4>;
   using CM43 = eigen_matrix_t<cdouble, 4, 3>;
 
-  using CM20 = eigen_matrix_t<cdouble, 2, 0>;
-  using CM02 = eigen_matrix_t<cdouble, 0, 2>;
-  using CM00 = eigen_matrix_t<cdouble, 0, 0>;
+  using CM20 = eigen_matrix_t<cdouble, 2, dynamic_extent>;
+  using CM02 = eigen_matrix_t<cdouble, dynamic_extent, 2>;
+  using CM00 = eigen_matrix_t<cdouble, dynamic_extent, dynamic_extent>;
 
   using Axis2 = Coefficients<Axis, Axis>;
 
@@ -108,56 +108,59 @@ TEST(eigen3, ZeroMatrix_traits)
 
   static_assert(diagonal_matrix<ZeroMatrix<double, 3, 3>>);
   static_assert(not diagonal_matrix<ZeroMatrix<double, 3, 1>>);
-  static_assert(not diagonal_matrix<ZeroMatrix<double, 0, 0>>);
+  static_assert(not diagonal_matrix<ZeroMatrix<double, dynamic_extent, dynamic_extent>>);
 
   static_assert(self_adjoint_matrix<ZeroMatrix<double, 3, 3>>);
   static_assert(self_adjoint_matrix<ZeroMatrix<cdouble, 3, 3>>);
   static_assert(not self_adjoint_matrix<ZeroMatrix<double, 3, 1>>);
-  static_assert(not self_adjoint_matrix<ZeroMatrix<double, 0, 0>>);
+  static_assert(not self_adjoint_matrix<ZeroMatrix<double, dynamic_extent, dynamic_extent>>);
 
   static_assert(upper_triangular_matrix<ZeroMatrix<double, 3, 3>>);
   static_assert(not upper_triangular_matrix<ZeroMatrix<double, 3, 1>>);
-  static_assert(not upper_triangular_matrix<ZeroMatrix<double, 0, 0>>);
+  static_assert(not upper_triangular_matrix<ZeroMatrix<double, dynamic_extent, dynamic_extent>>);
 
   static_assert(lower_triangular_matrix<ZeroMatrix<double, 3, 3>>);
   static_assert(not lower_triangular_matrix<ZeroMatrix<double, 3, 1>>);
-  static_assert(not lower_triangular_matrix<ZeroMatrix<double, 0, 0>>);
+  static_assert(not lower_triangular_matrix<ZeroMatrix<double, dynamic_extent, dynamic_extent>>);
 
   static_assert(square_matrix<ZeroMatrix<double, 3, 3>>);
   static_assert(not square_matrix<ZeroMatrix<double, 3, 1>>);
-  static_assert(not square_matrix<ZeroMatrix<double, 0, 0>>);
+  static_assert(not square_matrix<ZeroMatrix<double, dynamic_extent, dynamic_extent>>);
 
   static_assert(one_by_one_matrix<ZeroMatrix<double, 1, 1>>);
-  static_assert(not one_by_one_matrix<ZeroMatrix<double, 1, 0>>);
-  static_assert(not one_by_one_matrix<ZeroMatrix<double, 0, 0>>);
+  static_assert(not one_by_one_matrix<ZeroMatrix<double, 1, dynamic_extent>>);
+  static_assert(not one_by_one_matrix<ZeroMatrix<double, dynamic_extent, dynamic_extent>>);
 
   static_assert(element_gettable<ZeroMatrix<double, 2, 2>, 2>);
-  static_assert(element_gettable<ZeroMatrix<double, 2, 0>, 2>);
-  static_assert(element_gettable<ZeroMatrix<double, 0, 2>, 2>);
-  static_assert(element_gettable<ZeroMatrix<double, 2, 0>, 2>);
+  static_assert(element_gettable<ZeroMatrix<double, 2, dynamic_extent>, 2>);
+  static_assert(element_gettable<ZeroMatrix<double, dynamic_extent, 2>, 2>);
+  static_assert(element_gettable<ZeroMatrix<double, dynamic_extent, dynamic_extent>, 2>);
 
   static_assert(not element_settable<ZeroMatrix<double, 2, 2>, 2>);
-  static_assert(not element_settable<ZeroMatrix<double, 2, 0>, 2>);
-  static_assert(not element_settable<ZeroMatrix<double, 0, 2>, 2>);
-  static_assert(not element_settable<ZeroMatrix<double, 0, 0>, 2>);
+  static_assert(not element_settable<ZeroMatrix<double, 2, dynamic_extent>, 2>);
+  static_assert(not element_settable<ZeroMatrix<double, dynamic_extent, 2>, 2>);
+  static_assert(not element_settable<ZeroMatrix<double, dynamic_extent, dynamic_extent>, 2>);
 
-  static_assert(dynamic_rows<ZeroMatrix<double, 0, 0>>);
-  static_assert(dynamic_columns<ZeroMatrix<double, 0, 0>>);
-  static_assert(dynamic_rows<ZeroMatrix<double, 0, 1>>);
-  static_assert(not dynamic_columns<ZeroMatrix<double, 0, 1>>);
-  static_assert(not dynamic_rows<ZeroMatrix<double, 1, 0>>);
-  static_assert(dynamic_columns<ZeroMatrix<double, 1, 0>>);
-  static_assert(zero_matrix<decltype(MatrixTraits<ZeroMatrix<double, 0, 0>>::zero(2, 3))>);
-  static_assert(identity_matrix<decltype(MatrixTraits<ZeroMatrix<double, 0, 1>>::identity(3))>);
+  static_assert(dynamic_rows<ZeroMatrix<double, dynamic_extent, dynamic_extent>>);
+  static_assert(dynamic_columns<ZeroMatrix<double, dynamic_extent, dynamic_extent>>);
+  static_assert(dynamic_rows<ZeroMatrix<double, dynamic_extent, 1>>);
+  static_assert(not dynamic_columns<ZeroMatrix<double, dynamic_extent, 1>>);
+  static_assert(not dynamic_rows<ZeroMatrix<double, 1, dynamic_extent>>);
+  static_assert(dynamic_columns<ZeroMatrix<double, 1, dynamic_extent>>);
+  static_assert(zero_matrix<decltype(MatrixTraits<ZeroMatrix<double, dynamic_extent, dynamic_extent>>::zero(2, 3))>);
+  static_assert(identity_matrix<decltype(MatrixTraits<ZeroMatrix<double, dynamic_extent, 1>>::identity(3))>);
+
+  static_assert(not writable<ZeroMatrix<double, 3, 3>>);
+  static_assert(modifiable<M33, ZeroMatrix<double, 3, 3>>);
 }
 
 
 TEST(eigen3, ZeroMatrix_class)
 {
   ZeroMatrix<double, 2, 3> z23;
-  ZeroMatrix<double, 2, 0> z20 {3};
-  ZeroMatrix<double, 0, 3> z03 {2};
-  ZeroMatrix<double, 0, 0> z00 {2, 3};
+  ZeroMatrix<double, 2, dynamic_extent> z20 {3};
+  ZeroMatrix<double, dynamic_extent, 3> z03 {2};
+  ZeroMatrix<double, dynamic_extent, dynamic_extent> z00 {2, 3};
 
   EXPECT_TRUE(is_near(z23, M23::Zero()));
   EXPECT_TRUE(is_near(z20, M23::Zero()));
@@ -170,14 +173,14 @@ TEST(eigen3, ZeroMatrix_class)
   EXPECT_TRUE(is_near(ZeroMatrix {z00}, M23::Zero()));
 
   EXPECT_TRUE(is_near(ZeroMatrix {ZeroMatrix<double, 2, 3> {}}, M23::Zero()));
-  EXPECT_TRUE(is_near(ZeroMatrix {ZeroMatrix<double, 2, 0> {3}}, M23::Zero()));
-  EXPECT_TRUE(is_near(ZeroMatrix {ZeroMatrix<double, 0, 3> {2}}, M23::Zero()));
-  EXPECT_TRUE(is_near(ZeroMatrix {ZeroMatrix<double, 0, 0> {2,3}}, M23::Zero()));
+  EXPECT_TRUE(is_near(ZeroMatrix {ZeroMatrix<double, 2, dynamic_extent> {3}}, M23::Zero()));
+  EXPECT_TRUE(is_near(ZeroMatrix {ZeroMatrix<double, dynamic_extent, 3> {2}}, M23::Zero()));
+  EXPECT_TRUE(is_near(ZeroMatrix {ZeroMatrix<double, dynamic_extent, dynamic_extent> {2,3}}, M23::Zero()));
 
   EXPECT_NEAR((ZeroMatrix {ConstantMatrix<double, 0, 2, 3>{}}(1, 2)), 0, 1e-6);
-  EXPECT_NEAR((ZeroMatrix {ConstantMatrix<double, 0, 2, 0>{3}}(1, 2)), 0, 1e-6);
-  EXPECT_NEAR((ZeroMatrix {ConstantMatrix<double, 0, 0, 3>{2}}(1, 2)), 0, 1e-6);
-  EXPECT_NEAR((ZeroMatrix {ConstantMatrix<double, 0, 0, 0>{2,3}}(1, 2)), 0, 1e-6);
+  EXPECT_NEAR((ZeroMatrix {ConstantMatrix<double, 0, 2, dynamic_extent>{3}}(1, 2)), 0, 1e-6);
+  EXPECT_NEAR((ZeroMatrix {ConstantMatrix<double, 0, dynamic_extent, 3>{2}}(1, 2)), 0, 1e-6);
+  EXPECT_NEAR((ZeroMatrix {ConstantMatrix<double, 0, dynamic_extent, dynamic_extent>{2,3}}(1, 2)), 0, 1e-6);
 
   z20 = z23; EXPECT_TRUE(is_near(z20, M23::Zero()));
   z03 = z23; EXPECT_TRUE(is_near(z03, M23::Zero()));
@@ -211,27 +214,27 @@ TEST(eigen3, ZeroMatrix_class)
 
   EXPECT_NEAR((ZeroMatrix<double, 2, 2> {}(0, 0)), 0, 1e-6);
   EXPECT_NEAR((ZeroMatrix<double, 2, 2> {}(0, 1)), 0, 1e-6);
-  EXPECT_NEAR((ZeroMatrix<double, 2, 0> {2}(0, 1)), 0, 1e-6);
-  EXPECT_NEAR((ZeroMatrix<double, 0, 2> {2}(0, 1)), 0, 1e-6);
-  EXPECT_NEAR((ZeroMatrix<double, 0, 0> {2,2}(0, 1)), 0, 1e-6);
+  EXPECT_NEAR((ZeroMatrix<double, 2, dynamic_extent> {2}(0, 1)), 0, 1e-6);
+  EXPECT_NEAR((ZeroMatrix<double, dynamic_extent, 2> {2}(0, 1)), 0, 1e-6);
+  EXPECT_NEAR((ZeroMatrix<double, dynamic_extent, dynamic_extent> {2,2}(0, 1)), 0, 1e-6);
 
   EXPECT_NEAR((ZeroMatrix<double, 3, 1> {}(1)), 0, 1e-6);
-  EXPECT_NEAR((ZeroMatrix<double, 0, 1> {3}(1)), 0, 1e-6);
+  EXPECT_NEAR((ZeroMatrix<double, dynamic_extent, 1> {3}(1)), 0, 1e-6);
   EXPECT_NEAR((ZeroMatrix<double, 1, 3> {}(1)), 0, 1e-6);
-  EXPECT_NEAR((ZeroMatrix<double, 1, 0> {3}(1)), 0, 1e-6);
+  EXPECT_NEAR((ZeroMatrix<double, 1, dynamic_extent> {3}(1)), 0, 1e-6);
   EXPECT_NEAR((ZeroMatrix<double, 3, 1> {}[1]), 0, 1e-6);
-  EXPECT_NEAR((ZeroMatrix<double, 0, 1> {3}[1]), 0, 1e-6);
+  EXPECT_NEAR((ZeroMatrix<double, dynamic_extent, 1> {3}[1]), 0, 1e-6);
   EXPECT_NEAR((ZeroMatrix<double, 1, 3> {}[1]), 0, 1e-6);
-  EXPECT_NEAR((ZeroMatrix<double, 1, 0> {3}[1]), 0, 1e-6);
+  EXPECT_NEAR((ZeroMatrix<double, 1, dynamic_extent> {3}[1]), 0, 1e-6);
 }
 
 
 TEST(eigen3, ZeroMatrix_overloads)
 {
   ZeroMatrix<double, 2, 3> z23;
-  ZeroMatrix<double, 2, 0> z20_3 {3};
-  ZeroMatrix<double, 0, 3> z03_2 {2};
-  ZeroMatrix<double, 0, 0> z00_23 {2, 3};
+  ZeroMatrix<double, 2, dynamic_extent> z20_3 {3};
+  ZeroMatrix<double, dynamic_extent, 3> z03_2 {2};
+  ZeroMatrix<double, dynamic_extent, dynamic_extent> z00_23 {2, 3};
 
   EXPECT_TRUE(is_near(make_native_matrix(z23), M23::Zero()));
   EXPECT_TRUE(is_near(make_native_matrix(z20_3), M23::Zero()));
@@ -258,19 +261,19 @@ TEST(eigen3, ZeroMatrix_overloads)
   // wrap_angles is tested in FromEuclideanExpr.test.cpp.
 
   ZeroMatrix<double, 2, 2> z22;
-  ZeroMatrix<double, 2, 0> z20_2 {2};
-  ZeroMatrix<double, 0, 2> z02_2 {2};
-  ZeroMatrix<double, 0, 0> z00_22 {2, 2};
+  ZeroMatrix<double, 2, dynamic_extent> z20_2 {2};
+  ZeroMatrix<double, dynamic_extent, 2> z02_2 {2};
+  ZeroMatrix<double, dynamic_extent, dynamic_extent> z00_22 {2, 2};
 
   ZeroMatrix<double, 2, 1> z21;
-  ZeroMatrix<double, 2, 0> z20_1 {1};
-  ZeroMatrix<double, 0, 1> z01_2 {2};
-  ZeroMatrix<double, 0, 0> z00_21 {2, 1};
+  ZeroMatrix<double, 2, dynamic_extent> z20_1 {1};
+  ZeroMatrix<double, dynamic_extent, 1> z01_2 {2};
+  ZeroMatrix<double, dynamic_extent, dynamic_extent> z00_21 {2, 1};
 
   ZeroMatrix<double, 1, 2> z12;
-  ZeroMatrix<double, 1, 0> z10_2 {2};
-  ZeroMatrix<double, 0, 2> z01_2 {1};
-  ZeroMatrix<double, 0, 0> z00_12 {1, 2};
+  ZeroMatrix<double, 1, dynamic_extent> z10_2 {2};
+  ZeroMatrix<double, dynamic_extent, 2> z01_2 {1};
+  ZeroMatrix<double, dynamic_extent, dynamic_extent> z00_12 {1, 2};
 
   EXPECT_TRUE(is_near(to_diagonal(z21), z22));
   EXPECT_TRUE(is_near(to_diagonal(z20_1), z22));
@@ -357,9 +360,9 @@ TEST(eigen3, ZeroMatrix_overloads)
   static_assert(zero_matrix<decltype(LQ_decomposition(z00_23))>);
 
   ZeroMatrix<double, 3, 2> z32;
-  ZeroMatrix<double, 3, 0> z30_2 {2};
-  ZeroMatrix<double, 0, 2> z02_3 {3};
-  ZeroMatrix<double, 0, 0> z00_32 {3, 2};
+  ZeroMatrix<double, 3, dynamic_extent> z30_2 {2};
+  ZeroMatrix<double, dynamic_extent, 2> z02_3 {3};
+  ZeroMatrix<double, dynamic_extent, dynamic_extent> z00_32 {3, 2};
 
   EXPECT_TRUE(is_near(QR_decomposition(z32), z22));
   EXPECT_TRUE(is_near(QR_decomposition(z30_2), z22));
@@ -370,16 +373,16 @@ TEST(eigen3, ZeroMatrix_overloads)
   auto tup_z33_z23 = std::tuple {MatrixTraits<M33>::zero(), MatrixTraits<M23>::zero()};
 
   EXPECT_TRUE(is_near(split_vertical<3, 2>(MatrixTraits<eigen_matrix_t<double, 5, 3>>::zero()), tup_z33_z23));
-  EXPECT_TRUE(is_near(split_vertical<3, 2>(MatrixTraits<eigen_matrix_t<double, 5, 0>>::zero(3)), tup_z33_z23));
-  EXPECT_TRUE(is_near(split_vertical<3, 2>(MatrixTraits<eigen_matrix_t<double, 0, 3>>::zero(5)), tup_z33_z23));
-  EXPECT_TRUE(is_near(split_vertical<3, 2>(MatrixTraits<eigen_matrix_t<double, 0, 0>>::zero(5, 3)), tup_z33_z23));
+  EXPECT_TRUE(is_near(split_vertical<3, 2>(MatrixTraits<eigen_matrix_t<double, 5, dynamic_extent>>::zero(3)), tup_z33_z23));
+  EXPECT_TRUE(is_near(split_vertical<3, 2>(MatrixTraits<eigen_matrix_t<double, dynamic_extent, 3>>::zero(5)), tup_z33_z23));
+  EXPECT_TRUE(is_near(split_vertical<3, 2>(MatrixTraits<eigen_matrix_t<double, dynamic_extent, dynamic_extent>>::zero(5, 3)), tup_z33_z23));
 
   auto tup_z33_z32 = std::tuple {MatrixTraits<M33>::zero(), MatrixTraits<M32>::zero()};
 
   EXPECT_TRUE(is_near(split_horizontal<3, 2>(MatrixTraits<eigen_matrix_t<double, 3, 5>>::zero()), tup_z33_z32));
-  EXPECT_TRUE(is_near(split_horizontal<3, 2>(MatrixTraits<eigen_matrix_t<double, 3, 0>>::zero(5)), tup_z33_z32));
-  EXPECT_TRUE(is_near(split_horizontal<3, 2>(MatrixTraits<eigen_matrix_t<double, 0, 5>>::zero(3)), tup_z33_z32));
-  EXPECT_TRUE(is_near(split_horizontal<3, 2>(MatrixTraits<eigen_matrix_t<double, 0, 0>>::zero(3, 5)), tup_z33_z32));
+  EXPECT_TRUE(is_near(split_horizontal<3, 2>(MatrixTraits<eigen_matrix_t<double, 3, dynamic_extent>>::zero(5)), tup_z33_z32));
+  EXPECT_TRUE(is_near(split_horizontal<3, 2>(MatrixTraits<eigen_matrix_t<double, dynamic_extent, 5>>::zero(3)), tup_z33_z32));
+  EXPECT_TRUE(is_near(split_horizontal<3, 2>(MatrixTraits<eigen_matrix_t<double, dynamic_extent, dynamic_extent>>::zero(3, 5)), tup_z33_z32));
 
   auto tup_z33_z22 = std::tuple {MatrixTraits<M33>::zero(), MatrixTraits<M22>::zero()};
 
@@ -444,7 +447,7 @@ TEST(eigen3, ZeroMatrix_overloads)
   EXPECT_TRUE(is_near(row(MatrixTraits<M00>::zero(3,3), 2), make_native_matrix<double, 1, 3>(0., 0, 0)));
 
   EXPECT_TRUE(is_near(row<1>(ZeroMatrix<double, 3, 2>()), (eigen_matrix_t<double, 1, 2>::Zero())));
-  auto rzv34 = row<1>(ZeroMatrix<double, 3, 0> {4});
+  auto rzv34 = row<1>(ZeroMatrix<double, 3, dynamic_extent> {4});
   EXPECT_EQ(column_count(rzv34), 4);
   static_assert(row_count(rzv34) == 1);
   static_assert(zero_matrix<decltype(rzv34)>);
@@ -453,24 +456,20 @@ TEST(eigen3, ZeroMatrix_overloads)
   EXPECT_TRUE(is_near(row<1>(MatrixTraits<M03>::zero(3)), make_native_matrix<M13>(0., 0, 0)));
   EXPECT_TRUE(is_near(row<1>(MatrixTraits<M00>::zero(3,3)), make_native_matrix<M13>(0., 0, 0)));
 
-  EXPECT_TRUE(is_near(apply_columnwise(MatrixTraits<M33>::zero(),
-    [](const auto& col){ return make_self_contained(col + col.Constant(1)); }), M33::Constant(1)));
-  EXPECT_TRUE(is_near(apply_columnwise(MatrixTraits<M30>::zero(3),
-    [](const auto& col){ return make_self_contained(col + col.Constant(1)); }), M33::Constant(1)));
-  EXPECT_TRUE(is_near(apply_columnwise(MatrixTraits<M03>::zero(3),
-    [](const auto& col){ return make_self_contained(col + col.Constant(1)); }), M33::Constant(1)));
-  EXPECT_TRUE(is_near(apply_columnwise(MatrixTraits<M00>::zero(3,3),
-    [](const auto& col){ return make_self_contained(col + col.Constant(1)); }), M33::Constant(1)));
+  EXPECT_TRUE(is_near(apply_columnwise([](const auto& col){ return make_self_contained(col + col.Constant(1)); }, MatrixTraits<M33>::zero()), M33::Constant(1)));
+  EXPECT_TRUE(is_near(apply_columnwise([](const auto& col){ return make_self_contained(col + col.Constant(1)); }, MatrixTraits<M30>::zero(3)), M33::Constant(1)));
+  EXPECT_TRUE(is_near(apply_columnwise([](const auto& col){ return make_self_contained(col + col.Constant(1)); }, MatrixTraits<M03>::zero(3)), M33::Constant(1)));
+  EXPECT_TRUE(is_near(apply_columnwise([](const auto& col){ return make_self_contained(col + col.Constant(1)); }, MatrixTraits<M00>::zero(3,3)), M33::Constant(1)));
 
-  EXPECT_TRUE(is_near(apply_rowwise(MatrixTraits<M33>::zero(), [](const auto& row){ return make_self_contained(row + row.Constant(1)); }), M33::Constant(1)));
-  EXPECT_TRUE(is_near(apply_rowwise(MatrixTraits<M30>::zero(3), [](const auto& row){ return make_self_contained(row + row.Constant(1)); }), M33::Constant(1)));
-  EXPECT_TRUE(is_near(apply_rowwise(MatrixTraits<M03>::zero(3), [](const auto& row){ return make_self_contained(row + row.Constant(1)); }), M33::Constant(1)));
-  EXPECT_TRUE(is_near(apply_rowwise(MatrixTraits<M00>::zero(3,3), [](const auto& row){ return make_self_contained(row + row.Constant(1)); }), M33::Constant(1)));
+  EXPECT_TRUE(is_near(apply_rowwise([](const auto& row){ return make_self_contained(row + row.Constant(1)); }, MatrixTraits<M33>::zero()), M33::Constant(1)));
+  EXPECT_TRUE(is_near(apply_rowwise([](const auto& row){ return make_self_contained(row + row.Constant(1)); }, MatrixTraits<M30>::zero(3)), M33::Constant(1)));
+  EXPECT_TRUE(is_near(apply_rowwise([](const auto& row){ return make_self_contained(row + row.Constant(1)); }, MatrixTraits<M03>::zero(3)), M33::Constant(1)));
+  EXPECT_TRUE(is_near(apply_rowwise([](const auto& row){ return make_self_contained(row + row.Constant(1)); }, MatrixTraits<M00>::zero(3,3)), M33::Constant(1)));
 
-  EXPECT_TRUE(is_near(apply_coefficientwise(MatrixTraits<M33>::zero(), [](const auto& x){ return x + 1; }), M33::Constant(1)));
-  EXPECT_TRUE(is_near(apply_coefficientwise(MatrixTraits<M30>::zero(3), [](const auto& x){ return x + 1; }), M33::Constant(1)));
-  EXPECT_TRUE(is_near(apply_coefficientwise(MatrixTraits<M03>::zero(3), [](const auto& x){ return x + 1; }), M33::Constant(1)));
-  EXPECT_TRUE(is_near(apply_coefficientwise(MatrixTraits<M00>::zero(3,3), [](const auto& x){ return x + 1; }), M33::Constant(1)));
+  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto& x){ return x + 1; }, MatrixTraits<M33>::zero()), M33::Constant(1)));
+  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto& x){ return x + 1; }, MatrixTraits<M30>::zero(3)), M33::Constant(1)));
+  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto& x){ return x + 1; }, MatrixTraits<M03>::zero(3)), M33::Constant(1)));
+  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto& x){ return x + 1; }, MatrixTraits<M00>::zero(3,3)), M33::Constant(1)));
 }
 
 

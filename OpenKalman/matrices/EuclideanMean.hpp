@@ -208,7 +208,7 @@ namespace OpenKalman
 #endif
     auto& operator+=(const Arg& arg) noexcept
     {
-      apply_columnwise(this->nested_matrix(), [&arg](auto& col){ col += arg().nested_matrix(); });
+      apply_columnwise([&arg](auto& col){ col += arg().nested_matrix(); }, this->nested_matrix());
       return *this;
     }
 
@@ -250,7 +250,7 @@ namespace OpenKalman
 #endif
     auto& operator-=(const Arg& arg) noexcept
     {
-      apply_columnwise(this->nested_matrix(), [&arg](auto& col){ col -= arg().nested_matrix(); });
+      apply_columnwise([&arg](auto& col){ col -= arg().nested_matrix(); }, this->nested_matrix());
       return *this;
     }
 
@@ -270,7 +270,7 @@ namespace OpenKalman
   // ------------------ //
 
   /// Deduce template parameters from a non-Euclidean-transformed typed matrix.
-#if defined(__cpp_concepts) and false
+#if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS_2
   // \todo Unlike SFINAE version, this incorrectly matches V==EuclideanMean in both GCC 10.1.0 and clang 10.0.0:
   template<typed_matrix V> requires (not euclidean_transformed<V>) and untyped_columns<V> and
     (MatrixTraits<V>::RowCoefficients::euclidean_dimensions == MatrixTraits<V>::rows)
@@ -401,12 +401,19 @@ namespace OpenKalman
   //        Traits         //
   // --------------------- //
 
-  template<typename Coeffs, typename NestedType>
-  struct MatrixTraits<EuclideanMean<Coeffs, NestedType>>
+  namespace internal
   {
-    using NestedMatrix = NestedType;
+    template<typename Coeffs, typename NestedMatrix>
+    struct nested_matrix_type<EuclideanMean<Coeffs, NestedMatrix>>
+    {
+      using type = NestedMatrix;
+    };
+  }
 
 
+  template<typename Coeffs, typename NestedMatrix>
+  struct MatrixTraits<EuclideanMean<Coeffs, NestedMatrix>>
+  {
     static constexpr std::size_t rows = MatrixTraits<NestedMatrix>::rows;
     static constexpr std::size_t columns = MatrixTraits<NestedMatrix>::columns;
 

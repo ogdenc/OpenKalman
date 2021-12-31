@@ -406,18 +406,19 @@ TEST(matrices, TypedMatrix_blocks)
   static_assert(equivalent_to<typename MatrixTraits<decltype(column<1>(Mat22 {1, 2, 3, 4}))>::ColumnCoefficients, angle::Radians>);
 
   auto m = Mat22x {1, 2, 3, 4};
-  EXPECT_TRUE(is_near(apply_columnwise(m, [](auto& col){ col *= 2; }), Mat22 {2, 4, 6, 8}));
-  EXPECT_TRUE(is_near(apply_columnwise(m, [](auto& col, std::size_t i){ col *= i; }), Mat22 {0, 4, 0, 8}));
 
-  EXPECT_TRUE(is_near(apply_columnwise(Mat22x {1, 2, 3, 4}, [](auto col){ return make_self_contained(col * 2); }), Mat22 {2, 4, 6, 8}));
-  EXPECT_TRUE(is_near(apply_columnwise(Mat22x {1, 2, 3, 4}, [](const auto col){ return make_self_contained(col * 2); }), Mat22 {2, 4, 6, 8}));
-  EXPECT_TRUE(is_near(apply_columnwise(Mat22x {1, 2, 3, 4}, [](auto&& col){ return make_self_contained(col * 2); }), Mat22 {2, 4, 6, 8}));
-  EXPECT_TRUE(is_near(apply_columnwise(Mat22x {1, 2, 3, 4}, [](const auto& col){ return make_self_contained(col * 2); }), Mat22 {2, 4, 6, 8}));
+  EXPECT_TRUE(is_near(apply_columnwise([](auto& col){ col *= 2; }, m), Mat22 {2, 4, 6, 8}));
+  EXPECT_TRUE(is_near(apply_columnwise([](auto& col, std::size_t i){ col *= i; }, m), Mat22 {0, 4, 0, 8}));
 
-  EXPECT_TRUE(is_near(apply_columnwise(Mat22x {1, 2, 3, 4}, [](auto col, std::size_t i){ return make_self_contained(col * i); }), Mat22 {0, 2, 0, 4}));
-  EXPECT_TRUE(is_near(apply_columnwise(Mat22x {1, 2, 3, 4}, [](const auto col, std::size_t i){ return make_self_contained(col * i); }), Mat22 {0, 2, 0, 4}));
-  EXPECT_TRUE(is_near(apply_columnwise(Mat22x {1, 2, 3, 4}, [](auto&& col, std::size_t i){ return make_self_contained(col * i); }), Mat22 {0, 2, 0, 4}));
-  EXPECT_TRUE(is_near(apply_columnwise(Mat22x {1, 2, 3, 4}, [](const auto& col, std::size_t i){ return make_self_contained(col * i); }), Mat22 {0, 2, 0, 4}));
+  EXPECT_TRUE(is_near(apply_columnwise([](auto col){ return make_self_contained(col * 2); }, Mat22x {1, 2, 3, 4}), Mat22 {2, 4, 6, 8}));
+  EXPECT_TRUE(is_near(apply_columnwise([](const auto col){ return make_self_contained(col * 2); }, Mat22x {1, 2, 3, 4}), Mat22 {2, 4, 6, 8}));
+  EXPECT_TRUE(is_near(apply_columnwise([](auto&& col){ return make_self_contained(col * 2); }, Mat22x {1, 2, 3, 4}), Mat22 {2, 4, 6, 8}));
+  EXPECT_TRUE(is_near(apply_columnwise([](const auto& col){ return make_self_contained(col * 2); }, Mat22x {1, 2, 3, 4}), Mat22 {2, 4, 6, 8}));
+
+  EXPECT_TRUE(is_near(apply_columnwise([](auto col, std::size_t i){ return make_self_contained(col * i); }, Mat22x {1, 2, 3, 4}), Mat22 {0, 2, 0, 4}));
+  EXPECT_TRUE(is_near(apply_columnwise([](const auto col, std::size_t i){ return make_self_contained(col * i); }, Mat22x {1, 2, 3, 4}), Mat22 {0, 2, 0, 4}));
+  EXPECT_TRUE(is_near(apply_columnwise([](auto&& col, std::size_t i){ return make_self_contained(col * i); }, Mat22x {1, 2, 3, 4}), Mat22 {0, 2, 0, 4}));
+  EXPECT_TRUE(is_near(apply_columnwise([](const auto& col, std::size_t i){ return make_self_contained(col * i); }, Mat22x {1, 2, 3, 4}), Mat22 {0, 2, 0, 4}));
 
   EXPECT_TRUE(is_near(apply_columnwise<2>([] { return Matrix<C2, angle::Radians> {1., 2}; }), Mat22 {1, 1, 2, 2}));
   EXPECT_TRUE(is_near(apply_columnwise<2>([](std::size_t i){ return Matrix<C2, angle::Radians> {i + 1., 2*i + 1}; }), Mat22 {1, 2, 1, 3}));
@@ -426,19 +427,21 @@ TEST(matrices, TypedMatrix_blocks)
   static_assert(equivalent_to<typename MatrixTraits<decltype(apply_columnwise<2>(std::declval<Matrix<C2, angle::Radians>(std::size_t)>()))>::RowCoefficients, C2>);
   static_assert(equivalent_to<typename MatrixTraits<decltype(apply_columnwise<2>(std::declval<Matrix<C2, angle::Radians>(std::size_t)>()))>::ColumnCoefficients, Coefficients<angle::Radians, angle::Radians>>);
 
-  auto n = Mat22x {1, 2, 3, 4};
-  EXPECT_TRUE(is_near(apply_coefficientwise(n, [](auto& x){ x *= 2; }), Mat22 {2, 4, 6, 8}));
-  EXPECT_TRUE(is_near(apply_coefficientwise(n, [](auto& x, std::size_t i, std::size_t j){ x += i + j; }), Mat22 {2, 5, 7, 10}));
+  const auto mat22_1234 = Mat22x {1, 2, 3, 4};
+  auto n = mat22_1234
 
-  EXPECT_TRUE(is_near(apply_coefficientwise(Mat22 {1, 2, 3, 4}, [](auto x){ return x + 1; }), Mat22 {2, 3, 4, 5}));
-  EXPECT_TRUE(is_near(apply_coefficientwise(Mat22 {1, 2, 3, 4}, [](const auto x){ return x + 1; }), Mat22 {2, 3, 4, 5}));
-  EXPECT_TRUE(is_near(apply_coefficientwise(Mat22 {1, 2, 3, 4}, [](auto&& x){ return x + 1; }), Mat22 {2, 3, 4, 5}));
-  EXPECT_TRUE(is_near(apply_coefficientwise(Mat22 {1, 2, 3, 4}, [](const auto& x){ return x + 1; }), Mat22 {2, 3, 4, 5}));
+  EXPECT_TRUE(is_near(apply_coefficientwise([](auto& x){ x *= 2; }, n), Mat22 {2, 4, 6, 8}));
+  EXPECT_TRUE(is_near(apply_coefficientwise([](auto& x, std::size_t i, std::size_t j){ x += i + j; }, n), Mat22 {2, 5, 7, 10}));
 
-  EXPECT_TRUE(is_near(apply_coefficientwise(Mat22 {1, 2, 3, 4}, [](auto x, std::size_t i, std::size_t j){ return x + i + j; }), Mat22 {1, 3, 4, 6}));
-  EXPECT_TRUE(is_near(apply_coefficientwise(Mat22 {1, 2, 3, 4}, [](const auto x, std::size_t i, std::size_t j){ return x + i + j; }), Mat22 {1, 3, 4, 6}));
-  EXPECT_TRUE(is_near(apply_coefficientwise(Mat22 {1, 2, 3, 4}, [](auto&& x, std::size_t i, std::size_t j){ return x + i + j; }), Mat22 {1, 3, 4, 6}));
-  EXPECT_TRUE(is_near(apply_coefficientwise(Mat22 {1, 2, 3, 4}, [](const auto& x, std::size_t i, std::size_t j){ return x + i + j; }), Mat22 {1, 3, 4, 6}));
+  EXPECT_TRUE(is_near(apply_coefficientwise([](auto x){ return x + 1; }, mat22_1234), Mat22 {2, 3, 4, 5}));
+  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto x){ return x + 1; }, mat22_1234), Mat22 {2, 3, 4, 5}));
+  EXPECT_TRUE(is_near(apply_coefficientwise([](auto&& x){ return x + 1; }, mat22_1234), Mat22 {2, 3, 4, 5}));
+  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto& x){ return x + 1; }, mat22_1234), Mat22 {2, 3, 4, 5}));
+
+  EXPECT_TRUE(is_near(apply_coefficientwise([](auto x, std::size_t i, std::size_t j){ return x + i + j; }, mat22_1234), Mat22 {1, 3, 4, 6}));
+  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto x, std::size_t i, std::size_t j){ return x + i + j; }, mat22_1234), Mat22 {1, 3, 4, 6}));
+  EXPECT_TRUE(is_near(apply_coefficientwise([](auto&& x, std::size_t i, std::size_t j){ return x + i + j; }, mat22_1234), Mat22 {1, 3, 4, 6}));
+  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto& x, std::size_t i, std::size_t j){ return x + i + j; }, mat22_1234), Mat22 {1, 3, 4, 6}));
 
   EXPECT_TRUE(is_near(apply_coefficientwise<Mat22>([] { return 2; }), Mat22 {2, 2, 2, 2}));
   EXPECT_TRUE(is_near(apply_coefficientwise<Mat22>([](std::size_t i, std::size_t j){ return 1 + i + j; }), Mat22 {1, 2, 2, 3}));

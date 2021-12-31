@@ -26,7 +26,7 @@ namespace OpenKalman::Eigen3::internal
    * \brief Specialization for dynamic rows and Dynamic columns
    */
   template<typename Scalar>
-  struct EigenDynamicBase<Scalar, 0, 0>
+  struct EigenDynamicBase<Scalar, dynamic_extent, dynamic_extent>
   {
     /**
      * \internal
@@ -110,7 +110,7 @@ namespace OpenKalman::Eigen3::internal
      */
     static decltype(auto) zero(const std::size_t r, const std::size_t c)
     {
-      return ZeroMatrix<Scalar, 0, 0> {r, c};
+      return ZeroMatrix<Scalar, dynamic_extent, dynamic_extent> {r, c};
     }
 
 
@@ -142,11 +142,11 @@ namespace OpenKalman::Eigen3::internal
    */
 #ifdef __cpp_concepts
   template<typename Scalar, std::size_t columns>
-  requires (columns > 0)
-  struct EigenDynamicBase<Scalar, 0, columns>
+  requires (columns != dynamic_extent)
+  struct EigenDynamicBase<Scalar, dynamic_extent, columns>
 #else
   template<typename Scalar, std::size_t columns>
-  struct EigenDynamicBase<Scalar, 0, columns, std::enable_if_t<(columns > 0)>>
+  struct EigenDynamicBase<Scalar, dynamic_extent, columns, std::enable_if_t<(columns != dynamic_extent)>>
 #endif
   {
     /**
@@ -235,7 +235,7 @@ namespace OpenKalman::Eigen3::internal
      */
     static decltype(auto) zero(const std::size_t r)
     {
-      return ZeroMatrix<Scalar, 0, columns> {r};
+      return ZeroMatrix<Scalar, dynamic_extent, columns> {r};
     }
 
 
@@ -267,11 +267,11 @@ namespace OpenKalman::Eigen3::internal
    */
 #ifdef __cpp_concepts
   template<typename Scalar, std::size_t rows_>
-  requires (rows_ > 0)
-  struct EigenDynamicBase<Scalar, rows_, 0>
+  requires (rows_ != dynamic_extent)
+  struct EigenDynamicBase<Scalar, rows_, dynamic_extent>
 #else
   template<typename Scalar, std::size_t rows_>
-    struct EigenDynamicBase<Scalar, rows_, 0, std::enable_if_t<(rows_ > 0)>>
+    struct EigenDynamicBase<Scalar, rows_, dynamic_extent, std::enable_if_t<(rows_ != dynamic_extent)>>
 #endif
   {
     /**
@@ -358,7 +358,7 @@ namespace OpenKalman::Eigen3::internal
      */
     static decltype(auto) zero(const std::size_t c)
     {
-      return ZeroMatrix<Scalar, rows_, 0> {c};
+      return ZeroMatrix<Scalar, rows_, dynamic_extent> {c};
     }
 
 
@@ -390,11 +390,12 @@ namespace OpenKalman::Eigen3::internal
    */
 #ifdef __cpp_concepts
   template<typename Scalar, std::size_t rows_, std::size_t columns>
-  requires (rows_ > 0) and (columns > 0)
+  requires (rows_ != dynamic_extent) and (columns != dynamic_extent)
   struct EigenDynamicBase<Scalar, rows_, columns>
 #else
   template<typename Scalar, std::size_t rows_, std::size_t columns>
-  struct EigenDynamicBase<Scalar, rows_, columns, std::enable_if_t<(rows_ > 0) and (columns > 0)>>
+  struct EigenDynamicBase<Scalar, rows_, columns, std::enable_if_t<
+    (rows_ != dynamic_extent) and (columns != dynamic_extent)>>
 #endif
   {
     /**

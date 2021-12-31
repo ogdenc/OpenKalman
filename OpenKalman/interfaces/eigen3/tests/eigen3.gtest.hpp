@@ -26,11 +26,16 @@ namespace OpenKalman::test
 
 
 #ifdef __cpp_concepts
-  template<native_eigen_matrix Arg1, native_eigen_matrix Arg2, typename Err>
+  template<typename Arg1, typename Arg2, typename Err> requires
+    (native_eigen_matrix<Arg1> or native_eigen_array<Arg1>) and
+    (native_eigen_matrix<Arg2> or native_eigen_array<Arg2>) and
+    (std::is_arithmetic_v<Err> or native_eigen_matrix<Err> or native_eigen_array<Err>)
   struct TestComparison<Arg1, Arg2, Err>
 #else
   template<typename Arg1, typename Arg2, typename Err>
-  struct TestComparison<Arg1, Arg2, Err, std::enable_if_t<native_eigen_matrix<Arg1> and native_eigen_matrix<Arg2>>>
+  struct TestComparison<Arg1, Arg2, Err, std::enable_if_t<(native_eigen_matrix<Arg1> or native_eigen_array<Arg1>) and
+    (native_eigen_matrix<Arg2> or native_eigen_array<Arg2>) and
+    (std::is_arithmetic_v<Err> or native_eigen_matrix<Err> or native_eigen_array<Err>)>>
 #endif
     : ::testing::AssertionResult
   {
@@ -41,16 +46,20 @@ namespace OpenKalman::test
     compare(const Arg1& arg1, const Arg2& arg2, const Err& err)
     {
       if constexpr (std::is_arithmetic_v<Err>)
-        if (arg1.isApprox(arg2, err) or (arg1.isMuchSmallerThan(1., err) and arg2.isMuchSmallerThan(1., err)))
+      {
+        if (arg1.matrix().isApprox(arg2.matrix(), err) or (arg1.isMuchSmallerThan(1., err) and
+          arg2.isMuchSmallerThan(1., err)))
         {
           return ::testing::AssertionSuccess();
         }
-
-      if constexpr (native_eigen_matrix<Err>)
-        if (((arg1 - arg2).cwiseAbs().array() - make_native_matrix(err).array()).maxCoeff() <= 0)
+      }
+      else
+      {
+        if (((arg1.array() - arg2.array()).abs() - err).maxCoeff() <= 0)
         {
           return ::testing::AssertionSuccess();
         }
+      }
 
       return ::testing::AssertionFailure() << std::endl << arg1 << std::endl << "is not near" << std::endl <<
         arg2 << std::endl;
@@ -65,13 +74,15 @@ namespace OpenKalman::test
 
 
 #ifdef __cpp_concepts
-  template<eigen_native_general Arg1, eigen_native_general Arg2, typename Err>
-  requires (not native_eigen_matrix<Arg1>) or (not native_eigen_matrix<Arg2>)
+  template<native_eigen_general Arg1, native_eigen_general Arg2, typename Err> requires
+    (not native_eigen_matrix<Arg1> and not native_eigen_array<Arg1>) or
+    (not native_eigen_matrix<Arg2> and not native_eigen_array<Arg2>)
   struct TestComparison<Arg1, Arg2, Err>
 #else
   template<typename Arg1, typename Arg2, typename Err>
-  struct TestComparison<Arg1, Arg2, Err, std::enable_if_t<eigen_native_general<Arg1> and eigen_native_general<Arg2> and
-    (not native_eigen_matrix<Arg1>) or (not native_eigen_matrix<Arg2>)>>
+  struct TestComparison<Arg1, Arg2, Err, std::enable_if_t<native_eigen_general<Arg1> and native_eigen_general<Arg2> and
+    ((not native_eigen_matrix<Arg1> and not native_eigen_array<Arg1>) or
+    (not native_eigen_matrix<Arg2> and not native_eigen_array<Arg2>))>>
 #endif
     : ::testing::AssertionResult
   {
@@ -80,7 +91,7 @@ namespace OpenKalman::test
     decltype(auto) convert_impl(const Arg& arg)
     {
       if constexpr (native_eigen_matrix<Arg>)
-        return arg;
+        return (arg);
       else
         return make_native_matrix(arg);
     }
@@ -105,12 +116,12 @@ namespace OpenKalman::test
 
 #ifdef __cpp_concepts
   template<detail::eigen_type Arg1, detail::eigen_type Arg2, typename Err>
-  requires (not eigen_native_general<Arg1>) or (not eigen_native_general<Arg2>)
+  requires (not native_eigen_general<Arg1>) or (not native_eigen_general<Arg2>)
   struct TestComparison<Arg1, Arg2, Err>
 #else
   template<typename Arg1, typename Arg2, typename Err>
   struct TestComparison<Arg1, Arg2, Err, std::enable_if_t<detail::eigen_type<Arg1> and detail::eigen_type<Arg2> and
-    (not eigen_native_general<Arg1>) or (not eigen_native_general<Arg2>)>>
+    (not native_eigen_general<Arg1> or not native_eigen_general<Arg2>)>>
 #endif
     : ::testing::AssertionResult
   {
@@ -119,7 +130,7 @@ namespace OpenKalman::test
     decltype(auto) convert_impl(const Arg& arg)
     {
       if constexpr (native_eigen_matrix<Arg>)
-        return arg;
+        return (arg);
       else
         return make_native_matrix(arg);
     }

@@ -33,22 +33,15 @@ namespace OpenKalman::internal
 #endif
 
 
-  private:
-
-    NestedMatrix m_arg; //< The nested matrix.
-
-
-  public:
-
     /**
      * \internal
      * \brief Default constructor.
      */
 #ifdef __cpp_concepts
-    MatrixBase() requires self_contained<NestedMatrix> and std::default_initializable<NestedMatrix>
+    MatrixBase() requires self_contained<NestedMatrix> and requires { NestedMatrix {}; }
 #else
-    template<typename T = NestedMatrix, std::enable_if_t<
-      self_contained<T> and std::is_default_constructible_v<T>, int> = 0>
+    template<typename T = NestedMatrix, std::enable_if_t<self_contained<T> and
+      std::is_default_constructible_v<NestedMatrix>, int> = 0>
     MatrixBase()
 #endif
       : m_arg {} {}
@@ -72,23 +65,11 @@ namespace OpenKalman::internal
      * \internal
      * \brief Construct from a nestable type.
      */
-#ifdef __cpp_concepts
-    template<typename Arg> requires (not std::derived_from<std::decay_t<Arg>, MatrixBase>) and
-      has_same_matrix_shape<Arg, NestedMatrix>::value and
-      (not self_adjoint_matrix<NestedMatrix> or self_adjoint_matrix<Arg>) and
-      (not upper_triangular_matrix<NestedMatrix> or upper_triangular_matrix<Arg>) and
-      (not lower_triangular_matrix<NestedMatrix> or lower_triangular_matrix<Arg>) and
-      (not zero_matrix<NestedMatrix> or zero_matrix<Arg>) and
-      (not identity_matrix<NestedMatrix> or identity_matrix<Arg>) and
-      std::constructible_from<NestedMatrix, Arg&&>
+#if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS
+    template<typename Arg> requires (not std::is_base_of_v<MatrixBase, std::decay_t<Arg>>) and
+      requires(Arg&& arg) { NestedMatrix {std::forward<Arg>(arg)}; }
 #else
-    template<typename Arg, std::enable_if_t<(not std::is_base_of_v<MatrixBase, std::decay_t<Arg>>) and
-      has_same_matrix_shape<Arg, NestedMatrix>::value and
-      (not self_adjoint_matrix<NestedMatrix> or self_adjoint_matrix<Arg>) and
-      (not upper_triangular_matrix<NestedMatrix> or upper_triangular_matrix<Arg>) and
-      (not lower_triangular_matrix<NestedMatrix> or lower_triangular_matrix<Arg>) and
-      (not zero_matrix<NestedMatrix> or zero_matrix<Arg>) and
-      (not identity_matrix<NestedMatrix> or identity_matrix<Arg>) and
+    template<typename Arg, std::enable_if_t<not std::is_base_of_v<MatrixBase, std::decay_t<Arg>> and
       std::is_constructible_v<NestedMatrix, Arg&&>, int> = 0>
 #endif
     explicit MatrixBase(Arg&& arg) noexcept
@@ -170,16 +151,15 @@ namespace OpenKalman::internal
      */
 #ifdef __cpp_concepts
     template<std::convertible_to<std::size_t> ... Args>
-    requires (sizeof...(Args) == (dynamic_rows<Derived> ? 1 : 0) +
-        ((not square_matrix<Derived>) and dynamic_columns<Derived> ? 1 : 0))
 #else
     template<typename D = Derived, typename...Args, std::enable_if_t<
-      (std::is_convertible_v<Args, std::size_t> and ...) and
-      (sizeof...(Args) == (dynamic_rows<D> ? 1 : 0) +
-        ((not square_matrix<D>) and dynamic_columns<D> ? 1 : 0)), int> = 0>
+      (std::is_convertible_v<Args, std::size_t> and ...), int> = 0>
 #endif
     static decltype(auto) zero(const Args...args)
     {
+      static_assert(sizeof...(Args) == (dynamic_rows<Derived> ? 1 : 0) +
+        ((not square_matrix<Derived>) and dynamic_columns<Derived> ? 1 : 0));
+
       return MatrixTraits<Derived>::zero(static_cast<std::size_t>(args)...);
     }
 
@@ -189,13 +169,14 @@ namespace OpenKalman::internal
      */
 #ifdef __cpp_concepts
     template<std::convertible_to<std::size_t> ... Args>
-    requires (sizeof...(Args) == (dynamic_shape<Derived> ? 1 : 0))
 #else
     template<typename D = Derived, typename...Args, std::enable_if_t<
-      (std::is_convertible_v<Args, std::size_t> and ...) and (sizeof...(Args) == (dynamic_shape<D> ? 1 : 0)), int> = 0>
+      (std::is_convertible_v<Args, std::size_t> and ...), int> = 0>
 #endif
     static decltype(auto) identity(const Args...args)
     {
+      static_assert(sizeof...(Args) == (dynamic_shape<Derived> ? 1 : 0));
+
       return MatrixTraits<Derived>::identity(static_cast<std::size_t>(args)...);
     }
 
@@ -327,6 +308,10 @@ namespace OpenKalman::internal
 
     /// \overload
     auto operator()(std::size_t i) const { return operator[](i); }
+
+  private:
+
+    NestedMatrix m_arg; //< The nested matrix.
 
   };
 

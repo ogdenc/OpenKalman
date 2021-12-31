@@ -565,79 +565,79 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<covariance Arg, typename Function> requires
+  template<typename Function, covariance Arg> requires
     requires(Arg&& arg, const Function& f) {
       {f(column<0>(arg))} -> typed_matrix;
       MatrixTraits<decltype(f(column<0>(arg)))>::columns == 1;
     }
 #else
-  template<typename Arg, typename Function, std::enable_if_t<
+  template<typename Function, typename Arg, std::enable_if_t<
     covariance<Arg> and typed_matrix<std::invoke_result_t<
       Function, std::decay_t<decltype(column<0>(std::declval<Arg>()))>>>, int> = 0>
 #endif
   inline auto
-  apply_columnwise(Arg&& arg, const Function& f)
+  apply_columnwise(const Function& f, Arg&& arg)
   {
     using C = typename MatrixTraits<Arg>::RowCoefficients;
     const auto f_nested = [&f] (auto&& col) -> auto {
       return make_self_contained(nested_matrix(f(make_matrix<C, Axis>(std::forward<decltype(col)>(col)))));
     };
-    return make_matrix<C, C>(apply_columnwise(to_covariance_nestable(std::forward<Arg>(arg)), f_nested));
+    return make_matrix<C, C>(apply_columnwise(f_nested, to_covariance_nestable(std::forward<Arg>(arg))));
   }
 
 
 #ifdef __cpp_concepts
-  template<covariance Arg, typename Function> requires
+  template<typename Function, covariance Arg> requires
     requires(Arg&& arg, const Function& f, std::size_t i) {
       {f(column<0>(arg), i)} -> typed_matrix;
       MatrixTraits<decltype(f(column<0>(arg), i))>::columns == 1;
     }
 #else
-  template<typename Arg, typename Function, std::enable_if_t<
+  template<typename Function, typename Arg, std::enable_if_t<
     covariance<Arg> and typed_matrix<std::invoke_result_t<
       Function, std::decay_t<decltype(column<0>(std::declval<Arg>()))>, std::size_t>>, int> = 0>
 #endif
   inline auto
-  apply_columnwise(Arg&& arg, const Function& f)
+  apply_columnwise(const Function& f, Arg&& arg)
   {
     using C = typename MatrixTraits<Arg>::RowCoefficients;
     const auto f_nested = [&f] (auto&& col, std::size_t i) -> auto {
       return make_self_contained(nested_matrix(f(make_matrix<C, Axis>(std::forward<decltype(col)>(col)), i)));
     };
-    return make_matrix<C, C>(apply_columnwise(to_covariance_nestable(std::forward<Arg>(arg)), f_nested));
+    return make_matrix<C, C>(apply_columnwise(f_nested, to_covariance_nestable(std::forward<Arg>(arg))));
   }
 
 
 #ifdef __cpp_concepts
-  template<covariance Arg, typename Function> requires std::convertible_to<
+  template<typename Function, covariance Arg> requires std::convertible_to<
     std::invoke_result_t<Function, typename MatrixTraits<Arg>::Scalar>, const typename MatrixTraits<Arg>::Scalar>
 #else
-  template<typename Arg, typename Function, std::enable_if_t<covariance<Arg> and
+  template<typename Function, typename Arg, std::enable_if_t<covariance<Arg> and
     std::is_convertible_v<std::invoke_result_t<Function, typename MatrixTraits<Arg>::Scalar>,
       const typename MatrixTraits<Arg>::Scalar>, int> = 0>
 #endif
   inline auto
-  apply_coefficientwise(Arg&& arg, const Function& f)
+  apply_coefficientwise(const Function& f, Arg&& arg)
   {
     using C = typename MatrixTraits<Arg>::RowCoefficients;
-    return make_matrix<C, C>(apply_coefficientwise(to_covariance_nestable(std::forward<Arg>(arg)), f));
+    return make_matrix<C, C>(apply_coefficientwise(f, to_covariance_nestable(std::forward<Arg>(arg))));
   }
 
 
 #ifdef __cpp_concepts
-  template<covariance Arg, typename Function> requires std::convertible_to<
+  template<typename Function, covariance Arg> requires std::convertible_to<
     std::invoke_result_t<Function, typename MatrixTraits<Arg>::Scalar, std::size_t, std::size_t>,
       const typename MatrixTraits<Arg>::Scalar>
 #else
-  template<typename Arg, typename Function, std::enable_if_t<covariance<Arg> and
+  template<typename Function, typename Arg, std::enable_if_t<covariance<Arg> and
     std::is_convertible_v<std::invoke_result_t<Function, typename MatrixTraits<Arg>::Scalar, std::size_t, std::size_t>,
     const typename MatrixTraits<Arg>::Scalar>, int> = 0>
 #endif
   inline auto
-  apply_coefficientwise(Arg&& arg, const Function& f)
+  apply_coefficientwise(const Function& f, Arg&& arg)
   {
     using C = typename MatrixTraits<Arg>::RowCoefficients;
-    return make_matrix<C, C>(apply_coefficientwise(to_covariance_nestable(std::forward<Arg>(arg)), f));
+    return make_matrix<C, C>(apply_coefficientwise(f, to_covariance_nestable(std::forward<Arg>(arg))));
   }
 
 

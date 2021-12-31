@@ -32,6 +32,14 @@
 
 namespace OpenKalman
 {
+
+  /**
+   * \brief A constant indicating that the relevant dimension of a matrix is dynamic.
+   * \sa std::dynamic_extent
+   */
+  static constexpr std::size_t dynamic_extent = 0; //std::numeric_limits<std::size_t>::max();
+
+
   // --------------------- //
   //    algebraic_field    //
   // --------------------- //
@@ -579,17 +587,35 @@ namespace OpenKalman
   //  nested_matrix_t  //
   // ----------------- //
 
+  namespace internal
+  {
+    /**
+     * \internal
+     * \brief Type trait identifying the nested matrix of a matrix wrapper type (if it exists).
+     * \tparam T The matrix wrapper type.
+     * \note This should only be defined for wrapper types that have a nested matrix. Otherwise, leave undefined.
+     */
+#ifdef __cpp_concepts
+    template<typename T>
+#else
+    template<typename T, typename = void>
+#endif
+    struct nested_matrix_type {};
+  }
+
+
   /**
-   * \brief An alias for a type's nested matrix, if it exists.
-   * \details Only participates in overload resolution if the type has a nested matrix.
-   * \tparam T A type that is a wrapper for a nested matrix.
+   * \brief A wrapper type's nested matrix, if it exists.
+   * \details For example, for OpenKalman::Mean<RowCoefficients, M>, the nested matrix type is M.
+   * \tparam T A wrapper type that has a nested matrix.
+   * \internal \sa internal::nested_matrix_type
    */
 #ifdef __cpp_concepts
-  template<typename T> requires requires { typename MatrixTraits<T>::NestedMatrix; }
+  template<typename T> requires requires { typename internal::nested_matrix_type<std::decay_t<T>>::type; }
 #else
-  template<typename T, typename = typename MatrixTraits<T>::NestedMatrix>
+  template<typename T>
 #endif
-  using nested_matrix_t = typename MatrixTraits<T>::NestedMatrix;
+  using nested_matrix_t = typename internal::nested_matrix_type<std::decay_t<T>>::type;
 
 
   // -------------- //
@@ -617,7 +643,7 @@ namespace OpenKalman
     struct has_dynamic_rows : std::false_type {};
 
     template<typename T>
-    struct has_dynamic_rows<T, std::enable_if_t<MatrixTraits<T>::rows == 0>> : std::true_type {};
+    struct has_dynamic_rows<T, std::enable_if_t<MatrixTraits<T>::rows == dynamic_extent>> : std::true_type {};
   }
 #endif
 
@@ -628,9 +654,9 @@ namespace OpenKalman
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept dynamic_rows = (MatrixTraits<T>::rows == 0);
+  concept dynamic_rows = (MatrixTraits<T>::rows == dynamic_extent);
 #else
-  constexpr bool dynamic_rows = detail::has_dynamic_rows<std::decay_t<T>>::value;
+  constexpr bool dynamic_rows = detail::has_dynamic_rows<T>::value;
 #endif
 
 
@@ -645,7 +671,7 @@ namespace OpenKalman
     struct has_dynamic_columns : std::false_type {};
 
     template<typename T>
-    struct has_dynamic_columns<T, std::enable_if_t<MatrixTraits<T>::columns == 0>> : std::true_type {};
+    struct has_dynamic_columns<T, std::enable_if_t<MatrixTraits<T>::columns == dynamic_extent>> : std::true_type {};
   }
 #endif
 
@@ -656,9 +682,9 @@ namespace OpenKalman
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept dynamic_columns = (MatrixTraits<T>::columns == 0);
+  concept dynamic_columns = (MatrixTraits<T>::columns == dynamic_extent);
 #else
-  constexpr bool dynamic_columns = detail::has_dynamic_columns<std::decay_t<T>>::value;
+  constexpr bool dynamic_columns = detail::has_dynamic_columns<T>::value;
 #endif
 
 
@@ -730,63 +756,6 @@ namespace OpenKalman
   }
 
 
-  // --------------------------------------------------------- //
-  //  constant_diagonal_coefficient, constant_diagonal_matrix  //
-  // --------------------------------------------------------- //
-
-  /**
-   * \brief The constant associated with a \ref constant_diagonal_matrix.
-   * \details The constant must derive from std::integral_constant<type, value>
-   */
-#ifdef __cpp_concepts
-  template<typename T>
-#else
-  template<typename T, typename = void>
-#endif
-  struct constant_diagonal_coefficient;
-
-
-#ifndef __cpp_concepts
-  namespace detail
-  {
-    template<typename T, typename = void>
-    struct constant_diagonal_coefficient_is_defined : std::false_type {};
-
-    template<typename T>
-    struct constant_diagonal_coefficient_is_defined<T, std::void_t<decltype(constant_diagonal_coefficient<T>::value)>>
-      : std::true_type {};
-  }
-#endif
-
-
-  /**
-   * \brief Specifies that a type is a constant matrix, with the constant known at compile time.
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept constant_diagonal_matrix = requires { constant_diagonal_coefficient<std::decay_t<T>>::value; };
-#else
-  inline constexpr bool constant_diagonal_matrix =
-    detail::constant_diagonal_coefficient_is_defined<std::decay_t<T>>::value;
-#endif
-
-
-#ifdef __cpp_concepts
-  template<constant_diagonal_matrix T>
-#else
-  template<typename T, std::enable_if_t<constant_diagonal_matrix<T>, int> = 0>
-#endif
-  inline constexpr auto constant_diagonal_coefficient_v = constant_diagonal_coefficient<std::decay_t<T>>::value;
-
-
-#ifdef __cpp_concepts
-  template<constant_diagonal_matrix T>
-#else
-  template<typename T, std::enable_if_t<constant_diagonal_matrix<T>, int> = 0>
-#endif
-  using constant_diagonal_coefficient_t = typename constant_diagonal_coefficient<std::decay_t<T>>::type;
-
-
   // --------------------------------------- //
   //  constant_coefficient, constant_matrix  //
   // --------------------------------------- //
@@ -801,6 +770,21 @@ namespace OpenKalman
   template<typename T, typename = void>
 #endif
   struct constant_coefficient;
+
+
+#ifdef __cpp_concepts
+  template<typename T> requires std::is_reference_v<T> or std::is_const_v<std::remove_reference_t<T>>
+  struct constant_coefficient<T> : constant_coefficient<std::decay_t<T>> {};
+#else
+  template<typename T>
+  struct constant_coefficient<T&> : constant_coefficient<T> {};
+
+  template<typename T>
+  struct constant_coefficient<T&&> : constant_coefficient<T> {};
+
+  template<typename T>
+  struct constant_coefficient<const T> : constant_coefficient<T> {};
+#endif
 
 
 #ifndef __cpp_concepts
@@ -830,7 +814,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<constant_matrix T>
 #else
-  template<typename T, std::enable_if_t<constant_matrix<T>, int> = 0>
+  template<typename T>
 #endif
   inline constexpr auto constant_coefficient_v = constant_coefficient<std::decay_t<T>>::value;
 
@@ -838,9 +822,82 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<constant_matrix T>
 #else
-  template<typename T, std::enable_if_t<constant_matrix<T>, int> = 0>
+  template<typename T>
 #endif
   using constant_coefficient_t = typename constant_coefficient<std::decay_t<T>>::type;
+
+
+  // --------------------------------------------------------- //
+  //  constant_diagonal_coefficient, constant_diagonal_matrix  //
+  // --------------------------------------------------------- //
+
+  /**
+   * \brief The constant associated with a \ref constant_diagonal_matrix.
+   * \details The constant must derive from std::integral_constant<type, value>
+   */
+#ifdef __cpp_concepts
+  template<typename T>
+#else
+  template<typename T, typename = void>
+#endif
+  struct constant_diagonal_coefficient;
+
+
+#ifdef __cpp_concepts
+  template<typename T> requires std::is_reference_v<T> or std::is_const_v<std::remove_reference_t<T>>
+  struct constant_diagonal_coefficient<T> : constant_diagonal_coefficient<std::decay_t<T>> {};
+#else
+  template<typename T>
+  struct constant_diagonal_coefficient<T&> : constant_diagonal_coefficient<T> {};
+
+  template<typename T>
+  struct constant_diagonal_coefficient<T&&> : constant_diagonal_coefficient<T> {};
+
+  template<typename T>
+  struct constant_diagonal_coefficient<const T> : constant_diagonal_coefficient<T> {};
+#endif
+
+
+#ifndef __cpp_concepts
+  namespace detail
+  {
+    template<typename T, typename = void>
+    struct is_constant_diagonal_matrix : std::false_type {};
+
+    template<typename T>
+    struct is_constant_diagonal_matrix<T, std::void_t<decltype(constant_diagonal_coefficient<T>::value)>>
+      : std::true_type {};
+  }
+#endif
+
+
+  /**
+   * \brief Specifies that a type is a constant matrix, with the constant known at compile time.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept constant_diagonal_matrix = requires { constant_diagonal_coefficient<std::decay_t<T>>::value; };
+#else
+  inline constexpr bool constant_diagonal_matrix = detail::is_constant_diagonal_matrix<std::decay_t<T>>::value;
+#endif
+
+
+  /// Helper template for constant_diagonal_coefficient.
+#ifdef __cpp_concepts
+  template<constant_diagonal_matrix T>
+#else
+  template<typename T>
+#endif
+  inline constexpr auto constant_diagonal_coefficient_v = constant_diagonal_coefficient<std::decay_t<T>>::value;
+
+
+  /// Helper template for constant_diagonal_coefficient.
+#ifdef __cpp_concepts
+  template<constant_diagonal_matrix T>
+#else
+  template<typename T>
+#endif
+  using constant_diagonal_coefficient_t = typename constant_diagonal_coefficient<std::decay_t<T>>::type;
 
 
   // ------------- //
@@ -854,8 +911,11 @@ namespace OpenKalman
     struct is_zero_matrix : std::false_type {};
 
     template<typename T>
-    struct is_zero_matrix<T, std::enable_if_t<
-      constant_coefficient_v<T> == 0 or constant_diagonal_coefficient_v<T> == 0>>
+    struct is_zero_matrix<T, std::enable_if_t<constant_coefficient<T>::value == 0>>
+      : std::true_type {};
+
+    template<typename T>
+    struct is_zero_matrix<T, std::enable_if_t<not constant_matrix<T> and constant_diagonal_coefficient<T>::value == 0>>
       : std::true_type {};
   }
 #endif
@@ -866,8 +926,8 @@ namespace OpenKalman
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept zero_matrix = (constant_diagonal_coefficient_v<std::decay_t<T>> == 0) or
-    (constant_coefficient_v<std::decay_t<T>> == 0);
+  concept zero_matrix = (constant_coefficient_v<std::decay_t<T>> == 0) or
+    (constant_diagonal_coefficient_v<std::decay_t<T>> == 0);
 #else
   inline constexpr bool zero_matrix = detail::is_zero_matrix<std::decay_t<T>>::value;
 #endif
@@ -881,12 +941,19 @@ namespace OpenKalman
   namespace detail
   {
     template<typename T, typename = void>
-    struct is_identity_matrix : std::false_type {}
+    struct is_identity_matrix : std::false_type {};
 
     template<typename T>
-    struct is_identity_matrix<T, std::enable_if_t<(constant_diagonal_coefficient_v<T> == 1) or
-      (constant_coefficient_v<T> == 1 and MatrixTraits<T>::rows == 1 and MatrixTraits<T>::columns == 1)>>
-      : true_type {};
+    struct is_identity_matrix<T, std::enable_if_t<(constant_diagonal_coefficient<T>::value == 1)>>
+      : std::true_type {};
+
+    template<typename T, typename = void>
+    struct is_1by1_identity_matrix : std::false_type {};
+
+    template<typename T>
+    struct is_1by1_identity_matrix<T, std::enable_if_t<
+      (constant_coefficient<T>::value == 1 and MatrixTraits<T>::rows == 1 and MatrixTraits<T>::columns == 1)>>
+      : std::true_type {};
   }
 #endif
 
@@ -898,7 +965,8 @@ namespace OpenKalman
   concept identity_matrix = (constant_diagonal_coefficient_v<T> == 1) or
     (constant_coefficient_v<T> == 1 and MatrixTraits<T>::rows == 1 and MatrixTraits<T>::columns == 1);
 #else
-  inline constexpr bool identity_matrix = detail::is_identity_matrix<std::decay_t<T>>::value;
+  inline constexpr bool identity_matrix = detail::is_identity_matrix<std::decay_t<T>>::value or
+    detail::is_1by1_identity_matrix<std::decay_t<T>>::value;
 #endif
 
 
@@ -929,9 +997,14 @@ namespace OpenKalman
     struct is_inferred_diagonal_matrix : std::false_type {};
 
     template<typename T>
-    struct is_inferred_diagonal_matrix<T, std::enable_if_t<constant_diagonal_matrix<T> or
-        (zero_matrix<T> and MatrixTraits<T>::rows == MatrixTraits<T>::columns and MatrixTraits<T>::rows > 0) or
-        (MatrixTraits<T>::rows == 1 and MatrixTraits<T>::columns == 1)>>
+    struct is_inferred_diagonal_matrix<T, std::enable_if_t<
+      not dynamic_shape<T> and MatrixTraits<T>::rows == 1 and MatrixTraits<T>::columns == 1>>
+      : std::true_type {};
+
+    template<typename T>
+    struct is_inferred_diagonal_matrix<T, std::enable_if_t<not dynamic_shape<T> and
+      MatrixTraits<T>::rows == MatrixTraits<T>::columns and MatrixTraits<T>::rows != 1 and
+      constant_coefficient<T>::value == 0>>
       : std::true_type {};
   }
 #endif
@@ -942,12 +1015,12 @@ namespace OpenKalman
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept diagonal_matrix = internal::is_diagonal_matrix<std::decay_t<T>>::value or constant_diagonal_matrix<T> or
-    (zero_matrix<T> and not dynamic_shape<T> and MatrixTraits<T>::rows == MatrixTraits<T>::columns) or
-    (MatrixTraits<T>::rows == 1 and MatrixTraits<T>::columns == 1);
+  concept diagonal_matrix = internal::is_diagonal_matrix<std::decay_t<T>>::value or
+    (not dynamic_shape<T> and MatrixTraits<T>::rows == MatrixTraits<T>::columns and
+    (MatrixTraits<T>::rows == 1 or constant_coefficient_v<T> == 0)) or constant_diagonal_matrix<T>;
 #else
   inline constexpr bool diagonal_matrix = internal::is_diagonal_matrix<std::decay_t<T>>::value or
-    detail::is_inferred_diagonal_matrix<std::decay_t<T>>::value;
+    detail::is_inferred_diagonal_matrix<std::decay_t<T>>::value or constant_diagonal_matrix<T>;
 #endif
 
 
@@ -958,12 +1031,15 @@ namespace OpenKalman
 #ifndef __cpp_concepts
   namespace detail
   {
+    template<typename T, typename = void>
+    struct is_inferred_self_adjoint_matrix : std::false_type {};
+
     template<typename T>
-    struct is_inferred_self_adjoint_matrix<T, std::enable_if_t<
-      (not complex_number<typename MatrixTraits<T>::Scalar>) and (diagonal_matrix<T> or
-        (constant_matrix<T> and MatrixTraits<T>::rows == MatrixTraits<T>::columns and MatrixTraits<T>::rows > 0))>>
+    struct is_inferred_self_adjoint_matrix<T, std::enable_if_t<not complex_number<typename MatrixTraits<T>::Scalar> and
+      (diagonal_matrix<T> or
+        (constant_matrix<T> and not dynamic_shape<T> and MatrixTraits<T>::rows == MatrixTraits<T>::columns))>>
       : std::true_type {};
-  }
+  };
 #endif
 
 
@@ -990,10 +1066,10 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   concept lower_self_adjoint_matrix = internal::is_lower_self_adjoint_matrix<std::decay_t<T>>::value or
     (not complex_number<typename MatrixTraits<T>::Scalar> and (diagonal_matrix<T> or
-          (constant_matrix<T> and not dynamic_shape<T> and MatrixTraits<T>::rows == MatrixTraits<T>::columns)));
+      (constant_matrix<T> and not dynamic_shape<T> and MatrixTraits<T>::rows == MatrixTraits<T>::columns)));
 #else
   inline constexpr bool lower_self_adjoint_matrix = internal::is_lower_self_adjoint_matrix<std::decay_t<T>>::value or
-    detail::is_inferred_self_adjoint_matrix<std::decay_t<T>>;
+    detail::is_inferred_self_adjoint_matrix<T>::value;
 #endif
 
 
@@ -1027,7 +1103,7 @@ namespace OpenKalman
       (constant_matrix<T> and not dynamic_shape<T> and MatrixTraits<T>::rows == MatrixTraits<T>::columns)));
 #else
   inline constexpr bool upper_self_adjoint_matrix = internal::is_upper_self_adjoint_matrix<std::decay_t<T>>::value or
-    detail::is_inferred_self_adjoint_matrix<std::decay_t<T>>;
+    detail::is_inferred_self_adjoint_matrix<T>::value;
 #endif
 
 
@@ -1191,24 +1267,25 @@ namespace OpenKalman
   //  square_matrix  //
   // --------------- //
 
-  namespace internal
-  {
-#ifdef __cpp_concepts
-    template<typename T>
-#else
-    template<typename T, typename = void>
-#endif
-    struct is_square_matrix : std::false_type {};
-  }
-
-
 #ifndef __cpp_concepts
   namespace detail
   {
+    template<typename T, typename = void>
+    struct has_square_dimensions : std::false_type {};
+
     template<typename T>
-    struct is_square_matrix<T, std::enable_if_t<(self_adjoint_matrix<T> or triangular_matrix<T> or
-        (not dynamic_shape<T> and MatrixTraits<T>::rows == MatrixTraits<T>::columns))>>
+    struct has_square_dimensions<T, std::enable_if_t<
+      not dynamic_shape<T> and MatrixTraits<T>::rows == MatrixTraits<T>::columns>>
       : std::true_type {};
+
+
+    template<typename T, typename = void>
+    struct has_equivalent_coefficients : std::true_type {};
+
+    template<typename T>
+    struct has_equivalent_coefficients<T, std::enable_if_t<
+      not equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>>>
+      : std::false_type {};
   }
 #endif
 
@@ -1219,11 +1296,15 @@ namespace OpenKalman
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept square_matrix = internal::is_square_matrix<std::decay_t<T>>::value or self_adjoint_matrix<T> or
-    triangular_matrix<T> or (not dynamic_shape<T> and MatrixTraits<T>::rows == MatrixTraits<T>::columns);
+  concept square_matrix =
+    (not dynamic_shape<T> and (MatrixTraits<T>::rows == MatrixTraits<T>::columns) and
+      (not requires { typename MatrixTraits<T>::RowCoefficients; typename MatrixTraits<T>::ColumnCoefficients; } or
+        equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>)) or
+    (dynamic_shape<T> and (self_adjoint_matrix<T> or triangular_matrix<T>));
 #else
-  inline constexpr bool square_matrix = internal::is_square_matrix<std::decay_t<T>>::value or
-    detail::is_inferred_square_matrix<std::decay_t<T>>;
+  inline constexpr bool square_matrix =
+    (detail::has_square_dimensions<std::decay_t<T>>::value and detail::has_equivalent_coefficients<T>::value) or
+    (dynamic_shape<T> and (self_adjoint_matrix<T> or triangular_matrix<T>));
 #endif
 
 
@@ -1239,7 +1320,7 @@ namespace OpenKalman
 
     template<typename T>
     struct is_one_by_one_matrix<T, std::enable_if_t<
-      square_matrix<T> and (MatrixTraits<T>::rows == 1 or MatrixTraits<T>::columns == 1)>> : std::true_type {};
+      (MatrixTraits<T>::rows == 1 or MatrixTraits<T>::columns == 1) and square_matrix<T>>> : std::true_type {};
   }
 #endif
 
@@ -1249,7 +1330,7 @@ namespace OpenKalman
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept one_by_one_matrix = square_matrix<T> and (MatrixTraits<T>::rows == 1 or MatrixTraits<T>::columns == 1);
+  concept one_by_one_matrix = (MatrixTraits<T>::rows == 1 or MatrixTraits<T>::columns == 1) and square_matrix<T>;
 #else
   inline constexpr bool one_by_one_matrix = detail::is_one_by_one_matrix<T>::value;
 #endif
@@ -1500,19 +1581,8 @@ namespace OpenKalman
   namespace internal
   {
     template<typename T>
-    struct is_covariance : std::false_type {};
+    struct is_self_adjoint_covariance : std::false_type {};
   }
-
-
-  /**
-   * \brief T is a specialization of either Covariance or SquareRootCovariance.
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept covariance = internal::is_covariance<std::decay_t<T>>::value;
-#else
-  inline constexpr bool covariance = internal::is_covariance<std::decay_t<T>>::value;
-#endif
 
 
   /**
@@ -1520,10 +1590,17 @@ namespace OpenKalman
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept self_adjoint_covariance = covariance<T> and self_adjoint_matrix<T>;
+  concept self_adjoint_covariance = internal::is_self_adjoint_covariance<std::decay_t<T>>::value;
 #else
-  inline constexpr bool self_adjoint_covariance = covariance<T> and self_adjoint_matrix<T>;
+  inline constexpr bool self_adjoint_covariance = internal::is_self_adjoint_covariance<std::decay_t<T>>::value;
 #endif
+
+
+  namespace internal
+  {
+    template<typename T>
+    struct is_triangular_covariance : std::false_type {};
+  }
 
 
   /**
@@ -1531,9 +1608,20 @@ namespace OpenKalman
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept triangular_covariance = covariance<T> and triangular_matrix<T>;
+  concept triangular_covariance = internal::is_triangular_covariance<std::decay_t<T>>::value;
 #else
-  inline constexpr bool triangular_covariance = covariance<T> and triangular_matrix<T>;
+  inline constexpr bool triangular_covariance = internal::is_triangular_covariance<std::decay_t<T>>::value;
+#endif
+
+
+  /**
+   * \brief T is a specialization of either Covariance or SquareRootCovariance.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept covariance = self_adjoint_covariance<T> or triangular_covariance<T>;
+#else
+  inline constexpr bool covariance = self_adjoint_covariance<T> or triangular_covariance<T>;
 #endif
 
 
@@ -1750,12 +1838,11 @@ namespace OpenKalman
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept writable = internal::is_writable<std::decay_t<T>>::value and
-    (not std::is_const_v<std::remove_reference_t<T>>);
+  concept writable =
 #else
-  inline constexpr bool writable = internal::is_writable<std::decay_t<T>>::value and
-    (not std::is_const_v<std::remove_reference_t<T>>);
+  inline constexpr bool writable =
 #endif
+    internal::is_writable<std::decay_t<T>>::value and (not std::is_const_v<std::remove_reference_t<T>>);
 
 
   // ------------ //

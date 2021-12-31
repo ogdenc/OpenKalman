@@ -19,13 +19,16 @@
 #include <type_traits>
 #include <random>
 
+#include <iostream>
+
 namespace OpenKalman::Eigen3
 {
 #ifdef __cpp_concepts
-  template<eigen_native_general Arg>
-  requires (not native_eigen_matrix<Arg>)
+  template<native_eigen_general Arg>
+  requires (not native_eigen_matrix<Arg>) and (not native_eigen_array<Arg>)
 #else
-  template<typename Arg, std::enable_if_t<eigen_native_general<Arg> and (not native_eigen_matrix<Arg>), int> = 0>
+  template<typename Arg, std::enable_if_t<native_eigen_general<Arg> and (not native_eigen_matrix<Arg>) and
+    (not native_eigen_array<Arg>), int> = 0>
 #endif
   constexpr decltype(auto)
   nested_matrix(Arg&& arg)
@@ -118,27 +121,17 @@ namespace OpenKalman::Eigen3
 
 
   /**
-   * Convert to a self-contained Eigen3 matrix.
+   * Convert to Eigen::Matrix.
    */
 #ifdef __cpp_concepts
-  template<typename Arg> requires
-    eigen_native_general<Arg> or
-    eigen_matrix<Arg> or
-    eigen_self_adjoint_expr<Arg> or
-    eigen_triangular_expr<Arg> or
-    eigen_diagonal_expr<Arg>
+  template<native_eigen_general Arg>
 #else
-  template<typename Arg, std::enable_if_t<
-    eigen_native_general<Arg> or
-    eigen_matrix<Arg> or
-    eigen_self_adjoint_expr<Arg> or
-    eigen_triangular_expr<Arg> or
-    eigen_diagonal_expr<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<native_eigen_general<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   make_native_matrix(Arg&& arg) noexcept
   {
-    if constexpr (std::is_same_v<std::decay_t<Arg>, native_matrix_t<Arg>>)
+    if constexpr (std::is_same_v<std::decay_t<Arg>, typename MatrixTraits<Arg>::template NativeMatrixFrom<>>)
     {
       return std::forward<Arg>(arg);
     }
@@ -151,9 +144,9 @@ namespace OpenKalman::Eigen3
 
   /// Convert to function-returnable version of the matrix.
 #ifdef __cpp_concepts
-  template<typename ... Ts, eigen_native_general Arg>
+  template<typename ... Ts, native_eigen_general Arg>
 #else
-  template<typename ... Ts, typename Arg, std::enable_if_t<eigen_native_general<Arg>, int> = 0>
+  template<typename ... Ts, typename Arg, std::enable_if_t<native_eigen_general<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   make_self_contained(Arg&& arg) noexcept
@@ -164,17 +157,18 @@ namespace OpenKalman::Eigen3
     }
     else
     {
-      return make_native_matrix(std::forward<Arg>(arg));
+      //return make_native_matrix(std::forward<Arg>(arg));
+      return self_contained_t<Arg> {std::forward<Arg>(arg)};
     }
   }
 
 
   /// Get element (i, j) of matrix arg
 #ifdef __cpp_concepts
-  template<eigen_native_general Arg>
+  template<native_eigen_general Arg>
   requires element_gettable<Arg, 2>
 #else
-  template<typename Arg, std::enable_if_t<eigen_native_general<Arg> and element_gettable<Arg, 2>, int> = 0>
+  template<typename Arg, std::enable_if_t<native_eigen_general<Arg> and element_gettable<Arg, 2>, int> = 0>
 #endif
   inline auto
   get_element(const Arg& arg, const std::size_t i, const std::size_t j)
@@ -185,9 +179,9 @@ namespace OpenKalman::Eigen3
 
   /// Get element (i) of one-column matrix arg
 #ifdef __cpp_concepts
-  template<eigen_native_general Arg> requires element_gettable<Arg, 1>
+  template<native_eigen_general Arg> requires element_gettable<Arg, 1>
 #else
-  template<typename Arg, std::enable_if_t<eigen_native_general<Arg> and element_gettable<Arg, 1>, int> = 0>
+  template<typename Arg, std::enable_if_t<native_eigen_general<Arg> and element_gettable<Arg, 1>, int> = 0>
 #endif
   inline auto
   get_element(const Arg& arg, const std::size_t i)
@@ -198,11 +192,11 @@ namespace OpenKalman::Eigen3
 
   /// Set element (i, j) of matrix arg to s.
 #ifdef __cpp_concepts
-  template<eigen_native_general Arg, typename Scalar>
+  template<native_eigen_general Arg, typename Scalar>
   requires element_settable<Arg, 2>
 #else
   template<typename Arg, typename Scalar, std::enable_if_t<
-    eigen_native_general<Arg> and element_settable<Arg, 2>, int> = 0>
+    native_eigen_general<Arg> and element_settable<Arg, 2>, int> = 0>
 #endif
   inline void
   set_element(Arg& arg, const Scalar s, const std::size_t i, const std::size_t j)
@@ -213,11 +207,11 @@ namespace OpenKalman::Eigen3
 
   /// Set element (i) of one-column matrix arg to s.
 #ifdef __cpp_concepts
-  template<eigen_native_general Arg, typename Scalar>
+  template<native_eigen_general Arg, typename Scalar>
   requires element_settable<Arg, 1>
 #else
   template<typename Arg, typename Scalar, std::enable_if_t<
-    eigen_native_general<Arg> and element_settable<Arg, 1>, int> = 0>
+    native_eigen_general<Arg> and element_settable<Arg, 1>, int> = 0>
 #endif
   inline void
   set_element(Arg& arg, const Scalar s, const std::size_t i)
@@ -227,42 +221,57 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-  template<eigen_native_general Arg>
+  template<native_eigen_general Arg>
 #else
-  template<typename Arg, std::enable_if_t<eigen_native_general<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<native_eigen_general<Arg>, int> = 0>
 #endif
   constexpr std::size_t
   row_count(Arg&& arg)
   {
     if constexpr (dynamic_rows<Arg>)
-      return arg.rows();
+    {
+      if constexpr (square_matrix<Arg> and not dynamic_columns<Arg>)
+        return MatrixTraits<Arg>::columns;
+      else
+        return arg.rows();
+    }
     else
+    {
       return MatrixTraits<Arg>::rows;
+    }
   }
 
 
 #ifdef __cpp_concepts
-  template<eigen_native_general Arg>
+  template<native_eigen_general Arg>
 #else
-  template<typename Arg, std::enable_if_t<eigen_native_general<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<native_eigen_general<Arg>, int> = 0>
 #endif
   constexpr std::size_t
   column_count(Arg&& arg)
   {
     if constexpr (dynamic_columns<Arg>)
-      return arg.cols();
+    {
+      if constexpr (square_matrix<Arg> and not dynamic_rows<Arg>)
+        return MatrixTraits<Arg>::rows;
+      else
+        return arg.cols();
+    }
     else
+    {
       return MatrixTraits<Arg>::columns;
+    }
   }
 
 
   /// Return row <code>index</code> of Arg.
 #ifdef __cpp_concepts
-  template<std::size_t...index, native_eigen_matrix Arg, std::convertible_to<const std::size_t>...runtime_index_t>
-  requires (sizeof...(index) + sizeof...(runtime_index_t) == 1) and
+  template<std::size_t...index, typename Arg, std::convertible_to<const std::size_t>...runtime_index_t> requires
+    (native_eigen_matrix<Arg> or native_eigen_array<Arg>) and (sizeof...(index) + sizeof...(runtime_index_t) == 1) and
     (dynamic_rows<Arg> or ((index + ... + 0) < MatrixTraits<Arg>::rows))
 #else
-  template<size_t...index, typename Arg, typename...runtime_index_t, std::enable_if_t<native_eigen_matrix<Arg> and
+  template<size_t...index, typename Arg, typename...runtime_index_t, std::enable_if_t<
+    (native_eigen_matrix<Arg> or native_eigen_array<Arg>) and
     (std::is_convertible_v<runtime_index_t, const std::size_t> and ...) and
     (sizeof...(index) + sizeof...(runtime_index_t) == 1) and
     (dynamic_rows<Arg> or ((index + ... + 0) < MatrixTraits<Arg>::rows)), int> = 0>
@@ -277,28 +286,19 @@ namespace OpenKalman::Eigen3
     else
     {
       auto e_i = static_cast<Eigen::Index>((index + ... + (i + ... + 0)));
-
-      if constexpr (dynamic_columns<Arg>)
-      {
-        Eigen::Index c = column_count(arg);
-        return make_self_contained<Arg>(std::forward<Arg>(arg).template block<1, Eigen::Dynamic>(e_i, 0, 1, c));
-      }
-      else
-      {
-        constexpr Eigen::Index c = MatrixTraits<Arg>::columns;
-        return make_self_contained<Arg>(std::forward<Arg>(arg).template block<1, c>(e_i, 0));
-      }
+      return std::forward<Arg>(arg).row(e_i);
     }
   }
 
 
   /// Return column <code>index</code> of Arg.
 #ifdef __cpp_concepts
-  template<std::size_t...index, native_eigen_matrix Arg, std::convertible_to<const std::size_t>...runtime_index_t>
-    requires (sizeof...(index) + sizeof...(runtime_index_t) == 1) and
+  template<std::size_t...index, typename Arg, std::convertible_to<const std::size_t>...runtime_index_t> requires
+    (native_eigen_matrix<Arg> or native_eigen_array<Arg>) and (sizeof...(index) + sizeof...(runtime_index_t) == 1) and
     (dynamic_columns<Arg> or ((index + ... + 0) < MatrixTraits<Arg>::columns))
 #else
-  template<std::size_t...index, typename Arg, typename...runtime_index_t, std::enable_if_t<native_eigen_matrix<Arg> and
+  template<std::size_t...index, typename Arg, typename...runtime_index_t, std::enable_if_t<
+    (native_eigen_matrix<Arg> or native_eigen_array<Arg>) and
     (std::is_convertible_v<runtime_index_t, const std::size_t> and ...) and
     (sizeof...(index) + sizeof...(runtime_index_t) == 1) and
     (dynamic_columns<Arg> or ((index + ... + 0) < MatrixTraits<Arg>::columns)), int> = 0>
@@ -313,17 +313,7 @@ namespace OpenKalman::Eigen3
     else
     {
       auto e_i = static_cast<Eigen::Index>((index + ... + (i + ... + 0)));
-
-      if constexpr (dynamic_rows<Arg>)
-      {
-        Eigen::Index r = row_count(arg);
-        return make_self_contained<Arg>(std::forward<Arg>(arg).template block<Eigen::Dynamic, 1>(0, e_i, r, 1));
-      }
-      else
-      {
-        constexpr Eigen::Index r = MatrixTraits<Arg>::rows;
-        return make_self_contained<Arg>(std::forward<Arg>(arg).template block<r, 1>(0, e_i));
-      }
+      return std::forward<Arg>(arg).col(e_i);
     }
   }
 
@@ -476,11 +466,9 @@ namespace OpenKalman::Eigen3
     (dynamic_columns<Arg> or column_vector<Arg>), int> = 0>
 #endif
   inline decltype(auto)
-  to_diagonal(Arg&& arg) noexcept
+  to_diagonal(Arg&& arg)
   {
     using Scalar = typename MatrixTraits<Arg>::Scalar;
-
-    if constexpr (dynamic_columns<Arg>) assert(column_count(arg) == 1);
 
     if constexpr (one_by_one_matrix<Arg>)
     {
@@ -491,10 +479,13 @@ namespace OpenKalman::Eigen3
       if constexpr (dynamic_rows<Arg>)
       {
         // Wrap in a DiagonalMatrix to preserve knowledge that the zero matrix is diagonal.
-        return DiagonalMatrix {ZeroMatrix<Scalar, 0, 1> {row_count(arg)}};
+        return DiagonalMatrix {ZeroMatrix<Scalar, dynamic_extent, 1> {row_count(arg)}};
       }
       else
       {
+        if constexpr (dynamic_columns<Arg>) if (column_count(arg) != 1) throw std::out_of_range {
+          "Argument of to_diagonal must have 1 column; instead it has " + std::to_string(column_count(arg))};
+
         constexpr auto dim = MatrixTraits<Arg>::rows;
         return ZeroMatrix<Scalar, dim, dim>();
       }
@@ -505,7 +496,7 @@ namespace OpenKalman::Eigen3
 
       if constexpr (dynamic_rows<Arg>)
       {
-        return DiagonalMatrix {ConstantMatrix<Scalar, constant, 0, 1> {row_count(arg)}};
+        return DiagonalMatrix {ConstantMatrix<Scalar, constant, dynamic_extent, 1> {row_count(arg)}};
       }
       else
       {
@@ -514,17 +505,16 @@ namespace OpenKalman::Eigen3
     }
     else
     {
-      if constexpr (dynamic_columns<Arg>) assert(column_count(arg) == 1);
-      return DiagonalMatrix {std::forward<Arg>(arg)};
+      return DiagonalMatrix<passable_t<Arg>> {std::forward<Arg>(arg)};
     }
   }
 
 
 #ifdef __cpp_concepts
-  template<eigen_native_general Arg> requires (dynamic_shape<Arg> or square_matrix<Arg>)
+  template<native_eigen_general Arg> requires (dynamic_shape<Arg> or square_matrix<Arg>)
 #else
   template<typename Arg, std::enable_if_t<
-    eigen_native_general<Arg> and (dynamic_shape<Arg> or square_matrix<Arg>), int> = 0>
+    native_eigen_general<Arg> and (dynamic_shape<Arg> or square_matrix<Arg>), int> = 0>
 #endif
   inline auto
   diagonal_of(Arg&& arg) noexcept
@@ -535,11 +525,11 @@ namespace OpenKalman::Eigen3
 
     if constexpr (identity_matrix<Arg>)
     {
-      if constexpr (dim == 0)
+      if constexpr (dim == dynamic_extent)
       {
         auto rows = row_count(arg);
         assert(rows == column_count(arg));
-        return ConstantMatrix<Scalar, 1, 0, 1> {rows};
+        return ConstantMatrix<Scalar, 1, dynamic_extent, 1> {rows};
       }
       else
       {
@@ -549,11 +539,11 @@ namespace OpenKalman::Eigen3
     }
     else if constexpr (zero_matrix<Arg>)
     {
-      if constexpr (dim == 0)
+      if constexpr (dim == dynamic_extent)
       {
         auto rows = row_count(arg);
         assert(rows == column_count(arg));
-        return ZeroMatrix<Scalar, 0, 1> {rows};
+        return ZeroMatrix<Scalar, dynamic_extent, 1> {rows};
       }
       else
       {
@@ -565,11 +555,11 @@ namespace OpenKalman::Eigen3
     {
       constexpr auto constant = constant_coefficient_v<Arg>;
 
-      if constexpr (dim == 0)
+      if constexpr (dim == dynamic_extent)
       {
         auto rows = row_count(arg);
         assert(rows == column_count(arg));
-        return ConstantMatrix<Scalar, constant, 0, 1> {row_count(arg)};
+        return ConstantMatrix<Scalar, constant, dynamic_extent, 1> {row_count(arg)};
       }
       else
       {
@@ -577,28 +567,40 @@ namespace OpenKalman::Eigen3
         return ConstantMatrix<Scalar, constant, dim, 1> {};
       }
     }
-    else if constexpr (eigen_DiagonalWrapper<Arg>)
+    else if constexpr (constant_diagonal_matrix<Arg>)
     {
-      // Note: we assume that the nested matrix reference is not dangling.
-      return std::forward<Arg>(arg).diagonal();
+      constexpr auto constant = constant_diagonal_coefficient_v<Arg>;
+
+      if constexpr (dim == dynamic_extent)
+      {
+        auto rows = row_count(arg);
+        assert(rows == column_count(arg));
+        return ConstantMatrix<Scalar, constant, dynamic_extent, 1> {row_count(arg)};
+      }
+      else
+      {
+        if constexpr (dynamic_shape<Arg>) assert(row_count(arg) == column_count(arg));
+        return ConstantMatrix<Scalar, constant, dim, 1> {};
+      }
     }
     else if constexpr (eigen_SelfAdjointView<Arg> or eigen_TriangularView<Arg>)
     {
       // Note: we assume that the nested matrix reference is not dangling.
       return diagonal_of(std::forward<Arg>(arg).nestedExpression());
     }
-    else if constexpr (dim == 1)
+    else if constexpr (dim == 1 and not eigen_DiagonalMatrix<Arg> and not eigen_DiagonalWrapper<Arg>)
     {
       if constexpr (dynamic_shape<Arg>) assert(row_count(arg) == column_count(arg));
       return std::forward<Arg>(arg);
     }
-    else if constexpr (self_contained<decltype(std::forward<Arg>(arg).diagonal())> or std::is_lvalue_reference_v<Arg>)
+    else if constexpr (std::is_lvalue_reference_v<Arg> or self_contained<decltype(std::forward<Arg>(arg).diagonal())>)
     {
       return std::forward<Arg>(arg).diagonal();
     }
     else
     {
-      return eigen_matrix_t<Scalar, dim, 1> {std::forward<Arg>(arg).diagonal()};
+      auto d = std::forward<Arg>(arg).diagonal();
+      return native_matrix_t<decltype(d), dim> {std::move(d)};
     }
   }
 
@@ -608,9 +610,9 @@ namespace OpenKalman::Eigen3
    * \note The result has the same lifetime as arg.
    */
 #ifdef __cpp_concepts
-  template<eigen_native_general Arg>
+  template<native_eigen_general Arg>
 #else
-  template<typename Arg, std::enable_if_t<eigen_native_general<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<native_eigen_general<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   transpose(Arg&& arg) noexcept
@@ -629,7 +631,10 @@ namespace OpenKalman::Eigen3
     }
     else if constexpr (eigen_SelfAdjointView<Arg>)
     {
-      return transpose(SelfAdjointMatrix {std::forward<Arg>(arg)});
+      if constexpr (complex_number<typename MatrixTraits<Arg>::Scalar>)
+        return std::forward<Arg>(arg).transpose();
+      else
+        return transpose(SelfAdjointMatrix {std::forward<Arg>(arg)});
     }
     else if constexpr (eigen_TriangularView<Arg>)
     {
@@ -652,9 +657,9 @@ namespace OpenKalman::Eigen3
    * \note The result has the same lifetime as arg.
    */
 #ifdef __cpp_concepts
-  template<eigen_native_general Arg>
+  template<native_eigen_general Arg>
 #else
-  template<typename Arg, std::enable_if_t<eigen_native_general<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<native_eigen_general<Arg>, int> = 0>
 #endif
   inline decltype(auto)
   adjoint(Arg&& arg) noexcept
@@ -673,7 +678,10 @@ namespace OpenKalman::Eigen3
     }
     else if constexpr (eigen_SelfAdjointView<Arg>)
     {
-      return adjoint(SelfAdjointMatrix {std::forward<Arg>(arg)});
+      if constexpr (complex_number<typename MatrixTraits<Arg>::Scalar>)
+        return std::forward<Arg>(arg).adjoint();
+      else
+        return adjoint(SelfAdjointMatrix {std::forward<Arg>(arg)});
     }
     else if constexpr (eigen_TriangularView<Arg>)
     {
@@ -707,10 +715,10 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-  template<eigen_native_general Arg> requires dynamic_shape<Arg> or square_matrix<Arg>
+  template<native_eigen_general Arg> requires dynamic_shape<Arg> or square_matrix<Arg>
 #else
   template<typename Arg, std::enable_if_t<
-    eigen_native_general<Arg> and (dynamic_shape<Arg> or square_matrix<Arg>), int> = 0>
+    native_eigen_general<Arg> and (dynamic_shape<Arg> or square_matrix<Arg>), int> = 0>
 #endif
   inline auto
   determinant(Arg&& arg) noexcept
@@ -747,9 +755,10 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-  template<eigen_native_general Arg> requires dynamic_shape<Arg> or square_matrix<Arg>
+  template<native_eigen_general Arg> requires dynamic_shape<Arg> or square_matrix<Arg>
 #else
-  template<typename Arg, std::enable_if_t<eigen_native_general<Arg> and (dynamic_shape<Arg> or square_matrix<Arg>), int> = 0>
+  template<typename Arg, std::enable_if_t<
+    native_eigen_general<Arg> and (dynamic_shape<Arg> or square_matrix<Arg>), int> = 0>
 #endif
   constexpr auto
   trace(Arg&& arg) noexcept
@@ -790,331 +799,407 @@ namespace OpenKalman::Eigen3
   }
 
 
-  namespace detail
+  /**
+   * \brief Do a rank update on a native Eigen matrix, treating it as a self-adjoint matrix.
+   * \details If A is not hermitian, the result will modify only the specified storage triangle. The contents of the
+   * other elements outside the specified storage triangle are undefined.
+   * - The update is A += αUU<sup>*</sup>, returning the updated hermitian A.
+   * - If A is an lvalue reference and is writable, it will be updated in place and the return value will be an
+   * lvalue reference to the same, updated A. Otherwise, the function returns a new matrix.
+   * \tparam t Whether to use the upper triangle elements (TriangleType::upper), lower triangle elements
+   * (TriangleType::lower) or diagonal elements (TriangleType::diagonal).
+   * \tparam A The matrix to be rank updated.
+   * \tparam U The update vector or matrix.
+   * \returns an updated native, writable matrix in hermitian form.
+   */
+# ifdef __cpp_concepts
+  template<TriangleType t, native_eigen_general A, native_eigen_general U, typename Alpha>
+    requires std::is_arithmetic_v<Alpha> and
+    (t != TriangleType::lower or diagonal_matrix<A> or not upper_self_adjoint_matrix<A>) and
+    (t != TriangleType::upper or diagonal_matrix<A> or not lower_self_adjoint_matrix<A>) and
+    (not triangular_matrix<A> or diagonal_matrix<A>) and
+    (dynamic_rows<U> or dynamic_rows<A> or MatrixTraits<U>::rows == MatrixTraits<A>::rows)
+# else
+  template<TriangleType t, typename A, typename U, typename Alpha, std::enable_if_t<
+    native_eigen_general<A> and native_eigen_general<U> and std::is_arithmetic_v<Alpha> and
+    (t != TriangleType::lower or diagonal_matrix<A> or not upper_self_adjoint_matrix<A>) and
+    (t != TriangleType::upper or diagonal_matrix<A> or not lower_self_adjoint_matrix<A>) and
+    (not triangular_matrix<A> or diagonal_matrix<A>) and
+    (dynamic_rows<U> or dynamic_rows<A> or MatrixTraits<std::decay_t<U>>::rows == MatrixTraits<std::decay_t<A>>::rows), int> = 0>
+# endif
+  inline decltype(auto)
+  rank_update_self_adjoint(A&& a, U&& u, const Alpha alpha = 1)
   {
-    template<typename Arg, typename U>
-    inline decltype(auto)
-    rank_update_diag_impl(Arg&& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
+    if constexpr (dynamic_rows<A> or dynamic_rows<U>) if (row_count(a) != row_count(u))
+      throw std::domain_error {
+        "In rank_update, rows of a (" + std::to_string(row_count(a)) + ") do not match rows of u (" +
+        std::to_string(row_count(u)) + ")"};
+
+    // Diagonal or one-by-one matrices:
+    if constexpr (((t == TriangleType::diagonal or diagonal_matrix<A> or (dynamic_rows<A> and column_vector<A>) or
+        (dynamic_columns<A> and row_vector<A>)) and diagonal_matrix<U>) or row_vector<U>)
     {
-      using M = eigen_matrix_t<typename MatrixTraits<Arg>::Scalar, 1, 1>;
-
-      if constexpr ((row_vector<Arg> or column_vector<Arg> or row_vector<U>) and
-        (dynamic_rows<Arg> or row_vector<Arg>) and
-        (dynamic_columns<Arg> or column_vector<Arg>) and
-        (dynamic_rows<U> or row_vector<U>) and
-        element_settable<Arg, 2>)
+      // One-by-one matrices:
+      if constexpr (one_by_one_matrix<A> or (dynamic_rows<A> and column_vector<A>) or
+        (dynamic_columns<A> and row_vector<A>) or row_vector<U>)
       {
-        auto e = std::sqrt(trace(arg) * trace(arg) + alpha * trace(u * adjoint(u)));
+        auto e = trace(a) + alpha * trace(u * adjoint(u));
 
-        if constexpr (std::is_lvalue_reference_v<Arg> and not std::is_const_v<std::remove_reference_t<Arg>>)
+        if constexpr (std::is_lvalue_reference_v<A> and not std::is_const_v<std::remove_reference_t<A>> and writable<A>)
         {
-          set_element(arg, e, 0, 0);
-          return (arg);
-        }
-        else
-        {
-          return OpenKalman::make_native_matrix<M>(e);
-        }
-      }
-      else
-      {
-        auto d = (diagonal_of(arg).array().square() + alpha * diagonal_of(u).array().square()).sqrt().matrix();
-
-        if constexpr (std::is_lvalue_reference_v<Arg> and not std::is_const_v<std::remove_reference_t<Arg>> and
-          writable<Arg>)
-        {
-          if constexpr (eigen_DiagonalMatrix<Arg>)
+          if constexpr (element_settable<A, 2>)
           {
-            arg.diagonal() = std::move(d);
-          }
-          else if constexpr (eigen_DiagonalWrapper<Arg>)
-          {
-            // DiagonalWrapper does not (but maybe should) have a non-const .diagonal() member function.
-            const_cast<nested_matrix_t<Arg>&>(arg.diagonal()) = std::move(d);
+            set_element(a, e, 0, 0);
+            return std::forward<A>(a);
           }
           else
           {
-            arg = to_diagonal(std::move(d));
+            a = MatrixTraits<A>::make(e);
           }
-          return (arg);
         }
         else
         {
-          return to_diagonal(std::move(d));
+          return MatrixTraits<A>::make(e);
+        }
+      }
+      else // diagonal matrices
+      {
+        auto ud = diagonal_of(std::forward<U>(u));
+
+        using Scalar = typename MatrixTraits<U>::Scalar;
+        using conj_prod = Eigen::internal::scalar_conj_product_op<Scalar, Scalar>;
+
+        auto udprod = Eigen::CwiseBinaryOp<conj_prod, decltype(ud), decltype(ud)> {ud, ud};
+
+        auto d = diagonal_of(a).matrix() + alpha * udprod.matrix();
+
+        if constexpr (std::is_lvalue_reference_v<A> and not std::is_const_v<std::remove_reference_t<A>> and writable<A>)
+        {
+          if constexpr (eigen_DiagonalMatrix<A>)
+          {
+            a.diagonal() = std::move(d);
+          }
+          else if constexpr (eigen_DiagonalWrapper<A>)
+          {
+            // DiagonalWrapper does not (but maybe should) have a non-const .diagonal() member function.
+            const_cast<nested_matrix_t<A>&>(a.diagonal()) = std::move(d);
+          }
+          else
+          {
+            a = std::decay_t<A> {d};
+          }
+
+          return std::forward<A>(a);
+        }
+        else
+        {
+          return to_diagonal(make_self_contained<A, U>(std::move(d)));
         }
       }
     }
+    else // non-diagonal hermitian matrices
+    {
+      constexpr auto UpLo = t == TriangleType::upper ? Eigen::Upper : Eigen::Lower;
+      constexpr auto s = t == TriangleType::upper ? t : TriangleType::lower;
+
+      if constexpr (std::is_lvalue_reference_v<A> and not std::is_const_v<std::remove_reference_t<A>> and
+        writable<A> and not diagonal_matrix<A>)
+      {
+        if constexpr (eigen_SelfAdjointView<A>)
+        {
+          return a.template rankUpdate(std::forward<U>(u), alpha);
+        }
+        else
+        {
+          a.template selfadjointView<UpLo>().template rankUpdate(std::forward<U>(u), alpha);
+          return std::forward<A>(a);
+        }
+      }
+      else // arg is not directly updatable and must be copied or moved
+      {
+        auto aw = native_matrix_t<A> {std::forward<A>(a)};
+        aw.template selfadjointView<UpLo>().template rankUpdate(std::forward<U>(u), alpha);
+        return SelfAdjointMatrix<decltype(aw), s> {std::move(aw)};
+      }
+    }
+  }
 
 
-    template<int UpLo, typename Arg, typename U>
+  /**
+   * \overload
+   * \brief The triangle type is derived from A, or is TriangleType::lower by default.
+   */
+# ifdef __cpp_concepts
+  template<native_eigen_general A, native_eigen_general U, typename Alpha> requires std::is_arithmetic_v<Alpha> and
+    (not triangular_matrix<A> or diagonal_matrix<A>) and
+    (dynamic_rows<U> or dynamic_rows<A> or MatrixTraits<U>::rows == MatrixTraits<A>::rows)
+# else
+  template<typename A, typename U, typename Alpha, std::enable_if_t<
+    native_eigen_general<A> and native_eigen_general<U> and std::is_arithmetic_v<Alpha> and
+    (not triangular_matrix<A> or diagonal_matrix<A>) and
+    (dynamic_rows<U> or dynamic_rows<A> or MatrixTraits<U>::rows == MatrixTraits<A>::rows), int> = 0>
+# endif
+  inline decltype(auto)
+  rank_update_self_adjoint(A&& a, U&& u, const Alpha alpha = 1)
+  {
+    if constexpr (self_adjoint_matrix<A>)
+      return rank_update_self_adjoint<self_adjoint_triangle_type_of_v<A>>(std::forward<A>(a), std::forward<U>(u), alpha);
+    else
+      return rank_update_self_adjoint<TriangleType::lower>(std::forward<A>(a), std::forward<U>(u), alpha);
+  }
+
+
+  namespace detail
+  {
+    template<int UpLo, typename Arg, typename U, typename Alpha>
     inline Arg&
-    rank_update_tri_impl(Arg& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
+    rank_update_tri_impl(Arg& arg, U&& u, const Alpha alpha = 1)
     {
       using Scalar = typename MatrixTraits<Arg>::Scalar;
 
-      for (Eigen::Index i = 0; i < Eigen::Index(MatrixTraits<U>::columns); ++i)
+      decltype(auto) v = [](U&& u) -> decltype(auto) {
+        if constexpr (native_eigen_matrix<U> or native_eigen_array<U>)
+          return std::forward<U>(u);
+        else
+          return make_native_matrix(std::forward<U>(u));
+      }(std::forward<U>(u));
+
+      for (std::size_t i = 0; i < column_count(v); i++)
       {
-        if (Eigen::internal::llt_inplace<Scalar, UpLo>::rankUpdate(arg, u.col(i), alpha) >= 0)
+        if (Eigen::internal::llt_inplace<Scalar, UpLo>::rankUpdate(arg, column(v, i), alpha) >= 0)
           throw (std::runtime_error("rank_update_triangular: product is not positive definite"));
       }
 
       return arg;
     }
-
   } // namespace detail
 
 
   /**
-   * \brief Do a rank update on a native Eigen matrix, treating it as a self-adjoint matrix.
-   * \details If arg is an lvalue reference and is writable, it will be updated in place. You can tell this has
-   * happened if the return value is an lvalue reference.
-   * \tparam t Whether to use the upper triangle elements (TriangleType::upper), lower triangle elements
-   * (TriangleType::lower) or diagonal elements (TriangleType::diagonal).
-   * \tparam Arg The matrix to be rank updated.
-   * \tparam U The update vector or matrix.
-   * \returns an updated native, writable matrix.
-   */
-#ifdef __cpp_concepts
-  template<TriangleType t, eigen_native_general Arg, typename U>
-  requires
-    (not eigen_TriangularView<Arg>) and native_eigen_matrix<native_matrix_t<U>> and
-    (not eigen_SelfAdjointView<Arg> or requires { t == self_adjoint_triangle_type_of_v<Arg>; }) and
-    (dynamic_rows<U> or dynamic_rows<Arg> or MatrixTraits<U>::rows == MatrixTraits<Arg>::rows)
-#else
-  template<TriangleType t, typename Arg, typename U, std::enable_if_t<eigen_native_general<Arg> and
-    (not eigen_TriangularView<Arg>) and native_eigen_matrix<native_matrix_t<U>> and
-    (not eigen_SelfAdjointView<Arg> or
-      (t == TriangleType::upper ? upper_self_adjoint_matrix<Arg> : lower_self_adjoint_matrix<Arg>)) and
-    (dynamic_rows<U> or dynamic_rows<Arg> or MatrixTraits<U>::rows == MatrixTraits<Arg>::rows), int> = 0>
-#endif
-  inline decltype(auto)
-  rank_update_self_adjoint(Arg&& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
-  {
-    if constexpr (dynamic_rows<Arg> or dynamic_rows<U>) assert(row_count(arg) == row_count(u));
-
-    if constexpr (t == TriangleType::diagonal or (((diagonal_matrix<Arg> and diagonal_matrix<U>) or
-        row_vector<Arg> or column_vector<Arg> or row_vector<U>) and
-      (dynamic_rows<Arg> or row_vector<Arg>) and
-      (dynamic_columns<Arg> or column_vector<Arg>) and
-      (dynamic_rows<U> or row_vector<U>)))
-    {
-      return detail::rank_update_diag_impl(std::forward<Arg>(arg), u, alpha);
-    }
-    else
-    {
-      constexpr auto UpLo = t == TriangleType::upper ? Eigen::Upper : Eigen::Lower;
-
-      if constexpr (std::is_lvalue_reference_v<Arg> and not std::is_const_v<std::remove_reference_t<Arg>> and
-        writable<Arg>)
-      {
-        if constexpr (eigen_SelfAdjointView<Arg>)
-        {
-          return arg.template rankUpdate(u, alpha);
-        }
-        else
-        {
-          arg.template selfadjointView<UpLo>().template rankUpdate(u, alpha);
-          return arg;
-        }
-      }
-      else if constexpr (writable<Arg>) // arg is a writable rvalue reference
-      {
-        if constexpr (eigen_SelfAdjointView<Arg>)
-        {
-          arg.template rankUpdate(u, alpha);
-          auto& a = arg.nestedExpression();
-          return SelfAdjointMatrix<decltype((a)), t> {a};
-        }
-        else
-        {
-          arg.template selfadjointView<UpLo>().template rankUpdate(u, alpha);
-          return SelfAdjointMatrix<Arg, t> {std::forward<Arg>(arg)};
-        }
-      }
-      else // arg is not writable and must be copied
-      {
-        using A = native_matrix_t<Arg>;
-
-        if constexpr (eigen_SelfAdjointView<Arg>)
-        {
-          A a {arg.nestedExpression()};
-          a.template selfadjointView<UpLo>().template rankUpdate(u, alpha);
-          return SelfAdjointMatrix<A, t> {std::move(a)};
-        }
-        else
-        {
-          A a {std::forward<Arg>(arg)};
-          a.template selfadjointView<UpLo>().template rankUpdate(u, alpha);
-          return SelfAdjointMatrix<A, t> {std::move(a)};
-        }
-      }
-    }
-  }
-
-
-  /**
    * \brief Do a rank update on a native Eigen matrix, treating it as a triangular matrix.
-   * \details If arg is an lvalue reference and is writable, it will be updated in place. You can tell this has
-   * happened if the return value is an lvalue reference.
+   * \details If A is not a triangular matrix, the result will modify only the specified triangle. The contents of
+   * other elements outside the specified triangle are undefined.
+   * - If A is lower-triangular, diagonal, or one-by-one, the update is AA<sup>*</sup> += αUU<sup>*</sup>,
+   * returning the updated A.
+   * - If A is upper-triangular, the update is A<sup>*</sup>A += αUU<sup>*</sup>, returning the updated A.
+   * - If A is an lvalue reference and is writable, it will be updated in place and the return value will be an
+   * lvalue reference to the same, updated A. Otherwise, the function returns a new matrix.
    * \tparam t Whether to use the upper triangle elements (TriangleType::upper), lower triangle elements
    * (TriangleType::lower) or diagonal elements (TriangleType::diagonal).
-   * \tparam Arg The matrix to be rank updated.
+   * \tparam A The matrix to be rank updated.
    * \tparam U The update vector or matrix.
-   * \returns an updated native, writable matrix.
+   * \returns an updated native, writable matrix in triangular (or diagonal) form.
    */
-#ifdef __cpp_concepts
-  template<TriangleType t, eigen_native_general Arg, typename U>
-  requires
-    (not eigen_SelfAdjointView<Arg>) and native_eigen_matrix<native_matrix_t<U>> and
-    (not eigen_TriangularView<Arg> or requires { t == triangle_type_of_v<Arg>; }) and
-    (dynamic_rows<U> or dynamic_rows<Arg> or MatrixTraits<U>::rows == MatrixTraits<Arg>::rows)
-#else
-  template<TriangleType t, typename Arg, typename U, std::enable_if_t<eigen_native_general<Arg> and
-    (not eigen_SelfAdjointView<Arg>) and native_eigen_matrix<native_matrix_t<U>> and
-    (not eigen_TriangularView<Arg> or
-      (t == TriangleType::upper ? upper_triangular_matrix<Arg> : lower_triangular_matrix<Arg>)) and
-    (dynamic_rows<U> or dynamic_rows<Arg> or MatrixTraits<U>::rows == MatrixTraits<Arg>::rows), int> = 0>
-#endif
+# ifdef __cpp_concepts
+  template<TriangleType t, native_eigen_general A, native_eigen_general U, typename Alpha>
+    requires std::is_arithmetic_v<Alpha> and
+    (t != TriangleType::lower or diagonal_matrix<A> or not upper_triangular_matrix<A>) and
+    (t != TriangleType::upper or diagonal_matrix<A> or not lower_triangular_matrix<A>) and
+    (not self_adjoint_matrix<A> or diagonal_matrix<A>) and
+    (dynamic_rows<A> or dynamic_rows<U> or MatrixTraits<A>::rows == MatrixTraits<U>::rows)
+# else
+  template<TriangleType t, typename A, typename U, typename Alpha, std::enable_if_t<
+    native_eigen_general<A> and native_eigen_general<U> and std::is_arithmetic_v<Alpha> and
+    (t != TriangleType::lower or diagonal_matrix<A> or not upper_triangular_matrix<A>) and
+    (t != TriangleType::upper or diagonal_matrix<A> or not lower_triangular_matrix<A>) and
+    (not self_adjoint_matrix<A> or diagonal_matrix<A>) and
+    (dynamic_rows<A> or dynamic_rows<U> or MatrixTraits<A>::rows == MatrixTraits<U>::rows), int> = 0>
+# endif
   inline decltype(auto)
-  rank_update_triangular(Arg&& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
+  rank_update_triangular(A&& a, U&& u, const Alpha alpha = 1)
   {
-    if constexpr (dynamic_rows<Arg> or dynamic_rows<U>) assert(row_count(arg) == row_count(u));
+    if constexpr (dynamic_rows<A> or dynamic_rows<U>) if (row_count(a) != row_count(u))
+      throw std::domain_error {
+        "In rank_update, rows of a (" + std::to_string(row_count(a)) + ") do not match rows of u (" +
+        std::to_string(row_count(u)) + ")"};
 
-    if constexpr (t == TriangleType::diagonal or (((diagonal_matrix<Arg> and diagonal_matrix<U>) or
-        row_vector<Arg> or column_vector<Arg> or row_vector<U>) and
-      (dynamic_rows<Arg> or row_vector<Arg>) and
-      (dynamic_columns<Arg> or column_vector<Arg>) and
-      (dynamic_rows<U> or row_vector<U>)))
+    // A is diagonal or one-by-one and u is diagonal or a row vector:
+    if constexpr (((t == TriangleType::diagonal or diagonal_matrix<A> or (dynamic_rows<A> and column_vector<A>) or
+        (dynamic_columns<A> and row_vector<A>)) and diagonal_matrix<U>) or row_vector<U>)
     {
-      return detail::rank_update_diag_impl(std::forward<Arg>(arg), u, alpha);
+      // One-by-one matrices:
+      if constexpr (one_by_one_matrix<A> or (dynamic_rows<A> and column_vector<A>) or
+        (dynamic_columns<A> and row_vector<A>) or row_vector<U>)
+      {
+        auto e = std::sqrt(trace(a) * trace(a.conjugate()) + alpha * trace(u * adjoint(u)));
+
+        if constexpr (std::is_lvalue_reference_v<A> and not std::is_const_v<std::remove_reference_t<A>> and writable<A>)
+        {
+          if constexpr (element_settable<A, 2>)
+          {
+            set_element(a, e, 0, 0);
+          }
+          else
+          {
+            a = MatrixTraits<A>::make(e);
+          }
+
+          return std::forward<A>(a);
+        }
+        else
+        {
+          return MatrixTraits<A>::make(e);
+        }
+      }
+      else // diagonal matrices
+      {
+        auto ad = diagonal_of(a);
+        auto ud = diagonal_of(std::forward<U>(u));
+
+        using Scalar = typename MatrixTraits<U>::Scalar;
+        using conj_prod = Eigen::internal::scalar_conj_product_op<Scalar, Scalar>;
+
+        auto adprod = Eigen::CwiseBinaryOp<conj_prod, decltype(ad), decltype(ad)> {ad, ad};
+        auto udprod = Eigen::CwiseBinaryOp<conj_prod, decltype(ud), decltype(ud)> {ud, ud};
+
+        auto d = (adprod.array() + alpha * udprod.array()).sqrt().matrix();
+
+        if constexpr (std::is_lvalue_reference_v<A> and not std::is_const_v<std::remove_reference_t<A>> and writable<A>)
+        {
+          if constexpr (eigen_DiagonalMatrix<A>)
+          {
+            a.diagonal() = std::move(d);
+          }
+          else if constexpr (eigen_DiagonalWrapper<A>)
+          {
+            // DiagonalWrapper does not (but maybe should) have a non-const .diagonal() member function.
+            const_cast<nested_matrix_t<A>&>(a.diagonal()) = std::move(d);
+          }
+          else
+          {
+            a = std::decay_t<A> {d};
+          }
+
+          return std::forward<A>(a);
+        }
+        else
+        {
+          return to_diagonal(make_self_contained<A, U>(std::move(d)));
+        }
+      }
     }
-    else
+    else // non-diagonal, triangular matrices:
     {
       constexpr auto UpLo = t == TriangleType::upper ? Eigen::Upper : Eigen::Lower;
+      constexpr auto s = t == TriangleType::upper ? t : TriangleType::lower;
 
-      if constexpr (std::is_lvalue_reference_v<Arg> and not std::is_const_v<std::remove_reference_t<Arg>> and
-        writable<Arg>)
+      if constexpr (std::is_lvalue_reference_v<A> and not std::is_const_v<std::remove_reference_t<A>> and
+        writable<A> and not diagonal_matrix<A>)
       {
-        if constexpr (eigen_TriangularView<Arg>)
+        if constexpr (eigen_TriangularView<A>)
         {
-          detail::rank_update_tri_impl<UpLo>(arg.nestedExpression(), u, alpha);
-          return arg;
+          detail::rank_update_tri_impl<UpLo>(a.nestedExpression(), std::forward<U>(u), alpha);
+          return std::forward<A>(a);
         }
         else
         {
-          return detail::rank_update_tri_impl<UpLo>(arg, u, alpha);
+          return detail::rank_update_tri_impl<UpLo>(a, std::forward<U>(u), alpha);
         }
       }
-      else if constexpr (writable<Arg>) // arg is a writable rvalue reference
+      else // arg is not directly updatable and must be copied or moved
       {
-        if constexpr (eigen_TriangularView<Arg>)
-        {
-          auto& a = detail::rank_update_tri_impl<UpLo>(arg.nestedExpression(), u, alpha);
-          return TriangularMatrix<decltype((a)), t> {a};
-        }
-        else
-        {
-          detail::rank_update_tri_impl<UpLo>(arg, u, alpha);
-          return TriangularMatrix<Arg, t> {std::forward<Arg>(arg)};
-        }
-      }
-      else // arg is not writable and must be copied
-      {
-        using A = native_matrix_t<Arg>;
-        A a;
-        a.template triangularView<UpLo>() = std::forward<Arg>(arg);
-        detail::rank_update_tri_impl<UpLo>(a, u, alpha);
-        return TriangularMatrix<A, t> {std::move(a)};
+        auto aw = native_matrix_t<A> {std::forward<A>(a)};
+        detail::rank_update_tri_impl<UpLo>(aw, std::forward<U>(u), alpha);
+        return TriangularMatrix<decltype(aw), s> {std::move(aw)};
       }
     }
   }
 
 
   /**
-   * \brief Do a rank update on a non-diagonal Eigen self-adjoint matrix.
-   * \details If arg is an lvalue reference and is writable, it will be updated in place. You can tell this has
-   * happened if the return value is an lvalue reference.
-   * \returns a self_adjoint_matrix (which is arg if it is a non-const lvalue reference)
+   * \overload
+   * \brief The triangle type is derived from A, or is TriangleType::lower by default.
    */
-#ifdef __cpp_concepts
-  template<self_adjoint_matrix Arg, typename U>
-  requires (not diagonal_matrix<Arg>) and eigen_native_general<Arg> and
-    native_eigen_matrix<native_matrix_t<U>> and
-    (dynamic_rows<U> or dynamic_rows<Arg> or MatrixTraits<U>::rows == MatrixTraits<Arg>::rows)
-#else
-  template<typename Arg, typename U, std::enable_if_t<self_adjoint_matrix<Arg> and (not diagonal_matrix<Arg>) and
-    eigen_native_general<Arg> and native_eigen_matrix<native_matrix_t<U>> and
-    (dynamic_rows<U> or dynamic_rows<Arg> or MatrixTraits<U>::rows == MatrixTraits<Arg>::rows), int> = 0>
-#endif
+# ifdef __cpp_concepts
+  template<native_eigen_general A, native_eigen_general U, typename Alpha> requires std::is_arithmetic_v<Alpha> and
+    (not self_adjoint_matrix<A> or diagonal_matrix<A>) and
+    (dynamic_rows<A> or dynamic_rows<U> or MatrixTraits<A>::rows == MatrixTraits<U>::rows)
+# else
+  template<typename A, typename U, typename Alpha, std::enable_if_t<std::is_arithmetic_v<Alpha> and
+    native_eigen_general<A> and native_eigen_general<U> and (not self_adjoint_matrix<A> or diagonal_matrix<A>) and
+    (dynamic_rows<A> or dynamic_rows<U> or MatrixTraits<A>::rows == MatrixTraits<U>::rows), int> = 0>
+# endif
   inline decltype(auto)
-  rank_update(Arg&& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
+  rank_update_triangular(A&& a, U&& u, const Alpha alpha = 1)
   {
-    constexpr TriangleType t = self_adjoint_triangle_type_of_v<Arg>;
-
-    return rank_update_self_adjoint<t>(std::forward<Arg>(arg), u, alpha);
+    if constexpr (triangular_matrix<A>)
+      return rank_update_triangular<triangle_type_of_v<A>>(std::forward<A>(a), std::forward<U>(u), alpha);
+    else
+      return rank_update_triangular<TriangleType::lower>(std::forward<A>(a), std::forward<U>(u), alpha);
   }
 
 
   /**
-   * \brief Do a rank update on an Eigen triangular matrix.
-   * \details If arg is an lvalue reference and is writable, it will be updated in place. You can tell this has
-   * happened if the return value is an lvalue reference.
-   * \returns a triangular_matrix (which is arg if it is a non-const lvalue reference)
+   * \brief Do a rank update on a hermitian, triangular, or one-by-one matrix.
+   * \details
+   * - If A is hermitian and non-diagonal, then the update is A += αUU<sup>*</sup>, returning the updated hermitian A.
+   * - If A is lower-triangular, diagonal, or one-by-one, the update is AA<sup>*</sup> += αUU<sup>*</sup>,
+   * returning the updated A.
+   * - If A is upper-triangular, the update is A<sup>*</sup>A += αUU<sup>*</sup>, returning the updated A.
+   * - If A is an lvalue reference and is writable, it will be updated in place and the return value will be an
+   * lvalue reference to the same, updated A. Otherwise, the function returns a new matrix.
+   * \tparam A A matrix to be updated, which must be hermitian (known at compile time),
+   * triangular (known at compile time), or one-by-one (determinable at runtime) .
+   * \tparam U A matrix or column vector with a number of rows that matches the size of A.
+   * \param alpha A scalar multiplication factor.
    */
 #ifdef __cpp_concepts
-  template<triangular_matrix Arg, typename U>
-  requires eigen_native_general<Arg> and native_eigen_matrix<native_matrix_t<U>> and
-    (dynamic_rows<U> or dynamic_rows<Arg> or MatrixTraits<U>::rows == MatrixTraits<Arg>::rows)
+  template<typename A, typename U, typename Alpha> requires
+    (self_adjoint_matrix<A> or triangular_matrix<A> or (dynamic_rows<A> and dynamic_columns<A>) or
+      (dynamic_rows<A> and column_vector<A>) or (dynamic_columns<A> and row_vector<A>)) and
+    (dynamic_rows<U> or dynamic_rows<A> or MatrixTraits<U>::rows == MatrixTraits<A>::rows) and
+    std::is_arithmetic_v<Alpha>
 #else
-  template<typename Arg, typename U, std::enable_if_t<triangular_matrix<Arg> and
-    eigen_native_general<Arg> and native_eigen_matrix<native_matrix_t<U>> and
-    (dynamic_rows<U> or dynamic_rows<Arg> or MatrixTraits<U>::rows == MatrixTraits<Arg>::rows), int> = 0>
+  template<typename A, typename U, typename Alpha, std::enable_if_t<
+    (self_adjoint_matrix<A> or triangular_matrix<A> or (dynamic_rows<A> and dynamic_columns<A>) or
+      (dynamic_rows<A> and column_vector<A>) or (dynamic_columns<A> and row_vector<A>)) and
+    (dynamic_rows<U> or dynamic_rows<A> or MatrixTraits<U>::rows == MatrixTraits<A>::rows) and
+    std::is_arithmetic_v<Alpha>, int> = 0>
 #endif
   inline decltype(auto)
-  rank_update(Arg&& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
+  rank_update(A&& a, U&& u, const Alpha alpha = 1)
   {
-    constexpr TriangleType t = triangle_type_of_v<Arg>;
+    if constexpr (dynamic_rows<A> or dynamic_rows<U>) if (row_count(a) != row_count(u))
+      throw std::domain_error {
+        "In rank_update, rows of a (" + std::to_string(row_count(a)) + ") do not match rows of u (" +
+        std::to_string(row_count(u)) + ")"};
 
-    return rank_update_triangular<t>(std::forward<Arg>(arg), u, alpha);
-  }
-
-
-  /**
-   * \brief Do a rank update on an Eigen native matrix if it could be a 1-by-1 matrix.
-   * \details If arg is an lvalue reference and is writable, it will be updated in place. You can tell this has
-   * happened if the return value is an lvalue reference.
-   */
-#ifdef __cpp_concepts
-  template<native_eigen_matrix Arg, typename U>
-  requires (not self_adjoint_matrix<Arg>) and (not triangular_matrix<Arg>) and native_eigen_matrix<native_matrix_t<U>> and
-    (dynamic_rows<U> or dynamic_rows<Arg> or MatrixTraits<U>::rows == MatrixTraits<Arg>::rows) and
-    (dynamic_rows<Arg> or row_vector<Arg>) and (dynamic_columns<Arg> or column_vector<Arg>) and
-    (dynamic_rows<U> or row_vector<U>)
-#else
-  template<typename Arg, typename U, std::enable_if_t<native_eigen_matrix<Arg> and
-    (not self_adjoint_matrix<Arg>) and (not triangular_matrix<Arg>) and native_eigen_matrix<native_matrix_t<U>> and
-    (dynamic_rows<U> or dynamic_rows<Arg> or MatrixTraits<U>::rows == MatrixTraits<Arg>::rows) and
-    (dynamic_rows<Arg> or row_vector<Arg>) and (dynamic_columns<Arg> or column_vector<Arg>) and
-    (dynamic_rows<U> or row_vector<U>), int> = 0>
-#endif
-  inline decltype(auto)
-  rank_update(Arg&& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
-  {
-    constexpr TriangleType t = TriangleType::diagonal;
-
-    if constexpr (dynamic_rows<Arg>) assert(row_count(arg) == 1);
-    if constexpr (dynamic_columns<Arg>) assert(column_count(arg) == 1);
-
-    if constexpr (std::is_lvalue_reference_v<Arg> and not std::is_const_v<std::remove_reference_t<Arg>> and
-      writable<Arg>)
+    if constexpr (triangular_matrix<A>)
     {
-      return rank_update_triangular<t>(arg, u, alpha);
+      constexpr TriangleType t = triangle_type_of_v<A>;
+      return rank_update_triangular<t>(std::forward<A>(a), std::forward<U>(u), alpha);
+    }
+    else if constexpr (self_adjoint_matrix<A>)
+    {
+      constexpr TriangleType t = self_adjoint_triangle_type_of_v<A>;
+      return rank_update_self_adjoint<t>(std::forward<A>(a), std::forward<U>(u), alpha);
     }
     else
     {
-      using A = eigen_matrix_t<typename MatrixTraits<Arg>::Scalar, 1, 1>;
-      A a {std::forward<Arg>(arg)};
-      return rank_update_triangular<t>(a, u, alpha);
+      if constexpr (dynamic_shape<A>)
+        if ((dynamic_rows<A> and row_count(a) != 1) or (dynamic_columns<A> and column_count(a) != 1))
+          throw std::domain_error {
+            "Non hermitian, non-triangular argument to rank_update expected to be one-by-one, but instead it has " +
+            std::to_string(row_count(a)) + " rows and " + std::to_string(column_count(a)) + " columns"};
+
+      auto e = std::sqrt(trace(a) * trace(a.conjugate()) + alpha * trace(u * adjoint(u)));
+
+      if constexpr (std::is_lvalue_reference_v<A> and not std::is_const_v<std::remove_reference_t<A>> and writable<A>)
+      {
+        if constexpr (element_settable<A, 2>)
+        {
+          set_element(a, e, 0, 0);
+        }
+        else
+        {
+          a = MatrixTraits<A>::make(e);
+        }
+        return std::forward<A>(a);
+      }
+      else
+      {
+        return MatrixTraits<A>::make(e);
+      }
     }
   }
 
@@ -1139,8 +1224,6 @@ namespace OpenKalman::Eigen3
     constexpr std::size_t dim = dynamic_rows<A> ?
       (dynamic_rows<B> ? MatrixTraits<A>::columns: MatrixTraits<B>::rows) : MatrixTraits<A>::rows;
 
-    using M = eigen_matrix_t<Scalar, dim, MatrixTraits<B>::columns>;
-
     if constexpr (dynamic_shape<A>) assert(row_count(a) == column_count(a));
     if constexpr (dynamic_rows<A> or dynamic_rows<B>) assert(row_count(a) == row_count(b));
 
@@ -1150,17 +1233,17 @@ namespace OpenKalman::Eigen3
     }
     else if constexpr (zero_matrix<A>)
     {
-      if constexpr (dim == 0)
+      if constexpr (dim == dynamic_extent)
       {
         if constexpr (dynamic_columns<B>)
-          return ZeroMatrix<Scalar, 0, 0> {row_count(b), column_count(b)};
+          return ZeroMatrix<Scalar, dynamic_extent, dynamic_extent> {row_count(b), column_count(b)};
         else
-          return ZeroMatrix<Scalar, 0, MatrixTraits<B>::columns> {row_count(b)};
+          return ZeroMatrix<Scalar, dynamic_extent, MatrixTraits<B>::columns> {row_count(b)};
       }
       else
       {
         if constexpr (dynamic_columns<B>)
-          return ZeroMatrix<Scalar, dim, 0> {column_count(b)};
+          return ZeroMatrix<Scalar, dim, dynamic_extent> {column_count(b)};
         else
           return ZeroMatrix<Scalar, dim, MatrixTraits<B>::columns> {};
       }
@@ -1171,11 +1254,13 @@ namespace OpenKalman::Eigen3
     }
     else if constexpr (dim == 1)
     {
+      using M = eigen_matrix_t<Scalar, dim, MatrixTraits<B>::columns>;
+
       Scalar s = trace(a);
       if (s == 0)
       {
         if constexpr (dynamic_columns<B>)
-          return M {ZeroMatrix<Scalar, dim, 0> {column_count(b)}};
+          return M {ZeroMatrix<Scalar, dim, dynamic_extent> {column_count(b)}};
         else
           return M {ZeroMatrix<Scalar, dim, MatrixTraits<B>::columns> {}};
       }
@@ -1186,16 +1271,17 @@ namespace OpenKalman::Eigen3
     }
     else
     {
-      return Eigen::PartialPivLU<eigen_matrix_t<Scalar, dim, dim>>{a}.solve(b);
+      Eigen::PartialPivLU<eigen_matrix_t<Scalar, dim, dim>> LU {std::forward<A>(a)};
+      return make_self_contained(LU.solve(std::forward<B>(b))); // Note: this always results in a conversion.
     }
   }
 
 
   /// Create a column vector by taking the mean of each row in a set of column vectors.
 #ifdef __cpp_concepts
-  template<eigen_native_general Arg>
+  template<native_eigen_general Arg>
 #else
-  template<typename Arg, std::enable_if_t<native_eigen_matrix<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<native_eigen_general<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   reduce_columns(Arg&& arg) noexcept
@@ -1209,7 +1295,7 @@ namespace OpenKalman::Eigen3
       using Scalar = typename MatrixTraits<Arg>::Scalar;
 
       if constexpr (dynamic_rows<Arg>)
-        return ZeroMatrix<Scalar, 0, 1> {row_count(arg)};
+        return ZeroMatrix<Scalar, dynamic_extent, 1> {row_count(arg)};
       else
         return ZeroMatrix<Scalar, MatrixTraits<Arg>::rows, 1> {};
     }
@@ -1219,7 +1305,7 @@ namespace OpenKalman::Eigen3
       constexpr auto constant = constant_coefficient_v<Arg>;
 
       if constexpr (dynamic_rows<Arg>)
-        return ConstantMatrix<Scalar, constant, 0, 1> {row_count(arg)};
+        return ConstantMatrix<Scalar, constant, dynamic_extent, 1> {row_count(arg)};
       else
         return ConstantMatrix<Scalar, constant, MatrixTraits<Arg>::rows, 1> {};
     }
@@ -1245,9 +1331,9 @@ namespace OpenKalman::Eigen3
 
   /// Create a row vector by taking the mean of each column in a set of row vectors.
 #ifdef __cpp_concepts
-  template<eigen_native_general Arg>
+  template<native_eigen_general Arg>
 #else
-  template<typename Arg, std::enable_if_t<native_eigen_matrix<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<native_eigen_general<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   reduce_rows(Arg&& arg) noexcept
@@ -1261,7 +1347,7 @@ namespace OpenKalman::Eigen3
       using Scalar = typename MatrixTraits<Arg>::Scalar;
 
       if constexpr (dynamic_columns<Arg>)
-        return ZeroMatrix<Scalar, 1, 0> {column_count(arg)};
+        return ZeroMatrix<Scalar, 1, dynamic_extent> {column_count(arg)};
       else
         return ZeroMatrix<Scalar, 1, MatrixTraits<Arg>::columns> {};
     }
@@ -1271,7 +1357,7 @@ namespace OpenKalman::Eigen3
       constexpr auto constant = constant_coefficient_v<Arg>;
 
       if constexpr (dynamic_columns<Arg>)
-        return ConstantMatrix<Scalar, constant, 1, 0> {column_count(arg)};
+        return ConstantMatrix<Scalar, constant, 1, dynamic_extent> {column_count(arg)};
       else
         return ConstantMatrix<Scalar, constant, 1, MatrixTraits<Arg>::columns> {};
     }
@@ -1321,7 +1407,7 @@ namespace OpenKalman::Eigen3
 
           if (rt_rows < rt_cols)
             ret << QR.matrixQR().topRows(rt_rows),
-              Eigen3::eigen_matrix_t<Scalar, 0, 0>::Zero(rt_cols - rt_rows, rt_cols);
+              Eigen3::eigen_matrix_t<Scalar, dynamic_extent, dynamic_extent>::Zero(rt_cols - rt_rows, rt_cols);
           else
             ret = QR.matrixQR().topRows(rt_cols);
         }
@@ -1329,7 +1415,7 @@ namespace OpenKalman::Eigen3
         {
           if (rows < rt_cols)
             ret << QR.matrixQR().template topRows<rows>(),
-              Eigen3::eigen_matrix_t<Scalar, 0, 0>::Zero(rt_cols - rows, rt_cols);
+              Eigen3::eigen_matrix_t<Scalar, dynamic_extent, dynamic_extent>::Zero(rt_cols - rows, rt_cols);
           else
             ret = QR.matrixQR().topRows(rt_cols);
         }
@@ -1345,7 +1431,8 @@ namespace OpenKalman::Eigen3
           auto rt_rows = row_count(a);
 
           if (rt_rows < cols)
-            ret << QR.matrixQR().topRows(rt_rows), Eigen3::eigen_matrix_t<Scalar, 0, 0>::Zero(cols - rt_rows, cols);
+            ret << QR.matrixQR().topRows(rt_rows),
+            Eigen3::eigen_matrix_t<Scalar, dynamic_extent, dynamic_extent>::Zero(cols - rt_rows, cols);
           else
             ret = QR.matrixQR().template topRows<cols>();
         }
@@ -1456,14 +1543,14 @@ namespace OpenKalman::Eigen3
         if constexpr ((dynamic_rows<V> or ... or dynamic_rows<Vs>))
         {
           auto rows = (row_count(v) + ... + row_count(vs));
-          Eigen3::eigen_matrix_t<Scalar, 0, 0> m {rows, cols};
+          Eigen3::eigen_matrix_t<Scalar, dynamic_extent, dynamic_extent> m {rows, cols};
           ((m << std::forward<V>(v)), ..., std::forward<Vs>(vs));
           return m;
         }
         else
         {
           constexpr auto rows = (MatrixTraits<V>::rows + ... + MatrixTraits<Vs>::rows);
-          Eigen3::eigen_matrix_t<Scalar, rows, 0> m {rows, cols};
+          Eigen3::eigen_matrix_t<Scalar, rows, dynamic_extent> m {rows, cols};
           ((m << std::forward<V>(v)), ..., std::forward<Vs>(vs));
           return m;
         }
@@ -1478,7 +1565,7 @@ namespace OpenKalman::Eigen3
         if constexpr ((dynamic_rows<V> or ... or dynamic_rows<Vs>))
         {
           auto rows = (row_count(v) + ... + row_count(vs));
-          Eigen3::eigen_matrix_t<Scalar, 0, cols> m {rows, cols};
+          Eigen3::eigen_matrix_t<Scalar, dynamic_extent, cols> m {rows, cols};
           ((m << std::forward<V>(v)), ..., std::forward<Vs>(vs));
           return m;
         }
@@ -1531,14 +1618,14 @@ namespace OpenKalman::Eigen3
         if constexpr ((dynamic_columns<V> or ... or dynamic_columns<Vs>))
         {
           auto cols = (column_count(v) + ... + column_count(vs));
-          Eigen3::eigen_matrix_t<Scalar, 0, 0> m {rows, cols};
+          Eigen3::eigen_matrix_t<Scalar, dynamic_extent, dynamic_extent> m {rows, cols};
           ((m << std::forward<V>(v)), ..., std::forward<Vs>(vs));
           return m;
         }
         else
         {
           constexpr auto cols = (MatrixTraits<V>::columns + ... + MatrixTraits<Vs>::columns);
-          Eigen3::eigen_matrix_t<Scalar, 0, cols> m {rows, cols};
+          Eigen3::eigen_matrix_t<Scalar, dynamic_extent, cols> m {rows, cols};
           ((m << std::forward<V>(v)), ..., std::forward<Vs>(vs));
           return m;
         }
@@ -1553,7 +1640,7 @@ namespace OpenKalman::Eigen3
         if constexpr ((dynamic_columns<V> or ... or dynamic_columns<Vs>))
         {
           auto cols = (column_count(v) + ... + column_count(vs));
-          Eigen3::eigen_matrix_t<Scalar, rows, 0> m {rows, cols};
+          Eigen3::eigen_matrix_t<Scalar, rows, dynamic_extent> m {rows, cols};
           ((m << std::forward<V>(v)), ..., std::forward<Vs>(vs));
           return m;
         }
@@ -1596,14 +1683,15 @@ namespace OpenKalman::Eigen3
         else if constexpr (dynamic_rows<Vs_row>)
         {
           if constexpr (dynamic_columns<Vs_col>)
-            return ZeroMatrix<Scalar, 0, 0> {row_count(std::get<row>(vs_tup)), column_count(std::get<col>(vs_tup))};
+            return ZeroMatrix<Scalar, dynamic_extent, dynamic_extent> {
+              row_count(std::get<row>(vs_tup)), column_count(std::get<col>(vs_tup))};
           else
-            return ZeroMatrix<Scalar, 0, MatrixTraits<Vs_col>::columns> {row_count(std::get<row>(vs_tup))};
+            return ZeroMatrix<Scalar, dynamic_extent, MatrixTraits<Vs_col>::columns> {row_count(std::get<row>(vs_tup))};
         }
         else
         {
           if constexpr (dynamic_columns<Vs_col>)
-            return ZeroMatrix<Scalar, MatrixTraits<Vs_row>::rows, 0> {column_count(std::get<col>(vs_tup))};
+            return ZeroMatrix<Scalar, MatrixTraits<Vs_row>::rows, dynamic_extent> {column_count(std::get<col>(vs_tup))};
           else
             return ZeroMatrix<Scalar, MatrixTraits<Vs_row>::rows, MatrixTraits<Vs_col>::columns> {};
         }
@@ -1646,7 +1734,7 @@ namespace OpenKalman::Eigen3
         {
           auto rows = (row_count(v) + ... + row_count(vs));
           auto cols = (column_count(v) + ... + column_count(vs));
-          eigen_matrix_t<Scalar, 0, 0> m {rows, cols};
+          eigen_matrix_t<Scalar, dynamic_extent, dynamic_extent> m {rows, cols};
           detail::concatenate_diagonal_impl(m, std::forward_as_tuple(v, vs...), seq);
           return m;
         }
@@ -1654,7 +1742,7 @@ namespace OpenKalman::Eigen3
         {
           auto rows = (row_count(v) + ... + row_count(vs));
           constexpr auto cols = (MatrixTraits<V>::columns + ... + MatrixTraits<Vs>::columns);
-          eigen_matrix_t<Scalar, 0, cols> m {rows, cols};
+          eigen_matrix_t<Scalar, dynamic_extent, cols> m {rows, cols};
           detail::concatenate_diagonal_impl(m, std::forward_as_tuple(v, vs...), seq);
           return m;
         }
@@ -1665,7 +1753,7 @@ namespace OpenKalman::Eigen3
         {
           constexpr auto rows = (MatrixTraits<V>::rows + ... + MatrixTraits<Vs>::rows);
           auto cols = (column_count(v) + ... + column_count(vs));
-          eigen_matrix_t<Scalar, rows, 0> m {rows, cols};
+          eigen_matrix_t<Scalar, rows, dynamic_extent> m {rows, cols};
           detail::concatenate_diagonal_impl(m, std::forward_as_tuple(v, vs...), seq);
           return m;
         }
@@ -2137,38 +2225,40 @@ namespace OpenKalman::Eigen3
   namespace detail
   {
 #ifdef __cpp_concepts
-    template<typename Function, typename Arg>
-    concept col_lvalue_ref_fun = (not std::is_const_v<Arg>) and std::is_lvalue_reference_v<Arg> and
-      requires(const Function& f, std::decay_t<decltype(column<0>(std::declval<Arg&&>()))>& col) {
+    template<typename Function, typename Arg, typename...is>
+    concept col_result_is_lvalue = writable<Arg> and std::is_lvalue_reference_v<Arg> and
+      requires(const Function& f, std::decay_t<decltype(column<0>(std::declval<Arg&&>()))>& col, is...i) {
         {col} -> writable;
-        requires std::is_void_v<decltype(f(col))> or requires { {f(col)} -> std::same_as<decltype(col)>; };
-      };
-
-    template<typename Function, typename Arg>
-    concept col_lvalue_ref_fun_ind = (not std::is_const_v<Arg>) and std::is_lvalue_reference_v<Arg> and
-      requires(const Function& f, std::decay_t<decltype(column<0>(std::declval<Arg&&>()))>& col, std::size_t i) {
-        {col} -> writable;
-        requires std::is_void_v<decltype(f(col, i))> or requires { {f(col, i)} -> std::same_as<decltype(col)>; };
+        requires requires { {f(col, i...)} -> std::same_as<void>; } or
+          requires { {f(col, i...)} -> std::same_as<decltype(col)>; };
       };
 #else
-    template<typename Function, typename Arg>
-    using ColRes = std::invoke_result_t<const Function&, std::decay_t<decltype(column<0>(std::declval<Arg&&>()))>&>;
+    template<typename Function, typename Arg, bool isvoid, typename = void, typename...is>
+    struct col_result_is_valid : std::false_type {};
 
-    template<typename Function, typename Arg>
-    static constexpr bool col_lvalue_ref_fun = (not std::is_const_v<Arg>) and std::is_lvalue_reference_v<Arg> and
-      writable<decltype(column<0>(std::declval<Arg&&>()))> and
-      (std::is_void_v<detail::ColRes<Function, Arg>> or
-        std::is_same_v<detail::ColRes<Function, Arg>, decltype(column<0>(std::declval<Arg&&>()))>);
+    template<typename Function, typename Arg, bool isvoid, typename...is>
+    struct col_result_is_valid<Function, Arg, isvoid, std::enable_if_t<
+      writable<decltype(column<0>(std::declval<Arg&&>()))> and std::is_same_v<
+        typename std::invoke_result<Function, std::decay_t<decltype(column<0>(std::declval<Arg&&>()))>&, is...>::type,
+        std::conditional_t<isvoid, void, std::decay_t<decltype(column<0>(std::declval<Arg&&>()))>&>>>, is...>
+      : std::true_type {};
 
-    template<typename Arg, typename Function>
-    using ColResI = std::invoke_result_t<
-      const Function&, std::decay_t<decltype(column<0>(std::declval<Arg&&>()))>&, std::size_t >;
+    template<typename Function, typename Arg, typename...is>
+    static constexpr bool col_result_is_lvalue = writable<Arg> and std::is_lvalue_reference_v<Arg> and
+      (col_result_is_valid<Function, Arg, true, void, is...>::value or
+        col_result_is_valid<Function, Arg, false, void, is...>::value);
 
-    template<typename Function, typename Arg>
-    static constexpr bool col_lvalue_ref_fun_ind = (not std::is_const_v<Arg>) and std::is_lvalue_reference_v<Arg> and
-      writable<decltype(column<0>(std::declval<Arg&&>()))> and
-      (std::is_void_v<detail::ColResI<Function, Arg>> or
-        std::is_same_v<detail::ColResI<Function, Arg>, decltype(column<0>(std::declval<Arg&&>()))>);
+
+    template<typename Function, typename Arg, typename = void, typename...is>
+    struct col_result_is_column_impl : std::false_type {};
+
+    template<typename Function, typename Arg, typename...is>
+    struct col_result_is_column_impl<Function, Arg, std::enable_if_t<
+      column_vector<typename std::invoke_result<Function, decltype(column<0>(std::declval<Arg&&>())), is...>::type>
+      >, is...> : std::true_type {};
+
+    template<typename Function, typename Arg, typename...is>
+    static constexpr bool col_result_is_column_vector = col_result_is_column_impl<Function, Arg, void, is...>::value;
 #endif
 
 
@@ -2177,8 +2267,8 @@ namespace OpenKalman::Eigen3
     {
       static_assert(not dynamic_columns<Arg>);
 
-      if constexpr ((index and detail::col_lvalue_ref_fun_ind<F, Arg>) or
-        (not index and detail::col_lvalue_ref_fun<F, Arg>))
+      if constexpr ((index and detail::col_result_is_lvalue<F, Arg, std::size_t>) or
+        (not index and detail::col_result_is_lvalue<F, Arg>))
       {
         static_assert(std::is_lvalue_reference_v<Arg>);
 
@@ -2199,15 +2289,37 @@ namespace OpenKalman::Eigen3
     };
 
 
-    template<bool index, typename F, typename Arg>
-    inline decltype(auto) columnwise_impl(const F& f, Arg&& arg)
-    {
-      static_assert(dynamic_columns<Arg>);
+  } // namespace detail
 
+
+#ifdef __cpp_concepts
+  template<typename Function, eigen_matrix Arg> requires
+    detail::col_result_is_lvalue<Function, Arg> or detail::col_result_is_lvalue<Function, Arg, std::size_t> or
+    requires(const Function& f, Arg&& arg) {{f(column<0>(std::forward<Arg>(arg)))} -> column_vector; } or
+    requires(const Function& f, Arg&& arg, std::size_t i) {{f(column<0>(std::forward<Arg>(arg)), i)} -> column_vector; }
+#else
+  template<typename Function, typename Arg, std::enable_if_t<eigen_matrix<Arg> and
+    (detail::col_result_is_lvalue<Function, Arg> or detail::col_result_is_lvalue<Function, Arg, std::size_t> or
+    detail::col_result_is_column_vector<Function, Arg> or
+    detail::col_result_is_column_vector<Function, Arg, std::size_t>), int> = 0>
+#endif
+  inline decltype(auto)
+  apply_columnwise(const Function& f, Arg&& arg)
+  {
+    constexpr bool index = detail::col_result_is_lvalue<Function, Arg, std::size_t> or
+#ifdef __cpp_concepts
+      requires(const Function& f, Arg&& arg, std::size_t i) {
+        {f(column<0>(std::forward<Arg>(arg)), i)} -> column_vector;};
+#else
+      detail::col_result_is_column_vector<Function, Arg, std::size_t>;
+#endif
+
+    if constexpr (dynamic_columns<Arg>)
+    {
       auto cols = column_count(arg);
 
-      if constexpr ((index and detail::col_lvalue_ref_fun_ind<F, Arg>) or
-        (not index and detail::col_lvalue_ref_fun<F, Arg>))
+      if constexpr ((index and detail::col_result_is_lvalue<Function, Arg, std::size_t>) or
+        (not index and detail::col_result_is_lvalue<Function, Arg>))
       {
         static_assert(std::is_lvalue_reference_v<Arg>);
 
@@ -2221,7 +2333,7 @@ namespace OpenKalman::Eigen3
       }
       else
       {
-        auto res_col0 = [](const F& f, Arg&& arg){
+        auto res_col0 = [](const Function& f, Arg&& arg){
           auto col0 = column(std::forward<Arg>(arg), 0);
           if constexpr (index) return f(col0, 0); else return f(col0);
         }(f, std::forward<Arg>(arg));
@@ -2241,80 +2353,12 @@ namespace OpenKalman::Eigen3
         }
         return m;
       }
-    };
-
-  } // namespace detail
-
-
-#ifdef __cpp_concepts
-  template<eigen_matrix Arg, typename Function> requires detail::col_lvalue_ref_fun<Function, Arg> or
-    requires(const Function& f, Arg&& arg) {
-      {f(column<0>(std::forward<Arg>(arg)))} -> eigen_matrix;
-      {f(column<0>(std::forward<Arg>(arg)))} -> column_vector;
     }
-#else
-  template<typename Arg, typename Function, std::enable_if_t<eigen_matrix<Arg> and
-    (detail::col_lvalue_ref_fun<Function, Arg> or column_vector<std::invoke_result_t<const Function&,
-      std::decay_t<decltype(column<0>(std::declval<Arg&&>()))>&& >>), int> = 0>
-#endif
-  inline decltype(auto)
-  apply_columnwise(Arg&& arg, const Function& f)
-  {
-    if constexpr (dynamic_columns<Arg>)
-      return detail::columnwise_impl<false>(f, std::forward<Arg>(arg));
     else
-      return detail::columnwise_impl<false>(
+    {
+      return detail::columnwise_impl<index>(
         f, std::forward<Arg>(arg), std::make_index_sequence<MatrixTraits<Arg>::columns>());
-  }
-
-
-#ifdef __cpp_concepts
-  template<eigen_matrix Arg, typename Function> requires detail::col_lvalue_ref_fun_ind<Function, Arg> or
-    requires(const Function& f, Arg&& arg, std::size_t i) {
-      {f(column<0>(std::forward<Arg>(arg)), i)} -> eigen_matrix;
-      {f(column<0>(std::forward<Arg>(arg)), i)} -> column_vector;
     }
-#else
-  template<typename Arg, typename Function, std::enable_if_t<eigen_matrix<Arg> and
-    (detail::col_lvalue_ref_fun_ind<Function, Arg> or column_vector<std::invoke_result_t<const Function&,
-      std::decay_t<decltype(column<0>(std::declval<Arg&&>()))>&&, std::size_t>>), int> = 0>
-#endif
-  inline decltype(auto)
-  apply_columnwise(Arg&& arg, const Function& f)
-  {
-    if constexpr (dynamic_columns<Arg>)
-      return detail::columnwise_impl<true>(f, std::forward<Arg>(arg));
-    else
-      return detail::columnwise_impl<true>(
-        f, std::forward<Arg>(arg), std::make_index_sequence<MatrixTraits<Arg>::columns>());
-  }
-
-
-#ifdef __cpp_concepts
-  template<std::size_t...count, typename Function, std::convertible_to<std::size_t>...runtime_count>
-  requires (sizeof...(count) + sizeof...(runtime_count) == 1) and
-    requires(const Function& f) {
-      {f()} -> eigen_matrix;
-      (requires { {f()} -> dynamic_columns; } or requires {{f()} -> column_vector; });
-    }
-#else
-  template<std::size_t...count, typename Function, typename...runtime_count, std::enable_if_t<
-    (sizeof...(count) + sizeof...(runtime_count) == 1) and
-    (std::is_convertible_v<std::size_t, runtime_count> and ...) and
-    (dynamic_columns<std::invoke_result_t<const Function&>> or column_vector<std::invoke_result_t<const Function&>>) and
-    eigen_matrix<std::invoke_result_t<const Function&>>, int> = 0>
-#endif
-  inline auto
-  apply_columnwise(const Function& f, runtime_count...i)
-  {
-    auto r = f();
-    using R = decltype(r);
-    if constexpr (dynamic_columns<R>) assert (column_count(r) == 1);
-
-    if constexpr (sizeof...(count) > 0)
-      return Eigen::Replicate<R, 1, count...>(r);
-    else
-      return Eigen::Replicate<R, 1, Eigen::Dynamic>(r, 1, i...);
   }
 
 
@@ -2325,61 +2369,97 @@ namespace OpenKalman::Eigen3
     {
       return concatenate_horizontal(f(ints)...);
     };
+
+#ifndef __cpp_concepts
+    template<typename Function, typename = void, typename...is>
+    struct columns_1_or_dynamic_impl : std::false_type {};
+
+    template<typename Function, typename...is>
+    struct columns_1_or_dynamic_impl<Function, std::enable_if_t<
+      eigen_matrix<std::invoke_result_t<const Function&, is...>> and
+      ( dynamic_columns<std::invoke_result_t<const Function&, is...>> or
+        column_vector<std::invoke_result_t<const Function&, is...>>)>, is...> : std::true_type {};
+
+    template<typename Function, typename...is>
+    static constexpr bool columns_1_or_dynamic = columns_1_or_dynamic_impl<Function, void, is...>::value;
+#endif
   }
 
 
 #ifdef __cpp_concepts
-  template<std::size_t...count, typename Function, std::convertible_to<std::size_t>...runtime_count>
-  requires (sizeof...(count) + sizeof...(runtime_count) == 1) and
-    requires(const Function& f, std::size_t i) {
+  template<std::size_t...column_extent, typename Function, std::convertible_to<std::size_t>...runtime_columns> requires
+    (sizeof...(column_extent) + sizeof...(runtime_columns) == 1) and
+    ( requires(const Function& f) {
+      {f()} -> eigen_matrix;
+      requires requires { {f()} -> dynamic_columns; } or requires { {f()} -> column_vector; };
+    } or requires(const Function& f, std::size_t& i) {
       {f(i)} -> eigen_matrix;
-      (requires { {f(i)} -> dynamic_columns; } or requires {{f(i)} -> column_vector; });
-    }
+      requires requires { {f(i)} -> dynamic_columns; } or requires { {f(i)} -> column_vector; };
+    })
 #else
-  template<std::size_t...count, typename Function, typename...runtime_count, std::enable_if_t<
-    (sizeof...(count) + sizeof...(runtime_count) == 1) and
-    (std::is_convertible_v<runtime_count, std::size_t> and ...) and
-    eigen_matrix<std::invoke_result_t<const Function&, std::size_t>> and
-    (dynamic_columns<std::invoke_result_t<const Function&, std::size_t>> or
-      column_vector<std::invoke_result_t<const Function&, std::size_t>>), int> = 0>
+  template<std::size_t...column_extent, typename Function, typename...runtime_columns, std::enable_if_t<
+    (std::is_convertible_v<runtime_columns, std::size_t> and ...) and
+    (sizeof...(column_extent) + sizeof...(runtime_columns) == 1), int> = 0>
 #endif
   inline auto
-  apply_columnwise(const Function& f, runtime_count...i)
+  apply_columnwise(const Function& f, runtime_columns...c)
   {
-    if constexpr (sizeof...(runtime_count) == 0)
-    {
-      return detail::cat_columnwise_impl(f, std::make_index_sequence<(count + ... + 0)>());
-    }
-    else
-    {
-      using R = std::invoke_result_t<const Function&, std::size_t>;
-      using Scalar = typename MatrixTraits<R>::Scalar;
-      auto cols = (i + ... + 0);
+#ifdef __cpp_concepts
+    if constexpr (requires(std::size_t& i) {
+      {f(i)} -> eigen_matrix;
+      requires requires { {f(i)} -> dynamic_columns; } or requires { {f(i)} -> column_vector; }; })
+#else
+    static_assert(detail::columns_1_or_dynamic<Function> or detail::columns_1_or_dynamic<Function, std::size_t&>);
 
-      if constexpr (dynamic_rows<R>)
+    if constexpr (detail::columns_1_or_dynamic<Function, std::size_t&>)
+#endif
+    {
+      if constexpr (sizeof...(column_extent) > 0)
       {
-        auto r0 = f(0);
-        auto rows = row_count(r0);
-        eigen_matrix_t<Scalar, 0, 0> m {rows, cols};
-        m.col(0) = r0;
-        for (std::size_t j = 1; j < cols; j++)
-        {
-          auto rj = f(j);
-          assert(row_count(rj) == rows);
-          m.col(j) = rj;
-        }
-        return m;
+        return detail::cat_columnwise_impl(f, std::make_index_sequence<(column_extent + ... + 0)>());
       }
       else
       {
-        constexpr auto rows = MatrixTraits<R>::rows;
-        eigen_matrix_t<Scalar, rows, 0> m {rows, cols};
-        for (std::size_t j = 0; j < cols; j++)
+        using R = std::invoke_result_t<const Function&, std::size_t>;
+        using Scalar = typename MatrixTraits<R>::Scalar;
+        std::size_t cols = (c + ... + 0);
+
+        if constexpr (dynamic_rows<R>)
         {
-          m.col(j) = f(j);
+          auto r0 = f(0);
+          auto rows = row_count(r0);
+          eigen_matrix_t<Scalar, dynamic_extent, dynamic_extent> m {rows, cols};
+          m.col(0) = r0;
+          for (std::size_t j = 1; j < cols; j++)
+          {
+            auto rj = f(j);
+            assert(row_count(rj) == rows);
+            m.col(j) = rj;
+          }
+          return m;
         }
-        return m;
+        else
+        {
+          constexpr auto rows = MatrixTraits<R>::rows;
+          eigen_matrix_t<Scalar, rows, dynamic_extent> m {rows, cols};
+          for (std::size_t j = 0; j < cols; j++)
+          {
+            m.col(j) = f(j);
+          }
+          return m;
+        }
       }
+    }
+    else
+    {
+      auto r = f();
+      using R = decltype(r);
+      if constexpr (dynamic_columns<R>) assert (column_count(r) == 1);
+
+      if constexpr (sizeof...(column_extent) > 0)
+        return make_self_contained(Eigen::Replicate<R, 1, column_extent...>(r));
+      else
+        return make_self_contained(Eigen::Replicate<R, 1, Eigen::Dynamic>(r, 1, c...));
     }
   }
 
@@ -2387,46 +2467,48 @@ namespace OpenKalman::Eigen3
   namespace detail
   {
 #ifdef __cpp_concepts
-    template<typename Function, typename Arg>
-    concept row_lvalue_ref_fun = (not std::is_const_v<Arg>) and std::is_lvalue_reference_v<Arg> and
-      requires(const Function& f, std::decay_t<decltype(row<0>(std::declval<Arg&&>()))>& row) {
+    template<typename Function, typename Arg, typename...is>
+    concept row_result_is_lvalue = (not std::is_const_v<Arg>) and std::is_lvalue_reference_v<Arg> and
+      requires(const Function& f, std::decay_t<decltype(row<0>(std::declval<Arg&&>()))>& row, is...i) {
         {row} -> writable;
-        requires std::is_void_v<decltype(f(row))> or requires { {f(row)} -> std::same_as<decltype(row)>; };
-      };
-
-    template<typename Function, typename Arg>
-    concept row_lvalue_ref_fun_ind = (not std::is_const_v<Arg>) and std::is_lvalue_reference_v<Arg> and
-      requires(const Function& f, std::decay_t<decltype(row<0>(std::declval<Arg&&>()))>& row, std::size_t i) {
-        {row} -> writable;
-        requires std::is_void_v<decltype(f(row, i))> or requires { {f(row, i)} -> std::same_as<decltype(row)>; };
+        requires requires { {f(row, i...)} -> std::same_as<void>; } or
+          requires { {f(row, i...)} -> std::same_as<decltype(row)>; };
       };
 #else
-    template<typename Arg, typename Function>
-    using RowRes = std::invoke_result_t<const Function&, std::decay_t<decltype(row<0>(std::declval<Arg&&>()))>& >;
+    template<typename Function, typename Arg, bool isvoid, typename = void, typename...is>
+    struct row_result_is_valid : std::false_type {};
 
-    template<typename Function, typename Arg>
-    static constexpr bool row_lvalue_ref_fun = (not std::is_const_v<Arg>) and std::is_lvalue_reference_v<Arg> and
-      writable<decltype(row<0>(std::declval<Arg&&>()))> and
-      (std::is_void_v<detail::RowRes<Function, Arg>> or
-        std::is_same_v<detail::RowRes<Function, Arg>, decltype(row<0>(std::declval<Arg&&>()))>);
+    template<typename Function, typename Arg, bool isvoid, typename...is>
+    struct row_result_is_valid<Function, Arg, isvoid, std::enable_if_t<
+      writable<decltype(row<0>(std::declval<Arg&&>()))> and std::is_same_v<
+        typename std::invoke_result<Function, std::decay_t<decltype(row<0>(std::declval<Arg&&>()))>&, is...>::type,
+        std::conditional_t<isvoid, void, std::decay_t<decltype(row<0>(std::declval<Arg&&>()))>&>>>, is...>
+      : std::true_type {};
 
-    template<typename Arg, typename Function>
-    using RowResI = std::invoke_result_t<
-      const Function&, std::decay_t<decltype(row<0>(std::declval<Arg&&>()))>&, std::size_t>;
+    template<typename Function, typename Arg, typename...is>
+    static constexpr bool row_result_is_lvalue = writable<Arg> and std::is_lvalue_reference_v<Arg> and
+      (row_result_is_valid<Function, Arg, true, void, is...>::value or
+        row_result_is_valid<Function, Arg, false, void, is...>::value);
 
-    template<typename Function, typename Arg>
-    static constexpr bool row_lvalue_ref_fun_ind = (not std::is_const_v<Arg>) and std::is_lvalue_reference_v<Arg> and
-      writable<decltype(row<0>(std::declval<Arg&&>()))> and
-      (std::is_void_v<detail::RowResI<Function, Arg>> or
-        std::is_same_v<detail::RowResI<Function, Arg>, decltype(row<0>(std::declval<Arg&&>()))>);
+
+    template<typename Function, typename Arg, typename = void, typename...is>
+    struct row_result_is_row_impl : std::false_type {};
+
+    template<typename Function, typename Arg, typename...is>
+    struct row_result_is_row_impl<Function, Arg, std::enable_if_t<
+      row_vector<typename std::invoke_result<Function, decltype(row<0>(std::declval<Arg&&>())), is...>::type>
+      >, is...> : std::true_type {};
+
+    template<typename Function, typename Arg, typename...is>
+    static constexpr bool row_result_is_row_vector = row_result_is_row_impl<Function, Arg, void, is...>::value;
 #endif
 
 
     template<bool index, typename F, typename Arg, std::size_t ... ints>
     inline decltype(auto) rowwise_impl(const F& f, Arg&& arg, std::index_sequence<ints...>)
     {
-      if constexpr ((index and detail::row_lvalue_ref_fun_ind<F, Arg>) or
-        (not index and detail::row_lvalue_ref_fun<F, Arg>))
+      if constexpr ((index and detail::row_result_is_lvalue<F, Arg, std::size_t>) or
+        (not index and detail::row_result_is_lvalue<F, Arg>))
       {
         static_assert(std::is_lvalue_reference_v<Arg>);
 
@@ -2446,123 +2528,76 @@ namespace OpenKalman::Eigen3
       }
     };
 
-
-  template<bool index, typename F, typename Arg>
-  inline decltype(auto) rowwise_impl(const F& f, Arg&& arg)
-  {
-    static_assert(dynamic_rows<Arg>);
-
-    auto rows = row_count(arg);
-
-    if constexpr ((index and detail::row_lvalue_ref_fun_ind<F, Arg>) or
-      (not index and detail::row_lvalue_ref_fun<F, Arg>))
-    {
-      static_assert(std::is_lvalue_reference_v<Arg>);
-
-      for (std::size_t i = 0; i<rows; i++)
-      {
-        decltype(auto) r {row(arg, i)};
-        static_assert(writable<decltype(r)>);
-        if constexpr (index) f(r, i); else f(r);
-      }
-      return (arg);
-    }
-    else
-    {
-      auto res_row0 = [](const F& f, Arg&& arg){
-        auto row0 = row(std::forward<Arg>(arg), 0);
-        if constexpr (index) return f(row0, 0); else return f(row0);
-      }(f, std::forward<Arg>(arg));
-
-      using ResultType = decltype(res_row0);
-      using M = eigen_matrix_t<typename MatrixTraits<ResultType>::Scalar, 0, MatrixTraits<ResultType>::columns>;
-      M m {rows, column_count(res_row0)};
-
-      row(m, 0) = res_row0;
-
-      for (std::size_t i = 1; i<rows; i++)
-      {
-        if constexpr (index)
-          row(m, i) = f(row(std::forward<Arg>(arg), i), i);
-        else
-          row(m, i) = f(row(std::forward<Arg>(arg), i));
-      }
-      return m;
-    }
-  };
-
   } // namespace detail
 
 
 #ifdef __cpp_concepts
-  template<eigen_matrix Arg, typename Function> requires
-    detail::row_lvalue_ref_fun<Function, Arg> or
-    requires(Arg&& arg, const Function& f) {
-      {f(row<0>(std::forward<Arg>(arg)))} -> eigen_matrix;
-      {f(row<0>(std::forward<Arg>(arg)))} -> row_vector;
-    }
+  template<typename Function, eigen_matrix Arg> requires
+    detail::row_result_is_lvalue<Function, Arg> or detail::row_result_is_lvalue<Function, Arg, std::size_t> or
+    requires(const Function& f, Arg&& arg) {{f(row<0>(std::forward<Arg>(arg)))} -> row_vector; } or
+    requires(const Function& f, Arg&& arg, std::size_t i) {{f(row<0>(std::forward<Arg>(arg)), i)} -> row_vector; }
 #else
-  template<typename Arg, typename Function, std::enable_if_t<eigen_matrix<Arg> and
-    (detail::row_lvalue_ref_fun<Function, Arg> or row_vector<std::invoke_result_t<const Function&,
-      std::decay_t<decltype(row<0>(std::declval<Arg&&>()))>&& >>), int> = 0>
+  template<typename Function, typename Arg, std::enable_if_t<eigen_matrix<Arg> and
+    (detail::row_result_is_lvalue<Function, Arg> or detail::row_result_is_lvalue<Function, Arg, std::size_t> or
+    detail::row_result_is_row_vector<Function, Arg> or
+    detail::row_result_is_row_vector<Function, Arg, std::size_t>), int> = 0>
 #endif
   inline decltype(auto)
-  apply_rowwise(Arg&& arg, const Function& f)
+  apply_rowwise(const Function& f, Arg&& arg)
   {
-    if constexpr (dynamic_rows<Arg>)
-      return detail::rowwise_impl<false>(f, std::forward<Arg>(arg));
-    else
-      return detail::rowwise_impl<false>(f, std::forward<Arg>(arg), std::make_index_sequence<MatrixTraits<Arg>::rows>());
-  }
-
-
+    constexpr bool index = detail::row_result_is_lvalue<Function, Arg, std::size_t> or
 #ifdef __cpp_concepts
-  template<eigen_matrix Arg, typename Function> requires
-    detail::row_lvalue_ref_fun_ind<Function, Arg> or
-    requires(const Function& f, Arg&& arg, std::size_t i) {
-      {f(row<0>(std::forward<Arg>(arg)), i)} -> eigen_matrix;
-      {f(row<0>(std::forward<Arg>(arg)), i)} -> row_vector;
-    }
+      requires(const Function& f, Arg&& arg, std::size_t i) {{f(row<0>(std::forward<Arg>(arg)), i)} -> row_vector;};
 #else
-  template<typename Arg, typename Function, std::enable_if_t<eigen_matrix<Arg> and
-    (detail::row_lvalue_ref_fun_ind<Function, Arg> or row_vector<std::invoke_result_t<const Function&,
-      std::decay_t<decltype(row<0>(std::declval<Arg&&>()))>&&, std::size_t>>), int> = 0>
+      detail::row_result_is_row_vector<Function, Arg, std::size_t>;
 #endif
-  inline decltype(auto)
-  apply_rowwise(Arg&& arg, const Function& f)
-  {
+
     if constexpr (dynamic_rows<Arg>)
-      return detail::rowwise_impl<true>(f, std::forward<Arg>(arg));
-    else
-      return detail::rowwise_impl<true>(f, std::forward<Arg>(arg), std::make_index_sequence<MatrixTraits<Arg>::rows>());
-  }
+    {
+      auto rows = row_count(arg);
 
+      if constexpr ((index and detail::row_result_is_lvalue<Function, Arg, std::size_t>) or
+        (not index and detail::row_result_is_lvalue<Function, Arg>))
+      {
+        static_assert(std::is_lvalue_reference_v<Arg>);
 
-#ifdef __cpp_concepts
-  template<std::size_t...count, typename Function, std::convertible_to<std::size_t>...runtime_count>
-  requires (sizeof...(count) + sizeof...(runtime_count) == 1) and
-    requires(const Function& f) {
-      {f()} -> eigen_matrix;
-      (requires { {f()} -> dynamic_rows; } or requires {{f()} -> row_vector; });
+        for (std::size_t i = 0; i<rows; i++)
+        {
+          decltype(auto) r {row(arg, i)};
+          static_assert(writable<decltype(r)>);
+          if constexpr (index) f(r, i); else f(r);
+        }
+        return (arg);
+      }
+      else
+      {
+        auto res_row0 = [](const Function& f, Arg&& arg){
+          auto row0 = row(std::forward<Arg>(arg), 0);
+          if constexpr (index) return f(row0, 0); else return f(row0);
+        }(f, std::forward<Arg>(arg));
+
+        using ResultType = decltype(res_row0);
+        using M = eigen_matrix_t<
+          typename MatrixTraits<ResultType>::Scalar, dynamic_extent, MatrixTraits<ResultType>::columns>;
+        M m {rows, column_count(res_row0)};
+
+        row(m, 0) = res_row0;
+
+        for (std::size_t i = 1; i<rows; i++)
+        {
+          if constexpr (index)
+            row(m, i) = f(row(std::forward<Arg>(arg), i), i);
+          else
+            row(m, i) = f(row(std::forward<Arg>(arg), i));
+        }
+        return m;
+      }
     }
-#else
-  template<std::size_t...count, typename Function, typename...runtime_count, std::enable_if_t<
-    (sizeof...(count) + sizeof...(runtime_count) == 1) and
-    (std::is_convertible_v<std::size_t, runtime_count> and ...) and
-    (dynamic_rows<std::invoke_result_t<const Function&>> or row_vector<std::invoke_result_t<const Function&>>) and
-    eigen_matrix<std::invoke_result_t<const Function&>>, int> = 0>
-#endif
-  inline auto
-  apply_rowwise(const Function& f, runtime_count...i)
-  {
-    auto c = f();
-    using C = decltype(c);
-    if constexpr (dynamic_rows<C>) assert (row_count(c) == 1);
-
-    if constexpr (sizeof...(count) > 0)
-      return Eigen::Replicate<C, count..., 1>(c);
     else
-      return Eigen::Replicate<C, Eigen::Dynamic, 1>(c, i..., 1);
+    {
+      return detail::rowwise_impl<index>(
+        f, std::forward<Arg>(arg), std::make_index_sequence<MatrixTraits<Arg>::rows>());
+    }
   }
 
 
@@ -2573,204 +2608,296 @@ namespace OpenKalman::Eigen3
     {
       return concatenate_vertical(f(ints)...);
     };
+
+#ifndef __cpp_concepts
+    template<typename Function, typename = void, typename...is>
+    struct rows_1_or_dynamic_impl : std::false_type {};
+
+    template<typename Function, typename...is>
+    struct rows_1_or_dynamic_impl<Function, std::enable_if_t<
+      eigen_matrix<std::invoke_result_t<const Function&, is...>> and
+      ( dynamic_rows<std::invoke_result_t<const Function&, is...>> or
+        row_vector<std::invoke_result_t<const Function&, is...>>)>, is...> : std::true_type {};
+
+    template<typename Function, typename...is>
+    static constexpr bool rows_1_or_dynamic = rows_1_or_dynamic_impl<Function, void, is...>::value;
+#endif
   }
 
 
 #ifdef __cpp_concepts
-  template<std::size_t...count, typename Function, std::convertible_to<std::size_t>...runtime_count>
-  requires (sizeof...(count) + sizeof...(runtime_count) == 1) and
-    requires(const Function& f, std::size_t i) {
+  template<std::size_t...row_extent, typename Function, std::convertible_to<std::size_t>...runtime_rows> requires
+    (sizeof...(row_extent) + sizeof...(runtime_rows) == 1) and
+    ( requires(const Function& f) {
+      {f()} -> eigen_matrix;
+      requires requires { {f()} -> dynamic_rows; } or requires { {f()} -> row_vector; };
+    } or requires(const Function& f, std::size_t& i) {
       {f(i)} -> eigen_matrix;
-      {f(i)} -> row_vector;
-    }
+      requires requires { {f(i)} -> dynamic_rows; } or requires { {f(i)} -> row_vector; };
+    })
 #else
-  template<std::size_t...count, typename Function, typename...runtime_count, std::enable_if_t<
-    (sizeof...(count) + sizeof...(runtime_count) == 1) and
-    (std::is_convertible_v<std::size_t, runtime_count> and ...) and
-    eigen_matrix<std::invoke_result_t<const Function&, std::size_t>> and
-    row_vector<std::invoke_result_t<const Function&, std::size_t>>, int> = 0>
+  template<std::size_t...row_extent, typename Function, typename...runtime_rows, std::enable_if_t<
+    (std::is_convertible_v<runtime_rows, std::size_t> and ...) and
+    (sizeof...(row_extent) + sizeof...(runtime_rows) == 1), int> = 0>
 #endif
   inline auto
-  apply_rowwise(const Function& f, runtime_count...i)
+  apply_rowwise(const Function& f, runtime_rows...r)
   {
-    if constexpr (sizeof...(runtime_count) == 0)
-    {
-      return detail::cat_rowwise_impl(f, std::make_index_sequence<(count + ... + 0)>());
-    }
-    else
-    {
-      using R = std::invoke_result_t<const Function&, std::size_t>;
-      using Scalar = typename MatrixTraits<R>::Scalar;
-      auto rows = (i + ... + 0);
+#ifdef __cpp_concepts
+    if constexpr (requires(std::size_t& i) {
+      {f(i)} -> eigen_matrix;
+      requires requires { {f(i)} -> dynamic_rows; } or requires { {f(i)} -> row_vector; }; })
+#else
+    static_assert(detail::rows_1_or_dynamic<Function> or detail::rows_1_or_dynamic<Function, std::size_t&>);
 
-      if constexpr (dynamic_columns<R>)
+    if constexpr (detail::rows_1_or_dynamic<Function, std::size_t&>)
+#endif
+    {
+      if constexpr (sizeof...(runtime_rows) == 0)
       {
-        auto c0 = f(0);
-        auto cols = column_count(c0);
-        eigen_matrix_t<Scalar, 0, 0> m {rows, cols};
-        m.row(0) = c0;
-        for (std::size_t i = 1; i < rows; i++)
-        {
-          auto ci = f(i);
-          assert(column_count(ci) == cols);
-          m.row(i) = ci;
-        }
-        return m;
+        return detail::cat_rowwise_impl(f, std::make_index_sequence<(row_extent + ... + 0)>());
       }
       else
       {
-        constexpr auto cols = MatrixTraits<R>::columns;
-        eigen_matrix_t<Scalar, 0, cols> m {rows, cols};
-        for (std::size_t i = 0; i < rows; i++)
+        using R = std::invoke_result_t<const Function&, std::size_t>;
+        using Scalar = typename MatrixTraits<R>::Scalar;
+        std::size_t rows = (r + ... + 0);
+
+        if constexpr (dynamic_columns<R>)
         {
-          m.row(i) = f(i);
+          auto c0 = f(0);
+          auto cols = column_count(c0);
+          eigen_matrix_t<Scalar, dynamic_extent, dynamic_extent> m {rows, cols};
+          m.row(0) = c0;
+          for (std::size_t i = 1; i < rows; i++)
+          {
+            auto ci = f(i);
+            assert(column_count(ci) == cols);
+            m.row(i) = ci;
+          }
+          return m;
         }
-        return m;
+        else
+        {
+          constexpr auto cols = MatrixTraits<R>::columns;
+          eigen_matrix_t<Scalar, dynamic_extent, cols> m {rows, cols};
+          for (std::size_t i = 0; i < rows; i++)
+          {
+            m.row(i) = f(i);
+          }
+          return m;
+        }
       }
+    }
+    else
+    {
+      auto c = f();
+      using C = decltype(c);
+      if constexpr (dynamic_rows<C>) assert (row_count(c) == 1);
+
+      if constexpr (sizeof...(row_extent) > 0)
+        return make_self_contained(Eigen::Replicate<C, row_extent..., 1>(c));
+      else
+        return make_self_contained(Eigen::Replicate<C, Eigen::Dynamic, 1>(c, r..., 1));
     }
   }
 
 
   ////
 
-#ifdef __cpp_concepts
-  template<native_eigen_matrix Arg, typename Function> requires element_settable<Arg, 2> and
-    (requires(Function f, typename MatrixTraits<Arg>::Scalar& s) { {f(s)} -> std::same_as<void>; } or
-    requires(Function f, typename MatrixTraits<Arg>::Scalar& s) {
-      {f(s)} -> std::same_as<typename MatrixTraits<Arg>::Scalar&>;
-    }) and
-    (not requires(Function f, typename MatrixTraits<Arg>::Scalar& s, std::size_t& i, std::size_t& j) { f(s, i, j); })
-#else
-  template<typename Arg, typename Function, std::enable_if_t<native_eigen_matrix<Arg> and element_settable<Arg, 2> and
-    (std::is_same_v<std::invoke_result_t<Function, typename MatrixTraits<Arg>::Scalar&>, void> or
-    std::is_same_v<std::invoke_result_t<Function, typename MatrixTraits<Arg>::Scalar&>,
-      typename MatrixTraits<Arg>::Scalar&>), int> = 0>
-#endif
-  inline Arg&
-  apply_coefficientwise(Arg& arg, const Function& f)
+  namespace detail
   {
-    for (std::size_t j = 0; j < column_count(arg); j++)
+    template<typename F, typename M>
+    struct CWNullaryOp
     {
-      for (std::size_t i = 0; i < row_count(arg); i++)
+      const auto operator() (Eigen::Index row, Eigen::Index col) const
       {
-        f(arg(i, j));
+        std::size_t i = row, j = col;
+        return f(get_element(m, i, j), i, j);
       }
-    }
-    return arg;
-  }
+
+      F f;
+      M m;
+    };
+
+    template<typename F, typename M>
+    CWNullaryOp(F&&, M&&) -> CWNullaryOp<F, M>;
+
+
+    template<typename F>
+    struct CWUnaryOp
+    {
+      template<typename Arg>
+      const auto operator() (Arg&& arg) const
+      {
+        if constexpr (std::is_invocable_v<F, Arg&&>)
+        {
+          return f(std::forward<Arg>(arg));
+        }
+        else
+        {
+          auto x = std::forward<Arg>(arg);
+          return f(x);
+        }
+      }
+
+      F f;
+    };
+
+    template<typename F>
+    CWUnaryOp(F&&) -> CWUnaryOp<F>;
+
+#ifndef __cpp_concepts
+    template<typename Function, typename Scalar, typename = void, typename...is>
+    struct colwise_result_is_void_impl : std::false_type {};
+
+    template<typename Function, typename Scalar, typename...is>
+    struct colwise_result_is_void_impl<Function, Scalar, std::enable_if_t<
+      std::is_same_v<typename std::invoke_result<Function, Scalar, is...>::type, void>>, is...>
+      : std::true_type {};
+
+    template<typename Function, typename Scalar, typename...is>
+    constexpr bool colwise_result_is_void = colwise_result_is_void_impl<Function, Scalar, void, is...>::value;
+#endif
+  } // namespace detail
 
 
 #ifdef __cpp_concepts
-  template<native_eigen_matrix Arg, typename Function> requires element_settable<Arg, 2> and
-    (requires(Function f, typename MatrixTraits<Arg>::Scalar& s, std::size_t i, std::size_t j) {
-      {f(s, i, j)} -> std::same_as<void>;
-    } or
-    requires(Function f, typename MatrixTraits<Arg>::Scalar& s, std::size_t i, std::size_t j) {
-      {f(s, i, j)} -> std::same_as<typename MatrixTraits<Arg>::Scalar&>;
-    })
-#else
-  template<typename Arg, typename Function, std::enable_if_t<native_eigen_matrix<Arg> and element_settable<Arg, 2> and
-    (std::is_same_v<std::invoke_result_t<Function, typename MatrixTraits<Arg>::Scalar&, std::size_t, std::size_t>,
-      void> or
-    std::is_same_v<std::invoke_result_t<Function, typename MatrixTraits<Arg>::Scalar&, std::size_t, std::size_t>,
-      typename MatrixTraits<Arg>::Scalar&>), int> = 0>
-#endif
-  inline Arg&
-  apply_coefficientwise(Arg& arg, Function&& f)
-  {
-    for (std::size_t j = 0; j < column_count(arg); j++)
-    {
-      for (std::size_t i = 0; i < row_count(arg); i++)
-      {
-        f(arg(i, j), i, j);
-      }
+  template<typename Function, typename Arg> requires (native_eigen_matrix<Arg> or native_eigen_array<Arg>) and
+    requires(Function f, typename MatrixTraits<Arg>::Scalar& s, std::size_t& i, std::size_t& j) { requires
+      requires {{f(s)} -> std::same_as<void>; } or
+      requires {{f(s, i, j)} -> std::same_as<void>; } or
+      requires {{f(s)} -> std::convertible_to<const typename MatrixTraits<Arg>::Scalar&>; } or
+      requires {{f(s, i, j)} -> std::convertible_to<const typename MatrixTraits<Arg>::Scalar&>; };
     }
-    return arg;
-  }
-
-
-#ifdef __cpp_concepts
-  template<eigen_matrix Arg, typename Function> requires
-    requires(Function f, typename MatrixTraits<Arg>::Scalar& s) {
-      {f(s)} -> std::convertible_to<const typename MatrixTraits<Arg>::Scalar&>;
-    } and
-    (not requires(Function f, typename MatrixTraits<Arg>::Scalar& s, std::size_t& i, std::size_t& j) {
-      {f(s, i, j)} -> std::convertible_to<const typename MatrixTraits<Arg>::Scalar&>;
-    })
 #else
-  template<typename Arg, typename Function, std::enable_if_t<eigen_matrix<Arg> and
-    std::is_convertible_v<std::invoke_result_t<Function, typename MatrixTraits<Arg>::Scalar&>,
-      const typename MatrixTraits<Arg>::Scalar> and
-    (not std::is_invocable_v<Function, typename MatrixTraits<Arg>::Scalar&, std::size_t&, std::size_t&>), int> = 0>
+  template<typename Function, typename Arg, std::enable_if_t<(native_eigen_matrix<Arg> or native_eigen_array<Arg>) and
+    ( detail::colwise_result_is_void<Function, typename MatrixTraits<Arg>::Scalar&> or
+      detail::colwise_result_is_void<Function, typename MatrixTraits<Arg>::Scalar&, std::size_t&, std::size_t&> or
+      std::is_invocable_r_v<const typename MatrixTraits<Arg>::Scalar&, Function, typename MatrixTraits<Arg>::Scalar&> or
+      std::is_invocable_r_v<const typename MatrixTraits<Arg>::Scalar&, Function, typename MatrixTraits<Arg>::Scalar&,
+        std::size_t&, std::size_t&>), int> = 0>
 #endif
-  inline auto
-  apply_coefficientwise(Arg&& arg, Function&& f)
+  inline decltype(auto)
+  apply_coefficientwise(Function&& f, Arg&& arg)
   {
     using Scalar = typename MatrixTraits<Arg>::Scalar;
-    return make_self_contained<Arg>(arg.unaryExpr([fun = std::forward<Function>(f)] (const Scalar& x) {
-      if constexpr (std::is_invocable_v<Function, const Scalar&>) return fun(x);
-      else { Scalar xx = x; return fun(xx); }
-    }));
-  }
 
-
+    constexpr bool two_indices =
 #ifdef __cpp_concepts
-  template<eigen_matrix Arg, typename Function> requires element_gettable<Arg, 2> and
-    requires(Function f, typename MatrixTraits<Arg>::Scalar& s, std::size_t i, std::size_t j) {
-      {f(s, i, j)} -> std::convertible_to<const typename MatrixTraits<Arg>::Scalar&>;
+      requires(Scalar& s, std::size_t& i, std::size_t& j) { requires
+        requires {{f(s, i, j)} -> std::same_as<void>; } or
+        requires {{f(s, i, j)} -> std::convertible_to<const Scalar&>; };
+      };
+#else
+      detail::colwise_result_is_void<Function, typename MatrixTraits<Arg>::Scalar&, std::size_t&, std::size_t&> or
+      std::is_invocable_r_v<const Scalar&, Function, Scalar&, std::size_t&, std::size_t&>;
+#endif
+
+    if constexpr (std::is_lvalue_reference_v<Arg> and writable<Arg> and
+#ifdef __cpp_concepts
+      ( requires(Scalar& s) { {f(s)} -> std::same_as<void>; } or
+        requires(Scalar& s) { {f(s)} -> std::same_as<Scalar&>; } or
+        requires(Scalar& s, std::size_t& i, std::size_t& j) { {f(s, i, j)} -> std::same_as<void>; } or
+        requires(Scalar& s, std::size_t& i, std::size_t& j) { {f(s, i, j)} -> std::same_as<Scalar&>; }))
+#else
+      ( detail::colwise_result_is_void<Function, Scalar&> or
+        detail::colwise_result_is_void<Function, Scalar&, std::size_t&, std::size_t&> or
+        std::is_invocable_r_v<Scalar&, Function, Scalar&> or
+        std::is_invocable_r_v<Scalar&, Function, Scalar&, std::size_t&, std::size_t&>))
+#endif
+    {
+      for (std::size_t j = 0; j < column_count(arg); j++) for (std::size_t i = 0; i < row_count(arg); i++)
+      {
+        if constexpr (two_indices)
+          f(arg(i, j), i, j);
+        else
+          f(arg(i, j));
+      }
+      return (arg);
     }
-#else
-  template<typename Arg, typename Function, std::enable_if_t<eigen_matrix<Arg> and element_gettable<Arg, 2> and
-    std::is_convertible_v<std::invoke_result_t<Function,
-      typename MatrixTraits<Arg>::Scalar&, std::size_t, std::size_t>,
-      const typename MatrixTraits<Arg>::Scalar&>, int> = 0>
-#endif
-  inline auto
-  apply_coefficientwise(Arg&& arg, Function&& f)
-  {
-    return native_matrix_t<Arg>::NullaryExpr(
-      [m = std::forward<Arg>(arg), fun = std::forward<Function>(f)] (Eigen::Index i, Eigen::Index j) {
-        std::size_t ix = i, jx = j;
-        return fun(get_element(m, ix, jx), ix, jx);
-      });
+    else if constexpr (two_indices)
+    {
+      // Need to declare variables and pass as lvalue references, to avoid GCC 10.1.0 bug.
+      Eigen::Index rows = row_count(arg), cols = column_count(arg);
+      return std::decay_t<Arg>::NullaryExpr(rows, cols,
+        detail::CWNullaryOp {std::forward<Function>(f), std::forward<Arg>(arg)});
+    }
+    else
+    {
+      return make_self_contained(arg.unaryExpr(detail::CWUnaryOp {std::forward<Function>(f)}));
+    }
   }
 
 
-#ifdef __cpp_concepts
-  template<std::size_t rows, std::size_t columns, typename Function> requires
-    requires { typename Eigen::NumTraits<std::invoke_result_t<Function>>; }
-#else
-  template<std::size_t rows, std::size_t columns, typename Function,
-    std::enable_if_t<std::is_void_v<std::void_t<Eigen::NumTraits<std::invoke_result_t<Function>>>>, int> = 0>
-#endif
-  inline auto
-  apply_coefficientwise(Function&& f)
+  namespace detail
   {
-    using Scalar = std::invoke_result_t<Function>;
-    using Mat = eigen_matrix_t<Scalar, static_cast<Eigen::Index>(rows), static_cast<Eigen::Index>(columns)>;
-    if constexpr (std::is_lvalue_reference_v<Function>)
-      return native_matrix_t<Mat>::NullaryExpr(std::cref(f));
-    else
-      return native_matrix_t<Mat>::NullaryExpr([f = std::move(f)] () { return f(); });
-  }
+    template<typename Scalar, std::size_t rows, std::size_t columns, typename F, typename...runtime_extents>
+    inline auto makeNullary(F&& f, runtime_extents...i)
+    {
+      using M = eigen_matrix_t<Scalar, rows, columns>;
+
+      if constexpr (sizeof...(i) != 1)
+        return M::NullaryExpr(static_cast<Eigen::Index>(i)..., f);
+      else if constexpr (rows == dynamic_extent)
+        return M::NullaryExpr(static_cast<Eigen::Index>(i)..., columns, f);
+      else
+        return M::NullaryExpr(rows, static_cast<Eigen::Index>(i)..., f);
+    }
+
+#ifndef __cpp_concepts
+    template<typename F, std::size_t indices = 0, typename = void>
+    struct result_is_Eigen_scalar : std::false_type {};
+
+    template<typename F>
+    struct result_is_Eigen_scalar<F, 0, std::void_t<Eigen::NumTraits<std::invoke_result_t<F>>>> : std::true_type {};
+
+    template<typename F>
+    struct result_is_Eigen_scalar<F, 2, std::void_t<
+      Eigen::NumTraits<std::invoke_result_t<F, std::size_t&, std::size_t&>>>> : std::true_type {};
+#endif
+  } // namespace detail
 
 
 #ifdef __cpp_concepts
-  template<std::size_t rows, std::size_t columns, typename Function> requires
-    requires { typename Eigen::NumTraits<std::invoke_result_t<Function, std::size_t&, std::size_t&>>; }
+  template<std::size_t rows = dynamic_extent, std::size_t columns = dynamic_extent, typename Function,
+    std::convertible_to<std::size_t>...runtime_extents> requires
+    (requires { typename Eigen::NumTraits<std::invoke_result_t<Function>>; } or
+    requires { typename Eigen::NumTraits<std::invoke_result_t<Function, std::size_t&, std::size_t&>>; }) and
+    ((rows == dynamic_extent ? 0 : 1) + (columns == dynamic_extent ? 0 : 1) + sizeof...(runtime_extents) == 2)
 #else
-  template<std::size_t rows, std::size_t columns, typename Function,
-    typename = std::void_t<Eigen::NumTraits<std::invoke_result_t<Function, std::size_t&, std::size_t&>>>>
+  template<std::size_t rows = dynamic_extent, std::size_t columns = dynamic_extent, typename Function,
+    typename...runtime_extents, std::enable_if_t<
+    (std::is_convertible_v<runtime_extents, std::size_t> and ...) and
+    (detail::result_is_Eigen_scalar<Function>::value or detail::result_is_Eigen_scalar<Function, 2>::value) and
+    ((rows == dynamic_extent ? 0 : 1) + (columns == dynamic_extent ? 0 : 1) + sizeof...(runtime_extents) == 2), int> = 0>
 #endif
   inline auto
-  apply_coefficientwise(Function&& f)
+  apply_coefficientwise(Function&& f, runtime_extents...i)
   {
-    using Scalar = std::invoke_result_t<Function, std::size_t, std::size_t>;
-    using Mat = eigen_matrix_t<Scalar, static_cast<Eigen::Index>(rows), static_cast<Eigen::Index>(columns)>;
-    if constexpr (std::is_lvalue_reference_v<Function>)
-      return native_matrix_t<Mat>::NullaryExpr(std::cref(f));
+#ifdef __cpp_concepts
+    if constexpr (requires { typename Eigen::NumTraits<std::invoke_result_t<Function, std::size_t&, std::size_t&>>; })
+#else
+    if constexpr (detail::result_is_Eigen_scalar<Function, 2>::value)
+#endif
+    {
+      using Scalar = std::invoke_result_t<Function, std::size_t&, std::size_t&>;
+
+      if constexpr (std::is_lvalue_reference_v<Function>)
+        return detail::makeNullary<Scalar, rows, columns>(std::cref(f), i...);
+      else
+        return detail::makeNullary<Scalar, rows, columns>(
+          [f = std::forward<Function>(f)] (std::size_t i, std::size_t j) { return f(i, j); }, i...);
+    }
     else
-      return native_matrix_t<Mat>::NullaryExpr([f = std::move(f)] (std::size_t i, std::size_t j) { return f(i, j); });
+    {
+      using Scalar = std::invoke_result_t<Function>;
+
+      if constexpr (std::is_lvalue_reference_v<Function>)
+        return detail::makeNullary<Scalar, rows, columns>(std::cref(f), i...);
+      else
+        return detail::makeNullary<Scalar, rows, columns>([f = std::forward<Function>(f)] () { return f(); }, i...);
+    }
   }
 
 

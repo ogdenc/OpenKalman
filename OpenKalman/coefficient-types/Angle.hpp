@@ -194,7 +194,7 @@ namespace OpenKalman
      * \tparam i The index of the angle coefficient that is being transformed.
      */
     template<typename Scalar, std::size_t i>
-#if defined (__cpp_concepts) && defined (__clang__) // Because of compiler issue in at least GCC version 10.1.0
+#if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS
     requires std::floating_point<Scalar>
 #endif
     static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), euclidean_dimensions>
@@ -219,7 +219,7 @@ namespace OpenKalman
      * The index of the corresponding y coefficient is i+1.
      */
     template<typename Scalar, std::size_t i>
-#if defined (__cpp_concepts) && defined (__clang__) // Because of compiler issue in at least GCC version 10.1.0
+#if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS
     requires std::floating_point<Scalar>
 #endif
     static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), dimensions>
@@ -286,7 +286,7 @@ namespace OpenKalman
      * \tparam i The index of the angle coefficient that is being wrapped.
      */
     template<typename Scalar, std::size_t i>
-#if defined (__cpp_concepts) && defined (__clang__) // Because of compiler issue in at least GCC version 10.1.0
+#if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS
     requires std::floating_point<Scalar>
 #endif
     static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), dimensions>
@@ -307,7 +307,7 @@ namespace OpenKalman
      * \tparam i The index of the angle coefficient that is being wrapped.
      */
     template<typename Scalar, std::size_t i>
-#if defined (__cpp_concepts) && defined (__clang__) // Because of compiler issue in at least GCC version 10.1.0
+#if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS
     requires std::floating_point<Scalar>
 #endif
     static constexpr

@@ -685,19 +685,19 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   ////
 
 #ifdef __cpp_concepts
-  template<typed_matrix Arg, typename Function> requires untyped_columns<Arg> and
+  template<typename Function, typed_matrix Arg> requires untyped_columns<Arg> and
     requires(const Function& f, std::decay_t<decltype(column(std::declval<Arg>(), 0))>& col) { f(col); } and
     (not std::is_const_v<std::remove_reference_t<nested_matrix_t<Arg>>>) and
     modifiable<nested_matrix_t<Arg>, nested_matrix_t<Arg>>
 #else
-  template<typename Arg, typename Function, std::enable_if_t<typed_matrix<Arg> and untyped_columns<Arg> and
+  template<typename Function, typename Arg, std::enable_if_t<typed_matrix<Arg> and untyped_columns<Arg> and
     std::is_invocable_v<const Function&,
       std::decay_t<decltype(column(std::declval<Arg&>(), 0))>& > and
     (not std::is_const_v<std::remove_reference_t<nested_matrix_t<Arg>>>) and
     modifiable<nested_matrix_t<Arg>, nested_matrix_t<Arg>>, int> = 0>
 #endif
   inline Arg&
-  apply_columnwise(Arg& arg, const Function& f)
+  apply_columnwise(const Function& f, Arg& arg)
   {
     // \todo Make it so this function can accept any typed matrix with identically-typed columns.
     using RC = typename MatrixTraits<Arg>::RowCoefficients;
@@ -708,28 +708,28 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
       col = std::move(nested_matrix(mc));
     };
     auto& c = nested_matrix(arg);
-    apply_columnwise(c, f_nested);
+    apply_columnwise(f_nested, c);
     if constexpr(wrapped_mean<Arg>) c = wrap_angles<RC>(c);
     return arg;
   }
 
 
 #ifdef __cpp_concepts
-  template<typed_matrix Arg, typename Function> requires untyped_columns<Arg> and
+  template<typename Function, typed_matrix Arg> requires untyped_columns<Arg> and
     requires(const Function& f, std::decay_t<decltype(column(std::declval<Arg>(), 0))>& col, std::size_t i) {
       f(col, i);
     } and
     (not std::is_const_v<std::remove_reference_t<nested_matrix_t<Arg>>>) and
     modifiable<nested_matrix_t<Arg>, nested_matrix_t<Arg>>
 #else
-  template<typename Arg, typename Function, std::enable_if_t<typed_matrix<Arg> and untyped_columns<Arg> and
+  template<typename Function, typename Arg, std::enable_if_t<typed_matrix<Arg> and untyped_columns<Arg> and
     std::is_invocable_v<Function,
     std::decay_t<decltype(column(std::declval<Arg&>(), 0))>&, std::size_t> and
     (not std::is_const_v<std::remove_reference_t<nested_matrix_t<Arg>>>) and
     modifiable<nested_matrix_t<Arg>, nested_matrix_t<Arg>>, int> = 0>
 #endif
   inline Arg&
-  apply_columnwise(Arg& arg, const Function& f)
+  apply_columnwise(const Function& f, Arg& arg)
   {
     using RC = typename MatrixTraits<Arg>::RowCoefficients;
     const auto f_nested = [&f](auto& col, std::size_t i)
@@ -739,25 +739,25 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
       col = std::move(nested_matrix(mc));
     };
     auto& c = nested_matrix(arg);
-    apply_columnwise(c, f_nested);
+    apply_columnwise(f_nested, c);
     if constexpr(wrapped_mean<Arg>) c = wrap_angles<RC>(c);
     return arg;
   }
 
 
 #ifdef __cpp_concepts
-  template<typed_matrix Arg, typename Function> requires untyped_columns<Arg> and
+  template<typename Function, typed_matrix Arg> requires untyped_columns<Arg> and
     requires(const Arg& arg, const Function& f) {
       {f(column<0>(arg))} -> typed_matrix;
       {f(column<0>(arg))} -> column_vector;
     }
 #else
-  template<typename Arg, typename Function, std::enable_if_t<typed_matrix<Arg> and untyped_columns<Arg> and
+  template<typename Function, typename Arg, std::enable_if_t<typed_matrix<Arg> and untyped_columns<Arg> and
     typed_matrix<std::invoke_result_t<const Function&,
       std::decay_t<decltype(column(std::declval<const Arg&>(), 0))>&& >>, int> = 0>
 #endif
   inline auto
-  apply_columnwise(const Arg& arg, const Function& f)
+  apply_columnwise(const Function& f, const Arg& arg)
   {
     // \todo Make it so this function can accept any typed matrix with identically-typed columns.
     using ResultType = std::invoke_result_t<Function, decltype(column(std::declval<Arg&>(), 0))>;
@@ -770,23 +770,23 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
       return make_self_contained(
         nested_matrix(f(MatrixTraits<Arg>::template make<RC, Axis>(std::forward<decltype(col)>(col)))));
     };
-    return MatrixTraits<ResultType>::template make<ResRC, ResCC>(apply_columnwise(nested_matrix(arg), f_nested));
+    return MatrixTraits<ResultType>::template make<ResRC, ResCC>(apply_columnwise(f_nested, nested_matrix(arg)));
   }
 
 
 #ifdef __cpp_concepts
-  template<typed_matrix Arg, typename Function> requires untyped_columns<Arg> and
+  template<typename Function, typed_matrix Arg> requires untyped_columns<Arg> and
     requires(const Arg& arg, const Function& f, std::size_t i) {
       {f(column<0>(arg), i)} -> typed_matrix;
       {f(column<0>(arg), i)} -> column_vector;
     }
 #else
-  template<typename Arg, typename Function, std::enable_if_t<typed_matrix<Arg> and untyped_columns<Arg> and
+  template<typename Function, typename Arg, std::enable_if_t<typed_matrix<Arg> and untyped_columns<Arg> and
     typed_matrix<std::invoke_result_t<const Function&,
       std::decay_t<decltype(column(std::declval<const Arg&>(), 0))>&&, std::size_t>>, int> = 0>
 #endif
   inline auto
-  apply_columnwise(const Arg& arg, const Function& f)
+  apply_columnwise(const Function& f, const Arg& arg)
   {
     // \todo Make it so this function can accept any typed matrix with identically-typed columns.
     using ResultType = std::invoke_result_t<Function, decltype(column(std::declval<Arg&>(), 0)), std::size_t>;
@@ -799,7 +799,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
       return make_self_contained(
         nested_matrix(f(MatrixTraits<Arg>::template make<RC, Axis>(std::forward<decltype(col)>(col)), i)));
     };
-    return MatrixTraits<ResultType>::template make<ResRC, ResCC>(apply_columnwise(nested_matrix(arg), f_nested));
+    return MatrixTraits<ResultType>::template make<ResRC, ResCC>(apply_columnwise(f_nested, nested_matrix(arg)));
   }
 
 
@@ -852,16 +852,16 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   ////
 
 #ifdef __cpp_concepts
-  template<typed_matrix Arg, typename Function> requires
+  template<typename Function, typed_matrix Arg> requires
     std::is_void_v<std::invoke_result_t<const Function&, std::decay_t<typename MatrixTraits<Arg>::Scalar>&>>
 #else
-  template<typename Arg, typename Function, std::enable_if_t<typed_matrix<Arg> and
+  template<typename Function, typename Arg, std::enable_if_t<typed_matrix<Arg> and
     std::is_void_v<std::invoke_result_t<const Function&, std::decay_t<typename MatrixTraits<Arg>::Scalar>&>>, int> = 0>
 #endif
   inline Arg&
-  apply_coefficientwise(Arg& arg, const Function& f)
+  apply_coefficientwise(const Function& f, Arg& arg)
   {
-    apply_coefficientwise(nested_matrix(arg), f);
+    apply_coefficientwise(f, nested_matrix(arg));
     using RC = typename MatrixTraits<Arg>::RowCoefficients;
     if constexpr(wrapped_mean<Arg>)
       nested_matrix(arg) = wrap_angles<RC>(nested_matrix(arg));
@@ -870,17 +870,17 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
 
 
 #ifdef __cpp_concepts
-  template<typed_matrix Arg, typename Function> requires std::is_void_v<std::invoke_result_t<const Function&,
+  template<typename Function, typed_matrix Arg> requires std::is_void_v<std::invoke_result_t<const Function&,
     std::decay_t<typename MatrixTraits<Arg>::Scalar>&, std::size_t, std::size_t>>
 #else
-  template<typename Arg, typename Function, std::enable_if_t<typed_matrix<Arg> and
+  template<typename Function, typename Arg, std::enable_if_t<typed_matrix<Arg> and
     std::is_void_v<std::invoke_result_t<const Function&,
       std::decay_t<typename MatrixTraits<Arg>::Scalar>&, std::size_t, std::size_t>>, int> = 0>
 #endif
   inline Arg&
-  apply_coefficientwise(Arg& arg, const Function& f)
+  apply_coefficientwise(const Function& f, Arg& arg)
   {
-    apply_coefficientwise(nested_matrix(arg), f);
+    apply_coefficientwise(f, nested_matrix(arg));
     using RC = typename MatrixTraits<Arg>::RowCoefficients;
     if constexpr(wrapped_mean<Arg>)
       nested_matrix(arg) = wrap_angles<RC>(nested_matrix(arg));
@@ -889,34 +889,34 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
 
 
 #ifdef __cpp_concepts
-  template<typed_matrix Arg, typename Function> requires
+  template<typename Function, typed_matrix Arg> requires
     std::convertible_to<std::invoke_result_t<const Function&, std::decay_t<typename MatrixTraits<Arg>::Scalar>>,
       typename MatrixTraits<Arg>::Scalar>
 #else
-  template<typename Arg, typename Function, std::enable_if_t<typed_matrix<Arg> and
+  template<typename Function, typename Arg, std::enable_if_t<typed_matrix<Arg> and
     std::is_convertible_v<std::invoke_result_t<const Function&, std::decay_t<typename MatrixTraits<Arg>::Scalar>>,
       typename MatrixTraits<Arg>::Scalar>, int> = 0>
 #endif
   inline auto
-  apply_coefficientwise(const Arg& arg, const Function& f)
+  apply_coefficientwise(const Function& f, const Arg& arg)
   {
-    return MatrixTraits<Arg>::make(apply_coefficientwise(nested_matrix(arg), f));
+    return MatrixTraits<Arg>::make(apply_coefficientwise(f, nested_matrix(arg)));
   }
 
 
 #ifdef __cpp_concepts
-  template<typed_matrix Arg, typename Function> requires std::convertible_to<std::invoke_result_t<const Function&,
+  template<typename Function, typed_matrix Arg> requires std::convertible_to<std::invoke_result_t<const Function&,
       std::decay_t<typename MatrixTraits<Arg>::Scalar>, std::size_t, std::size_t>, typename MatrixTraits<Arg>::Scalar>
 #else
-  template<typename Arg, typename Function, std::enable_if_t<typed_matrix<Arg> and
+  template<typename Function, typename Arg, std::enable_if_t<typed_matrix<Arg> and
     std::is_convertible_v<std::invoke_result_t<const Function&,
       std::decay_t<typename MatrixTraits<Arg>::Scalar>, std::size_t, std::size_t>,
       typename MatrixTraits<Arg>::Scalar>, int> = 0>
 #endif
   inline auto
-  apply_coefficientwise(const Arg& arg, const Function& f)
+  apply_coefficientwise(const Function& f, const Arg& arg)
   {
-    return MatrixTraits<Arg>::make(apply_coefficientwise(nested_matrix(arg), f));
+    return MatrixTraits<Arg>::make(apply_coefficientwise(f, nested_matrix(arg)));
   }
 
 

@@ -977,24 +977,24 @@ TEST(covariance_tests, SquareRootCovariance_blocks)
   EXPECT_TRUE(is_near(column<1>(SqCovT4l(nl)), Mean{0., 3, 0, 0}));
   EXPECT_TRUE(is_near(column<1>(SqCovT4u(nu)), Mean{1., 3, 0, 0}));
 
-  EXPECT_TRUE(is_near(apply_columnwise(SqCovSA2l(m1l), [](auto col){ return col * 2; }), Mat2 {6, 0, 2, 6}));
-  EXPECT_TRUE(is_near(apply_columnwise(SqCovSA2u(m1u), [](const auto col){ return col * 2; }), Mat2 {6, 2, 0, 6}));
-  EXPECT_TRUE(is_near(apply_columnwise(SqCovT2l(m1l), [](auto&& col){ return col * 2; }), Mat2 {6, 0, 2, 6}));
-  EXPECT_TRUE(is_near(apply_columnwise(SqCovT2u(m1u), [](const auto& col){ return col * 2; }), Mat2 {6, 2, 0, 6}));
+  EXPECT_TRUE(is_near(apply_columnwise([](auto col){ return col * 2; }, SqCovSA2l(m1l)), Mat2 {6, 0, 2, 6}));
+  EXPECT_TRUE(is_near(apply_columnwise([](const auto col){ return col * 2; }, SqCovSA2u(m1u)), Mat2 {6, 2, 0, 6}));
+  EXPECT_TRUE(is_near(apply_columnwise([](auto&& col){ return col * 2; }, SqCovT2l(m1l)), Mat2 {6, 0, 2, 6}));
+  EXPECT_TRUE(is_near(apply_columnwise([](const auto& col){ return col * 2; }, SqCovT2u(m1u)), Mat2 {6, 2, 0, 6}));
 
-  EXPECT_TRUE(is_near(apply_columnwise(SqCovSA2l(m1l), [](auto col, std::size_t i){ return col * i; }), Mat2 {0, 0, 0, 3}));
-  EXPECT_TRUE(is_near(apply_columnwise(SqCovSA2u(m1u), [](const auto col, std::size_t i){ return col * i; }), Mat2 {0, 1, 0, 3}));
-  EXPECT_TRUE(is_near(apply_columnwise(SqCovT2l(m1l), [](auto&& col, std::size_t i){ return col * i; }), Mat2 {0, 0, 0, 3}));
-  EXPECT_TRUE(is_near(apply_columnwise(SqCovT2u(m1u), [](const auto& col, std::size_t i){ return col * i; }), Mat2 {0, 1, 0, 3}));
+  EXPECT_TRUE(is_near(apply_columnwise([](auto col, std::size_t i){ return col * i; }, SqCovSA2l(m1l)), Mat2 {0, 0, 0, 3}));
+  EXPECT_TRUE(is_near(apply_columnwise([](const auto col, std::size_t i){ return col * i; }, SqCovSA2u(m1u)), Mat2 {0, 1, 0, 3}));
+  EXPECT_TRUE(is_near(apply_columnwise([](auto&& col, std::size_t i){ return col * i; }, SqCovT2l(m1l)), Mat2 {0, 0, 0, 3}));
+  EXPECT_TRUE(is_near(apply_columnwise([](const auto& col, std::size_t i){ return col * i; }, SqCovT2u(m1u)), Mat2 {0, 1, 0, 3}));
 
-  EXPECT_TRUE(is_near(apply_coefficientwise(SqCovSA2l(m1l), [](auto x){ return x + 1; }), Mat2 {4, 1, 2, 4}));
-  EXPECT_TRUE(is_near(apply_coefficientwise(SqCovSA2u(m1u), [](const auto x){ return x + 1; }), Mat2 {4, 2, 1, 4}));
-  EXPECT_TRUE(is_near(apply_coefficientwise(SqCovT2l(m1l), [](auto&& x){ return x + 1; }), Mat2 {4, 1, 2, 4}));
-  EXPECT_TRUE(is_near(apply_coefficientwise(SqCovT2u(m1u), [](const auto& x){ return x + 1; }), Mat2 {4, 2, 1, 4}));
+  EXPECT_TRUE(is_near(apply_coefficientwise([](auto x){ return x + 1; }, SqCovSA2l(m1l)), Mat2 {4, 1, 2, 4}));
+  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto x){ return x + 1; }, SqCovSA2u(m1u)), Mat2 {4, 2, 1, 4}));
+  EXPECT_TRUE(is_near(apply_coefficientwise([](auto&& x){ return x + 1; }, SqCovT2l(m1l)), Mat2 {4, 1, 2, 4}));
+  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto& x){ return x + 1; }, SqCovT2u(m1u)), Mat2 {4, 2, 1, 4}));
 
-  EXPECT_TRUE(is_near(apply_coefficientwise(SqCovSA2l(m1l), [](const auto& x, std::size_t i, std::size_t j){ return x + i + j; }), Mat2 {3, 1, 2, 5}));
-  EXPECT_TRUE(is_near(apply_coefficientwise(SqCovSA2u(m1u), [](const auto& x, std::size_t i, std::size_t j){ return x + i + j; }), Mat2 {3, 2, 1, 5}));
-  EXPECT_TRUE(is_near(apply_coefficientwise(SqCovT2l(m1l), [](const auto& x, std::size_t i, std::size_t j){ return x + i + j; }), Mat2 {3, 1, 2, 5}));
-  EXPECT_TRUE(is_near(apply_coefficientwise(SqCovT2u(m1u), [](const auto& x, std::size_t i, std::size_t j){ return x + i + j; }), Mat2 {3, 2, 1, 5}));
+  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto& x, std::size_t i, std::size_t j){ return x + i + j; }, SqCovSA2l(m1l)), Mat2 {3, 1, 2, 5}));
+  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto& x, std::size_t i, std::size_t j){ return x + i + j; }, SqCovSA2u(m1u)), Mat2 {3, 2, 1, 5}));
+  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto& x, std::size_t i, std::size_t j){ return x + i + j; }, SqCovT2l(m1l)), Mat2 {3, 1, 2, 5}));
+  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto& x, std::size_t i, std::size_t j){ return x + i + j; }, SqCovT2u(m1u)), Mat2 {3, 2, 1, 5}));
 }
 

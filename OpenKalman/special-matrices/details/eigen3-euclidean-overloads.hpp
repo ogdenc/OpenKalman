@@ -1013,18 +1013,18 @@ namespace OpenKalman::Eigen3
    * \tparam Function The function, which takes a column and returns a column.
    */
 #ifdef __cpp_concepts
-  template<euclidean_expr Arg, typename Function> requires
+  template<typename Function, euclidean_expr Arg> requires
     requires(const Function& f, std::decay_t<decltype(column(std::declval<Arg>(), 0))>& col) { f(col); } and
     (not std::is_const_v<std::remove_reference_t<nested_matrix_t<Arg>>>) and
     modifiable<nested_matrix_t<Arg>, nested_matrix_t<Arg>>
 #else
-  template<typename Arg, typename Function, std::enable_if_t<euclidean_expr<Arg> and
+  template<typename Function, typename Arg, std::enable_if_t<euclidean_expr<Arg> and
     std::is_invocable_v<Function, decltype(column(std::declval<Arg&>(), 0))&> and
     (not std::is_const_v<std::remove_reference_t<nested_matrix_t<Arg>>>) and
     modifiable<nested_matrix_t<Arg>, nested_matrix_t<Arg>>, int> = 0>
 #endif
   inline Arg&
-  apply_columnwise(Arg& arg, const Function& f)
+  apply_columnwise(const Function& f, Arg& arg)
   {
     using Coefficients = typename MatrixTraits<Arg>::RowCoefficients;
     const auto f_nested = [&f](auto& col)
@@ -1034,7 +1034,7 @@ namespace OpenKalman::Eigen3
       col = std::move(nested_matrix(mc));
     };
     auto& c = nested_matrix(arg);
-    apply_columnwise(c, f_nested);
+    apply_columnwise(f_nested, c);
     return arg;
   }
 
@@ -1045,20 +1045,20 @@ namespace OpenKalman::Eigen3
    * \tparam Function The function, which takes a column and an index and returns a column.
    */
 #ifdef __cpp_concepts
-  template<euclidean_expr Arg, typename Function> requires
+  template<typename Function, euclidean_expr Arg> requires
     requires(const Function& f, std::decay_t<decltype(column(std::declval<Arg>(), 0))>& col, std::size_t i) {
       f(col, i);
     } and
     (not std::is_const_v<std::remove_reference_t<nested_matrix_t<Arg>>>) and
     modifiable<nested_matrix_t<Arg>, nested_matrix_t<Arg>>
 #else
-  template<typename Arg, typename Function, std::enable_if_t<euclidean_expr<Arg> and
+  template<typename Function, typename Arg, std::enable_if_t<euclidean_expr<Arg> and
     std::is_invocable_v<Function, decltype(column(std::declval<Arg&>(), 0))&, std::size_t> and
     (not std::is_const_v<std::remove_reference_t<nested_matrix_t<Arg>>>) and
     modifiable<nested_matrix_t<Arg>, nested_matrix_t<Arg>>, int> = 0>
 #endif
   inline Arg&
-  apply_columnwise(Arg& arg, const Function& f)
+  apply_columnwise(const Function& f, Arg& arg)
   {
     using Coefficients = typename MatrixTraits<Arg>::RowCoefficients;
     const auto f_nested = [&f](auto& col, std::size_t i)
@@ -1068,7 +1068,7 @@ namespace OpenKalman::Eigen3
       col = std::move(nested_matrix(mc));
     };
     auto& c = nested_matrix(arg);
-    apply_columnwise(c, f_nested);
+    apply_columnwise(f_nested, c);
     return arg;
   }
 
@@ -1080,21 +1080,21 @@ namespace OpenKalman::Eigen3
    * \todo add situation where Arg is a native_matrix but the function result is a euclidean_expr
    */
 #ifdef __cpp_concepts
-  template<euclidean_expr Arg, typename Function> requires
+  template<typename Function, euclidean_expr Arg> requires
     requires(const Arg& arg, const Function& f) { {f(column(arg, 0))} -> column_vector; }
 #else
-  template<typename Arg, typename Function, std::enable_if_t<euclidean_expr<Arg> and
+  template<typename Function, typename Arg, std::enable_if_t<euclidean_expr<Arg> and
     column_vector<std::invoke_result_t<Function,
       std::decay_t<decltype(column(std::declval<const Arg&>(), 0))>&&>>, int> = 0>
 #endif
   inline auto
-  apply_columnwise(const Arg& arg, const Function& f)
+  apply_columnwise(const Function& f, const Arg& arg)
   {
     using Coefficients = typename MatrixTraits<Arg>::RowCoefficients;
     const auto f_nested = [&f](auto&& col) -> auto {
       return make_self_contained(f(MatrixTraits<Arg>::template make<Coefficients>(std::forward<decltype(col)>(col))));
     };
-    return apply_columnwise(nested_matrix(arg), f_nested);
+    return apply_columnwise(f_nested, nested_matrix(arg));
   }
 
 
@@ -1104,22 +1104,22 @@ namespace OpenKalman::Eigen3
    * \tparam Function The function, which takes a column and an index and returns a column.
    */
 #ifdef __cpp_concepts
-  template<euclidean_expr Arg, typename Function> requires
+  template<typename Function, euclidean_expr Arg> requires
     requires(const Arg& arg, const Function& f, std::size_t i) { {f(column(arg, 0), i)} -> column_vector; }
 #else
-  template<typename Arg, typename Function, std::enable_if_t<euclidean_expr<Arg> and
+  template<typename Function, typename Arg, std::enable_if_t<euclidean_expr<Arg> and
     column_vector<std::invoke_result_t<Function,
       std::decay_t<decltype(column(std::declval<const Arg&>(), 0))>&&, std::size_t>>, int> = 0>
 #endif
   inline auto
-  apply_columnwise(const Arg& arg, const Function& f)
+  apply_columnwise(const Function& f, const Arg& arg)
   {
     using Coefficients = typename MatrixTraits<Arg>::RowCoefficients;
     const auto f_nested = [&f](auto&& col, std::size_t i) -> auto {
       return make_self_contained(
         f(MatrixTraits<Arg>::template make<Coefficients>(std::forward<decltype(col)>(col)), i));
     };
-    return apply_columnwise(nested_matrix(arg), f_nested);
+    return apply_columnwise(f_nested, nested_matrix(arg));
   }
 
 
@@ -1162,26 +1162,26 @@ namespace OpenKalman::Eigen3
    * \tparam Function The function, which takes a row (and optionally an index) and returns a row.
    */
   #ifdef __cpp_concepts
-  template<euclidean_expr Arg, typename Function> requires
-    requires(const Arg& arg, const Function& f) { {f(row(arg, 0))} -> row_vector; } or
-    requires(const Arg& arg, const Function& f, std::size_t i) { {f(row(arg, 0), i)} -> row_vector; }
+  template<typename Function, euclidean_expr Arg> requires
+    requires(const Function& f, const Arg& arg) { {f(row(arg, 0))} -> row_vector; } or
+    requires(const Function& f, const Arg& arg, std::size_t i) { {f(row(arg, 0), i)} -> row_vector; }
   #else
-  template<typename Arg, typename Function, std::enable_if_t<euclidean_expr<Arg> and
-  row_vector<std::invoke_result_t<Function, std::decay_t<decltype(row(std::declval<const Arg&>(), 0))>&&>>, int> = 0>
+  template<typename Function, typename Arg, std::enable_if_t<euclidean_expr<Arg> and
+    row_vector<std::invoke_result_t<Function, std::decay_t<decltype(row(std::declval<const Arg&>(), 0))>&&>>, int> = 0>
   inline auto
-  apply_rowwise(Arg&& arg, const Function& f)
+  apply_rowwise(const Function& f, Arg&& arg)
   {
-    return apply_rowwise(make_native_matrix(std::forward<Arg>(arg)), f);
+    return apply_rowwise(f, make_native_matrix(std::forward<Arg>(arg)));
   }
 
-  template<typename Arg, typename Function, std::enable_if_t<euclidean_expr<Arg> and
+  template<typename Function, typename Arg, std::enable_if_t<euclidean_expr<Arg> and
     row_vector<std::invoke_result_t<Function,
       std::decay_t<decltype(row(std::declval<const Arg&>(), 0))>&&, std::size_t>>, int> = 0>
   #endif
   inline auto
-  apply_rowwise(Arg&& arg, const Function& f)
+  apply_rowwise(const Function& f, Arg&& arg)
   {
-    return apply_rowwise(make_native_matrix(std::forward<Arg>(arg)), f);
+    return apply_rowwise(f, make_native_matrix(std::forward<Arg>(arg)));
   }
 
 
@@ -1217,7 +1217,7 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-  template<euclidean_expr Arg, typename Function> requires
+  template<typename Function, euclidean_expr Arg> requires
     requires(Function& f, typename MatrixTraits<Arg>::Scalar& s) {
       {f(s)} -> std::convertible_to<const typename MatrixTraits<Arg>::Scalar>;
     } or
@@ -1225,24 +1225,24 @@ namespace OpenKalman::Eigen3
       {f(s, i, j)} -> std::convertible_to<const typename MatrixTraits<Arg>::Scalar>;
     }
 #else
-  template<typename Arg, typename Function, std::enable_if_t<euclidean_expr<Arg> and std::is_convertible_v<
+  template<typename Function, typename Arg, std::enable_if_t<euclidean_expr<Arg> and std::is_convertible_v<
     std::invoke_result_t<Function&, typename MatrixTraits<Arg>::Scalar&>,
     const typename MatrixTraits<Arg>::Scalar>, int> = 0>
   inline auto
-  apply_coefficientwise(Arg&& arg, const Function& f)
+  apply_coefficientwise(const Function& f, Arg&& arg)
   {
-    return apply_coefficientwise(make_native_matrix(std::forward<Arg>(arg)), f);
+    return apply_coefficientwise(f, make_native_matrix(std::forward<Arg>(arg)));
   }
 
 
-  template<typename Arg, typename Function, std::enable_if_t<euclidean_expr<Arg> and std::is_convertible_v<
+  template<typename Function, typename Arg, std::enable_if_t<euclidean_expr<Arg> and std::is_convertible_v<
     std::invoke_result_t<Function&, typename MatrixTraits<Arg>::Scalar&, std::size_t&, std::size_t&>,
     const typename MatrixTraits<Arg>::Scalar>, int> = 0>
 #endif
   inline auto
-  apply_coefficientwise(Arg&& arg, const Function& f)
+  apply_coefficientwise(const Function& f, Arg&& arg)
   {
-    return apply_coefficientwise(make_native_matrix(std::forward<Arg>(arg)), f);
+    return apply_coefficientwise(f, make_native_matrix(std::forward<Arg>(arg)));
   }
 
 

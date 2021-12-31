@@ -111,7 +111,8 @@ namespace OpenKalman
 #else
     template<typename M, std::enable_if_t<
       triangular_covariance<M> and (not std::is_base_of_v<SquareRootCovariance, std::decay_t<M>>) and
-      (triangle_type_of_v<M> == triangle_type_of_v<SquareRootCovariance>) and std::is_constructible_v<Base, M&&>, int> = 0>
+      (triangle_type_of<M>::value == triangle_type_of<SquareRootCovariance>::value) and
+      std::is_constructible_v<Base, M&&>, int> = 0>
 #endif
     SquareRootCovariance(M&& m) noexcept : Base {std::forward<M>(m)} {}
 
@@ -199,7 +200,7 @@ namespace OpenKalman
 #else
     template<typename Arg, std::enable_if_t<triangular_covariance<Arg> and
       (not std::is_base_of_v<SquareRootCovariance, std::decay_t<Arg>>) and
-      (triangle_type_of_v<Arg> == triangle_type_of_v<SquareRootCovariance>) and
+      (triangle_type_of<Arg>::value == triangle_type_of<SquareRootCovariance>::value) and
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients> and
       modifiable<NestedMatrix, nested_matrix_t<Arg>>, int> = 0>
 #endif
@@ -285,7 +286,7 @@ namespace OpenKalman
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>
 #else
     template<typename Arg, std::enable_if_t<(not std::is_const_v<std::remove_reference_t<NestedMatrix>>) and
-      ((triangular_covariance<Arg> and triangle_type_of_v<Arg> == triangle_type_of_v<SquareRootCovariance>) or
+      ((triangular_covariance<Arg> and triangle_type_of<Arg>::value == triangle_type_of<SquareRootCovariance>::value) or
         (typed_matrix<Arg> and square_matrix<Arg>)) and
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>, int> = 0>
 #endif
@@ -341,7 +342,7 @@ namespace OpenKalman
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>
 #else
     template<typename Arg, std::enable_if_t<(not std::is_const_v<std::remove_reference_t<NestedMatrix>>) and
-      ((triangular_covariance<Arg> and triangle_type_of_v<Arg> == triangle_type_of_v<SquareRootCovariance>) or
+      ((triangular_covariance<Arg> and triangle_type_of<Arg>::value == triangle_type_of<SquareRootCovariance>::value) or
         (typed_matrix<Arg> and square_matrix<Arg>)) and
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>, int> = 0>
 #endif
@@ -440,7 +441,7 @@ namespace OpenKalman
       (not std::is_const_v<std::remove_reference_t<NestedMatrix>>)
 #else
     template<typename Arg, std::enable_if_t<triangular_covariance<Arg> and
-      (triangle_type_of_v<Arg> == triangle_type_of_v<SquareRootCovariance>) and
+      (triangle_type_of<Arg>::value == triangle_type_of<SquareRootCovariance>::value) and
       (not std::is_const_v<std::remove_reference_t<NestedMatrix>>), int> = 0>
 #endif
     auto& operator*=(const Arg& arg)
@@ -917,10 +918,19 @@ namespace OpenKalman
   //        Traits          //
   // ---------------------- //
 
-  template<typename Coeffs, typename ArgType>
-  struct MatrixTraits<SquareRootCovariance<Coeffs, ArgType>>
+  namespace internal
   {
-    using NestedMatrix = ArgType;
+    template<typename Coeffs, typename NestedMatrix>
+    struct nested_matrix_type<SquareRootCovariance<Coeffs, NestedMatrix>>
+    {
+      using type = NestedMatrix;
+    };
+  }
+
+
+  template<typename Coeffs, typename NestedMatrix>
+  struct MatrixTraits<SquareRootCovariance<Coeffs, NestedMatrix>>
+  {
     static constexpr auto rows = MatrixTraits<NestedMatrix>::rows;
     static constexpr auto columns = rows;
     static_assert(Coeffs::dimensions == rows);

@@ -64,8 +64,8 @@ namespace OpenKalman::test
         static_assert((equivalent_to<typename MatrixTraits<decltype(ps)>::RowCoefficients, Axis > and ...));
         static_assert((equivalent_to<typename MatrixTraits<decltype(ps)>::ColumnCoefficients, Axis > and ...));
 
-        return make_self_contained((apply_coefficientwise(adjoint(x) * x,
-          [](const auto& c) { return std::sqrt(c); }) + ... + ps));
+        return make_self_contained((apply_coefficientwise([](const auto& c) { return std::sqrt(c); }, adjoint(x) * x) +
+          ... + ps));
       },
       [](const auto& x, const auto& ...ps) // Jacobians
       {

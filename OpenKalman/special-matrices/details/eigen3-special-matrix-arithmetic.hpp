@@ -16,7 +16,7 @@
 #ifndef OPENKALMAN_EIGEN3_SPECIAL_MATRIX_ARITHMETIC_HPP
 #define OPENKALMAN_EIGEN3_SPECIAL_MATRIX_ARITHMETIC_HPP
 
-#include "eigen3-forward-declarations.hpp"
+#include "interfaces/eigen3/details/eigen3-forward-declarations.hpp"
 
 #include <iostream>
 
@@ -671,7 +671,7 @@ namespace OpenKalman::Eigen3
     constexpr auto cols = MatrixTraits<Arg2>::columns;
     if constexpr (dynamic_rows<Arg1> and dynamic_columns<Arg2>)
     {
-      return ZeroMatrix<Scalar, 0, 0> {row_count(arg1), column_count(arg2)};
+      return ZeroMatrix<Scalar, dynamic_extent, dynamic_extent> {row_count(arg1), column_count(arg2)};
     }
     else if constexpr (dynamic_rows<Arg1> and not dynamic_columns<Arg2>)
     {

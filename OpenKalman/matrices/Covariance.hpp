@@ -1066,10 +1066,19 @@ namespace OpenKalman
   //        Traits         //
   // --------------------- //
 
-  template<typename Coeffs, typename ArgType>
-  struct MatrixTraits<Covariance<Coeffs, ArgType>>
+  namespace internal
   {
-    using NestedMatrix = ArgType;
+    template<typename Coeffs, typename NestedMatrix>
+    struct nested_matrix_type<Covariance<Coeffs, NestedMatrix>>
+    {
+      using type = NestedMatrix;
+    };
+  }
+
+
+  template<typename Coeffs, typename NestedMatrix>
+  struct MatrixTraits<Covariance<Coeffs, NestedMatrix>>
+  {
     static constexpr auto rows = MatrixTraits<NestedMatrix>::rows;
     static constexpr auto columns = rows;
     using RowCoefficients = Coeffs;

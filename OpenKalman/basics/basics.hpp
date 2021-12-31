@@ -20,6 +20,7 @@
 #ifndef OPENKALMAN_BASICS_HPP
 #define OPENKALMAN_BASICS_HPP
 
+#include "language-features.hpp"
 #include "forward-traits.hpp"
 #include "forward-class-declarations.hpp"
 #include "traits.hpp"

@@ -13,7 +13,7 @@
  * \brief Tests relating to Eigen3::DiagonalMatrix.
  */
 
-#include "eigen3.gtest.hpp"
+#include "special-matrices.gtest.hpp"
 
 #include <complex>
 
@@ -26,18 +26,18 @@ namespace
   using cdouble = std::complex<double>;
 
   using M51 = eigen_matrix_t<double, 5, 1>;
-  using M50 = eigen_matrix_t<double, 5, 0>;
+  using M50 = eigen_matrix_t<double, 5, dynamic_extent>;
   using M31 = eigen_matrix_t<double, 3, 1>;
   using M33 = eigen_matrix_t<double, 3, 3>;
-  using M30 = eigen_matrix_t<double, 3, 0>;
-  using M03 = eigen_matrix_t<double, 0, 3>;
+  using M30 = eigen_matrix_t<double, 3, dynamic_extent>;
+  using M03 = eigen_matrix_t<double, dynamic_extent, 3>;
   using M21 = eigen_matrix_t<double, 2, 1>;
   using M22 = eigen_matrix_t<double, 2, 2>;
-  using M20 = eigen_matrix_t<double, 2, 0>;
-  using M02 = eigen_matrix_t<double, 0, 2>;
+  using M20 = eigen_matrix_t<double, 2, dynamic_extent>;
+  using M02 = eigen_matrix_t<double, dynamic_extent, 2>;
   using M11 = eigen_matrix_t<double, 1, 1>;
-  using M01 = eigen_matrix_t<double, 0, 1>;
-  using M00 = eigen_matrix_t<double, 0, 0>;
+  using M01 = eigen_matrix_t<double, dynamic_extent, 1>;
+  using M00 = eigen_matrix_t<double, dynamic_extent, dynamic_extent>;
 
   M51 m51 {make_native_matrix<double, 5, 1>(1, 2, 3, 4, 5)};
   M31 m31 {make_native_matrix<double, 3, 1>(1, 2, 3)};
@@ -62,6 +62,32 @@ namespace
   D5 d5 {m51};
   D0 d0_5 {m51};
   DiagonalMatrix<const M51> d5_const {m51};
+
+  template<typename Mat> using D = DiagonalMatrix<Mat>;
+}
+
+
+TEST(eigen3, Diagonal_static_checks)
+{
+  static_assert(writable<D<M31>>);
+  static_assert(writable<D<M31&>>);
+  static_assert(not writable<D<const M31>>);
+  static_assert(not writable<D<const M31&>>);
+  
+  static_assert(modifiable<D<M31>, ZeroMatrix<double, 3, 3>>);
+  static_assert(modifiable<D<M31>, IdentityMatrix<M22>>);
+  static_assert(not modifiable<D<M31>, M31>);
+  static_assert(modifiable<D<M31>, D<M31>>);
+  static_assert(modifiable<D<M31>, const D<M31>>);
+  static_assert(modifiable<D<M31>, D<const M31>>);
+  static_assert(not modifiable<D<const M31>, D<M31>>);
+  static_assert(not modifiable<D<M31>, D<M21>>);
+  static_assert(modifiable<D<M31>&, D<M31>>);
+  static_assert(modifiable<D<M31&>, D<M31>>);
+  static_assert(not modifiable<D<M31&>, M31>);
+  static_assert(not modifiable<const D<M31>&, D<M31>>);
+  static_assert(not modifiable<D<const M31&>, D<M31>>);
+  static_assert(not modifiable<D<const M31>&, D<M31>>);
 }
 
 
@@ -123,14 +149,14 @@ TEST(eigen3, Diagonal_class)
   EXPECT_TRUE(is_near(DiagonalMatrix {(DiagonalMatrix {ZeroMatrix<double, 3, 3>{}}).nested_matrix()}, M33::Zero()));
   EXPECT_TRUE(is_near(D0 {ZeroMatrix<double, 3, 1>{}}, M33::Zero()));
   EXPECT_TRUE(is_near(D0 {ZeroMatrix<double, 3, 3>{}}, M33::Zero()));
-  EXPECT_TRUE(is_near(DiagonalMatrix {(DiagonalMatrix {ZeroMatrix<double, 0, 0> {3, 3}}).nested_matrix()}, M33::Zero()));
-  EXPECT_TRUE(is_near(DiagonalMatrix {ZeroMatrix<double, 0, 1>{3}}, M33::Zero()));
-  EXPECT_TRUE(is_near(DiagonalMatrix {ZeroMatrix<double, 3, 0>{1}}, M33::Zero()));
-  EXPECT_TRUE(is_near(DiagonalMatrix {ZeroMatrix<double, 3, 0>{3}}, M33::Zero()));
-  EXPECT_TRUE(is_near(D3 {ZeroMatrix<double, 0, 3>{3}}, M33::Zero()));
-  EXPECT_TRUE(is_near(DiagonalMatrix {ZeroMatrix<double, 0, 3>{3}}, M33::Zero()));
-  EXPECT_TRUE(is_near(D3 {ZeroMatrix<double, 0, 0>{3, 3}}, M33::Zero()));
-  EXPECT_TRUE(is_near(DiagonalMatrix {ZeroMatrix<double, 0, 0>{3, 3}}, M33::Zero()));
+  EXPECT_TRUE(is_near(DiagonalMatrix {(DiagonalMatrix {ZeroMatrix<double, dynamic_extent, dynamic_extent> {3, 3}}).nested_matrix()}, M33::Zero()));
+  EXPECT_TRUE(is_near(DiagonalMatrix {ZeroMatrix<double, dynamic_extent, 1>{3}}, M33::Zero()));
+  EXPECT_TRUE(is_near(DiagonalMatrix {ZeroMatrix<double, 3, dynamic_extent>{1}}, M33::Zero()));
+  EXPECT_TRUE(is_near(DiagonalMatrix {ZeroMatrix<double, 3, dynamic_extent>{3}}, M33::Zero()));
+  EXPECT_TRUE(is_near(D3 {ZeroMatrix<double, dynamic_extent, 3>{3}}, M33::Zero()));
+  EXPECT_TRUE(is_near(DiagonalMatrix {ZeroMatrix<double, dynamic_extent, 3>{3}}, M33::Zero()));
+  EXPECT_TRUE(is_near(D3 {ZeroMatrix<double, dynamic_extent, dynamic_extent>{3, 3}}, M33::Zero()));
+  EXPECT_TRUE(is_near(DiagonalMatrix {ZeroMatrix<double, dynamic_extent, dynamic_extent>{3, 3}}, M33::Zero()));
 
   // construct from identity matrix, and deduction guide (from non-DiagonalMatrix diagonal)
   EXPECT_TRUE(is_near(DiagonalMatrix {MatrixTraits<D3>::identity()}, M33::Identity()));
@@ -185,9 +211,9 @@ TEST(eigen3, Diagonal_class)
   // assign from different-typed eigen_diagonal_expr
   d3c = DiagonalMatrix<ZeroMatrix<double, 3, 1>> {ZeroMatrix<double, 3, 1> {}};
   EXPECT_TRUE(is_near(d3c, z33));
-  d0c_3 = DiagonalMatrix<ZeroMatrix<double, 0, 1>> {ZeroMatrix<double, 0, 1> {3}};
+  d0c_3 = DiagonalMatrix<ZeroMatrix<double, dynamic_extent, 1>> {ZeroMatrix<double, 0, 1> {3}};
   EXPECT_TRUE(is_near(d0c_3, z33));
-  d3d = DiagonalMatrix<ZeroMatrix<double, 0, 1>> {ZeroMatrix<double, 0, 1> {3}};
+  d3d = DiagonalMatrix<ZeroMatrix<double, dynamic_extent, 1>> {ZeroMatrix<double, 0, 1> {3}};
   EXPECT_TRUE(is_near(d3d, z33));
   d0d_3 = DiagonalMatrix<ZeroMatrix<double, 3, 1>> {ZeroMatrix<double, 3, 1> {}};
   EXPECT_TRUE(is_near(d0d_3, z33));
@@ -195,9 +221,9 @@ TEST(eigen3, Diagonal_class)
   // assign from zero
   d3c = ZeroMatrix<double, 3, 3> {};
   EXPECT_TRUE(is_near(d3c, z33));
-  d0c_3 = ZeroMatrix<double, 0, 0> {3, 3};
+  d0c_3 = ZeroMatrix<double, dynamic_extent, dynamic_extent> {3, 3};
   EXPECT_TRUE(is_near(d0c_3, z33));
-  d3d = ZeroMatrix<double, 0, 0> {3, 3};
+  d3d = ZeroMatrix<double, dynamic_extent, dynamic_extent> {3, 3};
   EXPECT_TRUE(is_near(d3d, z33));
   d0d_3 = ZeroMatrix<double, 3, 3> {};
   EXPECT_TRUE(is_near(d0d_3, z33));
@@ -637,34 +663,34 @@ TEST(eigen3, Diagonal_blocks)
   EXPECT_TRUE(is_near(row(d3, 2), eigen_matrix_t<double, 1, 3>(0., 0, 3)));
   EXPECT_TRUE(is_near(row<1>(d3), eigen_matrix_t<double, 1, 3>(0., 2, 0)));
 
-  EXPECT_TRUE(is_near(apply_columnwise(d3, [](const auto& col){ return make_self_contained(col + col.Constant(1)); }),
+  EXPECT_TRUE(is_near(apply_columnwise([](const auto& col){ return make_self_contained(col + col.Constant(1)); }, d3),
     make_native_matrix<double, 3, 3>(
       2, 1, 1,
       1, 3, 1,
       1, 1, 4)));
-  EXPECT_TRUE(is_near(apply_columnwise(d3, [](const auto& col, std::size_t i){ return make_self_contained(col + col.Constant(i)); }),
+  EXPECT_TRUE(is_near(apply_columnwise([](const auto& col, std::size_t i){ return make_self_contained(col + col.Constant(i)); }, d3),
     make_native_matrix<double, 3, 3>(
       1, 1, 2,
       0, 3, 2,
       0, 1, 5)));
 
-  EXPECT_TRUE(is_near(apply_rowwise(d3, [](const auto& row){ return make_self_contained(row + row.Constant(1)); }),
+  EXPECT_TRUE(is_near(apply_rowwise([](const auto& row){ return make_self_contained(row + row.Constant(1)); }, d3),
     make_native_matrix<double, 3, 3>(
       2, 1, 1,
       1, 3, 1,
       1, 1, 4)));
-  EXPECT_TRUE(is_near(apply_rowwise(d3, [](const auto& row, std::size_t i){ return make_self_contained(row + row.Constant(i)); }),
+  EXPECT_TRUE(is_near(apply_rowwise([](const auto& row, std::size_t i){ return make_self_contained(row + row.Constant(i)); }, d3),
     make_native_matrix<double, 3, 3>(
       1, 0, 0,
       1, 3, 1,
       2, 2, 5)));
 
-  EXPECT_TRUE(is_near(apply_coefficientwise(d3, [](const auto& x){ return x + 1; }),
+  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto& x){ return x + 1; }, d3),
     make_native_matrix<double, 3, 3>(
       2, 1, 1,
       1, 3, 1,
       1, 1, 4)));
-  EXPECT_TRUE(is_near(apply_coefficientwise(d3, [](const auto& x, std::size_t i, std::size_t j){ return x + i + j; }),
+  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto& x, std::size_t i, std::size_t j){ return x + i + j; }, d3),
     make_native_matrix<double, 3, 3>(
       1, 1, 2,
       1, 4, 3,

@@ -38,35 +38,14 @@ namespace OpenKalman::Eigen3::internal
   template<typename Derived, typename ArgType>
   struct Eigen3MatrixBase : Eigen3Base<Derived>
   {
-    using Nested = ArgType; ///< Required by Eigen3.
-
-    using Scalar = typename MatrixTraits<Nested>::Scalar; ///< Required by Eigen3.
-
-    /**
-     * \internal
-     * \return The number of fixed rows. (Required by Eigen::EigenBase).
-     */
-#ifdef __cpp_concepts
-    static constexpr Eigen::Index rows() requires (not dynamic_rows<ArgType>)
-#else
-    template<typename D = ArgType, std::enable_if_t<(not dynamic_rows<D>), int> = 0>
-    static constexpr Eigen::Index rows()
-#endif
-    {
-      return MatrixTraits<Derived>::rows;
-    }
+    using Scalar = typename MatrixTraits<ArgType>::Scalar; ///< \internal \note Eigen3 requires this.
 
 
     /**
      * \internal
-     * \return The number of dynamic rows. (Required by Eigen::EigenBase).
+     * \return The number of rows. (Required by Eigen::EigenBase).
      */
-#ifdef __cpp_concepts
-    Eigen::Index rows() const requires dynamic_rows<ArgType>
-#else
-    template<typename D = ArgType, std::enable_if_t<dynamic_rows<D>, int> = 0>
-    Eigen::Index rows() const
-#endif
+    constexpr Eigen::Index rows() const
     {
       return row_count(static_cast<const Derived&>(*this));
     }
@@ -74,29 +53,9 @@ namespace OpenKalman::Eigen3::internal
 
     /**
      * \internal
-     * \return The number of fixed columns. (Required by Eigen::EigenBase).
+     * \return The number of columns. (Required by Eigen::EigenBase).
      */
-#ifdef __cpp_concepts
-    static constexpr Eigen::Index cols() requires (not dynamic_columns<ArgType>)
-#else
-    template<typename D = ArgType, std::enable_if_t<(not dynamic_columns<D>), int> = 0>
-    static constexpr Eigen::Index cols()
-#endif
-    {
-      return MatrixTraits<Derived>::columns;
-    }
-
-
-    /**
-     * \internal
-     * \return The number of dynamic rows. (Required by Eigen::EigenBase).
-     */
-#ifdef __cpp_concepts
-    Eigen::Index cols() const requires dynamic_columns<ArgType>
-#else
-    template<typename D = ArgType, std::enable_if_t<dynamic_columns<D>, int> = 0>
-    Eigen::Index cols() const
-#endif
+    constexpr Eigen::Index cols() const
     {
       return column_count(static_cast<const Derived&>(*this));
     }
@@ -124,12 +83,13 @@ namespace OpenKalman::Eigen3::internal
      * \deprecated Use zero() instead. Provided for compatibility with Eigen Zero() member.
      * \return A matrix, of the same size and shape, containing only zero coefficients.
      */
-    [[deprecated("Use zero() instead.")]]
 #ifdef __cpp_concepts
+    [[deprecated("Use zero() instead.")]]
     static auto Zero()
     requires (not dynamic_shape<ArgType>)
 #else
-    template<typename D = ArgType, std::enable_if_t<not dynamic_shape<ArgType>, int> = 0>
+    template<typename D = ArgType, std::enable_if_t<not dynamic_shape<D>, int> = 0>
+    [[deprecated("Use zero() instead.")]]
     static auto Zero()
 #endif
     {
@@ -142,12 +102,13 @@ namespace OpenKalman::Eigen3::internal
      * \deprecated Use zero() instead. Provided for compatibility with Eigen Zero() member.
      * \return A matrix, of the same size and shape, containing only zero coefficients.
      */
-    [[deprecated("Use zero() instead.")]]
 #ifdef __cpp_concepts
+    [[deprecated("Use zero() instead.")]]
     static auto Zero(const Eigen::Index r, const Eigen::Index c)
     requires dynamic_shape<ArgType>
 #else
     template<typename D = ArgType, std::enable_if_t<dynamic_shape<D>, int> = 0>
+    [[deprecated("Use zero() instead.")]]
     static auto Zero(const Eigen::Index r, const Eigen::Index c)
 #endif
     {
@@ -191,11 +152,12 @@ namespace OpenKalman::Eigen3::internal
      * \deprecated Use identity() instead. Provided for compatibility with Eigen Identity() member.
      * \return An identity matrix with the same or identified number of rows and columns.
      */
-    [[deprecated("Use identity() instead.")]]
 #ifdef __cpp_concepts
+    [[deprecated("Use identity() instead.")]]
     static auto Identity() requires (not dynamic_shape<ArgType>)
 #else
     template<typename D = ArgType, std::enable_if_t<not dynamic_shape<D>, int> = 0>
+    [[deprecated("Use identity() instead.")]]
     static auto Identity()
 #endif
     {
@@ -208,12 +170,13 @@ namespace OpenKalman::Eigen3::internal
      * \deprecated Use identity() instead. Provided for compatibility with Eigen Identity() member.
      * \return An identity matrix with the same or identified number of rows and columns.
      */
-    [[deprecated("Use identity() instead.")]]
 #ifdef __cpp_concepts
+    [[deprecated("Use identity() instead.")]]
     static decltype(auto) Identity(const Eigen::Index r, const Eigen::Index c)
     requires dynamic_shape<ArgType>
 #else
     template<typename D = ArgType, std::enable_if_t<dynamic_shape<D>, int> = 0>
+    [[deprecated("Use identity() instead.")]]
     static decltype(auto) Identity(const Eigen::Index r, const Eigen::Index c)
 #endif
     {

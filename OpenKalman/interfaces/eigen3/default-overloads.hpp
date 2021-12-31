@@ -598,7 +598,7 @@ namespace OpenKalman
   /// If the arguments are a sequence of scalars, derive a square, self-adjoint matrix.
 #if defined(__cpp_concepts) && not defined(__clang__) // Because of compiler issue in at least clang version 10.0.0
   template<arithmetic_or_complex ... Args> requires (sizeof...(Args) > 0) and
-    (sizeof...(Args) == internal::constexpr_sqrt(sizeof...(Args)) * internal::constexpr_sqrt(sizeof...(Args)))
+    (sizeof...(Args) == constexpr_sqrt(sizeof...(Args)) * constexpr_sqrt(sizeof...(Args)))
 #else
   template<typename ... Args, std::enable_if_t<(arithmetic_or_complex<Args> and ...) and (sizeof...(Args) > 0) and
     (sizeof...(Args) == constexpr_sqrt(sizeof...(Args)) * constexpr_sqrt(sizeof...(Args))), int> = 0>
@@ -627,7 +627,7 @@ namespace OpenKalman
   /// If the arguments are a sequence of scalars, derive a square, lower triangular matrix.
 #if defined(__cpp_concepts) && not defined(__clang__) // Because of compiler issue in at least clang version 10.0.0
   template<arithmetic_or_complex ... Args> requires (sizeof...(Args) > 0) and
-  (sizeof...(Args) == internal::constexpr_sqrt(sizeof...(Args)) * internal::constexpr_sqrt(sizeof...(Args)))
+  (sizeof...(Args) == constexpr_sqrt(sizeof...(Args)) * constexpr_sqrt(sizeof...(Args)))
 #else
   template<typename ... Args, std::enable_if_t<(arithmetic_or_complex<Args> and ...) and (sizeof...(Args) > 0) and
     (sizeof...(Args) == constexpr_sqrt(sizeof...(Args)) * constexpr_sqrt(sizeof...(Args))), int> = 0>

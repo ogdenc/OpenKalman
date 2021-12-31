@@ -140,7 +140,7 @@ namespace OpenKalman
 
       // Each column is a deviation from y mean for each transformed sigma point:
       auto ypoints = apply_columnwise(
-        std::move(y_means), [&](const auto& col) { return make_self_contained(col - y_mean);});
+        [&](const auto& col) { return make_self_contained(col - y_mean);}, std::move(y_means));
 
       if constexpr (i + 1 < std::tuple_size_v<std::decay_t<Gs>>)
       {
