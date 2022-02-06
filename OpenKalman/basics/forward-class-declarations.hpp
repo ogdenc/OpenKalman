@@ -38,8 +38,8 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<coefficients RowCoefficients, coefficients ColumnCoefficients, typed_matrix_nestable NestedMatrix>
-  requires (RowCoefficients::dimensions == MatrixTraits<NestedMatrix>::rows) and
-    (ColumnCoefficients::dimensions == MatrixTraits<NestedMatrix>::columns) and
+  requires (RowCoefficients::dimensions == row_extent_of_v<NestedMatrix>) and
+    (ColumnCoefficients::dimensions == column_extent_of_v<NestedMatrix>) and
     (not std::is_rvalue_reference_v<NestedMatrix>) and
     (dynamic_coefficients<RowCoefficients> == dynamic_rows<NestedMatrix>) and
     (dynamic_coefficients<ColumnCoefficients> == dynamic_columns<NestedMatrix>)
@@ -70,7 +70,7 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<coefficients RowCoefficients, typed_matrix_nestable NestedMatrix> requires
-  (RowCoefficients::dimensions == MatrixTraits<NestedMatrix>::rows) and
+  (RowCoefficients::dimensions == row_extent_of_v<NestedMatrix>) and
   (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename RowCoefficients, typename NestedMatrix>
@@ -99,7 +99,7 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<coefficients Coefficients, typed_matrix_nestable NestedMatrix> requires
-  (Coefficients::euclidean_dimensions == MatrixTraits<NestedMatrix>::rows) and (not std::is_rvalue_reference_v<NestedMatrix>)
+  (Coefficients::euclidean_dimensions == row_extent_of_v<NestedMatrix>) and (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename Coefficients, typename NestedMatrix>
 #endif
@@ -124,7 +124,7 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<coefficients Coefficients, covariance_nestable NestedMatrix> requires
-    (Coefficients::dimensions == MatrixTraits<NestedMatrix>::rows) and (not std::is_rvalue_reference_v<NestedMatrix>)
+    (Coefficients::dimensions == row_extent_of_v<NestedMatrix>) and (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename Coefficients, typename NestedMatrix>
 #endif
@@ -159,7 +159,7 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<coefficients Coefficients, covariance_nestable NestedMatrix> requires
-    (Coefficients::dimensions == MatrixTraits<NestedMatrix>::rows) and (not std::is_rvalue_reference_v<NestedMatrix>)
+    (Coefficients::dimensions == row_extent_of_v<NestedMatrix>) and (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename Coefficients, typename NestedMatrix>
 #endif
@@ -187,6 +187,7 @@ namespace OpenKalman
    * \tparam MeanNestedMatrix The underlying native matrix for the Mean.
    * \tparam CovarianceNestedMatrix The underlying native matrix (triangular or self-adjoint) for the Covariance.
    * \tparam random_number_engine A random number engine compatible with the c++ standard library (e.g., std::mt19937).
+   * \todo Change to std::mt19937_64 ?
    */
 #ifdef __cpp_concepts
   template<
@@ -194,10 +195,10 @@ namespace OpenKalman
     typed_matrix_nestable MeanNestedMatrix,
     covariance_nestable CovarianceNestedMatrix,
     std::uniform_random_bit_generator random_number_engine = std::mt19937> requires
-      (MatrixTraits<MeanNestedMatrix>::rows == MatrixTraits<CovarianceNestedMatrix>::rows) and
-      (MatrixTraits<MeanNestedMatrix>::columns == 1) and
-      (std::is_same_v<typename MatrixTraits<MeanNestedMatrix>::Scalar,
-        typename MatrixTraits<CovarianceNestedMatrix>::Scalar>)
+      (row_extent_of_v<MeanNestedMatrix> == row_extent_of_v<CovarianceNestedMatrix>) and
+      (column_extent_of_v<MeanNestedMatrix> == 1) and
+      (std::is_same_v<scalar_type_of_t<MeanNestedMatrix>,
+        scalar_type_of_t<CovarianceNestedMatrix>>)
 #else
   template<
     typename Coefficients,

@@ -22,7 +22,7 @@ namespace OpenKalman::internal
 #ifdef __cpp_concepts
   template<covariance_nestable T, typename Arg>
   requires (covariance_nestable<Arg> or (typed_matrix_nestable<Arg> and (square_matrix<Arg> or column_vector<Arg>))) and
-    (MatrixTraits<Arg>::rows == MatrixTraits<T>::rows) and
+    (row_extent_of_v<Arg> == row_extent_of_v<T>) and
     (not zero_matrix<T> or zero_matrix<Arg>) and (not identity_matrix<T> or identity_matrix<Arg>) and
     (not diagonal_matrix<T> or diagonal_matrix<Arg> or column_vector<Arg>)
 #else
@@ -113,7 +113,7 @@ namespace OpenKalman::internal
 #ifdef __cpp_concepts
   template<covariance_nestable T, typename Arg> requires
     (covariance<Arg> or (typed_matrix<Arg> and (square_matrix<Arg> or column_vector<Arg>))) and
-    (MatrixTraits<Arg>::rows == MatrixTraits<T>::rows) and
+    (row_extent_of_v<Arg> == row_extent_of_v<T>) and
     (not zero_matrix<T> or zero_matrix<Arg>) and (not identity_matrix<T> or identity_matrix<Arg>) and
     (not diagonal_matrix<T> or diagonal_matrix<Arg> or column_vector<Arg>)
 #else

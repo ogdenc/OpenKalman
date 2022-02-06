@@ -24,7 +24,7 @@ namespace OpenKalman::internal
    * \internal
    * \brief Covariance Cov's cholesky nested matrix and nested matrix Nested are both either triangular or self-adjoint.
    */
-  template<typename Cov, typename Nested = nested_matrix_t<Cov>>
+  template<typename Cov, typename Nested = nested_matrix_of<Cov>>
 #ifdef __cpp_concepts
   concept case1or2 = (self_adjoint_covariance<Cov> and self_adjoint_matrix<Nested>) or
     (triangular_covariance<Cov> and triangular_matrix<Nested>);
@@ -59,7 +59,7 @@ namespace OpenKalman::internal
 
     using Base = MatrixBase<Derived, NestedMatrix>;
 
-    using Scalar = typename MatrixTraits<NestedMatrix>::Scalar;
+    using Scalar = scalar_type_of_t<NestedMatrix>;
 
 
 #ifdef __cpp_concepts

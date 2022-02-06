@@ -56,21 +56,21 @@ namespace
 TEST(eigen3, reduce_columns_reduce_rows_matrix)
 {
   EXPECT_TRUE(is_near(reduce_columns(M21 {1, 4}), M21 {1, 4}));
-  EXPECT_TRUE(is_near(reduce_rows(make_native_matrix<double, 1, 3>(1, 2, 3)), make_native_matrix<double, 1, 3>(1, 2, 3)));
+  EXPECT_TRUE(is_near(reduce_rows(make_eigen_matrix<double, 1, 3>(1, 2, 3)), make_eigen_matrix<double, 1, 3>(1, 2, 3)));
 
   auto m23 = make_native_matrix<M23>(1, 2, 3, 4, 5, 6);
   auto m20_3 = M20 {m23};
   auto m03_2 = M03 {m23};
   auto m00_23 = M00 {m23};
 
-  auto m21_25 = make_native_matrix<double, 2, 1>(2, 5);
+  auto m21_25 = make_eigen_matrix<double, 2, 1>(2, 5);
 
   EXPECT_TRUE(is_near(reduce_columns(m23), m21_25));
   EXPECT_TRUE(is_near(reduce_columns(m03_2), m21_25));
   EXPECT_TRUE(is_near(reduce_columns(m20_3), m21_25));
   EXPECT_TRUE(is_near(reduce_columns(m00_23), m21_25));
 
-  auto m13_234 = make_native_matrix<double, 1, 3>(2.5, 3.5, 4.5);
+  auto m13_234 = make_eigen_matrix<double, 1, 3>(2.5, 3.5, 4.5);
 
   EXPECT_TRUE(is_near(reduce_rows(m23), m13_234));
   EXPECT_TRUE(is_near(reduce_rows(m03_2), m13_234));
@@ -79,9 +79,9 @@ TEST(eigen3, reduce_columns_reduce_rows_matrix)
 
   auto cm23 = make_native_matrix<CM23>(cdouble {1,6}, cdouble {2,5}, cdouble {3,4}, cdouble {4,3}, cdouble {5,2}, cdouble {6,1});
 
-  EXPECT_TRUE(is_near(reduce_columns(cm23), make_native_matrix<cdouble, 2, 1>(cdouble {2,5}, cdouble {5,2})));
+  EXPECT_TRUE(is_near(reduce_columns(cm23), make_eigen_matrix<cdouble, 2, 1>(cdouble {2,5}, cdouble {5,2})));
 
-  EXPECT_TRUE(is_near(reduce_rows(cm23), make_native_matrix<cdouble, 1, 3>(cdouble {2.5,4.5}, cdouble{3.5,3.5}, cdouble {4.5,2.5})));
+  EXPECT_TRUE(is_near(reduce_rows(cm23), make_eigen_matrix<cdouble, 1, 3>(cdouble {2.5,4.5}, cdouble{3.5,3.5}, cdouble {4.5,2.5})));
 }
 
 

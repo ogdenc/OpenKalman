@@ -105,7 +105,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   concept eigen_SelfAdjointView = detail::is_eigen_SelfAdjointView<std::decay_t<T>>::value;
 #else
-  inline constexpr bool eigen_SelfAdjointView = detail::is_eigen_SelfAdjointView<std::decay_t<T>>::value;
+  constexpr bool eigen_SelfAdjointView = detail::is_eigen_SelfAdjointView<std::decay_t<T>>::value;
 #endif
 
 
@@ -116,7 +116,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   concept eigen_TriangularView = detail::is_eigen_TriangularView<std::decay_t<T>>::value;
 #else
-  inline constexpr bool eigen_TriangularView = detail::is_eigen_TriangularView<std::decay_t<T>>::value;
+  constexpr bool eigen_TriangularView = detail::is_eigen_TriangularView<std::decay_t<T>>::value;
 #endif
 
 
@@ -127,7 +127,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   concept eigen_DiagonalMatrix = detail::is_eigen_DiagonalMatrix<std::decay_t<T>>::value;
 #else
-  inline constexpr bool eigen_DiagonalMatrix = detail::is_eigen_DiagonalMatrix<std::decay_t<T>>::value;
+  constexpr bool eigen_DiagonalMatrix = detail::is_eigen_DiagonalMatrix<std::decay_t<T>>::value;
 #endif
 
 
@@ -138,7 +138,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   concept eigen_DiagonalWrapper = detail::is_eigen_DiagonalWrapper<std::decay_t<T>>::value;
 #else
-  inline constexpr bool eigen_DiagonalWrapper = detail::is_eigen_DiagonalWrapper<std::decay_t<T>>::value;
+  constexpr bool eigen_DiagonalWrapper = detail::is_eigen_DiagonalWrapper<std::decay_t<T>>::value;
 #endif
 
 
@@ -150,7 +150,7 @@ namespace OpenKalman::Eigen3
   concept native_eigen_general = native_eigen_matrix<T> or native_eigen_array<T> or
     eigen_SelfAdjointView<T> or eigen_TriangularView<T> or eigen_DiagonalMatrix<T> or eigen_DiagonalWrapper<T>;
 #else
-  inline constexpr bool native_eigen_general = native_eigen_matrix<T> or native_eigen_array<T> or
+  constexpr bool native_eigen_general = native_eigen_matrix<T> or native_eigen_array<T> or
     eigen_SelfAdjointView<T> or eigen_TriangularView<T> or eigen_DiagonalMatrix<T> or eigen_DiagonalWrapper<T>;
 #endif
 
@@ -160,62 +160,6 @@ namespace OpenKalman::Eigen3
 namespace OpenKalman::internal
 {
   using namespace OpenKalman::Eigen3;
-
-  // --------------------- //
-  //  is_element_gettable  //
-  // --------------------- //
-
-#ifdef __cpp_concepts
-  template<native_eigen_general T>
-  struct is_element_gettable<T, 2>
-#else
-  template<typename T>
-  struct is_element_gettable<T, 2, std::enable_if_t<native_eigen_general<T>>>
-#endif
-    : std::true_type {};
-
-
-#ifdef __cpp_concepts
-  template<native_eigen_general T> requires column_vector<T> or row_vector<T>
-  struct is_element_gettable<T, 1>
-#else
-    template<typename T>
-  struct is_element_gettable<T, 1, std::enable_if_t<native_eigen_general<T> and (column_vector<T> or row_vector<T>)>>
-#endif
-    : std::true_type {};
-
-
-  // --------------------- //
-  //  is_element_settable  //
-  // --------------------- //
-
-#ifdef __cpp_concepts
-  template<native_eigen_general T>
-  requires (not std::is_const_v<std::remove_reference_t<T>>) and
-    (static_cast<bool>(std::decay_t<T>::Flags & Eigen::LvalueBit))
-  struct is_element_settable<T, 2>
-#else
-    template<typename T>
-  struct is_element_settable<T, 2, std::enable_if_t<
-    native_eigen_general<T> and (not std::is_const_v<std::remove_reference_t<T>>) and
-    (static_cast<bool>(std::decay_t<T>::Flags & Eigen::LvalueBit))>>
-#endif
-    : std::true_type {};
-
-
-#ifdef __cpp_concepts
-  template<native_eigen_general T>
-  requires (column_vector<T> or row_vector<T>) and (not std::is_const_v<std::remove_reference_t<T>>) and
-    (static_cast<bool>(std::decay_t<T>::Flags & Eigen::LvalueBit))
-  struct is_element_settable<T, 1>
-#else
-    template<typename T>
-  struct is_element_settable<T, 1, std::enable_if_t<native_eigen_general<T> and (column_vector<T> or row_vector<T>) and
-    (not std::is_const_v<std::remove_reference_t<T>>) and
-    (static_cast<bool>(std::decay_t<T>::Flags & Eigen::LvalueBit))>>
-#endif
-    : std::true_type {};
-
 
   // ------------- //
   //  is_writable  //
@@ -236,14 +180,14 @@ namespace OpenKalman::internal
 #ifdef __cpp_concepts
   template<native_eigen_general T> requires (not native_eigen_matrix<T>) and (not native_eigen_array<T>) and
     (static_cast<bool>(Eigen::internal::traits<std::decay_t<T>>::Flags & Eigen::LvalueBit)) and
-    writable<nested_matrix_t<T>>
+    writable<nested_matrix_of<T>>
   struct is_writable<T>
 #else
   template<typename T>
   struct is_writable<T, std::enable_if_t<native_eigen_general<T> and
     (not native_eigen_matrix<T>) and (not native_eigen_array<T>) and
     (static_cast<bool>(Eigen::internal::traits<std::decay_t<T>>::Flags & Eigen::LvalueBit)) and
-    writable<nested_matrix_t<T>>>>
+    writable<nested_matrix_of<T>>>>
 #endif
     : std::true_type {};
 
@@ -269,11 +213,11 @@ namespace OpenKalman::internal
     : std::bool_constant<bool(Eigen::internal::traits<
       Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>>::Flags & Eigen::LvalueBit) and
       (not has_const<XprType>::value) and
-      (BlockRows == Eigen::Dynamic or MatrixTraits<U>::rows == BlockRows) and
-      (BlockRows != Eigen::Dynamic or MatrixTraits<U>::rows == dynamic_extent) and
-      (BlockCols == Eigen::Dynamic or MatrixTraits<U>::columns == BlockCols) and
-      (BlockCols != Eigen::Dynamic or MatrixTraits<U>::columns == dynamic_extent) and
-      (std::is_same_v<typename MatrixTraits<XprType>::Scalar, typename MatrixTraits<U>::Scalar>)> {};
+      (BlockRows == Eigen::Dynamic or row_extent_of_v<U> == BlockRows) and
+      (BlockRows != Eigen::Dynamic or row_extent_of_v<U> == dynamic_extent) and
+      (BlockCols == Eigen::Dynamic or column_extent_of_v<U> == BlockCols) and
+      (BlockCols != Eigen::Dynamic or column_extent_of_v<U> == dynamic_extent) and
+      (std::is_same_v<scalar_type_of_t<XprType>, scalar_type_of_t<U>>)> {};
 
 
   template<typename XprType, typename U>
@@ -300,17 +244,24 @@ namespace OpenKalman::internal
 
 namespace OpenKalman
 {
+
+  // -------------- //
+  //  MatrixTraits  //
+  // -------------- //
+
   /**
    * \internal
    * \brief Default matrix traits for any \ref native_eigen_matrix.
    * \tparam M The matrix.
    */
 #ifdef __cpp_concepts
-  template<Eigen3::native_eigen_matrix M> requires std::same_as<M, std::decay_t<M>>
+  template<typename M> requires
+    (Eigen3::native_eigen_matrix<M> or Eigen3::native_eigen_array<M>) and std::same_as<M, std::decay_t<M>>
   struct MatrixTraits<M>
 #else
   template<typename M>
-  struct MatrixTraits<M, std::enable_if_t<Eigen3::native_eigen_matrix<M> and std::is_same_v<M, std::decay_t<M>>>>
+  struct MatrixTraits<M, std::enable_if_t<
+    (Eigen3::native_eigen_matrix<M> or Eigen3::native_eigen_array<M>) and std::is_same_v<M, std::decay_t<M>>>>
 #endif
   {
   private:
@@ -321,54 +272,30 @@ namespace OpenKalman
       c == dynamic_extent ? Eigen::Dynamic : (Eigen::Index) c,
       (Eigen::internal::traits<M>::Flags & Eigen::RowMajorBit ? Eigen::RowMajor : Eigen::ColMajor) | Eigen::AutoAlign>;
 
+    using Scalar = scalar_type_of_t<M>;
+
+
+    static constexpr std::size_t rows = interface::RowExtentOf<M>::value;
+
+
+    static constexpr std::size_t columns = interface::ColumnExtentOf<M>::value;
+
+
   public:
 
-    /** \todo Currently, c_rows and c_cols are necessary to avoid a bug in GCC 10.1.0 when "rows" is used
-     * as a default template parameter. Might be worth updating later.
-     */
-    static constexpr std::size_t c_rows()
-    {
-      if constexpr (Eigen::internal::traits<M>::RowsAtCompileTime == Eigen::Dynamic) return dynamic_extent;
-      else return Eigen::internal::traits<M>::RowsAtCompileTime;
-    }
-
-
-    static constexpr std::size_t c_cols()
-    {
-      if constexpr (Eigen::internal::traits<M>::ColsAtCompileTime == Eigen::Dynamic) return dynamic_extent;
-      else return Eigen::internal::traits<M>::ColsAtCompileTime;
-    }
-
-
-    using Scalar = typename M::Scalar;
-
-
-    static constexpr std::size_t rows = c_rows();
-
-
-    static constexpr std::size_t columns = c_cols();
-
-
-    template<std::size_t r = c_rows(), std::size_t c = c_cols(), typename S = Scalar>
-    using NativeMatrixFrom = Nat<S, r, c>;
-
-
-    template<TriangleType storage_triangle = TriangleType::lower, std::size_t dim = c_rows(), typename S = Scalar>
+    template<TriangleType storage_triangle = TriangleType::lower, std::size_t dim = rows, typename S = Scalar>
     using SelfAdjointMatrixFrom = std::conditional_t<self_adjoint_matrix<Nat<S, dim, dim>>,
       Nat<S, dim, dim>, Eigen3::SelfAdjointMatrix<Nat<S, dim, dim>, storage_triangle>>;
 
 
-    template<TriangleType triangle_type = TriangleType::lower, std::size_t dim = c_rows(), typename S = Scalar>
+    template<TriangleType triangle_type = TriangleType::lower, std::size_t dim = rows, typename S = Scalar>
     using TriangularMatrixFrom = std::conditional_t<triangular_matrix<Nat<S, dim, dim>>,
       Nat<S, dim, dim>, Eigen3::TriangularMatrix<Nat<S, dim, dim>, triangle_type>>;
 
 
-    template<std::size_t dim = c_rows(), typename S = Scalar>
+    template<std::size_t dim = rows, typename S = Scalar>
     using DiagonalMatrixFrom = std::conditional_t<diagonal_matrix<Nat<S, dim, 1>>,
       Nat<S, dim, 1>, Eigen3::DiagonalMatrix<Nat<S, dim, 1>>>;
-
-
-    using SelfContainedFrom = NativeMatrixFrom<>;
 
 
     template<typename Derived>
@@ -468,31 +395,6 @@ namespace OpenKalman
       return Nat<Scalar, dim, dim>::Identity(static_cast<Eigen::Index>(args)..., static_cast<Eigen::Index>(args)...);
     }
 
-  };
-
-
-
-  /**
-   * \internal
-   * \brief Default matrix traits for any \ref native_eigen_array.
-   * \tparam T The array.
-   */
-#ifdef __cpp_concepts
-  template<Eigen3::native_eigen_array T> requires std::same_as<T, std::decay_t<T>>
-  struct MatrixTraits<T>
-#else
-  template<typename T>
-  struct MatrixTraits<T, std::enable_if_t<Eigen3::native_eigen_array<T> and std::is_same_v<T, std::decay_t<T>>>>
-#endif
-    : MatrixTraits<Eigen::Matrix<typename Eigen::internal::traits<T>::Scalar,
-      Eigen::internal::traits<T>::RowsAtCompileTime, Eigen::internal::traits<T>::ColsAtCompileTime,
-      (Eigen::internal::traits<T>::Flags & Eigen::RowMajorBit ? Eigen::RowMajor : Eigen::ColMajor) | Eigen::AutoAlign,
-      Eigen::internal::traits<T>::MaxRowsAtCompileTime, Eigen::internal::traits<T>::MaxColsAtCompileTime>>
-  {
-    using SelfContainedFrom = Eigen::Array<typename Eigen::internal::traits<T>::Scalar,
-      Eigen::internal::traits<T>::RowsAtCompileTime, Eigen::internal::traits<T>::ColsAtCompileTime,
-      (Eigen::internal::traits<T>::Flags & Eigen::RowMajorBit ? Eigen::RowMajor : Eigen::ColMajor) | Eigen::AutoAlign,
-      Eigen::internal::traits<T>::MaxRowsAtCompileTime, Eigen::internal::traits<T>::MaxColsAtCompileTime>;
   };
 
 

@@ -75,7 +75,7 @@ namespace OpenKalman::test
         static_assert((equivalent_to<typename MatrixTraits<decltype(ps)>::ColumnCoefficients, Axis > and ...));
 
         return std::make_tuple(make_self_contained(adjoint(x) / std::sqrt(trace(adjoint(x) * x))),
-          Matrix<Axis, Axis, native_matrix_t<decltype(ps), 1, 1>> {1.}...);
+          Matrix<Axis, Axis, equivalent_dense_writable_matrix_t<decltype(ps), 1, 1>> {1.}...);
       },
       [](const auto& x, const auto& ...ps) // Hessians
       {

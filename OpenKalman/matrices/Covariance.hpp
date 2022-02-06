@@ -22,7 +22,7 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
   template<coefficients Coefficients, covariance_nestable NestedMatrix> requires
-    (Coefficients::dimensions == MatrixTraits<NestedMatrix>::rows) and (not std::is_rvalue_reference_v<NestedMatrix>)
+    (Coefficients::dimensions == row_extent_of_v<NestedMatrix>) and (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename Coefficients, typename NestedMatrix>
 #endif
@@ -32,11 +32,11 @@ namespace OpenKalman
 #ifndef __cpp_concepts
     static_assert(coefficients<Coefficients>);
     static_assert(covariance_nestable<NestedMatrix>);
-    static_assert(Coefficients::dimensions == MatrixTraits<NestedMatrix>::rows);
+    static_assert(Coefficients::dimensions == row_extent_of_v<NestedMatrix>);
     static_assert(not std::is_rvalue_reference_v<NestedMatrix>);
 #endif
 
-    using Scalar = typename MatrixTraits<NestedMatrix>::Scalar; ///< Scalar type for this matrix.
+    using Scalar = scalar_type_of_t<NestedMatrix>; ///< Scalar type for this matrix.
 
   private:
 
@@ -53,7 +53,7 @@ namespace OpenKalman
 
 
     // May be accessed externally through MatrixTraits:
-    static constexpr auto dimensions = MatrixTraits<NestedMatrix>::rows;
+    static constexpr auto dimensions = row_extent_of_v<NestedMatrix>;
 
     // May be accessed externally through MatrixTraits:
     static constexpr TriangleType storage_triangle =
@@ -77,11 +77,11 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<triangular_covariance M> requires (not diagonal_matrix<M> or identity_matrix<M> or zero_matrix<M>) and
-      (self_adjoint_matrix<nested_matrix_t<M>> == self_adjoint_matrix<NestedMatrix>)
+      (self_adjoint_matrix<nested_matrix_of<M>> == self_adjoint_matrix<NestedMatrix>)
 #else
     template<typename M, std::enable_if_t<triangular_covariance<M> and
       (not diagonal_matrix<M> or identity_matrix<M> or zero_matrix<M>) and
-      (self_adjoint_matrix<nested_matrix_t<M>> == self_adjoint_matrix<NestedMatrix>), int> = 0>
+      (self_adjoint_matrix<nested_matrix_of<M>> == self_adjoint_matrix<NestedMatrix>), int> = 0>
 #endif
     Covariance(M&& m) noexcept : Base {std::forward<M>(m)} {}
 
@@ -196,11 +196,11 @@ namespace OpenKalman
     template<self_adjoint_covariance Arg>
     requires (not std::derived_from<std::decay_t<Arg>, Covariance>) and
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients> and
-      modifiable<NestedMatrix, nested_matrix_t<Arg>>
+      modifiable<NestedMatrix, nested_matrix_of<Arg>>
 #else
     template<typename Arg, std::enable_if_t<(not std::is_base_of_v<Covariance, std::decay_t<Arg>>) and
       (self_adjoint_covariance<Arg> and equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients> and
-      modifiable<NestedMatrix, nested_matrix_t<Arg>>, int> = 0>
+      modifiable<NestedMatrix, nested_matrix_of<Arg>>, int> = 0>
 #endif
     auto& operator=(Arg&& arg) noexcept
     {
@@ -653,7 +653,7 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
     template<coefficients C, covariance_nestable N> requires
-    (C::dimensions == MatrixTraits<N>::rows) and (not std::is_rvalue_reference_v<N>)
+    (C::dimensions == row_extent_of_v<N>) and (not std::is_rvalue_reference_v<N>)
 #else
     template<typename, typename>
 #endif
@@ -662,7 +662,7 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
     template<coefficients C, covariance_nestable N> requires
-      (C::dimensions == MatrixTraits<N>::rows) and (not std::is_rvalue_reference_v<N>)
+      (C::dimensions == row_extent_of_v<N>) and (not std::is_rvalue_reference_v<N>)
 #else
     template<typename, typename>
 #endif
@@ -683,7 +683,7 @@ namespace OpenKalman
 #else
   template<typename M, std::enable_if_t<covariance_nestable<M>, int> = 0>
 #endif
-  explicit Covariance(M&&) -> Covariance<Axes<MatrixTraits<M>::rows>, passable_t<M>>;
+  explicit Covariance(M&&) -> Covariance<Axes<row_extent_of_v<M>>, passable_t<M>>;
 
 
   /**
@@ -696,7 +696,7 @@ namespace OpenKalman
 #endif
   explicit Covariance(M&&) -> Covariance<
     typename MatrixTraits<M>::RowCoefficients,
-    typename MatrixTraits<nested_matrix_t<M>>::template SelfAdjointMatrixFrom<>>;
+    typename MatrixTraits<nested_matrix_of<M>>::template SelfAdjointMatrixFrom<>>;
 
 
   /**
@@ -709,7 +709,7 @@ namespace OpenKalman
     typed_matrix_nestable<M> and (not covariance_nestable<M>) and square_matrix<M>, int> = 0>
 #endif
   explicit Covariance(M&&) -> Covariance<
-    Axes<MatrixTraits<M>::rows>, typename MatrixTraits<M>::template SelfAdjointMatrixFrom<>>;
+    Axes<row_extent_of_v<M>>, typename MatrixTraits<M>::template SelfAdjointMatrixFrom<>>;
 
 
   // ---------------- //
@@ -723,10 +723,10 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<coefficients Coefficients, covariance_nestable Arg> requires
-    (Coefficients::dimensions == MatrixTraits<Arg>::rows)
+    (Coefficients::dimensions == row_extent_of_v<Arg>)
 #else
   template<typename Coefficients, typename Arg, std::enable_if_t<coefficients<Coefficients> and
-    covariance_nestable<Arg> and (Coefficients::dimensions == MatrixTraits<Arg>::rows), int> = 0>
+    covariance_nestable<Arg> and (Coefficients::dimensions == row_extent_of<Arg>::value), int> = 0>
 #endif
   inline auto
   make_covariance(Arg&& arg) noexcept
@@ -743,14 +743,14 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<coefficients Coefficients, TriangleType triangle_type, covariance_nestable Arg> requires
-    (Coefficients::dimensions == MatrixTraits<Arg>::rows) and
+    (Coefficients::dimensions == row_extent_of_v<Arg>) and
     (triangle_type != TriangleType::lower or lower_triangular_matrix<Arg>) and
     (triangle_type != TriangleType::upper or upper_triangular_matrix<Arg>) and
     (triangle_type != TriangleType::diagonal or diagonal_matrix<Arg>)
 #else
   template<typename Coefficients, TriangleType triangle_type, typename Arg, std::enable_if_t<
     coefficients<Coefficients> and covariance_nestable<Arg> and
-    (Coefficients::dimensions == MatrixTraits<Arg>::rows) and
+    (Coefficients::dimensions == row_extent_of<Arg>::value) and
     (triangle_type != TriangleType::lower or lower_triangular_matrix<Arg>) and
     (triangle_type != TriangleType::upper or upper_triangular_matrix<Arg>) and
     (triangle_type != TriangleType::diagonal or diagonal_matrix<Arg>), int> = 0>
@@ -776,7 +776,7 @@ namespace OpenKalman
   inline auto
   make_covariance(Arg&& arg) noexcept
   {
-    using C = Axes<MatrixTraits<Arg>::rows>;
+    using C = Axes<row_extent_of_v<Arg>>;
     return make_covariance<C>(std::forward<Arg>(arg));
   }
 
@@ -792,13 +792,13 @@ namespace OpenKalman
   template<coefficients Coefficients, TriangleType triangle_type, typed_matrix_nestable Arg> requires
     (not covariance_nestable<Arg>) and
     (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
-    (Coefficients::dimensions == MatrixTraits<Arg>::rows) and (Coefficients::dimensions == MatrixTraits<Arg>::columns)
+    (Coefficients::dimensions == row_extent_of_v<Arg>) and (Coefficients::dimensions == column_extent_of_v<Arg>)
 #else
   template<typename Coefficients, TriangleType triangle_type, typename Arg, std::enable_if_t<
     coefficients<Coefficients> and typed_matrix_nestable<Arg> and (not covariance_nestable<Arg>) and
     (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
-    (Coefficients::dimensions == MatrixTraits<Arg>::rows) and
-    (Coefficients::dimensions == MatrixTraits<Arg>::columns), int> = 0>
+    (Coefficients::dimensions == row_extent_of<Arg>::value) and
+    (Coefficients::dimensions == column_extent_of<Arg>::value), int> = 0>
 #endif
   inline auto
   make_covariance(Arg&& arg) noexcept
@@ -816,12 +816,12 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<coefficients Coefficients, typed_matrix_nestable Arg> requires (not covariance_nestable<Arg>) and
-    (Coefficients::dimensions == MatrixTraits<Arg>::rows) and (Coefficients::dimensions == MatrixTraits<Arg>::columns)
+    (Coefficients::dimensions == row_extent_of_v<Arg>) and (Coefficients::dimensions == column_extent_of_v<Arg>)
 #else
   template<typename Coefficients, typename Arg, std::enable_if_t<
     coefficients<Coefficients> and typed_matrix_nestable<Arg> and (not covariance_nestable<Arg>) and
-    (Coefficients::dimensions == MatrixTraits<Arg>::rows) and
-    (Coefficients::dimensions == MatrixTraits<Arg>::columns), int> = 0>
+    (Coefficients::dimensions == row_extent_of<Arg>::value) and
+    (Coefficients::dimensions == column_extent_of<Arg>::value), int> = 0>
 #endif
   inline auto
   make_covariance(Arg&& arg) noexcept
@@ -848,7 +848,7 @@ namespace OpenKalman
   inline auto
   make_covariance(Arg&& arg) noexcept
   {
-    using C = Axes<MatrixTraits<Arg>::rows>;
+    using C = Axes<row_extent_of_v<Arg>>;
     return make_covariance<C, triangle_type>(std::forward<Arg>(arg));
   }
 
@@ -867,7 +867,7 @@ namespace OpenKalman
   inline auto
   make_covariance(Arg&& arg) noexcept
   {
-    using C = Axes<MatrixTraits<Arg>::rows>;
+    using C = Axes<row_extent_of_v<Arg>>;
     return make_covariance<C>(std::forward<Arg>(arg));
   }
 
@@ -931,7 +931,7 @@ namespace OpenKalman
   inline auto
   make_covariance()
   {
-    using C = Axes<MatrixTraits<Arg>::rows>;
+    using C = Axes<row_extent_of_v<Arg>>;
     return make_covariance<C, Arg>();
   }
 
@@ -949,7 +949,7 @@ namespace OpenKalman
   inline auto
   make_covariance()
   {
-    using C = Axes<MatrixTraits<Arg>::rows>;
+    using C = Axes<row_extent_of_v<Arg>>;
     return make_covariance<C, triangle_type, Arg>();
   }
 
@@ -967,7 +967,7 @@ namespace OpenKalman
   make_covariance(Arg&& arg) noexcept
   {
     using C = typename MatrixTraits<Arg>::RowCoefficients;
-    return Covariance<C, nested_matrix_t<Arg>>(std::forward<Arg>(arg));
+    return Covariance<C, nested_matrix_of<Arg>>(std::forward<Arg>(arg));
   }
 
 
@@ -984,7 +984,7 @@ namespace OpenKalman
   make_covariance()
   {
     using C = typename MatrixTraits<T>::RowCoefficients;
-    using B = nested_matrix_t<T>;
+    using B = nested_matrix_of<T>;
     return make_covariance<C, B>();
   }
 
@@ -1039,7 +1039,7 @@ namespace OpenKalman
   make_covariance()
   {
     using C = typename MatrixTraits<Arg>::RowCoefficients;
-    using B = nested_matrix_t<Arg>;
+    using B = nested_matrix_of<Arg>;
     return make_covariance<C, triangle_type, B>();
   }
 
@@ -1057,77 +1057,9 @@ namespace OpenKalman
   make_covariance()
   {
     using C = typename MatrixTraits<Arg>::RowCoefficients;
-    using B = nested_matrix_t<Arg>;
+    using B = nested_matrix_of<Arg>;
     return make_covariance<C, B>();
   }
-
-
-  // --------------------- //
-  //        Traits         //
-  // --------------------- //
-
-  namespace internal
-  {
-    template<typename Coeffs, typename NestedMatrix>
-    struct nested_matrix_type<Covariance<Coeffs, NestedMatrix>>
-    {
-      using type = NestedMatrix;
-    };
-  }
-
-
-  template<typename Coeffs, typename NestedMatrix>
-  struct MatrixTraits<Covariance<Coeffs, NestedMatrix>>
-  {
-    static constexpr auto rows = MatrixTraits<NestedMatrix>::rows;
-    static constexpr auto columns = rows;
-    using RowCoefficients = Coeffs;
-    using ColumnCoefficients = Coeffs;
-    using Scalar = typename MatrixTraits<NestedMatrix>::Scalar;
-
-    template<std::size_t r = rows, std::size_t c = rows, typename S = Scalar>
-    using NativeMatrixFrom = native_matrix_t<NestedMatrix, r, c, S>;
-
-    using SelfContainedFrom = Covariance<Coeffs, self_contained_t<NestedMatrix>>;
-
-
-#ifdef __cpp_concepts
-    template<coefficients C = Coeffs, covariance_nestable Arg>
-#else
-    template<typename C = Coeffs, typename Arg, std::enable_if_t<coefficients<C> and covariance_nestable<Arg>,int> = 0>
-#endif
-    static auto make(Arg&& arg) noexcept
-    {
-      return Covariance<C, std::decay_t<Arg>>(std::forward<Arg>(arg));
-    }
-
-
-#ifdef __cpp_concepts
-    template<std::convertible_to<std::size_t> ... Args> requires
-      (sizeof...(Args) == (dynamic_coefficients<Coeffs> ? 2 : 0))
-#else
-    template<typename...Args, std::enable_if_t<(std::is_convertible_v<Args, std::size_t> and ...) and
-      (sizeof...(Args) == (dynamic_coefficients<Coeffs> ? 2 : 0)), int> = 0>
-#endif
-    static auto zero(const Args...args)
-    {
-      return make(MatrixTraits<NestedMatrix>::zero(static_cast<std::size_t>(args)...));
-    }
-
-
-#ifdef __cpp_concepts
-    template<std::convertible_to<std::size_t> ... Args> requires
-    (sizeof...(Args) == (dynamic_coefficients<Coeffs> ? 1 : 0))
-#else
-    template<typename...Args, std::enable_if_t<(std::is_convertible_v<Args, std::size_t> and ...) and
-      (sizeof...(Args) == (dynamic_coefficients<Coeffs> ? 1 : 0)), int> = 0>
-#endif
-    static auto identity(const Args...args)
-    {
-      return make(MatrixTraits<NestedMatrix>::identity(args...));
-    }
-
-  };
 
 
 } // OpenKalman

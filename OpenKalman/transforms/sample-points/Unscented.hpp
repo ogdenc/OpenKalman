@@ -154,38 +154,38 @@ namespace OpenKalman
       {
         // | 0 | delta | -delta |
         static_assert(sizeof...(ds) == 0);
-        const auto m0 = Matrix<Coeffs, Axis, native_matrix_t<M, dim_i, 1>>::zero();
+        const auto m0 = Matrix<Coeffs, Axis, equivalent_dense_writable_matrix_t<M, dim_i, 1>>::zero();
         auto ret = make_self_contained(concatenate_horizontal(std::move(m0), delta, -delta));
-        static_assert(MatrixTraits<decltype(ret)>::columns == points_count);
+        static_assert(column_extent_of_v<decltype(ret)> == points_count);
         return std::tuple {std::move(ret)};
       }
       else if constexpr (pos == 0)
       {
         // | 0 | delta | -delta | 0 ... |
-        const auto m0 = Matrix<Coeffs, Axis, native_matrix_t<M, dim_i, 1>>::zero();
+        const auto m0 = Matrix<Coeffs, Axis, equivalent_dense_writable_matrix_t<M, dim_i, 1>>::zero();
         constexpr auto width = points_count - (1 + frame_size);
-        const auto mright = Matrix<Coeffs, Axes<width>, native_matrix_t<M, dim_i, width>>::zero();
+        const auto mright = Matrix<Coeffs, Axes<width>, equivalent_dense_writable_matrix_t<M, dim_i, width>>::zero();
         auto ret = make_self_contained(concatenate_horizontal(std::move(m0), delta, -delta, std::move(mright)));
-        static_assert(MatrixTraits<decltype(ret)>::columns == points_count);
+        static_assert(column_extent_of_v<decltype(ret)> == points_count);
         return std::tuple_cat(std::tuple {std::move(ret)}, sigma_points_impl<dim, 1 + frame_size>(ds...));
       }
       else if constexpr (pos + frame_size < points_count)
       {
         // | 0 | 0 ... | delta | -delta | 0 ... |
-        const auto mleft = Matrix<Coeffs, Axes<pos>, native_matrix_t<M, dim_i, pos>>::zero();
+        const auto mleft = Matrix<Coeffs, Axes<pos>, equivalent_dense_writable_matrix_t<M, dim_i, pos>>::zero();
         constexpr auto width = points_count - (pos + frame_size);
-        const auto mright = Matrix<Coeffs, Axes<width>, native_matrix_t<M, dim_i, width>>::zero();
+        const auto mright = Matrix<Coeffs, Axes<width>, equivalent_dense_writable_matrix_t<M, dim_i, width>>::zero();
         auto ret = make_self_contained(concatenate_horizontal(std::move(mleft), delta, -delta, std::move(mright)));
-        static_assert(MatrixTraits<decltype(ret)>::columns == points_count);
+        static_assert(column_extent_of_v<decltype(ret)> == points_count);
         return std::tuple_cat(std::tuple {std::move(ret)}, sigma_points_impl<dim, pos + frame_size>(ds...));
       }
       else
       {
         // | 0 | 0 ... | delta | -delta |
         static_assert(sizeof...(ds) == 0);
-        const auto mleft = Matrix<Coeffs, Axes<pos>, native_matrix_t<M, dim_i, pos>>::zero();
+        const auto mleft = Matrix<Coeffs, Axes<pos>, equivalent_dense_writable_matrix_t<M, dim_i, pos>>::zero();
         auto ret = make_self_contained(concatenate_horizontal(std::move(mleft), delta, -delta));
-        static_assert(MatrixTraits<decltype(ret)>::columns == points_count);
+        static_assert(column_extent_of_v<decltype(ret)> == points_count);
         return std::tuple {std::move(ret)};
       }
     }

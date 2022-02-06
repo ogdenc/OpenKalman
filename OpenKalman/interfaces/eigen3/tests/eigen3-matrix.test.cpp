@@ -73,11 +73,11 @@ TEST(eigen3, element_access)
   EXPECT_NEAR(m22(0, 0), 1, 1e-6);
   EXPECT_NEAR(m22(0, 1), 2, 1e-6);
 
-  auto d1 = make_native_matrix<double, 3, 1>(1, 2, 3);
+  auto d1 = make_eigen_matrix<double, 3, 1>(1, 2, 3);
   EXPECT_NEAR(d1(1), 2, 1e-6);
   d1(0) = 5;
   d1(2, 0) = 7;
-  EXPECT_TRUE(is_near(d1, make_native_matrix<double, 3, 1>(5, 2, 7)));
+  EXPECT_TRUE(is_near(d1, make_eigen_matrix<double, 3, 1>(5, 2, 7)));
 }
 
 
@@ -97,45 +97,45 @@ TEST(eigen3, make_native_matrix)
   EXPECT_TRUE(is_near(make_native_matrix<M02>(1, 2), M12 {1, 2}));
   EXPECT_TRUE(is_near(make_native_matrix<M00>(1, 2), M21 {1, 2}));
   EXPECT_TRUE(is_near(make_native_matrix<CM22>(cdouble {1,4}, cdouble {2,3}, cdouble {3,2}, cdouble {4,1}), cm22));
-  static_assert(MatrixTraits<decltype(make_native_matrix<M20>(1, 2))>::columns == 1);
-  static_assert(MatrixTraits<decltype(make_native_matrix<M02>(1, 2))>::rows == 1);
-  static_assert(MatrixTraits<decltype(make_native_matrix<M00>(1, 2))>::rows == 2);
+  static_assert(column_extent_of_v<decltype(make_native_matrix<M20>(1, 2))> == 1);
+  static_assert(row_extent_of_v<decltype(make_native_matrix<M02>(1, 2))> == 1);
+  static_assert(row_extent_of_v<decltype(make_native_matrix<M00>(1, 2))> == 2);
 
-  EXPECT_TRUE(is_near(make_native_matrix<double, 2, 2>(1, 2, 3, 4), m22));
-  EXPECT_TRUE(is_near(make_native_matrix<double, 2, dynamic_extent>(1, 2, 3, 4, 5, 6), m23));
-  EXPECT_TRUE(is_near(make_native_matrix<double, 2, dynamic_extent>(1, 2, 3, 4), m22));
-  EXPECT_TRUE(is_near(make_native_matrix<double, 2, dynamic_extent>(1, 2), M21 {1, 2}));
-  EXPECT_TRUE(is_near(make_native_matrix<double, dynamic_extent, 2>(1, 2, 3, 4, 5, 6), m32));
-  EXPECT_TRUE(is_near(make_native_matrix<double, dynamic_extent, 2>(1, 2, 3, 4), m22));
-  EXPECT_TRUE(is_near(make_native_matrix<double, dynamic_extent, 2>(1, 2), M12 {1, 2}));
-  EXPECT_TRUE(is_near(make_native_matrix<double, dynamic_extent, dynamic_extent>(1, 2), M21 {1, 2}));
-  EXPECT_TRUE(is_near(make_native_matrix<cdouble, 2, 2>(cdouble {1,4}, cdouble {2,3}, cdouble {3,2}, cdouble {4,1}), cm22));
-  static_assert(MatrixTraits<decltype(make_native_matrix<double, 2, dynamic_extent>(1, 2))>::columns == 1);
-  static_assert(MatrixTraits<decltype(make_native_matrix<double, dynamic_extent, 2>(1, 2))>::rows == 1);
-  static_assert(MatrixTraits<decltype(make_native_matrix<double, dynamic_extent, dynamic_extent>(1, 2))>::rows == 2);
+  EXPECT_TRUE(is_near(make_eigen_matrix<double, 2, 2>(1, 2, 3, 4), m22));
+  EXPECT_TRUE(is_near(make_eigen_matrix<double, 2, dynamic_extent>(1, 2, 3, 4, 5, 6), m23));
+  EXPECT_TRUE(is_near(make_eigen_matrix<double, 2, dynamic_extent>(1, 2, 3, 4), m22));
+  EXPECT_TRUE(is_near(make_eigen_matrix<double, 2, dynamic_extent>(1, 2), M21 {1, 2}));
+  EXPECT_TRUE(is_near(make_eigen_matrix<double, dynamic_extent, 2>(1, 2, 3, 4, 5, 6), m32));
+  EXPECT_TRUE(is_near(make_eigen_matrix<double, dynamic_extent, 2>(1, 2, 3, 4), m22));
+  EXPECT_TRUE(is_near(make_eigen_matrix<double, dynamic_extent, 2>(1, 2), M12 {1, 2}));
+  EXPECT_TRUE(is_near(make_eigen_matrix<double, dynamic_extent, dynamic_extent>(1, 2), M21 {1, 2}));
+  EXPECT_TRUE(is_near(make_eigen_matrix<cdouble, 2, 2>(cdouble {1,4}, cdouble {2,3}, cdouble {3,2}, cdouble {4,1}), cm22));
+  static_assert(column_extent_of_v<decltype(make_eigen_matrix<double, 2, dynamic_extent>(1, 2))> == 1);
+  static_assert(row_extent_of_v<decltype(make_eigen_matrix<double, dynamic_extent, 2>(1, 2))> == 1);
+  static_assert(row_extent_of_v<decltype(make_eigen_matrix<double, dynamic_extent, dynamic_extent>(1, 2))> == 2);
 
-  EXPECT_TRUE(is_near(make_native_matrix<2, 2>(1., 2, 3, 4), m22));
-  EXPECT_TRUE(is_near(make_native_matrix<2, dynamic_extent>(1., 2, 3, 4, 5, 6), m23));
-  EXPECT_TRUE(is_near(make_native_matrix<2, dynamic_extent>(1., 2, 3, 4), m22));
-  EXPECT_TRUE(is_near(make_native_matrix<2, dynamic_extent>(1., 2), M21 {1, 2}));
-  EXPECT_TRUE(is_near(make_native_matrix<dynamic_extent, 2>(1., 2, 3, 4, 5, 6), m32));
-  EXPECT_TRUE(is_near(make_native_matrix<dynamic_extent, 2>(1., 2, 3, 4), m22));
-  EXPECT_TRUE(is_near(make_native_matrix<dynamic_extent, 2>(1., 2), M12 {1, 2}));
-  EXPECT_TRUE(is_near(make_native_matrix<dynamic_extent, dynamic_extent>(1., 2), M21 {1, 2}));
-  EXPECT_TRUE(is_near(make_native_matrix<2, 2>(cdouble {1,4}, cdouble {2,3}, cdouble {3,2}, cdouble {4,1}), cm22));
-  static_assert(MatrixTraits<decltype(make_native_matrix<2, dynamic_extent>(1., 2))>::columns == 1);
-  static_assert(MatrixTraits<decltype(make_native_matrix<dynamic_extent, 2>(1., 2))>::rows == 1);
-  static_assert(MatrixTraits<decltype(make_native_matrix<dynamic_extent, dynamic_extent>(1., 2))>::rows == 2);
+  EXPECT_TRUE(is_near(make_eigen_matrix<2, 2>(1., 2, 3, 4), m22));
+  EXPECT_TRUE(is_near(make_eigen_matrix<2, dynamic_extent>(1., 2, 3, 4, 5, 6), m23));
+  EXPECT_TRUE(is_near(make_eigen_matrix<2, dynamic_extent>(1., 2, 3, 4), m22));
+  EXPECT_TRUE(is_near(make_eigen_matrix<2, dynamic_extent>(1., 2), M21 {1, 2}));
+  EXPECT_TRUE(is_near(make_eigen_matrix<dynamic_extent, 2>(1., 2, 3, 4, 5, 6), m32));
+  EXPECT_TRUE(is_near(make_eigen_matrix<dynamic_extent, 2>(1., 2, 3, 4), m22));
+  EXPECT_TRUE(is_near(make_eigen_matrix<dynamic_extent, 2>(1., 2), M12 {1, 2}));
+  EXPECT_TRUE(is_near(make_eigen_matrix<dynamic_extent, dynamic_extent>(1., 2), M21 {1, 2}));
+  EXPECT_TRUE(is_near(make_eigen_matrix<2, 2>(cdouble {1,4}, cdouble {2,3}, cdouble {3,2}, cdouble {4,1}), cm22));
+  static_assert(column_extent_of_v<decltype(make_eigen_matrix<2, dynamic_extent>(1., 2))> == 1);
+  static_assert(row_extent_of_v<decltype(make_eigen_matrix<dynamic_extent, 2>(1., 2))> == 1);
+  static_assert(row_extent_of_v<decltype(make_eigen_matrix<dynamic_extent, dynamic_extent>(1., 2))> == 2);
 
-  EXPECT_TRUE(is_near(make_native_matrix(1., 2), M21 {1, 2}));
-  EXPECT_TRUE(is_near(make_native_matrix(1., 2, 3, 4), (eigen_matrix_t<double, 4, 1> {} << 1, 2, 3, 4).finished()));
+  EXPECT_TRUE(is_near(make_eigen_matrix(1., 2), M21 {1, 2}));
+  EXPECT_TRUE(is_near(make_eigen_matrix(1., 2, 3, 4), (eigen_matrix_t<double, 4, 1> {} << 1, 2, 3, 4).finished()));
 
   EXPECT_TRUE(is_near(make_native_matrix(m22), m22));
 
-  EXPECT_TRUE(is_near(make_native_matrix<double, 1, 1>(4), eigen_matrix_t<double, 1, 1>(4)));
-  EXPECT_TRUE(is_near(make_native_matrix<double, 1, dynamic_extent>(4), eigen_matrix_t<double, 1, 1>(4)));
-  EXPECT_TRUE(is_near(make_native_matrix<double, dynamic_extent, 1>(4), eigen_matrix_t<double, 1, 1>(4)));
-  EXPECT_TRUE(is_near(make_native_matrix<double, dynamic_extent, dynamic_extent>(4), eigen_matrix_t<double, 1, 1>(4)));
+  EXPECT_TRUE(is_near(make_eigen_matrix<double, 1, 1>(4), eigen_matrix_t<double, 1, 1>(4)));
+  EXPECT_TRUE(is_near(make_eigen_matrix<double, 1, dynamic_extent>(4), eigen_matrix_t<double, 1, 1>(4)));
+  EXPECT_TRUE(is_near(make_eigen_matrix<double, dynamic_extent, 1>(4), eigen_matrix_t<double, 1, 1>(4)));
+  EXPECT_TRUE(is_near(make_eigen_matrix<double, dynamic_extent, dynamic_extent>(4), eigen_matrix_t<double, 1, 1>(4)));
 
   auto m22_93310 = make_native_matrix<M22>(9, 3, 3, 10);
   auto m20_93310 = M20 {m22_93310};
@@ -208,7 +208,7 @@ TEST(eigen3, row_count_column_count)
 
 TEST(eigen3, column)
 {
-  auto m33 = make_native_matrix<double, 3, 3>(
+  auto m33 = make_eigen_matrix<double, 3, 3>(
     1, 0, 0,
     0, 2, 0,
     0, 0, 3);
@@ -247,7 +247,7 @@ TEST(eigen3, column)
 
 TEST(eigen3, row)
 {
-  auto m33 = make_native_matrix<double, 3, 3>(
+  auto m33 = make_eigen_matrix<double, 3, 3>(
     1, 0, 0,
     0, 2, 0,
     0, 0, 3);

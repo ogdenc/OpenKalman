@@ -45,80 +45,21 @@
 namespace std::numbers
 {
   template<typename T>
-  inline constexpr T pi_v = 3.141592653589793238462643383279502884L;
+  constexpr T pi_v = 3.141592653589793238462643383279502884L;
 
-  inline constexpr double pi = pi_v<double>;
-
-  template<typename T>
-  inline constexpr T log2e_v = 1.442695040888963407359924681001892137L;
-
-  inline constexpr double log2e = log2e_v<double>;
+  constexpr double pi = pi_v<double>;
 
   template<typename T>
-  inline constexpr T sqrt2_v = 1.414213562373095048801688724209698079L;
+  constexpr T log2e_v = 1.442695040888963407359924681001892137L;
 
-  inline constexpr double sqrt2 = sqrt2_v<double>;
+  constexpr double log2e = log2e_v<double>;
+
+  template<typename T>
+  constexpr T sqrt2_v = 1.414213562373095048801688724209698079L;
+
+  constexpr double sqrt2 = sqrt2_v<double>;
 }
 #endif
 
-
-namespace OpenKalman::internal
-{
-  /**
-   * \internal
-   * \brief A constexpr square root function.
-   * \tparam Scalar The scalar type.
-   * \param x The operand.
-   * \return The square root of x.
-   */
-  template<typename Scalar>
-# ifdef __cpp_consteval
-  consteval
-# else
-  constexpr
-# endif
-  Scalar constexpr_sqrt(Scalar x)
-  {
-    if constexpr(std::is_integral_v<Scalar>)
-    {
-      Scalar lo = 0;
-      Scalar hi = x / 2 + 1;
-      while (lo != hi)
-      {
-        const Scalar mid = (lo + hi + 1) / 2;
-        if (x / mid < mid) hi = mid - 1;
-        else lo = mid;
-      }
-      return lo;
-    }
-    else
-    {
-      Scalar cur = 0.5 * x;
-      Scalar old = 0.0;
-      while (cur != old)
-      {
-        old = cur;
-        cur = 0.5 * (old + x / old);
-      }
-      return cur;
-    }
-  }
-
-
-  /**
-   * Compile time power.
-   */
-  template<typename Scalar>
-# ifdef __cpp_consteval
-  consteval
-# else
-  constexpr
-# endif
-  Scalar constexpr_pow(Scalar a, std::size_t n)
-  {
-    return n == 0 ? 1 : constexpr_pow(a, n / 2) * constexpr_pow(a, n / 2) * (n % 2 == 0 ?  1 : a);
-  }
-
-} // namespace OpenKalman::internal
 
 #endif //OPENKALMAN_LANGUAGE_FEATURES_HPP

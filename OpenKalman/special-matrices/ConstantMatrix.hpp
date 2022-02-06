@@ -72,8 +72,8 @@ namespace OpenKalman::Eigen3
 
     template<typename T>
     struct constant_arg_matches<T, std::enable_if_t<(constant_coefficient<std::decay_t<T>>::value == constant) and
-      (dynamic_rows<T> or rows_ == dynamic_extent or MatrixTraits<std::decay_t<T>>::rows == rows_) and
-      (dynamic_columns<T> or columns == dynamic_extent or MatrixTraits<std::decay_t<T>>::columns == columns)>>
+      (dynamic_rows<T> or rows_ == dynamic_extent or row_extent_of<std::decay_t<T>>::value == rows_) and
+      (dynamic_columns<T> or columns == dynamic_extent or column_extent_of<std::decay_t<T>>::value == columns)>>
       : std::true_type {};
 
   public:
@@ -87,8 +87,8 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
     template<constant_matrix M>
     requires (not std::same_as<M, ConstantMatrix>) and (constant_coefficient_v<M> == constant) and
-      (dynamic_rows<M> or rows_ == dynamic_extent or MatrixTraits<M>::rows == rows_) and
-      (dynamic_columns<M> or columns == dynamic_extent or MatrixTraits<M>::columns == columns)
+      (dynamic_rows<M> or rows_ == dynamic_extent or row_extent_of_v<M> == rows_) and
+      (dynamic_columns<M> or columns == dynamic_extent or column_extent_of_v<M> == columns)
 #else
     template<typename M, std::enable_if_t<constant_matrix<M> and
       (not std::is_same_v<M, ConstantMatrix>) and constant_arg_matches<M>::value, int> = 0>
@@ -103,8 +103,8 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
     template<constant_matrix M>
     requires (not std::same_as<M, ConstantMatrix>) and (constant_coefficient_v<M> == constant) and
-      (dynamic_rows<M> or rows_ == dynamic_extent or MatrixTraits<M>::rows == rows_) and
-      (dynamic_columns<M> or columns == dynamic_extent or MatrixTraits<M>::columns == columns)
+      (dynamic_rows<M> or rows_ == dynamic_extent or row_extent_of_v<M> == rows_) and
+      (dynamic_columns<M> or columns == dynamic_extent or column_extent_of_v<M> == columns)
 #else
     template<typename M, std::enable_if_t<constant_matrix<M> and
       (not std::is_same_v<M, ConstantMatrix>) and constant_arg_matches<M>::value, int> = 0>
@@ -178,93 +178,11 @@ namespace OpenKalman::Eigen3
 #else
   template<typename Arg, std::enable_if_t<constant_matrix<Arg>, int> = 0>
 #endif
-  ConstantMatrix(Arg&&) -> ConstantMatrix<typename MatrixTraits<Arg>::Scalar,
-    constant_coefficient_v<Arg>, MatrixTraits<Arg>::rows, MatrixTraits<Arg>::columns>;
+  ConstantMatrix(Arg&&) -> ConstantMatrix<scalar_type_of_t<Arg>,
+    constant_coefficient_v<Arg>, row_extent_of_v<Arg>, column_extent_of_v<Arg>>;
 
 
 } // OpenKalman::Eigen3
-
-
-namespace OpenKalman
-{
-  // -------- //
-  //  Traits  //
-  // -------- //
-
-  template<typename Scalar_, auto constant, std::size_t rows_, std::size_t columns_>
-  struct MatrixTraits<Eigen3::ConstantMatrix<Scalar_, constant, rows_, columns_>>
-  {
-    using Scalar = Scalar_;
-
-    static constexpr std::size_t rows = rows_;
-
-    static constexpr std::size_t columns = columns_;
-
-
-  private:
-
-    using Matrix = Eigen3::ConstantMatrix<Scalar, constant, rows, columns>;
-
-  public:
-
-    template<std::size_t r = rows, std::size_t c = columns, typename S = Scalar>
-    using NativeMatrixFrom = Eigen3::eigen_matrix_t<S, r, c>;
-
-
-    using SelfContainedFrom = Matrix;
-
-
-    template<TriangleType storage_triangle = TriangleType::diagonal>
-    using SelfAdjointMatrixFrom = Eigen3::SelfAdjointMatrix<Matrix, storage_triangle>;
-
-
-    template<TriangleType triangle_type = TriangleType::diagonal>
-    using TriangularMatrixFrom = Eigen3::TriangularMatrix<Matrix, triangle_type>;
-
-
-    template<std::size_t dim = rows, typename S = Scalar>
-    using DiagonalMatrixFrom = Eigen3::DiagonalMatrix<Eigen3::ConstantMatrix<S, constant, dim, 1>>;
-
-
-    template<typename Derived>
-    using MatrixBaseFrom = Eigen3::internal::Eigen3Base<Derived>;
-
-
-#ifdef __cpp_concepts
-    template<std::convertible_to<std::size_t> ... Args>
-    requires (sizeof...(Args) == (rows == dynamic_extent ? 1 : 0) + (columns == dynamic_extent ? 1 : 0))
-#else
-    template<typename...Args, std::enable_if_t<(std::is_convertible_v<Args, std::size_t> and ...) and
-      (sizeof...(Args) == (rows == dynamic_extent ? 1 : 0) + (columns == dynamic_extent ? 1 : 0)), int> = 0>
-#endif
-    static auto zero(const Args...args)
-    {
-      return Eigen3::ZeroMatrix<Scalar, rows, columns> {static_cast<std::size_t>(args)...};
-    }
-
-
-#ifdef __cpp_concepts
-    template<std::convertible_to<Eigen::Index> ... Args>
-    requires (sizeof...(Args) >= (rows == dynamic_extent and columns == dynamic_extent ? 1 : 0)) and
-      (sizeof...(Args) <= 1)
-#else
-    template<typename...Args, std::enable_if_t<(std::is_convertible_v<Args, Eigen::Index> and ...) and
-      (sizeof...(Args) >= (rows == dynamic_extent and columns == dynamic_extent ? 1 : 0)) and
-      (sizeof...(Args) <= 1), int> = 0>
-#endif
-    static auto identity(const Args...args)
-    {
-      constexpr auto r = sizeof...(Args) == 0 ? (rows == dynamic_extent ? columns : rows) : dynamic_extent;
-
-      return Eigen3::eigen_matrix_t<Scalar, r, r>::Identity(
-        static_cast<Eigen::Index>(args)..., static_cast<Eigen::Index>(args)...);
-    }
-
-
-  };
-
-} // namespace OpenKalman
-
 
 
 #endif //OPENKALMAN_EIGEN3_CONSTANTMATRIX_HPP

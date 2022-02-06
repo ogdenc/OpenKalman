@@ -46,7 +46,7 @@ namespace OpenKalman::internal
 
     using Base = MatrixBase<Derived, NestedMatrix>;
 
-    using Scalar = typename MatrixTraits<NestedMatrix>::Scalar;
+    using Scalar = scalar_type_of_t<NestedMatrix>;
 
 
 #ifdef __cpp_concepts
@@ -176,12 +176,12 @@ namespace OpenKalman::internal
      * In other words, Arg is a \ref CovarianceBaseCase1 "Case 1" covariance.
      */
 #ifdef __cpp_concepts
-    template<covariance Arg> requires case1or2<Arg> and self_contained<nested_matrix_t<Arg>> and
-      (triangular_matrix<nested_matrix_t<Arg>> == triangular_matrix<NestedMatrix>) and (not diagonal_matrix<Arg>)
+    template<covariance Arg> requires case1or2<Arg> and self_contained<nested_matrix_of<Arg>> and
+      (triangular_matrix<nested_matrix_of<Arg>> == triangular_matrix<NestedMatrix>) and (not diagonal_matrix<Arg>)
 #else
     template<typename Arg, std::enable_if_t<covariance<Arg> and case1or2<Arg> and
-      self_contained<nested_matrix_t<Arg>> and
-      (triangular_matrix<nested_matrix_t<Arg>> == triangular_matrix<NestedMatrix>) and (not diagonal_matrix<Arg>),
+      self_contained<nested_matrix_of<Arg>> and
+      (triangular_matrix<nested_matrix_of<Arg>> == triangular_matrix<NestedMatrix>) and (not diagonal_matrix<Arg>),
       int> = 0>
 #endif
     CovarianceBase(Arg& arg) noexcept
@@ -208,12 +208,12 @@ namespace OpenKalman::internal
      * In other words, Arg is a \ref CovarianceBaseCase2 "Case 2" covariance.
      */
 #ifdef __cpp_concepts
-    template<covariance Arg> requires case1or2<Arg> and (not self_contained<nested_matrix_t<Arg>>) and
-      (triangular_matrix<nested_matrix_t<Arg>> == triangular_matrix<NestedMatrix>) and (not diagonal_matrix<Arg>)
+    template<covariance Arg> requires case1or2<Arg> and (not self_contained<nested_matrix_of<Arg>>) and
+      (triangular_matrix<nested_matrix_of<Arg>> == triangular_matrix<NestedMatrix>) and (not diagonal_matrix<Arg>)
 #else
     template<typename Arg, std::enable_if_t<covariance<Arg> and case1or2<Arg> and
-      (not self_contained<nested_matrix_t<Arg>>) and
-      (triangular_matrix<nested_matrix_t<Arg>> == triangular_matrix<NestedMatrix>) and (not diagonal_matrix<Arg>),
+      (not self_contained<nested_matrix_of<Arg>>) and
+      (triangular_matrix<nested_matrix_of<Arg>> == triangular_matrix<NestedMatrix>) and (not diagonal_matrix<Arg>),
       int> = 0>
 #endif
     CovarianceBase(Arg& arg) noexcept
@@ -244,13 +244,13 @@ namespace OpenKalman::internal
      * In other words, Arg is a \ref CovarianceBaseCase2 "Case 2" covariance.
      */
 #ifdef __cpp_concepts
-    template<covariance Arg> requires case1or2<Arg> and (not self_contained<nested_matrix_t<Arg>>) and
-      (triangular_matrix<nested_matrix_t<Arg>> == triangular_matrix<NestedMatrix>) and (not diagonal_matrix<Arg>) and
+    template<covariance Arg> requires case1or2<Arg> and (not self_contained<nested_matrix_of<Arg>>) and
+      (triangular_matrix<nested_matrix_of<Arg>> == triangular_matrix<NestedMatrix>) and (not diagonal_matrix<Arg>) and
       std::is_rvalue_reference_v<Arg&&>
 #else
     template<typename Arg, std::enable_if_t<covariance<Arg> and case1or2<Arg> and
-      (not self_contained<nested_matrix_t<Arg>>) and
-      (triangular_matrix<nested_matrix_t<Arg>> == triangular_matrix<NestedMatrix>) and (not diagonal_matrix<Arg>) and
+      (not self_contained<nested_matrix_of<Arg>>) and
+      (triangular_matrix<nested_matrix_of<Arg>> == triangular_matrix<NestedMatrix>) and (not diagonal_matrix<Arg>) and
       std::is_rvalue_reference_v<Arg&&>, int> = 0>
 #endif
     CovarianceBase(Arg&& arg) noexcept
@@ -281,11 +281,11 @@ namespace OpenKalman::internal
      * In other words, Arg is a \ref CovarianceBaseCase3 "Case 3" covariance.
      */
 #ifdef __cpp_concepts
-    template<covariance Arg> requires (not case1or2<Arg>) and self_contained<nested_matrix_t<Arg>> and
+    template<covariance Arg> requires (not case1or2<Arg>) and self_contained<nested_matrix_of<Arg>> and
       (not std::derived_from<std::decay_t<Arg>, CovarianceBase>)
 #else
     template<typename Arg, std::enable_if_t<covariance<Arg> and
-      (not case1or2<Arg>) and self_contained<nested_matrix_t<Arg>> and
+      (not case1or2<Arg>) and self_contained<nested_matrix_of<Arg>> and
       (not std::is_base_of_v<CovarianceBase, std::decay_t<Arg>>), int> = 0>
 #endif
     CovarianceBase(Arg& arg) noexcept
@@ -309,11 +309,11 @@ namespace OpenKalman::internal
      * In other words, Arg is a \ref CovarianceBaseCase4 "Case 4" covariance.
      */
 #ifdef __cpp_concepts
-    template<covariance Arg> requires (not case1or2<Arg>) and (not self_contained<nested_matrix_t<Arg>>) and
+    template<covariance Arg> requires (not case1or2<Arg>) and (not self_contained<nested_matrix_of<Arg>>) and
       (not std::derived_from<std::decay_t<Arg>, CovarianceBase>)
 #else
     template<typename Arg, std::enable_if_t<covariance<Arg> and
-      (not case1or2<Arg>) and (not self_contained<nested_matrix_t<Arg>>) and
+      (not case1or2<Arg>) and (not self_contained<nested_matrix_of<Arg>>) and
       (not std::is_base_of_v<CovarianceBase, std::decay_t<Arg>>), int> = 0>
 #endif
     CovarianceBase(Arg& arg) noexcept
@@ -337,11 +337,11 @@ namespace OpenKalman::internal
      * In other words, Arg is a \ref CovarianceBaseCase4 "Case 4" covariance.
      */
 #ifdef __cpp_concepts
-    template<covariance Arg> requires (not case1or2<Arg>) and (not self_contained<nested_matrix_t<Arg>>) and
+    template<covariance Arg> requires (not case1or2<Arg>) and (not self_contained<nested_matrix_of<Arg>>) and
       (not std::derived_from<std::decay_t<Arg>, CovarianceBase>) and std::is_rvalue_reference_v<Arg&&>
 #else
     template<typename Arg, std::enable_if_t<covariance<Arg> and
-      (not case1or2<Arg>) and (not self_contained<nested_matrix_t<Arg>>) and
+      (not case1or2<Arg>) and (not self_contained<nested_matrix_of<Arg>>) and
       (not std::is_base_of_v<CovarianceBase, std::decay_t<Arg>>) and std::is_rvalue_reference_v<Arg&&>, int> = 0>
 #endif
     CovarianceBase(Arg&& arg) noexcept
@@ -463,10 +463,10 @@ namespace OpenKalman::internal
 #endif
     auto& operator=(Arg&& arg) noexcept
     {
-      if constexpr(not (zero_matrix<nested_matrix_t<Arg>> and zero_matrix<NestedMatrix>) and
-        not (identity_matrix<nested_matrix_t<Arg>> and identity_matrix<NestedMatrix>))
+      if constexpr(not (zero_matrix<nested_matrix_of<Arg>> and zero_matrix<NestedMatrix>) and
+        not (identity_matrix<nested_matrix_of<Arg>> and identity_matrix<NestedMatrix>))
       {
-        if constexpr (triangular_matrix<nested_matrix_t<Arg>> == triangular_matrix<NestedMatrix> and
+        if constexpr (triangular_matrix<nested_matrix_of<Arg>> == triangular_matrix<NestedMatrix> and
           not diagonal_matrix<Arg>)
         {
           if (arg.synchronization_direction() > 0)
@@ -560,7 +560,7 @@ namespace OpenKalman::internal
      */
     auto operator() (std::size_t i, std::size_t j)
     {
-      if constexpr(element_settable<NestedMatrix, 2> and element_settable<CholeskyNestedMatrix, 2>)
+      if constexpr(element_settable<NestedMatrix, std::size_t, std::size_t> and element_settable<CholeskyNestedMatrix, std::size_t, std::size_t>)
       {
         return ElementAccessor(cholesky_nested_link, i, j,
           [this] { if (synchronization_direction() > 0) synchronize_forward(); },
@@ -592,7 +592,7 @@ namespace OpenKalman::internal
      */
     auto operator[] (std::size_t i)
     {
-      if constexpr(element_settable<NestedMatrix, 1> and element_settable<CholeskyNestedMatrix, 1>)
+      if constexpr(element_settable<NestedMatrix, std::size_t> and element_settable<CholeskyNestedMatrix, std::size_t>)
       {
         return ElementAccessor(cholesky_nested_link, i,
           [this] { if (synchronization_direction() > 0) synchronize_forward(); },

@@ -22,374 +22,6 @@ namespace OpenKalman::Eigen3
   //  Overloads  //
   // ----------- //
 
-#ifdef __cpp_concepts
-  template<euclidean_expr Arg>
-#else
-  template<typename Arg, std::enable_if_t<euclidean_expr<Arg>, int> = 0>
-#endif
-  constexpr decltype(auto)
-  nested_matrix(Arg&& arg) noexcept
-  {
-    return std::forward<Arg>(arg).nested_matrix();
-  }
-
-
-  /**
-   * \brief Convert to a self-contained Eigen3 matrix.
-   */
-#ifdef __cpp_concepts
-  template<euclidean_expr Arg>
-#else
-  template<typename Arg, std::enable_if_t<euclidean_expr<Arg>, int> = 0>
-#endif
-  constexpr decltype(auto)
-  make_native_matrix(Arg&& arg) noexcept
-  {
-    if constexpr(MatrixTraits<Arg>::RowCoefficients::axes_only)
-    {
-      return make_native_matrix(nested_matrix(std::forward<Arg>(arg)));
-    }
-    else
-    {
-      return native_matrix_t<Arg> {std::forward<Arg>(arg)};
-    }
-  }
-
-
-  /// Convert to self-contained version of the matrix.
-#ifdef __cpp_concepts
-  template<typename...Ts, euclidean_expr Arg>
-#else
-  template<typename...Ts, typename Arg, std::enable_if_t<euclidean_expr<Arg>, int> = 0>
-#endif
-  constexpr decltype(auto)
-  make_self_contained(Arg&& arg) noexcept
-  {
-    if constexpr(self_contained<Arg> or std::is_lvalue_reference_v<nested_matrix_t<Arg>> or
-      ((sizeof...(Ts) > 0) and ... and std::is_lvalue_reference_v<Ts>))
-    {
-      return std::forward<Arg>(arg);
-    }
-    else if constexpr(MatrixTraits<Arg>::RowCoefficients::axes_only)
-    {
-      return make_self_contained(nested_matrix(std::forward<Arg>(arg)));
-    }
-    else
-    {
-      return MatrixTraits<Arg>::make(make_self_contained<Arg>(nested_matrix(std::forward<Arg>(arg))));
-    }
-  }
-
-
-  /// Get element (i, j) of ToEuclideanExpr or FromEuclideanExpr matrix arg.
-#ifdef __cpp_concepts
-  template<euclidean_expr Arg> requires element_gettable<nested_matrix_t<Arg>, 2> and
-    (not to_euclidean_expr<nested_matrix_t<Arg>>)
-#else
-  template<typename Arg, std::enable_if_t<
-    euclidean_expr<Arg> and element_gettable<nested_matrix_t<Arg>, 2> and
-      (not to_euclidean_expr<nested_matrix_t<Arg>>), int> = 0>
-#endif
-  inline auto
-  get_element(Arg&& arg, const std::size_t i, const std::size_t j)
-  {
-    if constexpr (MatrixTraits<Arg>::RowCoefficients::axes_only)
-    {
-      return get_element(nested_matrix(std::forward<Arg>(arg)), i, j);
-    }
-    else
-    {
-      using Coeffs = typename MatrixTraits<Arg>::RowCoefficients;
-      const auto get_coeff = [j, &arg] (const std::size_t row)
-        {
-          return get_element(nested_matrix(std::forward<Arg>(arg)), row, j);
-        };
-      if constexpr(to_euclidean_expr<Arg>)
-      {
-        return OpenKalman::internal::to_euclidean_coeff<Coeffs>(i, get_coeff);
-      }
-      else
-      {
-        return OpenKalman::internal::from_euclidean_coeff<Coeffs>(i, get_coeff);
-      }
-    }
-  }
-
-
-  /// Get element (i) of one-column ToEuclideanExpr or FromEuclideanExpr matrix arg.
-#ifdef __cpp_concepts
-  template<euclidean_expr Arg> requires element_gettable<nested_matrix_t<Arg>, 1> and
-    (not to_euclidean_expr<nested_matrix_t<Arg>>)
-#else
-  template<typename Arg, std::enable_if_t<
-    euclidean_expr<Arg> and element_gettable<nested_matrix_t<Arg>, 1> and
-      (not to_euclidean_expr<nested_matrix_t<Arg>>), int> = 0>
-#endif
-  inline auto
-  get_element(Arg&& arg, const std::size_t i)
-  {
-    if constexpr (MatrixTraits<Arg>::RowCoefficients::axes_only)
-    {
-      return get_element(nested_matrix(std::forward<Arg>(arg)), i);
-    }
-    else
-    {
-      using Coeffs = typename MatrixTraits<Arg>::RowCoefficients;
-      const auto get_coeff = [&arg] (const std::size_t row)
-        {
-          return get_element(nested_matrix(std::forward<Arg>(arg)), row);
-        };
-      if constexpr(to_euclidean_expr<Arg>)
-      {
-        return OpenKalman::internal::to_euclidean_coeff<Coeffs>((std::size_t) i, get_coeff);
-      }
-      else
-      {
-        return OpenKalman::internal::from_euclidean_coeff<Coeffs>((std::size_t) i, get_coeff);
-      }
-    }
-  }
-
-
-  /// Get element (i, j) of FromEuclideanExpr(ToEuclideanExpr) matrix.
-#ifdef __cpp_concepts
-  template<from_euclidean_expr Arg> requires to_euclidean_expr<nested_matrix_t<Arg>> and
-    element_gettable<nested_matrix_t<nested_matrix_t<Arg>>, 2>
-#else
-  template<typename Arg, std::enable_if_t<
-    from_euclidean_expr<Arg> and to_euclidean_expr<nested_matrix_t<Arg>> and
-      element_gettable<nested_matrix_t<nested_matrix_t<Arg>>, 2>, int> = 0>
-#endif
-  inline auto
-  get_element(Arg&& arg, const std::size_t i, const std::size_t j)
-  {
-    if constexpr (MatrixTraits<Arg>::RowCoefficients::axes_only)
-    {
-      return get_element(nested_matrix(nested_matrix(std::forward<Arg>(arg))), i, j);
-    }
-    else
-    {
-      using Coeffs = typename MatrixTraits<Arg>::RowCoefficients;
-      const auto get_coeff = [j, &arg] (const std::size_t row) {
-        return get_element(nested_matrix(nested_matrix(std::forward<Arg>(arg))), row, j);
-      };
-      return OpenKalman::internal::wrap_get<Coeffs>(i, get_coeff);
-    }
-  }
-
-
-  /// Get element (i) of FromEuclideanExpr(ToEuclideanExpr) matrix.
-#ifdef __cpp_concepts
-  template<from_euclidean_expr Arg> requires to_euclidean_expr<nested_matrix_t<Arg>> and
-    element_gettable<nested_matrix_t<nested_matrix_t<Arg>>, 1>
-#else
-  template<typename Arg, std::enable_if_t<
-    from_euclidean_expr<Arg> and to_euclidean_expr<nested_matrix_t<Arg>> and
-      element_gettable<nested_matrix_t<nested_matrix_t<Arg>>, 1>, int> = 0>
-#endif
-  inline auto
-  get_element(Arg&& arg, const std::size_t i)
-  {
-    if constexpr (MatrixTraits<Arg>::RowCoefficients::axes_only)
-    {
-      return get_element(nested_matrix(nested_matrix(std::forward<Arg>(arg))), i);
-    }
-    else
-    {
-      using Coeffs = typename MatrixTraits<Arg>::RowCoefficients;
-      const auto get_coeff = [&arg] (const std::size_t row) {
-        return get_element(nested_matrix(nested_matrix(std::forward<Arg>(arg))), row);
-      };
-      return OpenKalman::internal::wrap_get<Coeffs>(i, get_coeff);
-    }
-  }
-
-
-  /**
-   * \brief Set element (i, j) of ToEuclideanExpr or FromEuclideanExpr matrix arg if coefficients are only axes.
-   * \tparam Arg The matrix whose element is to be set.
-   * \param s A scalar value.
-   * \param i An index.
-   * \param j An index.
-   */
-#ifdef __cpp_concepts
-  template<euclidean_expr Arg, std::convertible_to<typename MatrixTraits<Arg>::Scalar> Scalar> requires
-    (not to_euclidean_expr<nested_matrix_t<Arg>>) and
-    (not std::is_const_v<std::remove_reference_t<Arg>>) and
-    MatrixTraits<Arg>::RowCoefficients::axes_only and
-    element_settable<nested_matrix_t<Arg>, 2>
-#else
-  template<typename Arg, typename Scalar, std::enable_if_t<
-    euclidean_expr<Arg> and
-    std::is_convertible_v<Scalar, typename MatrixTraits<Arg>::Scalar> and
-    not to_euclidean_expr<nested_matrix_t<Arg>> and
-    not std::is_const_v<std::remove_reference_t<Arg>> and
-    MatrixTraits<Arg>::RowCoefficients::axes_only and
-    element_settable<nested_matrix_t<Arg>, 2>, int> = 0>
-#endif
-  inline void
-  set_element(Arg& arg, const Scalar s, const std::size_t i, const std::size_t j)
-  {
-    set_element(nested_matrix(arg), s, i, j);
-  }
-
-
-  /**
-   * \brief Set an element of ToEuclideanExpr or FromEuclideanExpr matrix arg if coefficients are only axes.
-   * \tparam Arg The matrix whose element is to be set.
-   * \param s A scalar value.
-   * \param i Index of the element.
-   */
-#ifdef __cpp_concepts
-  template<euclidean_expr Arg, std::convertible_to<typename MatrixTraits<Arg>::Scalar> Scalar> requires
-    (not to_euclidean_expr<nested_matrix_t<Arg>>) and
-    (not std::is_const_v<std::remove_reference_t<Arg>>) and
-    MatrixTraits<Arg>::RowCoefficients::axes_only and
-    element_settable<nested_matrix_t<Arg>, 1>
-#else
-  template<typename Arg, typename Scalar, std::enable_if_t<
-    euclidean_expr<Arg> and
-    std::is_convertible_v<Scalar, typename MatrixTraits<Arg>::Scalar> and
-    not to_euclidean_expr<nested_matrix_t<Arg>> and
-    not std::is_const_v<std::remove_reference_t<Arg>> and
-    MatrixTraits<Arg>::RowCoefficients::axes_only and
-    element_settable<nested_matrix_t<Arg>, 1>, int> = 0>
-#endif
-  inline void
-  set_element(Arg& arg, const Scalar s, const std::size_t i)
-  {
-    set_element(nested_matrix(arg), s, i);
-  }
-
-
-  /**
-   * \brief Set element (i, j) of arg in FromEuclideanExpr(ToEuclideanExpr(arg)) to s.
-   * \details This function sets the nested matrix, not the wrapped resulting matrix.
-   * For example, if the coefficient is Polar<Distance, angle::Radians> and the initial value of a
-   * single-column vector is {-1., pi/2}, then set_element(arg, pi/4, 1, 0) will replace p/2 with pi/4 to
-   * yield {-1., pi/4} in the nested matrix. The resulting wrapped expression will yield {1., -3*pi/4}.
-   * \tparam Arg The matrix to set.
-   * \tparam Scalar The value to set the coefficient to.
-   * \param i The row of the coefficient.
-   * \param j The column of the coefficient.
-   */
-#ifdef __cpp_concepts
-  template<from_euclidean_expr Arg, std::convertible_to<typename MatrixTraits<Arg>::Scalar> Scalar> requires
-    to_euclidean_expr<nested_matrix_t<Arg>> and
-    (not std::is_const_v<std::remove_reference_t<Arg>>) and
-    element_settable<nested_matrix_t<nested_matrix_t<Arg>>, 2>
-#else
-  template<typename Arg, typename Scalar, std::enable_if_t<
-    std::is_convertible_v<Scalar, typename MatrixTraits<Arg>::Scalar> and
-    from_euclidean_expr<Arg> and to_euclidean_expr<nested_matrix_t<Arg>> and
-    not std::is_const_v<std::remove_reference_t<Arg>> and
-    element_settable<nested_matrix_t<nested_matrix_t<Arg>>, 2>, int> = 0>
-#endif
-  inline void
-  set_element(Arg& arg, const Scalar s, const std::size_t i, const std::size_t j)
-  {
-    if constexpr (MatrixTraits<Arg>::RowCoefficients::axes_only)
-    {
-      set_element(nested_matrix(nested_matrix(arg)), s, i, j);
-    }
-    else
-    {
-      using Coeffs = typename MatrixTraits<Arg>::RowCoefficients;
-      const auto get_coeff = [&arg, j] (const std::size_t row) {
-        return get_element(nested_matrix(nested_matrix(arg)), row, j);
-      };
-      const auto set_coeff = [&arg, j] (const std::size_t row, const Scalar value) {
-        set_element(nested_matrix(nested_matrix(arg)), value, row, j);
-      };
-      OpenKalman::internal::wrap_set<Coeffs>(i, s, set_coeff, get_coeff);
-    }
-  }
-
-
-  /**
-   * \brief Set element (i) of arg in FromEuclideanExpr(ToEuclideanExpr(arg)) to s, where arg is a single-column vector.
-   * \details This function sets the nested matrix, not the wrapped resulting matrix.
-   * For example, if the coefficient is Polar<Distance, angle::Radians> and the initial value of a
-   * single-column vector is {-1., pi/2}, then set_element(arg, pi/4, 1) will replace p/2 with pi/4 to
-   * yield {-1., pi/4} in the nested matrix. The resulting wrapped expression will yield {1., -3*pi/4}.
-   * \tparam Arg The matrix to set.
-   * \tparam Scalar The value to set the coefficient to.
-   * \param i The row of the coefficient.
-   */
-#ifdef __cpp_concepts
-  template<from_euclidean_expr Arg, std::convertible_to<typename MatrixTraits<Arg>::Scalar> Scalar> requires
-    to_euclidean_expr<nested_matrix_t<Arg>> and
-    (not std::is_const_v<std::remove_reference_t<Arg>>) and
-    element_settable<nested_matrix_t<nested_matrix_t<Arg>>, 1>
-#else
-  template<typename Arg, typename Scalar, std::enable_if_t<
-    std::is_convertible_v<Scalar, typename MatrixTraits<Arg>::Scalar> and
-    from_euclidean_expr<Arg> and to_euclidean_expr<nested_matrix_t<Arg>> and
-    not std::is_const_v<std::remove_reference_t<Arg>> and
-    element_settable<nested_matrix_t<nested_matrix_t<Arg>>, 1>, int> = 0>
-#endif
-  inline void
-  set_element(Arg& arg, const Scalar s, const std::size_t i)
-  {
-    if constexpr (MatrixTraits<Arg>::RowCoefficients::axes_only)
-    {
-      set_element(nested_matrix(nested_matrix(arg)), s, i);
-    }
-    else
-    {
-      using Coeffs = typename MatrixTraits<Arg>::RowCoefficients;
-      const auto get_coeff = [&arg] (const std::size_t row) {
-        return get_element(nested_matrix(nested_matrix(arg)), row);
-      };
-      const auto set_coeff = [&arg] (const std::size_t row, const Scalar value) {
-        set_element(nested_matrix(nested_matrix(arg)), value, row);
-      };
-      OpenKalman::internal::wrap_set<Coeffs>(i, s, set_coeff, get_coeff);
-    }
-  }
-
-
-#ifdef __cpp_concepts
-  template<euclidean_expr Arg>
-#else
-  template<typename Arg, std::enable_if_t<euclidean_expr<Arg>, int> = 0>
-#endif
-  constexpr std::size_t
-  row_count(Arg&& arg)
-  {
-    if constexpr (dynamic_rows<Arg>)
-    {
-      if constexpr (from_euclidean_expr<Arg>)
-        return std::forward<Arg>(arg).row_coefficients.dimensions;
-      else
-        return std::forward<Arg>(arg).row_coefficients.euclidean_dimensions;
-    }
-    else
-    {
-      return MatrixTraits<Arg>::rows;
-    }
-  }
-
-
-#ifdef __cpp_concepts
-  template<euclidean_expr Arg>
-#else
-  template<typename Arg, std::enable_if_t<euclidean_expr<Arg>, int> = 0>
-#endif
-  constexpr std::size_t
-  column_count(Arg&& arg)
-  {
-    if constexpr (dynamic_columns<Arg>)
-    {
-      return column_count(nested_matrix(std::forward<Arg>(arg)));
-    }
-    else
-    {
-      return MatrixTraits<Arg>::columns;
-    }
-  }
-
-
   /**
    * \tparam Arg A Euclidean expression
    * \param index The index of the row
@@ -398,12 +30,12 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<std::size_t...index, euclidean_expr Arg, std::convertible_to<const std::size_t>...runtime_index_t>
   requires (sizeof...(index) + sizeof...(runtime_index_t) == 1) and
-    (dynamic_rows<Arg> or ((index + ... + 0) < MatrixTraits<Arg>::rows))
+    (dynamic_rows<Arg> or ((index + ... + 0) < row_extent_of_v<Arg>))
 #else
   template<std::size_t...index, typename Arg, typename...runtime_index_t, std::enable_if_t<euclidean_expr<Arg> and
     (std::is_convertible_v<runtime_index_t, const std::size_t> and ...) and
     (sizeof...(index) + sizeof...(runtime_index_t) == 1) and
-    (dynamic_rows<Arg> or ((index + ... + 0) < MatrixTraits<Arg>::rows)), int> = 0>
+    (dynamic_rows<Arg> or ((index + ... + 0) < row_extent_of<Arg>::value)), int> = 0>
 #endif
   inline decltype(auto)
   row(Arg&& arg, runtime_index_t...i)
@@ -437,12 +69,12 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<std::size_t...index, euclidean_expr Arg, std::convertible_to<const std::size_t>...runtime_index_t>
     requires (sizeof...(index) + sizeof...(runtime_index_t) == 1) and
-    (dynamic_columns<Arg> or ((index + ... + 0) < MatrixTraits<Arg>::columns))
+    (dynamic_columns<Arg> or ((index + ... + 0) < column_extent_of_v<Arg>))
 #else
   template<std::size_t...index, typename Arg, typename...runtime_index_t, std::enable_if_t<euclidean_expr<Arg> and
     (std::is_convertible_v<runtime_index_t, const std::size_t> and ...) and
     (sizeof...(index) + sizeof...(runtime_index_t) == 1) and
-    (dynamic_columns<Arg> or ((index + ... + 0) < MatrixTraits<Arg>::columns)), int> = 0>
+    (dynamic_columns<Arg> or ((index + ... + 0) < column_extent_of<Arg>::value)), int> = 0>
 #endif
   inline decltype(auto)
   column(Arg&& arg, runtime_index_t...i)
@@ -584,68 +216,287 @@ namespace OpenKalman::Eigen3
   }
 
 
-#ifdef __cpp_concepts
-  template<euclidean_expr Arg>
-#else
-  template<typename Arg, std::enable_if_t<euclidean_expr<Arg>, int> = 0>
-#endif
-  constexpr decltype(auto)
-  transpose(Arg&& arg) noexcept
-  {
-    if constexpr(MatrixTraits<Arg>::RowCoefficients::axes_only)
-    {
-      return transpose(nested_matrix(std::forward<Arg>(arg)));
-    }
-    else
-    {
-      return std::forward<Arg>(arg).transpose();
-    }
-  }
+} // namespace OpenKalman::Eigen3
 
+
+namespace OpenKalman::interface
+{
 
 #ifdef __cpp_concepts
-  template<euclidean_expr Arg>
+  template<euclidean_expr T, std::convertible_to<const std::size_t&> I, std::convertible_to<const std::size_t&>...Is>
+    requires (sizeof...(Is) <= 1) and (not to_euclidean_expr<nested_matrix_of<T>>) and
+    element_gettable<nested_matrix_of<T>, I, Is...>
+  struct GetElement<T, I, Is...>
 #else
-  template<typename Arg, std::enable_if_t<euclidean_expr<Arg>, int> = 0>
+  template<typename T, typename I, typename...I>
+  struct GetElement<T, I, Is..., std::enable_if_t<euclidean_expr<T> and (not to_euclidean_expr<nested_matrix_of<T>>) and
+    (std::is_convertible_v<I, const std::size_t&> and ... and std::is_convertible_v<Is, const std::size_t&>) and
+    (sizeof...(Is) <= 1) and element_gettable<nested_matrix_of<T>, I, Is...>>>
 #endif
-  constexpr decltype(auto)
-  adjoint(Arg&& arg) noexcept
   {
-    if constexpr (complex_number<typename MatrixTraits<Arg>::Scalar>)
+    template<typename Arg>
+    static constexpr auto get(Arg&& arg, I i, Is...is)
     {
-      return std::forward<Arg>(arg).adjoint();
+      if constexpr (MatrixTraits<Arg>::RowCoefficients::axes_only)
+      {
+        return get_element(nested_matrix(std::forward<Arg>(arg)), i, is...);
+      }
+      else
+      {
+        using Coeffs = typename MatrixTraits<Arg>::RowCoefficients;
+        const auto get_coeff = [&arg, is...] (const std::size_t row) {
+            return get_element(nested_matrix(std::forward<Arg>(arg)), row, is...);
+        };
+        if constexpr(to_euclidean_expr<Arg>)
+        {
+          return OpenKalman::internal::to_euclidean_coeff<Coeffs>(i, get_coeff);
+        }
+        else
+        {
+          return OpenKalman::internal::from_euclidean_coeff<Coeffs>(i, get_coeff);
+        }
+      }
     }
-    else
-    {
-      return transpose(std::forward<Arg>(arg));
-    }
-  }
-
-
-#ifdef __cpp_concepts
-  template<euclidean_expr Arg> requires dynamic_shape<Arg> or square_matrix<Arg>
-#else
-  template<typename Arg, std::enable_if_t<euclidean_expr<Arg> and
-    (dynamic_shape<Arg> or square_matrix<Arg>), int> = 0>
-#endif
-  inline auto
-  determinant(Arg&& arg) noexcept
-  {
-    return arg.determinant();
-  }
+  };
 
 
 #ifdef __cpp_concepts
-  template<euclidean_expr Arg> requires square_matrix<Arg>
+  template<from_euclidean_expr T, std::convertible_to<const std::size_t&> I, std::convertible_to<const std::size_t&>...Is>
+    requires (sizeof...(Is) <= 1) and to_euclidean_expr<nested_matrix_of<T>> and
+    element_gettable<nested_matrix_of<T>, I, Is...>
+  struct GetElement<T, I, Is...>
 #else
-  template<typename Arg, std::enable_if_t<euclidean_expr<Arg> and square_matrix<Arg>, int> = 0>
+  template<typename T, typename...I>
+  struct GetElement<T, I, Is..., std::enable_if_t<from_euclidean_expr<T> and to_euclidean_expr<nested_matrix_of<T>> and
+    (std::is_convertible_v<I, const std::size_t&> and ... and std::is_convertible_v<Is, const std::size_t&>) and
+    (sizeof...(I) <= 1) and element_gettable<nested_matrix_of<T>, I, Is...>>>
 #endif
-  inline auto
-  trace(Arg&& arg) noexcept
   {
-    return arg.trace();
-  }
+    template<typename Arg>
+    static constexpr auto get(Arg&& arg, I i, Is...is)
+    {
+      if constexpr (MatrixTraits<Arg>::RowCoefficients::axes_only)
+      {
+        return get_element(nested_matrix(nested_matrix(std::forward<Arg>(arg))), i, is...);
+      }
+      else
+      {
+        using Coeffs = typename MatrixTraits<Arg>::RowCoefficients;
+        const auto get_coeff = [&arg, is...] (const std::size_t row) {
+          return get_element(nested_matrix(nested_matrix(std::forward<Arg>(arg))), row, is...);
+        };
+        return OpenKalman::internal::wrap_get<Coeffs>(i, get_coeff);
+      }
+    }
+  };
 
+
+#ifdef __cpp_concepts
+  template<euclidean_expr T, std::convertible_to<const std::size_t&> I, std::convertible_to<const std::size_t&>...Is>
+    requires (sizeof...(Is) <= 1) and (not to_euclidean_expr<nested_matrix_of<T>>) and
+      MatrixTraits<T>::RowCoefficients::axes_only and element_settable<nested_matrix_of<T>, I, Is...>
+  struct SetElement<T, I, Is...>
+#else
+  template<typename T, typename I, typename...I>
+  struct SetElement<T, I, Is..., std::enable_if_t<euclidean_expr<T> and (not to_euclidean_expr<nested_matrix_of<T>>) and
+    (std::is_convertible_v<I, const std::size_t&> and ... and std::is_convertible_v<Is, const std::size_t&>) and
+    MatrixTraits<Arg>::RowCoefficients::axes_only and
+    (sizeof...(Is) <= 1) and element_settable<nested_matrix_of<T>, I, Is...>>>
+#endif
+  {
+    template<typename Arg, typename Scalar>
+    static constexpr auto set(Arg&& arg, const Scalar s, I i, Is...is)
+    {
+      set_element(nested_matrix(arg), s, i, is...);
+    }
+  };
+
+
+#ifdef __cpp_concepts
+  template<from_euclidean_expr T, std::convertible_to<const std::size_t&> I, std::convertible_to<const std::size_t&>...Is>
+    requires (sizeof...(Is) <= 1) and to_euclidean_expr<nested_matrix_of<T>> and
+      element_settable<nested_matrix_of<T>, I, Is...>
+  struct SetElement<T, I, Is...>
+#else
+  template<typename T, typename I, typename...I>
+  struct SetElement<T, I, Is..., std::enable_if_t<from_euclidean_expr<T> and to_euclidean_expr<nested_matrix_of<T>> and
+    (std::is_convertible_v<I, const std::size_t&> and ... and std::is_convertible_v<Is, const std::size_t&>) and
+    (sizeof...(Is) <= 1) and element_settable<nested_matrix_of<T>, I, Is...>>>
+#endif
+  {
+    /**
+     * \brief Set element (i, j) of arg in FromEuclideanExpr(ToEuclideanExpr(arg)) to s.
+     * \details This function sets the nested matrix, not the wrapped resulting matrix.
+     * For example, if the coefficient is Polar<Distance, angle::Radians> and the initial value of a
+     * single-column vector is {-1., pi/2}, then set_element(arg, pi/4, 1, 0) will replace p/2 with pi/4 to
+     * yield {-1., pi/4} in the nested matrix. The resulting wrapped expression will yield {1., -3*pi/4}.
+     * \tparam Arg The matrix to set.
+     * \tparam Scalar The value to set the coefficient to.
+     * \param i The row of the coefficient.
+     * \param j The column of the coefficient.
+     */
+    template<typename Arg, typename Scalar>
+    static constexpr auto set(Arg&& arg, const Scalar s, I i, Is...is)
+    {
+      if constexpr (MatrixTraits<Arg>::RowCoefficients::axes_only)
+      {
+        set_element(nested_matrix(nested_matrix(arg)), s, i, is...);
+      }
+      else
+      {
+        using Coeffs = typename MatrixTraits<Arg>::RowCoefficients;
+        const auto get_coeff = [&arg, is...] (const std::size_t row) {
+          return get_element(nested_matrix(nested_matrix(arg)), row, is...);
+        };
+        const auto set_coeff = [&arg, is...] (const std::size_t row, const Scalar value) {
+          set_element(nested_matrix(nested_matrix(arg)), value, row, is...);
+        };
+        OpenKalman::internal::wrap_set<Coeffs>(i, s, set_coeff, get_coeff);
+      }
+    }
+  };
+
+
+#ifdef __cpp_concepts
+  template<euclidean_expr T>
+  struct ElementWiseOperations<T>
+#else
+  template<typename T>
+  struct ElementWiseOperations<T, std::enable_if_t<euclidean_expr<T>>>
+#endif
+  {
+
+    template<ElementOrder order, typename BinaryFunction, typename Accum, typename Arg>
+    static constexpr auto fold(const BinaryFunction& b, Accum&& accum, Arg&& arg)
+    {
+      return OpenKalman::fold<order>(b, std::forward<Accum>(accum), make_native_matrix(std::forward<Arg>(arg)));
+    }
+
+  };
+
+
+#ifdef __cpp_concepts
+  template<euclidean_expr T>
+  struct Conversions<T>
+#else
+  template<typename T>
+  struct Conversions<T, std::enable_if_t<euclidean_expr<T>>>
+#endif
+  {
+  };
+
+
+#ifdef __cpp_concepts
+  template<euclidean_expr T>
+  struct LinearAlgebra<T>
+#else
+  template<typename T>
+  struct linearAlgebra<T, std::enable_if_t<euclidean_expr<T>>>
+#endif
+  {
+
+    template<typename Arg>
+    static constexpr decltype(auto) conjugate(Arg&& arg) noexcept
+    {
+      if constexpr(MatrixTraits<Arg>::RowCoefficients::axes_only)
+      {
+        return OpenKalman::conjugate(nested_matrix(std::forward<Arg>(arg)));
+      }
+      else
+      {
+        return std::forward<Arg>(arg).conjugate(); //< \todo Generalize this.
+      }
+    }
+
+
+    template<typename Arg>
+    static constexpr decltype(auto) transpose(Arg&& arg) noexcept
+    {
+      if constexpr(MatrixTraits<Arg>::RowCoefficients::axes_only)
+      {
+        return OpenKalman::transpose(nested_matrix(std::forward<Arg>(arg)));
+      }
+      else
+      {
+        return std::forward<Arg>(arg).transpose(); //< \todo Generalize this.
+      }
+    }
+
+
+    template<typename Arg>
+    static constexpr decltype(auto) adjoint(Arg&& arg) noexcept
+    {
+      if constexpr(MatrixTraits<Arg>::RowCoefficients::axes_only)
+      {
+        return OpenKalman::adjoint(nested_matrix(std::forward<Arg>(arg)));
+      }
+      else
+      {
+        return std::forward<Arg>(arg).adjoint(); //< \todo Generalize this.
+      }
+    }
+
+
+    template<typename Arg>
+    static constexpr auto determinant(Arg&& arg) noexcept
+    {
+      if constexpr(MatrixTraits<Arg>::RowCoefficients::axes_only)
+      {
+        return OpenKalman::determinant(nested_matrix(std::forward<Arg>(arg)));
+      }
+      else
+      {
+        return arg.determinant(); //< \todo Generalize this.
+      }
+    }
+
+
+    template<typename Arg>
+    static constexpr auto trace(Arg&& arg) noexcept
+    {
+      if constexpr(MatrixTraits<Arg>::RowCoefficients::axes_only)
+      {
+        return OpenKalman::trace(nested_matrix(std::forward<Arg>(arg)));
+      }
+      else
+      {
+        return arg.trace(); //< \todo Generalize this.
+      }
+    }
+
+
+#ifdef __cpp_concepts
+    template<TriangleType t, typed_matrix A, typename U, typename Alpha> requires
+      equivalent_to<typename MatrixTraits<A>::RowCoefficients, typename MatrixTraits<U>::RowCoefficients>
+#else
+    template<typename Arg, typename U, typename Alpha, std::enable_if_t<typed_matrix<Arg> and typed_matrix<U> and
+      equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, typename MatrixTraits<U>::RowCoefficients>, int> = 0>
+#endif
+    static decltype(auto) rank_update_self_adjoint(A&& a, U&& u, const Alpha alpha)
+    {
+      return OpenKalman::rank_update_self_adjoint<t>(make_native_matrix(std::forward<A>(a)), std::forward<U>(u), alpha);
+    }
+
+
+#ifdef __cpp_concepts
+    template<TriangleType t, typed_matrix A, typename U, typename Alpha> requires
+      equivalent_to<typename MatrixTraits<A>::RowCoefficients, typename MatrixTraits<U>::RowCoefficients>
+#else
+    template<typename Arg, typename U, typename Alpha, std::enable_if_t<typed_matrix<Arg> and typed_matrix<U> and
+      equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, typename MatrixTraits<U>::RowCoefficients>, int> = 0>
+#endif
+    static decltype(auto) rank_update_triangular(A&& a, U&& u, const Alpha alpha)
+    {
+      return OpenKalman::rank_update_triangular<t>(make_native_matrix(std::forward<A>(a)), std::forward<U>(u), alpha);
+    }
+
+  };
+
+} // namespace OpenKalman::interface
+
+
+namespace OpenKalman::Eigen3
+{
 
   /// Solves AX = B for X (A is a regular matrix type, and B is a Euclidean expression).
   /// A must be invertible. (Does not check.)
@@ -657,7 +508,7 @@ namespace OpenKalman::Eigen3
 #endif
   inline auto solve(A&& a, B&& b) noexcept
   {
-    static_assert(MatrixTraits<A>::rows == MatrixTraits<B>::rows);
+    static_assert(row_extent_of_v<A> == row_extent_of_v<B>);
     return solve(make_native_matrix(std::forward<A>(a)), std::forward<B>(b));
   }
 
@@ -732,8 +583,8 @@ namespace OpenKalman::Eigen3
   {
     if constexpr (sizeof...(Vs) > 0)
     {
-      constexpr auto cols = MatrixTraits<V>::columns;
-      static_assert(((cols == MatrixTraits<Vs>::columns) and ...));
+      constexpr auto cols = column_extent_of_v<V>;
+      static_assert(((cols == column_extent_of_v<Vs>) and ...));
       using C = Concatenate<typename MatrixTraits<V>::RowCoefficients, typename MatrixTraits<Vs>::RowCoefficients...>;
       return MatrixTraits<V>::template make<C>(
         concatenate_vertical(nested_matrix(std::forward<V>(v)), nested_matrix(std::forward<Vs>(vs))...));
@@ -818,7 +669,7 @@ namespace OpenKalman::Eigen3
   inline auto
   split_vertical(Arg&& arg) noexcept
   {
-    using CC = Axes<MatrixTraits<Arg>::columns>;
+    using CC = Axes<column_extent_of_v<Arg>>;
     return split_vertical<internal::SplitEuclideanVertF<F, Arg, CC>, from_euclidean_expr<Arg>, Cs...>(
       nested_matrix(std::forward<Arg>(arg)));
   }
@@ -862,15 +713,15 @@ namespace OpenKalman::Eigen3
    */
 #ifdef __cpp_concepts
   template<std::size_t cut, std::size_t ... cuts, euclidean_expr Arg> requires
-    ((cut + ... + cuts) <= MatrixTraits<Arg>::rows)
+    ((cut + ... + cuts) <= row_extent_of_v<Arg>)
 #else
   template<std::size_t cut, std::size_t ... cuts, typename Arg, std::enable_if_t<
-    euclidean_expr<Arg> and ((cut + ... + cuts) <= MatrixTraits<Arg>::rows), int> = 0>
+    euclidean_expr<Arg> and ((cut + ... + cuts) <= row_extent_of<Arg>::value), int> = 0>
 #endif
   inline auto
   split_vertical(Arg&& arg) noexcept
   {
-    if constexpr(cut == MatrixTraits<Arg>::rows and sizeof...(cuts) == 0)
+    if constexpr(cut == row_extent_of_v<Arg> and sizeof...(cuts) == 0)
     {
       return std::tuple<Arg> {std::forward<Arg>(arg)};
     }
@@ -884,10 +735,10 @@ namespace OpenKalman::Eigen3
   /// Split into one or more Euclidean expressions horizontally.
 #ifdef __cpp_concepts
   template<typename F, coefficients...Cs, euclidean_expr Arg> requires
-    (not coefficients<F>) and ((0 + ... + Cs::dimensions) <= MatrixTraits<Arg>::columns)
+    (not coefficients<F>) and ((0 + ... + Cs::dimensions) <= column_extent_of_v<Arg>)
 #else
   template<typename F, typename...Cs, typename Arg, std::enable_if_t<euclidean_expr<Arg> and
-    (not coefficients<F>) and ((0 + ... + Cs::dimensions) <= MatrixTraits<Arg>::columns), int> = 0>
+    (not coefficients<F>) and ((0 + ... + Cs::dimensions) <= column_extent_of<Arg>::value), int> = 0>
 #endif
   inline auto
   split_horizontal(Arg&& arg) noexcept
@@ -919,10 +770,10 @@ namespace OpenKalman::Eigen3
    */
 #ifdef __cpp_concepts
   template<std::size_t cut, std::size_t ... cuts, euclidean_expr Arg> requires
-    ((cut + ... + cuts) <= MatrixTraits<Arg>::columns)
+    ((cut + ... + cuts) <= column_extent_of_v<Arg>)
 #else
   template<std::size_t cut, std::size_t ... cuts, typename Arg, std::enable_if_t<euclidean_expr<Arg> and
-    ((cut + ... + cuts) <= MatrixTraits<Arg>::columns), int> = 0>
+    ((cut + ... + cuts) <= column_extent_of<Arg>::value), int> = 0>
 #endif
   inline auto
   split_horizontal(Arg&& arg) noexcept
@@ -988,15 +839,15 @@ namespace OpenKalman::Eigen3
    */
 #ifdef __cpp_concepts
   template<std::size_t cut, std::size_t ... cuts, euclidean_expr Arg> requires square_matrix<Arg> and
-    ((cut + ... + cuts) <= MatrixTraits<Arg>::rows)
+    ((cut + ... + cuts) <= row_extent_of_v<Arg>)
 #else
   template<std::size_t cut, std::size_t ... cuts, typename Arg, std::enable_if_t<
-    euclidean_expr<Arg> and square_matrix<Arg> and ((cut + ... + cuts) <= MatrixTraits<Arg>::rows), int> = 0>
+    euclidean_expr<Arg> and square_matrix<Arg> and ((cut + ... + cuts) <= row_extent_of<Arg>::value), int> = 0>
 #endif
   inline auto
   split_diagonal(Arg&& arg) noexcept
   {
-    if constexpr(cut == MatrixTraits<Arg>::rows and sizeof...(cuts) == 0)
+    if constexpr(cut == row_extent_of_v<Arg> and sizeof...(cuts) == 0)
     {
       return std::tuple<Arg> {std::forward<Arg>(arg)};
     }
@@ -1015,13 +866,13 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<typename Function, euclidean_expr Arg> requires
     requires(const Function& f, std::decay_t<decltype(column(std::declval<Arg>(), 0))>& col) { f(col); } and
-    (not std::is_const_v<std::remove_reference_t<nested_matrix_t<Arg>>>) and
-    modifiable<nested_matrix_t<Arg>, nested_matrix_t<Arg>>
+    (not std::is_const_v<std::remove_reference_t<nested_matrix_of<Arg>>>) and
+    modifiable<nested_matrix_of<Arg>, nested_matrix_of<Arg>>
 #else
   template<typename Function, typename Arg, std::enable_if_t<euclidean_expr<Arg> and
     std::is_invocable_v<Function, decltype(column(std::declval<Arg&>(), 0))&> and
-    (not std::is_const_v<std::remove_reference_t<nested_matrix_t<Arg>>>) and
-    modifiable<nested_matrix_t<Arg>, nested_matrix_t<Arg>>, int> = 0>
+    (not std::is_const_v<std::remove_reference_t<nested_matrix_of<Arg>>>) and
+    modifiable<nested_matrix_of<Arg>, nested_matrix_of<Arg>>, int> = 0>
 #endif
   inline Arg&
   apply_columnwise(const Function& f, Arg& arg)
@@ -1049,13 +900,13 @@ namespace OpenKalman::Eigen3
     requires(const Function& f, std::decay_t<decltype(column(std::declval<Arg>(), 0))>& col, std::size_t i) {
       f(col, i);
     } and
-    (not std::is_const_v<std::remove_reference_t<nested_matrix_t<Arg>>>) and
-    modifiable<nested_matrix_t<Arg>, nested_matrix_t<Arg>>
+    (not std::is_const_v<std::remove_reference_t<nested_matrix_of<Arg>>>) and
+    modifiable<nested_matrix_of<Arg>, nested_matrix_of<Arg>>
 #else
   template<typename Function, typename Arg, std::enable_if_t<euclidean_expr<Arg> and
     std::is_invocable_v<Function, decltype(column(std::declval<Arg&>(), 0))&, std::size_t> and
-    (not std::is_const_v<std::remove_reference_t<nested_matrix_t<Arg>>>) and
-    modifiable<nested_matrix_t<Arg>, nested_matrix_t<Arg>>, int> = 0>
+    (not std::is_const_v<std::remove_reference_t<nested_matrix_of<Arg>>>) and
+    modifiable<nested_matrix_of<Arg>, nested_matrix_of<Arg>>, int> = 0>
 #endif
   inline Arg&
   apply_columnwise(const Function& f, Arg& arg)
@@ -1077,7 +928,7 @@ namespace OpenKalman::Eigen3
    * \brief Apply a function to each column of a matrix.
    * \tparam Arg A constant lvalue reference or rvalue reference to the matrix.
    * \tparam Function The function, which takes a column and returns a column.
-   * \todo add situation where Arg is a native_matrix but the function result is a euclidean_expr
+   * \todo add situation where Arg is a native matrix but the function result is a euclidean_expr
    */
 #ifdef __cpp_concepts
   template<typename Function, euclidean_expr Arg> requires
@@ -1218,16 +1069,16 @@ namespace OpenKalman::Eigen3
 
 #ifdef __cpp_concepts
   template<typename Function, euclidean_expr Arg> requires
-    requires(Function& f, typename MatrixTraits<Arg>::Scalar& s) {
-      {f(s)} -> std::convertible_to<const typename MatrixTraits<Arg>::Scalar>;
+    requires(Function& f, scalar_type_of_t<Arg>& s) {
+      {f(s)} -> std::convertible_to<const scalar_type_of_t<Arg>>;
     } or
-    requires(Function& f, typename MatrixTraits<Arg>::Scalar& s, std::size_t& i, std::size_t& j) {
-      {f(s, i, j)} -> std::convertible_to<const typename MatrixTraits<Arg>::Scalar>;
+    requires(Function& f, scalar_type_of_t<Arg>& s, std::size_t& i, std::size_t& j) {
+      {f(s, i, j)} -> std::convertible_to<const scalar_type_of_t<Arg>>;
     }
 #else
   template<typename Function, typename Arg, std::enable_if_t<euclidean_expr<Arg> and std::is_convertible_v<
-    std::invoke_result_t<Function&, typename MatrixTraits<Arg>::Scalar&>,
-    const typename MatrixTraits<Arg>::Scalar>, int> = 0>
+    std::invoke_result_t<Function&, typename scalar_type_of<Arg>::type&>,
+    const typename scalar_type_of<Arg>::type>, int> = 0>
   inline auto
   apply_coefficientwise(const Function& f, Arg&& arg)
   {
@@ -1236,8 +1087,8 @@ namespace OpenKalman::Eigen3
 
 
   template<typename Function, typename Arg, std::enable_if_t<euclidean_expr<Arg> and std::is_convertible_v<
-    std::invoke_result_t<Function&, typename MatrixTraits<Arg>::Scalar&, std::size_t&, std::size_t&>,
-    const typename MatrixTraits<Arg>::Scalar>, int> = 0>
+    std::invoke_result_t<Function&, typename scalar_type_of<Arg>::type&, std::size_t&, std::size_t&>,
+    const typename scalar_type_of<Arg>::type>, int> = 0>
 #endif
   inline auto
   apply_coefficientwise(const Function& f, Arg&& arg)
@@ -1260,7 +1111,7 @@ namespace OpenKalman::Eigen3
   inline auto
   randomize(Dists...dists)
   {
-    using B = nested_matrix_t<ReturnType>;
+    using B = nested_matrix_of<ReturnType>;
     return MatrixTraits<ReturnType>::make(randomize<B, random_number_engine>(std::forward<Dists>(dists)...));
   }
 

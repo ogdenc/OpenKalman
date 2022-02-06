@@ -88,7 +88,7 @@ namespace OpenKalman
     {
       using RC = typename MatrixTraits<T>::RowCoefficients;
       using CC = typename MatrixTraits<T>::ColumnCoefficients;
-      return Matrix<RC, CC, native_matrix_t<T>> {std::forward<T>(t)};
+      return Matrix<RC, CC, equivalent_dense_writable_matrix_t<T>> {std::forward<T>(t)};
     }
 
 
@@ -96,9 +96,9 @@ namespace OpenKalman
     template<std::size_t term, typename...Inputs>
     auto jac_term(const std::tuple<Inputs...>& inputs) const
     {
-      using Traits = MatrixTraits<decltype(std::get<term>(inputs))>;
-      using Scalar = typename Traits::Scalar;
-      constexpr auto width = Traits::rows;
+      using Term = decltype(std::get<term>(inputs));
+      using Scalar = scalar_type_of_t<Term>;
+      constexpr auto width = row_extent_v<Term>;
       auto& col = std::get<term>(inputs);
       return apply_columnwise<width>([&](std::size_t i) {
         const Scalar h = std::get<term>(deltas)[i];
@@ -128,7 +128,7 @@ namespace OpenKalman
     template<std::size_t term, std::size_t i, std::size_t j, typename...Inputs>
     auto h_j(const std::tuple<Inputs...>& inputs) const
     {
-      using Scalar = typename MatrixTraits<decltype(std::get<term>(inputs))>::Scalar;
+      using Scalar = scalar_type_of_t<decltype(std::get<term>(inputs))>;
       const Scalar hi = std::get<term>(deltas)[i];
       auto& col = std::get<term>(inputs);
       const Scalar xi = col[i];
@@ -170,7 +170,7 @@ namespace OpenKalman
     template<std::size_t term, std::size_t i, typename...Inputs, std::size_t...js>
     auto h_i(const std::tuple<Inputs...>& inputs, std::index_sequence<js...>) const
     {
-      using A = self_contained_t<decltype(h_j<term, 0, 0>(inputs))>;
+      using A = equivalent_self_contained_t<decltype(h_j<term, 0, 0>(inputs))>;
       return std::array<A, sizeof...(js)> {h_j<term, i, js>(inputs)...};
     }
 
@@ -178,7 +178,7 @@ namespace OpenKalman
     template<std::size_t term, typename...Inputs, std::size_t...is>
     auto h_k(const std::tuple<Inputs...>& inputs, std::index_sequence<is...>) const
     {
-      constexpr auto j_size = MatrixTraits<decltype(std::get<term>(inputs))>::rows;
+      constexpr auto j_size = row_extent_of_v<decltype(std::get<term>(inputs))>;
       using A = decltype(h_i<term, 0>(std::move(inputs), std::make_index_sequence<j_size>()));
       return std::array<A, sizeof...(is)> {h_i<term, is>(inputs, std::make_index_sequence<j_size>())...};
     }
@@ -189,10 +189,9 @@ namespace OpenKalman
     auto h_term(const std::tuple<Inputs...>& inputs, std::index_sequence<ks...>) const
     {
       using Term = decltype(std::get<term>(inputs));
-      using TermTrait = MatrixTraits<Term>;
-      const auto t = h_k<term>(inputs, std::make_index_sequence<TermTrait::rows>());
-      using C = typename TermTrait::RowCoefficients;
-      using V = Matrix<C, C, native_matrix_t<Term, TermTrait::rows, TermTrait::rows>>;
+      const auto t = h_k<term>(inputs, std::make_index_sequence<row_traits_v<Term>>());
+      using C = typename MatrixTraits<Term>::RowCoefficients;
+      using V = Matrix<C, C, equivalent_dense_writable_matrix_t<Term, row_traits_v<Term>, row_traits_v<Term>>>;
       return std::array<V, sizeof...(ks)> {
         apply_coefficientwise<V>([&t](std::size_t i, std::size_t j) { return t[i][j][ks]; })...};
     }
@@ -203,7 +202,7 @@ namespace OpenKalman
     auto hessian_impl(const std::tuple<Inputs...>& inputs, std::index_sequence<terms...>) const
     {
       static_assert(sizeof...(Inputs) == sizeof...(terms));
-      constexpr auto k_size = MatrixTraits<std::invoke_result_t<Function, Inputs...>>::rows;
+      constexpr auto k_size = row_extent_of_v<std::invoke_result_t<Function, Inputs...>>;
       return std::tuple {h_term<terms>(inputs, std::make_index_sequence<k_size>())...};
     }
 

@@ -64,27 +64,27 @@ namespace OpenKalman
         // | delta | -delta |
         static_assert(sizeof...(ds) == 0);
         auto ret = concatenate_horizontal(delta, -delta);
-        static_assert(MatrixTraits<decltype(ret)>::columns == points_count);
+        static_assert(column_extent_of_v<decltype(ret)> == points_count);
         return std::tuple {std::move(ret)};
       }
       else if constexpr (pos == 0)
       {
         // | delta | -delta | 0 ... |
         constexpr auto width = points_count - frame_size;
-        const auto mright = Matrix<Coeffs, Axes<width>, native_matrix_t<M, dim_i, width>>::zero();
+        const auto mright = Matrix<Coeffs, Axes<width>, equivalent_dense_writable_matrix_t<M, dim_i, width>>::zero();
         auto ret = concatenate_horizontal(delta, -delta, std::move(mright));
-        static_assert(MatrixTraits<decltype(ret)>::columns == points_count);
+        static_assert(column_extent_of_v<decltype(ret)> == points_count);
         return std::tuple_cat(std::tuple {std::move(ret)},
           sample_points_impl<dim, frame_size>(ds...));
       }
       else if constexpr (pos + frame_size < points_count)
       {
         // | 0 ... | delta | -delta | 0 ... |
-        const auto mleft = Matrix<Coeffs, Axes<pos>, native_matrix_t<M, dim_i, pos>>::zero();
+        const auto mleft = Matrix<Coeffs, Axes<pos>, equivalent_dense_writable_matrix_t<M, dim_i, pos>>::zero();
         constexpr auto width = points_count - (pos + frame_size);
-        const auto mright = Matrix<Coeffs, Axes<width>, native_matrix_t<M, dim_i, width>>::zero();
+        const auto mright = Matrix<Coeffs, Axes<width>, equivalent_dense_writable_matrix_t<M, dim_i, width>>::zero();
         auto ret = concatenate_horizontal(std::move(mleft), delta, -delta, std::move(mright));
-        static_assert(MatrixTraits<decltype(ret)>::columns == points_count);
+        static_assert(column_extent_of_v<decltype(ret)> == points_count);
         return std::tuple_cat(std::tuple {std::move(ret)},
           sample_points_impl<dim, pos + frame_size>(ds...));
       }
@@ -92,9 +92,9 @@ namespace OpenKalman
       {
         // | 0 ... | delta | -delta |
         static_assert(sizeof...(ds) == 0);
-        const auto mleft = Matrix<Coeffs, Axes<pos>, native_matrix_t<M, dim_i, pos>>::zero();
+        const auto mleft = Matrix<Coeffs, Axes<pos>, equivalent_dense_writable_matrix_t<M, dim_i, pos>>::zero();
         auto ret = concatenate_horizontal(std::move(mleft), delta, -delta);
-        static_assert(MatrixTraits<decltype(ret)>::columns == points_count);
+        static_assert(column_extent_of_v<decltype(ret)> == points_count);
         return std::tuple {std::move(ret)};
       }
     }
@@ -131,12 +131,12 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<std::size_t dim, typed_matrix YMeans> requires untyped_columns<YMeans> and
-      (MatrixTraits<YMeans>::rows == MatrixTraits<YMeans>::RowCoefficients::euclidean_dimensions) and
-      (MatrixTraits<YMeans>::columns == dim * 2)
+      (row_extent_of_v<YMeans> == MatrixTraits<YMeans>::RowCoefficients::euclidean_dimensions) and
+      (column_extent_of_v<YMeans> == dim * 2)
 #else
     template<std::size_t dim, typename YMeans, std::enable_if_t<typed_matrix<YMeans> and untyped_columns<YMeans> and
-      (MatrixTraits<YMeans>::rows == MatrixTraits<YMeans>::RowCoefficients::euclidean_dimensions) and
-      (MatrixTraits<YMeans>::columns == dim * 2), int> = 0>
+      (row_extent_of<YMeans>::value == MatrixTraits<YMeans>::RowCoefficients::euclidean_dimensions) and
+      (column_extent_of_v<YMeans> == dim * 2), int> = 0>
 #endif
     static auto
     weighted_means(YMeans&& y_means)
@@ -157,20 +157,20 @@ namespace OpenKalman
      * and the cross-covariance.
      */
     template<std::size_t dim, typename InputDist, bool return_cross = false, typed_matrix X, typed_matrix Y> requires
-      (MatrixTraits<X>::columns == MatrixTraits<Y>::columns) and (MatrixTraits<X>::columns == dim * 2) and
+      (column_extent_of_v<X> == column_extent_of_v<Y>) and (column_extent_of_v<X> == dim * 2) and
       equivalent_to<typename MatrixTraits<X>::RowCoefficients, typename DistributionTraits<InputDist>::Coefficients>
 #else
     template<std::size_t dim, typename InputDist, bool return_cross = false, typename X, typename Y, std::enable_if_t<
-      typed_matrix<X> and typed_matrix<Y> and (MatrixTraits<X>::columns == MatrixTraits<Y>::columns) and
-      (MatrixTraits<X>::columns == dim * 2) and
+      typed_matrix<X> and typed_matrix<Y> and (column_extent_of<X>::value == column_extent_of<Y>::value) and
+      (column_extent_of<X>::value == dim * 2) and
       equivalent_to<typename MatrixTraits<X>::RowCoefficients, typename DistributionTraits<InputDist>::Coefficients>,
         int> = 0>
 #endif
     static auto
     covariance(const X& x_deviations, const Y& y_deviations)
     {
-      constexpr auto count = MatrixTraits<X>::columns;
-      constexpr auto inv_weight = 1 / static_cast<typename MatrixTraits<X>::Scalar>(count);
+      constexpr auto count = column_extent_of_v<X>;
+      constexpr auto inv_weight = 1 / static_cast<scalar_type_of_t<X>>(count);
 
       if constexpr(cholesky_form<InputDist>)
       {

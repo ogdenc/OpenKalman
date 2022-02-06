@@ -171,35 +171,35 @@ TEST(matrices, Mean_class)
 
 TEST(matrices, Mean_subscripts)
 {
-  static_assert(element_gettable<Mat23, 2>);
-  static_assert(not element_gettable<Mat23, 1>);
-  static_assert(element_gettable<const Mat23, 2>);
-  static_assert(not element_gettable<const Mat23, 1>);
-  static_assert(element_gettable<Mat21, 2>);
-  static_assert(element_gettable<Mat21, 1>);
-  static_assert(element_gettable<const Mat21, 2>);
-  static_assert(element_gettable<const Mat21, 1>);
-  static_assert(element_gettable<Matrix<C3, C2, M32>, 2>);
-  static_assert(not element_gettable<Matrix<C3, C2, M32>, 1>);
-  static_assert(element_gettable<Matrix<C2, Axis, M21>, 2>);
-  static_assert(element_gettable<Matrix<C2, Axis, M21>, 1>);
+  static_assert(element_gettable<Mat23, std::size_t, std::size_t>);
+  static_assert(not element_gettable<Mat23, std::size_t>);
+  static_assert(element_gettable<const Mat23, std::size_t, std::size_t>);
+  static_assert(not element_gettable<const Mat23, std::size_t>);
+  static_assert(element_gettable<Mat21, std::size_t, std::size_t>);
+  static_assert(element_gettable<Mat21, std::size_t>);
+  static_assert(element_gettable<const Mat21, std::size_t, std::size_t>);
+  static_assert(element_gettable<const Mat21, std::size_t>);
+  static_assert(element_gettable<Matrix<C3, C2, M32>, std::size_t, std::size_t>);
+  static_assert(not element_gettable<Matrix<C3, C2, M32>, std::size_t>);
+  static_assert(element_gettable<Matrix<C2, Axis, M21>, std::size_t, std::size_t>);
+  static_assert(element_gettable<Matrix<C2, Axis, M21>, std::size_t>);
 
-  static_assert(element_settable<Mat23, 2>);
-  static_assert(not element_settable<Mat23, 1>);
-  static_assert(not element_settable<const Mat23, 2>);
-  static_assert(not element_settable<const Mat23, 1>);
-  static_assert(element_settable<Mat21, 2>);
-  static_assert(element_settable<Mat21, 1>);
-  static_assert(not element_settable<const Mat21, 2>);
-  static_assert(not element_settable<const Mat21, 1>);
-  static_assert(element_settable<Matrix<C3, C2, M32>, 2>);
-  static_assert(not element_settable<Matrix<C3, C2, M32>, 1>);
-  static_assert(not element_settable<Matrix<C3, C2, const M32>, 2>);
-  static_assert(not element_settable<Matrix<C3, C2, const M32>, 1>);
-  static_assert(element_settable<Matrix<C2, Axis, M21>, 2>);
-  static_assert(element_settable<Matrix<C2, Axis, M21>, 1>);
-  static_assert(not element_settable<Matrix<C2, Axis, const M21>, 2>);
-  static_assert(not element_settable<Matrix<C2, Axis, const M21>, 1>);
+  static_assert(element_settable<Mat23&, std::size_t, std::size_t>);
+  static_assert(not element_settable<Mat23&, std::size_t>);
+  static_assert(not element_settable<const Mat23&, std::size_t, std::size_t>);
+  static_assert(not element_settable<const Mat23&, std::size_t>);
+  static_assert(element_settable<Mat21&, std::size_t, std::size_t>);
+  static_assert(element_settable<Mat21&, std::size_t>);
+  static_assert(not element_settable<const Mat21&, std::size_t, std::size_t>);
+  static_assert(not element_settable<const Mat21&, std::size_t>);
+  static_assert(element_settable<Matrix<C3, C2, M32>&, std::size_t, std::size_t>);
+  static_assert(not element_settable<Matrix<C3, C2, M32>&, std::size_t>);
+  static_assert(not element_settable<Matrix<C3, C2, const M32>&, std::size_t, std::size_t>);
+  static_assert(not element_settable<Matrix<C3, C2, const M32>&, std::size_t>);
+  static_assert(element_settable<Matrix<C2, Axis, M21>&, std::size_t, std::size_t>);
+  static_assert(element_settable<Matrix<C2, Axis, M21>&, std::size_t>);
+  static_assert(not element_settable<Matrix<C2, Axis, const M21>&, std::size_t, std::size_t>);
+  static_assert(not element_settable<Matrix<C2, Axis, const M21>&, std::size_t>);
 
   EXPECT_NEAR((Mat23 {1, 2, 3, 4, 5, 6})(0, 0), 1, 1e-6);
   EXPECT_NEAR((Mat23 {1, 2, 3, 4, 5, 6})(0, 1), 2, 1e-6);
@@ -227,7 +227,7 @@ TEST(matrices, Mean_deduction_guides)
   auto b3 = EuclideanMean<C2, M33> {1, 2, 3, std::sqrt(3)/2, 0.5, std::sqrt(2)/2, 0.5, std::sqrt(3)/2, std::sqrt(2)/2};
   EXPECT_TRUE(is_near(Mean(b3), Mat23 {1, 2, 3, pi/6, pi/3, pi/4}));
   static_assert(equivalent_to<typename MatrixTraits<decltype(Mean(b3))>::RowCoefficients, C2>);
-  static_assert(MatrixTraits<decltype(Mean(b3))>::rows == 2);
+  static_assert(row_extent_of_v<decltype(Mean(b3))> == 2);
 }
 
 
@@ -265,7 +265,7 @@ TEST(matrices, Mean_traits)
   static_assert(zero_matrix<Mean<C2, ZeroMatrix<double, 2, 2>>>);
 
   EXPECT_TRUE(is_near(
-    MatrixTraits<Mat23>::make(make_native_matrix<double, 2, 3>(1, 2, 3, 4, 5, 6)).nested_matrix(),
+    MatrixTraits<Mat23>::make(make_eigen_matrix<double, 2, 3>(1, 2, 3, 4, 5, 6)).nested_matrix(),
     Mean<Axes<2>, M23> {1, 2, 3, 4-2*pi, 5-2*pi, 6-2*pi}));
   EXPECT_TRUE(is_near(MatrixTraits<Mat23>::zero(), eigen_matrix_t<double, 2, 3>::Zero()));
   EXPECT_TRUE(is_near(MatrixTraits<Mat22>::identity(), eigen_matrix_t<double, 2, 2>::Identity()));
@@ -491,7 +491,7 @@ TEST(matrices, Mean_angles_construct_coefficients)
   EXPECT_TRUE(is_near(v3_1, m3));
   auto v3_2 = v3;
   EXPECT_TRUE(is_near(v3_2, m3));
-  static_assert(std::is_same_v<nested_matrix_t<decltype(v3)>, decltype(m3)>);
+  static_assert(std::is_same_v<nested_matrix_of<decltype(v3)>, decltype(m3)>);
   auto v3_3 = make_mean<double, Coefficients<Axis, angle::Radians, Axis>, 3>();
   v3_3 << make_native_matrix(v3);
   EXPECT_TRUE(is_near(v3_3, m3));
@@ -583,18 +583,18 @@ TEST(matrices, Mean_angle_arithmetic)
   v7 += v2;
   EXPECT_TRUE(is_near(v7, v1));
   auto v6 = make_mean(v1 + v2);
-  static_assert(std::is_same_v<nested_matrix_t<decltype(v6)>&, decltype(v6.nested_matrix())>);
+  static_assert(std::is_same_v<nested_matrix_of<decltype(v6)>&, decltype(v6.nested_matrix())>);
   v7 = v6;
   EXPECT_TRUE(is_near(v7, v6));
   v7 += v6;
   EXPECT_TRUE(is_near(v7, Var3 {6 - pi*2, 12, -6 + pi*2, 24, -10}));
   v7 -= v6;
   EXPECT_TRUE(is_near(v7, v6));
-  static_assert(std::is_same_v<nested_matrix_t<decltype(v5)>&, decltype(v5.nested_matrix())>);
-  static_assert(std::is_same_v<self_contained_t<decltype((v5 + v2).nested_matrix())>,
-    self_contained_t<self_contained_t<decltype(wrap_angles<C>(v5.nested_matrix()))>>>);
-  static_assert(std::is_same_v<self_contained_t<nested_matrix_t<decltype(make_self_contained(v5))>>,
-    self_contained_t<self_contained_t<decltype(wrap_angles<C>(v5.nested_matrix()))>>>);
+  static_assert(std::is_same_v<nested_matrix_of<decltype(v5)>&, decltype(v5.nested_matrix())>);
+  static_assert(std::is_same_v<equivalent_self_contained_t<decltype((v5 + v2).nested_matrix())>,
+    equivalent_self_contained_t<equivalent_self_contained_t<decltype(wrap_angles<C>(v5.nested_matrix()))>>>);
+  static_assert(std::is_same_v<equivalent_self_contained_t<nested_matrix_of<decltype(make_self_contained(v5))>>,
+    equivalent_self_contained_t<equivalent_self_contained_t<decltype(wrap_angles<C>(v5.nested_matrix()))>>>);
 }
 
 

@@ -26,7 +26,6 @@
 #ifndef OPENKALMAN_EIGEN3_HPP
 #define OPENKALMAN_EIGEN3_HPP
 
-#include "../interfaces.hpp"
 
 #include <Eigen/Dense>
 
@@ -49,13 +48,14 @@
 #endif
 #endif
 
+#include "../interfaces.hpp"
 
 #include "details/eigen3-forward-declarations.hpp"
 #include "details/eigen3-matrix-traits.hpp"
 #include "details/eigen3-traits.hpp"
-#include "special-matrices/details/eigen3-special_matrix-traits.hpp"
 
 #include "details/eigen3-matrix-overloads.hpp"
+#include "special-matrices/details/eigen3-special_matrix-traits.hpp"
 
 #include "special-matrices/ConstantMatrix.hpp"
 #include "special-matrices/ZeroMatrix.hpp"
@@ -97,16 +97,10 @@ namespace OpenKalman
   using Eigen3::FromEuclideanExpr;
   using Eigen3::ToEuclideanExpr;
 
-  using Eigen3::make_native_matrix;
+  using Eigen3::make_eigen_matrix;
   using Eigen3::make_EigenSelfAdjointMatrix;
   using Eigen3::make_EigenTriangularMatrix;
 
-  using Eigen3::nested_matrix;
-  using Eigen3::make_self_contained;
-  using Eigen3::get_element;
-  using Eigen3::set_element;
-  using Eigen3::row_count;
-  using Eigen3::column_count;
   using Eigen3::row;
   using Eigen3::column;
   using Eigen3::to_euclidean;
@@ -114,11 +108,6 @@ namespace OpenKalman
   using Eigen3::wrap_angles;
   using Eigen3::to_diagonal;
   using Eigen3::diagonal_of;
-  using Eigen3::transpose;
-  using Eigen3::adjoint;
-  using Eigen3::determinant;
-  using Eigen3::trace;
-  using Eigen3::rank_update;
   using Eigen3::solve;
   using Eigen3::reduce_columns;
   using Eigen3::reduce_rows;

@@ -51,13 +51,13 @@ namespace OpenKalman
       static_assert((equivalent_to<OutputCoefficients,
         typename DistributionTraits<NoiseDistributions>::Coefficients> and ...));
 
-      using InputMeanMatrix = native_matrix_t<
+      using InputMeanMatrix = equivalent_dense_writable_matrix_t<
         typename DistributionTraits<InputDistribution>::Mean, InputCoefficients::dimensions, 1>;
-      using OutputEuclideanMeanMatrix = native_matrix_t<InputMeanMatrix, OutputCoefficients::dimensions, 1>;
-      using OutputCovarianceMatrix = native_matrix_t<InputMeanMatrix, OutputCoefficients::dimensions,
+      using OutputEuclideanMeanMatrix = equivalent_dense_writable_matrix_t<InputMeanMatrix, OutputCoefficients::dimensions, 1>;
+      using OutputCovarianceMatrix = equivalent_dense_writable_matrix_t<InputMeanMatrix, OutputCoefficients::dimensions,
         OutputCoefficients::dimensions>;
       using OutputCovarianceSA = typename MatrixTraits<OutputCovarianceMatrix>::template SelfAdjointMatrixFrom<>;
-      using CrossCovarianceMatrix = native_matrix_t<InputMeanMatrix, InputCoefficients::dimensions,
+      using CrossCovarianceMatrix = equivalent_dense_writable_matrix_t<InputMeanMatrix, InputCoefficients::dimensions,
         OutputCoefficients::dimensions>;
 
       using InputMean = Mean<InputCoefficients, InputMeanMatrix>;
@@ -119,7 +119,7 @@ namespace OpenKalman
       {
         auto operator()(const MonteCarloSum& set1, const MonteCarloSum& set2)
         {
-          using Scalar = typename MatrixTraits<decltype(set1.y_E)>::Scalar;
+          using Scalar = scalar_type_of_t<decltype(set1.y_E)>;
           if (set2.count == 1) // This is most likely. Take advantage of prior knowledge of set2.
           {
             const auto count = set1.count + 1;

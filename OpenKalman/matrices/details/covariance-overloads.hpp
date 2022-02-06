@@ -17,25 +17,6 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<covariance M>
-#else
-  template<typename M, std::enable_if_t<covariance<M>, int> = 0>
-#endif
-  inline decltype(auto)
-  nested_matrix(M&& m) noexcept
-  {
-    if constexpr (self_adjoint_matrix<nested_matrix_t<M>>)
-    {
-      return std::forward<M>(m).get_self_adjoint_nested_matrix();
-    }
-    else
-    {
-      return std::forward<M>(m).get_triangular_nested_matrix();
-    }
-  }
-
-
-#ifdef __cpp_concepts
   template<self_adjoint_covariance Arg>
 #else
   template<typename Arg, std::enable_if_t<self_adjoint_covariance<Arg>, int> = 0>
@@ -58,139 +39,58 @@ namespace OpenKalman
     return std::forward<Arg>(arg).square();
   }
 
+} // namespace OpenKalman
 
-  /**
-   * \brief Convert to a writable native matrix.
-   * \details The resulting matrix is not expected to be self-adjoint, diagonal, or zero.
-   */
+
+namespace OpenKalman::interface
+{
+
 #ifdef __cpp_concepts
-  template<covariance Arg>
+  template<covariance T, std::convertible_to<const std::size_t&>...I> requires (sizeof...(I) <= 2) and
+    (not self_adjoint_covariance<T> or element_gettable<decltype(std::declval<T>().get_self_adjoint_nested_matrix()), I...>) and
+    (not triangular_covariance<T> or element_gettable<decltype(std::declval<T>().get_triangular_nested_matrix()), I...>)
+  struct GetElement<T, I...>
 #else
-  template<typename Arg, std::enable_if_t<covariance<Arg>, int> = 0>
+  template<typename T, typename...I>
+  struct GetElement<T, I..., std::enable_if_t<covariance<T> and
+    ((sizeof...(I) <= 2) and ... and std::is_convertible_v<I, const std::size_t&>) and
+    (not self_adjoint_covariance<T> or element_gettable<decltype(std::declval<T>().get_self_adjoint_nested_matrix()), I...>) and
+    (not triangular_covariance<T> or element_gettable<decltype(std::declval<T>().get_triangular_nested_matrix()), I...>)>>
 #endif
-  constexpr auto
-  make_native_matrix(Arg&& arg) noexcept
   {
-    return make_native_matrix(oin::to_covariance_nestable(std::forward<Arg>(arg)));
-  }
-
-
-  /**
-   * \brief Convert to self-contained version of the covariance matrix.
-   * \details If any types Ts are included, Arg is considered self-contained if every Ts is an lvalue reference.
-   * This is to allow a function to return a non-self-contained value so long as it depends on an lvalue reference to
-   * a variable that is accessible to the context in which the function is called.
-   */
-#ifdef __cpp_concepts
-  template<typename...Ts, covariance Arg>
-#else
-  template<typename...Ts, typename Arg, std::enable_if_t<covariance<Arg>, int> = 0>
-#endif
-  constexpr decltype(auto)
-  make_self_contained(Arg&& arg) noexcept
-  {
-    if constexpr(self_contained<Arg> or std::is_lvalue_reference_v<nested_matrix_t<Arg>> or
-      ((sizeof...(Ts) > 0) and ... and std::is_lvalue_reference_v<Ts>))
+    template<typename Arg>
+    static constexpr auto get(Arg&& arg, I...i)
     {
-      return std::forward<Arg>(arg);
+      return std::forward<Arg>(arg)(i...);
     }
-    else
+  };
+
+
+#ifdef __cpp_concepts
+  template<covariance T, std::convertible_to<const std::size_t&>...I> requires (sizeof...(I) <= 2) and
+    (not self_adjoint_covariance<T> or element_settable<decltype(std::declval<T>().get_self_adjoint_nested_matrix()), I...>) and
+    (not triangular_covariance<T> or element_settable<decltype(std::declval<T>().get_triangular_nested_matrix()), I...>)
+  struct SetElement<T, I...>
+#else
+  template<typename T, typename...I>
+  struct SetElement<T, I..., std::enable_if_t<covariance<T> and element_settable<nested_matrix_of<Arg>, I...> and
+    ((sizeof...(I) <= 2) and ... and std::is_convertible_v<I, const std::size_t&>) and
+    (not self_adjoint_covariance<T> or element_gettable<decltype(std::declval<T>().get_self_adjoint_nested_matrix()), I...>) and
+    (not triangular_covariance<T> or element_gettable<decltype(std::declval<T>().get_triangular_nested_matrix()), I...>)>>
+#endif
+  {
+    template<typename Arg, typename Scalar>
+    static constexpr auto set(Arg&& arg, const Scalar s, I...i)
     {
-      using C = typename MatrixTraits<Arg>::RowCoefficients;
-      if constexpr (triangular_covariance<Arg>)
-      {
-        return SquareRootCovariance<C, self_contained_t<nested_matrix_t<Arg>>> {std::forward<Arg>(arg)};
-      }
-      else
-      {
-        return Covariance<C, self_contained_t<nested_matrix_t<Arg>>> {std::forward<Arg>(arg)};
-      }
+      arg.set_element(s, i...);
     }
-  }
+  };
+
+} // namespace OpenKalman::interface
 
 
-  /// Get element (i, j) of a covariance matrix.
-#ifdef __cpp_concepts
-  template<covariance Arg> requires element_gettable<Arg, 2>
-#else
-  template<typename Arg, std::enable_if_t<covariance<Arg> and element_gettable<Arg, 2>, int> = 0>
-#endif
-  inline auto
-  get_element(Arg&& arg, const std::size_t i, const std::size_t j)
-  {
-    return std::forward<Arg>(arg)(i, j);
-  }
-
-
-  /// Get element (i) of a covariance matrix.
-#ifdef __cpp_concepts
-  template<covariance Arg> requires element_gettable<Arg, 1>
-#else
-  template<typename Arg, std::enable_if_t<covariance<Arg> and element_gettable<Arg, 1>, int> = 0>
-#endif
-  inline auto
-  get_element(Arg&& arg, const std::size_t i)
-  {
-    return std::forward<Arg>(arg)[i];
-  }
-
-
-  /// Set element (i, j) of a covariance matrix.
-#ifdef __cpp_concepts
-  template<covariance Arg, typename Scalar> requires
-    (not std::is_const_v<std::remove_reference_t<Arg>>) and element_settable<Arg, 2>
-#else
-  template<typename Arg, typename Scalar, std::enable_if_t<covariance<Arg> and
-    not std::is_const_v<std::remove_reference_t<Arg>> and element_settable<Arg, 2>, int> = 0>
-#endif
-  inline void
-  set_element(Arg& arg, const Scalar s, const std::size_t i, const std::size_t j)
-  {
-    arg.set_element(s, i, j);
-  }
-
-
-  /// Set element (i) of a covariance matrix.
-#ifdef __cpp_concepts
-  template<covariance Arg, typename Scalar> requires
-    (not std::is_const_v<std::remove_reference_t<Arg>>) and element_settable<Arg, 1>
-#else
-  template<typename Arg, typename Scalar, std::enable_if_t<covariance<Arg> and
-    not std::is_const_v<std::remove_reference_t<Arg>> and element_settable<Arg, 1>, int> = 0>
-#endif
-  inline void
-  set_element(Arg& arg, const Scalar s, const std::size_t i)
-  {
-    arg.set_element(s, i);
-  }
-
-
-#ifdef __cpp_concepts
-  template<covariance Arg>
-#else
-  template<typename Arg, std::enable_if_t<covariance<Arg>, int> = 0>
-#endif
-  constexpr std::size_t
-  row_count(Arg&& arg)
-  {
-    if constexpr (dynamic_rows<Arg>)
-      return row_count(nested_matrix(std::forward<Arg>(arg)));
-    else
-      return MatrixTraits<Arg>::rows;
-  }
-
-
-#ifdef __cpp_concepts
-  template<covariance Arg>
-#else
-  template<typename Arg, std::enable_if_t<covariance<Arg>, int> = 0>
-#endif
-  constexpr std::size_t
-  column_count(Arg&& arg)
-  {
-    return row_count(std::forward<Arg>(arg));
-  }
-
+namespace OpenKalman
+{
 
   /// Return row <code>index</code> of Arg.
 #ifdef __cpp_concepts
@@ -209,10 +109,10 @@ namespace OpenKalman
 
   /// Return row <code>index</code> of Arg, where the index is constexpr.
 #ifdef __cpp_concepts
-  template<std::size_t index, covariance Arg> requires (index < MatrixTraits<Arg>::rows)
+  template<std::size_t index, covariance Arg> requires (index < row_extent_v<Arg>)
 #else
   template<std::size_t index, typename Arg, std::enable_if_t<
-    covariance<Arg> and (index < MatrixTraits<Arg>::rows), int> = 0>
+    covariance<Arg> and (index < row_extent<Arg>::value), int> = 0>
 #endif
   inline decltype(auto)
   row(Arg&& arg)
@@ -241,10 +141,10 @@ namespace OpenKalman
 
   /// Return column <code>index</code> of Arg, where the index is constexpr.
 #ifdef __cpp_concepts
-  template<std::size_t index, covariance Arg> requires (index < MatrixTraits<Arg>::columns)
+  template<std::size_t index, covariance Arg> requires (index < column_extent_of_v<Arg>)
 #else
   template<std::size_t index, typename Arg, std::enable_if_t<
-    covariance<Arg> and (index < MatrixTraits<Arg>::columns), int> = 0>
+    covariance<Arg> and (index < column_extent_of_v<Arg>), int> = 0>
 #endif
   inline decltype(auto)
   column(Arg&& arg)
@@ -264,100 +164,149 @@ namespace OpenKalman
   diagonal_of(Arg&& arg) noexcept
   {
     using C = typename MatrixTraits<Arg>::RowCoefficients;
-    auto b = make_self_contained<Arg>(
-      diagonal_of(oin::to_covariance_nestable(std::forward<Arg>(arg))));
+    auto b = make_self_contained<Arg>(diagonal_of(oin::to_covariance_nestable(std::forward<Arg>(arg))));
     return Matrix<C, Axis, decltype(b)>(std::move(b));
   }
 
 
-#ifdef __cpp_concepts
-  template<covariance Arg>
-#else
-  template<typename Arg, std::enable_if_t<covariance<Arg>, int> = 0>
-#endif
-  inline decltype(auto)
-  transpose(Arg&& arg) noexcept
+  namespace interface
   {
-    /// \todo optimize this
-    if constexpr (triangular_covariance<Arg>)
+
+#ifdef __cpp_concepts
+    template<typed_matrix T>
+    struct ElementAccess<T>
+#else
+    template<typename T>
+    struct ElementAccess<T, std::enable_if_t<typed_matrix<T>>>
+#endif
     {
-      return MatrixTraits<Arg>::make(transpose(std::forward<Arg>(arg).get_triangular_nested_matrix()));
-    }
-    else
+    };
+
+
+#ifdef __cpp_concepts
+    template<typed_matrix T>
+    struct ElementWiseOperations<T>
+#else
+    template<typename T>
+    struct ElementWiseOperations<T, std::enable_if_t<typed_matrix<T>>>
+#endif
     {
-      if constexpr (cholesky_form<Arg>)
+
+      template<ElementOrder order, typename BinaryFunction, typename Accum, typename Arg>
+      static constexpr auto fold(const BinaryFunction& b, Accum&& accum, Arg&& arg)
       {
-        return MatrixTraits<Arg>::make(transpose(std::forward<Arg>(arg).get_triangular_nested_matrix()));
+        return OpenKalman::fold<order>(b, std::forward<Accum>(accum), to_covariance_nestable(std::forward<Arg>(arg)));
       }
-      else return std::forward<Arg>(arg);
-    }
-  }
+
+    };
 
 
 #ifdef __cpp_concepts
-  template<covariance Arg>
+  template<covariance T>
+  struct Conversions<T>
 #else
-  template<typename Arg, std::enable_if_t<covariance<Arg>, int> = 0>
+  template<typename T>
+  struct Conversions<T, std::enable_if_t<covariance<T>>>
 #endif
-  inline decltype(auto)
-  adjoint(Arg&& arg) noexcept
   {
-    /// \todo optimize this
-    if constexpr (complex_number<typename MatrixTraits<Arg>::Scalar>)
-    {
-      return MatrixTraits<Arg>::make(adjoint(std::forward<Arg>(arg).get_triangular_nested_matrix()));
-    }
-    else
-    {
-      return transpose(std::forward<Arg>(arg));
-    }
-  }
+  };
 
 
 #ifdef __cpp_concepts
-  template<covariance Arg>
+    template<covariance T>
+    struct LinearAlgebra<T>
 #else
-  template<typename Arg, std::enable_if_t<covariance<Arg>, int> = 0>
+    template<typename T>
+    struct linearAlgebra<T, std::enable_if_t<covariance<T>>>
 #endif
-  inline auto
-  determinant(Arg&& arg) noexcept
-  {
-    return std::forward<Arg>(arg).determinant();
-  }
+    {
+
+      template<typename Arg>
+      static constexpr decltype(auto) conjugate(Arg&& arg) noexcept
+      {
+        // \todo optimize this by also copying cholesky nested matrix
+        return MatrixTraits<Arg>::make(OpenKalman::conjugate(nested_matrix(std::forward<Arg>(arg))));
+      }
+
+
+      template<typename Arg>
+      static constexpr decltype(auto) transpose(Arg&& arg) noexcept
+      {
+        // \todo optimize this by also copying cholesky nested matrix
+        return MatrixTraits<Arg>::make(OpenKalman::transpose(nested_matrix(std::forward<Arg>(arg))));
+      }
+
+
+      template<typename Arg>
+      static constexpr decltype(auto) adjoint(Arg&& arg) noexcept
+      {
+        // \todo optimize this by also copying cholesky nested matrix
+        static_assert(triangular_covariance<Arg>)
+        return MatrixTraits<Arg>::make(OpenKalman::adjoint(nested_matrix(std::forward<Arg>(arg))));
+      }
+
+
+      template<typename Arg>
+      static constexpr auto determinant(Arg&& arg) noexcept
+      {
+        return std::forward<Arg>(arg).determinant();
+      }
+
+
+      template<typename Arg>
+      static constexpr auto trace(Arg&& arg) noexcept
+      {
+        // \todo Optimize this?
+        return OpenKalman::trace(to_covariance_nestable(std::forward<Arg>(arg)));
+      }
+
+
+    #ifdef __cpp_concepts
+      template<TriangleType t, self_adjoint_covariance Arg, typed_matrix U, typename Alpha> requires
+        equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, typename MatrixTraits<U>::RowCoefficients>
+    #else
+      template<typename Arg, typename U, typename Alpha, std::enable_if_t<
+        self_adjoint_covariance<Arg> and typed_matrix<U> and
+        equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, typename MatrixTraits<U>::RowCoefficients>, int> = 0>
+    #endif
+      static decltype(auto) rank_update_self_adjoint(A&& a, U&& u, const Alpha alpha)
+      {
+        if constexpr (std::is_same_v<A&&, std::decay_t<A>&>)
+        {
+          return arg.rank_update(std::forward<U>(u), alpha);
+        }
+        else
+        {
+          auto ret = std::forward<A>(a).rank_update(std::forward<U>(u), alpha);
+          return ret;
+        }
+      }
 
 
 #ifdef __cpp_concepts
-  template<covariance Arg>
+      template<TriangleType t, triangular_covariance Arg, typed_matrix U, typename Alpha> requires
+        equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, typename MatrixTraits<U>::RowCoefficients>
 #else
-  template<typename Arg, std::enable_if_t<covariance<Arg>, int> = 0>
+      template<typename Arg, typename U, typename Alpha, std::enable_if_t<
+        triangular_covariance<Arg> and typed_matrix<U> and
+        equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, typename MatrixTraits<U>::RowCoefficients>, int> = 0>
 #endif
-  inline auto
-  trace(Arg&& arg) noexcept
-  {
-    return trace(to_covariance_nestable(std::forward<Arg>(arg)));
-  }
+      static decltype(auto) rank_update_triangular(A&& a, U&& u, const Alpha alpha)
+      {
+        if constexpr (std::is_same_v<A&&, std::decay_t<A>&>)
+        {
+          return arg.rank_update(std::forward<U>(u), alpha);
+        }
+        else
+        {
+          auto ret = std::forward<A>(a).rank_update(std::forward<U>(u), alpha);
+          return ret;
+        }
+      }
 
+    };
 
-#ifdef __cpp_concepts
-  template<covariance Arg, typed_matrix U> requires
-    equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, typename MatrixTraits<U>::RowCoefficients>
-#else
-  template<typename Arg, typename U, std::enable_if_t<covariance<Arg> and typed_matrix<U> and
-    equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, typename MatrixTraits<U>::RowCoefficients>, int> = 0>
-#endif
-  inline decltype(auto)
-  rank_update(Arg&& arg, const U& u, const typename MatrixTraits<Arg>::Scalar alpha = 1)
-  {
-    if constexpr (std::is_same_v<Arg&&, std::decay_t<Arg>&>)
-    {
-      return arg.rank_update(u, alpha);
-    }
-    else
-    {
-      auto ret = std::forward<Arg>(arg).rank_update(u, alpha);
-      return ret;
-    }
-  }
+  } // namespace interface
 
 
   /// Solves a x = b for x (A is a Covariance or SquareRootCovariance, B is a vector type).
@@ -568,7 +517,7 @@ namespace OpenKalman
   template<typename Function, covariance Arg> requires
     requires(Arg&& arg, const Function& f) {
       {f(column<0>(arg))} -> typed_matrix;
-      MatrixTraits<decltype(f(column<0>(arg)))>::columns == 1;
+      column_extent_of_v<decltype(f(column<0>(arg)))> == 1;
     }
 #else
   template<typename Function, typename Arg, std::enable_if_t<
@@ -590,7 +539,7 @@ namespace OpenKalman
   template<typename Function, covariance Arg> requires
     requires(Arg&& arg, const Function& f, std::size_t i) {
       {f(column<0>(arg), i)} -> typed_matrix;
-      MatrixTraits<decltype(f(column<0>(arg), i))>::columns == 1;
+      column_extent_of_v<decltype(f(column<0>(arg), i))> == 1;
     }
 #else
   template<typename Function, typename Arg, std::enable_if_t<
@@ -610,11 +559,11 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
   template<typename Function, covariance Arg> requires std::convertible_to<
-    std::invoke_result_t<Function, typename MatrixTraits<Arg>::Scalar>, const typename MatrixTraits<Arg>::Scalar>
+    std::invoke_result_t<Function, scalar_type_of_t<Arg>>, const scalar_type_of_t<Arg>>
 #else
   template<typename Function, typename Arg, std::enable_if_t<covariance<Arg> and
-    std::is_convertible_v<std::invoke_result_t<Function, typename MatrixTraits<Arg>::Scalar>,
-      const typename MatrixTraits<Arg>::Scalar>, int> = 0>
+    std::is_convertible_v<std::invoke_result_t<Function, typename scalar_type_of<Arg>::type>,
+      const typename scalar_type_of<Arg>::type>, int> = 0>
 #endif
   inline auto
   apply_coefficientwise(const Function& f, Arg&& arg)
@@ -626,12 +575,12 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
   template<typename Function, covariance Arg> requires std::convertible_to<
-    std::invoke_result_t<Function, typename MatrixTraits<Arg>::Scalar, std::size_t, std::size_t>,
-      const typename MatrixTraits<Arg>::Scalar>
+    std::invoke_result_t<Function, scalar_type_of_t<Arg>, std::size_t, std::size_t>,
+      const scalar_type_of_t<Arg>>
 #else
   template<typename Function, typename Arg, std::enable_if_t<covariance<Arg> and
-    std::is_convertible_v<std::invoke_result_t<Function, typename MatrixTraits<Arg>::Scalar, std::size_t, std::size_t>,
-    const typename MatrixTraits<Arg>::Scalar>, int> = 0>
+    std::is_convertible_v<std::invoke_result_t<Function, typename scalar_type_of<Arg>::type, std::size_t, std::size_t>,
+    const typename scalar_type_of<Arg>::type>, int> = 0>
 #endif
   inline auto
   apply_coefficientwise(const Function& f, Arg&& arg)

@@ -97,7 +97,7 @@ TEST(covariance_tests, Covariance_convert_nested_matrix)
   EXPECT_TRUE(is_near(to_covariance_nestable<SA2u>(make_native_matrix<M2>(9, 3, 3, 10)), Mat2 {9, 3, 3, 10}));
   EXPECT_TRUE(is_near(to_covariance_nestable<T2l>(make_native_matrix<M2>(3, 0, 1, 3)), Mat2 {3, 0, 1, 3}));
   EXPECT_TRUE(is_near(to_covariance_nestable<T2u>(make_native_matrix<M2>(3, 1, 0, 3)), Mat2 {3, 1, 0, 3}));
-  EXPECT_TRUE(is_near(to_covariance_nestable<D2>(make_native_matrix(1., 2)), Mat2 {1, 0, 0, 2}));
+  EXPECT_TRUE(is_near(to_covariance_nestable<D2>(make_eigen_matrix(1., 2)), Mat2 {1, 0, 0, 2}));
 
 
   EXPECT_TRUE(is_near(to_covariance_nestable(CovSA2l {9, 3, 3, 10}), Mat2 {9, 3, 3, 10}));
@@ -326,7 +326,7 @@ TEST(covariance_tests, Covariance_class)
   CovSA2u cusa7(make_native_matrix<M2>(4, 2, 7, 5)); EXPECT_TRUE(is_near(cusa7, Mat2 {4, 2, 2, 5}));
   CovT2l clt7(make_native_matrix<M2>(9, 7, 3, 10)); EXPECT_TRUE(is_near(clt7, Mat2 {9, 3, 3, 10}));
   CovT2u cut7(make_native_matrix<M2>(4, 2, 7, 5)); EXPECT_TRUE(is_near(cut7, Mat2 {4, 2, 2, 5}));
-  CovD2 cd7(make_native_matrix<double, 2, 1>(1, 2)); EXPECT_TRUE(is_near(cd7, Mat2 {1, 0, 0, 2}));
+  CovD2 cd7(make_eigen_matrix<double, 2, 1>(1, 2)); EXPECT_TRUE(is_near(cd7, Mat2 {1, 0, 0, 2}));
 
   // Construct from a list of coefficients
   CovSA2l clsa8{4, 7, 2, 5}; EXPECT_TRUE(is_near(clsa8, Mat2 {4, 2, 2, 5}));

@@ -27,6 +27,7 @@ namespace
   using M32 = eigen_matrix_t<double, 3, 2>;
   using M33 = eigen_matrix_t<double, 3, 3>;
   using M34 = eigen_matrix_t<double, 3, 4>;
+  using M41 = eigen_matrix_t<double, 4, 1>;
   using M43 = eigen_matrix_t<double, 4, 3>;
   using M44 = eigen_matrix_t<double, 4, 4>;
   using M55 = eigen_matrix_t<double, 5, 5>;
@@ -133,6 +134,23 @@ TEST(eigen3, diagonal_of_matrix)
   EXPECT_TRUE(is_near(diagonal_of(Eigen::DiagonalWrapper {m20_1}), m21));
   EXPECT_TRUE(is_near(diagonal_of(Eigen::DiagonalWrapper {m01_2}), m21));
   EXPECT_TRUE(is_near(diagonal_of(Eigen::DiagonalWrapper {m00_21}), m21));
+
+  auto m12 = M12 {1, 4};
+  auto m10_2 = M10 {m12};
+  auto m02_1 = M02 {m12};
+  auto m00_12 = M00 {m12};
+
+  EXPECT_TRUE(is_near(diagonal_of(Eigen::DiagonalWrapper {m12}), m21));
+  EXPECT_TRUE(is_near(diagonal_of(Eigen::DiagonalWrapper {m10_2}), m21));
+  EXPECT_TRUE(is_near(diagonal_of(Eigen::DiagonalWrapper {m02_1}), m21));
+  EXPECT_TRUE(is_near(diagonal_of(Eigen::DiagonalWrapper {m00_12}), m21));
+
+  auto m41 = make_native_matrix<M41>(1, 3, 2, 4);
+
+  EXPECT_TRUE(is_near(diagonal_of(Eigen::DiagonalWrapper {m22}), m41));
+  EXPECT_TRUE(is_near(diagonal_of(Eigen::DiagonalWrapper {m20_2}), m41));
+  EXPECT_TRUE(is_near(diagonal_of(Eigen::DiagonalWrapper {m02_2}), m41));
+  EXPECT_TRUE(is_near(diagonal_of(Eigen::DiagonalWrapper {m00_22}), m41));
 }
 
 
@@ -192,7 +210,7 @@ TEST(eigen3, diagonal_of_constant)
   auto d00_21_2 = Eigen::Replicate<decltype(c11_2), Eigen::Dynamic, Eigen::Dynamic> {c11_2, 2, 1}.asDiagonal();
 
   EXPECT_TRUE(is_near(diagonal_of(d21_2), c21_2)); static_assert(constant_coefficient_v<decltype(diagonal_of(d21_2))> == 2); static_assert(not dynamic_shape<decltype(diagonal_of(d21_2))>);
-  EXPECT_TRUE(is_near(diagonal_of(d20_1_2), c21_2)); static_assert(constant_coefficient_v<decltype(diagonal_of(d20_1_2))> == 2); static_assert(not dynamic_shape<decltype(diagonal_of(d20_1_2))>);
+  EXPECT_TRUE(is_near(diagonal_of(d20_1_2), c21_2)); static_assert(constant_coefficient_v<decltype(diagonal_of(d20_1_2))> == 2); static_assert(dynamic_shape<decltype(diagonal_of(d20_1_2))>);
   EXPECT_TRUE(is_near(diagonal_of(d01_2_2), c21_2)); static_assert(constant_coefficient_v<decltype(diagonal_of(d01_2_2))> == 2); static_assert(dynamic_shape<decltype(diagonal_of(d01_2_2))>);
   EXPECT_TRUE(is_near(diagonal_of(d00_21_2), c21_2)); static_assert(constant_coefficient_v<decltype(diagonal_of(d00_21_2))> == 2); static_assert(dynamic_shape<decltype(diagonal_of(d00_21_2))>);
 }
@@ -205,8 +223,8 @@ TEST(eigen3, diagonal_of_identity)
   auto i01_2 = Eigen::Replicate<typename M11::IdentityReturnType, Eigen::Dynamic, 1> {M11::Identity(), 2, 1}.asDiagonal();
   auto i00_21 = Eigen::Replicate<typename M11::IdentityReturnType, Eigen::Dynamic, Eigen::Dynamic> {M11::Identity(), 2, 1}.asDiagonal();
 
-  EXPECT_TRUE(is_near(diagonal_of(i21), M21::Constant(1))); static_assert(constant_coefficient_v<decltype(diagonal_of(i21))> == 1);
-  EXPECT_TRUE(is_near(diagonal_of(i20_1), M21::Constant(1))); static_assert(constant_coefficient_v<decltype(diagonal_of(i20_1))> == 1); static_assert(not dynamic_shape<decltype(diagonal_of(i20_1))>);
+  EXPECT_TRUE(is_near(diagonal_of(i21), M21::Constant(1))); static_assert(constant_coefficient_v<decltype(diagonal_of(i21))> == 1); static_assert(not dynamic_shape<decltype(diagonal_of(i21))>);
+  EXPECT_TRUE(is_near(diagonal_of(i20_1), M21::Constant(1))); static_assert(constant_coefficient_v<decltype(diagonal_of(i20_1))> == 1); static_assert(dynamic_shape<decltype(diagonal_of(i20_1))>);
   EXPECT_TRUE(is_near(diagonal_of(i01_2), M21::Constant(1))); static_assert(constant_coefficient_v<decltype(diagonal_of(i01_2))> == 1); static_assert(dynamic_shape<decltype(diagonal_of(i01_2))>);
   EXPECT_TRUE(is_near(diagonal_of(i00_21), M21::Constant(1))); static_assert(constant_coefficient_v<decltype(diagonal_of(i00_21))> == 1); static_assert(dynamic_shape<decltype(diagonal_of(i00_21))>);
 
@@ -216,8 +234,8 @@ TEST(eigen3, diagonal_of_identity)
   EXPECT_TRUE(is_near(diagonal_of(M00::Identity(2, 2)), M21::Constant(1))); static_assert(constant_coefficient_v<decltype(diagonal_of(M00::Identity(2, 2)))> == 1);
 
   static_assert(eigen_constant_expr<decltype(diagonal_of(std::declval<IdentityMatrix<M33>>()))>);
-  static_assert(MatrixTraits<decltype(diagonal_of(std::declval<IdentityMatrix<M33>>()))>::rows == 3);
-  static_assert(MatrixTraits<decltype(diagonal_of(std::declval<IdentityMatrix<M33>>()))>::columns == 1);
+  static_assert(row_extent_of_v<decltype(diagonal_of(std::declval<IdentityMatrix<M33>>()))> == 3);
+  static_assert(column_extent_of_v<decltype(diagonal_of(std::declval<IdentityMatrix<M33>>()))> == 1);
 }
 
 

@@ -80,7 +80,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   concept native_eigen_matrix =
 #else
-  inline constexpr bool native_eigen_matrix =
+  constexpr bool native_eigen_matrix =
 #endif
     (not std::is_base_of_v<internal::Eigen3Base<std::decay_t<T>>, std::decay_t<T>>) and
     std::is_base_of_v<Eigen::MatrixBase<std::decay_t<T>>, std::decay_t<T>>;
@@ -93,7 +93,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   concept native_eigen_array =
 #else
-  inline constexpr bool native_eigen_array =
+  constexpr bool native_eigen_array =
 #endif
     (not std::is_base_of_v<internal::Eigen3Base<std::decay_t<T>>, std::decay_t<T>>) and
     std::is_base_of_v<Eigen::ArrayBase<std::decay_t<T>>, std::decay_t<T>>;
@@ -131,7 +131,7 @@ namespace OpenKalman::Eigen3
         Eigen::internal::traits<std::decay_t<T>>::ColsAtCompileTime> {t};
     };
 #else
-  inline constexpr bool convertible_to_native_eigen_matrix = detail::is_convertible_to_native_eigen_matrix<T>::value;
+  constexpr bool convertible_to_native_eigen_matrix = detail::is_convertible_to_native_eigen_matrix<T>::value;
 #endif
 
 
@@ -142,7 +142,8 @@ namespace OpenKalman::Eigen3
    */
   template<typename NestedMatrix>
   using IdentityMatrix =
-    Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<typename NestedMatrix::Scalar>, NestedMatrix>;
+    Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<
+      typename Eigen::internal::traits<std::decay_t<NestedMatrix>>::Scalar>, NestedMatrix>;
 
 
   // ------------------------------------- //
@@ -183,7 +184,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   concept eigen_constant_expr = detail::is_eigen_constant_expr<std::decay_t<T>>::value;
 #else
-  inline constexpr bool eigen_constant_expr = detail::is_eigen_constant_expr<std::decay_t<T>>::value;
+  constexpr bool eigen_constant_expr = detail::is_eigen_constant_expr<std::decay_t<T>>::value;
 #endif
 
 
@@ -219,7 +220,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   concept eigen_zero_expr = detail::is_eigen_zero_expr<std::decay_t<T>>::value;
 #else
-  inline constexpr bool eigen_zero_expr = detail::is_eigen_zero_expr<std::decay_t<T>>::value;
+  constexpr bool eigen_zero_expr = detail::is_eigen_zero_expr<std::decay_t<T>>::value;
 #endif
 
 
@@ -234,7 +235,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   concept eigen_matrix = native_eigen_matrix<T> or eigen_zero_expr<T> or eigen_constant_expr<T>;
 #else
-  inline constexpr bool eigen_matrix = native_eigen_matrix<T> or eigen_zero_expr<T> or eigen_constant_expr<T>;
+  constexpr bool eigen_matrix = native_eigen_matrix<T> or eigen_zero_expr<T> or eigen_constant_expr<T>;
 #endif
 
 
@@ -275,7 +276,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   concept eigen_diagonal_expr = detail::is_eigen_diagonal_expr<std::decay_t<T>>::value;
 #else
-  inline constexpr bool eigen_diagonal_expr = detail::is_eigen_diagonal_expr<std::decay_t<T>>::value;
+  constexpr bool eigen_diagonal_expr = detail::is_eigen_diagonal_expr<std::decay_t<T>>::value;
 #endif
 
 
@@ -298,7 +299,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<typename NestedMatrix, TriangleType storage_triangle =
       (diagonal_matrix<NestedMatrix> ? TriangleType::diagonal : TriangleType::lower)>
-  requires (eigen_diagonal_expr<NestedMatrix> and not complex_number<typename MatrixTraits<NestedMatrix>::Scalar>) or
+  requires (eigen_diagonal_expr<NestedMatrix> and not complex_number<scalar_type_of_t<NestedMatrix>>) or
     (eigen_matrix<NestedMatrix>  and (dynamic_shape<NestedMatrix> or square_matrix<NestedMatrix>))
 #else
   template<typename NestedMatrix, TriangleType storage_triangle =
@@ -324,7 +325,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   concept eigen_self_adjoint_expr = detail::is_eigen_self_adjoint_expr<std::decay_t<T>>::value;
 #else
-  inline constexpr bool eigen_self_adjoint_expr = detail::is_eigen_self_adjoint_expr<std::decay_t<T>>::value;
+  constexpr bool eigen_self_adjoint_expr = detail::is_eigen_self_adjoint_expr<std::decay_t<T>>::value;
 #endif
 
 
@@ -372,7 +373,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   concept eigen_triangular_expr = detail::is_eigen_triangular_expr<std::decay_t<T>>::value;
 #else
-  inline constexpr bool eigen_triangular_expr = detail::is_eigen_triangular_expr<std::decay_t<T>>::value;
+  constexpr bool eigen_triangular_expr = detail::is_eigen_triangular_expr<std::decay_t<T>>::value;
 #endif
 
 
@@ -405,9 +406,9 @@ namespace OpenKalman::Eigen3
   template<coefficients Coefficients, typename NestedMatrix = eigen_matrix_t<double, Coefficients::dimensions, 1>>
   requires (eigen_matrix<NestedMatrix> or eigen_diagonal_expr<NestedMatrix>) and
     (dynamic_coefficients<Coefficients> == dynamic_rows<NestedMatrix>) and
-    (not fixed_coefficients<Coefficients> or Coefficients::dimensions == MatrixTraits<NestedMatrix>::rows) and
+    (not fixed_coefficients<Coefficients> or Coefficients::dimensions == row_extent_of_v<NestedMatrix>) and
     (not dynamic_coefficients<Coefficients> or
-      std::same_as<typename Coefficients::Scalar, typename MatrixTraits<NestedMatrix>::Scalar>)
+      std::same_as<typename Coefficients::Scalar, scalar_type_of_t<NestedMatrix>>)
 #else
   template<typename Coefficients, typename NestedMatrix = Eigen3::eigen_matrix_t<double, Coefficients::dimensions, 1>>
 #endif
@@ -431,7 +432,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   concept to_euclidean_expr = detail::is_to_euclidean_expr<std::decay_t<T>>::value;
 #else
-  inline constexpr bool to_euclidean_expr = detail::is_to_euclidean_expr<std::decay_t<T>>::value;
+  constexpr bool to_euclidean_expr = detail::is_to_euclidean_expr<std::decay_t<T>>::value;
 #endif
 
 
@@ -450,9 +451,9 @@ namespace OpenKalman::Eigen3
     typename NestedMatrix = eigen_matrix_t<double, Coefficients::euclidean_dimensions, 1>>
   requires (eigen_matrix<NestedMatrix> or to_euclidean_expr<NestedMatrix> or eigen_diagonal_expr<NestedMatrix>) and
     (dynamic_coefficients<Coefficients> == dynamic_rows<NestedMatrix>) and
-    (not fixed_coefficients<Coefficients> or Coefficients::euclidean_dimensions == MatrixTraits<NestedMatrix>::rows) and
+    (not fixed_coefficients<Coefficients> or Coefficients::euclidean_dimensions == row_extent_of_v<NestedMatrix>) and
     (not dynamic_coefficients<Coefficients> or
-      std::same_as<typename Coefficients::Scalar, typename MatrixTraits<NestedMatrix>::Scalar>)
+      std::same_as<typename Coefficients::Scalar, scalar_type_of_t<NestedMatrix>>)
 #else
   template<typename Coefficients,
     typename NestedMatrix = Eigen3::eigen_matrix_t<double, Coefficients::euclidean_dimensions, 1>>
@@ -477,7 +478,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   concept from_euclidean_expr = detail::is_from_euclidean_expr<std::decay_t<T>>::value;
 #else
-  inline constexpr bool from_euclidean_expr = detail::is_from_euclidean_expr<std::decay_t<T>>::value;
+  constexpr bool from_euclidean_expr = detail::is_from_euclidean_expr<std::decay_t<T>>::value;
 #endif
 
 
@@ -488,7 +489,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   concept euclidean_expr = to_euclidean_expr<T> or from_euclidean_expr<T>;
 #else
-  inline constexpr bool euclidean_expr = from_euclidean_expr<T> or to_euclidean_expr<T>;
+  constexpr bool euclidean_expr = from_euclidean_expr<T> or to_euclidean_expr<T>;
 #endif
 
 

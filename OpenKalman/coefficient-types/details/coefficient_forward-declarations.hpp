@@ -370,7 +370,7 @@ namespace OpenKalman
         (std::tuple_size_v<decltype(T::template wrap_array_get<double, 0>)> == T::dimensions) and
         (std::tuple_size_v<decltype(T::template wrap_array_set<double, 0>)> == T::dimensions)));
 #else
-    inline constexpr bool coefficient_class = true;
+    constexpr bool coefficient_class = true;
 #endif
 
   } // namespace internal

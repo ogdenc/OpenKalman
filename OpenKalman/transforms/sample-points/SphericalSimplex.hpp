@@ -125,7 +125,7 @@ namespace OpenKalman
       using Scalar = typename DistributionTraits<Dist>::Scalar;
       constexpr auto rows = DistributionTraits<Dist>::dimensions;
       constexpr auto count = sigma_point_count<dim>;
-      using Xnative = native_matrix_t<typename DistributionTraits<Dist>::Mean, rows, count>;
+      using Xnative = equivalent_dense_writable_matrix_t<typename DistributionTraits<Dist>::Mean, rows, count>;
       Matrix<Coefficients, Axes<count>, Xnative> X {sigma_point_coeff<ns / count + pos, ns % count, dim, Scalar>()...};
       return X;
     }

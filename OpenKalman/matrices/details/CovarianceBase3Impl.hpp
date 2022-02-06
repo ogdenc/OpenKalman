@@ -38,7 +38,7 @@ namespace OpenKalman::internal
 
     using Base = MatrixBase<Derived, NestedMatrix>;
 
-    using Scalar = typename MatrixTraits<NestedMatrix>::Scalar;
+    using Scalar = scalar_type_of_t<NestedMatrix>;
 
   protected:
 
@@ -221,13 +221,13 @@ namespace OpenKalman::internal
 #endif
     auto& operator=(Arg&& arg) noexcept
     {
-      if constexpr(not (zero_matrix<nested_matrix_t<Arg>> and zero_matrix<NestedMatrix>) and
-        not (identity_matrix<nested_matrix_t<Arg>> and identity_matrix<NestedMatrix>))
+      if constexpr(not (zero_matrix<nested_matrix_of<Arg>> and zero_matrix<NestedMatrix>) and
+        not (identity_matrix<nested_matrix_of<Arg>> and identity_matrix<NestedMatrix>))
       {
         if constexpr (case1or2<Arg>)
         {
           // Arg is Case 1 or 2
-          if constexpr (triangular_matrix<nested_matrix_t<Arg>> == triangular_matrix<NestedMatrix> and
+          if constexpr (triangular_matrix<nested_matrix_of<Arg>> == triangular_matrix<NestedMatrix> and
             not diagonal_matrix<Arg>)
           {
             Base::nested_matrix() = to_covariance_nestable<NestedMatrix>(std::forward<Arg>(arg));
@@ -293,7 +293,7 @@ namespace OpenKalman::internal
      */
     auto operator() (std::size_t i, std::size_t j)
     {
-      if constexpr(element_settable<CholeskyNestedMatrix, 2>)
+      if constexpr(element_settable<CholeskyNestedMatrix, std::size_t, std::size_t>)
         return ElementAccessor(cholesky_nested, i, j,
           [this] { if (synch_direction > 0) synchronize_forward(); },
           [this] { mark_cholesky_nested_matrix_changed(); });
@@ -316,7 +316,7 @@ namespace OpenKalman::internal
      */
     auto operator[] (std::size_t i)
     {
-      if constexpr(element_settable<CholeskyNestedMatrix, 1>)
+      if constexpr(element_settable<CholeskyNestedMatrix, std::size_t>)
         return ElementAccessor(cholesky_nested, i,
           [this] { if (synch_direction > 0) synchronize_forward(); },
           [this] { mark_cholesky_nested_matrix_changed(); });

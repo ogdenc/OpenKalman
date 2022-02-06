@@ -70,7 +70,7 @@ TEST(eigen3, apply_columnwise)
   apply_columnwise([](auto& col){ col += col.Constant(2, 1, 1); }, m01_2); EXPECT_TRUE(is_near(m01_2, m21_23));
   apply_columnwise([](auto& col){ col += col.Constant(2, 1, 1); }, m00_21); EXPECT_TRUE(is_near(m00_21, m21_23));
 
-  const auto m33_123 = make_native_matrix<double, 3, 3>(
+  const auto m33_123 = make_eigen_matrix<double, 3, 3>(
     1, 0, 0,
     0, 2, 0,
     0, 0, 3);
@@ -167,7 +167,7 @@ TEST(eigen3, apply_rowwise)
   apply_rowwise([](auto& row){ row += row.Constant(1); }, m02_1_vol); EXPECT_TRUE(is_near(m02_1_vol, m12_23));
   apply_rowwise([](auto& row){ row += row.Constant(1, 2, 1); }, m00_12_vol); EXPECT_TRUE(is_near(m00_12_vol, m12_23));
 
-  const auto m33_123 = make_native_matrix<double, 3, 3>(
+  const auto m33_123 = make_eigen_matrix<double, 3, 3>(
     1, 0, 0,
     0, 2, 0,
     0, 0, 3);
@@ -202,7 +202,7 @@ TEST(eigen3, apply_rowwise)
   EXPECT_TRUE(is_near(apply_rowwise([](const auto& row){ return make_self_contained(row + row.Constant(1)); }, M03 {m33_123}), m33_234));
   EXPECT_TRUE(is_near(apply_rowwise([](const auto& row){ return make_self_contained(row + row.Constant(1, 3, 1)); }, M00 {m33_123}), m33_234));
 
-  auto m33_135_row = make_native_matrix<double, 3, 3>(
+  auto m33_135_row = make_eigen_matrix<double, 3, 3>(
     1, 0, 0,
     1, 3, 1,
     2, 2, 5);
@@ -219,7 +219,7 @@ TEST(eigen3, apply_rowwise)
   EXPECT_TRUE(is_near(apply_rowwise([](const auto& row, std::size_t i){ return make_self_contained(row + row.Constant(i)); }, M03 {m33_123}), m33_135_row));
   EXPECT_TRUE(is_near(apply_rowwise([](const auto& row, std::size_t i){ return make_self_contained(row + row.Constant(1, 3, i)); }, M00 {m33_123}), m33_135_row));
 
-  auto m33_123_v = make_native_matrix<double, 3, 3>(
+  auto m33_123_v = make_eigen_matrix<double, 3, 3>(
     1, 2, 3,
     1, 2, 3,
     1, 2, 3);
@@ -249,7 +249,7 @@ TEST(eigen3, apply_rowwise)
 
 TEST(eigen3, apply_coefficientwise)
 {
-  const auto m33_123 = make_native_matrix<double, 3, 3>(
+  const auto m33_123 = make_eigen_matrix<double, 3, 3>(
     1, 0, 0,
     0, 2, 0,
     0, 0, 3);
@@ -272,7 +272,7 @@ TEST(eigen3, apply_coefficientwise)
   EXPECT_TRUE(is_near(apply_coefficientwise([](const double& x){ return x + 1; }, m33_123), m33_234));
   EXPECT_TRUE(is_near(m33_123 + M33::Constant(1), m33_234));
 
-  auto m33_147 = make_native_matrix<double, 3, 3>(
+  auto m33_147 = make_eigen_matrix<double, 3, 3>(
     1, 1, 2,
     1, 4, 3,
     2, 3, 7);
@@ -291,7 +291,7 @@ TEST(eigen3, apply_coefficientwise)
 
 
 
-  auto m33_135 = make_native_matrix<double, 3, 3>(
+  auto m33_135 = make_eigen_matrix<double, 3, 3>(
     1, 2, 3,
     2, 3, 4,
     3, 4, 5);

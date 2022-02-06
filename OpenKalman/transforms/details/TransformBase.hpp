@@ -50,7 +50,7 @@ namespace OpenKalman::internal
   }
 
   template<typename T>
-  inline constexpr bool tuple_like = detail::is_tuple_like<T>::value;
+  constexpr bool tuple_like = detail::is_tuple_like<T>::value;
 #endif
 
 

@@ -160,8 +160,8 @@ TEST(eigen3, concatenate_horizontal)
 TEST(eigen3, concatenate_diagonal)
 {
   auto m22 = make_native_matrix<M22>(1, 2, 3, 4);
-  auto m22_5678 = make_native_matrix<double, 2, 2>(5, 6, 7, 8);
-  auto m44_diag = make_native_matrix<double, 4, 4>(1, 2, 0, 0, 3, 4, 0, 0, 0, 0, 5, 6, 0, 0, 7, 8);
+  auto m22_5678 = make_eigen_matrix<double, 2, 2>(5, 6, 7, 8);
+  auto m44_diag = make_eigen_matrix<double, 4, 4>(1, 2, 0, 0, 3, 4, 0, 0, 0, 0, 5, 6, 0, 0, 7, 8);
 
   EXPECT_TRUE(is_near(concatenate_diagonal(m22, m22_5678), m44_diag));
   EXPECT_TRUE(is_near(concatenate_diagonal(M20 {m22}, m22_5678), m44_diag));
@@ -186,25 +186,25 @@ TEST(eigen3, split_vertical)
   EXPECT_TRUE(is_near(split_vertical(M02 {make_native_matrix<M22>(1, 0, 0, 2)}), std::tuple {}));
   EXPECT_TRUE(is_near(split_vertical(M00 {make_native_matrix<M22>(1, 0, 0, 2)}), std::tuple {}));
 
-  auto x1 = make_native_matrix<double, 5, 3>(
+  auto x1 = make_eigen_matrix<double, 5, 3>(
     1, 0, 0,
     0, 2, 0,
     0, 0, 3,
     4, 0, 0,
     0, 5, 0);
 
-  auto m33 = make_native_matrix<double, 3, 3>(
+  auto m33 = make_eigen_matrix<double, 3, 3>(
     1, 0, 0,
     0, 2, 0,
     0, 0, 3);
 
-  auto tup_m33_m23 = std::tuple {m33, make_native_matrix<double, 2, 3>(
+  auto tup_m33_m23 = std::tuple {m33, make_eigen_matrix<double, 2, 3>(
     4, 0, 0,
     0, 5, 0)};
 
-  auto tup_m23_m23 = std::tuple {make_native_matrix<double, 2, 3>(
+  auto tup_m23_m23 = std::tuple {make_eigen_matrix<double, 2, 3>(
     1, 0, 0,
-    0, 2, 0), make_native_matrix<double, 2, 3>(
+    0, 2, 0), make_eigen_matrix<double, 2, 3>(
     0, 0, 3,
     4, 0, 0)};
 
@@ -224,7 +224,7 @@ TEST(eigen3, split_vertical)
 
 TEST(eigen3, split_horizontal)
 {
-  auto m22_12 = make_native_matrix<double, 2, 2>(
+  auto m22_12 = make_eigen_matrix<double, 2, 2>(
     1, 0,
     0, 2);
 
@@ -234,17 +234,17 @@ TEST(eigen3, split_horizontal)
   EXPECT_TRUE(is_near(split_horizontal(M02 {m22_12}), std::tuple {}));
   EXPECT_TRUE(is_near(split_horizontal(M00 {m22_12}), std::tuple {}));
 
-  const auto b1 = make_native_matrix<double, 3, 5>(
+  const auto b1 = make_eigen_matrix<double, 3, 5>(
     1, 0, 0, 0, 0,
     0, 2, 0, 4, 0,
     0, 0, 3, 0, 5);
 
-  auto m33 = make_native_matrix<double, 3, 3>(
+  auto m33 = make_eigen_matrix<double, 3, 3>(
     1, 0, 0,
     0, 2, 0,
     0, 0, 3);
 
-  auto tup_m33_m32 = std::tuple {m33, make_native_matrix<double, 3, 2>(
+  auto tup_m33_m32 = std::tuple {m33, make_eigen_matrix<double, 3, 2>(
     0, 0,
     4, 0,
     0, 5)};
@@ -255,10 +255,10 @@ TEST(eigen3, split_horizontal)
   EXPECT_TRUE(is_near(split_horizontal<3, 2>(eigen_matrix_t<double, dynamic_extent, 5> {b1}), tup_m33_m32));
   EXPECT_TRUE(is_near(split_horizontal<3, 2>(eigen_matrix_t<double, dynamic_extent, dynamic_extent> {b1}), tup_m33_m32));
 
-  auto tup_m32_m32 = std::tuple {make_native_matrix<double, 3, 2>(
+  auto tup_m32_m32 = std::tuple {make_eigen_matrix<double, 3, 2>(
     1, 0,
     0, 2,
-    0, 0), make_native_matrix<double, 3, 2>(
+    0, 0), make_eigen_matrix<double, 3, 2>(
     0, 0,
     0, 4,
     3, 0)};
@@ -273,7 +273,7 @@ TEST(eigen3, split_horizontal)
 
 TEST(eigen3, split_diagonal)
 {
-  auto m22_12 = make_native_matrix<double, 2, 2>(
+  auto m22_12 = make_eigen_matrix<double, 2, 2>(
     1, 0,
     0, 2);
 
@@ -283,19 +283,19 @@ TEST(eigen3, split_diagonal)
   EXPECT_TRUE(is_near(split_diagonal(M02 {m22_12}), std::tuple {}));
   EXPECT_TRUE(is_near(split_diagonal(M00 {m22_12}), std::tuple {}));
 
-  auto m55 = make_native_matrix<double, 5, 5>(
+  auto m55 = make_eigen_matrix<double, 5, 5>(
     1, 0, 0, 0, 0,
     0, 2, 0, 0, 0,
     0, 0, 3, 0, 0,
     0, 0, 0, 4, 0,
     0, 0, 0, 0, 5);
 
-  auto m33 = make_native_matrix<double, 3, 3>(
+  auto m33 = make_eigen_matrix<double, 3, 3>(
     1, 0, 0,
     0, 2, 0,
     0, 0, 3);
 
-  auto tup_m33_m22 = std::tuple {m33, make_native_matrix<double, 2, 2>(
+  auto tup_m33_m22 = std::tuple {m33, make_eigen_matrix<double, 2, 2>(
     4, 0,
     0, 5)};
 
@@ -305,7 +305,7 @@ TEST(eigen3, split_diagonal)
   EXPECT_TRUE(is_near(split_diagonal<3, 2>(M05 {m55}), tup_m33_m22));
   EXPECT_TRUE(is_near(split_diagonal<3, 2>(M00 {m55}), tup_m33_m22));
 
-  auto tup_m22_m22 = std::tuple {m22_12, make_native_matrix<double, 2, 2>(
+  auto tup_m22_m22 = std::tuple {m22_12, make_eigen_matrix<double, 2, 2>(
     3, 0,
     0, 4)};
 

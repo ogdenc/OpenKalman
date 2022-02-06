@@ -60,9 +60,9 @@ namespace Eigen::internal
   template<typename Coeffs, typename ArgType>
   struct evaluator<OpenKalman::EuclideanMean<Coeffs, ArgType>> : evaluator<std::decay_t<ArgType>>
   {
-    using Scalar = typename std::decay_t<ArgType>::Scalar;
     using XprType = OpenKalman::EuclideanMean<Coeffs, ArgType>;
     using Base = evaluator<std::decay_t<ArgType>>;
+    using Scalar = typename traits<std::decay_t<ArgType>>::Scalar;
     explicit evaluator(const XprType& expression) : Base {expression.nested_matrix()} {}
   };
 
@@ -167,10 +167,10 @@ namespace Eigen::internal
   struct evaluator<Eigen3::SelfAdjointMatrix<ArgType, storage_triangle>>
     : evaluator_base<Eigen3::SelfAdjointMatrix<ArgType, storage_triangle>>
   {
-    using Scalar = typename std::decay_t<ArgType>::Scalar;
     using XprType = Eigen3::SelfAdjointMatrix<ArgType, storage_triangle>;
     using CoeffReturnType = typename XprType::CoeffReturnType;
     using NestedEvaluator = evaluator<std::decay_t<ArgType>>;
+    using Scalar = typename traits<std::decay_t<ArgType>>::Scalar;
 
     enum
     {
@@ -283,10 +283,10 @@ namespace Eigen::internal
   struct evaluator<Eigen3::TriangularMatrix<ArgType, triangle_type>>
     : evaluator_base<Eigen3::TriangularMatrix<ArgType, triangle_type>>
   {
-    using Scalar = typename std::decay_t<ArgType>::Scalar;
     using XprType = Eigen3::TriangularMatrix<ArgType, triangle_type>;
     using CoeffReturnType = typename XprType::CoeffReturnType;
     using NestedEvaluator = evaluator<std::decay_t<ArgType>>;
+    using Scalar = typename traits<std::decay_t<ArgType>>::Scalar;
     enum
     {
       CoeffReadCost = NestedEvaluator::CoeffReadCost,
@@ -355,10 +355,10 @@ namespace Eigen::internal
   struct evaluator<Eigen3::DiagonalMatrix<ArgType>>
     : evaluator_base<Eigen3::DiagonalMatrix<ArgType>>
   {
-    using Scalar = typename std::decay_t<ArgType>::Scalar;
     using XprType = Eigen3::DiagonalMatrix<ArgType>;
     using CoeffReturnType = typename XprType::CoeffReturnType;
     using NestedEvaluator = evaluator<std::decay_t<ArgType>>;
+    using Scalar = typename traits<std::decay_t<ArgType>>::Scalar;
     enum
     {
       CoeffReadCost = NestedEvaluator::CoeffReadCost,
@@ -467,12 +467,12 @@ namespace Eigen::internal
 #endif
       : evaluator_base<XprType>
     {
-      using CoeffReturnType = typename Nested::Scalar;
+      using CoeffReturnType = typename traits<Nested>::Scalar;
 
       enum
       {
         Flags = NestedEvaluator::Flags & (~DirectAccessBit) & (~PacketAccessBit) & (~LvalueBit) &
-          (~(OpenKalman::MatrixTraits<Nested>::columns == 1 ? 0 : LinearAccessBit)),
+          (~(traits<Nested>::ColsAtCompileTime == 1 ? 0 : LinearAccessBit)),
         Alignment = NestedEvaluator::Alignment
       };
 
@@ -521,7 +521,7 @@ namespace Eigen::internal
     using NestedEvaluator = evaluator<Nested>;
     using Base = detail::Evaluator_EuclideanExpr_Base<Coeffs, XprType, Nested, NestedEvaluator>;
     using typename Base::CoeffReturnType;
-    using Scalar = typename XprType::Scalar;
+    using Scalar = typename traits<Nested>::Scalar;
     static constexpr auto count = Nested::ColsAtCompileTime;
 
     enum
@@ -583,7 +583,7 @@ namespace Eigen::internal
     using NestedEvaluator = evaluator<Nested>;
     using Base = detail::Evaluator_EuclideanExpr_Base<Coeffs, XprType, Nested, NestedEvaluator>;
     using typename Base::CoeffReturnType;
-    using Scalar = typename XprType::Scalar;
+    using Scalar = typename traits<Nested>::Scalar;
     static constexpr auto count = Nested::ColsAtCompileTime;
 
     enum
@@ -642,7 +642,7 @@ namespace Eigen::internal
     using NestedEvaluator = evaluator<Nested>;
     using Base = detail::Evaluator_EuclideanExpr_Base<Coeffs, XprType, Nested, NestedEvaluator>;
     using typename Base::CoeffReturnType;
-    using Scalar = typename XprType::Scalar;
+    using Scalar = typename traits<Nested>::Scalar;
     static constexpr auto count = Nested::ColsAtCompileTime;
 
     enum

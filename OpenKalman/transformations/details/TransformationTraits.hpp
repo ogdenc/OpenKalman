@@ -50,7 +50,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   concept linearized_function =
 #else
-  inline constexpr bool linearized_function =
+  constexpr bool linearized_function =
 #endif
     oin::is_linearized_function<std::decay_t<T>, order>::value;
 
@@ -155,7 +155,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   concept transformation_input =
 #else
-  inline constexpr bool transformation_input =
+  constexpr bool transformation_input =
 #endif
     typed_matrix<T> and column_vector<T> and untyped_columns<T> and (not euclidean_transformed<T>) and
     equivalent_to<typename oin::PerturbationTraits<T>::RowCoefficients, Coeffs>;
@@ -185,7 +185,7 @@ namespace OpenKalman
   }
 
   template<typename T, typename Coeffs = typename oin::PerturbationTraits<T>::RowCoefficients>
-  inline constexpr bool perturbation = OpenKalman::detail::is_perturbation<T, Coeffs>::value;
+  constexpr bool perturbation = OpenKalman::detail::is_perturbation<T, Coeffs>::value;
 #endif
 
 
@@ -219,7 +219,7 @@ namespace OpenKalman
       using InputCoefficients = typename MatrixTraits<In>::RowCoefficients;
       constexpr std::size_t input_size = InputCoefficients::dimensions;
       constexpr std::size_t output_size = OutputCoefficients::dimensions;
-      using HessianMatrixInBase = native_matrix_t<In, input_size, input_size>;
+      using HessianMatrixInBase = equivalent_dense_writable_matrix_t<In, input_size, input_size>;
       using HessianMatrixIn = Matrix<InputCoefficients, InputCoefficients, HessianMatrixInBase>;
       using HessianArrayIn = std::array<HessianMatrixIn, output_size>;
 

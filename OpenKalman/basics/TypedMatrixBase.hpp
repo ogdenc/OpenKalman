@@ -40,7 +40,7 @@ namespace OpenKalman::internal
 
   protected:
 
-    using Scalar = typename MatrixTraits<NestedMatrix>::Scalar; ///< Scalar type for this variable.
+    using Scalar = scalar_type_of_t<NestedMatrix>; ///< Scalar type for this variable.
 
   public:
 
@@ -61,13 +61,13 @@ namespace OpenKalman::internal
 
     /// Construct from a typed_matrix_nestable.
 #ifdef __cpp_concepts
-    template<typed_matrix_nestable Arg> requires (MatrixTraits<Arg>::rows == MatrixTraits<NestedMatrix>::rows) and
-      (MatrixTraits<Arg>::columns == MatrixTraits<NestedMatrix>::columns) and
+    template<typed_matrix_nestable Arg> requires (row_extent_of_v<Arg> == row_extent_of_v<NestedMatrix>) and
+      (column_extent_of_v<Arg> == column_extent_of_v<NestedMatrix>) and
       std::constructible_from<NestedMatrix, Arg&&>
 #else
     template<typename Arg, std::enable_if_t<typed_matrix_nestable<Arg> and
-      (MatrixTraits<Arg>::rows == MatrixTraits<NestedMatrix>::rows) and
-      (MatrixTraits<Arg>::columns == MatrixTraits<NestedMatrix>::columns) and
+      (row_extent_of<Arg>::value == row_extent_of<NestedMatrix>::value) and
+      (column_extent_of<Arg>::value == column_extent_of<NestedMatrix>::value) and
       std::is_constructible_v<NestedMatrix, Arg&&>, int> = 0>
 #endif
     TypedMatrixBase(Arg&& arg) noexcept : Base {std::forward<Arg>(arg)} {}
@@ -78,14 +78,13 @@ namespace OpenKalman::internal
     template<std::convertible_to<const Scalar> ... Args> requires (sizeof...(Args) > 0) and
       requires(Args ... args) { NestedMatrix {MatrixTraits<NestedMatrix>::make(static_cast<const Scalar>(args)...)}; }
 #else
-    template<typename ... Args, std::enable_if_t<
-      (std::is_convertible_v<Args, const Scalar> and ...) and (sizeof...(Args) > 0) and
-      ((diagonal_matrix<NestedMatrix> and std::is_constructible_v<NestedMatrix,
-          typename MatrixTraits<NestedMatrix>::template NativeMatrixFrom<sizeof...(Args), 1>>) or
-       (sizeof...(Args) == MatrixTraits<NestedMatrix>::rows * MatrixTraits<NestedMatrix>::columns and
-          std::is_constructible_v<NestedMatrix,
-          typename MatrixTraits<NestedMatrix>::template NativeMatrixFrom<MatrixTraits<NestedMatrix>::rows,
-            MatrixTraits<NestedMatrix>::columns>>)), int> = 0>
+    template<typename ... Args, std::enable_if_t<(std::is_convertible_v<Args, const Scalar> and ...) and
+      (sizeof...(Args) > 0) and (
+        (diagonal_matrix<NestedMatrix> and
+          std::is_constructible_v<NestedMatrix, equivalent_dense_writable_matrix_t<NestedMatrix, sizeof...(Args), 1>>) or
+        (sizeof...(Args) == row_extent_of<NestedMatrix>::value * column_extent_of<NestedMatrix>::value and
+          std::is_constructible_v<NestedMatrix, equivalent_dense_writable_matrix_t<NestedMatrix,
+            row_extent_of<NestedMatrix>::value, column_extent_of<NestedMatrix>::value>>)), int> = 0>
 #endif
     TypedMatrixBase(Args ... args)
       : Base {MatrixTraits<NestedMatrix>::make(static_cast<const Scalar>(args)...)} {}

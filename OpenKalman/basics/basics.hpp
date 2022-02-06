@@ -17,12 +17,29 @@
  * \details This should be included by any OpenKalman file, including interface files.
  */
 
+
+/**
+ * \brief The root namespace for OpenKalman.
+ */
+namespace OpenKalman {}
+
+
+/**
+ * \internal
+ * \brief Namespace for internal definitions, not intended for use outside of OpenKalman development.
+ */
+namespace OpenKalman::internal {}
+
+
 #ifndef OPENKALMAN_BASICS_HPP
 #define OPENKALMAN_BASICS_HPP
 
 #include "language-features.hpp"
+#include "global-definitions.hpp"
+#include "forward-interface-traits.hpp"
 #include "forward-traits.hpp"
 #include "forward-class-declarations.hpp"
+#include "functions.hpp"
 #include "traits.hpp"
 #include "utils.hpp"
 

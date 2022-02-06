@@ -63,7 +63,7 @@ TEST(eigen3, solve_zero)
   auto z02_2 = Eigen::Replicate<decltype(z11), Eigen::Dynamic, 2> {z11, 2, 2};
   auto z00_22 = Eigen::Replicate<decltype(z11), Eigen::Dynamic, Eigen::Dynamic> {z11, 2, 2};
 
-  auto m23_56 = make_native_matrix<double, 2, 3>(5, 7, 9, 6, 8, 10);
+  auto m23_56 = make_eigen_matrix<double, 2, 3>(5, 7, 9, 6, 8, 10);
   auto m20_3_56 = M20 {m23_56};
   auto m03_2_56 = M03 {m23_56};
   auto m00_23_56 = M00 {m23_56};
@@ -117,12 +117,12 @@ TEST(eigen3, solve_general_matrix)
   auto m02_2 = M02 {m22};
   auto m00_22 = M00 {m22};
 
-  auto m23_56 = make_native_matrix<double, 2, 3>(5, 7, 9, 6, 8, 10);
+  auto m23_56 = make_eigen_matrix<double, 2, 3>(5, 7, 9, 6, 8, 10);
   auto m20_3_56 = M20 {m23_56};
   auto m03_2_56 = M03 {m23_56};
   auto m00_23_56 = M00 {m23_56};
 
-  auto m23_445 = make_native_matrix<double, 2, 3>(-4, -6, -8, 4.5, 6.5, 8.5);
+  auto m23_445 = make_eigen_matrix<double, 2, 3>(-4, -6, -8, 4.5, 6.5, 8.5);
 
   EXPECT_TRUE(is_near(solve(m22, m23_56), m23_445));
   EXPECT_TRUE(is_near(solve(m22, m20_3_56), m23_445));

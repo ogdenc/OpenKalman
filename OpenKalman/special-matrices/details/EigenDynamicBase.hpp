@@ -165,10 +165,10 @@ namespace OpenKalman::Eigen3::internal
 #ifdef __cpp_concepts
     template<typename M>
     requires (not std::same_as<M, EigenDynamicBase>) and
-      (dynamic_columns<M> or MatrixTraits<M>::columns == columns)
+      (dynamic_columns<M> or column_extent_of_v<M> == columns)
 #else
     template<typename M, std::enable_if_t<(not std::is_same_v<M, EigenDynamicBase>) and
-      (dynamic_columns<M> or MatrixTraits<M>::columns == columns), int> = 0>
+      (dynamic_columns<M> or column_extent_of<M>::value == columns), int> = 0>
 #endif
     EigenDynamicBase(M&& m) : m_rows {row_count(m)}
     {
@@ -209,10 +209,10 @@ namespace OpenKalman::Eigen3::internal
 #ifdef __cpp_concepts
     template<typename M>
     requires (not std::same_as<M, EigenDynamicBase>) and
-      (dynamic_columns<M> or MatrixTraits<M>::columns == columns)
+      (dynamic_columns<M> or column_extent_of_v<M> == columns)
 #else
     template<typename M, std::enable_if_t<(not std::is_same_v<M, EigenDynamicBase>) and
-      (dynamic_columns<M> or MatrixTraits<M>::columns == columns), int> = 0>
+      (dynamic_columns<M> or column_extent_of<M>::value == columns), int> = 0>
 #endif
     auto& operator=(M&& m)
     {
@@ -289,10 +289,10 @@ namespace OpenKalman::Eigen3::internal
      */
 #ifdef __cpp_concepts
     template<typename M>
-    requires (not std::same_as<M, EigenDynamicBase>) and (dynamic_rows<M> or MatrixTraits<M>::rows == rows_)
+    requires (not std::same_as<M, EigenDynamicBase>) and (dynamic_rows<M> or row_extent_of_v<M> == rows_)
 #else
     template<typename M, std::enable_if_t<(not std::is_same_v<M, EigenDynamicBase>) and
-      (dynamic_rows<M> or MatrixTraits<M>::rows == rows_), int> = 0>
+      (dynamic_rows<M> or row_extent_of<M>::value == rows_), int> = 0>
 #endif
     EigenDynamicBase(M&& m) : m_cols {column_count(m)}
     {
@@ -332,10 +332,10 @@ namespace OpenKalman::Eigen3::internal
      */
 #ifdef __cpp_concepts
     template<typename M>
-    requires (not std::same_as<M, EigenDynamicBase>) and (dynamic_rows<M> or MatrixTraits<M>::rows == rows_)
+    requires (not std::same_as<M, EigenDynamicBase>) and (dynamic_rows<M> or row_extent_of_v<M> == rows_)
 #else
     template<typename M, std::enable_if_t<(not std::is_same_v<M, EigenDynamicBase>) and
-      (dynamic_rows<M> or MatrixTraits<M>::rows == rows_), int> = 0>
+      (dynamic_rows<M> or row_extent_of<M>::value == rows_), int> = 0>
 #endif
     auto& operator=(M&& m)
     {
@@ -413,12 +413,12 @@ namespace OpenKalman::Eigen3::internal
      */
 #ifdef __cpp_concepts
     template<typename M>
-    requires (not std::same_as<M, EigenDynamicBase>) and (dynamic_rows<M> or MatrixTraits<M>::rows == rows_) and
-      (dynamic_columns<M> or MatrixTraits<M>::columns == columns)
+    requires (not std::same_as<M, EigenDynamicBase>) and (dynamic_rows<M> or row_extent_of_v<M> == rows_) and
+      (dynamic_columns<M> or column_extent_of_v<M> == columns)
 #else
     template<typename M, std::enable_if_t<(not std::is_same_v<M, EigenDynamicBase>) and
-      (dynamic_rows<M> or MatrixTraits<M>::rows == rows_) and
-      (dynamic_columns<M> or MatrixTraits<M>::columns == columns), int> = 0>
+      (dynamic_rows<M> or row_extent_of<M>::value == rows_) and
+      (dynamic_columns<M> or column_extent_of<M>::value == columns), int> = 0>
 #endif
     EigenDynamicBase(M&& m)
     {
@@ -433,12 +433,12 @@ namespace OpenKalman::Eigen3::internal
      */
 #ifdef __cpp_concepts
     template<typename M>
-    requires (not std::same_as<M, EigenDynamicBase>) and (dynamic_rows<M> or MatrixTraits<M>::rows == rows_) and
-      (dynamic_columns<M> or MatrixTraits<M>::columns == columns)
+    requires (not std::same_as<M, EigenDynamicBase>) and (dynamic_rows<M> or row_extent_of_v<M> == rows_) and
+      (dynamic_columns<M> or column_extent_of_v<M> == columns)
 #else
     template<typename M, std::enable_if_t<(not std::is_same_v<M, EigenDynamicBase>) and
-      (dynamic_rows<M> or MatrixTraits<M>::rows == rows_) and
-      (dynamic_columns<M> or MatrixTraits<M>::columns == columns), int> = 0>
+      (dynamic_rows<M> or row_extent_of<M>::value == rows_) and
+      (dynamic_columns<M> or column_extent_of<M>::value == columns), int> = 0>
 #endif
     auto& operator=(M&& m)
     {

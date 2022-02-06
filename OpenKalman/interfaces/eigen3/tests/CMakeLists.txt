@@ -15,15 +15,15 @@ find_package(GTest REQUIRED)
 include(GoogleTest)
 
 add_executable(eigen3
-    #eigen3-traits.test.cpp
-    #eigen3-matrix.test.cpp
-    #eigen3-diagonal.test.cpp
-    #eigen3-transpose-adjoint-determinant-trace.test.cpp
-    #eigen3-rank-update.test.cpp
-    #eigen3-solve.test.cpp
-    #eigen3-reduction-decomposition.test.cpp
-    #eigen3-blocks.test.cpp
-    #eigen3-part-wise.test.cpp
+    eigen3-traits.test.cpp
+    eigen3-matrix.test.cpp
+    eigen3-diagonal.test.cpp
+    eigen3-transpose-adjoint-determinant-trace.test.cpp
+    eigen3-rank-update.test.cpp
+    eigen3-solve.test.cpp
+    eigen3-reduction-decomposition.test.cpp
+    eigen3-blocks.test.cpp
+    eigen3-part-wise.test.cpp
     eigen3-randomize.test.cpp
     )
 

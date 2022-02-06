@@ -38,11 +38,12 @@ namespace OpenKalman::Eigen3::internal
   template<typename Derived, typename ArgType>
   struct Eigen3MatrixBase : Eigen3Base<Derived>
   {
-    using Scalar = typename MatrixTraits<ArgType>::Scalar; ///< \internal \note Eigen3 requires this.
+    /// \internal \note Eigen3 requires this. \todo Move to Eigen3Base?
+    using Scalar = scalar_type_of_t<ArgType>;
 
 
     /**
-     * \internal
+     * \internal \todo Move to Eigen3Base?
      * \return The number of rows. (Required by Eigen::EigenBase).
      */
     constexpr Eigen::Index rows() const
@@ -52,7 +53,7 @@ namespace OpenKalman::Eigen3::internal
 
 
     /**
-     * \internal
+     * \internal \todo Move to Eigen3Base?
      * \return The number of columns. (Required by Eigen::EigenBase).
      */
     constexpr Eigen::Index cols() const
@@ -118,13 +119,13 @@ namespace OpenKalman::Eigen3::internal
       }
       else if constexpr (dynamic_rows<Derived>)
       {
-        assert(c == MatrixTraits<Derived>::columns);
+        assert(c == column_extent_of_v<Derived>);
         return zero(r);
       }
       else
       {
         static_assert(dynamic_columns<Derived>);
-        assert(r == MatrixTraits<Derived>::rows);
+        assert(r == row_extent_of_v<Derived>);
         return zero(c);
       }
     }
@@ -186,13 +187,13 @@ namespace OpenKalman::Eigen3::internal
       }
       else if constexpr (dynamic_rows<Derived>)
       {
-        assert(c == MatrixTraits<Derived>::columns);
+        assert(c == column_extent_of_v<Derived>);
         return identity(r);
       }
       else
       {
         static_assert(dynamic_columns<Derived>);
-        assert(r == MatrixTraits<Derived>::rows);
+        assert(r == row_extent_of_v<Derived>);
         return identity(c);
       }
     }
@@ -317,6 +318,8 @@ namespace OpenKalman::Eigen3::internal
 
 namespace Eigen
 {
+  using namespace OpenKalman;
+
   /**
    * \brief Alternative version of Eigen::CommaInitializer for Mean.
    */
@@ -324,8 +327,8 @@ namespace Eigen
   struct MeanCommaInitializer : CommaInitializer<XprType>
   {
     using Base = CommaInitializer<XprType>;
-    using Scalar = typename OpenKalman::MatrixTraits<XprType>::Scalar;
-    using Coefficients = typename OpenKalman::MatrixTraits<Derived>::RowCoefficients;
+    using Scalar = OpenKalman::scalar_type_of_t<XprType>;
+    using Coefficients = typename MatrixTraits<Derived>::RowCoefficients;
     using Base::Base;
 
     template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
@@ -337,12 +340,12 @@ namespace Eigen
 
     ~MeanCommaInitializer()
     {
-      this->m_xpr = OpenKalman::Eigen3::wrap_angles<Coefficients>(Base::finished());
+      this->m_xpr = Eigen3::wrap_angles<Coefficients>(Base::finished());
     }
 
     auto& finished()
     {
-      this->m_xpr = OpenKalman::Eigen3::wrap_angles<Coefficients>(Base::finished());
+      this->m_xpr = Eigen3::wrap_angles<Coefficients>(Base::finished());
       return this->m_xpr;
     }
   };
@@ -354,9 +357,9 @@ namespace Eigen
   template<typename XprType>
   struct DiagonalCommaInitializer
   {
-    using Scalar = typename OpenKalman::MatrixTraits<XprType>::Scalar;
-    static constexpr auto dim = OpenKalman::MatrixTraits<XprType>::rows;
-    using NestedMatrix = OpenKalman::native_matrix_t<typename OpenKalman::nested_matrix_t<XprType>, dim, 1>;
+    using Scalar = scalar_type_of_t<XprType>;
+    static constexpr auto dim = row_extent_of_v<XprType>;
+    using NestedMatrix = equivalent_dense_writable_matrix_t<nested_matrix_of<XprType>, dim, 1>;
     using Nested = CommaInitializer<NestedMatrix>;
 
     NestedMatrix matrix;
@@ -402,12 +405,12 @@ namespace Eigen
 
     ~DiagonalCommaInitializer()
     {
-      diag = OpenKalman::Eigen3::DiagonalMatrix<NestedMatrix>(comma_initializer.finished());
+      diag = Eigen3::DiagonalMatrix<NestedMatrix>(comma_initializer.finished());
     }
 
     auto& finished()
     {
-      diag = OpenKalman::Eigen3::DiagonalMatrix<NestedMatrix>(comma_initializer.finished());
+      diag = Eigen3::DiagonalMatrix<NestedMatrix>(comma_initializer.finished());
       return diag;
     }
   };
@@ -419,11 +422,11 @@ namespace Eigen
   template<typename CovarianceType>
   struct CovarianceCommaInitializer
   {
-    using Scalar = typename OpenKalman::MatrixTraits<CovarianceType>::Scalar;
-    using CovNest = typename OpenKalman::nested_matrix_t<CovarianceType>;
-    using NestedMatrix = std::conditional_t<OpenKalman::diagonal_matrix<CovNest>,
-      OpenKalman::native_matrix_t<CovNest, OpenKalman::MatrixTraits<CovNest>::rows, 1>,
-      OpenKalman::native_matrix_t<CovNest>>;
+    using Scalar = scalar_type_of_t<CovarianceType>;
+    using CovNest = nested_matrix_of<CovarianceType>;
+    using NestedMatrix = std::conditional_t<diagonal_matrix<CovNest>,
+      equivalent_dense_writable_matrix_t<CovNest, row_extent_of_v<CovNest>, 1>,
+      equivalent_dense_writable_matrix_t<CovNest>>;
     using Nested = CommaInitializer<NestedMatrix>;
 
     NestedMatrix matrix;

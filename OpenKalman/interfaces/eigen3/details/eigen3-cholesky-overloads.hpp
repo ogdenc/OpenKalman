@@ -196,7 +196,7 @@ namespace OpenKalman::Eigen3
     {
       return std::forward<A>(a);
     }
-    else if constexpr (diagonal_matrix<nested_matrix_t<A>>)
+    else if constexpr (diagonal_matrix<nested_matrix_of<A>>)
     {
       return Cholesky_square(nested_matrix(std::forward<A>(a)));
     }
@@ -225,9 +225,9 @@ namespace OpenKalman::Eigen3
   constexpr decltype(auto)
   Cholesky_factor(A&& a)
   {
-    using NestedMatrix = std::decay_t<nested_matrix_t<A>>;
-    using Scalar = typename MatrixTraits<A>::Scalar;
-    constexpr auto dimensions = MatrixTraits<A>::rows;
+    using NestedMatrix = std::decay_t<nested_matrix_of<A>>;
+    using Scalar = scalar_type_of_t<A>;
+    constexpr auto dimensions = row_extent_of_v<A>;
     using M = Eigen3::eigen_matrix_t<Scalar, dimensions, dimensions>;
 
     if constexpr(identity_matrix<A> or zero_matrix<A>)
@@ -343,7 +343,7 @@ namespace OpenKalman::Eigen3
         {
           if (LDL_x.isPositive() and LDL_x.isNegative()) // Covariance is zero, even though decomposition failed.
           {
-            using BM = nested_matrix_t<A>;
+            using BM = nested_matrix_of<A>;
             if constexpr(triangle_type == TriangleType::lower)
               b.template triangularView<Eigen::Lower>() = MatrixTraits<BM>::zero();
             else
@@ -407,7 +407,7 @@ namespace OpenKalman::Eigen3
     {
       return std::forward<T>(t);
     }
-    else if constexpr (diagonal_matrix<nested_matrix_t<T>>)
+    else if constexpr (diagonal_matrix<nested_matrix_of<T>>)
     {
       return Cholesky_square(nested_matrix(std::forward<T>(t)));
     }
@@ -452,7 +452,7 @@ namespace OpenKalman::Eigen3
     {
       return std::forward<T>(t);
     }
-    else if constexpr (diagonal_matrix<nested_matrix_t<T>>)
+    else if constexpr (diagonal_matrix<nested_matrix_of<T>>)
     {
       return Cholesky_factor(nested_matrix(std::forward<T>(t)));
     }

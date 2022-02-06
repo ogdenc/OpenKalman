@@ -111,8 +111,8 @@ namespace Eigen::internal
   struct traits<OpenKalman::Eigen3::SelfAdjointMatrix<NestedMatrix, storage_triangle>>
     : traits<std::decay_t<NestedMatrix>>
   {
-    using Scalar = typename std::decay_t<NestedMatrix>::Scalar;
     using Nested = std::decay_t<NestedMatrix>;
+    using Scalar = typename traits<Nested>::Scalar;
     enum
     {
       Flags = traits<Nested>::Flags &
@@ -159,7 +159,7 @@ namespace Eigen::internal
       Flags = Coeffs::axes_only ?
               traits<Nested>::Flags :
               traits<Nested>::Flags & (~DirectAccessBit) & (~PacketAccessBit) & (~LvalueBit) &
-                (~(OpenKalman::MatrixTraits<ArgType>::columns == 1 ? 0 : LinearAccessBit)),
+                (~(OpenKalman::column_extent_of_v<ArgType> == 1 ? 0 : LinearAccessBit)),
       RowsAtCompileTime = [] {
         if constexpr (OpenKalman::dynamic_coefficients<Coeffs>) return Eigen::Dynamic;
         else return static_cast<Index>(Coeffs::euclidean_dimensions);
@@ -178,7 +178,7 @@ namespace Eigen::internal
       Flags = Coeffs::axes_only ?
               traits<Nested>::Flags :
               traits<Nested>::Flags & (~DirectAccessBit) & (~PacketAccessBit) & (~LvalueBit) &
-                (~(OpenKalman::MatrixTraits<ArgType>::columns == 1 ? 0 : LinearAccessBit)),
+                (~(OpenKalman::column_extent_of_v<ArgType> == 1 ? 0 : LinearAccessBit)),
       RowsAtCompileTime = [] {
         if constexpr (OpenKalman::dynamic_coefficients<Coeffs>) return Eigen::Dynamic;
         else return static_cast<Index>(Coeffs::dimensions);
@@ -199,7 +199,7 @@ namespace Eigen::internal
       Flags = Coeffs::axes_only ?
               traits<Nested>::Flags :
               traits<Nested>::Flags & (~DirectAccessBit) & (~PacketAccessBit) & (~LvalueBit) &
-                (~(OpenKalman::MatrixTraits<ArgType>::columns == 1 ? 0 : LinearAccessBit)),
+                (~(OpenKalman::column_extent_of_v<ArgType> == 1 ? 0 : LinearAccessBit)),
       RowsAtCompileTime = [] {
         if constexpr (OpenKalman::dynamic_coefficients<Coeffs>) return Eigen::Dynamic;
         else return static_cast<Index>(Coeffs::dimensions);

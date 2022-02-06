@@ -26,58 +26,248 @@ namespace OpenKalman
   using namespace OpenKalman::Eigen3::internal;
 
 
-
-#ifdef __cpp_concepts
-  /**
-   * A constant matrix is constant-diagonal if it is square and either zero or one-by-one.
-   */
-  /*template<constant_matrix T> requires (native_eigen_matrix<T> or native_eigen_array<T>) and square_matrix<T> and
-    (constant_coefficient_v<T> == 0 or MatrixTraits<T>::rows == 1 or MatrixTraits<T>::columns == 1)
-  struct constant_diagonal_coefficient<T>
-    : constant_coefficient<T> {};*/
-#endif
-
-
-
-  namespace internal::detail
+  namespace interface
   {
-    // T is self-contained and Eigen stores it by value rather than by reference.
-    template<typename T>
+
+  // ---------------------- //
+  //  native_eigen_general  //
+  // ---------------------- //
+
 #ifdef __cpp_concepts
-    concept stores =
+    template<Eigen3::native_eigen_general T>
+    struct RowExtentOf<T>
 #else
-    static constexpr bool stores =
+    template<typename T>
+    struct RowExtentOf<T, std::enable_if_t<Eigen3::native_eigen_matrix<T>>>
 #endif
-      self_contained<T> and ((Eigen::internal::traits<T>::Flags & Eigen::NestByRefBit) == 0);
-  }
-
-
-  // ------- //
-  //  Array  //
-  // ------- //
-
-  template<typename Scalar, int Rows, int Cols, int Options, int MaxRows, int MaxCols>
-  struct is_self_contained<Eigen::Array<Scalar, Rows, Cols, Options, MaxRows, MaxCols>>
-    : std::true_type {};
-
-
-  // -------------- //
-  //  ArrayWrapper  //
-  // -------------- //
-
-  namespace internal
-  {
-    template<typename XprType>
-    struct nested_matrix_type<Eigen::ArrayWrapper<XprType>> : MatrixTraits<XprType>
+      : std::integral_constant<std::size_t,
+        Eigen::internal::traits<std::decay_t<T>>::RowsAtCompileTime == Eigen::Dynamic ?
+        dynamic_extent : static_cast<std::size_t>(Eigen::internal::traits<std::decay_t<T>>::RowsAtCompileTime)>
     {
-      using type = XprType&;
+      template<typename Arg>
+      static constexpr std::size_t rows_at_runtime(Arg&& arg)
+      {
+        static_assert(std::is_same_v<std::decay_t<Arg>, std::decay_t<T>>);
+        if constexpr (dynamic_rows<Arg>)
+        {
+          if constexpr (square_matrix<Arg> and not dynamic_columns<Arg>)
+            return column_extent_of_v<Arg>;
+          else
+            return arg.rows();
+        }
+        else
+        {
+          return RowExtentOf::value;
+        }
+      }
     };
-  }
 
 
-  template<typename XprType>
-  struct is_self_contained<Eigen::ArrayWrapper<XprType>>
-    : std::bool_constant<detail::stores<XprType>> {};
+#ifdef __cpp_concepts
+    template<Eigen3::native_eigen_general T>
+    struct ColumnExtentOf<T>
+#else
+    template<typename T>
+    struct ColumnExtentOf<T, std::enable_if_t<Eigen3::native_eigen_matrix<T>>>
+#endif
+      : std::integral_constant<std::size_t,
+        Eigen::internal::traits<std::decay_t<T>>::ColsAtCompileTime == Eigen::Dynamic ?
+        dynamic_extent : static_cast<std::size_t>(Eigen::internal::traits<std::decay_t<T>>::ColsAtCompileTime)>
+    {
+        template<typename Arg>
+        static constexpr std::size_t columns_at_runtime(Arg&& arg)
+        {
+          static_assert(std::is_same_v<std::decay_t<Arg>, std::decay_t<T>>);
+          if constexpr (dynamic_columns<Arg>)
+          {
+            if constexpr (square_matrix<Arg> and not dynamic_rows<Arg>)
+              return row_extent_of_v<Arg>;
+            else
+              return arg.cols();
+          }
+          else
+          {
+            return ColumnExtentOf::value;
+          }
+        }
+    };
+
+
+#ifdef __cpp_concepts
+    template<Eigen3::native_eigen_general T>
+    struct ScalarTypeOf<T>
+#else
+    template<typename T>
+    struct ScalarTypeOf<T, std::enable_if_t<Eigen3::native_eigen_matrix<T>>>
+#endif
+    {
+      using type = typename Eigen::internal::traits<std::decay_t<T>>::Scalar;
+    };
+
+
+#ifdef __cpp_concepts
+    template<Eigen3::native_eigen_general T, std::size_t row_extent, std::size_t column_extent, typename scalar_type>
+    struct EquivalentDenseWritableMatrix<T, row_extent, column_extent, scalar_type>
+#else
+    template<typename T, std::size_t row_extent, std::size_t column_extent, typename scalar_type>
+    struct EquivalentDenseWritableMatrix<T, row_extent, column_extent, scalar_type, std::enable_if_t<
+      Eigen3::native_eigen_general<T>>>
+#endif
+    {
+    private:
+
+      template<typename S, typename Scalar, auto...Args>
+      using dense_type = std::conditional_t<native_eigen_array<S>,
+        Eigen::Array<Scalar, Args...>, Eigen::Matrix<Scalar, Args...>>;
+
+    public:
+
+      using type = dense_type<T, scalar_type,
+        row_extent == dynamic_extent ? Eigen::Dynamic : (Eigen::Index) row_extent,
+        column_extent == dynamic_extent ? Eigen::Dynamic : (Eigen::Index) column_extent,
+        ((Eigen::internal::traits<std::decay_t<T>>::Flags & Eigen::RowMajorBit) == Eigen::RowMajorBit ?
+          Eigen::RowMajor : Eigen::ColMajor) | Eigen::AutoAlign>;
+
+
+#ifdef __cpp_concepts
+      template<std::convertible_to<std::size_t>...extents> requires
+        (sizeof...(extents) == (row_extent == dynamic_extent ? 1 : 0) + (column_extent == dynamic_extent ? 1 : 0))
+#else
+      template<std::size_t rows = row_extent, typename...extents, std::enable_if_t<sizeof...(extents) ==
+        (rows == dynamic_extent ? 1 : 0) + (column_extent == dynamic_extent ? 1 : 0) and
+        (std::is_convertible_v<extents, std::size_t> and ...), int> = 0>
+#endif
+      static type make_default(extents...e)
+      {
+        if constexpr (row_extent == dynamic_extent)
+        {
+          if constexpr (column_extent == dynamic_extent)
+            return type(e...);
+          else
+            return type(e..., column_extent);
+        }
+        else
+        {
+          if constexpr (column_extent == dynamic_extent)
+            return type(row_extent, e...);
+          else
+            return type(); // fixed shape
+        }
+      }
+
+
+#ifdef __cpp_concepts
+      template<typename Arg> requires
+        (row_extent_of_v<Arg> == dynamic_extent or row_extent_of_v<Arg> == row_extent) and
+        (column_extent_of_v<Arg> == dynamic_extent or column_extent_of_v<Arg> == column_extent) and
+        std::convertible_to<scalar_type_of_t<Arg>, scalar_type>
+ #else
+      template<typename Arg, std::enable_if_t<
+        (row_extent_of<Arg>::value == dynamic_extent or row_extent_of<Arg>::value == row_extent) and
+        (column_extent_of<Arg>::value == dynamic_extent or column_extent_of<Arg>::value == column_extent) and
+        std::is_convertible_v<typename scalar_type_of<Arg>::type, scalar_type>, int> = 0>
+ #endif
+      static decltype(auto) convert(Arg&& arg)
+      {
+        if constexpr (eigen_DiagonalWrapper<Arg>)
+        {
+          using Scalar = scalar_type_of_t<Arg>;
+          auto& diag = std::forward<Arg>(arg).diagonal();
+          using Diag = std::decay_t<decltype(diag)>;
+          constexpr Eigen::Index rows = Eigen::internal::traits<Diag>::RowsAtCompileTime;
+          constexpr Eigen::Index cols = Eigen::internal::traits<Diag>::ColsAtCompileTime;
+
+          if constexpr (cols == 1 or cols == 0)
+          {
+            return type(Eigen::DiagonalWrapper {diag});
+          }
+          else if constexpr (rows == 1 or rows == 0)
+          {
+            return type(Eigen::DiagonalWrapper {diag.transpose()});
+          }
+          else if constexpr (rows == Eigen::Dynamic or cols == Eigen::Dynamic)
+          {
+            using M = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
+            if constexpr (std::is_base_of_v<Eigen::PlainObjectBase<Diag>, Diag>)
+            {
+              return type(Eigen3::DiagonalMatrix {M::Map(diag.data(), (Eigen::Index) (diag.rows() * diag.cols()))});
+            }
+            else
+            {
+              auto d = make_native_matrix(diag);
+              return type(Eigen3::DiagonalMatrix {M::Map(d.data(), (Eigen::Index) (d.rows() * d.cols()))});
+            }
+
+          }
+          else // rows > 1 and cols > 1
+          {
+            using M = Eigen::Matrix<Scalar, rows * cols, 1>;
+            if constexpr (std::is_base_of_v<Eigen::PlainObjectBase<Diag>, Diag>)
+            {
+              return type(Eigen3::DiagonalMatrix {M::Map(diag.data())});
+            }
+            else
+            {
+              auto d = make_native_matrix(diag);
+              return type(Eigen3::DiagonalMatrix {M::Map(d.data())});
+            }
+          }
+
+          // \todo After universalizing diagonal_of and to_diagonal, replace the above with this:
+          // Because Arg might not be a column vector:
+          //return type {to_diagonal(diagonal_of(std::forward<Arg>(arg)))};
+        }
+        else
+        {
+          return type(std::forward<Arg>(arg));
+        }
+      }
+
+    };
+
+
+    // ------- //
+    //  Array  //
+    // ------- //
+
+    template<typename Scalar, int Rows, int Cols, int Options, int MaxRows, int MaxCols>
+    struct Dependencies<Eigen::Array<Scalar, Rows, Cols, Options, MaxRows, MaxCols>>
+    {
+      static constexpr bool has_runtime_parameters = true;
+      using type = std::tuple<>;
+    };
+
+
+    // -------------- //
+    //  ArrayWrapper  //
+    // -------------- //
+
+    template<typename XprType>
+    struct Dependencies<Eigen::ArrayWrapper<XprType>>
+    {
+      static constexpr bool has_runtime_parameters = false;
+      using type = std::tuple<typename Eigen::ArrayWrapper<XprType>::NestedExpressionType>;
+
+      template<std::size_t i, typename Arg>
+      static decltype(auto) get_nested_matrix(Arg&& arg)
+      {
+        static_assert(i == 0);
+        return std::forward<Arg>(arg).nestedExpression();
+      }
+
+      template<typename Arg>
+      static auto convert_to_self_contained(Arg&& arg)
+      {
+        using N = Eigen::ArrayWrapper<equivalent_self_contained_t<XprType>>;
+        if constexpr (not std::is_lvalue_reference_v<typename N::NestedExpressionType>)
+          return N {make_self_contained(arg.nestedExpression())};
+        else
+          return make_native_matrix(std::forward<Arg>(arg));
+      }
+    };
+
+
+  } // namespace interface
 
 
 #ifdef __cpp_concepts
@@ -130,9 +320,25 @@ namespace OpenKalman
   //  Block  //
   // ------- //
 
-  template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel>
-  struct is_self_contained<Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>>
-    : std::bool_constant<detail::stores<XprType>> {};
+  namespace interface
+  {
+    template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel>
+    struct Dependencies<Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>>
+    {
+      static constexpr bool has_runtime_parameters = true;
+      using type = std::tuple<typename Eigen::internal::ref_selector<XprType>::non_const_type>;
+
+      template<std::size_t i, typename Arg>
+      static decltype(auto) get_nested_matrix(Arg&& arg)
+      {
+        static_assert(i == 0);
+        return std::forward<Arg>(arg).nestedExpression();
+      }
+
+      // Eigen::Block should always be converted to Matrix
+
+    };
+  }
 
 
   /// A block taken from a constant matrix is constant.
@@ -165,9 +371,49 @@ namespace OpenKalman
   //  CwiseBinaryOp  //
   // --------------- //
 
-  template<typename BinaryOp, typename LhsType, typename RhsType>
-  struct is_self_contained<Eigen::CwiseBinaryOp<BinaryOp, LhsType, RhsType>>
-    : std::bool_constant<detail::stores<LhsType> and detail::stores<RhsType>> {};
+  namespace interface
+  {
+    template<typename BinaryOp, typename LhsType, typename RhsType>
+    struct Dependencies<Eigen::CwiseBinaryOp<BinaryOp, LhsType, RhsType>>
+    {
+    private:
+
+      using T = Eigen::CwiseBinaryOp<BinaryOp, LhsType, RhsType>;
+      using N = Eigen::CwiseBinaryOp<BinaryOp, equivalent_self_contained_t<LhsType>,
+        equivalent_self_contained_t<RhsType>>;
+
+    public:
+
+      static constexpr bool has_runtime_parameters = false;
+      using type = std::tuple<typename T::LhsNested, typename T::RhsNested>;
+
+      template<std::size_t i, typename Arg>
+      static decltype(auto) get_nested_matrix(Arg&& arg)
+      {
+        static_assert(i < 2);
+        if constexpr (i == 0)
+          return std::forward<Arg>(arg).lhs();
+        else
+          return std::forward<Arg>(arg).rhs();
+      }
+
+      template<typename Arg>
+      static auto convert_to_self_contained(Arg&& arg)
+      {
+        // Do a partial evaluation as long as at least one argument is already self-contained.
+        if constexpr ((self_contained<LhsType> or self_contained<RhsType>) and
+          not std::is_lvalue_reference_v<typename N::LhsNested> and
+          not std::is_lvalue_reference_v<typename N::RhsNested>)
+        {
+          return N {make_self_contained(arg.lhs()), make_self_contained(arg.rhs()), arg.functor()};
+        }
+        else
+        {
+          return make_native_matrix(std::forward<Arg>(arg));
+        }
+      }
+    };
+  }
 
 
   // --- constant_coefficient --- //
@@ -656,9 +902,33 @@ namespace OpenKalman
   //  CwiseNullaryOp  //
   // ---------------- //
 
-  template<typename UnaryOp, typename PlainObjectType>
-  struct is_self_contained<Eigen::CwiseNullaryOp<UnaryOp, PlainObjectType>>
-    : std::true_type {};
+  namespace interface
+  {
+    template<typename UnaryOp, typename PlainObjectType>
+    struct Dependencies<Eigen::CwiseNullaryOp<UnaryOp, PlainObjectType>>
+    {
+      static constexpr bool has_runtime_parameters =
+        Eigen::internal::traits<PlainObjectType>::RowsAtCompileTime == Eigen::Dynamic or
+        Eigen::internal::traits<PlainObjectType>::ColsAtCompileTime == Eigen::Dynamic;
+      using type = std::tuple<>;
+    };
+
+
+    template<typename Scalar, typename PlainObjectType>
+    struct Dependencies<Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<Scalar>, PlainObjectType>>
+    {
+      static constexpr bool has_runtime_parameters = true;
+      using type = std::tuple<>;
+    };
+
+
+    template<typename Scalar, typename PacketType, typename PlainObjectType>
+    struct Dependencies<Eigen::CwiseNullaryOp<Eigen::internal::linspaced_op<Scalar, PacketType>, PlainObjectType>>
+    {
+      static constexpr bool has_runtime_parameters = true;
+      using type = std::tuple<>;
+    };
+  }
 
 
   /// \brief An Eigen nullary operation is constant if it is identity and one-by-one.
@@ -699,22 +969,112 @@ namespace OpenKalman
     : std::bool_constant<square_matrix<PlainObjectType> and not complex_number<Scalar>> {};
 
 
-  // ---------------- //
-  //  CwiseTernaryOp  //
-  // ---------------- //
+  namespace interface
+  {
+    // ---------------- //
+    //  CwiseTernaryOp  //
+    // ---------------- //
 
-  template<typename TernaryOp, typename Arg1, typename Arg2, typename Arg3>
-  struct is_self_contained<Eigen::CwiseTernaryOp<TernaryOp, Arg1, Arg2, Arg3>>
-    : std::bool_constant<detail::stores<Arg1> and detail::stores<Arg2> and detail::stores<Arg3>> {};
+    template<typename TernaryOp, typename Arg1, typename Arg2, typename Arg3>
+    struct Dependencies<Eigen::CwiseTernaryOp<TernaryOp, Arg1, Arg2, Arg3>>
+    {
+    private:
+
+      using T = Eigen::CwiseTernaryOp<TernaryOp, Arg1, Arg2, Arg3>;
+      using N = Eigen::CwiseTernaryOp<TernaryOp,
+        equivalent_self_contained_t<Arg1>, equivalent_self_contained_t<Arg2>, equivalent_self_contained_t<Arg3>>;
+
+    public:
+
+      static constexpr bool has_runtime_parameters = false;
+      using type = std::tuple<typename T::Arg1Nested, typename T::Arg2Nested, typename T::Arg3Nested>;
+
+      template<std::size_t i, typename Arg>
+      static decltype(auto) get_nested_matrix(Arg&& arg)
+      {
+        static_assert(i < 3);
+        if constexpr (i == 0)
+          return std::forward<Arg>(arg).arg1();
+        else if constexpr (i == 1)
+          return std::forward<Arg>(arg).arg2();
+        else
+          return std::forward<Arg>(arg).arg3();
+      }
+
+      template<typename Arg>
+      static auto convert_to_self_contained(Arg&& arg)
+      {
+        // Do a partial evaluation as long as at least two arguments are already self-contained.
+        if constexpr (
+          ((self_contained<Arg1> ? 1 : 0) + (self_contained<Arg2> ? 1 : 0) + (self_contained<Arg3> ? 1 : 0) >= 2) and
+          not std::is_lvalue_reference_v<typename N::Arg1Nested> and
+          not std::is_lvalue_reference_v<typename N::Arg2Nested> and
+          not std::is_lvalue_reference_v<typename N::Arg3Nested>)
+        {
+          return N {make_self_contained(arg.arg1()), make_self_contained(arg.arg2()), make_self_contained(arg.arg3()),
+                    arg.functor()};
+        }
+        else
+        {
+          return make_native_matrix(std::forward<Arg>(arg));
+        }
+      }
+    };
 
 
-  // -------------- //
-  //  CwiseUnaryOp  //
-  // -------------- //
+    // -------------- //
+    //  CwiseUnaryOp  //
+    // -------------- //
 
-  template<typename UnaryOp, typename XprType>
-  struct is_self_contained<Eigen::CwiseUnaryOp<UnaryOp, XprType>>
-    : std::bool_constant<detail::stores<XprType>> {};
+    template<typename UnaryOp, typename XprType>
+    struct Dependencies<Eigen::CwiseUnaryOp<UnaryOp, XprType>>
+    {
+    private:
+
+      using T = Eigen::CwiseUnaryOp<UnaryOp, XprType>;
+      using N = Eigen::CwiseUnaryOp<UnaryOp, equivalent_self_contained_t<XprType>>;
+
+    public:
+
+      static constexpr bool has_runtime_parameters = false;
+      using type = std::tuple<typename T::XprTypeNested>;
+
+      template<std::size_t i, typename Arg>
+      static decltype(auto) get_nested_matrix(Arg&& arg)
+      {
+        static_assert(i == 0);
+        return std::forward<Arg>(arg).nestedExpression();
+      }
+
+      template<typename Arg>
+      static auto convert_to_self_contained(Arg&& arg)
+      {
+        if constexpr (not std::is_lvalue_reference_v<typename N::XprTypeNested>)
+          return N {make_self_contained(arg.nestedExpression()), arg.functor()};
+        else
+          return make_native_matrix(std::forward<Arg>(arg));
+      }
+    };
+
+
+    template<typename BinaryOp, typename XprType>
+    struct Dependencies<Eigen::CwiseUnaryOp<Eigen::internal::bind1st_op<BinaryOp>, XprType>>
+    {
+      static constexpr bool has_runtime_parameters = true;
+      using type =
+        std::tuple<typename Eigen::CwiseUnaryOp<Eigen::internal::bind1st_op<BinaryOp>, XprType>::XprTypeNested>;
+    };
+
+
+    template<typename BinaryOp, typename XprType>
+    struct Dependencies<Eigen::CwiseUnaryOp<Eigen::internal::bind2nd_op<BinaryOp>, XprType>>
+    {
+      static constexpr bool has_runtime_parameters = true;
+      using type =
+        std::tuple<typename Eigen::CwiseUnaryOp<Eigen::internal::bind2nd_op<BinaryOp>, XprType>::XprTypeNested>;
+    };
+
+  } // namespace interface
 
 
   // --- constant_coefficient --- //
@@ -1087,9 +1447,38 @@ namespace OpenKalman
   //  CwiseUnaryView  //
   // ---------------- //
 
-  template<typename ViewOp, typename MatrixType>
-  struct is_self_contained<Eigen::CwiseUnaryView<ViewOp, MatrixType>>
-    : std::false_type {};
+  namespace interface
+  {
+    template<typename ViewOp, typename MatrixType>
+    struct Dependencies<Eigen::CwiseUnaryView<ViewOp, MatrixType>>
+    {
+    private:
+
+      using T = Eigen::CwiseUnaryView<ViewOp, MatrixType>;
+      using N = Eigen::CwiseUnaryView<ViewOp, equivalent_self_contained_t<MatrixType>>;
+
+    public:
+
+      static constexpr bool has_runtime_parameters = false;
+      using type = std::tuple<typename T::MatrixTypeNested>;
+
+      template<std::size_t i, typename Arg>
+      static decltype(auto) get_nested_matrix(Arg&& arg)
+      {
+        static_assert(i == 0);
+        return std::forward<Arg>(arg).nestedExpression();
+      }
+
+      template<typename Arg>
+      static auto convert_to_self_contained(Arg&& arg)
+      {
+        if constexpr (not std::is_lvalue_reference_v<typename N::MatrixTypeNested>)
+          return N {make_self_contained(arg.nestedExpression()), arg.functor()};
+        else
+          return make_native_matrix(std::forward<Arg>(arg));
+      }
+    };
+  }
 
 
   /// The real part of a constant matrix is constant.
@@ -1234,9 +1623,25 @@ namespace OpenKalman
   //  Diagonal  //
   // ---------- //
 
-  template<typename MatrixType, int DiagIndex>
-  struct is_self_contained<Eigen::Diagonal<MatrixType, DiagIndex>>
-    : std::bool_constant<detail::stores<MatrixType>> {};
+  namespace interface
+  {
+    template<typename MatrixType, int DiagIndex>
+    struct Dependencies<Eigen::Diagonal<MatrixType, DiagIndex>>
+    {
+      static constexpr bool has_runtime_parameters = DiagIndex == Eigen::DynamicIndex;
+      using type = std::tuple<typename Eigen::internal::ref_selector<MatrixType>::non_const_type>;
+
+      template<std::size_t i, typename Arg>
+      static decltype(auto) get_nested_matrix(Arg&& arg)
+      {
+        static_assert(i == 0);
+        return std::forward<Arg>(arg).nestedExpression();
+      }
+
+      // Should always convert to a dense, writable matrix.
+
+    };
+  }
 
 
   namespace detail
@@ -1264,7 +1669,7 @@ namespace OpenKalman
   struct constant_coefficient<Eigen::Diagonal<MatrixType, DiagIndex>, std::enable_if_t<
     OpenKalman::detail::eigen_identity<MatrixType> and DiagIndex != Eigen::DynamicIndex>>
 #endif
-    : constant_coefficient_type<short {DiagIndex == 0 ? 1 : 0}, typename MatrixTraits<MatrixType>::Scalar> {};
+    : constant_coefficient_type<short {DiagIndex == 0 ? 1 : 0}, scalar_type_of_t<MatrixType>> {};
 
 
   /// The diagonal of a constant matrix is constant.
@@ -1291,25 +1696,25 @@ namespace OpenKalman
     (not OpenKalman::detail::eigen_identity<MatrixType>)>>
 #endif
     : constant_coefficient_type<(DiagIndex == 0 ? constant_diagonal_coefficient_v<std::decay_t<MatrixType>> : 0),
-      typename MatrixTraits<MatrixType>::Scalar> {};
+      scalar_type_of_t<MatrixType>> {};
 
 
   /// The diagonal of a constant, one-by-one matrix is constant-diagonal.
 #ifdef __cpp_concepts
   template<constant_matrix MatrixType, int DiagIndex> requires (DiagIndex != Eigen::DynamicIndex) and
-    (not dynamic_rows<MatrixType> or (not dynamic_columns<MatrixType> and MatrixTraits<MatrixType>::columns == 1)) and
-    (not dynamic_columns<MatrixType> or (not dynamic_rows<MatrixType> and MatrixTraits<MatrixType>::rows == 1)) and
-    (dynamic_shape<MatrixType> or std::min(MatrixTraits<MatrixType>::rows + std::min(DiagIndex, 0),
-        MatrixTraits<MatrixType>::columns - std::max(DiagIndex, 0)) == 1)
+    (not dynamic_rows<MatrixType> or (not dynamic_columns<MatrixType> and column_extent_of_v<MatrixType> == 1)) and
+    (not dynamic_columns<MatrixType> or (not dynamic_rows<MatrixType> and row_extent_of_v<MatrixType> == 1)) and
+    (dynamic_shape<MatrixType> or std::min(row_extent_of_v<MatrixType> + std::min(DiagIndex, 0),
+        column_extent_of_v<MatrixType> - std::max(DiagIndex, 0)) == 1)
   struct constant_diagonal_coefficient<Eigen::Diagonal<MatrixType, DiagIndex>>
 #else
   template<typename MatrixType, int DiagIndex>
   struct constant_diagonal_coefficient<Eigen::Diagonal<MatrixType, DiagIndex>, std::enable_if_t<
     constant_matrix<MatrixType> and (DiagIndex != Eigen::DynamicIndex) and
-    (not dynamic_rows<MatrixType> or (not dynamic_columns<MatrixType> and MatrixTraits<MatrixType>::columns == 1)) and
-    (not dynamic_columns<MatrixType> or (not dynamic_rows<MatrixType> and MatrixTraits<MatrixType>::rows == 1)) and
-    (dynamic_shape<MatrixType> or std::min(MatrixTraits<MatrixType>::rows + std::min(DiagIndex, 0),
-        MatrixTraits<MatrixType>::columns - std::max(DiagIndex, 0)) == 1)>>
+    (not dynamic_rows<MatrixType> or (not dynamic_columns<MatrixType> and column_extent_of<MatrixType>::value == 1)) and
+    (not dynamic_columns<MatrixType> or (not dynamic_rows<MatrixType> and row_extent_of<MatrixType>::value == 1)) and
+    (dynamic_shape<MatrixType> or std::min(row_extent_of<MatrixType>::value + std::min(DiagIndex, 0),
+        column_extent_of<MatrixType>::value - std::max(DiagIndex, 0)) == 1)>>
 #endif
     : constant_coefficient<std::decay_t<MatrixType>> {};
 
@@ -1318,37 +1723,53 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<constant_diagonal_matrix MatrixType, int DiagIndex>
   requires (not constant_matrix<MatrixType>) and (DiagIndex != Eigen::DynamicIndex) and
-    (not dynamic_rows<MatrixType> or (not dynamic_columns<MatrixType> and MatrixTraits<MatrixType>::columns == 1)) and
-    (not dynamic_columns<MatrixType> or (not dynamic_rows<MatrixType> and MatrixTraits<MatrixType>::rows == 1)) and
-    (dynamic_shape<MatrixType> or std::min(MatrixTraits<MatrixType>::rows + std::min(DiagIndex, 0),
-        MatrixTraits<MatrixType>::columns - std::max(DiagIndex, 0)) == 1)
+    (not dynamic_rows<MatrixType> or (not dynamic_columns<MatrixType> and column_extent_of_v<MatrixType> == 1)) and
+    (not dynamic_columns<MatrixType> or (not dynamic_rows<MatrixType> and row_extent_of_v<MatrixType> == 1)) and
+    (dynamic_shape<MatrixType> or std::min(row_extent_of_v<MatrixType> + std::min(DiagIndex, 0),
+        column_extent_of_v<MatrixType> - std::max(DiagIndex, 0)) == 1)
   struct constant_diagonal_coefficient<Eigen::Diagonal<MatrixType, DiagIndex>>
 #else
   template<typename MatrixType, int DiagIndex>
   struct constant_diagonal_coefficient<Eigen::Diagonal<MatrixType, DiagIndex>, std::enable_if_t<
     constant_diagonal_matrix<MatrixType> and (not constant_matrix<MatrixType>) and
     (DiagIndex != Eigen::DynamicIndex) and
-    (not dynamic_rows<MatrixType> or (not dynamic_columns<MatrixType> and MatrixTraits<MatrixType>::columns == 1)) and
-    (not dynamic_columns<MatrixType> or (not dynamic_rows<MatrixType> and MatrixTraits<MatrixType>::rows == 1)) and
-    (dynamic_shape<MatrixType> or std::min(MatrixTraits<MatrixType>::rows + std::min(DiagIndex, 0),
-        MatrixTraits<MatrixType>::columns - std::max(DiagIndex, 0)) == 1)>>
+    (not dynamic_rows<MatrixType> or (not dynamic_columns<MatrixType> and column_extent_of<MatrixType>::value == 1)) and
+    (not dynamic_columns<MatrixType> or (not dynamic_rows<MatrixType> and row_extent_of<MatrixType>::value == 1)) and
+    (dynamic_shape<MatrixType> or std::min(row_extent_of<MatrixType>::value + std::min(DiagIndex, 0),
+        column_extent_of<MatrixType>::value - std::max(DiagIndex, 0)) == 1)>>
 #endif
     : constant_coefficient_type<(DiagIndex == 0 ? constant_diagonal_coefficient_v<std::decay_t<MatrixType>> : 0),
-      typename MatrixTraits<MatrixType>::Scalar> {};
+      scalar_type_of_t<MatrixType>> {};
 
 
   // ---------------- //
   //  DiagonalMatrix  //
   // ---------------- //
 
-  namespace internal
+
+  namespace interface
   {
     template<typename Scalar, int SizeAtCompileTime, int MaxSizeAtCompileTime>
-    struct nested_matrix_type<Eigen::DiagonalMatrix<Scalar, SizeAtCompileTime, MaxSizeAtCompileTime>>
+    struct Dependencies<Eigen::DiagonalMatrix<Scalar, SizeAtCompileTime, MaxSizeAtCompileTime>>
     {
-      using type = typename Eigen::DiagonalMatrix<Scalar, SizeAtCompileTime, MaxSizeAtCompileTime>::DiagonalVectorType;
+      static constexpr bool has_runtime_parameters = false;
+      using type = std::tuple<
+        typename Eigen::DiagonalMatrix<Scalar, SizeAtCompileTime, MaxSizeAtCompileTime>::DiagonalVectorType>;
+
+      template<std::size_t i, typename Arg>
+      static decltype(auto) get_nested_matrix(Arg&& arg)
+      {
+        static_assert(i == 0);
+        return std::forward<Arg>(arg).diagonal();
+      }
+
+      template<typename Arg>
+      static auto convert_to_self_contained(Arg&& arg)
+      {
+        return make_self_contained(Eigen3::DiagonalMatrix {std::forward<Arg>(arg)});
+      }
     };
-  }
+  } // namespace interface
 
 
   /**
@@ -1359,21 +1780,7 @@ namespace OpenKalman
   struct MatrixTraits<Eigen::DiagonalMatrix<Scalar, SizeAtCompileTime, MaxSizeAtCompileTime>>
     : MatrixTraits<Eigen::Matrix<Scalar, SizeAtCompileTime, SizeAtCompileTime>>
   {
-  private:
-
-    using Xpr = Eigen::DiagonalMatrix<Scalar, SizeAtCompileTime, MaxSizeAtCompileTime>;
-
-  public:
-
-    static constexpr TriangleType triangle_type = TriangleType::diagonal;
-
-    using SelfContainedFrom = Xpr;
   };
-
-
-  template<typename Scalar, int SizeAtCompileTime, int MaxSizeAtCompileTime>
-  struct is_self_contained<Eigen::DiagonalMatrix<Scalar, SizeAtCompileTime, MaxSizeAtCompileTime>>
-    : std::true_type {};
 
 
   template<typename Scalar, int SizeAtCompileTime, int MaxSizeAtCompileTime>
@@ -1385,46 +1792,55 @@ namespace OpenKalman
   //  DiagonalWrapper  //
   // ----------------- //
 
-  namespace internal
+  namespace interface
   {
-    template<typename DiagonalVectorType>
-    struct nested_matrix_type<Eigen::DiagonalWrapper<DiagonalVectorType>>
+
+    template<typename DiagVectorType>
+    struct Dependencies<Eigen::DiagonalWrapper<DiagVectorType>>
     {
-      using type = DiagonalVectorType&;
+      static constexpr bool has_runtime_parameters = false;
+      using type = std::tuple<typename DiagVectorType::Nested>;
+
+      template<std::size_t i, typename Arg>
+      static decltype(auto) get_nested_matrix(Arg&& arg)
+      {
+        static_assert(i == 0);
+        return std::forward<Arg>(arg).diagonal();
+      }
+
+      template<typename Arg>
+      static auto convert_to_self_contained(Arg&& arg)
+      {
+        return make_self_contained(Eigen3::DiagonalMatrix {std::forward<Arg>(arg)});
+      }
     };
-  }
+
+
+  } // namespace interface
 
 
   /**
    * \internal
    * \brief Matrix traits for Eigen::DiagonalWrapper.
    */
-  template<typename DiagonalVectorType>
-  struct MatrixTraits<Eigen::DiagonalWrapper<DiagonalVectorType>>
-    : MatrixTraits<Eigen::Matrix<typename DiagonalVectorType::Scalar,
-        DiagonalVectorType::RowsAtCompileTime, DiagonalVectorType::RowsAtCompileTime>>
+  template<typename V>
+  struct MatrixTraits<Eigen::DiagonalWrapper<V>>
+    : MatrixTraits<Eigen::Matrix<typename Eigen::internal::traits<std::decay_t<V>>::Scalar,
+        V::SizeAtCompileTime, V::SizeAtCompileTime>>
   {
-    static constexpr TriangleType triangle_type = TriangleType::diagonal;
-
-    using SelfContainedFrom = Eigen3::DiagonalMatrix<self_contained_t<DiagonalVectorType>>;
   };
-
-
-  template<typename DiagVectorType>
-  struct is_self_contained<Eigen::DiagonalWrapper<DiagVectorType>>
-    : std::false_type {};
 
 
   /// A diagonal wrapper is constant if its nested vector is constant and is either zero or has one row.
 #ifdef __cpp_concepts
   template<constant_matrix DiagonalVectorType> requires (constant_coefficient_v<DiagonalVectorType> == 0) or
-    (MatrixTraits<DiagonalVectorType>::rows == 1)
+    (row_extent_of_v<DiagonalVectorType> == 1)
   struct constant_coefficient<Eigen::DiagonalWrapper<DiagonalVectorType>>
 #else
   template<typename DiagonalVectorType>
   struct constant_coefficient<Eigen::DiagonalWrapper<DiagonalVectorType>, std::enable_if_t<
     constant_matrix<DiagonalVectorType> and (constant_coefficient<DiagonalVectorType>::value == 0 or
-    (MatrixTraits<DiagonalVectorType>::rows == 1))>>
+    (row_extent_of<DiagonalVectorType>::value == 1))>>
 #endif
     : constant_coefficient<std::decay_t<DiagonalVectorType>> {};
 
@@ -1457,40 +1873,104 @@ namespace OpenKalman
   // \todo: Add. This is a child of Eigen::MatrixBase
 
 
-  // --------- //
-  //  Inverse  //
-  // --------- //
+  namespace interface
+  {
 
-  template<typename XprType>
-  struct is_self_contained<Eigen::Inverse<XprType>>
-    : std::bool_constant<detail::stores<XprType>> {};
+    // --------- //
+    //  Inverse  //
+    // --------- //
+
+    template<typename XprType>
+    struct Dependencies<Eigen::Inverse<XprType>>
+    {
+    private:
+
+      using T = Eigen::Inverse<XprType>;
+      using N = Eigen::Inverse<equivalent_self_contained_t<XprType>>;
+
+    public:
+
+      static constexpr bool has_runtime_parameters = false;
+      using type = std::tuple<typename T::XprTypeNested>;
+
+      template<std::size_t i, typename Arg>
+      static decltype(auto) get_nested_matrix(Arg&& arg)
+      {
+        static_assert(i == 0);
+        return std::forward<Arg>(arg).nestedExpression();
+      }
+
+      template<typename Arg>
+      static auto convert_to_self_contained(Arg&& arg)
+      {
+        if constexpr (not std::is_lvalue_reference_v<N::XprTypeNested>)
+          return N {make_self_contained(arg.nestedExpression())};
+        else
+          return make_native_matrix(std::forward<Arg>(arg));
+      }
+    };
 
 
-  // ----- //
-  //  Map  //
-  // ----- //
+    // ----- //
+    //  Map  //
+    // ----- //
 
-  template<typename PlainObjectType, int MapOptions, typename StrideType>
-  struct is_self_contained<Eigen::Map<PlainObjectType, MapOptions, StrideType>>
-    : std::false_type {};
-
-
-  // -------- //
-  //  Matrix  //
-  // -------- //
-
-  template<typename S, int rows, int cols, int options, int maxrows, int maxcols>
-  struct is_self_contained<Eigen::Matrix<S, rows, cols, options, maxrows, maxcols>>
-    : std::true_type {};
+    template<typename PlainObjectType, int MapOptions, typename StrideType>
+    struct Dependencies<Eigen::Map<PlainObjectType, MapOptions, StrideType>>
+    {
+      static constexpr bool has_runtime_parameters = false;
+      // Map is not self-contained in any circumstances.
+    };
 
 
-  // --------------- //
-  //  MatrixWrapper  //
-  // --------------- //
+    // -------- //
+    //  Matrix  //
+    // -------- //
 
-  template<typename XprType>
-  struct is_self_contained<Eigen::MatrixWrapper<XprType>>
-    : std::bool_constant<detail::stores<XprType>> {};
+    template<typename S, int rows, int cols, int options, int maxrows, int maxcols>
+    struct Dependencies<Eigen::Matrix<S, rows, cols, options, maxrows, maxcols>>
+    {
+      static constexpr bool has_runtime_parameters = true;
+      using type = std::tuple<>;
+    };
+
+
+    // --------------- //
+    //  MatrixWrapper  //
+    // --------------- //
+
+    template<typename XprType>
+    struct Dependencies<Eigen::MatrixWrapper<XprType>>
+    {
+    private:
+
+      using T = Eigen::MatrixWrapper<XprType>;
+      using N = Eigen::MatrixWrapper<equivalent_self_contained_t<XprType>>;
+
+    public:
+
+      static constexpr bool has_runtime_parameters = false;
+      using type = std::tuple<typename T::NestedExpressionType>;
+
+      template<std::size_t i, typename Arg>
+      static decltype(auto) get_nested_matrix(Arg&& arg)
+      {
+        static_assert(i == 0);
+        return std::forward<Arg>(arg).nestedExpression();
+      }
+
+      template<typename Arg>
+      static auto convert_to_self_contained(Arg&& arg)
+      {
+        if constexpr (not std::is_lvalue_reference_v<typename N::NestedExpressionType>)
+          return N {make_self_contained(arg.nestedExpression())};
+        else
+          return make_native_matrix(std::forward<Arg>(arg));
+      }
+    };
+
+
+  } // namespace interface
 
 
   /// A matrix wrapper is constant if its nested expression is constant.
@@ -1545,9 +2025,35 @@ namespace OpenKalman
   //  PartialReduxExpr  //
   // ------------------ //
 
-  template<typename MatrixType, typename MemberOp, int Direction>
-  struct is_self_contained<Eigen::PartialReduxExpr<MatrixType, MemberOp, Direction>>
-    : std::bool_constant<detail::stores<MatrixType>> {};
+  namespace interface
+  {
+
+    template<typename MatrixType, typename MemberOp, int Direction>
+    struct Dependencies<Eigen::PartialReduxExpr<MatrixType, MemberOp, Direction>>
+    {
+      static constexpr bool has_runtime_parameters = false;
+      using type = std::tuple<typename MatrixType::Nested>;
+
+      template<std::size_t i, typename Arg>
+      static decltype(auto) get_nested_matrix(Arg&& arg)
+      {
+        static_assert(i == 0);
+        return std::forward<Arg>(arg).nestedExpression();
+      }
+
+      template<typename Arg>
+      static auto convert_to_self_contained(Arg&& arg)
+      {
+        using NewMatrixType = equivalent_self_contained_t<MatrixType>;
+        using N = Eigen::PartialReduxExpr<NewMatrixType, MemberOp, Direction>;
+        if constexpr (not std::is_lvalue_reference_v<typename NewMatrixType::Nested>)
+          return N {make_self_contained(arg.nestedExpression()), arg.functor()};
+        else
+          return make_native_matrix(std::forward<Arg>(arg));
+      }
+    };
+
+  } // namespace interface
 
 
 #ifdef __cpp_concepts
@@ -1633,8 +2139,8 @@ namespace OpenKalman
       (Direction == Eigen::Vertical or not dynamic_columns<MatrixType>)>>
 #endif
     : constant_coefficient_type<constant_coefficient_v<MatrixType> *
-      (Direction == Eigen::Vertical ? MatrixTraits<MatrixType>::rows : MatrixTraits<MatrixType>::columns),
-      std::common_type_t<typename MatrixTraits<MatrixType>::Scalar, Scalar>> {};
+      (Direction == Eigen::Vertical ? row_extent_of_v<MatrixType> : column_extent_of_v<MatrixType>),
+      std::common_type_t<scalar_type_of_t<MatrixType>, Scalar>> {};
 
 
 #ifdef __cpp_concepts
@@ -1705,8 +2211,8 @@ namespace OpenKalman
       (Direction == Eigen::Vertical or not dynamic_columns<MatrixType>)>>
 #endif
     : constant_coefficient_type<
-      Direction == Eigen::Vertical ? MatrixTraits<MatrixType>::rows : MatrixTraits<MatrixType>::columns,
-      typename MatrixTraits<MatrixType>::Scalar> {};
+      Direction == Eigen::Vertical ? row_extent_of_v<MatrixType> : column_extent_of_v<MatrixType>,
+      scalar_type_of_t<MatrixType>> {};
 
 
 #ifdef __cpp_concepts
@@ -1722,22 +2228,22 @@ namespace OpenKalman
       (Direction == Eigen::Vertical or not dynamic_columns<MatrixType>)>>
 #endif
     : constant_coefficient_type<OpenKalman::internal::constexpr_pow(constant_coefficient_v<MatrixType>,
-      (Direction == Eigen::Vertical ? MatrixTraits<MatrixType>::rows : MatrixTraits<MatrixType>::columns)),
-      std::common_type_t<typename MatrixTraits<MatrixType>::Scalar, Scalar>> {};
+      (Direction == Eigen::Vertical ? row_extent_of_v<MatrixType> : column_extent_of_v<MatrixType>)),
+      std::common_type_t<scalar_type_of_t<MatrixType>, Scalar>> {};
 
 
   // A constant partial redux expression is constant-diagonal if it is one-by-one.
 #ifdef __cpp_concepts
   template<constant_matrix MatrixType, typename MemberOp, int Direction>
-  requires (Direction == Eigen::Vertical and MatrixTraits<MatrixType>::columns == 1) or
-    (Direction == Eigen::Horizontal and MatrixTraits<MatrixType>::rows == 1)
+  requires (Direction == Eigen::Vertical and column_extent_of_v<MatrixType> == 1) or
+    (Direction == Eigen::Horizontal and row_extent_of_v<MatrixType> == 1)
   struct constant_diagonal_coefficient<Eigen::PartialReduxExpr<MatrixType, MemberOp, Direction>>
 #else
   template<typename MatrixType, typename MemberOp, int Direction>
   struct constant_diagonal_coefficient<Eigen::PartialReduxExpr<MatrixType, MemberOp, Direction>,
     std::enable_if_t<constant_matrix<MatrixType> and
-      ((Direction == Eigen::Vertical and MatrixTraits<MatrixType>::columns == 1) or
-        (Direction == Eigen::Horizontal and MatrixTraits<MatrixType>::rows == 1))>>
+      ((Direction == Eigen::Vertical and column_extent_of<MatrixType>::value == 1) or
+        (Direction == Eigen::Horizontal and row_extent_of<MatrixType>::value == 1))>>
 #endif
     : constant_coefficient<std::decay_t<Eigen::PartialReduxExpr<MatrixType, MemberOp, Direction>>> {};
 
@@ -1746,27 +2252,110 @@ namespace OpenKalman
   //  PermutationMatrix  //
   // ------------------- //
 
-  template<int SizeAtCompileTime, int MaxSizeAtCompileTime, typename StorageIndex>
-  struct is_self_contained<Eigen::PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, StorageIndex>>
-    : std::true_type {};
+  namespace interface
+  {
+    template<int SizeAtCompileTime, int MaxSizeAtCompileTime, typename StorageIndex>
+    struct Dependencies<Eigen::PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, StorageIndex>>
+    {
+      static constexpr bool has_runtime_parameters = false;
+      using type = std::tuple<
+        typename Eigen::PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, StorageIndex>::IndicesType>;
+
+      template<std::size_t i, typename Arg>
+      static decltype(auto) get_nested_matrix(Arg&& arg)
+      {
+        static_assert(i == 0);
+        return std::forward<Arg>(arg).indices();
+      }
+
+      // PermutationMatrix is always self-contained.
+
+    };
 
 
   // -------------------- //
   //  PermutationWrapper  //
   // -------------------- //
 
-  template<typename IndicesType>
-  struct is_self_contained<Eigen::PermutationWrapper<IndicesType>>
-    : std::true_type {};
+    template<typename IndicesType>
+    struct Dependencies<Eigen::PermutationWrapper<IndicesType>>
+    {
+      static constexpr bool has_runtime_parameters = false;
+      using type = std::tuple<typename IndicesType::Nested>;
+
+      template<std::size_t i, typename Arg>
+      static decltype(auto) get_nested_matrix(Arg&& arg)
+      {
+        static_assert(i == 0);
+        return std::forward<Arg>(arg).indices();
+      }
+
+      template<typename Arg>
+      static auto convert_to_self_contained(Arg&& arg)
+      {
+        using NewIndicesType = equivalent_self_contained_t<IndicesType>;
+        if constexpr (not std::is_lvalue_reference_v<typename NewIndicesType::Nested>)
+          return Eigen::PermutationWrapper<NewIndicesType> {make_self_contained(arg.nestedExpression()), arg.functor()};
+        else
+          return make_native_matrix(std::forward<Arg>(arg));
+      }
+    };
 
 
   // --------- //
   //  Product  //
   // --------- //
 
-  template<typename LhsType, typename RhsType, int Option>
-  struct is_self_contained<Eigen::Product<LhsType, RhsType, Option>>
-    : std::bool_constant<detail::stores<LhsType> and detail::stores<RhsType>> {};
+    template<typename LhsType, typename RhsType, int Option>
+    struct Dependencies<Eigen::Product<LhsType, RhsType, Option>>
+    {
+    private:
+
+      using T = Eigen::Product<LhsType, RhsType>;
+      using N = Eigen::Product<equivalent_self_contained_t<LhsType>, equivalent_self_contained_t<RhsType>, Option>;
+
+    public:
+
+      static constexpr bool has_runtime_parameters = false;
+      using type = std::tuple<typename T::LhsNested, typename T::RhsNested >;
+
+      template<std::size_t i, typename Arg>
+      static decltype(auto) get_nested_matrix(Arg&& arg)
+      {
+        static_assert(i < 2);
+        if constexpr (i == 0)
+          return std::forward<Arg>(arg).lhs();
+        else
+          return std::forward<Arg>(arg).rhs();
+      }
+
+      template<typename Arg>
+      static auto convert_to_self_contained(Arg&& arg)
+      {
+        constexpr auto to_be_evaluated_size = self_contained<LhsType> ?
+          RhsType::RowsAtCompileTime * RhsType::ColsAtCompileTime :
+          LhsType::RowsAtCompileTime * LhsType::ColsAtCompileTime;
+
+        // Do a partial evaluation if at least one argument is self-contained and result size > non-self-contained size.
+        if constexpr ((self_contained<LhsType> or self_contained<RhsType>) and
+          (LhsType::RowsAtCompileTime != Eigen::Dynamic) and
+          (LhsType::ColsAtCompileTime != Eigen::Dynamic) and
+          (RhsType::RowsAtCompileTime != Eigen::Dynamic) and
+          (RhsType::ColsAtCompileTime != Eigen::Dynamic) and
+          (LhsType::RowsAtCompileTime * RhsType::ColsAtCompileTime > to_be_evaluated_size) and
+          not std::is_lvalue_reference_v<typename N::LhsNested> and
+          not std::is_lvalue_reference_v<typename N::RhsNested>)
+        {
+          return N {make_self_contained(arg.lhs()), make_self_contained(arg.rhs())};
+        }
+        else
+        {
+          return make_native_matrix(std::forward<Arg>(arg));
+        }
+      }
+    };
+
+  } // namespace interface
 
 
   /// A constant-diagonal matrix times a constant matrix is constant.
@@ -1811,7 +2400,7 @@ namespace OpenKalman
       (constant_coefficient<Arg1>::value == 0) or (constant_coefficient<Arg2>::value == 0))>>
 #endif
     : constant_coefficient_type<constant_coefficient_v<Arg1> * constant_coefficient_v<Arg2> *
-      int {dynamic_rows<Arg2> ? MatrixTraits<Arg1>::columns : MatrixTraits<Arg2>::rows},
+      int {dynamic_rows<Arg2> ? column_extent_of_v<Arg1> : row_extent_of_v<Arg2>},
       typename Eigen::Product<Arg1, Arg2>::Scalar> {};
 
 
@@ -1835,18 +2424,18 @@ namespace OpenKalman
   template<typename Arg1, typename Arg2> requires
     (not constant_diagonal_matrix<Arg1> or not constant_diagonal_matrix<Arg2>) and
     constant_matrix<Eigen::Product<Arg1, Arg2>> and
-    (MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::columns) and
+    (row_extent_of_v<Arg1> == column_extent_of_v<Arg2>) and
     (constant_coefficient_v<Eigen::Product<Arg1, Arg2>> == 0 or
-      MatrixTraits<Arg1>::rows == 1 or MatrixTraits<Arg2>::columns == 1)
+      row_extent_of_v<Arg1> == 1 or column_extent_of_v<Arg2> == 1)
   struct constant_diagonal_coefficient<Eigen::Product<Arg1, Arg2>>
 #else
   template<typename Arg1, typename Arg2>
   struct constant_diagonal_coefficient<Eigen::Product<Arg1, Arg2>, std::enable_if_t<
     (not constant_diagonal_matrix<Arg1> or not constant_diagonal_matrix<Arg2>) and
     constant_matrix<Eigen::Product<Arg1, Arg2>> and
-    (MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::columns) and
+    (row_extent_of<Arg1>::value == column_extent_of<Arg2>::value) and
     (constant_coefficient<Eigen::Product<Arg1, Arg2>>::value == 0 or
-      MatrixTraits<Arg1>::rows == 1 or MatrixTraits<Arg2>::columns == 1)>>
+      row_extent_of<Arg1>::value == 1 or column_extent_of<Arg2>::value == 1)>>
 #endif
     : constant_coefficient<Eigen::Product<Arg1, Arg2>> {};
 
@@ -1931,18 +2520,51 @@ namespace OpenKalman
   //  Ref  //
   // ----- //
 
-  template<typename PlainObjectType, int Options, typename StrideType>
-  struct is_self_contained<Eigen::Ref<PlainObjectType, Options, StrideType>>
-    : std::false_type {};
+  namespace interface
+  {
+    template<typename PlainObjectType, int Options, typename StrideType>
+    struct Dependencies<Eigen::Ref<PlainObjectType, Options, StrideType>>
+    {
+      static constexpr bool has_runtime_parameters = false;
+      // Ref is not self-contained in any circumstances.
+    };
 
 
   // ----------- //
   //  Replicate  //
   // ----------- //
 
-  template<typename MatrixType, int RowFactor, int ColFactor>
-  struct is_self_contained<Eigen::Replicate<MatrixType, RowFactor, ColFactor>>
-    : std::bool_constant<detail::stores<MatrixType>> {};
+    template<typename MatrixType, int RowFactor, int ColFactor>
+    struct Dependencies<Eigen::Replicate<MatrixType, RowFactor, ColFactor>>
+    {
+    private:
+
+      using T = Eigen::Replicate<MatrixType, RowFactor, ColFactor>;
+      using N = Eigen::Replicate<equivalent_self_contained_t<MatrixType>, RowFactor, ColFactor>;
+
+    public:
+
+      static constexpr bool has_runtime_parameters = RowFactor == Eigen::Dynamic or ColFactor == Eigen::Dynamic;
+      using type = std::tuple<typename Eigen::internal::traits<T>::MatrixTypeNested>;
+
+      template<std::size_t i, typename Arg>
+      static decltype(auto) get_nested_matrix(Arg&& arg)
+      {
+        static_assert(i == 0);
+        return std::forward<Arg>(arg).nestedExpression();
+      }
+
+      template<typename Arg>
+      static auto convert_to_self_contained(Arg&& arg)
+      {
+        if constexpr (not std::is_lvalue_reference_v<typename Eigen::internal::traits<N>::MatrixTypeNested>)
+          return N {make_self_contained(arg.nestedExpression())};
+        else
+          return make_native_matrix(std::forward<Arg>(arg));
+      }
+    };
+
+  } // namespace interface
 
 
   /// A replication of a constant matrix is constant.
@@ -1961,7 +2583,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typename MatrixType, int RowFactor, int ColFactor> requires (not constant_diagonal_matrix<MatrixType>) and
     (RowFactor > 0) and (ColFactor > 0) and (not dynamic_rows<MatrixType>) and (not dynamic_columns<MatrixType>) and
-    (MatrixTraits<MatrixType>::rows * RowFactor == MatrixTraits<MatrixType>::columns * ColFactor) and
+    (row_extent_of_v<MatrixType> * RowFactor == column_extent_of_v<MatrixType> * ColFactor) and
     (constant_coefficient_v<MatrixType> == 0)
   struct constant_diagonal_coefficient<Eigen::Replicate<MatrixType, RowFactor, ColFactor>>
 #else
@@ -1969,7 +2591,7 @@ namespace OpenKalman
   struct constant_diagonal_coefficient<Eigen::Replicate<MatrixType, RowFactor, ColFactor>, std::enable_if_t<
     (not constant_diagonal_matrix<MatrixType>) and
     (RowFactor > 0) and (ColFactor > 0) and (not dynamic_rows<MatrixType>) and (not dynamic_columns<MatrixType>) and
-    (MatrixTraits<MatrixType>::rows * RowFactor == MatrixTraits<MatrixType>::columns * ColFactor) and
+    (row_extent_of<MatrixType>::value * RowFactor == column_extent_of<MatrixType>::value * ColFactor) and
     (zero_matrix<MatrixType>)>>
 #endif
     : constant_coefficient<std::decay_t<MatrixType>> {};
@@ -2019,9 +2641,32 @@ namespace OpenKalman
   //  Reverse  //
   // --------- //
 
-  template<typename MatrixType, int Direction>
-  struct is_self_contained<Eigen::Reverse<MatrixType, Direction>>
-    : std::bool_constant<detail::stores<MatrixType>> {};
+  namespace interface
+  {
+    template<typename MatrixType, int Direction>
+    struct Dependencies<Eigen::Reverse<MatrixType, Direction>>
+    {
+      static constexpr bool has_runtime_parameters = false;
+      using type = std::tuple<typename MatrixType::Nested>;
+
+      template<std::size_t i, typename Arg>
+      static decltype(auto) get_nested_matrix(Arg&& arg)
+      {
+        static_assert(i == 0);
+        return std::forward<Arg>(arg).nestedExpression();
+      }
+
+      template<typename Arg>
+      static auto convert_to_self_contained(Arg&& arg)
+      {
+        using M = equivalent_self_contained_t<MatrixType>;
+        if constexpr (not std::is_lvalue_reference_v<typename M::Nested>)
+          return Eigen::Reverse<M, Direction> {make_self_contained(arg.nestedExpression())};
+        else
+          return make_native_matrix(std::forward<Arg>(arg));
+      }
+    };
+  } // namespace interface
 
 
   /// The reverse of a constant matrix is constant.
@@ -2096,14 +2741,59 @@ namespace OpenKalman
   //  Select  //
   // -------- //
 
-  template<typename ConditionMatrixType, typename ThenMatrixType, typename ElseMatrixType>
-  struct is_self_contained<Eigen::Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType>>
-    : std::bool_constant<detail::stores<ConditionMatrixType> and detail::stores<ThenMatrixType> and
-      detail::stores<ElseMatrixType>> {};
+  namespace interface
+  {
+    template<typename ConditionMatrixType, typename ThenMatrixType, typename ElseMatrixType>
+    struct Dependencies<Eigen::Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType>>
+    {
+    private:
+
+      using T = Eigen::Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType>;
+      using N = Eigen::Select<equivalent_self_contained_t<ConditionMatrixType>,
+        equivalent_self_contained_t<ThenMatrixType>, equivalent_self_contained_t<ElseMatrixType>>;
+
+    public:
+
+      static constexpr bool has_runtime_parameters = false;
+      using type = std::tuple<typename ConditionMatrixType::Nested, typename ThenMatrixType::Nested,
+        typename ElseMatrixType::Nested>;
+
+      template<std::size_t i, typename Arg>
+      static decltype(auto) get_nested_matrix(Arg&& arg)
+      {
+        static_assert(i < 3);
+        if constexpr (i == 0)
+          return std::forward<Arg>(arg).conditionMatrix();
+        else if constexpr (i == 1)
+          return std::forward<Arg>(arg).thenMatrix();
+        else
+          return std::forward<Arg>(arg).elseMatrix();
+      }
+
+      template<typename Arg>
+      static auto convert_to_self_contained(Arg&& arg)
+      {
+        // Do a partial evaluation as long as at least two arguments are already self-contained.
+        if constexpr (
+          ((self_contained<ConditionMatrixType> ? 1 : 0) + (self_contained<ThenMatrixType> ? 1 : 0) +
+            (self_contained<ElseMatrixType> ? 1 : 0) >= 2) and
+          not std::is_lvalue_reference_v<typename equivalent_self_contained_t<ConditionMatrixType>::Nested> and
+          not std::is_lvalue_reference_v<typename equivalent_self_contained_t<ThenMatrixType>::Nested> and
+          not std::is_lvalue_reference_v<typename equivalent_self_contained_t<ElseMatrixType>::Nested>)
+        {
+          return N {make_self_contained(arg.arg1()), make_self_contained(arg.arg2()), make_self_contained(arg.arg3()),
+                    arg.functor()};
+        }
+        else
+        {
+          return make_native_matrix(std::forward<Arg>(arg));
+        }
+      }
+    };
+  }
 
 
   // --- constant_coefficient --- //
-
 
 #ifdef __cpp_concepts
   template<constant_matrix ConditionMatrixType, constant_matrix ThenMatrixType, typename ElseMatrixType>
@@ -2302,14 +2992,34 @@ namespace OpenKalman
   //  SelfAdjointView  //
   // ----------------- //
 
-  namespace internal
+  namespace interface
   {
+
     template<typename M, unsigned int UpLo>
-    struct nested_matrix_type<Eigen::SelfAdjointView<M, UpLo>> : MatrixTraits<M>
+    struct Dependencies<Eigen::SelfAdjointView<M, UpLo>>
     {
-      using type = M&;
+      static constexpr bool has_runtime_parameters = false;
+
+      using type = std::tuple<typename Eigen::SelfAdjointView<M, UpLo>::MatrixTypeNested>;
+
+      template<std::size_t i, typename Arg>
+      static decltype(auto) get_nested_matrix(Arg&& arg)
+      {
+        static_assert(i == 0);
+        if constexpr (std::is_const_v<std::remove_reference_t<std::tuple_element_t<0, type>>>)
+          return std::as_const(arg).nestedExpression();
+        else
+          return arg.nestedExpression();
+      }
+
+      template<typename Arg>
+      static auto convert_to_self_contained(Arg&& arg)
+      {
+        return make_self_contained(Eigen3::SelfAdjointMatrix {std::forward<Arg>(arg)});
+      }
     };
-  }
+
+  } // namespace interface
 
 
   /**
@@ -2319,13 +3029,15 @@ namespace OpenKalman
   template<typename M, unsigned int UpLo>
   struct MatrixTraits<Eigen::SelfAdjointView<M, UpLo>> : MatrixTraits<M>
   {
-    using MatrixTraits<M>::rows;
-
-    using MatrixTraits<M>::columns;
+  private:
 
     using Scalar = typename Eigen::internal::traits<Eigen::SelfAdjointView<M, UpLo>>::Scalar;
+    static constexpr auto rows = row_extent_of_v<M>;
+    static constexpr auto columns = column_extent_of_v<M>;
 
     static constexpr TriangleType storage_triangle = UpLo & Eigen::Upper ? TriangleType::upper : TriangleType::lower;
+
+  public:
 
     template<TriangleType storage_triangle = storage_triangle, std::size_t dim = rows, typename S = Scalar>
     using SelfAdjointMatrixFrom = typename MatrixTraits<M>::template SelfAdjointMatrixFrom<storage_triangle, dim, S>;
@@ -2333,9 +3045,6 @@ namespace OpenKalman
 
     template<TriangleType triangle_type = storage_triangle, std::size_t dim = rows, typename S = Scalar>
     using TriangularMatrixFrom = typename MatrixTraits<M>::template TriangularMatrixFrom<triangle_type, dim, S>;
-
-
-    using SelfContainedFrom = std::conditional_t<self_adjoint_matrix<M>, self_contained_t<M>, SelfAdjointMatrixFrom<>>;
 
 
 #ifdef __cpp_concepts
@@ -2349,11 +3058,6 @@ namespace OpenKalman
     }
 
   };
-
-
-  template<typename MatrixType, unsigned int UpLo>
-  struct is_self_contained<Eigen::SelfAdjointView<MatrixType, UpLo>>
-    : std::false_type {};
 
 
 #ifdef __cpp_concepts
@@ -2447,18 +3151,59 @@ namespace OpenKalman
   //  Solve  //
   // ------- //
 
-  template<typename Decomposition, typename RhsType>
-  struct is_self_contained<Eigen::Solve<Decomposition, RhsType>>
-    : std::false_type {}; // Because Decomposition is invariably stored as an lvalue
+  namespace interface
+  {
+    template<typename Decomposition, typename RhsType>
+    struct Dependencies<Eigen::Solve<Decomposition, RhsType>>
+    {
+      static constexpr bool has_runtime_parameters = false;
+      using type = std::tuple<const Decomposition&, const RhsType&>;
+
+      template<std::size_t i, typename Arg>
+      static decltype(auto) get_nested_matrix(Arg&& arg)
+      {
+        static_assert(i < 2);
+        if constexpr (i == 0)
+          return std::forward<Arg>(arg).dec();
+        else
+          return std::forward<Arg>(arg).rhs();
+      }
+
+      // Eigen::Solve can never be self-contained.
+
+    };
 
 
   // ----------- //
   //  Transpose  //
   // ----------- //
 
-  template<typename MatrixType>
-  struct is_self_contained<Eigen::Transpose<MatrixType>>
-    : std::bool_constant<detail::stores<MatrixType>> {};
+    template<typename MatrixType>
+    struct Dependencies<Eigen::Transpose<MatrixType>>
+    {
+      static constexpr bool has_runtime_parameters = false;
+      using type = std::tuple<typename Eigen::internal::ref_selector<MatrixType>::non_const_type>;
+
+      template<std::size_t i, typename Arg>
+      static decltype(auto) get_nested_matrix(Arg&& arg)
+      {
+        static_assert(i == 0);
+        return std::forward<Arg>(arg).nestedExpression();
+      }
+
+      template<typename Arg>
+      static auto convert_to_self_contained(Arg&& arg)
+      {
+        using M = equivalent_self_contained_t<MatrixType>;
+        using N = Eigen::Transpose<M>;
+        if constexpr (not std::is_lvalue_reference_v<typename Eigen::internal::ref_selector<M>::non_const_type>)
+          return N {make_self_contained(arg.nestedExpression())};
+        else
+          return make_native_matrix(std::forward<Arg>(arg));
+      }
+    };
+
+  } // namespace interface
 
 
 #ifdef __cpp_concepts
@@ -2474,13 +3219,13 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<constant_matrix MatrixType> requires square_matrix<MatrixType> and
     (constant_coefficient_v<MatrixType> == 0 or
-      MatrixTraits<MatrixType>::rows == 1 or MatrixTraits<MatrixType>::columns == 1)
+      row_extent_of_v<MatrixType> == 1 or column_extent_of_v<MatrixType> == 1)
   struct constant_diagonal_coefficient<Eigen::Transpose<MatrixType>>
 #else
   template<typename MatrixType>
   struct constant_diagonal_coefficient<Eigen::Transpose<MatrixType>, std::enable_if_t<
     constant_matrix<MatrixType> and square_matrix<MatrixType> and
-    (zero_matrix<MatrixType> or MatrixTraits<MatrixType>::rows == 1 or MatrixTraits<MatrixType>::columns == 1)>>
+    (zero_matrix<MatrixType> or row_extent_of<MatrixType>::value == 1 or column_extent_of<MatrixType>::value == 1)>>
 #endif
     : constant_coefficient<std::decay_t<MatrixType>> {};
 
@@ -2525,30 +3270,51 @@ namespace OpenKalman
   //  TriangularView  //
   // ---------------- //
 
-  namespace internal
+  namespace interface
   {
-    template<typename M, unsigned int UpLo>
-    struct nested_matrix_type<Eigen::TriangularView<M, UpLo>> : MatrixTraits<M>
+
+    template<typename M, unsigned int Mode>
+    struct Dependencies<Eigen::TriangularView<M, Mode>>
     {
-      using type = M&;
+      static constexpr bool has_runtime_parameters = false;
+      using type = std::tuple<typename Eigen::internal::traits<Eigen::TriangularView<M, Mode>>::MatrixTypeNested>;
+
+      template<std::size_t i, typename Arg>
+      static decltype(auto) get_nested_matrix(Arg&& arg)
+      {
+        static_assert(i == 0);
+        if constexpr (std::is_const_v<std::remove_reference_t<std::tuple_element_t<0, type>>>)
+          return std::as_const(arg).nestedExpression();
+        else
+          return arg.nestedExpression();
+      }
+
+      template<typename Arg>
+      static auto convert_to_self_contained(Arg&& arg)
+      {
+        return make_self_contained(Eigen3::TriangularMatrix {std::forward<Arg>(arg)});
+      }
     };
-  }
+
+  } // namespace interface
 
 
   /**
    * \internal
    * \brief Matrix traits for Eigen::TriangularView.
    */
-  template<typename M, unsigned int UpLo>
-  struct MatrixTraits<Eigen::TriangularView<M, UpLo>> : MatrixTraits<M>
+  template<typename M, unsigned int Mode>
+  struct MatrixTraits<Eigen::TriangularView<M, Mode>> : MatrixTraits<M>
   {
-    using MatrixTraits<M>::rows;
+  private:
 
-    using MatrixTraits<M>::columns;
+    using Scalar = typename Eigen::internal::traits<Eigen::TriangularView<M, Mode>>::Scalar;
+    static constexpr auto rows = row_extent_of_v<M>;
+    static constexpr auto columns = column_extent_of_v<M>;
 
-    using Scalar = typename Eigen::internal::traits<Eigen::TriangularView<M, UpLo>>::Scalar;
+    static constexpr TriangleType triangle_type = Mode & Eigen::Upper ? TriangleType::upper : TriangleType::lower;
 
-    static constexpr TriangleType triangle_type = UpLo & Eigen::Upper ? TriangleType::upper : TriangleType::lower;
+  public:
 
     template<TriangleType storage_triangle = triangle_type, std::size_t dim = rows, typename S = Scalar>
     using SelfAdjointMatrixFrom = typename MatrixTraits<M>::template SelfAdjointMatrixFrom<storage_triangle, dim, S>;
@@ -2558,12 +3324,6 @@ namespace OpenKalman
     using TriangularMatrixFrom = typename MatrixTraits<M>::template TriangularMatrixFrom<triangle_type, dim, S>;
 
 
-    using SelfContainedFrom = std::conditional_t<
-      (lower_triangular_matrix<M> and (triangle_type == TriangleType::lower)) or
-      (upper_triangular_matrix<M> and (triangle_type == TriangleType::upper)),
-        self_contained_t<M>, TriangularMatrixFrom<>>;
-
-
 #ifdef __cpp_concepts
     template<Eigen3::native_eigen_matrix Arg>
 #else
@@ -2571,15 +3331,10 @@ namespace OpenKalman
 #endif
     auto make(Arg& arg) noexcept
     {
-      return Eigen::TriangularView<std::remove_reference_t<Arg>, UpLo>(arg);
+      return Eigen::TriangularView<std::remove_reference_t<Arg>, Mode>(arg);
     }
 
   };
-
-
-  template<typename MatrixType, unsigned int Mode>
-  struct is_self_contained<Eigen::TriangularView<MatrixType, Mode>>
-    : std::false_type {};
 
 
 #ifdef __cpp_concepts
@@ -2695,9 +3450,25 @@ namespace OpenKalman
   //  VectorBlock  //
   // ------------- //
 
-  template<typename VectorType, int Size>
-  struct is_self_contained<Eigen::VectorBlock<VectorType, Size>>
-    : std::bool_constant<detail::stores<VectorType>> {};
+  namespace interface
+  {
+    template<typename VectorType, int Size>
+    struct Dependencies<Eigen::VectorBlock<VectorType, Size>>
+    {
+      static constexpr bool has_runtime_parameters = true;
+      using type = std::tuple<typename Eigen::internal::ref_selector<VectorType>::non_const_type>;
+
+      template<std::size_t i, typename Arg>
+      static decltype(auto) get_nested_matrix(Arg&& arg)
+      {
+        static_assert(i == 0);
+        return std::forward<Arg>(arg).nestedExpression();
+      }
+
+      // Eigen::VectorBlock should always be converted to Matrix
+
+    };
+  } // namespace interface
 
 
   /// A segment taken from a constant vector is constant.
@@ -2727,9 +3498,34 @@ namespace OpenKalman
   //  VectorWiseOp  //
   // -------------- //
 
-  template<typename ExpressionType, int Direction>
-  struct is_self_contained<Eigen::VectorwiseOp<ExpressionType, Direction>>
-    : std::bool_constant<detail::stores<ExpressionType>> {};
+  namespace interface
+  {
+
+    template<typename ExpressionType, int Direction>
+    struct Dependencies<Eigen::VectorwiseOp<ExpressionType, Direction>>
+    {
+      static constexpr bool has_runtime_parameters = false;
+      using type = std::tuple<typename ExpressionType::ExpressionTypeNested>;
+
+      template<std::size_t i, typename Arg>
+      static decltype(auto) get_nested_matrix(Arg&& arg)
+      {
+        static_assert(i == 0);
+        return std::forward<Arg>(arg)._expression();
+      }
+
+      template<typename Arg>
+      static auto convert_to_self_contained(Arg&& arg)
+      {
+        using N = Eigen::VectorwiseOp<ExpressionType, Direction>;
+        if constexpr (not std::is_lvalue_reference_v<typename N::ExpressionTypeNested>)
+          return N {make_self_contained(arg._expression())};
+        else
+          return make_native_matrix(std::forward<Arg>(arg));
+      }
+    };
+
+  } // namespace interface
 
 
   /// A vectorwise operation on a constant vector is constant.

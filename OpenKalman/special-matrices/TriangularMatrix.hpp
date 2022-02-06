@@ -40,11 +40,11 @@ namespace OpenKalman::Eigen3
 
     static constexpr auto uplo = triangle_type == TriangleType::upper ? Eigen::Upper : Eigen::Lower;
 
-    static constexpr auto dimensions = MatrixTraits<NestedMatrix>::rows;
+    static constexpr auto dimensions = row_extent_of_v<NestedMatrix>;
 
   public:
 
-    using Scalar = typename MatrixTraits<NestedMatrix>::Scalar;
+    using Scalar = scalar_type_of_t<NestedMatrix>;
 
 
     /// Default constructor.
@@ -71,14 +71,14 @@ namespace OpenKalman::Eigen3
     template<typename  Arg> requires (not std::derived_from<std::decay_t<Arg>, TriangularMatrix>) and
       ((eigen_triangular_expr<Arg> and triangle_type_of_v<Arg> == triangle_type) or
        (eigen_self_adjoint_expr<Arg> and diagonal_matrix<Arg>)) and
-      (not eigen_diagonal_expr<NestedMatrix> or diagonal_matrix<nested_matrix_t<Arg>>) and
+      (not eigen_diagonal_expr<NestedMatrix> or diagonal_matrix<nested_matrix_of<Arg>>) and
       std::constructible_from<NestedMatrix, decltype(nested_matrix(std::declval<Arg&&>()))>
       //alt: requires(Arg&& arg) { NestedMatrix {nested_matrix(std::forward<Arg>(arg))}; } -- not accepted in GCC 10
 #else
     template<typename Arg, std::enable_if_t<(not std::is_base_of_v<TriangularMatrix, std::decay_t<Arg>>) and
       ((eigen_triangular_expr<Arg> and triangle_type_of<Arg>::value == triangle_type) or
        (eigen_self_adjoint_expr<Arg> and diagonal_matrix<Arg>)) and
-      (not eigen_diagonal_expr<NestedMatrix> or diagonal_matrix<nested_matrix_t<Arg>>) and
+      (not eigen_diagonal_expr<NestedMatrix> or diagonal_matrix<nested_matrix_of<Arg>>) and
       std::is_constructible_v<NestedMatrix, decltype(nested_matrix(std::declval<Arg&&>()))>, int> = 0>
 #endif
     TriangularMatrix(Arg&& arg) noexcept : Base {nested_matrix(std::forward<Arg>(arg))} {}
@@ -89,13 +89,13 @@ namespace OpenKalman::Eigen3
       template<typename Arg> requires (not std::derived_from<std::decay_t<Arg>, TriangularMatrix>) and
         ((eigen_triangular_expr<Arg> and triangle_type_of_v<Arg> == triangle_type) or
          (eigen_self_adjoint_expr<Arg> and diagonal_matrix<Arg>)) and
-        eigen_diagonal_expr<NestedMatrix> and (not diagonal_matrix<nested_matrix_t<Arg>>) and
+        eigen_diagonal_expr<NestedMatrix> and (not diagonal_matrix<nested_matrix_of<Arg>>) and
         requires(Arg&& arg) { NestedMatrix {to_diagonal(diagonal_of(nested_matrix(std::forward<Arg>(arg))))}; }
 #else
       template<typename Arg, std::enable_if_t<(not std::is_base_of_v<TriangularMatrix, std::decay_t<Arg>>) and
         ((eigen_triangular_expr<Arg> and triangle_type_of<Arg>::value == triangle_type) or
          (eigen_self_adjoint_expr<Arg> and diagonal_matrix<Arg>)) and
-        eigen_diagonal_expr<NestedMatrix> and (not diagonal_matrix<nested_matrix_t<Arg>>) and
+        eigen_diagonal_expr<NestedMatrix> and (not diagonal_matrix<nested_matrix_of<Arg>>) and
         std::is_constructible_v<NestedMatrix, decltype(to_diagonal(diagonal_of(nested_matrix(std::declval<Arg&&>()))))>,
         int> = 0>
 #endif
@@ -115,13 +115,13 @@ namespace OpenKalman::Eigen3
     /// Construct from an Eigen::TriangularView. \todo Factor in possibility of Eigen::ZeroDiag or Eigen::UnitDiag
 #if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS
     template<Eigen3::eigen_TriangularView Arg> requires (triangle_type_of_v<Arg> == triangle_type) and
-      requires(Arg&& arg) { NestedMatrix {std::forward<Arg>(arg).nestedExpression()}; }
+      requires(Arg&& arg) { NestedMatrix {nested_matrix(std::forward<Arg>(arg))}; }
 #else
     template<typename Arg, std::enable_if_t<
       Eigen3::eigen_TriangularView<Arg> and (triangle_type_of<Arg>::value == triangle_type) and
       std::is_constructible_v<NestedMatrix, decltype(std::declval<Arg&&>().nestedExpression())>, int> = 0>
 #endif
-    TriangularMatrix(Arg&& arg) : Base {std::forward<Arg>(arg).nestedExpression()} {}
+    TriangularMatrix(Arg&& arg) : Base {nested_matrix(std::forward<Arg>(arg))} {}
 
 
     /// Construct from a \ref triangular_matrix "triangular" \ref eigen_matrix.
@@ -232,14 +232,14 @@ namespace OpenKalman::Eigen3
     /// Assign from another triangular matrix (must be the same triangle)
 #ifdef __cpp_concepts
     template<eigen_triangular_expr Arg> requires (not std::derived_from<std::decay_t<Arg>, TriangularMatrix>) and
-      (MatrixTraits<Arg>::rows == dimensions) and (triangle_type_of_v<Arg> == triangle_type) and
-      modifiable<NestedMatrix, nested_matrix_t<Arg>> and
+      (row_extent_of_v<Arg> == dimensions) and (triangle_type_of_v<Arg> == triangle_type) and
+      modifiable<NestedMatrix, nested_matrix_of<Arg>> and
       (not (eigen_diagonal_expr<NestedMatrix> or triangle_type == TriangleType::diagonal) or diagonal_matrix<Arg>)
 #else
     template<typename Arg, std::enable_if_t<eigen_triangular_expr<Arg> and
       (not std::is_base_of_v<TriangularMatrix, std::decay_t<Arg>>) and
-      (MatrixTraits<Arg>::rows == dimensions) and (triangle_type_of<Arg>::value == triangle_type) and
-      modifiable<NestedMatrix, nested_matrix_t<Arg>> and
+      (row_extent_of<Arg>::value == dimensions) and (triangle_type_of<Arg>::value == triangle_type) and
+      modifiable<NestedMatrix, nested_matrix_of<Arg>> and
       (not (eigen_diagonal_expr<NestedMatrix> and triangle_type == TriangleType::diagonal) or diagonal_matrix<Arg>),
       int> = 0>
 #endif
@@ -270,11 +270,11 @@ namespace OpenKalman::Eigen3
     /// Assign from a general \ref triangular_matrix.
 #ifdef __cpp_concepts
     template<triangular_matrix Arg> requires (not eigen_triangular_expr<Arg>) and
-      (triangle_type_of_v<Arg> == triangle_type) and (MatrixTraits<Arg>::rows == dimensions) and
+      (triangle_type_of_v<Arg> == triangle_type) and (row_extent_of_v<Arg> == dimensions) and
       modifiable<NestedMatrix, Arg>
 #else
     template<typename Arg, std::enable_if_t<triangular_matrix<Arg> and (not eigen_triangular_expr<Arg>) and
-      (triangle_type_of<Arg>::value == triangle_type) and (MatrixTraits<Arg>::rows == dimensions) and
+      (triangle_type_of<Arg>::value == triangle_type) and (row_extent_of<Arg>::value == dimensions) and
       modifiable<NestedMatrix, Arg>, int> = 0>
 #endif
     auto& operator=(Arg&& arg)
@@ -310,9 +310,9 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-    template<typename Arg> requires (MatrixTraits<Arg>::rows == dimensions)
+    template<typename Arg> requires (row_extent_of_v<Arg> == dimensions)
 #else
-    template<typename Arg, std::enable_if_t<MatrixTraits<Arg>::rows == dimensions, int> = 0>
+    template<typename Arg, std::enable_if_t<row_extent_of<Arg>::value == dimensions, int> = 0>
 #endif
     auto& operator+=(const TriangularMatrix<Arg, triangle_type>& arg)
     {
@@ -322,9 +322,9 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-    template<typename Arg> requires (MatrixTraits<Arg>::rows == dimensions)
+    template<typename Arg> requires (row_extent_of_v<Arg> == dimensions)
 #else
-    template<typename Arg, std::enable_if_t<MatrixTraits<Arg>::rows == dimensions, int> = 0>
+    template<typename Arg, std::enable_if_t<row_extent_of<Arg>::value == dimensions, int> = 0>
 #endif
     auto& operator-=(const TriangularMatrix<Arg, triangle_type>& arg)
     {
@@ -358,9 +358,9 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-    template<typename Arg> requires (MatrixTraits<Arg>::rows == dimensions)
+    template<typename Arg> requires (row_extent_of_v<Arg> == dimensions)
 #else
-    template<typename Arg, std::enable_if_t<MatrixTraits<Arg>::rows == dimensions, int> = 0>
+    template<typename Arg, std::enable_if_t<row_extent_of<Arg>::value == dimensions, int> = 0>
 #endif
     auto& operator*=(const TriangularMatrix<Arg, triangle_type>& arg)
     {
@@ -412,7 +412,7 @@ namespace OpenKalman::Eigen3
 #else
   template<typename M, std::enable_if_t<Eigen3::eigen_TriangularView<M>, int> = 0>
 #endif
-  TriangularMatrix(M&&) -> TriangularMatrix<nested_matrix_t<M>, triangle_type_of_v<M>>;
+  TriangularMatrix(M&&) -> TriangularMatrix<nested_matrix_of<M>, triangle_type_of_v<M>>;
 
 
 #ifdef __cpp_concepts
@@ -420,7 +420,7 @@ namespace OpenKalman::Eigen3
 #else
   template<typename M, std::enable_if_t<eigen_self_adjoint_expr<M> and diagonal_matrix<M>, int> = 0>
 #endif
-  TriangularMatrix(M&&) -> TriangularMatrix<passable_t<nested_matrix_t<M>>, TriangleType::diagonal>;
+  TriangularMatrix(M&&) -> TriangularMatrix<passable_t<nested_matrix_of<M>>, TriangleType::diagonal>;
 
 
   /// If the arguments are a sequence of scalars, deduce a square, lower triangular matrix.
@@ -478,121 +478,6 @@ namespace OpenKalman::Eigen3
   }
 
 } // namespace OpenKalman::Eigen3
-
-
-namespace OpenKalman
-{
-  // --------------------- //
-  //        Traits         //
-  // --------------------- //
-
-  namespace internal
-  {
-    template<typename NestedMatrix, TriangleType triangle_type>
-    struct nested_matrix_type<Eigen3::TriangularMatrix<NestedMatrix, triangle_type>>
-    {
-      using type = NestedMatrix;
-    };
-  }
-
-
-  template<typename NestedMatrix, TriangleType triangle_type>
-  struct MatrixTraits<Eigen3::TriangularMatrix<NestedMatrix, triangle_type>>
-  {
-    using Scalar = typename MatrixTraits<NestedMatrix>::Scalar;
-    static constexpr auto rows = dynamic_rows<NestedMatrix> ? MatrixTraits<NestedMatrix>::columns :
-          MatrixTraits<NestedMatrix>::rows;
-    static constexpr auto columns = rows;
-
-    template<typename Derived>
-    using MatrixBaseFrom = Eigen3::internal::Eigen3MatrixBase<Derived,
-      Eigen3::TriangularMatrix<NestedMatrix, triangle_type>>;
-
-    template<std::size_t r = rows, std::size_t c = rows, typename S = Scalar>
-    using NativeMatrixFrom = native_matrix_t<NestedMatrix, r, c, S>;
-
-    using SelfContainedFrom = Eigen3::TriangularMatrix<self_contained_t<NestedMatrix>, triangle_type>;
-
-    template<TriangleType t = triangle_type, std::size_t dim = rows, typename S = Scalar>
-    using SelfAdjointMatrixFrom = Eigen3::SelfAdjointMatrix<NativeMatrixFrom<dim, dim, S>, t>;
-
-    template<TriangleType t = triangle_type, std::size_t dim = rows, typename S = Scalar>
-    using TriangularMatrixFrom = Eigen3::TriangularMatrix<NativeMatrixFrom<dim, dim, S>, t>;
-
-    template<std::size_t dim = rows, typename S = Scalar>
-    using DiagonalMatrixFrom = Eigen3::DiagonalMatrix<NativeMatrixFrom<dim, 1, S>>;
-
-
-#ifdef __cpp_concepts
-    template<TriangleType t = triangle_type, typename Arg> requires
-      Eigen3::eigen_matrix<Arg> or Eigen3::eigen_diagonal_expr<Arg>
-#else
-    template<TriangleType t = triangle_type, typename Arg, std::enable_if_t<
-      Eigen3::eigen_matrix<Arg> or Eigen3::eigen_diagonal_expr<Arg>, int> = 0>
-#endif
-    static auto make(Arg&& arg) noexcept
-    {
-      return Eigen3::TriangularMatrix<Arg, t> {std::forward<Arg>(arg)};
-    }
-
-
-#ifdef __cpp_concepts
-    template<TriangleType t = triangle_type, diagonal_matrix Arg> requires Eigen3::eigen_self_adjoint_expr<Arg> or
-      (Eigen3::eigen_triangular_expr<Arg> and triangle_type_of_v<Arg> == triangle_type_of_v<TriangularMatrixFrom<t>>)
-#else
-    template<TriangleType t = triangle_type, typename Arg, std::enable_if_t<
-      diagonal_matrix<Arg> and (Eigen3::eigen_self_adjoint_expr<Arg> or
-      (Eigen3::eigen_triangular_expr<Arg> and
-        triangle_type_of<Arg>::value == triangle_type_of<TriangularMatrixFrom<t>>::value)), int> = 0>
-#endif
-    static auto make(Arg&& arg) noexcept
-    {
-      return Eigen3::TriangularMatrix<nested_matrix_t<Arg>, t> {std::forward<Arg>(arg)};
-    }
-
-
-    /// Make triangular matrix using a list of coefficients in row-major order.
-    /// Only the coefficients in the lower-left corner are significant.
-#ifdef __cpp_concepts
-
-    template<TriangleType t = triangle_type, std::convertible_to<Scalar> ... Args>
-#else
-    template<TriangleType t = triangle_type, typename ... Args,
-      std::enable_if_t<std::conjunction_v<std::is_convertible<Args, Scalar>...>, int> = 0>
-#endif
-    static auto make(const Args...args)
-    {
-      return make<t>(MatrixTraits<NestedMatrix>::make(static_cast<const Scalar>(args)...));
-    }
-
-
-#ifdef __cpp_concepts
-    template<std::convertible_to<std::size_t> ... Args>
-    requires (sizeof...(Args) == (rows == dynamic_extent ? 1 : 0) + (columns == dynamic_extent ? 1 : 0))
-#else
-    template<typename...Args, std::enable_if_t<(std::is_convertible_v<Args, std::size_t> and ...) and
-      (sizeof...(Args) == (rows == dynamic_extent ? 1 : 0) + (columns == dynamic_extent ? 1 : 0)), int> = 0>
-#endif
-    static auto zero(const Args...args)
-    {
-      return MatrixTraits<NestedMatrix>::zero(static_cast<std::size_t>(args)...);
-    }
-
-
-#ifdef __cpp_concepts
-    template<std::convertible_to<Eigen::Index> ... Args> requires (sizeof...(Args) == (rows == 0 ? 1 : 0))
-#else
-    template<typename...Args, std::enable_if_t<(std::is_convertible_v<Args, Eigen::Index> and ...) and
-      (sizeof...(Args) == (rows == 0 ? 1 : 0)), int> = 0>
-#endif
-    static auto identity(const Args...args)
-    {
-      return MatrixTraits<NestedMatrix>::identity(args...);
-    }
-
-  };
-
-} // namespace OpenKalman
 
 
 #endif //OPENKALMAN_EIGEN3_TRIANGULARMATRIX_HPP

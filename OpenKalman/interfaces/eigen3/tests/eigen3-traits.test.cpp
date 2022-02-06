@@ -416,8 +416,8 @@ TEST(eigen3, Eigen_Array)
   static_assert(native_eigen_array<Eigen::Array<double, 3, 2>>);
   static_assert(not native_eigen_matrix<Eigen::Array<double, 3, 2>>);
   static_assert(self_contained<Eigen::Array<double, 3, 2>>);
-  static_assert(MatrixTraits<Eigen::Array<double, 3, 2>>::rows == 3);
-  static_assert(MatrixTraits<Eigen::Array<double, 3, 2>>::columns == 2);
+  static_assert(row_extent_of_v<Eigen::Array<double, 3, 2>> == 3);
+  static_assert(column_extent_of_v<Eigen::Array<double, 3, 2>> == 2);
   static_assert(not square_matrix<Eigen::Array<double, 2, 1>>);
 }
 
@@ -491,7 +491,8 @@ TEST(eigen3, Eigen_CwiseBinaryOp)
 {
   static_assert(self_contained<decltype(2 * std::declval<I21>() + std::declval<I21>())>);
   static_assert(not self_contained<decltype(2 * std::declval<I21>() + M22 {1, 2, 3, 4})>);
-  static_assert(MatrixTraits<std::remove_const_t<decltype(2 * std::declval<I21>() + std::declval<I21>())>>::rows == 2);
+  static_assert(row_extent_of_v<std::remove_const_t<decltype(2 * std::declval<I21>() + std::declval<I21>())>> == 2);
+  static_assert(column_extent_of_v<std::remove_const_t<decltype(2 * std::declval<I21>() + std::declval<I21>())>> == 2);
   static_assert(self_contained<Eigen::CwiseBinaryOp<Eigen::internal::scalar_product_op<double, double>,
     const Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, M22>,
     const Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, M22>>>);
@@ -741,6 +742,8 @@ TEST(eigen3, Eigen_CwiseUnaryOp)
 
 TEST(eigen3, Eigen_CwiseUnaryView)
 {
+  static_assert(not self_contained<decltype(std::declval<CM22>().real())>);
+  static_assert(not self_contained<decltype(std::declval<CM22>().imag())>);
   static_assert(not self_contained<decltype(std::declval<C22_2>().real())>);
 
   static_assert(constant_coefficient_v<decltype(M11::Identity().real())> == 1);
@@ -826,6 +829,12 @@ TEST(eigen3, Eigen_Diagonal)
 
 TEST(eigen3, Eigen_DiagonalMatrix)
 {
+  static_assert(row_extent_of_v<DM2> == 2);
+  static_assert(row_extent_of_v<DM0> == dynamic_extent);
+
+  static_assert(column_extent_of_v<DM2> == 2);
+  static_assert(column_extent_of_v<DM0> == dynamic_extent);
+
   static_assert(self_contained<DM2>);
   static_assert(self_contained<DM0>);
 
@@ -834,10 +843,10 @@ TEST(eigen3, Eigen_DiagonalMatrix)
 
   static_assert(lower_triangular_matrix<DM0>);
 
-  static_assert(std::is_same_v<nested_matrix_t<Eigen::DiagonalMatrix<double, 2>>, M21>);
+  static_assert(std::is_same_v<nested_matrix_of<Eigen::DiagonalMatrix<double, 2>>, M21>);
 
-  static_assert(std::is_same_v<native_matrix_t<Eigen::DiagonalMatrix<double, 3>>, M33>);
-  static_assert(std::is_same_v<native_matrix_t<Eigen::DiagonalMatrix<double, Eigen::Dynamic>>, M00>);
+  static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<Eigen::DiagonalMatrix<double, 3>>, M33>);
+  static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<Eigen::DiagonalMatrix<double, Eigen::Dynamic>>, M00>);
 
   static_assert(diagonal_matrix<Eigen::DiagonalMatrix<double, 3>>);
 
@@ -847,14 +856,33 @@ TEST(eigen3, Eigen_DiagonalMatrix)
 
 TEST(eigen3, Eigen_DiagonalWrapper)
 {
-  static_assert(std::is_same_v<nested_matrix_t<Eigen::DiagonalWrapper<M21>>, M21&>);
+  static_assert(row_extent_of_v<Eigen::DiagonalWrapper<M31>> == 3);
+  static_assert(row_extent_of_v<Eigen::DiagonalWrapper<M30>> == dynamic_extent);
+  static_assert(row_extent_of_v<Eigen::DiagonalWrapper<M01>> == dynamic_extent);
+  static_assert(row_extent_of_v<Eigen::DiagonalWrapper<M00>> == dynamic_extent);
 
-  static_assert(std::is_same_v<native_matrix_t<Eigen::DiagonalWrapper<M31>>, M33>);
-  static_assert(std::is_same_v<native_matrix_t<Eigen::DiagonalWrapper<M30>>, M33>);
-  static_assert(std::is_same_v<native_matrix_t<Eigen::DiagonalWrapper<M01>>, M00>);
-  static_assert(std::is_same_v<native_matrix_t<Eigen::DiagonalWrapper<M00>>, M00>);
+  static_assert(row_extent_of_v<Eigen::DiagonalWrapper<M13>> == 3);
+  static_assert(row_extent_of_v<Eigen::DiagonalWrapper<M10>> == dynamic_extent);
+  static_assert(row_extent_of_v<Eigen::DiagonalWrapper<M03>> == dynamic_extent);
 
-  static_assert(not self_contained<Eigen::DiagonalWrapper<C21_2>>);
+  static_assert(column_extent_of_v<Eigen::DiagonalWrapper<M31>> == 3);
+  static_assert(column_extent_of_v<Eigen::DiagonalWrapper<M30>> == dynamic_extent);
+  static_assert(column_extent_of_v<Eigen::DiagonalWrapper<M01>> == dynamic_extent);
+  static_assert(column_extent_of_v<Eigen::DiagonalWrapper<M00>> == dynamic_extent);
+
+  static_assert(column_extent_of_v<Eigen::DiagonalWrapper<M13>> == 3);
+  static_assert(column_extent_of_v<Eigen::DiagonalWrapper<M10>> == dynamic_extent);
+  static_assert(column_extent_of_v<Eigen::DiagonalWrapper<M03>> == dynamic_extent);
+
+  static_assert(std::is_same_v<nested_matrix_of<Eigen::DiagonalWrapper<M21>>, const M21&>);
+
+  static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<Eigen::DiagonalWrapper<M31>>, M33>);
+  static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<Eigen::DiagonalWrapper<M22>>, M44>);
+  static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<Eigen::DiagonalWrapper<M30>>, M00>);
+  static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<Eigen::DiagonalWrapper<M01>>, M00>);
+  static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<Eigen::DiagonalWrapper<M00>>, M00>);
+
+  static_assert(not self_contained<Eigen::DiagonalWrapper<M31>>);
 
   static_assert(constant_coefficient_v<decltype(std::declval<C11_2>().asDiagonal())> == 2);
   static_assert(constant_coefficient_v<decltype(std::declval<Z21>().asDiagonal())> == 0);
@@ -878,7 +906,7 @@ TEST(eigen3, Eigen_DiagonalWrapper)
   static_assert(diagonal_matrix<decltype(std::declval<C11_2>().asDiagonal())>);
   static_assert(diagonal_matrix<decltype(std::declval<C21_2>().asDiagonal())>);
 
-  static_assert(writable<Eigen::DiagonalWrapper<M31>>);
+  static_assert(not writable<Eigen::DiagonalWrapper<M31>>);
 }
 
 
@@ -897,10 +925,10 @@ TEST(eigen3, Eigen_Matrix)
   static_assert(not dynamic_rows<eigen_matrix_t<double, 1, 0>>);
   static_assert(dynamic_columns<eigen_matrix_t<double, 1, 0>>);
 
-  static_assert(std::is_same_v<native_matrix_t<M33>, M33>);
-  static_assert(std::is_same_v<native_matrix_t<M30>, M30>);
-  static_assert(std::is_same_v<native_matrix_t<M03>, M03>);
-  static_assert(std::is_same_v<native_matrix_t<M00>, M00>);
+  static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<M33>, M33>);
+  static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<M30>, M30>);
+  static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<M03>, M03>);
+  static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<M00>, M00>);
 
   static_assert(writable<M22>);
   static_assert(writable<M20>);
@@ -909,44 +937,44 @@ TEST(eigen3, Eigen_Matrix)
   static_assert(writable<M22&>);
   static_assert(not writable<const M22>);
   static_assert(not writable<const M22&>);
-  static_assert(writable<MatrixTraits<M22>::template NativeMatrixFrom<>>);
+  static_assert(writable<equivalent_dense_writable_matrix_t<M22>>);
 
-  static_assert(element_gettable<M32, 2>);
-  static_assert(element_gettable<const M32, 2>);
-  static_assert(element_gettable<M31, 2>);
-  static_assert(element_gettable<M13, 2>);
-  static_assert(element_gettable<M30, 2>);
-  static_assert(element_gettable<M02, 2>);
-  static_assert(element_gettable<M01, 2>);
-  static_assert(element_gettable<M10, 2>);
-  static_assert(element_gettable<M00, 2>);
+  static_assert(element_gettable<M32, std::size_t, std::size_t>);
+  static_assert(element_gettable<const M32, std::size_t, std::size_t>);
+  static_assert(element_gettable<M31, std::size_t, std::size_t>);
+  static_assert(element_gettable<M13, std::size_t, std::size_t>);
+  static_assert(element_gettable<M30, std::size_t, std::size_t>);
+  static_assert(element_gettable<M02, std::size_t, std::size_t>);
+  static_assert(element_gettable<M01, std::size_t, std::size_t>);
+  static_assert(element_gettable<M10, std::size_t, std::size_t>);
+  static_assert(element_gettable<M00, std::size_t, std::size_t>);
 
-  static_assert(not element_gettable<M32, 1>);
-  static_assert(element_gettable<M31, 1>);
-  static_assert(element_gettable<M13, 1>);
-  static_assert(not element_gettable<M02, 1>);
-  static_assert(element_gettable<M01, 1>);
-  static_assert(element_gettable<M10, 1>);
-  static_assert(not element_gettable<M00, 1>);
+  static_assert(not element_gettable<M32, std::size_t>);
+  static_assert(element_gettable<M31, std::size_t>);
+  static_assert(element_gettable<M13, std::size_t>);
+  static_assert(not element_gettable<M02, std::size_t>);
+  static_assert(element_gettable<M01, std::size_t>);
+  static_assert(element_gettable<M10, std::size_t>);
+  static_assert(not element_gettable<M00, std::size_t>);
 
-  static_assert(element_settable<M32, 2>);
-  static_assert(not element_settable<const M32, 2>);
-  static_assert(element_settable<M31, 2>);
-  static_assert(element_settable<M13, 2>);
-  static_assert(element_settable<M30, 2>);
-  static_assert(element_settable<M02, 2>);
-  static_assert(element_settable<M01, 2>);
-  static_assert(element_settable<M10, 2>);
-  static_assert(element_settable<M00, 2>);
+  static_assert(element_settable<M32&, std::size_t, std::size_t>);
+  static_assert(not element_settable<const M32&, std::size_t, std::size_t>);
+  static_assert(element_settable<M31&, std::size_t, std::size_t>);
+  static_assert(element_settable<M13&, std::size_t, std::size_t>);
+  static_assert(element_settable<M30&, std::size_t, std::size_t>);
+  static_assert(element_settable<M02&, std::size_t, std::size_t>);
+  static_assert(element_settable<M01&, std::size_t, std::size_t>);
+  static_assert(element_settable<M10&, std::size_t, std::size_t>);
+  static_assert(element_settable<M00&, std::size_t, std::size_t>);
 
-  static_assert(not element_settable<M32, 1>);
-  static_assert(element_settable<M31, 1>);
-  static_assert(element_settable<M13, 1>);
-  static_assert(not element_settable<const M31, 1>);
-  static_assert(not element_settable<M02, 1>);
-  static_assert(element_settable<M01, 1>);
-  static_assert(element_settable<M10, 1>);
-  static_assert(not element_settable<M00, 1>);
+  static_assert(not element_settable<M32&, std::size_t>);
+  static_assert(element_settable<M31&, std::size_t>);
+  static_assert(element_settable<M13&, std::size_t>);
+  static_assert(not element_settable<const M31&, std::size_t>);
+  static_assert(not element_settable<M02&, std::size_t>);
+  static_assert(element_settable<M01&, std::size_t>);
+  static_assert(element_settable<M10&, std::size_t>);
+  static_assert(not element_settable<M00&, std::size_t>);
 
   M22 m22; m22 << 1, 2, 3, 4;
   M23 m23; m23 << 1, 2, 3, 4, 5, 6;
@@ -960,8 +988,8 @@ TEST(eigen3, Eigen_Matrix)
   EXPECT_TRUE(is_near(MatrixTraits<M02>::make(m32), m32));
   EXPECT_TRUE(is_near(MatrixTraits<M02>::make(m22), m22));
   EXPECT_TRUE(is_near(MatrixTraits<CM22>::make(cm22), cm22));
-  static_assert(MatrixTraits<decltype(MatrixTraits<M20>::make(m23))>::columns == 3);
-  static_assert(MatrixTraits<decltype(MatrixTraits<M03>::make(m03_2))>::rows == 0);
+  static_assert(column_extent_of_v<decltype(MatrixTraits<M20>::make(m23))> == 3);
+  static_assert(row_extent_of_v<decltype(MatrixTraits<M03>::make(m03_2))> == dynamic_extent);
 
   EXPECT_TRUE(is_near(MatrixTraits<M22>::make(1, 2, 3, 4), m22));
   EXPECT_TRUE(is_near(MatrixTraits<M20>::make(1, 2, 3, 4, 5, 6), m23));
@@ -972,9 +1000,9 @@ TEST(eigen3, Eigen_Matrix)
   EXPECT_TRUE(is_near(MatrixTraits<M02>::make(1, 2), M12 {1, 2}));
   EXPECT_TRUE(is_near(MatrixTraits<M00>::make(1, 2), M21 {1, 2}));
   EXPECT_TRUE(is_near(MatrixTraits<CM22>::make(cdouble {1,4}, cdouble {2,3}, cdouble {3,2}, cdouble {4,1}), cm22));
-  static_assert(MatrixTraits<decltype(MatrixTraits<M20>::make(1, 2))>::columns == 1);
-  static_assert(MatrixTraits<decltype(MatrixTraits<M02>::make(1, 2))>::rows == 1);
-  static_assert(MatrixTraits<decltype(MatrixTraits<M00>::make(1, 2))>::rows == 2);
+  static_assert(column_extent_of_v<decltype(MatrixTraits<M20>::make(1, 2))> == 1);
+  static_assert(row_extent_of_v<decltype(MatrixTraits<M02>::make(1, 2))> == 1);
+  static_assert(row_extent_of_v<decltype(MatrixTraits<M00>::make(1, 2))> == 2);
 
   EXPECT_TRUE(is_near(MatrixTraits<M23>::zero(), M23::Zero()));
   EXPECT_TRUE(is_near(MatrixTraits<M20>::zero(3), M23::Zero()));
@@ -1205,7 +1233,7 @@ TEST(eigen3, Eigen_Reverse)
 
 TEST(eigen3, Eigen_Select)
 {
-  auto br = make_native_matrix<eigen_matrix_t<bool, 2, 2>>(true, false, true, false);
+  auto br = make_eigen_matrix<bool, 2, 2>(true, false, true, false);
   auto bsa = eigen_matrix_t<bool, 2, 2>::Identity();
 
   static_assert(constant_coefficient_v<decltype(std::declval<B22_true>().select(std::declval<C22_2>(), std::declval<Z22>()))> == 2);
@@ -1249,15 +1277,15 @@ TEST(eigen3, Eigen_Select)
 
 TEST(eigen3, Eigen_SelfAdjointView)
 {
-  static_assert(std::is_same_v<nested_matrix_t<Eigen::SelfAdjointView<M22, Eigen::Lower>>, M22&>);
+  static_assert(std::is_same_v<nested_matrix_of<Eigen::SelfAdjointView<M22, Eigen::Lower>>, M22&>);
 
-  static_assert(std::is_same_v<native_matrix_t<Eigen::SelfAdjointView<M33, Eigen::Lower>>, M33>);
-  static_assert(std::is_same_v<native_matrix_t<Eigen::SelfAdjointView<M30, Eigen::Lower>>, M33>);
-  static_assert(std::is_same_v<native_matrix_t<Eigen::SelfAdjointView<M03, Eigen::Lower>>, M33>);
-  static_assert(std::is_same_v<native_matrix_t<Eigen::SelfAdjointView<M00, Eigen::Lower>>, M00>);
+  static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<Eigen::SelfAdjointView<M33, Eigen::Lower>>, M33>);
+  static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<Eigen::SelfAdjointView<M30, Eigen::Lower>>, M33>);
+  static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<Eigen::SelfAdjointView<M03, Eigen::Lower>>, M33>);
+  static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<Eigen::SelfAdjointView<M00, Eigen::Lower>>, M00>);
 
-  static_assert(not dynamic_shape<native_matrix_t<SelfAdjointMatrix<M02>>>);
-  static_assert(not dynamic_shape<native_matrix_t<SelfAdjointMatrix<M20>>>);
+  static_assert(not dynamic_shape<equivalent_dense_writable_matrix_t<SelfAdjointMatrix<M02>>>);
+  static_assert(not dynamic_shape<equivalent_dense_writable_matrix_t<SelfAdjointMatrix<M20>>>);
 
   static_assert(constant_coefficient_v<Eigen::SelfAdjointView<C22_2, Eigen::Upper>> == 2);
 
@@ -1317,12 +1345,12 @@ TEST(eigen3, Eigen_Transpose)
 
 TEST(eigen3, Eigen_TriangularView)
 {
-  static_assert(std::is_same_v<nested_matrix_t<Eigen::TriangularView<M22, Eigen::Upper>>, M22&>);
+  static_assert(std::is_same_v<nested_matrix_of<Eigen::TriangularView<M22, Eigen::Upper>>, M22&>);
 
-  static_assert(std::is_same_v<native_matrix_t<Eigen::TriangularView<M33, Eigen::Upper>>, M33>);
-  static_assert(std::is_same_v<native_matrix_t<Eigen::TriangularView<M30, Eigen::Upper>>, M33>);
-  static_assert(std::is_same_v<native_matrix_t<Eigen::TriangularView<M03, Eigen::Upper>>, M33>);
-  static_assert(std::is_same_v<native_matrix_t<Eigen::TriangularView<M00, Eigen::Upper>>, M00>);
+  static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<Eigen::TriangularView<M33, Eigen::Upper>>, M33>);
+  static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<Eigen::TriangularView<M30, Eigen::Upper>>, M33>);
+  static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<Eigen::TriangularView<M03, Eigen::Upper>>, M33>);
+  static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<Eigen::TriangularView<M00, Eigen::Upper>>, M00>);
 
   static_assert(constant_coefficient_v<Eigen::TriangularView<C11_2, Eigen::Lower>> == 2);
   static_assert(constant_coefficient_v<Eigen::TriangularView<Z22, Eigen::Lower>> == 0);

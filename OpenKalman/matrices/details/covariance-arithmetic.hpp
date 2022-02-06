@@ -137,8 +137,8 @@ namespace OpenKalman
     else if constexpr (cholesky_form<Arg1> and cholesky_form<Arg2> and
       self_adjoint_covariance<Arg1> and self_adjoint_covariance<Arg2>)
     {
-      using Scalar = typename MatrixTraits<Arg1>::Scalar;
-      using B = nested_matrix_t<Arg2>;
+      using Scalar = scalar_type_of_t<Arg1>;
+      using B = nested_matrix_of<Arg2>;
 
       auto a = nested_matrix(std::forward<Arg1>(arg1));
 
@@ -241,7 +241,7 @@ namespace OpenKalman
   {
     using CC = typename MatrixTraits<Cov>::RowCoefficients;
     using RC = typename MatrixTraits<M>::RowCoefficients;
-    using Mat = native_matrix_t<M, RC::dimensions, CC::dimensions>;
+    using Mat = equivalent_dense_writable_matrix_t<M, RC::dimensions, CC::dimensions>;
 
     if constexpr (zero_matrix<M> or zero_matrix<Cov>)
     {
@@ -255,7 +255,7 @@ namespace OpenKalman
     {
       return std::forward<M>(m);
     }
-    else if constexpr (identity_matrix<nested_matrix_t<M>>)
+    else if constexpr (identity_matrix<nested_matrix_of<M>>)
     {
       return make_matrix<RC, CC>(oin::to_covariance_nestable(std::forward<Cov>(cov)));
     }
@@ -285,7 +285,7 @@ namespace OpenKalman
   {
     using RC = typename MatrixTraits<Cov>::RowCoefficients;
     using CC = typename MatrixTraits<M>::ColumnCoefficients;
-    using Mat = native_matrix_t<M, RC::dimensions, CC::dimensions>;
+    using Mat = equivalent_dense_writable_matrix_t<M, RC::dimensions, CC::dimensions>;
 
     if constexpr (zero_matrix<Cov> or zero_matrix<M>)
     {
@@ -299,7 +299,7 @@ namespace OpenKalman
     {
       return std::forward<M>(m);
     }
-    else if constexpr (identity_matrix<nested_matrix_t<M>>)
+    else if constexpr (identity_matrix<nested_matrix_of<M>>)
     {
       return make_matrix<RC, CC>(oin::to_covariance_nestable(std::forward<Cov>(cov)));
     }
@@ -318,14 +318,14 @@ namespace OpenKalman
    * covariance * scalar
    */
 #ifdef __cpp_concepts
-  template<covariance M, std::convertible_to<typename MatrixTraits<M>::Scalar> S>
+  template<covariance M, std::convertible_to<scalar_type_of_t<M>> S>
 #else
   template<typename M, typename S, std::enable_if_t<
-    covariance<M> and std::is_convertible_v<S, typename MatrixTraits<M>::Scalar>, int> = 0>
+    covariance<M> and std::is_convertible_v<S, typename scalar_type_of<M>::type>, int> = 0>
 #endif
   inline auto operator*(M&& m, const S s) noexcept
   {
-    using Scalar = const typename MatrixTraits<M>::Scalar;
+    using Scalar = const scalar_type_of_t<M>;
     if constexpr (cholesky_form<M>)
     {
       if constexpr (triangular_covariance<M>)
@@ -335,7 +335,7 @@ namespace OpenKalman
       }
       else
       {
-        using B = typename MatrixTraits<nested_matrix_t<M>>::template TriangularMatrixFrom<>;
+        using B = typename MatrixTraits<nested_matrix_of<M>>::template TriangularMatrixFrom<>;
 
         if (s > Scalar(0))
         {
@@ -344,7 +344,7 @@ namespace OpenKalman
         else if (s < Scalar(0))
         {
           return MatrixTraits<M>::make(B {rank_update(
-            MatrixTraits<nested_matrix_t<M>>::zero(),
+            MatrixTraits<nested_matrix_of<M>>::zero(),
             make_native_matrix(nested_matrix(std::forward<M>(m))),
             static_cast<Scalar>(s))});
         }
@@ -378,10 +378,10 @@ namespace OpenKalman
    * scalar * covariance
    */
 #ifdef __cpp_concepts
-  template<covariance M, std::convertible_to<typename MatrixTraits<M>::Scalar> S>
+  template<covariance M, std::convertible_to<scalar_type_of_t<M>> S>
 #else
   template<typename S, typename M, std::enable_if_t<
-    std::is_convertible_v<S, typename MatrixTraits<M>::Scalar> and covariance<M>, int> = 0>
+    std::is_convertible_v<S, typename scalar_type_of<M>::type> and covariance<M>, int> = 0>
 #endif
   inline auto operator*(const S s, M&& m) noexcept
   {
@@ -393,14 +393,14 @@ namespace OpenKalman
    * covariance / scalar
    */
 #ifdef __cpp_concepts
-  template<covariance M, std::convertible_to<typename MatrixTraits<M>::Scalar> S>
+  template<covariance M, std::convertible_to<scalar_type_of_t<M>> S>
 #else
   template<typename M, typename S, std::enable_if_t<
-    covariance<M> and std::is_convertible_v<S, typename MatrixTraits<M>::Scalar>, int> = 0>
+    covariance<M> and std::is_convertible_v<S, typename scalar_type_of<M>::type>, int> = 0>
 #endif
   constexpr auto operator/(M&& m, const S s)
   {
-    using Scalar = typename MatrixTraits<M>::Scalar;
+    using Scalar = scalar_type_of_t<M>;
     if constexpr (cholesky_form<M>)
     {
       if constexpr (triangular_covariance<M>)
@@ -485,7 +485,7 @@ namespace OpenKalman
 #endif
   constexpr bool operator==(Arg1&& arg1, Arg2&& arg2)
   {
-    if constexpr (std::is_same_v<native_matrix_t<Arg1>, native_matrix_t<Arg2>> and
+    if constexpr (std::is_same_v<equivalent_dense_writable_matrix_t<Arg1>, equivalent_dense_writable_matrix_t<Arg2>> and
       equivalent_to<typename MatrixTraits<Arg1>::RowCoefficients, typename MatrixTraits<Arg2>::RowCoefficients>)
     {
       return make_native_matrix(std::forward<Arg1>(arg1)) == make_native_matrix(std::forward<Arg2>(arg2));
@@ -516,15 +516,15 @@ namespace OpenKalman
   /// Scale a covariance by a factor. Equivalent to multiplication by the square of a scalar.
   /// For a square root covariance, this is equivalent to multiplication by the scalar.
 #ifdef __cpp_concepts
-  template<covariance M, std::convertible_to<typename MatrixTraits<M>::Scalar> S>
+  template<covariance M, std::convertible_to<scalar_type_of_t<M>> S>
 #else
   template<typename M, typename S, std::enable_if_t<
-    covariance<M> and std::is_convertible_v<S, typename MatrixTraits<M>::Scalar>, int> = 0>
+    covariance<M> and std::is_convertible_v<S, typename scalar_type_of<M>::type>, int> = 0>
 #endif
   inline auto
   scale(M&& m, const S s)
   {
-    using Scalar = typename MatrixTraits<M>::Scalar;
+    using Scalar = scalar_type_of_t<M>;
     if constexpr (cholesky_form<M> or (diagonal_matrix<M> and triangular_covariance<M>))
     {
       auto ret = nested_matrix(std::forward<M>(m)) * s;
@@ -541,15 +541,15 @@ namespace OpenKalman
   /// Scale a covariance by the inverse of a scalar factor. Equivalent by division by the square of a scalar.
   /// For a square root covariance, this is equivalent to division by the scalar.
 #ifdef __cpp_concepts
-    template<covariance M, std::convertible_to<typename MatrixTraits<M>::Scalar> S>
+    template<covariance M, std::convertible_to<scalar_type_of_t<M>> S>
 #else
   template<typename M, typename S, std::enable_if_t<
-    covariance<M> and std::is_convertible_v<S, typename MatrixTraits<M>::Scalar>, int> = 0>
+    covariance<M> and std::is_convertible_v<S, typename scalar_type_of<M>::type>, int> = 0>
 #endif
   inline auto
   inverse_scale(M&& m, const S s)
   {
-    using Scalar = typename MatrixTraits<M>::Scalar;
+    using Scalar = scalar_type_of_t<M>;
     if constexpr (cholesky_form<M> or (diagonal_matrix<M> and triangular_covariance<M>))
     {
       auto ret = nested_matrix(std::forward<M>(m)) / s;
@@ -585,7 +585,7 @@ namespace OpenKalman
   scale(M&& m, A&& a)
   {
     using AC = typename MatrixTraits<A>::RowCoefficients;
-    using NestedMatrix = nested_matrix_t<M>;
+    using NestedMatrix = nested_matrix_of<M>;
 
     if constexpr (diagonal_matrix<NestedMatrix> or self_adjoint_matrix<NestedMatrix>)
     {

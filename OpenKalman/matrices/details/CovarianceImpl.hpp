@@ -34,7 +34,7 @@ namespace OpenKalman::internal
     static_assert(covariance_nestable<NestedMatrix>);
 #endif
 
-    using Scalar = typename MatrixTraits<NestedMatrix>::Scalar; ///< Scalar type for this matrix.
+    using Scalar = scalar_type_of_t<NestedMatrix>; ///< Scalar type for this matrix.
 
   private:
 
@@ -74,7 +74,7 @@ namespace OpenKalman::internal
     auto covariance_op(const F1& f1, const F2& f2) const &
     {
       using Derived2 = decltype(MatrixTraits<Derived>::make(f1(nested_matrix())));
-      using R = typename MatrixTraits<Derived2>::SelfContainedFrom;
+      using R = equivalent_self_contained_t<Derived2>;
       if (synchronization_direction() >= 0)
       {
         R r {f1(nested_matrix())};
@@ -106,7 +106,7 @@ namespace OpenKalman::internal
     auto covariance_op(const F1& f1, const F2& f2) const &&
     {
       using Derived2 = decltype(MatrixTraits<Derived>::make(f1(std::move(*this).nested_matrix())));
-      using R = typename MatrixTraits<Derived2>::SelfContainedFrom;
+      using R = equivalent_self_contained_t<Derived2>;
       if (synchronization_direction() >= 0)
       {
         R r {f1(std::move(*this).nested_matrix())};
@@ -338,9 +338,9 @@ namespace OpenKalman::internal
      */
 #ifdef __cpp_concepts
     auto operator() (std::size_t i, std::size_t j) requires
-      element_settable<NestedMatrix, 2> and element_gettable<NestedMatrix, 2>
+      element_settable<NestedMatrix, std::size_t, std::size_t> and element_gettable<NestedMatrix, std::size_t, std::size_t>
 #else
-    template<typename T = NestedMatrix, std::enable_if_t<element_settable<T, 2> and element_gettable<T, 2>, int> = 0>
+    template<typename T = NestedMatrix, std::enable_if_t<element_settable<T, std::size_t, std::size_t> and element_gettable<T, std::size_t, std::size_t>, int> = 0>
     auto operator() (std::size_t i, std::size_t j)
 #endif
     {
@@ -351,9 +351,9 @@ namespace OpenKalman::internal
     /// \overload
 #ifdef __cpp_concepts
     auto operator() (std::size_t i, std::size_t j) const
-    requires element_gettable<NestedMatrix, 2>
+    requires element_gettable<NestedMatrix, std::size_t, std::size_t>
 #else
-    template<typename T = NestedMatrix, std::enable_if_t<element_gettable<T, 2>, int> = 0>
+    template<typename T = NestedMatrix, std::enable_if_t<element_gettable<T, std::size_t, std::size_t>, int> = 0>
     auto operator() (std::size_t i, std::size_t j) const
 #endif
     {
@@ -367,9 +367,9 @@ namespace OpenKalman::internal
      * \return An ElementAccessor object.
      */
 #ifdef __cpp_concepts
-    auto operator[] (std::size_t i) requires element_settable<NestedMatrix, 1> and element_gettable<NestedMatrix, 1>
+    auto operator[] (std::size_t i) requires element_settable<NestedMatrix, std::size_t> and element_gettable<NestedMatrix, std::size_t>
 #else
-    template<typename T = NestedMatrix, std::enable_if_t<element_settable<T, 1> and element_gettable<T, 1>, int> = 0>
+    template<typename T = NestedMatrix, std::enable_if_t<element_settable<T, std::size_t> and element_gettable<T, std::size_t>, int> = 0>
     auto operator[] (std::size_t i)
 #endif
     {
@@ -380,9 +380,9 @@ namespace OpenKalman::internal
     /// \overload
 #ifdef __cpp_concepts
     auto operator[] (std::size_t i) const
-    requires element_gettable<NestedMatrix, 1>
+    requires element_gettable<NestedMatrix, std::size_t>
 #else
-    template<typename T = NestedMatrix, std::enable_if_t<element_gettable<T, 1>, int> = 0>
+    template<typename T = NestedMatrix, std::enable_if_t<element_gettable<T, std::size_t>, int> = 0>
     auto operator[] (std::size_t i) const
 #endif
     {
@@ -392,9 +392,9 @@ namespace OpenKalman::internal
 
     /// \overload
 #ifdef __cpp_concepts
-    auto operator() (std::size_t i) requires element_settable<NestedMatrix, 1> and element_gettable<NestedMatrix, 1>
+    auto operator() (std::size_t i) requires element_settable<NestedMatrix, std::size_t> and element_gettable<NestedMatrix, std::size_t>
 #else
-    template<typename T = NestedMatrix, std::enable_if_t<element_settable<T, 1> and element_gettable<T, 1>, int> = 0>
+    template<typename T = NestedMatrix, std::enable_if_t<element_settable<T, std::size_t> and element_gettable<T, std::size_t>, int> = 0>
     auto operator() (std::size_t i)
 #endif
     {
@@ -405,9 +405,9 @@ namespace OpenKalman::internal
     /// \overload
 #ifdef __cpp_concepts
     auto operator() (std::size_t i) const
-    requires element_gettable<NestedMatrix, 1>
+    requires element_gettable<NestedMatrix, std::size_t>
 #else
-    template<typename T = NestedMatrix, std::enable_if_t<element_gettable<T, 1>, int> = 0>
+    template<typename T = NestedMatrix, std::enable_if_t<element_gettable<T, std::size_t>, int> = 0>
     auto operator() (std::size_t i) const
 #endif
     {
@@ -420,9 +420,9 @@ namespace OpenKalman::internal
      */
 #ifdef __cpp_concepts
     void set_element(const Scalar s, const std::size_t i, const std::size_t j) requires
-      element_settable<NestedMatrix, 2>
+      element_settable<NestedMatrix, std::size_t, std::size_t>
 #else
-    template<typename T = NestedMatrix, std::enable_if_t<element_settable<T, 2>, int> = 0>
+    template<typename T = NestedMatrix, std::enable_if_t<element_settable<T, std::size_t, std::size_t>, int> = 0>
     void set_element(const Scalar s, const std::size_t i, const std::size_t j)
 #endif
     {
@@ -434,9 +434,9 @@ namespace OpenKalman::internal
      * \brief Set an element of the cholesky nested matrix.
      */
 #ifdef __cpp_concepts
-    void set_element(const Scalar s, const std::size_t i) requires element_settable<NestedMatrix, 1>
+    void set_element(const Scalar s, const std::size_t i) requires element_settable<NestedMatrix, std::size_t>
 #else
-    template<typename T = NestedMatrix, std::enable_if_t<element_settable<T, 1>, int> = 0>
+    template<typename T = NestedMatrix, std::enable_if_t<element_settable<T, std::size_t>, int> = 0>
     void set_element(const Scalar s, const std::size_t i)
 #endif
     {

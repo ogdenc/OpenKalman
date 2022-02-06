@@ -28,8 +28,7 @@ namespace OpenKalman
     static_assert(equivalent_to<typename MatrixTraits<V2>::ColumnCoefficients, CC1>);
     static_assert(euclidean_transformed<V1> == euclidean_transformed<V2>);
     using CommonV = std::decay_t<std::conditional_t<
-      (euclidean_mean<V1> and euclidean_mean<V2>) or (mean<V1> and mean<V2>),
-      V1, decltype(Matrix {v1})>>;
+      (euclidean_mean<V1> and euclidean_mean<V2>) or (mean<V1> and mean<V2>), V1, decltype(Matrix {v1})>>;
     auto b = nested_matrix(std::forward<V1>(v1)) + nested_matrix(std::forward<V2>(v2));
     return MatrixTraits<CommonV>::make(make_self_contained<V1, V2>(std::move(b)));
   }
@@ -66,14 +65,14 @@ namespace OpenKalman
 
   /// Multiply a typed matrix by a scalar. The result type is the same as the operand type, so angles in the result may be wrapped.
 #ifdef __cpp_concepts
-  template<typed_matrix V, std::convertible_to<const typename MatrixTraits<V>::Scalar> S>
+  template<typed_matrix V, std::convertible_to<const scalar_type_of_t<V>> S>
 #else
   template<typename V, typename S, std::enable_if_t<
-    typed_matrix<V> and std::is_convertible_v<S, const typename MatrixTraits<V>::Scalar>, int> = 0>
+    typed_matrix<V> and std::is_convertible_v<S, const typename scalar_type_of<V>::type>, int> = 0>
 #endif
   inline auto operator*(V&& v, S scale)
   {
-    using Sc = typename MatrixTraits<V>::Scalar;
+    using Sc = scalar_type_of_t<V>;
     auto b = nested_matrix(std::forward<V>(v)) * static_cast<Sc>(scale);
     return MatrixTraits<V>::make(make_self_contained<V>(std::move(b)));
   }
@@ -81,14 +80,14 @@ namespace OpenKalman
 
   /// Multiply a scalar by a typed matrix. The result type is the same as the operand type, so angles in the result may be wrapped.
 #ifdef __cpp_concepts
-  template<typed_matrix V, std::convertible_to<const typename MatrixTraits<V>::Scalar> S>
+  template<typed_matrix V, std::convertible_to<const scalar_type_of_t<V>> S>
 #else
   template<typename V, typename S, std::enable_if_t<typed_matrix<V> and
-    std::is_convertible_v<S, const typename MatrixTraits<V>::Scalar>, int> = 0>
+    std::is_convertible_v<S, const typename scalar_type_of<V>::type>, int> = 0>
 #endif
   inline auto operator*(S scale, V&& v)
   {
-    using Sc = const typename MatrixTraits<V>::Scalar;
+    using Sc = const scalar_type_of_t<V>;
     auto b = static_cast<Sc>(scale) * nested_matrix(std::forward<V>(v));
     return MatrixTraits<V>::make(make_self_contained<V>(std::move(b)));
   }
@@ -96,14 +95,14 @@ namespace OpenKalman
 
   /// Divide a typed matrix by a scalar. The result type is the same as the operand type, so angles in the result may be wrapped.
 #ifdef __cpp_concepts
-  template<typed_matrix V, std::convertible_to<const typename MatrixTraits<V>::Scalar> S>
+  template<typed_matrix V, std::convertible_to<const scalar_type_of_t<V>> S>
 #else
   template<typename V, typename S, std::enable_if_t<typed_matrix<V> and
-    std::is_convertible_v<S, const typename MatrixTraits<V>::Scalar>, int> = 0>
+    std::is_convertible_v<S, const typename scalar_type_of<V>::type>, int> = 0>
 #endif
   inline auto operator/(V&& v, S scale)
   {
-    using Sc = typename MatrixTraits<V>::Scalar;
+    using Sc = scalar_type_of_t<V>;
     auto b = nested_matrix(std::forward<V>(v)) / static_cast<Sc>(scale);
     return MatrixTraits<V>::make(make_self_contained<V>(std::move(b)));
   }
@@ -118,7 +117,7 @@ namespace OpenKalman
   inline auto operator*(V1&& v1, V2&& v2)
   {
     static_assert(equivalent_to<typename MatrixTraits<V1>::ColumnCoefficients, typename MatrixTraits<V2>::RowCoefficients>);
-    static_assert(MatrixTraits<V1>::columns == MatrixTraits<V2>::rows);
+    static_assert(column_extent_of_v<V1> == row_extent_of_v<V2>);
     using RC = typename MatrixTraits<V1>::RowCoefficients;
     using CC = typename MatrixTraits<V2>::ColumnCoefficients;
     auto b = nested_matrix(std::forward<V1>(v1)) * nested_matrix(std::forward<V2>(v2));

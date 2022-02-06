@@ -89,7 +89,7 @@ namespace OpenKalman
     template<typename G, typename Dists, typename Points, std::size_t...ints>
     static constexpr auto y_means_impl(const G& g, const Dists& dists, const Points& points, std::index_sequence<ints...>)
     {
-      constexpr auto count = MatrixTraits<decltype(std::get<0>(points))>::columns;
+      constexpr auto count = column_extent_of_v<decltype(std::get<0>(points))>;
       return apply_columnwise<count>([&](std::size_t i) {
         return g((column(std::get<ints>(points), i) + mean_of(std::get<ints>(dists)))...);
       });

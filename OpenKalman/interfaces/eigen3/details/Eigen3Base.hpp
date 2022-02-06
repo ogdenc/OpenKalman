@@ -23,7 +23,8 @@ namespace OpenKalman::Eigen3::internal
   template<typename Derived>
   struct Eigen3Base : Eigen::MatrixBase<Derived>
   {
-    using Nested = Derived; ///< \internal \note Eigen3 requires this.
+    /// \internal \note Eigen3 requires this as the type used when Derived is nested.
+    using Nested = Derived;
   };
 
 } // namespace OpenKalman::Eigen3::internal

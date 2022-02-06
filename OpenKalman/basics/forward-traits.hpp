@@ -33,13 +33,6 @@
 namespace OpenKalman
 {
 
-  /**
-   * \brief A constant indicating that the relevant dimension of a matrix is dynamic.
-   * \sa std::dynamic_extent
-   */
-  static constexpr std::size_t dynamic_extent = 0; //std::numeric_limits<std::size_t>::max();
-
-
   // --------------------- //
   //    algebraic_field    //
   // --------------------- //
@@ -74,7 +67,7 @@ namespace OpenKalman
     requires(T t1, T t2) { {t1 * t2} -> std::convertible_to<const std::decay_t<T>>; } and
     requires(T t1, T t2) { {t1 / t2} -> std::convertible_to<const std::decay_t<T>>; };
 #else
-  inline constexpr bool algebraic_field = detail::is_algebraic_field<std::decay_t<T>>::value;
+  constexpr bool algebraic_field = detail::is_algebraic_field<std::decay_t<T>>::value;
 #endif
 
 
@@ -104,7 +97,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   concept complex_number = internal::is_complex_number<std::decay_t<T>>::value;
 #else
-  inline constexpr bool complex_number = internal::is_complex_number<std::decay_t<T>>::value;
+  constexpr bool complex_number = internal::is_complex_number<std::decay_t<T>>::value;
 #endif
 
 
@@ -119,7 +112,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   concept arithmetic_or_complex = std::is_arithmetic_v<T> or complex_number<T>;
 #else
-  inline constexpr bool arithmetic_or_complex = std::is_arithmetic_v<T> or complex_number<T>;
+  constexpr bool arithmetic_or_complex = std::is_arithmetic_v<T> or complex_number<T>;
 #endif
 
 
@@ -167,12 +160,11 @@ namespace OpenKalman
    * and cannot be separated. They may be combined into composite coefficients by passing them as template
    * parameters to Coefficients.
    */
-#ifdef __cpp_concepts
   template<typename T>
+#ifdef __cpp_concepts
   concept atomic_coefficient_group = internal::is_atomic_coefficient_group<std::decay_t<T>>::value;
 #else
-  template<typename T>
-  inline constexpr bool atomic_coefficient_group = internal::is_atomic_coefficient_group<std::decay_t<T>>::value;
+  constexpr bool atomic_coefficient_group = internal::is_atomic_coefficient_group<std::decay_t<T>>::value;
 #endif
 
 
@@ -183,12 +175,11 @@ namespace OpenKalman
    * composite components.
    * \sa Coefficients.
    */
-#ifdef __cpp_concepts
   template<typename T>
+#ifdef __cpp_concepts
   concept composite_coefficients = internal::is_composite_coefficients<std::decay_t<T>>::value;
 #else
-  template<typename T>
-  inline constexpr bool composite_coefficients = internal::is_composite_coefficients<std::decay_t<T>>::value;
+  constexpr bool composite_coefficients = internal::is_composite_coefficients<std::decay_t<T>>::value;
 #endif
 
 
@@ -200,7 +191,7 @@ namespace OpenKalman
   concept fixed_coefficients = composite_coefficients<std::decay_t<T>> or atomic_coefficient_group<std::decay_t<T>>;
 #else
   template<typename T>
-  inline constexpr bool fixed_coefficients = composite_coefficients<std::decay_t<T>> or
+  constexpr bool fixed_coefficients = composite_coefficients<std::decay_t<T>> or
     atomic_coefficient_group<std::decay_t<T>>;
 #endif
 
@@ -214,7 +205,7 @@ namespace OpenKalman
   concept dynamic_coefficients = internal::is_dynamic_coefficients<std::decay_t<T>>::value;
 #else
   template<typename T>
-  inline constexpr bool dynamic_coefficients = internal::is_dynamic_coefficients<std::decay_t<T>>::value;
+  constexpr bool dynamic_coefficients = internal::is_dynamic_coefficients<std::decay_t<T>>::value;
 #endif
 
 
@@ -236,12 +227,11 @@ namespace OpenKalman
    * - Coefficients<Spherical<angle::Degrees, inclination::degrees, Distance>, Axis, Axis>
    * - DynamicCoefficients
    */
-#ifdef __cpp_concepts
   template<typename T>
+#ifdef __cpp_concepts
   concept coefficients = fixed_coefficients<T> or dynamic_coefficients<T>;
 #else
-  template<typename T>
-  inline constexpr bool coefficients = fixed_coefficients<T> or dynamic_coefficients<T>;
+  constexpr bool coefficients = fixed_coefficients<T> or dynamic_coefficients<T>;
 #endif
 
 
@@ -274,7 +264,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   concept equivalent_to = internal::is_equivalent_to<T, U>::value;
 #else
-  inline constexpr bool equivalent_to = internal::is_equivalent_to<T, U>::value;
+  constexpr bool equivalent_to = internal::is_equivalent_to<T, U>::value;
 #endif
 
 
@@ -291,7 +281,7 @@ namespace OpenKalman
     template<typename T, typename U, typename = void>
 #endif
     struct is_prefix_of : std::false_type {};
-  }
+  } // namespace internal
 
 
   /**
@@ -307,329 +297,94 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   concept prefix_of = internal::is_prefix_of<T, U>::value;
 #else
-  inline constexpr bool prefix_of = internal::is_prefix_of<T, U>::value;
+  constexpr bool prefix_of = internal::is_prefix_of<T, U>::value;
 #endif
 
 
-  // ------------------------------------ //
-  //   MatrixTraits, DistributionTraits   //
-  // ------------------------------------ //
+  // --------------- //
+  //  row_extent_of  //
+  // --------------- //
 
   /**
-   * \internal
-   * \brief A type trait class for any matrix T.
-   * \details This class includes key information about a matrix or matrix expression, such as its dimensions,
-   * coefficient types, etc.
-   * <table class = "memberdecls">
-   * <tr class="heading"><td colspan="2"><h2 class="groupheader">Static Public Attributes</h2></td></tr>
-   * <tr><td class="memItemLeft" align="right" valign="top">static constexpr std::size_t&nbsp;</td>
-   * <td id="afwtraitsrows" class="memItemRight" valign="bottom"><b>rows</b></td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td>
-   * <td class="mdescRight">The number of rows of the matrix (or 0 if dynamic).<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   * <tr><td class="memItemLeft" align="right" valign="top">static constexpr std::size_t&nbsp;</td>
-   * <td id="afwtraitscolumns" class="memItemRight" valign="bottom"><b>columns</b></td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td>
-   * <td class="mdescRight">The number of columns in the matrix (or 0 if dynamic). <br /></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   * </table>
-   *
-   * <table class = "memberdecls">
-   * <tr class="heading"><td colspan="2"><h2 class="groupheader">Public Aliases</h2></td></tr>
-   *   <tr><td class="memItemLeft" align="right" valign="top">using&nbsp;</td>
-   * <td class="memItemRight" valign="bottom"><b>Scalar</b></td></tr>
-   * <tr><td id="afwtraitsScalar" class="mdescLeft">&nbsp;</td><td class="mdescRight">Scalar type of T.<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   *   <tr><td class="memItemLeft" align="right" valign="top">using&nbsp;</td>
-   * <td class="memItemRight" valign="bottom"><b>NestedMatrix</b></td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
-   * (optional) If T has a nested matrix, this is an alias for that nested matrix.<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   *   <tr><td class="memItemLeft" align="right" valign="top">using&nbsp;</td>
-   * <td class="memItemRight" valign="bottom"><b>SelfContainedFrom</b></td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
-   * A \ref self_contained matrix equivalent to T.<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   *   <tr><td class="memItemLeft" align="right" valign="top">using&nbsp;</td>
-   * <td id="afwtraitsRC" class="memItemRight" valign="bottom"><b>RowCoefficients</b></td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
-   * The coefficient types associated with the rows of T.
-   * This is only applicable for matrices with typed coefficients.<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   *   <tr><td class="memItemLeft" align="right" valign="top">using&nbsp;</td>
-   * <td id="afwtraitsCC" class="memItemRight" valign="bottom"><b>ColumnCoefficients</b></td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
-   * The coefficient types associated with the columns of T.
-   * This is only applicable for matrices with typed coefficients.<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   *  <tr><td class="memTemplParams" colspan="2">
-   * template&lt;std::size_t rows = <a href="afwtraitsrows">rows</a>,
-   * std::size_t cols = <a href="afwtraitscolumns">columns</a>,
-   * typename S = <a href="afwtraitsScalar">Scalar</a>&gt;</td></tr>
-   * <tr><td class="memTemplItemLeft" align="right" valign="top">using&nbsp;</td>
-   * <td class="memTemplItemRight" valign="bottom"><b>NativeMatrixFrom</b></td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
-   * A writable, native matrix type equivalent in size and shape to this matrix by default.
-   * Alternatively, you can specify the <code>rows</code>, <code>columns</code>, and scalar type <code>S</code> type
-   * of the new matrix.<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   *   <tr><td class="memTemplParams" colspan="2">
-   * template&lt;\ref TriangleType storage_triangle = \ref TriangleType::lower,
-   * std::size_t size = <a href="afwtraitsrows">rows</a>,
-   * typename S = <a href="afwtraitsScalar">Scalar</a>&gt;</td></tr>
-   * <tr><td class="memTemplItemLeft" align="right" valign="top">using&nbsp;</td>
-   * <td class="memTemplItemRight" valign="bottom"><b>SelfAdjointMatrixFrom</b></td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
-   * (Available if T is a native matrix.) A writable, native self-adjoint matrix type equivalent to T.
-   * Alternatively, you can specify the <code>storage_triangle</code> (upper, lower, diagonal) where the coefficients
-   * are stored, the <code>size</code> of the matrix, and the scalar type <code>S</code> type
-   * (integral or floating-point) of the new matrix.<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   *   <tr><td class="memTemplParams" colspan="2">
-   * template&lt;\ref TriangleType triangle_type = \ref TriangleType::lower,
-   * std::size_t size = <a href="afwtraitsrows">rows</a>,
-   * typename S = <a href="afwtraitsScalar">Scalar</a>&gt;</td></tr>
-   * <tr><td class="memTemplItemLeft" align="right" valign="top">using&nbsp;</td>
-   * <td class="memTemplItemRight" valign="bottom"><b>TriangularMatrixFrom</b></td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
-   * (Available if T is a native matrix.) A writable, native triangular matrix type equivalent to T.
-   * Alternatively, you can specify the <code>triangle_type</code> (upper, lower, diagonal) of the triangular matrix,
-   * the <code>size</code> of the matrix, and the scalar type <code>S</code> type (integral or floating-point)
-   * of the new matrix.<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   *   <tr><td class="memTemplParams" colspan="2">
-   * template&lt;std::size_t size = <a href="afwtraitsrows">rows</a>,
-   * typename S = <a href="afwtraitsScalar">Scalar</a>&gt;</td></tr>
-   * <tr><td class="memTemplItemLeft" align="right" valign="top">using&nbsp;</td>
-   * <td class="memTemplItemRight" valign="bottom"><b>DiagonalMatrixFrom</b></td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
-   * (Available if T is a native matrix.) A writable, native diagonal matrix type equivalent to T.
-   * Alternatively, you can specify the <code>size</code> of the matrix and
-   * the scalar type <code>S</code> type (integral or floating-point)
-   * of the new matrix.<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   *   <tr><td class="memTemplParams" colspan="2">template&lt;typename T&gt;</td></tr>
-   * <tr><td class="memTemplItemLeft" align="right" valign="top">using&nbsp;</td>
-   * <td class="memTemplItemRight" valign="bottom"><b>MatrixBaseFrom</b></td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
-   * A native base type for any class Derived for which T is a nested matrix class.
-   * This is the mechanism by which new matrix types can inherit from a base class of the matrix library.<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   * </table>
-   *
-   * <table class = "memberdecls">
-   * <tr class="heading"><td colspan="2"><h2 class="groupheader">Static Public Member Functions</h2></td></tr>
-   *   <tr><td class="memItemLeft" align="right" valign="top">static auto&nbsp;</td>
-   * <td class="memItemRight" valign="bottom"><b>zero</b> ()</td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
-   * Make a matrix of type T with only zero coefficients.<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   *   <tr><td class="memItemLeft" align="right" valign="top">static auto&nbsp;</td>
-   * <td class="memItemRight" valign="bottom"><b>identity</b> ()</td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
-   * Make an identity matrix based on T. The resulting type will be a
-   * square matrix of size <a href="afwtraitsrows">rows</a>.<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   *   <tr><td class="memTemplParams" colspan="2">template&lt;typename Arg&gt;</td></tr>
-   * <tr><td class="memTemplItemLeft" align="right" valign="top">static auto&nbsp;</td>
-   * <td class="memTemplItemRight" valign="bottom"><b>make</b> (Arg&& arg) noexcept</td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
-   * Make a matrix of type T from a native matrix of type Arg.
-   * It might have a different size and shape.<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   *   <tr><td class="memTemplParams" colspan="2">
-   * template&lt;\ref OpenKalman::coefficients "coefficients" RC = <a href="afwtraitsRC">RowCoefficients</a>,
-   * \ref OpenKalman::coefficients "coefficients" CC = <a href="afwtraitsCC">ColumnCoefficients</a>,
-   * \ref typed_matrix_nestable Arg&gt;</td></tr>
-   * <tr><td class="memTemplItemLeft" align="right" valign="top">static auto&nbsp;</td>
-   * <td class="memTemplItemRight" valign="bottom"><b>make</b> (Arg&& arg) noexcept</td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
-   * (Available if T is a \ref typed_matrix.) Make a self-contained typed matrix based on T.<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   *   <tr><td class="memTemplParams" colspan="2">
-   * template&lt;\ref OpenKalman::coefficients "coefficients" C = <a href="afwtraitsRC">RowCoefficients</a>,
-   * \ref covariance_nestable Arg&gt;</td></tr>
-   * <tr><td class="memTemplItemLeft" align="right" valign="top">static auto&nbsp;</td>
-   * <td class="memTemplItemRight" valign="bottom"><b>make</b> (Arg&& arg) noexcept</td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
-   * (Available if T is a \ref covariance.) Make a self-contained covariance matrix based on T.<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   *   <tr><td class="memTemplParams" colspan="2">
-   * template&lt;std::convertible_to&lt;const <a href="afwtraitsScalar">Scalar</a>&gt; ... Args&gt;
-   * requires (sizeof...(Args) == <a href="afwtraitsrows">rows</a> * <a href="afwtraitscolumns">columns</a>)
-   * </td></tr>
-   * <tr><td class="memTemplItemLeft" align="right" valign="top">static auto&nbsp;</td>
-   * <td class="memTemplItemRight" valign="bottom"><b>make</b> (const Args ... args) noexcept</td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
-   * (If T is a native matrix.) Make a self-contained native matrix from a list of coefficients
-   * in row-major order.<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   * </table>
-   * \tparam T The matrix type. The type is treated as non-qualified, even if it is const or a reference.
+   * \brief The row extent of a matrix, expression, or array.
+   * \note If the row extent is dynamic, then <code>value</code> is \ref dynamic_extent.
+   * \tparam T The matrix, expression, or array.
+   * \internal \sa interface::RowExtentOf
    */
 #ifdef __cpp_concepts
-  template<typename T>
-#else
-  template<typename T, typename = void>
-#endif
-  struct MatrixTraits {};
-
-
-#ifdef __cpp_concepts
-  template<typename T> requires std::is_reference_v<T> or std::is_const_v<std::remove_reference_t<T>>
-  struct MatrixTraits<T> : MatrixTraits<std::decay_t<T>> {};
+  template<typename T> requires requires { typename interface::RowExtentOf<std::decay_t<T>>; }
 #else
   template<typename T>
-  struct MatrixTraits<T&> : MatrixTraits<T> {};
-
-  template<typename T>
-  struct MatrixTraits<T&&> : MatrixTraits<T> {};
-
-  template<typename T>
-  struct MatrixTraits<const T> : MatrixTraits<T> {};
 #endif
+  using row_extent_of = interface::RowExtentOf<std::decay_t<T>>;
 
 
   /**
-   * \internal
-   * \brief A type trait class for any distribution T.
-   * \details This class includes key information about a matrix or matrix expression, such as its dimensions,
-   * coefficient types, etc.
-   * <table class = "memberdecls">
-   * <tr class="heading"><td colspan="2"><h2 class="groupheader">Static Public Attributes</h2></td></tr>
-   *   <tr><td class="memItemLeft" align="right" valign="top">static constexpr std::size_t&nbsp;</td>
-   * <td id="afwtraitsDdimension" class="memItemRight" valign="bottom"><b>dimensions</b></td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">The number of rows of the matrix.<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   * </table>
-   *
-   * <table class = "memberdecls">
-   * <tr class="heading"><td colspan="2"><h2 class="groupheader">Public Aliases</h2></td></tr>
-   *   <tr><td class="memItemLeft" align="right" valign="top">using&nbsp;</td>
-   * <td class="memItemRight" valign="bottom"><b>Scalar</b></td></tr>
-   * <tr><td id="afwtraitsDScalar" class="mdescLeft">&nbsp;</td><td class="mdescRight">Scalar type of T.<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   *   <tr><td class="memItemLeft" align="right" valign="top">using&nbsp;</td>
-   * <td class="memItemRight" valign="bottom"><b>SelfContainedFrom</b></td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
-   * A \ref self_contained distribution equivalent to T.<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   *   <tr><td class="memItemLeft" align="right" valign="top">using&nbsp;</td>
-   * <td id="afwtraitsDRC" class="memItemRight" valign="bottom"><b>%Coefficients</b></td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
-   * The types of \ref OpenKalman::coefficients "coefficients" associated with the
-   * mean and covariance of T.<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   *   <tr><td class="memItemLeft" align="right" valign="top">using&nbsp;</td>
-   * <td class="memItemRight" valign="bottom"><b>random_number_engine</b></td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
-   * The random number engine associated with generating samples within distribution T.<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   * </table>
-   *
-   * <table class = "memberdecls">
-   * <tr class="heading"><td colspan="2"><h2 class="groupheader">Static Public Member Functions</h2></td></tr>
-   *   <tr><td class="memItemLeft" align="right" valign="top">static auto&nbsp;</td>
-   * <td class="memItemRight" valign="bottom"><b>zero</b> ()</td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
-   * Make a distribution of type T in which the mean and covariance matrix have only zero coefficients.<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   *   <tr><td class="memItemLeft" align="right" valign="top">static auto&nbsp;</td>
-   * <td class="memItemRight" valign="bottom"><b>normal</b> ()</td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
-   * Make a normal distribution based on T. It will have zero mean and an identity covariance matrix.<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   *   <tr><td class="memTemplParams" colspan="2">
-   * template&lt;\ref OpenKalman::coefficients "coefficients" C = <a href="afwtraitsDRC">Coefficients</a>,
-   * \ref mean M, \ref OpenKalman::covariance "covariance" Cov&gt;</td></tr>
-   * <tr><td class="memTemplItemLeft" align="right" valign="top">static auto&nbsp;</td>
-   * <td class="memTemplItemRight" valign="bottom"><b>make</b> (M&& mean, Cov&& covariance) noexcept</td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
-   * Make a self-contained distribution based on T.<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   *   <tr><td class="memTemplParams" colspan="2">
-   * template&lt;\ref OpenKalman::coefficients "coefficients" C = <a href="afwtraitsDRC">Coefficients</a>,
-   * \ref mean M, \ref OpenKalman::covariance "covariance" Cov&gt; requires column_vector&lt;M&gt; and
-   * (MatrixTraits&lt;Mean&gt;::rows == MatrixTraits&lt;Cov&gt;::rows)</td></tr>
-   * <tr><td class="memTemplItemLeft" align="right" valign="top">static auto&nbsp;</td>
-   * <td class="memTemplItemRight" valign="bottom"><b>make</b> (M&& mean, Cov&& covariance) noexcept</td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
-   * Make a self-contained distribution based on T.<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   * </table>
-   * \sa MatrixTraits
-   * \tparam T The distribution type. The type is treated as non-qualified, even if it is const or a reference.
+   * \brief helper template for \ref row_extent_of.
    */
 #ifdef __cpp_concepts
-  template<typename T>
+  template<typename T> requires requires { row_extent_of<T>::value; }
 #else
-  template<typename T, typename = void>
+  template<typename T>
 #endif
-  struct DistributionTraits {};
+  static constexpr auto row_extent_of_v = row_extent_of<T>::value;
 
 
+  // ------------------ //
+  //  column_extent_of  //
+  // ------------------ //
+
+  /**
+   * \brief The column extent of a matrix, expression, or array.
+   * \note If the column extent is dynamic, then <code>value</code> is \ref dynamic_extent.
+   * \tparam T The matrix, expression, or array.
+   * \internal \sa interface::ColumnExtentOf
+   */
 #ifdef __cpp_concepts
-  template<typename T> requires std::is_reference_v<T> or std::is_const_v<std::remove_reference_t<T>>
-  struct DistributionTraits<T> : DistributionTraits<std::decay_t<T>> {};
+  template<typename T> requires requires { typename interface::ColumnExtentOf<std::decay_t<T>>; }
 #else
   template<typename T>
-  struct DistributionTraits<T&> : DistributionTraits<T> {};
-
-  template<typename T>
-  struct DistributionTraits<T&&> : DistributionTraits<T> {};
-
-  template<typename T>
-  struct DistributionTraits<const T> : DistributionTraits<T> {};
 #endif
-
-
-  // ----------------- //
-  //  nested_matrix_t  //
-  // ----------------- //
-
-  namespace internal
-  {
-    /**
-     * \internal
-     * \brief Type trait identifying the nested matrix of a matrix wrapper type (if it exists).
-     * \tparam T The matrix wrapper type.
-     * \note This should only be defined for wrapper types that have a nested matrix. Otherwise, leave undefined.
-     */
-#ifdef __cpp_concepts
-    template<typename T>
-#else
-    template<typename T, typename = void>
-#endif
-    struct nested_matrix_type {};
-  }
+  using column_extent_of = interface::ColumnExtentOf<std::decay_t<T>>;
 
 
   /**
-   * \brief A wrapper type's nested matrix, if it exists.
-   * \details For example, for OpenKalman::Mean<RowCoefficients, M>, the nested matrix type is M.
-   * \tparam T A wrapper type that has a nested matrix.
-   * \internal \sa internal::nested_matrix_type
+   * \brief helper template for \ref column_extent_of.
    */
 #ifdef __cpp_concepts
-  template<typename T> requires requires { typename internal::nested_matrix_type<std::decay_t<T>>::type; }
+  template<typename T> requires requires { column_extent_of<T>::value; }
 #else
   template<typename T>
 #endif
-  using nested_matrix_t = typename internal::nested_matrix_type<std::decay_t<T>>::type;
+  static constexpr auto column_extent_of_v = column_extent_of<T>::value;
 
 
-  // -------------- //
-  //  TriangleType  //
-  // -------------- //
+  // ---------------- //
+  //  scalar_type_of  //
+  // ---------------- //
 
   /**
-   * \brief The type of a triangular matrix, either lower, upper, or diagonal.
+   * \brief Type scalar type (e.g., std::float, std::double, std::complex<double>) of a matrix, expression, or array.
+   * \tparam T A matrix, expression, or array.
+   * \internal \sa interface::ScalarTypeOf
    */
-  enum struct TriangleType {
-    lower, ///< The lower-left triangle.
-    upper, ///< The upper-right triangle.
-    diagonal ///< The diagonal elements of the matrix.
-  };
+#ifdef __cpp_concepts
+  template<typename T> requires requires { typename interface::ScalarTypeOf<std::decay_t<T>>; }
+#else
+  template<typename T>
+#endif
+  using scalar_type_of = typename interface::ScalarTypeOf<std::decay_t<T>>;
+
+
+  /**
+   * \brief helper template for \ref scalar_type_of.
+   */
+#ifdef __cpp_concepts
+  template<typename T> requires requires { typename scalar_type_of<T>::type; }
+#else
+  template<typename T>
+#endif
+  using scalar_type_of_t = typename scalar_type_of<T>::type;
 
 
   // -------------- //
@@ -643,7 +398,7 @@ namespace OpenKalman
     struct has_dynamic_rows : std::false_type {};
 
     template<typename T>
-    struct has_dynamic_rows<T, std::enable_if_t<MatrixTraits<T>::rows == dynamic_extent>> : std::true_type {};
+    struct has_dynamic_rows<T, std::enable_if_t<row_extent_of<T>::value == dynamic_extent>> : std::true_type {};
   }
 #endif
 
@@ -654,7 +409,7 @@ namespace OpenKalman
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept dynamic_rows = (MatrixTraits<T>::rows == dynamic_extent);
+  concept dynamic_rows = (row_extent_of_v<T> == dynamic_extent);
 #else
   constexpr bool dynamic_rows = detail::has_dynamic_rows<T>::value;
 #endif
@@ -671,7 +426,7 @@ namespace OpenKalman
     struct has_dynamic_columns : std::false_type {};
 
     template<typename T>
-    struct has_dynamic_columns<T, std::enable_if_t<MatrixTraits<T>::columns == dynamic_extent>> : std::true_type {};
+    struct has_dynamic_columns<T, std::enable_if_t<column_extent_of<T>::value == dynamic_extent>> : std::true_type {};
   }
 #endif
 
@@ -682,7 +437,7 @@ namespace OpenKalman
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept dynamic_columns = (MatrixTraits<T>::columns == dynamic_extent);
+  concept dynamic_columns = (column_extent_of_v<T> == dynamic_extent);
 #else
   constexpr bool dynamic_columns = detail::has_dynamic_columns<T>::value;
 #endif
@@ -704,39 +459,98 @@ namespace OpenKalman
 #endif
 
 
+  // ------------------------------------- //
+  //  has_nested_matrix, nested_matrix_of  //
+  // ------------------------------------- //
+
+#ifndef __cpp_concepts
+  namespace detail
+  {
+    template<typename T, typename = void>
+    struct has_nested_matrix_impl : std::false_type {};
+
+    template<typename T>
+    struct has_nested_matrix_impl<T, std::enable_if_t<
+      std::tuple_size_v<typename interface::Dependencies<T>::type> > 0>> = std::true_type {};
+  }
+#endif
+
+  /**
+   * \brief A matrix that has a nested matrix, if it is a wrapper type.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept has_nested_matrix = (std::tuple_size_v<typename interface::Dependencies<std::decay_t<T>>::type> > 0);
+#else
+  constexpr bool has_nested_matrix = detail::has_nested_matrix_impl<std::decay_t<T>>::value;
+#endif
+
+
+  /**
+   * \brief A wrapper type's nested matrix, if it exists.
+   * \details For example, for OpenKalman::Mean<RowCoefficients, M>, the nested matrix type is M.
+   * \tparam T A wrapper type that has a nested matrix.
+   * \tparam i Index of the dependency (0 by default)
+   * \internal
+   *   \note If interface::Dependencies::type is not defined or is not a tuple, there will be a compile-time error.
+   *   \sa interface::Dependencies
+   */
+#ifdef __cpp_concepts
+  template<has_nested_matrix T, std::size_t i = 0>
+#else
+  template<typename T, std::size_t i = 0>
+#endif
+  using nested_matrix_of = std::tuple_element_t<i, typename interface::Dependencies<std::decay_t<T>>::type>;
+
+
   // ---------------- //
   //  self_contained  //
   // ---------------- //
 
-  namespace internal
+  namespace detail
   {
-    /**
-     * \internal
-     * \brief Type trait testing whether T is self-contained (i.e., can be the return value of a function).
-     */
 #ifdef __cpp_concepts
     template<typename T>
 #else
     template<typename T, typename = void>
 #endif
-    struct is_self_contained : std::false_type {};
-  }
+    struct self_contained_impl : std::false_type {};
+
+
+    template<typename Tup, std::size_t...I>
+    constexpr bool no_lvalue_ref_dependencies(std::index_sequence<I...>)
+    {
+      return (self_contained_impl<std::tuple_element_t<I, Tup>>::value and ...);
+    }
+
+
+#ifdef __cpp_concepts
+    template<typename T> requires (not std::is_lvalue_reference_v<T>) and
+      (detail::no_lvalue_ref_dependencies<typename interface::Dependencies<std::decay_t<T>>::type>(
+        std::make_index_sequence<std::tuple_size_v<typename interface::Dependencies<std::decay_t<T>>::type>> {}))
+    struct self_contained_impl<T> : std::true_type {};
+#else
+    template<typename T>
+    struct self_contained_impl<T, std::void_t<std::tuple_size_v<typename interface::Dependencies<std::decay_t<T>>::type> >= 0>>
+      : std::bool_constant<(not std::is_lvalue_reference_v<T>) and
+          no_lvalue_ref_dependencies<typename interface::Dependencies<std::decay_t<T>>::type>(
+          std::make_index_sequence<std::tuple_size_v<typename interface::Dependencies<std::decay_t<T>>::type>> {})> {};
+#endif
+  } // namespace detail
 
 
   /**
    * \brief Specifies that a type is a self-contained matrix or expression.
    * \details A value is self-contained if it can be created in a function and returned as the result.
-   * An OpenKalman matrix type is self-contained if it is not an lvalue reference and its wrapped native matrix
-   * is self-contained.
-   * The matrix library interface will specify which native matrices and expressions are self-contained.
+   * \sa make_self_contained, equivalent_self_contained_t
+   * \internal \sa Dependencies
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept self_contained =
+  concept self_contained = detail::self_contained_impl<T>::value;
 #else
-  constexpr bool self_contained =
+  constexpr bool self_contained = detail::self_contained_impl<T>::value;
 #endif
-    internal::is_self_contained<std::decay_t<T>>::value and (not std::is_lvalue_reference_v<T>);
 
 
   namespace internal
@@ -807,7 +621,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   concept constant_matrix = requires { constant_coefficient<std::decay_t<T>>::value; };
 #else
-  inline constexpr bool constant_matrix = detail::constant_coefficient_is_defined<std::decay_t<T>>::value;
+  constexpr bool constant_matrix = detail::constant_coefficient_is_defined<std::decay_t<T>>::value;
 #endif
 
 
@@ -816,7 +630,7 @@ namespace OpenKalman
 #else
   template<typename T>
 #endif
-  inline constexpr auto constant_coefficient_v = constant_coefficient<std::decay_t<T>>::value;
+  constexpr auto constant_coefficient_v = constant_coefficient<std::decay_t<T>>::value;
 
 
 #ifdef __cpp_concepts
@@ -878,7 +692,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   concept constant_diagonal_matrix = requires { constant_diagonal_coefficient<std::decay_t<T>>::value; };
 #else
-  inline constexpr bool constant_diagonal_matrix = detail::is_constant_diagonal_matrix<std::decay_t<T>>::value;
+  constexpr bool constant_diagonal_matrix = detail::is_constant_diagonal_matrix<std::decay_t<T>>::value;
 #endif
 
 
@@ -888,7 +702,7 @@ namespace OpenKalman
 #else
   template<typename T>
 #endif
-  inline constexpr auto constant_diagonal_coefficient_v = constant_diagonal_coefficient<std::decay_t<T>>::value;
+  constexpr auto constant_diagonal_coefficient_v = constant_diagonal_coefficient<std::decay_t<T>>::value;
 
 
   /// Helper template for constant_diagonal_coefficient.
@@ -929,7 +743,7 @@ namespace OpenKalman
   concept zero_matrix = (constant_coefficient_v<std::decay_t<T>> == 0) or
     (constant_diagonal_coefficient_v<std::decay_t<T>> == 0);
 #else
-  inline constexpr bool zero_matrix = detail::is_zero_matrix<std::decay_t<T>>::value;
+  constexpr bool zero_matrix = detail::is_zero_matrix<std::decay_t<T>>::value;
 #endif
 
 
@@ -952,7 +766,7 @@ namespace OpenKalman
 
     template<typename T>
     struct is_1by1_identity_matrix<T, std::enable_if_t<
-      (constant_coefficient<T>::value == 1 and MatrixTraits<T>::rows == 1 and MatrixTraits<T>::columns == 1)>>
+      (constant_coefficient<T>::value == 1 and row_extent_of<T>::value == 1 and column_extent_of<T>::value == 1)>>
       : std::true_type {};
   }
 #endif
@@ -963,9 +777,9 @@ namespace OpenKalman
   template<typename T>
 #ifdef __cpp_concepts
   concept identity_matrix = (constant_diagonal_coefficient_v<T> == 1) or
-    (constant_coefficient_v<T> == 1 and MatrixTraits<T>::rows == 1 and MatrixTraits<T>::columns == 1);
+    (constant_coefficient_v<T> == 1 and row_extent_of_v<T> == 1 and column_extent_of_v<T> == 1);
 #else
-  inline constexpr bool identity_matrix = detail::is_identity_matrix<std::decay_t<T>>::value or
+  constexpr bool identity_matrix = detail::is_identity_matrix<std::decay_t<T>>::value or
     detail::is_1by1_identity_matrix<std::decay_t<T>>::value;
 #endif
 
@@ -998,12 +812,12 @@ namespace OpenKalman
 
     template<typename T>
     struct is_inferred_diagonal_matrix<T, std::enable_if_t<
-      not dynamic_shape<T> and MatrixTraits<T>::rows == 1 and MatrixTraits<T>::columns == 1>>
+      not dynamic_shape<T> and row_extent_of<T>::value == 1 and column_extent_of<T>::value == 1>>
       : std::true_type {};
 
     template<typename T>
     struct is_inferred_diagonal_matrix<T, std::enable_if_t<not dynamic_shape<T> and
-      MatrixTraits<T>::rows == MatrixTraits<T>::columns and MatrixTraits<T>::rows != 1 and
+      row_extent_of<T>::value == column_extent_of<T>::value and row_extent_of<T>::value != 1 and
       constant_coefficient<T>::value == 0>>
       : std::true_type {};
   }
@@ -1016,10 +830,10 @@ namespace OpenKalman
   template<typename T>
 #ifdef __cpp_concepts
   concept diagonal_matrix = internal::is_diagonal_matrix<std::decay_t<T>>::value or
-    (not dynamic_shape<T> and MatrixTraits<T>::rows == MatrixTraits<T>::columns and
-    (MatrixTraits<T>::rows == 1 or constant_coefficient_v<T> == 0)) or constant_diagonal_matrix<T>;
+    (not dynamic_shape<T> and row_extent_of_v<T> == column_extent_of_v<T> and
+    (row_extent_of_v<T> == 1 or constant_coefficient_v<T> == 0)) or constant_diagonal_matrix<T>;
 #else
-  inline constexpr bool diagonal_matrix = internal::is_diagonal_matrix<std::decay_t<T>>::value or
+  constexpr bool diagonal_matrix = internal::is_diagonal_matrix<std::decay_t<T>>::value or
     detail::is_inferred_diagonal_matrix<std::decay_t<T>>::value or constant_diagonal_matrix<T>;
 #endif
 
@@ -1035,9 +849,9 @@ namespace OpenKalman
     struct is_inferred_self_adjoint_matrix : std::false_type {};
 
     template<typename T>
-    struct is_inferred_self_adjoint_matrix<T, std::enable_if_t<not complex_number<typename MatrixTraits<T>::Scalar> and
+    struct is_inferred_self_adjoint_matrix<T, std::enable_if_t<not complex_number<typename scalar_type_of<T>::type> and
       (diagonal_matrix<T> or
-        (constant_matrix<T> and not dynamic_shape<T> and MatrixTraits<T>::rows == MatrixTraits<T>::columns))>>
+        (constant_matrix<T> and not dynamic_shape<T> and row_extent_of<T>::value == column_extent_of<T>::value))>>
       : std::true_type {};
   };
 #endif
@@ -1065,10 +879,10 @@ namespace OpenKalman
   template<typename T>
 #ifdef __cpp_concepts
   concept lower_self_adjoint_matrix = internal::is_lower_self_adjoint_matrix<std::decay_t<T>>::value or
-    (not complex_number<typename MatrixTraits<T>::Scalar> and (diagonal_matrix<T> or
-      (constant_matrix<T> and not dynamic_shape<T> and MatrixTraits<T>::rows == MatrixTraits<T>::columns)));
+    (not complex_number<scalar_type_of_t<T>> and (diagonal_matrix<T> or
+      (constant_matrix<T> and not dynamic_shape<T> and row_extent_of_v<T> == column_extent_of_v<T>)));
 #else
-  inline constexpr bool lower_self_adjoint_matrix = internal::is_lower_self_adjoint_matrix<std::decay_t<T>>::value or
+  constexpr bool lower_self_adjoint_matrix = internal::is_lower_self_adjoint_matrix<std::decay_t<T>>::value or
     detail::is_inferred_self_adjoint_matrix<T>::value;
 #endif
 
@@ -1099,10 +913,10 @@ namespace OpenKalman
   template<typename T>
 #ifdef __cpp_concepts
   concept upper_self_adjoint_matrix = internal::is_upper_self_adjoint_matrix<std::decay_t<T>>::value or
-    (not complex_number<typename MatrixTraits<T>::Scalar> and (diagonal_matrix<T> or
-      (constant_matrix<T> and not dynamic_shape<T> and MatrixTraits<T>::rows == MatrixTraits<T>::columns)));
+    (not complex_number<scalar_type_of_t<T>> and (diagonal_matrix<T> or
+      (constant_matrix<T> and not dynamic_shape<T> and row_extent_of_v<T> == column_extent_of_v<T>)));
 #else
-  inline constexpr bool upper_self_adjoint_matrix = internal::is_upper_self_adjoint_matrix<std::decay_t<T>>::value or
+  constexpr bool upper_self_adjoint_matrix = internal::is_upper_self_adjoint_matrix<std::decay_t<T>>::value or
     detail::is_inferred_self_adjoint_matrix<T>::value;
 #endif
 
@@ -1118,7 +932,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   concept self_adjoint_matrix = lower_self_adjoint_matrix<T> or upper_self_adjoint_matrix<T>;
 #else
-  inline constexpr bool self_adjoint_matrix = lower_self_adjoint_matrix<T> or upper_self_adjoint_matrix<T>;
+  constexpr bool self_adjoint_matrix = lower_self_adjoint_matrix<T> or upper_self_adjoint_matrix<T>;
 #endif
 
 
@@ -1151,7 +965,7 @@ namespace OpenKalman
 #else
   template<typename T>
 #endif
-  inline constexpr auto self_adjoint_triangle_type_of_v = self_adjoint_triangle_type_of<T>::value;
+  constexpr auto self_adjoint_triangle_type_of_v = self_adjoint_triangle_type_of<T>::value;
 
 
   // ------------------------- //
@@ -1180,7 +994,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   concept lower_triangular_matrix =
 #else
-  inline constexpr bool lower_triangular_matrix =
+  constexpr bool lower_triangular_matrix =
 #endif
     internal::is_lower_triangular_matrix<std::decay_t<T>>::value or diagonal_matrix<T>;
 
@@ -1211,7 +1025,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   concept upper_triangular_matrix =
 #else
-  inline constexpr bool upper_triangular_matrix =
+  constexpr bool upper_triangular_matrix =
 #endif
     internal::is_upper_triangular_matrix<std::decay_t<T>>::value or diagonal_matrix<T>;
 
@@ -1227,7 +1041,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   concept triangular_matrix = lower_triangular_matrix<T> or upper_triangular_matrix<T>;
 #else
-  inline constexpr bool triangular_matrix = lower_triangular_matrix<T> or upper_triangular_matrix<T>;
+  constexpr bool triangular_matrix = lower_triangular_matrix<T> or upper_triangular_matrix<T>;
 #endif
 
 
@@ -1260,7 +1074,7 @@ namespace OpenKalman
 #else
   template<typename T>
 #endif
-  inline constexpr auto triangle_type_of_v = triangle_type_of<T>::value;
+  constexpr auto triangle_type_of_v = triangle_type_of<T>::value;
 
 
   // --------------- //
@@ -1275,7 +1089,7 @@ namespace OpenKalman
 
     template<typename T>
     struct has_square_dimensions<T, std::enable_if_t<
-      not dynamic_shape<T> and MatrixTraits<T>::rows == MatrixTraits<T>::columns>>
+      not dynamic_shape<T> and row_extent_of<T>::value == column_extent_of<T>::value>>
       : std::true_type {};
 
 
@@ -1297,12 +1111,12 @@ namespace OpenKalman
   template<typename T>
 #ifdef __cpp_concepts
   concept square_matrix =
-    (not dynamic_shape<T> and (MatrixTraits<T>::rows == MatrixTraits<T>::columns) and
+    (not dynamic_shape<T> and (row_extent_of_v<T> == column_extent_of_v<T>) and
       (not requires { typename MatrixTraits<T>::RowCoefficients; typename MatrixTraits<T>::ColumnCoefficients; } or
         equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>)) or
     (dynamic_shape<T> and (self_adjoint_matrix<T> or triangular_matrix<T>));
 #else
-  inline constexpr bool square_matrix =
+  constexpr bool square_matrix =
     (detail::has_square_dimensions<std::decay_t<T>>::value and detail::has_equivalent_coefficients<T>::value) or
     (dynamic_shape<T> and (self_adjoint_matrix<T> or triangular_matrix<T>));
 #endif
@@ -1320,7 +1134,7 @@ namespace OpenKalman
 
     template<typename T>
     struct is_one_by_one_matrix<T, std::enable_if_t<
-      (MatrixTraits<T>::rows == 1 or MatrixTraits<T>::columns == 1) and square_matrix<T>>> : std::true_type {};
+      (row_extent_of<T>::value == 1 or column_extent_of<T>::value == 1) and square_matrix<T>>> : std::true_type {};
   }
 #endif
 
@@ -1330,9 +1144,9 @@ namespace OpenKalman
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept one_by_one_matrix = (MatrixTraits<T>::rows == 1 or MatrixTraits<T>::columns == 1) and square_matrix<T>;
+  concept one_by_one_matrix = (row_extent_of_v<T> == 1 or column_extent_of_v<T> == 1) and square_matrix<T>;
 #else
-  inline constexpr bool one_by_one_matrix = detail::is_one_by_one_matrix<T>::value;
+  constexpr bool one_by_one_matrix = detail::is_one_by_one_matrix<T>::value;
 #endif
 
 
@@ -1354,7 +1168,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   concept mean = internal::is_mean<std::decay_t<T>>::value;
 #else
-  inline constexpr bool mean = internal::is_mean<std::decay_t<T>>::value;
+  constexpr bool mean = internal::is_mean<std::decay_t<T>>::value;
 #endif
 
 
@@ -1380,7 +1194,7 @@ namespace OpenKalman
   concept wrapped_mean = mean<T> and (not MatrixTraits<T>::RowCoefficients::axes_only);
 #else
   template<typename T>
-  inline constexpr bool wrapped_mean = detail::is_wrapped_mean<T>::value;
+  constexpr bool wrapped_mean = detail::is_wrapped_mean<T>::value;
 #endif
 
 
@@ -1402,7 +1216,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   concept euclidean_mean = internal::is_euclidean_mean<std::decay_t<T>>::value;
 #else
-  inline constexpr bool euclidean_mean = internal::is_euclidean_mean<std::decay_t<T>>::value;
+  constexpr bool euclidean_mean = internal::is_euclidean_mean<std::decay_t<T>>::value;
 #endif
 
 
@@ -1429,7 +1243,7 @@ namespace OpenKalman
   concept euclidean_transformed = euclidean_mean<T> and (not MatrixTraits<T>::RowCoefficients::axes_only);
 #else
   template<typename T>
-  inline constexpr bool euclidean_transformed = detail::is_euclidean_transformed<T>::value;
+  constexpr bool euclidean_transformed = detail::is_euclidean_transformed<T>::value;
 #endif
 
 
@@ -1451,7 +1265,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   concept typed_matrix = mean<T> or euclidean_mean<T> or internal::is_matrix<std::decay_t<T>>::value;
 #else
-  inline constexpr bool typed_matrix = mean<T> or euclidean_mean<T> or internal::is_matrix<std::decay_t<T>>::value;
+  constexpr bool typed_matrix = mean<T> or euclidean_mean<T> or internal::is_matrix<std::decay_t<T>>::value;
 #endif
 
 
@@ -1471,7 +1285,7 @@ namespace OpenKalman
 
     template<typename T>
     struct has_untyped_columns<T, std::enable_if_t<
-      (not typed_matrix<T>) and std::is_integral_v<decltype(MatrixTraits<T>::columns)>>>
+      (not typed_matrix<T>) and std::is_integral_v<decltype(column_extent_of<T>::value)>>>
       : std::true_type {};
   }
 #endif
@@ -1484,10 +1298,10 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typename T>
   concept untyped_columns = (typed_matrix<T> and MatrixTraits<T>::ColumnCoefficients::axes_only) or
-    (not typed_matrix<T> and requires {MatrixTraits<T>::columns;});
+    (not typed_matrix<T> and requires {column_extent_of_v<T>;});
 #else
   template<typename T>
-  inline constexpr bool untyped_columns = detail::has_untyped_columns<std::decay_t<T>>::value;
+  constexpr bool untyped_columns = detail::has_untyped_columns<std::decay_t<T>>::value;
 #endif
 
 
@@ -1498,7 +1312,7 @@ namespace OpenKalman
     struct is_column_vector : std::false_type {};
 
     template<typename T>
-    struct is_column_vector<T, std::enable_if_t<untyped_columns<T> and MatrixTraits<T>::columns == 1>>
+    struct is_column_vector<T, std::enable_if_t<untyped_columns<T> and column_extent_of<T>::value == 1>>
       : std::true_type {};
   }
 #endif
@@ -1510,10 +1324,10 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<typename T>
-  concept column_vector = untyped_columns<T> and (MatrixTraits<T>::columns == 1);
+  concept column_vector = untyped_columns<T> and (column_extent_of_v<T> == 1);
 #else
   template<typename T>
-  inline constexpr bool column_vector = detail::is_column_vector<std::decay_t<T>>::value;
+  constexpr bool column_vector = detail::is_column_vector<std::decay_t<T>>::value;
 #endif
 
 
@@ -1529,7 +1343,7 @@ namespace OpenKalman
 
     template<typename T>
     struct has_untyped_rows<T, std::enable_if_t<
-      (not typed_matrix<T>) and std::is_integral_v<decltype(MatrixTraits<T>::rows)>>>
+      (not typed_matrix<T>) and std::is_integral_v<decltype(row_extent_of<T>::value)>>>
       : std::true_type {};
   }
 #endif
@@ -1542,10 +1356,10 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typename T>
   concept untyped_rows = (typed_matrix<T> and MatrixTraits<T>::RowCoefficients::axes_only) or
-    (not typed_matrix<T> and requires {MatrixTraits<T>::rows;});
+    (not typed_matrix<T> and requires {row_extent_of_v<T>;});
 #else
   template<typename T>
-  inline constexpr bool untyped_rows = detail::has_untyped_rows<std::decay_t<T>>::value;
+  constexpr bool untyped_rows = detail::has_untyped_rows<std::decay_t<T>>::value;
 #endif
 
 
@@ -1556,7 +1370,7 @@ namespace OpenKalman
     struct is_row_vector : std::false_type {};
 
     template<typename T>
-    struct is_row_vector<T, std::enable_if_t<untyped_rows<T> and MatrixTraits<T>::rows == 1>> : std::true_type {};
+    struct is_row_vector<T, std::enable_if_t<untyped_rows<T> and row_extent_of<T>::value == 1>> : std::true_type {};
   }
 #endif
 
@@ -1567,10 +1381,10 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<typename T>
-  concept row_vector = untyped_rows<T> and (MatrixTraits<T>::rows == 1);
+  concept row_vector = untyped_rows<T> and (row_extent_of_v<T> == 1);
 #else
   template<typename T>
-  inline constexpr bool row_vector = detail::is_row_vector<std::decay_t<T>>::value;
+  constexpr bool row_vector = detail::is_row_vector<std::decay_t<T>>::value;
 #endif
 
 
@@ -1592,7 +1406,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   concept self_adjoint_covariance = internal::is_self_adjoint_covariance<std::decay_t<T>>::value;
 #else
-  inline constexpr bool self_adjoint_covariance = internal::is_self_adjoint_covariance<std::decay_t<T>>::value;
+  constexpr bool self_adjoint_covariance = internal::is_self_adjoint_covariance<std::decay_t<T>>::value;
 #endif
 
 
@@ -1610,7 +1424,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   concept triangular_covariance = internal::is_triangular_covariance<std::decay_t<T>>::value;
 #else
-  inline constexpr bool triangular_covariance = internal::is_triangular_covariance<std::decay_t<T>>::value;
+  constexpr bool triangular_covariance = internal::is_triangular_covariance<std::decay_t<T>>::value;
 #endif
 
 
@@ -1621,7 +1435,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   concept covariance = self_adjoint_covariance<T> or triangular_covariance<T>;
 #else
-  inline constexpr bool covariance = self_adjoint_covariance<T> or triangular_covariance<T>;
+  constexpr bool covariance = self_adjoint_covariance<T> or triangular_covariance<T>;
 #endif
 
 
@@ -1642,7 +1456,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   concept gaussian_distribution = internal::is_gaussian_distribution<std::decay_t<T>>::value;
 #else
-  inline constexpr bool gaussian_distribution = internal::is_gaussian_distribution<std::decay_t<T>>::value;
+  constexpr bool gaussian_distribution = internal::is_gaussian_distribution<std::decay_t<T>>::value;
 #endif
 
 
@@ -1653,7 +1467,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   concept distribution = gaussian_distribution<T>;
 #else
-  inline constexpr bool distribution = gaussian_distribution<T>;
+  constexpr bool distribution = gaussian_distribution<T>;
 #endif
 
 
@@ -1669,7 +1483,7 @@ namespace OpenKalman
 
     template<typename T>
     struct is_cholesky_form<T, std::enable_if_t<covariance<T>>>
-      : std::bool_constant<not self_adjoint_matrix<nested_matrix_t<T>>> {};
+      : std::bool_constant<not self_adjoint_matrix<nested_matrix_of<T>>> {};
 
     template<typename T>
     struct is_cholesky_form<T, std::enable_if_t<distribution<T>>>
@@ -1680,14 +1494,14 @@ namespace OpenKalman
 
   /**
    * \brief Specifies that a type has a nested native matrix that is a Cholesky square root.
-   * \details If this is true, then nested_matrix_t<T> is true.
+   * \details If this is true, then nested_matrix_of<T> is true.
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept cholesky_form = (not covariance<T> or not self_adjoint_matrix<nested_matrix_t<T>>) or
-    (not distribution<T> or not self_adjoint_matrix<nested_matrix_t<typename DistributionTraits<T>::Covariance>>);
+  concept cholesky_form = (not covariance<T> or not self_adjoint_matrix<nested_matrix_of<T>>) or
+    (not distribution<T> or not self_adjoint_matrix<nested_matrix_of<typename DistributionTraits<T>::Covariance>>);
 #else
-  inline constexpr bool cholesky_form = detail::is_cholesky_form<std::decay_t<T>>::value;
+  constexpr bool cholesky_form = detail::is_cholesky_form<std::decay_t<T>>::value;
 #endif
 
 
@@ -1717,7 +1531,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   concept covariance_nestable = internal::is_covariance_nestable<std::decay_t<T>>::value;
 #else
-  inline constexpr bool covariance_nestable = internal::is_covariance_nestable<std::decay_t<T>>::value;
+  constexpr bool covariance_nestable = internal::is_covariance_nestable<std::decay_t<T>>::value;
 #endif
 
 
@@ -1747,7 +1561,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   concept typed_matrix_nestable = internal::is_typed_matrix_nestable<std::decay_t<T>>::value;
 #else
-  inline constexpr bool typed_matrix_nestable = internal::is_typed_matrix_nestable<std::decay_t<T>>::value;
+  constexpr bool typed_matrix_nestable = internal::is_typed_matrix_nestable<std::decay_t<T>>::value;
 #endif
 
 
@@ -1755,31 +1569,31 @@ namespace OpenKalman
   //  element_gettable  //
   // ------------------ //
 
-  namespace internal
+#ifndef __cpp_concepts
+  namespace detail
   {
-    /**
-     * \internal
-     * \brief Type trait testing whether an object has elements that can be retrieved with N indices.
-     * \note This should be specialized for all matrix types usable with OpenKalman.
-     */
-#ifdef __cpp_concepts
-    template<typename T, std::size_t N>
-    struct is_element_gettable : std::false_type {};
-#else
-    template<typename T, std::size_t N, typename = void>
-    struct is_element_gettable : std::false_type {};
-#endif
+    template<typename T, typename = void, typename...I>
+    struct element_gettable_impl : std::false_type {};
+
+    template<typename T, typename...I>
+    struct element_gettable_impl<T, std::enable_if_t<(std::is_convertible_v<I, const std::size_t&> and ...) and
+      std::is_invocable<interface::GetElement<std::decay_t<T>, I...>::get, T&&, I...>::value and
+      (sizeof...(I) > 0) and (sizeof...(I) != 1 or column_vector<T> or row_vector<T>)>, I...>
+      : std::true_type {};
   }
+#endif
 
 
   /**
-   * \brief Specifies that a type has elements that can be retrieved with N number of indices.
+   * \brief Specifies that a type has elements that can be retrieved with incices I... (of type std::size_t).
    */
-  template<typename T, std::size_t N>
+  template<typename T, typename...I>
 #ifdef __cpp_concepts
-  concept element_gettable = internal::is_element_gettable<std::decay_t<T>, N>::value;
+  concept element_gettable = (std::convertible_to<I, const std::size_t&> and ...) and
+    requires(T&& t, I...i) { interface::GetElement<std::decay_t<T>, I...>::get(std::forward<T>(t), i...); } and
+    (sizeof...(I) > 0) and (sizeof...(I) != 1 or column_vector<T> or row_vector<T>);
 #else
-  inline constexpr bool element_gettable = internal::is_element_gettable<std::decay_t<T>, N>::value;
+  constexpr bool element_gettable = detail::element_gettable_impl<T, void, I...>::value;
 #endif
 
 
@@ -1787,33 +1601,34 @@ namespace OpenKalman
   //  element_settable  //
   // ------------------ //
 
-  namespace internal
+#ifndef __cpp_concepts
+  namespace detail
   {
-    /**
-     * \internal
-     * \brief Type trait testing whether an object has elements that can be set with N indices.
-     * \note This should be specialized for all matrix types usable with OpenKalman.
-     */
-#ifdef __cpp_concepts
-    template<typename T, std::size_t N>
-    struct is_element_settable : std::false_type {};
-#else
-    template<typename T, std::size_t N, typename = void>
-    struct is_element_settable : std::false_type {};
-#endif
+    template<typename T, typename = void, typename...I>
+    struct element_settable_impl : std::false_type {};
+
+    template<typename T, typename...I>
+    struct element_settable_impl<T, std::enable_if_t<(std::is_convertible_v<I, const std::size_t&> and ...) and
+      (not std::is_const_v<std::remove_reference_t<T>>) and (sizeof...(I) != 1 or column_vector<T> or row_vector<T>) and
+      std::is_invocable<interface::SetElement<std::decay_t<T>, const I...>::set, std::remove_reference_t<T>&,
+        const scalar_type_of_t<T>&, I...>::value>, I...>
+      : std::true_type {};
   }
+#endif
 
 
   /**
-   * \brief Specifies that a type has elements that can be set with N number of indices.
+   * \brief Specifies that a type has elements that can be set with indices I... (of type std::size_t).
    */
-  template<typename T, std::size_t N>
+  template<typename T, typename...I>
 #ifdef __cpp_concepts
-  concept element_settable = internal::is_element_settable<T, N>::value and
-    (not std::is_const_v<std::remove_reference_t<T>>);
+  concept element_settable = (std::convertible_to<I, const std::size_t&> and ...) and
+    (not std::is_const_v<std::remove_reference_t<T>>) and (sizeof...(I) != 1 or column_vector<T> or row_vector<T>) and
+    requires(std::remove_reference_t<T>& t, const scalar_type_of_t<T>& s, I...i) {
+      interface::SetElement<std::decay_t<T>, const I...>::set(t, s, i...);
+    };
 #else
-  inline constexpr bool element_settable = internal::is_element_settable<T, N>::value and
-    (not std::is_const_v<std::remove_reference_t<T>>);
+  constexpr bool element_settable = detail::element_settable_impl<T, void, I...>::value;
 #endif
 
 
@@ -1825,11 +1640,10 @@ namespace OpenKalman
   {
 #ifdef __cpp_concepts
     template<typename T>
-    struct is_writable : std::false_type {};
 #else
     template<typename T, typename = void>
-    struct is_writable : std::false_type {};
 #endif
+    struct is_writable : std::false_type {};
   }
 
   /**
@@ -1840,7 +1654,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   concept writable =
 #else
-  inline constexpr bool writable =
+  constexpr bool writable =
 #endif
     internal::is_writable<std::decay_t<T>>::value and (not std::is_const_v<std::remove_reference_t<T>>);
 
@@ -1853,21 +1667,19 @@ namespace OpenKalman
   {
 #ifdef __cpp_concepts
     template<typename T, typename U>
-    struct is_modifiable : std::true_type {};
 #else
     template<typename T, typename U, typename = void>
-    struct is_modifiable : std::true_type {};
 #endif
+    struct is_modifiable : std::true_type {};
 
 
     // Custom modifiability parameter that can be defined in the native matrix ecosystem.
 #ifdef __cpp_concepts
     template<typename T, typename U>
-    struct is_modifiable_native : std::true_type {};
 #else
     template<typename T, typename U, typename = void>
-    struct is_modifiable_native : std::true_type {};
 #endif
+    struct is_modifiable_native : std::true_type {};
 
   } // namespace internal
 
@@ -1882,12 +1694,11 @@ namespace OpenKalman
    */
   template<typename T, typename U>
 #ifdef __cpp_concepts
-  concept modifiable = internal::is_modifiable<T, U>::value and internal::is_modifiable_native<T, U>::value;
+  concept modifiable =
 #else
-  inline constexpr bool modifiable =
-    internal::is_modifiable<T, U>::value and internal::is_modifiable_native<T, U>::value;
+  constexpr bool modifiable =
 #endif
-
+    internal::is_modifiable<T, U>::value and internal::is_modifiable_native<T, U>::value;
 
 } // namespace OpenKalman
 

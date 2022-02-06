@@ -320,7 +320,7 @@ TEST(covariance_tests, SquareRootCovariance_class)
   EXPECT_TRUE(is_near(clt7, Mat2 {3, 0, 1, 3}));
   SqCovT2u cut7(make_native_matrix<M2>(2, 1, 7, 2));
   EXPECT_TRUE(is_near(cut7, Mat2 {2, 1, 0, 2}));
-  SqCovD2 cd7(make_native_matrix<double, 2, 1>(1, 2));
+  SqCovD2 cd7(make_eigen_matrix<double, 2, 1>(1, 2));
   EXPECT_TRUE(is_near(cd7, Mat2 {1, 0, 0, 2}));
 
   // Construct from a list of coefficients

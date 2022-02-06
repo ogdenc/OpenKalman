@@ -41,21 +41,23 @@ namespace OpenKalman::test
 
 #ifdef __cpp_concepts
   template<typename Arg1, typename Arg2, typename Err = double> requires
-    (dynamic_rows<Arg1> or dynamic_rows<Arg2> or MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows) and
-    (dynamic_columns<Arg1> or dynamic_columns<Arg2> or MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns)
+    (dynamic_rows<Arg1> or dynamic_rows<Arg2> or row_extent_of_v<Arg1> == row_extent_of_v<Arg2>) and
+    (dynamic_columns<Arg1> or dynamic_columns<Arg2> or column_extent_of_v<Arg1> == column_extent_of_v<Arg2>)
 #else
   template<typename Arg1, typename Arg2, typename Err = double, std::enable_if_t<
-    (dynamic_rows<Arg1> or dynamic_rows<Arg2> or MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows) and
-    (dynamic_columns<Arg1> or dynamic_columns<Arg2> or MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns), int> = 0>
+    (dynamic_rows<Arg1> or dynamic_rows<Arg2> or row_extent_of<Arg1>::value == row_extent_of<Arg2>::value) and
+    (dynamic_columns<Arg1> or dynamic_columns<Arg2> or column_extent_of<Arg1>::value == column_extent_of<Arg2>::value),
+    int> = 0>
 #endif
   inline ::testing::AssertionResult is_near(const Arg1& arg1, const Arg2& arg2, const Err& err = 1e-6)
   {
     if constexpr (dynamic_shape<Arg1> or dynamic_shape<Arg2>)
       if (row_count(arg1) != row_count(arg2) or column_count(arg1) != column_count(arg2))
     {
-      return ::testing::AssertionFailure() << std::endl << arg1 << std::endl <<
-      "(rows " << row_count(arg1) << ", cols " << column_count(arg1) << "), is not near" << std::endl <<
-      arg2 << std::endl << "(rows " << row_count(arg2) << ", cols " << column_count(arg2) << ")" << std::endl;
+      return ::testing::AssertionFailure() << std::endl << make_native_matrix(arg1) << std::endl <<
+        "(rows " << row_count(arg1) << ", cols " << column_count(arg1) << "), is not near" << std::endl <<
+        make_native_matrix(arg2) << std::endl << "(rows " << row_count(arg2) << ", cols " << column_count(arg2) <<
+        ")" << std::endl;
     }
 
     return TestComparison<Arg1, Arg2, Err> {arg1, arg2, err};
@@ -84,17 +86,18 @@ namespace OpenKalman::test
   requires detail::is_std_array_v<Arg1> and detail::is_std_array_v<Arg2> and std::is_arithmetic_v<Err> and
     (std::tuple_size_v<Arg1> == std::tuple_size_v<Arg2>) and
     (dynamic_rows<typename Arg1::value_type> or dynamic_rows<typename Arg2::value_type> or
-      MatrixTraits<typename Arg1::value_type>::rows == MatrixTraits<typename Arg2::value_type>::rows) and
+      row_extent_of_v<typename Arg1::value_type> == row_extent_of_v<typename Arg2::value_type>) and
     (dynamic_columns<typename Arg1::value_type> or dynamic_columns<typename Arg2::value_type> or
-      MatrixTraits<typename Arg1::value_type>::columns == MatrixTraits<typename Arg2::value_type>::columns)
+      column_extent_of_v<typename Arg1::value_type> == column_extent_of_v<typename Arg2::value_type>)
 #else
   template<typename Arg1, typename Arg2, typename Err = double, std::enable_if_t<
     detail::is_std_array_v<Arg1> and detail::is_std_array_v<Arg2> and std::is_arithmetic_v<Err> and
     (std::tuple_size<Arg1>::value == std::tuple_size<Arg2>::value) and
     (dynamic_rows<typename Arg1::value_type> or dynamic_rows<typename Arg2::value_type> or
-      MatrixTraits<typename Arg1::value_type>::rows == MatrixTraits<typename Arg2::value_type>::rows) and
+      row_extent_of<typename Arg1::value_type>::value == row_extent_of<typename Arg2::value_type>::value) and
     (dynamic_columns<typename Arg1::value_type> or dynamic_columns<typename Arg2::value_type> or
-      MatrixTraits<typename Arg1::value_type>::columns == MatrixTraits<typename Arg2::value_type>::columns), int> = 0>
+      column_extent_of<typename Arg1::value_type>::value == column_extent_of<typename Arg2::value_type>::value),
+      int> = 0>
 #endif
   inline ::testing::AssertionResult is_near(const Arg1& arg1, const Arg2& arg2, const Err& err = 1e-6)
   {
@@ -197,8 +200,8 @@ namespace OpenKalman::test
     struct tuple_sizes_match<std::tuple<Arg1, Args1...>, std::tuple<Arg2, Args2...>>
     {
       static constexpr bool value =
-        (dynamic_rows<Arg1> or dynamic_rows<Arg2> or MatrixTraits<Arg1>::rows == MatrixTraits<Arg2>::rows) and
-        (dynamic_columns<Arg1> or dynamic_columns<Arg2> or MatrixTraits<Arg1>::columns == MatrixTraits<Arg2>::columns) and
+        (dynamic_rows<Arg1> or dynamic_rows<Arg2> or row_extent_of_v<Arg1> == row_extent_of_v<Arg2>) and
+        (dynamic_columns<Arg1> or dynamic_columns<Arg2> or column_extent_of_v<Arg1> == column_extent_of_v<Arg2>) and
         tuple_sizes_match<std::tuple<Args1...>, std::tuple<Args2...>>::value;
     };
 

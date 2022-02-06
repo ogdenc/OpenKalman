@@ -25,13 +25,14 @@
 #include "basics/basics.hpp"
 #include "coefficient-types/coefficient-types.hpp"
 
-//
+#include "details/matrix-traits.hpp"
+
 #include "Mean.hpp"
 #include "EuclideanMean.hpp"
 #include "Matrix.hpp"
 #include "details/typed-matrix-overloads.hpp"
 #include "details/typed-matrix-arithmetic.hpp"
-//
+
 #include "details/to_covariance_nestable.hpp"
 #include "details/CovarianceBase1.hpp"
 #include "details/CovarianceBase2.hpp"

@@ -97,8 +97,8 @@ namespace OpenKalman::internal
     template<std::size_t dim, typename Weights>
     static auto mean_weights()
     {
-      using Scalar = typename MatrixTraits<Weights>::Scalar;
-      constexpr auto count = MatrixTraits<Weights>::rows;
+      using Scalar = scalar_type_of_t<Weights>;
+      constexpr auto count = row_extent_of_v<Weights>;
       return cat_weights<dim, Weights, Scalar>(W_m0<dim>(), std::make_index_sequence<count - 1>());
     };
 
@@ -106,8 +106,8 @@ namespace OpenKalman::internal
     template<std::size_t dim, typename Weights>
     static auto covariance_weights()
     {
-      using Scalar = typename MatrixTraits<Weights>::Scalar;
-      constexpr auto count = MatrixTraits<Weights>::rows;
+      using Scalar = scalar_type_of_t<Weights>;
+      constexpr auto count = row_extent_of_v<Weights>;
       return cat_weights<dim, Weights, Scalar>(W_c0<dim>(), std::make_index_sequence<count - 1>());
     };
 
@@ -115,17 +115,17 @@ namespace OpenKalman::internal
 
 #ifdef __cpp_concepts
     template<std::size_t dim, typed_matrix YMeans> requires untyped_columns<YMeans> and
-      (MatrixTraits<YMeans>::rows == MatrixTraits<YMeans>::RowCoefficients::euclidean_dimensions)
+      (row_extent_of_v<YMeans> == MatrixTraits<YMeans>::RowCoefficients::euclidean_dimensions)
 #else
     template<std::size_t dim, typename YMeans, std::enable_if_t<typed_matrix<YMeans> and untyped_columns<YMeans> and
-      (MatrixTraits<YMeans>::rows == MatrixTraits<YMeans>::RowCoefficients::euclidean_dimensions), int> = 0>
+      (row_extent_of<YMeans>::value == MatrixTraits<YMeans>::RowCoefficients::euclidean_dimensions), int> = 0>
 #endif
     static auto
     weighted_means(YMeans&& y_means)
     {
-      static_assert(MatrixTraits<YMeans>::columns == Derived::template sigma_point_count<dim>);
-      constexpr auto count = MatrixTraits<YMeans>::columns;
-      using Weights = Matrix<Axes<count>, Axis, native_matrix_t<YMeans, count, 1>>;
+      static_assert(column_extent_of_v<YMeans> == Derived::template sigma_point_count<dim>);
+      constexpr auto count = column_extent_of_v<YMeans>;
+      using Weights = Matrix<Axes<count>, Axis, equivalent_dense_writable_matrix_t<YMeans, count, 1>>;
       return make_self_contained(std::forward<YMeans>(y_means) * mean_weights<dim, Weights>());
     }
 
@@ -142,20 +142,20 @@ namespace OpenKalman::internal
      */
 #ifdef __cpp_concepts
     template<std::size_t dim, typename InputDist, bool return_cross = false, typed_matrix X, typed_matrix Y> requires
-      (MatrixTraits<X>::columns == MatrixTraits<Y>::columns) and
+      (column_extent_of_v<X> == column_extent_of_v<Y>) and
       equivalent_to<typename MatrixTraits<X>::RowCoefficients, typename DistributionTraits<InputDist>::Coefficients>
 #else
     template<std::size_t dim, typename InputDist, bool return_cross = false, typename X, typename Y, std::enable_if_t<
-      typed_matrix<X> and typed_matrix<Y> and (MatrixTraits<X>::columns == MatrixTraits<Y>::columns) and
+      typed_matrix<X> and typed_matrix<Y> and (column_extent_of<X>::value == column_extent_of<Y>::value) and
       equivalent_to<typename MatrixTraits<X>::RowCoefficients, typename DistributionTraits<InputDist>::Coefficients>,
         int> = 0>
 #endif
     static auto
     covariance(const X& x_deviations, const Y& y_deviations)
     {
-      static_assert(MatrixTraits<X>::columns == Derived::template sigma_point_count<dim>);
-      constexpr auto count = MatrixTraits<X>::columns;
-      using Weights = Matrix<Axes<count>, Axis, native_matrix_t<X, count, 1>>;
+      static_assert(column_extent_of_v<X> == Derived::template sigma_point_count<dim>);
+      constexpr auto count = column_extent_of_v<X>;
+      using Weights = Matrix<Axes<count>, Axis, equivalent_dense_writable_matrix_t<X, count, 1>>;
       auto weights = covariance_weights<dim, Weights>();
 
       if constexpr(cholesky_form<InputDist>)
