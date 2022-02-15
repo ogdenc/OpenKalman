@@ -94,13 +94,13 @@ namespace OpenKalman::Eigen3
     template<to_euclidean_expr Arg> requires (not std::derived_from<std::decay_t<Arg>, ToEuclideanExpr>) and
       (equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>) and
       (column_extent_of_v<Arg> == columns) and
-      modifiable<NestedMatrix, nested_matrix_of<Arg>>
+      modifiable<NestedMatrix, nested_matrix_of_t<Arg>>
 #else
     template<typename Arg, std::enable_if_t<to_euclidean_expr<Arg> and
       (not std::is_base_of_v<ToEuclideanExpr, std::decay_t<Arg>>) and
       (equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>) and
       (column_extent_of<Arg>::value == columns) and
-      modifiable<NestedMatrix, nested_matrix_of<Arg>>, int> = 0>
+      modifiable<NestedMatrix, nested_matrix_of_t<Arg>>, int> = 0>
 #endif
     auto& operator=(Arg&& other) noexcept
     {

@@ -19,7 +19,6 @@
 #include <type_traits>
 #include <random>
 
-#include <iostream>
 
 namespace OpenKalman::Eigen3
 {
@@ -378,36 +377,39 @@ namespace OpenKalman::Eigen3
         return ZeroMatrix<Scalar, dim, 1> {};
       }
     }
-    else if constexpr (constant_matrix<Arg>)
+    else if constexpr (constant_matrix<Arg> or constant_diagonal_matrix<Arg>)
     {
-      constexpr auto constant = constant_coefficient_v<Arg>;
+      constexpr auto c = []{
+        if constexpr (constant_matrix<Arg>) return constant_coefficient_v<Arg>;
+        else return constant_diagonal_coefficient_v<Arg>;
+      }();
 
+#  if __cpp_nontype_template_args >= 201911L
+      using C = ConstantMatrix<Scalar, c, dim, 1>;
+#  else
+      constexpr auto c_integral = []{
+        if constexpr (std::is_integral_v<decltype(c)>) return c;
+        else return static_cast<std::intmax_t>(c);
+      }();
+
+      using C = ConstantMatrix<Scalar, c_integral, dim, 1>;
+
+      if constexpr (not are_within_tolerance(c, static_cast<Scalar>(c_integral)))
+      {
+        return eigen_matrix_t<Scalar, dim, 1>::Constant(static_cast<Eigen::Index>(row_count(arg)), 1, c);
+      }
+      else
+#  endif
       if constexpr (dim == dynamic_extent)
       {
         auto rows = row_count(arg);
         assert(rows == column_count(arg));
-        return ConstantMatrix<Scalar, constant, dynamic_extent, 1> {row_count(arg)};
+        return C {rows};
       }
       else
       {
         if constexpr (dynamic_shape<Arg>) assert(row_count(arg) == column_count(arg));
-        return ConstantMatrix<Scalar, constant, dim, 1> {};
-      }
-    }
-    else if constexpr (constant_diagonal_matrix<Arg>)
-    {
-      constexpr auto constant = constant_diagonal_coefficient_v<Arg>;
-
-      if constexpr (dim == dynamic_extent)
-      {
-        auto rows = row_count(arg);
-        assert(rows == column_count(arg));
-        return ConstantMatrix<Scalar, constant, dynamic_extent, 1> {row_count(arg)};
-      }
-      else
-      {
-        if constexpr (dynamic_shape<Arg>) assert(row_count(arg) == column_count(arg));
-        return ConstantMatrix<Scalar, constant, dim, 1> {};
+        return C {};
       }
     }
     else if constexpr (dim == 1 and not eigen_DiagonalMatrix<Arg>)
@@ -497,17 +499,47 @@ namespace OpenKalman::Eigen3
 namespace OpenKalman::interface
 {
 
+#ifndef __cpp_concepts
+  namespace detail
+  {
+    template<typename T, typename = void>
+    struct eigen_has_linear_access : std::false_type {};
+
+    template<typename T>
+    struct eigen_has_linear_access<T, std::enable_if_t<native_eigen_matrix<T> or native_eigen_array<T>>>
+      : std::bool_constant<(Eigen::internal::evaluator<T>::Flags & Eigen::LinearAccessBit) != 0> {};
+  }
+#endif
+
+
 #ifdef __cpp_concepts
-  template<native_eigen_general T, std::convertible_to<const int&>...I> requires
-    (not eigen_DiagonalMatrix<T>) and (not eigen_DiagonalWrapper<T>) and (sizeof...(I) <= 2) and
-    (sizeof...(I) != 1 or static_cast<bool>(Eigen::internal::evaluator<std::decay_t<T>>::Flags & Eigen::LinearAccessBit))
+  template<typename T, std::convertible_to<const int&>...I> requires
+    (native_eigen_matrix<T> or native_eigen_array<T>) and (sizeof...(I) <= 2) and
+    (sizeof...(I) != 1 or (Eigen::internal::evaluator<std::decay_t<T>>::Flags & Eigen::LinearAccessBit) != 0)
   struct GetElement<T, I...>
 #else
   template<typename T, typename...I>
-  struct GetElement<T, std::enable_if_t<native_eigen_general<T> and
-    (not eigen_DiagonalMatrix<T>) and (not eigen_DiagonalWrapper<T>) and
+  struct GetElement<T, std::enable_if_t<(native_eigen_matrix<T> or native_eigen_array<T>) and
     ((sizeof...(I) <= 2) and ... and std::is_convertible_v<I, const int&>) and
-    (sizeof...(I) != 1 or static_cast<bool>(Eigen::internal::evaluator<std::decay_t<T>>::Flags & Eigen::LinearAccessBit))>, I...>
+    (sizeof...(I) != 1 or detail::eigen_has_linear_access<std::decay_t<T>>::value)>, I...>
+#endif
+  {
+    template<typename Arg>
+    static constexpr auto get(Arg&& arg, I...i)
+    {
+      return std::forward<Arg>(arg).coeff(static_cast<int>(i)...);
+    }
+  };
+
+
+#ifdef __cpp_concepts
+  template<typename T, std::convertible_to<const int&>...I> requires
+    (eigen_SelfAdjointView<T> or eigen_TriangularView<T>) and (sizeof...(I) == 2)
+  struct GetElement<T, I...>
+#else
+  template<typename T, typename...I>
+  struct GetElement<T, std::enable_if_t<(eigen_SelfAdjointView<T> or eigen_TriangularView<T>) and
+    ((sizeof...(I) == 2) and ... and std::is_convertible_v<I, const int&>)>, I...>
 #endif
   {
     template<typename Arg>
@@ -520,26 +552,25 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_concepts
   template<typename T, typename I> requires (eigen_DiagonalMatrix<T> or eigen_DiagonalWrapper<T>) and
-    element_gettable<nested_matrix_of<T>, I>
-  struct GetElement<T, I>
+    element_gettable<nested_matrix_of_t<T>, I>
+  struct GetElement<T, I> : GetElement<nested_matrix_of_t<T>, I> {};
 #else
   template<typename T, typename I>
   struct GetElement<T, std::enable_if_t<(eigen_DiagonalMatrix<T> or eigen_DiagonalWrapper<T>) and
-    element_gettable<nested_matrix_of<T>, I>>, I>
+    element_gettable<nested_matrix_of_t<T>, I>>, I> : GetElement<nested_matrix_of_t<T>, void, I> {};
 #endif
-    : GetElement<nested_matrix_of<T>, I> {};
 
 
 #ifdef __cpp_concepts
   template<typename T, std::convertible_to<const int&> I, std::convertible_to<const int&> J> requires
     (eigen_DiagonalMatrix<T> or eigen_DiagonalWrapper<T>) and
-    (element_gettable<nested_matrix_of<T>, I> or element_gettable<nested_matrix_of<T>, I, J>)
+    (element_gettable<nested_matrix_of_t<T>, I> or element_gettable<nested_matrix_of_t<T>, I, J>)
   struct GetElement<T, I, J>
 #else
   template<typename T, typename I, typename J>
   struct GetElement<T, std::enable_if_t<(eigen_DiagonalMatrix<T> or eigen_DiagonalWrapper<T>) and
     std::is_convertible_v<I, const int&> and std::is_convertible_v<J, const int&> and
-    (element_gettable<nested_matrix_of<T>, I> or element_gettable<nested_matrix_of<T>, I, J>)>, I, J>
+    (element_gettable<nested_matrix_of_t<T>, I> or element_gettable<nested_matrix_of_t<T>, I, J>)>, I, J>
 #endif
   {
     template<typename Arg>
@@ -547,7 +578,7 @@ namespace OpenKalman::interface
     {
       if (i == j)
       {
-        if constexpr (element_gettable<nested_matrix_of<Arg>, I>)
+        if constexpr (element_gettable<nested_matrix_of_t<Arg>, I>)
           return std::forward<Arg>(arg).diagonal().coeff(static_cast<int>(i));
         else
           return std::forward<Arg>(arg).diagonal().coeff(static_cast<int>(i), static_cast<int>(i));
@@ -561,17 +592,35 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-  template<native_eigen_general T, std::convertible_to<const int&>...I> requires
-    (not eigen_DiagonalMatrix<T>) and (not eigen_DiagonalWrapper<T>) and (sizeof...(I) <= 2) and
+  template<typename T, std::convertible_to<const int&>...I> requires
+    (native_eigen_matrix<T> or native_eigen_array<T>) and (sizeof...(I) <= 2) and
     (sizeof...(I) != 1 or static_cast<bool>(Eigen::internal::evaluator<std::decay_t<T>>::Flags & Eigen::LinearAccessBit)) and
     (static_cast<bool>(std::decay_t<T>::Flags & Eigen::LvalueBit))
   struct SetElement<T, I...>
 #else
   template<typename T, typename...I>
-  struct SetElement<T, std::enable_if_t<native_eigen_general<T> and
-    (not eigen_DiagonalMatrix<T>) and (not eigen_DiagonalWrapper<T>) and
-    ((sizeof...(I) <= 2) and ... and std::is_convertible_v<I, const int&>) and
-    (sizeof...(I) != 1 or static_cast<bool>(Eigen::internal::evaluator<std::decay_t<T>>::Flags & Eigen::LinearAccessBit)) and
+  struct SetElement<T, std::enable_if_t<((sizeof...(I) <= 2) and ... and std::is_convertible_v<I, const int&>) and
+    (sizeof...(I) != 1 or detail::eigen_has_linear_access<std::decay_t<T>>::value) and
+    (static_cast<bool>(std::decay_t<T>::Flags & Eigen::LvalueBit))>, I...>
+#endif
+  {
+    template<typename Arg, typename Scalar>
+    static void set(Arg& arg, const Scalar s, I...i)
+    {
+      arg.coeffRef(static_cast<int>(i)...) = s;
+    }
+  };
+
+
+#ifdef __cpp_concepts
+  template<typename T, std::convertible_to<const int&>...I> requires
+    (eigen_SelfAdjointView<T> or eigen_TriangularView<T>) and (sizeof...(I) == 2) and
+    (static_cast<bool>(std::decay_t<T>::Flags & Eigen::LvalueBit))
+  struct SetElement<T, I...>
+#else
+  template<typename T, typename...I>
+  struct SetElement<T, std::enable_if_t<(eigen_SelfAdjointView<T> or eigen_TriangularView<T>) and
+    ((sizeof...(I) == 2) and ... and std::is_convertible_v<I, const int&>) and
     (static_cast<bool>(std::decay_t<T>::Flags & Eigen::LvalueBit))>, I...>
 #endif
   {
@@ -585,26 +634,26 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_concepts
   template<typename T, typename I> requires (eigen_DiagonalMatrix<T> or eigen_DiagonalWrapper<T>) and
-    element_settable<nested_matrix_of<T>, I>
+    element_settable<nested_matrix_of_t<T>, I>
   struct SetElement<T, I>
 #else
   template<typename T, typename I>
   struct SetElement<T, std::enable_if_t<(eigen_DiagonalMatrix<T> or eigen_DiagonalWrapper<T>) and
-    element_settable<nested_matrix_of<T>, I>>, I>
+    element_settable<nested_matrix_of_t<T>, I>>, I>
 #endif
-    : SetElement<nested_matrix_of<T>, I> {};
+    : SetElement<nested_matrix_of_t<T>, I> {};
 
 
 #ifdef __cpp_concepts
   template<typename T, std::convertible_to<const int&> I, std::convertible_to<const int&> J> requires
     (eigen_DiagonalMatrix<T> or eigen_DiagonalWrapper<T>) and
-    (element_settable<nested_matrix_of<T>, I> or element_settable<nested_matrix_of<T>, I, J>)
+    (element_settable<nested_matrix_of_t<T>, I> or element_settable<nested_matrix_of_t<T>, I, J>)
   struct SetElement<T, I, J>
 #else
   template<typename T, typename I, typename J>
   struct SetElement<T, std::enable_if_t<(eigen_DiagonalMatrix<T> or eigen_DiagonalWrapper<T>) and
-    std::is_convertible_v<I, const int&> and std::is_convertible_v<M, const int&> and
-    (element_settable<nested_matrix_of<T>, I> or element_settable<nested_matrix_of<T>, I, J>)>, I, J>
+    std::is_convertible_v<I, const int&> and std::is_convertible_v<J, const int&> and
+    (element_settable<nested_matrix_of_t<T>, I> or element_settable<nested_matrix_of_t<T>, I, J>)>, I, J>
 #endif
   {
     template<typename Arg, typename Scalar>
@@ -612,7 +661,7 @@ namespace OpenKalman::interface
     {
       if (i == j)
       {
-        if constexpr (element_settable<nested_matrix_of<Arg>, std::size_t>)
+        if constexpr (element_settable<nested_matrix_of_t<Arg>, std::size_t>)
           set_element(arg.diagonal(), s, static_cast<int>(i));
         else
           set_element(arg.diagonal(), s, static_cast<int>(i), static_cast<int>(i));
@@ -681,7 +730,7 @@ namespace OpenKalman::interface
   struct LinearAlgebra<T>
 #else
   template<typename T>
-  struct linearAlgebra<T, std::enable_if_t<native_eigen_general<T>>>
+  struct LinearAlgebra<T, std::enable_if_t<native_eigen_general<T>>>
 #endif
   {
 
@@ -784,8 +833,8 @@ namespace OpenKalman::interface
 #ifdef __cpp_concepts
     template<TriangleType t, native_eigen_general A, native_eigen_general U, typename Alpha>
 #else
-    template<TriangleType t, native_eigen_general A, typename U, typename Alpha, std::enable_if_t<
-      native_eigen_general<U>, int> = 0>
+    template<TriangleType t, typename A, typename U, typename Alpha, std::enable_if_t<
+      native_eigen_general<A> and native_eigen_general<U>, int> = 0>
 #endif
     static decltype(auto)
     rank_update_self_adjoint(A&& a, U&& u, const Alpha alpha)
@@ -922,8 +971,8 @@ namespace OpenKalman::interface
 #ifdef __cpp_concepts
     template<TriangleType t, native_eigen_general A, native_eigen_general U, typename Alpha>
 #else
-    template<TriangleType t, native_eigen_general A, typename U, typename Alpha, std::enable_if_t<
-      native_eigen_general<U>, int> = 0>
+    template<TriangleType t, typename A, typename U, typename Alpha, std::enable_if_t<
+      native_eigen_general<A> and native_eigen_general<U>, int> = 0>
 #endif
     static decltype(auto)
     rank_update_triangular(A&& a, U&& u, const Alpha alpha)
@@ -1119,45 +1168,58 @@ namespace OpenKalman::Eigen3
   constexpr decltype(auto)
   reduce_columns(Arg&& arg) noexcept
   {
+    using Scalar = scalar_type_of_t<Arg>;
+
     if constexpr (column_vector<Arg>)
     {
       return std::forward<Arg>(arg);
     }
     else if constexpr (zero_matrix<Arg>)
     {
-      using Scalar = scalar_type_of_t<Arg>;
-
       if constexpr (dynamic_rows<Arg>)
         return ZeroMatrix<Scalar, dynamic_extent, 1> {row_count(arg)};
       else
         return ZeroMatrix<Scalar, row_extent_of_v<Arg>, 1> {};
     }
-    else if constexpr (constant_matrix<Arg>)
+    else if constexpr (constant_matrix<Arg> or (constant_diagonal_matrix<Arg> and not dynamic_columns<Arg>))
     {
-      using Scalar = scalar_type_of_t<Arg>;
-      constexpr auto constant = constant_coefficient_v<Arg>;
+      constexpr auto c = []{
+        if constexpr (constant_matrix<Arg>)
+          return constant_coefficient_v<Arg>;
+        else
+          return constant_diagonal_coefficient_v<Arg> / column_extent_of_v<Arg>;
+      }();
 
-      if constexpr (dynamic_rows<Arg>)
-        return ConstantMatrix<Scalar, constant, dynamic_extent, 1> {row_count(arg)};
+      constexpr auto rows = row_extent_of_v<Arg>;
+
+#  if __cpp_nontype_template_args >= 201911L
+      using C = ConstantMatrix<Scalar, c, rows, 1>;
+#  else
+      constexpr auto c_integral = []{
+        if constexpr (std::is_integral_v<decltype(c)>) return c;
+        else return static_cast<std::intmax_t>(c);
+      }();
+
+      using C = ConstantMatrix<Scalar, c_integral, rows, 1>;
+
+      if constexpr (not are_within_tolerance<10>(c, static_cast<Scalar>(c_integral)))
+        return eigen_matrix_t<Scalar, rows, 1>::Constant(static_cast<Eigen::Index>(row_count(arg)), 1, c);
       else
-        return ConstantMatrix<Scalar, constant, row_extent_of_v<Arg>, 1> {};
+#  endif
+      if constexpr (rows == dynamic_extent)
+        return C {row_count(arg)};
+      else
+        return C {};
     }
     else if constexpr (diagonal_matrix<Arg>)
     {
-      return diagonal_of(std::forward<Arg>(arg));
-    }
-    else if constexpr (dynamic_columns<Arg>)
-    {
-      using N = eigen_matrix_t<scalar_type_of_t<Arg>, row_extent_of_v<Arg>, 1>;
-
-      if (column_count(arg) == 1)
-        return N {std::forward<Arg>(arg)};
-      else
-        return N {arg.rowwise().sum() / column_count(arg)};
+      return diagonal_of(std::forward<Arg>(arg)) / column_count(arg);
     }
     else
     {
-      return make_self_contained(arg.rowwise().sum() / column_count(arg));
+      // This expression will always require at least a partial evaluation to avoid dangling references.
+      // But a partial calculation is probably less efficient than a full calculation.
+      return make_native_matrix(arg.rowwise().sum() / column_count(arg));
     }
   }
 
@@ -1171,45 +1233,58 @@ namespace OpenKalman::Eigen3
   constexpr decltype(auto)
   reduce_rows(Arg&& arg) noexcept
   {
+    using Scalar = scalar_type_of_t<Arg>;
+
     if constexpr (row_vector<Arg>)
     {
       return std::forward<Arg>(arg);
     }
     else if constexpr (zero_matrix<Arg>)
     {
-      using Scalar = scalar_type_of_t<Arg>;
-
       if constexpr (dynamic_columns<Arg>)
         return ZeroMatrix<Scalar, 1, dynamic_extent> {column_count(arg)};
       else
         return ZeroMatrix<Scalar, 1, column_extent_of_v<Arg>> {};
     }
-    else if constexpr (constant_matrix<Arg>)
+    else if constexpr (constant_matrix<Arg> or (constant_diagonal_matrix<Arg> and not dynamic_rows<Arg>))
     {
-      using Scalar = scalar_type_of_t<Arg>;
-      constexpr auto constant = constant_coefficient_v<Arg>;
+      constexpr auto c = []{
+        if constexpr (constant_matrix<Arg>)
+          return constant_coefficient_v<Arg>;
+        else
+          return constant_diagonal_coefficient_v<Arg> / row_extent_of_v<Arg>;
+      }();
 
-      if constexpr (dynamic_columns<Arg>)
-        return ConstantMatrix<Scalar, constant, 1, dynamic_extent> {column_count(arg)};
+      constexpr auto cols = column_extent_of_v<Arg>;
+
+#  if __cpp_nontype_template_args >= 201911L
+      using C = ConstantMatrix<Scalar, c, 1, cols>;
+#  else
+      constexpr auto c_integral = []{
+        if constexpr (std::is_integral_v<decltype(c)>) return c;
+        else return static_cast<std::intmax_t>(c);
+      }();
+
+      using C = ConstantMatrix<Scalar, c_integral, 1, cols>;
+
+      if constexpr (not are_within_tolerance(c, static_cast<Scalar>(c_integral)))
+        return eigen_matrix_t<Scalar, 1, cols>::Constant(1, static_cast<Eigen::Index>(column_count(arg)), c);
       else
-        return ConstantMatrix<Scalar, constant, 1, column_extent_of_v<Arg>> {};
+#  endif
+      if constexpr (cols == dynamic_extent)
+        return C {column_count(arg)};
+      else
+        return C {};
     }
     else if constexpr (diagonal_matrix<Arg>)
     {
-      return transpose(diagonal_of(std::forward<Arg>(arg)));
-    }
-    else if constexpr (dynamic_rows<Arg>)
-    {
-      using N = eigen_matrix_t<scalar_type_of_t<Arg>, 1, row_extent_of_v<Arg>>;
-
-      if (row_count(arg) == 1)
-        return N {std::forward<Arg>(arg)};
-      else
-        return N {arg.colwise().sum() / row_count(arg)};
+      return transpose(diagonal_of(std::forward<Arg>(arg))) / row_count(arg);
     }
     else
     {
-      return make_self_contained(arg.colwise().sum() / row_count(arg));
+      // This expression will always require at least a partial evaluation to avoid dangling references.
+      // But a partial calculation is probably less efficient than a full calculation.
+      return make_native_matrix(arg.colwise().sum() / row_count(arg));
     }
   }
 

@@ -166,11 +166,11 @@ namespace OpenKalman::Eigen3
     /// Assign from another \ref eigen_diagonal_expr.
 #ifdef __cpp_concepts
     template<eigen_diagonal_expr Arg> requires (not std::derived_from<std::decay_t<Arg>, DiagonalMatrix>) and
-      (row_extent_of_v<Arg> == dimensions) and modifiable<NestedMatrix, nested_matrix_of<Arg>>
+      (row_extent_of_v<Arg> == dimensions) and modifiable<NestedMatrix, nested_matrix_of_t<Arg>>
 #else
     template<typename Arg, std::enable_if_t<eigen_diagonal_expr<Arg> and
       (not std::is_base_of_v<DiagonalMatrix, std::decay_t<Arg>>) and
-      (row_extent_of<Arg>::value == dimensions) and modifiable<NestedMatrix, nested_matrix_of<Arg>>, int> = 0>
+      (row_extent_of<Arg>::value == dimensions) and modifiable<NestedMatrix, nested_matrix_of_t<Arg>>, int> = 0>
 #endif
     auto& operator=(Arg&& other)
     {

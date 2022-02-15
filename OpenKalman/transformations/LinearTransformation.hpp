@@ -223,8 +223,8 @@ namespace OpenKalman
   -> LinearTransformation<
     typename MatrixTraits<T>::ColumnCoefficients,
     typename MatrixTraits<T>::RowCoefficients,
-    equivalent_self_contained_t<nested_matrix_of<T>>,
-    equivalent_self_contained_t<std::conditional_t<typed_matrix<Ps>, nested_matrix_of<Ps>, Ps>>...>;
+    equivalent_self_contained_t<nested_matrix_of_t<T>>,
+    equivalent_self_contained_t<std::conditional_t<typed_matrix<Ps>, nested_matrix_of_t<Ps>, Ps>>...>;
 
 
 #ifdef __cpp_concepts

@@ -24,8 +24,13 @@ namespace OpenKalman::Eigen3
   // ConstantMatrix is declared in eigen3-forward-declarations.hpp.
 
 #ifdef __cpp_concepts
+# if __cpp_nontype_template_args >= 201911L
+  template<arithmetic_or_complex Scalar, Scalar constant, std::size_t rows_, std::size_t columns>
+  requires std::convertible_to<decltype(constant), Scalar>
+# else
   template<arithmetic_or_complex Scalar, auto constant, std::size_t rows_, std::size_t columns>
   requires std::convertible_to<decltype(constant), Scalar>
+# endif
 #else
   template<typename Scalar, auto constant, std::size_t rows_, std::size_t columns>
 #endif
@@ -174,15 +179,65 @@ namespace OpenKalman::Eigen3
   // ------------------------------ //
 
 #ifdef __cpp_concepts
+#  if __cpp_nontype_template_args >= 201911L
   template<constant_matrix Arg>
-#else
-  template<typename Arg, std::enable_if_t<constant_matrix<Arg>, int> = 0>
-#endif
+  ConstantMatrix(Arg&&) ->
+    ConstantMatrix<scalar_type_of_t<Arg>, constant_coefficient_v<Arg>, row_extent_of_v<Arg>, column_extent_of_v<Arg>>;
+#  else
+  template<constant_matrix Arg> requires std::is_integral_v<scalar_type_of_t<Arg>>
+  ConstantMatrix(Arg&&) ->
+    ConstantMatrix<scalar_type_of_t<Arg>, constant_coefficient_v<Arg>, row_extent_of_v<Arg>, column_extent_of_v<Arg>>;
+
+  template<constant_matrix Arg> requires (not std::is_integral_v<scalar_type_of_t<Arg>>) and
+    (constant_coefficient_v<Arg> == static_cast<std::intmax_t>(constant_coefficient_v<Arg>))
   ConstantMatrix(Arg&&) -> ConstantMatrix<scalar_type_of_t<Arg>,
-    constant_coefficient_v<Arg>, row_extent_of_v<Arg>, column_extent_of_v<Arg>>;
+    static_cast<std::intmax_t>(constant_coefficient_v<Arg>), row_extent_of_v<Arg>, column_extent_of_v<Arg>>;
+#  endif
+#else
+  template<typename Arg, std::enable_if_t<constant_matrix<Arg> and
+    constant_coefficient_v<Arg> == static_cast<std::intmax_t>(constant_coefficient_v<Arg>), int> = 0>
+  ConstantMatrix(Arg&&) -> ConstantMatrix<scalar_type_of_t<Arg>,
+    static_cast<std::intmax_t>(constant_coefficient_v<Arg>), row_extent_of_v<Arg>, column_extent_of_v<Arg>>;
+#endif
 
 
-} // OpenKalman::Eigen3
+
+} // namespace OpenKalman::Eigen3
+
+namespace OpenKalman
+{
+
+  /**
+   * \brief Make a ConstantMatrix in the same shape as another matrix.
+   * \tparam constant The constant value of the new matrix
+   * \tparam Arg A matrix or array on which to model the new matrix
+   */
+  template<auto constant, typename Arg>
+#ifdef __cpp_concepts
+    requires requires(const Arg& arg) {
+      row_count(arg);
+      column_count(arg);
+    }
+#endif
+  inline auto make_constant_matrix_like(const Arg& arg)
+  {
+    using Scalar = scalar_type_of_t<Arg>;
+    constexpr auto rows = row_extent_of_v<Arg>;
+    constexpr auto columns = column_extent_of_v<Arg>;
+    using C = ConstantMatrix<Scalar, constant, rows, columns>;
+
+    if constexpr (rows == dynamic_extent and columns == dynamic_extent)
+      return C {row_count(arg), column_count(arg)};
+    else if constexpr (rows == dynamic_extent)
+      return C {row_count(arg)};
+    else if constexpr (columns == dynamic_extent)
+      return C {column_count(arg)};
+    else
+      return C {};
+  }
+
+
+} // namespace OpenKalman
 
 
 #endif //OPENKALMAN_EIGEN3_CONSTANTMATRIX_HPP

@@ -434,15 +434,15 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_concepts
   template<eigen_diagonal_expr T, std::convertible_to<const std::size_t&>...I> requires (sizeof...(I) <= 2) and
-    (element_gettable<nested_matrix_of<T>, std::size_t> or
-      element_gettable<nested_matrix_of<T>, std::size_t, std::size_t>)
+    (element_gettable<nested_matrix_of_t<T>, std::size_t> or
+      element_gettable<nested_matrix_of_t<T>, std::size_t, std::size_t>)
   struct GetElement<T, I...>
 #else
   template<typename T, typename...I>
   struct GetElement<T, std::enable_if_t<eigen_diagonal_expr<T> and
     ((sizeof...(I) <= 2) and ... and std::is_convertible_v<I, const std::size_t&>) and
-    (element_gettable<nested_matrix_of<T>, std::size_t> or
-      element_gettable<nested_matrix_of<T>, std::size_t, std::size_t>)>, I...>
+    (element_gettable<nested_matrix_of_t<T>, std::size_t> or
+      element_gettable<nested_matrix_of_t<T>, std::size_t, std::size_t>)>, I...>
 #endif
   {
     template<typename Arg>
@@ -450,7 +450,7 @@ namespace OpenKalman::interface
     {
       if (row == col)
       {
-        if constexpr (element_gettable<nested_matrix_of<Arg>, std::size_t>)
+        if constexpr (element_gettable<nested_matrix_of_t<Arg>, std::size_t>)
           return get_element(nested_matrix(std::forward<Arg>(arg)), row);
         else
           return get_element(nested_matrix(std::forward<Arg>(arg)), row, 1);
@@ -464,7 +464,7 @@ namespace OpenKalman::interface
     template<typename Arg>
     constexpr auto get(Arg&& arg, const std::size_t i)
     {
-      if constexpr (element_gettable<nested_matrix_of<Arg>, std::size_t>)
+      if constexpr (element_gettable<nested_matrix_of_t<Arg>, std::size_t>)
         return get_element(nested_matrix(std::forward<Arg>(arg)), i);
       else
         return get_element(nested_matrix(std::forward<Arg>(arg)), i, 1);
@@ -474,13 +474,13 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_concepts
   template<eigen_self_adjoint_expr T, std::convertible_to<const std::size_t&>...I> requires (sizeof...(I) == 2) and
-    (not diagonal_matrix<T>) and element_gettable<nested_matrix_of<T>, std::size_t, std::size_t>
+    (not diagonal_matrix<T>) and element_gettable<nested_matrix_of_t<T>, std::size_t, std::size_t>
   struct GetElement<T, I...>
 #else
   template<typename T, typename...I>
   struct GetElement<T, std::enable_if_t<eigen_self_adjoint_expr<T> and
     ((sizeof...(I) <= 2) and ... and std::is_convertible_v<I, const std::size_t&>) and
-    (not diagonal_matrix<T>) and element_gettable<nested_matrix_of<T>, std::size_t, std::size_t>>, I...>
+    (not diagonal_matrix<T>) and element_gettable<nested_matrix_of_t<T>, std::size_t, std::size_t>>, I...>
 #endif
   {
     template<typename Arg>
@@ -511,13 +511,13 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_concepts
   template<eigen_triangular_expr T, std::convertible_to<const std::size_t&>...I> requires (sizeof...(I) == 2) and
-    (not diagonal_matrix<T>) and element_gettable<nested_matrix_of<T>, std::size_t, std::size_t>
+    (not diagonal_matrix<T>) and element_gettable<nested_matrix_of_t<T>, std::size_t, std::size_t>
   struct GetElement<T, I...>
 #else
   template<typename T, typename...I>
   struct GetElement<T, std::enable_if_t<eigen_triangular_expr<T> and
     ((sizeof...(I) <= 2) and ... and std::is_convertible_v<I, const std::size_t&>) and
-    (not diagonal_matrix<T>) and element_gettable<nested_matrix_of<T>, std::size_t, std::size_t>>, I...>
+    (not diagonal_matrix<T>) and element_gettable<nested_matrix_of_t<T>, std::size_t, std::size_t>>, I...>
 #endif
   {
     template<typename Arg>
@@ -534,16 +534,16 @@ namespace OpenKalman::interface
 #ifdef __cpp_concepts
   template<diagonal_matrix T, std::convertible_to<const std::size_t&>...I> requires (sizeof...(I) <= 2) and
     (not diagonal_matrix<T>) and (eigen_self_adjoint_expr<T> or eigen_triangular_expr<T>) and
-    (element_gettable<nested_matrix_of<T>, std::size_t, std::size_t> or
-      element_gettable<nested_matrix_of<T>, std::size_t>)
+    (element_gettable<nested_matrix_of_t<T>, std::size_t, std::size_t> or
+      element_gettable<nested_matrix_of_t<T>, std::size_t>)
   struct GetElement<T, I...>
 #else
   template<typename T, typename...I>
   struct GetElement<T, std::enable_if_t<diagonal_matrix<T> and
     ((sizeof...(I) <= 2) and ... and std::is_convertible_v<I, const std::size_t&>) and
-    (not diagonal_matrix<T>) and (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<T>) and
-    (element_gettable<nested_matrix_of<T>, std::size_t, std::size_t> or
-      element_gettable<nested_matrix_of<T>, std::size_t>)>, I...>
+    (not diagonal_matrix<T>) and (eigen_self_adjoint_expr<T> or eigen_triangular_expr<T>) and
+    (element_gettable<nested_matrix_of_t<T>, std::size_t, std::size_t> or
+      element_gettable<nested_matrix_of_t<T>, std::size_t>)>, I...>
 #endif
   {
     template<typename Arg>
@@ -551,7 +551,7 @@ namespace OpenKalman::interface
     {
       if (i == j)
       {
-        if constexpr(element_gettable<nested_matrix_of<Arg>, std::size_t>)
+        if constexpr(element_gettable<nested_matrix_of_t<Arg>, std::size_t>)
           return get_element(nested_matrix(std::forward<Arg>(arg)), i);
         else
           return get_element(nested_matrix(std::forward<Arg>(arg)), i, i);
@@ -563,7 +563,7 @@ namespace OpenKalman::interface
     template<typename Arg>
     constexpr auto get(Arg&& arg, const std::size_t i)
     {
-      using NestedMatrix = nested_matrix_of<Arg>;
+      using NestedMatrix = nested_matrix_of_t<Arg>;
       if constexpr(element_gettable<NestedMatrix, std::size_t>)
       {
         return get(nested_matrix(std::forward<Arg>(arg)), i);
@@ -578,15 +578,15 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_concepts
   template<eigen_diagonal_expr T, std::convertible_to<const std::size_t&>...I> requires (sizeof...(I) <= 2) and
-    (element_settable<nested_matrix_of<T>, std::size_t> or
-      element_settable<nested_matrix_of<T>, std::size_t, std::size_t>)
+    (element_settable<nested_matrix_of_t<T>, std::size_t> or
+      element_settable<nested_matrix_of_t<T>, std::size_t, std::size_t>)
   struct SetElement<T, I...>
 #else
   template<typename T, typename...I>
   struct SetElement<T, std::enable_if_t<eigen_diagonal_expr<T> and
     ((sizeof...(I) <= 2) and ... and std::is_convertible_v<I, const std::size_t&>) and
-    (element_settable<nested_matrix_of<T>, std::size_t> or
-      element_settable<nested_matrix_of<T>, std::size_t, std::size_t>)>, I...>
+    (element_settable<nested_matrix_of_t<T>, std::size_t> or
+      element_settable<nested_matrix_of_t<T>, std::size_t, std::size_t>)>, I...>
 #endif
   {
     template<typename Arg, typename Scalar>
@@ -594,7 +594,7 @@ namespace OpenKalman::interface
     {
       if (i == j)
       {
-        if constexpr (element_settable<nested_matrix_of<Arg>, std::size_t>)
+        if constexpr (element_settable<nested_matrix_of_t<Arg>, std::size_t>)
           set_element(nested_matrix(arg), s, i);
         else
           set_element(nested_matrix(arg), s, i, 1);
@@ -607,7 +607,7 @@ namespace OpenKalman::interface
     template<typename Arg, typename Scalar>
     static void set(Arg& arg, const Scalar s, const std::size_t i)
     {
-      if constexpr (element_settable<nested_matrix_of<Arg>, std::size_t>)
+      if constexpr (element_settable<nested_matrix_of_t<Arg>, std::size_t>)
         set_element(nested_matrix(arg), s, i);
       else
         set_element(nested_matrix(arg), s, i, 1);
@@ -617,13 +617,13 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_concepts
   template<eigen_self_adjoint_expr T, std::convertible_to<const std::size_t&>...I> requires (sizeof...(I) == 2) and
-    (not diagonal_matrix<T>) and element_settable<nested_matrix_of<T>, std::size_t, std::size_t>
+    (not diagonal_matrix<T>) and element_settable<nested_matrix_of_t<T>, std::size_t, std::size_t>
   struct SetElement<T, I...>
 #else
   template<typename T, typename...I>
   struct SetElement<T, std::enable_if_t<eigen_self_adjoint_expr<T> and
     ((sizeof...(I) == 2) and ... and std::is_convertible_v<I, const std::size_t&>) and
-    (not diagonal_matrix<T>) and element_settable<nested_matrix_of<T>, std::size_t, std::size_t>>, I...>
+    (not diagonal_matrix<T>) and element_settable<nested_matrix_of_t<T>, std::size_t, std::size_t>>, I...>
 #endif
   {
     template<typename Arg, typename Scalar>
@@ -646,13 +646,13 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_concepts
   template<eigen_triangular_expr T, std::convertible_to<const std::size_t&>...I> requires (sizeof...(I) == 2) and
-    (not diagonal_matrix<T>) and element_settable<nested_matrix_of<T>, std::size_t, std::size_t>
+    (not diagonal_matrix<T>) and element_settable<nested_matrix_of_t<T>, std::size_t, std::size_t>
   struct SetElement<T, I...>
 #else
   template<typename T, typename...I>
   struct SetElement<T, std::enable_if_t<eigen_triangular_expr<T> and
     ((sizeof...(I) == 2) and ... and std::is_convertible_v<I, const std::size_t&>) and
-    (not diagonal_matrix<T>) and element_settable<nested_matrix_of<T>, std::size_t, std::size_t>>, I...>
+    (not diagonal_matrix<T>) and element_settable<nested_matrix_of_t<T>, std::size_t, std::size_t>>, I...>
 #endif
   {
     template<typename Arg, typename Scalar>
@@ -669,16 +669,16 @@ namespace OpenKalman::interface
 #ifdef __cpp_concepts
   template<diagonal_matrix T, std::convertible_to<const std::size_t&>...I> requires (sizeof...(I) <= 2) and
     (eigen_self_adjoint_expr<T> or eigen_triangular_expr<T>) and
-    (element_settable<nested_matrix_of<T>, std::size_t> or
-      element_settable<nested_matrix_of<T>, std::size_t, std::size_t>)
+    (element_settable<nested_matrix_of_t<T>, std::size_t> or
+      element_settable<nested_matrix_of_t<T>, std::size_t, std::size_t>)
   struct SetElement<T, I...>
 #else
   template<typename T, typename...I>
   struct SetElement<T, std::enable_if_t<diagonal_matrix<T> and
     ((sizeof...(I) <= 2) and ... and std::is_convertible_v<I, const std::size_t&>) and
     (eigen_self_adjoint_expr<T> or eigen_triangular_expr<T>) and
-    (element_settable<nested_matrix_of<T>, std::size_t> or
-      element_settable<nested_matrix_of<T>, std::size_t, std::size_t>)>, I...>
+    (element_settable<nested_matrix_of_t<T>, std::size_t> or
+      element_settable<nested_matrix_of_t<T>, std::size_t, std::size_t>)>, I...>
 #endif
   {
     template<typename Arg, typename Scalar>
@@ -686,7 +686,7 @@ namespace OpenKalman::interface
     {
       if (i == j)
       {
-        if constexpr(element_settable<nested_matrix_of<Arg>, std::size_t>)
+        if constexpr(element_settable<nested_matrix_of_t<Arg>, std::size_t>)
           set_element(nested_matrix(arg), s, i);
         else
           set_element(nested_matrix(arg), s, i, i);
@@ -699,7 +699,7 @@ namespace OpenKalman::interface
     template<typename Arg, typename Scalar>
     static void set(Arg& arg, const Scalar s, const std::size_t i)
     {
-      using NestedMatrix = nested_matrix_of<Arg>;
+      using NestedMatrix = nested_matrix_of_t<Arg>;
       if constexpr(element_settable<NestedMatrix, std::size_t>)
         set_element(nested_matrix(arg), s, i);
       else
@@ -747,7 +747,7 @@ namespace OpenKalman::interface
   struct LinearAlgebra<T>
 #else
   template<typename T>
-  struct linearAlgebra<T, std::enable_if_t<eigen_zero_expr<T> or eigen_constant_expr<T> or eigen_diagonal_expr<T> or
+  struct LinearAlgebra<T, std::enable_if_t<eigen_zero_expr<T> or eigen_constant_expr<T> or eigen_diagonal_expr<T> or
     eigen_triangular_expr<T> or eigen_self_adjoint_expr<T>>>
 #endif
   {
@@ -860,7 +860,7 @@ namespace OpenKalman::interface
       }
       else if constexpr (eigen_self_adjoint_expr<Arg>)
       {
-        if constexpr (self_adjoint_matrix<nested_matrix_of<Arg>>)
+        if constexpr (self_adjoint_matrix<nested_matrix_of_t<Arg>>)
         {
           return OpenKalman::transpose(nested_matrix(std::forward<Arg>(arg)));
         }
@@ -873,7 +873,7 @@ namespace OpenKalman::interface
       }
       else if constexpr (eigen_triangular_expr<Arg>)
       {
-        if constexpr (triangular_matrix<nested_matrix_of<Arg>>)
+        if constexpr (triangular_matrix<nested_matrix_of_t<Arg>>)
         {
           return OpenKalman::transpose(nested_matrix(std::forward<Arg>(arg)));
         }
@@ -910,7 +910,7 @@ namespace OpenKalman::interface
       {
         static_assert(eigen_triangular_expr<Arg>);
 
-        if constexpr (diagonal_matrix<nested_matrix_of<Arg>>)
+        if constexpr (diagonal_matrix<nested_matrix_of_t<Arg>>)
         {
           return make_self_contained<Arg>(
             to_diagonal(OpenKalman::conjugate(diagonal_of(nested_matrix(std::forward<Arg>(arg))))));
@@ -2009,7 +2009,7 @@ namespace OpenKalman::Eigen3
   inline auto
   randomize(Dists&&...dists)
   {
-    using B = nested_matrix_of<ReturnType>;
+    using B = nested_matrix_of_t<ReturnType>;
     return MatrixTraits<ReturnType>::make(randomize<B, random_number_engine>(std::forward<Dists>(dists)...));
   }
 
@@ -2046,7 +2046,7 @@ namespace OpenKalman::Eigen3
   randomize(const std::size_t rows, const std::size_t columns, Dist&& dist)
   {
     assert(rows == columns);
-    using B = nested_matrix_of<ReturnType>;
+    using B = nested_matrix_of_t<ReturnType>;
     return MatrixTraits<ReturnType>::make(randomize<B, random_number_engine>(rows, 1, std::forward<Dist>(dist)));
   }
 

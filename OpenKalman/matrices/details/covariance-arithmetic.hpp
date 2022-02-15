@@ -138,7 +138,7 @@ namespace OpenKalman
       self_adjoint_covariance<Arg1> and self_adjoint_covariance<Arg2>)
     {
       using Scalar = scalar_type_of_t<Arg1>;
-      using B = nested_matrix_of<Arg2>;
+      using B = nested_matrix_of_t<Arg2>;
 
       auto a = nested_matrix(std::forward<Arg1>(arg1));
 
@@ -255,7 +255,7 @@ namespace OpenKalman
     {
       return std::forward<M>(m);
     }
-    else if constexpr (identity_matrix<nested_matrix_of<M>>)
+    else if constexpr (identity_matrix<nested_matrix_of_t<M>>)
     {
       return make_matrix<RC, CC>(oin::to_covariance_nestable(std::forward<Cov>(cov)));
     }
@@ -299,7 +299,7 @@ namespace OpenKalman
     {
       return std::forward<M>(m);
     }
-    else if constexpr (identity_matrix<nested_matrix_of<M>>)
+    else if constexpr (identity_matrix<nested_matrix_of_t<M>>)
     {
       return make_matrix<RC, CC>(oin::to_covariance_nestable(std::forward<Cov>(cov)));
     }
@@ -335,7 +335,7 @@ namespace OpenKalman
       }
       else
       {
-        using B = typename MatrixTraits<nested_matrix_of<M>>::template TriangularMatrixFrom<>;
+        using B = typename MatrixTraits<nested_matrix_of_t<M>>::template TriangularMatrixFrom<>;
 
         if (s > Scalar(0))
         {
@@ -344,7 +344,7 @@ namespace OpenKalman
         else if (s < Scalar(0))
         {
           return MatrixTraits<M>::make(B {rank_update(
-            MatrixTraits<nested_matrix_of<M>>::zero(),
+            MatrixTraits<nested_matrix_of_t<M>>::zero(),
             make_native_matrix(nested_matrix(std::forward<M>(m))),
             static_cast<Scalar>(s))});
         }
@@ -585,7 +585,7 @@ namespace OpenKalman
   scale(M&& m, A&& a)
   {
     using AC = typename MatrixTraits<A>::RowCoefficients;
-    using NestedMatrix = nested_matrix_of<M>;
+    using NestedMatrix = nested_matrix_of_t<M>;
 
     if constexpr (diagonal_matrix<NestedMatrix> or self_adjoint_matrix<NestedMatrix>)
     {

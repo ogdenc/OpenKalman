@@ -148,10 +148,10 @@ namespace OpenKalman::internal
      * \brief Construct from an lvalue reference to a "Case 1" \ref covariance.
      */
 #ifdef __cpp_concepts
-    template<covariance Arg> requires case1or2<Arg> and self_contained<nested_matrix_of<Arg>>
+    template<covariance Arg> requires case1or2<Arg> and self_contained<nested_matrix_of_t<Arg>>
 #else
     template<typename Arg, std::enable_if_t<covariance<Arg> and case1or2<Arg> and
-      self_contained<nested_matrix_of<Arg>>, int> = 0>
+      self_contained<nested_matrix_of_t<Arg>>, int> = 0>
 #endif
     CovarianceBase(Arg& arg)
       : Base {arg.nested_matrix()},
@@ -167,11 +167,11 @@ namespace OpenKalman::internal
      * \brief Construct from another "Case 2" \ref covariance.
      */
 #ifdef __cpp_concepts
-    template<covariance Arg> requires case1or2<Arg> and (not self_contained<nested_matrix_of<Arg>>) and
+    template<covariance Arg> requires case1or2<Arg> and (not self_contained<nested_matrix_of_t<Arg>>) and
       (not std::derived_from<std::decay_t<Arg>, CovarianceBase>)
 #else
     template<typename Arg, std::enable_if_t<covariance<Arg> and case1or2<Arg> and
-      (not self_contained<nested_matrix_of<Arg>>) and
+      (not self_contained<nested_matrix_of_t<Arg>>) and
       (not std::is_base_of_v<CovarianceBase, std::decay_t<Arg>>), int> = 0>
 #endif
     CovarianceBase(Arg&& arg)
@@ -188,10 +188,10 @@ namespace OpenKalman::internal
      * \brief Construct from an lvalue reference to a "Case 3" \ref covariance.
      */
 #ifdef __cpp_concepts
-    template<covariance Arg> requires (not case1or2<Arg>) and self_contained<nested_matrix_of<Arg>>
+    template<covariance Arg> requires (not case1or2<Arg>) and self_contained<nested_matrix_of_t<Arg>>
 #else
     template<typename Arg, std::enable_if_t<covariance<Arg> and (not case1or2<Arg>) and
-      self_contained<nested_matrix_of<Arg>>, int> = 0>
+      self_contained<nested_matrix_of_t<Arg>>, int> = 0>
 #endif
     CovarianceBase(Arg& arg)
       : Base {arg.nested_matrix()},
@@ -207,10 +207,10 @@ namespace OpenKalman::internal
      * \brief Construct from an lvalue reference to "Case 4" \ref covariance.
      */
 #ifdef __cpp_concepts
-    template<covariance Arg> requires (not case1or2<Arg>) and (not self_contained<nested_matrix_of<Arg>>)
+    template<covariance Arg> requires (not case1or2<Arg>) and (not self_contained<nested_matrix_of_t<Arg>>)
 #else
     template<typename Arg, std::enable_if_t<covariance<Arg> and
-      (not case1or2<Arg>) and (not self_contained<nested_matrix_of<Arg>>), int> = 0>
+      (not case1or2<Arg>) and (not self_contained<nested_matrix_of_t<Arg>>), int> = 0>
 #endif
     CovarianceBase(Arg& arg)
       : Base {arg.nested_matrix()},
@@ -226,11 +226,11 @@ namespace OpenKalman::internal
      * \brief Construct from an rvalue reference to a "Case 4" \ref covariance.
      */
 #ifdef __cpp_concepts
-    template<covariance Arg> requires (not case1or2<Arg>) and (not self_contained<nested_matrix_of<Arg>>) and
+    template<covariance Arg> requires (not case1or2<Arg>) and (not self_contained<nested_matrix_of_t<Arg>>) and
       std::is_rvalue_reference_v<Arg&&>
 #else
     template<typename Arg, std::enable_if_t<covariance<Arg> and (not case1or2<Arg>) and
-      (not self_contained<nested_matrix_of<Arg>>) and std::is_rvalue_reference_v<Arg&&>, int> = 0>
+      (not self_contained<nested_matrix_of_t<Arg>>) and std::is_rvalue_reference_v<Arg&&>, int> = 0>
 #endif
     CovarianceBase(Arg&& arg)
       : Base {std::move(arg).nested_matrix()},

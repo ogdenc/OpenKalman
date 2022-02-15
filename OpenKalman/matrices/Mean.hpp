@@ -139,11 +139,11 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<mean Arg> requires (not std::derived_from<std::decay_t<Arg>, Mean>) and
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients> and
-      modifiable<NestedMatrix, nested_matrix_of<Arg>>
+      modifiable<NestedMatrix, nested_matrix_of_t<Arg>>
 #else
     template<typename Arg, std::enable_if_t<mean<Arg> and (not std::is_base_of_v<Mean, std::decay_t<Arg>>) and
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients> and
-      modifiable<NestedMatrix, nested_matrix_of<Arg>>, int> = 0>
+      modifiable<NestedMatrix, nested_matrix_of_t<Arg>>, int> = 0>
 #endif
     auto& operator=(Arg&& other) noexcept
     {
@@ -161,11 +161,11 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<euclidean_transformed Arg> requires
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients> and
-      modifiable<NestedMatrix, decltype(from_euclidean<RowCoefficients>(std::declval<nested_matrix_of<Arg>>()))>
+      modifiable<NestedMatrix, decltype(from_euclidean<RowCoefficients>(std::declval<nested_matrix_of_t<Arg>>()))>
 #else
     template<typename Arg, std::enable_if_t<euclidean_transformed<Arg> and
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients> and
-      modifiable<NestedMatrix, decltype(from_euclidean<RowCoefficients>(std::declval<nested_matrix_of<Arg>>()))>, int> = 0>
+      modifiable<NestedMatrix, decltype(from_euclidean<RowCoefficients>(std::declval<nested_matrix_of_t<Arg>>()))>, int> = 0>
 #endif
     auto& operator=(Arg&& other) noexcept
     {
@@ -184,7 +184,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<typed_matrix Arg> requires (not mean<Arg>) and (not euclidean_transformed<Arg>) and
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients> and untyped_columns<Arg> and
-      modifiable<NestedMatrix, decltype(wrap_angles<RowCoefficients>(std::declval<nested_matrix_of<Arg>>()))>
+      modifiable<NestedMatrix, decltype(wrap_angles<RowCoefficients>(std::declval<nested_matrix_of_t<Arg>>()))>
 #else
     template<typename Arg, std::enable_if_t<typed_matrix<Arg> and
       (not mean<Arg>) and (not euclidean_transformed<Arg>) and

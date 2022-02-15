@@ -17,6 +17,8 @@
 #define OPENKALMAN_GLOBAL_DEFINITIONS_HPP
 
 #include <type_traits>
+#include <cstdint>
+#include <limits>
 
 namespace OpenKalman
 {
@@ -45,8 +47,32 @@ namespace OpenKalman
   };
 
 
+  /**
+   * \brief Determine whether two numbers are within a rounding tolerance
+   * \tparam Arg1 The first argument
+   * \tparam Arg2 The second argument
+   * \tparam epsilon_factor A factor to be multiplied by the epsilon
+   * \return true if within the rounding tolerance, otherwise false
+   */
+#ifdef __cpp_concepts
+  template<unsigned int epsilon_factor = 2, typename Arg1, typename Arg2> requires
+    requires { typename std::numeric_limits<decltype(std::declval<Arg1>() - std::declval<Arg2>())>; }
+#else
+  template<unsigned int epsilon_factor = 2, typename Arg1, typename Arg2,
+    typename = std::void_t<std::numeric_limits<decltype(std::declval<Arg1>() - std::declval<Arg2>())>>>
+#endif
+  constexpr bool are_within_tolerance(const Arg1& arg1, const Arg2& arg2)
+  {
+    auto diff = arg1 - arg2;
+    using Diff = decltype(diff);
+    constexpr auto ep = epsilon_factor * std::numeric_limits<Diff>::epsilon();
+    return -static_cast<Diff>(ep) <= diff and diff <= static_cast<Diff>(ep);
+  }
+
+
   namespace internal
   {
+
     /**
      * \internal
      * \brief A constexpr square root function.
@@ -89,7 +115,12 @@ namespace OpenKalman
 
 
     /**
-     * Compile time power.
+     * \internal
+     * \brief A constexpr power function.
+     * \tparam Scalar The scalar type.
+     * \param a The operand
+     * \param n The power
+     * \return a to the power of n.
      */
     template<typename Scalar>
   # ifdef __cpp_consteval
@@ -101,6 +132,7 @@ namespace OpenKalman
     {
       return n == 0 ? 1 : constexpr_pow(a, n / 2) * constexpr_pow(a, n / 2) * (n % 2 == 0 ?  1 : a);
     }
+
 
   } // namespace internal
 

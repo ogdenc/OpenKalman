@@ -125,13 +125,13 @@ namespace OpenKalman
       (not std::derived_from<std::decay_t<Arg>, Matrix>) and
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients> and
       equivalent_to<typename MatrixTraits<Arg>::ColumnCoefficients, ColumnCoefficients> and
-      modifiable<NestedMatrix, nested_matrix_of<Arg>>
+      modifiable<NestedMatrix, nested_matrix_of_t<Arg>>
 #else
     template<typename Arg, std::enable_if_t<typed_matrix<Arg> and (not euclidean_transformed<Arg>) and
       (not std::is_base_of_v<Matrix, std::decay_t<Arg>>) and
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients> and
       equivalent_to<typename MatrixTraits<Arg>::ColumnCoefficients, ColumnCoefficients> and
-      modifiable<NestedMatrix, nested_matrix_of<Arg>>, int> = 0>
+      modifiable<NestedMatrix, nested_matrix_of_t<Arg>>, int> = 0>
 #endif
     auto& operator=(Arg&& other) noexcept
     {
@@ -148,12 +148,12 @@ namespace OpenKalman
     template<euclidean_transformed Arg> requires
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients> and
       equivalent_to<typename MatrixTraits<Arg>::ColumnCoefficients, ColumnCoefficients> and
-      modifiable<NestedMatrix, decltype(from_euclidean<RowCoefficients>(std::declval<nested_matrix_of<Arg>>()))>
+      modifiable<NestedMatrix, decltype(from_euclidean<RowCoefficients>(std::declval<nested_matrix_of_t<Arg>>()))>
 #else
     template<typename Arg, std::enable_if_t<euclidean_transformed<Arg> and
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients> and
       equivalent_to<typename MatrixTraits<Arg>::ColumnCoefficients, ColumnCoefficients> and
-      modifiable<NestedMatrix, decltype(from_euclidean<RowCoefficients>(std::declval<nested_matrix_of<Arg>>()))>,
+      modifiable<NestedMatrix, decltype(from_euclidean<RowCoefficients>(std::declval<nested_matrix_of_t<Arg>>()))>,
         int> = 0>
 #endif
     auto& operator=(Arg&& other) noexcept
@@ -293,7 +293,7 @@ namespace OpenKalman
   Matrix(V&&) -> Matrix<
     typename MatrixTraits<V>::RowCoefficients,
     typename MatrixTraits<V>::ColumnCoefficients,
-    passable_t<nested_matrix_of<V>>>;
+    passable_t<nested_matrix_of_t<V>>>;
 
 
   /// Deduce template parameters from a Euclidean-transformed typed matrix.
@@ -319,7 +319,7 @@ namespace OpenKalman
   Matrix(V&&) -> Matrix<
     typename MatrixTraits<V>::RowCoefficients,
     typename MatrixTraits<V>::RowCoefficients,
-    equivalent_dense_writable_matrix_t<nested_matrix_of<V>>>;
+    equivalent_dense_writable_matrix_t<nested_matrix_of_t<V>>>;
 
 
   // ----------------------------- //

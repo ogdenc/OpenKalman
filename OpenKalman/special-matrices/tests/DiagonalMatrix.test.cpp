@@ -839,7 +839,7 @@ TEST(eigen3, Diagonal_references)
   DiagonalMatrix<M31&> x_l {x};
   EXPECT_TRUE(is_near(x_l, d3));
   DiagonalMatrix x_l2 {x_l};
-  static_assert(std::is_lvalue_reference_v<nested_matrix_of<decltype(x_l2)>>);
+  static_assert(std::is_lvalue_reference_v<nested_matrix_of_t<decltype(x_l2)>>);
   EXPECT_TRUE(is_near(x_l, d3));
   DiagonalMatrix<const M31&> x_lc = x_l;
   EXPECT_TRUE(is_near(x_lc, d3));
@@ -858,10 +858,10 @@ TEST(eigen3, Diagonal_references)
   M31 p; p << 10, 11, 12;
   M31 q; q << 13, 14, 15;
   DiagonalMatrix yl {p};
-  static_assert(std::is_lvalue_reference_v<nested_matrix_of<decltype(yl)>>);
+  static_assert(std::is_lvalue_reference_v<nested_matrix_of_t<decltype(yl)>>);
   EXPECT_TRUE(is_near(diagonal_of(yl), p));
   DiagonalMatrix yr {(M31 {} << 13, 14, 15).finished() * 1.0};
-  static_assert(not std::is_reference_v<nested_matrix_of<decltype(yr)>>);
+  static_assert(not std::is_reference_v<nested_matrix_of_t<decltype(yr)>>);
   EXPECT_TRUE(is_near(diagonal_of(yr), q));
   yl = DiagonalMatrix {q};
   EXPECT_TRUE(is_near(p, q));

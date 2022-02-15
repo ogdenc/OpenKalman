@@ -221,13 +221,13 @@ namespace OpenKalman::internal
 #endif
     auto& operator=(Arg&& arg) noexcept
     {
-      if constexpr(not (zero_matrix<nested_matrix_of<Arg>> and zero_matrix<NestedMatrix>) and
-        not (identity_matrix<nested_matrix_of<Arg>> and identity_matrix<NestedMatrix>))
+      if constexpr(not (zero_matrix<nested_matrix_of_t<Arg>> and zero_matrix<NestedMatrix>) and
+        not (identity_matrix<nested_matrix_of_t<Arg>> and identity_matrix<NestedMatrix>))
       {
         if constexpr (case1or2<Arg>)
         {
           // Arg is Case 1 or 2
-          if constexpr (triangular_matrix<nested_matrix_of<Arg>> == triangular_matrix<NestedMatrix> and
+          if constexpr (triangular_matrix<nested_matrix_of_t<Arg>> == triangular_matrix<NestedMatrix> and
             not diagonal_matrix<Arg>)
           {
             Base::nested_matrix() = to_covariance_nestable<NestedMatrix>(std::forward<Arg>(arg));

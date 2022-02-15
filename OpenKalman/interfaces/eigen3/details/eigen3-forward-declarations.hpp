@@ -82,8 +82,8 @@ namespace OpenKalman::Eigen3
 #else
   constexpr bool native_eigen_matrix =
 #endif
-    (not std::is_base_of_v<internal::Eigen3Base<std::decay_t<T>>, std::decay_t<T>>) and
-    std::is_base_of_v<Eigen::MatrixBase<std::decay_t<T>>, std::decay_t<T>>;
+    std::is_base_of_v<Eigen::MatrixBase<std::decay_t<T>>, std::decay_t<T>> and
+    (not std::is_base_of_v<internal::Eigen3Base<std::decay_t<T>>, std::decay_t<T>>);
 
 
   /**
@@ -95,7 +95,6 @@ namespace OpenKalman::Eigen3
 #else
   constexpr bool native_eigen_array =
 #endif
-    (not std::is_base_of_v<internal::Eigen3Base<std::decay_t<T>>, std::decay_t<T>>) and
     std::is_base_of_v<Eigen::ArrayBase<std::decay_t<T>>, std::decay_t<T>>;
 
 
@@ -159,8 +158,13 @@ namespace OpenKalman::Eigen3
    * \todo Demote Scalar to an optional parameter defaulting to decltype(auto), and possibly remove it conditionally with "__cpp_nontype_template_args >= 201911L"
    */
 #ifdef __cpp_concepts
+# if __cpp_nontype_template_args >= 201911L
+  template<arithmetic_or_complex Scalar, Scalar constant, std::size_t rows, std::size_t columns = 1>
+  requires std::convertible_to<decltype(constant), Scalar>
+# else
   template<arithmetic_or_complex Scalar, auto constant, std::size_t rows, std::size_t columns = 1>
   requires std::convertible_to<decltype(constant), Scalar>
+# endif
 #else
   template<typename Scalar, auto constant, std::size_t rows, std::size_t columns = 1>
 #endif

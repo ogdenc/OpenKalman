@@ -95,6 +95,14 @@ namespace OpenKalman::Eigen3
 
     template<typename DiagonalVectorType>
     struct is_eigen_DiagonalWrapper<Eigen::DiagonalWrapper<DiagonalVectorType>> : std::true_type {};
+
+
+    template<typename T>
+    struct is_eigen_Identity : std::false_type {};
+
+    template<typename Scalar, typename Arg>
+    struct is_eigen_Identity<Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<Scalar>, Arg>>
+      : std::true_type {};
   }
 
 
@@ -154,6 +162,19 @@ namespace OpenKalman::Eigen3
     eigen_SelfAdjointView<T> or eigen_TriangularView<T> or eigen_DiagonalMatrix<T> or eigen_DiagonalWrapper<T>;
 #endif
 
+
+  /**
+   * \brief T is an Eigen identity matrix (not necessarily an \ref identity_matrix).
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept eigen_Identity = detail::is_eigen_Identity<std::decay_t<T>>::value;
+#else
+  constexpr bool eigen_Identity = detail::is_eigen_Identity<std::decay_t<T>>::value;
+#endif
+
+
+
 } // namespace OpenKalman::Eigen3
 
 
@@ -180,14 +201,14 @@ namespace OpenKalman::internal
 #ifdef __cpp_concepts
   template<native_eigen_general T> requires (not native_eigen_matrix<T>) and (not native_eigen_array<T>) and
     (static_cast<bool>(Eigen::internal::traits<std::decay_t<T>>::Flags & Eigen::LvalueBit)) and
-    writable<nested_matrix_of<T>>
+    writable<nested_matrix_of_t<T>>
   struct is_writable<T>
 #else
   template<typename T>
   struct is_writable<T, std::enable_if_t<native_eigen_general<T> and
     (not native_eigen_matrix<T>) and (not native_eigen_array<T>) and
     (static_cast<bool>(Eigen::internal::traits<std::decay_t<T>>::Flags & Eigen::LvalueBit)) and
-    writable<nested_matrix_of<T>>>>
+    writable<nested_matrix_of_t<T>>>>
 #endif
     : std::true_type {};
 

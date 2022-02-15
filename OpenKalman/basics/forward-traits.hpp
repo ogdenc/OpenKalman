@@ -380,7 +380,7 @@ namespace OpenKalman
    * \brief helper template for \ref scalar_type_of.
    */
 #ifdef __cpp_concepts
-  template<typename T> requires requires { typename scalar_type_of<T>::type; }
+  template<typename T> requires requires { typename interface::ScalarTypeOf<std::decay_t<T>>::type; }
 #else
   template<typename T>
 #endif
@@ -459,9 +459,9 @@ namespace OpenKalman
 #endif
 
 
-  // ------------------------------------- //
-  //  has_nested_matrix, nested_matrix_of  //
-  // ------------------------------------- //
+  // --------------------------------------- //
+  //  has_nested_matrix, nested_matrix_of_t  //
+  // --------------------------------------- //
 
 #ifndef __cpp_concepts
   namespace detail
@@ -471,7 +471,7 @@ namespace OpenKalman
 
     template<typename T>
     struct has_nested_matrix_impl<T, std::enable_if_t<
-      std::tuple_size_v<typename interface::Dependencies<T>::type> > 0>> = std::true_type {};
+      (std::tuple_size<typename interface::Dependencies<T>::type>::value > 0)>> : std::true_type {};
   }
 #endif
 
@@ -491,16 +491,36 @@ namespace OpenKalman
    * \details For example, for OpenKalman::Mean<RowCoefficients, M>, the nested matrix type is M.
    * \tparam T A wrapper type that has a nested matrix.
    * \tparam i Index of the dependency (0 by default)
-   * \internal
-   *   \note If interface::Dependencies::type is not defined or is not a tuple, there will be a compile-time error.
-   *   \sa interface::Dependencies
+   * \internal \sa interface::Dependencies
    */
 #ifdef __cpp_concepts
-  template<has_nested_matrix T, std::size_t i = 0>
+  template<typename T, std::size_t i = 0> requires
+    (i < std::tuple_size_v<typename interface::Dependencies<std::decay_t<T>>::type>)
+  using nested_matrix_of = std::tuple_element<i, typename interface::Dependencies<std::decay_t<T>>::type>;
+#else
+  template<typename T, std::size_t i = 0, typename = void>
+  struct nested_matrix_of {};
+
+  template<typename T, std::size_t i>
+  struct nested_matrix_of<T, i, std::enable_if_t<
+    (i < std::tuple_size<typename interface::Dependencies<std::decay_t<T>>::type>::value)>>
+    : std::tuple_element<i, typename interface::Dependencies<std::decay_t<T>>::type> {};
+#endif
+
+
+  /**
+   * \brief Helper type for \ref nested_matrix_of.
+   * \tparam T A wrapper type that has a nested matrix.
+   * \tparam i Index of the dependency (0 by default)
+   */
+#ifdef __cpp_concepts
+  template<typename T, std::size_t i = 0> requires
+      (i < std::tuple_size_v<typename interface::Dependencies<std::decay_t<T>>::type>)
+  using nested_matrix_of_t = typename nested_matrix_of<T, i>::type;
 #else
   template<typename T, std::size_t i = 0>
+  using nested_matrix_of_t = typename nested_matrix_of<T, i>::type;
 #endif
-  using nested_matrix_of = std::tuple_element_t<i, typename interface::Dependencies<std::decay_t<T>>::type>;
 
 
   // ---------------- //
@@ -531,7 +551,8 @@ namespace OpenKalman
     struct self_contained_impl<T> : std::true_type {};
 #else
     template<typename T>
-    struct self_contained_impl<T, std::void_t<std::tuple_size_v<typename interface::Dependencies<std::decay_t<T>>::type> >= 0>>
+    struct self_contained_impl<T, std::enable_if_t<
+      (std::tuple_size<typename interface::Dependencies<std::decay_t<T>>::type>::value >= 0)>>
       : std::bool_constant<(not std::is_lvalue_reference_v<T>) and
           no_lvalue_ref_dependencies<typename interface::Dependencies<std::decay_t<T>>::type>(
           std::make_index_sequence<std::tuple_size_v<typename interface::Dependencies<std::decay_t<T>>::type>> {})> {};
@@ -553,62 +574,18 @@ namespace OpenKalman
 #endif
 
 
-  namespace internal
-  {
-  // --------------------------- //
-  //  constant_coefficient_type  //
-  // --------------------------- //
-
-    template<auto constant, typename Scalar = decltype(constant)>
-    using constant_coefficient_type = std::integral_constant<
-#if __cpp_nontype_template_args >= 201911L
-      Scalar,
-#else
-      std::conditional_t<std::is_integral_v<Scalar>, Scalar, short>,
-#endif
-      constant>;
-  }
-
-
   // --------------------------------------- //
-  //  constant_coefficient, constant_matrix  //
+  //  constant_matrix, constant_coefficient  //
   // --------------------------------------- //
-
-  /**
-   * \brief The constant associated with a \ref constant_matrix.
-   * \details The constant must derive from std::integral_constant<type, value>
-   */
-#ifdef __cpp_concepts
-  template<typename T>
-#else
-  template<typename T, typename = void>
-#endif
-  struct constant_coefficient;
-
-
-#ifdef __cpp_concepts
-  template<typename T> requires std::is_reference_v<T> or std::is_const_v<std::remove_reference_t<T>>
-  struct constant_coefficient<T> : constant_coefficient<std::decay_t<T>> {};
-#else
-  template<typename T>
-  struct constant_coefficient<T&> : constant_coefficient<T> {};
-
-  template<typename T>
-  struct constant_coefficient<T&&> : constant_coefficient<T> {};
-
-  template<typename T>
-  struct constant_coefficient<const T> : constant_coefficient<T> {};
-#endif
-
 
 #ifndef __cpp_concepts
   namespace detail
   {
     template<typename T, typename = void>
-    struct constant_coefficient_is_defined : std::false_type {};
+    struct is_constant_matrix : std::false_type {};
 
     template<typename T>
-    struct constant_coefficient_is_defined<T, std::void_t<decltype(constant_coefficient<T>::value)>>
+    struct is_constant_matrix<T, std::void_t<decltype(interface::SingleConstant<std::decay_t<T>>::value)>>
       : std::true_type {};
   }
 #endif
@@ -619,31 +596,77 @@ namespace OpenKalman
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept constant_matrix = requires { constant_coefficient<std::decay_t<T>>::value; };
+  concept constant_matrix = requires { interface::SingleConstant<std::decay_t<T>>::value; };
 #else
-  constexpr bool constant_matrix = detail::constant_coefficient_is_defined<std::decay_t<T>>::value;
+  constexpr bool constant_matrix = detail::is_constant_matrix<T>::value;
 #endif
 
 
+  /**
+   * \brief The constant associated with T if T is a \ref constant_matrix.
+   */
+#ifdef __cpp_concepts
+  template<typename T>
+#else
+  template<typename T, typename = void>
+#endif
+  struct constant_coefficient;
+
+
+#ifdef __cpp_concepts
+  template<constant_matrix T>
+  struct constant_coefficient<T>
+#else
+  template<typename T>
+  struct constant_coefficient<T, std::enable_if_t<constant_matrix<T>>>
+#endif
+  {
+#  if __cpp_nontype_template_args >= 201911L
+    static constexpr scalar_type_of_t<T> value = interface::SingleConstant<std::decay_t<T>>::value;
+#  else
+    static constexpr auto value = interface::SingleConstant<std::decay_t<T>>::value;
+#  endif
+  };
+
+
+  /**
+   * \brief Helper template for constant_coefficient.
+   */
 #ifdef __cpp_concepts
   template<constant_matrix T>
 #else
   template<typename T>
 #endif
-  constexpr auto constant_coefficient_v = constant_coefficient<std::decay_t<T>>::value;
-
-
-#ifdef __cpp_concepts
-  template<constant_matrix T>
-#else
-  template<typename T>
-#endif
-  using constant_coefficient_t = typename constant_coefficient<std::decay_t<T>>::type;
+  constexpr auto constant_coefficient_v = constant_coefficient<T>::value;
 
 
   // --------------------------------------------------------- //
   //  constant_diagonal_coefficient, constant_diagonal_matrix  //
   // --------------------------------------------------------- //
+
+#ifndef __cpp_concepts
+  namespace detail
+  {
+    template<typename T, typename = void>
+    struct is_constant_diagonal_matrix : std::false_type {};
+
+    template<typename T>
+    struct is_constant_diagonal_matrix<T, std::void_t<
+      decltype(interface::SingleConstantDiagonal<std::decay_t<T>>::value)>> : std::true_type {};
+  }
+#endif
+
+
+  /**
+   * \brief Specifies that a type is a constant matrix, with the constant known at compile time.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept constant_diagonal_matrix = requires { interface::SingleConstantDiagonal<std::decay_t<T>>::value; };
+#else
+  constexpr bool constant_diagonal_matrix = detail::is_constant_diagonal_matrix<T>::value;
+#endif
+
 
   /**
    * \brief The constant associated with a \ref constant_diagonal_matrix.
@@ -658,42 +681,19 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<typename T> requires std::is_reference_v<T> or std::is_const_v<std::remove_reference_t<T>>
-  struct constant_diagonal_coefficient<T> : constant_diagonal_coefficient<std::decay_t<T>> {};
+  template<constant_diagonal_matrix T>
+  struct constant_diagonal_coefficient<T>
 #else
   template<typename T>
-  struct constant_diagonal_coefficient<T&> : constant_diagonal_coefficient<T> {};
-
-  template<typename T>
-  struct constant_diagonal_coefficient<T&&> : constant_diagonal_coefficient<T> {};
-
-  template<typename T>
-  struct constant_diagonal_coefficient<const T> : constant_diagonal_coefficient<T> {};
+  struct constant_diagonal_coefficient<T, std::enable_if_t<constant_diagonal_matrix<T>>>
 #endif
-
-
-#ifndef __cpp_concepts
-  namespace detail
   {
-    template<typename T, typename = void>
-    struct is_constant_diagonal_matrix : std::false_type {};
-
-    template<typename T>
-    struct is_constant_diagonal_matrix<T, std::void_t<decltype(constant_diagonal_coefficient<T>::value)>>
-      : std::true_type {};
-  }
-#endif
-
-
-  /**
-   * \brief Specifies that a type is a constant matrix, with the constant known at compile time.
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept constant_diagonal_matrix = requires { constant_diagonal_coefficient<std::decay_t<T>>::value; };
-#else
-  constexpr bool constant_diagonal_matrix = detail::is_constant_diagonal_matrix<std::decay_t<T>>::value;
-#endif
+#  if __cpp_nontype_template_args >= 201911L
+    static constexpr scalar_type_of<T> value = interface::SingleConstantDiagonal<std::decay_t<T>>::value;
+#  else
+    static constexpr auto value = interface::SingleConstantDiagonal<std::decay_t<T>>::value;
+#  endif
+  };
 
 
   /// Helper template for constant_diagonal_coefficient.
@@ -702,16 +702,7 @@ namespace OpenKalman
 #else
   template<typename T>
 #endif
-  constexpr auto constant_diagonal_coefficient_v = constant_diagonal_coefficient<std::decay_t<T>>::value;
-
-
-  /// Helper template for constant_diagonal_coefficient.
-#ifdef __cpp_concepts
-  template<constant_diagonal_matrix T>
-#else
-  template<typename T>
-#endif
-  using constant_diagonal_coefficient_t = typename constant_diagonal_coefficient<std::decay_t<T>>::type;
+  constexpr auto constant_diagonal_coefficient_v = constant_diagonal_coefficient<T>::value;
 
 
   // ------------- //
@@ -725,11 +716,13 @@ namespace OpenKalman
     struct is_zero_matrix : std::false_type {};
 
     template<typename T>
-    struct is_zero_matrix<T, std::enable_if_t<constant_coefficient<T>::value == 0>>
+    struct is_zero_matrix<T, std::enable_if_t<
+      are_within_tolerance(interface::SingleConstant<std::decay_t<T>>::value, 0)>>
       : std::true_type {};
 
     template<typename T>
-    struct is_zero_matrix<T, std::enable_if_t<not constant_matrix<T> and constant_diagonal_coefficient<T>::value == 0>>
+    struct is_zero_matrix<T, std::enable_if_t<
+      not constant_matrix<T> and are_within_tolerance(interface::SingleConstantDiagonal<std::decay_t<T>>::value, 0)>>
       : std::true_type {};
   }
 #endif
@@ -740,10 +733,10 @@ namespace OpenKalman
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept zero_matrix = (constant_coefficient_v<std::decay_t<T>> == 0) or
-    (constant_diagonal_coefficient_v<std::decay_t<T>> == 0);
+  concept zero_matrix = are_within_tolerance(constant_coefficient_v<T>, 0) or
+    are_within_tolerance(constant_diagonal_coefficient_v<T>, 0);
 #else
-  constexpr bool zero_matrix = detail::is_zero_matrix<std::decay_t<T>>::value;
+  constexpr bool zero_matrix = detail::is_zero_matrix<T>::value;
 #endif
 
 
@@ -758,15 +751,15 @@ namespace OpenKalman
     struct is_identity_matrix : std::false_type {};
 
     template<typename T>
-    struct is_identity_matrix<T, std::enable_if_t<(constant_diagonal_coefficient<T>::value == 1)>>
+    struct is_identity_matrix<T, std::enable_if_t<are_within_tolerance(constant_diagonal_coefficient<T>::value, 1)>>
       : std::true_type {};
 
     template<typename T, typename = void>
     struct is_1by1_identity_matrix : std::false_type {};
 
     template<typename T>
-    struct is_1by1_identity_matrix<T, std::enable_if_t<
-      (constant_coefficient<T>::value == 1 and row_extent_of<T>::value == 1 and column_extent_of<T>::value == 1)>>
+    struct is_1by1_identity_matrix<T, std::enable_if_t<are_within_tolerance(constant_coefficient<T>::value, 1) and
+      row_extent_of<T>::value == 1 and column_extent_of<T>::value == 1>>
       : std::true_type {};
   }
 #endif
@@ -776,8 +769,8 @@ namespace OpenKalman
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept identity_matrix = (constant_diagonal_coefficient_v<T> == 1) or
-    (constant_coefficient_v<T> == 1 and row_extent_of_v<T> == 1 and column_extent_of_v<T> == 1);
+  concept identity_matrix = are_within_tolerance(constant_diagonal_coefficient_v<T>, 1) or
+    (are_within_tolerance(constant_coefficient_v<T>, 1) and row_extent_of_v<T> == 1 and column_extent_of_v<T> == 1);
 #else
   constexpr bool identity_matrix = detail::is_identity_matrix<std::decay_t<T>>::value or
     detail::is_1by1_identity_matrix<std::decay_t<T>>::value;
@@ -793,7 +786,7 @@ namespace OpenKalman
     /**
      * \internal
      * \brief A type trait testing whether an object is a diagonal matrix
-     * \note This excludes zero_matrix, identity_matrix, or one_by_one_matrix.
+     * \note This excludes \ref zero_matrix, \ref identity_matrix, or \ref one_by_one_matrix.
      */
 #ifdef __cpp_concepts
     template<typename T>
@@ -812,13 +805,7 @@ namespace OpenKalman
 
     template<typename T>
     struct is_inferred_diagonal_matrix<T, std::enable_if_t<
-      not dynamic_shape<T> and row_extent_of<T>::value == 1 and column_extent_of<T>::value == 1>>
-      : std::true_type {};
-
-    template<typename T>
-    struct is_inferred_diagonal_matrix<T, std::enable_if_t<not dynamic_shape<T> and
-      row_extent_of<T>::value == column_extent_of<T>::value and row_extent_of<T>::value != 1 and
-      constant_coefficient<T>::value == 0>>
+      row_extent_of<T>::value == 1 and column_extent_of<T>::value == 1>>
       : std::true_type {};
   }
 #endif
@@ -830,8 +817,8 @@ namespace OpenKalman
   template<typename T>
 #ifdef __cpp_concepts
   concept diagonal_matrix = internal::is_diagonal_matrix<std::decay_t<T>>::value or
-    (not dynamic_shape<T> and row_extent_of_v<T> == column_extent_of_v<T> and
-    (row_extent_of_v<T> == 1 or constant_coefficient_v<T> == 0)) or constant_diagonal_matrix<T>;
+    (not dynamic_shape<T> and row_extent_of_v<T> == column_extent_of_v<T> and row_extent_of_v<T> == 1) or
+    constant_diagonal_matrix<T>;
 #else
   constexpr bool diagonal_matrix = internal::is_diagonal_matrix<std::decay_t<T>>::value or
     detail::is_inferred_diagonal_matrix<std::decay_t<T>>::value or constant_diagonal_matrix<T>;
@@ -1137,7 +1124,6 @@ namespace OpenKalman
       (row_extent_of<T>::value == 1 or column_extent_of<T>::value == 1) and square_matrix<T>>> : std::true_type {};
   }
 #endif
-
 
   /**
    * \brief Specifies that a type is a one-by-one matrix (i.e., one row and one column).
@@ -1483,7 +1469,7 @@ namespace OpenKalman
 
     template<typename T>
     struct is_cholesky_form<T, std::enable_if_t<covariance<T>>>
-      : std::bool_constant<not self_adjoint_matrix<nested_matrix_of<T>>> {};
+      : std::bool_constant<not self_adjoint_matrix<nested_matrix_of_t<T>>> {};
 
     template<typename T>
     struct is_cholesky_form<T, std::enable_if_t<distribution<T>>>
@@ -1494,12 +1480,12 @@ namespace OpenKalman
 
   /**
    * \brief Specifies that a type has a nested native matrix that is a Cholesky square root.
-   * \details If this is true, then nested_matrix_of<T> is true.
+   * \details If this is true, then nested_matrix_of_t<T> is true.
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept cholesky_form = (not covariance<T> or not self_adjoint_matrix<nested_matrix_of<T>>) or
-    (not distribution<T> or not self_adjoint_matrix<nested_matrix_of<typename DistributionTraits<T>::Covariance>>);
+  concept cholesky_form = (not covariance<T> or not self_adjoint_matrix<nested_matrix_of_t<T>>) or
+    (not distribution<T> or not self_adjoint_matrix<nested_matrix_of_t<typename DistributionTraits<T>::Covariance>>);
 #else
   constexpr bool cholesky_form = detail::is_cholesky_form<std::decay_t<T>>::value;
 #endif
@@ -1577,7 +1563,8 @@ namespace OpenKalman
 
     template<typename T, typename...I>
     struct element_gettable_impl<T, std::enable_if_t<(std::is_convertible_v<I, const std::size_t&> and ...) and
-      std::is_invocable<interface::GetElement<std::decay_t<T>, I...>::get, T&&, I...>::value and
+      std::is_void<std::void_t<decltype(interface::GetElement<std::decay_t<T>, void, I...>::get(
+        std::declval<T&&>(), std::declval<I>()...))>>::value and
       (sizeof...(I) > 0) and (sizeof...(I) != 1 or column_vector<T> or row_vector<T>)>, I...>
       : std::true_type {};
   }
@@ -1609,9 +1596,11 @@ namespace OpenKalman
 
     template<typename T, typename...I>
     struct element_settable_impl<T, std::enable_if_t<(std::is_convertible_v<I, const std::size_t&> and ...) and
-      (not std::is_const_v<std::remove_reference_t<T>>) and (sizeof...(I) != 1 or column_vector<T> or row_vector<T>) and
-      std::is_invocable<interface::SetElement<std::decay_t<T>, const I...>::set, std::remove_reference_t<T>&,
-        const scalar_type_of_t<T>&, I...>::value>, I...>
+      (not std::is_const_v<std::remove_reference_t<T>>) and
+      std::is_void<std::void_t<decltype(interface::SetElement<std::decay_t<T>, void, I...>::set(
+        std::declval<std::remove_reference_t<T>&>(),
+        std::declval<const scalar_type_of_t<T>&>(), std::declval<I>()...))>>::value and
+      (sizeof...(I) > 0) and (sizeof...(I) != 1 or column_vector<T> or row_vector<T>)>, I...>
       : std::true_type {};
   }
 #endif
@@ -1625,7 +1614,7 @@ namespace OpenKalman
   concept element_settable = (std::convertible_to<I, const std::size_t&> and ...) and
     (not std::is_const_v<std::remove_reference_t<T>>) and (sizeof...(I) != 1 or column_vector<T> or row_vector<T>) and
     requires(std::remove_reference_t<T>& t, const scalar_type_of_t<T>& s, I...i) {
-      interface::SetElement<std::decay_t<T>, const I...>::set(t, s, i...);
+      interface::SetElement<std::decay_t<T>, I...>::set(t, s, i...);
     };
 #else
   constexpr bool element_settable = detail::element_settable_impl<T, void, I...>::value;

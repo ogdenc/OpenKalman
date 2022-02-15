@@ -159,10 +159,10 @@ namespace OpenKalman::internal
      */
 #ifdef __cpp_concepts
     template<covariance Arg> requires case1or2<Arg> and
-      (triangular_matrix<nested_matrix_of<Arg>> == triangular_matrix<NestedMatrix>) and (not diagonal_matrix<Arg>)
+      (triangular_matrix<nested_matrix_of_t<Arg>> == triangular_matrix<NestedMatrix>) and (not diagonal_matrix<Arg>)
 #else
     template<typename Arg, std::enable_if_t<covariance<Arg> and case1or2<Arg> and
-      (triangular_matrix<nested_matrix_of<Arg>> == triangular_matrix<NestedMatrix>) and
+      (triangular_matrix<nested_matrix_of_t<Arg>> == triangular_matrix<NestedMatrix>) and
       (not diagonal_matrix<Arg>), int> = 0>
 #endif
     CovarianceBase(Arg&& arg) noexcept
@@ -177,10 +177,10 @@ namespace OpenKalman::internal
      */
 #ifdef __cpp_concepts
     template<covariance Arg> requires case1or2<Arg> and
-      (triangular_matrix<nested_matrix_of<Arg>> != triangular_matrix<NestedMatrix> or diagonal_matrix<Arg>)
+      (triangular_matrix<nested_matrix_of_t<Arg>> != triangular_matrix<NestedMatrix> or diagonal_matrix<Arg>)
 #else
     template<typename Arg, std::enable_if_t<covariance<Arg> and case1or2<Arg> and
-      (triangular_matrix<nested_matrix_of<Arg>> != triangular_matrix<NestedMatrix> or diagonal_matrix<Arg>), int> = 0>
+      (triangular_matrix<nested_matrix_of_t<Arg>> != triangular_matrix<NestedMatrix> or diagonal_matrix<Arg>), int> = 0>
 #endif
     CovarianceBase(Arg&& arg) noexcept
       : Base {to_covariance_nestable<CholeskyNestedMatrix>(std::forward<Arg>(arg)), -1} {}

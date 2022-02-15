@@ -426,7 +426,7 @@ TEST(matrices, GaussianDistribution_class_random)
     mean_x = (mean_x * i + to_euclidean(x)) / (i + 1);
   }
   EXPECT_NE(from_euclidean(mean_x), true_x);
-  EXPECT_TRUE(is_near(Mean(from_euclidean(mean_x) - true_x), V::zero(), nested_matrix_of<V>::Constant(0.2)));
+  EXPECT_TRUE(is_near(Mean(from_euclidean(mean_x) - true_x), V::zero(), nested_matrix_of_t<V>::Constant(0.2)));
 }
 
 
@@ -446,7 +446,7 @@ TEST(matrices, GaussianDistribution_class_random_axis)
     mean_x = (mean_x * i + to_euclidean(x)) / (i + 1);
   }
   EXPECT_NE(from_euclidean(mean_x), true_x);
-  EXPECT_TRUE(is_near(from_euclidean(mean_x), true_x, nested_matrix_of<Mat>::Constant(1.0)));
+  EXPECT_TRUE(is_near(from_euclidean(mean_x), true_x, nested_matrix_of_t<Mat>::Constant(1.0)));
 }
 
 
@@ -470,7 +470,7 @@ TEST(matrices, GaussianDistribution_class_Cholesky_random)
     mean_x = (mean_x * i + to_euclidean(x)) / (i + 1);
   }
   EXPECT_NE(from_euclidean(mean_x), true_x);
-  EXPECT_TRUE(is_near(Mean(from_euclidean(mean_x) - true_x), V::zero(), nested_matrix_of<V>::Constant(0.2)));
+  EXPECT_TRUE(is_near(Mean(from_euclidean(mean_x) - true_x), V::zero(), nested_matrix_of_t<V>::Constant(0.2)));
 }
 
 
@@ -492,7 +492,7 @@ TEST(matrices, GaussianDistribution_class_Cholesky_random_axis)
     mean_x = (mean_x * i + to_euclidean(x)) / (i + 1);
   }
   EXPECT_NE(from_euclidean(mean_x), true_x);
-  EXPECT_TRUE(is_near(from_euclidean(mean_x), true_x, nested_matrix_of<Mat>::Constant(1.0)));
+  EXPECT_TRUE(is_near(from_euclidean(mean_x), true_x, nested_matrix_of_t<Mat>::Constant(1.0)));
 }
 
 

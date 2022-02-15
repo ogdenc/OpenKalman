@@ -107,13 +107,13 @@ namespace OpenKalman
     template<typed_matrix Arg> requires (not std::derived_from<std::decay_t<Arg>, EuclideanMean>) and
       (euclidean_transformed<Arg> or RowCoefficients::axes_only) and
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients> and
-      untyped_columns<Arg> and modifiable<NestedMatrix, nested_matrix_of<Arg>>
+      untyped_columns<Arg> and modifiable<NestedMatrix, nested_matrix_of_t<Arg>>
 #else
     template<typename Arg, std::enable_if_t<typed_matrix<Arg> and
       (not std::is_base_of_v<EuclideanMean, std::decay_t<Arg>>) and
       (euclidean_transformed<Arg> or RowCoefficients::axes_only) and
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients> and
-      untyped_columns<Arg> and modifiable<NestedMatrix, nested_matrix_of<Arg>>, int> = 0>
+      untyped_columns<Arg> and modifiable<NestedMatrix, nested_matrix_of_t<Arg>>, int> = 0>
 #endif
     auto& operator=(Arg&& other) noexcept
     {
@@ -133,13 +133,13 @@ namespace OpenKalman
     template<typed_matrix Arg> requires (not std::derived_from<std::decay_t<Arg>, EuclideanMean>) and
       (not euclidean_transformed<Arg> and not RowCoefficients::axes_only) and
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients> and
-      untyped_columns<Arg> and modifiable<NestedMatrix, nested_matrix_of<Arg>>
+      untyped_columns<Arg> and modifiable<NestedMatrix, nested_matrix_of_t<Arg>>
 #else
     template<typename Arg, std::enable_if_t<typed_matrix<Arg> and
       (not std::is_base_of_v<EuclideanMean, std::decay_t<Arg>>) and
       (not euclidean_transformed<Arg> and not RowCoefficients::axes_only) and
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, RowCoefficients> and
-      untyped_columns<Arg> and modifiable<NestedMatrix, nested_matrix_of<Arg>>, int> = 0>
+      untyped_columns<Arg> and modifiable<NestedMatrix, nested_matrix_of_t<Arg>>, int> = 0>
 #endif
     auto& operator=(Arg&& other) noexcept
     {
@@ -289,7 +289,7 @@ namespace OpenKalman
 #else
   template<typename V, std::enable_if_t<typed_matrix<V> and euclidean_transformed<V>, int> = 0>
 #endif
-  EuclideanMean(V&&) -> EuclideanMean<typename MatrixTraits<V>::RowCoefficients, nested_matrix_of<V>>;
+  EuclideanMean(V&&) -> EuclideanMean<typename MatrixTraits<V>::RowCoefficients, nested_matrix_of_t<V>>;
 
 
   /// Deduce template parameters from a typed_matrix_nestable, assuming axis-only coefficients.

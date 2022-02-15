@@ -73,7 +73,7 @@ namespace OpenKalman::interface
   struct SetElement<T, I...>
 #else
   template<typename T, typename...I>
-  struct SetElement<T, I..., std::enable_if_t<covariance<T> and element_settable<nested_matrix_of<Arg>, I...> and
+  struct SetElement<T, I..., std::enable_if_t<covariance<T> and element_settable<nested_matrix_of_t<Arg>, I...> and
     ((sizeof...(I) <= 2) and ... and std::is_convertible_v<I, const std::size_t&>) and
     (not self_adjoint_covariance<T> or element_gettable<decltype(std::declval<T>().get_self_adjoint_nested_matrix()), I...>) and
     (not triangular_covariance<T> or element_gettable<decltype(std::declval<T>().get_triangular_nested_matrix()), I...>)>>

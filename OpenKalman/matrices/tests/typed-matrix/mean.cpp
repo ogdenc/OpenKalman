@@ -491,7 +491,7 @@ TEST(matrices, Mean_angles_construct_coefficients)
   EXPECT_TRUE(is_near(v3_1, m3));
   auto v3_2 = v3;
   EXPECT_TRUE(is_near(v3_2, m3));
-  static_assert(std::is_same_v<nested_matrix_of<decltype(v3)>, decltype(m3)>);
+  static_assert(std::is_same_v<nested_matrix_of_t<decltype(v3)>, decltype(m3)>);
   auto v3_3 = make_mean<double, Coefficients<Axis, angle::Radians, Axis>, 3>();
   v3_3 << make_native_matrix(v3);
   EXPECT_TRUE(is_near(v3_3, m3));
@@ -583,17 +583,17 @@ TEST(matrices, Mean_angle_arithmetic)
   v7 += v2;
   EXPECT_TRUE(is_near(v7, v1));
   auto v6 = make_mean(v1 + v2);
-  static_assert(std::is_same_v<nested_matrix_of<decltype(v6)>&, decltype(v6.nested_matrix())>);
+  static_assert(std::is_same_v<nested_matrix_of_t<decltype(v6)>&, decltype(v6.nested_matrix())>);
   v7 = v6;
   EXPECT_TRUE(is_near(v7, v6));
   v7 += v6;
   EXPECT_TRUE(is_near(v7, Var3 {6 - pi*2, 12, -6 + pi*2, 24, -10}));
   v7 -= v6;
   EXPECT_TRUE(is_near(v7, v6));
-  static_assert(std::is_same_v<nested_matrix_of<decltype(v5)>&, decltype(v5.nested_matrix())>);
+  static_assert(std::is_same_v<nested_matrix_of_t<decltype(v5)>&, decltype(v5.nested_matrix())>);
   static_assert(std::is_same_v<equivalent_self_contained_t<decltype((v5 + v2).nested_matrix())>,
     equivalent_self_contained_t<equivalent_self_contained_t<decltype(wrap_angles<C>(v5.nested_matrix()))>>>);
-  static_assert(std::is_same_v<equivalent_self_contained_t<nested_matrix_of<decltype(make_self_contained(v5))>>,
+  static_assert(std::is_same_v<equivalent_self_contained_t<nested_matrix_of_t<decltype(make_self_contained(v5))>>,
     equivalent_self_contained_t<equivalent_self_contained_t<decltype(wrap_angles<C>(v5.nested_matrix()))>>>);
 }
 

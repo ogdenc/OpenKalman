@@ -23,16 +23,18 @@ namespace OpenKalman
    * \brief Convert to an equivalent, dense, writable matrix.
    */
 #ifdef __cpp_concepts
-  template<typename Arg> requires requires { typename EquivalentDenseWritableMatrix<Arg>; }
+  template<typename Arg> requires requires(Arg&& arg) {
+    EquivalentDenseWritableMatrix<Arg>::convert(std::forward<Arg>(arg)); }
 #else
-  template<typename Arg, typename = std::void_t<interface::EquivalentDenseWritableMatrix<Arg>>>
+  template<typename Arg,
+    typename = std::void_t<decltype(interface::EquivalentDenseWritableMatrix<Arg>::template convert<Arg&&>)>>
 #endif
   constexpr decltype(auto)
   make_native_matrix(Arg&& arg) noexcept
   {
     using Trait = EquivalentDenseWritableMatrix<std::decay_t<Arg>>;
     using T = std::remove_reference_t<decltype(Trait::convert(std::declval<Arg&&>()))>;
-    static_assert(not std::is_const_v<T>, "EquivalentDenseWritableMatrix::convert() logic error: returns const result");
+    static_assert(not std::is_const_v<T>, "EquivalentDenseWritableMatrix::convert logic error: returns const result");
     if constexpr (std::is_same_v<std::remove_reference_t<Arg>, T>)
       return std::forward<Arg>(arg);
     else
@@ -90,8 +92,8 @@ namespace OpenKalman
     requires(Arg&& arg) { Dependencies<std::decay_t<Arg>>::template get_nested_matrix<i>(std::forward<Arg>(arg)); }
 #else
   template<std::size_t i = 0, typename Arg,
-    std::enable_if_t<(i < std::tuple_size_v<typename Dependencies<std::decay_t<Arg>>::type)>, int> == 0,
-    typename = std::void_t<decltype(Dependencies<std::decay_t<T>>::template get_nested_matrix<i>(std::declval<Arg&&>()))>>
+    std::enable_if_t<(i < std::tuple_size<typename Dependencies<std::decay_t<Arg>>::type>::value), int> = 0,
+    typename = std::void_t<decltype(Dependencies<std::decay_t<Arg>>::template get_nested_matrix<i>(std::declval<Arg&&>()))>>
 #endif
   constexpr decltype(auto)
   nested_matrix(Arg&& arg) noexcept
@@ -131,9 +133,9 @@ namespace OpenKalman
 
     template<typename T>
     struct all_lvalue_ref_dependencies_detail<T, std::void_t<typename Dependencies<T>::type>>
-      : std::bool_constant<has_no_runtime_parameters_impl<T> and
-        all_lvalue_ref_dependencies_impl<typename Dependencies<T>::type>(
-          std::make_index_sequence<std::tuple_size_v<typename Dependencies<T>::type>> {})> {};
+      : std::bool_constant<has_no_runtime_parameters_impl<T>::value and
+        (all_lvalue_ref_dependencies_impl<typename Dependencies<T>::type>(
+          std::make_index_sequence<std::tuple_size_v<typename Dependencies<T>::type>> {}))> {};
 
     template<typename T>
     constexpr bool all_lvalue_ref_dependencies = all_lvalue_ref_dependencies_detail<std::decay_t<T>>::value;
@@ -182,10 +184,11 @@ namespace OpenKalman
     {
       return std::forward<Arg>(arg);
     }
-    else if constexpr (self_contained<std::remove_reference_t<Arg>>)
+    else if constexpr (std::is_lvalue_reference_v<Arg> and self_contained<std::decay_t<Arg>> and
+      std::is_copy_constructible_v<std::decay_t<Arg>>)
     {
-      // If it's not self-contained because it is an lvalue reference, simply make a copy and return by value.
-      return std::remove_reference_t<Arg> {std::forward<Arg>(arg)};
+      // If it is not self-contained because it is an lvalue reference, simply return a copy.
+      return std::decay_t<Arg> {arg};
     }
 #ifdef __cpp_concepts
     else if constexpr (requires {Dependencies<std::decay_t<Arg>>::convert_to_self_contained(std::forward<Arg>(arg)); })
@@ -274,32 +277,43 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typename Arg, std::convertible_to<std::size_t>...I> requires
     element_gettable<Arg, std::conditional_t<std::same_as<I, std::size_t>, I, std::size_t>...>
-#else
-  template<typename Arg, std::enable_if_t<(std::is_convertible_v<I, std::size_t> and ...) and
-    element_gettable<Arg, std::conditional_t<std::same_as<I, std::size_t>, I, std::size_t>...> and
-    (sizeof...(I) != 1 or column_vector<Arg> or row_vector<Arg>), int> = 0>
-#endif
   constexpr auto get_element(Arg&& arg, const I...i)
   {
     detail::check_index_bounds<false>(arg, std::make_index_sequence<sizeof...(I)>{}, i...);
     return interface::GetElement<std::decay_t<Arg>, I...>::get(std::forward<Arg>(arg), i...);
   }
+#else
+  template<typename Arg, typename...I, std::enable_if_t<(std::is_convertible_v<I, std::size_t> and ...) and
+    element_gettable<Arg, std::conditional_t<std::is_same_v<I, std::size_t>, I, std::size_t>...> and
+    (sizeof...(I) != 1 or column_vector<Arg> or row_vector<Arg>), int> = 0>
+  constexpr auto get_element(Arg&& arg, const I...i)
+  {
+    detail::check_index_bounds<false>(arg, std::make_index_sequence<sizeof...(I)>{}, i...);
+    return interface::GetElement<std::decay_t<Arg>, void, I...>::get(std::forward<Arg>(arg), i...);
+  }
+#endif
 
 
   /// Set element to s using I... indices.
 #ifdef __cpp_concepts
   template<typename Arg, std::convertible_to<const scalar_type_of_t<Arg>&> Scalar, std::convertible_to<std::size_t>...I>
     requires element_settable<Arg&, std::conditional_t<std::same_as<I, std::size_t>, I, std::size_t>...>
-#else
-  template<typename Arg, typename Scalar, std::enable_if_t<(std::is_convertible_v<I, std::size_t> and ...) and
-    std::is_convertible_v<Scalar, const scalar_type_of_t<Arg>&> and
-    element_settable<Arg&, std::conditional_t<std::same_as<I, std::size_t>, I, std::size_t>...>, int> = 0>
-#endif
   inline void set_element(Arg& arg, Scalar s, const I...i)
   {
     detail::check_index_bounds<true>(arg, std::make_index_sequence<sizeof...(I)>{}, i...);
     return interface::SetElement<std::decay_t<Arg>, I...>::set(arg, s, i...);
   }
+#else
+  template<typename Arg, typename Scalar, typename...I, std::enable_if_t<
+    (std::is_convertible_v<I, std::size_t> and ...) and
+    std::is_convertible_v<Scalar, const scalar_type_of_t<Arg>&> and
+    element_settable<Arg&, std::conditional_t<std::is_same_v<I, std::size_t>, I, std::size_t>...>, int> = 0>
+  inline void set_element(Arg& arg, Scalar s, const I...i)
+  {
+    detail::check_index_bounds<true>(arg, std::make_index_sequence<sizeof...(I)>{}, i...);
+    return interface::SetElement<std::decay_t<Arg>, void, I...>::set(arg, s, i...);
+  }
+#endif
 
 
   // ========================= //
@@ -469,8 +483,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typename Arg> requires dynamic_shape<Arg> or square_matrix<Arg>
 #else
-  template<typename Arg, std::enable_if_t<
-    native_eigen_general<Arg> and (dynamic_shape<Arg> or square_matrix<Arg>), int> = 0>
+  template<typename Arg, std::enable_if_t<dynamic_shape<Arg> or square_matrix<Arg>, int> = 0>
 #endif
   constexpr auto determinant(Arg&& arg)
   {
@@ -579,7 +592,7 @@ namespace OpenKalman
     (dynamic_shape<A> or square_matrix<A>)
 #else
   template<TriangleType t, typename A, typename U, typename Alpha, std::enable_if_t<
-    native_eigen_general<A> and native_eigen_general<U> and std::is_convertible_v<Alpha, const scalar_type_of_t<A>> and
+    std::is_convertible_v<Alpha, const scalar_type_of_t<A>> and
     (dynamic_rows<U> or dynamic_rows<A> or
       row_extent_of<std::decay_t<U>>::value == row_extent_of<std::decay_t<A>>::value) and
     (dynamic_shape<A> or square_matrix<A>), int> = 0>
@@ -620,7 +633,7 @@ namespace OpenKalman
     (dynamic_shape<A> or square_matrix<A>)
 #else
   template<typename A, typename U, typename Alpha, std::enable_if_t<
-    native_eigen_general<A> and native_eigen_general<U> and std::is_convertible_v<Alpha, const scalar_type_of_t<A>> and
+    std::is_convertible_v<Alpha, const scalar_type_of_t<A>> and
     (dynamic_rows<U> or dynamic_rows<A> or row_extent_of<U>::value == row_extent_of<A>::value) and
     (dynamic_shape<A> or square_matrix<A>), int> = 0>
 #endif

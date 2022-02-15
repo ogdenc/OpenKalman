@@ -209,6 +209,11 @@ namespace OpenKalman::interface
 #endif
   struct EquivalentDenseWritableMatrix;
 
+  /**
+   * \todo Add an interface to an equivalent dense readable matrix.
+   * \todo Add a custom Eigen expression that is simply a wrapper for any OpenKalman type, along with its own evaluator.
+   */
+
 
   /**
    * \internal
@@ -297,7 +302,57 @@ namespace OpenKalman::interface
      * \endcode
      * \note If this is not defined, T will be considered non-self-contained.
      */
+  };
 
+
+  /**
+   * \brief If T is a constant matrix, this is an interface to that constant.
+   * \details The interface must define static constexpr member <code>value</code> representing the constant.
+   * The type of <code>value</code> must be convertible to <code>scalar_type_of<T></code>.
+   * \note This need only be defined for matrices in which every element is a constant expression.
+   * \tparam T
+   */
+#ifdef __cpp_concepts
+  template<typename T>
+#else
+  template<typename T, typename = void>
+#endif
+  struct SingleConstant
+  {
+    /**
+     * \var value
+     * \brief The constant element of T, of a type convertible to <code>scalar_type_of<T></code>.
+     * \details The following example indicates that every element of T is 0 (same scalar type as T):
+     * \code
+     *   static constexpr typename ScalarTypeOf<T>::type value = 0;
+     * \endcode
+     */
+  };
+
+
+  /**
+   * \brief If T is a constant-diagonal matrix, this is an interface to that constant.
+   * \details The interface must define static constexpr member <code>value</code> representing the constant.
+   * The type of <code>value</code> must be convertible to <code>scalar_type_of<T></code>.
+   * \note This need only be defined for diagonal matrices in which every diagonal element is a single constant.
+   * \tparam T
+   */
+#ifdef __cpp_concepts
+  template<typename T>
+#else
+  template<typename T, typename = void>
+#endif
+  struct SingleConstantDiagonal
+  {
+    /**
+     * \var value
+     * \brief The constant element of T, of a type convertible to <code>scalar_type_of<T></code>.
+     * \details The following example indicates that every diagonal element of T is 1 (same scalar type as T), and every
+     * non-diagonal element is 0:
+     * \code
+     *   static constexpr typename ScalarTypeOf<T>::type value = 1;
+     * \endcode
+     */
   };
 
 

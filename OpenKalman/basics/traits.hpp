@@ -32,29 +32,31 @@ namespace OpenKalman
 
   namespace detail
   {
-    template<typename T, std::size_t r, std::size_t c, typename S>
+
+    template<typename Trait, std::size_t r, std::size_t c>
     struct dense_writable_impl_default
     {
-      using type = decltype(EquivalentDenseWritableMatrix<std::decay_t<T>, r, c, S>::make_default());
+      using type = decltype(Trait::make_default());
     };
 
-    template<typename T, std::size_t r, typename S>
-    struct dense_writable_impl_default<T, r, dynamic_extent, S>
+    template<typename Trait, std::size_t r>
+    struct dense_writable_impl_default<Trait, r, dynamic_extent>
     {
-      using type = decltype(EquivalentDenseWritableMatrix<std::decay_t<T>, r, dynamic_extent, S>::make_default(2));
+      using type = decltype(Trait::make_default(2));
     };
 
-    template<typename T, std::size_t c, typename S>
-    struct dense_writable_impl_default<T, dynamic_extent, c, S>
+    template<typename Trait, std::size_t c>
+    struct dense_writable_impl_default<Trait, dynamic_extent, c>
     {
-      using type = decltype(EquivalentDenseWritableMatrix<std::decay_t<T>, dynamic_extent, c, S>::make_default(2));
+      using type = decltype(Trait::make_default(2));
     };
 
-    template<typename T, typename S>
-    struct dense_writable_impl_default<T, dynamic_extent, dynamic_extent, S>
+    template<typename Trait>
+    struct dense_writable_impl_default<Trait, dynamic_extent, dynamic_extent>
     {
-      using type = decltype(EquivalentDenseWritableMatrix<std::decay_t<T>, dynamic_extent, dynamic_extent, S>::make_default(2, 2));
+      using type = decltype(Trait::make_default(2, 2));
     };
+
 
 #ifdef __cpp_concepts
     template<typename T, std::size_t r, std::size_t c, typename S>
@@ -63,8 +65,10 @@ namespace OpenKalman
 #endif
     struct dense_writable_impl
     {
-      using type = typename dense_writable_impl_default<T, r, c, S>::type;
+      using Trait = EquivalentDenseWritableMatrix<std::decay_t<T>, r, c, S>;
+      using type = typename dense_writable_impl_default<Trait, r, c>::type;
     };
+
 
 #ifdef __cpp_concepts
     template<typename T, std::size_t r, std::size_t c, typename S> requires
@@ -72,13 +76,14 @@ namespace OpenKalman
     struct dense_writable_impl<T, r, c, S>
 #else
     template<typename T, std::size_t r, std::size_t c, typename S>
-    struct dense_writable_impl<T, r, c, S, std::enable_if_t<
-      (r == row_extent_of_v<T>) and (c == column_extent_of_v<T>) and std::same_as<S, scalar_type_of_t<T>>>>
+    struct dense_writable_impl<T, r, c, S, std::enable_if_t<(r == row_extent_of<T>::value) and
+      (c == column_extent_of<T>::value) and std::is_same_v<S, scalar_type_of<T>::type>>>
 #endif
     {
       using type = decltype(EquivalentDenseWritableMatrix<std::decay_t<T>, r, c, S>::convert(std::declval<T>()));
     };
-  }
+
+  } // namespace detail
 
   /**
    * \brief An alias for a self-contained native matrix, based on and equivalent to parameter T.
@@ -130,43 +135,6 @@ namespace OpenKalman
   //  Traits for which specializations must be defined in the matrix interface  //
   // ========================================================================== //
 
-  // ---------------------- //
-  //  constant_coefficient  //
-  // ---------------------- //
-
-  /**
-   * \brief A typed matrix or covariance is a constant matrix if its nested matrix is a constant matrix.
-   * \details In the case of a triangular_covariance, the nested matrix must also be a zero_matrix.
-   */
-#ifdef __cpp_concepts
-  template<typename T> requires typed_matrix<T> or self_adjoint_covariance<T> or
-    (triangular_covariance<T> and zero_matrix<T>)
-  struct constant_coefficient<T>
-#else
-  template<typename T>
-  struct constant_coefficient<T, std::enable_if_t<typed_matrix<T> or self_adjoint_covariance<T> or
-      (triangular_covariance<T> and zero_matrix<nested_matrix_of<T>>)>>
-#endif
-    : internal::constant_coefficient_type<constant_coefficient_v<nested_matrix_of<T>>> {};
-
-
-  // ------------------------------- //
-  //  constant_diagonal_coefficient  //
-  // ------------------------------- //
-
-  /**
-   * \brief A typed_matrix or covariance is a constant_diagonal_matrix if its nested matrix is a constant_diagonal_matrix.
-   */
-#ifdef __cpp_concepts
-  template<typename T> requires typed_matrix<T> or covariance<T>
-  struct constant_diagonal_coefficient<T>
-#else
-  template<typename T>
-  struct constant_diagonal_coefficient<T, std::enable_if_t<typed_matrix<T> or covariance<T>>>
-#endif
-    : internal::constant_coefficient_type<constant_diagonal_coefficient_v<nested_matrix_of<T>>> {};
-
-
   namespace internal
   {
     // -------------------- //
@@ -183,7 +151,7 @@ namespace OpenKalman
     template<typename T>
     struct is_diagonal_matrix<T, std::enable_if_t<covariance<T>>>
 #endif
-      : std::bool_constant<diagonal_matrix<nested_matrix_of<T>>> {};
+      : std::bool_constant<diagonal_matrix<nested_matrix_of_t<T>>> {};
 
 
     /**
@@ -196,7 +164,7 @@ namespace OpenKalman
     template<typename T>
     struct is_diagonal_matrix<T, std::enable_if_t<typed_matrix<T>>>
 #endif
-      : std::bool_constant<diagonal_matrix<nested_matrix_of<T>> and
+      : std::bool_constant<diagonal_matrix<nested_matrix_of_t<T>> and
         equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>> {};
 
 
@@ -214,8 +182,8 @@ namespace OpenKalman
     template<typename T>
     struct is_lower_self_adjoint_matrix<T, std::enable_if_t<self_adjoint_covariance<T>>>
 #endif
-      : std::bool_constant<lower_self_adjoint_matrix<nested_matrix_of<T>> or
-        lower_triangular_matrix<nested_matrix_of<T>>> {};
+      : std::bool_constant<lower_self_adjoint_matrix<nested_matrix_of_t<T>> or
+        lower_triangular_matrix<nested_matrix_of_t<T>>> {};
 
 
     /**
@@ -229,7 +197,7 @@ namespace OpenKalman
     template<typename T>
     struct is_lower_self_adjoint_matrix<T, std::enable_if_t<typed_matrix<T>>>
 #endif
-      : std::bool_constant<lower_self_adjoint_matrix<nested_matrix_of<T>> and
+      : std::bool_constant<lower_self_adjoint_matrix<nested_matrix_of_t<T>> and
         equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>> {};
 
 
@@ -247,8 +215,8 @@ namespace OpenKalman
   template<typename T>
   struct is_upper_self_adjoint_matrix<T, std::enable_if_t<self_adjoint_covariance<T>>>
 #endif
-    : std::bool_constant<upper_self_adjoint_matrix<std::decay_t<nested_matrix_of<T>>> or
-      upper_triangular_matrix<std::decay_t<nested_matrix_of<T>>>> {};
+    : std::bool_constant<upper_self_adjoint_matrix<std::decay_t<nested_matrix_of_t<T>>> or
+      upper_triangular_matrix<std::decay_t<nested_matrix_of_t<T>>>> {};
 
 
   /**
@@ -262,7 +230,7 @@ namespace OpenKalman
   template<typename T>
   struct is_upper_self_adjoint_matrix<T, std::enable_if_t<typed_matrix<T>>>
 #endif
-    : std::bool_constant<upper_self_adjoint_matrix<std::decay_t<nested_matrix_of<T>>> and
+    : std::bool_constant<upper_self_adjoint_matrix<std::decay_t<nested_matrix_of_t<T>>> and
       equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>> {};
 
 
@@ -280,8 +248,8 @@ namespace OpenKalman
     template<typename T>
     struct is_lower_triangular_matrix<T, std::enable_if_t<triangular_covariance<T>>>
 #endif
-      : std::bool_constant<lower_triangular_matrix<nested_matrix_of<T>> or
-        lower_self_adjoint_matrix<nested_matrix_of<T>>> {};
+      : std::bool_constant<lower_triangular_matrix<nested_matrix_of_t<T>> or
+        lower_self_adjoint_matrix<nested_matrix_of_t<T>>> {};
 
 
     /**
@@ -294,7 +262,7 @@ namespace OpenKalman
     template<typename T>
     struct is_lower_triangular_matrix<T, std::enable_if_t<typed_matrix<T>>>
 #endif
-      : std::bool_constant<lower_triangular_matrix<nested_matrix_of<T>> and
+      : std::bool_constant<lower_triangular_matrix<nested_matrix_of_t<T>> and
         equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>> {};
 
 
@@ -312,8 +280,8 @@ namespace OpenKalman
     template<typename T>
     struct is_upper_triangular_matrix<T, std::enable_if_t<triangular_covariance<T>>>
 #endif
-      : std::bool_constant<upper_triangular_matrix<nested_matrix_of<T>> or
-        upper_self_adjoint_matrix<nested_matrix_of<T>>> {};
+      : std::bool_constant<upper_triangular_matrix<nested_matrix_of_t<T>> or
+        upper_self_adjoint_matrix<nested_matrix_of_t<T>>> {};
 
 
     /**
@@ -326,7 +294,7 @@ namespace OpenKalman
     template<typename T>
     struct is_upper_triangular_matrix<T, std::enable_if_t<typed_matrix<T>>>
 #endif
-      : std::bool_constant<upper_triangular_matrix<nested_matrix_of<T>> and
+      : std::bool_constant<upper_triangular_matrix<nested_matrix_of_t<T>> and
         equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>> {};
 
 
@@ -340,20 +308,20 @@ namespace OpenKalman
   namespace internal
   {
 #ifdef __cpp_concepts
-    template<typed_matrix T> requires writable<nested_matrix_of<T>>
+    template<typed_matrix T> requires writable<nested_matrix_of_t<T>>
     struct is_writable<T> : std::true_type {};
 #else
     template<typename T>
-    struct is_writable<T, std::enable_if_t<typed_matrix<T> and writable<nested_matrix_of<T>>>> : std::true_type {};
+    struct is_writable<T, std::enable_if_t<typed_matrix<T> and writable<nested_matrix_of_t<T>>>> : std::true_type {};
 #endif
 
 
 #ifdef __cpp_concepts
-    template<covariance T> requires writable<nested_matrix_of<T>>
+    template<covariance T> requires writable<nested_matrix_of_t<T>>
     struct is_writable<T> : std::true_type {};
 #else
     template<typename T>
-    struct is_writable<T, std::enable_if_t<covariance<T> and writable<nested_matrix_of<T>>>> : std::true_type {};
+    struct is_writable<T, std::enable_if_t<covariance<T> and writable<nested_matrix_of_t<T>>>> : std::true_type {};
 #endif
 
   }  // namespace internal
@@ -375,7 +343,7 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
     template<typename T> requires std::is_const_v<std::remove_reference_t<T>> or
-      (requires { typename nested_matrix_of<T>; } and has_const<nested_matrix_of<T>>::value)
+      (requires { typename nested_matrix_of_t<T>; } and has_const<nested_matrix_of_t<T>>::value)
     struct has_const<T> : std::true_type {};
 #else
     template<typename T>
@@ -383,7 +351,7 @@ namespace OpenKalman
 
     template<typename T>
     struct has_const<T, std::enable_if_t<(not std::is_const_v<std::remove_reference_t<T>>) and
-      has_const<nested_matrix_of<T>>::value>> : std::true_type {};
+      has_const<nested_matrix_of_t<T>>::value>> : std::true_type {};
 #endif
 
 

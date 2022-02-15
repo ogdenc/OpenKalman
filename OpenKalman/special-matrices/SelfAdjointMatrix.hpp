@@ -105,7 +105,7 @@ namespace OpenKalman::Eigen3
     template<self_adjoint_matrix Arg> requires (not std::derived_from<std::decay_t<Arg>, SelfAdjointMatrix>) and
       (not diagonal_matrix<Arg>) and has_nested_matrix<Arg> and
       (self_adjoint_triangle_type_of<Arg>::value == storage_triangle) and
-      (dynamic_shape<nested_matrix_of<Arg>> or square_matrix<nested_matrix_of<Arg>>) and
+      (dynamic_shape<nested_matrix_of_t<Arg>> or square_matrix<nested_matrix_of_t<Arg>>) and
       std::constructible_from<NestedMatrix, decltype(nested_matrix(std::declval<Arg&&>()))>
       //alt: requires(Arg&& arg) { NestedMatrix {nested_matrix(std::forward<Arg>(arg))}; } -- not accepted in GCC 10
 #else
@@ -113,7 +113,7 @@ namespace OpenKalman::Eigen3
       self_adjoint_matrix<Arg> and (not std::is_base_of_v<SelfAdjointMatrix, std::decay_t<Arg>>) and
       (not diagonal_matrix<Arg>) and has_nested_matrix<Arg> and
       (self_adjoint_triangle_type_of<Arg>::value == storage_triangle) and
-      (dynamic_shape<nested_matrix_of<Arg>> or square_matrix<nested_matrix_of<Arg>>) and
+      (dynamic_shape<nested_matrix_of_t<Arg>> or square_matrix<nested_matrix_of_t<Arg>>) and
       std::is_constructible_v<NestedMatrix, decltype(nested_matrix(std::declval<Arg&&>()))>, int> = 0>
 #endif
     SelfAdjointMatrix(Arg&& arg) noexcept : Base {nested_matrix(std::forward<Arg>(arg))} {}
@@ -123,13 +123,13 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
     template<self_adjoint_matrix Arg> requires (not diagonal_matrix<Arg>) and
       has_nested_matrix<Arg> and (self_adjoint_triangle_type_of<Arg>::value != storage_triangle) and
-      (dynamic_shape<nested_matrix_of<Arg>> or square_matrix<nested_matrix_of<Arg>>) and
+      (dynamic_shape<nested_matrix_of_t<Arg>> or square_matrix<nested_matrix_of_t<Arg>>) and
       requires(Arg&& arg) { NestedMatrix {transpose(nested_matrix(std::forward<Arg>(arg)))}; }
 #else
     template<typename Arg, std::enable_if_t<
       self_adjoint_matrix<Arg> and (not diagonal_matrix<Arg>) and
       has_nested_matrix<Arg> and (self_adjoint_triangle_type_of<Arg>::value != storage_triangle) and
-      (dynamic_shape<nested_matrix_of<Arg>> or square_matrix<nested_matrix_of<Arg>>) and
+      (dynamic_shape<nested_matrix_of_t<Arg>> or square_matrix<nested_matrix_of_t<Arg>>) and
       std::is_constructible_v<NestedMatrix, decltype(transpose(nested_matrix(std::declval<Arg&&>())))>, int> = 0>
 #endif
     SelfAdjointMatrix(Arg&& arg) noexcept : Base {transpose(nested_matrix(std::forward<Arg>(arg)))} {}
@@ -274,12 +274,12 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
     template<eigen_self_adjoint_expr Arg> requires (not std::derived_from<std::decay_t<Arg>, SelfAdjointMatrix>) and
       (row_extent_of_v<Arg> == dimensions) and
-      modifiable<NestedMatrix, nested_matrix_of<Arg>> and
+      modifiable<NestedMatrix, nested_matrix_of_t<Arg>> and
       (not (eigen_diagonal_expr<NestedMatrix> and storage_triangle == TriangleType::diagonal) or diagonal_matrix<Arg>)
 #else
     template<typename Arg, std::enable_if_t<eigen_self_adjoint_expr<Arg> and
       (not std::is_base_of_v<SelfAdjointMatrix, std::decay_t<Arg>>) and (row_extent_of<Arg>::value == dimensions) and
-      modifiable<NestedMatrix, nested_matrix_of<Arg>> and
+      modifiable<NestedMatrix, nested_matrix_of_t<Arg>> and
       ((not eigen_diagonal_expr<NestedMatrix> and storage_triangle != TriangleType::diagonal) or diagonal_matrix<Arg>),
       int> = 0>
 #endif
@@ -447,7 +447,7 @@ namespace OpenKalman::Eigen3
   template<typename Arg, std::enable_if_t<eigen_triangular_expr<Arg> and diagonal_matrix<Arg>, int> = 0>
 #endif
   explicit SelfAdjointMatrix(Arg&&) ->
-    SelfAdjointMatrix<equivalent_self_contained_t<nested_matrix_of<Arg>>, TriangleType::diagonal>;
+    SelfAdjointMatrix<equivalent_self_contained_t<nested_matrix_of_t<Arg>>, TriangleType::diagonal>;
 
 
 #ifdef __cpp_concepts
@@ -455,7 +455,7 @@ namespace OpenKalman::Eigen3
 #else
   template<typename M, std::enable_if_t<Eigen3::eigen_SelfAdjointView<M>, int> = 0>
 #endif
-  SelfAdjointMatrix(M&&) -> SelfAdjointMatrix<nested_matrix_of<M>, self_adjoint_triangle_type_of_v<M>>;
+  SelfAdjointMatrix(M&&) -> SelfAdjointMatrix<nested_matrix_of_t<M>, self_adjoint_triangle_type_of_v<M>>;
 
 
   /// If the arguments are a sequence of scalars, deduce a square, self-adjoint matrix.

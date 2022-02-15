@@ -29,11 +29,12 @@ namespace OpenKalman
     template<typename T>
     struct RowExtentOf<T, std::enable_if_t<typed_matrix<T>>>
 #endif
-      : RowExtentOf<nested_matrix_of<T>>
+      : RowExtentOf<nested_matrix_of_t<T>>
     {
       template<typename Arg>
       static constexpr std::size_t rows_at_runtime(Arg&& arg)
       {
+        static_assert(std::is_same_v<std::decay_t<Arg>, std::decay_t<T>>);
         if constexpr (dynamic_rows<Arg>)
           return row_count(nested_matrix(std::forward<Arg>(arg)));
         else
@@ -49,13 +50,14 @@ namespace OpenKalman
     template<typename T>
     struct RowExtentOf<T, std::enable_if_t<covariance<T>>>
 #endif
-      : std::integral_constant<std::size_t, dynamic_rows<nested_matrix_of<T>> ?
-        column_extent_of_v<nested_matrix_of<T>> : row_extent_of_v<nested_matrix_of<T>>>
+      : std::integral_constant<std::size_t, dynamic_rows<nested_matrix_of_t<T>> ?
+        column_extent_of_v<nested_matrix_of_t<T>> : row_extent_of_v<nested_matrix_of_t<T>>>
     {
       template<typename Arg>
       static constexpr std::size_t rows_at_runtime(Arg&& arg)
       {
-        using N = nested_matrix_of<T>;
+        static_assert(std::is_same_v<std::decay_t<Arg>, std::decay_t<T>>);
+        using N = nested_matrix_of_t<T>;
 
         if constexpr (dynamic_rows<N>)
         {
@@ -83,11 +85,12 @@ namespace OpenKalman
     template<typename T>
     struct ColumnExtentOf<T, std::enable_if_t<typed_matrix<T>>>
 #endif
-      : ColumnExtentOf<nested_matrix_of<T>>
+      : ColumnExtentOf<nested_matrix_of_t<T>>
     {
       template<typename Arg>
       static constexpr std::size_t columns_at_runtime(Arg&& arg)
       {
+        static_assert(std::is_same_v<std::decay_t<Arg>, std::decay_t<T>>);
         if constexpr (dynamic_columns<Arg>)
           return column_count(nested_matrix(std::forward<Arg>(arg)));
         else
@@ -103,13 +106,14 @@ namespace OpenKalman
     template<typename T>
     struct ColumnExtentOf<T, std::enable_if_t<covariance<T>>>
 #endif
-      : std::integral_constant<std::size_t, dynamic_columns<nested_matrix_of<T>> ?
-        row_extent_of_v<nested_matrix_of<T>> : column_extent_of_v<nested_matrix_of<T>>>
+      : std::integral_constant<std::size_t, dynamic_columns<nested_matrix_of_t<T>> ?
+        row_extent_of_v<nested_matrix_of_t<T>> : column_extent_of_v<nested_matrix_of_t<T>>>
     {
       template<typename Arg>
       static constexpr std::size_t columns_at_runtime(Arg&& arg)
       {
-        using N = nested_matrix_of<T>;
+        static_assert(std::is_same_v<std::decay_t<Arg>, std::decay_t<T>>);
+        using N = nested_matrix_of_t<T>;
 
         if constexpr (dynamic_columns<N>)
         {
@@ -137,7 +141,7 @@ namespace OpenKalman
     template<typename T>
     struct ScalarTypeOf<T, std::enable_if_t<typed_matrix<T> or covariance<T>>>
 #endif
-      : ScalarTypeOf<nested_matrix_of<T>> {};
+      : ScalarTypeOf<nested_matrix_of_t<T>> {};
 
 
     // -------------------------------- //
@@ -151,7 +155,7 @@ namespace OpenKalman
     template<typename T, std::size_t row_extent, std::size_t column_extent, typename scalar_type>
     struct EquivalentDenseWritableMatrix<T, row_extent, column_extent, scalar_type, std::enable_if_t<covariance<T>>>
 #endif
-      : EquivalentDenseWritableMatrix<nested_matrix_of<T>, row_extent, column_extent, scalar_type>
+      : EquivalentDenseWritableMatrix<nested_matrix_of_t<T>, row_extent, column_extent, scalar_type>
     {
 #ifdef __cpp_concepts
       template<typename Arg> requires
@@ -166,7 +170,7 @@ namespace OpenKalman
  #endif
       static decltype(auto) convert(Arg&& arg)
       {
-        using Base = EquivalentDenseWritableMatrix<nested_matrix_of<T>, row_extent, column_extent, scalar_type>;
+        using Base = EquivalentDenseWritableMatrix<nested_matrix_of_t<T>, row_extent, column_extent, scalar_type>;
         return Base::convert(OpenKalman::internal::to_covariance_nestable(std::forward<Arg>(arg)));
       }
     };
@@ -179,7 +183,7 @@ namespace OpenKalman
     template<typename T, std::size_t row_extent, std::size_t column_extent, typename scalar_type>
     struct EquivalentDenseWritableMatrix<T, row_extent, column_extent, scalar_type, std::enable_if_t<typed_matrix<T>>>
 #endif
-      : EquivalentDenseWritableMatrix<nested_matrix_of<T>, row_extent, column_extent, scalar_type>
+      : EquivalentDenseWritableMatrix<nested_matrix_of_t<T>, row_extent, column_extent, scalar_type>
     {
 #ifdef __cpp_concepts
       template<typename Arg> requires
@@ -194,7 +198,7 @@ namespace OpenKalman
  #endif
       static decltype(auto) convert(Arg&& arg)
       {
-        using Base = EquivalentDenseWritableMatrix<nested_matrix_of<T>, row_extent, column_extent, scalar_type>;
+        using Base = EquivalentDenseWritableMatrix<nested_matrix_of_t<T>, row_extent, column_extent, scalar_type>;
         return Base::convert(nested_matrix(std::forward<Arg>(arg)));
       }
     };
@@ -216,11 +220,11 @@ namespace OpenKalman
         static_assert(i == 0);
         if constexpr (self_adjoint_matrix<NestedMatrix>)
         {
-          return std::forward<M>(m).get_self_adjoint_nested_matrix();
+          return std::forward<Arg>(arg).get_self_adjoint_nested_matrix();
         }
         else
         {
-          return std::forward<M>(m).get_triangular_nested_matrix();
+          return std::forward<Arg>(arg).get_triangular_nested_matrix();
         }
       }
 
@@ -245,11 +249,11 @@ namespace OpenKalman
         static_assert(i == 0);
         if constexpr (self_adjoint_matrix<NestedMatrix>)
         {
-          return std::forward<M>(m).get_self_adjoint_nested_matrix();
+          return std::forward<Arg>(arg).get_self_adjoint_nested_matrix();
         }
         else
         {
-          return std::forward<M>(m).get_triangular_nested_matrix();
+          return std::forward<Arg>(arg).get_triangular_nested_matrix();
         }
       }
 
@@ -326,6 +330,45 @@ namespace OpenKalman
         return EuclideanMean<Coeffs, decltype(n)> {std::move(n)};
       }
     };
+
+
+    // ---------------- //
+    //  SingleConstant  //
+    // ---------------- //
+
+    /*
+     * A typed matrix or covariance is a constant matrix if its nested matrix is a constant matrix.
+     * In the case of a triangular_covariance, the nested matrix must also be a zero_matrix.
+     */
+#ifdef __cpp_concepts
+    template<typename T> requires
+      ((typed_matrix<T> or self_adjoint_covariance<T>) and constant_matrix<nested_matrix_of_t<T>>) or
+      (triangular_covariance<T> and zero_matrix<nested_matrix_of_t<T>>)
+    struct SingleConstant<T>
+#else
+    template<typename T>
+    struct SingleConstant<T, std::enable_if_t<
+      ((typed_matrix<T> or self_adjoint_covariance<T>) and constant_matrix<nested_matrix_of<T>::type>) or
+      (triangular_covariance<T> and zero_matrix<nested_matrix_of<T>::type>)>>>
+#endif
+      : SingleConstant<std::decay_t<nested_matrix_of_t<T>>> {};
+
+
+    // ------------------------ //
+    //  SingleConstantDiagonal  //
+    // ------------------------ //
+
+    /*
+     * A typed_matrix or covariance is a constant_diagonal_matrix if its nested matrix is a constant_diagonal_matrix.
+     */
+#ifdef __cpp_concepts
+    template<typename T> requires typed_matrix<T> or covariance<T>
+    struct SingleConstantDiagonal<T>
+#else
+    template<typename T>
+    struct SingleConstantDiagonal<T, std::enable_if_t<typed_matrix<T> or covariance<T>>>
+#endif
+      : SingleConstantDiagonal<std::decay_t<nested_matrix_of_t<T>>> {};
 
 
   } // namespace interface

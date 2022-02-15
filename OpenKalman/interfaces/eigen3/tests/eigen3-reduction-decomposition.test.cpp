@@ -70,6 +70,20 @@ TEST(eigen3, reduce_columns_reduce_rows_matrix)
   EXPECT_TRUE(is_near(reduce_columns(m20_3), m21_25));
   EXPECT_TRUE(is_near(reduce_columns(m00_23), m21_25));
 
+  auto i20_2 = M20::Identity(2, 2);
+  auto i02_2 = M02::Identity(2, 2);
+  auto i00_22 = M00::Identity(2, 2);
+
+  EXPECT_TRUE(is_near(reduce_columns(i20_2), M21::Constant(0.5)));
+  auto rci02_2 = reduce_columns(i02_2);
+  EXPECT_TRUE(is_near(rci02_2, M21::Constant(0.5)));
+  EXPECT_TRUE(is_near(reduce_columns(i02_2), M21::Constant(0.5)));
+  EXPECT_TRUE(is_near(reduce_columns(i00_22), M21::Constant(0.5)));
+
+  EXPECT_TRUE(is_near(reduce_columns(M20::Identity(2, 2)), M21::Constant(0.5)));
+  EXPECT_TRUE(is_near(reduce_columns(M02::Identity(2, 2)), M21::Constant(0.5)));
+  EXPECT_TRUE(is_near(reduce_columns(M00::Identity(2, 2)), M21::Constant(0.5)));
+
   auto m13_234 = make_eigen_matrix<double, 1, 3>(2.5, 3.5, 4.5);
 
   EXPECT_TRUE(is_near(reduce_rows(m23), m13_234));
@@ -133,20 +147,20 @@ TEST(eigen3, reduce_columns_reduce_rows_constant)
 
 TEST(eigen3, reduce_columns_reduce_rows_diagonal)
 {
-  auto i21 = M22::Identity();
-  auto i20_1 = Eigen::Replicate<typename M11::IdentityReturnType, 2, Eigen::Dynamic> {M11::Identity(), 2, 1}.asDiagonal();
-  auto i01_2 = Eigen::Replicate<typename M11::IdentityReturnType, Eigen::Dynamic, 1> {M11::Identity(), 2, 1}.asDiagonal();
-  auto i00_21 = Eigen::Replicate<typename M11::IdentityReturnType, Eigen::Dynamic, Eigen::Dynamic> {M11::Identity(), 2, 1}.asDiagonal();
+  auto i22 = M22::Identity();
+  auto i20_2 = Eigen::Replicate<typename M11::IdentityReturnType, 2, Eigen::Dynamic> {M11::Identity(), 2, 1}.asDiagonal();
+  auto i02_2 = Eigen::Replicate<typename M11::IdentityReturnType, Eigen::Dynamic, 1> {M11::Identity(), 2, 1}.asDiagonal();
+  auto i00_22 = Eigen::Replicate<typename M11::IdentityReturnType, Eigen::Dynamic, Eigen::Dynamic> {M11::Identity(), 2, 1}.asDiagonal();
 
-  EXPECT_TRUE(is_near(reduce_columns(i21), M21::Constant(1))); static_assert(constant_coefficient_v<decltype(reduce_columns(i21))> == 1);
-  EXPECT_TRUE(is_near(reduce_columns(i20_1), M21::Constant(1))); static_assert(constant_coefficient_v<decltype(reduce_columns(i20_1))> == 1);
-  EXPECT_TRUE(is_near(reduce_columns(i01_2), M21::Constant(1))); static_assert(constant_coefficient_v<decltype(reduce_columns(i01_2))> == 1);
-  EXPECT_TRUE(is_near(reduce_columns(i00_21), M21::Constant(1))); static_assert(constant_coefficient_v<decltype(reduce_columns(i00_21))> == 1);
+  EXPECT_TRUE(is_near(reduce_columns(i22 + i22), M21::Constant(1))); static_assert(are_within_tolerance(constant_coefficient_v<decltype(reduce_columns(i22 + i22))>, 1));
+  EXPECT_TRUE(is_near(reduce_columns(i20_2), M21::Constant(0.5))); static_assert(not constant_matrix<decltype(reduce_columns(i20_2))>);
+  EXPECT_TRUE(is_near(reduce_columns(i02_2), M21::Constant(0.5))); static_assert(not constant_matrix<decltype(reduce_columns(i02_2))>);
+  EXPECT_TRUE(is_near(reduce_columns(i00_22), M21::Constant(0.5))); static_assert(not constant_matrix<decltype(reduce_columns(i00_22))>);
 
-  EXPECT_TRUE(is_near(reduce_rows(i21), M12::Constant(1))); static_assert(constant_coefficient_v<decltype(reduce_rows(i21))> == 1);
-  EXPECT_TRUE(is_near(reduce_rows(i20_1), M12::Constant(1))); static_assert(constant_coefficient_v<decltype(reduce_rows(i20_1))> == 1);
-  EXPECT_TRUE(is_near(reduce_rows(i01_2), M12::Constant(1))); static_assert(constant_coefficient_v<decltype(reduce_rows(i01_2))> == 1);
-  EXPECT_TRUE(is_near(reduce_rows(i00_21), M12::Constant(1))); static_assert(constant_coefficient_v<decltype(reduce_rows(i00_21))> == 1);
+  EXPECT_TRUE(is_near(reduce_rows(i22 + i22), M12::Constant(1))); static_assert(are_within_tolerance(constant_coefficient_v<decltype(reduce_rows(i22 + i22))>, 1));
+  EXPECT_TRUE(is_near(reduce_rows(i20_2), M12::Constant(0.5))); static_assert(not constant_matrix<decltype(reduce_rows(i20_2))>);
+  EXPECT_TRUE(is_near(reduce_rows(i02_2), M12::Constant(0.5))); static_assert(not constant_matrix<decltype(reduce_rows(i02_2))>);
+  EXPECT_TRUE(is_near(reduce_rows(i00_22), M12::Constant(0.5))); static_assert(not constant_matrix<decltype(reduce_rows(i00_22))>);
 
   auto c11_2 {M11::Identity() + M11::Identity()};
 
@@ -155,15 +169,15 @@ TEST(eigen3, reduce_columns_reduce_rows_diagonal)
   auto d01_2_2 = Eigen::Replicate<decltype(c11_2), Eigen::Dynamic, 1> {c11_2, 2, 1}.asDiagonal();
   auto d00_21_2 = Eigen::Replicate<decltype(c11_2), Eigen::Dynamic, Eigen::Dynamic> {c11_2, 2, 1}.asDiagonal();
 
-  EXPECT_TRUE(is_near(reduce_columns(d21_2), M21::Constant(2))); static_assert(constant_coefficient_v<decltype(reduce_columns(d21_2))> == 2);
-  EXPECT_TRUE(is_near(reduce_columns(d20_1_2), M21::Constant(2))); static_assert(constant_coefficient_v<decltype(reduce_columns(d20_1_2))> == 2);
-  EXPECT_TRUE(is_near(reduce_columns(d01_2_2), M21::Constant(2))); static_assert(constant_coefficient_v<decltype(reduce_columns(d01_2_2))> == 2);
-  EXPECT_TRUE(is_near(reduce_columns(d00_21_2), M21::Constant(2))); static_assert(constant_coefficient_v<decltype(reduce_columns(d00_21_2))> == 2);
+  EXPECT_TRUE(is_near(reduce_columns(d21_2), M21::Constant(1))); static_assert(constant_coefficient_v<decltype(reduce_columns(d21_2))> == 1);
+  EXPECT_TRUE(is_near(reduce_columns(d20_1_2), M21::Constant(1))); static_assert(not constant_matrix<decltype(reduce_columns(d20_1_2))>);
+  EXPECT_TRUE(is_near(reduce_columns(d01_2_2), M21::Constant(1))); static_assert(not constant_matrix<decltype(reduce_columns(d01_2_2))>);
+  EXPECT_TRUE(is_near(reduce_columns(d00_21_2), M21::Constant(1))); static_assert(not constant_matrix<decltype(reduce_columns(d00_21_2))>);
 
-  EXPECT_TRUE(is_near(reduce_rows(d21_2), M12::Constant(2))); static_assert(constant_coefficient_v<decltype(reduce_rows(d21_2))> == 2);
-  EXPECT_TRUE(is_near(reduce_rows(d20_1_2), M12::Constant(2))); static_assert(constant_coefficient_v<decltype(reduce_rows(d20_1_2))> == 2);
-  EXPECT_TRUE(is_near(reduce_rows(d01_2_2), M12::Constant(2))); static_assert(constant_coefficient_v<decltype(reduce_rows(d01_2_2))> == 2);
-  EXPECT_TRUE(is_near(reduce_rows(d00_21_2), M12::Constant(2))); static_assert(constant_coefficient_v<decltype(reduce_rows(d00_21_2))> == 2);
+  EXPECT_TRUE(is_near(reduce_rows(d21_2), M12::Constant(1))); static_assert(constant_coefficient_v<decltype(reduce_rows(d21_2))> == 1);
+  EXPECT_TRUE(is_near(reduce_rows(d20_1_2), M12::Constant(1))); static_assert(not constant_matrix<decltype(reduce_rows(d20_1_2))>);
+  EXPECT_TRUE(is_near(reduce_rows(d01_2_2), M12::Constant(1))); static_assert(not constant_matrix<decltype(reduce_rows(d01_2_2))>);
+  EXPECT_TRUE(is_near(reduce_rows(d00_21_2), M12::Constant(1))); static_assert(not constant_matrix<decltype(reduce_rows(d00_21_2))>);
 }
 
 

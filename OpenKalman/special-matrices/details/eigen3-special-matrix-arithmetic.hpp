@@ -51,12 +51,7 @@ namespace OpenKalman::Eigen3
   constexpr decltype(auto) operator-(Arg&& arg)
   {
     constexpr auto constant = constant_coefficient_v<Arg>;
-    using Scalar = scalar_type_of_t<Arg>;
-    constexpr std::size_t r = row_extent_of_v<Arg>;
-    constexpr std::size_t c = column_extent_of_v<Arg>;
-
-    if constexpr (constant == 0) return std::forward<Arg>(arg);
-    else return ConstantMatrix<Scalar, -constant, r, c> {};
+    return make_constant_matrix_like<-constant>(std::forward<Arg>(arg));
   }
 
 
@@ -128,8 +123,7 @@ namespace OpenKalman::Eigen3
   constexpr auto operator+(Arg1&& arg1, Arg2&& arg2)
   {
     constexpr auto newconst = constant_coefficient_v<Arg1> + constant_coefficient_v<Arg2>;
-    using Scalar = scalar_type_of_t<Arg1>;
-    return ConstantMatrix<Scalar, newconst, row_extent_of_v<Arg1>, column_extent_of_v<Arg1>> {};
+    return make_constant_matrix_like<newconst>(std::forward<Arg1>(arg1));
   }
 
 
@@ -316,13 +310,12 @@ namespace OpenKalman::Eigen3
     (not zero_matrix<Arg1>) and (not zero_matrix<Arg2>) and
     (row_extent_of<Arg1>::value == row_extent_of<Arg2>::value) and
     (column_extent_of<Arg1>::value == column_extent_of<Arg2>::value) and
-    std::is_same_v<typename scalar_type_of<Arg1>::type, typename scalar_type_of<Arg2>::type>, int> = 0>
+    std::is_same<typename scalar_type_of<Arg1>::type, typename scalar_type_of<Arg2>::type>::value, int> = 0>
 #endif
   constexpr auto operator-(Arg1&& arg1, Arg2&& arg2)
   {
     constexpr auto newconst = constant_coefficient_v<Arg1> - constant_coefficient_v<Arg2>;
-    using Scalar = scalar_type_of_t<Arg1>;
-    return ConstantMatrix<Scalar, newconst, row_extent_of_v<Arg1>, column_extent_of_v<Arg1>> {};
+    return make_constant_matrix_like<newconst>(std::forward<Arg1>(arg1));
   }
 
 
@@ -514,10 +507,7 @@ namespace OpenKalman::Eigen3
     }
     else
     {
-      using Scalar = scalar_type_of_t<Arg>;
-      constexpr std::size_t r = row_extent_of_v<Arg>;
-      constexpr std::size_t c = column_extent_of_v<Arg>;
-      return Eigen3::eigen_matrix_t<Scalar, r, c>::Constant(constant * scale);
+      return make_native_matrix(std::forward<Arg>(arg)) * scale; // \todo change to make_readable_dense_native_matrix
     }
   }
 
@@ -533,19 +523,7 @@ namespace OpenKalman::Eigen3
 #endif
   constexpr decltype(auto) operator*(const S scale, Arg&& arg)
   {
-    constexpr auto constant = constant_coefficient_v<Arg>;
-
-    if constexpr (constant == 0)
-    {
-      return std::forward<Arg>(arg);
-    }
-    else
-    {
-      using Scalar = scalar_type_of_t<Arg>;
-      constexpr std::size_t r = row_extent_of_v<Arg>;
-      constexpr std::size_t c = column_extent_of_v<Arg>;
-      return Eigen3::eigen_matrix_t<Scalar, r, c>::Constant(scale * constant_coefficient_v<Arg>);
-    }
+    return operator*(std::forward<Arg>(arg), scale);
   }
 
 
@@ -625,10 +603,7 @@ namespace OpenKalman::Eigen3
     }
     else
     {
-      using Scalar = scalar_type_of_t<Arg>;
-      constexpr std::size_t r = row_extent_of_v<Arg>;
-      constexpr std::size_t c = column_extent_of_v<Arg>;
-      return Eigen3::eigen_matrix_t<Scalar, r, c>::Constant(constant / s);
+      return make_native_matrix(std::forward<Arg>(arg)) / s; // \todo change to make_readable_dense_native_matrix
     }
   }
 
@@ -697,21 +672,34 @@ namespace OpenKalman::Eigen3
     (eigen_constant_expr<Arg1> or eigen_constant_expr<Arg2>) and
     (not zero_matrix<Arg1>) and (not zero_matrix<Arg2>) and
     (not identity_matrix<Arg1>) and (not identity_matrix<Arg2>) and
-    (column_extent_of_v<Arg1> == row_extent_of_v<Arg2>) and
+    (dynamic_columns<Arg1> or dynamic_rows<Arg2> or column_extent_of_v<Arg1> == row_extent_of_v<Arg2>) and
     std::same_as<scalar_type_of_t<Arg1>, scalar_type_of_t<Arg2>>
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<constant_matrix<Arg1> and constant_matrix<Arg2> and
     (eigen_constant_expr<Arg1> or eigen_constant_expr<Arg2>) and
     (not zero_matrix<Arg1>) and (not zero_matrix<Arg2>) and
     (not identity_matrix<Arg1>) and (not identity_matrix<Arg2>) and
-    (column_extent_of<Arg1>::value == row_extent_of<Arg2>::value) and
+    (dynamic_columns<Arg1> or dynamic_rows<Arg2> or column_extent_of<Arg1>::value == row_extent_of<Arg2>::value) and
     std::is_same_v<typename scalar_type_of<Arg1>::type, typename scalar_type_of<Arg2>::type>, int> = 0>
 #endif
   inline auto operator*(Arg1&& arg1, Arg2&& arg2)
   {
-    constexpr auto newconst = constant_coefficient_v<Arg1> * constant_coefficient_v<Arg2> * row_extent_of_v<Arg2>;
+    if constexpr (dynamic_columns<Arg1> or dynamic_rows<Arg2>) assert (column_count(arg1) == row_count(arg2));
+
     using Scalar = scalar_type_of_t<Arg1>;
-    return ConstantMatrix<Scalar, newconst, row_extent_of_v<Arg1>, column_extent_of_v<Arg2>> {};
+    constexpr auto newconst = constant_coefficient_v<Arg1> * constant_coefficient_v<Arg2> * row_extent_of_v<Arg2>;
+    constexpr auto rows = row_extent_of_v<Arg1>;
+    constexpr auto columns = column_extent_of_v<Arg2>;
+    using C = ConstantMatrix<Scalar, newconst, rows, columns>;
+
+    if constexpr (rows == dynamic_extent and columns == dynamic_extent)
+      return C {row_count(arg1), column_count(arg2)};
+    else if constexpr (rows == dynamic_extent)
+      return C {row_count(arg1)};
+    else if constexpr (columns == dynamic_extent)
+      return C {column_count(arg2)};
+    else
+      return C {};
   }
 
 

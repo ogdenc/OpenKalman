@@ -395,7 +395,7 @@ TEST(eigen3, rank_update_self_adjoint)
   EXPECT_TRUE(is_near(ru_93310_2102_4_rvalue, m22_29111126));
   static_assert(eigen_self_adjoint_expr<decltype(ru_93310_2102_4_rvalue)>);
   static_assert(upper_self_adjoint_matrix<decltype(ru_93310_2102_4_rvalue)>);
-  static_assert(not std::is_lvalue_reference_v<nested_matrix_of<decltype(ru_93310_2102_4_rvalue)>>);
+  static_assert(not std::is_lvalue_reference_v<nested_matrix_of_t<decltype(ru_93310_2102_4_rvalue)>>);
 
   auto sa_93310_2012_4 = Eigen::SelfAdjointView<M22, Eigen::Lower> {m22_93310};
 
@@ -405,7 +405,7 @@ TEST(eigen3, rank_update_self_adjoint)
   EXPECT_TRUE(is_near(m22_93310.template selfadjointView<Eigen::Lower>(), m22_25111130));
   static_assert(eigen_self_adjoint_expr<decltype(ru_93310_2012_4_lvalue)>);
   static_assert(lower_self_adjoint_matrix<decltype(ru_93310_2012_4_lvalue)>);
-  static_assert(std::is_lvalue_reference_v<nested_matrix_of<decltype(ru_93310_2012_4_lvalue)>>);
+  static_assert(std::is_lvalue_reference_v<nested_matrix_of_t<decltype(ru_93310_2012_4_lvalue)>>);
 
   m22_93310 = make_native_matrix<M22>(9, 3, 3, 10);
 
@@ -413,7 +413,7 @@ TEST(eigen3, rank_update_self_adjoint)
   EXPECT_TRUE(is_near(ru_93310_2012_4_const_lvalue, m22_25111130));
   EXPECT_TRUE(is_near(sa_93310_2012_4, make_native_matrix<M22>(9, 3, 3, 10)));
   static_assert(eigen_self_adjoint_expr<decltype(ru_93310_2012_4_const_lvalue)>);
-  static_assert(not std::is_lvalue_reference_v<nested_matrix_of<decltype(ru_93310_2012_4_const_lvalue)>>);
+  static_assert(not std::is_lvalue_reference_v<nested_matrix_of_t<decltype(ru_93310_2012_4_const_lvalue)>>);
 
   EXPECT_TRUE(is_near(rank_update(Eigen::SelfAdjointView<M22, Eigen::Lower> {m22_93310}, m22_2012, 4), m22_25111130));
   EXPECT_TRUE(is_near(rank_update(Eigen::SelfAdjointView<M20, Eigen::Upper> {m20_93310}, m22_2102, 4), m22_29111126));
@@ -518,17 +518,17 @@ TEST(eigen3, rank_update_triangular)
   static_assert(triangular_matrix<decltype(ru02_lvalue)>); static_assert(Eigen3::eigen_TriangularView<decltype(ru02_lvalue)>);
   static_assert(triangular_matrix<decltype(ru00_lvalue)>); static_assert(Eigen3::eigen_TriangularView<decltype(ru00_lvalue)>);
 
-  static_assert(std::is_lvalue_reference_v<nested_matrix_of<decltype(ru22_lvalue)>>);
-  static_assert(std::is_lvalue_reference_v<nested_matrix_of<decltype(ru20_lvalue)>>);
-  static_assert(std::is_lvalue_reference_v<nested_matrix_of<decltype(ru02_lvalue)>>);
-  static_assert(std::is_lvalue_reference_v<nested_matrix_of<decltype(ru00_lvalue)>>);
+  static_assert(std::is_lvalue_reference_v<nested_matrix_of_t<decltype(ru22_lvalue)>>);
+  static_assert(std::is_lvalue_reference_v<nested_matrix_of_t<decltype(ru20_lvalue)>>);
+  static_assert(std::is_lvalue_reference_v<nested_matrix_of_t<decltype(ru02_lvalue)>>);
+  static_assert(std::is_lvalue_reference_v<nested_matrix_of_t<decltype(ru00_lvalue)>>);
 
   m22 = m22_3303;
   auto ru22_rvalue = rank_update(Eigen::TriangularView<M22, Eigen::Upper> {m22}, m22_2022, 4);
   EXPECT_TRUE(is_near(ru22_rvalue, m22_5505));
   static_assert(eigen_triangular_expr<decltype(ru22_rvalue)>);
   static_assert(upper_triangular_matrix<decltype(ru22_rvalue)>);
-  static_assert(not std::is_lvalue_reference_v<nested_matrix_of<decltype(ru22_rvalue)>>);
+  static_assert(not std::is_lvalue_reference_v<nested_matrix_of_t<decltype(ru22_rvalue)>>);
 
   m22 = m22_3033;
   auto t22_lvalue = Eigen::TriangularView<M22, Eigen::Lower> {m22};
@@ -537,7 +537,7 @@ TEST(eigen3, rank_update_triangular)
   EXPECT_TRUE(is_near(t22_lvalue, m22_3033));
   static_assert(eigen_triangular_expr<decltype(ru22_const_lvalue)>);
   static_assert(lower_triangular_matrix<decltype(ru22_const_lvalue)>);
-  static_assert(not std::is_lvalue_reference_v<nested_matrix_of<decltype(ru22_const_lvalue)>>);
+  static_assert(not std::is_lvalue_reference_v<nested_matrix_of_t<decltype(ru22_const_lvalue)>>);
 
   EXPECT_TRUE(is_near(rank_update(Eigen::TriangularView<M22, Eigen::Lower> {m22_3033}, m22_2022, 4), m22_5055));
   EXPECT_TRUE(is_near(rank_update(Eigen::TriangularView<M20, Eigen::Upper> {m20_3303}, m22_2022, 4), m22_5505));

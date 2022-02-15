@@ -17,11 +17,11 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_concepts
   template<typed_matrix T, std::convertible_to<const std::size_t&>...I> requires (sizeof...(I) <= 2) and
-    element_gettable<nested_matrix_of<Arg>, I...>
+    element_gettable<nested_matrix_of_t<Arg>, I...>
   struct GetElement<T, I...>
 #else
   template<typename T, typename...I>
-  struct GetElement<T, I..., std::enable_if_t<typed_matrix<T> and element_gettable<nested_matrix_of<Arg>, I...> and
+  struct GetElement<T, I..., std::enable_if_t<typed_matrix<T> and element_gettable<nested_matrix_of_t<Arg>, I...> and
     ((sizeof...(I) <= 2) and ... and std::is_convertible_v<I, const std::size_t&>)>>
 #endif
   {
@@ -35,13 +35,13 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_concepts
   template<typed_matrix T, std::convertible_to<const std::size_t&> I, std::convertible_to<const std::size_t&>...Is>
-    requires (sizeof...(Is) <= 1) and element_settable<nested_matrix_of<T>, I, Is...>
+    requires (sizeof...(Is) <= 1) and element_settable<nested_matrix_of_t<T>, I, Is...>
   struct SetElement<T, I, Is...>
 #else
   template<typename T, typename I, typename...I>
   struct SetElement<T, I, Is..., std::enable_if_t<typed_matrix<T> and
     (std::is_convertible_v<I, const std::size_t&> and ... and std::is_convertible_v<Is, const std::size_t&>) and
-    (sizeof...(Is) <= 1) and element_settable<nested_matrix_of<T>, I, Is...>>>
+    (sizeof...(Is) <= 1) and element_settable<nested_matrix_of_t<T>, I, Is...>>>
 #endif
   {
     template<typename Arg, typename Scalar>
@@ -659,14 +659,14 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
 #ifdef __cpp_concepts
   template<typename Function, typed_matrix Arg> requires untyped_columns<Arg> and
     requires(const Function& f, std::decay_t<decltype(column(std::declval<Arg>(), 0))>& col) { f(col); } and
-    (not std::is_const_v<std::remove_reference_t<nested_matrix_of<Arg>>>) and
-    modifiable<nested_matrix_of<Arg>, nested_matrix_of<Arg>>
+    (not std::is_const_v<std::remove_reference_t<nested_matrix_of_t<Arg>>>) and
+    modifiable<nested_matrix_of_t<Arg>, nested_matrix_of_t<Arg>>
 #else
   template<typename Function, typename Arg, std::enable_if_t<typed_matrix<Arg> and untyped_columns<Arg> and
     std::is_invocable_v<const Function&,
       std::decay_t<decltype(column(std::declval<Arg&>(), 0))>& > and
-    (not std::is_const_v<std::remove_reference_t<nested_matrix_of<Arg>>>) and
-    modifiable<nested_matrix_of<Arg>, nested_matrix_of<Arg>>, int> = 0>
+    (not std::is_const_v<std::remove_reference_t<nested_matrix_of_t<Arg>>>) and
+    modifiable<nested_matrix_of_t<Arg>, nested_matrix_of_t<Arg>>, int> = 0>
 #endif
   inline Arg&
   apply_columnwise(const Function& f, Arg& arg)
@@ -691,14 +691,14 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     requires(const Function& f, std::decay_t<decltype(column(std::declval<Arg>(), 0))>& col, std::size_t i) {
       f(col, i);
     } and
-    (not std::is_const_v<std::remove_reference_t<nested_matrix_of<Arg>>>) and
-    modifiable<nested_matrix_of<Arg>, nested_matrix_of<Arg>>
+    (not std::is_const_v<std::remove_reference_t<nested_matrix_of_t<Arg>>>) and
+    modifiable<nested_matrix_of_t<Arg>, nested_matrix_of_t<Arg>>
 #else
   template<typename Function, typename Arg, std::enable_if_t<typed_matrix<Arg> and untyped_columns<Arg> and
     std::is_invocable_v<Function,
     std::decay_t<decltype(column(std::declval<Arg&>(), 0))>&, std::size_t> and
-    (not std::is_const_v<std::remove_reference_t<nested_matrix_of<Arg>>>) and
-    modifiable<nested_matrix_of<Arg>, nested_matrix_of<Arg>>, int> = 0>
+    (not std::is_const_v<std::remove_reference_t<nested_matrix_of_t<Arg>>>) and
+    modifiable<nested_matrix_of_t<Arg>, nested_matrix_of_t<Arg>>, int> = 0>
 #endif
   inline Arg&
   apply_columnwise(const Function& f, Arg& arg)
@@ -1017,7 +1017,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   inline auto
   randomize(Dists&& ... dists)
   {
-    using B = nested_matrix_of<ReturnType>;
+    using B = nested_matrix_of_t<ReturnType>;
     return MatrixTraits<ReturnType>::template make(randomize<B, random_number_engine>(std::forward<Dists>(dists)...));
   }
 
@@ -1054,7 +1054,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   {
     if constexpr (not dynamic_rows<ReturnType>) assert(rows == row_extent_of_v<ReturnType>);
     if constexpr (not dynamic_columns<ReturnType>) assert(columns == column_extent_of_v<ReturnType>);
-    using B = nested_matrix_of<ReturnType>;
+    using B = nested_matrix_of_t<ReturnType>;
     return MatrixTraits<ReturnType>::template make(randomize<B, random_number_engine>(
       rows, columns, std::forward<Dist>(dist)));
   }

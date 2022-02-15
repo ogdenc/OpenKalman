@@ -71,14 +71,14 @@ namespace OpenKalman::Eigen3
     template<typename  Arg> requires (not std::derived_from<std::decay_t<Arg>, TriangularMatrix>) and
       ((eigen_triangular_expr<Arg> and triangle_type_of_v<Arg> == triangle_type) or
        (eigen_self_adjoint_expr<Arg> and diagonal_matrix<Arg>)) and
-      (not eigen_diagonal_expr<NestedMatrix> or diagonal_matrix<nested_matrix_of<Arg>>) and
+      (not eigen_diagonal_expr<NestedMatrix> or diagonal_matrix<nested_matrix_of_t<Arg>>) and
       std::constructible_from<NestedMatrix, decltype(nested_matrix(std::declval<Arg&&>()))>
       //alt: requires(Arg&& arg) { NestedMatrix {nested_matrix(std::forward<Arg>(arg))}; } -- not accepted in GCC 10
 #else
     template<typename Arg, std::enable_if_t<(not std::is_base_of_v<TriangularMatrix, std::decay_t<Arg>>) and
       ((eigen_triangular_expr<Arg> and triangle_type_of<Arg>::value == triangle_type) or
        (eigen_self_adjoint_expr<Arg> and diagonal_matrix<Arg>)) and
-      (not eigen_diagonal_expr<NestedMatrix> or diagonal_matrix<nested_matrix_of<Arg>>) and
+      (not eigen_diagonal_expr<NestedMatrix> or diagonal_matrix<nested_matrix_of_t<Arg>>) and
       std::is_constructible_v<NestedMatrix, decltype(nested_matrix(std::declval<Arg&&>()))>, int> = 0>
 #endif
     TriangularMatrix(Arg&& arg) noexcept : Base {nested_matrix(std::forward<Arg>(arg))} {}
@@ -89,13 +89,13 @@ namespace OpenKalman::Eigen3
       template<typename Arg> requires (not std::derived_from<std::decay_t<Arg>, TriangularMatrix>) and
         ((eigen_triangular_expr<Arg> and triangle_type_of_v<Arg> == triangle_type) or
          (eigen_self_adjoint_expr<Arg> and diagonal_matrix<Arg>)) and
-        eigen_diagonal_expr<NestedMatrix> and (not diagonal_matrix<nested_matrix_of<Arg>>) and
+        eigen_diagonal_expr<NestedMatrix> and (not diagonal_matrix<nested_matrix_of_t<Arg>>) and
         requires(Arg&& arg) { NestedMatrix {to_diagonal(diagonal_of(nested_matrix(std::forward<Arg>(arg))))}; }
 #else
       template<typename Arg, std::enable_if_t<(not std::is_base_of_v<TriangularMatrix, std::decay_t<Arg>>) and
         ((eigen_triangular_expr<Arg> and triangle_type_of<Arg>::value == triangle_type) or
          (eigen_self_adjoint_expr<Arg> and diagonal_matrix<Arg>)) and
-        eigen_diagonal_expr<NestedMatrix> and (not diagonal_matrix<nested_matrix_of<Arg>>) and
+        eigen_diagonal_expr<NestedMatrix> and (not diagonal_matrix<nested_matrix_of_t<Arg>>) and
         std::is_constructible_v<NestedMatrix, decltype(to_diagonal(diagonal_of(nested_matrix(std::declval<Arg&&>()))))>,
         int> = 0>
 #endif
@@ -233,13 +233,13 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
     template<eigen_triangular_expr Arg> requires (not std::derived_from<std::decay_t<Arg>, TriangularMatrix>) and
       (row_extent_of_v<Arg> == dimensions) and (triangle_type_of_v<Arg> == triangle_type) and
-      modifiable<NestedMatrix, nested_matrix_of<Arg>> and
+      modifiable<NestedMatrix, nested_matrix_of_t<Arg>> and
       (not (eigen_diagonal_expr<NestedMatrix> or triangle_type == TriangleType::diagonal) or diagonal_matrix<Arg>)
 #else
     template<typename Arg, std::enable_if_t<eigen_triangular_expr<Arg> and
       (not std::is_base_of_v<TriangularMatrix, std::decay_t<Arg>>) and
       (row_extent_of<Arg>::value == dimensions) and (triangle_type_of<Arg>::value == triangle_type) and
-      modifiable<NestedMatrix, nested_matrix_of<Arg>> and
+      modifiable<NestedMatrix, nested_matrix_of_t<Arg>> and
       (not (eigen_diagonal_expr<NestedMatrix> and triangle_type == TriangleType::diagonal) or diagonal_matrix<Arg>),
       int> = 0>
 #endif
@@ -412,7 +412,7 @@ namespace OpenKalman::Eigen3
 #else
   template<typename M, std::enable_if_t<Eigen3::eigen_TriangularView<M>, int> = 0>
 #endif
-  TriangularMatrix(M&&) -> TriangularMatrix<nested_matrix_of<M>, triangle_type_of_v<M>>;
+  TriangularMatrix(M&&) -> TriangularMatrix<nested_matrix_of_t<M>, triangle_type_of_v<M>>;
 
 
 #ifdef __cpp_concepts
@@ -420,7 +420,7 @@ namespace OpenKalman::Eigen3
 #else
   template<typename M, std::enable_if_t<eigen_self_adjoint_expr<M> and diagonal_matrix<M>, int> = 0>
 #endif
-  TriangularMatrix(M&&) -> TriangularMatrix<passable_t<nested_matrix_of<M>>, TriangleType::diagonal>;
+  TriangularMatrix(M&&) -> TriangularMatrix<passable_t<nested_matrix_of_t<M>>, TriangleType::diagonal>;
 
 
   /// If the arguments are a sequence of scalars, deduce a square, lower triangular matrix.

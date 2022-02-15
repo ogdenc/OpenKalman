@@ -242,23 +242,23 @@ TEST(eigen3, Eigen_check_test_classes)
   static_assert(native_eigen_matrix<CM00>);
   static_assert(not native_eigen_matrix<double>);
 
-  static_assert(constant_coefficient_v<Z11> == 0);
-  static_assert(constant_coefficient_v<Z22> == 0);
-  static_assert(constant_coefficient_v<Z21> == 0);
-  static_assert(constant_coefficient_v<Z12> == 0);
-  static_assert(constant_coefficient_v<Z23> == 0);
-  static_assert(constant_coefficient_v<Z20> == 0);
-  static_assert(constant_coefficient_v<Z02> == 0);
-  static_assert(constant_coefficient_v<Z00> == 0);
-  static_assert(constant_coefficient_v<Z01> == 0);
-  static_assert(constant_coefficient_v<C11_1> == 1);
-  static_assert(constant_coefficient_v<C11_m1> == -1);
-  static_assert(constant_coefficient_v<C11_2> == 2);
-  static_assert(constant_coefficient_v<C11_m2> == -2);
-  static_assert(constant_coefficient_v<C11_3> == 3);
-  static_assert(constant_coefficient_v<C20_2> == 2);
-  static_assert(constant_coefficient_v<C02_2> == 2);
-  static_assert(constant_coefficient_v<C00_2> == 2);
+  static_assert(are_within_tolerance(constant_coefficient_v<Z11>, 0));
+  static_assert(are_within_tolerance(constant_coefficient_v<Z22>, 0));
+  static_assert(are_within_tolerance(constant_coefficient_v<Z21>, 0));
+  static_assert(are_within_tolerance(constant_coefficient_v<Z12>, 0));
+  static_assert(are_within_tolerance(constant_coefficient_v<Z23>, 0));
+  static_assert(are_within_tolerance(constant_coefficient_v<Z20>, 0));
+  static_assert(are_within_tolerance(constant_coefficient_v<Z02>, 0));
+  static_assert(are_within_tolerance(constant_coefficient_v<Z00>, 0));
+  static_assert(are_within_tolerance(constant_coefficient_v<Z01>, 0));
+  static_assert(are_within_tolerance(constant_coefficient_v<C11_1>, 1));
+  static_assert(are_within_tolerance(constant_coefficient_v<C11_m1>, -1));
+  static_assert(are_within_tolerance(constant_coefficient_v<C11_2>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<C11_m2>, -2));
+  static_assert(are_within_tolerance(constant_coefficient_v<C11_3>, 3));
+  static_assert(are_within_tolerance(constant_coefficient_v<C20_2>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<C02_2>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<C00_2>, 2));
   static_assert(constant_coefficient_v<B22_true> == true);
   static_assert(constant_coefficient_v<B22_false> == false);
   static_assert(not constant_matrix<Cd21_2>);
@@ -429,10 +429,10 @@ TEST(eigen3, Eigen_ArrayWrapper)
   static_assert(self_contained<Eigen::ArrayWrapper<I21>>);
   static_assert(not self_contained<Eigen::ArrayWrapper<M32>>);
 
-  static_assert(constant_coefficient_v<Eigen::ArrayWrapper<C22_2>> == 2);
-  static_assert(constant_coefficient_v<Eigen::ArrayWrapper<C20_2>> == 2);
-  static_assert(constant_coefficient_v<Eigen::ArrayWrapper<C02_2>> == 2);
-  static_assert(constant_coefficient_v<Eigen::ArrayWrapper<C00_2>> == 2);
+  static_assert(are_within_tolerance(constant_coefficient_v<Eigen::ArrayWrapper<C22_2>>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<Eigen::ArrayWrapper<C20_2>>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<Eigen::ArrayWrapper<C02_2>>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<Eigen::ArrayWrapper<C00_2>>, 2));
 
   static_assert(constant_diagonal_coefficient_v<Eigen::ArrayWrapper<DiagonalMatrix<C21_2>>> == 2);
   static_assert(constant_diagonal_coefficient_v<Eigen::ArrayWrapper<DiagonalMatrix<C20_2>>> == 2);
@@ -464,10 +464,10 @@ TEST(eigen3, Eigen_Block)
   static_assert(self_contained<decltype(row<0>(2 * std::declval<I21>() + std::declval<I21>()))>);
   static_assert(not self_contained<decltype(row<0>(2 * std::declval<I21>() + M22 {1, 2, 3, 4}))>);
 
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().block<2, 1>(0, 0))> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().block(2, 1, 0, 0))> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<Z22>().block<1, 2>(0, 0))> == 0);
-  static_assert(constant_coefficient_v<decltype(std::declval<Z22>().block<1, 1>(0, 0))> == 0);
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().block<2, 1>(0, 0))>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().block(2, 1, 0, 0))>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<Z22>().block<1, 2>(0, 0))>, 0));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<Z22>().block<1, 1>(0, 0))>, 0));
 
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C22_2>().block<1, 1>(0, 0))> == 2);
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Z22>().block<1, 1>(0, 0))> == 0);
@@ -503,26 +503,26 @@ TEST(eigen3, Eigen_CwiseBinaryOp)
   static_assert(not self_contained<Eigen::CwiseBinaryOp<Eigen::internal::scalar_product_op<double, double>, const M22,
     const Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, M22>>>);
 
-  static_assert(constant_coefficient_v<decltype(std::declval<C21_2>() + std::declval<C21_3>())> == 5);
-  static_assert(constant_coefficient_v<decltype(std::declval<C21_2>() + std::declval<C21_m2>())> == 0);
-  static_assert(constant_coefficient_v<decltype(std::declval<C21_2>() - std::declval<C21_2>())> == 0);
-  static_assert(constant_coefficient_v<decltype(std::declval<C21_2>() - std::declval<C21_m2>())> == 4);
-  static_assert(constant_coefficient_v<decltype(std::declval<C21_2>().array() * std::declval<C21_m2>().array())> == -4);
-  static_assert(constant_coefficient_v<decltype(std::declval<C21_2>().array() * std::declval<Z21>().array())> == 0);
-  static_assert(constant_coefficient_v<decltype(std::declval<Z21>().array() * std::declval<C21_2>().array())> == 0);
-  static_assert(constant_coefficient_v<decltype(std::declval<M21>().array() * std::declval<Z21>().array())> == 0);
-  static_assert(constant_coefficient_v<decltype(std::declval<Z21>().array() * std::declval<M21>().array())> == 0);
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C21_2>() + std::declval<C21_3>())>, 5));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C21_2>() + std::declval<C21_m2>())>, 0));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C21_2>() - std::declval<C21_2>())>, 0));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C21_2>() - std::declval<C21_m2>())>, 4));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C21_2>().array() * std::declval<C21_m2>().array())>, -4));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C21_2>().array() * std::declval<Z21>().array())>, 0));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<Z21>().array() * std::declval<C21_2>().array())>, 0));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<M21>().array() * std::declval<Z21>().array())>, 0));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<Z21>().array() * std::declval<M21>().array())>, 0));
   // no conjugate-product test
-  static_assert(constant_coefficient_v<decltype(std::declval<C11_3>().array() / std::declval<C11_m2>().array())> == -1);
-  static_assert(constant_coefficient_v<decltype(std::declval<Z11>().array() / std::declval<C11_3>().array())> == 0);
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C11_3>().array() / std::declval<C11_m2>().array())>, -1.5));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<Z11>().array() / std::declval<C11_3>().array())>, 0));
   static_assert(not constant_matrix<decltype(std::declval<C11_3>().array() / std::declval<Z11>().array())>); // divide by zero
-  static_assert(constant_coefficient_v<decltype(std::declval<C21_2>().array() / std::declval<C21_m2>().array())> == -1);
-  static_assert(constant_coefficient_v<decltype(std::declval<Z21>().array() / std::declval<C21_m2>().array())> == 0);
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C21_2>().array() / std::declval<C21_m2>().array())>, -1));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<Z21>().array() / std::declval<C21_m2>().array())>, 0));
   static_assert(not constant_matrix<decltype(std::declval<C21_2>().array() / std::declval<Z21>().array())>); // divide by zero
-  static_assert(constant_coefficient_v<decltype(std::declval<C21_2>().array().min(std::declval<C21_m2>().array()))> == -2);
-  static_assert(constant_coefficient_v<decltype(std::declval<C21_2>().array().max(std::declval<C21_m2>().array()))> == 2);
-  static_assert(constant_coefficient_v<decltype(Eigen::CwiseBinaryOp<Eigen::internal::scalar_hypot_op<double, double>, std::decay_t<decltype(std::declval<C21_2>().array())>, std::decay_t<decltype(std::declval<C21_m2>().array())>> {std::declval<C21_2>().array(), std::declval<C21_m2>().array()})> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<C21_m2>().array().pow(std::declval<C21_3>().array()))> == -8);
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C21_2>().array().min(std::declval<C21_m2>().array()))>, -2));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C21_2>().array().max(std::declval<C21_m2>().array()))>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<Eigen::CwiseBinaryOp<Eigen::internal::scalar_hypot_op<double, double>, C21_2, C21_m2>>, OpenKalman::internal::constexpr_sqrt(8.)));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C21_m2>().array().pow(std::declval<C21_3>().array()))>, -8));
   static_assert(constant_coefficient_v<decltype(std::declval<B22_true>().array() and std::declval<B22_true>().array())> == true);
   static_assert(constant_coefficient_v<decltype(std::declval<B22_true>().array() and std::declval<B22_false>().array())> == false);
   static_assert(constant_coefficient_v<decltype(std::declval<B22_false>().array() or std::declval<B22_true>().array())> == true);
@@ -536,12 +536,12 @@ TEST(eigen3, Eigen_CwiseBinaryOp)
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd21_2>() - std::declval<Cd21_2>())> == 0);
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd21_2>() - std::declval<Cd21_3>())> == -1);
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd21_2>() * std::declval<Cd21_3>())> == 6); // no conjugate-product test
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C11_3>().array() / std::declval<C11_m2>().array())> == -1); // -1.5, truncated
+  static_assert(are_within_tolerance(constant_diagonal_coefficient_v<decltype(std::declval<C11_3>().array() / std::declval<C11_m2>().array())>, -1.5));
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Z11>().array() / std::declval<C11_m2>().array())> == 0);
   static_assert(not constant_diagonal_matrix<decltype(std::declval<C11_3>().array() / std::declval<Z11>().array())>); // divide by zero
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd21_2>().min(std::declval<Cd21_3>()))> == 2);
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd21_2>().max(std::declval<Cd21_3>()))> == 3);
-  static_assert(constant_diagonal_coefficient_v<Eigen::CwiseBinaryOp<Eigen::internal::scalar_hypot_op<double, double>, Cd21_2, Cd21_3>> == 3);
+  static_assert(are_within_tolerance(constant_diagonal_coefficient_v<Eigen::CwiseBinaryOp<Eigen::internal::scalar_hypot_op<double, double>, Cd21_2, Cd21_3>>, OpenKalman::internal::constexpr_sqrt(13.)));
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd21_2>() * std::declval<Z22>().array())> == 0);
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Z22>().array() * std::declval<Cd21_2>())> == 0);
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<M22>().array() * std::declval<Z22>().array())> == 0);
@@ -637,7 +637,7 @@ TEST(eigen3, Eigen_CwiseNullaryOp)
   static_assert(self_contained<typename M33::IdentityReturnType>);
   static_assert(self_contained<const Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, M22>>);
 
-  static_assert(constant_coefficient_v<C11_1> == 1);
+  static_assert(are_within_tolerance(constant_coefficient_v<C11_1>, 1));
   static_assert(not constant_matrix<typename M00::ConstantReturnType>); // because the constant is not known at compile time
 
   static_assert(constant_diagonal_coefficient_v<C11_1> == 1);
@@ -677,19 +677,19 @@ TEST(eigen3, Eigen_CwiseUnaryOp)
 {
   static_assert(self_contained<const M22>);
 
-  static_assert(constant_coefficient_v<decltype(-std::declval<C11_2>())> == -2);
-  static_assert(constant_coefficient_v<decltype(-std::declval<C22_2>())> == -2);
-  static_assert(constant_coefficient_v<decltype(M11::Identity().conjugate())> == 1);
-  static_assert(constant_coefficient_v<decltype(real(C22_2 {std::declval<C22_2>()}.array()))> == 2);
-  static_assert(constant_coefficient_v<decltype(imag(C22_2 {std::declval<C22_2>()}.array()))> == 0);
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().array().abs())> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_m2>().array().abs())> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_m2>().array().abs2())> == 4);
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().array().sqrt())> == 1);
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_1>().array().inverse())> == 1);
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().array().inverse())> == 0);
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_m2>().array().square())> == 4);
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_m2>().array().cube())> == -8);
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(-std::declval<C11_2>())>, -2));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(-std::declval<C22_2>())>, -2));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(M11::Identity().conjugate())>, 1));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(real(C22_2 {std::declval<C22_2>()}.array()))>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(imag(C22_2 {std::declval<C22_2>()}.array()))>, 0));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().array().abs())>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_m2>().array().abs())>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_m2>().array().abs2())>, 4));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().array().sqrt())>, OpenKalman::internal::constexpr_sqrt(2.)));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_1>().array().inverse())>, 1));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().array().inverse())>, 0.5));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_m2>().array().square())>, 4));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_m2>().array().cube())>, -8));
   static_assert(constant_coefficient_v<decltype(not std::declval<B22_true>().array())> == false);
   static_assert(constant_coefficient_v<decltype(not std::declval<B22_false>().array())> == true);
   static_assert(constant_coefficient_v<decltype(not std::declval<C22_1>().array())> == false); // requires narrowing from 1 to true.
@@ -704,7 +704,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp)
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd21_m1>().abs())> == 1);
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd21_2>().abs2())> == 4);
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd21_m1>().abs2())> == 1);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd21_2>().sqrt())> == 1);
+  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd21_2>().sqrt())> == OpenKalman::internal::constexpr_sqrt(2.));
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd21_m1>().inverse())> == -1);
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd21_2>().square())> == 4);
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd21_2>().cube())> == 8);
@@ -746,14 +746,14 @@ TEST(eigen3, Eigen_CwiseUnaryView)
   static_assert(not self_contained<decltype(std::declval<CM22>().imag())>);
   static_assert(not self_contained<decltype(std::declval<C22_2>().real())>);
 
-  static_assert(constant_coefficient_v<decltype(M11::Identity().real())> == 1);
-  static_assert(constant_coefficient_v<decltype(M11::Identity().imag())> == 0);
-  static_assert(constant_coefficient_v<decltype(std::declval<Z11>().real())> == 0);
-  static_assert(constant_coefficient_v<decltype(std::declval<Z11>().imag())> == 0);
-  static_assert(constant_coefficient_v<decltype(std::declval<C11_2>().real())> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<C11_2>().imag())> == 0);
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().real())> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().imag())> == 0);
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(M11::Identity().real())>, 1));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(M11::Identity().imag())>, 0));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<Z11>().real())>, 0));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<Z11>().imag())>, 0));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C11_2>().real())>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C11_2>().imag())>, 0));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().real())>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().imag())>, 0));
 
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd21_2>().real())> == 2);
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd21_2>().imag())> == 0);
@@ -785,24 +785,24 @@ TEST(eigen3, Eigen_Diagonal)
   static_assert(not self_contained<decltype(std::declval<M22>().diagonal())>);
   static_assert(self_contained<decltype(std::declval<C22_2>().diagonal())>);
 
-  static_assert(constant_coefficient_v<decltype(M22::Identity().diagonal())> == 1);
-  static_assert(constant_coefficient_v<decltype(M20::Identity().diagonal())> == 1);
-  static_assert(constant_coefficient_v<decltype(M02::Identity().diagonal())> == 1);
-  static_assert(constant_coefficient_v<decltype(M00::Identity().diagonal())> == 1);
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(M22::Identity().diagonal())>, 1));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(M20::Identity().diagonal())>, 1));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(M02::Identity().diagonal())>, 1));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(M00::Identity().diagonal())>, 1));
 
-  static_assert(constant_coefficient_v<decltype(M22::Identity().diagonal<1>())> == 0);
-  static_assert(constant_coefficient_v<decltype(M20::Identity().diagonal<-1>())> == 0);
-  static_assert(constant_coefficient_v<decltype(M02::Identity().diagonal<1>())> == 0);
-  static_assert(constant_coefficient_v<decltype(M00::Identity().diagonal<-1>())> == 0);
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(M22::Identity().diagonal<1>())>, 0));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(M20::Identity().diagonal<-1>())>, 0));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(M02::Identity().diagonal<1>())>, 0));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(M00::Identity().diagonal<-1>())>, 0));
   static_assert(not constant_matrix<decltype(M22::Identity().diagonal<Eigen::DynamicIndex>())>);
 
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().diagonal())> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().diagonal<1>())> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().diagonal<-1>())> == 2);
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().diagonal())>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().diagonal<1>())>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().diagonal<-1>())>, 2));
 
-  static_assert(constant_coefficient_v<decltype(std::declval<Cd21_2>().matrix().diagonal())> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<Cd21_2>().matrix().diagonal<1>())> == 0);
-  static_assert(constant_coefficient_v<decltype(std::declval<Cd21_2>().matrix().diagonal<-1>())> == 0);
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<Cd21_2>().matrix().diagonal())>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<Cd21_2>().matrix().diagonal<1>())>, 0));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<Cd21_2>().matrix().diagonal<-1>())>, 0));
 
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C11_2>().diagonal())> == 2);
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C10_2>().diagonal())> == 2);
@@ -843,7 +843,7 @@ TEST(eigen3, Eigen_DiagonalMatrix)
 
   static_assert(lower_triangular_matrix<DM0>);
 
-  static_assert(std::is_same_v<nested_matrix_of<Eigen::DiagonalMatrix<double, 2>>, M21>);
+  static_assert(std::is_same_v<nested_matrix_of_t<Eigen::DiagonalMatrix<double, 2>>, M21>);
 
   static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<Eigen::DiagonalMatrix<double, 3>>, M33>);
   static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<Eigen::DiagonalMatrix<double, Eigen::Dynamic>>, M00>);
@@ -874,7 +874,7 @@ TEST(eigen3, Eigen_DiagonalWrapper)
   static_assert(column_extent_of_v<Eigen::DiagonalWrapper<M10>> == dynamic_extent);
   static_assert(column_extent_of_v<Eigen::DiagonalWrapper<M03>> == dynamic_extent);
 
-  static_assert(std::is_same_v<nested_matrix_of<Eigen::DiagonalWrapper<M21>>, const M21&>);
+  static_assert(std::is_same_v<nested_matrix_of_t<Eigen::DiagonalWrapper<M21>>, const M21&>);
 
   static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<Eigen::DiagonalWrapper<M31>>, M33>);
   static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<Eigen::DiagonalWrapper<M22>>, M44>);
@@ -884,8 +884,8 @@ TEST(eigen3, Eigen_DiagonalWrapper)
 
   static_assert(not self_contained<Eigen::DiagonalWrapper<M31>>);
 
-  static_assert(constant_coefficient_v<decltype(std::declval<C11_2>().asDiagonal())> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<Z21>().asDiagonal())> == 0);
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C11_2>().asDiagonal())>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<Z21>().asDiagonal())>, 0));
   static_assert(not constant_matrix<decltype(std::declval<C21_2>().asDiagonal())>);
 
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C11_2>().asDiagonal())> == 2);
@@ -957,7 +957,7 @@ TEST(eigen3, Eigen_Matrix)
   static_assert(element_gettable<M10, std::size_t>);
   static_assert(not element_gettable<M00, std::size_t>);
 
-  static_assert(element_settable<M32&, std::size_t, std::size_t>);
+  static_assert(element_settable<M32, std::size_t, std::size_t>);
   static_assert(not element_settable<const M32&, std::size_t, std::size_t>);
   static_assert(element_settable<M31&, std::size_t, std::size_t>);
   static_assert(element_settable<M13&, std::size_t, std::size_t>);
@@ -1031,7 +1031,7 @@ TEST(eigen3, Eigen_Matrix)
 
 TEST(eigen3, Eigen_MatrixWrapper)
 {
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().array().matrix())> == 2);
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().array().matrix())>, 2));
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd21_2>().matrix())> == 2);
   static_assert(zero_matrix<decltype(std::declval<Z23>().array().matrix())>);
   static_assert(identity_matrix<decltype(std::declval<I21>().array().matrix())>);
@@ -1045,36 +1045,36 @@ TEST(eigen3, Eigen_MatrixWrapper)
 
 TEST(eigen3, Eigen_PartialReduxExpr)
 {
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_m2>().colwise().lpNorm<1>())> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_m2>().colwise().lpNorm<2>())> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_m2>().colwise().squaredNorm())> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_m2>().colwise().norm())> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_m2>().colwise().stableNorm())> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_m2>().colwise().hypotNorm())> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().colwise().sum())> == 4);
-  static_assert(constant_coefficient_v<decltype(std::declval<C20_2>().colwise().sum())> == 4);
-  static_assert(constant_coefficient_v<decltype(std::declval<C02_2>().rowwise().sum())> == 4);
-  static_assert(constant_coefficient_v<decltype(std::declval<C21_2>().colwise().sum())> == 4);
-  static_assert(constant_coefficient_v<decltype(std::declval<C21_2>().rowwise().sum())> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<C20_2>().colwise().sum())> == 4);
-  static_assert(constant_coefficient_v<decltype(std::declval<C01_2>().rowwise().sum())> == 2);
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_m2>().colwise().lpNorm<1>())>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_m2>().colwise().lpNorm<2>())>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_m2>().colwise().squaredNorm())>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_m2>().colwise().norm())>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_m2>().colwise().stableNorm())>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_m2>().colwise().hypotNorm())>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().colwise().sum())>, 4));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C20_2>().colwise().sum())>, 4));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C02_2>().rowwise().sum())>, 4));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C21_2>().colwise().sum())>, 4));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C21_2>().rowwise().sum())>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C20_2>().colwise().sum())>, 4));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C01_2>().rowwise().sum())>, 2));
   static_assert(not constant_matrix<decltype(std::declval<C02_2>().colwise().sum())>);
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().colwise().mean())> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().colwise().minCoeff())> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().colwise().maxCoeff())> == 2);
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().colwise().mean())>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().colwise().minCoeff())>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().colwise().maxCoeff())>, 2));
   static_assert(constant_coefficient_v<decltype(std::declval<B22_true>().colwise().all())> == true);
   static_assert(constant_coefficient_v<decltype(std::declval<B22_true>().colwise().any())> == true);
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().colwise().count())> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<C20_2>().colwise().count())> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<C02_2>().rowwise().count())> == 2);
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().colwise().count())>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C20_2>().colwise().count())>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C02_2>().rowwise().count())>, 2));
   static_assert(not constant_matrix<decltype(std::declval<C02_2>().colwise().count())>);
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().colwise().prod())> == 4);
-  static_assert(constant_coefficient_v<decltype(std::declval<C20_2>().colwise().prod())> == 4);
-  static_assert(constant_coefficient_v<decltype(std::declval<C02_2>().rowwise().prod())> == 4);
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().colwise().prod())>, 4));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C20_2>().colwise().prod())>, 4));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C02_2>().rowwise().prod())>, 4));
   static_assert(not constant_matrix<decltype(std::declval<C02_2>().colwise().prod())>);
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().colwise().reverse())> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().colwise().replicate<2>())> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().colwise().replicate(2))> == 2);
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().colwise().reverse())>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().colwise().replicate<2>())>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().colwise().replicate(2))>, 2));
 
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C21_m2>().colwise().lpNorm<1>())> == 2);
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C21_m2>().colwise().lpNorm<2>())> == 2);
@@ -1127,22 +1127,22 @@ TEST(eigen3, Eigen_PartialReduxExpr)
 
 TEST(eigen3, Eigen_Product)
 {
-  static_assert(constant_coefficient_v<decltype(std::declval<C11_2>() * std::declval<C11_2>())> == 4);
-  static_assert(constant_coefficient_v<decltype(std::declval<C12_2>() * std::declval<C21_2>())> == 8);
-  static_assert(constant_coefficient_v<decltype(std::declval<C11_1>() * std::declval<C11_2>())> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<C11_2>() * std::declval<C11_1>())> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_2>() * std::declval<C22_m2>())> == -8);
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_2>() * std::declval<C22_2>())> == 8);
-  static_assert(constant_coefficient_v<decltype(std::declval<C20_2>() * std::declval<C22_2>())> == 8);
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_2>() * std::declval<C02_2>())> == 8);
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C11_2>() * std::declval<C11_2>())>, 4));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C12_2>() * std::declval<C21_2>())>, 8));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C11_1>() * std::declval<C11_2>())>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C11_2>() * std::declval<C11_1>())>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>() * std::declval<C22_m2>())>, -8));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>() * std::declval<C22_2>())>, 8));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C20_2>() * std::declval<C22_2>())>, 8));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>() * std::declval<C02_2>())>, 8));
   static_assert(not constant_matrix<decltype(std::declval<C20_2>() * std::declval<C02_2>())>);
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_2>() * std::declval<I21>())> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<I21>() * std::declval<C22_2>())> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<Z22>() * std::declval<Z22>())> == 0);
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_2>() * std::declval<Z22>())> == 0);
-  static_assert(constant_coefficient_v<decltype(std::declval<Z22>() * std::declval<C22_2>())> == 0);
-  static_assert(constant_coefficient_v<decltype(std::declval<M22>() * std::declval<Z22>())> == 0);
-  static_assert(constant_coefficient_v<decltype(std::declval<Z22>() * std::declval<M22>())> == 0);
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>() * std::declval<I21>())>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<I21>() * std::declval<C22_2>())>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<Z22>() * std::declval<Z22>())>, 0));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>() * std::declval<Z22>())>, 0));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<Z22>() * std::declval<C22_2>())>, 0));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<M22>() * std::declval<Z22>())>, 0));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<Z22>() * std::declval<M22>())>, 0));
 
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C11_2>() * std::declval<C11_2>())> == 4);
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C11_1>() * std::declval<C11_2>())> == 2);
@@ -1182,7 +1182,10 @@ TEST(eigen3, Eigen_Product)
 
 TEST(eigen3, Eigen_Replicate)
 {
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().replicate<5,5>())> == 2);
+  static_assert(are_within_tolerance(constant_coefficient_v<Eigen::Replicate<Z11, 1, 2>>, 0));
+  static_assert(are_within_tolerance(constant_coefficient_v<Eigen::Replicate<C20_2, 1, 2>>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<Eigen::Replicate<C02_2, 1, 2>>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().replicate<5,5>())>, 2));
 
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd21_2>().replicate<1,1>())> == 2);
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Z22>().replicate<5,5>())> == 0);
@@ -1200,9 +1203,9 @@ TEST(eigen3, Eigen_Replicate)
 
 TEST(eigen3, Eigen_Reverse)
 {
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().reverse())> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<C21_2>().reverse())> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<C20_2>().reverse())> == 2);
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().reverse())>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C21_2>().reverse())>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C20_2>().reverse())>, 2));
 
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C11_2>().reverse())> == 2);
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd21_2>().reverse())> == 2);
@@ -1236,11 +1239,11 @@ TEST(eigen3, Eigen_Select)
   auto br = make_eigen_matrix<bool, 2, 2>(true, false, true, false);
   auto bsa = eigen_matrix_t<bool, 2, 2>::Identity();
 
-  static_assert(constant_coefficient_v<decltype(std::declval<B22_true>().select(std::declval<C22_2>(), std::declval<Z22>()))> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<B22_true>().select(std::declval<C22_2>(), std::declval<M22>()))> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<B22_false>().select(std::declval<C22_2>(), std::declval<Z22>()))> == 0);
-  static_assert(constant_coefficient_v<decltype(std::declval<B22_false>().select(std::declval<M22>(), std::declval<Z22>()))> == 0);
-  static_assert(constant_coefficient_v<decltype(br.select(std::declval<C22_2>(), std::declval<C22_2>()))> == 2);
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<B22_true>().select(std::declval<C22_2>(), std::declval<Z22>()))>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<B22_true>().select(std::declval<C22_2>(), std::declval<M22>()))>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<B22_false>().select(std::declval<C22_2>(), std::declval<Z22>()))>, 0));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<B22_false>().select(std::declval<M22>(), std::declval<Z22>()))>, 0));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(br.select(std::declval<C22_2>(), std::declval<C22_2>()))>, 2));
 
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<B22_true>().select(std::declval<Cd21_2>(), std::declval<Z22>()))> == 2);
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<B22_true>().select(std::declval<Cd21_2>(), std::declval<M22>()))> == 2);
@@ -1277,7 +1280,7 @@ TEST(eigen3, Eigen_Select)
 
 TEST(eigen3, Eigen_SelfAdjointView)
 {
-  static_assert(std::is_same_v<nested_matrix_of<Eigen::SelfAdjointView<M22, Eigen::Lower>>, M22&>);
+  static_assert(std::is_same_v<nested_matrix_of_t<Eigen::SelfAdjointView<M22, Eigen::Lower>>, M22&>);
 
   static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<Eigen::SelfAdjointView<M33, Eigen::Lower>>, M33>);
   static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<Eigen::SelfAdjointView<M30, Eigen::Lower>>, M33>);
@@ -1287,9 +1290,9 @@ TEST(eigen3, Eigen_SelfAdjointView)
   static_assert(not dynamic_shape<equivalent_dense_writable_matrix_t<SelfAdjointMatrix<M02>>>);
   static_assert(not dynamic_shape<equivalent_dense_writable_matrix_t<SelfAdjointMatrix<M20>>>);
 
-  static_assert(constant_coefficient_v<Eigen::SelfAdjointView<C22_2, Eigen::Upper>> == 2);
+  static_assert(are_within_tolerance(constant_coefficient_v<Eigen::SelfAdjointView<C22_2, Eigen::Upper>>, 2));
 
-  static_assert(constant_diagonal_coefficient_v<Eigen::SelfAdjointView<Cd21_2, Eigen::Upper>> == 2);
+  static_assert(are_within_tolerance(constant_diagonal_coefficient_v<Eigen::SelfAdjointView<Eigen::MatrixWrapper<Cd21_2>, Eigen::Upper>>, 2));
 
   static_assert(zero_matrix<Eigen::SelfAdjointView<Z22, Eigen::Upper>>);
 
@@ -1327,7 +1330,7 @@ TEST(eigen3, Eigen_Solve)
 
 TEST(eigen3, Eigen_Transpose)
 {
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().transpose())> == 2);
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().transpose())>, 2));
 
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd21_2>().transpose())> == 2);
 
@@ -1345,22 +1348,22 @@ TEST(eigen3, Eigen_Transpose)
 
 TEST(eigen3, Eigen_TriangularView)
 {
-  static_assert(std::is_same_v<nested_matrix_of<Eigen::TriangularView<M22, Eigen::Upper>>, M22&>);
+  static_assert(std::is_same_v<nested_matrix_of_t<Eigen::TriangularView<M22, Eigen::Upper>>, M22&>);
 
   static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<Eigen::TriangularView<M33, Eigen::Upper>>, M33>);
   static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<Eigen::TriangularView<M30, Eigen::Upper>>, M33>);
   static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<Eigen::TriangularView<M03, Eigen::Upper>>, M33>);
   static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<Eigen::TriangularView<M00, Eigen::Upper>>, M00>);
 
-  static_assert(constant_coefficient_v<Eigen::TriangularView<C11_2, Eigen::Lower>> == 2);
-  static_assert(constant_coefficient_v<Eigen::TriangularView<Z22, Eigen::Lower>> == 0);
-  static_assert(constant_coefficient_v<Eigen::TriangularView<Z22, Eigen::Lower | Eigen::ZeroDiag>> == 0);
-  static_assert(constant_coefficient_v<Eigen::TriangularView<Z22, Eigen::Lower | Eigen::UnitDiag>> == 1);
-  static_assert(constant_coefficient_v<Eigen::TriangularView<decltype(M22::Identity()), Eigen::Lower | Eigen::ZeroDiag>> == 0);
-  static_assert(constant_coefficient_v<Eigen::TriangularView<M11, Eigen::Lower | Eigen::ZeroDiag>> == 0);
-  static_assert(constant_coefficient_v<Eigen::TriangularView<M11, Eigen::Lower | Eigen::UnitDiag>> == 1);
+  static_assert(are_within_tolerance(constant_coefficient_v<Eigen::TriangularView<C11_2, Eigen::Lower>>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<Eigen::TriangularView<Z22, Eigen::Lower>>, 0));
+  static_assert(are_within_tolerance(constant_coefficient_v<Eigen::TriangularView<Z22, Eigen::Lower | Eigen::ZeroDiag>>, 0));
+  static_assert(are_within_tolerance(constant_coefficient_v<Eigen::TriangularView<Z22, Eigen::Lower | Eigen::UnitDiag>>, 1));
+  static_assert(are_within_tolerance(constant_coefficient_v<Eigen::TriangularView<decltype(M22::Identity()), Eigen::Lower | Eigen::ZeroDiag>>, 0));
+  static_assert(are_within_tolerance(constant_coefficient_v<Eigen::TriangularView<M11, Eigen::Lower | Eigen::ZeroDiag>>, 0));
+  static_assert(are_within_tolerance(constant_coefficient_v<Eigen::TriangularView<M11, Eigen::Lower | Eigen::UnitDiag>>, 1));
 
-  static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<Cd21_2, Eigen::Lower>> == 2);
+  static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<Eigen::MatrixWrapper<Cd21_2>, Eigen::Lower>> == 2);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<Z22, Eigen::Lower | Eigen::ZeroDiag>> == 0);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<Z22, Eigen::Lower | Eigen::UnitDiag>> == 1);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<decltype(M22::Identity()), Eigen::Lower | Eigen::ZeroDiag>> == 0);
@@ -1378,7 +1381,6 @@ TEST(eigen3, Eigen_TriangularView)
   static_assert(not identity_matrix<Eigen::TriangularView<decltype(M00::Identity(3, 3)), Eigen::Lower>>); // We can't tell if it's a square matrix at compile time
   static_assert(not identity_matrix<Eigen::TriangularView<decltype(M33::Identity()), Eigen::Upper | Eigen::ZeroDiag>>);
   static_assert(identity_matrix<Eigen::TriangularView<Z22, Eigen::Upper | Eigen::UnitDiag>>);
-
 
   static_assert(diagonal_matrix<Eigen::TriangularView<decltype(std::declval<Md21>().matrix()), Eigen::Lower>>);
   static_assert(diagonal_matrix<Eigen::TriangularView<decltype(std::declval<Md20_1>().matrix()), Eigen::Lower>>);
@@ -1406,8 +1408,8 @@ TEST(eigen3, Eigen_TriangularView)
 
 TEST(eigen3, Eigen_VectorBlock)
 {
-  static_assert(constant_coefficient_v<decltype(std::declval<C21_2>().segment<1>(0))> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<C21_m2>().segment(1, 0))> == -2);
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C21_2>().segment<1>(0))>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C21_m2>().segment(1, 0))>, -2));
 
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C11_2>().segment<1>(0))> == 2);
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C11_m2>().segment<1>(0))> == -2);
@@ -1420,8 +1422,8 @@ TEST(eigen3, Eigen_VectorBlock)
 
 TEST(eigen3, Eigen_VectorWiseOp)
 {
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().colwise())> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().rowwise())> == 2);
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().colwise())>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().rowwise())>, 2));
 
   static_assert(zero_matrix<decltype(std::declval<Z22>().colwise())>);
   static_assert(zero_matrix<decltype(std::declval<Z22>().rowwise())>);
