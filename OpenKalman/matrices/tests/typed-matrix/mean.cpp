@@ -23,7 +23,7 @@ using M23 = eigen_matrix_t<double, 2, 3>;
 using M32 = eigen_matrix_t<double, 3, 2>;
 using M33 = eigen_matrix_t<double, 3, 3>;
 using I22 = IdentityMatrix<M22>;
-using Z22 = ZeroMatrix<double, 2, 2>;
+using Z22 = ZeroMatrix<eigen_matrix_t<double, 2, 2>>;
 using C2 = Coefficients<Axis, angle::Radians>;
 using C3 = Coefficients<Axis, angle::Radians, Axis>;
 using Mat12 = Mean<Axis, M12>;
@@ -78,7 +78,7 @@ TEST(matrices, Mean_class)
   EXPECT_TRUE(is_near(mat23_x3, Mat23 {1, 2, 3, pi/3, pi/6, pi/4}));
 
   // Construct from a typed_matrix_nestable
-  Mat23 mat23d(make_native_matrix<M23>(1, 2, 3, 4, 5, 6));
+  Mat23 mat23d(make_dense_writable_matrix_from<M23>(1, 2, 3, 4, 5, 6));
   EXPECT_TRUE(is_near(mat23d, TMat23 {1, 2, 3, 4-2*pi, 5-2*pi, 6-2*pi}));
 
   // Construct from a list of coefficients
@@ -106,7 +106,7 @@ TEST(matrices, Mean_class)
   EXPECT_TRUE(is_near(mat23_x3, Mat23 {3, 2, 1, pi/6, pi/4, pi/3}));
 
   // assign from a regular matrix
-  mat23e = make_native_matrix<M23>(3, 4, 5, 6, 7, 8);
+  mat23e = make_dense_writable_matrix_from<M23>(3, 4, 5, 6, 7, 8);
 
   // Assign from a list of coefficients (via move assignment operator)
   mat23e = {6, 5, 4, 3, 2, 1};
@@ -162,10 +162,10 @@ TEST(matrices, Mean_class)
   EXPECT_TRUE(is_near(mat23a, M23::Zero()));
 
   // Zero
-  EXPECT_TRUE(is_near(Mat23::zero(), M23::Zero()));
+  EXPECT_TRUE(is_near(make_zero_matrix_like<Mat23>(), M23::Zero()));
 
   // Identity
-  EXPECT_TRUE(is_near(Mat22::identity(), M22::Identity()));
+  EXPECT_TRUE(is_near(make_identity_matrix_like<Mat22>(), M22::Identity()));
 }
 
 
@@ -212,7 +212,7 @@ TEST(matrices, Mean_subscripts)
 
 TEST(matrices, Mean_deduction_guides)
 {
-  auto a = make_native_matrix<M23>(1, 2, 3, 4, 5, 6);
+  auto a = make_dense_writable_matrix_from<M23>(1, 2, 3, 4, 5, 6);
   EXPECT_TRUE(is_near(Mean(a), a));
   static_assert(equivalent_to<typename MatrixTraits<decltype(Mean(a))>::RowCoefficients, Axes<2>>);
 
@@ -227,13 +227,13 @@ TEST(matrices, Mean_deduction_guides)
   auto b3 = EuclideanMean<C2, M33> {1, 2, 3, std::sqrt(3)/2, 0.5, std::sqrt(2)/2, 0.5, std::sqrt(3)/2, std::sqrt(2)/2};
   EXPECT_TRUE(is_near(Mean(b3), Mat23 {1, 2, 3, pi/6, pi/3, pi/4}));
   static_assert(equivalent_to<typename MatrixTraits<decltype(Mean(b3))>::RowCoefficients, C2>);
-  static_assert(row_extent_of_v<decltype(Mean(b3))> == 2);
+  static_assert(row_dimension_of_v<decltype(Mean(b3))> == 2);
 }
 
 
 TEST(matrices, Mean_make_functions)
 {
-  auto a = make_native_matrix<M23>(1, 2, 3, 4, 5, 6);
+  auto a = make_dense_writable_matrix_from<M23>(1, 2, 3, 4, 5, 6);
   EXPECT_TRUE(is_near(make_mean<C2>(a), Mat23{a}));
   static_assert(equivalent_to<typename MatrixTraits<decltype(make_mean<C2>(a))>::RowCoefficients, C2>);
   static_assert(equivalent_to<typename MatrixTraits<decltype(make_mean<C2>(a))>::ColumnCoefficients, Axes<3>>);
@@ -262,13 +262,13 @@ TEST(matrices, Mean_traits)
   static_assert(not identity_matrix<Mean<Axes<2>, M23>>);
   static_assert(not zero_matrix<Mat23>);
   static_assert(zero_matrix<Mean<C2, Z22>>);
-  static_assert(zero_matrix<Mean<C2, ZeroMatrix<double, 2, 2>>>);
+  static_assert(zero_matrix<Mean<C2, ZeroMatrix<eigen_matrix_t<double, 2, 2>>>>);
 
   EXPECT_TRUE(is_near(
     MatrixTraits<Mat23>::make(make_eigen_matrix<double, 2, 3>(1, 2, 3, 4, 5, 6)).nested_matrix(),
     Mean<Axes<2>, M23> {1, 2, 3, 4-2*pi, 5-2*pi, 6-2*pi}));
-  EXPECT_TRUE(is_near(MatrixTraits<Mat23>::zero(), eigen_matrix_t<double, 2, 3>::Zero()));
-  EXPECT_TRUE(is_near(MatrixTraits<Mat22>::identity(), eigen_matrix_t<double, 2, 2>::Identity()));
+  EXPECT_TRUE(is_near(make_zero_matrix_like<Mat23>(), eigen_matrix_t<double, 2, 3>::Zero()));
+  EXPECT_TRUE(is_near(make_identity_matrix_like<Mat22>(), eigen_matrix_t<double, 2, 2>::Identity()));
 }
 
 
@@ -282,7 +282,7 @@ TEST(matrices, Mean_overloads)
 
   EXPECT_TRUE(is_near(nested_matrix(Mat23 {1, 2, 3, 4, 5, 6}), TMat23 {1, 2, 3, w_4, w_5, w_6}));
 
-  EXPECT_TRUE(is_near(make_native_matrix(Mat23 {1, 2, 3, 4, 5, 6}), Mat23 {1, 2, 3, w_4, w_5, w_6}));
+  EXPECT_TRUE(is_near(make_dense_writable_matrix_from(Mat23 {1, 2, 3, 4, 5, 6}), Mat23 {1, 2, 3, w_4, w_5, w_6}));
 
   EXPECT_TRUE(is_near(make_self_contained(Mat23 {1, 2, 3, 4, 5, 6} * 2), Mat23 {2, 4, 6, 8-2*pi, 10-4*pi, 12-4*pi}));
   static_assert(std::is_same_v<std::decay_t<decltype(make_self_contained(Mat23 {1, 2, 3, 4, 5, 6} * 2))>,
@@ -330,7 +330,7 @@ TEST(matrices, Mean_overloads)
   EXPECT_TRUE(is_near(square(QR_decomposition(Mean<Axes<3>, M32> {1, 4, 2, 5, 3, 6})), TMat22 {14, 32, 32, 77}));
 
   using N = std::normal_distribution<double>;
-  EMat23 m = EMat23::zero();
+  EMat23 m = make_zero_matrix_like<EMat23>();
   for (int i=0; i<100; i++)
   {
     m = (m * i + to_euclidean(randomize<Mat23>(N {1.0, 0.3}, 2.0))) / (i + 1);
@@ -493,7 +493,7 @@ TEST(matrices, Mean_angles_construct_coefficients)
   EXPECT_TRUE(is_near(v3_2, m3));
   static_assert(std::is_same_v<nested_matrix_of_t<decltype(v3)>, decltype(m3)>);
   auto v3_3 = make_mean<double, Coefficients<Axis, angle::Radians, Axis>, 3>();
-  v3_3 << make_native_matrix(v3);
+  v3_3 << make_dense_writable_matrix_from(v3);
   EXPECT_TRUE(is_near(v3_3, m3));
 }
 
@@ -615,9 +615,9 @@ TEST(matrices, Mean_angle_arithmetic_Euclidean)
   EXPECT_TRUE(is_near(from_euclidean(10. * x1e), x50));
   EXPECT_TRUE(is_near(from_euclidean(to_euclidean(x50) / 10), x1));
   EXPECT_TRUE(is_near(from_euclidean(to_euclidean(x50) / 10. + x2e / 10.), Var3 {pi / 12, 5, -pi / 6}));
-  EXPECT_TRUE(is_near(from_euclidean((to_euclidean(x1) * 2.0 + to_euclidean(x1).zero()) / 2.0), x1));
+  EXPECT_TRUE(is_near(from_euclidean((to_euclidean(x1) * 2.0 + make_zero_matrix_like(to_euclidean(x1))) / 2.0), x1));
   auto mean_x = Mean(x1);
-  mean_x = from_euclidean((to_euclidean(mean_x) * 2.0 + to_euclidean(mean_x).zero()) / 2.0);
+  mean_x = from_euclidean((to_euclidean(mean_x) * 2.0 + make_zero_matrix_like(to_euclidean(mean_x))) / 2.0);
   EXPECT_TRUE(is_near(mean_x, x1));
   auto x6 = x1e;
   EXPECT_TRUE(is_near(to_euclidean(Var3{x6}), x6));
@@ -699,7 +699,7 @@ TEST(matrices, Mean_angle_columns_Euclidean)
   EXPECT_TRUE(is_near(from_euclidean(to_euclidean(x10) / 10.), x1));
   EXPECT_TRUE(is_near(from_euclidean(to_euclidean(x10) / 10. + x2e / 10.), Var3 {pi / 12, -pi / 6, 5, 2}));
   Var3 mean_x = x1;
-  mean_x = from_euclidean((to_euclidean(mean_x) * 2.0 + to_euclidean(mean_x).zero()) / 2.0);
+  mean_x = from_euclidean((to_euclidean(mean_x) * 2.0 + make_zero_matrix_like(to_euclidean(mean_x))) / 2.0);
   EXPECT_TRUE(is_near(mean_x, x1));
   auto x6 = to_euclidean(x1);
   EXPECT_TRUE(is_near(to_euclidean(Var3{x6}), x6));
@@ -736,7 +736,7 @@ TEST(matrices, Wrap_distance)
   EXPECT_TRUE(is_near(x0, eigen_matrix_t<double, 1, 1> {5}));
   EXPECT_TRUE(is_near(x0 + R {1.2}, eigen_matrix_t<double, 1, 1> {6.2}));
   EXPECT_TRUE(is_near(from_euclidean(-to_euclidean(x0) + to_euclidean(R {1.2})), eigen_matrix_t<double, 1, 1> {3.8}));
-  EXPECT_TRUE(is_near(R {1.1} - 3. * R {1}, -make_native_matrix(R {1.9})));
+  EXPECT_TRUE(is_near(R {1.1} - 3. * R {1}, -make_dense_writable_matrix_from(R {1.9})));
   EXPECT_TRUE(is_near(R {1.2} + R {-3}, R {4.2}));
   EXPECT_NEAR(get_element(x0, 0, 0), 5, 1e-6);
   EXPECT_NEAR(get_element(x0, 0), 5., 1e-6);

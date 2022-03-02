@@ -234,10 +234,10 @@ namespace OpenKalman::internal
     : std::bool_constant<bool(Eigen::internal::traits<
       Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>>::Flags & Eigen::LvalueBit) and
       (not has_const<XprType>::value) and
-      (BlockRows == Eigen::Dynamic or row_extent_of_v<U> == BlockRows) and
-      (BlockRows != Eigen::Dynamic or row_extent_of_v<U> == dynamic_extent) and
-      (BlockCols == Eigen::Dynamic or column_extent_of_v<U> == BlockCols) and
-      (BlockCols != Eigen::Dynamic or column_extent_of_v<U> == dynamic_extent) and
+      (BlockRows == Eigen::Dynamic or row_dimension_of_v<U> == BlockRows) and
+      (BlockRows != Eigen::Dynamic or row_dimension_of_v<U> == dynamic_size) and
+      (BlockCols == Eigen::Dynamic or column_dimension_of_v<U> == BlockCols) and
+      (BlockCols != Eigen::Dynamic or column_dimension_of_v<U> == dynamic_size) and
       (std::is_same_v<scalar_type_of_t<XprType>, scalar_type_of_t<U>>)> {};
 
 
@@ -289,18 +289,13 @@ namespace OpenKalman
 
     // Identify the correct Eigen::Matrix based on template parameters and the traits of M.
     template<typename S, std::size_t r, std::size_t c>
-    using Nat = Eigen::Matrix<S, r == dynamic_extent ? Eigen::Dynamic : (Eigen::Index) r,
-      c == dynamic_extent ? Eigen::Dynamic : (Eigen::Index) c,
-      (Eigen::internal::traits<M>::Flags & Eigen::RowMajorBit ? Eigen::RowMajor : Eigen::ColMajor) | Eigen::AutoAlign>;
+    using Nat = Eigen::Matrix<S, r == dynamic_size ? Eigen::Dynamic : (Eigen::Index) r,
+      c == dynamic_size ? Eigen::Dynamic : (Eigen::Index) c,
+      (std::decay_t<M>::Flags & Eigen::RowMajorBit ? Eigen::RowMajor : Eigen::ColMajor) | Eigen::AutoAlign>;
 
     using Scalar = scalar_type_of_t<M>;
-
-
-    static constexpr std::size_t rows = interface::RowExtentOf<M>::value;
-
-
-    static constexpr std::size_t columns = interface::ColumnExtentOf<M>::value;
-
+    static constexpr std::size_t rows = row_dimension_of_v<M>;
+    static constexpr std::size_t columns = column_dimension_of_v<M>;
 
   public:
 
@@ -320,7 +315,7 @@ namespace OpenKalman
 
 
     template<typename Derived>
-    using MatrixBaseFrom = Eigen3::internal::Eigen3MatrixBase<Derived, M>;
+    using MatrixBaseFrom = Eigen3::internal::Eigen3Base<Derived, M>;
 
 
 #ifdef __cpp_concepts
@@ -343,78 +338,38 @@ namespace OpenKalman
      *  - Otherwise, if both rows and columns are dynamic, the result will be a fixed column vector.
      */
 #ifdef __cpp_concepts
-    template<std::convertible_to<Scalar> Arg, std::convertible_to<Scalar> ... Args>
-    requires
-    (rows == dynamic_extent or columns == dynamic_extent or (1 + sizeof...(Args) == rows * columns)) and
-      (rows == dynamic_extent or columns != dynamic_extent or ((1 + sizeof...(Args)) % rows == 0)) and
-      (rows != dynamic_extent or columns == dynamic_extent or ((1 + sizeof...(Args)) % columns == 0))
+    template<std::convertible_to<Scalar> Arg, std::convertible_to<Scalar> ... Args> requires
+      (rows == dynamic_size or columns == dynamic_size or (1 + sizeof...(Args) == rows * columns)) and
+      (rows == dynamic_size or columns != dynamic_size or ((1 + sizeof...(Args)) % rows == 0)) and
+      (rows != dynamic_size or columns == dynamic_size or ((1 + sizeof...(Args)) % columns == 0))
 #else
-    #pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdiv-by-zero"
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wdiv-by-zero"
     template<typename Arg, typename ... Args, std::enable_if_t<
       std::conjunction_v<std::is_convertible<Arg, Scalar>, std::is_convertible<Args, Scalar>...> and
-      (rows == dynamic_extent or columns == dynamic_extent or (1 + sizeof...(Args) == rows * columns)) and
-      (rows == dynamic_extent or columns != dynamic_extent or ((1 + sizeof...(Args)) % rows == 0)) and
-      (rows != dynamic_extent or columns == dynamic_extent or ((1 + sizeof...(Args)) % columns == 0)), int> = 0>
-// See below for #pragma GCC diagnostic pop
+      (rows == dynamic_size or columns == dynamic_size or (1 + sizeof...(Args) == rows * columns)) and
+      (rows == dynamic_size or columns != dynamic_size or ((1 + sizeof...(Args)) % rows == 0)) and
+      (rows != dynamic_size or columns == dynamic_size or ((1 + sizeof...(Args)) % columns == 0)), int> = 0>
 #endif
     static auto make(const Arg arg, const Args ... args)
     {
       using namespace Eigen3;
 
-      if constexpr (rows != dynamic_extent and columns != dynamic_extent)
+      if constexpr (rows != dynamic_size and columns != dynamic_size)
         return ((eigen_matrix_t<Scalar, rows, columns> {} << arg), ... , args).finished();
-      else if constexpr (rows != dynamic_extent and columns == dynamic_extent)
+      else if constexpr (rows != dynamic_size and columns == dynamic_size)
         return ((eigen_matrix_t<Scalar, rows, (1 + sizeof...(Args)) / rows> {} << arg), ... , args).finished();
-      else if constexpr (rows == dynamic_extent and columns != dynamic_extent)
+      else if constexpr (rows == dynamic_size and columns != dynamic_size)
         return ((eigen_matrix_t<Scalar, (1 + sizeof...(Args)) / columns, columns> {} << arg), ... , args).finished();
       else
       {
-        static_assert(rows == dynamic_extent and columns == dynamic_extent);
+        static_assert(rows == dynamic_size and columns == dynamic_size);
         return ((eigen_matrix_t<Scalar, 1 + sizeof...(Args), 1> {} << arg), ... , args).finished();
       }
     }
-
-
-#ifdef __cpp_concepts
-    template<std::convertible_to<std::size_t> ... Args>
-    requires (sizeof...(Args) == (rows == dynamic_extent ? 1 : 0) + (columns == dynamic_extent ? 1 : 0)) or
-      (sizeof...(Args) == 2)
-#else
-#pragma GCC diagnostic pop
-    template<typename...Args, std::enable_if_t<(std::is_convertible_v<Args, std::size_t> and ...) and
-      ((sizeof...(Args) == (rows == dynamic_extent ? 1 : 0) + (columns == dynamic_extent ? 1 : 0)) or
-      (sizeof...(Args) == 2)), int> = 0>
+#ifndef __cpp_concepts
+# pragma GCC diagnostic pop
 #endif
-    static auto zero(const Args...args)
-    {
-      if constexpr (sizeof...(Args) == (rows == dynamic_extent ? 1 : 0) + (columns == dynamic_extent ? 1 : 0))
-      {
-        return Eigen3::ZeroMatrix<Scalar, rows, columns> {static_cast<std::size_t>(args)...};
-      }
-      else
-      {
-        static_assert(sizeof...(Args) == 2);
-        return Eigen3::ZeroMatrix<Scalar, dynamic_extent, dynamic_extent> {static_cast<std::size_t>(args)...};
-      }
-    }
-
-
-#ifdef __cpp_concepts
-    template<std::convertible_to<Eigen::Index> ... Args>
-    requires (sizeof...(Args) >= (rows == dynamic_extent and columns == dynamic_extent ? 1 : 0)) and
-      (sizeof...(Args) <= 1)
-#else
-    template<typename...Args, std::enable_if_t<(std::is_convertible_v<Args, Eigen::Index> and ...) and
-      (sizeof...(Args) >= (rows == dynamic_extent and columns == dynamic_extent ? 1 : 0)) and
-      (sizeof...(Args) <= 1), int> = 0>
-#endif
-    static auto identity(const Args...args)
-    {
-      constexpr auto dim = sizeof...(Args) == 0 ? (rows == dynamic_extent ? columns : rows) : dynamic_extent;
-
-      return Nat<Scalar, dim, dim>::Identity(static_cast<Eigen::Index>(args)..., static_cast<Eigen::Index>(args)...);
-    }
 
   };
 

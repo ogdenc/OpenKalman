@@ -52,13 +52,13 @@ namespace OpenKalman
         typename DistributionTraits<NoiseDistributions>::Coefficients> and ...));
 
       using InputMeanMatrix = equivalent_dense_writable_matrix_t<
-        typename DistributionTraits<InputDistribution>::Mean, InputCoefficients::dimensions, 1>;
-      using OutputEuclideanMeanMatrix = equivalent_dense_writable_matrix_t<InputMeanMatrix, OutputCoefficients::dimensions, 1>;
-      using OutputCovarianceMatrix = equivalent_dense_writable_matrix_t<InputMeanMatrix, OutputCoefficients::dimensions,
-        OutputCoefficients::dimensions>;
+        typename DistributionTraits<InputDistribution>::Mean, InputCoefficients::dimension, 1>;
+      using OutputEuclideanMeanMatrix = equivalent_dense_writable_matrix_t<InputMeanMatrix, OutputCoefficients::dimension, 1>;
+      using OutputCovarianceMatrix = equivalent_dense_writable_matrix_t<InputMeanMatrix, OutputCoefficients::dimension,
+        OutputCoefficients::dimension>;
       using OutputCovarianceSA = typename MatrixTraits<OutputCovarianceMatrix>::template SelfAdjointMatrixFrom<>;
-      using CrossCovarianceMatrix = equivalent_dense_writable_matrix_t<InputMeanMatrix, InputCoefficients::dimensions,
-        OutputCoefficients::dimensions>;
+      using CrossCovarianceMatrix = equivalent_dense_writable_matrix_t<InputMeanMatrix, InputCoefficients::dimension,
+        OutputCoefficients::dimension>;
 
       using InputMean = Mean<InputCoefficients, InputMeanMatrix>;
       using OutputEuclideanMean = EuclideanMean<OutputCoefficients, OutputEuclideanMeanMatrix>;
@@ -94,12 +94,12 @@ namespace OpenKalman
       {
         if constexpr (return_cross)
           return MonteCarloSum {
-            0, MatrixTraits<InputMean>::zero(), MatrixTraits<OutputEuclideanMean>::zero(),
-            MatrixTraits<OutputCovariance>::zero(), MatrixTraits<CrossCovariance>::zero()};
+            0, make_zero_matrix_like<InputMean>(), make_zero_matrix_like<OutputEuclideanMean>(),
+            make_zero_matrix_like<OutputCovariance>(), make_zero_matrix_like<CrossCovariance>()};
         else
           return MonteCarloSum {
-            0, MatrixTraits<InputMean>::zero(), MatrixTraits<OutputEuclideanMean>::zero(),
-            MatrixTraits<OutputCovariance>::zero()};
+            0, make_zero_matrix_like<InputMean>(), make_zero_matrix_like<OutputEuclideanMean>(),
+            make_zero_matrix_like<OutputCovariance>()};
       }
 
 
@@ -109,9 +109,10 @@ namespace OpenKalman
         const auto x = dist();
         const auto y = trans(x, noise()...);
         if constexpr (return_cross)
-          return MonteCarloSum {1, x, to_euclidean(y), OutputCovariance::zero(), CrossCovariance::zero()};
+          return MonteCarloSum {1, x, to_euclidean(y), make_zero_matrix_like<OutputCovariance>(),
+            make_zero_matrix_like<CrossCovariance>()};
         else
-          return MonteCarloSum {1, x, to_euclidean(y), OutputCovariance::zero()};
+          return MonteCarloSum {1, x, to_euclidean(y), make_zero_matrix_like<OutputCovariance>()};
       }
 
 

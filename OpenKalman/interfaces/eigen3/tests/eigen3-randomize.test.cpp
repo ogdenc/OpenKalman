@@ -31,16 +31,16 @@ namespace
   using M44 = eigen_matrix_t<double, 4, 4>;
   using M55 = eigen_matrix_t<double, 5, 5>;
 
-  using M00 = eigen_matrix_t<double, dynamic_extent, dynamic_extent>;
-  using M10 = eigen_matrix_t<double, 1, dynamic_extent>;
-  using M01 = eigen_matrix_t<double, dynamic_extent, 1>;
-  using M20 = eigen_matrix_t<double, 2, dynamic_extent>;
-  using M02 = eigen_matrix_t<double, dynamic_extent, 2>;
-  using M30 = eigen_matrix_t<double, 3, dynamic_extent>;
-  using M03 = eigen_matrix_t<double, dynamic_extent, 3>;
-  using M04 = eigen_matrix_t<double, dynamic_extent, 4>;
-  using M50 = eigen_matrix_t<double, 5, dynamic_extent>;
-  using M05 = eigen_matrix_t<double, dynamic_extent, 5>;
+  using M00 = eigen_matrix_t<double, dynamic_size, dynamic_size>;
+  using M10 = eigen_matrix_t<double, 1, dynamic_size>;
+  using M01 = eigen_matrix_t<double, dynamic_size, 1>;
+  using M20 = eigen_matrix_t<double, 2, dynamic_size>;
+  using M02 = eigen_matrix_t<double, dynamic_size, 2>;
+  using M30 = eigen_matrix_t<double, 3, dynamic_size>;
+  using M03 = eigen_matrix_t<double, dynamic_size, 3>;
+  using M04 = eigen_matrix_t<double, dynamic_size, 4>;
+  using M50 = eigen_matrix_t<double, 5, dynamic_size>;
+  using M05 = eigen_matrix_t<double, dynamic_size, 5>;
 
   using cdouble = std::complex<double>;
 

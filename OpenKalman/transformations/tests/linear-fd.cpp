@@ -31,29 +31,29 @@ using A33 = Matrix<Axes<3>, Axes<3>, eigen_matrix_t<double, 3, 3>>;
 TEST(transformations, finite_diff_linear_2by2)
 {
   A22 a {1, 2, 3, 4};
-  auto f = [&] (const auto& x, const auto&...n) { return make_self_contained(((a * x) + ... + (A22::identity() * n))); };
+  auto f = [&] (const auto& x, const auto&...n) { return make_self_contained(((a * x) + ... + (make_identity_matrix_like<A22>() * n))); };
   auto t = FiniteDifferenceLinearization {f, M2 {1e-4, 1e-4}, M2 {1e-4, 1e-4}, M2 {1e-4, 1e-4}};
   EXPECT_TRUE(is_near(t(M2(1, 2)), M2(5, 11)));
   EXPECT_TRUE(is_near(std::get<0>(t.jacobian(M2(1, 2))), a));
   EXPECT_TRUE(is_near(std::get<0>(t.jacobian(M2(3, -4))), a));
   EXPECT_TRUE(is_near(std::get<0>(t.jacobian(M2(1, 2), M2(0.1, 0.2))), a));
-  EXPECT_TRUE(is_near(std::get<1>(t.jacobian(M2(1, 2), M2(0.1, 0.2))), A22::identity()));
-  EXPECT_TRUE(is_near(std::get<2>(t.jacobian(M2(1, 2), M2(0.1, 0.2), M2(0.3, 0.4))), A22::identity()));
+  EXPECT_TRUE(is_near(std::get<1>(t.jacobian(M2(1, 2), M2(0.1, 0.2))), make_identity_matrix_like<A22>()));
+  EXPECT_TRUE(is_near(std::get<2>(t.jacobian(M2(1, 2), M2(0.1, 0.2), M2(0.3, 0.4))), make_identity_matrix_like<A22>()));
   EXPECT_TRUE(is_near(t.hessian(M2(1, 2), M2(0.1, 0.2), M2(0.3, 0.4)), zero_hessian<Axes<2>, M2, M2, M2>()));
 }
 
 TEST(transformations, finite_diff_linear_2by3)
 {
   A32 a {1, 2, 3, 4, 5, 6};
-  auto f = [&] (const auto& x, const auto&...n) { return make_self_contained(((a * x) + ... + (A33::identity() * n))); };
+  auto f = [&] (const auto& x, const auto&...n) { return make_self_contained(((a * x) + ... + (make_identity_matrix_like<A33>() * n))); };
   auto t = FiniteDifferenceLinearization {f, M2 {1e-4, 1e-4}, M3 {1e-4, 1e-4, 1e-4}, M3 {1e-4, 1e-4, 1e-4}};
   EXPECT_TRUE(is_near(t(M2(1, 2)), M3(5, 11, 17)));
   EXPECT_TRUE(is_near(std::get<0>(t.jacobian(M2(3, 4))), a));
   EXPECT_TRUE(is_near(std::get<0>(t.jacobian(M2(1, 2))), a));
   EXPECT_TRUE(is_near(t.hessian(M2(1, 2)), zero_hessian<Axes<3>, M2>()));
   EXPECT_TRUE(is_near(std::get<0>(t.jacobian(M2(1, 2), M3(0.1, 0.2, 0.3))), a));
-  EXPECT_TRUE(is_near(std::get<1>(t.jacobian(M2(1, 2), M3(0.1, 0.2, 0.3))), A33::identity()));
-  EXPECT_TRUE(is_near(std::get<2>(t.jacobian(M2(1, 2), M3(0.1, 0.2, 0.3), M3(0.4, 0.5, 0.6))), A33::identity()));
+  EXPECT_TRUE(is_near(std::get<1>(t.jacobian(M2(1, 2), M3(0.1, 0.2, 0.3))), make_identity_matrix_like<A33>()));
+  EXPECT_TRUE(is_near(std::get<2>(t.jacobian(M2(1, 2), M3(0.1, 0.2, 0.3), M3(0.4, 0.5, 0.6))), make_identity_matrix_like<A33>()));
   EXPECT_TRUE(is_near(t.hessian(M2(1, 2), M3(0.1, 0.2, 0.3), M3(0.4, 0.5, 0.6)), zero_hessian<Axes<3>, M2, M3, M3>()));
 }
 

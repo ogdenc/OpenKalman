@@ -22,10 +22,10 @@ using namespace OpenKalman;
 
 TEST(coefficients, typedefs)
 {
-  static_assert(Coefficients<Axis, Axis>::dimensions == 2);
-  static_assert(Coefficients<Axis, Axis>::euclidean_dimensions == 2);
-  static_assert(Coefficients<Axis, Axis, angle::Radians>::dimensions == 3);
-  static_assert(Coefficients<Axis, Axis, angle::Radians>::euclidean_dimensions == 4);
+  static_assert(Coefficients<Axis, Axis>::dimension == 2);
+  static_assert(Coefficients<Axis, Axis>::euclidean_dimension == 2);
+  static_assert(Coefficients<Axis, Axis, angle::Radians>::dimension == 3);
+  static_assert(Coefficients<Axis, Axis, angle::Radians>::euclidean_dimension == 4);
   static_assert(Coefficients<Axis, Axis, angle::Radians>::axes_only == false);
   static_assert(Coefficients<angle::Radians, Axis, Axis>::axes_only == false);
   static_assert(Coefficients<Axis, Axis, Axis>::axes_only == true);

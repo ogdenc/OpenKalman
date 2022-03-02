@@ -63,11 +63,11 @@ namespace OpenKalman
     template<typename In, typename ... Perturbations, std::enable_if_t<transformation_input<In> and
       (perturbation<Perturbations, typename MatrixTraits<In>::RowCoefficients> and ...), int> = 0>
 #endif
-    auto jacobian(In&&, Perturbations&&...) const
+    auto jacobian(In&& in, Perturbations&&...ps) const
     {
       return std::make_tuple(
-        MatrixTraits<In>::identity(),
-        MatrixTraits<decltype(MatrixTraits<Perturbations>::identity())>::zero()...);
+        make_identity_matrix_like(in),
+        make_zero_matrix_like(make_identity_matrix_like(ps))...);
     }
 
   };

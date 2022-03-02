@@ -217,14 +217,14 @@ namespace OpenKalman
     inline auto zero_hessian_impl()
     {
       using InputCoefficients = typename MatrixTraits<In>::RowCoefficients;
-      constexpr std::size_t input_size = InputCoefficients::dimensions;
-      constexpr std::size_t output_size = OutputCoefficients::dimensions;
+      constexpr std::size_t input_size = InputCoefficients::dimension;
+      constexpr std::size_t output_size = OutputCoefficients::dimension;
       using HessianMatrixInBase = equivalent_dense_writable_matrix_t<In, input_size, input_size>;
       using HessianMatrixIn = Matrix<InputCoefficients, InputCoefficients, HessianMatrixInBase>;
       using HessianArrayIn = std::array<HessianMatrixIn, output_size>;
 
       HessianArrayIn a;
-      a.fill(HessianMatrixIn::zero());
+      a.fill(make_zero_matrix_like(a));
       return a;
     }
   }

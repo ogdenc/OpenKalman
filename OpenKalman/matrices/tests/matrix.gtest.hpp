@@ -56,7 +56,7 @@ namespace OpenKalman::test
     : ::testing::AssertionResult
   {
     TestComparison(const Arg1& A, const Arg2& B, const Err& err)
-      : ::testing::AssertionResult {is_near(make_native_matrix(A), B, err)} {};
+      : ::testing::AssertionResult {is_near(make_dense_writable_matrix_from(A), B, err)} {};
   };
 
 
@@ -70,7 +70,7 @@ namespace OpenKalman::test
     : ::testing::AssertionResult
   {
     TestComparison(const Arg1& A, const Arg2& B, const Err& err)
-      : ::testing::AssertionResult {is_near(A, make_native_matrix(B), err)} {};
+      : ::testing::AssertionResult {is_near(A, make_dense_writable_matrix_from(B), err)} {};
   };
 
 
@@ -84,7 +84,7 @@ namespace OpenKalman::test
     : ::testing::AssertionResult
   {
     TestComparison(const Arg1& A, const Arg2& B, const Err& err)
-      : ::testing::AssertionResult {is_near(make_native_matrix(A), make_native_matrix(B), err)} {};
+      : ::testing::AssertionResult {is_near(make_dense_writable_matrix_from(A), make_dense_writable_matrix_from(B), err)} {};
   };
 
 

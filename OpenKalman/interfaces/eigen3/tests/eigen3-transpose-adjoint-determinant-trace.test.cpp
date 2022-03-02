@@ -31,16 +31,16 @@ namespace
   using M44 = eigen_matrix_t<double, 4, 4>;
   using M55 = eigen_matrix_t<double, 5, 5>;
 
-  using M00 = eigen_matrix_t<double, dynamic_extent, dynamic_extent>;
-  using M10 = eigen_matrix_t<double, 1, dynamic_extent>;
-  using M01 = eigen_matrix_t<double, dynamic_extent, 1>;
-  using M20 = eigen_matrix_t<double, 2, dynamic_extent>;
-  using M02 = eigen_matrix_t<double, dynamic_extent, 2>;
-  using M30 = eigen_matrix_t<double, 3, dynamic_extent>;
-  using M03 = eigen_matrix_t<double, dynamic_extent, 3>;
-  using M04 = eigen_matrix_t<double, dynamic_extent, 4>;
-  using M50 = eigen_matrix_t<double, 5, dynamic_extent>;
-  using M05 = eigen_matrix_t<double, dynamic_extent, 5>;
+  using M00 = eigen_matrix_t<double, dynamic_size, dynamic_size>;
+  using M10 = eigen_matrix_t<double, 1, dynamic_size>;
+  using M01 = eigen_matrix_t<double, dynamic_size, 1>;
+  using M20 = eigen_matrix_t<double, 2, dynamic_size>;
+  using M02 = eigen_matrix_t<double, dynamic_size, 2>;
+  using M30 = eigen_matrix_t<double, 3, dynamic_size>;
+  using M03 = eigen_matrix_t<double, dynamic_size, 3>;
+  using M04 = eigen_matrix_t<double, dynamic_size, 4>;
+  using M50 = eigen_matrix_t<double, 5, dynamic_size>;
+  using M05 = eigen_matrix_t<double, dynamic_size, 5>;
 
   using cdouble = std::complex<double>;
 
@@ -55,12 +55,12 @@ namespace
 
 TEST(eigen3, transpose_adjoint_matrix)
 {
-  auto m23 = make_native_matrix<M23>(1, 2, 3, 4, 5, 6);
+  auto m23 = make_dense_writable_matrix_from<M23>(1, 2, 3, 4, 5, 6);
   auto m20_3 = M20 {m23};
   auto m03_2 = M03 {m23};
   auto m00_23 = M00 {m23};
 
-  auto m32 = make_native_matrix<M32>(1, 4, 2, 5, 3, 6);
+  auto m32 = make_dense_writable_matrix_from<M32>(1, 4, 2, 5, 3, 6);
 
   EXPECT_TRUE(is_near(transpose(m23), m32));
   EXPECT_TRUE(is_near(transpose(m20_3), m32));
@@ -72,9 +72,9 @@ TEST(eigen3, transpose_adjoint_matrix)
   EXPECT_TRUE(is_near(adjoint(m20_3), m32));
   EXPECT_TRUE(is_near(adjoint(m00_23), m32));
 
-  auto cm23 = make_native_matrix<CM23>(cdouble {1,6}, cdouble {2,5}, cdouble {3,4}, cdouble {4,3}, cdouble {5,2}, cdouble {6,1});
-  auto cm32 = make_native_matrix<CM32>(cdouble {1,6}, cdouble {4,3}, cdouble {2,5}, cdouble {5,2}, cdouble {3,4}, cdouble {6,1});
-  auto cm32conj = make_native_matrix<CM32>(cdouble {1,-6}, cdouble {4,-3}, cdouble {2,-5}, cdouble {5,-2}, cdouble {3,-4}, cdouble {6,-1});
+  auto cm23 = make_dense_writable_matrix_from<CM23>(cdouble {1,6}, cdouble {2,5}, cdouble {3,4}, cdouble {4,3}, cdouble {5,2}, cdouble {6,1});
+  auto cm32 = make_dense_writable_matrix_from<CM32>(cdouble {1,6}, cdouble {4,3}, cdouble {2,5}, cdouble {5,2}, cdouble {3,4}, cdouble {6,1});
+  auto cm32conj = make_dense_writable_matrix_from<CM32>(cdouble {1,-6}, cdouble {4,-3}, cdouble {2,-5}, cdouble {5,-2}, cdouble {3,-4}, cdouble {6,-1});
 
   EXPECT_TRUE(is_near(transpose(cm23), cm32));
   EXPECT_TRUE(is_near(adjoint(cm23), cm32conj));
@@ -83,7 +83,7 @@ TEST(eigen3, transpose_adjoint_matrix)
 
 TEST(eigen3, transpose_adjoint_self_adjoint)
 {
-  auto m22_93310 = make_native_matrix<M22>(9, 3, 3, 10);
+  auto m22_93310 = make_dense_writable_matrix_from<M22>(9, 3, 3, 10);
   auto m20_93310 = M20 {m22_93310};
   auto m02_93310 = M02 {m22_93310};
   auto m00_93310 = M00 {m22_93310};
@@ -98,8 +98,8 @@ TEST(eigen3, transpose_adjoint_self_adjoint)
   EXPECT_TRUE(is_near(adjoint(m02_93310.template selfadjointView<Eigen::Upper>()), m22_93310));
   EXPECT_TRUE(is_near(adjoint(m00_93310.template selfadjointView<Eigen::Lower>()), m22_93310));
 
-  auto cm22_93310 = make_native_matrix<CM22>(9, cdouble(3,1), cdouble(3,-1), 10);
-  auto cm22_93310_trans = make_native_matrix<CM22>(9, cdouble(3,-1), cdouble(3,1), 10);
+  auto cm22_93310 = make_dense_writable_matrix_from<CM22>(9, cdouble(3,1), cdouble(3,-1), 10);
+  auto cm22_93310_trans = make_dense_writable_matrix_from<CM22>(9, cdouble(3,-1), cdouble(3,1), 10);
 
   EXPECT_TRUE(is_near(transpose(cm22_93310.template selfadjointView<Eigen::Upper>()), cm22_93310_trans));
   EXPECT_TRUE(is_near(adjoint(cm22_93310.template selfadjointView<Eigen::Lower>()), cm22_93310));
@@ -109,12 +109,12 @@ TEST(eigen3, transpose_adjoint_self_adjoint)
 
 TEST(eigen3, transpose_adjoint_triangular)
 {
-  auto m22_3103 = make_native_matrix<M22>(3, 1, 0, 3);
+  auto m22_3103 = make_dense_writable_matrix_from<M22>(3, 1, 0, 3);
   auto m20_3103 = M20 {m22_3103};
   auto m02_3103 = M02 {m22_3103};
   auto m00_3103 = M00 {m22_3103};
 
-  auto m22_3013 = make_native_matrix<M22>(3, 0, 1, 3);
+  auto m22_3013 = make_dense_writable_matrix_from<M22>(3, 0, 1, 3);
   auto m20_3013 = M20 {m22_3013};
   auto m02_3013 = M02 {m22_3013};
   auto m00_3013 = M00 {m22_3013};
@@ -129,9 +129,9 @@ TEST(eigen3, transpose_adjoint_triangular)
   EXPECT_TRUE(is_near(adjoint(m02_3103.template triangularView<Eigen::Upper>()), m22_3013));
   EXPECT_TRUE(is_near(adjoint(m00_3013.template triangularView<Eigen::Lower>()), m22_3103));
 
-  auto cm22_3013 = make_native_matrix<CM22>(cdouble(3,1), 0, cdouble(1,1), 3);
-  auto cm22_3103 = make_native_matrix<CM22>(cdouble(3,1), cdouble(1,1), 0, 3);
-  auto cm22_3103_conj = make_native_matrix<CM22>(cdouble(3,-1), cdouble(1,-1), 0, 3);
+  auto cm22_3013 = make_dense_writable_matrix_from<CM22>(cdouble(3,1), 0, cdouble(1,1), 3);
+  auto cm22_3103 = make_dense_writable_matrix_from<CM22>(cdouble(3,1), cdouble(1,1), 0, 3);
+  auto cm22_3103_conj = make_dense_writable_matrix_from<CM22>(cdouble(3,-1), cdouble(1,-1), 0, 3);
 
   EXPECT_TRUE(is_near(transpose(cm22_3103.template triangularView<Eigen::Upper>()), cm22_3013));
   EXPECT_TRUE(is_near(transpose(cm22_3013.template triangularView<Eigen::Lower>()), cm22_3103));
@@ -147,7 +147,7 @@ TEST(eigen3, transpose_adjoint_diagonal)
   auto m01_2 = M01 {m21};
   auto m00_21 = M00 {m21};
 
-  auto m22_1004 = make_native_matrix<M22>(1, 0, 0, 4);
+  auto m22_1004 = make_dense_writable_matrix_from<M22>(1, 0, 0, 4);
 
   EXPECT_TRUE(is_near(transpose(Eigen::DiagonalMatrix<double, 2> {m21}), m22_1004));
   EXPECT_TRUE(is_near(transpose(Eigen::DiagonalMatrix<double, Eigen::Dynamic> {m21}), m22_1004));
@@ -215,7 +215,7 @@ TEST(eigen3, transpose_adjoint_constant)
 
 TEST(eigen3, determinant_trace)
 {
-  auto m22 = make_native_matrix<M22>(1, 2, 3, 4);
+  auto m22 = make_dense_writable_matrix_from<M22>(1, 2, 3, 4);
 
   EXPECT_NEAR(determinant(M11 {2}), 2, 1e-6);
   EXPECT_NEAR(determinant(m22), -2, 1e-6);
@@ -229,20 +229,20 @@ TEST(eigen3, determinant_trace)
   EXPECT_NEAR(trace(M02 {m22}), 5, 1e-6);
   EXPECT_NEAR(trace(M00 {m22}), 5, 1e-6);
 
-  auto cm22 = make_native_matrix<CM22>(cdouble {1,4}, cdouble {2,3}, cdouble {3,2}, cdouble {4,1});
-  auto cm22_3103 = make_native_matrix<CM22>(cdouble(3,-1), cdouble(1,-1), 0, 3);
+  auto cm22 = make_dense_writable_matrix_from<CM22>(cdouble {1,4}, cdouble {2,3}, cdouble {3,2}, cdouble {4,1});
+  auto cm22_3103 = make_dense_writable_matrix_from<CM22>(cdouble(3,-1), cdouble(1,-1), 0, 3);
 
   EXPECT_NEAR(std::real(determinant(cm22)), 0, 1e-6);
   EXPECT_NEAR(std::real(trace(cm22)), 5, 1e-6);
   EXPECT_NEAR(std::imag(determinant(cm22)), 4, 1e-6);
   EXPECT_NEAR(std::imag(trace(cm22)), 5, 1e-6);
 
-  auto m22_93310 = make_native_matrix<M22>(9, 3, 3, 10);
+  auto m22_93310 = make_dense_writable_matrix_from<M22>(9, 3, 3, 10);
 
   EXPECT_NEAR(determinant(m22_93310.template selfadjointView<Eigen::Lower>()), 81, 1e-6);
   EXPECT_NEAR(trace(m22_93310.template selfadjointView<Eigen::Lower>()), 19, 1e-6);
 
-  auto m22_3103 = make_native_matrix<M22>(3, 1, 0, 3);
+  auto m22_3103 = make_dense_writable_matrix_from<M22>(3, 1, 0, 3);
 
   EXPECT_NEAR(determinant(m22_3103.template triangularView<Eigen::Upper>()), 9, 1e-6);
   EXPECT_NEAR(trace(m22_3103.template triangularView<Eigen::Upper>()), 6, 1e-6);
@@ -254,7 +254,7 @@ TEST(eigen3, determinant_trace)
   EXPECT_NEAR(determinant(Eigen::DiagonalWrapper<M21> {m21}), 4, 1e-6);
   EXPECT_NEAR(trace(Eigen::DiagonalWrapper<M21> {m21}), 5, 1e-6);
 
-  auto cm22_93310 = make_native_matrix<CM22>(9, cdouble(3,1), cdouble(3,-1), 10);
+  auto cm22_93310 = make_dense_writable_matrix_from<CM22>(9, cdouble(3,1), cdouble(3,-1), 10);
 
   EXPECT_NEAR(std::real(determinant(cm22_93310.template selfadjointView<Eigen::Lower>())), 80, 1e-6);
   EXPECT_NEAR(std::real(trace(cm22_93310.template selfadjointView<Eigen::Lower>())), 19, 1e-6);

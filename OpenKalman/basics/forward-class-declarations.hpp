@@ -21,6 +21,388 @@
 
 namespace OpenKalman
 {
+
+  namespace Eigen3
+  {
+
+    // ------------------------------------- //
+    //  ConstantMatrix, eigen_constant_expr  //
+    // ------------------------------------- //
+
+    /**
+     * \brief A matrix, like PatternMatrix, in which all elements are a constant scalar value known at compile time.
+     * \tparam PatternMatrix A matrix that acts as the pattern for the dimensions of the resulting matrix.
+     */
+  #ifdef __cpp_concepts
+  # if __cpp_nontype_template_args >= 201911L
+    template<indexible PatternMatrix, scalar_type_of_t<NestedMatrix> constant>
+  # else
+    template<indexible PatternMatrix, auto constant> requires
+      std::convertible_to<decltype(constant), scalar_type_of_t<PatternMatrix>>
+  # endif
+  #else
+    template<typename PatternMatrix, auto constant>
+  #endif
+    struct ConstantMatrix;
+
+
+    namespace detail
+    {
+      template<typename T>
+      struct is_eigen_constant_expr : std::false_type {};
+
+      template<typename NestedMatrix, auto constant>
+      struct is_eigen_constant_expr<ConstantMatrix<NestedMatrix, constant>> : std::true_type {};
+    }
+
+
+    /**
+     * \brief Specifies that T is a constant matrix based on the Eigen library (i.e., ConstantMatrix).
+     */
+    template<typename T>
+  #ifdef __cpp_concepts
+    concept eigen_constant_expr = detail::is_eigen_constant_expr<std::decay_t<T>>::value;
+  #else
+    constexpr bool eigen_constant_expr = detail::is_eigen_constant_expr<std::decay_t<T>>::value;
+  #endif
+
+
+    // ----------------------------- //
+    //  ZeroMatrix, eigen_zero_expr  //
+    // ----------------------------- //
+
+    /**
+     * \brief A matrix, like PatternMatrix, in which all elements are zero.
+     * \tparam PatternMatrix A matrix that acts as the pattern for the dimensions of the resulting matrix.
+     */
+  #ifdef __cpp_concepts
+    template<indexible PatternMatrix>
+  #else
+    template<typename PatternMatrix>
+  #endif
+    struct ZeroMatrix;
+
+
+    namespace detail
+    {
+      template<typename T>
+      struct is_eigen_zero_expr : std::false_type {};
+
+      template<typename NestedMatrix>
+      struct is_eigen_zero_expr<ZeroMatrix<NestedMatrix>> : std::true_type {};
+    }
+
+
+    /**
+     * \brief Specifies that T is a zero matrix based on the Eigen library (i.e., ZeroMatrix).
+     */
+    template<typename T>
+  #ifdef __cpp_concepts
+    concept eigen_zero_expr = detail::is_eigen_zero_expr<std::decay_t<T>>::value;
+  #else
+    constexpr bool eigen_zero_expr = detail::is_eigen_zero_expr<std::decay_t<T>>::value;
+  #endif
+
+
+    // ---------------------------------------- //
+    //  pattern_matrix_of, pattern_matrix_of_t  //
+    // ---------------------------------------- //
+
+    /**
+     * \brief The native matrix on which an OpenKalman matrix adapter is patterned.
+     * \details If T has a nested matrix, the pattern matrix will be that nested matrix.
+     */
+#ifdef __cpp_concepts
+    template<typename T>
+#else
+    template<typename T, typename = void>
+#endif
+    struct pattern_matrix_of;
+
+    template<typename PatternMatrix, auto constant>
+    struct pattern_matrix_of<ConstantMatrix<PatternMatrix, constant>> { using type = PatternMatrix; };
+
+    template<typename PatternMatrix>
+    struct pattern_matrix_of<ZeroMatrix<PatternMatrix>> { using type = PatternMatrix; };
+
+#ifdef __cpp_concepts
+    template<has_nested_matrix T>
+    struct pattern_matrix_of<T> { using type = nested_matrix_of_t<T>; };
+#else
+    template<typename T>
+    struct pattern_matrix_of<T, std::enable_if_t<has_nested_matrix<T>>> { using type = nested_matrix_of_t<T>; };
+#endif
+
+
+    /**
+     * \brief Helper template for pattern_matrix_of.
+     */
+    template<typename T>
+    using pattern_matrix_of_t = typename pattern_matrix_of<std::decay_t<T>>::type;
+
+
+    // ------------------------------------- //
+    //  DiagonalMatrix, eigen_diagonal_expr  //
+    // ------------------------------------- //
+
+    /**
+     * \brief A diagonal matrix.
+     * \details The matrix is guaranteed to be diagonal. It is ::self_contained iff NestedMatrix is ::self_contained.
+     * Implicit conversions are available from any \ref diagonal_matrix of compatible size.
+     * \tparam NestedMatrix A \ref column_vector expression defining the diagonal elements.
+     * Elements outside the diagonal are automatically 0.
+     * \note This has the same name as Eigen::DiagonalMatrix, and is intended as a replacement.
+     */
+  #ifdef __cpp_concepts
+    template<typename NestedMatrix> requires dynamic_columns<NestedMatrix> or column_vector<NestedMatrix>
+  #else
+    template<typename NestedMatrix>
+  #endif
+    struct DiagonalMatrix;
+
+
+    namespace detail
+    {
+      template<typename T>
+      struct is_eigen_diagonal_expr : std::false_type {};
+
+      template<typename NestedMatrix>
+      struct is_eigen_diagonal_expr<DiagonalMatrix<NestedMatrix>> : std::true_type {};
+    }
+
+
+    /**
+     * \brief Specifies that T is a diagonal matrix based on the Eigen library (i.e., DiaginalMatrix).
+     */
+    template<typename T>
+  #ifdef __cpp_concepts
+    concept eigen_diagonal_expr = detail::is_eigen_diagonal_expr<std::decay_t<T>>::value;
+  #else
+    constexpr bool eigen_diagonal_expr = detail::is_eigen_diagonal_expr<std::decay_t<T>>::value;
+  #endif
+
+
+    // -------------------------------------------- //
+    //  SelfAdjointMatrix, eigen_self_adjoint_expr  //
+    // -------------------------------------------- //
+
+    /**
+     * \brief A hermitian matrix wrapper.
+     * \details The matrix is guaranteed to be self-adjoint. It is ::self_contained iff NestedMatrix is ::self_contained.
+     * It may \em also be a diagonal matrix if storage_triangle is TriangleType::diagonal.
+     * Implicit conversions are available from any \ref self_adjoint_matrix of compatible size.
+     * \tparam NestedMatrix A nested \ref square_matrix expression, on which the self-adjoint matrix is based.
+     * \tparam storage_triangle The TriangleType (\ref TriangleType::lower "lower", \ref TriangleType::upper "upper", or
+     * \ref TriangleType::diagonal "diagonal") in which the data is stored.
+     * Matrix elements outside this triangle/diagonal are ignored. If the matrix is lower or upper triangular,
+     * elements are mapped (as complex conjugates) from this selected triangle to the elements in the other triangle to
+     * ensure that the matrix is hermitian. Also, any imaginary part of the diagonal elements is discarded.
+     * If storage_triangle is TriangleType::diagonal, 0 is automatically mapped to each matrix element outside the
+     * diagonal.
+     */
+  #ifdef __cpp_concepts
+    template<typename NestedMatrix, TriangleType storage_triangle =
+        (diagonal_matrix<NestedMatrix> ? TriangleType::diagonal : TriangleType::lower)> requires
+      (not diagonal_matrix<NestedMatrix> or not complex_number<scalar_type_of_t<NestedMatrix>>) and
+      (any_dynamic_dimension<NestedMatrix> or square_matrix<NestedMatrix>) and (storage_triangle != TriangleType::none)
+  #else
+    template<typename NestedMatrix, TriangleType storage_triangle =
+      (diagonal_matrix<NestedMatrix> ? TriangleType::diagonal : TriangleType::lower)>
+  #endif
+    struct SelfAdjointMatrix;
+
+
+    namespace detail
+    {
+      template<typename T>
+      struct is_eigen_self_adjoint_expr : std::false_type {};
+
+      template<typename NestedMatrix, TriangleType storage_triangle>
+      struct is_eigen_self_adjoint_expr<SelfAdjointMatrix<NestedMatrix, storage_triangle>> : std::true_type {};
+    }
+
+
+    /**
+     * \brief Specifies that T is a self-adjoint matrix based on the Eigen library (i.e., SelfAdjointMatrix).
+     */
+    template<typename T>
+  #ifdef __cpp_concepts
+    concept eigen_self_adjoint_expr = detail::is_eigen_self_adjoint_expr<std::decay_t<T>>::value;
+  #else
+    constexpr bool eigen_self_adjoint_expr = detail::is_eigen_self_adjoint_expr<std::decay_t<T>>::value;
+  #endif
+
+
+    // ----------------------------------------- //
+    //  TriangularMatrix, eigen_triangular_expr  //
+    // ----------------------------------------- //
+
+    /**
+     * \brief A triangular matrix.
+     * \details The matrix is guaranteed to be triangular. It is ::self_contained iff NestedMatrix is ::self_contained.
+     * It may \em also be a diagonal matrix if triangle_type is TriangleType::diagonal.
+     * Implicit conversions are available from any \ref triangular_matrix of compatible size.
+     * \tparam NestedMatrix A nested \ref square_matrix expression, on which the triangular matrix is based.
+     * \tparam triangle_type The TriangleType (\ref TriangleType::lower "lower", \ref TriangleType::upper "upper", or
+     * \ref TriangleType::diagonal "diagonal") in which the data is stored.
+     * Matrix elements outside this triangle/diagonal are ignored. Instead, 0 is automatically mapped to each element
+     * not within the selected triangle or diagonal, to ensure that the matrix is triangular.
+     */
+  #ifdef __cpp_concepts
+    template<typename NestedMatrix, TriangleType triangle_type = (diagonal_matrix<NestedMatrix> ? TriangleType::diagonal :
+        (upper_triangular_matrix<NestedMatrix> ? TriangleType::upper : TriangleType::lower))> requires
+      (any_dynamic_dimension<NestedMatrix> or square_matrix<NestedMatrix>) and (triangle_type != TriangleType::none)
+  #else
+    template<typename NestedMatrix, TriangleType triangle_type = (diagonal_matrix<NestedMatrix> ? TriangleType::diagonal :
+      (upper_triangular_matrix<NestedMatrix> ? TriangleType::upper : TriangleType::lower))>
+  #endif
+    struct TriangularMatrix;
+
+
+    namespace detail
+    {
+      template<typename T>
+      struct is_eigen_triangular_expr : std::false_type {};
+
+      template<typename NestedMatrix, TriangleType triangle_type>
+      struct is_eigen_triangular_expr<TriangularMatrix<NestedMatrix, triangle_type>> : std::true_type {};
+    }
+
+
+    /**
+     * \brief Specifies that T is a triangular matrix based on the Eigen library (i.e., TriangularMatrix).
+     */
+    template<typename T>
+  #ifdef __cpp_concepts
+    concept eigen_triangular_expr = detail::is_eigen_triangular_expr<std::decay_t<T>>::value;
+  #else
+    constexpr bool eigen_triangular_expr = detail::is_eigen_triangular_expr<std::decay_t<T>>::value;
+  #endif
+
+
+    // -------------------------------------------------------- //
+    //  FromEuclideanExpr, from_euclidean_expr, euclidean_expr  //
+    // -------------------------------------------------------- //
+
+    /**
+     * \brief An expression that transforms angular or other modular coefficients back from Euclidean space.
+     * \details This is the counterpart expression to ToEuclideanExpr.
+     * \tparam Coefficients The coefficient types.
+     * \tparam NestedMatrix The pre-transformed column vector, or set of column vectors in the form of a matrix.
+     */
+  #ifdef __cpp_concepts
+    template<coefficients Coefficients, typename NestedMatrix>
+    requires (dynamic_coefficients<Coefficients> == dynamic_rows<NestedMatrix>) and
+      (not fixed_coefficients<Coefficients> or Coefficients::euclidean_dimension == row_dimension_of_v<NestedMatrix>) and
+      (not dynamic_coefficients<Coefficients> or
+        std::same_as<typename Coefficients::Scalar, scalar_type_of_t<NestedMatrix>>)
+  #else
+    template<typename Coefficients, typename NestedMatrix>
+  #endif
+    struct FromEuclideanExpr;
+
+
+    namespace detail
+    {
+      template<typename T>
+      struct is_from_euclidean_expr : std::false_type {};
+
+      template<typename Coefficients, typename NestedMatrix>
+      struct is_from_euclidean_expr<FromEuclideanExpr<Coefficients, NestedMatrix>> : std::true_type {};
+    }
+
+
+    /**
+     * \brief Specifies that T is an expression converting coefficients from Euclidean space (i.e., FromEuclideanExpr).
+     */
+    template<typename T>
+  #ifdef __cpp_concepts
+    concept from_euclidean_expr = detail::is_from_euclidean_expr<std::decay_t<T>>::value;
+  #else
+    constexpr bool from_euclidean_expr = detail::is_from_euclidean_expr<std::decay_t<T>>::value;
+  #endif
+
+
+    // ------------------------------------ //
+    //  ToEuclideanExpr, to_euclidean_expr  //
+    // ------------------------------------ //
+
+    /**
+     * \brief An expression that transforms coefficients into Euclidean space for proper wrapping.
+     * \details This is the counterpart expression to FromEuclideanExpr.
+     * \tparam Coefficients The coefficient types.
+     * \tparam NestedMatrix The pre-transformed column vector, or set of column vectors in the form of a matrix.
+     */
+  #ifdef __cpp_concepts
+    template<coefficients Coefficients, typename NestedMatrix> requires (not from_euclidean_expr<NestedMatrix>) and
+      (dynamic_coefficients<Coefficients> == dynamic_rows<NestedMatrix>) and
+      (not fixed_coefficients<Coefficients> or Coefficients::dimension == row_dimension_of_v<NestedMatrix>) and
+      (not dynamic_coefficients<Coefficients> or
+        std::same_as<typename Coefficients::Scalar, scalar_type_of_t<NestedMatrix>>)
+  #else
+    template<typename Coefficients, typename NestedMatrix>
+  #endif
+    struct ToEuclideanExpr;
+
+
+    namespace detail
+    {
+      template<typename T>
+      struct is_to_euclidean_expr : std::false_type {};
+
+      template<typename Coefficients, typename NestedMatrix>
+      struct is_to_euclidean_expr<ToEuclideanExpr<Coefficients, NestedMatrix>> : std::true_type {};
+    }
+
+
+    /**
+     * \brief Specifies that T is an expression converting coefficients to Euclidean space (i.e., ToEuclideanExpr).
+     */
+    template<typename T>
+  #ifdef __cpp_concepts
+    concept to_euclidean_expr = detail::is_to_euclidean_expr<std::decay_t<T>>::value;
+  #else
+    constexpr bool to_euclidean_expr = detail::is_to_euclidean_expr<std::decay_t<T>>::value;
+  #endif
+
+
+    /**
+     * \brief Specifies that T is either \ref to_euclidean_expr or \ref from_euclidean_expr.
+     */
+    template<typename T>
+  #ifdef __cpp_concepts
+    concept euclidean_expr = to_euclidean_expr<T> or from_euclidean_expr<T>;
+  #else
+    constexpr bool euclidean_expr = from_euclidean_expr<T> or to_euclidean_expr<T>;
+  #endif
+
+  }
+
+
+  // ----------------- //
+  //  untyped_adapter  //
+  // ----------------- //
+
+  /**
+   * \brief Specifies that T is an untyped adapter expression.
+   * \details Untyped adapter expressions are generally used whenever the native matrix library does not have an
+   * important built-in matrix type, such as a single-scalar constant matrix, a diagonal matrix, a triangular matrix,
+   * or a hermitian matrix.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept untyped_adapter =
+#else
+  constexpr bool untyped_adapter =
+#endif
+    Eigen3::eigen_constant_expr<T> or Eigen3::eigen_zero_expr<T> or Eigen3::eigen_diagonal_expr<T> or Eigen3::eigen_self_adjoint_expr<T> or
+      Eigen3::eigen_triangular_expr<T> or Eigen3::euclidean_expr<T>;
+
+
+  // ----------------------- //
+  //  Typed matrix wrappers  //
+  // ----------------------- //
+
   /**
    * \brief A matrix with typed rows and columns.
    * \details It is a wrapper for a native matrix type from a supported matrix library such as Eigen.
@@ -38,8 +420,8 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<coefficients RowCoefficients, coefficients ColumnCoefficients, typed_matrix_nestable NestedMatrix>
-  requires (RowCoefficients::dimensions == row_extent_of_v<NestedMatrix>) and
-    (ColumnCoefficients::dimensions == column_extent_of_v<NestedMatrix>) and
+  requires (RowCoefficients::dimension == row_dimension_of_v<NestedMatrix>) and
+    (ColumnCoefficients::dimension == column_dimension_of_v<NestedMatrix>) and
     (not std::is_rvalue_reference_v<NestedMatrix>) and
     (dynamic_coefficients<RowCoefficients> == dynamic_rows<NestedMatrix>) and
     (dynamic_coefficients<ColumnCoefficients> == dynamic_columns<NestedMatrix>)
@@ -70,7 +452,7 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<coefficients RowCoefficients, typed_matrix_nestable NestedMatrix> requires
-  (RowCoefficients::dimensions == row_extent_of_v<NestedMatrix>) and
+  (RowCoefficients::dimension == row_dimension_of_v<NestedMatrix>) and
   (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename RowCoefficients, typename NestedMatrix>
@@ -99,7 +481,7 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<coefficients Coefficients, typed_matrix_nestable NestedMatrix> requires
-  (Coefficients::euclidean_dimensions == row_extent_of_v<NestedMatrix>) and (not std::is_rvalue_reference_v<NestedMatrix>)
+  (Coefficients::euclidean_dimension == row_dimension_of_v<NestedMatrix>) and (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename Coefficients, typename NestedMatrix>
 #endif
@@ -124,7 +506,7 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<coefficients Coefficients, covariance_nestable NestedMatrix> requires
-    (Coefficients::dimensions == row_extent_of_v<NestedMatrix>) and (not std::is_rvalue_reference_v<NestedMatrix>)
+    (Coefficients::dimension == row_dimension_of_v<NestedMatrix>) and (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename Coefficients, typename NestedMatrix>
 #endif
@@ -135,14 +517,6 @@ namespace OpenKalman
   {
     template<typename Coefficients, typename NestedMatrix>
     struct is_self_adjoint_covariance<Covariance<Coefficients, NestedMatrix>> : std::true_type {};
-
-    //template<typename Coefficients, typename NestedMatrix>
-    //struct is_upper_self_adjoint_matrix<Covariance<Coefficients, NestedMatrix>>
-    //  : std::bool_constant<upper_self_adjoint_matrix<NestedMatrix> or upper_triangular_matrix<NestedMatrix>> {};
-
-    //template<typename Coefficients, typename NestedMatrix>
-    //struct is_lower_self_adjoint_matrix<Covariance<Coefficients, NestedMatrix>>
-    //  : std::bool_constant<lower_self_adjoint_matrix<NestedMatrix> or lower_triangular_matrix<NestedMatrix>> {};
   }
 
 
@@ -159,7 +533,7 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<coefficients Coefficients, covariance_nestable NestedMatrix> requires
-    (Coefficients::dimensions == row_extent_of_v<NestedMatrix>) and (not std::is_rvalue_reference_v<NestedMatrix>)
+    (Coefficients::dimension == row_dimension_of_v<NestedMatrix>) and (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename Coefficients, typename NestedMatrix>
 #endif
@@ -170,15 +544,23 @@ namespace OpenKalman
   {
     template<typename Coefficients, typename NestedMatrix>
     struct is_triangular_covariance<SquareRootCovariance<Coefficients, NestedMatrix>> : std::true_type {};
-
-    //template<typename Coefficients, typename NestedMatrix>
-    //struct is_upper_triangular_matrix<SquareRootCovariance<Coefficients, NestedMatrix>>
-    //  : std::bool_constant<upper_triangular_matrix<NestedMatrix> or upper_self_adjoint_matrix<NestedMatrix>> {};
-
-    //template<typename Coefficients, typename NestedMatrix>
-    //struct is_lower_triangular_matrix<SquareRootCovariance<Coefficients, NestedMatrix>>
-    //  : std::bool_constant<lower_triangular_matrix<NestedMatrix> or lower_self_adjoint_matrix<NestedMatrix>> {};
   }
+
+
+  // --------------- //
+  //  typed_adapter  //
+  // --------------- //
+
+  /**
+   * \brief Specifies that T is a typed adapter expression.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept typed_adapter =
+#else
+  constexpr bool typed_adapter =
+#endif
+    typed_matrix<T> or covariance<T>;
 
 
   /**
@@ -195,8 +577,8 @@ namespace OpenKalman
     typed_matrix_nestable MeanNestedMatrix,
     covariance_nestable CovarianceNestedMatrix,
     std::uniform_random_bit_generator random_number_engine = std::mt19937> requires
-      (row_extent_of_v<MeanNestedMatrix> == row_extent_of_v<CovarianceNestedMatrix>) and
-      (column_extent_of_v<MeanNestedMatrix> == 1) and
+      (row_dimension_of_v<MeanNestedMatrix> == row_dimension_of_v<CovarianceNestedMatrix>) and
+      (column_dimension_of_v<MeanNestedMatrix> == 1) and
       (std::is_same_v<scalar_type_of_t<MeanNestedMatrix>,
         scalar_type_of_t<CovarianceNestedMatrix>>)
 #else
@@ -288,6 +670,23 @@ namespace OpenKalman
 
 
   } // namespace internal
+
+
+  namespace Eigen3::internal
+  {
+    /**
+     * \internal
+     * \brief Base class for library-defined dynamic Eigen matrices.
+     */
+#ifdef __cpp_concepts
+    template<typename Derived, typename NestedMatrix>
+#else
+    template<typename Derived, typename NestedMatrix, typename = void>
+#endif
+    struct EigenDynamicBase;
+  }
+
+
 
 
 } // OpenKalman

@@ -11,6 +11,7 @@
 #ifndef OPENKALMAN_TYPED_MATRIX_OVERLOADS_HPP
 #define OPENKALMAN_TYPED_MATRIX_OVERLOADS_HPP
 
+#include <iostream>
 
 namespace OpenKalman::interface
 {
@@ -89,10 +90,10 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<std::size_t index, typed_matrix Arg> requires (index < row_extent_of_v<Arg>)
+  template<std::size_t index, typed_matrix Arg> requires (index < row_dimension_of_v<Arg>)
 #else
   template<std::size_t index, typename Arg, std::enable_if_t<typed_matrix<Arg> and
-    (index < row_extent_of<Arg>::value), int> = 0>
+    (index < row_dimension_of<Arg>::value), int> = 0>
 #endif
   constexpr decltype(auto)
   row(Arg&& arg)
@@ -126,10 +127,10 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<std::size_t index, typed_matrix Arg> requires (index < column_extent_of_v<Arg>)
+  template<std::size_t index, typed_matrix Arg> requires (index < column_dimension_of_v<Arg>)
 #else
   template<std::size_t index, typename Arg, std::enable_if_t<typed_matrix<Arg> and
-    (index < column_extent_of<Arg>::value), int> = 0>
+    (index < column_dimension_of<Arg>::value), int> = 0>
 #endif
   constexpr decltype(auto)
   column(Arg&& arg)
@@ -189,36 +190,6 @@ namespace OpenKalman
   }
 
 
-#ifdef __cpp_concepts
-  template<typed_matrix Arg> requires (not euclidean_transformed<Arg>) and
-    equivalent_to<typename MatrixTraits<Arg>::ColumnCoefficients, Axis>
-#else
-  template<typename Arg, std::enable_if_t<typed_matrix<Arg> and (not euclidean_transformed<Arg>) and
-    equivalent_to<typename MatrixTraits<Arg>::ColumnCoefficients, Axis>, int> = 0>
-#endif
-  inline auto
-  to_diagonal(Arg&& arg) noexcept
-  {
-    using C = typename MatrixTraits<Arg>::RowCoefficients;
-    auto b = to_diagonal(nested_matrix(std::forward<Arg>(arg)));
-    return Matrix<C, C, decltype(b)>(std::move(b));
-  }
-
-
-#ifdef __cpp_concepts
-  template<typed_matrix Arg> requires square_matrix<Arg>
-#else
-  template<typename Arg, std::enable_if_t<typed_matrix<Arg> and square_matrix<Arg>, int> = 0>
-#endif
-  inline auto
-  diagonal_of(Arg&& arg) noexcept
-  {
-    using C = typename MatrixTraits<Arg>::RowCoefficients;
-    auto b = diagonal_of(nested_matrix(std::forward<Arg>(arg)));
-    return Matrix<C, Axis, decltype(b)>(std::move(b));
-  }
-
-
   namespace interface
   {
 
@@ -259,6 +230,26 @@ namespace OpenKalman
   struct Conversions<T, std::enable_if_t<typed_matrix<T>>>
 #endif
   {
+
+    template<typename Arg>
+    static auto
+    to_diagonal(Arg&& arg) noexcept
+    {
+      using C = typename MatrixTraits<Arg>::RowCoefficients;
+      auto b = to_diagonal(nested_matrix(std::forward<Arg>(arg)));
+      return Matrix<C, C, decltype(b)>(std::move(b));
+    }
+
+
+    template<typename Arg>
+    static auto
+    diagonal_of(Arg&& arg) noexcept
+    {
+      using C = typename MatrixTraits<Arg>::RowCoefficients;
+      auto b = diagonal_of(nested_matrix(std::forward<Arg>(arg)));
+      return Matrix<C, Axis, decltype(b)>(std::move(b));
+    }
+
   };
 
 
@@ -390,10 +381,10 @@ namespace OpenKalman
 
   /// Returns the mean of the column vectors after they are transformed into Euclidean space.
 #ifdef __cpp_concepts
-  template<typed_matrix Arg> requires (column_extent_of_v<Arg> == 1) or untyped_columns<Arg>
+  template<typed_matrix Arg> requires (column_dimension_of_v<Arg> == 1) or untyped_columns<Arg>
 #else
   template<typename Arg, std::enable_if_t<typed_matrix<Arg> and
-    ((column_extent_of<Arg>::value == 1) or untyped_columns<Arg>), int> = 0>
+    ((column_dimension_of<Arg>::value == 1) or untyped_columns<Arg>), int> = 0>
 #endif
   constexpr decltype(auto)
   reduce_columns(Arg&& arg) noexcept
@@ -401,7 +392,7 @@ namespace OpenKalman
     /// \todo add an option where all the column coefficients are the same, but not Axis.
     using C = typename MatrixTraits<Arg>::RowCoefficients;
 
-    if constexpr(column_extent_of_v<Arg> == 1)
+    if constexpr(column_dimension_of_v<Arg> == 1)
     {
       return std::forward<Arg>(arg);
     }
@@ -626,11 +617,11 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   /// Split typed matrix into one or more typed matrices horizontally. Column coefficients must all be Axis.
 #ifdef __cpp_concepts
   template<std::size_t ... cuts, typed_matrix M> requires untyped_columns<M> and (sizeof...(cuts) > 0) and
-    ((... + cuts) <= column_extent_of_v<M>)
+    ((... + cuts) <= column_dimension_of_v<M>)
 #else
   template<std::size_t ... cuts, typename M,
     std::enable_if_t<typed_matrix<M> and untyped_columns<M> and (sizeof...(cuts) > 0) and
-      ((0 + ... + cuts) <= column_extent_of<M>::value), int> = 0>
+      ((0 + ... + cuts) <= column_dimension_of<M>::value), int> = 0>
 #endif
   inline auto
   split_horizontal(M&& m) noexcept
@@ -735,8 +726,8 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     using ResultType = std::invoke_result_t<Function, decltype(column(std::declval<Arg&>(), 0))>;
     using ResRC = typename MatrixTraits<ResultType>::RowCoefficients;
     using ResCC0 = typename MatrixTraits<ResultType>::ColumnCoefficients;
-    static_assert(ResCC0::dimensions == 1, "Function argument of apply_columnwise must return a column vector.");
-    using ResCC = Replicate<ResCC0, column_extent_of_v<Arg>>;
+    static_assert(ResCC0::dimension == 1, "Function argument of apply_columnwise must return a column vector.");
+    using ResCC = Replicate<ResCC0, column_dimension_of_v<Arg>>;
     using RC = typename MatrixTraits<Arg>::RowCoefficients;
     const auto f_nested = [&f](auto&& col) -> auto {
       return make_self_contained(
@@ -764,8 +755,8 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     using ResultType = std::invoke_result_t<Function, decltype(column(std::declval<Arg&>(), 0)), std::size_t>;
     using ResRC = typename MatrixTraits<ResultType>::RowCoefficients;
     using ResCC0 = typename MatrixTraits<ResultType>::ColumnCoefficients;
-    static_assert(ResCC0::dimensions == 1, "Function argument of apply_columnwise must return a column vector.");
-    using ResCC = Replicate<ResCC0, column_extent_of_v<Arg>>;
+    static_assert(ResCC0::dimension == 1, "Function argument of apply_columnwise must return a column vector.");
+    using ResCC = Replicate<ResCC0, column_dimension_of_v<Arg>>;
     const auto f_nested = [&f](auto&& col, std::size_t i) -> auto {
       using RC = typename MatrixTraits<Arg>::RowCoefficients;
       return make_self_contained(
@@ -792,7 +783,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     using ResultType = std::invoke_result_t<Function>;
     using RC = typename MatrixTraits<ResultType>::RowCoefficients;
     using CC0 = typename MatrixTraits<ResultType>::ColumnCoefficients;
-    static_assert(CC0::dimensions == 1, "Function argument of apply_columnwise must return a column vector.");
+    static_assert(CC0::dimension == 1, "Function argument of apply_columnwise must return a column vector.");
     using CC = Replicate<CC0, count>;
     return MatrixTraits<ResultType>::template make<RC, CC>(apply_columnwise<count>(f_nested));
   }
@@ -815,7 +806,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     using ResultType = std::invoke_result_t<Function, std::size_t>;
     using RC = typename MatrixTraits<ResultType>::RowCoefficients;
     using CC0 = typename MatrixTraits<ResultType>::ColumnCoefficients;
-    static_assert(CC0::dimensions == 1, "Function argument of apply_columnwise must return a column vector.");
+    static_assert(CC0::dimension == 1, "Function argument of apply_columnwise must return a column vector.");
     using CC = Replicate<CC0, count>;
     return MatrixTraits<ResultType>::template make<RC, CC>(apply_columnwise<count>(f_nested));
   }
@@ -902,8 +893,8 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   inline auto
   apply_coefficientwise(const Function& f)
   {
-    constexpr auto rows = row_extent_of_v<V>;
-    constexpr auto columns = column_extent_of_v<V>;
+    constexpr auto rows = row_dimension_of_v<V>;
+    constexpr auto columns = column_dimension_of_v<V>;
     using Scalar = scalar_type_of_t<V>;
     if constexpr(std::is_same_v<
       std::decay_t<std::invoke_result_t<Function>>,
@@ -929,8 +920,8 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   inline auto
   apply_coefficientwise(Function&& f)
   {
-    constexpr auto rows = row_extent_of_v<V>;
-    constexpr auto columns = column_extent_of_v<V>;
+    constexpr auto rows = row_dimension_of_v<V>;
+    constexpr auto columns = column_dimension_of_v<V>;
     using Scalar = scalar_type_of_t<V>;
     if constexpr(std::is_same_v<
       std::decay_t<std::invoke_result_t<Function, std::size_t, std::size_t>>,
@@ -999,20 +990,20 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
 #ifdef __cpp_concepts
   template<typed_matrix ReturnType, std::uniform_random_bit_generator random_number_engine = std::mt19937,
     typename...Dists>
-  requires (not dynamic_shape<ReturnType>) and (sizeof...(Dists) > 0) and
+  requires (not any_dynamic_dimension<ReturnType>) and (sizeof...(Dists) > 0) and
     (((requires { typename std::decay_t<Dists>::result_type;  typename std::decay_t<Dists>::param_type; } or
       std::is_arithmetic_v<std::decay_t<Dists>>) and ... )) and
     ((not std::is_const_v<std::remove_reference_t<Dists>>) and ...) and
-    (sizeof...(Dists) == 1 or row_extent_of_v<ReturnType> * column_extent_of_v<ReturnType> == sizeof...(Dists) or
-      row_extent_of_v<ReturnType> == sizeof...(Dists) or column_extent_of_v<ReturnType> == sizeof...(Dists))
+    (sizeof...(Dists) == 1 or row_dimension_of_v<ReturnType> * column_dimension_of_v<ReturnType> == sizeof...(Dists) or
+      row_dimension_of_v<ReturnType> == sizeof...(Dists) or column_dimension_of_v<ReturnType> == sizeof...(Dists))
 #else
   template<typename ReturnType, typename random_number_engine = std::mt19937, typename...Dists,
-    std::enable_if_t<typed_matrix<ReturnType> and (not dynamic_shape<ReturnType>) and (sizeof...(Dists) > 0) and
+    std::enable_if_t<typed_matrix<ReturnType> and (not any_dynamic_dimension<ReturnType>) and (sizeof...(Dists) > 0) and
       ((not std::is_const_v<std::remove_reference_t<Dists>>) and ...) and
       (sizeof...(Dists) == 1 or
-        row_extent_of<ReturnType>::value * column_extent_of<ReturnType>::value == sizeof...(Dists) or
-        row_extent_of<ReturnType>::value == sizeof...(Dists) or
-        column_extent_of<ReturnType>::value == sizeof...(Dists)), int> = 0>
+        row_dimension_of<ReturnType>::value * column_dimension_of<ReturnType>::value == sizeof...(Dists) or
+        row_dimension_of<ReturnType>::value == sizeof...(Dists) or
+        column_dimension_of<ReturnType>::value == sizeof...(Dists)), int> = 0>
 #endif
   inline auto
   randomize(Dists&& ... dists)
@@ -1041,19 +1032,19 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
 #ifdef __cpp_concepts
   template<typed_matrix ReturnType, std::uniform_random_bit_generator random_number_engine = std::mt19937,
     typename Dist>
-  requires dynamic_shape<ReturnType> and
+  requires any_dynamic_dimension<ReturnType> and
     requires { typename std::decay_t<Dist>::result_type; typename std::decay_t<Dist>::param_type; } and
     (not std::is_const_v<std::remove_reference_t<Dist>>)
 #else
   template<typename ReturnType, typename random_number_engine = std::mt19937, typename Dist, std::enable_if_t<
-      typed_matrix<ReturnType> and dynamic_shape<ReturnType> and
+      typed_matrix<ReturnType> and any_dynamic_dimension<ReturnType> and
       (not std::is_const_v<std::remove_reference_t<Dist>>), int> = 0>
 #endif
   inline auto
   randomize(const std::size_t rows, const std::size_t columns, Dist&& dist)
   {
-    if constexpr (not dynamic_rows<ReturnType>) assert(rows == row_extent_of_v<ReturnType>);
-    if constexpr (not dynamic_columns<ReturnType>) assert(columns == column_extent_of_v<ReturnType>);
+    if constexpr (not dynamic_rows<ReturnType>) assert(rows == row_dimension_of_v<ReturnType>);
+    if constexpr (not dynamic_columns<ReturnType>) assert(columns == column_dimension_of_v<ReturnType>);
     using B = nested_matrix_of_t<ReturnType>;
     return MatrixTraits<ReturnType>::template make(randomize<B, random_number_engine>(
       rows, columns, std::forward<Dist>(dist)));
@@ -1068,7 +1059,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
 #endif
   inline std::ostream& operator<<(std::ostream& os, const V& v)
   {
-    os << make_native_matrix(v);
+    os << make_dense_writable_matrix_from(v);
     return os;
   }
 

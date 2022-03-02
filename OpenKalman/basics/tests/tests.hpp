@@ -19,6 +19,7 @@
 #include <type_traits>
 #include <array>
 #include <tuple>
+#include <iostream>
 
 #include <gtest/gtest.h>
 
@@ -40,23 +41,24 @@ namespace OpenKalman::test
   // ---------- //
 
 #ifdef __cpp_concepts
-  template<typename Arg1, typename Arg2, typename Err = double> requires
-    (dynamic_rows<Arg1> or dynamic_rows<Arg2> or row_extent_of_v<Arg1> == row_extent_of_v<Arg2>) and
-    (dynamic_columns<Arg1> or dynamic_columns<Arg2> or column_extent_of_v<Arg1> == column_extent_of_v<Arg2>)
+  template<indexible Arg1, indexible Arg2, typename Err = double> requires
+    (dynamic_rows<Arg1> or dynamic_rows<Arg2> or row_dimension_of_v<Arg1> == row_dimension_of_v<Arg2>) and
+    (dynamic_columns<Arg1> or dynamic_columns<Arg2> or column_dimension_of_v<Arg1> == column_dimension_of_v<Arg2>)
 #else
   template<typename Arg1, typename Arg2, typename Err = double, std::enable_if_t<
-    (dynamic_rows<Arg1> or dynamic_rows<Arg2> or row_extent_of<Arg1>::value == row_extent_of<Arg2>::value) and
-    (dynamic_columns<Arg1> or dynamic_columns<Arg2> or column_extent_of<Arg1>::value == column_extent_of<Arg2>::value),
+    indexible<Arg1> and indexible<Arg2> and
+    (dynamic_rows<Arg1> or dynamic_rows<Arg2> or row_dimension_of<Arg1>::value == row_dimension_of<Arg2>::value) and
+    (dynamic_columns<Arg1> or dynamic_columns<Arg2> or column_dimension_of<Arg1>::value == column_dimension_of<Arg2>::value),
     int> = 0>
 #endif
   inline ::testing::AssertionResult is_near(const Arg1& arg1, const Arg2& arg2, const Err& err = 1e-6)
   {
-    if constexpr (dynamic_shape<Arg1> or dynamic_shape<Arg2>)
-      if (row_count(arg1) != row_count(arg2) or column_count(arg1) != column_count(arg2))
+    if constexpr (any_dynamic_dimension<Arg1> or any_dynamic_dimension<Arg2>)
+      if (runtime_dimension_of<0>(arg1) != runtime_dimension_of<0>(arg2) or runtime_dimension_of<1>(arg1) != runtime_dimension_of<1>(arg2))
     {
-      return ::testing::AssertionFailure() << std::endl << make_native_matrix(arg1) << std::endl <<
-        "(rows " << row_count(arg1) << ", cols " << column_count(arg1) << "), is not near" << std::endl <<
-        make_native_matrix(arg2) << std::endl << "(rows " << row_count(arg2) << ", cols " << column_count(arg2) <<
+      return ::testing::AssertionFailure() << std::endl << make_dense_writable_matrix_from(arg1) << std::endl <<
+        "(rows " << runtime_dimension_of<0>(arg1) << ", cols " << runtime_dimension_of<1>(arg1) << "), is not near" << std::endl <<
+        make_dense_writable_matrix_from(arg2) << std::endl << "(rows " << runtime_dimension_of<0>(arg2) << ", cols " << runtime_dimension_of<1>(arg2) <<
         ")" << std::endl;
     }
 
@@ -86,17 +88,17 @@ namespace OpenKalman::test
   requires detail::is_std_array_v<Arg1> and detail::is_std_array_v<Arg2> and std::is_arithmetic_v<Err> and
     (std::tuple_size_v<Arg1> == std::tuple_size_v<Arg2>) and
     (dynamic_rows<typename Arg1::value_type> or dynamic_rows<typename Arg2::value_type> or
-      row_extent_of_v<typename Arg1::value_type> == row_extent_of_v<typename Arg2::value_type>) and
+      row_dimension_of_v<typename Arg1::value_type> == row_dimension_of_v<typename Arg2::value_type>) and
     (dynamic_columns<typename Arg1::value_type> or dynamic_columns<typename Arg2::value_type> or
-      column_extent_of_v<typename Arg1::value_type> == column_extent_of_v<typename Arg2::value_type>)
+      column_dimension_of_v<typename Arg1::value_type> == column_dimension_of_v<typename Arg2::value_type>)
 #else
   template<typename Arg1, typename Arg2, typename Err = double, std::enable_if_t<
     detail::is_std_array_v<Arg1> and detail::is_std_array_v<Arg2> and std::is_arithmetic_v<Err> and
     (std::tuple_size<Arg1>::value == std::tuple_size<Arg2>::value) and
     (dynamic_rows<typename Arg1::value_type> or dynamic_rows<typename Arg2::value_type> or
-      row_extent_of<typename Arg1::value_type>::value == row_extent_of<typename Arg2::value_type>::value) and
+      row_dimension_of<typename Arg1::value_type>::value == row_dimension_of<typename Arg2::value_type>::value) and
     (dynamic_columns<typename Arg1::value_type> or dynamic_columns<typename Arg2::value_type> or
-      column_extent_of<typename Arg1::value_type>::value == column_extent_of<typename Arg2::value_type>::value),
+      column_dimension_of<typename Arg1::value_type>::value == column_dimension_of<typename Arg2::value_type>::value),
       int> = 0>
 #endif
   inline ::testing::AssertionResult is_near(const Arg1& arg1, const Arg2& arg2, const Err& err = 1e-6)
@@ -112,17 +114,15 @@ namespace OpenKalman::test
       return TestComparison<Arg1, Arg2, Err> {arg1, arg2, err};
     }
 
-
-
     if constexpr (dynamic_rows<std::tuple_element_t<0, Arg1>> or dynamic_rows<std::tuple_element_t<0, Arg2>>)
-      if (row_count(std::get<0>(arg1)) != row_count(std::get<0>(arg2)))
-        throw std::logic_error {"Row dimension mismatch: " + std::to_string(row_count(std::get<0>(arg1))) + " != " +
-          std::to_string(row_count(std::get<0>(arg2))) + " in is_near(array) of " + std::string {__FILE__}};
+      if (runtime_dimension_of<0>(std::get<0>(arg1)) != runtime_dimension_of<0>(std::get<0>(arg2)))
+        throw std::logic_error {"Row dimension mismatch: " + std::to_string(runtime_dimension_of<0>(std::get<0>(arg1))) + " != " +
+          std::to_string(runtime_dimension_of<0>(std::get<0>(arg2))) + " in is_near(array) of " + std::string {__FILE__}};
 
     if constexpr (dynamic_columns<std::tuple_element_t<0, Arg1>> or dynamic_columns<std::tuple_element_t<0, Arg2>>)
-      if (column_count(std::get<0>(arg1)) != column_count(std::get<0>(arg2)))
-        throw std::logic_error {"Column dimension mismatch: " + std::to_string(column_count(std::get<0>(arg1))) + " != " +
-          std::to_string(column_count(std::get<0>(arg2))) + " in is_near(array) of " + std::string {__FILE__}};
+      if (runtime_dimension_of<1>(std::get<0>(arg1)) != runtime_dimension_of<1>(std::get<0>(arg2)))
+        throw std::logic_error {"Column dimension mismatch: " + std::to_string(runtime_dimension_of<1>(std::get<0>(arg1))) + " != " +
+          std::to_string(runtime_dimension_of<1>(std::get<0>(arg2))) + " in is_near(array) of " + std::string {__FILE__}};
   }
 
 
@@ -200,8 +200,8 @@ namespace OpenKalman::test
     struct tuple_sizes_match<std::tuple<Arg1, Args1...>, std::tuple<Arg2, Args2...>>
     {
       static constexpr bool value =
-        (dynamic_rows<Arg1> or dynamic_rows<Arg2> or row_extent_of_v<Arg1> == row_extent_of_v<Arg2>) and
-        (dynamic_columns<Arg1> or dynamic_columns<Arg2> or column_extent_of_v<Arg1> == column_extent_of_v<Arg2>) and
+        (dynamic_rows<Arg1> or dynamic_rows<Arg2> or row_dimension_of_v<Arg1> == row_dimension_of_v<Arg2>) and
+        (dynamic_columns<Arg1> or dynamic_columns<Arg2> or column_dimension_of_v<Arg1> == column_dimension_of_v<Arg2>) and
         tuple_sizes_match<std::tuple<Args1...>, std::tuple<Args2...>>::value;
     };
 

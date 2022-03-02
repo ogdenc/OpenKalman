@@ -157,11 +157,11 @@ namespace OpenKalman
     struct PolarBase
     {
       /// Polar is associated with two matrix elements.
-      static constexpr std::size_t dimensions = 2;
+      static constexpr std::size_t dimension = 2;
 
 
       /// Polar is represented by three coordinates in Euclidean space.
-      static constexpr std::size_t euclidean_dimensions = 3;
+      static constexpr std::size_t euclidean_dimension = 3;
 
 
       /// Polar is not composed of only axes.
@@ -209,7 +209,7 @@ namespace OpenKalman
        * \tparam i The index of the first polar coefficient that is being transformed.
        */
       template<typename Scalar, std::size_t i>
-      static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), euclidean_dimensions>
+      static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), euclidean_dimension>
         to_euclidean_array = internal::join(
         detail::PolarImpl<Limits, C1, Scalar>::template to_euclidean_array<i, d_i, a_i>,
         detail::PolarImpl<Limits, C2, Scalar>::template to_euclidean_array<i, d_i, a_i>
@@ -229,7 +229,7 @@ namespace OpenKalman
        * \tparam i The index of the first of the three Cartesian coordinates being transformed back to polar.
        */
       template<typename Scalar, std::size_t i>
-      static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), dimensions>
+      static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), dimension>
         from_euclidean_array = internal::join(
         detail::PolarImpl<Limits, C1, Scalar>::template from_euclidean_array<i, d2_i, x_i, y_i>,
         detail::PolarImpl<Limits, C2, Scalar>::template from_euclidean_array<i, d2_i, x_i, y_i>
@@ -247,7 +247,7 @@ namespace OpenKalman
        * \tparam i The index of the first of two polar coordinates that are being wrapped.
        */
       template<typename Scalar, std::size_t i>
-      static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), dimensions>
+      static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), dimension>
         wrap_array_get = internal::join(
         detail::PolarImpl<Limits, C1, Scalar>::template wrap_array_get<i, d_i, a_i>,
         detail::PolarImpl<Limits, C2, Scalar>::template wrap_array_get<i, d_i, a_i>
@@ -266,7 +266,7 @@ namespace OpenKalman
        */
       template<typename Scalar, std::size_t i>
       static constexpr
-      std::array<void (*const)(const Scalar, const SetCoeff<Scalar>&, const GetCoeff<Scalar>&), dimensions>
+      std::array<void (*const)(const Scalar, const SetCoeff<Scalar>&, const GetCoeff<Scalar>&), dimension>
         wrap_array_set = internal::join(
         detail::PolarImpl<Limits, C1, Scalar>::template wrap_array_set<i, d_i, a_i>,
         detail::PolarImpl<Limits, C2, Scalar>::template wrap_array_set<i, d_i, a_i>

@@ -54,37 +54,40 @@ namespace OpenKalman
       using Coeffs = typename DistributionTraits<D>::Coefficients;
       using M = typename DistributionTraits<D>::Mean;
       constexpr auto points_count = dim * 2;
-      constexpr auto dim_i = DistributionTraits<D>::dimensions;
+      constexpr auto dim_i = index_dimension_of_v<D, 0>;
       constexpr auto frame_size = dim_i * 2;
       constexpr Scalar n = dim;
-      const auto delta = make_matrix<Coeffs, Axes<dim_i>>(make_native_matrix(square_root(n * covariance_of(d))));
+      const auto delta = make_matrix<Coeffs, Axes<dim_i>>(make_dense_writable_matrix_from(square_root(n * covariance_of(d))));
 
       if constexpr(frame_size == points_count)
       {
         // | delta | -delta |
         static_assert(sizeof...(ds) == 0);
         auto ret = concatenate_horizontal(delta, -delta);
-        static_assert(column_extent_of_v<decltype(ret)> == points_count);
+        static_assert(column_dimension_of_v<decltype(ret)> == points_count);
         return std::tuple {std::move(ret)};
       }
       else if constexpr (pos == 0)
       {
         // | delta | -delta | 0 ... |
         constexpr auto width = points_count - frame_size;
-        const auto mright = Matrix<Coeffs, Axes<width>, equivalent_dense_writable_matrix_t<M, dim_i, width>>::zero();
+        using Mright = Matrix<Coeffs, Axes<width>, equivalent_dense_writable_matrix_t<M, dim_i, width>>;
+        const auto mright = make_zero_matrix_like<Mright>();
         auto ret = concatenate_horizontal(delta, -delta, std::move(mright));
-        static_assert(column_extent_of_v<decltype(ret)> == points_count);
+        static_assert(column_dimension_of_v<decltype(ret)> == points_count);
         return std::tuple_cat(std::tuple {std::move(ret)},
           sample_points_impl<dim, frame_size>(ds...));
       }
       else if constexpr (pos + frame_size < points_count)
       {
         // | 0 ... | delta | -delta | 0 ... |
-        const auto mleft = Matrix<Coeffs, Axes<pos>, equivalent_dense_writable_matrix_t<M, dim_i, pos>>::zero();
+        using Mleft = Matrix<Coeffs, Axes<pos>, equivalent_dense_writable_matrix_t<M, dim_i, pos>>;
+        const auto mleft = make_zero_matrix_like<Mleft>();
         constexpr auto width = points_count - (pos + frame_size);
-        const auto mright = Matrix<Coeffs, Axes<width>, equivalent_dense_writable_matrix_t<M, dim_i, width>>::zero();
+        using Mright = Matrix<Coeffs, Axes<width>, equivalent_dense_writable_matrix_t<M, dim_i, width>>;
+        const auto mright = make_zero_matrix_like<Mright>();
         auto ret = concatenate_horizontal(std::move(mleft), delta, -delta, std::move(mright));
-        static_assert(column_extent_of_v<decltype(ret)> == points_count);
+        static_assert(column_dimension_of_v<decltype(ret)> == points_count);
         return std::tuple_cat(std::tuple {std::move(ret)},
           sample_points_impl<dim, pos + frame_size>(ds...));
       }
@@ -92,9 +95,10 @@ namespace OpenKalman
       {
         // | 0 ... | delta | -delta |
         static_assert(sizeof...(ds) == 0);
-        const auto mleft = Matrix<Coeffs, Axes<pos>, equivalent_dense_writable_matrix_t<M, dim_i, pos>>::zero();
+        using Mleft = Matrix<Coeffs, Axes<pos>, equivalent_dense_writable_matrix_t<M, dim_i, pos>>;
+        const auto mleft = make_zero_matrix_like<Mleft>();
         auto ret = concatenate_horizontal(std::move(mleft), delta, -delta);
-        static_assert(column_extent_of_v<decltype(ret)> == points_count);
+        static_assert(column_dimension_of_v<decltype(ret)> == points_count);
         return std::tuple {std::move(ret)};
       }
     }
@@ -117,7 +121,7 @@ namespace OpenKalman
     static auto
     sample_points(const Dist&...ds)
     {
-      constexpr auto dim = (DistributionTraits<Dist>::dimensions + ...);
+      constexpr auto dim = (index_dimension_of_v<Dist, 0> + ...);
       return sample_points_impl<dim>(ds...);
     }
 
@@ -131,12 +135,12 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<std::size_t dim, typed_matrix YMeans> requires untyped_columns<YMeans> and
-      (row_extent_of_v<YMeans> == MatrixTraits<YMeans>::RowCoefficients::euclidean_dimensions) and
-      (column_extent_of_v<YMeans> == dim * 2)
+      (row_dimension_of_v<YMeans> == MatrixTraits<YMeans>::RowCoefficients::euclidean_dimension) and
+      (column_dimension_of_v<YMeans> == dim * 2)
 #else
     template<std::size_t dim, typename YMeans, std::enable_if_t<typed_matrix<YMeans> and untyped_columns<YMeans> and
-      (row_extent_of<YMeans>::value == MatrixTraits<YMeans>::RowCoefficients::euclidean_dimensions) and
-      (column_extent_of_v<YMeans> == dim * 2), int> = 0>
+      (row_dimension_of<YMeans>::value == MatrixTraits<YMeans>::RowCoefficients::euclidean_dimension) and
+      (column_dimension_of_v<YMeans> == dim * 2), int> = 0>
 #endif
     static auto
     weighted_means(YMeans&& y_means)
@@ -157,19 +161,19 @@ namespace OpenKalman
      * and the cross-covariance.
      */
     template<std::size_t dim, typename InputDist, bool return_cross = false, typed_matrix X, typed_matrix Y> requires
-      (column_extent_of_v<X> == column_extent_of_v<Y>) and (column_extent_of_v<X> == dim * 2) and
+      (column_dimension_of_v<X> == column_dimension_of_v<Y>) and (column_dimension_of_v<X> == dim * 2) and
       equivalent_to<typename MatrixTraits<X>::RowCoefficients, typename DistributionTraits<InputDist>::Coefficients>
 #else
     template<std::size_t dim, typename InputDist, bool return_cross = false, typename X, typename Y, std::enable_if_t<
-      typed_matrix<X> and typed_matrix<Y> and (column_extent_of<X>::value == column_extent_of<Y>::value) and
-      (column_extent_of<X>::value == dim * 2) and
+      typed_matrix<X> and typed_matrix<Y> and (column_dimension_of<X>::value == column_dimension_of<Y>::value) and
+      (column_dimension_of<X>::value == dim * 2) and
       equivalent_to<typename MatrixTraits<X>::RowCoefficients, typename DistributionTraits<InputDist>::Coefficients>,
         int> = 0>
 #endif
     static auto
     covariance(const X& x_deviations, const Y& y_deviations)
     {
-      constexpr auto count = column_extent_of_v<X>;
+      constexpr auto count = column_dimension_of_v<X>;
       constexpr auto inv_weight = 1 / static_cast<scalar_type_of_t<X>>(count);
 
       if constexpr(cholesky_form<InputDist>)

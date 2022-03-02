@@ -32,10 +32,10 @@ namespace OpenKalman
   /**
    * \brief A set of coefficient types.
    * \details This is the key to the wrapping functionality of OpenKalman. Each of the coefficients Cs... matches-up with
-   * one or more of the rows or columns of a matrix. The number of coefficients per coefficient depends on the dimensions
-   * of the coefficient. For example, Axis, Distance, Angle, and Inclination are dimensions 1, and each correspond to a
-   * single coefficient. Polar is dimensions 2 and corresponds to two coefficients (e.g., a distance and an angle).
-   * Spherical is dimensions 3 and corresponds to three coefficients.
+   * one or more of the rows or columns of a matrix. The number of coefficients per coefficient depends on the dimension
+   * of the coefficient. For example, Axis, Distance, Angle, and Inclination are dimension 1, and each correspond to a
+   * single coefficient. Polar is dimension 2 and corresponds to two coefficients (e.g., a distance and an angle).
+   * Spherical is dimension 3 and corresponds to three coefficients.
    * Example: <code>Coefficients&lt;Axis, angle::Radians&gt;</code>
    * \sa Specializations: Coefficients<>, \ref CoefficientsCCs "Coefficients<C, Cs...>"
    * \tparam Cs Any types within the concept coefficients.
@@ -209,7 +209,7 @@ namespace OpenKalman
 
   /**
    * \brief A list of coefficients defined at runtime.
-   * \details At compile time, the structure is treated if it has zero dimensions.
+   * \details At compile time, the structure is treated if it has zero dimension.
    * \internal
    * <b>See also</b> the following functions for accessing coefficient properties:
    * - internal::to_euclidean_coeff(Coeffs&& coeffs, const std::size_t row, const F& get_coeff):
@@ -356,7 +356,7 @@ namespace OpenKalman
     template<typename T>
 #ifdef __cpp_concepts
     concept coefficient_class =
-    std::integral<decltype(T::dimensions)> and std::integral<decltype(T::euclidean_dimensions)> and
+    std::integral<decltype(T::dimension)> and std::integral<decltype(T::euclidean_dimension)> and
       (T::axes_only or not T::axes_only) and
       coefficients<typename T::difference_type> and
       (not fixed_coefficients<T> or
@@ -365,10 +365,10 @@ namespace OpenKalman
         requires {T::template wrap_array_get<double, 0>[0](std::function<double(const std::size_t)>()) == 0.;} and
         requires {T::template wrap_array_set<double, 0>[0](0., std::function<void(const double, const std::size_t)>(),
           std::function<double(const std::size_t)>());} and
-        (std::tuple_size_v<decltype(T::template to_euclidean_array<double, 0>)> == T::euclidean_dimensions) and
-        (std::tuple_size_v<decltype(T::template from_euclidean_array<double, 0>)> == T::dimensions) and
-        (std::tuple_size_v<decltype(T::template wrap_array_get<double, 0>)> == T::dimensions) and
-        (std::tuple_size_v<decltype(T::template wrap_array_set<double, 0>)> == T::dimensions)));
+        (std::tuple_size_v<decltype(T::template to_euclidean_array<double, 0>)> == T::euclidean_dimension) and
+        (std::tuple_size_v<decltype(T::template from_euclidean_array<double, 0>)> == T::dimension) and
+        (std::tuple_size_v<decltype(T::template wrap_array_get<double, 0>)> == T::dimension) and
+        (std::tuple_size_v<decltype(T::template wrap_array_set<double, 0>)> == T::dimension)));
 #else
     constexpr bool coefficient_class = true;
 #endif
@@ -427,23 +427,23 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<atomic_coefficient_group C> requires (C::dimensions == 1)
+  template<atomic_coefficient_group C> requires (C::dimension == 1)
   struct has_uniform_coefficients<C>
 #else
   template<typename C>
-  struct has_uniform_coefficients<C, std::enable_if_t<atomic_coefficient_group<C> and (C::dimensions == 1)>>
+  struct has_uniform_coefficients<C, std::enable_if_t<atomic_coefficient_group<C> and (C::dimension == 1)>>
 #endif
     : std::true_type { using common_coefficient = C; };
 
 
 #ifdef __cpp_concepts
-  template<atomic_coefficient_group C, coefficients...Cs> requires (C::dimensions == 1) and
+  template<atomic_coefficient_group C, coefficients...Cs> requires (C::dimension == 1) and
     equivalent_to<C, typename has_uniform_coefficients<Coefficients<Cs...>>::common_type>
   struct has_uniform_coefficients<Coefficients<C, Cs...>>
 #else
   template<typename C, typename...Cs>
   struct has_uniform_coefficients<Coefficients<C, Cs...>, std::enable_if_t<
-    atomic_coefficient_group<C> and (... and coefficients<Cs>) and (C::dimensions == 1) and
+    atomic_coefficient_group<C> and (... and coefficients<Cs>) and (C::dimension == 1) and
     equivalent_to<C, typename has_uniform_coefficients<Coefficients<Cs...>>::common_type>>>
 #endif
     : std::true_type { using common_coefficient = C; };

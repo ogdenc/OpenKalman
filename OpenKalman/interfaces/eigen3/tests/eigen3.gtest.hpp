@@ -14,9 +14,9 @@
 #ifndef EIGEN3_GTEST_HPP
 #define EIGEN3_GTEST_HPP
 
-#include "interfaces/eigen3/eigen3.hpp"
-
 #include "basics/tests/tests.hpp"
+
+#include "interfaces/eigen3/eigen3.hpp"
 
 
 namespace OpenKalman::test
@@ -93,7 +93,7 @@ namespace OpenKalman::test
       if constexpr (native_eigen_matrix<Arg>)
         return (arg);
       else
-        return make_native_matrix(arg);
+        return make_dense_writable_matrix_from(arg);
     }
 
   public:
@@ -132,7 +132,7 @@ namespace OpenKalman::test
       if constexpr (native_eigen_matrix<Arg>)
         return (arg);
       else
-        return make_native_matrix(arg);
+        return make_dense_writable_matrix_from(arg);
     }
 
   public:

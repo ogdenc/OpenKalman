@@ -11,6 +11,8 @@
 #ifndef OPENKALMAN_COVARIANCEOVERLOADS_HPP
 #define OPENKALMAN_COVARIANCEOVERLOADS_HPP
 
+#include <iostream>
+
 namespace OpenKalman
 {
   namespace oin = OpenKalman::internal;
@@ -109,10 +111,10 @@ namespace OpenKalman
 
   /// Return row <code>index</code> of Arg, where the index is constexpr.
 #ifdef __cpp_concepts
-  template<std::size_t index, covariance Arg> requires (index < row_extent_v<Arg>)
+  template<std::size_t index, covariance Arg> requires (index < index_dimension_of_v<Arg, 0>)
 #else
   template<std::size_t index, typename Arg, std::enable_if_t<
-    covariance<Arg> and (index < row_extent<Arg>::value), int> = 0>
+    covariance<Arg> and (index < index_dimension_of<Arg, 0>::value), int> = 0>
 #endif
   inline decltype(auto)
   row(Arg&& arg)
@@ -141,10 +143,10 @@ namespace OpenKalman
 
   /// Return column <code>index</code> of Arg, where the index is constexpr.
 #ifdef __cpp_concepts
-  template<std::size_t index, covariance Arg> requires (index < column_extent_of_v<Arg>)
+  template<std::size_t index, covariance Arg> requires (index < column_dimension_of_v<Arg>)
 #else
   template<std::size_t index, typename Arg, std::enable_if_t<
-    covariance<Arg> and (index < column_extent_of_v<Arg>), int> = 0>
+    covariance<Arg> and (index < column_dimension_of_v<Arg>), int> = 0>
 #endif
   inline decltype(auto)
   column(Arg&& arg)
@@ -155,40 +157,26 @@ namespace OpenKalman
   }
 
 
-#ifdef __cpp_concepts
-  template<covariance Arg>
-#else
-  template<typename Arg, std::enable_if_t<covariance<Arg>, int> = 0>
-#endif
-  inline auto
-  diagonal_of(Arg&& arg) noexcept
-  {
-    using C = typename MatrixTraits<Arg>::RowCoefficients;
-    auto b = make_self_contained<Arg>(diagonal_of(oin::to_covariance_nestable(std::forward<Arg>(arg))));
-    return Matrix<C, Axis, decltype(b)>(std::move(b));
-  }
-
-
   namespace interface
   {
 
 #ifdef __cpp_concepts
-    template<typed_matrix T>
+    template<covariance T>
     struct ElementAccess<T>
 #else
     template<typename T>
-    struct ElementAccess<T, std::enable_if_t<typed_matrix<T>>>
+    struct ElementAccess<T, std::enable_if_t<covariance<T>>>
 #endif
     {
     };
 
 
 #ifdef __cpp_concepts
-    template<typed_matrix T>
+    template<covariance T>
     struct ElementWiseOperations<T>
 #else
     template<typename T>
-    struct ElementWiseOperations<T, std::enable_if_t<typed_matrix<T>>>
+    struct ElementWiseOperations<T, std::enable_if_t<covariance<T>>>
 #endif
     {
 
@@ -209,6 +197,16 @@ namespace OpenKalman
   struct Conversions<T, std::enable_if_t<covariance<T>>>
 #endif
   {
+
+    template<typename Arg>
+    static auto
+    diagonal_of(Arg&& arg) noexcept
+    {
+      using C = typename MatrixTraits<Arg>::RowCoefficients;
+      auto b = make_self_contained<Arg>(diagonal_of(oin::to_covariance_nestable(std::forward<Arg>(arg))));
+      return Matrix<C, Axis, decltype(b)>(std::move(b));
+    }
+
   };
 
 
@@ -494,7 +492,7 @@ namespace OpenKalman
   {
     using CC = typename MatrixTraits<M>::RowCoefficients;
     static_assert(prefix_of<Concatenate<Cs...>, CC>);
-    return split_vertical<oin::SplitCovVertF<M, CC>, Cs...>(make_native_matrix(std::forward<M>(m)));
+    return split_vertical<oin::SplitCovVertF<M, CC>, Cs...>(make_dense_writable_matrix_from(std::forward<M>(m)));
   }
 
 
@@ -509,7 +507,7 @@ namespace OpenKalman
   {
     using RC = typename MatrixTraits<M>::RowCoefficients;
     static_assert(prefix_of<Concatenate<Cs...>, RC>);
-    return split_horizontal<oin::SplitCovHorizF<M, RC>, Cs...>(make_native_matrix(std::forward<M>(m)));
+    return split_horizontal<oin::SplitCovHorizF<M, RC>, Cs...>(make_dense_writable_matrix_from(std::forward<M>(m)));
   }
 
 
@@ -517,7 +515,7 @@ namespace OpenKalman
   template<typename Function, covariance Arg> requires
     requires(Arg&& arg, const Function& f) {
       {f(column<0>(arg))} -> typed_matrix;
-      column_extent_of_v<decltype(f(column<0>(arg)))> == 1;
+      column_dimension_of_v<decltype(f(column<0>(arg)))> == 1;
     }
 #else
   template<typename Function, typename Arg, std::enable_if_t<
@@ -539,7 +537,7 @@ namespace OpenKalman
   template<typename Function, covariance Arg> requires
     requires(Arg&& arg, const Function& f, std::size_t i) {
       {f(column<0>(arg), i)} -> typed_matrix;
-      column_extent_of_v<decltype(f(column<0>(arg), i))> == 1;
+      column_dimension_of_v<decltype(f(column<0>(arg), i))> == 1;
     }
 #else
   template<typename Function, typename Arg, std::enable_if_t<
@@ -597,7 +595,7 @@ namespace OpenKalman
 #endif
   inline std::ostream& operator<<(std::ostream& os, const Cov& c)
   {
-    os << make_native_matrix(c);
+    os << make_dense_writable_matrix_from(c);
     return os;
   }
 

@@ -37,21 +37,20 @@ namespace OpenKalman
      * \tparam RowCoefficients The coefficient types corresponding to the rows.
      * \tparam ColumnCoefficients The coefficient types corresponding to the columns.
      * \tparam Args A list of numerical coefficients (either integral or floating-point). The number of coefficients
-     * must equal RowCoefficients::dimensions * ColumnCoefficients::dimensions.
+     * must equal RowCoefficients::dimension * ColumnCoefficients::dimension.
      */
 #ifdef __cpp_concepts
-    template<coefficients RowCoefficients, coefficients ColumnCoefficients = RowCoefficients,
-      arithmetic_or_complex ... Args>
-    requires (sizeof...(Args) > 0) and (RowCoefficients::dimensions * ColumnCoefficients::dimensions == sizeof...(Args))
+    template<coefficients RowCoefficients, coefficients ColumnCoefficients = RowCoefficients, scalar_type ... Args>
+    requires (sizeof...(Args) > 0) and (RowCoefficients::dimension * ColumnCoefficients::dimension == sizeof...(Args))
 #else
     template<typename RowCoefficients, typename ColumnCoefficients = RowCoefficients, typename ... Args,
-    std::enable_if_t<(sizeof...(Args) > 0) and (arithmetic_or_complex<Args> and ...) and
-      (RowCoefficients::dimensions * ColumnCoefficients::dimensions == sizeof...(Args)), int> = 0>
+    std::enable_if_t<(sizeof...(Args) > 0) and (scalar_type<Args> and ...) and
+      (RowCoefficients::dimension * ColumnCoefficients::dimension == sizeof...(Args)), int> = 0>
 #endif
     auto make_matrix(const Args ... args)
     {
       using Scalar = std::common_type_t<Args...>;
-      using Mat = Eigen3::eigen_matrix_t<Scalar, RowCoefficients::dimensions, ColumnCoefficients::dimensions>;
+      using Mat = Eigen3::eigen_matrix_t<Scalar, RowCoefficients::dimension, ColumnCoefficients::dimension>;
       return Matrix<RowCoefficients, ColumnCoefficients, Mat>(MatrixTraits<Mat>::make(
         static_cast<const Scalar>(args)...));
     }
@@ -64,10 +63,10 @@ namespace OpenKalman
      * \tparam Args A list of numerical coefficients (either integral or floating-point).
      */
 #ifdef __cpp_concepts
-    template<arithmetic_or_complex ... Args> requires (sizeof...(Args) > 0)
+    template<scalar_type ... Args> requires (sizeof...(Args) > 0)
 #else
     template<typename ... Args, std::enable_if_t<
-    (sizeof...(Args) > 0) and (arithmetic_or_complex<Args> and ...), int> = 0>
+    (sizeof...(Args) > 0) and (scalar_type<Args> and ...), int> = 0>
 #endif
     auto make_matrix(const Args ... args)
     {
@@ -84,16 +83,16 @@ namespace OpenKalman
      * \tparam ColumnCoefficients The coefficient types corresponding to the columns.
      */
 #ifdef __cpp_concepts
-    template<arithmetic_or_complex Scalar, coefficients RowCoefficients,
+    template<scalar_type Scalar, coefficients RowCoefficients,
       coefficients ColumnCoefficients = RowCoefficients>
 #else
     template<typename Scalar, typename RowCoefficients, typename ColumnCoefficients = RowCoefficients,
-    std::enable_if_t<arithmetic_or_complex<Scalar> and
+    std::enable_if_t<scalar_type<Scalar> and
       coefficients<RowCoefficients> and coefficients<ColumnCoefficients>, int> = 0>
 #endif
     auto make_matrix()
     {
-      using Mat = Eigen3::eigen_matrix_t<Scalar, RowCoefficients::dimensions, ColumnCoefficients::dimensions>;
+      using Mat = Eigen3::eigen_matrix_t<Scalar, RowCoefficients::dimension, ColumnCoefficients::dimension>;
       return Matrix<RowCoefficients, ColumnCoefficients, Mat>();
     }
 
@@ -104,20 +103,20 @@ namespace OpenKalman
      * \note This function is imported into the OpenKalman namespace if Eigen3 is the first-included interface.
      * \tparam Coefficients The coefficient types corresponding to the rows.
      * \tparam Args A list of numerical coefficients (either integral or floating-point). The number of coefficients
-     * must be divisible by Coefficients::dimensions.
+     * must be divisible by Coefficients::dimension.
      */
 #ifdef __cpp_concepts
-    template<coefficients Coefficients, arithmetic_or_complex ... Args> requires
-      (sizeof...(Args) > 0) and (sizeof...(Args) % Coefficients::dimensions == 0)
+    template<coefficients Coefficients, scalar_type ... Args> requires
+      (sizeof...(Args) > 0) and (sizeof...(Args) % Coefficients::dimension == 0)
 #else
     template<typename Coefficients, typename ... Args, std::enable_if_t<coefficients<Coefficients> and
-      (sizeof...(Args) > 0) and (arithmetic_or_complex<Args> and ...) and
-      (sizeof...(Args) % Coefficients::dimensions == 0), int> = 0>
+      (sizeof...(Args) > 0) and (scalar_type<Args> and ...) and
+      (sizeof...(Args) % Coefficients::dimension == 0), int> = 0>
 #endif
     auto make_mean(const Args ... args)
     {
       using Scalar = std::decay_t<std::common_type_t<Args...>>;
-      constexpr std::size_t dim = Coefficients::dimensions;
+      constexpr std::size_t dim = Coefficients::dimension;
       constexpr std::size_t cols = sizeof...(Args) / dim;
       using Mat = Eigen3::eigen_matrix_t<Scalar, dim, cols>;
       return Mean<Coefficients, Mat>(MatrixTraits<Mat>::make(static_cast<const Scalar>(args)...));
@@ -131,10 +130,10 @@ namespace OpenKalman
      * \tparam Args A list of numerical coefficients (either integral or floating-point).
      */
 #ifdef __cpp_concepts
-    template<arithmetic_or_complex ... Args> requires (sizeof...(Args) > 0)
+    template<scalar_type ... Args> requires (sizeof...(Args) > 0)
 #else
     template<typename ... Args, std::enable_if_t<
-      (sizeof...(Args) > 0) and (arithmetic_or_complex<Args> and ...), int> = 0>
+      (sizeof...(Args) > 0) and (scalar_type<Args> and ...), int> = 0>
 #endif
     auto make_mean(const Args ... args)
     {
@@ -151,14 +150,14 @@ namespace OpenKalman
      * \tparam cols The number of columns.
      */
 #ifdef __cpp_concepts
-    template<arithmetic_or_complex Scalar, coefficients Coefficients, std::size_t cols = 1>
+    template<scalar_type Scalar, coefficients Coefficients, std::size_t cols = 1>
 #else
     template<typename Scalar, typename Coefficients, std::size_t cols = 1, std::enable_if_t<
-    arithmetic_or_complex<Scalar> and coefficients<Coefficients>, int> = 0>
+    scalar_type<Scalar> and coefficients<Coefficients>, int> = 0>
 #endif
     auto make_mean()
     {
-      return Mean<Coefficients, Eigen3::eigen_matrix_t<Scalar, Coefficients::dimensions, cols>>();
+      return Mean<Coefficients, Eigen3::eigen_matrix_t<Scalar, Coefficients::dimension, cols>>();
     }
 
 
@@ -168,20 +167,20 @@ namespace OpenKalman
      * \note This function is imported into the OpenKalman namespace if Eigen3 is the first-included interface.
      * \tparam Coefficients The coefficient types corresponding to the rows.
      * \tparam Args A list of numerical coefficients (either integral or floating-point). The number of coefficients
-     * must be divisible by Coefficients::euclidean_dimensions.
+     * must be divisible by Coefficients::euclidean_dimension.
      */
 #ifdef __cpp_concepts
-    template<coefficients Coefficients, arithmetic_or_complex ... Args> requires
-    (sizeof...(Args) > 0) and (sizeof...(Args) % Coefficients::euclidean_dimensions == 0)
+    template<coefficients Coefficients, scalar_type ... Args> requires
+    (sizeof...(Args) > 0) and (sizeof...(Args) % Coefficients::euclidean_dimension == 0)
 #else
     template<typename Coefficients, typename ... Args, std::enable_if_t<
-      (sizeof...(Args) > 0) and (arithmetic_or_complex<Args> and ...) and
-      (sizeof...(Args) % Coefficients::euclidean_dimensions == 0), int> = 0>
+      (sizeof...(Args) > 0) and (scalar_type<Args> and ...) and
+      (sizeof...(Args) % Coefficients::euclidean_dimension == 0), int> = 0>
 #endif
     auto make_euclidean_mean(const Args ... args) noexcept
     {
       using Scalar = std::decay_t<std::common_type_t<Args...>>;
-      constexpr std::size_t dim = Coefficients::euclidean_dimensions;
+      constexpr std::size_t dim = Coefficients::euclidean_dimension;
       constexpr std::size_t cols = sizeof...(Args) / dim;
       using Mat = Eigen3::eigen_matrix_t<Scalar, dim, cols>;
       return EuclideanMean<Coefficients, Mat>(MatrixTraits<Mat>::make(static_cast<const Scalar>(args)...));
@@ -195,10 +194,10 @@ namespace OpenKalman
      * \tparam Args A list of numerical coefficients (either integral or floating-point).
      */
 #ifdef __cpp_concepts
-    template<arithmetic_or_complex ... Args> requires (sizeof...(Args) > 0)
+    template<scalar_type ... Args> requires (sizeof...(Args) > 0)
 #else
     template<typename ... Args, std::enable_if_t<
-      (sizeof...(Args) > 0) and (arithmetic_or_complex<Args> and ...), int> = 0>
+      (sizeof...(Args) > 0) and (scalar_type<Args> and ...), int> = 0>
 #endif
     auto make_euclidean_mean(const Args ... args) noexcept
     {
@@ -215,14 +214,14 @@ namespace OpenKalman
      * \tparam cols The number of columns.
      */
 #ifdef __cpp_concepts
-    template<arithmetic_or_complex Scalar, coefficients Coefficients, std::size_t cols = 1>
+    template<scalar_type Scalar, coefficients Coefficients, std::size_t cols = 1>
 #else
     template<typename Scalar, typename Coefficients, std::size_t cols = 1, std::enable_if_t<
-    arithmetic_or_complex<Scalar> and coefficients<Coefficients>, int> = 0>
+    scalar_type<Scalar> and coefficients<Coefficients>, int> = 0>
 #endif
     auto make_euclidean_mean()
     {
-      return EuclideanMean<Coefficients,  Eigen3::eigen_matrix_t<Scalar, Coefficients::euclidean_dimensions, cols>>();
+      return EuclideanMean<Coefficients,  Eigen3::eigen_matrix_t<Scalar, Coefficients::euclidean_dimension, cols>>();
     }
 
 
@@ -233,22 +232,22 @@ namespace OpenKalman
      * \tparam Coefficients The coefficient types corresponding to the rows and columns.
      * \tparam TriangleType The type of the nested triangular matrix (upper, lower).
      * \tparam Args A list of numerical coefficients (either integral or floating-point). The number of coefficients
-     * must equal Coefficients::dimensions * Coefficients::dimensions.
+     * must equal Coefficients::dimension * Coefficients::dimension.
      */
 #ifdef __cpp_concepts
-    template<coefficients Coefficients, TriangleType triangle_type, arithmetic_or_complex ... Args> requires
+    template<coefficients Coefficients, TriangleType triangle_type, scalar_type ... Args> requires
     (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
-    (sizeof...(Args) > 0) and (sizeof...(Args) == Coefficients::dimensions * Coefficients::dimensions)
+    (sizeof...(Args) > 0) and (sizeof...(Args) == Coefficients::dimension * Coefficients::dimension)
 #else
     template<typename Coefficients, TriangleType triangle_type, typename ... Args, std::enable_if_t<
-      coefficients<Coefficients> and (arithmetic_or_complex<Args> and ...) and
+      coefficients<Coefficients> and (scalar_type<Args> and ...) and
       (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
-      (sizeof...(Args) > 0) and (sizeof...(Args) == Coefficients::dimensions * Coefficients::dimensions), int> = 0>
+      (sizeof...(Args) > 0) and (sizeof...(Args) == Coefficients::dimension * Coefficients::dimension), int> = 0>
 #endif
     auto make_covariance(const Args ... args)
     {
       using Scalar = std::decay_t<std::common_type_t<Args...>>;
-      using Mat = Eigen3::eigen_matrix_t<Scalar, Coefficients::dimensions, Coefficients::dimensions>;
+      using Mat = Eigen3::eigen_matrix_t<Scalar, Coefficients::dimension, Coefficients::dimension>;
       using T = Eigen3::TriangularMatrix<Mat, triangle_type>;
       using SA = Eigen3::SelfAdjointMatrix<Mat, triangle_type>;
       return Covariance<Coefficients, T>(MatrixTraits<SA>::make(static_cast<const Scalar>(args)...));
@@ -261,20 +260,20 @@ namespace OpenKalman
      * \note This function is imported into the OpenKalman namespace if Eigen3 is the first-included interface.
      * \tparam Coefficients The coefficient types corresponding to the rows and columns.
      * \tparam Args A list of numerical coefficients (either integral or floating-point). The number of coefficients
-     * must equal Coefficients::dimensions * Coefficients::dimensions.
+     * must equal Coefficients::dimension * Coefficients::dimension.
      */
 #ifdef __cpp_concepts
-    template<coefficients Coefficients, arithmetic_or_complex ... Args> requires
-    (sizeof...(Args) > 0) and (sizeof...(Args) == Coefficients::dimensions * Coefficients::dimensions)
+    template<coefficients Coefficients, scalar_type ... Args> requires
+    (sizeof...(Args) > 0) and (sizeof...(Args) == Coefficients::dimension * Coefficients::dimension)
 #else
     template<typename Coefficients, typename ... Args, std::enable_if_t<
-      coefficients<Coefficients> and (arithmetic_or_complex<Args> and ...) and
-      (sizeof...(Args) > 0) and (sizeof...(Args) == Coefficients::dimensions * Coefficients::dimensions), int> = 0>
+      coefficients<Coefficients> and (scalar_type<Args> and ...) and
+      (sizeof...(Args) > 0) and (sizeof...(Args) == Coefficients::dimension * Coefficients::dimension), int> = 0>
 #endif
     auto make_covariance(const Args ... args)
     {
       using Scalar = std::decay_t<std::common_type_t<Args...>>;
-      using Mat = Eigen3::eigen_matrix_t<Scalar, Coefficients::dimensions, Coefficients::dimensions>;
+      using Mat = Eigen3::eigen_matrix_t<Scalar, Coefficients::dimension, Coefficients::dimension>;
       using SA = Eigen3::SelfAdjointMatrix<Mat>;
       return Covariance<Coefficients, SA>(MatrixTraits<SA>::make(static_cast<const Scalar>(args)...));
     }
@@ -289,13 +288,13 @@ namespace OpenKalman
      * must be the square of an integer.
      */
 #ifdef __cpp_concepts
-    template<TriangleType triangle_type, arithmetic_or_complex ... Args> requires
+    template<TriangleType triangle_type, scalar_type ... Args> requires
       (sizeof...(Args) > 0) and (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
       (sizeof...(Args) == OpenKalman::internal::constexpr_sqrt(sizeof...(Args)) *
         OpenKalman::internal::constexpr_sqrt(sizeof...(Args)))
 #else
     template<TriangleType triangle_type, typename ... Args, std::enable_if_t<
-      (sizeof...(Args) > 0) and (arithmetic_or_complex<Args> and ...) and
+      (sizeof...(Args) > 0) and (scalar_type<Args> and ...) and
       (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
       (sizeof...(Args) == OpenKalman::internal::constexpr_sqrt(sizeof...(Args)) *
         OpenKalman::internal::constexpr_sqrt(sizeof...(Args))), int> = 0>
@@ -316,11 +315,11 @@ namespace OpenKalman
      * must be the square of an integer.
      */
 #ifdef __cpp_concepts
-    template<arithmetic_or_complex ... Args> requires (sizeof...(Args) > 0) and
+    template<scalar_type ... Args> requires (sizeof...(Args) > 0) and
       (sizeof...(Args) == OpenKalman::internal::constexpr_sqrt(sizeof...(Args)) *
         OpenKalman::internal::constexpr_sqrt(sizeof...(Args)))
 #else
-    template<typename ... Args, std::enable_if_t<(sizeof...(Args) > 0) and (arithmetic_or_complex<Args> and ...) and
+    template<typename ... Args, std::enable_if_t<(sizeof...(Args) > 0) and (scalar_type<Args> and ...) and
     (sizeof...(Args) == OpenKalman::internal::constexpr_sqrt(sizeof...(Args)) *
       OpenKalman::internal::constexpr_sqrt(sizeof...(Args))), int> = 0>
 #endif
@@ -341,17 +340,17 @@ namespace OpenKalman
      * \tparam Scalar The scalar type (integral or floating-point).
      */
 #ifdef __cpp_concepts
-    template<coefficients Coefficients, TriangleType triangle_type, arithmetic_or_complex Scalar = double>
+    template<coefficients Coefficients, TriangleType triangle_type, scalar_type Scalar = double>
     requires (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper)
 #else
     template<typename Coefficients, TriangleType triangle_type, typename Scalar = double, std::enable_if_t<
       coefficients<Coefficients> and
       (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
-      arithmetic_or_complex<Scalar>, int> = 0>
+      scalar_type<Scalar>, int> = 0>
 #endif
     auto make_covariance()
     {
-      using Mat = Eigen3::eigen_matrix_t<Scalar, Coefficients::dimensions, Coefficients::dimensions>;
+      using Mat = Eigen3::eigen_matrix_t<Scalar, Coefficients::dimension, Coefficients::dimension>;
       using T = Eigen3::TriangularMatrix<Mat, triangle_type>;
       return Covariance<Coefficients, T>();
     }
@@ -365,14 +364,14 @@ namespace OpenKalman
      * \tparam Scalar The scalar type (integral or floating-point).
      */
 #ifdef __cpp_concepts
-    template<coefficients Coefficients, arithmetic_or_complex Scalar = double>
+    template<coefficients Coefficients, scalar_type Scalar = double>
 #else
     template<typename Coefficients, typename Scalar = double, std::enable_if_t<
-      coefficients<Coefficients> and arithmetic_or_complex<Scalar>, int> = 0>
+      coefficients<Coefficients> and scalar_type<Scalar>, int> = 0>
 #endif
     auto make_covariance()
     {
-      using Mat = Eigen3::eigen_matrix_t<Scalar, Coefficients::dimensions, Coefficients::dimensions>;
+      using Mat = Eigen3::eigen_matrix_t<Scalar, Coefficients::dimension, Coefficients::dimension>;
       using SA = Eigen3::SelfAdjointMatrix<Mat>;
       return Covariance<Coefficients, SA>();
     }
@@ -386,23 +385,22 @@ namespace OpenKalman
      * \tparam Coefficients The coefficient types corresponding to the rows and columns.
      * \tparam TriangleType The type of the nested triangular matrix (upper, lower).
      * \tparam Args A list of numerical coefficients (either integral or floating-point). The number of coefficients
-     * must equal Coefficients::dimensions * Coefficients::dimensions.
+     * must equal Coefficients::dimension * Coefficients::dimension.
      */
 #ifdef __cpp_concepts
-    template<coefficients Coefficients, TriangleType triangle_type = TriangleType::lower,
-      arithmetic_or_complex ... Args>
+    template<coefficients Coefficients, TriangleType triangle_type = TriangleType::lower, scalar_type ... Args>
     requires (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
-      (sizeof...(Args) > 0) and (sizeof...(Args) == Coefficients::dimensions * Coefficients::dimensions)
+      (sizeof...(Args) > 0) and (sizeof...(Args) == Coefficients::dimension * Coefficients::dimension)
 #else
     template<typename Coefficients, TriangleType triangle_type = TriangleType::lower, typename ... Args,
-      std::enable_if_t<coefficients<Coefficients> and (arithmetic_or_complex<Args> and ...) and
+      std::enable_if_t<coefficients<Coefficients> and (scalar_type<Args> and ...) and
         (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
-        (sizeof...(Args) > 0) and (sizeof...(Args) == Coefficients::dimensions * Coefficients::dimensions), int> = 0>
+        (sizeof...(Args) > 0) and (sizeof...(Args) == Coefficients::dimension * Coefficients::dimension), int> = 0>
 #endif
     auto make_square_root_covariance(const Args ... args)
     {
       using Scalar = std::decay_t<std::common_type_t<Args...>>;
-      using Mat = Eigen3::eigen_matrix_t<Scalar, Coefficients::dimensions, Coefficients::dimensions>;
+      using Mat = Eigen3::eigen_matrix_t<Scalar, Coefficients::dimension, Coefficients::dimension>;
       using T = typename MatrixTraits<Mat>::template TriangularMatrixFrom<triangle_type>;
       return SquareRootCovariance<Coefficients, T>(MatrixTraits<T>::make(static_cast<const Scalar>(args)...));
     }
@@ -417,13 +415,13 @@ namespace OpenKalman
      * must be the square of an integer.
      */
 #ifdef __cpp_concepts
-    template<TriangleType triangle_type = TriangleType::lower, arithmetic_or_complex ... Args> requires
+    template<TriangleType triangle_type = TriangleType::lower, scalar_type ... Args> requires
     (sizeof...(Args) > 0) and (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
       (sizeof...(Args) == OpenKalman::internal::constexpr_sqrt(sizeof...(Args)) *
         OpenKalman::internal::constexpr_sqrt(sizeof...(Args)))
 #else
     template<TriangleType triangle_type = TriangleType::lower, typename ... Args, std::enable_if_t<
-      (sizeof...(Args) > 0) and (arithmetic_or_complex<Args> and ...) and
+      (sizeof...(Args) > 0) and (scalar_type<Args> and ...) and
       (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
       (sizeof...(Args) == OpenKalman::internal::constexpr_sqrt(sizeof...(Args)) *
         OpenKalman::internal::constexpr_sqrt(sizeof...(Args))), int> = 0>
@@ -445,18 +443,16 @@ namespace OpenKalman
      * \tparam Scalar The scalar type (integral or floating-point).
      */
 #ifdef __cpp_concepts
-    template<coefficients Coefficients, TriangleType triangle_type = TriangleType::lower,
-      arithmetic_or_complex Scalar = double>
+    template<coefficients Coefficients, TriangleType triangle_type = TriangleType::lower, scalar_type Scalar = double>
     requires (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper)
 #else
     template<typename Coefficients, TriangleType triangle_type = TriangleType::lower, typename Scalar = double,
       std::enable_if_t<coefficients<Coefficients> and
-      (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
-      arithmetic_or_complex<Scalar>, int> = 0>
+      (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and scalar_type<Scalar>, int> = 0>
 #endif
     auto make_square_root_covariance()
     {
-      using Mat = Eigen3::eigen_matrix_t<double, Coefficients::dimensions, Coefficients::dimensions>;
+      using Mat = Eigen3::eigen_matrix_t<double, Coefficients::dimension, Coefficients::dimension>;
       using T = Eigen3::TriangularMatrix<Mat, triangle_type>;
       return SquareRootCovariance<Coefficients, T>();
     }
@@ -495,10 +491,10 @@ namespace OpenKalman
     coefficients RowCoefficients,
     coefficients ColumnCoefficients = RowCoefficients,
     typed_matrix_nestable NestedMatrix =
-      Eigen3::eigen_matrix_t<double, RowCoefficients::dimensions, ColumnCoefficients::dimensions>>
+      Eigen3::eigen_matrix_t<double, RowCoefficients::dimension, ColumnCoefficients::dimension>>
   requires
-    (RowCoefficients::dimensions == row_extent_of_v<NestedMatrix>) and
-    (ColumnCoefficients::dimensions == column_extent_of_v<NestedMatrix>) and
+    (RowCoefficients::dimension == row_dimension_of_v<NestedMatrix>) and
+    (ColumnCoefficients::dimension == column_dimension_of_v<NestedMatrix>) and
     (not std::is_rvalue_reference_v<NestedMatrix>) and
     (dynamic_coefficients<RowCoefficients> == dynamic_rows<NestedMatrix>) and
     (dynamic_coefficients<ColumnCoefficients> == dynamic_columns<NestedMatrix>)
@@ -506,17 +502,16 @@ namespace OpenKalman
   template<
     typename RowCoefficients,
     typename ColumnCoefficients = RowCoefficients,
-    typename NestedMatrix = Eigen3::eigen_matrix_t<double, RowCoefficients::dimensions, ColumnCoefficients::dimensions>>
+    typename NestedMatrix = Eigen3::eigen_matrix_t<double, RowCoefficients::dimension, ColumnCoefficients::dimension>>
 #endif
   struct Matrix;
 
 
   // If the arguments are a sequence of scalars, deduce a single-column matrix.
 #ifdef __cpp_concepts
-  template<arithmetic_or_complex ... Args> requires (sizeof...(Args) > 0)
+  template<scalar_type ... Args> requires (sizeof...(Args) > 0)
 #else
-  template<typename ... Args,
-    std::enable_if_t<(sizeof...(Args) > 0) and (arithmetic_or_complex<Args> and ...), int> = 0>
+  template<typename ... Args, std::enable_if_t<(sizeof...(Args) > 0) and (scalar_type<Args> and ...), int> = 0>
 #endif
   Matrix(const Args ...) -> Matrix<Axes<sizeof...(Args)>, Axis,
     Eigen3::eigen_matrix_t<std::common_type_t<Args...>, sizeof...(Args), 1>>;
@@ -529,22 +524,21 @@ namespace OpenKalman
   // By default when using Eigen3, a Mean is an Eigen3 column vector corresponding to the Coefficients.
 #ifdef __cpp_concepts
   template<coefficients RowCoefficients,
-    typed_matrix_nestable NestedMatrix = Eigen3::eigen_matrix_t<double, RowCoefficients::dimensions, 1>>
-  requires (RowCoefficients::dimensions == row_extent_of_v<NestedMatrix>) and
+    typed_matrix_nestable NestedMatrix = Eigen3::eigen_matrix_t<double, RowCoefficients::dimension, 1>>
+  requires (RowCoefficients::dimension == row_dimension_of_v<NestedMatrix>) and
     (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename RowCoefficients,
-    typename NestedMatrix = Eigen3::eigen_matrix_t<double, RowCoefficients::dimensions, 1>>
+    typename NestedMatrix = Eigen3::eigen_matrix_t<double, RowCoefficients::dimension, 1>>
 #endif
   struct Mean;
 
 
   /// If the arguments are a sequence of scalars, deduce a single-column mean with all Axis coefficients.
 #ifdef __cpp_concepts
-  template<arithmetic_or_complex ... Args> requires (sizeof...(Args) > 0)
+  template<scalar_type ... Args> requires (sizeof...(Args) > 0)
 #else
-  template<typename ... Args,
-    std::enable_if_t<(sizeof...(Args) > 0) and (arithmetic_or_complex<Args> and ...), int> = 0>
+  template<typename ... Args, std::enable_if_t<(sizeof...(Args) > 0) and (scalar_type<Args> and ...), int> = 0>
 #endif
   Mean(const Args ...) -> Mean<Axes<sizeof...(Args)>,
     Eigen3::eigen_matrix_t<std::common_type_t<Args...>, sizeof...(Args), 1>>;
@@ -557,23 +551,22 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<
     coefficients Coefficients,
-    typed_matrix_nestable NestedMatrix = Eigen3::eigen_matrix_t<double, Coefficients::euclidean_dimensions, 1>>
+    typed_matrix_nestable NestedMatrix = Eigen3::eigen_matrix_t<double, Coefficients::euclidean_dimension, 1>>
   requires
-    (Coefficients::euclidean_dimensions == row_extent_of_v<NestedMatrix>) and
+    (Coefficients::euclidean_dimension == row_dimension_of_v<NestedMatrix>) and
     (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename Coefficients,
-    typename NestedMatrix = Eigen3::eigen_matrix_t<double, Coefficients::euclidean_dimensions, 1>>
+    typename NestedMatrix = Eigen3::eigen_matrix_t<double, Coefficients::euclidean_dimension, 1>>
 #endif
   struct EuclideanMean;
 
 
   /// If the arguments are a sequence of scalars, construct a single-column Euclidean mean.
 #ifdef __cpp_concepts
-  template<arithmetic_or_complex ... Args> requires (sizeof...(Args) > 0)
+  template<scalar_type ... Args> requires (sizeof...(Args) > 0)
 #else
-  template<typename ... Args, std::enable_if_t<
-    (sizeof...(Args) > 0) and (arithmetic_or_complex<Args> and ...), int> = 0>
+  template<typename ... Args, std::enable_if_t<(sizeof...(Args) > 0) and (scalar_type<Args> and ...), int> = 0>
 #endif
   EuclideanMean(const Args ...) -> EuclideanMean<OpenKalman::Axes<sizeof...(Args)>,
     Eigen3::eigen_matrix_t<std::common_type_t<Args...>, sizeof...(Args), 1>>;
@@ -585,22 +578,22 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
   template<coefficients Coefficients, covariance_nestable NestedMatrix =
-    Eigen3::SelfAdjointMatrix<Eigen3::eigen_matrix_t<double, Coefficients::dimensions, Coefficients::dimensions>>>
-  requires (Coefficients::dimensions == row_extent_of_v<NestedMatrix>) and
+    Eigen3::SelfAdjointMatrix<Eigen3::eigen_matrix_t<double, Coefficients::dimension, Coefficients::dimension>>>
+  requires (Coefficients::dimension == row_dimension_of_v<NestedMatrix>) and
     (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename Coefficients, typename NestedMatrix =
-    Eigen3::SelfAdjointMatrix<Eigen3::eigen_matrix_t<double, Coefficients::dimensions, Coefficients::dimensions>>>
+    Eigen3::SelfAdjointMatrix<Eigen3::eigen_matrix_t<double, Coefficients::dimension, Coefficients::dimension>>>
 #endif
   struct Covariance;
 
 
   /// If the arguments are a sequence of scalars, derive a square, self-adjoint matrix.
 #if defined(__cpp_concepts) && not defined(__clang__) // Because of compiler issue in at least clang version 10.0.0
-  template<arithmetic_or_complex ... Args> requires (sizeof...(Args) > 0) and
+  template<scalar_type ... Args> requires (sizeof...(Args) > 0) and
     (sizeof...(Args) == constexpr_sqrt(sizeof...(Args)) * constexpr_sqrt(sizeof...(Args)))
 #else
-  template<typename ... Args, std::enable_if_t<(arithmetic_or_complex<Args> and ...) and (sizeof...(Args) > 0) and
+  template<typename ... Args, std::enable_if_t<(scalar_type<Args> and ...) and (sizeof...(Args) > 0) and
     (sizeof...(Args) == constexpr_sqrt(sizeof...(Args)) * constexpr_sqrt(sizeof...(Args))), int> = 0>
 #endif
   explicit Covariance(const Args& ...) -> Covariance<Axes<constexpr_sqrt(sizeof...(Args))>,
@@ -614,22 +607,22 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
   template<coefficients Coefficients, covariance_nestable NestedMatrix =
-  Eigen3::SelfAdjointMatrix<Eigen3::eigen_matrix_t<double, Coefficients::dimensions, Coefficients::dimensions>>>
-    requires (Coefficients::dimensions == row_extent_of_v<NestedMatrix>) and
+  Eigen3::SelfAdjointMatrix<Eigen3::eigen_matrix_t<double, Coefficients::dimension, Coefficients::dimension>>>
+    requires (Coefficients::dimension == row_dimension_of_v<NestedMatrix>) and
       (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename Coefficients, typename NestedMatrix =
-    Eigen3::SelfAdjointMatrix<Eigen3::eigen_matrix_t<double, Coefficients::dimensions, Coefficients::dimensions>>>
+    Eigen3::SelfAdjointMatrix<Eigen3::eigen_matrix_t<double, Coefficients::dimension, Coefficients::dimension>>>
 #endif
   struct SquareRootCovariance;
 
 
   /// If the arguments are a sequence of scalars, derive a square, lower triangular matrix.
 #if defined(__cpp_concepts) && not defined(__clang__) // Because of compiler issue in at least clang version 10.0.0
-  template<arithmetic_or_complex ... Args> requires (sizeof...(Args) > 0) and
+  template<scalar_type ... Args> requires (sizeof...(Args) > 0) and
   (sizeof...(Args) == constexpr_sqrt(sizeof...(Args)) * constexpr_sqrt(sizeof...(Args)))
 #else
-  template<typename ... Args, std::enable_if_t<(arithmetic_or_complex<Args> and ...) and (sizeof...(Args) > 0) and
+  template<typename ... Args, std::enable_if_t<(scalar_type<Args> and ...) and (sizeof...(Args) > 0) and
     (sizeof...(Args) == constexpr_sqrt(sizeof...(Args)) * constexpr_sqrt(sizeof...(Args))), int> = 0>
 #endif
   explicit SquareRootCovariance(const Args& ...) -> SquareRootCovariance<Axes<constexpr_sqrt(sizeof...(Args))>,

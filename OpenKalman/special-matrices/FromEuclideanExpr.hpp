@@ -21,9 +21,8 @@ namespace OpenKalman::Eigen3
 
 #ifdef __cpp_concepts
   template<coefficients Coefficients, typename NestedMatrix>
-  requires (eigen_matrix<NestedMatrix> or to_euclidean_expr<NestedMatrix> or eigen_diagonal_expr<NestedMatrix>) and
-    (dynamic_coefficients<Coefficients> == dynamic_rows<NestedMatrix>) and
-    (not fixed_coefficients<Coefficients> or Coefficients::euclidean_dimensions == row_extent_of_v<NestedMatrix>) and
+  requires (dynamic_coefficients<Coefficients> == dynamic_rows<NestedMatrix>) and
+    (not fixed_coefficients<Coefficients> or Coefficients::euclidean_dimension == row_dimension_of_v<NestedMatrix>) and
     (not dynamic_coefficients<Coefficients> or
       std::same_as<typename Coefficients::Scalar, scalar_type_of_t<NestedMatrix>>)
 #else
@@ -35,16 +34,15 @@ namespace OpenKalman::Eigen3
 
 #ifndef __cpp_concepts
     static_assert(coefficients<Coefficients>);
-    static_assert(eigen_matrix<NestedMatrix> or to_euclidean_expr<NestedMatrix> or eigen_diagonal_expr<NestedMatrix>);
     static_assert(dynamic_coefficients<Coefficients> == dynamic_rows<NestedMatrix>);
-    static_assert(not fixed_coefficients<Coefficients> or Coefficients::euclidean_dimensions == row_extent_of_v<NestedMatrix>);
+    static_assert(not fixed_coefficients<Coefficients> or Coefficients::euclidean_dimension == row_dimension_of_v<NestedMatrix>);
 #endif
 
     using Scalar = scalar_type_of_t<NestedMatrix>;
 
   private:
 
-    static constexpr auto columns = column_extent_of_v<NestedMatrix>; ///< Number of columns.
+    static constexpr auto columns = column_dimension_of_v<NestedMatrix>; ///< Number of columns.
 
     using Base = OpenKalman::internal::TypedMatrixBase<FromEuclideanExpr, NestedMatrix, Coefficients>;
 
@@ -103,7 +101,7 @@ namespace OpenKalman::Eigen3
      */
     template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...> and
       sizeof...(Args) == columns *
-        (to_euclidean_expr<NestedMatrix> ? Coefficients::dimensions : Coefficients::euclidean_dimensions), int> = 0>
+        (to_euclidean_expr<NestedMatrix> ? Coefficients::dimension : Coefficients::euclidean_dimension), int> = 0>
     FromEuclideanExpr(Args ... args) : Base {MatrixTraits<NestedMatrix>::make(static_cast<const Scalar>(args)...)} {}
 #endif
 
@@ -114,13 +112,13 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
     template<from_euclidean_expr Arg> requires (not std::derived_from<std::decay_t<Arg>, FromEuclideanExpr>) and
       (equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>) and
-      (column_extent_of_v<Arg> == columns) and
+      (column_dimension_of_v<Arg> == columns) and
       modifiable<NestedMatrix, nested_matrix_of_t<Arg>>
 #else
     template<typename Arg, std::enable_if_t<from_euclidean_expr<Arg> and
       (not std::is_base_of_v<FromEuclideanExpr, std::decay_t<Arg>>) and
       (equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>) and
-      (column_extent_of<Arg>::value == columns) and
+      (column_dimension_of<Arg>::value == columns) and
       modifiable<NestedMatrix, nested_matrix_of_t<Arg>>, int> = 0>
 #endif
     auto& operator=(Arg&& arg) noexcept
@@ -138,11 +136,11 @@ namespace OpenKalman::Eigen3
      */
 #ifdef __cpp_concepts
     template<eigen_matrix Arg> requires
-      (row_extent_of_v<Arg> == Coefficients::dimensions) and (column_extent_of_v<Arg> == columns) and
+      (row_dimension_of_v<Arg> == Coefficients::dimension) and (column_dimension_of_v<Arg> == columns) and
       modifiable<NestedMatrix, decltype(to_euclidean<Coefficients>(std::declval<Arg&&>()))>
 #else
     template<typename Arg, std::enable_if_t<eigen_matrix<Arg> and
-      (row_extent_of<Arg>::value == Coefficients::dimensions) and (column_extent_of<Arg>::value == columns) and
+      (row_dimension_of<Arg>::value == Coefficients::dimension) and (column_dimension_of<Arg>::value == columns) and
       modifiable<NestedMatrix, decltype(to_euclidean<Coefficients>(std::declval<Arg&&>()))>, int> = 0>
 #endif
     auto& operator=(Arg&& arg) noexcept
@@ -159,8 +157,8 @@ namespace OpenKalman::Eigen3
     template<typename Arg>
     static auto to_euclidean_noalias(Arg&& arg)
     {
-      if constexpr (Coefficients::euclidean_dimensions > Coefficients::dimensions)
-        return make_native_matrix(to_euclidean<Coefficients>(std::forward<Arg>(arg))); //< Prevent aliasing
+      if constexpr (Coefficients::euclidean_dimension > Coefficients::dimension)
+        return make_dense_writable_matrix_from(to_euclidean<Coefficients>(std::forward<Arg>(arg))); //< Prevent aliasing
       else
         return to_euclidean<Coefficients>(make_self_contained<Arg>(std::forward<Arg>(arg)));
     }
@@ -169,10 +167,10 @@ namespace OpenKalman::Eigen3
 
     /// Increment from another \ref from_euclidean_expr.
 #ifdef __cpp_concepts
-    template<from_euclidean_expr Arg> requires (column_extent_of_v<Arg> == columns) and
+    template<from_euclidean_expr Arg> requires (column_dimension_of_v<Arg> == columns) and
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>
 #else
-    template<typename Arg, std::enable_if_t<from_euclidean_expr<Arg> and (column_extent_of<Arg>::value == columns) and
+    template<typename Arg, std::enable_if_t<from_euclidean_expr<Arg> and (column_dimension_of<Arg>::value == columns) and
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>, int> = 0>
 #endif
     auto& operator+=(const Arg& arg) noexcept
@@ -184,11 +182,11 @@ namespace OpenKalman::Eigen3
 
     /// Increment from another \ref eigen_matrix.
 #ifdef __cpp_concepts
-    template<eigen_matrix Arg> requires (column_extent_of_v<Arg> == columns) and
-      (row_extent_of_v<Arg> == Coefficients::dimensions)
+    template<eigen_matrix Arg> requires (column_dimension_of_v<Arg> == columns) and
+      (row_dimension_of_v<Arg> == Coefficients::dimension)
 #else
-    template<typename Arg, std::enable_if_t<eigen_matrix<Arg> and (column_extent_of<Arg>::value == columns) and
-      (row_extent_of<Arg>::value == Coefficients::dimensions), int> = 0>
+    template<typename Arg, std::enable_if_t<eigen_matrix<Arg> and (column_dimension_of<Arg>::value == columns) and
+      (row_dimension_of<Arg>::value == Coefficients::dimension), int> = 0>
 #endif
     auto& operator+=(const Arg& arg) noexcept
     {
@@ -199,10 +197,10 @@ namespace OpenKalman::Eigen3
 
     /// Decrement from another \ref from_euclidean_expr.
 #ifdef __cpp_concepts
-    template<from_euclidean_expr Arg> requires (column_extent_of_v<Arg> == columns) and
+    template<from_euclidean_expr Arg> requires (column_dimension_of_v<Arg> == columns) and
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>
 #else
-    template<typename Arg, std::enable_if_t<from_euclidean_expr<Arg> and (column_extent_of<Arg>::value == columns) and
+    template<typename Arg, std::enable_if_t<from_euclidean_expr<Arg> and (column_dimension_of<Arg>::value == columns) and
       equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>, int> = 0>
 #endif
     auto& operator-=(const Arg& arg) noexcept
@@ -214,11 +212,11 @@ namespace OpenKalman::Eigen3
 
     /// Decrement from another \ref eigen_matrix.
 #ifdef __cpp_concepts
-    template<eigen_matrix Arg> requires (column_extent_of_v<Arg> == columns) and
-      (row_extent_of_v<Arg> == Coefficients::dimensions)
+    template<eigen_matrix Arg> requires (column_dimension_of_v<Arg> == columns) and
+      (row_dimension_of_v<Arg> == Coefficients::dimension)
 #else
-    template<typename Arg, std::enable_if_t<eigen_matrix<Arg> and (column_extent_of<Arg>::value == columns) and
-      (row_extent_of<Arg>::value == Coefficients::dimensions), int> = 0>
+    template<typename Arg, std::enable_if_t<eigen_matrix<Arg> and (column_dimension_of<Arg>::value == columns) and
+      (row_dimension_of<Arg>::value == Coefficients::dimension), int> = 0>
 #endif
     auto& operator-=(const Arg& arg) noexcept
     {

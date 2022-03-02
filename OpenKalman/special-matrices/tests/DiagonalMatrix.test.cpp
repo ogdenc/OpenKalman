@@ -26,20 +26,20 @@ namespace
   using cdouble = std::complex<double>;
 
   using M51 = eigen_matrix_t<double, 5, 1>;
-  using M50 = eigen_matrix_t<double, 5, dynamic_extent>;
+  using M50 = eigen_matrix_t<double, 5, dynamic_size>;
   using M31 = eigen_matrix_t<double, 3, 1>;
   using M13 = eigen_matrix_t<double, 1, 3>;
   using M33 = eigen_matrix_t<double, 3, 3>;
-  using M30 = eigen_matrix_t<double, 3, dynamic_extent>;
-  using M03 = eigen_matrix_t<double, dynamic_extent, 3>;
+  using M30 = eigen_matrix_t<double, 3, dynamic_size>;
+  using M03 = eigen_matrix_t<double, dynamic_size, 3>;
   using M21 = eigen_matrix_t<double, 2, 1>;
   using M22 = eigen_matrix_t<double, 2, 2>;
-  using M20 = eigen_matrix_t<double, 2, dynamic_extent>;
-  using M02 = eigen_matrix_t<double, dynamic_extent, 2>;
+  using M20 = eigen_matrix_t<double, 2, dynamic_size>;
+  using M02 = eigen_matrix_t<double, dynamic_size, 2>;
   using M11 = eigen_matrix_t<double, 1, 1>;
-  using M10 = eigen_matrix_t<double, 1, dynamic_extent>;
-  using M01 = eigen_matrix_t<double, dynamic_extent, 1>;
-  using M00 = eigen_matrix_t<double, dynamic_extent, dynamic_extent>;
+  using M10 = eigen_matrix_t<double, 1, dynamic_size>;
+  using M01 = eigen_matrix_t<double, dynamic_size, 1>;
+  using M00 = eigen_matrix_t<double, dynamic_size, dynamic_size>;
 
   M51 m51 {make_eigen_matrix<double, 5, 1>(1, 2, 3, 4, 5)};
 
@@ -62,9 +62,9 @@ namespace
   M21 m01_2 {m21};
 
   M11 m11 {make_eigen_matrix<double, 1, 1>(5)};
-  M10 m10_1 {make_eigen_matrix<double, 1, dynamic_extent>(5)};
-  M01 m01_1 {make_eigen_matrix<double, dynamic_extent, 1>(5)};
-  M00 m00_11 {make_eigen_matrix<double, dynamic_extent, dynamic_extent>(5)};
+  M10 m10_1 {make_eigen_matrix<double, 1, dynamic_size>(5)};
+  M01 m01_1 {make_eigen_matrix<double, dynamic_size, 1>(5)};
+  M00 m00_11 {make_eigen_matrix<double, dynamic_size, dynamic_size>(5)};
 
   using D5 = DiagonalMatrix<M51>;
   using D3 = DiagonalMatrix<M31>;
@@ -90,7 +90,7 @@ TEST(eigen3, Diagonal_static_checks)
   static_assert(not writable<D<const M31>>);
   static_assert(not writable<D<const M31&>>);
   
-  static_assert(modifiable<D<M31>, ZeroMatrix<double, 3, 3>>);
+  static_assert(modifiable<D<M31>, ZeroMatrix<eigen_matrix_t<double, 3, 3>>>);
   static_assert(modifiable<D<M31>, IdentityMatrix<M33>>);
   static_assert(not modifiable<D<M31>, M31>);
   static_assert(modifiable<D<M31>, D<M31>>);
@@ -116,11 +116,11 @@ TEST(eigen3, Diagonal_class)
   EXPECT_TRUE(is_near(d3a.nested_matrix(), m31));
 
   // construct dynamic diagonal matrix from dynamic eigen matrix; fill with comma expression
-  DiagonalMatrix d0a_3 {M01 {make_native_matrix<M31>(4, 5, 6)}};
+  DiagonalMatrix d0a_3 {M01 {make_dense_writable_matrix_from<M31>(4, 5, 6)}};
   static_assert(std::is_same_v<decltype(d0a_3), D0>);
   d0a_3 << 1, 2, 3;
   EXPECT_TRUE(is_near(d0a_3, m33));
-  EXPECT_TRUE(is_near(d0a_3.nested_matrix(), make_native_matrix<M31>(1, 2, 3)));
+  EXPECT_TRUE(is_near(d0a_3.nested_matrix(), make_dense_writable_matrix_from<M31>(1, 2, 3)));
 
   // move constructor, deduction guide (column vector)
   DiagonalMatrix d3b {DiagonalMatrix {M31 {m31}}};
@@ -176,35 +176,35 @@ TEST(eigen3, Diagonal_class)
   EXPECT_TRUE(is_near(DiagonalMatrix {M00 {m00_11}}.nested_matrix(), m11));
 
   // construct from zero matrix, and deduction guide (from non-DiagonalMatrix diagonal)
-  static_assert(zero_matrix<decltype(DiagonalMatrix {ZeroMatrix<double, 3, 1>{}})>);
-  static_assert(diagonal_matrix<decltype(DiagonalMatrix {ZeroMatrix<double, 3, 1>{}})>);
-  static_assert(square_matrix<decltype(DiagonalMatrix {ZeroMatrix<double, 3, 1>{}})>);
+  static_assert(zero_matrix<decltype(DiagonalMatrix {ZeroMatrix<eigen_matrix_t<double, 3, 1>>{}})>);
+  static_assert(diagonal_matrix<decltype(DiagonalMatrix {ZeroMatrix<eigen_matrix_t<double, 3, 1>>{}})>);
+  static_assert(square_matrix<decltype(DiagonalMatrix {ZeroMatrix<eigen_matrix_t<double, 3, 1>>{}})>);
 
-  EXPECT_TRUE(is_near(DiagonalMatrix {ZeroMatrix<double, 3, 1>{}}, M33::Zero()));
-  EXPECT_TRUE(is_near(DiagonalMatrix {ZeroMatrix<double, 3, 3>{}}, M33::Zero()));
-  EXPECT_TRUE(is_near(DiagonalMatrix {(DiagonalMatrix {ZeroMatrix<double, 3, 3>{}}).nested_matrix()}, M33::Zero()));
-  EXPECT_TRUE(is_near(D0 {ZeroMatrix<double, 3, 1>{}}, M33::Zero()));
-  EXPECT_TRUE(is_near(D0 {ZeroMatrix<double, 3, 3>{}}, M33::Zero()));
-  EXPECT_TRUE(is_near(DiagonalMatrix {(DiagonalMatrix {ZeroMatrix<double, dynamic_extent, dynamic_extent> {3, 3}}).nested_matrix()}, M33::Zero()));
-  EXPECT_TRUE(is_near(DiagonalMatrix {ZeroMatrix<double, dynamic_extent, 1>{3}}, M33::Zero()));
-  EXPECT_TRUE(is_near(DiagonalMatrix {ZeroMatrix<double, 3, dynamic_extent>{1}}, M33::Zero()));
-  EXPECT_TRUE(is_near(DiagonalMatrix {ZeroMatrix<double, 3, dynamic_extent>{3}}, M33::Zero()));
-  EXPECT_TRUE(is_near(D3 {ZeroMatrix<double, dynamic_extent, 3>{3}}, M33::Zero()));
-  EXPECT_TRUE(is_near(DiagonalMatrix {ZeroMatrix<double, dynamic_extent, 3>{3}}, M33::Zero()));
-  EXPECT_TRUE(is_near(D3 {ZeroMatrix<double, dynamic_extent, dynamic_extent>{3, 3}}, M33::Zero()));
-  EXPECT_TRUE(is_near(DiagonalMatrix {ZeroMatrix<double, dynamic_extent, dynamic_extent>{3, 3}}, M33::Zero()));
+  EXPECT_TRUE(is_near(DiagonalMatrix {ZeroMatrix<eigen_matrix_t<double, 3, 1>>{}}, M33::Zero()));
+  EXPECT_TRUE(is_near(DiagonalMatrix {ZeroMatrix<eigen_matrix_t<double, 3, 3>>{}}, M33::Zero()));
+  EXPECT_TRUE(is_near(DiagonalMatrix {(DiagonalMatrix {ZeroMatrix<eigen_matrix_t<double, 3, 3>>{}}).nested_matrix()}, M33::Zero()));
+  EXPECT_TRUE(is_near(D0 {ZeroMatrix<eigen_matrix_t<double, 3, 1>>{}}, M33::Zero()));
+  EXPECT_TRUE(is_near(D0 {ZeroMatrix<eigen_matrix_t<double, 3, 3>>{}}, M33::Zero()));
+  EXPECT_TRUE(is_near(DiagonalMatrix {(DiagonalMatrix {ZeroMatrix<eigen_matrix_t<double, dynamic_size, dynamic_size>> {3, 3}}).nested_matrix()}, M33::Zero()));
+  EXPECT_TRUE(is_near(DiagonalMatrix {ZeroMatrix<eigen_matrix_t<double, dynamic_size, 1>>{3}}, M33::Zero()));
+  EXPECT_TRUE(is_near(DiagonalMatrix {ZeroMatrix<eigen_matrix_t<double, 3, dynamic_size>>{1}}, M33::Zero()));
+  EXPECT_TRUE(is_near(DiagonalMatrix {ZeroMatrix<eigen_matrix_t<double, 3, dynamic_size>>{3}}, M33::Zero()));
+  EXPECT_TRUE(is_near(D3 {ZeroMatrix<eigen_matrix_t<double, dynamic_size, 3>>{3}}, M33::Zero()));
+  EXPECT_TRUE(is_near(DiagonalMatrix {ZeroMatrix<eigen_matrix_t<double, dynamic_size, 3>>{3}}, M33::Zero()));
+  EXPECT_TRUE(is_near(D3 {ZeroMatrix<eigen_matrix_t<double, dynamic_size, dynamic_size>>{3, 3}}, M33::Zero()));
+  EXPECT_TRUE(is_near(DiagonalMatrix {ZeroMatrix<eigen_matrix_t<double, dynamic_size, dynamic_size>>{3, 3}}, M33::Zero()));
 
   // construct from identity matrix, and deduction guide (from non-DiagonalMatrix diagonal)
-  EXPECT_TRUE(is_near(DiagonalMatrix {MatrixTraits<D3>::identity()}, M33::Identity()));
+  EXPECT_TRUE(is_near(DiagonalMatrix {make_identity_matrix_like<D3>()}, M33::Identity()));
   EXPECT_TRUE(is_near(DiagonalMatrix {M33::Identity()}, M33::Identity()));
   EXPECT_TRUE(is_near(DiagonalMatrix {0.7 * M33::Identity()}, M33::Identity() * 0.7));
   EXPECT_TRUE(is_near(DiagonalMatrix {((0.7 * M33::Identity()) * (0.3 * M33::Identity() * 0.7 + 0.7 * M33::Identity()) - M33::Identity() * 0.3)}, M33::Identity() * 0.337));
   EXPECT_TRUE(is_near(DiagonalMatrix {((0.7 * M33::Identity()) * (0.3 * M33::Identity() * 0.7 + 0.7 * M33::Identity()) - M33::Identity() * 0.3)}, M33::Identity() * 0.337));
-  EXPECT_TRUE(is_near(DiagonalMatrix {MatrixTraits<D0>::identity(3)}, M33::Identity()));
+  EXPECT_TRUE(is_near(DiagonalMatrix {make_identity_matrix_like<D0>(3)}, M33::Identity()));
   EXPECT_TRUE(is_near(DiagonalMatrix {M00::Identity(3, 3)}, M33::Identity()));
   EXPECT_TRUE(is_near(DiagonalMatrix {0.7 * M00::Identity(3, 3)}, M00::Identity(3, 3) * 0.7));
 
-  M22 msa2 = make_native_matrix<M22>(9, 0, 0, 10);
+  M22 msa2 = make_dense_writable_matrix_from<M22>(9, 0, 0, 10);
 
   EXPECT_TRUE(is_near(DiagonalMatrix {SelfAdjointMatrix<M22, TriangleType::diagonal>{msa2}}, msa2));
   EXPECT_TRUE(is_near(DiagonalMatrix {SelfAdjointMatrix<M00, TriangleType::diagonal>{msa2}}, msa2));
@@ -217,7 +217,7 @@ TEST(eigen3, Diagonal_class)
   EXPECT_TRUE(is_near(DiagonalMatrix {SelfAdjointMatrix<D2, TriangleType::lower>{msa2}}, msa2));
   EXPECT_TRUE(is_near(DiagonalMatrix {SelfAdjointMatrix<D0, TriangleType::lower>{msa2}}, msa2));
 
-  M22 mt2 = make_native_matrix<M22>(3, 0, 0, 3);
+  M22 mt2 = make_dense_writable_matrix_from<M22>(3, 0, 0, 3);
 
   EXPECT_TRUE(is_near(DiagonalMatrix {TriangularMatrix<M22, TriangleType::diagonal>{mt2}}, mt2));
   EXPECT_TRUE(is_near(DiagonalMatrix {TriangularMatrix<M00, TriangleType::diagonal>{mt2}}, mt2));
@@ -230,7 +230,7 @@ TEST(eigen3, Diagonal_class)
   EXPECT_TRUE(is_near(DiagonalMatrix {TriangularMatrix<D2, TriangleType::lower>{mt2}}, mt2));
   EXPECT_TRUE(is_near(DiagonalMatrix {TriangularMatrix<D0, TriangleType::lower>{mt2}}, mt2));
 
-  ZeroMatrix<double, 3, 3> z33 {};
+  ZeroMatrix<eigen_matrix_t<double, 3, 3>> z33 {};
 
   // move assignment.
   d3c = {4., 5, 6};
@@ -245,23 +245,23 @@ TEST(eigen3, Diagonal_class)
   EXPECT_TRUE(is_near(d0d_3, m33b));
 
   // assign from different-typed eigen_diagonal_expr
-  d3c = DiagonalMatrix<ZeroMatrix<double, 3, 1>> {ZeroMatrix<double, 3, 1> {}};
+  d3c = DiagonalMatrix<ZeroMatrix<eigen_matrix_t<double, 3, 1>>> {ZeroMatrix<eigen_matrix_t<double, 3, 1>> {}};
   EXPECT_TRUE(is_near(d3c, z33));
-  d0c_3 = DiagonalMatrix<ZeroMatrix<double, dynamic_extent, 1>> {ZeroMatrix<double, 0, 1> {3}};
+  d0c_3 = DiagonalMatrix<ZeroMatrix<eigen_matrix_t<double, dynamic_size, 1>>> {ZeroMatrix<eigen_matrix_t<double, dynamic_size, 1>> {3}};
   EXPECT_TRUE(is_near(d0c_3, z33));
-  d3d = DiagonalMatrix<ZeroMatrix<double, dynamic_extent, 1>> {ZeroMatrix<double, 0, 1> {3}};
+  d3d = DiagonalMatrix<ZeroMatrix<eigen_matrix_t<double, dynamic_size, 1>>> {ZeroMatrix<eigen_matrix_t<double, dynamic_size, 1>> {3}};
   EXPECT_TRUE(is_near(d3d, z33));
-  d0d_3 = DiagonalMatrix<ZeroMatrix<double, 3, 1>> {ZeroMatrix<double, 3, 1> {}};
+  d0d_3 = DiagonalMatrix<ZeroMatrix<eigen_matrix_t<double, 3, 1>>> {ZeroMatrix<eigen_matrix_t<double, 3, 1>> {}};
   EXPECT_TRUE(is_near(d0d_3, z33));
 
   // assign from zero
-  d3c = ZeroMatrix<double, 3, 3> {};
+  d3c = ZeroMatrix<eigen_matrix_t<double, 3, 3>> {};
   EXPECT_TRUE(is_near(d3c, z33));
-  d0c_3 = ZeroMatrix<double, dynamic_extent, dynamic_extent> {3, 3};
+  d0c_3 = ZeroMatrix<eigen_matrix_t<double, dynamic_size, dynamic_size>> {3, 3};
   EXPECT_TRUE(is_near(d0c_3, z33));
-  d3d = ZeroMatrix<double, dynamic_extent, dynamic_extent> {3, 3};
+  d3d = ZeroMatrix<eigen_matrix_t<double, dynamic_size, dynamic_size>> {3, 3};
   EXPECT_TRUE(is_near(d3d, z33));
-  d0d_3 = ZeroMatrix<double, 3, 3> {};
+  d0d_3 = ZeroMatrix<eigen_matrix_t<double, 3, 3>> {};
   EXPECT_TRUE(is_near(d0d_3, z33));
 
   // assign from identity
@@ -278,8 +278,8 @@ TEST(eigen3, Diagonal_class)
 
   D2 d2a {1, 2};
   D0 d0a_2 {1, 2};
-  M22 m22b = make_native_matrix<M22>(9, 0, 0, 10);
-  M22 m22c = make_native_matrix<M22>(3, 0, 0, 3);
+  M22 m22b = make_dense_writable_matrix_from<M22>(9, 0, 0, 10);
+  M22 m22c = make_dense_writable_matrix_from<M22>(3, 0, 0, 3);
 
   d2a = SelfAdjointMatrix<M22, TriangleType::diagonal>{m22b};
   EXPECT_TRUE(is_near(d2a, m22b));
@@ -353,10 +353,10 @@ TEST(eigen3, Diagonal_class)
   EXPECT_EQ((d0_3.rows()), 3);
   EXPECT_EQ((d0_3.cols()), 3);
 
-  EXPECT_TRUE(is_near(D3::zero(), M33::Zero()));
-  EXPECT_TRUE(is_near(D3::identity(), M33::Identity()));
-  EXPECT_TRUE(is_near(D0::zero(3), M33::Zero(3, 3)));
-  EXPECT_TRUE(is_near(D0::identity(3), M33::Identity(3, 3)));
+  EXPECT_TRUE(is_near(make_zero_matrix_like<D3>(), M33::Zero()));
+  EXPECT_TRUE(is_near(make_identity_matrix_like<D3>(), M33::Identity()));
+  EXPECT_TRUE(is_near(make_zero_matrix_like<D0>(3), M33::Zero(3, 3)));
+  EXPECT_TRUE(is_near(make_identity_matrix_like<D0>(3), M33::Identity(3, 3)));
 }
 
 TEST(eigen3, Diagonal_subscripts)
@@ -474,29 +474,29 @@ TEST(eigen3, Diagonal_traits)
   // MatrixTraits
   EXPECT_TRUE(is_near(MatrixTraits<D3>::make(m31), m33));
   EXPECT_TRUE(is_near(MatrixTraits<D3>::make(1, 2, 3), m33));
-  EXPECT_TRUE(is_near(make_native_matrix<D3>(
+  EXPECT_TRUE(is_near(make_dense_writable_matrix_from<D3>(
     1, 0, 0,
     0, 2, 0,
     0, 0, 3), m33));
-  EXPECT_TRUE(is_near(MatrixTraits<D3>::zero(), M33::Zero()));
-  EXPECT_TRUE(is_near(MatrixTraits<D3>::identity(), M33::Identity()));
+  EXPECT_TRUE(is_near(make_zero_matrix_like<D3>(), M33::Zero()));
+  EXPECT_TRUE(is_near(make_identity_matrix_like<D3>(), M33::Identity()));
 
   EXPECT_TRUE(is_near(MatrixTraits<D0>::make(m31), m33));
   EXPECT_TRUE(is_near(MatrixTraits<D0>::make(1, 2, 3), m33));
-  EXPECT_TRUE(is_near(MatrixTraits<D0>::zero(3), M33::Zero()));
-  EXPECT_TRUE(is_near(MatrixTraits<D0>::identity(3), M33::Identity()));
+  EXPECT_TRUE(is_near(make_zero_matrix_like<D0>(3), M33::Zero()));
+  EXPECT_TRUE(is_near(make_identity_matrix_like<D0>(3), M33::Identity()));
 }
 
 TEST(eigen3, Diagonal_overloads)
 {
-  EXPECT_TRUE(is_near(make_native_matrix(d3), m33));
-  EXPECT_TRUE(is_near(make_native_matrix(d0_3), m33));
+  EXPECT_TRUE(is_near(make_dense_writable_matrix_from(d3), m33));
+  EXPECT_TRUE(is_near(make_dense_writable_matrix_from(d0_3), m33));
 
-  EXPECT_EQ(row_count(d3), 3);
-  EXPECT_EQ(row_count(d0_3), 3);
+  EXPECT_EQ(runtime_dimension_of<0>(d3), 3);
+  EXPECT_EQ(runtime_dimension_of<0>(d0_3), 3);
 
-  EXPECT_EQ(column_count(d3), 3);
-  EXPECT_EQ(column_count(d0_3), 3);
+  EXPECT_EQ(runtime_dimension_of<1>(d3), 3);
+  EXPECT_EQ(runtime_dimension_of<1>(d0_3), 3);
 
   EXPECT_TRUE(is_near(Cholesky_square(d3), D3 {1, 4, 9}));
   EXPECT_TRUE(is_near(Cholesky_square(d0_3), D3 {1, 4, 9}));
@@ -541,8 +541,8 @@ TEST(eigen3, Diagonal_overloads)
   EXPECT_TRUE(is_near(s2a, M1by1 {5.}));
   //
   EXPECT_TRUE(is_near(rank_update(DiagonalMatrix {3., 3}, DiagonalMatrix {2., 2}, 4), make_eigen_matrix<double, 2, 2>(5., 0, 0, 5.)));
-  EXPECT_TRUE(is_near(rank_update(DiagonalMatrix {3., 3}, 2 * M22::Identity(), 4), make_native_matrix<M22>(5., 0, 0, 5.)));
-  EXPECT_TRUE(is_near(rank_update(DiagonalMatrix {3., 3}, make_native_matrix<M22>(2, 0, 0, 2.), 4), make_native_matrix<M22>(5., 0, 0, 5.)));
+  EXPECT_TRUE(is_near(rank_update(DiagonalMatrix {3., 3}, 2 * M22::Identity(), 4), make_dense_writable_matrix_from<M22>(5., 0, 0, 5.)));
+  EXPECT_TRUE(is_near(rank_update(DiagonalMatrix {3., 3}, make_dense_writable_matrix_from<M22>(2, 0, 0, 2.), 4), make_dense_writable_matrix_from<M22>(5., 0, 0, 5.)));
   //
   EXPECT_TRUE(is_near(rank_update(M1by1 {3.}, M1by1 {2.}, 4), M1by1 {5.}));
   //
@@ -559,9 +559,9 @@ TEST(eigen3, Diagonal_overloads)
 
   using N = std::normal_distribution<double>;
 
-  D2 d3b = MatrixTraits<D2>::zero();
-  D0 d0_2 {MatrixTraits<D0>::zero(2)};
-  D0 d0_3 {MatrixTraits<D0>::zero(3)};
+  D2 d3b = make_zero_matrix_like<D2>();
+  D0 d0_2 {make_zero_matrix_like<D0>(2)};
+  D0 d0_3 {make_zero_matrix_like<D0>(3)};
   for (int i=0; i<100; i++)
   {
     d3b = (d3b * i + randomize<D2>(N {1.0, 0.3}, 2.0)) / (i + 1);
@@ -738,7 +738,7 @@ TEST(eigen3, Diagonal_arithmetic)
   auto d3a = d3;
   auto d3b = DiagonalMatrix {4., 5, 6};
   auto i = M33::Identity();
-  auto z = ZeroMatrix<double, 3, 3> {};
+  auto z = ZeroMatrix<eigen_matrix_t<double, 3, 3>> {};
   EXPECT_TRUE(is_near(d3a + d3b, DiagonalMatrix {5., 7, 9})); static_assert(eigen_diagonal_expr<decltype(d3a + d3b)>);
   EXPECT_TRUE(is_near(d3a + i, DiagonalMatrix {2., 3, 4})); static_assert(eigen_diagonal_expr<decltype(d3a + i)>);
   EXPECT_TRUE(is_near(d3a + z, d3a)); static_assert(eigen_diagonal_expr<decltype(d3a + z)>);
@@ -779,8 +779,8 @@ TEST(eigen3, Diagonal_arithmetic)
   EXPECT_TRUE(is_near(-z, z)); static_assert(eigen_zero_expr<decltype(z)>);
 
   EXPECT_TRUE(is_near(d3a * d3b, DiagonalMatrix {4., 10, 18})); static_assert(eigen_diagonal_expr<decltype(d3a * d3b)>);
-  EXPECT_TRUE(is_near(d3a * ConstantMatrix<double, 4, 3, 3> {}, make_native_matrix<M33>(4, 4, 4, 8, 8, 8, 12, 12, 12)));
-  EXPECT_TRUE(is_near(ConstantMatrix<double, 4, 3, 3> {} * d3a, make_native_matrix<M33>(4, 8, 12, 4, 8, 12, 4, 8, 12)));
+  EXPECT_TRUE(is_near(d3a * ConstantMatrix<eigen_matrix_t<double, 3, 3>, 4> {}, make_dense_writable_matrix_from<M33>(4, 4, 4, 8, 8, 8, 12, 12, 12)));
+  EXPECT_TRUE(is_near(ConstantMatrix<eigen_matrix_t<double, 3, 3>, 4> {} * d3a, make_dense_writable_matrix_from<M33>(4, 8, 12, 4, 8, 12, 4, 8, 12)));
   EXPECT_TRUE(is_near(d3a * i, d3a)); static_assert(eigen_diagonal_expr<decltype(d3a * i)>);
   EXPECT_TRUE(is_near(i * d3a, d3a)); static_assert(eigen_diagonal_expr<decltype(i * d3a)>);
   EXPECT_TRUE(is_near(d3a * z, z)); static_assert(eigen_zero_expr<decltype(d3a * z)>);

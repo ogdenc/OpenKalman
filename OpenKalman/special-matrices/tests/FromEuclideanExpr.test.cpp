@@ -29,11 +29,11 @@ namespace
   using M22 = eigen_matrix_t<double, 2, 2>;
   using M11 = eigen_matrix_t<double, 1, 1>;
 
-  using M30 = eigen_matrix_t<double, 3, dynamic_extent>;
-  using M20 = eigen_matrix_t<double, 2, dynamic_extent>;
-  using M03 = eigen_matrix_t<double, dynamic_extent, 3>;
-  using M02 = eigen_matrix_t<double, dynamic_extent, 2>;
-  using M00 = eigen_matrix_t<double, dynamic_extent, dynamic_extent>;
+  using M30 = eigen_matrix_t<double, 3, dynamic_size>;
+  using M20 = eigen_matrix_t<double, 2, dynamic_size>;
+  using M03 = eigen_matrix_t<double, dynamic_size, 3>;
+  using M02 = eigen_matrix_t<double, dynamic_size, 2>;
+  using M00 = eigen_matrix_t<double, dynamic_size, dynamic_size>;
 
   using Car = Coefficients<Axis, angle::Radians>;
   using Cra = Coefficients<angle::Radians, Axis>;
@@ -122,15 +122,15 @@ TEST(eigen3, FromEuclideanExpr_class)
   EXPECT_TRUE(is_near(d3, m));
   From42 d4 = From42{1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4};
   EXPECT_TRUE(is_near(d4, m));
-  From42 d5 {MatrixTraits<M42>::zero()};
+  From42 d5 {make_zero_matrix_like<M42>()};
   EXPECT_TRUE(is_near(d5, mat3(0, 0, 0, 0, 0, 0)));
-  From42 d6 {ZeroMatrix<double, 4, 2>()};
+  From42 d6 {ZeroMatrix<eigen_matrix_t<double, 4, 2>>()};
   EXPECT_TRUE(is_near(d6, mat3(0, 0, 0, 0, 0, 0)));
-  From42 d7 = From42(ZeroMatrix<double, 4, 2>());
+  From42 d7 = From42(ZeroMatrix<eigen_matrix_t<double, 4, 2>>());
   EXPECT_TRUE(is_near(d7, mat3(0, 0, 0, 0, 0, 0)));
   From42 d8 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4};
   EXPECT_TRUE(is_near(d8, m));
-  EXPECT_TRUE(is_near(From42(ZeroMatrix<double, 4, 2>()), mat3(0, 0, 0, 0, 0, 0)));
+  EXPECT_TRUE(is_near(From42(ZeroMatrix<eigen_matrix_t<double, 4, 2>>()), mat3(0, 0, 0, 0, 0, 0)));
   FromTo32 d9 {1, 2, pi/6, pi/3, 3, 4};
   EXPECT_TRUE(is_near(d9.nested_matrix(), mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
   EXPECT_TRUE(is_near(d9, mat3(1, 2, pi/6, pi/3, 3, 4)));
@@ -166,8 +166,8 @@ TEST(eigen3, FromEuclideanExpr_class)
 
   EXPECT_EQ(From42::rows(), 3);
   EXPECT_EQ(From42::cols(), 2);
-  EXPECT_TRUE(is_near(From42::zero(), M32::Zero()));
-  EXPECT_TRUE(is_near(FromEuclideanExpr<Axes<2>, eigen_matrix_t<double, 2, 2>>::identity(), eigen_matrix_t<double, 2, 2>::Identity()));
+  EXPECT_TRUE(is_near(make_zero_matrix_like<From42>(), M32::Zero()));
+  EXPECT_TRUE(is_near(make_identity_matrix_like<FromEuclideanExpr<Axes<2>, eigen_matrix_t<double, 2, 2>>>(), eigen_matrix_t<double, 2, 2>::Identity()));
 
   FromEuclideanExpr<Car, eigen_matrix_t<double, 3, 1>> e1 = {3, std::sqrt(2.)/2, std::sqrt(2.)/2};
 
@@ -220,8 +220,8 @@ TEST(eigen3, FromEuclideanExpr_traits)
     mat3(1, 2, pi/6, pi/3, 3, 4)));
   EXPECT_TRUE(is_near(MatrixTraits<From42>::make(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4),
     mat3(1, 2, pi/6, pi/3, 3, 4)));
-  EXPECT_TRUE(is_near(MatrixTraits<From42>::zero(), eigen_matrix_t<double, 3, 2>::Zero()));
-  EXPECT_TRUE(is_near(FromEuclideanExpr<Axes<2>, eigen_matrix_t<double, 2, 2>>::identity(), eigen_matrix_t<double, 2, 2>::Identity()));
+  EXPECT_TRUE(is_near(make_zero_matrix_like<From42>(), eigen_matrix_t<double, 3, 2>::Zero()));
+  EXPECT_TRUE(is_near(make_identity_matrix_like<FromEuclideanExpr<Axes<2>, eigen_matrix_t<double, 2, 2>>>(), eigen_matrix_t<double, 2, 2>::Identity()));
 }
 
 
@@ -238,7 +238,7 @@ TEST(eigen3, FromEuclideanExpr_overloads)
   M30 m00_32 {3,2}; m00_32 << 1, 4, 3, 5, 3, 6;
 
   EXPECT_TRUE(is_near(nested_matrix(From42 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
-  EXPECT_TRUE(is_near(make_native_matrix(From42 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), mat3(1, 2, pi/6, pi/3, 3, 4)));
+  EXPECT_TRUE(is_near(make_dense_writable_matrix_from(From42 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), mat3(1, 2, pi/6, pi/3, 3, 4)));
   EXPECT_TRUE(is_near(make_self_contained(From42 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), mat3(1, 2, pi/6, pi/3, 3, 4)));
 
   EXPECT_TRUE(is_near(from_euclidean<Axes<2>>(m23), m23));
@@ -246,7 +246,7 @@ TEST(eigen3, FromEuclideanExpr_overloads)
   EXPECT_TRUE(is_near(from_euclidean<Axes<2>>(m03_2), m23));
   EXPECT_TRUE(is_near(from_euclidean<Axes<2>>(m00_23), m23));
 
-  auto m22_from_ra = make_native_matrix<M22>(std::atan2(2.,1.), std::atan2(5.,4.), 3, 6);
+  auto m22_from_ra = make_dense_writable_matrix_from<M22>(std::atan2(2.,1.), std::atan2(5.,4.), 3, 6);
 
   EXPECT_TRUE(is_near(from_euclidean<Coefficients<angle::Radians, Axis>>(m32), m22_from_ra));
   //EXPECT_TRUE(is_near(from_euclidean<Coefficients<angle::Radians, Axis>>(m30_2), m22_from_ra));
@@ -261,12 +261,12 @@ TEST(eigen3, FromEuclideanExpr_overloads)
   EXPECT_TRUE(is_near(wrap_angles<Axes<2>>(m03_2), m23));
   EXPECT_TRUE(is_near(wrap_angles<Axes<2>>(m00_23), m23));
 
-  auto m23_wrap_ar = make_native_matrix<M23>(1, 2, 3, 4-pi, 5-pi, 6-pi);
+  auto m23_wrap_ar = make_dense_writable_matrix_from<M23>(1, 2, 3, 4-pi, 5-pi, 6-pi);
 
-  ConstantMatrix<double, 5, 3, 4> c534 {};
-  ConstantMatrix<double, 5, 3, dynamic_extent> c530_4 {4};
-  ConstantMatrix<double, 5, dynamic_extent, 4> c504_3 {3};
-  ConstantMatrix<double, 5, dynamic_extent, dynamic_extent> c500_34 {3, 4};
+  ConstantMatrix<eigen_matrix_t<double, 3, 4>, 5> c534 {};
+  ConstantMatrix<eigen_matrix_t<double, 3, dynamic_size>, 5> c530_4 {4};
+  ConstantMatrix<eigen_matrix_t<double, dynamic_size, 4>, 5> c504_3 {3};
+  ConstantMatrix<eigen_matrix_t<double, dynamic_size, dynamic_size>, 5> c500_34 {3, 4};
 
   EXPECT_TRUE(is_near(from_euclidean<Axes<3>>(c534), c534));
   EXPECT_TRUE(is_near(from_euclidean<Axes<3>>(c530_4), c534));
@@ -277,7 +277,7 @@ TEST(eigen3, FromEuclideanExpr_overloads)
   //EXPECT_TRUE(is_near(from_euclidean(DynamicCoefficients {Axes<3>{}}, c504_3), c534));
   //EXPECT_TRUE(is_near(from_euclidean(DynamicCoefficients {Axes<3>{}}, c500_34), c534));
 
-  auto m24_from_ra = make_native_matrix<M24>(pi/4, pi/4, pi/4, pi/4, 5, 5, 5, 5)
+  auto m24_from_ra = make_dense_writable_matrix_from<M24>(pi/4, pi/4, pi/4, pi/4, 5, 5, 5, 5)
 
   EXPECT_TRUE(is_near(from_euclidean<Coefficients<angle::Radians, Axis>>(c534), m24_from_ra));
   EXPECT_TRUE(is_near(from_euclidean<Coefficients<angle::Radians, Axis>>(c530_4), m24_from_ra));
@@ -288,17 +288,17 @@ TEST(eigen3, FromEuclideanExpr_overloads)
   //EXPECT_TRUE(is_near(from_euclidean(DynamicCoefficients {Coefficients<angle::Radians, Axis>{}}, c504_3), m24_from_ra));
   //EXPECT_TRUE(is_near(from_euclidean(DynamicCoefficients {Coefficients<angle::Radians, Axis>{}}, c500_34), m24_from_ra));
 
-  ZeroMatrix<double, 2, 3> z23;
-  ZeroMatrix<double, 2, dynamic_extent> z20_3 {3};
-  ZeroMatrix<double, dynamic_extent, 3> z03_2 {2};
-  ZeroMatrix<double, dynamic_extent, dynamic_extent> z00_23 {2, 3};
+  ZeroMatrix<eigen_matrix_t<double, 2, 3>> z23;
+  ZeroMatrix<eigen_matrix_t<double, 2, dynamic_size>> z20_3 {3};
+  ZeroMatrix<eigen_matrix_t<double, dynamic_size, 3>> z03_2 {2};
+  ZeroMatrix<eigen_matrix_t<double, dynamic_size, dynamic_size>> z00_23 {2, 3};
 
   EXPECT_TRUE(is_near(from_euclidean<Axes<2>>(z23), z23));
   EXPECT_TRUE(is_near(from_euclidean<Axes<2>>(z20_3), z23));
   EXPECT_TRUE(is_near(from_euclidean<Axes<2>>(z03_2), z23));
   EXPECT_TRUE(is_near(from_euclidean<Axes<2>>(z00_23), z23));
 
-  ZeroMatrix<double, 1, 3> z13;
+  ZeroMatrix<eigen_matrix_t<double, 1, 3>> z13;
 
   EXPECT_TRUE(is_near(from_euclidean<Coefficients<angle::Radians>>(z23), z13));
   EXPECT_TRUE(is_near(from_euclidean<Coefficients<angle::Radians>>(z20_3), z13));
@@ -319,7 +319,7 @@ TEST(eigen3, FromEuclideanExpr_overloads)
   //EXPECT_TRUE(is_near(wrap_angles(DynamicCoefficients {Axes<3>{}}, c504_3), c534));
   //EXPECT_TRUE(is_near(wrap_angles(DynamicCoefficients {Axes<3>{}}, c500_34), c534));
 
-  auto m34_wrap_ara = make_native_matrix<M34>(5,5,5,5,5-pi,5-pi,5-pi,5-pi,5,5,5,5);
+  auto m34_wrap_ara = make_dense_writable_matrix_from<M34>(5,5,5,5,5-pi,5-pi,5-pi,5-pi,5,5,5,5);
 
   EXPECT_TRUE(is_near(wrap_angles<Axis, Coefficients<angle::Radians, Axis, Axis>>(c534), m34_wrap_ara));
   EXPECT_TRUE(is_near(wrap_angles<Axis, Coefficients<angle::Radians, Axis, Axis>>(c530_4), m34_wrap_ara));
@@ -358,7 +358,7 @@ TEST(eigen3, FromEuclideanExpr_overloads)
     QR_decomposition(make_eigen_matrix<double, 2, 2>(1, 2, pi/6, pi/3))));
 
   using N = std::normal_distribution<double>;
-  auto m = make_native_matrix(MatrixTraits<eigen_matrix_t<double, 4, 2>>::zero());
+  auto m = make_dense_writable_matrix_from(make_zero_matrix_like<eigen_matrix_t<double, 4, 2>>());
   for (int i=0; i<100; i++)
   {
     m = (m * i + to_euclidean(randomize<From42>(N {1.0, 0.3}))) / (i + 1);

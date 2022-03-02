@@ -26,16 +26,16 @@ namespace OpenKalman::Eigen3
    */
 #ifdef __cpp_concepts
   template<eigen_zero_expr Z>
-  requires dynamic_shape<Z> or square_matrix<Z>
+  requires any_dynamic_dimension<Z> or square_matrix<Z>
 #else
   template<typename Z, std::enable_if_t<
-    eigen_zero_expr<Z> and (dynamic_shape<Z> or square_matrix<Z>), int> = 0>
+    eigen_zero_expr<Z> and (any_dynamic_dimension<Z> or square_matrix<Z>), int> = 0>
 #endif
   constexpr Z&&
   Cholesky_square(Z&& z) noexcept
   {
-    if constexpr (dynamic_shape<Z>)
-      assert(row_count(z) == column_count(z));
+    if constexpr (any_dynamic_dimension<Z>)
+      assert(runtime_dimension_of<0>(z) == runtime_dimension_of<1>(z));
     return std::forward<Z>(z);
   }
 
@@ -47,16 +47,16 @@ namespace OpenKalman::Eigen3
    */
 #ifdef __cpp_concepts
   template<TriangleType = TriangleType::diagonal, eigen_zero_expr Z>
-  requires dynamic_shape<Z> or square_matrix<Z>
+  requires any_dynamic_dimension<Z> or square_matrix<Z>
 #else
   template<TriangleType = TriangleType::diagonal, typename Z, std::enable_if_t<
-    eigen_zero_expr<Z> and (dynamic_shape<Z> or square_matrix<Z>), int> = 0>
+    eigen_zero_expr<Z> and (any_dynamic_dimension<Z> or square_matrix<Z>), int> = 0>
 #endif
   constexpr Z&&
   Cholesky_factor(Z&& z) noexcept
   {
-    if constexpr (dynamic_shape<Z>)
-      assert(row_count(z) == column_count(z));
+    if constexpr (any_dynamic_dimension<Z>)
+      assert(runtime_dimension_of<0>(z) == runtime_dimension_of<1>(z));
     return std::forward<Z>(z);
   }
 
@@ -68,18 +68,18 @@ namespace OpenKalman::Eigen3
    */
 #ifdef __cpp_concepts
   template<native_eigen_matrix D>
-  requires dynamic_shape<D> or diagonal_matrix<D>
+  requires any_dynamic_dimension<D> or diagonal_matrix<D>
 #else
   template<typename D, std::enable_if_t<
-    native_eigen_matrix<D> and (dynamic_shape<D> or diagonal_matrix<D>), int> = 0>
+    native_eigen_matrix<D> and (any_dynamic_dimension<D> or diagonal_matrix<D>), int> = 0>
 #endif
   constexpr decltype(auto)
   Cholesky_square(D&& d) noexcept
   {
-    if constexpr ((dynamic_shape<D> and not diagonal_matrix<D>) or one_by_one_matrix<D>)
+    if constexpr ((any_dynamic_dimension<D> and not diagonal_matrix<D>) or one_by_one_matrix<D>)
     {
-      if constexpr (dynamic_shape<D> and not diagonal_matrix<D>)
-        assert(row_count(d) == 1 and column_count(d) == 1);
+      if constexpr (any_dynamic_dimension<D> and not diagonal_matrix<D>)
+        assert(runtime_dimension_of<0>(d) == 1 and runtime_dimension_of<1>(d) == 1);
 
       return std::forward<D>(d).array().square().matrix();
     }
@@ -102,18 +102,18 @@ namespace OpenKalman::Eigen3
    */
 #ifdef __cpp_concepts
   template<TriangleType = TriangleType::diagonal, native_eigen_matrix D>
-  requires dynamic_shape<D> or diagonal_matrix<D>
+  requires any_dynamic_dimension<D> or diagonal_matrix<D>
 #else
   template<TriangleType = TriangleType::diagonal,
-    typename D, std::enable_if_t<native_eigen_matrix<D> and (dynamic_shape<D> or diagonal_matrix<D>), int> = 0>
+    typename D, std::enable_if_t<native_eigen_matrix<D> and (any_dynamic_dimension<D> or diagonal_matrix<D>), int> = 0>
 #endif
   constexpr decltype(auto)
   Cholesky_factor(D&& d) noexcept
   {
-    if constexpr((dynamic_shape<D> and not diagonal_matrix<D>) or one_by_one_matrix<D>)
+    if constexpr((any_dynamic_dimension<D> and not diagonal_matrix<D>) or one_by_one_matrix<D>)
     {
-      if constexpr (dynamic_shape<D> and not diagonal_matrix<D>)
-        assert(row_count(d) == 1 and column_count(d) == 1);
+      if constexpr (any_dynamic_dimension<D> and not diagonal_matrix<D>)
+        assert(runtime_dimension_of<0>(d) == 1 and runtime_dimension_of<1>(d) == 1);
 
       return std::forward<D>(d).cwiseSqrt();
     }
@@ -227,8 +227,8 @@ namespace OpenKalman::Eigen3
   {
     using NestedMatrix = std::decay_t<nested_matrix_of_t<A>>;
     using Scalar = scalar_type_of_t<A>;
-    constexpr auto dimensions = row_extent_of_v<A>;
-    using M = Eigen3::eigen_matrix_t<Scalar, dimensions, dimensions>;
+    constexpr auto dim = index_dimension_of_v<A, 0>;
+    using M = equivalent_dense_writable_matrix_t<A>;
 
     if constexpr(identity_matrix<A> or zero_matrix<A>)
     {
@@ -247,19 +247,25 @@ namespace OpenKalman::Eigen3
       {
         static_assert(diagonal_matrix<A>);
 #if __cpp_nontype_template_args >= 201911L
-        return DiagonalMatrix {ConstantMatrix<Scalar, sqrt_s, dimensions, 1> {}};
+        return to_diagonal(make_constant_matrix_like<sqrt_s, dim, 1>(a));
 #else
-        return Eigen3::eigen_matrix_t<Scalar, dimensions, 1>::Constant(sqrt_s);
+        return make_self_contained<A>(sqrt_s * make_identity_matrix_like(a));
 #endif
       }
       else if constexpr (triangle_type == TriangleType::lower)
       {
 #if __cpp_nontype_template_args >= 201911L
-        ConstantMatrix<Scalar, sqrt_s, dimensions, 1> col0;
+        auto col0 = make_constant_matrix_like<sqrt_s, dim, 1>(a);
 #else
-        auto col0 = Eigen3::eigen_matrix_t<Scalar, dimensions, 1>::Constant(sqrt_s);
+        auto col0 = sqrt_s * make_constant_matrix_like<1, dim, 1>(a);
 #endif
-        ZeroMatrix<Scalar, dimensions, dimensions - 1> othercols;
+        auto othercols = [](A&& a) {
+          if constexpr (dim == dynamic_size)
+            return make_zero_matrix_like<A, dynamic_size, dynamic_size, Scalar>(
+              runtime_dimension_of<1>(a), runtime_dimension_of<1>(a) - 1);
+          else
+            return make_zero_matrix_like<A, dim, dim - 1, Scalar>();
+        }(std::forward<A>(a));
         auto m = concatenate_horizontal(col0, othercols);
         return TriangularMatrix<decltype(m), triangle_type> {std::move(m)};
       }
@@ -267,11 +273,18 @@ namespace OpenKalman::Eigen3
       {
         static_assert(triangle_type == TriangleType::upper);
 #if __cpp_nontype_template_args >= 201911L
-        ConstantMatrix<Scalar, sqrt_s, 1, dimensions> row0;
+        auto row0 = make_constant_matrix_like<sqrt_s, 1, dim>(a);
 #else
-        auto row0 = Eigen3::eigen_matrix_t<Scalar, 1, dimensions>::Constant(sqrt_s);
+        auto row0 = sqrt_s * make_constant_matrix_like<1, 1, dim>(a);
 #endif
-        ZeroMatrix<Scalar, dimensions - 1, dimensions> otherrows;
+        auto otherrows = [](A&& a) {
+          if constexpr (dim == dynamic_size)
+            return make_zero_matrix_like<A, dynamic_size, dynamic_size, Scalar>(
+              runtime_dimension_of<1>(a) - 1, runtime_dimension_of<1>(a));
+          else
+            return make_zero_matrix_like<A, dim - 1, dim, Scalar>();
+        }(std::forward<A>(a));
+
         auto m = concatenate_vertical(row0, otherrows);
         return TriangularMatrix<decltype(m), triangle_type> {std::move(m)};
       }
@@ -292,20 +305,20 @@ namespace OpenKalman::Eigen3
       if constexpr(triangle_type == TriangleType::diagonal)
       {
         static_assert(diagonal_matrix<A>);
-        auto vec = Eigen3::eigen_matrix_t<Scalar, dimensions, 1>::Constant(std::sqrt(s));
+        auto vec = Eigen3::eigen_matrix_t<Scalar, dim, 1>::Constant(std::sqrt(s));
         return DiagonalMatrix<decltype(vec)> {vec};
       }
       else if constexpr(triangle_type == TriangleType::lower)
       {
-        auto col0 = Eigen3::eigen_matrix_t<Scalar, dimensions, 1>::Constant(std::sqrt(s));
-        ZeroMatrix<Scalar, dimensions, dimensions - 1> othercols;
+        auto col0 = Eigen3::eigen_matrix_t<Scalar, dim, 1>::Constant(std::sqrt(s));
+        auto othercols = make_zero_matrix_like<A, dim, dim - 1, Scalar>();
         return TriangularMatrix<M, triangle_type> {concatenate_horizontal(col0, othercols)};
       }
       else
       {
         static_assert(triangle_type == TriangleType::upper);
-        auto row0 = Eigen3::eigen_matrix_t<Scalar, 1, dimensions>::Constant(std::sqrt(s));
-        ZeroMatrix<Scalar, dimensions - 1, dimensions> otherrows;
+        auto row0 = Eigen3::eigen_matrix_t<Scalar, 1, dim>::Constant(std::sqrt(s));
+        auto otherrows = make_zero_matrix_like<A, dim - 1, dim, Scalar>();
         return TriangularMatrix<M, triangle_type> {concatenate_vertical(row0, otherrows)};
       }
     }
@@ -315,7 +328,8 @@ namespace OpenKalman::Eigen3
     }
     else if constexpr (self_adjoint_triangle_type_of_v<A> == TriangleType::diagonal)
     {
-      auto n = nested_matrix(std::forward<A>(a)).diagonal().cwiseSqrt();
+      auto f = [](const auto& x) { return std::sqrt(x); };
+      auto n = apply_coefficientwise(f, diagonal_of(nested_matrix(std::forward<A>(a))));
       return DiagonalMatrix<decltype(n)> {std::move(n)};
     }
     else
@@ -343,11 +357,10 @@ namespace OpenKalman::Eigen3
         {
           if (LDL_x.isPositive() and LDL_x.isNegative()) // Covariance is zero, even though decomposition failed.
           {
-            using BM = nested_matrix_of_t<A>;
             if constexpr(triangle_type == TriangleType::lower)
-              b.template triangularView<Eigen::Lower>() = MatrixTraits<BM>::zero();
+              b.template triangularView<Eigen::Lower>() = make_zero_matrix_like(nested_matrix(a));
             else
-              b.template triangularView<Eigen::Upper>() = MatrixTraits<BM>::zero();
+              b.template triangularView<Eigen::Upper>() = make_zero_matrix_like(nested_matrix(a));
           }
           else // Covariance is indefinite, so throw an exception.
           {
@@ -418,7 +431,7 @@ namespace OpenKalman::Eigen3
     }
     else
     {
-      auto prod {make_native_matrix(adjoint(t))};
+      auto prod {make_dense_writable_matrix_from(adjoint(t))};
       if constexpr (triangle_type == TriangleType::upper)
       {
         prod.applyOnTheRight(std::forward<T>(t).view());

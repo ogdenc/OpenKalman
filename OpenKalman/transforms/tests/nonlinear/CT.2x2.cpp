@@ -32,7 +32,7 @@ inline namespace
 TEST(nonlinear, CTRadar1SelfAdjoint)
 {
   SamplePointsTransform<CubaturePoints> t;
-  auto in = G2 {{3.0, 0.0}, SA::identity()};
+  auto in = G2 {{3.0, 0.0}, make_identity_matrix_like<SA>()};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean_of(out)(0), 1.73, 1e-2);
   EXPECT_NEAR(mean_of(out)(1), 0.0, 1e-1);
@@ -45,7 +45,7 @@ TEST(nonlinear, CTRadar1SelfAdjoint)
 TEST(nonlinear, CTRadar1Triangular)
 {
   SamplePointsTransform<CubaturePoints> t;
-  auto in = G2T {{3.0, 0.0}, SA::identity()};
+  auto in = G2T {{3.0, 0.0}, make_identity_matrix_like<SA>()};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean_of(out)(0), 1.73, 1e-2);
   EXPECT_NEAR(mean_of(out)(1), 0.0, 1e-1);
@@ -58,7 +58,7 @@ TEST(nonlinear, CTRadar1Triangular)
 TEST(nonlinear, CTRadar2SelfAdjoint)
 {
   SamplePointsTransform<CubaturePoints> t;
-  auto in = G2 {{3.0, 0.5}, SA::identity()};
+  auto in = G2 {{3.0, 0.5}, make_identity_matrix_like<SA>()};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean_of(out)(0), 1.52, 1e-2);
   EXPECT_NEAR(mean_of(out)(1), 0.83, 1e-2);
@@ -71,7 +71,7 @@ TEST(nonlinear, CTRadar2SelfAdjoint)
 TEST(nonlinear, CTRadar2Triangular)
 {
   SamplePointsTransform<CubaturePoints> t;
-  auto in = G2T {{3.0, 0.5}, SA::identity()};
+  auto in = G2T {{3.0, 0.5}, make_identity_matrix_like<SA>()};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean_of(out)(0), 1.52, 1e-2);
   EXPECT_NEAR(mean_of(out)(1), 0.83, 1e-2);
@@ -84,7 +84,7 @@ TEST(nonlinear, CTRadar2Triangular)
 TEST(nonlinear, CTRadar3SelfAdjoint)
 {
   SamplePointsTransform<CubaturePoints> t;
-  auto in = G2 {{3.0, 0.8}, SA::identity()};
+  auto in = G2 {{3.0, 0.8}, make_identity_matrix_like<SA>()};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean_of(out)(0), 1.21, 1e-2);
   EXPECT_NEAR(mean_of(out)(1), 1.24, 1e-2);
@@ -97,7 +97,7 @@ TEST(nonlinear, CTRadar3SelfAdjoint)
 TEST(nonlinear, CTRadar3Triangular)
 {
   SamplePointsTransform<CubaturePoints> t;
-  auto in = G2T {{3.0, 0.8}, SA::identity()};
+  auto in = G2T {{3.0, 0.8}, make_identity_matrix_like<SA>()};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean_of(out)(0), 1.21, 1e-2);
   EXPECT_NEAR(mean_of(out)(1), 1.24, 1e-2);

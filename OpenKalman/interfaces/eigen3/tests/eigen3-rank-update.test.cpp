@@ -32,16 +32,16 @@ namespace
   using M44 = eigen_matrix_t<double, 4, 4>;
   using M55 = eigen_matrix_t<double, 5, 5>;
 
-  using M00 = eigen_matrix_t<double, dynamic_extent, dynamic_extent>;
-  using M10 = eigen_matrix_t<double, 1, dynamic_extent>;
-  using M01 = eigen_matrix_t<double, dynamic_extent, 1>;
-  using M20 = eigen_matrix_t<double, 2, dynamic_extent>;
-  using M02 = eigen_matrix_t<double, dynamic_extent, 2>;
-  using M30 = eigen_matrix_t<double, 3, dynamic_extent>;
-  using M03 = eigen_matrix_t<double, dynamic_extent, 3>;
-  using M04 = eigen_matrix_t<double, dynamic_extent, 4>;
-  using M50 = eigen_matrix_t<double, 5, dynamic_extent>;
-  using M05 = eigen_matrix_t<double, dynamic_extent, 5>;
+  using M00 = eigen_matrix_t<double, dynamic_size, dynamic_size>;
+  using M10 = eigen_matrix_t<double, 1, dynamic_size>;
+  using M01 = eigen_matrix_t<double, dynamic_size, 1>;
+  using M20 = eigen_matrix_t<double, 2, dynamic_size>;
+  using M02 = eigen_matrix_t<double, dynamic_size, 2>;
+  using M30 = eigen_matrix_t<double, 3, dynamic_size>;
+  using M03 = eigen_matrix_t<double, dynamic_size, 3>;
+  using M04 = eigen_matrix_t<double, dynamic_size, 4>;
+  using M50 = eigen_matrix_t<double, 5, dynamic_size>;
+  using M05 = eigen_matrix_t<double, dynamic_size, 5>;
 
   using cdouble = std::complex<double>;
 
@@ -165,7 +165,7 @@ TEST(eigen3, rank_update_diagonal)
   auto d01_2_3 = Eigen::Replicate<decltype(c11_3), Eigen::Dynamic, 1> {c11_3, 2, 1}.asDiagonal();
   auto d00_21_3 = Eigen::Replicate<decltype(c11_3), Eigen::Dynamic, Eigen::Dynamic> {c11_3, 2, 1}.asDiagonal();
 
-  auto m22_5005 = make_native_matrix<M22>(5, 0, 0, 5);
+  auto m22_5005 = make_dense_writable_matrix_from<M22>(5, 0, 0, 5);
 
   EXPECT_TRUE(is_near(rank_update_triangular(d21_3, d21_2, 4), m22_5005));
   EXPECT_TRUE(is_near(rank_update_triangular<TriangleType::upper>(d20_1_3, d21_2, 4), m22_5005));
@@ -194,7 +194,7 @@ TEST(eigen3, rank_update_diagonal)
   auto d01_2_9 = Eigen::Replicate<decltype(c11_9), Eigen::Dynamic, 1> {c11_9, 2, 1}.asDiagonal();
   auto d00_21_9 = Eigen::Replicate<decltype(c11_9), Eigen::Dynamic, Eigen::Dynamic> {c11_9, 2, 1}.asDiagonal();
 
-  auto m22_25 = make_native_matrix<M22>(25, 0, 0, 25);
+  auto m22_25 = make_dense_writable_matrix_from<M22>(25, 0, 0, 25);
 
   EXPECT_TRUE(is_near(rank_update_self_adjoint(d21_9, d21_2, 4), m22_25));
   EXPECT_TRUE(is_near(rank_update_self_adjoint<TriangleType::upper>(d20_1_9, d21_2, 4), m22_25));
@@ -236,7 +236,7 @@ TEST(eigen3, rank_update_diagonal)
   EXPECT_TRUE(is_near(rank_update(d01_2_3, d00_21_2, 4), m22_5005));
   EXPECT_TRUE(is_near(rank_update(d00_21_3, d00_21_2, 4), m22_5005));
 
-  auto m22_2002 = make_native_matrix<M22>(2, 0, 0, 2);
+  auto m22_2002 = make_dense_writable_matrix_from<M22>(2, 0, 0, 2);
   auto m20_2002 = M20 {m22_2002};
   auto m02_2002 = M02 {m22_2002};
   auto m00_2002 = M00 {m22_2002};
@@ -261,13 +261,13 @@ TEST(eigen3, rank_update_diagonal)
   EXPECT_TRUE(is_near(rank_update(d01_2_3, m00_2002, 4), m22_5005));
   EXPECT_TRUE(is_near(rank_update(d00_21_3, m00_2002, 4), m22_5005));
 
-  auto m21_33 = make_native_matrix<M21>(3, 3);
-  auto m20_33 = make_native_matrix<M20>(3, 3);
-  auto m01_33 = make_native_matrix<M01>(3, 3);
-  auto m00_33 = make_native_matrix<M00>(3, 3);
+  auto m21_33 = make_dense_writable_matrix_from<M21>(3, 3);
+  auto m20_33 = make_dense_writable_matrix_from<M20>(3, 3);
+  auto m01_33 = make_dense_writable_matrix_from<M01>(3, 3);
+  auto m00_33 = make_dense_writable_matrix_from<M00>(3, 3);
 
-  auto m22_2012 = make_native_matrix<M22>(2, 0, 1, 2);
-  auto m22_501626 = make_native_matrix<M22>(5., 0, 1.6, std::sqrt(26.44));
+  auto m22_2012 = make_dense_writable_matrix_from<M22>(2, 0, 1, 2);
+  auto m22_501626 = make_dense_writable_matrix_from<M22>(5., 0, 1.6, std::sqrt(26.44));
 
   EXPECT_TRUE(is_near(rank_update(Eigen::DiagonalMatrix<double, 2>(m21_33), m22_2012, 4), m22_501626));
   EXPECT_TRUE(is_near(rank_update(Eigen::DiagonalMatrix<double, Eigen::Dynamic>(m21_33), m22_2012, 4), m22_501626));
@@ -280,14 +280,14 @@ TEST(eigen3, rank_update_diagonal)
   static_assert(not std::is_lvalue_reference_v<decltype(rank_update_triangular(Eigen::DiagonalMatrix<double, Eigen::Dynamic>(m21_33), m22_2012, 4))>);
   static_assert(not std::is_lvalue_reference_v<decltype(rank_update_triangular(Eigen::DiagonalWrapper {m00_33}, m22_2012, 4))>);
 
-  auto m21_37 = make_native_matrix<M21>(3, 7);
-  auto m20_37 = make_native_matrix<M20>(m21_37);
-  auto m01_37 = make_native_matrix<M01>(m21_37);
-  auto m00_37 = make_native_matrix<M00>(m21_37);
+  auto m21_37 = make_dense_writable_matrix_from<M21>(3, 7);
+  auto m20_37 = make_dense_writable_matrix_from<M20>(m21_37);
+  auto m01_37 = make_dense_writable_matrix_from<M01>(m21_37);
+  auto m00_37 = make_dense_writable_matrix_from<M00>(m21_37);
 
-  auto d21_16 = Eigen::DiagonalMatrix<double, 2> {make_native_matrix<M21>(1, 6)};
+  auto d21_16 = Eigen::DiagonalMatrix<double, 2> {make_dense_writable_matrix_from<M21>(1, 6)};
 
-  const auto m22_525 = make_native_matrix<M22>(5, 0, 0, 25);
+  const auto m22_525 = make_dense_writable_matrix_from<M22>(5, 0, 0, 25);
 
   EXPECT_TRUE(is_near(rank_update(Eigen::DiagonalMatrix<double, 2> {m21_37}, d21_16, 16), m22_525));
   EXPECT_TRUE(is_near(rank_update(Eigen::DiagonalMatrix<double, Eigen::Dynamic> {m00_37}, d21_16, 16), m22_525));
@@ -316,15 +316,15 @@ TEST(eigen3, rank_update_diagonal)
   EXPECT_TRUE(is_near(rank_update(dw01_37, d21_16, 16), m22_525));
   EXPECT_TRUE(is_near(rank_update(dw00_37, d21_16, 16), m22_525));
 
-  EXPECT_TRUE(is_near(m21_37, make_native_matrix<M21>(3, 7)));
+  EXPECT_TRUE(is_near(m21_37, make_dense_writable_matrix_from<M21>(3, 7)));
   EXPECT_TRUE(is_near(m20_37, m21_37));
   EXPECT_TRUE(is_near(m01_37, m21_37));
   EXPECT_TRUE(is_near(m00_37, m21_37));
 
-  auto cm21_3 = make_native_matrix<CM21>(cdouble {3, 3}, cdouble {3, -3});
-  auto cm22_2002 = make_native_matrix<CM22>(cdouble {4, 4}, 0, 0, cdouble {4, -4});
+  auto cm21_3 = make_dense_writable_matrix_from<CM21>(cdouble {3, 3}, cdouble {3, -3});
+  auto cm22_2002 = make_dense_writable_matrix_from<CM22>(cdouble {4, 4}, 0, 0, cdouble {4, -4});
   double s73 = std::sqrt(73);
-  auto cm22_8008 = make_native_matrix<CM22>(cdouble {s73, s73}, 0, 0, cdouble {s73, -s73});
+  auto cm22_8008 = make_dense_writable_matrix_from<CM22>(cdouble {s73, s73}, 0, 0, cdouble {s73, -s73});
 
   EXPECT_TRUE(is_near(rank_update(Eigen::DiagonalMatrix<cdouble, 2> {cm21_3}, cm22_2002, 4), cm22_8008));
   EXPECT_TRUE(is_near(rank_update(Eigen::DiagonalMatrix<cdouble, Eigen::Dynamic> {cm21_3}, cm22_2002, 4), cm22_8008));
@@ -333,20 +333,20 @@ TEST(eigen3, rank_update_diagonal)
 
 TEST(eigen3, rank_update_self_adjoint)
 {
-  auto m22_2022 = make_native_matrix<M22>(2, 0, 2, 2);
-  auto m22_25 = make_native_matrix<M22>(25, 25, 25, 50);
+  auto m22_2022 = make_dense_writable_matrix_from<M22>(2, 0, 2, 2);
+  auto m22_25 = make_dense_writable_matrix_from<M22>(25, 25, 25, 50);
 
-  auto m22 = make_native_matrix<M22>(9, 9, 9, 18);
-  auto m20 = make_native_matrix<M20>(m22);
-  auto m02 = make_native_matrix<M02>(m22);
-  auto m00 = make_native_matrix<M00>(m22);
+  auto m22 = make_dense_writable_matrix_from<M22>(9, 9, 9, 18);
+  auto m20 = make_dense_writable_matrix_from<M20>(m22);
+  auto m02 = make_dense_writable_matrix_from<M02>(m22);
+  auto m00 = make_dense_writable_matrix_from<M00>(m22);
 
   rank_update_self_adjoint(m22, m22_2022, 4); EXPECT_TRUE(is_near(m22.selfadjointView<Eigen::Lower>(), m22_25));
   rank_update_self_adjoint(m20, m22_2022, 4); EXPECT_TRUE(is_near(m20.selfadjointView<Eigen::Lower>(), m22_25));
   rank_update_self_adjoint(m02, m22_2022, 4); EXPECT_TRUE(is_near(m02.selfadjointView<Eigen::Lower>(), m22_25));
   rank_update_self_adjoint(m00, m22_2022, 4); EXPECT_TRUE(is_near(m00.selfadjointView<Eigen::Lower>(), m22_25));
 
-  m22 = make_native_matrix<M22>(9, 9, 9, 18);
+  m22 = make_dense_writable_matrix_from<M22>(9, 9, 9, 18);
 
   EXPECT_TRUE(is_near(rank_update_self_adjoint(M22 {m22}, m22_2022, 4), m22_25));
   EXPECT_TRUE(is_near(rank_update_self_adjoint(M20 {m22}, m22_2022, 4), m22_25));
@@ -373,23 +373,23 @@ TEST(eigen3, rank_update_self_adjoint)
   EXPECT_TRUE(is_near(rank_update_self_adjoint<TriangleType::upper>(z22, m22_2022, 4), rank_update_self_adjoint<TriangleType::upper>(M22::Zero(), m22_2022, 4)));
   EXPECT_TRUE(is_near(rank_update_self_adjoint<TriangleType::lower>(z22, m22_2022, 4), rank_update_self_adjoint<TriangleType::lower>(M22::Zero(), m22_2022, 4)));
 
-  auto m22_2012 = make_native_matrix<M22>(2, 0, 1, 2);
+  auto m22_2012 = make_dense_writable_matrix_from<M22>(2, 0, 1, 2);
   auto m20_2012 = M20 {m22_2012};
   auto m02_2012 = M02 {m22_2012};
   auto m00_2012 = M00 {m22_2012};
 
-  auto m22_2102 = make_native_matrix<M22>(2, 1, 0, 2);
+  auto m22_2102 = make_dense_writable_matrix_from<M22>(2, 1, 0, 2);
   auto m20_2102 = M20 {m22_2102};
   auto m02_2102 = M02 {m22_2102};
   auto m00_2102 = M00 {m22_2102};
 
-  auto m22_93310 = make_native_matrix<M22>(9, 3, 3, 10);
+  auto m22_93310 = make_dense_writable_matrix_from<M22>(9, 3, 3, 10);
   auto m20_93310 = M20 {m22_93310};
   auto m02_93310 = M02 {m22_93310};
   auto m00_93310 = M00 {m22_93310};
 
-  auto m22_25111130 = make_native_matrix<M22>(25, 11, 11, 30);
-  auto m22_29111126 = make_native_matrix<M22>(29, 11, 11, 26);
+  auto m22_25111130 = make_dense_writable_matrix_from<M22>(25, 11, 11, 30);
+  auto m22_29111126 = make_dense_writable_matrix_from<M22>(29, 11, 11, 26);
 
   auto ru_93310_2102_4_rvalue = rank_update(Eigen::SelfAdjointView<M22, Eigen::Upper> {m22_93310}, m22_2102, 4);
   EXPECT_TRUE(is_near(ru_93310_2102_4_rvalue, m22_29111126));
@@ -407,11 +407,11 @@ TEST(eigen3, rank_update_self_adjoint)
   static_assert(lower_self_adjoint_matrix<decltype(ru_93310_2012_4_lvalue)>);
   static_assert(std::is_lvalue_reference_v<nested_matrix_of_t<decltype(ru_93310_2012_4_lvalue)>>);
 
-  m22_93310 = make_native_matrix<M22>(9, 3, 3, 10);
+  m22_93310 = make_dense_writable_matrix_from<M22>(9, 3, 3, 10);
 
   auto ru_93310_2012_4_const_lvalue = rank_update(std::as_const(sa_93310_2012_4), m22_2012, 4);
   EXPECT_TRUE(is_near(ru_93310_2012_4_const_lvalue, m22_25111130));
-  EXPECT_TRUE(is_near(sa_93310_2012_4, make_native_matrix<M22>(9, 3, 3, 10)));
+  EXPECT_TRUE(is_near(sa_93310_2012_4, make_dense_writable_matrix_from<M22>(9, 3, 3, 10)));
   static_assert(eigen_self_adjoint_expr<decltype(ru_93310_2012_4_const_lvalue)>);
   static_assert(not std::is_lvalue_reference_v<nested_matrix_of_t<decltype(ru_93310_2012_4_const_lvalue)>>);
 
@@ -439,19 +439,19 @@ TEST(eigen3, rank_update_self_adjoint)
 
 TEST(eigen3, rank_update_triangular)
 {
-  auto m22_3033 = make_native_matrix<M22>(3, 0, 3, 3);
-  auto m20_3033 = make_native_matrix<M20>(m22_3033);
-  auto m02_3033 = make_native_matrix<M02>(m22_3033);
-  auto m00_3033 = make_native_matrix<M00>(m22_3033);
+  auto m22_3033 = make_dense_writable_matrix_from<M22>(3, 0, 3, 3);
+  auto m20_3033 = make_dense_writable_matrix_from<M20>(m22_3033);
+  auto m02_3033 = make_dense_writable_matrix_from<M02>(m22_3033);
+  auto m00_3033 = make_dense_writable_matrix_from<M00>(m22_3033);
 
-  auto m22_3303 = make_native_matrix<M22>(3, 3, 0, 3);
-  auto m20_3303 = make_native_matrix<M20>(m22_3303);
-  auto m02_3303 = make_native_matrix<M02>(m22_3303);
-  auto m00_3303 = make_native_matrix<M00>(m22_3303);
+  auto m22_3303 = make_dense_writable_matrix_from<M22>(3, 3, 0, 3);
+  auto m20_3303 = make_dense_writable_matrix_from<M20>(m22_3303);
+  auto m02_3303 = make_dense_writable_matrix_from<M02>(m22_3303);
+  auto m00_3303 = make_dense_writable_matrix_from<M00>(m22_3303);
 
-  auto m22_2022 = make_native_matrix<M22>(2, 0, 2, 2);
-  auto m22_5055 = make_native_matrix<M22>(5, 0, 5, 5);
-  auto m22_5505 = make_native_matrix<M22>(5, 5, 0, 5);
+  auto m22_2022 = make_dense_writable_matrix_from<M22>(2, 0, 2, 2);
+  auto m22_5055 = make_dense_writable_matrix_from<M22>(5, 0, 5, 5);
+  auto m22_5505 = make_dense_writable_matrix_from<M22>(5, 5, 0, 5);
 
   auto m22 = m22_3033;
   auto m20 = m20_3033;

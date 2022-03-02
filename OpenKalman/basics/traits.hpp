@@ -40,19 +40,19 @@ namespace OpenKalman
     };
 
     template<typename Trait, std::size_t r>
-    struct dense_writable_impl_default<Trait, r, dynamic_extent>
+    struct dense_writable_impl_default<Trait, r, dynamic_size>
     {
       using type = decltype(Trait::make_default(2));
     };
 
     template<typename Trait, std::size_t c>
-    struct dense_writable_impl_default<Trait, dynamic_extent, c>
+    struct dense_writable_impl_default<Trait, dynamic_size, c>
     {
       using type = decltype(Trait::make_default(2));
     };
 
     template<typename Trait>
-    struct dense_writable_impl_default<Trait, dynamic_extent, dynamic_extent>
+    struct dense_writable_impl_default<Trait, dynamic_size, dynamic_size>
     {
       using type = decltype(Trait::make_default(2, 2));
     };
@@ -72,12 +72,12 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
     template<typename T, std::size_t r, std::size_t c, typename S> requires
-      (r == row_extent_of_v<T>) and (c == column_extent_of_v<T>) and std::same_as<S, scalar_type_of_t<T>>
+      (r == row_dimension_of_v<T>) and (c == column_dimension_of_v<T>) and std::same_as<S, scalar_type_of_t<T>>
     struct dense_writable_impl<T, r, c, S>
 #else
     template<typename T, std::size_t r, std::size_t c, typename S>
-    struct dense_writable_impl<T, r, c, S, std::enable_if_t<(r == row_extent_of<T>::value) and
-      (c == column_extent_of<T>::value) and std::is_same_v<S, scalar_type_of<T>::type>>>
+    struct dense_writable_impl<T, r, c, S, std::enable_if_t<(r == row_dimension_of<T>::value) and
+      (c == column_dimension_of<T>::value) and std::is_same_v<S, scalar_type_of<T>::type>>>
 #endif
     {
       using type = decltype(EquivalentDenseWritableMatrix<std::decay_t<T>, r, c, S>::convert(std::declval<T>()));
@@ -88,20 +88,18 @@ namespace OpenKalman
   /**
    * \brief An alias for a self-contained native matrix, based on and equivalent to parameter T.
    * \tparam T The type from which the native matrix is derived.
-   * \tparam row_extent Number of rows in the native matrix (defaults to the number of rows in T).
-   * \tparam column_extent Number of columns in the native matrix (defaults to the number of columns in T).
-   * \tparam scalar_type Scalar type of the matrix (defaults to the Scalar type of T).
+   * \tparam rows Number of rows in the native matrix (defaults to the number of rows in T).
+   * \tparam columns Number of columns in the native matrix (defaults to the number of columns in T).
+   * \tparam Scalar Scalar type of the matrix (defaults to the Scalar type of T).
    */
   template<typename T,
-    std::size_t row_extent =
-      dynamic_rows<T> and not dynamic_columns<T> and (self_adjoint_matrix<T> or triangular_matrix<T>) ?
-      column_extent_of_v<T> : row_extent_of_v<T>,
-    std::size_t column_extent =
-      dynamic_columns<T> and not dynamic_rows<T> and (self_adjoint_matrix<T> or triangular_matrix<T>) ?
-      row_extent_of_v<T> : column_extent_of_v<T>,
-    typename scalar_type = scalar_type_of_t<T>>
+    std::size_t rows = dynamic_rows<T> and not dynamic_columns<T> and (self_adjoint_matrix<T> or triangular_matrix<T>) ?
+      column_dimension_of_v<T> : row_dimension_of_v<T>,
+    std::size_t columns = dynamic_columns<T> and not dynamic_rows<T> and (self_adjoint_matrix<T> or triangular_matrix<T>) ?
+      row_dimension_of_v<T> : column_dimension_of_v<T>,
+    typename Scalar = scalar_type_of_t<T>>
   using equivalent_dense_writable_matrix_t =
-    std::decay_t<typename detail::dense_writable_impl<std::decay_t<T>, row_extent, column_extent, scalar_type>::type>;
+    std::decay_t<typename detail::dense_writable_impl<std::decay_t<T>, rows, columns, Scalar>::type>;
 
 
   // --------------------------- //
@@ -134,172 +132,6 @@ namespace OpenKalman
   // ========================================================================== //
   //  Traits for which specializations must be defined in the matrix interface  //
   // ========================================================================== //
-
-  namespace internal
-  {
-    // -------------------- //
-    //  is_diagonal_matrix  //
-    // -------------------- //
-
-    /**
-     * A covariance is a diagonal matrix if its nested matrix is diagonal
-     */
-#ifdef __cpp_concepts
-    template<covariance T>
-    struct is_diagonal_matrix<T>
-#else
-    template<typename T>
-    struct is_diagonal_matrix<T, std::enable_if_t<covariance<T>>>
-#endif
-      : std::bool_constant<diagonal_matrix<nested_matrix_of_t<T>>> {};
-
-
-    /**
-     * A typed matrix is diagonal if its nested matrix is diagonal and its row and column coefficients are equivalent.
-     */
-#ifdef __cpp_concepts
-    template<typed_matrix T>
-    struct is_diagonal_matrix<T>
-#else
-    template<typename T>
-    struct is_diagonal_matrix<T, std::enable_if_t<typed_matrix<T>>>
-#endif
-      : std::bool_constant<diagonal_matrix<nested_matrix_of_t<T>> and
-        equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>> {};
-
-
-    // ------------------------------ //
-    //  is_lower_self_adjoint_matrix  //
-    // ------------------------------ //
-
-    /**
-     * A self_adjoint_covariance is lower-self-adjoint if it its covariance is lower-triangular or lower-self-adjoint.
-     */
-#ifdef __cpp_concepts
-    template<self_adjoint_covariance T>
-    struct is_lower_self_adjoint_matrix<T>
-#else
-    template<typename T>
-    struct is_lower_self_adjoint_matrix<T, std::enable_if_t<self_adjoint_covariance<T>>>
-#endif
-      : std::bool_constant<lower_self_adjoint_matrix<nested_matrix_of_t<T>> or
-        lower_triangular_matrix<nested_matrix_of_t<T>>> {};
-
-
-    /**
-     * A typed matrix is lower-self-adjoint if its nested matrix is lower-self-adjoint and
-     * its row and column coefficients are equivalent.
-     */
-#ifdef __cpp_concepts
-    template<typed_matrix T>
-    struct is_lower_self_adjoint_matrix<T>
-#else
-    template<typename T>
-    struct is_lower_self_adjoint_matrix<T, std::enable_if_t<typed_matrix<T>>>
-#endif
-      : std::bool_constant<lower_self_adjoint_matrix<nested_matrix_of_t<T>> and
-        equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>> {};
-
-
-  // ------------------------------ //
-  //  is_upper_self_adjoint_matrix  //
-  // ------------------------------ //
-
-  /**
-   * A self_adjoint_covariance is upper-self-adjoint if it its covariance is upper-triangular or upper-self-adjoint.
-   */
-#ifdef __cpp_concepts
-  template<self_adjoint_covariance T>
-  struct is_upper_self_adjoint_matrix<T>
-#else
-  template<typename T>
-  struct is_upper_self_adjoint_matrix<T, std::enable_if_t<self_adjoint_covariance<T>>>
-#endif
-    : std::bool_constant<upper_self_adjoint_matrix<std::decay_t<nested_matrix_of_t<T>>> or
-      upper_triangular_matrix<std::decay_t<nested_matrix_of_t<T>>>> {};
-
-
-  /**
-   * A typed matrix is upper-self-adjoint if its nested matrix is upper-self-adjoint and
-   * its row and column coefficients are equivalent.
-   */
-#ifdef __cpp_concepts
-  template<typed_matrix T>
-  struct is_upper_self_adjoint_matrix<T>
-#else
-  template<typename T>
-  struct is_upper_self_adjoint_matrix<T, std::enable_if_t<typed_matrix<T>>>
-#endif
-    : std::bool_constant<upper_self_adjoint_matrix<std::decay_t<nested_matrix_of_t<T>>> and
-      equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>> {};
-
-
-    // ---------------------------- //
-    //  is_lower_triangular_matrix  //
-    // ---------------------------- //
-
-    /**
-     * A triangular_covariance is lower-triangular if its nested matrix is lower_triangular or lower_self_adjoint_matrix.
-     */
-#ifdef __cpp_concepts
-    template<triangular_covariance T>
-    struct is_lower_triangular_matrix<T>
-#else
-    template<typename T>
-    struct is_lower_triangular_matrix<T, std::enable_if_t<triangular_covariance<T>>>
-#endif
-      : std::bool_constant<lower_triangular_matrix<nested_matrix_of_t<T>> or
-        lower_self_adjoint_matrix<nested_matrix_of_t<T>>> {};
-
-
-    /**
-     * A typed matrix is lower_triangular if its nested matrix is lower_triangular.
-     */
-#ifdef __cpp_concepts
-    template<typed_matrix T>
-    struct is_lower_triangular_matrix<T>
-#else
-    template<typename T>
-    struct is_lower_triangular_matrix<T, std::enable_if_t<typed_matrix<T>>>
-#endif
-      : std::bool_constant<lower_triangular_matrix<nested_matrix_of_t<T>> and
-        equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>> {};
-
-
-    // ---------------------------- //
-    //  is_upper_triangular_matrix  //
-    // ---------------------------- //
-
-    /**
-     * A triangular_covariance is upper-triangular based on its triangle type.
-     */
-#ifdef __cpp_concepts
-    template<triangular_covariance T>
-    struct is_upper_triangular_matrix<T>
-#else
-    template<typename T>
-    struct is_upper_triangular_matrix<T, std::enable_if_t<triangular_covariance<T>>>
-#endif
-      : std::bool_constant<upper_triangular_matrix<nested_matrix_of_t<T>> or
-        upper_self_adjoint_matrix<nested_matrix_of_t<T>>> {};
-
-
-    /**
-     * A typed matrix is upper_triangular if its nested matrix is upper_triangular.
-     */
-#ifdef __cpp_concepts
-    template<typed_matrix T>
-    struct is_upper_triangular_matrix<T>
-#else
-    template<typename T>
-    struct is_upper_triangular_matrix<T, std::enable_if_t<typed_matrix<T>>>
-#endif
-      : std::bool_constant<upper_triangular_matrix<nested_matrix_of_t<T>> and
-        equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>> {};
-
-
-  } // namespace internal
-
 
   // ------------- //
   //  is_writable  //
@@ -365,15 +197,15 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
     template<typename T, typename U> requires
-      (dynamic_rows<T> or dynamic_rows<U> or row_extent_of_v<T> == row_extent_of_v<U>) and
-      (dynamic_columns<T> or dynamic_columns<U> or column_extent_of_v<T> == column_extent_of_v<U>) and
+      (dynamic_rows<T> or dynamic_rows<U> or row_dimension_of_v<T> == row_dimension_of_v<U>) and
+      (dynamic_columns<T> or dynamic_columns<U> or column_dimension_of_v<T> == column_dimension_of_v<U>) and
       (std::same_as<scalar_type_of_t<T>, scalar_type_of_t<U>>)
     struct has_same_matrix_shape<T, U> : std::true_type {};
 #else
     template<typename T, typename U>
     struct has_same_matrix_shape<T, U, std::enable_if_t<
-      (dynamic_rows<T> or dynamic_rows<U> or row_extent_of<T>::value == row_extent_of<U>::value) and
-      (dynamic_columns<T> or dynamic_columns<U> or column_extent_of<T>::value == column_extent_of<U>::value) and
+      (dynamic_rows<T> or dynamic_rows<U> or row_dimension_of<T>::value == row_dimension_of<U>::value) and
+      (dynamic_columns<T> or dynamic_columns<U> or column_dimension_of<T>::value == column_dimension_of<U>::value) and
       (std::is_same_v<typename scalar_type_of<T>::type, typename scalar_type_of<U>::type>)>> : std::true_type {};
 #endif
 

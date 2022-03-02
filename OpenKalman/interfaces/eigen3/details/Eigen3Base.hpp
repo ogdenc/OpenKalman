@@ -12,7 +12,6 @@
  * \internal
  * \file
  * \brief Definitions for Eigen3::Eigen3Base
- * \todo Specialize for Matrix, Covariance, etc., so that they do not derive from Eigen::MatrixBase?
  */
 
 #ifndef OPENKALMAN_EIGEN3BASE_HPP
@@ -20,11 +19,238 @@
 
 namespace OpenKalman::Eigen3::internal
 {
-  template<typename Derived>
-  struct Eigen3Base : Eigen::MatrixBase<Derived>
+  template<typename Derived, typename NestedMatrix>
+  struct Eigen3Base
+    : std::conditional_t<native_eigen_array<NestedMatrix>, Eigen::ArrayBase<Derived>, Eigen::MatrixBase<Derived>>
   {
-    /// \internal \note Eigen3 requires this as the type used when Derived is nested.
+
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(bool {any_dynamic_dimension<NestedMatrix>})
+
+    /**
+     * \internal
+     * \brief The type of *this that is used for nesting within other Eigen classes.
+     * \note Eigen3 requires this as the type used when Derived is nested.
+     */
     using Nested = Derived;
+
+    /// \internal \note Eigen3 requires this.
+    using Scalar = scalar_type_of_t<NestedMatrix>;
+
+
+    /**
+     * \internal
+     * \return The number of rows at runtime.
+     * \note Eigen3 requires this, particularly in Eigen::EigenBase.
+     */
+    constexpr Eigen::Index rows() const
+    {
+      return runtime_dimension_of<0>(static_cast<const Derived&>(*this));
+    }
+
+
+    /**
+     * \internal
+     * \return The number of columns at runtime.
+     * \note Eigen3 requires this, particularly in Eigen::EigenBase.
+     */
+    constexpr Eigen::Index cols() const
+    {
+      return runtime_dimension_of<1>(static_cast<const Derived&>(*this));
+    }
+
+    /**
+     * \brief Synonym for zero().
+     * \note Overrides Eigen::DenseBase<Derived>::Zero.
+     * \return A matrix, of the same size and shape, containing only zero coefficients.
+     */
+    [[deprecated("Use make_zero_matrix_like() instead.")]]
+    static auto Zero()
+    {
+      return make_zero_matrix_like<Derived>();
+    }
+
+
+    /**
+     * \brief Synonym for zero().
+     * \note Overrides Eigen::DenseBase<Derived>::Zero.
+     * \return A matrix, of the same size and shape, containing only zero coefficients.
+     */
+    [[deprecated("Use make_zero_matrix_like() instead.")]]
+    static auto Zero(const Eigen::Index r, const Eigen::Index c)
+    {
+      if constexpr (dynamic_rows<Derived> and dynamic_columns<Derived>)
+      {
+        return make_zero_matrix_like<Derived>(static_cast<std::size_t>(r), static_cast<std::size_t>(c));
+      }
+      else if constexpr (dynamic_rows<Derived>)
+      {
+        assert(c == column_dimension_of_v<Derived>);
+        return make_zero_matrix_like<Derived>(static_cast<std::size_t>(r));
+      }
+      else if constexpr (dynamic_columns<Derived>)
+      {
+        assert(r == row_dimension_of_v<Derived>);
+        return make_zero_matrix_like<Derived>(static_cast<std::size_t>(c));
+      }
+      else
+      {
+        assert(r == row_dimension_of_v<Derived>);
+        assert(c == column_dimension_of_v<Derived>);
+        return make_zero_matrix_like<Derived>();
+      }
+    }
+
+
+    /**
+     * \brief Synonym for identity().
+     * \note Overrides Eigen::DenseBase<Derived>::Identity.
+     * \return An identity matrix with the same or identified number of rows and columns.
+     */
+    [[deprecated("Use make_identity_matrix_like() instead.")]]
+    static auto Identity()
+    {
+      return make_identity_matrix_like<Derived>();
+    }
+
+
+    /**
+     * \brief Synonym for identity().
+     * \note Overrides Eigen::DenseBase<Derived>::Identity.
+     * \return An identity matrix with the same or identified number of rows and columns.
+     */
+    [[deprecated("Use make_identity_matrix_like() instead.")]]
+    static decltype(auto) Identity(const Eigen::Index r, const Eigen::Index c)
+    {
+      if constexpr (dynamic_rows<Derived> and dynamic_columns<Derived>)
+      {
+        return make_identity_matrix_like<Derived>(static_cast<std::size_t>(r), static_cast<std::size_t>(c));
+      }
+      else if constexpr (dynamic_rows<Derived>)
+      {
+        assert(c == column_dimension_of_v<Derived>);
+        return make_identity_matrix_like<Derived>(static_cast<std::size_t>(r));
+      }
+      else if constexpr (dynamic_columns<Derived>)
+      {
+        assert(r == row_dimension_of_v<Derived>);
+        return make_identity_matrix_like<Derived>(static_cast<std::size_t>(c));
+      }
+      else
+      {
+        assert(r == row_dimension_of_v<Derived>);
+        assert(c == column_dimension_of_v<Derived>);
+        return make_identity_matrix_like<Derived>();
+      }
+    }
+
+
+  private:
+
+    template<typename Arg>
+    auto& get_ultimate_nested_matrix_impl(Arg& arg)
+    {
+      auto& b = nested_matrix(arg);
+      using B = decltype(b);
+      static_assert(not std::is_const_v<std::remove_reference_t<B>>);
+      if constexpr(Eigen3::eigen_self_adjoint_expr<B> or Eigen3::eigen_triangular_expr<B> or
+        Eigen3::eigen_diagonal_expr<B> or Eigen3::euclidean_expr<B>)
+      {
+        return get_ultimate_nested_matrix(b);
+      }
+      else
+      {
+        return b;
+      }
+    }
+
+
+    template<typename Arg>
+    auto& get_ultimate_nested_matrix(Arg& arg)
+    {
+      if constexpr(Eigen3::eigen_self_adjoint_expr<Arg>)
+      {
+        if constexpr (self_adjoint_triangle_type_of_v<Arg> == TriangleType::diagonal) return arg;
+        else return get_ultimate_nested_matrix_impl(arg);
+      }
+      else if constexpr(Eigen3::eigen_triangular_expr<Arg>)
+      {
+        if constexpr(triangle_type_of_v<Arg> == TriangleType::diagonal) return arg;
+        else return get_ultimate_nested_matrix_impl(arg);
+      }
+      else
+      {
+        return get_ultimate_nested_matrix_impl(arg);
+      }
+    }
+
+
+  public:
+
+#ifdef __cpp_concepts
+    template<std::convertible_to<Scalar> S>
+#else
+    template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
+#endif
+    auto operator<<(const S& s)
+    {
+      if constexpr(covariance<Derived>)
+      {
+        auto& xpr = static_cast<Derived&>(*this);
+        return Eigen::CovarianceCommaInitializer {xpr, static_cast<const Scalar&>(s)};
+      }
+      else
+      {
+        auto& xpr = get_ultimate_nested_matrix(static_cast<Derived&>(*this));
+        using Xpr = std::decay_t<decltype(xpr)>;
+        if constexpr(mean<Derived>)
+        {
+          return Eigen::MeanCommaInitializer<Derived, Xpr> {xpr, static_cast<const Scalar&>(s)};
+        }
+        else if constexpr((Eigen3::eigen_self_adjoint_expr<Xpr> or Eigen3::eigen_triangular_expr<Xpr>)
+          and diagonal_matrix<Xpr>)
+        {
+          return Eigen::DiagonalCommaInitializer {xpr, static_cast<const Scalar&>(s)};
+        }
+        else
+        {
+          return Eigen::CommaInitializer {xpr, static_cast<const Scalar&>(s)};
+        }
+      }
+    }
+
+
+#ifdef __cpp_concepts
+    template<eigen_matrix Other>
+#else
+    template<typename Other, std::enable_if_t<eigen_matrix<Other>, int> = 0>
+#endif
+    auto operator<<(const Other& other)
+    {
+      if constexpr(covariance<Derived>)
+      {
+        auto& xpr = static_cast<Derived&>(*this);
+        return Eigen::CovarianceCommaInitializer {xpr, other};
+      }
+      else
+      {
+        auto& xpr = get_ultimate_nested_matrix(static_cast<Derived&>(*this));
+        using Xpr = std::decay_t<decltype(xpr)>;
+        if constexpr (mean<Derived>)
+        {
+          return Eigen::MeanCommaInitializer<Derived, Xpr> {xpr, other};
+        }
+        else if constexpr ((Eigen3::eigen_self_adjoint_expr<Xpr> or Eigen3::eigen_triangular_expr<Xpr>)
+          and diagonal_matrix<Xpr>)
+        {
+          return Eigen::DiagonalCommaInitializer {xpr, other};
+        }
+        else
+        {
+          return Eigen::CommaInitializer {xpr, other};
+        }
+      }
+    }
+
   };
 
 } // namespace OpenKalman::Eigen3::internal

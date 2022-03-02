@@ -23,7 +23,7 @@ using Cov2 = Covariance<C2>;
 
 TEST(transform_linear, linear_additive_angle)
 {
-  auto a = Mat2::identity() * 1.1;
+  auto a = make_identity_matrix_like<Mat2>() * 1.1;
   const GaussianDistribution input {M2(1, pi * 19 / 20), Cov2(pi * pi / 9, 0, 0, 0.01)};
   Cov2 P_output {1.21 * pi * pi / 9, 0,
                  0, 0.0121};
@@ -39,7 +39,7 @@ TEST(transform_linear, linear_additive_angle)
 
 TEST(transform_linear, linear_additive_angle_Cholesky)
 {
-  auto a = Mat2::identity() * 1.1;
+  auto a = make_identity_matrix_like<Mat2>() * 1.1;
   const GaussianDistribution input {M2(1, pi * 19 / 20), make_covariance<C2, TriangleType::lower>(pi * pi / 9, 0, 0, 0.01)};
   Cov2 P_output {1.21 * pi * pi / 9, 0,
                  0, 0.0121};
@@ -55,10 +55,10 @@ TEST(transform_linear, linear_additive_angle_Cholesky)
 
 TEST(transform_linear, linear_augmented_angle)
 {
-  auto a = Mat2::identity() * 1.1;
-  auto an = Mat2::identity();
+  auto a = make_identity_matrix_like<Mat2>() * 1.1;
+  auto an = make_identity_matrix_like<Mat2>();
   const GaussianDistribution input {M2(1, pi * 19 / 20), Cov2(pi * pi / 9, 0, 0, 0.01)};
-  const GaussianDistribution noise {M2::zero(), Cov2(Mat2::identity() * 0.01)};
+  const GaussianDistribution noise {make_zero_matrix_like<M2>(), Cov2(make_identity_matrix_like<Mat2>() * 0.01)};
   Cov2 P_output {1.21 * pi * pi / 9 + 0.01, 0,
             0, 0.0121 + 0.01};
   Mat2 cross_output {1.1 * pi * pi / 9, 0,
@@ -73,10 +73,10 @@ TEST(transform_linear, linear_augmented_angle)
 
 TEST(transform_linear, linear_augmented_angle_Cholesky)
 {
-  auto a = Mat2::identity() * 1.1;
-  auto an = Mat2::identity();
+  auto a = make_identity_matrix_like<Mat2>() * 1.1;
+  auto an = make_identity_matrix_like<Mat2>();
   const GaussianDistribution input {M2(1, pi * 19 / 20), make_covariance<C2, TriangleType::lower>(pi * pi / 9, 0, 0, 0.01)};
-  const GaussianDistribution noise {M2::zero(), make_covariance<TriangleType::lower>(Mat2::identity() * 0.01)};
+  const GaussianDistribution noise {make_zero_matrix_like<M2>(), make_covariance<TriangleType::lower>(make_identity_matrix_like<Mat2>() * 0.01)};
   Cov2 P_output {1.21 * pi * pi / 9 + 0.01, 0,
                  0, 0.0121 + 0.01};
   Mat2 cross_output{1.1 * pi * pi / 9, 0,

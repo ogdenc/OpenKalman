@@ -123,7 +123,7 @@ namespace OpenKalman
     {
       using Coefficients = typename DistributionTraits<Dist>::Coefficients;
       using Scalar = typename DistributionTraits<Dist>::Scalar;
-      constexpr auto rows = DistributionTraits<Dist>::dimensions;
+      constexpr auto rows = index_dimension_of_v<Dist, 0>;
       constexpr auto count = sigma_point_count<dim>;
       using Xnative = equivalent_dense_writable_matrix_t<typename DistributionTraits<Dist>::Mean, rows, count>;
       Matrix<Coefficients, Axes<count>, Xnative> X {sigma_point_coeff<ns / count + pos, ns % count, dim, Scalar>()...};
@@ -135,7 +135,7 @@ namespace OpenKalman
     static auto
     sigma_points_impl(const D& d, const Ds&...ds)
     {
-      constexpr auto rows = DistributionTraits<D>::dimensions;
+      constexpr auto rows = index_dimension_of_v<D, 0>;
       constexpr auto count = sigma_point_count<dim>;
       auto X = unscaled_sigma_points<D, dim, pos>(std::make_index_sequence<count * rows>());
       // Scale based on covariance:
@@ -165,7 +165,7 @@ namespace OpenKalman
     static constexpr auto
     sample_points(const Dist&...ds)
     {
-      constexpr auto dim = (DistributionTraits<Dist>::dimensions + ...);
+      constexpr auto dim = (index_dimension_of_v<Dist, 0> + ...);
       return sigma_points_impl<dim>(ds...);
     }
 

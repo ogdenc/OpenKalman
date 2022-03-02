@@ -19,11 +19,11 @@ using A = Matrix<Axes<2>, Axes<2>>;
 TEST(transformations, stochastic_additive)
 {
   auto f = [](const auto& x) -> M { return A {1, 2, 3, 4} * x; };
-  auto dist = GaussianDistribution {M::zero(), A::identity()};
+  auto dist = GaussianDistribution {make_zero_matrix_like<M>(), make_identity_matrix_like<A>()};
   auto t = Transformation<decltype(f)> {f};
   M x {2, 3};
   M true_y {f(x)};
-  M mean_y {M::zero()};
+  M mean_y {make_zero_matrix_like<M>()};
   for (int i = 0; i < 100; i++)
   {
     const M y {t(x) + dist()};
@@ -37,11 +37,11 @@ TEST(transformations, stochastic_additive)
 TEST(transformations, stochastic_augmented)
 {
   auto f = [](const auto& x, const auto&...n) { return make_self_contained(((A {1, 2, 4, 3} * x) + ... + (A {3, 4, 2, 1} * n))); };
-  auto dist = GaussianDistribution {M::zero(), A::identity()};
+  auto dist = GaussianDistribution {make_zero_matrix_like<M>(), make_identity_matrix_like<A>()};
   auto t = Transformation<decltype(f)> {f};
   M x {2, 3}, n {0, 0};
   M true_y {f(x, n)};
-  M mean_y {M::zero()};
+  M mean_y {make_zero_matrix_like<M>()};
   for (int i = 0; i < 100; i++)
   {
     const M y {t(x, dist)};

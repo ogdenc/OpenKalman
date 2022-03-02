@@ -237,10 +237,10 @@ namespace OpenKalman
     struct SphericalBase
     {
       /// Spherical is associated with three matrix elements.
-      static constexpr std::size_t dimensions = 3;
+      static constexpr std::size_t dimension = 3;
 
       /// Spherical is represented by four coordinates in Euclidean space.
-      static constexpr std::size_t euclidean_dimensions = 4;
+      static constexpr std::size_t euclidean_dimension = 4;
 
       /// Spherical is not composed of only axes.
       static constexpr bool axes_only = false;
@@ -298,7 +298,7 @@ namespace OpenKalman
        * \tparam i The index of the first spherical coefficient that is being transformed.
        */
       template<typename Scalar, std::size_t i>
-      static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), euclidean_dimensions>
+      static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), euclidean_dimension>
         to_euclidean_array = {
         [](const GetCoeff<Scalar>& get_coeff) constexpr { return get_coeff(i + d_i); },
         [](const GetCoeff<Scalar>& get_coeff) constexpr {
@@ -324,7 +324,7 @@ namespace OpenKalman
        * \tparam i The index of the first of the four Cartesian coordinates being transformed back to spherical.
        */
       template<typename Scalar, std::size_t i>
-      static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), dimensions>
+      static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), dimension>
         from_euclidean_array = internal::join(
         internal::join(
           detail::SphericalImpl<
@@ -346,7 +346,7 @@ namespace OpenKalman
        * \tparam i The index of the first of three spherical coordinates that are being wrapped.
        */
       template<typename Scalar, std::size_t i>
-      static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), dimensions>
+      static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), dimension>
         wrap_array_get = internal::join(
         internal::join(
           detail::SphericalImpl<
@@ -370,7 +370,7 @@ namespace OpenKalman
        */
       template<typename Scalar, std::size_t i>
       static constexpr
-      std::array<void (*const)(const Scalar, const SetCoeff<Scalar>&, const GetCoeff<Scalar>&), dimensions>
+      std::array<void (*const)(const Scalar, const SetCoeff<Scalar>&, const GetCoeff<Scalar>&), dimension>
         wrap_array_set = internal::join(
         internal::join(
           detail::SphericalImpl<

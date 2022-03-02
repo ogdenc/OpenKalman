@@ -144,12 +144,12 @@ namespace OpenKalman
 
       if constexpr (upper_triangular_matrix<B>)
       {
-        auto b = make_native_matrix(adjoint(nested_matrix(std::forward<Arg2>(arg2))));
+        auto b = make_dense_writable_matrix_from(adjoint(nested_matrix(std::forward<Arg2>(arg2))));
         return make_covariance<C>(make_self_contained(rank_update(std::move(a), std::move(b), Scalar(-1))));
       }
       else
       {
-        auto b = make_native_matrix(nested_matrix(std::forward<Arg2>(arg2)));
+        auto b = make_dense_writable_matrix_from(nested_matrix(std::forward<Arg2>(arg2)));
         return make_covariance<C>(make_self_contained(rank_update(std::move(a), std::move(b), Scalar(-1))));
       }
     }
@@ -189,17 +189,13 @@ namespace OpenKalman
   constexpr decltype(auto) operator*(Arg1&& arg1, Arg2&& arg2) noexcept
   {
 
-    if constexpr (zero_matrix<Arg1> or zero_matrix<Arg2>)
-    {
-      return MatrixTraits<Arg1>::zero();
-    }
-    else if constexpr (identity_matrix<Arg1>)
-    {
-      return std::forward<Arg2>(arg2);
-    }
-    else if constexpr (identity_matrix<Arg2>)
+    if constexpr (zero_matrix<Arg1> or identity_matrix<Arg2>)
     {
       return std::forward<Arg1>(arg1);
+    }
+    else if constexpr (zero_matrix<Arg2> or identity_matrix<Arg1>)
+    {
+      return std::forward<Arg2>(arg2);
     }
     else
     {
@@ -241,11 +237,11 @@ namespace OpenKalman
   {
     using CC = typename MatrixTraits<Cov>::RowCoefficients;
     using RC = typename MatrixTraits<M>::RowCoefficients;
-    using Mat = equivalent_dense_writable_matrix_t<M, RC::dimensions, CC::dimensions>;
+    using Mat = equivalent_dense_writable_matrix_t<M, RC::dimension, CC::dimension>;
 
     if constexpr (zero_matrix<M> or zero_matrix<Cov>)
     {
-      return make_matrix<RC, CC>(MatrixTraits<Mat>::zero());
+      return make_zero_matrix_like(m);
     }
     else if constexpr (identity_matrix<M>)
     {
@@ -285,11 +281,11 @@ namespace OpenKalman
   {
     using RC = typename MatrixTraits<Cov>::RowCoefficients;
     using CC = typename MatrixTraits<M>::ColumnCoefficients;
-    using Mat = equivalent_dense_writable_matrix_t<M, RC::dimensions, CC::dimensions>;
+    using Mat = equivalent_dense_writable_matrix_t<M, RC::dimension, CC::dimension>;
 
     if constexpr (zero_matrix<Cov> or zero_matrix<M>)
     {
-      return make_matrix<RC, CC>(MatrixTraits<Mat>::zero());
+      return make_zero_matrix_like(m);
     }
     else if constexpr (identity_matrix<M>)
     {
@@ -326,7 +322,11 @@ namespace OpenKalman
   inline auto operator*(M&& m, const S s) noexcept
   {
     using Scalar = const scalar_type_of_t<M>;
-    if constexpr (cholesky_form<M>)
+    if constexpr (zero_matrix<M>)
+    {
+      return std::forward<M>(m);
+    }
+    else if constexpr (cholesky_form<M>)
     {
       if constexpr (triangular_covariance<M>)
       {
@@ -344,23 +344,19 @@ namespace OpenKalman
         else if (s < Scalar(0))
         {
           return MatrixTraits<M>::make(B {rank_update(
-            MatrixTraits<nested_matrix_of_t<M>>::zero(),
-            make_native_matrix(nested_matrix(std::forward<M>(m))),
+            make_zero_matrix_like(nested_matrix(m)),
+            make_dense_writable_matrix_from(nested_matrix(std::forward<M>(m))),
             static_cast<Scalar>(s))});
         }
         else
         {
-          return MatrixTraits<M>::make(B {MatrixTraits<B>::zero()});
+          return MatrixTraits<M>::make(B {make_zero_matrix_like(nested_matrix(m))});
         }
       }
     }
     else
     {
-      if constexpr (zero_matrix<M>)
-      {
-        return MatrixTraits<M>::zero();
-      }
-      else if constexpr (triangular_covariance<M> and not diagonal_matrix<M>)
+      if constexpr (triangular_covariance<M> and not diagonal_matrix<M>)
       {
         auto prod = nested_matrix(std::forward<M>(m)) * (static_cast<Scalar>(s) * static_cast<Scalar>(s));
         return MatrixTraits<M>::make(make_self_contained<M>(std::move(prod)));
@@ -410,29 +406,30 @@ namespace OpenKalman
       }
       else
       {
-        auto b = make_self_contained(nested_matrix(std::forward<M>(m)));
+        using B = typename MatrixTraits<nested_matrix_of_t<M>>::template TriangularMatrixFrom<>;
+
         if (s > Scalar(0))
         {
-          b /= std::sqrt(static_cast<Scalar>(s));
+          return MatrixTraits<M>::make(B {nested_matrix(std::forward<M>(m)) / std::sqrt(static_cast<Scalar>(s))});
         }
         else if (s < Scalar(0))
         {
-          const auto u = make_native_matrix(b);
-          b = MatrixTraits<decltype(b)>::zero();
-          rank_update(b, u, 1 / static_cast<Scalar>(s));
+          return MatrixTraits<M>::make(B {rank_update(
+            make_zero_matrix_like(nested_matrix(m)),
+            make_dense_writable_matrix_from(nested_matrix(std::forward<M>(m))),
+            1 / static_cast<Scalar>(s))});
         }
         else
         {
           throw (std::runtime_error("operator/(Covariance, Scalar): divide by zero"));
         }
-        return MatrixTraits<M>::make(std::move(b));
       }
     }
     else
     {
       if constexpr(zero_matrix<M>)
       {
-        return MatrixTraits<M>::zero();
+        return std::forward<M>(m);
       }
       else if constexpr (triangular_covariance<M> and not diagonal_matrix<M>)
       {
@@ -460,7 +457,7 @@ namespace OpenKalman
   {
     if constexpr (zero_matrix<M>)
     {
-      return MatrixTraits<M>::zero();
+      return std::forward<M>(m);
     }
     else
     {
@@ -488,7 +485,7 @@ namespace OpenKalman
     if constexpr (std::is_same_v<equivalent_dense_writable_matrix_t<Arg1>, equivalent_dense_writable_matrix_t<Arg2>> and
       equivalent_to<typename MatrixTraits<Arg1>::RowCoefficients, typename MatrixTraits<Arg2>::RowCoefficients>)
     {
-      return make_native_matrix(std::forward<Arg1>(arg1)) == make_native_matrix(std::forward<Arg2>(arg2));
+      return make_dense_writable_matrix_from(std::forward<Arg1>(arg1)) == make_dense_writable_matrix_from(std::forward<Arg2>(arg2));
     }
     else
     {

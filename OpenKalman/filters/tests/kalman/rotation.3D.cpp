@@ -50,9 +50,9 @@ namespace
     for (int i = 0; i < 5; i++)
     {
       auto true_state = randomize<Mean3>(std::uniform_real_distribution {5.0, 10.0});
-      auto x = GaussianDistribution < Axes<3>, M3, Cov> { Mean3 {7.5, 7.5, 7.5}, Cov::identity() };
+      auto x = GaussianDistribution < Axes<3>, M3, Cov> { Mean3 {7.5, 7.5, 7.5}, make_identity_matrix_like<Cov>() };
       auto meas_cov = Cov {0.01, 0, 0, 0, 0.01, 0, 0, 0, 0.1};
-      auto r = GaussianDistribution < Axes<3>, M3, Cov> { Mean3::zero(), meas_cov };
+      auto r = GaussianDistribution < Axes<3>, M3, Cov> { make_zero_matrix_like<Mean3>(), meas_cov };
       parameter_test(transform, get_t3(), x, true_state, r, 1.0, 1000);
     }
   }

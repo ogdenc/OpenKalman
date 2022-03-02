@@ -145,47 +145,53 @@ namespace OpenKalman
       using Coeffs = typename DistributionTraits<D>::Coefficients;
       using M = typename DistributionTraits<D>::Mean;
       constexpr auto points_count = sigma_point_count<dim>;
-      constexpr auto dim_i = DistributionTraits<D>::dimensions;
+      constexpr auto dim_i = index_dimension_of_v<D, 0>;
       constexpr auto frame_size = dim_i * 2;
       constexpr Scalar gamma_L = alpha * alpha * (Parameters::template kappa<dim> + dim);
-      const auto delta = make_matrix<Coeffs, Axes<dim_i>>(make_native_matrix(square_root(gamma_L * covariance_of(d))));
+      const auto delta = make_matrix<Coeffs, Axes<dim_i>>(make_dense_writable_matrix_from(square_root(gamma_L * covariance_of(d))));
 
       if constexpr(1 + frame_size == points_count)
       {
         // | 0 | delta | -delta |
         static_assert(sizeof...(ds) == 0);
-        const auto m0 = Matrix<Coeffs, Axis, equivalent_dense_writable_matrix_t<M, dim_i, 1>>::zero();
+        using M0 = Matrix<Coeffs, Axis, equivalent_dense_writable_matrix_t<M, dim_i, 1>>;
+        const auto m0 = make_zero_matrix_like<M0>();
         auto ret = make_self_contained(concatenate_horizontal(std::move(m0), delta, -delta));
-        static_assert(column_extent_of_v<decltype(ret)> == points_count);
+        static_assert(column_dimension_of_v<decltype(ret)> == points_count);
         return std::tuple {std::move(ret)};
       }
       else if constexpr (pos == 0)
       {
         // | 0 | delta | -delta | 0 ... |
-        const auto m0 = Matrix<Coeffs, Axis, equivalent_dense_writable_matrix_t<M, dim_i, 1>>::zero();
+        using M0 = Matrix<Coeffs, Axis, equivalent_dense_writable_matrix_t<M, dim_i, 1>>;
+        const auto m0 = make_zero_matrix_like<M0>();
         constexpr auto width = points_count - (1 + frame_size);
-        const auto mright = Matrix<Coeffs, Axes<width>, equivalent_dense_writable_matrix_t<M, dim_i, width>>::zero();
+        using Mright = Matrix<Coeffs, Axes<width>, equivalent_dense_writable_matrix_t<M, dim_i, width>>;
+        const auto mright = make_zero_matrix_like<Mright>();
         auto ret = make_self_contained(concatenate_horizontal(std::move(m0), delta, -delta, std::move(mright)));
-        static_assert(column_extent_of_v<decltype(ret)> == points_count);
+        static_assert(column_dimension_of_v<decltype(ret)> == points_count);
         return std::tuple_cat(std::tuple {std::move(ret)}, sigma_points_impl<dim, 1 + frame_size>(ds...));
       }
       else if constexpr (pos + frame_size < points_count)
       {
         // | 0 | 0 ... | delta | -delta | 0 ... |
-        const auto mleft = Matrix<Coeffs, Axes<pos>, equivalent_dense_writable_matrix_t<M, dim_i, pos>>::zero();
+        using Mleft = Matrix<Coeffs, Axes<pos>, equivalent_dense_writable_matrix_t<M, dim_i, pos>>;
+        const auto mleft = make_zero_matrix_like<Mleft>();
         constexpr auto width = points_count - (pos + frame_size);
-        const auto mright = Matrix<Coeffs, Axes<width>, equivalent_dense_writable_matrix_t<M, dim_i, width>>::zero();
+        using Mright = Matrix<Coeffs, Axes<width>, equivalent_dense_writable_matrix_t<M, dim_i, width>>;
+        const auto mright = make_zero_matrix_like<Mright>();
         auto ret = make_self_contained(concatenate_horizontal(std::move(mleft), delta, -delta, std::move(mright)));
-        static_assert(column_extent_of_v<decltype(ret)> == points_count);
+        static_assert(column_dimension_of_v<decltype(ret)> == points_count);
         return std::tuple_cat(std::tuple {std::move(ret)}, sigma_points_impl<dim, pos + frame_size>(ds...));
       }
       else
       {
         // | 0 | 0 ... | delta | -delta |
         static_assert(sizeof...(ds) == 0);
-        const auto mleft = Matrix<Coeffs, Axes<pos>, equivalent_dense_writable_matrix_t<M, dim_i, pos>>::zero();
+        using Mleft = Matrix<Coeffs, Axes<pos>, equivalent_dense_writable_matrix_t<M, dim_i, pos>>;
+        const auto mleft = make_zero_matrix_like<Mleft>();
         auto ret = make_self_contained(concatenate_horizontal(std::move(mleft), delta, -delta));
-        static_assert(column_extent_of_v<decltype(ret)> == points_count);
+        static_assert(column_dimension_of_v<decltype(ret)> == points_count);
         return std::tuple {std::move(ret)};
       }
     }
@@ -208,7 +214,7 @@ namespace OpenKalman
     static auto
     sample_points(const Dist& ...ds)
     {
-      constexpr auto dim = (DistributionTraits<Dist>::dimensions + ...);
+      constexpr auto dim = (index_dimension_of_v<Dist, 0> + ...);
       return sigma_points_impl<dim>(ds...);
     }
   };

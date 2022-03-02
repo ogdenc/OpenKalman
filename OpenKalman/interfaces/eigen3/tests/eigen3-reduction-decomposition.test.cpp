@@ -31,16 +31,16 @@ namespace
   using M44 = eigen_matrix_t<double, 4, 4>;
   using M55 = eigen_matrix_t<double, 5, 5>;
 
-  using M00 = eigen_matrix_t<double, dynamic_extent, dynamic_extent>;
-  using M10 = eigen_matrix_t<double, 1, dynamic_extent>;
-  using M01 = eigen_matrix_t<double, dynamic_extent, 1>;
-  using M20 = eigen_matrix_t<double, 2, dynamic_extent>;
-  using M02 = eigen_matrix_t<double, dynamic_extent, 2>;
-  using M30 = eigen_matrix_t<double, 3, dynamic_extent>;
-  using M03 = eigen_matrix_t<double, dynamic_extent, 3>;
-  using M04 = eigen_matrix_t<double, dynamic_extent, 4>;
-  using M50 = eigen_matrix_t<double, 5, dynamic_extent>;
-  using M05 = eigen_matrix_t<double, dynamic_extent, 5>;
+  using M00 = eigen_matrix_t<double, dynamic_size, dynamic_size>;
+  using M10 = eigen_matrix_t<double, 1, dynamic_size>;
+  using M01 = eigen_matrix_t<double, dynamic_size, 1>;
+  using M20 = eigen_matrix_t<double, 2, dynamic_size>;
+  using M02 = eigen_matrix_t<double, dynamic_size, 2>;
+  using M30 = eigen_matrix_t<double, 3, dynamic_size>;
+  using M03 = eigen_matrix_t<double, dynamic_size, 3>;
+  using M04 = eigen_matrix_t<double, dynamic_size, 4>;
+  using M50 = eigen_matrix_t<double, 5, dynamic_size>;
+  using M05 = eigen_matrix_t<double, dynamic_size, 5>;
 
   using cdouble = std::complex<double>;
 
@@ -58,7 +58,7 @@ TEST(eigen3, reduce_columns_reduce_rows_matrix)
   EXPECT_TRUE(is_near(reduce_columns(M21 {1, 4}), M21 {1, 4}));
   EXPECT_TRUE(is_near(reduce_rows(make_eigen_matrix<double, 1, 3>(1, 2, 3)), make_eigen_matrix<double, 1, 3>(1, 2, 3)));
 
-  auto m23 = make_native_matrix<M23>(1, 2, 3, 4, 5, 6);
+  auto m23 = make_dense_writable_matrix_from<M23>(1, 2, 3, 4, 5, 6);
   auto m20_3 = M20 {m23};
   auto m03_2 = M03 {m23};
   auto m00_23 = M00 {m23};
@@ -91,7 +91,7 @@ TEST(eigen3, reduce_columns_reduce_rows_matrix)
   EXPECT_TRUE(is_near(reduce_rows(m20_3), m13_234));
   EXPECT_TRUE(is_near(reduce_rows(m00_23), m13_234));
 
-  auto cm23 = make_native_matrix<CM23>(cdouble {1,6}, cdouble {2,5}, cdouble {3,4}, cdouble {4,3}, cdouble {5,2}, cdouble {6,1});
+  auto cm23 = make_dense_writable_matrix_from<CM23>(cdouble {1,6}, cdouble {2,5}, cdouble {3,4}, cdouble {4,3}, cdouble {5,2}, cdouble {6,1});
 
   EXPECT_TRUE(is_near(reduce_columns(cm23), make_eigen_matrix<cdouble, 2, 1>(cdouble {2,5}, cdouble {5,2})));
 
@@ -183,9 +183,9 @@ TEST(eigen3, reduce_columns_reduce_rows_diagonal)
 
 TEST(eigen3, LQ_and_QR_decompositions)
 {
-  auto m22_lq = make_native_matrix<M22>(-0.1, 0, 1.096, -1.272);
+  auto m22_lq = make_dense_writable_matrix_from<M22>(-0.1, 0, 1.096, -1.272);
 
-  auto m22_lq_decomp = make_native_matrix<M22>(0.06, 0.08, 0.36, -1.640);
+  auto m22_lq_decomp = make_dense_writable_matrix_from<M22>(0.06, 0.08, 0.36, -1.640);
   auto m20_2_lq_decomp = M20 {m22_lq_decomp};
   auto m02_2_lq_decomp = M02 {m22_lq_decomp};
   auto m00_22_lq_decomp = M00 {m22_lq_decomp};
@@ -195,9 +195,9 @@ TEST(eigen3, LQ_and_QR_decompositions)
   EXPECT_TRUE(is_near(LQ_decomposition(m02_2_lq_decomp), m22_lq));
   EXPECT_TRUE(is_near(LQ_decomposition(m00_22_lq_decomp), m22_lq));
 
-  auto m22_qr = make_native_matrix<M22>(-0.1, 1.096, 0, -1.272);
+  auto m22_qr = make_dense_writable_matrix_from<M22>(-0.1, 1.096, 0, -1.272);
 
-  auto m22_qr_decomp = make_native_matrix<M22>(0.06, 0.36, 0.08, -1.640);
+  auto m22_qr_decomp = make_dense_writable_matrix_from<M22>(0.06, 0.36, 0.08, -1.640);
   auto m20_2_qr_decomp = M20 {m22_qr_decomp};
   auto m02_2_qr_decomp = M02 {m22_qr_decomp};
   auto m00_22_qr_decomp = M00 {m22_qr_decomp};
@@ -207,14 +207,14 @@ TEST(eigen3, LQ_and_QR_decompositions)
   EXPECT_TRUE(is_near(QR_decomposition(m20_2_qr_decomp), m22_qr));
   EXPECT_TRUE(is_near(QR_decomposition(m00_22_qr_decomp), m22_qr));
 
-  auto m23 = make_native_matrix<M23>(1, 2, 3, 4, 5, 6);
-  auto m32 = make_native_matrix<M32>(1, 4, 2, 5, 3, 6);
+  auto m23 = make_dense_writable_matrix_from<M23>(1, 2, 3, 4, 5, 6);
+  auto m32 = make_dense_writable_matrix_from<M32>(1, 4, 2, 5, 3, 6);
 
   EXPECT_TRUE(is_near(LQ_decomposition(m23), adjoint(QR_decomposition(m32))));
   EXPECT_TRUE(is_near(LQ_decomposition(m32), adjoint(QR_decomposition(m23))));
 
-  auto cm23 = make_native_matrix<CM23>(cdouble {1,6}, cdouble {2,5}, cdouble {3,4}, cdouble {4,3}, cdouble {5,2}, cdouble {6,1});
-  auto cm32conj = make_native_matrix<CM32>(cdouble {1,-6}, cdouble {4,-3}, cdouble {2,-5}, cdouble {5,-2}, cdouble {3,-4}, cdouble {6,-1});
+  auto cm23 = make_dense_writable_matrix_from<CM23>(cdouble {1,6}, cdouble {2,5}, cdouble {3,4}, cdouble {4,3}, cdouble {5,2}, cdouble {6,1});
+  auto cm32conj = make_dense_writable_matrix_from<CM32>(cdouble {1,-6}, cdouble {4,-3}, cdouble {2,-5}, cdouble {5,-2}, cdouble {3,-4}, cdouble {6,-1});
 
   EXPECT_TRUE(is_near(LQ_decomposition(cm23), adjoint(QR_decomposition(cm32conj))));
   EXPECT_TRUE(is_near(LQ_decomposition(cm32conj), adjoint(QR_decomposition(cm23))));

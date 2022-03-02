@@ -30,9 +30,9 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<coefficients InputCoefficients, coefficients OutputCoefficients, typed_matrix_nestable TransformationMatrix,
       typed_matrix_nestable ... PerturbationTransformationMatrices> requires
-    (row_extent_of_v<TransformationMatrix> == OutputCoefficients::dimensions) and
-    (column_extent_of_v<TransformationMatrix> == InputCoefficients::dimensions) and
-    ((row_extent_of_v<PerturbationTransformationMatrices> == OutputCoefficients::dimensions) and ...) and
+    (row_dimension_of_v<TransformationMatrix> == OutputCoefficients::dimension) and
+    (column_dimension_of_v<TransformationMatrix> == InputCoefficients::dimension) and
+    ((row_dimension_of_v<PerturbationTransformationMatrices> == OutputCoefficients::dimension) and ...) and
     (square_matrix<PerturbationTransformationMatrices> and ...)
 #else
   template<typename InputCoefficients, typename OutputCoefficients, typename TransformationMatrix,
@@ -66,8 +66,8 @@ namespace OpenKalman
 
       template<typename T, typename R, typename C>
       struct is_linear_transformation_input<T, R, C, std::enable_if_t<
-        typed_matrix_nestable<T> and (row_extent_of<T>::value == R::dimensions) and
-        (column_extent_of<T>::value == C::dimensions)>> : std::true_type {};
+        typed_matrix_nestable<T> and (row_dimension_of<T>::value == R::dimension) and
+        (column_dimension_of<T>::value == C::dimension)>> : std::true_type {};
     }
 #endif
 
@@ -86,8 +86,8 @@ namespace OpenKalman
       coefficients<RowCoefficients> and coefficients<ColumnCoefficients> and
       (not typed_matrix<T> or (equivalent_to<typename MatrixTraits<T>::RowCoefficients, RowCoefficients> and
           equivalent_to<typename MatrixTraits<T>::ColumnCoefficients, ColumnCoefficients>)) and
-      (not typed_matrix_nestable<T> or (row_extent_of_v<T> == RowCoefficients::dimensions and
-        column_extent_of_v<T> == ColumnCoefficients::dimensions));
+      (not typed_matrix_nestable<T> or (row_dimension_of_v<T> == RowCoefficients::dimension and
+        column_dimension_of_v<T> == ColumnCoefficients::dimension));
 #else
     template<typename T, typename RowCoefficients, typename ColumnCoefficients = RowCoefficients>
     constexpr bool linear_transformation_input =
@@ -101,9 +101,9 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<coefficients InputCoefficients, coefficients OutputCoefficients, typed_matrix_nestable TransformationMatrix,
     typed_matrix_nestable ... PerturbationTransformationMatrices> requires
-  (row_extent_of_v<TransformationMatrix> == OutputCoefficients::dimensions) and
-    (column_extent_of_v<TransformationMatrix> == InputCoefficients::dimensions) and
-    ((row_extent_of_v<PerturbationTransformationMatrices> == OutputCoefficients::dimensions) and ...) and
+  (row_dimension_of_v<TransformationMatrix> == OutputCoefficients::dimension) and
+    (column_dimension_of_v<TransformationMatrix> == InputCoefficients::dimension) and
+    ((row_dimension_of_v<PerturbationTransformationMatrices> == OutputCoefficients::dimension) and ...) and
     (square_matrix<PerturbationTransformationMatrices> and ...)
 #else
   template<typename InputCoefficients, typename OutputCoefficients, typename TransformationMatrix,
@@ -117,9 +117,9 @@ namespace OpenKalman
     static_assert(coefficients<OutputCoefficients>);
     static_assert(typed_matrix_nestable<TransformationMatrix>);
     static_assert((typed_matrix_nestable<PerturbationTransformationMatrices> and ...));
-    static_assert(row_extent_of_v<TransformationMatrix> == OutputCoefficients::dimensions);
-    static_assert(column_extent_of_v<TransformationMatrix> == InputCoefficients::dimensions);
-    static_assert(((row_extent_of_v<PerturbationTransformationMatrices> == OutputCoefficients::dimensions) and ...));
+    static_assert(row_dimension_of_v<TransformationMatrix> == OutputCoefficients::dimension);
+    static_assert(column_dimension_of_v<TransformationMatrix> == InputCoefficients::dimension);
+    static_assert(((row_dimension_of_v<PerturbationTransformationMatrices> == OutputCoefficients::dimension) and ...));
     static_assert((square_matrix<PerturbationTransformationMatrices> and ...));
 #endif
 
@@ -196,7 +196,7 @@ namespace OpenKalman
       if constexpr(sizeof...(Perturbations) + 1 > mat_count)
       {
         constexpr auto pad_size = sizeof...(Perturbations) + 1 - mat_count;
-        auto id = make_matrix<OutputCoefficients, OutputCoefficients>(MatrixTraits<TransformationMatrix>::identity());
+        auto id = make_matrix<OutputCoefficients, OutputCoefficients>(make_identity_matrix_like<TransformationMatrix>());
         return std::tuple_cat(transformation_matrices, oin::tuple_replicate<pad_size>(std::move(id)));
       }
       else
@@ -228,15 +228,15 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<typed_matrix_nestable T, oin::linear_transformation_input<Axes<row_extent_of_v<T>>> ... Ps>
+  template<typed_matrix_nestable T, oin::linear_transformation_input<Axes<row_dimension_of_v<T>>> ... Ps>
 #else
   template<typename T, typename ... Ps, std::enable_if_t<
-    (typed_matrix_nestable<T> and ... and oin::linear_transformation_input<Ps, Axes<row_extent_of<T>::value>>), int> = 0>
+    (typed_matrix_nestable<T> and ... and oin::linear_transformation_input<Ps, Axes<row_dimension_of<T>::value>>), int> = 0>
 #endif
   LinearTransformation(T&&, Ps&& ...)
   -> LinearTransformation<
-    Axes<column_extent_of_v<T>>,
-    Axes<row_extent_of_v<T>>,
+    Axes<column_dimension_of_v<T>>,
+    Axes<row_dimension_of_v<T>>,
     equivalent_self_contained_t<T>,
     equivalent_self_contained_t<Ps>...>;
 

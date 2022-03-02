@@ -23,6 +23,16 @@
 namespace OpenKalman
 {
 
+  /**
+   * \brief A constant indicating that the relevant dimension of a matrix has a size that is dynamic.
+   * \details A dynamic dimension can be set, or change, during runtime and is not known at compile time.
+   */
+#ifndef __cpp_lib_span
+
+  static constexpr std::size_t dynamic_size = std::numeric_limits<std::size_t>::max();
+#endif
+
+
   // -------------- //
   //  TriangleType  //
   // -------------- //
@@ -31,19 +41,20 @@ namespace OpenKalman
    * \brief The storage order of a matrix or array.
    * \todo Add traits to determine this from native matrices.
    */
-  enum struct ElementOrder {
+  enum struct ElementOrder : int {
     column_major, ///< Column-major order.
     row_major, ///< Row-major order.
   };
 
 
   /**
-   * \brief The type of a triangular matrix, either lower, upper, or diagonal.
+   * \brief The type of a triangular matrix.
    */
-  enum struct TriangleType {
-    lower, ///< The lower-left triangle.
-    upper, ///< The upper-right triangle.
-    diagonal ///< The diagonal elements of the matrix.
+  enum struct TriangleType : int {
+    none, ///< A non-triangular matrix.
+    lower, ///< A lower-left triangular matrix.
+    upper, ///< An upper-right triangular matrix.
+    diagonal, ///< A diagonal matrix (both a lower-left and an upper-right triangular matrix).
   };
 
 

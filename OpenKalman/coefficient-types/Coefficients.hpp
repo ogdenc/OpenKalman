@@ -31,11 +31,11 @@ namespace OpenKalman
   struct Coefficients<>
   {
     /// Number of matrix rows corresponding to these coefficients.
-    static constexpr std::size_t dimensions = 0;
+    static constexpr std::size_t dimension = 0;
 
 
     /// Number of matrix rows when these coefficients are converted to Euclidean space.
-    static constexpr std::size_t euclidean_dimensions = 0;
+    static constexpr std::size_t euclidean_dimension = 0;
 
 
     /// Whether all the coefficients are of type Axis.
@@ -63,22 +63,22 @@ namespace OpenKalman
 
 
     template<typename Scalar, std::size_t i>
-    static constexpr std::array<const GetCoeffFunction<Scalar>, euclidean_dimensions>
+    static constexpr std::array<const GetCoeffFunction<Scalar>, euclidean_dimension>
       to_euclidean_array = {};
 
 
     template<typename Scalar, std::size_t i>
-    static constexpr std::array<const GetCoeffFunction<Scalar>, dimensions>
+    static constexpr std::array<const GetCoeffFunction<Scalar>, dimension>
       from_euclidean_array = {};
 
 
     template<typename Scalar, std::size_t i>
-    static constexpr std::array<const GetCoeffFunction<Scalar>, dimensions>
+    static constexpr std::array<const GetCoeffFunction<Scalar>, dimension>
       wrap_array_get = {};
 
 
     template<typename Scalar, std::size_t i>
-    static constexpr std::array<const SetCoeffFunction<Scalar>, dimensions>
+    static constexpr std::array<const SetCoeffFunction<Scalar>, dimension>
       wrap_array_set = {};
 
 
@@ -144,12 +144,12 @@ namespace OpenKalman
     static_assert((coefficients<C> and ... and coefficients<Cs>));
 #endif
     /// Number of matrix rows corresponding to these coefficients.
-    static constexpr std::size_t dimensions = C::dimensions + Coefficients<Cs...>::dimensions;
+    static constexpr std::size_t dimension = C::dimension + Coefficients<Cs...>::dimension;
 
 
     /// Number of matrix rows when these coefficients are converted to Euclidean space.
     static constexpr std::size_t
-    euclidean_dimensions = C::euclidean_dimensions + Coefficients<Cs...>::euclidean_dimensions;
+    euclidean_dimension = C::euclidean_dimension + Coefficients<Cs...>::euclidean_dimension;
 
 
     /// Whether all the coefficients are of type Axis.
@@ -208,9 +208,9 @@ namespace OpenKalman
      * This may be non-zero if this set of coefficients is part of a larger set of composite coordinates.
      */
     template<typename Scalar, std::size_t i>
-    static constexpr std::array<const GetCoeffFunction<Scalar>, euclidean_dimensions>
+    static constexpr std::array<const GetCoeffFunction<Scalar>, euclidean_dimension>
       to_euclidean_array = internal::join(C::template to_euclidean_array<Scalar, i>,
-        Coefficients<Cs...>::template to_euclidean_array<Scalar, i + C::dimensions>);
+        Coefficients<Cs...>::template to_euclidean_array<Scalar, i + C::dimension>);
 
 
     /**
@@ -226,9 +226,9 @@ namespace OpenKalman
      * This may be non-zero if this set of coefficients is part of a larger set of composite coordinates.
      */
     template<typename Scalar, std::size_t i>
-    static constexpr std::array<const GetCoeffFunction<Scalar>, dimensions>
+    static constexpr std::array<const GetCoeffFunction<Scalar>, dimension>
       from_euclidean_array = internal::join(C::template from_euclidean_array<Scalar, i>,
-        Coefficients<Cs...>::template from_euclidean_array<Scalar, i + C::euclidean_dimensions>);
+        Coefficients<Cs...>::template from_euclidean_array<Scalar, i + C::euclidean_dimension>);
 
 
     /**
@@ -242,9 +242,9 @@ namespace OpenKalman
      * This may be non-zero if this set of coefficients is part of a larger set of composite coordinates.
      */
     template<typename Scalar, std::size_t i>
-    static constexpr std::array<const GetCoeffFunction<Scalar>, dimensions>
+    static constexpr std::array<const GetCoeffFunction<Scalar>, dimension>
       wrap_array_get = internal::join(C::template wrap_array_get<Scalar, i>,
-        Coefficients<Cs...>::template wrap_array_get<Scalar, i + C::dimensions>);
+        Coefficients<Cs...>::template wrap_array_get<Scalar, i + C::dimension>);
 
 
     /**
@@ -259,9 +259,9 @@ namespace OpenKalman
      * This may be non-zero if this set of coefficients is part of a larger set of composite coordinates.
      */
     template<typename Scalar, std::size_t i>
-    static constexpr std::array<const SetCoeffFunction<Scalar>, dimensions>
+    static constexpr std::array<const SetCoeffFunction<Scalar>, dimension>
       wrap_array_set = internal::join(C::template wrap_array_set<Scalar, i>,
-        Coefficients<Cs...>::template wrap_array_set<Scalar, i + C::dimensions>);
+        Coefficients<Cs...>::template wrap_array_set<Scalar, i + C::dimension>);
 
 
     /**
@@ -357,11 +357,11 @@ namespace OpenKalman
 
 
   /**
-   * \brief Alias for <code>Coefficients<Axis...></code>, where Axis is repeated <code>dimensions</code> times.
-   * \tparam dimensions The number of Axes.
+   * \brief Alias for <code>Coefficients<Axis...></code>, where Axis is repeated <code>dimension</code> times.
+   * \tparam dimension The number of Axes.
    */
-  template<std::size_t dimensions>
-  using Axes = Replicate<Axis, dimensions>;
+  template<std::size_t dimension>
+  using Axes = Replicate<Axis, dimension>;
 
 
 }// namespace OpenKalman

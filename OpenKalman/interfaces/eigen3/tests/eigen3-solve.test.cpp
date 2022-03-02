@@ -32,16 +32,16 @@ namespace
   using M44 = eigen_matrix_t<double, 4, 4>;
   using M55 = eigen_matrix_t<double, 5, 5>;
 
-  using M00 = eigen_matrix_t<double, dynamic_extent, dynamic_extent>;
-  using M10 = eigen_matrix_t<double, 1, dynamic_extent>;
-  using M01 = eigen_matrix_t<double, dynamic_extent, 1>;
-  using M20 = eigen_matrix_t<double, 2, dynamic_extent>;
-  using M02 = eigen_matrix_t<double, dynamic_extent, 2>;
-  using M30 = eigen_matrix_t<double, 3, dynamic_extent>;
-  using M03 = eigen_matrix_t<double, dynamic_extent, 3>;
-  using M04 = eigen_matrix_t<double, dynamic_extent, 4>;
-  using M50 = eigen_matrix_t<double, 5, dynamic_extent>;
-  using M05 = eigen_matrix_t<double, dynamic_extent, 5>;
+  using M00 = eigen_matrix_t<double, dynamic_size, dynamic_size>;
+  using M10 = eigen_matrix_t<double, 1, dynamic_size>;
+  using M01 = eigen_matrix_t<double, dynamic_size, 1>;
+  using M20 = eigen_matrix_t<double, 2, dynamic_size>;
+  using M02 = eigen_matrix_t<double, dynamic_size, 2>;
+  using M30 = eigen_matrix_t<double, 3, dynamic_size>;
+  using M03 = eigen_matrix_t<double, dynamic_size, 3>;
+  using M04 = eigen_matrix_t<double, dynamic_size, 4>;
+  using M50 = eigen_matrix_t<double, 5, dynamic_size>;
+  using M05 = eigen_matrix_t<double, dynamic_size, 5>;
 
   using cdouble = std::complex<double>;
 
@@ -85,7 +85,7 @@ TEST(eigen3, solve_zero)
   EXPECT_TRUE(is_near(solve(z00_22, m03_2_56), M23::Zero()));
   EXPECT_TRUE(is_near(solve(z00_22, m00_23_56), M23::Zero()));
 
-  auto m22 = make_native_matrix<M22>(1, 2, 3, 4);
+  auto m22 = make_dense_writable_matrix_from<M22>(1, 2, 3, 4);
   auto m20_2 = M20 {m22};
   auto m02_2 = M02 {m22};
   auto m00_22 = M00 {m22};
@@ -112,7 +112,7 @@ TEST(eigen3, solve_zero)
 
 TEST(eigen3, solve_general_matrix)
 {
-  auto m22 = make_native_matrix<M22>(1, 2, 3, 4);
+  auto m22 = make_dense_writable_matrix_from<M22>(1, 2, 3, 4);
   auto m20_2 = M20 {m22};
   auto m02_2 = M02 {m22};
   auto m00_22 = M00 {m22};
@@ -145,17 +145,17 @@ TEST(eigen3, solve_general_matrix)
 
 TEST(eigen3, solve_one_by_one)
 {
-  auto m11_2 = make_native_matrix<M11>(2);
+  auto m11_2 = make_dense_writable_matrix_from<M11>(2);
   auto m10_1_2 = M10 {m11_2};
   auto m01_1_2 = M01 {m11_2};
   auto m00_11_2 = M00 {m11_2};
 
-  auto m11_6 = make_native_matrix<M11>(6);
+  auto m11_6 = make_dense_writable_matrix_from<M11>(6);
   auto m10_1_6 = M10 {m11_6};
   auto m01_1_6 = M01 {m11_6};
   auto m00_11_6 = M00 {m11_6};
 
-  auto m11_3 = make_native_matrix<M11>(3);
+  auto m11_3 = make_dense_writable_matrix_from<M11>(3);
 
   EXPECT_TRUE(is_near(solve(m11_2, m11_6), m11_3));
   EXPECT_TRUE(is_near(solve(m11_2, m10_1_6), m11_3));
@@ -174,12 +174,12 @@ TEST(eigen3, solve_one_by_one)
   EXPECT_TRUE(is_near(solve(m00_11_2, m01_1_6), m11_3));
   EXPECT_TRUE(is_near(solve(m00_11_2, m00_11_6), m11_3));
 
-  auto m12_68 = make_native_matrix<M12>(6, 8);
+  auto m12_68 = make_dense_writable_matrix_from<M12>(6, 8);
   auto m10_2_68 = M10 {m12_68};
   auto m02_1_68 = M02 {m12_68};
   auto m00_12_68 = M00 {m12_68};
 
-  auto m12_34 = make_native_matrix<M12>(3, 4);
+  auto m12_34 = make_dense_writable_matrix_from<M12>(3, 4);
 
   EXPECT_TRUE(is_near(solve(m11_2, m12_68), m12_34));
   EXPECT_TRUE(is_near(solve(m11_2, m10_2_68), m12_34));
@@ -198,7 +198,7 @@ TEST(eigen3, solve_one_by_one)
   EXPECT_TRUE(is_near(solve(m00_11_2, m02_1_68), m12_34));
   EXPECT_TRUE(is_near(solve(m00_11_2, m00_12_68), m12_34));
 
-  auto m11_0 = make_native_matrix<M11>(0);
+  auto m11_0 = make_dense_writable_matrix_from<M11>(0);
 
   EXPECT_TRUE(is_near(solve(m11_0, m12_68), M12::Zero()));
   EXPECT_TRUE(is_near(solve(M10 {m11_0}, m12_68), M12::Zero()));

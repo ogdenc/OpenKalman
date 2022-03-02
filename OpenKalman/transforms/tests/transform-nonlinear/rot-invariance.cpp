@@ -25,8 +25,8 @@ inline namespace
   const GaussianDistribution angle_input_tri {Mean<P2>(1, 0.9999 * pi), make_covariance<P2, TriangleType::lower>(0.25, 0, 0, pi * pi / 9)};
   const GaussianDistribution angle_input_rot {Mean<P2>(1, 0.9999 * pi - pi), Covariance<P2>(0.25, 0, 0, pi * pi / 9)};
   const GaussianDistribution angle_input_rot_tri {Mean<P2>(1, 0.9999 * pi - pi), make_covariance<P2, TriangleType::lower>(0.25, 0, 0, pi * pi / 9)};
-  const GaussianDistribution cart_noise {Mean<C2>::zero(), Covariance<C2>(0.0625, 0, 0, 0.0625)};
-  const GaussianDistribution cart_noise_tri {Mean<C2>::zero(), make_covariance<C2, TriangleType::lower>(0.0625, 0, 0, 0.0625)};
+  const GaussianDistribution cart_noise {make_zero_matrix_like<Mean<C2>>(), Covariance<C2>(0.0625, 0, 0, 0.0625)};
+  const GaussianDistribution cart_noise_tri {make_zero_matrix_like<Mean<C2>>(), make_covariance<C2, TriangleType::lower>(0.0625, 0, 0, 0.0625)};
 }
 
 

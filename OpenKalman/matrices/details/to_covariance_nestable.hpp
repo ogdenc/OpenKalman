@@ -22,7 +22,7 @@ namespace OpenKalman::internal
 #ifdef __cpp_concepts
   template<covariance_nestable T, typename Arg>
   requires (covariance_nestable<Arg> or (typed_matrix_nestable<Arg> and (square_matrix<Arg> or column_vector<Arg>))) and
-    (row_extent_of_v<Arg> == row_extent_of_v<T>) and
+    (row_dimension_of_v<Arg> == row_dimension_of_v<T>) and
     (not zero_matrix<T> or zero_matrix<Arg>) and (not identity_matrix<T> or identity_matrix<Arg>) and
     (not diagonal_matrix<T> or diagonal_matrix<Arg> or column_vector<Arg>)
 #else
@@ -31,27 +31,10 @@ namespace OpenKalman::internal
   constexpr decltype(auto)
   to_covariance_nestable(Arg&& arg) noexcept
   {
-    if constexpr(zero_matrix<T>)
+    if constexpr(zero_matrix<Arg> or identity_matrix<Arg>)
     {
-      // Pass through because Arg is already zero.
-      static_assert(zero_matrix<Arg>);
+      // Pass through because both T and Arg are already zero or identity.
       return std::forward<Arg>(arg);
-    }
-    else if constexpr(identity_matrix<T>)
-    {
-      // Pass through because Arg is already identity.
-      static_assert(identity_matrix<Arg>);
-      return std::forward<Arg>(arg);
-    }
-    else if constexpr (zero_matrix<Arg>)
-    {
-      static_assert(not zero_matrix<T>);
-      return MatrixTraits<T>::zero();
-    }
-    else if constexpr (identity_matrix<Arg>)
-    {
-      static_assert(not identity_matrix<T>);
-      return MatrixTraits<T>::identity();
     }
     else if constexpr (diagonal_matrix<T>)
     {
@@ -113,7 +96,7 @@ namespace OpenKalman::internal
 #ifdef __cpp_concepts
   template<covariance_nestable T, typename Arg> requires
     (covariance<Arg> or (typed_matrix<Arg> and (square_matrix<Arg> or column_vector<Arg>))) and
-    (row_extent_of_v<Arg> == row_extent_of_v<T>) and
+    (row_dimension_of_v<Arg> == row_dimension_of_v<T>) and
     (not zero_matrix<T> or zero_matrix<Arg>) and (not identity_matrix<T> or identity_matrix<Arg>) and
     (not diagonal_matrix<T> or diagonal_matrix<Arg> or column_vector<Arg>)
 #else

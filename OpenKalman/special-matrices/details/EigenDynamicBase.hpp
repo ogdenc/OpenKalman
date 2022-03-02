@@ -25,8 +25,16 @@ namespace OpenKalman::Eigen3::internal
    * \internal
    * \brief Specialization for dynamic rows and Dynamic columns
    */
-  template<typename Scalar>
-  struct EigenDynamicBase<Scalar, dynamic_extent, dynamic_extent>
+#ifdef __cpp_concepts
+  template<typename Derived, typename NestedMatrix> requires
+    dynamic_rows<NestedMatrix> and dynamic_columns<NestedMatrix>
+  struct EigenDynamicBase<Derived, NestedMatrix>
+#else
+  template<typename Derived, typename NestedMatrix>
+  struct EigenDynamicBase<Derived, NestedMatrix, std::enable_if_t<
+    dynamic_rows<NestedMatrix> and dynamic_columns<NestedMatrix>>>
+#endif
+    : MatrixTraits<NestedMatrix>::template MatrixBaseFrom<Derived>
   {
     /**
      * \internal
@@ -48,7 +56,7 @@ namespace OpenKalman::Eigen3::internal
 #else
     template<typename M, std::enable_if_t<not std::is_same_v<M, EigenDynamicBase>, int> = 0>
 #endif
-    EigenDynamicBase(M&& m) : m_rows {row_count(m)}, m_cols {column_count(m)} {}
+    EigenDynamicBase(M&& m) : m_rows {runtime_dimension_of<0>(m)}, m_cols {runtime_dimension_of<1>(m)} {}
 
 
     EigenDynamicBase(const EigenDynamicBase&) = default;
@@ -91,41 +99,25 @@ namespace OpenKalman::Eigen3::internal
 #endif
     auto& operator=(M&& m)
     {
-      assert(row_count(m) == m_rows);
-      assert(column_count(m) == m_cols);
+      assert(runtime_dimension_of<0>(m) == m_rows);
+      assert(runtime_dimension_of<1>(m) == m_cols);
       return *this;
     }
 
 
-    /// \internal \return The number of fixed rows. \note Required by Eigen::EigenBase.
-    Eigen::Index rows() const { return m_rows; }
-
-
-    /// \internal \return The number of fixed columns. \note Required by Eigen::EigenBase.
-    Eigen::Index cols() const { return m_cols; }
-
-
-    /**
-     * \return A matrix, of the same size and shape, containing only zero coefficients.
-     */
-    static decltype(auto) zero(const std::size_t r, const std::size_t c)
-    {
-      return ZeroMatrix<Scalar, dynamic_extent, dynamic_extent> {r, c};
-    }
-
-
-    /**
-     * \brief Synonym for zero().
-     * \deprecated Use zero() instead. Provided for compatibility with Eigen Zero() member.
-     * \return A matrix, of the same size and shape, containing only zero coefficients.
-     */
-    [[deprecated("Use zero() instead.")]]
-    static decltype(auto) Zero(const Eigen::Index r, Eigen::Index c)
-    {
-      return zero(r, c);
-    }
-
   private:
+
+    friend struct IndexTraits<Derived, 0>;
+    friend struct IndexTraits<Derived, 1>;
+
+
+    /// \internal \return The number of fixed rows. \note Used by IndexTraits::dimension_at_runtime.
+    Eigen::Index get_rows_at_runtime() const { return m_rows; }
+
+
+    /// \internal \return The number of fixed columns. \note Used by IndexTraits::dimension_at_runtime.
+    Eigen::Index get_columns_at_runtime() const { return m_cols; }
+
 
     const std::size_t m_rows;
     const std::size_t m_cols;
@@ -141,14 +133,22 @@ namespace OpenKalman::Eigen3::internal
    * \brief Specialization for dynamic rows and fixed columns
    */
 #ifdef __cpp_concepts
-  template<typename Scalar, std::size_t columns>
-  requires (columns != dynamic_extent)
-  struct EigenDynamicBase<Scalar, dynamic_extent, columns>
+  template<typename Derived, typename NestedMatrix> requires
+    dynamic_rows<NestedMatrix> and (not dynamic_columns<NestedMatrix>)
+  struct EigenDynamicBase<Derived, NestedMatrix>
 #else
-  template<typename Scalar, std::size_t columns>
-  struct EigenDynamicBase<Scalar, dynamic_extent, columns, std::enable_if_t<(columns != dynamic_extent)>>
+  template<typename Derived, typename NestedMatrix>
+  struct EigenDynamicBase<Derived, NestedMatrix, std::enable_if_t<
+    dynamic_rows<NestedMatrix> and (not dynamic_columns<NestedMatrix>)>>
 #endif
+    : MatrixTraits<NestedMatrix>::template MatrixBaseFrom<Derived>
   {
+    private:
+
+      static constexpr auto nested_cols = column_dimension_of_v<NestedMatrix>;
+
+    public:
+
     /**
      * \internal
      * \brief Construct an EigenDynamicBase with dynamic rows and dynamic columns.
@@ -165,14 +165,14 @@ namespace OpenKalman::Eigen3::internal
 #ifdef __cpp_concepts
     template<typename M>
     requires (not std::same_as<M, EigenDynamicBase>) and
-      (dynamic_columns<M> or column_extent_of_v<M> == columns)
+      (dynamic_columns<M> or column_dimension_of_v<M> == nested_cols)
 #else
     template<typename M, std::enable_if_t<(not std::is_same_v<M, EigenDynamicBase>) and
-      (dynamic_columns<M> or column_extent_of<M>::value == columns), int> = 0>
+      (dynamic_columns<M> or column_dimension_of<M>::value == nested_cols), int> = 0>
 #endif
-    EigenDynamicBase(M&& m) : m_rows {row_count(m)}
+    EigenDynamicBase(M&& m) : m_rows {runtime_dimension_of<0>(m)}
     {
-      if constexpr (dynamic_columns<M>) assert(column_count(m) == columns);
+      if constexpr (dynamic_columns<M>) assert(runtime_dimension_of<1>(m) == nested_cols);
     }
 
 
@@ -209,49 +209,26 @@ namespace OpenKalman::Eigen3::internal
 #ifdef __cpp_concepts
     template<typename M>
     requires (not std::same_as<M, EigenDynamicBase>) and
-      (dynamic_columns<M> or column_extent_of_v<M> == columns)
+      (dynamic_columns<M> or column_dimension_of_v<M> == nested_cols)
 #else
     template<typename M, std::enable_if_t<(not std::is_same_v<M, EigenDynamicBase>) and
-      (dynamic_columns<M> or column_extent_of<M>::value == columns), int> = 0>
+      (dynamic_columns<M> or column_dimension_of<M>::value == nested_cols), int> = 0>
 #endif
     auto& operator=(M&& m)
     {
-      if constexpr (dynamic_columns<M>) assert(column_count(m) == columns);
-      assert(row_count(m) == m_rows);
+      if constexpr (dynamic_columns<M>) assert(runtime_dimension_of<1>(m) == nested_cols);
+      assert(runtime_dimension_of<0>(m) == m_rows);
       return *this;
     }
 
-
-    /// \internal \return The number of fixed rows. \note Required by Eigen::EigenBase.
-    Eigen::Index rows() const { return m_rows; }
-
-
-    /// \internal \return The number of fixed columns. \note Required by Eigen::EigenBase.
-    static constexpr Eigen::Index cols() { return columns; }
-
-
-    /**
-     * \return A matrix, of the same size and shape, containing only zero coefficients.
-     */
-    static decltype(auto) zero(const std::size_t r)
-    {
-      return ZeroMatrix<Scalar, dynamic_extent, columns> {r};
-    }
-
-
-    /**
-     * \brief Synonym for zero().
-     * \deprecated Use zero() instead. Provided for compatibility with Eigen Zero() member.
-     * \return A matrix, of the same size and shape, containing only zero coefficients.
-     */
-    [[deprecated("Use zero() instead.")]]
-    static decltype(auto) Zero(const Eigen::Index r, Eigen::Index c)
-    {
-      assert(c == columns);
-      return zero(r);
-    }
-
   private:
+
+    friend struct IndexTraits<Derived, 0>;
+
+
+    /// \internal \return The number of fixed rows. \note Used by IndexTraits::dimension_at_runtime.
+    Eigen::Index get_rows_at_runtime() const { return m_rows; }
+
 
     const std::size_t m_rows;
 
@@ -266,17 +243,25 @@ namespace OpenKalman::Eigen3::internal
    * \brief Specialization for fixed rows and dynamic columns
    */
 #ifdef __cpp_concepts
-  template<typename Scalar, std::size_t rows_>
-  requires (rows_ != dynamic_extent)
-  struct EigenDynamicBase<Scalar, rows_, dynamic_extent>
+  template<typename Derived, typename NestedMatrix> requires
+    (not dynamic_rows<NestedMatrix>) and dynamic_columns<NestedMatrix>
+  struct EigenDynamicBase<Derived, NestedMatrix>
 #else
-  template<typename Scalar, std::size_t rows_>
-    struct EigenDynamicBase<Scalar, rows_, dynamic_extent, std::enable_if_t<(rows_ != dynamic_extent)>>
+  template<typename Derived, typename NestedMatrix>
+  struct EigenDynamicBase<Derived, NestedMatrix, std::enable_if_t<
+    (not dynamic_rows<NestedMatrix>) and dynamic_columns<NestedMatrix>>>
 #endif
+    : MatrixTraits<NestedMatrix>::template MatrixBaseFrom<Derived>
   {
+  private:
+
+    static constexpr auto nested_rows = row_dimension_of_v<NestedMatrix>;
+
+  public:
+
     /**
      * \internal
-     * \brief Construct a ZeroMatrix with dynamic rows and dynamic columns.
+     * \brief Construct an EigenDynamicBase with dynamic rows and dynamic columns.
      * \param c Number of columns.
      */
     EigenDynamicBase(std::size_t c) : m_cols {c} {}
@@ -289,14 +274,14 @@ namespace OpenKalman::Eigen3::internal
      */
 #ifdef __cpp_concepts
     template<typename M>
-    requires (not std::same_as<M, EigenDynamicBase>) and (dynamic_rows<M> or row_extent_of_v<M> == rows_)
+    requires (not std::same_as<M, EigenDynamicBase>) and (dynamic_rows<M> or row_dimension_of_v<M> == nested_rows)
 #else
     template<typename M, std::enable_if_t<(not std::is_same_v<M, EigenDynamicBase>) and
-      (dynamic_rows<M> or row_extent_of<M>::value == rows_), int> = 0>
+      (dynamic_rows<M> or row_dimension_of<M>::value == nested_rows), int> = 0>
 #endif
-    EigenDynamicBase(M&& m) : m_cols {column_count(m)}
+    EigenDynamicBase(M&& m) : m_cols {runtime_dimension_of<1>(m)}
     {
-      if constexpr (dynamic_rows<M>) assert(row_count(m) == rows_);
+      if constexpr (dynamic_rows<M>) assert(runtime_dimension_of<0>(m) == nested_rows);
     }
 
 
@@ -332,49 +317,26 @@ namespace OpenKalman::Eigen3::internal
      */
 #ifdef __cpp_concepts
     template<typename M>
-    requires (not std::same_as<M, EigenDynamicBase>) and (dynamic_rows<M> or row_extent_of_v<M> == rows_)
+    requires (not std::same_as<M, EigenDynamicBase>) and (dynamic_rows<M> or row_dimension_of_v<M> == nested_rows)
 #else
     template<typename M, std::enable_if_t<(not std::is_same_v<M, EigenDynamicBase>) and
-      (dynamic_rows<M> or row_extent_of<M>::value == rows_), int> = 0>
+      (dynamic_rows<M> or row_dimension_of<M>::value == nested_rows), int> = 0>
 #endif
     auto& operator=(M&& m)
     {
-      if constexpr (dynamic_rows<M>) assert(row_count(m) == rows_);
-      assert(column_count(m) == m_cols);
+      if constexpr (dynamic_rows<M>) assert(runtime_dimension_of<0>(m) == nested_rows);
+      assert(runtime_dimension_of<1>(m) == m_cols);
       return *this;
     }
 
-
-    /// \internal \return The number of fixed rows. \note Required by Eigen::EigenBase.
-    static constexpr Eigen::Index rows() { return rows_; }
-
-
-    /// \internal \return The number of fixed columns. \note Required by Eigen::EigenBase.
-    Eigen::Index cols() const { return m_cols; }
-
-
-    /**
-     * \return A matrix, of the same size and shape, containing only zero coefficients.
-     */
-    static decltype(auto) zero(const std::size_t c)
-    {
-      return ZeroMatrix<Scalar, rows_, dynamic_extent> {c};
-    }
-
-
-    /**
-     * \brief Synonym for zero().
-     * \deprecated Use zero() instead. Provided for compatibility with Eigen Zero() member.
-     * \return A matrix, of the same size and shape, containing only zero coefficients.
-     */
-    [[deprecated("Use zero() instead.")]]
-    static decltype(auto) Zero(const Eigen::Index r, Eigen::Index c)
-    {
-      assert(r == rows_);
-      return zero(c);
-    }
-
   private:
+
+    friend struct IndexTraits<Derived, 1>;
+
+
+    /// \internal \return The number of fixed columns. \note Used by IndexTraits::dimension_at_runtime.
+    Eigen::Index get_columns_at_runtime() const { return m_cols; }
+
 
     const std::size_t m_cols;
 
@@ -386,18 +348,26 @@ namespace OpenKalman::Eigen3::internal
 
   /**
    * \overload \internal
-   * \brief Specialization for fixed rows and fixed columns
+   * \brief Specialization for fixed nested_rows and fixed columns
    */
 #ifdef __cpp_concepts
-  template<typename Scalar, std::size_t rows_, std::size_t columns>
-  requires (rows_ != dynamic_extent) and (columns != dynamic_extent)
-  struct EigenDynamicBase<Scalar, rows_, columns>
+  template<typename Derived, typename NestedMatrix> requires
+    (not dynamic_rows<NestedMatrix>) and (not dynamic_columns<NestedMatrix>)
+  struct EigenDynamicBase<Derived, NestedMatrix>
 #else
-  template<typename Scalar, std::size_t rows_, std::size_t columns>
-  struct EigenDynamicBase<Scalar, rows_, columns, std::enable_if_t<
-    (rows_ != dynamic_extent) and (columns != dynamic_extent)>>
+  template<typename Derived, typename NestedMatrix>
+  struct EigenDynamicBase<Derived, NestedMatrix, std::enable_if_t<
+    (not dynamic_rows<NestedMatrix>) and (not dynamic_columns<NestedMatrix>)>>
 #endif
+    : MatrixTraits<NestedMatrix>::template MatrixBaseFrom<Derived>
   {
+  private:
+
+    static constexpr auto nested_rows = row_dimension_of_v<NestedMatrix>;
+    static constexpr auto nested_cols = column_dimension_of_v<NestedMatrix>;
+
+  public:
+
     /**
      * \internal
      * \internal
@@ -413,17 +383,17 @@ namespace OpenKalman::Eigen3::internal
      */
 #ifdef __cpp_concepts
     template<typename M>
-    requires (not std::same_as<M, EigenDynamicBase>) and (dynamic_rows<M> or row_extent_of_v<M> == rows_) and
-      (dynamic_columns<M> or column_extent_of_v<M> == columns)
+    requires (not std::same_as<M, EigenDynamicBase>) and (dynamic_rows<M> or row_dimension_of_v<M> == nested_rows) and
+      (dynamic_columns<M> or column_dimension_of_v<M> == nested_cols)
 #else
     template<typename M, std::enable_if_t<(not std::is_same_v<M, EigenDynamicBase>) and
-      (dynamic_rows<M> or row_extent_of<M>::value == rows_) and
-      (dynamic_columns<M> or column_extent_of<M>::value == columns), int> = 0>
+      (dynamic_rows<M> or row_dimension_of<M>::value == nested_rows) and
+      (dynamic_columns<M> or column_dimension_of<M>::value == nested_cols), int> = 0>
 #endif
     EigenDynamicBase(M&& m)
     {
-      if constexpr (dynamic_rows<M>) assert(row_count(m) == rows_);
-      if constexpr (dynamic_columns<M>) assert(column_count(m) == columns);
+      if constexpr (dynamic_rows<M>) assert(runtime_dimension_of<0>(m) == nested_rows);
+      if constexpr (dynamic_columns<M>) assert(runtime_dimension_of<1>(m) == nested_cols);
     }
 
 
@@ -433,47 +403,18 @@ namespace OpenKalman::Eigen3::internal
      */
 #ifdef __cpp_concepts
     template<typename M>
-    requires (not std::same_as<M, EigenDynamicBase>) and (dynamic_rows<M> or row_extent_of_v<M> == rows_) and
-      (dynamic_columns<M> or column_extent_of_v<M> == columns)
+    requires (not std::same_as<M, EigenDynamicBase>) and (dynamic_rows<M> or row_dimension_of_v<M> == nested_rows) and
+      (dynamic_columns<M> or column_dimension_of_v<M> == nested_cols)
 #else
     template<typename M, std::enable_if_t<(not std::is_same_v<M, EigenDynamicBase>) and
-      (dynamic_rows<M> or row_extent_of<M>::value == rows_) and
-      (dynamic_columns<M> or column_extent_of<M>::value == columns), int> = 0>
+      (dynamic_rows<M> or row_dimension_of<M>::value == nested_rows) and
+      (dynamic_columns<M> or column_dimension_of<M>::value == nested_cols), int> = 0>
 #endif
     auto& operator=(M&& m)
     {
-      if constexpr (dynamic_rows<M>) assert(row_count(m) == rows_);
-      if constexpr (dynamic_columns<M>) assert(column_count(m) == columns);
+      if constexpr (dynamic_rows<M>) assert(runtime_dimension_of<0>(m) == nested_rows);
+      if constexpr (dynamic_columns<M>) assert(runtime_dimension_of<1>(m) == nested_cols);
       return *this;
-    }
-
-
-    /// \internal \return The number of fixed rows. \note Required by Eigen::EigenBase.
-    static constexpr Eigen::Index rows() { return rows_; }
-
-
-    /// \internal \return The number of fixed columns. \note Required by Eigen::EigenBase.
-    static constexpr Eigen::Index cols() { return columns; }
-
-
-    /**
-     * \return A matrix, of the same size and shape, containing only zero coefficients.
-     */
-    static decltype(auto) zero()
-    {
-      return ZeroMatrix<Scalar, rows_, columns> {};
-    }
-
-
-    /**
-     * \brief Synonym for zero().
-     * \deprecated Use zero() instead. Provided for compatibility with Eigen Zero() member.
-     * \return A matrix, of the same size and shape, containing only zero coefficients.
-     */
-    [[deprecated("Use zero() instead.")]]
-    static decltype(auto) Zero()
-    {
-      return zero();
     }
 
   };

@@ -46,7 +46,7 @@ inline namespace
 TEST(nonlinear, UT1Radar1ASelfAdjoint)
 {
   SamplePointsTransform<UT1> t;
-  auto in = G2 {{3.0, 0.0}, SA::identity()};
+  auto in = G2 {{3.0, 0.0}, make_identity_matrix_like<SA>()};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean_of(out)(0), 1.8, 1e-1);
   EXPECT_NEAR(mean_of(out)(1), 0.0, 1e-1);
@@ -59,7 +59,7 @@ TEST(nonlinear, UT1Radar1ASelfAdjoint)
 TEST(nonlinear, UT1Radar1ATriangular)
 {
   SamplePointsTransform<UT1> t;
-  auto in = G2T {{3.0, 0.0}, SA::identity()};
+  auto in = G2T {{3.0, 0.0}, make_identity_matrix_like<SA>()};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean_of(out)(0), 1.8, 1e-1);
   EXPECT_NEAR(mean_of(out)(1), 0.0, 1e-1);
@@ -72,7 +72,7 @@ TEST(nonlinear, UT1Radar1ATriangular)
 TEST(nonlinear, UT1Radar2ASelfAdjoint)
 {
   SamplePointsTransform<UT1> t;
-  auto in = G2 {{3.0, pi/6}, SA::identity()};
+  auto in = G2 {{3.0, pi/6}, make_identity_matrix_like<SA>()};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean_of(out)(0), 1.6, 1e-1);
   EXPECT_NEAR(mean_of(out)(1), 0.9, 1e-1);
@@ -85,7 +85,7 @@ TEST(nonlinear, UT1Radar2ASelfAdjoint)
 TEST(nonlinear, UT1Radar2ATriangular)
 {
   SamplePointsTransform<UT1> t;
-  auto in = G2T {{3.0, pi/6}, SA::identity()};
+  auto in = G2T {{3.0, pi/6}, make_identity_matrix_like<SA>()};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean_of(out)(0), 1.6, 1e-1);
   EXPECT_NEAR(mean_of(out)(1), 0.9, 1e-1);
@@ -98,7 +98,7 @@ TEST(nonlinear, UT1Radar2ATriangular)
 TEST(nonlinear, UT1Radar3ASelfAdjoint)
 {
   SamplePointsTransform<UT1> t;
-  auto in = G2 {{3.0, pi/4}, SA::identity()};
+  auto in = G2 {{3.0, pi/4}, make_identity_matrix_like<SA>()};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean_of(out)(0), 1.3, 1e-1);
   EXPECT_NEAR(mean_of(out)(1), 1.3, 1e-1);
@@ -111,7 +111,7 @@ TEST(nonlinear, UT1Radar3ASelfAdjoint)
 TEST(nonlinear, UT1Radar3ATriangular)
 {
   SamplePointsTransform<UT1> t;
-  auto in = G2T {{3.0, pi/4}, SA::identity()};
+  auto in = G2T {{3.0, pi/4}, make_identity_matrix_like<SA>()};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean_of(out)(0), 1.3, 1e-1);
   EXPECT_NEAR(mean_of(out)(1), 1.3, 1e-1);
@@ -124,7 +124,7 @@ TEST(nonlinear, UT1Radar3ATriangular)
 TEST(nonlinear, UT2Radar1ASelfAdjoint)
 {
   SamplePointsTransform<UT2> t;
-  auto in = G2 {{3.0, 0.0}, SA::identity()};
+  auto in = G2 {{3.0, 0.0}, make_identity_matrix_like<SA>()};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean_of(out)(0), 1.5, 1e-1);
   EXPECT_NEAR(mean_of(out)(1), 0.0, 1e-1);
@@ -137,7 +137,7 @@ TEST(nonlinear, UT2Radar1ASelfAdjoint)
 TEST(nonlinear, UT2Radar1ATriangular)
 {
   SamplePointsTransform<UT2> t;
-  auto in = G2T {{3.0, 0.0}, SA::identity()};
+  auto in = G2T {{3.0, 0.0}, make_identity_matrix_like<SA>()};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean_of(out)(0), 1.5, 1e-1);
   EXPECT_NEAR(mean_of(out)(1), 0.0, 1e-1);
@@ -150,7 +150,7 @@ TEST(nonlinear, UT2Radar1ATriangular)
 TEST(nonlinear, UT2Radar2ASelfAdjoint)
 {
   SamplePointsTransform<UT2> t;
-  auto in = G2 {{3.0, pi/6}, SA::identity()};
+  auto in = G2 {{3.0, pi/6}, make_identity_matrix_like<SA>()};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean_of(out)(0), 1.3, 1e-1); //2
   EXPECT_NEAR(mean_of(out)(1), 0.8, 1e-1); //4
@@ -163,7 +163,7 @@ TEST(nonlinear, UT2Radar2ASelfAdjoint)
 TEST(nonlinear, UT2Radar2ATriangular)
 {
   SamplePointsTransform<UT2> t;
-  auto in = G2T {{3.0, pi/6}, SA::identity()};
+  auto in = G2T {{3.0, pi/6}, make_identity_matrix_like<SA>()};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean_of(out)(0), 1.3, 1e-1); //2
   EXPECT_NEAR(mean_of(out)(1), 0.8, 1e-1); //4
@@ -176,7 +176,7 @@ TEST(nonlinear, UT2Radar2ATriangular)
 TEST(nonlinear, UT2Radar3ASelfAdjoint)
 {
   SamplePointsTransform<UT2> t;
-  auto in = G2 {{3.0, pi/4}, SA::identity()};
+  auto in = G2 {{3.0, pi/4}, make_identity_matrix_like<SA>()};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean_of(out)(0), 1.1, 1e-1);
   EXPECT_NEAR(mean_of(out)(1), 1.1, 1e-1);
@@ -189,7 +189,7 @@ TEST(nonlinear, UT2Radar3ASelfAdjoint)
 TEST(nonlinear, UT2Radar3ATriangular)
 {
   SamplePointsTransform<UT2> t;
-  auto in = G2T {{3.0, pi/4}, SA::identity()};
+  auto in = G2T {{3.0, pi/4}, make_identity_matrix_like<SA>()};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean_of(out)(0), 1.1, 1e-1);
   EXPECT_NEAR(mean_of(out)(1), 1.1, 1e-1);

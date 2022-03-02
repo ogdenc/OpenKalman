@@ -23,6 +23,10 @@ namespace Eigen::internal
 {
   using namespace OpenKalman;
 
+  template<typename NestedMatrix>
+  struct evaluator<OpenKalman::Eigen3::EigenWrapper<NestedMatrix>> : evaluator<NestedMatrix> {};
+
+
   // ------------------ //
   //  OpenKalman::Mean  //
   // ------------------ //
@@ -67,21 +71,61 @@ namespace Eigen::internal
   };
 
 
+  // ------------------------ //
+  //  OpenKalman::Covariance  //
+  // ------------------------ //
+
+  template<typename Coefficients, typename ArgType>
+  struct evaluator<OpenKalman::Covariance<Coefficients, ArgType>>
+    : evaluator<std::decay_t<decltype(OpenKalman::internal::to_covariance_nestable(
+      std::declval<const OpenKalman::Covariance<Coefficients, ArgType>&>()))>>
+  {
+    using XprType = OpenKalman::Covariance<Coefficients, ArgType>;
+    using Base = evaluator<std::decay_t<decltype(OpenKalman::internal::to_covariance_nestable(
+      std::declval<const XprType&>()))>>;
+    enum
+    {
+      Flags = Base::Flags & (OpenKalman::self_adjoint_matrix<ArgType> ? ~0 : ~LvalueBit),
+    };
+    explicit evaluator(const XprType& m_arg) : Base(OpenKalman::internal::to_covariance_nestable(m_arg)) {}
+  };
+
+
+  // ---------------------------------- //
+  //  OpenKalman::SquareRootCovariance  //
+  // ---------------------------------- //
+
+  template<typename Coefficients, typename ArgType>
+  struct evaluator<OpenKalman::SquareRootCovariance<Coefficients, ArgType>>
+    : evaluator<std::decay_t<decltype(OpenKalman::internal::to_covariance_nestable(
+      std::declval<const OpenKalman::SquareRootCovariance<Coefficients, ArgType>&>()))>>
+  {
+    using XprType = OpenKalman::SquareRootCovariance<Coefficients, ArgType>;
+    using Base = evaluator<std::decay_t<decltype(OpenKalman::internal::to_covariance_nestable(
+      std::declval<const XprType&>()))>>;
+    enum
+    {
+      Flags = Base::Flags & (OpenKalman::triangular_matrix<ArgType> ? ~0 : ~LvalueBit),
+    };
+    explicit evaluator(const XprType& m_arg) : Base(OpenKalman::internal::to_covariance_nestable(m_arg)) {}
+  };
+
+
   // ------------------------------------ //
   //  OpenKalman::Eigen3::ConstantMatrix  //
   // ------------------------------------ //
 
-  template<typename Scalar_, auto constant, std::size_t rows, std::size_t cols>
-  struct evaluator<Eigen3::ConstantMatrix<Scalar_, constant, rows, cols>>
-    : evaluator_base<Eigen3::ConstantMatrix<Scalar_, constant, rows, cols>>
+  template<typename NestedMatrix, auto constant>
+  struct evaluator<Eigen3::ConstantMatrix<NestedMatrix, constant>>
+    : evaluator_base<Eigen3::ConstantMatrix<NestedMatrix, constant>>
   {
-    using Scalar = Scalar_;
-    using XprType = Eigen3::ConstantMatrix<Scalar, constant, rows, cols>;
+    using Scalar = scalar_type_of_t<NestedMatrix>;
+    using XprType = Eigen3::ConstantMatrix<NestedMatrix, constant>;
+    using M = Eigen3::eigen_matrix_t<Scalar, index_dimension_of_v<NestedMatrix, 0>, index_dimension_of_v<NestedMatrix, 1>>;
 
     enum {
       CoeffReadCost = 0,
-      Flags = NoPreferredStorageOrderBit | LinearAccessBit |
-        (traits<Eigen3::eigen_matrix_t<Scalar, rows, cols>>::Flags & RowMajorBit) |
+      Flags = NoPreferredStorageOrderBit | LinearAccessBit | (traits<M>::Flags & RowMajorBit) |
         (packet_traits<Scalar>::Vectorizable ? PacketAccessBit : 0),
       Alignment = AlignedMax
     };
@@ -117,17 +161,17 @@ namespace Eigen::internal
   //  OpenKalman::Eigen3::ZeroMatrix  //
   // -------------------------------- //
 
-  template<typename Scalar_, std::size_t rows, std::size_t cols>
-  struct evaluator<Eigen3::ZeroMatrix<Scalar_, rows, cols>>
-    : evaluator_base<Eigen3::ZeroMatrix<Scalar_, rows, cols>>
+  template<typename NestedMatrix>
+  struct evaluator<Eigen3::ZeroMatrix<NestedMatrix>>
+    : evaluator_base<Eigen3::ZeroMatrix<NestedMatrix>>
   {
-    using Scalar = Scalar_;
-    using XprType = Eigen3::ZeroMatrix<Scalar, rows, cols>;
+    using Scalar = scalar_type_of_t<NestedMatrix>;
+    using XprType = Eigen3::ZeroMatrix<NestedMatrix>;
+    using M = Eigen3::eigen_matrix_t<Scalar, index_dimension_of_v<NestedMatrix, 0>, index_dimension_of_v<NestedMatrix, 1>>;
 
     enum {
       CoeffReadCost = 0,
-      Flags = NoPreferredStorageOrderBit | EvalBeforeNestingBit | LinearAccessBit |
-        (traits<Eigen3::eigen_matrix_t<Scalar, rows, cols>>::Flags & RowMajorBit) |
+      Flags = NoPreferredStorageOrderBit | EvalBeforeNestingBit | LinearAccessBit | (traits<M>::Flags & RowMajorBit) |
         (packet_traits<Scalar>::Vectorizable ? PacketAccessBit : 0),
       Alignment = AlignedMax
     };
@@ -399,46 +443,6 @@ namespace Eigen::internal
   protected:
 
     NestedEvaluator m_argImpl;
-  };
-
-
-  // ------------------------ //
-  //  OpenKalman::Covariance  //
-  // ------------------------ //
-
-  template<typename Coefficients, typename ArgType>
-  struct evaluator<OpenKalman::Covariance<Coefficients, ArgType>>
-    : evaluator<std::decay_t<decltype(OpenKalman::internal::to_covariance_nestable(
-      std::declval<const OpenKalman::Covariance<Coefficients, ArgType>&>()))>>
-  {
-    using XprType = OpenKalman::Covariance<Coefficients, ArgType>;
-    using Base = evaluator<std::decay_t<decltype(OpenKalman::internal::to_covariance_nestable(
-      std::declval<const XprType&>()))>>;
-    enum
-    {
-      Flags = Base::Flags & (OpenKalman::self_adjoint_matrix<ArgType> ? ~0 : ~LvalueBit),
-    };
-    explicit evaluator(const XprType& m_arg) : Base(OpenKalman::internal::to_covariance_nestable(m_arg)) {}
-  };
-
-
-  // ---------------------------------- //
-  //  OpenKalman::SquareRootCovariance  //
-  // ---------------------------------- //
-
-  template<typename Coefficients, typename ArgType>
-  struct evaluator<OpenKalman::SquareRootCovariance<Coefficients, ArgType>>
-    : evaluator<std::decay_t<decltype(OpenKalman::internal::to_covariance_nestable(
-      std::declval<const OpenKalman::SquareRootCovariance<Coefficients, ArgType>&>()))>>
-  {
-    using XprType = OpenKalman::SquareRootCovariance<Coefficients, ArgType>;
-    using Base = evaluator<std::decay_t<decltype(OpenKalman::internal::to_covariance_nestable(
-      std::declval<const XprType&>()))>>;
-    enum
-    {
-      Flags = Base::Flags & (OpenKalman::triangular_matrix<ArgType> ? ~0 : ~LvalueBit),
-    };
-    explicit evaluator(const XprType& m_arg) : Base(OpenKalman::internal::to_covariance_nestable(m_arg)) {}
   };
 
 

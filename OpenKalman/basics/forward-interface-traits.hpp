@@ -20,100 +20,11 @@
 #include <tuple>
 
 
-namespace OpenKalman
-{
-  /**
-   * \brief A constant indicating that the relevant dimension of a matrix is dynamic.
-   * \sa std::dynamic_extent
-   */
-  static constexpr std::size_t dynamic_extent = 0; //std::numeric_limits<std::size_t>::max();
-}
-
-
 /**
  * \brief The root namespace for OpenKalman interface types.
  */
 namespace OpenKalman::interface
 {
-
-  /**
-   * \internal
-   * \brief Type row extent of a matrix, expression, or array.
-   * \details The interface must define the following:
-   *   - Static member <code>static constexpr std::size_t value</code> representing
-   *   the row extent. RowExtentOf may, e.g., derive from <code>std::integral_constant<std::size_t, value></code>.
-   *   - static member function <code>rows_at_runtime</code>, returning the number of rows in T, evaulated at runtime.
-   * \note If the row extent is dynamic, then <code>value</code> should be \ref dynamic_extent.
-   * \tparam T The matrix, expression, or array.
-   */
-#ifdef __cpp_concepts
-  template<typename T>
-#else
-  template<typename T, typename = void>
-#endif
-  struct RowExtentOf
-  {
-    /**
-     * \tparam Arg A matrix of type T
-     * \return The number of rows of T, evaluated at runtime.
-     */
-#ifdef __cpp_concepts
-    template<typename Arg> requires std::same_as<std::decay_t<Arg>, std::decay_t<T>>
-#else
-    template<typename Arg, std::enable_if_t<std::is_same_v<std::decay_t<Arg>, std::decay_t<T>>, int> = 0>
-#endif
-    static constexpr std::size_t rows_at_runtime(Arg&& arg) = delete;
-
-
-    /**
-     * \var value
-     * \brief The number of rows of T, evaluated at compile time.
-     * \code
-     *   static constexpr std::size_t value = 0;
-     * \endcode
-     */
-  };
-
-
-  /**
-   * \internal
-   * \brief Type column extent of a matrix, expression, or array.
-   * \details The interface must define the following:
-   *   - Static member <code>static constexpr std::size_t value</code> representing
-   *   the column extent. RowExtentOf may, e.g., derive from <code>std::integral_constant<std::size_t, value></code>.
-   *   - static member function <code>columns_at_runtime</code>, returning the number of columns in T, evaulated at
-   *   runtime.
-   * \note If the column extent is dynamic, then <code>value</code> should be \ref dynamic_extent.
-   * \tparam T The matrix, expression, or array.
-   */
-#ifdef __cpp_concepts
-  template<typename T>
-#else
-  template<typename T, typename = void>
-#endif
-  struct ColumnExtentOf
-  {
-    /**
-     * \tparam Arg A matrix of type T
-     * \return The number of rows of T, evaluated at runtime.
-     */
-#ifdef __cpp_concepts
-    template<typename Arg> requires std::same_as<std::decay_t<Arg>, std::decay_t<T>>
-#else
-    template<typename Arg, std::enable_if_t<std::is_same_v<std::decay_t<Arg>, std::decay_t<T>>, int> = 0>
-#endif
-    static constexpr std::size_t columns_at_runtime(Arg&& arg) = delete;
-
-
-    /**
-     * \var value
-     * \brief The number of columns of T, evaluated at compile time.
-     * \code
-     *   static constexpr std::size_t value = 0;
-     * \endcode
-     */
-  };
-
 
   /**
    * \internal
@@ -126,7 +37,118 @@ namespace OpenKalman::interface
 #else
   template<typename T, typename = void>
 #endif
-  struct ScalarTypeOf;
+  struct ScalarTypeOf
+  {
+    /**
+     * \typedef type
+     * \brief The scalar type of T.
+     * \details Example:
+     * \code
+     * using type = double;
+     * \endcode
+     */
+  };
+
+
+  /**
+   * \internal
+   * \brief An interface to the storage array traits of a vector, matrix, matrix expression, or other tensor.
+   * \tparam T The tensor.
+   */
+#ifdef __cpp_concepts
+  template<typename T>
+#else
+  template<typename T, typename = void>
+#endif
+  struct StorageArrayTraits
+  {
+    /**
+     * \brief The maximum number of indices by which the elements of T are accessible.
+     */
+    static constexpr std::size_t max_indices = 0;
+  };
+
+
+  /**
+   * \internal
+   * \brief An interface to the indices of a matrix, or array, expression, or tensor.
+   * \tparam T The matrix, array, expression, or tensor.
+   */
+#ifdef __cpp_concepts
+  template<typename T, std::size_t N>
+#else
+  template<typename T, std::size_t N, typename = void>
+#endif
+  struct IndexTraits
+  {
+    /**
+     * \brief The dimension of index N of T, evaluated at compile time.
+     * \details For example, a 2-by-3 matrix has dimension 2 in index 0 (rows) and dimension 3 in index 1 (columns).
+     */
+     static constexpr std::size_t dimension = 0;
+
+
+    /**
+     * \brief Returns the dimension of index N of the argument, evaluated at runtime.
+     * \details For example, a 2-by-3 matrix has dimension 2 in index 0 (rows) and dimension 3 in index 1 (columns).
+     * \tparam Arg An argument matrix of type T
+     */
+#ifdef __cpp_concepts
+    template<std::convertible_to<const std::remove_reference_t<T>&> Arg>
+#else
+    template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg,
+      const std::add_lvalue_reference_t<std::decay_t<T>>>, int> = 0>
+#endif
+    static constexpr std::size_t dimension_at_runtime(Arg&& arg) = delete;
+  };
+
+
+  /**
+   * \brief An interface to features for getting individual elements of matrix T using indices I... of type std::size_t.
+   * \detail The interface may define static member function <code>get</code> with one or two indices. If
+   * getting an element is not possible, leave <code>get</code> undefined.
+   * \note OpenKalman only recognizes indices of type <code>std::size_t</code>.
+   * \tparam I The indices (each of type std::size_t)
+   */
+#ifdef __cpp_concepts
+  template<typename T, typename...I>
+#else
+  template<typename T, typename = void, typename...I>
+#endif
+  struct GetElement
+  {
+    /// Get element at indices (i...) of matrix arg
+#ifdef __cpp_concepts
+    template<std::convertible_to<const std::remove_reference_t<T>&> Arg>
+#else
+    template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const std::remove_reference_t<T>&>, int> = 0>
+#endif
+    static constexpr auto get(Arg&& arg, I...i) = delete;
+  };
+
+
+  /**
+   * \brief An interface to features for setting individual elements of matrix T using indices I... of type std::size_t.
+   * \detail The interface may define static member function <code>set</code> with one or two indices. If
+   * setting an element is not possible, leave <code>set</code> undefined.
+   * \note OpenKalman only recognizes indices of type <code>std::size_t</code>.
+   * \tparam I The indices (each of type std::size_t)
+   */
+#ifdef __cpp_concepts
+  template<typename T, typename...I>
+#else
+  template<typename T, typename = void, typename...I>
+#endif
+  struct SetElement
+  {
+    /// Set element at indices (i...) of matrix arg to s.
+#ifdef __cpp_concepts
+    template<std::convertible_to<const std::remove_reference_t<T>&> Arg>
+#else
+    template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const std::remove_reference_t<T>&>, int> = 0>
+#endif
+    static void set(Arg& arg, const typename ScalarTypeOf<std::decay_t<Arg>>::type& s, I...i) = delete;
+  };
 
 
   /**
@@ -134,85 +156,67 @@ namespace OpenKalman::interface
    * \brief Interface to a dense, writable, self-contained matrix or array that is equivalent to T.
    * \details The resulting type is equivalent to T, but may be have a specified shape or scalar type. The interface
    * can set the size or scalar type of the resulting dense matrix based on the parameters (or if they are dynamic,
-   * row_extent and column_extent can be set to \ref dynamic_extent).
-   * The interface must define the following:
-   *   - member alias <code>type</code> as the equivalent matrix/array type;
-   *   - static member function <code>make_default(...)</code>, taking 0, 1, or 2 runtime arguments for any
-   *   row_extent or column_extent that are \ref dynamic_extent and returning a default, uninitialized, self-contained
-   *   matrix/array of type T--for example, it takes 0 parameters if both row_extent and column_extent are fixed, and it
-   *   takes 2 parameters (row and column) if both row_extent and column_extent are dynamic; and
-   *   - static member function <code>convert</code> (<var>convert</var> : <var>T</var> -> <var>type</var>),
-   *   which converts a matrix/array convertible to type <code>T</code> into a dense, writable matrix/array of type
-   *   <code>type</code>.
-   * Example of use in defining an interface:
-   * \code
-   *   template<MyMatrixExpression T, std::size_t row_extent, std::size_t column_extent, typename scalar_type>
-   *   struct EquivalentDenseWritableMatrix<T, row_extent, column_extent, scalar_type>
-   *   {
-   *     using type = MyDenseMatrix<scalar_type, row_extent, column_extent>;
-   *
-   *     template<std::convertible_to<std::size_t>...extents> requires
-   *       (sizeof...(extents) == (row_extent == dynamic_extent ? 1 : 0) + (column_extent == dynamic_extent ? 1 : 0))
-   *     static type make_default(extents...e)
-   *     {
-   *       // in this example, MyDenseMatrix takes either two runtime extents (if dynamic) or zero (if fixed)
-   *       if constexpr (row_extent == dynamic_extent)
-   *       {
-   *         if constexpr (column_extent == dynamic_extent)
-   *           return type(e...);
-   *         else
-   *           return type(e..., column_extent);
-   *       }
-   *       else
-   *       {
-   *         if constexpr (column_extent == dynamic_extent)
-   *           return type(row_extent, e...);
-   *         else
-   *           return type(); // fixed shape
-   *       }
-   *     }
-   *
-   *     template<typename Arg> requires
-   *       (row_extent_of_v<Arg> == dynamic_extent or row_extent_of_v<Arg> == row_extent) and
-   *       (column_extent_of_v<Arg> == dynamic_extent or column_extent_of_v<Arg> == column_extent) and
-   *       (column_extent_of_v<Arg> == column_extent) and
-   *       std::convertible_to<scalar_type_of_t<Arg>, scalar_type>
-   *     static decltype(auto) convert(Arg&& arg)
-   *     {
-   *       if constexpr (std::is_same_v<std::decay_t<Arg>, type>)
-   *       {
-   *         return std::forward<Arg>(arg);
-   *       }
-   *       else
-   *       {
-   *         return type {std::forward<Arg>(arg)};
-   *       }
-   *     }
-   *   };
-   * \endcode
+   * rows and columns can be set to \ref dynamic_size).
    * \tparam T Type upon which the dense matrix will be constructed
-   * \tparam row_extent The specified row extent of the matrix (defaults to that of T)
-   * \tparam column_extent The specified column extent of the matrix (defaults to that of T)
-   * \tparam scalar_type The specified scalar type of the matrix (defaults to that of T)
+   * \tparam rows The specified row dimension of the matrix (defaults to that of T)
+   * \tparam columns The specified column dimension of the matrix (defaults to that of T)
+   * \tparam Scalar The specified scalar type of the matrix (defaults to that of T)
    */
 #ifdef __cpp_concepts
   template<typename T,
-    std::size_t row_extent = RowExtentOf<std::decay_t<T>>::value,
-    std::size_t column_extent = ColumnExtentOf<std::decay_t<T>>::value,
-    typename scalar_type = typename ScalarTypeOf<std::decay_t<T>>::type>
+    std::size_t rows = IndexTraits<std::decay_t<T>, 0>::dimension,
+    std::size_t columns = IndexTraits<std::decay_t<T>, 1>::dimension,
+    typename Scalar = typename ScalarTypeOf<std::decay_t<T>>::type>
 #else
   template<typename T,
-    std::size_t row_extent = RowExtentOf<std::decay_t<T>>::value,
-    std::size_t column_extent = ColumnExtentOf<std::decay_t<T>>::value,
-    typename scalar_type = typename ScalarTypeOf<std::decay_t<T>>::type,
+    std::size_t rows = IndexTraits<std::decay_t<T>, 0>::dimension,
+    std::size_t columns = IndexTraits<std::decay_t<T>, 1>::dimension,
+    typename Scalar = typename ScalarTypeOf<std::decay_t<T>>::type,
     typename = void>
 #endif
-  struct EquivalentDenseWritableMatrix;
+  struct EquivalentDenseWritableMatrix
+  {
 
-  /**
-   * \todo Add an interface to an equivalent dense readable matrix.
-   * \todo Add a custom Eigen expression that is simply a wrapper for any OpenKalman type, along with its own evaluator.
-   */
+    /**
+     * \brief Converts a matrix/array convertible to type <code>T</code> into a dense, writable matrix/array of type
+     * <code>type</code>.
+     */
+#ifdef __cpp_concepts
+    template<std::convertible_to<const std::remove_reference_t<T>&> Arg>
+#else
+    template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const std::remove_reference_t<T>&>, int> = 0>
+#endif
+    static decltype(auto) convert(Arg&& arg) = delete;
+
+
+    /**
+     * \brief Makes a default, potentially uninitialized, dense, writable matrix or array.
+     * \details Takes 0, 1, or 2 runtime arguments for any rows or columns that are \ref dynamic_size and
+     * returning a default, uninitialized, self-contained matrix/array of type T--for example, it takes 0 parameters
+     * if both rows and columns are fixed, and it takes 2 parameters (row and column) if both rows
+     * and columns are dynamic.
+     * \param e Runtime row and/or column dimension of the resulting matrix, if any of the compile-time dimensions of T
+     * are \ref dynamic_size "dynamic".
+     */
+#ifdef __cpp_concepts
+    template<std::convertible_to<std::size_t>...runtime_dimensions> requires
+      (sizeof...(runtime_dimensions) == (rows == dynamic_size ? 1 : 0) + (columns == dynamic_size ? 1 : 0))
+#else
+    template<typename...runtime_dimensions, std::enable_if_t<sizeof...(runtime_dimensions) ==
+      (rows == dynamic_size ? 1 : 0) + (columns == dynamic_size ? 1 : 0) and
+      (std::is_convertible_v<runtime_dimensions, std::size_t> and ...), int> = 0>
+#endif
+    static auto make_default(runtime_dimensions...e) = delete;
+
+
+    /**
+     * \brief Converts Arg (if it is not already) to a native matrix operable within the library associated with T.
+     * \details The result must be in a form for which basic matrix operations can be performed within the library for T.
+     */
+    template<typename Arg>
+    static decltype(auto) to_native_matrix(Arg&& arg) = delete;
+
+  };
 
 
   /**
@@ -266,7 +270,12 @@ namespace OpenKalman::interface
      * \return The i-th dependency of T
      * \sa OpenKalman::nested_matrix
      */
-    template<std::size_t i, typename Arg>
+#ifdef __cpp_concepts
+    template<std::size_t i, std::convertible_to<const std::remove_reference_t<T>&> Arg>
+#else
+    template<std::size_t i, typename Arg, std::enable_if_t<
+      std::is_convertible_v<Arg, const std::remove_reference_t<T>&>, int> = 0>
+#endif
     static decltype(auto) get_nested_matrix(Arg&& arg) = delete;
 
 
@@ -284,9 +293,9 @@ namespace OpenKalman::interface
      * \return An equivalent self-contained version of T
      */
 #ifdef __cpp_concepts
-    template<typename Arg> requires std::same_as<std::decay_t<Arg>, std::decay_t<T>>
+    template<std::convertible_to<const std::remove_reference_t<T>&> Arg>
 #else
-    template<typename Arg, std::enable_if_t<std::is_same_v<std::decay_t<Arg>, std::decay_t<T>>, int> = 0>
+    template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const std::remove_reference_t<T>&>, int> = 0>
 #endif
     static decltype(auto) convert_to_self_contained(Arg&& arg) = delete;
 
@@ -306,7 +315,72 @@ namespace OpenKalman::interface
 
 
   /**
-   * \brief If T is a constant matrix, this is an interface to that constant.
+   * \internal
+   * \brief Interface to a constant scalar matrix in which all elements are zero.
+   * \details The resulting type is equivalent to T, but may be have a specified shape or scalar type. The interface
+   * can set the size or scalar type of the resulting dense matrix based on the parameters (or if they are dynamic,
+   * rows and columns can be set to \ref dynamic_size).
+   * \note This definition is optional, and has default behavior if not defined.
+   * \tparam T Type upon which the zero matrix will be constructed
+   * \tparam rows The specified row dimension of the matrix (defaults to that of T)
+   * \tparam columns The specified column dimension of the matrix (defaults to that of T)
+   * \tparam Scalar The specified scalar type of the matrix (defaults to that of T)
+   */
+#ifdef __cpp_concepts
+  template<typename T,
+    std::size_t rows = IndexTraits<std::decay_t<T>, 0>::dimension,
+    std::size_t columns = IndexTraits<std::decay_t<T>, 1>::dimension,
+    typename Scalar = typename ScalarTypeOf<std::decay_t<T>>::type>
+#else
+  template<typename T,
+    std::size_t rows = IndexTraits<std::decay_t<T>, 0>::dimension,
+    std::size_t columns = IndexTraits<std::decay_t<T>, 1>::dimension,
+    typename Scalar = typename ScalarTypeOf<std::decay_t<T>>::type,
+    typename = void>
+#endif
+  struct SingleConstantMatrixTraits
+  {
+    /**
+     * \brief Create a \ref zero_matrix corresponding to the shape of T.
+     * \details If T is a \ref dynamic_matrix, you must include one or two runtime dimensions, depending on the number
+     * of indices for which dimensions are not specified at compile time. For example, if the row dimension is known at
+     * compile time but the column dimension is not, you must specify a single dimension reflecting the number of
+     * runtime rows.
+     * \note If this is not defined, it will return an object of type ZeroMatrix.
+     */
+#ifdef __cpp_concepts
+    template<std::convertible_to<std::size_t>...runtime_dimensions> requires
+      (sizeof...(runtime_dimensions) == (rows == dynamic_size ? 1 : 0) + (columns == dynamic_size ? 1 : 0))
+#else
+    template<typename...runtime_dimensions, std::enable_if_t<sizeof...(runtime_dimensions) ==
+      (rows == dynamic_size ? 1 : 0) + (columns == dynamic_size ? 1 : 0) and
+      (std::is_convertible_v<runtime_dimensions, std::size_t> and ...), int> = 0>
+#endif
+    static auto make_zero_matrix(runtime_dimensions...e); //< Defined elsewhere
+
+
+    /**
+     * \brief Create a \ref constant_matrix corresponding to the shape of T.
+     * \details If T is a \ref dynamic_matrix, you must include one or two runtime dimensions, depending on the number
+     * of indices for which dimensions are not specified at compile time. For example, if the row dimension is known at
+     * compile time but the column dimension is not, you must specify a single dimension reflecting the number of
+     * runtime rows.
+     * \note If this is not defined, it will return an object of type ConstantMatrix.
+     */
+#ifdef __cpp_concepts
+    template<auto constant, std::convertible_to<std::size_t>...runtime_dimensions> requires
+      (sizeof...(runtime_dimensions) == (rows == dynamic_size ? 1 : 0) + (columns == dynamic_size ? 1 : 0))
+#else
+    template<auto constant, typename...runtime_dimensions, std::enable_if_t<sizeof...(runtime_dimensions) ==
+      (rows == dynamic_size ? 1 : 0) + (columns == dynamic_size ? 1 : 0) and
+      (std::is_convertible_v<runtime_dimensions, std::size_t> and ...), int> = 0>
+#endif
+    static auto make_constant_matrix(runtime_dimensions...e); //< Defined elsewhere
+  };
+
+
+  /**
+   * \brief If T is an object in which all components are a single constant, this is an interface to that constant.
    * \details The interface must define static constexpr member <code>value</code> representing the constant.
    * The type of <code>value</code> must be convertible to <code>scalar_type_of<T></code>.
    * \note This need only be defined for matrices in which every element is a constant expression.
@@ -327,6 +401,46 @@ namespace OpenKalman::interface
      *   static constexpr typename ScalarTypeOf<T>::type value = 0;
      * \endcode
      */
+  };
+
+
+  /**
+   * \internal
+   * \brief Interface to an identity matrix.
+   * \details The resulting type is equivalent to T, but may be have a specified shape or scalar type. The interface
+   * can set the size or scalar type of the resulting identity matrix based on the parameters (or the dimension is
+   * dynamic, the dimension can be set to \ref dynamic_size).
+   * \tparam T Type upon which the identity matrix will be constructed
+   * \tparam dimension The specified row and column dimension of the matrix (defaults to that of T)
+   * \tparam Scalar The specified scalar type of the matrix (defaults to that of T)
+   */
+#ifdef __cpp_concepts
+  template<typename T,
+    std::size_t dimension = IndexTraits<std::decay_t<T>, 0>::dimension == dynamic_size ?
+      IndexTraits<std::decay_t<T>, 1>::dimension : IndexTraits<std::decay_t<T>, 0>::dimension,
+    typename Scalar = typename ScalarTypeOf<std::decay_t<T>>::type>
+#else
+  template<typename T,
+    std::size_t dimension = IndexTraits<std::decay_t<T>, 0>::dimension == dynamic_size ?
+          IndexTraits<std::decay_t<T>, 1>::dimension : IndexTraits<std::decay_t<T>, 0>::dimension,
+    typename Scalar = typename ScalarTypeOf<std::decay_t<T>>::type,
+    typename = void>
+#endif
+  struct SingleConstantDiagonalMatrixTraits
+  {
+    /**
+     * \brief Create an \ref identity_matrix corresponding to the shape of T.
+     * \details If T is a \ref dynamic_matrix, you must include a single dimension as an argument,
+     * reflecting both the rows and columns of the identity matrix.
+     */
+#ifdef __cpp_concepts
+    template<std::convertible_to<std::size_t>...runtime_dimensions> requires
+      (sizeof...(runtime_dimensions) == (dimension == dynamic_size ? 1 : 0))
+#else
+    template<typename...runtime_dimensions, std::enable_if_t<(std::is_convertible_v<runtime_dimensions, std::size_t> and ...) and
+      (sizeof...(runtime_dimensions) == (dimension == dynamic_size ? 1 : 0)), int> = 0>
+#endif
+    static auto make_identity_matrix(runtime_dimensions...e) = delete;
   };
 
 
@@ -357,47 +471,83 @@ namespace OpenKalman::interface
 
 
   /**
-   * \brief An interface to features for getting individual elements of matrix T using indices I... of type std::size_t.
-   * \detail The interface may define static member function <code>get</code> with one or two indices. If
-   * getting an element is not possible, leave <code>get</code> undefined.
-   * \note OpenKalman only recognizes indices of type <code>std::size_t</code>.
-   * \tparam I The indices (each of type std::size_t)
+   * \brief An interface to properties of a diagonal matrix.
+   * \details If T is a diagonal matrix, the interface must define static constexpr bool member <code>value</code> as
+   * true.
+   * \note This class need only be defined for diagonal matrices.
    */
 #ifdef __cpp_concepts
-  template<typename T, typename...I>
+  template<typename T>
 #else
-  template<typename T, typename = void, typename...I>
+  template<typename T, typename = void>
 #endif
-  struct GetElement
+  struct DiagonalTraits
   {
-    static_assert((std::is_convertible_v<I, const std::size_t&> and ...));
-
-    /// Get element at indices (i...) of matrix arg
-    template<typename Arg>
-    static constexpr auto get(Arg&& arg, I...i) = delete;
+    /**
+     * \brief Whether T is diagonal.
+     */
+    static constexpr bool is_diagonal = false;
   };
 
 
   /**
-   * \brief An interface to features for setting individual elements of matrix T using indices I... of type std::size_t.
-   * \detail The interface may define static member function <code>set</code> with one or two indices. If
-   * setting an element is not possible, leave <code>set</code> undefined.
-   * \note OpenKalman only recognizes indices of type <code>std::size_t</code>.
-   * \tparam I The indices (each of type std::size_t)
+   * \brief An interface to properties of a triangular matrix.
+   * \note This class need only be defined for triangular matrices.
    */
 #ifdef __cpp_concepts
-  template<typename T, typename...I>
+  template<typename T>
 #else
-  template<typename T, typename = void, typename...I>
+  template<typename T, typename = void>
 #endif
-  struct SetElement
+  struct TriangularTraits
   {
-    static_assert((std::is_convertible_v<I, const std::size_t&> and ...));
+    /**
+     * \brief The triangle type of T.
+     * \details This trait should propagate from any nested matrices or matrices involved in any expression arguments.
+     */
+    static constexpr TriangleType triangle_type = TriangleType::none;
 
-    /// Set element at indices (i...) of matrix arg to s.
-    template<typename Arg>
-    static void set(Arg& arg, const typename ScalarTypeOf<std::decay_t<Arg>>::type& s, I...i) = delete;
+    /**
+     * \brief Whether T is a triangular adapter.
+     */
+    static constexpr bool is_triangular_adapter = false;
   };
+
+
+  /**
+   * \brief An interface to properties of a hermitian matrix.
+   * \note This class need only be defined for hermitian matrices.
+   */
+#ifdef __cpp_concepts
+  template<typename T>
+#else
+  template<typename T, typename = void>
+#endif
+  struct HermitianTraits
+  {
+    /**
+     * \brief Whether T is hermitian.
+     */
+    static constexpr bool is_hermitian = false;
+
+    /**
+     * \brief The storage type of T, if T is a hermitian adapter.
+     * \details This trait should propagate from the nested matrices in any expression or wrapper class. If T is not
+     * hermitian, this can be defined as TriangleType::none. T can be hermitian without being a hermitian adapter.
+     * But if this value is other than TriangleType::none, then <code>value</code> should be <code>true</code>.
+     */
+     static constexpr TriangleType adapter_type = TriangleType::none;
+  };
+
+
+#ifdef __cpp_concepts
+    template<typename T>
+#else
+    template<typename T, typename = void>
+#endif
+    struct ElementAccess
+    {
+    };
 
 
   /**
@@ -438,6 +588,53 @@ namespace OpenKalman::interface
 #endif
   struct Conversions
   {
+
+    /**
+     * \brief Convert a column vector into a diagonal matrix.
+     * \details An interface need not deal with the following situations, which are already handled by the
+     * global \ref OpenKalman::to_diagonal "to_diagonal" function:
+     * - a one-by-one matrix
+     * - a zero matrix that is known to be square at compile time
+     * The interface function <em>should</em> deal with a zero matrix of uncertain size. If the native matrix library
+     * does not have a diagonal matrix type, the interface may construct a diagonal matrix using DiagonalMatrix.
+     * \tparam Arg A column vector.
+     */
+#ifdef __cpp_concepts
+    template<std::convertible_to<const std::remove_reference_t<T>&> Arg> requires
+      (IndexTraits<std::decay_t<T>, 1>::dimension == 1) or (IndexTraits<std::decay_t<T>, 1>::dimension == dynamic_size)
+#else
+    template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const std::remove_reference_t<T>&> and
+      ((IndexTraits<std::decay_t<T>, 1>::dimension == 1) or
+       (IndexTraits<std::decay_t<T>, 1>::dimension == dynamic_size)), int> = 0>
+#endif
+    static constexpr auto
+    to_diagonal(Arg&& arg) = delete;
+
+
+    /**
+     * \brief Extract a column vector comprising the diagonal elements of a square matrix.
+     * \details An interface need not deal with the following situations, which are already handled by the
+     * global \ref OpenKalman::diagonal_of "diagonal_of" function:
+     * - an identity matrix
+     * - a zero matrix
+     * - a constant matrix or constant-diagonal matrix
+     * \tparam Arg A square matrix.
+     * \returns A column vector
+     */
+#ifdef __cpp_concepts
+    template<std::convertible_to<const std::remove_reference_t<T>&> Arg> requires
+      (IndexTraits<std::decay_t<T>, 0>::dimension == dynamic_size) or
+      (IndexTraits<std::decay_t<T>, 1>::dimension == dynamic_size) or
+      (IndexTraits<std::decay_t<T>, 0>::dimension == IndexTraits<std::decay_t<T>, 1>::dimension)
+#else
+    template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const std::remove_reference_t<T>&> and
+      ((IndexTraits<std::decay_t<T>, 0>::dimension == dynamic_size) or
+       (IndexTraits<std::decay_t<T>, 1>::dimension == dynamic_size) or
+       (IndexTraits<std::decay_t<T>, 0>::dimension == IndexTraits<std::decay_t<T>, 1>::dimension)), int> = 0>
+#endif
+    static constexpr auto
+    diagonal_of(Arg&& arg) = delete;
+
   };
 
 
@@ -456,7 +653,11 @@ namespace OpenKalman::interface
      * \brief Take the conjugate of T
      * \tparam Arg An object of type T
      */
-    template<typename Arg>
+#ifdef __cpp_concepts
+    template<std::convertible_to<const std::remove_reference_t<T>&> Arg>
+#else
+    template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const std::remove_reference_t<T>&>, int> = 0>
+#endif
     static constexpr auto conjugate(Arg&&) = delete;
 
 
@@ -464,7 +665,11 @@ namespace OpenKalman::interface
      * \brief Take the transpose of T
      * \tparam Arg An object of type T
      */
-    template<typename Arg>
+#ifdef __cpp_concepts
+    template<std::convertible_to<const std::remove_reference_t<T>&> Arg>
+#else
+    template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const std::remove_reference_t<T>&>, int> = 0>
+#endif
     static constexpr auto transpose(Arg&&) = delete;
 
 
@@ -472,7 +677,11 @@ namespace OpenKalman::interface
      * \brief Take the adjoint of T
      * \tparam Arg An object of type T
      */
-    template<typename Arg>
+#ifdef __cpp_concepts
+    template<std::convertible_to<const std::remove_reference_t<T>&> Arg>
+#else
+    template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const std::remove_reference_t<T>&>, int> = 0>
+#endif
     static constexpr auto adjoint(Arg&&) = delete;
 
 
@@ -480,7 +689,11 @@ namespace OpenKalman::interface
      * \brief Take the determinant of T
      * \tparam Arg An object of type T
      */
-    template<typename Arg>
+#ifdef __cpp_concepts
+    template<std::convertible_to<const std::remove_reference_t<T>&> Arg>
+#else
+    template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const std::remove_reference_t<T>&>, int> = 0>
+#endif
     static constexpr auto determinant(Arg&&) = delete;
 
 
@@ -488,7 +701,11 @@ namespace OpenKalman::interface
      * \brief Take the trace of T
      * \tparam Arg An object of type T
      */
-    template<typename Arg>
+#ifdef __cpp_concepts
+    template<std::convertible_to<const std::remove_reference_t<T>&> Arg>
+#else
+    template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const std::remove_reference_t<T>&>, int> = 0>
+#endif
     static constexpr auto trace(Arg&&) = delete;
 
 
@@ -505,7 +722,12 @@ namespace OpenKalman::interface
      * \tparam U The update vector or matrix.
      * \returns an updated native, writable matrix in hermitian form.
      */
-    template<TriangleType t, typename A, typename U, typename Alpha>
+#ifdef __cpp_concepts
+    template<TriangleType t, std::convertible_to<const std::remove_reference_t<T>&> A, typename U, typename Alpha>
+#else
+    template<TriangleType t, typename A, typename U, typename Alpha, std::enable_if_t<
+      std::is_convertible_v<A, const std::remove_reference_t<T>&>, int> = 0>
+#endif
     static decltype(auto) rank_update_self_adjoint(A&&, U&&, const Alpha) = delete;
 
 
@@ -524,7 +746,12 @@ namespace OpenKalman::interface
      * \tparam U The update vector or matrix.
      * \returns an updated native, writable matrix in triangular (or diagonal) form.
      */
-    template<TriangleType t, typename A, typename U, typename Alpha>
+#ifdef __cpp_concepts
+    template<TriangleType t, std::convertible_to<const std::remove_reference_t<T>&> A, typename U, typename Alpha>
+#else
+    template<TriangleType t, typename A, typename U, typename Alpha, std::enable_if_t<
+      std::is_convertible_v<A, const std::remove_reference_t<T>&>, int> = 0>
+#endif
     static decltype(auto) rank_update_triangular(A&&, U&&, const Alpha) = delete;
 
   };
@@ -544,137 +771,8 @@ namespace OpenKalman
   /**
    * \internal
    * \brief A type trait class for any matrix T.
-   * \details This class includes key information about a matrix or matrix expression, such as its dimensions,
+   * \details This class includes key information about a matrix or matrix expression, such as its dimension,
    * coefficient types, etc.
-   * <table class = "memberdecls">
-   * <tr class="heading"><td colspan="2"><h2 class="groupheader">Static Public Attributes</h2></td></tr>
-   * <tr><td class="memItemLeft" align="right" valign="top">static constexpr std::size_t&nbsp;</td>
-   * <td id="afwtraitsrows" class="memItemRight" valign="bottom"><b>rows</b></td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td>
-   * <td class="mdescRight">The number of rows of the matrix (or 0 if dynamic).<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   * <tr><td class="memItemLeft" align="right" valign="top">static constexpr std::size_t&nbsp;</td>
-   * <td id="afwtraitscolumns" class="memItemRight" valign="bottom"><b>columns</b></td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td>
-   * <td class="mdescRight">The number of columns in the matrix (or 0 if dynamic). <br /></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   * </table>
-   *
-   * <table class = "memberdecls">
-   * <tr class="heading"><td colspan="2"><h2 class="groupheader">Public Aliases</h2></td></tr>
-   *   <tr><td class="memItemLeft" align="right" valign="top">using&nbsp;</td>
-   * <td class="memItemRight" valign="bottom"><b>Scalar</b></td></tr>
-   * <tr><td id="afwtraitsScalar" class="mdescLeft">&nbsp;</td><td class="mdescRight">Scalar type of T.<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   *   <tr><td class="memItemLeft" align="right" valign="top">using&nbsp;</td>
-   * <td class="memItemRight" valign="bottom"><b>NestedMatrix</b></td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
-   * (optional) If T has a nested matrix, this is an alias for that nested matrix.<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   *   <tr><td class="memItemLeft" align="right" valign="top">using&nbsp;</td>
-   * <td id="afwtraitsRC" class="memItemRight" valign="bottom"><b>RowCoefficients</b></td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
-   * The coefficient types associated with the rows of T.
-   * This is only applicable for matrices with typed coefficients.<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   *   <tr><td class="memItemLeft" align="right" valign="top">using&nbsp;</td>
-   * <td id="afwtraitsCC" class="memItemRight" valign="bottom"><b>ColumnCoefficients</b></td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
-   * The coefficient types associated with the columns of T.
-   * This is only applicable for matrices with typed coefficients.<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   *   <tr><td class="memTemplParams" colspan="2">
-   * template&lt;\ref TriangleType storage_triangle = \ref TriangleType::lower,
-   * std::size_t size = <a href="afwtraitsrows">rows</a>,
-   * typename S = <a href="afwtraitsScalar">Scalar</a>&gt;</td></tr>
-   * <tr><td class="memTemplItemLeft" align="right" valign="top">using&nbsp;</td>
-   * <td class="memTemplItemRight" valign="bottom"><b>SelfAdjointMatrixFrom</b></td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
-   * (Available if T is a native matrix.) A writable, native self-adjoint matrix type equivalent to T.
-   * Alternatively, you can specify the <code>storage_triangle</code> (upper, lower, diagonal) where the coefficients
-   * are stored, the <code>size</code> of the matrix, and the scalar type <code>S</code> type
-   * (integral or floating-point) of the new matrix.<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   *   <tr><td class="memTemplParams" colspan="2">
-   * template&lt;\ref TriangleType triangle_type = \ref TriangleType::lower,
-   * std::size_t size = <a href="afwtraitsrows">rows</a>,
-   * typename S = <a href="afwtraitsScalar">Scalar</a>&gt;</td></tr>
-   * <tr><td class="memTemplItemLeft" align="right" valign="top">using&nbsp;</td>
-   * <td class="memTemplItemRight" valign="bottom"><b>TriangularMatrixFrom</b></td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
-   * (Available if T is a native matrix.) A writable, native triangular matrix type equivalent to T.
-   * Alternatively, you can specify the <code>triangle_type</code> (upper, lower, diagonal) of the triangular matrix,
-   * the <code>size</code> of the matrix, and the scalar type <code>S</code> type (integral or floating-point)
-   * of the new matrix.<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   *   <tr><td class="memTemplParams" colspan="2">
-   * template&lt;std::size_t size = <a href="afwtraitsrows">rows</a>,
-   * typename S = <a href="afwtraitsScalar">Scalar</a>&gt;</td></tr>
-   * <tr><td class="memTemplItemLeft" align="right" valign="top">using&nbsp;</td>
-   * <td class="memTemplItemRight" valign="bottom"><b>DiagonalMatrixFrom</b></td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
-   * (Available if T is a native matrix.) A writable, native diagonal matrix type equivalent to T.
-   * Alternatively, you can specify the <code>size</code> of the matrix and
-   * the scalar type <code>S</code> type (integral or floating-point)
-   * of the new matrix.<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   *   <tr><td class="memTemplParams" colspan="2">template&lt;typename T&gt;</td></tr>
-   * <tr><td class="memTemplItemLeft" align="right" valign="top">using&nbsp;</td>
-   * <td class="memTemplItemRight" valign="bottom"><b>MatrixBaseFrom</b></td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
-   * A native base type for any class Derived for which T is a nested matrix class.
-   * This is the mechanism by which new matrix types can inherit from a base class of the matrix library.<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   * </table>
-   *
-   * <table class = "memberdecls">
-   * <tr class="heading"><td colspan="2"><h2 class="groupheader">Static Public Member Functions</h2></td></tr>
-   *   <tr><td class="memItemLeft" align="right" valign="top">static auto&nbsp;</td>
-   * <td class="memItemRight" valign="bottom"><b>zero</b> ()</td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
-   * Make a matrix of type T with only zero coefficients.<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   *   <tr><td class="memItemLeft" align="right" valign="top">static auto&nbsp;</td>
-   * <td class="memItemRight" valign="bottom"><b>identity</b> ()</td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
-   * Make an identity matrix based on T. The resulting type will be a
-   * square matrix of size <a href="afwtraitsrows">rows</a>.<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   *   <tr><td class="memTemplParams" colspan="2">template&lt;typename Arg&gt;</td></tr>
-   * <tr><td class="memTemplItemLeft" align="right" valign="top">static auto&nbsp;</td>
-   * <td class="memTemplItemRight" valign="bottom"><b>make</b> (Arg&& arg) noexcept</td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
-   * Make a matrix of type T from a native matrix of type Arg.
-   * It might have a different size and shape.<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   *   <tr><td class="memTemplParams" colspan="2">
-   * template&lt;\ref OpenKalman::coefficients "coefficients" RC = <a href="afwtraitsRC">RowCoefficients</a>,
-   * \ref OpenKalman::coefficients "coefficients" CC = <a href="afwtraitsCC">ColumnCoefficients</a>,
-   * \ref typed_matrix_nestable Arg&gt;</td></tr>
-   * <tr><td class="memTemplItemLeft" align="right" valign="top">static auto&nbsp;</td>
-   * <td class="memTemplItemRight" valign="bottom"><b>make</b> (Arg&& arg) noexcept</td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
-   * (Available if T is a \ref typed_matrix.) Make a self-contained typed matrix based on T.<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   *   <tr><td class="memTemplParams" colspan="2">
-   * template&lt;\ref OpenKalman::coefficients "coefficients" C = <a href="afwtraitsRC">RowCoefficients</a>,
-   * \ref covariance_nestable Arg&gt;</td></tr>
-   * <tr><td class="memTemplItemLeft" align="right" valign="top">static auto&nbsp;</td>
-   * <td class="memTemplItemRight" valign="bottom"><b>make</b> (Arg&& arg) noexcept</td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
-   * (Available if T is a \ref covariance.) Make a self-contained covariance matrix based on T.<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   *   <tr><td class="memTemplParams" colspan="2">
-   * template&lt;std::convertible_to&lt;const <a href="afwtraitsScalar">Scalar</a>&gt; ... Args&gt;
-   * requires (sizeof...(Args) == <a href="afwtraitsrows">rows</a> * <a href="afwtraitscolumns">columns</a>)
-   * </td></tr>
-   * <tr><td class="memTemplItemLeft" align="right" valign="top">static auto&nbsp;</td>
-   * <td class="memTemplItemRight" valign="bottom"><b>make</b> (const Args ... args) noexcept</td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
-   * (If T is a native matrix.) Make a self-contained native matrix from a list of coefficients
-   * in row-major order.<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   * </table>
    * \tparam T The matrix type. The type is treated as non-qualified, even if it is const or a reference.
    */
 #ifdef __cpp_concepts
@@ -703,65 +801,8 @@ namespace OpenKalman
   /**
    * \internal
    * \brief A type trait class for any distribution T.
-   * \details This class includes key information about a matrix or matrix expression, such as its dimensions,
+   * \details This class includes key information about a matrix or matrix expression, such as its dimension,
    * coefficient types, etc.
-   * <table class = "memberdecls">
-   * <tr class="heading"><td colspan="2"><h2 class="groupheader">Static Public Attributes</h2></td></tr>
-   *   <tr><td class="memItemLeft" align="right" valign="top">static constexpr std::size_t&nbsp;</td>
-   * <td id="afwtraitsDdimension" class="memItemRight" valign="bottom"><b>dimensions</b></td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">The number of rows of the matrix.<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   * </table>
-   *
-   * <table class = "memberdecls">
-   * <tr class="heading"><td colspan="2"><h2 class="groupheader">Public Aliases</h2></td></tr>
-   *   <tr><td class="memItemLeft" align="right" valign="top">using&nbsp;</td>
-   * <td class="memItemRight" valign="bottom"><b>Scalar</b></td></tr>
-   * <tr><td id="afwtraitsDScalar" class="mdescLeft">&nbsp;</td><td class="mdescRight">Scalar type of T.<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   *   <tr><td class="memItemLeft" align="right" valign="top">using&nbsp;</td>
-   * <td id="afwtraitsDRC" class="memItemRight" valign="bottom"><b>%Coefficients</b></td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
-   * The types of \ref OpenKalman::coefficients "coefficients" associated with the
-   * mean and covariance of T.<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   *   <tr><td class="memItemLeft" align="right" valign="top">using&nbsp;</td>
-   * <td class="memItemRight" valign="bottom"><b>random_number_engine</b></td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
-   * The random number engine associated with generating samples within distribution T.<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   * </table>
-   *
-   * <table class = "memberdecls">
-   * <tr class="heading"><td colspan="2"><h2 class="groupheader">Static Public Member Functions</h2></td></tr>
-   *   <tr><td class="memItemLeft" align="right" valign="top">static auto&nbsp;</td>
-   * <td class="memItemRight" valign="bottom"><b>zero</b> ()</td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
-   * Make a distribution of type T in which the mean and covariance matrix have only zero coefficients.<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   *   <tr><td class="memItemLeft" align="right" valign="top">static auto&nbsp;</td>
-   * <td class="memItemRight" valign="bottom"><b>normal</b> ()</td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
-   * Make a normal distribution based on T. It will have zero mean and an identity covariance matrix.<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   *   <tr><td class="memTemplParams" colspan="2">
-   * template&lt;\ref OpenKalman::coefficients "coefficients" C = <a href="afwtraitsDRC">Coefficients</a>,
-   * \ref mean M, \ref OpenKalman::covariance "covariance" Cov&gt;</td></tr>
-   * <tr><td class="memTemplItemLeft" align="right" valign="top">static auto&nbsp;</td>
-   * <td class="memTemplItemRight" valign="bottom"><b>make</b> (M&& mean, Cov&& covariance) noexcept</td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
-   * Make a self-contained distribution based on T.<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   *   <tr><td class="memTemplParams" colspan="2">
-   * template&lt;\ref OpenKalman::coefficients "coefficients" C = <a href="afwtraitsDRC">Coefficients</a>,
-   * \ref mean M, \ref OpenKalman::covariance "covariance" Cov&gt; requires column_vector&lt;M&gt; and
-   * (row_extent_v&lt;Mean&gt; == row_extent_v&lt;Cov&gt;)</td></tr>
-   * <tr><td class="memTemplItemLeft" align="right" valign="top">static auto&nbsp;</td>
-   * <td class="memTemplItemRight" valign="bottom"><b>make</b> (M&& mean, Cov&& covariance) noexcept</td></tr>
-   * <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
-   * Make a self-contained distribution based on T.<br/></td></tr>
-   * <tr><td class="memSeparator" colspan="2">&nbsp;</td></tr>
-   * </table>
    * \sa MatrixTraits
    * \tparam T The distribution type. The type is treated as non-qualified, even if it is const or a reference.
    */

@@ -23,7 +23,7 @@ using M23 = eigen_matrix_t<double, 2, 3>;
 using M32 = eigen_matrix_t<double, 3, 2>;
 using M33 = eigen_matrix_t<double, 3, 3>;
 using I22 = IdentityMatrix<M22>;
-using Z22 = ZeroMatrix<double, 2, 2>;
+using Z22 = ZeroMatrix<eigen_matrix_t<double, 2, 2>>;
 using C2 = Coefficients<Axis, angle::Radians>;
 using C3 = Coefficients<Axis, angle::Radians, Axis>;
 using Mat12 = Matrix<Axis, C2, M12>;
@@ -74,7 +74,7 @@ TEST(matrices, TypedMatrix_class)
   EXPECT_TRUE(is_near(mat23_x3, Mat23 {1, 2, 3, pi/3, pi/6, pi/4}));
 
   // Construct from a regular matrix
-  Mat23 mat23d(make_native_matrix<M23>(1, 2, 3, 4, 5, 6));
+  Mat23 mat23d(make_dense_writable_matrix_from<M23>(1, 2, 3, 4, 5, 6));
   EXPECT_TRUE(is_near(mat23d, Mat23 {1, 2, 3, 4, 5, 6}));
 
   // Convert from a compatible covariance
@@ -134,7 +134,7 @@ TEST(matrices, TypedMatrix_class)
   EXPECT_TRUE(is_near(mat23_x3, Mat23 {3, 2, 1, pi/6, pi/4, pi/3}));
 
   // assign from a regular matrix
-  mat23e = make_native_matrix<M23>(3, 4, 5, 6, 7, 8);
+  mat23e = make_dense_writable_matrix_from<M23>(3, 4, 5, 6, 7, 8);
 
   // Assign from a list of coefficients (via move assignment operator)
   mat23e = {6, 5, 4, 3, 2, 1};
@@ -186,10 +186,10 @@ TEST(matrices, TypedMatrix_class)
   EXPECT_TRUE(is_near(mat23a, M23::Zero()));
 
   // Zero
-  EXPECT_TRUE(is_near(Mat23::zero(), M23::Zero()));
+  EXPECT_TRUE(is_near(make_zero_matrix_like<Mat23>(), M23::Zero()));
 
   // Identity
-  EXPECT_TRUE(is_near(Mat22::identity(), M22::Identity()));
+  EXPECT_TRUE(is_near(make_identity_matrix_like<Mat22>(), M22::Identity()));
 }
 
 
@@ -236,7 +236,7 @@ TEST(matrices, TypedMatrix_subscripts)
 
 TEST(matrices, TypedMatrix_deduction_guides)
 {
-  auto a = make_native_matrix<M23>(1, 2, 3, 4, 5, 6);
+  auto a = make_dense_writable_matrix_from<M23>(1, 2, 3, 4, 5, 6);
   EXPECT_TRUE(is_near(Matrix(a), a));
   static_assert(equivalent_to<typename MatrixTraits<decltype(Matrix(a))>::RowCoefficients, Axes<2>>);
   static_assert(equivalent_to<typename MatrixTraits<decltype(Matrix(a))>::ColumnCoefficients, Axes<3>>);
@@ -267,7 +267,7 @@ TEST(matrices, TypedMatrix_deduction_guides)
 
 TEST(matrices, TypedMatrix_make_functions)
 {
-  auto a = make_native_matrix<M23>(1, 2, 3, 4, 5, 6);
+  auto a = make_dense_writable_matrix_from<M23>(1, 2, 3, 4, 5, 6);
   EXPECT_TRUE(is_near(make_matrix<C2, C3>(a), a));
   static_assert(equivalent_to<typename MatrixTraits<decltype(make_matrix<C2, C3>(a))>::RowCoefficients, C2>);
   static_assert(equivalent_to<typename MatrixTraits<decltype(make_matrix<C2, C3>(a))>::ColumnCoefficients, C3>);
@@ -310,12 +310,12 @@ TEST(matrices, TypedMatrix_traits)
   static_assert(not identity_matrix<Matrix<C2, Axes<2>, I22>>);
   static_assert(not zero_matrix<Mat23>);
   static_assert(zero_matrix<Matrix<C2, C2, Z22>>);
-  static_assert(zero_matrix<Matrix<C2, C3, ZeroMatrix<double, 2, 3>>>);
+  static_assert(zero_matrix<Matrix<C2, C3, ZeroMatrix<eigen_matrix_t<double, 2, 3>>>>);
 
   EXPECT_TRUE(is_near(MatrixTraits<Mat23>::make(
     make_eigen_matrix<double, 2, 3>(1, 2, 3, 4, 5, 6)).nested_matrix(), Mat23 {1, 2, 3, 4, 5, 6}));
-  EXPECT_TRUE(is_near(MatrixTraits<Mat23>::zero(), eigen_matrix_t<double, 2, 3>::Zero()));
-  EXPECT_TRUE(is_near(MatrixTraits<Mat22>::identity(), eigen_matrix_t<double, 2, 2>::Identity()));
+  EXPECT_TRUE(is_near(make_zero_matrix_like<Mat23>(), eigen_matrix_t<double, 2, 3>::Zero()));
+  EXPECT_TRUE(is_near(make_identity_matrix_like<Mat22>(), eigen_matrix_t<double, 2, 2>::Identity()));
 }
 
 
@@ -330,7 +330,7 @@ TEST(matrices, TypedMatrix_overloads)
 
   EXPECT_TRUE(is_near(nested_matrix(Mat23 {1, 2, 3, 4, 5, 6}), Mat23 {1, 2, 3, 4, 5, 6}));
 
-  EXPECT_TRUE(is_near(make_native_matrix(Mat23 {1, 2, 3, 4, 5, 6}), Mat23 {1, 2, 3, 4, 5, 6}));
+  EXPECT_TRUE(is_near(make_dense_writable_matrix_from(Mat23 {1, 2, 3, 4, 5, 6}), Mat23 {1, 2, 3, 4, 5, 6}));
 
   EXPECT_TRUE(is_near(make_self_contained(Mat23 {1, 2, 3, 4, 5, 6} * 2), Mat23 {2, 4, 6, 8, 10, 12}));
   static_assert(std::is_same_v<std::decay_t<decltype(make_self_contained(Mat23 {1, 2, 3, 4, 5, 6} * 2))>, Mat23>);
@@ -362,7 +362,7 @@ TEST(matrices, TypedMatrix_overloads)
   EXPECT_TRUE(is_near(square(QR_decomposition(Matrix<Axes<3>, C2, M32> {1, 4, 2, 5, 3, 6})), Mat22 {14, 32, 32, 77}));
 
   using N = std::normal_distribution<double>;
-  Mat23 m = Mat23::zero();
+  Mat23 m = make_zero_matrix_like<Mat23>();
   for (int i=0; i<100; i++)
   {
     m = (m * i + randomize<Mat23>(N {1.0, 0.1}, 2.0, N {3.0, 0.1}, N {4.0, 0.1}, 5.0, N {6.0, 0.1})) / (i + 1);

@@ -33,89 +33,6 @@
 namespace OpenKalman
 {
 
-  // --------------------- //
-  //    algebraic_field    //
-  // --------------------- //
-
-#ifndef __cpp_concepts
-  namespace detail
-  {
-    template<typename T, typename = void>
-    struct is_algebraic_field : std::false_type {};
-
-
-    template<typename T>
-    struct is_algebraic_field<T, std::enable_if_t<
-      std::is_convertible_v<decltype(std::declval<T>() + std::declval<T>()), const std::decay_t<T>> and
-      std::is_convertible_v<decltype(std::declval<T>() - std::declval<T>()), const std::decay_t<T>> and
-      std::is_convertible_v<decltype(std::declval<T>() * std::declval<T>()), const std::decay_t<T>> and
-      std::is_convertible_v<decltype(std::declval<T>() / std::declval<T>()), const std::decay_t<T>>>> : std::true_type {};
-  }
-#endif
-
-
-  /**
-   * \brief T is an algebraic field (i.e., + - * and / are defined).
-   * \details OpenKalman presumes that elements of an algebraic field may be the entries of a matrix.
-   * This includes integral, floating point, and complex values.
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept algebraic_field =
-    requires(T t1, T t2) { {t1 + t2} -> std::convertible_to<const std::decay_t<T>>; } and
-    requires(T t1, T t2) { {t1 - t2} -> std::convertible_to<const std::decay_t<T>>; } and
-    requires(T t1, T t2) { {t1 * t2} -> std::convertible_to<const std::decay_t<T>>; } and
-    requires(T t1, T t2) { {t1 / t2} -> std::convertible_to<const std::decay_t<T>>; };
-#else
-  constexpr bool algebraic_field = detail::is_algebraic_field<std::decay_t<T>>::value;
-#endif
-
-
-  // -------------------- //
-  //    complex_number    //
-  // -------------------- //
-
-  namespace internal
-  {
-#ifdef __cpp_concepts
-    template<typename T>
-#else
-    template<typename T, typename = void>
-#endif
-    struct is_complex_number : std::false_type {};
-
-
-    template<typename T>
-    struct is_complex_number<std::complex<T>> : std::true_type {};
-  }
-
-
-  /**
-   * \brief T is a std::complex.
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept complex_number = internal::is_complex_number<std::decay_t<T>>::value;
-#else
-  constexpr bool complex_number = internal::is_complex_number<std::decay_t<T>>::value;
-#endif
-
-
-  // --------------------------- //
-  //    arithmetic_or_complex    //
-  // --------------------------- //
-
-  /**
-   * \brief T is an std::arithmetic number or std::complex number.
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept arithmetic_or_complex = std::is_arithmetic_v<T> or complex_number<T>;
-#else
-  constexpr bool arithmetic_or_complex = std::is_arithmetic_v<T> or complex_number<T>;
-#endif
-
-
   // ---------------- //
   //   Coefficients   //
   // ---------------- //
@@ -301,62 +218,77 @@ namespace OpenKalman
 #endif
 
 
-  // --------------- //
-  //  row_extent_of  //
-  // --------------- //
+  // -------------------- //
+  //    complex_number    //
+  // -------------------- //
 
-  /**
-   * \brief The row extent of a matrix, expression, or array.
-   * \note If the row extent is dynamic, then <code>value</code> is \ref dynamic_extent.
-   * \tparam T The matrix, expression, or array.
-   * \internal \sa interface::RowExtentOf
-   */
+  namespace internal
+  {
 #ifdef __cpp_concepts
-  template<typename T> requires requires { typename interface::RowExtentOf<std::decay_t<T>>; }
+    template<typename T>
 #else
-  template<typename T>
+    template<typename T, typename = void>
 #endif
-  using row_extent_of = interface::RowExtentOf<std::decay_t<T>>;
+    struct is_complex_number : std::false_type {};
 
 
-  /**
-   * \brief helper template for \ref row_extent_of.
-   */
-#ifdef __cpp_concepts
-  template<typename T> requires requires { row_extent_of<T>::value; }
-#else
-  template<typename T>
-#endif
-  static constexpr auto row_extent_of_v = row_extent_of<T>::value;
-
-
-  // ------------------ //
-  //  column_extent_of  //
-  // ------------------ //
-
-  /**
-   * \brief The column extent of a matrix, expression, or array.
-   * \note If the column extent is dynamic, then <code>value</code> is \ref dynamic_extent.
-   * \tparam T The matrix, expression, or array.
-   * \internal \sa interface::ColumnExtentOf
-   */
-#ifdef __cpp_concepts
-  template<typename T> requires requires { typename interface::ColumnExtentOf<std::decay_t<T>>; }
-#else
-  template<typename T>
-#endif
-  using column_extent_of = interface::ColumnExtentOf<std::decay_t<T>>;
+    template<typename T>
+    struct is_complex_number<std::complex<T>> : std::true_type {};
+  }
 
 
   /**
-   * \brief helper template for \ref column_extent_of.
+   * \brief T is a std::complex.
    */
-#ifdef __cpp_concepts
-  template<typename T> requires requires { column_extent_of<T>::value; }
-#else
   template<typename T>
+#ifdef __cpp_concepts
+  concept complex_number = internal::is_complex_number<std::decay_t<T>>::value;
+#else
+  constexpr bool complex_number = internal::is_complex_number<std::decay_t<T>>::value;
 #endif
-  static constexpr auto column_extent_of_v = column_extent_of<T>::value;
+
+
+  // ----------------- //
+  //    scalar_type    //
+  // ----------------- //
+
+#ifndef __cpp_concepts
+  namespace detail
+  {
+    template<typename T, typename = void>
+    struct is_scalar_type : std::false_type {};
+
+
+    template<typename T>
+    struct is_scalar_type<T, std::enable_if_t<
+      std::is_convertible_v<decltype(std::declval<T>() + std::declval<T>()), const std::decay_t<T>> and
+      std::is_convertible_v<decltype(std::declval<T>() - std::declval<T>()), const std::decay_t<T>> and
+      std::is_convertible_v<decltype(std::declval<T>() * std::declval<T>()), const std::decay_t<T>> and
+      std::is_convertible_v<decltype(std::declval<T>() / std::declval<T>()), const std::decay_t<T>>>>
+      : std::true_type {};
+  }
+#endif
+
+
+  /**
+   * \brief T is a scalar type (i.e., is arithmetic, complex, or other number in which + - * and / are defined).
+   * \details OpenKalman presumes that elements of an algebraic field may be the entries of a matrix.
+   * This includes integral, floating point, and complex values. T need not be an algebraic field, but this concept
+   * is designed, conceptually, to capture the idea of a non-commutative division ring that is not necessarily
+   * associative under multiplication.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept scalar_type = std::is_arithmetic_v<T> or complex_number<T> or
+    requires(T t1, T t2) {
+      {t1 + t2} -> std::convertible_to<const std::decay_t<T>>;
+      {t1 - t2} -> std::convertible_to<const std::decay_t<T>>;
+      {t1 * t2} -> std::convertible_to<const std::decay_t<T>>;
+      {t1 / t2} -> std::convertible_to<const std::decay_t<T>>; };
+#else
+  constexpr bool scalar_type = std::is_arithmetic_v<T> or complex_number<T> or
+    detail::is_scalar_type<std::decay_t<T>>::value;
+#endif
 
 
   // ---------------- //
@@ -387,75 +319,268 @@ namespace OpenKalman
   using scalar_type_of_t = typename scalar_type_of<T>::type;
 
 
-  // -------------- //
-  //  dynamic_rows  //
-  // -------------- //
+  // ---------------- //
+  //  max_indices_of  //
+  // ---------------- //
+
+  /**
+   * \brief The maximum number of indices of structure T.
+   * \tparam T A tensor (vector, matrix, etc.)
+   */
+  template<typename T>
+  struct max_indices_of
+    : std::integral_constant<std::size_t, interface::StorageArrayTraits<std::decay_t<T>>::max_indices> {};
+
+
+  /**
+   * \brief helper template for \ref max_indices_of.
+   */
+  template<typename T>
+  static constexpr auto max_indices_of_v = max_indices_of<T>::value;
+
+
+  // ----------- //
+  //  indexible  //
+  // ----------- //
 
 #ifndef __cpp_lib_concepts
   namespace detail
   {
     template<typename T, typename = void>
-    struct has_dynamic_rows : std::false_type {};
+    struct is_indexible : std::false_type {};
 
     template<typename T>
-    struct has_dynamic_rows<T, std::enable_if_t<row_extent_of<T>::value == dynamic_extent>> : std::true_type {};
+    struct is_indexible<T, std::enable_if_t<(max_indices_of<T>::value > 0)>>
+      : std::true_type {};
   }
 #endif
 
 
   /**
-   * \brief Specifies that T has row dimensions that are defined at run time.
+   * \brief T is a generalized tensor type.
+   * \details T can be a tensor over a vector space, but can also be an analogous algebraic structure over a
+   * tensor product of modules over division rings (e.g., an vector-like structure that contains angles).
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept indexible = (max_indices_of_v<T> > 0);
+#else
+  constexpr bool indexible = detail::is_indexible<T>::value;
+#endif
+
+
+  // -------------------- //
+  //  index_dimension_of  //
+  // -------------------- //
+
+  /**
+   * \brief The dimension of an index for a matrix, expression, or array.
+   * \note If the dimension is dynamic, then <code>value</code> is \ref dynamic_size.
+   * \tparam N The index
+   * \tparam T The matrix, expression, or array
+   * \internal \sa interface::IndexTraits
+   */
+#ifdef __cpp_concepts
+  template<typename T, std::size_t N = 0>
+#else
+  template<typename T, std::size_t N = 0, typename = void>
+#endif
+  struct index_dimension_of : std::integral_constant<std::size_t, 0> {};
+
+
+#ifdef __cpp_concepts
+  template<typename T, std::size_t N> requires (N < max_indices_of_v<T>)
+  struct index_dimension_of<T, N>
+#else
+  template<typename T, std::size_t N>
+  struct index_dimension_of<T, N, std::enable_if_t<N < max_indices_of<T>::value>>
+#endif
+    : std::integral_constant<std::size_t, interface::IndexTraits<std::decay_t<T>, N>::dimension> {};
+
+
+  /**
+   * \brief helper template for \ref index_dimension_of.
+   */
+  template<typename T, std::size_t N = 0>
+  static constexpr auto index_dimension_of_v = index_dimension_of<T, N>::value;
+
+
+  // ------------------ //
+  //  row_dimension_of  //
+  // ------------------ //
+
+  /**
+   * \brief The row dimension of a matrix, expression, or array.
+   * \note If the row dimension is dynamic, then <code>value</code> is \ref dynamic_size.
+   * \tparam T The matrix, expression, or array.
+   * \internal \sa interface::IndexTraits
+   */
+  template<typename T>
+  using row_dimension_of = index_dimension_of<T, 0>;
+
+
+  /**
+   * \brief helper template for \ref row_dimension_of.
+   */
+  template<typename T>
+  static constexpr auto row_dimension_of_v = row_dimension_of<T>::value;
+
+
+  // --------------------- //
+  //  column_dimension_of  //
+  // --------------------- //
+
+  /**
+   * \brief The column dimension of a matrix, expression, or array.
+   * \note If the column dimension is dynamic, then <code>value</code> is \ref dynamic_size.
+   * \tparam T The matrix, expression, or array.
+   * \internal \sa interface::IndexTraits
+   */
+  template<typename T>
+  using column_dimension_of = index_dimension_of<T, 1>;
+
+
+  /**
+   * \brief helper template for \ref column_dimension_of.
+   */
+  template<typename T>
+  static constexpr auto column_dimension_of_v = column_dimension_of<T>::value;
+
+
+  // ------------------- //
+  //  dynamic_dimension  //
+  // ------------------- //
+
+  template<typename T, std::size_t N>
+#ifdef __cpp_concepts
+  concept dynamic_dimension =
+#else
+  constexpr bool dynamic_dimension =
+#endif
+    (N < max_indices_of_v<T>) and (index_dimension_of_v<T, N> == dynamic_size);
+
+
+  // -------------- //
+  //  dynamic_rows  //
+  // -------------- //
+
+  /**
+   * \brief Specifies that T has a row dimension that is defined at run time.
    * \details The matrix library interface will specify this for native matrices and expressions.
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept dynamic_rows = (row_extent_of_v<T> == dynamic_extent);
+  concept dynamic_rows =
 #else
-  constexpr bool dynamic_rows = detail::has_dynamic_rows<T>::value;
+  constexpr bool dynamic_rows =
 #endif
+    dynamic_dimension<T, 0>;
 
 
   // ----------------- //
   //  dynamic_columns  //
   // ----------------- //
 
+  /**
+   * \brief Specifies that T has a column dimension that is defined at run time.
+   * \details The matrix library interface will specify this for native matrices and expressions.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept dynamic_columns =
+#else
+  constexpr bool dynamic_columns =
+#endif
+    dynamic_dimension<T, 1>;
+
+
+  // ----------------------- //
+  //  any_dynamic_dimension  //
+  // ----------------------- //
+
+  namespace detail
+  {
+    template<typename T, std::size_t...I>
+    constexpr bool any_dynamic_dimension_impl(std::index_sequence<I...>) { return (... or dynamic_dimension<T, I>); }
+  }
+
+
+  /**
+   * \brief Specifies that T has a dynamic dimension for at least one of its indices.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept any_dynamic_dimension =
+#else
+  constexpr bool any_dynamic_dimension =
+#endif
+    detail::any_dynamic_dimension_impl<T>(std::make_index_sequence<max_indices_of_v<T>> {});
+
+
+  // ------------------ //
+  //  element_gettable  //
+  // ------------------ //
+
 #ifndef __cpp_concepts
   namespace detail
   {
-    template<typename T, typename = void>
-    struct has_dynamic_columns : std::false_type {};
+    template<typename T, typename = void, typename...I>
+    struct element_gettable_impl : std::false_type {};
 
-    template<typename T>
-    struct has_dynamic_columns<T, std::enable_if_t<column_extent_of<T>::value == dynamic_extent>> : std::true_type {};
+    template<typename T, typename...I>
+    struct element_gettable_impl<T, std::enable_if_t<(std::is_convertible_v<I, const std::size_t&> and ...) and
+      std::is_void<std::void_t<decltype(interface::GetElement<std::decay_t<T>, void, I...>::get(
+        std::declval<T&&>(), std::declval<I>()...))>>::value and (sizeof...(I) > 0)>, I...>
+      : std::true_type {};
   }
 #endif
 
 
   /**
-   * \brief Specifies that T has column dimensions that are defined at run time.
-   * \details The matrix library interface will specify this for native matrices and expressions.
+   * \brief Specifies that a type has elements that can be retrieved with indices I... (of type std::size_t).
    */
-  template<typename T>
+  template<typename T, typename...I>
 #ifdef __cpp_concepts
-  concept dynamic_columns = (column_extent_of_v<T> == dynamic_extent);
+  concept element_gettable = (std::convertible_to<I, const std::size_t&> and ...) and (sizeof...(I) > 0) and
+    requires(T&& t, I...i) { interface::GetElement<std::decay_t<T>, I...>::get(std::forward<T>(t), i...); };
 #else
-  constexpr bool dynamic_columns = detail::has_dynamic_columns<T>::value;
+  constexpr bool element_gettable = detail::element_gettable_impl<T, void, I...>::value;
 #endif
 
 
-  // --------------- //
-  //  dynamic_shape  //
-  // --------------- //
+  // ------------------ //
+  //  element_settable  //
+  // ------------------ //
+
+#ifndef __cpp_concepts
+  namespace detail
+  {
+    template<typename T, typename = void, typename...I>
+    struct element_settable_impl : std::false_type {};
+
+    template<typename T, typename...I>
+    struct element_settable_impl<T, std::enable_if_t<(std::is_convertible_v<I, const std::size_t&> and ...) and
+      (not std::is_const_v<std::remove_reference_t<T>>) and
+      std::is_void<std::void_t<decltype(interface::SetElement<std::decay_t<T>, void, I...>::set(
+        std::declval<std::remove_reference_t<T>&>(),
+        std::declval<const scalar_type_of_t<T>&>(), std::declval<I>()...))>>::value and (sizeof...(I) > 0)>, I...>
+      : std::true_type {};
+  }
+#endif
+
 
   /**
-   * \brief Specifies that T's row or column dimensions are defined at run time.
-   * \details The matrix library interface will specify this for native matrices and expressions.
+   * \brief Specifies that a type has elements that can be set with indices I... (of type std::size_t).
    */
-  template<typename T>
+  template<typename T, typename...I>
 #ifdef __cpp_concepts
-  concept dynamic_shape = dynamic_rows<T> or dynamic_columns<T>;
+  concept element_settable = (std::convertible_to<I, const std::size_t&> and ...) and
+    (not std::is_const_v<std::remove_reference_t<T>>) and
+    requires(std::remove_reference_t<T>& t, const scalar_type_of_t<T>& s, I...i) {
+      interface::SetElement<std::decay_t<T>, I...>::set(t, s, i...);
+    };
 #else
-  constexpr bool dynamic_shape = dynamic_rows<T> or dynamic_columns<T>;
+  constexpr bool element_settable = detail::element_settable_impl<T, void, I...>::value;
 #endif
 
 
@@ -621,6 +746,7 @@ namespace OpenKalman
   struct constant_coefficient<T, std::enable_if_t<constant_matrix<T>>>
 #endif
   {
+    // \todo Add some logic about, e.g., 1-by-1 constant diagonal matrices.
 #  if __cpp_nontype_template_args >= 201911L
     static constexpr scalar_type_of_t<T> value = interface::SingleConstant<std::decay_t<T>>::value;
 #  else
@@ -688,6 +814,7 @@ namespace OpenKalman
   struct constant_diagonal_coefficient<T, std::enable_if_t<constant_diagonal_matrix<T>>>
 #endif
   {
+    // \todo Add some logic about, e.g., 1-by-1 constant matrices.
 #  if __cpp_nontype_template_args >= 201911L
     static constexpr scalar_type_of<T> value = interface::SingleConstantDiagonal<std::decay_t<T>>::value;
 #  else
@@ -759,7 +886,7 @@ namespace OpenKalman
 
     template<typename T>
     struct is_1by1_identity_matrix<T, std::enable_if_t<are_within_tolerance(constant_coefficient<T>::value, 1) and
-      row_extent_of<T>::value == 1 and column_extent_of<T>::value == 1>>
+      row_dimension_of<T>::value == 1 and column_dimension_of<T>::value == 1>>
       : std::true_type {};
   }
 #endif
@@ -770,7 +897,7 @@ namespace OpenKalman
   template<typename T>
 #ifdef __cpp_concepts
   concept identity_matrix = are_within_tolerance(constant_diagonal_coefficient_v<T>, 1) or
-    (are_within_tolerance(constant_coefficient_v<T>, 1) and row_extent_of_v<T> == 1 and column_extent_of_v<T> == 1);
+    (are_within_tolerance(constant_coefficient_v<T>, 1) and row_dimension_of_v<T> == 1 and column_dimension_of_v<T> == 1);
 #else
   constexpr bool identity_matrix = detail::is_identity_matrix<std::decay_t<T>>::value or
     detail::is_1by1_identity_matrix<std::decay_t<T>>::value;
@@ -781,22 +908,6 @@ namespace OpenKalman
   //  diagonal_matrix  //
   // ----------------- //
 
-  namespace internal
-  {
-    /**
-     * \internal
-     * \brief A type trait testing whether an object is a diagonal matrix
-     * \note This excludes \ref zero_matrix, \ref identity_matrix, or \ref one_by_one_matrix.
-     */
-#ifdef __cpp_concepts
-    template<typename T>
-#else
-    template<typename T, typename = void>
-#endif
-    struct is_diagonal_matrix : std::false_type {};
-  }
-
-
 #ifndef __cpp_concepts
   namespace detail
   {
@@ -805,7 +916,7 @@ namespace OpenKalman
 
     template<typename T>
     struct is_inferred_diagonal_matrix<T, std::enable_if_t<
-      row_extent_of<T>::value == 1 and column_extent_of<T>::value == 1>>
+      row_dimension_of<T>::value == 1 and column_dimension_of<T>::value == 1>>
       : std::true_type {};
   }
 #endif
@@ -816,47 +927,126 @@ namespace OpenKalman
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept diagonal_matrix = internal::is_diagonal_matrix<std::decay_t<T>>::value or
-    (not dynamic_shape<T> and row_extent_of_v<T> == column_extent_of_v<T> and row_extent_of_v<T> == 1) or
-    constant_diagonal_matrix<T>;
+  concept diagonal_matrix = interface::DiagonalTraits<std::decay_t<T>>::is_diagonal or
+    (interface::TriangularTraits<std::decay_t<T>>::triangle_type == TriangleType::diagonal) or
+    (interface::HermitianTraits<std::decay_t<T>>::is_hermitian and
+      interface::HermitianTraits<std::decay_t<T>>::adapter_type == TriangleType::diagonal) or
+    (not any_dynamic_dimension<T> and row_dimension_of_v<T> == column_dimension_of_v<T> and row_dimension_of_v<T> == 1) or
+    constant_diagonal_matrix<T> or
+    (zero_matrix<T> and not dynamic_rows<T> and row_dimension_of_v<T> == column_dimension_of_v<T>);
 #else
-  constexpr bool diagonal_matrix = internal::is_diagonal_matrix<std::decay_t<T>>::value or
-    detail::is_inferred_diagonal_matrix<std::decay_t<T>>::value or constant_diagonal_matrix<T>;
+  constexpr bool diagonal_matrix = interface::DiagonalTraits<std::decay_t<T>>::is_diagonal or
+    (interface::TriangularTraits<std::decay_t<T>>::triangle_type == TriangleType::diagonal) or
+    (interface::HermitianTraits<std::decay_t<T>>::is_hermitian and
+      interface::HermitianTraits<std::decay_t<T>>::adapter_type == TriangleType::diagonal) or
+    detail::is_inferred_diagonal_matrix<T>::value or constant_diagonal_matrix<T> or
+    (zero_matrix<T> and not dynamic_rows<T> and row_dimension_of_v<T> == column_dimension_of_v<T>);
 #endif
 
 
-  // ------------------------------ //
-  //  is_lower_self_adjoint_matrix  //
-  // ------------------------------ //
+  // ------------------------- //
+  //  lower_triangular_matrix  //
+  // ------------------------- //
+
+  /**
+   * \brief Specifies that a type is a lower-triangular matrix.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept lower_triangular_matrix =
+#else
+  constexpr bool lower_triangular_matrix =
+#endif
+    (interface::TriangularTraits<std::decay_t<T>>::triangle_type == TriangleType::lower) or diagonal_matrix<T>;
+
+
+  // ------------------------- //
+  //  upper_triangular_matrix  //
+  // ------------------------- //
+
+  /**
+   * \brief Specifies that a type is an upper-triangular matrix.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept upper_triangular_matrix =
+#else
+  constexpr bool upper_triangular_matrix =
+#endif
+    (interface::TriangularTraits<std::decay_t<T>>::triangle_type == TriangleType::upper) or diagonal_matrix<T>;
+
+
+  // ------------------- //
+  //  triangular_matrix  //
+  // ------------------- //
+
+  /**
+   * \brief Specifies that a type is a triangular matrix (upper or lower).
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept triangular_matrix =
+#else
+  constexpr bool triangular_matrix =
+#endif
+    (interface::TriangularTraits<std::decay_t<T>>::triangle_type != TriangleType::none) or diagonal_matrix<T>;
+
+
+  // ------------------ //
+  //  triangle_type_of  //
+  // ------------------ //
+
+  /**
+   * \brief The TriangleType associated with a \ref triangular_matrix.
+   */
+  template<typename T, typename...Ts>
+  struct triangle_type_of
+    : std::integral_constant<TriangleType,
+      (diagonal_matrix<T> and ... and diagonal_matrix<Ts>) ? TriangleType::diagonal :
+      ((lower_triangular_matrix<T> and ... and lower_triangular_matrix<Ts>) ? TriangleType::lower :
+      ((upper_triangular_matrix<T> and ... and upper_triangular_matrix<Ts>) ? TriangleType::upper :
+      TriangleType::none))> {};
+
+
+  /**
+   * \brief The TriangleType associated with a \ref triangular_matrix.
+   */
+  template<typename T, typename...Ts>
+  constexpr auto triangle_type_of_v = triangle_type_of<T, Ts...>::value;
+
+
+  // --------------------------- //
+  //  lower_self_adjoint_matrix  //
+  // --------------------------- //
 
 #ifndef __cpp_concepts
   namespace detail
   {
     template<typename T, typename = void>
-    struct is_inferred_self_adjoint_matrix : std::false_type {};
+    struct imag_part_is_zero : std::false_type {};
 
     template<typename T>
-    struct is_inferred_self_adjoint_matrix<T, std::enable_if_t<not complex_number<typename scalar_type_of<T>::type> and
+    struct imag_part_is_zero<T, std::enable_if_t<std::imag(constant_coefficient<T>::value) == 0>>
+      : std::true_type {};
+
+    template<typename T, typename = void>
+    struct diag_imag_part_is_zero : std::bool_constant<imag_part_is_zero<T>::value> {};
+
+    template<typename T>
+    struct diag_imag_part_is_zero<T, std::enable_if_t<std::imag(constant_diagonal_coefficient<T>::value) == 0>>
+      : std::true_type {};
+
+    template<typename T, typename = void>
+    struct is_inferred_hermitian_matrix : std::false_type {};
+
+    template<typename T>
+    struct is_inferred_hermitian_matrix<T, std::enable_if_t<
+      (not complex_number<typename scalar_type_of<T>::type> or zero_matrix<T> or diag_imag_part_is_zero<T>::value) and
       (diagonal_matrix<T> or
-        (constant_matrix<T> and not dynamic_shape<T> and row_extent_of<T>::value == column_extent_of<T>::value))>>
+        (constant_matrix<T> and not any_dynamic_dimension<T> and row_dimension_of<T>::value == column_dimension_of<T>::value))>>
       : std::true_type {};
   };
 #endif
-
-
-  namespace internal
-  {
-   /**
-    * \internal
-    * \brief A type trait testing whether a self-adjoint matrix stores data in the lower-right triangle.
-    */
-#ifdef __cpp_concepts
-    template<typename T>
-#else
-    template<typename T, typename = void>
-#endif
-    struct is_lower_self_adjoint_matrix : std::false_type {};
-  }
 
 
   /**
@@ -865,33 +1055,24 @@ namespace OpenKalman
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept lower_self_adjoint_matrix = internal::is_lower_self_adjoint_matrix<std::decay_t<T>>::value or
-    (not complex_number<scalar_type_of_t<T>> and (diagonal_matrix<T> or
-      (constant_matrix<T> and not dynamic_shape<T> and row_extent_of_v<T> == column_extent_of_v<T>)));
+  concept lower_self_adjoint_matrix =
+    (interface::HermitianTraits<std::decay_t<T>>::is_hermitian and
+      (interface::HermitianTraits<std::decay_t<T>>::adapter_type == TriangleType::lower or
+      interface::HermitianTraits<std::decay_t<T>>::adapter_type == TriangleType::diagonal)) or
+    ((not complex_number<scalar_type_of_t<T>> or zero_matrix<T> or
+        std::imag(constant_coefficient_v<T>) == 0 or std::imag(constant_diagonal_coefficient_v<T>) == 0) and
+      (diagonal_matrix<T> or (constant_matrix<T> and not any_dynamic_dimension<T> and row_dimension_of_v<T> == column_dimension_of_v<T>)));
 #else
-  constexpr bool lower_self_adjoint_matrix = internal::is_lower_self_adjoint_matrix<std::decay_t<T>>::value or
-    detail::is_inferred_self_adjoint_matrix<T>::value;
+  constexpr bool lower_self_adjoint_matrix = (interface::HermitianTraits<std::decay_t<T>>::is_hermitian and
+      (interface::HermitianTraits<std::decay_t<T>>::adapter_type == TriangleType::lower or
+      interface::HermitianTraits<std::decay_t<T>>::adapter_type == TriangleType::diagonal)) or
+    detail::is_inferred_hermitian_matrix<T>::value;
 #endif
 
 
-  // ------------------------------ //
-  //  is_upper_self_adjoint_matrix  //
-  // ------------------------------ //
-
-  namespace internal
-  {
-    /**
-     * \internal
-     * \brief A type trait testing whether a self-adjoint matrix stores data in the upper-right triangle.
-     */
-#ifdef __cpp_concepts
-    template<typename T>
-#else
-    template<typename T, typename = void>
-#endif
-    struct is_upper_self_adjoint_matrix : std::false_type {};
-  }
-
+  // --------------------------- //
+  //  upper_self_adjoint_matrix  //
+  // --------------------------- //
 
   /**
    * \brief Specifies that T is an \ref eigen_self_adjoint_expr that stores data in the upper-right triangle.
@@ -899,12 +1080,18 @@ namespace OpenKalman
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept upper_self_adjoint_matrix = internal::is_upper_self_adjoint_matrix<std::decay_t<T>>::value or
-    (not complex_number<scalar_type_of_t<T>> and (diagonal_matrix<T> or
-      (constant_matrix<T> and not dynamic_shape<T> and row_extent_of_v<T> == column_extent_of_v<T>)));
+  concept upper_self_adjoint_matrix =
+    (interface::HermitianTraits<std::decay_t<T>>::is_hermitian and
+      (interface::HermitianTraits<std::decay_t<T>>::adapter_type == TriangleType::upper or
+      interface::HermitianTraits<std::decay_t<T>>::adapter_type == TriangleType::diagonal)) or
+    ((not complex_number<scalar_type_of_t<T>> or zero_matrix<T> or
+        std::imag(constant_coefficient_v<T>) == 0 or std::imag(constant_diagonal_coefficient_v<T>) == 0) and
+      (diagonal_matrix<T> or (constant_matrix<T> and not any_dynamic_dimension<T> and row_dimension_of_v<T> == column_dimension_of_v<T>)));
 #else
-  constexpr bool upper_self_adjoint_matrix = internal::is_upper_self_adjoint_matrix<std::decay_t<T>>::value or
-    detail::is_inferred_self_adjoint_matrix<T>::value;
+  constexpr bool upper_self_adjoint_matrix = (interface::HermitianTraits<std::decay_t<T>>::is_hermitian and
+      (interface::HermitianTraits<std::decay_t<T>>::adapter_type == TriangleType::upper or
+      interface::HermitianTraits<std::decay_t<T>>::adapter_type == TriangleType::diagonal)) or
+    detail::is_inferred_hermitian_matrix<T>::value;
 #endif
 
 
@@ -917,9 +1104,13 @@ namespace OpenKalman
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept self_adjoint_matrix = lower_self_adjoint_matrix<T> or upper_self_adjoint_matrix<T>;
+  concept self_adjoint_matrix = interface::HermitianTraits<std::decay_t<T>>::is_hermitian or
+    ((not complex_number<scalar_type_of_t<T>> or zero_matrix<T> or
+        std::imag(constant_coefficient_v<T>) == 0 or std::imag(constant_diagonal_coefficient_v<T>) == 0) and
+    (diagonal_matrix<T> or (constant_matrix<T> and not any_dynamic_dimension<T> and row_dimension_of_v<T> == column_dimension_of_v<T>)));
 #else
-  constexpr bool self_adjoint_matrix = lower_self_adjoint_matrix<T> or upper_self_adjoint_matrix<T>;
+  constexpr bool self_adjoint_matrix = interface::HermitianTraits<std::decay_t<T>>::is_hermitian or
+    detail::is_inferred_hermitian_matrix<T>::value;
 #endif
 
 
@@ -928,140 +1119,22 @@ namespace OpenKalman
   // ------------------------------- //
 
   /**
-   * \brief The TriangleType associated with the storage triangle of a \ref self_adjoint_matrix.
+   * \brief The TriangleType associated with the storage triangle of one or more matrices.
    */
-#ifdef __cpp_concepts
-  template<self_adjoint_matrix T>
+  template<typename T, typename...Ts>
   struct self_adjoint_triangle_type_of
-#else
-  template<typename T, typename = void>
-  struct self_adjoint_triangle_type_of;
-
-  template<typename T>
-  struct self_adjoint_triangle_type_of<T, std::enable_if_t<self_adjoint_matrix<T>>>
-#endif
-    : std::integral_constant<TriangleType, diagonal_matrix<T> ? TriangleType::diagonal :
-      (upper_self_adjoint_matrix<T> ? TriangleType::upper : TriangleType::lower)> {};
+    : std::integral_constant<TriangleType,
+      (diagonal_matrix<T> and ... and diagonal_matrix<Ts>) ? TriangleType::diagonal :
+      ((lower_self_adjoint_matrix<T> and ... and lower_self_adjoint_matrix<Ts>) ? TriangleType::lower :
+      ((upper_self_adjoint_matrix<T> and ... and upper_self_adjoint_matrix<Ts>) ? TriangleType::upper :
+      TriangleType::none))> {};
 
 
   /**
    * \brief The TriangleType associated with the storage triangle of a \ref self_adjoint_matrix.
    */
-#ifdef __cpp_concepts
-  template<self_adjoint_matrix T>
-#else
-  template<typename T>
-#endif
-  constexpr auto self_adjoint_triangle_type_of_v = self_adjoint_triangle_type_of<T>::value;
-
-
-  // ------------------------- //
-  //  lower_triangular_matrix  //
-  // ------------------------- //
-
-  namespace internal
-  {
-    /**
-     * \internal
-     * \brief A type trait testing whether an object is a lower-triangular matrix (other than diagonal_matrix).
-     */
-#ifdef __cpp_concepts
-    template<typename T>
-#else
-    template<typename T, typename = void>
-#endif
-    struct is_lower_triangular_matrix : std::false_type {};
-  }
-
-
-  /**
-   * \brief Specifies that a type is a lower-triangular matrix.
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept lower_triangular_matrix =
-#else
-  constexpr bool lower_triangular_matrix =
-#endif
-    internal::is_lower_triangular_matrix<std::decay_t<T>>::value or diagonal_matrix<T>;
-
-
-  // ------------------------- //
-  //  upper_triangular_matrix  //
-  // ------------------------- //
-
-  namespace internal
-  {
-    /**
-     * \internal
-     * \brief A type trait testing whether an object is an upper-triangular matrix (other than diagonal_matrix).
-     */
-#ifdef __cpp_concepts
-    template<typename T>
-#else
-    template<typename T, typename = void>
-#endif
-    struct is_upper_triangular_matrix : std::false_type {};
-  }
-
-
-  /**
-   * \brief Specifies that a type is an upper-triangular matrix.
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept upper_triangular_matrix =
-#else
-  constexpr bool upper_triangular_matrix =
-#endif
-    internal::is_upper_triangular_matrix<std::decay_t<T>>::value or diagonal_matrix<T>;
-
-
-  // ------------------- //
-  //  triangular_matrix  //
-  // ------------------- //
-
-  /**
-   * \brief Specifies that a type is a triangular matrix (upper or lower).
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept triangular_matrix = lower_triangular_matrix<T> or upper_triangular_matrix<T>;
-#else
-  constexpr bool triangular_matrix = lower_triangular_matrix<T> or upper_triangular_matrix<T>;
-#endif
-
-
-  // ------------------ //
-  //  triangle_type_of  //
-  // ------------------ //
-
-  /**
-   * \brief The TriangleType associated with a \ref triangular_matrix.
-   */
-#ifdef __cpp_concepts
-  template<triangular_matrix T>
-  struct triangle_type_of
-#else
-  template<typename T, typename = void>
-  struct triangle_type_of;
-
-  template<typename T>
-  struct triangle_type_of<T, std::enable_if_t<triangular_matrix<T>>>
-#endif
-    : std::integral_constant<TriangleType, diagonal_matrix<T> ? TriangleType::diagonal :
-      (upper_triangular_matrix<T> ? TriangleType::upper : TriangleType::lower)> {};
-
-
-  /**
-   * \brief The TriangleType associated with a \ref triangular_matrix.
-   */
-#ifdef __cpp_concepts
-  template<triangular_matrix T>
-#else
-  template<typename T>
-#endif
-  constexpr auto triangle_type_of_v = triangle_type_of<T>::value;
+  template<typename T, typename...Ts>
+  constexpr auto self_adjoint_triangle_type_of_v = self_adjoint_triangle_type_of<T, Ts...>::value;
 
 
   // --------------- //
@@ -1076,7 +1149,7 @@ namespace OpenKalman
 
     template<typename T>
     struct has_square_dimensions<T, std::enable_if_t<
-      not dynamic_shape<T> and row_extent_of<T>::value == column_extent_of<T>::value>>
+      not any_dynamic_dimension<T> and row_dimension_of<T>::value == column_dimension_of<T>::value>>
       : std::true_type {};
 
 
@@ -1098,14 +1171,14 @@ namespace OpenKalman
   template<typename T>
 #ifdef __cpp_concepts
   concept square_matrix =
-    (not dynamic_shape<T> and (row_extent_of_v<T> == column_extent_of_v<T>) and
+    (not any_dynamic_dimension<T> and (row_dimension_of_v<T> == column_dimension_of_v<T>) and
       (not requires { typename MatrixTraits<T>::RowCoefficients; typename MatrixTraits<T>::ColumnCoefficients; } or
         equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>)) or
-    (dynamic_shape<T> and (self_adjoint_matrix<T> or triangular_matrix<T>));
+    (any_dynamic_dimension<T> and (self_adjoint_matrix<T> or triangular_matrix<T>));
 #else
   constexpr bool square_matrix =
     (detail::has_square_dimensions<std::decay_t<T>>::value and detail::has_equivalent_coefficients<T>::value) or
-    (dynamic_shape<T> and (self_adjoint_matrix<T> or triangular_matrix<T>));
+    (any_dynamic_dimension<T> and (self_adjoint_matrix<T> or triangular_matrix<T>));
 #endif
 
 
@@ -1121,7 +1194,7 @@ namespace OpenKalman
 
     template<typename T>
     struct is_one_by_one_matrix<T, std::enable_if_t<
-      (row_extent_of<T>::value == 1 or column_extent_of<T>::value == 1) and square_matrix<T>>> : std::true_type {};
+      (row_dimension_of<T>::value == 1 or column_dimension_of<T>::value == 1) and square_matrix<T>>> : std::true_type {};
   }
 #endif
 
@@ -1130,7 +1203,7 @@ namespace OpenKalman
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept one_by_one_matrix = (row_extent_of_v<T> == 1 or column_extent_of_v<T> == 1) and square_matrix<T>;
+  concept one_by_one_matrix = (row_dimension_of_v<T> == 1 or column_dimension_of_v<T> == 1) and square_matrix<T>;
 #else
   constexpr bool one_by_one_matrix = detail::is_one_by_one_matrix<T>::value;
 #endif
@@ -1263,16 +1336,11 @@ namespace OpenKalman
   namespace detail
   {
     template<typename T, typename = void>
-    struct has_untyped_columns : std::false_type {};
+    struct has_untyped_columns : std::true_type {};
 
     template<typename T>
-    struct has_untyped_columns<T, std::enable_if_t<typed_matrix<T> and MatrixTraits<T>::ColumnCoefficients::axes_only>>
-      : std::true_type {};
-
-    template<typename T>
-    struct has_untyped_columns<T, std::enable_if_t<
-      (not typed_matrix<T>) and std::is_integral_v<decltype(column_extent_of<T>::value)>>>
-      : std::true_type {};
+    struct has_untyped_columns<T, std::void_t<typename MatrixTraits<T>::ColumnCoefficients>>
+      : std::bool_constant<MatrixTraits<T>::ColumnCoefficients::axes_only> {};
   }
 #endif
 
@@ -1283,8 +1351,8 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<typename T>
-  concept untyped_columns = (typed_matrix<T> and MatrixTraits<T>::ColumnCoefficients::axes_only) or
-    (not typed_matrix<T> and requires {column_extent_of_v<T>;});
+  concept untyped_columns = (not requires { typename MatrixTraits<T>::ColumnCoefficients; }) or
+    (MatrixTraits<T>::ColumnCoefficients::axes_only);
 #else
   template<typename T>
   constexpr bool untyped_columns = detail::has_untyped_columns<std::decay_t<T>>::value;
@@ -1298,7 +1366,7 @@ namespace OpenKalman
     struct is_column_vector : std::false_type {};
 
     template<typename T>
-    struct is_column_vector<T, std::enable_if_t<untyped_columns<T> and column_extent_of<T>::value == 1>>
+    struct is_column_vector<T, std::enable_if_t<untyped_columns<T> and column_dimension_of<T>::value == 1>>
       : std::true_type {};
   }
 #endif
@@ -1310,7 +1378,7 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<typename T>
-  concept column_vector = untyped_columns<T> and (column_extent_of_v<T> == 1);
+  concept column_vector = untyped_columns<T> and (column_dimension_of_v<T> == 1);
 #else
   template<typename T>
   constexpr bool column_vector = detail::is_column_vector<std::decay_t<T>>::value;
@@ -1321,28 +1389,22 @@ namespace OpenKalman
   namespace detail
   {
     template<typename T, typename = void>
-    struct has_untyped_rows : std::false_type {};
+    struct has_untyped_rows : std::true_type {};
 
     template<typename T>
-    struct has_untyped_rows<T, std::enable_if_t<typed_matrix<T> and MatrixTraits<T>::RowCoefficients::axes_only>>
-      : std::true_type {};
-
-    template<typename T>
-    struct has_untyped_rows<T, std::enable_if_t<
-      (not typed_matrix<T>) and std::is_integral_v<decltype(row_extent_of<T>::value)>>>
-      : std::true_type {};
+    struct has_untyped_rows<T, std::void_t<typename MatrixTraits<T>::RowCoefficients>>
+      : std::bool_constant<MatrixTraits<T>::RowCoefficients::axes_only> {};
   }
 #endif
 
 
   /**
-   * \brief Specifies that T has untyped (or Axis typed) row coefficients.
-   * \details T must be either a native matrix or its rows must all have type Axis.
+   * \brief Specifies that T has untyped (or Axis typed) row bases.
    */
 #ifdef __cpp_concepts
   template<typename T>
-  concept untyped_rows = (typed_matrix<T> and MatrixTraits<T>::RowCoefficients::axes_only) or
-    (not typed_matrix<T> and requires {row_extent_of_v<T>;});
+  concept untyped_rows = (not requires { typename MatrixTraits<T>::RowCoefficients; }) or
+    (MatrixTraits<T>::RowCoefficients::axes_only);
 #else
   template<typename T>
   constexpr bool untyped_rows = detail::has_untyped_rows<std::decay_t<T>>::value;
@@ -1356,7 +1418,7 @@ namespace OpenKalman
     struct is_row_vector : std::false_type {};
 
     template<typename T>
-    struct is_row_vector<T, std::enable_if_t<untyped_rows<T> and row_extent_of<T>::value == 1>> : std::true_type {};
+    struct is_row_vector<T, std::enable_if_t<untyped_rows<T> and row_dimension_of<T>::value == 1>> : std::true_type {};
   }
 #endif
 
@@ -1367,7 +1429,7 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<typename T>
-  concept row_vector = untyped_rows<T> and (row_extent_of_v<T> == 1);
+  concept row_vector = untyped_rows<T> and (row_dimension_of_v<T> == 1);
 #else
   template<typename T>
   constexpr bool row_vector = detail::is_row_vector<std::decay_t<T>>::value;
@@ -1548,76 +1610,6 @@ namespace OpenKalman
   concept typed_matrix_nestable = internal::is_typed_matrix_nestable<std::decay_t<T>>::value;
 #else
   constexpr bool typed_matrix_nestable = internal::is_typed_matrix_nestable<std::decay_t<T>>::value;
-#endif
-
-
-  // ------------------ //
-  //  element_gettable  //
-  // ------------------ //
-
-#ifndef __cpp_concepts
-  namespace detail
-  {
-    template<typename T, typename = void, typename...I>
-    struct element_gettable_impl : std::false_type {};
-
-    template<typename T, typename...I>
-    struct element_gettable_impl<T, std::enable_if_t<(std::is_convertible_v<I, const std::size_t&> and ...) and
-      std::is_void<std::void_t<decltype(interface::GetElement<std::decay_t<T>, void, I...>::get(
-        std::declval<T&&>(), std::declval<I>()...))>>::value and
-      (sizeof...(I) > 0) and (sizeof...(I) != 1 or column_vector<T> or row_vector<T>)>, I...>
-      : std::true_type {};
-  }
-#endif
-
-
-  /**
-   * \brief Specifies that a type has elements that can be retrieved with incices I... (of type std::size_t).
-   */
-  template<typename T, typename...I>
-#ifdef __cpp_concepts
-  concept element_gettable = (std::convertible_to<I, const std::size_t&> and ...) and
-    requires(T&& t, I...i) { interface::GetElement<std::decay_t<T>, I...>::get(std::forward<T>(t), i...); } and
-    (sizeof...(I) > 0) and (sizeof...(I) != 1 or column_vector<T> or row_vector<T>);
-#else
-  constexpr bool element_gettable = detail::element_gettable_impl<T, void, I...>::value;
-#endif
-
-
-  // ------------------ //
-  //  element_settable  //
-  // ------------------ //
-
-#ifndef __cpp_concepts
-  namespace detail
-  {
-    template<typename T, typename = void, typename...I>
-    struct element_settable_impl : std::false_type {};
-
-    template<typename T, typename...I>
-    struct element_settable_impl<T, std::enable_if_t<(std::is_convertible_v<I, const std::size_t&> and ...) and
-      (not std::is_const_v<std::remove_reference_t<T>>) and
-      std::is_void<std::void_t<decltype(interface::SetElement<std::decay_t<T>, void, I...>::set(
-        std::declval<std::remove_reference_t<T>&>(),
-        std::declval<const scalar_type_of_t<T>&>(), std::declval<I>()...))>>::value and
-      (sizeof...(I) > 0) and (sizeof...(I) != 1 or column_vector<T> or row_vector<T>)>, I...>
-      : std::true_type {};
-  }
-#endif
-
-
-  /**
-   * \brief Specifies that a type has elements that can be set with indices I... (of type std::size_t).
-   */
-  template<typename T, typename...I>
-#ifdef __cpp_concepts
-  concept element_settable = (std::convertible_to<I, const std::size_t&> and ...) and
-    (not std::is_const_v<std::remove_reference_t<T>>) and (sizeof...(I) != 1 or column_vector<T> or row_vector<T>) and
-    requires(std::remove_reference_t<T>& t, const scalar_type_of_t<T>& s, I...i) {
-      interface::SetElement<std::decay_t<T>, I...>::set(t, s, i...);
-    };
-#else
-  constexpr bool element_settable = detail::element_settable_impl<T, void, I...>::value;
 #endif
 
 

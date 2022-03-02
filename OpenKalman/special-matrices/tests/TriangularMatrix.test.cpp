@@ -54,8 +54,8 @@ TEST(eigen3, TriangularMatrix_static_checks)
   static_assert(writable<Tu<M2&>>);
   static_assert(not writable<Tu<const M2>>);
   static_assert(not writable<Tu<const M2&>>);
-  static_assert(modifiable<Tl<M2>, ZeroMatrix<double, 2, 2>>);
-  static_assert(modifiable<Tu<M2>, ZeroMatrix<double, 2, 2>>);
+  static_assert(modifiable<Tl<M2>, ZeroMatrix<eigen_matrix_t<double, 2, 2>>>);
+  static_assert(modifiable<Tu<M2>, ZeroMatrix<eigen_matrix_t<double, 2, 2>>>);
   static_assert(modifiable<Tl<M2>, IdentityMatrix<M2>>);
   static_assert(modifiable<Tu<M2>, IdentityMatrix<M2>>);
   static_assert(not modifiable<Tu<M2::IdentityReturnType>, Tu<M2::IdentityReturnType>>);
@@ -105,38 +105,38 @@ TEST(eigen3, TriangularMatrix_class)
   d1 << 3, 3;
   EXPECT_TRUE(is_near(d1.nested_matrix(), mat22(3, 0, 0, 3)));
   EXPECT_TRUE(is_near(d1, mat22(3, 0, 0, 3)));
-  d1.template triangularView<Eigen::Lower>() = make_native_matrix<M2>(2, 5, 6, 2);
+  d1.template triangularView<Eigen::Lower>() = make_dense_writable_matrix_from<M2>(2, 5, 6, 2);
   EXPECT_TRUE(is_near(d1, mat22(2, 0, 0, 2)));
   Diagonal2 d1b;
   d1b << 3, 3;
   EXPECT_TRUE(is_near(d1b.nested_matrix(), mat22(3, 0, 0, 3)));
   EXPECT_TRUE(is_near(d1b, mat22(3, 0, 0, 3)));
-  d1b.template triangularView<Eigen::Lower>() = make_native_matrix<M2>(2, 5, 6, 2);
+  d1b.template triangularView<Eigen::Lower>() = make_dense_writable_matrix_from<M2>(2, 5, 6, 2);
   EXPECT_TRUE(is_near(d1b, mat22(2, 0, 0, 2)));
   Diagonal3 d1c;
   d1c << 3, 3;
   EXPECT_TRUE(is_near(d1c.nested_matrix(), mat22(3, 0, 0, 3)));
   EXPECT_TRUE(is_near(d1c, mat22(3, 0, 0, 3)));
-  d1c.template triangularView<Eigen::Lower>() = make_native_matrix<M2>(2, 5, 6, 2);
+  d1c.template triangularView<Eigen::Lower>() = make_dense_writable_matrix_from<M2>(2, 5, 6, 2);
   EXPECT_TRUE(is_near(d1c, mat22(2, 0, 0, 2)));
   //
-  Lower l2 {make_native_matrix<M2>(3, 0, 1, 3)};
+  Lower l2 {make_dense_writable_matrix_from<M2>(3, 0, 1, 3)};
   EXPECT_TRUE(is_near(l1, l2));
-  Upper u2 {make_native_matrix<M2>(3, 1, 0, 3)};
+  Upper u2 {make_dense_writable_matrix_from<M2>(3, 1, 0, 3)};
   EXPECT_TRUE(is_near(u1, u2));
   //
-  EXPECT_TRUE(is_near(Lower(DiagonalMatrix {3., 4}), make_native_matrix<M2>(3, 0, 0, 4)));
-  EXPECT_TRUE(is_near(Upper(DiagonalMatrix {3., 4}), make_native_matrix<M2>(3, 0, 0, 4)));
+  EXPECT_TRUE(is_near(Lower(DiagonalMatrix {3., 4}), make_dense_writable_matrix_from<M2>(3, 0, 0, 4)));
+  EXPECT_TRUE(is_near(Upper(DiagonalMatrix {3., 4}), make_dense_writable_matrix_from<M2>(3, 0, 0, 4)));
   //
-  EXPECT_TRUE(is_near(Lower(MatrixTraits<M2>::zero()), M2::Zero()));
-  EXPECT_TRUE(is_near(Upper(MatrixTraits<M2>::zero()), M2::Zero()));
+  EXPECT_TRUE(is_near(Lower(make_zero_matrix_like<M2>()), M2::Zero()));
+  EXPECT_TRUE(is_near(Upper(make_zero_matrix_like<M2>()), M2::Zero()));
   //
   EXPECT_EQ(Lower::rows(), 2);
   EXPECT_EQ(Lower::cols(), 2);
-  EXPECT_TRUE(is_near(Lower::zero(), M2::Zero()));
-  EXPECT_TRUE(is_near(Upper::zero(), M2::Zero()));
-  EXPECT_TRUE(is_near(Lower::identity(), M2::Identity()));
-  EXPECT_TRUE(is_near(Upper::identity(), M2::Identity()));
+  EXPECT_TRUE(is_near(make_zero_matrix_like<Lower>(), M2::Zero()));
+  EXPECT_TRUE(is_near(make_zero_matrix_like<Upper>(), M2::Zero()));
+  EXPECT_TRUE(is_near(make_identity_matrix_like<Lower>(), M2::Identity()));
+  EXPECT_TRUE(is_near(make_identity_matrix_like<Upper>(), M2::Identity()));
   //
   Lower l3(l2); // copy constructor
   EXPECT_TRUE(is_near(l3, ml));
@@ -251,14 +251,14 @@ TEST(eigen3, TriangularMatrix_class)
   d9c = Diagonal3 {6., 6};
   EXPECT_TRUE(is_near(d9c, mat22(6, 0, 0, 6)));
   //
-  l3 = MatrixTraits<M2>::zero();
-  EXPECT_TRUE(is_near(l3, MatrixTraits<M2>::zero()));
-  u3 = MatrixTraits<M2>::zero();
-  EXPECT_TRUE(is_near(u3, MatrixTraits<M2>::zero()));
-  l3 = MatrixTraits<M2>::identity();
-  EXPECT_TRUE(is_near(l3, MatrixTraits<M2>::identity()));
-  u3 = MatrixTraits<M2>::identity();
-  EXPECT_TRUE(is_near(u3, MatrixTraits<M2>::identity()));
+  l3 = make_zero_matrix_like<M2>();
+  EXPECT_TRUE(is_near(l3, make_zero_matrix_like<M2>()));
+  u3 = make_zero_matrix_like<M2>();
+  EXPECT_TRUE(is_near(u3, make_zero_matrix_like<M2>()));
+  l3 = make_identity_matrix_like<M2>();
+  EXPECT_TRUE(is_near(l3, make_identity_matrix_like<M2>()));
+  u3 = make_identity_matrix_like<M2>();
+  EXPECT_TRUE(is_near(u3, make_identity_matrix_like<M2>()));
   //
   auto tl = ml.triangularView<Eigen::Lower>();
   auto tu = mu.triangularView<Eigen::Upper>();
@@ -272,10 +272,10 @@ TEST(eigen3, TriangularMatrix_class)
   u4 = mu.triangularView<Eigen::Upper>(); // assign from rvalue reference to TriangularBase derived object
   EXPECT_TRUE(is_near(u4, mu));
   //
-  l4 = ZeroMatrix<double, 2, 2> {};
-  EXPECT_TRUE(is_near(l4, ZeroMatrix<double, 2, 2> {}));
-  u4 = ZeroMatrix<double, 2, 2> {};
-  EXPECT_TRUE(is_near(u4, ZeroMatrix<double, 2, 2> {}));
+  l4 = ZeroMatrix<eigen_matrix_t<double, 2, 2>> {};
+  EXPECT_TRUE(is_near(l4, ZeroMatrix<eigen_matrix_t<double, 2, 2>> {}));
+  u4 = ZeroMatrix<eigen_matrix_t<double, 2, 2>> {};
+  EXPECT_TRUE(is_near(u4, ZeroMatrix<eigen_matrix_t<double, 2, 2>> {}));
   //
   l4 = M2::Identity();
   EXPECT_TRUE(is_near(l4, M2::Identity()));
@@ -496,15 +496,15 @@ TEST(eigen3, TriangularMatrix_view)
   EXPECT_TRUE(is_near(M2 {Lower {3, 0, 1, 3}.view()}, mat22(3, 0, 1, 3)));
   EXPECT_TRUE(is_near(M2 {const_cast<const Lower&&>(Lower {3, 0, 1, 3}).view()}, mat22(3, 0, 1, 3)));
 
-  EXPECT_TRUE(is_near(l1.view() * make_native_matrix<M2>(3, 1, 0, 3), mat22(9, 3, 3, 10)));
-  EXPECT_TRUE(is_near(std::as_const(l1).view() * make_native_matrix<M2>(3, 1, 0, 3), mat22(9, 3, 3, 10)));
-  EXPECT_TRUE(is_near(Lower {3, 0, 1, 3}.view() * make_native_matrix<M2>(3, 1, 0, 3), mat22(9, 3, 3, 10)));
-  EXPECT_TRUE(is_near(const_cast<const Lower&&>(Lower {3, 0, 1, 3}).view() * make_native_matrix<M2>(3, 1, 0, 3), mat22(9, 3, 3, 10)));
+  EXPECT_TRUE(is_near(l1.view() * make_dense_writable_matrix_from<M2>(3, 1, 0, 3), mat22(9, 3, 3, 10)));
+  EXPECT_TRUE(is_near(std::as_const(l1).view() * make_dense_writable_matrix_from<M2>(3, 1, 0, 3), mat22(9, 3, 3, 10)));
+  EXPECT_TRUE(is_near(Lower {3, 0, 1, 3}.view() * make_dense_writable_matrix_from<M2>(3, 1, 0, 3), mat22(9, 3, 3, 10)));
+  EXPECT_TRUE(is_near(const_cast<const Lower&&>(Lower {3, 0, 1, 3}).view() * make_dense_writable_matrix_from<M2>(3, 1, 0, 3), mat22(9, 3, 3, 10)));
 
-  EXPECT_TRUE(is_near(make_native_matrix<M2>(3, 1, 0, 3) * l1.view(), mat22(10, 3, 3, 9)));
-  EXPECT_TRUE(is_near(make_native_matrix<M2>(3, 1, 0, 3) * std::as_const(l1).view(), mat22(10, 3, 3, 9)));
-  EXPECT_TRUE(is_near(make_native_matrix<M2>(3, 1, 0, 3) * Lower {3, 0, 1, 3}.view(), mat22(10, 3, 3, 9)));
-  EXPECT_TRUE(is_near(make_native_matrix<M2>(3, 1, 0, 3) * const_cast<const Lower&&>(Lower {3, 0, 1, 3}).view(), mat22(10, 3, 3, 9)));
+  EXPECT_TRUE(is_near(make_dense_writable_matrix_from<M2>(3, 1, 0, 3) * l1.view(), mat22(10, 3, 3, 9)));
+  EXPECT_TRUE(is_near(make_dense_writable_matrix_from<M2>(3, 1, 0, 3) * std::as_const(l1).view(), mat22(10, 3, 3, 9)));
+  EXPECT_TRUE(is_near(make_dense_writable_matrix_from<M2>(3, 1, 0, 3) * Lower {3, 0, 1, 3}.view(), mat22(10, 3, 3, 9)));
+  EXPECT_TRUE(is_near(make_dense_writable_matrix_from<M2>(3, 1, 0, 3) * const_cast<const Lower&&>(Lower {3, 0, 1, 3}).view(), mat22(10, 3, 3, 9)));
 
   Upper u1 {3, 1, 0, 3};
   EXPECT_TRUE(is_near(M2 {u1.view()}, mat22(3, 1, 0, 3)));
@@ -512,26 +512,26 @@ TEST(eigen3, TriangularMatrix_view)
   EXPECT_TRUE(is_near(M2 {Upper {3, 1, 0, 3}.view()}, mat22(3, 1, 0, 3)));
   EXPECT_TRUE(is_near(M2 {const_cast<const Upper&&>(Upper {3, 1, 0, 3}).view()}, mat22(3, 1, 0, 3)));
 
-  EXPECT_TRUE(is_near(u1.view() * make_native_matrix<M2>(3, 0, 1, 3), mat22(10, 3, 3, 9)));
-  EXPECT_TRUE(is_near(std::as_const(u1).view() * make_native_matrix<M2>(3, 0, 1, 3), mat22(10, 3, 3, 9)));
-  EXPECT_TRUE(is_near(Upper {3, 1, 0, 3}.view() * make_native_matrix<M2>(3, 0, 1, 3), mat22(10, 3, 3, 9)));
-  EXPECT_TRUE(is_near(const_cast<const Upper&&>(Upper {3, 1, 0, 3}).view() * make_native_matrix<M2>(3, 0, 1, 3), mat22(10, 3, 3, 9)));
+  EXPECT_TRUE(is_near(u1.view() * make_dense_writable_matrix_from<M2>(3, 0, 1, 3), mat22(10, 3, 3, 9)));
+  EXPECT_TRUE(is_near(std::as_const(u1).view() * make_dense_writable_matrix_from<M2>(3, 0, 1, 3), mat22(10, 3, 3, 9)));
+  EXPECT_TRUE(is_near(Upper {3, 1, 0, 3}.view() * make_dense_writable_matrix_from<M2>(3, 0, 1, 3), mat22(10, 3, 3, 9)));
+  EXPECT_TRUE(is_near(const_cast<const Upper&&>(Upper {3, 1, 0, 3}).view() * make_dense_writable_matrix_from<M2>(3, 0, 1, 3), mat22(10, 3, 3, 9)));
 
-  EXPECT_TRUE(is_near(make_native_matrix<M2>(3, 0, 1, 3) * u1.view(), mat22(9, 3, 3, 10)));
-  EXPECT_TRUE(is_near(make_native_matrix<M2>(3, 0, 1, 3) * std::as_const(u1).view(), mat22(9, 3, 3, 10)));
-  EXPECT_TRUE(is_near(make_native_matrix<M2>(3, 0, 1, 3) * Upper {3, 1, 0, 3}.view(), mat22(9, 3, 3, 10)));
-  EXPECT_TRUE(is_near(make_native_matrix<M2>(3, 0, 1, 3) * const_cast<const Upper&&>(Upper {3, 1, 0, 3}).view(), mat22(9, 3, 3, 10)));
+  EXPECT_TRUE(is_near(make_dense_writable_matrix_from<M2>(3, 0, 1, 3) * u1.view(), mat22(9, 3, 3, 10)));
+  EXPECT_TRUE(is_near(make_dense_writable_matrix_from<M2>(3, 0, 1, 3) * std::as_const(u1).view(), mat22(9, 3, 3, 10)));
+  EXPECT_TRUE(is_near(make_dense_writable_matrix_from<M2>(3, 0, 1, 3) * Upper {3, 1, 0, 3}.view(), mat22(9, 3, 3, 10)));
+  EXPECT_TRUE(is_near(make_dense_writable_matrix_from<M2>(3, 0, 1, 3) * const_cast<const Upper&&>(Upper {3, 1, 0, 3}).view(), mat22(9, 3, 3, 10)));
 }
 
 
 TEST(eigen3, TriangularMatrix_make)
 {
-  static_assert(zero_matrix<decltype(make_EigenTriangularMatrix<TriangleType::upper>(MatrixTraits<M2>::zero()))>);
-  static_assert(zero_matrix<decltype(make_EigenTriangularMatrix<TriangleType::lower>(MatrixTraits<M2>::zero()))>);
-  static_assert(zero_matrix<decltype(make_EigenTriangularMatrix(MatrixTraits<M2>::zero()))>);
-  static_assert(upper_triangular_matrix<decltype(make_EigenTriangularMatrix<TriangleType::upper>(make_native_matrix<M2>(3, 1, 0, 3)))>);
-  static_assert(lower_triangular_matrix<decltype(make_EigenTriangularMatrix<TriangleType::lower>(make_native_matrix<M2>(3, 0, 1, 3)))>);
-  static_assert(lower_triangular_matrix<decltype(make_EigenTriangularMatrix(make_native_matrix<M2>(3, 0, 1, 3)))>);
+  static_assert(zero_matrix<decltype(make_EigenTriangularMatrix<TriangleType::upper>(make_zero_matrix_like<M2>()))>);
+  static_assert(zero_matrix<decltype(make_EigenTriangularMatrix<TriangleType::lower>(make_zero_matrix_like<M2>()))>);
+  static_assert(zero_matrix<decltype(make_EigenTriangularMatrix(make_zero_matrix_like<M2>()))>);
+  static_assert(upper_triangular_matrix<decltype(make_EigenTriangularMatrix<TriangleType::upper>(make_dense_writable_matrix_from<M2>(3, 1, 0, 3)))>);
+  static_assert(lower_triangular_matrix<decltype(make_EigenTriangularMatrix<TriangleType::lower>(make_dense_writable_matrix_from<M2>(3, 0, 1, 3)))>);
+  static_assert(lower_triangular_matrix<decltype(make_EigenTriangularMatrix(make_dense_writable_matrix_from<M2>(3, 0, 1, 3)))>);
   static_assert(diagonal_matrix<decltype(make_EigenTriangularMatrix<TriangleType::upper>(DiagonalMatrix {3., 4}))>);
   static_assert(diagonal_matrix<decltype(make_EigenTriangularMatrix<TriangleType::lower>(DiagonalMatrix {3., 4}))>);
   static_assert(diagonal_matrix<decltype(make_EigenTriangularMatrix(DiagonalMatrix {3., 4}))>);
@@ -556,20 +556,20 @@ TEST(eigen3, TriangularMatrix_traits)
   EXPECT_TRUE(is_near(MatrixTraits<Dl>::make(3, 0, 1, 3), ml));
   EXPECT_TRUE(is_near(MatrixTraits<Du>::make(3, 1, 0, 3), mu));
   //
-  EXPECT_TRUE(is_near(MatrixTraits<Dl>::zero(), M2::Zero()));
-  EXPECT_TRUE(is_near(MatrixTraits<Du>::zero(), M2::Zero()));
+  EXPECT_TRUE(is_near(make_zero_matrix_like<Dl>(), M2::Zero()));
+  EXPECT_TRUE(is_near(make_zero_matrix_like<Du>(), M2::Zero()));
   //
-  EXPECT_TRUE(is_near(MatrixTraits<Dl>::identity(), M2::Identity()));
-  EXPECT_TRUE(is_near(MatrixTraits<Du>::identity(), M2::Identity()));
+  EXPECT_TRUE(is_near(make_identity_matrix_like<Dl>(), M2::Identity()));
+  EXPECT_TRUE(is_near(make_identity_matrix_like<Du>(), M2::Identity()));
 
   static_assert(lower_triangular_matrix<Lower>);
   static_assert(upper_triangular_matrix<Upper>);
   static_assert(diagonal_matrix<Diagonal>);
   static_assert(diagonal_matrix<Diagonal2>);
   static_assert(diagonal_matrix<Diagonal3>);
-  static_assert(zero_matrix<decltype(TriangularMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::lower>(MatrixTraits<M2>::zero()))>);
-  static_assert(zero_matrix<decltype(TriangularMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::upper>(MatrixTraits<M2>::zero()))>);
-  static_assert(identity_matrix<decltype(TriangularMatrix<decltype(MatrixTraits<M2>::identity()), TriangleType::lower>(MatrixTraits<M2>::identity()))>);
+  static_assert(zero_matrix<decltype(TriangularMatrix<decltype(make_zero_matrix_like<M2>()), TriangleType::lower>(make_zero_matrix_like<M2>()))>);
+  static_assert(zero_matrix<decltype(TriangularMatrix<decltype(make_zero_matrix_like<M2>()), TriangleType::upper>(make_zero_matrix_like<M2>()))>);
+  static_assert(identity_matrix<decltype(TriangularMatrix<decltype(make_identity_matrix_like<M2>()), TriangleType::lower>(make_identity_matrix_like<M2>()))>);
 }
 
 
@@ -579,11 +579,11 @@ TEST(eigen3, TriangularMatrix_overloads)
   ml << 3, 0, 1, 3;
   mu << 3, 1, 0, 3;
   //
-  EXPECT_TRUE(is_near(make_native_matrix(Lower(3., 0, 1, 3)), ml));
-  EXPECT_TRUE(is_near(make_native_matrix(Upper(3., 1, 0, 3)), mu));
+  EXPECT_TRUE(is_near(make_dense_writable_matrix_from(Lower(3., 0, 1, 3)), ml));
+  EXPECT_TRUE(is_near(make_dense_writable_matrix_from(Upper(3., 1, 0, 3)), mu));
   //
-  EXPECT_TRUE(is_near(make_self_contained(Lower(M2::Zero())), make_native_matrix<M2>(0, 0, 0, 0)));
-  EXPECT_TRUE(is_near(make_self_contained(Upper(M2::Zero())), make_native_matrix<M2>(0, 0, 0, 0)));
+  EXPECT_TRUE(is_near(make_self_contained(Lower(M2::Zero())), make_dense_writable_matrix_from<M2>(0, 0, 0, 0)));
+  EXPECT_TRUE(is_near(make_self_contained(Upper(M2::Zero())), make_dense_writable_matrix_from<M2>(0, 0, 0, 0)));
   static_assert(std::is_same_v<std::decay_t<decltype(make_self_contained(Lower {9, 3, 3, 10} * 2))>, Lower>);
   static_assert(std::is_same_v<std::decay_t<decltype(make_self_contained(Upper {9, 3, 3, 10} * 2))>, Upper>);
   //
@@ -596,10 +596,10 @@ TEST(eigen3, TriangularMatrix_overloads)
   static_assert(identity_matrix<decltype(Cholesky_square(TriangularMatrix<decltype(M2::Identity()), TriangleType::lower>(M2::Identity())))>);
   static_assert(identity_matrix<decltype(Cholesky_square(TriangularMatrix<decltype(M2::Identity()), TriangleType::upper>(M2::Identity())))>);
   //
-  EXPECT_TRUE(is_near(Cholesky_square(TriangularMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::lower>(MatrixTraits<M2>::zero())), M2::Zero()));
-  EXPECT_TRUE(is_near(Cholesky_square(TriangularMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::upper>(MatrixTraits<M2>::zero())), M2::Zero()));
-  static_assert(zero_matrix<decltype(Cholesky_square(TriangularMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::lower>(MatrixTraits<M2>::zero())))>);
-  static_assert(zero_matrix<decltype(Cholesky_square(TriangularMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::upper>(MatrixTraits<M2>::zero())))>);
+  EXPECT_TRUE(is_near(Cholesky_square(TriangularMatrix<decltype(make_zero_matrix_like<M2>()), TriangleType::lower>(make_zero_matrix_like<M2>())), M2::Zero()));
+  EXPECT_TRUE(is_near(Cholesky_square(TriangularMatrix<decltype(make_zero_matrix_like<M2>()), TriangleType::upper>(make_zero_matrix_like<M2>())), M2::Zero()));
+  static_assert(zero_matrix<decltype(Cholesky_square(TriangularMatrix<decltype(make_zero_matrix_like<M2>()), TriangleType::lower>(make_zero_matrix_like<M2>())))>);
+  static_assert(zero_matrix<decltype(Cholesky_square(TriangularMatrix<decltype(make_zero_matrix_like<M2>()), TriangleType::upper>(make_zero_matrix_like<M2>())))>);
   //
   EXPECT_TRUE(is_near(Cholesky_square(TriangularMatrix<decltype(DiagonalMatrix{2., 3}), TriangleType::lower>(DiagonalMatrix{2., 3})), DiagonalMatrix{4., 9}));
   EXPECT_TRUE(is_near(Cholesky_square(TriangularMatrix<decltype(DiagonalMatrix{2., 3}), TriangleType::upper>(DiagonalMatrix{2., 3})), DiagonalMatrix{4., 9}));
@@ -631,10 +631,10 @@ TEST(eigen3, TriangularMatrix_overloads)
   static_assert(identity_matrix<decltype(Cholesky_factor(TriangularMatrix<decltype(M2::Identity()), TriangleType::lower>(M2::Identity())))>);
   static_assert(identity_matrix<decltype(Cholesky_factor(TriangularMatrix<decltype(M2::Identity()), TriangleType::upper>(M2::Identity())))>);
   //
-  EXPECT_TRUE(is_near(Cholesky_factor(TriangularMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::lower>(MatrixTraits<M2>::zero())), M2::Zero()));
-  EXPECT_TRUE(is_near(Cholesky_factor(TriangularMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::upper>(MatrixTraits<M2>::zero())), M2::Zero()));
-  static_assert(zero_matrix<decltype(Cholesky_factor(TriangularMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::lower>(MatrixTraits<M2>::zero())))>);
-  static_assert(zero_matrix<decltype(Cholesky_factor(TriangularMatrix<decltype(MatrixTraits<M2>::zero()), TriangleType::upper>(MatrixTraits<M2>::zero())))>);
+  EXPECT_TRUE(is_near(Cholesky_factor(TriangularMatrix<decltype(make_zero_matrix_like<M2>()), TriangleType::lower>(make_zero_matrix_like<M2>())), M2::Zero()));
+  EXPECT_TRUE(is_near(Cholesky_factor(TriangularMatrix<decltype(make_zero_matrix_like<M2>()), TriangleType::upper>(make_zero_matrix_like<M2>())), M2::Zero()));
+  static_assert(zero_matrix<decltype(Cholesky_factor(TriangularMatrix<decltype(make_zero_matrix_like<M2>()), TriangleType::lower>(make_zero_matrix_like<M2>())))>);
+  static_assert(zero_matrix<decltype(Cholesky_factor(TriangularMatrix<decltype(make_zero_matrix_like<M2>()), TriangleType::upper>(make_zero_matrix_like<M2>())))>);
   //
   EXPECT_TRUE(is_near(Cholesky_factor(TriangularMatrix<decltype(DiagonalMatrix{4., 9}), TriangleType::lower>(DiagonalMatrix{4., 9})), DiagonalMatrix{2., 3}));
   EXPECT_TRUE(is_near(Cholesky_factor(TriangularMatrix<decltype(DiagonalMatrix{4., 9}), TriangleType::upper>(DiagonalMatrix{4., 9})), DiagonalMatrix{2., 3}));
@@ -677,22 +677,22 @@ TEST(eigen3, TriangularMatrix_overloads)
   EXPECT_TRUE(is_near(reduce_rows(Upper {3., 1, 0, 3}), make_eigen_matrix<double, 1, 2>(1.5, 2)));
   //
   auto sl1 = Lower {3., 0, 1, 3};
-  rank_update(sl1, make_native_matrix<M2>(2, 0, 1, 2), 4);
+  rank_update(sl1, make_dense_writable_matrix_from<M2>(2, 0, 1, 2), 4);
   EXPECT_TRUE(is_near(sl1, mat22(5., 0, 2.2, std::sqrt(25.16))));
   auto su1 = Upper {3., 1, 0, 3};
-  rank_update(su1, make_native_matrix<M2>(2, 0, 1, 2), 4);
+  rank_update(su1, make_dense_writable_matrix_from<M2>(2, 0, 1, 2), 4);
   EXPECT_TRUE(is_near(su1, mat22(5., 2.2, 0, std::sqrt(25.16))));
   //
   const auto sl2 = Lower {3., 0, 1, 3};
-  EXPECT_TRUE(is_near(rank_update(sl2, make_native_matrix<M2>(2, 0, 1, 2), 4), mat22(5., 0, 2.2, std::sqrt(25.16))));
+  EXPECT_TRUE(is_near(rank_update(sl2, make_dense_writable_matrix_from<M2>(2, 0, 1, 2), 4), mat22(5., 0, 2.2, std::sqrt(25.16))));
   const auto su2 = Upper {3., 1, 0, 3};
-  EXPECT_TRUE(is_near(rank_update(su2, make_native_matrix<M2>(2, 0, 1, 2), 4), mat22(5., 2.2, 0, std::sqrt(25.16))));
+  EXPECT_TRUE(is_near(rank_update(su2, make_dense_writable_matrix_from<M2>(2, 0, 1, 2), 4), mat22(5., 2.2, 0, std::sqrt(25.16))));
   //
-  EXPECT_TRUE(is_near(rank_update(Lower {3., 0, 1, 3}, make_native_matrix<M2>(2, 0, 1, 2), 4), mat22(5., 0, 2.2, std::sqrt(25.16))));
-  EXPECT_TRUE(is_near(rank_update(Upper {3., 1, 0, 3}, make_native_matrix<M2>(2, 0, 1, 2), 4), mat22(5., 2.2, 0, std::sqrt(25.16))));
-  EXPECT_TRUE(is_near(rank_update(Diagonal {3., 3}, make_native_matrix<M2>(2, 0, 1, 2), 4), mat22(5., 0, 1.6, std::sqrt(26.44))));
-  EXPECT_TRUE(is_near(rank_update(Diagonal2 {3., 3}, make_native_matrix<M2>(2, 0, 1, 2), 4), mat22(5., 0, 1.6, std::sqrt(26.44))));
-  EXPECT_TRUE(is_near(rank_update(Diagonal3 {3., 3}, make_native_matrix<M2>(2, 0, 1, 2), 4), mat22(5., 0, 1.6, std::sqrt(26.44))));
+  EXPECT_TRUE(is_near(rank_update(Lower {3., 0, 1, 3}, make_dense_writable_matrix_from<M2>(2, 0, 1, 2), 4), mat22(5., 0, 2.2, std::sqrt(25.16))));
+  EXPECT_TRUE(is_near(rank_update(Upper {3., 1, 0, 3}, make_dense_writable_matrix_from<M2>(2, 0, 1, 2), 4), mat22(5., 2.2, 0, std::sqrt(25.16))));
+  EXPECT_TRUE(is_near(rank_update(Diagonal {3., 3}, make_dense_writable_matrix_from<M2>(2, 0, 1, 2), 4), mat22(5., 0, 1.6, std::sqrt(26.44))));
+  EXPECT_TRUE(is_near(rank_update(Diagonal2 {3., 3}, make_dense_writable_matrix_from<M2>(2, 0, 1, 2), 4), mat22(5., 0, 1.6, std::sqrt(26.44))));
+  EXPECT_TRUE(is_near(rank_update(Diagonal3 {3., 3}, make_dense_writable_matrix_from<M2>(2, 0, 1, 2), 4), mat22(5., 0, 1.6, std::sqrt(26.44))));
   //
   EXPECT_TRUE(is_near(solve(Lower {3., 0, 1, 3}, make_eigen_matrix<double, 2, 1>(3, 7)), make_eigen_matrix<double, 2, 1>(1, 2)));
   EXPECT_TRUE(is_near(solve(Upper {3., 1, 0, 3}, make_eigen_matrix<double, 2, 1>(3, 9)), make_eigen_matrix<double, 2, 1>(0, 3)));
@@ -945,7 +945,7 @@ TEST(eigen3, TriangularMatrix_arithmetic_lower)
   auto m2 = Lower {1., 0, 2, 3};
   auto d = DiagonalMatrix<eigen_matrix_t<double, 2, 1>> {1, 3};
   auto i = M2::Identity();
-  auto z = ZeroMatrix<double, 2, 2> {};
+  auto z = ZeroMatrix<eigen_matrix_t<double, 2, 2>> {};
 
   EXPECT_TRUE(is_near(m1 + m2, mat22(5, 0, 7, 9))); static_assert(lower_triangular_matrix<decltype(m1 + m2)>);
   EXPECT_TRUE(is_near(m1 + d, mat22(5, 0, 5, 9))); static_assert(lower_triangular_matrix<decltype(m1 + d)>);
@@ -995,7 +995,7 @@ TEST(eigen3, TriangularMatrix_arithmetic_upper)
   auto m2 = Upper {1., 2, 0, 3};
   auto d = DiagonalMatrix<eigen_matrix_t<double, 2, 1>> {1, 3};
   auto i = M2::Identity();
-  auto z = ZeroMatrix<double, 2, 2> {};
+  auto z = ZeroMatrix<eigen_matrix_t<double, 2, 2>> {};
   EXPECT_TRUE(is_near(m1 + m2, mat22(5, 7, 0, 9))); static_assert(upper_triangular_matrix<decltype(m1 + m2)>);
   EXPECT_TRUE(is_near(m1 + d, mat22(5, 5, 0, 9))); static_assert(upper_triangular_matrix<decltype(m1 + d)>);
   EXPECT_TRUE(is_near(d + m1, mat22(5, 5, 0, 9))); static_assert(upper_triangular_matrix<decltype(d + m1)>);

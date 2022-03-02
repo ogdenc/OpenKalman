@@ -34,7 +34,7 @@ inline namespace
 TEST(nonlinear, TT1RadarA1SelfAdjoint)
 {
   LinearizedTransform t;
-  auto in = G2 {{3.0, 0.0}, SA::identity()};
+  auto in = G2 {{3.0, 0.0}, make_identity_matrix_like<SA>()};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean_of(out)(0), 3.0, 1e-1);
   EXPECT_NEAR(mean_of(out)(1), 0.0, 1e-1);
@@ -47,7 +47,7 @@ TEST(nonlinear, TT1RadarA1SelfAdjoint)
 TEST(nonlinear, TT1RadarA1Triangular)
 {
   LinearizedTransform t;
-  auto in = G2T {{3.0, 0.0}, SA::identity()};
+  auto in = G2T {{3.0, 0.0}, make_identity_matrix_like<SA>()};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean_of(out)(0), 3.0, 1e-1);
   EXPECT_NEAR(mean_of(out)(1), 0.0, 1e-1);
@@ -60,7 +60,7 @@ TEST(nonlinear, TT1RadarA1Triangular)
 TEST(nonlinear, TT1RadarA2SelfAdjoint)
 {
   LinearizedTransform t;
-  auto in = G2 {{3.0, pi/6}, SA::identity()};
+  auto in = G2 {{3.0, pi/6}, make_identity_matrix_like<SA>()};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean_of(out)(0), 2.6, 1e-1);
   EXPECT_NEAR(mean_of(out)(1), 1.5, 1e-1);
@@ -73,7 +73,7 @@ TEST(nonlinear, TT1RadarA2SelfAdjoint)
 TEST(nonlinear, TT1RadarA2Triangular)
 {
   LinearizedTransform t;
-  auto in = G2T {{3.0, pi/6}, SA::identity()};
+  auto in = G2T {{3.0, pi/6}, make_identity_matrix_like<SA>()};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean_of(out)(0), 2.6, 1e-1);
   EXPECT_NEAR(mean_of(out)(1), 1.5, 1e-1);
@@ -86,7 +86,7 @@ TEST(nonlinear, TT1RadarA2Triangular)
 TEST(nonlinear, TT1RadarA3SelfAdjoint)
 {
   LinearizedTransform t;
-  auto in = G2 {{3.0, pi/4}, SA::identity()};
+  auto in = G2 {{3.0, pi/4}, make_identity_matrix_like<SA>()};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean_of(out)(0), 2.1, 1e-1);
   EXPECT_NEAR(mean_of(out)(1), 2.1, 1e-1);
@@ -99,7 +99,7 @@ TEST(nonlinear, TT1RadarA3SelfAdjoint)
 TEST(nonlinear, TT1RadarA3Triangular)
 {
   LinearizedTransform t;
-  auto in = G2T {{3.0, pi/4}, SA::identity()};
+  auto in = G2T {{3.0, pi/4}, make_identity_matrix_like<SA>()};
   auto out = t(in, radarP);
   EXPECT_NEAR(mean_of(out)(0), 2.1, 1e-1);
   EXPECT_NEAR(mean_of(out)(1), 2.1, 1e-1);

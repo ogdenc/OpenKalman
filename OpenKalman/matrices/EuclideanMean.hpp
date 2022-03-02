@@ -21,19 +21,19 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
   template<coefficients RowCoefficients, typed_matrix_nestable NestedMatrix> requires
-    (RowCoefficients::euclidean_dimensions == row_extent_of_v<NestedMatrix>) and
+    (RowCoefficients::euclidean_dimension == row_dimension_of_v<NestedMatrix>) and
     (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename RowCoefficients, typename NestedMatrix>
 #endif
   struct EuclideanMean : oin::TypedMatrixBase<EuclideanMean<RowCoefficients, NestedMatrix>, NestedMatrix,
-    RowCoefficients, Axes<column_extent_of_v<NestedMatrix>>>
+    RowCoefficients, Axes<column_dimension_of_v<NestedMatrix>>>
   {
 
 #ifndef __cpp_concepts
     static_assert(coefficients<RowCoefficients>);
     static_assert(typed_matrix_nestable<NestedMatrix>);
-    static_assert(RowCoefficients::euclidean_dimensions == row_extent_of_v<NestedMatrix>);
+    static_assert(RowCoefficients::euclidean_dimension == row_dimension_of_v<NestedMatrix>);
     static_assert(not std::is_rvalue_reference_v<NestedMatrix>);
 #endif
 
@@ -41,7 +41,7 @@ namespace OpenKalman
 
   protected:
 
-    using ColumnCoefficients = Axes<column_extent_of_v<NestedMatrix>>;
+    using ColumnCoefficients = Axes<column_dimension_of_v<NestedMatrix>>;
 
   private:
 
@@ -87,13 +87,13 @@ namespace OpenKalman
 
     /// Construct from compatible \ref OpenKalman::typed_matrix_nestable "typed_matrix_nestable" object.
 #ifdef __cpp_concepts
-    template<typed_matrix_nestable Arg> requires (row_extent_of_v<Arg> == row_extent_of_v<NestedMatrix>) and
-      (column_extent_of_v<Arg> == column_extent_of_v<NestedMatrix>) and
+    template<typed_matrix_nestable Arg> requires (row_dimension_of_v<Arg> == row_dimension_of_v<NestedMatrix>) and
+      (column_dimension_of_v<Arg> == column_dimension_of_v<NestedMatrix>) and
       std::constructible_from<NestedMatrix, Arg&&>
 #else
     template<typename Arg, std::enable_if_t<typed_matrix_nestable<Arg> and
-      (row_extent_of<Arg>::value == row_extent_of<NestedMatrix>::value) and
-      (column_extent_of<Arg>::value == column_extent_of<NestedMatrix>::value) and
+      (row_dimension_of<Arg>::value == row_dimension_of<NestedMatrix>::value) and
+      (column_dimension_of<Arg>::value == column_dimension_of<NestedMatrix>::value) and
       std::is_constructible_v<NestedMatrix, Arg&&>, int> = 0>
 #endif
     EuclideanMean(Arg&& arg) noexcept : Base {std::forward<Arg>(arg)} {}
@@ -273,10 +273,10 @@ namespace OpenKalman
 #if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS_2
   // \todo Unlike SFINAE version, this incorrectly matches V==EuclideanMean in both GCC 10.1.0 and clang 10.0.0:
   template<typed_matrix V> requires (not euclidean_transformed<V>) and untyped_columns<V> and
-    (MatrixTraits<V>::RowCoefficients::euclidean_dimensions == row_extent_of_v<V>)
+    (MatrixTraits<V>::RowCoefficients::euclidean_dimension == row_dimension_of_v<V>)
 #else
   template<typename V, std::enable_if_t<typed_matrix<V> and not euclidean_transformed<V> and untyped_columns<V> and
-    MatrixTraits<V>::RowCoefficients::euclidean_dimensions == row_extent_of_v<V>, int> = 0>
+    MatrixTraits<V>::RowCoefficients::euclidean_dimension == row_dimension_of_v<V>, int> = 0>
 #endif
   EuclideanMean(V&&)
     -> EuclideanMean<typename MatrixTraits<V>::RowCoefficients, std::remove_reference_t<
@@ -298,7 +298,7 @@ namespace OpenKalman
 #else
   template<typename V, std::enable_if_t<typed_matrix_nestable<V>, int> = 0>
 #endif
-  explicit EuclideanMean(V&&) -> EuclideanMean<Axes<row_extent_of_v<V>>, passable_t<V>>;
+  explicit EuclideanMean(V&&) -> EuclideanMean<Axes<row_dimension_of_v<V>>, passable_t<V>>;
 
 
   // ----------------------------- //
@@ -312,10 +312,10 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<coefficients Coefficients, typed_matrix_nestable M> requires
-    (Coefficients::euclidean_dimensions == row_extent_of_v<M>)
+    (Coefficients::euclidean_dimension == row_dimension_of_v<M>)
 #else
   template<typename Coefficients, typename M, std::enable_if_t<coefficients<Coefficients> and
-    typed_matrix_nestable<M> and (Coefficients::euclidean_dimensions == row_extent_of<M>::value), int> = 0>
+    typed_matrix_nestable<M> and (Coefficients::euclidean_dimension == row_dimension_of<M>::value), int> = 0>
 #endif
   auto make_euclidean_mean(M&& arg) noexcept
   {
@@ -334,7 +334,7 @@ namespace OpenKalman
 #endif
   auto make_euclidean_mean(M&& m) noexcept
   {
-    using Coeffs = Axes<row_extent_of_v<M>>;
+    using Coeffs = Axes<row_dimension_of_v<M>>;
     return make_mean<Coeffs>(std::forward<M>(m));
   }
 
@@ -368,14 +368,14 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<coefficients Coefficients, typed_matrix_nestable M> requires
-    (Coefficients::euclidean_dimensions == row_extent_of_v<M>)
+    (Coefficients::euclidean_dimension == row_dimension_of_v<M>)
 #else
   template<typename Coefficients, typename M, std::enable_if_t<coefficients<Coefficients> and
-    typed_matrix_nestable<M> and (Coefficients::euclidean_dimensions == row_extent_of<M>::value), int> = 0>
+    typed_matrix_nestable<M> and (Coefficients::euclidean_dimension == row_dimension_of<M>::value), int> = 0>
 #endif
   auto make_euclidean_mean()
   {
-    constexpr auto rows = row_extent_of_v<M>;
+    constexpr auto rows = row_dimension_of_v<M>;
     return EuclideanMean<Coefficients, equivalent_dense_writable_matrix_t<M, rows>>();
   }
 
@@ -393,7 +393,7 @@ namespace OpenKalman
 #endif
   auto make_euclidean_mean()
   {
-    return make_euclidean_mean<Axes<row_extent_of_v<M>>, M>();
+    return make_euclidean_mean<Axes<row_dimension_of_v<M>>, M>();
   }
 
 

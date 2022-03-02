@@ -23,7 +23,7 @@ using T2l = TriangularMatrix<M2, TriangleType::lower>;
 using T2u = TriangularMatrix<M2, TriangleType::upper>;
 using D2 = DiagonalMatrix<eigen_matrix_t<double, 2, 1>>;
 using I2 = IdentityMatrix<M2>;
-using Z2 = ZeroMatrix<double, 2, 2>;
+using Z2 = ZeroMatrix<eigen_matrix_t<double, 2, 2>>;
 using CovSA2l = Covariance<C, SA2l>;
 using CovSA2u = Covariance<C, SA2u>;
 using CovT2l = Covariance<C, T2l>;
@@ -40,7 +40,7 @@ using SqCovI2 = SquareRootCovariance<C, I2>;
 using SqCovZ2 = SquareRootCovariance<C, Z2>;
 
 inline I2 i2 = M2::Identity();
-inline ZeroMatrix<double, 2, 2> z2;
+inline ZeroMatrix<eigen_matrix_t<double, 2, 2>> z2;
 inline CovI2 covi2 {i2};
 inline CovZ2 covz2;
 inline SqCovI2 sqcovi2 {i2};
@@ -761,13 +761,13 @@ TEST(covariance_tests, Covariance_mult_scalar)
   static_assert(diagonal_matrix<decltype((-2 * covi2).get_self_adjoint_nested_matrix())>);
   static_assert(zero_matrix<decltype((-2 * covz2).get_self_adjoint_nested_matrix())>);
 
-  EXPECT_TRUE(is_near(CovSA2l::identity() + 2 * CovSA2l::identity(), Mat2 {3, 0, 0, 3}));
-  EXPECT_TRUE(is_near(CovSA2u::identity() * 2 + CovSA2u::identity(), Mat2 {3, 0, 0, 3}));
-  EXPECT_TRUE(is_near(CovT2l::identity() + 2 * CovT2l::identity(), Mat2 {3, 0, 0, 3}));
-  EXPECT_TRUE(is_near(CovT2u::identity() * 2 + CovT2u::identity(), Mat2 {3, 0, 0, 3}));
-  EXPECT_TRUE(is_near(CovD2::identity() + 2 * CovD2::identity(), Mat2 {3, 0, 0, 3}));
-  EXPECT_TRUE(is_near(CovI2::identity() * 2 + CovI2::identity(), Mat2 {3, 0, 0, 3}));
-  EXPECT_TRUE(is_near(CovZ2::identity() + 2 * CovZ2::identity(), Mat2 {3, 0, 0, 3}));
+  EXPECT_TRUE(is_near(make_identity_matrix_like<CovSA2l>() + 2 * make_identity_matrix_like<CovSA2l>(), Mat2 {3, 0, 0, 3}));
+  EXPECT_TRUE(is_near(make_identity_matrix_like<CovSA2u>() * 2 + make_identity_matrix_like<CovSA2u>(), Mat2 {3, 0, 0, 3}));
+  EXPECT_TRUE(is_near(make_identity_matrix_like<CovT2l>() + 2 * make_identity_matrix_like<CovT2l>(), Mat2 {3, 0, 0, 3}));
+  EXPECT_TRUE(is_near(make_identity_matrix_like<CovT2u>() * 2 + make_identity_matrix_like<CovT2u>(), Mat2 {3, 0, 0, 3}));
+  EXPECT_TRUE(is_near(make_identity_matrix_like<CovD2>() + 2 * make_identity_matrix_like<CovD2>(), Mat2 {3, 0, 0, 3}));
+  EXPECT_TRUE(is_near(make_identity_matrix_like<CovI2>() * 2 + make_identity_matrix_like<CovI2>(), Mat2 {3, 0, 0, 3}));
+  EXPECT_TRUE(is_near(make_identity_matrix_like<CovZ2>() + 2 * make_identity_matrix_like<CovZ2>(), Mat2 {3, 0, 0, 3}));
 
   // Scalar division
   EXPECT_TRUE(is_near(CovSA2l(p1) / 0.5, Mat2 {8, 4, 4, 10}));

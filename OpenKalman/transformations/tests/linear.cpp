@@ -53,11 +53,11 @@ struct Trans2
 
   auto hessian(const X& x) const
   {
-    using H = eigen_matrix_t<scalar_type_of_t<A>, column_extent_of_v<A>, column_extent_of_v<A>>;
+    using H = eigen_matrix_t<scalar_type_of_t<A>, column_dimension_of_v<A>, column_dimension_of_v<A>>;
     using C = typename MatrixTraits<X>::RowCoefficients;
     using MH = Matrix<C, C, H>;
     auto Arr = std::array<MH, A::RowsAtCompileTime>();
-    Arr.fill(MH::zero());
+    Arr.fill(make_zero_matrix_like<MH>());
     return std::tuple {Arr};
   }
 
@@ -75,7 +75,7 @@ TEST(transformations, linear)
   EXPECT_TRUE(is_near(t(M2(1, 2)), M2(5, 11)));
   EXPECT_TRUE(is_near(t(M2(1, 2), M2(1, 1)), M2(6, 12)));
   EXPECT_TRUE(is_near(std::get<0>(t.jacobian(M2(1, 2))), a));
-  EXPECT_TRUE(is_near(std::get<1>(t.jacobian(M2(1, 2), M2(1, 1))), A2::identity()));
+  EXPECT_TRUE(is_near(std::get<1>(t.jacobian(M2(1, 2), M2(1, 1))), make_identity_matrix_like<A2>()));
 }
 
 TEST(transformations, linearized1)
@@ -127,11 +127,11 @@ TEST(transformations, linearized_lambdas)
   auto f = [&a] (const M2& x) { return a * x; };
   auto j = [&a] (const M2& x) { return std::tuple(a); };
   auto h = [] (const M2& x) {
-    using H = eigen_matrix_t<scalar_type_of_t<A2>, column_extent_of_v<A2>, column_extent_of_v<A2>>;
+    using H = eigen_matrix_t<scalar_type_of_t<A2>, column_dimension_of_v<A2>, column_dimension_of_v<A2>>;
     using C = typename MatrixTraits<M2>::RowCoefficients;
     using MH = Matrix<C, C, H>;
     auto Arr = std::array<MH, A2::RowsAtCompileTime>();
-    Arr.fill(MH::zero());
+    Arr.fill(make_zero_matrix_like<MH>());
     return std::tuple {Arr};
   };
   auto t = Transformation(f, j, h);

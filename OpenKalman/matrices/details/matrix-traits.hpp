@@ -18,113 +18,73 @@ namespace OpenKalman
   namespace interface
   {
 
+    // -------------------- //
+    //  StorageArrayTraits  //
+    // -------------------- //
+
+#ifdef __cpp_concepts
+    template<typed_adapter T>
+    struct StorageArrayTraits<T>
+#else
+    template<typename T>
+    struct StorageArrayTraits<T, std::enable_if_t<typed_adapter<T>>>
+#endif
+    {
+      static constexpr std::size_t max_indices = 2;
+    };
+
+
     // ------------- //
-    //  RowExtentOf  //
+    //  IndexTraits  //
     // ------------- //
 
 #ifdef __cpp_concepts
-    template<typed_matrix T>
-    struct RowExtentOf<T>
+    template<typed_matrix T, std::size_t N>
+    struct IndexTraits<T, N>
 #else
-    template<typename T>
-    struct RowExtentOf<T, std::enable_if_t<typed_matrix<T>>>
+    template<typename T, std::size_t N>
+    struct IndexTraits<T, N, std::enable_if_t<typed_matrix<T>>>
 #endif
-      : RowExtentOf<nested_matrix_of_t<T>>
     {
+      static constexpr std::size_t dimension = N == 0 ? MatrixTraits<T>::RowCoefficients::dimension :
+        MatrixTraits<T>::ColumnCoefficients::dimension;
+
       template<typename Arg>
-      static constexpr std::size_t rows_at_runtime(Arg&& arg)
+      static constexpr std::size_t dimension_at_runtime(Arg&& arg)
       {
-        static_assert(std::is_same_v<std::decay_t<Arg>, std::decay_t<T>>);
-        if constexpr (dynamic_rows<Arg>)
-          return row_count(nested_matrix(std::forward<Arg>(arg)));
+        if constexpr (dynamic_dimension<T, N>)
+          return runtime_dimension_of<N>(nested_matrix(std::forward<Arg>(arg)));
         else
-          return RowExtentOf::value;
+          return dimension;
       }
     };
 
 
 #ifdef __cpp_concepts
-    template<covariance T>
-    struct RowExtentOf<T>
+    template<covariance T, std::size_t N>
+    struct IndexTraits<T, N>
 #else
-    template<typename T>
-    struct RowExtentOf<T, std::enable_if_t<covariance<T>>>
+    template<typename T, std::size_t N>
+    struct IndexTraits<T, N, std::enable_if_t<covariance<T>>>
 #endif
-      : std::integral_constant<std::size_t, dynamic_rows<nested_matrix_of_t<T>> ?
-        column_extent_of_v<nested_matrix_of_t<T>> : row_extent_of_v<nested_matrix_of_t<T>>>
     {
-      template<typename Arg>
-      static constexpr std::size_t rows_at_runtime(Arg&& arg)
-      {
-        static_assert(std::is_same_v<std::decay_t<Arg>, std::decay_t<T>>);
-        using N = nested_matrix_of_t<T>;
+      static constexpr std::size_t dimension = MatrixTraits<T>::Coefficients::dimension;
 
-        if constexpr (dynamic_rows<N>)
+      template<typename Arg>
+      static constexpr std::size_t dimension_at_runtime(Arg&& arg)
+      {
+        using Nested = nested_matrix_of_t<T>;
+
+        if constexpr (dynamic_dimension<Nested, 0>)
         {
-          if constexpr (dynamic_columns<N>)
-            return row_count(nested_matrix(std::forward<Arg>(arg)));
+          if constexpr (dynamic_dimension<Nested, 1>)
+            return runtime_dimension_of<0>(nested_matrix(std::forward<Arg>(arg)));
           else
-            return column_extent_of_v<N>;
+            return index_dimension_of_v<Nested, 1>;
         }
         else
         {
-          return RowExtentOf::value;
-        }
-      }
-    };
-
-
-    // ---------------- //
-    //  ColumnExtentOf  //
-    // ---------------- //
-
-#ifdef __cpp_concepts
-    template<typed_matrix T>
-    struct ColumnExtentOf<T>
-#else
-    template<typename T>
-    struct ColumnExtentOf<T, std::enable_if_t<typed_matrix<T>>>
-#endif
-      : ColumnExtentOf<nested_matrix_of_t<T>>
-    {
-      template<typename Arg>
-      static constexpr std::size_t columns_at_runtime(Arg&& arg)
-      {
-        static_assert(std::is_same_v<std::decay_t<Arg>, std::decay_t<T>>);
-        if constexpr (dynamic_columns<Arg>)
-          return column_count(nested_matrix(std::forward<Arg>(arg)));
-        else
-          return ColumnExtentOf::value;
-      }
-    };
-
-
-#ifdef __cpp_concepts
-    template<covariance T>
-    struct ColumnExtentOf<T>
-#else
-    template<typename T>
-    struct ColumnExtentOf<T, std::enable_if_t<covariance<T>>>
-#endif
-      : std::integral_constant<std::size_t, dynamic_columns<nested_matrix_of_t<T>> ?
-        row_extent_of_v<nested_matrix_of_t<T>> : column_extent_of_v<nested_matrix_of_t<T>>>
-    {
-      template<typename Arg>
-      static constexpr std::size_t columns_at_runtime(Arg&& arg)
-      {
-        static_assert(std::is_same_v<std::decay_t<Arg>, std::decay_t<T>>);
-        using N = nested_matrix_of_t<T>;
-
-        if constexpr (dynamic_columns<N>)
-        {
-          if constexpr (dynamic_rows<N>)
-            return column_count(nested_matrix(std::forward<Arg>(arg)));
-          else
-            return row_extent_of_v<N>;
-        }
-        else
-        {
-          return ColumnExtentOf::value;
+          return dimension;
         }
       }
     };
@@ -141,7 +101,9 @@ namespace OpenKalman
     template<typename T>
     struct ScalarTypeOf<T, std::enable_if_t<typed_matrix<T> or covariance<T>>>
 #endif
-      : ScalarTypeOf<nested_matrix_of_t<T>> {};
+    {
+      using type = scalar_type_of_t<nested_matrix_of_t<T>>;
+    };
 
 
     // -------------------------------- //
@@ -149,64 +111,77 @@ namespace OpenKalman
     // -------------------------------- //
 
 #ifdef __cpp_concepts
-    template<covariance T, std::size_t row_extent, std::size_t column_extent, typename scalar_type>
-    struct EquivalentDenseWritableMatrix<T, row_extent, column_extent, scalar_type>
+    template<covariance T, std::size_t rows, std::size_t columns, typename Scalar>
+    struct EquivalentDenseWritableMatrix<T, rows, columns, Scalar>
 #else
-    template<typename T, std::size_t row_extent, std::size_t column_extent, typename scalar_type>
-    struct EquivalentDenseWritableMatrix<T, row_extent, column_extent, scalar_type, std::enable_if_t<covariance<T>>>
+    template<typename T, std::size_t rows, std::size_t columns, typename Scalar>
+    struct EquivalentDenseWritableMatrix<T, rows, columns, Scalar, std::enable_if_t<covariance<T>>>
 #endif
-      : EquivalentDenseWritableMatrix<nested_matrix_of_t<T>, row_extent, column_extent, scalar_type>
     {
-#ifdef __cpp_concepts
-      template<typename Arg> requires
-        (row_extent_of_v<Arg> == dynamic_extent or row_extent_of_v<Arg> == row_extent) and
-        (column_extent_of_v<Arg> == dynamic_extent or column_extent_of_v<Arg> == column_extent) and
-        std::convertible_to<scalar_type_of_t<Arg>, scalar_type>
- #else
-      template<typename Arg, std::enable_if_t<
-        (row_extent_of<Arg>::value == dynamic_extent or row_extent_of<Arg>::value == row_extent) and
-        (column_extent_of<Arg>::value == dynamic_extent or column_extent_of<Arg>::value == column_extent) and
-        std::is_convertible_v<typename scalar_type_of<Arg>::type, scalar_type>, int> = 0>
- #endif
+
+      template<typename...runtime_dimensions>
+      static auto make_default(runtime_dimensions...e)
+      {
+        using Trait = EquivalentDenseWritableMatrix<nested_matrix_of_t<T>, rows, columns, Scalar>;
+        return Trait::make_default(e...);
+      }
+
+
+      template<typename Arg>
       static decltype(auto) convert(Arg&& arg)
       {
-        using Base = EquivalentDenseWritableMatrix<nested_matrix_of_t<T>, row_extent, column_extent, scalar_type>;
-        return Base::convert(OpenKalman::internal::to_covariance_nestable(std::forward<Arg>(arg)));
+        using Trait = EquivalentDenseWritableMatrix<nested_matrix_of_t<T>, rows, columns, Scalar>;
+        return Trait::convert(OpenKalman::internal::to_covariance_nestable(std::forward<Arg>(arg)));
       }
+
+
+      template<typename Arg>
+      static decltype(auto) to_native_matrix(Arg&& arg)
+      {
+        return OpenKalman::to_native_matrix(
+          OpenKalman::internal::to_covariance_nestable(std::forward<Arg>(arg))(std::forward<Arg>(arg)));
+      }
+
     };
 
 
 #ifdef __cpp_concepts
-    template<typed_matrix T, std::size_t row_extent, std::size_t column_extent, typename scalar_type>
-    struct EquivalentDenseWritableMatrix<T, row_extent, column_extent, scalar_type>
+    template<typed_matrix T, std::size_t rows, std::size_t columns, typename Scalar>
+    struct EquivalentDenseWritableMatrix<T, rows, columns, Scalar>
 #else
-    template<typename T, std::size_t row_extent, std::size_t column_extent, typename scalar_type>
-    struct EquivalentDenseWritableMatrix<T, row_extent, column_extent, scalar_type, std::enable_if_t<typed_matrix<T>>>
+    template<typename T, std::size_t rows, std::size_t columns, typename Scalar>
+    struct EquivalentDenseWritableMatrix<T, rows, columns, Scalar, std::enable_if_t<typed_matrix<T>>>
 #endif
-      : EquivalentDenseWritableMatrix<nested_matrix_of_t<T>, row_extent, column_extent, scalar_type>
     {
-#ifdef __cpp_concepts
-      template<typename Arg> requires
-        (row_extent_of_v<Arg> == dynamic_extent or row_extent_of_v<Arg> == row_extent) and
-        (column_extent_of_v<Arg> == dynamic_extent or column_extent_of_v<Arg> == column_extent) and
-        std::convertible_to<scalar_type_of_t<Arg>, scalar_type>
- #else
-      template<typename Arg, std::enable_if_t<
-        (row_extent_of<Arg>::value == dynamic_extent or row_extent_of<Arg>::value == row_extent) and
-        (column_extent_of<Arg>::value == dynamic_extent or column_extent_of<Arg>::value == column_extent) and
-        std::is_convertible_v<typename scalar_type_of<Arg>::type, scalar_type>, int> = 0>
- #endif
+
+      template<typename...runtime_dimensions>
+      static auto make_default(runtime_dimensions...e)
+      {
+        using Trait = EquivalentDenseWritableMatrix<nested_matrix_of_t<T>, rows, columns, Scalar>;
+        return Trait::make_default(e...);
+      }
+
+
+      template<typename Arg>
       static decltype(auto) convert(Arg&& arg)
       {
-        using Base = EquivalentDenseWritableMatrix<nested_matrix_of_t<T>, row_extent, column_extent, scalar_type>;
-        return Base::convert(nested_matrix(std::forward<Arg>(arg)));
+        using Trait = EquivalentDenseWritableMatrix<nested_matrix_of_t<T>, rows, columns, Scalar>;
+        return Trait::convert(nested_matrix(std::forward<Arg>(arg)));
       }
+
+
+      template<typename Arg>
+      static decltype(auto) to_native_matrix(Arg&& arg)
+      {
+        return OpenKalman::to_native_matrix(nested_matrix(std::forward<Arg>(arg)));
+      }
+
     };
 
 
-    // ----------------- //
+    // --------------- //
     //   Dependencies  //
-    // ----------------- //
+    // --------------- //
 
     template<typename Coeffs, typename NestedMatrix>
     struct Dependencies<Covariance<Coeffs, NestedMatrix>>
@@ -332,6 +307,86 @@ namespace OpenKalman
     };
 
 
+    // ----------------------------- //
+    //   SingleConstantMatrixTraits  //
+    // ----------------------------- //
+
+    template<typename RowCoeffs, typename ColCoeffs, typename NestedMatrix,
+      std::size_t rows, std::size_t columns, typename Scalar>
+    struct SingleConstantMatrixTraits<Matrix<RowCoeffs, ColCoeffs, NestedMatrix>, rows, columns, Scalar>
+    {
+      template<typename...runtime_dimensions>
+      static auto make_zero_matrix(runtime_dimensions...e)
+      {
+        static_assert((std::is_convertible_v<runtime_dimensions, std::size_t> and ...));
+        static_assert(sizeof...(e) == (rows == dynamic_size ? 1 : 0) + (columns == dynamic_size ? 1 : 0));
+
+        auto n = make_zero_matrix_like<NestedMatrix, rows, columns, Scalar>(e...);
+        return Matrix<RowCoeffs, ColCoeffs, std::decay_t<decltype(n)>>(std::move(n)) //< \todo use make_matrix
+      }
+    };
+
+
+    template<typename Coeffs, typename NestedMatrix, std::size_t rows, std::size_t columns, typename Scalar>
+    struct SingleConstantMatrixTraits<Mean<Coeffs, NestedMatrix>, rows, columns, Scalar>
+    {
+      template<typename...runtime_dimensions>
+      static auto make_zero_matrix(runtime_dimensions...e)
+      {
+        static_assert((std::is_convertible_v<runtime_dimensions, std::size_t> and ...));
+        static_assert(sizeof...(e) == (rows == dynamic_size ? 1 : 0) + (columns == dynamic_size ? 1 : 0));
+
+        auto n = wrap_angles<Coeffs>(make_zero_matrix_like<NestedMatrix, rows, columns, Scalar>(e...));
+        return Mean<Coeffs, std::decay_t<decltype(n)>>(std::move(n)); //< \todo use make_mean
+      }
+    };
+
+
+    template<typename Coeffs, typename NestedMatrix, std::size_t rows, std::size_t columns, typename Scalar>
+    struct SingleConstantMatrixTraits<EuclideanMean<Coeffs, NestedMatrix>, rows, columns, Scalar>
+    {
+      template<typename...runtime_dimensions>
+      static auto make_zero_matrix(runtime_dimensions...e)
+      {
+        static_assert((std::is_convertible_v<runtime_dimensions, std::size_t> and ...));
+        static_assert(sizeof...(e) == (rows == dynamic_size ? 1 : 0) + (columns == dynamic_size ? 1 : 0));
+
+        auto n = make_zero_matrix_like<NestedMatrix, rows, columns, Scalar>(e...);
+        return EuclideanMean<Coeffs, std::decay_t<decltype(n)>>(std::move(n)); //< \todo use make_mean
+      }
+    };
+
+
+    template<typename Coeffs, typename NestedMatrix, std::size_t rows, std::size_t columns, typename Scalar>
+    struct SingleConstantMatrixTraits<Covariance<Coeffs, NestedMatrix>, rows, columns, Scalar>
+    {
+      template<typename...runtime_dimensions>
+      static auto make_zero_matrix(runtime_dimensions...e)
+      {
+        static_assert((std::is_convertible_v<runtime_dimensions, std::size_t> and ...));
+        static_assert(sizeof...(e) == (rows == dynamic_size ? 1 : 0) + (columns == dynamic_size ? 1 : 0));
+
+        auto n = make_zero_matrix_like<NestedMatrix, rows, columns, Scalar>(e...);
+        return Covariance<Coeffs, std::decay_t<decltype(n)>>(std::move(n)); //< \todo use make_covariance
+      }
+    };
+
+
+    template<typename Coeffs, typename NestedMatrix, std::size_t rows, std::size_t columns, typename Scalar>
+    struct SingleConstantMatrixTraits<SquareRootCovariance<Coeffs, NestedMatrix>, rows, columns, Scalar>
+    {
+      template<typename...runtime_dimensions>
+      static auto make_zero_matrix(runtime_dimensions...e)
+      {
+        static_assert((std::is_convertible_v<runtime_dimensions, std::size_t> and ...));
+        static_assert(sizeof...(e) == (rows == dynamic_size ? 1 : 0) + (columns == dynamic_size ? 1 : 0));
+
+        auto n = make_zero_matrix_like<NestedMatrix, rows, columns, Scalar>(e...);
+        return SquareRootCovariance<Coeffs, std::decay_t<decltype(n)>>(std::move(n)) //< \todo use make_square_root_covariance
+      }
+    };
+
+
     // ---------------- //
     //  SingleConstant  //
     // ---------------- //
@@ -354,6 +409,90 @@ namespace OpenKalman
       : SingleConstant<std::decay_t<nested_matrix_of_t<T>>> {};
 
 
+      // ------------------------------------- //
+      //   SingleConstantDiagonalMatrixTraits  //
+      // ------------------------------------- //
+
+    template<typename RowCoeffs, typename ColCoeffs, typename NestedMatrix, std::size_t dimension, typename Scalar>
+    struct SingleConstantDiagonalMatrixTraits<Matrix<RowCoeffs, ColCoeffs, NestedMatrix>, dimension, Scalar>
+    {
+      template<typename...runtime_dimensions>
+      static auto make_identity_matrix(runtime_dimensions...e)
+      {
+        static_assert((std::is_convertible_v<runtime_dimensions, std::size_t> and ...));
+        static_assert(sizeof...(e) == (dimension == dynamic_size ? 1 : 0));
+
+        auto n = make_identity_matrix_like<NestedMatrix, dimension, Scalar>(e...);
+        return Matrix<RowCoeffs, ColCoeffs, std::decay_t<decltype(n)>>(std::move(n)) //< \ todo use make_matrix
+      }
+
+    };
+
+
+    template<typename Coeffs, typename NestedMatrix, std::size_t dimension, typename Scalar>
+    struct SingleConstantDiagonalMatrixTraits<Mean<Coeffs, NestedMatrix>, dimension, Scalar>
+    {
+      template<typename...runtime_dimensions>
+      static auto make_identity_matrix(runtime_dimensions...e)
+      {
+        static_assert((std::is_convertible_v<runtime_dimensions, std::size_t> and ...));
+        static_assert(sizeof...(e) == (dimension == dynamic_size ? 1 : 0));
+
+        auto n = make_identity_matrix_like<NestedMatrix, dimension, Scalar>(e...);
+        return Matrix<Coeffs, Coeffs, std::decay_t<decltype(n)>>(std::move(n)); //< \todo use make_matrix
+      }
+
+    };
+
+
+    template<typename Coeffs, typename NestedMatrix, std::size_t dimension, typename Scalar>
+    struct SingleConstantDiagonalMatrixTraits<EuclideanMean<Coeffs, NestedMatrix>, dimension, Scalar>
+    {
+      template<typename...runtime_dimensions>
+      static auto make_identity_matrix(runtime_dimensions...e)
+      {
+        static_assert((std::is_convertible_v<runtime_dimensions, std::size_t> and ...));
+        static_assert(sizeof...(e) == (dimension == dynamic_size ? 1 : 0));
+
+        auto n = make_identity_matrix_like<NestedMatrix, dimension, Scalar>(e...);
+        return Matrix<Coeffs, Coeffs, std::decay_t<decltype(n)>>(std::move(n)); //< \todo use make_matrix
+      }
+
+    };
+
+
+    template<typename Coeffs, typename NestedMatrix, std::size_t dimension, typename Scalar>
+    struct SingleConstantDiagonalMatrixTraits<Covariance<Coeffs, NestedMatrix>, dimension, Scalar>
+    {
+      template<typename...runtime_dimensions>
+      static auto make_identity_matrix(runtime_dimensions...e)
+      {
+        static_assert((std::is_convertible_v<runtime_dimensions, std::size_t> and ...));
+        static_assert(sizeof...(e) == (dimension == dynamic_size ? 1 : 0));
+
+        auto n = make_identity_matrix_like<NestedMatrix, dimension, Scalar>(e...);
+        return Covariance<Coeffs, std::decay_t<decltype(n)>>(std::move(n)); //< \todo use make_covariance
+      }
+
+    };
+
+
+    template<typename Coeffs, typename NestedMatrix, std::size_t dimension, typename Scalar>
+    struct SingleConstantDiagonalMatrixTraits<SquareRootCovariance<Coeffs, NestedMatrix>, dimension, Scalar>
+    {
+      template<typename...runtime_dimensions>
+      static auto make_identity_matrix(runtime_dimensions...e)
+      {
+        static_assert((std::is_convertible_v<runtime_dimensions, std::size_t> and ...));
+        static_assert(sizeof...(runtime_dimensions) == (dimension == dynamic_size ? 1 : 0));
+
+        auto n = make_identity_matrix_like<NestedMatrix, dimension, Scalar>(e...);
+        return SquareRootCovariance<Coeffs, std::decay_t<decltype(n)>>(std::move(n)); //< \todo use make_square_root_covariance
+      }
+
+    };
+
+
     // ------------------------ //
     //  SingleConstantDiagonal  //
     // ------------------------ //
@@ -371,6 +510,133 @@ namespace OpenKalman
       : SingleConstantDiagonal<std::decay_t<nested_matrix_of_t<T>>> {};
 
 
+    // ---------------- //
+    //  DiagonalTraits  //
+    // ---------------- //
+
+    /*
+     * A covariance is a diagonal matrix if its nested matrix is diagonal
+     */
+#ifdef __cpp_concepts
+    template<covariance T>
+    struct DiagonalTraits<T>
+#else
+    template<typename T>
+    struct DiagonalTraits<T, std::enable_if_t<covariance<T>>>
+#endif
+    {
+      static constexpr bool is_diagonal = diagonal_matrix<nested_matrix_of_t<T>>;
+    };
+
+
+    /*
+     * A typed matrix is diagonal if its nested matrix is diagonal and its row and column coefficients are equivalent.
+     */
+#ifdef __cpp_concepts
+    template<typed_matrix T>
+    struct DiagonalTraits<T>
+#else
+    template<typename T>
+    struct DiagonalTraits<T, std::enable_if_t<typed_matrix<T>>>
+#endif
+    {
+      static constexpr bool is_diagonal = diagonal_matrix<nested_matrix_of_t<T>> and
+        equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>;
+    };
+
+
+    // ------------------ //
+    //  TriangularTraits  //
+    // ------------------ //
+
+#ifdef __cpp_concepts
+    template<triangular_covariance T> requires triangular_matrix<nested_matrix_of_t<T>>
+    struct TriangularTraits<T>
+#else
+    template<typename T>
+    struct TriangularTraits<T, std::enable_if_t<triangular_covariance<T> and
+      triangular_matrix<nested_matrix_of<T>::type>>>
+#endif
+    {
+      static constexpr TriangleType triangle_type = triangle_type_of_v<nested_matrix_of_t<T>>;
+      static constexpr bool is_triangular_adapter = false;
+    };
+
+
+#ifdef __cpp_concepts
+    template<triangular_covariance T> requires self_adjoint_matrix<nested_matrix_of_t<T>>
+    struct TriangularTraits<T>
+#else
+    template<typename T>
+    struct TriangularTraits<T, std::enable_if_t<triangular_covariance<T> and
+      self_adjoint_matrix<nested_matrix_of<T>::type>>>
+#endif
+    {
+      static constexpr TriangleType triangle_type = self_adjoint_triangle_type_of_v<nested_matrix_of_t<T>>;
+      static constexpr bool is_triangular_adapter = false;
+    };
+
+
+#ifdef __cpp_concepts
+    template<typed_matrix T> requires triangular_matrix<nested_matrix_of_t<T>> and
+      equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>
+    struct TriangularTraits<T>
+#else
+    template<typename T>
+    struct TriangularTraits<T, std::enable_if_t<
+      typed_matrix<T> and triangular_matrix<nested_matrix_of<T>::type> and
+      equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>>>
+#endif
+    {
+      static constexpr TriangleType triangle_type = triangle_type_of_v<nested_matrix_of_t<T>>;
+      static constexpr bool is_triangular_adapter = false;
+    };
+
+
+    // ----------------- //
+    //  HermitianTraits  //
+    // ----------------- //
+
+#ifdef __cpp_concepts
+    template<self_adjoint_covariance T> requires self_adjoint_matrix<nested_matrix_of_t<T>>
+    struct HermitianTraits<T>
+#else
+    template<typename T>
+    struct HermitianTraits<T, std::enable_if_t<self_adjoint_covariance<T> and
+      self_adjoint_matrix<nested_matrix_of<T>::type>>>
+#endif
+    {
+      static constexpr bool is_hermitian = true;
+      static constexpr TriangleType adapter_type = self_adjoint_triangle_type_of_v<nested_matrix_of_t<T>>;
+    };
+
+
+#ifdef __cpp_concepts
+    template<self_adjoint_covariance T> requires triangular_matrix<nested_matrix_of_t<T>>
+    struct HermitianTraits<T>
+#else
+    template<typename T>
+    struct HermitianTraits<T, std::enable_if_t<self_adjoint_covariance<T> and
+      triangular_matrix<nested_matrix_of<T>::type>>>
+#endif
+    {
+      static constexpr bool is_hermitian = true;
+      static constexpr TriangleType adapter_type = triangle_type_of_v<nested_matrix_of_t<T>>;
+    };
+
+
+#ifdef __cpp_concepts
+    template<typed_matrix T> requires self_adjoint_matrix<nested_matrix_of_t<T>> and
+      equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>
+    struct HermitianTraits<T>
+#else
+    template<typename T>
+    struct HermitianTraits<T, std::enable_if_t<
+      typed_matrix<T> and self_adjoint_matrix<nested_matrix_of<T>::type> and
+      equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>>>
+#endif
+      : self_adjoint_triangle_type_of<nested_matrix_of_t<T>> {};
+
   } // namespace interface
 
 
@@ -384,10 +650,10 @@ namespace OpenKalman
   private:
 
     using Scalar = scalar_type_of_t<NestedMatrix>;
-    static constexpr std::size_t rows = row_extent_of_v<NestedMatrix>;
-    static constexpr std::size_t columns = column_extent_of_v<NestedMatrix>;
-    static_assert(RowCoeffs::dimensions == rows);
-    static_assert(ColumnCoeffs::dimensions == columns);
+    static constexpr std::size_t rows = row_dimension_of_v<NestedMatrix>;
+    static constexpr std::size_t columns = column_dimension_of_v<NestedMatrix>;
+    static_assert(RowCoeffs::dimension == rows);
+    static_assert(ColCoeffs::dimension == columns);
 
   public:
 
@@ -398,41 +664,15 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
     template<coefficients RC = RowCoefficients, coefficients CC = ColumnCoefficients, typed_matrix_nestable Arg>
-    requires (row_extent_of_v<Arg> == RC::dimensions) and (column_extent_of_v<Arg> == CC::dimensions)
+    requires (row_dimension_of_v<Arg> == RC::dimension) and (column_dimension_of_v<Arg> == CC::dimension)
 #else
     template<typename RC = RowCoefficients, typename CC = ColumnCoefficients, typename Arg, std::enable_if_t<
       coefficients<RC> and coefficients<CC> and typed_matrix_nestable<Arg> and
-      (row_extent_of<Arg>::value == RC::dimensions) and (column_extent_of<Arg>::value == CC::dimensions), int> = 0>
+      (row_dimension_of<Arg>::value == RC::dimension) and (column_dimension_of<Arg>::value == CC::dimension), int> = 0>
 #endif
     static auto make(Arg&& arg)
     {
       return Matrix<RC, CC, std::decay_t<Arg>>(std::forward<Arg>(arg));
-    }
-
-
-#ifdef __cpp_concepts
-    template<std::convertible_to<std::size_t> ... Args> requires
-    (sizeof...(Args) == (rows == 0 ? 1 : 0) + (columns == 0 ? 1 : 0))
-#else
-    template<typename...Args, std::enable_if_t<(std::is_convertible_v<Args, std::size_t> and ...) and
-      (sizeof...(Args) == (rows == 0 ? 1 : 0) + (columns == 0 ? 1 : 0)), int> = 0>
-#endif
-    static auto zero(const Args...args)
-    {
-      return make(MatrixTraits<NestedMatrix>::zero(static_cast<std::size_t>(args)...));
-    }
-
-
-#ifdef __cpp_concepts
-    template<std::convertible_to<std::size_t> ... Args> requires (sizeof...(Args) == (rows == 0 ? 1 : 0))
-#else
-    template<typename...Args, std::enable_if_t<(std::is_convertible_v<Args, std::size_t> and ...) and
-      (sizeof...(Args) == (rows == 0 ? 1 : 0)), int> = 0>
-#endif
-    static auto identity(const Args...args)
-    {
-      auto b = MatrixTraits<NestedMatrix>::identity(args...);
-      return make<RowCoefficients, RowCoefficients>(std::move(b));
     }
 
   };
@@ -444,55 +684,29 @@ namespace OpenKalman
   private:
 
     using Scalar = scalar_type_of_t<NestedMatrix>;
-    static constexpr auto rows = row_extent_of_v<NestedMatrix>;
-    static constexpr auto columns = column_extent_of_v<NestedMatrix>;
+    static constexpr auto rows = row_dimension_of_v<NestedMatrix>;
+    static constexpr auto columns = column_dimension_of_v<NestedMatrix>;
 
   public:
 
     using RowCoefficients = Coeffs;
     using ColumnCoefficients = Axes<columns>;
-    static_assert(RowCoefficients::dimensions == rows);
+    static_assert(RowCoefficients::dimension == rows);
 
     /// Make from a typed_matrix_nestable. If CC is specified, it must be axes-only.
 #ifdef __cpp_concepts
     template<coefficients RC = RowCoefficients, typename CC = void, typed_matrix_nestable Arg> requires
-      (std::is_void_v<CC> or equivalent_to<CC, Axes<column_extent_of_v<Arg>>>) and
-      (row_extent_of_v<Arg> == RC::dimensions)
+      (std::is_void_v<CC> or equivalent_to<CC, Axes<column_dimension_of_v<Arg>>>) and
+      (row_dimension_of_v<Arg> == RC::dimension)
 #else
     template<typename RC = RowCoefficients, typename CC = void, typename Arg, std::enable_if_t<
-      (std::is_void_v<CC> or equivalent_to<CC, Axes<column_extent_of<Arg>::value>>) and
-      typed_matrix_nestable<Arg> and (row_extent_of<Arg>::value == RC::dimensions), int> = 0>
+      (std::is_void_v<CC> or equivalent_to<CC, Axes<column_dimension_of<Arg>::value>>) and
+      typed_matrix_nestable<Arg> and (row_dimension_of<Arg>::value == RC::dimension), int> = 0>
 #endif
     static auto make(Arg&& arg) noexcept
     {
       decltype(auto) b = wrap_angles<RC>(std::forward<Arg>(arg)); using B = decltype(b);
       return Mean<RC, std::decay_t<B>>(std::forward<B>(b));
-    }
-
-
-#ifdef __cpp_concepts
-    template<std::convertible_to<std::size_t> ... Args> requires
-    (sizeof...(Args) == (rows == 0 ? 1 : 0) + (columns == 0 ? 1 : 0))
-#else
-    template<typename...Args, std::enable_if_t<(std::is_convertible_v<Args, std::size_t> and ...) and
-      (sizeof...(Args) == (rows == 0 ? 1 : 0) + (columns == 0 ? 1 : 0)), int> = 0>
-#endif
-    static auto zero(const Args...args)
-    {
-      return make(MatrixTraits<NestedMatrix>::zero(static_cast<std::size_t>(args)...));
-    }
-
-
-#ifdef __cpp_concepts
-    template<std::convertible_to<std::size_t> ... Args> requires (sizeof...(Args) == (rows == 0 ? 1 : 0))
-#else
-    template<typename...Args, std::enable_if_t<(std::is_convertible_v<Args, std::size_t> and ...) and
-      (sizeof...(Args) == (rows == 0 ? 1 : 0)), int> = 0>
-#endif
-    static auto identity(const Args...args)
-    {
-      auto b = MatrixTraits<NestedMatrix>::identity(args...);
-      return Matrix<RowCoefficients, RowCoefficients, decltype(b)>(std::move(b));
     }
 
   };
@@ -504,13 +718,13 @@ namespace OpenKalman
   private:
 
     using Scalar = scalar_type_of_t<NestedMatrix>;
-    static constexpr std::size_t rows = row_extent_of_v<NestedMatrix>;
-    static constexpr std::size_t columns = column_extent_of_v<NestedMatrix>;
+    static constexpr std::size_t rows = row_dimension_of_v<NestedMatrix>;
+    static constexpr std::size_t columns = column_dimension_of_v<NestedMatrix>;
 
   public:
 
     using RowCoefficients = Coeffs;
-    static_assert(RowCoefficients::euclidean_dimensions == rows);
+    static_assert(RowCoefficients::euclidean_dimension == rows);
 
     using ColumnCoefficients = Axes<columns>;
 
@@ -518,42 +732,16 @@ namespace OpenKalman
     /// Make from a regular matrix. If CC is specified, it must be axes-only.
 #ifdef __cpp_concepts
     template<coefficients RC = RowCoefficients, typename CC = void, typed_matrix_nestable Arg> requires
-    (std::is_void_v<CC> or equivalent_to<CC, Axes<column_extent_of_v<Arg>>>) and
-    (row_extent_of_v<Arg> == RC::euclidean_dimensions)
+    (std::is_void_v<CC> or equivalent_to<CC, Axes<column_dimension_of_v<Arg>>>) and
+    (row_dimension_of_v<Arg> == RC::euclidean_dimension)
 #else
     template<typename RC = RowCoefficients, typename CC = void, typename Arg, std::enable_if_t<
-      coefficients<RC> and (std::is_void_v<CC> or equivalent_to<CC, Axes<column_extent_of<Arg>::value>>) and
-      typed_matrix_nestable<Arg> and (row_extent_of<Arg>::value == RC::euclidean_dimensions), int> = 0>
+      coefficients<RC> and (std::is_void_v<CC> or equivalent_to<CC, Axes<column_dimension_of<Arg>::value>>) and
+      typed_matrix_nestable<Arg> and (row_dimension_of<Arg>::value == RC::euclidean_dimension), int> = 0>
 #endif
     static auto make(Arg&& arg) noexcept
     {
       return EuclideanMean<RC, std::decay_t<Arg>>(std::forward<Arg>(arg));
-    }
-
-
-#ifdef __cpp_concepts
-    template<std::convertible_to<std::size_t> ... Args> requires
-      (sizeof...(Args) == (rows == 0 ? 1 : 0) + (columns == 0 ? 1 : 0))
-#else
-    template<typename...Args, std::enable_if_t<(std::is_convertible_v<Args, std::size_t> and ...) and
-      (sizeof...(Args) == (rows == 0 ? 1 : 0) + (columns == 0 ? 1 : 0)), int> = 0>
-#endif
-    static auto zero(const Args...args)
-    {
-      return make(MatrixTraits<NestedMatrix>::zero(static_cast<std::size_t>(args)...));
-    }
-
-
-#ifdef __cpp_concepts
-    template<std::convertible_to<std::size_t> ... Args> requires (sizeof...(Args) == (rows == 0 ? 1 : 0))
-#else
-    template<typename...Args, std::enable_if_t<(std::is_convertible_v<Args, std::size_t> and ...) and
-      (sizeof...(Args) == (rows == 0 ? 1 : 0)), int> = 0>
-#endif
-    static auto identity(const Args...args)
-    {
-      auto b = MatrixTraits<NestedMatrix>::identity(args...);
-      return Matrix<RowCoefficients, RowCoefficients, decltype(b)>(std::move(b));
     }
 
   };
@@ -565,7 +753,7 @@ namespace OpenKalman
   private:
 
     using Scalar = scalar_type_of_t<NestedMatrix>;
-    static constexpr auto rows = row_extent_of_v<NestedMatrix>;
+    static constexpr auto rows = row_dimension_of_v<NestedMatrix>;
     static constexpr auto columns = rows;
 
   public:
@@ -584,32 +772,6 @@ namespace OpenKalman
       return Covariance<C, std::decay_t<Arg>>(std::forward<Arg>(arg));
     }
 
-
-#ifdef __cpp_concepts
-    template<std::convertible_to<std::size_t> ... Args> requires
-      (sizeof...(Args) == (dynamic_coefficients<Coeffs> ? 2 : 0))
-#else
-    template<typename...Args, std::enable_if_t<(std::is_convertible_v<Args, std::size_t> and ...) and
-      (sizeof...(Args) == (dynamic_coefficients<Coeffs> ? 2 : 0)), int> = 0>
-#endif
-    static auto zero(const Args...args)
-    {
-      return make(MatrixTraits<NestedMatrix>::zero(static_cast<std::size_t>(args)...));
-    }
-
-
-#ifdef __cpp_concepts
-    template<std::convertible_to<std::size_t> ... Args> requires
-    (sizeof...(Args) == (dynamic_coefficients<Coeffs> ? 1 : 0))
-#else
-    template<typename...Args, std::enable_if_t<(std::is_convertible_v<Args, std::size_t> and ...) and
-      (sizeof...(Args) == (dynamic_coefficients<Coeffs> ? 1 : 0)), int> = 0>
-#endif
-    static auto identity(const Args...args)
-    {
-      return make(MatrixTraits<NestedMatrix>::identity(args...));
-    }
-
   };
 
 
@@ -619,12 +781,12 @@ namespace OpenKalman
   private:
 
     using Scalar = scalar_type_of_t<NestedMatrix>; ///< Scalar type for this vector.
-    static constexpr auto rows = row_extent_of_v<NestedMatrix>;
+    static constexpr auto rows = row_dimension_of_v<NestedMatrix>;
     static constexpr auto columns = rows;
 
   public:
 
-    static_assert(Coeffs::dimensions == rows);
+    static_assert(Coeffs::dimension == rows);
     using RowCoefficients = Coeffs;
     using ColumnCoefficients = Coeffs;
 
@@ -637,32 +799,6 @@ namespace OpenKalman
     static auto make(Arg&& arg) noexcept
     {
       return SquareRootCovariance<C, std::decay_t<Arg>>(std::forward<Arg>(arg));
-    }
-
-
-#ifdef __cpp_concepts
-    template<std::convertible_to<std::size_t> ... Args> requires
-      (sizeof...(Args) == (dynamic_coefficients<Coeffs> ? 2 : 0))
-#else
-    template<typename...Args, std::enable_if_t<(std::is_convertible_v<Args, std::size_t> and ...) and
-      (sizeof...(Args) == (dynamic_coefficients<Coeffs> ? 2 : 0)), int> = 0>
-#endif
-    static auto zero(const Args...args)
-    {
-      return make(MatrixTraits<NestedMatrix>::zero(static_cast<std::size_t>(args)...));
-    }
-
-
-#ifdef __cpp_concepts
-    template<std::convertible_to<std::size_t> ... Args> requires
-      (sizeof...(Args) == (dynamic_coefficients<Coeffs> ? 1 : 0))
-#else
-    template<typename...Args, std::enable_if_t<(std::is_convertible_v<Args, std::size_t> and ...) and
-      (sizeof...(Args) == (dynamic_coefficients<Coeffs> ? 1 : 0)), int> = 0>
-#endif
-    static auto identity(const Args...args)
-    {
-      return make(MatrixTraits<NestedMatrix>::identity(args...));
     }
 
   };

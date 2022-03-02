@@ -109,8 +109,8 @@ TEST(transformations, Identity)
   IdentityTransformation t;
   EXPECT_EQ(t(M_int2 {2, 3}), M_int2(2, 3));
   EXPECT_EQ(t(M_int2 {2, 3}, M_int2 {1, 1}), M_int2(3, 4));
-  EXPECT_EQ(std::get<0>(t.jacobian(M_int2 {2, 3})), A_int2::identity());
-  EXPECT_EQ(std::get<0>(t.jacobian(M_int2 {2, 3}, M_int2 {1, 1})), A_int2::identity());
-  EXPECT_EQ(std::get<1>(t.jacobian(M_int2 {2, 3}, M_int2 {1, 1})), A_int2::zero());
+  EXPECT_EQ(std::get<0>(t.jacobian(M_int2 {2, 3})), make_identity_matrix_like<A_int2>());
+  EXPECT_EQ(std::get<0>(t.jacobian(M_int2 {2, 3}, M_int2 {1, 1})), make_identity_matrix_like<A_int2>());
+  EXPECT_EQ(std::get<1>(t.jacobian(M_int2 {2, 3}, M_int2 {1, 1})), make_zero_matrix_like<A_int2>());
 }
 

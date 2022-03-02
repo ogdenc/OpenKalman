@@ -25,10 +25,10 @@ namespace OpenKalman
   struct Distance
   {
     /// Distance is associated with one matrix element.
-    static constexpr std::size_t dimensions = 1;
+    static constexpr std::size_t dimension = 1;
 
     /// Distance is represented by one coordinate in Euclidean space.
-    static constexpr std::size_t euclidean_dimensions = 1;
+    static constexpr std::size_t euclidean_dimension = 1;
 
     /// Distance is not composed of only axes.
     static constexpr bool axes_only = false;
@@ -73,7 +73,7 @@ namespace OpenKalman
 #if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS
       requires std::is_arithmetic_v<Scalar>
 #endif
-    static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), euclidean_dimensions>
+    static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), euclidean_dimension>
       to_euclidean_array =
       {
         [](const GetCoeff<Scalar>& get_coeff) { return get_coeff(i); }
@@ -94,7 +94,7 @@ namespace OpenKalman
 #if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS
       requires std::is_arithmetic_v<Scalar>
 #endif
-    static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), dimensions>
+    static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), dimension>
       from_euclidean_array =
       {
         [](const GetCoeff<Scalar>& get_coeff) { return std::abs(get_coeff(i)); }
@@ -114,7 +114,7 @@ namespace OpenKalman
 #if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS
       requires std::is_arithmetic_v<Scalar>
 #endif
-    static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), dimensions>
+    static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), dimension>
       wrap_array_get =
       {
         [](const GetCoeff<Scalar>& get_coeff) { return std::abs(get_coeff(i)); }
@@ -136,7 +136,7 @@ namespace OpenKalman
       requires std::is_arithmetic_v<Scalar>
 #endif
     static constexpr
-      std::array<void (*const)(const Scalar, const SetCoeff<Scalar>&, const GetCoeff<Scalar>&), dimensions>
+      std::array<void (*const)(const Scalar, const SetCoeff<Scalar>&, const GetCoeff<Scalar>&), dimension>
       wrap_array_set =
       {
         [](const Scalar s, const SetCoeff<Scalar>& set_coeff, const GetCoeff<Scalar>&) { set_coeff(i, std::abs(s)); }

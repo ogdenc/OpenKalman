@@ -18,8 +18,6 @@
 
 #include "interfaces/eigen3/details/eigen3-forward-declarations.hpp"
 
-#include <iostream>
-
 namespace OpenKalman::Eigen3
 {
   // ---------- //
@@ -79,13 +77,13 @@ namespace OpenKalman::Eigen3
    */
 #ifdef __cpp_concepts
   template<eigen_matrix Arg1, eigen_matrix Arg2> requires (eigen_zero_expr<Arg1> or eigen_zero_expr<Arg2>) and
-    (dynamic_rows<Arg1> or dynamic_rows<Arg2> or row_extent_of_v<Arg1> == row_extent_of_v<Arg2>) and
-    (dynamic_columns<Arg1> or dynamic_columns<Arg2> or column_extent_of_v<Arg1> == column_extent_of_v<Arg2>)
+    (dynamic_rows<Arg1> or dynamic_rows<Arg2> or row_dimension_of_v<Arg1> == row_dimension_of_v<Arg2>) and
+    (dynamic_columns<Arg1> or dynamic_columns<Arg2> or column_dimension_of_v<Arg1> == column_dimension_of_v<Arg2>)
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<
     eigen_matrix<Arg1> and eigen_matrix<Arg2> and (eigen_zero_expr<Arg1> or eigen_zero_expr<Arg2>) and
-    (dynamic_rows<Arg1> or dynamic_rows<Arg2> or row_extent_of<Arg1>::value == row_extent_of<Arg2>::value) and
-    (dynamic_columns<Arg1> or dynamic_columns<Arg2> or column_extent_of<Arg1>::value == column_extent_of<Arg2>::value),
+    (dynamic_rows<Arg1> or dynamic_rows<Arg2> or row_dimension_of<Arg1>::value == row_dimension_of<Arg2>::value) and
+    (dynamic_columns<Arg1> or dynamic_columns<Arg2> or column_dimension_of<Arg1>::value == column_dimension_of<Arg2>::value),
     int> = 0>
 #endif
   constexpr auto&& operator+(Arg1&& arg1, Arg2&& arg2)
@@ -109,15 +107,15 @@ namespace OpenKalman::Eigen3
   template<constant_matrix Arg1, constant_matrix Arg2> requires
     (eigen_constant_expr<Arg1> or eigen_constant_expr<Arg2>) and
     (not zero_matrix<Arg1>) and (not zero_matrix<Arg2>) and
-    (row_extent_of_v<Arg1> == row_extent_of_v<Arg2>) and
-    (column_extent_of_v<Arg1> == column_extent_of_v<Arg2>) and
+    (row_dimension_of_v<Arg1> == row_dimension_of_v<Arg2>) and
+    (column_dimension_of_v<Arg1> == column_dimension_of_v<Arg2>) and
     std::same_as<scalar_type_of_t<Arg1>, scalar_type_of_t<Arg2>>
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<constant_matrix<Arg1> and constant_matrix<Arg2> and
     (eigen_constant_expr<Arg1> or eigen_constant_expr<Arg2>) and
     (not zero_matrix<Arg1>) and (not zero_matrix<Arg2>) and
-    (row_extent_of<Arg1>::value == row_extent_of<Arg2>::value) and
-    (column_extent_of<Arg1>::value == column_extent_of<Arg2>::value) and
+    (row_dimension_of<Arg1>::value == row_dimension_of<Arg2>::value) and
+    (column_dimension_of<Arg1>::value == column_dimension_of<Arg2>::value) and
     std::is_same_v<typename scalar_type_of<Arg1>::type, typename scalar_type_of<Arg2>::type>, int> = 0>
 #endif
   constexpr auto operator+(Arg1&& arg1, Arg2&& arg2)
@@ -134,14 +132,14 @@ namespace OpenKalman::Eigen3
   template<typename Arg1, typename Arg2> requires
   ((eigen_diagonal_expr<Arg1> and diagonal_matrix<Arg2>) or
     (diagonal_matrix<Arg1> and eigen_diagonal_expr<Arg2>)) and
-    (row_extent_of_v<Arg1> == row_extent_of_v<Arg2>) and
-    (column_extent_of_v<Arg1> == column_extent_of_v<Arg2>)
+    (row_dimension_of_v<Arg1> == row_dimension_of_v<Arg2>) and
+    (column_dimension_of_v<Arg1> == column_dimension_of_v<Arg2>)
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<
     ((eigen_diagonal_expr<Arg1> and diagonal_matrix<Arg2>) or
       (diagonal_matrix<Arg1> and eigen_diagonal_expr<Arg2>)) and
-    (row_extent_of<Arg1>::value == row_extent_of<Arg2>::value) and
-    (column_extent_of<Arg1>::value == column_extent_of<Arg2>::value), int> = 0>
+    (row_dimension_of<Arg1>::value == row_dimension_of<Arg2>::value) and
+    (column_dimension_of<Arg1>::value == column_dimension_of<Arg2>::value), int> = 0>
 #endif
   inline auto operator+(Arg1&& arg1, Arg2&& arg2)
   {
@@ -167,12 +165,12 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<eigen_self_adjoint_expr Arg1, eigen_self_adjoint_expr Arg2> requires
     (not diagonal_matrix<Arg1>) and (not diagonal_matrix<Arg2>) and
-    (row_extent_of_v<Arg1> == row_extent_of_v<Arg2>)
+    (row_dimension_of_v<Arg1> == row_dimension_of_v<Arg2>)
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<
     eigen_self_adjoint_expr<Arg1> and eigen_self_adjoint_expr<Arg2> and
     (not diagonal_matrix<Arg1>) and (not diagonal_matrix<Arg2>) and
-    (row_extent_of<Arg1>::value == row_extent_of<Arg2>::value), int> = 0>
+    (row_dimension_of<Arg1>::value == row_dimension_of<Arg2>::value), int> = 0>
 #endif
   inline auto operator+(Arg1&& arg1, Arg2&& arg2)
   {
@@ -196,12 +194,12 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<eigen_triangular_expr Arg1, eigen_triangular_expr Arg2> requires
     (not diagonal_matrix<Arg1>) and (not diagonal_matrix<Arg2>) and
-    (row_extent_of_v<Arg1> == row_extent_of_v<Arg2>)
+    (row_dimension_of_v<Arg1> == row_dimension_of_v<Arg2>)
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<
     eigen_triangular_expr<Arg1> and eigen_triangular_expr<Arg2> and
     not diagonal_matrix<Arg1> and not diagonal_matrix<Arg2> and
-    (row_extent_of<Arg1>::value == row_extent_of<Arg2>::value), int> = 0>
+    (row_dimension_of<Arg1>::value == row_dimension_of<Arg2>::value), int> = 0>
 #endif
   inline auto operator+(Arg1&& arg1, Arg2&& arg2)
   {
@@ -212,7 +210,7 @@ namespace OpenKalman::Eigen3
     }
     else
     {
-      auto ret = make_native_matrix(std::forward<Arg1>(arg1));
+      auto ret = make_dense_writable_matrix_from(std::forward<Arg1>(arg1));
       constexpr auto mode = upper_triangular_matrix<Arg2> ? Eigen::Upper : Eigen::Lower;
       ret.template triangularView<mode>() += nested_matrix(std::forward<Arg2>(arg2));
       return ret;
@@ -230,7 +228,7 @@ namespace OpenKalman::Eigen3
 #endif
     (((eigen_self_adjoint_expr<Arg1> or eigen_triangular_expr<Arg1>) and diagonal_matrix<Arg2>) or
       (diagonal_matrix<Arg1> and (eigen_self_adjoint_expr<Arg2> or eigen_triangular_expr<Arg2>))) and
-    (row_extent_of<Arg1>::value == row_extent_of<Arg2>::value)
+    (row_dimension_of<Arg1>::value == row_dimension_of<Arg2>::value)
 #ifndef __cpp_concepts
     , int> = 0>
 #endif
@@ -271,13 +269,13 @@ namespace OpenKalman::Eigen3
    */
 #ifdef __cpp_concepts
   template<eigen_matrix Arg1, eigen_matrix Arg2> requires (eigen_zero_expr<Arg1> or eigen_zero_expr<Arg2>) and
-    (dynamic_rows<Arg1> or dynamic_rows<Arg2> or row_extent_of_v<Arg1> == row_extent_of_v<Arg2>) and
-    (dynamic_columns<Arg1> or dynamic_columns<Arg2> or column_extent_of_v<Arg1> == column_extent_of_v<Arg2>)
+    (dynamic_rows<Arg1> or dynamic_rows<Arg2> or row_dimension_of_v<Arg1> == row_dimension_of_v<Arg2>) and
+    (dynamic_columns<Arg1> or dynamic_columns<Arg2> or column_dimension_of_v<Arg1> == column_dimension_of_v<Arg2>)
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<
     eigen_matrix<Arg1> and eigen_matrix<Arg2> and (eigen_zero_expr<Arg1> or eigen_zero_expr<Arg2>) and
-    (dynamic_rows<Arg1> or dynamic_rows<Arg2> or row_extent_of<Arg1>::value == row_extent_of<Arg2>::value) and
-    (dynamic_columns<Arg1> or dynamic_columns<Arg2> or column_extent_of<Arg1>::value == column_extent_of<Arg2>::value),
+    (dynamic_rows<Arg1> or dynamic_rows<Arg2> or row_dimension_of<Arg1>::value == row_dimension_of<Arg2>::value) and
+    (dynamic_columns<Arg1> or dynamic_columns<Arg2> or column_dimension_of<Arg1>::value == column_dimension_of<Arg2>::value),
     int> = 0>
 #endif
   constexpr decltype(auto) operator-(Arg1&& arg1, Arg2&& arg2)
@@ -301,15 +299,15 @@ namespace OpenKalman::Eigen3
   template<constant_matrix Arg1, constant_matrix Arg2> requires
     (eigen_constant_expr<Arg1> or eigen_constant_expr<Arg2>) and
     (not zero_matrix<Arg1>) and (not zero_matrix<Arg2>) and
-    (row_extent_of_v<Arg1> == row_extent_of_v<Arg2>) and
-    (column_extent_of_v<Arg1> == column_extent_of_v<Arg2>) and
+    (row_dimension_of_v<Arg1> == row_dimension_of_v<Arg2>) and
+    (column_dimension_of_v<Arg1> == column_dimension_of_v<Arg2>) and
     std::same_as<scalar_type_of_t<Arg1>, scalar_type_of_t<Arg2>>
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<constant_matrix<Arg1> and constant_matrix<Arg2> and
     (eigen_constant_expr<Arg1> or eigen_constant_expr<Arg2>) and
     (not zero_matrix<Arg1>) and (not zero_matrix<Arg2>) and
-    (row_extent_of<Arg1>::value == row_extent_of<Arg2>::value) and
-    (column_extent_of<Arg1>::value == column_extent_of<Arg2>::value) and
+    (row_dimension_of<Arg1>::value == row_dimension_of<Arg2>::value) and
+    (column_dimension_of<Arg1>::value == column_dimension_of<Arg2>::value) and
     std::is_same<typename scalar_type_of<Arg1>::type, typename scalar_type_of<Arg2>::type>::value, int> = 0>
 #endif
   constexpr auto operator-(Arg1&& arg1, Arg2&& arg2)
@@ -326,14 +324,14 @@ namespace OpenKalman::Eigen3
   template<typename Arg1, typename Arg2> requires
     ((eigen_diagonal_expr<Arg1> and diagonal_matrix<Arg2>) or
       (diagonal_matrix<Arg1> and eigen_diagonal_expr<Arg2>)) and
-    (row_extent_of_v<Arg1> == row_extent_of_v<Arg2>) and
-    (column_extent_of_v<Arg1> == column_extent_of_v<Arg2>)
+    (row_dimension_of_v<Arg1> == row_dimension_of_v<Arg2>) and
+    (column_dimension_of_v<Arg1> == column_dimension_of_v<Arg2>)
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<
     ((eigen_diagonal_expr<Arg1> and diagonal_matrix<Arg2>) or
       (diagonal_matrix<Arg1> and eigen_diagonal_expr<Arg2>)) and
-    (row_extent_of<Arg1>::value == row_extent_of<Arg2>::value) and
-    (column_extent_of<Arg1>::value == column_extent_of<Arg2>::value), int> = 0>
+    (row_dimension_of<Arg1>::value == row_dimension_of<Arg2>::value) and
+    (column_dimension_of<Arg1>::value == column_dimension_of<Arg2>::value), int> = 0>
 #endif
   inline auto operator-(Arg1&& arg1, Arg2&& arg2)
   {
@@ -359,12 +357,12 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<eigen_self_adjoint_expr Arg1, eigen_self_adjoint_expr Arg2> requires
     (not diagonal_matrix<Arg1>) and (not diagonal_matrix<Arg2>) and
-    (row_extent_of_v<Arg1> == row_extent_of_v<Arg2>)
+    (row_dimension_of_v<Arg1> == row_dimension_of_v<Arg2>)
 #else
   template<typename Arg1, typename Arg2,
     std::enable_if_t<eigen_self_adjoint_expr<Arg1> and eigen_self_adjoint_expr<Arg2> and
       (not diagonal_matrix<Arg1>) and (not diagonal_matrix<Arg2>) and
-      (row_extent_of<Arg1>::value == row_extent_of<Arg2>::value), int> = 0>
+      (row_dimension_of<Arg1>::value == row_dimension_of<Arg2>::value), int> = 0>
 #endif
   inline auto operator-(Arg1&& arg1, Arg2&& arg2)
   {
@@ -388,12 +386,12 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<eigen_triangular_expr Arg1, eigen_triangular_expr Arg2> requires
     (not diagonal_matrix<Arg1>) and (not diagonal_matrix<Arg2>) and
-    (row_extent_of_v<Arg1> == row_extent_of_v<Arg2>)
+    (row_dimension_of_v<Arg1> == row_dimension_of_v<Arg2>)
 #else
   template<typename Arg1, typename Arg2,
     std::enable_if_t<eigen_triangular_expr<Arg1> and eigen_triangular_expr<Arg2> and
       (not diagonal_matrix<Arg1>) and (not diagonal_matrix<Arg2>) and
-      (row_extent_of<Arg1>::value == row_extent_of<Arg2>::value), int> = 0>
+      (row_dimension_of<Arg1>::value == row_dimension_of<Arg2>::value), int> = 0>
 #endif
   inline auto operator-(Arg1&& arg1, Arg2&& arg2)
   {
@@ -404,7 +402,7 @@ namespace OpenKalman::Eigen3
     }
     else
     {
-      auto ret = make_native_matrix(std::forward<Arg1>(arg1));
+      auto ret = make_dense_writable_matrix_from(std::forward<Arg1>(arg1));
       constexpr auto mode = upper_triangular_matrix<Arg2> ? Eigen::Upper : Eigen::Lower;
       ret.template triangularView<mode>() -= nested_matrix(std::forward<Arg2>(arg2));
       return ret;
@@ -422,7 +420,7 @@ namespace OpenKalman::Eigen3
 #endif
     (((eigen_self_adjoint_expr<Arg1> or eigen_triangular_expr<Arg1>) and diagonal_matrix<Arg2>) or
       (diagonal_matrix<Arg1> and (eigen_self_adjoint_expr<Arg2> or eigen_triangular_expr<Arg2>))) and
-    (row_extent_of<Arg1>::value == row_extent_of<Arg2>::value)
+    (row_dimension_of<Arg1>::value == row_dimension_of<Arg2>::value)
 #ifndef __cpp_concepts
     , int> = 0>
 #endif
@@ -507,7 +505,7 @@ namespace OpenKalman::Eigen3
     }
     else
     {
-      return make_native_matrix(std::forward<Arg>(arg)) * scale; // \todo change to make_readable_dense_native_matrix
+      return to_native_matrix<pattern_matrix_of_t<Arg>>(std::forward<Arg>(arg)) * scale;
     }
   }
 
@@ -595,15 +593,15 @@ namespace OpenKalman::Eigen3
 #endif
   constexpr decltype(auto) operator/(Arg&& arg, const S s)
   {
-    constexpr auto constant = constant_coefficient_v<Arg>;
+    if (s == 0) throw std::runtime_error("ConstantMatrix / 0: divide by zero error");
 
-    if constexpr (constant == 0)
+    if constexpr (zero_matrix<Arg>)
     {
       return std::forward<Arg>(arg);
     }
     else
     {
-      return make_native_matrix(std::forward<Arg>(arg)) / s; // \todo change to make_readable_dense_native_matrix
+      return to_native_matrix<pattern_matrix_of_t<Arg>>(std::forward<Arg>(arg)) / s;
     }
   }
 
@@ -634,33 +632,24 @@ namespace OpenKalman::Eigen3
    */
 #ifdef __cpp_concepts
   template<typename Arg1, typename Arg2> requires (eigen_zero_expr<Arg1> or eigen_zero_expr<Arg2>) and
-  (dynamic_columns<Arg1> or dynamic_rows<Arg2> or column_extent_of_v<Arg1> == row_extent_of_v<Arg2>)
+  (dynamic_columns<Arg1> or dynamic_rows<Arg2> or column_dimension_of_v<Arg1> == row_dimension_of_v<Arg2>)
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<(eigen_zero_expr<Arg1> or eigen_zero_expr<Arg2>) and
-    (dynamic_columns<Arg1> or dynamic_rows<Arg2> or column_extent_of<Arg1>::value == row_extent_of<Arg2>::value), int> = 0>
+    (dynamic_columns<Arg1> or dynamic_rows<Arg2> or column_dimension_of<Arg1>::value == row_dimension_of<Arg2>::value), int> = 0>
 #endif
   inline auto operator*(const Arg1& arg1, const Arg2& arg2)
   {
-    using Scalar = scalar_type_of_t<Arg1>;
-    constexpr auto rows = row_extent_of_v<Arg1>;
-    constexpr auto cols = column_extent_of_v<Arg2>;
+    constexpr auto rows = index_dimension_of_v<Arg1, 0>;
+    constexpr auto cols = index_dimension_of_v<Arg2, 1>;
+
     if constexpr (dynamic_rows<Arg1> and dynamic_columns<Arg2>)
-    {
-      return ZeroMatrix<Scalar, dynamic_extent, dynamic_extent> {row_count(arg1), column_count(arg2)};
-    }
+      return make_zero_matrix_like<Arg1, rows, cols>(runtime_dimension_of<0>(arg1), runtime_dimension_of<1>(arg2));
     else if constexpr (dynamic_rows<Arg1> and not dynamic_columns<Arg2>)
-    {
-      return ZeroMatrix<Scalar, rows, cols> {row_count(arg1)};
-    }
+      return make_zero_matrix_like<Arg1, rows, cols>(runtime_dimension_of<0>(arg1));
     else if constexpr (not dynamic_rows<Arg1> and dynamic_columns<Arg2>)
-    {
-      return ZeroMatrix<Scalar, rows, cols> {column_count(arg2)};
-    }
+      return make_zero_matrix_like<Arg1, rows, cols>(runtime_dimension_of<1>(arg2));
     else
-    {
-      static_assert(not dynamic_rows<Arg1> and not dynamic_columns<Arg2>);
-      return ZeroMatrix<Scalar, rows, cols> {};
-    }
+      return make_zero_matrix_like<Arg1, rows, cols>();
   }
 
 
@@ -672,34 +661,32 @@ namespace OpenKalman::Eigen3
     (eigen_constant_expr<Arg1> or eigen_constant_expr<Arg2>) and
     (not zero_matrix<Arg1>) and (not zero_matrix<Arg2>) and
     (not identity_matrix<Arg1>) and (not identity_matrix<Arg2>) and
-    (dynamic_columns<Arg1> or dynamic_rows<Arg2> or column_extent_of_v<Arg1> == row_extent_of_v<Arg2>) and
+    (dynamic_columns<Arg1> or dynamic_rows<Arg2> or column_dimension_of_v<Arg1> == row_dimension_of_v<Arg2>) and
     std::same_as<scalar_type_of_t<Arg1>, scalar_type_of_t<Arg2>>
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<constant_matrix<Arg1> and constant_matrix<Arg2> and
     (eigen_constant_expr<Arg1> or eigen_constant_expr<Arg2>) and
     (not zero_matrix<Arg1>) and (not zero_matrix<Arg2>) and
     (not identity_matrix<Arg1>) and (not identity_matrix<Arg2>) and
-    (dynamic_columns<Arg1> or dynamic_rows<Arg2> or column_extent_of<Arg1>::value == row_extent_of<Arg2>::value) and
+    (dynamic_columns<Arg1> or dynamic_rows<Arg2> or column_dimension_of<Arg1>::value == row_dimension_of<Arg2>::value) and
     std::is_same_v<typename scalar_type_of<Arg1>::type, typename scalar_type_of<Arg2>::type>, int> = 0>
 #endif
   inline auto operator*(Arg1&& arg1, Arg2&& arg2)
   {
-    if constexpr (dynamic_columns<Arg1> or dynamic_rows<Arg2>) assert (column_count(arg1) == row_count(arg2));
+    if constexpr (dynamic_columns<Arg1> or dynamic_rows<Arg2>) assert (runtime_dimension_of<1>(arg1) == runtime_dimension_of<0>(arg2));
 
-    using Scalar = scalar_type_of_t<Arg1>;
-    constexpr auto newconst = constant_coefficient_v<Arg1> * constant_coefficient_v<Arg2> * row_extent_of_v<Arg2>;
-    constexpr auto rows = row_extent_of_v<Arg1>;
-    constexpr auto columns = column_extent_of_v<Arg2>;
-    using C = ConstantMatrix<Scalar, newconst, rows, columns>;
+    constexpr auto newconst = constant_coefficient_v<Arg1> * constant_coefficient_v<Arg2> * row_dimension_of_v<Arg2>;
+    constexpr auto rows = index_dimension_of_v<Arg1, 0>;
+    constexpr auto columns = index_dimension_of_v<Arg2, 1>;
 
-    if constexpr (rows == dynamic_extent and columns == dynamic_extent)
-      return C {row_count(arg1), column_count(arg2)};
-    else if constexpr (rows == dynamic_extent)
-      return C {row_count(arg1)};
-    else if constexpr (columns == dynamic_extent)
-      return C {column_count(arg2)};
+    if constexpr (rows == dynamic_size and columns == dynamic_size)
+      return make_constant_matrix_like<newconst, rows, columns>(runtime_dimension_of<0>(arg1), runtime_dimension_of<1>(arg2));
+    else if constexpr (rows == dynamic_size)
+      return make_constant_matrix_like<newconst, rows, columns>(runtime_dimension_of<0>(arg1));
+    else if constexpr (columns == dynamic_size)
+      return make_constant_matrix_like<newconst, rows, columns>(runtime_dimension_of<1>(arg2));
     else
-      return C {};
+      return make_constant_matrix_like<newconst, rows, columns>();
   }
 
 
@@ -710,12 +697,12 @@ namespace OpenKalman::Eigen3
   template<typename Arg1, typename Arg2> requires
     ((eigen_constant_expr<Arg1> and identity_matrix<Arg2>) or
       (identity_matrix<Arg1> and eigen_constant_expr<Arg2>)) and
-    (column_extent_of_v<Arg1> == row_extent_of_v<Arg2>)
+    (column_dimension_of_v<Arg1> == row_dimension_of_v<Arg2>)
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<
     ((eigen_constant_expr<Arg1> and identity_matrix<Arg2>) or
       (identity_matrix<Arg1> and eigen_constant_expr<Arg2>)) and
-    (column_extent_of<Arg1>::value == row_extent_of<Arg2>::value), int> = 0>
+    (column_dimension_of<Arg1>::value == row_dimension_of<Arg2>::value), int> = 0>
 #endif
   inline auto&& operator*(Arg1&& arg1, Arg2&& arg2)
   {
@@ -736,12 +723,12 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<eigen_diagonal_expr Arg1, eigen_diagonal_expr Arg2> requires
    (not zero_matrix<Arg1>) and (not zero_matrix<Arg2>) and (not identity_matrix<Arg1>) and
-    (not identity_matrix<Arg2>) and (row_extent_of_v<Arg1> == row_extent_of_v<Arg2>)
+    (not identity_matrix<Arg2>) and (row_dimension_of_v<Arg1> == row_dimension_of_v<Arg2>)
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<
     eigen_diagonal_expr<Arg1> and eigen_diagonal_expr<Arg2> and
     (not zero_matrix<Arg1>) and (not zero_matrix<Arg2>) and (not identity_matrix<Arg1>) and
-    (not identity_matrix<Arg2>) and (row_extent_of<Arg1>::value == row_extent_of<Arg2>::value), int> = 0>
+    (not identity_matrix<Arg2>) and (row_dimension_of<Arg1>::value == row_dimension_of<Arg2>::value), int> = 0>
 #endif
   inline auto operator*(Arg1&& arg1, Arg2&& arg2)
   {
@@ -757,12 +744,12 @@ namespace OpenKalman::Eigen3
   template<typename Arg1, typename Arg2> requires
     ((eigen_diagonal_expr<Arg1> and eigen_matrix<Arg2>) or
       (eigen_matrix<Arg1> and eigen_diagonal_expr<Arg2>)) and
-    (column_extent_of_v<Arg1> == row_extent_of_v<Arg2>)
+    (column_dimension_of_v<Arg1> == row_dimension_of_v<Arg2>)
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<
     ((eigen_diagonal_expr<Arg1> and eigen_matrix<Arg2>) or
       (eigen_matrix<Arg1> and eigen_diagonal_expr<Arg2>)) and
-    (column_extent_of<Arg1>::value == row_extent_of<Arg2>::value), int> = 0>
+    (column_dimension_of<Arg1>::value == row_dimension_of<Arg2>::value), int> = 0>
 #endif
   constexpr decltype(auto) operator*(Arg1&& arg1, Arg2&& arg2)
   {
@@ -785,12 +772,12 @@ namespace OpenKalman::Eigen3
     else if constexpr (constant_matrix<Arg2>)
     {
       auto column0 = diagonal_of(std::forward<Arg1>(arg1)) * constant_coefficient_v<Arg2>;
-      return make_self_contained((std::move(column0)).template replicate<1, column_extent_of_v<Arg2>>());
+      return make_self_contained((std::move(column0)).template replicate<1, column_dimension_of_v<Arg2>>());
     }
     else if constexpr(constant_matrix<Arg1>)
     {
       auto row0 = transpose(diagonal_of(std::forward<Arg2>(arg2))) * constant_coefficient_v<Arg1>;
-      return make_self_contained((std::move(row0)).template replicate<row_extent_of_v<Arg2>, 1>());
+      return make_self_contained((std::move(row0)).template replicate<row_dimension_of_v<Arg2>, 1>());
     }
     else if constexpr (diagonal_matrix<Arg1> and diagonal_matrix<Arg2>)
     {
@@ -822,13 +809,13 @@ namespace OpenKalman::Eigen3
     ((eigen_self_adjoint_expr<Arg1> or eigen_triangular_expr<Arg1>) and
       (eigen_self_adjoint_expr<Arg2> or eigen_triangular_expr<Arg2>)) and
     (not diagonal_matrix<Arg1>) and (not diagonal_matrix<Arg2>) and
-    (row_extent_of<Arg1>::value == row_extent_of<Arg2>::value)
+    (row_dimension_of<Arg1>::value == row_dimension_of<Arg2>::value)
 #ifndef __cpp_concepts
     , int> = 0>
 #endif
   inline auto operator*(Arg1&& arg1, Arg2&& arg2)
   {
-    auto prod = make_native_matrix(std::forward<Arg2>(arg2));
+    auto prod = make_dense_writable_matrix_from(std::forward<Arg2>(arg2));
     prod.applyOnTheLeft(std::forward<Arg1>(arg1).view());
 
     if constexpr(triangle_type_of_v<Arg1> == triangle_type_of_v<Arg2>)
@@ -853,7 +840,7 @@ namespace OpenKalman::Eigen3
     ((eigen_self_adjoint_expr<Arg1> and diagonal_matrix<Arg2>) or
       (diagonal_matrix<Arg1> and eigen_self_adjoint_expr<Arg2>)) and
     (not identity_matrix<Arg1>) and (not identity_matrix<Arg2>) and (not zero_matrix<Arg1>) and
-    (not zero_matrix<Arg2>) and (row_extent_of<Arg1>::value == row_extent_of<Arg2>::value)
+    (not zero_matrix<Arg2>) and (row_dimension_of<Arg1>::value == row_dimension_of<Arg2>::value)
 #ifndef __cpp_concepts
     , int> = 0>
 #endif
@@ -881,7 +868,7 @@ namespace OpenKalman::Eigen3
     ((eigen_triangular_expr<Arg1> and diagonal_matrix<Arg2>) or
       (diagonal_matrix<Arg1> and eigen_triangular_expr<Arg2>)) and
     (not identity_matrix<Arg1>) and (not identity_matrix<Arg2>) and (not zero_matrix<Arg1>) and (not zero_matrix<Arg2>)
-    and (row_extent_of<Arg1>::value == row_extent_of<Arg2>::value)
+    and (row_dimension_of<Arg1>::value == row_dimension_of<Arg2>::value)
 #ifndef __cpp_concepts
     , int> = 0>
 #endif
@@ -910,7 +897,7 @@ namespace OpenKalman::Eigen3
 #endif
     (((eigen_self_adjoint_expr<Arg1> or eigen_triangular_expr<Arg1>) and identity_matrix<Arg2>) or
       (identity_matrix<Arg1> and (eigen_self_adjoint_expr<Arg2> or eigen_triangular_expr<Arg2>))) and
-    (row_extent_of<Arg1>::value == row_extent_of<Arg2>::value)
+    (row_dimension_of<Arg1>::value == row_dimension_of<Arg2>::value)
 #ifndef __cpp_concepts
     , int> = 0>
 #endif
@@ -937,16 +924,16 @@ namespace OpenKalman::Eigen3
 #endif
     (((eigen_self_adjoint_expr<Arg1> or eigen_triangular_expr<Arg1>) and zero_matrix<Arg2>) or
       (zero_matrix<Arg1> and (eigen_self_adjoint_expr<Arg2> or eigen_triangular_expr<Arg2>))) and
-    (column_extent_of<Arg1>::value == row_extent_of<Arg2>::value)
+    (column_dimension_of<Arg1>::value == row_dimension_of<Arg2>::value)
 #ifndef __cpp_concepts
     , int> = 0>
 #endif
   inline auto operator*(Arg1&& arg1, Arg2&& arg2)
   {
-    using Scalar = scalar_type_of_t<Arg1>;
-    constexpr auto rows = row_extent_of_v<Arg1>;
-    constexpr auto cols = column_extent_of_v<Arg2>;
-    return ZeroMatrix<Scalar, rows, cols> {};
+    constexpr auto rows = index_dimension_of_v<Arg1, 0>;
+    constexpr auto cols = index_dimension_of_v<Arg2, 1>;
+
+    return make_zero_matrix_like<Arg1, rows, cols>();
   }
 
 
@@ -963,7 +950,7 @@ namespace OpenKalman::Eigen3
      (eigen_matrix<Arg1> and not diagonal_matrix<Arg1> and
         (eigen_self_adjoint_expr<Arg2> or eigen_triangular_expr<Arg2>))) and
     (not identity_matrix<Arg1>) and (not identity_matrix<Arg2>) and (not zero_matrix<Arg1>) and
-    (not zero_matrix<Arg2>) and (column_extent_of<Arg1>::value == row_extent_of<Arg2>::value)
+    (not zero_matrix<Arg2>) and (column_dimension_of<Arg1>::value == row_dimension_of<Arg2>::value)
 #ifndef __cpp_concepts
     , int> = 0>
 #endif

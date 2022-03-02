@@ -24,7 +24,7 @@ using T2u = TriangularMatrix<M2, TriangleType::upper>;
 using D2 = DiagonalMatrix<eigen_matrix_t<double, 2, 1>>;
 using D1 = eigen_matrix_t<double, 1, 1>;
 using I2 = IdentityMatrix<M2>;
-using Z2 = ZeroMatrix<double, 2, 2>;
+using Z2 = ZeroMatrix<eigen_matrix_t<double, 2, 2>>;
 using CovSA2l = Covariance<C, SA2l>;
 using CovSA2u = Covariance<C, SA2u>;
 using CovT2l = Covariance<C, T2l>;
@@ -43,7 +43,7 @@ using SqCovI2 = SquareRootCovariance<C, I2>;
 using SqCovZ2 = SquareRootCovariance<C, Z2>;
 
 inline I2 i2 = M2::Identity();
-inline Z2 z2 = ZeroMatrix<double, 2, 2>();
+inline Z2 z2 = ZeroMatrix<eigen_matrix_t<double, 2, 2>>();
 inline auto covi2 = CovI2(i2);
 inline auto covz2 = CovZ2(z2);
 inline auto sqcovi2 = SqCovI2(i2);
@@ -93,10 +93,10 @@ TEST(covariance_tests, Covariance_convert_nested_matrix)
   EXPECT_TRUE(is_near(to_covariance_nestable<D2>(z2), Mat2 {0, 0, 0, 0}));
   EXPECT_TRUE(is_near(to_covariance_nestable<Z2>(z2), Mat2 {0, 0, 0, 0}));
 
-  EXPECT_TRUE(is_near(to_covariance_nestable<SA2l>(make_native_matrix<M2>(9, 3, 3, 10)), Mat2 {9, 3, 3, 10}));
-  EXPECT_TRUE(is_near(to_covariance_nestable<SA2u>(make_native_matrix<M2>(9, 3, 3, 10)), Mat2 {9, 3, 3, 10}));
-  EXPECT_TRUE(is_near(to_covariance_nestable<T2l>(make_native_matrix<M2>(3, 0, 1, 3)), Mat2 {3, 0, 1, 3}));
-  EXPECT_TRUE(is_near(to_covariance_nestable<T2u>(make_native_matrix<M2>(3, 1, 0, 3)), Mat2 {3, 1, 0, 3}));
+  EXPECT_TRUE(is_near(to_covariance_nestable<SA2l>(make_dense_writable_matrix_from<M2>(9, 3, 3, 10)), Mat2 {9, 3, 3, 10}));
+  EXPECT_TRUE(is_near(to_covariance_nestable<SA2u>(make_dense_writable_matrix_from<M2>(9, 3, 3, 10)), Mat2 {9, 3, 3, 10}));
+  EXPECT_TRUE(is_near(to_covariance_nestable<T2l>(make_dense_writable_matrix_from<M2>(3, 0, 1, 3)), Mat2 {3, 0, 1, 3}));
+  EXPECT_TRUE(is_near(to_covariance_nestable<T2u>(make_dense_writable_matrix_from<M2>(3, 1, 0, 3)), Mat2 {3, 1, 0, 3}));
   EXPECT_TRUE(is_near(to_covariance_nestable<D2>(make_eigen_matrix(1., 2)), Mat2 {1, 0, 0, 2}));
 
 
@@ -322,10 +322,10 @@ TEST(covariance_tests, Covariance_class)
   CovD2 cd6(Matrix<C, Axis, eigen_matrix_t<double, 2, 1>> {1, 2}); EXPECT_TRUE(is_near(cd6, Mat2 {1, 0, 0, 2}));
 
   // Construct from a regular matrix
-  CovSA2l clsa7(make_native_matrix<M2>(9, 7, 3, 10)); EXPECT_TRUE(is_near(clsa7, Mat2 {9, 3, 3, 10}));
-  CovSA2u cusa7(make_native_matrix<M2>(4, 2, 7, 5)); EXPECT_TRUE(is_near(cusa7, Mat2 {4, 2, 2, 5}));
-  CovT2l clt7(make_native_matrix<M2>(9, 7, 3, 10)); EXPECT_TRUE(is_near(clt7, Mat2 {9, 3, 3, 10}));
-  CovT2u cut7(make_native_matrix<M2>(4, 2, 7, 5)); EXPECT_TRUE(is_near(cut7, Mat2 {4, 2, 2, 5}));
+  CovSA2l clsa7(make_dense_writable_matrix_from<M2>(9, 7, 3, 10)); EXPECT_TRUE(is_near(clsa7, Mat2 {9, 3, 3, 10}));
+  CovSA2u cusa7(make_dense_writable_matrix_from<M2>(4, 2, 7, 5)); EXPECT_TRUE(is_near(cusa7, Mat2 {4, 2, 2, 5}));
+  CovT2l clt7(make_dense_writable_matrix_from<M2>(9, 7, 3, 10)); EXPECT_TRUE(is_near(clt7, Mat2 {9, 3, 3, 10}));
+  CovT2u cut7(make_dense_writable_matrix_from<M2>(4, 2, 7, 5)); EXPECT_TRUE(is_near(cut7, Mat2 {4, 2, 2, 5}));
   CovD2 cd7(make_eigen_matrix<double, 2, 1>(1, 2)); EXPECT_TRUE(is_near(cd7, Mat2 {1, 0, 0, 2}));
 
   // Construct from a list of coefficients
@@ -470,35 +470,35 @@ TEST(covariance_tests, Covariance_class)
   cd2.inverse_scale(2); EXPECT_TRUE(is_near(cd2, Mat2 {1, 0, 0, 2}));
 
   // Scalar multiplication, zero
-  clsa2 *= 0; EXPECT_TRUE(is_near(clsa2, Mat2::zero()));
-  cusa2 *= 0; EXPECT_TRUE(is_near(cusa2, Mat2::zero()));
-  clt2 *= 0; EXPECT_TRUE(is_near(clt2, Mat2::zero()));
-  cut2 *= 0; EXPECT_TRUE(is_near(cut2, Mat2::zero()));
-  cd2 *= 0; EXPECT_TRUE(is_near(cd2, Mat2::zero()));
+  clsa2 *= 0; EXPECT_TRUE(is_near(clsa2, make_zero_matrix_like<Mat2>()));
+  cusa2 *= 0; EXPECT_TRUE(is_near(cusa2, make_zero_matrix_like<Mat2>()));
+  clt2 *= 0; EXPECT_TRUE(is_near(clt2, make_zero_matrix_like<Mat2>()));
+  cut2 *= 0; EXPECT_TRUE(is_near(cut2, make_zero_matrix_like<Mat2>()));
+  cd2 *= 0; EXPECT_TRUE(is_near(cd2, make_zero_matrix_like<Mat2>()));
 
   // Zero
-  EXPECT_TRUE(is_near(CovSA2l::zero(), M2::Zero()));
-  EXPECT_TRUE(is_near(CovSA2u::zero(), M2::Zero()));
-  EXPECT_TRUE(is_near(CovT2l::zero(), M2::Zero()));
-  EXPECT_TRUE(is_near(CovT2u::zero(), M2::Zero()));
-  EXPECT_TRUE(is_near(CovD2::zero(), M2::Zero()));
-  EXPECT_TRUE(is_near(square_root(CovSA2l::zero()), M2::Zero()));
-  EXPECT_TRUE(is_near(square_root(CovSA2u::zero()), M2::Zero()));
-  EXPECT_TRUE(is_near(square_root(CovT2l::zero()), M2::Zero()));
-  EXPECT_TRUE(is_near(square_root(CovT2u::zero()), M2::Zero()));
-  EXPECT_TRUE(is_near(square_root(CovD2::zero()), M2::Zero()));
+  EXPECT_TRUE(is_near(make_zero_matrix_like<CovSA2l>(), M2::Zero()));
+  EXPECT_TRUE(is_near(make_zero_matrix_like<CovSA2u>(), M2::Zero()));
+  EXPECT_TRUE(is_near(make_zero_matrix_like<CovT2l>(), M2::Zero()));
+  EXPECT_TRUE(is_near(make_zero_matrix_like<CovT2u>(), M2::Zero()));
+  EXPECT_TRUE(is_near(make_zero_matrix_like<CovD2>(), M2::Zero()));
+  EXPECT_TRUE(is_near(square_root(make_zero_matrix_like<CovSA2l>()), M2::Zero()));
+  EXPECT_TRUE(is_near(square_root(make_zero_matrix_like<CovSA2u>()), M2::Zero()));
+  EXPECT_TRUE(is_near(square_root(make_zero_matrix_like<CovT2l>()), M2::Zero()));
+  EXPECT_TRUE(is_near(square_root(make_zero_matrix_like<CovT2u>()), M2::Zero()));
+  EXPECT_TRUE(is_near(square_root(make_zero_matrix_like<CovD2>()), M2::Zero()));
 
   // Identity
-  EXPECT_TRUE(is_near(CovSA2l::identity(), M2::Identity()));
-  EXPECT_TRUE(is_near(CovSA2u::identity(), M2::Identity()));
-  EXPECT_TRUE(is_near(CovT2l::identity(), M2::Identity()));
-  EXPECT_TRUE(is_near(CovT2u::identity(), M2::Identity()));
-  EXPECT_TRUE(is_near(CovD2::identity(), M2::Identity()));
-  EXPECT_TRUE(is_near(square_root(CovSA2l::identity()), M2::Identity()));
-  EXPECT_TRUE(is_near(square_root(CovSA2u::identity()), M2::Identity()));
-  EXPECT_TRUE(is_near(square_root(CovT2l::identity()), M2::Identity()));
-  EXPECT_TRUE(is_near(square_root(CovT2u::identity()), M2::Identity()));
-  EXPECT_TRUE(is_near(square_root(CovD2::identity()), M2::Identity()));
+  EXPECT_TRUE(is_near(make_identity_matrix_like<CovSA2l>(), M2::Identity()));
+  EXPECT_TRUE(is_near(make_identity_matrix_like<CovSA2u>(), M2::Identity()));
+  EXPECT_TRUE(is_near(make_identity_matrix_like<CovT2l>(), M2::Identity()));
+  EXPECT_TRUE(is_near(make_identity_matrix_like<CovT2u>(), M2::Identity()));
+  EXPECT_TRUE(is_near(make_identity_matrix_like<CovD2>(), M2::Identity()));
+  EXPECT_TRUE(is_near(square_root(make_identity_matrix_like<CovSA2l>()), M2::Identity()));
+  EXPECT_TRUE(is_near(square_root(make_identity_matrix_like<CovSA2u>()), M2::Identity()));
+  EXPECT_TRUE(is_near(square_root(make_identity_matrix_like<CovT2l>()), M2::Identity()));
+  EXPECT_TRUE(is_near(square_root(make_identity_matrix_like<CovT2u>()), M2::Identity()));
+  EXPECT_TRUE(is_near(square_root(make_identity_matrix_like<CovD2>()), M2::Identity()));
 }
 
 TEST(covariance_tests, Covariance_subscripts)
@@ -567,8 +567,8 @@ TEST(covariance_tests, Covariance_deduction_guides)
   EXPECT_TRUE(is_near(Covariance(Mat2 {9, 3, 3, 10}), Mat2 {9, 3, 3, 10}));
   static_assert(equivalent_to<typename MatrixTraits<decltype(Covariance(Mat2 {9, 3, 3, 10}))>::RowCoefficients, C>);
 
-  EXPECT_TRUE(is_near(Covariance(make_native_matrix<M2>(9, 3, 3, 10)), Mat2 {9, 3, 3, 10}));
-  static_assert(equivalent_to<typename MatrixTraits<decltype(Covariance(make_native_matrix<M2>(9, 3, 3, 10)))>::RowCoefficients, Axes<2>>);
+  EXPECT_TRUE(is_near(Covariance(make_dense_writable_matrix_from<M2>(9, 3, 3, 10)), Mat2 {9, 3, 3, 10}));
+  static_assert(equivalent_to<typename MatrixTraits<decltype(Covariance(make_dense_writable_matrix_from<M2>(9, 3, 3, 10)))>::RowCoefficients, Axes<2>>);
 
   EXPECT_TRUE(is_near(Covariance {9., 3, 3, 10}, Mat2 {9, 3, 3, 10}));
   static_assert(equivalent_to<typename MatrixTraits<decltype(Covariance {9., 3, 3, 10})>::RowCoefficients, Axes<2>>);
@@ -688,7 +688,7 @@ TEST(covariance_tests, Covariance_make)
   static_assert(lower_triangular_matrix<decltype(make_covariance<C, TriangleType::lower>().get_triangular_nested_matrix())>);
   static_assert(upper_triangular_matrix<decltype(make_covariance<C, TriangleType::upper>().get_triangular_nested_matrix())>);
   static_assert(Eigen3::lower_self_adjoint_matrix<decltype(make_covariance<C>().get_self_adjoint_nested_matrix())>);
-  static_assert(MatrixTraits<decltype(make_covariance<C>())>::RowCoefficients::dimensions == 2);
+  static_assert(MatrixTraits<decltype(make_covariance<C>())>::RowCoefficients::dimension == 2);
 }
 
 
@@ -758,14 +758,14 @@ TEST(covariance_tests, Covariance_traits)
   EXPECT_TRUE(is_near(MatrixTraits<CovSA2u>::make(SA2u {9, 3, 3, 10}).get_self_adjoint_nested_matrix(), Mat2 {9, 3, 3, 10}));
   EXPECT_TRUE(is_near(MatrixTraits<CovSA2l>::make(T2l {3, 0, 1, 3}).get_triangular_nested_matrix(), Mat2 {3, 0, 1, 3}));
   EXPECT_TRUE(is_near(MatrixTraits<CovSA2u>::make(T2u {3, 1, 0, 3}).get_triangular_nested_matrix(), Mat2 {3, 1, 0, 3}));
-  EXPECT_TRUE(is_near(MatrixTraits<CovSA2l>::zero(), eigen_matrix_t<double, 2, 2>::Zero()));
-  EXPECT_TRUE(is_near(MatrixTraits<CovSA2l>::identity(), eigen_matrix_t<double, 2, 2>::Identity()));
+  EXPECT_TRUE(is_near(make_zero_matrix_like<CovSA2l>(), eigen_matrix_t<double, 2, 2>::Zero()));
+  EXPECT_TRUE(is_near(make_identity_matrix_like<CovSA2l>(), eigen_matrix_t<double, 2, 2>::Identity()));
   EXPECT_TRUE(is_near(MatrixTraits<CovT2l>::make(SA2l {9, 3, 3, 10}).get_self_adjoint_nested_matrix(), Mat2 {9, 3, 3, 10}));
   EXPECT_TRUE(is_near(MatrixTraits<CovT2u>::make(SA2u {9, 3, 3, 10}).get_self_adjoint_nested_matrix(), Mat2 {9, 3, 3, 10}));
   EXPECT_TRUE(is_near(MatrixTraits<CovT2l>::make(T2l {3, 0, 1, 3}).get_triangular_nested_matrix(), Mat2 {3, 0, 1, 3}));
   EXPECT_TRUE(is_near(MatrixTraits<CovT2u>::make(T2u {3, 1, 0, 3}).get_triangular_nested_matrix(), Mat2 {3, 1, 0, 3}));
-  EXPECT_TRUE(is_near(MatrixTraits<CovT2l>::zero(), eigen_matrix_t<double, 2, 2>::Zero()));
-  EXPECT_TRUE(is_near(MatrixTraits<CovT2l>::identity(), eigen_matrix_t<double, 2, 2>::Identity()));
+  EXPECT_TRUE(is_near(make_zero_matrix_like<CovT2l>(), eigen_matrix_t<double, 2, 2>::Zero()));
+  EXPECT_TRUE(is_near(make_identity_matrix_like<CovT2l>(), eigen_matrix_t<double, 2, 2>::Identity()));
 }
 
 
@@ -815,10 +815,10 @@ TEST(covariance_tests, Covariance_overloads)
   EXPECT_TRUE(is_near(square_root(make_covariance<C>(SelfAdjointMatrix<M2::ConstantReturnType, TriangleType::lower>(M2::Constant(9)))), Mat2 {3, 0, 3, 0}));
   EXPECT_TRUE(is_near(square_root(make_covariance<C>(SelfAdjointMatrix<M2::ConstantReturnType, TriangleType::upper>(M2::Constant(4)))), Mat2 {2, 2, 0, 0}));
 
-  EXPECT_TRUE(is_near(make_native_matrix(CovSA2l {9, 3, 3, 10}), Mat2 { 9, 3, 3, 10}));
-  EXPECT_TRUE(is_near(make_native_matrix(CovSA2u {9, 3, 3, 10}), Mat2 { 9, 3, 3, 10}));
-  EXPECT_TRUE(is_near(make_native_matrix(CovT2l {9, 3, 3, 10}), Mat2 { 9, 3, 3, 10}));
-  EXPECT_TRUE(is_near(make_native_matrix(CovT2l {9, 3, 3, 10}), Mat2 { 9, 3, 3, 10}));
+  EXPECT_TRUE(is_near(make_dense_writable_matrix_from(CovSA2l {9, 3, 3, 10}), Mat2 { 9, 3, 3, 10}));
+  EXPECT_TRUE(is_near(make_dense_writable_matrix_from(CovSA2u {9, 3, 3, 10}), Mat2 { 9, 3, 3, 10}));
+  EXPECT_TRUE(is_near(make_dense_writable_matrix_from(CovT2l {9, 3, 3, 10}), Mat2 { 9, 3, 3, 10}));
+  EXPECT_TRUE(is_near(make_dense_writable_matrix_from(CovT2l {9, 3, 3, 10}), Mat2 { 9, 3, 3, 10}));
 
   static_assert(std::is_same_v<std::decay_t<decltype(make_self_contained(CovSA2l {9, 3, 3, 10} * 2))>, CovSA2l>);
   static_assert(std::is_same_v<std::decay_t<decltype(make_self_contained(CovSA2u {9, 3, 3, 10} * 2))>, CovSA2u>);
@@ -918,24 +918,24 @@ TEST(covariance_tests, Covariance_blocks)
   EXPECT_TRUE(is_near(split_diagonal<C, C::Take<1>>(CovT4u(n)), std::tuple {m1, Matrix<angle::Radians, angle::Radians>{4}}));
 
   EXPECT_TRUE(is_near(split_vertical(CovSA4l(n)), std::tuple {}));
-  EXPECT_TRUE(is_near(split_vertical<C, C>(CovSA4l(n)), std::tuple {concatenate_horizontal(m1, Mat2::zero()), concatenate_horizontal(Mat2::zero(), m2)}));
-  EXPECT_TRUE(is_near(split_vertical<C, C>(CovSA4u(n)), std::tuple {concatenate_horizontal(m1, Mat2::zero()), concatenate_horizontal(Mat2::zero(), m2)}));
-  EXPECT_TRUE(is_near(split_vertical<C, C>(CovT4l(n)), std::tuple {concatenate_horizontal(m1, Mat2::zero()), concatenate_horizontal(Mat2::zero(), m2)}));
-  EXPECT_TRUE(is_near(split_vertical<C, C>(CovT4u(n)), std::tuple {concatenate_horizontal(m1, Mat2::zero()), concatenate_horizontal(Mat2::zero(), m2)}));
-  EXPECT_TRUE(is_near(split_vertical<C, C::Take<1>>(CovSA4l(n)), std::tuple {concatenate_horizontal(m1, Mat2::zero()), Matrix<angle::Radians, C4>{0, 0, 4, 2}}));
-  EXPECT_TRUE(is_near(split_vertical<C, C::Take<1>>(CovSA4u(n)), std::tuple {concatenate_horizontal(m1, Mat2::zero()), Matrix<angle::Radians, C4>{0, 0, 4, 2}}));
-  EXPECT_TRUE(is_near(split_vertical<C, C::Take<1>>(CovT4l(n)), std::tuple {concatenate_horizontal(m1, Mat2::zero()), Matrix<angle::Radians, C4>{0, 0, 4, 2}}));
-  EXPECT_TRUE(is_near(split_vertical<C, C::Take<1>>(CovT4u(n)), std::tuple {concatenate_horizontal(m1, Mat2::zero()), Matrix<angle::Radians, C4>{0, 0, 4, 2}}));
+  EXPECT_TRUE(is_near(split_vertical<C, C>(CovSA4l(n)), std::tuple {concatenate_horizontal(m1, make_zero_matrix_like<Mat2>()), concatenate_horizontal(make_zero_matrix_like<Mat2>(), m2)}));
+  EXPECT_TRUE(is_near(split_vertical<C, C>(CovSA4u(n)), std::tuple {concatenate_horizontal(m1, make_zero_matrix_like<Mat2>()), concatenate_horizontal(make_zero_matrix_like<Mat2>(), m2)}));
+  EXPECT_TRUE(is_near(split_vertical<C, C>(CovT4l(n)), std::tuple {concatenate_horizontal(m1, make_zero_matrix_like<Mat2>()), concatenate_horizontal(make_zero_matrix_like<Mat2>(), m2)}));
+  EXPECT_TRUE(is_near(split_vertical<C, C>(CovT4u(n)), std::tuple {concatenate_horizontal(m1, make_zero_matrix_like<Mat2>()), concatenate_horizontal(make_zero_matrix_like<Mat2>(), m2)}));
+  EXPECT_TRUE(is_near(split_vertical<C, C::Take<1>>(CovSA4l(n)), std::tuple {concatenate_horizontal(m1, make_zero_matrix_like<Mat2>()), Matrix<angle::Radians, C4>{0, 0, 4, 2}}));
+  EXPECT_TRUE(is_near(split_vertical<C, C::Take<1>>(CovSA4u(n)), std::tuple {concatenate_horizontal(m1, make_zero_matrix_like<Mat2>()), Matrix<angle::Radians, C4>{0, 0, 4, 2}}));
+  EXPECT_TRUE(is_near(split_vertical<C, C::Take<1>>(CovT4l(n)), std::tuple {concatenate_horizontal(m1, make_zero_matrix_like<Mat2>()), Matrix<angle::Radians, C4>{0, 0, 4, 2}}));
+  EXPECT_TRUE(is_near(split_vertical<C, C::Take<1>>(CovT4u(n)), std::tuple {concatenate_horizontal(m1, make_zero_matrix_like<Mat2>()), Matrix<angle::Radians, C4>{0, 0, 4, 2}}));
 
   EXPECT_TRUE(is_near(split_horizontal(CovSA4l(n)), std::tuple {}));
-  EXPECT_TRUE(is_near(split_horizontal<C, C>(CovSA4l(n)), std::tuple {concatenate_vertical(m1, Mat2::zero()), concatenate_vertical(Mat2::zero(), m2)}));
-  EXPECT_TRUE(is_near(split_horizontal<C, C>(CovSA4u(n)), std::tuple {concatenate_vertical(m1, Mat2::zero()), concatenate_vertical(Mat2::zero(), m2)}));
-  EXPECT_TRUE(is_near(split_horizontal<C, C>(CovT4l(n)), std::tuple {concatenate_vertical(m1, Mat2::zero()), concatenate_vertical(Mat2::zero(), m2)}));
-  EXPECT_TRUE(is_near(split_horizontal<C, C>(CovT4u(n)), std::tuple {concatenate_vertical(m1, Mat2::zero()), concatenate_vertical(Mat2::zero(), m2)}));
-  EXPECT_TRUE(is_near(split_horizontal<C, C::Take<1>>(CovSA4l(n)), std::tuple {concatenate_vertical(m1, Mat2::zero()), Matrix<C4, angle::Radians>{0, 0, 4, 2}}));
-  EXPECT_TRUE(is_near(split_horizontal<C, C::Take<1>>(CovSA4u(n)), std::tuple {concatenate_vertical(m1, Mat2::zero()), Matrix<C4, angle::Radians>{0, 0, 4, 2}}));
-  EXPECT_TRUE(is_near(split_horizontal<C, C::Take<1>>(CovT4l(n)), std::tuple {concatenate_vertical(m1, Mat2::zero()), Matrix<C4, angle::Radians>{0, 0, 4, 2}}));
-  EXPECT_TRUE(is_near(split_horizontal<C, C::Take<1>>(CovT4u(n)), std::tuple {concatenate_vertical(m1, Mat2::zero()), Matrix<C4, angle::Radians>{0, 0, 4, 2}}));
+  EXPECT_TRUE(is_near(split_horizontal<C, C>(CovSA4l(n)), std::tuple {concatenate_vertical(m1, make_zero_matrix_like<Mat2>()), concatenate_vertical(make_zero_matrix_like<Mat2>(), m2)}));
+  EXPECT_TRUE(is_near(split_horizontal<C, C>(CovSA4u(n)), std::tuple {concatenate_vertical(m1, make_zero_matrix_like<Mat2>()), concatenate_vertical(make_zero_matrix_like<Mat2>(), m2)}));
+  EXPECT_TRUE(is_near(split_horizontal<C, C>(CovT4l(n)), std::tuple {concatenate_vertical(m1, make_zero_matrix_like<Mat2>()), concatenate_vertical(make_zero_matrix_like<Mat2>(), m2)}));
+  EXPECT_TRUE(is_near(split_horizontal<C, C>(CovT4u(n)), std::tuple {concatenate_vertical(m1, make_zero_matrix_like<Mat2>()), concatenate_vertical(make_zero_matrix_like<Mat2>(), m2)}));
+  EXPECT_TRUE(is_near(split_horizontal<C, C::Take<1>>(CovSA4l(n)), std::tuple {concatenate_vertical(m1, make_zero_matrix_like<Mat2>()), Matrix<C4, angle::Radians>{0, 0, 4, 2}}));
+  EXPECT_TRUE(is_near(split_horizontal<C, C::Take<1>>(CovSA4u(n)), std::tuple {concatenate_vertical(m1, make_zero_matrix_like<Mat2>()), Matrix<C4, angle::Radians>{0, 0, 4, 2}}));
+  EXPECT_TRUE(is_near(split_horizontal<C, C::Take<1>>(CovT4l(n)), std::tuple {concatenate_vertical(m1, make_zero_matrix_like<Mat2>()), Matrix<C4, angle::Radians>{0, 0, 4, 2}}));
+  EXPECT_TRUE(is_near(split_horizontal<C, C::Take<1>>(CovT4u(n)), std::tuple {concatenate_vertical(m1, make_zero_matrix_like<Mat2>()), Matrix<C4, angle::Radians>{0, 0, 4, 2}}));
 
   EXPECT_TRUE(is_near(column(CovSA4l(n), 2), Mean{0., 0, 4, 2}));
   EXPECT_TRUE(is_near(column(CovSA4u(n), 2), Mean{0., 0, 4, 2}));

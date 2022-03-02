@@ -21,6 +21,11 @@ namespace Eigen::internal
 {
   using namespace OpenKalman;
 
+
+  template<typename NestedMatrix>
+  struct traits<OpenKalman::Eigen3::EigenWrapper<NestedMatrix>> : traits<NestedMatrix> {};
+
+
   template<typename Coefficients, typename ArgType>
   struct traits<OpenKalman::Mean<Coefficients, ArgType>>
     : traits<std::decay_t<ArgType>>
@@ -67,41 +72,33 @@ namespace Eigen::internal
   };
 
 
-  template<typename Scalar_, auto constant, std::size_t rows, std::size_t cols>
-  struct traits<OpenKalman::Eigen3::ConstantMatrix<Scalar_, constant, rows, cols>>
+  template<typename NestedMatrix, auto constant>
+  struct traits<OpenKalman::Eigen3::ConstantMatrix<NestedMatrix, constant>>
+    : traits<std::decay_t<NestedMatrix>>
   {
     using StorageKind = Eigen::Dense;
-    using XprKind = Eigen::MatrixXpr;
-    using StorageIndex = Eigen::Index;
-    using Scalar = Scalar_;
+    using B = traits<std::decay_t<NestedMatrix>>;
+    using Scalar = typename B::Scalar;
+    using M = Matrix<Scalar, B::RowsAtCompileTime, B::ColsAtCompileTime>;
     enum
     {
-      RowsAtCompileTime = (rows == OpenKalman::dynamic_extent ? Eigen::Dynamic : (Eigen::Index) rows),
-      MaxRowsAtCompileTime = RowsAtCompileTime,
-      ColsAtCompileTime = (cols == OpenKalman::dynamic_extent ? Eigen::Dynamic : (Eigen::Index) cols),
-      MaxColsAtCompileTime = ColsAtCompileTime,
-      Flags = NoPreferredStorageOrderBit | LinearAccessBit |
-        (traits<Matrix<Scalar, RowsAtCompileTime, ColsAtCompileTime>>::Flags & RowMajorBit) |
+      Flags = NoPreferredStorageOrderBit | LinearAccessBit | (traits<M>::Flags & RowMajorBit) |
         (packet_traits<Scalar>::Vectorizable ? PacketAccessBit : 0),
     };
   };
 
 
-  template<typename Scalar_, std::size_t rows, std::size_t cols>
-  struct traits<OpenKalman::Eigen3::ZeroMatrix<Scalar_, rows, cols>>
+  template<typename NestedMatrix>
+  struct traits<OpenKalman::Eigen3::ZeroMatrix<NestedMatrix>>
+    : traits<std::decay_t<NestedMatrix>>
   {
     using StorageKind = Eigen::Dense;
-    using XprKind = Eigen::MatrixXpr;
-    using StorageIndex = Eigen::Index;
-    using Scalar = Scalar_;
+    using B = traits<std::decay_t<NestedMatrix>>;
+    using Scalar = typename B::Scalar;
+    using M = Matrix<Scalar, B::RowsAtCompileTime, B::ColsAtCompileTime>;
     enum
     {
-      RowsAtCompileTime = (rows == OpenKalman::dynamic_extent ? Eigen::Dynamic : (Eigen::Index) rows),
-      MaxRowsAtCompileTime = RowsAtCompileTime,
-      ColsAtCompileTime = (cols == OpenKalman::dynamic_extent ? Eigen::Dynamic : (Eigen::Index) cols),
-      MaxColsAtCompileTime = ColsAtCompileTime,
-      Flags = NoPreferredStorageOrderBit | EvalBeforeNestingBit | LinearAccessBit |
-        (traits<Matrix<Scalar, RowsAtCompileTime, ColsAtCompileTime>>::Flags & RowMajorBit) |
+      Flags = NoPreferredStorageOrderBit | EvalBeforeNestingBit | LinearAccessBit | (traits<M>::Flags & RowMajorBit) |
         (packet_traits<Scalar>::Vectorizable ? PacketAccessBit : 0),
     };
   };
@@ -159,10 +156,10 @@ namespace Eigen::internal
       Flags = Coeffs::axes_only ?
               traits<Nested>::Flags :
               traits<Nested>::Flags & (~DirectAccessBit) & (~PacketAccessBit) & (~LvalueBit) &
-                (~(OpenKalman::column_extent_of_v<ArgType> == 1 ? 0 : LinearAccessBit)),
+                (~(OpenKalman::column_dimension_of_v<ArgType> == 1 ? 0 : LinearAccessBit)),
       RowsAtCompileTime = [] {
         if constexpr (OpenKalman::dynamic_coefficients<Coeffs>) return Eigen::Dynamic;
-        else return static_cast<Index>(Coeffs::euclidean_dimensions);
+        else return static_cast<Index>(Coeffs::euclidean_dimension);
       }(),
       MaxRowsAtCompileTime = RowsAtCompileTime,
     };
@@ -178,10 +175,10 @@ namespace Eigen::internal
       Flags = Coeffs::axes_only ?
               traits<Nested>::Flags :
               traits<Nested>::Flags & (~DirectAccessBit) & (~PacketAccessBit) & (~LvalueBit) &
-                (~(OpenKalman::column_extent_of_v<ArgType> == 1 ? 0 : LinearAccessBit)),
+                (~(OpenKalman::column_dimension_of_v<ArgType> == 1 ? 0 : LinearAccessBit)),
       RowsAtCompileTime = [] {
         if constexpr (OpenKalman::dynamic_coefficients<Coeffs>) return Eigen::Dynamic;
-        else return static_cast<Index>(Coeffs::dimensions);
+        else return static_cast<Index>(Coeffs::dimension);
       }(),
       MaxRowsAtCompileTime = RowsAtCompileTime,
     };
@@ -199,14 +196,15 @@ namespace Eigen::internal
       Flags = Coeffs::axes_only ?
               traits<Nested>::Flags :
               traits<Nested>::Flags & (~DirectAccessBit) & (~PacketAccessBit) & (~LvalueBit) &
-                (~(OpenKalman::column_extent_of_v<ArgType> == 1 ? 0 : LinearAccessBit)),
+                (~(OpenKalman::column_dimension_of_v<ArgType> == 1 ? 0 : LinearAccessBit)),
       RowsAtCompileTime = [] {
         if constexpr (OpenKalman::dynamic_coefficients<Coeffs>) return Eigen::Dynamic;
-        else return static_cast<Index>(Coeffs::dimensions);
+        else return static_cast<Index>(Coeffs::dimension);
       }(),
       MaxRowsAtCompileTime = RowsAtCompileTime,
     };
   };
+
 
 }
 

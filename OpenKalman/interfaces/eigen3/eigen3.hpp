@@ -70,8 +70,8 @@
 #include "special-matrices/details/eigen3-special-matrix-arithmetic.hpp"
 #include "special-matrices/details/eigen3-euclidean-overloads.hpp"
 
+#include "details/eigen3-comma-initializers.hpp"
 #include "details/Eigen3Base.hpp"
-#include "details/Eigen3MatrixBase.hpp"
 #include "special-matrices/details/EigenDynamicBase.hpp"
 
 #include "details/eigen3-native-traits.hpp"
@@ -106,8 +106,6 @@ namespace OpenKalman
   using Eigen3::to_euclidean;
   using Eigen3::from_euclidean;
   using Eigen3::wrap_angles;
-  using Eigen3::to_diagonal;
-  using Eigen3::diagonal_of;
   using Eigen3::solve;
   using Eigen3::reduce_columns;
   using Eigen3::reduce_rows;

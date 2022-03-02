@@ -32,16 +32,16 @@ namespace
   using M44 = eigen_matrix_t<double, 4, 4>;
   using M55 = eigen_matrix_t<double, 5, 5>;
 
-  using M00 = eigen_matrix_t<double, dynamic_extent, dynamic_extent>;
-  using M10 = eigen_matrix_t<double, 1, dynamic_extent>;
-  using M01 = eigen_matrix_t<double, dynamic_extent, 1>;
-  using M20 = eigen_matrix_t<double, 2, dynamic_extent>;
-  using M02 = eigen_matrix_t<double, dynamic_extent, 2>;
-  using M30 = eigen_matrix_t<double, 3, dynamic_extent>;
-  using M03 = eigen_matrix_t<double, dynamic_extent, 3>;
-  using M04 = eigen_matrix_t<double, dynamic_extent, 4>;
-  using M50 = eigen_matrix_t<double, 5, dynamic_extent>;
-  using M05 = eigen_matrix_t<double, dynamic_extent, 5>;
+  using M00 = eigen_matrix_t<double, dynamic_size, dynamic_size>;
+  using M10 = eigen_matrix_t<double, 1, dynamic_size>;
+  using M01 = eigen_matrix_t<double, dynamic_size, 1>;
+  using M20 = eigen_matrix_t<double, 2, dynamic_size>;
+  using M02 = eigen_matrix_t<double, dynamic_size, 2>;
+  using M30 = eigen_matrix_t<double, 3, dynamic_size>;
+  using M03 = eigen_matrix_t<double, dynamic_size, 3>;
+  using M04 = eigen_matrix_t<double, dynamic_size, 4>;
+  using M50 = eigen_matrix_t<double, 5, dynamic_size>;
+  using M05 = eigen_matrix_t<double, dynamic_size, 5>;
 
   using cdouble = std::complex<double>;
 
@@ -56,14 +56,14 @@ namespace
 
 TEST(eigen3, apply_columnwise)
 {
-  const auto m21_12 = make_native_matrix<M21>(1, 2);
+  const auto m21_12 = make_dense_writable_matrix_from<M21>(1, 2);
 
   auto m21 = M21 {m21_12};
   auto m20_1 = M20 {m21_12};
   auto m01_2 = M01 {m21_12};
   auto m00_21 = M00 {m21_12};
 
-  const auto m21_23 = make_native_matrix<M21>(2, 3);
+  const auto m21_23 = make_dense_writable_matrix_from<M21>(2, 3);
 
   apply_columnwise([](auto& col){ col += col.Constant(1); }, m21); EXPECT_TRUE(is_near(m21, m21_23));
   apply_columnwise([](auto& col){ col += col.Constant(1); }, m20_1); EXPECT_TRUE(is_near(m20_1, m21_23));
@@ -80,7 +80,7 @@ TEST(eigen3, apply_columnwise)
   auto m03 = M03 {m33_123};
   auto m00 = M00 {m33_123};
 
-  const auto m33_234 = make_native_matrix<M33>(
+  const auto m33_234 = make_dense_writable_matrix_from<M33>(
     2, 1, 1,
     1, 3, 1,
     1, 1, 4);
@@ -105,7 +105,7 @@ TEST(eigen3, apply_columnwise)
   EXPECT_TRUE(is_near(apply_columnwise([](const auto& col){ return make_self_contained(col + col.Constant(3, 1, 1)); }, M03 {m33_123}), m33_234));
   EXPECT_TRUE(is_near(apply_columnwise([](const auto& col){ return make_self_contained(col + col.Constant(3, 1, 1)); }, M00 {m33_123}), m33_234));
 
-  auto m33_135_col = make_native_matrix<M33>(
+  auto m33_135_col = make_dense_writable_matrix_from<M33>(
     1, 1, 2,
     0, 3, 2,
     0, 1, 5);
@@ -123,12 +123,12 @@ TEST(eigen3, apply_columnwise)
   EXPECT_TRUE(is_near(apply_columnwise([](const auto& col, std::size_t i){ return make_self_contained(col + col.Constant(3, 1, i)); }, M03 {m33_123}), m33_135_col));
   EXPECT_TRUE(is_near(apply_columnwise([](const auto& col, std::size_t i){ return make_self_contained(col + col.Constant(3, 1, i)); }, M00 {m33_123}), m33_135_col));
 
-  auto m33_123_h = make_native_matrix<M33>(
+  auto m33_123_h = make_dense_writable_matrix_from<M33>(
     1, 1, 1,
     2, 2, 2,
     3, 3, 3);
 
-  auto m31_123 = make_native_matrix<M31>(1, 2, 3);
+  auto m31_123 = make_dense_writable_matrix_from<M31>(1, 2, 3);
 
   EXPECT_TRUE(is_near(apply_columnwise<3>([&] { return m31_123; }), m33_123_h));
   EXPECT_TRUE(is_near(apply_columnwise<3>([&] { return M30 {m31_123}; }), m33_123_h));
@@ -140,27 +140,27 @@ TEST(eigen3, apply_columnwise)
   EXPECT_TRUE(is_near(apply_columnwise([&] { return M01 {m31_123}; }, 3), m33_123_h));
   EXPECT_TRUE(is_near(apply_columnwise([&] { return M00 {m31_123}; }, 3), m33_123_h));
 
-  auto m33_123_d = make_native_matrix<M33>(
+  auto m33_123_d = make_dense_writable_matrix_from<M33>(
     1, 2, 3,
     2, 3, 4,
     3, 4, 5);
 
-  EXPECT_TRUE(is_near(apply_columnwise<3>([](std::size_t i) { return make_native_matrix<M31>(1 + i, 2 + i, 3 + i); }), m33_123_d));
+  EXPECT_TRUE(is_near(apply_columnwise<3>([](std::size_t i) { return make_dense_writable_matrix_from<M31>(1 + i, 2 + i, 3 + i); }), m33_123_d));
 
-  EXPECT_TRUE(is_near(apply_columnwise([](std::size_t i) { return make_native_matrix<M31>(1 + i, 2 + i, 3 + i); }, 3), m33_123_d));
+  EXPECT_TRUE(is_near(apply_columnwise([](std::size_t i) { return make_dense_writable_matrix_from<M31>(1 + i, 2 + i, 3 + i); }, 3), m33_123_d));
 }
 
 
 TEST(eigen3, apply_rowwise)
 {
-  const auto m12_12 = make_native_matrix<M12>(1, 2);
+  const auto m12_12 = make_dense_writable_matrix_from<M12>(1, 2);
 
   auto m12_vol = M12 {m12_12};
   auto m10_2_vol = M10 {m12_12};
   auto m02_1_vol = M02 {m12_12};
   auto m00_12_vol = M00 {m12_12};
 
-  const auto m12_23 = make_native_matrix<M12>(2, 3);
+  const auto m12_23 = make_dense_writable_matrix_from<M12>(2, 3);
 
   apply_rowwise([](auto& row){ row += row.Constant(1); }, m12_vol); EXPECT_TRUE(is_near(m12_vol, m12_23));
   apply_rowwise([](auto& row){ row += row.Constant(1, 2, 1); }, m10_2_vol); EXPECT_TRUE(is_near(m10_2_vol, m12_23));
@@ -177,7 +177,7 @@ TEST(eigen3, apply_rowwise)
   auto m03 = M03 {m33_123};
   auto m00 = M00 {m33_123};
 
-  const auto m33_234 = make_native_matrix<M33>(
+  const auto m33_234 = make_dense_writable_matrix_from<M33>(
     2, 1, 1,
     1, 3, 1,
     1, 1, 4);
@@ -224,7 +224,7 @@ TEST(eigen3, apply_rowwise)
     1, 2, 3,
     1, 2, 3);
 
-  auto m13_123 = make_native_matrix<M13>(1, 2, 3);
+  auto m13_123 = make_dense_writable_matrix_from<M13>(1, 2, 3);
 
   EXPECT_TRUE(is_near(apply_rowwise<3>([&] { return m13_123; }), m33_123_v));
   EXPECT_TRUE(is_near(apply_rowwise<3>([&] { return M10 {m13_123}; }), m33_123_v));
@@ -236,14 +236,14 @@ TEST(eigen3, apply_rowwise)
   EXPECT_TRUE(is_near(apply_rowwise([&] { return M03 {m13_123}; }, 3), m33_123_v));
   EXPECT_TRUE(is_near(apply_rowwise([&] { return M00 {m13_123}; }, 3), m33_123_v));
 
-  auto m33_123_d = make_native_matrix<M33>(
+  auto m33_123_d = make_dense_writable_matrix_from<M33>(
     1, 2, 3,
     2, 3, 4,
     3, 4, 5);
 
-  EXPECT_TRUE(is_near(apply_rowwise<3>([](std::size_t i) { return make_native_matrix<M13>(1 + i, 2 + i, 3 + i); }), m33_123_d));
+  EXPECT_TRUE(is_near(apply_rowwise<3>([](std::size_t i) { return make_dense_writable_matrix_from<M13>(1 + i, 2 + i, 3 + i); }), m33_123_d));
 
-  EXPECT_TRUE(is_near(apply_rowwise([](std::size_t i) { return make_native_matrix<M13>(1 + i, 2 + i, 3 + i); }, 3), m33_123_d));
+  EXPECT_TRUE(is_near(apply_rowwise([](std::size_t i) { return make_dense_writable_matrix_from<M13>(1 + i, 2 + i, 3 + i); }, 3), m33_123_d));
 }
 
 
@@ -254,7 +254,7 @@ TEST(eigen3, apply_coefficientwise)
     0, 2, 0,
     0, 0, 3);
 
-  const auto m33_234 = make_native_matrix<M33>(
+  const auto m33_234 = make_dense_writable_matrix_from<M33>(
     2, 1, 1,
     1, 3, 1,
     1, 1, 4);
@@ -297,14 +297,14 @@ TEST(eigen3, apply_coefficientwise)
     3, 4, 5);
 
   EXPECT_TRUE(is_near(apply_coefficientwise<3,3>([](std::size_t i, std::size_t j){ return 1. + i + j; }), m33_135));
-  EXPECT_TRUE(is_near(apply_coefficientwise<3,dynamic_extent>([](std::size_t i, std::size_t j){ return 1. + i + j; }, 3), m33_135));
-  EXPECT_TRUE(is_near(apply_coefficientwise<dynamic_extent,3>([](std::size_t i, std::size_t j){ return 1. + i + j; }, 3), m33_135));
-  EXPECT_TRUE(is_near(apply_coefficientwise<dynamic_extent, dynamic_extent>([](std::size_t i, std::size_t j){ return 1. + i + j; }, 3, 3), m33_135));
+  EXPECT_TRUE(is_near(apply_coefficientwise<3,dynamic_size>([](std::size_t i, std::size_t j){ return 1. + i + j; }, 3), m33_135));
+  EXPECT_TRUE(is_near(apply_coefficientwise<dynamic_size,3>([](std::size_t i, std::size_t j){ return 1. + i + j; }, 3), m33_135));
+  EXPECT_TRUE(is_near(apply_coefficientwise<dynamic_size, dynamic_size>([](std::size_t i, std::size_t j){ return 1. + i + j; }, 3, 3), m33_135));
   EXPECT_TRUE(is_near(apply_coefficientwise([](std::size_t i, std::size_t j){ return 1. + i + j; }, 3, 3), m33_135));
 
   EXPECT_TRUE(is_near(apply_coefficientwise<3,3>([]{ return 5.; }), M33::Constant(5)));
-  EXPECT_TRUE(is_near(apply_coefficientwise<3,dynamic_extent>([]{ return 5.; }, 3), M33::Constant(5)));
-  EXPECT_TRUE(is_near(apply_coefficientwise<dynamic_extent,3>([]{ return 5.; }, 3), M33::Constant(5)));
-  EXPECT_TRUE(is_near(apply_coefficientwise<dynamic_extent,dynamic_extent>([]{ return 5.; }, 3, 3), M33::Constant(5)));
+  EXPECT_TRUE(is_near(apply_coefficientwise<3,dynamic_size>([]{ return 5.; }, 3), M33::Constant(5)));
+  EXPECT_TRUE(is_near(apply_coefficientwise<dynamic_size,3>([]{ return 5.; }, 3), M33::Constant(5)));
+  EXPECT_TRUE(is_near(apply_coefficientwise<dynamic_size,dynamic_size>([]{ return 5.; }, 3, 3), M33::Constant(5)));
   EXPECT_TRUE(is_near(apply_coefficientwise([]{ return 5.; }, 3, 3), M33::Constant(5)));
 }

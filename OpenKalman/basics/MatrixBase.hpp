@@ -147,41 +147,6 @@ namespace OpenKalman::internal
 
 
     /**
-     * \return A matrix, of the same size and shape, containing only zero coefficients.
-     */
-#ifdef __cpp_concepts
-    template<std::convertible_to<std::size_t> ... Args>
-#else
-    template<typename D = Derived, typename...Args, std::enable_if_t<
-      (std::is_convertible_v<Args, std::size_t> and ...), int> = 0>
-#endif
-    static decltype(auto) zero(const Args...args)
-    {
-      static_assert(sizeof...(Args) == (dynamic_rows<Derived> ? 1 : 0) +
-        ((not square_matrix<Derived>) and dynamic_columns<Derived> ? 1 : 0));
-
-      return MatrixTraits<Derived>::zero(static_cast<std::size_t>(args)...);
-    }
-
-
-    /**
-     * \return A square identity matrix with the same number of rows.
-     */
-#ifdef __cpp_concepts
-    template<std::convertible_to<std::size_t> ... Args>
-#else
-    template<typename D = Derived, typename...Args, std::enable_if_t<
-      (std::is_convertible_v<Args, std::size_t> and ...), int> = 0>
-#endif
-    static decltype(auto) identity(const Args...args)
-    {
-      static_assert(sizeof...(Args) == (dynamic_shape<Derived> ? 1 : 0));
-
-      return MatrixTraits<Derived>::identity(static_cast<std::size_t>(args)...);
-    }
-
-
-    /**
      * Access the coefficient at row i and column j
      * \param i The row.
      * \param j The column.

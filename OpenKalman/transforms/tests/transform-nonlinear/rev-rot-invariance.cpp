@@ -28,8 +28,8 @@ inline namespace
   const GaussianDistribution input2_tri {Mean<C2>(std::cos(-0.9999 * pi), std::sin(-0.9999 * pi)), make_covariance<C2, TriangleType::lower>(0.25, 0, 0, 0.25)};
   const GaussianDistribution input2_rot {Mean<C2>(std::cos(0.0001 * pi), std::sin(0.0001 * pi)), Covariance<C2>(0.25, 0, 0, 0.25)};
   const GaussianDistribution input2_rot_tri {Mean<C2>(std::cos(0.0001 * pi), std::sin(0.0001 * pi)), make_covariance<C2, TriangleType::lower>(0.25, 0, 0, 0.25)};
-  const GaussianDistribution noise {Mean<P2>::zero(), Covariance<P2>(0.0625, 0, 0, pi * pi / 81)};
-  const GaussianDistribution noise_tri {Mean<P2>::zero(), make_covariance<C2, TriangleType::lower>(0.0625, 0, 0, pi * pi / 81)};
+  const GaussianDistribution noise {make_zero_matrix_like<Mean<P2>>(), Covariance<P2>(0.0625, 0, 0, pi * pi / 81)};
+  const GaussianDistribution noise_tri {make_zero_matrix_like<Mean<P2>>(), make_covariance<C2, TriangleType::lower>(0.0625, 0, 0, pi * pi / 81)};
 }
 
 

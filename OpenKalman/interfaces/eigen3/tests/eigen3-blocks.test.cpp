@@ -32,16 +32,16 @@ namespace
   using M44 = eigen_matrix_t<double, 4, 4>;
   using M55 = eigen_matrix_t<double, 5, 5>;
 
-  using M00 = eigen_matrix_t<double, dynamic_extent, dynamic_extent>;
-  using M10 = eigen_matrix_t<double, 1, dynamic_extent>;
-  using M01 = eigen_matrix_t<double, dynamic_extent, 1>;
-  using M20 = eigen_matrix_t<double, 2, dynamic_extent>;
-  using M02 = eigen_matrix_t<double, dynamic_extent, 2>;
-  using M30 = eigen_matrix_t<double, 3, dynamic_extent>;
-  using M03 = eigen_matrix_t<double, dynamic_extent, 3>;
-  using M04 = eigen_matrix_t<double, dynamic_extent, 4>;
-  using M50 = eigen_matrix_t<double, 5, dynamic_extent>;
-  using M05 = eigen_matrix_t<double, dynamic_extent, 5>;
+  using M00 = eigen_matrix_t<double, dynamic_size, dynamic_size>;
+  using M10 = eigen_matrix_t<double, 1, dynamic_size>;
+  using M01 = eigen_matrix_t<double, dynamic_size, 1>;
+  using M20 = eigen_matrix_t<double, 2, dynamic_size>;
+  using M02 = eigen_matrix_t<double, dynamic_size, 2>;
+  using M30 = eigen_matrix_t<double, 3, dynamic_size>;
+  using M03 = eigen_matrix_t<double, dynamic_size, 3>;
+  using M04 = eigen_matrix_t<double, dynamic_size, 4>;
+  using M50 = eigen_matrix_t<double, 5, dynamic_size>;
+  using M05 = eigen_matrix_t<double, dynamic_size, 5>;
 
   using cdouble = std::complex<double>;
 
@@ -56,9 +56,9 @@ namespace
 
 TEST(eigen3, get_and_set_elements)
 {
-  auto m21 = make_native_matrix<M21>(1, 2);
-  auto m12 = make_native_matrix<M12>(1, 2);
-  auto m22 = make_native_matrix<M22>(1, 2, 3, 4);
+  auto m21 = make_dense_writable_matrix_from<M21>(1, 2);
+  auto m12 = make_dense_writable_matrix_from<M12>(1, 2);
+  auto m22 = make_dense_writable_matrix_from<M22>(1, 2, 3, 4);
 
   M22 el22 {m22}; // 1, 2, 3, 4
   M20 el20_2 {m22};
@@ -115,9 +115,9 @@ TEST(eigen3, get_and_set_elements)
 
 TEST(eigen3, concatenate_vertical)
 {
-  auto m22 = make_native_matrix<M22>(1, 2, 3, 4);
-  auto m12_56 = make_native_matrix<M12>(5, 6);
-  auto m32 = make_native_matrix<M32>(1, 2, 3, 4, 5, 6);
+  auto m22 = make_dense_writable_matrix_from<M22>(1, 2, 3, 4);
+  auto m12_56 = make_dense_writable_matrix_from<M12>(5, 6);
+  auto m32 = make_dense_writable_matrix_from<M32>(1, 2, 3, 4, 5, 6);
 
   EXPECT_TRUE(is_near(concatenate_vertical(m22, m12_56), m32));
   EXPECT_TRUE(is_near(concatenate_vertical(M20 {m22}, m12_56), m32));
@@ -137,9 +137,9 @@ TEST(eigen3, concatenate_vertical)
 
 TEST(eigen3, concatenate_horizontal)
 {
-  auto m22 = make_native_matrix<M22>(1, 2, 4, 5);
-  auto m21_56 = make_native_matrix<M21>(3, 6);
-  auto m23 = make_native_matrix<M23>(1, 2, 3, 4, 5, 6);
+  auto m22 = make_dense_writable_matrix_from<M22>(1, 2, 4, 5);
+  auto m21_56 = make_dense_writable_matrix_from<M21>(3, 6);
+  auto m23 = make_dense_writable_matrix_from<M23>(1, 2, 3, 4, 5, 6);
 
   EXPECT_TRUE(is_near(concatenate_horizontal(m22, m21_56), m23));
   EXPECT_TRUE(is_near(concatenate_horizontal(M20 {m22}, m21_56), m23));
@@ -159,7 +159,7 @@ TEST(eigen3, concatenate_horizontal)
 
 TEST(eigen3, concatenate_diagonal)
 {
-  auto m22 = make_native_matrix<M22>(1, 2, 3, 4);
+  auto m22 = make_dense_writable_matrix_from<M22>(1, 2, 3, 4);
   auto m22_5678 = make_eigen_matrix<double, 2, 2>(5, 6, 7, 8);
   auto m44_diag = make_eigen_matrix<double, 4, 4>(1, 2, 0, 0, 3, 4, 0, 0, 0, 0, 5, 6, 0, 0, 7, 8);
 
@@ -181,10 +181,10 @@ TEST(eigen3, concatenate_diagonal)
 
 TEST(eigen3, split_vertical)
 {
-  EXPECT_TRUE(is_near(split_vertical(make_native_matrix<M22>(1, 0, 0, 2)), std::tuple {}));
-  EXPECT_TRUE(is_near(split_vertical(M20 {make_native_matrix<M22>(1, 0, 0, 2)}), std::tuple {}));
-  EXPECT_TRUE(is_near(split_vertical(M02 {make_native_matrix<M22>(1, 0, 0, 2)}), std::tuple {}));
-  EXPECT_TRUE(is_near(split_vertical(M00 {make_native_matrix<M22>(1, 0, 0, 2)}), std::tuple {}));
+  EXPECT_TRUE(is_near(split_vertical(make_dense_writable_matrix_from<M22>(1, 0, 0, 2)), std::tuple {}));
+  EXPECT_TRUE(is_near(split_vertical(M20 {make_dense_writable_matrix_from<M22>(1, 0, 0, 2)}), std::tuple {}));
+  EXPECT_TRUE(is_near(split_vertical(M02 {make_dense_writable_matrix_from<M22>(1, 0, 0, 2)}), std::tuple {}));
+  EXPECT_TRUE(is_near(split_vertical(M00 {make_dense_writable_matrix_from<M22>(1, 0, 0, 2)}), std::tuple {}));
 
   auto x1 = make_eigen_matrix<double, 5, 3>(
     1, 0, 0,
@@ -210,15 +210,15 @@ TEST(eigen3, split_vertical)
 
   EXPECT_TRUE(is_near(split_vertical<3, 2>(x1), tup_m33_m23));
   EXPECT_TRUE(is_near(split_vertical<3, 2>(eigen_matrix_t<double, 5, 3> {x1}), tup_m33_m23));
-  EXPECT_TRUE(is_near(split_vertical<3, 2>(eigen_matrix_t<double, 5, dynamic_extent> {x1}), tup_m33_m23));
-  EXPECT_TRUE(is_near(split_vertical<3, 2>(eigen_matrix_t<double, dynamic_extent, 3> {x1}), tup_m33_m23));
-  EXPECT_TRUE(is_near(split_vertical<3, 2>(eigen_matrix_t<double, dynamic_extent, dynamic_extent> {x1}), tup_m33_m23));
+  EXPECT_TRUE(is_near(split_vertical<3, 2>(eigen_matrix_t<double, 5, dynamic_size> {x1}), tup_m33_m23));
+  EXPECT_TRUE(is_near(split_vertical<3, 2>(eigen_matrix_t<double, dynamic_size, 3> {x1}), tup_m33_m23));
+  EXPECT_TRUE(is_near(split_vertical<3, 2>(eigen_matrix_t<double, dynamic_size, dynamic_size> {x1}), tup_m33_m23));
 
   EXPECT_TRUE(is_near(split_vertical<2, 2>(x1), tup_m23_m23));
   EXPECT_TRUE(is_near(split_vertical<2, 2>(eigen_matrix_t<double, 5, 3> {x1}), tup_m23_m23));
-  EXPECT_TRUE(is_near(split_vertical<2, 2>(eigen_matrix_t<double, 5, dynamic_extent> {x1}), tup_m23_m23));
-  EXPECT_TRUE(is_near(split_vertical<2, 2>(eigen_matrix_t<double, dynamic_extent, 3> {x1}), tup_m23_m23));
-  EXPECT_TRUE(is_near(split_vertical<2, 2>(eigen_matrix_t<double, dynamic_extent, dynamic_extent> {x1}), tup_m23_m23));
+  EXPECT_TRUE(is_near(split_vertical<2, 2>(eigen_matrix_t<double, 5, dynamic_size> {x1}), tup_m23_m23));
+  EXPECT_TRUE(is_near(split_vertical<2, 2>(eigen_matrix_t<double, dynamic_size, 3> {x1}), tup_m23_m23));
+  EXPECT_TRUE(is_near(split_vertical<2, 2>(eigen_matrix_t<double, dynamic_size, dynamic_size> {x1}), tup_m23_m23));
 }
 
 
@@ -251,9 +251,9 @@ TEST(eigen3, split_horizontal)
 
   EXPECT_TRUE(is_near(split_horizontal<3, 2>(b1), tup_m33_m32));
   EXPECT_TRUE(is_near(split_horizontal<3, 2>(eigen_matrix_t<double, 3, 5> {b1}), tup_m33_m32));
-  EXPECT_TRUE(is_near(split_horizontal<3, 2>(eigen_matrix_t<double, 3, dynamic_extent> {b1}), tup_m33_m32));
-  EXPECT_TRUE(is_near(split_horizontal<3, 2>(eigen_matrix_t<double, dynamic_extent, 5> {b1}), tup_m33_m32));
-  EXPECT_TRUE(is_near(split_horizontal<3, 2>(eigen_matrix_t<double, dynamic_extent, dynamic_extent> {b1}), tup_m33_m32));
+  EXPECT_TRUE(is_near(split_horizontal<3, 2>(eigen_matrix_t<double, 3, dynamic_size> {b1}), tup_m33_m32));
+  EXPECT_TRUE(is_near(split_horizontal<3, 2>(eigen_matrix_t<double, dynamic_size, 5> {b1}), tup_m33_m32));
+  EXPECT_TRUE(is_near(split_horizontal<3, 2>(eigen_matrix_t<double, dynamic_size, dynamic_size> {b1}), tup_m33_m32));
 
   auto tup_m32_m32 = std::tuple {make_eigen_matrix<double, 3, 2>(
     1, 0,
@@ -265,9 +265,9 @@ TEST(eigen3, split_horizontal)
 
   EXPECT_TRUE(is_near(split_horizontal<2, 2>(b1), tup_m32_m32));
   EXPECT_TRUE(is_near(split_horizontal<2, 2>(eigen_matrix_t<double, 3, 5>(b1)), tup_m32_m32));
-  EXPECT_TRUE(is_near(split_horizontal<2, 2>(eigen_matrix_t<double, 3, dynamic_extent>(b1)), tup_m32_m32));
-  EXPECT_TRUE(is_near(split_horizontal<2, 2>(eigen_matrix_t<double, dynamic_extent, 5>(b1)), tup_m32_m32));
-  EXPECT_TRUE(is_near(split_horizontal<2, 2>(eigen_matrix_t<double, dynamic_extent, dynamic_extent>(b1)), tup_m32_m32));
+  EXPECT_TRUE(is_near(split_horizontal<2, 2>(eigen_matrix_t<double, 3, dynamic_size>(b1)), tup_m32_m32));
+  EXPECT_TRUE(is_near(split_horizontal<2, 2>(eigen_matrix_t<double, dynamic_size, 5>(b1)), tup_m32_m32));
+  EXPECT_TRUE(is_near(split_horizontal<2, 2>(eigen_matrix_t<double, dynamic_size, dynamic_size>(b1)), tup_m32_m32));
 }
 
 

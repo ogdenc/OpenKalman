@@ -79,7 +79,7 @@ namespace OpenKalman
 
 
       /*
-       * \brief Add second-order moment terms, based on Hessian matrices.
+       * \brief Add second-order moment terms, based on Hessian matrices (a tensor of order (1,2)).
        * \tparam Hessian An array of Hessian matrices. Must be accessible by bracket index, as in hessian[i].
        * Each matrix is a regular matrix type.
        * \tparam Dist Input or noise distribution.
@@ -89,7 +89,7 @@ namespace OpenKalman
       static auto second_order_term(const Hessian& hessian, const Dist& x)
       {
         constexpr auto output_dim = std::tuple_size_v<Hessian>;
-        static_assert(output_dim == OutputCoeffs::dimensions);
+        static_assert(output_dim == OutputCoeffs::dimension);
         static_assert(order >= 2);
 
         // Convert input distribution type to output distribution types, and initialize mean and covariance:

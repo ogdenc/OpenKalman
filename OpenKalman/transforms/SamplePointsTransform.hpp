@@ -52,7 +52,7 @@ namespace OpenKalman
     template<typename T, std::size_t...ints>
     static constexpr auto count_dim_impl(std::index_sequence<ints...>)
     {
-      return (0 + ... + DistributionTraits<std::tuple_element_t<1 + ints, T>>::dimensions);
+      return (0 + ... + index_dimension_of_v<std::tuple_element_t<1 + ints, T>, 0>);
     }
 
 
@@ -60,7 +60,7 @@ namespace OpenKalman
     template<typename In, typename...Ts>
     static constexpr auto count_dim()
     {
-      return (DistributionTraits<In>::dimensions + ... +
+      return (index_dimension_of_v<In, 0> + ... +
         count_dim_impl<Ts>(std::make_index_sequence<std::tuple_size_v<Ts> - 1>()));
     }
 
@@ -89,7 +89,7 @@ namespace OpenKalman
     template<typename G, typename Dists, typename Points, std::size_t...ints>
     static constexpr auto y_means_impl(const G& g, const Dists& dists, const Points& points, std::index_sequence<ints...>)
     {
-      constexpr auto count = column_extent_of_v<decltype(std::get<0>(points))>;
+      constexpr auto count = column_dimension_of_v<decltype(std::get<0>(points))>;
       return apply_columnwise<count>([&](std::size_t i) {
         return g((column(std::get<ints>(points), i) + mean_of(std::get<ints>(dists)))...);
       });

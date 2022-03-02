@@ -26,20 +26,22 @@ namespace OpenKalman::Eigen3
 
   // ZeroMatrix is declared in eigen3-forward-declarations.hpp.
 
-  template<typename Scalar, std::size_t rows_, std::size_t columns>
-  struct ZeroMatrix : Eigen3::internal::Eigen3Base<ZeroMatrix<Scalar, rows_, columns>>,
-    Eigen3::internal::EigenDynamicBase<Scalar, rows_, columns>
+#ifdef __cpp_concepts
+  template<indexible PatternMatrix>
+#else
+  template<typename PatternMatrix>
+#endif
+  struct ZeroMatrix : Eigen3::internal::EigenDynamicBase<ZeroMatrix<PatternMatrix>, PatternMatrix>
   {
 
   private:
 
-    using Base = Eigen3::internal::EigenDynamicBase<Scalar, rows_, columns>;
+    using nested_scalar = scalar_type_of_t<PatternMatrix>;
+    static constexpr auto nested_rows = row_dimension_of_v<PatternMatrix>;
+    static constexpr auto nested_cols = column_dimension_of_v<PatternMatrix>;
+    using Base = Eigen3::internal::EigenDynamicBase<ZeroMatrix, PatternMatrix>;
 
   public:
-
-    using Base::rows;
-
-    using Base::cols;
 
     /**
      * \brief Construct a ZeroMatrix.
@@ -50,10 +52,10 @@ namespace OpenKalman::Eigen3
      */
 #ifdef __cpp_concepts
     template<std::convertible_to<std::size_t> ... Args> requires
-      (sizeof...(Args) == (rows_ == dynamic_extent ? 1 : 0) + (columns == dynamic_extent ? 1 : 0))
+      (sizeof...(Args) == (nested_rows == dynamic_size ? 1 : 0) + (nested_cols == dynamic_size ? 1 : 0))
 #else
     template<typename...Args, std::enable_if_t<(std::is_convertible_v<Args, std::size_t> and ...) and
-      (sizeof...(Args) == (rows_ == dynamic_extent ? 1 : 0) + (columns == dynamic_extent ? 1 : 0)), int> = 0>
+      (sizeof...(Args) == (nested_rows == dynamic_size ? 1 : 0) + (nested_cols == dynamic_size ? 1 : 0)), int> = 0>
 #endif
     ZeroMatrix(const Args...args) : Base {static_cast<std::size_t>(args)...} {}
 
@@ -65,12 +67,12 @@ namespace OpenKalman::Eigen3
      */
 #ifdef __cpp_concepts
     template<zero_matrix M> requires (not std::same_as<M, ZeroMatrix>) and
-      (dynamic_rows<M> or rows_ == dynamic_extent or row_extent_of_v<M> == rows_) and
-      (dynamic_columns<M> or columns == dynamic_extent or column_extent_of_v<M> == columns)
+      (dynamic_rows<M> or nested_rows == dynamic_size or row_dimension_of_v<M> == nested_rows) and
+      (dynamic_columns<M> or nested_cols == dynamic_size or column_dimension_of_v<M> == nested_cols)
 #else
     template<typename M, std::enable_if_t<zero_matrix<M> and (not std::is_same_v<M, ZeroMatrix>) and
-      (dynamic_rows<M> or rows_ == dynamic_extent or row_extent_of<M>::value == rows_) and
-      (dynamic_columns<M> or columns == dynamic_extent or column_extent_of<M>::value == columns), int> = 0>
+      (dynamic_rows<M> or nested_rows == dynamic_size or row_dimension_of<M>::value == nested_rows) and
+      (dynamic_columns<M> or nested_cols == dynamic_size or column_dimension_of<M>::value == nested_cols), int> = 0>
 #endif
     ZeroMatrix(M&& m) : Base {std::forward<M>(m)} {}
 
@@ -81,12 +83,12 @@ namespace OpenKalman::Eigen3
      */
 #ifdef __cpp_concepts
     template<zero_matrix M> requires (not std::same_as<M, ZeroMatrix>) and
-      (dynamic_rows<M> or rows_ == dynamic_extent or row_extent_of_v<M> == rows_) and
-      (dynamic_columns<M> or columns == dynamic_extent or column_extent_of_v<M> == columns)
+      (dynamic_rows<M> or nested_rows == dynamic_size or row_dimension_of_v<M> == nested_rows) and
+      (dynamic_columns<M> or nested_cols == dynamic_size or column_dimension_of_v<M> == nested_cols)
 #else
     template<typename M, std::enable_if_t<zero_matrix<M> and (not std::is_same_v<M, ZeroMatrix>) and
-      (dynamic_rows<M> or rows_ == dynamic_extent or row_extent_of<M>::value == rows_) and
-      (dynamic_columns<M> or columns == dynamic_extent or column_extent_of<M>::value == columns), int> = 0>
+      (dynamic_rows<M> or nested_rows == dynamic_size or row_dimension_of<M>::value == nested_rows) and
+      (dynamic_columns<M> or nested_cols == dynamic_size or column_dimension_of<M>::value == nested_cols), int> = 0>
 #endif
     auto& operator=(M&& m)
     {
@@ -99,12 +101,12 @@ namespace OpenKalman::Eigen3
      * \brief Element accessor.
      * \param r The row.
      * \param c The column.
-     * \return The element at row r and column c (always zero of type Scalar).
+     * \return The element at row r and column c (always zero of type nested_scalar).
      */
-    constexpr Scalar operator()(std::size_t r, std::size_t c) const
+    constexpr nested_scalar operator()(std::size_t r, std::size_t c) const
     {
-      assert(Eigen::Index(r) < rows());
-      assert(Eigen::Index(c) < cols());
+      assert(Eigen::Index(r) < runtime_dimension_of<0>(*this));
+      assert(Eigen::Index(c) < runtime_dimension_of<1>(*this));
       return 0;
     }
 
@@ -112,18 +114,19 @@ namespace OpenKalman::Eigen3
     /**
      * \brief Element accessor for a row or column vector.
      * \param i The row or column.
-     * \return The element at row or column i (always zero of type Scalar).
+     * \return The element at row or column i (always zero of type nested_scalar).
      */
 #ifdef __cpp_concepts
-    constexpr Scalar operator[](std::size_t i) const
-    requires (rows_ == 1) or (columns == 1)
+    constexpr nested_scalar
+    operator[](std::size_t i) const requires (nested_rows == 1) or (nested_cols == 1)
 #else
-    template<std::size_t r = rows_, std::enable_if_t<(r == 1) or (columns == 1), int> = 0>
-      constexpr Scalar operator[](std::size_t i) const
+    template<std::size_t r = nested_rows, std::enable_if_t<(r == 1) or (nested_cols == 1), int> = 0>
+    constexpr nested_scalar
+    operator[](std::size_t i) const
 #endif
     {
-      assert(rows_ == 1 or Eigen::Index(i) < rows());
-      assert(columns == 1 or Eigen::Index(i) < cols());
+      if constexpr (nested_rows != 1) assert(Eigen::Index(i) < runtime_dimension_of<0>(*this));
+      if constexpr (nested_cols != 1) assert(Eigen::Index(i) < runtime_dimension_of<1>(*this));
       return 0;
     }
 
@@ -131,35 +134,35 @@ namespace OpenKalman::Eigen3
     /**
      * \brief Element accessor for a row or column vector.
      * \param i The row or column.
-     * \return The element at row or column i (always zero of type Scalar).
+     * \return The element at row or column i (always zero of type nested_scalar).
      */
 #ifdef __cpp_concepts
-    constexpr Scalar operator()(std::size_t i) const
-    requires (rows_ == 1) or (columns == 1)
+    constexpr nested_scalar
+    operator()(std::size_t i) const requires (nested_rows == 1) or (nested_cols == 1)
 #else
-    template<std::size_t r = rows_, std::enable_if_t<(r == 1) or (columns == 1), int> = 0>
-      constexpr Scalar operator()(std::size_t i) const
+    template<std::size_t r = nested_rows, std::enable_if_t<(r == 1) or (nested_cols == 1), int> = 0>
+    constexpr nested_scalar
+    operator()(std::size_t i) const
 #endif
     {
-      assert(rows_ == 1 or Eigen::Index(i) < rows());
-      assert(columns == 1 or Eigen::Index(i) < cols());
+      if constexpr (nested_rows != 1) assert(Eigen::Index(i) < runtime_dimension_of<0>(*this));
+      if constexpr (nested_cols != 1) assert(Eigen::Index(i) < runtime_dimension_of<1>(*this));
       return 0;
     }
 
   };
 
 
-  // ------------------------------ //
-  //        Deduction guide         //
-  // ------------------------------ //
+  // ------------------------------- //
+  //        Deduction guides         //
+  // ------------------------------- //
 
 #ifdef __cpp_concepts
   template<zero_matrix Arg>
 #else
   template<typename Arg, std::enable_if_t<zero_matrix<Arg>, int> = 0>
 #endif
-  ZeroMatrix(Arg&&)
-    -> ZeroMatrix<scalar_type_of_t<Arg>, row_extent_of_v<Arg>, column_extent_of_v<Arg>>;
+  ZeroMatrix(Arg&&) -> ZeroMatrix<std::conditional_t<eigen_zero_expr<Arg>, pattern_matrix_of_t<Arg>, std::decay_t<Arg>>>;
 
 
 } // OpenKalman::Eigen3

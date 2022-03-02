@@ -27,20 +27,20 @@ namespace
 
   using M21 = eigen_matrix_t<double, 2, 1>;
   using M22 = eigen_matrix_t<double, 2, 2>;
-  using M20 = eigen_matrix_t<double, 2, dynamic_extent>;
-  using M02 = eigen_matrix_t<double, dynamic_extent, 2>;
-  using M01 = eigen_matrix_t<double, dynamic_extent, 1>;
-  using M00 = eigen_matrix_t<double, dynamic_extent, dynamic_extent>;
+  using M20 = eigen_matrix_t<double, 2, dynamic_size>;
+  using M02 = eigen_matrix_t<double, dynamic_size, 2>;
+  using M01 = eigen_matrix_t<double, dynamic_size, 1>;
+  using M00 = eigen_matrix_t<double, dynamic_size, dynamic_size>;
 
   using C21 = eigen_matrix_t<cdouble, 2, 1>;
   using C22 = eigen_matrix_t<cdouble, 2, 2>;
-  using C20 = eigen_matrix_t<cdouble, 2, dynamic_extent>;
-  using C02 = eigen_matrix_t<cdouble, dynamic_extent, 2>;
-  using C01 = eigen_matrix_t<cdouble, dynamic_extent, 1>;
-  using C00 = eigen_matrix_t<cdouble, dynamic_extent, dynamic_extent>;
+  using C20 = eigen_matrix_t<cdouble, 2, dynamic_size>;
+  using C02 = eigen_matrix_t<cdouble, dynamic_size, 2>;
+  using C01 = eigen_matrix_t<cdouble, dynamic_size, 1>;
+  using C00 = eigen_matrix_t<cdouble, dynamic_size, dynamic_size>;
 
   using D2 = DiagonalMatrix<eigen_matrix_t<double, 2, 1>>;
-  using D0 = DiagonalMatrix<eigen_matrix_t<double, dynamic_extent, 1>>;
+  using D0 = DiagonalMatrix<eigen_matrix_t<double, dynamic_size, 1>>;
 
   using L22 = SelfAdjointMatrix<M22, TriangleType::lower>;
   using L20 = SelfAdjointMatrix<M20, TriangleType::lower>;
@@ -69,8 +69,8 @@ namespace
   template<typename...Args>
   inline auto mat22(Args...args) { return MatrixTraits<M22>::make(args...); }
 
-  auto m_93310 = make_native_matrix<M22>(9, 3, 3, 10);
-  auto m_4225 = make_native_matrix<M22>(4, 2, 2, 5);
+  auto m_93310 = make_dense_writable_matrix_from<M22>(9, 3, 3, 10);
+  auto m_4225 = make_dense_writable_matrix_from<M22>(4, 2, 2, 5);
 
   template<typename T> using D = DiagonalMatrix<T>;
   template<typename T> using Tl = TriangularMatrix<T, TriangleType::lower>;
@@ -93,14 +93,14 @@ TEST(eigen3, SelfAdjointMatrix_static_checks)
 
   static_assert(not OpenKalman::internal::has_const<SAl<M22>>::value);
   static_assert(OpenKalman::internal::has_const<SAl<const M22>>::value);
-  static_assert(OpenKalman::internal::has_same_matrix_shape<SAl<M22>, ZeroMatrix<double, 2, 2>>::value);
-  static_assert(not OpenKalman::internal::has_same_matrix_shape<SAl<M22>, ZeroMatrix<double, 3, 3>>::value);
+  static_assert(OpenKalman::internal::has_same_matrix_shape<SAl<M22>, ZeroMatrix<eigen_matrix_t<double, 2, 2>>>::value);
+  static_assert(not OpenKalman::internal::has_same_matrix_shape<SAl<M22>, ZeroMatrix<eigen_matrix_t<double, 3, 3>>>::value);
 
-  static_assert(modifiable<SAl<M22>, ConstantMatrix<double, 7, 2, 2>>);
-  static_assert(modifiable<SAu<M22>, ConstantMatrix<double, 7, 2, 2>>);
+  static_assert(modifiable<SAl<M22>, ConstantMatrix<eigen_matrix_t<double, 2, 2>, 7>>);
+  static_assert(modifiable<SAu<M22>, ConstantMatrix<eigen_matrix_t<double, 2, 2>, 7>>);
   
-  static_assert(modifiable<SAl<M22>, ZeroMatrix<double, 2, 2>>);
-  static_assert(modifiable<SAu<M22>, ZeroMatrix<double, 2, 2>>);
+  static_assert(modifiable<SAl<M22>, ZeroMatrix<eigen_matrix_t<double, 2, 2>>>);
+  static_assert(modifiable<SAu<M22>, ZeroMatrix<eigen_matrix_t<double, 2, 2>>>);
   static_assert(modifiable<SAl<M22>, IdentityMatrix<M22>>);
   static_assert(modifiable<SAu<M22>, IdentityMatrix<M22>>);
   static_assert(modifiable<SAl<M22>, D<M21>>);
@@ -173,15 +173,15 @@ TEST(eigen3, SelfAdjointMatrix_class)
   EXPECT_TRUE(is_near(L22(DiagonalMatrix {3., 4}), mat22(3, 0, 0, 4)));
   EXPECT_TRUE(is_near(U22(DiagonalMatrix {3., 4}), mat22(3, 0, 0, 4)));
   //
-  EXPECT_TRUE(is_near(L22(MatrixTraits<M22>::zero()), M22::Zero()));
-  EXPECT_TRUE(is_near(U22(MatrixTraits<M22>::zero()), M22::Zero()));
+  EXPECT_TRUE(is_near(L22(make_zero_matrix_like<M22>()), M22::Zero()));
+  EXPECT_TRUE(is_near(U22(make_zero_matrix_like<M22>()), M22::Zero()));
   //
   EXPECT_EQ(l2.rows(), 2);
   EXPECT_EQ(l2.cols(), 2);
-  EXPECT_TRUE(is_near(L22::zero(), M22::Zero()));
-  EXPECT_TRUE(is_near(U22::zero(), M22::Zero()));
-  EXPECT_TRUE(is_near(L22::identity(), M22::Identity()));
-  EXPECT_TRUE(is_near(U22::identity(), M22::Identity()));
+  EXPECT_TRUE(is_near(make_zero_matrix_like<L22>(), M22::Zero()));
+  EXPECT_TRUE(is_near(make_zero_matrix_like<U22>(), M22::Zero()));
+  EXPECT_TRUE(is_near(make_identity_matrix_like<L22>(), M22::Identity()));
+  EXPECT_TRUE(is_near(make_identity_matrix_like<U22>(), M22::Identity()));
   //
   L22 l3(l2); // copy constructor
   EXPECT_TRUE(is_near(l3, m_93310));
@@ -315,14 +315,14 @@ TEST(eigen3, SelfAdjointMatrix_class)
   d9c = DL2 {6., 6};
   EXPECT_TRUE(is_near(d9c, mat22(6, 0, 0, 6)));
   //
-  l3 = MatrixTraits<M22>::zero();
-  EXPECT_TRUE(is_near(l3, MatrixTraits<M22>::zero()));
-  u3 = MatrixTraits<M22>::zero();
-  EXPECT_TRUE(is_near(u3, MatrixTraits<M22>::zero()));
-  l3 = MatrixTraits<M22>::identity();
-  EXPECT_TRUE(is_near(l3, MatrixTraits<M22>::identity()));
-  u3 = MatrixTraits<M22>::identity();
-  EXPECT_TRUE(is_near(u3, MatrixTraits<M22>::identity()));
+  l3 = make_zero_matrix_like<M22>();
+  EXPECT_TRUE(is_near(l3, make_zero_matrix_like<M22>()));
+  u3 = make_zero_matrix_like<M22>();
+  EXPECT_TRUE(is_near(u3, make_zero_matrix_like<M22>()));
+  l3 = make_identity_matrix_like<M22>();
+  EXPECT_TRUE(is_near(l3, make_identity_matrix_like<M22>()));
+  u3 = make_identity_matrix_like<M22>();
+  EXPECT_TRUE(is_near(u3, make_identity_matrix_like<M22>()));
   //
   auto m1 = mat22(9, 3, 3, 10);
   auto sa1 = m1.selfadjointView<Eigen::Lower>();
@@ -544,12 +544,12 @@ TEST(eigen3, SelfAdjointMatrix_subscripts)
 
 TEST(eigen3, SelfAdjointMatrix_make)
 {
-  static_assert(zero_matrix<decltype(make_EigenSelfAdjointMatrix<TriangleType::upper>(MatrixTraits<M22>::zero()))>);
-  static_assert(zero_matrix<decltype(make_EigenSelfAdjointMatrix<TriangleType::lower>(MatrixTraits<M22>::zero()))>);
-  static_assert(zero_matrix<decltype(make_EigenSelfAdjointMatrix(MatrixTraits<M22>::zero()))>);
-  static_assert(upper_self_adjoint_matrix<decltype(make_EigenSelfAdjointMatrix<TriangleType::upper>(make_native_matrix<M22>(9, 3, 3, 10)))>);
-  static_assert(lower_self_adjoint_matrix<decltype(make_EigenSelfAdjointMatrix<TriangleType::lower>(make_native_matrix<M22>(9, 3, 3, 10)))>);
-  static_assert(lower_self_adjoint_matrix<decltype(make_EigenSelfAdjointMatrix(make_native_matrix<M22>(9, 3, 3, 10)))>);
+  static_assert(zero_matrix<decltype(make_EigenSelfAdjointMatrix<TriangleType::upper>(make_zero_matrix_like<M22>()))>);
+  static_assert(zero_matrix<decltype(make_EigenSelfAdjointMatrix<TriangleType::lower>(make_zero_matrix_like<M22>()))>);
+  static_assert(zero_matrix<decltype(make_EigenSelfAdjointMatrix(make_zero_matrix_like<M22>()))>);
+  static_assert(upper_self_adjoint_matrix<decltype(make_EigenSelfAdjointMatrix<TriangleType::upper>(make_dense_writable_matrix_from<M22>(9, 3, 3, 10)))>);
+  static_assert(lower_self_adjoint_matrix<decltype(make_EigenSelfAdjointMatrix<TriangleType::lower>(make_dense_writable_matrix_from<M22>(9, 3, 3, 10)))>);
+  static_assert(lower_self_adjoint_matrix<decltype(make_EigenSelfAdjointMatrix(make_dense_writable_matrix_from<M22>(9, 3, 3, 10)))>);
   static_assert(diagonal_matrix<decltype(make_EigenSelfAdjointMatrix<TriangleType::upper>(DiagonalMatrix {3., 4}))>);
   static_assert(diagonal_matrix<decltype(make_EigenSelfAdjointMatrix<TriangleType::lower>(DiagonalMatrix {3., 4}))>);
   static_assert(diagonal_matrix<decltype(make_EigenSelfAdjointMatrix(DiagonalMatrix {3., 4}))>);
@@ -573,30 +573,30 @@ TEST(eigen3, SelfAdjointMatrix_traits)
   EXPECT_TRUE(is_near(MatrixTraits<Dl>::make(9, 3, 3, 10), m_93310));
   EXPECT_TRUE(is_near(MatrixTraits<Du>::make(9, 3, 3, 10), m_93310));
   //
-  EXPECT_TRUE(is_near(MatrixTraits<Dl>::zero(), M22::Zero()));
-  EXPECT_TRUE(is_near(MatrixTraits<Du>::zero(), M22::Zero()));
+  EXPECT_TRUE(is_near(make_zero_matrix_like<Dl>(), M22::Zero()));
+  EXPECT_TRUE(is_near(make_zero_matrix_like<Du>(), M22::Zero()));
   //
-  EXPECT_TRUE(is_near(MatrixTraits<Dl>::identity(), M22::Identity()));
-  EXPECT_TRUE(is_near(MatrixTraits<Du>::identity(), M22::Identity()));
+  EXPECT_TRUE(is_near(make_identity_matrix_like<Dl>(), M22::Identity()));
+  EXPECT_TRUE(is_near(make_identity_matrix_like<Du>(), M22::Identity()));
 
   static_assert(lower_self_adjoint_matrix<L22>);
   static_assert(upper_self_adjoint_matrix<U22>);
   static_assert(diagonal_matrix<DM22>);
   static_assert(diagonal_matrix<DD2>);
   static_assert(diagonal_matrix<DL2>);
-  static_assert(zero_matrix<decltype(SelfAdjointMatrix<decltype(MatrixTraits<M22>::zero()), TriangleType::lower>(MatrixTraits<M22>::zero()))>);
-  static_assert(zero_matrix<decltype(SelfAdjointMatrix<decltype(MatrixTraits<M22>::zero()), TriangleType::upper>(MatrixTraits<M22>::zero()))>);
-  static_assert(identity_matrix<decltype(SelfAdjointMatrix<decltype(MatrixTraits<M22>::identity()), TriangleType::lower>(MatrixTraits<M22>::identity()))>);
+  static_assert(zero_matrix<decltype(SelfAdjointMatrix<decltype(make_zero_matrix_like<M22>()), TriangleType::lower>(make_zero_matrix_like<M22>()))>);
+  static_assert(zero_matrix<decltype(SelfAdjointMatrix<decltype(make_zero_matrix_like<M22>()), TriangleType::upper>(make_zero_matrix_like<M22>()))>);
+  static_assert(identity_matrix<decltype(SelfAdjointMatrix<decltype(make_identity_matrix_like<M22>()), TriangleType::lower>(make_identity_matrix_like<M22>()))>);
 }
 
 
 TEST(eigen3, SelfAdjointMatrix_overloads)
 {
-  EXPECT_TRUE(is_near(make_native_matrix(L22(9., 3, 3, 10)), make_native_matrix<M22>(9, 3, 3, 10)));
-  EXPECT_TRUE(is_near(make_native_matrix(U22(9., 3, 3, 10)), make_native_matrix<M22>(9, 3, 3, 10)));
+  EXPECT_TRUE(is_near(make_dense_writable_matrix_from(L22(9., 3, 3, 10)), make_dense_writable_matrix_from<M22>(9, 3, 3, 10)));
+  EXPECT_TRUE(is_near(make_dense_writable_matrix_from(U22(9., 3, 3, 10)), make_dense_writable_matrix_from<M22>(9, 3, 3, 10)));
   //
-  EXPECT_TRUE(is_near(make_self_contained(L22(M22::Zero())), make_native_matrix<M22>(0, 0, 0, 0)));
-  EXPECT_TRUE(is_near(make_self_contained(U22(M22::Zero())), make_native_matrix<M22>(0, 0, 0, 0)));
+  EXPECT_TRUE(is_near(make_self_contained(L22(M22::Zero())), make_dense_writable_matrix_from<M22>(0, 0, 0, 0)));
+  EXPECT_TRUE(is_near(make_self_contained(U22(M22::Zero())), make_dense_writable_matrix_from<M22>(0, 0, 0, 0)));
   static_assert(std::is_same_v<std::decay_t<decltype(make_self_contained(L22 {9, 3, 3, 10} * 2))>, L22>);
   static_assert(std::is_same_v<std::decay_t<decltype(make_self_contained(U22 {9, 3, 3, 10} * 2))>, U22>);
   //
@@ -606,18 +606,18 @@ TEST(eigen3, SelfAdjointMatrix_overloads)
   static_assert(identity_matrix<decltype(Cholesky_square(SelfAdjointMatrix<decltype(M22::Identity()), TriangleType::lower>(M22::Identity())))>);
   static_assert(identity_matrix<decltype(Cholesky_square(SelfAdjointMatrix<decltype(M22::Identity()), TriangleType::upper>(M22::Identity())))>);
   //
-  EXPECT_TRUE(is_near(Cholesky_square(SelfAdjointMatrix<decltype(MatrixTraits<M22>::zero()), TriangleType::lower>(MatrixTraits<M22>::zero())), M22::Zero()));
-  EXPECT_TRUE(is_near(Cholesky_square(SelfAdjointMatrix<decltype(MatrixTraits<M22>::zero()), TriangleType::upper>(MatrixTraits<M22>::zero())), M22::Zero()));
-  static_assert(zero_matrix<decltype(Cholesky_square(SelfAdjointMatrix<decltype(MatrixTraits<M22>::zero()), TriangleType::lower>(MatrixTraits<M22>::zero())))>);
-  static_assert(zero_matrix<decltype(Cholesky_square(SelfAdjointMatrix<decltype(MatrixTraits<M22>::zero()), TriangleType::upper>(MatrixTraits<M22>::zero())))>);
+  EXPECT_TRUE(is_near(Cholesky_square(SelfAdjointMatrix<decltype(make_zero_matrix_like<M22>()), TriangleType::lower>(make_zero_matrix_like<M22>())), M22::Zero()));
+  EXPECT_TRUE(is_near(Cholesky_square(SelfAdjointMatrix<decltype(make_zero_matrix_like<M22>()), TriangleType::upper>(make_zero_matrix_like<M22>())), M22::Zero()));
+  static_assert(zero_matrix<decltype(Cholesky_square(SelfAdjointMatrix<decltype(make_zero_matrix_like<M22>()), TriangleType::lower>(make_zero_matrix_like<M22>())))>);
+  static_assert(zero_matrix<decltype(Cholesky_square(SelfAdjointMatrix<decltype(make_zero_matrix_like<M22>()), TriangleType::upper>(make_zero_matrix_like<M22>())))>);
   //
   EXPECT_TRUE(is_near(Cholesky_square(SelfAdjointMatrix<decltype(DiagonalMatrix{2, 3}), TriangleType::lower>(DiagonalMatrix{2, 3})), DiagonalMatrix{4, 9}));
   EXPECT_TRUE(is_near(Cholesky_square(SelfAdjointMatrix<decltype(DiagonalMatrix{2, 3}), TriangleType::upper>(DiagonalMatrix{2, 3})), DiagonalMatrix{4, 9}));
   static_assert(eigen_diagonal_expr<decltype(Cholesky_square(SelfAdjointMatrix<decltype(DiagonalMatrix{2, 3}), TriangleType::lower>(DiagonalMatrix{2, 3})))>);
   static_assert(eigen_diagonal_expr<decltype(Cholesky_square(SelfAdjointMatrix<decltype(DiagonalMatrix{2, 3}), TriangleType::upper>(DiagonalMatrix{2, 3})))>);
   //
-  EXPECT_TRUE(is_near(Cholesky_square(SelfAdjointMatrix<M22, TriangleType::diagonal>(make_native_matrix<M22>(3, 0, 1, 3))), DiagonalMatrix{9., 9}));
-  static_assert(eigen_diagonal_expr<decltype(Cholesky_square(SelfAdjointMatrix<M22, TriangleType::diagonal>(make_native_matrix<M22>(3, 0, 1, 3))))>);
+  EXPECT_TRUE(is_near(Cholesky_square(SelfAdjointMatrix<M22, TriangleType::diagonal>(make_dense_writable_matrix_from<M22>(3, 0, 1, 3))), DiagonalMatrix{9., 9}));
+  static_assert(eigen_diagonal_expr<decltype(Cholesky_square(SelfAdjointMatrix<M22, TriangleType::diagonal>(make_dense_writable_matrix_from<M22>(3, 0, 1, 3))))>);
   //
   EXPECT_TRUE(is_near(Cholesky_square(SelfAdjointMatrix<eigen_matrix_t<double, 1, 1>, TriangleType::lower>(eigen_matrix_t<double, 1, 1>(9))), eigen_matrix_t<double, 1, 1>(81)));
   EXPECT_TRUE(is_near(Cholesky_square(SelfAdjointMatrix<eigen_matrix_t<double, 1, 1>, TriangleType::upper>(eigen_matrix_t<double, 1, 1>(9))), eigen_matrix_t<double, 1, 1>(81)));
@@ -628,18 +628,18 @@ TEST(eigen3, SelfAdjointMatrix_overloads)
   static_assert(identity_matrix<decltype(Cholesky_factor(SelfAdjointMatrix<decltype(M22::Identity()), TriangleType::lower>(M22::Identity())))>);
   static_assert(identity_matrix<decltype(Cholesky_factor(SelfAdjointMatrix<decltype(M22::Identity()), TriangleType::upper>(M22::Identity())))>);
   //
-  EXPECT_TRUE(is_near(Cholesky_factor(SelfAdjointMatrix<decltype(MatrixTraits<M22>::zero()), TriangleType::lower>(MatrixTraits<M22>::zero())), M22::Zero()));
-  EXPECT_TRUE(is_near(Cholesky_factor(SelfAdjointMatrix<decltype(MatrixTraits<M22>::zero()), TriangleType::upper>(MatrixTraits<M22>::zero())), M22::Zero()));
-  static_assert(zero_matrix<decltype(Cholesky_factor(SelfAdjointMatrix<decltype(MatrixTraits<M22>::zero()), TriangleType::lower>(MatrixTraits<M22>::zero())))>);
-  static_assert(zero_matrix<decltype(Cholesky_factor(SelfAdjointMatrix<decltype(MatrixTraits<M22>::zero()), TriangleType::upper>(MatrixTraits<M22>::zero())))>);
+  EXPECT_TRUE(is_near(Cholesky_factor(SelfAdjointMatrix<decltype(make_zero_matrix_like<M22>()), TriangleType::lower>(make_zero_matrix_like<M22>())), M22::Zero()));
+  EXPECT_TRUE(is_near(Cholesky_factor(SelfAdjointMatrix<decltype(make_zero_matrix_like<M22>()), TriangleType::upper>(make_zero_matrix_like<M22>())), M22::Zero()));
+  static_assert(zero_matrix<decltype(Cholesky_factor(SelfAdjointMatrix<decltype(make_zero_matrix_like<M22>()), TriangleType::lower>(make_zero_matrix_like<M22>())))>);
+  static_assert(zero_matrix<decltype(Cholesky_factor(SelfAdjointMatrix<decltype(make_zero_matrix_like<M22>()), TriangleType::upper>(make_zero_matrix_like<M22>())))>);
   //
   EXPECT_TRUE(is_near(Cholesky_factor(SelfAdjointMatrix<decltype(DiagonalMatrix{4, 9}), TriangleType::lower>(DiagonalMatrix{4, 9})), DiagonalMatrix{2, 3}));
   EXPECT_TRUE(is_near(Cholesky_factor(SelfAdjointMatrix<decltype(DiagonalMatrix{4, 9}), TriangleType::upper>(DiagonalMatrix{4, 9})), DiagonalMatrix{2, 3}));
   static_assert(eigen_diagonal_expr<decltype(Cholesky_factor(SelfAdjointMatrix<decltype(DiagonalMatrix{4, 9}), TriangleType::lower>(DiagonalMatrix{4, 9})))>);
   static_assert(eigen_diagonal_expr<decltype(Cholesky_factor(SelfAdjointMatrix<decltype(DiagonalMatrix{4, 9}), TriangleType::upper>(DiagonalMatrix{4, 9})))>);
   //
-  EXPECT_TRUE(is_near(Cholesky_factor(SelfAdjointMatrix<M22, TriangleType::diagonal>(make_native_matrix<M22>(9, 3, 3, 9))), DiagonalMatrix{3., 3}));
-  static_assert(eigen_diagonal_expr<decltype(Cholesky_factor(SelfAdjointMatrix<M22, TriangleType::diagonal>(make_native_matrix<M22>(9, 3, 3, 9))))>);
+  EXPECT_TRUE(is_near(Cholesky_factor(SelfAdjointMatrix<M22, TriangleType::diagonal>(make_dense_writable_matrix_from<M22>(9, 3, 3, 9))), DiagonalMatrix{3., 3}));
+  static_assert(eigen_diagonal_expr<decltype(Cholesky_factor(SelfAdjointMatrix<M22, TriangleType::diagonal>(make_dense_writable_matrix_from<M22>(9, 3, 3, 9))))>);
   //
   EXPECT_TRUE(is_near(Cholesky_factor(SelfAdjointMatrix<eigen_matrix_t<double, 1, 1>, TriangleType::lower>(eigen_matrix_t<double, 1, 1>(9))), eigen_matrix_t<double, 1, 1>(3)));
   EXPECT_TRUE(is_near(Cholesky_factor(SelfAdjointMatrix<eigen_matrix_t<double, 1, 1>, TriangleType::upper>(eigen_matrix_t<double, 1, 1>(9))), eigen_matrix_t<double, 1, 1>(3)));
@@ -664,7 +664,7 @@ TEST(eigen3, SelfAdjointMatrix_overloads)
   static_assert(upper_triangular_matrix<decltype(Cholesky_factor<TriangleType::upper>(U22 {9., 3, 3, 1}))>);
 
   // Constant semidefinite case:
-  using Const922 = ConstantMatrix<double, 9, 2, 2>;
+  using Const922 = ConstantMatrix<eigen_matrix_t<double, 2, 2>, 9>;
   EXPECT_TRUE(is_near(Cholesky_factor<TriangleType::lower>(SelfAdjointMatrix<Const922, TriangleType::lower> {Const922 {}}), mat22(3., 0, 3, 0)));
   EXPECT_TRUE(is_near(Cholesky_factor<TriangleType::upper>(SelfAdjointMatrix<Const922, TriangleType::upper> {Const922 {}}), mat22(3., 3, 0, 0)));
   EXPECT_TRUE(is_near(Cholesky_factor<TriangleType::lower>(SelfAdjointMatrix<Const922, TriangleType::lower> {Const922 {}}), mat22(3., 0, 3, 0)));
@@ -724,22 +724,22 @@ TEST(eigen3, SelfAdjointMatrix_overloads)
   EXPECT_TRUE(is_near(reduce_rows(U22 {9., 3, 3, 10}), make_eigen_matrix<double, 1, 2>(6., 6.5)));
   //
   auto sl1 = L22 {9., 3, 3, 10};
-  rank_update(sl1, make_native_matrix<M22>(2, 0, 1, 2), 4);
+  rank_update(sl1, make_dense_writable_matrix_from<M22>(2, 0, 1, 2), 4);
   EXPECT_TRUE(is_near(sl1, mat22(25., 11, 11, 30)));
   auto su1 = U22 {9., 3, 3, 10};
-  rank_update(su1, make_native_matrix<M22>(2, 1, 0, 2), 4);
+  rank_update(su1, make_dense_writable_matrix_from<M22>(2, 1, 0, 2), 4);
   EXPECT_TRUE(is_near(su1, mat22(29., 11, 11, 26)));
   //
   const auto sl2 = L22 {9., 3, 3, 10};
-  EXPECT_TRUE(is_near(rank_update(sl2, make_native_matrix<M22>(2, 0, 1, 2), 4), mat22(25., 11, 11, 30)));
+  EXPECT_TRUE(is_near(rank_update(sl2, make_dense_writable_matrix_from<M22>(2, 0, 1, 2), 4), mat22(25., 11, 11, 30)));
   const auto su2 = U22 {9., 3, 3, 10};
-  EXPECT_TRUE(is_near(rank_update(su2, make_native_matrix<M22>(2, 1, 0, 2), 4), mat22(29., 11, 11, 26)));
+  EXPECT_TRUE(is_near(rank_update(su2, make_dense_writable_matrix_from<M22>(2, 1, 0, 2), 4), mat22(29., 11, 11, 26)));
   //
-  EXPECT_TRUE(is_near(rank_update(L22 {9., 3, 3, 10}, make_native_matrix<M22>(2, 0, 1, 2), 4), mat22(25., 11, 11, 30)));
-  EXPECT_TRUE(is_near(rank_update(U22 {9., 3, 3, 10}, make_native_matrix<M22>(2, 1, 0, 2), 4), mat22(29., 11, 11, 26)));
-  EXPECT_TRUE(is_near(rank_update(DM22 {9., 10}, make_native_matrix<M22>(2, 0, 1, 2), 4), mat22(25., 8, 8, 30)));
-  EXPECT_TRUE(is_near(rank_update(DD2 {9., 10}, make_native_matrix<M22>(2, 0, 1, 2), 4), mat22(25., 8, 8, 30)));
-  EXPECT_TRUE(is_near(rank_update(DL2 {9., 10}, make_native_matrix<M22>(2, 0, 1, 2), 4), mat22(25., 8, 8, 30)));
+  EXPECT_TRUE(is_near(rank_update(L22 {9., 3, 3, 10}, make_dense_writable_matrix_from<M22>(2, 0, 1, 2), 4), mat22(25., 11, 11, 30)));
+  EXPECT_TRUE(is_near(rank_update(U22 {9., 3, 3, 10}, make_dense_writable_matrix_from<M22>(2, 1, 0, 2), 4), mat22(29., 11, 11, 26)));
+  EXPECT_TRUE(is_near(rank_update(DM22 {9., 10}, make_dense_writable_matrix_from<M22>(2, 0, 1, 2), 4), mat22(25., 8, 8, 30)));
+  EXPECT_TRUE(is_near(rank_update(DD2 {9., 10}, make_dense_writable_matrix_from<M22>(2, 0, 1, 2), 4), mat22(25., 8, 8, 30)));
+  EXPECT_TRUE(is_near(rank_update(DL2 {9., 10}, make_dense_writable_matrix_from<M22>(2, 0, 1, 2), 4), mat22(25., 8, 8, 30)));
   //
   EXPECT_TRUE(is_near(solve(L22 {9., 3, 3, 10}, make_eigen_matrix<double, 2, 1>(15, 23)), make_eigen_matrix<double, 2, 1>(1, 2)));
   EXPECT_TRUE(is_near(solve(U22 {9., 3, 3, 10}, make_eigen_matrix<double, 2, 1>(15, 23)), make_eigen_matrix<double, 2, 1>(1, 2)));
@@ -1040,7 +1040,7 @@ TEST(eigen3, SelfAdjointMatrix_arithmetic_lower)
   auto m2 = L22 {1., 2, 2, 3};
   auto d = DiagonalMatrix<eigen_matrix_t<double, 2, 1>> {1, 3};
   auto i = M22::Identity();
-  auto z = ZeroMatrix<double, 2, 2> {};
+  auto z = ZeroMatrix<eigen_matrix_t<double, 2, 2>> {};
 
   EXPECT_TRUE(is_near(m1 + m2, mat22(5, 7, 7, 9))); static_assert(self_adjoint_matrix<decltype(m1 + m2)>);
   EXPECT_TRUE(is_near(m1 + d, mat22(5, 5, 5, 9))); static_assert(self_adjoint_matrix<decltype(m1 + d)>);
@@ -1097,7 +1097,7 @@ TEST(eigen3, SelfAdjointMatrix_arithmetic_upper)
   auto m2 = U22 {1., 2, 2, 3};
   auto d = DiagonalMatrix<eigen_matrix_t<double, 2, 1>> {1, 3};
   auto i = M22::Identity();
-  auto z = ZeroMatrix<double, 2, 2> {};
+  auto z = ZeroMatrix<eigen_matrix_t<double, 2, 2>> {};
   EXPECT_TRUE(is_near(m1 + m2, mat22(5, 7, 7, 9))); static_assert(self_adjoint_matrix<decltype(m1 + m2)>);
   EXPECT_TRUE(is_near(m1 + d, mat22(5, 5, 5, 9))); static_assert(self_adjoint_matrix<decltype(m1 + d)>);
   EXPECT_TRUE(is_near(d + m1, mat22(5, 5, 5, 9))); static_assert(self_adjoint_matrix<decltype(d + m1)>);

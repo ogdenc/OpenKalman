@@ -28,17 +28,17 @@ namespace OpenKalman
     /// The scalar type of the coefficients
     using Scalar = Scalar_;
 
-    /// The number of dimensions at compile time (0 because it is dynamic).
-    static constexpr std::size_t dimensions = 0;
+    /// The dimension at compile time (0 because it is dynamic).
+    static constexpr std::size_t dimension = 0;
 
-    /// The number of coordinates in Euclidean space at compile time (0 because it is dynamic).
-    static constexpr std::size_t euclidean_dimensions = 0;
+    /// The dimension when transformed to Euclidean space at compile time (0 because it is dynamic).
+    static constexpr std::size_t euclidean_dimension = 0;
 
-    /// The number of dimensions at runtime.
-    const std::size_t runtime_dimensions;
+    /// The number of dimension at runtime.
+    const std::size_t runtime_dimension;
 
     /// The number of coordinates in Euclidean space at runtime.
-    const std::size_t runtime_euclidean_dimensions;
+    const std::size_t runtime_euclidean_dimension;
 
     /// May consist of coefficients other than Axis.
     static constexpr bool axes_only = false;
@@ -162,8 +162,8 @@ namespace OpenKalman
     template<typename C, std::enable_if_t<fixed_coefficients<C>, int> = 0>
 #endif
     DynamicCoefficients(C&&) :
-      runtime_dimensions {C::dimensions},
-      runtime_euclidean_dimensions {C::euclidean_dimensions},
+      runtime_dimension {C::dimension},
+      runtime_euclidean_dimension {C::euclidean_dimension},
       id {typeid(typename reduce_coeffs<C>::type)},
       to_euclidean_coeff {[] (const std::size_t row, const GetCoeff& get_coeff) {
         return C::template to_euclidean_array<Scalar, 0>[row](get_coeff);
