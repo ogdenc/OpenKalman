@@ -28,11 +28,11 @@ namespace OpenKalman
     /// The scalar type of the coefficients
     using Scalar = Scalar_;
 
-    /// The dimension at compile time (0 because it is dynamic).
-    static constexpr std::size_t dimension = 0;
+    /// The dimension at compile time.
+    static constexpr std::size_t dimension = dynamic_size;
 
-    /// The dimension when transformed to Euclidean space at compile time (0 because it is dynamic).
-    static constexpr std::size_t euclidean_dimension = 0;
+    /// The dimension when transformed to Euclidean space at compile time.
+    static constexpr std::size_t euclidean_dimension = dynamic_size;
 
     /// The number of dimension at runtime.
     const std::size_t runtime_dimension;
@@ -42,6 +42,11 @@ namespace OpenKalman
 
     /// May consist of coefficients other than Axis.
     static constexpr bool axes_only = false;
+
+    bool axes_only_at_runtime()
+    {
+      return true; // \todo implement this
+    }
 
     /**
      * \brief The type of the result when subtracting two DynamicCoefficients values.
@@ -189,6 +194,9 @@ namespace OpenKalman
     template<typename...Cs, std::enable_if_t<(fixed_coefficients<Cs> and ...) and (sizeof...(Cs) != 1), int> = 0>
 #endif
     DynamicCoefficients(Cs&&...) : DynamicCoefficients {Coefficients<Cs...> {}} {};
+
+
+    DynamicCoefficients() : DynamicCoefficients {Coefficients<> {}} {};
 
 
     /// \brief Compares for equivalence. \sa \ref equivalent_to

@@ -1,6 +1,6 @@
 add_subdirectory(interfaces)
-add_subdirectory(special-matrices/tests)
 add_subdirectory(coefficient-types/tests)
+add_subdirectory(special-matrices/tests)
 add_subdirectory(matrices/tests)
 add_subdirectory(distributions/tests)
 add_subdirectory(transformations/tests)

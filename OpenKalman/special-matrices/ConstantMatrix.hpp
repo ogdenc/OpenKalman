@@ -33,7 +33,7 @@ namespace OpenKalman::Eigen3
 #else
   template<typename PatternMatrix, auto constant>
 #endif
-  struct ConstantMatrix : Eigen3::internal::EigenDynamicBase<ConstantMatrix<PatternMatrix, constant>, PatternMatrix>
+  struct ConstantMatrix : MatrixTraits<PatternMatrix>::template MatrixBaseFrom<ConstantMatrix<PatternMatrix, constant>>
   {
 
   private:
@@ -41,7 +41,8 @@ namespace OpenKalman::Eigen3
     using nested_scalar = scalar_type_of_t<PatternMatrix>;
     static constexpr auto nested_rows = index_dimension_of_v<PatternMatrix, 0>;
     static constexpr auto nested_cols = index_dimension_of_v<PatternMatrix, 1>;
-    using Base = Eigen3::internal::EigenDynamicBase<ConstantMatrix, PatternMatrix>;
+
+    using MyDimensions = std::decay_t<decltype(get_all_dimensions_of(std::declval<PatternMatrix>()))>;
 
 #ifndef __cpp_concepts
     static_assert(std::is_convertible_v<decltype(constant), nested_scalar>);
@@ -52,33 +53,84 @@ namespace OpenKalman::Eigen3
     /**
      * \brief Construct a ConstantMatrix.
      * \details The constructor can take a number of arguments representing the number of dynamic dimensions.
-     * For example, ConstantMatrix {2, 3} constructs a 2-by-3 dynamic matrix, ConstantMatrix {3} constructs a
+     * For example, ConstantMatrix(2, 3) constructs a 2-by-3 dynamic matrix, ConstantMatrix(3) constructs a
      * 2-by-3 matrix in which there are two fixed row dimensions and three dynamic column dimensions, and
-     * ConstantMatrix {} constructs a fixed matrix.
+     * ConstantMatrix() constructs a fixed matrix.
      */
 #ifdef __cpp_concepts
-    template<std::convertible_to<std::size_t> ... Args> requires
+    template<std::convertible_to<std::size_t> ... Args> requires (sizeof...(Args) < max_indices_of_v<PatternMatrix>) and
     (sizeof...(Args) == (nested_rows == dynamic_size ? 1 : 0) + (nested_cols == dynamic_size ? 1 : 0))
 #else
     template<typename...Args, std::enable_if_t<(std::is_convertible_v<Args, std::size_t> and ...) and
+      (sizeof...(Args) < max_indices_of_v<PatternMatrix>) and
       (sizeof...(Args) == (nested_rows == dynamic_size ? 1 : 0) + (nested_cols == dynamic_size ? 1 : 0)), int> = 0>
 #endif
-    ConstantMatrix(const Args...args) : Base {static_cast<std::size_t>(args)...} {}
+    ConstantMatrix(const Args...args)
+      : my_dimensions {OpenKalman::internal::make_dimensions_tuple<PatternMatrix>(static_cast<std::size_t>(args)...)} {}
 
-#ifndef __cpp_concepts
+
+    /**
+     * \brief Construct a ConstantMatrix.
+     * \details The constructor can take a number of arguments representing the number of dynamic dimensions.
+     * For example, ConstantMatrix(2, 3) constructs a 2-by-3 dynamic matrix, ConstantMatrix(3) constructs a
+     * 2-by-3 matrix in which there are two fixed row dimensions and three dynamic column dimensions, and
+     * ConstantMatrix() constructs a fixed matrix.
+     */
+#ifdef __cpp_concepts
+    template<index_descriptor...D> requires (sizeof...(D) == max_indices_of_v<PatternMatrix>) and
+      std::constructible_from<MyDimensions, const D&...>
+#else
+    template<typename...D,
+      std::enable_if_t<indexible<T> and (index_descriptor<D> and ...) and sizeof...(D) == max_indices_of_v<T> and
+        std::is_constructible<MyDimensions, const D&...>::value, int> = 0>
+#endif
+    ConstantMatrix(const D&...d) : my_dimensions {d...} {}
+
+
+    /**
+     * \brief Copy constructor
+     */
+    ConstantMatrix(const ConstantMatrix&) = default;
+
+
+    /**
+     * \brief Move constructor
+     */
+    ConstantMatrix(ConstantMatrix&&) = default;
+
+
   private:
 
+
+    template<typename T, std::size_t...I>
+    static constexpr bool constant_arg_matches_impl(std::index_sequence<I...>)
+    {
+      return ((index_dimension_of_v<T, I> == dimension_size_of_v<std::tuple_element_t<I, MyDimensions>>) and ...);
+    };
+
+
+#ifdef __cpp_concepts
+    template<typename T>
+#else
     template<typename T, typename = void>
+#endif
     struct constant_arg_matches : std::false_type {};
 
+
+#ifdef __cpp_concepts
+    template<typename T> requires (constant_coefficient_v<std::decay_t<T>> == constant) and
+      (constant_arg_matches_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{}))
+    struct constant_arg_matches<T>
+#else
     template<typename T>
     struct constant_arg_matches<T, std::enable_if_t<(constant_coefficient<std::decay_t<T>>::value == constant) and
-      (dynamic_rows<T> or nested_rows == dynamic_size or row_dimension_of<std::decay_t<T>>::value == nested_rows) and
-      (dynamic_columns<T> or nested_cols == dynamic_size or column_dimension_of<std::decay_t<T>>::value == nested_cols)>>
+      constant_arg_matches_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{})>>
+#endif
       : std::true_type {};
 
+
   public:
-#endif
+
 
     /**
      * \internal
@@ -86,15 +138,65 @@ namespace OpenKalman::Eigen3
      * \tparam M A constant_matrix with a compatible shape.
      */
 #ifdef __cpp_concepts
-    template<constant_matrix M>
-    requires (not std::same_as<M, ConstantMatrix>) and (constant_coefficient_v<M> == constant) and
-      (dynamic_rows<M> or nested_rows == dynamic_size or row_dimension_of_v<M> == nested_rows) and
-      (dynamic_columns<M> or nested_cols == dynamic_size or column_dimension_of_v<M> == nested_cols)
+    template<constant_matrix M> requires (not std::same_as<M, ConstantMatrix>) and
+      (max_indices_of_v<M> == max_indices_of_v<PatternMatrix>) and constant_arg_matches<M>::value
 #else
-    template<typename M, std::enable_if_t<constant_matrix<M> and
-      (not std::is_same_v<M, ConstantMatrix>) and constant_arg_matches<M>::value, int> = 0>
+    template<typename M, std::enable_if_t<constant_matrix<M> and (not std::is_same_v<M, ConstantMatrix>) and
+      (max_indices_of_v<M> == max_indices_of_v<PatternMatrix>) and constant_arg_matches<M>::value, int> = 0>
 #endif
-    ConstantMatrix(M&& m) : Base {std::forward<M>(m)} {}
+    ConstantMatrix(M&& m) : my_dimensions {get_all_dimensions_of(m)} {}
+
+
+  private:
+
+
+    template<typename T, std::size_t...I>
+    void check_runtime_sizes_impl(const T& t, std::index_sequence<I...>)
+    {
+      ([](const T& t, const auto& my_dims) {
+        if constexpr (index_dimension_of_v<T, I> == dynamic_size)
+        {
+          constexpr auto t_dim = runtime_dimension_of<I>(t);
+          constexpr auto dim = get_dimension_size_of(std::get<I>(my_dims));
+          if (t_dim != dim)
+            throw std::logic_error {"In an argument to ConstantMatrix assignment operator, "
+              "the dimension of index " + std::to_string(I) + " is " + std::to_string(t_dim) +
+              ", which does not match index " + std::to_string(I) + " of the ConstantMatrix, which is " +
+              std::to_string(dim)};;
+        }
+      }(t, my_dimensions), ...);
+    };
+
+
+    template<typename T>
+    void check_runtime_sizes(const T& t)
+    {
+      if constexpr (any_dynamic_dimension<T> or any_dynamic_dimension<PatternMatrix>)
+        return runtime_sizes_match_impl(t, std::make_index_sequence<max_indices_of_v<T>>{});
+    };
+
+
+  public:
+
+
+    /**
+     * \brief Copy assignment operator
+     */
+    ConstantMatrix& operator=(const ConstantMatrix& m)
+    {
+      check_runtime_sizes(m);
+      return *this;
+    }
+
+
+    /**
+     * \brief Move assignment operator
+     */
+    ConstantMatrix& operator=(ConstantMatrix&& m)
+    {
+      check_runtime_sizes(m);
+      return *this;
+    }
 
 
     /**
@@ -102,75 +204,67 @@ namespace OpenKalman::Eigen3
      * \brief Assign from another compatible constant_matrix.
      */
 #ifdef __cpp_concepts
-    template<constant_matrix M>
-    requires (not std::same_as<M, ConstantMatrix>) and (constant_coefficient_v<M> == constant) and
-      (dynamic_rows<M> or nested_rows == dynamic_size or row_dimension_of_v<M> == nested_rows) and
-      (dynamic_columns<M> or nested_cols == dynamic_size or column_dimension_of_v<M> == nested_cols)
+    template<constant_matrix M> requires (not std::same_as<M, ConstantMatrix>) and constant_arg_matches<M>::value
 #else
-    template<typename M, std::enable_if_t<constant_matrix<M> and
-      (not std::is_same_v<M, ConstantMatrix>) and constant_arg_matches<M>::value, int> = 0>
+    template<typename M, std::enable_if_t<constant_matrix<M> and (not std::is_same_v<M, ConstantMatrix>) and
+      constant_arg_matches<M>::value, int> = 0>
 #endif
     auto& operator=(M&& m)
     {
-      Base::operator=(std::forward<M>(m));
+      check_runtime_sizes(m);
       return *this;
     }
 
 
     /**
      * \brief Element accessor.
-     * \note Does not do any bounds checking.
+     * \note Does not do any runtime bounds checking.
      * \param r The row.
      * \param c The column.
      * \return The element at row r and column c (always the constant).
      */
+#ifdef __cpp_concepts
+    template<std::convertible_to<const std::size_t>...D> requires (tensor_order_of_v<ConstantMatrix> >= 2)
+#else
+    template<typename...D, std::enable_if_t<(std::is_convertible<D, const std::size_t>::value and ...) and
+      tensor_order_of<ConstantMatrix>::value >= 2, int> = 0>
+#endif
     constexpr nested_scalar
-    operator()(std::size_t r, std::size_t c) const
+    operator()(D...d) const
     {
-      assert(Eigen::Index(r) < runtime_dimension_of<0>(*this));
-      assert(Eigen::Index(c) < runtime_dimension_of<1>(*this));
       return constant;
     }
 
 
     /**
-     * \brief Element accessor for a row or column vector.
-     * \param i The row or column.
-     * \return The element at row or column i (always the constant).
+     * \brief Element accessor for a first-order tensor (e.g., a row or column vector).
+     * \note Does not do any runtime bounds checking.
+     * \param i The index.
+     * \return The element at index i (always the constant).
      */
 #ifdef __cpp_concepts
-    constexpr nested_scalar
-    operator[](std::size_t i) const requires (nested_rows == 1) or (nested_cols == 1)
+    template<std::convertible_to<const std::size_t> D> requires (tensor_order_of_v<ConstantMatrix> <= 1)
 #else
-    template<std::size_t r = nested_rows, std::enable_if_t<(r == 1) or (nested_cols == 1), int> = 0>
-    constexpr nested_scalar
-    operator[](std::size_t i) const
+    template<typename...D, std::enable_if_t<std::is_convertible<D, const std::size_t>::value and
+      tensor_order_of<ConstantMatrix>::value <= 1, int> = 0>
 #endif
+    constexpr nested_scalar
+    operator[](D d) const
     {
-      if constexpr (nested_rows != 1) assert(Eigen::Index(i) < runtime_dimension_of<0>(*this));
-      if constexpr (nested_cols != 1) assert(Eigen::Index(i) < runtime_dimension_of<1>(*this));
       return constant;
     }
 
 
     /**
-     * \brief Element accessor for a row or column vector.
-     * \param i The row or column.
-     * \return The element at row or column i (always the constant).
+     * \return a tuple containing \ref index_descriptor "index_descriptors" for the dimensions for this ConstantMatrix
      */
-#ifdef __cpp_concepts
-    constexpr nested_scalar
-    operator()(std::size_t i) const requires (nested_rows == 1) or (nested_cols == 1)
-#else
-    template<std::size_t r = nested_rows, std::enable_if_t<(r == 1) or (nested_cols == 1), int> = 0>
-    constexpr nested_scalar
-    operator()(std::size_t i) const
-#endif
-    {
-      if constexpr (nested_rows != 1) assert(Eigen::Index(i) < runtime_dimension_of<0>(*this));
-      if constexpr (nested_cols != 1) assert(Eigen::Index(i) < runtime_dimension_of<1>(*this));
-      return constant;
-    }
+    const auto& get_dimensions() const { return my_dimensions; }
+
+
+  private:
+
+
+    MyDimensions my_dimensions;
 
   };
 
@@ -210,7 +304,6 @@ namespace OpenKalman::Eigen3
     constant_coefficient_v<Arg> == static_cast<std::intmax_t>(constant_coefficient_v<Arg>), int> = 0>
   ConstantMatrix(Arg&&) -> ConstantMatrix<std::decay_t<Arg>, static_cast<std::intmax_t>(constant_coefficient_v<Arg>)>;
 #endif
-
 
 } // namespace OpenKalman::Eigen3
 

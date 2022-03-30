@@ -225,7 +225,7 @@ namespace OpenKalman::Eigen3
         if constexpr (any_dynamic_dimension<Arg>) assert(runtime_dimension_of<0>(arg) == runtime_dimension_of<1>(arg));
         if constexpr (dynamic_rows<NestedMatrix>) assert(runtime_dimension_of<0>(this->nested_matrix()) == runtime_dimension_of<0>(arg));
 
-        this->nested_matrix() = make_constant_matrix_like<1, dim, 1>(this->nested_matrix());
+        this->nested_matrix() = make_constant_matrix_like<NestedMatrix, 1>(Dimensions<dim>{}, Dimensions<1>{});
       }
       return *this;
     }

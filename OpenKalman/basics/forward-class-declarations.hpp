@@ -279,6 +279,15 @@ namespace OpenKalman
     constexpr bool eigen_triangular_expr = detail::is_eigen_triangular_expr<std::decay_t<T>>::value;
   #endif
 
+  }
+
+
+  // ----------------------- //
+  //  Typed matrix adapters  //
+  // ----------------------- //
+
+  namespace Eigen3
+  {
 
     // -------------------------------------------------------- //
     //  FromEuclideanExpr, from_euclidean_expr, euclidean_expr  //
@@ -376,32 +385,8 @@ namespace OpenKalman
     constexpr bool euclidean_expr = from_euclidean_expr<T> or to_euclidean_expr<T>;
   #endif
 
-  }
+  } // namespace Eigen3
 
-
-  // ----------------- //
-  //  untyped_adapter  //
-  // ----------------- //
-
-  /**
-   * \brief Specifies that T is an untyped adapter expression.
-   * \details Untyped adapter expressions are generally used whenever the native matrix library does not have an
-   * important built-in matrix type, such as a single-scalar constant matrix, a diagonal matrix, a triangular matrix,
-   * or a hermitian matrix.
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept untyped_adapter =
-#else
-  constexpr bool untyped_adapter =
-#endif
-    Eigen3::eigen_constant_expr<T> or Eigen3::eigen_zero_expr<T> or Eigen3::eigen_diagonal_expr<T> or Eigen3::eigen_self_adjoint_expr<T> or
-      Eigen3::eigen_triangular_expr<T> or Eigen3::euclidean_expr<T>;
-
-
-  // ----------------------- //
-  //  Typed matrix wrappers  //
-  // ----------------------- //
 
   /**
    * \brief A matrix with typed rows and columns.
@@ -547,22 +532,6 @@ namespace OpenKalman
   }
 
 
-  // --------------- //
-  //  typed_adapter  //
-  // --------------- //
-
-  /**
-   * \brief Specifies that T is a typed adapter expression.
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept typed_adapter =
-#else
-  constexpr bool typed_adapter =
-#endif
-    typed_matrix<T> or covariance<T>;
-
-
   /**
    * \brief A Gaussian distribution, defined in terms of a Mean and a Covariance.
    * \tparam Coefficients Coefficient types.
@@ -687,7 +656,33 @@ namespace OpenKalman
   }
 
 
+  // --------------------------------- //
+  //   untyped_columns, untyped_rows   //
+  // --------------------------------- //
 
+  /**
+   * \brief Specifies that T has untyped (or Axis typed) column coefficients.
+   * \details T must be either a native matrix or its columns must all have type Axis.
+   */
+#ifdef __cpp_concepts
+  template<typename T>
+  concept untyped_columns = (column_coefficient_types_of_t<T>::axes_only);
+#else
+  template<typename T>
+  constexpr bool untyped_columns = column_coefficient_types_of_t<T>::axes_only;
+#endif
+
+
+  /**
+   * \brief Specifies that T has untyped (or Axis typed) row bases.
+   */
+#ifdef __cpp_concepts
+  template<typename T>
+  concept untyped_rows = (row_coefficient_types_of_t<T>::axes_only);
+#else
+  template<typename T>
+  constexpr bool untyped_rows = row_coefficient_types_of_t<T>::axes_only;
+#endif
 
 } // OpenKalman
 

@@ -17,7 +17,7 @@
 #ifndef OPENKALMAN_OPENKALMAN_EIGEN3_HPP
 #define OPENKALMAN_OPENKALMAN_EIGEN3_HPP
 
-#include "interfaces/eigen3/eigen3.hpp"
 #include "OpenKalman.hpp"
+#include "interfaces/eigen3/eigen3.hpp"
 
 #endif //OPENKALMAN_OPENKALMAN_EIGEN3_HPP

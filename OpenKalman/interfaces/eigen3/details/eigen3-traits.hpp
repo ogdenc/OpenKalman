@@ -35,11 +35,11 @@ namespace OpenKalman
   // ---------------------- //
 
 #ifdef __cpp_concepts
-    template<Eigen3::native_eigen_general T>
+    template<native_eigen_general T>
     struct ScalarTypeOf<T>
 #else
     template<typename T>
-    struct ScalarTypeOf<T, std::enable_if_t<Eigen3::native_eigen_general<T>>>
+    struct ScalarTypeOf<T, std::enable_if_t<native_eigen_general<T>>>
 #endif
     {
       using type = typename std::decay_t<T>::Scalar;
@@ -47,11 +47,11 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<Eigen3::native_eigen_general T>
+    template<native_eigen_general T>
     struct StorageArrayTraits<T>
 #else
     template<typename T>
-    struct StorageArrayTraits<T, std::enable_if_t<Eigen3::native_eigen_general<T>>>
+    struct StorageArrayTraits<T, std::enable_if_t<native_eigen_general<T>>>
 #endif
     {
       static constexpr std::size_t max_indices = 2;
@@ -59,18 +59,18 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<Eigen3::native_eigen_general T>
+    template<native_eigen_general T>
     struct IndexTraits<T, 0>
 #else
     template<typename T>
-    struct IndexTraits<T, 0, std::enable_if_t<Eigen3::native_eigen_general<T>>>
+    struct IndexTraits<T, 0, std::enable_if_t<native_eigen_general<T>>>
 #endif
     {
       static constexpr std::size_t dimension = std::decay_t<T>::RowsAtCompileTime == Eigen::Dynamic ? dynamic_size :
         static_cast<std::size_t>(std::decay_t<T>::RowsAtCompileTime);
 
       template<typename Arg>
-      static constexpr std::size_t dimension_at_runtime(Arg&& arg)
+      static constexpr std::size_t dimension_at_runtime(const Arg& arg)
       {
         if constexpr (dynamic_rows<Arg>)
           return static_cast<std::size_t>(arg.rows());
@@ -81,18 +81,18 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<Eigen3::native_eigen_general T>
+    template<native_eigen_general T>
     struct IndexTraits<T, 1>
 #else
     template<typename T>
-    struct IndexTraits<T, 1, std::enable_if_t<Eigen3::native_eigen_general<T>>>
+    struct IndexTraits<T, 1, std::enable_if_t<native_eigen_general<T>>>
 #endif
     {
       static constexpr std::size_t dimension = std::decay_t<T>::ColsAtCompileTime == Eigen::Dynamic ? dynamic_size :
         static_cast<std::size_t>(std::decay_t<T>::ColsAtCompileTime);
 
       template<typename Arg>
-      static constexpr std::size_t dimension_at_runtime(Arg&& arg)
+      static constexpr std::size_t dimension_at_runtime(const Arg& arg)
       {
         if constexpr (dynamic_columns<Arg>)
           return static_cast<std::size_t>(arg.cols());
@@ -102,21 +102,35 @@ namespace OpenKalman
     };
 
 
+    template<typename C, typename Nested>
+    struct CoordinateSystemTraits<FromEuclideanExpr<C, Nested>, 0>
+    {
+      using coordinate_system_types = C;
+    };
+
+
+    template<typename C, typename Nested>
+    struct CoordinateSystemTraits<ToEuclideanExpr<C, Nested>, 0>
+    {
+      using coordinate_system_types = C;
+    };
+
+
 #ifdef __cpp_concepts
-    template<Eigen3::native_eigen_general T, std::size_t rows, std::size_t columns, typename Scalar>
+    template<native_eigen_general T, std::size_t rows, std::size_t columns, typename Scalar>
     struct EquivalentDenseWritableMatrix<T, rows, columns, Scalar>
 #else
     template<typename T, std::size_t rows, std::size_t columns, typename Scalar>
-    struct EquivalentDenseWritableMatrix<T, rows, columns, Scalar, std::enable_if_t<Eigen3::native_eigen_general<T>>>
+    struct EquivalentDenseWritableMatrix<T, rows, columns, Scalar, std::enable_if_t<native_eigen_general<T>>>
 #endif
     {
     private:
 
-      template<typename U, auto...Args>
-      using dense_type = std::conditional_t<native_eigen_array<U>,
+      template<auto...Args>
+      using dense_type = std::conditional_t<native_eigen_array<T>,
         Eigen::Array<Scalar, Args...>, Eigen::Matrix<Scalar, Args...>>;
 
-      using type = dense_type<T,
+      using type = dense_type<
         rows == dynamic_size ? Eigen::Dynamic : static_cast<Eigen::Index>(rows),
         columns == dynamic_size ? Eigen::Dynamic : static_cast<Eigen::Index>(columns)/*,
         // This part causes problems if storage order changes from T b/c the new matrix is a row or column vector:
@@ -144,15 +158,18 @@ namespace OpenKalman
 
     public:
 
-      template<typename...runtime_dimensions>
-      static auto make_default(runtime_dimensions...e)
+      template<typename...D>
+      static auto make_default(D&&...d)
       {
-        if constexpr (rows == dynamic_size and columns != dynamic_size)
-          return type(static_cast<Eigen::Index>(e)..., columns);
-        else if constexpr (rows != dynamic_size and columns == dynamic_size)
-          return type(rows, static_cast<Eigen::Index>(e)...);
+        static_assert(sizeof...(D) == 2);
+
+        using M = dense_type<(dimension_size_of_v<D> == dynamic_size ?
+          Eigen::Dynamic : static_cast<Eigen::Index>(dimension_size_of_v<D>))...>;
+
+        if constexpr (((dimension_size_of_v<D> == dynamic_size) or ...))
+          return M(static_cast<Eigen::Index>(d())...);
         else
-          return type(static_cast<Eigen::Index>(e)...);
+          return M{};
       }
 
 
@@ -162,7 +179,7 @@ namespace OpenKalman
         if constexpr (eigen_DiagonalWrapper<Arg>)
         {
           // Note: Arg's nested matrix might not be a column vector.
-          return type {to_diagonal(diagonal_of(std::forward<Arg>(arg)))};
+          return type {to_diagonal(Conversions<Arg>::diagonal_of(std::forward<Arg>(arg)))};
         }
         else if constexpr (std::is_base_of_v<Eigen::PlainObjectBase<std::decay_t<Arg>>, std::decay_t<Arg>> and
           not std::is_const_v<std::remove_reference_t<Arg>>)
@@ -179,17 +196,23 @@ namespace OpenKalman
       template<typename Arg>
       static decltype(auto) to_native_matrix(Arg&& arg)
       {
-        if constexpr (native_eigen_general<Arg>)
+        if constexpr (native_eigen_matrix<Arg>)
         {
           return std::forward<Arg>(arg);
         }
-        else if constexpr (traits_and_evaluator_defined<Arg>::value)
+        else if constexpr (native_eigen_array<Arg>)
         {
-          return EigenWrapper<std::decay_t<Arg>> {std::forward<Arg>(arg)};
+          return std::forward<Arg>(arg).matrix();
+        }
+        else if constexpr (native_eigen_general<Arg>)
+        {
+          return convert(std::forward<Arg>(arg));
         }
         else
         {
-          return convert(std::forward<Arg>(arg));
+          static_assert(traits_and_evaluator_defined<Arg>::value, "To convert to a native Eigen matrix, the interface "
+            "must define a trait and an evaluator for the argument");
+          return EigenWrapper<std::decay_t<Arg>> {std::forward<Arg>(arg)};
         }
       }
 
@@ -205,15 +228,15 @@ namespace OpenKalman
 #endif
     {
       template<typename...runtime_dimensions>
-      static auto make_zero_matrix(runtime_dimensions...e)
+      static auto make_zero_matrix(runtime_dimensions...e) // \todo This is redundant of default behavior
       {
         return ZeroMatrix<eigen_matrix_t<Scalar, rows, columns>> {e...};
       }
 
-      template<auto constant, typename...runtime_dimensions>
-      static auto make_constant_matrix(runtime_dimensions...e)
+      template<auto constant, typename...D>
+      static auto make_constant_matrix(D&&...d)
       {
-        return ConstantMatrix<eigen_matrix_t<Scalar, rows, columns>, constant> {e...};
+        return ConstantMatrix<eigen_matrix_t<Scalar, rows, columns>, constant> {std::forward<D>(d)...};
       }
     };
 
@@ -227,11 +250,14 @@ namespace OpenKalman
 #endif
     {
       template<typename...runtime_dimensions>
-      static auto make_identity_matrix(runtime_dimensions...e)
+      static auto make_identity_matrix(runtime_dimensions...e) // \todo This is redundant of default behavior
       {
         if constexpr (dimension == dynamic_size)
         {
-          return to_diagonal(make_constant_matrix_like<eigen_matrix_t<Scalar, dimension, 1>, 1>(e...));
+          static_assert(sizeof...(runtime_dimensions) == 1);
+          using P = eigen_matrix_t<Scalar, dimension, 1>;
+          return to_diagonal(make_constant_matrix_like<P, 1>(
+            Dimensions{static_cast<const std::size_t>(e)...}, Dimensions<1>{}));
         }
         else
         {
@@ -1878,6 +1904,7 @@ namespace OpenKalman
     struct Dependencies<Eigen::Diagonal<MatrixType, DiagIndex>>
     {
       static constexpr bool has_runtime_parameters = DiagIndex == Eigen::DynamicIndex;
+
       using type = std::tuple<typename EGI::ref_selector<MatrixType>::non_const_type>;
 
       template<std::size_t i, typename Arg>
@@ -1887,7 +1914,7 @@ namespace OpenKalman
         return std::forward<Arg>(arg).nestedExpression();
       }
 
-      // Should always convert to a dense, writable matrix.
+      // Rely on default for convert_to_self_contained. Should always convert to a dense, writable matrix.
 
     };
 
@@ -3340,12 +3367,12 @@ namespace OpenKalman
 
   public:
 
-    template<TriangleType storage_triangle = storage_triangle, std::size_t dim = rows, typename S = Scalar>
-    using SelfAdjointMatrixFrom = typename MatrixTraits<M>::template SelfAdjointMatrixFrom<storage_triangle, dim, S>;
+    template<TriangleType storage_triangle = storage_triangle, std::size_t dim = rows>
+    using SelfAdjointMatrixFrom = typename MatrixTraits<M>::template SelfAdjointMatrixFrom<storage_triangle, dim>;
 
 
-    template<TriangleType triangle_type = storage_triangle, std::size_t dim = rows, typename S = Scalar>
-    using TriangularMatrixFrom = typename MatrixTraits<M>::template TriangularMatrixFrom<triangle_type, dim, S>;
+    template<TriangleType triangle_type = storage_triangle, std::size_t dim = rows>
+    using TriangularMatrixFrom = typename MatrixTraits<M>::template TriangularMatrixFrom<triangle_type, dim>;
 
 
 #ifdef __cpp_concepts
@@ -3658,12 +3685,12 @@ namespace OpenKalman
 
   public:
 
-    template<TriangleType storage_triangle = triangle_type, std::size_t dim = rows, typename S = Scalar>
-    using SelfAdjointMatrixFrom = typename MatrixTraits<M>::template SelfAdjointMatrixFrom<storage_triangle, dim, S>;
+    template<TriangleType storage_triangle = triangle_type, std::size_t dim = rows>
+    using SelfAdjointMatrixFrom = typename MatrixTraits<M>::template SelfAdjointMatrixFrom<storage_triangle, dim>;
 
 
-    template<TriangleType triangle_type = triangle_type, std::size_t dim = rows, typename S = Scalar>
-    using TriangularMatrixFrom = typename MatrixTraits<M>::template TriangularMatrixFrom<triangle_type, dim, S>;
+    template<TriangleType triangle_type = triangle_type, std::size_t dim = rows>
+    using TriangularMatrixFrom = typename MatrixTraits<M>::template TriangularMatrixFrom<triangle_type, dim>;
 
 
 #ifdef __cpp_concepts

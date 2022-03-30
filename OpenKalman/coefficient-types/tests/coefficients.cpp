@@ -15,7 +15,6 @@
 
 #include <gtest/gtest.h>
 #include "basics/basics.hpp"
-#include "coefficient-types/coefficient-types.hpp"
 
 using namespace OpenKalman;
 

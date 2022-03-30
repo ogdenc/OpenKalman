@@ -16,325 +16,6 @@
 #ifndef OPENKALMAN_EIGEN3_SPECIAL_MATRIX_OVERLOADS_HPP
 #define OPENKALMAN_EIGEN3_SPECIAL_MATRIX_OVERLOADS_HPP
 
-namespace OpenKalman::Eigen3
-{
-  /// Return row <code>i</code> of Arg.
-#ifdef __cpp_concepts
-  template<eigen_zero_expr Arg>
-#else
-  template<typename Arg, std::enable_if_t<eigen_zero_expr<Arg>, int> = 0>
-#endif
-  inline auto
-  row(Arg&& arg, const std::size_t i)
-  {
-    if (i < runtime_dimension_of<0>(arg)) throw std::out_of_range {
-      "Index " + std::to_string(i) + "is out of range 0 <= i < " + std::to_string(runtime_dimension_of<0>(arg))};
-
-    return reduce_rows(std::forward<Arg>(arg));
-  }
-
-
-  /// Return row <code>index</code> of Arg. Constexpr index version.
-#ifdef __cpp_concepts
-  template<std::size_t index, eigen_zero_expr Arg> requires (not dynamic_rows<Arg>) and
-    (index < row_dimension_of_v<Arg>)
-#else
-  template<std::size_t index, typename Arg, std::enable_if_t<
-    eigen_zero_expr<Arg> and (not dynamic_rows<Arg>) and (index < row_dimension_of<Arg>::value), int> = 0>
-#endif
-  inline decltype(auto)
-  row(Arg&& arg)
-  {
-    if constexpr(row_vector<Arg>)
-      return std::forward<Arg>(arg);
-    else
-      return reduce_rows(std::forward<Arg>(arg));
-  }
-
-
-  /// Return row <code>i</code> of Arg.
-#ifdef __cpp_concepts
-  template<eigen_constant_expr Arg>
-#else
-  template<typename Arg, std::enable_if_t<eigen_constant_expr<Arg>, int> = 0>
-#endif
-  inline auto
-  row(Arg&& arg, const std::size_t i)
-  {
-    if (i < runtime_dimension_of<0>(arg)) throw std::out_of_range {
-      "Index " + std::to_string(i) + "is out of range 0 <= i < " + std::to_string(runtime_dimension_of<0>(arg))};
-
-    return reduce_rows(std::forward<Arg>(arg));
-  }
-
-
-  /// Return row <code>index</code> of Arg. Constexpr index version.
-#ifdef __cpp_concepts
-  template<std::size_t index, eigen_constant_expr Arg> requires (index < row_dimension_of_v<Arg>)
-#else
-  template<std::size_t index, typename Arg, std::enable_if_t<
-      eigen_constant_expr<Arg> and (index < row_dimension_of<Arg>::value), int> = 0>
-#endif
-  inline decltype(auto)
-  row(Arg&& arg)
-  {
-    return reduce_rows(std::forward<Arg>(arg));
-  }
-
-
-  /// Return row <code>index</code> of Arg.
-#ifdef __cpp_concepts
-  template<typename Arg> requires eigen_self_adjoint_expr<Arg> or
-    eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>
-#else
-  template<typename Arg, std::enable_if_t<eigen_self_adjoint_expr<Arg> or
-      eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>, int> = 0>
-#endif
-  inline auto
-  row(Arg&& arg, const std::size_t index)
-  {
-    return row(make_dense_writable_matrix_from(std::forward<Arg>(arg)), index);
-  }
-
-
-  /// Return row <code>index</code> of Arg. Constexpr index version.
-#ifdef __cpp_concepts
-  template<std::size_t index, typename Arg> requires (eigen_self_adjoint_expr<Arg> or
-    eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>) and (index < row_dimension_of_v<Arg>)
-#else
-  template<std::size_t index, typename Arg, std::enable_if_t<(eigen_self_adjoint_expr<Arg> or
-      eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>) and (index < row_dimension_of<Arg>::value), int> = 0>
-#endif
-  inline decltype(auto)
-  row(Arg&& arg)
-  {
-    return row<index>(make_dense_writable_matrix_from(std::forward<Arg>(arg)));
-  }
-
-
-  /// Return column <code>col</code> of Arg.
-#ifdef __cpp_concepts
-  template<eigen_zero_expr Arg>
-#else
-  template<typename Arg, std::enable_if_t<eigen_zero_expr<Arg>, int> = 0>
-#endif
-  inline auto
-  column(Arg&& arg, const std::size_t col)
-  {
-    if (col < runtime_dimension_of<0>(arg)) throw std::out_of_range {
-      "Index " + std::to_string(col) + "is out of range 0 <= c < " + std::to_string(runtime_dimension_of<1>(arg))};
-
-    return reduce_columns(std::forward<Arg>(arg));
-  }
-
-
-  /// Return column <code>index</code> of Arg. Constexpr index version.
-#ifdef __cpp_concepts
-  template<std::size_t index, eigen_zero_expr Arg>
-  requires (not dynamic_columns<Arg>) and (index < column_dimension_of_v<Arg>)
-#else
-  template<std::size_t index, typename Arg, std::enable_if_t<
-    eigen_zero_expr<Arg> and (not dynamic_columns<Arg>) and (index < column_dimension_of<Arg>::value), int> = 0>
-#endif
-  inline decltype(auto)
-  column(Arg&& arg)
-  {
-    if constexpr(column_vector<Arg>)
-      return std::forward<Arg>(arg);
-    else
-      return reduce_columns(std::forward<Arg>(arg));
-  }
-
-
-/// Return column <code>i</code> of Arg.
-#ifdef __cpp_concepts
-  template<eigen_constant_expr Arg>
-#else
-  template<typename Arg, std::enable_if_t<eigen_constant_expr<Arg>, int> = 0>
-#endif
-  inline auto
-  column(Arg&& arg, const std::size_t i)
-  {
-    if (i < runtime_dimension_of<1>(arg)) throw std::out_of_range {
-      "Index " + std::to_string(i) + "is out of range 0 <= i < " + std::to_string(runtime_dimension_of<1>(arg))};
-
-    return reduce_columns(std::forward<Arg>(arg));
-  }
-
-
-  /// Return column <code>index</code> of Arg. Constexpr index version.
-#ifdef __cpp_concepts
-  template<std::size_t index, eigen_constant_expr Arg> requires (index < column_dimension_of_v<Arg>)
-#else
-  template<std::size_t index, typename Arg, std::enable_if_t<
-    eigen_constant_expr<Arg> and (index < column_dimension_of<Arg>::value), int> = 0>
-#endif
-  inline decltype(auto)
-  column(Arg&& arg)
-  {
-    return reduce_columns(std::forward<Arg>(arg));
-  }
-
-
-/// Return column <code>index</code> of Arg.
-#ifdef __cpp_concepts
-  template<typename Arg> requires eigen_self_adjoint_expr<Arg> or
-    eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>
-#else
-  template<typename Arg, std::enable_if_t<eigen_self_adjoint_expr<Arg> or
-    eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>, int> = 0>
-#endif
-  inline auto
-  column(Arg&& arg, const std::size_t index)
-  {
-    return column(make_dense_writable_matrix_from(std::forward<Arg>(arg)), index);
-  }
-
-
-  /// Return column <code>index</code> of Arg. Constexpr index version.
-#ifdef __cpp_concepts
-  template<std::size_t index, typename Arg> requires (eigen_self_adjoint_expr<Arg> or
-    eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>) and (index < column_dimension_of_v<Arg>)
-#else
-  template<std::size_t index, typename Arg, std::enable_if_t<(eigen_self_adjoint_expr<Arg> or
-    eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>) and (index < column_dimension_of<Arg>::value), int> = 0>
-#endif
-  inline decltype(auto)
-  column(Arg&& arg)
-  {
-    return column<index>(make_dense_writable_matrix_from(std::forward<Arg>(arg)));
-  }
-
-
-#ifdef __cpp_concepts
-  template<fixed_coefficients Coefficients, typename Arg>
-  requires (eigen_zero_expr<Arg> or eigen_constant_expr<Arg>) and
-    (dynamic_rows<Arg> or Coefficients::dimension == row_dimension_of_v<Arg>)
-#else
-  template<typename Coefficients, typename Arg, std::enable_if_t<fixed_coefficients<Coefficients> and
-    (eigen_zero_expr<Arg> or eigen_constant_expr<Arg>) and
-    (dynamic_rows<Arg> or Coefficients::dimension == row_dimension_of<Arg>::value), int> = 0>
-#endif
-  constexpr decltype(auto)
-  to_euclidean(Arg&& arg) noexcept
-  {
-    if constexpr (dynamic_rows<Arg>) if (runtime_dimension_of<0>(arg) != Coefficients::dimension)
-      throw std::out_of_range {"Number of rows (" + std::to_string(runtime_dimension_of<0>(arg)) +
-        ") does not match Coefficient dimension (" + std::to_string(Coefficients::dimension) + ")"};
-
-    if constexpr (Coefficients::axes_only)
-      return std::forward<Arg>(arg);
-    else
-      return ToEuclideanExpr<Coefficients, Arg>(std::forward<Arg>(arg));
-  }
-
-
-#ifdef __cpp_concepts
-  template<fixed_coefficients Coefficients, typename Arg>
-  requires (eigen_diagonal_expr<Arg> or eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>) and
-    (dynamic_rows<Arg> or Coefficients::dimension == row_dimension_of_v<Arg>) and
-    (dynamic_columns<Arg> or Coefficients::dimension == column_dimension_of_v<Arg>)
-#else
-  template<typename Coefficients, typename Arg, std::enable_if_t<fixed_coefficients<Coefficients> and
-    (eigen_diagonal_expr<Arg> or eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>) and
-    (dynamic_rows<Arg> or Coefficients::dimension == row_dimension_of<Arg>::value) and
-    (dynamic_columns<Arg> or Coefficients::dimension == column_dimension_of<Arg>::value), int> = 0>
-#endif
-  constexpr decltype(auto)
-  to_euclidean(Arg&& arg) noexcept
-  {
-    if constexpr (dynamic_rows<Arg>) if (runtime_dimension_of<0>(arg) != Coefficients::dimension)
-      throw std::out_of_range {"Number of rows (" + std::to_string(runtime_dimension_of<0>(arg)) +
-        ") does not match Coefficient dimension (" + std::to_string(Coefficients::dimension) + ")"};
-
-    if constexpr (Coefficients::axes_only)
-      return std::forward<Arg>(arg);
-    else
-      return ToEuclideanExpr<Coefficients, equivalent_dense_writable_matrix_t<Arg>>(std::forward<Arg>(arg));
-  }
-
-
-#ifdef __cpp_concepts
-  template<fixed_coefficients Coefficients, typename Arg>
-  requires (eigen_zero_expr<Arg> or eigen_constant_expr<Arg>) and
-    (dynamic_rows<Arg> or Coefficients::euclidean_dimension == row_dimension_of_v<Arg>)
-#else
-  template<typename Coefficients, typename Arg, std::enable_if_t<fixed_coefficients<Coefficients> and
-    (eigen_zero_expr<Arg> or eigen_constant_expr<Arg>) and
-    (dynamic_rows<Arg> or Coefficients::euclidean_dimension == row_dimension_of<Arg>::value), int> = 0>
-#endif
-  constexpr decltype(auto)
-  from_euclidean(Arg&& arg) noexcept
-  {
-    if constexpr (dynamic_rows<Arg>) if (runtime_dimension_of<0>(arg) != Coefficients::euclidean_dimension)
-      throw std::out_of_range {"Number of rows (" + std::to_string(runtime_dimension_of<0>(arg)) +
-        ") does not match Coefficient euclidean dimension " + std::to_string(Coefficients::euclidean_dimension)};
-
-    if constexpr (Coefficients::axes_only)
-      return std::forward<Arg>(arg);
-    else
-      return FromEuclideanExpr<Coefficients, Arg>(std::forward<Arg>(arg));
-  }
-
-
-#ifdef __cpp_concepts
-  template<fixed_coefficients Coefficients, typename Arg>
-  requires (eigen_diagonal_expr<Arg> or eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>) and
-    (dynamic_rows<Arg> or Coefficients::euclidean_dimension == row_dimension_of_v<Arg>) and
-    (dynamic_columns<Arg> or Coefficients::euclidean_dimension == column_dimension_of_v<Arg>)
-#else
-  template<typename Coefficients, typename Arg, std::enable_if_t<fixed_coefficients<Coefficients> and
-    (eigen_diagonal_expr<Arg> or eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>) and
-    (dynamic_rows<Arg> or Coefficients::euclidean_dimension == row_dimension_of<Arg>::value) and
-    (dynamic_columns<Arg> or Coefficients::euclidean_dimension == column_dimension_of<Arg>::value), int> = 0>
-#endif
-  constexpr decltype(auto)
-  from_euclidean(Arg&& arg) noexcept
-  {
-    if constexpr (dynamic_rows<Arg>) if (runtime_dimension_of<0>(arg) != Coefficients::euclidean_dimension)
-      throw std::out_of_range {"Number of rows (" + std::to_string(runtime_dimension_of<0>(arg)) +
-        ") does not match Coefficient euclidean dimension " + std::to_string(Coefficients::euclidean_dimension)};
-
-    if constexpr (Coefficients::axes_only)
-      return std::forward<Arg>(arg);
-    else
-      return FromEuclideanExpr<Coefficients, equivalent_dense_writable_matrix_t<Arg>>(std::forward<Arg>(arg));
-  }
-
-
-#ifdef __cpp_concepts
-  template<fixed_coefficients Coefficients, typename Arg>
-  requires (eigen_zero_expr<Arg> or eigen_constant_expr<Arg> or eigen_diagonal_expr<Arg> or
-    eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>) and
-    (dynamic_rows<Arg> or Coefficients::dimension == row_dimension_of_v<Arg>)
-#else
-  template<typename Coefficients, typename Arg, std::enable_if_t<fixed_coefficients<Coefficients> and
-    (eigen_zero_expr<Arg> or eigen_constant_expr<Arg> or eigen_diagonal_expr<Arg> or
-    eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>) and
-    (dynamic_rows<Arg> or Coefficients::dimension == row_dimension_of<Arg>::value), int> = 0>
-#endif
-  constexpr decltype(auto)
-  wrap_angles(Arg&& arg) noexcept
-  {
-    if constexpr (dynamic_rows<Arg>) if (runtime_dimension_of<0>(arg) != Coefficients::dimension)
-      throw std::out_of_range {"Number of rows (" + std::to_string(runtime_dimension_of<0>(arg)) +
-        ") does not match Coefficient dimension (" + std::to_string(Coefficients::dimension) + ")"};
-
-    if constexpr (Coefficients::axes_only or identity_matrix<Arg> or zero_matrix<Arg>)
-    {
-      /// \todo: Add functionality to conditionally wrap zero and identity, depending on wrap min and max.
-      return std::forward<Arg>(arg);
-    }
-    else
-    {
-      return from_euclidean<Coefficients>(to_euclidean<Coefficients>(std::forward<Arg>(arg)));
-    }
-  }
-
-
-} // namespace OpenKalman::Eigen3
-
-
 namespace OpenKalman::interface
 {
 
@@ -521,12 +202,37 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-  template<typename T> requires eigen_zero_expr<T> or eigen_constant_expr<T> or eigen_diagonal_expr<T> or
-    eigen_triangular_expr<T> or eigen_self_adjoint_expr<T>
-  struct ElementWiseOperations<T>
+  template<untyped_adapter T>
+  struct Subsets<T>
 #else
   template<typename T>
-  struct ElementWiseOperations<T, std::enable_if_t<eigen_zero_expr<T> or eigen_constant_expr<T> or
+  struct Subsets<T, std::enable_if_t<untyped_adapter<T>>>
+#endif
+  {
+    template<std::size_t...compile_time_index, typename Arg, typename...runtime_index_t>
+    static constexpr decltype(auto)
+    column(Arg&& arg, runtime_index_t...i)
+    {
+      return column<compile_time_index...>(make_dense_writable_matrix_from(std::forward<Arg>(arg)), i...);
+    }
+
+
+    template<std::size_t...compile_time_index, typename Arg, typename...runtime_index_t>
+    static constexpr decltype(auto)
+    row(Arg&& arg, runtime_index_t...i)
+    {
+      return row<compile_time_index...>(make_dense_writable_matrix_from(std::forward<Arg>(arg)), i...);
+    }
+  };
+
+
+#ifdef __cpp_concepts
+  template<typename T> requires eigen_zero_expr<T> or eigen_constant_expr<T> or eigen_diagonal_expr<T> or
+    eigen_triangular_expr<T> or eigen_self_adjoint_expr<T>
+  struct ArrayOperations<T>
+#else
+  template<typename T>
+  struct ArrayOperations<T, std::enable_if_t<eigen_zero_expr<T> or eigen_constant_expr<T> or
     eigen_diagonal_expr<T> or eigen_triangular_expr<T> or eigen_self_adjoint_expr<T>>>
 #endif
   {
@@ -581,6 +287,58 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
+  template<untyped_adapter T>
+  struct ModularTransformationTraits<T>
+#else
+  template<typename T>
+  struct ModularTransformationTraits<T, std::enable_if_t<untyped_adapter<T>>>
+#endif
+  {
+
+    template<typename...FC, typename Arg, typename...DC>
+    constexpr decltype(auto)
+    to_euclidean(Arg&& arg, DC&&...dc) noexcept
+    {
+      if constexpr (eigen_zero_expr<Arg> or eigen_constant_expr<Arg>)
+      {
+        return ToEuclideanExpr<FC..., DC..., Arg> {std::forward<Arg>(arg), std::forward<DC>(dc)...};
+      }
+      else
+      {
+        return ToEuclideanExpr<FC..., DC..., Arg> {
+          make_dense_writable_matrix_from(std::forward<Arg>(arg)), std::forward<DC>(dc)...};
+      }
+    }
+
+
+    template<typename...FC, typename Arg, typename...DC>
+    constexpr decltype(auto)
+    from_euclidean(Arg&& arg, DC&&...dc) noexcept
+    {
+      if constexpr (eigen_zero_expr<Arg> or eigen_constant_expr<Arg>)
+      {
+        return FromEuclideanExpr<FC..., DC..., Arg> {std::forward<Arg>(arg), std::forward<DC>(dc)...};
+      }
+      else
+      {
+        return FromEuclideanExpr<FC..., DC..., Arg> {
+          make_dense_writable_matrix_from(std::forward<Arg>(arg)), std::forward<DC>(dc)...};
+      }
+    }
+
+
+    template<typename...FC, typename Arg, typename...DC>
+    constexpr decltype(auto)
+    wrap_angles(Arg&& arg, DC&&...dc) noexcept
+    {
+      return FromEuclideanExpr<FC..., DC..., Arg>
+        {to_euclidean<Coefficients>(std::forward<Arg>(arg), std::forward<DC>(dc)...)};
+    }
+
+  };
+
+
+#ifdef __cpp_concepts
   template<typename T> requires eigen_zero_expr<T> or eigen_constant_expr<T> or eigen_diagonal_expr<T> or
     eigen_triangular_expr<T> or eigen_self_adjoint_expr<T>
   struct LinearAlgebra<T>
@@ -602,7 +360,7 @@ namespace OpenKalman::interface
 #     else
         constexpr auto adj = std::complex(std::real(constant), -std::imag(constant));
 #     endif
-        return make_constant_matrix_like<adj>(arg);
+        return make_constant_matrix_like<adj>(std::forward<Arg>(arg));
       }
       else if constexpr (eigen_diagonal_expr<Arg>)
       {
@@ -627,19 +385,12 @@ namespace OpenKalman::interface
     template<auto constant, typename Arg>
     static constexpr decltype(auto) eigen_constant_transpose_impl(Arg&& arg) noexcept
     {
-      constexpr auto rows = row_dimension_of_v<Arg>;
-      constexpr auto cols = column_dimension_of_v<Arg>;
+      using Scalar = scalar_type_of_t<Arg>;
 
-      if constexpr (rows == dynamic_size and cols == dynamic_size)
-        return make_constant_matrix_like<Arg, constant, cols, rows>(runtime_dimension_of<1>(arg), runtime_dimension_of<0>(arg));
-      else if constexpr (rows == dynamic_size)
-        return make_constant_matrix_like<Arg, constant, cols, rows>(runtime_dimension_of<0>(arg));
-      else if constexpr (cols == dynamic_size)
-        return make_constant_matrix_like<Arg, constant, cols, rows>(runtime_dimension_of<1>(arg));
-      else if constexpr (rows == cols)
+      if constexpr (not any_dynamic_dimension<Arg> and index_dimension_of_v<Arg, 0> == index_dimension_of_v<Arg, 1>)
         return std::forward<Arg>(arg);
       else
-        return make_constant_matrix_like<Arg, constant, cols, rows>();
+        return make_constant_matrix_like<Arg, constant, Scalar>(get_dimensions_of<1>(arg), get_dimensions_of<0>(arg));
     }
 
   public:
@@ -765,12 +516,7 @@ namespace OpenKalman::interface
     }
 
 
-#ifdef __cpp_concepts
-    template<TriangleType t, typename A, typename U, typename Alpha> requires (not eigen_triangular_expr<A>)
-#else
-    template<TriangleType t, typename A, typename U, typename Alpha, std::enable_if_t<
-      not eigen_triangular_expr<A>, int> = 0>
-#endif
+    template<TriangleType t, typename A, typename U, typename Alpha>
     static decltype(auto) rank_update_self_adjoint(A&& a, U&& u, const Alpha alpha = 1)
     {
       if constexpr (zero_matrix<A>)
@@ -795,12 +541,7 @@ namespace OpenKalman::interface
     }
 
 
-#ifdef __cpp_concepts
-    template<TriangleType t, typename A, typename U, typename Alpha> requires (not eigen_self_adjoint_expr<A>)
-#else
-    template<TriangleType t, typename A, typename U, typename Alpha, std::enable_if_t<
-      not eigen_self_adjoint_expr<A>, int> = 0>
-#endif
+    template<TriangleType t, typename A, typename U, typename Alpha>
     static decltype(auto) rank_update_triangular(A&& a, U&& u, const Alpha alpha = 1)
     {
       if constexpr (zero_matrix<A>)
@@ -847,6 +588,16 @@ namespace OpenKalman::interface
       }
     }
 
+
+  /// Solve the equation AX = B for X. A is a diagonal matrix.
+   template<bool must_be_unique, bool must_be_exact, typename A, typename B>
+    static constexpr decltype(auto)
+    solve(A&& a, B&& b)
+    {
+      using N = decltype(nested_matrix(a));
+      return LinearAlgebra<N>::template solve<must_be_unique, must_be_exact>(std::forward<A>(a), std::forward<B>(b));
+    }
+
   };
 
 
@@ -855,185 +606,6 @@ namespace OpenKalman::interface
 
 namespace OpenKalman::Eigen3
 {
-
-  /**
-   * \brief Solve the equation AX = B for X. A is an invertible square zero matrix.
-   * \note These solutions, if they exist, are non-unique.
-   * \returns A zero matrix.
-   */
-#ifdef __cpp_concepts
-  template<eigen_zero_expr A, eigen_matrix B>
-  requires (any_dynamic_dimension<A> or square_matrix<A>) and
-    (dynamic_rows<A> or dynamic_rows<B> or row_dimension_of_v<A> == row_dimension_of_v<B>)
-#else
-  template<typename A, typename B, std::enable_if_t<eigen_zero_expr<A> and eigen_matrix<B> and
-      (any_dynamic_dimension<A> or square_matrix<A>) and
-      (dynamic_rows<A> or dynamic_rows<B> or row_dimension_of<A>::value == row_dimension_of<B>::value), int> = 0>
-#endif
-  constexpr auto
-  solve(A&& a, B&& b)
-  {
-    if constexpr (any_dynamic_dimension<A>) assert(runtime_dimension_of<0>(a) == runtime_dimension_of<1>(a));
-    if constexpr (dynamic_rows<A> or dynamic_rows<B>) assert(runtime_dimension_of<0>(a) == runtime_dimension_of<0>(b));
-
-    constexpr std::size_t dim = dynamic_rows<A> ?
-      (dynamic_rows<B> ? column_dimension_of_v<A>: row_dimension_of_v<B>) : row_dimension_of_v<A>;
-
-    if constexpr (zero_matrix<B>)
-      return std::forward<B>(b);
-    else // Unless b is zero there is no actual solution. So we pick zero.
-      return make_zero_matrix_like<dim, column_dimension_of_v<B>>(b);
-  }
-
-
-  /// Solve the equation AX = B for X. A is an invertible square matrix.
-#ifdef __cpp_concepts
-  template<eigen_constant_expr A, eigen_matrix B>
-  requires (any_dynamic_dimension<A> or square_matrix<A>) and
-    (dynamic_rows<A> or dynamic_rows<B> or row_dimension_of_v<A> == row_dimension_of_v<B>)
-#else
-  template<typename A, typename B, std::enable_if_t<eigen_constant_expr<A> and eigen_matrix<B> and
-    (any_dynamic_dimension<A> or square_matrix<A>) and
-    (dynamic_rows<A> or dynamic_rows<B> or row_dimension_of<A>::value == row_dimension_of<B>::value), int> = 0>
-#endif
-  constexpr auto
-  solve(A&& a, B&& b)
-  {
-    using Scalar = scalar_type_of_t<A>;
-
-    if constexpr (any_dynamic_dimension<A>) assert(runtime_dimension_of<0>(a) == runtime_dimension_of<1>(a));
-    if constexpr (dynamic_rows<A> or dynamic_rows<B>) assert(runtime_dimension_of<0>(a) == runtime_dimension_of<0>(b));
-
-    constexpr std::size_t dim = dynamic_rows<A> ?
-      (dynamic_rows<B> ? column_dimension_of_v<A>: row_dimension_of_v<B>) : row_dimension_of_v<A>;
-
-    if constexpr (zero_matrix<B>)
-    {
-      return std::forward<B>(b);
-    }
-    else if constexpr (zero_matrix<A>)
-    {
-      return solve(ZeroMatrix {std::forward<A>(a)}, std::forward<B>(b));
-    }
-    else if constexpr (dim == 1)
-    {
-      return make_self_contained(std::forward<B>(b) / constant_coefficient_v<A>);
-    }
-    else if constexpr (constant_matrix<B>)
-    {
-      if constexpr (dim == dynamic_size)
-      {
-        auto c = static_cast<Scalar>(constant_coefficient_v<B>) / (runtime_dimension_of<0>(b) * constant_coefficient_v<A>);
-        return make_self_contained(c * make_constant_matrix_like<1, dim, column_dimension_of_v<B>>(b));
-      }
-      else
-      {
-#if __cpp_nontype_template_args >= 201911L
-        constexpr auto c = static_cast<Scalar>(constant_coefficient_v<B>) / (dim * constant_coefficient_v<A>);
-        return make_constant_matrix_like<c, dim, column_dimension_of_v<B>>(b);
-#else
-        if constexpr(constant_coefficient_v<B> % (dim * constant_coefficient_v<A>) == 0)
-        {
-          constexpr auto c = constant_coefficient_v<B> / (dim * constant_coefficient_v<A>);
-          return make_constant_matrix_like<c, dim, column_dimension_of_v<B>>(b);
-        }
-        else
-        {
-          auto c = static_cast<Scalar>(constant_coefficient_v<B>) / (runtime_dimension_of<0>(b) * constant_coefficient_v<A>);
-          return make_self_contained(c * make_constant_matrix_like<1, dim, column_dimension_of_v<B>>(b));
-        }
-#endif
-      }
-    }
-    else
-    {
-      // In this general case, there is only an exact solution if all coefficients in each column are the same.
-      // We select a good approximate solution.
-
-      if constexpr (dim == dynamic_size or not dynamic_rows<B>)
-      {
-        return make_self_contained(b / (runtime_dimension_of<0>(b) * constant_coefficient_v<A>));
-      }
-      else if constexpr (dynamic_columns<B>)
-      {
-        using M = eigen_matrix_t<Scalar, dim, dynamic_size>;
-        return M {b / (runtime_dimension_of<0>(b) * constant_coefficient_v<A>)};
-      }
-      else
-      {
-        using M = eigen_matrix_t<Scalar, dim, column_dimension_of_v<B>>;
-        return M {b / (runtime_dimension_of<0>(b) * constant_coefficient_v<A>)};
-      }
-    }
-  }
-
-
-  /// Solve the equation AX = B for X. A is a diagonal matrix.
-#ifdef __cpp_concepts
-  template<eigen_diagonal_expr A, eigen_matrix B> requires (row_dimension_of_v<A> == row_dimension_of_v<B>)
-#else
-  template<typename A, typename B, std::enable_if_t<eigen_diagonal_expr<A> and eigen_matrix<B> and
-    (row_dimension_of<A>::value == row_dimension_of<B>::value), int> = 0>
-#endif
-  inline auto
-  solve(const A& a, const B& b)
-  {
-    if constexpr (any_dynamic_dimension<A>) assert(runtime_dimension_of<0>(a) == runtime_dimension_of<1>(a));
-    if constexpr (dynamic_rows<A> or dynamic_rows<B>) assert(runtime_dimension_of<0>(a) == runtime_dimension_of<0>(b));
-
-    return (b.array().colwise() / nested_matrix(a).array()).matrix();
-  }
-
-
-#ifdef __cpp_concepts
-  template<eigen_self_adjoint_expr A, eigen_matrix B>
-#else
-  template<typename A, typename B, std::enable_if_t<eigen_self_adjoint_expr<A> and eigen_matrix<B>, int> = 0>
-#endif
-  constexpr auto
-  solve(A&& a, B&& b)
-  {
-    using Scalar = scalar_type_of_t<A>;
-    static_assert(std::is_same_v<Scalar, scalar_type_of_t<B>>);
-
-    if constexpr (dynamic_rows<A> or dynamic_rows<B>) assert(runtime_dimension_of<0>(a) == runtime_dimension_of<0>(b));
-
-    auto v {std::forward<A>(a).view()};
-    using M = Eigen3::eigen_matrix_t<Scalar, row_dimension_of_v<A>, column_dimension_of_v<B>>;
-    auto llt {v.llt()};
-
-    M ret;
-    if (llt.info() == Eigen::Success)
-    {
-      ret = Eigen::Solve {llt, std::forward<B>(b)};
-    }
-    else [[unlikely]]
-    {
-      // A is semidefinite. Use LDLT decomposition instead.
-      auto ldlt {v.ldlt()};
-      if ((not ldlt.isPositive() and not ldlt.isNegative()) or ldlt.info() != Eigen::Success)
-      {
-        throw (std::runtime_error("SelfAdjointMatrix solve: A is indefinite"));
-      }
-      ret = Eigen::Solve {ldlt, std::forward<B>(b)};
-    }
-    return ret;
-  }
-
-
-#ifdef __cpp_concepts
-  template<eigen_triangular_expr A, eigen_matrix B>
-#else
-  template<typename A, typename B, std::enable_if_t<eigen_triangular_expr<A> and eigen_matrix<B>, int> = 0>
-#endif
-  constexpr auto
-  solve(A&& a, B&& b)
-  {
-    if constexpr (dynamic_rows<A> or dynamic_rows<B>) assert(runtime_dimension_of<0>(a) == runtime_dimension_of<0>(b));
-
-    return make_self_contained<A, B>(Eigen::Solve {std::forward<A>(a).view(), std::forward<B>(b)});
-  }
-
 
   /// Create a column vector by taking the mean of each row in a set of column vectors.
 #ifdef __cpp_concepts
@@ -1063,7 +635,7 @@ namespace OpenKalman::Eigen3
     if constexpr (column_vector<Arg>)
       return std::forward<Arg>(arg);
     else
-      return make_constant_matrix_like<constant_coefficient_v<Arg>, index_dimension_of_v<Arg, 0>, 1>(arg);
+      return make_constant_matrix_like<Arg, constant_coefficient_v<Arg>>(get_dimensions_of<0>(arg), Dimensions<1>{});
   }
 
 
@@ -1121,7 +693,7 @@ namespace OpenKalman::Eigen3
     if constexpr (row_vector<Arg>)
       return std::forward<Arg>(arg);
     else
-      return make_constant_matrix_like<constant_coefficient_v<Arg>, 1, column_dimension_of_v<Arg>>(arg);
+      return make_constant_matrix_like<Arg, constant_coefficient_v<Arg>>(Dimensions<1>{}, get_dimensions_of<1>(arg));
   }
 
 
@@ -1547,7 +1119,7 @@ namespace OpenKalman::Eigen3
   split_vertical(Arg&& arg)
   {
     static_assert((0 + ... + Cs::dimension) <= row_dimension_of_v<Arg>);
-    return split_vertical<internal::SplitSpecF<F, equivalent_dense_writable_matrix_t<Arg>>, Cs...>(make_dense_writable_matrix_from(std::forward<Arg>(arg)));
+    return split_vertical<internal::SplitSpecF<F, dense_writable_matrix_t<Arg>>, Cs...>(make_dense_writable_matrix_from(std::forward<Arg>(arg)));
   }
 
   /// Split a self-adjoint, triangular, or diagonal matrix diagonally.
@@ -1596,7 +1168,7 @@ namespace OpenKalman::Eigen3
   split_horizontal(Arg&& arg)
   {
     static_assert((0 + ... + Cs::dimension) <= row_dimension_of_v<Arg>);
-    return split_horizontal<internal::SplitSpecF<F, equivalent_dense_writable_matrix_t<Arg>>, Cs...>(make_dense_writable_matrix_from(std::forward<Arg>(arg)));
+    return split_horizontal<internal::SplitSpecF<F, dense_writable_matrix_t<Arg>>, Cs...>(make_dense_writable_matrix_from(std::forward<Arg>(arg)));
   }
 
   /// Split a self-adjoint, triangular, or diagonal matrix horizontally.

@@ -299,19 +299,19 @@ namespace OpenKalman
 
   public:
 
-    template<TriangleType storage_triangle = TriangleType::lower, std::size_t dim = rows, typename S = Scalar>
-    using SelfAdjointMatrixFrom = std::conditional_t<self_adjoint_matrix<Nat<S, dim, dim>>,
-      Nat<S, dim, dim>, Eigen3::SelfAdjointMatrix<Nat<S, dim, dim>, storage_triangle>>;
+    template<TriangleType storage_triangle = TriangleType::lower, std::size_t dim = rows>
+    using SelfAdjointMatrixFrom = std::conditional_t<self_adjoint_matrix<Nat<Scalar, dim, dim>>,
+      Nat<Scalar, dim, dim>, Eigen3::SelfAdjointMatrix<Nat<Scalar, dim, dim>, storage_triangle>>;
 
 
-    template<TriangleType triangle_type = TriangleType::lower, std::size_t dim = rows, typename S = Scalar>
-    using TriangularMatrixFrom = std::conditional_t<triangular_matrix<Nat<S, dim, dim>>,
-      Nat<S, dim, dim>, Eigen3::TriangularMatrix<Nat<S, dim, dim>, triangle_type>>;
+    template<TriangleType triangle_type = TriangleType::lower, std::size_t dim = rows>
+    using TriangularMatrixFrom = std::conditional_t<triangular_matrix<Nat<Scalar, dim, dim>>,
+      Nat<Scalar, dim, dim>, Eigen3::TriangularMatrix<Nat<Scalar, dim, dim>, triangle_type>>;
 
 
-    template<std::size_t dim = rows, typename S = Scalar>
-    using DiagonalMatrixFrom = std::conditional_t<diagonal_matrix<Nat<S, dim, 1>>,
-      Nat<S, dim, 1>, Eigen3::DiagonalMatrix<Nat<S, dim, 1>>>;
+    template<std::size_t dim = rows>
+    using DiagonalMatrixFrom = std::conditional_t<diagonal_matrix<Nat<Scalar, dim, 1>>,
+      Nat<Scalar, dim, 1>, Eigen3::DiagonalMatrix<Nat<Scalar, dim, 1>>>;
 
 
     template<typename Derived>

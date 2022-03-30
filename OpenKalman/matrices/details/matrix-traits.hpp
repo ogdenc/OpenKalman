@@ -14,7 +14,6 @@
 namespace OpenKalman
 {
 
-
   namespace interface
   {
 
@@ -46,8 +45,8 @@ namespace OpenKalman
     struct IndexTraits<T, N, std::enable_if_t<typed_matrix<T>>>
 #endif
     {
-      static constexpr std::size_t dimension = N == 0 ? MatrixTraits<T>::RowCoefficients::dimension :
-        MatrixTraits<T>::ColumnCoefficients::dimension;
+      static constexpr std::size_t dimension = N == 0 ? row_coefficient_types_of_t<T>::dimension :
+        column_coefficient_types_of_t<T>::dimension;
 
       template<typename Arg>
       static constexpr std::size_t dimension_at_runtime(Arg&& arg)
@@ -71,14 +70,14 @@ namespace OpenKalman
       static constexpr std::size_t dimension = MatrixTraits<T>::Coefficients::dimension;
 
       template<typename Arg>
-      static constexpr std::size_t dimension_at_runtime(Arg&& arg)
+      static constexpr std::size_t dimension_at_runtime(const Arg& arg)
       {
         using Nested = nested_matrix_of_t<T>;
 
         if constexpr (dynamic_dimension<Nested, 0>)
         {
           if constexpr (dynamic_dimension<Nested, 1>)
-            return runtime_dimension_of<0>(nested_matrix(std::forward<Arg>(arg)));
+            return runtime_dimension_of<0>(nested_matrix(arg));
           else
             return index_dimension_of_v<Nested, 1>;
         }
@@ -90,19 +89,58 @@ namespace OpenKalman
     };
 
 
+    // ------------------------ //
+    //  CoordinateSystemTraits  //
+    // ------------------------ //
+
+    template<typename RowCoeffs, typename ColCoeffs, typename NestedMatrix, std::size_t N>
+    struct CoordinateSystemTraits<Matrix<RowCoeffs, ColCoeffs, NestedMatrix>, N>
+    {
+      using coordinate_system_types = std::conditional_t<N == 0, RowCoeffs, ColCoeffs>;
+    };
+
+
+    template<typename Coeffs, typename NestedMatrix>
+    struct CoordinateSystemTraits<Mean<Coeffs, NestedMatrix>, 0>
+    {
+      using coordinate_system_types = Coeffs;
+    };
+
+
+    template<typename Coeffs, typename NestedMatrix>
+    struct CoordinateSystemTraits<EuclideanMean<Coeffs, NestedMatrix>, 0>
+    {
+      using coordinate_system_types = Coeffs;
+    };
+
+
+    template<typename Coeffs, typename NestedMatrix, std::size_t N>
+    struct CoordinateSystemTraits<Covariance<Coeffs, NestedMatrix>, N>
+    {
+      using coordinate_system_types = Coeffs;
+    };
+
+
+    template<typename Coeffs, typename NestedMatrix, std::size_t N>
+    struct CoordinateSystemTraits<SquareRootCovariance<Coeffs, NestedMatrix>, N>
+    {
+      using coordinate_system_types = Coeffs;
+    };
+
+
     // -------------- //
     //  ScalarTypeOf  //
     // -------------- //
 
 #ifdef __cpp_concepts
-    template<typename T> requires typed_matrix<T> or covariance<T>
+    template<typed_adapter T>
     struct ScalarTypeOf<T>
 #else
     template<typename T>
-    struct ScalarTypeOf<T, std::enable_if_t<typed_matrix<T> or covariance<T>>>
+    struct ScalarTypeOf<T, std::enable_if_t<typed_adapter<T>>>
 #endif
     {
-      using type = scalar_type_of_t<nested_matrix_of_t<T>>;
+      using type = scalar_type_of_t<pattern_matrix_of_t<T>>;
     };
 
 
@@ -119,11 +157,11 @@ namespace OpenKalman
 #endif
     {
 
-      template<typename...runtime_dimensions>
-      static auto make_default(runtime_dimensions...e)
+      template<typename...D>
+      static auto make_default(D&&...d)
       {
         using Trait = EquivalentDenseWritableMatrix<nested_matrix_of_t<T>, rows, columns, Scalar>;
-        return Trait::make_default(e...);
+        return Trait::make_default(std::forward<D>(d)...);
       }
 
 
@@ -154,11 +192,11 @@ namespace OpenKalman
 #endif
     {
 
-      template<typename...runtime_dimensions>
-      static auto make_default(runtime_dimensions...e)
+      template<typename...D>
+      static auto make_default(D&&...d)
       {
-        using Trait = EquivalentDenseWritableMatrix<nested_matrix_of_t<T>, rows, columns, Scalar>;
-        return Trait::make_default(e...);
+        using Trait = EquivalentDenseWritableMatrix<pattern_matrix_of_t<T>, rows, columns, Scalar>;
+        return Trait::make_default(std::forward<D>(d)...);
       }
 
 
@@ -541,7 +579,7 @@ namespace OpenKalman
 #endif
     {
       static constexpr bool is_diagonal = diagonal_matrix<nested_matrix_of_t<T>> and
-        equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>;
+        equivalent_to<row_coefficient_types_of_t<T>, column_coefficient_types_of_t<T>>;
     };
 
 
@@ -579,13 +617,13 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
     template<typed_matrix T> requires triangular_matrix<nested_matrix_of_t<T>> and
-      equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>
+      equivalent_to<row_coefficient_types_of_t<T>, column_coefficient_types_of_t<T>>
     struct TriangularTraits<T>
 #else
     template<typename T>
     struct TriangularTraits<T, std::enable_if_t<
       typed_matrix<T> and triangular_matrix<nested_matrix_of<T>::type> and
-      equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>>>
+      equivalent_to<row_coefficient_types_of_t<T>, column_coefficient_types_of_t<T>>>>
 #endif
     {
       static constexpr TriangleType triangle_type = triangle_type_of_v<nested_matrix_of_t<T>>;
@@ -627,13 +665,13 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
     template<typed_matrix T> requires self_adjoint_matrix<nested_matrix_of_t<T>> and
-      equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>
+      equivalent_to<row_coefficient_types_of_t<T>, column_coefficient_types_of_t<T>>
     struct HermitianTraits<T>
 #else
     template<typename T>
     struct HermitianTraits<T, std::enable_if_t<
       typed_matrix<T> and self_adjoint_matrix<nested_matrix_of<T>::type> and
-      equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>>>
+      equivalent_to<row_coefficient_types_of_t<T>, column_coefficient_types_of_t<T>>>>
 #endif
       : self_adjoint_triangle_type_of<nested_matrix_of_t<T>> {};
 
@@ -644,23 +682,18 @@ namespace OpenKalman
   //        MatrixTraits         //
   // --------------------------- //
 
-  template<typename RowCoeffs, typename ColCoeffs, typename NestedMatrix>
-  struct MatrixTraits<Matrix<RowCoeffs, ColCoeffs, NestedMatrix>>
+  template<typename RowCoefficients, typename ColCoefficients, typename NestedMatrix>
+  struct MatrixTraits<Matrix<RowCoefficients, ColCoefficients, NestedMatrix>>
   {
   private:
 
     using Scalar = scalar_type_of_t<NestedMatrix>;
     static constexpr std::size_t rows = row_dimension_of_v<NestedMatrix>;
     static constexpr std::size_t columns = column_dimension_of_v<NestedMatrix>;
-    static_assert(RowCoeffs::dimension == rows);
-    static_assert(ColCoeffs::dimension == columns);
+    static_assert(RowCoefficients::dimension == rows);
+    static_assert(ColCoefficients::dimension == columns);
 
   public:
-
-    using Coefficients = RowCoeffs;
-    using RowCoefficients = RowCoeffs;
-    using ColumnCoefficients = ColCoeffs;
-
 
 #ifdef __cpp_concepts
     template<coefficients RC = RowCoefficients, coefficients CC = ColumnCoefficients, typed_matrix_nestable Arg>
@@ -678,8 +711,8 @@ namespace OpenKalman
   };
 
 
-  template<typename Coeffs, typename NestedMatrix>
-  struct MatrixTraits<Mean<Coeffs, NestedMatrix>>
+  template<typename RowCoefficients, typename NestedMatrix>
+  struct MatrixTraits<Mean<RowCoefficients, NestedMatrix>>
   {
   private:
 
@@ -689,8 +722,6 @@ namespace OpenKalman
 
   public:
 
-    using RowCoefficients = Coeffs;
-    using ColumnCoefficients = Axes<columns>;
     static_assert(RowCoefficients::dimension == rows);
 
     /// Make from a typed_matrix_nestable. If CC is specified, it must be axes-only.
@@ -712,8 +743,8 @@ namespace OpenKalman
   };
 
 
-  template<typename Coeffs, typename NestedMatrix>
-  struct MatrixTraits<EuclideanMean<Coeffs, NestedMatrix>>
+  template<typename RowCoefficients, typename NestedMatrix>
+  struct MatrixTraits<EuclideanMean<RowCoefficients, NestedMatrix>>
   {
   private:
 
@@ -722,12 +753,6 @@ namespace OpenKalman
     static constexpr std::size_t columns = column_dimension_of_v<NestedMatrix>;
 
   public:
-
-    using RowCoefficients = Coeffs;
-    static_assert(RowCoefficients::euclidean_dimension == rows);
-
-    using ColumnCoefficients = Axes<columns>;
-
 
     /// Make from a regular matrix. If CC is specified, it must be axes-only.
 #ifdef __cpp_concepts
@@ -758,10 +783,6 @@ namespace OpenKalman
 
   public:
 
-    using RowCoefficients = Coeffs;
-    using ColumnCoefficients = Coeffs;
-
-
 #ifdef __cpp_concepts
     template<coefficients C = Coeffs, covariance_nestable Arg>
 #else
@@ -786,10 +807,6 @@ namespace OpenKalman
 
   public:
 
-    static_assert(Coeffs::dimension == rows);
-    using RowCoefficients = Coeffs;
-    using ColumnCoefficients = Coeffs;
-
     /// Make SquareRootCovariance from a \ref covariance_nestable.
 #ifdef __cpp_concepts
     template<coefficients C = Coeffs, covariance_nestable Arg>
@@ -803,6 +820,6 @@ namespace OpenKalman
 
   };
 
-}
+} // namespace OpenKalman
 
 #endif //OPENKALMAN_MATRIXTRAITS_HPP

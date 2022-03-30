@@ -21,10 +21,10 @@ add_executable(eigen3
     eigen3-transpose-adjoint-determinant-trace.test.cpp
     eigen3-rank-update.test.cpp
     eigen3-solve.test.cpp
-    eigen3-reduction-decomposition.test.cpp
-    eigen3-blocks.test.cpp
-    eigen3-part-wise.test.cpp
-    eigen3-randomize.test.cpp
+    #eigen3-reduction-decomposition.test.cpp
+    #eigen3-blocks.test.cpp
+    #eigen3-part-wise.test.cpp
+    #eigen3-randomize.test.cpp
     )
 
 target_link_libraries(eigen3 ${GTEST_BOTH_LIBRARIES} Eigen3::Eigen Threads::Threads)

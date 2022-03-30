@@ -55,13 +55,13 @@ namespace OpenKalman::Eigen3
     /// Construct from a compatible to-Euclidean expression.
 #ifdef __cpp_concepts
     template<to_euclidean_expr Arg> requires (not std::derived_from<std::decay_t<Arg>, ToEuclideanExpr>) and
-      equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients> and
+      equivalent_to<row_coefficient_types_of_t<Arg>, Coefficients> and
       std::constructible_from<NestedMatrix, decltype(nested_matrix(std::declval<Arg&&>()))>
       //alt: requires(Arg&& arg) { NestedMatrix {nested_matrix(std::forward<Arg>(arg))}; } -- not accepted in GCC 10
 #else
     template<typename Arg, std::enable_if_t<to_euclidean_expr<Arg> and
       (not std::is_base_of_v<ToEuclideanExpr, std::decay_t<Arg>>) and
-      equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients> and
+      equivalent_to<row_coefficient_types_of_t<Arg>, Coefficients> and
       std::is_constructible_v<NestedMatrix, decltype(nested_matrix(std::declval<Arg&&>()))>, int> = 0>
 #endif
     ToEuclideanExpr(Arg&& arg) noexcept : Base {nested_matrix(std::forward<Arg>(arg))} {}
@@ -91,13 +91,13 @@ namespace OpenKalman::Eigen3
     /// Assign from a compatible to-Euclidean expression.
 #ifdef __cpp_concepts
     template<to_euclidean_expr Arg> requires (not std::derived_from<std::decay_t<Arg>, ToEuclideanExpr>) and
-      (equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>) and
+      (equivalent_to<row_coefficient_types_of_t<Arg>, Coefficients>) and
       (column_dimension_of_v<Arg> == columns) and
       modifiable<NestedMatrix, nested_matrix_of_t<Arg>>
 #else
     template<typename Arg, std::enable_if_t<to_euclidean_expr<Arg> and
       (not std::is_base_of_v<ToEuclideanExpr, std::decay_t<Arg>>) and
-      (equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>) and
+      (equivalent_to<row_coefficient_types_of_t<Arg>, Coefficients>) and
       (column_dimension_of<Arg>::value == columns) and
       modifiable<NestedMatrix, nested_matrix_of_t<Arg>>, int> = 0>
 #endif
@@ -134,10 +134,10 @@ namespace OpenKalman::Eigen3
     /// Increment from another \ref to_euclidean_expr.
 #ifdef __cpp_concepts
     template<to_euclidean_expr Arg> requires (column_dimension_of_v<Arg> == columns) and
-      equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>
+      equivalent_to<row_coefficient_types_of_t<Arg>, Coefficients>
 #else
     template<typename Arg, std::enable_if_t<to_euclidean_expr<Arg> and (column_dimension_of<Arg>::value == columns) and
-      equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>, int> = 0>
+      equivalent_to<row_coefficient_types_of_t<Arg>, Coefficients>, int> = 0>
 #endif
     auto& operator+=(const Arg& arg) noexcept
     {
@@ -164,10 +164,10 @@ namespace OpenKalman::Eigen3
     /// Decrement from another \ref to_euclidean_expr.
 #ifdef __cpp_concepts
     template<to_euclidean_expr Arg> requires (column_dimension_of_v<Arg> == columns) and
-      equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>
+      equivalent_to<row_coefficient_types_of_t<Arg>, Coefficients>
 #else
     template<typename Arg, std::enable_if_t<to_euclidean_expr<Arg> and (column_dimension_of<Arg>::value == columns) and
-      equivalent_to<typename MatrixTraits<Arg>::RowCoefficients, Coefficients>, int> = 0>
+      equivalent_to<row_coefficient_types_of_t<Arg>, Coefficients>, int> = 0>
 #endif
     auto& operator-=(const Arg& arg) noexcept
     {

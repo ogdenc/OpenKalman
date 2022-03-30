@@ -228,7 +228,7 @@ namespace OpenKalman::Eigen3
     using NestedMatrix = std::decay_t<nested_matrix_of_t<A>>;
     using Scalar = scalar_type_of_t<A>;
     constexpr auto dim = index_dimension_of_v<A, 0>;
-    using M = equivalent_dense_writable_matrix_t<A>;
+    using M = dense_writable_matrix_t<A>;
 
     if constexpr(identity_matrix<A> or zero_matrix<A>)
     {
@@ -247,7 +247,7 @@ namespace OpenKalman::Eigen3
       {
         static_assert(diagonal_matrix<A>);
 #if __cpp_nontype_template_args >= 201911L
-        return to_diagonal(make_constant_matrix_like<sqrt_s, dim, 1>(a));
+        return to_diagonal(make_constant_matrix_like<A, sqrt_s>(Dimensions<dim>{}, Dimensions<1>{}));
 #else
         return make_self_contained<A>(sqrt_s * make_identity_matrix_like(a));
 #endif
@@ -255,9 +255,9 @@ namespace OpenKalman::Eigen3
       else if constexpr (triangle_type == TriangleType::lower)
       {
 #if __cpp_nontype_template_args >= 201911L
-        auto col0 = make_constant_matrix_like<sqrt_s, dim, 1>(a);
+        auto col0 = make_constant_matrix_like<A, sqrt_s>(Dimensions<dim>{}, Dimensions<1>{});
 #else
-        auto col0 = sqrt_s * make_constant_matrix_like<1, dim, 1>(a);
+        auto col0 = sqrt_s * make_constant_matrix_like<A, 1>(Dimensions<dim>{}, Dimensions<1>{});
 #endif
         auto othercols = [](A&& a) {
           if constexpr (dim == dynamic_size)
@@ -273,9 +273,9 @@ namespace OpenKalman::Eigen3
       {
         static_assert(triangle_type == TriangleType::upper);
 #if __cpp_nontype_template_args >= 201911L
-        auto row0 = make_constant_matrix_like<sqrt_s, 1, dim>(a);
+        auto row0 = make_constant_matrix_like<A, sqrt_s>(Dimensions<1>{}, Dimensions<dim>{});
 #else
-        auto row0 = sqrt_s * make_constant_matrix_like<1, 1, dim>(a);
+        auto row0 = sqrt_s * make_constant_matrix_like<A, 1>(Dimensions<1>{}, Dimensions<dim>{});
 #endif
         auto otherrows = [](A&& a) {
           if constexpr (dim == dynamic_size)

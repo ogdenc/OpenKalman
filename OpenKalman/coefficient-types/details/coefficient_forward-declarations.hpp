@@ -25,6 +25,191 @@
 
 namespace OpenKalman
 {
+  // ---------------- //
+  //   Coefficients   //
+  // ---------------- //
+
+  namespace internal
+  {
+    /**
+     * \internal
+     * \brief A type trait testing whether T is an atomic group of coefficients.
+     * \details Atomic coefficient groups are %coefficients or groups of %coefficients that function as a unit,
+     * and cannot be separated. They may be combined into composite coefficients by passing them as template
+     * parameters to Coefficients.
+     */
+    template<typename T>
+    struct is_atomic_coefficient_group : std::false_type {};
+
+
+    /**
+     * \internal
+     * \brief A type trait testing whether T is a composite set of coefficient groups.
+     * \details Composite coefficients are specializations of the class Coefficients, which has the purpose of grouping
+     * other atomic or composite coefficients. Composite coefficients can, themselves, comprise groups of other
+     * composite components.
+     */
+    template<typename T>
+    struct is_composite_coefficients : std::false_type {};
+
+
+    /**
+     * \internal
+     * \brief A type trait testing whether T is a dynamic (defined at time) set of coefficients.
+     * \sa DynamicCoefficients.
+     */
+    template<typename T>
+    struct is_dynamic_coefficients : std::false_type {};
+  }
+
+
+  /**
+   * \brief T is an atomic (non-seperable) group of coefficients.
+   * \details Atomic coefficient groups are %coefficients or groups of %coefficients that function as a unit,
+   * and cannot be separated. They may be combined into composite coefficients by passing them as template
+   * parameters to Coefficients.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept atomic_coefficient_group = internal::is_atomic_coefficient_group<std::decay_t<T>>::value;
+#else
+  constexpr bool atomic_coefficient_group = internal::is_atomic_coefficient_group<std::decay_t<T>>::value;
+#endif
+
+
+  /**
+   * \brief T is a composite set of coefficient groups.
+   * \details Composite coefficients are specializations of the class Coefficients, which has the purpose of grouping
+   * other atomic or composite coefficients. Composite coefficients can, themselves, comprise groups of other
+   * composite components.
+   * \sa Coefficients.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept composite_coefficients = internal::is_composite_coefficients<std::decay_t<T>>::value;
+#else
+  constexpr bool composite_coefficients = internal::is_composite_coefficients<std::decay_t<T>>::value;
+#endif
+
+
+  /**
+   * \brief T is a fixed (defined at compile time) set of coefficients.
+   */
+#ifdef __cpp_concepts
+  template<typename T>
+  concept fixed_coefficients = composite_coefficients<std::decay_t<T>> or atomic_coefficient_group<std::decay_t<T>>;
+#else
+  template<typename T>
+  constexpr bool fixed_coefficients = composite_coefficients<std::decay_t<T>> or
+    atomic_coefficient_group<std::decay_t<T>>;
+#endif
+
+
+  /**
+   * \brief T is a dynamic (defined at run time) set of coefficients.
+   * \sa DynamicCoefficients.
+   */
+#ifdef __cpp_concepts
+  template<typename T>
+  concept dynamic_coefficients = internal::is_dynamic_coefficients<std::decay_t<T>>::value;
+#else
+  template<typename T>
+  constexpr bool dynamic_coefficients = internal::is_dynamic_coefficients<std::decay_t<T>>::value;
+#endif
+
+
+  /**
+   * \brief T is a group of atomic or composite coefficients, or dynamic coefficients.
+   * \details Atomic coefficient groups are %coefficients or groups of %coefficients that function as a unit,
+   * and cannot be separated. They may be combined into composite coefficients by passing them as template
+   * parameters to Coefficients. These include Axis, Distance, Angle, Inclination, Polar, and Spherical.
+   *
+   * Composite coefficients are specializations of the class Coefficients, which has the purpose of grouping
+   * other atomic or composite coefficients. Composite coefficients can, themselves, comprise groups of other
+   * composite components. Composite coefficients are of the form Coefficients<Cs...>.
+   *
+   * Dynamic coefficients are defined at runtime.
+   * <b>Examples</b>:
+   * - Axis
+   * - Polar<Distance, angle::Radians>
+   * - Coefficients<Axis, angle::Radians>
+   * - Coefficients<Spherical<angle::Degrees, inclination::degrees, Distance>, Axis, Axis>
+   * - DynamicCoefficients
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept coefficients = fixed_coefficients<T> or dynamic_coefficients<T>;
+#else
+  constexpr bool coefficients = fixed_coefficients<T> or dynamic_coefficients<T>;
+#endif
+
+
+  namespace internal
+  {
+    /**
+     * \internal
+     * \brief Type trait testing whether coefficients T are equivalent to coefficients U.
+     * \details Sets of coefficients are equivalent if they are treated functionally the same.
+     */
+#ifdef __cpp_concepts
+    template<coefficients T, coefficients U>
+#else
+    template<typename T, typename U, typename = void>
+#endif
+    struct is_equivalent_to : std::false_type {};
+  }
+
+
+  /**
+   * \brief T is equivalent to U, where T and U are sets of coefficients.
+   * \details Sets of coefficients are equivalent if they are treated functionally the same.
+   * - Any coefficient or group of coefficients is equivalent to itself.
+   * - Coefficient<Ts...> is equivalent to Coefficient<Us...>, if each Ts is equivalent to its respective Us.
+   * - Coefficient<T> is equivalent to T, and vice versa.
+   * \par Example:
+   * <code>equivalent_to&lt;Axis, Coefficients&lt;Axis&gt;&gt;</code>
+   */
+  template<typename T, typename U>
+#ifdef __cpp_concepts
+  concept equivalent_to = internal::is_equivalent_to<T, U>::value;
+#else
+  constexpr bool equivalent_to = internal::is_equivalent_to<T, U>::value;
+#endif
+
+
+  namespace internal
+  {
+    /**
+     * \internal
+     * \brief Type trait testing whether T (a set of coefficients) is a prefix of U.
+     * \details If T is a prefix of U, then U is equivalent_to concatenating T with the remaining part of U.
+     */
+#ifdef __cpp_concepts
+    template<coefficients T, coefficients U>
+#else
+    template<typename T, typename U, typename = void>
+#endif
+    struct is_prefix_of : std::false_type {};
+  } // namespace internal
+
+
+  /**
+   * \brief T is a prefix of U, where T and U are sets of coefficients.
+   * \details If T is a prefix of U, then U is equivalent_to concatenating T with the remaining part of U.
+   * C is a prefix of Coefficients<C, Cs...> for any coefficients Cs.
+   * T is a prefix of U if equivalent_to<T, U>.
+   * Coefficients<> is a prefix of any set of coefficients.
+   * \par Example:
+   * <code>prefix_of&lt;Coefficients&lt;Axis&gt;, Coefficients&lt;Axis, angle::Radians&gt;&gt;</code>
+   */
+  template<typename T, typename U>
+#ifdef __cpp_concepts
+  concept prefix_of = internal::is_prefix_of<T, U>::value;
+#else
+  constexpr bool prefix_of = internal::is_prefix_of<T, U>::value;
+#endif
+
+
   // -------------------------------- //
   //   Composite coefficient groups   //
   // -------------------------------- //
@@ -93,7 +278,8 @@ namespace OpenKalman
    * There are several predefined angles, including angle::Radians, angle::Degrees, angle::PositiveRadians,
    * angle::PositiveDegrees, and angle::Circle.
    * \tparam Limits A class template defining the real values <code>min</code> and <code>max</code>, representing
-   * minimum and maximum values, respectively, beyond which wrapping occurs. Scalar is a std::floating_point type.
+   * minimum and maximum values, respectively, beyond which wrapping occurs. This range must include both 0 and 1
+   * so that it is a mathematical ring. Scalar is a std::floating_point type.
    * \internal
    * <b>See also</b> the following functions for accessing coefficient properties:
    * - internal::to_euclidean_coeff: \copybrief internal::to_euclidean_coeff

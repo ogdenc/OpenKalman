@@ -676,17 +676,7 @@ namespace OpenKalman::Eigen3
     if constexpr (dynamic_columns<Arg1> or dynamic_rows<Arg2>) assert (runtime_dimension_of<1>(arg1) == runtime_dimension_of<0>(arg2));
 
     constexpr auto newconst = constant_coefficient_v<Arg1> * constant_coefficient_v<Arg2> * row_dimension_of_v<Arg2>;
-    constexpr auto rows = index_dimension_of_v<Arg1, 0>;
-    constexpr auto columns = index_dimension_of_v<Arg2, 1>;
-
-    if constexpr (rows == dynamic_size and columns == dynamic_size)
-      return make_constant_matrix_like<newconst, rows, columns>(runtime_dimension_of<0>(arg1), runtime_dimension_of<1>(arg2));
-    else if constexpr (rows == dynamic_size)
-      return make_constant_matrix_like<newconst, rows, columns>(runtime_dimension_of<0>(arg1));
-    else if constexpr (columns == dynamic_size)
-      return make_constant_matrix_like<newconst, rows, columns>(runtime_dimension_of<1>(arg2));
-    else
-      return make_constant_matrix_like<newconst, rows, columns>();
+    return make_constant_matrix_like<Arg1, newconst>(get_dimensions_of<0>(arg1), get_dimensions_of<1>(arg2));
   }
 
 

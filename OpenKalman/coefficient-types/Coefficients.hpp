@@ -356,12 +356,26 @@ namespace OpenKalman
   using Replicate = typename detail::ReplicateImpl<C, N>::type;
 
 
+  namespace detail
+  {
+    template<std::size_t N>
+    struct Axis_impl { using type = Replicate<Axis, N>; };
+
+    template<>
+    struct Axis_impl<dynamic_size> { using type = DynamicCoefficients<>; };
+
+    template<>
+    struct Axis_impl<0> { using type = Coefficients<>; };
+  }
+
+
   /**
    * \brief Alias for <code>Coefficients<Axis...></code>, where Axis is repeated <code>dimension</code> times.
    * \tparam dimension The number of Axes.
    */
   template<std::size_t dimension>
-  using Axes = Replicate<Axis, dimension>;
+  using Axes = typename detail::Axis_impl<dimension>::type;
+
 
 
 }// namespace OpenKalman

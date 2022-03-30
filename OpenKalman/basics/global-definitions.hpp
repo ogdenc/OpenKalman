@@ -19,6 +19,7 @@
 #include <type_traits>
 #include <cstdint>
 #include <limits>
+#include <complex>
 
 namespace OpenKalman
 {
@@ -56,6 +57,79 @@ namespace OpenKalman
     upper, ///< An upper-right triangular matrix.
     diagonal, ///< A diagonal matrix (both a lower-left and an upper-right triangular matrix).
   };
+
+
+  // -------------------- //
+  //    complex_number    //
+  // -------------------- //
+
+  namespace internal
+  {
+#ifdef __cpp_concepts
+    template<typename T>
+#else
+    template<typename T, typename = void>
+#endif
+    struct is_complex_number : std::false_type {};
+
+
+    template<typename T>
+    struct is_complex_number<std::complex<T>> : std::true_type {};
+  }
+
+
+  /**
+   * \brief T is a std::complex.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept complex_number = internal::is_complex_number<std::decay_t<T>>::value;
+#else
+  constexpr bool complex_number = internal::is_complex_number<std::decay_t<T>>::value;
+#endif
+
+
+  // ----------------- //
+  //    scalar_type    //
+  // ----------------- //
+
+#ifndef __cpp_concepts
+  namespace detail
+  {
+    template<typename T, typename = void>
+    struct is_scalar_type : std::false_type {};
+
+
+    template<typename T>
+    struct is_scalar_type<T, std::enable_if_t<
+      std::is_convertible_v<decltype(std::declval<T>() + std::declval<T>()), const std::decay_t<T>> and
+      std::is_convertible_v<decltype(std::declval<T>() - std::declval<T>()), const std::decay_t<T>> and
+      std::is_convertible_v<decltype(std::declval<T>() * std::declval<T>()), const std::decay_t<T>> and
+      std::is_convertible_v<decltype(std::declval<T>() / std::declval<T>()), const std::decay_t<T>>>>
+      : std::true_type {};
+  }
+#endif
+
+
+  /**
+   * \brief T is a scalar type (i.e., is arithmetic, complex, or other number in which + - * and / are defined).
+   * \details OpenKalman presumes that elements of an algebraic field may be the entries of a matrix.
+   * This includes integral, floating point, and complex values. T need not be an algebraic field, but this concept
+   * is designed, conceptually, to capture the idea of a non-commutative division ring that is not necessarily
+   * associative under multiplication.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept scalar_type = std::is_arithmetic_v<T> or complex_number<T> or
+    requires(T t1, T t2) {
+      {t1 + t2} -> std::convertible_to<const std::decay_t<T>>;
+      {t1 - t2} -> std::convertible_to<const std::decay_t<T>>;
+      {t1 * t2} -> std::convertible_to<const std::decay_t<T>>;
+      {t1 / t2} -> std::convertible_to<const std::decay_t<T>>; };
+#else
+  constexpr bool scalar_type = std::is_arithmetic_v<T> or complex_number<T> or
+    detail::is_scalar_type<std::decay_t<T>>::value;
+#endif
 
 
   /**

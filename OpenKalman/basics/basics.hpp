@@ -36,12 +36,14 @@ namespace OpenKalman::internal {}
 
 #include "language-features.hpp"
 #include "global-definitions.hpp"
+#include "utils.hpp"
+#include "Dimensions.hpp"
+#include "coefficient-types/coefficient-types.hpp"
 #include "forward-interface-traits.hpp"
 #include "forward-traits.hpp"
 #include "forward-class-declarations.hpp"
 #include "functions.hpp"
 #include "traits.hpp"
-#include "utils.hpp"
 
 #include "MatrixBase.hpp"
 #include "TypedMatrixBase.hpp"

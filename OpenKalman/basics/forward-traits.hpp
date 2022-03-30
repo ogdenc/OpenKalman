@@ -17,7 +17,6 @@
 #define OPENKALMAN_FORWARD_TRAITS_HPP
 
 #include <type_traits>
-#include <complex>
 
 
 /**
@@ -32,264 +31,6 @@
 
 namespace OpenKalman
 {
-
-  // ---------------- //
-  //   Coefficients   //
-  // ---------------- //
-
-  namespace internal
-  {
-    /**
-     * \internal
-     * \brief A type trait testing whether T is an atomic group of coefficients.
-     * \details Atomic coefficient groups are %coefficients or groups of %coefficients that function as a unit,
-     * and cannot be separated. They may be combined into composite coefficients by passing them as template
-     * parameters to Coefficients.
-     */
-    template<typename T>
-    struct is_atomic_coefficient_group : std::false_type {};
-
-
-    /**
-     * \internal
-     * \brief A type trait testing whether T is a composite set of coefficient groups.
-     * \details Composite coefficients are specializations of the class Coefficients, which has the purpose of grouping
-     * other atomic or composite coefficients. Composite coefficients can, themselves, comprise groups of other
-     * composite components.
-     */
-    template<typename T>
-    struct is_composite_coefficients : std::false_type {};
-
-
-    /**
-     * \internal
-     * \brief A type trait testing whether T is a dynamic (defined at time) set of coefficients.
-     * \sa DynamicCoefficients.
-     */
-    template<typename T>
-    struct is_dynamic_coefficients : std::false_type {};
-  }
-
-
-  /**
-   * \brief T is an atomic (non-seperable) group of coefficients.
-   * \details Atomic coefficient groups are %coefficients or groups of %coefficients that function as a unit,
-   * and cannot be separated. They may be combined into composite coefficients by passing them as template
-   * parameters to Coefficients.
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept atomic_coefficient_group = internal::is_atomic_coefficient_group<std::decay_t<T>>::value;
-#else
-  constexpr bool atomic_coefficient_group = internal::is_atomic_coefficient_group<std::decay_t<T>>::value;
-#endif
-
-
-  /**
-   * \brief T is a composite set of coefficient groups.
-   * \details Composite coefficients are specializations of the class Coefficients, which has the purpose of grouping
-   * other atomic or composite coefficients. Composite coefficients can, themselves, comprise groups of other
-   * composite components.
-   * \sa Coefficients.
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept composite_coefficients = internal::is_composite_coefficients<std::decay_t<T>>::value;
-#else
-  constexpr bool composite_coefficients = internal::is_composite_coefficients<std::decay_t<T>>::value;
-#endif
-
-
-  /**
-   * \brief T is a fixed (defined at compile time) set of coefficients.
-   */
-#ifdef __cpp_concepts
-  template<typename T>
-  concept fixed_coefficients = composite_coefficients<std::decay_t<T>> or atomic_coefficient_group<std::decay_t<T>>;
-#else
-  template<typename T>
-  constexpr bool fixed_coefficients = composite_coefficients<std::decay_t<T>> or
-    atomic_coefficient_group<std::decay_t<T>>;
-#endif
-
-
-  /**
-   * \brief T is a dynamic (defined at run time) set of coefficients.
-   * \sa DynamicCoefficients.
-   */
-#ifdef __cpp_concepts
-  template<typename T>
-  concept dynamic_coefficients = internal::is_dynamic_coefficients<std::decay_t<T>>::value;
-#else
-  template<typename T>
-  constexpr bool dynamic_coefficients = internal::is_dynamic_coefficients<std::decay_t<T>>::value;
-#endif
-
-
-  /**
-   * \brief T is a group of atomic or composite coefficients, or dynamic coefficients.
-   * \details Atomic coefficient groups are %coefficients or groups of %coefficients that function as a unit,
-   * and cannot be separated. They may be combined into composite coefficients by passing them as template
-   * parameters to Coefficients. These include Axis, Distance, Angle, Inclination, Polar, and Spherical.
-   *
-   * Composite coefficients are specializations of the class Coefficients, which has the purpose of grouping
-   * other atomic or composite coefficients. Composite coefficients can, themselves, comprise groups of other
-   * composite components. Composite coefficients are of the form Coefficients<Cs...>.
-   *
-   * Dynamic coefficients are defined at runtime.
-   * <b>Examples</b>:
-   * - Axis
-   * - Polar<Distance, angle::Radians>
-   * - Coefficients<Axis, angle::Radians>
-   * - Coefficients<Spherical<angle::Degrees, inclination::degrees, Distance>, Axis, Axis>
-   * - DynamicCoefficients
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept coefficients = fixed_coefficients<T> or dynamic_coefficients<T>;
-#else
-  constexpr bool coefficients = fixed_coefficients<T> or dynamic_coefficients<T>;
-#endif
-
-
-  namespace internal
-  {
-    /**
-     * \internal
-     * \brief Type trait testing whether coefficients T are equivalent to coefficients U.
-     * \details Sets of coefficients are equivalent if they are treated functionally the same.
-     */
-#ifdef __cpp_concepts
-    template<coefficients T, coefficients U>
-#else
-    template<typename T, typename U, typename = void>
-#endif
-    struct is_equivalent_to : std::false_type {};
-  }
-
-
-  /**
-   * \brief T is equivalent to U, where T and U are sets of coefficients.
-   * \details Sets of coefficients are equivalent if they are treated functionally the same.
-   * - Any coefficient or group of coefficients is equivalent to itself.
-   * - Coefficient<Ts...> is equivalent to Coefficient<Us...>, if each Ts is equivalent to its respective Us.
-   * - Coefficient<T> is equivalent to T, and vice versa.
-   * \par Example:
-   * <code>equivalent_to&lt;Axis, Coefficients&lt;Axis&gt;&gt;</code>
-   */
-  template<typename T, typename U>
-#ifdef __cpp_concepts
-  concept equivalent_to = internal::is_equivalent_to<T, U>::value;
-#else
-  constexpr bool equivalent_to = internal::is_equivalent_to<T, U>::value;
-#endif
-
-
-  namespace internal
-  {
-    /**
-     * \internal
-     * \brief Type trait testing whether T (a set of coefficients) is a prefix of U.
-     * \details If T is a prefix of U, then U is equivalent_to concatenating T with the remaining part of U.
-     */
-#ifdef __cpp_concepts
-    template<coefficients T, coefficients U>
-#else
-    template<typename T, typename U, typename = void>
-#endif
-    struct is_prefix_of : std::false_type {};
-  } // namespace internal
-
-
-  /**
-   * \brief T is a prefix of U, where T and U are sets of coefficients.
-   * \details If T is a prefix of U, then U is equivalent_to concatenating T with the remaining part of U.
-   * C is a prefix of Coefficients<C, Cs...> for any coefficients Cs.
-   * T is a prefix of U if equivalent_to<T, U>.
-   * Coefficients<> is a prefix of any set of coefficients.
-   * \par Example:
-   * <code>prefix_of&lt;Coefficients&lt;Axis&gt;, Coefficients&lt;Axis, angle::Radians&gt;&gt;</code>
-   */
-  template<typename T, typename U>
-#ifdef __cpp_concepts
-  concept prefix_of = internal::is_prefix_of<T, U>::value;
-#else
-  constexpr bool prefix_of = internal::is_prefix_of<T, U>::value;
-#endif
-
-
-  // -------------------- //
-  //    complex_number    //
-  // -------------------- //
-
-  namespace internal
-  {
-#ifdef __cpp_concepts
-    template<typename T>
-#else
-    template<typename T, typename = void>
-#endif
-    struct is_complex_number : std::false_type {};
-
-
-    template<typename T>
-    struct is_complex_number<std::complex<T>> : std::true_type {};
-  }
-
-
-  /**
-   * \brief T is a std::complex.
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept complex_number = internal::is_complex_number<std::decay_t<T>>::value;
-#else
-  constexpr bool complex_number = internal::is_complex_number<std::decay_t<T>>::value;
-#endif
-
-
-  // ----------------- //
-  //    scalar_type    //
-  // ----------------- //
-
-#ifndef __cpp_concepts
-  namespace detail
-  {
-    template<typename T, typename = void>
-    struct is_scalar_type : std::false_type {};
-
-
-    template<typename T>
-    struct is_scalar_type<T, std::enable_if_t<
-      std::is_convertible_v<decltype(std::declval<T>() + std::declval<T>()), const std::decay_t<T>> and
-      std::is_convertible_v<decltype(std::declval<T>() - std::declval<T>()), const std::decay_t<T>> and
-      std::is_convertible_v<decltype(std::declval<T>() * std::declval<T>()), const std::decay_t<T>> and
-      std::is_convertible_v<decltype(std::declval<T>() / std::declval<T>()), const std::decay_t<T>>>>
-      : std::true_type {};
-  }
-#endif
-
-
-  /**
-   * \brief T is a scalar type (i.e., is arithmetic, complex, or other number in which + - * and / are defined).
-   * \details OpenKalman presumes that elements of an algebraic field may be the entries of a matrix.
-   * This includes integral, floating point, and complex values. T need not be an algebraic field, but this concept
-   * is designed, conceptually, to capture the idea of a non-commutative division ring that is not necessarily
-   * associative under multiplication.
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept scalar_type = std::is_arithmetic_v<T> or complex_number<T> or
-    requires(T t1, T t2) {
-      {t1 + t2} -> std::convertible_to<const std::decay_t<T>>;
-      {t1 - t2} -> std::convertible_to<const std::decay_t<T>>;
-      {t1 * t2} -> std::convertible_to<const std::decay_t<T>>;
-      {t1 / t2} -> std::convertible_to<const std::decay_t<T>>; };
-#else
-  constexpr bool scalar_type = std::is_arithmetic_v<T> or complex_number<T> or
-    detail::is_scalar_type<std::decay_t<T>>::value;
-#endif
-
 
   // ---------------- //
   //  scalar_type_of  //
@@ -336,7 +77,7 @@ namespace OpenKalman
    * \brief helper template for \ref max_indices_of.
    */
   template<typename T>
-  static constexpr auto max_indices_of_v = max_indices_of<T>::value;
+  static constexpr std::size_t max_indices_of_v = max_indices_of<T>::value;
 
 
   // ----------- //
@@ -515,6 +256,90 @@ namespace OpenKalman
   constexpr bool any_dynamic_dimension =
 #endif
     detail::any_dynamic_dimension_impl<T>(std::make_index_sequence<max_indices_of_v<T>> {});
+
+
+  // ----------------- //
+  //  tensor_order_of  //
+  // ----------------- //
+
+  namespace detail
+  {
+    template<typename T, std::size_t...I>
+    constexpr bool tensor_order_of_impl(std::index_sequence<I...>)
+    {
+      return ((index_dimension_of_v<T, I> == 1 ? 0 : 1) + ... + 0);
+    }
+  }
+
+
+  /**
+   * \brief The maximum tensor order, to the extent that it is known at compile time.
+   * \details The actual tensor order could be less than this, if one of the dimensions is dynamic.
+   */
+  template<typename T>
+  struct tensor_order_of : std::integral_constant<std::size_t,
+    detail::tensor_order_of_impl<T>(std::make_index_sequence<max_indices_of_v<T>> {})> {};
+
+
+  /**
+   * \brief Helper template for \ref tensor_order_of
+   */
+  template<typename T>
+  static constexpr std::size_t tensor_order_of_v = tensor_order_of<T>::value;
+
+
+  // ----------------------------------------------------------------------------- //
+  //  coefficient_types_of, row_coefficient_types_of, column_coefficient_types_of  //
+  // ----------------------------------------------------------------------------- //
+
+  /**
+   * \brief The coefficient types of T for index N.
+   * \tparam T A matrix, expression, or array
+   * \tparam N The index number (0 = rows, 1 = columns, etc.)
+   */
+#ifdef __cpp_concepts
+  template<typename T, std::size_t N> requires (N < max_indices_of_v<T>)
+#else
+  template<typename T, std::size_t N>
+#endif
+  struct coefficient_types_of
+  {
+#ifndef __cpp_concepts
+    static_assert(N < max_indices_of_v<T>);
+#endif
+    using type = std::conditional_t<dynamic_dimension<T, N>, DynamicCoefficients<>,
+      typename interface::CoordinateSystemTraits<T, N>::coordinate_system_types>;
+  };
+
+
+  /**
+   * \brief helper template for \ref coefficient_types_of.
+   */
+  template<typename T, std::size_t N>
+  using coefficient_types_of_t = typename coefficient_types_of<T, N>::type;
+
+
+
+  template<typename T>
+  using row_coefficient_types_of = coefficient_types_of<T, 0>;
+
+
+  /**
+   * \brief helper template for \ref row_coefficient_types_of.
+   */
+  template<typename T>
+  using row_coefficient_types_of_t = typename row_coefficient_types_of<T>::type;
+
+
+  template<typename T>
+  using column_coefficient_types_of = coefficient_types_of<T, 1>;
+
+
+  /**
+   * \brief helper template for \ref column_coefficient_types_of.
+   */
+  template<typename T>
+  using column_coefficient_types_of_t = typename column_coefficient_types_of<T>::type;
 
 
   // ------------------ //
@@ -1145,21 +970,12 @@ namespace OpenKalman
   namespace detail
   {
     template<typename T, typename = void>
-    struct has_square_dimensions : std::false_type {};
+    struct is_square_matrix : std::false_type {};
 
     template<typename T>
-    struct has_square_dimensions<T, std::enable_if_t<
-      not any_dynamic_dimension<T> and row_dimension_of<T>::value == column_dimension_of<T>::value>>
+    struct is_square_matrix<T, std::enable_if_t<row_dimension_of<T>::value == column_dimension_of<T>::value and
+      equivalent_to<row_coefficient_types_of_t<T>, column_coefficient_types_of_t<T>>>>
       : std::true_type {};
-
-
-    template<typename T, typename = void>
-    struct has_equivalent_coefficients : std::true_type {};
-
-    template<typename T>
-    struct has_equivalent_coefficients<T, std::enable_if_t<
-      not equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>>>
-      : std::false_type {};
   }
 #endif
 
@@ -1171,14 +987,13 @@ namespace OpenKalman
   template<typename T>
 #ifdef __cpp_concepts
   concept square_matrix =
-    (not any_dynamic_dimension<T> and (row_dimension_of_v<T> == column_dimension_of_v<T>) and
-      (not requires { typename MatrixTraits<T>::RowCoefficients; typename MatrixTraits<T>::ColumnCoefficients; } or
-        equivalent_to<typename MatrixTraits<T>::RowCoefficients, typename MatrixTraits<T>::ColumnCoefficients>)) or
-    (any_dynamic_dimension<T> and (self_adjoint_matrix<T> or triangular_matrix<T>));
+    (any_dynamic_dimension<T> or (row_dimension_of_v<T> == column_dimension_of_v<T> and
+      equivalent_to<row_coefficient_types_of_t<T>, column_coefficient_types_of_t<T>>)) and
+    (not any_dynamic_dimension<T> or self_adjoint_matrix<T> or triangular_matrix<T>);
 #else
   constexpr bool square_matrix =
-    (detail::has_square_dimensions<std::decay_t<T>>::value and detail::has_equivalent_coefficients<T>::value) or
-    (any_dynamic_dimension<T> and (self_adjoint_matrix<T> or triangular_matrix<T>));
+    (any_dynamic_dimension<T> or detail::is_square_matrix<T>::value) and
+    (not any_dynamic_dimension<T> or self_adjoint_matrix<T> or triangular_matrix<T>);
 #endif
 
 
@@ -1190,11 +1005,11 @@ namespace OpenKalman
   namespace detail
   {
     template<typename T, typename = void>
-    struct is_one_by_one_matrix : std::false_type {};
+    struct has_1d_index : std::false_type {};
 
     template<typename T>
-    struct is_one_by_one_matrix<T, std::enable_if_t<
-      (row_dimension_of<T>::value == 1 or column_dimension_of<T>::value == 1) and square_matrix<T>>> : std::true_type {};
+    struct has_1d_index<T, std::enable_if_t<
+      (row_dimension_of<T>::value == 1 or column_dimension_of<T>::value == 1)>> : std::true_type {};
   }
 #endif
 
@@ -1205,7 +1020,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   concept one_by_one_matrix = (row_dimension_of_v<T> == 1 or column_dimension_of_v<T> == 1) and square_matrix<T>;
 #else
-  constexpr bool one_by_one_matrix = detail::is_one_by_one_matrix<T>::value;
+  constexpr bool one_by_one_matrix = detail::has_1d_index<T>::value and square_matrix<T>;
 #endif
 
 
@@ -1239,7 +1054,7 @@ namespace OpenKalman
 
 
     template<typename T>
-    struct is_wrapped_mean<T, std::enable_if_t<mean<T> and (not MatrixTraits<T>::RowCoefficients::axes_only)>>
+    struct is_wrapped_mean<T, std::enable_if_t<mean<T> and (not row_coefficient_types_of_t<T>::axes_only)>>
       : std::true_type {};
   }
 #endif
@@ -1250,7 +1065,7 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<typename T>
-  concept wrapped_mean = mean<T> and (not MatrixTraits<T>::RowCoefficients::axes_only);
+  concept wrapped_mean = mean<T> and (not row_coefficient_types_of_t<T>::axes_only);
 #else
   template<typename T>
   constexpr bool wrapped_mean = detail::is_wrapped_mean<T>::value;
@@ -1288,7 +1103,7 @@ namespace OpenKalman
 
     template<typename T>
     struct is_euclidean_transformed<T, std::enable_if_t<
-      euclidean_mean<T> and (not MatrixTraits<T>::RowCoefficients::axes_only)>>
+      euclidean_mean<T> and (not row_coefficient_types_of_t<T>::axes_only)>>
       : std::true_type {};
   }
 #endif
@@ -1299,7 +1114,7 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<typename T>
-  concept euclidean_transformed = euclidean_mean<T> and (not MatrixTraits<T>::RowCoefficients::axes_only);
+  concept euclidean_transformed = euclidean_mean<T> and (not row_coefficient_types_of_t<T>::axes_only);
 #else
   template<typename T>
   constexpr bool euclidean_transformed = detail::is_euclidean_transformed<T>::value;
@@ -1328,36 +1143,9 @@ namespace OpenKalman
 #endif
 
 
-  // ------------------------------------------------------------ //
-  //   untyped_columns, column_vector, untyped_rows, row_vector   //
-  // ------------------------------------------------------------ //
-
-#ifndef __cpp_concepts
-  namespace detail
-  {
-    template<typename T, typename = void>
-    struct has_untyped_columns : std::true_type {};
-
-    template<typename T>
-    struct has_untyped_columns<T, std::void_t<typename MatrixTraits<T>::ColumnCoefficients>>
-      : std::bool_constant<MatrixTraits<T>::ColumnCoefficients::axes_only> {};
-  }
-#endif
-
-
-  /**
-   * \brief Specifies that T has untyped (or Axis typed) column coefficients.
-   * \details T must be either a native matrix or its columns must all have type Axis.
-   */
-#ifdef __cpp_concepts
-  template<typename T>
-  concept untyped_columns = (not requires { typename MatrixTraits<T>::ColumnCoefficients; }) or
-    (MatrixTraits<T>::ColumnCoefficients::axes_only);
-#else
-  template<typename T>
-  constexpr bool untyped_columns = detail::has_untyped_columns<std::decay_t<T>>::value;
-#endif
-
+  // ----------------------------- //
+  //   column_vector, row_vector   //
+  // ----------------------------- //
 
 #ifndef __cpp_concepts
   namespace detail
@@ -1366,7 +1154,7 @@ namespace OpenKalman
     struct is_column_vector : std::false_type {};
 
     template<typename T>
-    struct is_column_vector<T, std::enable_if_t<untyped_columns<T> and column_dimension_of<T>::value == 1>>
+    struct is_column_vector<T, std::enable_if_t<column_dimension_of<T>::value == 1>>
       : std::true_type {};
   }
 #endif
@@ -1378,7 +1166,7 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<typename T>
-  concept column_vector = untyped_columns<T> and (column_dimension_of_v<T> == 1);
+  concept column_vector = (column_dimension_of_v<T> == 1);
 #else
   template<typename T>
   constexpr bool column_vector = detail::is_column_vector<std::decay_t<T>>::value;
@@ -1389,36 +1177,10 @@ namespace OpenKalman
   namespace detail
   {
     template<typename T, typename = void>
-    struct has_untyped_rows : std::true_type {};
-
-    template<typename T>
-    struct has_untyped_rows<T, std::void_t<typename MatrixTraits<T>::RowCoefficients>>
-      : std::bool_constant<MatrixTraits<T>::RowCoefficients::axes_only> {};
-  }
-#endif
-
-
-  /**
-   * \brief Specifies that T has untyped (or Axis typed) row bases.
-   */
-#ifdef __cpp_concepts
-  template<typename T>
-  concept untyped_rows = (not requires { typename MatrixTraits<T>::RowCoefficients; }) or
-    (MatrixTraits<T>::RowCoefficients::axes_only);
-#else
-  template<typename T>
-  constexpr bool untyped_rows = detail::has_untyped_rows<std::decay_t<T>>::value;
-#endif
-
-
-#ifndef __cpp_concepts
-  namespace detail
-  {
-    template<typename T, typename = void>
     struct is_row_vector : std::false_type {};
 
     template<typename T>
-    struct is_row_vector<T, std::enable_if_t<untyped_rows<T> and row_dimension_of<T>::value == 1>> : std::true_type {};
+    struct is_row_vector<T, std::enable_if_t<row_dimension_of<T>::value == 1>> : std::true_type {};
   }
 #endif
 
@@ -1429,7 +1191,7 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<typename T>
-  concept row_vector = untyped_rows<T> and (row_dimension_of_v<T> == 1);
+  concept row_vector = (row_dimension_of_v<T> == 1);
 #else
   template<typename T>
   constexpr bool row_vector = detail::is_row_vector<std::decay_t<T>>::value;

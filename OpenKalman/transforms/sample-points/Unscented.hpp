@@ -154,7 +154,7 @@ namespace OpenKalman
       {
         // | 0 | delta | -delta |
         static_assert(sizeof...(ds) == 0);
-        using M0 = Matrix<Coeffs, Axis, equivalent_dense_writable_matrix_t<M, dim_i, 1>>;
+        using M0 = Matrix<Coeffs, Axis, untyped_dense_writable_matrix_t<M, dim_i, 1>>;
         const auto m0 = make_zero_matrix_like<M0>();
         auto ret = make_self_contained(concatenate_horizontal(std::move(m0), delta, -delta));
         static_assert(column_dimension_of_v<decltype(ret)> == points_count);
@@ -163,10 +163,10 @@ namespace OpenKalman
       else if constexpr (pos == 0)
       {
         // | 0 | delta | -delta | 0 ... |
-        using M0 = Matrix<Coeffs, Axis, equivalent_dense_writable_matrix_t<M, dim_i, 1>>;
+        using M0 = Matrix<Coeffs, Axis, untyped_dense_writable_matrix_t<M, dim_i, 1>>;
         const auto m0 = make_zero_matrix_like<M0>();
         constexpr auto width = points_count - (1 + frame_size);
-        using Mright = Matrix<Coeffs, Axes<width>, equivalent_dense_writable_matrix_t<M, dim_i, width>>;
+        using Mright = Matrix<Coeffs, Axes<width>, untyped_dense_writable_matrix_t<M, dim_i, width>>;
         const auto mright = make_zero_matrix_like<Mright>();
         auto ret = make_self_contained(concatenate_horizontal(std::move(m0), delta, -delta, std::move(mright)));
         static_assert(column_dimension_of_v<decltype(ret)> == points_count);
@@ -175,10 +175,10 @@ namespace OpenKalman
       else if constexpr (pos + frame_size < points_count)
       {
         // | 0 | 0 ... | delta | -delta | 0 ... |
-        using Mleft = Matrix<Coeffs, Axes<pos>, equivalent_dense_writable_matrix_t<M, dim_i, pos>>;
+        using Mleft = Matrix<Coeffs, Axes<pos>, untyped_dense_writable_matrix_t<M, dim_i, pos>>;
         const auto mleft = make_zero_matrix_like<Mleft>();
         constexpr auto width = points_count - (pos + frame_size);
-        using Mright = Matrix<Coeffs, Axes<width>, equivalent_dense_writable_matrix_t<M, dim_i, width>>;
+        using Mright = Matrix<Coeffs, Axes<width>, untyped_dense_writable_matrix_t<M, dim_i, width>>;
         const auto mright = make_zero_matrix_like<Mright>();
         auto ret = make_self_contained(concatenate_horizontal(std::move(mleft), delta, -delta, std::move(mright)));
         static_assert(column_dimension_of_v<decltype(ret)> == points_count);
@@ -188,7 +188,7 @@ namespace OpenKalman
       {
         // | 0 | 0 ... | delta | -delta |
         static_assert(sizeof...(ds) == 0);
-        using Mleft = Matrix<Coeffs, Axes<pos>, equivalent_dense_writable_matrix_t<M, dim_i, pos>>;
+        using Mleft = Matrix<Coeffs, Axes<pos>, untyped_dense_writable_matrix_t<M, dim_i, pos>>;
         const auto mleft = make_zero_matrix_like<Mleft>();
         auto ret = make_self_contained(concatenate_horizontal(std::move(mleft), delta, -delta));
         static_assert(column_dimension_of_v<decltype(ret)> == points_count);

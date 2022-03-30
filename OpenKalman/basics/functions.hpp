@@ -19,11 +19,213 @@ namespace OpenKalman
   //  Functions relating to indices  //
   // ------------------------------- //
 
-  template<std::size_t N = 0, typename Arg>
-  constexpr std::size_t runtime_dimension_of(Arg&& arg)
+  // ------------------- //
+  //  get_dimensions_of  //
+  // ------------------- //
+
+#ifdef __cpp_concepts
+  template<std::size_t N, indexible Arg> requires (N < max_indices_of_v<Arg>)
+#else
+  template<std::size_t N, typename Arg, std::enable_if_t<indexible<Arg> and N < max_indices_of<T>::value, int> = 0>
+#endif
+  constexpr auto get_dimensions_of(const Arg& arg)
   {
-    return interface::IndexTraits<std::decay_t<Arg>, N>::dimension_at_runtime(std::forward<Arg>(arg));
+    if constexpr (dynamic_dimension<Arg, N>)
+      return Dimensions{interface::IndexTraits<std::decay_t<Arg>, N>::dimension_at_runtime(arg)};
+    else
+      return Dimensions<interface::IndexTraits<std::decay_t<Arg>, N>::dimension>{};
   }
+
+
+  // ---------------------- //
+  //  runtime_dimension_of  //
+  // ---------------------- //
+
+#ifdef __cpp_concepts
+  template<std::size_t N = 0, indexible Arg> requires (N < max_indices_of_v<Arg>)
+#else
+  template<std::size_t N = 0, typename Arg, std::enable_if_t<indexible<Arg> and N < max_indices_of<T>::value, int> = 0>
+#endif
+  constexpr std::size_t runtime_dimension_of(const Arg& arg)
+  {
+    return interface::IndexTraits<std::decay_t<Arg>, N>::dimension_at_runtime(arg);
+  }
+
+
+  // -------------------------------- //
+  //  get_coordinate_system_types_of  //
+  // -------------------------------- //
+
+  template<std::size_t N = 0, typename Arg>
+  constexpr auto get_coordinate_system_types_of(Arg&& arg)
+  {
+    return interface::CoordinateSystemTraits<std::decay_t<Arg>, N>::coordinate_system_types_at_runtime(std::forward<Arg>(arg));
+  }
+
+
+  // --------------------- //
+  //  get_tensor_order_of  //
+  // --------------------- //
+
+  namespace detail
+  {
+    template<std::size_t...I, typename T>
+    constexpr auto get_tensor_order_of_impl(std::index_sequence<I...>, const T& t)
+    {
+      return ((runtime_dimension_of<I>(t) == 1 ? 0 : 1) + ... + 0);
+    }
+  }
+
+
+  /**
+   * \brief Return a tuple of \ref index_descriptor objects defining the dimensions of T.
+   * \tparam T A matrix or array
+   */
+#ifdef __cpp_concepts
+  template<indexible T>
+#else
+  template<typename T, std::enable_if_t<indexible<T>, int> = 0>
+#endif
+  constexpr auto get_tensor_order_of(const T& t)
+  {
+    if constexpr (not any_dynamic_dimension<T>)
+      return tensor_order_of_v<T>;
+    else
+      return detail::get_tensor_order_of_impl(std::make_index_sequence<max_indices_of_v<T>>{}, t);
+  }
+
+
+  // ----------------------- //
+  //  get_all_dimensions_of  //
+  // ----------------------- //
+
+  namespace detail
+  {
+    template<typename T, std::size_t...I>
+    constexpr auto get_all_dimensions_of_impl(std::index_sequence<I...>, const T& t)
+    {
+      return std::tuple {[](const T& t){
+        constexpr std::size_t size = index_dimension_of_v<T, I>;
+        if constexpr (size == dynamic_size)
+          return Dimensions<size>{runtime_dimension_of<I>(t)};
+        else
+          return Dimensions<size>{};
+      }(t)...};
+    }
+
+
+    template<typename T, std::size_t...I>
+    constexpr auto get_all_dimensions_of_impl(std::index_sequence<I...>)
+    {
+      return std::tuple {Dimensions<index_dimension_of_v<T, I>>{}...};
+    }
+  }
+
+
+  /**
+   * \brief Return a tuple of \ref index_descriptor objects defining the dimensions of T.
+   * \tparam T A matrix or array
+   */
+#ifdef __cpp_concepts
+  template<indexible T>
+#else
+  template<typename T, std::enable_if_t<indexible<T>, int> = 0>
+#endif
+  constexpr auto get_all_dimensions_of(const T& t)
+  {
+    return detail::get_all_dimensions_of_impl(std::make_index_sequence<max_indices_of_v<T>>{}, t);
+  }
+
+
+  /**
+   * \overload
+   * \brief Return a tuple of \ref index_descriptor objects defining the dimensions of T.
+   * \details This overload is only enabled if all dimensions of T are known at compile time.
+   * \tparam T A matrix or array
+   */
+#ifdef __cpp_concepts
+  template<indexible T> requires (not any_dynamic_dimension<T>)
+#else
+  template<typename T, std::enable_if_t<indexible<T> and not any_dynamic_dimension<T>, int> = 0>
+#endif
+  constexpr auto get_all_dimensions_of()
+  {
+    return detail::get_all_dimensions_of_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{});
+  }
+
+
+  namespace internal
+  {
+
+    // ----------------------- //
+    //  make_dimensions_tuple  //
+    // ----------------------- //
+
+    namespace detail
+    {
+      template<typename T, std::size_t...Is>
+      constexpr std::size_t count_dynamic_dimensions(std::index_sequence<Is...>)
+      {
+        return ((index_dimension_of_v<T, Is> == dynamic_size ? 1 : 0) + ... + 0);
+      }
+
+
+      template<typename T, std::size_t I_begin, typename D, std::size_t...Is>
+      constexpr auto iterate_dimensions_tuple(D&& d, std::index_sequence<Is...>)
+      {
+        return std::tuple {std::forward<D>(d), Dimensions<index_dimension_of_v<T, I_begin + Is>>{}...};
+      }
+
+
+      template<typename T, std::size_t I, std::size_t Max, typename N, typename...Ns>
+      constexpr auto make_dimensions_tuple_impl(N&& n, Ns&&...ns)
+      {
+        constexpr auto dim_I = index_dimension_of_v<T, I>;
+        constexpr std::size_t next_I = I + 1;
+
+        if constexpr (next_I >= Max)
+        {
+          if constexpr (dim_I == dynamic_size)
+            return std::tuple {Dimensions{std::forward<N>(n)}};
+          else
+            return std::tuple {Dimensions<dim_I>{}};
+        }
+        else if constexpr (sizeof...(Ns) == 0)
+        {
+          if constexpr (dim_I == dynamic_size)
+            return iterate_dimensions_tuple<T, next_I>(
+              Dimensions{std::forward<N>(n)}, std::make_index_sequence<Max - next_I>{});
+          else
+            return iterate_dimensions_tuple<T, next_I>(Dimensions<dim_I>{}, std::make_index_sequence<Max - next_I>{});
+        }
+        else if constexpr (dim_I == dynamic_size)
+        {
+          return std::tuple_cat(std::tuple {Dimensions{std::forward<N>(n)}},
+            make_dimensions_tuple_impl<T, next_I, Max>(std::forward<Ns>(ns)...));
+        }
+        else
+        {
+          return std::tuple_cat(std::tuple {Dimensions<dim_I>{}},
+            make_dimensions_tuple_impl<T, next_I, Max>(std::forward<N>(n), std::forward<Ns>(ns)...));
+        }
+      }
+    }
+
+
+#ifdef __cpp_concepts
+    template<indexible T, std::convertible_to<std::size_t> ... N> requires
+     (sizeof...(N) == detail::count_dynamic_dimensions<T>(std::make_index_sequence<max_indices_of_v<T>> {}))
+#else
+    template<typename T, typename...N, std::enable_if_t<indexible<T> and
+      (std::is_convertible_v<N, std::size_t> and ...) and
+      (sizeof...(N) == detail::count_dynamic_dimensions<T>(std::make_index_sequence<max_indices_of_v<T>> {})), int> = 0>
+#endif
+    constexpr auto make_dimensions_tuple(N&&...n)
+    {
+      return detail::make_dimensions_tuple_impl<T, 0, max_indices_of_v<T>>(std::forward<N>(n)...);
+    }
+
+  } // namespace internal
 
 
   // --------------------------------- //
@@ -43,7 +245,12 @@ namespace OpenKalman
   constexpr decltype(auto)
   make_dense_writable_matrix_from(Arg&& arg) noexcept
   {
-    using Trait = EquivalentDenseWritableMatrix<std::decay_t<Arg>>;
+    constexpr auto rows = dynamic_rows<Arg> and (self_adjoint_matrix<Arg> or triangular_matrix<Arg>) ?
+      column_dimension_of_v<Arg> : row_dimension_of_v<Arg>;
+    constexpr auto cols = dynamic_columns<Arg> and (self_adjoint_matrix<Arg> or triangular_matrix<Arg>) ?
+      row_dimension_of_v<Arg> : column_dimension_of_v<Arg>;
+
+    using Trait = EquivalentDenseWritableMatrix<std::decay_t<Arg>, rows, cols>;
     using Nat = std::remove_reference_t<decltype(Trait::convert(std::declval<Arg&&>()))>;
 
     static_assert(not std::is_const_v<Nat>, "EquivalentDenseWritableMatrix::convert logic error: returns const result");
@@ -104,37 +311,47 @@ namespace OpenKalman
   // ----------------------------------------- //
 
   /**
-   * \brief Create a dense, writable matrix with size and shape modeled at least partially on T
-   * \tparam T The matrix or array on which the new matrix is patterned.
-   * \tparam rows An optional row dimension for the new matrix. By default, T's row dimension is used.
-   * \tparam columns An optional column dimension for the new matrix. By default, T's column dimension is used.
-   * \tparam Scalar An optional scalar type for the new matrix. By default, T's scalar type is used.
-   * \param e Any necessary runtime dimensions.
+   * \brief Make a default, dense, writable matrix based on a list of Dimensions describing the sizes of each index.
+   * \tparam T A dummy matrix or array from the relevant library (size and shape does not matter)
+   * \param d a tuple of Dimensions describing the sizes of each index
    */
 #ifdef __cpp_concepts
-  template<indexible T, std::size_t rows = row_dimension_of_v<T>, std::size_t columns = column_dimension_of_v<T>,
-    typename Scalar = scalar_type_of_t<T>, std::convertible_to<std::size_t> ... runtime_dimensions>
-  requires (sizeof...(runtime_dimensions) == (rows == dynamic_size ? 1 : 0) + (columns == dynamic_size ? 1 : 0)) and
-    requires(runtime_dimensions...e) {
-      EquivalentDenseWritableMatrix<std::decay_t<T>, rows, columns, Scalar>::make_default(e...); }
+  template<indexible T, typename Scalar = scalar_type_of_t<T>, index_descriptor...D> requires
+    (sizeof...(D) == max_indices_of_v<T>)
 #else
-  template<typename T, std::size_t rows = row_dimension_of_v<T>, std::size_t columns = column_dimension_of_v<T>,
-    typename Scalar = scalar_type_of_t<T>, typename ... runtime_dimensions, std::enable_if_t<indexible<T> and
-    (sizeof...(runtime_dimensions) == (rows == dynamic_size ? 1 : 0) + (columns == dynamic_size ? 1 : 0)) and
-    (std::is_convertible_v<runtime_dimensions, std::size_t> and ...) and
-    std::is_void<std::void_t<decltype(EquivalentDenseWritableMatrix<std::decay_t<T>, rows, columns, Scalar>::make_default(
-      std::declval<runtime_dimensions>()...))>>::value, int> = 0>
+  template<typename T, typename Scalar = scalar_type_of_t<T>, typename...D,
+    std::enable_if_t<indexible<T> and (index_descriptor<D> and ...) and sizeof...(D) == max_indices_of_v<T>, int> = 0>
 #endif
-  inline auto
-  make_default_dense_writable_matrix_like(runtime_dimensions...e)
+  constexpr decltype(auto)
+  make_default_dense_writable_matrix_like(D&&...d)
   {
-    return EquivalentDenseWritableMatrix<std::decay_t<T>, rows, columns, Scalar>::make_default(e...);
+    return EquivalentDenseWritableMatrix<T, dimension_size_of_v<D>..., Scalar>::make_default(std::forward<D>(d)...);
   }
 
 
   /**
    * \overload
-   * \brief Make a default, dense, writable matrix based on the argument, but specifying new dimensions.
+   * \brief Make a default, dense, writable matrix based on a list of Dimensions describing the sizes of each index.
+   * \tparam T A pattern matrix or array having dimensions known fully at compile time
+   */
+#ifdef __cpp_concepts
+  template<indexible T, typename Scalar = scalar_type_of_t<T>> requires (not any_dynamic_dimension<T>)
+#else
+  template<typename T, typename Scalar = scalar_type_of_t<T>,
+    std::enable_if_t<indexible<T> and not any_dynamic_dimension<T>, int> = 0>
+#endif
+  constexpr decltype(auto)
+  make_default_dense_writable_matrix_like()
+  {
+    using Trait = EquivalentDenseWritableMatrix<T, index_dimension_of_v<T, 0>, index_dimension_of_v<T, 1>, Scalar>;
+    return std::apply([](auto&&...d) { return Trait::make_default(std::forward<decltype(d)>(d)...); },
+      get_all_dimensions_of<T>());
+  }
+
+
+  /**
+   * \overload
+   * \brief Make a default, dense, writable matrix based on an existing object.
    * \tparam rows The new number of rows (may be \ref dynamic_shape)
    * \tparam columns The new number of columns (may be \ref dynamic_shape)
    * \tparam Scalar An optional scalar type for the new matrix. By default, T's scalar type is used.
@@ -149,20 +366,15 @@ namespace OpenKalman
   constexpr auto
   make_default_dense_writable_matrix_like(const T& t)
   {
-    if constexpr (rows == dynamic_size and columns == dynamic_size)
-      return make_default_dense_writable_matrix_like<T, rows, columns, Scalar>(runtime_dimension_of<0>(t), runtime_dimension_of<1>(t));
-    else if constexpr (rows == dynamic_size)
-      return make_default_dense_writable_matrix_like<T, rows, columns, Scalar>(runtime_dimension_of<0>(t));
-    else if constexpr (columns == dynamic_size)
-      return make_default_dense_writable_matrix_like<T, rows, columns, Scalar>(runtime_dimension_of<1>(t));
-    else
-      return make_default_dense_writable_matrix_like<T, rows, columns, Scalar>();
+    using Trait = EquivalentDenseWritableMatrix<T, rows, columns, Scalar>;
+    return std::apply([](auto&&...d) { return Trait::make_default(std::forward<decltype(d)>(d)...); },
+      get_all_dimensions_of(t));
   }
 
 
   /**
    * \overload
-   * \brief Make a default, dense, writable matrix based on the argument, but specifying new dimensions.
+   * \brief Make a default, dense, writable matrix based on an existing object, but specifying new dimensions.
    * \tparam dims One or more dimensions associated with indices of the new matrix (may be \ref dynamic_shape)
    * \tparam Scalar An optional scalar value for the new matrix.
    * \tparam T The matrix or array on which the new matrix is patterned.
@@ -187,7 +399,7 @@ namespace OpenKalman
 
   /**
    * \brief If it isn't already, convert Arg to a native matrix in library T.
-   * \details The new matix will be one in which basic matrix operations are defined.
+   * \details The new matrix will be one in which basic matrix operations are defined.
    * \tparam T A matrix from the library to which Arg is to be converted.
    * \tparam Arg The argument
    */
@@ -289,50 +501,32 @@ namespace OpenKalman
   //  make_constant_matrix_like  //
   // --------------------------- //
 
-  /**
-   * \brief Make a single-constant matrix with size and shape modeled at least partially on T
-   * \tparam T The matrix or array on which the new matrix is patterned.
-   * \tparam constant The constant.
-   * \tparam rows An optional row dimension for the new matrix. By default, T's row dimension is used.
-   * \tparam columns An optional column dimension for the new matrix. By default, T's column dimension is used.
-   * \tparam Scalar An optional scalar type for the new matrix. By default, T's scalar type is used.
-   * \param e Any necessary runtime dimensions.
-   */
 #ifdef __cpp_concepts
-  template<indexible T, auto constant, std::size_t rows = row_dimension_of_v<T>,
-    std::size_t columns = column_dimension_of_v<T>, typename Scalar = scalar_type_of_t<T>,
-    std::convertible_to<std::size_t>...runtime_dimensions>
-  requires (sizeof...(runtime_dimensions) == (rows == dynamic_size ? 1 : 0) + (columns == dynamic_size ? 1 : 0))
+  template<indexible T, auto constant, typename Scalar = scalar_type_of_t<T>, index_descriptor...D> requires
+    (sizeof...(D) == max_indices_of_v<T>)
 #else
-  template<typename T, auto constant, std::size_t rows = row_dimension_of<T>::value,
-    std::size_t columns = column_dimension_of<T>::value, typename Scalar = typename scalar_type_of<T>::type,
-    typename...runtime_dimensions, std::enable_if_t<indexible<T> and
-      (sizeof...(runtime_dimensions) == (rows == dynamic_size ? 1 : 0) + (columns == dynamic_size ? 1 : 0)) and
-      (std::is_convertible_v<runtime_dimensions, std::size_t> and ...), int> = 0>
+  template<typename T, typename Scalar = scalar_type_of_t<T>, typename...D,
+    std::enable_if_t<indexible<T> and (index_descriptor<D> and ...) and sizeof...(D) == max_indices_of_v<T>, int> = 0>
 #endif
-  constexpr auto
-  make_constant_matrix_like(runtime_dimensions...e)
+  constexpr decltype(auto)
+  make_constant_matrix_like(D&&...d)
   {
-    return SingleConstantMatrixTraits<std::decay_t<T>, rows, columns, Scalar>::template make_constant_matrix<constant>(e...);
+    return SingleConstantMatrixTraits<T, dimension_size_of_v<D>..., Scalar>::template make_constant_matrix<constant>(
+      std::forward<D>(d)...);
   }
 
 
   /**
    * \overload
-   * \brief Make a single-constant matrix based on the argument, but specifying new dimensions.
+   * \brief Make a single-constant matrix based on T, but specifying a new constant.
    * \tparam T The matrix or array on which the new matrix is patterned.
    * \tparam constant The constant.
-   * \tparam rows The new number of rows (may be \ref dynamic_shape)
-   * \tparam columns The new number of columns (may be \ref dynamic_shape)
-   * \tparam Scalar An optional scalar type for the new matrix. By default, T's scalar type is used.
+   * \tparam Scalar A scalar type for the new matrix.
    */
 #ifdef __cpp_concepts
-  template<indexible T, auto constant, std::size_t rows = row_dimension_of_v<T>,
-    std::size_t columns = column_dimension_of_v<T>, typename Scalar = scalar_type_of_t<T>>
+  template<auto constant, typename Scalar, indexible T>
 #else
-  template<typename T, auto constant, std::size_t rows = row_dimension_of_v<T>,
-    std::size_t columns = column_dimension_of_v<T>, typename Scalar = scalar_type_of_t<T>,
-    std::enable_if_t<indexible<T>, int> = 0>
+  template<auto constant, typename Scalar, typename T, std::enable_if_t<indexible<T>, int> = 0>
 #endif
   constexpr decltype(auto)
   make_constant_matrix_like(T&& t)
@@ -342,38 +536,30 @@ namespace OpenKalman
       else return false;
     }();
 
-    if constexpr (constants_match and row_dimension_of_v<T> == rows and column_dimension_of_v<T> == columns and
-        std::is_same_v<scalar_type_of_t<T>, Scalar>)
+    if constexpr (constants_match and std::is_same_v<scalar_type_of_t<T>, Scalar>)
       return std::forward<T>(t);
-    else if constexpr (rows == dynamic_size and columns == dynamic_size)
-      return make_constant_matrix_like<T, constant, rows, columns, Scalar>(runtime_dimension_of<0>(t), runtime_dimension_of<1>(t));
-    else if constexpr (rows == dynamic_size)
-      return make_constant_matrix_like<T, constant, rows, columns, Scalar>(runtime_dimension_of<0>(t));
-    else if constexpr (columns == dynamic_size)
-      return make_constant_matrix_like<T, constant, rows, columns, Scalar>(runtime_dimension_of<1>(t));
     else
-      return make_constant_matrix_like<T, constant, rows, columns, Scalar>();
+      return std::apply(
+        [](auto&&...arg){ return make_constant_matrix_like<T, constant, Scalar>(std::forward<decltype(arg)>(arg)...); },
+        get_all_dimensions_of(t));
   }
 
 
   /**
    * \overload
-   * \brief Make a single-constant matrix based on the argument, but specifying new dimensions.
-   * \tparam dims Zero or more dimensions associated with indices of the new matrix (may be \ref dynamic_shape)
-   * \tparam Scalar An optional scalar value for the new matrix.
+   * \brief Make a single-constant matrix based on T, but specifying a new constant (of scalar type the same as T).
    * \tparam T The matrix or array on which the new matrix is patterned.
+   * \tparam constant The constant.
    */
 #ifdef __cpp_concepts
-  template<auto constant, std::size_t...dims, typename...Scalar, indexible T> requires
-    (sizeof...(dims) <= 2) and (sizeof...(Scalar) <= 1)
+  template<auto constant, indexible T>
 #else
-  template<auto constant, std::size_t...dims, typename...Scalar, typename T, std::enable_if_t<
-    indexible<T> and (sizeof...(dims) <= 2) and (sizeof...(Scalar) <= 1), int> = 0>
+  template<auto constant, typename T, std::enable_if_t<indexible<T>, int> = 0>
 #endif
   constexpr decltype(auto)
   make_constant_matrix_like(T&& t)
   {
-    return make_constant_matrix_like<T, constant, dims..., Scalar...>(std::forward<T>(t));
+    return make_constant_matrix_like<constant, scalar_type_of_t<T>>(std::forward<T>(t));
   }
 
 
@@ -649,7 +835,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typename Arg, std::convertible_to<std::size_t>...I> requires
     element_gettable<Arg, std::conditional_t<std::same_as<I, std::size_t>, I, std::size_t>...>
-  constexpr auto get_element(Arg&& arg, const I...i)
+  constexpr decltype(auto) get_element(Arg&& arg, const I...i)
   {
     detail::check_index_bounds<false>(arg, std::make_index_sequence<sizeof...(I)>{}, i...);
     return interface::GetElement<std::decay_t<Arg>, I...>::get(std::forward<Arg>(arg), i...);
@@ -688,9 +874,542 @@ namespace OpenKalman
 #endif
 
 
-  // ========================= //
-  //  Element-wise operations  //
-  // ========================= //
+  // =================== //
+  //  Subset operations  //
+  // =================== //
+
+  /**
+   * \brief Extract one column from a matrix or other tensor.
+   * \details The index of the column may be specified at either compile time <em>or</em> at runtime, but not both.
+   * \tparam compile_time_index The index of the column, if specified at compile time
+   * \tparam Arg The matrix or other tensor from which the column is to be extracted
+   * \tparam runtime_index_t The type of the index of the column, if the index is specified at runtime. This type
+   * should be convertible to <code>std::size_t</code>
+   * \return A \ref column_vector
+   */
+#ifdef __cpp_concepts
+  template<std::size_t...compile_time_index, typename Arg, std::convertible_to<const std::size_t>...runtime_index_t> requires
+    (sizeof...(compile_time_index) + sizeof...(runtime_index_t) == 1) and
+    (dynamic_columns<Arg> or ((compile_time_index + ... + 0) < column_dimension_of_v<Arg>))
+#else
+  template<std::size_t...compile_time_index, typename Arg, typename...runtime_index_t, std::enable_if_t<
+    (std::is_convertible_v<runtime_index_t, const std::size_t> and ...) and
+    (sizeof...(compile_time_index) + sizeof...(runtime_index_t) == 1) and
+    (dynamic_columns<Arg> or ((compile_time_index + ... + 0) < column_dimension_of<Arg>::value)), int> = 0>
+#endif
+  constexpr decltype(auto)
+  column(Arg&& arg, runtime_index_t...i)
+  {
+    if constexpr (column_vector<Arg>)
+    {
+      if constexpr (sizeof...(i) == 1)
+      {
+        if ((i + ... + 0) != 0)
+          throw std::out_of_range {"Runtime column index (which is " + std::to_string((i + ... + 0)) +
+            ") is not in range 0 <= i < 1."};
+        else
+          return std::forward<Arg>(arg);
+      }
+      else if constexpr ((compile_time_index + ... + 0) != 0)
+      {
+        throw std::out_of_range {"Compile-time column index (which is " +
+          std::to_string((compile_time_index + ... + 0)) + ") is not in range 0 <= i < 1."};      }
+      else
+      {
+        return std::forward<Arg>(arg);
+      }
+    }
+    else if constexpr (constant_matrix<Arg>)
+    {
+      auto runtime_i = (compile_time_index + ... + (i + ... + 0));
+      auto cols = runtime_dimension_of<1>(arg);
+
+      if (runtime_i >= cols) throw std::out_of_range {"Runtime column index (which is " + std::to_string(runtime_i) +
+          ") is not in range 0 <= i < " + std::to_string(cols) + "."};
+
+      if constexpr (zero_matrix<Arg>)
+        return make_zero_matrix_like<row_dimension_of_v<Arg>, 1>(std::forward<Arg>(arg));
+      else
+        return make_constant_matrix_like<Arg, constant_coefficient_v<Arg>>(get_dimensions_of<0>(arg), Dimensions<1>{});
+    }
+    else
+    {
+      return interface::Subsets<std::decay_t<Arg>>::template column<compile_time_index...>(std::forward<Arg>(arg), i...);
+    }
+  }
+
+
+  /**
+   * \brief Extract one row from a matrix or other tensor.
+   * \details The index of the row may be specified at either compile time <em>or</em> at runtime, but not both.
+   * \tparam compile_time_index The index of the row, if specified at compile time
+   * \tparam Arg The matrix or other tensor from which the row is to be extracted
+   * \tparam runtime_index_t The type of the index of the row, if the index is specified at runtime. This type
+   * should be convertible to <code>std::size_t</code>
+   * \return A \ref row_vector
+   */
+#ifdef __cpp_concepts
+  template<std::size_t...compile_time_index, typename Arg, std::convertible_to<const std::size_t>...runtime_index_t> requires
+    (sizeof...(compile_time_index) + sizeof...(runtime_index_t) == 1) and
+    (dynamic_rows<Arg> or ((compile_time_index + ... + 0) < row_dimension_of_v<Arg>))
+#else
+  template<size_t...compile_time_index, typename Arg, typename...runtime_index_t, std::enable_if_t<
+    (std::is_convertible_v<runtime_index_t, const std::size_t> and ...) and
+    (sizeof...(compile_time_index) + sizeof...(runtime_index_t) == 1) and
+    (dynamic_rows<Arg> or ((compile_time_index + ... + 0) < row_dimension_of<Arg>::value)), int> = 0>
+#endif
+  constexpr decltype(auto)
+  row(Arg&& arg, runtime_index_t...i)
+  {
+    if constexpr (row_vector<Arg>)
+    {
+      if constexpr (sizeof...(i) == 1)
+      {
+        if ((i + ... + 0) != 0)
+          throw std::out_of_range {"Runtime row index (which is " + std::to_string((i + ... + 0)) +
+            ") is not in range 0 <= i < 1."};
+        else
+          return std::forward<Arg>(arg);
+      }
+      else if constexpr ((compile_time_index + ... + 0) != 0)
+      {
+        throw std::out_of_range {"Compile-time row index (which is " +
+          std::to_string((compile_time_index + ... + 0)) + ") is not in range 0 <= i < 1."};      }
+      else
+      {
+        return std::forward<Arg>(arg);
+      }
+    }
+    else if constexpr (constant_matrix<Arg>)
+    {
+      auto runtime_i = (compile_time_index + ... + (i + ... + 0));
+      auto rows = runtime_dimension_of<0>(arg);
+
+      if (runtime_i >= rows) throw std::out_of_range {"Runtime row index (which is " + std::to_string(runtime_i) +
+          ") is not in range 0 <= i < " + std::to_string(rows) + "."};
+
+      if constexpr (zero_matrix<Arg>)
+        return make_zero_matrix_like<1, column_dimension_of_v<Arg>>(std::forward<Arg>(arg));
+      else
+        return make_constant_matrix_like<Arg, constant_coefficient_v<Arg>>(Dimensions<1>{}, get_dimensions_of<1>(arg));
+    }
+    else
+    {
+      return interface::Subsets<std::decay_t<Arg>>::template row<compile_time_index...>(std::forward<Arg>(arg), i...);
+    }
+  }
+
+
+  // ================== //
+  //  Array operations  //
+  // ================== //
+
+  namespace detail
+  {
+    template<typename T, typename Arg, std::size_t...indices>
+    constexpr bool check_n_ary_dims_impl(std::index_sequence<indices...>)
+    {
+      return ((
+        index_dimension_of_v<Arg, indices> == dynamic_size or
+        index_dimension_of_v<T, indices> == dynamic_size or
+        index_dimension_of_v<Arg, indices> == 1 or
+        index_dimension_of_v<Arg, indices> == index_dimension_of_v<T, indices>) and ...);
+    }
+
+
+    template<typename T, typename Arg>
+    constexpr bool check_n_ary_dimensions()
+    {
+      return check_n_ary_dims_impl<T, Arg>(std::make_index_sequence<max_indices_of_v<T>>());
+    }
+
+
+    template<std::size_t...sizes, typename Arg, std::size_t...indices>
+    inline void check_n_ary_rt_dims_impl(
+      const std::tuple<Dimensions<sizes>...>& d, const Arg& arg, std::index_sequence<indices...>)
+    {
+      ((runtime_dimension_of<indices>(arg) == 1 or
+        runtime_dimension_of<indices>(arg) == std::get<indices>(d)() ? 0 : throw std::logic_error {
+          "In an argument to n_ary_operation_with_broadcasting, the dimension of index " +
+          std::to_string(indices) + " is " + std::to_string(runtime_dimension_of<indices>(arg)) + ", but should be 1 " +
+          (std::get<indices>(d)() == 1 ? "" : "or " + std::to_string(std::get<indices>(d)())) +
+          "(the dimension of index " + std::to_string(indices) + " of the PatternMatrix template argument)"}),...);
+    }
+
+
+    template<typename PatternMatrix, std::size_t...sizes, typename Arg>
+    inline void check_n_ary_runtime_dimensions(const std::tuple<Dimensions<sizes>...>& d, const Arg& arg)
+    {
+      check_n_ary_rt_dims_impl(d, arg, std::make_index_sequence<max_indices_of_v<PatternMatrix>>());
+    }
+
+
+    template<std::size_t I, typename Arg, typename...Args>
+    constexpr std::size_t find_max_runtime_dims_impl(const Arg& arg, const Args&...args)
+    {
+      if constexpr (sizeof...(Args) == 0)
+      {
+        return runtime_dimension_of<I>(arg);
+      }
+      else
+      {
+        auto dim0 = runtime_dimension_of<I>(arg);
+        auto dim = find_max_runtime_dims_impl<I>(args...);
+        if (dim0 == dim or dim == 1)
+          return dim0;
+        else if (dim0 == 1)
+          return dim;
+        else
+          throw std::logic_error {"In an argument to n_ary_operation_with_broadcasting, the dimension of index " +
+            std::to_string(I) + " is " + std::to_string(dim0) + ", which is not 1 and does not match index " +
+            std::to_string(I) + " of a later argument, which is " + std::to_string(dim)};
+      }
+    }
+
+
+    template<typename...Args, std::size_t...I>
+    constexpr std::size_t find_max_dims_impl(const Args&...args, std::index_sequence<I...>)
+    {
+      return std::tuple {
+        [](const Args&...args){
+          constexpr auto max_stat_dim = std::max({(dynamic_dimension<Args, I> ? 0 : index_dimension_of_v<Args, I>)...});
+          constexpr auto dim = max_stat_dim == 0 ? dynamic_size : max_stat_dim;
+
+          if constexpr (((not dynamic_dimension<Args, I> and (index_dimension_of_v<Args, I> == 0 or
+              (index_dimension_of_v<Args, I> != 1 and index_dimension_of_v<Args, I> != dim))) or ...))
+            throw std::logic_error {"In an argument to n_ary_operation_with_broadcasting, the dimension of index " +
+              std::to_string(I) + " is " + std::to_string(index_dimension_of_v<Args, I>) + ", but should be 1 or " +
+              (dim == 1 or dim == dynamic_size ?
+                "the maximum index " + std::to_string(I) + " among the arguments" :
+                std::to_string(dim) + "(the maximum index " + std::to_string(I) + " among the arguments)")};
+
+          if constexpr ((dim != dynamic_size and dim > 1) or (dim == 1 and not (dynamic_dimension<Args, I> or ...)))
+            return Dimensions<dim>{};
+          else
+            return Dimensions<dynamic_size>{find_max_runtime_dims_impl<I>(args...)};
+        }(args...)...};
+    }
+
+
+    template<typename...Args>
+    inline std::size_t find_max_dims(const Args&...args)
+    {
+      constexpr auto max_indices = std::max({max_indices_of_v<Args>...});
+      return find_max_dims_impl(args..., std::make_index_sequence<max_indices>());
+    }
+  }
+
+
+  /**
+   * \brief Perform a component-wise n-ary operation, using broadcasting to match the size of a pattern matrix.
+   * \tparam PatternMatrix A matrix or array of the size and shape corresponding to the result
+   * \tparam Operation The n-ary operation taking n arguments
+   * \tparam Args Any arguments other than the first
+   * \return A matrix or array in which each component is the result of calling Operation on corresponding components
+   * from each of the arguments, in the order specified.
+   */
+#ifdef __cpp_concepts
+  template<indexible PatternMatrix, std::size_t...sizes, typename Operation, indexible...Args> requires
+    std::is_invocable_r_v<scalar_type_of_t<PatternMatrix>, Operation&&, typename scalar_type_of<Args>::type...> and
+    ((max_indices_of_v<Args> >= max_indices_of_v<PatternMatrix>) and ...) and
+    (detail::check_n_ary_dimensions<PatternMatrix, Args>() and ...)
+#else
+  template<typename PatternMatrix, std::size_t...sizes, typename Operation, typename...Args, std::enable_if_t<
+    indexible<PatternMatrix> and (indexible<Args> and ...) and
+    std::is_invocable_r<scalar_type_of_t<PatternMatrix>, Operation&&, typename scalar_type_of<Args>::type...>::value and
+    ((max_indices_of_v<Args> >= max_indices_of_v<PatternMatrix>) and ...) and
+    (detail::check_n_ary_dimensions<PatternMatrix, Args>() and ...), int> = 0>
+#endif
+  constexpr decltype(auto)
+  n_ary_operation_with_broadcasting(const std::tuple<Dimensions<sizes>...>& d, Operation&& op, Args&&...args)
+  {
+    if constexpr ((any_dynamic_dimension<PatternMatrix> or ... or any_dynamic_dimension<Args>))
+      (detail::check_n_ary_runtime_dimensions<PatternMatrix>(d, args),...);
+
+    return interface::ArrayOperations<PatternMatrix>::n_ary_operation_with_broadcasting(
+      d, std::forward<Operation>(op), std::forward<Args>(args)...);
+  }
+
+
+  /**
+   * \overload
+   * \brief Perform a component-wise n-ary operation, using broadcasting if necessary to make the arguments the same size.
+   * \details Each of the arguments may be expanded by broadcasting. The result will derive its dimensions from the
+   * largest dimensions among the arguments.
+   * \tparam Operation The n-ary operation taking n arguments
+   * \tparam Arg The first of n arguments
+   * \tparam Args Any arguments other than the first
+   * \return A matrix or array in which each component is the result of calling Operation on corresponding components
+   * from each of the arguments, in the order specified.
+   */
+#ifdef __cpp_concepts
+  template<typename Operation, indexible Arg, indexible...Args> requires
+    std::is_invocable_r_v<scalar_type_of_t<Arg>, Operation&&, typename scalar_type_of<Arg>::type,
+      typename scalar_type_of<Args>::type...> and
+    ((max_indices_of_v<Args> >= max_indices_of_v<Arg>) and ...) and (detail::check_n_ary_dimensions<Arg, Args>() and ...)
+#else
+  template<typename Operation, typename Arg, typename...Args, std::enable_if_t<
+    (indexible<Arg> and ... and indexible<Args>) and
+    std::is_invocable_r<scalar_type_of_t<Arg>, Operation&&, typename scalar_type_of<Arg>::type,
+      typename scalar_type_of<Args>::type...>::value and
+    ((max_indices_of_v<Args> >= max_indices_of_v<Arg>) and ...) and
+    (detail::check_n_ary_dimensions<Arg, Args>() and ...), int> = 0>
+#endif
+  constexpr decltype(auto)
+  n_ary_operation_with_broadcasting(Operation&& op, Arg&& arg, Args&&...args)
+  {
+    auto d = detail::find_max_dims(arg, args...);
+    using PatternMatrix = decltype(make_default_dense_writable_matrix_like<Arg>(d));
+
+    return interface::ArrayOperations<PatternMatrix>::n_ary_operation_with_broadcasting(
+      d, std::forward<Operation>(op), std::forward<Arg>(arg), std::forward<Args>(args)...);
+  }
+
+
+  namespace detail
+  {
+
+    template<auto>
+    struct is_constexpr_value : std::true_type {};
+
+
+#ifdef __cpp_concepts
+    template<typename Scalar, decltype(auto) f>
+#else
+    template<typename Scalar, decltype(auto) f, typename = void>
+#endif
+    struct is_constexpr_binary_function : std::false_type {};
+
+
+#ifdef __cpp_concepts
+    template<typename Scalar, decltype(auto) f> requires
+      is_constexpr_value<static_cast<const bool>(f(static_cast<Scalar>(0), static_cast<Scalar>(0)))>::value
+    struct is_constexpr_binary_function<Scalar, f>
+#else
+    template<typename Scalar, decltype(auto) f>
+    struct is_constexpr_binary_function<Scalar, f, std::enable_if_t<
+      is_constexpr_value<static_cast<const bool>f(static_cast<Scalar>(0), static_cast<Scalar>(0)))>::value>>
+#endif
+      : std::true_type {};
+
+
+    template<typename T>
+    struct is_plus : std::false_type {};
+
+    template<typename T>
+    struct is_plus<std::plus<T>> : std::true_type {};
+
+    template<typename T>
+    struct is_multiplies : std::false_type {};
+
+    template<typename T>
+    struct is_multiplies<std::multiplies<T>> : std::true_type {};
+
+
+    template<typename BinaryFunction, typename C>
+    constexpr auto calc_const_reduce_constant_runtime(const std::size_t dim, const BinaryFunction& b, const C& c)
+    {
+      if (dim <= 1)
+        return c;
+      else if constexpr (is_plus<BinaryFunction>::value)
+        return c * dim;
+      else if constexpr (is_multiplies<BinaryFunction>::value)
+        return std::pow(c, dim);
+      else
+        return b(c, calc_const_reduce_constant_runtime(dim - 1, b, c));
+    }
+
+
+    template<std::size_t dim, typename BinaryFunction, typename C>
+    constexpr auto calc_const_reduce_constant(const BinaryFunction& b, const C c)
+    {
+      if constexpr (dim <= 1)
+        return c;
+      else if constexpr (is_plus<BinaryFunction>::value)
+        return c * dim;
+      else if constexpr (is_multiplies<BinaryFunction>::value)
+        return OpenKalman::internal::constexpr_pow(c, dim);
+      else
+        return b(c, calc_const_reduce_constant<dim - 1>(b, c));
+    }
+
+
+    template<typename Scalar, std::size_t index, typename BinaryFunction, typename T, std::size_t...I>
+    constexpr auto const_reduce(const BinaryFunction& b, T&& t, std::index_sequence<I...>)
+    {
+      constexpr auto dim = index_dimension_of_v<T, index>;
+
+      if constexpr (dim != dynamic_size and detail::is_constexpr_binary_function<Scalar, b>::value)
+      {
+        constexpr auto c = calc_const_reduce_constant<dim>(b, constant_coefficient_v<T>);
+
+# if __cpp_nontype_template_args >= 201911L
+        return make_constant_matrix_like<T, c>(
+          [](const T& t){
+            if constexpr (index == I)
+              return Dimensions<1>{};
+            else
+              return std::get<I>(get_all_dimensions_of(t));
+          }(t)...);
+# else
+        constexpr auto c_integral = []{
+          if constexpr (std::is_integral_v<decltype(c)>) return c;
+          else return static_cast<std::intmax_t>(c);
+        }();
+
+        if constexpr (are_within_tolerance(c, static_cast<Scalar>(c_integral)))
+        {
+          return make_constant_matrix_like<T, c>(
+            [](const T& t){
+              if constexpr (index == I)
+                return Dimensions<1>{};
+              else
+                return std::get<I>(get_all_dimensions_of(t));
+            }(t)...);
+        }
+        else
+        {
+          return make_self_contained(c * make_constant_matrix_like<T, 1>(
+            [](const T& t){
+              if constexpr (index == I)
+                return Dimensions<1>{};
+              else
+                return std::get<I>(get_all_dimensions_of(t));
+            }(t)...));
+        }
+#endif
+      }
+      else
+      {
+        auto c = calc_const_reduce_constant_runtime(runtime_dimension_of<index>(t), b, constant_coefficient_v<T>);
+
+        return c * make_constant_matrix_like<T, 1>(
+          [](const T& t){
+            if constexpr (index == I)
+              return Dimensions<1>{};
+            else
+              return std::get<I>(get_all_dimensions_of(t));
+          }(t)...);
+      }
+    }
+
+
+    template<typename BinaryFunction, typename Arg>
+    constexpr decltype(auto)
+    reduce_impl(const BinaryFunction&, Arg&& arg)
+    {
+      return std::forward<Arg>(arg);
+    }
+
+
+    template<std::size_t index, std::size_t...indices, typename BinaryFunction, typename Arg>
+    constexpr decltype(auto)
+    reduce_impl(const BinaryFunction& b, Arg&& arg)
+    {
+      using Scalar = scalar_type_of_t<Arg>;
+
+      if constexpr (constant_matrix<Arg>)
+      {
+        auto red = const_reduce<Scalar, index>(
+          b, std::forward<Arg>(arg), std::make_index_sequence<max_indices_of_v<Arg>> {});
+        return reduce_impl<indices...>(b, std::move(red));
+      }
+      /*else if constexpr (constant_diagonal_matrix<Arg>)
+      {
+        auto red = const_diag_reduce<Scalar, index>(
+          b, std::forward<Arg>(arg), std::make_index_sequence<max_indices_of_v<Arg>> {});
+        return reduce_impl<indices...>(b, std::move(red));
+      }*/
+      else
+      {
+        return interface::ArrayOperations<std::decay_t<Arg>>::template reduce<index, indices...>(
+          b, std::forward<Arg>(arg));
+      }
+    }
+
+
+    template<typename BinaryFunction, typename Arg, std::size_t...I>
+    constexpr decltype(auto) reduce_all_indices(const BinaryFunction& b, Arg&& arg, std::index_sequence<I...>)
+    {
+      if constexpr (((index_dimension_of_v<Arg, I> == 1) and ...))
+        return std::forward<Arg>(arg);
+      else
+        return reduce_impl<I...>(b, std::forward<Arg>(arg));
+    }
+
+  }
+
+
+  /**
+   * \brief Use a binary function to reduce a tensor across one or more of its indices.
+   * \tparam indices The indices to be reduced. For example, if indices includes 0, the result will have only one row.
+   * If indices includes 1, the result will have only one column. Reductions will be performed in the listed index
+   * order, but unless it matters, the indices should preferably be listed in numerical order. If no indices are
+   * given, the function will reduce over all indices in index order.
+   * \tparam BinaryFunction A binary function invocable with two values of type <code>scalar_type_of_t<Arg></code>.
+   * It must be an associative function. Preferably, it should be a constexpr function, and even more preferably,
+   * it should be a standard c++ function such as std::plus or std::multiplies.
+   * \tparam Arg The tensor
+   */
+#ifdef __cpp_concepts
+  template<std::size_t...indices, typename BinaryFunction, indexible Arg> requires
+    ((indices < max_indices_of_v<Arg>) and ...) and
+    std::is_invocable_r_v<scalar_type_of_t<Arg>, BinaryFunction&&, scalar_type_of_t<Arg>>
+#else
+  template<std::size_t...indices, typename BinaryFunction, typename Arg, std::enable_if_t<indexible<Arg> and
+    ((indices < max_indices_of<Arg>::value) and ...) and
+    std::is_invocable<typename scalar_type_of<Arg>::type, BinaryFunction&&,
+      typename scalar_type_of<Arg>::type>::value, int> = 0>
+#endif
+  constexpr decltype(auto)
+  reduce(const BinaryFunction& b, Arg&& arg)
+  {
+    if constexpr (sizeof...(indices) == 0)
+    {
+      return detail::reduce_all_indices(b, std::forward<Arg>(arg), std::make_index_sequence<max_indices_of_v<Arg>> {});
+    }
+    else if constexpr (((index_dimension_of_v<Arg, indices> == 1) and ...))
+    {
+      return std::forward<Arg>(arg);
+    }
+    else
+    {
+      return detail::reduce_impl<indices...>(b, std::forward<Arg>(arg));
+    }
+  }
+
+
+  /// Create a column vector by taking the mean of each row in a set of column vectors. \todo Is this necessary?
+#ifdef __cpp_concepts
+  template<indexible Arg>
+#else
+  template<typename Arg, std::enable_if_t<indexible<Arg>, int> = 0>
+#endif
+  constexpr decltype(auto)
+  reduce_columns(Arg&& arg) noexcept
+  {
+    if constexpr (index_dimension_of_v<Arg, 1> == 1)
+      return std::forward<Arg>(arg);
+    else
+      return make_self_contained(reduce<1>(std::plus<void>{}, std::forward<Arg>(arg)) / runtime_dimension_of<1>(arg));
+  }
+
+
+  /// Create a row vector by taking the mean of each column in a set of row vectors. \todo Is this necessary?
+#ifdef __cpp_concepts
+  template<indexible Arg>
+#else
+  template<typename Arg, std::enable_if_t<indexible<Arg>, int> = 0>
+#endif
+  constexpr decltype(auto)
+  reduce_rows(Arg&& arg) noexcept
+  {
+    if constexpr (index_dimension_of_v<Arg, 0> == 1)
+      return std::forward<Arg>(arg);
+    else
+      return make_self_contained(reduce<0>(std::plus<void>{}, std::forward<Arg>(arg)) / runtime_dimension_of<0>(arg));
+  }
+
 
   /**
    * \brief Fold an operation across the elements of a matrix
@@ -706,14 +1425,14 @@ namespace OpenKalman
     requires std::is_invocable_r_v<const std::remove_reference_t<Accum>&, const BinaryFunction&,
       Accum&&, scalar_type_of_t<Arg>> and std::move_constructible<std::decay_t<Accum>> and
     std::copy_constructible<std::decay_t<Accum>>
-  constexpr decltype(auto) fold(const BinaryFunction& b, Accum&& accum, Arg&& arg)
 #else
   template<ElementOrder order = ElementOrder::column_major, typename BinaryFunction, typename Accum, typename Arg,
     std::enable_if_t<std::is_invocable<const std::remove_reference_t<Accum>&, const BinaryFunction&,
       Accum&&, scalar_type_of_t<Arg>>::value and std::is_move_constructible<std::decay_t<Accum>>::value and
     std::is_copy_constructible<std::decay_t<Accum>>::value, int> = 0>
-  constexpr decltype(auto) fold(const BinaryFunction& b, Accum&& accum, Arg&& arg)
 #endif
+  constexpr decltype(auto)
+  fold(const BinaryFunction& b, Accum&& accum, Arg&& arg)
   {
     using Scalar = scalar_type_of_t<Arg>;
 
@@ -748,7 +1467,7 @@ namespace OpenKalman
     }
     else
     {
-      return interface::ElementWiseOperations<std::decay_t<Arg>>::template fold<order>(
+      return interface::ArrayOperations<std::decay_t<Arg>>::template fold<order>(
         b, std::forward<Accum>(accum), std::forward<Arg>(arg));
     }
   }
@@ -822,16 +1541,18 @@ namespace OpenKalman
   {
     using Scalar = scalar_type_of_t<Arg>;
 
-    constexpr std::size_t dim = dynamic_rows<Arg> ? column_dimension_of_v<Arg> : row_dimension_of_v<Arg>;
+    constexpr std::size_t dim_n = dynamic_rows<Arg> ? column_dimension_of_v<Arg> : row_dimension_of_v<Arg>;
+
+    auto dim = get_dimensions_of<dynamic_rows<Arg> ? 1 : 0>(arg);
 
     if constexpr (identity_matrix<Arg>)
     {
-      return make_constant_matrix_like<1, dim, 1>(arg);
+      return make_constant_matrix_like<Arg, 1>(dim, Dimensions<1>{});
     }
     else if constexpr (zero_matrix<Arg>)
     {
       if constexpr (not square_matrix<Arg>) detail::check_if_square_at_runtime(arg);
-      return make_zero_matrix_like<dim, 1>(arg);
+      return make_zero_matrix_like<dim_n, 1>(arg);
     }
     else if constexpr (constant_matrix<Arg> or constant_diagonal_matrix<Arg>)
     {
@@ -844,7 +1565,7 @@ namespace OpenKalman
       }();
 
 #  if __cpp_nontype_template_args >= 201911L
-      return make_constant_matrix_like<c, dim, 1>(arg);
+      return make_constant_matrix_like<Arg, c>(Dimensions<dim>{}, Dimensions<1>{});
 #  else
       constexpr auto c_integral = []{
         if constexpr (std::is_integral_v<decltype(c)>) return c;
@@ -852,15 +1573,178 @@ namespace OpenKalman
       }();
 
       if constexpr (are_within_tolerance(c, static_cast<Scalar>(c_integral)))
-        return make_constant_matrix_like<c_integral, dim, 1>(arg);
+        return make_constant_matrix_like<Arg, c_integral>(dim, Dimensions<1>{});
       else
-        return make_self_contained(c * make_constant_matrix_like<1, dim, 1>(arg));
+        return make_self_contained(c * make_constant_matrix_like<Arg, 1>(dim, Dimensions<1>{}));
 #  endif
     }
     else
     {
       return interface::Conversions<std::decay_t<Arg>>::diagonal_of(std::forward<Arg>(arg));
     }
+  }
+
+
+  // ================================== //
+  //  Modular transformation functions  //
+  // ================================== //
+
+#ifdef __cpp_concepts
+  template<fixed_coefficients C, untyped_columns Arg> requires
+    dynamic_rows<Arg> or equivalent_to<C, row_coefficient_types_of_t<Arg>>
+#else
+  template<typename C, typename Arg, std::enable_if_t<fixed_coefficients<C> and untyped_columns<Arg> and
+    (dynamic_rows<Arg> or equivalent_to<C, row_coefficient_types_of_t<Arg>>), int> = 0>
+#endif
+  constexpr decltype(auto)
+  to_euclidean(Arg&& arg)
+  {
+    if constexpr (dynamic_rows<Arg>) if (runtime_dimension_of<0>(arg) != C::dimension)
+      throw std::out_of_range {"Number of rows (" + std::to_string(runtime_dimension_of<0>(arg)) +
+        ") is incompatible with dimension types (" + std::to_string(C::dimension) + ")"};
+
+    if constexpr (C::axes_only)
+    {
+      return std::forward<Arg>(arg);
+    }
+    else
+    {
+      return interface::ModularTransformationTraits<Arg>::template to_euclidean<C>(std::forward<Arg>(arg));
+    }
+  }
+
+
+#ifdef __cpp_concepts
+  template<untyped_columns Arg>
+#else
+  template<typename Arg, std::enable_if_t<untyped_columns<Arg>, int> = 0>
+#endif
+  constexpr decltype(auto)
+  to_euclidean(Arg&& arg)
+  {
+    return to_euclidean<row_coefficient_types_of_t<Arg>, Arg>(std::forward<Arg>(arg));
+  }
+
+
+#ifdef __cpp_concepts
+  template<indexible Arg, dynamic_coefficients C>
+#else
+  template<typename C, typename Arg, std::enable_if_t<indexible<Arg> and dynamic_coefficients<C>, int> = 0>
+#endif
+  constexpr decltype(auto)
+  to_euclidean(Arg&& arg, C&& c) noexcept
+  {
+    if (runtime_dimension_of<0>(arg) != c.runtime_dimension)
+      throw std::out_of_range {"Number of rows (" + std::to_string(runtime_dimension_of<0>(arg)) +
+        ") is incompatible with dimension types (" + std::to_string(c.runtime_dimension) + ")"};
+
+    return interface::ModularTransformationTraits<Arg>::to_euclidean(std::forward<Arg>(arg), std::forward<C>(c));
+  }
+
+
+#ifdef __cpp_concepts
+  template<fixed_coefficients C, untyped_columns Arg> requires
+    dynamic_rows<Arg> or equivalent_to<C, row_coefficient_types_of_t<Arg>>
+#else
+  template<typename C, typename Arg, std::enable_if_t<fixed_coefficients<C> and untyped_columns<Arg> and
+    (dynamic_rows<Arg> or equivalent_to<C, row_coefficient_types_of_t<Arg>>), int> = 0>
+#endif
+  constexpr decltype(auto)
+  from_euclidean(Arg&& arg) noexcept
+  {
+    if constexpr (dynamic_rows<Arg>) if (runtime_dimension_of<0>(arg) != C::euclidean_dimension)
+      throw std::out_of_range {"Number of rows (" + std::to_string(runtime_dimension_of<0>(arg)) +
+        ") is incompatible with dimension types (" + std::to_string(C::euclidean_dimension) + ")"};
+
+    if constexpr (C::axes_only)
+    {
+      return std::forward<Arg>(arg);
+    }
+    else
+    {
+      return interface::ModularTransformationTraits<Arg>::template from_euclidean<C>(std::forward<Arg>(arg));
+    }
+  }
+
+
+#ifdef __cpp_concepts
+  template<untyped_columns Arg>
+#else
+  template<typename Arg, std::enable_if_t<untyped_columns<Arg>, int> = 0>
+#endif
+  constexpr decltype(auto)
+  from_euclidean(Arg&& arg)
+  {
+    return from_euclidean<row_coefficient_types_of_t<Arg>, Arg>(std::forward<Arg>(arg));
+  }
+
+
+#ifdef __cpp_concepts
+  template<indexible Arg, dynamic_coefficients C>
+#else
+  template<typename C, typename Arg, std::enable_if_t<indexible<Arg> and dynamic_coefficients<C>, int> = 0>
+#endif
+  constexpr decltype(auto)
+  from_euclidean(Arg&& arg, C&& c) noexcept
+  {
+    if (runtime_dimension_of<0>(arg) != c.runtime_euclidean_dimension)
+      throw std::out_of_range {"Number of rows (" + std::to_string(runtime_dimension_of<0>(arg)) +
+        ") is incompatible with dimension types (" + std::to_string(c.runtime_euclidean_dimension) + ")"};
+
+    return interface::ModularTransformationTraits<Arg>::from_euclidean(std::forward<Arg>(arg), std::forward<C>(c));
+  }
+
+
+#ifdef __cpp_concepts
+  template<fixed_coefficients C, untyped_columns Arg> requires
+    dynamic_rows<Arg> or equivalent_to<C, row_coefficient_types_of_t<Arg>>
+#else
+  template<typename C, typename Arg, std::enable_if_t<fixed_coefficients<C> and untyped_columns<Arg> and
+    (dynamic_rows<Arg> or equivalent_to<C, row_coefficient_types_of_t<Arg>>), int> = 0>
+#endif
+  constexpr decltype(auto)
+  wrap_angles(Arg&& arg)
+  {
+    if constexpr (dynamic_rows<Arg>) if (runtime_dimension_of<0>(arg) != C::dimension)
+      throw std::out_of_range {"Number of rows (" + std::to_string(runtime_dimension_of<0>(arg)) +
+        ") is incompatible with dimension types (" + std::to_string(C::dimension) + ")"};
+
+    if constexpr (C::axes_only or identity_matrix<Arg> or zero_matrix<Arg>)
+    {
+      return std::forward<Arg>(arg);
+    }
+    else
+    {
+      interface::ModularTransformationTraits<Arg>::template wrap_angles<C>(std::forward<Arg>(arg));
+    }
+  }
+
+
+#ifdef __cpp_concepts
+  template<untyped_columns Arg>
+#else
+  template<typename Arg, std::enable_if_t<untyped_columns<Arg>, int> = 0>
+#endif
+  constexpr decltype(auto)
+  wrap_angles(Arg&& arg)
+  {
+    return wrap_angles<row_coefficient_types_of_t<Arg>, Arg>(std::forward<Arg>(arg));
+  }
+
+
+#ifdef __cpp_concepts
+  template<indexible Arg, dynamic_coefficients C>
+#else
+  template<typename C, typename Arg, std::enable_if_t<indexible<Arg> and dynamic_coefficients<C>, int> = 0>
+#endif
+  constexpr decltype(auto)
+  wrap_angles(Arg&& arg, C&& c) noexcept
+  {
+    if (runtime_dimension_of<0>(arg) != c.runtime_dimension)
+      throw std::out_of_range {"Number of rows (" + std::to_string(runtime_dimension_of<0>(arg)) +
+        ") is incompatible with dimension types (" + std::to_string(c.runtime_dimension) + ")"};
+
+    return interface::ModularTransformationTraits<Arg>::wrap_angles(std::forward<Arg>(arg), std::forward<C>(c));
   }
 
 
@@ -1045,7 +1929,7 @@ namespace OpenKalman
     }
     else if constexpr (one_by_one_matrix<Arg> and element_gettable<Arg, std::size_t, std::size_t>)
     {
-      return get_element(arg, std::size_t(0), std::size_t(0));
+      return get_element(std::forward<Arg>(arg), std::size_t(0), std::size_t(0));
     }
     else
     {
@@ -1297,6 +2181,182 @@ namespace OpenKalman
       {
         return MatrixTraits<A>::make(e);
       }
+    }
+  }
+
+
+  namespace detail
+  {
+    template<typename A, typename B>
+    void solve_check_A_and_B_rows_match(const A& a, const B& b)
+    {
+      if (runtime_dimension_of<0>(a) != runtime_dimension_of<0>(b))
+        throw std::domain_error {"The rows of the two operands of the solve function must be the same, but instead "
+          "the first operand has " + std::to_string(runtime_dimension_of<0>(a)) + " rows and the second operand has " +
+          std::to_string(runtime_dimension_of<0>(b)) + " rows"};
+    }
+
+    template<typename A, typename B>
+    auto solve_make_zero_result(const A& a, const B& b)
+    {
+      constexpr auto a_cols = column_dimension_of_v<A>;
+      if constexpr (a_cols == dynamic_size)
+      {
+        auto a_runtime_cols = runtime_dimension_of<1>(a);
+        if constexpr (dynamic_columns<B>)
+          return make_zero_matrix_like<B, a_cols>(a_runtime_cols, runtime_dimension_of<1>(b));
+        else
+          return make_zero_matrix_like<B, a_cols>(a_runtime_cols);
+      }
+      else
+      {
+        return make_zero_matrix_like<a_cols>(b);
+      }
+    }
+  }
+
+
+  /**
+   * \brief Solve the equation AX = B for X, which may or may not be a unique solution.
+   * \details The interface to the relevant linear algebra library determines what happens if A is not invertible.
+   * \tparam must_be_unique Determines whether the function throws an exception if the solution X is non-unique
+   * (e.g., if the equation is under-determined)
+   * \tparam must_be_exact Determines whether the function throws an exception if it cannot return an exact solution,
+   * such as if the equation is over-determined. * If <code>false<code>, then the function will return an estimate
+   * instead of throwing an exception.
+   * \tparam A The matrix A in the equation AX = B
+   * \tparam B The matrix B in the equation AX = B
+   * \return The unique solution X of the equation AX = B. If <code>must_be_unique</code>, then the function can return
+   * any valid solution for X. In particular, if <code>must_be_unique</code>, the function has the following behavior:
+   * - If A is a \ref zero_matrix, then the result X will also be a \ref zero_matrix
+   */
+  #ifdef __cpp_concepts
+  template<bool must_be_unique = false, bool must_be_exact = false, typename A, typename B> requires
+    (dynamic_rows<A> or dynamic_rows<B> or row_dimension_of_v<A> == row_dimension_of_v<B>) and
+    (not zero_matrix<A> or not zero_matrix<B> or not must_be_unique) and
+    (not zero_matrix<A> or not (constant_matrix<B> or constant_diagonal_matrix<B>) or zero_matrix<B> or not must_be_exact) and
+    (not constant_matrix<A> or not constant_diagonal_matrix<B> or any_dynamic_dimension<A> or
+      (row_dimension_of_v<A> <= column_dimension_of_v<A> and row_dimension_of_v<B> <= column_dimension_of_v<A>) or
+      (row_dimension_of_v<A> == 1 and row_dimension_of_v<B> == 1) or not must_be_exact)
+  #else
+  template<bool must_be_unique = false, bool must_be_exact = false, typename A, typename B, std::enable_if_t<
+    (dynamic_rows<A> or dynamic_rows<B> or row_dimension_of_v<A> == row_dimension_of_v<B>) and
+    (not zero_matrix<A> or not zero_matrix<B> or not must_be_unique) and
+    (not zero_matrix<A> or not (constant_matrix<B> or constant_diagonal_matrix<B>) or zero_matrix<B> or not must_be_exact) and
+    (not constant_matrix<A> or not constant_diagonal_matrix<B> or any_dynamic_dimension<A> or
+      (row_dimension_of_v<A> <= column_dimension_of_v<A> and row_dimension_of_v<B> <= column_dimension_of_v<A>) or
+      (row_dimension_of_v<A> == 1 and row_dimension_of_v<B> == 1) or not must_be_exact), int> = 0>
+  #endif
+  constexpr auto
+  solve(A&& a, B&& b)
+  {
+    using Scalar = scalar_type_of_t<A>;
+
+    if constexpr (zero_matrix<B>)
+    {
+      if constexpr (dynamic_rows<A> or dynamic_rows<B>) detail::solve_check_A_and_B_rows_match(a, b);
+
+      if constexpr (must_be_unique and not constant_matrix<A> and not constant_diagonal_matrix<A>)
+      {
+        if (a == make_zero_matrix_like(a))
+          throw std::runtime_error {"solve function requires a unique solution, "
+            "but because operands A and B are both zero matrices, result X may take on any value"};
+        else
+          return detail::solve_make_zero_result(a, b);
+      }
+      else
+        return detail::solve_make_zero_result(a, b);
+    }
+    else if constexpr (zero_matrix<A>) //< This will be a non-exact solution unless b is zero.
+    {
+      if constexpr (dynamic_rows<A> or dynamic_rows<B>) detail::solve_check_A_and_B_rows_match(a, b);
+      return detail::solve_make_zero_result(a, b);
+    }
+    else if constexpr (constant_diagonal_matrix<A>)
+    {
+      if constexpr (dynamic_rows<A> or dynamic_rows<B>) detail::solve_check_A_and_B_rows_match(a, b);
+      if constexpr (identity_matrix<A>)
+        return std::forward<B>(b);
+      else
+        return make_self_contained(std::forward<B>(b) / constant_diagonal_coefficient_v<A>);
+    }
+    else if constexpr (constant_matrix<A>)
+    {
+      constexpr auto a_const = constant_coefficient_v<A>;
+
+      if constexpr ((row_dimension_of_v<A> == 1 or row_dimension_of_v<B> == 1) and column_dimension_of_v<A> == 1)
+      {
+        if constexpr (dynamic_rows<A> or dynamic_rows<B>) detail::solve_check_A_and_B_rows_match(a, b);
+        return make_self_contained(std::forward<B>(b) / a_const);
+      }
+      else if constexpr (constant_matrix<B>)
+      {
+        if constexpr (dynamic_rows<A> or dynamic_rows<B>) detail::solve_check_A_and_B_rows_match(a, b);
+
+        constexpr auto b_const = constant_coefficient_v<B>;
+        constexpr auto a_cols = column_dimension_of_v<A>;
+
+        if constexpr (a_cols == dynamic_size)
+        {
+          auto a_runtime_cols = runtime_dimension_of<1>(a);
+          auto c = static_cast<Scalar>(b_const) / (a_runtime_cols * a_const);
+          return make_self_contained(c * make_constant_matrix_like<B, 1>(Dimensions{a_runtime_cols}, get_dimensions_of<1>(b)));
+        }
+        else
+        {
+  #if __cpp_nontype_template_args >= 201911L
+          constexpr auto c = static_cast<Scalar>(b_const) / (a_cols * a_const);
+          return make_constant_matrix_like<B, c>(Dimensions<a_cols>{}, get_dimensions_of<1>(b));
+  #else
+          if constexpr(b_const % (a_cols * a_const) == 0)
+          {
+            constexpr std::size_t c = static_cast<std::size_t>(b_const) / (a_cols * static_cast<std::size_t>(a_const));
+            return make_constant_matrix_like<B, c>(Dimensions<a_cols>{}, get_dimensions_of<1>(b));
+          }
+          else
+          {
+            auto c = static_cast<Scalar>(b_const) / (a_cols * a_const);
+            return make_self_contained(c * make_constant_matrix_like<B, 1>(Dimensions<a_cols>{}, get_dimensions_of<1>(b)));
+          }
+  #endif
+        }
+      }
+      else if constexpr (row_dimension_of_v<A> == 1 or row_dimension_of_v<B> == 1 or
+        (not must_be_exact and (not must_be_unique or
+          (not any_dynamic_dimension<A> and row_dimension_of_v<A> >= column_dimension_of_v<A>))))
+      {
+        if constexpr (dynamic_rows<A> or dynamic_rows<B>) detail::solve_check_A_and_B_rows_match(a, b);
+        return make_self_contained(b / (runtime_dimension_of<1>(a) * constant_coefficient_v<A>));
+      }
+      else //< The solution will be non-exact unless every row of b is identical.
+      {
+        return interface::LinearAlgebra<std::decay_t<A>>::template solve<must_be_unique, must_be_exact>(
+          std::forward<A>(a), std::forward<B>(b));
+      }
+    }
+    else if constexpr (diagonal_matrix<A> or
+      ((row_dimension_of_v<A> == 1 or row_dimension_of_v<B> == 1) and column_dimension_of_v<A> == 1))
+    {
+      auto op = [](auto&& b_elem, auto&& a_elem) {
+        if (a_elem == 0)
+        {
+          using Scalar = scalar_type_of_t<B>;
+          if constexpr (not std::numeric_limits<Scalar>::has_infinity) throw std::logic_error {
+            "In solve function, an element should be infinite, but the scalar type does not have infinite values"};
+          else return std::numeric_limits<Scalar>::infinity();
+        }
+        else
+        {
+          return std::forward<decltype(b_elem)>(b_elem) / std::forward<decltype(a_elem)>(a_elem);
+        }
+      };
+      return n_ary_operation_with_broadcasting<B>(
+        get_all_dimensions_of(b), std::move(op), std::forward<B>(b), diagonal_of(std::forward<A>(a)));
+    }
+    else
+    {
+      return interface::LinearAlgebra<std::decay_t<A>>::template solve<must_be_unique, must_be_exact>(
+        std::forward<A>(a), std::forward<B>(b));
     }
   }
 

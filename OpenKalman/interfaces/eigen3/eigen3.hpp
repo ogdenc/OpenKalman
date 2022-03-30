@@ -101,12 +101,6 @@ namespace OpenKalman
   using Eigen3::make_EigenSelfAdjointMatrix;
   using Eigen3::make_EigenTriangularMatrix;
 
-  using Eigen3::row;
-  using Eigen3::column;
-  using Eigen3::to_euclidean;
-  using Eigen3::from_euclidean;
-  using Eigen3::wrap_angles;
-  using Eigen3::solve;
   using Eigen3::reduce_columns;
   using Eigen3::reduce_rows;
   using Eigen3::LQ_decomposition;

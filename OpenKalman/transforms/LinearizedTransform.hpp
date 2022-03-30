@@ -94,7 +94,7 @@ namespace OpenKalman
 
         // Convert input distribution type to output distribution types, and initialize mean and covariance:
         using CovIn = nested_matrix_of_t<typename DistributionTraits<Dist>::Covariance>;
-        using MeanOut = equivalent_dense_writable_matrix_t<CovIn, output_dim, 1>;
+        using MeanOut = untyped_dense_writable_matrix_t<CovIn, output_dim, 1>;
         constexpr TriangleType tri = triangle_type_of_v<typename MatrixTraits<CovIn>::template TriangularMatrixFrom<>>;
         using CovOut = typename MatrixTraits<CovIn>::template SelfAdjointMatrixFrom<tri, output_dim>;
 
@@ -165,7 +165,7 @@ namespace OpenKalman
       {
         using In_Mean = typename DistributionTraits<InputDist>::Mean;
         using Out_Mean = std::invoke_result_t<Trans, In_Mean>;
-        using OutputCoeffs = typename MatrixTraits<Out_Mean>::RowCoefficients;
+        using OutputCoeffs = row_coefficient_types_of_t<Out_Mean>;
         auto hessians = transformation.hessian(mean_of(x), mean_of(n)...);
 
         return make_self_contained(zip_tuples<OutputCoeffs>(std::move(hessians), std::forward_as_tuple(x, n...)));

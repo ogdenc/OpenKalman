@@ -29,7 +29,7 @@ namespace Eigen
   {
     using Base = CommaInitializer<XprType>;
     using Scalar = OpenKalman::scalar_type_of_t<XprType>;
-    using Coefficients = typename MatrixTraits<Derived>::RowCoefficients;
+    using Coefficients = row_coefficient_types_of_t<Derived>;
     using Base::Base;
 
     template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
@@ -41,12 +41,12 @@ namespace Eigen
 
     ~MeanCommaInitializer()
     {
-      this->m_xpr = Eigen3::wrap_angles<Coefficients>(Base::finished());
+      this->m_xpr = wrap_angles<Coefficients>(Base::finished());
     }
 
     auto& finished()
     {
-      this->m_xpr = Eigen3::wrap_angles<Coefficients>(Base::finished());
+      this->m_xpr = wrap_angles<Coefficients>(Base::finished());
       return this->m_xpr;
     }
   };
@@ -60,7 +60,7 @@ namespace Eigen
   {
     using Scalar = scalar_type_of_t<XprType>;
     static constexpr auto dim = row_dimension_of_v<XprType>;
-    using NestedMatrix = equivalent_dense_writable_matrix_t<nested_matrix_of_t<XprType>, dim, 1>;
+    using NestedMatrix = untyped_dense_writable_matrix_t<pattern_matrix_of_t<XprType>, dim, 1>;
     using Nested = CommaInitializer<NestedMatrix>;
 
     NestedMatrix matrix;
@@ -126,8 +126,8 @@ namespace Eigen
     using Scalar = scalar_type_of_t<CovarianceType>;
     using CovNest = nested_matrix_of_t<CovarianceType>;
     using NestedMatrix = std::conditional_t<diagonal_matrix<CovNest>,
-      equivalent_dense_writable_matrix_t<CovNest, row_dimension_of_v<CovNest>, 1>,
-      equivalent_dense_writable_matrix_t<CovNest>>;
+      untyped_dense_writable_matrix_t<CovNest, row_dimension_of_v<CovNest>, 1>,
+      dense_writable_matrix_t<CovNest>>;
     using Nested = CommaInitializer<NestedMatrix>;
 
     NestedMatrix matrix;

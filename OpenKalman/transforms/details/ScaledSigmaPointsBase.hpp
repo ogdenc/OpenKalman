@@ -115,17 +115,17 @@ namespace OpenKalman::internal
 
 #ifdef __cpp_concepts
     template<std::size_t dim, typed_matrix YMeans> requires untyped_columns<YMeans> and
-      (row_dimension_of_v<YMeans> == MatrixTraits<YMeans>::RowCoefficients::euclidean_dimension)
+      (row_dimension_of_v<YMeans> == row_coefficient_types_of_t<YMeans>::euclidean_dimension)
 #else
     template<std::size_t dim, typename YMeans, std::enable_if_t<typed_matrix<YMeans> and untyped_columns<YMeans> and
-      (row_dimension_of<YMeans>::value == MatrixTraits<YMeans>::RowCoefficients::euclidean_dimension), int> = 0>
+      (row_dimension_of<YMeans>::value == row_coefficient_types_of_t<YMeans>::euclidean_dimension), int> = 0>
 #endif
     static auto
     weighted_means(YMeans&& y_means)
     {
       static_assert(column_dimension_of_v<YMeans> == Derived::template sigma_point_count<dim>);
       constexpr auto count = column_dimension_of_v<YMeans>;
-      using Weights = Matrix<Axes<count>, Axis, equivalent_dense_writable_matrix_t<YMeans, count, 1>>;
+      using Weights = Matrix<Axes<count>, Axis, untyped_dense_writable_matrix_t<YMeans, count, 1>>;
       return make_self_contained(std::forward<YMeans>(y_means) * mean_weights<dim, Weights>());
     }
 
@@ -143,11 +143,11 @@ namespace OpenKalman::internal
 #ifdef __cpp_concepts
     template<std::size_t dim, typename InputDist, bool return_cross = false, typed_matrix X, typed_matrix Y> requires
       (column_dimension_of_v<X> == column_dimension_of_v<Y>) and
-      equivalent_to<typename MatrixTraits<X>::RowCoefficients, typename DistributionTraits<InputDist>::Coefficients>
+      equivalent_to<row_coefficient_types_of_t<X>, typename DistributionTraits<InputDist>::Coefficients>
 #else
     template<std::size_t dim, typename InputDist, bool return_cross = false, typename X, typename Y, std::enable_if_t<
       typed_matrix<X> and typed_matrix<Y> and (column_dimension_of<X>::value == column_dimension_of<Y>::value) and
-      equivalent_to<typename MatrixTraits<X>::RowCoefficients, typename DistributionTraits<InputDist>::Coefficients>,
+      equivalent_to<row_coefficient_types_of_t<X>, typename DistributionTraits<InputDist>::Coefficients>,
         int> = 0>
 #endif
     static auto
@@ -155,7 +155,7 @@ namespace OpenKalman::internal
     {
       static_assert(column_dimension_of_v<X> == Derived::template sigma_point_count<dim>);
       constexpr auto count = column_dimension_of_v<X>;
-      using Weights = Matrix<Axes<count>, Axis, equivalent_dense_writable_matrix_t<X, count, 1>>;
+      using Weights = Matrix<Axes<count>, Axis, untyped_dense_writable_matrix_t<X, count, 1>>;
       auto weights = covariance_weights<dim, Weights>();
 
       if constexpr(cholesky_form<InputDist>)

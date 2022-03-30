@@ -71,7 +71,7 @@ namespace OpenKalman
       {
         // | delta | -delta | 0 ... |
         constexpr auto width = points_count - frame_size;
-        using Mright = Matrix<Coeffs, Axes<width>, equivalent_dense_writable_matrix_t<M, dim_i, width>>;
+        using Mright = Matrix<Coeffs, Axes<width>, untyped_dense_writable_matrix_t<M, dim_i, width>>;
         const auto mright = make_zero_matrix_like<Mright>();
         auto ret = concatenate_horizontal(delta, -delta, std::move(mright));
         static_assert(column_dimension_of_v<decltype(ret)> == points_count);
@@ -81,10 +81,10 @@ namespace OpenKalman
       else if constexpr (pos + frame_size < points_count)
       {
         // | 0 ... | delta | -delta | 0 ... |
-        using Mleft = Matrix<Coeffs, Axes<pos>, equivalent_dense_writable_matrix_t<M, dim_i, pos>>;
+        using Mleft = Matrix<Coeffs, Axes<pos>, untyped_dense_writable_matrix_t<M, dim_i, pos>>;
         const auto mleft = make_zero_matrix_like<Mleft>();
         constexpr auto width = points_count - (pos + frame_size);
-        using Mright = Matrix<Coeffs, Axes<width>, equivalent_dense_writable_matrix_t<M, dim_i, width>>;
+        using Mright = Matrix<Coeffs, Axes<width>, untyped_dense_writable_matrix_t<M, dim_i, width>>;
         const auto mright = make_zero_matrix_like<Mright>();
         auto ret = concatenate_horizontal(std::move(mleft), delta, -delta, std::move(mright));
         static_assert(column_dimension_of_v<decltype(ret)> == points_count);
@@ -95,7 +95,7 @@ namespace OpenKalman
       {
         // | 0 ... | delta | -delta |
         static_assert(sizeof...(ds) == 0);
-        using Mleft = Matrix<Coeffs, Axes<pos>, equivalent_dense_writable_matrix_t<M, dim_i, pos>>;
+        using Mleft = Matrix<Coeffs, Axes<pos>, untyped_dense_writable_matrix_t<M, dim_i, pos>>;
         const auto mleft = make_zero_matrix_like<Mleft>();
         auto ret = concatenate_horizontal(std::move(mleft), delta, -delta);
         static_assert(column_dimension_of_v<decltype(ret)> == points_count);
@@ -135,11 +135,11 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<std::size_t dim, typed_matrix YMeans> requires untyped_columns<YMeans> and
-      (row_dimension_of_v<YMeans> == MatrixTraits<YMeans>::RowCoefficients::euclidean_dimension) and
+      (row_dimension_of_v<YMeans> == row_coefficient_types_of_t<YMeans>::euclidean_dimension) and
       (column_dimension_of_v<YMeans> == dim * 2)
 #else
     template<std::size_t dim, typename YMeans, std::enable_if_t<typed_matrix<YMeans> and untyped_columns<YMeans> and
-      (row_dimension_of<YMeans>::value == MatrixTraits<YMeans>::RowCoefficients::euclidean_dimension) and
+      (row_dimension_of<YMeans>::value == row_coefficient_types_of_t<YMeans>::euclidean_dimension) and
       (column_dimension_of_v<YMeans> == dim * 2), int> = 0>
 #endif
     static auto
@@ -162,12 +162,12 @@ namespace OpenKalman
      */
     template<std::size_t dim, typename InputDist, bool return_cross = false, typed_matrix X, typed_matrix Y> requires
       (column_dimension_of_v<X> == column_dimension_of_v<Y>) and (column_dimension_of_v<X> == dim * 2) and
-      equivalent_to<typename MatrixTraits<X>::RowCoefficients, typename DistributionTraits<InputDist>::Coefficients>
+      equivalent_to<row_coefficient_types_of_t<X>, typename DistributionTraits<InputDist>::Coefficients>
 #else
     template<std::size_t dim, typename InputDist, bool return_cross = false, typename X, typename Y, std::enable_if_t<
       typed_matrix<X> and typed_matrix<Y> and (column_dimension_of<X>::value == column_dimension_of<Y>::value) and
       (column_dimension_of<X>::value == dim * 2) and
-      equivalent_to<typename MatrixTraits<X>::RowCoefficients, typename DistributionTraits<InputDist>::Coefficients>,
+      equivalent_to<row_coefficient_types_of_t<X>, typename DistributionTraits<InputDist>::Coefficients>,
         int> = 0>
 #endif
     static auto

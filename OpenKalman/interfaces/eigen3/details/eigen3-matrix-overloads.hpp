@@ -17,6 +17,7 @@
 #define OPENKALMAN_EIGEN3_MATRIX_OVERLOADS_HPP
 
 #include <type_traits>
+#include <tuple>
 #include <random>
 #include <special-matrices/TriangularMatrix.hpp>
 
@@ -102,205 +103,6 @@ namespace OpenKalman::Eigen3
     return make_eigen_matrix<Scalar, sizeof...(Args), 1>(args...);
   }
 
-
-  /// Return row <code>index</code> of Arg.
-#ifdef __cpp_concepts
-  template<std::size_t...index, typename Arg, std::convertible_to<const std::size_t>...runtime_index_t> requires
-    (native_eigen_matrix<Arg> or native_eigen_array<Arg>) and (sizeof...(index) + sizeof...(runtime_index_t) == 1) and
-    (sizeof...(runtime_index_t) >= (dynamic_rows<Arg> ? 1 : 0)) and
-    (dynamic_rows<Arg> or ((index + ... + 0) < row_dimension_of_v<Arg>))
-#else
-  template<size_t...index, typename Arg, typename...runtime_index_t, std::enable_if_t<
-    (native_eigen_matrix<Arg> or native_eigen_array<Arg>) and
-    (std::is_convertible_v<runtime_index_t, const std::size_t> and ...) and
-    (sizeof...(index) + sizeof...(runtime_index_t) == 1) and
-    (sizeof...(runtime_index_t) >= (dynamic_rows<Arg> ? 1 : 0)) and
-    (dynamic_rows<Arg> or ((index + ... + 0) < row_dimension_of<Arg>::value)), int> = 0>
-#endif
-  constexpr decltype(auto)
-  row(Arg&& arg, runtime_index_t...i)
-  {
-    if constexpr (row_vector<Arg>)
-    {
-      return std::forward<Arg>(arg);
-    }
-    else
-    {
-      auto e_i = static_cast<Eigen::Index>((index + ... + (i + ... + 0)));
-      return std::forward<Arg>(arg).row(e_i);
-    }
-  }
-
-
-  /// Return column <code>index</code> of Arg.
-#ifdef __cpp_concepts
-  template<std::size_t...index, typename Arg, std::convertible_to<const std::size_t>...runtime_index_t> requires
-    (native_eigen_matrix<Arg> or native_eigen_array<Arg>) and (sizeof...(index) + sizeof...(runtime_index_t) == 1) and
-    (sizeof...(runtime_index_t) >= (dynamic_columns<Arg> ? 1 : 0)) and
-    (dynamic_columns<Arg> or ((index + ... + 0) < column_dimension_of_v<Arg>))
-#else
-  template<std::size_t...index, typename Arg, typename...runtime_index_t, std::enable_if_t<
-    (native_eigen_matrix<Arg> or native_eigen_array<Arg>) and
-    (std::is_convertible_v<runtime_index_t, const std::size_t> and ...) and
-    (sizeof...(index) + sizeof...(runtime_index_t) == 1) and
-    (sizeof...(runtime_index_t) >= (dynamic_columns<Arg> ? 1 : 0)) and
-    (dynamic_columns<Arg> or ((index + ... + 0) < column_dimension_of<Arg>::value)), int> = 0>
-#endif
-  constexpr decltype(auto)
-  column(Arg&& arg, runtime_index_t...i)
-  {
-    if constexpr (column_vector<Arg>)
-    {
-      return std::forward<Arg>(arg);
-    }
-    else
-    {
-      auto e_i = static_cast<Eigen::Index>((index + ... + (i + ... + 0)));
-      return std::forward<Arg>(arg).col(e_i);
-    }
-  }
-
-
-#ifdef __cpp_concepts
-  template<fixed_coefficients Coefficients, native_eigen_matrix Arg>
-  requires (dynamic_rows<Arg> or Coefficients::dimension == row_dimension_of_v<Arg>)
-#else
-  template<typename Coefficients, typename Arg, std::enable_if_t<
-    fixed_coefficients<Coefficients> and eigen_matrix<Arg> and
-    (dynamic_rows<Arg> or Coefficients::dimension == row_dimension_of<Arg>::value), int> = 0>
-#endif
-  constexpr decltype(auto)
-  to_euclidean(Arg&& arg) noexcept
-  {
-    if constexpr (dynamic_rows<Arg>) assert(runtime_dimension_of<0>(arg) == Coefficients::dimension);
-
-    if constexpr (Coefficients::axes_only)
-    {
-      return std::forward<Arg>(arg);
-    }
-    else
-    {
-      return ToEuclideanExpr<Coefficients, Arg>(std::forward<Arg>(arg));
-    }
-  }
-
-
-#ifdef __cpp_concepts
-  template<dynamic_coefficients Coefficients, native_eigen_matrix Arg>
-#else
-  template<typename Coefficients, typename Arg, std::enable_if_t<
-    coefficients<Coefficients> and eigen_matrix<Arg>, int> = 0>
-#endif
-  constexpr decltype(auto)
-  to_euclidean(Coefficients&& c, Arg&& arg) noexcept
-  {
-    assert(runtime_dimension_of<0>(arg) == c.runtime_dimension);
-
-    if (c.axes_only)
-    {
-      return std::forward<Arg>(arg);
-    }
-    else
-    {
-      return ToEuclideanExpr<Coefficients, Arg>(std::forward<Coefficients>(c), std::forward<Arg>(arg));
-    }
-  }
-
-
-#ifdef __cpp_concepts
-  template<fixed_coefficients Coefficients, native_eigen_matrix Arg>
-  requires (dynamic_rows<Arg> or Coefficients::dimension == row_dimension_of_v<Arg>)
-#else
-  template<typename Coefficients, typename Arg, std::enable_if_t<
-    fixed_coefficients<Coefficients> and eigen_matrix<Arg> and
-    (dynamic_rows<Arg> or Coefficients::dimension == row_dimension_of<Arg>::value), int> = 0>
-#endif
-  constexpr decltype(auto)
-  from_euclidean(Arg&& arg) noexcept
-  {
-    if constexpr (dynamic_rows<Arg>) assert(runtime_dimension_of<0>(arg) == Coefficients::euclidean_dimension);
-
-    if constexpr (Coefficients::axes_only)
-    {
-      return std::forward<Arg>(arg);
-    }
-    else
-    {
-      return FromEuclideanExpr<Coefficients, Arg>(std::forward<Arg>(arg));
-    }
-  }
-
-
-#ifdef __cpp_concepts
-  template<dynamic_coefficients Coefficients, native_eigen_matrix Arg>
-#else
-  template<typename Coefficients, typename Arg, std::enable_if_t<
-    coefficients<Coefficients> and eigen_matrix<Arg>, int> = 0>
-#endif
-  constexpr decltype(auto)
-  from_euclidean(Coefficients&& c, Arg&& arg) noexcept
-  {
-    assert(runtime_dimension_of<0>(arg) == c.runtime_euclidean_dimension);
-
-    if (c.axes_only)
-    {
-      return std::forward<Arg>(arg);
-    }
-    else
-    {
-      return FromEuclideanExpr<Coefficients, Arg>(std::forward<Coefficients>(c), std::forward<Arg>(arg));
-    }
-  }
-
-
-#ifdef __cpp_concepts
-  template<fixed_coefficients Coefficients, native_eigen_matrix Arg>
-  requires (dynamic_rows<Arg> or Coefficients::dimension == row_dimension_of_v<Arg>)
-#else
-  template<typename Coefficients, typename Arg, std::enable_if_t<
-    fixed_coefficients<Coefficients> and eigen_matrix<Arg> and
-    (dynamic_rows<Arg> or Coefficients::dimension == row_dimension_of<Arg>::value), int> = 0>
-#endif
-  constexpr decltype(auto)
-  wrap_angles(Arg&& arg) noexcept
-  {
-    if constexpr (dynamic_rows<Arg>) assert(runtime_dimension_of<0>(arg) == Coefficients::dimension);
-
-    if constexpr (Coefficients::axes_only or identity_matrix<Arg> or zero_matrix<Arg>)
-    {
-      /// \todo: Add functionality to conditionally wrap zero and identity, depending on wrap min and max.
-      return std::forward<Arg>(arg);
-    }
-    else
-    {
-      return from_euclidean<Coefficients>(to_euclidean<Coefficients>(std::forward<Arg>(arg)));
-    }
-  }
-
-
-#ifdef __cpp_concepts
-  template<dynamic_coefficients Coefficients, native_eigen_matrix Arg>
-#else
-  template<typename Coefficients, typename Arg, std::enable_if_t<
-    coefficients<Coefficients> and eigen_matrix<Arg>, int> = 0>
-#endif
-  constexpr decltype(auto)
-  wrap_angles(Coefficients&& c, Arg&& arg) noexcept
-  {
-    assert(runtime_dimension_of<0>(arg) == c.runtime_dimension);
-
-    if (c.axes_only or identity_matrix<Arg> or zero_matrix<Arg>)
-    {
-      /// \todo: Add functionality to conditionally wrap zero and identity, depending on wrap min and max.
-      return std::forward<Arg>(arg);
-    }
-    else
-    {
-      return from_euclidean<Coefficients>(to_euclidean<Coefficients>(
-        std::forward<Coefficients>(c), std::forward<Arg>(arg)));
-    }
-  }
-
 } // namespace OpenKalman::Eigen3
 
 
@@ -333,7 +135,7 @@ namespace OpenKalman::interface
 #endif
   {
     template<typename Arg>
-    static constexpr auto get(Arg&& arg, I...i)
+    static constexpr decltype(auto) get(Arg&& arg, I...i)
     {
       return std::forward<Arg>(arg).coeff(static_cast<int>(i)...);
     }
@@ -351,7 +153,7 @@ namespace OpenKalman::interface
 #endif
   {
     template<typename Arg>
-    static constexpr auto get(Arg&& arg, I...i)
+    static constexpr decltype(auto) get(Arg&& arg, I...i)
     {
       return std::forward<Arg>(arg).coeff(static_cast<int>(i)...);
     }
@@ -481,27 +283,174 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<native_eigen_general T>
-    struct ElementAccess<T>
+  template<native_eigen_general T>
+  struct Subsets<T>
 #else
-    template<typename T>
-    struct ElementAccess<T, std::enable_if_t<native_eigen_general<T>>>
+  template<typename T>
+  struct Subsets<T, std::enable_if_t<native_eigen_general<T>>>
 #endif
+  {
+    template<std::size_t...compile_time_index, typename Arg, typename...runtime_index_t>
+    static constexpr decltype(auto) column(Arg&& arg, runtime_index_t...i)
     {
-    };
+      if constexpr (native_eigen_matrix<Arg> or native_eigen_array<Arg>)
+      {
+        auto e_i = static_cast<Eigen::Index>((compile_time_index + ... + (i + ... + 0)));
+        return std::forward<Arg>(arg).col(e_i);
+      }
+      else
+      {
+        column<compile_time_index...>(make_dense_writable_matrix_from(std::forward<Arg>(arg)), i...);
+      }
+    }
+
+
+    template<std::size_t...compile_time_index, typename Arg, typename...runtime_index_t>
+    static constexpr decltype(auto) row(Arg&& arg, runtime_index_t...i)
+    {
+      if constexpr (native_eigen_matrix<Arg> or native_eigen_array<Arg>)
+      {
+        auto e_i = static_cast<Eigen::Index>((compile_time_index + ... + (i + ... + 0)));
+        return std::forward<Arg>(arg).row(e_i);
+      }
+      else
+      {
+        row<compile_time_index...>(make_dense_writable_matrix_from(std::forward<Arg>(arg)), i...);
+      }
+    }
+  };
 
 
 #ifdef __cpp_concepts
   template<native_eigen_general T>
-  struct ElementWiseOperations<T>
+  struct ElementAccess<T>
 #else
   template<typename T>
-  struct ElementWiseOperations<T, std::enable_if_t<native_eigen_general<T>>>
+  struct ElementAccess<T, std::enable_if_t<native_eigen_general<T>>>
 #endif
   {
+  };
+
+
+#ifdef __cpp_concepts
+  template<native_eigen_general T>
+  struct ArrayOperations<T>
+#else
+  template<typename T>
+  struct ArrayOperations<T, std::enable_if_t<native_eigen_general<T>>>
+#endif
+  {
+  private:
+
+    template<typename R, typename P, typename D, typename Arg, std::size_t...I>
+    static auto
+    replicate_arg_impl(const P& p, D&& d, Arg&& arg, std::index_sequence<I...>)
+    {
+      return R {std::forward<Arg>(arg), static_cast<Eigen::Index>(
+        get_dimension_size_of(std::get<I>(p)) / get_dimension_size_of(std::get<I>(std::forward<D>(d))))...};
+    }
+
+
+    template<typename...dims, typename...arg_dims, typename Arg>
+    static decltype(auto)
+    replicate_arg(const std::tuple<dims...>& p_tup, std::tuple<arg_dims...>&& arg_tup, Arg&& arg)
+    {
+      if constexpr (((dimension_size_of_v<dims> != dynamic_size) and ...) and
+        ((dimension_size_of_v<arg_dims> != dynamic_size) and ...))
+      {
+        if constexpr (((dimension_size_of_v<dims> == dimension_size_of_v<arg_dims>) and ...))
+        {
+          return std::forward<Arg>(arg);
+        }
+        else
+        {
+          using R = Eigen::Replicate<std::decay_t<Arg>, (dimension_size_of_v<dims> / dimension_size_of_v<arg_dims>)...>;
+          return R {std::forward<Arg>(arg)};
+        }
+      }
+      else
+      {
+        using R = Eigen::Replicate<std::decay_t<Arg>,
+          (dimension_size_of_v<dims> == dynamic_size or dimension_size_of_v<arg_dims> == dynamic_size ?
+          Eigen::Dynamic : static_cast<Eigen::Index>(dimension_size_of_v<dims>/dimension_size_of_v<arg_dims>))...>;
+
+        return replicate_arg_impl<R>(p_tup, std::move(arg_tup), std::forward<Arg>(arg),
+          std::make_index_sequence<sizeof...(dims)>{});
+      }
+    }
+
+  public:
+
+    template<typename...dims, typename Operation, typename...Args>
+    static constexpr decltype(auto)
+    n_ary_operation_with_broadcasting(
+      const std::tuple<dims...>& tup, Operation&& op, Args&&...args)
+    {
+      if constexpr (sizeof...(Args) == 0)
+      {
+        using P = dense_writable_matrix_t<T, dims...>;
+
+        if constexpr (any_dynamic_dimension<P>)
+          return Eigen::CwiseNullaryOp<std::decay_t<Operation>, P> {
+            std::get<0>(tup)(), std::get<1>(tup)(), std::forward<Operation>(op)};
+        else
+          return Eigen::CwiseNullaryOp<std::decay_t<Operation>, P> {std::forward<Operation>(op)};
+      }
+      else if constexpr (sizeof...(Args) == 1)
+      {
+        return make_self_contained<Args...>(Eigen::CwiseUnaryOp<std::decay_t<Operation>,
+          std::decay_t<decltype(replicate_arg(tup, get_all_dimensions_of(args), std::forward<Args>(args)))>...> {
+          replicate_arg(tup, get_all_dimensions_of(args), std::forward<Args>(args))..., std::forward<Operation>(op)});
+      }
+      else if constexpr (sizeof...(Args) == 2)
+      {
+        return make_self_contained(Eigen::CwiseBinaryOp<std::decay_t<Operation>,
+          std::decay_t<decltype(replicate_arg(tup, get_all_dimensions_of(args), std::forward<Args>(args)))>...> {
+          replicate_arg(tup, get_all_dimensions_of(args), std::forward<Args>(args))..., std::forward<Operation>(op)});
+      }
+      else if constexpr (sizeof...(Args) == 3)
+      {
+        return make_self_contained<Args...>(Eigen::CwiseTernaryOp<std::decay_t<Operation>,
+          std::decay_t<decltype(replicate_arg(tup, get_all_dimensions_of(args), std::forward<Args>(args)))>...> {
+          replicate_arg(tup, get_all_dimensions_of(args), std::forward<Args>(args))..., std::forward<Operation>(op)});
+      }
+      else
+      {
+        // \todo Implement quaternary and larger operations.
+        static_assert(sizeof...(Args) < 4, "Quaternary and larger operations not yet implemented");
+      }
+    }
+
+
+    template<std::size_t...indices, typename BinaryFunction, typename Arg>
+    static constexpr decltype(auto)
+    reduce(BinaryFunction&& b, Arg&& arg)
+    {
+      if constexpr (sizeof...(indices) == 2) // reduce in both directions
+      {
+        if constexpr (native_eigen_matrix<Arg> or native_eigen_array<Arg>)
+        {
+          return make_self_contained<Arg>(std::forward<Arg>(arg).redux(std::forward<BinaryFunction>(b)));
+        }
+        else
+        {
+          return make_self_contained(
+            make_dense_writable_matrix_from(std::forward<Arg>(arg)).redux(std::forward<BinaryFunction>(b)));
+        }
+      }
+      else
+      {
+        constexpr auto dir = ((indices == 0) and ...) ? Eigen::Vertical : Eigen::Horizontal;
+        using P = Eigen::PartialReduxExpr<std::decay_t<Arg>, std::decay_t<BinaryFunction>, dir>;
+
+        return make_self_contained<Arg>(P {std::forward<Arg>(arg), std::forward<BinaryFunction>(b)});
+      }
+    }
+
 
     template<ElementOrder order, typename BinaryFunction, typename Accum, typename Arg>
-    static constexpr auto fold(const BinaryFunction& b, Accum&& accum, Arg&& arg)
+    static constexpr auto
+    fold(const BinaryFunction& b, Accum&& accum, Arg&& arg)
     {
       if constexpr (std::is_same_v<BinaryFunction, std::plus<void>>)
       {
@@ -592,7 +541,7 @@ namespace OpenKalman::interface
         else
         {
           auto d = std::forward<Arg>(arg).diagonal();
-          return equivalent_dense_writable_matrix_t<decltype(d), dim> {std::move(d)};
+          return untyped_dense_writable_matrix_t<decltype(d), dim, 1> {std::move(d)};
         }
       }
       else if constexpr (native_eigen_array<Arg>)
@@ -605,7 +554,7 @@ namespace OpenKalman::interface
         else
         {
           auto d = std::forward<Arg>(arg).matrix().diagonal();
-          return equivalent_dense_writable_matrix_t<decltype(d), dim> {std::move(d)};
+          return untyped_dense_writable_matrix_t<decltype(d), dim, 1> {std::move(d)};
         }
       }
       else
@@ -651,6 +600,41 @@ namespace OpenKalman::interface
           }
         }
       }
+    }
+
+  };
+
+
+#ifdef __cpp_concepts
+  template<native_eigen_general T>
+  struct ModularTransformationTraits<T>
+#else
+  template<typename T>
+  struct ModularTransformationTraits<T, std::enable_if_t<native_eigen_general<T>>>
+#endif
+  {
+
+    template<typename...FC, typename Arg, typename...DC>
+    constexpr decltype(auto)
+    to_euclidean(Arg&& arg, DC&&...dc) noexcept
+    {
+      return ToEuclideanExpr<FC..., DC..., Arg>(std::forward<Arg>(arg), std::forward<DC>(dc)...);
+    }
+
+
+    template<typename...FC, typename Arg, typename...DC>
+    constexpr decltype(auto)
+    from_euclidean(Arg&& arg, DC&&...dc) noexcept
+    {
+      return FromEuclideanExpr<FC..., DC..., Arg>(std::forward<Arg>(arg), std::forward<DC>(dc)...);
+    }
+
+
+    template<typename...FC, typename Arg, typename...DC>
+    constexpr decltype(auto)
+    wrap_angles(Arg&& arg, DC&&...dc) noexcept
+    {
+      return from_euclidean<FC..., DC...>(to_euclidean<FC..., DC...>(std::forward<Arg>(arg), std::forward<DC>(dc)...));
     }
 
   };
@@ -763,12 +747,7 @@ namespace OpenKalman::interface
     }
 
 
-#ifdef __cpp_concepts
-    template<TriangleType t, native_eigen_general A, native_eigen_general U, typename Alpha>
-#else
-    template<TriangleType t, typename A, typename U, typename Alpha, std::enable_if_t<
-      native_eigen_general<A> and native_eigen_general<U>, int> = 0>
-#endif
+    template<TriangleType t, typename A, typename U, typename Alpha>
     static decltype(auto)
     rank_update_self_adjoint(A&& a, U&& u, const Alpha alpha)
     {
@@ -904,12 +883,7 @@ namespace OpenKalman::interface
 
   public:
 
-#ifdef __cpp_concepts
-    template<TriangleType t, native_eigen_general A, native_eigen_general U, typename Alpha>
-#else
-    template<TriangleType t, typename A, typename U, typename Alpha, std::enable_if_t<
-      native_eigen_general<A> and native_eigen_general<U>, int> = 0>
-#endif
+    template<TriangleType t, typename A, typename U, typename Alpha>
     static decltype(auto)
     rank_update_triangular(A&& a, U&& u, const Alpha alpha)
     {
@@ -1013,6 +987,89 @@ namespace OpenKalman::interface
       }
     }
 
+
+    template<bool must_be_unique, bool must_be_exact, typename A, typename B>
+    static constexpr auto
+    solve(A&& a, B&& b)
+    {
+      using Scalar = scalar_type_of_t<A>;
+
+      constexpr std::size_t a_rows = dynamic_rows<A> ? row_dimension_of_v<B> : row_dimension_of_v<A>;
+      constexpr std::size_t a_cols = column_dimension_of_v<A>;
+      constexpr std::size_t b_cols = column_dimension_of_v<B>;
+
+      if constexpr(not native_eigen_matrix<A>)
+      {
+        decltype(auto) n = to_native_matrix(std::forward<A>(a));
+        static_assert(native_eigen_matrix<decltype(n)>);
+        return solve<must_be_unique, must_be_exact>(std::forward<decltype(n)>(n), std::forward<B>(b));
+      }
+      else if constexpr (triangular_matrix<A>)
+      {
+        constexpr auto uplo = triangle_type_of_v<A> == TriangleType::upper ? Eigen::Upper : Eigen::Lower;
+        return make_self_contained<A, B>(
+          Eigen::Solve {std::forward<A>(a).template triangularView<uplo>(), std::forward<B>(b)});
+      }
+      else if constexpr (self_adjoint_matrix<A>)
+      {
+        constexpr auto uplo = self_adjoint_triangle_type_of_v<A> == TriangleType::upper ? Eigen::Upper : Eigen::Lower;
+        auto v {std::forward<A>(a).template selfadjointView<uplo>()};
+        auto llt {v.llt()};
+
+        Eigen3::eigen_matrix_t<Scalar, a_cols, b_cols> ret;
+        if (llt.info() == Eigen::Success)
+        {
+          ret = Eigen::Solve {llt, std::forward<B>(b)};
+        }
+        else [[unlikely]]
+        {
+          // A is semidefinite. Use LDLT decomposition instead.
+          auto ldlt {v.ldlt()};
+          if ((not ldlt.isPositive() and not ldlt.isNegative()) or ldlt.info() != Eigen::Success)
+          {
+            throw (std::runtime_error("Eigen solve (hermitian case): A is indefinite"));
+          }
+          ret = Eigen::Solve {ldlt, std::forward<B>(b)};
+        }
+        return ret;
+      }
+      else
+      {
+        if constexpr (must_be_exact or must_be_unique or true)
+        {
+          auto a_cols_rt = runtime_dimension_of<1>(a);
+          Eigen::ColPivHouseholderQR<eigen_matrix_t<Scalar, a_rows, a_cols>> QR {std::forward<A>(a)};
+          if constexpr (must_be_unique)
+          {
+            if (QR.rank() < a_cols_rt) throw std::runtime_error {"solve function requests a "
+              "unique solution, but A is rank-deficient, so result X is not unique"};
+          }
+
+          auto res = QR.solve(std::forward<B>(b));
+
+          if constexpr (must_be_exact)
+          {
+            bool a_solution_exists = (a*res).isApprox(b, a_cols_rt * std::numeric_limits<scalar_type_of_t<A>>::epsilon());
+
+            if (a_solution_exists)
+              return make_self_contained(std::move(res));
+            else
+              throw std::runtime_error {"solve function requests an exact solution, "
+              "but the solution is only an approximation"};
+          }
+          else
+          {
+            return make_self_contained(std::move(res));
+          }
+        }
+        else
+        {
+          Eigen::HouseholderQR<eigen_matrix_t<Scalar, a_rows, a_cols>> QR {std::forward<A>(a)};
+          return make_self_contained(QR.solve(std::forward<B>(b)));
+        }
+      }
+    }
+
   };
 
 
@@ -1021,171 +1078,6 @@ namespace OpenKalman::interface
 
 namespace OpenKalman::Eigen3
 {
-
-  /**
-   * \brief Solve the equation AX = B for X. A is an invertible square matrix. (Does not check that A is invertible.)
-   * \details Uses the square LU decomposition.
-   */
-#ifdef __cpp_concepts
-  template<native_eigen_matrix A, eigen_matrix B> requires (any_dynamic_dimension<A> or square_matrix<A>) and
-    (dynamic_rows<A> or dynamic_rows<B> or row_dimension_of_v<A> == row_dimension_of_v<B>)
-#else
-  template<typename A, typename B, std::enable_if_t<native_eigen_matrix<A> and eigen_matrix<B> and
-    (any_dynamic_dimension<A> or square_matrix<A>) and
-    (dynamic_rows<A> or dynamic_rows<B> or row_dimension_of<A>::value == row_dimension_of<B>::value), int> = 0>
-#endif
-  constexpr auto
-  solve(A&& a, B&& b)
-  {
-    using Scalar = scalar_type_of_t<A>;
-
-    constexpr std::size_t dim = dynamic_rows<A> ?
-      (dynamic_rows<B> ? column_dimension_of_v<A>: row_dimension_of_v<B>) : row_dimension_of_v<A>;
-
-    if constexpr (any_dynamic_dimension<A>) assert(runtime_dimension_of<0>(a) == runtime_dimension_of<1>(a));
-    if constexpr (dynamic_rows<A> or dynamic_rows<B>) assert(runtime_dimension_of<0>(a) == runtime_dimension_of<0>(b));
-
-    if constexpr (zero_matrix<B>)
-    {
-      return std::forward<B>(b);
-    }
-    else if constexpr (zero_matrix<A>)
-    {
-      return make_zero_matrix_like<dim, column_dimension_of_v<B>>(b);
-    }
-    else if constexpr (constant_matrix<A>)
-    {
-      return solve(ConstantMatrix {std::forward<A>(a)}, std::forward<B>(b));
-    }
-    else if constexpr (dim == 1)
-    {
-      using M = eigen_matrix_t<Scalar, dim, column_dimension_of_v<B>>;
-
-      Scalar s = trace(a);
-      if (s == 0)
-        return M {make_zero_matrix_like<dim, column_dimension_of_v<B>>(b)};
-      else
-        return M {std::forward<B>(b) / s};
-    }
-    else
-    {
-      Eigen::PartialPivLU<eigen_matrix_t<Scalar, dim, dim>> LU {std::forward<A>(a)};
-      return make_self_contained(LU.solve(std::forward<B>(b))); // Note: this always results in a conversion.
-    }
-  }
-
-
-  /// Create a column vector by taking the mean of each row in a set of column vectors.
-#ifdef __cpp_concepts
-  template<native_eigen_general Arg>
-#else
-  template<typename Arg, std::enable_if_t<native_eigen_general<Arg>, int> = 0>
-#endif
-  constexpr decltype(auto)
-  reduce_columns(Arg&& arg) noexcept
-  {
-    using Scalar = scalar_type_of_t<Arg>;
-
-    constexpr auto rows = row_dimension_of_v<Arg>;
-
-    if constexpr (column_vector<Arg>)
-    {
-      return std::forward<Arg>(arg);
-    }
-    else if constexpr (zero_matrix<Arg>)
-    {
-      return make_zero_matrix_like<rows, 1>(arg);
-    }
-    else if constexpr (constant_matrix<Arg> or (constant_diagonal_matrix<Arg> and not dynamic_columns<Arg>))
-    {
-      constexpr auto c = []{
-        if constexpr (constant_matrix<Arg>) return constant_coefficient_v<Arg>;
-        else return constant_diagonal_coefficient_v<Arg> / column_dimension_of_v<Arg>;
-      }();
-
-#  if __cpp_nontype_template_args >= 201911L
-      return make_constant_matrix_like<c, dim, 1>(arg);
-#  else
-      constexpr auto c_integral = []{
-        if constexpr (std::is_integral_v<decltype(c)>) return c;
-        else return static_cast<std::intmax_t>(c);
-      }();
-
-      if constexpr (are_within_tolerance(c, static_cast<Scalar>(c_integral)))
-        return make_constant_matrix_like<c_integral, rows, 1>(arg);
-      else
-        return make_self_contained(c * make_constant_matrix_like<1, rows, 1>(arg));
-#  endif
-    }
-    else if constexpr (diagonal_matrix<Arg>)
-    {
-      return diagonal_of(std::forward<Arg>(arg)) / runtime_dimension_of<1>(arg);
-    }
-    else
-    {
-      // This expression will always require at least a partial evaluation to avoid dangling references.
-      // But a partial calculation is probably less efficient than a full calculation.
-      return make_dense_writable_matrix_from(arg.rowwise().sum() / runtime_dimension_of<1>(arg));
-    }
-  }
-
-
-  /// Create a row vector by taking the mean of each column in a set of row vectors.
-#ifdef __cpp_concepts
-  template<native_eigen_general Arg>
-#else
-  template<typename Arg, std::enable_if_t<native_eigen_general<Arg>, int> = 0>
-#endif
-  constexpr decltype(auto)
-  reduce_rows(Arg&& arg) noexcept
-  {
-    using Scalar = scalar_type_of_t<Arg>;
-
-    constexpr auto cols = column_dimension_of_v<Arg>;
-
-    if constexpr (row_vector<Arg>)
-    {
-      return std::forward<Arg>(arg);
-    }
-    else if constexpr (zero_matrix<Arg>)
-    {
-      return make_zero_matrix_like<1, column_dimension_of_v<Arg>>(arg);
-    }
-    else if constexpr (constant_matrix<Arg> or (constant_diagonal_matrix<Arg> and not dynamic_rows<Arg>))
-    {
-      constexpr auto c = []{
-        if constexpr (constant_matrix<Arg>)
-          return constant_coefficient_v<Arg>;
-        else
-          return constant_diagonal_coefficient_v<Arg> / row_dimension_of_v<Arg>;
-      }();
-
-#  if __cpp_nontype_template_args >= 201911L
-      return make_constant_matrix_like<c, 1, cols>(arg);
-#  else
-      constexpr auto c_integral = []{
-        if constexpr (std::is_integral_v<decltype(c)>) return c;
-        else return static_cast<std::intmax_t>(c);
-      }();
-
-      if constexpr (are_within_tolerance(c, static_cast<Scalar>(c_integral)))
-        return make_constant_matrix_like<c_integral, 1, cols>(arg);
-      else
-        return make_self_contained(c * make_constant_matrix_like<1, 1, cols>(arg));
-#  endif
-    }
-    else if constexpr (diagonal_matrix<Arg>)
-    {
-      return transpose(diagonal_of(std::forward<Arg>(arg))) / runtime_dimension_of<0>(arg);
-    }
-    else
-    {
-      // This expression will always require at least a partial evaluation to avoid dangling references.
-      // But a partial calculation is probably less efficient than a full calculation.
-      return make_dense_writable_matrix_from(arg.colwise().sum() / runtime_dimension_of<0>(arg));
-    }
-  }
-
 
   namespace detail
   {

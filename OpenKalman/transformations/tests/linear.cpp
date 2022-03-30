@@ -54,7 +54,7 @@ struct Trans2
   auto hessian(const X& x) const
   {
     using H = eigen_matrix_t<scalar_type_of_t<A>, column_dimension_of_v<A>, column_dimension_of_v<A>>;
-    using C = typename MatrixTraits<X>::RowCoefficients;
+    using C = row_coefficient_types_of_t<X>;
     using MH = Matrix<C, C, H>;
     auto Arr = std::array<MH, A::RowsAtCompileTime>();
     Arr.fill(make_zero_matrix_like<MH>());
@@ -128,7 +128,7 @@ TEST(transformations, linearized_lambdas)
   auto j = [&a] (const M2& x) { return std::tuple(a); };
   auto h = [] (const M2& x) {
     using H = eigen_matrix_t<scalar_type_of_t<A2>, column_dimension_of_v<A2>, column_dimension_of_v<A2>>;
-    using C = typename MatrixTraits<M2>::RowCoefficients;
+    using C = row_coefficient_types_of_t<M2>;
     using MH = Matrix<C, C, H>;
     auto Arr = std::array<MH, A2::RowsAtCompileTime>();
     Arr.fill(make_zero_matrix_like<MH>());

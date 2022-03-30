@@ -23,7 +23,6 @@
 #define OPENKALMAN_MATRICES_HPP
 
 #include "basics/basics.hpp"
-#include "coefficient-types/coefficient-types.hpp"
 
 #include "details/matrix-traits.hpp"
 

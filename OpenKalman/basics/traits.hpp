@@ -22,84 +22,97 @@ namespace OpenKalman
 {
   using namespace interface;
 
+  // --------------- //
+  //  typed_adapter  //
+  // --------------- //
+
+  /**
+   * \brief Specifies that T is a typed adapter expression.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept typed_adapter =
+#else
+  constexpr bool typed_adapter =
+#endif
+    typed_matrix<T> or covariance<T> or Eigen3::euclidean_expr<T>;
+
+
+  // ----------------- //
+  //  untyped_adapter  //
+  // ----------------- //
+
+  /**
+   * \brief Specifies that T is an untyped adapter expression.
+   * \details Untyped adapter expressions are generally used whenever the native matrix library does not have an
+   * important built-in matrix type, such as a single-scalar constant matrix, a diagonal matrix, a triangular matrix,
+   * or a hermitian matrix.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept untyped_adapter =
+#else
+  constexpr bool untyped_adapter =
+#endif
+    Eigen3::eigen_constant_expr<T> or Eigen3::eigen_zero_expr<T> or Eigen3::eigen_diagonal_expr<T> or
+    Eigen3::eigen_self_adjoint_expr<T> or Eigen3::eigen_triangular_expr<T>;
+
+
   // ========= //
   //  Aliases  //
   // ========= //
 
-  // --------------------------- //
-  //  equivalent_self_contained  //
-  // --------------------------- //
+  // ------------------------- //
+  //  dense_writable_matrix_t  //
+  // ------------------------- //
 
   namespace detail
   {
-
-    template<typename Trait, std::size_t r, std::size_t c>
-    struct dense_writable_impl_default
+    template<typename T, typename...D>
+    struct dense_writable_matrix_impl
     {
-      using type = decltype(Trait::make_default());
-    };
-
-    template<typename Trait, std::size_t r>
-    struct dense_writable_impl_default<Trait, r, dynamic_size>
-    {
-      using type = decltype(Trait::make_default(2));
-    };
-
-    template<typename Trait, std::size_t c>
-    struct dense_writable_impl_default<Trait, dynamic_size, c>
-    {
-      using type = decltype(Trait::make_default(2));
-    };
-
-    template<typename Trait>
-    struct dense_writable_impl_default<Trait, dynamic_size, dynamic_size>
-    {
-      using type = decltype(Trait::make_default(2, 2));
+      using type = std::decay_t<decltype(EquivalentDenseWritableMatrix<T>::make_default(std::declval<const D&>()...))>;
     };
 
 
-#ifdef __cpp_concepts
-    template<typename T, std::size_t r, std::size_t c, typename S>
-#else
-    template<typename T, std::size_t r, std::size_t c, typename S, typename = void>
-#endif
-    struct dense_writable_impl
+    template<typename T>
+    struct dense_writable_matrix_impl<T>
     {
-      using Trait = EquivalentDenseWritableMatrix<std::decay_t<T>, r, c, S>;
-      using type = typename dense_writable_impl_default<Trait, r, c>::type;
+      using type = std::decay_t<decltype(make_dense_writable_matrix_from(std::declval<const T&>()))>;
     };
+  }
 
-
-#ifdef __cpp_concepts
-    template<typename T, std::size_t r, std::size_t c, typename S> requires
-      (r == row_dimension_of_v<T>) and (c == column_dimension_of_v<T>) and std::same_as<S, scalar_type_of_t<T>>
-    struct dense_writable_impl<T, r, c, S>
-#else
-    template<typename T, std::size_t r, std::size_t c, typename S>
-    struct dense_writable_impl<T, r, c, S, std::enable_if_t<(r == row_dimension_of<T>::value) and
-      (c == column_dimension_of<T>::value) and std::is_same_v<S, scalar_type_of<T>::type>>>
-#endif
-    {
-      using type = decltype(EquivalentDenseWritableMatrix<std::decay_t<T>, r, c, S>::convert(std::declval<T>()));
-    };
-
-  } // namespace detail
 
   /**
-   * \brief An alias for a self-contained native matrix, based on and equivalent to parameter T.
-   * \tparam T The type from which the native matrix is derived.
-   * \tparam rows Number of rows in the native matrix (defaults to the number of rows in T).
-   * \tparam columns Number of columns in the native matrix (defaults to the number of columns in T).
-   * \tparam Scalar Scalar type of the matrix (defaults to the Scalar type of T).
+    * \brief An alias for a dense, writable matrix, patterned on parameter T.
+    * \tparam T A matrix or array from the relevant matrix library.
+    * \tparam D Index descriptors defining the dimensions of the new matrix.
+    * \todo Create typed Matrix if Ds are typed.
+    */
+#ifdef __cpp_concepts
+  template<indexible T, index_descriptor...D>
+#else
+  template<typename T, typename...D, std::enable_if_t<indexible<T> and (index_descriptor<D> and ...), int> = 0>
+#endif
+  using dense_writable_matrix_t = typename detail::dense_writable_matrix_impl<std::decay_t<T>, D...>::type;
+
+
+  // --------------------------------- //
+  //  untyped_dense_writable_matrix_t  //
+  // --------------------------------- //
+
+  /**
+   * \brief An alias for a dense, writable matrix, patterned on parameter T.
+   * \tparam T A matrix or array from the relevant matrix library.
+   * \tparam D Index descriptors defining the dimensions of the new matrix.
    */
-  template<typename T,
-    std::size_t rows = dynamic_rows<T> and not dynamic_columns<T> and (self_adjoint_matrix<T> or triangular_matrix<T>) ?
-      column_dimension_of_v<T> : row_dimension_of_v<T>,
-    std::size_t columns = dynamic_columns<T> and not dynamic_rows<T> and (self_adjoint_matrix<T> or triangular_matrix<T>) ?
-      row_dimension_of_v<T> : column_dimension_of_v<T>,
-    typename Scalar = scalar_type_of_t<T>>
-  using equivalent_dense_writable_matrix_t =
-    std::decay_t<typename detail::dense_writable_impl<std::decay_t<T>, rows, columns, Scalar>::type>;
+#ifdef __cpp_concepts
+  template<indexible T, auto...D> requires ((std::is_integral_v<decltype(D)> and D >= 0) and ...)
+#else
+  template<typename T, auto...D,
+    std::enable_if_t<indexible<T> and ((std::is_integral_v<decltype(D)> and D >= 0) and ...), int> = 0>
+#endif
+  using untyped_dense_writable_matrix_t = dense_writable_matrix_t<T, Dimensions<static_cast<std::size_t>(D)>...>;
 
 
   // --------------------------- //

@@ -16,170 +16,6 @@
 #ifndef OPENKALMAN_EIGEN3_EUCLIDEAN_OVERLOADS_HPP
 #define OPENKALMAN_EIGEN3_EUCLIDEAN_OVERLOADS_HPP
 
-namespace OpenKalman::Eigen3
-{
-  // ----------- //
-  //  Overloads  //
-  // ----------- //
-
-  /**
-   * \tparam Arg A Euclidean expression
-   * \param index The index of the row
-   * \return The row at the specified index.
-   */
-#ifdef __cpp_concepts
-  template<std::size_t...index, euclidean_expr Arg, std::convertible_to<const std::size_t>...runtime_index_t>
-  requires (sizeof...(index) + sizeof...(runtime_index_t) == 1) and
-    (dynamic_rows<Arg> or ((index + ... + 0) < row_dimension_of_v<Arg>))
-#else
-  template<std::size_t...index, typename Arg, typename...runtime_index_t, std::enable_if_t<euclidean_expr<Arg> and
-    (std::is_convertible_v<runtime_index_t, const std::size_t> and ...) and
-    (sizeof...(index) + sizeof...(runtime_index_t) == 1) and
-    (dynamic_rows<Arg> or ((index + ... + 0) < row_dimension_of<Arg>::value)), int> = 0>
-#endif
-  inline decltype(auto)
-  row(Arg&& arg, runtime_index_t...i)
-  {
-    if constexpr (row_vector<Arg>)
-    {
-      return std::forward<Arg>(arg);
-    }
-    else if constexpr (uniform_coefficients<typename MatrixTraits<Arg>::RowCoefficients> and
-      MatrixTraits<Arg>::RowCoefficients::dimension == MatrixTraits<Arg>::RowCoefficients::euclidean_dimension)
-    {
-      using RC = typename has_uniform_coefficients<typename MatrixTraits<Arg>::RowCoefficients>::common_coefficient;
-
-      if constexpr (from_euclidean_expr<Arg>)
-        return from_euclidean<RC>(row<index...>(nested_matrix(std::forward<Arg>(arg)), i...));
-      else
-        return to_euclidean<RC>(row<index...>(nested_matrix(std::forward<Arg>(arg)), i...));
-    }
-    else
-    {
-      return row<index...>(make_dense_writable_matrix_from(std::forward<Arg>(arg)), i...);
-    }
-  }
-
-
-  /**
-   * \tparam index The index of the column
-   * \tparam Arg A Euclidean expression
-   * \return The column at the specified index.
-   */
-#ifdef __cpp_concepts
-  template<std::size_t...index, euclidean_expr Arg, std::convertible_to<const std::size_t>...runtime_index_t>
-    requires (sizeof...(index) + sizeof...(runtime_index_t) == 1) and
-    (dynamic_columns<Arg> or ((index + ... + 0) < column_dimension_of_v<Arg>))
-#else
-  template<std::size_t...index, typename Arg, typename...runtime_index_t, std::enable_if_t<euclidean_expr<Arg> and
-    (std::is_convertible_v<runtime_index_t, const std::size_t> and ...) and
-    (sizeof...(index) + sizeof...(runtime_index_t) == 1) and
-    (dynamic_columns<Arg> or ((index + ... + 0) < column_dimension_of<Arg>::value)), int> = 0>
-#endif
-  inline decltype(auto)
-  column(Arg&& arg, runtime_index_t...i)
-  {
-    if constexpr (column_vector<Arg>)
-    {
-      return std::forward<Arg>(arg);
-    }
-    else
-    {
-      using RC = typename MatrixTraits<Arg>::RowCoefficients;
-
-      if constexpr (from_euclidean_expr<Arg>)
-        return from_euclidean<RC>(column<index...>(nested_matrix(std::forward<Arg>(arg)), i...));
-      else
-        return to_euclidean<RC>(column<index...>(nested_matrix(std::forward<Arg>(arg)), i...));
-    }
-  }
-
-
-  /// Special case for converting a matrix to Euclidean form. This is a shortcut.
-  /// Returns the nested matrix of the argument, because ToEuclideanExpr<FromEuclideanExpr<M>> reduces to M.
-#ifdef __cpp_concepts
-  template<from_euclidean_expr Arg>
-#else
-  template<typename Arg, std::enable_if_t<from_euclidean_expr<Arg>, int> = 0>
-#endif
-  constexpr decltype(auto)
-  to_euclidean(Arg&& arg) noexcept
-  {
-    return nested_matrix(std::forward<Arg>(arg));
-  }
-
-
-#ifdef __cpp_concepts
-  template<coefficients Coefficients, from_euclidean_expr Arg> requires
-    equivalent_to<Coefficients, typename MatrixTraits<Arg>::RowCoefficients>
-#else
-  template<typename Coefficients, typename Arg, std::enable_if_t<coefficients<Coefficients> and
-    from_euclidean_expr<Arg> and equivalent_to<Coefficients, typename MatrixTraits<Arg>::RowCoefficients>, int> = 0>
-#endif
-  constexpr decltype(auto)
-  to_euclidean(Arg&& arg) noexcept
-  {
-    if constexpr (Coefficients::axes_only)
-    {
-      return std::forward<Arg>(arg);
-    }
-    else
-    {
-      return nested_matrix(std::forward<Arg>(arg));
-    }
-  }
-
-
-#ifdef __cpp_concepts
-  template<to_euclidean_expr Arg>
-#else
-  template<typename Arg, std::enable_if_t<to_euclidean_expr<Arg>, int> = 0>
-#endif
-  constexpr decltype(auto)
-  from_euclidean(Arg&& arg) noexcept
-  {
-    using Coefficients = typename MatrixTraits<Arg>::RowCoefficients;
-    if constexpr(Coefficients::axes_only)
-    {
-      return nested_matrix(std::forward<Arg>(arg));
-    }
-    else
-    {
-      return FromEuclideanExpr<Coefficients, Arg> {std::forward<Arg>(arg)};
-    }
-  }
-
-
-#ifdef __cpp_concepts
-  template<coefficients Coefficients, to_euclidean_expr Arg> requires
-    equivalent_to<Coefficients, typename MatrixTraits<Arg>::RowCoefficients>
-#else
-  template<typename Coefficients, typename Arg, std::enable_if_t<coefficients<Coefficients> and
-    to_euclidean_expr<Arg> and equivalent_to<Coefficients, typename MatrixTraits<Arg>::RowCoefficients>, int> = 0>
-#endif
-  constexpr decltype(auto)
-  from_euclidean(Arg&& arg) noexcept
-  {
-    return from_euclidean(std::forward<Arg>(arg));
-  }
-
-
-#ifdef __cpp_concepts
-  template<coefficients Coefficients, from_euclidean_expr Arg>
-#else
-  template<typename Coefficients, typename Arg, std::enable_if_t<coefficients<Coefficients> and
-    from_euclidean_expr<Arg>, int> = 0>
-#endif
-  constexpr decltype(auto)
-  wrap_angles(Arg&& arg) noexcept
-  {
-    return std::forward<Arg>(arg);
-  }
-
-
-} // namespace OpenKalman::Eigen3
-
-
 namespace OpenKalman::interface
 {
 
@@ -198,13 +34,13 @@ namespace OpenKalman::interface
     template<typename Arg>
     static constexpr auto get(Arg&& arg, I i, Is...is)
     {
-      if constexpr (MatrixTraits<Arg>::RowCoefficients::axes_only)
+      if constexpr (row_coefficient_types_of_t<Arg>::axes_only)
       {
         return get_element(nested_matrix(std::forward<Arg>(arg)), i, is...);
       }
       else
       {
-        using Coeffs = typename MatrixTraits<Arg>::RowCoefficients;
+        using Coeffs = row_coefficient_types_of_t<Arg>;
         const auto get_coeff = [&arg, is...] (const std::size_t row) {
             return get_element(nested_matrix(std::forward<Arg>(arg)), row, is...);
         };
@@ -236,13 +72,13 @@ namespace OpenKalman::interface
     template<typename Arg>
     static constexpr auto get(Arg&& arg, I i, Is...is)
     {
-      if constexpr (MatrixTraits<Arg>::RowCoefficients::axes_only)
+      if constexpr (row_coefficient_types_of_t<Arg>::axes_only)
       {
         return get_element(nested_matrix(nested_matrix(std::forward<Arg>(arg))), i, is...);
       }
       else
       {
-        using Coeffs = typename MatrixTraits<Arg>::RowCoefficients;
+        using Coeffs = row_coefficient_types_of_t<Arg>;
         const auto get_coeff = [&arg, is...] (const std::size_t row) {
           return get_element(nested_matrix(nested_matrix(std::forward<Arg>(arg))), row, is...);
         };
@@ -255,13 +91,13 @@ namespace OpenKalman::interface
 #ifdef __cpp_concepts
   template<euclidean_expr T, std::convertible_to<const std::size_t&> I, std::convertible_to<const std::size_t&>...Is>
     requires (sizeof...(Is) <= 1) and (not to_euclidean_expr<nested_matrix_of_t<T>>) and
-      MatrixTraits<T>::RowCoefficients::axes_only and element_settable<nested_matrix_of_t<T>, I, Is...>
+      row_coefficient_types_of_t<T>::axes_only and element_settable<nested_matrix_of_t<T>, I, Is...>
   struct SetElement<T, I, Is...>
 #else
   template<typename T, typename I, typename...Is>
   struct SetElement<T, std::enable_if_t<euclidean_expr<T> and (not to_euclidean_expr<nested_matrix_of_t<T>>) and
     (std::is_convertible_v<I, const std::size_t&> and ... and std::is_convertible_v<Is, const std::size_t&>) and
-    MatrixTraits<T>::RowCoefficients::axes_only and
+    row_coefficient_types_of_t<T>::axes_only and
     (sizeof...(Is) <= 1) and element_settable<nested_matrix_of_t<T>, I, Is...>>, I, Is...>
 #endif
   {
@@ -299,13 +135,13 @@ namespace OpenKalman::interface
     template<typename Arg, typename Scalar>
     static constexpr auto set(Arg&& arg, const Scalar s, I i, Is...is)
     {
-      if constexpr (MatrixTraits<Arg>::RowCoefficients::axes_only)
+      if constexpr (row_coefficient_types_of_t<Arg>::axes_only)
       {
         set_element(nested_matrix(nested_matrix(arg)), s, i, is...);
       }
       else
       {
-        using Coeffs = typename MatrixTraits<Arg>::RowCoefficients;
+        using Coeffs = row_coefficient_types_of_t<Arg>;
         const auto get_coeff = [&arg, is...] (const std::size_t row) {
           return get_element(nested_matrix(nested_matrix(arg)), row, is...);
         };
@@ -320,10 +156,52 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_concepts
   template<euclidean_expr T>
-  struct ElementWiseOperations<T>
+  struct Subsets<T>
 #else
   template<typename T>
-  struct ElementWiseOperations<T, std::enable_if_t<euclidean_expr<T>>>
+  struct Subsets<T, std::enable_if_t<euclidean_expr<T>>>
+#endif
+  {
+    template<std::size_t...compile_time_index, typename Arg, typename...runtime_index_t>
+    static constexpr decltype(auto)
+    column(Arg&& arg, runtime_index_t...i)
+    {
+      using RC = row_coefficient_types_of_t<Arg>;
+      if constexpr (from_euclidean_expr<Arg>)
+        return from_euclidean<RC>(column<compile_time_index...>(nested_matrix(std::forward<Arg>(arg)), i...));
+      else
+        return to_euclidean<RC>(column<compile_time_index...>(nested_matrix(std::forward<Arg>(arg)), i...));
+    }
+
+
+    template<std::size_t...compile_time_index, typename Arg, typename...runtime_index_t>
+    static constexpr decltype(auto)
+    row(Arg&& arg, runtime_index_t...i)
+    {
+      if constexpr (uniform_coefficients<row_coefficient_types_of_t<Arg>> and
+          row_coefficient_types_of_t<Arg>::dimension == row_coefficient_types_of_t<Arg>::euclidean_dimension)
+      {
+        using RC = typename has_uniform_coefficients<row_coefficient_types_of_t<Arg>>::common_coefficient;
+
+        if constexpr (from_euclidean_expr<Arg>)
+          return from_euclidean<RC>(row<compile_time_index...>(nested_matrix(std::forward<Arg>(arg)), i...));
+        else
+          return to_euclidean<RC>(row<compile_time_index...>(nested_matrix(std::forward<Arg>(arg)), i...));
+      }
+      else
+      {
+        return row<compile_time_index...>(make_dense_writable_matrix_from(std::forward<Arg>(arg)), i...);
+      }
+    }
+  };
+
+
+#ifdef __cpp_concepts
+  template<euclidean_expr T>
+  struct ArrayOperations<T>
+#else
+  template<typename T>
+  struct ArrayOperations<T, std::enable_if_t<euclidean_expr<T>>>
 #endif
   {
 
@@ -349,7 +227,7 @@ namespace OpenKalman::interface
     static auto
     to_diagonal(Arg&& arg) noexcept
     {
-      if constexpr( MatrixTraits<Arg>::RowCoefficients::axes_only)
+      if constexpr( row_coefficient_types_of_t<Arg>::axes_only)
       {
         return to_diagonal(nested_matrix(std::forward<Arg>(arg)));
       }
@@ -365,7 +243,7 @@ namespace OpenKalman::interface
     static auto
     diagonal_of(Arg&& arg) noexcept
     {
-      if constexpr(MatrixTraits<Arg>::RowCoefficients::axes_only)
+      if constexpr(row_coefficient_types_of_t<Arg>::axes_only)
       {
         return diagonal_of(nested_matrix(std::forward<Arg>(arg)));
       }
@@ -381,6 +259,53 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_concepts
   template<euclidean_expr T>
+  struct ModularTransformationTraits<T>
+#else
+  template<typename T>
+  struct ModularTransformationTraits<T, std::enable_if_t<euclidean_expr<T>>>
+#endif
+  {
+
+#ifdef __cpp_concepts
+    template<typename...FC, from_euclidean_expr Arg, typename...DC>
+#else
+    template<typename...FC, typename Arg, typename...DC, std::enable_if_t<from_euclidean_expr<Arg>, int> = 0>
+#endif
+    constexpr decltype(auto)
+    to_euclidean(Arg&& arg, DC&&...dc) noexcept
+    {
+      return nested_matrix(std::forward<Arg>(arg));
+    }
+
+
+#ifdef __cpp_concepts
+    template<typename...FC, to_euclidean_expr Arg, typename...DC>
+#else
+    template<typename...FC, typename Arg, typename...DC, std::enable_if_t<to_euclidean_expr<Arg>, int> = 0>
+#endif
+    constexpr decltype(auto)
+    from_euclidean(Arg&& arg, DC&&...dc) noexcept
+    {
+      return FromEuclideanExpr<FC..., DC..., Arg> {std::forward<Arg>(arg), std::forward<DC>(dc)...};
+    }
+
+
+#ifdef __cpp_concepts
+    template<typename...FC, from_euclidean_expr Arg, typename...DC>
+#else
+    template<typename...FC, typename Arg, typename...DC, std::enable_if_t<from_euclidean_expr<Arg>, int> = 0>
+#endif
+    constexpr decltype(auto)
+    wrap_angles(Arg&& arg, DC&&...dc) noexcept
+    {
+      return std::forward<Arg>(arg);
+    }
+
+  };
+
+
+#ifdef __cpp_concepts
+  template<euclidean_expr T>
   struct LinearAlgebra<T>
 #else
   template<typename T>
@@ -389,9 +314,10 @@ namespace OpenKalman::interface
   {
 
     template<typename Arg>
-    static constexpr decltype(auto) conjugate(Arg&& arg) noexcept
+    static constexpr decltype(auto)
+    conjugate(Arg&& arg) noexcept
     {
-      if constexpr(MatrixTraits<Arg>::RowCoefficients::axes_only)
+      if constexpr(row_coefficient_types_of_t<Arg>::axes_only)
       {
         return OpenKalman::conjugate(nested_matrix(std::forward<Arg>(arg)));
       }
@@ -403,9 +329,10 @@ namespace OpenKalman::interface
 
 
     template<typename Arg>
-    static constexpr decltype(auto) transpose(Arg&& arg) noexcept
+    static constexpr decltype(auto)
+    transpose(Arg&& arg) noexcept
     {
-      if constexpr(MatrixTraits<Arg>::RowCoefficients::axes_only)
+      if constexpr(row_coefficient_types_of_t<Arg>::axes_only)
       {
         return OpenKalman::transpose(nested_matrix(std::forward<Arg>(arg)));
       }
@@ -417,9 +344,10 @@ namespace OpenKalman::interface
 
 
     template<typename Arg>
-    static constexpr decltype(auto) adjoint(Arg&& arg) noexcept
+    static constexpr decltype(auto)
+    adjoint(Arg&& arg) noexcept
     {
-      if constexpr(MatrixTraits<Arg>::RowCoefficients::axes_only)
+      if constexpr(row_coefficient_types_of_t<Arg>::axes_only)
       {
         return OpenKalman::adjoint(nested_matrix(std::forward<Arg>(arg)));
       }
@@ -431,9 +359,10 @@ namespace OpenKalman::interface
 
 
     template<typename Arg>
-    static constexpr auto determinant(Arg&& arg) noexcept
+    static constexpr auto
+    determinant(Arg&& arg) noexcept
     {
-      if constexpr(MatrixTraits<Arg>::RowCoefficients::axes_only)
+      if constexpr(row_coefficient_types_of_t<Arg>::axes_only)
       {
         return OpenKalman::determinant(nested_matrix(std::forward<Arg>(arg)));
       }
@@ -445,9 +374,10 @@ namespace OpenKalman::interface
 
 
     template<typename Arg>
-    static constexpr auto trace(Arg&& arg) noexcept
+    static constexpr auto
+    trace(Arg&& arg) noexcept
     {
-      if constexpr(MatrixTraits<Arg>::RowCoefficients::axes_only)
+      if constexpr(row_coefficient_types_of_t<Arg>::axes_only)
       {
         return OpenKalman::trace(nested_matrix(std::forward<Arg>(arg)));
       }
@@ -458,55 +388,37 @@ namespace OpenKalman::interface
     }
 
 
-#ifdef __cpp_concepts
-    template<TriangleType t, typed_matrix A, typename U, typename Alpha> requires
-      equivalent_to<typename MatrixTraits<A>::RowCoefficients, typename MatrixTraits<U>::RowCoefficients>
-#else
-    template<TriangleType t, typename A, typename U, typename Alpha, std::enable_if_t<
-      typed_matrix<A> and typed_matrix<U> and
-      equivalent_to<typename MatrixTraits<A>::RowCoefficients, typename MatrixTraits<U>::RowCoefficients>, int> = 0>
-#endif
-    static decltype(auto) rank_update_self_adjoint(A&& a, U&& u, const Alpha alpha)
+    template<TriangleType t, typename A, typename U, typename Alpha>
+    static decltype(auto)
+    rank_update_self_adjoint(A&& a, U&& u, const Alpha alpha)
     {
       return OpenKalman::rank_update_self_adjoint<t>(make_dense_writable_matrix_from(std::forward<A>(a)), std::forward<U>(u), alpha);
     }
 
 
-#ifdef __cpp_concepts
-    template<TriangleType t, typed_matrix A, typename U, typename Alpha> requires
-      equivalent_to<typename MatrixTraits<A>::RowCoefficients, typename MatrixTraits<U>::RowCoefficients>
-#else
-    template<TriangleType t, typename A, typename U, typename Alpha, std::enable_if_t<
-      typed_matrix<A> and typed_matrix<U> and
-      equivalent_to<typename MatrixTraits<A>::RowCoefficients, typename MatrixTraits<U>::RowCoefficients>, int> = 0>
-#endif
+    template<TriangleType t, typename A, typename U, typename Alpha>
     static decltype(auto) rank_update_triangular(A&& a, U&& u, const Alpha alpha)
     {
       return OpenKalman::rank_update_triangular<t>(make_dense_writable_matrix_from(std::forward<A>(a)), std::forward<U>(u), alpha);
     }
 
+
+    template<bool must_be_unique, bool must_be_exact, typename A, typename B>
+    static constexpr decltype(auto)
+    solve(A&& a, B&& b) noexcept
+    {
+      return OpenKalman::solve<must_be_unique, must_be_exact>(
+        to_native_matrix<T>(std::forward<A>(a)), std::forward<B>(b));
+    }
+
   };
+
 
 } // namespace OpenKalman::interface
 
 
 namespace OpenKalman::Eigen3
 {
-
-  /// Solves AX = B for X (A is a regular matrix type, and B is a Euclidean expression).
-  /// A must be invertible. (Does not check.)
-#ifdef __cpp_concepts
-  template<euclidean_expr A, eigen_matrix B> requires square_matrix<A>
-#else
-  template<typename A, typename B, std::enable_if_t<euclidean_expr<A> and square_matrix<A> and
-    eigen_matrix<B>, int> = 0>
-#endif
-  inline auto solve(A&& a, B&& b) noexcept
-  {
-    static_assert(row_dimension_of_v<A> == row_dimension_of_v<B>);
-    return solve(make_dense_writable_matrix_from(std::forward<A>(a)), std::forward<B>(b));
-  }
-
 
 #ifdef __cpp_concepts
   template<euclidean_expr Arg>
@@ -580,7 +492,7 @@ namespace OpenKalman::Eigen3
     {
       constexpr auto cols = column_dimension_of_v<V>;
       static_assert(((cols == column_dimension_of_v<Vs>) and ...));
-      using C = Concatenate<typename MatrixTraits<V>::RowCoefficients, typename MatrixTraits<Vs>::RowCoefficients...>;
+      using C = Concatenate<row_coefficient_types_of_t<V>, row_coefficient_types_of_t<Vs>...>;
       return MatrixTraits<V>::template make<C>(
         concatenate_vertical(nested_matrix(std::forward<V>(v)), nested_matrix(std::forward<Vs>(vs))...));
     }
@@ -605,8 +517,8 @@ namespace OpenKalman::Eigen3
   {
     if constexpr (sizeof...(Vs) > 0)
     {
-      using C = typename MatrixTraits<V>::RowCoefficients;
-      static_assert(std::conjunction_v<std::is_same<C, typename MatrixTraits<Vs>::RowCoefficients>...>);
+      using C = row_coefficient_types_of_t<V>;
+      static_assert(std::conjunction_v<std::is_same<C, row_coefficient_types_of_t<Vs>>...>);
       return MatrixTraits<V>::template make<C>(
         concatenate_horizontal(nested_matrix(std::forward<V>(v)), nested_matrix(std::forward<Vs>(vs))...));
     }
@@ -656,10 +568,10 @@ namespace OpenKalman::Eigen3
   /// Split into one or more Euclidean expressions vertically.
 #ifdef __cpp_concepts
   template<typename F, coefficients...Cs, euclidean_expr Arg> requires (not coefficients<F>) and
-    prefix_of<Concatenate<Cs...>, typename MatrixTraits<Arg>::RowCoefficients>
+    prefix_of<Concatenate<Cs...>, row_coefficient_types_of_t<Arg>>
 #else
   template<typename F, typename...Cs, typename Arg, std::enable_if_t<euclidean_expr<Arg> and
-    (not coefficients<F>) and prefix_of<Concatenate<Cs...>, typename MatrixTraits<Arg>::RowCoefficients>, int> = 0>
+    (not coefficients<F>) and prefix_of<Concatenate<Cs...>, row_coefficient_types_of_t<Arg>>, int> = 0>
 #endif
   inline auto
   split_vertical(Arg&& arg) noexcept
@@ -673,10 +585,10 @@ namespace OpenKalman::Eigen3
   /// Split into one or more Euclidean expressions vertically.
 #ifdef __cpp_concepts
   template<typename F, bool, coefficients...Cs, euclidean_expr Arg> requires (not coefficients<F>) and
-    prefix_of<Concatenate<Cs...>, typename MatrixTraits<Arg>::RowCoefficients>
+    prefix_of<Concatenate<Cs...>, row_coefficient_types_of_t<Arg>>
 #else
   template<typename F, bool, typename...Cs, typename Arg, std::enable_if_t<euclidean_expr<Arg> and
-    (not coefficients<F>) and prefix_of<Concatenate<Cs...>, typename MatrixTraits<Arg>::RowCoefficients>, int> = 0>
+    (not coefficients<F>) and prefix_of<Concatenate<Cs...>, row_coefficient_types_of_t<Arg>>, int> = 0>
 #endif
   inline auto
   split_vertical(Arg&& arg) noexcept
@@ -688,10 +600,10 @@ namespace OpenKalman::Eigen3
   /// Split into one or more Euclidean expressions vertically.
 #ifdef __cpp_concepts
   template<coefficients...Cs, euclidean_expr Arg> requires
-    prefix_of<Concatenate<Cs...>, typename MatrixTraits<Arg>::RowCoefficients>
+    prefix_of<Concatenate<Cs...>, row_coefficient_types_of_t<Arg>>
 #else
   template<typename...Cs, typename Arg, std::enable_if_t<euclidean_expr<Arg> and
-    prefix_of<Concatenate<Cs...>, typename MatrixTraits<Arg>::RowCoefficients>, int> = 0>
+    prefix_of<Concatenate<Cs...>, row_coefficient_types_of_t<Arg>>, int> = 0>
 #endif
   inline auto
   split_vertical(Arg&& arg) noexcept
@@ -738,7 +650,7 @@ namespace OpenKalman::Eigen3
   inline auto
   split_horizontal(Arg&& arg) noexcept
   {
-    using RC = typename MatrixTraits<Arg>::RowCoefficients;
+    using RC = row_coefficient_types_of_t<Arg>;
     return split_horizontal<internal::SplitEuclideanHorizF<F, Arg, RC>, Cs...>(
       nested_matrix(std::forward<Arg>(arg)));
   }
@@ -782,10 +694,10 @@ namespace OpenKalman::Eigen3
    */
 #ifdef __cpp_concepts
   template<typename F, coefficients...Cs, euclidean_expr Arg> requires square_matrix<Arg> and (not coefficients<F>) and
-    prefix_of<Concatenate<Cs...>, typename MatrixTraits<Arg>::RowCoefficients>
+    prefix_of<Concatenate<Cs...>, row_coefficient_types_of_t<Arg>>
 #else
   template<typename F, typename...Cs, typename Arg, std::enable_if_t<euclidean_expr<Arg> and square_matrix<Arg> and
-    (not coefficients<F>) and prefix_of<Concatenate<Cs...>, typename MatrixTraits<Arg>::RowCoefficients>, int> = 0>
+    (not coefficients<F>) and prefix_of<Concatenate<Cs...>, row_coefficient_types_of_t<Arg>>, int> = 0>
 #endif
   inline auto
   split_diagonal(Arg&& arg) noexcept
@@ -798,11 +710,11 @@ namespace OpenKalman::Eigen3
   /// Split into one or more Euclidean expressions diagonally. The valuated expression must be square.
 #ifdef __cpp_concepts
   template<typename F, bool, coefficients...Cs, euclidean_expr Arg> requires square_matrix<Arg> and
-    (not coefficients<F>) and prefix_of<Concatenate<Cs...>, typename MatrixTraits<Arg>::RowCoefficients>
+    (not coefficients<F>) and prefix_of<Concatenate<Cs...>, row_coefficient_types_of_t<Arg>>
 #else
   template<typename F, bool, typename...Cs, typename Arg, std::enable_if_t<euclidean_expr<Arg> and
     square_matrix<Arg> and (not coefficients<F>) and
-    prefix_of<Concatenate<Cs...>, typename MatrixTraits<Arg>::RowCoefficients>, int> = 0>
+    prefix_of<Concatenate<Cs...>, row_coefficient_types_of_t<Arg>>, int> = 0>
 #endif
   inline auto
   split_diagonal(Arg&& arg) noexcept
@@ -814,10 +726,10 @@ namespace OpenKalman::Eigen3
   /// Split into one or more Euclidean expressions diagonally. The valuated expression must be square.
 #ifdef __cpp_concepts
   template<coefficients...Cs, euclidean_expr Arg> requires square_matrix<Arg> and
-    prefix_of<Concatenate<Cs...>, typename MatrixTraits<Arg>::RowCoefficients>
+    prefix_of<Concatenate<Cs...>, row_coefficient_types_of_t<Arg>>
 #else
   template<typename...Cs, typename Arg, std::enable_if_t<euclidean_expr<Arg> and square_matrix<Arg> and
-    (coefficients<Cs> and ...) and prefix_of<Concatenate<Cs...>, typename MatrixTraits<Arg>::RowCoefficients>, int> = 0>
+    (coefficients<Cs> and ...) and prefix_of<Concatenate<Cs...>, row_coefficient_types_of_t<Arg>>, int> = 0>
 #endif
   inline auto
   split_diagonal(Arg&& arg) noexcept
@@ -872,7 +784,7 @@ namespace OpenKalman::Eigen3
   inline Arg&
   apply_columnwise(const Function& f, Arg& arg)
   {
-    using Coefficients = typename MatrixTraits<Arg>::RowCoefficients;
+    using Coefficients = row_coefficient_types_of_t<Arg>;
     const auto f_nested = [&f](auto& col)
     {
       auto mc = MatrixTraits<Arg>::template make<Coefficients>(std::move(col));
@@ -906,7 +818,7 @@ namespace OpenKalman::Eigen3
   inline Arg&
   apply_columnwise(const Function& f, Arg& arg)
   {
-    using Coefficients = typename MatrixTraits<Arg>::RowCoefficients;
+    using Coefficients = row_coefficient_types_of_t<Arg>;
     const auto f_nested = [&f](auto& col, std::size_t i)
     {
       auto mc = MatrixTraits<Arg>::template make<Coefficients>(std::move(col));
@@ -936,7 +848,7 @@ namespace OpenKalman::Eigen3
   inline auto
   apply_columnwise(const Function& f, const Arg& arg)
   {
-    using Coefficients = typename MatrixTraits<Arg>::RowCoefficients;
+    using Coefficients = row_coefficient_types_of_t<Arg>;
     const auto f_nested = [&f](auto&& col) -> auto {
       return make_self_contained(f(MatrixTraits<Arg>::template make<Coefficients>(std::forward<decltype(col)>(col))));
     };
@@ -960,7 +872,7 @@ namespace OpenKalman::Eigen3
   inline auto
   apply_columnwise(const Function& f, const Arg& arg)
   {
-    using Coefficients = typename MatrixTraits<Arg>::RowCoefficients;
+    using Coefficients = row_coefficient_types_of_t<Arg>;
     const auto f_nested = [&f](auto&& col, std::size_t i) -> auto {
       return make_self_contained(
         f(MatrixTraits<Arg>::template make<Coefficients>(std::forward<decltype(col)>(col)), i));
@@ -1110,6 +1022,6 @@ namespace OpenKalman::Eigen3
     return MatrixTraits<ReturnType>::make(randomize<B, random_number_engine>(std::forward<Dists>(dists)...));
   }
 
-} // namespace OpenKalman::eigen3
+} // namespace OpenKalman::Eigen3
 
 #endif //OPENKALMAN_EIGEN3_EUCLIDEAN_OVERLOADS_HPP

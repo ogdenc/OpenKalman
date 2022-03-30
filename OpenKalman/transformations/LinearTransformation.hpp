@@ -61,8 +61,8 @@ namespace OpenKalman
 
       template<typename T, typename R, typename C>
       struct is_linear_transformation_input<T, R, C, std::enable_if_t<
-        typed_matrix<T> and equivalent_to<typename MatrixTraits<T>::RowCoefficients, R> and
-          equivalent_to<typename MatrixTraits<T>::ColumnCoefficients, C>>> : std::true_type {};
+        typed_matrix<T> and equivalent_to<row_coefficient_types_of_t<T>, R> and
+          equivalent_to<column_coefficient_types_of_t<T>, C>>> : std::true_type {};
 
       template<typename T, typename R, typename C>
       struct is_linear_transformation_input<T, R, C, std::enable_if_t<
@@ -84,8 +84,8 @@ namespace OpenKalman
     concept linear_transformation_input =
       (typed_matrix<T> or typed_matrix_nestable<T>) and
       coefficients<RowCoefficients> and coefficients<ColumnCoefficients> and
-      (not typed_matrix<T> or (equivalent_to<typename MatrixTraits<T>::RowCoefficients, RowCoefficients> and
-          equivalent_to<typename MatrixTraits<T>::ColumnCoefficients, ColumnCoefficients>)) and
+      (not typed_matrix<T> or (equivalent_to<row_coefficient_types_of_t<T>, RowCoefficients> and
+          equivalent_to<column_coefficient_types_of_t<T>, ColumnCoefficients>)) and
       (not typed_matrix_nestable<T> or (row_dimension_of_v<T> == RowCoefficients::dimension and
         column_dimension_of_v<T> == ColumnCoefficients::dimension));
 #else
@@ -213,16 +213,16 @@ namespace OpenKalman
    */
 
 #ifdef __cpp_concepts
-  template<typed_matrix T, oin::linear_transformation_input<typename MatrixTraits<T>::RowCoefficients> ... Ps>
+  template<typed_matrix T, oin::linear_transformation_input<row_coefficient_types_of_t<T>> ... Ps>
 #else
   template<typename T, typename ... Ps, std::enable_if_t<
-    (typed_matrix<T> and ... and oin::linear_transformation_input<Ps, typename MatrixTraits<T>::RowCoefficients>),
+    (typed_matrix<T> and ... and oin::linear_transformation_input<Ps, row_coefficient_types_of_t<T>>),
     int> = 0>
 #endif
   LinearTransformation(T&&, Ps&& ...)
   -> LinearTransformation<
-    typename MatrixTraits<T>::ColumnCoefficients,
-    typename MatrixTraits<T>::RowCoefficients,
+    column_coefficient_types_of_t<T>,
+    row_coefficient_types_of_t<T>,
     equivalent_self_contained_t<nested_matrix_of_t<T>>,
     equivalent_self_contained_t<std::conditional_t<typed_matrix<Ps>, nested_matrix_of_t<Ps>, Ps>>...>;
 

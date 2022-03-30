@@ -34,8 +34,8 @@ namespace OpenKalman
     std::invocable<Function, InDelta, PsDelta...> and
     (not wrapped_mean<std::invoke_result_t<Function, InDelta, PsDelta...>>) and
     (not std::is_reference_v<InDelta>) and (((not std::is_reference_v<PsDelta>) and ...)) and
-    ((sizeof...(PsDelta) == 0) or (equivalent_to<typename MatrixTraits<PsDelta>::RowCoefficients,
-      typename MatrixTraits<std::tuple_element_t<0, std::tuple<PsDelta...>>>::RowCoefficients> and ...))
+    ((sizeof...(PsDelta) == 0) or (equivalent_to<row_coefficient_types_of_t<PsDelta>,
+      row_coefficient_types_of_t<std::tuple_element_t<0, std::tuple<PsDelta...>>>> and ...))
 #else
   template<typename Function, typename InDelta, typename ... PsDelta>
 #endif
@@ -62,8 +62,8 @@ namespace OpenKalman
     std::invocable<Function, InDelta, PsDelta...> and
     (not wrapped_mean<std::invoke_result_t<Function, InDelta, PsDelta...>>) and
     (not std::is_reference_v<InDelta>) and (((not std::is_reference_v<PsDelta>) and ...)) and
-    ((sizeof...(PsDelta) == 0) or (equivalent_to<typename MatrixTraits<PsDelta>::RowCoefficients,
-      typename MatrixTraits<std::tuple_element_t<0, std::tuple<PsDelta...>>>::RowCoefficients> and ...))
+    ((sizeof...(PsDelta) == 0) or (equivalent_to<row_coefficient_types_of_t<PsDelta>,
+      row_coefficient_types_of_t<std::tuple_element_t<0, std::tuple<PsDelta...>>>> and ...))
 #else
   template<typename Function, typename InDelta, typename ... PsDelta>
 #endif
@@ -79,16 +79,16 @@ namespace OpenKalman
       "For finite difference linearization, the tests function cannot return a wrapped matrix.");
     static_assert(not std::is_reference_v<InDelta>);
     static_assert(((not std::is_reference_v<PsDelta>) and ...));
-    static_assert((sizeof...(PsDelta) == 0) or (equivalent_to<typename MatrixTraits<PsDelta>::RowCoefficients,
-      typename MatrixTraits<std::tuple_element_t<0, std::tuple<PsDelta...>>>::RowCoefficients> and ...));
+    static_assert((sizeof...(PsDelta) == 0) or (equivalent_to<row_coefficient_types_of_t<PsDelta>,
+      row_coefficient_types_of_t<std::tuple_element_t<0, std::tuple<PsDelta...>>>> and ...));
 #endif
 
     template<typename T>
     static constexpr auto make_writable_matrix(T&& t)
     {
-      using RC = typename MatrixTraits<T>::RowCoefficients;
-      using CC = typename MatrixTraits<T>::ColumnCoefficients;
-      return Matrix<RC, CC, equivalent_dense_writable_matrix_t<T>> {std::forward<T>(t)};
+      using RC = row_coefficient_types_of_t<T>;
+      using CC = column_coefficient_types_of_t<T>;
+      return Matrix<RC, CC, dense_writable_matrix_t<T>> {std::forward<T>(t)};
     }
 
 
@@ -189,9 +189,9 @@ namespace OpenKalman
     auto h_term(const std::tuple<Inputs...>& inputs, std::index_sequence<ks...>) const
     {
       using Term = decltype(std::get<term>(inputs));
-      const auto t = h_k<term>(inputs, std::make_index_sequence<row_traits_v<Term>>());
-      using C = typename MatrixTraits<Term>::RowCoefficients;
-      using V = Matrix<C, C, equivalent_dense_writable_matrix_t<Term, row_traits_v<Term>, row_traits_v<Term>>>;
+      const auto t = h_k<term>(inputs, std::make_index_sequence<row_dimension_of_v<Term>>());
+      using C = row_coefficient_types_of_t<Term>;
+      using V = Matrix<C, C, dense_writable_matrix_t<Term, Dimensions<row_dimension_of_v<Term>>, Dimensionsrow_dimension_of_v<Term>>>>;
       return std::array<V, sizeof...(ks)> {
         apply_coefficientwise<V>([&t](std::size_t i, std::size_t j) { return t[i][j][ks]; })...};
     }
@@ -223,17 +223,17 @@ namespace OpenKalman
 
     /// Applies the tests.
 #ifdef __cpp_concepts
-    template<transformation_input<typename MatrixTraits<InDelta>::RowCoefficients> In, perturbation ... Perturbations>
+    template<transformation_input<row_coefficient_types_of_t<InDelta>> In, perturbation ... Perturbations>
       requires (sizeof...(Perturbations) <= sizeof...(PsDelta)) and (sizeof...(Perturbations) == 0 or
         (equivalent_to<typename oin::PerturbationTraits<Perturbations>::RowCoefficients,
-          typename MatrixTraits<std::tuple_element_t<0, std::tuple<PsDelta...>>>::RowCoefficients> and ...))
+          row_coefficient_types_of_t<std::tuple_element_t<0, std::tuple<PsDelta...>>>> and ...))
 #else
     template<typename In, typename ... Perturbations, std::enable_if_t<
-      transformation_input<In, typename MatrixTraits<InDelta>::RowCoefficients> and
+      transformation_input<In, row_coefficient_types_of_t<InDelta>> and
       (perturbation<Perturbations> and ...) and (sizeof...(Perturbations) <= sizeof...(PsDelta)) and
       (sizeof...(Perturbations) == 0 or
         (equivalent_to<typename oin::PerturbationTraits<Perturbations>::RowCoefficients,
-          typename MatrixTraits<std::tuple_element_t<0, std::tuple<PsDelta...>>>::RowCoefficients> and ...)), int> = 0>
+          row_coefficient_types_of_t<std::tuple_element_t<0, std::tuple<PsDelta...>>>> and ...)), int> = 0>
 #endif
     auto operator()(In&& in, Perturbations&& ... ps) const
     {
@@ -243,17 +243,17 @@ namespace OpenKalman
 
     /// Returns a tuple of the Jacobians for the input and each perturbation term.
 #ifdef __cpp_concepts
-    template<transformation_input<typename MatrixTraits<InDelta>::RowCoefficients> In, perturbation ... Perturbations>
+    template<transformation_input<row_coefficient_types_of_t<InDelta>> In, perturbation ... Perturbations>
     requires (sizeof...(Perturbations) <= sizeof...(PsDelta)) and (sizeof...(Perturbations) == 0 or
       (equivalent_to<typename oin::PerturbationTraits<Perturbations>::RowCoefficients,
-        typename MatrixTraits<std::tuple_element_t<0, std::tuple<PsDelta...>>>::RowCoefficients> and ...))
+        row_coefficient_types_of_t<std::tuple_element_t<0, std::tuple<PsDelta...>>>> and ...))
 #else
     template<typename In, typename ... Perturbations, std::enable_if_t<
-      transformation_input<In, typename MatrixTraits<InDelta>::RowCoefficients> and
+      transformation_input<In, row_coefficient_types_of_t<InDelta>> and
       (perturbation<Perturbations> and ...) and (sizeof...(Perturbations) <= sizeof...(PsDelta)) and
       (sizeof...(Perturbations) == 0 or
         (equivalent_to<typename oin::PerturbationTraits<Perturbations>::RowCoefficients,
-          typename MatrixTraits<std::tuple_element_t<0, std::tuple<PsDelta...>>>::RowCoefficients> and ...)), int> = 0>
+          row_coefficient_types_of_t<std::tuple_element_t<0, std::tuple<PsDelta...>>>> and ...)), int> = 0>
 #endif
     auto jacobian(In&& in, Perturbations&&...ps) const
     {
@@ -266,17 +266,17 @@ namespace OpenKalman
 
     /// Returns a tuple of Hessian matrices for the input and each perturbation term.
 #ifdef __cpp_concepts
-    template<transformation_input<typename MatrixTraits<InDelta>::RowCoefficients> In, perturbation ... Perturbations>
+    template<transformation_input<row_coefficient_types_of_t<InDelta>> In, perturbation ... Perturbations>
     requires (sizeof...(Perturbations) <= sizeof...(PsDelta)) and (sizeof...(Perturbations) == 0 or
       (equivalent_to<typename oin::PerturbationTraits<Perturbations>::RowCoefficients,
-        typename MatrixTraits<std::tuple_element_t<0, std::tuple<PsDelta...>>>::RowCoefficients> and ...))
+        row_coefficient_types_of_t<std::tuple_element_t<0, std::tuple<PsDelta...>>>> and ...))
 #else
     template<typename In, typename ... Perturbations, std::enable_if_t<
-      transformation_input<In, typename MatrixTraits<InDelta>::RowCoefficients> and
+      transformation_input<In, row_coefficient_types_of_t<InDelta>> and
       (perturbation<Perturbations> and ...) and (sizeof...(Perturbations) <= sizeof...(PsDelta)) and
       (sizeof...(Perturbations) == 0 or
         (equivalent_to<typename oin::PerturbationTraits<Perturbations>::RowCoefficients,
-          typename MatrixTraits<std::tuple_element_t<0, std::tuple<PsDelta...>>>::RowCoefficients> and ...)), int> = 0>
+          row_coefficient_types_of_t<std::tuple_element_t<0, std::tuple<PsDelta...>>>> and ...)), int> = 0>
 #endif
     auto hessian(In&& in, Perturbations&&...ps) const
     {

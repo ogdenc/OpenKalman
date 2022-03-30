@@ -44,16 +44,16 @@ namespace OpenKalman
   template<typename Arg1, typename Arg2> requires
     ((covariance<Arg1> and (covariance<Arg2> or (typed_matrix<Arg2> and square_matrix<Arg2>))) or
       ((typed_matrix<Arg1> and square_matrix<Arg1>) and covariance<Arg2>)) and
-    equivalent_to<typename MatrixTraits<Arg1>::RowCoefficients, typename MatrixTraits<Arg2>::RowCoefficients>
+    equivalent_to<row_coefficient_types_of_t<Arg1>, row_coefficient_types_of_t<Arg2>>
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<
     ((covariance<Arg1> and (covariance<Arg2> or (typed_matrix<Arg2> and square_matrix<Arg2>))) or
       ((typed_matrix<Arg1> and square_matrix<Arg1>) and covariance<Arg2>)) and
-    equivalent_to<typename MatrixTraits<Arg1>::RowCoefficients, typename MatrixTraits<Arg2>::RowCoefficients>, int> = 0>
+    equivalent_to<row_coefficient_types_of_t<Arg1>, row_coefficient_types_of_t<Arg2>>, int> = 0>
 #endif
   constexpr decltype(auto) operator+(Arg1&& arg1, Arg2&& arg2)
   {
-    using C = typename MatrixTraits<Arg1>::RowCoefficients;
+    using C = row_coefficient_types_of_t<Arg1>;
 
     if constexpr (zero_matrix<Arg1>)
     {
@@ -119,16 +119,16 @@ namespace OpenKalman
   template<typename Arg1, typename Arg2> requires
   ((covariance<Arg1> and (covariance<Arg2> or (typed_matrix<Arg2> and square_matrix<Arg2>))) or
     ((typed_matrix<Arg1> and square_matrix<Arg1>) and covariance<Arg2>)) and
-    equivalent_to<typename MatrixTraits<Arg1>::RowCoefficients, typename MatrixTraits<Arg2>::RowCoefficients>
+    equivalent_to<row_coefficient_types_of_t<Arg1>, row_coefficient_types_of_t<Arg2>>
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<
     ((covariance<Arg1> and (covariance<Arg2> or (typed_matrix<Arg2> and square_matrix<Arg2>))) or
       ((typed_matrix<Arg1> and square_matrix<Arg1>) and covariance<Arg2>)) and
-    equivalent_to<typename MatrixTraits<Arg1>::RowCoefficients, typename MatrixTraits<Arg2>::RowCoefficients>, int> = 0>
+    equivalent_to<row_coefficient_types_of_t<Arg1>, row_coefficient_types_of_t<Arg2>>, int> = 0>
 #endif
   constexpr decltype(auto) operator-(Arg1&& arg1, Arg2&& arg2)
   {
-    using C = typename MatrixTraits<Arg1>::RowCoefficients;
+    using C = row_coefficient_types_of_t<Arg1>;
 
     if constexpr (zero_matrix<Arg2>)
     {
@@ -181,10 +181,10 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<covariance Arg1, covariance Arg2> requires
-    equivalent_to<typename MatrixTraits<Arg1>::RowCoefficients, typename MatrixTraits<Arg2>::RowCoefficients>
+    equivalent_to<row_coefficient_types_of_t<Arg1>, row_coefficient_types_of_t<Arg2>>
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<covariance<Arg1> and covariance<Arg2> and
-    equivalent_to<typename MatrixTraits<Arg1>::RowCoefficients, typename MatrixTraits<Arg2>::RowCoefficients>, int> = 0>
+    equivalent_to<row_coefficient_types_of_t<Arg1>, row_coefficient_types_of_t<Arg2>>, int> = 0>
 #endif
   constexpr decltype(auto) operator*(Arg1&& arg1, Arg2&& arg2) noexcept
   {
@@ -199,7 +199,7 @@ namespace OpenKalman
     }
     else
     {
-      using C = typename MatrixTraits<Arg1>::RowCoefficients;
+      using C = row_coefficient_types_of_t<Arg1>;
 
       decltype(auto) b1 = oin::to_covariance_nestable(std::forward<Arg1>(arg1));
       decltype(auto) b2 = oin::to_covariance_nestable(std::forward<Arg2>(arg2));
@@ -228,16 +228,15 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<typed_matrix M, covariance Cov> requires
-    equivalent_to<typename MatrixTraits<M>::ColumnCoefficients, typename MatrixTraits<Cov>::RowCoefficients>
+    equivalent_to<row_coefficient_types_of_t<M>::ColumnCoefficients, typename MatrixTraits<Cov>>
 #else
   template<typename M, typename Cov, std::enable_if_t<typed_matrix<M> and covariance<Cov> and
-    equivalent_to<typename MatrixTraits<M>::ColumnCoefficients, typename MatrixTraits<Cov>::RowCoefficients>, int> = 0>
+    equivalent_to<row_coefficient_types_of_t<M>::ColumnCoefficients, typename MatrixTraits<Cov>>, int> = 0>
 #endif
   constexpr decltype(auto) operator*(M&& m, Cov&& cov) noexcept
   {
-    using CC = typename MatrixTraits<Cov>::RowCoefficients;
-    using RC = typename MatrixTraits<M>::RowCoefficients;
-    using Mat = equivalent_dense_writable_matrix_t<M, RC::dimension, CC::dimension>;
+    using CC = row_coefficient_types_of_t<Cov>;
+    using RC = row_coefficient_types_of_t<M>;
 
     if constexpr (zero_matrix<M> or zero_matrix<Cov>)
     {
@@ -272,16 +271,15 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<covariance Cov, typed_matrix M> requires
-    equivalent_to<typename MatrixTraits<Cov>::RowCoefficients, typename MatrixTraits<M>::RowCoefficients>
+    equivalent_to<row_coefficient_types_of_t<Cov>, row_coefficient_types_of_t<M>>
 #else
   template<typename Cov, typename M, std::enable_if_t<covariance<Cov> and typed_matrix<M> and
-    equivalent_to<typename MatrixTraits<Cov>::RowCoefficients, typename MatrixTraits<M>::RowCoefficients>, int> = 0>
+    equivalent_to<row_coefficient_types_of_t<Cov>, row_coefficient_types_of_t<M>>, int> = 0>
 #endif
   constexpr decltype(auto) operator*(Cov&& cov, M&& m) noexcept
   {
-    using RC = typename MatrixTraits<Cov>::RowCoefficients;
-    using CC = typename MatrixTraits<M>::ColumnCoefficients;
-    using Mat = equivalent_dense_writable_matrix_t<M, RC::dimension, CC::dimension>;
+    using RC = row_coefficient_types_of_t<Cov>;
+    using CC = column_coefficient_types_of_t<M>;
 
     if constexpr (zero_matrix<Cov> or zero_matrix<M>)
     {
@@ -482,8 +480,8 @@ namespace OpenKalman
 #endif
   constexpr bool operator==(Arg1&& arg1, Arg2&& arg2)
   {
-    if constexpr (std::is_same_v<equivalent_dense_writable_matrix_t<Arg1>, equivalent_dense_writable_matrix_t<Arg2>> and
-      equivalent_to<typename MatrixTraits<Arg1>::RowCoefficients, typename MatrixTraits<Arg2>::RowCoefficients>)
+    if constexpr (std::is_same_v<dense_writable_matrix_t<Arg1>, dense_writable_matrix_t<Arg2>> and
+      equivalent_to<row_coefficient_types_of_t<Arg1>, row_coefficient_types_of_t<Arg2>>)
     {
       return make_dense_writable_matrix_from(std::forward<Arg1>(arg1)) == make_dense_writable_matrix_from(std::forward<Arg2>(arg2));
     }
@@ -571,17 +569,17 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<covariance M, typed_matrix A> requires
-    equivalent_to<typename MatrixTraits<A>::ColumnCoefficients, typename MatrixTraits<M>::RowCoefficients> and
+    equivalent_to<row_coefficient_types_of_t<A>::ColumnCoefficients, typename MatrixTraits<M>> and
     (not euclidean_transformed<A>)
 #else
   template<typename M, typename A, std::enable_if_t<covariance<M> and typed_matrix<A> and
-    equivalent_to<typename MatrixTraits<A>::ColumnCoefficients, typename MatrixTraits<M>::RowCoefficients> and
+    equivalent_to<row_coefficient_types_of_t<A>::ColumnCoefficients, typename MatrixTraits<M>> and
     (not euclidean_transformed<A>), int> = 0>
 #endif
   inline auto
   scale(M&& m, A&& a)
   {
-    using AC = typename MatrixTraits<A>::RowCoefficients;
+    using AC = row_coefficient_types_of_t<A>;
     using NestedMatrix = nested_matrix_of_t<M>;
 
     if constexpr (diagonal_matrix<NestedMatrix> or self_adjoint_matrix<NestedMatrix>)

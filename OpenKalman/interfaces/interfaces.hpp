@@ -21,7 +21,6 @@
 #define OPENKALMAN_INTERFACES_HPP
 
 #include "basics/basics.hpp"
-#include "coefficient-types/coefficient-types.hpp"
 
 
 #endif //OPENKALMAN_INTERFACES_HPP

@@ -54,7 +54,80 @@ namespace
 }
 
 
-TEST(eigen3, solve_zero)
+TEST(eigen3, solve_zero_B)
+{
+  auto m22 = make_dense_writable_matrix_from<M22>(1, 2, 3, 4);
+  auto m20_2 = M20 {m22};
+  auto m02_2 = M02 {m22};
+  auto m00_22 = M00 {m22};
+
+  auto z11 = M11::Identity() - M11::Identity();
+
+  auto z12 = Eigen::Replicate<decltype(z11), 1, 2> {z11, 1, 2};
+  auto z10_2 = Eigen::Replicate<decltype(z11), 1, Eigen::Dynamic> {z11, 1, 2};
+  auto z02_1 = Eigen::Replicate<decltype(z11), Eigen::Dynamic, 2> {z11, 1, 2};
+  auto z00_12 = Eigen::Replicate<decltype(z11), Eigen::Dynamic, Eigen::Dynamic> {z11, 1, 2};
+
+  auto z22 = M22::Identity() - M22::Identity();
+  auto z20_2 = Eigen::Replicate<decltype(z11), 2, Eigen::Dynamic> {z11, 2, 2};
+  auto z02_2 = Eigen::Replicate<decltype(z11), Eigen::Dynamic, 2> {z11, 2, 2};
+  auto z00_22 = Eigen::Replicate<decltype(z11), Eigen::Dynamic, Eigen::Dynamic> {z11, 2, 2};
+
+  EXPECT_TRUE(is_near(solve<true>(m22, z22), M22::Zero()));
+  EXPECT_TRUE(is_near(solve<true>(m00_22, z00_22), M22::Zero()));
+  try { solve<true>(M12 {z12}, z12); EXPECT_TRUE(false); } catch (const std::runtime_error&) {}
+  try { solve<true>(M00 {z12}, z00_12); EXPECT_TRUE(false); } catch (const std::runtime_error&) {}
+
+  auto cd22 = M22::Identity() + M22::Identity();
+  auto cd00_22 = Eigen::Replicate<decltype(cd22), Eigen::Dynamic, Eigen::Dynamic> {cd22, 1, 1};
+
+  EXPECT_TRUE(is_near(solve<true>(cd22, z22), M22::Zero()));
+  EXPECT_TRUE(is_near(solve<true>(cd00_22, z00_22), M22::Zero()));
+
+  auto c11 = M11::Identity() + M11::Identity();
+  auto c12 = Eigen::Replicate<decltype(c11), 1, 2> {c11, 1, 2};
+  auto c00_12 = Eigen::Replicate<decltype(c11), Eigen::Dynamic, Eigen::Dynamic> {c11, 1, 2};
+
+  EXPECT_TRUE(is_near(solve<true>(c12, z12), M22::Zero()));
+  EXPECT_TRUE(is_near(solve<true>(c00_12, z00_12), M22::Zero()));
+
+  EXPECT_TRUE(is_near(solve(m22, z22), M22::Zero()));
+  EXPECT_TRUE(is_near(solve(m20_2, z22), M22::Zero()));
+  EXPECT_TRUE(is_near(solve(m02_2, z22), M22::Zero()));
+  EXPECT_TRUE(is_near(solve(m00_22, z22), M22::Zero()));
+  EXPECT_TRUE(is_near(solve(m22, z20_2), M22::Zero()));
+  EXPECT_TRUE(is_near(solve(m20_2, z20_2), M22::Zero()));
+  EXPECT_TRUE(is_near(solve(m02_2, z20_2), M22::Zero()));
+  EXPECT_TRUE(is_near(solve(m00_22, z20_2), M22::Zero()));
+  EXPECT_TRUE(is_near(solve(m22, z02_2), M22::Zero()));
+  EXPECT_TRUE(is_near(solve(m20_2, z02_2), M22::Zero()));
+  EXPECT_TRUE(is_near(solve(m02_2, z02_2), M22::Zero()));
+  EXPECT_TRUE(is_near(solve(m00_22, z02_2), M22::Zero()));
+  EXPECT_TRUE(is_near(solve(m22, z00_22), M22::Zero()));
+  EXPECT_TRUE(is_near(solve(m20_2, z00_22), M22::Zero()));
+  EXPECT_TRUE(is_near(solve(m02_2, z00_22), M22::Zero()));
+  EXPECT_TRUE(is_near(solve(m00_22, z00_22), M22::Zero()));
+
+  EXPECT_TRUE(is_near(solve(z12, z12), M22::Zero()));
+  EXPECT_TRUE(is_near(solve(z10_2, z12), M22::Zero()));
+  EXPECT_TRUE(is_near(solve(z02_1, z12), M22::Zero()));
+  EXPECT_TRUE(is_near(solve(z00_12, z12), M22::Zero()));
+  EXPECT_TRUE(is_near(solve(z12, z10_2), M22::Zero()));
+  EXPECT_TRUE(is_near(solve(z10_2, z10_2), M22::Zero()));
+  EXPECT_TRUE(is_near(solve(z02_1, z10_2), M22::Zero()));
+  EXPECT_TRUE(is_near(solve(z00_12, z10_2), M22::Zero()));
+  EXPECT_TRUE(is_near(solve(z12, z02_1), M22::Zero()));
+  EXPECT_TRUE(is_near(solve(z10_2, z02_1), M22::Zero()));
+  EXPECT_TRUE(is_near(solve(z02_1, z02_1), M22::Zero()));
+  EXPECT_TRUE(is_near(solve(z00_12, z02_1), M22::Zero()));
+  EXPECT_TRUE(is_near(solve(z12, z00_12), M22::Zero()));
+  EXPECT_TRUE(is_near(solve(z10_2, z00_12), M22::Zero()));
+  EXPECT_TRUE(is_near(solve(z02_1, z00_12), M22::Zero()));
+  EXPECT_TRUE(is_near(solve(z00_12, z00_12), M22::Zero()));
+}
+
+
+TEST(eigen3, solve_zero_A)
 {
   auto z11 = M11::Identity() - M11::Identity();
 
@@ -84,31 +157,267 @@ TEST(eigen3, solve_zero)
   EXPECT_TRUE(is_near(solve(z00_22, m20_3_56), M23::Zero()));
   EXPECT_TRUE(is_near(solve(z00_22, m03_2_56), M23::Zero()));
   EXPECT_TRUE(is_near(solve(z00_22, m00_23_56), M23::Zero()));
-
-  auto m22 = make_dense_writable_matrix_from<M22>(1, 2, 3, 4);
-  auto m20_2 = M20 {m22};
-  auto m02_2 = M02 {m22};
-  auto m00_22 = M00 {m22};
-
-  EXPECT_TRUE(is_near(solve(m22, z22), M22::Zero()));
-  EXPECT_TRUE(is_near(solve(m20_2, z22), M22::Zero()));
-  EXPECT_TRUE(is_near(solve(m02_2, z22), M22::Zero()));
-  EXPECT_TRUE(is_near(solve(m00_22, z22), M22::Zero()));
-  EXPECT_TRUE(is_near(solve(m22, z20_2), M22::Zero()));
-  EXPECT_TRUE(is_near(solve(m20_2, z20_2), M22::Zero()));
-  EXPECT_TRUE(is_near(solve(m02_2, z20_2), M22::Zero()));
-  EXPECT_TRUE(is_near(solve(m00_22, z20_2), M22::Zero()));
-  EXPECT_TRUE(is_near(solve(m22, z02_2), M22::Zero()));
-  EXPECT_TRUE(is_near(solve(m20_2, z02_2), M22::Zero()));
-  EXPECT_TRUE(is_near(solve(m02_2, z02_2), M22::Zero()));
-  EXPECT_TRUE(is_near(solve(m00_22, z02_2), M22::Zero()));
-  EXPECT_TRUE(is_near(solve(m22, z00_22), M22::Zero()));
-  EXPECT_TRUE(is_near(solve(m20_2, z00_22), M22::Zero()));
-  EXPECT_TRUE(is_near(solve(m02_2, z00_22), M22::Zero()));
-  EXPECT_TRUE(is_near(solve(m00_22, z00_22), M22::Zero()));
 }
 
-// Constant A is simply converted to ConstantMatrix. Thus, see testing of ConstantMatrix.
+
+TEST(eigen3, solve_constant_diagonal_A)
+{
+  auto cd22 = M22::Identity() + M22::Identity();
+  auto cd20_2 = Eigen::Replicate<decltype(cd22), 1, Eigen::Dynamic> {cd22, 1, 1};
+  auto cd02_2 = Eigen::Replicate<decltype(cd22), Eigen::Dynamic, 1> {cd22, 1, 1};
+  auto cd00_22 = Eigen::Replicate<decltype(cd22), Eigen::Dynamic, Eigen::Dynamic> {cd22, 1, 1};
+
+  auto m23_x = make_eigen_matrix<double, 2, 3>(5, 7, 9, 6, 8, 10);
+
+  auto m23 = make_eigen_matrix<double, 2, 3>(10, 14, 18, 12, 16, 20);
+  auto m20_3 = M20 {m23};
+  auto m03_2 = M03 {m23};
+  auto m00_23 = M00 {m23};
+
+  EXPECT_TRUE(is_near(solve(M22::Identity(), m23), m23));
+
+  EXPECT_TRUE(is_near(solve(cd22, m23), m23_x));
+  EXPECT_TRUE(is_near(solve(cd22, m20_3), m23_x));
+  EXPECT_TRUE(is_near(solve(cd22, m03_2), m23_x));
+  EXPECT_TRUE(is_near(solve(cd22, m00_23), m23_x));
+  EXPECT_TRUE(is_near(solve(cd20_2, m23), m23_x));
+  EXPECT_TRUE(is_near(solve(cd20_2, m20_3), m23_x));
+  EXPECT_TRUE(is_near(solve(cd20_2, m03_2), m23_x));
+  EXPECT_TRUE(is_near(solve(cd20_2, m00_23), m23_x));
+  EXPECT_TRUE(is_near(solve(cd02_2, m23), m23_x));
+  EXPECT_TRUE(is_near(solve(cd02_2, m20_3), m23_x));
+  EXPECT_TRUE(is_near(solve(cd02_2, m03_2), m23_x));
+  EXPECT_TRUE(is_near(solve(cd02_2, m00_23), m23_x));
+  EXPECT_TRUE(is_near(solve(cd00_22, m23), m23_x));
+  EXPECT_TRUE(is_near(solve(cd00_22, m20_3), m23_x));
+  EXPECT_TRUE(is_near(solve(cd00_22, m03_2), m23_x));
+  EXPECT_TRUE(is_near(solve(cd00_22, m00_23), m23_x));
+}
+
+
+TEST(eigen3, solve_constant_A)
+{
+  auto c11_2 = M11::Identity() + M11::Identity();
+
+  auto m12_1 = make_dense_writable_matrix_from<M12>(1, 1);
+
+  auto m12_2 = make_dense_writable_matrix_from<M12>(2, 2);
+  auto m10_2_2 = M10 {m12_2};
+  auto m02_1_2 = M02 {m12_2};
+  auto m00_12_2 = M00 {m12_2};
+
+  EXPECT_TRUE(is_near(solve(c11_2, m12_2), m12_1));
+  EXPECT_TRUE(is_near(solve(c11_2, m10_2_2), m12_1));
+  EXPECT_TRUE(is_near(solve(c11_2, m02_1_2), m12_1));
+  EXPECT_TRUE(is_near(solve(c11_2, m00_12_2), m12_1));
+
+  auto c22 = Eigen::Replicate<decltype(c11_2), 2, 2> {c11_2, 2, 2};
+  auto c20_2 = Eigen::Replicate<decltype(c11_2), 2, Eigen::Dynamic> {c11_2, 2, 2};
+  auto c02_2 = Eigen::Replicate<decltype(c11_2), Eigen::Dynamic, 2> {c11_2, 2, 2};
+  auto c00_22 = Eigen::Replicate<decltype(c11_2), Eigen::Dynamic, Eigen::Dynamic> {c11_2, 2, 2};
+
+  auto c11_8 = c11_2 + c11_2 + c11_2 + c11_2;
+
+  auto c23 = Eigen::Replicate<decltype(c11_8), 2, 3> {c11_8, 2, 3};
+  auto c20_3 = Eigen::Replicate<decltype(c11_8), 2, Eigen::Dynamic> {c11_8, 2, 3};
+  auto c03_2 = Eigen::Replicate<decltype(c11_8), Eigen::Dynamic, 3> {c11_8, 2, 3};
+  auto c00_23 = Eigen::Replicate<decltype(c11_8), Eigen::Dynamic, Eigen::Dynamic> {c11_8, 2, 3};
+
+  auto m23_2 = make_dense_writable_matrix_from<M23>(2, 2, 2, 2, 2, 2);
+
+  EXPECT_TRUE(is_near(solve(c22, c23), m23_2));
+  EXPECT_TRUE(is_near(solve(c22, c20_3), m23_2));
+  EXPECT_TRUE(is_near(solve(c22, c03_2), m23_2));
+  EXPECT_TRUE(is_near(solve(c22, c00_23), m23_2));
+  EXPECT_TRUE(is_near(solve(c20_2, c23), m23_2));
+  EXPECT_TRUE(is_near(solve(c20_2, c20_3), m23_2));
+  EXPECT_TRUE(is_near(solve(c20_2, c03_2), m23_2));
+  EXPECT_TRUE(is_near(solve(c20_2, c00_23), m23_2));
+  EXPECT_TRUE(is_near(solve(c02_2, c23), m23_2));
+  EXPECT_TRUE(is_near(solve(c02_2, c20_3), m23_2));
+  EXPECT_TRUE(is_near(solve(c02_2, c03_2), m23_2));
+  EXPECT_TRUE(is_near(solve(c02_2, c00_23), m23_2));
+  EXPECT_TRUE(is_near(solve(c00_22, c23), m23_2));
+  EXPECT_TRUE(is_near(solve(c00_22, c20_3), m23_2));
+  EXPECT_TRUE(is_near(solve(c00_22, c03_2), m23_2));
+  EXPECT_TRUE(is_near(solve(c00_22, c00_23), m23_2));
+
+  static_assert(constant_matrix<decltype(solve(c22, c23))>);
+  static_assert(not constant_matrix<decltype(solve(c20_2, c23))>);
+  static_assert(constant_matrix<decltype(solve(c02_2, c23))>);
+  static_assert(not constant_matrix<decltype(solve(c00_22, c23))>);
+
+  auto c12_2 = Eigen::Replicate<decltype(c11_2), 1, 2> {c11_2, 1, 2};
+  auto c10_2_2 = Eigen::Replicate<decltype(c11_2), 1, Eigen::Dynamic> {c11_2, 1, 2};
+  auto c02_1_2 = Eigen::Replicate<decltype(c11_2), Eigen::Dynamic, 2> {c11_2, 1, 2};
+  auto c00_12_2 = Eigen::Replicate<decltype(c11_2), Eigen::Dynamic, Eigen::Dynamic> {c11_2, 1, 2};
+
+  auto c12_8 = Eigen::Replicate<decltype(c11_8), 1, 2> {c11_8, 1, 2};
+  auto c10_2_8 = Eigen::Replicate<decltype(c11_8), 1, Eigen::Dynamic> {c11_8, 1, 2};
+  auto c02_1_8 = Eigen::Replicate<decltype(c11_8), Eigen::Dynamic, 2> {c11_8, 1, 2};
+  auto c00_12_8 = Eigen::Replicate<decltype(c11_8), Eigen::Dynamic, Eigen::Dynamic> {c11_8, 1, 2};
+
+  auto m22_2 = make_dense_writable_matrix_from<M22>(2, 2, 2, 2);
+
+  EXPECT_TRUE(is_near(solve(c12_2, c12_8), m22_2));
+  EXPECT_TRUE(is_near(solve(c12_2, c10_2_8), m22_2));
+  EXPECT_TRUE(is_near(solve(c12_2, c02_1_8), m22_2));
+  EXPECT_TRUE(is_near(solve(c12_2, c00_12_8), m22_2));
+  EXPECT_TRUE(is_near(solve(c10_2_2, c12_8), m22_2));
+  EXPECT_TRUE(is_near(solve(c10_2_2, c10_2_8), m22_2));
+  EXPECT_TRUE(is_near(solve(c10_2_2, c02_1_8), m22_2));
+  EXPECT_TRUE(is_near(solve(c10_2_2, c00_12_8), m22_2));
+  EXPECT_TRUE(is_near(solve(c02_1_2, c12_8), m22_2));
+  EXPECT_TRUE(is_near(solve(c02_1_2, c10_2_8), m22_2));
+  EXPECT_TRUE(is_near(solve(c02_1_2, c02_1_8), m22_2));
+  EXPECT_TRUE(is_near(solve(c02_1_2, c00_12_8), m22_2));
+  EXPECT_TRUE(is_near(solve(c00_12_2, c12_8), m22_2));
+  EXPECT_TRUE(is_near(solve(c00_12_2, c10_2_8), m22_2));
+  EXPECT_TRUE(is_near(solve(c00_12_2, c02_1_8), m22_2));
+  EXPECT_TRUE(is_near(solve(c00_12_2, c00_12_8), m22_2));
+
+  auto m23_x = make_eigen_matrix<double, 2, 3>(6, 9, 12, 6, 9, 12);
+
+  auto m23 = make_eigen_matrix<double, 2, 3>(24, 36, 48, 24, 36, 48);
+  auto m20_3 = M20 {m23};
+  auto m03_2 = M03 {m23};
+  auto m00_23 = M00 {m23};
+
+  EXPECT_TRUE(is_near(solve(c22, m23), m23_x));
+  EXPECT_TRUE(is_near(solve(c22, m20_3), m23_x));
+  EXPECT_TRUE(is_near(solve(c22, m03_2), m23_x));
+  EXPECT_TRUE(is_near(solve(c22, m00_23), m23_x));
+  EXPECT_TRUE(is_near(solve(c20_2, m23), m23_x));
+  EXPECT_TRUE(is_near(solve(c20_2, m20_3), m23_x));
+  EXPECT_TRUE(is_near(solve(c20_2, m03_2), m23_x));
+  EXPECT_TRUE(is_near(solve(c20_2, m00_23), m23_x));
+  EXPECT_TRUE(is_near(solve(c02_2, m23), m23_x));
+  EXPECT_TRUE(is_near(solve(c02_2, m20_3), m23_x));
+  EXPECT_TRUE(is_near(solve(c02_2, m03_2), m23_x));
+  EXPECT_TRUE(is_near(solve(c02_2, m00_23), m23_x));
+  EXPECT_TRUE(is_near(solve(c00_22, m23), m23_x));
+  EXPECT_TRUE(is_near(solve(c00_22, m20_3), m23_x));
+  EXPECT_TRUE(is_near(solve(c00_22, m03_2), m23_x));
+  EXPECT_TRUE(is_near(solve(c00_22, m00_23), m23_x));
+
+  auto m33_x = make_eigen_matrix<double, 1, 3>(3, 4.5, 6);
+
+  EXPECT_TRUE(is_near(solve<false, true>(c23, m23).colwise().sum(), m33_x));
+  EXPECT_TRUE(is_near(solve<false, true>(c23, m20_3).colwise().sum(), m33_x));
+  EXPECT_TRUE(is_near(solve<false, true>(c23, m03_2).colwise().sum(), m33_x));
+  EXPECT_TRUE(is_near(solve<false, true>(c23, m00_23).colwise().sum(), m33_x));
+  EXPECT_TRUE(is_near(solve<false, true>(c20_3, m23).colwise().sum(), m33_x));
+  EXPECT_TRUE(is_near(solve<false, true>(c20_3, m20_3).colwise().sum(), m33_x));
+  EXPECT_TRUE(is_near(solve<false, true>(c20_3, m03_2).colwise().sum(), m33_x));
+  EXPECT_TRUE(is_near(solve<false, true>(c20_3, m00_23).colwise().sum(), m33_x));
+  EXPECT_TRUE(is_near(solve<false, true>(c03_2, m23).colwise().sum(), m33_x));
+  EXPECT_TRUE(is_near(solve<false, true>(c03_2, m20_3).colwise().sum(), m33_x));
+  EXPECT_TRUE(is_near(solve<false, true>(c03_2, m03_2).colwise().sum(), m33_x));
+  EXPECT_TRUE(is_near(solve<false, true>(c03_2, m00_23).colwise().sum(), m33_x));
+  EXPECT_TRUE(is_near(solve<false, true>(c00_23, m23).colwise().sum(), m33_x));
+  EXPECT_TRUE(is_near(solve<false, true>(c00_23, m20_3).colwise().sum(), m33_x));
+  EXPECT_TRUE(is_near(solve<false, true>(c00_23, m03_2).colwise().sum(), m33_x));
+  EXPECT_TRUE(is_near(solve<false, true>(c00_23, m00_23).colwise().sum(), m33_x));
+}
+
+
+TEST(eigen3, solve_one_by_one)
+{
+  auto m11_0 = make_dense_writable_matrix_from<M11>(0);
+  auto m10_1_0 = M10 {m11_0};
+  auto m01_1_0 = M01 {m11_0};
+  auto m00_11_0 = M00 {m11_0};
+
+  auto m11_6 = make_dense_writable_matrix_from<M11>(6);
+  auto m10_1_6 = M10 {m11_6};
+  auto m01_1_6 = M01 {m11_6};
+  auto m00_11_6 = M00 {m11_6};
+
+  auto inf = std::numeric_limits<double>::infinity();
+
+  EXPECT_EQ(trace(solve(m11_0, m11_6)), inf);
+  EXPECT_EQ(trace(solve(m11_0, m10_1_6)), inf);
+  EXPECT_EQ(trace(solve(m11_0, m01_1_6)), inf);
+  EXPECT_EQ(trace(solve(m11_0, m00_11_6)), inf);
+  EXPECT_EQ(trace(solve(m10_1_0, m11_6)), inf);
+  EXPECT_EQ(trace(solve(m10_1_0, m10_1_6)), inf);
+  EXPECT_EQ(trace(solve(m10_1_0, m01_1_6)), inf);
+  EXPECT_EQ(trace(solve(m10_1_0, m00_11_6)), inf);
+  EXPECT_EQ(trace(solve(m01_1_0, m11_6)), inf);
+  EXPECT_EQ(trace(solve(m01_1_0, m10_1_6)), inf);
+  EXPECT_EQ(trace(solve(m01_1_0, m01_1_6)), inf);
+  EXPECT_EQ(trace(solve(m01_1_0, m00_11_6)), inf);
+  EXPECT_EQ(trace(solve(m00_11_0, m11_6)), inf);
+  EXPECT_EQ(trace(solve(m00_11_0, m10_1_6)), inf);
+  EXPECT_EQ(trace(solve(m00_11_0, m01_1_6)), inf);
+  EXPECT_EQ(trace(solve(m00_11_0, m00_11_6)), inf);
+
+  auto m12_68 = make_dense_writable_matrix_from<M12>(6, 8);
+  auto m10_2_68 = M10 {m12_68};
+  auto m02_1_68 = M02 {m12_68};
+  auto m00_12_68 = M00 {m12_68};
+
+  EXPECT_EQ(solve(m11_0, m12_68)(0,0), inf);
+  EXPECT_EQ(solve(m10_1_0, m12_68)(0,1), inf);
+  EXPECT_EQ(solve(m01_1_0, m12_68)(0,0), inf);
+  EXPECT_EQ(solve(m00_11_0, m12_68)(0,1), inf);
+  EXPECT_EQ(solve(m11_0, m10_2_68)(0,0), inf);
+  EXPECT_EQ(solve(m10_1_0, m10_2_68)(0,1), inf);
+  EXPECT_EQ(solve(m01_1_0, m10_2_68)(0,0), inf);
+  EXPECT_EQ(solve(m00_11_0, m10_2_68)(0,1), inf);
+  EXPECT_EQ(solve(m11_0, m02_1_68)(0,0), inf);
+  EXPECT_EQ(solve(m10_1_0, m02_1_68)(0,1), inf);
+  EXPECT_EQ(solve(m01_1_0, m02_1_68)(0,0), inf);
+  EXPECT_EQ(solve(m00_11_0, m02_1_68)(0,1), inf);
+  EXPECT_EQ(solve(m11_0, m00_12_68)(0,0), inf);
+  EXPECT_EQ(solve(m10_1_0, m00_12_68)(0,1), inf);
+  EXPECT_EQ(solve(m01_1_0, m00_12_68)(0,0), inf);
+  EXPECT_EQ(solve(m00_11_0, m00_12_68)(0,1), inf);
+
+  auto m11_2 = make_dense_writable_matrix_from<M11>(2);
+  auto m10_1_2 = M10 {m11_2};
+  auto m01_1_2 = M01 {m11_2};
+  auto m00_11_2 = M00 {m11_2};
+
+  auto m11_3 = make_dense_writable_matrix_from<M11>(3);
+
+  EXPECT_TRUE(is_near(solve(m11_2, m11_6), m11_3));
+  EXPECT_TRUE(is_near(solve(m11_2, m10_1_6), m11_3));
+  EXPECT_TRUE(is_near(solve(m11_2, m01_1_6), m11_3));
+  EXPECT_TRUE(is_near(solve(m11_2, m00_11_6), m11_3));
+  EXPECT_TRUE(is_near(solve(m10_1_2, m11_6), m11_3));
+  EXPECT_TRUE(is_near(solve(m10_1_2, m10_1_6), m11_3));
+  EXPECT_TRUE(is_near(solve(m10_1_2, m01_1_6), m11_3));
+  EXPECT_TRUE(is_near(solve(m10_1_2, m00_11_6), m11_3));
+  EXPECT_TRUE(is_near(solve(m01_1_2, m11_6), m11_3));
+  EXPECT_TRUE(is_near(solve(m01_1_2, m10_1_6), m11_3));
+  EXPECT_TRUE(is_near(solve(m01_1_2, m01_1_6), m11_3));
+  EXPECT_TRUE(is_near(solve(m01_1_2, m00_11_6), m11_3));
+  EXPECT_TRUE(is_near(solve(m00_11_2, m11_6), m11_3));
+  EXPECT_TRUE(is_near(solve(m00_11_2, m10_1_6), m11_3));
+  EXPECT_TRUE(is_near(solve(m00_11_2, m01_1_6), m11_3));
+  EXPECT_TRUE(is_near(solve(m00_11_2, m00_11_6), m11_3));
+
+  auto m12_34 = make_dense_writable_matrix_from<M12>(3, 4);
+
+  EXPECT_TRUE(is_near(solve(m11_2, m12_68), m12_34));
+  EXPECT_TRUE(is_near(solve(m11_2, m10_2_68), m12_34));
+  EXPECT_TRUE(is_near(solve(m11_2, m02_1_68), m12_34));
+  EXPECT_TRUE(is_near(solve(m11_2, m00_12_68), m12_34));
+  EXPECT_TRUE(is_near(solve(m10_1_2, m12_68), m12_34));
+  EXPECT_TRUE(is_near(solve(m10_1_2, m10_2_68), m12_34));
+  EXPECT_TRUE(is_near(solve(m10_1_2, m02_1_68), m12_34));
+  EXPECT_TRUE(is_near(solve(m10_1_2, m00_12_68), m12_34));
+  EXPECT_TRUE(is_near(solve(m01_1_2, m12_68), m12_34));
+  EXPECT_TRUE(is_near(solve(m01_1_2, m10_2_68), m12_34));
+  EXPECT_TRUE(is_near(solve(m01_1_2, m02_1_68), m12_34));
+  EXPECT_TRUE(is_near(solve(m01_1_2, m00_12_68), m12_34));
+  EXPECT_TRUE(is_near(solve(m00_11_2, m12_68), m12_34));
+  EXPECT_TRUE(is_near(solve(m00_11_2, m10_2_68), m12_34));
+  EXPECT_TRUE(is_near(solve(m00_11_2, m02_1_68), m12_34));
+  EXPECT_TRUE(is_near(solve(m00_11_2, m00_12_68), m12_34));
+}
+
 
 TEST(eigen3, solve_general_matrix)
 {
@@ -140,69 +449,5 @@ TEST(eigen3, solve_general_matrix)
   EXPECT_TRUE(is_near(solve(m00_22, m20_3_56), m23_445));
   EXPECT_TRUE(is_near(solve(m00_22, m03_2_56), m23_445));
   EXPECT_TRUE(is_near(solve(m00_22, m00_23_56), m23_445));
-}
-
-
-TEST(eigen3, solve_one_by_one)
-{
-  auto m11_2 = make_dense_writable_matrix_from<M11>(2);
-  auto m10_1_2 = M10 {m11_2};
-  auto m01_1_2 = M01 {m11_2};
-  auto m00_11_2 = M00 {m11_2};
-
-  auto m11_6 = make_dense_writable_matrix_from<M11>(6);
-  auto m10_1_6 = M10 {m11_6};
-  auto m01_1_6 = M01 {m11_6};
-  auto m00_11_6 = M00 {m11_6};
-
-  auto m11_3 = make_dense_writable_matrix_from<M11>(3);
-
-  EXPECT_TRUE(is_near(solve(m11_2, m11_6), m11_3));
-  EXPECT_TRUE(is_near(solve(m11_2, m10_1_6), m11_3));
-  EXPECT_TRUE(is_near(solve(m11_2, m01_1_6), m11_3));
-  EXPECT_TRUE(is_near(solve(m11_2, m00_11_6), m11_3));
-  EXPECT_TRUE(is_near(solve(m10_1_2, m11_6), m11_3));
-  EXPECT_TRUE(is_near(solve(m10_1_2, m10_1_6), m11_3));
-  EXPECT_TRUE(is_near(solve(m10_1_2, m01_1_6), m11_3));
-  EXPECT_TRUE(is_near(solve(m10_1_2, m00_11_6), m11_3));
-  EXPECT_TRUE(is_near(solve(m01_1_2, m11_6), m11_3));
-  EXPECT_TRUE(is_near(solve(m01_1_2, m10_1_6), m11_3));
-  EXPECT_TRUE(is_near(solve(m01_1_2, m01_1_6), m11_3));
-  EXPECT_TRUE(is_near(solve(m01_1_2, m00_11_6), m11_3));
-  EXPECT_TRUE(is_near(solve(m00_11_2, m11_6), m11_3));
-  EXPECT_TRUE(is_near(solve(m00_11_2, m10_1_6), m11_3));
-  EXPECT_TRUE(is_near(solve(m00_11_2, m01_1_6), m11_3));
-  EXPECT_TRUE(is_near(solve(m00_11_2, m00_11_6), m11_3));
-
-  auto m12_68 = make_dense_writable_matrix_from<M12>(6, 8);
-  auto m10_2_68 = M10 {m12_68};
-  auto m02_1_68 = M02 {m12_68};
-  auto m00_12_68 = M00 {m12_68};
-
-  auto m12_34 = make_dense_writable_matrix_from<M12>(3, 4);
-
-  EXPECT_TRUE(is_near(solve(m11_2, m12_68), m12_34));
-  EXPECT_TRUE(is_near(solve(m11_2, m10_2_68), m12_34));
-  EXPECT_TRUE(is_near(solve(m11_2, m02_1_68), m12_34));
-  EXPECT_TRUE(is_near(solve(m11_2, m00_12_68), m12_34));
-  EXPECT_TRUE(is_near(solve(m10_1_2, m12_68), m12_34));
-  EXPECT_TRUE(is_near(solve(m10_1_2, m10_2_68), m12_34));
-  EXPECT_TRUE(is_near(solve(m10_1_2, m02_1_68), m12_34));
-  EXPECT_TRUE(is_near(solve(m10_1_2, m00_12_68), m12_34));
-  EXPECT_TRUE(is_near(solve(m01_1_2, m12_68), m12_34));
-  EXPECT_TRUE(is_near(solve(m01_1_2, m10_2_68), m12_34));
-  EXPECT_TRUE(is_near(solve(m01_1_2, m02_1_68), m12_34));
-  EXPECT_TRUE(is_near(solve(m01_1_2, m00_12_68), m12_34));
-  EXPECT_TRUE(is_near(solve(m00_11_2, m12_68), m12_34));
-  EXPECT_TRUE(is_near(solve(m00_11_2, m10_2_68), m12_34));
-  EXPECT_TRUE(is_near(solve(m00_11_2, m02_1_68), m12_34));
-  EXPECT_TRUE(is_near(solve(m00_11_2, m00_12_68), m12_34));
-
-  auto m11_0 = make_dense_writable_matrix_from<M11>(0);
-
-  EXPECT_TRUE(is_near(solve(m11_0, m12_68), M12::Zero()));
-  EXPECT_TRUE(is_near(solve(M10 {m11_0}, m12_68), M12::Zero()));
-  EXPECT_TRUE(is_near(solve(M01 {m11_0}, m12_68), M12::Zero()));
-  EXPECT_TRUE(is_near(solve(M00 {m11_0}, m12_68), M12::Zero()));
 }
 

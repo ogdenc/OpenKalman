@@ -46,18 +46,18 @@ namespace OpenKalman
 
       using In_Mean = typename DistributionTraits<InputDistribution>::Mean;
       using Out_Mean = std::invoke_result_t<TransformationType, In_Mean>;
-      using InputCoefficients = typename MatrixTraits<In_Mean>::RowCoefficients;
-      using OutputCoefficients = typename MatrixTraits<Out_Mean>::RowCoefficients;
+      using InputCoefficients = row_coefficient_types_of_t<In_Mean>;
+      using OutputCoefficients = row_coefficient_types_of_t<Out_Mean>;
       static_assert((equivalent_to<OutputCoefficients,
         typename DistributionTraits<NoiseDistributions>::Coefficients> and ...));
 
-      using InputMeanMatrix = equivalent_dense_writable_matrix_t<
-        typename DistributionTraits<InputDistribution>::Mean, InputCoefficients::dimension, 1>;
-      using OutputEuclideanMeanMatrix = equivalent_dense_writable_matrix_t<InputMeanMatrix, OutputCoefficients::dimension, 1>;
-      using OutputCovarianceMatrix = equivalent_dense_writable_matrix_t<InputMeanMatrix, OutputCoefficients::dimension,
+      using InputMeanMatrix = dense_writable_matrix_t<
+        typename DistributionTraits<InputDistribution>::Mean, Dimensions<InputCoefficients::dimension>, Dimensions<1>>;
+      using OutputEuclideanMeanMatrix = untyped_dense_writable_matrix_t<InputMeanMatrix, OutputCoefficients::dimension, 1>;
+      using OutputCovarianceMatrix = untyped_dense_writable_matrix_t<InputMeanMatrix, OutputCoefficients::dimension,
         OutputCoefficients::dimension>;
       using OutputCovarianceSA = typename MatrixTraits<OutputCovarianceMatrix>::template SelfAdjointMatrixFrom<>;
-      using CrossCovarianceMatrix = equivalent_dense_writable_matrix_t<InputMeanMatrix, InputCoefficients::dimension,
+      using CrossCovarianceMatrix = untyped_dense_writable_matrix_t<InputMeanMatrix, InputCoefficients::dimension,
         OutputCoefficients::dimension>;
 
       using InputMean = Mean<InputCoefficients, InputMeanMatrix>;

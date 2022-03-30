@@ -22,10 +22,10 @@ namespace OpenKalman
 #endif
   inline auto operator+(V1&& v1, V2&& v2)
   {
-    using RC1 = typename MatrixTraits<V1>::RowCoefficients;
-    using CC1 = typename MatrixTraits<V1>::ColumnCoefficients;
-    static_assert(equivalent_to<typename MatrixTraits<V2>::RowCoefficients, RC1>);
-    static_assert(equivalent_to<typename MatrixTraits<V2>::ColumnCoefficients, CC1>);
+    using RC1 = row_coefficient_types_of_t<V1>;
+    using CC1 = column_coefficient_types_of_t<V1>;
+    static_assert(equivalent_to<row_coefficient_types_of_t<V2>, RC1>);
+    static_assert(equivalent_to<column_coefficient_types_of_t<V2>, CC1>);
     static_assert(euclidean_transformed<V1> == euclidean_transformed<V2>);
     using CommonV = std::decay_t<std::conditional_t<
       (euclidean_mean<V1> and euclidean_mean<V2>) or (mean<V1> and mean<V2>), V1, decltype(Matrix {v1})>>;
@@ -42,10 +42,10 @@ namespace OpenKalman
 #endif
   inline auto operator-(V1&& v1, V2&& v2)
   {
-    using RC1 = typename MatrixTraits<V1>::RowCoefficients;
-    using CC1 = typename MatrixTraits<V1>::ColumnCoefficients;
-    static_assert(equivalent_to<typename MatrixTraits<V2>::RowCoefficients, RC1>);
-    static_assert(equivalent_to<typename MatrixTraits<V2>::ColumnCoefficients, CC1>);
+    using RC1 = row_coefficient_types_of_t<V1>;
+    using CC1 = column_coefficient_types_of_t<V1>;
+    static_assert(equivalent_to<row_coefficient_types_of_t<V2>, RC1>);
+    static_assert(equivalent_to<column_coefficient_types_of_t<V2>, CC1>);
     static_assert(euclidean_transformed<V1> == euclidean_transformed<V2>);
     using CommonV = std::decay_t<std::conditional_t<
       (euclidean_mean<V1> and euclidean_mean<V2>), V1, decltype(Matrix {v1})>>;
@@ -116,10 +116,10 @@ namespace OpenKalman
 #endif
   inline auto operator*(V1&& v1, V2&& v2)
   {
-    static_assert(equivalent_to<typename MatrixTraits<V1>::ColumnCoefficients, typename MatrixTraits<V2>::RowCoefficients>);
+    static_assert(equivalent_to<row_coefficient_types_of_t<V1>::ColumnCoefficients, typename MatrixTraits<V2>>);
     static_assert(column_dimension_of_v<V1> == row_dimension_of_v<V2>);
-    using RC = typename MatrixTraits<V1>::RowCoefficients;
-    using CC = typename MatrixTraits<V2>::ColumnCoefficients;
+    using RC = row_coefficient_types_of_t<V1>;
+    using CC = column_coefficient_types_of_t<V2>;
     auto b = nested_matrix(std::forward<V1>(v1)) * nested_matrix(std::forward<V2>(v2));
     using CommonV = std::decay_t<std::conditional_t<euclidean_mean<V1>, V1, decltype(Matrix {v1})>>;
     return MatrixTraits<CommonV>::template make<RC, CC>(make_self_contained<V1, V2>(std::move(b)));
@@ -149,8 +149,8 @@ namespace OpenKalman
   constexpr bool operator==(V1&& v1, V2&& v2)
   {
     if constexpr(
-      equivalent_to<typename MatrixTraits<V1>::RowCoefficients, typename MatrixTraits<V2>::RowCoefficients> and
-      equivalent_to<typename MatrixTraits<V1>::ColumnCoefficients, typename MatrixTraits<V2>::ColumnCoefficients>)
+      equivalent_to<row_coefficient_types_of_t<V1>, row_coefficient_types_of_t<V2>> and
+      equivalent_to<column_coefficient_types_of_t<V1>, column_coefficient_types_of_t<V2>>)
     {
       return make_dense_writable_matrix_from(std::forward<V1>(v1)) == make_dense_writable_matrix_from(std::forward<V2>(v2));
     }

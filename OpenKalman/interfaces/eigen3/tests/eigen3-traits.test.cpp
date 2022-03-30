@@ -91,10 +91,10 @@ TEST(eigen3, Eigen_Matrix)
   static_assert(not dynamic_rows<eigen_matrix_t<double, 1, dynamic_size>>);
   static_assert(dynamic_columns<eigen_matrix_t<double, 1, dynamic_size>>);
 
-  static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<M33>, M33>);
-  static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<M30>, M30>);
-  static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<M03>, M03>);
-  static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<M00>, M00>);
+  static_assert(std::is_same_v<dense_writable_matrix_t<M33>, M33>);
+  static_assert(std::is_same_v<dense_writable_matrix_t<M30>, M30>);
+  static_assert(std::is_same_v<dense_writable_matrix_t<M03>, M03>);
+  static_assert(std::is_same_v<dense_writable_matrix_t<M00>, M00>);
 
   static_assert(writable<M22>);
   static_assert(writable<M20>);
@@ -103,7 +103,7 @@ TEST(eigen3, Eigen_Matrix)
   static_assert(writable<M22&>);
   static_assert(not writable<const M22>);
   static_assert(not writable<const M22&>);
-  static_assert(writable<equivalent_dense_writable_matrix_t<M22>>);
+  static_assert(writable<dense_writable_matrix_t<M22>>);
 
   static_assert(element_gettable<M32, std::size_t, std::size_t>);
   static_assert(element_gettable<const M32, std::size_t, std::size_t>);
@@ -186,6 +186,8 @@ TEST(eigen3, Eigen_Matrix)
   EXPECT_TRUE(is_near(make_identity_matrix_like<M30, dynamic_size>(4), M44::Identity()));
   EXPECT_TRUE(is_near(make_identity_matrix_like<M03, dynamic_size>(4), M44::Identity()));
 
+  static_assert(equivalent_to<coefficient_types_of_t<M11, 0>, Axis>);
+  static_assert(equivalent_to<coefficient_types_of_t<M11, 1>, Axis>);
   static_assert(square_matrix<M11>);
   static_assert(square_matrix<M22>);
   static_assert(not square_matrix<M20>);
@@ -793,8 +795,8 @@ TEST(eigen3, Eigen_DiagonalMatrix)
 
   static_assert(std::is_same_v<nested_matrix_of_t<Eigen::DiagonalMatrix<double, 2>>, M21>);
 
-  static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<Eigen::DiagonalMatrix<double, 3>>, M33>);
-  static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<Eigen::DiagonalMatrix<double, Eigen::Dynamic>>, M00>);
+  static_assert(std::is_same_v<dense_writable_matrix_t<Eigen::DiagonalMatrix<double, 3>>, M33>);
+  static_assert(std::is_same_v<dense_writable_matrix_t<Eigen::DiagonalMatrix<double, Eigen::Dynamic>>, M00>);
 
   static_assert(diagonal_matrix<Eigen::DiagonalMatrix<double, 3>>);
 
@@ -824,11 +826,11 @@ TEST(eigen3, Eigen_DiagonalWrapper)
 
   static_assert(std::is_same_v<nested_matrix_of_t<Eigen::DiagonalWrapper<M21>>, const M21&>);
 
-  static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<Eigen::DiagonalWrapper<M31>>, M33>);
-  static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<Eigen::DiagonalWrapper<M22>>, M44>);
-  static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<Eigen::DiagonalWrapper<M30>>, M00>);
-  static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<Eigen::DiagonalWrapper<M01>>, M00>);
-  static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<Eigen::DiagonalWrapper<M00>>, M00>);
+  static_assert(std::is_same_v<dense_writable_matrix_t<Eigen::DiagonalWrapper<M31>>, M33>);
+  static_assert(std::is_same_v<dense_writable_matrix_t<Eigen::DiagonalWrapper<M22>>, M44>);
+  static_assert(std::is_same_v<dense_writable_matrix_t<Eigen::DiagonalWrapper<M30>>, M00>);
+  static_assert(std::is_same_v<dense_writable_matrix_t<Eigen::DiagonalWrapper<M01>>, M00>);
+  static_assert(std::is_same_v<dense_writable_matrix_t<Eigen::DiagonalWrapper<M00>>, M00>);
 
   static_assert(not self_contained<Eigen::DiagonalWrapper<M31>>);
 
@@ -1151,13 +1153,13 @@ TEST(eigen3, Eigen_SelfAdjointView)
 {
   static_assert(std::is_same_v<nested_matrix_of_t<Eigen::SelfAdjointView<M22, Eigen::Lower>>, M22&>);
 
-  static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<Eigen::SelfAdjointView<M33, Eigen::Lower>>, M33>);
-  static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<Eigen::SelfAdjointView<M30, Eigen::Lower>>, M33>);
-  static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<Eigen::SelfAdjointView<M03, Eigen::Lower>>, M33>);
-  static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<Eigen::SelfAdjointView<M00, Eigen::Lower>>, M00>);
+  static_assert(std::is_same_v<dense_writable_matrix_t<Eigen::SelfAdjointView<M33, Eigen::Lower>>, M33>);
+  static_assert(std::is_same_v<dense_writable_matrix_t<Eigen::SelfAdjointView<M30, Eigen::Lower>>, M33>);
+  static_assert(std::is_same_v<dense_writable_matrix_t<Eigen::SelfAdjointView<M03, Eigen::Lower>>, M33>);
+  static_assert(std::is_same_v<dense_writable_matrix_t<Eigen::SelfAdjointView<M00, Eigen::Lower>>, M00>);
 
-  static_assert(not any_dynamic_dimension<equivalent_dense_writable_matrix_t<SelfAdjointMatrix<M02>>>);
-  static_assert(not any_dynamic_dimension<equivalent_dense_writable_matrix_t<SelfAdjointMatrix<M20>>>);
+  static_assert(not any_dynamic_dimension<dense_writable_matrix_t<SelfAdjointMatrix<M02>>>);
+  static_assert(not any_dynamic_dimension<dense_writable_matrix_t<SelfAdjointMatrix<M20>>>);
 
   static_assert(are_within_tolerance(constant_coefficient_v<Eigen::SelfAdjointView<C22_2, Eigen::Upper>>, 2));
 
@@ -1219,10 +1221,10 @@ TEST(eigen3, Eigen_TriangularView)
 {
   static_assert(std::is_same_v<nested_matrix_of_t<Eigen::TriangularView<M22, Eigen::Upper>>, M22&>);
 
-  static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<Eigen::TriangularView<M33, Eigen::Upper>>, M33>);
-  static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<Eigen::TriangularView<M30, Eigen::Upper>>, M33>);
-  static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<Eigen::TriangularView<M03, Eigen::Upper>>, M33>);
-  static_assert(std::is_same_v<equivalent_dense_writable_matrix_t<Eigen::TriangularView<M00, Eigen::Upper>>, M00>);
+  static_assert(std::is_same_v<dense_writable_matrix_t<Eigen::TriangularView<M33, Eigen::Upper>>, M33>);
+  static_assert(std::is_same_v<dense_writable_matrix_t<Eigen::TriangularView<M30, Eigen::Upper>>, M33>);
+  static_assert(std::is_same_v<dense_writable_matrix_t<Eigen::TriangularView<M03, Eigen::Upper>>, M33>);
+  static_assert(std::is_same_v<dense_writable_matrix_t<Eigen::TriangularView<M00, Eigen::Upper>>, M00>);
 
   static_assert(are_within_tolerance(constant_coefficient_v<Eigen::TriangularView<C11_2, Eigen::Lower>>, 2));
   static_assert(are_within_tolerance(constant_coefficient_v<Eigen::TriangularView<Z22, Eigen::Lower>>, 0));

@@ -73,6 +73,7 @@ namespace OpenKalman::interface
    * \internal
    * \brief An interface to the indices of a matrix, or array, expression, or tensor.
    * \tparam T The matrix, array, expression, or tensor.
+   * \tparam N The index number
    */
 #ifdef __cpp_concepts
   template<typename T, std::size_t N>
@@ -99,7 +100,43 @@ namespace OpenKalman::interface
     template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg,
       const std::add_lvalue_reference_t<std::decay_t<T>>>, int> = 0>
 #endif
-    static constexpr std::size_t dimension_at_runtime(Arg&& arg) = delete;
+    static constexpr std::size_t dimension_at_runtime(const Arg& arg) = delete;
+  };
+
+
+  /**
+   * \internal
+   * \brief An interface to the coordinate system(s) associated with an index of a matrix, array, or expression.
+   * \note Any Euclidean types (i.e., regular matrices or other true tensors that operate on a vector space) can rely
+   *  on this default definition.
+   * \tparam T The matrix, array, expression, or tensor.
+   * \tparam N The index number
+   */
+#ifdef __cpp_concepts
+  template<typename T, std::size_t N>
+#else
+  template<typename T, std::size_t N, typename = void>
+#endif
+  struct CoordinateSystemTraits
+  {
+    /**
+     * \brief The coordinate system type(s) associated with index N of T, evaulated at compile time.
+     * \details If the coordinate system is unknown at compile time, use DynamicCoefficients.
+     */
+     using coordinate_system_types = Axes<IndexTraits<T, N>::dimension>;
+
+
+    /**
+     * \brief Returns the coordinate system type(s) of index N of the argument, evaluated at runtime.
+     * \tparam Arg An argument matrix of type T
+     */
+#ifdef __cpp_concepts
+    template<std::convertible_to<const std::remove_reference_t<T>&> Arg>
+#else
+    template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg,
+      const std::add_lvalue_reference_t<std::decay_t<T>>>, int> = 0>
+#endif
+    static constexpr auto coordinate_system_types_at_runtime(Arg&& arg) = delete;
   };
 
 
@@ -190,23 +227,18 @@ namespace OpenKalman::interface
 
 
     /**
-     * \brief Makes a default, potentially uninitialized, dense, writable matrix or array.
-     * \details Takes 0, 1, or 2 runtime arguments for any rows or columns that are \ref dynamic_size and
-     * returning a default, uninitialized, self-contained matrix/array of type T--for example, it takes 0 parameters
-     * if both rows and columns are fixed, and it takes 2 parameters (row and column) if both rows
-     * and columns are dynamic.
-     * \param e Runtime row and/or column dimension of the resulting matrix, if any of the compile-time dimensions of T
-     * are \ref dynamic_size "dynamic".
+     * \brief Makes a default, potentially uninitialized, dense, writable matrix or array
+     * \details Takes a list of \ref index_descriptor items that specify the size of the resulting object
+     * \tparam D A list of \ref index_descriptor items
+     * \return A default, potentially unitialized, dense, writable matrix or array. Whether the resulting object
+     * is a matrix or array may depend on whether T is a matrix or array.
      */
 #ifdef __cpp_concepts
-    template<std::convertible_to<std::size_t>...runtime_dimensions> requires
-      (sizeof...(runtime_dimensions) == (rows == dynamic_size ? 1 : 0) + (columns == dynamic_size ? 1 : 0))
+    template<index_descriptor...D>
 #else
-    template<typename...runtime_dimensions, std::enable_if_t<sizeof...(runtime_dimensions) ==
-      (rows == dynamic_size ? 1 : 0) + (columns == dynamic_size ? 1 : 0) and
-      (std::is_convertible_v<runtime_dimensions, std::size_t> and ...), int> = 0>
+    template<typename...D, std::enable_if_t<(index_descriptor<D> and ...), int> = 0>
 #endif
-    static auto make_default(runtime_dimensions...e) = delete;
+    static auto make_default(D&&...d) = delete;
 
 
     /**
@@ -361,21 +393,17 @@ namespace OpenKalman::interface
 
     /**
      * \brief Create a \ref constant_matrix corresponding to the shape of T.
-     * \details If T is a \ref dynamic_matrix, you must include one or two runtime dimensions, depending on the number
-     * of indices for which dimensions are not specified at compile time. For example, if the row dimension is known at
-     * compile time but the column dimension is not, you must specify a single dimension reflecting the number of
-     * runtime rows.
+     * \details Takes a list of \ref index_descriptor items that specify the size of the resulting object
+     * \tparam D A list of \ref index_descriptor items
      * \note If this is not defined, it will return an object of type ConstantMatrix.
      */
 #ifdef __cpp_concepts
-    template<auto constant, std::convertible_to<std::size_t>...runtime_dimensions> requires
-      (sizeof...(runtime_dimensions) == (rows == dynamic_size ? 1 : 0) + (columns == dynamic_size ? 1 : 0))
+    template<auto constant, index_descriptor...D> requires (sizeof...(D) == StorageArrayTraits<T>::max_indices)
 #else
-    template<auto constant, typename...runtime_dimensions, std::enable_if_t<sizeof...(runtime_dimensions) ==
-      (rows == dynamic_size ? 1 : 0) + (columns == dynamic_size ? 1 : 0) and
-      (std::is_convertible_v<runtime_dimensions, std::size_t> and ...), int> = 0>
+    template<auto constant, typename...D, std::enable_if_t<(index_descriptor<D> and ...) and
+      sizeof...(D) == StorageArrayTraits<T>::max_indices, int> = 0>
 #endif
-    static auto make_constant_matrix(runtime_dimensions...e); //< Defined elsewhere
+    static auto make_constant_matrix(D&&...d); //< Defined elsewhere
   };
 
 
@@ -541,26 +569,91 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<typename T>
+  template<typename T>
 #else
-    template<typename T, typename = void>
+  template<typename T, typename = void>
 #endif
-    struct ElementAccess
-    {
-    };
+  struct Subsets
+  {
+    /**
+     * \brief Extract one column from a matrix or other tensor.
+     * \details The index of the column may be specified at either compile time <em>or</em> at runtime, but not both.
+     * \tparam compile_time_index The index of the column, if specified at compile time
+     * \tparam Arg The matrix or other tensor from which the column is to be extracted
+     * \tparam runtime_index_t The type of the index of the column, if the index is specified at runtime. This type
+     * should be convertible to <code>std::size_t</code>
+     * \return A \ref column_vector
+     */
+    template<std::size_t...compile_time_index, typename Arg, typename...runtime_index_t>
+    static constexpr decltype(auto) column(Arg&& arg, runtime_index_t...i) = delete;
 
 
-  /**
-   * \brief An interface to necessary element-wise operations on matrix T.
-   * \tparam T
-   */
+    /**
+     * \brief Extract one row from a matrix or other tensor.
+     * \details The index of the row may be specified at either compile time <em>or</em> at runtime, but not both.
+     * \tparam compile_time_index The index of the row, if specified at compile time
+     * \tparam Arg The matrix or other tensor from which the row is to be extracted
+     * \tparam runtime_index_t The type of the index of the row, if the index is specified at runtime. This type
+     * should be convertible to <code>std::size_t</code>
+     * \return A \ref row_vector
+     */
+    template<std::size_t...compile_time_index, typename Arg, typename...runtime_index_t>
+    static constexpr decltype(auto) row(Arg&& arg, runtime_index_t...i) = delete;
+  };
+
+
 #ifdef __cpp_concepts
   template<typename T>
 #else
   template<typename T, typename = void>
 #endif
-  struct ElementWiseOperations
+  struct ElementAccess
   {
+  };
+
+
+  /**
+   * \brief An interface to necessary array or element-wise operations on matrix T.
+   * \tparam T Type of the result matrix, array, or other tensor
+   */
+  template<typename T>
+  struct ArrayOperations
+  {
+    /**
+     * \brief Perform an n-ary array operation on a set of n arguments, possibly with broadcasting.
+     * \details If any of the arguments has a lesser order than T, the function must replicate the argument to fill
+     * out the full size and shape of T, as necessary, before performing the operation. For example, if T is a 2-by-2
+     * matrix and the sole argument is a 2-by-1 column vector, the function must replicate the argument in the
+     * horizontal direction to form a 2-by-2 matrix before performing the operation.
+     * \tparam sizes The dimension types of T
+     * \tparam Operation The n-ary operation taking n arguments, each argument having the same dimensions
+     * \tparam Args A set of n arguments
+     * \return An object the same size and shape as as T
+     */
+#ifdef __cpp_concepts
+    template<index_descriptor...dims, typename Operation, typename...Args> requires
+      (sizeof...(dims) == StorageArrayTraits<std::decay_t<T>>::max_indices)
+    static constexpr decltype(auto) n_ary_operation_with_broadcasting(
+      const std::tuple<dims...>& d, Operation&&, Args&&...) = delete;
+#else
+    template<typename...dims, typename Operation, typename...Args, std::enable_if_t<
+      (index_descriptor<dims> and ...) and sizeof...(dims) == StorageArrayTraits<std::decay_t<T>>::max_indices, int> = 0>
+    static constexpr decltype(auto) n_ary_operation_with_broadcasting(
+      const std::tuple<dims...>& d, Operation&&, Args&&...) = delete;
+#endif
+
+
+    /**
+     * \brief Use a binary function to reduce a tensor across one or more of its indices.
+     * \tparam indices The indices to be reduced. There will be at least one index.
+     * \tparam BinaryFunction A binary function invocable with two values of type <code>scalar_type_of_t<Arg></code>
+     * \tparam Arg The tensor
+     * (e.g. std::plus, std::multiplies)
+     */
+    template<std::size_t...indices, typename BinaryFunction, typename Arg>
+    static constexpr decltype(auto) reduce(BinaryFunction&&, Arg&&) = delete;
+
+
     /**
      * \brief Fold an operation across the elements of Arg
      * \detail BinaryFunction must be invocable with two values, the first an accumulator and the second of type
@@ -635,6 +728,27 @@ namespace OpenKalman::interface
     static constexpr auto
     diagonal_of(Arg&& arg) = delete;
 
+  };
+
+
+#ifdef __cpp_concepts
+  template<typename T>
+#else
+  template<typename T, typename = void>
+#endif
+  struct ModularTransformationTraits
+  {
+    template<typename...FixedCoefficients, typename Arg, typename...DynamicCoefficients>
+    constexpr decltype(auto)
+    to_euclidean(Arg&& arg) = delete;
+
+    template<typename...FixedCoefficients, typename Arg, typename...DynamicCoefficients>
+    constexpr decltype(auto)
+    from_euclidean(Arg&& arg) = delete;
+
+    template<typename...FixedCoefficients, typename Arg, typename...DynamicCoefficients>
+    constexpr decltype(auto)
+    wrap_angles(Arg&& arg) = delete;
   };
 
 
@@ -753,6 +867,28 @@ namespace OpenKalman::interface
       std::is_convertible_v<A, const std::remove_reference_t<T>&>, int> = 0>
 #endif
     static decltype(auto) rank_update_triangular(A&&, U&&, const Alpha) = delete;
+
+
+    /**
+     * \brief Solve the equation AX = B for X, which may or may not be a unique solution.
+     * \tparam must_be_unique Determines whether the function throws an exception if the solution X is non-unique
+     * (e.g., if the equation is under-determined)
+     * \tparam must_be_exact Determines whether the function throws an exception if it cannot return an exact solution,
+     * such as if the equation is over-determined. * If <code>false<code>, then the function will return an estimate
+     * instead of throwing an exception.
+     * \tparam A The matrix A in the equation AX = B
+     * \tparam B The matrix B in the equation AX = B
+     * \return The solution X of the equation AX = B. If <code>must_be_unique</code>, then the function can return
+     * any valid solution for X.
+     */
+#ifdef __cpp_concepts
+    template<bool must_be_unique = false, bool must_be_exact = false,
+      std::convertible_to<const std::remove_reference_t<T>&> A, typename B>
+#else
+    template<bool must_be_unique = false, bool must_be_exact = false, typename A, typename B, std::enable_if_t<
+      std::is_convertible_v<A, const std::remove_reference_t<T>&>, int> = 0>
+#endif
+    static decltype(auto) solve(A&&, B&&) = delete;
 
   };
 
