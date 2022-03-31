@@ -50,10 +50,10 @@ namespace OpenKalman::internal
 
     /// Default constructor.
 #ifdef __cpp_concepts
-    TypedMatrixBase() requires std::default_initializable<NestedMatrix> and (not any_dynamic_dimension<NestedMatrix>)
+    TypedMatrixBase() requires std::default_initializable<NestedMatrix> and (not has_dynamic_dimensions<NestedMatrix>)
 #else
     template<typename T = NestedMatrix, std::enable_if_t<
-      std::is_default_constructible_v<T> and (not any_dynamic_dimension<NestedMatrix>), int> = 0>
+      std::is_default_constructible_v<T> and (not has_dynamic_dimensions<NestedMatrix>), int> = 0>
     TypedMatrixBase()
 #endif
       : Base {} {}
@@ -81,10 +81,10 @@ namespace OpenKalman::internal
     template<typename ... Args, std::enable_if_t<(std::is_convertible_v<Args, const Scalar> and ...) and
       (sizeof...(Args) > 0) and (
         (diagonal_matrix<NestedMatrix> and
-          std::is_constructible_v<NestedMatrix, untyped_dense_writable_matrix_t<NestedMatrix, sizeof...(Args), 1>>) or
+          std::is_constructible_v<NestedMatrix, dense_writable_matrix_t<NestedMatrix, Dimensions<sizeof...(Args)>, Dimensions<1>>>) or
         (sizeof...(Args) == row_dimension_of<NestedMatrix>::value * column_dimension_of<NestedMatrix>::value and
-          std::is_constructible_v<NestedMatrix, untyped_dense_writable_matrix_t<NestedMatrix,
-            row_dimension_of<NestedMatrix>::value, column_dimension_of<NestedMatrix>::value>>)), int> = 0>
+          std::is_constructible_v<NestedMatrix, dense_writable_matrix_t<NestedMatrix,
+            Dimensions<row_dimension_of<NestedMatrix>::value>, Dimensions<column_dimension_of<NestedMatrix>::value>>>)), int> = 0>
 #endif
     TypedMatrixBase(Args ... args)
       : Base {MatrixTraits<NestedMatrix>::make(static_cast<const Scalar>(args)...)} {}

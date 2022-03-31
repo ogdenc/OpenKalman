@@ -71,9 +71,9 @@ TEST(eigen3, to_diagonal)
   auto m22_1004 = make_dense_writable_matrix_from<M22>(1, 0, 0, 4);
 
   EXPECT_TRUE(is_near(to_diagonal(m21), m22_1004));
-  EXPECT_TRUE(is_near(to_diagonal(m20_1), m22_1004)); static_assert(not any_dynamic_dimension<decltype(to_diagonal(m20_1))>);
-  EXPECT_TRUE(is_near(to_diagonal(m01_2), m22_1004)); static_assert(any_dynamic_dimension<decltype(to_diagonal(m01_2))>);
-  EXPECT_TRUE(is_near(to_diagonal(m00_21), m22_1004)); static_assert(any_dynamic_dimension<decltype(to_diagonal(m00_21))>);
+  EXPECT_TRUE(is_near(to_diagonal(m20_1), m22_1004)); static_assert(not has_dynamic_dimensions<decltype(to_diagonal(m20_1))>);
+  EXPECT_TRUE(is_near(to_diagonal(m01_2), m22_1004)); static_assert(has_dynamic_dimensions<decltype(to_diagonal(m01_2))>);
+  EXPECT_TRUE(is_near(to_diagonal(m00_21), m22_1004)); static_assert(has_dynamic_dimensions<decltype(to_diagonal(m00_21))>);
 
   auto z11 {M11::Identity() - M11::Identity()};
 
@@ -83,9 +83,9 @@ TEST(eigen3, to_diagonal)
   auto z00_21 = Eigen::Replicate<decltype(z11), Eigen::Dynamic, Eigen::Dynamic> {z11, 2, 1};
 
   static_assert(zero_matrix<decltype(to_diagonal(z21))>);
-  static_assert(zero_matrix<decltype(to_diagonal(z20_1))>); static_assert(not any_dynamic_dimension<decltype(to_diagonal(z20_1))>);
-  static_assert(zero_matrix<decltype(to_diagonal(z01_2))>); static_assert(any_dynamic_dimension<decltype(to_diagonal(z01_2))>);
-  static_assert(zero_matrix<decltype(to_diagonal(z00_21))>); static_assert(any_dynamic_dimension<decltype(to_diagonal(z00_21))>);
+  static_assert(zero_matrix<decltype(to_diagonal(z20_1))>); static_assert(not has_dynamic_dimensions<decltype(to_diagonal(z20_1))>);
+  static_assert(zero_matrix<decltype(to_diagonal(z01_2))>); static_assert(has_dynamic_dimensions<decltype(to_diagonal(z01_2))>);
+  static_assert(zero_matrix<decltype(to_diagonal(z00_21))>); static_assert(has_dynamic_dimensions<decltype(to_diagonal(z00_21))>);
 }
 
 
@@ -97,9 +97,9 @@ TEST(eigen3, diagonal_of_matrix)
   auto m00_11 = M00 {m11};
 
   EXPECT_TRUE(is_near(diagonal_of(m11), m11));
-  EXPECT_TRUE(is_near(diagonal_of(m10_1), m11)); static_assert(any_dynamic_dimension<decltype(diagonal_of(m10_1))>);
-  EXPECT_TRUE(is_near(diagonal_of(m01_1), m11)); static_assert(any_dynamic_dimension<decltype(diagonal_of(m01_1))>);
-  EXPECT_TRUE(is_near(diagonal_of(m00_11), m11)); static_assert(any_dynamic_dimension<decltype(diagonal_of(m00_11))>);
+  EXPECT_TRUE(is_near(diagonal_of(m10_1), m11)); static_assert(has_dynamic_dimensions<decltype(diagonal_of(m10_1))>);
+  EXPECT_TRUE(is_near(diagonal_of(m01_1), m11)); static_assert(has_dynamic_dimensions<decltype(diagonal_of(m01_1))>);
+  EXPECT_TRUE(is_near(diagonal_of(m00_11), m11)); static_assert(has_dynamic_dimensions<decltype(diagonal_of(m00_11))>);
 
   auto m22 = make_dense_writable_matrix_from<M22>(1, 2, 3, 4);
   auto m20_2 = M20 {m22};
@@ -112,14 +112,14 @@ TEST(eigen3, diagonal_of_matrix)
   auto m00_21 = M00 {m21};
 
   EXPECT_TRUE(is_near(diagonal_of(m22), m21));
-  EXPECT_TRUE(is_near(diagonal_of(m20_2), m21)); static_assert(any_dynamic_dimension<decltype(diagonal_of(m20_2))>);
-  EXPECT_TRUE(is_near(diagonal_of(m02_2), m21)); static_assert(any_dynamic_dimension<decltype(diagonal_of(m02_2))>);
-  EXPECT_TRUE(is_near(diagonal_of(m00_22), m21)); static_assert(any_dynamic_dimension<decltype(diagonal_of(m00_22))>);
+  EXPECT_TRUE(is_near(diagonal_of(m20_2), m21)); static_assert(has_dynamic_dimensions<decltype(diagonal_of(m20_2))>);
+  EXPECT_TRUE(is_near(diagonal_of(m02_2), m21)); static_assert(has_dynamic_dimensions<decltype(diagonal_of(m02_2))>);
+  EXPECT_TRUE(is_near(diagonal_of(m00_22), m21)); static_assert(has_dynamic_dimensions<decltype(diagonal_of(m00_22))>);
 
   EXPECT_TRUE(is_near(diagonal_of(M22 {m22}), m21));
-  EXPECT_TRUE(is_near(diagonal_of(M20 {m20_2}), m21)); static_assert(not any_dynamic_dimension<decltype(diagonal_of(M20 {m20_2}))>);
-  EXPECT_TRUE(is_near(diagonal_of(M02 {m02_2}), m21)); static_assert(not any_dynamic_dimension<decltype(diagonal_of(M02 {m02_2}))>);
-  EXPECT_TRUE(is_near(diagonal_of(M00 {m00_22}), m21)); static_assert(any_dynamic_dimension<decltype(diagonal_of(M00 {m00_22}))>);
+  EXPECT_TRUE(is_near(diagonal_of(M20 {m20_2}), m21)); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(M20 {m20_2}))>);
+  EXPECT_TRUE(is_near(diagonal_of(M02 {m02_2}), m21)); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(M02 {m02_2}))>);
+  EXPECT_TRUE(is_near(diagonal_of(M00 {m00_22}), m21)); static_assert(has_dynamic_dimensions<decltype(diagonal_of(M00 {m00_22}))>);
 
   auto dm2 = Eigen::DiagonalMatrix<double, 2> {m21};
   auto dm0_2 = Eigen::DiagonalMatrix<double, Eigen::Dynamic> {m01_2};
@@ -169,9 +169,9 @@ TEST(eigen3, diagonal_of_zero)
   auto z00_21 = Eigen::Replicate<decltype(z11), Eigen::Dynamic, Eigen::Dynamic> {z11, 2, 1};
 
   EXPECT_TRUE(is_near(diagonal_of(z22), z21));
-  EXPECT_TRUE(is_near(diagonal_of(z20_2), z21)); static_assert(zero_matrix<decltype(diagonal_of(z20_2))>); static_assert(not any_dynamic_dimension<decltype(diagonal_of(z20_2))>);
-  EXPECT_TRUE(is_near(diagonal_of(z02_2), z21)); static_assert(zero_matrix<decltype(diagonal_of(z02_2))>); static_assert(not any_dynamic_dimension<decltype(diagonal_of(z02_2))>);
-  EXPECT_TRUE(is_near(diagonal_of(z00_22), z21)); static_assert(zero_matrix<decltype(diagonal_of(z00_22))>); static_assert(any_dynamic_dimension<decltype(diagonal_of(z00_22))>);
+  EXPECT_TRUE(is_near(diagonal_of(z20_2), z21)); static_assert(zero_matrix<decltype(diagonal_of(z20_2))>); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(z20_2))>);
+  EXPECT_TRUE(is_near(diagonal_of(z02_2), z21)); static_assert(zero_matrix<decltype(diagonal_of(z02_2))>); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(z02_2))>);
+  EXPECT_TRUE(is_near(diagonal_of(z00_22), z21)); static_assert(zero_matrix<decltype(diagonal_of(z00_22))>); static_assert(has_dynamic_dimensions<decltype(diagonal_of(z00_22))>);
 
   EXPECT_TRUE(is_near(diagonal_of(Eigen::DiagonalWrapper {z21}), z21)); static_assert(zero_matrix<decltype(diagonal_of(Eigen::DiagonalWrapper {z21}))>);
   EXPECT_TRUE(is_near(diagonal_of(Eigen::DiagonalWrapper {z20_1}), z21)); static_assert(zero_matrix<decltype(diagonal_of(Eigen::DiagonalWrapper {z20_1}))>);
@@ -199,20 +199,20 @@ TEST(eigen3, diagonal_of_constant)
   auto c02_2_2 = Eigen::Replicate<decltype(c11_2), Eigen::Dynamic, 2>(c11_2, 2, 2);
   auto c00_22_2 = Eigen::Replicate<decltype(c11_2), Eigen::Dynamic, Eigen::Dynamic>(c11_2, 2, 2);
 
-  EXPECT_TRUE(is_near(diagonal_of(c22_2), c21_2)); static_assert(constant_coefficient_v<decltype(diagonal_of(c22_2))> == 2); static_assert(not any_dynamic_dimension<decltype(diagonal_of(c22_2))>);
-  EXPECT_TRUE(is_near(diagonal_of(c20_2_2), c21_2)); static_assert(constant_coefficient_v<decltype(diagonal_of(c20_2_2))> == 2); static_assert(not any_dynamic_dimension<decltype(diagonal_of(c20_2_2))>);
-  EXPECT_TRUE(is_near(diagonal_of(c02_2_2), c21_2)); static_assert(constant_coefficient_v<decltype(diagonal_of(c02_2_2))> == 2); static_assert(not any_dynamic_dimension<decltype(diagonal_of(c02_2_2))>);
-  EXPECT_TRUE(is_near(diagonal_of(c00_22_2), c21_2)); static_assert(constant_coefficient_v<decltype(diagonal_of(c00_22_2))> == 2); static_assert(any_dynamic_dimension<decltype(diagonal_of(c00_22_2))>);
+  EXPECT_TRUE(is_near(diagonal_of(c22_2), c21_2)); static_assert(constant_coefficient_v<decltype(diagonal_of(c22_2))> == 2); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(c22_2))>);
+  EXPECT_TRUE(is_near(diagonal_of(c20_2_2), c21_2)); static_assert(constant_coefficient_v<decltype(diagonal_of(c20_2_2))> == 2); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(c20_2_2))>);
+  EXPECT_TRUE(is_near(diagonal_of(c02_2_2), c21_2)); static_assert(constant_coefficient_v<decltype(diagonal_of(c02_2_2))> == 2); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(c02_2_2))>);
+  EXPECT_TRUE(is_near(diagonal_of(c00_22_2), c21_2)); static_assert(constant_coefficient_v<decltype(diagonal_of(c00_22_2))> == 2); static_assert(has_dynamic_dimensions<decltype(diagonal_of(c00_22_2))>);
 
   auto d21_2 = c21_2.asDiagonal();
   auto d20_1_2 = Eigen::Replicate<decltype(c11_2), 2, Eigen::Dynamic> {c11_2, 2, 1}.asDiagonal();
   auto d01_2_2 = Eigen::Replicate<decltype(c11_2), Eigen::Dynamic, 1> {c11_2, 2, 1}.asDiagonal();
   auto d00_21_2 = Eigen::Replicate<decltype(c11_2), Eigen::Dynamic, Eigen::Dynamic> {c11_2, 2, 1}.asDiagonal();
 
-  EXPECT_TRUE(is_near(diagonal_of(d21_2), c21_2)); static_assert(constant_coefficient_v<decltype(diagonal_of(d21_2))> == 2); static_assert(not any_dynamic_dimension<decltype(diagonal_of(d21_2))>);
-  EXPECT_TRUE(is_near(diagonal_of(d20_1_2), c21_2)); static_assert(constant_coefficient_v<decltype(diagonal_of(d20_1_2))> == 2); static_assert(any_dynamic_dimension<decltype(diagonal_of(d20_1_2))>);
-  EXPECT_TRUE(is_near(diagonal_of(d01_2_2), c21_2)); static_assert(constant_coefficient_v<decltype(diagonal_of(d01_2_2))> == 2); static_assert(any_dynamic_dimension<decltype(diagonal_of(d01_2_2))>);
-  EXPECT_TRUE(is_near(diagonal_of(d00_21_2), c21_2)); static_assert(constant_coefficient_v<decltype(diagonal_of(d00_21_2))> == 2); static_assert(any_dynamic_dimension<decltype(diagonal_of(d00_21_2))>);
+  EXPECT_TRUE(is_near(diagonal_of(d21_2), c21_2)); static_assert(constant_coefficient_v<decltype(diagonal_of(d21_2))> == 2); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(d21_2))>);
+  EXPECT_TRUE(is_near(diagonal_of(d20_1_2), c21_2)); static_assert(constant_coefficient_v<decltype(diagonal_of(d20_1_2))> == 2); static_assert(has_dynamic_dimensions<decltype(diagonal_of(d20_1_2))>);
+  EXPECT_TRUE(is_near(diagonal_of(d01_2_2), c21_2)); static_assert(constant_coefficient_v<decltype(diagonal_of(d01_2_2))> == 2); static_assert(has_dynamic_dimensions<decltype(diagonal_of(d01_2_2))>);
+  EXPECT_TRUE(is_near(diagonal_of(d00_21_2), c21_2)); static_assert(constant_coefficient_v<decltype(diagonal_of(d00_21_2))> == 2); static_assert(has_dynamic_dimensions<decltype(diagonal_of(d00_21_2))>);
 }
 
 
@@ -223,10 +223,10 @@ TEST(eigen3, diagonal_of_identity)
   auto i01_2 = Eigen::Replicate<typename M11::IdentityReturnType, Eigen::Dynamic, 1> {M11::Identity(), 2, 1}.asDiagonal();
   auto i00_21 = Eigen::Replicate<typename M11::IdentityReturnType, Eigen::Dynamic, Eigen::Dynamic> {M11::Identity(), 2, 1}.asDiagonal();
 
-  EXPECT_TRUE(is_near(diagonal_of(i21), M21::Constant(1))); static_assert(constant_coefficient_v<decltype(diagonal_of(i21))> == 1); static_assert(not any_dynamic_dimension<decltype(diagonal_of(i21))>);
-  EXPECT_TRUE(is_near(diagonal_of(i20_1), M21::Constant(1))); static_assert(constant_coefficient_v<decltype(diagonal_of(i20_1))> == 1); static_assert(any_dynamic_dimension<decltype(diagonal_of(i20_1))>);
-  EXPECT_TRUE(is_near(diagonal_of(i01_2), M21::Constant(1))); static_assert(constant_coefficient_v<decltype(diagonal_of(i01_2))> == 1); static_assert(any_dynamic_dimension<decltype(diagonal_of(i01_2))>);
-  EXPECT_TRUE(is_near(diagonal_of(i00_21), M21::Constant(1))); static_assert(constant_coefficient_v<decltype(diagonal_of(i00_21))> == 1); static_assert(any_dynamic_dimension<decltype(diagonal_of(i00_21))>);
+  EXPECT_TRUE(is_near(diagonal_of(i21), M21::Constant(1))); static_assert(constant_coefficient_v<decltype(diagonal_of(i21))> == 1); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(i21))>);
+  EXPECT_TRUE(is_near(diagonal_of(i20_1), M21::Constant(1))); static_assert(constant_coefficient_v<decltype(diagonal_of(i20_1))> == 1); static_assert(has_dynamic_dimensions<decltype(diagonal_of(i20_1))>);
+  EXPECT_TRUE(is_near(diagonal_of(i01_2), M21::Constant(1))); static_assert(constant_coefficient_v<decltype(diagonal_of(i01_2))> == 1); static_assert(has_dynamic_dimensions<decltype(diagonal_of(i01_2))>);
+  EXPECT_TRUE(is_near(diagonal_of(i00_21), M21::Constant(1))); static_assert(constant_coefficient_v<decltype(diagonal_of(i00_21))> == 1); static_assert(has_dynamic_dimensions<decltype(diagonal_of(i00_21))>);
 
   EXPECT_TRUE(is_near(diagonal_of(M22::Identity()), M21::Constant(1))); static_assert(constant_coefficient_v<decltype(diagonal_of(M22::Identity()))> == 1);
   EXPECT_TRUE(is_near(diagonal_of(M20::Identity(2, 2)), M21::Constant(1))); static_assert(constant_coefficient_v<decltype(diagonal_of(M20::Identity(2, 2)))> == 1);

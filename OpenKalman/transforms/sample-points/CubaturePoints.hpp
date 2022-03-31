@@ -72,7 +72,7 @@ namespace OpenKalman
         // | delta | -delta | 0 ... |
         constexpr auto width = points_count - frame_size;
         using Mright = Matrix<Coeffs, Axes<width>, untyped_dense_writable_matrix_t<M, dim_i, width>>;
-        const auto mright = make_zero_matrix_like<Mright>();
+        const auto mright = make_zero_matrix_like<Mright>(Dimensions<dim_i>{}, Dimensions<width>{});
         auto ret = concatenate_horizontal(delta, -delta, std::move(mright));
         static_assert(column_dimension_of_v<decltype(ret)> == points_count);
         return std::tuple_cat(std::tuple {std::move(ret)},
@@ -82,10 +82,10 @@ namespace OpenKalman
       {
         // | 0 ... | delta | -delta | 0 ... |
         using Mleft = Matrix<Coeffs, Axes<pos>, untyped_dense_writable_matrix_t<M, dim_i, pos>>;
-        const auto mleft = make_zero_matrix_like<Mleft>();
+        const auto mleft = make_zero_matrix_like<Mleft>(Dimensions<dim_i>{}, Dimensions<pos>{});
         constexpr auto width = points_count - (pos + frame_size);
         using Mright = Matrix<Coeffs, Axes<width>, untyped_dense_writable_matrix_t<M, dim_i, width>>;
-        const auto mright = make_zero_matrix_like<Mright>();
+        const auto mright = make_zero_matrix_like<Mright>(Dimensions<dim_i>{}, Dimensions<width>{});
         auto ret = concatenate_horizontal(std::move(mleft), delta, -delta, std::move(mright));
         static_assert(column_dimension_of_v<decltype(ret)> == points_count);
         return std::tuple_cat(std::tuple {std::move(ret)},
@@ -96,7 +96,7 @@ namespace OpenKalman
         // | 0 ... | delta | -delta |
         static_assert(sizeof...(ds) == 0);
         using Mleft = Matrix<Coeffs, Axes<pos>, untyped_dense_writable_matrix_t<M, dim_i, pos>>;
-        const auto mleft = make_zero_matrix_like<Mleft>();
+        const auto mleft = make_zero_matrix_like<Mleft>(Dimensions<dim_i>{}, Dimensions<pos>{});
         auto ret = concatenate_horizontal(std::move(mleft), delta, -delta);
         static_assert(column_dimension_of_v<decltype(ret)> == points_count);
         return std::tuple {std::move(ret)};

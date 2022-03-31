@@ -92,7 +92,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<indexible T, index_descriptor...D>
 #else
-  template<typename T, typename...D, std::enable_if_t<indexible<T> and (index_descriptor<D> and ...), int> = 0>
+  template<typename T, typename...D>
 #endif
   using dense_writable_matrix_t = typename detail::dense_writable_matrix_impl<std::decay_t<T>, D...>::type;
 
@@ -109,8 +109,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<indexible T, auto...D> requires ((std::is_integral_v<decltype(D)> and D >= 0) and ...)
 #else
-  template<typename T, auto...D,
-    std::enable_if_t<indexible<T> and ((std::is_integral_v<decltype(D)> and D >= 0) and ...), int> = 0>
+  template<typename T, auto...D>
 #endif
   using untyped_dense_writable_matrix_t = dense_writable_matrix_t<T, Dimensions<static_cast<std::size_t>(D)>...>;
 

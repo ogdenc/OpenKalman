@@ -227,10 +227,10 @@ namespace OpenKalman
     struct SingleConstantMatrixTraits<T, rows, columns, Scalar, std::enable_if_t<native_eigen_general<T>>>
 #endif
     {
-      template<typename...runtime_dimensions>
-      static auto make_zero_matrix(runtime_dimensions...e) // \todo This is redundant of default behavior
+      template<typename...D>
+      static auto make_zero_matrix(D&&...d) // \todo This is redundant of default behavior
       {
-        return ZeroMatrix<eigen_matrix_t<Scalar, rows, columns>> {e...};
+        return ZeroMatrix<eigen_matrix_t<Scalar, rows, columns>> {std::forward<D>(d)...};
       }
 
       template<auto constant, typename...D>
@@ -1967,7 +1967,7 @@ namespace OpenKalman
     template<constant_matrix MatrixType, int DiagIndex> requires (DiagIndex != Eigen::DynamicIndex) and
       (not dynamic_rows<MatrixType> or (not dynamic_columns<MatrixType> and column_dimension_of_v<MatrixType> == 1)) and
       (not dynamic_columns<MatrixType> or (not dynamic_rows<MatrixType> and row_dimension_of_v<MatrixType> == 1)) and
-      (any_dynamic_dimension<MatrixType> or std::min(row_dimension_of_v<MatrixType> + std::min(DiagIndex, 0),
+      (has_dynamic_dimensions<MatrixType> or std::min(row_dimension_of_v<MatrixType> + std::min(DiagIndex, 0),
           column_dimension_of_v<MatrixType> - std::max(DiagIndex, 0)) == 1)
     struct SingleConstantDiagonal<Eigen::Diagonal<MatrixType, DiagIndex>>
 #else
@@ -1976,7 +1976,7 @@ namespace OpenKalman
       constant_matrix<MatrixType> and (DiagIndex != Eigen::DynamicIndex) and
       (not dynamic_rows<MatrixType> or (not dynamic_columns<MatrixType> and column_dimension_of<MatrixType>::value == 1)) and
       (not dynamic_columns<MatrixType> or (not dynamic_rows<MatrixType> and row_dimension_of<MatrixType>::value == 1)) and
-      (any_dynamic_dimension<MatrixType> or std::min(row_dimension_of<MatrixType>::value + std::min(DiagIndex, 0),
+      (has_dynamic_dimensions<MatrixType> or std::min(row_dimension_of<MatrixType>::value + std::min(DiagIndex, 0),
           column_dimension_of<MatrixType>::value - std::max(DiagIndex, 0)) == 1)>>
 #endif
       : SingleConstant<std::decay_t<MatrixType>> {};
@@ -1988,7 +1988,7 @@ namespace OpenKalman
     requires (not constant_matrix<MatrixType>) and (DiagIndex != Eigen::DynamicIndex) and
       (not dynamic_rows<MatrixType> or (not dynamic_columns<MatrixType> and column_dimension_of_v<MatrixType> == 1)) and
       (not dynamic_columns<MatrixType> or (not dynamic_rows<MatrixType> and row_dimension_of_v<MatrixType> == 1)) and
-      (any_dynamic_dimension<MatrixType> or std::min(row_dimension_of_v<MatrixType> + std::min(DiagIndex, 0),
+      (has_dynamic_dimensions<MatrixType> or std::min(row_dimension_of_v<MatrixType> + std::min(DiagIndex, 0),
           column_dimension_of_v<MatrixType> - std::max(DiagIndex, 0)) == 1)
     struct SingleConstantDiagonal<Eigen::Diagonal<MatrixType, DiagIndex>>
 #else
@@ -1998,7 +1998,7 @@ namespace OpenKalman
       (DiagIndex != Eigen::DynamicIndex) and
       (not dynamic_rows<MatrixType> or (not dynamic_columns<MatrixType> and column_dimension_of<MatrixType>::value == 1)) and
       (not dynamic_columns<MatrixType> or (not dynamic_rows<MatrixType> and row_dimension_of<MatrixType>::value == 1)) and
-      (any_dynamic_dimension<MatrixType> or std::min(row_dimension_of<MatrixType>::value + std::min(DiagIndex, 0),
+      (has_dynamic_dimensions<MatrixType> or std::min(row_dimension_of<MatrixType>::value + std::min(DiagIndex, 0),
           column_dimension_of<MatrixType>::value - std::max(DiagIndex, 0)) == 1)>>
 #endif
     {

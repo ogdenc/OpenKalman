@@ -387,7 +387,7 @@ namespace OpenKalman::interface
     {
       using Scalar = scalar_type_of_t<Arg>;
 
-      if constexpr (not any_dynamic_dimension<Arg> and index_dimension_of_v<Arg, 0> == index_dimension_of_v<Arg, 1>)
+      if constexpr (not has_dynamic_dimensions<Arg> and index_dimension_of_v<Arg, 0> == index_dimension_of_v<Arg, 1>)
         return std::forward<Arg>(arg);
       else
         return make_constant_matrix_like<Arg, constant, Scalar>(get_dimensions_of<1>(arg), get_dimensions_of<0>(arg));
@@ -400,17 +400,7 @@ namespace OpenKalman::interface
     {
       if constexpr (eigen_zero_expr<Arg>)
       {
-        constexpr auto rows = index_dimension_of_v<Arg, 0>;
-        constexpr auto columns = index_dimension_of_v<Arg, 1>;
-
-        if constexpr (rows == dynamic_size and columns == dynamic_size)
-          return make_zero_matrix_like<Arg, columns, rows>(runtime_dimension_of<1>(arg), runtime_dimension_of<0>(arg));
-        else if constexpr (rows == dynamic_size)
-          return make_zero_matrix_like<Arg, columns, rows>(runtime_dimension_of<0>(arg));
-        else if constexpr (columns == dynamic_size)
-          return make_zero_matrix_like<Arg, columns, rows>(runtime_dimension_of<1>(arg));
-        else
-          return make_zero_matrix_like<Arg, columns, rows>();
+        return make_zero_matrix_like<Arg>(get_dimensions_of<1>(arg), get_dimensions_of<0>(arg));
       }
       else if constexpr (eigen_constant_expr<Arg>)
       {
@@ -619,7 +609,7 @@ namespace OpenKalman::Eigen3
     if constexpr (column_vector<Arg>)
       return std::forward<Arg>(arg);
     else
-      return make_zero_matrix_like<index_dimension_of_v<Arg, 0>, 1>(arg);
+      return make_zero_matrix_like<Arg>(get_dimensions_of<0>(arg), Dimensions<1>{});
   }
 
 
@@ -677,7 +667,7 @@ namespace OpenKalman::Eigen3
     if constexpr (row_vector<Arg>)
       return std::forward<Arg>(arg);
     else
-      return make_zero_matrix_like<1, column_dimension_of_v<Arg>>(arg);
+      return make_zero_matrix_like<Arg>(Dimensions<1>{}, get_dimensions_of<1>(arg));
   }
 
 
@@ -736,8 +726,8 @@ namespace OpenKalman::Eigen3
   inline auto
   LQ_decomposition(A&& a)
   {
-    constexpr auto dim = index_dimension_of_v<A, 0>;
-    return make_zero_matrix_like<dim, dim>(a);
+    auto dim = get_dimensions_of<0>(a);
+    return make_zero_matrix_like<A>(dim, dim);
   }
 
 
@@ -771,7 +761,7 @@ namespace OpenKalman::Eigen3
       if (dim == 1)
         ret = std::move(col1);
       else
-        ret = concatenate_horizontal(std::move(col1), make_zero_matrix_like<A, dynamic_size, dynamic_size>(dim, dim - 1));
+        ret = concatenate_horizontal(std::move(col1), make_zero_matrix_like<A>(Dimensions{dim}, Dimensions{dim - 1}));
       return ret;
     }
     else
@@ -780,7 +770,7 @@ namespace OpenKalman::Eigen3
       auto col1 = Eigen3::eigen_matrix_t<Scalar, dim, 1>::Constant(elem);
 
       if constexpr (dim != dynamic_size)
-        return concatenate_horizontal(col1, make_zero_matrix_like<A, dim, dim - 1>());
+        return concatenate_horizontal(col1, make_zero_matrix_like<A>(Dimensions<dim>{}, Dimensions<dim - 1>{}));
       else
         return col1;
     }
@@ -817,8 +807,8 @@ namespace OpenKalman::Eigen3
   inline auto
   QR_decomposition(A&& a)
   {
-    constexpr auto dim = index_dimension_of_v<A, 1>;
-    return make_zero_matrix_like<dim, dim>(a);
+    auto dim = get_dimensions_of<1>(a);
+    return make_zero_matrix_like<A>(dim, dim);
   }
 
 
@@ -855,7 +845,7 @@ namespace OpenKalman::Eigen3
       }
       else
       {
-        ret = concatenate_vertical(std::move(row1), make_zero_matrix_like<A, dynamic_size, dynamic_size>(dim - 1, dim));
+        ret = concatenate_vertical(std::move(row1), make_zero_matrix_like<A>(Dimensions{dim - 1}, Dimensions{dim}));
       }
       return ret;
     }
@@ -865,7 +855,7 @@ namespace OpenKalman::Eigen3
       auto row1 = Eigen3::eigen_matrix_t<Scalar, 1, dim>::Constant(elem);
       if constexpr (dim > 1)
       {
-        return concatenate_vertical(row1, make_zero_matrix_like<A, dim - 1, dim>());
+        return concatenate_vertical(row1, make_zero_matrix_like<A>(Dimensions<dim - 1>{}, Dimensions<dim>{}));
       }
       else
       {
@@ -916,21 +906,21 @@ namespace OpenKalman::Eigen3
     {
       if constexpr ((zero_matrix<V> and ... and zero_matrix<Vs>))
       {
-        if constexpr ((any_dynamic_dimension<V> or ... or any_dynamic_dimension<Vs>))
+        if constexpr ((has_dynamic_dimensions<V> or ... or has_dynamic_dimensions<Vs>))
         {
           auto dim = (runtime_dimension_of<0>(v) + ... + runtime_dimension_of<0>(vs));
-          return DiagonalMatrix {make_zero_matrix_like<V, dynamic_size, 1>(dim)};
+          return DiagonalMatrix {make_zero_matrix_like<V>(Dimensions{dim}, Dimensions<1>{})};
         }
         else
         {
           constexpr auto dim = (row_dimension_of_v<V> + ... + row_dimension_of_v<Vs>);
           static_assert(dim == (column_dimension_of_v<V> + ... + column_dimension_of_v<Vs>));
-          return make_zero_matrix_like<V, dim, dim>();
+          return make_zero_matrix_like<V>(Dimensions<dim>{}, Dimensions<dim>{});
         }
       }
       else if constexpr ((identity_matrix<V> and ... and identity_matrix<Vs>))
       {
-        if constexpr ((any_dynamic_dimension<V> or ... or any_dynamic_dimension<Vs>))
+        if constexpr ((has_dynamic_dimensions<V> or ... or has_dynamic_dimensions<Vs>))
         {
           auto dim = (runtime_dimension_of<0>(v) + ... + runtime_dimension_of<0>(vs));
           return make_identity_matrix_like<V, dynamic_size, dynamic_size>(dim);
@@ -1289,10 +1279,10 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<eigen_diagonal_expr ReturnType,
     std::uniform_random_bit_generator random_number_engine = std::mt19937, typename...Dists>
-  requires (not any_dynamic_dimension<ReturnType>)
+  requires (not has_dynamic_dimensions<ReturnType>)
 #else
   template<typename ReturnType, typename random_number_engine = std::mt19937, typename...Dists,
-    std::enable_if_t<eigen_diagonal_expr<ReturnType> and (not any_dynamic_dimension<ReturnType>), int> = 0>
+    std::enable_if_t<eigen_diagonal_expr<ReturnType> and (not has_dynamic_dimensions<ReturnType>), int> = 0>
 #endif
   inline auto
   randomize(Dists&&...dists)
@@ -1322,12 +1312,12 @@ namespace OpenKalman::Eigen3
   template<eigen_diagonal_expr ReturnType,
     std::uniform_random_bit_generator random_number_engine = std::mt19937, typename Dist>
   requires
-    any_dynamic_dimension<ReturnType> and
+    has_dynamic_dimensions<ReturnType> and
     requires { typename std::decay_t<Dist>::result_type; typename std::decay_t<Dist>::param_type; } and
     (not std::is_const_v<std::remove_reference_t<Dist>>)
 #else
   template<typename ReturnType, typename random_number_engine = std::mt19937, typename Dist, std::enable_if_t<
-    eigen_diagonal_expr<ReturnType> and any_dynamic_dimension<ReturnType> and
+    eigen_diagonal_expr<ReturnType> and has_dynamic_dimensions<ReturnType> and
     (not std::is_const_v<std::remove_reference_t<Dist>>), int> = 0>
 #endif
   inline auto

@@ -390,7 +390,7 @@ namespace OpenKalman::interface
       {
         using P = dense_writable_matrix_t<T, dims...>;
 
-        if constexpr (any_dynamic_dimension<P>)
+        if constexpr (has_dynamic_dimensions<P>)
           return Eigen::CwiseNullaryOp<std::decay_t<Operation>, P> {
             std::get<0>(tup)(), std::get<1>(tup)(), std::forward<Operation>(op)};
         else
@@ -1378,7 +1378,8 @@ namespace OpenKalman::Eigen3
         if constexpr (row == col)
           return std::get<row>(vs_tup);
         else
-          return make_zero_matrix_like<row_dimension_of_v<Vs_row>, column_dimension_of_v<Vs_col>>(std::get<row>(vs_tup));
+          return make_zero_matrix_like<decltype(std::get<row>(vs_tup))>(
+            Dimensions<row_dimension_of_v<Vs_row>>{}, Dimensions<column_dimension_of_v<Vs_col>>{});
       }(vs_tup));
     }
   }
@@ -1785,7 +1786,7 @@ namespace OpenKalman::Eigen3
 
     if constexpr(sizeof...(Cs) > 0)
     {
-      if constexpr (any_dynamic_dimension<Arg>)
+      if constexpr (has_dynamic_dimensions<Arg>)
       {
         Eigen::Index rdim2 = runtime_dimension_of<0>(arg) - rdim1;
         Eigen::Index cdim2 = runtime_dimension_of<1>(arg) - cdim1;
@@ -1806,7 +1807,7 @@ namespace OpenKalman::Eigen3
     }
     else if constexpr(rdim1 < std::decay_t<Arg>::RowsAtCompileTime)
     {
-      if constexpr (any_dynamic_dimension<Arg>)
+      if constexpr (has_dynamic_dimensions<Arg>)
         return detail::make_split_tuple<F, C, C>(g(arg.topLeftCorner(rdim1, cdim1)));
       else
         return detail::make_split_tuple<F, C, C>(g(arg.template topLeftCorner<rdim1, cdim1>()));
@@ -2660,12 +2661,12 @@ namespace OpenKalman::Eigen3
   template<eigen_matrix ReturnType, std::uniform_random_bit_generator random_number_engine = std::mt19937,
     typename Dist>
   requires
-    (not any_dynamic_dimension<ReturnType>) and
+    (not has_dynamic_dimensions<ReturnType>) and
     requires { typename std::decay_t<Dist>::result_type; typename std::decay_t<Dist>::param_type; } and
       (not std::is_const_v<std::remove_reference_t<Dist>>)
 #else
   template<typename ReturnType, typename random_number_engine = std::mt19937, typename Dist,
-    std::enable_if_t<eigen_matrix<ReturnType> and (not any_dynamic_dimension<ReturnType>)and
+    std::enable_if_t<eigen_matrix<ReturnType> and (not has_dynamic_dimensions<ReturnType>)and
     (not std::is_const_v<std::remove_reference_t<Dist>>), int> = 0>
 #endif
   inline auto
@@ -2698,12 +2699,12 @@ namespace OpenKalman::Eigen3
   template<eigen_matrix ReturnType, std::uniform_random_bit_generator random_number_engine = std::mt19937,
     typename Dist>
   requires
-    any_dynamic_dimension<ReturnType> and
+    has_dynamic_dimensions<ReturnType> and
     requires { typename std::decay_t<Dist>::result_type; typename std::decay_t<Dist>::param_type; } and
       (not std::is_const_v<std::remove_reference_t<Dist>>)
 #else
   template<typename ReturnType, typename random_number_engine = std::mt19937, typename Dist, std::enable_if_t<
-    eigen_matrix<ReturnType> and any_dynamic_dimension<ReturnType> and
+    eigen_matrix<ReturnType> and has_dynamic_dimensions<ReturnType> and
     (not std::is_const_v<std::remove_reference_t<Dist>>), int> = 0>
 #endif
   inline auto
@@ -2757,7 +2758,7 @@ namespace OpenKalman::Eigen3
   template<eigen_matrix ReturnType, std::uniform_random_bit_generator random_number_engine = std::mt19937,
     typename...Dists>
   requires
-  (not any_dynamic_dimension<ReturnType>) and (sizeof...(Dists) > 1) and
+  (not has_dynamic_dimensions<ReturnType>) and (sizeof...(Dists) > 1) and
     (((requires { typename std::decay_t<Dists>::result_type;  typename std::decay_t<Dists>::param_type; } or
       std::is_arithmetic_v<std::decay_t<Dists>>) and ... ))and
       ((not std::is_const_v<std::remove_reference_t<Dists>>) and ...) and
@@ -2767,7 +2768,7 @@ namespace OpenKalman::Eigen3
   template<
     typename ReturnType, typename random_number_engine = std::mt19937, typename...Dists,
     std::enable_if_t<
-      eigen_matrix<ReturnType> and (not any_dynamic_dimension<ReturnType>) and (sizeof...(Dists) > 1) and
+      eigen_matrix<ReturnType> and (not has_dynamic_dimensions<ReturnType>) and (sizeof...(Dists) > 1) and
       ((not std::is_const_v<std::remove_reference_t<Dists>>) and ...) and
       (row_dimension_of<ReturnType>::value * column_dimension_of<ReturnType>::value == sizeof...(Dists) or
         row_dimension_of<ReturnType>::value == sizeof...(Dists) or

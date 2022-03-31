@@ -54,10 +54,10 @@ namespace OpenKalman::Eigen3
 
     /// Default constructor.
 #ifdef __cpp_concepts
-    DiagonalMatrix() requires std::default_initializable<NestedMatrix> and (not any_dynamic_dimension<NestedMatrix>)
+    DiagonalMatrix() requires std::default_initializable<NestedMatrix> and (not has_dynamic_dimensions<NestedMatrix>)
 #else
     template<typename T = NestedMatrix, std::enable_if_t<
-      std::is_default_constructible_v<T> and (not any_dynamic_dimension<NestedMatrix>), int> = 0>
+      std::is_default_constructible_v<T> and (not has_dynamic_dimensions<NestedMatrix>), int> = 0>
     DiagonalMatrix()
 #endif
       : Base {} {}
@@ -129,13 +129,13 @@ namespace OpenKalman::Eigen3
      */
 #ifdef __cpp_concepts
     template<std::convertible_to<const Scalar> ... Args>
-    requires (any_dynamic_dimension<NestedMatrix> or sizeof...(Args) == dim) and
+    requires (has_dynamic_dimensions<NestedMatrix> or sizeof...(Args) == dim) and
       requires(Args ... args) {
         NestedMatrix {MatrixTraits<NestedMatrix>::make(static_cast<const Scalar>(args)...)};
       }
 #else
     template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...> and
-        (any_dynamic_dimension<NestedMatrix> or sizeof...(Args) == dim) and
+        (has_dynamic_dimensions<NestedMatrix> or sizeof...(Args) == dim) and
         std::is_constructible_v<NestedMatrix, eigen_matrix_t<Scalar, sizeof...(Args), 1>>, int> = 0>
 #endif
     DiagonalMatrix(Args ... args) : Base {MatrixTraits<NestedMatrix>::make(static_cast<const Scalar>(args)...)} {}
@@ -186,21 +186,21 @@ namespace OpenKalman::Eigen3
     template<zero_matrix Arg>
     requires (not eigen_diagonal_expr<Arg>) and (not identity_matrix<NestedMatrix>) and
       (dynamic_rows<Arg> or dynamic_rows<NestedMatrix> or row_dimension_of_v<Arg> == dim) and
-      (any_dynamic_dimension<Arg> or square_matrix<Arg>)
+      (has_dynamic_dimensions<Arg> or square_matrix<Arg>)
 #else
     template<typename Arg, std::enable_if_t<zero_matrix<Arg> and (not eigen_diagonal_expr<Arg>) and
       (not identity_matrix<NestedMatrix>) and
       (dynamic_rows<Arg> or dynamic_rows<NestedMatrix> or row_dimension_of<Arg>::value == dim) and
-      (any_dynamic_dimension<Arg> or square_matrix<Arg>), int> = 0>
+      (has_dynamic_dimensions<Arg> or square_matrix<Arg>), int> = 0>
 #endif
     auto& operator=(Arg&& arg)
     {
       if constexpr (not zero_matrix<NestedMatrix>)
       {
-        if constexpr (any_dynamic_dimension<Arg>) assert(runtime_dimension_of<0>(arg) == runtime_dimension_of<1>(arg));
+        if constexpr (has_dynamic_dimensions<Arg>) assert(runtime_dimension_of<0>(arg) == runtime_dimension_of<1>(arg));
         if constexpr (dynamic_rows<NestedMatrix>) assert(runtime_dimension_of<0>(this->nested_matrix()) == runtime_dimension_of<0>(arg));
 
-        this->nested_matrix() = make_zero_matrix_like<dim, 1>(this->nested_matrix());
+        this->nested_matrix() = make_zero_matrix_like(this->nested_matrix());
       }
       return *this;
     }
@@ -211,18 +211,18 @@ namespace OpenKalman::Eigen3
     template<identity_matrix Arg>
     requires (not eigen_diagonal_expr<Arg>) and (not zero_matrix<NestedMatrix>) and
       (dynamic_rows<Arg> or dynamic_rows<NestedMatrix> or row_dimension_of_v<Arg> == dim) and
-      (any_dynamic_dimension<Arg> or square_matrix<Arg>)
+      (has_dynamic_dimensions<Arg> or square_matrix<Arg>)
 #else
     template<typename Arg, std::enable_if_t<
       identity_matrix<Arg> and (not eigen_diagonal_expr<Arg>) and (not zero_matrix<NestedMatrix>) and
       (dynamic_rows<Arg> or dynamic_rows<NestedMatrix> or row_dimension_of<Arg>::value == dim) and
-      (any_dynamic_dimension<Arg> or square_matrix<Arg>), int> = 0>
+      (has_dynamic_dimensions<Arg> or square_matrix<Arg>), int> = 0>
 #endif
     auto& operator=(Arg&& arg)
     {
       if constexpr (not identity_matrix<NestedMatrix>)
       {
-        if constexpr (any_dynamic_dimension<Arg>) assert(runtime_dimension_of<0>(arg) == runtime_dimension_of<1>(arg));
+        if constexpr (has_dynamic_dimensions<Arg>) assert(runtime_dimension_of<0>(arg) == runtime_dimension_of<1>(arg));
         if constexpr (dynamic_rows<NestedMatrix>) assert(runtime_dimension_of<0>(this->nested_matrix()) == runtime_dimension_of<0>(arg));
 
         this->nested_matrix() = make_constant_matrix_like<NestedMatrix, 1>(Dimensions<dim>{}, Dimensions<1>{});

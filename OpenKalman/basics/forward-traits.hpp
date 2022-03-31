@@ -235,27 +235,49 @@ namespace OpenKalman
     dynamic_dimension<T, 1>;
 
 
-  // ----------------------- //
-  //  any_dynamic_dimension  //
-  // ----------------------- //
+  // --------------------------- //
+  //  number_of_dynamic_indices  //
+  // --------------------------- //
 
   namespace detail
   {
     template<typename T, std::size_t...I>
-    constexpr bool any_dynamic_dimension_impl(std::index_sequence<I...>) { return (... or dynamic_dimension<T, I>); }
+    constexpr bool number_of_dynamic_indices_impl(std::index_sequence<I...>)
+    {
+      return ((dynamic_dimension<T, I> ? 1 : 0) + ... + 0);
+    }
   }
 
 
   /**
-   * \brief Specifies that T has a dynamic dimension for at least one of its indices.
+   * \brief Counts the number of indices of T in which the dimensions are dynamic.
+   */
+  template<typename T>
+  struct number_of_dynamic_indices : std::integral_constant<std::size_t,
+    detail::number_of_dynamic_indices_impl<T>(std::make_index_sequence<max_indices_of_v<T>> {})> {};
+
+
+    /**
+     * \brief Helper template for \ref number_of_dynamic_indices
+     */
+    template<typename T>
+    static constexpr std::size_t number_of_dynamic_indices_v = number_of_dynamic_indices<T>::value;
+
+
+  // ----------------------- //
+  //  has_dynamic_dimensions  //
+  // ----------------------- //
+
+  /**
+   * \brief Specifies that T has at least one index with dynamic dimensions.
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept any_dynamic_dimension =
+  concept has_dynamic_dimensions =
 #else
-  constexpr bool any_dynamic_dimension =
+  constexpr bool has_dynamic_dimensions =
 #endif
-    detail::any_dynamic_dimension_impl<T>(std::make_index_sequence<max_indices_of_v<T>> {});
+    (number_of_dynamic_indices_v<T> > 0);
 
 
   // ----------------- //
@@ -756,7 +778,7 @@ namespace OpenKalman
     (interface::TriangularTraits<std::decay_t<T>>::triangle_type == TriangleType::diagonal) or
     (interface::HermitianTraits<std::decay_t<T>>::is_hermitian and
       interface::HermitianTraits<std::decay_t<T>>::adapter_type == TriangleType::diagonal) or
-    (not any_dynamic_dimension<T> and row_dimension_of_v<T> == column_dimension_of_v<T> and row_dimension_of_v<T> == 1) or
+    (not has_dynamic_dimensions<T> and row_dimension_of_v<T> == column_dimension_of_v<T> and row_dimension_of_v<T> == 1) or
     constant_diagonal_matrix<T> or
     (zero_matrix<T> and not dynamic_rows<T> and row_dimension_of_v<T> == column_dimension_of_v<T>);
 #else
@@ -868,7 +890,7 @@ namespace OpenKalman
     struct is_inferred_hermitian_matrix<T, std::enable_if_t<
       (not complex_number<typename scalar_type_of<T>::type> or zero_matrix<T> or diag_imag_part_is_zero<T>::value) and
       (diagonal_matrix<T> or
-        (constant_matrix<T> and not any_dynamic_dimension<T> and row_dimension_of<T>::value == column_dimension_of<T>::value))>>
+        (constant_matrix<T> and not has_dynamic_dimensions<T> and row_dimension_of<T>::value == column_dimension_of<T>::value))>>
       : std::true_type {};
   };
 #endif
@@ -886,7 +908,7 @@ namespace OpenKalman
       interface::HermitianTraits<std::decay_t<T>>::adapter_type == TriangleType::diagonal)) or
     ((not complex_number<scalar_type_of_t<T>> or zero_matrix<T> or
         std::imag(constant_coefficient_v<T>) == 0 or std::imag(constant_diagonal_coefficient_v<T>) == 0) and
-      (diagonal_matrix<T> or (constant_matrix<T> and not any_dynamic_dimension<T> and row_dimension_of_v<T> == column_dimension_of_v<T>)));
+      (diagonal_matrix<T> or (constant_matrix<T> and not has_dynamic_dimensions<T> and row_dimension_of_v<T> == column_dimension_of_v<T>)));
 #else
   constexpr bool lower_self_adjoint_matrix = (interface::HermitianTraits<std::decay_t<T>>::is_hermitian and
       (interface::HermitianTraits<std::decay_t<T>>::adapter_type == TriangleType::lower or
@@ -911,7 +933,7 @@ namespace OpenKalman
       interface::HermitianTraits<std::decay_t<T>>::adapter_type == TriangleType::diagonal)) or
     ((not complex_number<scalar_type_of_t<T>> or zero_matrix<T> or
         std::imag(constant_coefficient_v<T>) == 0 or std::imag(constant_diagonal_coefficient_v<T>) == 0) and
-      (diagonal_matrix<T> or (constant_matrix<T> and not any_dynamic_dimension<T> and row_dimension_of_v<T> == column_dimension_of_v<T>)));
+      (diagonal_matrix<T> or (constant_matrix<T> and not has_dynamic_dimensions<T> and row_dimension_of_v<T> == column_dimension_of_v<T>)));
 #else
   constexpr bool upper_self_adjoint_matrix = (interface::HermitianTraits<std::decay_t<T>>::is_hermitian and
       (interface::HermitianTraits<std::decay_t<T>>::adapter_type == TriangleType::upper or
@@ -932,7 +954,7 @@ namespace OpenKalman
   concept self_adjoint_matrix = interface::HermitianTraits<std::decay_t<T>>::is_hermitian or
     ((not complex_number<scalar_type_of_t<T>> or zero_matrix<T> or
         std::imag(constant_coefficient_v<T>) == 0 or std::imag(constant_diagonal_coefficient_v<T>) == 0) and
-    (diagonal_matrix<T> or (constant_matrix<T> and not any_dynamic_dimension<T> and row_dimension_of_v<T> == column_dimension_of_v<T>)));
+    (diagonal_matrix<T> or (constant_matrix<T> and not has_dynamic_dimensions<T> and row_dimension_of_v<T> == column_dimension_of_v<T>)));
 #else
   constexpr bool self_adjoint_matrix = interface::HermitianTraits<std::decay_t<T>>::is_hermitian or
     detail::is_inferred_hermitian_matrix<T>::value;
@@ -987,13 +1009,13 @@ namespace OpenKalman
   template<typename T>
 #ifdef __cpp_concepts
   concept square_matrix =
-    (any_dynamic_dimension<T> or (row_dimension_of_v<T> == column_dimension_of_v<T> and
+    (has_dynamic_dimensions<T> or (row_dimension_of_v<T> == column_dimension_of_v<T> and
       equivalent_to<row_coefficient_types_of_t<T>, column_coefficient_types_of_t<T>>)) and
-    (not any_dynamic_dimension<T> or self_adjoint_matrix<T> or triangular_matrix<T>);
+    (not has_dynamic_dimensions<T> or self_adjoint_matrix<T> or triangular_matrix<T>);
 #else
   constexpr bool square_matrix =
-    (any_dynamic_dimension<T> or detail::is_square_matrix<T>::value) and
-    (not any_dynamic_dimension<T> or self_adjoint_matrix<T> or triangular_matrix<T>);
+    (has_dynamic_dimensions<T> or detail::is_square_matrix<T>::value) and
+    (not has_dynamic_dimensions<T> or self_adjoint_matrix<T> or triangular_matrix<T>);
 #endif
 
 

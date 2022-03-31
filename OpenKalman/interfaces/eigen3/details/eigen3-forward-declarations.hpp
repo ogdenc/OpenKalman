@@ -56,7 +56,7 @@ namespace OpenKalman::Eigen3
   /**
    * \internal
    * \brief A dumb wrapper for OpenKalman classes so that they are treated exactly as native Eigen types.
-   * \tparam NestedMatrix
+   * \tparam T A non-Eigen class, for which an Eigen3 trait and evaluator is defined.
    */
   template<typename T>
   struct EigenWrapper : T {};
@@ -67,8 +67,8 @@ namespace OpenKalman::Eigen3
     template<typename T>
     struct is_eigen_matrix_wrapper : std::false_type {};
 
-    template<typename N>
-    struct is_eigen_matrix_wrapper<EigenWrapper<N>> : std::is_base_of<Eigen::MatrixBase<N>, N> {};
+    template<typename T>
+    struct is_eigen_matrix_wrapper<EigenWrapper<T>> : std::is_base_of<Eigen::MatrixBase<T>, T> {};
   }
 
 
@@ -82,7 +82,8 @@ namespace OpenKalman::Eigen3
   constexpr bool native_eigen_matrix =
 #endif
     (std::is_base_of_v<Eigen::MatrixBase<std::decay_t<T>>, std::decay_t<T>> or
-      detail::is_eigen_matrix_wrapper<std::decay_t<T>>::value) and (not untyped_adapter<T>) and (not typed_adapter<T>);
+      detail::is_eigen_matrix_wrapper<std::decay_t<T>>::value) and
+    (not untyped_adapter<T>) and (not typed_adapter<T>);
 
 
   namespace detail
@@ -90,8 +91,8 @@ namespace OpenKalman::Eigen3
     template<typename T>
     struct is_eigen_array_wrapper : std::false_type {};
 
-    template<typename N>
-    struct is_eigen_array_wrapper<EigenWrapper<N>> : std::is_base_of<Eigen::ArrayBase<N>, N> {};
+    template<typename T>
+    struct is_eigen_array_wrapper<EigenWrapper<T>> : std::is_base_of<Eigen::ArrayBase<T>, T> {};
   }
 
 
@@ -105,7 +106,8 @@ namespace OpenKalman::Eigen3
   constexpr bool native_eigen_array =
 #endif
     (std::is_base_of_v<Eigen::ArrayBase<std::decay_t<T>>, std::decay_t<T>> or
-      detail::is_eigen_array_wrapper<std::decay_t<T>>::value) and (not untyped_adapter<T>) and (not typed_adapter<T>);
+      detail::is_eigen_array_wrapper<std::decay_t<T>>::value) and
+    (not untyped_adapter<T>) and (not typed_adapter<T>);
 
 
 #ifndef __cpp_concepts

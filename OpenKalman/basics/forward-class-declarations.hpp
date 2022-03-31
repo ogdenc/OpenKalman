@@ -204,7 +204,7 @@ namespace OpenKalman
     template<typename NestedMatrix, TriangleType storage_triangle =
         (diagonal_matrix<NestedMatrix> ? TriangleType::diagonal : TriangleType::lower)> requires
       (not diagonal_matrix<NestedMatrix> or not complex_number<scalar_type_of_t<NestedMatrix>>) and
-      (any_dynamic_dimension<NestedMatrix> or square_matrix<NestedMatrix>) and (storage_triangle != TriangleType::none)
+      (has_dynamic_dimensions<NestedMatrix> or square_matrix<NestedMatrix>) and (storage_triangle != TriangleType::none)
   #else
     template<typename NestedMatrix, TriangleType storage_triangle =
       (diagonal_matrix<NestedMatrix> ? TriangleType::diagonal : TriangleType::lower)>
@@ -251,7 +251,7 @@ namespace OpenKalman
   #ifdef __cpp_concepts
     template<typename NestedMatrix, TriangleType triangle_type = (diagonal_matrix<NestedMatrix> ? TriangleType::diagonal :
         (upper_triangular_matrix<NestedMatrix> ? TriangleType::upper : TriangleType::lower))> requires
-      (any_dynamic_dimension<NestedMatrix> or square_matrix<NestedMatrix>) and (triangle_type != TriangleType::none)
+      (has_dynamic_dimensions<NestedMatrix> or square_matrix<NestedMatrix>) and (triangle_type != TriangleType::none)
   #else
     template<typename NestedMatrix, TriangleType triangle_type = (diagonal_matrix<NestedMatrix> ? TriangleType::diagonal :
       (upper_triangular_matrix<NestedMatrix> ? TriangleType::upper : TriangleType::lower))>
@@ -639,21 +639,6 @@ namespace OpenKalman
 
 
   } // namespace internal
-
-
-  namespace Eigen3::internal
-  {
-    /**
-     * \internal
-     * \brief Base class for library-defined dynamic Eigen matrices.
-     */
-#ifdef __cpp_concepts
-    template<typename Derived, typename NestedMatrix>
-#else
-    template<typename Derived, typename NestedMatrix, typename = void>
-#endif
-    struct EigenDynamicBase;
-  }
 
 
   // --------------------------------- //

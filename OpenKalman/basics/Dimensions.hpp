@@ -98,6 +98,7 @@ namespace OpenKalman
   Dimensions(T&&) -> Dimensions<dynamic_size>;
 
 
+
   namespace detail
   {
     template<typename T>
@@ -105,9 +106,6 @@ namespace OpenKalman
 
     template<std::size_t size>
     struct is_index_descriptor<Dimensions<size>> : std::true_type {};
-
-    template<>
-    struct is_index_descriptor<std::size_t> : std::true_type {};
   }
 
 
@@ -120,7 +118,7 @@ namespace OpenKalman
 #else
   constexpr bool index_descriptor =
 #endif
-    detail::is_index_descriptor<std::decay_t<T>>::value;
+    detail::is_index_descriptor<std::decay_t<T>>::value or std::is_integral_v<std::decay_t<T>>;
 
 
   /**
@@ -165,6 +163,9 @@ namespace OpenKalman
   constexpr auto dimension_size_of_v = dimension_size_of<std::decay_t<T>>::value;
 
 
+  /**
+   * \brief Get the dimensions of \ref index_descriptor T
+   */
 #ifdef __cpp_concepts
   template<index_descriptor T>
 #else
@@ -175,6 +176,45 @@ namespace OpenKalman
   {
     return t;
   }
+
+
+  /**
+   * \brief Add two \ref index_descriptor values, whether fixed or dynamic.
+   */
+#ifdef __cpp_concepts
+  template<index_descriptor T, index_descriptor U>
+#else
+  template<typename T, typename U, std::enable_if_t<index_descriptor<T> and index_descriptor<U>, int> = 0>
+#endif
+  constexpr auto operator+(const T& t, const U& u) noexcept
+  {
+    if constexpr (dimension_size_of_v<T> == dynamic_size or dimension_size_of_v<U> == dynamic_size)
+      return Dimensions{t() + u()};
+    else
+      return Dimensions<dimension_size_of_v<T> + dimension_size_of_v<U>>{};
+  }
+
+
+  /**
+   * \brief Subtract two \ref index_descriptor values, whether fixed or dynamic.
+   * \warning This does not perform any runtime checks to ensure that the result is non-negative.
+   */
+#ifdef __cpp_concepts
+  template<index_descriptor T, index_descriptor U> requires (dimension_size_of_v<T> == dynamic_size) or
+    (dimension_size_of_v<U> == dynamic_size) or (dimension_size_of_v<T> > dimension_size_of_v<U>)
+#else
+  template<typename T, typename U, std::enable_if_t<index_descriptor<T> and index_descriptor<U> and
+    ((dimension_size_of<T>::value == dynamic_size) or (dimension_size_of<U>::value == dynamic_size) or
+      (dimension_size_of_v<T> > dimension_size_of<U>::value)), int> = 0>
+#endif
+  constexpr auto operator-(const T& t, const U& u) noexcept
+  {
+    if constexpr (dimension_size_of_v<T> == dynamic_size or dimension_size_of_v<U> == dynamic_size)
+      return Dimensions{t() - u()};
+    else
+      return Dimensions<dimension_size_of_v<T> - dimension_size_of_v<U>>{};
+  }
+
 
 } // namespace OpenKalman
 

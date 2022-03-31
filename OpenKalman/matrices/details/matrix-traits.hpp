@@ -353,13 +353,10 @@ namespace OpenKalman
       std::size_t rows, std::size_t columns, typename Scalar>
     struct SingleConstantMatrixTraits<Matrix<RowCoeffs, ColCoeffs, NestedMatrix>, rows, columns, Scalar>
     {
-      template<typename...runtime_dimensions>
-      static auto make_zero_matrix(runtime_dimensions...e)
+      template<typename...D>
+      static auto make_zero_matrix(D&&...e)
       {
-        static_assert((std::is_convertible_v<runtime_dimensions, std::size_t> and ...));
-        static_assert(sizeof...(e) == (rows == dynamic_size ? 1 : 0) + (columns == dynamic_size ? 1 : 0));
-
-        auto n = make_zero_matrix_like<NestedMatrix, rows, columns, Scalar>(e...);
+        auto n = make_zero_matrix_like<NestedMatrix, Scalar>(std::forward<D>(d)...);
         return Matrix<RowCoeffs, ColCoeffs, std::decay_t<decltype(n)>>(std::move(n)) //< \todo use make_matrix
       }
     };
@@ -368,13 +365,10 @@ namespace OpenKalman
     template<typename Coeffs, typename NestedMatrix, std::size_t rows, std::size_t columns, typename Scalar>
     struct SingleConstantMatrixTraits<Mean<Coeffs, NestedMatrix>, rows, columns, Scalar>
     {
-      template<typename...runtime_dimensions>
-      static auto make_zero_matrix(runtime_dimensions...e)
+      template<typename...D>
+      static auto make_zero_matrix(D&&...e)
       {
-        static_assert((std::is_convertible_v<runtime_dimensions, std::size_t> and ...));
-        static_assert(sizeof...(e) == (rows == dynamic_size ? 1 : 0) + (columns == dynamic_size ? 1 : 0));
-
-        auto n = wrap_angles<Coeffs>(make_zero_matrix_like<NestedMatrix, rows, columns, Scalar>(e...));
+        auto n = wrap_angles<Coeffs>(make_zero_matrix_like<NestedMatrix, Scalar>(std::forward<D>(d)...));
         return Mean<Coeffs, std::decay_t<decltype(n)>>(std::move(n)); //< \todo use make_mean
       }
     };
@@ -383,13 +377,10 @@ namespace OpenKalman
     template<typename Coeffs, typename NestedMatrix, std::size_t rows, std::size_t columns, typename Scalar>
     struct SingleConstantMatrixTraits<EuclideanMean<Coeffs, NestedMatrix>, rows, columns, Scalar>
     {
-      template<typename...runtime_dimensions>
-      static auto make_zero_matrix(runtime_dimensions...e)
+      template<typename...D>
+      static auto make_zero_matrix(D&&...e)
       {
-        static_assert((std::is_convertible_v<runtime_dimensions, std::size_t> and ...));
-        static_assert(sizeof...(e) == (rows == dynamic_size ? 1 : 0) + (columns == dynamic_size ? 1 : 0));
-
-        auto n = make_zero_matrix_like<NestedMatrix, rows, columns, Scalar>(e...);
+        auto n = make_zero_matrix_like<NestedMatrix, Scalar>(std::forward<D>(d)...);
         return EuclideanMean<Coeffs, std::decay_t<decltype(n)>>(std::move(n)); //< \todo use make_mean
       }
     };
@@ -398,13 +389,10 @@ namespace OpenKalman
     template<typename Coeffs, typename NestedMatrix, std::size_t rows, std::size_t columns, typename Scalar>
     struct SingleConstantMatrixTraits<Covariance<Coeffs, NestedMatrix>, rows, columns, Scalar>
     {
-      template<typename...runtime_dimensions>
-      static auto make_zero_matrix(runtime_dimensions...e)
+      template<typename...D>
+      static auto make_zero_matrix(D&&...e)
       {
-        static_assert((std::is_convertible_v<runtime_dimensions, std::size_t> and ...));
-        static_assert(sizeof...(e) == (rows == dynamic_size ? 1 : 0) + (columns == dynamic_size ? 1 : 0));
-
-        auto n = make_zero_matrix_like<NestedMatrix, rows, columns, Scalar>(e...);
+        auto n = make_zero_matrix_like<NestedMatrix, Scalar>(std::forward<D>(d)...);
         return Covariance<Coeffs, std::decay_t<decltype(n)>>(std::move(n)); //< \todo use make_covariance
       }
     };
@@ -413,13 +401,10 @@ namespace OpenKalman
     template<typename Coeffs, typename NestedMatrix, std::size_t rows, std::size_t columns, typename Scalar>
     struct SingleConstantMatrixTraits<SquareRootCovariance<Coeffs, NestedMatrix>, rows, columns, Scalar>
     {
-      template<typename...runtime_dimensions>
-      static auto make_zero_matrix(runtime_dimensions...e)
+      template<typename...D>
+      static auto make_zero_matrix(D&&...e)
       {
-        static_assert((std::is_convertible_v<runtime_dimensions, std::size_t> and ...));
-        static_assert(sizeof...(e) == (rows == dynamic_size ? 1 : 0) + (columns == dynamic_size ? 1 : 0));
-
-        auto n = make_zero_matrix_like<NestedMatrix, rows, columns, Scalar>(e...);
+        auto n = make_zero_matrix_like<NestedMatrix, Scalar>(std::forward<D>(d)...);
         return SquareRootCovariance<Coeffs, std::decay_t<decltype(n)>>(std::move(n)) //< \todo use make_square_root_covariance
       }
     };

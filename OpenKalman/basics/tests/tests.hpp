@@ -53,7 +53,7 @@ namespace OpenKalman::test
 #endif
   inline ::testing::AssertionResult is_near(const Arg1& arg1, const Arg2& arg2, const Err& err = 1e-6)
   {
-    if constexpr (any_dynamic_dimension<Arg1> or any_dynamic_dimension<Arg2>)
+    if constexpr (has_dynamic_dimensions<Arg1> or has_dynamic_dimensions<Arg2>)
       if (runtime_dimension_of<0>(arg1) != runtime_dimension_of<0>(arg2) or runtime_dimension_of<1>(arg1) != runtime_dimension_of<1>(arg2))
     {
       return ::testing::AssertionFailure() << std::endl << make_dense_writable_matrix_from(arg1) << std::endl <<

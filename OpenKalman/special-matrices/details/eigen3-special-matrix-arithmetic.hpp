@@ -639,17 +639,7 @@ namespace OpenKalman::Eigen3
 #endif
   inline auto operator*(const Arg1& arg1, const Arg2& arg2)
   {
-    constexpr auto rows = index_dimension_of_v<Arg1, 0>;
-    constexpr auto cols = index_dimension_of_v<Arg2, 1>;
-
-    if constexpr (dynamic_rows<Arg1> and dynamic_columns<Arg2>)
-      return make_zero_matrix_like<Arg1, rows, cols>(runtime_dimension_of<0>(arg1), runtime_dimension_of<1>(arg2));
-    else if constexpr (dynamic_rows<Arg1> and not dynamic_columns<Arg2>)
-      return make_zero_matrix_like<Arg1, rows, cols>(runtime_dimension_of<0>(arg1));
-    else if constexpr (not dynamic_rows<Arg1> and dynamic_columns<Arg2>)
-      return make_zero_matrix_like<Arg1, rows, cols>(runtime_dimension_of<1>(arg2));
-    else
-      return make_zero_matrix_like<Arg1, rows, cols>();
+    return make_zero_matrix_like<Arg1>(get_dimensions_of<0>(arg1), get_dimensions_of<1>(arg2));
   }
 
 
@@ -920,10 +910,7 @@ namespace OpenKalman::Eigen3
 #endif
   inline auto operator*(Arg1&& arg1, Arg2&& arg2)
   {
-    constexpr auto rows = index_dimension_of_v<Arg1, 0>;
-    constexpr auto cols = index_dimension_of_v<Arg2, 1>;
-
-    return make_zero_matrix_like<Arg1, rows, cols>();
+    return make_zero_matrix_like<Arg1>(get_dimensions_of<0>(arg1), get_dimensions_of<1>(arg2));
   }
 
 

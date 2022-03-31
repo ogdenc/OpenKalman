@@ -374,21 +374,17 @@ namespace OpenKalman::interface
   {
     /**
      * \brief Create a \ref zero_matrix corresponding to the shape of T.
-     * \details If T is a \ref dynamic_matrix, you must include one or two runtime dimensions, depending on the number
-     * of indices for which dimensions are not specified at compile time. For example, if the row dimension is known at
-     * compile time but the column dimension is not, you must specify a single dimension reflecting the number of
-     * runtime rows.
+     * \details Takes a list of \ref index_descriptor items that specify the size of the resulting object
+     * \tparam D A list of \ref index_descriptor items
      * \note If this is not defined, it will return an object of type ZeroMatrix.
      */
 #ifdef __cpp_concepts
-    template<std::convertible_to<std::size_t>...runtime_dimensions> requires
-      (sizeof...(runtime_dimensions) == (rows == dynamic_size ? 1 : 0) + (columns == dynamic_size ? 1 : 0))
+    template<index_descriptor...D> requires (sizeof...(D) == StorageArrayTraits<T>::max_indices)
 #else
-    template<typename...runtime_dimensions, std::enable_if_t<sizeof...(runtime_dimensions) ==
-      (rows == dynamic_size ? 1 : 0) + (columns == dynamic_size ? 1 : 0) and
-      (std::is_convertible_v<runtime_dimensions, std::size_t> and ...), int> = 0>
+    template<typename...D, std::enable_if_t<(index_descriptor<D> and ...) and
+      sizeof...(D) == StorageArrayTraits<T>::max_indices, int> = 0>
 #endif
-    static auto make_zero_matrix(runtime_dimensions...e); //< Defined elsewhere
+    static auto make_zero_matrix(D&&...d); //< Defined elsewhere
 
 
     /**
@@ -616,7 +612,11 @@ namespace OpenKalman::interface
    * \brief An interface to necessary array or element-wise operations on matrix T.
    * \tparam T Type of the result matrix, array, or other tensor
    */
+#ifdef __cpp_concepts
   template<typename T>
+#else
+  template<typename T, typename = void>
+#endif
   struct ArrayOperations
   {
     /**

@@ -149,7 +149,7 @@ TEST(eigen3, ZeroMatrix_traits)
   static_assert(not dynamic_columns<ZeroMatrix<eigen_matrix_t<double, dynamic_size, 2>>>);
   static_assert(dynamic_columns<ZeroMatrix<eigen_matrix_t<double, 2, dynamic_size>>>);
 
-  static_assert(zero_matrix<decltype(make_zero_matrix_like<ZeroMatrix<eigen_matrix_t<double, dynamic_size, dynamic_size>>>(2, 3))>);
+  static_assert(zero_matrix<decltype(make_zero_matrix_like<M00>(2, 3))>);
 
   static_assert(identity_matrix<decltype(make_identity_matrix_like<ZeroMatrix<eigen_matrix_t<double, 3, 2>>>())>);
   static_assert(identity_matrix<decltype(make_identity_matrix_like<ZeroMatrix<eigen_matrix_t<double, 3, dynamic_size>>>())>);
@@ -393,23 +393,23 @@ TEST(eigen3, ZeroMatrix_overloads)
 
   auto tup_z33_z23 = std::tuple {make_zero_matrix_like<M33>(), make_zero_matrix_like<M23>()};
 
-  EXPECT_TRUE(is_near(split_vertical<3, 2>(make_zero_matrix_like<eigen_matrix_t<double, 5, 3>>()), tup_z33_z23));
-  EXPECT_TRUE(is_near(split_vertical<3, 2>(make_zero_matrix_like<eigen_matrix_t<double, 5, dynamic_size>>(3)), tup_z33_z23));
-  EXPECT_TRUE(is_near(split_vertical<3, 2>(make_zero_matrix_like<eigen_matrix_t<double, dynamic_size, 3>>(5)), tup_z33_z23));
-  EXPECT_TRUE(is_near(split_vertical<3, 2>(make_zero_matrix_like<eigen_matrix_t<double, dynamic_size, dynamic_size>>(5, 3)), tup_z33_z23));
+  EXPECT_TRUE(is_near(split_vertical<3, 2>(make_zero_matrix_like<M00>(Dimensions<5>{}, Dimensions<3>{})), tup_z33_z23));
+  EXPECT_TRUE(is_near(split_vertical<3, 2>(make_zero_matrix_like<M00>(Dimensions<5>{}, 3)), tup_z33_z23));
+  EXPECT_TRUE(is_near(split_vertical<3, 2>(make_zero_matrix_like<M00>(5, Dimensions<3>{})), tup_z33_z23));
+  EXPECT_TRUE(is_near(split_vertical<3, 2>(make_zero_matrix_like<M00>(5, 3)), tup_z33_z23));
 
   auto tup_z33_z32 = std::tuple {make_zero_matrix_like<M33>(), make_zero_matrix_like<M32>()};
 
-  EXPECT_TRUE(is_near(split_horizontal<3, 2>(make_zero_matrix_like<eigen_matrix_t<double, 3, 5>>()), tup_z33_z32));
-  EXPECT_TRUE(is_near(split_horizontal<3, 2>(make_zero_matrix_like<eigen_matrix_t<double, 3, dynamic_size>>(5)), tup_z33_z32));
-  EXPECT_TRUE(is_near(split_horizontal<3, 2>(make_zero_matrix_like<eigen_matrix_t<double, dynamic_size, 5>>(3)), tup_z33_z32));
-  EXPECT_TRUE(is_near(split_horizontal<3, 2>(make_zero_matrix_like<eigen_matrix_t<double, dynamic_size, dynamic_size>>(3, 5)), tup_z33_z32));
+  EXPECT_TRUE(is_near(split_horizontal<3, 2>(make_zero_matrix_like<M00>(Dimensions<3>{}, Dimensions<5>{})), tup_z33_z32));
+  EXPECT_TRUE(is_near(split_horizontal<3, 2>(make_zero_matrix_like<M00>(Dimensions<3>{}, 5)), tup_z33_z32));
+  EXPECT_TRUE(is_near(split_horizontal<3, 2>(make_zero_matrix_like<M00>(3, Dimensions<5>{})), tup_z33_z32));
+  EXPECT_TRUE(is_near(split_horizontal<3, 2>(make_zero_matrix_like<M00>(3, 5)), tup_z33_z32));
 
   auto tup_z33_z22 = std::tuple {make_zero_matrix_like<M33>(), make_zero_matrix_like<M22>()};
 
-  EXPECT_TRUE(is_near(split_diagonal<3, 2>(make_zero_matrix_like<M55>()), tup_z33_z22));
-  EXPECT_TRUE(is_near(split_diagonal<3, 2>(make_zero_matrix_like<M50>(5)), tup_z33_z22));
-  EXPECT_TRUE(is_near(split_diagonal<3, 2>(make_zero_matrix_like<M05>(5)), tup_z33_z22));
+  EXPECT_TRUE(is_near(split_diagonal<3, 2>(make_zero_matrix_like<M55>(Dimensions<5>{}, Dimensions<5>{})), tup_z33_z22));
+  EXPECT_TRUE(is_near(split_diagonal<3, 2>(make_zero_matrix_like<M50>(Dimensions<5>{}, 5)), tup_z33_z22));
+  EXPECT_TRUE(is_near(split_diagonal<3, 2>(make_zero_matrix_like<M05>(5, Dimensions<5>{})), tup_z33_z22));
   EXPECT_TRUE(is_near(split_diagonal<3, 2>(make_zero_matrix_like<M00>(5, 5)), tup_z33_z22));
 
   EXPECT_NEAR(get_element(z22, 1, 0), 0, 1e-8);
@@ -450,42 +450,42 @@ TEST(eigen3, ZeroMatrix_overloads)
   static_assert(runtime_dimension_of<1>(czv34) == 1);
   static_assert(zero_matrix<decltype(czv34)>);
 
-  EXPECT_TRUE(is_near(column<1>(make_zero_matrix_like<M33>()), make_dense_writable_matrix_from<M31>(0., 0, 0)));
-  EXPECT_TRUE(is_near(column(make_zero_matrix_like<M33>(), 2), make_dense_writable_matrix_from<M31>(0., 0, 0)));
-  EXPECT_TRUE(is_near(column(make_zero_matrix_like<M30>(3), 2), make_dense_writable_matrix_from<M31>(0., 0, 0)));
-  EXPECT_TRUE(is_near(column(make_zero_matrix_like<M03>(3), 2), make_dense_writable_matrix_from<M31>(0., 0, 0)));
+  EXPECT_TRUE(is_near(column<1>(make_zero_matrix_like<M33>(Dimensions<3>{}, Dimensions<3>{})), make_dense_writable_matrix_from<M31>(0., 0, 0)));
+  EXPECT_TRUE(is_near(column(make_zero_matrix_like<M33>(Dimensions<3>{}, Dimensions<3>{}), 2), make_dense_writable_matrix_from<M31>(0., 0, 0)));
+  EXPECT_TRUE(is_near(column(make_zero_matrix_like<M30>(Dimensions<3>{}, 3), 2), make_dense_writable_matrix_from<M31>(0., 0, 0)));
+  EXPECT_TRUE(is_near(column(make_zero_matrix_like<M03>(3, Dimensions<3>{}), 2), make_dense_writable_matrix_from<M31>(0., 0, 0)));
   EXPECT_TRUE(is_near(column(make_zero_matrix_like<M00>(3,3), 2), make_dense_writable_matrix_from<M31>(0., 0, 0)));
 
-  EXPECT_TRUE(is_near(row<1>(ZeroMatrix<eigen_matrix_t<double, 3, 2>>()), (eigen_matrix_t<double, 1, 2>::Zero())));
-  EXPECT_TRUE(is_near(row(ZeroMatrix<eigen_matrix_t<double, 3, 2>>(), 1), (eigen_matrix_t<double, 1, 2>::Zero())));
+  EXPECT_TRUE(is_near(row<1>(ZeroMatrix<eigen_matrix_t<double, 3, 2>>(Dimensions<3>{}, Dimensions<2>{})), (eigen_matrix_t<double, 1, 2>::Zero())));
+  EXPECT_TRUE(is_near(row(ZeroMatrix<eigen_matrix_t<double, 3, 2>>(Dimensions<3>{}, Dimensions<2>{}), 1), (eigen_matrix_t<double, 1, 2>::Zero())));
   auto rzc34 = row(zc34, 1);
   EXPECT_EQ(runtime_dimension_of<1>(rzc34), 4);
   static_assert(runtime_dimension_of<0>(rzc34) == 1);
   static_assert(zero_matrix<decltype(rzc34)>);
-  auto rzv34 = row<1>(ZeroMatrix<eigen_matrix_t<double, 3, dynamic_size>> {4});
+  auto rzv34 = row<1>(ZeroMatrix<eigen_matrix_t<double, 3, dynamic_size>> {Dimensions<3>{}, 4});
   EXPECT_EQ(runtime_dimension_of<1>(rzv34), 4);
   static_assert(runtime_dimension_of<0>(rzv34) == 1);
   static_assert(zero_matrix<decltype(rzv34)>);
 
-  EXPECT_TRUE(is_near(row<1>(make_zero_matrix_like<M33>()), make_dense_writable_matrix_from<M13>(0., 0, 0)));
-  EXPECT_TRUE(is_near(row(make_zero_matrix_like<M33>(), 2), make_eigen_matrix<double, 1, 3>(0., 0, 0)));
-  EXPECT_TRUE(is_near(row(make_zero_matrix_like<M30>(3), 2), make_eigen_matrix<double, 1, 3>(0., 0, 0)));
-  EXPECT_TRUE(is_near(row(make_zero_matrix_like<M03>(3), 2), make_eigen_matrix<double, 1, 3>(0., 0, 0)));
+  EXPECT_TRUE(is_near(row<1>(make_zero_matrix_like<M33>(Dimensions<3>{}, Dimensions<3>{})), make_dense_writable_matrix_from<M13>(0., 0, 0)));
+  EXPECT_TRUE(is_near(row(make_zero_matrix_like<M33>(Dimensions<3>{}, Dimensions<3>{}), 2), make_eigen_matrix<double, 1, 3>(0., 0, 0)));
+  EXPECT_TRUE(is_near(row(make_zero_matrix_like<M30>(Dimensions<3>{}, 3), 2), make_eigen_matrix<double, 1, 3>(0., 0, 0)));
+  EXPECT_TRUE(is_near(row(make_zero_matrix_like<M03>(3, Dimensions<3>{}), 2), make_eigen_matrix<double, 1, 3>(0., 0, 0)));
   EXPECT_TRUE(is_near(row(make_zero_matrix_like<M00>(3,3), 2), make_eigen_matrix<double, 1, 3>(0., 0, 0)));
 
-  EXPECT_TRUE(is_near(apply_columnwise([](const auto& col){ return make_self_contained(col + col.Constant(1)); }, make_zero_matrix_like<M33>()), M33::Constant(1)));
-  EXPECT_TRUE(is_near(apply_columnwise([](const auto& col){ return make_self_contained(col + col.Constant(1)); }, make_zero_matrix_like<M30>(3)), M33::Constant(1)));
-  EXPECT_TRUE(is_near(apply_columnwise([](const auto& col){ return make_self_contained(col + col.Constant(1)); }, make_zero_matrix_like<M03>(3)), M33::Constant(1)));
+  EXPECT_TRUE(is_near(apply_columnwise([](const auto& col){ return make_self_contained(col + col.Constant(1)); }, make_zero_matrix_like<M33>(Dimensions<3>{}, Dimensions<3>{})), M33::Constant(1)));
+  EXPECT_TRUE(is_near(apply_columnwise([](const auto& col){ return make_self_contained(col + col.Constant(1)); }, make_zero_matrix_like<M30>(Dimensions<3>{}, 3)), M33::Constant(1)));
+  EXPECT_TRUE(is_near(apply_columnwise([](const auto& col){ return make_self_contained(col + col.Constant(1)); }, make_zero_matrix_like<M03>(3, Dimensions<3>{})), M33::Constant(1)));
   EXPECT_TRUE(is_near(apply_columnwise([](const auto& col){ return make_self_contained(col + col.Constant(1)); }, make_zero_matrix_like<M00>(3,3)), M33::Constant(1)));
 
-  EXPECT_TRUE(is_near(apply_rowwise([](const auto& row){ return make_self_contained(row + row.Constant(1)); }, make_zero_matrix_like<M33>()), M33::Constant(1)));
-  EXPECT_TRUE(is_near(apply_rowwise([](const auto& row){ return make_self_contained(row + row.Constant(1)); }, make_zero_matrix_like<M30>(3)), M33::Constant(1)));
-  EXPECT_TRUE(is_near(apply_rowwise([](const auto& row){ return make_self_contained(row + row.Constant(1)); }, make_zero_matrix_like<M03>(3)), M33::Constant(1)));
+  EXPECT_TRUE(is_near(apply_rowwise([](const auto& row){ return make_self_contained(row + row.Constant(1)); }, make_zero_matrix_like<M33>(Dimensions<3>{}, Dimensions<3>{})), M33::Constant(1)));
+  EXPECT_TRUE(is_near(apply_rowwise([](const auto& row){ return make_self_contained(row + row.Constant(1)); }, make_zero_matrix_like<M30>(Dimensions<3>{}, 3)), M33::Constant(1)));
+  EXPECT_TRUE(is_near(apply_rowwise([](const auto& row){ return make_self_contained(row + row.Constant(1)); }, make_zero_matrix_like<M03>(3, Dimensions<3>{})), M33::Constant(1)));
   EXPECT_TRUE(is_near(apply_rowwise([](const auto& row){ return make_self_contained(row + row.Constant(1)); }, make_zero_matrix_like<M00>(3,3)), M33::Constant(1)));
 
-  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto& x){ return x + 1; }, make_zero_matrix_like<M33>()), M33::Constant(1)));
-  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto& x){ return x + 1; }, make_zero_matrix_like<M30>(3)), M33::Constant(1)));
-  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto& x){ return x + 1; }, make_zero_matrix_like<M03>(3)), M33::Constant(1)));
+  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto& x){ return x + 1; }, make_zero_matrix_like<M33>(Dimensions<3>{}, Dimensions<3>{})), M33::Constant(1)));
+  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto& x){ return x + 1; }, make_zero_matrix_like<M30>(Dimensions<3>{}, 3)), M33::Constant(1)));
+  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto& x){ return x + 1; }, make_zero_matrix_like<M03>(3, Dimensions<3>{})), M33::Constant(1)));
   EXPECT_TRUE(is_near(apply_coefficientwise([](const auto& x){ return x + 1; }, make_zero_matrix_like<M00>(3,3)), M33::Constant(1)));
 }
 
@@ -511,7 +511,6 @@ TEST(eigen3, ZeroMatrix_arithmetic)
 
   EXPECT_EQ((ZeroMatrix<eigen_matrix_t<double, 4, 3>>::rows()), 4);
   EXPECT_EQ((ZeroMatrix<eigen_matrix_t<double, 4, 3>>::cols()), 3);
-  EXPECT_TRUE(is_near(make_zero_matrix_like<ZeroMatrix<eigen_matrix_t<double, 2, 3>>>(), eigen_matrix_t<double, 2, 3>::Zero()));
   EXPECT_TRUE(is_near(make_identity_matrix_like<ZeroMatrix<eigen_matrix_t<double, 2, 3>>>(), M22::Identity()));
 }
 

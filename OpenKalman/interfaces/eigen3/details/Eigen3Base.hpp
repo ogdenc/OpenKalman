@@ -24,7 +24,7 @@ namespace OpenKalman::Eigen3::internal
     : std::conditional_t<native_eigen_array<NestedMatrix>, Eigen::ArrayBase<Derived>, Eigen::MatrixBase<Derived>>
   {
 
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(bool {any_dynamic_dimension<NestedMatrix>})
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(bool {has_dynamic_dimensions<NestedMatrix>})
 
     /**
      * \internal
@@ -78,26 +78,7 @@ namespace OpenKalman::Eigen3::internal
     [[deprecated("Use make_zero_matrix_like() instead.")]]
     static auto Zero(const Eigen::Index r, const Eigen::Index c)
     {
-      if constexpr (dynamic_rows<Derived> and dynamic_columns<Derived>)
-      {
-        return make_zero_matrix_like<Derived>(static_cast<std::size_t>(r), static_cast<std::size_t>(c));
-      }
-      else if constexpr (dynamic_rows<Derived>)
-      {
-        assert(c == column_dimension_of_v<Derived>);
-        return make_zero_matrix_like<Derived>(static_cast<std::size_t>(r));
-      }
-      else if constexpr (dynamic_columns<Derived>)
-      {
-        assert(r == row_dimension_of_v<Derived>);
-        return make_zero_matrix_like<Derived>(static_cast<std::size_t>(c));
-      }
-      else
-      {
-        assert(r == row_dimension_of_v<Derived>);
-        assert(c == column_dimension_of_v<Derived>);
-        return make_zero_matrix_like<Derived>();
-      }
+      return make_zero_matrix_like<Derived>(Dimensions{static_cast<std::size_t>(r)}, Dimensions{static_cast<std::size_t>(c)});
     }
 
 

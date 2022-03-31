@@ -353,9 +353,9 @@ TEST(eigen3, Diagonal_class)
   EXPECT_EQ((d0_3.rows()), 3);
   EXPECT_EQ((d0_3.cols()), 3);
 
-  EXPECT_TRUE(is_near(make_zero_matrix_like<D3>(), M33::Zero()));
+  EXPECT_TRUE(is_near(make_zero_matrix_like(d3), M33::Zero()));
   EXPECT_TRUE(is_near(make_identity_matrix_like<D3>(), M33::Identity()));
-  EXPECT_TRUE(is_near(make_zero_matrix_like<D0>(3), M33::Zero(3, 3)));
+  EXPECT_TRUE(is_near(make_zero_matrix_like(d0_3), M33::Zero(3, 3)));
   EXPECT_TRUE(is_near(make_identity_matrix_like<D0>(3), M33::Identity(3, 3)));
 }
 
@@ -483,7 +483,7 @@ TEST(eigen3, Diagonal_traits)
 
   EXPECT_TRUE(is_near(MatrixTraits<D0>::make(m31), m33));
   EXPECT_TRUE(is_near(MatrixTraits<D0>::make(1, 2, 3), m33));
-  EXPECT_TRUE(is_near(make_zero_matrix_like<D0>(3), M33::Zero()));
+  EXPECT_TRUE(is_near(make_zero_matrix_like(d0_3), M33::Zero()));
   EXPECT_TRUE(is_near(make_identity_matrix_like<D0>(3), M33::Identity()));
 }
 
@@ -559,9 +559,9 @@ TEST(eigen3, Diagonal_overloads)
 
   using N = std::normal_distribution<double>;
 
-  D2 d3b = make_zero_matrix_like<D2>();
-  D0 d0_2 {make_zero_matrix_like<D0>(2)};
-  D0 d0_3 {make_zero_matrix_like<D0>(3)};
+  D2 d3b = make_zero_matrix_like<D2>(Dimensions<2>{}, Dimensions<2>{});
+  D0 d0_2 {make_zero_matrix_like<D0>(2, 2)};
+  D0 d0_3 {make_zero_matrix_like<D0>(3, 3)};
   for (int i=0; i<100; i++)
   {
     d3b = (d3b * i + randomize<D2>(N {1.0, 0.3}, 2.0)) / (i + 1);

@@ -26,15 +26,15 @@ namespace OpenKalman::Eigen3
    */
 #ifdef __cpp_concepts
   template<eigen_zero_expr Z>
-  requires any_dynamic_dimension<Z> or square_matrix<Z>
+  requires has_dynamic_dimensions<Z> or square_matrix<Z>
 #else
   template<typename Z, std::enable_if_t<
-    eigen_zero_expr<Z> and (any_dynamic_dimension<Z> or square_matrix<Z>), int> = 0>
+    eigen_zero_expr<Z> and (has_dynamic_dimensions<Z> or square_matrix<Z>), int> = 0>
 #endif
   constexpr Z&&
   Cholesky_square(Z&& z) noexcept
   {
-    if constexpr (any_dynamic_dimension<Z>)
+    if constexpr (has_dynamic_dimensions<Z>)
       assert(runtime_dimension_of<0>(z) == runtime_dimension_of<1>(z));
     return std::forward<Z>(z);
   }
@@ -47,15 +47,15 @@ namespace OpenKalman::Eigen3
    */
 #ifdef __cpp_concepts
   template<TriangleType = TriangleType::diagonal, eigen_zero_expr Z>
-  requires any_dynamic_dimension<Z> or square_matrix<Z>
+  requires has_dynamic_dimensions<Z> or square_matrix<Z>
 #else
   template<TriangleType = TriangleType::diagonal, typename Z, std::enable_if_t<
-    eigen_zero_expr<Z> and (any_dynamic_dimension<Z> or square_matrix<Z>), int> = 0>
+    eigen_zero_expr<Z> and (has_dynamic_dimensions<Z> or square_matrix<Z>), int> = 0>
 #endif
   constexpr Z&&
   Cholesky_factor(Z&& z) noexcept
   {
-    if constexpr (any_dynamic_dimension<Z>)
+    if constexpr (has_dynamic_dimensions<Z>)
       assert(runtime_dimension_of<0>(z) == runtime_dimension_of<1>(z));
     return std::forward<Z>(z);
   }
@@ -68,17 +68,17 @@ namespace OpenKalman::Eigen3
    */
 #ifdef __cpp_concepts
   template<native_eigen_matrix D>
-  requires any_dynamic_dimension<D> or diagonal_matrix<D>
+  requires has_dynamic_dimensions<D> or diagonal_matrix<D>
 #else
   template<typename D, std::enable_if_t<
-    native_eigen_matrix<D> and (any_dynamic_dimension<D> or diagonal_matrix<D>), int> = 0>
+    native_eigen_matrix<D> and (has_dynamic_dimensions<D> or diagonal_matrix<D>), int> = 0>
 #endif
   constexpr decltype(auto)
   Cholesky_square(D&& d) noexcept
   {
-    if constexpr ((any_dynamic_dimension<D> and not diagonal_matrix<D>) or one_by_one_matrix<D>)
+    if constexpr ((has_dynamic_dimensions<D> and not diagonal_matrix<D>) or one_by_one_matrix<D>)
     {
-      if constexpr (any_dynamic_dimension<D> and not diagonal_matrix<D>)
+      if constexpr (has_dynamic_dimensions<D> and not diagonal_matrix<D>)
         assert(runtime_dimension_of<0>(d) == 1 and runtime_dimension_of<1>(d) == 1);
 
       return std::forward<D>(d).array().square().matrix();
@@ -102,17 +102,17 @@ namespace OpenKalman::Eigen3
    */
 #ifdef __cpp_concepts
   template<TriangleType = TriangleType::diagonal, native_eigen_matrix D>
-  requires any_dynamic_dimension<D> or diagonal_matrix<D>
+  requires has_dynamic_dimensions<D> or diagonal_matrix<D>
 #else
   template<TriangleType = TriangleType::diagonal,
-    typename D, std::enable_if_t<native_eigen_matrix<D> and (any_dynamic_dimension<D> or diagonal_matrix<D>), int> = 0>
+    typename D, std::enable_if_t<native_eigen_matrix<D> and (has_dynamic_dimensions<D> or diagonal_matrix<D>), int> = 0>
 #endif
   constexpr decltype(auto)
   Cholesky_factor(D&& d) noexcept
   {
-    if constexpr((any_dynamic_dimension<D> and not diagonal_matrix<D>) or one_by_one_matrix<D>)
+    if constexpr((has_dynamic_dimensions<D> and not diagonal_matrix<D>) or one_by_one_matrix<D>)
     {
-      if constexpr (any_dynamic_dimension<D> and not diagonal_matrix<D>)
+      if constexpr (has_dynamic_dimensions<D> and not diagonal_matrix<D>)
         assert(runtime_dimension_of<0>(d) == 1 and runtime_dimension_of<1>(d) == 1);
 
       return std::forward<D>(d).cwiseSqrt();
@@ -259,13 +259,7 @@ namespace OpenKalman::Eigen3
 #else
         auto col0 = sqrt_s * make_constant_matrix_like<A, 1>(Dimensions<dim>{}, Dimensions<1>{});
 #endif
-        auto othercols = [](A&& a) {
-          if constexpr (dim == dynamic_size)
-            return make_zero_matrix_like<A, dynamic_size, dynamic_size, Scalar>(
-              runtime_dimension_of<1>(a), runtime_dimension_of<1>(a) - 1);
-          else
-            return make_zero_matrix_like<A, dim, dim - 1, Scalar>();
-        }(std::forward<A>(a));
+        auto othercols = make_zero_matrix_like<A>(get_dimensions_of<1>(a), get_dimensions_of<1>(a) - 1);
         auto m = concatenate_horizontal(col0, othercols);
         return TriangularMatrix<decltype(m), triangle_type> {std::move(m)};
       }
@@ -277,14 +271,7 @@ namespace OpenKalman::Eigen3
 #else
         auto row0 = sqrt_s * make_constant_matrix_like<A, 1>(Dimensions<1>{}, Dimensions<dim>{});
 #endif
-        auto otherrows = [](A&& a) {
-          if constexpr (dim == dynamic_size)
-            return make_zero_matrix_like<A, dynamic_size, dynamic_size, Scalar>(
-              runtime_dimension_of<1>(a) - 1, runtime_dimension_of<1>(a));
-          else
-            return make_zero_matrix_like<A, dim - 1, dim, Scalar>();
-        }(std::forward<A>(a));
-
+        auto otherrows = make_zero_matrix_like<A>(get_dimensions_of<1>(a) - 1, get_dimensions_of<1>(a));
         auto m = concatenate_vertical(row0, otherrows);
         return TriangularMatrix<decltype(m), triangle_type> {std::move(m)};
       }
@@ -311,14 +298,14 @@ namespace OpenKalman::Eigen3
       else if constexpr(triangle_type == TriangleType::lower)
       {
         auto col0 = Eigen3::eigen_matrix_t<Scalar, dim, 1>::Constant(std::sqrt(s));
-        auto othercols = make_zero_matrix_like<A, dim, dim - 1, Scalar>();
+        auto othercols = make_zero_matrix_like<A>(get_dimensions_of<0>(a), get_dimensions_of<0>(a) - 1);
         return TriangularMatrix<M, triangle_type> {concatenate_horizontal(col0, othercols)};
       }
       else
       {
         static_assert(triangle_type == TriangleType::upper);
         auto row0 = Eigen3::eigen_matrix_t<Scalar, 1, dim>::Constant(std::sqrt(s));
-        auto otherrows = make_zero_matrix_like<A, dim - 1, dim, Scalar>();
+        auto otherrows = make_zero_matrix_like<A>(get_dimensions_of<0>(a) - 1, get_dimensions_of<0>(a));
         return TriangularMatrix<M, triangle_type> {concatenate_vertical(row0, otherrows)};
       }
     }

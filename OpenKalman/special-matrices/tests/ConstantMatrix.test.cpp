@@ -154,11 +154,6 @@ TEST(eigen3, ConstantMatrix_traits)
   static_assert(not dynamic_rows<ConstantMatrix<eigen_matrix_t<double, 1, dynamic_size>, 5>>);
   static_assert(dynamic_columns<ConstantMatrix<eigen_matrix_t<double, 1, dynamic_size>, 5>>);
 
-  static_assert(zero_matrix<decltype(make_zero_matrix_like<ConstantMatrix<eigen_matrix_t<double, 2, 3>, 5>>())>);
-  static_assert(zero_matrix<decltype(make_zero_matrix_like<ConstantMatrix<eigen_matrix_t<double, 2, dynamic_size>, 5>>(3))>);
-  static_assert(zero_matrix<decltype(make_zero_matrix_like<ConstantMatrix<eigen_matrix_t<double, dynamic_size, 3>, 5>>(2))>);
-  static_assert(zero_matrix<decltype(make_zero_matrix_like<ConstantMatrix<eigen_matrix_t<double, dynamic_size, dynamic_size>, 5>>(2, 3))>);
-
   static_assert(identity_matrix<decltype(make_identity_matrix_like<ConstantMatrix<eigen_matrix_t<double, 3, 2>, 5>>())>);
   static_assert(identity_matrix<decltype(make_identity_matrix_like<ConstantMatrix<eigen_matrix_t<double, 3, dynamic_size>, 5>>())>);
   static_assert(identity_matrix<decltype(make_identity_matrix_like<ConstantMatrix<eigen_matrix_t<double, dynamic_size, 2>, 5>>())>);

@@ -23,7 +23,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<typename NestedMatrix, TriangleType storage_triangle> requires
     (not diagonal_matrix<NestedMatrix> or not complex_number<scalar_type_of_t<NestedMatrix>>) and
-    (any_dynamic_dimension<NestedMatrix> or square_matrix<NestedMatrix>) and (storage_triangle != TriangleType::none)
+    (has_dynamic_dimensions<NestedMatrix> or square_matrix<NestedMatrix>) and (storage_triangle != TriangleType::none)
 #else
   template<typename NestedMatrix, TriangleType storage_triangle>
 #endif
@@ -33,7 +33,7 @@ namespace OpenKalman::Eigen3
 
 #ifndef __cpp_concepts
     static_assert(not diagonal_matrix<NestedMatrix> or not complex_number<scalar_type_of_t<NestedMatrix>>);
-    static_assert(any_dynamic_dimension<NestedMatrix> or square_matrix<NestedMatrix>);
+    static_assert(has_dynamic_dimensions<NestedMatrix> or square_matrix<NestedMatrix>);
     static_assert(storage_triangle != TriangleType::none);
 #endif
 
@@ -55,10 +55,10 @@ namespace OpenKalman::Eigen3
 
     /// Default constructor.
 #ifdef __cpp_concepts
-    SelfAdjointMatrix() requires std::default_initializable<NestedMatrix> and (not any_dynamic_dimension<NestedMatrix>)
+    SelfAdjointMatrix() requires std::default_initializable<NestedMatrix> and (not has_dynamic_dimensions<NestedMatrix>)
 #else
     template<typename T = NestedMatrix, std::enable_if_t<
-      std::is_default_constructible_v<T> and (not any_dynamic_dimension<NestedMatrix>), int> = 0>
+      std::is_default_constructible_v<T> and (not has_dynamic_dimensions<NestedMatrix>), int> = 0>
     SelfAdjointMatrix()
 #endif
       : Base {} {}
@@ -106,7 +106,7 @@ namespace OpenKalman::Eigen3
     template<self_adjoint_matrix Arg> requires (not std::derived_from<std::decay_t<Arg>, SelfAdjointMatrix>) and
       (not diagonal_matrix<Arg>) and has_nested_matrix<Arg> and
       (self_adjoint_triangle_type_of<Arg>::value == storage_triangle) and
-      (any_dynamic_dimension<nested_matrix_of_t<Arg>> or square_matrix<nested_matrix_of_t<Arg>>) and
+      (has_dynamic_dimensions<nested_matrix_of_t<Arg>> or square_matrix<nested_matrix_of_t<Arg>>) and
       std::constructible_from<NestedMatrix, decltype(nested_matrix(std::declval<Arg&&>()))>
       //alt: requires(Arg&& arg) { NestedMatrix {nested_matrix(std::forward<Arg>(arg))}; } -- not accepted in GCC 10
 #else
@@ -114,7 +114,7 @@ namespace OpenKalman::Eigen3
       self_adjoint_matrix<Arg> and (not std::is_base_of_v<SelfAdjointMatrix, std::decay_t<Arg>>) and
       (not diagonal_matrix<Arg>) and has_nested_matrix<Arg> and
       (self_adjoint_triangle_type_of<Arg>::value == storage_triangle) and
-      (any_dynamic_dimension<nested_matrix_of_t<Arg>> or square_matrix<nested_matrix_of_t<Arg>>) and
+      (has_dynamic_dimensions<nested_matrix_of_t<Arg>> or square_matrix<nested_matrix_of_t<Arg>>) and
       std::is_constructible_v<NestedMatrix, decltype(nested_matrix(std::declval<Arg&&>()))>, int> = 0>
 #endif
     SelfAdjointMatrix(Arg&& arg) noexcept : Base {nested_matrix(std::forward<Arg>(arg))} {}
@@ -124,13 +124,13 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
     template<self_adjoint_matrix Arg> requires (not diagonal_matrix<Arg>) and
       has_nested_matrix<Arg> and (self_adjoint_triangle_type_of<Arg>::value != storage_triangle) and
-      (any_dynamic_dimension<nested_matrix_of_t<Arg>> or square_matrix<nested_matrix_of_t<Arg>>) and
+      (has_dynamic_dimensions<nested_matrix_of_t<Arg>> or square_matrix<nested_matrix_of_t<Arg>>) and
       requires(Arg&& arg) { NestedMatrix {transpose(nested_matrix(std::forward<Arg>(arg)))}; }
 #else
     template<typename Arg, std::enable_if_t<
       self_adjoint_matrix<Arg> and (not diagonal_matrix<Arg>) and
       has_nested_matrix<Arg> and (self_adjoint_triangle_type_of<Arg>::value != storage_triangle) and
-      (any_dynamic_dimension<nested_matrix_of_t<Arg>> or square_matrix<nested_matrix_of_t<Arg>>) and
+      (has_dynamic_dimensions<nested_matrix_of_t<Arg>> or square_matrix<nested_matrix_of_t<Arg>>) and
       std::is_constructible_v<NestedMatrix, decltype(transpose(nested_matrix(std::declval<Arg&&>())))>, int> = 0>
 #endif
     SelfAdjointMatrix(Arg&& arg) noexcept : Base {transpose(nested_matrix(std::forward<Arg>(arg)))} {}
@@ -165,10 +165,10 @@ namespace OpenKalman::Eigen3
     /// Construct from a non-hermitian matrix if NestedMatrix is not diagonal.
 #ifdef __cpp_concepts
     template<typename Arg> requires (not self_adjoint_matrix<Arg>) and (not diagonal_matrix<NestedMatrix>) and
-      (any_dynamic_dimension<Arg> or square_matrix<Arg>) and std::constructible_from<NestedMatrix, Arg&&>
+      (has_dynamic_dimensions<Arg> or square_matrix<Arg>) and std::constructible_from<NestedMatrix, Arg&&>
 #else
     template<typename Arg, std::enable_if_t<not self_adjoint_matrix<Arg> and not eigen_diagonal_expr<NestedMatrix> and
-      (any_dynamic_dimension<Arg> or square_matrix<Arg>) and std::is_constructible_v<NestedMatrix, Arg&&>, int> = 0>
+      (has_dynamic_dimensions<Arg> or square_matrix<Arg>) and std::is_constructible_v<NestedMatrix, Arg&&>, int> = 0>
 #endif
     explicit SelfAdjointMatrix(Arg&& arg) noexcept
       : Base {[](Arg&& arg) -> decltype(auto) {
@@ -181,11 +181,11 @@ namespace OpenKalman::Eigen3
     /// Construct from a non-hermitian matrix if NestedMatrix is diagonal.
 #ifdef __cpp_concepts
     template<typename Arg> requires (not self_adjoint_matrix<Arg>) and diagonal_matrix<NestedMatrix> and
-      (any_dynamic_dimension<Arg> or square_matrix<Arg>) and
+      (has_dynamic_dimensions<Arg> or square_matrix<Arg>) and
       requires(Arg&& arg) { NestedMatrix {diagonal_of(std::forward<Arg>(arg))}; }
 #else
     template<typename Arg, std::enable_if_t<(not self_adjoint_matrix<Arg>) and diagonal_matrix<NestedMatrix> and
-      (any_dynamic_dimension<Arg> or square_matrix<Arg>) and
+      (has_dynamic_dimensions<Arg> or square_matrix<Arg>) and
       std::is_constructible_v<NestedMatrix, decltype(diagonal_of(std::declval<Arg&&>()))>, int> = 0>
 #endif
     explicit SelfAdjointMatrix(Arg&& arg) noexcept

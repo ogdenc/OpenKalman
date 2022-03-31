@@ -233,12 +233,7 @@ namespace OpenKalman
       equivalent_to<row_coefficient_types_of_t<Cov>, Coefficients>, int> = 0>
 #endif
     explicit GaussianDistribution(Cov&& cov) :
-      mu {[] {
-        if constexpr (dim == dynamic_size)
-          make_zero_matrix_like<MeanNestedMatrix>(runtime_dimension_of<0>(cov));
-        else
-          make_zero_matrix_like<MeanNestedMatrix>();
-      }()},
+      mu {[]{ make_zero_matrix_like<MeanNestedMatrix>(get_dimensions_of<0>(cov), Dimensions<1>{}); }()},
       sigma {cov_adapter(std::forward<Cov>(cov))} {}
 
 
@@ -250,12 +245,7 @@ namespace OpenKalman
       covariance_nestable<Cov> and (row_dimension_of<Cov>::value == dim), int> = 0>
 #endif
     explicit GaussianDistribution(Cov&& cov) :
-      mu {[] {
-        if constexpr (dim == dynamic_size)
-          make_zero_matrix_like<MeanNestedMatrix>(runtime_dimension_of<0>(cov));
-        else
-          make_zero_matrix_like<MeanNestedMatrix>();
-      }()},
+      mu {[]{ make_zero_matrix_like<MeanNestedMatrix>(get_dimensions_of<0>(cov), Dimensions<1>{}); }()},
       sigma {cov_adapter(std::forward<Cov>(cov))}{}
 
     // ---------------------- //
@@ -867,8 +857,8 @@ namespace OpenKalman
   {
     using Coeffs = typename DistributionTraits<T>::Coefficients;
     using re = DistributionTraits<T>::random_number_engine;
-    auto m = make_zero_matrix_like<DistributionTraits<T>::Mean, dimension, 1, Scalar>(e...);
-    auto c = make_zero_matrix_like<DistributionTraits<T>::Covariance, dimension, dimension, Scalar>(e...);
+    auto m = make_zero_matrix_like<DistributionTraits<T>::Mean, Scalar>(Dimensions<dimension>{e...}, Dimension<1>{});
+    auto c = make_zero_matrix_like<DistributionTraits<T>::Covariance, Scalar>(Dimensions<dimension>{e...}, Dimensions<dimension>{e...});
     return make_gaussian_distribution<re>>(std::move(m), std::move(c));
   }
 
@@ -888,7 +878,7 @@ namespace OpenKalman
   {
     using Coeffs = typename DistributionTraits<T>::Coefficients;
     using re = DistributionTraits<T>::random_number_engine;
-    auto m = make_zero_matrix_like<DistributionTraits<T>::Mean, dimension, 1, Scalar>(e...);
+    auto m = make_zero_matrix_like<DistributionTraits<T>::Mean, Scalar>(Dimensions<dimension>{e...}, Dimension<1>{});
     auto c = make_identity_matrix_like<DistributionTraits<T>::Covariance, dimension, Scalar>(e...);
     return make_gaussian_distribution<re>>(std::move(m), std::move(c));
   }

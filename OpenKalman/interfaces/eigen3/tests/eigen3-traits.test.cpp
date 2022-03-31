@@ -170,13 +170,13 @@ TEST(eigen3, Eigen_Matrix)
   static_assert(row_dimension_of_v<decltype(MatrixTraits<M02>::make(1, 2))> == 1);
   static_assert(row_dimension_of_v<decltype(MatrixTraits<M00>::make(1, 2))> == 2);
 
-  EXPECT_TRUE(is_near(make_zero_matrix_like<M23>(), M23::Zero()));
-  EXPECT_TRUE(is_near(make_zero_matrix_like<M20>(3), M23::Zero()));
-  EXPECT_TRUE(is_near(make_zero_matrix_like<M03>(2), M23::Zero()));
+  EXPECT_TRUE(is_near(make_zero_matrix_like<M23>(Dimensions<2>{}, Dimensions<3>{}), M23::Zero()));
+  EXPECT_TRUE(is_near(make_zero_matrix_like<M20>(Dimensions<2>{}, 3), M23::Zero()));
+  EXPECT_TRUE(is_near(make_zero_matrix_like<M03>(2, Dimensions<3>{}), M23::Zero()));
   EXPECT_TRUE(is_near(make_zero_matrix_like<M00>(2,3), M23::Zero()));
-  EXPECT_TRUE(is_near(make_zero_matrix_like<M23, dynamic_size, dynamic_size>(3,2), M32::Zero()));
-  EXPECT_TRUE(is_near(make_zero_matrix_like<M20, dynamic_size, dynamic_size>(3,2), M32::Zero()));
-  EXPECT_TRUE(is_near(make_zero_matrix_like<M03, dynamic_size, dynamic_size>(3,2), M32::Zero()));
+  EXPECT_TRUE(is_near(make_zero_matrix_like<M23>(3,2), M32::Zero()));
+  EXPECT_TRUE(is_near(make_zero_matrix_like<M20>(3,2), M32::Zero()));
+  EXPECT_TRUE(is_near(make_zero_matrix_like<M03>(3,2), M32::Zero()));
 
   EXPECT_TRUE(is_near(make_identity_matrix_like<M33>(), M33::Identity()));
   EXPECT_TRUE(is_near(make_identity_matrix_like<M30>(), M33::Identity()));
@@ -1158,8 +1158,8 @@ TEST(eigen3, Eigen_SelfAdjointView)
   static_assert(std::is_same_v<dense_writable_matrix_t<Eigen::SelfAdjointView<M03, Eigen::Lower>>, M33>);
   static_assert(std::is_same_v<dense_writable_matrix_t<Eigen::SelfAdjointView<M00, Eigen::Lower>>, M00>);
 
-  static_assert(not any_dynamic_dimension<dense_writable_matrix_t<SelfAdjointMatrix<M02>>>);
-  static_assert(not any_dynamic_dimension<dense_writable_matrix_t<SelfAdjointMatrix<M20>>>);
+  static_assert(not has_dynamic_dimensions<dense_writable_matrix_t<SelfAdjointMatrix<M02>>>);
+  static_assert(not has_dynamic_dimensions<dense_writable_matrix_t<SelfAdjointMatrix<M20>>>);
 
   static_assert(are_within_tolerance(constant_coefficient_v<Eigen::SelfAdjointView<C22_2, Eigen::Upper>>, 2));
 

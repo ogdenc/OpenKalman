@@ -970,7 +970,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
 #ifdef __cpp_concepts
   template<typed_matrix ReturnType, std::uniform_random_bit_generator random_number_engine = std::mt19937,
     typename...Dists>
-  requires (not any_dynamic_dimension<ReturnType>) and (sizeof...(Dists) > 0) and
+  requires (not has_dynamic_dimensions<ReturnType>) and (sizeof...(Dists) > 0) and
     (((requires { typename std::decay_t<Dists>::result_type;  typename std::decay_t<Dists>::param_type; } or
       std::is_arithmetic_v<std::decay_t<Dists>>) and ... )) and
     ((not std::is_const_v<std::remove_reference_t<Dists>>) and ...) and
@@ -978,7 +978,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
       row_dimension_of_v<ReturnType> == sizeof...(Dists) or column_dimension_of_v<ReturnType> == sizeof...(Dists))
 #else
   template<typename ReturnType, typename random_number_engine = std::mt19937, typename...Dists,
-    std::enable_if_t<typed_matrix<ReturnType> and (not any_dynamic_dimension<ReturnType>) and (sizeof...(Dists) > 0) and
+    std::enable_if_t<typed_matrix<ReturnType> and (not has_dynamic_dimensions<ReturnType>) and (sizeof...(Dists) > 0) and
       ((not std::is_const_v<std::remove_reference_t<Dists>>) and ...) and
       (sizeof...(Dists) == 1 or
         row_dimension_of<ReturnType>::value * column_dimension_of<ReturnType>::value == sizeof...(Dists) or
@@ -1012,12 +1012,12 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
 #ifdef __cpp_concepts
   template<typed_matrix ReturnType, std::uniform_random_bit_generator random_number_engine = std::mt19937,
     typename Dist>
-  requires any_dynamic_dimension<ReturnType> and
+  requires has_dynamic_dimensions<ReturnType> and
     requires { typename std::decay_t<Dist>::result_type; typename std::decay_t<Dist>::param_type; } and
     (not std::is_const_v<std::remove_reference_t<Dist>>)
 #else
   template<typename ReturnType, typename random_number_engine = std::mt19937, typename Dist, std::enable_if_t<
-      typed_matrix<ReturnType> and any_dynamic_dimension<ReturnType> and
+      typed_matrix<ReturnType> and has_dynamic_dimensions<ReturnType> and
       (not std::is_const_v<std::remove_reference_t<Dist>>), int> = 0>
 #endif
   inline auto

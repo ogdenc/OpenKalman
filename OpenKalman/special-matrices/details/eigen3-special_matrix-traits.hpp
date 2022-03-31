@@ -60,7 +60,7 @@ namespace OpenKalman
       {
         if constexpr (dynamic_dimension<Arg, N>)
         {
-          return std::get<N>(arg.get_dimensions());
+          return std::get<N>(arg.get_all_dimensions());
         }
         else
         {
@@ -80,10 +80,7 @@ namespace OpenKalman
       {
         if constexpr (dynamic_dimension<Arg, N>)
         {
-          if constexpr (N == 0)
-            return arg.get_rows_at_runtime();
-          else
-            return arg.get_columns_at_runtime();
+          return std::get<N>(arg.get_all_dimensions());
         }
         else
         {
@@ -435,24 +432,22 @@ namespace OpenKalman
     // This implements the default behavior of the make_zero_matrix interface function.
 #ifdef __cpp_concepts
     template<typename T, std::size_t rows, std::size_t columns, typename Scalar>
-    template<std::convertible_to<std::size_t>...runtime_dimensions> requires
-      (sizeof...(runtime_dimensions) == (rows == dynamic_size ? 1 : 0) + (columns == dynamic_size ? 1 : 0))
+    template<index_descriptor...D> requires (sizeof...(D) == StorageArrayTraits<T>::max_indices)
     auto SingleConstantMatrixTraits<T, rows, columns, Scalar>::
 #else
     template<typename T, std::size_t rows, std::size_t columns, typename Scalar, typename Enable>
-    template<typename...runtime_dimensions, std::enable_if_t<
-      sizeof...(runtime_dimensions) == (rows == dynamic_size ? 1 : 0) + (columns == dynamic_size ? 1 : 0) and
-      (std::is_convertible_v<runtime_dimensions, std::size_t> and ...), int>>
+    template<typename...D, std::enable_if_t<(index_descriptor<D> and ...) and
+      sizeof...(D) == StorageArrayTraits<T>::max_indices, int>>
     auto SingleConstantMatrixTraits<T, rows, columns, Scalar, Enable>::
 #endif
-    make_zero_matrix(runtime_dimensions...e)
+    make_zero_matrix(D&&...d)
     {
       using N = untyped_dense_writable_matrix_t<T, rows, columns>;
-      return Eigen3::ZeroMatrix<N> {e...};
+      return Eigen3::ZeroMatrix<N> {std::forward<D>(d)...};
     }
 
 
-    // This implements the default behavior of the make_zero_matrix interface function.
+    // This implements the default behavior of the make_constant_matrix interface function.
 #ifdef __cpp_concepts
     template<typename T, std::size_t rows, std::size_t columns, typename Scalar>
     template<auto constant, index_descriptor...D> requires (sizeof...(D) == StorageArrayTraits<T>::max_indices)
@@ -460,7 +455,7 @@ namespace OpenKalman
 #else
     template<typename T, std::size_t rows, std::size_t columns, typename Scalar, typename Enable>
     template<auto constant, typename...D, std::enable_if_t<(index_descriptor<D> and ...) and
-      sizeof...(D) == StorageArrayTraits<T>::max_indices, int> = 0>
+      sizeof...(D) == StorageArrayTraits<T>::max_indices, int>>
     auto SingleConstantMatrixTraits<T, rows, columns, Scalar, Enable>::
 #endif
     make_constant_matrix(D&&...d)
@@ -478,10 +473,10 @@ namespace OpenKalman
     struct SingleConstantMatrixTraits<T, rows, columns, Scalar, std::enable_if_t<untyped_adapter<T>>>
 #endif
     {
-      template<typename...runtime_dimensions>
-      static auto make_zero_matrix(runtime_dimensions...e)
+      template<typename...D>
+      static auto make_zero_matrix(D&&...d)
       {
-        return make_zero_matrix_like<pattern_matrix_of_t<T>, rows, columns, Scalar>(e...);
+        return make_zero_matrix_like<pattern_matrix_of_t<T>, Scalar>(std::forward<D>(d)...);
       }
 
 
@@ -501,10 +496,10 @@ namespace OpenKalman
     struct SingleConstantMatrixTraits<T, rows, columns, Scalar, std::enable_if_t<euclidean_expr<T>>>
 #endif
     {
-      template<typename...runtime_dimensions>
-      static auto make_zero_matrix(runtime_dimensions...e)
+      template<typename...D>
+      static auto make_zero_matrix(D&&...d)
       {
-        return make_zero_matrix_like<pattern_matrix_of_t<T>, rows, columns, Scalar>(e...);
+        return make_zero_matrix_like<pattern_matrix_of_t<T>, Scalar>(std::forward<D>(d)...);
       }
 
 

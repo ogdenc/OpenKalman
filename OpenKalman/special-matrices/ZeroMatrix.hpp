@@ -20,9 +20,6 @@
 
 namespace OpenKalman::Eigen3
 {
-  // ------------ //
-  //  ZeroMatrix  //
-  // ------------ //
 
   // ZeroMatrix is declared in eigen3-forward-declarations.hpp.
 
@@ -31,7 +28,7 @@ namespace OpenKalman::Eigen3
 #else
   template<typename PatternMatrix>
 #endif
-  struct ZeroMatrix : Eigen3::internal::EigenDynamicBase<ZeroMatrix<PatternMatrix>, PatternMatrix>
+  struct ZeroMatrix : MatrixTraits<PatternMatrix>::template MatrixBaseFrom<ZeroMatrix<PatternMatrix>>
   {
 
   private:
@@ -39,9 +36,26 @@ namespace OpenKalman::Eigen3
     using nested_scalar = scalar_type_of_t<PatternMatrix>;
     static constexpr auto nested_rows = row_dimension_of_v<PatternMatrix>;
     static constexpr auto nested_cols = column_dimension_of_v<PatternMatrix>;
-    using Base = Eigen3::internal::EigenDynamicBase<ZeroMatrix, PatternMatrix>;
+
+    using MyDimensions = std::decay_t<decltype(get_all_dimensions_of(std::declval<PatternMatrix>()))>;
 
   public:
+
+    /**
+     * \brief Construct a ZeroMatrix.
+     * \details The constructor can take a number of \ref index_descriptor "index_descriptors" representing the
+     * number of dimensions.
+     */
+#ifdef __cpp_concepts
+    template<index_descriptor...D> requires (sizeof...(D) == max_indices_of_v<PatternMatrix>) and
+      std::constructible_from<MyDimensions, const D&...>
+#else
+    template<typename...D,
+      std::enable_if_t<(index_descriptor<D> and ...) and sizeof...(D) == max_indices_of_v<PatternMatrix> and
+        std::is_constructible<MyDimensions, const D&...>::value, int> = 0>
+#endif
+    ZeroMatrix(const D&...d) : my_dimensions {d...} {}
+
 
     /**
      * \brief Construct a ZeroMatrix.
@@ -51,14 +65,54 @@ namespace OpenKalman::Eigen3
      * ZeroMatrix {} constructs a fixed matrix.
      */
 #ifdef __cpp_concepts
-    template<std::convertible_to<std::size_t> ... Args> requires
-      (sizeof...(Args) == (nested_rows == dynamic_size ? 1 : 0) + (nested_cols == dynamic_size ? 1 : 0))
+    template<std::convertible_to<std::size_t> ... I>
+    requires (sizeof...(I) == number_of_dynamic_indices_v<PatternMatrix>)
 #else
-    template<typename...Args, std::enable_if_t<(std::is_convertible_v<Args, std::size_t> and ...) and
-      (sizeof...(Args) == (nested_rows == dynamic_size ? 1 : 0) + (nested_cols == dynamic_size ? 1 : 0)), int> = 0>
+    template<typename...I, std::enable_if_t<(std::is_convertible_v<I, std::size_t> and ...) and
+      (sizeof...(I) == number_of_dynamic_indices<PatternMatrix>::value), int> = 0>
 #endif
-    ZeroMatrix(const Args...args) : Base {static_cast<std::size_t>(args)...} {}
+    ZeroMatrix(const I...i)
+      : my_dimensions {OpenKalman::internal::make_dimensions_tuple<PatternMatrix>(static_cast<std::size_t>(i)...)} {}
 
+
+    /**
+     * \brief Copy constructor
+     */
+    ZeroMatrix(const ZeroMatrix&) = default;
+
+
+    /**
+     * \brief Move constructor
+     */
+    ZeroMatrix(ZeroMatrix&&) = default;
+
+  private:
+
+    template<typename T, std::size_t...I>
+    static constexpr bool zero_arg_matches_impl(std::index_sequence<I...>)
+    {
+      return ((index_dimension_of_v<T, I> == dimension_size_of_v<std::tuple_element_t<I, MyDimensions>>) and ...);
+    };
+
+
+#ifdef __cpp_concepts
+    template<typename T>
+#else
+    template<typename T, typename = void>
+#endif
+    struct zero_arg_matches : std::false_type {};
+
+
+#ifdef __cpp_concepts
+    template<typename T> requires (zero_arg_matches_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{}))
+    struct zero_arg_matches<T>
+#else
+    template<typename T>
+    struct zero_arg_matches<T, std::enable_if_t<zero_arg_matches_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{})>>
+#endif
+      : std::true_type {};
+
+  public:
 
     /**
      * \internal
@@ -67,14 +121,60 @@ namespace OpenKalman::Eigen3
      */
 #ifdef __cpp_concepts
     template<zero_matrix M> requires (not std::same_as<M, ZeroMatrix>) and
-      (dynamic_rows<M> or nested_rows == dynamic_size or row_dimension_of_v<M> == nested_rows) and
-      (dynamic_columns<M> or nested_cols == dynamic_size or column_dimension_of_v<M> == nested_cols)
+      (max_indices_of_v<M> == max_indices_of_v<PatternMatrix>) and zero_arg_matches<M>::value
 #else
     template<typename M, std::enable_if_t<zero_matrix<M> and (not std::is_same_v<M, ZeroMatrix>) and
-      (dynamic_rows<M> or nested_rows == dynamic_size or row_dimension_of<M>::value == nested_rows) and
-      (dynamic_columns<M> or nested_cols == dynamic_size or column_dimension_of<M>::value == nested_cols), int> = 0>
+      (max_indices_of_v<M> == max_indices_of_v<PatternMatrix>) and zero_arg_matches<M>::value, int> = 0>
 #endif
-    ZeroMatrix(M&& m) : Base {std::forward<M>(m)} {}
+    ZeroMatrix(M&& m) : my_dimensions {get_all_dimensions_of(std::forward<M>(m))} {}
+
+  private:
+
+    template<typename T, std::size_t...I>
+    void check_runtime_sizes_impl(const T& t, std::index_sequence<I...>)
+    {
+      ([](const T& t, const auto& my_dims) {
+        if constexpr (index_dimension_of_v<T, I> == dynamic_size)
+        {
+          constexpr auto t_dim = runtime_dimension_of<I>(t);
+          constexpr auto dim = get_dimension_size_of(std::get<I>(my_dims));
+          if (t_dim != dim)
+            throw std::logic_error {"In an argument to ZeroMatrix assignment operator, "
+              "the dimension of index " + std::to_string(I) + " is " + std::to_string(t_dim) +
+              ", which does not match index " + std::to_string(I) + " of the ZeroMatrix, which is " +
+              std::to_string(dim)};;
+        }
+      }(t, my_dimensions), ...);
+    };
+
+
+    template<typename T>
+    void check_runtime_sizes(const T& t)
+    {
+      if constexpr (has_dynamic_dimensions<T> or has_dynamic_dimensions<PatternMatrix>)
+        return runtime_sizes_match_impl(t, std::make_index_sequence<max_indices_of_v<T>>{});
+    };
+
+  public:
+
+    /**
+     * \brief Copy assignment operator
+     */
+    ZeroMatrix& operator=(const ZeroMatrix& m)
+    {
+      check_runtime_sizes(m);
+      return *this;
+    }
+
+
+    /**
+     * \brief Move assignment operator
+     */
+    ZeroMatrix& operator=(ZeroMatrix&& m)
+    {
+      check_runtime_sizes(m);
+      return *this;
+    }
 
 
     /**
@@ -82,73 +182,71 @@ namespace OpenKalman::Eigen3
      * \brief Assign from another compatible zero_matrix.
      */
 #ifdef __cpp_concepts
-    template<zero_matrix M> requires (not std::same_as<M, ZeroMatrix>) and
-      (dynamic_rows<M> or nested_rows == dynamic_size or row_dimension_of_v<M> == nested_rows) and
-      (dynamic_columns<M> or nested_cols == dynamic_size or column_dimension_of_v<M> == nested_cols)
+    template<zero_matrix M> requires (not std::same_as<M, ZeroMatrix>) and zero_arg_matches<M>::value
 #else
     template<typename M, std::enable_if_t<zero_matrix<M> and (not std::is_same_v<M, ZeroMatrix>) and
-      (dynamic_rows<M> or nested_rows == dynamic_size or row_dimension_of<M>::value == nested_rows) and
-      (dynamic_columns<M> or nested_cols == dynamic_size or column_dimension_of<M>::value == nested_cols), int> = 0>
+      zero_arg_matches<M>::value, int> = 0>
 #endif
     auto& operator=(M&& m)
     {
-      Base::operator=(std::forward<M>(m));
+      check_runtime_sizes(m);
       return *this;
     }
 
 
     /**
      * \brief Element accessor.
-     * \param r The row.
-     * \param c The column.
-     * \return The element at row r and column c (always zero of type nested_scalar).
+     * \brief Element accessor.
+     * \note Does not do any runtime bounds checking.
+     * \param d The indices
+     * \return The element corresponding to the indices (always zero).
      */
-    constexpr nested_scalar operator()(std::size_t r, std::size_t c) const
+#ifdef __cpp_concepts
+    template<std::convertible_to<const std::size_t>...D> requires (sizeof...(D) <= max_indices_of_v<PatternMatrix>)
+#else
+    template<typename...D, std::enable_if_t<(std::is_convertible<D, const std::size_t>::value and ...) and
+      (sizeof...(D) <= max_indices_of_v<PatternMatrix>), int> = 0>
+#endif
+    constexpr nested_scalar
+    operator()(D...d) const
     {
-      assert(Eigen::Index(r) < runtime_dimension_of<0>(*this));
-      assert(Eigen::Index(c) < runtime_dimension_of<1>(*this));
       return 0;
     }
 
 
     /**
-     * \brief Element accessor for a row or column vector.
-     * \param i The row or column.
-     * \return The element at row or column i (always zero of type nested_scalar).
+     * \brief Element accessor for a first-order tensor (e.g., a row or column vector).
+     * \note Does not do any runtime bounds checking.
+     * \param i The index.
+     * \return The element at index i (always zero).
      */
 #ifdef __cpp_concepts
-    constexpr nested_scalar
-    operator[](std::size_t i) const requires (nested_rows == 1) or (nested_cols == 1)
+    template<std::convertible_to<const std::size_t> D> requires (tensor_order_of_v<PatternMatrix> <= 1)
 #else
-    template<std::size_t r = nested_rows, std::enable_if_t<(r == 1) or (nested_cols == 1), int> = 0>
-    constexpr nested_scalar
-    operator[](std::size_t i) const
+    template<typename D, std::enable_if_t<std::is_convertible<D, const std::size_t>::value and
+      tensor_order_of<PatternMatrix>::value <= 1, int> = 0>
 #endif
+    constexpr nested_scalar
+    operator[](D d) const
     {
-      if constexpr (nested_rows != 1) assert(Eigen::Index(i) < runtime_dimension_of<0>(*this));
-      if constexpr (nested_cols != 1) assert(Eigen::Index(i) < runtime_dimension_of<1>(*this));
       return 0;
     }
 
 
     /**
-     * \brief Element accessor for a row or column vector.
-     * \param i The row or column.
-     * \return The element at row or column i (always zero of type nested_scalar).
+     * \return a tuple containing \ref index_descriptor "index_descriptors" for the dimensions for this ZeroMatrix
      */
-#ifdef __cpp_concepts
-    constexpr nested_scalar
-    operator()(std::size_t i) const requires (nested_rows == 1) or (nested_cols == 1)
-#else
-    template<std::size_t r = nested_rows, std::enable_if_t<(r == 1) or (nested_cols == 1), int> = 0>
-    constexpr nested_scalar
-    operator()(std::size_t i) const
-#endif
-    {
-      if constexpr (nested_rows != 1) assert(Eigen::Index(i) < runtime_dimension_of<0>(*this));
-      if constexpr (nested_cols != 1) assert(Eigen::Index(i) < runtime_dimension_of<1>(*this));
-      return 0;
-    }
+    auto& get_all_dimensions() & { return my_dimensions; }
+    /// \overload
+    const auto& get_all_dimensions() const & { return my_dimensions; }
+    /// \overload
+    auto&& get_all_dimensions() && { return std::move(my_dimensions); }
+    /// \overload
+    const auto&& get_all_dimensions() const && { return std::move(my_dimensions); }
+
+  private:
+
+    MyDimensions my_dimensions;
 
   };
 
@@ -162,7 +260,8 @@ namespace OpenKalman::Eigen3
 #else
   template<typename Arg, std::enable_if_t<zero_matrix<Arg>, int> = 0>
 #endif
-  ZeroMatrix(Arg&&) -> ZeroMatrix<std::conditional_t<eigen_zero_expr<Arg>, pattern_matrix_of_t<Arg>, std::decay_t<Arg>>>;
+  ZeroMatrix(Arg&&) -> ZeroMatrix<std::conditional_t<eigen_zero_expr<Arg> or eigen_constant_expr<Arg>,
+    pattern_matrix_of_t<Arg>, std::decay_t<Arg>>>;
 
 
 } // OpenKalman::Eigen3

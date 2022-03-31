@@ -33,9 +33,9 @@ namespace
     {
       using U = std::uniform_real_distribution<double>;
       auto true_state = randomize<Polar2>(U {5, 10}, U {-pi, pi});
-      auto x = GaussianDistribution < Polar<>, M2, Cov> { Polar2 {7.5, 0}, make_identity_matrix_like<Cov>() };
+      auto x = GaussianDistribution<Polar<>, M2, Cov> { Polar2 {7.5, 0}, make_identity_matrix_like<Cov>() };
       auto meas_cov = Cov {0.0025, 0, 0, 0.0025};
-      auto r = GaussianDistribution < Axes<2>, M2, Cov> { make_zero_matrix_like<Loc2>(), meas_cov };
+      auto r = GaussianDistribution<Axes<2>, M2, Cov> { make_zero_matrix_like<Loc2>(), meas_cov };
       parameter_test(transform, radarP, x, true_state, r, 0.7, 100);
     }
   }
