@@ -20,7 +20,7 @@
 namespace OpenKalman::internal
 {
 #ifdef __cpp_concepts
-  template<typename Derived, typename NestedMatrix, coefficients...Coefficients>
+  template<typename Derived, typename NestedMatrix, typed_index_descriptor...Coefficients>
   requires (not std::is_rvalue_reference_v<NestedMatrix>) and (sizeof...(Coefficients) <= 2)
 #else
   template<typename Derived, typename NestedMatrix, typename...Coefficients>
@@ -29,7 +29,7 @@ namespace OpenKalman::internal
   {
 
 #ifndef __cpp_concepts
-    static_assert((coefficients<Coefficients> and ...));
+    static_assert((typed_index_descriptor<Coefficients> and ...));
     static_assert(not std::is_rvalue_reference_v<NestedMatrix>);
     static_assert(sizeof...(Coefficients) <= 2);
 #endif

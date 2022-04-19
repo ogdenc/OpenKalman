@@ -955,6 +955,6 @@ TEST(covariance_tests, Covariance_other_operations)
   EXPECT_TRUE((CovSA2l {9, 3, 3, 10} == CovSA2l {9, 3, 3, 10}));
   EXPECT_TRUE((CovSA2l {9, 3, 3, 10} == CovT2u {9, 3, 3, 10}));
   EXPECT_TRUE((CovSA2u {9, 3, 3, 10} != CovSA2u {9, 2, 3, 10}));
-  EXPECT_TRUE((CovSA2l {9, 3, 3, 10} != Covariance<Axes<2>, SA2l> {9, 3, 3, 10}));
+  EXPECT_TRUE((CovSA2l {9, 3, 3, 10} != Covariance<Dimensions<2>, SA2l> {9, 3, 3, 10}));
 }
 

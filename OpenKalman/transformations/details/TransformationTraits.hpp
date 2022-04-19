@@ -157,7 +157,7 @@ namespace OpenKalman
 #else
   constexpr bool transformation_input =
 #endif
-    typed_matrix<T> and column_vector<T> and untyped_columns<T> and (not euclidean_transformed<T>) and
+    typed_matrix<T> and column_vector<T> and has_untyped_index<T, 1> and (not euclidean_transformed<T>) and
     equivalent_to<typename oin::PerturbationTraits<T>::RowCoefficients, Coeffs>;
 
 
@@ -217,8 +217,8 @@ namespace OpenKalman
     inline auto zero_hessian_impl()
     {
       using InputCoefficients = row_coefficient_types_of_t<In>;
-      constexpr std::size_t input_size = InputCoefficients::dimension;
-      constexpr std::size_t output_size = OutputCoefficients::dimension;
+      constexpr std::size_t input_size = dimension_size_of_v<InputCoefficients>;
+      constexpr std::size_t output_size = dimension_size_of_v<OutputCoefficients>;
       using HessianMatrixInBase = untyped_dense_writable_matrix_t<In, input_size, input_size>;
       using HessianMatrixIn = Matrix<InputCoefficients, InputCoefficients, HessianMatrixInBase>;
       using HessianArrayIn = std::array<HessianMatrixIn, output_size>;
@@ -234,7 +234,7 @@ namespace OpenKalman
   template<typename OutputCoefficients, typename In, typename ... Perturbations>
   inline auto zero_hessian()
   {
-    static_assert(typed_matrix<In> and untyped_columns<In>);
+    static_assert(typed_matrix<In> and has_untyped_index<In, 1>);
     static_assert((perturbation<Perturbations> and ...));
     return std::tuple {OpenKalman::detail::zero_hessian_impl<OutputCoefficients, In>(),
       OpenKalman::detail::zero_hessian_impl<OutputCoefficients, Perturbations>()...};

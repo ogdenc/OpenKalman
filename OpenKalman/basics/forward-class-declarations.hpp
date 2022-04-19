@@ -31,11 +31,12 @@ namespace OpenKalman
 
     /**
      * \brief A matrix, like PatternMatrix, in which all elements are a constant scalar value known at compile time.
-     * \tparam PatternMatrix A matrix that acts as the pattern for the dimensions of the resulting matrix.
+     * \tparam PatternMatrix A matrix that acts as the pattern for the dimensions of the resulting matrix
+     * \tparam constant The constant scalar value
      */
   #ifdef __cpp_concepts
   # if __cpp_nontype_template_args >= 201911L
-    template<indexible PatternMatrix, scalar_type_of_t<NestedMatrix> constant>
+    template<indexible PatternMatrix, scalar_type_of_t<PatternMatrix> constant>
   # else
     template<indexible PatternMatrix, auto constant> requires
       std::convertible_to<decltype(constant), scalar_type_of_t<PatternMatrix>>
@@ -300,9 +301,9 @@ namespace OpenKalman
      * \tparam NestedMatrix The pre-transformed column vector, or set of column vectors in the form of a matrix.
      */
   #ifdef __cpp_concepts
-    template<coefficients Coefficients, typename NestedMatrix>
+    template<typed_index_descriptor Coefficients, typename NestedMatrix>
     requires (dynamic_coefficients<Coefficients> == dynamic_rows<NestedMatrix>) and
-      (not fixed_coefficients<Coefficients> or Coefficients::euclidean_dimension == row_dimension_of_v<NestedMatrix>) and
+      (not fixed_coefficients<Coefficients> or euclidean_dimension_size_of_v<Coefficients> == row_dimension_of_v<NestedMatrix>) and
       (not dynamic_coefficients<Coefficients> or
         std::same_as<typename Coefficients::Scalar, scalar_type_of_t<NestedMatrix>>)
   #else
@@ -343,9 +344,9 @@ namespace OpenKalman
      * \tparam NestedMatrix The pre-transformed column vector, or set of column vectors in the form of a matrix.
      */
   #ifdef __cpp_concepts
-    template<coefficients Coefficients, typename NestedMatrix> requires (not from_euclidean_expr<NestedMatrix>) and
+    template<typed_index_descriptor Coefficients, typename NestedMatrix> requires (not from_euclidean_expr<NestedMatrix>) and
       (dynamic_coefficients<Coefficients> == dynamic_rows<NestedMatrix>) and
-      (not fixed_coefficients<Coefficients> or Coefficients::dimension == row_dimension_of_v<NestedMatrix>) and
+      (not fixed_coefficients<Coefficients> or dimension_size_of_v<Coefficients> == row_dimension_of_v<NestedMatrix>) and
       (not dynamic_coefficients<Coefficients> or
         std::same_as<typename Coefficients::Scalar, scalar_type_of_t<NestedMatrix>>)
   #else
@@ -404,9 +405,9 @@ namespace OpenKalman
    * \tparam NestedMatrix The underlying native matrix or matrix expression.
    */
 #ifdef __cpp_concepts
-  template<coefficients RowCoefficients, coefficients ColumnCoefficients, typed_matrix_nestable NestedMatrix>
-  requires (RowCoefficients::dimension == row_dimension_of_v<NestedMatrix>) and
-    (ColumnCoefficients::dimension == column_dimension_of_v<NestedMatrix>) and
+  template<typed_index_descriptor RowCoefficients, typed_index_descriptor ColumnCoefficients, typed_matrix_nestable NestedMatrix>
+  requires (dimension_size_of_v<RowCoefficients> == row_dimension_of_v<NestedMatrix>) and
+    (dimension_size_of_v<ColumnCoefficients> == column_dimension_of_v<NestedMatrix>) and
     (not std::is_rvalue_reference_v<NestedMatrix>) and
     (dynamic_coefficients<RowCoefficients> == dynamic_rows<NestedMatrix>) and
     (dynamic_coefficients<ColumnCoefficients> == dynamic_columns<NestedMatrix>)
@@ -436,8 +437,8 @@ namespace OpenKalman
    * \tparam NestedMatrix The underlying native matrix or matrix expression.
    */
 #ifdef __cpp_concepts
-  template<coefficients RowCoefficients, typed_matrix_nestable NestedMatrix> requires
-  (RowCoefficients::dimension == row_dimension_of_v<NestedMatrix>) and
+  template<typed_index_descriptor RowCoefficients, typed_matrix_nestable NestedMatrix> requires
+  (dimension_size_of_v<RowCoefficients> == row_dimension_of_v<NestedMatrix>) and
   (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename RowCoefficients, typename NestedMatrix>
@@ -465,8 +466,8 @@ namespace OpenKalman
    * \tparam NestedMatrix The underlying native matrix or matrix expression.
    */
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, typed_matrix_nestable NestedMatrix> requires
-  (Coefficients::euclidean_dimension == row_dimension_of_v<NestedMatrix>) and (not std::is_rvalue_reference_v<NestedMatrix>)
+  template<typed_index_descriptor Coefficients, typed_matrix_nestable NestedMatrix> requires
+  (euclidean_dimension_size_of_v<Coefficients> == row_dimension_of_v<NestedMatrix>) and (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename Coefficients, typename NestedMatrix>
 #endif
@@ -490,8 +491,8 @@ namespace OpenKalman
    * are functionally identical, but often the triangular version is more efficient.
    */
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, covariance_nestable NestedMatrix> requires
-    (Coefficients::dimension == row_dimension_of_v<NestedMatrix>) and (not std::is_rvalue_reference_v<NestedMatrix>)
+  template<typed_index_descriptor Coefficients, covariance_nestable NestedMatrix> requires
+    (dimension_size_of_v<Coefficients> == row_dimension_of_v<NestedMatrix>) and (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename Coefficients, typename NestedMatrix>
 #endif
@@ -517,8 +518,8 @@ namespace OpenKalman
    * are functionally identical, but often the triangular version is more efficient.
    */
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, covariance_nestable NestedMatrix> requires
-    (Coefficients::dimension == row_dimension_of_v<NestedMatrix>) and (not std::is_rvalue_reference_v<NestedMatrix>)
+  template<typed_index_descriptor Coefficients, covariance_nestable NestedMatrix> requires
+    (dimension_size_of_v<Coefficients> == row_dimension_of_v<NestedMatrix>) and (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename Coefficients, typename NestedMatrix>
 #endif
@@ -542,7 +543,7 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<
-    coefficients Coefficients,
+    typed_index_descriptor Coefficients,
     typed_matrix_nestable MeanNestedMatrix,
     covariance_nestable CovarianceNestedMatrix,
     std::uniform_random_bit_generator random_number_engine = std::mt19937> requires
@@ -592,7 +593,7 @@ namespace OpenKalman
      * \tparam Coefficients The \ref OpenKalman::coefficients "coefficients" representing the rows and columns of the matrix.
      */
 #ifdef __cpp_concepts
-    template<typename Derived, typename NestedMatrix, coefficients...Coefficients>
+    template<typename Derived, typename NestedMatrix, typed_index_descriptor...Coefficients>
     requires (not std::is_rvalue_reference_v<NestedMatrix>) and (sizeof...(Coefficients) <= 2)
 #else
     template<typename Derived, typename NestedMatrix, typename...Coefficients>
@@ -639,35 +640,6 @@ namespace OpenKalman
 
 
   } // namespace internal
-
-
-  // --------------------------------- //
-  //   untyped_columns, untyped_rows   //
-  // --------------------------------- //
-
-  /**
-   * \brief Specifies that T has untyped (or Axis typed) column coefficients.
-   * \details T must be either a native matrix or its columns must all have type Axis.
-   */
-#ifdef __cpp_concepts
-  template<typename T>
-  concept untyped_columns = (column_coefficient_types_of_t<T>::axes_only);
-#else
-  template<typename T>
-  constexpr bool untyped_columns = column_coefficient_types_of_t<T>::axes_only;
-#endif
-
-
-  /**
-   * \brief Specifies that T has untyped (or Axis typed) row bases.
-   */
-#ifdef __cpp_concepts
-  template<typename T>
-  concept untyped_rows = (row_coefficient_types_of_t<T>::axes_only);
-#else
-  template<typename T>
-  constexpr bool untyped_rows = row_coefficient_types_of_t<T>::axes_only;
-#endif
 
 } // OpenKalman
 

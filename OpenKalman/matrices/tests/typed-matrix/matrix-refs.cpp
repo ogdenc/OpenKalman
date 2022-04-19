@@ -122,11 +122,11 @@ TEST(matrices, References_Mean_const_lvalue)
 
 TEST(matrices, References_Mean_lvalue_axes)
 {
-  using V = Mean<Axes<3>, M33>;
+  using V = Mean<Dimensions<3>, M33>;
   V v1 {1, 2, 3,
         4, 5, 6,
         7, 8, 9};
-  Mean<Axes<3>, M33&> v2 {v1};
+  Mean<Dimensions<3>, M33&> v2 {v1};
   EXPECT_EQ(&nested_matrix(v1), &nested_matrix(v2));
   EXPECT_TRUE(is_near(v1, v2));
   EXPECT_EQ(v2(1, 0), 4);
@@ -147,10 +147,10 @@ TEST(matrices, References_Mean_lvalue_axes)
 
 TEST(matrices, References_Mean_const_lvalue_axes)
 {
-  Mean<Axes<3>, M33> v1 {1, 2, 3,
+  Mean<Dimensions<3>, M33> v1 {1, 2, 3,
                     4, 5, 6,
                     7, 8, 9};
-  Mean<Axes<3>, const M33&> v2 = v1;
+  Mean<Dimensions<3>, const M33&> v2 = v1;
   EXPECT_EQ(&nested_matrix(v1), &nested_matrix(v2));
   EXPECT_TRUE(is_near(v1, v2));
   EXPECT_EQ(v2(1, 0), 4);

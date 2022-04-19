@@ -22,24 +22,18 @@
 
 namespace OpenKalman
 {
-  struct Axis
+  /**
+   * \brief A real or integral number, (&minus;&infin;,&infin;).
+   * \details This is the default coefficient type. No wrapping occurs, and matrices operate as usual.
+   * \internal
+   * <b>See also</b> the following functions for accessing coefficient properties:
+   * - internal::to_euclidean_coeff: \copybrief internal::to_euclidean_coeff
+   * - internal::from_euclidean_coeff: \copybrief internal::from_euclidean_coeff
+   * - internal::wrap_get: \copybrief internal::wrap_get
+   * - internal::wrap_set \copybrief internal::wrap_set
+   */
+  struct Axis : Dimensions<1>
   {
-    /// Axis is associated with one matrix element.
-    static constexpr std::size_t dimension = 1;
-
-    /// Axis is represented by one coordinate in Euclidean space.
-    static constexpr std::size_t euclidean_dimension = 1;
-
-    /// Axis is composed of only axes.
-    static constexpr bool axes_only = true;
-
-    /**
-     * \brief The type of the result when subtracting two Axis values.
-     * \details A difference between two Axis values is also on an Axis, so there is no wrapping.
-     */
-    using difference_type = Axis;
-
-
     /**
      * \internal
      * \brief A function taking a row index and returning a corresponding matrix element.
@@ -75,7 +69,7 @@ namespace OpenKalman
 #else
     template<typename Scalar, std::size_t i>
 #endif
-    static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), euclidean_dimension>
+    static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), 1>
     to_euclidean_array =
     {
       [](const GetCoeff<Scalar>& get_coeff) { return get_coeff(i); }
@@ -97,7 +91,7 @@ namespace OpenKalman
 #else
     template<typename Scalar, std::size_t i>
 #endif
-    static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), dimension>
+    static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), 1>
       from_euclidean_array =
       {
         [](const GetCoeff<Scalar>& get_coeff) { return get_coeff(i); }
@@ -118,7 +112,7 @@ namespace OpenKalman
 #else
     template<typename Scalar, std::size_t i>
 #endif
-    static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), dimension>
+    static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), 1>
       wrap_array_get =
       {
         [](const GetCoeff<Scalar>& get_coeff) { return get_coeff(i); }
@@ -141,14 +135,24 @@ namespace OpenKalman
     template<typename Scalar, std::size_t i>
 #endif
     static constexpr
-      std::array<void (*const)(const Scalar, const SetCoeff<Scalar>&, const GetCoeff<Scalar>&), dimension>
+      std::array<void (*const)(const Scalar, const SetCoeff<Scalar>&, const GetCoeff<Scalar>&), 1>
       wrap_array_set =
       {
         [](const Scalar s, const SetCoeff<Scalar>& set_coeff, const GetCoeff<Scalar>&) { set_coeff(i, s); }
       };
 
+  };
 
-    static_assert(internal::coefficient_class<Axis>);
+
+  /**
+   * \internal
+   * \brief The type of the result when subtracting two Axis values.
+   * \details A difference between two Axis values is also on an Axis, so there is no wrapping.
+   */
+  template<>
+  struct dimension_difference_of<Axis>
+  {
+    using type = Axis;
   };
 
 

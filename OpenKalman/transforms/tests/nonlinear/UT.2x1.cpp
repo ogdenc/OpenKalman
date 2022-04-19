@@ -31,10 +31,10 @@ inline namespace
   using TR = TriangularMatrix<eigen_matrix_t<double, n, n>>;
 
   template<std::size_t n>
-  using G = GaussianDistribution<Axes<n>, M<n>, SA<n>>;
+  using G = GaussianDistribution<Dimensions<n>, M<n>, SA<n>>;
 
   template<std::size_t n>
-  using GT = GaussianDistribution<Axes<n>, M<n>, TR<n>>;
+  using GT = GaussianDistribution<Dimensions<n>, M<n>, TR<n>>;
 
   struct UT1p
   {

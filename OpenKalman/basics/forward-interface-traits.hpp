@@ -123,7 +123,7 @@ namespace OpenKalman::interface
      * \brief The coordinate system type(s) associated with index N of T, evaulated at compile time.
      * \details If the coordinate system is unknown at compile time, use DynamicCoefficients.
      */
-     using coordinate_system_types = Axes<IndexTraits<T, N>::dimension>;
+     using coordinate_system_types = Dimensions<IndexTraits<T, N>::dimension>;
 
 
     /**
@@ -354,21 +354,12 @@ namespace OpenKalman::interface
    * rows and columns can be set to \ref dynamic_size).
    * \note This definition is optional, and has default behavior if not defined.
    * \tparam T Type upon which the zero matrix will be constructed
-   * \tparam rows The specified row dimension of the matrix (defaults to that of T)
-   * \tparam columns The specified column dimension of the matrix (defaults to that of T)
    * \tparam Scalar The specified scalar type of the matrix (defaults to that of T)
    */
 #ifdef __cpp_concepts
-  template<typename T,
-    std::size_t rows = IndexTraits<std::decay_t<T>, 0>::dimension,
-    std::size_t columns = IndexTraits<std::decay_t<T>, 1>::dimension,
-    typename Scalar = typename ScalarTypeOf<std::decay_t<T>>::type>
+  template<typename T, typename Scalar = typename ScalarTypeOf<std::decay_t<T>>::type>
 #else
-  template<typename T,
-    std::size_t rows = IndexTraits<std::decay_t<T>, 0>::dimension,
-    std::size_t columns = IndexTraits<std::decay_t<T>, 1>::dimension,
-    typename Scalar = typename ScalarTypeOf<std::decay_t<T>>::type,
-    typename = void>
+  template<typename T, typename Scalar = typename ScalarTypeOf<std::decay_t<T>>::type, typename = void>
 #endif
   struct SingleConstantMatrixTraits
   {
@@ -435,36 +426,26 @@ namespace OpenKalman::interface
    * can set the size or scalar type of the resulting identity matrix based on the parameters (or the dimension is
    * dynamic, the dimension can be set to \ref dynamic_size).
    * \tparam T Type upon which the identity matrix will be constructed
-   * \tparam dimension The specified row and column dimension of the matrix (defaults to that of T)
    * \tparam Scalar The specified scalar type of the matrix (defaults to that of T)
    */
 #ifdef __cpp_concepts
-  template<typename T,
-    std::size_t dimension = IndexTraits<std::decay_t<T>, 0>::dimension == dynamic_size ?
-      IndexTraits<std::decay_t<T>, 1>::dimension : IndexTraits<std::decay_t<T>, 0>::dimension,
-    typename Scalar = typename ScalarTypeOf<std::decay_t<T>>::type>
+  template<typename T, typename Scalar = typename ScalarTypeOf<std::decay_t<T>>::type>
 #else
-  template<typename T,
-    std::size_t dimension = IndexTraits<std::decay_t<T>, 0>::dimension == dynamic_size ?
-          IndexTraits<std::decay_t<T>, 1>::dimension : IndexTraits<std::decay_t<T>, 0>::dimension,
-    typename Scalar = typename ScalarTypeOf<std::decay_t<T>>::type,
-    typename = void>
+  template<typename T, typename Scalar = typename ScalarTypeOf<std::decay_t<T>>::type, typename = void>
 #endif
   struct SingleConstantDiagonalMatrixTraits
   {
     /**
-     * \brief Create an \ref identity_matrix corresponding to the shape of T.
-     * \details If T is a \ref dynamic_matrix, you must include a single dimension as an argument,
-     * reflecting both the rows and columns of the identity matrix.
+     * \brief Create an \ref identity_matrix.
+     * \tparam D An \ref index_descriptor defining the size
+     * \note If this is not defined, it will return a DiagonalMatrix adapter with a constant diagonal of 1.
      */
 #ifdef __cpp_concepts
-    template<std::convertible_to<std::size_t>...runtime_dimensions> requires
-      (sizeof...(runtime_dimensions) == (dimension == dynamic_size ? 1 : 0))
+    template<index_descriptor D>
 #else
-    template<typename...runtime_dimensions, std::enable_if_t<(std::is_convertible_v<runtime_dimensions, std::size_t> and ...) and
-      (sizeof...(runtime_dimensions) == (dimension == dynamic_size ? 1 : 0)), int> = 0>
+    template<typename D, std::enable_if_t<index_descriptor<D>, int> = 0>
 #endif
-    static auto make_identity_matrix(runtime_dimensions...e) = delete;
+    static auto make_identity_matrix(D&& d); //< Defined elsewhere
   };
 
 

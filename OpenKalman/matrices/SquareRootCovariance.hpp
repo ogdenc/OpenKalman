@@ -21,8 +21,8 @@ namespace OpenKalman
   // ---------------------- //
 
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, covariance_nestable NestedMatrix> requires
-    (Coefficients::dimension == row_dimension_of_v<NestedMatrix>) and (not std::is_rvalue_reference_v<NestedMatrix>)
+  template<typed_index_descriptor Coefficients, covariance_nestable NestedMatrix> requires
+    (dimension_size_of_v<Coefficients> == row_dimension_of_v<NestedMatrix>) and (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename Coefficients, typename NestedMatrix>
 #endif
@@ -30,9 +30,9 @@ namespace OpenKalman
   {
 
 #ifndef __cpp_concepts
-    static_assert(coefficients<Coefficients>);
+    static_assert(typed_index_descriptor<Coefficients>);
     static_assert(covariance_nestable<NestedMatrix>);
-    static_assert(Coefficients::dimension == row_dimension_of_v<NestedMatrix>);
+    static_assert(dimension_size_of_v<Coefficients> == row_dimension_of_v<NestedMatrix>);
     static_assert(not std::is_rvalue_reference_v<NestedMatrix>);
 #endif
 
@@ -591,8 +591,8 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<coefficients C, covariance_nestable N> requires
-    (C::dimension == row_dimension_of_v<N>) and (not std::is_rvalue_reference_v<N>)
+    template<typed_index_descriptor C, covariance_nestable N> requires
+    (dimension_size_of_v<C> == row_dimension_of_v<N>) and (not std::is_rvalue_reference_v<N>)
 #else
     template<typename, typename>
 #endif
@@ -600,8 +600,8 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<coefficients C, covariance_nestable N> requires
-      (C::dimension == row_dimension_of_v<N>) and (not std::is_rvalue_reference_v<N>)
+    template<typed_index_descriptor C, covariance_nestable N> requires
+      (dimension_size_of_v<C> == row_dimension_of_v<N>) and (not std::is_rvalue_reference_v<N>)
 #else
     template<typename, typename>
 #endif
@@ -622,7 +622,7 @@ namespace OpenKalman
 #else
   template<typename M, std::enable_if_t<covariance_nestable<M>, int> = 0>
 #endif
-  explicit SquareRootCovariance(M&&) -> SquareRootCovariance<Axes<row_dimension_of_v<M>>, passable_t<M>>;
+  explicit SquareRootCovariance(M&&) -> SquareRootCovariance<Dimensions<row_dimension_of_v<M>>, passable_t<M>>;
 
 
   /**
@@ -646,7 +646,7 @@ namespace OpenKalman
   template<typename M, std::enable_if_t<
     typed_matrix_nestable<M> and (not covariance_nestable<M>) and square_matrix<M>, int> = 0>
 #endif
-  explicit SquareRootCovariance(M&&) -> SquareRootCovariance<Axes<row_dimension_of_v<M>>,
+  explicit SquareRootCovariance(M&&) -> SquareRootCovariance<Dimensions<row_dimension_of_v<M>>,
     typename MatrixTraits<M>::template TriangularMatrixFrom<>>;
 
 
@@ -660,11 +660,11 @@ namespace OpenKalman
    * \tparam Arg A \ref covariance_nestable with size matching Coefficients.
    */
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, covariance_nestable Arg> requires
-    (Coefficients::dimension == row_dimension_of_v<Arg>)
+  template<typed_index_descriptor Coefficients, covariance_nestable Arg> requires
+    (dimension_size_of_v<Coefficients> == row_dimension_of_v<Arg>)
 #else
-  template<typename Coefficients, typename Arg, std::enable_if_t<coefficients<Coefficients> and
-    covariance_nestable<Arg> and (Coefficients::dimension == row_dimension_of<Arg>::value), int> = 0>
+  template<typename Coefficients, typename Arg, std::enable_if_t<typed_index_descriptor<Coefficients> and
+    covariance_nestable<Arg> and (dimension_size_of_v<Coefficients> == row_dimension_of<Arg>::value), int> = 0>
 #endif
   inline auto
   make_square_root_covariance(Arg&& arg) noexcept
@@ -687,7 +687,7 @@ namespace OpenKalman
   inline auto
   make_square_root_covariance(Arg&& arg) noexcept
   {
-    using C = Axes<row_dimension_of_v<Arg>>;
+    using C = Dimensions<row_dimension_of_v<Arg>>;
     return make_square_root_covariance<C>(std::forward<Arg>(arg));
   }
 
@@ -700,16 +700,16 @@ namespace OpenKalman
    * \tparam Arg A square, self-adjoint \ref typed_matrix_nestable with size matching Coefficients.
    */
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, TriangleType triangle_type = TriangleType::lower, typed_matrix_nestable Arg>
+  template<typed_index_descriptor Coefficients, TriangleType triangle_type = TriangleType::lower, typed_matrix_nestable Arg>
   requires (not covariance_nestable<Arg>) and
     (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
-    (Coefficients::dimension == row_dimension_of_v<Arg>) and (Coefficients::dimension == column_dimension_of_v<Arg>)
+    (dimension_size_of_v<Coefficients> == row_dimension_of_v<Arg>) and (dimension_size_of_v<Coefficients> == column_dimension_of_v<Arg>)
 #else
   template<typename Coefficients, TriangleType triangle_type = TriangleType::lower, typename Arg, std::enable_if_t<
-    coefficients<Coefficients> and typed_matrix_nestable<Arg> and (not covariance_nestable<Arg>) and
+    typed_index_descriptor<Coefficients> and typed_matrix_nestable<Arg> and (not covariance_nestable<Arg>) and
     (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
-    (Coefficients::dimension == row_dimension_of<Arg>::value) and
-    (Coefficients::dimension == column_dimension_of<Arg>::value), int> = 0>
+    (dimension_size_of_v<Coefficients> == row_dimension_of<Arg>::value) and
+    (dimension_size_of_v<Coefficients> == column_dimension_of<Arg>::value), int> = 0>
 #endif
   inline auto
   make_square_root_covariance(Arg&& arg) noexcept
@@ -737,7 +737,7 @@ namespace OpenKalman
   inline auto
   make_square_root_covariance(Arg&& arg) noexcept
   {
-    using C = Axes<row_dimension_of_v<Arg>>;
+    using C = Dimensions<row_dimension_of_v<Arg>>;
     return make_square_root_covariance<C, triangle_type>(std::forward<Arg>(arg));
   }
 
@@ -747,10 +747,10 @@ namespace OpenKalman
    * \brief Make a writable, uninitialized SquareRootCovariance from a \ref typed_matrix_nestable.
    */
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, TriangleType triangle_type, typed_matrix_nestable Arg> requires square_matrix<Arg>
+  template<typed_index_descriptor Coefficients, TriangleType triangle_type, typed_matrix_nestable Arg> requires square_matrix<Arg>
 #else
   template<typename Coefficients, TriangleType triangle_type, typename Arg,
-    std::enable_if_t<coefficients<Coefficients> and typed_matrix_nestable<Arg> and square_matrix<Arg>, int> = 0>
+    std::enable_if_t<typed_index_descriptor<Coefficients> and typed_matrix_nestable<Arg> and square_matrix<Arg>, int> = 0>
 #endif
   inline auto
   make_square_root_covariance()
@@ -767,7 +767,7 @@ namespace OpenKalman
    * \brief Make a writable, uninitialized SquareRootCovariance from a \ref covariance_nestable or \ref typed_matrix_nestable.
    */
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, typename Arg> requires
+  template<typed_index_descriptor Coefficients, typename Arg> requires
     (covariance_nestable<Arg> or typed_matrix_nestable<Arg>) and square_matrix<Arg>
 #else
   template<typename Coefficients, typename Arg, std::enable_if_t<
@@ -800,7 +800,7 @@ namespace OpenKalman
   inline auto
   make_square_root_covariance()
   {
-    using C = Axes<row_dimension_of_v<Arg>>;
+    using C = Dimensions<row_dimension_of_v<Arg>>;
     return make_square_root_covariance<C, Arg>();
   }
 
@@ -818,7 +818,7 @@ namespace OpenKalman
   inline auto
   make_square_root_covariance()
   {
-    using C = Axes<row_dimension_of_v<Arg>>;
+    using C = Dimensions<row_dimension_of_v<Arg>>;
     return make_square_root_covariance<C, triangle_type, Arg>();
   }
 

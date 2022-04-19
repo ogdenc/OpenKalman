@@ -559,19 +559,19 @@ TEST(covariance_tests, Covariance_deduction_guides)
   static_assert(equivalent_to<row_coefficient_types_of_t<decltype(Covariance(CovSA2l {9, 3, 3, 10}))>, C>);
 
   EXPECT_TRUE(is_near(Covariance(T2l {3, 0, 1, 3}), Mat2 {9, 3, 3, 10}));
-  static_assert(equivalent_to<row_coefficient_types_of_t<decltype(Covariance(T2l {3, 0, 1, 3}))>, Axes<2>>);
+  static_assert(equivalent_to<row_coefficient_types_of_t<decltype(Covariance(T2l {3, 0, 1, 3}))>, Dimensions<2>>);
 
   EXPECT_TRUE(is_near(Covariance(D2 {1, 2}), Mat2 {1, 0, 0, 2}));
-  static_assert(equivalent_to<row_coefficient_types_of_t<decltype(Covariance(D2 {1, 2}))>, Axes<2>>);
+  static_assert(equivalent_to<row_coefficient_types_of_t<decltype(Covariance(D2 {1, 2}))>, Dimensions<2>>);
 
   EXPECT_TRUE(is_near(Covariance(Mat2 {9, 3, 3, 10}), Mat2 {9, 3, 3, 10}));
   static_assert(equivalent_to<row_coefficient_types_of_t<decltype(Covariance(Mat2 {9, 3, 3, 10}))>, C>);
 
   EXPECT_TRUE(is_near(Covariance(make_dense_writable_matrix_from<M2>(9, 3, 3, 10)), Mat2 {9, 3, 3, 10}));
-  static_assert(equivalent_to<row_coefficient_types_of_t<decltype(Covariance(make_dense_writable_matrix_from<M2>(9, 3, 3, 10)))>, Axes<2>>);
+  static_assert(equivalent_to<row_coefficient_types_of_t<decltype(Covariance(make_dense_writable_matrix_from<M2>(9, 3, 3, 10)))>, Dimensions<2>>);
 
   EXPECT_TRUE(is_near(Covariance {9., 3, 3, 10}, Mat2 {9, 3, 3, 10}));
-  static_assert(equivalent_to<row_coefficient_types_of_t<decltype(Covariance {9., 3, 3, 10})>, Axes<2>>);
+  static_assert(equivalent_to<row_coefficient_types_of_t<decltype(Covariance {9., 3, 3, 10})>, Dimensions<2>>);
 }
 
 
@@ -688,7 +688,7 @@ TEST(covariance_tests, Covariance_make)
   static_assert(lower_triangular_matrix<decltype(make_covariance<C, TriangleType::lower>().get_triangular_nested_matrix())>);
   static_assert(upper_triangular_matrix<decltype(make_covariance<C, TriangleType::upper>().get_triangular_nested_matrix())>);
   static_assert(Eigen3::lower_self_adjoint_matrix<decltype(make_covariance<C>().get_self_adjoint_nested_matrix())>);
-  static_assert(row_coefficient_types_of_t<decltype(make_covariance<C>())>::dimension == 2);
+  static_assert(dimension_size_of_vrow_coefficient_types_of_t<decltype(make_covariance<C>())>> == 2);
 }
 
 

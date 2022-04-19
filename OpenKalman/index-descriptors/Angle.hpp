@@ -25,7 +25,7 @@
 
 namespace OpenKalman
 {
-  /// Namespace for definitions relating to coefficients representing an angle.
+  /// Namespace for definitions relating to typed_index_descriptors representing an angle.
   namespace angle
   {
     /// Namespace for classes describing the numerical limits for an angle.
@@ -130,32 +130,29 @@ namespace OpenKalman
   } // namespace angle
 
 
+  /**
+   * \brief An angle or any other simple modular value.
+   * \details An angle wraps to a given interval [max,min) when it increases or decreases outside that range.
+   * There are several predefined angles, including angle::Radians, angle::Degrees, angle::PositiveRadians,
+   * angle::PositiveDegrees, and angle::Circle.
+   * \tparam Limits A class template defining the real values <code>min</code> and <code>max</code>, representing
+   * minimum and maximum values, respectively, beyond which wrapping occurs. This range must include both 0 and 1
+   * so that it is a mathematical ring. Scalar is a std::floating_point type.
+   * \internal
+   * <b>See also</b> the following functions for accessing coefficient properties:
+   * - internal::to_euclidean_coeff: \copybrief internal::to_euclidean_coeff
+   * - internal::from_euclidean_coeff: \copybrief internal::from_euclidean_coeff
+   * - internal::wrap_get: \copybrief internal::wrap_get
+   * - internal::wrap_set \copybrief internal::wrap_set
+   */
   template<template<typename Scalar> typename Limits = angle::limits::Radians>
 #ifdef __cpp_concepts
     requires std::floating_point<decltype(Limits<double>::min)> and
       std::floating_point<decltype(Limits<double>::max)> and (Limits<double>::min < Limits<double>::max)
 #endif
-  struct Angle
+  struct Angle : Dimensions<1>
   {
     static_assert(Limits<double>::min < Limits<double>::max);
-
-    /// Angle is associated with one matrix element.
-    static constexpr std::size_t dimension = 1;
-
-    /// Angle is represented by two coordinates in Euclidean space.
-    static constexpr std::size_t euclidean_dimension = 2;
-
-    /// Angle is not composed of only axes.
-    static constexpr bool axes_only = false;
-
-    /**
-     * \brief The type of the result when subtracting two Angle values.
-     * \details A distance between two points on a circle cannot be more than the circumference of the circle,
-     * so it must be wrapped as an Angle.
-     * See David Frederic Crouse, Cubature/Unscented/Sigma Point Kalman Filtering with Angular Measurement Models,
-     * 18th Int'l Conf. on Information Fusion 1550, 1553 (2015).
-     */
-    using difference_type = Angle;
 
     /**
      * \internal
@@ -197,7 +194,7 @@ namespace OpenKalman
 #if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS
     requires std::floating_point<Scalar>
 #endif
-    static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), euclidean_dimension>
+    static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), 2>
       to_euclidean_array =
       {
         [](const GetCoeff<Scalar>& get_coeff) { return std::cos(get_coeff(i) * cf<Scalar>); },
@@ -222,7 +219,7 @@ namespace OpenKalman
 #if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS
     requires std::floating_point<Scalar>
 #endif
-    static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), dimension>
+    static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), 1>
       from_euclidean_array =
       {
         [](const GetCoeff<Scalar>& get_coeff) {
@@ -289,7 +286,7 @@ namespace OpenKalman
 #if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS
     requires std::floating_point<Scalar>
 #endif
-    static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), dimension>
+    static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), 1>
       wrap_array_get =
       {
         [](const GetCoeff<Scalar>& get_coeff) { return wrap_impl(get_coeff(i)); }
@@ -311,15 +308,36 @@ namespace OpenKalman
     requires std::floating_point<Scalar>
 #endif
     static constexpr
-      std::array<void (*const)(const Scalar, const SetCoeff<Scalar>&, const GetCoeff<Scalar>&), dimension>
+      std::array<void (*const)(const Scalar, const SetCoeff<Scalar>&, const GetCoeff<Scalar>&), 1>
       wrap_array_set =
       {
         [](const Scalar s, const SetCoeff<Scalar>& set_coeff, const GetCoeff<Scalar>&) { set_coeff(i, wrap_impl(s)); }
       };
 
+  };
 
-    static_assert(internal::coefficient_class<Angle>);
 
+  /**
+   * \internal
+   * \brief Angle is represented by two coordinates in Euclidean space.
+   */
+  template<template<typename Scalar> typename Limits>
+  struct euclidean_dimension_size_of<Angle<Limits>>
+    : std::integral_constant<std::size_t, 2> {};
+
+
+  /**
+   * \internal
+   * \brief The type of the result when subtracting two Angle values.
+   * \details A distance between two points on a circle cannot be more than the circumference of the circle,
+   * so it must be wrapped as an Angle.
+   * See David Frederic Crouse, Cubature/Unscented/Sigma Point Kalman Filtering with Angular Measurement Models,
+   * 18th Int'l Conf. on Information Fusion 1550, 1553 (2015).
+   */
+  template<template<typename Scalar> typename Limits>
+  struct dimension_difference_of<Angle<Limits>>
+  {
+    using type = Angle<Limits>;
   };
 
 

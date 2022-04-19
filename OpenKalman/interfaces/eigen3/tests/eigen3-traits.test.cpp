@@ -170,24 +170,15 @@ TEST(eigen3, Eigen_Matrix)
   static_assert(row_dimension_of_v<decltype(MatrixTraits<M02>::make(1, 2))> == 1);
   static_assert(row_dimension_of_v<decltype(MatrixTraits<M00>::make(1, 2))> == 2);
 
-  EXPECT_TRUE(is_near(make_zero_matrix_like<M23>(Dimensions<2>{}, Dimensions<3>{}), M23::Zero()));
-  EXPECT_TRUE(is_near(make_zero_matrix_like<M20>(Dimensions<2>{}, 3), M23::Zero()));
-  EXPECT_TRUE(is_near(make_zero_matrix_like<M03>(2, Dimensions<3>{}), M23::Zero()));
-  EXPECT_TRUE(is_near(make_zero_matrix_like<M00>(2,3), M23::Zero()));
-  EXPECT_TRUE(is_near(make_zero_matrix_like<M23>(3,2), M32::Zero()));
-  EXPECT_TRUE(is_near(make_zero_matrix_like<M20>(3,2), M32::Zero()));
-  EXPECT_TRUE(is_near(make_zero_matrix_like<M03>(3,2), M32::Zero()));
-
-  EXPECT_TRUE(is_near(make_identity_matrix_like<M33>(), M33::Identity()));
-  EXPECT_TRUE(is_near(make_identity_matrix_like<M30>(), M33::Identity()));
-  EXPECT_TRUE(is_near(make_identity_matrix_like<M03>(), M33::Identity()));
-  EXPECT_TRUE(is_near(make_identity_matrix_like<M00>(3), M33::Identity()));
-  EXPECT_TRUE(is_near(make_identity_matrix_like<M33, dynamic_size>(4), M44::Identity()));
-  EXPECT_TRUE(is_near(make_identity_matrix_like<M30, dynamic_size>(4), M44::Identity()));
-  EXPECT_TRUE(is_near(make_identity_matrix_like<M03, dynamic_size>(4), M44::Identity()));
-
+  static_assert(std::is_same_v<coefficient_types_of<M11, 0>::type, Dimensions<1>>);
+  static_assert(std::is_same_v<coefficient_types_of<M11, 1>::type, Dimensions<1>>);
   static_assert(equivalent_to<coefficient_types_of_t<M11, 0>, Axis>);
   static_assert(equivalent_to<coefficient_types_of_t<M11, 1>, Axis>);
+  static_assert(std::is_same_v<coefficient_types_of<M22, 0>::type, Dimensions<2>>);
+  static_assert(std::is_same_v<coefficient_types_of<M22, 1>::type, Dimensions<2>>);
+  static_assert(equivalent_to<coefficient_types_of_t<M22, 0>, Coefficients<Axis, Axis>>);
+  static_assert(equivalent_to<coefficient_types_of_t<M22, 1>, Coefficients<Axis, Axis>>);
+
   static_assert(square_matrix<M11>);
   static_assert(square_matrix<M22>);
   static_assert(not square_matrix<M20>);

@@ -22,14 +22,14 @@ inline namespace
   inline CovSA2 covSA2 {1.2, 0.2, 0.2, 2.1};
   inline CovT2 covT2 {1.2, 0.2, 0.2, 2.1};
 
-  using C3 = Axes<3>;
+  using C3 = Dimensions<3>;
   using M33 = eigen_matrix_t<double, 3, 3>;
   using CovSA3 = Covariance <C3, SelfAdjointMatrix<M33>>;
   using CovT3 = Covariance <C3, TriangularMatrix<M33>>;
   inline CovSA3 covSA3 {1.2, 0.2, 0.1, 0.2, 2.1, 0.3, 0.1, 0.3, 3.1};
   inline CovT3 covT3 {1.2, 0.2, 0.1, 0.2, 2.1, 0.3, 0.1, 0.3, 3.1};
 
-  using C4 = Axes<4>;
+  using C4 = Dimensions<4>;
   using M44 = eigen_matrix_t<double, 4, 4>;
   using CovSA4 = Covariance <C4, SelfAdjointMatrix<M44>>;
   using CovT4 = Covariance <C4, TriangularMatrix<M44>>;

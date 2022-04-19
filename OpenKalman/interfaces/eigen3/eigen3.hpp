@@ -15,8 +15,8 @@
  * \dir interfaces/eigen3/details
  * \brief Support files for the Eigen3 interface.
  *
- * \dir interfaces/eigen3/tests coefficient-types/tests
- * \brief Test files for coefficient types.
+ * \dir interfaces/eigen3/tests
+ * \brief Test files for Eigen3 interface.
  *
  * \file
  * \brief The comprehensive header file for OpenKalman's interface to the Eigen3 library.
@@ -54,7 +54,8 @@
 #include "details/eigen3-matrix-traits.hpp"
 #include "details/eigen3-traits.hpp"
 
-#include "details/eigen3-matrix-overloads.hpp"
+#include "details/eigen3-interface.hpp"
+#include "details/eigen3-functions.hpp"
 #include "special-matrices/details/eigen3-special_matrix-traits.hpp"
 
 #include "special-matrices/ConstantMatrix.hpp"
@@ -96,12 +97,9 @@ namespace OpenKalman
   using Eigen3::FromEuclideanExpr;
   using Eigen3::ToEuclideanExpr;
 
-  using Eigen3::make_eigen_matrix;
   using Eigen3::make_EigenSelfAdjointMatrix;
   using Eigen3::make_EigenTriangularMatrix;
 
-  using Eigen3::reduce_columns;
-  using Eigen3::reduce_rows;
   using Eigen3::LQ_decomposition;
   using Eigen3::QR_decomposition;
   using Eigen3::concatenate_vertical;

@@ -54,6 +54,21 @@ namespace
 }
 
 
+TEST(eigen3, element_access)
+{
+  auto m22 = make_dense_writable_matrix_from<M22>(1, 2, 3, 4);
+
+  EXPECT_NEAR(m22(0, 0), 1, 1e-6);
+  EXPECT_NEAR(m22(0, 1), 2, 1e-6);
+
+  auto d1 = make_eigen_matrix<double, 3, 1>(1, 2, 3);
+  EXPECT_NEAR(d1(1), 2, 1e-6);
+  d1(0) = 5;
+  d1(2, 0) = 7;
+  EXPECT_TRUE(is_near(d1, make_eigen_matrix<double, 3, 1>(5, 2, 7)));
+}
+
+
 TEST(eigen3, get_and_set_elements)
 {
   auto m21 = make_dense_writable_matrix_from<M21>(1, 2);
@@ -111,6 +126,84 @@ TEST(eigen3, get_and_set_elements)
   set_element(el12, 5.6, 1); EXPECT_NEAR(get_element(el12, 1), 5.6, 1e-8);
   set_element(el10_2, 5.6, 1); EXPECT_NEAR(get_element(el10_2, 1), 5.6, 1e-8);
 }
+
+
+TEST(eigen3, column)
+{
+  auto m33 = make_eigen_matrix<double, 3, 3>(
+    1, 0, 0,
+    0, 2, 0,
+    0, 0, 3);
+
+  auto c2 = make_dense_writable_matrix_from<M31>(0, 0, 3);
+
+  EXPECT_TRUE(is_near(column(m33, 2), c2));
+  EXPECT_TRUE(is_near(column(M30 {m33}, 2), c2));
+  EXPECT_TRUE(is_near(column(M03 {m33}, 2), c2));
+  EXPECT_TRUE(is_near(column(M00 {m33}, 2), c2));
+
+  EXPECT_TRUE(is_near(column(m33.array(), 2), c2));
+  EXPECT_TRUE(is_near(column(M30 {m33}.array(), 2), c2));
+  EXPECT_TRUE(is_near(column(M03 {m33}.array(), 2), c2));
+  EXPECT_TRUE(is_near(column(M00 {m33}.array(), 2), c2));
+
+  static_assert(column_vector<decltype(column(M00 {m33}, 2))>);
+  static_assert(column_vector<decltype(column(M00 {m33}.array(), 2))>);
+
+  auto c1 = make_dense_writable_matrix_from<M31>(0, 2, 0);
+
+  EXPECT_TRUE(is_near(column<1>(m33), c1));
+  EXPECT_TRUE(is_near(column(M30 {m33}, 1), c1));
+  EXPECT_TRUE(is_near(column(M03 {m33}, 1), c1));
+  EXPECT_TRUE(is_near(column(M00 {m33}, 1), c1));
+
+  EXPECT_TRUE(is_near(column<1>(m33.array()), c1));
+  EXPECT_TRUE(is_near(column(M30 {m33}.array(), 1), c1));
+  EXPECT_TRUE(is_near(column(M03 {m33}.array(), 1), c1));
+  EXPECT_TRUE(is_near(column(M00 {m33}.array(), 1), c1));
+
+  static_assert(column_vector<decltype(column(M00 {m33}, 1))>);
+  static_assert(column_vector<decltype(column(M00 {m33}.array(), 1))>);
+}
+
+
+TEST(eigen3, row)
+{
+  auto m33 = make_eigen_matrix<double, 3, 3>(
+    1, 0, 0,
+    0, 2, 0,
+    0, 0, 3);
+
+  auto r2 = make_dense_writable_matrix_from<M13>(0, 0, 3);
+
+  EXPECT_TRUE(is_near(row(m33, 2), r2));
+  EXPECT_TRUE(is_near(row(M30 {m33}, 2), r2));
+  EXPECT_TRUE(is_near(row(M03 {m33}, 2), r2));
+  EXPECT_TRUE(is_near(row(M00 {m33}, 2), r2));
+
+  EXPECT_TRUE(is_near(row(m33.array(), 2), r2));
+  EXPECT_TRUE(is_near(row(M30 {m33}.array(), 2), r2));
+  EXPECT_TRUE(is_near(row(M03 {m33}.array(), 2), r2));
+  EXPECT_TRUE(is_near(row(M00 {m33}.array(), 2), r2));
+
+  static_assert(row_vector<decltype(row(M00 {m33}, 2))>);
+  static_assert(row_vector<decltype(row(M00 {m33}.array(), 2))>);
+
+  auto r1 = make_dense_writable_matrix_from<M13>(0, 2, 0);
+
+  EXPECT_TRUE(is_near(row<1>(m33), r1));
+  EXPECT_TRUE(is_near(row(M30 {m33}, 1), r1));
+  EXPECT_TRUE(is_near(row(M03 {m33}, 1), r1));
+  EXPECT_TRUE(is_near(row(M00 {m33}, 1), r1));
+
+  EXPECT_TRUE(is_near(row<1>(m33.array()), r1));
+  EXPECT_TRUE(is_near(row(M30 {m33}.array(), 1), r1));
+  EXPECT_TRUE(is_near(row(M03 {m33}.array(), 1), r1));
+  EXPECT_TRUE(is_near(row(M00 {m33}.array(), 1), r1));
+
+  static_assert(row_vector<decltype(row(M00 {m33}, 1))>);
+  static_assert(row_vector<decltype(row(M00 {m33}.array(), 1))>);
+ }
 
 
 TEST(eigen3, concatenate_vertical)

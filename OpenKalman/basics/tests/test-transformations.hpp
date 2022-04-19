@@ -23,7 +23,7 @@ namespace OpenKalman::test
     {
       [](const auto& x, const auto& ...ps) // function
       {
-        static_assert(equivalent_to<row_coefficient_types_of_t<decltype(x)>, Axes<n>>);
+        static_assert(equivalent_to<row_coefficient_types_of_t<decltype(x)>, Dimensions<n>>);
         static_assert(equivalent_to<column_coefficient_types_of_t<decltype(x)>, Axis > );
         static_assert((equivalent_to<row_coefficient_types_of_t<decltype(ps)>, Axis > and ...));
         static_assert((equivalent_to<column_coefficient_types_of_t<decltype(ps)>, Axis > and ...));
@@ -32,7 +32,7 @@ namespace OpenKalman::test
       },
       [](const auto& x, const auto& ...ps) // Jacobians
       {
-        static_assert(equivalent_to<row_coefficient_types_of_t<decltype(x)>, Axes<n>>);
+        static_assert(equivalent_to<row_coefficient_types_of_t<decltype(x)>, Dimensions<n>>);
         static_assert(equivalent_to<column_coefficient_types_of_t<decltype(x)>, Axis > );
         static_assert((equivalent_to<row_coefficient_types_of_t<decltype(ps)>, Axis > and ...));
         static_assert((equivalent_to<column_coefficient_types_of_t<decltype(ps)>, Axis > and ...));
@@ -42,12 +42,12 @@ namespace OpenKalman::test
       },
       [](const auto& x, const auto& ...ps) // Hessians
       {
-        static_assert(equivalent_to<row_coefficient_types_of_t<decltype(x)>, Axes<n>>);
+        static_assert(equivalent_to<row_coefficient_types_of_t<decltype(x)>, Dimensions<n>>);
         static_assert(equivalent_to<column_coefficient_types_of_t<decltype(x)>, Axis > );
         static_assert((equivalent_to<row_coefficient_types_of_t<decltype(ps)>, Axis > and ...));
         static_assert((equivalent_to<column_coefficient_types_of_t<decltype(ps)>, Axis > and ...));
 
-        std::array<Matrix<Axes<n>, Axes<n>, eigen_matrix_t<double, n, n>>, 1> I;
+        std::array<Matrix<Dimensions<n>, Dimensions<n>, eigen_matrix_t<double, n, n>>, 1> I;
         I[0] = 2 * eigen_matrix_t<double, n, n>::Identity();
         return std::tuple {std::move(I), std::get<0>(zero_hessian<Axis>(ps))...};
       }
@@ -58,7 +58,7 @@ namespace OpenKalman::test
     {
       [](const auto& x, const auto& ...ps) // function
       {
-        static_assert(equivalent_to<row_coefficient_types_of_t<decltype(x)>, Axes<n>>);
+        static_assert(equivalent_to<row_coefficient_types_of_t<decltype(x)>, Dimensions<n>>);
         static_assert(equivalent_to<column_coefficient_types_of_t<decltype(x)>, Axis > );
         static_assert((equivalent_to<row_coefficient_types_of_t<decltype(ps)>, Axis > and ...));
         static_assert((equivalent_to<column_coefficient_types_of_t<decltype(ps)>, Axis > and ...));
@@ -68,7 +68,7 @@ namespace OpenKalman::test
       },
       [](const auto& x, const auto& ...ps) // Jacobians
       {
-        static_assert(equivalent_to<row_coefficient_types_of_t<decltype(x)>, Axes<n>>);
+        static_assert(equivalent_to<row_coefficient_types_of_t<decltype(x)>, Dimensions<n>>);
         static_assert(equivalent_to<column_coefficient_types_of_t<decltype(x)>, Axis > );
         static_assert((equivalent_to<row_coefficient_types_of_t<decltype(ps)>, Axis > and ...));
         static_assert((equivalent_to<column_coefficient_types_of_t<decltype(ps)>, Axis > and ...));
@@ -78,12 +78,12 @@ namespace OpenKalman::test
       },
       [](const auto& x, const auto& ...ps) // Hessians
       {
-        static_assert(equivalent_to<row_coefficient_types_of_t<decltype(x)>, Axes<n>>);
+        static_assert(equivalent_to<row_coefficient_types_of_t<decltype(x)>, Dimensions<n>>);
         static_assert(equivalent_to<column_coefficient_types_of_t<decltype(x)>, Axis > );
         static_assert((equivalent_to<row_coefficient_types_of_t<decltype(ps)>, Axis > and ...));
         static_assert((equivalent_to<column_coefficient_types_of_t<decltype(ps)>, Axis > and ...));
 
-        std::array<Matrix<Axes<n>, Axes<n>, eigen_matrix_t<double, n, n>>, 1> ret;
+        std::array<Matrix<Dimensions<n>, Dimensions<n>, eigen_matrix_t<double, n, n>>, 1> ret;
         double sq = trace(adjoint(x) * x);
         ret[0] = pow(sq, -1.5) * (-x * adjoint(x) + sq * make_identity_matrix_like<decltype(ret[0])>());
         return std::make_tuple(std::move(ret), std::get<0>(zero_hessian<Axis>(ps))...);
@@ -124,8 +124,8 @@ namespace OpenKalman::test
 
 
   using MP1t = Matrix<Polar<>, Axis, eigen_matrix_t<double, 2, 1>>;
-  using MP2t = Matrix<Polar<>, Axes<2>, eigen_matrix_t<double, 2, 2>>;
-  using M2Pt = Matrix<Axes<2>, Polar<>, eigen_matrix_t<double, 2, 2>>;
+  using MP2t = Matrix<Polar<>, Dimensions<2>, eigen_matrix_t<double, 2, 2>>;
+  using M2Pt = Matrix<Dimensions<2>, Polar<>, eigen_matrix_t<double, 2, 2>>;
   using MPPt = Matrix<Polar<>, Polar<>, eigen_matrix_t<double, 2, 2>>;
 
   inline auto radarP = Transformation

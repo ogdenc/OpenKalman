@@ -15,7 +15,7 @@ using namespace OpenKalman::test;
 
 inline namespace
 {
-  using C3 = Axes<3>;
+  using C3 = Dimensions<3>;
   using M33 = eigen_matrix_t<double, 3, 3>;
   using CovSA3 = Covariance <C3, SelfAdjointMatrix<M33>>;
   using CovT3 = Covariance <C3, TriangularMatrix<M33>>;

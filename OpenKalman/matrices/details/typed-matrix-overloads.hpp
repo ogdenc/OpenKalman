@@ -93,16 +93,16 @@ namespace OpenKalman
     {
       using RC = row_coefficient_types_of_t<Arg>;
 
-      if constexpr (uniform_coefficients<column_coefficient_types_of_t<Arg>>)
+      if constexpr (has_uniform_dimension_type<column_coefficient_types_of_t<Arg>>)
       {
-        using CC = typename has_uniform_coefficients<column_coefficient_types_of_t<Arg>>::common_coefficient;
+        using CC = typename uniform_dimension_type_of_t<column_coefficient_types_of_t<Arg>>;
         return MatrixTraits<Arg>::template make<RC, CC>(column<index...>(nested_matrix(std::forward<Arg>(arg)), i...));
       }
       else if constexpr (fixed_coefficients<column_coefficient_types_of_t<Arg>>)
       {
         static_assert(sizeof...(index) > 0);
         using CC = column_coefficient_types_of_t<Arg>::template Coefficient<index...>;
-        static_assert(CC::dimension == 1);
+        static_assert(dimension_size_of_v<CC> == 1);
         return MatrixTraits<Arg>::template make<RC, CC>(column<index...>(nested_matrix(std::forward<Arg>(arg))));
       }
       else
@@ -120,16 +120,16 @@ namespace OpenKalman
     {
       using CC = column_coefficient_types_of_t<Arg>;
 
-      if constexpr (uniform_coefficients<row_coefficient_types_of_t<Arg>>)
+      if constexpr (has_uniform_dimension_type<row_coefficient_types_of_t<Arg>>)
       {
-        using RC = typename has_uniform_coefficients<row_coefficient_types_of_t<Arg>>::common_coefficient;
+        using RC = typename uniform_dimension_type_of_t<row_coefficient_types_of_t<Arg>>;
         return MatrixTraits<Arg>::template make<RC, CC>(column<index...>(nested_matrix(std::forward<Arg>(arg)), i...));
       }
       else if constexpr (fixed_coefficients<row_coefficient_types_of_t<Arg>>)
       {
         static_assert(sizeof...(index) > 0);
         using RC = row_coefficient_types_of_t<Arg>::template Coefficient<index...>;
-        static_assert(RC::dimension == 1);
+        static_assert(dimension_size_of_v<RC> == 1);
         return MatrixTraits<Arg>::template make<RC, CC>(column<index...>(nested_matrix(std::forward<Arg>(arg))));
       }
       else
@@ -361,10 +361,10 @@ namespace OpenKalman
 
   /// Returns the mean of the column vectors after they are transformed into Euclidean space.
 #ifdef __cpp_concepts
-  template<typed_matrix Arg> requires (column_dimension_of_v<Arg> == 1) or untyped_columns<Arg>
+  template<typed_matrix Arg> requires (column_dimension_of_v<Arg> == 1) or has_untyped_index<Arg, 1>
 #else
   template<typename Arg, std::enable_if_t<typed_matrix<Arg> and
-    ((column_dimension_of<Arg>::value == 1) or untyped_columns<Arg>), int> = 0>
+    ((column_dimension_of<Arg>::value == 1) or has_untyped_index<Arg, 1>), int> = 0>
 #endif
   constexpr decltype(auto)
   reduce_columns(Arg&& arg) noexcept
@@ -483,7 +483,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
       using CC = Concatenate<column_coefficient_types_of_t<V>,
       column_coefficient_types_of_t<Vs>...>;
       auto cat = concatenate_horizontal(nested_matrix(std::forward<V>(v)), nested_matrix(std::forward<Vs>(vs))...);
-      if constexpr(CC::axes_only)
+      if constexpr(untyped_index_descriptor<CC>)
       {
         return MatrixTraits<V>::template make<RC, CC>(std::move(cat));
       }
@@ -563,7 +563,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
 
   /// Split typed matrix into one or more typed matrices vertically.
 #ifdef __cpp_concepts
-  template<coefficients ... Cs, typed_matrix M> requires
+  template<typed_index_descriptor ... Cs, typed_matrix M> requires
     prefix_of<Concatenate<Cs...>, row_coefficient_types_of_t<M>>
 #else
   template<typename ... Cs, typename M, std::enable_if_t<typed_matrix<M> and
@@ -580,7 +580,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
 
   /// Split typed matrix into one or more typed matrices horizontally.
 #ifdef __cpp_concepts
-  template<coefficients ... Cs, typed_matrix M> requires
+  template<typed_index_descriptor ... Cs, typed_matrix M> requires
     prefix_of<Concatenate<Cs...>, column_coefficient_types_of_t<M>>
 #else
   template<typename ... Cs, typename M, std::enable_if_t<typed_matrix<M> and
@@ -596,23 +596,23 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
 
   /// Split typed matrix into one or more typed matrices horizontally. Column coefficients must all be Axis.
 #ifdef __cpp_concepts
-  template<std::size_t ... cuts, typed_matrix M> requires untyped_columns<M> and (sizeof...(cuts) > 0) and
+  template<std::size_t ... cuts, typed_matrix M> requires has_untyped_index<M, 1> and (sizeof...(cuts) > 0) and
     ((... + cuts) <= column_dimension_of_v<M>)
 #else
   template<std::size_t ... cuts, typename M,
-    std::enable_if_t<typed_matrix<M> and untyped_columns<M> and (sizeof...(cuts) > 0) and
+    std::enable_if_t<typed_matrix<M> and has_untyped_index<M, 1> and (sizeof...(cuts) > 0) and
       ((0 + ... + cuts) <= column_dimension_of<M>::value), int> = 0>
 #endif
   inline auto
   split_horizontal(M&& m) noexcept
   {
-    return split_horizontal<Axes<cuts>...>(std::forward<M>(m));
+    return split_horizontal<Dimensions<cuts>...>(std::forward<M>(m));
   }
 
 
   /// Split typed matrix into one or more typed matrices diagonally.
 #ifdef __cpp_concepts
-  template<coefficients ... Cs, typed_matrix M>
+  template<typed_index_descriptor ... Cs, typed_matrix M>
 #else
   template<typename ... Cs, typename M, std::enable_if_t<typed_matrix<M>, int> = 0>
 #endif
@@ -628,12 +628,12 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   ////
 
 #ifdef __cpp_concepts
-  template<typename Function, typed_matrix Arg> requires untyped_columns<Arg> and
+  template<typename Function, typed_matrix Arg> requires has_untyped_index<Arg, 1> and
     requires(const Function& f, std::decay_t<decltype(column(std::declval<Arg>(), 0))>& col) { f(col); } and
     (not std::is_const_v<std::remove_reference_t<nested_matrix_of_t<Arg>>>) and
     modifiable<nested_matrix_of_t<Arg>, nested_matrix_of_t<Arg>>
 #else
-  template<typename Function, typename Arg, std::enable_if_t<typed_matrix<Arg> and untyped_columns<Arg> and
+  template<typename Function, typename Arg, std::enable_if_t<typed_matrix<Arg> and has_untyped_index<Arg, 1> and
     std::is_invocable_v<const Function&,
       std::decay_t<decltype(column(std::declval<Arg&>(), 0))>& > and
     (not std::is_const_v<std::remove_reference_t<nested_matrix_of_t<Arg>>>) and
@@ -658,14 +658,14 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
 
 
 #ifdef __cpp_concepts
-  template<typename Function, typed_matrix Arg> requires untyped_columns<Arg> and
+  template<typename Function, typed_matrix Arg> requires has_untyped_index<Arg, 1> and
     requires(const Function& f, std::decay_t<decltype(column(std::declval<Arg>(), 0))>& col, std::size_t i) {
       f(col, i);
     } and
     (not std::is_const_v<std::remove_reference_t<nested_matrix_of_t<Arg>>>) and
     modifiable<nested_matrix_of_t<Arg>, nested_matrix_of_t<Arg>>
 #else
-  template<typename Function, typename Arg, std::enable_if_t<typed_matrix<Arg> and untyped_columns<Arg> and
+  template<typename Function, typename Arg, std::enable_if_t<typed_matrix<Arg> and has_untyped_index<Arg, 1> and
     std::is_invocable_v<Function,
     std::decay_t<decltype(column(std::declval<Arg&>(), 0))>&, std::size_t> and
     (not std::is_const_v<std::remove_reference_t<nested_matrix_of_t<Arg>>>) and
@@ -689,13 +689,13 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
 
 
 #ifdef __cpp_concepts
-  template<typename Function, typed_matrix Arg> requires untyped_columns<Arg> and
+  template<typename Function, typed_matrix Arg> requires has_untyped_index<Arg, 1> and
     requires(const Arg& arg, const Function& f) {
       {f(column<0>(arg))} -> typed_matrix;
       {f(column<0>(arg))} -> column_vector;
     }
 #else
-  template<typename Function, typename Arg, std::enable_if_t<typed_matrix<Arg> and untyped_columns<Arg> and
+  template<typename Function, typename Arg, std::enable_if_t<typed_matrix<Arg> and has_untyped_index<Arg, 1> and
     typed_matrix<std::invoke_result_t<const Function&,
       std::decay_t<decltype(column(std::declval<const Arg&>(), 0))>&& >>, int> = 0>
 #endif
@@ -706,8 +706,8 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     using ResultType = std::invoke_result_t<Function, decltype(column(std::declval<Arg&>(), 0))>;
     using ResRC = row_coefficient_types_of_t<ResultType>;
     using ResCC0 = column_coefficient_types_of_t<ResultType>;
-    static_assert(ResCC0::dimension == 1, "Function argument of apply_columnwise must return a column vector.");
-    using ResCC = Replicate<ResCC0, column_dimension_of_v<Arg>>;
+    static_assert(dimension_size_of_v<ResCC0> == 1, "Function argument of apply_columnwise must return a column vector.");
+    using ResCC = replicated_fixed_index_descriptor<ResCC0, column_dimension_of_v<Arg>>;
     using RC = row_coefficient_types_of_t<Arg>;
     const auto f_nested = [&f](auto&& col) -> auto {
       return make_self_contained(
@@ -718,13 +718,13 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
 
 
 #ifdef __cpp_concepts
-  template<typename Function, typed_matrix Arg> requires untyped_columns<Arg> and
+  template<typename Function, typed_matrix Arg> requires has_untyped_index<Arg, 1> and
     requires(const Arg& arg, const Function& f, std::size_t i) {
       {f(column<0>(arg), i)} -> typed_matrix;
       {f(column<0>(arg), i)} -> column_vector;
     }
 #else
-  template<typename Function, typename Arg, std::enable_if_t<typed_matrix<Arg> and untyped_columns<Arg> and
+  template<typename Function, typename Arg, std::enable_if_t<typed_matrix<Arg> and has_untyped_index<Arg, 1> and
     typed_matrix<std::invoke_result_t<const Function&,
       std::decay_t<decltype(column(std::declval<const Arg&>(), 0))>&&, std::size_t>>, int> = 0>
 #endif
@@ -735,8 +735,8 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     using ResultType = std::invoke_result_t<Function, decltype(column(std::declval<Arg&>(), 0)), std::size_t>;
     using ResRC = row_coefficient_types_of_t<ResultType>;
     using ResCC0 = column_coefficient_types_of_t<ResultType>;
-    static_assert(ResCC0::dimension == 1, "Function argument of apply_columnwise must return a column vector.");
-    using ResCC = Replicate<ResCC0, column_dimension_of_v<Arg>>;
+    static_assert(dimension_size_of_v<ResCC0> == 1, "Function argument of apply_columnwise must return a column vector.");
+    using ResCC = replicated_fixed_index_descriptor<ResCC0, column_dimension_of_v<Arg>>;
     const auto f_nested = [&f](auto&& col, std::size_t i) -> auto {
       using RC = row_coefficient_types_of_t<Arg>;
       return make_self_contained(
@@ -763,8 +763,8 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     using ResultType = std::invoke_result_t<Function>;
     using RC = row_coefficient_types_of_t<ResultType>;
     using CC0 = column_coefficient_types_of_t<ResultType>;
-    static_assert(CC0::dimension == 1, "Function argument of apply_columnwise must return a column vector.");
-    using CC = Replicate<CC0, count>;
+    static_assert(dimension_size_of_v<CC0> == 1, "Function argument of apply_columnwise must return a column vector.");
+    using CC = replicated_fixed_index_descriptor<CC0, count>;
     return MatrixTraits<ResultType>::template make<RC, CC>(apply_columnwise<count>(f_nested));
   }
 
@@ -786,8 +786,8 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     using ResultType = std::invoke_result_t<Function, std::size_t>;
     using RC = row_coefficient_types_of_t<ResultType>;
     using CC0 = column_coefficient_types_of_t<ResultType>;
-    static_assert(CC0::dimension == 1, "Function argument of apply_columnwise must return a column vector.");
-    using CC = Replicate<CC0, count>;
+    static_assert(dimension_size_of_v<CC0> == 1, "Function argument of apply_columnwise must return a column vector.");
+    using CC = replicated_fixed_index_descriptor<CC0, count>;
     return MatrixTraits<ResultType>::template make<RC, CC>(apply_columnwise<count>(f_nested));
   }
 
@@ -935,22 +935,22 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
    *  element is a random value selected based on a distribution with mean 1.0 and standard deviation 0.3:
    *   \code
    *     using N = std::normal_distribution<double>;
-   *     auto m = randomize<Matrix<Axes<2>, Axes<2>, Eigen::Matrix<double, 2, 2>>>(N {1.0, 0.3}));
+   *     auto m = randomize<Matrix<Dimensions<2>, Dimensions<2>, Eigen::Matrix<double, 2, 2>>>(N {1.0, 0.3}));
    *   \endcode
    *
    *  - One distribution for each matrix element. The following code constructs a 2-by-2 matrix n containing
    *  random values around mean 1.0, 2.0, 3.0, and 4.0 (in row-major order), with standard deviations of
    *  0.3, 0.3, 0.0 (by default, since no s.d. is specified as a parameter), and 0.3:
    *   \code
-   *     auto n = randomize<Matrix<Axes<2>, Axes<2>, Eigen::Matrix<double, 2, 2>>>(N {1.0, 0.3}, N {2.0, 0.3}, 3.0, N {4.0, 0.3})));
+   *     auto n = randomize<Matrix<Dimensions<2>, Dimensions<2>, Eigen::Matrix<double, 2, 2>>>(N {1.0, 0.3}, N {2.0, 0.3}, 3.0, N {4.0, 0.3})));
    *   \endcode
    *
    *  - One distribution for each row. The following code constructs a 3-by-2 (o) or 2-by-2 (p) matrices
    *  in which elements in each row are selected according to the three (o) or two (p) listed distribution
    *  parameters:
    *   \code
-   *     auto o = randomize<Matrix<Axes<3>, Coefficients<angle::Radians, angle::Radians>, Eigen::Matrix<double, 3, 2>>>(N {1.0, 0.3}, 2.0, N {3.0, 0.3})));
-   *     auto p = randomize<Matrix<Axes<2>, Coefficients<angle::Radians, angle::Radians>, Eigen::Matrix<double, 2, 2>>>(N {1.0, 0.3}, N {2.0, 0.3})));
+   *     auto o = randomize<Matrix<Dimensions<3>, Coefficients<angle::Radians, angle::Radians>, Eigen::Matrix<double, 3, 2>>>(N {1.0, 0.3}, 2.0, N {3.0, 0.3})));
+   *     auto p = randomize<Matrix<Dimensions<2>, Coefficients<angle::Radians, angle::Radians>, Eigen::Matrix<double, 2, 2>>>(N {1.0, 0.3}, N {2.0, 0.3})));
    *   \endcode
    *   Note that in the case of p, there is an ambiguity as to whether the listed distributions correspond to rows
    *   or columns. In case of such an ambiguity, this function assumes that the parameters correspond to the rows.
@@ -958,7 +958,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
    *  - One distribution for each column. The following code constructs 2-by-3 matrix m
    *  in which elements in each column are selected according to the three listed distribution parameters:
    *   \code
-   *     auto m = randomize<Matrix<Coefficients<angle::Radians, angle::Radians>, Axes<3>, Eigen::Matrix<double, 2, 3>>>(N {1.0, 0.3}, 2.0, N {3.0, 0.3})));
+   *     auto m = randomize<Matrix<Coefficients<angle::Radians, angle::Radians>, Dimensions<3>, Eigen::Matrix<double, 2, 3>>>(N {1.0, 0.3}, 2.0, N {3.0, 0.3})));
    *   \endcode
    *
    * \tparam ReturnType The return type reflecting the size of the matrix to be filled. The actual result will be
@@ -999,9 +999,9 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
    * \details The following example constructs two 2-by-2 matrices (m, n, and p) in which each element is a
    * random value selected based on a distribution with mean 1.0 and standard deviation 0.3:
    *   \code
-   *     auto m = randomize<Matrix<Axes<2>, Axes<2>, Eigen::Matrix<float, 2, Eigen::Dynamic>>>(2, 2, std::normal_distribution<float> {1.0, 0.3}));
-   *     auto n = randomize<Matrix<Axes<2>, Axes<2>, Eigen::Matrix<double, Eigen::Dynamic, 2>>>(2, 2, std::normal_distribution<double> {1.0, 0.3}));
-   *     auto p = randomize<Matrix<Axes<2>, Axes<2>, Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>>>(2, 2, std::normal_distribution<double> {1.0, 0.3});
+   *     auto m = randomize<Matrix<Dimensions<2>, Dimensions<2>, Eigen::Matrix<float, 2, Eigen::Dynamic>>>(2, 2, std::normal_distribution<float> {1.0, 0.3}));
+   *     auto n = randomize<Matrix<Dimensions<2>, Dimensions<2>, Eigen::Matrix<double, Eigen::Dynamic, 2>>>(2, 2, std::normal_distribution<double> {1.0, 0.3}));
+   *     auto p = randomize<Matrix<Dimensions<2>, Dimensions<2>, Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>>>(2, 2, std::normal_distribution<double> {1.0, 0.3});
    *   \endcode
    * \tparam ReturnType The type of the matrix to be filled.
    * \tparam random_number_engine The random number engine (e.g., std::mt19937).

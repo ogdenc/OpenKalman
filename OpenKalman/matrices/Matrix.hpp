@@ -20,9 +20,9 @@ namespace OpenKalman
   // --------------------- //
 
 #ifdef __cpp_concepts
-  template<coefficients RowCoefficients, coefficients ColumnCoefficients, typed_matrix_nestable NestedMatrix>
-  requires (RowCoefficients::dimension == row_dimension_of_v<NestedMatrix>) and
-    (ColumnCoefficients::dimension == column_dimension_of_v<NestedMatrix>) and
+  template<typed_index_descriptor RowCoefficients, typed_index_descriptor ColumnCoefficients, typed_matrix_nestable NestedMatrix>
+  requires (dimension_size_of_v<RowCoefficients> == row_dimension_of_v<NestedMatrix>) and
+    (dimension_size_of_v<ColumnCoefficients> == column_dimension_of_v<NestedMatrix>) and
     (not std::is_rvalue_reference_v<NestedMatrix>) and
     (dynamic_coefficients<RowCoefficients> == dynamic_rows<NestedMatrix>) and
     (dynamic_coefficients<ColumnCoefficients> == dynamic_columns<NestedMatrix>)
@@ -34,11 +34,11 @@ namespace OpenKalman
   {
 
 #ifndef __cpp_concepts
-    static_assert(coefficients<RowCoefficients>);
-    static_assert(coefficients<ColumnCoefficients>);
+    static_assert(typed_index_descriptor<RowCoefficients>);
+    static_assert(typed_index_descriptor<ColumnCoefficients>);
     static_assert(typed_matrix_nestable<NestedMatrix>);
-    static_assert(RowCoefficients::dimension == row_dimension_of_v<NestedMatrix>);
-    static_assert(ColumnCoefficients::dimension == column_dimension_of_v<NestedMatrix>);
+    static_assert(dimension_size_of_v<RowCoefficients> == row_dimension_of_v<NestedMatrix>);
+    static_assert(dimension_size_of_v<ColumnCoefficients> == column_dimension_of_v<NestedMatrix>);
     static_assert(not std::is_rvalue_reference_v<NestedMatrix>);
     static_assert(dynamic_coefficients<RowCoefficients> == dynamic_rows<NestedMatrix>);
     static_assert(dynamic_coefficients<ColumnCoefficients> == dynamic_columns<NestedMatrix>);
@@ -208,10 +208,10 @@ namespace OpenKalman
 
     /// Add a stochastic value to each column of the matrix, based on a distribution.
 #ifdef __cpp_concepts
-    template<distribution Arg> requires (ColumnCoefficients::axes_only) and
+    template<distribution Arg> requires (untyped_index_descriptor<ColumnCoefficients>) and
       (equivalent_to<typename DistributionTraits<Arg>::Coefficients, RowCoefficients>)
 #else
-    template<typename Arg, std::enable_if_t<distribution<Arg> and (ColumnCoefficients::axes_only) and
+    template<typename Arg, std::enable_if_t<distribution<Arg> and (untyped_index_descriptor<ColumnCoefficients>) and
       (equivalent_to<typename DistributionTraits<Arg>::Coefficients, RowCoefficients>), int> = 0>
 #endif
     auto& operator+=(const Arg& arg) noexcept
@@ -248,10 +248,10 @@ namespace OpenKalman
 
     /// Subtract a stochastic value to each column of the matrix, based on a distribution.
 #ifdef __cpp_concepts
-    template<distribution Arg> requires (ColumnCoefficients::axes_only) and
+    template<distribution Arg> requires (untyped_index_descriptor<ColumnCoefficients>) and
       (equivalent_to<typename DistributionTraits<Arg>::Coefficients, RowCoefficients>)
 #else
-    template<typename Arg, std::enable_if_t<distribution<Arg> and (ColumnCoefficients::axes_only) and
+    template<typename Arg, std::enable_if_t<distribution<Arg> and (untyped_index_descriptor<ColumnCoefficients>) and
       (equivalent_to<typename DistributionTraits<Arg>::Coefficients, RowCoefficients>), int> = 0>
 #endif
     auto& operator-=(const Arg& arg) noexcept
@@ -281,7 +281,7 @@ namespace OpenKalman
 #else
   template<typename M, std::enable_if_t<typed_matrix_nestable<M>, int> = 0>
 #endif
-  explicit Matrix(M&&) -> Matrix<Axes<row_dimension_of_v<M>>, Axes<column_dimension_of_v<M>>, passable_t<M>>;
+  explicit Matrix(M&&) -> Matrix<Dimensions<row_dimension_of_v<M>>, Dimensions<column_dimension_of_v<M>>, passable_t<M>>;
 
 
   /// Deduce template parameters from a non-Euclidean-transformed typed matrix.
@@ -299,9 +299,9 @@ namespace OpenKalman
   /// Deduce template parameters from a Euclidean-transformed typed matrix.
 #if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS_2
   // \todo Unlike SFINAE version, this incorrectly matches V==Mean and V==Matrix in both GCC 10.1.0 and clang 10.0.0:
-  template<euclidean_transformed V> requires untyped_columns<V>
+  template<euclidean_transformed V> requires has_untyped_index<V, 1>
 #else
-  template<typename V, std::enable_if_t<euclidean_transformed<V> and untyped_columns<V>, int> = 0>
+  template<typename V, std::enable_if_t<euclidean_transformed<V> and has_untyped_index<V, 1>, int> = 0>
 #endif
   Matrix(V&&) -> Matrix<
     row_coefficient_types_of_t<V>,
@@ -333,14 +333,14 @@ namespace OpenKalman
    * \tparam M A typed_matrix_nestable with size matching RowCoefficients and ColumnCoefficients.
    */
 #ifdef __cpp_concepts
-  template<coefficients RowCoefficients, coefficients ColumnCoefficients, typed_matrix_nestable M>
-    requires (row_dimension_of_v<M> == RowCoefficients::dimension) and
-    (column_dimension_of_v<M> == ColumnCoefficients::dimension)
+  template<typed_index_descriptor RowCoefficients, typed_index_descriptor ColumnCoefficients, typed_matrix_nestable M>
+    requires (row_dimension_of_v<M> == dimension_size_of_v<RowCoefficients>) and
+    (column_dimension_of_v<M> == dimension_size_of_v<ColumnCoefficients>)
 #else
   template<typename RowCoefficients, typename ColumnCoefficients, typename M, std::enable_if_t<
-    coefficients<RowCoefficients> and coefficients<ColumnCoefficients> and typed_matrix_nestable<M> and
-    (row_dimension_of<M>::value == RowCoefficients::dimension) and
-    (column_dimension_of<M>::value == ColumnCoefficients::dimension), int> = 0>
+    typed_index_descriptor<RowCoefficients> and typed_index_descriptor<ColumnCoefficients> and typed_matrix_nestable<M> and
+    (row_dimension_of<M>::value == dimension_size_of_v<RowCoefficients>) and
+    (column_dimension_of<M>::value == dimension_size_of_v<ColumnCoefficients>), int> = 0>
 #endif
   inline auto make_matrix(M&& m)
   {
@@ -355,16 +355,16 @@ namespace OpenKalman
    * \tparam M A typed_matrix_nestable with size matching RowCoefficients and ColumnCoefficients.
    */
 #ifdef __cpp_concepts
-  template<coefficients RowCoefficients, typed_matrix_nestable M>
-  requires (row_dimension_of_v<M> == RowCoefficients::dimension)
+  template<typed_index_descriptor RowCoefficients, typed_matrix_nestable M>
+  requires (row_dimension_of_v<M> == dimension_size_of_v<RowCoefficients>)
 #else
   template<typename RowCoefficients, typename M, std::enable_if_t<
-    coefficients<RowCoefficients> and typed_matrix_nestable<M> and
-    (row_dimension_of<M>::value == RowCoefficients::dimension), int> = 0>
+    typed_index_descriptor<RowCoefficients> and typed_matrix_nestable<M> and
+    (row_dimension_of<M>::value == dimension_size_of_v<RowCoefficients>), int> = 0>
 #endif
   inline auto make_matrix(M&& m)
   {
-    using ColumnCoefficients = Axes<column_dimension_of_v<M>>;
+    using ColumnCoefficients = Dimensions<column_dimension_of_v<M>>;
     return Matrix<RowCoefficients, ColumnCoefficients, passable_t<M>>(std::forward<M>(m));
   }
 
@@ -380,8 +380,8 @@ namespace OpenKalman
 #endif
   inline auto make_matrix(M&& m)
   {
-    using RowCoeffs = Axes<row_dimension_of_v<M>>;
-    using ColCoeffs = Axes<column_dimension_of_v<M>>;
+    using RowCoeffs = Dimensions<row_dimension_of_v<M>>;
+    using ColCoeffs = Dimensions<column_dimension_of_v<M>>;
     return make_matrix<RowCoeffs, ColCoeffs>(std::forward<M>(m));
   }
 
@@ -433,14 +433,14 @@ namespace OpenKalman
    * if it is not already self-contained.
    */
 #ifdef __cpp_concepts
-  template<coefficients RowCoefficients, coefficients ColumnCoefficients, typed_matrix_nestable M> requires
-    (row_dimension_of_v<M> == RowCoefficients::dimension) and
-    (column_dimension_of_v<M> == ColumnCoefficients::dimension)
+  template<typed_index_descriptor RowCoefficients, typed_index_descriptor ColumnCoefficients, typed_matrix_nestable M> requires
+    (row_dimension_of_v<M> == dimension_size_of_v<RowCoefficients>) and
+    (column_dimension_of_v<M> == dimension_size_of_v<ColumnCoefficients>)
 #else
   template<typename RowCoefficients, typename ColumnCoefficients, typename M, std::enable_if_t<
-    coefficients<RowCoefficients> and coefficients<ColumnCoefficients> and typed_matrix_nestable<M> and
-    (row_dimension_of<M>::value == RowCoefficients::dimension) and
-    (column_dimension_of<M>::value == ColumnCoefficients::dimension), int> = 0>
+    typed_index_descriptor<RowCoefficients> and typed_index_descriptor<ColumnCoefficients> and typed_matrix_nestable<M> and
+    (row_dimension_of<M>::value == dimension_size_of_v<RowCoefficients>) and
+    (column_dimension_of<M>::value == dimension_size_of_v<ColumnCoefficients>), int> = 0>
 #endif
   inline auto make_matrix()
   {
@@ -461,8 +461,8 @@ namespace OpenKalman
 #endif
   inline auto make_matrix()
   {
-    using RowCoeffs = Axes<row_dimension_of_v<M>>;
-    using ColCoeffs = Axes<column_dimension_of_v<M>>;
+    using RowCoeffs = Dimensions<row_dimension_of_v<M>>;
+    using ColCoeffs = Dimensions<column_dimension_of_v<M>>;
     return make_matrix<RowCoeffs, ColCoeffs, M>();
   }
 

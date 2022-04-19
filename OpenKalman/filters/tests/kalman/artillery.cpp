@@ -27,7 +27,7 @@ namespace
   void artillery_2D(const Trans& transform)
   {
     using M2 = eigen_matrix_t<double, 2, 1>;
-    using Loc2 = Mean<Axes<2>, M2>;
+    using Loc2 = Mean<Dimensions<2>, M2>;
     using Polar2 = Mean<Polar<>, M2>;
     for (int i = 0; i < 5; i++)
     {
@@ -35,7 +35,7 @@ namespace
       auto true_state = randomize<Polar2>(U {5, 10}, U {-pi, pi});
       auto x = GaussianDistribution<Polar<>, M2, Cov> { Polar2 {7.5, 0}, make_identity_matrix_like<Cov>() };
       auto meas_cov = Cov {0.0025, 0, 0, 0.0025};
-      auto r = GaussianDistribution<Axes<2>, M2, Cov> { make_zero_matrix_like<Loc2>(), meas_cov };
+      auto r = GaussianDistribution<Dimensions<2>, M2, Cov> { make_zero_matrix_like<Loc2>(), meas_cov };
       parameter_test(transform, radarP, x, true_state, r, 0.7, 100);
     }
   }

@@ -13,8 +13,8 @@
 using namespace OpenKalman;
 using namespace OpenKalman::test;
 
-using M2 = Mean<Axes<2>, eigen_matrix_t<int, 2, 1>>;
-using A2 = Matrix<Axes<2>, Axes<2>, eigen_matrix_t<int, 2, 2>>;
+using M2 = Mean<Dimensions<2>, eigen_matrix_t<int, 2, 1>>;
+using A2 = Matrix<Dimensions<2>, Dimensions<2>, eigen_matrix_t<int, 2, 2>>;
 
 template<typename A, typename X>
 struct Trans1

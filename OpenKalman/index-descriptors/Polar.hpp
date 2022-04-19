@@ -19,10 +19,23 @@
 
 namespace OpenKalman
 {
+  /**
+   * \brief An atomic coefficient group reflecting polar coordinates.
+   * \details C1 and C2 are coefficients, and must be some combination of Distance and Angle, such as
+   * <code>Polar&lt;Distance, angle::Radians&gt; or Polar&lt;angle::Degrees, Distance&gt;</code>.
+   * Polar coordinates span two adjacent coefficients in a matrix.
+   * \tparam C1, C2 Distance and Angle, in either order. By default, they are Distance and angle::Radians, respectively.
+   * \internal
+   * <b>See also</b> the following functions for accessing coefficient properties:
+   * - internal::to_euclidean_coeff: \copybrief internal::to_euclidean_coeff
+   * - internal::from_euclidean_coeff: \copybrief internal::from_euclidean_coeff
+   * - internal::wrap_get: \copybrief internal::wrap_get
+   * - internal::wrap_set \copybrief internal::wrap_set
+   */
 #ifdef __cpp_concepts
   template<fixed_coefficients C1 = Distance, fixed_coefficients C2 = angle::Radians>
 #else
-  template<typename C1 = Distance, typename C2 = angle::Radians, typename>
+  template<typename C1 = Distance, typename C2 = angle::Radians, typename Enable>
 #endif
   struct Polar;
 
@@ -154,29 +167,8 @@ namespace OpenKalman
     // Implementation of polar coordinates.
     template<template<typename Scalar> typename Limits, typename Derived, typename C1, typename C2,
       std::size_t d_i, std::size_t a_i, std::size_t d2_i, std::size_t x_i, std::size_t y_i>
-    struct PolarBase
+    struct PolarBase : Dimensions<2>
     {
-      /// Polar is associated with two matrix elements.
-      static constexpr std::size_t dimension = 2;
-
-
-      /// Polar is represented by three coordinates in Euclidean space.
-      static constexpr std::size_t euclidean_dimension = 3;
-
-
-      /// Polar is not composed of only axes.
-      static constexpr bool axes_only = false;
-
-
-      /**
-       * \brief The type of the result when subtracting two Polar vectors.
-       * \details For differences, each coordinate behaves as if it were Distance or Angle.
-       * See David Frederic Crouse, Cubature/Unscented/Sigma Point Kalman Filtering with Angular Measurement Models,
-       * 18th Int'l Conf. on Information Fusion 1550, 1553 (2015).
-       */
-      using difference_type = Concatenate<typename C1::difference_type, typename C2::difference_type>;
-
-
       /**
        * \internal
        * \brief A function taking a row index and returning a corresponding matrix element.
@@ -209,7 +201,7 @@ namespace OpenKalman
        * \tparam i The index of the first polar coefficient that is being transformed.
        */
       template<typename Scalar, std::size_t i>
-      static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), euclidean_dimension>
+      static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), 3>
         to_euclidean_array = internal::join(
         detail::PolarImpl<Limits, C1, Scalar>::template to_euclidean_array<i, d_i, a_i>,
         detail::PolarImpl<Limits, C2, Scalar>::template to_euclidean_array<i, d_i, a_i>
@@ -229,7 +221,7 @@ namespace OpenKalman
        * \tparam i The index of the first of the three Cartesian coordinates being transformed back to polar.
        */
       template<typename Scalar, std::size_t i>
-      static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), dimension>
+      static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), 2>
         from_euclidean_array = internal::join(
         detail::PolarImpl<Limits, C1, Scalar>::template from_euclidean_array<i, d2_i, x_i, y_i>,
         detail::PolarImpl<Limits, C2, Scalar>::template from_euclidean_array<i, d2_i, x_i, y_i>
@@ -247,7 +239,7 @@ namespace OpenKalman
        * \tparam i The index of the first of two polar coordinates that are being wrapped.
        */
       template<typename Scalar, std::size_t i>
-      static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), dimension>
+      static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), 2>
         wrap_array_get = internal::join(
         detail::PolarImpl<Limits, C1, Scalar>::template wrap_array_get<i, d_i, a_i>,
         detail::PolarImpl<Limits, C2, Scalar>::template wrap_array_get<i, d_i, a_i>
@@ -266,7 +258,7 @@ namespace OpenKalman
        */
       template<typename Scalar, std::size_t i>
       static constexpr
-      std::array<void (*const)(const Scalar, const SetCoeff<Scalar>&, const GetCoeff<Scalar>&), dimension>
+      std::array<void (*const)(const Scalar, const SetCoeff<Scalar>&, const GetCoeff<Scalar>&), 2>
         wrap_array_set = internal::join(
         detail::PolarImpl<Limits, C1, Scalar>::template wrap_array_set<i, d_i, a_i>,
         detail::PolarImpl<Limits, C2, Scalar>::template wrap_array_set<i, d_i, a_i>
@@ -280,19 +272,13 @@ namespace OpenKalman
   // (Radius, Angle).
   template<template<typename Scalar> typename Limits>
   struct Polar<Distance, Angle<Limits>>
-    : detail::PolarBase<Limits, Polar<Distance, Angle<Limits>>, Distance, Angle<Limits>, 0, 1,  0, 1, 2>
-  {
-    static_assert(internal::coefficient_class<Polar>);
-  };
+    : detail::PolarBase<Limits, Polar<Distance, Angle<Limits>>, Distance, Angle<Limits>, 0, 1,  0, 1, 2> {};
 
 
   // (Angle, Radius).
   template<template<typename Scalar> typename Limits>
   struct Polar<Angle<Limits>, Distance>
-    : detail::PolarBase<Limits, Polar<Angle<Limits>, Distance>, Angle<Limits>, Distance, 1, 0,  2, 0, 1>
-  {
-    static_assert(internal::coefficient_class<Polar>);
-  };
+    : detail::PolarBase<Limits, Polar<Angle<Limits>, Distance>, Angle<Limits>, Distance, 1, 0,  2, 0, 1> {};
 
 
   // Alternate cases:
@@ -315,6 +301,29 @@ namespace OpenKalman
   struct Polar<T1, Coefficients<T2>, std::enable_if_t<atomic_coefficient_group<T1> and fixed_coefficients<T2>>>
 #endif
     : Polar<T1, T2> {};
+
+
+  /**
+    * \internal
+    * \brief Polar is represented by three coordinates in Euclidean space.
+    */
+   template<typename T1, typename T2>
+   struct euclidean_dimension_size_of<Polar<T1, T2>>
+     : std::integral_constant<std::size_t, 3> {};
+
+
+  /**
+   * \internal
+   * \brief The type of the result when subtracting two Polar vectors.
+   * \details For differences, each coordinate behaves as if it were Distance or Angle.
+   * See David Frederic Crouse, Cubature/Unscented/Sigma Point Kalman Filtering with Angular Measurement Models,
+   * 18th Int'l Conf. on Information Fusion 1550, 1553 (2015).
+   */
+  template<typename T1, typename T2>
+  struct dimension_difference_of<Polar<T1, T2>>
+  {
+    using type = Concatenate<dimension_difference_of_t<T1>, dimension_difference_of_t<T2>>;
+  };
 
 
 }// namespace OpenKalman

@@ -237,6 +237,25 @@ namespace OpenKalman::interface
 #endif
   {
 
+    template<typename...dims, typename Operation, typename...Args>
+    static constexpr decltype(auto)
+    n_ary_operation_with_broadcasting(const std::tuple<dims...>& tup, Operation&& op, Args&&...args)
+    {
+      using P = pattern_matrix_of_t<T>;
+      return ArrayOperations<P>::template n_ary_operation_with_broadcasting<dims...>(
+        tup, std::forward<Operation>(op), std::forward<Args>(args)...);
+    }
+
+
+    template<std::size_t...indices, typename BinaryFunction, typename Arg>
+    static constexpr decltype(auto)
+    reduce(BinaryFunction&& b, Arg&& arg)
+    {
+      using P = pattern_matrix_of_t<T>;
+      return ArrayOperations<P>::template reduce<indices...>(std::forward<BinaryFunction>(b), std::forward<Arg>(arg));
+    }
+
+
     template<ElementOrder order, typename BinaryFunction, typename Accum, typename Arg>
     static constexpr auto fold(const BinaryFunction& b, Accum&& accum, Arg&& arg)
     {
@@ -263,7 +282,7 @@ namespace OpenKalman::interface
     {
       // Note: the interface only needs to handle eigen_constant_expr or a dynamic-sized eigen_zero_expr.
       using P = pattern_matrix_of_t<T>;
-      return Conversions<P>::to_diagonal(to_native_matrix<P>(std::forward<Arg>(arg)));
+      return Conversions<P>::to_diagonal(std::forward<Arg>(arg));
     }
 
 
@@ -597,123 +616,6 @@ namespace OpenKalman::interface
 namespace OpenKalman::Eigen3
 {
 
-  /// Create a column vector by taking the mean of each row in a set of column vectors.
-#ifdef __cpp_concepts
-  template<eigen_zero_expr Arg>
-#else
-  template<typename Arg, std::enable_if_t<eigen_zero_expr<Arg>, int> = 0>
-#endif
-  constexpr decltype(auto)
-  reduce_columns(Arg&& arg) noexcept
-  {
-    if constexpr (column_vector<Arg>)
-      return std::forward<Arg>(arg);
-    else
-      return make_zero_matrix_like<Arg>(get_dimensions_of<0>(arg), Dimensions<1>{});
-  }
-
-
-  /// Create a column vector by taking the mean of each row in a set of column vectors.
-#ifdef __cpp_concepts
-  template<eigen_constant_expr Arg>
-#else
-  template<typename Arg, std::enable_if_t<eigen_constant_expr<Arg>, int> = 0>
-#endif
-  constexpr decltype(auto)
-  reduce_columns(Arg&& arg) noexcept
-  {
-    if constexpr (column_vector<Arg>)
-      return std::forward<Arg>(arg);
-    else
-      return make_constant_matrix_like<Arg, constant_coefficient_v<Arg>>(get_dimensions_of<0>(arg), Dimensions<1>{});
-  }
-
-
-  /// Create a column vector from a diagonal matrix. (Same as nested_matrix()).
-#ifdef __cpp_concepts
-  template<eigen_diagonal_expr Arg>
-#else
-  template<typename Arg, std::enable_if_t<eigen_diagonal_expr<Arg>, int> = 0>
-#endif
-  constexpr decltype(auto)
-  reduce_columns(Arg&& arg) noexcept
-  {
-    return nested_matrix(std::forward<Arg>(arg));
-  }
-
-
-#ifdef __cpp_concepts
-  template<typename Arg> requires eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>
-#else
-  template<typename Arg,
-    std::enable_if_t<eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>, int> = 0>
-#endif
-  constexpr auto
-  reduce_columns(Arg&& arg)
-  {
-    return make_dense_writable_matrix_from(make_dense_writable_matrix_from(std::forward<Arg>(arg)).rowwise().sum() / row_dimension_of_v<Arg>);
-  }
-
-
-  /// Create a row vector by taking the mean of each column in a set of row vectors.
-#ifdef __cpp_concepts
-  template<eigen_zero_expr Arg>
-#else
-  template<typename Arg, std::enable_if_t<eigen_zero_expr<Arg>, int> = 0>
-#endif
-  constexpr decltype(auto)
-  reduce_rows(Arg&& arg) noexcept
-  {
-    if constexpr (row_vector<Arg>)
-      return std::forward<Arg>(arg);
-    else
-      return make_zero_matrix_like<Arg>(Dimensions<1>{}, get_dimensions_of<1>(arg));
-  }
-
-
-  /// Create a row vector by taking the mean of each column in a set of row vectors.
-#ifdef __cpp_concepts
-  template<eigen_constant_expr Arg>
-#else
-  template<typename Arg, std::enable_if_t<eigen_constant_expr<Arg>, int> = 0>
-#endif
-  constexpr decltype(auto)
-  reduce_rows(Arg&& arg) noexcept
-  {
-    if constexpr (row_vector<Arg>)
-      return std::forward<Arg>(arg);
-    else
-      return make_constant_matrix_like<Arg, constant_coefficient_v<Arg>>(Dimensions<1>{}, get_dimensions_of<1>(arg));
-  }
-
-
-  /// Create a row vector from a diagonal matrix. (Same as nested_matrix()).
-#ifdef __cpp_concepts
-  template<eigen_diagonal_expr Arg>
-#else
-  template<typename Arg, std::enable_if_t<eigen_diagonal_expr<Arg>, int> = 0>
-#endif
-  constexpr decltype(auto)
-  reduce_rows(Arg&& arg) noexcept
-  {
-    return nested_matrix(std::forward<Arg>(arg));
-  }
-
-
-#ifdef __cpp_concepts
-  template<typename Arg> requires eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>
-#else
-  template<typename Arg,
-      std::enable_if_t<eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>, int> = 0>
-#endif
-  constexpr auto
-  reduce_rows(Arg&& arg)
-  {
-    return make_dense_writable_matrix_from(make_dense_writable_matrix_from(std::forward<Arg>(arg)).colwise().sum() /
-      runtime_dimension_of<1>(arg));
-  }
-
-
   /**
    * Perform an LQ decomposition of matrix A=[L,0]Q, L is a lower-triangular matrix, and Q is orthogonal.
    * Returns L as a lower-triangular matrix.
@@ -909,7 +811,7 @@ namespace OpenKalman::Eigen3
         if constexpr ((has_dynamic_dimensions<V> or ... or has_dynamic_dimensions<Vs>))
         {
           auto dim = (runtime_dimension_of<0>(v) + ... + runtime_dimension_of<0>(vs));
-          return DiagonalMatrix {make_zero_matrix_like<V>(Dimensions{dim}, Dimensions<1>{})};
+          return DiagonalMatrix {make_zero_matrix_like<V>(dim, Dimensions<1>{})};
         }
         else
         {
@@ -923,13 +825,13 @@ namespace OpenKalman::Eigen3
         if constexpr ((has_dynamic_dimensions<V> or ... or has_dynamic_dimensions<Vs>))
         {
           auto dim = (runtime_dimension_of<0>(v) + ... + runtime_dimension_of<0>(vs));
-          return make_identity_matrix_like<V, dynamic_size, dynamic_size>(dim);
+          return make_identity_matrix_like<V>(dim);
         }
         else
         {
           constexpr auto dim = (row_dimension_of_v<V> + ... + row_dimension_of_v<Vs>);
           static_assert(dim == (column_dimension_of_v<V> + ... + column_dimension_of_v<Vs>));
-          return make_identity_matrix_like<V, dim, dim>();
+          return make_identity_matrix_like<V>(Dimensions<dim>{});
         }
       }
       else
@@ -1034,48 +936,48 @@ namespace OpenKalman::Eigen3
 
   /// Split a diagonal matrix diagonally.
 #ifdef __cpp_concepts
-  template<typename F, coefficients ... Cs, eigen_diagonal_expr Arg> requires (not coefficients<F>)
+  template<typename F, typed_index_descriptor ... Cs, eigen_diagonal_expr Arg> requires (not typed_index_descriptor<F>)
 #else
   template<typename F, typename ... Cs, typename Arg,
-    std::enable_if_t<eigen_diagonal_expr<Arg> and not coefficients<F> and (coefficients<Cs> and ...), int> = 0>
+    std::enable_if_t<eigen_diagonal_expr<Arg> and not typed_index_descriptor<F> and (typed_index_descriptor<Cs> and ...), int> = 0>
 #endif
   inline auto
   split_diagonal(Arg&& arg)
   {
-    static_assert((0 + ... + Cs::dimension) <= row_dimension_of_v<Arg>);
+    static_assert((0 + ... + dimension_size_of_v<Cs>) <= row_dimension_of_v<Arg>);
     return split_vertical<internal::SplitSpecF<F, Arg>, Cs...>(nested_matrix(std::forward<Arg>(arg)));
   }
 
 
   /// Split a self-adjoint or triangular matrix diagonally.
 #ifdef __cpp_concepts
-  template<typename F, coefficients ... Cs, typename Arg> requires
-    (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>) and (not coefficients<F>)
+  template<typename F, typed_index_descriptor ... Cs, typename Arg> requires
+    (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>) and (not typed_index_descriptor<F>)
 #else
   template<typename F, typename ... Cs, typename Arg,
     std::enable_if_t<(eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>) and
-    not coefficients<F> and (coefficients<Cs> and ...), int> = 0>
+    not typed_index_descriptor<F> and (typed_index_descriptor<Cs> and ...), int> = 0>
 #endif
   inline auto
   split_diagonal(Arg&& arg)
   {
-    static_assert((0 + ... + Cs::dimension) <= row_dimension_of_v<Arg>);
+    static_assert((0 + ... + dimension_size_of_v<Cs>) <= row_dimension_of_v<Arg>);
     return split_diagonal<internal::SplitSpecF<F, Arg>, Cs...>(nested_matrix(std::forward<Arg>(arg)));
   }
 
 
   /// Split a self-adjoint, triangular, or diagonal matrix diagonally.
 #ifdef __cpp_concepts
-  template<coefficients ... Cs, typename Arg> requires
+  template<typed_index_descriptor ... Cs, typename Arg> requires
     (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>)
 #else
-  template<typename ... Cs, typename Arg, std::enable_if_t<(coefficients<Cs> and ...) and
+  template<typename ... Cs, typename Arg, std::enable_if_t<(typed_index_descriptor<Cs> and ...) and
     (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>), int> = 0>
 #endif
   inline auto
   split_diagonal(Arg&& arg)
   {
-    static_assert((0 + ... + Cs::dimension) <= row_dimension_of_v<Arg>);
+    static_assert((0 + ... + dimension_size_of_v<Cs>) <= row_dimension_of_v<Arg>);
     return split_diagonal<OpenKalman::internal::default_split_function, Cs...>(std::forward<Arg>(arg));
   }
 
@@ -1092,35 +994,35 @@ namespace OpenKalman::Eigen3
   split_diagonal(Arg&& arg)
   {
     static_assert((cut + ... + cuts) <= row_dimension_of_v<Arg>);
-    return split_diagonal<Axes<cut>, Axes<cuts>...>(std::forward<Arg>(arg));
+    return split_diagonal<Dimensions<cut>, Dimensions<cuts>...>(std::forward<Arg>(arg));
   }
 
 
   /// Split a self-adjoint, triangular, or diagonal matrix vertically, returning a regular matrix.
 #ifdef __cpp_concepts
-  template<typename F, coefficients ... Cs, typename Arg> requires (not coefficients<F>) and
+  template<typename F, typed_index_descriptor ... Cs, typename Arg> requires (not typed_index_descriptor<F>) and
     (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>)
 #else
   template<typename F, typename ... Cs, typename Arg, std::enable_if_t<
     (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>) and
-      not coefficients<F> and (coefficients<Cs> and ...), int> = 0>
+      not typed_index_descriptor<F> and (typed_index_descriptor<Cs> and ...), int> = 0>
 #endif
   inline auto
   split_vertical(Arg&& arg)
   {
-    static_assert((0 + ... + Cs::dimension) <= row_dimension_of_v<Arg>);
+    static_assert((0 + ... + dimension_size_of_v<Cs>) <= row_dimension_of_v<Arg>);
     return split_vertical<internal::SplitSpecF<F, dense_writable_matrix_t<Arg>>, Cs...>(make_dense_writable_matrix_from(std::forward<Arg>(arg)));
   }
 
   /// Split a self-adjoint, triangular, or diagonal matrix diagonally.
 #ifdef __cpp_concepts
-  template<coefficients ... Cs, typename Arg>
+  template<typed_index_descriptor ... Cs, typename Arg>
   requires (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>) and
-    (dynamic_rows<Arg> or (0 + ... + Cs::dimension) <= row_dimension_of_v<Arg>)
+    (dynamic_rows<Arg> or (0 + ... + dimension_size_of_v<Cs>) <= row_dimension_of_v<Arg>)
 #else
-  template<typename ... Cs, typename Arg, std::enable_if_t<(coefficients<Cs> and ...) and
+  template<typename ... Cs, typename Arg, std::enable_if_t<(typed_index_descriptor<Cs> and ...) and
     (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>) and
-    (dynamic_rows<Arg> or (0 + ... + Cs::dimension) <= row_dimension_of<Arg>::value), int> = 0>
+    (dynamic_rows<Arg> or (0 + ... + dimension_size_of_v<Cs>) <= row_dimension_of<Arg>::value), int> = 0>
 #endif
   inline auto
   split_vertical(Arg&& arg)
@@ -1141,39 +1043,39 @@ namespace OpenKalman::Eigen3
   inline auto
   split_vertical(Arg&& arg)
   {
-    return split_vertical<Axes<cut>, Axes<cuts>...>(std::forward<Arg>(arg));
+    return split_vertical<Dimensions<cut>, Dimensions<cuts>...>(std::forward<Arg>(arg));
   }
 
 
   /// Split a self-adjoint, triangular, or diagonal matrix horizontally, returning a regular matrix.
 #ifdef __cpp_concepts
-  template<typename F, coefficients ... Cs, typename Arg> requires (not coefficients<F>) and
+  template<typename F, typed_index_descriptor ... Cs, typename Arg> requires (not typed_index_descriptor<F>) and
     (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>)
 #else
   template<typename F, typename ... Cs, typename Arg, std::enable_if_t<
     (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>) and
-      not coefficients<F> and (coefficients<Cs> and ...), int> = 0>
+      not typed_index_descriptor<F> and (typed_index_descriptor<Cs> and ...), int> = 0>
 #endif
   inline auto
   split_horizontal(Arg&& arg)
   {
-    static_assert((0 + ... + Cs::dimension) <= row_dimension_of_v<Arg>);
+    static_assert((0 + ... + dimension_size_of_v<Cs>) <= row_dimension_of_v<Arg>);
     return split_horizontal<internal::SplitSpecF<F, dense_writable_matrix_t<Arg>>, Cs...>(make_dense_writable_matrix_from(std::forward<Arg>(arg)));
   }
 
   /// Split a self-adjoint, triangular, or diagonal matrix horizontally.
 #ifdef __cpp_concepts
-  template<coefficients ... Cs, typename Arg> requires
+  template<typed_index_descriptor ... Cs, typename Arg> requires
     eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>
 #else
   template<typename ... Cs, typename Arg, std::enable_if_t<
     (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>) and
-    (coefficients<Cs> and ...), int> = 0>
+    (typed_index_descriptor<Cs> and ...), int> = 0>
 #endif
   inline auto
   split_horizontal(Arg&& arg)
   {
-    static_assert((0 + ... + Cs::dimension) <= row_dimension_of_v<Arg>);
+    static_assert((0 + ... + dimension_size_of_v<Cs>) <= row_dimension_of_v<Arg>);
     return split_horizontal<OpenKalman::internal::default_split_function, Cs...>(std::forward<Arg>(arg));
   }
 
@@ -1189,7 +1091,7 @@ namespace OpenKalman::Eigen3
   split_horizontal(Arg&& arg)
   {
     static_assert((cut + ... + cuts) <= row_dimension_of_v<Arg>);
-    return split_horizontal<Axes<cut>, Axes<cuts>...>(std::forward<Arg>(arg));
+    return split_horizontal<Dimensions<cut>, Dimensions<cuts>...>(std::forward<Arg>(arg));
   }
 
 

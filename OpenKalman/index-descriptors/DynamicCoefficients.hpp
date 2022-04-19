@@ -22,31 +22,37 @@
 
 namespace OpenKalman
 {
+  /**
+   * \brief A list of coefficients defined at runtime.
+   * \details At compile time, the structure is treated if it has zero dimension.
+   * \internal
+   * <b>See also</b> the following functions for accessing coefficient properties:
+   * - internal::to_euclidean_coeff(Coeffs&& coeffs, const std::size_t row, const F& get_coeff):
+   * \copybrief internal::to_euclidean_coeff(Coeffs&& coeffs, const std::size_t row, const F& get_coeff)
+   * - internal::from_euclidean_coeff(Coeffs&& coeffs, const std::size_t row, const F& get_coeff):
+   * \copybrief internal::from_euclidean_coeff(Coeffs&& coeffs, const std::size_t row, const F& get_coeff)
+   * - internal::wrap_get(Coeffs&& coeffs, const std::size_t row, const F& get_coeff):
+   * \copybrief internal::wrap_get(Coeffs&& coeffs, const std::size_t row, const F& get_coeff)
+   * - internal::wrap_set(Coeffs&& coeffs, const std::size_t row, const Scalar s, const FS& set_coeff,
+   * const FG& get_coeff)
+   * \copybrief internal::wrap_set(Coeffs&& coeffs, const std::size_t row, const Scalar s, const FS& set_coeff,
+   * const FG& get_coeff)
+   */
+  template<typename Scalar = double>
+  struct DynamicCoefficients;
+
+
   template<typename Scalar_>
-  struct DynamicCoefficients
+  struct DynamicCoefficients : Dimensions<dynamic_size>
   {
     /// The scalar type of the coefficients
     using Scalar = Scalar_;
-
-    /// The dimension at compile time.
-    static constexpr std::size_t dimension = dynamic_size;
-
-    /// The dimension when transformed to Euclidean space at compile time.
-    static constexpr std::size_t euclidean_dimension = dynamic_size;
 
     /// The number of dimension at runtime.
     const std::size_t runtime_dimension;
 
     /// The number of coordinates in Euclidean space at runtime.
     const std::size_t runtime_euclidean_dimension;
-
-    /// May consist of coefficients other than Axis.
-    static constexpr bool axes_only = false;
-
-    bool axes_only_at_runtime()
-    {
-      return true; // \todo implement this
-    }
 
     /**
      * \brief The type of the result when subtracting two DynamicCoefficients values.
@@ -57,7 +63,6 @@ namespace OpenKalman
     /// The type index of the corresponding \ref fixed_coefficients.
     const std::type_index id;
 
-  private:
 
     /**
      * \internal
@@ -122,41 +127,6 @@ namespace OpenKalman
       wrap_set;
 
 
-#ifdef __cpp_concepts
-    template<fixed_coefficients T>
-#else
-    template<typename T, typename = void>
-#endif
-    struct reduce_coeffs { using type = T; };
-
-
-#ifdef __cpp_concepts
-    template<fixed_coefficients T>
-    struct reduce_coeffs<Coefficients<T>>
-#else
-    template<typename T>
-    struct reduce_coeffs<Coefficients<T>, std::enable_if_t<fixed_coefficients<T>>>
-#endif
-    {
-      using type = typename reduce_coeffs<T>::type;
-    };
-
-
-#ifdef __cpp_concepts
-    template<template<typename...> typename T, fixed_coefficients...Cs> requires
-      atomic_coefficient_group<T<Cs...>> or (sizeof...(Cs) != 1)
-    struct reduce_coeffs<T<Cs...>>
-#else
-    template<template<typename...> typename T, typename...Cs>
-    struct reduce_coeffs<T<Cs...>, std::enable_if_t<(atomic_coefficient_group<T<Cs...>> or (sizeof...(Cs) != 1))>>
-#endif
-    {
-      using type = T<typename reduce_coeffs<Cs>::type...>;
-    };
-
-
-  public:
-
     /**
      * \brief Constructor taking a single \ref fixed_coefficients object.
      * \tparam C A \ref fixed_coefficients object.
@@ -167,20 +137,21 @@ namespace OpenKalman
     template<typename C, std::enable_if_t<fixed_coefficients<C>, int> = 0>
 #endif
     DynamicCoefficients(C&&) :
-      runtime_dimension {C::dimension},
-      runtime_euclidean_dimension {C::euclidean_dimension},
-      id {typeid(typename reduce_coeffs<C>::type)},
+      Dimensions<dynamic_size> {dimension_size_of_v<C>},
+      runtime_dimension {dimension_size_of_v<C>},
+      runtime_euclidean_dimension {euclidean_dimension_size_of_v<C>},
+      id {typeid(reduced_fixed_index_descriptor_t<C>)},
       to_euclidean_coeff {[] (const std::size_t row, const GetCoeff& get_coeff) {
-        return C::template to_euclidean_array<Scalar, 0>[row](get_coeff);
+        return internal::to_euclidean_coeff<C>(row, get_coeff);
       }},
       from_euclidean_coeff {[] (const std::size_t row, const GetCoeff& get_coeff) {
-          return C::template from_euclidean_array<Scalar, 0>[row](get_coeff);
+        return internal::from_euclidean_coeff<C>(row, get_coeff);
       }},
       wrap_get {[] (const std::size_t row, const GetCoeff& get_coeff) {
-        return C::template wrap_array_get<Scalar, 0>[row](get_coeff);
+        return internal::wrap_get<C>(row, get_coeff);
       }},
       wrap_set {[] (const std::size_t row, const Scalar s, const SetCoeff& set_coeff, const GetCoeff& get_coeff) {
-        return C::template wrap_array_set<Scalar, 0>[row](s, set_coeff, get_coeff);
+        return internal::wrap_set<C>(row, s, set_coeff, get_coeff);
       }} {}
 
 
@@ -199,57 +170,38 @@ namespace OpenKalman
     DynamicCoefficients() : DynamicCoefficients {Coefficients<> {}} {};
 
 
-    /// \brief Compares for equivalence. \sa \ref equivalent_to
+#ifdef __cpp_impl_three_way_comparison
+    /// \brief Three-way comparison with another DynamicCoefficients.
+    auto operator<=>(const DynamicCoefficients& other) const { return id <=> other.id; }
+#else
+    /// \brief Compares for equivalence.
     bool operator==(const DynamicCoefficients& other) const { return id == other.id; }
 
-#ifndef __cpp_impl_three_way_comparison
-    /// Compares for non-equivalence. \sa \ref equivalent_to
+    /// \brief Compares for non-equivalence.
     bool operator!=(const DynamicCoefficients& other) const { return id != other.id; }
 #endif
 
 
-
-#ifdef __cpp_concepts
-    template<dynamic_coefficients Coeffs, typename F> requires
-      requires(F& f, std::size_t& i) { {f(i)} -> std::convertible_to<const typename Coeffs::Scalar>; }
-#else
-    template<typename Coeffs, typename F, typename>
-#endif
-    friend auto internal::to_euclidean_coeff(Coeffs&& coeffs, const std::size_t row, const F& get_coeff);
+  };
 
 
-#ifdef __cpp_concepts
-    template<dynamic_coefficients Coeffs, typename F> requires
-      requires(F& f, std::size_t& i) { {f(i)} -> std::convertible_to<const typename Coeffs::Scalar>; }
-#else
-    template<typename Coeffs, typename F, typename>
-#endif
-    friend auto internal::from_euclidean_coeff(Coeffs&& coeffs, const std::size_t row, const F& get_coeff);
+  /**
+    * \internal
+    * \brief The Euclidean size of DynamicCoefficients is not known at compile time.
+    */
+   template<typename Scalar>
+   struct euclidean_dimension_size_of<DynamicCoefficients<Scalar>>
+     : std::integral_constant<std::size_t, dynamic_size> {};
 
 
-#ifdef __cpp_concepts
-    template<dynamic_coefficients Coeffs, typename F> requires
-      requires(F& f, std::size_t& i) { {f(i)} -> std::convertible_to<const typename Coeffs::Scalar>; }
-#else
-    template<typename Coeffs, typename F, typename>
-#endif
-    friend auto internal::wrap_get(Coeffs&& coeffs, const std::size_t row, const F& get_coeff);
-
-
-#ifdef __cpp_concepts
-    template<dynamic_coefficients Coeffs, typename FS, typename FG> requires
-      requires(FS& f, std::size_t& i, typename Coeffs::Scalar& s) { f(i, s); } and
-      requires(FG& f, std::size_t& i) { {f(i)} -> std::convertible_to<const typename Coeffs::Scalar>; }
-#else
-    template<typename Coeffs, typename FS, typename FG, typename>
-#endif
-    friend void
-    internal::wrap_set(Coeffs&& coeffs, const std::size_t row, const typename Coeffs::Scalar s,
-                       const FS& set_coeff, const FG& get_coeff);
-
-
-    static_assert(internal::coefficient_class<DynamicCoefficients>);
-
+  /**
+   * \internal
+   * \brief The difference type for DynamicCoefficients is also DynamicCoefficients
+   */
+  template<typename Scalar>
+  struct dimension_difference_of<DynamicCoefficients<Scalar>>
+  {
+    using type = DynamicCoefficients<Scalar>;
   };
 
 

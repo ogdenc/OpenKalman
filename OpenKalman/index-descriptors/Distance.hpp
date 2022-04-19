@@ -22,25 +22,19 @@
 
 namespace OpenKalman
 {
-  struct Distance
+  /**
+   * \struct Distance
+   * \brief A non-negative real or integral number, [0,&infin;], representing a distance.
+   * \details This is similar to Axis, but wrapping occurs to ensure that values are never negative.
+   * \internal
+   * <b>See also</b> the following functions for accessing coefficient properties:
+   * - internal::to_euclidean_coeff: \copybrief internal::to_euclidean_coeff
+   * - internal::from_euclidean_coeff: \copybrief internal::from_euclidean_coeff
+   * - internal::wrap_get: \copybrief internal::wrap_get
+   * - internal::wrap_set \copybrief internal::wrap_set
+   */
+  struct Distance : Dimensions<1>
   {
-    /// Distance is associated with one matrix element.
-    static constexpr std::size_t dimension = 1;
-
-    /// Distance is represented by one coordinate in Euclidean space.
-    static constexpr std::size_t euclidean_dimension = 1;
-
-    /// Distance is not composed of only axes.
-    static constexpr bool axes_only = false;
-
-    /**
-     * \brief The type of the result when subtracting two Distance values.
-     * \details A difference between two distances can be positive or negative, and is treated as Axis.
-     * See David Frederic Crouse, Cubature/Unscented/Sigma Point Kalman Filtering with Angular Measurement Models,
-     * 18th Int'l Conf. on Information Fusion 1553, 1555 (2015).
-     */
-    using difference_type = Axis;
-
     /**
      * \internal
      * \brief A function taking a row index and returning a corresponding matrix element.
@@ -73,7 +67,7 @@ namespace OpenKalman
 #if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS
       requires std::is_arithmetic_v<Scalar>
 #endif
-    static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), euclidean_dimension>
+    static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), 1>
       to_euclidean_array =
       {
         [](const GetCoeff<Scalar>& get_coeff) { return get_coeff(i); }
@@ -94,7 +88,7 @@ namespace OpenKalman
 #if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS
       requires std::is_arithmetic_v<Scalar>
 #endif
-    static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), dimension>
+    static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), 1>
       from_euclidean_array =
       {
         [](const GetCoeff<Scalar>& get_coeff) { return std::abs(get_coeff(i)); }
@@ -114,7 +108,7 @@ namespace OpenKalman
 #if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS
       requires std::is_arithmetic_v<Scalar>
 #endif
-    static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), dimension>
+    static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), 1>
       wrap_array_get =
       {
         [](const GetCoeff<Scalar>& get_coeff) { return std::abs(get_coeff(i)); }
@@ -136,15 +130,37 @@ namespace OpenKalman
       requires std::is_arithmetic_v<Scalar>
 #endif
     static constexpr
-      std::array<void (*const)(const Scalar, const SetCoeff<Scalar>&, const GetCoeff<Scalar>&), dimension>
+      std::array<void (*const)(const Scalar, const SetCoeff<Scalar>&, const GetCoeff<Scalar>&), 1>
       wrap_array_set =
       {
         [](const Scalar s, const SetCoeff<Scalar>& set_coeff, const GetCoeff<Scalar>&) { set_coeff(i, std::abs(s)); }
       };
 
-
-    static_assert(internal::coefficient_class<Distance>);
   };
+
+
+  /**
+    * \internal
+    * \brief Distance is represented by one coordinate in Euclidean space.
+    */
+   template<>
+   struct euclidean_dimension_size_of<Distance>
+     : std::integral_constant<std::size_t, 1> {};
+
+
+  /**
+   * \internal
+   * \brief The type of the result when subtracting two Distance values.
+   * \details A difference between two distances can be positive or negative, and is treated as Axis.
+   * See David Frederic Crouse, Cubature/Unscented/Sigma Point Kalman Filtering with Angular Measurement Models,
+   * 18th Int'l Conf. on Information Fusion 1553, 1555 (2015).
+   */
+  template<>
+  struct dimension_difference_of<Distance>
+  {
+    using type = Axis;
+  };
+
 
 } // namespace OpenKalman
 

@@ -126,7 +126,7 @@ namespace OpenKalman
       constexpr auto rows = index_dimension_of_v<Dist, 0>;
       constexpr auto count = sigma_point_count<dim>;
       using Xnative = untyped_dense_writable_matrix_t<typename DistributionTraits<Dist>::Mean, rows, count>;
-      Matrix<Coefficients, Axes<count>, Xnative> X {sigma_point_coeff<ns / count + pos, ns % count, dim, Scalar>()...};
+      Matrix<Coefficients, Dimensions<count>, Xnative> X {sigma_point_coeff<ns / count + pos, ns % count, dim, Scalar>()...};
       return X;
     }
 

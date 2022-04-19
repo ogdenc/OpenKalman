@@ -403,7 +403,7 @@ namespace OpenKalman
   // ----------------------- //
 
   /**
-   * \brief Make a zero matrix with size and shape modeled at least partially on T
+   * \brief Make a zero matrix.
    * \tparam T The matrix or array on which the new zero matrix is patterned.
    * \tparam Scalar An optional scalar type for the new zero matrix. By default, T's scalar type is used.
    * \param D A set of \ref index_descriptor "index descriptors" defining the dimensions of each index.
@@ -418,7 +418,7 @@ namespace OpenKalman
   constexpr decltype(auto)
   make_zero_matrix_like(D&&...d)
   {
-    return SingleConstantMatrixTraits<T, dimension_size_of_v<D>..., Scalar>::make_zero_matrix(std::forward<D>(d)...);
+    return SingleConstantMatrixTraits<T, Scalar>::make_zero_matrix(std::forward<D>(d)...);
   }
 
 
@@ -504,7 +504,7 @@ namespace OpenKalman
   constexpr decltype(auto)
   make_constant_matrix_like(D&&...d)
   {
-    return SingleConstantMatrixTraits<T, dimension_size_of_v<D>..., Scalar>::template make_constant_matrix<constant>(
+    return SingleConstantMatrixTraits<T, Scalar>::template make_constant_matrix<constant>(
       std::forward<D>(d)...);
   }
 
@@ -583,99 +583,94 @@ namespace OpenKalman
   // --------------------------- //
 
   /**
-   * \brief Make an identity matrix with a size and shape modeled at least partially on T.
+   * \brief Make an identity matrix.
    * \tparam T The matrix or array on which the identity matrix is patterned.
-   * \tparam dimension An optional row and column dimension for the new zero matrix. By default, the function uses
-   * T's row dimension, if it is not dynamic, or otherwise T's column dimension.
    * \tparam Scalar An optional scalar type for the new zero matrix. By default, T's scalar type is used.
-   * \param e Any necessary runtime dimensions.
+   * \param D An \ref index_descriptor "index descriptor" defining the dimensions of each index.
    */
 #ifdef __cpp_concepts
-  template<indexible T, std::size_t dimension = dynamic_rows<T> ? column_dimension_of_v<T> : row_dimension_of_v<T>,
-      typename Scalar = scalar_type_of_t<T>, std::convertible_to<std::size_t>...runtime_dimensions> requires
-    (sizeof...(runtime_dimensions) == (dimension == dynamic_size ? 1 : 0))
+  template<indexible T, typename Scalar = scalar_type_of_t<T>, index_descriptor D>
 #else
-  template<typename T, std::size_t dimension = dynamic_rows<T> ? column_dimension_of<T>::value : row_dimension_of<T>::value,
-    typename Scalar = typename scalar_type_of<T>::type, typename...runtime_dimensions, std::enable_if_t<indexible<T> and
-      (sizeof...(runtime_dimensions) == (dimension == dynamic_size ? 1 : 0)) and
-      (std::is_convertible_v<runtime_dimensions, std::size_t> and ...), int> = 0>
+  template<typename T, typename Scalar = typename scalar_type_of<T>::type, typename D, std::enable_if_t<
+    indexible<T> and index_descriptor<D>, int> = 0>
 #endif
   constexpr auto
-  make_identity_matrix_like(runtime_dimensions...e)
+  make_identity_matrix_like(D&& d)
   {
-    return SingleConstantDiagonalMatrixTraits<std::decay_t<T>, dimension, Scalar>::make_identity_matrix(e...);
+    return SingleConstantDiagonalMatrixTraits<std::decay_t<T>, Scalar>::make_identity_matrix(std::forward<D>(d));
   }
 
 
   /**
    * \overload
-   * \brief Make an identity matrix based on a matrix argument, but with a specified dimension.
-   * \tparam dimension The new dimension of the identity matrix (may be \ref dynamic_size)
+   * \brief Make an identity matrix based on the argument, specifying a new scalar type.
+   * \tparam T The matrix or array on which the new zero matrix is patterned.
+   * \tparam Scalar A scalar type for the new matrix.
    */
 #ifdef __cpp_concepts
-  template<indexible T, std::size_t dimension, typename Scalar = scalar_type_of_t<T>>
+  template<typename Scalar, indexible T> requires has_dynamic_dimensions<T> or square_matrix<T>
 #else
-  template<typename T, std::size_t dimension, typename Scalar = scalar_type_of_t<T>,
-    std::enable_if_t<indexible<T>, int> = 0>
+  template<typename Scalar, typename T, std::enable_if_t<indexible<T> and
+    (has_dynamic_dimensions<T> or square_matrix<T>), int> = 0>
 #endif
   constexpr decltype(auto)
   make_identity_matrix_like(T&& t)
   {
-    if constexpr (identity_matrix<T> and dimension == index_dimension_of_v<T, 0>)
+    if constexpr (identity_matrix<T> and std::is_same_v<Scalar, scalar_type_of_t<T>>)
     {
       return std::forward<T>(t);
     }
-    else if constexpr (dimension == dynamic_size)
+    else if constexpr (has_dynamic_dimensions<T>)
     {
-      assert(runtime_dimension_of<0>(t) == runtime_dimension_of<1>(t));
-      return make_identity_matrix_like<T, dimension, Scalar>(runtime_dimension_of<0>(t));
+      if (get_dimensions_of<0>(t) != get_dimensions_of<1>(t)) throw std::invalid_argument {
+        "Argument of make_identity_matrix_like must be square; instead it has " +
+        std::to_string(get_dimensions_of<0>(t)) + " rows and " +
+        std::to_string(get_dimensions_of<1>(t)) + " columns"};
+
+      if constexpr (dynamic_dimension<T, 0>)
+        return make_identity_matrix_like<T, Scalar>(get_dimensions_of<1>(t));
+      else
+        return make_identity_matrix_like<T, Scalar>(get_dimensions_of<0>(t));
     }
     else
     {
-      return make_identity_matrix_like<T, dimension, Scalar>();
+      return make_identity_matrix_like<T, Scalar>(get_dimensions_of<0>(t));
     }
   }
 
 
   /**
    * \overload
-   * \brief Make an identity matrix shape and size as the argument.
-   * \note The argument must be a square matrix.
+   * \brief Make an identity matrix based on the argument.
+   * \tparam T The matrix or array on which the new zero matrix is patterned.
    */
 #ifdef __cpp_concepts
-  template<typename T> requires has_dynamic_dimensions<T> or square_matrix<T>
+  template<indexible T> requires has_dynamic_dimensions<T> or square_matrix<T>
 #else
-  template<typename T, std::enable_if_t<has_dynamic_dimensions<T> or square_matrix<T>, int> = 0>
+  template<typename T, std::enable_if_t<indexible<T> and (has_dynamic_dimensions<T> or square_matrix<T>), int> = 0>
 #endif
   constexpr decltype(auto)
   make_identity_matrix_like(T&& t)
   {
-    if constexpr (has_dynamic_dimensions<T>) assert(runtime_dimension_of<0>(t) == runtime_dimension_of<1>(t));
-
-    if constexpr (identity_matrix<T>)
-      return std::forward<T>(t);
-    else
-      return make_identity_matrix_like<T, index_dimension_of_v<T, 0>>(std::forward<T>(t));
+    return make_identity_matrix_like<scalar_type_of_t<T>>(std::forward<T>(t));
   }
 
 
   /**
    * \overload
-   * \brief Make an identity matrix based on the argument, but specifying new dimensions.
-   * \tparam dims The dimension associated with indices of the new matrix (may be \ref dynamic_shape)
-   * \tparam Scalar An optional scalar value for the new matrix.
-   * \tparam T The matrix or array on which the new matrix is patterned.
+   * \brief Make an identity matrix based on T, which has fixed size, specifying a new scalar type.
+   * \tparam T The matrix or array on which the new zero matrix is patterned.
+   * \tparam Scalar A scalar type for the new matrix. The default is the scalar type of T.
    */
 #ifdef __cpp_concepts
-  template<std::size_t dimension, typename...Scalar, indexible T> requires (sizeof...(Scalar) <= 1)
+  template<indexible T, typename Scalar = scalar_type_of_t<T>> requires square_matrix<T>
 #else
-  template<std::size_t dimension, typename...Scalar, typename T, std::enable_if_t<
-    indexible<T> and (sizeof...(Scalar) <= 1), int> = 0>
+  template<typename T, typename Scalar = scalar_type_of_t<T>, std::enable_if_t<indexible<T> and square_matrix<T>, int> = 0>
 #endif
   constexpr decltype(auto)
-  make_identity_matrix_like(T&& t)
+  make_identity_matrix_like()
   {
-    return make_identity_matrix_like<T, dimension, Scalar...>(std::forward<T>(t));
+    return make_identity_matrix_like<T, Scalar>(Dimensions<index_dimension_of_v<T, 0>>{});
   }
 
 
@@ -1603,20 +1598,20 @@ namespace OpenKalman
   // ================================== //
 
 #ifdef __cpp_concepts
-  template<fixed_coefficients C, untyped_columns Arg> requires
+  template<fixed_coefficients C, has_untyped_index<1> Arg> requires
     dynamic_rows<Arg> or equivalent_to<C, row_coefficient_types_of_t<Arg>>
 #else
-  template<typename C, typename Arg, std::enable_if_t<fixed_coefficients<C> and untyped_columns<Arg> and
+  template<typename C, typename Arg, std::enable_if_t<fixed_coefficients<C> and has_untyped_index<Arg, 1> and
     (dynamic_rows<Arg> or equivalent_to<C, row_coefficient_types_of_t<Arg>>), int> = 0>
 #endif
   constexpr decltype(auto)
   to_euclidean(Arg&& arg)
   {
-    if constexpr (dynamic_rows<Arg>) if (runtime_dimension_of<0>(arg) != C::dimension)
+    if constexpr (dynamic_rows<Arg>) if (runtime_dimension_of<0>(arg) != dimension_size_of_v<C>)
       throw std::out_of_range {"Number of rows (" + std::to_string(runtime_dimension_of<0>(arg)) +
-        ") is incompatible with dimension types (" + std::to_string(C::dimension) + ")"};
+        ") is incompatible with dimension types (" + std::to_string(dimension_size_of_v<C>) + ")"};
 
-    if constexpr (C::axes_only)
+    if constexpr (untyped_index_descriptor<C>)
     {
       return std::forward<Arg>(arg);
     }
@@ -1628,9 +1623,9 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<untyped_columns Arg>
+  template<has_untyped_index<1> Arg>
 #else
-  template<typename Arg, std::enable_if_t<untyped_columns<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<has_untyped_index<Arg, 1>, int> = 0>
 #endif
   constexpr decltype(auto)
   to_euclidean(Arg&& arg)
@@ -1656,20 +1651,20 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<fixed_coefficients C, untyped_columns Arg> requires
+  template<fixed_coefficients C, has_untyped_index<1> Arg> requires
     dynamic_rows<Arg> or equivalent_to<C, row_coefficient_types_of_t<Arg>>
 #else
-  template<typename C, typename Arg, std::enable_if_t<fixed_coefficients<C> and untyped_columns<Arg> and
+  template<typename C, typename Arg, std::enable_if_t<fixed_coefficients<C> and has_untyped_index<Arg, 1> and
     (dynamic_rows<Arg> or equivalent_to<C, row_coefficient_types_of_t<Arg>>), int> = 0>
 #endif
   constexpr decltype(auto)
   from_euclidean(Arg&& arg) noexcept
   {
-    if constexpr (dynamic_rows<Arg>) if (runtime_dimension_of<0>(arg) != C::euclidean_dimension)
+    if constexpr (dynamic_rows<Arg>) if (runtime_dimension_of<0>(arg) != euclidean_dimension_size_of_v<C>)
       throw std::out_of_range {"Number of rows (" + std::to_string(runtime_dimension_of<0>(arg)) +
-        ") is incompatible with dimension types (" + std::to_string(C::euclidean_dimension) + ")"};
+        ") is incompatible with dimension types (" + std::to_string(euclidean_dimension_size_of_v<C>) + ")"};
 
-    if constexpr (C::axes_only)
+    if constexpr (untyped_index_descriptor<C>)
     {
       return std::forward<Arg>(arg);
     }
@@ -1681,9 +1676,9 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<untyped_columns Arg>
+  template<has_untyped_index<1> Arg>
 #else
-  template<typename Arg, std::enable_if_t<untyped_columns<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<has_untyped_index<Arg, 1>, int> = 0>
 #endif
   constexpr decltype(auto)
   from_euclidean(Arg&& arg)
@@ -1709,20 +1704,20 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<fixed_coefficients C, untyped_columns Arg> requires
+  template<fixed_coefficients C, has_untyped_index<1> Arg> requires
     dynamic_rows<Arg> or equivalent_to<C, row_coefficient_types_of_t<Arg>>
 #else
-  template<typename C, typename Arg, std::enable_if_t<fixed_coefficients<C> and untyped_columns<Arg> and
+  template<typename C, typename Arg, std::enable_if_t<fixed_coefficients<C> and has_untyped_index<Arg, 1> and
     (dynamic_rows<Arg> or equivalent_to<C, row_coefficient_types_of_t<Arg>>), int> = 0>
 #endif
   constexpr decltype(auto)
   wrap_angles(Arg&& arg)
   {
-    if constexpr (dynamic_rows<Arg>) if (runtime_dimension_of<0>(arg) != C::dimension)
+    if constexpr (dynamic_rows<Arg>) if (runtime_dimension_of<0>(arg) != dimension_size_of_v<C>)
       throw std::out_of_range {"Number of rows (" + std::to_string(runtime_dimension_of<0>(arg)) +
-        ") is incompatible with dimension types (" + std::to_string(C::dimension) + ")"};
+        ") is incompatible with dimension types (" + std::to_string(dimension_size_of_v<C>) + ")"};
 
-    if constexpr (C::axes_only or identity_matrix<Arg> or zero_matrix<Arg>)
+    if constexpr (untyped_index_descriptor<C> or identity_matrix<Arg> or zero_matrix<Arg>)
     {
       return std::forward<Arg>(arg);
     }
@@ -1734,9 +1729,9 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<untyped_columns Arg>
+  template<has_untyped_index<1> Arg>
 #else
-  template<typename Arg, std::enable_if_t<untyped_columns<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<has_untyped_index<Arg, 1>, int> = 0>
 #endif
   constexpr decltype(auto)
   wrap_angles(Arg&& arg)

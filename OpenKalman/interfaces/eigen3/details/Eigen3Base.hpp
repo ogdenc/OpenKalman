@@ -24,6 +24,12 @@ namespace OpenKalman::Eigen3::internal
     : std::conditional_t<native_eigen_array<NestedMatrix>, Eigen::ArrayBase<Derived>, Eigen::MatrixBase<Derived>>
   {
 
+  private:
+
+    using Base = std::conditional_t<native_eigen_array<NestedMatrix>, Eigen::ArrayBase<Derived>, Eigen::MatrixBase<Derived>>;
+
+  public:
+
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(bool {has_dynamic_dimensions<NestedMatrix>})
 
     /**
@@ -66,6 +72,7 @@ namespace OpenKalman::Eigen3::internal
     [[deprecated("Use make_zero_matrix_like() instead.")]]
     static auto Zero()
     {
+      static_assert(not has_dynamic_dimensions<Derived>);
       return make_zero_matrix_like<Derived>();
     }
 
@@ -90,7 +97,10 @@ namespace OpenKalman::Eigen3::internal
     [[deprecated("Use make_identity_matrix_like() instead.")]]
     static auto Identity()
     {
-      return make_identity_matrix_like<Derived>();
+      if constexpr(square_matrix<Derived>)
+        return make_identity_matrix_like<Derived>();
+      else
+        return Base::Identity();
     }
 
 
@@ -102,26 +112,15 @@ namespace OpenKalman::Eigen3::internal
     [[deprecated("Use make_identity_matrix_like() instead.")]]
     static decltype(auto) Identity(const Eigen::Index r, const Eigen::Index c)
     {
-      if constexpr (dynamic_rows<Derived> and dynamic_columns<Derived>)
-      {
-        return make_identity_matrix_like<Derived>(static_cast<std::size_t>(r), static_cast<std::size_t>(c));
-      }
-      else if constexpr (dynamic_rows<Derived>)
-      {
-        assert(c == column_dimension_of_v<Derived>);
-        return make_identity_matrix_like<Derived>(static_cast<std::size_t>(r));
-      }
-      else if constexpr (dynamic_columns<Derived>)
-      {
-        assert(r == row_dimension_of_v<Derived>);
-        return make_identity_matrix_like<Derived>(static_cast<std::size_t>(c));
-      }
-      else
-      {
-        assert(r == row_dimension_of_v<Derived>);
-        assert(c == column_dimension_of_v<Derived>);
-        return make_identity_matrix_like<Derived>();
-      }
+      if constexpr (not dynamic_dimension<Derived, 0>) if (r != index_dimension_of_v<Derived, 0>)
+        throw std::invalid_argument {"In T::Identity(r, c), r (==" + std::to_string(r) +
+        ") does not equal the fixed rows of T (==" + std::to_string(index_dimension_of_v<Derived, 0>) + ")"};
+
+      if constexpr (not dynamic_dimension<Derived, 1>) if (c != index_dimension_of_v<Derived, 0>)
+        throw std::invalid_argument {"In T::Identity(r, c), c (==" + std::to_string(c) +
+        ") does not equal the fixed columns of T (==" + std::to_string(index_dimension_of_v<Derived, 1>) + ")"};
+
+      return make_identity_matrix_like<Derived>(static_cast<std::size_t>(r), static_cast<std::size_t>(c));
     }
 
 

@@ -25,7 +25,7 @@ namespace OpenKalman
 {
 #ifdef __cpp_concepts
   template<
-    coefficients Coefficients,
+    typed_index_descriptor Coefficients,
     typed_matrix_nestable MeanNestedMatrix,
     covariance_nestable CovarianceNestedMatrix,
     std::uniform_random_bit_generator random_number_engine> requires
@@ -54,7 +54,7 @@ namespace OpenKalman
 
   protected:
 
-    static constexpr auto dim = Coefficients::dimension;
+    static constexpr auto dim = dimension_size_of_v<Coefficients>;
     using Mean = Mean<Coefficients, MeanNestedMatrix>;
     using Covariance = Covariance<Coefficients, CovarianceNestedMatrix>;
     using Scalar = scalar_type_of_t<Mean>;
@@ -112,10 +112,10 @@ namespace OpenKalman
      * \brief Construct from a \ref typed_matrix and an rvalue of a \ref covariance.
      */
 #ifdef __cpp_concepts
-    template<typed_matrix M> requires column_vector<M> and untyped_columns<M> and
+    template<typed_matrix M> requires column_vector<M> and has_untyped_index<M, 1> and
       equivalent_to<row_coefficient_types_of_t<M>, Coefficients>
 #else
-    template<typename M, std::enable_if_t<typed_matrix<M> and column_vector<M> and untyped_columns<M> and
+    template<typename M, std::enable_if_t<typed_matrix<M> and column_vector<M> and has_untyped_index<M, 1> and
       equivalent_to<row_coefficient_types_of_t<M>, Coefficients>, int> = 0>
 #endif
     GaussianDistribution(M&& mean, Covariance&& cov) : mu {std::forward<M>(mean)}, sigma {std::move(cov)} {}
@@ -158,12 +158,12 @@ namespace OpenKalman
      * \tparam Cov A \ref covariance or \ref square_matrix "square" \ref typed_matrix.
      */
 #ifdef __cpp_concepts
-    template<typed_matrix M, typename Cov> requires column_vector<M> and untyped_columns<M> and
+    template<typed_matrix M, typename Cov> requires column_vector<M> and has_untyped_index<M, 1> and
       equivalent_to<row_coefficient_types_of_t<M>, Coefficients> and
       (covariance<Cov> or typed_matrix<Cov>) and
       equivalent_to<row_coefficient_types_of_t<Cov>, Coefficients>
 #else
-    template<typename M, typename Cov, std::enable_if_t<typed_matrix<M> and column_vector<M> and untyped_columns<M> and
+    template<typename M, typename Cov, std::enable_if_t<typed_matrix<M> and column_vector<M> and has_untyped_index<M, 1> and
       equivalent_to<row_coefficient_types_of_t<M>, Coefficients> and
       (covariance<Cov> or typed_matrix<Cov>) and
       equivalent_to<row_coefficient_types_of_t<Cov>, Coefficients>, int> = 0>
@@ -178,11 +178,11 @@ namespace OpenKalman
      * \tparam Cov A \ref covariance_nestable.
      */
 #ifdef __cpp_concepts
-    template<typed_matrix M, typename Cov> requires column_vector<M> and untyped_columns<M> and
+    template<typed_matrix M, typename Cov> requires column_vector<M> and has_untyped_index<M, 1> and
       equivalent_to<row_coefficient_types_of_t<M>, Coefficients> and
       covariance_nestable<Cov> and (row_dimension_of_v<Cov> == dim)
 #else
-    template<typename M, typename Cov, std::enable_if_t<typed_matrix<M> and column_vector<M> and untyped_columns<M> and
+    template<typename M, typename Cov, std::enable_if_t<typed_matrix<M> and column_vector<M> and has_untyped_index<M, 1> and
       equivalent_to<row_coefficient_types_of_t<M>, Coefficients> and
       covariance_nestable<Cov> and (row_dimension_of<Cov>::value == dim), int> = 0>
 #endif
@@ -471,7 +471,7 @@ namespace OpenKalman
     std::enable_if_t<typed_matrix_nestable<M> and covariance_nestable<C>, int> = 0>
 #endif
   GaussianDistribution(M&&, C&&) -> GaussianDistribution<
-    Axes<row_dimension_of_v<M>>,
+    Dimensions<row_dimension_of_v<M>>,
     passable_t<M>,
     passable_t<C>>;
 
@@ -506,11 +506,11 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<std::uniform_random_bit_generator re = std::mt19937, typed_matrix M, typename Cov> requires
-    column_vector<M> and untyped_columns<M> and square_matrix<Cov> and (covariance<Cov> or typed_matrix<Cov>) and
+    column_vector<M> and has_untyped_index<M, 1> and square_matrix<Cov> and (covariance<Cov> or typed_matrix<Cov>) and
     (equivalent_to<row_coefficient_types_of_t<M>, row_coefficient_types_of_t<Cov>>)
 #else
-  template<typename re = std::mt19937, typename M, typename Cov, std::enable_if_t<(not coefficients<re>) and
-    typed_matrix<M> and column_vector<M> and untyped_columns<M> and
+  template<typename re = std::mt19937, typename M, typename Cov, std::enable_if_t<(not typed_index_descriptor<re>) and
+    typed_matrix<M> and column_vector<M> and has_untyped_index<M, 1> and
     square_matrix<Cov> and (covariance<Cov> or typed_matrix<Cov>) and
     (equivalent_to<row_coefficient_types_of_t<M>, row_coefficient_types_of_t<Cov>>), int> = 0>
 #endif
@@ -533,12 +533,12 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<std::uniform_random_bit_generator re = std::mt19937, typed_matrix M, typename Cov> requires
-    column_vector<M> and untyped_columns<M> and
+    column_vector<M> and has_untyped_index<M, 1> and
     square_matrix<Cov> and (covariance_nestable<Cov> or typed_matrix_nestable<Cov>) and
     (row_dimension_of_v<M> == row_dimension_of_v<Cov>)
 #else
   template<typename re = std::mt19937, typename M, typename Cov, std::enable_if_t<
-    (not coefficients<re>) and typed_matrix<M> and column_vector<M> and untyped_columns<M> and
+    (not typed_index_descriptor<re>) and typed_matrix<M> and column_vector<M> and has_untyped_index<M, 1> and
     square_matrix<Cov> and (covariance_nestable<Cov> or typed_matrix_nestable<Cov>) and
     (row_dimension_of<M>::value == row_dimension_of<Cov>::value), int> = 0>
 #endif
@@ -566,7 +566,7 @@ namespace OpenKalman
     (row_dimension_of_v<M> == row_dimension_of_v<Cov>)
 #else
   template<typename re = std::mt19937, typename M, typename Cov, std::enable_if_t<
-    (not coefficients<re>) and typed_matrix_nestable<M> and column_vector<M> and square_matrix<Cov> and
+    (not typed_index_descriptor<re>) and typed_matrix_nestable<M> and column_vector<M> and square_matrix<Cov> and
     (covariance<Cov> or typed_matrix<Cov> or covariance_nestable<Cov> or typed_matrix_nestable<Cov>) and
     (row_dimension_of<M>::value == row_dimension_of<Cov>::value), int> = 0>
 #endif
@@ -589,7 +589,7 @@ namespace OpenKalman
     else
     {
       static_assert(covariance_nestable<Cov> or typed_matrix_nestable<Cov>);
-      using C = Axes<row_dimension_of_v<M>>;
+      using C = Dimensions<row_dimension_of_v<M>>;
       auto c = nested_matrix(make_covariance<C>(std::forward<Cov>(cov)));
       return GaussianDistribution<C, passable_t<M>, equivalent_self_contained_t<decltype(c)>, re>(
         std::forward<M>(mean), std::move(c));
@@ -599,19 +599,19 @@ namespace OpenKalman
 
   /**
    * \brief Make a Gaussian distribution.
-   * \tparam Coefficients The types of the \ref OpenKalman::coefficients "coefficients" for the distribution.
+   * \tparam Coefficients The types of the \ref typed_index_descriptor for the distribution.
    * \tparam re A random number engine.
    * \tparam M A \ref typed_matrix_nestable.
    * \tparam Cov A \ref covariance_nestable or \ref typed_matrix_nestable.
    * \return A \ref gaussian_distribution.
    */
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, std::uniform_random_bit_generator re = std::mt19937,
+  template<typed_index_descriptor Coefficients, std::uniform_random_bit_generator re = std::mt19937,
     typed_matrix_nestable M, typename Cov> requires
     column_vector<M> and (covariance_nestable<Cov> or typed_matrix_nestable<Cov>)
 #else
   template<typename Coefficients, typename re = std::mt19937, typename M, typename Cov, std::enable_if_t<
-    coefficients<Coefficients> and typed_matrix_nestable<M> and column_vector<M> and
+    typed_index_descriptor<Coefficients> and typed_matrix_nestable<M> and column_vector<M> and
     (covariance_nestable<Cov> or typed_matrix_nestable<Cov>), int> = 0>
 #endif
   inline auto
@@ -642,11 +642,11 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<typed_matrix M, covariance Cov, std::uniform_random_bit_generator re = std::mt19937> requires
-    column_vector<M> and untyped_columns<M> and
+    column_vector<M> and has_untyped_index<M, 1> and
     equivalent_to<row_coefficient_types_of_t<M>, row_coefficient_types_of_t<Cov>>
 #else
   template<typename M, typename Cov, typename re = std::mt19937, std::enable_if_t<
-    typed_matrix<M> and column_vector<M> and untyped_columns<M> and covariance<Cov> and
+    typed_matrix<M> and column_vector<M> and has_untyped_index<M, 1> and covariance<Cov> and
     equivalent_to<row_coefficient_types_of_t<M>, row_coefficient_types_of_t<Cov>>, int> = 0>
 #endif
   inline auto
@@ -667,12 +667,12 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<column_vector M, typename Cov, std::uniform_random_bit_generator re = std::mt19937> requires
-    (typed_matrix<M> or typed_matrix_nestable<M>) and untyped_columns<M> and
+    (typed_matrix<M> or typed_matrix_nestable<M>) and has_untyped_index<M, 1> and
     (covariance<Cov> or covariance_nestable<Cov>) and (not typed_matrix<M> or not covariance<Cov>) and
     (row_dimension_of_v<M> == row_dimension_of_v<Cov>)
 #else
   template<typename M, typename Cov, typename re = std::mt19937, std::enable_if_t<
-    column_vector<M> and (typed_matrix<M> or typed_matrix_nestable<M>) and untyped_columns<M> and
+    column_vector<M> and (typed_matrix<M> or typed_matrix_nestable<M>) and has_untyped_index<M, 1> and
     (covariance<Cov> or covariance_nestable<Cov>) and (not typed_matrix<M> or not covariance<Cov>) and
     (row_dimension_of<M>::value == row_dimension_of<Cov>::value), int> = 0>
 #endif
@@ -691,7 +691,7 @@ namespace OpenKalman
     }
     else
     {
-      using C = Axes<row_dimension_of_v<M>>;
+      using C = Dimensions<row_dimension_of_v<M>>;
       return GaussianDistribution<C, passable_t<M>, passable_t<Cov>, re>();
     }
   }
@@ -699,14 +699,14 @@ namespace OpenKalman
 
   /**
    * \brief Make a default Gaussian distribution.
-   * \tparam Coefficients The types of the \ref OpenKalman::coefficients "coefficients" for the distribution.
+   * \tparam Coefficients The types of the \ref typed_index_descriptor for the distribution.
    * \tparam M A \ref typed_matrix_nestable
    * \tparam Cov A \ref covariance_nestable.
    * \tparam re A random number engine
    * \return A \ref gaussian_distribution
    */
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, typed_matrix_nestable M, covariance_nestable Cov,
+  template<typed_index_descriptor Coefficients, typed_matrix_nestable M, covariance_nestable Cov,
       std::uniform_random_bit_generator re = std::mt19937> requires
     column_vector<M> and (row_dimension_of_v<M> == row_dimension_of_v<Cov>)
 #else
@@ -738,7 +738,7 @@ namespace OpenKalman
     template<typename Coeffs, typename NestedMean, typename NestedCovariance, typename re>
     struct IndexTraits<GaussianDistribution<Coeffs, NestedMean, NestedCovariance, re>, 0>
     {
-      static constexpr std::size_t dimension = Coeffs::dimension;
+      static constexpr std::size_t dimension = dimension_size_of_v<Coefficients>;
 
       template<typename Arg>
       static constexpr std::size_t dimension_at_runtime(const Arg& arg)
@@ -799,11 +799,11 @@ namespace OpenKalman
     using random_number_engine = re;
 
 #ifdef __cpp_concepts
-    template<coefficients C = Coefficients, typed_matrix_nestable M, covariance_nestable Cov> requires
+    template<typed_index_descriptor C = Coefficients, typed_matrix_nestable M, covariance_nestable Cov> requires
       column_vector<M> and (row_dimension_of_v<M> == row_dimension_of_v<Cov>)
 #else
     template<typename C = Coefficients, typename M, typename Cov,
-      std::enable_if_t<coefficients<C> and typed_matrix_nestable<M> and covariance_nestable<Cov> and
+      std::enable_if_t<typed_index_descriptor<C> and typed_matrix_nestable<M> and covariance_nestable<Cov> and
       column_vector<M> and (row_dimension_of<M>::value == row_dimension_of<Cov>::value), int> = 0>
 #endif
     static auto make(M&& mean, Cov&& covariance) noexcept
@@ -879,7 +879,7 @@ namespace OpenKalman
     using Coeffs = typename DistributionTraits<T>::Coefficients;
     using re = DistributionTraits<T>::random_number_engine;
     auto m = make_zero_matrix_like<DistributionTraits<T>::Mean, Scalar>(Dimensions<dimension>{e...}, Dimension<1>{});
-    auto c = make_identity_matrix_like<DistributionTraits<T>::Covariance, dimension, Scalar>(e...);
+    auto c = make_identity_matrix_like<DistributionTraits<T>::Covariance, Scalar>(Dimensions<dimension>{e...});
     return make_gaussian_distribution<re>>(std::move(m), std::move(c));
   }
 
@@ -922,11 +922,11 @@ namespace OpenKalman
 
   /// Split distribution.
 #ifdef __cpp_concepts
-  template<coefficients ... Cs, gaussian_distribution D> requires
+  template<typed_index_descriptor ... Cs, gaussian_distribution D> requires
     prefix_of<Concatenate<Cs...>, typename DistributionTraits<D>::Coefficients>
 #else
   template<typename ... Cs, typename D, std::enable_if_t<
-    (coefficients<Cs> and ...) and gaussian_distribution<D> and
+    (typed_index_descriptor<Cs> and ...) and gaussian_distribution<D> and
     prefix_of<Concatenate<Cs...>, typename DistributionTraits<D>::Coefficients>, int> = 0>
 #endif
   inline auto

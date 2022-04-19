@@ -17,6 +17,7 @@
 #define OPENKALMAN_EIGEN3_TRAITS_HPP
 
 #include <type_traits>
+#include <matrices/Matrix.hpp>
 
 
 namespace OpenKalman
@@ -220,48 +221,48 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<native_eigen_general T, std::size_t rows, std::size_t columns, typename Scalar>
-    struct SingleConstantMatrixTraits<T, rows, columns, Scalar>
+    template<native_eigen_general T, typename Scalar>
+    struct SingleConstantMatrixTraits<T, Scalar>
 #else
-    template<typename T, std::size_t rows, std::size_t columns, typename Scalar>
-    struct SingleConstantMatrixTraits<T, rows, columns, Scalar, std::enable_if_t<native_eigen_general<T>>>
+    template<typename T, typename Scalar>
+    struct SingleConstantMatrixTraits<T, Scalar, std::enable_if_t<native_eigen_general<T>>>
 #endif
     {
       template<typename...D>
       static auto make_zero_matrix(D&&...d) // \todo This is redundant of default behavior
       {
-        return ZeroMatrix<eigen_matrix_t<Scalar, rows, columns>> {std::forward<D>(d)...};
+        using N = untyped_dense_writable_matrix_t<T, dimension_size_of_v<D>...>;
+        return ZeroMatrix<N> {std::forward<D>(d)...};
       }
 
       template<auto constant, typename...D>
       static auto make_constant_matrix(D&&...d)
       {
-        return ConstantMatrix<eigen_matrix_t<Scalar, rows, columns>, constant> {std::forward<D>(d)...};
+        using N = untyped_dense_writable_matrix_t<T, dimension_size_of_v<D>...>;
+        return ConstantMatrix<N, constant> {std::forward<D>(d)...};
       }
     };
 
 
 #ifdef __cpp_concepts
-    template<native_eigen_general T, std::size_t dimension, typename Scalar>
-    struct SingleConstantDiagonalMatrixTraits<T, dimension, Scalar>
+    template<native_eigen_general T, typename Scalar>
+    struct SingleConstantDiagonalMatrixTraits<T, Scalar>
 #else
-    template<typename T, std::size_t dimension, typename Scalar>
-    struct SingleConstantDiagonalMatrixTraits<T, dimension, Scalar, std::enable_if_t<native_eigen_general<T>>>
+    template<typename T, typename Scalar>
+    struct SingleConstantDiagonalMatrixTraits<T, Scalar, std::enable_if_t<native_eigen_general<T>>>
 #endif
     {
-      template<typename...runtime_dimensions>
-      static auto make_identity_matrix(runtime_dimensions...e) // \todo This is redundant of default behavior
+      template<typename D>
+      static auto make_identity_matrix(D&& d)
       {
-        if constexpr (dimension == dynamic_size)
+        if constexpr (dimension_size_of_v<D> == dynamic_size)
         {
-          static_assert(sizeof...(runtime_dimensions) == 1);
-          using P = eigen_matrix_t<Scalar, dimension, 1>;
-          return to_diagonal(make_constant_matrix_like<P, 1>(
-            Dimensions{static_cast<const std::size_t>(e)...}, Dimensions<1>{}));
+          return to_diagonal(make_constant_matrix_like<T, 1>(std::forward<D>(d), Dimensions<1>{}));
         }
         else
         {
-          return eigen_matrix_t<Scalar, dimension, dimension>::Identity();
+          constexpr Eigen::Index n {dimension_size_of_v<D>};
+          return eigen_matrix_t<Scalar, n, n>::Identity();
         }
       }
     };

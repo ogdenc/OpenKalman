@@ -21,9 +21,9 @@ namespace OpenKalman::Eigen3
 
   /// \todo Remove nested diagonal matrix option
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, typename NestedMatrix> requires (not from_euclidean_expr<NestedMatrix>) and
+  template<typed_index_descriptor Coefficients, typename NestedMatrix> requires (not from_euclidean_expr<NestedMatrix>) and
     (dynamic_coefficients<Coefficients> == dynamic_rows<NestedMatrix>) and
-    (not fixed_coefficients<Coefficients> or Coefficients::dimension == row_dimension_of_v<NestedMatrix>) and
+    (not fixed_coefficients<Coefficients> or dimension_size_of_v<Coefficients> == row_dimension_of_v<NestedMatrix>) and
     (not dynamic_coefficients<Coefficients> or
       std::same_as<typename Coefficients::Scalar, scalar_type_of_t<NestedMatrix>>)
 #else
@@ -34,10 +34,10 @@ namespace OpenKalman::Eigen3
   {
 
 #ifndef __cpp_concepts
-    static_assert(coefficients<Coefficients>);
+    static_assert(typed_index_descriptor<Coefficients>);
     static_assert(not from_euclidean_expr<NestedMatrix>);
     static_assert(dynamic_coefficients<Coefficients> == dynamic_rows<NestedMatrix>);
-    static_assert(not fixed_coefficients<Coefficients> or Coefficients::dimension == row_dimension_of_v<NestedMatrix>);
+    static_assert(not fixed_coefficients<Coefficients> or dimension_size_of_v<Coefficients> == row_dimension_of_v<NestedMatrix>);
 #endif
 
     using Scalar = scalar_type_of_t<NestedMatrix>;
@@ -83,7 +83,7 @@ namespace OpenKalman::Eigen3
      * /note If c++ concepts are available, this functionality is inherited from the base class.
      */
     template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...> and
-      (sizeof...(Args) == columns * Coefficients::dimension), int> = 0>
+      (sizeof...(Args) == columns * dimension_size_of_v<Coefficients>), int> = 0>
     ToEuclideanExpr(Args ... args) : Base {MatrixTraits<NestedMatrix>::make(static_cast<const Scalar>(args)...)} {}
 #endif
 
@@ -113,12 +113,12 @@ namespace OpenKalman::Eigen3
 
     /// Assign from a general Eigen matrix.
 #ifdef __cpp_concepts
-    template<eigen_matrix Arg> requires (row_dimension_of_v<Arg> == Coefficients::euclidean_dimension) and
+    template<eigen_matrix Arg> requires (row_dimension_of_v<Arg> == euclidean_dimension_size_of_v<Coefficients>) and
       (column_dimension_of_v<Arg> == columns) and
       modifiable<NestedMatrix, decltype(from_euclidean<Coefficients>(std::declval<Arg>()))>
 #else
     template<typename Arg, std::enable_if_t<eigen_matrix<Arg> and
-      (row_dimension_of<Arg>::value == Coefficients::euclidean_dimension) and (column_dimension_of<Arg>::value == columns) and
+      (row_dimension_of<Arg>::value == euclidean_dimension_size_of_v<Coefficients>) and (column_dimension_of<Arg>::value == columns) and
       modifiable<NestedMatrix, decltype(from_euclidean<Coefficients>(std::declval<Arg>()))>, int> = 0>
 #endif
     auto& operator=(Arg&& arg) noexcept
@@ -149,10 +149,10 @@ namespace OpenKalman::Eigen3
     /// Increment from another \ref eigen_matrix.
 #ifdef __cpp_concepts
     template<eigen_matrix Arg> requires (column_dimension_of_v<Arg> == columns) and
-      (row_dimension_of_v<Arg> == Coefficients::euclidean_dimension)
+      (row_dimension_of_v<Arg> == euclidean_dimension_size_of_v<Coefficients>)
 #else
     template<typename Arg, std::enable_if_t<eigen_matrix<Arg> and (column_dimension_of<Arg>::value == columns) and
-      (row_dimension_of<Arg>::value == Coefficients::euclidean_dimension), int> = 0>
+      (row_dimension_of<Arg>::value == euclidean_dimension_size_of_v<Coefficients>), int> = 0>
 #endif
     auto& operator+=(const Arg& arg) noexcept
     {
@@ -179,10 +179,10 @@ namespace OpenKalman::Eigen3
     /// Decrement from another \ref eigen_matrix.
 #ifdef __cpp_concepts
     template<eigen_matrix Arg> requires (column_dimension_of_v<Arg> == columns) and
-      (row_dimension_of_v<Arg> == Coefficients::euclidean_dimension)
+      (row_dimension_of_v<Arg> == euclidean_dimension_size_of_v<Coefficients>)
 #else
     template<typename Arg, std::enable_if_t<eigen_matrix<Arg> and (column_dimension_of<Arg>::value == columns) and
-      (row_dimension_of<Arg>::value == Coefficients::euclidean_dimension), int> = 0>
+      (row_dimension_of<Arg>::value == euclidean_dimension_size_of_v<Coefficients>), int> = 0>
 #endif
     auto& operator-=(const Arg& arg) noexcept
     {

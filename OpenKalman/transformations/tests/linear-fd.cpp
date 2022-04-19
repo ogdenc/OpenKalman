@@ -17,16 +17,16 @@ using std::numbers::pi;
 
 
 using M1 = Mean<Axis, eigen_matrix_t<double, 1, 1>>;
-using M2 = Mean<Axes<2>, eigen_matrix_t<double, 2, 1>>;
+using M2 = Mean<Dimensions<2>, eigen_matrix_t<double, 2, 1>>;
 using MP = Mean<Polar<>, eigen_matrix_t<double, 2, 1>>;
-using M3 = Mean<Axes<3>, eigen_matrix_t<double, 3, 1>>;
+using M3 = Mean<Dimensions<3>, eigen_matrix_t<double, 3, 1>>;
 using MC = Mean<Coefficients<Polar<>, Axis>, eigen_matrix_t<double, 3, 1>>;
 using MS = Mean<Spherical<>, eigen_matrix_t<double, 3, 1>>;
-using A22 = Matrix<Axes<2>, Axes<2>, eigen_matrix_t<double, 2, 2>>;
-using AP2 = Matrix<Polar<>, Axes<2>, eigen_matrix_t<double, 2, 2>>;
+using A22 = Matrix<Dimensions<2>, Dimensions<2>, eigen_matrix_t<double, 2, 2>>;
+using AP2 = Matrix<Polar<>, Dimensions<2>, eigen_matrix_t<double, 2, 2>>;
 using APP = Matrix<Polar<>, Polar<>, eigen_matrix_t<double, 2, 2>>;
-using A32 = Matrix<Axes<3>, Axes<2>, eigen_matrix_t<double, 3, 2>>;
-using A33 = Matrix<Axes<3>, Axes<3>, eigen_matrix_t<double, 3, 3>>;
+using A32 = Matrix<Dimensions<3>, Dimensions<2>, eigen_matrix_t<double, 3, 2>>;
+using A33 = Matrix<Dimensions<3>, Dimensions<3>, eigen_matrix_t<double, 3, 3>>;
 
 TEST(transformations, finite_diff_linear_2by2)
 {
@@ -39,7 +39,7 @@ TEST(transformations, finite_diff_linear_2by2)
   EXPECT_TRUE(is_near(std::get<0>(t.jacobian(M2(1, 2), M2(0.1, 0.2))), a));
   EXPECT_TRUE(is_near(std::get<1>(t.jacobian(M2(1, 2), M2(0.1, 0.2))), make_identity_matrix_like<A22>()));
   EXPECT_TRUE(is_near(std::get<2>(t.jacobian(M2(1, 2), M2(0.1, 0.2), M2(0.3, 0.4))), make_identity_matrix_like<A22>()));
-  EXPECT_TRUE(is_near(t.hessian(M2(1, 2), M2(0.1, 0.2), M2(0.3, 0.4)), zero_hessian<Axes<2>, M2, M2, M2>()));
+  EXPECT_TRUE(is_near(t.hessian(M2(1, 2), M2(0.1, 0.2), M2(0.3, 0.4)), zero_hessian<Dimensions<2>, M2, M2, M2>()));
 }
 
 TEST(transformations, finite_diff_linear_2by3)
@@ -50,11 +50,11 @@ TEST(transformations, finite_diff_linear_2by3)
   EXPECT_TRUE(is_near(t(M2(1, 2)), M3(5, 11, 17)));
   EXPECT_TRUE(is_near(std::get<0>(t.jacobian(M2(3, 4))), a));
   EXPECT_TRUE(is_near(std::get<0>(t.jacobian(M2(1, 2))), a));
-  EXPECT_TRUE(is_near(t.hessian(M2(1, 2)), zero_hessian<Axes<3>, M2>()));
+  EXPECT_TRUE(is_near(t.hessian(M2(1, 2)), zero_hessian<Dimensions<3>, M2>()));
   EXPECT_TRUE(is_near(std::get<0>(t.jacobian(M2(1, 2), M3(0.1, 0.2, 0.3))), a));
   EXPECT_TRUE(is_near(std::get<1>(t.jacobian(M2(1, 2), M3(0.1, 0.2, 0.3))), make_identity_matrix_like<A33>()));
   EXPECT_TRUE(is_near(std::get<2>(t.jacobian(M2(1, 2), M3(0.1, 0.2, 0.3), M3(0.4, 0.5, 0.6))), make_identity_matrix_like<A33>()));
-  EXPECT_TRUE(is_near(t.hessian(M2(1, 2), M3(0.1, 0.2, 0.3), M3(0.4, 0.5, 0.6)), zero_hessian<Axes<3>, M2, M3, M3>()));
+  EXPECT_TRUE(is_near(t.hessian(M2(1, 2), M3(0.1, 0.2, 0.3), M3(0.4, 0.5, 0.6)), zero_hessian<Dimensions<3>, M2, M3, M3>()));
 }
 
 TEST(transformations, finite_diff_sum_of_squares_2D)

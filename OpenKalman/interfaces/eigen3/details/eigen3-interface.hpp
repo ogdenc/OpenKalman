@@ -13,97 +13,13 @@
  * \brief Overloaded functions relating to various Eigen3 types
  */
 
-#ifndef OPENKALMAN_EIGEN3_MATRIX_OVERLOADS_HPP
-#define OPENKALMAN_EIGEN3_MATRIX_OVERLOADS_HPP
+#ifndef OPENKALMAN_EIGEN3_INTERFACE_HPP
+#define OPENKALMAN_EIGEN3_INTERFACE_HPP
 
 #include <type_traits>
 #include <tuple>
 #include <random>
 #include <special-matrices/TriangularMatrix.hpp>
-
-
-namespace OpenKalman::Eigen3
-{
-  /**
-   * Make a native Eigen matrix from a list of coefficients in row-major order.
-   * \tparam Scalar The scalar type of the matrix.
-   * \tparam rows The number of rows.
-   * \tparam columns The number of columns.
-   */
-#ifdef __cpp_concepts
-  template<scalar_type Scalar, std::size_t rows, std::size_t columns = 1, std::convertible_to<Scalar> ... Args>
-  requires
-    (rows == dynamic_size and columns == dynamic_size) or
-    (rows != dynamic_size and columns != dynamic_size and sizeof...(Args) == rows * columns) or
-    (columns == dynamic_size and sizeof...(Args) % rows == 0) or
-    (rows == dynamic_size and sizeof...(Args) % columns == 0)
-#else
-# pragma GCC diagnostic push
-# pragma GCC diagnostic ignored "-Wdiv-by-zero"
-  template<typename Scalar, std::size_t rows, std::size_t columns = 1, typename ... Args, std::enable_if_t<
-    scalar_type<Scalar> and (std::is_convertible_v<Args, Scalar> and ...) and
-    ((rows == dynamic_size and columns == dynamic_size) or
-    (rows != dynamic_size and columns != dynamic_size and sizeof...(Args) == rows * columns) or
-    (columns == dynamic_size and sizeof...(Args) % rows == 0) or
-    (rows == dynamic_size and sizeof...(Args) % columns == 0)), int> = 0>
-#endif
-  inline auto
-  make_eigen_matrix(const Args ... args)
-  {
-    using M = Eigen3::eigen_matrix_t<Scalar, rows, columns>;
-    return MatrixTraits<M>::make(static_cast<const Scalar>(args)...);
-  }
-#ifndef __cpp_concepts
-# pragma GCC diagnostic pop
-#endif
-
-
-  /**
-   * \overload
-   * \brief Make a native Eigen matrix from a list of coefficients in row-major order.
-   */
-#ifdef __cpp_concepts
-  template<std::size_t rows, std::size_t columns = 1, scalar_type ... Args>
-  requires
-    (rows == dynamic_size and columns == dynamic_size) or
-    ((rows != dynamic_size and columns != dynamic_size and sizeof...(Args) == rows * columns) or
-    (columns == dynamic_size and sizeof...(Args) % rows == 0) or
-    (rows == dynamic_size and sizeof...(Args) % columns == 0))
-#else
-# pragma GCC diagnostic push
-# pragma GCC diagnostic ignored "-Wdiv-by-zero"
-  template<std::size_t rows, std::size_t columns = 1, typename ... Args, std::enable_if_t<
-    (scalar_type<Args> and ...) and
-    ((rows == dynamic_size and columns == dynamic_size) or
-    ((rows != dynamic_size and columns != dynamic_size and sizeof...(Args) == rows * columns) or
-    (columns == dynamic_size and sizeof...(Args) % rows == 0) or
-    (rows == dynamic_size and sizeof...(Args) % columns == 0))), int> = 0>
-#endif
-  inline auto
-  make_eigen_matrix(const Args ... args)
-  {
-    using Scalar = std::common_type_t<Args...>;
-    return make_eigen_matrix<Scalar, rows, columns>(args...);
-  }
-#ifndef __cpp_concepts
-# pragma GCC diagnostic pop
-#endif
-
-
-  /// Make a native Eigen 1-column vector from a list of coefficients in row-major order.
-#ifdef __cpp_concepts
-  template<scalar_type ... Args>
-#else
-  template<typename ... Args, std::enable_if_t<(scalar_type<Args> and ...), int> = 0>
-#endif
-  inline auto
-  make_eigen_matrix(const Args ... args)
-  {
-    using Scalar = std::common_type_t<Args...>;
-    return make_eigen_matrix<Scalar, sizeof...(Args), 1>(args...);
-  }
-
-} // namespace OpenKalman::Eigen3
 
 
 namespace OpenKalman::interface
@@ -383,8 +299,7 @@ namespace OpenKalman::interface
 
     template<typename...dims, typename Operation, typename...Args>
     static constexpr decltype(auto)
-    n_ary_operation_with_broadcasting(
-      const std::tuple<dims...>& tup, Operation&& op, Args&&...args)
+    n_ary_operation_with_broadcasting(const std::tuple<dims...>& tup, Operation&& op, Args&&...args)
     {
       if constexpr (sizeof...(Args) == 0)
       {
@@ -1505,12 +1420,12 @@ namespace OpenKalman::Eigen3
    */
 #ifdef __cpp_concepts
   template<typename F, bool euclidean, typename RC, typename...RCs, eigen_matrix Arg>
-  requires (dynamic_rows<Arg> or ((euclidean ? RC::euclidean_dimension : RC::dimension) + ... +
-    (euclidean ? RCs::euclidean_dimension : RCs::dimension)) <= row_dimension_of_v<Arg>)
+  requires (dynamic_rows<Arg> or ((euclidean ? euclidean_dimension_size_of_v<RC> : dimension_size_of_v<RC>) + ... +
+    (euclidean ? euclidean_dimension_size_of_v<RCs> : dimension_size_of_v<RCs>)) <= row_dimension_of_v<Arg>)
 #else
   template<typename F, bool euclidean, typename RC, typename...RCs, typename Arg, std::enable_if_t<eigen_matrix<Arg> and
-    (dynamic_rows<Arg> or ((euclidean ? RC::euclidean_dimension : RC::dimension) + ... +
-      (euclidean ? RCs::euclidean_dimension : RCs::dimension)) <= row_dimension_of<Arg>::value), int> = 0>
+    (dynamic_rows<Arg> or ((euclidean ? euclidean_dimension_size_of_v<RC> : dimension_size_of_v<RC>) + ... +
+      (euclidean ? euclidean_dimension_size_of_v<RCs> : dimension_size_of_v<RCs>)) <= row_dimension_of<Arg>::value), int> = 0>
 #endif
   inline auto
   split_vertical(Arg&& arg) noexcept
@@ -1523,8 +1438,8 @@ namespace OpenKalman::Eigen3
         return make_dense_writable_matrix_from(std::forward<decltype(m)>(m));
     };
 
-    using CC = Axes<dynamic_columns<Arg> ? 0 : column_dimension_of_v<Arg>>; // \todo fix this
-    constexpr Eigen::Index dim1 = euclidean ? RC::euclidean_dimension : RC::dimension;
+    using CC = Dimensions<dynamic_columns<Arg> ? 0 : column_dimension_of_v<Arg>>; // \todo fix this
+    constexpr Eigen::Index dim1 = euclidean ? euclidean_dimension_size_of_v<RC> : dimension_size_of_v<RC>;
 
     if constexpr (sizeof...(RCs) > 0)
     {
@@ -1579,13 +1494,13 @@ namespace OpenKalman::Eigen3
    * \tparam RCs Coefficients for each of the cuts.
    */
 #ifdef __cpp_concepts
-  template<typename F, coefficients RC, coefficients...RCs, eigen_matrix Arg>
-  requires (not coefficients<F>) and
-  (dynamic_rows<Arg> or (RC::dimension + ... + RCs::dimension) <= row_dimension_of_v<Arg>)
+  template<typename F, typed_index_descriptor RC, typed_index_descriptor...RCs, eigen_matrix Arg>
+  requires (not typed_index_descriptor<F>) and
+  (dynamic_rows<Arg> or (dimension_size_of_v<RC> + ... + dimension_size_of_v<RCs>) <= row_dimension_of_v<Arg>)
 #else
   template<typename F, typename RC, typename...RCs, typename Arg, std::enable_if_t<eigen_matrix<Arg> and
-    not coefficients<F> and (coefficients<RC> and ... and coefficients<RCs>) and
-      (dynamic_rows<Arg> or (RC::dimension + ... + RCs::dimension) <= row_dimension_of<Arg>::value), int> = 0>
+    not typed_index_descriptor<F> and (typed_index_descriptor<RC> and ... and typed_index_descriptor<RCs>) and
+      (dynamic_rows<Arg> or (dimension_size_of_v<RC> + ... + dimension_size_of_v<RCs>) <= row_dimension_of<Arg>::value), int> = 0>
 #endif
   inline auto
   split_vertical(Arg&& arg) noexcept
@@ -1600,12 +1515,12 @@ namespace OpenKalman::Eigen3
    * \tparam RCs Coefficients for the second and subsequent cuts.
    */
 #ifdef __cpp_concepts
-  template<coefficients RC, coefficients...RCs, eigen_matrix Arg>
-  requires (dynamic_rows<Arg> or (RC::dimension + ... + RCs::dimension) <= row_dimension_of_v<Arg>)
+  template<typed_index_descriptor RC, typed_index_descriptor...RCs, eigen_matrix Arg>
+  requires (dynamic_rows<Arg> or (dimension_size_of_v<RC> + ... + dimension_size_of_v<RCs>) <= row_dimension_of_v<Arg>)
 #else
   template<typename RC, typename...RCs, typename Arg, std::enable_if_t<eigen_matrix<Arg> and
-    (coefficients<RC> and ... and coefficients<RCs>) and
-    (dynamic_rows<Arg> or (RC::dimension + ... + RCs::dimension) <= row_dimension_of<Arg>::value), int> = 0>
+    (typed_index_descriptor<RC> and ... and typed_index_descriptor<RCs>) and
+    (dynamic_rows<Arg> or (dimension_size_of_v<RC> + ... + dimension_size_of_v<RCs>) <= row_dimension_of<Arg>::value), int> = 0>
 #endif
   inline auto
   split_vertical(Arg&& arg) noexcept
@@ -1630,7 +1545,7 @@ namespace OpenKalman::Eigen3
   inline auto
   split_vertical(Arg&& arg) noexcept
   {
-    return split_vertical<Axes<cut>, Axes<cuts>...>(std::forward<Arg>(arg));
+    return split_vertical<Dimensions<cut>, Dimensions<cuts>...>(std::forward<Arg>(arg));
   }
 
 
@@ -1641,13 +1556,13 @@ namespace OpenKalman::Eigen3
    * \tparam F An object having a static call() method to which the result is applied before creating the tuple.
    */
 #ifdef __cpp_concepts
-  template<typename F, coefficients CC, coefficients...CCs, eigen_matrix Arg>
-  requires (not coefficients<F>) and
-    (dynamic_columns<Arg> or (CC::dimension + ... + CCs::dimension) <= column_dimension_of_v<Arg>)
+  template<typename F, typed_index_descriptor CC, typed_index_descriptor...CCs, eigen_matrix Arg>
+  requires (not typed_index_descriptor<F>) and
+    (dynamic_columns<Arg> or (dimension_size_of_v<CC> + ... + dimension_size_of_v<CCs>) <= column_dimension_of_v<Arg>)
 #else
   template<typename F, typename CC, typename...CCs, typename Arg,
-    std::enable_if_t<eigen_matrix<Arg> and not coefficients<F> and
-      (dynamic_columns<Arg> or (CC::dimension + ... + CCs::dimension) <= column_dimension_of<Arg>::value), int> = 0>
+    std::enable_if_t<eigen_matrix<Arg> and not typed_index_descriptor<F> and
+      (dynamic_columns<Arg> or (dimension_size_of_v<CC> + ... + dimension_size_of_v<CCs>) <= column_dimension_of<Arg>::value), int> = 0>
 #endif
   inline auto
   split_horizontal(Arg&& arg) noexcept
@@ -1660,8 +1575,8 @@ namespace OpenKalman::Eigen3
         return make_dense_writable_matrix_from(std::forward<decltype(m)>(m));
     };
 
-    using RC = Axes<dynamic_rows<Arg> ? 0 : row_dimension_of_v<Arg>>; // \todo fix this
-    constexpr Eigen::Index dim1 = CC::dimension;
+    using RC = Dimensions<dynamic_rows<Arg> ? 0 : row_dimension_of_v<Arg>>; // \todo fix this
+    constexpr Eigen::Index dim1 = dimension_size_of_v<CC>;
 
     if constexpr(sizeof...(CCs) > 0)
     {
@@ -1716,12 +1631,12 @@ namespace OpenKalman::Eigen3
    * \tparam CCs Coefficients for the second and subsequent cuts.
    */
 #ifdef __cpp_concepts
-  template<coefficients CC, coefficients...CCs, eigen_matrix Arg>
-  requires (dynamic_columns<Arg> or (CC::dimension + ... + CCs::dimension) <= column_dimension_of_v<Arg>)
+  template<typed_index_descriptor CC, typed_index_descriptor...CCs, eigen_matrix Arg>
+  requires (dynamic_columns<Arg> or (dimension_size_of_v<CC> + ... + dimension_size_of_v<CCs>) <= column_dimension_of_v<Arg>)
 #else
   template<typename CC, typename...CCs, typename Arg,
-    std::enable_if_t<eigen_matrix<Arg> and coefficients<CC> and
-      (dynamic_columns<Arg> or (CC::dimension + ... + CCs::dimension) <= column_dimension_of<Arg>::value), int> = 0>
+    std::enable_if_t<eigen_matrix<Arg> and typed_index_descriptor<CC> and
+      (dynamic_columns<Arg> or (dimension_size_of_v<CC> + ... + dimension_size_of_v<CCs>) <= column_dimension_of<Arg>::value), int> = 0>
 #endif
   inline auto
   split_horizontal(Arg&& arg) noexcept
@@ -1746,7 +1661,7 @@ namespace OpenKalman::Eigen3
   inline auto
   split_horizontal(Arg&& arg) noexcept
   {
-    return split_horizontal<Axes<cut>, Axes<cuts>...>(std::forward<Arg>(arg));
+    return split_horizontal<Dimensions<cut>, Dimensions<cuts>...>(std::forward<Arg>(arg));
   }
 
 
@@ -1757,18 +1672,18 @@ namespace OpenKalman::Eigen3
    * \tparam Cs Coefficients for each of the second and subsequent cuts.
    */
 #ifdef __cpp_concepts
-  template<typename F, bool euclidean, coefficients C, coefficients...Cs, eigen_matrix Arg>
+  template<typename F, bool euclidean, typed_index_descriptor C, typed_index_descriptor...Cs, eigen_matrix Arg>
   requires (dynamic_rows<Arg> or
-    ((euclidean ? C::euclidean_dimension : C::dimension) + ... +
-      (euclidean ? Cs::euclidean_dimension : Cs::dimension)) <= row_dimension_of_v<Arg>) and
-    (dynamic_columns<Arg> or (C::dimension + ... + Cs::dimension) <= column_dimension_of_v<Arg>)
+    ((euclidean ? euclidean_dimension_size_of_v<C> : dimension_size_of_v<C>) + ... +
+      (euclidean ? euclidean_dimension_size_of_v<Cs> : dimension_size_of_v<Cs>)) <= row_dimension_of_v<Arg>) and
+    (dynamic_columns<Arg> or (dimension_size_of_v<C> + ... + dimension_size_of_v<Cs>) <= column_dimension_of_v<Arg>)
 #else
   template<typename F, bool euclidean, typename C, typename...Cs, typename Arg, std::enable_if_t<
-    eigen_matrix<Arg> and (coefficients<C> and ... and coefficients<Cs>) and
+    eigen_matrix<Arg> and (typed_index_descriptor<C> and ... and typed_index_descriptor<Cs>) and
     (dynamic_rows<Arg> or
-    ((euclidean ? C::euclidean_dimension : C::dimension) + ... +
-      (euclidean ? Cs::euclidean_dimension : Cs::dimension)) <= row_dimension_of<Arg>::value) and
-    (dynamic_columns<Arg> or (C::dimension + ... + Cs::dimension) <= column_dimension_of<Arg>::value), int> = 0>
+    ((euclidean ? euclidean_dimension_size_of_v<C> : dimension_size_of_v<C>) + ... +
+      (euclidean ? euclidean_dimension_size_of_v<Cs> : dimension_size_of_v<Cs>)) <= row_dimension_of<Arg>::value) and
+    (dynamic_columns<Arg> or (dimension_size_of_v<C> + ... + dimension_size_of_v<Cs>) <= column_dimension_of<Arg>::value), int> = 0>
 #endif
   inline auto
   split_diagonal(Arg&& arg) noexcept
@@ -1781,8 +1696,8 @@ namespace OpenKalman::Eigen3
         return make_dense_writable_matrix_from(std::forward<decltype(m)>(m));
     };
 
-    constexpr Eigen::Index rdim1 = euclidean ? C::euclidean_dimension : C::dimension;
-    constexpr Eigen::Index cdim1 = C::dimension;
+    constexpr Eigen::Index rdim1 = euclidean ? euclidean_dimension_size_of_v<C> : dimension_size_of_v<C>;
+    constexpr Eigen::Index cdim1 = dimension_size_of_v<C>;
 
     if constexpr(sizeof...(Cs) > 0)
     {
@@ -1824,10 +1739,10 @@ namespace OpenKalman::Eigen3
    */
 #ifdef __cpp_concepts
   template<typename F = OpenKalman::internal::default_split_function, bool euclidean = false, eigen_matrix Arg>
-  requires (not coefficients<F>)
+  requires (not typed_index_descriptor<F>)
 #else
   template<typename F = OpenKalman::internal::default_split_function, bool euclidean = false,
-    typename Arg, std::enable_if_t<eigen_matrix<Arg> and not coefficients<F>, int> = 0>
+    typename Arg, std::enable_if_t<eigen_matrix<Arg> and not typed_index_descriptor<F>, int> = 0>
 #endif
   inline auto
   split_diagonal(Arg&& arg) noexcept
@@ -1843,15 +1758,15 @@ namespace OpenKalman::Eigen3
    * \tparam Cs Coefficients for each of the second and subsequent cuts.
    */
 #ifdef __cpp_concepts
-  template<typename F, coefficients C, coefficients...Cs, eigen_matrix Arg>
-  requires (not coefficients<F>) and
-    (dynamic_rows<Arg> or (C::dimension + ... + Cs::dimension) <= row_dimension_of_v<Arg>) and
-    (dynamic_columns<Arg> or (C::dimension + ... + Cs::dimension) <= column_dimension_of_v<Arg>)
+  template<typename F, typed_index_descriptor C, typed_index_descriptor...Cs, eigen_matrix Arg>
+  requires (not typed_index_descriptor<F>) and
+    (dynamic_rows<Arg> or (dimension_size_of_v<C> + ... + dimension_size_of_v<Cs>) <= row_dimension_of_v<Arg>) and
+    (dynamic_columns<Arg> or (dimension_size_of_v<C> + ... + dimension_size_of_v<Cs>) <= column_dimension_of_v<Arg>)
 #else
   template<typename F, typename C, typename...Cs, typename Arg, std::enable_if_t<
-    eigen_matrix<Arg> and not coefficients<F> and (coefficients<C> and ... and coefficients<Cs>) and
-    (dynamic_rows<Arg> or (C::dimension + ... + Cs::dimension) <= row_dimension_of<Arg>::value) and
-    (dynamic_columns<Arg> or (C::dimension + ... + Cs::dimension) <= column_dimension_of<Arg>::value), int> = 0>
+    eigen_matrix<Arg> and not typed_index_descriptor<F> and (typed_index_descriptor<C> and ... and typed_index_descriptor<Cs>) and
+    (dynamic_rows<Arg> or (dimension_size_of_v<C> + ... + dimension_size_of_v<Cs>) <= row_dimension_of<Arg>::value) and
+    (dynamic_columns<Arg> or (dimension_size_of_v<C> + ... + dimension_size_of_v<Cs>) <= column_dimension_of<Arg>::value), int> = 0>
 #endif
   inline auto
   split_diagonal(Arg&& arg) noexcept
@@ -1866,14 +1781,14 @@ namespace OpenKalman::Eigen3
    * \tparam Cs Coefficients for the second and subsequent cuts.
    */
 #ifdef __cpp_concepts
-  template<coefficients C, coefficients...Cs, eigen_matrix Arg>
-  requires (dynamic_rows<Arg> or (C::dimension + ... + Cs::dimension) <= row_dimension_of_v<Arg>) and
-    (dynamic_columns<Arg> or (C::dimension + ... + Cs::dimension) <= column_dimension_of_v<Arg>)
+  template<typed_index_descriptor C, typed_index_descriptor...Cs, eigen_matrix Arg>
+  requires (dynamic_rows<Arg> or (dimension_size_of_v<C> + ... + dimension_size_of_v<Cs>) <= row_dimension_of_v<Arg>) and
+    (dynamic_columns<Arg> or (dimension_size_of_v<C> + ... + dimension_size_of_v<Cs>) <= column_dimension_of_v<Arg>)
 #else
   template<typename C, typename...Cs, typename Arg, std::enable_if_t<
-    eigen_matrix<Arg> and (coefficients<C> and ... and coefficients<Cs>) and
-    (dynamic_rows<Arg> or (C::dimension + ... + Cs::dimension) <= row_dimension_of<Arg>::value) and
-    (dynamic_columns<Arg> or (C::dimension + ... + Cs::dimension) <= column_dimension_of<Arg>::value), int> = 0>
+    eigen_matrix<Arg> and (typed_index_descriptor<C> and ... and typed_index_descriptor<Cs>) and
+    (dynamic_rows<Arg> or (dimension_size_of_v<C> + ... + dimension_size_of_v<Cs>) <= row_dimension_of<Arg>::value) and
+    (dynamic_columns<Arg> or (dimension_size_of_v<C> + ... + dimension_size_of_v<Cs>) <= column_dimension_of<Arg>::value), int> = 0>
 #endif
   inline auto
   split_diagonal(Arg&& arg) noexcept
@@ -1901,7 +1816,7 @@ namespace OpenKalman::Eigen3
   inline auto
   split_diagonal(Arg&& arg) noexcept
   {
-    return split_diagonal<Axes<cut>, Axes<cuts>...>(std::forward<Arg>(arg));
+    return split_diagonal<Dimensions<cut>, Dimensions<cuts>...>(std::forward<Arg>(arg));
   }
 
 
@@ -2813,4 +2728,4 @@ namespace OpenKalman::Eigen3
 
 }
 
-#endif //OPENKALMAN_EIGEN3_MATRIX_OVERLOADS_HPP
+#endif //OPENKALMAN_EIGEN3_INTERFACE_HPP

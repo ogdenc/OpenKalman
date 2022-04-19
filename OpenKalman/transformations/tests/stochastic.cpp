@@ -13,8 +13,8 @@
 using namespace OpenKalman;
 using namespace OpenKalman::test;
 
-using M = Mean<Axes<2>>;
-using A = Matrix<Axes<2>, Axes<2>>;
+using M = Mean<Dimensions<2>>;
+using A = Matrix<Dimensions<2>, Dimensions<2>>;
 
 TEST(transformations, stochastic_additive)
 {

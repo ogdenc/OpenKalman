@@ -97,10 +97,19 @@ namespace OpenKalman::Eigen3
 
   private:
 
-    template<typename T, std::size_t...I>
-    static constexpr bool constant_arg_matches_impl(std::index_sequence<I...>)
+    template<typename T, std::size_t I>
+    static constexpr bool arg_one_dim_matches()
     {
-      return ((index_dimension_of_v<T, I> == dimension_size_of_v<std::tuple_element_t<I, MyDimensions>>) and ...);
+      constexpr auto dim1 = index_dimension_of_v<T, I>;
+      constexpr auto dim2 = dimension_size_of_v<std::tuple_element_t<I, MyDimensions>>;
+      return dim1 == dynamic_size or dim2 == dynamic_size or dim1 == dim2;
+    };
+
+
+    template<typename T, std::size_t...I>
+    static constexpr bool arg_matches_impl(std::index_sequence<I...>)
+    {
+      return (arg_one_dim_matches<T, I>() and ...);
     };
 
 
@@ -114,12 +123,12 @@ namespace OpenKalman::Eigen3
 
 #ifdef __cpp_concepts
     template<typename T> requires (constant_coefficient_v<std::decay_t<T>> == constant) and
-      (constant_arg_matches_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{}))
+      (arg_matches_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{}))
     struct constant_arg_matches<T>
 #else
     template<typename T>
     struct constant_arg_matches<T, std::enable_if_t<(constant_coefficient<std::decay_t<T>>::value == constant) and
-      constant_arg_matches_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{})>>
+      arg_matches_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{})>>
 #endif
       : std::true_type {};
 

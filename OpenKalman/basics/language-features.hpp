@@ -18,6 +18,10 @@
 
 #include <type_traits>
 
+#ifdef __cpp_concepts
+#include <concepts>
+#endif
+
 
 #ifdef __clang__
 #  define OPENKALMAN_CPP_FEATURE_CONCEPTS             true

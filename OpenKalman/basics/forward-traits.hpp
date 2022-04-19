@@ -257,11 +257,11 @@ namespace OpenKalman
     detail::number_of_dynamic_indices_impl<T>(std::make_index_sequence<max_indices_of_v<T>> {})> {};
 
 
-    /**
-     * \brief Helper template for \ref number_of_dynamic_indices
-     */
-    template<typename T>
-    static constexpr std::size_t number_of_dynamic_indices_v = number_of_dynamic_indices<T>::value;
+  /**
+   * \brief Helper template for \ref number_of_dynamic_indices
+   */
+  template<typename T>
+  static constexpr std::size_t number_of_dynamic_indices_v = number_of_dynamic_indices<T>::value;
 
 
   // ----------------------- //
@@ -320,17 +320,22 @@ namespace OpenKalman
    * \tparam N The index number (0 = rows, 1 = columns, etc.)
    */
 #ifdef __cpp_concepts
-  template<typename T, std::size_t N> requires (N < max_indices_of_v<T>)
+  template<typename T, std::size_t N>
+#else
+  template<typename T, std::size_t N, typename = void>
+#endif
+  struct coefficient_types_of;
+
+
+#ifdef __cpp_concepts
+  template<indexible T, std::size_t N> requires (N < max_indices_of_v<T>)
+  struct coefficient_types_of<T, N>
 #else
   template<typename T, std::size_t N>
+  struct coefficient_types_of<T, N, std::enable_if_t<indexible<T> and N < max_indices_of_v<T>>>
 #endif
-  struct coefficient_types_of
   {
-#ifndef __cpp_concepts
-    static_assert(N < max_indices_of_v<T>);
-#endif
-    using type = std::conditional_t<dynamic_dimension<T, N>, DynamicCoefficients<>,
-      typename interface::CoordinateSystemTraits<T, N>::coordinate_system_types>;
+    using type = typename interface::CoordinateSystemTraits<std::decay_t<T>, N>::coordinate_system_types;
   };
 
 
@@ -362,6 +367,42 @@ namespace OpenKalman
    */
   template<typename T>
   using column_coefficient_types_of_t = typename column_coefficient_types_of<T>::type;
+
+
+  // --------------------- //
+  //   has_untyped_index   //
+  // --------------------- //
+
+  /**
+   * \brief Specifies that T has an untyped index N.
+   * \details Index N of T is Euclidean and non-modular (e.g., Axis, Coefficients<Axis, Axis>, etc.).
+   */
+#ifdef __cpp_concepts
+  template<typename T, std::size_t N>
+  concept has_untyped_index =
+#else
+  template<typename T, std::size_t N>
+  constexpr bool has_untyped_index =
+#endif
+    untyped_index_descriptor<coefficient_types_of_t<T, N>>;
+
+
+  // ------------------- //
+  //   has_typed_index   //
+  // ------------------- //
+
+  /**
+   * \brief Specifies that T has a typed index N.
+   * \details Index N of T is be modular (e.g., Angle, Polar, Spherical, etc.).
+   */
+#ifdef __cpp_concepts
+  template<typename T, std::size_t N>
+  concept has_typed_index =
+#else
+  template<typename T, std::size_t N>
+  constexpr bool has_typed_index =
+#endif
+    typed_index_descriptor<coefficient_types_of_t<T, N>>;
 
 
   // ------------------ //
@@ -733,7 +774,7 @@ namespace OpenKalman
 
     template<typename T>
     struct is_1by1_identity_matrix<T, std::enable_if_t<are_within_tolerance(constant_coefficient<T>::value, 1) and
-      row_dimension_of<T>::value == 1 and column_dimension_of<T>::value == 1>>
+      index_dimension_of<T, 0>::value == 1 and index_dimension_of<T, 1>::value == 1>>
       : std::true_type {};
   }
 #endif
@@ -744,7 +785,8 @@ namespace OpenKalman
   template<typename T>
 #ifdef __cpp_concepts
   concept identity_matrix = are_within_tolerance(constant_diagonal_coefficient_v<T>, 1) or
-    (are_within_tolerance(constant_coefficient_v<T>, 1) and row_dimension_of_v<T> == 1 and column_dimension_of_v<T> == 1);
+    (are_within_tolerance(constant_coefficient_v<T>, 1) and index_dimension_of_v<T, 0> == 1 and
+      index_dimension_of_v<T, 1> == 1);
 #else
   constexpr bool identity_matrix = detail::is_identity_matrix<std::decay_t<T>>::value or
     detail::is_1by1_identity_matrix<std::decay_t<T>>::value;
@@ -995,8 +1037,8 @@ namespace OpenKalman
     struct is_square_matrix : std::false_type {};
 
     template<typename T>
-    struct is_square_matrix<T, std::enable_if_t<row_dimension_of<T>::value == column_dimension_of<T>::value and
-      equivalent_to<row_coefficient_types_of_t<T>, column_coefficient_types_of_t<T>>>>
+    struct is_square_matrix<T, std::enable_if_t<
+      equivalent_to<typename coefficient_types_of<T, 0>::type, typename coefficient_types_of<T, 1>::type>>>
       : std::true_type {};
   }
 #endif
@@ -1004,13 +1046,12 @@ namespace OpenKalman
 
   /**
    * \brief Specifies that a matrix is square (i.e., has the same number and type of rows and column).
-   * \details If T is a \ref typed_matrix, the row coefficients must also be \ref equivalent_to the column coefficients.
+   * \details If T is a \ref typed_matrix, the row typed_index_descriptor must also be \ref equivalent_to the column typed_index_descriptor.
    */
   template<typename T>
 #ifdef __cpp_concepts
   concept square_matrix =
-    (has_dynamic_dimensions<T> or (row_dimension_of_v<T> == column_dimension_of_v<T> and
-      equivalent_to<row_coefficient_types_of_t<T>, column_coefficient_types_of_t<T>>)) and
+    (has_dynamic_dimensions<T> or equivalent_to<coefficient_types_of_t<T, 0>, coefficient_types_of_t<T, 1>>) and
     (not has_dynamic_dimensions<T> or self_adjoint_matrix<T> or triangular_matrix<T>);
 #else
   constexpr bool square_matrix =
@@ -1031,7 +1072,7 @@ namespace OpenKalman
 
     template<typename T>
     struct has_1d_index<T, std::enable_if_t<
-      (row_dimension_of<T>::value == 1 or column_dimension_of<T>::value == 1)>> : std::true_type {};
+      (index_dimension_of<T, 0>::value == 1 or index_dimension_of<T, 1>::value == 1)>> : std::true_type {};
   }
 #endif
 
@@ -1040,7 +1081,7 @@ namespace OpenKalman
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept one_by_one_matrix = (row_dimension_of_v<T> == 1 or column_dimension_of_v<T> == 1) and square_matrix<T>;
+  concept one_by_one_matrix = (index_dimension_of_v<T, 0> == 1 or index_dimension_of_v<T, 1> == 1) and square_matrix<T>;
 #else
   constexpr bool one_by_one_matrix = detail::has_1d_index<T>::value and square_matrix<T>;
 #endif
@@ -1068,30 +1109,17 @@ namespace OpenKalman
 #endif
 
 
-#ifndef __cpp_concepts
-  namespace detail
-  {
-    template<typename T, typename = void>
-    struct is_wrapped_mean : std::false_type {}; //< see forward-class-declarations.hpp
-
-
-    template<typename T>
-    struct is_wrapped_mean<T, std::enable_if_t<mean<T> and (not row_coefficient_types_of_t<T>::axes_only)>>
-      : std::true_type {};
-  }
-#endif
-
-
   /**
-   * \brief Specifies that T is a wrapped mean (i.e., its row coefficients have at least one type that requires wrapping).
+   * \brief Specifies that T is a wrapped mean (i.e., its row typed_index_descriptor have at least one type that requires wrapping).
    */
 #ifdef __cpp_concepts
   template<typename T>
-  concept wrapped_mean = mean<T> and (not row_coefficient_types_of_t<T>::axes_only);
+  concept wrapped_mean =
 #else
   template<typename T>
-  constexpr bool wrapped_mean = detail::is_wrapped_mean<T>::value;
+  constexpr bool wrapped_mean =
 #endif
+    mean<T> and has_typed_index<T, 0>;
 
 
   // ----------------------------------------- //
@@ -1116,31 +1144,17 @@ namespace OpenKalman
 #endif
 
 
-#ifndef __cpp_concepts
-  namespace detail
-  {
-    template<typename T, typename = void>
-    struct is_euclidean_transformed : std::false_type {};
-
-
-    template<typename T>
-    struct is_euclidean_transformed<T, std::enable_if_t<
-      euclidean_mean<T> and (not row_coefficient_types_of_t<T>::axes_only)>>
-      : std::true_type {};
-  }
-#endif
-
-
   /**
    * \brief Specifies that T is a Euclidean mean that actually has coefficients that are transformed to Euclidean space.
    */
 #ifdef __cpp_concepts
   template<typename T>
-  concept euclidean_transformed = euclidean_mean<T> and (not row_coefficient_types_of_t<T>::axes_only);
+  concept euclidean_transformed =
 #else
   template<typename T>
-  constexpr bool euclidean_transformed = detail::is_euclidean_transformed<T>::value;
+  constexpr bool euclidean_transformed =
 #endif
+    euclidean_mean<T> and has_typed_index<T, 0>;
 
 
   // ---------------- //

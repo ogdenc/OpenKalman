@@ -38,7 +38,7 @@ namespace Eigen::internal
     using Base = evaluator<std::decay_t<ArgType>>;
     enum
     {
-      Flags = (Coefficients::axes_only ? Base::Flags : Base::Flags & ~LvalueBit),
+      Flags = (untyped_index_descriptor<Coefficients> ? Base::Flags : Base::Flags & ~LvalueBit),
     };
     explicit evaluator(const XprType& m) : Base(m.nested_matrix()) {}
   };
@@ -453,7 +453,7 @@ namespace Eigen::internal
   namespace detail
   {
 #ifdef __cpp_concepts
-    template<OpenKalman::coefficients Coefficients, typename XprType, typename Nested, typename NestedEvaluator>
+    template<OpenKalman::index_descriptor Coefficients, typename XprType, typename Nested, typename NestedEvaluator>
 #else
     template<typename Coefficients, typename XprType, typename Nested, typename NestedEvaluator, typename = void>
 #endif
@@ -461,13 +461,12 @@ namespace Eigen::internal
 
 
 #ifdef __cpp_concepts
-    template<OpenKalman::coefficients Coefficients, typename XprType, typename Nested, typename NestedEvaluator>
-      requires (not Coefficients::axes_only)
+    template<OpenKalman::typed_index_descriptor Coefficients, typename XprType, typename Nested, typename NestedEvaluator>
     struct Evaluator_EuclideanExpr_Base<Coefficients, XprType, Nested, NestedEvaluator>
 #else
     template<typename Coefficients, typename XprType, typename Nested, typename NestedEvaluator>
     struct Evaluator_EuclideanExpr_Base<Coefficients, XprType, Nested, NestedEvaluator,
-      std::enable_if_t<OpenKalman::coefficients<Coefficients> and not Coefficients::axes_only>>
+      std::enable_if_t<OpenKalman::typed_index_descriptor<Coefficients>>>
 #endif
       : evaluator_base<XprType>
     {
@@ -489,13 +488,12 @@ namespace Eigen::internal
 
 
 #ifdef __cpp_concepts
-    template<OpenKalman::coefficients Coefficients, typename XprType, typename Nested, typename NestedEvaluator>
-      requires Coefficients::axes_only
+    template<OpenKalman::untyped_index_descriptor Coefficients, typename XprType, typename Nested, typename NestedEvaluator>
     struct Evaluator_EuclideanExpr_Base<Coefficients, XprType, Nested, NestedEvaluator>
 #else
     template<typename Coefficients, typename XprType, typename Nested, typename NestedEvaluator>
     struct Evaluator_EuclideanExpr_Base<Coefficients, XprType, Nested, NestedEvaluator,
-      std::enable_if_t<OpenKalman::coefficients<Coefficients> and Coefficients::axes_only>>
+      std::enable_if_t<OpenKalman::untyped_index_descriptor<Coefficients>>>
 #endif
       : NestedEvaluator
     {
@@ -531,7 +529,7 @@ namespace Eigen::internal
     enum
     {
       CoeffReadCost = NestedEvaluator::CoeffReadCost + (
-        Coeffs::axes_only ? 0 :
+        untyped_index_descriptor<Coeffs> ? 0 :
         (int) Eigen::internal::functor_traits<Eigen::internal::scalar_sin_op<Scalar>>::Cost +
           (int) Eigen::internal::functor_traits<Eigen::internal::scalar_cos_op<Scalar>>::Cost)
     };
@@ -540,7 +538,7 @@ namespace Eigen::internal
 
     CoeffReturnType coeff(Index row, Index col) const
     {
-      if constexpr (Coeffs::axes_only)
+      if constexpr (untyped_index_descriptor<Coeffs>)
       {
         return Base::coeff(row, col);
       }
@@ -553,7 +551,7 @@ namespace Eigen::internal
 
     CoeffReturnType coeff(Index row) const
     {
-      if constexpr (Coeffs::axes_only)
+      if constexpr (untyped_index_descriptor<Coeffs>)
       {
         return Base::coeff(row);
       }
@@ -593,7 +591,7 @@ namespace Eigen::internal
     enum
     {
       CoeffReadCost = NestedEvaluator::CoeffReadCost + (
-        Coeffs::axes_only ? 0 :
+        untyped_index_descriptor<Coeffs> ? 0 :
         Eigen::internal::functor_traits<Eigen::internal::scalar_atan_op<Scalar>>::Cost)
     };
 
@@ -601,7 +599,7 @@ namespace Eigen::internal
 
     CoeffReturnType coeff(Index row, Index col) const
     {
-      if constexpr (Coeffs::axes_only)
+      if constexpr (untyped_index_descriptor<Coeffs>)
       {
         return Base::coeff(row, col);
       }
@@ -614,7 +612,7 @@ namespace Eigen::internal
 
     CoeffReturnType coeff(Index row) const
     {
-      if constexpr (Coeffs::axes_only)
+      if constexpr (untyped_index_descriptor<Coeffs>)
       {
         return Base::coeff(row);
       }
@@ -659,7 +657,7 @@ namespace Eigen::internal
 
     CoeffReturnType coeff(Index row, Index col) const
     {
-      if constexpr (Coeffs::axes_only)
+      if constexpr (untyped_index_descriptor<Coeffs>)
       {
         return Base::coeff(row, col);
       }
@@ -672,7 +670,7 @@ namespace Eigen::internal
 
     CoeffReturnType coeff(Index row) const
     {
-      if constexpr (Coeffs::axes_only)
+      if constexpr (untyped_index_descriptor<Coeffs>)
       {
         return Base::coeff(row);
       }

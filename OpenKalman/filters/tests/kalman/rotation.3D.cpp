@@ -20,20 +20,20 @@ namespace
   inline auto get_t3()
   {
     using M3 = eigen_matrix_t<double, 3, 1>;
-    using Mean3 = Mean<Axes<3>, M3>;
+    using Mean3 = Mean<Dimensions<3>, M3>;
     using M33 = eigen_matrix_t<double, 3, 3>;
     auto angles = randomize<Mean3>(std::uniform_real_distribution {-pi, pi});
-    auto ax = Matrix < Axes<3>, Axes<3>, M33> {
+    auto ax = Matrix<Dimensions<3>, Dimensions<3>, M33> {
       1, 0, 0,
         0, std::cos(angles[0]), -std::sin(angles[0]),
         0, std::sin(angles[0]), std::cos(angles[0])
     };
-    auto ay = Matrix < Axes < 3 >, Axes<3>, M33> {
+    auto ay = Matrix<Dimensions<3>, Dimensions<3>, M33> {
       std::cos(angles[0]), 0, std::sin(angles[0]),
         0, 1, 0,
         -std::sin(angles[0]), 0, std::cos(angles[0])
     };
-    auto az = Matrix < Axes < 3 >, Axes<3>, M33> {
+    auto az = Matrix<Dimensions<3>, Dimensions<3>, M33> {
       std::cos(angles[0]), -std::sin(angles[0]), 0,
         std::sin(angles[0]), std::cos(angles[0]), 0,
         0, 0, 1
@@ -46,13 +46,13 @@ namespace
   void rotation_3D(const Trans& transform)
   {
     using M3 = eigen_matrix_t<double, 3, 1>;
-    using Mean3 = Mean<Axes<3>, M3>;
+    using Mean3 = Mean<Dimensions<3>, M3>;
     for (int i = 0; i < 5; i++)
     {
       auto true_state = randomize<Mean3>(std::uniform_real_distribution {5.0, 10.0});
-      auto x = GaussianDistribution < Axes<3>, M3, Cov> { Mean3 {7.5, 7.5, 7.5}, make_identity_matrix_like<Cov>() };
+      auto x = GaussianDistribution < Dimensions<3>, M3, Cov> { Mean3 {7.5, 7.5, 7.5}, make_identity_matrix_like<Cov>() };
       auto meas_cov = Cov {0.01, 0, 0, 0, 0.01, 0, 0, 0, 0.1};
-      auto r = GaussianDistribution < Axes<3>, M3, Cov> { make_zero_matrix_like<Mean3>(), meas_cov };
+      auto r = GaussianDistribution < Dimensions<3>, M3, Cov> { make_zero_matrix_like<Mean3>(), meas_cov };
       parameter_test(transform, get_t3(), x, true_state, r, 1.0, 1000);
     }
   }

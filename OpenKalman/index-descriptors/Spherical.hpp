@@ -19,11 +19,28 @@
 
 namespace OpenKalman
 {
+  /**
+   * \brief An atomic coefficient group reflecting spherical coordinates.
+   * \details Coefficient1, Coefficient2, and Coefficient3 must be some combination of Distance, Inclination, and Angle
+   * in any order, reflecting the distance, inclination, and azimuth, respectively.
+   * Spherical coordinates span three adjacent coefficients in a matrix.<br/>
+   * \par Examples
+   * <code>Spherical&lt;Distance, inclination::Degrees, angle::Radians&gt;,<br/>
+   * Spherical&lt;angle::PositiveDegrees, Distance, inclination::Radians&gt;</code>
+   * \tparam C1, C2, C3 Distance, inclination, and Angle, in any order.
+   * By default, they are Distance, angle::Radians, and inclination::Radians, respectively.
+   * \internal
+   * <b>See also</b> the following functions for accessing coefficient properties:
+   * - internal::to_euclidean_coeff: \copybrief internal::to_euclidean_coeff
+   * - internal::from_euclidean_coeff: \copybrief internal::from_euclidean_coeff
+   * - internal::wrap_get: \copybrief internal::wrap_get
+   * - internal::wrap_set \copybrief internal::wrap_set
+   */
 #ifdef __cpp_concepts
   template<fixed_coefficients C1 = Distance, fixed_coefficients C2 = angle::Radians,
     fixed_coefficients C3 = inclination::Radians>
 #else
-  template<typename C1 = Distance, typename C2 = angle::Radians, typename C3 = inclination::Radians, typename>
+  template<typename C1 = Distance, typename C2 = angle::Radians, typename C3 = inclination::Radians, typename Enable>
 #endif
   struct Spherical;
 
@@ -234,27 +251,8 @@ namespace OpenKalman
       typename C1, typename C2, typename C3,
       template<typename Scalar> typename CircleLimits, template<typename Scalar> typename InclinationLimits,
       std::size_t d_i, std::size_t a_i, std::size_t i_i>
-    struct SphericalBase
+    struct SphericalBase : Dimensions<3>
     {
-      /// Spherical is associated with three matrix elements.
-      static constexpr std::size_t dimension = 3;
-
-      /// Spherical is represented by four coordinates in Euclidean space.
-      static constexpr std::size_t euclidean_dimension = 4;
-
-      /// Spherical is not composed of only axes.
-      static constexpr bool axes_only = false;
-
-      /**
-       * \brief The type of the result when subtracting two Spherical vectors.
-       * \details For differences, each coordinate behaves as if it were Distance, Angle, or Inclination.
-       * See David Frederic Crouse, Cubature/Unscented/Sigma Point Kalman Filtering with Angular Measurement Models,
-       * 18th Int'l Conf. on Information Fusion 1550, 1555 (2015).
-       */
-      using difference_type =
-        Concatenate<typename C1::difference_type, typename C2::difference_type, typename C3::difference_type>;
-
-
       /**
        * \internal
        * \brief A function taking a row index and returning a corresponding matrix element.
@@ -298,7 +296,7 @@ namespace OpenKalman
        * \tparam i The index of the first spherical coefficient that is being transformed.
        */
       template<typename Scalar, std::size_t i>
-      static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), euclidean_dimension>
+      static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), 4>
         to_euclidean_array = {
         [](const GetCoeff<Scalar>& get_coeff) constexpr { return get_coeff(i + d_i); },
         [](const GetCoeff<Scalar>& get_coeff) constexpr {
@@ -324,7 +322,7 @@ namespace OpenKalman
        * \tparam i The index of the first of the four Cartesian coordinates being transformed back to spherical.
        */
       template<typename Scalar, std::size_t i>
-      static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), dimension>
+      static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), 3>
         from_euclidean_array = internal::join(
         internal::join(
           detail::SphericalImpl<
@@ -346,7 +344,7 @@ namespace OpenKalman
        * \tparam i The index of the first of three spherical coordinates that are being wrapped.
        */
       template<typename Scalar, std::size_t i>
-      static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), dimension>
+      static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), 3>
         wrap_array_get = internal::join(
         internal::join(
           detail::SphericalImpl<
@@ -370,7 +368,7 @@ namespace OpenKalman
        */
       template<typename Scalar, std::size_t i>
       static constexpr
-      std::array<void (*const)(const Scalar, const SetCoeff<Scalar>&, const GetCoeff<Scalar>&), dimension>
+      std::array<void (*const)(const Scalar, const SetCoeff<Scalar>&, const GetCoeff<Scalar>&), 3>
         wrap_array_set = internal::join(
         internal::join(
           detail::SphericalImpl<
@@ -390,60 +388,42 @@ namespace OpenKalman
   template<template<typename Scalar> typename ALimits, template<typename Scalar> typename ILimits>
   struct Spherical<Distance, Angle<ALimits>, Inclination<ILimits>>
     : detail::SphericalBase<Spherical<Distance, Angle<ALimits>, Inclination<ILimits>>,
-    Distance, Angle<ALimits>, Inclination<ILimits>, ALimits, ILimits, 0, 1, 2>
-  {
-    static_assert(internal::coefficient_class<Spherical>);
-  };
+    Distance, Angle<ALimits>, Inclination<ILimits>, ALimits, ILimits, 0, 1, 2> {};
 
 
   // Distance, Inclination, Angle.
   template<template<typename Scalar> typename ILimits, template<typename Scalar> typename ALimits>
   struct Spherical<Distance, Inclination<ILimits>, Angle<ALimits>>
     : detail::SphericalBase<Spherical<Distance, Inclination<ILimits>, Angle<ALimits>>,
-    Distance, Inclination<ILimits>, Angle<ALimits>, ALimits, ILimits, 0, 2, 1>
-  {
-  static_assert(internal::coefficient_class<Spherical>);
-  };
+    Distance, Inclination<ILimits>, Angle<ALimits>, ALimits, ILimits, 0, 2, 1> {};
 
 
   // Angle, Distance, Inclination.
   template<template<typename Scalar> typename ALimits, template<typename Scalar> typename ILimits>
   struct Spherical<Angle<ALimits>, Distance, Inclination<ILimits>>
     : detail::SphericalBase<Spherical<Angle<ALimits>, Distance, Inclination<ILimits>>,
-      Angle<ALimits>, Distance, Inclination<ILimits>, ALimits, ILimits, 1, 0, 2>
-  {
-    static_assert(internal::coefficient_class<Spherical>);
-  };
+      Angle<ALimits>, Distance, Inclination<ILimits>, ALimits, ILimits, 1, 0, 2> {};
 
 
   // Inclination, Distance, Angle.
   template<template<typename Scalar> typename ILimits, template<typename Scalar> typename ALimits>
   struct Spherical<Inclination<ILimits>, Distance, Angle<ALimits>>
     : detail::SphericalBase<Spherical<Inclination<ILimits>, Distance, Angle<ALimits>>,
-      Inclination<ILimits>, Distance, Angle<ALimits>, ALimits, ILimits, 1, 2, 0>
-  {
-    static_assert(internal::coefficient_class<Spherical>);
-  };
+      Inclination<ILimits>, Distance, Angle<ALimits>, ALimits, ILimits, 1, 2, 0> {};
 
 
   // Angle, Inclination, Distance.
   template<template<typename Scalar> typename ALimits, template<typename Scalar> typename ILimits>
   struct Spherical<Angle<ALimits>, Inclination<ILimits>, Distance>
     : detail::SphericalBase<Spherical<Angle<ALimits>, Inclination<ILimits>, Distance>,
-      Angle<ALimits>, Inclination<ILimits>, Distance, ALimits, ILimits, 2, 0, 1>
-  {
-    static_assert(internal::coefficient_class<Spherical>);
-  };
+      Angle<ALimits>, Inclination<ILimits>, Distance, ALimits, ILimits, 2, 0, 1> {};
 
 
   // Inclination, Angle, Distance.
   template<template<typename Scalar> typename ILimits, template<typename Scalar> typename ALimits>
   struct Spherical<Inclination<ILimits>, Angle<ALimits>, Distance>
     : detail::SphericalBase<Spherical<Inclination<ILimits>, Angle<ALimits>, Distance>,
-      Inclination<ILimits>, Angle<ALimits>, Distance, ALimits, ILimits, 2, 1, 0>
-  {
-    static_assert(internal::coefficient_class<Spherical>);
-  };
+      Inclination<ILimits>, Angle<ALimits>, Distance, ALimits, ILimits, 2, 1, 0> {};
 
 
   // Alternate cases:
@@ -480,6 +460,28 @@ namespace OpenKalman
 #endif
     : Spherical<T1, T2, T3> {};
 
+
+  /**
+    * \internal
+    * \brief Spherical is represented by four coordinates in Euclidean space.
+    */
+   template<typename T1, typename T2, typename T3>
+   struct euclidean_dimension_size_of<Spherical<T1, T2, T3>>
+     : std::integral_constant<std::size_t, 4> {};
+
+
+  /**
+   * \internal
+   * \brief The type of the result when subtracting two Spherical vectors.
+   * \details For differences, each coordinate behaves as if it were Distance, Angle, or Inclination.
+   * See David Frederic Crouse, Cubature/Unscented/Sigma Point Kalman Filtering with Angular Measurement Models,
+   * 18th Int'l Conf. on Information Fusion 1550, 1555 (2015).
+   */
+  template<typename T1, typename T2, typename T3>
+  struct dimension_difference_of<Spherical<T1, T2, T3>>
+  {
+    using type = Concatenate<dimension_difference_of_t<T1>, dimension_difference_of_t<T2>, dimension_difference_of_t<T3>>;
+  };
 
 }// namespace OpenKalman
 

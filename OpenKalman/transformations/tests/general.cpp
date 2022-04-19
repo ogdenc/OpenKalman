@@ -15,8 +15,8 @@ using namespace OpenKalman::test;
 
 using std::numbers::pi;
 
-using M_int2 = Mean<Axes<2>, eigen_matrix_t<int, 2, 1>>;
-using A_int2 = Matrix<Axes<2>, Axes<2>, eigen_matrix_t<int, 2, 2>>;
+using M_int2 = Mean<Dimensions<2>, eigen_matrix_t<int, 2, 1>>;
+using A_int2 = Matrix<Dimensions<2>, Dimensions<2>, eigen_matrix_t<int, 2, 2>>;
 
 template<auto t, auto tn = t>
 struct Scale
@@ -58,8 +58,8 @@ TEST(transformations, Scale_augmented)
 
 TEST(transformations, Mult_additive_axis)
 {
-  using M = Mean<Axes<2>>;
-  using A = Matrix<Axes<2>, Axes<2>>;
+  using M = Mean<Dimensions<2>>;
+  using A = Matrix<Dimensions<2>, Dimensions<2>>;
   const auto f = [](const M& x) -> M { return A {1, 2, 3, 4} * x; };
   auto t = Transformation {f};
   EXPECT_TRUE(is_near(t(M(1, 0.5)) + M(0.1, 0.1), M(2.1, 5.1)));

@@ -26,12 +26,12 @@ namespace
   void radar_2D(const Trans& transform)
   {
     using M2 = eigen_matrix_t<double, 2, 1>;
-    using Loc2 = Mean<Axes<2>, M2>;
+    using Loc2 = Mean<Dimensions<2>, M2>;
     using Polar2 = Mean<Polar<>, M2>;
     for (int i = 0; i < 5; i++)
     {
       auto true_state = randomize<Loc2>(std::uniform_real_distribution {5.0, 10.0});
-      auto x = GaussianDistribution<Axes<2>, M2, Cov> { Loc2 {7.5, 7.5}, make_identity_matrix_like<Cov>() };
+      auto x = GaussianDistribution<Dimensions<2>, M2, Cov> { Loc2 {7.5, 7.5}, make_identity_matrix_like<Cov>() };
       auto meas_cov = Cov {0.01, 0, 0, std::numbers::pi / 360};
       auto r = GaussianDistribution<Polar<>, M2, Cov> { make_zero_matrix_like<Polar2>(), meas_cov };
       parameter_test(transform, Cartesian2polar, x, true_state, r, 0.3, 100);

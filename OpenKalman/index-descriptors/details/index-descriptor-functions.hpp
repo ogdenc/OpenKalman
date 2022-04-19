@@ -13,8 +13,8 @@
  * \brief Functions for accessing elements of typed arrays, based on typed coefficients.
  */
 
-#ifndef OPENKALMAN_COEFFICIENT_FUNCTIONS_HPP
-#define OPENKALMAN_COEFFICIENT_FUNCTIONS_HPP
+#ifndef OPENKALMAN_INDEX_DESCRIPTOR_FUNCTIONS_HPP
+#define OPENKALMAN_INDEX_DESCRIPTOR_FUNCTIONS_HPP
 
 #include <type_traits>
 #include <functional>
@@ -229,4 +229,4 @@ namespace OpenKalman::internal
 }// namespace OpenKalman::internal
 
 
-#endif //OPENKALMAN_COEFFICIENT_FUNCTIONS_HPP
+#endif //OPENKALMAN_INDEX_DESCRIPTOR_FUNCTIONS_HPP

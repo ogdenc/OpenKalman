@@ -15,7 +15,7 @@ using namespace OpenKalman::test;
 
 inline namespace
 {
-  using C4 = Axes<4>;
+  using C4 = Dimensions<4>;
   using M44 = eigen_matrix_t<double, 4, 4>;
   using CovSA4 = Covariance <C4, SelfAdjointMatrix<M44>>;
   using CovT4 = Covariance <C4, TriangularMatrix<M44>>;

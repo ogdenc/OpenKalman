@@ -71,7 +71,7 @@ TEST(eigen3, FromEuclideanExpr_static_checks)
   static_assert(modifiable<From<Cara, M42>, const From<Cara, M42>>);
   static_assert(modifiable<From<Cara, M42>, From<Cara, const M42>>);
   static_assert(not modifiable<From<Cara, const M42>, From<Cara, M42>>);
-  static_assert(not modifiable<From<Axes<3>, M32>, From<Axes<4>, M42>>);
+  static_assert(not modifiable<From<Dimensions<3>, M32>, From<Dimensions<4>, M42>>);
   static_assert(modifiable<From<Cara, M42>&, From<Cara, M42>>);
   static_assert(modifiable<From<Cara, M42&>, From<Cara, M42>>);
   static_assert(not modifiable<From<Cara, M42&>, M42>);
@@ -167,7 +167,7 @@ TEST(eigen3, FromEuclideanExpr_class)
   EXPECT_EQ(From42::rows(), 3);
   EXPECT_EQ(From42::cols(), 2);
   EXPECT_TRUE(is_near(make_zero_matrix_like<From42>(), M32::Zero()));
-  EXPECT_TRUE(is_near(make_identity_matrix_like<FromEuclideanExpr<Axes<2>, eigen_matrix_t<double, 2, 2>>>(), eigen_matrix_t<double, 2, 2>::Identity()));
+  EXPECT_TRUE(is_near(make_identity_matrix_like<FromEuclideanExpr<Dimensions<2>, eigen_matrix_t<double, 2, 2>>>(), eigen_matrix_t<double, 2, 2>::Identity()));
 
   FromEuclideanExpr<Car, eigen_matrix_t<double, 3, 1>> e1 = {3, std::sqrt(2.)/2, std::sqrt(2.)/2};
 
@@ -187,7 +187,7 @@ TEST(eigen3, FromEuclideanExpr_subscripts)
   EXPECT_NEAR(get_element(el, 2, 0), 3.1, 1e-8);
   EXPECT_NEAR(get_element(From32 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2}, 1, 1), pi/3, 1e-8);
 
-  FromEuclideanExpr<Coefficients<Axes<2>>, eigen_matrix_t<double, 2, 2>> e2 = {1, 2, 3, 4};
+  FromEuclideanExpr<Coefficients<Dimensions<2>>, eigen_matrix_t<double, 2, 2>> e2 = {1, 2, 3, 4};
   e2(0,0) = 5;
   EXPECT_EQ(e2(0, 0), 5);
   e2(0,1) = 6;
@@ -221,7 +221,7 @@ TEST(eigen3, FromEuclideanExpr_traits)
   EXPECT_TRUE(is_near(MatrixTraits<From42>::make(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4),
     mat3(1, 2, pi/6, pi/3, 3, 4)));
   EXPECT_TRUE(is_near(make_zero_matrix_like<From42>(), eigen_matrix_t<double, 3, 2>::Zero()));
-  EXPECT_TRUE(is_near(make_identity_matrix_like<FromEuclideanExpr<Axes<2>, eigen_matrix_t<double, 2, 2>>>(), eigen_matrix_t<double, 2, 2>::Identity()));
+  EXPECT_TRUE(is_near(make_identity_matrix_like<FromEuclideanExpr<Dimensions<2>, eigen_matrix_t<double, 2, 2>>>(), eigen_matrix_t<double, 2, 2>::Identity()));
 }
 
 
@@ -241,10 +241,10 @@ TEST(eigen3, FromEuclideanExpr_overloads)
   EXPECT_TRUE(is_near(make_dense_writable_matrix_from(From42 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), mat3(1, 2, pi/6, pi/3, 3, 4)));
   EXPECT_TRUE(is_near(make_self_contained(From42 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), mat3(1, 2, pi/6, pi/3, 3, 4)));
 
-  EXPECT_TRUE(is_near(from_euclidean<Axes<2>>(m23), m23));
-  EXPECT_TRUE(is_near(from_euclidean<Axes<2>>(m20_3), m23));
-  EXPECT_TRUE(is_near(from_euclidean<Axes<2>>(m03_2), m23));
-  EXPECT_TRUE(is_near(from_euclidean<Axes<2>>(m00_23), m23));
+  EXPECT_TRUE(is_near(from_euclidean<Dimensions<2>>(m23), m23));
+  EXPECT_TRUE(is_near(from_euclidean<Dimensions<2>>(m20_3), m23));
+  EXPECT_TRUE(is_near(from_euclidean<Dimensions<2>>(m03_2), m23));
+  EXPECT_TRUE(is_near(from_euclidean<Dimensions<2>>(m00_23), m23));
 
   auto m22_from_ra = make_dense_writable_matrix_from<M22>(std::atan2(2.,1.), std::atan2(5.,4.), 3, 6);
 
@@ -256,10 +256,10 @@ TEST(eigen3, FromEuclideanExpr_overloads)
   EXPECT_TRUE(is_near(to_euclidean(From42 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
   EXPECT_TRUE(is_near(to_euclidean<Cara>(From42 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
 
-  EXPECT_TRUE(is_near(wrap_angles<Axes<2>>(m23), m23));
-  EXPECT_TRUE(is_near(wrap_angles<Axes<2>>(m20_3), m23));
-  EXPECT_TRUE(is_near(wrap_angles<Axes<2>>(m03_2), m23));
-  EXPECT_TRUE(is_near(wrap_angles<Axes<2>>(m00_23), m23));
+  EXPECT_TRUE(is_near(wrap_angles<Dimensions<2>>(m23), m23));
+  EXPECT_TRUE(is_near(wrap_angles<Dimensions<2>>(m20_3), m23));
+  EXPECT_TRUE(is_near(wrap_angles<Dimensions<2>>(m03_2), m23));
+  EXPECT_TRUE(is_near(wrap_angles<Dimensions<2>>(m00_23), m23));
 
   auto m23_wrap_ar = make_dense_writable_matrix_from<M23>(1, 2, 3, 4-pi, 5-pi, 6-pi);
 
@@ -268,14 +268,14 @@ TEST(eigen3, FromEuclideanExpr_overloads)
   ConstantMatrix<eigen_matrix_t<double, dynamic_size, 4>, 5> c504_3 {3};
   ConstantMatrix<eigen_matrix_t<double, dynamic_size, dynamic_size>, 5> c500_34 {3, 4};
 
-  EXPECT_TRUE(is_near(from_euclidean<Axes<3>>(c534), c534));
-  EXPECT_TRUE(is_near(from_euclidean<Axes<3>>(c530_4), c534));
-  EXPECT_TRUE(is_near(from_euclidean<Axes<3>>(c504_3), c534));
-  EXPECT_TRUE(is_near(from_euclidean<Axes<3>>(c500_34), c534));
-  //EXPECT_TRUE(is_near(from_euclidean(DynamicCoefficients {Axes<3>{}}, c534), c534));
-  //EXPECT_TRUE(is_near(from_euclidean(DynamicCoefficients {Axes<3>{}}, c530_4), c534));
-  //EXPECT_TRUE(is_near(from_euclidean(DynamicCoefficients {Axes<3>{}}, c504_3), c534));
-  //EXPECT_TRUE(is_near(from_euclidean(DynamicCoefficients {Axes<3>{}}, c500_34), c534));
+  EXPECT_TRUE(is_near(from_euclidean<Dimensions<3>>(c534), c534));
+  EXPECT_TRUE(is_near(from_euclidean<Dimensions<3>>(c530_4), c534));
+  EXPECT_TRUE(is_near(from_euclidean<Dimensions<3>>(c504_3), c534));
+  EXPECT_TRUE(is_near(from_euclidean<Dimensions<3>>(c500_34), c534));
+  //EXPECT_TRUE(is_near(from_euclidean(DynamicCoefficients {Dimensions<3>{}}, c534), c534));
+  //EXPECT_TRUE(is_near(from_euclidean(DynamicCoefficients {Dimensions<3>{}}, c530_4), c534));
+  //EXPECT_TRUE(is_near(from_euclidean(DynamicCoefficients {Dimensions<3>{}}, c504_3), c534));
+  //EXPECT_TRUE(is_near(from_euclidean(DynamicCoefficients {Dimensions<3>{}}, c500_34), c534));
 
   auto m24_from_ra = make_dense_writable_matrix_from<M24>(pi/4, pi/4, pi/4, pi/4, 5, 5, 5, 5)
 
@@ -293,10 +293,10 @@ TEST(eigen3, FromEuclideanExpr_overloads)
   ZeroMatrix<eigen_matrix_t<double, dynamic_size, 3>> z03_2 {2};
   ZeroMatrix<eigen_matrix_t<double, dynamic_size, dynamic_size>> z00_23 {2, 3};
 
-  EXPECT_TRUE(is_near(from_euclidean<Axes<2>>(z23), z23));
-  EXPECT_TRUE(is_near(from_euclidean<Axes<2>>(z20_3), z23));
-  EXPECT_TRUE(is_near(from_euclidean<Axes<2>>(z03_2), z23));
-  EXPECT_TRUE(is_near(from_euclidean<Axes<2>>(z00_23), z23));
+  EXPECT_TRUE(is_near(from_euclidean<Dimensions<2>>(z23), z23));
+  EXPECT_TRUE(is_near(from_euclidean<Dimensions<2>>(z20_3), z23));
+  EXPECT_TRUE(is_near(from_euclidean<Dimensions<2>>(z03_2), z23));
+  EXPECT_TRUE(is_near(from_euclidean<Dimensions<2>>(z00_23), z23));
 
   ZeroMatrix<eigen_matrix_t<double, 1, 3>> z13;
 
@@ -310,14 +310,14 @@ TEST(eigen3, FromEuclideanExpr_overloads)
   //EXPECT_TRUE(is_near(wrap_angles<Coefficients<Axis, angle::Radians>>(m03_2), m23_wrap_ar));
   //EXPECT_TRUE(is_near(wrap_angles<Coefficients<Axis, angle::Radians>>(m00_23), m23_wrap_ar));
 
-  EXPECT_TRUE(is_near(wrap_angles<Axes<3>>(c534), c534));
-  EXPECT_TRUE(is_near(wrap_angles<Axes<3>>(c530_4), c534));
-  EXPECT_TRUE(is_near(wrap_angles<Axes<3>>(c504_3), c534));
-  EXPECT_TRUE(is_near(wrap_angles<Axes<3>>(c500_34), c534));
-  //EXPECT_TRUE(is_near(wrap_angles(DynamicCoefficients {Axes<3>{}}, c534), c534));
-  //EXPECT_TRUE(is_near(wrap_angles(DynamicCoefficients {Axes<3>{}}, c530_4), c534));
-  //EXPECT_TRUE(is_near(wrap_angles(DynamicCoefficients {Axes<3>{}}, c504_3), c534));
-  //EXPECT_TRUE(is_near(wrap_angles(DynamicCoefficients {Axes<3>{}}, c500_34), c534));
+  EXPECT_TRUE(is_near(wrap_angles<Dimensions<3>>(c534), c534));
+  EXPECT_TRUE(is_near(wrap_angles<Dimensions<3>>(c530_4), c534));
+  EXPECT_TRUE(is_near(wrap_angles<Dimensions<3>>(c504_3), c534));
+  EXPECT_TRUE(is_near(wrap_angles<Dimensions<3>>(c500_34), c534));
+  //EXPECT_TRUE(is_near(wrap_angles(DynamicCoefficients {Dimensions<3>{}}, c534), c534));
+  //EXPECT_TRUE(is_near(wrap_angles(DynamicCoefficients {Dimensions<3>{}}, c530_4), c534));
+  //EXPECT_TRUE(is_near(wrap_angles(DynamicCoefficients {Dimensions<3>{}}, c504_3), c534));
+  //EXPECT_TRUE(is_near(wrap_angles(DynamicCoefficients {Dimensions<3>{}}, c500_34), c534));
 
   auto m34_wrap_ara = make_dense_writable_matrix_from<M34>(5,5,5,5,5-pi,5-pi,5-pi,5-pi,5,5,5,5);
 
@@ -330,10 +330,10 @@ TEST(eigen3, FromEuclideanExpr_overloads)
   //EXPECT_TRUE(is_near(wrap_angles(DynamicCoefficients {Coefficients<angle::Radians, Axis, Axis>{}}, c504_3), m34_wrap_ara));
   //EXPECT_TRUE(is_near(wrap_angles(DynamicCoefficients {Coefficients<angle::Radians, Axis, Axis>{}}, c500_34), m34_wrap_ara));
 
-  EXPECT_TRUE(is_near(wrap_angles<Axes<2>>(z23), z23));
-  EXPECT_TRUE(is_near(wrap_angles<Axes<2>>(z20_3), z23));
-  EXPECT_TRUE(is_near(wrap_angles<Axes<2>>(z03_2), z23));
-  EXPECT_TRUE(is_near(wrap_angles<Axes<2>>(z00_23), z23));
+  EXPECT_TRUE(is_near(wrap_angles<Dimensions<2>>(z23), z23));
+  EXPECT_TRUE(is_near(wrap_angles<Dimensions<2>>(z20_3), z23));
+  EXPECT_TRUE(is_near(wrap_angles<Dimensions<2>>(z03_2), z23));
+  EXPECT_TRUE(is_near(wrap_angles<Dimensions<2>>(z00_23), z23));
 
   EXPECT_TRUE(is_near(wrap_angles<Axis, Coefficients<angle::Radians>>(z23), z23));
   EXPECT_TRUE(is_near(wrap_angles<Axis, Coefficients<angle::Radians>>(z20_3), z23));

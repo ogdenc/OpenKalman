@@ -25,20 +25,20 @@ namespace OpenKalman
 
   /// A typed vector.
 #ifdef __cpp_concepts
-  template<coefficients RowCoefficients, typed_matrix_nestable NestedMatrix> requires
-    (RowCoefficients::dimension == row_dimension_of_v<NestedMatrix>) and
+  template<typed_index_descriptor RowCoefficients, typed_matrix_nestable NestedMatrix> requires
+    (dimension_size_of_v<RowCoefficients> == row_dimension_of_v<NestedMatrix>) and
     (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename RowCoefficients, typename NestedMatrix>
 #endif
   struct Mean : oin::TypedMatrixBase<
-    Mean<RowCoefficients, NestedMatrix>, NestedMatrix, RowCoefficients, Axes<column_dimension_of_v<NestedMatrix>>>
+    Mean<RowCoefficients, NestedMatrix>, NestedMatrix, RowCoefficients, Dimensions<column_dimension_of_v<NestedMatrix>>>
   {
 
 #ifndef __cpp_concepts
-    static_assert(coefficients<RowCoefficients>);
+    static_assert(typed_index_descriptor<RowCoefficients>);
     static_assert(typed_matrix_nestable<NestedMatrix>);
-    static_assert(RowCoefficients::dimension == row_dimension_of_v<NestedMatrix>);
+    static_assert(dimension_size_of_v<RowCoefficients> == row_dimension_of_v<NestedMatrix>);
     static_assert(not std::is_rvalue_reference_v<NestedMatrix>);
 #endif
 
@@ -46,7 +46,7 @@ namespace OpenKalman
 
   protected:
 
-    using ColumnCoefficients = Axes<column_dimension_of_v<NestedMatrix>>;
+    using ColumnCoefficients = Dimensions<column_dimension_of_v<NestedMatrix>>;
 
   private:
 
@@ -183,12 +183,12 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<typed_matrix Arg> requires (not mean<Arg>) and (not euclidean_transformed<Arg>) and
-      equivalent_to<row_coefficient_types_of_t<Arg>, RowCoefficients> and untyped_columns<Arg> and
+      equivalent_to<row_coefficient_types_of_t<Arg>, RowCoefficients> and has_untyped_index<Arg, 1> and
       modifiable<NestedMatrix, decltype(wrap_angles<RowCoefficients>(std::declval<nested_matrix_of_t<Arg>>()))>
 #else
     template<typename Arg, std::enable_if_t<typed_matrix<Arg> and
       (not mean<Arg>) and (not euclidean_transformed<Arg>) and
-      equivalent_to<row_coefficient_types_of_t<Arg>, RowCoefficients> and untyped_columns<Arg>, int> = 0>
+      equivalent_to<row_coefficient_types_of_t<Arg>, RowCoefficients> and has_untyped_index<Arg, 1>, int> = 0>
 #endif
     auto& operator=(Arg&& other) noexcept
     {
@@ -219,7 +219,7 @@ namespace OpenKalman
     /// Increment from another mean.
     auto& operator+=(const Mean& other)
     {
-      if constexpr(RowCoefficients::axes_only)
+      if constexpr(untyped_index_descriptor<RowCoefficients>)
         this->nested_matrix() += other.nested_matrix();
       else
         this->nested_matrix() = wrap_angles<RowCoefficients>(this->nested_matrix() + other.nested_matrix());
@@ -241,7 +241,7 @@ namespace OpenKalman
 #endif
     auto& operator+=(Arg&& other) noexcept
     {
-      if constexpr(RowCoefficients::axes_only)
+      if constexpr(untyped_index_descriptor<RowCoefficients>)
         this->nested_matrix() += nested_matrix(std::forward<Arg>(other));
       else
         this->nested_matrix() = wrap_angles<RowCoefficients>(
@@ -260,7 +260,7 @@ namespace OpenKalman
     auto& operator+=(const Arg& arg) noexcept
     {
       apply_columnwise([&arg](auto& col){
-        if constexpr(RowCoefficients::axes_only)
+        if constexpr(untyped_index_descriptor<RowCoefficients>)
           col += arg().nested_matrix();
         else
           col = wrap_angles<RowCoefficients>(col + arg().nested_matrix());
@@ -272,7 +272,7 @@ namespace OpenKalman
     /// Decrement from another mean and wrap result.
     auto& operator-=(const Mean& other)
     {
-      if constexpr(RowCoefficients::axes_only)
+      if constexpr(untyped_index_descriptor<RowCoefficients>)
         this->nested_matrix() -= other.nested_matrix();
       else
         this->nested_matrix() = wrap_angles<RowCoefficients>(this->nested_matrix() - other.nested_matrix());
@@ -294,7 +294,7 @@ namespace OpenKalman
 #endif
     auto& operator-=(Arg&& other) noexcept
     {
-      if constexpr(RowCoefficients::axes_only)
+      if constexpr(untyped_index_descriptor<RowCoefficients>)
         this->nested_matrix() -= nested_matrix(std::forward<Arg>(other));
       else
         this->nested_matrix() = wrap_angles<RowCoefficients>(
@@ -313,7 +313,7 @@ namespace OpenKalman
     auto& operator-=(const Arg& arg) noexcept
     {
       apply_columnwise([&arg](auto& col){
-        if constexpr(RowCoefficients::axes_only)
+        if constexpr(untyped_index_descriptor<RowCoefficients>)
           col -= arg().nested_matrix();
         else
           col = wrap_angles<RowCoefficients>(col - arg().nested_matrix());
@@ -330,7 +330,7 @@ namespace OpenKalman
 #endif
     auto& operator*=(const S s)
     {
-      if constexpr(RowCoefficients::axes_only)
+      if constexpr(untyped_index_descriptor<RowCoefficients>)
         this->nested_matrix() *= s;
       else
         this->nested_matrix() = wrap_angles<RowCoefficients>(this->nested_matrix() * s);
@@ -346,7 +346,7 @@ namespace OpenKalman
 #endif
     auto& operator/=(const S s)
     {
-      if constexpr(RowCoefficients::axes_only)
+      if constexpr(untyped_index_descriptor<RowCoefficients>)
         this->nested_matrix() /= s;
       else
         this->nested_matrix() = wrap_angles<RowCoefficients>(this->nested_matrix() / s);
@@ -368,13 +368,13 @@ namespace OpenKalman
   //        Deduction guides         //
   // ------------------------------- //
 
-  /// Deduce template parameters from a typed_matrix_nestable, assuming axis-only coefficients.
+  /// Deduce template parameters from a typed_matrix_nestable, assuming untyped index descriptors.
 #ifdef __cpp_concepts
   template<typed_matrix_nestable V>
 #else
   template<typename V, std::enable_if_t<typed_matrix_nestable<V>, int> = 0>
 #endif
-  explicit Mean(V&&) -> Mean<Axes<row_dimension_of_v<V>>, passable_t<V>>;
+  explicit Mean(V&&) -> Mean<Dimensions<row_dimension_of_v<V>>, passable_t<V>>;
 
 
   /// Deduce template parameters from a non-Euclidean-transformed typed matrix.
@@ -404,21 +404,21 @@ namespace OpenKalman
   // ----------------------------- //
 
   /**
-   * \brief Make a Mean from a typed_matrix_nestable, specifying the row coefficients.
+   * \brief Make a Mean from a typed_matrix_nestable, specifying the row typed_index_descriptor.
    * \tparam Coefficients The coefficient types corresponding to the rows.
    * \tparam M A typed_matrix_nestable with size matching ColumnCoefficients.
    */
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, typed_matrix_nestable M> requires
-    (Coefficients::dimension == row_dimension_of_v<M>)
+  template<typed_index_descriptor Coefficients, typed_matrix_nestable M> requires
+    (dimension_size_of_v<Coefficients> == row_dimension_of_v<M>)
 #else
-  template<typename Coefficients, typename M, std::enable_if_t<coefficients<Coefficients> and
-    typed_matrix_nestable<M> and (Coefficients::dimension == row_dimension_of<M>::value), int> = 0>
+  template<typename Coefficients, typename M, std::enable_if_t<typed_index_descriptor<Coefficients> and
+    typed_matrix_nestable<M> and (dimension_size_of_v<Coefficients> == row_dimension_of<M>::value), int> = 0>
 #endif
   inline auto make_mean(M&& m) noexcept
   {
     constexpr auto rows = row_dimension_of_v<M>;
-    using Coeffs = std::conditional_t<std::is_void_v<Coefficients>, Axes<rows>, Coefficients>;
+    using Coeffs = std::conditional_t<std::is_void_v<Coefficients>, Dimensions<rows>, Coefficients>;
     decltype(auto) b = wrap_angles<Coeffs>(std::forward<M>(m)); using B = decltype(b);
     return Mean<Coeffs, passable_t<B>>(std::forward<B>(b));
   }
@@ -426,7 +426,7 @@ namespace OpenKalman
 
   /**
    * \overload
-   * \brief Make a Mean from a typed_matrix_nestable object, with default Axis coefficients.
+   * \brief Make a Mean from a typed_matrix_nestable object, with default Axis typed_index_descriptor.
    */
 #ifdef __cpp_concepts
   template<typed_matrix_nestable M>
@@ -435,7 +435,7 @@ namespace OpenKalman
 #endif
   inline auto make_mean(M&& m) noexcept
   {
-    using Coeffs = Axes<row_dimension_of_v<M>>;
+    using Coeffs = Dimensions<row_dimension_of_v<M>>;
     return make_mean<Coeffs>(std::forward<M>(m));
   }
 
@@ -446,9 +446,9 @@ namespace OpenKalman
    * \tparam Arg A typed_matrix (i.e., Matrix, Mean, or EuclideanMean).
    */
 #ifdef __cpp_concepts
-  template<typed_matrix Arg> requires untyped_columns<Arg>
+  template<typed_matrix Arg> requires has_untyped_index<Arg, 1>
 #else
-  template<typename Arg, std::enable_if_t<typed_matrix<Arg> and untyped_columns<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<typed_matrix<Arg> and has_untyped_index<Arg, 1>, int> = 0>
 #endif
   inline auto make_mean(Arg&& arg) noexcept
   {
@@ -468,12 +468,12 @@ namespace OpenKalman
    * if it is not already self-contained.
    */
 #ifdef __cpp_concepts
-  template<coefficients Coefficients, typed_matrix_nestable M> requires
-    (row_dimension_of_v<M> == Coefficients::dimension)
+  template<typed_index_descriptor Coefficients, typed_matrix_nestable M> requires
+    (row_dimension_of_v<M> == dimension_size_of_v<Coefficients>)
 #else
   template<typename Coefficients, typename M, std::enable_if_t<
-    coefficients<Coefficients> and typed_matrix_nestable<M> and
-    (row_dimension_of<M>::value == Coefficients::dimension), int> = 0>
+    typed_index_descriptor<Coefficients> and typed_matrix_nestable<M> and
+    (row_dimension_of<M>::value == dimension_size_of_v<Coefficients>), int> = 0>
 #endif
   inline auto make_mean()
   {
@@ -483,7 +483,7 @@ namespace OpenKalman
 
   /**
    * \overload
-   * \brief Make a self-contained Mean with default Axis coefficients.
+   * \brief Make a self-contained Mean with default Axis typed_index_descriptor.
    * \tparam M a typed_matrix_nestable on which the new mean is based. It will be converted to a self_contained type
    * if it is not already self-contained.
    */
@@ -494,7 +494,7 @@ namespace OpenKalman
 #endif
   inline auto make_mean()
   {
-    return make_mean<Axes<row_dimension_of_v<M>>, M>();
+    return make_mean<Dimensions<row_dimension_of_v<M>>, M>();
   }
 
 

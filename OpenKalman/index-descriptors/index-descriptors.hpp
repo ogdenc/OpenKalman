@@ -12,21 +12,23 @@
  * \dir
  * \brief Definitions relating to coefficient types
  *
- * \dir coefficient-types/details
+ * \dir index-descriptors/details
  * \brief Files implementing details regarding coefficient types.
  *
- * \dir coefficient-types/tests
+ * \dir index-descriptors/tests
  * \brief Test files for coefficient types.
  *
  * \file
  * \brief Comprehensive header file including all coefficient-related classes and definitions
  */
 
-#ifndef OPENKALMAN_COEFFICIENT_TYPES_HPP
-#define OPENKALMAN_COEFFICIENT_TYPES_HPP
+#ifndef OPENKALMAN_INDEX_DESCRIPTORS_HPP
+#define OPENKALMAN_INDEX_DESCRIPTORS_HPP
 
-#include "details/coefficient_forward-declarations.hpp"
-#include "details/coefficient-functions.hpp"
+#include "details/index-descriptor-forward-declarations.hpp"
+#include "Dimensions.hpp"
+#include "details/index-descriptor-functions.hpp"
+#include "details/DynamicTypedIndexDescriptor.hpp"
 
 #include "Axis.hpp"
 #include "Distance.hpp"
@@ -38,4 +40,4 @@
 
 #include "DynamicCoefficients.hpp"
 
-#endif //OPENKALMAN_COEFFICIENT_TYPES_HPP
+#endif //OPENKALMAN_INDEX_DESCRIPTORS_HPP

@@ -503,10 +503,10 @@ TEST(matrices, GaussianDistribution_class_statistics)
   EXPECT_NEAR(x1.log_likelihood(Mean{M1(0)}), -2.2397730441, 1e-6);
   EXPECT_NEAR(x1.log_likelihood(Mean{M1(1)}, Mean{M1(0)}), -2.07310637743 - 2.2397730441, 1e-6);
 
-  GaussianDistribution<Axes<2>, M2col, T2l> x2 = {{0, 0}, {1, 0, 0.3, 1}};
+  GaussianDistribution<Dimensions<2>, M2col, T2l> x2 = {{0, 0}, {1, 0, 0.3, 1}};
   EXPECT_NEAR(x2.log_likelihood(Mean {1.5, 0.9}), -3.02698546294, 1e-6);
 
-  GaussianDistribution<Axes<2>, M2col, T2l> x3 = {{0, 0}, {1, 0, 0.8, 1}};
+  GaussianDistribution<Dimensions<2>, M2col, T2l> x3 = {{0, 0}, {1, 0, 0.8, 1}};
   EXPECT_NEAR(x3.log_likelihood(Mean {2, 0.7}), -4.45205144264, 1e-6);
   EXPECT_NEAR(x3.log_likelihood(Mean {1.5, 0.9}), -2.5770514426433544, 1e-6);
   EXPECT_NEAR(x3.log_likelihood(Mean {2, 0.7}, Mean {1.5, 0.9}), -4.45205144264 - 2.5770514426433544, 1e-6);
@@ -546,7 +546,7 @@ TEST(matrices, GaussianDistribution_deduction_guides)
   static_assert(self_adjoint_matrix<decltype(GaussianDistribution(make_dense_writable_matrix_from<M2col>(1, 2), Mat2 {9, 3, 3, 10}))>);
 
   EXPECT_TRUE(is_near(GaussianDistribution(make_eigen_matrix(1., 2), SA2l {9, 3, 3, 10}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
-  static_assert(equivalent_to<typename DistributionTraits<decltype(GaussianDistribution(make_eigen_matrix(1., 2), SA2l {9, 3, 3, 10}))>::Coefficients, Axes<2>>);
+  static_assert(equivalent_to<typename DistributionTraits<decltype(GaussianDistribution(make_eigen_matrix(1., 2), SA2l {9, 3, 3, 10}))>::Coefficients, Dimensions<2>>);
   static_assert(self_adjoint_matrix<decltype(GaussianDistribution(make_dense_writable_matrix_from<M2col>(1, 2), SA2l {9, 3, 3, 10}))>);
 }
 
@@ -582,7 +582,7 @@ TEST(matrices, GaussianDistribution_make)
   static_assert(self_adjoint_matrix<decltype(make_GaussianDistribution<C2>(make_eigen_matrix(1., 2), SA2l {9, 3, 3, 10}))>);
 
   EXPECT_TRUE(is_near(make_GaussianDistribution(make_eigen_matrix(1., 2), SA2l {9, 3, 3, 10}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
-  static_assert(equivalent_to<typename DistributionTraits<decltype(make_GaussianDistribution(make_eigen_matrix(1., 2), SA2l {9, 3, 3, 10}))>::Coefficients, Axes<2>>);
+  static_assert(equivalent_to<typename DistributionTraits<decltype(make_GaussianDistribution(make_eigen_matrix(1., 2), SA2l {9, 3, 3, 10}))>::Coefficients, Dimensions<2>>);
   static_assert(self_adjoint_matrix<decltype(make_GaussianDistribution(make_eigen_matrix(1., 2), SA2l {9, 3, 3, 10}))>);
 
   EXPECT_TRUE(is_near(make_GaussianDistribution<C2>(make_eigen_matrix(1., 2), make_dense_writable_matrix_from<M2>(9, 3, 3, 10)), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
@@ -590,7 +590,7 @@ TEST(matrices, GaussianDistribution_make)
   static_assert(self_adjoint_matrix<decltype(make_GaussianDistribution<C2>(make_eigen_matrix(1., 2), make_dense_writable_matrix_from<M2>(9, 3, 3, 10)))>);
 
   EXPECT_TRUE(is_near(make_GaussianDistribution(make_eigen_matrix(1., 2), make_dense_writable_matrix_from<M2>(9, 3, 3, 10)), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
-  static_assert(equivalent_to<typename DistributionTraits<decltype(make_GaussianDistribution(make_eigen_matrix(1., 2), make_dense_writable_matrix_from<M2>(9, 3, 3, 10)))>::Coefficients, Axes<2>>);
+  static_assert(equivalent_to<typename DistributionTraits<decltype(make_GaussianDistribution(make_eigen_matrix(1., 2), make_dense_writable_matrix_from<M2>(9, 3, 3, 10)))>::Coefficients, Dimensions<2>>);
   static_assert(self_adjoint_matrix<decltype(make_GaussianDistribution(make_eigen_matrix(1., 2), make_dense_writable_matrix_from<M2>(9, 3, 3, 10)))>);
 
   // Defaults
@@ -606,7 +606,7 @@ TEST(matrices, GaussianDistribution_make)
   static_assert(equivalent_to<typename DistributionTraits<decltype(make_GaussianDistribution<C2, M2col, SA2l>())>::Coefficients, C2>);
   static_assert(self_adjoint_matrix<decltype(make_GaussianDistribution<C2, M2col, SA2l>())>);
 
-  static_assert(equivalent_to<typename DistributionTraits<decltype(make_GaussianDistribution<M2col, SA2l>())>::Coefficients, Axes<2>>);
+  static_assert(equivalent_to<typename DistributionTraits<decltype(make_GaussianDistribution<M2col, SA2l>())>::Coefficients, Dimensions<2>>);
   static_assert(self_adjoint_matrix<decltype(make_GaussianDistribution<M2col, SA2l>())>);
 }
 
@@ -714,12 +714,12 @@ TEST(matrices, GaussianDistribution_blocks)
 
 TEST(matrices, GaussianDistribution_addition_subtraction)
 {
-  Mean<Axes<2>> x_mean {20, 30};
+  Mean<Dimensions<2>> x_mean {20, 30};
   M2 d;
   d << 9, 3,
   3, 8;
   GaussianDistribution dist1 {x_mean, SelfAdjointMatrix(d)};
-  Mean<Axes<2>> y_mean {11, 23};
+  Mean<Dimensions<2>> y_mean {11, 23};
   M2 e;
   e << 7, 1,
   1, 3;

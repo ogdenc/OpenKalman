@@ -71,35 +71,31 @@ namespace OpenKalman
   } // namespace inclination
 
 
+  /**
+   * \brief A positive or negative real number &phi; representing an inclination or declination from the horizon.
+   * \details &phi;<sub>down</sub>&le;&phi;&le;&phi;<sub>up</sub>, where &phi;<sub>down</sub> is a real number
+   * representing down, and &phi;<sub>up</sub> is a real number representing up. Normally, the horizon will be zero and
+   * &phi;<sub>down</sub>=&minus;&phi;<sub>up</sub>, but in general, the horizon is at
+   * &frac12;(&phi;<sub>down</sub>+&minus;&phi;<sub>up</sub>).
+   * The inclinations inclination::Radians and inclination::Degrees are predefined.
+   * \tparam Limits A class template defining the real values <code>down</code> and <code>up</code>, where
+   * <code>down</code>=&phi;<sub>down</sub> and <code>up</code>=&phi;<sub>up</sub>.
+   * Scalar is a std::floating_point type.
+   * \internal
+   * <b>See also</b> the following functions for accessing coefficient properties:
+   * - internal::to_euclidean_coeff: \copybrief internal::to_euclidean_coeff
+   * - internal::from_euclidean_coeff: \copybrief internal::from_euclidean_coeff
+   * - internal::wrap_get: \copybrief internal::wrap_get
+   * - internal::wrap_set \copybrief internal::wrap_set
+   */
   template<template<typename Scalar> typename Limits = inclination::limits::Radians>
 #ifdef __cpp_concepts
     requires std::floating_point<decltype(Limits<double>::down)> and
       std::floating_point<decltype(Limits<double>::up)> and (Limits<double>::down < Limits<double>::up)
 #endif
-  struct Inclination
+  struct Inclination : Dimensions<1>
   {
     static_assert(Limits<double>::down < Limits<double>::up);
-
-
-    /// Inclination is associated with one matrix element.
-    static constexpr std::size_t dimension = 1;
-
-
-    /// Inclination is represented by two coordinates in Euclidean space.
-    static constexpr std::size_t euclidean_dimension = 2;
-
-
-    /// Inclination is not composed of only axes.
-    static constexpr bool axes_only = false;
-
-
-    /**
-     * \internal
-     * A difference between two Inclination values does not wrap, and is treated as Axis.
-     * See David Frederic Crouse, Cubature/Unscented/Sigma Point Kalman Filtering with Angular Measurement Models,
-     * 18th Int'l Conf. on Information Fusion 1550, 1555 (2015).
-     */
-    using difference_type = Coefficients<Axis>;
 
 
     /*
@@ -143,7 +139,7 @@ namespace OpenKalman
 #if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS
     requires std::floating_point<Scalar>
 #endif
-    static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), euclidean_dimension>
+    static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), 2>
       to_euclidean_array =
       {
         [](const GetCoeff<Scalar>& get_coeff) { return std::cos(get_coeff(i) * cf<Scalar>); },
@@ -167,7 +163,7 @@ namespace OpenKalman
 #if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS
     requires std::floating_point<Scalar>
 #endif
-    static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), dimension>
+    static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), 1>
       from_euclidean_array =
       {
         [](const GetCoeff<Scalar>& get_coeff)
@@ -253,7 +249,7 @@ namespace OpenKalman
 #if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS
     requires std::floating_point<Scalar>
 #endif
-    static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), dimension>
+    static constexpr std::array<Scalar (*const)(const GetCoeff<Scalar>&), 1>
       wrap_array_get =
       {
         [](const GetCoeff<Scalar>& get_coeff) { return wrap_impl(get_coeff(i)); }
@@ -275,14 +271,34 @@ namespace OpenKalman
     requires std::floating_point<Scalar>
 #endif
     static constexpr
-      std::array<void (*const)(const Scalar, const SetCoeff<Scalar>&, const GetCoeff<Scalar>&), dimension>
+      std::array<void (*const)(const Scalar, const SetCoeff<Scalar>&, const GetCoeff<Scalar>&), 1>
       wrap_array_set =
       {
         [](const Scalar s, const SetCoeff<Scalar>& set_coeff, const GetCoeff<Scalar>&) { set_coeff(i, wrap_impl(s)); }
       };
 
+  };
 
-    static_assert(internal::coefficient_class<Inclination>);
+
+  /**
+    * \internal
+    * \brief Inclination is represented by two coordinates in Euclidean space.
+    */
+   template<template<typename Scalar> typename Limits>
+   struct euclidean_dimension_size_of<Inclination<Limits>>
+     : std::integral_constant<std::size_t, 2> {};
+
+
+  /**
+   * \internal
+   * \brief A difference between two Inclination values does not wrap, and is treated as Axis.
+   * \details See David Frederic Crouse, Cubature/Unscented/Sigma Point Kalman Filtering with Angular Measurement Models,
+   * 18th Int'l Conf. on Information Fusion 1550, 1555 (2015).
+   */
+  template<template<typename Scalar> typename Limits>
+  struct dimension_difference_of<Inclination<Limits>>
+  {
+    using type = Axis;
   };
 
 } // namespace OpenKalman

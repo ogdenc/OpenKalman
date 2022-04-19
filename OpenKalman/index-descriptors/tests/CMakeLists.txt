@@ -12,11 +12,11 @@ enable_testing()
 find_package(GTest REQUIRED)
 include(GoogleTest)
 
-add_executable(coefficients
-        coefficients.cpp
-        coefficient-functions.cpp
+add_executable(index-descriptors
+        index-descriptors.cpp
+        index-descriptor-functions.cpp
     )
 
-target_link_libraries(coefficients ${GTEST_BOTH_LIBRARIES} Threads::Threads)
+target_link_libraries(index-descriptors ${GTEST_BOTH_LIBRARIES} Threads::Threads)
 
-gtest_discover_tests(coefficients DISCOVERY_TIMEOUT 10)
+gtest_discover_tests(index-descriptors DISCOVERY_TIMEOUT 10)

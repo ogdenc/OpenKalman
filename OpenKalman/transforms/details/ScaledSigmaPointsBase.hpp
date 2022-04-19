@@ -114,18 +114,18 @@ namespace OpenKalman::internal
   public:
 
 #ifdef __cpp_concepts
-    template<std::size_t dim, typed_matrix YMeans> requires untyped_columns<YMeans> and
-      (row_dimension_of_v<YMeans> == row_coefficient_types_of_t<YMeans>::euclidean_dimension)
+    template<std::size_t dim, typed_matrix YMeans> requires has_untyped_index<YMeans, 1> and
+      (row_dimension_of_v<YMeans> == euclidean_dimension_size_of_v<row_coefficient_types_of_t<YMeans>>)
 #else
-    template<std::size_t dim, typename YMeans, std::enable_if_t<typed_matrix<YMeans> and untyped_columns<YMeans> and
-      (row_dimension_of<YMeans>::value == row_coefficient_types_of_t<YMeans>::euclidean_dimension), int> = 0>
+    template<std::size_t dim, typename YMeans, std::enable_if_t<typed_matrix<YMeans> and has_untyped_index<YMeans, 1> and
+      (row_dimension_of<YMeans>::value == euclidean_dimension_size_of_v<row_coefficient_types_of_t<YMeans>>), int> = 0>
 #endif
     static auto
     weighted_means(YMeans&& y_means)
     {
       static_assert(column_dimension_of_v<YMeans> == Derived::template sigma_point_count<dim>);
       constexpr auto count = column_dimension_of_v<YMeans>;
-      using Weights = Matrix<Axes<count>, Axis, untyped_dense_writable_matrix_t<YMeans, count, 1>>;
+      using Weights = Matrix<Dimensions<count>, Axis, untyped_dense_writable_matrix_t<YMeans, count, 1>>;
       return make_self_contained(std::forward<YMeans>(y_means) * mean_weights<dim, Weights>());
     }
 
@@ -155,7 +155,7 @@ namespace OpenKalman::internal
     {
       static_assert(column_dimension_of_v<X> == Derived::template sigma_point_count<dim>);
       constexpr auto count = column_dimension_of_v<X>;
-      using Weights = Matrix<Axes<count>, Axis, untyped_dense_writable_matrix_t<X, count, 1>>;
+      using Weights = Matrix<Dimensions<count>, Axis, untyped_dense_writable_matrix_t<X, count, 1>>;
       auto weights = covariance_weights<dim, Weights>();
 
       if constexpr(cholesky_form<InputDist>)
@@ -164,7 +164,7 @@ namespace OpenKalman::internal
         {
           // Discard first weight and first y-deviation column for now, since square root of weight would be negative.
           const auto [y_deviations_head, y_deviations_tail] = split_horizontal<1, count - 1>(y_deviations);
-          const auto [weights_head, weights_tail] = split_vertical<Axis, Axes<count - 1>>(weights);
+          const auto [weights_head, weights_tail] = split_vertical<Axis, Dimensions<count - 1>>(weights);
           const auto sqrt_weights_tail = apply_coefficientwise([](const auto x){ return std::sqrt(x); }, weights_tail);
           auto out_covariance = make_self_contained(square(LQ_decomposition(y_deviations_tail * to_diagonal(sqrt_weights_tail))));
           static_assert(OpenKalman::covariance<decltype(out_covariance)>);

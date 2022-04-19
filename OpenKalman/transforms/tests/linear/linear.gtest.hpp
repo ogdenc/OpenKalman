@@ -85,10 +85,10 @@ namespace OpenKalman::test
   template<std::size_t IN, std::size_t OUT, typename Cov, typename T>
   void run_multiple_linear_tests(Cov cov, const T& t, double err = 1e-6, int N = 5)
   {
-    using MatIn = Matrix<Axes<OUT>, Axes<IN>, eigen_matrix_t<double, OUT, IN>>;
-    using MatNoise = Matrix<Axes<OUT>, Axes<OUT>, eigen_matrix_t<double, OUT, OUT>>;
-    using MIn = Mean<Axes<IN>, eigen_matrix_t<double, IN, 1>>;
-    using MNoise = Mean<Axes<OUT>, eigen_matrix_t<double, OUT, 1>>;
+    using MatIn = Matrix<Dimensions<OUT>, Dimensions<IN>, eigen_matrix_t<double, OUT, IN>>;
+    using MatNoise = Matrix<Dimensions<OUT>, Dimensions<OUT>, eigen_matrix_t<double, OUT, OUT>>;
+    using MIn = Mean<Dimensions<IN>, eigen_matrix_t<double, IN, 1>>;
+    using MNoise = Mean<Dimensions<OUT>, eigen_matrix_t<double, OUT, 1>>;
     for (int i=1; i<=N; i++)
     {
       auto a = randomize<MatIn>(std::uniform_real_distribution<double> {-i, i});
@@ -106,10 +106,10 @@ namespace OpenKalman::test
   template<std::size_t DIM, typename Cov>
   void run_multiple_identity_tests(Cov&& cov, double err = 1e-6, int N = 5)
   {
-    using MatIn = Matrix<Axes<DIM>, Axes<DIM>, eigen_matrix_t<double, DIM, DIM>>;
-    using MatNoise = Matrix<Axes<DIM>, Axes<DIM>, eigen_matrix_t<double, DIM, DIM>>;
-    using MIn = Mean<Axes<DIM>, eigen_matrix_t<double, DIM, 1>>;
-    using MNoise = Mean<Axes<DIM>, eigen_matrix_t<double, DIM, 1>>;
+    using MatIn = Matrix<Dimensions<DIM>, Dimensions<DIM>, eigen_matrix_t<double, DIM, DIM>>;
+    using MatNoise = Matrix<Dimensions<DIM>, Dimensions<DIM>, eigen_matrix_t<double, DIM, DIM>>;
+    using MIn = Mean<Dimensions<DIM>, eigen_matrix_t<double, DIM, 1>>;
+    using MNoise = Mean<Dimensions<DIM>, eigen_matrix_t<double, DIM, 1>>;
     for (int i=1; i<=N; i++)
     {
       auto a = make_identity_matrix_like<MatIn>();

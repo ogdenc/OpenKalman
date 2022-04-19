@@ -919,6 +919,6 @@ TEST(covariance_tests, SquareRootCovariance_other_operations)
   EXPECT_TRUE((SqCovT2l {3, 0, 1, 3} == SqCovT2l {3, 0, 1, 3}));
   EXPECT_TRUE((SqCovT2l {3, 0, 1, 3} == SqCovSA2l {3, 0, 1, 3}));
   EXPECT_TRUE((SqCovT2u {3, 1, 0, 3} != SqCovT2u {3, 2, 0, 3}));
-  EXPECT_TRUE((SqCovT2l {3, 0, 1, 3} != SquareRootCovariance<Axes<2>, T2l> {3, 0, 1, 3}));
+  EXPECT_TRUE((SqCovT2l {3, 0, 1, 3} != SquareRootCovariance<Dimensions<2>, T2l> {3, 0, 1, 3}));
 }
 

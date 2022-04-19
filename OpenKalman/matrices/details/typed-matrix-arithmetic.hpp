@@ -52,7 +52,7 @@ namespace OpenKalman
     auto b = nested_matrix(std::forward<V1>(v1)) - nested_matrix(std::forward<V2>(v2));
     if constexpr (mean<V1> and mean<V2>)
     {
-      // WC is the difference type for the coefficients. However, the result should retain coefficient types RC1.
+      // WC is the difference type for the typed_index_descriptor. However, the result should retain coefficient types RC1.
       using WC = typename RC1::difference_type;
       return MatrixTraits<CommonV>::make(make_self_contained<V1, V2>(wrap_angles<WC>(std::move(b))));
     }
