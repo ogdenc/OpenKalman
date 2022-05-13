@@ -192,6 +192,10 @@ namespace OpenKalman
   //  dynamic_dimension  //
   // ------------------- //
 
+  /**
+   * \brief Specifies that T's index N has a dimension defined at run time.
+   * \details The matrix library interface will specify this for native matrices and expressions.
+   */
   template<typename T, std::size_t N>
 #ifdef __cpp_concepts
   concept dynamic_dimension =
@@ -416,7 +420,8 @@ namespace OpenKalman
     struct element_gettable_impl : std::false_type {};
 
     template<typename T, typename...I>
-    struct element_gettable_impl<T, std::enable_if_t<(std::is_convertible_v<I, const std::size_t&> and ...) and
+    struct element_gettable_impl<T, std::enable_if_t<(sizeof...(I) <= max_indices_of_v<T>) and
+      (std::is_convertible_v<I, const std::size_t&> and ...) and
       std::is_void<std::void_t<decltype(interface::GetElement<std::decay_t<T>, void, I...>::get(
         std::declval<T&&>(), std::declval<I>()...))>>::value and (sizeof...(I) > 0)>, I...>
       : std::true_type {};
@@ -429,7 +434,8 @@ namespace OpenKalman
    */
   template<typename T, typename...I>
 #ifdef __cpp_concepts
-  concept element_gettable = (std::convertible_to<I, const std::size_t&> and ...) and (sizeof...(I) > 0) and
+  concept element_gettable = (sizeof...(I) <= max_indices_of_v<T>) and
+    (std::convertible_to<I, const std::size_t&> and ...) and (sizeof...(I) > 0) and
     requires(T&& t, I...i) { interface::GetElement<std::decay_t<T>, I...>::get(std::forward<T>(t), i...); };
 #else
   constexpr bool element_gettable = detail::element_gettable_impl<T, void, I...>::value;
@@ -447,7 +453,8 @@ namespace OpenKalman
     struct element_settable_impl : std::false_type {};
 
     template<typename T, typename...I>
-    struct element_settable_impl<T, std::enable_if_t<(std::is_convertible_v<I, const std::size_t&> and ...) and
+    struct element_settable_impl<T, std::enable_if_t<(sizeof...(I) <= max_indices_of_v<T>) and
+      (std::is_convertible_v<I, const std::size_t&> and ...) and
       (not std::is_const_v<std::remove_reference_t<T>>) and
       std::is_void<std::void_t<decltype(interface::SetElement<std::decay_t<T>, void, I...>::set(
         std::declval<std::remove_reference_t<T>&>(),
@@ -462,7 +469,8 @@ namespace OpenKalman
    */
   template<typename T, typename...I>
 #ifdef __cpp_concepts
-  concept element_settable = (std::convertible_to<I, const std::size_t&> and ...) and
+  concept element_settable = (sizeof...(I) <= max_indices_of_v<T>) and
+    (std::convertible_to<I, const std::size_t&> and ...) and
     (not std::is_const_v<std::remove_reference_t<T>>) and
     requires(std::remove_reference_t<T>& t, const scalar_type_of_t<T>& s, I...i) {
       interface::SetElement<std::decay_t<T>, I...>::set(t, s, i...);

@@ -82,7 +82,7 @@ namespace OpenKalman::interface
 #endif
   {
     template<typename Arg, typename Scalar>
-    static constexpr auto set(Arg&& arg, const Scalar s, I...i)
+    static constexpr void set(Arg&& arg, Scalar s, I...i)
     {
       arg.set_element(s, i...);
     }
@@ -118,7 +118,7 @@ namespace OpenKalman
         using CC = typename uniform_dimension_type_of_t<column_coefficient_types_of_t<Arg>>;
         return make_matrix<RC, CC>(column<index...>(to_covariance_nestable(std::forward<Arg>(arg)), i...));
       }
-      else if constexpr (fixed_coefficients<column_coefficient_types_of_t<Arg>>)
+      else if constexpr (fixed_index_descriptor<column_coefficient_types_of_t<Arg>>)
       {
         static_assert(sizeof...(index) > 0);
         using CC = column_coefficient_types_of_t<Arg>::template Coefficient<index...>;
@@ -127,7 +127,7 @@ namespace OpenKalman
       }
       else
       {
-        static_assert(dynamic_coefficients<column_coefficient_types_of_t<Arg>>);
+        static_assert(dynamic_index_descriptor<column_coefficient_types_of_t<Arg>>);
         using CC = column_coefficient_types_of_t<Arg>::template Coefficient<index...>;
         return make_matrix<RC, CC>(column(to_covariance_nestable(std::forward<Arg>(arg)), i...));
       }
@@ -145,7 +145,7 @@ namespace OpenKalman
         using RC = typename uniform_dimension_type_of_t<row_coefficient_types_of_t<Arg>>;
         return make_matrix<RC, CC>(column<index...>(to_covariance_nestable(std::forward<Arg>(arg)), i...));
       }
-      else if constexpr (fixed_coefficients<row_coefficient_types_of_t<Arg>>)
+      else if constexpr (fixed_index_descriptor<row_coefficient_types_of_t<Arg>>)
       {
         static_assert(sizeof...(index) > 0);
         using RC = row_coefficient_types_of_t<Arg>::template Coefficient<index...>;
@@ -154,7 +154,7 @@ namespace OpenKalman
       }
       else
       {
-        static_assert(dynamic_coefficients<row_coefficient_types_of_t<Arg>>);
+        static_assert(dynamic_index_descriptor<row_coefficient_types_of_t<Arg>>);
         using RC = row_coefficient_types_of_t<Arg>::template Coefficient<index...>;
         return make_matrix<RC, CC>(column<index...>(to_covariance_nestable(std::forward<Arg>(arg)), i...));
       }

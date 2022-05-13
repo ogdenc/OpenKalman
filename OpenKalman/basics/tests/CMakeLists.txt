@@ -8,6 +8,8 @@
 
 cmake_minimum_required(VERSION 3.10)
 
+find_package(Eigen3 REQUIRED CONFIG)
+
 enable_testing()
 find_package(GTest REQUIRED)
 include(GoogleTest)
@@ -15,8 +17,9 @@ include(GoogleTest)
 add_executable(index-descriptors
         index-descriptors.cpp
         index-descriptor-functions.cpp
+        dynamic-typed-index-descriptors.cpp
     )
 
-target_link_libraries(index-descriptors ${GTEST_BOTH_LIBRARIES} Threads::Threads)
+target_link_libraries(index-descriptors ${GTEST_BOTH_LIBRARIES} Eigen3::Eigen Threads::Threads)
 
 gtest_discover_tests(index-descriptors DISCOVERY_TIMEOUT 10)

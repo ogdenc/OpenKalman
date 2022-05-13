@@ -1,5 +1,5 @@
 add_subdirectory(interfaces)
-add_subdirectory(index-descriptors/tests)
+add_subdirectory(basics/tests)
 add_subdirectory(special-matrices/tests)
 add_subdirectory(matrices/tests)
 add_subdirectory(distributions/tests)

@@ -131,7 +131,7 @@ namespace OpenKalman::interface
 #endif
   {
     template<typename Arg, typename Scalar>
-    static void set(Arg& arg, const Scalar s, I...i)
+    static void set(Arg& arg, Scalar s, I...i)
     {
       arg.coeffRef(static_cast<int>(i)...) = s;
     }
@@ -151,7 +151,7 @@ namespace OpenKalman::interface
 #endif
   {
     template<typename Arg, typename Scalar>
-    static void set(Arg& arg, const Scalar s, I...i)
+    static void set(Arg& arg, Scalar s, I...i)
     {
       arg.coeffRef(static_cast<int>(i)...) = s;
     }
@@ -381,12 +381,12 @@ namespace OpenKalman::interface
 
         if (order == ElementOrder::row_major)
         {
-          for (int i = 0; i < runtime_dimension_of<0>(arg); i++) for (int j = 0; j < runtime_dimension_of<1>(arg); j++)
+          for (int i = 0; i < get_dimensions_of<0>(arg); i++) for (int j = 0; j < get_dimensions_of<1>(arg); j++)
             accum = b(accum, arg(i, j));
         }
         else
         {
-          for (int j = 0; j < runtime_dimension_of<1>(arg); j++) for (int i = 0; i < runtime_dimension_of<0>(arg); i++)
+          for (int j = 0; j < get_dimensions_of<1>(arg); j++) for (int i = 0; i < get_dimensions_of<0>(arg); i++)
             accum = b(accum, arg(i, j));
         }
 
@@ -414,8 +414,8 @@ namespace OpenKalman::interface
         eigen_SelfAdjointView<Arg> or eigen_TriangularView<Arg>)
       {
         // In this case, arg will be a one-by-one matrix.
-        if constexpr (dynamic_columns<Arg>) if (runtime_dimension_of<1>(arg) != 1) throw std::invalid_argument {
-          "Argument of to_diagonal must have 1 column; instead it has " + std::to_string(runtime_dimension_of<1>(arg))};
+        if constexpr (dynamic_columns<Arg>) if (get_dimensions_of<1>(arg) != 1) throw std::invalid_argument {
+          "Argument of to_diagonal must have 1 column; instead it has " + std::to_string(get_dimensions_of<1>(arg))};
         return std::forward<Arg>(arg).nestedExpression();
       }
       else
@@ -429,9 +429,9 @@ namespace OpenKalman::interface
     static constexpr decltype(auto)
     diagonal_of(Arg&& arg)
     {
-      if constexpr (not square_matrix<Arg>) if (runtime_dimension_of<0>(arg) != runtime_dimension_of<1>(arg))
+      if constexpr (not square_matrix<Arg>) if (get_dimensions_of<0>(arg) != get_dimensions_of<1>(arg))
         throw std::invalid_argument {"Argument of diagonal_of must be a square matrix; instead it has " +
-          std::to_string(runtime_dimension_of<0>(arg)) + " rows and " + std::to_string(runtime_dimension_of<1>(arg)) +
+          std::to_string(get_dimensions_of<0>(arg)) + " rows and " + std::to_string(get_dimensions_of<1>(arg)) +
           "columns"};
 
       using Scalar = scalar_type_of_t<Arg>;
@@ -493,12 +493,12 @@ namespace OpenKalman::interface
           using M = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
           if constexpr (std::is_base_of_v<Eigen::PlainObjectBase<Diag>, Diag>)
           {
-            return M::Map(diag.data(), (Eigen::Index) (runtime_dimension_of<0>(diag) * runtime_dimension_of<1>(diag)));
+            return M::Map(diag.data(), (Eigen::Index) (get_dimensions_of<0>(diag) * get_dimensions_of<1>(diag)));
           }
           else
           {
             auto d = make_dense_writable_matrix_from(diag);
-            return M::Map(d.data(), (Eigen::Index) (runtime_dimension_of<0>(diag) * runtime_dimension_of<1>(diag)));
+            return M::Map(d.data(), (Eigen::Index) (get_dimensions_of<0>(diag) * get_dimensions_of<1>(diag)));
           }
         }
         else // rows > 1 and cols > 1
@@ -787,7 +787,7 @@ namespace OpenKalman::interface
           return make_dense_writable_matrix_from(std::forward<U>(u));
       }(std::forward<U>(u));
 
-      for (std::size_t i = 0; i < runtime_dimension_of<1>(v); i++)
+      for (std::size_t i = 0; i < get_dimensions_of<1>(v); i++)
       {
         if (Eigen::internal::llt_inplace<Scalar, UpLo>::rankUpdate(arg, column(v, i), alpha) >= 0)
           throw (std::runtime_error("rank_update_triangular: product is not positive definite"));
@@ -952,7 +952,7 @@ namespace OpenKalman::interface
       {
         if constexpr (must_be_exact or must_be_unique or true)
         {
-          auto a_cols_rt = runtime_dimension_of<1>(a);
+          auto a_cols_rt = get_dimensions_of<1>(a);
           Eigen::ColPivHouseholderQR<eigen_matrix_t<Scalar, a_rows, a_cols>> QR {std::forward<A>(a)};
           if constexpr (must_be_unique)
           {
@@ -1010,13 +1010,13 @@ namespace OpenKalman::Eigen3
 
       if constexpr (dynamic_columns<A>)
       {
-        auto rt_cols = runtime_dimension_of<1>(a);
+        auto rt_cols = get_dimensions_of<1>(a);
 
         ResultType ret {rt_cols, rt_cols};
 
         if constexpr (dynamic_rows<A>)
         {
-          auto rt_rows = runtime_dimension_of<0>(a);
+          auto rt_rows = get_dimensions_of<0>(a);
 
           if (rt_rows < rt_cols)
             ret << QR.matrixQR().topRows(rt_rows),
@@ -1041,7 +1041,7 @@ namespace OpenKalman::Eigen3
 
         if constexpr (dynamic_rows<A>)
         {
-          auto rt_rows = runtime_dimension_of<0>(a);
+          auto rt_rows = get_dimensions_of<0>(a);
 
           if (rt_rows < cols)
             ret << QR.matrixQR().topRows(rt_rows),
@@ -1150,12 +1150,12 @@ namespace OpenKalman::Eigen3
 
       if constexpr ((dynamic_columns<V> and ... and dynamic_columns<Vs>))
       {
-        auto cols = runtime_dimension_of<1>(v);
-        assert(((cols == runtime_dimension_of<1>(vs)) and ...));
+        auto cols = get_dimensions_of<1>(v);
+        assert(((cols == get_dimensions_of<1>(vs)) and ...));
 
         if constexpr ((dynamic_rows<V> or ... or dynamic_rows<Vs>))
         {
-          auto rows = (runtime_dimension_of<0>(v) + ... + runtime_dimension_of<0>(vs));
+          auto rows = (get_dimensions_of<0>(v) + ... + get_dimensions_of<0>(vs));
           Eigen3::eigen_matrix_t<Scalar, dynamic_size, dynamic_size> m {rows, cols};
           ((m << std::forward<V>(v)), ..., std::forward<Vs>(vs));
           return m;
@@ -1178,7 +1178,7 @@ namespace OpenKalman::Eigen3
 
         if constexpr ((dynamic_rows<V> or ... or dynamic_rows<Vs>))
         {
-          auto rows = (runtime_dimension_of<0>(v) + ... + runtime_dimension_of<0>(vs));
+          auto rows = (get_dimensions_of<0>(v) + ... + get_dimensions_of<0>(vs));
           Eigen3::eigen_matrix_t<Scalar, dynamic_size, cols> m {rows, cols};
           ((m << std::forward<V>(v)), ..., std::forward<Vs>(vs));
           return m;
@@ -1226,12 +1226,12 @@ namespace OpenKalman::Eigen3
 
       if constexpr ((dynamic_rows<V> and ... and dynamic_rows<Vs>))
       {
-        auto rows = runtime_dimension_of<0>(v);
-        assert(((rows == runtime_dimension_of<0>(vs)) and ...));
+        auto rows = get_dimensions_of<0>(v);
+        assert(((rows == get_dimensions_of<0>(vs)) and ...));
 
         if constexpr ((dynamic_columns<V> or ... or dynamic_columns<Vs>))
         {
-          auto cols = (runtime_dimension_of<1>(v) + ... + runtime_dimension_of<1>(vs));
+          auto cols = (get_dimensions_of<1>(v) + ... + get_dimensions_of<1>(vs));
           Eigen3::eigen_matrix_t<Scalar, dynamic_size, dynamic_size> m {rows, cols};
           ((m << std::forward<V>(v)), ..., std::forward<Vs>(vs));
           return m;
@@ -1254,7 +1254,7 @@ namespace OpenKalman::Eigen3
 
         if constexpr ((dynamic_columns<V> or ... or dynamic_columns<Vs>))
         {
-          auto cols = (runtime_dimension_of<1>(v) + ... + runtime_dimension_of<1>(vs));
+          auto cols = (get_dimensions_of<1>(v) + ... + get_dimensions_of<1>(vs));
           Eigen3::eigen_matrix_t<Scalar, rows, dynamic_size> m {rows, cols};
           ((m << std::forward<V>(v)), ..., std::forward<Vs>(vs));
           return m;
@@ -1332,15 +1332,15 @@ namespace OpenKalman::Eigen3
       {
         if constexpr ((dynamic_columns<V> or ... or dynamic_columns<Vs>))
         {
-          auto rows = (runtime_dimension_of<0>(v) + ... + runtime_dimension_of<0>(vs));
-          auto cols = (runtime_dimension_of<1>(v) + ... + runtime_dimension_of<1>(vs));
+          auto rows = (get_dimensions_of<0>(v) + ... + get_dimensions_of<0>(vs));
+          auto cols = (get_dimensions_of<1>(v) + ... + get_dimensions_of<1>(vs));
           eigen_matrix_t<Scalar, dynamic_size, dynamic_size> m {rows, cols};
           detail::concatenate_diagonal_impl(m, std::forward_as_tuple(v, vs...), seq);
           return m;
         }
         else
         {
-          auto rows = (runtime_dimension_of<0>(v) + ... + runtime_dimension_of<0>(vs));
+          auto rows = (get_dimensions_of<0>(v) + ... + get_dimensions_of<0>(vs));
           constexpr auto cols = (column_dimension_of_v<V> + ... + column_dimension_of_v<Vs>);
           eigen_matrix_t<Scalar, dynamic_size, cols> m {rows, cols};
           detail::concatenate_diagonal_impl(m, std::forward_as_tuple(v, vs...), seq);
@@ -1352,7 +1352,7 @@ namespace OpenKalman::Eigen3
         if constexpr ((dynamic_columns<V> or ... or dynamic_columns<Vs>))
         {
           constexpr auto rows = (row_dimension_of_v<V> + ... + row_dimension_of_v<Vs>);
-          auto cols = (runtime_dimension_of<1>(v) + ... + runtime_dimension_of<1>(vs));
+          auto cols = (get_dimensions_of<1>(v) + ... + get_dimensions_of<1>(vs));
           eigen_matrix_t<Scalar, rows, dynamic_size> m {rows, cols};
           detail::concatenate_diagonal_impl(m, std::forward_as_tuple(v, vs...), seq);
           return m;
@@ -1398,7 +1398,7 @@ namespace OpenKalman::Eigen3
         auto& xpr = const_cast<std::remove_const_t<XprType>&>(arg.nestedExpression());
 
         if constexpr (BlockRows == Eigen::Dynamic or BlockCols == Eigen::Dynamic)
-          return NonConstBlock(xpr, arg.startRow(), arg.startCol(), runtime_dimension_of<0>(arg), runtime_dimension_of<1>(arg));
+          return NonConstBlock(xpr, arg.startRow(), arg.startCol(), get_dimensions_of<0>(arg), get_dimensions_of<1>(arg));
         else
           return NonConstBlock(xpr, arg.startRow(), arg.startCol());
       } (arg);
@@ -1445,7 +1445,7 @@ namespace OpenKalman::Eigen3
     {
       if constexpr (dynamic_rows<Arg>)
       {
-        Eigen::Index dim2 = runtime_dimension_of<0>(arg) - dim1;
+        Eigen::Index dim2 = get_dimensions_of<0>(arg) - dim1;
         return std::tuple_cat(
           detail::make_split_tuple<F, RC, CC>(g(arg.topRows(dim1))),
           split_vertical<F, euclidean, RCs...>(g(arg.bottomRows(dim2))));
@@ -1582,7 +1582,7 @@ namespace OpenKalman::Eigen3
     {
       if constexpr (dynamic_columns<Arg>)
       {
-        Eigen::Index dim2 = runtime_dimension_of<1>(arg) - dim1;
+        Eigen::Index dim2 = get_dimensions_of<1>(arg) - dim1;
         return std::tuple_cat(
           detail::make_split_tuple<F, RC, CC>(g(arg.leftCols(dim1))),
           split_horizontal<F, CCs...>(g(arg.rightCols(dim2))));
@@ -1703,8 +1703,8 @@ namespace OpenKalman::Eigen3
     {
       if constexpr (has_dynamic_dimensions<Arg>)
       {
-        Eigen::Index rdim2 = runtime_dimension_of<0>(arg) - rdim1;
-        Eigen::Index cdim2 = runtime_dimension_of<1>(arg) - cdim1;
+        Eigen::Index rdim2 = get_dimensions_of<0>(arg) - rdim1;
+        Eigen::Index cdim2 = get_dimensions_of<1>(arg) - cdim1;
 
         return std::tuple_cat(
           detail::make_split_tuple<F, C, C>(g(arg.topLeftCorner(rdim1, cdim1))),
@@ -1917,7 +1917,7 @@ namespace OpenKalman::Eigen3
 
     if constexpr (dynamic_columns<Arg>)
     {
-      auto cols = runtime_dimension_of<1>(arg);
+      auto cols = get_dimensions_of<1>(arg);
 
       if constexpr ((index and detail::col_result_is_lvalue<Function, Arg, std::size_t>) or
         (not index and detail::col_result_is_lvalue<Function, Arg>))
@@ -1941,7 +1941,7 @@ namespace OpenKalman::Eigen3
 
         using ResultType = decltype(res_col0);
         using M = eigen_matrix_t<scalar_type_of_t<ResultType>, row_dimension_of_v<ResultType>, dynamic_size>;
-        M m {runtime_dimension_of<0>(res_col0), cols};
+        M m {get_dimensions_of<0>(res_col0), cols};
 
         column(m, 0) = res_col0;
 
@@ -2028,13 +2028,13 @@ namespace OpenKalman::Eigen3
         if constexpr (dynamic_rows<R>)
         {
           auto r0 = f(0);
-          auto rows = runtime_dimension_of<0>(r0);
+          auto rows = get_dimensions_of<0>(r0);
           eigen_matrix_t<Scalar, dynamic_size, dynamic_size> m {rows, cols};
           m.col(0) = r0;
           for (std::size_t j = 1; j < cols; j++)
           {
             auto rj = f(j);
-            assert(runtime_dimension_of<0>(rj) == rows);
+            assert(get_dimensions_of<0>(rj) == rows);
             m.col(j) = rj;
           }
           return m;
@@ -2055,7 +2055,7 @@ namespace OpenKalman::Eigen3
     {
       auto r = f();
       using R = decltype(r);
-      if constexpr (dynamic_columns<R>) assert (runtime_dimension_of<1>(r) == 1);
+      if constexpr (dynamic_columns<R>) assert (get_dimensions_of<1>(r) == 1);
 
       if constexpr (sizeof...(compile_time_columns) > 0)
         return make_self_contained(Eigen::Replicate<R, 1, compile_time_columns...>(r));
@@ -2155,7 +2155,7 @@ namespace OpenKalman::Eigen3
 
     if constexpr (dynamic_rows<Arg>)
     {
-      auto rows = runtime_dimension_of<0>(arg);
+      auto rows = get_dimensions_of<0>(arg);
 
       if constexpr ((index and detail::row_result_is_lvalue<Function, Arg, std::size_t>) or
         (not index and detail::row_result_is_lvalue<Function, Arg>))
@@ -2180,7 +2180,7 @@ namespace OpenKalman::Eigen3
         using ResultType = decltype(res_row0);
         using M = eigen_matrix_t<
           scalar_type_of_t<ResultType>, dynamic_size, column_dimension_of_v<ResultType>>;
-        M m {rows, runtime_dimension_of<1>(res_row0)};
+        M m {rows, get_dimensions_of<1>(res_row0)};
 
         row(m, 0) = res_row0;
 
@@ -2267,13 +2267,13 @@ namespace OpenKalman::Eigen3
         if constexpr (dynamic_columns<R>)
         {
           auto c0 = f(0);
-          auto cols = runtime_dimension_of<1>(c0);
+          auto cols = get_dimensions_of<1>(c0);
           eigen_matrix_t<Scalar, dynamic_size, dynamic_size> m {rows, cols};
           m.row(0) = c0;
           for (std::size_t i = 1; i < rows; i++)
           {
             auto ci = f(i);
-            assert(runtime_dimension_of<1>(ci) == cols);
+            assert(get_dimensions_of<1>(ci) == cols);
             m.row(i) = ci;
           }
           return m;
@@ -2294,7 +2294,7 @@ namespace OpenKalman::Eigen3
     {
       auto c = f();
       using C = decltype(c);
-      if constexpr (dynamic_rows<C>) assert (runtime_dimension_of<0>(c) == 1);
+      if constexpr (dynamic_rows<C>) assert (get_dimensions_of<0>(c) == 1);
 
       if constexpr (sizeof...(compile_time_rows) > 0)
         return make_self_contained(Eigen::Replicate<C, compile_time_rows..., 1>(c));
@@ -2408,7 +2408,7 @@ namespace OpenKalman::Eigen3
         std::is_invocable_r_v<Scalar&, Function, Scalar&, std::size_t&, std::size_t&>))
 #endif
     {
-      for (std::size_t j = 0; j < runtime_dimension_of<1>(arg); j++) for (std::size_t i = 0; i < runtime_dimension_of<0>(arg); i++)
+      for (std::size_t j = 0; j < get_dimensions_of<1>(arg); j++) for (std::size_t i = 0; i < get_dimensions_of<0>(arg); i++)
       {
         if constexpr (two_indices)
           f(arg(i, j), i, j);
@@ -2420,7 +2420,7 @@ namespace OpenKalman::Eigen3
     else if constexpr (two_indices)
     {
       // Need to declare variables and pass as lvalue references, to avoid GCC 10.1.0 bug.
-      Eigen::Index rows = runtime_dimension_of<0>(arg), cols = runtime_dimension_of<1>(arg);
+      Eigen::Index rows = get_dimensions_of<0>(arg), cols = get_dimensions_of<1>(arg);
       return std::decay_t<Arg>::NullaryExpr(rows, cols,
         detail::CWNullaryOp {std::forward<Function>(f), std::forward<Arg>(arg)});
     }

@@ -46,11 +46,11 @@ namespace OpenKalman::interface
         };
         if constexpr(to_euclidean_expr<Arg>)
         {
-          return OpenKalman::internal::to_euclidean_coeff<Coeffs>(i, get_coeff);
+          return OpenKalman::internal::to_euclidean_element<Coeffs>(i, get_coeff);
         }
         else
         {
-          return OpenKalman::internal::from_euclidean_coeff<Coeffs>(i, get_coeff);
+          return OpenKalman::internal::from_euclidean_element<Coeffs>(i, get_coeff);
         }
       }
     }
@@ -82,7 +82,7 @@ namespace OpenKalman::interface
         const auto get_coeff = [&arg, is...] (const std::size_t row) {
           return get_element(nested_matrix(nested_matrix(std::forward<Arg>(arg))), row, is...);
         };
-        return OpenKalman::internal::wrap_get<Coeffs>(i, get_coeff);
+        return OpenKalman::internal::wrap_get_element<Coeffs>(i, get_coeff);
       }
     }
   };
@@ -101,7 +101,7 @@ namespace OpenKalman::interface
 #endif
   {
     template<typename Arg, typename Scalar>
-    static constexpr auto set(Arg&& arg, const Scalar s, I i, Is...is)
+    static constexpr void set(Arg&& arg, Scalar s, I i, Is...is)
     {
       set_element(nested_matrix(arg), s, i, is...);
     }
@@ -132,7 +132,7 @@ namespace OpenKalman::interface
      * \param j The column of the coefficient.
      */
     template<typename Arg, typename Scalar>
-    static constexpr auto set(Arg&& arg, const Scalar s, I i, Is...is)
+    static constexpr void set(Arg&& arg, Scalar s, I i, Is...is)
     {
       if constexpr (has_untyped_index<Arg, 0>)
       {
@@ -147,7 +147,7 @@ namespace OpenKalman::interface
         const auto set_coeff = [&arg, is...] (const std::size_t row, const Scalar value) {
           set_element(nested_matrix(nested_matrix(arg)), value, row, is...);
         };
-        OpenKalman::internal::wrap_set<Coeffs>(i, s, set_coeff, get_coeff);
+        OpenKalman::internal::wrap_set_element<Coeffs>(i, s, set_coeff, get_coeff);
       }
     }
   };

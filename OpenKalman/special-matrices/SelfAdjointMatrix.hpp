@@ -172,8 +172,8 @@ namespace OpenKalman::Eigen3
 #endif
     explicit SelfAdjointMatrix(Arg&& arg) noexcept
       : Base {[](Arg&& arg) -> decltype(auto) {
-        if constexpr (dynamic_rows<Arg> and dim != dynamic_size) assert(runtime_dimension_of<0>(arg) == dim);
-        if constexpr (dynamic_columns<Arg> and dim != dynamic_size) assert(runtime_dimension_of<1>(arg) == dim);
+        if constexpr (dynamic_rows<Arg> and dim != dynamic_size) assert(get_dimensions_of<0>(arg) == dim);
+        if constexpr (dynamic_columns<Arg> and dim != dynamic_size) assert(get_dimensions_of<1>(arg) == dim);
         return std::forward<Arg>(arg);
       }(std::forward<Arg>(arg))} {}
 
@@ -190,8 +190,8 @@ namespace OpenKalman::Eigen3
 #endif
     explicit SelfAdjointMatrix(Arg&& arg) noexcept
       : Base {[](Arg&& arg) -> decltype(auto) {
-        if constexpr (dynamic_rows<Arg> and dim != dynamic_size) assert(runtime_dimension_of<0>(arg) == dim);
-        if constexpr (dynamic_columns<Arg> and dim != dynamic_size) assert(runtime_dimension_of<1>(arg) == dim);
+        if constexpr (dynamic_rows<Arg> and dim != dynamic_size) assert(get_dimensions_of<0>(arg) == dim);
+        if constexpr (dynamic_columns<Arg> and dim != dynamic_size) assert(get_dimensions_of<1>(arg) == dim);
         return diagonal_of(std::forward<Arg>(arg));
       }(std::forward<Arg>(arg))} {}
 

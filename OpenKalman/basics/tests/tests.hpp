@@ -54,11 +54,14 @@ namespace OpenKalman::test
   inline ::testing::AssertionResult is_near(const Arg1& arg1, const Arg2& arg2, const Err& err = 1e-6)
   {
     if constexpr (has_dynamic_dimensions<Arg1> or has_dynamic_dimensions<Arg2>)
-      if (runtime_dimension_of<0>(arg1) != runtime_dimension_of<0>(arg2) or runtime_dimension_of<1>(arg1) != runtime_dimension_of<1>(arg2))
+      if (get_dimensions_of<0>(arg1) != get_dimensions_of<0>(arg2) or get_dimensions_of<1>(arg1) != get_dimensions_of<1>(arg2))
     {
       return ::testing::AssertionFailure() << std::endl << make_dense_writable_matrix_from(arg1) << std::endl <<
-        "(rows " << runtime_dimension_of<0>(arg1) << ", cols " << runtime_dimension_of<1>(arg1) << "), is not near" << std::endl <<
-        make_dense_writable_matrix_from(arg2) << std::endl << "(rows " << runtime_dimension_of<0>(arg2) << ", cols " << runtime_dimension_of<1>(arg2) <<
+        "(rows " << get_dimension_size_of(get_dimensions_of<0>(arg1)) <<
+        ", cols " << get_dimension_size_of(get_dimensions_of<1>(arg1)) << "), is not near" << std::endl <<
+        make_dense_writable_matrix_from(arg2) << std::endl <<
+        "(rows " << get_dimension_size_of(get_dimensions_of<0>(arg2)) <<
+        ", cols " << get_dimension_size_of(get_dimensions_of<1>(arg2)) <<
         ")" << std::endl;
     }
 
@@ -115,14 +118,14 @@ namespace OpenKalman::test
     }
 
     if constexpr (dynamic_rows<std::tuple_element_t<0, Arg1>> or dynamic_rows<std::tuple_element_t<0, Arg2>>)
-      if (runtime_dimension_of<0>(std::get<0>(arg1)) != runtime_dimension_of<0>(std::get<0>(arg2)))
-        throw std::logic_error {"Row dimension mismatch: " + std::to_string(runtime_dimension_of<0>(std::get<0>(arg1))) + " != " +
-          std::to_string(runtime_dimension_of<0>(std::get<0>(arg2))) + " in is_near(array) of " + std::string {__FILE__}};
+      if (get_dimensions_of<0>(std::get<0>(arg1)) != get_dimensions_of<0>(std::get<0>(arg2)))
+        throw std::logic_error {"Row dimension mismatch: " + std::to_string(get_dimensions_of<0>(std::get<0>(arg1))) + " != " +
+          std::to_string(get_dimensions_of<0>(std::get<0>(arg2))) + " in is_near(array) of " + std::string {__FILE__}};
 
     if constexpr (dynamic_columns<std::tuple_element_t<0, Arg1>> or dynamic_columns<std::tuple_element_t<0, Arg2>>)
-      if (runtime_dimension_of<1>(std::get<0>(arg1)) != runtime_dimension_of<1>(std::get<0>(arg2)))
-        throw std::logic_error {"Column dimension mismatch: " + std::to_string(runtime_dimension_of<1>(std::get<0>(arg1))) + " != " +
-          std::to_string(runtime_dimension_of<1>(std::get<0>(arg2))) + " in is_near(array) of " + std::string {__FILE__}};
+      if (get_dimensions_of<1>(std::get<0>(arg1)) != get_dimensions_of<1>(std::get<0>(arg2)))
+        throw std::logic_error {"Column dimension mismatch: " + std::to_string(get_dimensions_of<1>(std::get<0>(arg1))) + " != " +
+          std::to_string(get_dimensions_of<1>(std::get<0>(arg2))) + " in is_near(array) of " + std::string {__FILE__}};
   }
 
 

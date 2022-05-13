@@ -302,9 +302,9 @@ namespace OpenKalman
      */
   #ifdef __cpp_concepts
     template<typed_index_descriptor Coefficients, typename NestedMatrix>
-    requires (dynamic_coefficients<Coefficients> == dynamic_rows<NestedMatrix>) and
-      (not fixed_coefficients<Coefficients> or euclidean_dimension_size_of_v<Coefficients> == row_dimension_of_v<NestedMatrix>) and
-      (not dynamic_coefficients<Coefficients> or
+    requires (dynamic_index_descriptor<Coefficients> == dynamic_rows<NestedMatrix>) and
+      (not fixed_index_descriptor<Coefficients> or euclidean_dimension_size_of_v<Coefficients> == row_dimension_of_v<NestedMatrix>) and
+      (not dynamic_index_descriptor<Coefficients> or
         std::same_as<typename Coefficients::Scalar, scalar_type_of_t<NestedMatrix>>)
   #else
     template<typename Coefficients, typename NestedMatrix>
@@ -345,9 +345,9 @@ namespace OpenKalman
      */
   #ifdef __cpp_concepts
     template<typed_index_descriptor Coefficients, typename NestedMatrix> requires (not from_euclidean_expr<NestedMatrix>) and
-      (dynamic_coefficients<Coefficients> == dynamic_rows<NestedMatrix>) and
-      (not fixed_coefficients<Coefficients> or dimension_size_of_v<Coefficients> == row_dimension_of_v<NestedMatrix>) and
-      (not dynamic_coefficients<Coefficients> or
+      (dynamic_index_descriptor<Coefficients> == dynamic_rows<NestedMatrix>) and
+      (not fixed_index_descriptor<Coefficients> or dimension_size_of_v<Coefficients> == row_dimension_of_v<NestedMatrix>) and
+      (not dynamic_index_descriptor<Coefficients> or
         std::same_as<typename Coefficients::Scalar, scalar_type_of_t<NestedMatrix>>)
   #else
     template<typename Coefficients, typename NestedMatrix>
@@ -409,8 +409,8 @@ namespace OpenKalman
   requires (dimension_size_of_v<RowCoefficients> == row_dimension_of_v<NestedMatrix>) and
     (dimension_size_of_v<ColumnCoefficients> == column_dimension_of_v<NestedMatrix>) and
     (not std::is_rvalue_reference_v<NestedMatrix>) and
-    (dynamic_coefficients<RowCoefficients> == dynamic_rows<NestedMatrix>) and
-    (dynamic_coefficients<ColumnCoefficients> == dynamic_columns<NestedMatrix>)
+    (dynamic_index_descriptor<RowCoefficients> == dynamic_rows<NestedMatrix>) and
+    (dynamic_index_descriptor<ColumnCoefficients> == dynamic_columns<NestedMatrix>)
 #else
   template<typename RowCoefficients, typename ColumnCoefficients, typename NestedMatrix>
 #endif

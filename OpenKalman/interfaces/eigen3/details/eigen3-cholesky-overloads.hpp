@@ -35,7 +35,7 @@ namespace OpenKalman::Eigen3
   Cholesky_square(Z&& z) noexcept
   {
     if constexpr (has_dynamic_dimensions<Z>)
-      assert(runtime_dimension_of<0>(z) == runtime_dimension_of<1>(z));
+      assert(get_dimensions_of<0>(z) == get_dimensions_of<1>(z));
     return std::forward<Z>(z);
   }
 
@@ -56,7 +56,7 @@ namespace OpenKalman::Eigen3
   Cholesky_factor(Z&& z) noexcept
   {
     if constexpr (has_dynamic_dimensions<Z>)
-      assert(runtime_dimension_of<0>(z) == runtime_dimension_of<1>(z));
+      assert(get_dimensions_of<0>(z) == get_dimensions_of<1>(z));
     return std::forward<Z>(z);
   }
 
@@ -79,7 +79,7 @@ namespace OpenKalman::Eigen3
     if constexpr ((has_dynamic_dimensions<D> and not diagonal_matrix<D>) or one_by_one_matrix<D>)
     {
       if constexpr (has_dynamic_dimensions<D> and not diagonal_matrix<D>)
-        assert(runtime_dimension_of<0>(d) == 1 and runtime_dimension_of<1>(d) == 1);
+        assert(get_dimensions_of<0>(d) == 1 and get_dimensions_of<1>(d) == 1);
 
       return std::forward<D>(d).array().square().matrix();
     }
@@ -113,7 +113,7 @@ namespace OpenKalman::Eigen3
     if constexpr((has_dynamic_dimensions<D> and not diagonal_matrix<D>) or one_by_one_matrix<D>)
     {
       if constexpr (has_dynamic_dimensions<D> and not diagonal_matrix<D>)
-        assert(runtime_dimension_of<0>(d) == 1 and runtime_dimension_of<1>(d) == 1);
+        assert(get_dimensions_of<0>(d) == 1 and get_dimensions_of<1>(d) == 1);
 
       return std::forward<D>(d).cwiseSqrt();
     }

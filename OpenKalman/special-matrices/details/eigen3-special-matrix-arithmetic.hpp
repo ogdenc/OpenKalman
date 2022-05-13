@@ -663,7 +663,7 @@ namespace OpenKalman::Eigen3
 #endif
   inline auto operator*(Arg1&& arg1, Arg2&& arg2)
   {
-    if constexpr (dynamic_columns<Arg1> or dynamic_rows<Arg2>) assert (runtime_dimension_of<1>(arg1) == runtime_dimension_of<0>(arg2));
+    if constexpr (dynamic_columns<Arg1> or dynamic_rows<Arg2>) assert (get_dimensions_of<1>(arg1) == get_dimensions_of<0>(arg2));
 
     constexpr auto newconst = constant_coefficient_v<Arg1> * constant_coefficient_v<Arg2> * row_dimension_of_v<Arg2>;
     return make_constant_matrix_like<Arg1, newconst>(get_dimensions_of<0>(arg1), get_dimensions_of<1>(arg2));

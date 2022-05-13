@@ -99,7 +99,7 @@ namespace OpenKalman
       template<typename Arg>
       static constexpr std::size_t dimension_at_runtime(const Arg& arg)
       {
-        return runtime_dimension_of<0>(nested_matrix(arg));
+        return get_dimensions_of<0>(nested_matrix(arg));
       }
     };
 
@@ -116,7 +116,7 @@ namespace OpenKalman
         if constexpr (dynamic_dimension<Nested, 0>)
         {
           if constexpr (dynamic_dimension<Nested, 1>)
-            return runtime_dimension_of<0>(nested_matrix(arg));
+            return get_dimensions_of<0>(nested_matrix(arg));
           else
             return index_dimension_of_v<Nested, 1>;
         }
@@ -140,7 +140,7 @@ namespace OpenKalman
         if constexpr (dynamic_dimension<Nested, 0>)
         {
           if constexpr (dynamic_dimension<Nested, 1>)
-            return runtime_dimension_of<0>(nested_matrix(arg));
+            return get_dimensions_of<0>(nested_matrix(arg));
           else
             return index_dimension_of_v<Nested, 1>;
         }
@@ -165,7 +165,7 @@ namespace OpenKalman
           if constexpr (N == 0)
             return arg.row_coefficients.dimension;
           else
-            return runtime_dimension_of<N>(nested_matrix(arg));
+            return get_dimensions_of<N>(nested_matrix(arg));
         }
         else
         {
@@ -188,7 +188,7 @@ namespace OpenKalman
           if constexpr (N == 0)
             return arg.row_coefficients.euclidean_dimension;
           else
-            return runtime_dimension_of<N>(nested_matrix(arg));
+            return get_dimensions_of<N>(nested_matrix(arg));
         }
         else
         {

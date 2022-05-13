@@ -15,202 +15,6 @@ namespace OpenKalman
 {
   using namespace interface;
 
-  // ------------------------------- //
-  //  Functions relating to indices  //
-  // ------------------------------- //
-
-  // ------------------- //
-  //  get_dimensions_of  //
-  // ------------------- //
-
-#ifdef __cpp_concepts
-  template<std::size_t N, indexible Arg> requires (N < max_indices_of_v<Arg>)
-#else
-  template<std::size_t N, typename Arg, std::enable_if_t<indexible<Arg> and N < max_indices_of<Arg>::value, int> = 0>
-#endif
-  constexpr auto get_dimensions_of(const Arg& arg)
-  {
-    if constexpr (dynamic_dimension<Arg, N>)
-      return Dimensions{interface::IndexTraits<std::decay_t<Arg>, N>::dimension_at_runtime(arg)};
-    else
-      return Dimensions<interface::IndexTraits<std::decay_t<Arg>, N>::dimension>{};
-  }
-
-
-  // ---------------------- //
-  //  runtime_dimension_of  //
-  // ---------------------- //
-
-#ifdef __cpp_concepts
-  template<std::size_t N = 0, indexible Arg> requires (N < max_indices_of_v<Arg>)
-#else
-  template<std::size_t N = 0, typename Arg, std::enable_if_t<indexible<Arg> and N < max_indices_of<Arg>::value, int> = 0>
-#endif
-  constexpr std::size_t runtime_dimension_of(const Arg& arg)
-  {
-    return interface::IndexTraits<std::decay_t<Arg>, N>::dimension_at_runtime(arg);
-  }
-
-
-  // -------------------------------- //
-  //  get_coordinate_system_types_of  //
-  // -------------------------------- //
-
-  template<std::size_t N = 0, typename Arg>
-  constexpr auto get_coordinate_system_types_of(Arg&& arg)
-  {
-    return interface::CoordinateSystemTraits<std::decay_t<Arg>, N>::coordinate_system_types_at_runtime(std::forward<Arg>(arg));
-  }
-
-
-  // --------------------- //
-  //  get_tensor_order_of  //
-  // --------------------- //
-
-  namespace detail
-  {
-    template<std::size_t...I, typename T>
-    constexpr auto get_tensor_order_of_impl(std::index_sequence<I...>, const T& t)
-    {
-      return ((runtime_dimension_of<I>(t) == 1 ? 0 : 1) + ... + 0);
-    }
-  }
-
-
-  /**
-   * \brief Return a tuple of \ref index_descriptor objects defining the dimensions of T.
-   * \tparam T A matrix or array
-   */
-#ifdef __cpp_concepts
-  template<indexible T>
-#else
-  template<typename T, std::enable_if_t<indexible<T>, int> = 0>
-#endif
-  constexpr auto get_tensor_order_of(const T& t)
-  {
-    if constexpr (not has_dynamic_dimensions<T>)
-      return tensor_order_of_v<T>;
-    else
-      return detail::get_tensor_order_of_impl(std::make_index_sequence<max_indices_of_v<T>>{}, t);
-  }
-
-
-  // ----------------------- //
-  //  get_all_dimensions_of  //
-  // ----------------------- //
-
-  namespace detail
-  {
-    template<typename T, std::size_t...I>
-    constexpr auto get_all_dimensions_of_impl(std::index_sequence<I...>, const T& t)
-    {
-      return std::tuple {[](const T& t){
-        constexpr std::size_t size = index_dimension_of_v<T, I>;
-        if constexpr (size == dynamic_size)
-          return Dimensions<size>{runtime_dimension_of<I>(t)};
-        else
-          return Dimensions<size>{};
-      }(t)...};
-    }
-
-
-    template<typename T, std::size_t...I>
-    constexpr auto get_all_dimensions_of_impl(std::index_sequence<I...>)
-    {
-      return std::tuple {Dimensions<index_dimension_of_v<T, I>>{}...};
-    }
-  }
-
-
-  /**
-   * \brief Return a tuple of \ref index_descriptor objects defining the dimensions of T.
-   * \tparam T A matrix or array
-   */
-#ifdef __cpp_concepts
-  template<indexible T>
-#else
-  template<typename T, std::enable_if_t<indexible<T>, int> = 0>
-#endif
-  constexpr decltype(auto) get_all_dimensions_of(T&& t)
-  {
-    if constexpr (Eigen3::eigen_zero_expr<T> or Eigen3::eigen_constant_expr<T>)
-      return std::forward<T>(t).get_all_dimensions();
-    else
-      return detail::get_all_dimensions_of_impl(std::make_index_sequence<max_indices_of_v<T>>{}, t);
-  }
-
-
-  /**
-   * \overload
-   * \brief Return a tuple of \ref index_descriptor objects defining the dimensions of T.
-   * \details This overload is only enabled if all dimensions of T are known at compile time.
-   * \tparam T A matrix or array
-   */
-#ifdef __cpp_concepts
-  template<indexible T> requires (not has_dynamic_dimensions<T>)
-#else
-  template<typename T, std::enable_if_t<indexible<T> and not has_dynamic_dimensions<T>, int> = 0>
-#endif
-  constexpr auto get_all_dimensions_of()
-  {
-    return detail::get_all_dimensions_of_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{});
-  }
-
-
-  namespace internal
-  {
-
-    // ----------------------- //
-    //  make_dimensions_tuple  //
-    // ----------------------- //
-
-    namespace detail
-    {
-      template<typename T, std::size_t I_begin, std::size_t...Is>
-      constexpr auto iterate_dimensions_tuple(std::index_sequence<Is...>)
-      {
-        return std::tuple {Dimensions<index_dimension_of_v<T, I_begin + Is>>{}...};
-      }
-
-
-      template<typename T, std::size_t I, std::size_t Max>
-      constexpr auto make_dimensions_tuple_impl()
-      {
-        if constexpr (I >= Max)
-          return std::tuple{};
-        else
-          return iterate_dimensions_tuple<T, I>(std::make_index_sequence<Max - I>{});
-      }
-
-
-      template<typename T, std::size_t I, std::size_t Max, typename N, typename...Ns>
-      constexpr auto make_dimensions_tuple_impl(N n, Ns...ns)
-      {
-        static_assert(I < Max);
-        if constexpr (dynamic_dimension<T, I>)
-          return std::tuple_cat(std::tuple {Dimensions{n}}, make_dimensions_tuple_impl<T, I + 1, Max>(ns...));
-        else
-          return std::tuple_cat(std::tuple {Dimensions<index_dimension_of_v<T, I>>{}},
-            make_dimensions_tuple_impl<T, I + 1, Max>(n, ns...));
-      }
-    }
-
-
-#ifdef __cpp_concepts
-    template<indexible T, std::convertible_to<const std::size_t> ... N>
-    requires (sizeof...(N) == number_of_dynamic_indices_v<T>)
-#else
-    template<typename T, typename...N, std::enable_if_t<indexible<T> and
-      (std::is_convertible_v<N, const std::size_t> and ...) and (sizeof...(N) == number_of_dynamic_indices<T>::value), int> = 0>
-#endif
-    constexpr auto make_dimensions_tuple(N...n)
-    {
-      return detail::make_dimensions_tuple_impl<T, 0, max_indices_of_v<T>>(static_cast<const std::size_t>(n)...);
-    }
-
-  } // namespace internal
-
-
   // --------------------------------- //
   //  make_dense_writable_matrix_from  //
   // --------------------------------- //
@@ -814,27 +618,29 @@ namespace OpenKalman
     {
       if constexpr (sizeof...(I) == 1)
       {
-        auto c = runtime_dimension_of<1>(arg);
+        auto dim_i = (i,...);
+        auto c = get_dimension_size_of(get_dimensions_of<1>(arg));
         if (c == 1)
         {
-          auto r = runtime_dimension_of<0>(arg);
-          if ((static_cast<std::size_t>(i),...) >= r)
-            throw std::out_of_range {((std::string {set ? "s" : "g"} + "et_element:") + " Row index (which is " +
-            std::to_string((i,...)) + ") is not in range 0 <= i < " + std::to_string(r) + ".")};
+          auto r = get_dimension_size_of(get_dimensions_of<0>(arg));
+          if (dim_i >= r)
+            throw std::out_of_range {((std::string {set ? "s" : "g"} + "et_element:") + " Row index is " +
+            std::to_string(dim_i) + " but should be in range [0..." + std::to_string(r-1) + "].")};
         }
         else
         {
-          if ((static_cast<std::size_t>(i),...) >= c)
-            throw std::out_of_range {((std::string {set ? "s" : "g"} + "et_element:") + " Column index (which is " +
-            std::to_string((i,...)) + ") is not in range 0 <= i < " + std::to_string(c) + ".")};
+          if (dim_i >= c)
+            throw std::out_of_range {((std::string {set ? "s" : "g"} + "et_element:") + " Column index is " +
+            std::to_string(dim_i) + " but should be range [0..." + std::to_string(c-1) + "].")};
         }
       }
       else
       {
-        (((static_cast<std::size_t>(i) >= runtime_dimension_of<seq>(arg)) ?
-          throw std::out_of_range {((std::string {set ? "s" : "g"} + "et_element:") + ... +
-            (" Index " + std::to_string(seq) + " (which is " + std::to_string(i) + ") is not in range 0 <= i < " +
-            std::to_string(runtime_dimension_of<seq>(arg)) + "."))} :
+        (((i >= get_dimension_size_of(get_dimensions_of<seq>(arg))) ?
+          throw std::out_of_range {(("At least one " + std::string {set ? "s" : "g"} +
+            "et_element index out of range:") + ... + (" Index " + std::to_string(seq) + " is " +
+            std::to_string(i) + " and should be in range [0..." +
+            std::to_string(get_dimension_size_of(get_dimensions_of<seq>(arg))-1) + "]."))} :
           false) , ...);
       }
     }
@@ -932,7 +738,7 @@ namespace OpenKalman
     else if constexpr (constant_matrix<Arg>)
     {
       auto runtime_i = (compile_time_index + ... + (i + ... + 0));
-      auto cols = runtime_dimension_of<1>(arg);
+      auto cols = get_dimensions_of<1>(arg);
 
       if (runtime_i >= cols) throw std::out_of_range {"Runtime column index (which is " + std::to_string(runtime_i) +
           ") is not in range 0 <= i < " + std::to_string(cols) + "."};
@@ -993,7 +799,7 @@ namespace OpenKalman
     else if constexpr (constant_matrix<Arg>)
     {
       auto runtime_i = (compile_time_index + ... + (i + ... + 0));
-      auto rows = runtime_dimension_of<0>(arg);
+      auto rows = get_dimensions_of<0>(arg);
 
       if (runtime_i >= rows) throw std::out_of_range {"Runtime row index (which is " + std::to_string(runtime_i) +
           ") is not in range 0 <= i < " + std::to_string(rows) + "."};
@@ -1038,10 +844,10 @@ namespace OpenKalman
     inline void check_n_ary_rt_dims_impl(
       const std::tuple<Dimensions<sizes>...>& d, const Arg& arg, std::index_sequence<indices...>)
     {
-      ((runtime_dimension_of<indices>(arg) == 1 or
-        runtime_dimension_of<indices>(arg) == std::get<indices>(d)() ? 0 : throw std::logic_error {
+      ((get_dimensions_of<indices>(arg) == 1 or
+        get_dimensions_of<indices>(arg) == std::get<indices>(d)() ? 0 : throw std::logic_error {
           "In an argument to n_ary_operation_with_broadcasting, the dimension of index " +
-          std::to_string(indices) + " is " + std::to_string(runtime_dimension_of<indices>(arg)) + ", but should be 1 " +
+          std::to_string(indices) + " is " + std::to_string(get_dimensions_of<indices>(arg)) + ", but should be 1 " +
           (std::get<indices>(d)() == 1 ? "" : "or " + std::to_string(std::get<indices>(d)())) +
           "(the dimension of index " + std::to_string(indices) + " of the PatternMatrix template argument)"}),...);
     }
@@ -1059,11 +865,11 @@ namespace OpenKalman
     {
       if constexpr (sizeof...(Args) == 0)
       {
-        return runtime_dimension_of<I>(arg);
+        return get_dimensions_of<I>(arg);
       }
       else
       {
-        auto dim0 = runtime_dimension_of<I>(arg);
+        auto dim0 = get_dimensions_of<I>(arg);
         auto dim = find_max_runtime_dims_impl<I>(args...);
         if (dim0 == dim or dim == 1)
           return dim0;
@@ -1291,7 +1097,7 @@ namespace OpenKalman
       }
       else
       {
-        auto c = calc_const_reduce_constant_runtime(runtime_dimension_of<index>(t), b, constant_coefficient_v<T>);
+        auto c = calc_const_reduce_constant_runtime(get_dimensions_of<index>(t), b, constant_coefficient_v<T>);
 
         return c * make_constant_matrix_like<T, 1>(
           [](const T& t){
@@ -1401,7 +1207,7 @@ namespace OpenKalman
     if constexpr (index_dimension_of_v<Arg, 1> == 1)
       return std::forward<Arg>(arg);
     else
-      return make_self_contained(reduce<1>(std::plus<void>{}, std::forward<Arg>(arg)) / runtime_dimension_of<1>(arg));
+      return make_self_contained(reduce<1>(std::plus<void>{}, std::forward<Arg>(arg)) / get_dimensions_of<1>(arg));
   }
 
 
@@ -1417,7 +1223,7 @@ namespace OpenKalman
     if constexpr (index_dimension_of_v<Arg, 0> == 1)
       return std::forward<Arg>(arg);
     else
-      return make_self_contained(reduce<0>(std::plus<void>{}, std::forward<Arg>(arg)) / runtime_dimension_of<0>(arg));
+      return make_self_contained(reduce<0>(std::plus<void>{}, std::forward<Arg>(arg)) / get_dimensions_of<0>(arg));
   }
 
 
@@ -1452,9 +1258,9 @@ namespace OpenKalman
       if constexpr (zero_matrix<Arg>)
         return Scalar(0);
       else if constexpr (constant_matrix<Arg>)
-        return Scalar(constant_coefficient_v<Arg> * runtime_dimension_of<0>(arg) * runtime_dimension_of<1>(arg));
+        return Scalar(constant_coefficient_v<Arg> * get_dimensions_of<0>(arg) * get_dimensions_of<1>(arg));
       else if constexpr (constant_diagonal_matrix<Arg>)
-        return Scalar(constant_diagonal_coefficient_v<Arg> * runtime_dimension_of<0>(arg));
+        return Scalar(constant_diagonal_coefficient_v<Arg> * get_dimensions_of<0>(arg));
       else
       {
         static_assert(diagonal_matrix<Arg>);
@@ -1470,7 +1276,7 @@ namespace OpenKalman
       {
         static_assert(constant_matrix<Arg>);
         if constexpr (has_dynamic_dimensions<Arg>)
-          return Scalar(std::pow(constant_coefficient_v<Arg>, runtime_dimension_of<0>(arg) * runtime_dimension_of<1>(arg)));
+          return Scalar(std::pow(constant_coefficient_v<Arg>, get_dimensions_of<0>(arg) * get_dimensions_of<1>(arg)));
         else
           return internal::constexpr_pow(constant_coefficient_v<Arg>, row_dimension_of_v<Arg> * column_dimension_of_v<Arg>);
       }
@@ -1504,7 +1310,7 @@ namespace OpenKalman
 
     if constexpr (dim == 1)
     {
-      if constexpr (dynamic_columns<Arg>) if (runtime_dimension_of<1>(arg) != 1) throw std::invalid_argument {
+      if constexpr (dynamic_columns<Arg>) if (get_dimensions_of<1>(arg) != 1) throw std::invalid_argument {
         "Argument of to_diagonal must be a column vector, not a row vector"};
       return std::forward<Arg>(arg);
     }
@@ -1512,8 +1318,8 @@ namespace OpenKalman
     {
       // note, the interface function should deal with a zero matrix of uncertain size.
 
-      if constexpr (dynamic_columns<Arg>) if (runtime_dimension_of<1>(arg) != 1) throw std::invalid_argument {
-        "Argument of to_diagonal must have 1 column; instead it has " + std::to_string(runtime_dimension_of<1>(arg))};
+      if constexpr (dynamic_columns<Arg>) if (get_dimensions_of<1>(arg) != 1) throw std::invalid_argument {
+        "Argument of to_diagonal must have 1 column; instead it has " + std::to_string(get_dimensions_of<1>(arg))};
       return make_zero_matrix_like<Arg>(Dimensions<dim>{}, Dimensions<dim>{});
     }
     else
@@ -1528,9 +1334,9 @@ namespace OpenKalman
     template<typename Arg>
     inline void check_if_square_at_runtime(const Arg& arg)
     {
-      if (runtime_dimension_of<0>(arg) != runtime_dimension_of<1>(arg))
+      if (get_dimensions_of<0>(arg) != get_dimensions_of<1>(arg))
         throw std::invalid_argument {"Argument of diagonal_of must be a square matrix; instead it has " +
-          std::to_string(runtime_dimension_of<0>(arg)) + " rows and " + std::to_string(runtime_dimension_of<1>(arg)) +
+          std::to_string(get_dimensions_of<0>(arg)) + " rows and " + std::to_string(get_dimensions_of<1>(arg)) +
           "columns"};
     };
   }
@@ -1598,17 +1404,17 @@ namespace OpenKalman
   // ================================== //
 
 #ifdef __cpp_concepts
-  template<fixed_coefficients C, has_untyped_index<1> Arg> requires
+  template<fixed_index_descriptor C, has_untyped_index<1> Arg> requires
     dynamic_rows<Arg> or equivalent_to<C, row_coefficient_types_of_t<Arg>>
 #else
-  template<typename C, typename Arg, std::enable_if_t<fixed_coefficients<C> and has_untyped_index<Arg, 1> and
+  template<typename C, typename Arg, std::enable_if_t<fixed_index_descriptor<C> and has_untyped_index<Arg, 1> and
     (dynamic_rows<Arg> or equivalent_to<C, row_coefficient_types_of_t<Arg>>), int> = 0>
 #endif
   constexpr decltype(auto)
   to_euclidean(Arg&& arg)
   {
-    if constexpr (dynamic_rows<Arg>) if (runtime_dimension_of<0>(arg) != dimension_size_of_v<C>)
-      throw std::out_of_range {"Number of rows (" + std::to_string(runtime_dimension_of<0>(arg)) +
+    if constexpr (dynamic_rows<Arg>) if (get_dimensions_of<0>(arg) != dimension_size_of_v<C>)
+      throw std::out_of_range {"Number of rows (" + std::to_string(get_dimensions_of<0>(arg)) +
         ") is incompatible with dimension types (" + std::to_string(dimension_size_of_v<C>) + ")"};
 
     if constexpr (untyped_index_descriptor<C>)
@@ -1635,15 +1441,15 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<indexible Arg, dynamic_coefficients C>
+  template<indexible Arg, dynamic_index_descriptor C>
 #else
-  template<typename C, typename Arg, std::enable_if_t<indexible<Arg> and dynamic_coefficients<C>, int> = 0>
+  template<typename C, typename Arg, std::enable_if_t<indexible<Arg> and dynamic_index_descriptor<C>, int> = 0>
 #endif
   constexpr decltype(auto)
   to_euclidean(Arg&& arg, C&& c) noexcept
   {
-    if (runtime_dimension_of<0>(arg) != c.runtime_dimension)
-      throw std::out_of_range {"Number of rows (" + std::to_string(runtime_dimension_of<0>(arg)) +
+    if (get_dimensions_of<0>(arg) != c.runtime_dimension)
+      throw std::out_of_range {"Number of rows (" + std::to_string(get_dimensions_of<0>(arg)) +
         ") is incompatible with dimension types (" + std::to_string(c.runtime_dimension) + ")"};
 
     return interface::ModularTransformationTraits<Arg>::to_euclidean(std::forward<Arg>(arg), std::forward<C>(c));
@@ -1651,17 +1457,17 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<fixed_coefficients C, has_untyped_index<1> Arg> requires
+  template<fixed_index_descriptor C, has_untyped_index<1> Arg> requires
     dynamic_rows<Arg> or equivalent_to<C, row_coefficient_types_of_t<Arg>>
 #else
-  template<typename C, typename Arg, std::enable_if_t<fixed_coefficients<C> and has_untyped_index<Arg, 1> and
+  template<typename C, typename Arg, std::enable_if_t<fixed_index_descriptor<C> and has_untyped_index<Arg, 1> and
     (dynamic_rows<Arg> or equivalent_to<C, row_coefficient_types_of_t<Arg>>), int> = 0>
 #endif
   constexpr decltype(auto)
   from_euclidean(Arg&& arg) noexcept
   {
-    if constexpr (dynamic_rows<Arg>) if (runtime_dimension_of<0>(arg) != euclidean_dimension_size_of_v<C>)
-      throw std::out_of_range {"Number of rows (" + std::to_string(runtime_dimension_of<0>(arg)) +
+    if constexpr (dynamic_rows<Arg>) if (get_dimensions_of<0>(arg) != euclidean_dimension_size_of_v<C>)
+      throw std::out_of_range {"Number of rows (" + std::to_string(get_dimensions_of<0>(arg)) +
         ") is incompatible with dimension types (" + std::to_string(euclidean_dimension_size_of_v<C>) + ")"};
 
     if constexpr (untyped_index_descriptor<C>)
@@ -1688,15 +1494,15 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<indexible Arg, dynamic_coefficients C>
+  template<indexible Arg, dynamic_index_descriptor C>
 #else
-  template<typename C, typename Arg, std::enable_if_t<indexible<Arg> and dynamic_coefficients<C>, int> = 0>
+  template<typename C, typename Arg, std::enable_if_t<indexible<Arg> and dynamic_index_descriptor<C>, int> = 0>
 #endif
   constexpr decltype(auto)
   from_euclidean(Arg&& arg, C&& c) noexcept
   {
-    if (runtime_dimension_of<0>(arg) != c.runtime_euclidean_dimension)
-      throw std::out_of_range {"Number of rows (" + std::to_string(runtime_dimension_of<0>(arg)) +
+    if (get_dimensions_of<0>(arg) != c.runtime_euclidean_dimension)
+      throw std::out_of_range {"Number of rows (" + std::to_string(get_dimensions_of<0>(arg)) +
         ") is incompatible with dimension types (" + std::to_string(c.runtime_euclidean_dimension) + ")"};
 
     return interface::ModularTransformationTraits<Arg>::from_euclidean(std::forward<Arg>(arg), std::forward<C>(c));
@@ -1704,17 +1510,17 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<fixed_coefficients C, has_untyped_index<1> Arg> requires
+  template<fixed_index_descriptor C, has_untyped_index<1> Arg> requires
     dynamic_rows<Arg> or equivalent_to<C, row_coefficient_types_of_t<Arg>>
 #else
-  template<typename C, typename Arg, std::enable_if_t<fixed_coefficients<C> and has_untyped_index<Arg, 1> and
+  template<typename C, typename Arg, std::enable_if_t<fixed_index_descriptor<C> and has_untyped_index<Arg, 1> and
     (dynamic_rows<Arg> or equivalent_to<C, row_coefficient_types_of_t<Arg>>), int> = 0>
 #endif
   constexpr decltype(auto)
   wrap_angles(Arg&& arg)
   {
-    if constexpr (dynamic_rows<Arg>) if (runtime_dimension_of<0>(arg) != dimension_size_of_v<C>)
-      throw std::out_of_range {"Number of rows (" + std::to_string(runtime_dimension_of<0>(arg)) +
+    if constexpr (dynamic_rows<Arg>) if (get_dimensions_of<0>(arg) != dimension_size_of_v<C>)
+      throw std::out_of_range {"Number of rows (" + std::to_string(get_dimensions_of<0>(arg)) +
         ") is incompatible with dimension types (" + std::to_string(dimension_size_of_v<C>) + ")"};
 
     if constexpr (untyped_index_descriptor<C> or identity_matrix<Arg> or zero_matrix<Arg>)
@@ -1741,15 +1547,15 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<indexible Arg, dynamic_coefficients C>
+  template<indexible Arg, dynamic_index_descriptor C>
 #else
-  template<typename C, typename Arg, std::enable_if_t<indexible<Arg> and dynamic_coefficients<C>, int> = 0>
+  template<typename C, typename Arg, std::enable_if_t<indexible<Arg> and dynamic_index_descriptor<C>, int> = 0>
 #endif
   constexpr decltype(auto)
   wrap_angles(Arg&& arg, C&& c) noexcept
   {
-    if (runtime_dimension_of<0>(arg) != c.runtime_dimension)
-      throw std::out_of_range {"Number of rows (" + std::to_string(runtime_dimension_of<0>(arg)) +
+    if (get_dimensions_of<0>(arg) != c.runtime_dimension)
+      throw std::out_of_range {"Number of rows (" + std::to_string(get_dimensions_of<0>(arg)) +
         ") is incompatible with dimension types (" + std::to_string(c.runtime_dimension) + ")"};
 
     return interface::ModularTransformationTraits<Arg>::wrap_angles(std::forward<Arg>(arg), std::forward<C>(c));
@@ -1862,10 +1668,10 @@ namespace OpenKalman
 #endif
   constexpr auto determinant(Arg&& arg)
   {
-    if constexpr (has_dynamic_dimensions<Arg>) if (runtime_dimension_of<0>(arg) != runtime_dimension_of<1>(arg))
+    if constexpr (has_dynamic_dimensions<Arg>) if (get_dimensions_of<0>(arg) != get_dimensions_of<1>(arg))
       throw std::domain_error {
-        "In determinant, rows of arg (" + std::to_string(runtime_dimension_of<0>(arg)) + ") do not match columns of arg (" +
-        std::to_string(runtime_dimension_of<1>(arg)) + ")"};
+        "In determinant, rows of arg (" + std::to_string(get_dimensions_of<0>(arg)) + ") do not match columns of arg (" +
+        std::to_string(get_dimensions_of<1>(arg)) + ")"};
 
     using Scalar = scalar_type_of_t<Arg>;
 
@@ -1884,7 +1690,7 @@ namespace OpenKalman
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
       if constexpr (dynamic_rows<Arg>)
-        return std::pow(constant_diagonal_coefficient_v<Arg>, runtime_dimension_of<0>(arg));
+        return std::pow(constant_diagonal_coefficient_v<Arg>, get_dimensions_of<0>(arg));
       else
         return OpenKalman::internal::constexpr_pow(constant_diagonal_coefficient_v<Arg>, row_dimension_of_v<Arg>);
     }
@@ -1912,16 +1718,16 @@ namespace OpenKalman
 #endif
   constexpr auto trace(Arg&& arg)
   {
-    if constexpr (has_dynamic_dimensions<Arg>) if (runtime_dimension_of<0>(arg) != runtime_dimension_of<1>(arg))
+    if constexpr (has_dynamic_dimensions<Arg>) if (get_dimensions_of<0>(arg) != get_dimensions_of<1>(arg))
       throw std::domain_error {
-        "In trace, rows of arg (" + std::to_string(runtime_dimension_of<0>(arg)) + ") do not match columns of arg (" +
-        std::to_string(runtime_dimension_of<1>(arg)) + ")"};
+        "In trace, rows of arg (" + std::to_string(get_dimensions_of<0>(arg)) + ") do not match columns of arg (" +
+        std::to_string(get_dimensions_of<1>(arg)) + ")"};
 
     using Scalar = scalar_type_of_t<Arg>;
 
     if constexpr (identity_matrix<Arg>)
     {
-      return Scalar(runtime_dimension_of<0>(arg));
+      return Scalar(get_dimensions_of<0>(arg));
     }
     else if constexpr (zero_matrix<Arg>)
     {
@@ -1929,11 +1735,11 @@ namespace OpenKalman
     }
     else if constexpr (constant_matrix<Arg>)
     {
-      return Scalar(constant_coefficient_v<Arg> * runtime_dimension_of<0>(arg));
+      return Scalar(constant_coefficient_v<Arg> * get_dimensions_of<0>(arg));
     }
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
-      return Scalar(constant_diagonal_coefficient_v<Arg> * runtime_dimension_of<0>(arg));
+      return Scalar(constant_diagonal_coefficient_v<Arg> * get_dimensions_of<0>(arg));
     }
     else if constexpr (one_by_one_matrix<Arg> and element_gettable<Arg, std::size_t, std::size_t>)
     {
@@ -1975,15 +1781,15 @@ namespace OpenKalman
   inline decltype(auto)
   rank_update_self_adjoint(A&& a, U&& u, Alpha alpha = 1)
   {
-    if constexpr (dynamic_rows<A> or dynamic_rows<U>) if (runtime_dimension_of<0>(a) != runtime_dimension_of<0>(u))
+    if constexpr (dynamic_rows<A> or dynamic_rows<U>) if (get_dimensions_of<0>(a) != get_dimensions_of<0>(u))
       throw std::domain_error {
-        "In rank_update_self_adjoint, rows of a (" + std::to_string(runtime_dimension_of<0>(a)) + ") do not match rows of u (" +
-        std::to_string(runtime_dimension_of<0>(u)) + ")"};
+        "In rank_update_self_adjoint, rows of a (" + std::to_string(get_dimensions_of<0>(a)) + ") do not match rows of u (" +
+        std::to_string(get_dimensions_of<0>(u)) + ")"};
 
-    if constexpr (has_dynamic_dimensions<A>) if (runtime_dimension_of<0>(a) != runtime_dimension_of<1>(a))
+    if constexpr (has_dynamic_dimensions<A>) if (get_dimensions_of<0>(a) != get_dimensions_of<1>(a))
       throw std::domain_error {
-        "In rank_update_self_adjoint, rows of a (" + std::to_string(runtime_dimension_of<0>(a)) + ") do not match columns of a (" +
-        std::to_string(runtime_dimension_of<1>(a)) + ")"};
+        "In rank_update_self_adjoint, rows of a (" + std::to_string(get_dimensions_of<0>(a)) + ") do not match columns of a (" +
+        std::to_string(get_dimensions_of<1>(a)) + ")"};
 
     if constexpr (zero_matrix<U>)
     {
@@ -2056,15 +1862,15 @@ namespace OpenKalman
   inline decltype(auto)
   rank_update_triangular(A&& a, U&& u, Alpha alpha = 1)
   {
-    if constexpr (dynamic_rows<A> or dynamic_rows<U>) if (runtime_dimension_of<0>(a) != runtime_dimension_of<0>(u))
+    if constexpr (dynamic_rows<A> or dynamic_rows<U>) if (get_dimensions_of<0>(a) != get_dimensions_of<0>(u))
       throw std::domain_error {
-        "In rank_update_triangular, rows of a (" + std::to_string(runtime_dimension_of<0>(a)) + ") do not match rows of u (" +
-        std::to_string(runtime_dimension_of<0>(u)) + ")"};
+        "In rank_update_triangular, rows of a (" + std::to_string(get_dimensions_of<0>(a)) + ") do not match rows of u (" +
+        std::to_string(get_dimensions_of<0>(u)) + ")"};
 
-    if constexpr (has_dynamic_dimensions<A>) if (runtime_dimension_of<0>(a) != runtime_dimension_of<1>(a))
+    if constexpr (has_dynamic_dimensions<A>) if (get_dimensions_of<0>(a) != get_dimensions_of<1>(a))
       throw std::domain_error {
-        "In rank_update_triangular, rows of a (" + std::to_string(runtime_dimension_of<0>(a)) + ") do not match columns of a (" +
-        std::to_string(runtime_dimension_of<1>(a)) + ")"};
+        "In rank_update_triangular, rows of a (" + std::to_string(get_dimensions_of<0>(a)) + ") do not match columns of a (" +
+        std::to_string(get_dimensions_of<1>(a)) + ")"};
 
     if constexpr (zero_matrix<U>)
     {
@@ -2140,10 +1946,10 @@ namespace OpenKalman
   inline decltype(auto)
   rank_update(A&& a, U&& u, Alpha alpha = 1)
   {
-    if constexpr (dynamic_rows<A> or dynamic_rows<U>) if (runtime_dimension_of<0>(a) != runtime_dimension_of<0>(u))
+    if constexpr (dynamic_rows<A> or dynamic_rows<U>) if (get_dimensions_of<0>(a) != get_dimensions_of<0>(u))
       throw std::domain_error {
-        "In rank_update, rows of a (" + std::to_string(runtime_dimension_of<0>(a)) + ") do not match rows of u (" +
-        std::to_string(runtime_dimension_of<0>(u)) + ")"};
+        "In rank_update, rows of a (" + std::to_string(get_dimensions_of<0>(a)) + ") do not match rows of u (" +
+        std::to_string(get_dimensions_of<0>(u)) + ")"};
 
     if constexpr (triangular_matrix<A>)
     {
@@ -2166,10 +1972,10 @@ namespace OpenKalman
     else
     {
       if constexpr (has_dynamic_dimensions<A>)
-        if ((dynamic_rows<A> and runtime_dimension_of<0>(a) != 1) or (dynamic_columns<A> and runtime_dimension_of<1>(a) != 1))
+        if ((dynamic_rows<A> and get_dimensions_of<0>(a) != 1) or (dynamic_columns<A> and get_dimensions_of<1>(a) != 1))
           throw std::domain_error {
             "Non hermitian, non-triangular argument to rank_update expected to be one-by-one, but instead it has " +
-            std::to_string(runtime_dimension_of<0>(a)) + " rows and " + std::to_string(runtime_dimension_of<1>(a)) + " columns"};
+            std::to_string(get_dimensions_of<0>(a)) + " rows and " + std::to_string(get_dimensions_of<1>(a)) + " columns"};
 
       auto e = std::sqrt(trace(a) * trace(a.conjugate()) + alpha * trace(u * adjoint(u)));
 
@@ -2198,10 +2004,10 @@ namespace OpenKalman
     template<typename A, typename B>
     void solve_check_A_and_B_rows_match(const A& a, const B& b)
     {
-      if (runtime_dimension_of<0>(a) != runtime_dimension_of<0>(b))
+      if (get_dimensions_of<0>(a) != get_dimensions_of<0>(b))
         throw std::domain_error {"The rows of the two operands of the solve function must be the same, but instead "
-          "the first operand has " + std::to_string(runtime_dimension_of<0>(a)) + " rows and the second operand has " +
-          std::to_string(runtime_dimension_of<0>(b)) + " rows"};
+          "the first operand has " + std::to_string(get_dimensions_of<0>(a)) + " rows and the second operand has " +
+          std::to_string(get_dimensions_of<0>(b)) + " rows"};
     }
   }
 
@@ -2288,7 +2094,7 @@ namespace OpenKalman
 
         if constexpr (a_cols == dynamic_size)
         {
-          auto a_runtime_cols = runtime_dimension_of<1>(a);
+          auto a_runtime_cols = get_dimensions_of<1>(a);
           auto c = static_cast<Scalar>(b_const) / (a_runtime_cols * a_const);
           return make_self_contained(c * make_constant_matrix_like<B, 1>(Dimensions{a_runtime_cols}, get_dimensions_of<1>(b)));
         }
@@ -2316,7 +2122,7 @@ namespace OpenKalman
           (not has_dynamic_dimensions<A> and row_dimension_of_v<A> >= column_dimension_of_v<A>))))
       {
         if constexpr (dynamic_rows<A> or dynamic_rows<B>) detail::solve_check_A_and_B_rows_match(a, b);
-        return make_self_contained(b / (runtime_dimension_of<1>(a) * constant_coefficient_v<A>));
+        return make_self_contained(b / (get_dimensions_of<1>(a) * constant_coefficient_v<A>));
       }
       else //< The solution will be non-exact unless every row of b is identical.
       {

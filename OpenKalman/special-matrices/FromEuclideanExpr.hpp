@@ -21,9 +21,9 @@ namespace OpenKalman::Eigen3
 
 #ifdef __cpp_concepts
   template<typed_index_descriptor Coefficients, typename NestedMatrix>
-  requires (dynamic_coefficients<Coefficients> == dynamic_rows<NestedMatrix>) and
-    (not fixed_coefficients<Coefficients> or euclidean_dimension_size_of_v<Coefficients> == row_dimension_of_v<NestedMatrix>) and
-    (not dynamic_coefficients<Coefficients> or
+  requires (dynamic_index_descriptor<Coefficients> == dynamic_rows<NestedMatrix>) and
+    (not fixed_index_descriptor<Coefficients> or euclidean_dimension_size_of_v<Coefficients> == row_dimension_of_v<NestedMatrix>) and
+    (not dynamic_index_descriptor<Coefficients> or
       std::same_as<typename Coefficients::Scalar, scalar_type_of_t<NestedMatrix>>)
 #else
   template<typename Coefficients, typename NestedMatrix>
@@ -34,8 +34,8 @@ namespace OpenKalman::Eigen3
 
 #ifndef __cpp_concepts
     static_assert(typed_index_descriptor<Coefficients>);
-    static_assert(dynamic_coefficients<Coefficients> == dynamic_rows<NestedMatrix>);
-    static_assert(not fixed_coefficients<Coefficients> or euclidean_dimension_size_of_v<Coefficients> == row_dimension_of_v<NestedMatrix>);
+    static_assert(dynamic_index_descriptor<Coefficients> == dynamic_rows<NestedMatrix>);
+    static_assert(not fixed_index_descriptor<Coefficients> or euclidean_dimension_size_of_v<Coefficients> == row_dimension_of_v<NestedMatrix>);
 #endif
 
     using Scalar = scalar_type_of_t<NestedMatrix>;

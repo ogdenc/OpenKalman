@@ -37,13 +37,20 @@ namespace OpenKalman::internal {}
 #include "language-features.hpp"
 #include "global-definitions.hpp"
 #include "utils.hpp"
-#include "index-descriptors/index-descriptors.hpp"
+
+#include "basics/index-descriptors/index-descriptor-traits.hpp"
+#include "basics/index-descriptors/index-descriptor-forward-declarations.hpp"
 #include "forward-interface-traits.hpp"
 #include "forward-traits.hpp"
 #include "forward-class-declarations.hpp"
+
+#include "index-descriptors/Dimensions.hpp"
+#include "basics/index-descriptors/index-descriptor-functions.hpp"
 #include "functions.hpp"
+
 #include "traits.hpp"
 
+#include "basics/index-descriptors/index-descriptors.hpp"
 #include "MatrixBase.hpp"
 #include "TypedMatrixBase.hpp"
 #include "ElementAccessor.hpp"

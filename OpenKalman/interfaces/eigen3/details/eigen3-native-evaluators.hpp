@@ -545,7 +545,7 @@ namespace Eigen::internal
       else
       {
         const auto get_coeff = [col, this] (const Index i) { return this->m_argImpl.coeff(i, col); };
-        return OpenKalman::internal::to_euclidean_coeff<Coeffs>((std::size_t) row, get_coeff);
+        return OpenKalman::internal::to_euclidean_element<Coeffs>((std::size_t) row, get_coeff);
       }
     }
 
@@ -558,7 +558,7 @@ namespace Eigen::internal
       else
       {
         const auto get_coeff = [this] (const Index i) { return this->m_argImpl.coeff(i); };
-        return OpenKalman::internal::to_euclidean_coeff<Coeffs>((std::size_t) row, get_coeff);
+        return OpenKalman::internal::to_euclidean_element<Coeffs>((std::size_t) row, get_coeff);
       }
     }
 
@@ -606,7 +606,7 @@ namespace Eigen::internal
       else
       {
         const auto get_coeff = [col, this] (const Index i) { return this->m_argImpl.coeff(i, col); };
-        return OpenKalman::internal::from_euclidean_coeff<Coeffs>((std::size_t) row, get_coeff);
+        return OpenKalman::internal::from_euclidean_element<Coeffs>((std::size_t) row, get_coeff);
       }
     }
 
@@ -619,7 +619,7 @@ namespace Eigen::internal
       else
       {
         const auto get_coeff = [this] (const Index i) { return this->m_argImpl.coeff(i); };
-        return OpenKalman::internal::from_euclidean_coeff<Coeffs>((std::size_t) row, get_coeff);
+        return OpenKalman::internal::from_euclidean_element<Coeffs>((std::size_t) row, get_coeff);
       }
     }
   };
@@ -664,7 +664,7 @@ namespace Eigen::internal
       else
       {
         const auto get_coeff = [col, this] (const Index i) { return this->m_argImpl.coeff(i, col); };
-        return OpenKalman::internal::wrap_get<Coeffs>((std::size_t) row, get_coeff);
+        return OpenKalman::internal::wrap_get_element<Coeffs>((std::size_t) row, get_coeff);
       }
     }
 
@@ -677,7 +677,7 @@ namespace Eigen::internal
       else
       {
         const auto get_coeff = [this] (const Index i) { return this->m_argImpl.coeff(i); };
-        return OpenKalman::internal::wrap_get<Coeffs>((std::size_t) row, get_coeff);
+        return OpenKalman::internal::wrap_get_element<Coeffs>((std::size_t) row, get_coeff);
       }
     }
   };

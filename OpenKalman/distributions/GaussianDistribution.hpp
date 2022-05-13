@@ -743,8 +743,8 @@ namespace OpenKalman
       template<typename Arg>
       static constexpr std::size_t dimension_at_runtime(const Arg& arg)
       {
-        if constexpr (dynamic_coefficients<Coeffs>)
-          return runtime_dimension_of(mean_of(arg));
+        if constexpr (dynamic_index_descriptor<Coeffs>)
+          return get_dimensions_of(mean_of(arg));
         else
           return dimension;
       }

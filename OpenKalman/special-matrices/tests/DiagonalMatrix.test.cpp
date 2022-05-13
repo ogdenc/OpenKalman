@@ -492,11 +492,11 @@ TEST(eigen3, Diagonal_overloads)
   EXPECT_TRUE(is_near(make_dense_writable_matrix_from(d3), m33));
   EXPECT_TRUE(is_near(make_dense_writable_matrix_from(d0_3), m33));
 
-  EXPECT_EQ(runtime_dimension_of<0>(d3), 3);
-  EXPECT_EQ(runtime_dimension_of<0>(d0_3), 3);
+  EXPECT_EQ(get_dimensions_of<0>(d3), 3);
+  EXPECT_EQ(get_dimensions_of<0>(d0_3), 3);
 
-  EXPECT_EQ(runtime_dimension_of<1>(d3), 3);
-  EXPECT_EQ(runtime_dimension_of<1>(d0_3), 3);
+  EXPECT_EQ(get_dimensions_of<1>(d3), 3);
+  EXPECT_EQ(get_dimensions_of<1>(d0_3), 3);
 
   EXPECT_TRUE(is_near(Cholesky_square(d3), D3 {1, 4, 9}));
   EXPECT_TRUE(is_near(Cholesky_square(d0_3), D3 {1, 4, 9}));

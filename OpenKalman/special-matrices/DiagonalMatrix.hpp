@@ -83,7 +83,7 @@ namespace OpenKalman::Eigen3
       : Base {[](Arg&& arg) -> decltype(auto) {
         if constexpr (dynamic_rows<Arg> and not dynamic_rows<NestedMatrix>)
         {
-          auto r = runtime_dimension_of<0>(std::forward<Arg>(arg));
+          auto r = get_dimensions_of<0>(std::forward<Arg>(arg));
           if (r != dim) throw std::domain_error {"Dynamic size of diagonal argument (" + std::to_string(r) +
             ") does not match the fixed DiagonalMatrix size (" + std::to_string(dim) + ") in " + __func__ +
             " at line " + std::to_string(__LINE__) + " of " + __FILE__};
@@ -107,7 +107,7 @@ namespace OpenKalman::Eigen3
       : Base {[](Arg&& arg) -> decltype(auto) {
         if constexpr (dynamic_rows<Arg> and not dynamic_rows<NestedMatrix>)
         {
-          auto r = runtime_dimension_of<0>(std::forward<Arg>(arg));
+          auto r = get_dimensions_of<0>(std::forward<Arg>(arg));
           if (r != dim) throw std::domain_error {"DiagonalMatrix argument has " + std::to_string(r) +
             " rows, but should have " + std::to_string(dim) + " at line " + std::to_string(__LINE__) +
             " of " + __FILE__};
@@ -115,7 +115,7 @@ namespace OpenKalman::Eigen3
 
         if constexpr (dynamic_columns<Arg>)
         {
-          auto c = runtime_dimension_of<1>(std::forward<Arg>(arg));
+          auto c = get_dimensions_of<1>(std::forward<Arg>(arg));
           if (c != 1) throw std::domain_error {"DiagonalMatrix argument has " + std::to_string(c) +
             " columns, but should have 1 at line " + std::to_string(__LINE__) + " of " + __FILE__};
         }
@@ -197,8 +197,8 @@ namespace OpenKalman::Eigen3
     {
       if constexpr (not zero_matrix<NestedMatrix>)
       {
-        if constexpr (has_dynamic_dimensions<Arg>) assert(runtime_dimension_of<0>(arg) == runtime_dimension_of<1>(arg));
-        if constexpr (dynamic_rows<NestedMatrix>) assert(runtime_dimension_of<0>(this->nested_matrix()) == runtime_dimension_of<0>(arg));
+        if constexpr (has_dynamic_dimensions<Arg>) assert(get_dimensions_of<0>(arg) == get_dimensions_of<1>(arg));
+        if constexpr (dynamic_rows<NestedMatrix>) assert(get_dimensions_of<0>(this->nested_matrix()) == get_dimensions_of<0>(arg));
 
         this->nested_matrix() = make_zero_matrix_like(this->nested_matrix());
       }
@@ -222,8 +222,8 @@ namespace OpenKalman::Eigen3
     {
       if constexpr (not identity_matrix<NestedMatrix>)
       {
-        if constexpr (has_dynamic_dimensions<Arg>) assert(runtime_dimension_of<0>(arg) == runtime_dimension_of<1>(arg));
-        if constexpr (dynamic_rows<NestedMatrix>) assert(runtime_dimension_of<0>(this->nested_matrix()) == runtime_dimension_of<0>(arg));
+        if constexpr (has_dynamic_dimensions<Arg>) assert(get_dimensions_of<0>(arg) == get_dimensions_of<1>(arg));
+        if constexpr (dynamic_rows<NestedMatrix>) assert(get_dimensions_of<0>(this->nested_matrix()) == get_dimensions_of<0>(arg));
 
         this->nested_matrix() = make_constant_matrix_like<NestedMatrix, 1>(Dimensions<dim>{}, Dimensions<1>{});
       }
@@ -246,7 +246,7 @@ namespace OpenKalman::Eigen3
     auto& operator=(Arg&& arg)
     {
       if constexpr (dynamic_rows<NestedMatrix>)
-        assert(runtime_dimension_of<0>(this->nested_matrix()) == runtime_dimension_of<0>(arg));
+        assert(get_dimensions_of<0>(this->nested_matrix()) == get_dimensions_of<0>(arg));
 
       this->nested_matrix() = diagonal_of(std::forward<Arg>(arg));
       return *this;
@@ -263,7 +263,7 @@ namespace OpenKalman::Eigen3
     auto& operator+=(Arg&& arg)
     {
       if constexpr (dynamic_rows<NestedMatrix>)
-        assert(runtime_dimension_of<0>(this->nested_matrix()) == runtime_dimension_of<0>(arg));
+        assert(get_dimensions_of<0>(this->nested_matrix()) == get_dimensions_of<0>(arg));
 
       this->nested_matrix() += diagonal_of(std::forward<Arg>(arg));
       return *this;
@@ -280,7 +280,7 @@ namespace OpenKalman::Eigen3
     auto& operator-=(Arg&& arg)
     {
       if constexpr (dynamic_rows<NestedMatrix>)
-        assert(runtime_dimension_of<0>(this->nested_matrix()) == runtime_dimension_of<0>(arg));
+        assert(get_dimensions_of<0>(this->nested_matrix()) == get_dimensions_of<0>(arg));
 
       this->nested_matrix() -= diagonal_of(std::forward<Arg>(arg));
       return *this;

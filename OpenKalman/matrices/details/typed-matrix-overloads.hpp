@@ -18,11 +18,11 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_concepts
   template<typed_matrix T, std::convertible_to<const std::size_t&>...I> requires (sizeof...(I) <= 2) and
-    element_gettable<nested_matrix_of_t<Arg>, I...>
+    element_gettable<nested_matrix_of_t<T>, I...>
   struct GetElement<T, I...>
 #else
   template<typename T, typename...I>
-  struct GetElement<T, I..., std::enable_if_t<typed_matrix<T> and element_gettable<nested_matrix_of_t<Arg>, I...> and
+  struct GetElement<T, I..., std::enable_if_t<typed_matrix<T> and element_gettable<nested_matrix_of_t<T>, I...> and
     ((sizeof...(I) <= 2) and ... and std::is_convertible_v<I, const std::size_t&>)>>
 #endif
   {
@@ -46,7 +46,7 @@ namespace OpenKalman::interface
 #endif
   {
     template<typename Arg, typename Scalar>
-    static constexpr auto set(Arg&& arg, const Scalar s, I i, Is...is)
+    static constexpr void set(Arg&& arg, Scalar s, I i, Is...is)
     {
       if constexpr(wrapped_mean<Arg>)
       {
@@ -57,7 +57,7 @@ namespace OpenKalman::interface
         const auto set_coeff = [&arg, is...](const std::size_t row, const scalar_type_of_t<Arg> value) {
           set_element(nested_matrix(arg), value, row, is...);
         };
-        oin::wrap_set<Coeffs>(i, s, set_coeff, get_coeff);
+        oin::wrap_set_element<Coeffs>(i, s, set_coeff, get_coeff);
       }
       else
       {
@@ -98,7 +98,7 @@ namespace OpenKalman
         using CC = typename uniform_dimension_type_of_t<column_coefficient_types_of_t<Arg>>;
         return MatrixTraits<Arg>::template make<RC, CC>(column<index...>(nested_matrix(std::forward<Arg>(arg)), i...));
       }
-      else if constexpr (fixed_coefficients<column_coefficient_types_of_t<Arg>>)
+      else if constexpr (fixed_index_descriptor<column_coefficient_types_of_t<Arg>>)
       {
         static_assert(sizeof...(index) > 0);
         using CC = column_coefficient_types_of_t<Arg>::template Coefficient<index...>;
@@ -107,7 +107,7 @@ namespace OpenKalman
       }
       else
       {
-        static_assert(dynamic_coefficients<column_coefficient_types_of_t<Arg>>);
+        static_assert(dynamic_index_descriptor<column_coefficient_types_of_t<Arg>>);
         using CC = column_coefficient_types_of_t<Arg>::template Coefficient<index...>;
         return MatrixTraits<Arg>::template make<RC, CC>(column(nested_matrix(std::forward<Arg>(arg)), i...));
       }
@@ -125,7 +125,7 @@ namespace OpenKalman
         using RC = typename uniform_dimension_type_of_t<row_coefficient_types_of_t<Arg>>;
         return MatrixTraits<Arg>::template make<RC, CC>(column<index...>(nested_matrix(std::forward<Arg>(arg)), i...));
       }
-      else if constexpr (fixed_coefficients<row_coefficient_types_of_t<Arg>>)
+      else if constexpr (fixed_index_descriptor<row_coefficient_types_of_t<Arg>>)
       {
         static_assert(sizeof...(index) > 0);
         using RC = row_coefficient_types_of_t<Arg>::template Coefficient<index...>;
@@ -134,7 +134,7 @@ namespace OpenKalman
       }
       else
       {
-        static_assert(dynamic_coefficients<row_coefficient_types_of_t<Arg>>);
+        static_assert(dynamic_index_descriptor<row_coefficient_types_of_t<Arg>>);
         using RC = row_coefficient_types_of_t<Arg>::template Coefficient<index...>;
         return MatrixTraits<Arg>::template make<RC, CC>(column<index...>(nested_matrix(std::forward<Arg>(arg)), i...));
       }

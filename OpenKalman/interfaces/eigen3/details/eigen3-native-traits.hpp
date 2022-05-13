@@ -158,7 +158,7 @@ namespace Eigen::internal
               traits<Nested>::Flags & (~DirectAccessBit) & (~PacketAccessBit) & (~LvalueBit) &
                 (~(OpenKalman::column_dimension_of_v<ArgType> == 1 ? 0 : LinearAccessBit)),
       RowsAtCompileTime = [] {
-        if constexpr (OpenKalman::dynamic_coefficients<Coeffs>) return Eigen::Dynamic;
+        if constexpr (OpenKalman::dynamic_index_descriptor<Coeffs>) return Eigen::Dynamic;
         else return static_cast<Index>(euclidean_dimension_size_of_v<Coeffs>);
       }(),
       MaxRowsAtCompileTime = RowsAtCompileTime,
@@ -177,7 +177,7 @@ namespace Eigen::internal
               traits<Nested>::Flags & (~DirectAccessBit) & (~PacketAccessBit) & (~LvalueBit) &
                 (~(OpenKalman::column_dimension_of_v<ArgType> == 1 ? 0 : LinearAccessBit)),
       RowsAtCompileTime = [] {
-        if constexpr (OpenKalman::dynamic_coefficients<Coeffs>) return Eigen::Dynamic;
+        if constexpr (OpenKalman::dynamic_index_descriptor<Coeffs>) return Eigen::Dynamic;
         else return static_cast<Index>(dimension_size_of_v<Coeffs>);
       }(),
       MaxRowsAtCompileTime = RowsAtCompileTime,
@@ -198,7 +198,7 @@ namespace Eigen::internal
               traits<Nested>::Flags & (~DirectAccessBit) & (~PacketAccessBit) & (~LvalueBit) &
                 (~(OpenKalman::column_dimension_of_v<ArgType> == 1 ? 0 : LinearAccessBit)),
       RowsAtCompileTime = [] {
-        if constexpr (OpenKalman::dynamic_coefficients<Coeffs>) return Eigen::Dynamic;
+        if constexpr (OpenKalman::dynamic_index_descriptor<Coeffs>) return Eigen::Dynamic;
         else return static_cast<Index>(dimension_size_of_v<Coeffs>);
       }(),
       MaxRowsAtCompileTime = RowsAtCompileTime,

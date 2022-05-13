@@ -25,12 +25,10 @@
 #ifndef OPENKALMAN_INDEX_DESCRIPTORS_HPP
 #define OPENKALMAN_INDEX_DESCRIPTORS_HPP
 
-#include "details/index-descriptor-forward-declarations.hpp"
-#include "Dimensions.hpp"
-#include "details/index-descriptor-functions.hpp"
-#include "details/DynamicTypedIndexDescriptor.hpp"
+#include "basics/index-descriptors/details/AbstractDynamicTypedIndexDescriptor.hpp"
+#include "basics/index-descriptors/details/DynamicTypedIndexDescriptor.hpp"
 
-#include "Axis.hpp"
+//#include "Axis.hpp"
 #include "Distance.hpp"
 #include "Angle.hpp"
 #include "Inclination.hpp"

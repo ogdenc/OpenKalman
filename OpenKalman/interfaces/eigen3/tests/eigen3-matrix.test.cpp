@@ -200,22 +200,22 @@ TEST(eigen3, make_functions)
 
   static_assert(index_dimension_of_v<decltype(make_zero_matrix_like<M00>(Dimensions<2>(), Dimensions<3>())), 0> == 2);
   static_assert(index_dimension_of_v<decltype(make_zero_matrix_like<M00>(Dimensions<2>(), 3)), 0> == 2);
-  static_assert(index_dimension_of_v<decltype(make_zero_matrix_like<M00>(2, Dimensions<3>())), 0> == dynamic_size); EXPECT_EQ(runtime_dimension_of<0>(make_zero_matrix_like<M00>(2, Dimensions<3>())), 2);
-  static_assert(index_dimension_of_v<decltype(make_zero_matrix_like<M00>(2, 3)), 0> == dynamic_size); EXPECT_EQ(runtime_dimension_of<0>(make_zero_matrix_like<M00>(2, 3)), 2);
+  static_assert(index_dimension_of_v<decltype(make_zero_matrix_like<M00>(2, Dimensions<3>())), 0> == dynamic_size); EXPECT_EQ(get_dimensions_of<0>(make_zero_matrix_like<M00>(2, Dimensions<3>())), 2);
+  static_assert(index_dimension_of_v<decltype(make_zero_matrix_like<M00>(2, 3)), 0> == dynamic_size); EXPECT_EQ(get_dimensions_of<0>(make_zero_matrix_like<M00>(2, 3)), 2);
   static_assert(index_dimension_of_v<decltype(make_zero_matrix_like(m23)), 0> == 2);
   static_assert(index_dimension_of_v<decltype(make_zero_matrix_like(m20_3)), 0> == 2);
-  static_assert(index_dimension_of_v<decltype(make_zero_matrix_like(m03_2)), 0> == dynamic_size); EXPECT_EQ(runtime_dimension_of<0>(make_zero_matrix_like(m03_2)), 2);
-  static_assert(index_dimension_of_v<decltype(make_zero_matrix_like(m00_23)), 0> == dynamic_size); EXPECT_EQ(runtime_dimension_of<0>(make_zero_matrix_like(m00_23)), 2);
+  static_assert(index_dimension_of_v<decltype(make_zero_matrix_like(m03_2)), 0> == dynamic_size); EXPECT_EQ(get_dimensions_of<0>(make_zero_matrix_like(m03_2)), 2);
+  static_assert(index_dimension_of_v<decltype(make_zero_matrix_like(m00_23)), 0> == dynamic_size); EXPECT_EQ(get_dimensions_of<0>(make_zero_matrix_like(m00_23)), 2);
   static_assert(index_dimension_of_v<decltype(make_zero_matrix_like<M23>()), 0> == 2);
 
   static_assert(index_dimension_of_v<decltype(make_zero_matrix_like<M00>(Dimensions<2>(), Dimensions<3>())), 1> == 3);
-  static_assert(index_dimension_of_v<decltype(make_zero_matrix_like<M00>(Dimensions<2>(), 3)), 1> == dynamic_size);  EXPECT_EQ(runtime_dimension_of<1>(make_zero_matrix_like<M00>(2, 3)), 3);
+  static_assert(index_dimension_of_v<decltype(make_zero_matrix_like<M00>(Dimensions<2>(), 3)), 1> == dynamic_size);  EXPECT_EQ(get_dimensions_of<1>(make_zero_matrix_like<M00>(2, 3)), 3);
   static_assert(index_dimension_of_v<decltype(make_zero_matrix_like<M00>(2, Dimensions<3>())), 1> == 3);
-  static_assert(index_dimension_of_v<decltype(make_zero_matrix_like<M00>(2, 3)), 1> == dynamic_size);  EXPECT_EQ(runtime_dimension_of<1>(make_zero_matrix_like<M00>(2, 3)), 3);
+  static_assert(index_dimension_of_v<decltype(make_zero_matrix_like<M00>(2, 3)), 1> == dynamic_size);  EXPECT_EQ(get_dimensions_of<1>(make_zero_matrix_like<M00>(2, 3)), 3);
   static_assert(index_dimension_of_v<decltype(make_zero_matrix_like(m23)), 1> == 3);
-  static_assert(index_dimension_of_v<decltype(make_zero_matrix_like(m20_3)), 1> == dynamic_size); EXPECT_EQ(runtime_dimension_of<1>(make_zero_matrix_like(m20_3)), 3);
+  static_assert(index_dimension_of_v<decltype(make_zero_matrix_like(m20_3)), 1> == dynamic_size); EXPECT_EQ(get_dimensions_of<1>(make_zero_matrix_like(m20_3)), 3);
   static_assert(index_dimension_of_v<decltype(make_zero_matrix_like(m03_2)), 1> == 3);
-  static_assert(index_dimension_of_v<decltype(make_zero_matrix_like(m00_23)), 1> == dynamic_size); EXPECT_EQ(runtime_dimension_of<1>(make_zero_matrix_like(m00_23)), 3);
+  static_assert(index_dimension_of_v<decltype(make_zero_matrix_like(m00_23)), 1> == dynamic_size); EXPECT_EQ(get_dimensions_of<1>(make_zero_matrix_like(m00_23)), 3);
   static_assert(index_dimension_of_v<decltype(make_zero_matrix_like<M23>()), 1> == 3);
 
 
@@ -241,22 +241,22 @@ TEST(eigen3, make_functions)
 
   static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<M00, 5>(Dimensions<2>(), Dimensions<3>())), 0> == 2);
   static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<M00, 5>(Dimensions<2>(), 3)), 0> == 2);
-  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<M00, 5>(2, Dimensions<3>())), 0> == dynamic_size); EXPECT_EQ(runtime_dimension_of<0>(make_constant_matrix_like<M00, 5>(2, Dimensions<3>())), 2);
-  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<M00, 5>(2, 3)), 0> == dynamic_size); EXPECT_EQ(runtime_dimension_of<0>(make_constant_matrix_like<M00, 5>(2, 3)), 2);
+  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<M00, 5>(2, Dimensions<3>())), 0> == dynamic_size); EXPECT_EQ(get_dimensions_of<0>(make_constant_matrix_like<M00, 5>(2, Dimensions<3>())), 2);
+  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<M00, 5>(2, 3)), 0> == dynamic_size); EXPECT_EQ(get_dimensions_of<0>(make_constant_matrix_like<M00, 5>(2, 3)), 2);
   static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<5>(m23)), 0> == 2);
   static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<5>(m20_3)), 0> == 2);
-  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<5>(m03_2)), 0> == dynamic_size); EXPECT_EQ(runtime_dimension_of<0>(make_constant_matrix_like<5>(m03_2)), 2);
-  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<5>(m00_23)), 0> == dynamic_size); EXPECT_EQ(runtime_dimension_of<0>(make_constant_matrix_like<5>(m00_23)), 2);
+  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<5>(m03_2)), 0> == dynamic_size); EXPECT_EQ(get_dimensions_of<0>(make_constant_matrix_like<5>(m03_2)), 2);
+  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<5>(m00_23)), 0> == dynamic_size); EXPECT_EQ(get_dimensions_of<0>(make_constant_matrix_like<5>(m00_23)), 2);
   static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<M23, 5>()), 0> == 2);
 
   static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<M00, 5>(Dimensions<2>(), Dimensions<3>())), 1> == 3);
-  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<M00, 5>(Dimensions<2>(), 3)), 1> == dynamic_size);  EXPECT_EQ(runtime_dimension_of<1>(make_constant_matrix_like<M00, 5>(2, 3)), 3);
+  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<M00, 5>(Dimensions<2>(), 3)), 1> == dynamic_size);  EXPECT_EQ(get_dimensions_of<1>(make_constant_matrix_like<M00, 5>(2, 3)), 3);
   static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<M00, 5>(2, Dimensions<3>())), 1> == 3);
-  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<M00, 5>(2, 3)), 1> == dynamic_size);  EXPECT_EQ(runtime_dimension_of<1>(make_constant_matrix_like<M00, 5>(2, 3)), 3);
+  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<M00, 5>(2, 3)), 1> == dynamic_size);  EXPECT_EQ(get_dimensions_of<1>(make_constant_matrix_like<M00, 5>(2, 3)), 3);
   static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<5>(m23)), 1> == 3);
-  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<5>(m20_3)), 1> == dynamic_size); EXPECT_EQ(runtime_dimension_of<1>(make_constant_matrix_like<5>(m20_3)), 3);
+  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<5>(m20_3)), 1> == dynamic_size); EXPECT_EQ(get_dimensions_of<1>(make_constant_matrix_like<5>(m20_3)), 3);
   static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<5>(m03_2)), 1> == 3);
-  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<5>(m00_23)), 1> == dynamic_size); EXPECT_EQ(runtime_dimension_of<1>(make_constant_matrix_like<5>(m00_23)), 3);
+  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<5>(m00_23)), 1> == dynamic_size); EXPECT_EQ(get_dimensions_of<1>(make_constant_matrix_like<5>(m00_23)), 3);
   static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<M23, 5>()), 1> == 3);
 
   auto m22 = M22 {};
@@ -282,35 +282,35 @@ TEST(eigen3, make_functions)
 
   static_assert(index_dimension_of_v<decltype(make_identity_matrix_like<M22>()), 0> == 2);
   static_assert(index_dimension_of_v<decltype(make_identity_matrix_like<M00>(Dimensions<2>())), 0> == 2);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like<M00>(2)), 0> == dynamic_size); EXPECT_EQ(runtime_dimension_of<0>(make_identity_matrix_like<M00>(2)), 2);
+  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like<M00>(2)), 0> == dynamic_size); EXPECT_EQ(get_dimensions_of<0>(make_identity_matrix_like<M00>(2)), 2);
   static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(m22)), 0> == 2);
   static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(m20_2)), 0> == 2);
   static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(m02_2)), 0> == 2);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(m00_22)), 0> == dynamic_size); EXPECT_EQ(runtime_dimension_of<0>(make_identity_matrix_like(m00_22)), 2);
+  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(m00_22)), 0> == dynamic_size); EXPECT_EQ(get_dimensions_of<0>(make_identity_matrix_like(m00_22)), 2);
 
   static_assert(index_dimension_of_v<decltype(make_identity_matrix_like<M22>()), 1> == 2);
   static_assert(index_dimension_of_v<decltype(make_identity_matrix_like<M00>(Dimensions<2>())), 1> == 2);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like<M00>(2)), 1> == dynamic_size);  EXPECT_EQ(runtime_dimension_of<1>(make_identity_matrix_like<M00>(2)), 2);
+  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like<M00>(2)), 1> == dynamic_size);  EXPECT_EQ(get_dimensions_of<1>(make_identity_matrix_like<M00>(2)), 2);
   static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(m22)), 1> == 2);
   static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(m20_2)), 1> == 2);
   static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(m02_2)), 1> == 2);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(m00_22)), 1> == dynamic_size); EXPECT_EQ(runtime_dimension_of<1>(make_identity_matrix_like(m00_22)), 2);
+  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(m00_22)), 1> == dynamic_size); EXPECT_EQ(get_dimensions_of<1>(make_identity_matrix_like(m00_22)), 2);
 }
 
 
-TEST(eigen3, runtime_dimension_of)
+TEST(eigen3, get_dimensions_of)
 {
   auto m23 = make_dense_writable_matrix_from<M23>(1, 2, 3, 4, 5, 6);
 
-  EXPECT_EQ(runtime_dimension_of<0>(m23), 2);
-  EXPECT_EQ(runtime_dimension_of<0>(M20 {m23}), 2);
-  EXPECT_EQ(runtime_dimension_of<0>(M03 {m23}), 2);
-  EXPECT_EQ(runtime_dimension_of<0>(M00 {m23}), 2);
+  EXPECT_EQ(get_dimensions_of<0>(m23), 2);
+  EXPECT_EQ(get_dimensions_of<0>(M20 {m23}), 2);
+  EXPECT_EQ(get_dimensions_of<0>(M03 {m23}), 2);
+  EXPECT_EQ(get_dimensions_of<0>(M00 {m23}), 2);
 
-  EXPECT_EQ(runtime_dimension_of<1>(m23), 3);
-  EXPECT_EQ(runtime_dimension_of<1>(M20 {m23}), 3);
-  EXPECT_EQ(runtime_dimension_of<1>(M03 {m23}), 3);
-  EXPECT_EQ(runtime_dimension_of<1>(M00 {m23}), 3);
+  EXPECT_EQ(get_dimensions_of<1>(m23), 3);
+  EXPECT_EQ(get_dimensions_of<1>(M20 {m23}), 3);
+  EXPECT_EQ(get_dimensions_of<1>(M03 {m23}), 3);
+  EXPECT_EQ(get_dimensions_of<1>(M00 {m23}), 3);
 }
 
   // to_euclidean is tested in ToEuclideanExpr.test.cpp.

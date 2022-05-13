@@ -144,7 +144,7 @@ namespace OpenKalman::Eigen3
       std::is_constructible_v<NestedMatrix, decltype(diagonal_of(std::declval<Arg&&>()))>, int> = 0>
 #endif
     explicit TriangularMatrix(Arg&& arg) noexcept : Base {diagonal_of(std::forward<Arg>(
-      (has_dynamic_dimensions<Arg> ? (assert(runtime_dimension_of<0>(arg) == runtime_dimension_of<1>(arg)), arg) : arg)))} {}
+      (has_dynamic_dimensions<Arg> ? (assert(get_dimensions_of<0>(arg) == get_dimensions_of<1>(arg)), arg) : arg)))} {}
 
 
     /// Construct from a non-triangular \ref eigen_matrix if NestedMatrix is not \ref eigen_diagonal_expr.
@@ -157,7 +157,7 @@ namespace OpenKalman::Eigen3
       std::is_constructible_v<NestedMatrix, Arg&&>, int> = 0>
 #endif
     explicit TriangularMatrix(Arg&& arg) noexcept : Base {std::forward<Arg>(
-      (has_dynamic_dimensions<Arg> ? (assert(runtime_dimension_of<0>(arg) == runtime_dimension_of<1>(arg)), arg) : arg))} {}
+      (has_dynamic_dimensions<Arg> ? (assert(get_dimensions_of<0>(arg) == get_dimensions_of<1>(arg)), arg) : arg))} {}
 
 
     /**

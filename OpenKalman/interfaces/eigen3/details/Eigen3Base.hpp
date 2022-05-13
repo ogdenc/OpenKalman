@@ -50,7 +50,7 @@ namespace OpenKalman::Eigen3::internal
      */
     constexpr Eigen::Index rows() const
     {
-      return runtime_dimension_of<0>(static_cast<const Derived&>(*this));
+      return get_dimensions_of<0>(static_cast<const Derived&>(*this));
     }
 
 
@@ -61,7 +61,7 @@ namespace OpenKalman::Eigen3::internal
      */
     constexpr Eigen::Index cols() const
     {
-      return runtime_dimension_of<1>(static_cast<const Derived&>(*this));
+      return get_dimensions_of<1>(static_cast<const Derived&>(*this));
     }
 
     /**

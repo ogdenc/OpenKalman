@@ -24,8 +24,8 @@ namespace OpenKalman
   requires (dimension_size_of_v<RowCoefficients> == row_dimension_of_v<NestedMatrix>) and
     (dimension_size_of_v<ColumnCoefficients> == column_dimension_of_v<NestedMatrix>) and
     (not std::is_rvalue_reference_v<NestedMatrix>) and
-    (dynamic_coefficients<RowCoefficients> == dynamic_rows<NestedMatrix>) and
-    (dynamic_coefficients<ColumnCoefficients> == dynamic_columns<NestedMatrix>)
+    (dynamic_index_descriptor<RowCoefficients> == dynamic_rows<NestedMatrix>) and
+    (dynamic_index_descriptor<ColumnCoefficients> == dynamic_columns<NestedMatrix>)
 #else
   template<typename RowCoefficients, typename ColumnCoefficients, typename NestedMatrix>
 #endif
@@ -40,8 +40,8 @@ namespace OpenKalman
     static_assert(dimension_size_of_v<RowCoefficients> == row_dimension_of_v<NestedMatrix>);
     static_assert(dimension_size_of_v<ColumnCoefficients> == column_dimension_of_v<NestedMatrix>);
     static_assert(not std::is_rvalue_reference_v<NestedMatrix>);
-    static_assert(dynamic_coefficients<RowCoefficients> == dynamic_rows<NestedMatrix>);
-    static_assert(dynamic_coefficients<ColumnCoefficients> == dynamic_columns<NestedMatrix>);
+    static_assert(dynamic_index_descriptor<RowCoefficients> == dynamic_rows<NestedMatrix>);
+    static_assert(dynamic_index_descriptor<ColumnCoefficients> == dynamic_columns<NestedMatrix>);
 #endif
 
     using Scalar = scalar_type_of_t<NestedMatrix>; ///< Scalar type for this matrix.

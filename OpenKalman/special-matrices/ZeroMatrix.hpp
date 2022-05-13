@@ -145,7 +145,7 @@ namespace OpenKalman::Eigen3
       ([](const T& t, const auto& my_dims) {
         if constexpr (index_dimension_of_v<T, I> == dynamic_size)
         {
-          constexpr auto t_dim = runtime_dimension_of<I>(t);
+          constexpr auto t_dim = get_dimensions_of<I>(t);
           constexpr auto dim = get_dimension_size_of(std::get<I>(my_dims));
           if (t_dim != dim)
             throw std::logic_error {"In an argument to ZeroMatrix assignment operator, "

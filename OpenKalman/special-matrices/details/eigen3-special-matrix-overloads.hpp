@@ -134,7 +134,7 @@ namespace OpenKalman::interface
 #endif
   {
     template<typename Arg, typename Scalar>
-    static void set(Arg& arg, const Scalar s, I i)
+    static void set(Arg& arg, Scalar s, I i)
     {
       if constexpr (element_settable<nested_matrix_of_t<Arg>, I>)
         set_element(nested_matrix(arg), s, i);
@@ -158,7 +158,7 @@ namespace OpenKalman::interface
 #endif
   {
     template<typename Arg, typename Scalar>
-    static void set(Arg& arg, const Scalar s, I i, J j)
+    static void set(Arg& arg, Scalar s, I i, J j)
     {
       if constexpr (diagonal_matrix<T>)
       {
@@ -650,12 +650,12 @@ namespace OpenKalman::Eigen3
 
     const Scalar elem = constant * (
       dynamic_columns<A> ?
-      std::sqrt((Scalar) runtime_dimension_of<1>(a)) :
+      std::sqrt((Scalar) get_dimensions_of<1>(a)) :
       OpenKalman::internal::constexpr_sqrt((Scalar) column_dimension_of_v<A>));
 
     if constexpr (dynamic_rows<A>)
     {
-      auto dim = runtime_dimension_of<0>(a);
+      auto dim = get_dimensions_of<0>(a);
       auto col1 = Eigen3::eigen_matrix_t<Scalar, dynamic_size, 1>::Constant(dim, elem);
 
       eigen_matrix_t<Scalar, dynamic_size, dynamic_size> ret {dim, dim};
@@ -731,12 +731,12 @@ namespace OpenKalman::Eigen3
 
     const Scalar elem = constant * (
       dynamic_rows<A> ?
-      std::sqrt((Scalar) runtime_dimension_of<0>(a)) :
+      std::sqrt((Scalar) get_dimensions_of<0>(a)) :
       OpenKalman::internal::constexpr_sqrt((Scalar) row_dimension_of_v<A>));
 
     if constexpr (dynamic_columns<A>)
     {
-      auto dim = runtime_dimension_of<1>(a);
+      auto dim = get_dimensions_of<1>(a);
       auto row1 = Eigen3::eigen_matrix_t<Scalar, 1, dynamic_size>::Constant(dim, elem);
 
       eigen_matrix_t<Scalar, dynamic_size, dynamic_size> ret {dim, dim};
@@ -810,7 +810,7 @@ namespace OpenKalman::Eigen3
       {
         if constexpr ((has_dynamic_dimensions<V> or ... or has_dynamic_dimensions<Vs>))
         {
-          auto dim = (runtime_dimension_of<0>(v) + ... + runtime_dimension_of<0>(vs));
+          auto dim = (get_dimensions_of<0>(v) + ... + get_dimensions_of<0>(vs));
           return DiagonalMatrix {make_zero_matrix_like<V>(dim, Dimensions<1>{})};
         }
         else
@@ -824,7 +824,7 @@ namespace OpenKalman::Eigen3
       {
         if constexpr ((has_dynamic_dimensions<V> or ... or has_dynamic_dimensions<Vs>))
         {
-          auto dim = (runtime_dimension_of<0>(v) + ... + runtime_dimension_of<0>(vs));
+          auto dim = (get_dimensions_of<0>(v) + ... + get_dimensions_of<0>(vs));
           return make_identity_matrix_like<V>(dim);
         }
         else

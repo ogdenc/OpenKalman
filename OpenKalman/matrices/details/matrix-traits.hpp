@@ -52,7 +52,7 @@ namespace OpenKalman
       static constexpr std::size_t dimension_at_runtime(Arg&& arg)
       {
         if constexpr (dynamic_dimension<T, N>)
-          return runtime_dimension_of<N>(nested_matrix(std::forward<Arg>(arg)));
+          return get_dimensions_of<N>(nested_matrix(std::forward<Arg>(arg)));
         else
           return dimension;
       }
@@ -77,7 +77,7 @@ namespace OpenKalman
         if constexpr (dynamic_dimension<Nested, 0>)
         {
           if constexpr (dynamic_dimension<Nested, 1>)
-            return runtime_dimension_of<0>(nested_matrix(arg));
+            return get_dimensions_of<0>(nested_matrix(arg));
           else
             return index_dimension_of_v<Nested, 1>;
         }
