@@ -115,13 +115,15 @@ namespace OpenKalman::test
 
 
 #ifdef __cpp_concepts
-  template<detail::eigen_type Arg1, detail::eigen_type Arg2, typename Err>
-  requires (not native_eigen_general<Arg1>) or (not native_eigen_general<Arg2>)
+  template<indexible Arg1, indexible Arg2, typename Err>
+  requires (native_eigen_general<Arg1> and not native_eigen_general<Arg2>) or
+    (not native_eigen_general<Arg1> and native_eigen_general<Arg2>)
   struct TestComparison<Arg1, Arg2, Err>
 #else
   template<typename Arg1, typename Arg2, typename Err>
-  struct TestComparison<Arg1, Arg2, Err, std::enable_if_t<detail::eigen_type<Arg1> and detail::eigen_type<Arg2> and
-    (not native_eigen_general<Arg1> or not native_eigen_general<Arg2>)>>
+  struct TestComparison<Arg1, Arg2, Err, std::enable_if_t<indexible<Arg1> and indexible<Arg2> and
+    ((native_eigen_general<Arg1> and not native_eigen_general<Arg2>) or
+      (not native_eigen_general<Arg1> and native_eigen_general<Arg2>))>>
 #endif
     : ::testing::AssertionResult
   {

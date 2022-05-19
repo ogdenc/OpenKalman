@@ -45,14 +45,13 @@ namespace OpenKalman
     struct IndexTraits<T, N, std::enable_if_t<typed_matrix<T>>>
 #endif
     {
-      static constexpr std::size_t dimension = N == 0 ? dimension_size_of_vrow_coefficient_types_of_t<T>> :
-        dimension_size_of_vcolumn_coefficient_types_of_t<T>>;
+      static constexpr std::size_t dimension = index_dimension_of_v<nested_matrix_of_t<T>, N>;
 
       template<typename Arg>
       static constexpr std::size_t dimension_at_runtime(Arg&& arg)
       {
         if constexpr (dynamic_dimension<T, N>)
-          return get_dimensions_of<N>(nested_matrix(std::forward<Arg>(arg)));
+          return get_index_dimension_of<N>(nested_matrix(std::forward<Arg>(arg)));
         else
           return dimension;
       }
@@ -67,7 +66,7 @@ namespace OpenKalman
     struct IndexTraits<T, N, std::enable_if_t<covariance<T>>>
 #endif
     {
-      static constexpr std::size_t dimension = dimension_size_of_v<MatrixTraits<T>::Coefficients>;
+      static constexpr std::size_t dimension = index_dimension_of_v<nested_matrix_of_t<T>, N>;
 
       template<typename Arg>
       static constexpr std::size_t dimension_at_runtime(const Arg& arg)
@@ -77,7 +76,7 @@ namespace OpenKalman
         if constexpr (dynamic_dimension<Nested, 0>)
         {
           if constexpr (dynamic_dimension<Nested, 1>)
-            return get_dimensions_of<0>(nested_matrix(arg));
+            return get_index_dimension_of<0>(nested_matrix(arg));
           else
             return index_dimension_of_v<Nested, 1>;
         }
@@ -97,6 +96,12 @@ namespace OpenKalman
     struct CoordinateSystemTraits<Matrix<RowCoeffs, ColCoeffs, NestedMatrix>, N>
     {
       using coordinate_system_types = std::conditional_t<N == 0, RowCoeffs, ColCoeffs>;
+
+      template<typename Arg>
+      static constexpr auto coordinate_system_types_at_runtime(Arg&& arg)
+      {
+        return std::get<N>(std::forward<Arg>(arg).my_dimensions);
+      }
     };
 
 
@@ -104,6 +109,12 @@ namespace OpenKalman
     struct CoordinateSystemTraits<Mean<Coeffs, NestedMatrix>, 0>
     {
       using coordinate_system_types = Coeffs;
+
+      template<typename Arg>
+      static constexpr auto coordinate_system_types_at_runtime(Arg&& arg)
+      {
+        return std::get<N>(std::forward<Arg>(arg).my_dimensions);
+      }
     };
 
 
@@ -111,6 +122,12 @@ namespace OpenKalman
     struct CoordinateSystemTraits<EuclideanMean<Coeffs, NestedMatrix>, 0>
     {
       using coordinate_system_types = Coeffs;
+
+      template<typename Arg>
+      static constexpr auto coordinate_system_types_at_runtime(Arg&& arg)
+      {
+        return std::get<N>(std::forward<Arg>(arg).my_dimensions);
+      }
     };
 
 
@@ -118,6 +135,12 @@ namespace OpenKalman
     struct CoordinateSystemTraits<Covariance<Coeffs, NestedMatrix>, N>
     {
       using coordinate_system_types = Coeffs;
+
+      template<typename Arg>
+      static constexpr auto coordinate_system_types_at_runtime(Arg&& arg)
+      {
+        return std::get<N>(std::forward<Arg>(arg).my_dimensions);
+      }
     };
 
 
@@ -125,6 +148,12 @@ namespace OpenKalman
     struct CoordinateSystemTraits<SquareRootCovariance<Coeffs, NestedMatrix>, N>
     {
       using coordinate_system_types = Coeffs;
+
+      template<typename Arg>
+      static constexpr auto coordinate_system_types_at_runtime(Arg&& arg)
+      {
+        return std::get<N>(std::forward<Arg>(arg).my_dimensions);
+      }
     };
 
 

@@ -362,7 +362,7 @@ namespace OpenKalman
     if constexpr(sizeof...(Ms) > 0)
     {
       using Coeffs =
-        Concatenate<row_coefficient_types_of_t<M>, row_coefficient_types_of_t<Ms>...>;
+        concatenate_fixed_index_descriptor_t<row_coefficient_types_of_t<M>, row_coefficient_types_of_t<Ms>...>;
       auto cat = concatenate_diagonal(nested_matrix(std::forward<M>(m)), nested_matrix(std::forward<Ms>(mN))...);
       return MatrixTraits<M>::template make<Coeffs>(std::move(cat));
     }
@@ -457,7 +457,7 @@ namespace OpenKalman
   inline auto
   split_diagonal(M&& m) noexcept
   {
-    static_assert(prefix_of<Concatenate<Cs...>, row_coefficient_types_of_t<M>>);
+    static_assert(prefix_of<concatenate_fixed_index_descriptor_t<Cs...>, row_coefficient_types_of_t<M>>);
     return split_diagonal<oin::SplitCovDiagF<M>, Cs...>(nested_matrix(std::forward<M>(m)));
   }
 
@@ -472,7 +472,7 @@ namespace OpenKalman
   split_vertical(M&& m) noexcept
   {
     using CC = row_coefficient_types_of_t<M>;
-    static_assert(prefix_of<Concatenate<Cs...>, CC>);
+    static_assert(prefix_of<concatenate_fixed_index_descriptor_t<Cs...>, CC>);
     return split_vertical<oin::SplitCovVertF<M, CC>, Cs...>(make_dense_writable_matrix_from(std::forward<M>(m)));
   }
 
@@ -487,7 +487,7 @@ namespace OpenKalman
   split_horizontal(M&& m) noexcept
   {
     using RC = row_coefficient_types_of_t<M>;
-    static_assert(prefix_of<Concatenate<Cs...>, RC>);
+    static_assert(prefix_of<concatenate_fixed_index_descriptor_t<Cs...>, RC>);
     return split_horizontal<oin::SplitCovHorizF<M, RC>, Cs...>(make_dense_writable_matrix_from(std::forward<M>(m)));
   }
 

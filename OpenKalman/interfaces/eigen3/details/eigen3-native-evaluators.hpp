@@ -31,14 +31,14 @@ namespace Eigen::internal
   //  OpenKalman::Mean  //
   // ------------------ //
 
-  template<typename Coefficients, typename ArgType>
-  struct evaluator<OpenKalman::Mean<Coefficients, ArgType>> : evaluator<std::decay_t<ArgType>>
+  template<typename TypedIndex, typename ArgType>
+  struct evaluator<OpenKalman::Mean<TypedIndex, ArgType>> : evaluator<std::decay_t<ArgType>>
   {
-    using XprType = OpenKalman::Mean<Coefficients, ArgType>;
+    using XprType = OpenKalman::Mean<TypedIndex, ArgType>;
     using Base = evaluator<std::decay_t<ArgType>>;
     enum
     {
-      Flags = (untyped_index_descriptor<Coefficients> ? Base::Flags : Base::Flags & ~LvalueBit),
+      Flags = (euclidean_index_descriptor<TypedIndex> ? Base::Flags : Base::Flags & ~LvalueBit),
     };
     explicit evaluator(const XprType& m) : Base(m.nested_matrix()) {}
   };
@@ -75,12 +75,12 @@ namespace Eigen::internal
   //  OpenKalman::Covariance  //
   // ------------------------ //
 
-  template<typename Coefficients, typename ArgType>
-  struct evaluator<OpenKalman::Covariance<Coefficients, ArgType>>
+  template<typename TypedIndex, typename ArgType>
+  struct evaluator<OpenKalman::Covariance<TypedIndex, ArgType>>
     : evaluator<std::decay_t<decltype(OpenKalman::internal::to_covariance_nestable(
-      std::declval<const OpenKalman::Covariance<Coefficients, ArgType>&>()))>>
+      std::declval<const OpenKalman::Covariance<TypedIndex, ArgType>&>()))>>
   {
-    using XprType = OpenKalman::Covariance<Coefficients, ArgType>;
+    using XprType = OpenKalman::Covariance<TypedIndex, ArgType>;
     using Base = evaluator<std::decay_t<decltype(OpenKalman::internal::to_covariance_nestable(
       std::declval<const XprType&>()))>>;
     enum
@@ -95,12 +95,12 @@ namespace Eigen::internal
   //  OpenKalman::SquareRootCovariance  //
   // ---------------------------------- //
 
-  template<typename Coefficients, typename ArgType>
-  struct evaluator<OpenKalman::SquareRootCovariance<Coefficients, ArgType>>
+  template<typename TypedIndex, typename ArgType>
+  struct evaluator<OpenKalman::SquareRootCovariance<TypedIndex, ArgType>>
     : evaluator<std::decay_t<decltype(OpenKalman::internal::to_covariance_nestable(
-      std::declval<const OpenKalman::SquareRootCovariance<Coefficients, ArgType>&>()))>>
+      std::declval<const OpenKalman::SquareRootCovariance<TypedIndex, ArgType>&>()))>>
   {
-    using XprType = OpenKalman::SquareRootCovariance<Coefficients, ArgType>;
+    using XprType = OpenKalman::SquareRootCovariance<TypedIndex, ArgType>;
     using Base = evaluator<std::decay_t<decltype(OpenKalman::internal::to_covariance_nestable(
       std::declval<const XprType&>()))>>;
     enum
@@ -453,20 +453,20 @@ namespace Eigen::internal
   namespace detail
   {
 #ifdef __cpp_concepts
-    template<OpenKalman::index_descriptor Coefficients, typename XprType, typename Nested, typename NestedEvaluator>
+    template<OpenKalman::index_descriptor TypedIndex, typename XprType, typename Nested, typename NestedEvaluator>
 #else
-    template<typename Coefficients, typename XprType, typename Nested, typename NestedEvaluator, typename = void>
+    template<typename TypedIndex, typename XprType, typename Nested, typename NestedEvaluator, typename = void>
 #endif
     struct Evaluator_EuclideanExpr_Base;
 
 
 #ifdef __cpp_concepts
-    template<OpenKalman::typed_index_descriptor Coefficients, typename XprType, typename Nested, typename NestedEvaluator>
-    struct Evaluator_EuclideanExpr_Base<Coefficients, XprType, Nested, NestedEvaluator>
+    template<OpenKalman::typed_index_descriptor TypedIndex, typename XprType, typename Nested, typename NestedEvaluator>
+    struct Evaluator_EuclideanExpr_Base<TypedIndex, XprType, Nested, NestedEvaluator>
 #else
-    template<typename Coefficients, typename XprType, typename Nested, typename NestedEvaluator>
-    struct Evaluator_EuclideanExpr_Base<Coefficients, XprType, Nested, NestedEvaluator,
-      std::enable_if_t<OpenKalman::typed_index_descriptor<Coefficients>>>
+    template<typename TypedIndex, typename XprType, typename Nested, typename NestedEvaluator>
+    struct Evaluator_EuclideanExpr_Base<TypedIndex, XprType, Nested, NestedEvaluator,
+      std::enable_if_t<OpenKalman::typed_index_descriptor<TypedIndex>>>
 #endif
       : evaluator_base<XprType>
     {
@@ -488,12 +488,12 @@ namespace Eigen::internal
 
 
 #ifdef __cpp_concepts
-    template<OpenKalman::untyped_index_descriptor Coefficients, typename XprType, typename Nested, typename NestedEvaluator>
-    struct Evaluator_EuclideanExpr_Base<Coefficients, XprType, Nested, NestedEvaluator>
+    template<OpenKalman::euclidean_index_descriptor TypedIndex, typename XprType, typename Nested, typename NestedEvaluator>
+    struct Evaluator_EuclideanExpr_Base<TypedIndex, XprType, Nested, NestedEvaluator>
 #else
-    template<typename Coefficients, typename XprType, typename Nested, typename NestedEvaluator>
-    struct Evaluator_EuclideanExpr_Base<Coefficients, XprType, Nested, NestedEvaluator,
-      std::enable_if_t<OpenKalman::untyped_index_descriptor<Coefficients>>>
+    template<typename TypedIndex, typename XprType, typename Nested, typename NestedEvaluator>
+    struct Evaluator_EuclideanExpr_Base<TypedIndex, XprType, Nested, NestedEvaluator,
+      std::enable_if_t<OpenKalman::euclidean_index_descriptor<TypedIndex>>>
 #endif
       : NestedEvaluator
     {
@@ -526,39 +526,47 @@ namespace Eigen::internal
     using Scalar = typename traits<Nested>::Scalar;
     static constexpr auto count = Nested::ColsAtCompileTime;
 
+    Coeffs i_descriptor;
+
     enum
     {
       CoeffReadCost = NestedEvaluator::CoeffReadCost + (
-        untyped_index_descriptor<Coeffs> ? 0 :
+        euclidean_index_descriptor<Coeffs> ? 0 :
         (int) Eigen::internal::functor_traits<Eigen::internal::scalar_sin_op<Scalar>>::Cost +
           (int) Eigen::internal::functor_traits<Eigen::internal::scalar_cos_op<Scalar>>::Cost)
     };
 
-    explicit evaluator(const XprType& t) : Base {t.nested_matrix()} {}
+    explicit evaluator(const XprType& t) : Base {t.nested_matrix()}, i_descriptor {get_dimensions_of<0>(t)} {}
 
     CoeffReturnType coeff(Index row, Index col) const
     {
-      if constexpr (untyped_index_descriptor<Coeffs>)
+      if constexpr (euclidean_index_descriptor<Coeffs>)
       {
         return Base::coeff(row, col);
       }
       else
       {
-        const auto get_coeff = [col, this] (const Index i) { return this->m_argImpl.coeff(i, col); };
-        return OpenKalman::internal::to_euclidean_element<Coeffs>((std::size_t) row, get_coeff);
+        const auto g = [col, this] (std::size_t i) { return this->m_argImpl.coeff((Index) i, col); };
+        if constexpr (typed_index_descriptor<Coeffs>)
+          return Coeffs::template to_euclidean_element<Scalar>(g, (std::size_t) row, 0);
+        else
+          return i_descriptor.to_euclidean_element(g, (std::size_t) row, 0);
       }
     }
 
     CoeffReturnType coeff(Index row) const
     {
-      if constexpr (untyped_index_descriptor<Coeffs>)
+      if constexpr (euclidean_index_descriptor<Coeffs>)
       {
         return Base::coeff(row);
       }
       else
       {
-        const auto get_coeff = [this] (const Index i) { return this->m_argImpl.coeff(i); };
-        return OpenKalman::internal::to_euclidean_element<Coeffs>((std::size_t) row, get_coeff);
+        const auto g = [this] (std::size_t i) { return this->m_argImpl.coeff((Index) i); };
+        if constexpr (typed_index_descriptor<Coeffs>)
+          return Coeffs::template to_euclidean_element<Scalar>(g, (std::size_t) row, 0);
+        else
+          return i_descriptor.to_euclidean_element(g, (std::size_t) row, 0);
       }
     }
 
@@ -588,38 +596,46 @@ namespace Eigen::internal
     using Scalar = typename traits<Nested>::Scalar;
     static constexpr auto count = Nested::ColsAtCompileTime;
 
+    Coeffs i_descriptor;
+
     enum
     {
       CoeffReadCost = NestedEvaluator::CoeffReadCost + (
-        untyped_index_descriptor<Coeffs> ? 0 :
+        euclidean_index_descriptor<Coeffs> ? 0 :
         Eigen::internal::functor_traits<Eigen::internal::scalar_atan_op<Scalar>>::Cost)
     };
 
-    explicit evaluator(const XprType& t) : Base {t.nested_matrix()} {}
+    explicit evaluator(const XprType& t) : Base {t.nested_matrix()}, i_descriptor {get_dimensions_of<0>(t)} {}
 
     CoeffReturnType coeff(Index row, Index col) const
     {
-      if constexpr (untyped_index_descriptor<Coeffs>)
+      if constexpr (euclidean_index_descriptor<Coeffs>)
       {
         return Base::coeff(row, col);
       }
       else
       {
-        const auto get_coeff = [col, this] (const Index i) { return this->m_argImpl.coeff(i, col); };
-        return OpenKalman::internal::from_euclidean_element<Coeffs>((std::size_t) row, get_coeff);
+        const auto g = [col, this] (std::size_t i) { return this->m_argImpl.coeff((Index) i, col); };
+        if constexpr (typed_index_descriptor<Coeffs>)
+          return Coeffs::template from_euclidean_element<Scalar>(g, (std::size_t) row, 0);
+        else
+          return i_descriptor.from_euclidean_element(g, (std::size_t) row, 0);
       }
     }
 
     CoeffReturnType coeff(Index row) const
     {
-      if constexpr (untyped_index_descriptor<Coeffs>)
+      if constexpr (euclidean_index_descriptor<Coeffs>)
       {
         return Base::coeff(row);
       }
       else
       {
-        const auto get_coeff = [this] (const Index i) { return this->m_argImpl.coeff(i); };
-        return OpenKalman::internal::from_euclidean_element<Coeffs>((std::size_t) row, get_coeff);
+        const auto g = [this] (std::size_t i) { return this->m_argImpl.coeff((Index) i); };
+        if constexpr (typed_index_descriptor<Coeffs>)
+          return Coeffs::template from_euclidean_element<Scalar>(g, (std::size_t) row, 0);
+        else
+          return i_descriptor.from_euclidean_element(g, (std::size_t) row, 0);
       }
     }
   };
@@ -647,37 +663,45 @@ namespace Eigen::internal
     using Scalar = typename traits<Nested>::Scalar;
     static constexpr auto count = Nested::ColsAtCompileTime;
 
+    Coeffs i_descriptor;
+
     enum
     {
       CoeffReadCost = NestedEvaluator::CoeffReadCost
     };
 
     template<typename Arg>
-    explicit evaluator(const Arg& t) : Base {t.nested_matrix().nested_matrix()} {}
+    explicit evaluator(const Arg& t) : Base {t.nested_matrix().nested_matrix()}, i_descriptor {get_dimensions_of<0>(t)} {}
 
     CoeffReturnType coeff(Index row, Index col) const
     {
-      if constexpr (untyped_index_descriptor<Coeffs>)
+      if constexpr (euclidean_index_descriptor<Coeffs>)
       {
         return Base::coeff(row, col);
       }
       else
       {
-        const auto get_coeff = [col, this] (const Index i) { return this->m_argImpl.coeff(i, col); };
-        return OpenKalman::internal::wrap_get_element<Coeffs>((std::size_t) row, get_coeff);
+        const auto g = [col, this] (std::size_t i) { return this->m_argImpl.coeff((Index) i, col); };
+        if constexpr (typed_index_descriptor<Coeffs>)
+          return Coeffs::template wrap_get_element<Scalar>(g, (std::size_t) row, 0);
+        else
+          return i_descriptor.wrap_get_element(g, (std::size_t) row, 0);
       }
     }
 
     CoeffReturnType coeff(Index row) const
     {
-      if constexpr (untyped_index_descriptor<Coeffs>)
+      if constexpr (euclidean_index_descriptor<Coeffs>)
       {
         return Base::coeff(row);
       }
       else
       {
-        const auto get_coeff = [this] (const Index i) { return this->m_argImpl.coeff(i); };
-        return OpenKalman::internal::wrap_get_element<Coeffs>((std::size_t) row, get_coeff);
+        const auto g = [this] (std::size_t i) { return this->m_argImpl.coeff((Index) i); };
+        if constexpr (typed_index_descriptor<Coeffs>)
+          return Coeffs::template wrap_get_element<Scalar>(g, (std::size_t) row, 0);
+        else
+          return i_descriptor.wrap_get_element(g, (std::size_t) row, 0);
       }
     }
   };

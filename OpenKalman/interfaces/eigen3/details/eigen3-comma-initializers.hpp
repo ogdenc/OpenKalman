@@ -29,7 +29,7 @@ namespace Eigen
   {
     using Base = CommaInitializer<XprType>;
     using Scalar = OpenKalman::scalar_type_of_t<XprType>;
-    using Coefficients = row_coefficient_types_of_t<Derived>;
+    using TypedIndex = row_coefficient_types_of_t<Derived>;
     using Base::Base;
 
     template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
@@ -41,12 +41,12 @@ namespace Eigen
 
     ~MeanCommaInitializer()
     {
-      this->m_xpr = wrap_angles<Coefficients>(Base::finished());
+      this->m_xpr = wrap_angles<TypedIndex>(Base::finished());
     }
 
     auto& finished()
     {
-      this->m_xpr = wrap_angles<Coefficients>(Base::finished());
+      this->m_xpr = wrap_angles<TypedIndex>(Base::finished());
       return this->m_xpr;
     }
   };

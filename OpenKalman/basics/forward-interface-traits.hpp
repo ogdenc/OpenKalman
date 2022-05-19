@@ -28,7 +28,7 @@ namespace OpenKalman::interface
 
   /**
    * \internal
-   * \brief Type trait identifying the scalar type (e.g., double, int) of a matrix, expression, or array.
+   * \brief Type trait identifying the scalar type (e.g., double, int) of a tensor, expression, or index descriptor.
    * \details The interface must define a member alias <code>type</code> as the scalar type.
    * \tparam T The matrix, expression, or array.
    */
@@ -107,8 +107,20 @@ namespace OpenKalman::interface
   /**
    * \internal
    * \brief An interface to the coordinate system(s) associated with an index of a matrix, array, or expression.
-   * \note Any Euclidean types (i.e., regular matrices or other true tensors that operate on a vector space) can rely
-   *  on this default definition.
+   * \details Example definitions:
+   * \code
+   * // The coordinate system type(s) associated with index N of T, evaluated at compile time.
+   * using coordinate_system_types = a_compile_time_index_descriptor;
+   *
+   * // Returns the coordinate system type(s) of index N of the argument, evaluated at runtime.
+   * template<std::convertible_to<const std::remove_reference_t<T>&> Arg>
+   * static constexpr auto coordinate_system_types_at_runtime(Arg&& arg)
+   * {
+   *   return a_runtime_index_descriptor;
+   * }
+   * \endcode
+   * \note Euclidean types (i.e., regular matrices or other true tensors that operate on a vector space) do not
+   * need to define this and can rely on the default behavior.
    * \tparam T The matrix, array, expression, or tensor.
    * \tparam N The index number
    */
@@ -117,27 +129,7 @@ namespace OpenKalman::interface
 #else
   template<typename T, std::size_t N, typename = void>
 #endif
-  struct CoordinateSystemTraits
-  {
-    /**
-     * \brief The coordinate system type(s) associated with index N of T, evaulated at compile time.
-     * \details If the coordinate system is unknown at compile time, use DynamicCoefficients.
-     */
-     using coordinate_system_types = Dimensions<IndexTraits<T, N>::dimension>;
-
-
-    /**
-     * \brief Returns the coordinate system type(s) of index N of the argument, evaluated at runtime.
-     * \tparam Arg An argument matrix of type T
-     */
-#ifdef __cpp_concepts
-    template<std::convertible_to<const std::remove_reference_t<T>&> Arg>
-#else
-    template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg,
-      const std::add_lvalue_reference_t<std::decay_t<T>>>, int> = 0>
-#endif
-    static constexpr auto coordinate_system_types_at_runtime(Arg&& arg) = delete;
-  };
+  struct CoordinateSystemTraits;
 
 
   /**
@@ -233,12 +225,12 @@ namespace OpenKalman::interface
      * \return A default, potentially unitialized, dense, writable matrix or array. Whether the resulting object
      * is a matrix or array may depend on whether T is a matrix or array.
      */
-#ifdef __cpp_concepts
+/*#ifdef __cpp_concepts
     template<index_descriptor...D>
 #else
     template<typename...D, std::enable_if_t<(index_descriptor<D> and ...), int> = 0>
 #endif
-    static auto make_default(D&&...d) = delete;
+    static auto make_default(D&&...d) = delete;*/
 
 
     /**
@@ -369,13 +361,13 @@ namespace OpenKalman::interface
      * \tparam D A list of \ref index_descriptor items
      * \note If this is not defined, it will return an object of type ZeroMatrix.
      */
-#ifdef __cpp_concepts
+/*#ifdef __cpp_concepts
     template<index_descriptor...D> requires (sizeof...(D) == StorageArrayTraits<T>::max_indices)
 #else
     template<typename...D, std::enable_if_t<(index_descriptor<D> and ...) and
       sizeof...(D) == StorageArrayTraits<T>::max_indices, int> = 0>
 #endif
-    static auto make_zero_matrix(D&&...d); //< Defined elsewhere
+    static auto make_zero_matrix(D&&...d); //< Defined elsewhere*/
 
 
     /**
@@ -384,13 +376,13 @@ namespace OpenKalman::interface
      * \tparam D A list of \ref index_descriptor items
      * \note If this is not defined, it will return an object of type ConstantMatrix.
      */
-#ifdef __cpp_concepts
+/*#ifdef __cpp_concepts
     template<auto constant, index_descriptor...D> requires (sizeof...(D) == StorageArrayTraits<T>::max_indices)
 #else
     template<auto constant, typename...D, std::enable_if_t<(index_descriptor<D> and ...) and
       sizeof...(D) == StorageArrayTraits<T>::max_indices, int> = 0>
 #endif
-    static auto make_constant_matrix(D&&...d); //< Defined elsewhere
+    static auto make_constant_matrix(D&&...d); //< Defined elsewhere*/
   };
 
 
@@ -440,12 +432,12 @@ namespace OpenKalman::interface
      * \tparam D An \ref index_descriptor defining the size
      * \note If this is not defined, it will return a DiagonalMatrix adapter with a constant diagonal of 1.
      */
-#ifdef __cpp_concepts
+/*#ifdef __cpp_concepts
     template<index_descriptor D>
 #else
     template<typename D, std::enable_if_t<index_descriptor<D>, int> = 0>
 #endif
-    static auto make_identity_matrix(D&& d); //< Defined elsewhere
+    static auto make_identity_matrix(D&& d); //< Defined elsewhere*/
   };
 
 
@@ -611,7 +603,7 @@ namespace OpenKalman::interface
      * \tparam Args A set of n arguments
      * \return An object the same size and shape as as T
      */
-#ifdef __cpp_concepts
+/*#ifdef __cpp_concepts
     template<index_descriptor...dims, typename Operation, typename...Args> requires
       (sizeof...(dims) == StorageArrayTraits<std::decay_t<T>>::max_indices)
     static constexpr decltype(auto) n_ary_operation_with_broadcasting(
@@ -621,7 +613,7 @@ namespace OpenKalman::interface
       (index_descriptor<dims> and ...) and sizeof...(dims) == StorageArrayTraits<std::decay_t<T>>::max_indices, int> = 0>
     static constexpr decltype(auto) n_ary_operation_with_broadcasting(
       const std::tuple<dims...>& d, Operation&&, Args&&...) = delete;
-#endif
+#endif*/
 
 
     /**
@@ -712,6 +704,9 @@ namespace OpenKalman::interface
   };
 
 
+  /**
+   * \brief Traits relating to wrapping angles and other modular coordinate types.
+   */
 #ifdef __cpp_concepts
   template<typename T>
 #else
@@ -719,17 +714,26 @@ namespace OpenKalman::interface
 #endif
   struct ModularTransformationTraits
   {
-    template<typename...FixedCoefficients, typename Arg, typename...DynamicCoefficients>
+    /**
+     * \brief Convert Arg to a set of coordinates in Euclidean space, based on \ref index_descriptor I.
+     */
+    template<typename Arg, typename I>
     constexpr decltype(auto)
-    to_euclidean(Arg&& arg) = delete;
+    to_euclidean(Arg&& arg, const I& i) = delete;
 
-    template<typename...FixedCoefficients, typename Arg, typename...DynamicCoefficients>
+    /**
+     * \brief Convert Arg from a set of coordinates in Euclidean space, based on \ref index_descriptor I.
+     */
+    template<typename Arg, typename I>
     constexpr decltype(auto)
-    from_euclidean(Arg&& arg) = delete;
+    from_euclidean(Arg&& arg, const I& i) = delete;
 
-    template<typename...FixedCoefficients, typename Arg, typename...DynamicCoefficients>
+    /**
+     * \brief Wrap Arg based on \ref index_descriptor I.
+     */
+    template<typename Arg, typename I>
     constexpr decltype(auto)
-    wrap_angles(Arg&& arg) = delete;
+    wrap_angles(Arg&& arg, const I& i) = delete;
   };
 
 

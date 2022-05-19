@@ -42,102 +42,75 @@ namespace OpenKalman
 
 
     /**
-     * \brief Return a functor mapping elements of a matrix or other tensor to coordinates in Euclidean space.
-     * \returns A functor returning the result of type <code>Scalar</code> and taking the following:
-     * - an element getter (<code>std::function&lt;Scalar(std::size_t)&rt;</code>);
-     * - a local index relative to the Euclidean-transformed coordinates (starting at 0); and
-     * - the starting location of the index descriptor within any larger set of index type descriptors.
+     * \brief Maps an element to coordinates in Euclidean space.
+     * \param g An element getter (<code>std::function&lt;Scalar(std::size_t)&rt;</code>)
+     * \param euclidean_local_index A local index relative to the Euclidean-transformed coordinates (starting at 0)
+     * \param start The starting index within the index descriptor
      */
-    virtual std::function<Scalar(const Getter&, std::size_t euclidean_local_index, std::size_t start)>
-    to_euclidean_element() const final
+    virtual Scalar to_euclidean_element(const Getter& g, std::size_t euclidean_local_index, std::size_t start) const final
     {
-      return [](const Getter& g, std::size_t euclidean_local_index, std::size_t start) {
-        if constexpr (untyped_index_descriptor<FixedIndexDescriptor>)
-          return g(start + euclidean_local_index);
-        else
-          return FixedIndexDescriptor::to_euclidean_element(g, euclidean_local_index, start);
-      };
+      if constexpr (euclidean_index_descriptor<FixedIndexDescriptor>)
+        return g(start + euclidean_local_index);
+      else
+        return FixedIndexDescriptor::template to_euclidean_element<Scalar>(g, euclidean_local_index, start);
     }
 
 
     /**
-     * \brief Return a functor mapping coordinates in Euclidean space to elements of a matrix or other tensor.
-     * \returns A functor returning the result of type <code>Scalar</code> and taking the following:
-     * - an element getter (<code>std::function&lt;Scalar(std::size_t)&rt;</code>);
-     * - a local index relative to this index descriptor (starting at 0) accessing the element; and
-     * - the starting location within any larger set of Euclidean-transformed index type descriptors.
+     * \brief Maps a coordinate in Euclidean space to an element.
+     * \param g An element getter (<code>std::function&lt;Scalar(std::size_t)&rt;</code>)
+     * \param local_index A local index relative to the original coordinates (starting at 0)
+     * \param start The starting index within the Euclidean-transformed indices
      */
-    virtual std::function<Scalar(const Getter&, std::size_t local_index, std::size_t euclidean_start)>
-    from_euclidean_element() const final
+    virtual Scalar from_euclidean_element(const Getter& g, std::size_t local_index, std::size_t euclidean_start) const final
     {
-      return [](const Getter& g, std::size_t local_index, std::size_t euclidean_start) {
-        if constexpr (untyped_index_descriptor<FixedIndexDescriptor>)
-          return g(euclidean_start + local_index);
-        else
-          return FixedIndexDescriptor::from_euclidean_element(g, local_index, euclidean_start);
-      };
+      if constexpr (euclidean_index_descriptor<FixedIndexDescriptor>)
+        return g(euclidean_start + local_index);
+      else
+        return FixedIndexDescriptor::template from_euclidean_element<Scalar>(g, local_index, euclidean_start);
     }
 
 
     /**
-     * \brief Return a functor wrapping an angle.
+     * \brief Perform modular wrapping of an element.
      * \details The wrapping operation is equivalent to mapping to, and then back from, Euclidean space.
-     * \returns A functor returning the result of type <code>Scalar</code> and taking the following:
-     * - an element getter (<code>std::function&lt;Scalar(std::size_t)&rt;</code>);
-     * - a local index relative to this index descriptor (starting at 0) accessing the element; and
-     * - the starting location of the index descriptor within any larger set of index type descriptors.
+     * \param g An element getter (<code>std::function&lt;Scalar(std::size_t)&rt;</code>)
+     * \param local_index A local index relative to the original coordinates (starting at 0)
+     * \param start The starting location of the angle within any larger set of index type descriptors
      */
-    virtual std::function<Scalar(const Getter&, std::size_t local_index, std::size_t start)>
-    wrap_get_element() const final
+    virtual Scalar wrap_get_element(const Getter& g, std::size_t local_index, std::size_t start) const final
     {
-      return [](const Getter& g, std::size_t local_index, std::size_t start) {
-        if constexpr (untyped_index_descriptor<FixedIndexDescriptor>)
-          return g(start + local_index);
-        else
-          return FixedIndexDescriptor::wrap_get_element(g, local_index, start);
-      };
+      if constexpr (euclidean_index_descriptor<FixedIndexDescriptor>)
+        return g(start + local_index);
+      else
+        return FixedIndexDescriptor::template wrap_get_element<Scalar>(g, local_index, start);
     }
 
 
     /**
-     * \brief Return a functor setting an angle and then wrapping the angle.
+     * \brief Set an element and then perform any necessary modular wrapping.
      * \details The operation is equivalent to setting the angle and then mapping to, and then back from, Euclidean space.
-     * \returns A functor returning the result of type <code>Scalar</code> and taking the following:
-     * - an element setter (<code>std::function&lt;void(std::size_t, Scalar)&rt;</code>);
-     * - an element getter (<code>std::function&lt;Scalar(std::size_t)&rt;</code>);
-     * - a new value of type Scalar to set;
-     * - a local index relative to this index descriptor (starting at 0) accessing the element; and
-     * - the starting location of the index descriptor within any larger set of index type descriptors.
+     * \param s An element setter (<code>std::function&lt;void(std::size_t, Scalar)&rt;</code>)
+     * \param g An element getter (<code>std::function&lt;Scalar(std::size_t)&rt;</code>)
+     * \param local_index A local index relative to the original coordinates (starting at 0)
+     * \param start The starting location of the angle within any larger set of index type descriptors
      */
-    virtual std::function<void(const Setter&, const Getter&, Scalar x, std::size_t local_index, std::size_t start)>
-    wrap_set_element() const final
+    virtual void wrap_set_element(const Setter& s, const Getter& g, Scalar x, std::size_t local_index, std::size_t start) const final
     {
-      return [](const Setter& s, const Getter& g, Scalar x, std::size_t local_index, std::size_t start) {
-        if constexpr (untyped_index_descriptor<FixedIndexDescriptor>)
-          return s(x, start + local_index);
-        else
-          return FixedIndexDescriptor::wrap_set_element(s, g, x, local_index, start);
-      };
+      if constexpr (euclidean_index_descriptor<FixedIndexDescriptor>)
+        return s(x, start + local_index);
+      else
+        return FixedIndexDescriptor::template wrap_set_element<Scalar>(s, g, x, local_index, start);
     }
 
 
     /**
      * \brief Whether this index descriptor is untyped
-     * \sa untyped_index_descriptor
+     * \sa euclidean_index_descriptor
      */
     bool is_untyped() const final
     {
-      return untyped_index_descriptor<FixedIndexDescriptor>;
-    }
-
-
-    /**
-     * \brief Whether this index descriptor is composite
-     * \sa composite_index_descriptor
-     */
-    bool is_composite() const final
-    {
-      return composite_index_descriptor<FixedIndexDescriptor>;
+      return euclidean_index_descriptor<FixedIndexDescriptor>;
     }
 
 

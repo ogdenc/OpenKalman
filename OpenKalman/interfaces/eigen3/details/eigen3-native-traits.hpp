@@ -26,14 +26,14 @@ namespace Eigen::internal
   struct traits<OpenKalman::Eigen3::EigenWrapper<NestedMatrix>> : traits<NestedMatrix> {};
 
 
-  template<typename Coefficients, typename ArgType>
-  struct traits<OpenKalman::Mean<Coefficients, ArgType>>
+  template<typename TypedIndex, typename ArgType>
+  struct traits<OpenKalman::Mean<TypedIndex, ArgType>>
     : traits<std::decay_t<ArgType>>
   {
     using Base = traits<std::decay_t<ArgType>>;
     enum
     {
-      Flags = (untyped_index_descriptor<Coefficients> ? Base::Flags : Base::Flags & ~LvalueBit),
+      Flags = (euclidean_index_descriptor<TypedIndex> ? Base::Flags : Base::Flags & ~LvalueBit),
     };
   };
 
@@ -48,8 +48,8 @@ namespace Eigen::internal
     : traits<std::decay_t<ArgType>> {};
 
 
-  template<typename Coefficients, typename ArgType>
-  struct traits<OpenKalman::Covariance<Coefficients, ArgType>>
+  template<typename TypedIndex, typename ArgType>
+  struct traits<OpenKalman::Covariance<TypedIndex, ArgType>>
     : traits<typename OpenKalman::MatrixTraits<ArgType>::template SelfAdjointMatrixFrom<>>
   {
     using Base = traits<typename OpenKalman::MatrixTraits<ArgType>::template SelfAdjointMatrixFrom<>>;
@@ -60,8 +60,8 @@ namespace Eigen::internal
   };
 
 
-  template<typename Coefficients, typename ArgType>
-  struct traits<OpenKalman::SquareRootCovariance<Coefficients, ArgType>>
+  template<typename TypedIndex, typename ArgType>
+  struct traits<OpenKalman::SquareRootCovariance<TypedIndex, ArgType>>
     : traits<typename OpenKalman::MatrixTraits<ArgType>::template TriangularMatrixFrom<>>
   {
     using Base = traits<typename OpenKalman::MatrixTraits<ArgType>::template TriangularMatrixFrom<>>;
@@ -153,7 +153,7 @@ namespace Eigen::internal
     using Nested = std::decay_t<ArgType>;
     enum
     {
-      Flags = untyped_index_descriptor<Coeffs> ?
+      Flags = euclidean_index_descriptor<Coeffs> ?
               traits<Nested>::Flags :
               traits<Nested>::Flags & (~DirectAccessBit) & (~PacketAccessBit) & (~LvalueBit) &
                 (~(OpenKalman::column_dimension_of_v<ArgType> == 1 ? 0 : LinearAccessBit)),
@@ -172,7 +172,7 @@ namespace Eigen::internal
     using Nested = std::decay_t<ArgType>;
     enum
     {
-      Flags = untyped_index_descriptor<Coeffs> ?
+      Flags = euclidean_index_descriptor<Coeffs> ?
               traits<Nested>::Flags :
               traits<Nested>::Flags & (~DirectAccessBit) & (~PacketAccessBit) & (~LvalueBit) &
                 (~(OpenKalman::column_dimension_of_v<ArgType> == 1 ? 0 : LinearAccessBit)),
@@ -193,7 +193,7 @@ namespace Eigen::internal
     using Nested = std::decay_t<ArgType>;
     enum
     {
-      Flags = untyped_index_descriptor<Coeffs> ?
+      Flags = euclidean_index_descriptor<Coeffs> ?
               traits<Nested>::Flags :
               traits<Nested>::Flags & (~DirectAccessBit) & (~PacketAccessBit) & (~LvalueBit) &
                 (~(OpenKalman::column_dimension_of_v<ArgType> == 1 ? 0 : LinearAccessBit)),

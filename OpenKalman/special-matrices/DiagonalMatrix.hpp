@@ -79,7 +79,7 @@ namespace OpenKalman::Eigen3
       (dynamic_columns<Arg> or dynamic_rows<NestedMatrix> or column_dimension_of<Arg>::value == dim) and
       std::is_constructible_v<NestedMatrix, decltype(diagonal_of(std::declval<Arg>()))>, int> = 0>
 #endif
-    DiagonalMatrix(Arg&& arg) noexcept
+    DiagonalMatrix(Arg&& arg)
       : Base {[](Arg&& arg) -> decltype(auto) {
         if constexpr (dynamic_rows<Arg> and not dynamic_rows<NestedMatrix>)
         {
@@ -103,11 +103,11 @@ namespace OpenKalman::Eigen3
       (dynamic_rows<Arg> or dynamic_rows<NestedMatrix> or row_dimension_of<Arg>::value == dim) and
       std::is_constructible_v<NestedMatrix, Arg&&>, int> = 0>
 #endif
-    explicit DiagonalMatrix(Arg&& arg) noexcept
+    explicit DiagonalMatrix(Arg&& arg)
       : Base {[](Arg&& arg) -> decltype(auto) {
         if constexpr (dynamic_rows<Arg> and not dynamic_rows<NestedMatrix>)
         {
-          auto r = get_dimensions_of<0>(std::forward<Arg>(arg));
+          auto r = get_index_dimension_of<0>(std::forward<Arg>(arg));
           if (r != dim) throw std::domain_error {"DiagonalMatrix argument has " + std::to_string(r) +
             " rows, but should have " + std::to_string(dim) + " at line " + std::to_string(__LINE__) +
             " of " + __FILE__};
@@ -115,7 +115,7 @@ namespace OpenKalman::Eigen3
 
         if constexpr (dynamic_columns<Arg>)
         {
-          auto c = get_dimensions_of<1>(std::forward<Arg>(arg));
+          auto c = get_index_dimension_of<1>(std::forward<Arg>(arg));
           if (c != 1) throw std::domain_error {"DiagonalMatrix argument has " + std::to_string(c) +
             " columns, but should have 1 at line " + std::to_string(__LINE__) + " of " + __FILE__};
         }
@@ -136,7 +136,7 @@ namespace OpenKalman::Eigen3
 #else
     template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...> and
         (has_dynamic_dimensions<NestedMatrix> or sizeof...(Args) == dim) and
-        std::is_constructible_v<NestedMatrix, eigen_matrix_t<Scalar, sizeof...(Args), 1>>, int> = 0>
+        std::is_constructible_v<NestedMatrix, untyped_dense_writable_matrix_t<NestedMatrix, sizeof...(Args), 1>>, int> = 0>
 #endif
     DiagonalMatrix(Args ... args) : Base {MatrixTraits<NestedMatrix>::make(static_cast<const Scalar>(args)...)} {}
 
@@ -146,20 +146,20 @@ namespace OpenKalman::Eigen3
      * \details Only the diagonal elements are extracted.
      */
 #if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS
-    template<std::convertible_to<const Scalar> ... Args> requires (sizeof...(Args) == dim * dim) and
-      (dim > 1) and requires(Args ... args) {
-        NestedMatrix {diagonal_of(MatrixTraits<eigen_matrix_t<Scalar, dim, dim>>::make(
+    template<std::convertible_to<const Scalar> ... Args> requires (sizeof...(Args) == dim * dim) and (dim > 1) and
+      requires(Args ... args) {
+        NestedMatrix {diagonal_of(make_dense_writable_matrix_from<NestedMatrix, dim, dim, Scalar>(
           static_cast<const Scalar>(args)...))};
       }
 #else
     template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...> and
         (sizeof...(Args) == dim * dim) and (dim > 1) and
         std::is_constructible_v<NestedMatrix, decltype(diagonal_of(
-          MatrixTraits<eigen_matrix_t<Scalar, dim, dim>>::make(
+          make_dense_writable_matrix_from<NestedMatrix, dim, dim, Scalar>(
             static_cast<const Scalar>(std::declval<Args>())...)))>, int> = 0>
 #endif
     DiagonalMatrix(Args ... args) : Base {diagonal_of(
-      MatrixTraits<eigen_matrix_t<Scalar, dim, dim>>::make(static_cast<const Scalar>(args)...))} {}
+      make_dense_writable_matrix_from<NestedMatrix, dim, dim, Scalar>(static_cast<const Scalar>(args)...))} {}
 
 
     /// Assign from another \ref eigen_diagonal_expr.
@@ -385,20 +385,6 @@ namespace OpenKalman::Eigen3
 #endif
   explicit DiagonalMatrix(Arg&&) -> DiagonalMatrix<passable_t<Arg>>;
 
-
-  /**
-   * \brief Deduce DiagonalMatrix template parameters when constructed from a list of coefficient values.
-   * \tparam Arg A first coefficient value (e.g., float, double, complex)
-   * \tparam Args Other coefficient values (e.g., float, double, complex)
-   */
-#ifdef __cpp_concepts
-  template<scalar_type Arg, scalar_type ... Args> requires (std::common_with<Arg, Args> and ...)
-#else
-  template<typename Arg, typename ... Args, std::enable_if_t<
-    (scalar_type<Arg> and ... and scalar_type<Args>), int> = 0>
-#endif
-    DiagonalMatrix(const Arg&, const Args& ...) -> DiagonalMatrix<
-      Eigen3::eigen_matrix_t<std::common_type_t<Arg, Args...>, 1 + sizeof...(Args), 1>>;
 
 } // OpenKalman::Eigen3
 

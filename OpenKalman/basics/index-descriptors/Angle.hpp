@@ -159,7 +159,7 @@ namespace OpenKalman
   struct Angle
   {
 #ifndef __cpp_concepts
-    static_assert(std::is_floating_point_v<decltype(Limits<double>::min)>)
+    static_assert(std::is_floating_point_v<decltype(Limits<double>::min)>);
     static_assert(std::is_floating_point_v<decltype(Limits<double>::max)>);
     static_assert(Limits<double>::min < Limits<double>::max);
     static_assert((Limits<double>::min <= 0) and (0 <= Limits<double>::max));
@@ -292,46 +292,53 @@ namespace OpenKalman
   };
 
 
-  /**
-   * \brief Angle is represented by one coordinate.
-   */
-  template<template<typename Scalar> typename Limits>
-  struct dimension_size_of<Angle<Limits>> : std::integral_constant<std::size_t, 1>
+  namespace interface
   {
-    constexpr static std::size_t get(const Angle<Limits>&) { return 1; }
-  };
+    /**
+     * \internal
+     * \brief Angle is represented by one coordinate.
+     */
+    template<template<typename Scalar> typename Limits>
+    struct IndexDescriptorSize<Angle<Limits>> : std::integral_constant<std::size_t, 1>
+    {
+      constexpr static std::size_t get(const Angle<Limits>&) { return 1; }
+    };
 
 
-  /**
-   * \brief Angle is represented by two coordinates in Euclidean space.
-   */
-  template<template<typename Scalar> typename Limits>
-  struct euclidean_dimension_size_of<Angle<Limits>> : std::integral_constant<std::size_t, 2>
-  {
-    constexpr static std::size_t get(const Angle<Limits>&) { return 2; }
-  };
+    /**
+     * \internal
+     * \brief Angle is represented by two coordinates in Euclidean space.
+     */
+    template<template<typename Scalar> typename Limits>
+    struct EuclideanIndexDescriptorSize<Angle<Limits>> : std::integral_constant<std::size_t, 2>
+    {
+      constexpr static std::size_t get(const Angle<Limits>&) { return 2; }
+    };
 
 
-  /**
-   * \brief The number of atomic components.
-   */
-  template<template<typename Scalar> typename Limits>
-  struct index_descriptor_components_of<Angle<Limits>> : std::integral_constant<std::size_t, 1>
-  {
-    constexpr static std::size_t get(const Angle<Limits>&) { return 1; }
-  };
+    /**
+     * \internal
+     * \brief The number of atomic components.
+     */
+    template<template<typename Scalar> typename Limits>
+    struct IndexDescriptorComponentCount<Angle<Limits>> : std::integral_constant<std::size_t, 1>
+    {
+      constexpr static std::size_t get(const Angle<Limits>&) { return 1; }
+    };
 
 
-  /**
-   * \internal
-   * \brief The type of the result when subtracting two Angle values.
-   * \details A distance between two points on a circle cannot be more than the circumference of the circle,
-   * so it must be wrapped as an Angle.
-   * See David Frederic Crouse, Cubature/Unscented/Sigma Point Kalman Filtering with Angular Measurement Models,
-   * 18th Int'l Conf. on Information Fusion 1550, 1553 (2015).
-   */
-  template<template<typename Scalar> typename Limits>
-  struct dimension_difference_of<Angle<Limits>> { using type = Angle<Limits>; };
+    /**
+     * \internal
+     * \brief The type of the result when subtracting two Angle values.
+     * \details A distance between two points on a circle cannot be more than the circumference of the circle,
+     * so it must be wrapped as an Angle.
+     * See David Frederic Crouse, Cubature/Unscented/Sigma Point Kalman Filtering with Angular Measurement Models,
+     * 18th Int'l Conf. on Information Fusion 1550, 1553 (2015).
+     */
+    template<template<typename Scalar> typename Limits>
+    struct IndexDescriptorDifferenceType<Angle<Limits>> { using type = Angle<Limits>; };
+
+  } // namespace interface
 
 
 } // namespace OpenKalman

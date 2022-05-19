@@ -13,7 +13,7 @@
 using namespace OpenKalman;
 using namespace OpenKalman::test;
 
-using Axis2 = Coefficients<Axis, Axis>;
+using Axis2 = TypedIndex<Axis, Axis>;
 using M2 = Mean<Axis2>;
 using Mat2 = Matrix<Axis2, Axis2>;
 

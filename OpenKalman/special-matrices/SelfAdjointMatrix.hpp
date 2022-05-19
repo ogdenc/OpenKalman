@@ -172,8 +172,8 @@ namespace OpenKalman::Eigen3
 #endif
     explicit SelfAdjointMatrix(Arg&& arg) noexcept
       : Base {[](Arg&& arg) -> decltype(auto) {
-        if constexpr (dynamic_rows<Arg> and dim != dynamic_size) assert(get_dimensions_of<0>(arg) == dim);
-        if constexpr (dynamic_columns<Arg> and dim != dynamic_size) assert(get_dimensions_of<1>(arg) == dim);
+        if constexpr (dynamic_rows<Arg> and dim != dynamic_size) assert(get_index_dimension_of<0>(arg) == dim);
+        if constexpr (dynamic_columns<Arg> and dim != dynamic_size) assert(get_index_dimension_of<1>(arg) == dim);
         return std::forward<Arg>(arg);
       }(std::forward<Arg>(arg))} {}
 
@@ -190,8 +190,8 @@ namespace OpenKalman::Eigen3
 #endif
     explicit SelfAdjointMatrix(Arg&& arg) noexcept
       : Base {[](Arg&& arg) -> decltype(auto) {
-        if constexpr (dynamic_rows<Arg> and dim != dynamic_size) assert(get_dimensions_of<0>(arg) == dim);
-        if constexpr (dynamic_columns<Arg> and dim != dynamic_size) assert(get_dimensions_of<1>(arg) == dim);
+        if constexpr (dynamic_rows<Arg> and dim != dynamic_size) assert(get_index_dimension_of<0>(arg) == dim);
+        if constexpr (dynamic_columns<Arg> and dim != dynamic_size) assert(get_index_dimension_of<1>(arg) == dim);
         return diagonal_of(std::forward<Arg>(arg));
       }(std::forward<Arg>(arg))} {}
 
@@ -211,9 +211,9 @@ namespace OpenKalman::Eigen3
       (sizeof...(Args) > 0) and
       (storage_triangle != TriangleType::diagonal or diagonal_matrix<NestedMatrix>) and
       (std::is_constructible_v<NestedMatrix,
-          eigen_matrix_t<Scalar, constexpr_sqrt(sizeof...(Args)), constexpr_sqrt(sizeof...(Args))>> or
+        untyped_dense_writable_matrix_t<NestedMatrix, constexpr_sqrt(sizeof...(Args)), constexpr_sqrt(sizeof...(Args))>> or
         (diagonal_matrix<NestedMatrix> and std::is_constructible_v<NestedMatrix,
-          eigen_matrix_t<Scalar, sizeof...(Args), 1>>)), int> = 0>
+          untyped_dense_writable_matrix_t<NestedMatrix, sizeof...(Args), 1>>)), int> = 0>
 #endif
     SelfAdjointMatrix(Args ... args)
       : Base {MatrixTraits<NestedMatrix>::make(static_cast<const Scalar>(args)...)} {}
@@ -236,9 +236,9 @@ namespace OpenKalman::Eigen3
     template<typename ... Args, std::enable_if_t<(sizeof...(Args) > 0) and
       std::conjunction_v<std::is_convertible<Args, const Scalar>...> and
       (storage_triangle == TriangleType::diagonal) and (not diagonal_matrix<NestedMatrix>) and
-      (std::is_constructible_v<NestedMatrix, eigen_matrix_t<Scalar, sizeof...(Args), 1>> or
+      (std::is_constructible_v<NestedMatrix, untyped_dense_writable_matrix_t<NestedMatrix, sizeof...(Args), 1>> or
        std::is_constructible_v<NestedMatrix,
-         eigen_matrix_t<Scalar, constexpr_sqrt(sizeof...(Args)), constexpr_sqrt(sizeof...(Args))>>), int> = 0>
+         untyped_dense_writable_matrix_t<NestedMatrix, constexpr_sqrt(sizeof...(Args)), constexpr_sqrt(sizeof...(Args))>>), int> = 0>
 #endif
     SelfAdjointMatrix(Args ... args)
       : Base {MatrixTraits<typename MatrixTraits<NestedMatrix>::template DiagonalMatrixFrom<>>::make(
@@ -332,23 +332,9 @@ namespace OpenKalman::Eigen3
       {
         this->nested_matrix() = make_identity_matrix_like(this->nested_matrix());
       }
-      else if constexpr (Eigen3::eigen_SelfAdjointView<Arg>)
+      else if constexpr(self_adjoint_triangle_type_of_v<Arg> != storage_triangle)
       {
-        if constexpr(self_adjoint_triangle_type_of_v<Arg> == storage_triangle)
-        {
-          if constexpr (std::is_rvalue_reference_v<Arg>)
-          {
-            this->nested_matrix() = std::move(arg.nestedExpression());
-          }
-          else
-          {
-            this->nested_matrix().template triangularView<uplo>() = arg.nestedExpression();
-          }
-        }
-        else
-        {
-          this->nested_matrix().template triangularView<uplo>() = arg.nestedExpression().transpose();
-        }
+        this->nested_matrix() = transpose(std::forward<Arg>(arg));
       }
       else
       {
@@ -435,9 +421,9 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-  template<eigen_matrix Arg>
+  template<typename Arg> requires (eigen_zero_expr<Arg> or eigen_constant_expr<Arg>)
 #else
-  template<typename Arg, std::enable_if_t<eigen_matrix<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<eigen_zero_expr<Arg> or eigen_constant_expr<Arg>, int> = 0>
 #endif
   explicit SelfAdjointMatrix(Arg&&) -> SelfAdjointMatrix<passable_t<Arg>, TriangleType::lower>;
 
@@ -451,40 +437,17 @@ namespace OpenKalman::Eigen3
     SelfAdjointMatrix<equivalent_self_contained_t<nested_matrix_of_t<Arg>>, TriangleType::diagonal>;
 
 
-#ifdef __cpp_concepts
-  template<Eigen3::eigen_SelfAdjointView M>
-#else
-  template<typename M, std::enable_if_t<Eigen3::eigen_SelfAdjointView<M>, int> = 0>
-#endif
-  SelfAdjointMatrix(M&&) -> SelfAdjointMatrix<nested_matrix_of_t<M>, self_adjoint_triangle_type_of_v<M>>;
-
-
-  /// If the arguments are a sequence of scalars, deduce a square, self-adjoint matrix.
-#ifdef __cpp_concepts
-  template<scalar_type Arg, scalar_type ... Args> requires (std::common_with<Arg, Args> and ...)
-#else
-    template<typename Arg, typename ... Args, std::enable_if_t<
-    (scalar_type<Arg> and ... and scalar_type<Args>), int> = 0>
-#endif
-  SelfAdjointMatrix(const Arg&, const Args& ...) -> SelfAdjointMatrix<
-    Eigen3::eigen_matrix_t<
-      std::common_type_t<Arg, Args...>,
-      constexpr_sqrt(1 + sizeof...(Args)),
-      constexpr_sqrt(1 + sizeof...(Args))>,
-    TriangleType::lower>;
-
-
   // ----------------------------- //
   //        Make functions         //
   // ----------------------------- //
 
 #ifdef __cpp_concepts
   template<TriangleType t = TriangleType::lower, typename M>
-  requires eigen_matrix<M> or eigen_diagonal_expr<M>
+  requires eigen_zero_expr<M> or eigen_constant_expr<M> or eigen_diagonal_expr<M>
 #else
   template<
     TriangleType t = TriangleType::lower, typename M,
-    std::enable_if_t<eigen_matrix<M> or eigen_diagonal_expr<M>, int> = 0>
+    std::enable_if_t<eigen_zero_expr<M> or eigen_constant_expr<M> or eigen_diagonal_expr<M>, int> = 0>
 #endif
   auto
   make_EigenSelfAdjointMatrix(M&& m)

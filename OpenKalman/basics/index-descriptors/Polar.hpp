@@ -29,11 +29,7 @@ namespace OpenKalman
    * \tparam C1, C2 Distance and Angle, in either order. By default, they are Distance and angle::Radians, respectively.
    * \internal
    */
-#ifdef __cpp_concepts
-  template<atomic_fixed_index_descriptor C1 = Distance, atomic_fixed_index_descriptor C2 = angle::Radians>
-#else
-  template<typename C1 = Distance, typename C2 = angle::Radians, typename = void>
-#endif
+  template<typename C1 = Distance, typename C2 = angle::Radians>
   struct Polar;
 
 
@@ -207,50 +203,57 @@ namespace OpenKalman
   struct Polar<Angle<Limits>, Distance> : detail::PolarBase<Limits, 1, 0,  2, 0, 1> {};
 
 
-  /**
-   * \internal
-   * \brief Polar is represented by two coordinates.
-   */
-   template<typename T1, typename T2>
-   struct dimension_size_of<Polar<T1, T2>> : std::integral_constant<std::size_t, 2>
-   {
-     constexpr static std::size_t get(const Polar<T1, T2>&) { return 2; }
-   };
-
-
-  /**
-   * \brief The number of atomic components.
-   */
-  template<typename T1, typename T2>
-  struct index_descriptor_components_of<Polar<T1, T2>> : std::integral_constant<std::size_t, 1>
+  namespace interface
   {
-    constexpr static std::size_t get(const Polar<T1, T2>&) { return 1; }
-  };
+    /**
+     * \internal
+     * \brief Polar is represented by two coordinates.
+     */
+     template<typename T1, typename T2>
+     struct IndexDescriptorSize<Polar<T1, T2>> : std::integral_constant<std::size_t, 2>
+     {
+       constexpr static std::size_t get(const Polar<T1, T2>&) { return 2; }
+     };
 
 
-  /**
-   * \internal
-   * \brief Polar is represented by three coordinates in Euclidean space.
-   */
-   template<typename T1, typename T2>
-   struct euclidean_dimension_size_of<Polar<T1, T2>> : std::integral_constant<std::size_t, 3>
-   {
-     constexpr static std::size_t get(const Polar<T1, T2>&) { return 3; }
-   };
+    /**
+     * \internal
+     * \brief Polar is represented by three coordinates in Euclidean space.
+     */
+    template<typename T1, typename T2>
+    struct EuclideanIndexDescriptorSize<Polar<T1, T2>> : std::integral_constant<std::size_t, 3>
+    {
+      constexpr static std::size_t get(const Polar<T1, T2>&) { return 3; }
+    };
 
 
-  /**
-   * \internal
-   * \brief The type of the result when subtracting two Polar vectors.
-   * \details For differences, each coordinate behaves as if it were Distance or Angle.
-   * See David Frederic Crouse, Cubature/Unscented/Sigma Point Kalman Filtering with Angular Measurement Models,
-   * 18th Int'l Conf. on Information Fusion 1550, 1553 (2015).
-   */
-  template<typename T1, typename T2>
-  struct dimension_difference_of<Polar<T1, T2>>
-  {
-    using type = Concatenate<dimension_difference_of_t<T1>, dimension_difference_of_t<T2>>;
-  };
+    /**
+     * \internal
+     * \brief The number of atomic components.
+     */
+     template<typename T1, typename T2>
+     struct IndexDescriptorComponentCount<Polar<T1, T2>> : std::integral_constant<std::size_t, 1>
+     {
+       constexpr static std::size_t get(const Polar<T1, T2>&) { return 1; }
+     };
+
+
+    /**
+     * \internal
+     * \brief The type of the result when subtracting two Polar vectors.
+     * \details For differences, each coordinate behaves as if it were Distance or Angle.
+     * See David Frederic Crouse, Cubature/Unscented/Sigma Point Kalman Filtering with Angular Measurement Models,
+     * 18th Int'l Conf. on Information Fusion 1550, 1553 (2015).
+     */
+    template<typename T1, typename T2>
+    struct IndexDescriptorDifferenceType<Polar<T1, T2>>
+    {
+      using type = concatenate_fixed_index_descriptor_t<
+        typename IndexDescriptorDifferenceType<T1>::type,
+        typename IndexDescriptorDifferenceType<T2>::type>;
+    };
+
+  } // namespace interface
 
 
 }// namespace OpenKalman

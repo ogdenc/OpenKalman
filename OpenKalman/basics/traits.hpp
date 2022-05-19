@@ -111,7 +111,7 @@ namespace OpenKalman
 #else
   template<typename T, auto...D>
 #endif
-  using untyped_dense_writable_matrix_t = dense_writable_matrix_t<T, Dimensions<static_cast<std::size_t>(D)>...>;
+  using untyped_dense_writable_matrix_t = dense_writable_matrix_t<T, Dimensions<get_dimension_size_of(D)>...>;
 
 
   // --------------------------- //

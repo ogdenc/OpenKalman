@@ -17,8 +17,8 @@ using std::numbers::pi;
 
 inline namespace
 {
-  using C2 = Coefficients<Axis, Axis>;
-  using P2 = Coefficients<Polar<>>;
+  using C2 = TypedIndex<Axis, Axis>;
+  using P2 = TypedIndex<Polar<>>;
 
   const GaussianDistribution input1 {Mean<C2>(std::cos(0.9999 * pi), std::sin(0.9999 * pi)), Covariance<C2>(0.25, 0, 0, 0.25)};
   const GaussianDistribution input1_tri {Mean<C2>(std::cos(0.9999 * pi), std::sin(0.9999 * pi)), make_covariance<C2, TriangleType::lower>(0.25, 0, 0, 0.25)};

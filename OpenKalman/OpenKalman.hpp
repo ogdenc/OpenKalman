@@ -27,6 +27,7 @@
 namespace OpenKalman {}
 
 #include "basics/basics.hpp"
+#include "special-matrices/special-matrices.hpp"
 #include "matrices/matrices.hpp"
 #include "distributions/distributions.hpp"
 #include "transformations/transformations.hpp"

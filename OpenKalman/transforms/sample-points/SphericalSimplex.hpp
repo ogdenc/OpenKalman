@@ -121,12 +121,12 @@ namespace OpenKalman
     static constexpr auto
     unscaled_sigma_points(std::index_sequence<ns...>)
     {
-      using Coefficients = typename DistributionTraits<Dist>::Coefficients;
+      using TypedIndex = typename DistributionTraits<Dist>::TypedIndex;
       using Scalar = typename DistributionTraits<Dist>::Scalar;
       constexpr auto rows = index_dimension_of_v<Dist, 0>;
       constexpr auto count = sigma_point_count<dim>;
       using Xnative = untyped_dense_writable_matrix_t<typename DistributionTraits<Dist>::Mean, rows, count>;
-      Matrix<Coefficients, Dimensions<count>, Xnative> X {sigma_point_coeff<ns / count + pos, ns % count, dim, Scalar>()...};
+      Matrix<TypedIndex, Dimensions<count>, Xnative> X {sigma_point_coeff<ns / count + pos, ns % count, dim, Scalar>()...};
       return X;
     }
 

@@ -51,7 +51,7 @@ namespace OpenKalman
     sample_points_impl(const D& d, const Ds&...ds)
     {
       using Scalar = typename DistributionTraits<D>::Scalar;
-      using Coeffs = typename DistributionTraits<D>::Coefficients;
+      using Coeffs = typename DistributionTraits<D>::TypedIndex;
       using M = typename DistributionTraits<D>::Mean;
       constexpr auto points_count = dim * 2;
       constexpr auto dim_i = index_dimension_of_v<D, 0>;
@@ -162,12 +162,12 @@ namespace OpenKalman
      */
     template<std::size_t dim, typename InputDist, bool return_cross = false, typed_matrix X, typed_matrix Y> requires
       (column_dimension_of_v<X> == column_dimension_of_v<Y>) and (column_dimension_of_v<X> == dim * 2) and
-      equivalent_to<row_coefficient_types_of_t<X>, typename DistributionTraits<InputDist>::Coefficients>
+      equivalent_to<row_coefficient_types_of_t<X>, typename DistributionTraits<InputDist>::TypedIndex>
 #else
     template<std::size_t dim, typename InputDist, bool return_cross = false, typename X, typename Y, std::enable_if_t<
       typed_matrix<X> and typed_matrix<Y> and (column_dimension_of<X>::value == column_dimension_of<Y>::value) and
       (column_dimension_of<X>::value == dim * 2) and
-      equivalent_to<row_coefficient_types_of_t<X>, typename DistributionTraits<InputDist>::Coefficients>,
+      equivalent_to<row_coefficient_types_of_t<X>, typename DistributionTraits<InputDist>::TypedIndex>,
         int> = 0>
 #endif
     static auto

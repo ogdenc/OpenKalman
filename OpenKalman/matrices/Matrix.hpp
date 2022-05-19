@@ -208,11 +208,11 @@ namespace OpenKalman
 
     /// Add a stochastic value to each column of the matrix, based on a distribution.
 #ifdef __cpp_concepts
-    template<distribution Arg> requires (untyped_index_descriptor<ColumnCoefficients>) and
-      (equivalent_to<typename DistributionTraits<Arg>::Coefficients, RowCoefficients>)
+    template<distribution Arg> requires (euclidean_index_descriptor<ColumnCoefficients>) and
+      (equivalent_to<typename DistributionTraits<Arg>::TypedIndex, RowCoefficients>)
 #else
-    template<typename Arg, std::enable_if_t<distribution<Arg> and (untyped_index_descriptor<ColumnCoefficients>) and
-      (equivalent_to<typename DistributionTraits<Arg>::Coefficients, RowCoefficients>), int> = 0>
+    template<typename Arg, std::enable_if_t<distribution<Arg> and (euclidean_index_descriptor<ColumnCoefficients>) and
+      (equivalent_to<typename DistributionTraits<Arg>::TypedIndex, RowCoefficients>), int> = 0>
 #endif
     auto& operator+=(const Arg& arg) noexcept
     {
@@ -248,11 +248,11 @@ namespace OpenKalman
 
     /// Subtract a stochastic value to each column of the matrix, based on a distribution.
 #ifdef __cpp_concepts
-    template<distribution Arg> requires (untyped_index_descriptor<ColumnCoefficients>) and
-      (equivalent_to<typename DistributionTraits<Arg>::Coefficients, RowCoefficients>)
+    template<distribution Arg> requires (euclidean_index_descriptor<ColumnCoefficients>) and
+      (equivalent_to<typename DistributionTraits<Arg>::TypedIndex, RowCoefficients>)
 #else
-    template<typename Arg, std::enable_if_t<distribution<Arg> and (untyped_index_descriptor<ColumnCoefficients>) and
-      (equivalent_to<typename DistributionTraits<Arg>::Coefficients, RowCoefficients>), int> = 0>
+    template<typename Arg, std::enable_if_t<distribution<Arg> and (euclidean_index_descriptor<ColumnCoefficients>) and
+      (equivalent_to<typename DistributionTraits<Arg>::TypedIndex, RowCoefficients>), int> = 0>
 #endif
     auto& operator-=(const Arg& arg) noexcept
     {

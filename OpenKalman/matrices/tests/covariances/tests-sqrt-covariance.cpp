@@ -14,7 +14,7 @@ using namespace OpenKalman;
 using namespace OpenKalman::test;
 
 using M2 = eigen_matrix_t<double, 2, 2>;
-using C = Coefficients<angle::Radians, Axis>;
+using C = TypedIndex<angle::Radians, Axis>;
 using Mat2 = Matrix<C, C, M2>;
 using Mat2col = Matrix<C, Axis, eigen_matrix_t<double, 2, 1>>;
 using SA2l = SelfAdjointMatrix<M2, TriangleType::lower>;
@@ -916,7 +916,7 @@ TEST(covariance_tests, SquareRootCovariance_overloads)
 
 TEST(covariance_tests, SquareRootCovariance_blocks)
 {
-  using C4 = Concatenate<C, C>;
+  using C4 = concatenate_fixed_index_descriptor_t<C, C>;
   using M4 = eigen_matrix_t<double, 4, 4>;
   using Mat4 = Matrix<C4, C4, M4>;
   using SqCovSA4l = SquareRootCovariance<C4, SelfAdjointMatrix<M4, TriangleType::lower>>;

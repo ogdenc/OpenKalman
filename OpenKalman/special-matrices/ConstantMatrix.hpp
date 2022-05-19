@@ -251,21 +251,17 @@ namespace OpenKalman::Eigen3
       return constant;
     }
 
-
-    /**
-     * \return a tuple containing \ref index_descriptor "index_descriptors" for the dimensions for this ConstantMatrix
-     */
-    auto& get_all_dimensions() & { return my_dimensions; }
-    /// \overload
-    const auto& get_all_dimensions() const & { return my_dimensions; }
-    /// \overload
-    auto&& get_all_dimensions() && { return std::move(my_dimensions); }
-    /// \overload
-    const auto&& get_all_dimensions() const && { return std::move(my_dimensions); }
-
   private:
 
     MyDimensions my_dimensions;
+
+#ifdef __cpp_concepts
+    template<typename T, std::size_t N> friend struct interface::IndexTraits;
+    template<typename T, std::size_t N> friend struct interface::CoordinateSystemTraits;
+#else
+    template<typename T, std::size_t N, typename Enable> friend struct interface::IndexTraits;
+    template<typename T, std::size_t N, typename Enable> friend struct interface::CoordinateSystemTraits;
+#endif
 
   };
 

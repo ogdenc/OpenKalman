@@ -105,13 +105,13 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<typed_matrix Arg> requires (not std::derived_from<std::decay_t<Arg>, EuclideanMean>) and
-      (euclidean_transformed<Arg> or untyped_index_descriptor<RowCoefficients>) and
+      (euclidean_transformed<Arg> or euclidean_index_descriptor<RowCoefficients>) and
       equivalent_to<row_coefficient_types_of_t<Arg>, RowCoefficients> and
       has_untyped_index<Arg, 1> and modifiable<NestedMatrix, nested_matrix_of_t<Arg>>
 #else
     template<typename Arg, std::enable_if_t<typed_matrix<Arg> and
       (not std::is_base_of_v<EuclideanMean, std::decay_t<Arg>>) and
-      (euclidean_transformed<Arg> or untyped_index_descriptor<RowCoefficients>) and
+      (euclidean_transformed<Arg> or euclidean_index_descriptor<RowCoefficients>) and
       equivalent_to<row_coefficient_types_of_t<Arg>, RowCoefficients> and
       has_untyped_index<Arg, 1> and modifiable<NestedMatrix, nested_matrix_of_t<Arg>>, int> = 0>
 #endif
@@ -184,12 +184,12 @@ namespace OpenKalman
     template<typed_matrix Arg> requires
       equivalent_to<row_coefficient_types_of_t<Arg>, RowCoefficients> and
       equivalent_to<column_coefficient_types_of_t<Arg>, ColumnCoefficients> and
-      (untyped_index_descriptor<RowCoefficients> or euclidean_transformed<Arg>)
+      (euclidean_index_descriptor<RowCoefficients> or euclidean_transformed<Arg>)
 #else
     template<typename Arg, std::enable_if_t<typed_matrix<Arg> and
       equivalent_to<row_coefficient_types_of_t<Arg>, RowCoefficients> and
       equivalent_to<column_coefficient_types_of_t<Arg>, ColumnCoefficients> and
-      (untyped_index_descriptor<RowCoefficients> or euclidean_transformed<Arg>), int> = 0>
+      (euclidean_index_descriptor<RowCoefficients> or euclidean_transformed<Arg>), int> = 0>
 #endif
     auto& operator+=(Arg&& other) noexcept
     {
@@ -200,11 +200,11 @@ namespace OpenKalman
 
     /// Add a stochastic value to each column of the matrix, based on a distribution.
 #ifdef __cpp_concepts
-    template<distribution Arg> requires untyped_index_descriptor<RowCoefficients> and
-      (equivalent_to<typename DistributionTraits<Arg>::Coefficients, RowCoefficients>)
+    template<distribution Arg> requires euclidean_index_descriptor<RowCoefficients> and
+      (equivalent_to<typename DistributionTraits<Arg>::TypedIndex, RowCoefficients>)
 #else
-    template<typename Arg, std::enable_if_t<distribution<Arg> and untyped_index_descriptor<RowCoefficients> and
-      (equivalent_to<typename DistributionTraits<Arg>::Coefficients, RowCoefficients>), int> = 0>
+    template<typename Arg, std::enable_if_t<distribution<Arg> and euclidean_index_descriptor<RowCoefficients> and
+      (equivalent_to<typename DistributionTraits<Arg>::TypedIndex, RowCoefficients>), int> = 0>
 #endif
     auto& operator+=(const Arg& arg) noexcept
     {
@@ -226,12 +226,12 @@ namespace OpenKalman
     template<typed_matrix Arg> requires
       equivalent_to<row_coefficient_types_of_t<Arg>, RowCoefficients> and
       equivalent_to<column_coefficient_types_of_t<Arg>, ColumnCoefficients> and
-      (untyped_index_descriptor<RowCoefficients> or euclidean_transformed<Arg>)
+      (euclidean_index_descriptor<RowCoefficients> or euclidean_transformed<Arg>)
 #else
     template<typename Arg, std::enable_if_t<typed_matrix<Arg> and
       equivalent_to<row_coefficient_types_of_t<Arg>, RowCoefficients> and
       equivalent_to<column_coefficient_types_of_t<Arg>, ColumnCoefficients> and
-      (untyped_index_descriptor<RowCoefficients> or euclidean_transformed<Arg>), int> = 0>
+      (euclidean_index_descriptor<RowCoefficients> or euclidean_transformed<Arg>), int> = 0>
 #endif
     auto& operator-=(Arg&& other) noexcept
     {
@@ -242,11 +242,11 @@ namespace OpenKalman
 
     /// Subtract a stochastic value to each column of the matrix, based on a distribution.
 #ifdef __cpp_concepts
-    template<distribution Arg> requires untyped_index_descriptor<RowCoefficients> and
-      (equivalent_to<typename DistributionTraits<Arg>::Coefficients, RowCoefficients>)
+    template<distribution Arg> requires euclidean_index_descriptor<RowCoefficients> and
+      (equivalent_to<typename DistributionTraits<Arg>::TypedIndex, RowCoefficients>)
 #else
-    template<typename Arg, std::enable_if_t<distribution<Arg> and untyped_index_descriptor<RowCoefficients> and
-      (equivalent_to<typename DistributionTraits<Arg>::Coefficients, RowCoefficients>), int> = 0>
+    template<typename Arg, std::enable_if_t<distribution<Arg> and euclidean_index_descriptor<RowCoefficients> and
+      (equivalent_to<typename DistributionTraits<Arg>::TypedIndex, RowCoefficients>), int> = 0>
 #endif
     auto& operator-=(const Arg& arg) noexcept
     {
@@ -307,19 +307,19 @@ euclidean_dimension_size_of_v<row_coefficient_types_of_t<V>> == row_dimension_of
 
   /**
    * \brief Make a EuclideanMean from a typed_matrix_nestable, specifying the row coefficients.
-   * \tparam Coefficients The coefficient types corresponding to the rows.
+   * \tparam TypedIndex The coefficient types corresponding to the rows.
    * \tparam M A typed_matrix_nestable with size matching ColumnCoefficients.
    */
 #ifdef __cpp_concepts
-  template<typed_index_descriptor Coefficients, typed_matrix_nestable M> requires
-    (euclidean_dimension_size_of_v<Coefficients> == row_dimension_of_v<M>)
+  template<typed_index_descriptor TypedIndex, typed_matrix_nestable M> requires
+    (euclidean_dimension_size_of_v<TypedIndex> == row_dimension_of_v<M>)
 #else
-  template<typename Coefficients, typename M, std::enable_if_t<typed_index_descriptor<Coefficients> and
-    typed_matrix_nestable<M> and (euclidean_dimension_size_of_v<Coefficients> == row_dimension_of<M>::value), int> = 0>
+  template<typename TypedIndex, typename M, std::enable_if_t<typed_index_descriptor<TypedIndex> and
+    typed_matrix_nestable<M> and (euclidean_dimension_size_of_v<TypedIndex> == row_dimension_of<M>::value), int> = 0>
 #endif
   auto make_euclidean_mean(M&& arg) noexcept
   {
-    return EuclideanMean<Coefficients, passable_t<M>>(std::forward<M>(arg));
+    return EuclideanMean<TypedIndex, passable_t<M>>(std::forward<M>(arg));
   }
 
 
@@ -362,20 +362,20 @@ euclidean_dimension_size_of_v<row_coefficient_types_of_t<V>> == row_dimension_of
   /**
    * \overload
    * \brief Make a default, self-contained EuclideanMean.
-   * \tparam Coefficients The coefficient types corresponding to the rows.
+   * \tparam TypedIndex The coefficient types corresponding to the rows.
    * \tparam M a typed_matrix_nestable on which the new matrix is based. It will be converted to a self_contained type
    * if it is not already self-contained.
    */
 #ifdef __cpp_concepts
-  template<typed_index_descriptor Coefficients, typed_matrix_nestable M> requires
-    (euclidean_dimension_size_of_v<Coefficients> == row_dimension_of_v<M>)
+  template<typed_index_descriptor TypedIndex, typed_matrix_nestable M> requires
+    (euclidean_dimension_size_of_v<TypedIndex> == row_dimension_of_v<M>)
 #else
-  template<typename Coefficients, typename M, std::enable_if_t<typed_index_descriptor<Coefficients> and
-    typed_matrix_nestable<M> and (euclidean_dimension_size_of_v<Coefficients> == row_dimension_of<M>::value), int> = 0>
+  template<typename TypedIndex, typename M, std::enable_if_t<typed_index_descriptor<TypedIndex> and
+    typed_matrix_nestable<M> and (euclidean_dimension_size_of_v<TypedIndex> == row_dimension_of<M>::value), int> = 0>
 #endif
   auto make_euclidean_mean()
   {
-    return EuclideanMean<Coefficients, dense_writable_matrix_t<M>>();
+    return EuclideanMean<TypedIndex, dense_writable_matrix_t<M>>();
   }
 
 

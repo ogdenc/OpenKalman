@@ -314,44 +314,41 @@ namespace OpenKalman::interface
 #endif
   {
 
-    template<typename...FC, typename Arg, typename...DC>
+    template<typename Arg, typename C>
     constexpr decltype(auto)
-    to_euclidean(Arg&& arg, DC&&...dc) noexcept
+    to_euclidean(Arg&& arg, const C& c) noexcept
     {
       if constexpr (eigen_zero_expr<Arg> or eigen_constant_expr<Arg>)
       {
-        return ToEuclideanExpr<FC..., DC..., Arg> {std::forward<Arg>(arg), std::forward<DC>(dc)...};
+        return ToEuclideanExpr<C, Arg> {std::forward<Arg>(arg), c};
       }
       else
       {
-        return ToEuclideanExpr<FC..., DC..., Arg> {
-          make_dense_writable_matrix_from(std::forward<Arg>(arg)), std::forward<DC>(dc)...};
+        return ToEuclideanExpr<C, Arg> {make_dense_writable_matrix_from(std::forward<Arg>(arg)), c};
       }
     }
 
 
-    template<typename...FC, typename Arg, typename...DC>
+    template<typename Arg, typename C>
     constexpr decltype(auto)
-    from_euclidean(Arg&& arg, DC&&...dc) noexcept
+    from_euclidean(Arg&& arg, const C& c) noexcept
     {
       if constexpr (eigen_zero_expr<Arg> or eigen_constant_expr<Arg>)
       {
-        return FromEuclideanExpr<FC..., DC..., Arg> {std::forward<Arg>(arg), std::forward<DC>(dc)...};
+        return FromEuclideanExpr<C, Arg> {std::forward<Arg>(arg), c};
       }
       else
       {
-        return FromEuclideanExpr<FC..., DC..., Arg> {
-          make_dense_writable_matrix_from(std::forward<Arg>(arg)), std::forward<DC>(dc)...};
+        return FromEuclideanExpr<C, Arg> {make_dense_writable_matrix_from(std::forward<Arg>(arg)), c};
       }
     }
 
 
-    template<typename...FC, typename Arg, typename...DC>
+    template<typename Arg, typename C>
     constexpr decltype(auto)
-    wrap_angles(Arg&& arg, DC&&...dc) noexcept
+    wrap_angles(Arg&& arg, const C& c) noexcept
     {
-      return FromEuclideanExpr<FC..., DC..., Arg>
-        {to_euclidean<Coefficients>(std::forward<Arg>(arg), std::forward<DC>(dc)...)};
+      return FromEuclideanExpr<C, Arg> {to_euclidean(std::forward<Arg>(arg), c), c};
     }
 
   };
@@ -656,9 +653,9 @@ namespace OpenKalman::Eigen3
     if constexpr (dynamic_rows<A>)
     {
       auto dim = get_dimensions_of<0>(a);
-      auto col1 = Eigen3::eigen_matrix_t<Scalar, dynamic_size, 1>::Constant(dim, elem);
+      auto col1 = elem * make_constant_matrix_like<A, 1>(dim, Dimensions<1>{});
 
-      eigen_matrix_t<Scalar, dynamic_size, dynamic_size> ret {dim, dim};
+      auto ret = make_default_dense_writable_matrix_like<A>(dim, dim);
 
       if (dim == 1)
         ret = std::move(col1);
@@ -669,7 +666,7 @@ namespace OpenKalman::Eigen3
     else
     {
       constexpr auto dim = row_dimension_of_v<A>;
-      auto col1 = Eigen3::eigen_matrix_t<Scalar, dim, 1>::Constant(elem);
+      auto col1 = elem * make_constant_matrix_like<A>(dim, Dimensions<1>{});
 
       if constexpr (dim != dynamic_size)
         return concatenate_horizontal(col1, make_zero_matrix_like<A>(Dimensions<dim>{}, Dimensions<dim - 1>{}));
@@ -737,9 +734,9 @@ namespace OpenKalman::Eigen3
     if constexpr (dynamic_columns<A>)
     {
       auto dim = get_dimensions_of<1>(a);
-      auto row1 = Eigen3::eigen_matrix_t<Scalar, 1, dynamic_size>::Constant(dim, elem);
+      auto row1 = elem * make_constant_matrix_like<A, 1>(Dimensions<1>{}, dim);
 
-      eigen_matrix_t<Scalar, dynamic_size, dynamic_size> ret {dim, dim};
+      auto ret = make_default_dense_writable_matrix_like<A>(dim, dim);
 
       if (dim == 1)
       {
@@ -754,7 +751,7 @@ namespace OpenKalman::Eigen3
     else
     {
       constexpr auto dim = column_dimension_of_v<A>;
-      auto row1 = Eigen3::eigen_matrix_t<Scalar, 1, dim>::Constant(elem);
+      auto row1 = elem * make_constant_matrix_like<A, 1>(Dimensions<1>{}, dim);
       if constexpr (dim > 1)
       {
         return concatenate_vertical(row1, make_zero_matrix_like<A>(Dimensions<dim - 1>{}, Dimensions<dim>{}));

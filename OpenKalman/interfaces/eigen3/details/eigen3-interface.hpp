@@ -414,8 +414,8 @@ namespace OpenKalman::interface
         eigen_SelfAdjointView<Arg> or eigen_TriangularView<Arg>)
       {
         // In this case, arg will be a one-by-one matrix.
-        if constexpr (dynamic_columns<Arg>) if (get_dimensions_of<1>(arg) != 1) throw std::invalid_argument {
-          "Argument of to_diagonal must have 1 column; instead it has " + std::to_string(get_dimensions_of<1>(arg))};
+        if constexpr (dynamic_columns<Arg>) if (get_index_dimension_of<1>(arg) != 1) throw std::invalid_argument {
+          "Argument of to_diagonal must have 1 column; instead it has " + std::to_string(get_index_dimension_of<1>(arg))};
         return std::forward<Arg>(arg).nestedExpression();
       }
       else
@@ -429,10 +429,10 @@ namespace OpenKalman::interface
     static constexpr decltype(auto)
     diagonal_of(Arg&& arg)
     {
-      if constexpr (not square_matrix<Arg>) if (get_dimensions_of<0>(arg) != get_dimensions_of<1>(arg))
+      if constexpr (not square_matrix<Arg>) if (get_index_dimension_of<0>(arg) != get_index_dimension_of<1>(arg))
         throw std::invalid_argument {"Argument of diagonal_of must be a square matrix; instead it has " +
-          std::to_string(get_dimensions_of<0>(arg)) + " rows and " + std::to_string(get_dimensions_of<1>(arg)) +
-          "columns"};
+          std::to_string(get_index_dimension_of<0>(arg)) + " rows and " +
+          std::to_string(get_index_dimension_of<1>(arg)) + " columns"};
 
       using Scalar = scalar_type_of_t<Arg>;
 
@@ -493,12 +493,14 @@ namespace OpenKalman::interface
           using M = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
           if constexpr (std::is_base_of_v<Eigen::PlainObjectBase<Diag>, Diag>)
           {
-            return M::Map(diag.data(), (Eigen::Index) (get_dimensions_of<0>(diag) * get_dimensions_of<1>(diag)));
+            return M::Map(diag.data(), (Eigen::Index) (get_index_dimension_of<0>(diag) *
+              get_index_dimension_of<1>(diag)));
           }
           else
           {
             auto d = make_dense_writable_matrix_from(diag);
-            return M::Map(d.data(), (Eigen::Index) (get_dimensions_of<0>(diag) * get_dimensions_of<1>(diag)));
+            return M::Map(d.data(), (Eigen::Index) (get_dimension_size_of(get_dimensions_of<0>(diag)) *
+              get_dimension_size_of(get_dimensions_of<1>(diag))));
           }
         }
         else // rows > 1 and cols > 1
@@ -528,28 +530,27 @@ namespace OpenKalman::interface
   struct ModularTransformationTraits<T, std::enable_if_t<native_eigen_general<T>>>
 #endif
   {
-
-    template<typename...FC, typename Arg, typename...DC>
+    template<typename Arg, typename C>
     constexpr decltype(auto)
-    to_euclidean(Arg&& arg, DC&&...dc) noexcept
+    to_euclidean(Arg&& arg, const C& c) noexcept
     {
-      return ToEuclideanExpr<FC..., DC..., Arg>(std::forward<Arg>(arg), std::forward<DC>(dc)...);
+      return ToEuclideanExpr<C, Arg>(std::forward<Arg>(arg), c);
     }
 
 
-    template<typename...FC, typename Arg, typename...DC>
+    template<typename Arg, typename C>
     constexpr decltype(auto)
-    from_euclidean(Arg&& arg, DC&&...dc) noexcept
+    from_euclidean(Arg&& arg, const C& c) noexcept
     {
-      return FromEuclideanExpr<FC..., DC..., Arg>(std::forward<Arg>(arg), std::forward<DC>(dc)...);
+      return FromEuclideanExpr<C, Arg>(std::forward<Arg>(arg), c);
     }
 
 
-    template<typename...FC, typename Arg, typename...DC>
+    template<typename Arg, typename C>
     constexpr decltype(auto)
-    wrap_angles(Arg&& arg, DC&&...dc) noexcept
+    wrap_angles(Arg&& arg, const C& c) noexcept
     {
-      return from_euclidean<FC..., DC...>(to_euclidean<FC..., DC...>(std::forward<Arg>(arg), std::forward<DC>(dc)...));
+      return from_euclidean(to_euclidean(std::forward<Arg>(arg), c), c);
     }
 
   };
@@ -787,7 +788,7 @@ namespace OpenKalman::interface
           return make_dense_writable_matrix_from(std::forward<U>(u));
       }(std::forward<U>(u));
 
-      for (std::size_t i = 0; i < get_dimensions_of<1>(v); i++)
+      for (std::size_t i = 0; i < get_index_dimension_of<1>(v); i++)
       {
         if (Eigen::internal::llt_inplace<Scalar, UpLo>::rankUpdate(arg, column(v, i), alpha) >= 0)
           throw (std::runtime_error("rank_update_triangular: product is not positive definite"));
@@ -952,7 +953,7 @@ namespace OpenKalman::interface
       {
         if constexpr (must_be_exact or must_be_unique or true)
         {
-          auto a_cols_rt = get_dimensions_of<1>(a);
+          auto a_cols_rt = get_index_dimension_of<1>(a);
           Eigen::ColPivHouseholderQR<eigen_matrix_t<Scalar, a_rows, a_cols>> QR {std::forward<A>(a)};
           if constexpr (must_be_unique)
           {
@@ -1010,13 +1011,13 @@ namespace OpenKalman::Eigen3
 
       if constexpr (dynamic_columns<A>)
       {
-        auto rt_cols = get_dimensions_of<1>(a);
+        auto rt_cols = get_index_dimension_of<1>(a);
 
         ResultType ret {rt_cols, rt_cols};
 
         if constexpr (dynamic_rows<A>)
         {
-          auto rt_rows = get_dimensions_of<0>(a);
+          auto rt_rows = get_index_dimension_of<0>(a);
 
           if (rt_rows < rt_cols)
             ret << QR.matrixQR().topRows(rt_rows),
@@ -1041,7 +1042,7 @@ namespace OpenKalman::Eigen3
 
         if constexpr (dynamic_rows<A>)
         {
-          auto rt_rows = get_dimensions_of<0>(a);
+          auto rt_rows = get_index_dimension_of<0>(a);
 
           if (rt_rows < cols)
             ret << QR.matrixQR().topRows(rt_rows),
@@ -1414,8 +1415,8 @@ namespace OpenKalman::Eigen3
    * \brief Split a matrix vertically.
    * \tparam F A class with a static <code>call</code> member to which the result is applied before creating the tuple.
    * \tparam euclidean Whether coefficients RC and RCs are transformed to Euclidean space.
-   * \tparam RC Coefficients for the first cut.
-   * \tparam RCs Coefficients for each of the second and subsequent cuts.
+   * \tparam RC TypedIndex for the first cut.
+   * \tparam RCs TypedIndex for each of the second and subsequent cuts.
    * \todo add runtime-specified cuts
    */
 #ifdef __cpp_concepts
@@ -1491,7 +1492,7 @@ namespace OpenKalman::Eigen3
   /**
    * \brief Split a matrix vertically.
    * \tparam F A class with a static <code>call</code> member to which the result is applied before creating the tuple.
-   * \tparam RCs Coefficients for each of the cuts.
+   * \tparam RCs TypedIndex for each of the cuts.
    */
 #ifdef __cpp_concepts
   template<typename F, typed_index_descriptor RC, typed_index_descriptor...RCs, eigen_matrix Arg>
@@ -1511,8 +1512,8 @@ namespace OpenKalman::Eigen3
 
   /**
    * \brief Split a matrix vertically.
-   * \tparam RC Coefficients for the first cut.
-   * \tparam RCs Coefficients for the second and subsequent cuts.
+   * \tparam RC TypedIndex for the first cut.
+   * \tparam RCs TypedIndex for the second and subsequent cuts.
    */
 #ifdef __cpp_concepts
   template<typed_index_descriptor RC, typed_index_descriptor...RCs, eigen_matrix Arg>
@@ -1551,8 +1552,8 @@ namespace OpenKalman::Eigen3
 
   /**
    * \brief Split a matrix horizontally and invoke function F on each segment, returning a tuple.
-   * \tparam CC Coefficients for the first cut.
-   * \tparam CCs Coefficients for each of the second and subsequent cuts.
+   * \tparam CC TypedIndex for the first cut.
+   * \tparam CCs TypedIndex for each of the second and subsequent cuts.
    * \tparam F An object having a static call() method to which the result is applied before creating the tuple.
    */
 #ifdef __cpp_concepts
@@ -1627,8 +1628,8 @@ namespace OpenKalman::Eigen3
 
   /**
    * \brief Split a matrix horizontally.
-   * \tparam CC Coefficients for the first cut.
-   * \tparam CCs Coefficients for the second and subsequent cuts.
+   * \tparam CC TypedIndex for the first cut.
+   * \tparam CCs TypedIndex for the second and subsequent cuts.
    */
 #ifdef __cpp_concepts
   template<typed_index_descriptor CC, typed_index_descriptor...CCs, eigen_matrix Arg>
@@ -1668,8 +1669,8 @@ namespace OpenKalman::Eigen3
   /**
    * \brief Split a matrix diagonally and invoke function F on each segment, returning a tuple.
    * \tparam F An object having a static call() method to which the result is applied before creating the tuple.
-   * \tparam C Coefficients for the first cut.
-   * \tparam Cs Coefficients for each of the second and subsequent cuts.
+   * \tparam C TypedIndex for the first cut.
+   * \tparam Cs TypedIndex for each of the second and subsequent cuts.
    */
 #ifdef __cpp_concepts
   template<typename F, bool euclidean, typed_index_descriptor C, typed_index_descriptor...Cs, eigen_matrix Arg>
@@ -1754,8 +1755,8 @@ namespace OpenKalman::Eigen3
   /**
    * \brief Split a matrix diagonally by carving out square blocks along the diagonal.
    * \tparam F A class with a static <code>call</code> member to which the result is applied before creating the tuple.
-   * \tparam C Coefficients for the first cut.
-   * \tparam Cs Coefficients for each of the second and subsequent cuts.
+   * \tparam C TypedIndex for the first cut.
+   * \tparam Cs TypedIndex for each of the second and subsequent cuts.
    */
 #ifdef __cpp_concepts
   template<typename F, typed_index_descriptor C, typed_index_descriptor...Cs, eigen_matrix Arg>
@@ -1777,8 +1778,8 @@ namespace OpenKalman::Eigen3
 
   /**
    * \brief Split a matrix diagonally by carving out square blocks along the diagonal.
-   * \tparam C Coefficients for the first cut.
-   * \tparam Cs Coefficients for the second and subsequent cuts.
+   * \tparam C TypedIndex for the first cut.
+   * \tparam Cs TypedIndex for the second and subsequent cuts.
    */
 #ifdef __cpp_concepts
   template<typed_index_descriptor C, typed_index_descriptor...Cs, eigen_matrix Arg>

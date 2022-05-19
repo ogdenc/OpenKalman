@@ -21,18 +21,18 @@ namespace OpenKalman
   // ---------------------- //
 
 #ifdef __cpp_concepts
-  template<typed_index_descriptor Coefficients, covariance_nestable NestedMatrix> requires
-    (dimension_size_of_v<Coefficients> == row_dimension_of_v<NestedMatrix>) and (not std::is_rvalue_reference_v<NestedMatrix>)
+  template<typed_index_descriptor TypedIndex, covariance_nestable NestedMatrix> requires
+    (dimension_size_of_v<TypedIndex> == row_dimension_of_v<NestedMatrix>) and (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
-  template<typename Coefficients, typename NestedMatrix>
+  template<typename TypedIndex, typename NestedMatrix>
 #endif
-  struct SquareRootCovariance : oin::CovarianceImpl<SquareRootCovariance<Coefficients, NestedMatrix>, NestedMatrix>
+  struct SquareRootCovariance : oin::CovarianceImpl<SquareRootCovariance<TypedIndex, NestedMatrix>, NestedMatrix>
   {
 
 #ifndef __cpp_concepts
-    static_assert(typed_index_descriptor<Coefficients>);
+    static_assert(typed_index_descriptor<TypedIndex>);
     static_assert(covariance_nestable<NestedMatrix>);
-    static_assert(dimension_size_of_v<Coefficients> == row_dimension_of_v<NestedMatrix>);
+    static_assert(dimension_size_of_v<TypedIndex> == row_dimension_of_v<NestedMatrix>);
     static_assert(not std::is_rvalue_reference_v<NestedMatrix>);
 #endif
 
@@ -66,7 +66,7 @@ namespace OpenKalman
 
 
     // A function that makes a self-contained covariance from a nested matrix.
-    template<typename C = Coefficients, typename Arg>
+    template<typename C = TypedIndex, typename Arg>
     static auto make(Arg&& arg) noexcept
     {
       return SquareRootCovariance<C, std::decay_t<Arg>>(std::forward<Arg>(arg));
@@ -137,12 +137,12 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<typed_matrix M> requires (square_matrix<M> or (diagonal_matrix<NestedMatrix> and column_vector<M>)) and
-      equivalent_to<row_coefficient_types_of_t<M>, Coefficients> and
+      equivalent_to<row_coefficient_types_of_t<M>, TypedIndex> and
       requires(M&& m) { Base {oin::to_covariance_nestable<NestedTriangular>(std::forward<M>(m))}; }
 #else
     template<typename M, std::enable_if_t<typed_matrix<M> and
       (square_matrix<M> or (diagonal_matrix<NestedMatrix> and column_vector<M>)) and
-      equivalent_to<row_coefficient_types_of_t<M>, Coefficients> and
+      equivalent_to<row_coefficient_types_of_t<M>, TypedIndex> and
       std::is_constructible_v<Base,
         decltype(oin::to_covariance_nestable<NestedTriangular>(std::declval<M&&>()))>, int> = 0>
 #endif
@@ -195,13 +195,13 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<triangular_covariance Arg> requires (not std::derived_from<std::decay_t<Arg>, SquareRootCovariance>) and
       (triangle_type_of_v<Arg> == triangle_type_of_v<SquareRootCovariance>) and
-      equivalent_to<row_coefficient_types_of_t<Arg>, Coefficients> and
+      equivalent_to<row_coefficient_types_of_t<Arg>, TypedIndex> and
       modifiable<NestedMatrix, nested_matrix_of_t<Arg>>
 #else
     template<typename Arg, std::enable_if_t<triangular_covariance<Arg> and
       (not std::is_base_of_v<SquareRootCovariance, std::decay_t<Arg>>) and
       (triangle_type_of<Arg>::value == triangle_type_of<SquareRootCovariance>::value) and
-      equivalent_to<row_coefficient_types_of_t<Arg>, Coefficients> and
+      equivalent_to<row_coefficient_types_of_t<Arg>, TypedIndex> and
       modifiable<NestedMatrix, nested_matrix_of_t<Arg>>, int> = 0>
 #endif
     auto& operator=(Arg&& other) noexcept
@@ -219,11 +219,11 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<typed_matrix Arg> requires square_matrix<Arg> and
-      equivalent_to<row_coefficient_types_of_t<Arg>, Coefficients> and
+      equivalent_to<row_coefficient_types_of_t<Arg>, TypedIndex> and
       modifiable<NestedMatrix, NestedTriangular>
 #else
     template<typename Arg, std::enable_if_t<typed_matrix<Arg> and square_matrix<Arg> and
-      equivalent_to<row_coefficient_types_of_t<Arg>, Coefficients> and
+      equivalent_to<row_coefficient_types_of_t<Arg>, TypedIndex> and
       modifiable<NestedMatrix, NestedTriangular>, int> = 0>
 #endif
     auto& operator=(Arg&& other) noexcept
@@ -283,12 +283,12 @@ namespace OpenKalman
     template<typename Arg> requires (not std::is_const_v<std::remove_reference_t<NestedMatrix>>) and
       ((triangular_covariance<Arg> and triangle_type_of_v<Arg> == triangle_type_of_v<SquareRootCovariance>) or
         (typed_matrix<Arg> and square_matrix<Arg>)) and
-      equivalent_to<row_coefficient_types_of_t<Arg>, Coefficients>
+      equivalent_to<row_coefficient_types_of_t<Arg>, TypedIndex>
 #else
     template<typename Arg, std::enable_if_t<(not std::is_const_v<std::remove_reference_t<NestedMatrix>>) and
       ((triangular_covariance<Arg> and triangle_type_of<Arg>::value == triangle_type_of<SquareRootCovariance>::value) or
         (typed_matrix<Arg> and square_matrix<Arg>)) and
-      equivalent_to<row_coefficient_types_of_t<Arg>, Coefficients>, int> = 0>
+      equivalent_to<row_coefficient_types_of_t<Arg>, TypedIndex>, int> = 0>
 #endif
     auto& operator+=(const Arg& arg)
     {
@@ -339,12 +339,12 @@ namespace OpenKalman
     template<typename Arg> requires (not std::is_const_v<std::remove_reference_t<NestedMatrix>>) and
     ((triangular_covariance<Arg> and triangle_type_of_v<Arg> == triangle_type_of_v<SquareRootCovariance>) or
       (typed_matrix<Arg> and square_matrix<Arg>)) and
-      equivalent_to<row_coefficient_types_of_t<Arg>, Coefficients>
+      equivalent_to<row_coefficient_types_of_t<Arg>, TypedIndex>
 #else
     template<typename Arg, std::enable_if_t<(not std::is_const_v<std::remove_reference_t<NestedMatrix>>) and
       ((triangular_covariance<Arg> and triangle_type_of<Arg>::value == triangle_type_of<SquareRootCovariance>::value) or
         (typed_matrix<Arg> and square_matrix<Arg>)) and
-      equivalent_to<row_coefficient_types_of_t<Arg>, Coefficients>, int> = 0>
+      equivalent_to<row_coefficient_types_of_t<Arg>, TypedIndex>, int> = 0>
 #endif
     auto& operator-=(const Arg& arg)
     {
@@ -482,12 +482,12 @@ namespace OpenKalman
     {
       if constexpr ((not diagonal_matrix<NestedMatrix>) or identity_matrix<NestedMatrix> or zero_matrix<NestedMatrix>)
       {
-        return Covariance<Coefficients, std::remove_reference_t<NestedMatrix>&> {*this};
+        return Covariance<TypedIndex, std::remove_reference_t<NestedMatrix>&> {*this};
       }
       else
       {
         auto n = Cholesky_square(nested_matrix());
-        return Covariance<Coefficients, decltype(n)> {std::move(n)};
+        return Covariance<TypedIndex, decltype(n)> {std::move(n)};
       }
     }
 
@@ -497,12 +497,12 @@ namespace OpenKalman
     {
       if constexpr ((not diagonal_matrix<NestedMatrix>) or identity_matrix<NestedMatrix> or zero_matrix<NestedMatrix>)
       {
-        return Covariance<Coefficients, const std::remove_reference_t<NestedMatrix>&> {*this};
+        return Covariance<TypedIndex, const std::remove_reference_t<NestedMatrix>&> {*this};
       }
       else
       {
         auto n = Cholesky_square(nested_matrix());
-        return Covariance<Coefficients, decltype(n)> {std::move(n)};
+        return Covariance<TypedIndex, decltype(n)> {std::move(n)};
       }
     }
 
@@ -512,12 +512,12 @@ namespace OpenKalman
     {
       if constexpr ((not diagonal_matrix<NestedMatrix>) or identity_matrix<NestedMatrix> or zero_matrix<NestedMatrix>)
       {
-        return Covariance<Coefficients, std::remove_reference_t<NestedMatrix>> {std::move(*this)};
+        return Covariance<TypedIndex, std::remove_reference_t<NestedMatrix>> {std::move(*this)};
       }
       else
       {
         auto n = Cholesky_square(std::move(*this).nested_matrix());
-        return Covariance<Coefficients, decltype(n)> {std::move(n)};
+        return Covariance<TypedIndex, decltype(n)> {std::move(n)};
       }
     }
 
@@ -527,12 +527,12 @@ namespace OpenKalman
     {
       if constexpr ((not diagonal_matrix<NestedMatrix>) or identity_matrix<NestedMatrix> or zero_matrix<NestedMatrix>)
       {
-        return Covariance<Coefficients, std::remove_reference_t<NestedMatrix>> {std::move(*this)};
+        return Covariance<TypedIndex, std::remove_reference_t<NestedMatrix>> {std::move(*this)};
       }
       else
       {
         auto n = Cholesky_square(std::move(*this).nested_matrix());
-        return Covariance<Coefficients, decltype(n)> {std::move(n)};
+        return Covariance<TypedIndex, decltype(n)> {std::move(n)};
       }
     }
 
@@ -541,11 +541,11 @@ namespace OpenKalman
      * \brief Perform a rank update.
      */
 #ifdef __cpp_concepts
-    template<typed_matrix U> requires equivalent_to<row_coefficient_types_of_t<U>, Coefficients> and
+    template<typed_matrix U> requires equivalent_to<row_coefficient_types_of_t<U>, TypedIndex> and
       (not std::is_const_v<std::remove_reference_t<NestedMatrix>>)
 #else
     template<typename U, std::enable_if_t<typed_matrix<U> and
-      equivalent_to<row_coefficient_types_of_t<U>, Coefficients> and
+      equivalent_to<row_coefficient_types_of_t<U>, TypedIndex> and
       (not std::is_const_v<std::remove_reference_t<NestedMatrix>>), int> = 0>
 #endif
     auto& rank_update(const U& u, const Scalar alpha = 1) &
@@ -561,10 +561,10 @@ namespace OpenKalman
      * \brief Perform a rank update.
      */
 #ifdef __cpp_concepts
-    template<typed_matrix U> requires equivalent_to<row_coefficient_types_of_t<U>, Coefficients>
+    template<typed_matrix U> requires equivalent_to<row_coefficient_types_of_t<U>, TypedIndex>
 #else
     template<typename U, std::enable_if_t<typed_matrix<U> and
-      equivalent_to<row_coefficient_types_of_t<U>, Coefficients>, int> = 0>
+      equivalent_to<row_coefficient_types_of_t<U>, TypedIndex>, int> = 0>
 #endif
     auto rank_update(const U& u, const Scalar alpha = 1) &&
     {
@@ -656,27 +656,27 @@ namespace OpenKalman
 
   /**
    * \brief Make a SquareRootCovariance from a \ref covariance_nestable, specifying the coefficients.
-   * \tparam Coefficients The coefficient types corresponding to the rows and columns.
-   * \tparam Arg A \ref covariance_nestable with size matching Coefficients.
+   * \tparam TypedIndex The coefficient types corresponding to the rows and columns.
+   * \tparam Arg A \ref covariance_nestable with size matching TypedIndex.
    */
 #ifdef __cpp_concepts
-  template<typed_index_descriptor Coefficients, covariance_nestable Arg> requires
-    (dimension_size_of_v<Coefficients> == row_dimension_of_v<Arg>)
+  template<typed_index_descriptor TypedIndex, covariance_nestable Arg> requires
+    (dimension_size_of_v<TypedIndex> == row_dimension_of_v<Arg>)
 #else
-  template<typename Coefficients, typename Arg, std::enable_if_t<typed_index_descriptor<Coefficients> and
-    covariance_nestable<Arg> and (dimension_size_of_v<Coefficients> == row_dimension_of<Arg>::value), int> = 0>
+  template<typename TypedIndex, typename Arg, std::enable_if_t<typed_index_descriptor<TypedIndex> and
+    covariance_nestable<Arg> and (dimension_size_of_v<TypedIndex> == row_dimension_of<Arg>::value), int> = 0>
 #endif
   inline auto
   make_square_root_covariance(Arg&& arg) noexcept
   {
-    return SquareRootCovariance<Coefficients, passable_t<Arg>>(std::forward<Arg>(arg));
+    return SquareRootCovariance<TypedIndex, passable_t<Arg>>(std::forward<Arg>(arg));
   }
 
 
   /**
    * \overload
    * \brief Make a SquareRootCovariance from a \ref covariance_nestable, with default Axis coefficients.
-   * \tparam Coefficients The coefficient types corresponding to the rows and columns.
+   * \tparam TypedIndex The coefficient types corresponding to the rows and columns.
    * \tparam Arg A \ref covariance_nestable.
    */
 #ifdef __cpp_concepts
@@ -695,27 +695,27 @@ namespace OpenKalman
   /**
    * \overload
    * \brief Make a SquareRootCovariance (with nested triangular matrix) from a self-adjoint \ref typed_matrix_nestable.
-   * \tparam Coefficients The coefficient types corresponding to the rows and columns.
+   * \tparam TypedIndex The coefficient types corresponding to the rows and columns.
    * \tparam TriangleType The type of the nested triangular matrix (upper, lower).
-   * \tparam Arg A square, self-adjoint \ref typed_matrix_nestable with size matching Coefficients.
+   * \tparam Arg A square, self-adjoint \ref typed_matrix_nestable with size matching TypedIndex.
    */
 #ifdef __cpp_concepts
-  template<typed_index_descriptor Coefficients, TriangleType triangle_type = TriangleType::lower, typed_matrix_nestable Arg>
+  template<typed_index_descriptor TypedIndex, TriangleType triangle_type = TriangleType::lower, typed_matrix_nestable Arg>
   requires (not covariance_nestable<Arg>) and
     (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
-    (dimension_size_of_v<Coefficients> == row_dimension_of_v<Arg>) and (dimension_size_of_v<Coefficients> == column_dimension_of_v<Arg>)
+    (dimension_size_of_v<TypedIndex> == row_dimension_of_v<Arg>) and (dimension_size_of_v<TypedIndex> == column_dimension_of_v<Arg>)
 #else
-  template<typename Coefficients, TriangleType triangle_type = TriangleType::lower, typename Arg, std::enable_if_t<
-    typed_index_descriptor<Coefficients> and typed_matrix_nestable<Arg> and (not covariance_nestable<Arg>) and
+  template<typename TypedIndex, TriangleType triangle_type = TriangleType::lower, typename Arg, std::enable_if_t<
+    typed_index_descriptor<TypedIndex> and typed_matrix_nestable<Arg> and (not covariance_nestable<Arg>) and
     (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
-    (dimension_size_of_v<Coefficients> == row_dimension_of<Arg>::value) and
-    (dimension_size_of_v<Coefficients> == column_dimension_of<Arg>::value), int> = 0>
+    (dimension_size_of_v<TypedIndex> == row_dimension_of<Arg>::value) and
+    (dimension_size_of_v<TypedIndex> == column_dimension_of<Arg>::value), int> = 0>
 #endif
   inline auto
   make_square_root_covariance(Arg&& arg) noexcept
   {
     using T = typename MatrixTraits<Arg>::template TriangularMatrixFrom<triangle_type>;
-    return SquareRootCovariance<Coefficients, T>(std::forward<Arg>(arg));
+    return SquareRootCovariance<TypedIndex, T>(std::forward<Arg>(arg));
   }
 
 
@@ -747,10 +747,10 @@ namespace OpenKalman
    * \brief Make a writable, uninitialized SquareRootCovariance from a \ref typed_matrix_nestable.
    */
 #ifdef __cpp_concepts
-  template<typed_index_descriptor Coefficients, TriangleType triangle_type, typed_matrix_nestable Arg> requires square_matrix<Arg>
+  template<typed_index_descriptor TypedIndex, TriangleType triangle_type, typed_matrix_nestable Arg> requires square_matrix<Arg>
 #else
-  template<typename Coefficients, TriangleType triangle_type, typename Arg,
-    std::enable_if_t<typed_index_descriptor<Coefficients> and typed_matrix_nestable<Arg> and square_matrix<Arg>, int> = 0>
+  template<typename TypedIndex, TriangleType triangle_type, typename Arg,
+    std::enable_if_t<typed_index_descriptor<TypedIndex> and typed_matrix_nestable<Arg> and square_matrix<Arg>, int> = 0>
 #endif
   inline auto
   make_square_root_covariance()
@@ -758,7 +758,7 @@ namespace OpenKalman
     using B = std::conditional_t<triangle_type == TriangleType::diagonal,
     typename MatrixTraits<Arg>::template DiagonalMatrixFrom<>,
       typename MatrixTraits<Arg>::template TriangularMatrixFrom<triangle_type>>;
-    return SquareRootCovariance<Coefficients, B>();
+    return SquareRootCovariance<TypedIndex, B>();
   }
 
 
@@ -767,10 +767,10 @@ namespace OpenKalman
    * \brief Make a writable, uninitialized SquareRootCovariance from a \ref covariance_nestable or \ref typed_matrix_nestable.
    */
 #ifdef __cpp_concepts
-  template<typed_index_descriptor Coefficients, typename Arg> requires
+  template<typed_index_descriptor TypedIndex, typename Arg> requires
     (covariance_nestable<Arg> or typed_matrix_nestable<Arg>) and square_matrix<Arg>
 #else
-  template<typename Coefficients, typename Arg, std::enable_if_t<
+  template<typename TypedIndex, typename Arg, std::enable_if_t<
     (covariance_nestable<Arg> or typed_matrix_nestable<Arg>) and square_matrix<Arg>, int> = 0>
 #endif
   inline auto
@@ -782,7 +782,7 @@ namespace OpenKalman
       std::conditional_t<self_adjoint_matrix<Arg>,
         typename MatrixTraits<Arg>::template SelfAdjointMatrixFrom<template_type>,
         typename MatrixTraits<Arg>::template TriangularMatrixFrom<template_type>>>;
-    return SquareRootCovariance<Coefficients, B>();
+    return SquareRootCovariance<TypedIndex, B>();
   }
 
 

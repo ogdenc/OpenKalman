@@ -69,6 +69,19 @@ namespace OpenKalman::test
   }
 
 
+#ifdef __cpp_concepts
+  template<typename Arg1, typename Arg2, typename Err>
+#else
+  template<typename Arg1, typename Arg2, typename Err, typename>
+#endif
+  struct TestComparison : ::testing::AssertionResult
+  {
+    TestComparison(const Arg1& A, const Arg2& B, const Err& err)
+      : ::testing::AssertionResult {
+      is_near(make_dense_writable_matrix_from(A), make_dense_writable_matrix_from(B), err)} {};
+  };
+
+
   // -------- //
   //  Arrays  //
   // -------- //

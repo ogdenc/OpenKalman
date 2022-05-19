@@ -52,7 +52,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<scalar_type Scalar>
 #else
-    template<typename Scalar, std::enable_if_t<scalar_type<Scalar>::value, int> = 0>
+    template<typename Scalar, std::enable_if_t<scalar_type<Scalar>, int> = 0>
 #endif
     static constexpr auto
     to_euclidean_element(const std::function<Scalar(std::size_t)>& g, std::size_t euclidean_local_index, std::size_t start)
@@ -71,7 +71,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<scalar_type Scalar>
 #else
-    template<typename Scalar, std::enable_if_t<scalar_type<Scalar>::value, int> = 0>
+    template<typename Scalar, std::enable_if_t<scalar_type<Scalar>, int> = 0>
 #endif
     static constexpr auto
     from_euclidean_element(const std::function<Scalar(std::size_t)>& g, std::size_t local_index, std::size_t euclidean_start)
@@ -91,7 +91,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<scalar_type Scalar>
 #else
-    template<typename Scalar, std::enable_if_t<scalar_type<Scalar>::value, int> = 0>
+    template<typename Scalar, std::enable_if_t<scalar_type<Scalar>, int> = 0>
 #endif
     static constexpr auto
     wrap_get_element(const std::function<Scalar(std::size_t)>& g, std::size_t local_index, std::size_t start)
@@ -112,7 +112,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<scalar_type Scalar>
 #else
-    template<typename Scalar, std::enable_if_t<scalar_type<Scalar>::value, int> = 0>
+    template<typename Scalar, std::enable_if_t<scalar_type<Scalar>, int> = 0>
 #endif
     static constexpr void
     wrap_set_element(const std::function<void(Scalar, std::size_t)>& s, const std::function<Scalar(std::size_t)>& g,
@@ -162,40 +162,55 @@ namespace OpenKalman
   using Axis = Dimensions<1>;
 
 
-  /**
-   * \brief Axis is represented by one coordinate.
-   */
-  template<std::size_t N>
-  struct dimension_size_of<Dimensions<N>> : std::integral_constant<std::size_t, N>
+  namespace interface
   {
-    static constexpr std::size_t get(const Dimensions<N>& t) { return t.size(); }
-  };
+    /**
+     * \internal
+     * \brief Axis is represented by one coordinate.
+     */
+    template<std::size_t size>
+    struct IndexDescriptorSize<Dimensions<size>> : std::integral_constant<std::size_t, size>
+    {
+      static constexpr std::size_t get(const Dimensions<size>& t) { return t.size(); }
+    };
 
 
-  /**
-   * \brief Axis is represented by one coordinate in Euclidean space.
-   */
-  template<std::size_t N>
-  struct euclidean_dimension_size_of<Dimensions<N>> : dimension_size_of<Dimensions<N>> {};
+    /**
+     * \internal
+     * \brief Axis is represented by one coordinate in Euclidean space.
+     */
+    template<std::size_t size>
+    struct EuclideanIndexDescriptorSize<Dimensions<size>> : IndexDescriptorSize<Dimensions<size>> {};
 
 
-  /**
-   * \brief The number of atomic components.
-   */
-  template<std::size_t N>
-  struct index_descriptor_components_of<Dimensions<N>> : dimension_size_of<Dimensions<N>> {};
+    /**
+     * \internal
+     * \brief The number of atomic components.
+     */
+    template<std::size_t size>
+    struct IndexDescriptorComponentCount<Dimensions<size>> : IndexDescriptorSize<Dimensions<size>> {};
 
 
-  /**
-   * \brief The type of the result when subtracting two Axis values.
-   * \details A difference between two Dimensions objects is also of type Dimensions.
-   */
-  template<std::size_t size>
-  struct dimension_difference_of<Dimensions<size>> { using type = Dimensions<size>; };
+    /**
+     * \internal
+     * \brief The type of the result when subtracting two Axis values.
+     * \details A difference between two Dimensions objects is also of type Dimensions.
+     */
+    template<std::size_t size>
+    struct IndexDescriptorDifferenceType<Dimensions<size>> { using type = Dimensions<size>; };
 
 
-  template<std::size_t size>
-  struct is_untyped_index_descriptor<Dimensions<size>> : std::true_type {};
+    /**
+     * \internal
+     * \brief Dimensions is untyped.
+     */
+    template<std::size_t size>
+    struct IndexDescriptorIsUntyped<Dimensions<size>> : std::true_type
+    {
+      constexpr static std::size_t get(const Dimensions<size>& t) { return true; }
+    };
+
+  } // namespace interface
 
 
 } // namespace OpenKalman

@@ -98,7 +98,7 @@ namespace OpenKalman
   struct Inclination
   {
 #ifndef __cpp_concepts
-    static_assert(std::is_floating_point_v<decltype(Limits<double>::down)>)
+    static_assert(std::is_floating_point_v<decltype(Limits<double>::down)>);
     static_assert(std::is_floating_point_v<decltype(Limits<double>::up)>);
     static_assert(Limits<double>::down < Limits<double>::up);
 #endif
@@ -232,43 +232,51 @@ namespace OpenKalman
   };
 
 
-  /**
-   * \brief Inclination is represented by one coordinate.
-   */
-  template<template<typename Scalar> typename Limits>
-  struct dimension_size_of<Inclination<Limits>> : std::integral_constant<std::size_t, 1>
+  namespace interface
   {
-    constexpr static std::size_t get(const Inclination<Limits>&) { return 1; }
-  };
+    /**
+     * \internal
+     * \brief Inclination is represented by one coordinate.
+     */
+    template<template<typename Scalar> typename Limits>
+    struct IndexDescriptorSize<Inclination<Limits>> : std::integral_constant<std::size_t, 1>
+    {
+      constexpr static std::size_t get(const Inclination<Limits>&) { return 1; }
+    };
 
 
-  /**
-   * \brief Inclination is represented by two coordinates in Euclidean space.
-   */
-  template<template<typename Scalar> typename Limits>
-  struct euclidean_dimension_size_of<Inclination<Limits>> : std::integral_constant<std::size_t, 2>
-  {
-    constexpr static std::size_t get(const Inclination<Limits>&) { return 2; }
-  };
+    /**
+     * \internal
+     * \brief Inclination is represented by two coordinates in Euclidean space.
+     */
+    template<template<typename Scalar> typename Limits>
+    struct EuclideanIndexDescriptorSize<Inclination<Limits>> : std::integral_constant<std::size_t, 2>
+    {
+      constexpr static std::size_t get(const Inclination<Limits>&) { return 2; }
+    };
 
 
-  /**
-   * \brief The number of atomic components.
-   */
-  template<template<typename Scalar> typename Limits>
-  struct index_descriptor_components_of<Inclination<Limits>> : std::integral_constant<std::size_t, 1>
-  {
-    constexpr static std::size_t get(const Inclination<Limits>&) { return 1; }
-  };
+    /**
+     * \internal
+     * \brief The number of atomic components.
+     */
+    template<template<typename Scalar> typename Limits>
+    struct IndexDescriptorComponentCount<Inclination<Limits>> : std::integral_constant<std::size_t, 1>
+    {
+      constexpr static std::size_t get(const Inclination<Limits>&) { return 1; }
+    };
 
 
-  /**
-   * \brief A difference between two Inclination values does not wrap, and is treated as Axis.
-   * \details See David Frederic Crouse, Cubature/Unscented/Sigma Point Kalman Filtering with Angular Measurement Models,
-   * 18th Int'l Conf. on Information Fusion 1550, 1555 (2015).
-   */
-  template<template<typename Scalar> typename Limits>
-  struct dimension_difference_of<Inclination<Limits>> { using type = Axis; };
+    /**
+     * \internal
+     * \brief A difference between two Inclination values does not wrap, and is treated as Axis.
+     * \details See David Frederic Crouse, Cubature/Unscented/Sigma Point Kalman Filtering with Angular Measurement Models,
+     * 18th Int'l Conf. on Information Fusion 1550, 1555 (2015).
+     */
+    template<template<typename Scalar> typename Limits>
+    struct IndexDescriptorDifferenceType<Inclination<Limits>> { using type = Axis; };
+
+  } // namespace internal
 
 } // namespace OpenKalman
 

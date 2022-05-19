@@ -297,17 +297,17 @@ namespace OpenKalman
     /**
      * \brief An expression that transforms angular or other modular coefficients back from Euclidean space.
      * \details This is the counterpart expression to ToEuclideanExpr.
-     * \tparam Coefficients The coefficient types.
+     * \tparam TypedIndex The coefficient types.
      * \tparam NestedMatrix The pre-transformed column vector, or set of column vectors in the form of a matrix.
      */
   #ifdef __cpp_concepts
-    template<typed_index_descriptor Coefficients, typename NestedMatrix>
-    requires (dynamic_index_descriptor<Coefficients> == dynamic_rows<NestedMatrix>) and
-      (not fixed_index_descriptor<Coefficients> or euclidean_dimension_size_of_v<Coefficients> == row_dimension_of_v<NestedMatrix>) and
-      (not dynamic_index_descriptor<Coefficients> or
-        std::same_as<typename Coefficients::Scalar, scalar_type_of_t<NestedMatrix>>)
+    template<typed_index_descriptor TypedIndex, typename NestedMatrix>
+    requires (dynamic_index_descriptor<TypedIndex> == dynamic_rows<NestedMatrix>) and
+      (not fixed_index_descriptor<TypedIndex> or euclidean_dimension_size_of_v<TypedIndex> == row_dimension_of_v<NestedMatrix>) and
+      (not dynamic_index_descriptor<TypedIndex> or
+        std::same_as<typename TypedIndex::Scalar, scalar_type_of_t<NestedMatrix>>)
   #else
-    template<typename Coefficients, typename NestedMatrix>
+    template<typename TypedIndex, typename NestedMatrix>
   #endif
     struct FromEuclideanExpr;
 
@@ -317,8 +317,8 @@ namespace OpenKalman
       template<typename T>
       struct is_from_euclidean_expr : std::false_type {};
 
-      template<typename Coefficients, typename NestedMatrix>
-      struct is_from_euclidean_expr<FromEuclideanExpr<Coefficients, NestedMatrix>> : std::true_type {};
+      template<typename TypedIndex, typename NestedMatrix>
+      struct is_from_euclidean_expr<FromEuclideanExpr<TypedIndex, NestedMatrix>> : std::true_type {};
     }
 
 
@@ -340,17 +340,17 @@ namespace OpenKalman
     /**
      * \brief An expression that transforms coefficients into Euclidean space for proper wrapping.
      * \details This is the counterpart expression to FromEuclideanExpr.
-     * \tparam Coefficients The coefficient types.
+     * \tparam TypedIndex The coefficient types.
      * \tparam NestedMatrix The pre-transformed column vector, or set of column vectors in the form of a matrix.
      */
   #ifdef __cpp_concepts
-    template<typed_index_descriptor Coefficients, typename NestedMatrix> requires (not from_euclidean_expr<NestedMatrix>) and
-      (dynamic_index_descriptor<Coefficients> == dynamic_rows<NestedMatrix>) and
-      (not fixed_index_descriptor<Coefficients> or dimension_size_of_v<Coefficients> == row_dimension_of_v<NestedMatrix>) and
-      (not dynamic_index_descriptor<Coefficients> or
-        std::same_as<typename Coefficients::Scalar, scalar_type_of_t<NestedMatrix>>)
+    template<typed_index_descriptor TypedIndex, typename NestedMatrix> requires (not from_euclidean_expr<NestedMatrix>) and
+      (dynamic_index_descriptor<TypedIndex> == dynamic_rows<NestedMatrix>) and
+      (not fixed_index_descriptor<TypedIndex> or dimension_size_of_v<TypedIndex> == row_dimension_of_v<NestedMatrix>) and
+      (not dynamic_index_descriptor<TypedIndex> or
+        std::same_as<typename TypedIndex::Scalar, scalar_type_of_t<NestedMatrix>>)
   #else
-    template<typename Coefficients, typename NestedMatrix>
+    template<typename TypedIndex, typename NestedMatrix>
   #endif
     struct ToEuclideanExpr;
 
@@ -360,8 +360,8 @@ namespace OpenKalman
       template<typename T>
       struct is_to_euclidean_expr : std::false_type {};
 
-      template<typename Coefficients, typename NestedMatrix>
-      struct is_to_euclidean_expr<ToEuclideanExpr<Coefficients, NestedMatrix>> : std::true_type {};
+      template<typename TypedIndex, typename NestedMatrix>
+      struct is_to_euclidean_expr<ToEuclideanExpr<TypedIndex, NestedMatrix>> : std::true_type {};
     }
 
 
@@ -394,9 +394,9 @@ namespace OpenKalman
    * \details It is a wrapper for a native matrix type from a supported matrix library such as Eigen.
    * The matrix can be thought of as a tests from X to Y, where the coefficients for each of X and Y are typed.
    * Example declarations:
-   * - <code>Matrix<Coefficients<Axis, Axis, angle::Radians>, Coefficients<Axis, Axis>,
+   * - <code>Matrix<TypedIndex<Axis, Axis, angle::Radians>, TypedIndex<Axis, Axis>,
    * eigen_matrix_t<double, 3, 2>> x;</code>
-   * - <code>Matrix<double, Coefficients<Axis, Axis, angle::Radians>, Coefficients<Axis, Axis>,
+   * - <code>Matrix<double, TypedIndex<Axis, Axis, angle::Radians>, TypedIndex<Axis, Axis>,
    * eigen_matrix_t<double, 3, 2>> x;</code>
    * \tparam RowCoefficients A set of \ref OpenKalman::coefficients "coefficients" (e.g., Axis, Spherical, etc.)
    * corresponding to the rows.
@@ -429,11 +429,11 @@ namespace OpenKalman
    * \details Unlike OpenKalman::Matrix, the columns of a Mean are untyped. When a Mean is converted to an
    * OpenKalman::Matrix, the columns are assigned type Axis.
    * Example declaration:
-   * <code>Mean<Coefficients<Axis, Axis, angle::Radians>, 1, eigen_matrix_t<double, 3, 1>> x;</code>
+   * <code>Mean<TypedIndex<Axis, Axis, angle::Radians>, 1, eigen_matrix_t<double, 3, 1>> x;</code>
    * This declares a 3-dimensional vector <var>x</var>, where the coefficients are, respectively, an Axis,
    * an Axis, and an angle::Radians, all of scalar type <code>double</code>. The underlying representation is an
    * Eigen3 column vector.
-   * \tparam Coefficients Coefficient types of the mean (e.g., Axis, Polar).
+   * \tparam TypedIndex Coefficient types of the mean (e.g., Axis, Polar).
    * \tparam NestedMatrix The underlying native matrix or matrix expression.
    */
 #ifdef __cpp_concepts
@@ -448,8 +448,8 @@ namespace OpenKalman
 
   namespace internal
   {
-    template<typename Coefficients, typename NestedMatrix>
-    struct is_mean<Mean<Coefficients, NestedMatrix>> : std::true_type {};
+    template<typename TypedIndex, typename NestedMatrix>
+    struct is_mean<Mean<TypedIndex, NestedMatrix>> : std::true_type {};
   }
 
 
@@ -457,52 +457,52 @@ namespace OpenKalman
    * \brief Similar to a Mean, but the coefficients are transformed into Euclidean space, based on their type.
    * \details Means containing angles should be converted to EuclideanMean before taking an average or weighted average.
    * Example declaration:
-   * <code>EuclideanMean<Coefficients<Axis, Axis, angle::Radians>, 1, eigen_matrix_t<double, 4, 1>> x;</code>
+   * <code>EuclideanMean<TypedIndex<Axis, Axis, angle::Radians>, 1, eigen_matrix_t<double, 4, 1>> x;</code>
    * This declares a 3-dimensional mean <var>x</var>, where the coefficients are, respectively, an Axis,
    * an Axis, and an angle::Radians, all of scalar type <code>double</code>. The underlying representation is a
    * four-dimensional vector in Euclidean space, with the last two of the dimensions representing the angle::Radians coefficient
    * transformed to x and y locations on a unit circle associated with the angle::Radians-type coefficient.
-   * \tparam Coefficients A set of coefficients (e.g., Axis, angle::Radians, Polar, etc.)
+   * \tparam TypedIndex A set of coefficients (e.g., Axis, angle::Radians, Polar, etc.)
    * \tparam NestedMatrix The underlying native matrix or matrix expression.
    */
 #ifdef __cpp_concepts
-  template<typed_index_descriptor Coefficients, typed_matrix_nestable NestedMatrix> requires
-  (euclidean_dimension_size_of_v<Coefficients> == row_dimension_of_v<NestedMatrix>) and (not std::is_rvalue_reference_v<NestedMatrix>)
+  template<typed_index_descriptor TypedIndex, typed_matrix_nestable NestedMatrix> requires
+  (euclidean_dimension_size_of_v<TypedIndex> == row_dimension_of_v<NestedMatrix>) and (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
-  template<typename Coefficients, typename NestedMatrix>
+  template<typename TypedIndex, typename NestedMatrix>
 #endif
   struct EuclideanMean;
 
 
   namespace internal
   {
-    template<typename Coefficients, typename NestedMatrix>
-    struct is_euclidean_mean<EuclideanMean<Coefficients, NestedMatrix>> : std::true_type {};
+    template<typename TypedIndex, typename NestedMatrix>
+    struct is_euclidean_mean<EuclideanMean<TypedIndex, NestedMatrix>> : std::true_type {};
   }
 
 
   /**
    * \brief A self-adjoint Covariance matrix.
    * \details The coefficient types for the rows are the same as for the columns.
-   * \tparam Coefficients Coefficient types.
+   * \tparam TypedIndex Coefficient types.
    * \tparam NestedMatrix The underlying native matrix or matrix expression. It can be either self-adjoint or
    * (either upper or lower) triangular. If it is triangular, the native matrix will be multiplied by its transpose
    * when converted to a Matrix or when used in mathematical expressions. The self-adjoint and triangular versions
    * are functionally identical, but often the triangular version is more efficient.
    */
 #ifdef __cpp_concepts
-  template<typed_index_descriptor Coefficients, covariance_nestable NestedMatrix> requires
-    (dimension_size_of_v<Coefficients> == row_dimension_of_v<NestedMatrix>) and (not std::is_rvalue_reference_v<NestedMatrix>)
+  template<typed_index_descriptor TypedIndex, covariance_nestable NestedMatrix> requires
+    (dimension_size_of_v<TypedIndex> == row_dimension_of_v<NestedMatrix>) and (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
-  template<typename Coefficients, typename NestedMatrix>
+  template<typename TypedIndex, typename NestedMatrix>
 #endif
   struct Covariance;
 
 
   namespace internal
   {
-    template<typename Coefficients, typename NestedMatrix>
-    struct is_self_adjoint_covariance<Covariance<Coefficients, NestedMatrix>> : std::true_type {};
+    template<typename TypedIndex, typename NestedMatrix>
+    struct is_self_adjoint_covariance<Covariance<TypedIndex, NestedMatrix>> : std::true_type {};
   }
 
 
@@ -511,31 +511,31 @@ namespace OpenKalman
    * \details If S is a SquareRootCovariance, S*transpose(S) is a Covariance.
    * If NestedMatrix is triangular, the SquareRootCovariance has the same triangle type (upper or lower). If NestedMatrix
    * is self-adjoint, the triangle type of SquareRootCovariance is considered either upper ''or'' lower.
-   * \tparam Coefficients Coefficient types.
+   * \tparam TypedIndex Coefficient types.
    * \tparam NestedMatrix The underlying native matrix or matrix expression. It can be either self-adjoint or
    * (either upper or lower) triangular. If it is self-adjoint, the native matrix will be Cholesky-factored
    * when converted to a Matrix or when used in mathematical expressions. The self-adjoint and triangular versions
    * are functionally identical, but often the triangular version is more efficient.
    */
 #ifdef __cpp_concepts
-  template<typed_index_descriptor Coefficients, covariance_nestable NestedMatrix> requires
-    (dimension_size_of_v<Coefficients> == row_dimension_of_v<NestedMatrix>) and (not std::is_rvalue_reference_v<NestedMatrix>)
+  template<typed_index_descriptor TypedIndex, covariance_nestable NestedMatrix> requires
+    (dimension_size_of_v<TypedIndex> == row_dimension_of_v<NestedMatrix>) and (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
-  template<typename Coefficients, typename NestedMatrix>
+  template<typename TypedIndex, typename NestedMatrix>
 #endif
   struct SquareRootCovariance;
 
 
   namespace internal
   {
-    template<typename Coefficients, typename NestedMatrix>
-    struct is_triangular_covariance<SquareRootCovariance<Coefficients, NestedMatrix>> : std::true_type {};
+    template<typename TypedIndex, typename NestedMatrix>
+    struct is_triangular_covariance<SquareRootCovariance<TypedIndex, NestedMatrix>> : std::true_type {};
   }
 
 
   /**
    * \brief A Gaussian distribution, defined in terms of a Mean and a Covariance.
-   * \tparam Coefficients Coefficient types.
+   * \tparam TypedIndex Coefficient types.
    * \tparam MeanNestedMatrix The underlying native matrix for the Mean.
    * \tparam CovarianceNestedMatrix The underlying native matrix (triangular or self-adjoint) for the Covariance.
    * \tparam random_number_engine A random number engine compatible with the c++ standard library (e.g., std::mt19937).
@@ -543,7 +543,7 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<
-    typed_index_descriptor Coefficients,
+    typed_index_descriptor TypedIndex,
     typed_matrix_nestable MeanNestedMatrix,
     covariance_nestable CovarianceNestedMatrix,
     std::uniform_random_bit_generator random_number_engine = std::mt19937> requires
@@ -553,7 +553,7 @@ namespace OpenKalman
         scalar_type_of_t<CovarianceNestedMatrix>>)
 #else
   template<
-    typename Coefficients,
+    typename TypedIndex,
     typename MeanNestedMatrix,
     typename CovarianceNestedMatrix,
     typename random_number_engine = std::mt19937>
@@ -563,8 +563,8 @@ namespace OpenKalman
 
   namespace internal
   {
-    template<typename Coefficients, typename MeanNestedMatrix, typename CovarianceNestedMatrix, typename re>
-    struct is_gaussian_distribution<GaussianDistribution<Coefficients, MeanNestedMatrix, CovarianceNestedMatrix, re>>
+    template<typename TypedIndex, typename MeanNestedMatrix, typename CovarianceNestedMatrix, typename re>
+    struct is_gaussian_distribution<GaussianDistribution<TypedIndex, MeanNestedMatrix, CovarianceNestedMatrix, re>>
       : std::true_type {};
   }
 
@@ -590,13 +590,13 @@ namespace OpenKalman
      * \brief Base class for means or matrices.
      * \tparam Derived The derived class (e.g., Matrix, Mean, EuclideanMean).
      * \tparam NestedMatrix The nested matrix.
-     * \tparam Coefficients The \ref OpenKalman::coefficients "coefficients" representing the rows and columns of the matrix.
+     * \tparam TypedIndex The \ref OpenKalman::coefficients "coefficients" representing the rows and columns of the matrix.
      */
 #ifdef __cpp_concepts
-    template<typename Derived, typename NestedMatrix, typed_index_descriptor...Coefficients>
-    requires (not std::is_rvalue_reference_v<NestedMatrix>) and (sizeof...(Coefficients) <= 2)
+    template<typename Derived, typename NestedMatrix, typed_index_descriptor...TypedIndex>
+    requires (not std::is_rvalue_reference_v<NestedMatrix>) and (sizeof...(TypedIndex) <= 2)
 #else
-    template<typename Derived, typename NestedMatrix, typename...Coefficients>
+    template<typename Derived, typename NestedMatrix, typename...TypedIndex>
 #endif
     struct TypedMatrixBase;
 

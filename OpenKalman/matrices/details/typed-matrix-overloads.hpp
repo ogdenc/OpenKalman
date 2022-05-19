@@ -212,41 +212,41 @@ namespace OpenKalman
   {
 
 #ifdef __cpp_concepts
-    template<typename...FC, mean Arg, typename...DC>
+    template<mean Arg, index_descriptor C>
 #else
-    template<typename...FC, typename Arg, typename...DC, std::enable_if_t<mean<Arg>, int> = 0>
+    template<typename Arg, typename C, std::enable_if_t<mean<Arg> and index_descriptor<C>, int> = 0>
 #endif
     constexpr decltype(auto)
-    to_euclidean(Arg&& arg, DC&&...dc) noexcept
+    to_euclidean(Arg&& arg, const C& c) noexcept
     {
-      decltype(auto) n = OpenKalman::to_euclidean<FC...>(nested_matrix(std::forward<Arg>(arg), std::forward<DC>(dc)...));
-      return make_euclidean_mean<FC...>(std::forward<decltype(n)>(n), std::forward<DC>(dc)...);
+      decltype(auto) n = OpenKalman::to_euclidean(nested_matrix(std::forward<Arg>(arg), std::forward<DC>(dc)...), c);
+      return make_euclidean_mean<C>(std::forward<decltype(n)>(n), c);
     }
 
 
 #ifdef __cpp_concepts
-    template<typename...FC, euclidean_mean Arg, typename...DC>
+    template<euclidean_mean Arg, index_descriptor C>
 #else
-    template<typename...FC, typename Arg, typename...DC, std::enable_if_t<euclidean_mean<Arg>, int> = 0>
+    template<typename Arg, typename C, std::enable_if_t<euclidean_mean<Arg> and index_descriptor<C>, int> = 0>
 #endif
     constexpr decltype(auto)
-    from_euclidean(Arg&& arg, DC&&...dc) noexcept
+    from_euclidean(Arg&& arg, const C& c) noexcept
     {
-      decltype(auto) n = OpenKalman::from_euclidean<FC...>(nested_matrix(std::forward<Arg>(arg), std::forward<DC>(dc)...));
-      return make_mean<FC...>(std::forward<decltype(n)>(n), std::forward<DC>(dc)...);
+      decltype(auto) n = OpenKalman::from_euclidean(nested_matrix(std::forward<Arg>(arg), c));
+      return make_mean<C>(std::forward<decltype(n)>(n), c);
     }
 
 
 #ifdef __cpp_concepts
-    template<typename...FC, mean Arg, typename...DC>
+    template<mean Arg, index_descriptor C>
 #else
-    template<typename...FC, typename Arg, typename...DC, std::enable_if_t<mean<Arg>, int> = 0>
+    template<typename Arg, typename C, std::enable_if_t<mean<Arg> and index_descriptor<C>, int> = 0>
 #endif
     constexpr decltype(auto)
-    wrap_angles(Arg&& arg, DC&&...dc) noexcept
+    wrap_angles(Arg&& arg, const C& c) noexcept
     {
-      decltype(auto) n = OpenKalman::wrap_angles<FC...>(nested_matrix(std::forward<Arg>(arg), std::forward<DC>(dc)...));
-      return MatrixTraits<Arg>::make(std::forward<decltype(n)>(n), std::forward<DC>(dc)...);
+      decltype(auto) n = OpenKalman::wrap_angles(nested_matrix(std::forward<Arg>(arg), c));
+      return MatrixTraits<Arg>::make(std::forward<decltype(n)>(n), c);
     }
 
   };
@@ -441,7 +441,7 @@ namespace OpenKalman
   {
     if constexpr(sizeof...(Vs) > 0)
     {
-      using RC = Concatenate<row_coefficient_types_of_t<V>, row_coefficient_types_of_t<Vs>...>;
+      using RC = concatenate_fixed_index_descriptor_t<row_coefficient_types_of_t<V>, row_coefficient_types_of_t<Vs>...>;
       return MatrixTraits<V>::template make<RC>(
         concatenate_vertical(nested_matrix(std::forward<V>(v)), nested_matrix(std::forward<Vs>(vs))...));
     }
@@ -480,10 +480,10 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     if constexpr(sizeof...(Vs) > 0)
     {
       using RC = row_coefficient_types_of_t<V>;
-      using CC = Concatenate<column_coefficient_types_of_t<V>,
+      using CC = concatenate_fixed_index_descriptor_t<column_coefficient_types_of_t<V>,
       column_coefficient_types_of_t<Vs>...>;
       auto cat = concatenate_horizontal(nested_matrix(std::forward<V>(v)), nested_matrix(std::forward<Vs>(vs))...);
-      if constexpr(untyped_index_descriptor<CC>)
+      if constexpr(euclidean_index_descriptor<CC>)
       {
         return MatrixTraits<V>::template make<RC, CC>(std::move(cat));
       }
@@ -511,8 +511,8 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   {
     if constexpr(sizeof...(Vs) > 0)
     {
-      using RC = Concatenate<row_coefficient_types_of_t<V>, row_coefficient_types_of_t<Vs>...>;
-      using CC = Concatenate<column_coefficient_types_of_t<V>,
+      using RC = concatenate_fixed_index_descriptor_t<row_coefficient_types_of_t<V>, row_coefficient_types_of_t<Vs>...>;
+      using CC = concatenate_fixed_index_descriptor_t<column_coefficient_types_of_t<V>,
         column_coefficient_types_of_t<Vs>...>;
       return MatrixTraits<V>::template make<RC, CC>(
         concatenate_diagonal(nested_matrix(std::forward<V>(v)), nested_matrix(std::forward<Vs>(vs))...));
@@ -564,10 +564,10 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   /// Split typed matrix into one or more typed matrices vertically.
 #ifdef __cpp_concepts
   template<typed_index_descriptor ... Cs, typed_matrix M> requires
-    prefix_of<Concatenate<Cs...>, row_coefficient_types_of_t<M>>
+    prefix_of<concatenate_fixed_index_descriptor_t<Cs...>, row_coefficient_types_of_t<M>>
 #else
   template<typename ... Cs, typename M, std::enable_if_t<typed_matrix<M> and
-    prefix_of<Concatenate<Cs...>, row_coefficient_types_of_t<M>>, int> = 0>
+    prefix_of<concatenate_fixed_index_descriptor_t<Cs...>, row_coefficient_types_of_t<M>>, int> = 0>
 #endif
   inline auto
   split_vertical(M&& m) noexcept
@@ -581,10 +581,10 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   /// Split typed matrix into one or more typed matrices horizontally.
 #ifdef __cpp_concepts
   template<typed_index_descriptor ... Cs, typed_matrix M> requires
-    prefix_of<Concatenate<Cs...>, column_coefficient_types_of_t<M>>
+    prefix_of<concatenate_fixed_index_descriptor_t<Cs...>, column_coefficient_types_of_t<M>>
 #else
   template<typename ... Cs, typename M, std::enable_if_t<typed_matrix<M> and
-    prefix_of<Concatenate<Cs...>, column_coefficient_types_of_t<M>>, int> = 0>
+    prefix_of<concatenate_fixed_index_descriptor_t<Cs...>, column_coefficient_types_of_t<M>>, int> = 0>
 #endif
   inline auto
   split_horizontal(M&& m) noexcept
@@ -619,7 +619,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   inline auto
   split_diagonal(M&& m) noexcept
   {
-    static_assert(prefix_of<Concatenate<Cs...>, row_coefficient_types_of_t<M>>);
+    static_assert(prefix_of<concatenate_fixed_index_descriptor_t<Cs...>, row_coefficient_types_of_t<M>>);
     static_assert(equivalent_to<row_coefficient_types_of_t<M>::ColumnCoefficients, typename MatrixTraits<M>>);
     return split_diagonal<oin::SplitMatDiagF<M>, Cs...>(nested_matrix(std::forward<M>(m)));
   }
@@ -707,7 +707,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     using ResRC = row_coefficient_types_of_t<ResultType>;
     using ResCC0 = column_coefficient_types_of_t<ResultType>;
     static_assert(dimension_size_of_v<ResCC0> == 1, "Function argument of apply_columnwise must return a column vector.");
-    using ResCC = replicated_fixed_index_descriptor<ResCC0, column_dimension_of_v<Arg>>;
+    using ResCC = replicate_fixed_index_descriptor_t<ResCC0, column_dimension_of_v<Arg>>;
     using RC = row_coefficient_types_of_t<Arg>;
     const auto f_nested = [&f](auto&& col) -> auto {
       return make_self_contained(
@@ -736,7 +736,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     using ResRC = row_coefficient_types_of_t<ResultType>;
     using ResCC0 = column_coefficient_types_of_t<ResultType>;
     static_assert(dimension_size_of_v<ResCC0> == 1, "Function argument of apply_columnwise must return a column vector.");
-    using ResCC = replicated_fixed_index_descriptor<ResCC0, column_dimension_of_v<Arg>>;
+    using ResCC = replicate_fixed_index_descriptor_t<ResCC0, column_dimension_of_v<Arg>>;
     const auto f_nested = [&f](auto&& col, std::size_t i) -> auto {
       using RC = row_coefficient_types_of_t<Arg>;
       return make_self_contained(
@@ -764,7 +764,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     using RC = row_coefficient_types_of_t<ResultType>;
     using CC0 = column_coefficient_types_of_t<ResultType>;
     static_assert(dimension_size_of_v<CC0> == 1, "Function argument of apply_columnwise must return a column vector.");
-    using CC = replicated_fixed_index_descriptor<CC0, count>;
+    using CC = replicate_fixed_index_descriptor_t<CC0, count>;
     return MatrixTraits<ResultType>::template make<RC, CC>(apply_columnwise<count>(f_nested));
   }
 
@@ -787,7 +787,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     using RC = row_coefficient_types_of_t<ResultType>;
     using CC0 = column_coefficient_types_of_t<ResultType>;
     static_assert(dimension_size_of_v<CC0> == 1, "Function argument of apply_columnwise must return a column vector.");
-    using CC = replicated_fixed_index_descriptor<CC0, count>;
+    using CC = replicate_fixed_index_descriptor_t<CC0, count>;
     return MatrixTraits<ResultType>::template make<RC, CC>(apply_columnwise<count>(f_nested));
   }
 
@@ -949,8 +949,8 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
    *  in which elements in each row are selected according to the three (o) or two (p) listed distribution
    *  parameters:
    *   \code
-   *     auto o = randomize<Matrix<Dimensions<3>, Coefficients<angle::Radians, angle::Radians>, Eigen::Matrix<double, 3, 2>>>(N {1.0, 0.3}, 2.0, N {3.0, 0.3})));
-   *     auto p = randomize<Matrix<Dimensions<2>, Coefficients<angle::Radians, angle::Radians>, Eigen::Matrix<double, 2, 2>>>(N {1.0, 0.3}, N {2.0, 0.3})));
+   *     auto o = randomize<Matrix<Dimensions<3>, TypedIndex<angle::Radians, angle::Radians>, Eigen::Matrix<double, 3, 2>>>(N {1.0, 0.3}, 2.0, N {3.0, 0.3})));
+   *     auto p = randomize<Matrix<Dimensions<2>, TypedIndex<angle::Radians, angle::Radians>, Eigen::Matrix<double, 2, 2>>>(N {1.0, 0.3}, N {2.0, 0.3})));
    *   \endcode
    *   Note that in the case of p, there is an ambiguity as to whether the listed distributions correspond to rows
    *   or columns. In case of such an ambiguity, this function assumes that the parameters correspond to the rows.
@@ -958,7 +958,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
    *  - One distribution for each column. The following code constructs 2-by-3 matrix m
    *  in which elements in each column are selected according to the three listed distribution parameters:
    *   \code
-   *     auto m = randomize<Matrix<Coefficients<angle::Radians, angle::Radians>, Dimensions<3>, Eigen::Matrix<double, 2, 3>>>(N {1.0, 0.3}, 2.0, N {3.0, 0.3})));
+   *     auto m = randomize<Matrix<TypedIndex<angle::Radians, angle::Radians>, Dimensions<3>, Eigen::Matrix<double, 2, 3>>>(N {1.0, 0.3}, 2.0, N {3.0, 0.3})));
    *   \endcode
    *
    * \tparam ReturnType The return type reflecting the size of the matrix to be filled. The actual result will be

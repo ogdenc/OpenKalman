@@ -48,28 +48,18 @@
 #endif
 #endif
 
-#include "../interfaces.hpp"
+#include "../interfaces.hpp" // Includes basics.hpp
 
 #include "details/eigen3-forward-declarations.hpp"
+#include "special-matrices/special-matrices.hpp" // \todo Because some Eigen3 code refers to special matrices and vice versa. ^^ Need to fix this and delete
+
 #include "details/eigen3-matrix-traits.hpp"
 #include "details/eigen3-traits.hpp"
 
 #include "details/eigen3-interface.hpp"
 #include "details/eigen3-functions.hpp"
-#include "special-matrices/details/eigen3-special_matrix-traits.hpp"
-
-#include "special-matrices/ConstantMatrix.hpp"
-#include "special-matrices/ZeroMatrix.hpp"
-#include "special-matrices/DiagonalMatrix.hpp"
-#include "special-matrices/SelfAdjointMatrix.hpp"
-#include "special-matrices/TriangularMatrix.hpp"
-#include "special-matrices/ToEuclideanExpr.hpp"
-#include "special-matrices/FromEuclideanExpr.hpp"
 
 #include "details/eigen3-cholesky-overloads.hpp"
-#include "special-matrices/details/eigen3-special-matrix-overloads.hpp"
-#include "special-matrices/details/eigen3-special-matrix-arithmetic.hpp"
-#include "special-matrices/details/eigen3-euclidean-overloads.hpp"
 
 #include "details/eigen3-comma-initializers.hpp"
 #include "details/Eigen3Base.hpp"
@@ -85,21 +75,6 @@
 // Introduce key Eigen3 interface functions into OpenKalman namespace.
 namespace OpenKalman
 {
-  using Eigen3::Cholesky_square;
-  using Eigen3::Cholesky_factor;
-
-  using Eigen3::ConstantMatrix;
-  using Eigen3::ZeroMatrix;
-  using Eigen3::IdentityMatrix;
-  using Eigen3::SelfAdjointMatrix;
-  using Eigen3::TriangularMatrix;
-  using Eigen3::DiagonalMatrix;
-  using Eigen3::FromEuclideanExpr;
-  using Eigen3::ToEuclideanExpr;
-
-  using Eigen3::make_EigenSelfAdjointMatrix;
-  using Eigen3::make_EigenTriangularMatrix;
-
   using Eigen3::LQ_decomposition;
   using Eigen3::QR_decomposition;
   using Eigen3::concatenate_vertical;

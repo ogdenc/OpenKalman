@@ -176,8 +176,8 @@ TEST(eigen3, Eigen_Matrix)
   static_assert(equivalent_to<coefficient_types_of_t<M11, 1>, Axis>);
   static_assert(std::is_same_v<coefficient_types_of<M22, 0>::type, Dimensions<2>>);
   static_assert(std::is_same_v<coefficient_types_of<M22, 1>::type, Dimensions<2>>);
-  static_assert(equivalent_to<coefficient_types_of_t<M22, 0>, Coefficients<Axis, Axis>>);
-  static_assert(equivalent_to<coefficient_types_of_t<M22, 1>, Coefficients<Axis, Axis>>);
+  static_assert(equivalent_to<coefficient_types_of_t<M22, 0>, TypedIndex<Axis, Axis>>);
+  static_assert(equivalent_to<coefficient_types_of_t<M22, 1>, TypedIndex<Axis, Axis>>);
 
   static_assert(square_matrix<M11>);
   static_assert(square_matrix<M22>);

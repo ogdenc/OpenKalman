@@ -17,15 +17,56 @@
 #define OPENKALMAN_EIGEN3_TRAITS_HPP
 
 #include <type_traits>
-#include <matrices/Matrix.hpp>
 
 
 namespace OpenKalman
 {
   using namespace OpenKalman::internal;
   using namespace OpenKalman::Eigen3;
-  using namespace OpenKalman::Eigen3::internal;
   namespace EGI = Eigen::internal;
+
+
+  namespace Eigen3
+  {
+#ifdef __cpp_concepts
+    template<native_eigen_matrix Arg>
+#else
+    template<typename Arg, std::enable_if_t<native_eigen_matrix<Arg>, int> = 0>
+#endif
+    explicit SelfAdjointMatrix(Arg&&) -> SelfAdjointMatrix<passable_t<Arg>, TriangleType::lower>;
+
+
+#ifdef __cpp_concepts
+    template<TriangleType t = TriangleType::lower, native_eigen_matrix M>
+#else
+    template<TriangleType t = TriangleType::lower, typename M, std::enable_if_t<native_eigen_matrix<M>, int> = 0>
+#endif
+    auto
+    make_EigenSelfAdjointMatrix(M&& m)
+    {
+      return SelfAdjointMatrix<passable_t<M>, t> {std::forward<M>(m)};
+    }
+
+
+#ifdef __cpp_concepts
+    template<native_eigen_matrix M>
+#else
+    template<typename M, std::enable_if_t<native_eigen_matrix<M>, int> = 0>
+#endif
+    explicit TriangularMatrix(M&&) -> TriangularMatrix<passable_t<M>, TriangleType::lower>;
+
+
+#ifdef __cpp_concepts
+    template<TriangleType t = TriangleType::lower, native_eigen_matrix M>
+#else
+   template<TriangleType t = TriangleType::lower, typename M, std::enable_if_t<native_eigen_matrix<M>, int> = 0>
+#endif
+    auto make_EigenTriangularMatrix(M&& m)
+    {
+      return TriangularMatrix<passable_t<M>, t> (std::forward<M>(m));
+    }
+
+  } // namespace Eigen3
 
 
   namespace interface
@@ -103,20 +144,6 @@ namespace OpenKalman
     };
 
 
-    template<typename C, typename Nested>
-    struct CoordinateSystemTraits<FromEuclideanExpr<C, Nested>, 0>
-    {
-      using coordinate_system_types = C;
-    };
-
-
-    template<typename C, typename Nested>
-    struct CoordinateSystemTraits<ToEuclideanExpr<C, Nested>, 0>
-    {
-      using coordinate_system_types = C;
-    };
-
-
 #ifdef __cpp_concepts
     template<native_eigen_general T, std::size_t rows, std::size_t columns, typename Scalar>
     struct EquivalentDenseWritableMatrix<T, rows, columns, Scalar>
@@ -168,7 +195,7 @@ namespace OpenKalman
           Eigen::Dynamic : static_cast<Eigen::Index>(dimension_size_of_v<D>))...>;
 
         if constexpr (((dimension_size_of_v<D> == dynamic_size) or ...))
-          return M(static_cast<Eigen::Index>(d())...);
+          return M(static_cast<Eigen::Index>(get_dimension_size_of(d))...);
         else
           return M{};
       }
@@ -3351,6 +3378,20 @@ namespace OpenKalman
   } // namespace interface
 
 
+  namespace Eigen3
+  {
+    /**
+     * \brief Deduction guide for converting Eigen::SelfAdjointView to SelfAdjointMatrix
+     */
+  #ifdef __cpp_concepts
+    template<Eigen3::eigen_SelfAdjointView M>
+  #else
+    template<typename M, std::enable_if_t<Eigen3::eigen_SelfAdjointView<M>, int> = 0>
+  #endif
+    SelfAdjointMatrix(M&&) -> SelfAdjointMatrix<nested_matrix_of_t<M>, self_adjoint_triangle_type_of_v<M>>;
+  }
+
+
   /**
    * \internal
    * \brief Matrix traits for Eigen::SelfAdjointView.
@@ -3515,11 +3556,28 @@ namespace OpenKalman
         (lower_self_adjoint_matrix<MatrixType> ? TriangleType::upper : TriangleType::lower);
     };
 
+  } // namespace interface
 
     // ---------------- //
     //  TriangularView  //
     // ---------------- //
 
+  namespace Eigen3
+  {
+    /**
+     * \brief Deduction guide for converting Eigen::TriangularView to TriangularMatrix
+     */
+  #ifdef __cpp_concepts
+    template<Eigen3::eigen_TriangularView M>
+  #else
+    template<typename M, std::enable_if_t<Eigen3::eigen_TriangularView<M>, int> = 0>
+  #endif
+    TriangularMatrix(M&&) -> TriangularMatrix<nested_matrix_of_t<M>, triangle_type_of_v<M>>;
+  }
+
+
+  namespace interface
+  {
     template<typename M, unsigned int Mode>
     struct Dependencies<Eigen::TriangularView<M, Mode>>
     {

@@ -92,7 +92,7 @@ namespace OpenKalman::test
 
   namespace
   {
-    using C2t = Coefficients<Axis, Axis>;
+    using C2t = TypedIndex<Axis, Axis>;
     using M2t = Mean<C2t, eigen_matrix_t < double, 2, 1>>;
     using M22t = Matrix <C2t, C2t, eigen_matrix_t<double, 2, 2>>;
   }
@@ -189,7 +189,7 @@ namespace OpenKalman::test
 
   namespace
   {
-    using Cyl = Coefficients<Polar<>, Axis>;
+    using Cyl = TypedIndex<Polar<>, Axis>;
     using MC1t = Matrix <Cyl, Axis, eigen_matrix_t<double, 3, 1>>;
     using MS1t = Matrix <Spherical<>, Axis, eigen_matrix_t<double, 3, 1>>;
     using MSCt = Matrix <Spherical<>, Cyl, eigen_matrix_t<double, 3, 3>>;

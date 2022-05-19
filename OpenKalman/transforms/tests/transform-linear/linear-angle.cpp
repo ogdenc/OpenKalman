@@ -16,7 +16,7 @@ using namespace OpenKalman::test;
 
 using std::numbers::pi;
 
-using C2 = Coefficients<Polar<>>;
+using C2 = TypedIndex<Polar<>>;
 using M2 = Mean<C2>;
 using Mat2 = Matrix<C2, C2>;
 using Cov2 = Covariance<C2>;

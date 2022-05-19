@@ -23,8 +23,8 @@ using M32 = eigen_matrix_t<double, 3, 2>;
 using M33 = eigen_matrix_t<double, 3, 3>;
 using I22 = IdentityMatrix<M22>;
 using Z22 = ZeroMatrix<eigen_matrix_t<double, 2, 2>>;
-using C2 = Coefficients<Axis, angle::Radians>;
-using C3 = Coefficients<Axis, angle::Radians, Axis>;
+using C2 = TypedIndex<Axis, angle::Radians>;
+using C3 = TypedIndex<Axis, angle::Radians, Axis>;
 
 
 TEST(matrices, References_TypedMatrix_lvalue)

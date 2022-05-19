@@ -10,32 +10,38 @@
 
 /**
  * \dir
- * \brief Definitions relating to coefficient types
+ * \brief Definitions relating to index descriptor types
  *
  * \dir index-descriptors/details
- * \brief Files implementing details regarding coefficient types.
+ * \brief Files implementing details regarding index descriptor types.
  *
  * \dir index-descriptors/tests
  * \brief Test files for coefficient types.
  *
  * \file
- * \brief Comprehensive header file including all coefficient-related classes and definitions
+ * \brief Comprehensive header file including all index-type-related classes and definitions
  */
 
 #ifndef OPENKALMAN_INDEX_DESCRIPTORS_HPP
 #define OPENKALMAN_INDEX_DESCRIPTORS_HPP
 
-#include "basics/index-descriptors/details/AbstractDynamicTypedIndexDescriptor.hpp"
-#include "basics/index-descriptors/details/DynamicTypedIndexDescriptor.hpp"
+#include "index-descriptor-interface-traits.hpp"
+#include "index-descriptor-forward-declarations.hpp"
 
-//#include "Axis.hpp"
+#include "Dimensions.hpp"
 #include "Distance.hpp"
 #include "Angle.hpp"
 #include "Inclination.hpp"
 #include "Polar.hpp"
 #include "Spherical.hpp"
-#include "Coefficients.hpp"
 
-#include "DynamicCoefficients.hpp"
+#include "TypedIndex.hpp"
+
+#include "details/AbstractDynamicTypedIndexDescriptor.hpp"
+#include "details/DynamicTypedIndexDescriptor.hpp"
+#include "DynamicTypedIndex.hpp"
+
+#include "index-descriptor-traits.hpp"
+#include "index-descriptor-functions.hpp"
 
 #endif //OPENKALMAN_INDEX_DESCRIPTORS_HPP

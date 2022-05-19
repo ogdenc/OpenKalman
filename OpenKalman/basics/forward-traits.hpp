@@ -37,8 +37,8 @@ namespace OpenKalman
   // ---------------- //
 
   /**
-   * \brief Type scalar type (e.g., std::float, std::double, std::complex<double>) of a matrix, expression, or array.
-   * \tparam T A matrix, expression, or array.
+   * \brief Type scalar type (e.g., std::float, std::double, std::complex<double>) of a tensor or index descriptor.
+   * \tparam T A matrix, expression, array, or \ref index_descriptor.
    * \internal \sa interface::ScalarTypeOf
    */
 #ifdef __cpp_concepts
@@ -328,15 +328,20 @@ namespace OpenKalman
 #else
   template<typename T, std::size_t N, typename = void>
 #endif
-  struct coefficient_types_of;
+  struct coefficient_types_of
+  {
+    using type = Dimensions<index_dimension_of_v<T, N>>;
+  };
 
 
 #ifdef __cpp_concepts
-  template<indexible T, std::size_t N> requires (N < max_indices_of_v<T>)
+  template<indexible T, std::size_t N> requires (N < max_indices_of_v<T>) and
+    requires { typename interface::CoordinateSystemTraits<std::decay_t<T>, N>::coordinate_system_types; }
   struct coefficient_types_of<T, N>
 #else
   template<typename T, std::size_t N>
-  struct coefficient_types_of<T, N, std::enable_if_t<indexible<T> and N < max_indices_of_v<T>>>
+  struct coefficient_types_of<T, N, std::enable_if_t<indexible<T> and N < max_indices_of_v<T> and
+    std::is_void<std::void_t<typename interface::CoordinateSystemTraits<std::decay_t<T>, N>::coordinate_system_types>>::value>>
 #endif
   {
     using type = typename interface::CoordinateSystemTraits<std::decay_t<T>, N>::coordinate_system_types;
@@ -379,7 +384,7 @@ namespace OpenKalman
 
   /**
    * \brief Specifies that T has an untyped index N.
-   * \details Index N of T is Euclidean and non-modular (e.g., Axis, Coefficients<Axis, Axis>, etc.).
+   * \details Index N of T is Euclidean and non-modular (e.g., Axis, TypedIndex<Axis, Axis>, etc.).
    */
 #ifdef __cpp_concepts
   template<typename T, std::size_t N>
@@ -388,7 +393,7 @@ namespace OpenKalman
   template<typename T, std::size_t N>
   constexpr bool has_untyped_index =
 #endif
-    untyped_index_descriptor<coefficient_types_of_t<T, N>>;
+    euclidean_index_descriptor<coefficient_types_of_t<T, N>>;
 
 
   // ------------------- //

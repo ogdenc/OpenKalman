@@ -20,18 +20,18 @@
 namespace OpenKalman::internal
 {
 #ifdef __cpp_concepts
-  template<typename Derived, typename NestedMatrix, typed_index_descriptor...Coefficients>
-  requires (not std::is_rvalue_reference_v<NestedMatrix>) and (sizeof...(Coefficients) <= 2)
+  template<typename Derived, typename NestedMatrix, typed_index_descriptor...TypedIndex>
+  requires (not std::is_rvalue_reference_v<NestedMatrix>) and (sizeof...(TypedIndex) <= 2)
 #else
-  template<typename Derived, typename NestedMatrix, typename...Coefficients>
+  template<typename Derived, typename NestedMatrix, typename...TypedIndex>
 #endif
   struct TypedMatrixBase : MatrixBase<Derived, NestedMatrix>
   {
 
 #ifndef __cpp_concepts
-    static_assert((typed_index_descriptor<Coefficients> and ...));
+    static_assert((typed_index_descriptor<TypedIndex> and ...));
     static_assert(not std::is_rvalue_reference_v<NestedMatrix>);
-    static_assert(sizeof...(Coefficients) <= 2);
+    static_assert(sizeof...(TypedIndex) <= 2);
 #endif
 
   private:
@@ -63,14 +63,32 @@ namespace OpenKalman::internal
 #ifdef __cpp_concepts
     template<typed_matrix_nestable Arg> requires (row_dimension_of_v<Arg> == row_dimension_of_v<NestedMatrix>) and
       (column_dimension_of_v<Arg> == column_dimension_of_v<NestedMatrix>) and
-      std::constructible_from<NestedMatrix, Arg&&>
+      (fixed_index_descriptor<TypedIndex> and ...) and std::constructible_from<NestedMatrix, Arg&&>
 #else
     template<typename Arg, std::enable_if_t<typed_matrix_nestable<Arg> and
       (row_dimension_of<Arg>::value == row_dimension_of<NestedMatrix>::value) and
       (column_dimension_of<Arg>::value == column_dimension_of<NestedMatrix>::value) and
-      std::is_constructible_v<NestedMatrix, Arg&&>, int> = 0>
+      (fixed_index_descriptor<TypedIndex> and ...) and std::is_constructible_v<NestedMatrix, Arg&&>, int> = 0>
 #endif
     TypedMatrixBase(Arg&& arg) noexcept : Base {std::forward<Arg>(arg)} {}
+
+
+    /// Construct from a typed_matrix_nestable and an \ref index descriptor set.
+#ifdef __cpp_concepts
+    template<typed_matrix_nestable Arg, index_descriptor...Cs>
+    requires (row_dimension_of_v<Arg> == row_dimension_of_v<NestedMatrix>) and
+      (column_dimension_of_v<Arg> == column_dimension_of_v<NestedMatrix>) and
+      std::constructible_from<NestedMatrix, Arg&&> and
+      ((dynamic_index_descriptor<Cs> or dynamic_index_descriptor<TypedIndex> or equivalent_to<Cs, TypedIndex>) and ...)
+#else
+    template<typename Arg, typename...Cs, std::enable_if_t<typed_matrix_nestable<Arg> and (index_descriptor<Cs> and ...) and
+      (row_dimension_of<Arg>::value == row_dimension_of<NestedMatrix>::value) and
+      (column_dimension_of<Arg>::value == column_dimension_of<NestedMatrix>::value) and
+      std::is_constructible_v<NestedMatrix, Arg&&> and
+      ((dynamic_index_descriptor<Cs> or dynamic_index_descriptor<TypedIndex> or equivalent_to<Cs, TypedIndex>) and ...), int> = 0>
+#endif
+    TypedMatrixBase(Arg&& arg, const Cs&...cs) noexcept
+      : Base {std::forward<Arg>(arg)}, my_dimensions {cs...} {}
 
 
     /// Construct from a list of coefficients.
@@ -134,6 +152,16 @@ namespace OpenKalman::internal
       this->nested_matrix() /= s;
       return *this;
     }
+
+  private:
+
+    std::tuple<TypedIndex...> my_dimensions;
+
+#ifdef __cpp_concepts
+    template<typename T, std::size_t N> friend struct OpenKalman::interface::CoordinateSystemTraits;
+#else
+    template<typename T, std::size_t N, typename Enable> friend struct OpenKalman::interface::CoordinateSystemTraits;
+#endif
 
   };
 

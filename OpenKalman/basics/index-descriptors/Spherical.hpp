@@ -32,12 +32,7 @@ namespace OpenKalman
    * \tparam C1, C2, C3 Distance, inclination, and Angle, in any order.
    * By default, they are Distance, angle::Radians, and inclination::Radians, respectively.
    */
-#ifdef __cpp_concepts
-  template<atomic_fixed_index_descriptor C1 = Distance, atomic_fixed_index_descriptor C2 = angle::Radians,
-    atomic_fixed_index_descriptor C3 = inclination::Radians>
-#else
-  template<typename C1 = Distance, typename C2 = angle::Radians, typename C3 = inclination::Radians, typename = void>
-#endif
+  template<typename C1 = Distance, typename C2 = angle::Radians, typename C3 = inclination::Radians>
   struct Spherical;
 
 
@@ -343,50 +338,58 @@ namespace OpenKalman
   struct Spherical<Inclination<ILimits>, Angle<ALimits>, Distance> : detail::SphericalBase<ALimits, ILimits, 2, 1, 0> {};
 
 
-  /**
-   * \internal
-   * \brief Spherical is represented by three coordinates.
-   */
-   template<typename T1, typename T2, typename T3>
-   struct dimension_size_of<Spherical<T1, T2, T3>> : std::integral_constant<std::size_t, 3>
-   {
-     constexpr static std::size_t get(const Spherical<T1, T2, T3>& t) { return 3; }
-   };
-
-
-  /**
-   * \internal
-   * \brief Spherical is represented by four coordinates in Euclidean space.
-   */
-   template<typename T1, typename T2, typename T3>
-   struct euclidean_dimension_size_of<Spherical<T1, T2, T3>> : std::integral_constant<std::size_t, 4>
-   {
-     constexpr static std::size_t get(const Spherical<T1, T2, T3>& t) { return 4; }
-   };
-
-
-  /**
-   * \brief The number of atomic components.
-   */
-  template<typename T1, typename T2, typename T3>
-  struct index_descriptor_components_of<Spherical<T1, T2, T3>> : std::integral_constant<std::size_t, 1>
+  namespace interface
   {
-    constexpr static std::size_t get(const Spherical<T1, T2, T3>&) { return 1; }
-  };
+    /**
+     * \internal
+     * \brief Spherical is represented by three coordinates.
+     */
+     template<typename T1, typename T2, typename T3>
+     struct IndexDescriptorSize<Spherical<T1, T2, T3>> : std::integral_constant<std::size_t, 3>
+     {
+       constexpr static std::size_t get(const Spherical<T1, T2, T3>& t) { return 3; }
+     };
 
 
-  /**
-   * \internal
-   * \brief The type of the result when subtracting two Spherical vectors.
-   * \details For differences, each coordinate behaves as if it were Distance, Angle, or Inclination.
-   * See David Frederic Crouse, Cubature/Unscented/Sigma Point Kalman Filtering with Angular Measurement Models,
-   * 18th Int'l Conf. on Information Fusion 1550, 1555 (2015).
-   */
-  template<typename T1, typename T2, typename T3>
-  struct dimension_difference_of<Spherical<T1, T2, T3>>
-  {
-    using type = Concatenate<dimension_difference_of_t<T1>, dimension_difference_of_t<T2>, dimension_difference_of_t<T3>>;
-  };
+    /**
+     * \internal
+     * \brief Spherical is represented by four coordinates in Euclidean space.
+     */
+     template<typename T1, typename T2, typename T3>
+     struct EuclideanIndexDescriptorSize<Spherical<T1, T2, T3>> : std::integral_constant<std::size_t, 4>
+     {
+       constexpr static std::size_t get(const Spherical<T1, T2, T3>& t) { return 4; }
+     };
+
+
+    /**
+     * \internal
+     * \brief The number of atomic components.
+     */
+    template<typename T1, typename T2, typename T3>
+    struct IndexDescriptorComponentCount<Spherical<T1, T2, T3>> : std::integral_constant<std::size_t, 1>
+    {
+      constexpr static std::size_t get(const Spherical<T1, T2, T3>&) { return 1; }
+    };
+
+
+    /**
+     * \internal
+     * \brief The type of the result when subtracting two Spherical vectors.
+     * \details For differences, each coordinate behaves as if it were Distance, Angle, or Inclination.
+     * See David Frederic Crouse, Cubature/Unscented/Sigma Point Kalman Filtering with Angular Measurement Models,
+     * 18th Int'l Conf. on Information Fusion 1550, 1555 (2015).
+     */
+    template<typename T1, typename T2, typename T3>
+    struct IndexDescriptorDifferenceType<Spherical<T1, T2, T3>>
+    {
+      using type = concatenate_fixed_index_descriptor_t<
+      typename IndexDescriptorDifferenceType<T1>::type,
+      typename IndexDescriptorDifferenceType<T2>::type,
+      typename IndexDescriptorDifferenceType<T3>::type>;
+    };
+
+  } // namespace interface
 
 }// namespace OpenKalman
 

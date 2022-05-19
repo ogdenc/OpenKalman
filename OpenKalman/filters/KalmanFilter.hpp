@@ -45,11 +45,11 @@ namespace OpenKalman
       static_assert(typed_matrix<CrossCovariance>);
       static_assert(typed_matrix<Measurement> and column_vector<Measurement>);
       static_assert(equivalent_to<row_coefficient_types_of_t<Measurement>,
-        typename DistributionTraits<YDistribution>::Coefficients>);
+        typename DistributionTraits<YDistribution>::TypedIndex>);
       static_assert(equivalent_to<row_coefficient_types_of_t<CrossCovariance>,
-        typename DistributionTraits<XDistribution>::Coefficients>);
+        typename DistributionTraits<XDistribution>::TypedIndex>);
       static_assert(equivalent_to<column_coefficient_types_of_t<CrossCovariance>,
-        typename DistributionTraits<YDistribution>::Coefficients>);
+        typename DistributionTraits<YDistribution>::TypedIndex>);
 
       const auto y = mean_of(Ny);
       const auto P_yy = covariance_of(Ny);

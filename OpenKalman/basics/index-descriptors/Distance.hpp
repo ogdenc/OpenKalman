@@ -112,44 +112,52 @@ namespace OpenKalman
   };
 
 
-  /**
-   * \brief Distance is represented by one coordinate.
-   */
-  template<>
-  struct dimension_size_of<Distance> : std::integral_constant<std::size_t, 1>
+  namespace interface
   {
-    constexpr static std::size_t get(const Distance&) { return 1; }
-  };
+    /**
+     * \internal
+     * \brief Distance is represented by one coordinate.
+     */
+    template<>
+    struct IndexDescriptorSize<Distance> : std::integral_constant<std::size_t, 1>
+    {
+      constexpr static std::size_t get(const Distance&) { return 1; }
+    };
 
 
-  /**
-   * \brief Distance is represented by one coordinate in Euclidean space.
-   */
-  template<>
-  struct euclidean_dimension_size_of<Distance> : std::integral_constant<std::size_t, 1>
-  {
-    constexpr static std::size_t get(const Distance&) { return 1; }
-  };
+    /**
+     * \internal
+     * \brief Distance is represented by one coordinate in Euclidean space.
+     */
+    template<>
+    struct EuclideanIndexDescriptorSize<Distance> : std::integral_constant<std::size_t, 1>
+    {
+      constexpr static std::size_t get(const Distance&) { return 1; }
+    };
 
 
-  /**
-   * \brief The number of atomic components.
-   */
-  template<>
-  struct index_descriptor_components_of<Distance> : std::integral_constant<std::size_t, 1>
-  {
-    constexpr static std::size_t get(const Distance&) { return 1; }
-  };
+    /**
+     * \internal
+     * \brief The number of atomic components.
+     */
+    template<>
+    struct IndexDescriptorComponentCount<Distance> : std::integral_constant<std::size_t, 1>
+    {
+      constexpr static std::size_t get(const Distance&) { return 1; }
+    };
 
 
-  /**
-   * \brief The type of the result when subtracting two Distance values.
-   * \details A difference between two distances can be positive or negative, and is treated as Axis.
-   * See David Frederic Crouse, Cubature/Unscented/Sigma Point Kalman Filtering with Angular Measurement Models,
-   * 18th Int'l Conf. on Information Fusion 1553, 1555 (2015).
-   */
-  template<>
-  struct dimension_difference_of<Distance> { using type = Axis; };
+    /**
+     * \internal
+     * \brief The type of the result when subtracting two Distance values.
+     * \details A difference between two distances can be positive or negative, and is treated as Axis.
+     * See David Frederic Crouse, Cubature/Unscented/Sigma Point Kalman Filtering with Angular Measurement Models,
+     * 18th Int'l Conf. on Information Fusion 1553, 1555 (2015).
+     */
+    template<>
+    struct IndexDescriptorDifferenceType<Distance> { using type = Axis; };
+
+  } // namespace interface
 
 
 } // namespace OpenKalman

@@ -17,7 +17,6 @@
 #define OPENKALMAN_EIGEN3_SPECIAL_MATRIX_TRAITS_HPP
 
 #include <type_traits>
-#include <interfaces/eigen3/details/eigen3-traits.hpp>
 
 // ================================================ //
 //   Type traits for Eigen interface matrix types   //
@@ -51,42 +50,28 @@ namespace OpenKalman
     //  IndexTraits  //
     // ------------- //
 
-    template<typename NestedMatrix, auto constant, std::size_t N>
-    struct IndexTraits<ConstantMatrix<NestedMatrix, constant>, N>
+    template<typename PatternMatrix, auto constant, std::size_t N>
+    struct IndexTraits<ConstantMatrix<PatternMatrix, constant>, N>
     {
-      static constexpr std::size_t dimension = index_dimension_of_v<NestedMatrix, N>;
+      static constexpr std::size_t dimension = index_dimension_of_v<PatternMatrix, N>;
 
       template<typename Arg>
       static constexpr std::size_t dimension_at_runtime(const Arg& arg)
       {
-        if constexpr (dynamic_dimension<Arg, N>)
-        {
-          return std::get<N>(arg.get_all_dimensions());
-        }
-        else
-        {
-          return dimension;
-        }
+        return get_dimension_size_of(std::get<N>(arg.my_dimensions));
       }
     };
 
 
-    template<typename NestedMatrix, std::size_t N>
-    struct IndexTraits<ZeroMatrix<NestedMatrix>, N>
+    template<typename PatternMatrix, std::size_t N>
+    struct IndexTraits<ZeroMatrix<PatternMatrix>, N>
     {
-      static constexpr std::size_t dimension = index_dimension_of_v<NestedMatrix, N>;
+      static constexpr std::size_t dimension = index_dimension_of_v<PatternMatrix, N>;
 
       template<typename Arg>
       static constexpr std::size_t dimension_at_runtime(const Arg& arg)
       {
-        if constexpr (dynamic_dimension<Arg, N>)
-        {
-          return std::get<N>(arg.get_all_dimensions());
-        }
-        else
-        {
-          return dimension;
-        }
+        return get_dimension_size_of(std::get<N>(arg.my_dimensions));
       }
     };
 
@@ -99,7 +84,7 @@ namespace OpenKalman
       template<typename Arg>
       static constexpr std::size_t dimension_at_runtime(const Arg& arg)
       {
-        return get_dimensions_of<0>(nested_matrix(arg));
+        return get_index_dimension_of<0>(nested_matrix(arg));
       }
     };
 
@@ -116,7 +101,7 @@ namespace OpenKalman
         if constexpr (dynamic_dimension<Nested, 0>)
         {
           if constexpr (dynamic_dimension<Nested, 1>)
-            return get_dimensions_of<0>(nested_matrix(arg));
+            return get_index_dimension_of<0>(nested_matrix(arg));
           else
             return index_dimension_of_v<Nested, 1>;
         }
@@ -140,7 +125,7 @@ namespace OpenKalman
         if constexpr (dynamic_dimension<Nested, 0>)
         {
           if constexpr (dynamic_dimension<Nested, 1>)
-            return get_dimensions_of<0>(nested_matrix(arg));
+            return get_index_dimension_of<0>(nested_matrix(arg));
           else
             return index_dimension_of_v<Nested, 1>;
         }
@@ -165,7 +150,7 @@ namespace OpenKalman
           if constexpr (N == 0)
             return arg.row_coefficients.dimension;
           else
-            return get_dimensions_of<N>(nested_matrix(arg));
+            return get_index_dimension_of<N>(nested_matrix(arg));
         }
         else
         {
@@ -188,12 +173,68 @@ namespace OpenKalman
           if constexpr (N == 0)
             return arg.row_coefficients.euclidean_dimension;
           else
-            return get_dimensions_of<N>(nested_matrix(arg));
+            return get_index_dimension_of<N>(nested_matrix(arg));
         }
         else
         {
           return dimension;
         }
+      }
+    };
+
+
+    // ------------------------ //
+    //  CoordinateSystemTraits  //
+    // ------------------------ //
+
+    template<typename PatternMatrix, std::size_t N>
+    struct CoordinateSystemTraits<ZeroMatrix<PatternMatrix>, N>
+    {
+      using coordinate_system_types = std::tuple_element_t<N, typename ZeroMatrix<PatternMatrix>::MyDimensions>;
+
+      template<typename Arg>
+      static constexpr auto coordinate_system_types_at_runtime(Arg&& arg)
+      {
+        return std::get<N>(std::forward<Arg>(arg).my_dimensions);
+      }
+    };
+
+
+    template<typename PatternMatrix, auto constant, std::size_t N>
+    struct CoordinateSystemTraits<ConstantMatrix<PatternMatrix, constant>, N>
+    {
+      using coordinate_system_types = std::tuple_element_t<N, typename ConstantMatrix<PatternMatrix, N>::MyDimensions>;
+
+      template<typename Arg>
+      static constexpr auto coordinate_system_types_at_runtime(Arg&& arg)
+      {
+        return std::get<N>(std::forward<Arg>(arg).my_dimensions);
+      }
+    };
+
+
+    template<typename C, typename Nested, std::size_t N>
+    struct CoordinateSystemTraits<FromEuclideanExpr<C, Nested>, N>
+    {
+      using coordinate_system_types = C;
+
+      template<typename Arg>
+      static constexpr auto coordinate_system_types_at_runtime(Arg&& arg)
+      {
+        return std::get<N>(std::forward<Arg>(arg).my_dimensions);
+      }
+    };
+
+
+    template<typename C, typename Nested, std::size_t N>
+    struct CoordinateSystemTraits<ToEuclideanExpr<C, Nested>, N>
+    {
+      using coordinate_system_types = C;
+
+      template<typename Arg>
+      static constexpr auto coordinate_system_types_at_runtime(Arg&& arg)
+      {
+        return std::get<N>(std::forward<Arg>(arg).my_dimensions);
       }
     };
 
@@ -382,8 +423,8 @@ namespace OpenKalman
     };
 
 
-    template<typename Coefficients, typename NestedMatrix>
-    struct Dependencies<ToEuclideanExpr<Coefficients, NestedMatrix>>
+    template<typename TypedIndex, typename NestedMatrix>
+    struct Dependencies<ToEuclideanExpr<TypedIndex, NestedMatrix>>
     {
       static constexpr bool has_runtime_parameters = false;
       using type = std::tuple<NestedMatrix>;
@@ -399,13 +440,13 @@ namespace OpenKalman
       static auto convert_to_self_contained(Arg&& arg)
       {
         auto n = make_self_contained(get_nested_matrix<0>(std::forward<Arg>(arg)));
-        return Eigen3::FromEuclideanExpr<Coefficients, decltype(n)> {std::move(n)};
+        return Eigen3::FromEuclideanExpr<TypedIndex, decltype(n)> {std::move(n)};
       }
     };
 
 
-    template<typename Coefficients, typename NestedMatrix>
-    struct Dependencies<FromEuclideanExpr<Coefficients, NestedMatrix>>
+    template<typename TypedIndex, typename NestedMatrix>
+    struct Dependencies<FromEuclideanExpr<TypedIndex, NestedMatrix>>
     {
       static constexpr bool has_runtime_parameters = false;
       using type = std::tuple<NestedMatrix>;
@@ -421,7 +462,7 @@ namespace OpenKalman
       static auto convert_to_self_contained(Arg&& arg)
       {
         auto n = make_self_contained(get_nested_matrix<0>(std::forward<Arg>(arg)));
-        return Eigen3::ToEuclideanExpr<Coefficients, decltype(n)> {std::move(n)};
+        return Eigen3::ToEuclideanExpr<TypedIndex, decltype(n)> {std::move(n)};
       }
     };
 
@@ -429,42 +470,6 @@ namespace OpenKalman
     // ----------------------------- //
     //   SingleConstantMatrixTraits  //
     // ----------------------------- //
-
-    // This implements the default behavior of the make_zero_matrix interface function.
-#ifdef __cpp_concepts
-    template<typename T, typename Scalar>
-    template<index_descriptor...D> requires (sizeof...(D) == StorageArrayTraits<T>::max_indices)
-    auto SingleConstantMatrixTraits<T, Scalar>::
-#else
-    template<typename T, typename Scalar, typename Enable>
-    template<typename...D, std::enable_if_t<(index_descriptor<D> and ...) and
-      sizeof...(D) == StorageArrayTraits<T>::max_indices, int>>
-    auto SingleConstantMatrixTraits<T, Scalar, Enable>::
-#endif
-    make_zero_matrix(D&&...d)
-    {
-      using N = untyped_dense_writable_matrix_t<T, dimension_size_of_v<D>...>;
-      return Eigen3::ZeroMatrix<N> {std::forward<D>(d)...};
-    }
-
-
-    // This implements the default behavior of the make_constant_matrix interface function.
-#ifdef __cpp_concepts
-    template<typename T, typename Scalar>
-    template<auto constant, index_descriptor...D> requires (sizeof...(D) == StorageArrayTraits<T>::max_indices)
-    auto SingleConstantMatrixTraits<T, Scalar>::
-#else
-    template<typename T, typename Scalar, typename Enable>
-    template<auto constant, typename...D, std::enable_if_t<(index_descriptor<D> and ...) and
-      sizeof...(D) == StorageArrayTraits<T>::max_indices, int>>
-    auto SingleConstantMatrixTraits<T, Scalar, Enable>::
-#endif
-    make_constant_matrix(D&&...d)
-    {
-      using N = untyped_dense_writable_matrix_t<T, dimension_size_of_v<D>...>;
-      return Eigen3::ConstantMatrix<N, constant> {std::forward<D>(d)...};
-    }
-
 
 #ifdef __cpp_concepts
     template<untyped_adapter T, typename Scalar>
@@ -573,23 +578,23 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<untyped_index_descriptor Coefficients, constant_matrix NestedMatrix>
-    struct SingleConstant<ToEuclideanExpr<Coefficients, NestedMatrix>>
+    template<euclidean_index_descriptor TypedIndex, constant_matrix NestedMatrix>
+    struct SingleConstant<ToEuclideanExpr<TypedIndex, NestedMatrix>>
 #else
-    template<typename Coefficients, typename NestedMatrix>
-    struct SingleConstant<ToEuclideanExpr<Coefficients, NestedMatrix>, std::enable_if_t<
-      untyped_index_descriptor<Coefficients> and constant_matrix<NestedMatrix>>>
+    template<typename TypedIndex, typename NestedMatrix>
+    struct SingleConstant<ToEuclideanExpr<TypedIndex, NestedMatrix>, std::enable_if_t<
+      euclidean_index_descriptor<TypedIndex> and constant_matrix<NestedMatrix>>>
 #endif
       : SingleConstant<std::decay_t<NestedMatrix>> {};
 
 
 #ifdef __cpp_concepts
-    template<untyped_index_descriptor Coefficients, constant_matrix NestedMatrix>
-    struct SingleConstant<FromEuclideanExpr<Coefficients, NestedMatrix>>
+    template<euclidean_index_descriptor TypedIndex, constant_matrix NestedMatrix>
+    struct SingleConstant<FromEuclideanExpr<TypedIndex, NestedMatrix>>
 #else
-    template<typename Coefficients, typename NestedMatrix>
-    struct SingleConstant<FromEuclideanExpr<Coefficients, NestedMatrix>, std::enable_if_t<
-      untyped_index_descriptor<Coefficients> and constant_matrix<NestedMatrix>>>
+    template<typename TypedIndex, typename NestedMatrix>
+    struct SingleConstant<FromEuclideanExpr<TypedIndex, NestedMatrix>, std::enable_if_t<
+      euclidean_index_descriptor<TypedIndex> and constant_matrix<NestedMatrix>>>
 #endif
       : SingleConstant<std::decay_t<NestedMatrix>> {};
 
@@ -597,22 +602,6 @@ namespace OpenKalman
     // ------------------------------------- //
     //   SingleConstantDiagonalMatrixTraits  //
     // ------------------------------------- //
-
-    // This implements the default behavior of the make_identity_matrix interface function.
-#ifdef __cpp_concepts
-    template<typename T, typename Scalar>
-    template<index_descriptor D>
-    auto SingleConstantDiagonalMatrixTraits<T, Scalar>::
-#else
-    template<typename T, typename Scalar, typename Enable>
-    template<typename D, std::enable_if_t<index_descriptor<D>, int>>
-    auto SingleConstantDiagonalMatrixTraits<T, Scalar, Enable>::
-#endif
-    make_identity_matrix(D&& d)
-    {
-      return Eigen3::DiagonalMatrix {make_constant_matrix_like<T, 1>(std::forward<D>(d), Dimensions<1>{})};
-    }
-
 
 #ifdef __cpp_concepts
     template<untyped_adapter T, typename Scalar>
@@ -730,23 +719,23 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<untyped_index_descriptor Coefficients, constant_diagonal_matrix NestedMatrix>
-    struct SingleConstantDiagonal<FromEuclideanExpr<Coefficients, NestedMatrix>>
+    template<euclidean_index_descriptor TypedIndex, constant_diagonal_matrix NestedMatrix>
+    struct SingleConstantDiagonal<FromEuclideanExpr<TypedIndex, NestedMatrix>>
 #else
-    template<typename Coefficients, typename NestedMatrix>
-    struct SingleConstantDiagonal<FromEuclideanExpr<Coefficients, NestedMatrix>, std::enable_if_t<
-        constant_diagonal_matrix<NestedMatrix> and untyped_index_descriptor<Coefficients>>>
+    template<typename TypedIndex, typename NestedMatrix>
+    struct SingleConstantDiagonal<FromEuclideanExpr<TypedIndex, NestedMatrix>, std::enable_if_t<
+        constant_diagonal_matrix<NestedMatrix> and euclidean_index_descriptor<TypedIndex>>>
 #endif
       : SingleConstantDiagonal<std::decay_t<NestedMatrix>> {};
 
 
 #ifdef __cpp_concepts
-    template<untyped_index_descriptor Coefficients, constant_diagonal_matrix NestedMatrix>
-    struct SingleConstantDiagonal<ToEuclideanExpr<Coefficients, NestedMatrix>>
+    template<euclidean_index_descriptor TypedIndex, constant_diagonal_matrix NestedMatrix>
+    struct SingleConstantDiagonal<ToEuclideanExpr<TypedIndex, NestedMatrix>>
 #else
-    template<typename Coefficients, typename NestedMatrix>
-    struct SingleConstantDiagonal<ToEuclideanExpr<Coefficients, NestedMatrix>, std::enable_if_t<
-      constant_diagonal_matrix<NestedMatrix> and untyped_index_descriptor<Coefficients>>>
+    template<typename TypedIndex, typename NestedMatrix>
+    struct SingleConstantDiagonal<ToEuclideanExpr<TypedIndex, NestedMatrix>, std::enable_if_t<
+      constant_diagonal_matrix<NestedMatrix> and euclidean_index_descriptor<TypedIndex>>>
 #endif
       : SingleConstantDiagonal<std::decay_t<NestedMatrix>> {};
 
@@ -804,17 +793,17 @@ namespace OpenKalman
     };
 
 
-    template<typename Coefficients, typename NestedMatrix>
-    struct DiagonalTraits<ToEuclideanExpr<Coefficients, NestedMatrix>>
+    template<typename TypedIndex, typename NestedMatrix>
+    struct DiagonalTraits<ToEuclideanExpr<TypedIndex, NestedMatrix>>
     {
-      static constexpr bool is_diagonal = untyped_index_descriptor<Coefficients> and diagonal_matrix<NestedMatrix>;
+      static constexpr bool is_diagonal = euclidean_index_descriptor<TypedIndex> and diagonal_matrix<NestedMatrix>;
     };
 
 
-    template<typename Coefficients, typename NestedMatrix>
-    struct DiagonalTraits<FromEuclideanExpr<Coefficients, NestedMatrix>>
+    template<typename TypedIndex, typename NestedMatrix>
+    struct DiagonalTraits<FromEuclideanExpr<TypedIndex, NestedMatrix>>
     {
-      static constexpr bool is_diagonal = untyped_index_descriptor<Coefficients> and diagonal_matrix<NestedMatrix>;
+      static constexpr bool is_diagonal = euclidean_index_descriptor<TypedIndex> and diagonal_matrix<NestedMatrix>;
     };
 
 
@@ -831,12 +820,12 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<untyped_index_descriptor Coefficients, triangular_matrix NestedMatrix>
-    struct TriangularTraits<ToEuclideanExpr<Coefficients, NestedMatrix>>
+    template<euclidean_index_descriptor TypedIndex, triangular_matrix NestedMatrix>
+    struct TriangularTraits<ToEuclideanExpr<TypedIndex, NestedMatrix>>
 #else
-    template<typename Coefficients, typename NestedMatrix>
-    struct TriangularTraits<ToEuclideanExpr<Coefficients, NestedMatrix>, std::enable_if_t<
-      triangular_matrix<NestedMatrix> and untyped_index_descriptor<Coefficients>>>
+    template<typename TypedIndex, typename NestedMatrix>
+    struct TriangularTraits<ToEuclideanExpr<TypedIndex, NestedMatrix>, std::enable_if_t<
+      triangular_matrix<NestedMatrix> and euclidean_index_descriptor<TypedIndex>>>
 #endif
     {
       static constexpr TriangleType triangle_type = triangle_type_of_v<NestedMatrix>;
@@ -845,12 +834,12 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<untyped_index_descriptor Coefficients, triangular_matrix NestedMatrix>
-    struct TriangularTraits<FromEuclideanExpr<Coefficients, NestedMatrix>>
+    template<euclidean_index_descriptor TypedIndex, triangular_matrix NestedMatrix>
+    struct TriangularTraits<FromEuclideanExpr<TypedIndex, NestedMatrix>>
 #else
-    template<typename Coefficients, typename NestedMatrix>
-    struct TriangularTraits<FromEuclideanExpr<Coefficients, NestedMatrix>, std::enable_if_t<
-      triangular_matrix<NestedMatrix> and untyped_index_descriptor<Coefficients>>>
+    template<typename TypedIndex, typename NestedMatrix>
+    struct TriangularTraits<FromEuclideanExpr<TypedIndex, NestedMatrix>, std::enable_if_t<
+      triangular_matrix<NestedMatrix> and euclidean_index_descriptor<TypedIndex>>>
 #endif
     {
       static constexpr TriangleType triangle_type = triangle_type_of_v<NestedMatrix>;
@@ -871,12 +860,12 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<untyped_index_descriptor Coefficients, self_adjoint_matrix NestedMatrix>
-    struct HermitianTraits<ToEuclideanExpr<Coefficients, NestedMatrix>>
+    template<euclidean_index_descriptor TypedIndex, self_adjoint_matrix NestedMatrix>
+    struct HermitianTraits<ToEuclideanExpr<TypedIndex, NestedMatrix>>
 #else
-    template<typename Coefficients, typename NestedMatrix>
-    struct HermitianTraits<ToEuclideanExpr<Coefficients, NestedMatrix>, std::enable_if_t<
-      self_adjoint_matrix<NestedMatrix> and untyped_index_descriptor<Coefficients>>>
+    template<typename TypedIndex, typename NestedMatrix>
+    struct HermitianTraits<ToEuclideanExpr<TypedIndex, NestedMatrix>, std::enable_if_t<
+      self_adjoint_matrix<NestedMatrix> and euclidean_index_descriptor<TypedIndex>>>
 #endif
     {
       static constexpr bool is_hermitian = true;
@@ -885,12 +874,12 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<untyped_index_descriptor Coefficients, self_adjoint_matrix NestedMatrix>
-    struct HermitianTraits<FromEuclideanExpr<Coefficients, NestedMatrix>>
+    template<euclidean_index_descriptor TypedIndex, self_adjoint_matrix NestedMatrix>
+    struct HermitianTraits<FromEuclideanExpr<TypedIndex, NestedMatrix>>
 #else
-    template<typename Coefficients, typename NestedMatrix>
-    struct HermitianTraits<FromEuclideanExpr<Coefficients, NestedMatrix>, std::enable_if_t<
-      self_adjoint_matrix<NestedMatrix> and untyped_index_descriptor<Coefficients>>>
+    template<typename TypedIndex, typename NestedMatrix>
+    struct HermitianTraits<FromEuclideanExpr<TypedIndex, NestedMatrix>, std::enable_if_t<
+      self_adjoint_matrix<NestedMatrix> and euclidean_index_descriptor<TypedIndex>>>
 #endif
     {
       static constexpr bool is_hermitian = true;
@@ -907,17 +896,17 @@ namespace OpenKalman
   //        MatrixTraits         //
   // --------------------------- //
 
-  template<typename NestedMatrix, auto constant>
-  struct MatrixTraits<ConstantMatrix<NestedMatrix, constant>>
+  template<typename PatternMatrix, auto constant>
+  struct MatrixTraits<ConstantMatrix<PatternMatrix, constant>>
   {
   private:
 
-    using Matrix = ConstantMatrix<NestedMatrix, constant>;
+    using Matrix = ConstantMatrix<PatternMatrix, constant>;
 
   public:
 
     template<typename Derived>
-    using MatrixBaseFrom = Eigen3::internal::Eigen3Base<Derived, Matrix>;
+    using MatrixBaseFrom = typename MatrixTraits<PatternMatrix>::template MatrixBaseFrom<Derived>;
 
     template<TriangleType storage_triangle = TriangleType::diagonal>
     using SelfAdjointMatrixFrom = SelfAdjointMatrix<Matrix, storage_triangle>;
@@ -925,24 +914,24 @@ namespace OpenKalman
     template<TriangleType triangle_type = TriangleType::diagonal>
     using TriangularMatrixFrom = TriangularMatrix<Matrix, triangle_type>;
 
-    template<std::size_t dim = row_dimension_of_v<NestedMatrix>>
+    template<std::size_t dim = row_dimension_of_v<PatternMatrix>>
     using DiagonalMatrixFrom = DiagonalMatrix<Eigen3::ConstantMatrix<
-      untyped_dense_writable_matrix_t<NestedMatrix, dim, 1>, constant>>;
+      untyped_dense_writable_matrix_t<PatternMatrix, dim, 1>, constant>>;
 
   };
 
 
-  template<typename NestedMatrix>
-  struct MatrixTraits<ZeroMatrix<NestedMatrix>>
+  template<typename PatternMatrix>
+  struct MatrixTraits<ZeroMatrix<PatternMatrix>>
   {
   private:
 
-    using Matrix = ZeroMatrix<NestedMatrix>;
+    using Matrix = ZeroMatrix<PatternMatrix>;
 
   public:
 
     template<typename Derived>
-    using MatrixBaseFrom = Eigen3::internal::Eigen3Base<Derived, Matrix>;
+    using MatrixBaseFrom = typename MatrixTraits<PatternMatrix>::template MatrixBaseFrom<Derived>;
 
     template<TriangleType storage_triangle = TriangleType::diagonal>
     using SelfAdjointMatrixFrom = Eigen3::SelfAdjointMatrix<Matrix, storage_triangle>;
@@ -950,8 +939,8 @@ namespace OpenKalman
     template<TriangleType triangle_type = TriangleType::diagonal>
     using TriangularMatrixFrom = Eigen3::TriangularMatrix<Matrix, triangle_type>;
 
-    template<std::size_t dim = row_dimension_of_v<NestedMatrix>, typename S = scalar_type_of_t<NestedMatrix>>
-    using DiagonalMatrixFrom = Eigen3::DiagonalMatrix<Eigen3::eigen_matrix_t<S, dim, 1>>;
+    template<std::size_t dim = row_dimension_of_v<PatternMatrix>>
+    using DiagonalMatrixFrom = DiagonalMatrix<Eigen3::ZeroMatrix<untyped_dense_writable_matrix_t<PatternMatrix, dim, 1>>>;
 
   };
 
@@ -968,7 +957,7 @@ namespace OpenKalman
   public:
 
     template<typename Derived>
-    using MatrixBaseFrom = Eigen3::internal::Eigen3Base<Derived, Eigen3::DiagonalMatrix<NestedMatrix>>;
+    using MatrixBaseFrom = typename MatrixTraits<NestedMatrix>::template MatrixBaseFrom<Derived>;
 
     template<TriangleType storage_triangle = TriangleType::diagonal, std::size_t dim = rows>
     using SelfAdjointMatrixFrom = Eigen3::SelfAdjointMatrix<untyped_dense_writable_matrix_t<NestedMatrix, dim, dim>, storage_triangle>;
@@ -1042,8 +1031,7 @@ namespace OpenKalman
   public:
 
     template<typename Derived>
-    using MatrixBaseFrom = Eigen3::internal::Eigen3Base<Derived,
-      Eigen3::TriangularMatrix<NestedMatrix, triangle_type>>;
+    using MatrixBaseFrom = typename MatrixTraits<NestedMatrix>::template MatrixBaseFrom<Derived>;
 
     template<TriangleType t = triangle_type, std::size_t dim = rows>
     using SelfAdjointMatrixFrom = Eigen3::SelfAdjointMatrix<untyped_dense_writable_matrix_t<NestedMatrix, dim, dim>, t>;
@@ -1057,10 +1045,10 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
     template<TriangleType t = triangle_type, typename Arg> requires
-      Eigen3::eigen_matrix<Arg> or Eigen3::eigen_diagonal_expr<Arg>
+      has_dynamic_dimensions<NestedMatrix> or square_matrix<NestedMatrix>
 #else
     template<TriangleType t = triangle_type, typename Arg, std::enable_if_t<
-      Eigen3::eigen_matrix<Arg> or Eigen3::eigen_diagonal_expr<Arg>, int> = 0>
+      has_dynamic_dimensions<NestedMatrix> or square_matrix<NestedMatrix>, int> = 0>
 #endif
     static auto make(Arg&& arg) noexcept
     {
@@ -1113,8 +1101,7 @@ namespace OpenKalman
   public:
 
     template<typename Derived>
-    using MatrixBaseFrom =
-      Eigen3::internal::Eigen3Base<Derived, Eigen3::SelfAdjointMatrix<NestedMatrix, storage_triangle>>;
+    using MatrixBaseFrom = typename MatrixTraits<NestedMatrix>::template MatrixBaseFrom<Derived>;
 
     template<TriangleType t = storage_triangle, std::size_t dim = rows>
     using SelfAdjointMatrixFrom = Eigen3::SelfAdjointMatrix<untyped_dense_writable_matrix_t<NestedMatrix, dim, dim>, t>;
@@ -1128,10 +1115,12 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
     template<TriangleType t = storage_triangle, typename Arg> requires
-      (Eigen3::eigen_matrix<Arg> or Eigen3::eigen_diagonal_expr<Arg>)
+      (not diagonal_matrix<NestedMatrix> or not complex_number<scalar_type_of_t<NestedMatrix>>) and
+      (has_dynamic_dimensions<NestedMatrix> or square_matrix<NestedMatrix>)
 #else
     template<TriangleType t = storage_triangle, typename Arg, std::enable_if_t<
-      Eigen3::eigen_matrix<Arg> or Eigen3::eigen_diagonal_expr<Arg>, int> = 0>
+      (not diagonal_matrix<NestedMatrix> or not complex_number<scalar_type_of_t<NestedMatrix>>) and
+      (has_dynamic_dimensions<NestedMatrix> or square_matrix<NestedMatrix>), int> = 0>
 #endif
     static auto make(Arg&& arg) noexcept
     {
@@ -1180,7 +1169,7 @@ namespace OpenKalman
   public:
 
     template<typename Derived>
-    using MatrixBaseFrom = Eigen3::internal::Eigen3Base<Derived, Eigen3::FromEuclideanExpr<Coeffs, NestedMatrix>>;
+    using MatrixBaseFrom = typename MatrixTraits<NestedMatrix>::template MatrixBaseFrom<Derived>;
 
 
     template<TriangleType storage_triangle = TriangleType::lower, std::size_t dim = rows>
@@ -1198,7 +1187,9 @@ namespace OpenKalman
     // Make from a regular matrix.
 #ifdef __cpp_concepts
     template<typename C = Coeffs, typename Arg> requires
-      (Eigen3::eigen_matrix<Arg> or Eigen3::to_euclidean_expr<Arg>) and (row_dimension_of_v<Arg> == euclidean_dimension_size_of_v<C>)
+      (dynamic_index_descriptor<C> == dynamic_rows<Arg>) and
+      (not fixed_index_descriptor<C> or euclidean_dimension_size_of_v<C> == row_dimension_of_v<Arg>) and
+      (not dynamic_index_descriptor<C> or std::same_as<typename C::Scalar, scalar_type_of_t<Arg>>)
 #else
     template<typename C = Coeffs, typename Arg, std::enable_if_t<
       (Eigen3::eigen_matrix<Arg> or Eigen3::to_euclidean_expr<Arg>) and
@@ -1242,7 +1233,7 @@ namespace OpenKalman
 
 
     template<typename Derived>
-    using MatrixBaseFrom = Eigen3::internal::Eigen3Base<Derived, Eigen3::ToEuclideanExpr<Coeffs, NestedMatrix>>;
+    using MatrixBaseFrom = typename MatrixTraits<NestedMatrix>::template MatrixBaseFrom<Derived>;
 
 
     template<TriangleType storage_triangle = TriangleType::lower, std::size_t dim = rows>
@@ -1259,11 +1250,9 @@ namespace OpenKalman
 
     // Make from a regular matrix.
 #ifdef __cpp_concepts
-    template<typename C = Coeffs, typename Arg> requires
-      (Eigen3::eigen_matrix<Arg> or Eigen3::from_euclidean_expr<Arg>) and (row_dimension_of_v<Arg> == dimension_size_of_v<C>)
+    template<typename C = Coeffs, typename Arg> requires (row_dimension_of_v<Arg> == dimension_size_of_v<C>)
 #else
     template<typename C = Coeffs, typename Arg, std::enable_if_t<
-      (Eigen3::eigen_matrix<Arg> or Eigen3::from_euclidean_expr<Arg>) and
       (row_dimension_of<Arg>::value == dimension_size_of_v<C>), int> = 0>
 #endif
     static decltype(auto) make(Arg&& arg) noexcept

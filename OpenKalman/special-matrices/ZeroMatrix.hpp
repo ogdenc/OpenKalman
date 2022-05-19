@@ -34,8 +34,6 @@ namespace OpenKalman::Eigen3
   private:
 
     using nested_scalar = scalar_type_of_t<PatternMatrix>;
-    static constexpr auto nested_rows = row_dimension_of_v<PatternMatrix>;
-    static constexpr auto nested_cols = column_dimension_of_v<PatternMatrix>;
 
     using MyDimensions = std::decay_t<decltype(get_all_dimensions_of(std::declval<PatternMatrix>()))>;
 
@@ -161,7 +159,7 @@ namespace OpenKalman::Eigen3
     void check_runtime_sizes(const T& t)
     {
       if constexpr (has_dynamic_dimensions<T> or has_dynamic_dimensions<PatternMatrix>)
-        return runtime_sizes_match_impl(t, std::make_index_sequence<max_indices_of_v<T>>{});
+        return check_runtime_sizes_impl(t, std::make_index_sequence<max_indices_of_v<T>>{});
     };
 
   public:
@@ -241,21 +239,17 @@ namespace OpenKalman::Eigen3
       return 0;
     }
 
-
-    /**
-     * \return a tuple containing \ref index_descriptor "index_descriptors" for the dimensions for this ZeroMatrix
-     */
-    auto& get_all_dimensions() & { return my_dimensions; }
-    /// \overload
-    const auto& get_all_dimensions() const & { return my_dimensions; }
-    /// \overload
-    auto&& get_all_dimensions() && { return std::move(my_dimensions); }
-    /// \overload
-    const auto&& get_all_dimensions() const && { return std::move(my_dimensions); }
-
   private:
 
     MyDimensions my_dimensions;
+
+#ifdef __cpp_concepts
+    template<typename T, std::size_t N> friend struct interface::IndexTraits;
+    template<typename T, std::size_t N> friend struct interface::CoordinateSystemTraits;
+#else
+    template<typename T, std::size_t N, typename Enable> friend struct interface::IndexTraits;
+    template<typename T, std::size_t N, typename Enable> friend struct interface::CoordinateSystemTraits;
+#endif
 
   };
 

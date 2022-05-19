@@ -49,7 +49,7 @@ namespace OpenKalman
       using InputCoefficients = row_coefficient_types_of_t<In_Mean>;
       using OutputCoefficients = row_coefficient_types_of_t<Out_Mean>;
       static_assert((equivalent_to<OutputCoefficients,
-        typename DistributionTraits<NoiseDistributions>::Coefficients> and ...));
+        typename DistributionTraits<NoiseDistributions>::TypedIndex> and ...));
 
       using InputMeanMatrix = dense_writable_matrix_t<
         typename DistributionTraits<InputDistribution>::Mean, Dimensions<dimension_size_of_v<InputCoefficients>>, Dimensions<1>>;

@@ -57,7 +57,7 @@ namespace
   using CM02 = eigen_matrix_t<cdouble, dynamic_size, 2>;
   using CM00 = eigen_matrix_t<cdouble, dynamic_size, dynamic_size>;
 
-  using Axis2 = Coefficients<Axis, Axis>;
+  using Axis2 = TypedIndex<Axis, Axis>;
 
   auto z11 = M11::Identity() - M11::Identity(); using Z11 = decltype(z11);
   auto z22 = M22::Identity() - M22::Identity(); using Z22 = decltype(z22);

@@ -219,7 +219,7 @@ namespace OpenKalman
     /// Increment from another mean.
     auto& operator+=(const Mean& other)
     {
-      if constexpr(untyped_index_descriptor<RowCoefficients>)
+      if constexpr(euclidean_index_descriptor<RowCoefficients>)
         this->nested_matrix() += other.nested_matrix();
       else
         this->nested_matrix() = wrap_angles<RowCoefficients>(this->nested_matrix() + other.nested_matrix());
@@ -241,7 +241,7 @@ namespace OpenKalman
 #endif
     auto& operator+=(Arg&& other) noexcept
     {
-      if constexpr(untyped_index_descriptor<RowCoefficients>)
+      if constexpr(euclidean_index_descriptor<RowCoefficients>)
         this->nested_matrix() += nested_matrix(std::forward<Arg>(other));
       else
         this->nested_matrix() = wrap_angles<RowCoefficients>(
@@ -252,15 +252,15 @@ namespace OpenKalman
 
     /// Add a stochastic value to each column of the mean, based on a distribution.
 #ifdef __cpp_concepts
-    template<distribution Arg> requires (equivalent_to<typename DistributionTraits<Arg>::Coefficients, RowCoefficients>)
+    template<distribution Arg> requires (equivalent_to<typename DistributionTraits<Arg>::TypedIndex, RowCoefficients>)
 #else
     template<typename Arg, std::enable_if_t<distribution<Arg> and
-      (equivalent_to<typename DistributionTraits<Arg>::Coefficients, RowCoefficients>), int> = 0>
+      (equivalent_to<typename DistributionTraits<Arg>::TypedIndex, RowCoefficients>), int> = 0>
 #endif
     auto& operator+=(const Arg& arg) noexcept
     {
       apply_columnwise([&arg](auto& col){
-        if constexpr(untyped_index_descriptor<RowCoefficients>)
+        if constexpr(euclidean_index_descriptor<RowCoefficients>)
           col += arg().nested_matrix();
         else
           col = wrap_angles<RowCoefficients>(col + arg().nested_matrix());
@@ -272,7 +272,7 @@ namespace OpenKalman
     /// Decrement from another mean and wrap result.
     auto& operator-=(const Mean& other)
     {
-      if constexpr(untyped_index_descriptor<RowCoefficients>)
+      if constexpr(euclidean_index_descriptor<RowCoefficients>)
         this->nested_matrix() -= other.nested_matrix();
       else
         this->nested_matrix() = wrap_angles<RowCoefficients>(this->nested_matrix() - other.nested_matrix());
@@ -294,7 +294,7 @@ namespace OpenKalman
 #endif
     auto& operator-=(Arg&& other) noexcept
     {
-      if constexpr(untyped_index_descriptor<RowCoefficients>)
+      if constexpr(euclidean_index_descriptor<RowCoefficients>)
         this->nested_matrix() -= nested_matrix(std::forward<Arg>(other));
       else
         this->nested_matrix() = wrap_angles<RowCoefficients>(
@@ -305,15 +305,15 @@ namespace OpenKalman
 
     /// Subtract a stochastic value to each column of the mean, based on a distribution.
 #ifdef __cpp_concepts
-    template<distribution Arg> requires (equivalent_to<typename DistributionTraits<Arg>::Coefficients, RowCoefficients>)
+    template<distribution Arg> requires (equivalent_to<typename DistributionTraits<Arg>::TypedIndex, RowCoefficients>)
 #else
     template<typename Arg, std::enable_if_t<distribution<Arg> and
-      (equivalent_to<typename DistributionTraits<Arg>::Coefficients, RowCoefficients>), int> = 0>
+      (equivalent_to<typename DistributionTraits<Arg>::TypedIndex, RowCoefficients>), int> = 0>
 #endif
     auto& operator-=(const Arg& arg) noexcept
     {
       apply_columnwise([&arg](auto& col){
-        if constexpr(untyped_index_descriptor<RowCoefficients>)
+        if constexpr(euclidean_index_descriptor<RowCoefficients>)
           col -= arg().nested_matrix();
         else
           col = wrap_angles<RowCoefficients>(col - arg().nested_matrix());
@@ -330,7 +330,7 @@ namespace OpenKalman
 #endif
     auto& operator*=(const S s)
     {
-      if constexpr(untyped_index_descriptor<RowCoefficients>)
+      if constexpr(euclidean_index_descriptor<RowCoefficients>)
         this->nested_matrix() *= s;
       else
         this->nested_matrix() = wrap_angles<RowCoefficients>(this->nested_matrix() * s);
@@ -346,7 +346,7 @@ namespace OpenKalman
 #endif
     auto& operator/=(const S s)
     {
-      if constexpr(untyped_index_descriptor<RowCoefficients>)
+      if constexpr(euclidean_index_descriptor<RowCoefficients>)
         this->nested_matrix() /= s;
       else
         this->nested_matrix() = wrap_angles<RowCoefficients>(this->nested_matrix() / s);
@@ -405,20 +405,20 @@ namespace OpenKalman
 
   /**
    * \brief Make a Mean from a typed_matrix_nestable, specifying the row typed_index_descriptor.
-   * \tparam Coefficients The coefficient types corresponding to the rows.
+   * \tparam TypedIndex The coefficient types corresponding to the rows.
    * \tparam M A typed_matrix_nestable with size matching ColumnCoefficients.
    */
 #ifdef __cpp_concepts
-  template<typed_index_descriptor Coefficients, typed_matrix_nestable M> requires
-    (dimension_size_of_v<Coefficients> == row_dimension_of_v<M>)
+  template<typed_index_descriptor TypedIndex, typed_matrix_nestable M> requires
+    (dimension_size_of_v<TypedIndex> == row_dimension_of_v<M>)
 #else
-  template<typename Coefficients, typename M, std::enable_if_t<typed_index_descriptor<Coefficients> and
-    typed_matrix_nestable<M> and (dimension_size_of_v<Coefficients> == row_dimension_of<M>::value), int> = 0>
+  template<typename TypedIndex, typename M, std::enable_if_t<typed_index_descriptor<TypedIndex> and
+    typed_matrix_nestable<M> and (dimension_size_of_v<TypedIndex> == row_dimension_of<M>::value), int> = 0>
 #endif
   inline auto make_mean(M&& m) noexcept
   {
     constexpr auto rows = row_dimension_of_v<M>;
-    using Coeffs = std::conditional_t<std::is_void_v<Coefficients>, Dimensions<rows>, Coefficients>;
+    using Coeffs = std::conditional_t<std::is_void_v<TypedIndex>, Dimensions<rows>, TypedIndex>;
     decltype(auto) b = wrap_angles<Coeffs>(std::forward<M>(m)); using B = decltype(b);
     return Mean<Coeffs, passable_t<B>>(std::forward<B>(b));
   }
@@ -463,21 +463,21 @@ namespace OpenKalman
   /**
    * \overload
    * \brief Make a default, self-contained Mean.
-   * \tparam Coefficients The coefficient types corresponding to the rows.
+   * \tparam TypedIndex The coefficient types corresponding to the rows.
    * \tparam M a typed_matrix_nestable on which the new matrix is based. It will be converted to a self_contained type
    * if it is not already self-contained.
    */
 #ifdef __cpp_concepts
-  template<typed_index_descriptor Coefficients, typed_matrix_nestable M> requires
-    (row_dimension_of_v<M> == dimension_size_of_v<Coefficients>)
+  template<typed_index_descriptor TypedIndex, typed_matrix_nestable M> requires
+    (row_dimension_of_v<M> == dimension_size_of_v<TypedIndex>)
 #else
-  template<typename Coefficients, typename M, std::enable_if_t<
-    typed_index_descriptor<Coefficients> and typed_matrix_nestable<M> and
-    (row_dimension_of<M>::value == dimension_size_of_v<Coefficients>), int> = 0>
+  template<typename TypedIndex, typename M, std::enable_if_t<
+    typed_index_descriptor<TypedIndex> and typed_matrix_nestable<M> and
+    (row_dimension_of<M>::value == dimension_size_of_v<TypedIndex>), int> = 0>
 #endif
   inline auto make_mean()
   {
-    return Mean<Coefficients, dense_writable_matrix_t<M>>();
+    return Mean<TypedIndex, dense_writable_matrix_t<M>>();
   }
 
 
