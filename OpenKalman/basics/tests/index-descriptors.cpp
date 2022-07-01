@@ -27,6 +27,8 @@ TEST(index_descriptors, fixed_Dimensions)
   static_assert(get_dimension_size_of(Dimensions<3>{}) == 3);
   static_assert(get_euclidean_dimension_size_of(Dimensions<3>{}) == 3);
   static_assert(get_index_descriptor_component_count_of(Dimensions<3>{}) == 3);
+  static_assert(get_dimension_size_of(Dimensions{Axis {}}) == 1);
+  static_assert(get_dimension_size_of(Dimensions{TypedIndex<Axis, Axis> {}}) == 2);
   static_assert(fixed_index_descriptor<Dimensions<3>>);
   static_assert(not composite_index_descriptor<Dimensions<1>>);
   static_assert(not composite_index_descriptor<Dimensions<2>>);

@@ -670,11 +670,11 @@ TEST(eigen3, TriangularMatrix_overloads)
   EXPECT_TRUE(is_near(solve(Lower {3., 0, 1, 3}, make_eigen_matrix<double, 2, 1>(3, 7)), make_eigen_matrix(1., 2)));
   EXPECT_TRUE(is_near(solve(Upper {3., 1, 0, 3}, make_eigen_matrix<double, 2, 1>(3, 9)), make_eigen_matrix(0., 3)));
   //
-  EXPECT_TRUE(is_near(reduce_columns(Lower {3., 0, 1, 3}), make_eigen_matrix(1.5, 2)));
-  EXPECT_TRUE(is_near(reduce_columns(Upper {3., 1, 0, 3}), make_eigen_matrix(2, 1.5)));
+  EXPECT_TRUE(is_near(average_reduce<1>(Lower {3., 0, 1, 3}), make_eigen_matrix(1.5, 2)));
+  EXPECT_TRUE(is_near(average_reduce<1>(Upper {3., 1, 0, 3}), make_eigen_matrix(2, 1.5)));
   //
-  EXPECT_TRUE(is_near(reduce_rows(Lower {3., 0, 1, 3}), make_eigen_matrix<double, 1, 2>(2, 1.5)));
-  EXPECT_TRUE(is_near(reduce_rows(Upper {3., 1, 0, 3}), make_eigen_matrix<double, 1, 2>(1.5, 2)));
+  EXPECT_TRUE(is_near(average_reduce<0>(Lower {3., 0, 1, 3}), make_eigen_matrix<double, 1, 2>(2, 1.5)));
+  EXPECT_TRUE(is_near(average_reduce<0>(Upper {3., 1, 0, 3}), make_eigen_matrix<double, 1, 2>(1.5, 2)));
   //
   auto sl1 = Lower {3., 0, 1, 3};
   rank_update(sl1, make_dense_writable_matrix_from<M2>(2, 0, 1, 2), 4);

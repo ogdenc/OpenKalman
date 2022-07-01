@@ -21,7 +21,7 @@
 namespace OpenKalman::Eigen3
 {
 
-  // ZeroMatrix is declared in eigen3-forward-declarations.hpp.
+  // ZeroMatrix is declared in forward_class-declarations.hpp.
 
 #ifdef __cpp_concepts
   template<indexible PatternMatrix>
@@ -34,8 +34,10 @@ namespace OpenKalman::Eigen3
   private:
 
     using nested_scalar = scalar_type_of_t<PatternMatrix>;
+    static constexpr std::size_t max_indices = max_indices_of_v<PatternMatrix>;
 
-    using MyDimensions = std::decay_t<decltype(get_all_dimensions_of(std::declval<PatternMatrix>()))>;
+
+    using MyDimensions = decltype(get_all_dimensions_of(std::declval<PatternMatrix>()));
 
   public:
 
@@ -45,15 +47,41 @@ namespace OpenKalman::Eigen3
      * number of dimensions.
      */
 #ifdef __cpp_concepts
-    template<index_descriptor...D> requires (sizeof...(D) == max_indices_of_v<PatternMatrix>) and
-      std::constructible_from<MyDimensions, const D&...>
+    template<euclidean_index_descriptor...D> requires (sizeof...(D) == max_indices) and
+      std::constructible_from<MyDimensions, D&&...>
 #else
     template<typename...D,
-      std::enable_if_t<(index_descriptor<D> and ...) and sizeof...(D) == max_indices_of_v<PatternMatrix> and
+      std::enable_if_t<(euclidean_index_descriptor<D> and ...) and sizeof...(D) == max_indices and
         std::is_constructible<MyDimensions, const D&...>::value, int> = 0>
 #endif
-    ZeroMatrix(const D&...d) : my_dimensions {d...} {}
+    constexpr ZeroMatrix(D&&...d) : my_dimensions {std::forward<D>(d)...} {}
 
+  private:
+
+    template<std::size_t I>
+    static constexpr auto make_dimensions_tuple()
+    {
+      using Dim = std::tuple_element_t<I, MyDimensions>;
+      if constexpr (I >= max_indices)
+        return std::tuple{};
+      else
+        return std::tuple_cat(std::tuple {Dim {Dimensions<index_dimension_of_v<PatternMatrix, I>>{}}},
+          make_dimensions_tuple<I + 1>());
+    }
+
+
+    template<std::size_t I, typename N, typename...Ns>
+    static constexpr auto make_dimensions_tuple(N n, Ns...ns)
+    {
+      using Dim = std::tuple_element_t<I, MyDimensions>;
+      if constexpr (dynamic_dimension<PatternMatrix, I>)
+        return std::tuple_cat(std::tuple {Dim {Dimensions{n}}}, make_dimensions_tuple<I + 1>(ns...));
+      else
+        return std::tuple_cat(std::tuple {Dim {Dimensions<index_dimension_of_v<PatternMatrix, I>>{}}},
+          make_dimensions_tuple<I + 1>(n, ns...));
+    }
+
+  public:
 
     /**
      * \brief Construct a ZeroMatrix.
@@ -63,26 +91,28 @@ namespace OpenKalman::Eigen3
      * ZeroMatrix {} constructs a fixed matrix.
      */
 #ifdef __cpp_concepts
-    template<std::convertible_to<std::size_t> ... I>
-    requires (sizeof...(I) == number_of_dynamic_indices_v<PatternMatrix>)
+    template<std::convertible_to<std::size_t> ... I> requires
+      (sizeof...(I) == number_of_dynamic_indices_v<PatternMatrix>) and
+      requires(const I...i) { MyDimensions {make_dimensions_tuple<0>(static_cast<const std::size_t>(i)...)}; }
 #else
     template<typename...I, std::enable_if_t<(std::is_convertible_v<I, std::size_t> and ...) and
-      (sizeof...(I) == number_of_dynamic_indices<PatternMatrix>::value), int> = 0>
+      (sizeof...(I) == number_of_dynamic_indices<PatternMatrix>::value) and
+      std::is_constructible<MyDimensions, decltype(make_dimensions_tuple<0>(static_cast<const std::size_t>(std::declval<I>())...))>::value, int> = 0>
 #endif
-    ZeroMatrix(const I...i)
-      : my_dimensions {OpenKalman::internal::make_dimensions_tuple<PatternMatrix>(static_cast<std::size_t>(i)...)} {}
+    constexpr ZeroMatrix(const I...i)
+      : my_dimensions {make_dimensions_tuple<0>(static_cast<const std::size_t>(i)...)} {}
 
 
     /**
      * \brief Copy constructor
      */
-    ZeroMatrix(const ZeroMatrix&) = default;
+    constexpr ZeroMatrix(const ZeroMatrix&) = default;
 
 
     /**
      * \brief Move constructor
      */
-    ZeroMatrix(ZeroMatrix&&) = default;
+    constexpr ZeroMatrix(ZeroMatrix&&) = default;
 
   private:
 
@@ -133,12 +163,12 @@ namespace OpenKalman::Eigen3
     template<typename M, std::enable_if_t<zero_matrix<M> and (not std::is_same_v<M, ZeroMatrix>) and
       (max_indices_of_v<M> == max_indices_of_v<PatternMatrix>) and zero_arg_matches<M>::value, int> = 0>
 #endif
-    ZeroMatrix(M&& m) : my_dimensions {get_all_dimensions_of(std::forward<M>(m))} {}
+    constexpr ZeroMatrix(M&& m) : my_dimensions {get_all_dimensions_of(std::forward<M>(m))} {}
 
   private:
 
     template<typename T, std::size_t...I>
-    void check_runtime_sizes_impl(const T& t, std::index_sequence<I...>)
+    constexpr void check_runtime_sizes_impl(const T& t, std::index_sequence<I...>)
     {
       ([](const T& t, const auto& my_dims) {
         if constexpr (index_dimension_of_v<T, I> == dynamic_size)
@@ -156,7 +186,7 @@ namespace OpenKalman::Eigen3
 
 
     template<typename T>
-    void check_runtime_sizes(const T& t)
+    constexpr void check_runtime_sizes(const T& t)
     {
       if constexpr (has_dynamic_dimensions<T> or has_dynamic_dimensions<PatternMatrix>)
         return check_runtime_sizes_impl(t, std::make_index_sequence<max_indices_of_v<T>>{});
@@ -167,7 +197,7 @@ namespace OpenKalman::Eigen3
     /**
      * \brief Copy assignment operator
      */
-    ZeroMatrix& operator=(const ZeroMatrix& m)
+    constexpr ZeroMatrix& operator=(const ZeroMatrix& m)
     {
       check_runtime_sizes(m);
       return *this;
@@ -177,7 +207,7 @@ namespace OpenKalman::Eigen3
     /**
      * \brief Move assignment operator
      */
-    ZeroMatrix& operator=(ZeroMatrix&& m)
+    constexpr ZeroMatrix& operator=(ZeroMatrix&& m)
     {
       check_runtime_sizes(m);
       return *this;
@@ -194,7 +224,7 @@ namespace OpenKalman::Eigen3
     template<typename M, std::enable_if_t<zero_matrix<M> and (not std::is_same_v<M, ZeroMatrix>) and
       zero_arg_matches<M>::value, int> = 0>
 #endif
-    auto& operator=(M&& m)
+    constexpr auto& operator=(M&& m)
     {
       check_runtime_sizes(m);
       return *this;

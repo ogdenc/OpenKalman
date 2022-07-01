@@ -24,6 +24,7 @@
 
 namespace OpenKalman::interface
 {
+  namespace EI = Eigen::internal;
 
 #ifndef __cpp_concepts
   namespace detail
@@ -239,166 +240,6 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_concepts
   template<native_eigen_general T>
-  struct ElementAccess<T>
-#else
-  template<typename T>
-  struct ElementAccess<T, std::enable_if_t<native_eigen_general<T>>>
-#endif
-  {
-  };
-
-
-#ifdef __cpp_concepts
-  template<native_eigen_general T>
-  struct ArrayOperations<T>
-#else
-  template<typename T>
-  struct ArrayOperations<T, std::enable_if_t<native_eigen_general<T>>>
-#endif
-  {
-  private:
-
-    template<typename R, typename P, typename D, typename Arg, std::size_t...I>
-    static auto
-    replicate_arg_impl(const P& p, D&& d, Arg&& arg, std::index_sequence<I...>)
-    {
-      return R {std::forward<Arg>(arg), static_cast<Eigen::Index>(
-        get_dimension_size_of(std::get<I>(p)) / get_dimension_size_of(std::get<I>(std::forward<D>(d))))...};
-    }
-
-
-    template<typename...dims, typename...arg_dims, typename Arg>
-    static decltype(auto)
-    replicate_arg(const std::tuple<dims...>& p_tup, std::tuple<arg_dims...>&& arg_tup, Arg&& arg)
-    {
-      if constexpr (((dimension_size_of_v<dims> != dynamic_size) and ...) and
-        ((dimension_size_of_v<arg_dims> != dynamic_size) and ...))
-      {
-        if constexpr (((dimension_size_of_v<dims> == dimension_size_of_v<arg_dims>) and ...))
-        {
-          return std::forward<Arg>(arg);
-        }
-        else
-        {
-          using R = Eigen::Replicate<std::decay_t<Arg>, (dimension_size_of_v<dims> / dimension_size_of_v<arg_dims>)...>;
-          return R {std::forward<Arg>(arg)};
-        }
-      }
-      else
-      {
-        using R = Eigen::Replicate<std::decay_t<Arg>,
-          (dimension_size_of_v<dims> == dynamic_size or dimension_size_of_v<arg_dims> == dynamic_size ?
-          Eigen::Dynamic : static_cast<Eigen::Index>(dimension_size_of_v<dims>/dimension_size_of_v<arg_dims>))...>;
-
-        return replicate_arg_impl<R>(p_tup, std::move(arg_tup), std::forward<Arg>(arg),
-          std::make_index_sequence<sizeof...(dims)>{});
-      }
-    }
-
-  public:
-
-    template<typename...dims, typename Operation, typename...Args>
-    static constexpr decltype(auto)
-    n_ary_operation_with_broadcasting(const std::tuple<dims...>& tup, Operation&& op, Args&&...args)
-    {
-      if constexpr (sizeof...(Args) == 0)
-      {
-        using P = dense_writable_matrix_t<T, dims...>;
-
-        if constexpr (has_dynamic_dimensions<P>)
-          return Eigen::CwiseNullaryOp<std::decay_t<Operation>, P> {
-            std::get<0>(tup)(), std::get<1>(tup)(), std::forward<Operation>(op)};
-        else
-          return Eigen::CwiseNullaryOp<std::decay_t<Operation>, P> {std::forward<Operation>(op)};
-      }
-      else if constexpr (sizeof...(Args) == 1)
-      {
-        return make_self_contained<Args...>(Eigen::CwiseUnaryOp<std::decay_t<Operation>,
-          std::decay_t<decltype(replicate_arg(tup, get_all_dimensions_of(args), std::forward<Args>(args)))>...> {
-          replicate_arg(tup, get_all_dimensions_of(args), std::forward<Args>(args))..., std::forward<Operation>(op)});
-      }
-      else if constexpr (sizeof...(Args) == 2)
-      {
-        return make_self_contained(Eigen::CwiseBinaryOp<std::decay_t<Operation>,
-          std::decay_t<decltype(replicate_arg(tup, get_all_dimensions_of(args), std::forward<Args>(args)))>...> {
-          replicate_arg(tup, get_all_dimensions_of(args), std::forward<Args>(args))..., std::forward<Operation>(op)});
-      }
-      else if constexpr (sizeof...(Args) == 3)
-      {
-        return make_self_contained<Args...>(Eigen::CwiseTernaryOp<std::decay_t<Operation>,
-          std::decay_t<decltype(replicate_arg(tup, get_all_dimensions_of(args), std::forward<Args>(args)))>...> {
-          replicate_arg(tup, get_all_dimensions_of(args), std::forward<Args>(args))..., std::forward<Operation>(op)});
-      }
-      else
-      {
-        // \todo Implement quaternary and larger operations.
-        static_assert(sizeof...(Args) < 4, "Quaternary and larger operations not yet implemented");
-      }
-    }
-
-
-    template<std::size_t...indices, typename BinaryFunction, typename Arg>
-    static constexpr decltype(auto)
-    reduce(BinaryFunction&& b, Arg&& arg)
-    {
-      if constexpr (sizeof...(indices) == 2) // reduce in both directions
-      {
-        if constexpr (native_eigen_matrix<Arg> or native_eigen_array<Arg>)
-        {
-          return make_self_contained<Arg>(std::forward<Arg>(arg).redux(std::forward<BinaryFunction>(b)));
-        }
-        else
-        {
-          return make_self_contained(
-            make_dense_writable_matrix_from(std::forward<Arg>(arg)).redux(std::forward<BinaryFunction>(b)));
-        }
-      }
-      else
-      {
-        constexpr auto dir = ((indices == 0) and ...) ? Eigen::Vertical : Eigen::Horizontal;
-        using P = Eigen::PartialReduxExpr<std::decay_t<Arg>, std::decay_t<BinaryFunction>, dir>;
-
-        return make_self_contained<Arg>(P {std::forward<Arg>(arg), std::forward<BinaryFunction>(b)});
-      }
-    }
-
-
-    template<ElementOrder order, typename BinaryFunction, typename Accum, typename Arg>
-    static constexpr auto
-    fold(const BinaryFunction& b, Accum&& accum, Arg&& arg)
-    {
-      if constexpr (std::is_same_v<BinaryFunction, std::plus<void>>)
-      {
-        return std::forward<Accum>(accum) + std::forward<Arg>(arg).sum();
-      }
-      else if constexpr (std::is_same_v<BinaryFunction, std::multiplies<void>>)
-      {
-        return std::forward<Accum>(accum) * std::forward<Arg>(arg).prod();
-      }
-      else
-      {
-        std::decay_t<Accum> accum {std::forward<Accum>(accum)};
-
-        if (order == ElementOrder::row_major)
-        {
-          for (int i = 0; i < get_dimensions_of<0>(arg); i++) for (int j = 0; j < get_dimensions_of<1>(arg); j++)
-            accum = b(accum, arg(i, j));
-        }
-        else
-        {
-          for (int j = 0; j < get_dimensions_of<1>(arg); j++) for (int i = 0; i < get_dimensions_of<0>(arg); i++)
-            accum = b(accum, arg(i, j));
-        }
-
-        return accum;
-      }
-    }
-
-  };
-
-
-#ifdef __cpp_concepts
-  template<native_eigen_general T>
   struct Conversions<T>
 #else
   template<typename T>
@@ -524,6 +365,182 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_concepts
   template<native_eigen_general T>
+  struct ArrayOperations<T>
+#else
+  template<typename T>
+  struct ArrayOperations<T, std::enable_if_t<native_eigen_general<T>>>
+#endif
+  {
+  private:
+
+    // Convert std functions to equivalent Eigen operations for possible vectorization:
+    template<typename Op> static decltype(auto) nat_op(Op&& op) { return std::forward<Op>(op); };
+    template<typename S> static auto nat_op(const std::plus<S>& op) { return EI::scalar_sum_op<S, S> {}; };
+    template<typename S> static auto nat_op(const std::minus<S>& op) { return EI::scalar_difference_op<S, S> {}; };
+    template<typename S> static auto nat_op(const std::multiplies<S>& op) {return EI::scalar_product_op<S, S> {}; };
+    template<typename S> static auto nat_op(const std::divides<S>& op) { return EI::scalar_quotient_op<S, S> {}; };
+    template<typename S> static auto nat_op(const std::negate<S>& op) { return EI::scalar_opposite_op<S> {}; };
+
+    using EIC = EI::ComparisonName;
+    template<typename S> static auto nat_op(const std::equal_to<S>& op) { return EI::scalar_cmp_op<S, S, EIC::cmp_EQ> {}; };
+    template<typename S> static auto nat_op(const std::not_equal_to<S>& op) { return EI::scalar_cmp_op<S, S, EIC::cmp_NEQ> {}; };
+    template<typename S> static auto nat_op(const std::greater<S>& op) { return EI::scalar_cmp_op<S, S, EIC::cmp_GT> {}; };
+    template<typename S> static auto nat_op(const std::less<S>& op) { return EI::scalar_cmp_op<S, S, EIC::cmp_LT> {}; };
+    template<typename S> static auto nat_op(const std::greater_equal<S>& op) { return EI::scalar_cmp_op<S, S, EIC::cmp_GE> {}; };
+    template<typename S> static auto nat_op(const std::less_equal<S>& op) { return EI::scalar_cmp_op<S, S, EIC::cmp_LE> {}; };
+
+    template<typename S> static auto nat_op(const std::logical_and<S>& op) { return EI::scalar_boolean_and_op {}; };
+    template<typename S> static auto nat_op(const std::logical_or<S>& op) { return EI::scalar_boolean_or_op {}; };
+    template<typename S> static auto nat_op(const std::logical_not<S>& op) { return EI::scalar_boolean_not_op<S> {}; };
+
+
+    template<typename...Ds, typename...ArgDs, typename Arg, std::size_t...I>
+    static decltype(auto)
+    replicate_arg_impl(const std::tuple<Ds...>& p_tup, const std::tuple<ArgDs...>& arg_tup, Arg&& arg, std::index_sequence<I...>)
+    {
+      using R = Eigen::Replicate<std::decay_t<Arg>,
+        (dimension_size_of_v<Ds> == dynamic_size or dimension_size_of_v<ArgDs> == dynamic_size ?
+        Eigen::Dynamic : static_cast<Eigen::Index>(dimension_size_of_v<Ds> / dimension_size_of_v<ArgDs>))...>;
+
+      if constexpr (((dimension_size_of_v<Ds> != dynamic_size) and ...) and
+        ((dimension_size_of_v<ArgDs> != dynamic_size) and ...))
+      {
+        if constexpr (((dimension_size_of_v<Ds> == dimension_size_of_v<ArgDs>) and ...))
+          return std::forward<Arg>(arg);
+        else
+          return R {std::forward<Arg>(arg)};
+      }
+      else
+      {
+        auto ret = R {std::forward<Arg>(arg), static_cast<Eigen::Index>(
+          get_dimension_size_of(std::get<I>(p_tup)) / get_dimension_size_of(std::get<I>(arg_tup)))...};
+        return ret;
+      }
+    }
+
+
+    template<typename...Ds, typename Arg>
+    static decltype(auto)
+    replicate_arg(const std::tuple<Ds...>& p_tup, Arg&& arg)
+    {
+      return replicate_arg_impl(p_tup, get_all_dimensions_of(arg), std::forward<Arg>(arg),
+        std::make_index_sequence<sizeof...(Ds)>{});
+    }
+
+  public:
+
+#ifdef __cpp_concepts
+    template<typename...Ds, typename Operation, typename...Args> requires (sizeof...(Args) <= 3) and
+      std::invocable<Operation&&, scalar_type_of_t<Args>...> and
+      scalar_type<std::invoke_result_t<Operation&&, scalar_type_of_t<Args>...>>
+#else
+    template<typename...Ds, typename Operation, typename...Args, std::enable_if_t<sizeof...(Args) <= 3 and
+      std::is_invocable<Operation&&, scalar_type_of_t<Args>...>::value and
+      scalar_type<std::invoke_result<Operation&&, scalar_type_of_t<Args>...>, int> = 0>
+#endif
+    static auto
+    n_ary_operation(const std::tuple<Ds...>& tup, Operation&& operation, Args&&...args)
+    {
+      decltype(auto) op = nat_op(std::forward<Operation>(operation));
+      using Op = decltype(op);
+
+      if constexpr (sizeof...(Args) == 0)
+      {
+        using P = dense_writable_matrix_t<T, Ds...>;
+        Eigen::Index r = get_dimension_size_of(std::get<0>(tup));
+        Eigen::Index c = get_dimension_size_of(std::get<1>(tup));
+        return Eigen::CwiseNullaryOp<std::decay_t<Op>, P> {r, c, std::forward<Op>(op)};
+      }
+      else if constexpr (sizeof...(Args) == 1)
+      {
+        return make_self_contained<Args...>(Eigen::CwiseUnaryOp {
+          replicate_arg(tup, std::forward<Args>(args))..., std::forward<Op>(op)});
+      }
+      else if constexpr (sizeof...(Args) == 2)
+      {
+        return make_self_contained<Args...>(Eigen::CwiseBinaryOp<std::decay_t<Op>,
+          std::decay_t<decltype(replicate_arg(tup, std::forward<Args>(args)))>...> {
+          replicate_arg(tup, std::forward<Args>(args))..., std::forward<Op>(op)});
+      }
+      else
+      {
+        return make_self_contained<Args...>(Eigen::CwiseTernaryOp<std::decay_t<Op>,
+          std::decay_t<decltype(replicate_arg(tup, std::forward<Args>(args)))>...> {
+          replicate_arg(tup, std::forward<Args>(args))..., std::forward<Op>(op)});
+      }
+    }
+
+
+#ifdef __cpp_concepts
+    template<typename...Ds, typename Operation>
+    requires std::invocable<Operation&&, typename dimension_size_of<Ds>::type...> and
+      scalar_type<std::invoke_result_t<Operation&&, typename dimension_size_of<Ds>::type...>>
+#else
+    template<typename...Ds, typename Operation, std::enable_if_t<
+      std::is_invocable<Operation&&, typename dimension_size_of<Ds>::type...>::value and
+      scalar_type<std::invoke_result<Operation&&, typename dimension_size_of<Ds>::type...>::type>, int> = 0>
+#endif
+    static constexpr auto
+    n_ary_operation_with_indices(const std::tuple<Ds...>& d_tup, Operation&& operation)
+    {
+      using P = dense_writable_matrix_t<T, Ds...>;
+      Eigen::Index r = get_dimension_size_of(std::get<0>(d_tup));
+      Eigen::Index c = get_dimension_size_of(std::get<1>(d_tup));
+      return Eigen::CwiseNullaryOp<std::decay_t<Operation>, P> {r, c, std::forward<Operation>(operation)};
+    }
+
+  private:
+
+    template<typename U> struct is_plus : std::false_type {};
+    template<typename U> struct is_plus<std::plus<U>> : std::true_type {};
+    template<typename U> struct is_multiplies : std::false_type {};
+    template<typename U> struct is_multiplies<std::multiplies<U>> : std::true_type {};
+
+  public:
+
+    template<std::size_t...indices, typename BinaryFunction, typename Arg>
+    static constexpr auto
+    reduce(const BinaryFunction& b, Arg&& arg)
+    {
+      decltype(auto) dense_arg = [](Arg&& arg) -> decltype(auto) {
+        if constexpr ((native_eigen_matrix<Arg> or native_eigen_array<Arg>)) return std::forward<Arg>(arg);
+        else return make_dense_writable_matrix_from(std::forward<Arg>(arg));
+      }(std::forward<Arg>(arg));
+
+      using DenseArg = decltype(dense_arg);
+
+      if constexpr (sizeof...(indices) == 2) // reduce in both directions
+      {
+          return std::forward<DenseArg>(dense_arg).redux(b);
+      }
+      else if constexpr (is_plus<BinaryFunction>::value)
+      {
+        if constexpr (((indices == 0) and ...))
+          return make_self_contained<DenseArg>(std::forward<DenseArg>(dense_arg).colwise().sum());
+        else
+          return make_self_contained<DenseArg>(std::forward<DenseArg>(dense_arg).rowwise().sum());
+      }
+      else if constexpr (is_multiplies<BinaryFunction>::value)
+      {
+        if constexpr (((indices == 0) and ...))
+          return make_self_contained<DenseArg>(std::forward<DenseArg>(dense_arg).colwise().prod());
+        else
+          return make_self_contained<DenseArg>(std::forward<DenseArg>(dense_arg).rowwise().prod());
+      }
+      else
+      {
+        using OpWrapper = Eigen::internal::member_redux<BinaryFunction, scalar_type_of_t<Arg>>;
+        constexpr auto dir = ((indices == 0) and ...) ? Eigen::Vertical : Eigen::Horizontal;
+        using P = Eigen::PartialReduxExpr<std::decay_t<DenseArg>, OpWrapper, dir>;
+        return make_self_contained<DenseArg>(P {std::forward<DenseArg>(dense_arg), OpWrapper {b}});
+      }
+    }
+
+  };
+
+
+#ifdef __cpp_concepts
+  template<native_eigen_general T>
   struct ModularTransformationTraits<T>
 #else
   template<typename T>
@@ -566,7 +583,8 @@ namespace OpenKalman::interface
   {
 
     template<typename Arg>
-    static constexpr decltype(auto) conjugate(Arg&& arg) noexcept
+    static constexpr decltype(auto)
+    conjugate(Arg&& arg) noexcept
     {
       if constexpr (eigen_DiagonalMatrix<Arg> or eigen_DiagonalWrapper<Arg>)
       {
@@ -580,7 +598,8 @@ namespace OpenKalman::interface
 
 
     template<typename Arg>
-    static constexpr decltype(auto) transpose(Arg&& arg) noexcept
+    static constexpr decltype(auto)
+    transpose(Arg&& arg) noexcept
     {
       // The global transpose function already handles symmetric or square constant matrices.
       if constexpr (zero_matrix<Arg>)
@@ -604,7 +623,8 @@ namespace OpenKalman::interface
 
 
     template<typename Arg>
-    static constexpr decltype(auto) adjoint(Arg&& arg) noexcept
+    static constexpr decltype(auto)
+    adjoint(Arg&& arg) noexcept
     {
       // The global adjoint function already handles non-complex, hermitian, constant, and constant-diagonal cases.
       if constexpr (constant_matrix<Arg>)
@@ -628,7 +648,8 @@ namespace OpenKalman::interface
 
 
     template<typename Arg>
-    static constexpr auto determinant(Arg&& arg) noexcept
+    static constexpr auto
+    determinant(Arg&& arg) noexcept
     {
       if constexpr (eigen_SelfAdjointView<Arg> or eigen_TriangularView<Arg>)
       {
@@ -646,7 +667,8 @@ namespace OpenKalman::interface
 
 
     template<typename Arg>
-    static constexpr auto trace(Arg&& arg) noexcept
+    static constexpr auto
+    trace(Arg&& arg) noexcept
     {
       if constexpr (eigen_SelfAdjointView<Arg> or eigen_TriangularView<Arg>)
       {
@@ -986,6 +1008,104 @@ namespace OpenKalman::interface
       }
     }
 
+  private:
+
+      template<typename A>
+      static constexpr auto
+      QR_decomp_impl(A&& a)
+      {
+        using Scalar = scalar_type_of_t<A>;
+        constexpr auto rows = row_dimension_of_v<A>;
+        constexpr auto cols = column_dimension_of_v<A>;
+        using MatrixType = Eigen3::eigen_matrix_t<Scalar, rows, cols>;
+        using ResultType = Eigen3::eigen_matrix_t<Scalar, cols, cols>;
+
+        Eigen::HouseholderQR<MatrixType> QR {std::forward<A>(a)};
+
+        if constexpr (dynamic_columns<A>)
+        {
+          auto rt_cols = get_index_dimension_of<1>(a);
+
+          ResultType ret {rt_cols, rt_cols};
+
+          if constexpr (dynamic_rows<A>)
+          {
+            auto rt_rows = get_index_dimension_of<0>(a);
+
+            if (rt_rows < rt_cols)
+              ret << QR.matrixQR().topRows(rt_rows),
+                Eigen3::eigen_matrix_t<Scalar, dynamic_size, dynamic_size>::Zero(rt_cols - rt_rows, rt_cols);
+            else
+              ret = QR.matrixQR().topRows(rt_cols);
+          }
+          else
+          {
+            if (rows < rt_cols)
+              ret << QR.matrixQR().template topRows<rows>(),
+                Eigen3::eigen_matrix_t<Scalar, dynamic_size, dynamic_size>::Zero(rt_cols - rows, rt_cols);
+            else
+              ret = QR.matrixQR().topRows(rt_cols);
+          }
+
+          return ret;
+        }
+        else
+        {
+          ResultType ret;
+
+          if constexpr (dynamic_rows<A>)
+          {
+            auto rt_rows = get_index_dimension_of<0>(a);
+
+            if (rt_rows < cols)
+              ret << QR.matrixQR().topRows(rt_rows),
+              Eigen3::eigen_matrix_t<Scalar, dynamic_size, dynamic_size>::Zero(cols - rt_rows, cols);
+            else
+              ret = QR.matrixQR().template topRows<cols>();
+          }
+          else
+          {
+            if constexpr (rows < cols)
+              ret << QR.matrixQR().template topRows<rows>(), Eigen3::eigen_matrix_t<Scalar, cols - rows, cols>::Zero();
+            else
+              ret = QR.matrixQR().template topRows<cols>();
+          }
+
+          return ret;
+        }
+      }
+
+  public:
+
+    template<typename A>
+    static constexpr auto
+    LQ_decomposition(A&& a)
+    {
+      using Scalar = scalar_type_of_t<A>;
+      constexpr auto rows = row_dimension_of_v<A>;
+      using ResultType = Eigen3::eigen_matrix_t<Scalar, rows, rows>;
+      using TType = typename MatrixTraits<ResultType>::template TriangularMatrixFrom<TriangleType::lower>;
+
+      ResultType ret = adjoint(QR_decomp_impl(adjoint(std::forward<A>(a))));
+
+      return MatrixTraits<TType>::make(std::move(ret));
+    }
+
+
+    template<typename A>
+    static constexpr auto
+    QR_decomposition(A&& a)
+    {
+      using Scalar = scalar_type_of_t<A>;
+      constexpr auto cols = column_dimension_of_v<A>;
+      using ResultType = Eigen3::eigen_matrix_t<Scalar, cols, cols>;
+      using TType = typename MatrixTraits<ResultType>::template TriangularMatrixFrom<TriangleType::upper>;
+
+      ResultType ret = QR_decomp_impl(std::forward<A>(a));
+
+      return MatrixTraits<TType>::make(std::move(ret));
+    }
+
   };
 
 
@@ -994,135 +1114,6 @@ namespace OpenKalman::interface
 
 namespace OpenKalman::Eigen3
 {
-
-  namespace detail
-  {
-    template<typename A>
-    constexpr auto
-    QR_decomp_impl(A&& a)
-    {
-      using Scalar = scalar_type_of_t<A>;
-      constexpr auto rows = row_dimension_of_v<A>;
-      constexpr auto cols = column_dimension_of_v<A>;
-      using MatrixType = Eigen3::eigen_matrix_t<Scalar, rows, cols>;
-      using ResultType = Eigen3::eigen_matrix_t<Scalar, cols, cols>;
-
-      Eigen::HouseholderQR<MatrixType> QR {std::forward<A>(a)};
-
-      if constexpr (dynamic_columns<A>)
-      {
-        auto rt_cols = get_index_dimension_of<1>(a);
-
-        ResultType ret {rt_cols, rt_cols};
-
-        if constexpr (dynamic_rows<A>)
-        {
-          auto rt_rows = get_index_dimension_of<0>(a);
-
-          if (rt_rows < rt_cols)
-            ret << QR.matrixQR().topRows(rt_rows),
-              Eigen3::eigen_matrix_t<Scalar, dynamic_size, dynamic_size>::Zero(rt_cols - rt_rows, rt_cols);
-          else
-            ret = QR.matrixQR().topRows(rt_cols);
-        }
-        else
-        {
-          if (rows < rt_cols)
-            ret << QR.matrixQR().template topRows<rows>(),
-              Eigen3::eigen_matrix_t<Scalar, dynamic_size, dynamic_size>::Zero(rt_cols - rows, rt_cols);
-          else
-            ret = QR.matrixQR().topRows(rt_cols);
-        }
-
-        return ret;
-      }
-      else
-      {
-        ResultType ret;
-
-        if constexpr (dynamic_rows<A>)
-        {
-          auto rt_rows = get_index_dimension_of<0>(a);
-
-          if (rt_rows < cols)
-            ret << QR.matrixQR().topRows(rt_rows),
-            Eigen3::eigen_matrix_t<Scalar, dynamic_size, dynamic_size>::Zero(cols - rt_rows, cols);
-          else
-            ret = QR.matrixQR().template topRows<cols>();
-        }
-        else
-        {
-          if constexpr (rows < cols)
-            ret << QR.matrixQR().template topRows<rows>(), Eigen3::eigen_matrix_t<Scalar, cols - rows, cols>::Zero();
-          else
-            ret = QR.matrixQR().template topRows<cols>();
-        }
-
-        return ret;
-      }
-    }
-  }
-
-
-  /**
-   * Perform an LQ decomposition of matrix A=[L,0]Q, L is a lower-triangular matrix, and Q is orthogonal.
-   * Returns L as a lower-triangular matrix.
-   */
-#ifdef __cpp_concepts
-  template<native_eigen_matrix A>
-#else
-  template<typename A, std::enable_if_t<native_eigen_matrix<A>, int> = 0>
-#endif
-  constexpr auto
-  LQ_decomposition(A&& a)
-  {
-    if constexpr (lower_triangular_matrix<A>)
-    {
-      return std::forward<A>(a);
-    }
-    else
-    {
-      using Scalar = scalar_type_of_t<A>;
-      constexpr auto rows = row_dimension_of_v<A>;
-      using ResultType = Eigen3::eigen_matrix_t<Scalar, rows, rows>;
-      using TType = typename MatrixTraits<ResultType>::template TriangularMatrixFrom<TriangleType::lower>;
-
-      ResultType ret = adjoint(detail::QR_decomp_impl(adjoint(std::forward<A>(a))));
-
-      return MatrixTraits<TType>::make(std::move(ret));
-    }
-  }
-
-
-  /**
-   * Perform a QR decomposition of matrix A=Q[U,0], U is a upper-triangular matrix, and Q is orthogonal.
-   * Returns U as an upper-triangular matrix.
-   */
-#ifdef __cpp_concepts
-  template<native_eigen_matrix A>
-#else
-  template<typename A, std::enable_if_t<native_eigen_matrix<A>, int> = 0>
-#endif
-  constexpr auto
-  QR_decomposition(A&& a)
-  {
-    if constexpr (upper_triangular_matrix<A>)
-    {
-      return std::forward<A>(a);
-    }
-    else
-    {
-      using Scalar = scalar_type_of_t<A>;
-      constexpr auto cols = column_dimension_of_v<A>;
-      using ResultType = Eigen3::eigen_matrix_t<Scalar, cols, cols>;
-      using TType = typename MatrixTraits<ResultType>::template TriangularMatrixFrom<TriangleType::upper>;
-
-      ResultType ret = detail::QR_decomp_impl(std::forward<A>(a));
-
-      return MatrixTraits<TType>::make(std::move(ret));
-    }
-  }
-
 
   /**
    * \brief Concatenate one or more Eigen::MatrixBase objects vertically.
@@ -2304,429 +2295,6 @@ namespace OpenKalman::Eigen3
     }
   }
 
-
-  ////
-
-  namespace detail
-  {
-    template<typename F, typename M>
-    struct CWNullaryOp
-    {
-      const auto operator() (Eigen::Index row, Eigen::Index col) const
-      {
-        std::size_t i = row, j = col;
-        return f(get_element(m, i, j), i, j);
-      }
-
-      F f;
-      M m;
-    };
-
-    template<typename F, typename M>
-    CWNullaryOp(F&&, M&&) -> CWNullaryOp<F, M>;
-
-
-    template<typename F>
-    struct CWUnaryOp
-    {
-      template<typename Arg>
-      const auto operator() (Arg&& arg) const
-      {
-        if constexpr (std::is_invocable_v<F, Arg&&>)
-        {
-          return f(std::forward<Arg>(arg));
-        }
-        else
-        {
-          auto x = std::forward<Arg>(arg);
-          return f(x);
-        }
-      }
-
-      F f;
-    };
-
-    template<typename F>
-    CWUnaryOp(F&&) -> CWUnaryOp<F>;
-
-#ifndef __cpp_concepts
-    template<typename Function, typename Scalar, typename = void, typename...is>
-    struct colwise_result_is_void_impl : std::false_type {};
-
-    template<typename Function, typename Scalar, typename...is>
-    struct colwise_result_is_void_impl<Function, Scalar, std::enable_if_t<
-      std::is_same_v<typename std::invoke_result<Function, Scalar, is...>::type, void>>, is...>
-      : std::true_type {};
-
-    template<typename Function, typename Scalar, typename...is>
-    constexpr bool colwise_result_is_void = colwise_result_is_void_impl<Function, Scalar, void, is...>::value;
-#endif
-  } // namespace detail
-
-
-#ifdef __cpp_concepts
-  template<typename Function, typename Arg> requires (native_eigen_matrix<Arg> or native_eigen_array<Arg>) and
-    requires(Function f, scalar_type_of_t<Arg>& s, std::size_t& i, std::size_t& j) { requires
-      requires {{f(s)} -> std::same_as<void>; } or
-      requires {{f(s, i, j)} -> std::same_as<void>; } or
-      requires {{f(s)} -> std::convertible_to<const scalar_type_of_t<Arg>&>; } or
-      requires {{f(s, i, j)} -> std::convertible_to<const scalar_type_of_t<Arg>&>; };
-    }
-#else
-  template<typename Function, typename Arg, std::enable_if_t<(native_eigen_matrix<Arg> or native_eigen_array<Arg>) and
-    ( detail::colwise_result_is_void<Function, typename scalar_type_of<Arg>::type&> or
-      detail::colwise_result_is_void<Function, typename scalar_type_of<Arg>::type&, std::size_t&, std::size_t&> or
-      std::is_invocable_r_v<const typename scalar_type_of<Arg>::type&, Function, typename scalar_type_of<Arg>::type&> or
-      std::is_invocable_r_v<const typename scalar_type_of<Arg>::type&, Function, typename scalar_type_of<Arg>::type&,
-        std::size_t&, std::size_t&>), int> = 0>
-#endif
-  inline decltype(auto)
-  apply_coefficientwise(Function&& f, Arg&& arg)
-  {
-    using Scalar = scalar_type_of_t<Arg>;
-
-    constexpr bool two_indices =
-#ifdef __cpp_concepts
-      requires(Scalar& s, std::size_t& i, std::size_t& j) { requires
-        requires {{f(s, i, j)} -> std::same_as<void>; } or
-        requires {{f(s, i, j)} -> std::convertible_to<const Scalar&>; };
-      };
-#else
-      detail::colwise_result_is_void<Function, typename scalar_type_of<Arg>::type&, std::size_t&, std::size_t&> or
-      std::is_invocable_r_v<const Scalar&, Function, Scalar&, std::size_t&, std::size_t&>;
-#endif
-
-    if constexpr (std::is_lvalue_reference_v<Arg> and writable<Arg> and
-#ifdef __cpp_concepts
-      ( requires(Scalar& s) { {f(s)} -> std::same_as<void>; } or
-        requires(Scalar& s) { {f(s)} -> std::same_as<Scalar&>; } or
-        requires(Scalar& s, std::size_t& i, std::size_t& j) { {f(s, i, j)} -> std::same_as<void>; } or
-        requires(Scalar& s, std::size_t& i, std::size_t& j) { {f(s, i, j)} -> std::same_as<Scalar&>; }))
-#else
-      ( detail::colwise_result_is_void<Function, Scalar&> or
-        detail::colwise_result_is_void<Function, Scalar&, std::size_t&, std::size_t&> or
-        std::is_invocable_r_v<Scalar&, Function, Scalar&> or
-        std::is_invocable_r_v<Scalar&, Function, Scalar&, std::size_t&, std::size_t&>))
-#endif
-    {
-      for (std::size_t j = 0; j < get_dimensions_of<1>(arg); j++) for (std::size_t i = 0; i < get_dimensions_of<0>(arg); i++)
-      {
-        if constexpr (two_indices)
-          f(arg(i, j), i, j);
-        else
-          f(arg(i, j));
-      }
-      return (arg);
-    }
-    else if constexpr (two_indices)
-    {
-      // Need to declare variables and pass as lvalue references, to avoid GCC 10.1.0 bug.
-      Eigen::Index rows = get_dimensions_of<0>(arg), cols = get_dimensions_of<1>(arg);
-      return std::decay_t<Arg>::NullaryExpr(rows, cols,
-        detail::CWNullaryOp {std::forward<Function>(f), std::forward<Arg>(arg)});
-    }
-    else
-    {
-      return make_self_contained(arg.unaryExpr(detail::CWUnaryOp {std::forward<Function>(f)}));
-    }
-  }
-
-
-  namespace detail
-  {
-    template<typename Scalar, std::size_t rows, std::size_t columns, typename F, typename...runtime_dimension>
-    inline auto makeNullary(F&& f, runtime_dimension...i)
-    {
-      using M = eigen_matrix_t<Scalar, rows, columns>;
-
-      if constexpr (sizeof...(i) != 1)
-        return M::NullaryExpr(static_cast<Eigen::Index>(i)..., f);
-      else if constexpr (rows == dynamic_size)
-        return M::NullaryExpr(static_cast<Eigen::Index>(i)..., columns, f);
-      else
-        return M::NullaryExpr(rows, static_cast<Eigen::Index>(i)..., f);
-    }
-
-#ifndef __cpp_concepts
-    template<typename F, std::size_t indices = 0, typename = void>
-    struct result_is_Eigen_scalar : std::false_type {};
-
-    template<typename F>
-    struct result_is_Eigen_scalar<F, 0, std::void_t<Eigen::NumTraits<std::invoke_result_t<F>>>> : std::true_type {};
-
-    template<typename F>
-    struct result_is_Eigen_scalar<F, 2, std::void_t<
-      Eigen::NumTraits<std::invoke_result_t<F, std::size_t&, std::size_t&>>>> : std::true_type {};
-#endif
-  } // namespace detail
-
-
-#ifdef __cpp_concepts
-  template<std::size_t rows = dynamic_size, std::size_t columns = dynamic_size, typename Function,
-    std::convertible_to<std::size_t>...runtime_dimension> requires
-    (requires { typename Eigen::NumTraits<std::invoke_result_t<Function>>; } or
-    requires { typename Eigen::NumTraits<std::invoke_result_t<Function, std::size_t&, std::size_t&>>; }) and
-    ((rows == dynamic_size ? 0 : 1) + (columns == dynamic_size ? 0 : 1) + sizeof...(runtime_dimension) == 2)
-#else
-  template<std::size_t rows = dynamic_size, std::size_t columns = dynamic_size, typename Function,
-    typename...runtime_dimension, std::enable_if_t<
-    (std::is_convertible_v<runtime_dimension, std::size_t> and ...) and
-    (detail::result_is_Eigen_scalar<Function>::value or detail::result_is_Eigen_scalar<Function, 2>::value) and
-    ((rows == dynamic_size ? 0 : 1) + (columns == dynamic_size ? 0 : 1) + sizeof...(runtime_dimension) == 2), int> = 0>
-#endif
-  inline auto
-  apply_coefficientwise(Function&& f, runtime_dimension...i)
-  {
-#ifdef __cpp_concepts
-    if constexpr (requires { typename Eigen::NumTraits<std::invoke_result_t<Function, std::size_t&, std::size_t&>>; })
-#else
-    if constexpr (detail::result_is_Eigen_scalar<Function, 2>::value)
-#endif
-    {
-      using Scalar = std::invoke_result_t<Function, std::size_t&, std::size_t&>;
-
-      if constexpr (std::is_lvalue_reference_v<Function>)
-        return detail::makeNullary<Scalar, rows, columns>(std::cref(f), i...);
-      else
-        return detail::makeNullary<Scalar, rows, columns>(
-          [f = std::forward<Function>(f)] (std::size_t i, std::size_t j) { return f(i, j); }, i...);
-    }
-    else
-    {
-      using Scalar = std::invoke_result_t<Function>;
-
-      if constexpr (std::is_lvalue_reference_v<Function>)
-        return detail::makeNullary<Scalar, rows, columns>(std::cref(f), i...);
-      else
-        return detail::makeNullary<Scalar, rows, columns>([f = std::forward<Function>(f)] () { return f(); }, i...);
-    }
-  }
-
-
-  namespace detail
-  {
-    template<typename random_number_engine>
-    struct Rnd
-    {
-      template<typename distribution_type>
-      static inline auto
-      get(distribution_type& dist)
-      {
-        if constexpr (std::is_arithmetic_v<distribution_type>)
-        {
-          return dist;
-        }
-        else
-        {
-          static std::random_device rd;
-          static random_number_engine rng {rd()};
-
-#ifdef __cpp_concepts
-          static_assert(requires { typename distribution_type::result_type; typename distribution_type::param_type; });
-#endif
-          return dist(rng);
-        }
-      }
-
-    };
-
-
-#ifdef __cpp_concepts
-  template<typename T>
-#else
-    template<typename T, typename = void>
-#endif
-    struct dist_result_type {};
-
-#ifdef __cpp_concepts
-    template<typename T> requires requires { typename T::result_type; typename T::param_type; }
-    struct dist_result_type<T> { using type = typename T::result_type; };
-#else
-    template<typename T>
-    struct dist_result_type<T, std::enable_if_t<not std::is_arithmetic_v<T>>> { using type = typename T::result_type; };
-#endif
-
-#ifdef __cpp_concepts
-  template<typename T> requires std::is_arithmetic_v<T>
-  struct dist_result_type<T> { using type = T; };
-#else
-  template<typename T>
-    struct dist_result_type<T, std::enable_if_t<std::is_arithmetic_v<T>>> { using type = T; };
-#endif
-
-
-
-  } // namespace detail
-
-
-  /**
-   * \brief Fill a fixed-shape Eigen matrix with random values selected from a single random distribution.
-   * \details The following example constructs a 2-by-2 matrix (m) in which each element is a random value selected
-   * based on a distribution with mean 1.0 and standard deviation 0.3:
-   *   \code
-   *     using N = std::normal_distribution<double>;
-   *     using Mat = Eigen::Matrix<double, 2, 2>;
-   *     Mat m = randomize<Mat>(N {1.0, 0.3}));
-   *   \endcode
-   * \tparam ReturnType The type of the matrix to be filled.
-   * \tparam random_number_engine The random number engine (e.g., std::mt19937).
-   * \tparam Dist A distribution (e.g., std::normal_distribution<double>).
-   * \todo Add optional argument for an already-constructed random number engine
-   **/
-#ifdef __cpp_concepts
-  template<eigen_matrix ReturnType, std::uniform_random_bit_generator random_number_engine = std::mt19937,
-    typename Dist>
-  requires
-    (not has_dynamic_dimensions<ReturnType>) and
-    requires { typename std::decay_t<Dist>::result_type; typename std::decay_t<Dist>::param_type; } and
-      (not std::is_const_v<std::remove_reference_t<Dist>>)
-#else
-  template<typename ReturnType, typename random_number_engine = std::mt19937, typename Dist,
-    std::enable_if_t<eigen_matrix<ReturnType> and (not has_dynamic_dimensions<ReturnType>)and
-    (not std::is_const_v<std::remove_reference_t<Dist>>), int> = 0>
-#endif
-  inline auto
-  randomize(Dist&& dist)
-  {
-    using D = struct { mutable Dist value; };
-    return ReturnType::NullaryExpr([d = D {std::forward<Dist>(dist)}] {
-      return detail::Rnd<random_number_engine>::get(d.value);
-    });
-  }
-
-
-  /**
-   * \overload
-   * \brief Fill a dynamic-shape Eigen matrix with random values selected from a single random distribution.
-   * \details The following example constructs two 2-by-2 matrices (m, n, and p) in which each element is a
-   * random value selected based on a distribution with mean 1.0 and standard deviation 0.3:
-   *   \code
-   *     auto m = randomize<Eigen::Matrix<float, 2, Eigen::Dynamic>>(2, 2, std::normal_distribution<float> {1.0, 0.3}));
-   *     auto n = randomize<Eigen::Matrix<double, Eigen::Dynamic, 2>>(2, 2, std::normal_distribution<double> {1.0, 0.3}));
-   *     auto p = randomize<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>>(2, 2, std::normal_distribution<double> {1.0, 0.3});
-   *   \endcode
-   * \tparam ReturnType The type of the matrix to be filled.
-   * \tparam random_number_engine The random number engine (e.g., std::mt19937).
-   * \param rows Number of rows, decided at runtime. Must match rows of ReturnType if they are fixed.
-   * \param columns Number of columns, decided at runtime. Must match columns of ReturnType if they are fixed.
-   * \tparam Dist A distribution (type distribution_type).
-   **/
-#ifdef __cpp_concepts
-  template<eigen_matrix ReturnType, std::uniform_random_bit_generator random_number_engine = std::mt19937,
-    typename Dist>
-  requires
-    has_dynamic_dimensions<ReturnType> and
-    requires { typename std::decay_t<Dist>::result_type; typename std::decay_t<Dist>::param_type; } and
-      (not std::is_const_v<std::remove_reference_t<Dist>>)
-#else
-  template<typename ReturnType, typename random_number_engine = std::mt19937, typename Dist, std::enable_if_t<
-    eigen_matrix<ReturnType> and has_dynamic_dimensions<ReturnType> and
-    (not std::is_const_v<std::remove_reference_t<Dist>>), int> = 0>
-#endif
-  inline auto
-  randomize(const std::size_t rows, const std::size_t columns, Dist&& dist)
-  {
-    if constexpr (not dynamic_rows<ReturnType>) assert(rows == row_dimension_of_v<ReturnType>);
-    if constexpr (not dynamic_columns<ReturnType>) assert(columns == column_dimension_of_v<ReturnType>);
-    using D = struct { mutable Dist value; };
-    return ReturnType::NullaryExpr(rows, columns, [d = D {std::forward<Dist>(dist)}] {
-      return detail::Rnd<random_number_engine>::get(d.value);
-    });
-  }
-
-
-  /**
-   * \overload
-   * \brief Fill a fixed Eigen matrix with random values selected from multiple random distributions.
-   * \details The distributions are allocated to each element of the matrix, according to one of the following options:
-   *
-   *  - One distribution for each matrix element. The following code constructs a 2-by-2 matrix m containing
-   *  random values around mean 1.0, 2.0, 3.0, and 4.0 (in row-major order), with standard deviations of
-   *  0.3, 0.3, 0.0 (by default, since no s.d. is specified as a parameter), and 0.3:
-   *   \code
-   *     using N = std::normal_distribution<double>;
-   *     auto m = randomize<Eigen::Matrix<double, 2, 2>>(N {1.0, 0.3}, N {2.0, 0.3}, 3.0, N {4.0, 0.3})));
-   *   \endcode
-   *
-   *  - One distribution for each row. The following code constructs a 3-by-2 (n) or 2-by-2 (o) matrices
-   *  in which elements in each row are selected according to the three (n) or two (o) listed distribution
-   *  parameters:
-   *   \code
-   *     auto n = randomize<Eigen::Matrix<double, 3, 2>>(N {1.0, 0.3}, 2.0, N {3.0, 0.3})));
-   *     auto o = randomize<Eigen::Matrix<double, 2, 2>>(N {1.0, 0.3}, N {2.0, 0.3})));
-   *   \endcode
-   *   Note that in the case of o, there is an ambiguity as to whether the listed distributions correspond to rows
-   *   or columns. In case of such an ambiguity, this function assumes that the parameters correspond to the rows.
-   *
-   *  - One distribution for each column. The following code constructs 2-by-3 matrix p
-   *  in which elements in each column are selected according to the three listed distribution parameters:
-   *   \code
-   *     auto p = randomize<Eigen::Matrix<double, 2, 3>>(N {1.0, 0.3}, 2.0, N {3.0, 0.3})));
-   *   \endcode
-   *
-   * \tparam ReturnType The return type reflecting the size of the matrix to be filled. The actual result will be
-   * a fixed shape matrix.
-   * \tparam random_number_engine The random number engine.
-   * \tparam Dists A set of distributions (e.g., std::normal_distribution<double>) or, alternatively,
-   * means (a definite, non-stochastic value).
-   **/
-#ifdef __cpp_concepts
-  template<eigen_matrix ReturnType, std::uniform_random_bit_generator random_number_engine = std::mt19937,
-    typename...Dists>
-  requires
-  (not has_dynamic_dimensions<ReturnType>) and (sizeof...(Dists) > 1) and
-    (((requires { typename std::decay_t<Dists>::result_type;  typename std::decay_t<Dists>::param_type; } or
-      std::is_arithmetic_v<std::decay_t<Dists>>) and ... ))and
-      ((not std::is_const_v<std::remove_reference_t<Dists>>) and ...) and
-    (row_dimension_of_v<ReturnType> * column_dimension_of_v<ReturnType> == sizeof...(Dists) or
-      row_dimension_of_v<ReturnType> == sizeof...(Dists) or column_dimension_of_v<ReturnType> == sizeof...(Dists))
-#else
-  template<
-    typename ReturnType, typename random_number_engine = std::mt19937, typename...Dists,
-    std::enable_if_t<
-      eigen_matrix<ReturnType> and (not has_dynamic_dimensions<ReturnType>) and (sizeof...(Dists) > 1) and
-      ((not std::is_const_v<std::remove_reference_t<Dists>>) and ...) and
-      (row_dimension_of<ReturnType>::value * column_dimension_of<ReturnType>::value == sizeof...(Dists) or
-        row_dimension_of<ReturnType>::value == sizeof...(Dists) or
-        column_dimension_of<ReturnType>::value == sizeof...(Dists)), int> = 0>
-#endif
-  inline auto
-  randomize(Dists&& ... dists)
-  {
-    using Scalar = std::common_type_t<typename detail::dist_result_type<Dists>::type...>;
-    constexpr std::size_t s = sizeof...(Dists);
-    constexpr std::size_t rows = row_dimension_of_v<ReturnType>;
-    constexpr std::size_t cols = column_dimension_of_v<ReturnType>;
-
-    // One distribution for each element
-    if constexpr (rows * cols == s)
-    {
-      using M = eigen_matrix_t<Scalar, rows, cols>;
-      return MatrixTraits<M>::make(detail::Rnd<random_number_engine>::get(dists)...);
-    }
-
-    // One distribution for each row
-    else if constexpr (rows == s)
-    {
-      using M = eigen_matrix_t<Scalar, rows, 1>;
-      return apply_columnwise<cols>([&] {
-        return MatrixTraits<M>::make(detail::Rnd<random_number_engine>::get(dists)...);
-      });
-    }
-
-    // One distribution for each column
-    else
-    {
-      static_assert(cols == s);
-      using M = eigen_matrix_t<Scalar, 1, cols>;
-      return apply_rowwise<rows>([&] {
-        return MatrixTraits<M>::make(detail::Rnd<random_number_engine>::get(dists)...);
-      });
-    }
-
-  }
-
-
-}
+} // namespace OpenKalman::interface
 
 #endif //OPENKALMAN_EIGEN3_INTERFACE_HPP

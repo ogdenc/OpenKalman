@@ -871,10 +871,10 @@ TEST(covariance_tests, Covariance_overloads)
   EXPECT_TRUE(is_near(solve(CovT2l {9., 3, 3, 10}, Mat2col {15, 23}), Mat2col {1, 2}));
   EXPECT_TRUE(is_near(solve(CovT2u {9., 3, 3, 10}, Mat2col {15, 23}), Mat2col {1, 2}));
 
-  EXPECT_TRUE(is_near(reduce_columns(CovSA2l {9, 3, 3, 10}), Mat2col {6., 6.5}));
-  EXPECT_TRUE(is_near(reduce_columns(CovSA2u {9, 3, 3, 10}), Mat2col {6., 6.5}));
-  EXPECT_TRUE(is_near(reduce_columns(CovT2l {9, 3, 3, 10}), Mat2col {6., 6.5}));
-  EXPECT_TRUE(is_near(reduce_columns(CovT2u {9, 3, 3, 10}), Mat2col {6., 6.5}));
+  EXPECT_TRUE(is_near(average_reduce<1>(CovSA2l {9, 3, 3, 10}), Mat2col {6., 6.5}));
+  EXPECT_TRUE(is_near(average_reduce<1>(CovSA2u {9, 3, 3, 10}), Mat2col {6., 6.5}));
+  EXPECT_TRUE(is_near(average_reduce<1>(CovT2l {9, 3, 3, 10}), Mat2col {6., 6.5}));
+  EXPECT_TRUE(is_near(average_reduce<1>(CovT2u {9, 3, 3, 10}), Mat2col {6., 6.5}));
 
   EXPECT_TRUE(is_near(square(LQ_decomposition(CovSA2l {9., 3, 3, 10})), Mat2 {90., 57, 57, 109}));
   EXPECT_TRUE(is_near(square(LQ_decomposition(CovSA2u {9., 3, 3, 10})), Mat2 {90., 57, 57, 109}));

@@ -412,13 +412,6 @@ namespace OpenKalman
       constexpr static std::size_t get(const DynamicTypedIndex<T>& t) { return t.is_untyped(); }
     };
 
-
-    template<typename T>
-    struct ScalarTypeOf<DynamicTypedIndex<T>>
-    {
-      using type = T;
-    };
-
   } // namespace interface
 
 

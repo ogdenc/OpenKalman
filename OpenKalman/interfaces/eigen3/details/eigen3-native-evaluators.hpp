@@ -130,7 +130,7 @@ namespace Eigen::internal
       Alignment = AlignedMax
     };
 
-    explicit evaluator(const XprType&) {}
+    explicit constexpr evaluator(const XprType&) {}
 
     constexpr Scalar coeff(Index row, Index col) const
     {
@@ -143,13 +143,13 @@ namespace Eigen::internal
     }
 
     template<int LoadMode, typename PacketType>
-    PacketType packet(Index row, Index col) const
+    constexpr PacketType packet(Index row, Index col) const
     {
       return internal::pset1<PacketType>(constant);
     }
 
     template<int LoadMode, typename PacketType>
-    PacketType packet(Index row) const
+    constexpr PacketType packet(Index row) const
     {
       return internal::pset1<PacketType>(constant);
     }
@@ -176,7 +176,7 @@ namespace Eigen::internal
       Alignment = AlignedMax
     };
 
-    explicit evaluator(const XprType&) {}
+    explicit constexpr evaluator(const XprType&) {}
 
     constexpr Scalar coeff(Index row, Index col) const
     {
@@ -189,13 +189,13 @@ namespace Eigen::internal
     }
 
     template<int LoadMode, typename PacketType>
-    PacketType packet(Index row, Index col) const
+    constexpr PacketType packet(Index row, Index col) const
     {
       return internal::pset1<PacketType>(0);
     }
 
     template<int LoadMode, typename PacketType>
-    PacketType packet(Index row) const
+    constexpr PacketType packet(Index row) const
     {
       return internal::pset1<PacketType>(0);
     }

@@ -268,9 +268,9 @@ TEST(eigen3, ToEuclideanExpr_overloads)
     To23 {1, 2, 3, pi/6, pi/3, pi/4},
     make_eigen_matrix<double, 3, 1>(14, std::sqrt(3)/2 + 1 + std::sqrt(2)*3/2, 0.5 + std::sqrt(3) + std::sqrt(2)*3/2)),
     make_eigen_matrix<double, 3, 1>(1, 2, 3)));
-  EXPECT_TRUE(is_near(reduce_columns(To32 {1, 2, pi/6, pi/3, 3, 4}),
+  EXPECT_TRUE(is_near(average_reduce<1>(To32 {1, 2, pi/6, pi/3, 3, 4}),
     make_eigen_matrix<double, 4, 1>(1.5, 0.5*(std::sqrt(3)/2 + 0.5), 0.5*(std::sqrt(3)/2 + 0.5), 3.5)));
-  EXPECT_TRUE(is_near(reduce_rows(To32 {1, 2, pi/6, pi/3, 3, 4}),
+  EXPECT_TRUE(is_near(average_reduce<0>(To32 {1, 2, pi/6, pi/3, 3, 4}),
     make_eigen_matrix<double, 1, 2>(4.5/4 + std::sqrt(3)/8, 6.5/4 + std::sqrt(3)/8)));
   EXPECT_TRUE(is_near(LQ_decomposition(To23 {1, 2, 3, pi/6, pi/3, pi/4}),
     LQ_decomposition(make_eigen_matrix<double, 3, 3>(

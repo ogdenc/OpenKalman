@@ -355,7 +355,7 @@ TEST(matrices, TypedMatrix_overloads)
 
   EXPECT_TRUE(is_near(solve(Mat22 {9., 3, 3, 10}, Mat21 {15, 23}), Mat21 {1, 2}));
 
-  EXPECT_TRUE(is_near(reduce_columns(Matrix<C2, Dimensions<3>, M23> {1, 2, 3, 4, 5, 6}), Mat21 {2, 5}));
+  EXPECT_TRUE(is_near(average_reduce<1>(Matrix<C2, Dimensions<3>, M23> {1, 2, 3, 4, 5, 6}), Mat21 {2, 5}));
 
   EXPECT_TRUE(is_near(square(LQ_decomposition(Matrix<C2, Dimensions<3>, M23> {1, 2, 3, 4, 5, 6})), Mat22 {14, 32, 32, 77}));
 

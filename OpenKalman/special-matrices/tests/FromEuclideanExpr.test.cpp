@@ -350,8 +350,8 @@ TEST(eigen3, FromEuclideanExpr_overloads)
     From32 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2},
     make_eigen_matrix<double, 2, 1>(5, pi*5/6)),
     make_eigen_matrix<double, 2, 1>(1, 2)));
-  EXPECT_TRUE(is_near(reduce_columns(From42 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), make_eigen_matrix<double, 3, 1>(1.5, pi/4, 3.5)));
-  EXPECT_TRUE(is_near(reduce_rows(From42 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), make_eigen_matrix<double, 1, 2>(4./3 + pi/18, 2 + pi/9)));
+  EXPECT_TRUE(is_near(average_reduce<1>(From42 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), make_eigen_matrix<double, 3, 1>(1.5, pi/4, 3.5)));
+  EXPECT_TRUE(is_near(average_reduce<0>(From42 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), make_eigen_matrix<double, 1, 2>(4./3 + pi/18, 2 + pi/9)));
   EXPECT_TRUE(is_near(LQ_decomposition(From32 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2}),
     LQ_decomposition(make_eigen_matrix<double, 2, 2>(1, 2, pi/6, pi/3))));
   EXPECT_TRUE(is_near(QR_decomposition(From32 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2}),

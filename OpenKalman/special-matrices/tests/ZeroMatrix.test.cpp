@@ -399,17 +399,17 @@ TEST(eigen3, ZeroMatrix_functions)
   EXPECT_TRUE(is_near(solve(z00_22, z03_2), z23));
   EXPECT_TRUE(is_near(solve(z00_22, z00_23), z23));
 
-  EXPECT_TRUE(is_near(reduce_columns(z22), z21));
-  EXPECT_TRUE(is_near(reduce_columns(z20_2), z21));
-  EXPECT_TRUE(is_near(reduce_columns(z02_2), z21));
-  EXPECT_TRUE(is_near(reduce_columns(z00_22), z21));
-  static_assert(zero_matrix<decltype(reduce_columns(z00_22))>);
+  EXPECT_TRUE(is_near(average_reduce<1>(z22), z21));
+  EXPECT_TRUE(is_near(average_reduce<1>(z20_2), z21));
+  EXPECT_TRUE(is_near(average_reduce<1>(z02_2), z21));
+  EXPECT_TRUE(is_near(average_reduce<1>(z00_22), z21));
+  static_assert(zero_matrix<decltype(average_reduce<1>(z00_22))>);
 
-  EXPECT_TRUE(is_near(reduce_rows(z22), z12));
-  EXPECT_TRUE(is_near(reduce_rows(z20_2), z12));
-  EXPECT_TRUE(is_near(reduce_rows(z02_2), z12));
-  EXPECT_TRUE(is_near(reduce_rows(z00_22), z12));
-  static_assert(zero_matrix<decltype(reduce_rows(z00_22))>);
+  EXPECT_TRUE(is_near(average_reduce<0>(z22), z12));
+  EXPECT_TRUE(is_near(average_reduce<0>(z20_2), z12));
+  EXPECT_TRUE(is_near(average_reduce<0>(z02_2), z12));
+  EXPECT_TRUE(is_near(average_reduce<0>(z00_22), z12));
+  static_assert(zero_matrix<decltype(average_reduce<0>(z00_22))>);
 
   EXPECT_TRUE(is_near(LQ_decomposition(z23), z22));
   EXPECT_TRUE(is_near(LQ_decomposition(z20_3), z22));

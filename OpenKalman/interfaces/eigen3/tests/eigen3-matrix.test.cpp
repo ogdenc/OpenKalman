@@ -74,17 +74,20 @@ TEST(eigen3, make_dense_writable_matrix_from)
   auto cm22 = make_dense_writable_matrix_from<CM22>(cdouble {1,4}, cdouble {2,3}, cdouble {3,2}, cdouble {4,1});
 
   EXPECT_TRUE(is_near(make_dense_writable_matrix_from<M22>(1, 2, 3, 4), m22));
+  EXPECT_TRUE(is_near(make_dense_writable_matrix_from<M20>(std::tuple{Dimensions<2>{}, 3}, 1, 2, 3, 4, 5, 6), m23));
   EXPECT_TRUE(is_near(make_dense_writable_matrix_from<M20>(1, 2, 3, 4, 5, 6), m23));
   EXPECT_TRUE(is_near(make_dense_writable_matrix_from<M20>(1, 2, 3, 4), m22));
   EXPECT_TRUE(is_near(make_dense_writable_matrix_from<M20>(1, 2), M21 {1, 2}));
+  EXPECT_TRUE(is_near(make_dense_writable_matrix_from<M02>(std::tuple{3, Dimensions<2>{}}, 1, 2, 3, 4, 5, 6), m32));
   EXPECT_TRUE(is_near(make_dense_writable_matrix_from<M02>(1, 2, 3, 4, 5, 6), m32));
   EXPECT_TRUE(is_near(make_dense_writable_matrix_from<M02>(1, 2, 3, 4), m22));
   EXPECT_TRUE(is_near(make_dense_writable_matrix_from<M02>(1, 2), M12 {1, 2}));
-  EXPECT_TRUE(is_near(make_dense_writable_matrix_from<M00>(1, 2), M21 {1, 2}));
+  EXPECT_TRUE(is_near(make_dense_writable_matrix_from<M00>(std::tuple{Dimensions<2>{}, 3}, 1, 2, 3, 4, 5, 6), m23));
+  EXPECT_TRUE(is_near(make_dense_writable_matrix_from<M00>(std::tuple{2, 1}, 1, 2), M21 {1, 2}));
   EXPECT_TRUE(is_near(make_dense_writable_matrix_from<CM22>(cdouble {1,4}, cdouble {2,3}, cdouble {3,2}, cdouble {4,1}), cm22));
   static_assert(column_dimension_of_v<decltype(make_dense_writable_matrix_from<M20>(1, 2))> == 1);
   static_assert(row_dimension_of_v<decltype(make_dense_writable_matrix_from<M02>(1, 2))> == 1);
-  static_assert(row_dimension_of_v<decltype(make_dense_writable_matrix_from<M00>(1, 2))> == 2);
+  static_assert(row_dimension_of_v<decltype(make_dense_writable_matrix_from<M00>(std::tuple{2, 1}, 1, 2))> == 2);
 
   EXPECT_TRUE(is_near(make_eigen_matrix<double, 2, 2>(1, 2, 3, 4), m22));
   EXPECT_TRUE(is_near(make_eigen_matrix<double, 2, dynamic_size>(1, 2, 3, 4, 5, 6), m23));

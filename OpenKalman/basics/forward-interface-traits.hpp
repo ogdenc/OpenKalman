@@ -28,23 +28,29 @@ namespace OpenKalman::interface
 
   /**
    * \internal
-   * \brief Type trait identifying the scalar type (e.g., double, int) of a tensor, expression, or index descriptor.
-   * \details The interface must define a member alias <code>type</code> as the scalar type.
-   * \tparam T The matrix, expression, or array.
+   * \brief An interface to the storage array traits of a vector, matrix, matrix expression, or other tensor.
+   * \details The interface must define a member alias <code>scalar_type</code> as the scalar type.
+   * \tparam T The tensor, matrix, expression, or array.
    */
 #ifdef __cpp_concepts
   template<typename T>
 #else
   template<typename T, typename = void>
 #endif
-  struct ScalarTypeOf
+  struct IndexibleObjectTraits
   {
     /**
-     * \typedef type
-     * \brief The scalar type of T.
+     * \brief The maximum number of indices by which the elements of T are accessible.
+     * \details T may optionally be accessible by fewer indices.
+     */
+    static constexpr std::size_t max_indices = 0;
+
+    /**
+     * \typedef scalar_type
+     * \brief The scalar type of T (e.g., double, int).
      * \details Example:
      * \code
-     * using type = double;
+     * using scalar_type = double;
      * \endcode
      */
   };
@@ -52,26 +58,7 @@ namespace OpenKalman::interface
 
   /**
    * \internal
-   * \brief An interface to the storage array traits of a vector, matrix, matrix expression, or other tensor.
-   * \tparam T The tensor.
-   */
-#ifdef __cpp_concepts
-  template<typename T>
-#else
-  template<typename T, typename = void>
-#endif
-  struct StorageArrayTraits
-  {
-    /**
-     * \brief The maximum number of indices by which the elements of T are accessible.
-     */
-    static constexpr std::size_t max_indices = 0;
-  };
-
-
-  /**
-   * \internal
-   * \brief An interface to the indices of a matrix, or array, expression, or tensor.
+   * \brief An interface to traits of a particular index of a matrix, or array, expression, or tensor.
    * \tparam T The matrix, array, expression, or tensor.
    * \tparam N The index number
    */
@@ -138,6 +125,7 @@ namespace OpenKalman::interface
    * getting an element is not possible, leave <code>get</code> undefined.
    * \note OpenKalman only recognizes indices of type <code>std::size_t</code>.
    * \tparam I The indices (each of type std::size_t)
+   * \returns an element or an l-value reference to an element
    */
 #ifdef __cpp_concepts
   template<typename T, typename...I>
@@ -152,7 +140,7 @@ namespace OpenKalman::interface
 #else
     template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const std::remove_reference_t<T>&>, int> = 0>
 #endif
-    static constexpr auto get(Arg&& arg, I...i) = delete;
+    static constexpr decltype(auto) get(Arg&& arg, I...i) = delete;
   };
 
 
@@ -176,7 +164,7 @@ namespace OpenKalman::interface
 #else
     template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const std::remove_reference_t<T>&>, int> = 0>
 #endif
-    static void set(Arg& arg, const typename ScalarTypeOf<std::decay_t<Arg>>::type& s, I...i) = delete;
+    static void set(Arg& arg, const typename IndexibleObjectTraits<std::decay_t<Arg>>::scalar_type& s, I...i) = delete;
   };
 
 
@@ -187,28 +175,18 @@ namespace OpenKalman::interface
    * can set the size or scalar type of the resulting dense matrix based on the parameters (or if they are dynamic,
    * rows and columns can be set to \ref dynamic_size).
    * \tparam T Type upon which the dense matrix will be constructed
-   * \tparam rows The specified row dimension of the matrix (defaults to that of T)
-   * \tparam columns The specified column dimension of the matrix (defaults to that of T)
    * \tparam Scalar The specified scalar type of the matrix (defaults to that of T)
    */
 #ifdef __cpp_concepts
-  template<typename T,
-    std::size_t rows = IndexTraits<std::decay_t<T>, 0>::dimension,
-    std::size_t columns = IndexTraits<std::decay_t<T>, 1>::dimension,
-    typename Scalar = typename ScalarTypeOf<std::decay_t<T>>::type>
+  template<typename T, typename Scalar = typename IndexibleObjectTraits<std::decay_t<T>>::scalar_type>
 #else
-  template<typename T,
-    std::size_t rows = IndexTraits<std::decay_t<T>, 0>::dimension,
-    std::size_t columns = IndexTraits<std::decay_t<T>, 1>::dimension,
-    typename Scalar = typename ScalarTypeOf<std::decay_t<T>>::type,
-    typename = void>
+  template<typename T, typename Scalar = typename IndexibleObjectTraits<std::decay_t<T>>::scalar_type, typename = void>
 #endif
   struct EquivalentDenseWritableMatrix
   {
 
     /**
-     * \brief Converts a matrix/array convertible to type <code>T</code> into a dense, writable matrix/array of type
-     * <code>type</code>.
+     * \brief Converts a matrix/array convertible to type <code>T</code> into a dense, writable matrix/array.
      */
 #ifdef __cpp_concepts
     template<std::convertible_to<const std::remove_reference_t<T>&> Arg>
@@ -225,12 +203,8 @@ namespace OpenKalman::interface
      * \return A default, potentially unitialized, dense, writable matrix or array. Whether the resulting object
      * is a matrix or array may depend on whether T is a matrix or array.
      */
-/*#ifdef __cpp_concepts
-    template<index_descriptor...D>
-#else
-    template<typename...D, std::enable_if_t<(index_descriptor<D> and ...), int> = 0>
-#endif
-    static auto make_default(D&&...d) = delete;*/
+    template<typename...D>
+    static auto make_default(D&&...d) = delete;
 
 
     /**
@@ -272,10 +246,11 @@ namespace OpenKalman::interface
   {
     /**
      * \brief Indicates whether type T stores any internal runtime parameters.
-     * \details An example of an internal runtime paramter might be indices for start locations, or sizes, for an
+     * \details An example of an internal runtime parameter might be indices for start locations, or sizes, for an
      * expression representing a block or sub-matrix within a matrix. If unknown, the value of <code>true</code> is
      * the safest and will prevent unintended dangling references.
-     * \note If this is not defined, T will be treated as if it is defined and true.
+     * \note If this is not defined, T will be treated as if it is defined and true. This parameter can ignore whether
+     * any nested matrices, themselves, have internal runtime parameters.
      */
     static constexpr bool has_runtime_parameters = true;
 
@@ -349,9 +324,9 @@ namespace OpenKalman::interface
    * \tparam Scalar The specified scalar type of the matrix (defaults to that of T)
    */
 #ifdef __cpp_concepts
-  template<typename T, typename Scalar = typename ScalarTypeOf<std::decay_t<T>>::type>
+  template<typename T, typename Scalar = typename IndexibleObjectTraits<std::decay_t<T>>::scalar_type>
 #else
-  template<typename T, typename Scalar = typename ScalarTypeOf<std::decay_t<T>>::type, typename = void>
+  template<typename T, typename Scalar = typename IndexibleObjectTraits<std::decay_t<T>>::scalar_type, typename = void>
 #endif
   struct SingleConstantMatrixTraits
   {
@@ -362,12 +337,12 @@ namespace OpenKalman::interface
      * \note If this is not defined, it will return an object of type ZeroMatrix.
      */
 /*#ifdef __cpp_concepts
-    template<index_descriptor...D> requires (sizeof...(D) == StorageArrayTraits<T>::max_indices)
+    template<index_descriptor...D> requires (sizeof...(D) == IndexibleObjectTraits<T>::max_indices)
 #else
     template<typename...D, std::enable_if_t<(index_descriptor<D> and ...) and
-      sizeof...(D) == StorageArrayTraits<T>::max_indices, int> = 0>
+      sizeof...(D) == IndexibleObjectTraits<T>::max_indices, int> = 0>
 #endif
-    static auto make_zero_matrix(D&&...d); //< Defined elsewhere*/
+    static constexpr auto make_zero_matrix(D&&...d); //< Defined elsewhere*/
 
 
     /**
@@ -377,12 +352,12 @@ namespace OpenKalman::interface
      * \note If this is not defined, it will return an object of type ConstantMatrix.
      */
 /*#ifdef __cpp_concepts
-    template<auto constant, index_descriptor...D> requires (sizeof...(D) == StorageArrayTraits<T>::max_indices)
+    template<auto constant, index_descriptor...D> requires (sizeof...(D) == IndexibleObjectTraits<T>::max_indices)
 #else
     template<auto constant, typename...D, std::enable_if_t<(index_descriptor<D> and ...) and
-      sizeof...(D) == StorageArrayTraits<T>::max_indices, int> = 0>
+      sizeof...(D) == IndexibleObjectTraits<T>::max_indices, int> = 0>
 #endif
-    static auto make_constant_matrix(D&&...d); //< Defined elsewhere*/
+    static constexpr auto make_constant_matrix(D&&...d); //< Defined elsewhere*/
   };
 
 
@@ -405,7 +380,7 @@ namespace OpenKalman::interface
      * \brief The constant element of T, of a type convertible to <code>scalar_type_of<T></code>.
      * \details The following example indicates that every element of T is 0 (same scalar type as T):
      * \code
-     *   static constexpr typename ScalarTypeOf<T>::type value = 0;
+     *   static constexpr typename IndexibleObjectTraits<T>::scalar_type value = 0;
      * \endcode
      */
   };
@@ -421,9 +396,9 @@ namespace OpenKalman::interface
    * \tparam Scalar The specified scalar type of the matrix (defaults to that of T)
    */
 #ifdef __cpp_concepts
-  template<typename T, typename Scalar = typename ScalarTypeOf<std::decay_t<T>>::type>
+  template<typename T, typename Scalar = typename IndexibleObjectTraits<std::decay_t<T>>::scalar_type>
 #else
-  template<typename T, typename Scalar = typename ScalarTypeOf<std::decay_t<T>>::type, typename = void>
+  template<typename T, typename Scalar = typename IndexibleObjectTraits<std::decay_t<T>>::scalar_type, typename = void>
 #endif
   struct SingleConstantDiagonalMatrixTraits
   {
@@ -437,7 +412,7 @@ namespace OpenKalman::interface
 #else
     template<typename D, std::enable_if_t<index_descriptor<D>, int> = 0>
 #endif
-    static auto make_identity_matrix(D&& d); //< Defined elsewhere*/
+    static constexpr auto make_identity_matrix(D&& d); //< Defined elsewhere*/
   };
 
 
@@ -461,7 +436,7 @@ namespace OpenKalman::interface
      * \details The following example indicates that every diagonal element of T is 1 (same scalar type as T), and every
      * non-diagonal element is 0:
      * \code
-     *   static constexpr typename ScalarTypeOf<T>::type value = 1;
+     *   static constexpr typename IndexibleObjectTraits<T>::scalar_type value = 1;
      * \endcode
      */
   };
@@ -571,78 +546,6 @@ namespace OpenKalman::interface
   };
 
 
-#ifdef __cpp_concepts
-  template<typename T>
-#else
-  template<typename T, typename = void>
-#endif
-  struct ElementAccess
-  {
-  };
-
-
-  /**
-   * \brief An interface to necessary array or element-wise operations on matrix T.
-   * \tparam T Type of the result matrix, array, or other tensor
-   */
-#ifdef __cpp_concepts
-  template<typename T>
-#else
-  template<typename T, typename = void>
-#endif
-  struct ArrayOperations
-  {
-    /**
-     * \brief Perform an n-ary array operation on a set of n arguments, possibly with broadcasting.
-     * \details If any of the arguments has a lesser order than T, the function must replicate the argument to fill
-     * out the full size and shape of T, as necessary, before performing the operation. For example, if T is a 2-by-2
-     * matrix and the sole argument is a 2-by-1 column vector, the function must replicate the argument in the
-     * horizontal direction to form a 2-by-2 matrix before performing the operation.
-     * \tparam sizes The dimension types of T
-     * \tparam Operation The n-ary operation taking n arguments, each argument having the same dimensions
-     * \tparam Args A set of n arguments
-     * \return An object the same size and shape as as T
-     */
-/*#ifdef __cpp_concepts
-    template<index_descriptor...dims, typename Operation, typename...Args> requires
-      (sizeof...(dims) == StorageArrayTraits<std::decay_t<T>>::max_indices)
-    static constexpr decltype(auto) n_ary_operation_with_broadcasting(
-      const std::tuple<dims...>& d, Operation&&, Args&&...) = delete;
-#else
-    template<typename...dims, typename Operation, typename...Args, std::enable_if_t<
-      (index_descriptor<dims> and ...) and sizeof...(dims) == StorageArrayTraits<std::decay_t<T>>::max_indices, int> = 0>
-    static constexpr decltype(auto) n_ary_operation_with_broadcasting(
-      const std::tuple<dims...>& d, Operation&&, Args&&...) = delete;
-#endif*/
-
-
-    /**
-     * \brief Use a binary function to reduce a tensor across one or more of its indices.
-     * \tparam indices The indices to be reduced. There will be at least one index.
-     * \tparam BinaryFunction A binary function invocable with two values of type <code>scalar_type_of_t<Arg></code>
-     * \tparam Arg The tensor
-     * (e.g. std::plus, std::multiplies)
-     */
-    template<std::size_t...indices, typename BinaryFunction, typename Arg>
-    static constexpr decltype(auto) reduce(BinaryFunction&&, Arg&&) = delete;
-
-
-    /**
-     * \brief Fold an operation across the elements of Arg
-     * \detail BinaryFunction must be invocable with two values, the first an accumulator and the second of type
-     * <code>scalar_type_of_t<Arg></code>. It returns the accumulated value. After each iteration, the result of the
-     * operation is used as the accumulator for the next iteration.
-     * \tparam BinaryFunction A binary function (e.g. std::plus, std::multiplies)
-     * \tparam Accum An accumulator
-     * \tparam Arg An object of type T
-     * \tparam order The element order over which to perform the operation
-     * \todo derive default order from element order of Arg.
-     */
-    template<ElementOrder order, typename BinaryFunction, typename Accum, typename Arg>
-    static constexpr decltype(auto) fold(const BinaryFunction&, Accum&&, Arg&&) = delete;
-  };
-
-
   /**
    * \brief An interface to necessary conversions on matrix T.
    * \tparam T
@@ -701,6 +604,64 @@ namespace OpenKalman::interface
     static constexpr auto
     diagonal_of(Arg&& arg) = delete;
 
+  };
+
+
+  /**
+   * \brief An interface to necessary array or element-wise operations on matrix T.
+   * \tparam T Type of the result matrix, array, or other tensor
+   */
+#ifdef __cpp_concepts
+  template<typename T>
+#else
+  template<typename T, typename = void>
+#endif
+  struct ArrayOperations
+  {
+    /**
+     * \brief Perform an n-ary array operation on a set of n arguments, possibly with broadcasting.
+     * \details The index descriptors d_tup define the size of the resulting matrix. If any of the arguments has a
+     * lesser order than indicated by d_tup, the function must replicate the argument to fill
+     * out the full size and shape specified by Ds, as necessary, before performing the operation. For example, if
+     * d_tup is Dimensions<2> and Dimensions<2> and the sole argument is a 2-by-1 column vector, the function must
+     * replicate the argument in the horizontal direction to form a 2-by-2 matrix before performing the operation.
+     * \note This is optional and should be left undefined to the extent the native library does not provide this
+     * functionality.
+     * \param d_tup A tuple of index descriptors (of type Ds) defining the resulting tensor
+     * \tparam Operation The n-ary operation taking n arguments, each argument having the same dimensions
+     * \tparam Args A set of n arguments
+     * \return An object with size and shape defined by d_tup and with elements defined by the operation
+     */
+    template<typename...Ds, typename Operation, typename...Args>
+    static auto n_ary_operation(const std::tuple<Ds...>& d_tup, Operation&&, Args&&...) = delete;
+
+
+    /**
+     * \brief Fill an array or tensor using an n-ary operation that also takes indices as arguments.
+     * \details The n-ary operation results in elements that can be index-dependent.
+     * \note This is optional and should be left undefined to the extent the native library does not provide this
+     * functionality.
+     * \param d_tup A tuple of index descriptors (of type Ds) defining the resulting tensor
+     * \tparam Operation An n-ary operation taking n arguments as well as the indices defining T
+     * \tparam Args A set of n arguments
+     * \return An object with size and shape defined by d_tup and with elements defined by the n-ary operation
+     */
+    template<typename...Ds, typename Operation, typename...Args>
+    static auto n_ary_operation_with_indices(const std::tuple<Ds...>& d_tup, Operation&&, Args&&...) = delete;
+
+
+    /**
+     * \brief Use a binary function to reduce a tensor across one or more of its indices.
+     * \details The binary function is assumed to be associative, so any order of operation is permissible.
+     * \tparam indices The indices to be reduced. There will be at least one index.
+     * \tparam BinaryFunction A binary function invocable with two values of type <code>scalar_type_of_t<Arg></code>
+     * (e.g. std::plus, std::multiplies)
+     * \tparam Arg The tensor
+     * \returns A vector or tensor with reduced dimensions. If <code>indices...</code> includes every index of Arg
+     * (thus calling for a complete reduction), the function may return either a scalar value or a one-by-one matrix.
+     */
+    template<std::size_t...indices, typename BinaryFunction, typename Arg>
+    static constexpr decltype(auto) reduce(BinaryFunction&&, Arg&&) = delete;
   };
 
 

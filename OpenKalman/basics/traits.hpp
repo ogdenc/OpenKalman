@@ -71,14 +71,14 @@ namespace OpenKalman
     template<typename T, typename...D>
     struct dense_writable_matrix_impl
     {
-      using type = std::decay_t<decltype(EquivalentDenseWritableMatrix<T>::make_default(std::declval<const D&>()...))>;
+      using type = std::decay_t<decltype(make_default_dense_writable_matrix_like<T>(std::declval<D>()...))>;
     };
 
 
     template<typename T>
     struct dense_writable_matrix_impl<T>
     {
-      using type = std::decay_t<decltype(make_dense_writable_matrix_from(std::declval<const T&>()))>;
+      using type = std::decay_t<decltype(make_default_dense_writable_matrix_like(std::declval<T>()))>;
     };
   }
 
@@ -94,7 +94,7 @@ namespace OpenKalman
 #else
   template<typename T, typename...D>
 #endif
-  using dense_writable_matrix_t = typename detail::dense_writable_matrix_impl<std::decay_t<T>, D...>::type;
+  using dense_writable_matrix_t = typename detail::dense_writable_matrix_impl<T, D...>::type;
 
 
   // --------------------------------- //
@@ -104,14 +104,14 @@ namespace OpenKalman
   /**
    * \brief An alias for a dense, writable matrix, patterned on parameter T.
    * \tparam T A matrix or array from the relevant matrix library.
-   * \tparam D Index descriptors defining the dimensions of the new matrix.
+   * \tparam D Integral values defining the dimensions of the new matrix.
    */
 #ifdef __cpp_concepts
   template<indexible T, auto...D> requires ((std::is_integral_v<decltype(D)> and D >= 0) and ...)
 #else
   template<typename T, auto...D>
 #endif
-  using untyped_dense_writable_matrix_t = dense_writable_matrix_t<T, Dimensions<get_dimension_size_of(D)>...>;
+  using untyped_dense_writable_matrix_t = dense_writable_matrix_t<T, Dimensions<static_cast<const std::size_t>(D)>...>;
 
 
   // --------------------------- //

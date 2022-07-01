@@ -33,34 +33,6 @@ namespace OpenKalman
 {
 
   // ---------------- //
-  //  scalar_type_of  //
-  // ---------------- //
-
-  /**
-   * \brief Type scalar type (e.g., std::float, std::double, std::complex<double>) of a tensor or index descriptor.
-   * \tparam T A matrix, expression, array, or \ref index_descriptor.
-   * \internal \sa interface::ScalarTypeOf
-   */
-#ifdef __cpp_concepts
-  template<typename T> requires requires { typename interface::ScalarTypeOf<std::decay_t<T>>; }
-#else
-  template<typename T>
-#endif
-  using scalar_type_of = typename interface::ScalarTypeOf<std::decay_t<T>>;
-
-
-  /**
-   * \brief helper template for \ref scalar_type_of.
-   */
-#ifdef __cpp_concepts
-  template<typename T> requires requires { typename interface::ScalarTypeOf<std::decay_t<T>>::type; }
-#else
-  template<typename T>
-#endif
-  using scalar_type_of_t = typename scalar_type_of<T>::type;
-
-
-  // ---------------- //
   //  max_indices_of  //
   // ---------------- //
 
@@ -70,7 +42,7 @@ namespace OpenKalman
    */
   template<typename T>
   struct max_indices_of
-    : std::integral_constant<std::size_t, interface::StorageArrayTraits<std::decay_t<T>>::max_indices> {};
+    : std::integral_constant<std::size_t, interface::IndexibleObjectTraits<std::decay_t<T>>::max_indices> {};
 
 
   /**
@@ -78,6 +50,46 @@ namespace OpenKalman
    */
   template<typename T>
   static constexpr std::size_t max_indices_of_v = max_indices_of<T>::value;
+
+
+  // ---------------- //
+  //  scalar_type_of  //
+  // ---------------- //
+
+  /**
+   * \brief Type scalar type (e.g., std::float, std::double, std::complex<double>) of a tensor or index descriptor.
+   * \tparam T A matrix, expression, array, or \ref index_descriptor.
+   * \internal \sa interface::IndexibleObjectTraits
+   */
+#ifdef __cpp_concepts
+  template<typename T>
+#else
+  template<typename T, typename = void>
+#endif
+  struct scalar_type_of;
+
+
+#ifdef __cpp_concepts
+  template<typename T> requires requires {typename interface::IndexibleObjectTraits<std::decay_t<T>>::scalar_type; }
+  struct scalar_type_of<T>
+#else
+  template<typename T>
+  struct scalar_type_of<T, std::void_t<typename interface::IndexibleObjectTraits<std::decay_t<T>>::scalar_type>>
+#endif
+  {
+    using type = typename interface::IndexibleObjectTraits<std::decay_t<T>>::scalar_type;
+  };
+
+
+  /**
+   * \brief helper template for \ref scalar_type_of.
+   */
+#ifdef __cpp_concepts
+  template<typename T> requires requires { typename interface::IndexibleObjectTraits<std::decay_t<T>>::scalar_type; }
+#else
+  template<typename T>
+#endif
+  using scalar_type_of_t = typename scalar_type_of<T>::type;
 
 
   // ----------- //
@@ -91,7 +103,7 @@ namespace OpenKalman
     struct is_indexible : std::false_type {};
 
     template<typename T>
-    struct is_indexible<T, std::enable_if_t<(max_indices_of<T>::value > 0)>>
+    struct is_indexible<T, std::enable_if_t<(max_indices_of<T>::value > 0) and scalar_type<typename scalar_type_of<T>::type>>>
       : std::true_type {};
   }
 #endif
@@ -104,7 +116,7 @@ namespace OpenKalman
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept indexible = (max_indices_of_v<T> > 0);
+  concept indexible = (max_indices_of_v<T> > 0) and scalar_type<scalar_type_of_t<T>>;
 #else
   constexpr bool indexible = detail::is_indexible<T>::value;
 #endif
@@ -630,6 +642,8 @@ namespace OpenKalman
 
   /**
    * \brief The constant associated with T if T is a \ref constant_matrix.
+   * \note The type of the constant is not necessarily the Scalar type of T, and may need to be cast. For example,
+   * the constant may be an integral type while the scalar type of T is a floating-point type.
    */
 #ifdef __cpp_concepts
   template<typename T>
@@ -648,11 +662,7 @@ namespace OpenKalman
 #endif
   {
     // \todo Add some logic about, e.g., 1-by-1 constant diagonal matrices.
-#  if __cpp_nontype_template_args >= 201911L
-    static constexpr scalar_type_of_t<T> value = interface::SingleConstant<std::decay_t<T>>::value;
-#  else
     static constexpr auto value = interface::SingleConstant<std::decay_t<T>>::value;
-#  endif
   };
 
 

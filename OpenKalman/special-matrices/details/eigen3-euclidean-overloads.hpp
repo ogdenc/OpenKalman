@@ -201,43 +201,6 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_concepts
   template<euclidean_expr T>
-  struct ArrayOperations<T>
-#else
-  template<typename T>
-  struct ArrayOperations<T, std::enable_if_t<euclidean_expr<T>>>
-#endif
-  {
-
-    template<typename...dims, typename Operation, typename...Args>
-    static constexpr decltype(auto)
-    n_ary_operation_with_broadcasting(const std::tuple<dims...>& tup, Operation&& op, Args&&...args)
-    {
-      using P = pattern_matrix_of_t<T>;
-      return ArrayOperations<P>::template n_ary_operation_with_broadcasting<dims...>(
-        tup, std::forward<Operation>(op), std::forward<Args>(args)...);
-    }
-
-
-    template<std::size_t...indices, typename BinaryFunction, typename Arg>
-    static constexpr decltype(auto)
-    reduce(BinaryFunction&& b, Arg&& arg)
-    {
-      using P = pattern_matrix_of_t<T>;
-      return ArrayOperations<P>::template reduce<indices...>(std::forward<BinaryFunction>(b), std::forward<Arg>(arg));
-    }
-
-
-    template<ElementOrder order, typename BinaryFunction, typename Accum, typename Arg>
-    static constexpr auto fold(const BinaryFunction& b, Accum&& accum, Arg&& arg)
-    {
-      return OpenKalman::fold<order>(b, std::forward<Accum>(accum), make_dense_writable_matrix_from(std::forward<Arg>(arg)));
-    }
-
-  };
-
-
-#ifdef __cpp_concepts
-  template<euclidean_expr T>
   struct Conversions<T>
 #else
   template<typename T>
@@ -274,6 +237,35 @@ namespace OpenKalman::interface
         using P = pattern_matrix_of_t<T>;
         return Conversions<P>::diagonal_of(to_native_matrix<P>(std::forward<Arg>(arg)));
       }
+    }
+
+  };
+
+
+#ifdef __cpp_concepts
+  template<euclidean_expr T>
+  struct ArrayOperations<T>
+#else
+  template<typename T>
+  struct ArrayOperations<T, std::enable_if_t<euclidean_expr<T>>>
+#endif
+  {
+
+    template<typename...Ds, typename Operation, typename...Args>
+    static constexpr decltype(auto)
+    n_ary_operation(const std::tuple<Ds...>& tup, Operation&& op, Args&&...args)
+    {
+      using P = pattern_matrix_of_t<T>;
+      return ArrayOperations<P>::template n_ary_operation(tup, std::forward<Operation>(op), std::forward<Args>(args)...);
+    }
+
+
+    template<std::size_t...indices, typename BinaryFunction, typename Arg>
+    static constexpr decltype(auto)
+    reduce(BinaryFunction&& b, Arg&& arg)
+    {
+      using P = pattern_matrix_of_t<T>;
+      return ArrayOperations<P>::template reduce<indices...>(std::forward<BinaryFunction>(b), std::forward<Arg>(arg));
     }
 
   };
@@ -433,6 +425,22 @@ namespace OpenKalman::interface
         to_native_matrix<T>(std::forward<A>(a)), std::forward<B>(b));
     }
 
+
+    template<typename A>
+    static inline auto
+    LQ_decomposition(A&& a)
+    {
+      return LQ_decomposition(make_dense_writable_matrix_from(std::forward<A>(a)));
+    }
+
+
+    template<typename A>
+    static inline auto
+    QR_decomposition(A&& a)
+    {
+      return QR_decomposition(make_dense_writable_matrix_from(std::forward<A>(a)));
+    }
+
   };
 
 
@@ -441,38 +449,6 @@ namespace OpenKalman::interface
 
 namespace OpenKalman::Eigen3
 {
-
-/**
- * Perform an LQ decomposition of matrix A=[L,0]Q, L is a lower-triangular matrix, and Q is orthogonal.
- * Returns L as a triangular matrix.
- */
-#ifdef __cpp_concepts
-  template<euclidean_expr A>
-#else
-  template<typename A, std::enable_if_t<euclidean_expr<A>, int> = 0>
-#endif
-  inline auto
-  LQ_decomposition(A&& a)
-  {
-    return LQ_decomposition(make_dense_writable_matrix_from(std::forward<A>(a)));
-  }
-
-
-  /**
-   * Perform a QR decomposition of matrix A=Q[U,0], U is a upper-triangular matrix, and Q is orthogonal.
-   * Returns U as an upper-triangular matrix.
-   */
-#ifdef __cpp_concepts
-  template<euclidean_expr Arg>
-#else
-  template<typename Arg, std::enable_if_t<euclidean_expr<Arg>, int> = 0>
-#endif
-  inline auto
-  QR_decomposition(Arg&& arg)
-  {
-    return QR_decomposition(make_dense_writable_matrix_from(std::forward<Arg>(arg)));
-  }
-
 
   /// Concatenate one or more EuclideanExpr objects vertically.
 #ifdef __cpp_concepts

@@ -717,11 +717,11 @@ TEST(eigen3, SelfAdjointMatrix_overloads)
   EXPECT_TRUE(is_near(solve(L22 {9., 3, 3, 10}, make_eigen_matrix<double, 2, 1>(15, 23)), make_eigen_matrix(1., 2)));
   EXPECT_TRUE(is_near(solve(U22 {9., 3, 3, 10}, make_eigen_matrix<double, 2, 1>(15, 23)), make_eigen_matrix(1., 2)));
   //
-  EXPECT_TRUE(is_near(reduce_columns(L22 {9., 3, 3, 10}), make_eigen_matrix(6., 6.5)));
-  EXPECT_TRUE(is_near(reduce_columns(U22 {9., 3, 3, 10}), make_eigen_matrix(6., 6.5)));
+  EXPECT_TRUE(is_near(average_reduce<1>(L22 {9., 3, 3, 10}), make_eigen_matrix(6., 6.5)));
+  EXPECT_TRUE(is_near(average_reduce<1>(U22 {9., 3, 3, 10}), make_eigen_matrix(6., 6.5)));
   //
-  EXPECT_TRUE(is_near(reduce_rows(L22 {9., 3, 3, 10}), make_eigen_matrix<double, 1, 2>(6., 6.5)));
-  EXPECT_TRUE(is_near(reduce_rows(U22 {9., 3, 3, 10}), make_eigen_matrix<double, 1, 2>(6., 6.5)));
+  EXPECT_TRUE(is_near(average_reduce<0>(L22 {9., 3, 3, 10}), make_eigen_matrix<double, 1, 2>(6., 6.5)));
+  EXPECT_TRUE(is_near(average_reduce<0>(U22 {9., 3, 3, 10}), make_eigen_matrix<double, 1, 2>(6., 6.5)));
   //
   auto sl1 = L22 {9., 3, 3, 10};
   rank_update(sl1, make_dense_writable_matrix_from<M22>(2, 0, 1, 2), 4);

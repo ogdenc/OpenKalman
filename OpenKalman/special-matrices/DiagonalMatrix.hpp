@@ -369,7 +369,9 @@ namespace OpenKalman::Eigen3
     (diagonal_matrix<Arg> or (not column_vector<Arg> and not dynamic_columns<Arg>)) and
     detail::diagonal_exists<Arg>::value, int> = 0>
 #endif
-  DiagonalMatrix(Arg&&) -> DiagonalMatrix<passable_t<decltype(diagonal_of(std::declval<Arg&&>()))>>;
+  DiagonalMatrix(Arg&&) -> DiagonalMatrix<std::conditional_t<std::is_lvalue_reference_v<Arg>,
+    decltype(diagonal_of(std::declval<Arg&&>())),
+    equivalent_self_contained_t<decltype(diagonal_of(std::declval<Arg&&>()))>>>;
 
 
   /**

@@ -237,13 +237,12 @@ namespace OpenKalman::interface
 #endif
   {
 
-    template<typename...dims, typename Operation, typename...Args>
+    template<typename...Ds, typename Operation, typename...Args>
     static constexpr decltype(auto)
-    n_ary_operation_with_broadcasting(const std::tuple<dims...>& tup, Operation&& op, Args&&...args)
+    n_ary_operation(const std::tuple<Ds...>& tup, Operation&& op, Args&&...args)
     {
       using P = pattern_matrix_of_t<T>;
-      return ArrayOperations<P>::template n_ary_operation_with_broadcasting<dims...>(
-        tup, std::forward<Operation>(op), std::forward<Args>(args)...);
+      return ArrayOperations<P>::template n_ary_operation(tup, std::forward<Operation>(op), std::forward<Args>(args)...);
     }
 
 
@@ -253,13 +252,6 @@ namespace OpenKalman::interface
     {
       using P = pattern_matrix_of_t<T>;
       return ArrayOperations<P>::template reduce<indices...>(std::forward<BinaryFunction>(b), std::forward<Arg>(arg));
-    }
-
-
-    template<ElementOrder order, typename BinaryFunction, typename Accum, typename Arg>
-    static constexpr auto fold(const BinaryFunction& b, Accum&& accum, Arg&& arg)
-    {
-      return OpenKalman::fold<order>(b, std::forward<Accum>(accum), make_dense_writable_matrix_from(std::forward<Arg>(arg)));
     }
 
   };
@@ -494,9 +486,9 @@ namespace OpenKalman::interface
     static constexpr auto determinant(Arg&& arg) noexcept
     {
       // The determinant function handles eigen_zero_expr<T> or eigen_constant_expr<T> cases.
-      if (diagonal_matrix<Arg>)
+      if constexpr (diagonal_matrix<Arg>)
       {
-        return fold<ElementOrder::column_major>(std::multiplies{}, 1, diagonal_of(std::forward<Arg>(arg)));
+        return reduce(std::multiplies<scalar_type_of_t<Arg>>{}, diagonal_of(std::forward<Arg>(arg)));
       }
       else
       {
@@ -510,9 +502,9 @@ namespace OpenKalman::interface
     static constexpr auto trace(Arg&& arg) noexcept
     {
       // The trace function handles eigen_zero_expr<T> or eigen_constant_expr<T> cases.
-      if constexpr (eigen_diagonal_expr<Arg>)
+      if constexpr (diagonal_matrix<Arg>)
       {
-        return fold<ElementOrder::column_major>(std::plus{}, 0, diagonal_of(std::forward<Arg>(arg)));
+        return reduce(std::plus<scalar_type_of_t<Arg>>{}, diagonal_of(std::forward<Arg>(arg)));
       }
       else
       {
@@ -558,11 +550,11 @@ namespace OpenKalman::interface
         }
         else if constexpr (t == TriangleType::upper)
         {
-          return QR_decomposition(std::sqrt(alpha) * adjoint(std::forward<U>(u)));
+          return OpenKalman::QR_decomposition(std::sqrt(alpha) * adjoint(std::forward<U>(u)));
         }
         else
         {
-          return LQ_decomposition(std::sqrt(alpha) * std::forward<U>(u));
+          return OpenKalman::LQ_decomposition(std::sqrt(alpha) * std::forward<U>(u));
         }
       }
       else if constexpr (diagonal_matrix<A>)
@@ -595,13 +587,28 @@ namespace OpenKalman::interface
     }
 
 
-  /// Solve the equation AX = B for X. A is a diagonal matrix.
-   template<bool must_be_unique, bool must_be_exact, typename A, typename B>
+    template<bool must_be_unique, bool must_be_exact, typename A, typename B>
     static constexpr decltype(auto)
     solve(A&& a, B&& b)
     {
       using N = decltype(nested_matrix(a));
       return LinearAlgebra<N>::template solve<must_be_unique, must_be_exact>(std::forward<A>(a), std::forward<B>(b));
+    }
+
+
+    template<typename A>
+    static constexpr decltype(auto)
+    LQ_decomposition(A&& a)
+    {
+      return LQ_decomposition(make_dense_writable_matrix_from(std::forward<A>(a)));
+    }
+
+
+    template<typename A>
+    static constexpr decltype(auto)
+    QR_decomposition(A&& a)
+    {
+      return QR_decomposition(make_dense_writable_matrix_from(std::forward<A>(a)));
     }
 
   };
@@ -612,175 +619,6 @@ namespace OpenKalman::interface
 
 namespace OpenKalman::Eigen3
 {
-
-  /**
-   * Perform an LQ decomposition of matrix A=[L,0]Q, L is a lower-triangular matrix, and Q is orthogonal.
-   * Returns L as a lower-triangular matrix.
-   */
-#ifdef __cpp_concepts
-  template<eigen_zero_expr A>
-#else
-  template<typename A, std::enable_if_t<eigen_zero_expr<A>, int> = 0>
-#endif
-  inline auto
-  LQ_decomposition(A&& a)
-  {
-    auto dim = get_dimensions_of<0>(a);
-    return make_zero_matrix_like<A>(dim, dim);
-  }
-
-
-/**
- * Perform an LQ decomposition of matrix A=[L,0]Q, L is a lower-triangular matrix, and Q is orthogonal.
- * Returns L as a lower-triangular matrix.
- */
-#ifdef __cpp_concepts
-  template<eigen_constant_expr A>
-#else
-  template<typename A, std::enable_if_t<eigen_constant_expr<A>, int> = 0>
-#endif
-  inline auto
-  LQ_decomposition(A&& a)
-  {
-    using Scalar = scalar_type_of_t<A>;
-    constexpr auto constant = constant_coefficient_v<A>;
-
-    const Scalar elem = constant * (
-      dynamic_columns<A> ?
-      std::sqrt((Scalar) get_dimensions_of<1>(a)) :
-      OpenKalman::internal::constexpr_sqrt((Scalar) column_dimension_of_v<A>));
-
-    if constexpr (dynamic_rows<A>)
-    {
-      auto dim = get_dimensions_of<0>(a);
-      auto col1 = elem * make_constant_matrix_like<A, 1>(dim, Dimensions<1>{});
-
-      auto ret = make_default_dense_writable_matrix_like<A>(dim, dim);
-
-      if (dim == 1)
-        ret = std::move(col1);
-      else
-        ret = concatenate_horizontal(std::move(col1), make_zero_matrix_like<A>(Dimensions{dim}, Dimensions{dim - 1}));
-      return ret;
-    }
-    else
-    {
-      constexpr auto dim = row_dimension_of_v<A>;
-      auto col1 = elem * make_constant_matrix_like<A>(dim, Dimensions<1>{});
-
-      if constexpr (dim != dynamic_size)
-        return concatenate_horizontal(col1, make_zero_matrix_like<A>(Dimensions<dim>{}, Dimensions<dim - 1>{}));
-      else
-        return col1;
-    }
-  }
-
-
-  /**
-   * \brief Perform an LQ decomposition of matrix A=[L,0]Q, where L is a lower-triangular matrix, and Q is orthogonal.
-   * \return L as a lower-triangular matrix.
-   */
-#ifdef __cpp_concepts
-  template<typename A> requires eigen_diagonal_expr<A> or eigen_self_adjoint_expr<A> or eigen_triangular_expr<A>
-#else
-  template<typename A, std::enable_if_t<
-    eigen_diagonal_expr<A> or eigen_self_adjoint_expr<A> or eigen_triangular_expr<A>, int> = 0>
-#endif
-  constexpr decltype(auto)
-  LQ_decomposition(A&& a)
-  {
-    if constexpr(lower_triangular_matrix<A>) return std::forward<A>(a);
-    else return LQ_decomposition(make_dense_writable_matrix_from(std::forward<A>(a)));
-  }
-
-
-  /**
-   * Perform a QR decomposition of matrix A=Q[U,0], U is a upper-triangular matrix, and Q is orthogonal.
-   * Returns U as an upper-triangular matrix.
-   */
-#ifdef __cpp_concepts
-  template<eigen_zero_expr A>
-#else
-  template<typename A, std::enable_if_t<eigen_zero_expr<A>, int> = 0>
-#endif
-  inline auto
-  QR_decomposition(A&& a)
-  {
-    auto dim = get_dimensions_of<1>(a);
-    return make_zero_matrix_like<A>(dim, dim);
-  }
-
-
-  /**
-   * Perform a QR decomposition of matrix A=Q[U,0], U is a upper-triangular matrix, and Q is orthogonal.
-   * Returns U as an upper-triangular matrix.
-   */
-#ifdef __cpp_concepts
-  template<eigen_constant_expr A>
-#else
-  template<typename A, std::enable_if_t<eigen_constant_expr<A>, int> = 0>
-#endif
-  inline auto
-  QR_decomposition(A&& a)
-  {
-    using Scalar = scalar_type_of_t<A>;
-    constexpr auto constant = constant_coefficient_v<A>;
-
-    const Scalar elem = constant * (
-      dynamic_rows<A> ?
-      std::sqrt((Scalar) get_dimensions_of<0>(a)) :
-      OpenKalman::internal::constexpr_sqrt((Scalar) row_dimension_of_v<A>));
-
-    if constexpr (dynamic_columns<A>)
-    {
-      auto dim = get_dimensions_of<1>(a);
-      auto row1 = elem * make_constant_matrix_like<A, 1>(Dimensions<1>{}, dim);
-
-      auto ret = make_default_dense_writable_matrix_like<A>(dim, dim);
-
-      if (dim == 1)
-      {
-        ret = std::move(row1);
-      }
-      else
-      {
-        ret = concatenate_vertical(std::move(row1), make_zero_matrix_like<A>(Dimensions{dim - 1}, Dimensions{dim}));
-      }
-      return ret;
-    }
-    else
-    {
-      constexpr auto dim = column_dimension_of_v<A>;
-      auto row1 = elem * make_constant_matrix_like<A, 1>(Dimensions<1>{}, dim);
-      if constexpr (dim > 1)
-      {
-        return concatenate_vertical(row1, make_zero_matrix_like<A>(Dimensions<dim - 1>{}, Dimensions<dim>{}));
-      }
-      else
-      {
-        return row1;
-      }
-    }
-  }
-
-
-  /**
-   * \brief Perform a QR decomposition of matrix A=Q[U,0], where U is an upper-triangular matrix, and Q is orthogonal.
-   * \return U as an upper-triangular matrix.
-   */
-#ifdef __cpp_concepts
-  template<typename A> requires eigen_diagonal_expr<A> or eigen_self_adjoint_expr<A> or eigen_triangular_expr<A>
-#else
-  template<typename A, std::enable_if_t<
-    eigen_diagonal_expr<A> or eigen_self_adjoint_expr<A> or eigen_triangular_expr<A>, int> = 0>
-#endif
-  constexpr decltype(auto)
-  QR_decomposition(A&& a)
-  {
-    if constexpr(upper_triangular_matrix<A>) return std::forward<A>(a);
-    else return QR_decomposition(make_dense_writable_matrix_from(std::forward<A>(a)));
-  }
-
 
   /// Concatenate diagonally.
 #ifdef __cpp_concepts

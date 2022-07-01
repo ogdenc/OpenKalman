@@ -47,8 +47,8 @@ namespace OpenKalman::test
     {
       if constexpr (std::is_arithmetic_v<Err>)
       {
-        if (arg1.matrix().isApprox(arg2.matrix(), err) or (arg1.isMuchSmallerThan(1., err) and
-          arg2.isMuchSmallerThan(1., err)))
+        if (arg1.matrix().isApprox(arg2.matrix(), err) or (arg1.matrix().isMuchSmallerThan(1., err) and
+          arg2.matrix().isMuchSmallerThan(1., err)))
         {
           return ::testing::AssertionSuccess();
         }

@@ -42,6 +42,21 @@ namespace OpenKalman
     static constexpr std::size_t size() { return N; }
 
 
+    constexpr Dimensions() = default;
+
+
+    /// Constructor, taking a fixed-size index descriptor.
+#ifdef __cpp_concepts
+    template<fixed_index_descriptor D> requires euclidean_index_descriptor<D> and
+      (not std::same_as<std::decay_t<D>, Dimensions>) and (dimension_size_of_v<D> == N)
+#else
+    template<typename D, std::enable_if_t<fixed_index_descriptor<D> and euclidean_index_descriptor<D> and
+      not std::is_same_v<std::decay_t<D>, Dimensions> and dimension_size_of<D>::value == N, int> = 0>
+#endif
+    explicit constexpr Dimensions(D&& d)
+    {}
+
+
     /**
      * \brief Maps an element to coordinates in Euclidean space.
      * \tparam Scalar The scalar type (e.g., double).
@@ -140,8 +155,15 @@ namespace OpenKalman
     Dimensions() = delete;
 
 
-    /// Constructor, taking a dimension known at runtime.
-    explicit constexpr Dimensions(const std::size_t size) : runtime_size {size}
+    /// Constructor, taking a dynamic index descriptor.
+#ifdef __cpp_concepts
+    template<euclidean_index_descriptor D> requires (not std::same_as<std::decay_t<D>, Dimensions>)
+#else
+    template<typename D, std::enable_if_t<euclidean_index_descriptor<D> and
+      not std::is_same_v<std::decay_t<D>, Dimensions>, int> = 0>
+#endif
+    explicit constexpr Dimensions(D&& d)
+      : runtime_size {interface::IndexDescriptorSize<std::decay_t<D>>::get(std::forward<D>(d))}
     {}
 
 
@@ -152,11 +174,19 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<std::convertible_to<const std::size_t&> T>
+  template<fixed_index_descriptor D> requires euclidean_index_descriptor<D>
 #else
-  template<typename T, std::enable_if_t<std::is_convertible<T, const std::size_t&>::value, int> = 0>
+  template<typename D, std::enable_if_t<fixed_index_descriptor<D> and euclidean_index_descriptor<D>, int> = 0>
 #endif
-  Dimensions(T&&) -> Dimensions<dynamic_size>;
+  explicit Dimensions(D&&) -> Dimensions<dimension_size_of_v<D>>;
+
+
+#ifdef __cpp_concepts
+  template<euclidean_index_descriptor D> requires (not fixed_index_descriptor<D>)
+#else
+  template<typename D, std::enable_if_t<euclidean_index_descriptor<D> and (not fixed_index_descriptor<D>), int> = 0>
+#endif
+  explicit Dimensions(D&&) -> Dimensions<dynamic_size>;
 
 
   using Axis = Dimensions<1>;

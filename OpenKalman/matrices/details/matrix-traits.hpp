@@ -17,19 +17,20 @@ namespace OpenKalman
   namespace interface
   {
 
-    // -------------------- //
-    //  StorageArrayTraits  //
-    // -------------------- //
+    // ----------------------- //
+    //  IndexibleObjectTraits  //
+    // ----------------------- //
 
 #ifdef __cpp_concepts
     template<typed_adapter T>
-    struct StorageArrayTraits<T>
+    struct IndexibleObjectTraits<T>
 #else
     template<typename T>
-    struct StorageArrayTraits<T, std::enable_if_t<typed_adapter<T>>>
+    struct IndexibleObjectTraits<T, std::enable_if_t<typed_adapter<T>>>
 #endif
     {
       static constexpr std::size_t max_indices = 2;
+      using scalar_type = scalar_type_of_t<pattern_matrix_of_t<T>>;
     };
 
 
@@ -157,47 +158,30 @@ namespace OpenKalman
     };
 
 
-    // -------------- //
-    //  ScalarTypeOf  //
-    // -------------- //
-
-#ifdef __cpp_concepts
-    template<typed_adapter T>
-    struct ScalarTypeOf<T>
-#else
-    template<typename T>
-    struct ScalarTypeOf<T, std::enable_if_t<typed_adapter<T>>>
-#endif
-    {
-      using type = scalar_type_of_t<pattern_matrix_of_t<T>>;
-    };
-
-
     // -------------------------------- //
     //   EquivalentDenseWritableMatrix  //
     // -------------------------------- //
 
 #ifdef __cpp_concepts
-    template<covariance T, std::size_t rows, std::size_t columns, typename Scalar>
-    struct EquivalentDenseWritableMatrix<T, rows, columns, Scalar>
+    template<covariance T, typename Scalar>
+    struct EquivalentDenseWritableMatrix<T, Scalar>
 #else
-    template<typename T, std::size_t rows, std::size_t columns, typename Scalar>
-    struct EquivalentDenseWritableMatrix<T, rows, columns, Scalar, std::enable_if_t<covariance<T>>>
+    template<typename T, typename Scalar>
+    struct EquivalentDenseWritableMatrix<T, Scalar, std::enable_if_t<covariance<T>>>
 #endif
     {
 
       template<typename...D>
       static auto make_default(D&&...d)
       {
-        using Trait = EquivalentDenseWritableMatrix<nested_matrix_of_t<T>, rows, columns, Scalar>;
-        return Trait::make_default(std::forward<D>(d)...);
+        return EquivalentDenseWritableMatrix<nested_matrix_of_t<T>, Scalar>::make_default(std::forward<D>(d)...);
       }
 
 
       template<typename Arg>
       static decltype(auto) convert(Arg&& arg)
       {
-        using Trait = EquivalentDenseWritableMatrix<nested_matrix_of_t<T>, rows, columns, Scalar>;
+        using Trait = EquivalentDenseWritableMatrix<nested_matrix_of_t<T>, Scalar>;
         return Trait::convert(OpenKalman::internal::to_covariance_nestable(std::forward<Arg>(arg)));
       }
 
@@ -213,18 +197,18 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<typed_matrix T, std::size_t rows, std::size_t columns, typename Scalar>
-    struct EquivalentDenseWritableMatrix<T, rows, columns, Scalar>
+    template<typed_matrix T, typename Scalar>
+    struct EquivalentDenseWritableMatrix<T, Scalar>
 #else
-    template<typename T, std::size_t rows, std::size_t columns, typename Scalar>
-    struct EquivalentDenseWritableMatrix<T, rows, columns, Scalar, std::enable_if_t<typed_matrix<T>>>
+    template<typename T, typename Scalar>
+    struct EquivalentDenseWritableMatrix<T, Scalar, std::enable_if_t<typed_matrix<T>>>
 #endif
     {
 
       template<typename...D>
       static auto make_default(D&&...d)
       {
-        using Trait = EquivalentDenseWritableMatrix<pattern_matrix_of_t<T>, rows, columns, Scalar>;
+        using Trait = EquivalentDenseWritableMatrix<pattern_matrix_of_t<T>, Scalar>;
         return Trait::make_default(std::forward<D>(d)...);
       }
 
@@ -232,7 +216,7 @@ namespace OpenKalman
       template<typename Arg>
       static decltype(auto) convert(Arg&& arg)
       {
-        using Trait = EquivalentDenseWritableMatrix<nested_matrix_of_t<T>, rows, columns, Scalar>;
+        using Trait = EquivalentDenseWritableMatrix<nested_matrix_of_t<T>, Scalar>;
         return Trait::convert(nested_matrix(std::forward<Arg>(arg)));
       }
 
@@ -382,7 +366,7 @@ namespace OpenKalman
     struct SingleConstantMatrixTraits<Matrix<RowCoeffs, ColCoeffs, NestedMatrix>, Scalar>
     {
       template<typename...D>
-      static auto make_zero_matrix(D&&...d)
+      static constexpr auto make_zero_matrix(D&&...d)
       {
         auto n = make_zero_matrix_like<NestedMatrix, Scalar>(std::forward<D>(d)...);
         return Matrix<RowCoeffs, ColCoeffs, std::decay_t<decltype(n)>>(std::move(n)) //< \todo use make_matrix
@@ -394,7 +378,7 @@ namespace OpenKalman
     struct SingleConstantMatrixTraits<Mean<Coeffs, NestedMatrix>, Scalar>
     {
       template<typename...D>
-      static auto make_zero_matrix(D&&...d)
+      static constexpr auto make_zero_matrix(D&&...d)
       {
         auto n = wrap_angles<Coeffs>(make_zero_matrix_like<NestedMatrix, Scalar>(std::forward<D>(d)...));
         return Mean<Coeffs, std::decay_t<decltype(n)>>(std::move(n)); //< \todo use make_mean
@@ -406,7 +390,7 @@ namespace OpenKalman
     struct SingleConstantMatrixTraits<EuclideanMean<Coeffs, NestedMatrix>, Scalar>
     {
       template<typename...D>
-      static auto make_zero_matrix(D&&...d)
+      static constexpr auto make_zero_matrix(D&&...d)
       {
         auto n = make_zero_matrix_like<NestedMatrix, Scalar>(std::forward<D>(d)...);
         return EuclideanMean<Coeffs, std::decay_t<decltype(n)>>(std::move(n)); //< \todo use make_mean
@@ -418,7 +402,7 @@ namespace OpenKalman
     struct SingleConstantMatrixTraits<Covariance<Coeffs, NestedMatrix>, Scalar>
     {
       template<typename...D>
-      static auto make_zero_matrix(D&&...d)
+      static constexpr auto make_zero_matrix(D&&...d)
       {
         auto n = make_zero_matrix_like<NestedMatrix, Scalar>(std::forward<D>(d)...);
         return Covariance<Coeffs, std::decay_t<decltype(n)>>(std::move(n)); //< \todo use make_covariance
@@ -430,7 +414,7 @@ namespace OpenKalman
     struct SingleConstantMatrixTraits<SquareRootCovariance<Coeffs, NestedMatrix>, Scalar>
     {
       template<typename...D>
-      static auto make_zero_matrix(D&&...d)
+      static constexpr auto make_zero_matrix(D&&...d)
       {
         auto n = make_zero_matrix_like<NestedMatrix, Scalar>(std::forward<D>(d)...);
         return SquareRootCovariance<Coeffs, std::decay_t<decltype(n)>>(std::move(n)) //< \todo use make_square_root_covariance
@@ -468,7 +452,7 @@ namespace OpenKalman
     struct SingleConstantDiagonalMatrixTraits<Matrix<RowCoeffs, ColCoeffs, NestedMatrix>, Scalar>
     {
       template<typename D>
-      static auto make_identity_matrix(D&& d)
+      static constexpr auto make_identity_matrix(D&& d)
       {
         auto n = make_identity_matrix_like<NestedMatrix, Scalar>(std::forward<D>(d));
         return Matrix<RowCoeffs, ColCoeffs, std::decay_t<decltype(n)>>(std::move(n)) //< \ todo use make_matrix
@@ -480,7 +464,7 @@ namespace OpenKalman
     struct SingleConstantDiagonalMatrixTraits<Mean<Coeffs, NestedMatrix>, Scalar>
     {
       template<typename D>
-      static auto make_identity_matrix(D&& d)
+      static constexpr auto make_identity_matrix(D&& d)
       {
         auto n = make_identity_matrix_like<NestedMatrix, Scalar>(std::forward<D>(d));
         return Matrix<Coeffs, Coeffs, std::decay_t<decltype(n)>>(std::move(n)); //< \todo use make_matrix
@@ -492,7 +476,7 @@ namespace OpenKalman
     struct SingleConstantDiagonalMatrixTraits<EuclideanMean<Coeffs, NestedMatrix>, Scalar>
     {
       template<typename D>
-      static auto make_identity_matrix(D&& d)
+      static constexpr auto make_identity_matrix(D&& d)
       {
         auto n = make_identity_matrix_like<NestedMatrix, Scalar>(std::forward<D>(d));
         return Matrix<Coeffs, Coeffs, std::decay_t<decltype(n)>>(std::move(n)); //< \todo use make_matrix
@@ -504,7 +488,7 @@ namespace OpenKalman
     struct SingleConstantDiagonalMatrixTraits<Covariance<Coeffs, NestedMatrix>, Scalar>
     {
       template<typename D>
-      static auto make_identity_matrix(D&& d)
+      static constexpr auto make_identity_matrix(D&& d)
       {
         auto n = make_identity_matrix_like<NestedMatrix, Scalar>(std::forward<D>(d));
         return Covariance<Coeffs, std::decay_t<decltype(n)>>(std::move(n)); //< \todo use make_covariance
@@ -516,7 +500,7 @@ namespace OpenKalman
     struct SingleConstantDiagonalMatrixTraits<SquareRootCovariance<Coeffs, NestedMatrix>, Scalar>
     {
       template<typename D>
-      static auto make_identity_matrix(D&& d)
+      static constexpr auto make_identity_matrix(D&& d)
       {
         auto n = make_identity_matrix_like<NestedMatrix, Scalar>(std::forward<D>(d));
         return SquareRootCovariance<Coeffs, std::decay_t<decltype(n)>>(std::move(n)); //< \todo use make_square_root_covariance

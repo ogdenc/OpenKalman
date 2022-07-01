@@ -164,52 +164,23 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
     template<covariance T>
-    struct ElementAccess<T>
+    struct Conversions<T>
 #else
     template<typename T>
-    struct ElementAccess<T, std::enable_if_t<covariance<T>>>
-#endif
-    {
-    };
-
-
-#ifdef __cpp_concepts
-    template<covariance T>
-    struct ArrayOperations<T>
-#else
-    template<typename T>
-    struct ArrayOperations<T, std::enable_if_t<covariance<T>>>
+    struct Conversions<T, std::enable_if_t<covariance<T>>>
 #endif
     {
 
-      template<ElementOrder order, typename BinaryFunction, typename Accum, typename Arg>
-      static constexpr auto fold(const BinaryFunction& b, Accum&& accum, Arg&& arg)
+      template<typename Arg>
+      static auto
+      diagonal_of(Arg&& arg) noexcept
       {
-        return OpenKalman::fold<order>(b, std::forward<Accum>(accum), to_covariance_nestable(std::forward<Arg>(arg)));
+        using C = row_coefficient_types_of_t<Arg>;
+        auto b = make_self_contained<Arg>(diagonal_of(oin::to_covariance_nestable(std::forward<Arg>(arg))));
+        return Matrix<C, Axis, decltype(b)>(std::move(b));
       }
 
     };
-
-
-#ifdef __cpp_concepts
-  template<covariance T>
-  struct Conversions<T>
-#else
-  template<typename T>
-  struct Conversions<T, std::enable_if_t<covariance<T>>>
-#endif
-  {
-
-    template<typename Arg>
-    static auto
-    diagonal_of(Arg&& arg) noexcept
-    {
-      using C = row_coefficient_types_of_t<Arg>;
-      auto b = make_self_contained<Arg>(diagonal_of(oin::to_covariance_nestable(std::forward<Arg>(arg))));
-      return Matrix<C, Axis, decltype(b)>(std::move(b));
-    }
-
-  };
 
 
 #ifdef __cpp_concepts
@@ -300,54 +271,25 @@ namespace OpenKalman
         return MatrixTraits<B>::template make<row_coefficient_types_of_t<A>>(std::move(x));
       }
 
+
+      template<typename Arg>
+      inline auto
+      LQ_decomposition(Arg&& arg)
+      {
+        return LQ_decomposition(to_covariance_nestable(std::forward<Arg>(arg)));
+      }
+
+
+      template<typename Arg>
+      inline auto
+      QR_decomposition(Arg&& arg)
+      {
+        return QR_decomposition(to_covariance_nestable(std::forward<Arg>(arg)));
+      }
+
     };
 
   } // namespace interface
-
-
-#ifdef __cpp_concepts
-  template<covariance Arg>
-#else
-  template<typename Arg, std::enable_if_t<covariance<Arg>, int> = 0>
-#endif
-  constexpr auto
-  reduce_columns(Arg&& arg)
-  {
-    using RC = row_coefficient_types_of_t<Arg>;
-    return make_matrix<RC, Axis>(reduce_columns(to_covariance_nestable(std::forward<Arg>(arg))));
-  }
-
-
-  /// Perform an LQ decomposition of matrix A=[L,0]Q, where L is a lower-triangular matrix, and Q is orthogonal.
-  /// Returns L as a lower-triangular matrix.
-#ifdef __cpp_concepts
-  template<covariance Arg>
-#else
-  template<typename Arg, std::enable_if_t<covariance<Arg>, int> = 0>
-#endif
-  inline auto
-  LQ_decomposition(Arg&& arg)
-  {
-    using C = row_coefficient_types_of_t<Arg>;
-    auto tm = LQ_decomposition(to_covariance_nestable(std::forward<Arg>(arg)));
-    return make_square_root_covariance<C>(std::move(tm));
-  }
-
-
-  /// Perform a QR decomposition of matrix A=Q[U,0], where U is an upper-triangular matrix, and Q is orthogonal.
-  /// Returns L as an upper-triangular matrix.
-#ifdef __cpp_concepts
-  template<covariance Arg>
-#else
-  template<typename Arg, std::enable_if_t<covariance<Arg>, int> = 0>
-#endif
-  inline auto
-  QR_decomposition(Arg&& arg)
-  {
-    using C = row_coefficient_types_of_t<Arg>;
-    auto tm = QR_decomposition(to_covariance_nestable(std::forward<Arg>(arg)));
-    return make_square_root_covariance<C>(std::move(tm));
-  }
 
 
   /// Concatenate one or more Covariance or SquareRootCovariance objects diagonally.

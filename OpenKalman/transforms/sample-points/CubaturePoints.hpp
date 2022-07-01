@@ -145,7 +145,7 @@ namespace OpenKalman
     static auto
     weighted_means(YMeans&& y_means)
     {
-      return make_self_contained(reduce_columns(std::forward<YMeans>(y_means)));
+      return make_self_contained(average_reduce<1>(std::forward<YMeans>(y_means)));
     };
 
 

@@ -486,15 +486,15 @@ TEST(eigen3, ConstantMatrix_functions)
 
   EXPECT_TRUE(is_near(solve(M11::Identity(), make_eigen_matrix<double, 1, 1>(8)), make_eigen_matrix<double, 1, 1>(4)));
 
-  auto colzc34 = reduce_columns(c500_34);
-  EXPECT_TRUE(is_near(reduce_columns(ConstantMatrix<eigen_matrix_t<double, 2, 3>, 3> ()), (eigen_matrix_t<double, 2, 1>::Constant(3))));
+  auto colzc34 = average_reduce<1>(c500_34);
+  EXPECT_TRUE(is_near(average_reduce<1>(ConstantMatrix<eigen_matrix_t<double, 2, 3>, 3> ()), (eigen_matrix_t<double, 2, 1>::Constant(3))));
   EXPECT_EQ(colzc34, (ConstantMatrix<eigen_matrix_t<double, 3, 1>, 5> {}));
   EXPECT_EQ(get_dimensions_of<0>(colzc34), 3);
   EXPECT_EQ(get_dimensions_of<1>(colzc34), 1);
   static_assert(eigen_constant_expr<decltype(colzc34)>);
 
-  auto rowzc34 = reduce_rows(c500_34);
-  EXPECT_TRUE(is_near(reduce_rows(ConstantMatrix<eigen_matrix_t<double, 2, 3>, 3> ()), (eigen_matrix_t<double, 1, 3>::Constant(3))));
+  auto rowzc34 = average_reduce<0>(c500_34);
+  EXPECT_TRUE(is_near(average_reduce<0>(ConstantMatrix<eigen_matrix_t<double, 2, 3>, 3> ()), (eigen_matrix_t<double, 1, 3>::Constant(3))));
   EXPECT_EQ(rowzc34, (ConstantMatrix<eigen_matrix_t<double, 1, 4>, 5> {}));
   EXPECT_EQ(get_dimensions_of<1>(rowzc34), 4);
   EXPECT_EQ(get_dimensions_of<0>(rowzc34), 1);

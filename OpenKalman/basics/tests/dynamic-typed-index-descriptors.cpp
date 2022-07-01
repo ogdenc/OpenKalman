@@ -53,8 +53,10 @@ TEST(index_descriptors, dynamic_Dimensions)
   static_assert(not atomic_fixed_index_descriptor<D>);
   static_assert(dimension_size_of_v<D> == dynamic_size);
   static_assert(euclidean_dimension_size_of_v<D> == dynamic_size);
-  EXPECT_EQ(get_dimension_size_of(Dimensions{3}), 3);
-  EXPECT_EQ(get_euclidean_dimension_size_of(Dimensions{3}), 3);
+  static_assert(get_dimension_size_of(Dimensions {3}) == 3);
+  static_assert(get_euclidean_dimension_size_of(Dimensions{3}) == 3);
+  static_assert(get_dimension_size_of(Dimensions<dynamic_size> {Axis {}}) == 1);
+  static_assert(get_dimension_size_of(Dimensions<dynamic_size> {Dimensions<3> {}}) == 3);
 }
 
 

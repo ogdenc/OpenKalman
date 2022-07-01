@@ -421,11 +421,10 @@ namespace OpenKalman::Eigen3
   // ----------------------------- //
 
 #ifdef __cpp_concepts
-  template<TriangleType t = TriangleType::lower, typename M> requires eigen_zero_expr<M> or eigen_constant_expr<M>
+  template<TriangleType t = TriangleType::lower, typename M> requires (not triangular_matrix<M>)
 #else
   template<
-    TriangleType t = TriangleType::lower, typename M, std::enable_if_t<
-      eigen_zero_expr<M> or eigen_constant_expr<M>, int> = 0>
+    TriangleType t = TriangleType::lower, typename M, std::enable_if_t<not triangular_matrix<M>, int> = 0>
 #endif
   auto make_EigenTriangularMatrix(M&& m)
   {
@@ -434,25 +433,31 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-  template<TriangleType t, eigen_triangular_expr M> requires (t == triangle_type_of_v<M>)
+  template<TriangleType t, triangular_matrix M> requires (t == triangle_type_of_v<M> or diagonal_matrix<M>)
 #else
-  template<TriangleType t, typename M, std::enable_if_t<
-    eigen_triangular_expr<M> and (t == triangle_type_of<M>::value), int> = 0>
+  template<TriangleType t, typename M, std::enable_if_t<triangular_matrix<M> and
+    (t == triangle_type_of<M>::value or diagonal_matrix<M>), int> = 0>
 #endif
   auto make_EigenTriangularMatrix(M&& m)
   {
-    return make_EigenTriangularMatrix<t>(nested_matrix(std::forward<M>(m)));
+    if constexpr (eigen_triangular_expr<M>)
+      return make_EigenTriangularMatrix<t>(nested_matrix(std::forward<M>(m)));
+    else
+      return make_EigenTriangularMatrix<t>(std::forward<M>(m));
   }
 
 
 #ifdef __cpp_concepts
-  template<eigen_triangular_expr M>
+  template<triangular_matrix M>
 #else
-  template<typename M, std::enable_if_t<eigen_triangular_expr<M>, int> = 0>
+  template<typename M, std::enable_if_t<triangular_matrix<M>, int> = 0>
 #endif
   auto make_EigenTriangularMatrix(M&& m)
   {
-    return make_EigenTriangularMatrix<triangle_type_of_v<M>>(nested_matrix(std::forward<M>(m)));
+    if constexpr (eigen_triangular_expr<M>)
+      return make_EigenTriangularMatrix<triangle_type_of_v<M>>(nested_matrix(std::forward<M>(m)));
+    else
+      return make_EigenTriangularMatrix<triangle_type_of_v<M>>(std::forward<M>(m));
   }
 
 } // namespace OpenKalman::Eigen3

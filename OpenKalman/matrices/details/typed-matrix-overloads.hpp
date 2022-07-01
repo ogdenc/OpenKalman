@@ -142,35 +142,6 @@ namespace OpenKalman
   };
 
 
-  #ifdef __cpp_concepts
-    template<typed_matrix T>
-    struct ElementAccess<T>
-  #else
-    template<typename T>
-    struct ElementAccess<T, std::enable_if_t<typed_matrix<T>>>
-  #endif
-    {
-    };
-
-
-#ifdef __cpp_concepts
-    template<typed_matrix T>
-    struct ArrayOperations<T>
-#else
-    template<typename T>
-    struct ArrayOperations<T, std::enable_if_t<typed_matrix<T>>>
-#endif
-    {
-
-      template<ElementOrder order, typename BinaryFunction, typename Accum, typename Arg>
-      static constexpr auto fold(const BinaryFunction& b, Accum&& accum, Arg&& arg)
-      {
-        return OpenKalman::fold<order>(b, std::forward<Accum>(accum), nested_matrix(std::forward<Arg>(arg)));
-      }
-
-    };
-
-
 #ifdef __cpp_concepts
   template<typed_matrix T>
   struct Conversions<T>
@@ -356,75 +327,23 @@ namespace OpenKalman
 
     };
 
+
+    template<typename A>
+    static inline auto
+    LQ_decomposition(A&& a)
+    {
+      return LQ_decomposition(nested_matrix(std::forward<A>(a)));
+    }
+
+
+    template<typename A>
+    static inline auto
+    QR_decomposition(A&& a)
+    {
+      return QR_decomposition(nested_matrix(std::forward<A>(a)));
+    }
+
   } // namespace interface
-
-
-  /// Returns the mean of the column vectors after they are transformed into Euclidean space.
-#ifdef __cpp_concepts
-  template<typed_matrix Arg> requires (column_dimension_of_v<Arg> == 1) or has_untyped_index<Arg, 1>
-#else
-  template<typename Arg, std::enable_if_t<typed_matrix<Arg> and
-    ((column_dimension_of<Arg>::value == 1) or has_untyped_index<Arg, 1>), int> = 0>
-#endif
-  constexpr decltype(auto)
-  reduce_columns(Arg&& arg) noexcept
-  {
-    /// \todo add an option where all the column coefficients are the same, but not Axis.
-    using C = row_coefficient_types_of_t<Arg>;
-
-    if constexpr(column_dimension_of_v<Arg> == 1)
-    {
-      return std::forward<Arg>(arg);
-    }
-    else if constexpr(euclidean_transformed<Arg>)
-    {
-      auto b = reduce_columns(nested_matrix(std::forward<Arg>(arg)));
-      return EuclideanMean<C, decltype(b)> {std::move(b)};
-    }
-    else if constexpr(mean<Arg>)
-    {
-      auto b = from_euclidean<C>(reduce_columns(nested_matrix(to_euclidean(std::forward<Arg>(arg)))));
-      return Mean<C, decltype(b)> {std::move(b)};
-    }
-    else
-    {
-      auto b = reduce_columns(nested_matrix(std::forward<Arg>(arg)));
-      return Matrix<C, Axis, decltype(b)> {std::move(b)};
-    }
-  }
-
-
-  /// Perform an LQ decomposition of matrix A=[L|0]Q, where L is a lower-triangular matrix, and Q is orthogonal.
-  /// Returns L as a Cholesky lower-triangular Covariance. All column coefficients must be axes, and A cannot be
-  /// Euclidean-transformed.
-#ifdef __cpp_concepts
-  template<typed_matrix A> requires (not euclidean_transformed<A>)
-#else
-  template<typename A, std::enable_if_t<typed_matrix<A> and (not euclidean_transformed<A>), int> = 0>
-#endif
-  inline auto
-  LQ_decomposition(A&& a)
-  {
-    using C = row_coefficient_types_of_t<A>;
-    auto tm = LQ_decomposition(nested_matrix(std::forward<A>(a)));
-    return SquareRootCovariance<C, decltype(tm)>(std::move(tm));
-  }
-
-
-  /// Perform a QR decomposition of matrix A=Q[U|0], where U is an upper-triangular matrix, and Q is orthogonal.
-  /// Returns U as a Cholesky upper-triangular Covariance. All row coefficients must be axes.
-#ifdef __cpp_concepts
-  template<typed_matrix A>
-#else
-  template<typename A, std::enable_if_t<typed_matrix<A>, int> = 0>
-#endif
-  inline auto
-  QR_decomposition(A&& a)
-  {
-    using C = column_coefficient_types_of_t<A>;
-    auto tm = QR_decomposition(nested_matrix(std::forward<A>(a)));
-    return SquareRootCovariance<C, decltype(tm)>(std::move(tm));
-  }
 
 
   /// Concatenate one or more typed matrices objects vertically.

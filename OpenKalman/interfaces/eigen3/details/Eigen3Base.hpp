@@ -70,7 +70,7 @@ namespace OpenKalman::Eigen3::internal
      * \return A matrix, of the same size and shape, containing only zero coefficients.
      */
     [[deprecated("Use make_zero_matrix_like() instead.")]]
-    static auto Zero()
+    static constexpr auto Zero()
     {
       static_assert(not has_dynamic_dimensions<Derived>);
       return make_zero_matrix_like<Derived>();
@@ -83,7 +83,7 @@ namespace OpenKalman::Eigen3::internal
      * \return A matrix, of the same size and shape, containing only zero coefficients.
      */
     [[deprecated("Use make_zero_matrix_like() instead.")]]
-    static auto Zero(const Eigen::Index r, const Eigen::Index c)
+    static constexpr auto Zero(const Eigen::Index r, const Eigen::Index c)
     {
       return make_zero_matrix_like<Derived>(Dimensions{static_cast<std::size_t>(r)}, Dimensions{static_cast<std::size_t>(c)});
     }
@@ -95,7 +95,7 @@ namespace OpenKalman::Eigen3::internal
      * \return An identity matrix with the same or identified number of rows and columns.
      */
     [[deprecated("Use make_identity_matrix_like() instead.")]]
-    static auto Identity()
+    static constexpr auto Identity()
     {
       if constexpr(square_matrix<Derived>)
         return make_identity_matrix_like<Derived>();
@@ -110,7 +110,7 @@ namespace OpenKalman::Eigen3::internal
      * \return An identity matrix with the same or identified number of rows and columns.
      */
     [[deprecated("Use make_identity_matrix_like() instead.")]]
-    static decltype(auto) Identity(const Eigen::Index r, const Eigen::Index c)
+    static constexpr decltype(auto) Identity(const Eigen::Index r, const Eigen::Index c)
     {
       if constexpr (not dynamic_dimension<Derived, 0>) if (r != index_dimension_of_v<Derived, 0>)
         throw std::invalid_argument {"In T::Identity(r, c), r (==" + std::to_string(r) +

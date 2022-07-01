@@ -321,8 +321,8 @@ TEST(matrices, Mean_overloads)
 
   EXPECT_TRUE(is_near(solve(Mean<Dimensions<2>, M22> {9., 3, 3, 10}, Mean<Dimensions<2>, M21> {15, 23}), Mean<Dimensions<2>, M21> {1, 2}));
 
-  EXPECT_TRUE(is_near(reduce_columns(Mat23 {1, 2, 3, pi/3, pi/4, pi/6}), Mat21 {2, pi/4}));
-  EXPECT_TRUE(is_near(reduce_columns(Mat23 {1, 2, 3, 4, 5, 6}), Mat21 {2, w_5}));
+  EXPECT_TRUE(is_near(average_reduce<1>(Mat23 {1, 2, 3, pi/3, pi/4, pi/6}), Mat21 {2, pi/4}));
+  EXPECT_TRUE(is_near(average_reduce<1>(Mat23 {1, 2, 3, 4, 5, 6}), Mat21 {2, w_5}));
 
   EXPECT_TRUE(is_near(square(LQ_decomposition(Mat23 {1, 2, 3, 4, 5, 6})),
     TMat22 {14, w_4 + 2*w_5 + 3*w_6, w_4 + 2*w_5 + 3*w_6, w_4*w_4 + w_5*w_5 + w_6*w_6}));

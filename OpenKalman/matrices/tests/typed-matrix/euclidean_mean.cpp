@@ -296,7 +296,7 @@ TEST(matrices, EuclideanMean_overloads)
 
   EXPECT_TRUE(is_near(solve(EuclideanMean<Dimensions<2>, M22> {9., 3, 3, 10}, EuclideanMean<Dimensions<2>, M21> {15, 23}), EuclideanMean<Dimensions<2>, M21> {1, 2}));
 
-  EXPECT_TRUE(is_near(reduce_columns(Mat23 {1, 2, 3, 4, 5, 6, 7, 8, 9}), Mat21 {2, 5, 8}));
+  EXPECT_TRUE(is_near(average_reduce<1>(Mat23 {1, 2, 3, 4, 5, 6, 7, 8, 9}), Mat21 {2, 5, 8}));
 
   EXPECT_TRUE(is_near(square(LQ_decomposition(EuclideanMean<Dimensions<2>, M23> {1, 2, 3, 4, 5, 6})), TM22 {14., 32, 32, 77}));
 

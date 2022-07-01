@@ -898,10 +898,10 @@ TEST(covariance_tests, SquareRootCovariance_overloads)
   EXPECT_TRUE(is_near(solve(SqCovT2l {3, 0, 1, 3}, Mat2col {3, 7}), Mat2col {1, 2}));
   EXPECT_TRUE(is_near(solve(SqCovT2u {3, 1, 0, 3}, Mat2col {5, 6}), Mat2col {1, 2}));
 
-  EXPECT_TRUE(is_near(reduce_columns(SqCovSA2l {3, 0, 1, 3}), Mat2col {1.5, 2}));
-  EXPECT_TRUE(is_near(reduce_columns(SqCovSA2u {3, 1, 0, 3}), Mat2col {2, 1.5}));
-  EXPECT_TRUE(is_near(reduce_columns(SqCovT2l {3, 0, 1, 3}), Mat2col {1.5, 2}));
-  EXPECT_TRUE(is_near(reduce_columns(SqCovT2u {3, 1, 0, 3}), Mat2col {2, 1.5}));
+  EXPECT_TRUE(is_near(average_reduce<1>(SqCovSA2l {3, 0, 1, 3}), Mat2col {1.5, 2}));
+  EXPECT_TRUE(is_near(average_reduce<1>(SqCovSA2u {3, 1, 0, 3}), Mat2col {2, 1.5}));
+  EXPECT_TRUE(is_near(average_reduce<1>(SqCovT2l {3, 0, 1, 3}), Mat2col {1.5, 2}));
+  EXPECT_TRUE(is_near(average_reduce<1>(SqCovT2u {3, 1, 0, 3}), Mat2col {2, 1.5}));
 
   EXPECT_TRUE(is_near(square(LQ_decomposition(SqCovSA2l {3, 0, 1, 3})), Mat2 {9, 3, 3, 10}));
   EXPECT_TRUE(is_near(square(LQ_decomposition(SqCovSA2u {3, 1, 0, 3})), Mat2 {10, 3, 3, 9}));

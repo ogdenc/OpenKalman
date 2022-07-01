@@ -548,8 +548,8 @@ TEST(eigen3, Diagonal_overloads)
   //
   EXPECT_TRUE(is_near(solve(d3, make_eigen_matrix<double, 3, 1>(4., 10, 18)),
     make_eigen_matrix(4., 5, 6)));
-  EXPECT_TRUE(is_near(reduce_columns(d3), make_eigen_matrix(1., 2, 3)));
-  EXPECT_TRUE(is_near(reduce_rows(d3), make_eigen_matrix(1., 2, 3)));
+  EXPECT_TRUE(is_near(average_reduce<1>(d3), make_eigen_matrix(1., 2, 3)));
+  EXPECT_TRUE(is_near(average_reduce<0>(d3), make_eigen_matrix(1., 2, 3)));
   EXPECT_TRUE(is_near(LQ_decomposition(d3), d3));
   EXPECT_TRUE(is_near(QR_decomposition(d3), d3));
   EXPECT_TRUE(is_near(LQ_decomposition(DiagonalMatrix {cdouble(1,2), cdouble(2,3), 3}), DiagonalMatrix {cdouble(1,2), cdouble(2,3), 3}));

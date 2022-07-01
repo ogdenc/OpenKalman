@@ -729,9 +729,10 @@ namespace OpenKalman
   {
 
     template<typename Coeffs, typename NestedMean, typename NestedCovariance, typename re>
-    struct StorageArrayTraits<GaussianDistribution<Coeffs, NestedMean, NestedCovariance, re>>
+    struct IndexibleObjectTraits<GaussianDistribution<Coeffs, NestedMean, NestedCovariance, re>>
     {
       static constexpr std::size_t max_indices = 1;
+      using scalar_type = scalar_type_of_t<NestedMean>;
     };
 
 
@@ -748,13 +749,6 @@ namespace OpenKalman
         else
           return dimension;
       }
-    };
-
-
-    template<typename Coeffs, typename NestedMean, typename NestedCovariance, typename re>
-    struct ScalarTypeOf<GaussianDistribution<Coeffs, NestedMean, NestedCovariance, re>>
-    {
-      using type = scalar_type_of_t<NestedMean>;
     };
 
 
@@ -785,7 +779,7 @@ namespace OpenKalman
       }
     };
 
-  }
+  } // namespace internal
 
 
   template<typename Coeffs, typename NestedMean, typename NestedCovariance, typename re>

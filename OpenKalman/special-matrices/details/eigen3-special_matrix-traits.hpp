@@ -30,19 +30,20 @@ namespace OpenKalman
     using namespace OpenKalman::Eigen3;
 
 
-    // -------------------- //
-    //  StorageArrayTraits  //
-    // -------------------- //
+    // ----------------------- //
+    //  IndexibleObjectTraits  //
+    // ----------------------- //
 
 #ifdef __cpp_concepts
     template<untyped_adapter T>
-    struct StorageArrayTraits<T>
+    struct IndexibleObjectTraits<T>
 #else
     template<typename T>
-    struct StorageArrayTraits<T, std::enable_if_t<untyped_adapter<T>>>
+    struct IndexibleObjectTraits<T, std::enable_if_t<untyped_adapter<T>>>
 #endif
     {
       static constexpr std::size_t max_indices = 2;
+      using scalar_type = scalar_type_of_t<pattern_matrix_of_t<T>>;
     };
 
 
@@ -239,72 +240,55 @@ namespace OpenKalman
     };
 
 
-    // -------------- //
-    //  ScalarTypeOf  //
-    // -------------- //
-
-#ifdef __cpp_concepts
-    template<untyped_adapter T>
-    struct ScalarTypeOf<T>
-#else
-    template<typename T>
-    struct ScalarTypeOf<T, std::enable_if_t<untyped_adapter<T>>>
-#endif
-      : ScalarTypeOf<pattern_matrix_of_t<T>> {};
-
-
     // -------------------------------- //
     //   EquivalentDenseWritableMatrix  //
     // -------------------------------- //
 
 #ifdef __cpp_concepts
-    template<untyped_adapter T, std::size_t rows, std::size_t columns, typename Scalar>
-    struct EquivalentDenseWritableMatrix<T, rows, columns, Scalar>
+    template<untyped_adapter T, typename Scalar>
+    struct EquivalentDenseWritableMatrix<T, Scalar>
 #else
-    template<typename T, std::size_t rows, std::size_t columns, typename Scalar>
-    struct EquivalentDenseWritableMatrix<T, rows, columns, Scalar, std::enable_if_t<untyped_adapter<T>>>
+    template<typename T, typename Scalar>
+    struct EquivalentDenseWritableMatrix<T, Scalar, std::enable_if_t<untyped_adapter<T>>>
 #endif
     {
 
       template<typename...D>
       static auto make_default(D&&...d)
       {
-        return make_default_dense_writable_matrix_like<pattern_matrix_of_t<T>>(std::forward<D>(d)...);
+        return EquivalentDenseWritableMatrix<pattern_matrix_of_t<T>, Scalar>::make_default(std::forward<D>(d)...);
       }
 
 
       template<typename Arg>
       static decltype(auto) convert(Arg&& arg)
       {
-        using M = std::decay_t<decltype(make_default_dense_writable_matrix_like(std::forward<Arg>(arg)))>;
-        // \todo Create an alternate path in case (not std::is_constructible_v<M, Arg&&>)
-        M m {std::forward<Arg>(arg)};
-        return m;
+        return EquivalentDenseWritableMatrix<pattern_matrix_of_t<T>, Scalar>::convert(std::forward<Arg>(arg));
       }
 
 
       template<typename Arg>
       static decltype(auto) to_native_matrix(Arg&& arg)
       {
-        return OpenKalman::to_native_matrix<pattern_matrix_of_t<Arg>>(std::forward<Arg>(arg));
+        return EquivalentDenseWritableMatrix<pattern_matrix_of_t<T>, Scalar>::to_native_matrix(std::forward<Arg>(arg));
       }
 
     };
 
 
 #ifdef __cpp_concepts
-    template<euclidean_expr T, std::size_t rows, std::size_t columns, typename Scalar>
-    struct EquivalentDenseWritableMatrix<T, rows, columns, Scalar>
+    template<euclidean_expr T, typename Scalar>
+    struct EquivalentDenseWritableMatrix<T, Scalar>
 #else
-    template<typename T, std::size_t rows, std::size_t columns, typename Scalar>
-    struct EquivalentDenseWritableMatrix<T, rows, columns, Scalar, std::enable_if_t<euclidean_expr<T>>>
+    template<typename T, typename Scalar>
+    struct EquivalentDenseWritableMatrix<T, Scalar, std::enable_if_t<euclidean_expr<T>>>
 #endif
     {
 
       template<typename...D>
       static auto make_default(D&&...d)
       {
-        return make_default_dense_writable_matrix_like<pattern_matrix_of_t<T>, rows, columns, Scalar>(std::forward<D>(d)...);
+        return make_default_dense_writable_matrix_like<pattern_matrix_of_t<T>, Scalar>(std::forward<D>(d)...);
       }
 
 
@@ -480,14 +464,14 @@ namespace OpenKalman
 #endif
     {
       template<typename...D>
-      static auto make_zero_matrix(D&&...d)
+      static constexpr auto make_zero_matrix(D&&...d)
       {
         return make_zero_matrix_like<pattern_matrix_of_t<T>, Scalar>(std::forward<D>(d)...);
       }
 
 
       template<auto constant, typename...D>
-      static auto make_constant_matrix(D&&...d)
+      static constexpr auto make_constant_matrix(D&&...d)
       {
         return make_constant_matrix_like<pattern_matrix_of_t<T>, constant, Scalar>(std::forward<D>(d)...);
       }
@@ -503,14 +487,14 @@ namespace OpenKalman
 #endif
     {
       template<typename...D>
-      static auto make_zero_matrix(D&&...d)
+      static constexpr auto make_zero_matrix(D&&...d)
       {
         return make_zero_matrix_like<pattern_matrix_of_t<T>, Scalar>(std::forward<D>(d)...);
       }
 
 
       template<auto constant, typename...D>
-      static auto make_constant_matrix(D&&...d)
+      static constexpr auto make_constant_matrix(D&&...d)
       {
         return make_constant_matrix_like<pattern_matrix_of_t<T>, constant, Scalar>(std::forward<D>(d)...);
       }
@@ -612,7 +596,7 @@ namespace OpenKalman
 #endif
     {
       template<typename D>
-      static auto make_identity_matrix(D&& d)
+      static constexpr auto make_identity_matrix(D&& d)
       {
         return make_identity_matrix_like<pattern_matrix_of_t<T>, Scalar>(std::forward<D>(d));
       }
@@ -628,7 +612,7 @@ namespace OpenKalman
 #endif
     {
       template<typename D>
-      static auto make_identity_matrix(D&& d)
+      static constexpr auto make_identity_matrix(D&& d)
       {
         return make_identity_matrix_like<pattern_matrix_of_t<T>, Scalar>(std::forward<D>(d));
       }

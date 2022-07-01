@@ -284,6 +284,14 @@ namespace OpenKalman
   explicit Matrix(M&&) -> Matrix<Dimensions<row_dimension_of_v<M>>, Dimensions<column_dimension_of_v<M>>, passable_t<M>>;
 
 
+#ifdef __cpp_concepts
+  template<typed_matrix_nestable M, index_descriptor...Cs>
+#else
+  template<typename M, std::enable_if_t<typed_matrix_nestable<M>, int> = 0>
+#endif
+  explicit Matrix(M&&, const Cs&...) -> Matrix<Cs..., passable_t<M>>;
+
+
   /// Deduce template parameters from a non-Euclidean-transformed typed matrix.
 #ifdef __cpp_concepts
   template<typed_matrix V> requires (not euclidean_transformed<V>)

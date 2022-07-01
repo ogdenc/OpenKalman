@@ -451,3 +451,43 @@ TEST(eigen3, solve_general_matrix)
   EXPECT_TRUE(is_near(solve(m00_22, m00_23_56), m23_445));
 }
 
+
+TEST(eigen3, LQ_and_QR_decompositions)
+{
+  auto m22_lq = make_dense_writable_matrix_from<M22>(-0.1, 0, 1.096, -1.272);
+
+  auto m22_lq_decomp = make_dense_writable_matrix_from<M22>(0.06, 0.08, 0.36, -1.640);
+  auto m20_2_lq_decomp = M20 {m22_lq_decomp};
+  auto m02_2_lq_decomp = M02 {m22_lq_decomp};
+  auto m00_22_lq_decomp = M00 {m22_lq_decomp};
+
+  EXPECT_TRUE(is_near(LQ_decomposition(m22_lq_decomp), m22_lq));
+  EXPECT_TRUE(is_near(LQ_decomposition(m20_2_lq_decomp), m22_lq));
+  EXPECT_TRUE(is_near(LQ_decomposition(m02_2_lq_decomp), m22_lq));
+  EXPECT_TRUE(is_near(LQ_decomposition(m00_22_lq_decomp), m22_lq));
+
+  auto m22_qr = make_dense_writable_matrix_from<M22>(-0.1, 1.096, 0, -1.272);
+
+  auto m22_qr_decomp = make_dense_writable_matrix_from<M22>(0.06, 0.36, 0.08, -1.640);
+  auto m20_2_qr_decomp = M20 {m22_qr_decomp};
+  auto m02_2_qr_decomp = M02 {m22_qr_decomp};
+  auto m00_22_qr_decomp = M00 {m22_qr_decomp};
+
+  EXPECT_TRUE(is_near(QR_decomposition(m22_qr_decomp), m22_qr));
+  EXPECT_TRUE(is_near(QR_decomposition(m02_2_qr_decomp), m22_qr));
+  EXPECT_TRUE(is_near(QR_decomposition(m20_2_qr_decomp), m22_qr));
+  EXPECT_TRUE(is_near(QR_decomposition(m00_22_qr_decomp), m22_qr));
+
+  auto m23 = make_dense_writable_matrix_from<M23>(1, 2, 3, 4, 5, 6);
+  auto m32 = make_dense_writable_matrix_from<M32>(1, 4, 2, 5, 3, 6);
+
+  EXPECT_TRUE(is_near(LQ_decomposition(m23), adjoint(QR_decomposition(m32))));
+  EXPECT_TRUE(is_near(LQ_decomposition(m32), adjoint(QR_decomposition(m23))));
+
+  auto cm23 = make_dense_writable_matrix_from<CM23>(cdouble {1,6}, cdouble {2,5}, cdouble {3,4}, cdouble {4,3}, cdouble {5,2}, cdouble {6,1});
+  auto cm32conj = make_dense_writable_matrix_from<CM32>(cdouble {1,-6}, cdouble {4,-3}, cdouble {2,-5}, cdouble {5,-2}, cdouble {3,-4}, cdouble {6,-1});
+
+  EXPECT_TRUE(is_near(LQ_decomposition(cm23), adjoint(QR_decomposition(cm32conj))));
+  EXPECT_TRUE(is_near(LQ_decomposition(cm32conj), adjoint(QR_decomposition(cm23))));
+}
+

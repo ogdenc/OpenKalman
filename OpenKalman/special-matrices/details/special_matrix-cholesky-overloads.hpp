@@ -181,7 +181,7 @@ namespace OpenKalman
 #if __cpp_nontype_template_args >= 201911L
         return to_diagonal(make_constant_matrix_like<A, sqrt_s>(Dimensions<dim>{}, Dimensions<1>{}));
 #else
-        return make_self_contained<A>(sqrt_s * make_identity_matrix_like(a));
+        return make_self_contained<A>(sqrt_s * to_native_matrix<A>(make_identity_matrix_like(a)));
 #endif
       }
       else if constexpr (triangle_type == TriangleType::lower)
@@ -189,7 +189,7 @@ namespace OpenKalman
 #if __cpp_nontype_template_args >= 201911L
         auto col0 = make_constant_matrix_like<A, sqrt_s>(Dimensions<dim>{}, Dimensions<1>{});
 #else
-        auto col0 = sqrt_s * make_constant_matrix_like<A, 1>(Dimensions<dim>{}, Dimensions<1>{});
+        auto col0 = sqrt_s * to_native_matrix<A>(make_constant_matrix_like<A, 1>(Dimensions<dim>{}, Dimensions<1>{}));
 #endif
         auto othercols = make_zero_matrix_like<A>(get_dimensions_of<1>(a), get_dimensions_of<1>(a) - 1);
         auto m = concatenate_horizontal(col0, othercols);
@@ -201,7 +201,7 @@ namespace OpenKalman
 #if __cpp_nontype_template_args >= 201911L
         auto row0 = make_constant_matrix_like<A, sqrt_s>(Dimensions<1>{}, Dimensions<dim>{});
 #else
-        auto row0 = sqrt_s * make_constant_matrix_like<A, 1>(Dimensions<1>{}, Dimensions<dim>{});
+        auto row0 = sqrt_s * to_native_matrix<A>(make_constant_matrix_like<A, 1>(Dimensions<1>{}, Dimensions<dim>{}));
 #endif
         auto otherrows = make_zero_matrix_like<A>(get_dimensions_of<1>(a) - 1, get_dimensions_of<1>(a));
         auto m = concatenate_vertical(row0, otherrows);

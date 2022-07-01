@@ -67,9 +67,9 @@ TEST(eigen3, Eigen_Matrix)
   static_assert(Eigen3::native_eigen_general<M00>);
   static_assert(native_eigen_matrix<Eigen3::EigenWrapper<Eigen3::ConstantMatrix<M33, 1>>>);
   static_assert(native_eigen_matrix<Eigen3::EigenWrapper<Eigen3::ConstantMatrix<M00, 1>>>);
-  static_assert(interface::StorageArrayTraits<M11>::max_indices == 2);
-  static_assert(interface::StorageArrayTraits<M00>::max_indices == 2);
-  static_assert(interface::StorageArrayTraits<M21>::max_indices == 2);
+  static_assert(interface::IndexibleObjectTraits<M11>::max_indices == 2);
+  static_assert(interface::IndexibleObjectTraits<M00>::max_indices == 2);
+  static_assert(interface::IndexibleObjectTraits<M21>::max_indices == 2);
   static_assert(interface::IndexTraits<M11, 0>::dimension == 1);
   static_assert(interface::IndexTraits<M21, 0>::dimension == 2);
   static_assert(interface::IndexTraits<M00, 0>::dimension == dynamic_size);
@@ -82,7 +82,7 @@ TEST(eigen3, Eigen_Matrix)
   EXPECT_EQ((interface::IndexTraits<M11, 1>::dimension_at_runtime(M11{})), 1);
   EXPECT_EQ((interface::IndexTraits<M21, 1>::dimension_at_runtime(M21{})), 1);
   EXPECT_EQ((interface::IndexTraits<M00, 1>::dimension_at_runtime(M00{2, 1})), 1);
-  static_assert(std::is_same_v<typename interface::ScalarTypeOf<M00>::type, double>);
+  static_assert(std::is_same_v<typename interface::IndexibleObjectTraits<M00>::scalar_type, double>);
 
   static_assert(dynamic_rows<eigen_matrix_t<double, dynamic_size, dynamic_size>>);
   static_assert(dynamic_columns<eigen_matrix_t<double, dynamic_size, dynamic_size>>);
@@ -1020,12 +1020,12 @@ TEST(eigen3, Eigen_Replicate)
   auto z00_22 = Eigen::Replicate<Z11, Eigen::Dynamic, Eigen::Dynamic> {z11, 2, 2};
 
   static_assert(Eigen3::native_eigen_general<Z00>);
-  static_assert(interface::StorageArrayTraits<Z00>::max_indices == 2);
+  static_assert(interface::IndexibleObjectTraits<Z00>::max_indices == 2);
   static_assert(interface::IndexTraits<Z00, 0>::dimension == dynamic_size);
   static_assert(interface::IndexTraits<Z00, 1>::dimension == dynamic_size);
   EXPECT_EQ((interface::IndexTraits<Z00, 0>::dimension_at_runtime(z00_21)), 2);
   EXPECT_EQ((interface::IndexTraits<Z00, 1>::dimension_at_runtime(z00_21)), 1);
-  static_assert(std::is_same_v<typename interface::ScalarTypeOf<Z00>::type, double>);
+  static_assert(std::is_same_v<typename interface::IndexibleObjectTraits<Z00>::scalar_type, double>);
 
   static_assert(are_within_tolerance(constant_coefficient_v<Eigen::Replicate<Z11, 1, 2>>, 0));
   static_assert(are_within_tolerance(constant_coefficient_v<decltype(z20_1)>, 0));
