@@ -177,7 +177,7 @@ namespace OpenKalman
       return sumprod(
         jacobian(in, ps...),
         std::forward_as_tuple(std::forward<In>(in), oin::get_perturbation(std::forward<Perturbations>(ps))...),
-        std::make_index_sequence<sizeof...(Perturbations) + 1>{});
+        std::make_index_sequence<sizeof...(Perturbations) + 1> {});
     }
 
 

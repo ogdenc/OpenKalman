@@ -61,7 +61,7 @@ namespace OpenKalman
     static constexpr auto count_dim()
     {
       return (index_dimension_of_v<In, 0> + ... +
-        count_dim_impl<Ts>(std::make_index_sequence<std::tuple_size_v<Ts> - 1>()));
+        count_dim_impl<Ts>(std::make_index_sequence<std::tuple_size_v<Ts> - 1> {}));
     }
 
 
@@ -134,7 +134,7 @@ namespace OpenKalman
       constexpr std::size_t N = std::tuple_size_v<decltype(xpoints_tup)>;
       static_assert(N == std::tuple_size_v<decltype(xdists_tup)>);
 
-      auto y_means = Mean { y_means_impl(g, std::move(xdists_tup), std::move(xpoints_tup), std::make_index_sequence<N>())};
+      auto y_means = Mean { y_means_impl(g, std::move(xdists_tup), std::move(xpoints_tup), std::make_index_sequence<N> {})};
 
       const auto y_mean = from_euclidean(SamplePointsType::template weighted_means<dim>(to_euclidean(y_means)));
 

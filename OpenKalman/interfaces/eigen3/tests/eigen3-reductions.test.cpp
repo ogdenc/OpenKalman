@@ -286,7 +286,7 @@ TEST(eigen3, reduce_constant_frac)
   EXPECT_EQ((reduce(std::plus<double>{}, c23)), 4);
   EXPECT_EQ((reduce(std::plus<double>{}, c03_2)), 4);
   EXPECT_TRUE(is_near(reduce<1, 0>(std::plus<double>{}, c23), 6 * c11));
-  EXPECT_EQ((reduce(std::multiplies<double>{}, c00_23)), 64./729);
+  EXPECT_NEAR((reduce(std::multiplies<double>{}, c00_23)), 64./729, 1e-9);
   EXPECT_TRUE(is_near(reduce<1, 0>(std::multiplies<double>{}, c20_3), 32./243 * c11));
 
   static_assert(are_within_tolerance(reduce(std::plus<double>{}, c11), 2./3));

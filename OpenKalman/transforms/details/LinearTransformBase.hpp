@@ -115,7 +115,7 @@ namespace OpenKalman::internal
       if constexpr (return_cross)
       {
         auto [cov_out, cross_covariance] = sum_noise_terms<true>(jacobians, std::forward_as_tuple(in, n...),
-          std::make_index_sequence<std::min(sizeof...(NoiseDists), std::tuple_size_v<decltype(jacobians)> - 1)>{});
+          std::make_index_sequence<std::min(sizeof...(NoiseDists), std::tuple_size_v<decltype(jacobians)> - 1)> {});
 
         auto out = make_GaussianDistribution<re>(std::move(mean_output), std::move(cov_out));
 
@@ -127,7 +127,7 @@ namespace OpenKalman::internal
       else
       {
         auto cov_out = sum_noise_terms<false>(jacobians, std::forward_as_tuple(in, n...),
-          std::make_index_sequence<std::min(sizeof...(NoiseDists), std::tuple_size_v<decltype(jacobians)> - 1)>{});
+          std::make_index_sequence<std::min(sizeof...(NoiseDists), std::tuple_size_v<decltype(jacobians)> - 1)> {});
 
         auto out = make_GaussianDistribution<re>(std::move(mean_output), std::move(cov_out));
 

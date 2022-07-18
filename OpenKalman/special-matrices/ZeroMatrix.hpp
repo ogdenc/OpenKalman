@@ -61,12 +61,16 @@ namespace OpenKalman::Eigen3
     template<std::size_t I>
     static constexpr auto make_dimensions_tuple()
     {
-      using Dim = std::tuple_element_t<I, MyDimensions>;
       if constexpr (I >= max_indices)
-        return std::tuple{};
+      {
+        return std::tuple {};
+      }
       else
+      {
+        using Dim = std::tuple_element_t<I, MyDimensions>;
         return std::tuple_cat(std::tuple {Dim {Dimensions<index_dimension_of_v<PatternMatrix, I>>{}}},
           make_dimensions_tuple<I + 1>());
+      }
     }
 
 
@@ -86,18 +90,19 @@ namespace OpenKalman::Eigen3
     /**
      * \brief Construct a ZeroMatrix.
      * \details The constructor can take a number of arguments representing the number of dynamic dimensions.
-     * For example, ZeroMatrix {2, 3} constructs a 2-by-3 dynamic matrix, ZeroMatrix {3} constructs a
-     * 2-by-3 matrix in which there are two fixed row dimensions and three dynamic column dimensions, and
-     * ZeroMatrix {} constructs a fixed matrix.
+     * For example, the following construct a 2-by-3 zero matrix:
+     * \code
+     * ZeroMatrix<Mdd>(2, 3) // Mdd has dynamic rows and columns.
+     * ZeroMatrix<M2d>(3) // M2d has fixed rows and dynamic columns.
+     * ZeroMatrix<Md3>(2) // Md2 has dynamic rows and fixed columns.
+     * ZeroMatrix<M23>() // M23 has fixed rows and columns.
+     * \endcode
      */
 #ifdef __cpp_concepts
-    template<std::convertible_to<std::size_t> ... I> requires
-      (sizeof...(I) == number_of_dynamic_indices_v<PatternMatrix>) and
-      requires(const I...i) { MyDimensions {make_dimensions_tuple<0>(static_cast<const std::size_t>(i)...)}; }
+    template<std::convertible_to<std::size_t> ... I> requires (sizeof...(I) == number_of_dynamic_indices_v<PatternMatrix>)
 #else
-    template<typename...I, std::enable_if_t<(std::is_convertible_v<I, std::size_t> and ...) and
-      (sizeof...(I) == number_of_dynamic_indices<PatternMatrix>::value) and
-      std::is_constructible<MyDimensions, decltype(make_dimensions_tuple<0>(static_cast<const std::size_t>(std::declval<I>())...))>::value, int> = 0>
+    template<typename...I, std::enable_if_t<(std::is_convertible<I, std::size_t>::value and ...) and
+      (sizeof...(I) == number_of_dynamic_indices<PatternMatrix>::value), int> = 0>
 #endif
     constexpr ZeroMatrix(const I...i)
       : my_dimensions {make_dimensions_tuple<0>(static_cast<const std::size_t>(i)...)} {}
@@ -141,11 +146,11 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-    template<typename T> requires (arg_matches_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{}))
+    template<typename T> requires (arg_matches_impl<T>(std::make_index_sequence<max_indices_of_v<T>> {}))
     struct zero_arg_matches<T>
 #else
     template<typename T>
-    struct zero_arg_matches<T, std::enable_if_t<arg_matches_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{})>>
+    struct zero_arg_matches<T, std::enable_if_t<arg_matches_impl<T>(std::make_index_sequence<max_indices_of_v<T>> {})>>
 #endif
       : std::true_type {};
 
@@ -189,7 +194,7 @@ namespace OpenKalman::Eigen3
     constexpr void check_runtime_sizes(const T& t)
     {
       if constexpr (has_dynamic_dimensions<T> or has_dynamic_dimensions<PatternMatrix>)
-        return check_runtime_sizes_impl(t, std::make_index_sequence<max_indices_of_v<T>>{});
+        return check_runtime_sizes_impl(t, std::make_index_sequence<max_indices_of_v<T>> {});
     };
 
   public:

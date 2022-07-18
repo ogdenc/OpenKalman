@@ -41,7 +41,7 @@ namespace OpenKalman::internal
     MatrixBase() requires self_contained<NestedMatrix> and requires { NestedMatrix {}; }
 #else
     template<typename T = NestedMatrix, std::enable_if_t<self_contained<T> and
-      std::is_default_constructible_v<NestedMatrix>, int> = 0>
+      std::is_default_constructible<NestedMatrix>::value, int> = 0>
     MatrixBase()
 #endif
       : m_arg {} {}

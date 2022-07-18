@@ -43,7 +43,7 @@ namespace OpenKalman
     if constexpr (not has_dynamic_dimensions<T>)
       return tensor_order_of_v<T>;
     else
-      return detail::get_tensor_order_of_impl(std::make_index_sequence<max_indices_of_v<T>>{}, t);
+      return detail::get_tensor_order_of_impl(std::make_index_sequence<max_indices_of_v<T>> {}, t);
   }
 
 
@@ -131,7 +131,7 @@ namespace OpenKalman
 #endif
   constexpr decltype(auto) get_all_dimensions_of(const T& t)
   {
-    return detail::get_all_dimensions_of_impl(t, std::make_index_sequence<max_indices_of_v<T>>{});
+    return detail::get_all_dimensions_of_impl(t, std::make_index_sequence<max_indices_of_v<T>> {});
   }
 
 
@@ -148,7 +148,7 @@ namespace OpenKalman
 #endif
   constexpr auto get_all_dimensions_of()
   {
-    return detail::get_all_dimensions_of_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{});
+    return detail::get_all_dimensions_of_impl<T>(std::make_index_sequence<max_indices_of_v<T>> {});
   }
 
 
@@ -169,7 +169,7 @@ namespace OpenKalman
 #else
   template<typename T, typename Scalar = scalar_type_of_t<T>, typename...D, std::enable_if_t<
     indexible<T> and scalar_type<Scalar> and (index_descriptor<D> and ...) and
-    (sizeof...(D) == max_indices_of_v<T> or sizeof...(D) == 0 and not has_dynamic_dimensions<T>), int> = 0>
+    (sizeof...(D) == max_indices_of_v<T> or (sizeof...(D) == 0 and not has_dynamic_dimensions<T>)), int> = 0>
 #endif
   constexpr decltype(auto)
   make_default_dense_writable_matrix_like(D&&...d)
@@ -216,7 +216,8 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<indexible Arg, scalar_type Scalar = scalar_type_of_t<Arg>>
 #else
-  template<typename Arg, typename Scalar = scalar_type_of_t<Arg>, std::enable_if_t<indexible<Arg>, scalar_type<Scalar>>>
+  template<typename Arg, typename Scalar = scalar_type_of_t<Arg>, std::enable_if_t<
+    indexible<Arg> and scalar_type<Scalar>, int> = 0>
 #endif
   constexpr decltype(auto)
   make_dense_writable_matrix_from(Arg&& arg) noexcept
@@ -277,7 +278,7 @@ namespace OpenKalman
     template<typename M, std::size_t N>
     constexpr auto check_make_dense_args()
     {
-      constexpr auto dims = count_fixed_dims<M>(std::make_index_sequence<max_indices_of_v<M>>{});
+      constexpr auto dims = count_fixed_dims<M>(std::make_index_sequence<max_indices_of_v<M>> {});
       return (N % dims == 0) and number_of_dynamic_indices_v<M> <= 1;
     }
 
@@ -316,7 +317,7 @@ namespace OpenKalman
   inline auto
   make_dense_writable_matrix_from(Args ... args)
   {
-    constexpr auto seq = std::make_index_sequence<max_indices_of_v<M>>{};
+    constexpr std::make_index_sequence<max_indices_of_v<M>> seq;
     constexpr auto dims = detail::count_fixed_dims<M>(seq);
     return detail::make_dense_writable_matrix_from_impl<M, dims, Scalar>(seq, args...);
   }
@@ -899,7 +900,7 @@ namespace OpenKalman
     }
     else
     {
-      detail::check_index_bounds<false>(arg, std::make_index_sequence<sizeof...(I)>{}, i...);
+      detail::check_index_bounds<false>(arg, std::make_index_sequence<sizeof...(I)> {}, i...);
       return interface::GetElement<std::decay_t<Arg>, I...>::get(std::forward<Arg>(arg), i...);
     }
   }
@@ -907,9 +908,9 @@ namespace OpenKalman
   template<typename Arg, typename...I, std::enable_if_t<(std::is_convertible_v<I, std::size_t> and ...) and
     element_gettable<Arg, std::conditional_t<std::is_same_v<I, std::size_t>, I, std::size_t>...> and
     (sizeof...(I) != 1 or column_vector<Arg> or row_vector<Arg>), int> = 0>
-  constexpr auto get_element(Arg&& arg, const I...i)
+  constexpr decltype(auto) get_element(Arg&& arg, const I...i)
   {
-    detail::check_index_bounds<false>(arg, std::make_index_sequence<sizeof...(I)>{}, i...);
+    detail::check_index_bounds<false>(arg, std::make_index_sequence<sizeof...(I)> {}, i...);
     return interface::GetElement<std::decay_t<Arg>, void, I...>::get(std::forward<Arg>(arg), i...);
   }
 #endif
@@ -921,7 +922,7 @@ namespace OpenKalman
     requires element_settable<Arg&, std::conditional_t<std::same_as<I, std::size_t>, I, std::size_t>...>
   inline void set_element(Arg& arg, Scalar s, const I...i)
   {
-    detail::check_index_bounds<true>(arg, std::make_index_sequence<sizeof...(I)>{}, i...);
+    detail::check_index_bounds<true>(arg, std::make_index_sequence<sizeof...(I)> {}, i...);
     return interface::SetElement<std::decay_t<Arg>, I...>::set(arg, s, i...);
   }
 #else
@@ -931,7 +932,7 @@ namespace OpenKalman
     element_settable<Arg&, std::conditional_t<std::is_same_v<I, std::size_t>, I, std::size_t>...>, int> = 0>
   inline void set_element(Arg& arg, Scalar s, const I...i)
   {
-    detail::check_index_bounds<true>(arg, std::make_index_sequence<sizeof...(I)>{}, i...);
+    detail::check_index_bounds<true>(arg, std::make_index_sequence<sizeof...(I)> {}, i...);
     return interface::SetElement<std::decay_t<Arg>, void, I...>::set(arg, s, i...);
   }
 #endif
@@ -1178,6 +1179,145 @@ namespace OpenKalman
   }
 
 
+  // ================================== //
+  //  Modular transformation functions  //
+  // ================================== //
+
+#ifdef __cpp_concepts
+  template<indexible Arg, index_descriptor C> requires (dynamic_columns<Arg> or has_untyped_index<Arg, 1>) and
+    (dynamic_index_descriptor<C> or dynamic_rows<Arg> or has_untyped_index<Arg, 0> or
+      equivalent_to<C, coefficient_types_of_t<Arg, 0>>)
+#else
+  template<typename Arg, typename C, std::enable_if_t<index_descriptor<C> and indexible<Arg> and
+    (dynamic_columns<Arg> or has_untyped_index<Arg, 1>) and
+    (dynamic_index_descriptor<C> or dynamic_rows<Arg> or has_untyped_index<Arg, 0> or
+      equivalent_to<C, coefficient_types_of_t<Arg, 0>>), int> = 0>
+#endif
+  constexpr decltype(auto)
+  to_euclidean(Arg&& arg, const C& c) noexcept
+  {
+    if constexpr (euclidean_index_descriptor<C>)
+    {
+      return std::forward<Arg>(arg);
+    }
+    else
+    {
+      if constexpr (dynamic_columns<Arg>) if (not get_index_descriptor_is_untyped(get_dimensions_of<1>(arg)))
+        throw std::domain_error {"In to_euclidean, the column index is not untyped"};
+
+      if constexpr (dynamic_rows<Arg>)
+        if (not get_index_descriptor_is_untyped(get_dimensions_of<0>(arg)) and get_dimensions_of<0>(arg) != C{})
+          throw std::domain_error {"In to_euclidean, the row index is not untyped and does not match the designated"
+            "fixed_index_descriptor"};
+
+      return interface::ModularTransformationTraits<Arg>::to_euclidean(std::forward<Arg>(arg), c);
+    }
+  }
+
+
+#ifdef __cpp_concepts
+  template<indexible Arg> requires (not has_untyped_index<Arg, 0>) and has_untyped_index<Arg, 1>
+#else
+  template<typename Arg, std::enable_if_t<indexible<Arg> and (not has_untyped_index<Arg, 0>) and
+    has_untyped_index<Arg, 1>, int> = 0>
+#endif
+  constexpr decltype(auto)
+  to_euclidean(Arg&& arg)
+  {
+    return to_euclidean(std::forward<Arg>(arg), get_dimensions_of<0>(arg));
+  }
+
+
+#ifdef __cpp_concepts
+  template<indexible Arg, index_descriptor C> requires (dynamic_columns<Arg> or has_untyped_index<Arg, 1>) and
+    (dynamic_index_descriptor<C> or dynamic_rows<Arg> or has_untyped_index<Arg, 0> or
+      equivalent_to<C, coefficient_types_of_t<Arg, 0>>)
+#else
+  template<typename Arg, typename C, std::enable_if_t<index_descriptor<C> and indexible<Arg> and
+    (dynamic_columns<Arg> or has_untyped_index<Arg, 1>) and
+    (dynamic_index_descriptor<C> or dynamic_rows<Arg> or has_untyped_index<Arg, 0> or
+      equivalent_to<C, coefficient_types_of_t<Arg, 0>>), int> = 0>
+#endif
+  constexpr decltype(auto)
+  from_euclidean(Arg&& arg, const C& c) noexcept
+  {
+    if constexpr (euclidean_index_descriptor<C>)
+    {
+      return std::forward<Arg>(arg);
+    }
+    else
+    {
+      if constexpr (dynamic_columns<Arg>) if (not get_index_descriptor_is_untyped(get_dimensions_of<1>(arg)))
+        throw std::domain_error {"In from_euclidean, the column index is not untyped"};
+
+      if constexpr (dynamic_rows<Arg>)
+        if (not get_index_descriptor_is_untyped(get_dimensions_of<0>(arg)) and get_dimensions_of<0>(arg) != C{})
+          throw std::domain_error {"In from_euclidean, the row index is not untyped and does not match the designated"
+            "fixed_index_descriptor"};
+
+      return interface::ModularTransformationTraits<Arg>::from_euclidean(std::forward<Arg>(arg), c);
+    }
+  }
+
+
+#ifdef __cpp_concepts
+  template<indexible Arg> requires (not has_untyped_index<Arg, 0>) and has_untyped_index<Arg, 1>
+#else
+  template<typename Arg, std::enable_if_t<indexible<Arg> and (not has_untyped_index<Arg, 0>) and
+    has_untyped_index<Arg, 1>, int> = 0>
+#endif
+  constexpr decltype(auto)
+  from_euclidean(Arg&& arg)
+  {
+    return from_euclidean(std::forward<Arg>(arg), get_dimensions_of<0>(arg));
+  }
+
+
+#ifdef __cpp_concepts
+  template<indexible Arg, index_descriptor C> requires (dynamic_columns<Arg> or has_untyped_index<Arg, 1>) and
+    (dynamic_index_descriptor<C> or dynamic_rows<Arg> or has_untyped_index<Arg, 0> or
+      equivalent_to<C, coefficient_types_of_t<Arg, 0>>)
+#else
+  template<typename Arg, typename C, std::enable_if_t<index_descriptor<C> and indexible<Arg> and
+    (dynamic_columns<Arg> or has_untyped_index<Arg, 1>) and
+    (dynamic_index_descriptor<C> or dynamic_rows<Arg> or has_untyped_index<Arg, 0> or
+      equivalent_to<C, coefficient_types_of_t<Arg, 0>>), int> = 0>
+#endif
+  constexpr decltype(auto)
+  wrap_angles(Arg&& arg, const C& c)
+  {
+    if constexpr (euclidean_index_descriptor<C> or identity_matrix<Arg> or zero_matrix<Arg>)
+    {
+      return std::forward<Arg>(arg);
+    }
+    else
+    {
+      if constexpr (dynamic_columns<Arg>) if (not get_index_descriptor_is_untyped(get_dimensions_of<1>(arg)))
+        throw std::domain_error {"In wrap_angles, the column index is not untyped"};
+
+      if constexpr (dynamic_rows<Arg>)
+        if (not get_index_descriptor_is_untyped(get_dimensions_of<0>(arg)) and get_dimensions_of<0>(arg) != C{})
+          throw std::domain_error {"In wrap_angles, the row index is not untyped and does not match the designated"
+            "fixed_index_descriptor"};
+
+      interface::ModularTransformationTraits<Arg>::wrap_angles(std::forward<Arg>(arg), c);
+    }
+  }
+
+
+#ifdef __cpp_concepts
+  template<indexible Arg> requires (not has_untyped_index<Arg, 0>) and has_untyped_index<Arg, 1>
+#else
+  template<typename Arg, std::enable_if_t<indexible<Arg> and (not has_untyped_index<Arg, 0>) and
+    has_untyped_index<Arg, 1>, int> = 0>
+#endif
+  constexpr decltype(auto)
+  wrap_angles(Arg&& arg)
+  {
+    return wrap_angles(std::forward<Arg>(arg), get_dimensions_of<0>(arg));
+  }
+
+
   // ================== //
   //  Array operations  //
   // ================== //
@@ -1227,10 +1367,176 @@ namespace OpenKalman
 #endif
 
 
-    template<typename PatternMatrix, typename...Ds, typename Op, typename...Args>
-    static constexpr auto
-    n_ary_operation_with_broadcasting_impl(const std::tuple<Ds...>& tup, const Op& op, Args&&...args)
+    template<typename Operation, typename...Args, std::size_t...I>
+    constexpr bool is_invocable_with_indices(std::index_sequence<I...>)
     {
+      return std::is_invocable_v<Operation&&, Args&&..., decltype(I)...>;
+    }
+
+
+  template<typename Operation, std::size_t...I, typename...Args>
+  constexpr decltype(auto) n_ary_invoke_op(Operation&& operation, std::index_sequence<I...> seq, Args&&...args)
+  {
+    if constexpr (is_invocable_with_indices<Operation, Args...>(seq))
+      return std::forward<Operation>(operation)(std::forward<Args>(args)..., static_cast<decltype(I)>(0)...);
+    else
+      return std::forward<Operation>(operation)(std::forward<Args>(args)...);
+  }
+
+
+#ifdef __cpp_concepts
+  template<typename Operation, std::size_t indices, typename...Args>
+#else
+  template<typename Operation, std::size_t indices, typename = void, typename...Args>
+#endif
+  struct n_ary_operator_traits_impl {};
+
+
+#ifdef __cpp_concepts
+  template<typename Operation, std::size_t indices, typename...Args>
+  requires (is_invocable_with_indices<Operation, Args...>(std::make_index_sequence<indices> {})) or
+    std::is_invocable_v<Operation&&, Args&&...>
+  struct n_ary_operator_traits_impl<Operation, indices, Args...>
+#else
+  template<typename Operation, std::size_t indices, typename...Args>
+  struct n_ary_operator_traits_impl<Operation, indices, std::enable_if_t<
+    is_invocable_with_indices<Operation, Args...>(std::make_index_sequence<indices> {}) or
+    std::is_invocable_v<Operation&&, Args&&...>>, Args...>
+#endif
+  {
+    using type = decltype(n_ary_invoke_op(
+      std::declval<Operation&&>(), std::make_index_sequence<indices> {}, std::declval<Args&&>()...));
+  };
+
+
+  template<typename Operation, std::size_t indices, typename...Args>
+  struct n_ary_operator_traits
+#ifdef __cpp_concepts
+    : n_ary_operator_traits_impl<Operation, indices, Args...> {};
+#else
+    : n_ary_operator_traits_impl<Operation, indices, void, Args...> {};
+#endif
+
+
+#ifndef __cpp_concepts
+    template<typename Operation, std::size_t Indices, typename = void, typename...Args>
+    struct n_ary_operator_impl : std::false_type {};
+
+    template<typename Operation, std::size_t Indices, typename...Args>
+    struct n_ary_operator_impl<Operation, Indices, std::enable_if_t<(indexible<Args> and ...) and
+      (std::is_invocable<Operation&&, typename std::add_lvalue_reference<typename scalar_type_of<Args>::type>::type...>::value or
+        is_invocable_with_indices<Operation, typename std::add_lvalue_reference<typename scalar_type_of<Args>::type>::type...>(
+          std::make_index_sequence<Indices> {}))>, Args...>
+    : std::true_type {};
+#endif
+
+
+    template<typename Operation, std::size_t Indices, typename...Args>
+#ifdef __cpp_concepts
+    concept n_ary_operator = (indexible<Args> and ...) and
+      (std::is_invocable_v<Operation&&, std::add_lvalue_reference_t<scalar_type_of_t<Args>>...> or
+        is_invocable_with_indices<Operation, std::add_lvalue_reference_t<scalar_type_of_t<Args>>...>(
+          std::make_index_sequence<Indices> {}));
+#else
+    constexpr bool n_ary_operator = n_ary_operator_impl<Operation, Indices, void, Args...>::value;
+#endif
+
+
+#ifdef __cpp_concepts
+    template<typename T, typename DTup, typename Op, typename...Args>
+#else
+    template<typename T, typename DTup, typename Op, typename = void, typename...Args>
+#endif
+    struct interface_defines_n_ary_operation : std::false_type {};
+
+
+    template<typename T, typename DTup, typename Op, typename...Args>
+#ifdef __cpp_concepts
+    requires requires(const DTup& d_tup, Op op, Args...args) {
+      interface::ArrayOperations<std::decay_t<T>>::n_ary_operation(d_tup, op, std::forward<Args>(args)...);
+    }
+    struct interface_defines_n_ary_operation<T, DTup, Op, Args...>
+#else
+    struct interface_defines_n_ary_operation<T, DTup, Op, std::void_t<
+      decltype(interface::ArrayOperations<std::decay_t<T>>::n_ary_operation_with_indices(
+        std::declval<const DTup&>(), std::declval<Op>(), std::declval<Args>()...))>, Args...>
+#endif
+      : std::true_type {};
+
+
+#ifdef __cpp_concepts
+    template<typename T, typename DTup, typename Op, typename...Args>
+#else
+    template<typename T, typename DTup, typename Op, typename = void, typename...Args>
+#endif
+    struct interface_defines_n_ary_operation_with_indices : std::false_type {};
+
+
+    template<typename T, typename DTup, typename Op, typename...Args>
+#ifdef __cpp_concepts
+    requires requires(const DTup& d_tup, Op op, Args...args) {
+      interface::ArrayOperations<std::decay_t<T>>::n_ary_operation_with_indices(d_tup, op, std::forward<Args>(args)...);
+    }
+    struct interface_defines_n_ary_operation_with_indices<T, DTup, Op, Args...>
+#else
+    struct interface_defines_n_ary_operation_with_indices<T, DTup, Op, std::void_t<
+      decltype(interface::ArrayOperations<std::decay_t<T>>::n_ary_operation_with_indices(
+        std::declval<const DTup&>(), std::declval<Op>(), std::declval<Args>()...))>, Args...>
+#endif
+      : std::true_type {};
+
+
+    template<typename Arg, std::size_t...I, typename...J>
+    inline decltype(auto) n_ary_operation_get_element_impl(Arg&& arg, std::index_sequence<I...>, J...j)
+    {
+      if constexpr (sizeof...(I) == sizeof...(J))
+        return get_element(std::forward<Arg>(arg), (j < get_index_dimension_of<I>(arg) ? j : 0)...);
+      else
+        return get_element(std::forward<Arg>(arg), [](auto dim, const auto& j_tup){
+          auto j = std::get<I>(j_tup);
+          if (j < dim) return j;
+          else return 0;
+        }(get_index_dimension_of<I>(arg), std::tuple {j...})...);
+    }
+
+
+    template<typename Operation, typename ArgsTup, std::size_t...ArgI, typename...J>
+    inline auto n_ary_operation_get_element(Operation&& operation, ArgsTup&& args_tup, std::index_sequence<ArgI...>, J...j)
+    {
+      if constexpr (std::is_invocable_v<Operation&&, scalar_type_of_t<std::tuple_element_t<ArgI, std::decay_t<ArgsTup>>>..., J...>)
+        return std::forward<Operation>(operation)(n_ary_operation_get_element_impl(
+          std::get<ArgI>(std::forward<ArgsTup>(args_tup)),
+          std::make_index_sequence<max_indices_of_v<std::tuple_element_t<ArgI, std::decay_t<ArgsTup>>>> {},
+          j...)..., j...);
+      else
+        return std::forward<Operation>(operation)(n_ary_operation_get_element_impl(
+          std::get<ArgI>(std::forward<ArgsTup>(args_tup)),
+          std::make_index_sequence<max_indices_of_v<std::tuple_element_t<ArgI, std::decay_t<ArgsTup>>>> {},
+          j...)...);
+    }
+
+
+    template<typename M, typename Operation, typename ArgsTup, typename...J>
+    inline void n_ary_operation_iterate(M& m, Operation&& operation, ArgsTup&& args_tup, std::index_sequence<>, J...j)
+    {
+      set_element(m, n_ary_operation_get_element(std::forward<Operation>(operation), args_tup,
+        std::make_index_sequence<std::tuple_size_v<ArgsTup>> {}, j...), j...);
+    }
+
+
+    template<typename M, typename Operation, typename ArgsTup, std::size_t I, std::size_t...Is, typename...J>
+    inline void n_ary_operation_iterate(M& m, Operation&& operation, ArgsTup&& args_tup, std::index_sequence<I, Is...>, J...j)
+    {
+      for (std::size_t i = 0; i < get_index_dimension_of<I>(m); i++)
+        n_ary_operation_iterate(m, operation, std::forward<ArgsTup>(args_tup), std::index_sequence<Is...> {}, j..., i);
+    }
+
+
+    template<typename PatternMatrix, typename...Ds, typename Op, typename...Args>
+    static constexpr decltype(auto)
+    n_ary_operation_with_broadcasting_impl(const std::tuple<Ds...>& tup, Op&& op, Args&&...args)
+    {
+      // zero_matrix:
       if constexpr (sizeof...(Args) > 0 and (zero_matrix<Args> and ...) and
         (is_plus<Op>::value or is_multiplies<Op>::value))
       {
@@ -1239,6 +1545,8 @@ namespace OpenKalman
           [](auto&&...ds){ return make_zero_matrix_like<PatternMatrix, Scalar>(std::forward<decltype(ds)>(ds)...); },
           tup);
       }
+
+      // constant_matrix:
       else if constexpr (sizeof...(Args) > 0 and (constant_matrix<Args> and ...) and
         is_constexpr_n_ary_function<Op, scalar_type_of_t<Args>...>::value)
       {
@@ -1253,41 +1561,113 @@ namespace OpenKalman
         constexpr auto c_integral = static_cast<std::intmax_t>(c);
         if constexpr (are_within_tolerance(c, static_cast<Scalar>(c_integral)))
           return std::apply(
-            [](auto&&...ds){ return make_constant_matrix_like<PatternMatrix, c_integral, Scalar>(std::forward<decltype(ds)>(ds)...); },
+            [](auto&&...ds){
+              return make_constant_matrix_like<PatternMatrix, c_integral, Scalar>(std::forward<decltype(ds)>(ds)...);
+            },
             tup);
         else
           return make_self_contained(c * to_native_matrix<PatternMatrix>(std::apply(
-            [](auto&&...ds){ return make_constant_matrix_like<PatternMatrix, 1, Scalar>(std::forward<decltype(ds)>(ds)...); },
+            [](auto&&...ds){
+              return make_constant_matrix_like<PatternMatrix, 1, Scalar>(std::forward<decltype(ds)>(ds)...);
+            },
             tup)));
 # endif
       }
+
+      // other cases:
       else
       {
-        // \todo Add an alternative in case n_ary_operation is not defined
-        return interface::ArrayOperations<std::decay_t<PatternMatrix>>::n_ary_operation(
-          tup, op, std::forward<Args>(args)...);
+        constexpr std::make_index_sequence<max_indices_of_v<PatternMatrix>> seq;
+        if constexpr (is_invocable_with_indices<Op&&, std::add_lvalue_reference_t<scalar_type_of_t<Args>>...>(seq) and
+          detail::interface_defines_n_ary_operation_with_indices<PatternMatrix, std::tuple<Ds...>, Op&&, Args&&...>::value)
+        {
+          using Trait = interface::ArrayOperations<std::decay_t<PatternMatrix>>;
+          return Trait::n_ary_operation_with_indices(tup, std::forward<Op>(op), std::forward<Args>(args)...);
+        }
+        else if constexpr (is_invocable_with_indices<Op&&, std::add_lvalue_reference_t<scalar_type_of_t<Args>>...>(seq) and
+          detail::interface_defines_n_ary_operation<PatternMatrix, std::tuple<Ds...>, Op&&, Args&&...>::value)
+        {
+          using Trait = interface::ArrayOperations<std::decay_t<PatternMatrix>>;
+          return Trait::n_ary_operation(tup, std::forward<Op>(op), std::forward<Args>(args)...);
+        }
+        else
+        {
+          using Scalar = std::decay_t<typename n_ary_operator_traits<Op, max_indices_of_v<PatternMatrix>,
+            std::add_lvalue_reference_t<scalar_type_of_t<Args>>...>::type>;
+          auto m = std::apply(
+            [](auto&&...ds){
+              return make_default_dense_writable_matrix_like<PatternMatrix, Scalar>(std::forward<decltype(ds)>(ds)...);
+            },
+            tup);
+          n_ary_operation_iterate(m, std::forward<Op>(op), std::forward_as_tuple(std::forward<Args>(args)...), seq);
+          return m;
+        }
       }
     }
 
 
+    template<typename...Ds, typename Op, typename Arg, typename...Args>
+    static constexpr auto
+    n_ary_operation_with_broadcasting_impl(const std::tuple<Ds...>& tup, Op&& op, Arg&& arg, Args&&...args)
+    {
+      return n_ary_operation_with_broadcasting_impl<Arg>(tup, std::forward<Op>(op), std::forward<Arg>(arg), std::forward<Args>(args)...);
+    }
+
+
+#ifdef __cpp_concepts
     template<typename DTup, typename Arg, std::size_t...indices>
-    constexpr bool check_n_ary_dims_impl(std::index_sequence<indices...>)
+#else
+    template<typename DTup, typename Arg, typename = void, std::size_t...indices>
+#endif
+    struct n_ary_argument_index : std::false_type {};
+
+
+#ifdef __cpp_concepts
+    template<typename DTup, typename Arg, std::size_t...indices>
+    requires (max_indices_of_v<Arg> <= sizeof...(indices)) or
+      ((dimension_size_of_v<std::tuple_element_t<indices, DTup>> == dynamic_size or
+      index_dimension_of_v<Arg, indices> == dynamic_size or
+      (index_dimension_of_v<Arg, indices> == 1 and euclidean_index_descriptor<coefficient_types_of_t<Arg, indices>>) or
+      equivalent_to<coefficient_types_of_t<Arg, indices>, std::tuple_element_t<indices, DTup>> or
+      (index_dimension_of_v<Arg, indices> == dimension_size_of_v<std::tuple_element_t<indices, DTup>> and
+        euclidean_index_descriptor<coefficient_types_of_t<Arg, indices>>)) and ...)
+    struct n_ary_argument_index<DTup, Arg, indices...>
+#else
+    template<typename DTup, typename Arg, std::size_t...indices>
+    struct n_ary_argument_index<DTup, Arg, std::enable_if_t<max_indices_of_v<Arg> <= sizeof...(indices)>, indices...>
+    : std::true_type {};
+
+    template<typename DTup, typename Arg, std::size_t...indices>
+    struct n_ary_argument_index<DTup, Arg, std::enable_if_t<(max_indices_of_v<Arg> > sizeof...(indices)) and
+      ((dimension_size_of_v<std::tuple_element_t<indices, DTup>> == dynamic_size or
+      index_dimension_of_v<Arg, indices> == dynamic_size or
+      (index_dimension_of_v<Arg, indices> == 1 and euclidean_index_descriptor<coefficient_types_of_t<Arg, indices>>) or
+      equivalent_to<coefficient_types_of_t<Arg, indices>, std::tuple_element_t<indices, DTup>> or
+      (index_dimension_of_v<Arg, indices> == dimension_size_of_v<std::tuple_element_t<indices, DTup>> and
+        euclidean_index_descriptor<coefficient_types_of_t<Arg, indices>>)) and ...)>, indices...>
+#endif
+    : std::true_type {};
+
+
+    template<typename DTup, typename Arg, std::size_t...indices>
+    constexpr bool n_ary_argument_impl(std::index_sequence<indices...>)
     {
-      return ((
-        dimension_size_of_v<std::tuple_element_t<indices, DTup>> == dynamic_size or
-        index_dimension_of_v<Arg, indices> == dynamic_size or
-        (index_dimension_of_v<Arg, indices> == 1 and euclidean_index_descriptor<coefficient_types_of_t<Arg, indices>>) or
-        equivalent_to<coefficient_types_of_t<Arg, indices>, std::tuple_element_t<indices, DTup>> or
-        ((index_dimension_of_v<Arg, indices> == dimension_size_of_v<std::tuple_element_t<indices, DTup>> and
-          euclidean_index_descriptor<coefficient_types_of_t<Arg, indices>>) and ...)) and ...);
+# ifdef __cpp_concepts
+      return n_ary_argument_index<DTup, Arg, indices...>::value;
+# else
+      return n_ary_argument_index<DTup, Arg, void, indices...>::value;
+# endif
     }
 
 
-    template<typename DTup, typename...Args>
-    constexpr bool check_n_ary_dimensions()
-    {
-      return (check_n_ary_dims_impl<DTup, Args>(std::make_index_sequence<std::tuple_size_v<DTup>>()) and ...);
-    }
+    // Arg is a valid argument to n_ary_operation
+    template<typename Arg, typename...Ds>
+#ifdef __cpp_concepts
+    concept n_ary_argument =
+#else
+    constexpr bool n_ary_argument =
+#endif
+      indexible<Arg> and (n_ary_argument_impl<std::tuple<Ds...>, Arg>(std::make_index_sequence<sizeof...(Ds)> {}));
 
 
     template<typename...Ds, typename Arg, std::size_t...indices>
@@ -1303,10 +1683,11 @@ namespace OpenKalman
     }
 
 
+    // Check that runtime dimensions of arguments Args are compatible with index descriptors Ds.
     template<typename...Ds, typename...Arg>
     inline void check_n_ary_runtime_dimensions(const std::tuple<Ds...>& d_tup, const Arg&...arg)
     {
-      (check_n_ary_rt_dims_impl(d_tup, arg, std::make_index_sequence<sizeof...(Ds)>()), ...);
+      (check_n_ary_rt_dims_impl(d_tup, arg, std::make_index_sequence<sizeof...(Ds)> {}), ...);
     }
 
   } // namespace detail
@@ -1362,34 +1743,39 @@ namespace OpenKalman
    *     12, 14,
    *     19, 21
    *   \endcode
+   * - Binary operation, broadcasting, with indices:
+   *   \code
+   *     auto op2b = [](auto arg1, auto arg2, std::size_t row, std::size_t col){return 3 * arg1 + arg2 + row + col;};
+   *     std::cout << n_ary_operation(ds32, op2b, m31, 2 * m32) << std::endl;
+   *   \endcode
+   *   Output:
+   *   \code
+   *     5, 8,
+   *     13, 16,
+   *     21, 24
+   *   \endcode
    * \tparam Ds Index descriptors defining the size of the result
-   * \tparam Operation The n-ary operation taking n>0 arguments
-   * \tparam Arg The first argument
-   * \tparam Args Any other arguments
+   * \tparam Operation The n-ary operation taking n arguments and, optionally, a set of indices indicating the location
+   * within the result. The number of indices, if any, must match the number of indices in the result.
+   * \tparam Args The arguments
    * \return A matrix or array in which each component is the result of calling Operation on corresponding components
    * from each of the arguments, in the order specified.
    */
 #ifdef __cpp_concepts
-  template<index_descriptor...Ds, typename Operation, indexible Arg, indexible...Args> requires
-    std::invocable<const Operation&, typename scalar_type_of<Arg>::type, typename scalar_type_of<Args>::type...> and
-    (detail::check_n_ary_dimensions<std::tuple<Ds...>, Arg, Args...>()) and
-    ((sizeof...(Ds) == max_indices_of_v<Arg>) and ... and (sizeof...(Ds) == max_indices_of_v<Args>))
+  template<index_descriptor...Ds, typename Operation, detail::n_ary_argument<Ds...>...Args>
+  requires (sizeof...(Args) > 0) and detail::n_ary_operator<Operation, sizeof...(Ds), Args...>
 #else
-  template<typename...Ds, typename Operation, typename Arg, typename...Args, std::enable_if_t<
-    (index_descriptor<Ds> and ...) and (indexible<Arg> and ... and indexible<Args>) and
-    std::is_invocable<const Operation&, typename scalar_type_of<Arg>::type, typename scalar_type_of<Args>::type...>::value and
-    (detail::check_n_ary_dimensions<std::tuple<Ds...>, Arg, Args...>()) and
-    ((sizeof...(Ds) == max_indices_of<Arg>::value) and ... and (sizeof...(Ds) == max_indices_of<Args>::value)), int> = 0>
+  template<typename...Ds, typename Operation, typename...Args, std::enable_if_t<(sizeof...(Args) > 0) and
+    (index_descriptor<Ds> and ...) and detail::n_ary_operator<Operation, sizeof...(Ds), Args...> and
+    (detail::n_ary_argument<Args, Ds...> and ...), int> = 0>
 #endif
   constexpr decltype(auto)
-  n_ary_operation(const std::tuple<Ds...>& d_tup, const Operation& operation, Arg&& arg, Args&&...args)
+  n_ary_operation(const std::tuple<Ds...>& d_tup, Operation&& operation, Args&&...args)
   {
-    if constexpr (((dimension_size_of_v<Ds> == dynamic_size) or ...) or
-        (has_dynamic_dimensions<Arg> or ... or has_dynamic_dimensions<Args>))
-      detail::check_n_ary_runtime_dimensions(d_tup, arg, args...);
+    if constexpr (((dimension_size_of_v<Ds> == dynamic_size) or ...) or (has_dynamic_dimensions<Args> or ...))
+      detail::check_n_ary_runtime_dimensions(d_tup, args...);
 
-    return detail::n_ary_operation_with_broadcasting_impl<Arg>(
-      d_tup, operation, std::forward<Arg>(arg), std::forward<Args>(args)...);
+    return detail::n_ary_operation_with_broadcasting_impl(d_tup, std::forward<Operation>(operation), std::forward<Args>(args)...);
   }
 
 
@@ -1441,76 +1827,94 @@ namespace OpenKalman
       return std::tuple {find_max_dims_impl<I>(args...)...};
     }
 
-  } // namespace detail
 
-
-  /**
-   * \overload
-   * \brief Perform a component-wise n-ary operation, using broadcasting if necessary to make the arguments the same size.
-   * \details Each of the arguments may be expanded by broadcasting. The result will derive each dimension from the
-   * largest corresponding dimension among the arguments. Examples:
-   * - Binary operation, broadcasting:
-   *   \code
-   *     auto M = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>
-   *     auto op2 = [](auto arg1, auto arg2){return 3 * arg1 + arg2;};
-   *     auto m31 = make_dense_writable_matrix_from<M>(ds31, 1, 2, 3);
-   *     auto m32 = make_dense_writable_matrix_from<M>(ds32, 1, 2, 3, 4, 5, 6);
-   *     std::cout << n_ary_operation(op2, m31, 2 * m32) << std::endl;
-   *   \endcode
-   *   Output:
-   *   \code
-   *     5, 7,
-   *     12, 14,
-   *     19, 21
-   *   \endcode
-   * \tparam Operation The n-ary operation taking n arguments
-   * \tparam Arg The first of n arguments
-   * \tparam Args Any arguments other than the first
-   * \return A matrix or array in which each component is the result of calling Operation on corresponding components
-   * from each of the arguments, in the order specified.
-   */
-#ifdef __cpp_concepts
-  template<typename Operation, indexible Arg, indexible...Args> requires
-    std::invocable<const Operation&, scalar_type_of_t<Arg>, scalar_type_of_t<Args>...> and
-    ((max_indices_of_v<Arg> == max_indices_of_v<Args>) and ...)
-#else
-  template<typename Operation, typename Arg, typename...Args, std::enable_if_t<
-    (indexible<Arg> and ... and indexible<Args>) and
-    std::is_invocable<const Operation&, typename scalar_type_of<Arg>::type, typename scalar_type_of<Args>::type...>::value and
-    ((max_indices_of<Arg>::value == max_indices_of<Args>::value) and ...), int> = 0>
-#endif
-  constexpr decltype(auto)
-  n_ary_operation(const Operation& operation, Arg&& arg, Args&&...args)
-  {
-    constexpr auto max_indices = std::max({max_indices_of_v<Arg>, max_indices_of_v<Args>...});
-    auto d_tup = detail::find_max_dims(std::make_index_sequence<max_indices>(), arg, args...);
-    return n_ary_operation(std::move(d_tup), operation, std::forward<Arg>(arg), std::forward<Args>(args)...);
-  }
-
-
-  // -------------------------- //
-  //  unary_operation_in_place  //
-  // -------------------------- //
-
-  namespace detail
-  {
-    template<typename Operation, typename Arg, typename...J>
-    inline void unary_operation_in_place_impl(const Operation& operation, Arg& arg, std::index_sequence<>, J...j)
+    template<typename Arg, std::size_t...I>
+    constexpr decltype(auto) n_ary_get_element_0(Arg&& arg, std::index_sequence<I...>)
     {
-      if constexpr (std::is_same_v<decltype(get_element(arg, j...)), scalar_type_of_t<Arg>&>)
-      {
-        auto& e = get_element(arg, j...);
-        e = operation(e);
-      }
+      return get_element(std::forward<Arg>(arg), (I * 0)...);
+    }
+
+
+    //// operation_returns_lvalue_reference ////
+
+#ifdef __cpp_concepts
+    template<typename Operation, typename...Args>
+#else
+    template<typename Operation, typename = void, typename...Args>
+#endif
+    struct operation_returns_lvalue_reference_impl : std::false_type {};
+
+
+#ifdef __cpp_concepts
+    template<typename Operation, typename Arg>
+    requires (not std::is_const_v<Arg>) and
+      std::is_lvalue_reference_v<typename n_ary_operator_traits<Operation, max_indices_of_v<Arg>,
+        std::add_lvalue_reference_t<scalar_type_of_t<Arg>>>::type>
+    struct operation_returns_lvalue_reference_impl<Operation, Arg&>
+#else
+    template<typename Operation, typename Arg>
+    struct operation_returns_lvalue_reference_impl<Operation, std::enable_if_t<
+      (not std::is_const<Arg>::value) and
+      std::is_lvalue_reference<typename n_ary_operator_traits<Operation, max_indices_of<Arg>::value,
+        typename std::add_lvalue_reference<typename scalar_type_of<Arg>::type>::type>::type>::value>, Arg&>
+#endif
+    : std::true_type {};
+
+
+    template<typename Operation, typename...Args>
+#ifdef __cpp_concepts
+    concept operation_returns_lvalue_reference = operation_returns_lvalue_reference_impl<Operation, Args...>::value;
+#else
+    constexpr bool operation_returns_lvalue_reference = operation_returns_lvalue_reference_impl<Operation, void, Args...>::value;
+#endif
+
+
+  //// operation_returns_void ////
+
+#ifdef __cpp_concepts
+    template<typename Operation, typename...Args>
+#else
+    template<typename Operation, typename = void, typename...Args>
+#endif
+    struct operation_returns_void_impl : std::false_type {};
+
+
+#ifdef __cpp_concepts
+    template<typename Operation, typename Arg>
+    requires (not std::is_const_v<Arg>) and
+      std::is_void_v<typename n_ary_operator_traits<Operation, max_indices_of_v<Arg>,
+        std::add_lvalue_reference_t<scalar_type_of_t<Arg>>>::type>
+    struct operation_returns_void_impl<Operation, Arg&>
+#else
+    template<typename Operation, typename Arg>
+    struct operation_returns_void_impl<Operation, std::enable_if_t<
+      (not std::is_const_v<Arg>) and
+      std::is_void_v<typename n_ary_operator_traits<Operation, max_indices_of_v<Arg>,
+        std::add_lvalue_reference_t<scalar_type_of_t<Arg>>>::type>>, Arg&>
+#endif
+    : std::true_type {};
+
+
+    template<typename Operation, typename...Args>
+#ifdef __cpp_concepts
+    concept operation_returns_void = operation_returns_void_impl<Operation, Args...>::value;
+#else
+    constexpr bool operation_returns_void = operation_returns_void_impl<Operation, void, Args...>::value;
+#endif
+
+
+    template<typename Operation, typename Arg, typename...J>
+    inline void unary_operation_in_place_impl(Operation&& operation, Arg& arg, std::index_sequence<>, J...j)
+    {
+      if constexpr (std::is_invocable_v<Operation&&, std::add_lvalue_reference_t<scalar_type_of_t<Arg>>, J...>)
+        std::forward<Operation>(operation)(get_element(arg, j...), j...);
       else
-      {
-        set_element(arg, operation(get_element(arg, j...)), j...);
-      }
+        std::forward<Operation>(operation)(get_element(arg, j...));
     }
 
 
     template<typename Operation, typename Arg, std::size_t I, std::size_t...Is, typename...J>
-    inline void unary_operation_in_place_impl(const Operation& operation, Arg& arg, std::index_sequence<I, Is...>, J...j)
+    inline void unary_operation_in_place_impl(Operation&& operation, Arg& arg, std::index_sequence<I, Is...>, J...j)
     {
       for (std::size_t i = 0; i < get_index_dimension_of<I>(arg); i++)
       {
@@ -1520,33 +1924,132 @@ namespace OpenKalman
 
   } // namespace detail
 
+
   /**
    * \overload
-   * \brief Perform a component-wise unary operation in place.
-   * \details This is essentially the same as n_ary_operation, except that it uses an in-place operation.
-   * \tparam Operation The unary operation
-   * \tparam Arg The first of n arguments
+   * \brief Perform a component-wise n-ary operation, using broadcasting if necessary to make the arguments the same size.
+   * \details Each of the arguments may be expanded by broadcasting. The result will derive each dimension from the
+   * largest corresponding dimension among the arguments.
+   * There are additional input options for unary operations: the operation may return either a scalar value, an
+   * lvalue reference, or void. Examples:
+   * - Binary operation, broadcasting:
+   *   \code
+   *     auto M = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>
+   *     auto op2a = [](auto arg1, auto arg2){return 3 * arg1 + arg2;};
+   *     auto m31 = make_dense_writable_matrix_from<M>(ds31, 1, 2, 3);
+   *     auto m32 = make_dense_writable_matrix_from<M>(ds32, 1, 2, 3, 4, 5, 6);
+   *     std::cout << n_ary_operation(op2a, m31, 2 * m32) << std::endl;
+   *   \endcode
+   *   Output:
+   *   \code
+   *     5, 7,
+   *     12, 14,
+   *     19, 21
+   *   \endcode
+   * - Binary operation, broadcasting, with indices:
+   *   \code
+   *     auto op2b = [](auto arg1, auto arg2, std::size_t row, std::size_t col){return 3 * arg1 + arg2 + row + col;};
+   *     std::cout << n_ary_operation(op2b, m31, 2 * m32) << std::endl;
+   *   \endcode
+   *   Output:
+   *   \code
+   *     5, 8,
+   *     13, 16,
+   *     21, 24
+   *   \endcode
+   * - Unary operation, with indices:
+   *   \code
+   *     auto op1a = [](auto& arg, std::size_t row, std::size_t col){return arg + row + col;};
+   *     std::cout << n_ary_operation(op1a, m32) << std::endl;
+   *   \endcode
+   *   Output:
+   *   \code
+   *     1, 3,
+   *     4, 6,
+   *     7, 9
+   *   \endcode
+   * - Unary operation, with indices, in-place operation returning lvalue reference:
+   *   \code
+   *     auto op1b = [](auto& arg, std::size_t row, std::size_t col){return arg += row + col;};
+   *     std::cout << n_ary_operation(op1b, m32) << std::endl;
+   *   \endcode
+   *   Output:
+   *   \code
+   *     1, 3,
+   *     4, 6,
+   *     7, 9
+   *   \endcode
+   * - Unary operation, with indices, in-place operation returning void:
+   *   \code
+   *     auto op1c = [](auto& arg, std::size_t row, std::size_t col){arg += row + col;};
+   *     std::cout << n_ary_operation(op1c, m32) << std::endl;
+   *   \endcode
+   *   Output:
+   *   \code
+   *     1, 3,
+   *     4, 6,
+   *     7, 9
+   *   \endcode
+   * \tparam Operation The n-ary operation taking n arguments and, optionally, a set of indices. The operation may
+   * return one of the following:
+   * - a scalar value;
+   * - an lvalue reference to a scalar element within the argument; or
+   * - void (for example, if the operation works on an lvalue reference)
+   * \tparam Args The arguments
+   * \return A matrix or array in which each component is the result of calling Operation on corresponding components
+   * from each of the arguments, in the order specified.
    */
 #ifdef __cpp_concepts
-  template<typename Operation, indexible Arg> requires
-    std::invocable<const Operation&, scalar_type_of_t<Arg>> and writable<Arg>
+  template<typename Operation, indexible...Args> requires (sizeof...(Args) > 0) and
+    detail::n_ary_operator<Operation, std::max({max_indices_of_v<Args>...}), Args...>
 #else
-  template<typename Operation, typename Arg, std::enable_if_t<indexible<Arg> and
-    std::is_invocable<const Operation&, typename scalar_type_of<Arg>::type>::value and writable<Arg>, int> = 0>
+  template<typename Operation, typename...Args, std::enable_if_t<(indexible<Args> and ... and (sizeof...(Args) > 0)) and
+    detail::n_ary_operator<Operation, std::max({max_indices_of_v<Args>...}), Args...>, int> = 0>
 #endif
-  constexpr Arg&
-  unary_operation_in_place(const Operation& operation, Arg& arg)
+  constexpr decltype(auto)
+  n_ary_operation(Operation&& operation, Args&&...args)
   {
-    constexpr auto max_indices = max_indices_of_v<Arg>;
-    detail::unary_operation_in_place_impl(operation, arg, std::make_index_sequence<max_indices>());
-    return arg;
+    if constexpr (detail::operation_returns_lvalue_reference<Operation&&, Args&&...>)
+    {
+      auto args_tup = std::forward_as_tuple(args...);
+      auto& arg = std::get<0>(args_tup);
+      using Arg = std::decay_t<decltype(arg)>;
+      constexpr std::make_index_sequence<max_indices_of_v<Arg>> seq;
+
+      using G = decltype(detail::n_ary_get_element_0(std::declval<Arg&>(), seq));
+      static_assert(std::is_same_v<G, std::decay_t<G>&>, "Cannot use n_ary_operation with an operation that returns an "
+        "lvalue reference unless get_element(...) returns a non-const lvalue reference.");
+
+      n_ary_operation_iterate(arg, std::forward<Operation>(operation), std::move(args_tup), seq);
+      return arg;
+    }
+    else if constexpr (detail::operation_returns_void<Operation&&, Args&&...>)
+    {
+      auto args_tup = std::forward_as_tuple(args...);
+      auto& arg = std::get<0>(args_tup);
+      using Arg = std::decay_t<decltype(arg)>;
+      constexpr std::make_index_sequence<max_indices_of_v<Arg>> seq;
+
+      using G = decltype(detail::n_ary_get_element_0(std::declval<Arg&>(), seq));
+      static_assert(std::is_same_v<G, std::decay_t<G>&>, "Cannot use n_ary_operation with an operation that returns "
+        "void unless get_element(...) returns a non-const lvalue reference.");
+
+      detail::unary_operation_in_place_impl(std::forward<Operation>(operation), arg, seq);
+      return arg;
+    }
+    else
+    {
+      constexpr auto max_indices = std::max({max_indices_of_v<Args>...});
+      auto d_tup = detail::find_max_dims(std::make_index_sequence<max_indices> {}, args...);
+      return n_ary_operation(std::move(d_tup), std::forward<Operation>(operation), std::forward<Args>(args)...);
+    }
   }
 
 
   namespace detail
   {
     template<std::size_t I, std::size_t...indices>
-    constexpr std::size_t is_index_match()
+    constexpr bool is_index_match()
     {
       return ((I == indices) or ...);
     }
@@ -1573,26 +2076,30 @@ namespace OpenKalman
 
 
     template<typename PatternMatrix, typename Operation, typename Descriptors_tuple, typename Index_seq, typename K_seq, typename...Is>
-    void nullary_set_elements(PatternMatrix& m, Operation& op, const Descriptors_tuple&, Index_seq, K_seq, Is...is)
+    void nullary_set_elements(PatternMatrix& m, Operation&& op, const Descriptors_tuple&, Index_seq, K_seq, Is...is)
     {
-      set_element(m, op(), is...);
+      constexpr auto seq = std::make_index_sequence<max_indices_of_v<PatternMatrix>> {};
+      if constexpr (detail::is_invocable_with_indices<Operation&&>(seq))
+        set_element(m, op(is...), is...);
+      else
+        set_element(m, op(), is...);
     }
 
 
     template<std::size_t DsIndex, std::size_t...DsIndices, typename PatternMatrix, typename Operation,
       typename Descriptors_tuple, std::size_t...indices, std::size_t...Ks, typename...Is>
-    void nullary_set_elements(PatternMatrix& m, Operation& op, const Descriptors_tuple& ds_tup,
+    void nullary_set_elements(PatternMatrix& m, Operation&& op, const Descriptors_tuple& ds_tup,
       std::index_sequence<indices...> index_seq, std::index_sequence<Ks...> k_seq, Is...is)
     {
       if constexpr (((DsIndex == indices) or ...))
       {
         constexpr std::size_t i = ((DsIndex == indices ? Ks : 0) + ...);
-        nullary_set_elements<DsIndices...>(m, op, ds_tup, index_seq, k_seq, is..., i);
+        nullary_set_elements<DsIndices...>(m, std::forward<Operation>(op), ds_tup, index_seq, k_seq, is..., i);
       }
       else
       {
         // Iterate through the dimensions of the current DsIndex and add set elements for each dimension iteratively.
-        for (int i = 0; i < get_dimension_size_of(std::get<DsIndex>(ds_tup)); ++i)
+        for (std::size_t i = 0; i < get_dimension_size_of(std::get<DsIndex>(ds_tup)); ++i)
         {
           nullary_set_elements<DsIndices...>(m, op, ds_tup, index_seq, k_seq, is..., i);
         }
@@ -1602,24 +2109,26 @@ namespace OpenKalman
 
     template<std::size_t CurrentOpIndex, std::size_t factor, typename PatternMatrix, typename Operations_tuple,
       typename Descriptors_tuple, typename UniqueIndicesSeq, std::size_t...AllDsIndices, typename K_seq>
-    void nullary_iterate(PatternMatrix& m, Operations_tuple& op_tup, const Descriptors_tuple& ds_tup,
+    void nullary_iterate(PatternMatrix& m, Operations_tuple&& op_tup, const Descriptors_tuple& ds_tup,
       UniqueIndicesSeq unique_indices_seq, std::index_sequence<AllDsIndices...>, K_seq k_seq)
     {
-      nullary_set_elements<AllDsIndices...>(m, std::get<CurrentOpIndex>(op_tup), ds_tup, unique_indices_seq, k_seq);
+      nullary_set_elements<AllDsIndices...>(m, std::get<CurrentOpIndex>(
+        std::forward<Operations_tuple>(op_tup)), ds_tup, unique_indices_seq, k_seq);
     }
 
 
     template<std::size_t CurrentOpIndex, std::size_t factor, std::size_t index, std::size_t...indices,
       typename PatternMatrix, typename Operations_tuple, typename Descriptors_tuple, typename UniqueIndicesSeq, typename AllDsSeq,
       std::size_t...Ks, std::size_t...Js, typename...J_seqs>
-    void nullary_iterate(PatternMatrix& m, Operations_tuple& op_tup, const Descriptors_tuple& ds_tup,
+    void nullary_iterate(PatternMatrix& m, Operations_tuple&& op_tup, const Descriptors_tuple& ds_tup,
       UniqueIndicesSeq unique_indices_seq, AllDsSeq all_ds_seq, std::index_sequence<Ks...>, std::index_sequence<Js...>,
       J_seqs...j_seqs)
     {
       constexpr std::size_t new_factor = factor / dimension_size_of_v<std::tuple_element_t<index, Descriptors_tuple>>;
 
-      ((nullary_iterate<CurrentOpIndex + new_factor * Js, new_factor, indices...>(m, op_tup, ds_tup,
-        unique_indices_seq, all_ds_seq, std::index_sequence<Ks..., Js>{}, j_seqs...)),...);
+      ((nullary_iterate<CurrentOpIndex + new_factor * Js, new_factor, indices...>(
+        m, std::forward<Operations_tuple>(op_tup), ds_tup, unique_indices_seq, all_ds_seq,
+        std::index_sequence<Ks..., Js>{}, j_seqs...)),...);
     }
 
   } // namespace detail
@@ -1677,23 +2186,24 @@ namespace OpenKalman
    * dimensions corresponding to Ds
    */
 #ifdef __cpp_concepts
-  template<indexible PatternMatrix, std::size_t...indices, index_descriptor...Ds, typename...Operations>
-  requires (sizeof...(Ds) == max_indices_of_v<PatternMatrix>) and
+  template<indexible PatternMatrix, std::size_t...indices, index_descriptor...Ds,
+    detail::n_ary_operator<max_indices_of_v<PatternMatrix>>...Operations>
+  requires
     ((fixed_index_descriptor<std::tuple_element_t<indices, std::tuple<Ds...>>>) and ...) and
-    (sizeof...(Operations) == detail::count_index_dims<std::tuple<Ds...>, indices...>(std::index_sequence_for<Ds...> {})) and
-    (std::invocable<Operations&&> and ...)
+    (sizeof...(Operations) == detail::count_index_dims<std::tuple<Ds...>, indices...>(std::index_sequence_for<Ds...> {}))
 #else
-  template<typename PatternMatrix, typename...Ds, typename...Operations, std::enable_if_t<
+  template<typename PatternMatrix, std::size_t...indices, typename...Ds, typename...Operations, std::enable_if_t<
     indexible<PatternMatrix> and (index_descriptor<Ds> and ...) and
-    (sizeof...(Ds) == max_indices_of<PatternMatrix>::value) and
     ((fixed_index_descriptor<std::tuple_element_t<indices, std::tuple<Ds...>>>) and ...) and
     (sizeof...(Operations) == detail::count_index_dims<std::tuple<Ds...>, indices...>(std::index_sequence_for<Ds...> {})) and
-    (std::is_invocable<Operations&&>::value and ...), int> = 0>
+    (detail::n_ary_operator<Operations, max_indices_of_v<PatternMatrix>> and ...), int> = 0>
 #endif
   constexpr auto
   n_ary_operation(std::index_sequence<indices...>, const std::tuple<Ds...>& d_tup, Operations&&...operations)
   {
-    using Scalar = std::common_type_t<std::invoke_result_t<Operations&&>...>;
+    constexpr std::make_index_sequence<max_indices_of_v<PatternMatrix>> seq;
+    using Scalar = std::common_type_t<std::decay_t<
+      typename detail::n_ary_operator_traits<Operations, max_indices_of_v<PatternMatrix>>::type>...>;
 
     // One operation for all elements combined:
     if constexpr (sizeof...(Operations) == 1)
@@ -1701,20 +2211,22 @@ namespace OpenKalman
       return detail::n_ary_operation_with_broadcasting_impl<PatternMatrix>(d_tup, std::forward<Operations>(operations)...);
     }
     // One operation for each element (only if index descriptors are fixed):
-    else if constexpr (((dimension_size_of_v<Ds> != dynamic_size) and ...) and sizeof...(operations) == (dimension_size_of_v<Ds> * ...))
+    else if constexpr (((dimension_size_of_v<Ds> != dynamic_size) and ...) and
+      sizeof...(operations) == (dimension_size_of_v<Ds> * ...) and
+      not (detail::is_invocable_with_indices<Operations&&>(seq) or ...))
     {
-      return make_dense_writable_matrix_from<PatternMatrix, Scalar>(operations()...);
+      return make_dense_writable_matrix_from<PatternMatrix, Scalar>(d_tup, std::forward<Operations>(operations)()...);
     }
     else
     {
       auto m = std::apply([](const auto&...ds){ return make_default_dense_writable_matrix_like<PatternMatrix, Scalar>(ds...); }, d_tup);
-      auto operations_tuple = std::tuple {std::forward<Operations>(operations)...};
+      auto operations_tuple = std::forward_as_tuple(std::forward<Operations>(operations)...);
       detail::nullary_iterate<0, sizeof...(Operations), indices...>(
-        m, operations_tuple, d_tup,
+        m, std::move(operations_tuple), d_tup,
         std::index_sequence<indices...> {},
         std::index_sequence_for<Ds...> {},
         std::index_sequence<> {},
-        std::make_index_sequence<dimension_size_of_v<std::tuple_element_t<indices, std::tuple<Ds...>>>>{}...);
+        std::make_index_sequence<dimension_size_of_v<std::tuple_element_t<indices, std::tuple<Ds...>>>> {}...);
       return m;
     }
   }
@@ -1742,12 +2254,11 @@ namespace OpenKalman
    * dimensions corresponding to Ds
    */
 #ifdef __cpp_concepts
-  template<indexible PatternMatrix, index_descriptor...Ds, typename Operation>
-  requires (sizeof...(Ds) == max_indices_of_v<PatternMatrix>) and std::invocable<Operation&&>
+  template<indexible PatternMatrix, index_descriptor...Ds, detail::n_ary_operator<max_indices_of_v<PatternMatrix>> Operation>
 #else
   template<typename PatternMatrix, typename...Ds, typename Operation, std::enable_if_t<
     indexible<PatternMatrix> and (index_descriptor<Ds> and ...) and
-    (sizeof...(Ds) == max_indices_of<PatternMatrix>::value) and std::is_invocable<Operation&&>::value, int> = 0>
+    detail::n_ary_operator<Operation, max_indices_of_v<PatternMatrix>>, int> = 0>
 #endif
   constexpr auto
   n_ary_operation(const std::tuple<Ds...>& d_tup, Operation&& operation)
@@ -1805,15 +2316,16 @@ namespace OpenKalman
    * dimensions corresponding to Ds
    */
 #ifdef __cpp_concepts
-  template<indexible PatternMatrix, std::size_t...indices, typename...Operations>
+  template<indexible PatternMatrix, std::size_t...indices, detail::n_ary_operator<max_indices_of_v<PatternMatrix>>...Operations>
   requires (not has_dynamic_dimensions<PatternMatrix>) and
-    (sizeof...(Operations) == detail::pattern_index_dims<PatternMatrix, indices...>(std::make_index_sequence<max_indices_of_v<PatternMatrix>> {})) and
-    (std::invocable<Operations&&> and ...)
+    (sizeof...(Operations) == detail::pattern_index_dims<PatternMatrix, indices...>(
+      std::make_index_sequence<max_indices_of_v<PatternMatrix>> {}))
 #else
   template<typename PatternMatrix, std::size_t...indices, typename...Operations, std::enable_if_t<
     indexible<PatternMatrix> and (not has_dynamic_dimensions<PatternMatrix>) and
-    (sizeof...(Operations) == detail::pattern_index_dims<PatternMatrix, indices...>(std::make_index_sequence<max_indices_of_v<PatternMatrix>> {})) and
-    (std::is_invocable<Operations&&>::value and ...), int> = 0>
+    (sizeof...(Operations) == detail::pattern_index_dims<PatternMatrix, indices...>(
+      std::make_index_sequence<max_indices_of_v<PatternMatrix>> {})) and
+    (detail::n_ary_operator<Operations, max_indices_of_v<PatternMatrix>> and ...), int> = 0>
 #endif
   constexpr auto
   n_ary_operation(std::index_sequence<indices...> seq, Operations&&...operations)
@@ -1870,107 +2382,17 @@ namespace OpenKalman
    * dimensions corresponding to Ds
    */
 #ifdef __cpp_concepts
-  template<indexible PatternMatrix, typename Operation>
-  requires (not has_dynamic_dimensions<PatternMatrix>) and std::invocable<Operation&&>
+  template<indexible PatternMatrix, detail::n_ary_operator<max_indices_of_v<PatternMatrix>> Operation>
+  requires (not has_dynamic_dimensions<PatternMatrix>)
 #else
   template<typename PatternMatrix, typename Operation, std::enable_if_t<
     indexible<PatternMatrix> and (not has_dynamic_dimensions<PatternMatrix>) and
-    std::is_invocable<Operation&&>::value, int> = 0>
+    detail::n_ary_operator<Operation, max_indices_of_v<PatternMatrix>>, int> = 0>
 #endif
   constexpr auto
   n_ary_operation(Operation&& operation)
   {
     return n_ary_operation<PatternMatrix>(std::index_sequence<>{}, std::forward<Operation>(operation));
-  }
-
-
-  // -------------------------------- //
-  //  n_ary_operation_with_indices  //
-  // -------------------------------- //
-
-  namespace detail
-  {
-#ifdef __cpp_concepts
-    template<typename Op, typename...I>
-#else
-    template<typename Op, typename = void, typename...I>
-#endif
-    struct is_invocable_with_indices_impl : std::false_type {};
-
-
-    template<typename Op, typename...I>
-#ifdef __cpp_concepts
-    requires scalar_type<std::invoke_result_t<const Op&, I...>>
-    struct is_invocable_with_indices_impl<Op, I...>
-#else
-    struct is_invocable_with_indices_impl<Op, std::enable_if_t<scalar_type<std::invoke_result<const Op&, I...>::type>>, I...>
-#endif
-      : std::true_type {};
-
-
-    template<typename Operation, std::size_t...I>
-    constexpr bool is_invocable_with_indices(std::index_sequence<I...>)
-    {
-#ifdef __cpp_concepts
-      return is_invocable_with_indices_impl<Operation, decltype(I)...>::value;
-#else
-      return is_invocable_with_indices_impl<Operation, void, decltype(I)...>::value;
-#endif
-    }
-
-
-#ifdef __cpp_concepts
-    template<typename T, typename DTup, typename Op>
-#else
-    template<typename T, typename DTup, typename Op, typename = void>
-#endif
-    struct nullary_operation_with_indices_exists : std::false_type {};
-
-
-    template<typename T, typename DTup, typename Op>
-#ifdef __cpp_concepts
-    requires requires(const DTup& d_tup, const Op& op) {
-      interface::ArrayOperations<std::decay_t<T>>::n_ary_operation_with_indices(d_tup, op);
-    }
-    struct nullary_operation_with_indices_exists<T, DTup, Op>
-#else
-    struct nullary_operation_with_indices_exists<T, DTup, Op, std::void_t<
-      decltype(interface::ArrayOperations<std::decay_t<T>>::n_ary_operation_with_indices(
-        std::declval<const DTup&>(), std::declval<const Op&>()))>>
-#endif
-      : std::true_type {};
-
-  } // namespace detail
-
-
-  /**
-   * \overload
-   * \brief Perform a component-wise nullary operation, using broadcasting to match the specified dimensions.
-   * \tparam PatternMatrix A matrix or array corresponding to the result type. Its dimensions need not match the specified dimensions Ds
-   * \tparam Ds Index descriptors for each index the result
-   * \tparam Operation The nullary operation taking n arguments
-   * \return A matrix or array in which each component is the result of calling Operation with no arguments and which has
-   * dimensions corresponding to Ds
-   */
-#ifdef __cpp_concepts
-  template<indexible PatternMatrix, index_descriptor...Ds, typename Operation> requires
-    (is_invocable_with_indices<Operation>(std::make_index_sequence<max_indices_of_v<PatternMatrix>> {})) and
-    (sizeof...(Ds) == max_indices_of_v<PatternMatrix>)
-#else
-  template<typename PatternMatrix, typename...Ds, typename Operation, std::enable_if_t<
-    indexible<PatternMatrix> and (index_descriptor<Ds> and ...) and
-    (is_invocable_with_indices<Operation>(std::make_index_sequence<max_indices_of_v<PatternMatrix>> {})) and
-    (sizeof...(Ds) == max_indices_of<PatternMatrix>::value), int> = 0>
-#endif
-  constexpr decltype(auto)
-  n_ary_operation_with_indices(const std::tuple<Ds...>& d_tup, const Operation& operation)
-  {
-    if constexpr (detail::nullary_operation_with_indices_exists<PatternMatrix, std::tuple<Ds...>, Operation>::value)
-      return interface::ArrayOperations<std::decay_t<PatternMatrix>>::n_ary_operation_with_indices(d_tup, operation);
-    else
-    {
-      // \todo
-    }
   }
 
 
@@ -2210,8 +2632,7 @@ namespace OpenKalman
     (std::is_arithmetic_v<std::decay_t<Dist>> or
       requires { typename std::decay_t<Dist>::result_type; typename std::decay_t<Dist>::param_type; })
 #else
-  template<typename PatternMatrix, typename random_number_generator = std::mt19937,
-      std::size_t...indices typename...Ds, typename...Dists,
+  template<typename PatternMatrix, typename random_number_generator = std::mt19937, typename...Ds, typename Dist,
     std::enable_if_t<indexible<PatternMatrix> and (index_descriptor<Ds> and ...) and
     (sizeof...(Ds) == max_indices_of_v<PatternMatrix>) and
     std::is_constructible_v<random_number_generator, typename std::random_device::result_type> and
@@ -2263,14 +2684,15 @@ namespace OpenKalman
     std::size_t...indices, typename...Dists>
   requires
     (not has_dynamic_dimensions<PatternMatrix>) and
-    (sizeof...(Dists) == detail::pattern_index_dims<PatternMatrix, indices...>(std::make_index_sequence<max_indices_of_v<PatternMatrix>> {})) and
+    (sizeof...(Dists) == detail::pattern_index_dims<PatternMatrix, indices...>(
+      std::make_index_sequence<max_indices_of_v<PatternMatrix>> {})) and
     std::constructible_from<random_number_generator, typename std::random_device::result_type> and
     ((std::is_arithmetic_v<Dists> or requires { typename Dists::result_type; typename Dists::param_type; }) and ...)
 #else
-  template<typename PatternMatrix, std::size_t...indices, typename random_number_generator = std::mt19937,
-      typename...Ds, typename...Dists,
-    std::enable_if_t<indexible<PatternMatrix> and (not has_dynamic_dimensions<PatternMatrix>) and
-    (sizeof...(Dists) == detail::pattern_index_dims<PatternMatrix, indices...>(std::make_index_sequence<max_indices_of_v<PatternMatrix>> {})) and
+  template<typename PatternMatrix, typename random_number_generator = std::mt19937, std::size_t...indices,
+    typename...Dists, std::enable_if_t<indexible<PatternMatrix> and (not has_dynamic_dimensions<PatternMatrix>) and
+    (sizeof...(Dists) == detail::pattern_index_dims<PatternMatrix, indices...>(
+      std::make_index_sequence<max_indices_of_v<PatternMatrix>> {})) and
     std::is_constructible_v<random_number_generator, typename std::random_device::result_type> and
     ((std::is_arithmetic_v<Dists> or detail::is_std_dist<Dists>::value) and ...), int> = 0>
 #endif
@@ -2475,7 +2897,7 @@ namespace OpenKalman
     (detail::has_uniform_reduction_indices<Arg>(std::make_index_sequence<max_indices_of_v<Arg>> {}))
 #else
   template<typename BinaryFunction, typename Arg, std::enable_if_t<indexible<Arg> and
-    std::is_invocable<typename scalar_type_of<Arg>::type, BinaryFunction&&,
+    std::is_invocable_r<typename scalar_type_of<Arg>::type, BinaryFunction&&,
       typename scalar_type_of<Arg>::type, typename scalar_type_of<Arg>::type>::value and
     (detail::has_uniform_reduction_indices<Arg>(std::make_index_sequence<max_indices_of_v<Arg>> {})), int> = 0>
 #endif
@@ -2509,7 +2931,7 @@ namespace OpenKalman
 #else
   template<std::size_t index, std::size_t...indices, typename BinaryFunction, typename Arg, std::enable_if_t<
     indexible<Arg> and ((index < max_indices_of<Arg>::value) and ... and (indices < max_indices_of<Arg>::value)) and
-    std::is_invocable<typename scalar_type_of<Arg>::type, BinaryFunction&&,
+    std::is_invocable_r<typename scalar_type_of<Arg>::type, BinaryFunction&&,
       typename scalar_type_of<Arg>::type, typename scalar_type_of<Arg>::type>::value and
     (detail::has_uniform_reduction_indices<Arg>(std::index_sequence<index, indices...> {})), int> = 0>
 #endif
@@ -2517,7 +2939,7 @@ namespace OpenKalman
   reduce(const BinaryFunction& b, Arg&& arg)
   {
     constexpr auto max_indices = max_indices_of_v<Arg>;
-    constexpr auto seq = std::make_index_sequence<max_indices> {};
+    constexpr std::make_index_sequence<max_indices> seq;
 
     if constexpr (covariance<Arg>)
     {
@@ -2655,7 +3077,7 @@ namespace OpenKalman
   {
     using Scalar = scalar_type_of_t<Arg>;
     constexpr auto max_indices = max_indices_of_v<Arg>;
-    constexpr auto seq = std::make_index_sequence<max_indices> {};
+    constexpr std::make_index_sequence<max_indices> seq;
 
     if constexpr (covariance<Arg>)
     {
@@ -2752,145 +3174,6 @@ namespace OpenKalman
       return make_self_contained(reduce<index, indices...>(std::plus<Scalar> {}, std::forward<Arg>(arg)) /
         (get_index_dimension_of<index>(arg) * ... * get_index_dimension_of<indices>(arg)));
     }
-  }
-
-
-  // ================================== //
-  //  Modular transformation functions  //
-  // ================================== //
-
-#ifdef __cpp_concepts
-  template<indexible Arg, index_descriptor C> requires (dynamic_columns<Arg> or has_untyped_index<Arg, 1>) and
-    (dynamic_index_descriptor<C> or dynamic_rows<Arg> or has_untyped_index<Arg, 0> or
-      equivalent_to<C, coefficient_types_of_t<Arg, 0>>)
-#else
-  template<typename Arg, typename C, std::enable_if_t<index_descriptor<C> and indexible<Arg> and
-    (dynamic_columns<Arg> or has_untyped_index<Arg, 1>) and
-    (dynamic_index_descriptor<C> or dynamic_rows<Arg> or has_untyped_index<Arg, 0> or
-      equivalent_to<C, coefficient_types_of_t<Arg, 0>>), int> = 0>
-#endif
-  constexpr decltype(auto)
-  to_euclidean(Arg&& arg, const C& c) noexcept
-  {
-    if constexpr (euclidean_index_descriptor<C>)
-    {
-      return std::forward<Arg>(arg);
-    }
-    else
-    {
-      if constexpr (dynamic_columns<Arg>) if (not get_index_descriptor_is_untyped(get_dimensions_of<1>(arg)))
-        throw std::domain_error {"In to_euclidean, the column index is not untyped"};
-
-      if constexpr (dynamic_rows<Arg>)
-        if (not get_index_descriptor_is_untyped(get_dimensions_of<0>(arg)) and get_dimensions_of<0>(arg) != C{})
-          throw std::domain_error {"In to_euclidean, the row index is not untyped and does not match the designated"
-            "fixed_index_descriptor"};
-
-      return interface::ModularTransformationTraits<Arg>::to_euclidean(std::forward<Arg>(arg), c);
-    }
-  }
-
-
-#ifdef __cpp_concepts
-  template<indexible Arg> requires (not has_untyped_index<Arg, 0>) and has_untyped_index<Arg, 1>
-#else
-  template<typename Arg, std::enable_if_t<indexible<Arg> and (not has_untyped_index<Arg, 0>) and
-    has_untyped_index<Arg, 1>, int> = 0>
-#endif
-  constexpr decltype(auto)
-  to_euclidean(Arg&& arg)
-  {
-    return to_euclidean(std::forward<Arg>(arg), get_dimensions_of<0>(arg));
-  }
-
-
-#ifdef __cpp_concepts
-  template<indexible Arg, index_descriptor C> requires (dynamic_columns<Arg> or has_untyped_index<Arg, 1>) and
-    (dynamic_index_descriptor<C> or dynamic_rows<Arg> or has_untyped_index<Arg, 0> or
-      equivalent_to<C, coefficient_types_of_t<Arg, 0>>)
-#else
-  template<typename Arg, typename C, std::enable_if_t<index_descriptor<C> and indexible<Arg> and
-    (dynamic_columns<Arg> or has_untyped_index<Arg, 1>) and
-    (dynamic_index_descriptor<C> or dynamic_rows<Arg> or has_untyped_index<Arg, 0> or
-      equivalent_to<C, coefficient_types_of_t<Arg, 0>>), int> = 0>
-#endif
-  constexpr decltype(auto)
-  from_euclidean(Arg&& arg, const C& c) noexcept
-  {
-    if constexpr (euclidean_index_descriptor<C>)
-    {
-      return std::forward<Arg>(arg);
-    }
-    else
-    {
-      if constexpr (dynamic_columns<Arg>) if (not get_index_descriptor_is_untyped(get_dimensions_of<1>(arg)))
-        throw std::domain_error {"In from_euclidean, the column index is not untyped"};
-
-      if constexpr (dynamic_rows<Arg>)
-        if (not get_index_descriptor_is_untyped(get_dimensions_of<0>(arg)) and get_dimensions_of<0>(arg) != C{})
-          throw std::domain_error {"In from_euclidean, the row index is not untyped and does not match the designated"
-            "fixed_index_descriptor"};
-
-      return interface::ModularTransformationTraits<Arg>::from_euclidean(std::forward<Arg>(arg), c);
-    }
-  }
-
-
-#ifdef __cpp_concepts
-  template<indexible Arg> requires (not has_untyped_index<Arg, 0>) and has_untyped_index<Arg, 1>
-#else
-  template<typename Arg, std::enable_if_t<indexible<Arg> and (not has_untyped_index<Arg, 0>) and
-    has_untyped_index<Arg, 1>, int> = 0>
-#endif
-  constexpr decltype(auto)
-  from_euclidean(Arg&& arg)
-  {
-    return from_euclidean(std::forward<Arg>(arg), get_dimensions_of<0>(arg));
-  }
-
-
-#ifdef __cpp_concepts
-  template<indexible Arg, index_descriptor C> requires (dynamic_columns<Arg> or has_untyped_index<Arg, 1>) and
-    (dynamic_index_descriptor<C> or dynamic_rows<Arg> or has_untyped_index<Arg, 0> or
-      equivalent_to<C, coefficient_types_of_t<Arg, 0>>)
-#else
-  template<typename Arg, typename C, std::enable_if_t<index_descriptor<C> and indexible<Arg> and
-    (dynamic_columns<Arg> or has_untyped_index<Arg, 1>) and
-    (dynamic_index_descriptor<C> or dynamic_rows<Arg> or has_untyped_index<Arg, 0> or
-      equivalent_to<C, coefficient_types_of_t<Arg, 0>>), int> = 0>
-#endif
-  constexpr decltype(auto)
-  wrap_angles(Arg&& arg, const C& c)
-  {
-    if constexpr (euclidean_index_descriptor<C> or identity_matrix<Arg> or zero_matrix<Arg>)
-    {
-      return std::forward<Arg>(arg);
-    }
-    else
-    {
-      if constexpr (dynamic_columns<Arg>) if (not get_index_descriptor_is_untyped(get_dimensions_of<1>(arg)))
-        throw std::domain_error {"In wrap_angles, the column index is not untyped"};
-
-      if constexpr (dynamic_rows<Arg>)
-        if (not get_index_descriptor_is_untyped(get_dimensions_of<0>(arg)) and get_dimensions_of<0>(arg) != C{})
-          throw std::domain_error {"In wrap_angles, the row index is not untyped and does not match the designated"
-            "fixed_index_descriptor"};
-
-      interface::ModularTransformationTraits<Arg>::wrap_angles(std::forward<Arg>(arg), c);
-    }
-  }
-
-
-#ifdef __cpp_concepts
-  template<indexible Arg> requires (not has_untyped_index<Arg, 0>) and has_untyped_index<Arg, 1>
-#else
-  template<typename Arg, std::enable_if_t<indexible<Arg> and (not has_untyped_index<Arg, 0>) and
-    has_untyped_index<Arg, 1>, int> = 0>
-#endif
-  constexpr decltype(auto)
-  wrap_angles(Arg&& arg)
-  {
-    return wrap_angles(std::forward<Arg>(arg), get_dimensions_of<0>(arg));
   }
 
 

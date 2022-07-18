@@ -128,7 +128,7 @@ namespace OpenKalman::internal
   {
     static_assert(index1 <= index2, "Index range is invalid");
     static_assert(index2 <= std::tuple_size_v<std::decay_t<T>>, "Index is out of bounds");
-    return detail::tuple_slice_impl<index1>(std::forward<T>(t), std::make_index_sequence<index2 - index1>());
+    return detail::tuple_slice_impl<index1>(std::forward<T>(t), std::make_index_sequence<index2 - index1> {});
   }
 
 

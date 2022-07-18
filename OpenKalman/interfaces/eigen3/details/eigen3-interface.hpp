@@ -54,7 +54,10 @@ namespace OpenKalman::interface
     template<typename Arg>
     static constexpr decltype(auto) get(Arg&& arg, I...i)
     {
-      return std::forward<Arg>(arg).coeff(static_cast<int>(i)...);
+      if constexpr ((Eigen::internal::traits<std::decay_t<T>>::Flags & Eigen::LvalueBit) != 0)
+        return std::forward<Arg>(arg).coeffRef(static_cast<int>(i)...);
+      else
+        return std::forward<Arg>(arg).coeff(static_cast<int>(i)...);
     }
   };
 
@@ -424,7 +427,7 @@ namespace OpenKalman::interface
     replicate_arg(const std::tuple<Ds...>& p_tup, Arg&& arg)
     {
       return replicate_arg_impl(p_tup, get_all_dimensions_of(arg), std::forward<Arg>(arg),
-        std::make_index_sequence<sizeof...(Ds)>{});
+        std::make_index_sequence<sizeof...(Ds)> {});
     }
 
   public:
@@ -434,9 +437,9 @@ namespace OpenKalman::interface
       std::invocable<Operation&&, scalar_type_of_t<Args>...> and
       scalar_type<std::invoke_result_t<Operation&&, scalar_type_of_t<Args>...>>
 #else
-    template<typename...Ds, typename Operation, typename...Args, std::enable_if_t<sizeof...(Args) <= 3 and
-      std::is_invocable<Operation&&, scalar_type_of_t<Args>...>::value and
-      scalar_type<std::invoke_result<Operation&&, scalar_type_of_t<Args>...>, int> = 0>
+    template<typename...Ds, typename Operation, typename...Args, std::enable_if_t<(sizeof...(Args) <= 3) and
+      std::is_invocable<Operation&&, typename scalar_type_of<Args>::type...>::value and
+      scalar_type<typename std::invoke_result<Operation&&, typename scalar_type_of<Args>::type...>::type>, int> = 0>
 #endif
     static auto
     n_ary_operation(const std::tuple<Ds...>& tup, Operation&& operation, Args&&...args)
@@ -1950,7 +1953,7 @@ namespace OpenKalman::Eigen3
     else
     {
       return detail::columnwise_impl<index>(
-        f, std::forward<Arg>(arg), std::make_index_sequence<column_dimension_of_v<Arg>>());
+        f, std::forward<Arg>(arg), std::make_index_sequence<column_dimension_of_v<Arg>> ());
     }
   }
 
@@ -2009,7 +2012,7 @@ namespace OpenKalman::Eigen3
     {
       if constexpr (sizeof...(compile_time_columns) > 0)
       {
-        return detail::cat_columnwise_impl(f, std::make_index_sequence<(compile_time_columns + ... + 0)>());
+        return detail::cat_columnwise_impl(f, std::make_index_sequence<(compile_time_columns + ... + 0)> {});
       }
       else
       {
@@ -2188,8 +2191,7 @@ namespace OpenKalman::Eigen3
     }
     else
     {
-      return detail::rowwise_impl<index>(
-        f, std::forward<Arg>(arg), std::make_index_sequence<row_dimension_of_v<Arg>>());
+      return detail::rowwise_impl<index>(f, std::forward<Arg>(arg), std::make_index_sequence<row_dimension_of_v<Arg>> {});
     }
   }
 
@@ -2248,7 +2250,7 @@ namespace OpenKalman::Eigen3
     {
       if constexpr (sizeof...(runtime_rows) == 0)
       {
-        return detail::cat_rowwise_impl(f, std::make_index_sequence<(compile_time_rows + ... + 0)>());
+        return detail::cat_rowwise_impl(f, std::make_index_sequence<(compile_time_rows + ... + 0)> {});
       }
       else
       {

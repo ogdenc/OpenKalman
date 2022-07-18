@@ -99,7 +99,7 @@ namespace OpenKalman::internal
     {
       using Scalar = scalar_type_of_t<Weights>;
       constexpr auto count = row_dimension_of_v<Weights>;
-      return cat_weights<dim, Weights, Scalar>(W_m0<dim>(), std::make_index_sequence<count - 1>());
+      return cat_weights<dim, Weights, Scalar>(W_m0<dim>(), std::make_index_sequence<count - 1> {});
     };
 
 
@@ -108,7 +108,7 @@ namespace OpenKalman::internal
     {
       using Scalar = scalar_type_of_t<Weights>;
       constexpr auto count = row_dimension_of_v<Weights>;
-      return cat_weights<dim, Weights, Scalar>(W_c0<dim>(), std::make_index_sequence<count - 1>());
+      return cat_weights<dim, Weights, Scalar>(W_c0<dim>(), std::make_index_sequence<count - 1> {});
     };
 
   public:

@@ -121,7 +121,7 @@ namespace OpenKalman
         static_assert(order >= 2);
         constexpr auto s = std::tuple_size_v<std::decay_t<T1>>;
         static_assert(s == std::tuple_size_v<std::decay_t<T2>>);
-        return zip_tuples_impl<OutputCoeffs>(std::forward<T1>(t1), std::forward<T2>(t2), std::make_index_sequence<s>());
+        return zip_tuples_impl<OutputCoeffs>(std::forward<T1>(t1), std::forward<T2>(t2), std::make_index_sequence<s> {});
       }
 
     public:

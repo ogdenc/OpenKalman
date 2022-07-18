@@ -339,6 +339,16 @@ namespace OpenKalman
 #endif
       : std::true_type { using uniform_type = C; };
 
+
+#ifndef __cpp_concepts
+    template<typename T, typename = void>
+    struct uniform_dimension_impl_17 : std::false_type {};
+
+    template<typename T>
+    struct uniform_dimension_impl_17<T, std::void_t<typename canonical_fixed_index_descriptor<T>::type>>
+      : detail::uniform_dimension_impl<canonical_fixed_index_descriptor_t<T>> {};
+#endif
+
   } // namespace detail
 
 
@@ -348,12 +358,12 @@ namespace OpenKalman
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept has_uniform_dimension_type =
-#else
-  constexpr bool has_uniform_dimension_type =
-#endif
-    fixed_index_descriptor<T> and
+  concept has_uniform_dimension_type = fixed_index_descriptor<T> and
     (euclidean_index_descriptor<T> or detail::uniform_dimension_impl<canonical_fixed_index_descriptor_t<T>>::value);
+#else
+  constexpr bool has_uniform_dimension_type = fixed_index_descriptor<T> and
+    (euclidean_index_descriptor<T> or detail::uniform_dimension_impl_17<T>::value);
+#endif
 
 
   /**

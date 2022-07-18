@@ -134,7 +134,7 @@ namespace OpenKalman::interface
 #endif
   struct GetElement
   {
-    /// Get element at indices (i...) of matrix arg
+    /// Get element at indices (i...) of matrix arg. This should preferably return a non-const lvalue reference, if possible.
 #ifdef __cpp_concepts
     template<std::convertible_to<const std::remove_reference_t<T>&> Arg>
 #else

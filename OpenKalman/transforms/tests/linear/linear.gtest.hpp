@@ -43,7 +43,7 @@ namespace OpenKalman::test
     auto cross_cov = p*adjoint(a);
     auto jacobians = g.jacobian(x, mean_of(noise)...);
     auto covariances = std::forward_as_tuple(std::move(p), covariance_of(noise)...);
-    auto cov = detail::sumprod(jacobians, covariances, std::make_index_sequence<sizeof...(Noise) + 1>{});
+    auto cov = detail::sumprod(jacobians, covariances, std::make_index_sequence<sizeof...(Noise) + 1> {});
     auto out_true = make_tuple(GaussianDistribution {y, cov}, std::move(cross_cov));
 
     auto out = t.transform_with_cross_covariance(std::forward<InputDist>(in), g, std::forward<Noise>(noise)...);
@@ -70,7 +70,7 @@ namespace OpenKalman::test
     auto cross_cov = p*adjoint(a);
     auto jacobians = g.jacobian(x, mean_of(noise)...);
     auto covariances = std::forward_as_tuple(std::move(p), covariance_of(noise)...);
-    auto cov = detail::sumprod(jacobians, covariances, std::make_index_sequence<sizeof...(Noise) + 1>{});
+    auto cov = detail::sumprod(jacobians, covariances, std::make_index_sequence<sizeof...(Noise) + 1> {});
     auto out_true = make_tuple(GaussianDistribution {y, cov}, std::move(cross_cov));
 
     auto out = t.transform_with_cross_covariance(std::forward<InputDist>(in), std::forward<Noise>(noise)...);

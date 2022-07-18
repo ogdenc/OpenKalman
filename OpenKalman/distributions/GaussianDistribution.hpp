@@ -935,7 +935,7 @@ namespace OpenKalman
     {
       auto means = split_vertical<Cs...>(mean_of(d));
       auto covariances = split_diagonal<Cs...>(covariance_of(std::forward<D>(d)));
-      return OpenKalman::detail::zip_dist<D>(means, covariances, std::make_index_sequence<sizeof...(Cs)>());
+      return OpenKalman::detail::zip_dist<D>(means, covariances, std::make_index_sequence<sizeof...(Cs)> {});
     }
   }
 

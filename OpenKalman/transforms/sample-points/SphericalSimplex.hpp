@@ -137,7 +137,7 @@ namespace OpenKalman
     {
       constexpr auto rows = index_dimension_of_v<D, 0>;
       constexpr auto count = sigma_point_count<dim>;
-      auto X = unscaled_sigma_points<D, dim, pos>(std::make_index_sequence<count * rows>());
+      auto X = unscaled_sigma_points<D, dim, pos>(std::make_index_sequence<count * rows> {});
       // Scale based on covariance:
       auto ret = make_self_contained(square_root(covariance_of(d)) * alpha * X);
       //

@@ -179,8 +179,8 @@ namespace OpenKalman
     auto h_k(const std::tuple<Inputs...>& inputs, std::index_sequence<is...>) const
     {
       constexpr auto j_size = row_dimension_of_v<decltype(std::get<term>(inputs))>;
-      using A = decltype(h_i<term, 0>(std::move(inputs), std::make_index_sequence<j_size>()));
-      return std::array<A, sizeof...(is)> {h_i<term, is>(inputs, std::make_index_sequence<j_size>())...};
+      using A = decltype(h_i<term, 0>(std::move(inputs), std::make_index_sequence<j_size> {}));
+      return std::array<A, sizeof...(is)> {h_i<term, is>(inputs, std::make_index_sequence<j_size> {})...};
     }
 
 
@@ -189,7 +189,7 @@ namespace OpenKalman
     auto h_term(const std::tuple<Inputs...>& inputs, std::index_sequence<ks...>) const
     {
       using Term = decltype(std::get<term>(inputs));
-      const auto t = h_k<term>(inputs, std::make_index_sequence<row_dimension_of_v<Term>>());
+      const auto t = h_k<term>(inputs, std::make_index_sequence<row_dimension_of_v<Term>> {});
       using C = row_coefficient_types_of_t<Term>;
       using V = Matrix<C, C, dense_writable_matrix_t<Term, Dimensions<row_dimension_of_v<Term>>, Dimensionsrow_dimension_of_v<Term>>>>;
       return std::array<V, sizeof...(ks)> {
@@ -203,7 +203,7 @@ namespace OpenKalman
     {
       static_assert(sizeof...(Inputs) == sizeof...(terms));
       constexpr auto k_size = row_dimension_of_v<std::invoke_result_t<Function, Inputs...>>;
-      return std::tuple {h_term<terms>(inputs, std::make_index_sequence<k_size>())...};
+      return std::tuple {h_term<terms>(inputs, std::make_index_sequence<k_size> {})...};
     }
 
   public:
@@ -260,7 +260,7 @@ namespace OpenKalman
       return jacobian_impl(
         std::forward_as_tuple(make_writable_matrix(std::forward<In>(in)),
           make_writable_matrix(std::forward<Perturbations>(ps))...),
-        std::make_index_sequence<1 + sizeof...(ps)>());
+        std::make_index_sequence<1 + sizeof...(ps)> {});
     }
 
 
@@ -283,7 +283,7 @@ namespace OpenKalman
       return hessian_impl(
         std::forward_as_tuple(make_writable_matrix(std::forward<In>(in)),
           make_writable_matrix(std::forward<Perturbations>(ps))...),
-        std::make_index_sequence<1 + sizeof...(ps)>());
+        std::make_index_sequence<1 + sizeof...(ps)> {});
     }
 
   private:
